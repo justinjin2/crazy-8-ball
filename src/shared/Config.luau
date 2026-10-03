@@ -8649,7 +8649,7 @@ Config.Bots = {
 	--   PlaceSamples: ball in hand spots it weighs.
 	Tiers = {
 		Bronze = {
-			Make = 0.12,
+			Make = 0.08,
 			Behind = 0.05,
 			Blunder = 0.3,
 			Scratch = 0.08,
@@ -8658,7 +8658,7 @@ Config.Bots = {
 			PlaceSamples = 4,
 		},
 		Silver = {
-			Make = 0.32,
+			Make = 0.3,
 			Behind = 0.06,
 			Blunder = 0.15,
 			Scratch = 0.05,
@@ -8667,7 +8667,7 @@ Config.Bots = {
 			PlaceSamples = 6,
 		},
 		Gold = {
-			Make = 0.5,
+			Make = 0.47,
 			Behind = 0.07,
 			Blunder = 0.05,
 			Scratch = 0.02,
@@ -8676,7 +8676,7 @@ Config.Bots = {
 			PlaceSamples = 8,
 		},
 		Platinum = {
-			Make = 0.54,
+			Make = 0.51,
 			Behind = 0.08,
 			Blunder = 0,
 			Scratch = 0.01,
@@ -8685,7 +8685,7 @@ Config.Bots = {
 			PlaceSamples = 10,
 		},
 		Diamond = {
-			Make = 0.57,
+			Make = 0.53,
 			Behind = 0.09,
 			Blunder = 0,
 			Scratch = 0,
@@ -8694,7 +8694,7 @@ Config.Bots = {
 			PlaceSamples = 12,
 		},
 		Expert = {
-			Make = 0.6,
+			Make = 0.55,
 			Behind = 0.1,
 			Blunder = 0,
 			Scratch = 0,
@@ -8703,7 +8703,7 @@ Config.Bots = {
 			PlaceSamples = 14,
 		},
 		Veteran = {
-			Make = 0.67,
+			Make = 0.63,
 			Behind = 0.08,
 			Blunder = 0,
 			Scratch = 0,
@@ -8712,7 +8712,7 @@ Config.Bots = {
 			PlaceSamples = 16,
 		},
 		Master = {
-			Make = 0.72,
+			Make = 0.7,
 			Behind = 0.06,
 			Blunder = 0,
 			Scratch = 0,
@@ -8721,7 +8721,7 @@ Config.Bots = {
 			PlaceSamples = 18,
 		},
 		Grandmaster = {
-			Make = 0.76,
+			Make = 0.77,
 			Behind = 0.04,
 			Blunder = 0,
 			Scratch = 0,
@@ -8815,6 +8815,51 @@ Config.Bots = {
 	-- is CapUpToTier or below (the designer: no Legendary or higher for Gold and below).
 	CapUpToTier = "Gold",
 	CappedRarity = "Epic",
+	-- The PC robot (Play against PC, Fill with PC): Roblox's Bludroid bundle (196), picked by
+	-- the designer from screenshots, 2026-10-02; the same body for every tier.
+	Robot = {
+		Torso = 136801229,
+		LeftArm = 136800990,
+		RightArm = 136801037,
+		LeftLeg = 136801087,
+		RightLeg = 136801165,
+		Hats = "136801320", -- its dome head (an accessory)
+		Icon = "rbxthumb://type=BundleThumbnail&id=196&w=150&h=150", -- its portrait
+	},
+	-- Disguised bots wear a real account's avatar (the designer, 2026-10-02): a random user id
+	-- in this range (accounts made from 2020 on), kept only if the avatar loads and is not blank
+	-- (some clothing or an accessory: a terminated account's comes back blank), never anyone
+	-- in the server or the designer. The server keeps PoolSize looks ready.
+	Avatars = {
+		MinUserId = 1400000000,
+		MaxUserId = 6000000000,
+		PoolSize = 6,
+		TriesPerLook = 12,
+		RetrySeconds = 0.4, -- between lookups (Roblox's web limits)
+	},
+	-- Rematch answers. A PC robot says yes at once once the player has; a disguised lobby bot
+	-- waits for the player, then answers after RematchDelay seconds, yes RematchAccept of the
+	-- time; global-queue bots and the tutorial's second bot always say no.
+	RematchDelay = { 1, 3 },
+	RematchAccept = 0.85,
+	-- A bot appears on its pad this long after it is called (Play against PC).
+	PcArriveSeconds = 0.6,
+	-- The server's thinking yields every this many simulations (spreads a turn over frames).
+	YieldEvery = 4,
+	-- Ball in hand: the cue ball is dragged to its spot over this long.
+	DragSeconds = 1.4,
+	-- The R15 animations a bot body plays (Roblox's default set).
+	Animations = {
+		Idle = "rbxassetid://507766388",
+		Walk = "rbxassetid://507777826",
+		Jump = "rbxassetid://507765000",
+		Fall = "rbxassetid://507767968",
+	},
+	WalkSpeed = 16,
+	-- The tutorial bot's angry exit: it jumps, then is gone this long after (mid-air).
+	AngryVanishSeconds = 0.35,
+	-- A tutorial bot that lost normally (the player ran to the 8) leaves this long after.
+	LeaveAfterSeconds = 2.5,
 }
 
 Config.Debug = {
@@ -8909,6 +8954,9 @@ Config.Debug = {
 		-- /abilitysetup <id|name>: puts that ability in your selected slot, nothing more
 		-- (2026-09-30). Only the accounts in UserIds may use it, in Studio and live.
 		AbilitySetup = "/abilitysetup",
+		-- /botrank <tier>: every bot you meet plays at that tier (Bots lane, for testing);
+		-- /botrank off: your own tier again. Only the accounts in UserIds, Studio and live.
+		BotRank = "/botrank",
 		-- The ult commands' old names, by command: each still runs its command.
 		OldAliases = {
 			UltBar = "/ultbar",

@@ -35,6 +35,7 @@ local Ranks = require(Shared:WaitForChild("Progression"):WaitForChild("Ranks"))
 local HudParts = require(script.Parent.HudParts)
 local RankBadge = require(script.Parent.RankBadge)
 local UIAnim = require(script.Parent.UIAnim)
+local People = require(script.Parent.People)
 
 local P = Config.UI.Progress.Nameplate
 local K = Config.UI.Kit
@@ -224,6 +225,22 @@ function Nameplates.new(): any
 	)
 	for _, player in Players:GetPlayers() do
 		self:add(player)
+	end
+	-- Bots get the same plate (the Bots lane: People's stand-in carries the same attributes).
+	table.insert(
+		self.connections,
+		People.botAdded:Connect(function(bot)
+			self:add(bot)
+		end)
+	)
+	table.insert(
+		self.connections,
+		People.botRemoved:Connect(function(bot)
+			self:remove(bot)
+		end)
+	)
+	for _, bot in People.bots() do
+		self:add(bot)
 	end
 	-- The fade and outline pass: a few times a second, not every frame.
 	table.insert(

@@ -45,6 +45,7 @@ local ShooterStance = require(Shared:WaitForChild("ShooterStance"))
 local Engine = require(Shared:WaitForChild("Rules"):WaitForChild("MatchEngine"))
 local Match = require(script.Parent:WaitForChild("Match"))
 local ShooterPoser = require(script.Parent:WaitForChild("ShooterPoser"))
+local People = require(script.Parent:WaitForChild("People"))
 
 local WatchedShooters = {}
 WatchedShooters.__index = WatchedShooters
@@ -326,7 +327,7 @@ local function step(
 		drop(slot)
 		return
 	end
-	local owner = Players:GetPlayerByUserId(shooterId)
+	local owner = People.owner(shooterId) -- a player, or a bot (the Bots lane)
 	local character = owner and owner.Character
 	if character == nil or character.Parent == nil or character == me.Character then
 		drop(slot)
@@ -338,7 +339,7 @@ local function step(
 		slot.userId, slot.character = shooterId, character
 		-- Everyone sees the shooter's own cue: the stick wears their EquippedCue, and repaints
 		-- if they equip another (CueStickBuilder.wear does nothing for the same player).
-		CueStickBuilder.wear(slot.cue, owner)
+		CueStickBuilder.wear(slot.cue, owner :: any)
 	end
 	local poser = slot.poser
 	if poser == nil then

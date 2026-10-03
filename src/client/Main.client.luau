@@ -24,6 +24,8 @@ local NiceShot = require(Shared.Rules.NiceShot)
 local Audio = require(script.Parent.Audio)
 local Avatar = require(script.Parent.Avatar)
 local BackCue = require(script.Parent.BackCue)
+local BotChat = require(script.Parent.BotChat) -- the Bots lane
+local People = require(script.Parent.People) -- the Bots lane: players and bots behind one lookup
 local CueAssets = require(script.Parent.CueAssets)
 local CueSkinLook = require(script.Parent.CueSkinLook)
 local Effects = require(script.Parent.Effects)
@@ -69,6 +71,7 @@ local visuals = Instance.new("Folder")
 visuals.Name = "ClientVisuals"
 visuals.Parent = workspace
 local hub = Hub.new(visuals)
+BotChat.start() -- a bot's chat bubble and line (the Bots lane)
 -- The developer's /slowmo (Studio only, DevCommands): each table's replay rate rides on a
 -- workspace attribute (Config.Debug.Commands.SlowmoAttribute .. the table id); none is 1.
 for id = 1, Placement.tableCount() do
@@ -1111,7 +1114,7 @@ local function holdShots(dt: number)
 	end
 	for _, id in tables do
 		for _, seat in hub:seatsAt(id) do
-			local seated = Players:GetPlayerByUserId(seat.userId)
+			local seated = People.owner(seat.userId) -- a player or a bot (the Bots lane)
 			if seated then
 				table.insert(ids, CueStickBuilder.equippedCue(seated))
 			end

@@ -35,6 +35,7 @@ local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Camera = require(script.Parent:WaitForChild("Camera"))
 local CueAssets = require(script.Parent:WaitForChild("CueAssets"))
 local CueSkinLook = require(script.Parent:WaitForChild("CueSkinLook"))
+local People = require(script.Parent:WaitForChild("People"))
 
 local B = Config.Cue.Back
 local LENGTH = Config.Cue.CueLengthStuds
@@ -270,7 +271,8 @@ end
 function BackCue.refresh(self: BackCue)
 	local eye = Workspace.CurrentCamera.CFrame.Position
 	local want: { { player: Player, character: Model, d: number } } = {}
-	for _, player in Players:GetPlayers() do
+	-- Players and bots alike (the Bots lane: People's stand-in for a bot).
+	for _, player in People.everyone() do
 		local character = player.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		local humanoid = character and character:FindFirstChildOfClass("Humanoid")

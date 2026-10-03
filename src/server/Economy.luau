@@ -84,7 +84,12 @@ function Economy.opponentIds(e: any, team: number): { number }
 		return ids
 	end
 	for _, s in Economy.seatsInOrder(e) do
-		if type(s.team) == "number" and s.team ~= team and not table.find(ids, s.userId) then
+		if
+			type(s.team) == "number"
+			and s.team ~= team
+			and not table.find(ids, s.userId)
+			and not Settle.isBot(e, s.userId) -- a bot is not an account (the Bots lane)
+		then
 			table.insert(ids, s.userId)
 		end
 	end

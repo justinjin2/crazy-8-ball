@@ -78,10 +78,18 @@ function UltService.equipped(player: Player): string
 	return Slots.equipped(ults, passes, devAll)
 end
 
--- The ult a seat plays: a real player's equipped one, a pretend player's the default.
+--- The Bots lane sets this: a bot seat's ability (nil for anyone else).
+UltService.botUlt = nil :: ((userId: number) -> string?)?
+
+-- The ult a seat plays: a real player's equipped one, a bot's own, a pretend player's the
+-- default.
 local function ultOf(userId: number): string
 	local player = Players:GetPlayerByUserId(userId)
-	return if player then UltService.equipped(player) else U.Default
+	if player then
+		return UltService.equipped(player)
+	end
+	local bot = if UltService.botUlt then UltService.botUlt(userId) else nil
+	return bot or U.Default
 end
 
 -- Activates `userId`'s ult at table `t` (TableService's record) as the remote does: Match's
@@ -101,6 +109,11 @@ local function activate(t: any, userId: number, ultId: string?): (boolean, strin
 		Tables.broadcast(t)
 	end
 	return ok, reason
+end
+
+--- A bot activates its ability (the Bots lane), as UltActivate does for a person.
+function UltService.activateFor(t: any, userId: number): (boolean, string?)
+	return activate(t, userId, nil)
 end
 
 local function refuse(player: Player, reason: string?)

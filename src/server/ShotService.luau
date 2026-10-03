@@ -25,6 +25,34 @@ local function judged(t: any, player: Player?)
 		end
 	end
 end
+--- A bot's shot (the Bots lane): the ShotFired path with no Player behind it. `placed()`
+--- puts the bot's body at the spot it shot from before the replay goes out. Returns the
+--- accepted shot (nil when refused) and why.
+function Service.submitFor(
+	t: any,
+	userId: number,
+	payload: any,
+	placed: (() -> ())?
+): (any?, string?)
+	local now = workspace:GetServerTimeNow()
+	Tables.advance(t, now)
+	local ok, result, reason = pcall(Engine.acceptShot, t.engine, userId, payload, now)
+	if not ok then
+		warn("[8ball] bot shot failed: " .. tostring(result))
+		Tables.broadcast(t)
+		return nil, "SimulationError"
+	end
+	if result then
+		judged(t, nil)
+		if placed and (not result.parts or not result.parts.strikes) then
+			placed()
+		end
+		Net.get("ShotResult"):FireAllClients(result)
+	end
+	Tables.broadcast(t)
+	return result, reason
+end
+
 function Service.start()
 	if started then
 		return

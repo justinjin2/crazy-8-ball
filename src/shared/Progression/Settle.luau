@@ -58,18 +58,76 @@ local function whole(value: any): number
 	return math.floor(value)
 end
 
+--- The kind of bot at a match (the Bots lane: a bot's seat carries `bot = { kind, ... }`):
+--- "Pc" (Play against PC, Fill with PC: shown as PC), "Disguised" (looks like a person) or
+--- "Tutorial" (the new player's first opponents), or nil with no bot.
+function Settle.botKind(e: any): string?
+	if type(e) ~= "table" or type(e.seats) ~= "table" then
+		return nil
+	end
+	for _, s in e.seats do
+		if type(s.bot) == "table" and type(s.bot.kind) == "string" then
+			return s.bot.kind
+		end
+	end
+	return nil
+end
+
+--- Whether seat `userId` of match `e` is a bot.
+function Settle.isBot(e: any, userId: number): boolean
+	if type(e) ~= "table" or type(e.seats) ~= "table" then
+		return false
+	end
+	for _, s in e.seats do
+		if s.userId == userId then
+			return type(s.bot) == "table"
+		end
+	end
+	return false
+end
+
 --- Who a match is against, for the money and XP rules: "Solo" (a player practising alone,
---- `e.solo`), "PC" (the engine marks a match against the computer with `e.pc = true`; bots
---- are not built yet, so nothing sets it) or "Player".
+--- `e.solo`), "PC" (`e.pc = true`, or a PC bot) or "Player" (people, and disguised and
+--- tutorial bots, which pay like people: the designer, 2026-10-02).
 function Settle.opponentKind(e: any): string
 	if type(e) ~= "table" then
 		return "Player"
 	elseif e.solo ~= nil then
 		return "Solo"
-	elseif e.pc == true then
+	elseif e.pc == true or Settle.botKind(e) == "Pc" then
 		return "PC"
 	end
 	return "Player"
+end
+
+--- A bot match that counts whatever the match time (the designer, 2026-10-02): every
+--- tutorial game (its early 8 pays in full) and a disguised bot that left mid-match (its
+--- forfeit pays the real player in full, even under the one-minute mark).
+function Settle.botReal(e: any): boolean
+	if type(e) ~= "table" or type(e.seats) ~= "table" then
+		return false
+	end
+	for _, s in e.seats do
+		local b = s.bot
+		if
+			type(b) == "table"
+			and (b.kind == "Tutorial" or (b.kind == "Disguised" and b.vanished == true))
+		then
+			return true
+		end
+	end
+	return false
+end
+
+--- How a match is recorded in the stats (PlayerData.recordMatch): a win against a disguised
+--- bot is a PC win (never the most-wins board, not a real win); the tutorial's are real.
+function Settle.recordAs(e: any, kind: string): string
+	return if Settle.botKind(e) == "Disguised" then "PC" else kind
+end
+
+--- Whether a win can add to the win streak: against people only (no bot of any kind).
+function Settle.streakCounts(e: any): boolean
+	return Settle.opponentKind(e) == "Player" and Settle.botKind(e) == nil
 end
 
 --- Whether a match counts (GDD section 13): `seconds` of server time from the break reached

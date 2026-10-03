@@ -319,7 +319,13 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		end
 	end)
 	self.more = fold(content, "More", 9)
-	self.pc = button(self.more.inner, "PlayPC", Copy.PlayPC, 1, "Blue", "Robot", function() end)
+	-- Play against PC (the Bots lane): the robot of the player's own tier, at once.
+	self.pc = button(self.more.inner, "PlayPC", Copy.PlayPC, 1, "Blue", "Robot", function()
+		if self:canSend() and self:alone() then
+			self.sentAt = self.now
+			self.onAction("PlayPc", nil)
+		end
+	end)
 	-- Blue like Play against PC (designer, 2026-10-02; was green).
 	self.solo = button(
 		self.more.inner,

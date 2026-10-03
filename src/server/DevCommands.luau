@@ -47,6 +47,7 @@ local Counters = require(script.Parent.Counters)
 local UltService = require(script.Parent.UltService)
 local UltSpins = require(script.Parent.UltSpins)
 local Tables = require(script.Parent.TableService)
+local BotService = require(script.Parent.Bots.BotService)
 local UltCatalog = require(Shared.Ults.Catalog)
 
 local D = Config.Debug.Commands
@@ -1075,6 +1076,29 @@ local function abilitySetup(player: Player, args: { string })
 	tell(player, Dev.AbilitySet:format(UltCatalog.name(id)))
 end
 
+-- /botrank <tier> | off: the tier of every bot the caller meets (the Bots lane's testing
+-- tool; the designer's account only, like every command here).
+local function botRank(player: Player, args: { string })
+	local word = args[1]
+	if word == nil then
+		tell(player, Dev.BotRankBad:format("", table.concat(Config.Ranks.Tiers, ", ")))
+		return
+	end
+	if string.lower(word) == "off" then
+		BotService.forceTier(player.UserId, nil)
+		tell(player, Dev.BotRankOff)
+		return
+	end
+	for _, tier in Config.Ranks.Tiers do
+		if string.lower(tier) == string.lower(word) then
+			BotService.forceTier(player.UserId, tier)
+			tell(player, Dev.BotRankSet:format(tier))
+			return
+		end
+	end
+	tell(player, Dev.BotRankBad:format(word, table.concat(Config.Ranks.Tiers, ", ")))
+end
+
 local function econHelp(player: Player)
 	tell(player, Dev.EconHelp)
 	for _, key in ECON do
@@ -1277,6 +1301,7 @@ function DevCommands.start()
 	command("Hold", D.Hold, hold)
 	command("AbilitySetup", D.AbilitySetup, abilitySetup)
 	command("UltHelp", D.UltHelp, ultHelp)
+	command("BotRank", D.BotRank, botRank)
 
 	-- Studio only: tests type a command through ServerStorage.DevCommandsQA, since a script
 	-- cannot type into Roblox's chat box: Invoke(userId, "/givecue chalk dust 3") -> (true,

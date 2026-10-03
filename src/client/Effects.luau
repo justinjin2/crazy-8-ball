@@ -18,7 +18,6 @@
 -- off the ball. It is on screen for every shot of every game, so it has to stay quiet, and
 -- keeping it quiet is what leaves the rare cues somewhere to go.
 
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Debris = game:GetService("Debris")
 local RunService = game:GetService("RunService")
@@ -38,6 +37,7 @@ local CuePiece = require(script.Parent.CuePiece)
 local CueVfx = require(script.Parent.CueVfx)
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
+local People = require(script.Parent.People)
 
 local Effects = {}
 Effects.__index = Effects
@@ -181,7 +181,7 @@ function Effects.follow(self: Effects, userId: number?)
 		end
 		self.followId, self.followPlayer = userId, nil
 	end
-	local shooter = Players:GetPlayerByUserId(userId)
+	local shooter = People.owner(userId) -- a player or a bot (the Bots lane)
 	if shooter == nil then
 		self:setStyle(Config.Effects.DefaultStyle)
 		return

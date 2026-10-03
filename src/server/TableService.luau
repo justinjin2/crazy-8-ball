@@ -1208,6 +1208,132 @@ function Service.arenaDecline(p: Player): boolean
 	return false
 end
 
+---------------------------------------------------------------------------------------------
+-- Bots (the Bots lane, src/server/Bots): a bot is a seat with no Player, its id negative. The
+-- BotService drives it through these, as the remotes drive a person.
+---------------------------------------------------------------------------------------------
+local actionHooks: { [string]: (t: any, p: Player, payload: any) -> boolean } = {}
+local requestHooks: { (t: any, host: Player) -> () } = {}
+
+--- Adds a host-card action the engine does not know (Play against PC, Fill with PC):
+--- `hook(t, player, payload)` runs instead of Engine.action and says whether it was taken.
+function Service.onAction(kind: string, hook: (t: any, p: Player, payload: any) -> boolean)
+	actionHooks[kind] = hook
+end
+
+--- Adds `hook(t, host)` for every Request opponent the server sends out.
+function Service.onRequest(hook: (t: any, host: Player) -> ())
+	table.insert(requestHooks, hook)
+end
+
+--- Every table (BotService's poll).
+function Service.all(): { [number]: any }
+	return tables
+end
+
+--- The collision group of a table's participants (a seated bot's body joins it).
+Service.ParticipantsGroup = PARTICIPANTS
+
+--- Seats a bot at table `t` (on `team` at an arena's table). True when seated.
+function Service.seatBot(t: any, userId: number, name: string, team: number?): boolean
+	local ok = Engine.join(t.engine, userId, name, name, now(), if arena then team else nil)
+	if ok then
+		Service.broadcast(t)
+	end
+	return ok
+end
+
+--- A bot's aim, as a person's AimUpdate sets it (the aim stream carries it to everyone).
+function Service.setBotAim(t: any, userId: number, angle: number, pull: number, elevation: number?)
+	local e = t.engine
+	if e.shooter ~= userId or not aimPhase(e.phase) or not ShotInput.isFinite(angle) then
+		return
+	end
+	t.aim = {
+		angle = angle % (2 * math.pi),
+		pull = AimStream.quantizePull(math.clamp(pull, 0, 1)) or 0,
+		elevation = elevation or Config.Cue.CueElevationDegrees,
+		by = userId,
+		turnId = e.turnId,
+		epoch = e.epoch,
+	}
+end
+
+--- A bot drags its ball in hand (the aim stream's ball-in-hand move).
+function Service.moveBotCue(t: any, userId: number, seq: number, x: number, y: number): boolean
+	local e = t.engine
+	local time = now()
+	Service.advance(t, time)
+	return Engine.moveCue(
+		e,
+		userId,
+		{ epoch = e.epoch, turnId = e.turnId, seq = seq, x = x, y = y },
+		time
+	)
+end
+
+--- Holds a seated bot's body like a shooting person's (constrain): anchored, and while it
+--- lines up, its root follows the stance of its aim. Otherwise left where it is.
+function Service.holdBot(t: any, character: Model, userId: number)
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return
+	end
+	local e = t.engine
+	if e.phase == "Waiting" then
+		return
+	end
+	root.Anchored = true
+	if e.shooter == userId and aimPhase(e.phase) then
+		followStance(t, { UserId = userId } :: any, root, character)
+	end
+end
+
+--- A bot's shot was accepted: its body goes to the spot it shot from (Service.shotAccepted
+--- for a person).
+function Service.botShotAccepted(
+	t: any,
+	character: Model,
+	angle: number,
+	spin: any,
+	elevation: number?
+)
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") or not ShotInput.isFinite(angle) then
+		return
+	end
+	t.shotAt = now()
+	root.Anchored = true
+	local sx, sy = 0, 0
+	if type(spin) == "table" and ShotInput.isFinite(spin.x) and ShotInput.isFinite(spin.y) then
+		sx, sy = Cue.clampSpin(spin.x, spin.y)
+	end
+	local stance = solveStance(
+		t,
+		character,
+		angle % (2 * math.pi),
+		sx,
+		sy,
+		ShotInput.roundElevation(elevation)
+	)
+	if stance then
+		local x, y, z, yaw = ShooterStance.idle(stance)
+		local spot = worldSpot(t.placement, x, y, z, yaw)
+		if spot and placeRoot(t, root, spot) then
+			root:SetAttribute(SHOT_SPOT, spot)
+		end
+	end
+end
+
+--- Where a body stands on table `t`'s queue pad (a bot appearing to play).
+function Service.padSpot(t: any, offset: number?): CFrame
+	local cx, cy = Placement.queuePad(t.engine.teamSize)
+	local wx, wy, wz =
+		Placement.fromTableStuds(t.placement, cx + (offset or 0), cy, Q.RespawnHeight)
+	local at = Vector3.new(wx, wy, wz)
+	return CFrame.lookAt(at, Vector3.new(t.placement.x, wy, t.placement.z))
+end
+
 --- Build the tables and run them. `mode` "Arena" (ArenaService) stands up the one table of
 --- Placement's layout with no queue pad; anything else is the lobby's sixteen.
 function Service.start(parent: Instance, mode: string?)
@@ -1299,6 +1425,22 @@ function Service.start(parent: Instance, mode: string?)
 			Net.get("ShotRejected"):FireClient(p, "ActionRejected")
 			return
 		end
+		local hook = actionHooks[payload.kind]
+		if hook then
+			if payload.epoch ~= t.engine.epoch then
+				return
+			end
+			Service.advance(t, now())
+			local ok, taken = pcall(hook, t, p, payload)
+			if not ok then
+				warn("[8ball] action hook failed: " .. tostring(taken))
+			end
+			Service.broadcast(t)
+			if not (ok and taken) then
+				Net.get("ShotRejected"):FireClient(p, "ActionRejected")
+			end
+			return
+		end
 		if payload.kind == "GlobalSearch" or payload.kind == "CancelSearch" then
 			if payload.epoch ~= t.engine.epoch then
 				return
@@ -1318,6 +1460,9 @@ function Service.start(parent: Instance, mode: string?)
 		releaseMissing(t)
 		if accepted and payload.kind == "RequestOpponent" then
 			sendRequest(t, p)
+			for _, hook in requestHooks do
+				task.spawn(hook, t, p)
+			end
 		end
 		if accepted or t.engine.revision ~= t.sentRevision then
 			Service.broadcast(t) -- one snapshot per accepted Place (a drag release)

@@ -37,6 +37,7 @@ local Catalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
 local HudParts = require(script.Parent:WaitForChild("HudParts"))
 local UIAnim = require(script.Parent:WaitForChild("UIAnim"))
 local ScreenFx = require(script.Parent:WaitForChild("ScreenFx"))
+local People = require(script.Parent:WaitForChild("People"))
 
 local C = Config.UI.UltCutscene
 local U = Config.Ults
@@ -327,7 +328,7 @@ end
 -- or the silhouette. Scripts and sounds are stripped: a LocalScript cloned into PlayerGui
 -- would run, and a playing Sound would play.
 local function avatarModel(userId: number): Model
-	local who = Players:GetPlayerByUserId(userId)
+	local who = People.owner(userId) -- a player or a bot (the Bots lane)
 	local character = who and who.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	local rootCFrame = CFrame.Angles(0, math.rad(C.AvatarYawDegrees), 0)

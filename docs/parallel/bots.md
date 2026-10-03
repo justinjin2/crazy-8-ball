@@ -44,8 +44,35 @@ your status).
 
 ## Status
 
-**2026-10-02: brief approved** (`docs/prompts/BOTS_PROMPT.md`). Building step 1 (the bot brain in
-Lune).
+**2026-10-02: brief approved** (`docs/prompts/BOTS_PROMPT.md`).
+
+- **Step 1, the bot brain (done, 22213d1).** `src/shared/Bots/` (Rng, ShotFinder, Brain, Look,
+  Script), `Config.Bots`, `Strings.Bots`; `tests/bots_brain_test.luau`; the duel tuner
+  `tools/bot_duel.luau` (results in `tools/bot_duel_results.json`).
+- **Step 2, the robot (done):** the designer picked the Bludroid (bundle 196).
+- **Step 3, Play against PC (done).** `src/server/Bots/` (BotService, Driver, Body, Identity),
+  the client stand-in `src/client/People.luau` and `BotChat.luau`. Checked in Studio (PC
+  window): the real button seats a Bronze Bot (Unranked player) with a random cue and ability;
+  the coin lands for the player, who breaks; the robot bends over the table and lines up with
+  a small to-and-fro; its shots take 3 to 3.4 s of aiming after the turn intro, about 4 to 6 s
+  with ball in hand; result screen shows the robot, "Bronze Bot", its badge and the series;
+  Rematch is accepted at once and the player breaks again; Leave removes the bot; console
+  clean. `/botrank <tier>|off` (designer only) sets the bots' tier for testing. Phone and
+  gamepad: no new controls (the existing Play against PC button); the HUD and result screen are
+  the existing ones with the robot's picture.
+- **Shared or other lanes' files changed (each a small block or a few lines):**
+  `Config.luau` (Bots block, `Debug.Commands.BotRank`), `Strings.luau` (Bots block, three Dev
+  lines), `Net.luau` (BotSay), `MatchEngine.luau` (`breakFor`: the player's side breaks, on a
+  rematch too), `Settle.luau` (bot kinds: botKind, isBot, botReal, recordAs, streakCounts;
+  opponentKind gives PC for a PC bot), `Ranking.luau` (bot seats in teamList, record as PC win,
+  no streak against bots, bot forfeit counts), `Economy.luau` (bots never paid as opponents),
+  `TableService.luau` (bot block: onAction, onRequest, all, seatBot, setBotAim, moveBotCue,
+  holdBot, botShotAccepted, padSpot; the action and request hooks), `ShotService.luau`
+  (submitFor), `UltService.luau` (botUlt, activateFor), `Bootstrap` (starts BotService),
+  `DevCommands.luau` (/botrank block), `QueueMenu.luau` (Play against PC sends PlayPc),
+  `WatchedShooters`, `BackCue`, `Nameplates`, `MatchHUD`, `ResultScreen`, `Effects`,
+  `UltCutscene`, `Main.client` (look people up through People, so bots show like players).
+- Next: step 4, disguised identity.
 
 ## Requests to other lanes or the integrator
 

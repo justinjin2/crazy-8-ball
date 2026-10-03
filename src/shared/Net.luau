@@ -252,6 +252,10 @@ local REMOTES: { [string]: string } = {
 	-- replaced, wasPity, used, slot, pity, state }; the end: { kind = "Stop", reason, n, id? }
 	-- (reason: SpinView.AutoStops or a SpinView reason; id: the ult it stopped on or before).
 	UltAuto = "RemoteEvent",
+	-- The bots (the Bots lane). server -> all: a bot "says" something (the tutorial bot's
+	-- AUGHHHH!): (bot seat id, text); every client shows a chat bubble over its head and a chat
+	-- line in its name, like a person's.
+	BotSay = "RemoteEvent",
 }
 
 -- Values per table in an AimBroadcast batch.

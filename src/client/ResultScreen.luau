@@ -266,7 +266,17 @@ local function makePlayer(parent: Instance, player: any, winner: boolean, zIndex
 	image.Parent = card
 	HudParts.corner(image, Config.Multiplayer.Style.PortraitCornerPx - 2)
 	local userId = if type(player.userId) == "number" then player.userId else 0
-	loadHeadshot(userId, image, fallback)
+	-- A bot's card (the Bots lane): its avatar's account, or the PC robot's picture.
+	if player.bot == "Pc" then
+		image.Image = Config.Bots.Robot.Icon
+		fallback.Visible = false
+	else
+		loadHeadshot(
+			if type(player.avatarUserId) == "number" then player.avatarUserId else userId,
+			image,
+			fallback
+		)
+	end
 	local badge = RankBadge.new(card, { size = 32, interactive = false, name = "Rank", zIndex = 6 })
 	badge.root.AnchorPoint = Vector2.new(0.5, 0.5)
 	badge:set(

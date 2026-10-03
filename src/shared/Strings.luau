@@ -424,6 +424,9 @@ return {
 		HoldSet = "Replays at table %d stop at %s s.",
 		HoldOff = "Replays at table %d play through again.",
 		AbilitySet = "Your ability is now %s.",
+		BotRankSet = "Bots you meet now play at %s.",
+		BotRankOff = "Bots you meet play at your own tier again.",
+		BotRankBad = 'No tier called "%s". Tiers: %s, or off.',
 	},
 	-- The rank and money screens (ResultScreen, NewRankPopup, Roadmap, RankHud).
 	Progress = {

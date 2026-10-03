@@ -146,12 +146,17 @@ end
 
 -- Applies one match to one player's rank (with its rank-up rewards) and counts it in their
 -- stats. Returns the pure result (nil when the save is not loaded or refused it).
-local function applyMatch(player: Player, data: any, ctx: Ranks.MatchContext): Ranks.MatchResult?
+local function applyMatch(
+	player: Player,
+	data: any,
+	ctx: Ranks.MatchContext,
+	recordAs: string? -- the stats' kind when it differs (a disguised bot's win is a PC win)
+): Ranks.MatchResult?
 	local result = Ranks.applyMatch(rankSave(data), ctx)
 	if not applyRank(player, result) then
 		return nil
 	end
-	PlayerData.recordMatch(player, ctx.outcome, ctx.opponent)
+	PlayerData.recordMatch(player, ctx.outcome, recordAs or ctx.opponent)
 	return result
 end
 
@@ -295,7 +300,8 @@ function Ranking.departed(t: any, player: Player)
 	applyMatch(
 		player,
 		data,
-		{ outcome = "Loss", opponent = kind, forfeit = true, mode = modeOf(e) }
+		{ outcome = "Loss", opponent = kind, forfeit = true, mode = modeOf(e) },
+		Settle.recordAs(e, kind)
 	)
 	local seat = Engine.seat(e, player.UserId)
 	local opponents = if seat and type(seat.team) == "number"
@@ -311,13 +317,21 @@ local function teamList(e: any, team: number): { any }
 		if s.team == team then
 			local p = Players:GetPlayerByUserId(s.userId)
 			local rank = if p then rankOf(p) else { tier = "Unranked", division = 0 }
+			-- A bot's card (the Bots lane): its shown rank, its avatar's headshot, never "left"
+			-- unless it really left.
+			local bot = if type(s.bot) == "table" then s.bot else nil
+			if bot then
+				rank = { tier = bot.tier or "Bronze", division = bot.division or 1 }
+			end
 			table.insert(list, {
 				userId = s.userId,
 				name = s.name,
 				displayName = s.displayName,
 				tier = rank.tier,
 				division = rank.division,
-				left = not s.connected or p == nil,
+				left = not s.connected or (p == nil and bot == nil),
+				avatarUserId = if bot then bot.avatarUserId else nil,
+				bot = if bot then bot.kind else nil,
 			})
 		end
 	end
@@ -374,11 +388,16 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 	local myIndex = Ranks.fromXp(data.RankXp, data.RatedMatches > 0).index
 	-- A win against people that counts adds to the streak; any loss ends it (a quick forfeit
 	-- too), so leaving early never protects one.
-	local streakAfter = Ranks.nextStreak(data.Stats.WinStreak, outcome, real and kind == "Player")
+	local streakAfter =
+		Ranks.nextStreak(data.Stats.WinStreak, outcome, real and Settle.streakCounts(m.e))
 
 	-- Rank XP and the rank-up rewards (ECONOMY 4).
 	if real then
-		local flags = Settle.boosts({ won = won, streakAfter = streakAfter })
+		-- No streak boost from a win against a bot of any kind (Settle.streakCounts).
+		local flags = Settle.boosts({
+			won = won,
+			streakAfter = if Settle.streakCounts(m.e) then streakAfter else 0,
+		})
 		local result = applyMatch(p, data, {
 			outcome = outcome,
 			opponent = kind,
@@ -387,7 +406,7 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 			opponentIndex = entry.opponentIndex,
 			boosts = flags,
 			farm = farm.Xp,
-		})
+		}, Settle.recordAs(m.e, kind))
 		if result then
 			paid.xp = Ranking.xpPart(result)
 		end
@@ -415,7 +434,7 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 	if bonus > 0 and PlayerData.addMoney(p, bonus, "MatchBonus", if pc then "Pc" else nil) then
 		paid.bonus = bonus
 	end
-	if won then
+	if won and Settle.streakCounts(m.e) then
 		local streak = Money.streakBonus(streakAfter, kind, m.multiplier, boost, farm.Bonus)
 		if streak > 0 and PlayerData.addMoney(p, streak, "StreakBonus") then
 			paid.streak = streak
@@ -432,7 +451,7 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 			real = real,
 			solo = false,
 			won = true,
-			pc = pc,
+			pc = pc or Settle.botKind(m.e) ~= nil, -- a bot is no account to farm (the Bots lane)
 			winsBefore = progress.Wins,
 			winsTodayBefore = daily.Wins,
 			firstWinDue = progress.FirstWinCaseDue,
@@ -452,7 +471,8 @@ local function settle(e: any)
 	local key = Economy.matchKey(e)
 	local result = e.result
 	local winner: number? = result.winner
-	local real = Settle.isReal(result.seconds)
+	-- A tutorial game and a disguised bot's forfeit count whatever the time (Settle.botReal).
+	local real = Settle.isReal(result.seconds) or Settle.botReal(e)
 	local forfeitTeam = Settle.forfeitTeam(result, real)
 	local m: Match = {
 		e = e,
@@ -471,7 +491,15 @@ local function settle(e: any)
 	local facts: { [number]: Facts } = {}
 	for _, s in seats do
 		local p = Players:GetPlayerByUserId(s.userId)
+		-- A bot (the Bots lane): its shown rank for the gap, and no account to protect.
+		local bot = if type(s.bot) == "table" then s.bot else nil
 		facts[s.userId] = gone[s.userId]
+			or (if bot
+				then {
+					index = Ranks.indexOf(bot.tier or "Bronze", bot.division or 1),
+					realMatches = math.huge,
+				}
+				else nil)
 			or (if p then factsOf(p) else nil)
 			or { index = nil, realMatches = if IS_STUDIO then E.FreeCaseLoserMinMatches else nil }
 	end

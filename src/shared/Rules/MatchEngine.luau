@@ -722,6 +722,12 @@ function start(t: any, host: any, now: number, coinWinner: number?)
 		s.team, s.slot = team, slots[team]
 	end
 	local winner = if coinWinner == 2 then 2 else 1
+	-- Against bots the real player always breaks (the Bots lane, designer 2026-10-02): the coin
+	-- is still shown, landing for their side. `breakFor` is that player's seat id.
+	local breaker = if t.breakFor then Engine.seat(t, t.breakFor) else nil
+	if breaker and (breaker.team == 1 or breaker.team == 2) then
+		winner = breaker.team
+	end
 	-- Every game's bars start at 0.
 	t.ults, t.ultFeed = Ults.new(), {}
 	t.search = nil
@@ -772,6 +778,7 @@ function rematch(t: any, now: number, nextSeed: number?)
 		fixed = t.fixed,
 		epoch = t.epoch,
 		revision = t.revision,
+		breakFor = t.breakFor,
 	}
 	local fresh = Engine.new(t.id, t.teamSize, nextSeed or t.rackSeed + 1)
 	table.clear(t)
@@ -782,12 +789,18 @@ function rematch(t: any, now: number, nextSeed: number?)
 	t.settings = keep.settings
 	t.joinOrder = keep.joinOrder
 	t.fixed = keep.fixed
+	t.breakFor = keep.breakFor
 	t.epoch = keep.epoch + 1
 	t.revision = keep.revision + 1
 	t.phaseStartedAt = now
 	rehost(t)
 	local series = keep.series or { wins = { 0, 0 }, games = 0 }
 	local team = if series.breaker then 3 - series.breaker else 1
+	-- Against bots the real player breaks every game (start's `breakFor`).
+	local breaker = if t.breakFor then Engine.seat(t, t.breakFor) else nil
+	if breaker and (breaker.team == 1 or breaker.team == 2) then
+		team = breaker.team
+	end
 	series.breaker = team
 	t.series = series
 	t.activeTeam, t.breakShot = team, true

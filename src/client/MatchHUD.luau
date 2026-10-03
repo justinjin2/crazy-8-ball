@@ -21,6 +21,7 @@ local UIAnim = require(script.Parent.UIAnim)
 local RankBadge = require(script.Parent.RankBadge)
 local Engine = require(Shared:WaitForChild("Rules"):WaitForChild("MatchEngine"))
 local UltCatalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
+local People = require(script.Parent.People)
 local Copy = Strings.Match
 local M = Config.Multiplayer
 local S = M.Style
@@ -223,7 +224,7 @@ end
 -- The icon of the ult `userId` plays with: their UltEquipped attribute (the server keeps it
 -- to the ult it would arm), a pretend player's the default; "" when it has none.
 local function ultIconOf(userId: number?): string
-	local who = if userId then Players:GetPlayerByUserId(userId) else nil
+	local who = People.owner(userId) -- a player or a bot (the Bots lane)
 	local equipped = if who then who:GetAttribute("UltEquipped") else nil
 	local id = if type(equipped) == "string" and UltCatalog.exists(equipped)
 		then equipped
@@ -1181,15 +1182,19 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 				portrait.image.ImageTransparency = if seat.connected == false then 0.6 else 0
 				if portrait.userId ~= seat.userId then
 					portrait.userId = seat.userId
-					self:watchRank(portrait, seat.userId)
+					self:watchRank(portrait, seat.userId, seat.bot)
 					portrait.image.Image = ""
 					portrait.fallback.Visible = true
-					local id = seat.userId
-					local cached = self.avatarCache[id]
-					if cached then
+					-- A bot's portrait (the Bots lane): its avatar's account, or the robot.
+					local id, picture = People.portrait(seat.userId, seat.bot)
+					local cached = if id then self.avatarCache[id] else nil
+					if picture then
+						portrait.image.Image = picture
+						portrait.fallback.Visible = false
+					elseif cached then
 						portrait.image.Image = cached
 						portrait.fallback.Visible = false
-					elseif id > 0 then
+					elseif id and id > 0 then
 						task.spawn(function()
 							local ok, content, isReady = pcall(function()
 								return Players:GetUserThumbnailAsync(
@@ -1203,7 +1208,7 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 								and ok
 								and content
 								and isReady
-								and portrait.userId == id
+								and portrait.userId == seat.userId
 							then
 								self.avatarCache[id] = content
 								portrait.image.Image = content
@@ -1263,14 +1268,20 @@ end
 -- The small rank badge under a portrait: the seated player's rank from their attributes
 -- (RankTier, RankDivision), kept up to date, so it pops when they rank up as the match ends.
 -- Hidden when there is no such Player (the Studio QA fixture's made-up players).
-function MatchHUD.watchRank(self: any, portrait: any, userId: number)
+function MatchHUD.watchRank(self: any, portrait: any, userId: number, bot: any?)
 	for _, connection in portrait.rankConnections do
 		connection:Disconnect()
 	end
 	table.clear(portrait.rankConnections)
 	local badge = portrait.badge
-	local player = if userId > 0 then Players:GetPlayerByUserId(userId) else nil
+	local player = People.owner(userId) -- a player or a bot's stand-in (the Bots lane)
 	if not player then
+		-- A bot whose body is not here yet: the badge from its seat.
+		if type(bot) == "table" and type(bot.tier) == "string" then
+			badge:set(bot.tier, bot.division or 1, false)
+			badge.root.Visible = true
+			return
+		end
 		badge.root.Visible = false
 		return
 	end
