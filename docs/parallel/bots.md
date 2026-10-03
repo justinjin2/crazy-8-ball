@@ -175,10 +175,24 @@ your status).
   Decisions); GDD 13/14 "never a real user's avatar" and "disguised PCs stored as PC" (the
   tutorial's wins count as real wins).
 - **GUI, the custom in-server player list**: show every bot model in `workspace.Bots` whose
-  `BotKind` attribute is `Disguised` or `Tutorial` exactly like a player (attributes on the
-  model: `DisplayName`, `RankTier`, `RankDivision`, `Money`, `AvatarUserId` for the headshot
-  via `rbxthumb://type=AvatarHeadShot&id=<id>&w=150&h=150`). PC robots (`BotKind = "Pc"`)
-  are not listed. Details firm up in my Status as I build.
+  `BotKind` attribute is `Disguised` or `Tutorial` exactly like a player. The easiest way:
+  `require(src/client/People).everyone()` gives every Player and every bot as a Player-like
+  stand-in (`UserId`, `Name`, `DisplayName`, `GetAttribute`, `IsBot = true`), with
+  `People.botAdded` / `botRemoved` signals. Attributes on each bot: `DisplayName`, `RankTier`,
+  `RankDivision`, `RankIndex`, `Money`, `EquippedCue`, `UltEquipped`, `AvatarUserId` (its
+  headshot: `rbxthumb://type=AvatarHeadShot&id=<id>&w=150&h=150`). PC robots
+  (`BotKind = "Pc"`) are not listed.
+- **GUI, looks**: (1) the new **Fill with PC** button in the host card's fold (QueueMenu,
+  `self.fillPc`, "Robot" icon, blue like Play against PC) only has my placeholder look;
+  (2) the tutorial's second game and every global-queue bot never rematch: their seat in the
+  snapshot carries `bot.noRematch = true`, for a greyed "Find another" if the tutorial wants
+  one (today the result screen greys Rematch and says "Opponent left", from the bot's
+  decline); (3) two PC robots on one side are both called "<Tier> Bot": tell me if they should
+  be numbered.
+- **Tutorial lane**: how to drive the tutorial bot and its fake lobby is in my Status (step 5
+  and step 7): `BotService.tutorialBot()`, `tutorialSecondBot()`, `joinTable(bot, t, { delay =
+  Config.Bots.Tutorial.JoinDelay })` from `TableService.onRequest`, `matchEnded`,
+  `startLobby({ count = 15, tiers = { "Bronze", "Silver", "Gold" } })`.
 - **Economy**: (1) ECONOMY 3.2 needs a "Disguised bot" column: pays like a person (money, XP,
   free case), no win streak, the win stored as a PC win; a disguised bot that forfeits pays a
   full win even under the one-minute mark; the tutorial's two games are real wins (the early 8

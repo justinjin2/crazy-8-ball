@@ -17,6 +17,7 @@
 -- default `tier`), name?, avatar? ({ userId, description } from Identity), cue?, ult?,
 -- script? ("Tutorial"), rematch? ("Instant" | "Wait" | "Request" | "Never"), playerTier? (caps
 -- its ability) }.
+local AnalyticsService = game:GetService("AnalyticsService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -51,6 +52,7 @@ export type Bot = {
 	avatarUserId: number?,
 	description: HumanoidDescription?,
 	cue: string,
+	money: number, -- shown on the player list (the Money attribute), like a player's
 	ult: string?,
 	script: string?,
 	rematch: string,
@@ -139,6 +141,9 @@ function BotService.spawn(spec: any): Bot?
 		avatarUserId = avatarUserId,
 		description = description,
 		cue = spec.cue or Look.cue(rng, tier),
+		money = math.floor(
+			Rng.range(rng, B.Money[1], B.Money[2]) * (Ranks.tierIndex(tier) or 1) / 5
+		) * 5,
 		ult = spec.ult or Look.ability(rng, spec.playerTier),
 		script = spec.script,
 		rematch = spec.rematch or (if kind == "Pc" then "Instant" else "Wait"),
@@ -162,6 +167,7 @@ local function attributesOf(bot: Bot): { [string]: any }
 		[Config.Cue.EquippedAttribute] = bot.cue,
 		UltEquipped = bot.ult,
 		AvatarUserId = bot.avatarUserId,
+		Money = bot.money,
 	}
 end
 
@@ -335,7 +341,61 @@ function BotService.remove(bot: Bot, how: string?)
 end
 
 -- Its game ended: tell whoever listens, and the tutorial bot's exits.
+-- The designer's /botrank (DevCommands): the tier of every bot they meet, by user id.
+local forcedTier: { [number]: string } = {}
+
+--- Sets (or with nil clears) the tier of the bots player `userId` meets (/botrank).
+function BotService.forceTier(userId: number, tier: string?)
+	if tier then
+		forcedTier[userId] = tierOf(tier)
+	else
+		forcedTier[userId] = nil
+	end
+end
+
+local function playerTier(p: Player): string
+	return forcedTier[p.UserId] or tierOf(p:GetAttribute("RankTier"))
+end
+
+-- The average tier of these seats' players (a player not in the server counts as Bronze).
+local function averageTier(seats: { any }): string
+	local sum, n = 0, 0
+	for _, s in seats do
+		local p = Players:GetPlayerByUserId(s.userId)
+		local tier = if p then playerTier(p) else "Bronze"
+		sum += Ranks.tierIndex(tier) or 1
+		n += 1
+	end
+	local index = math.clamp(math.floor(sum / math.max(1, n) + 0.5), 1, #Config.Ranks.Tiers)
+	return Config.Ranks.Tiers[index]
+end
+
+-- One analytics event per real player per finished bot game (Config.Bots.Analytics), so the
+-- designer can read the real win rate against each tier after launch: value 1 for a win, 0
+-- for a loss; fields: the bot's kind, its tier, the player's tier.
+local logged: { [any]: number } = setmetatable({}, { __mode = "k" }) :: any
+local function logMatch(bot: Bot, e: any)
+	if logged[e] == e.epoch or not e.result then
+		return
+	end
+	logged[e] = e.epoch
+	for _, s in e.seats do
+		local p = if s.userId > 0 then Players:GetPlayerByUserId(s.userId) else nil
+		if p and s.team then
+			local won = e.result.winner == s.team
+			pcall(function()
+				AnalyticsService:LogCustomEvent(p, B.Analytics.Event, if won then 1 else 0, {
+					[Enum.AnalyticsCustomFieldKeys.CustomField01.Name] = bot.kind,
+					[Enum.AnalyticsCustomFieldKeys.CustomField02.Name] = bot.tier,
+					[Enum.AnalyticsCustomFieldKeys.CustomField03.Name] = playerTier(p),
+				})
+			end)
+		end
+	end
+end
+
 local function ended(bot: Bot, e: any)
+	logMatch(bot, e)
 	local seat = Engine.seat(e, bot.id)
 	local won = seat ~= nil and e.result and e.result.winner == seat.team
 	BotService.matchEnded:Fire(bot.id, {
@@ -501,35 +561,6 @@ end
 ---------------------------------------------------------------------------------------------
 -- Play against PC (the host card, 1v1): the robot of the player's own tier, at once.
 ---------------------------------------------------------------------------------------------
-
--- The designer's /botrank (DevCommands): the tier of every bot they meet, by user id.
-local forcedTier: { [number]: string } = {}
-
---- Sets (or with nil clears) the tier of the bots player `userId` meets (/botrank).
-function BotService.forceTier(userId: number, tier: string?)
-	if tier then
-		forcedTier[userId] = tierOf(tier)
-	else
-		forcedTier[userId] = nil
-	end
-end
-
-local function playerTier(p: Player): string
-	return forcedTier[p.UserId] or tierOf(p:GetAttribute("RankTier"))
-end
-
--- The average tier of these seats' players (a player not in the server counts as Bronze).
-local function averageTier(seats: { any }): string
-	local sum, n = 0, 0
-	for _, s in seats do
-		local p = Players:GetPlayerByUserId(s.userId)
-		local tier = if p then playerTier(p) else "Bronze"
-		sum += Ranks.tierIndex(tier) or 1
-		n += 1
-	end
-	local index = math.clamp(math.floor(sum / math.max(1, n) + 0.5), 1, #Config.Ranks.Tiers)
-	return Config.Ranks.Tiers[index]
-end
 
 local function playPc(t: any, p: Player, _payload: any): boolean
 	local e = t.engine

@@ -8898,6 +8898,13 @@ Config.Bots = {
 		AnswerAfter = 10, -- a real request nobody real answered gets a lobby bot after this
 		WalkTimeoutSeconds = 12, -- a walk that has not arrived by now is cut short
 	},
+	-- A bot's money for the player list (its Money attribute): a random amount in this range
+	-- times its tier's place (Bronze 1 ... Diamond 5), so higher ranks look richer.
+	Money = { 150, 1800 },
+	-- One analytics event per real player per finished game against bots (AnalyticsService
+	-- custom event; the Creator Dashboard's average value per tier is the real win rate):
+	-- value 1 for a win, 0 for a loss; fields: bot kind, bot tier, player tier.
+	Analytics = { Event = "BotMatch" },
 	-- The tutorial's opponents (BotService.tutorialBot, tutorialSecondBot; the designer,
 	-- 2026-10-02): the first wears a Silver badge and plays the script, the second a normal
 	-- game; both play at Skill's level.
