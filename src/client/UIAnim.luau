@@ -377,4 +377,315 @@ function UIAnim.confetti(parent: GuiObject, origin: Vector2, colors: { Color3 }?
 	end)
 end
 
+--------------------------------------------------------------------------------------------
+-- Never still (designer, 2026-10-03; UI_STYLE 13): looping life on one shared clock. Each
+-- loop runs only while its object is on screen and ends by itself once the object is gone.
+--------------------------------------------------------------------------------------------
+
+local Quality = require(script.Parent.Quality)
+
+type Loop = { object: GuiObject, step: (number, number) -> (), clock: number, alive: boolean }
+local loops: { Loop } = {}
+local loopConnection: RBXScriptConnection? = nil
+
+local function stepLoops(dt: number)
+	for i = #loops, 1, -1 do
+		local l = loops[i]
+		if not l.alive or l.object.Parent == nil then
+			table.remove(loops, i)
+		elseif onScreen(l.object) then
+			l.clock += dt
+			l.step(l.clock, dt)
+		end
+	end
+	if #loops == 0 and loopConnection then
+		loopConnection:Disconnect()
+		loopConnection = nil
+	end
+end
+
+--- Run `step(clock, dt)` every frame while `object` is on screen (the clock only runs then),
+--- until the handle is stopped or the object is destroyed.
+function UIAnim.loop(object: GuiObject, step: (number, number) -> ()): Handle
+	local l: Loop = { object = object, step = step, clock = 0, alive = true }
+	table.insert(loops, l)
+	if not loopConnection then
+		loopConnection = RunService.RenderStepped:Connect(stepLoops)
+	end
+	return {
+		stop = function()
+			l.alive = false
+		end,
+	}
+end
+
+-- The drifting pattern layers (HudParts' menu and popup patterns): one clock for all, so
+-- every panel's balls move together.
+local drifting: { [ImageLabel]: { tile: number, x: number, y: number } } = {}
+local driftClock = 0
+local driftConnection: RBXScriptConnection? = nil
+
+local function stepDrift(dt: number)
+	local D = M.Drift
+	driftClock += dt * (if Quality.isLow() then D.LowPxPerSecond else D.PxPerSecond)
+	for tiles, d in drifting do
+		if tiles.Parent == nil then
+			drifting[tiles] = nil
+		elseif onScreen(tiles) then
+			-- Whole pixels only: the layer is redrawn just when it really moves.
+			local off = math.floor(driftClock % d.tile)
+			if off ~= d.x then
+				d.x = off
+				tiles.Position = UDim2.fromOffset(-d.tile + off, -off)
+			end
+		end
+	end
+	if next(drifting) == nil and driftConnection then
+		driftConnection:Disconnect()
+		driftConnection = nil
+	end
+end
+
+--- Drift a tiled pattern diagonally up and to the right, forever. `tiles` must be one tile
+--- (`tilePx`) wider and taller than the area it covers, inside a clipping parent.
+function UIAnim.drift(tiles: ImageLabel, tilePx: number)
+	drifting[tiles] = { tile = tilePx, x = -1, y = -1 }
+	if not driftConnection then
+		driftConnection = RunService.RenderStepped:Connect(stepDrift)
+	end
+end
+
+--- A quick rattle every few seconds (big words; style "Text"), or the louder "Wiggle" (one win
+--- from a rank-up, an icon calling for a click). Owns `object.Rotation`. "Jolt" rattles once.
+function UIAnim.shake(object: GuiObject, style: string?): Handle
+	local s = M.Shake[style or "Text"] or M.Shake.Text
+	local once = s.Every <= 0
+	local handle: Handle
+	handle = UIAnim.loop(object, function(clock)
+		local phase = if once then clock else clock % s.Every
+		if phase < s.Seconds then
+			local fade = 1 - phase / s.Seconds
+			object.Rotation = s.Degrees * math.sin(phase * s.Speed) * fade
+		else
+			object.Rotation = 0
+			if once then
+				handle.stop()
+			end
+		end
+	end)
+	return {
+		stop = function()
+			handle.stop()
+			object.Rotation = 0
+		end,
+	}
+end
+
+--- A soft glow bursting out from behind `object` (a press, a hover, a menu opening), in
+--- `tint` (default white). It sits inside the object under its other children. `reach`
+--- scales how far it spreads (a whole menu panel uses a small one).
+function UIAnim.glowBurst(object: GuiObject, tint: Color3?, reach: number?)
+	local G = M.Glow
+	local k = reach or 1
+	-- The soft glow image fades out well inside its edge, so it reaches past the object by a
+	-- pad that grows (a share of the object's smaller side): a wide button gets a halo.
+	local small = math.max(8, math.min(object.AbsoluteSize.X, object.AbsoluteSize.Y))
+	local glow = Instance.new("ImageLabel")
+	glow.Name = "GlowBurst"
+	glow.BackgroundTransparency = 1
+	glow.Image = Config.UI.Kit.Art.SoftGlow
+	glow.ImageColor3 = tint or Color3.new(1, 1, 1)
+	glow.ImageTransparency = G.Transparency
+	glow.AnchorPoint = Vector2.new(0.5, 0.5)
+	glow.Position = UDim2.fromScale(0.5, 0.5)
+	glow.Size = UDim2.new(1, small * G.FromPad * k, 1, small * G.FromPad * k)
+	glow.ZIndex = -2 -- under the object's own face and words
+	glow.Parent = object
+	local tween = TweenService:Create(
+		glow,
+		TweenInfo.new(G.Seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Size = UDim2.new(1, small * G.ToPad * k, 1, small * G.ToPad * k), ImageTransparency = 1 }
+	)
+	tween.Completed:Connect(function()
+		glow:Destroy()
+	end)
+	tween:Play()
+end
+
+--- Twinkling sparkles over `object` until stopped: small 4-point stars popping up at random
+--- spots, turning and fading (a deal, a rare card, the Free Reward gift).
+function UIAnim.sparkle(object: GuiObject, tint: Color3?): Handle
+	local S = M.Sparkle
+	local random = Random.new()
+	local since = 0
+	local alive = 0
+	return UIAnim.loop(object, function(_, dt)
+		since += dt
+		local max = math.max(1, math.floor(S.Max * Quality.rate() + 0.5))
+		if since < S.Every or alive >= max then
+			return
+		end
+		since = 0
+		alive += 1
+		local star = Instance.new("ImageLabel")
+		star.Name = "Sparkle"
+		star.BackgroundTransparency = 1
+		star.Image = Config.UI.Kit.Art.Spark
+		star.ImageColor3 = tint or Color3.new(1, 1, 1)
+		star.AnchorPoint = Vector2.new(0.5, 0.5)
+		star.Position =
+			UDim2.fromScale(random:NextNumber(0.05, 0.95), random:NextNumber(0.05, 0.95))
+		local px = random:NextNumber(S.SizePx[1], S.SizePx[2])
+		star.Size = UDim2.fromOffset(0, 0)
+		star.Rotation = random:NextNumber(0, 90)
+		star.ZIndex = 40
+		star.Parent = object
+		local half = S.Seconds / 2
+		local grow = TweenService:Create(
+			star,
+			TweenInfo.new(half, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			{ Size = UDim2.fromOffset(px, px), Rotation = star.Rotation + 45 }
+		)
+		grow.Completed:Connect(function()
+			local fade = TweenService:Create(
+				star,
+				TweenInfo.new(half, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+				{
+					Size = UDim2.fromOffset(0, 0),
+					ImageTransparency = 1,
+					Rotation = star.Rotation + 45,
+				}
+			)
+			fade.Completed:Connect(function()
+				star:Destroy()
+				alive -= 1
+			end)
+			fade:Play()
+		end)
+		grow:Play()
+	end)
+end
+
+--- White bands sliding across `fill` (a bar's fill), clipped to its round ends: the XP bar's
+--- moving pattern. The bands live in a CanvasGroup laid over the fill.
+function UIAnim.stripes(fill: GuiObject, cornerPx: number?): Handle
+	local S = M.Stripes
+	local group = Instance.new("CanvasGroup")
+	group.Name = "Stripes"
+	group.BackgroundTransparency = 1
+	group.Size = UDim2.fromScale(1, 1)
+	group.ZIndex = fill.ZIndex + 1
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, cornerPx or 999)
+	corner.Parent = group
+	group.Parent = fill
+	local bands: { Frame } = {}
+	local handle = UIAnim.loop(group, function(clock)
+		local size = group.AbsoluteSize
+		local need = math.ceil((size.X + size.Y * 2) / S.GapPx) + 2
+		while #bands < need do
+			local band = Instance.new("Frame")
+			band.BorderSizePixel = 0
+			band.BackgroundColor3 = Color3.new(1, 1, 1)
+			band.BackgroundTransparency = S.Transparency
+			band.AnchorPoint = Vector2.new(0.5, 0.5)
+			band.Rotation = S.Degrees
+			band.Parent = group
+			table.insert(bands, band)
+		end
+		local shift = (clock * S.PxPerSecond) % S.GapPx
+		for i, band in bands do
+			band.Size = UDim2.fromOffset(S.WidthPx, size.Y * 3)
+			band.Position = UDim2.new(0, (i - 2) * S.GapPx + shift - size.Y, 0.5, 0)
+		end
+	end)
+	return {
+		stop = function()
+			handle.stop()
+			group:Destroy()
+		end,
+	}
+end
+
+-- The house rainbow (Config.Ranks.ChatRainbow) as a loop, shifted by `phase` (0..1).
+local RAINBOW: { { number } } = Config.Ranks.ChatRainbow :: any
+local function rainbowAt(phase: number): ColorSequence
+	local keys = {}
+	local n = #RAINBOW
+	local function at(i: number): Color3
+		local c = RAINBOW[(i - 1) % n + 1]
+		return Color3.fromRGB(c[1], c[2], c[3])
+	end
+	-- Positions 0..1 cover one whole loop; the colour at a point slides with the phase.
+	for k = 0, n do
+		local t = k / n
+		local shifted = (t + phase) % 1
+		local index = shifted * n
+		local i = math.floor(index)
+		local mix = index - i
+		table.insert(keys, ColorSequenceKeypoint.new(t, at(i + 1):Lerp(at(i + 2), mix)))
+	end
+	return ColorSequence.new(keys)
+end
+
+--- Rainbow words with their colours flowing along them (deals and multipliers only; UI_STYLE
+--- 13). Works on any kit text; its outline stays ink.
+function UIAnim.rainbow(label: GuiObject): Handle
+	local gradient = Instance.new("UIGradient")
+	gradient.Name = "Rainbow"
+	gradient.Color = rainbowAt(0)
+	gradient.Parent = label
+	local last = -1
+	local handle = UIAnim.loop(label, function(clock)
+		-- About 20 steps a second is smooth enough and cheap.
+		local step = math.floor(clock * 20)
+		if step ~= last then
+			last = step
+			gradient.Color = rainbowAt((clock / M.RainbowSeconds) % 1)
+		end
+	end)
+	return {
+		stop = function()
+			handle.stop()
+			gradient:Destroy()
+		end,
+	}
+end
+
+--- A big word or card slamming in: from huge down to its size with a bump, a glow burst and
+--- a jolt. For NEW RANK!, YOU PULLED, THANK YOU!
+function UIAnim.slam(object: GuiObject, tint: Color3?)
+	local scale = UIAnim.scaleOf(object)
+	scale.Scale = M.Slam.FromScale
+	object.Visible = true
+	local tween = play(
+		scale,
+		TweenInfo.new(M.Slam.Seconds, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+		1
+	)
+	tween.Completed:Connect(function(state)
+		if state == Enum.PlaybackState.Completed then
+			UIAnim.glowBurst(object, tint)
+			UIAnim.shake(object, "Jolt")
+		end
+	end)
+end
+
+--- Bob `object` gently up and down from where it is now until stopped (an icon calling for a
+--- click). Do not use on something a layout places.
+function UIAnim.bob(object: GuiObject, px: number?): Handle
+	local base = object.Position
+	local amount = px or M.Bob.Px
+	local handle = UIAnim.loop(object, function(clock)
+		local y = math.sin(2 * math.pi * clock / M.Bob.Seconds) * amount
+		object.Position = base + UDim2.fromOffset(0, math.floor(y + 0.5))
+	end)
+	return {
+		stop = function()
+			handle.stop()
+			object.Position = base
+		end,
+	}
+end
+
 return UIAnim

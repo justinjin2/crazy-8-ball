@@ -78,6 +78,27 @@ host card's logic; you own their look.
 2026-10-03: interview done, brief approved (`docs/prompts/GUI_PROMPT.md`). Building step by
 step (steps 1-14 of the brief).
 
+- **Step 1 done: the style foundation.** `UIAnim` gains one shared loop clock (`loop`) and
+  `drift`, `shake`, `glowBurst`, `sparkle`, `stripes`, `rainbow`, `slam`, `bob`; the new
+  `Quality` module holds the Lower effects multiplier. Menu sheets and popup cards
+  (`HudParts.popupCard`) carry a drifting 8-ball pattern (a CanvasGroup clips it to the round
+  corners); every candy button bursts a glow of its colour when pressed; a menu opening glows.
+  `MenuFrame.layout` centres a menu on the whole screen on a computer with at least
+  `BottomGapPx` (36) to the bottom. VIP's nameplate and [VIP] chat tag are gold. UI_STYLE
+  section 13 holds the new rules. A Studio-only test hook `GuiQA` (PlayerScripts BindableFunction)
+  opens menus and plays moments for checks.
+  - Checked: lint, 947 Lune tests; Studio PC (1529 x 666 viewport): the Inventory panel sits
+    60 px from the top and 39 px from the bottom, its pattern moved 9 px a second, the press
+    halo shows round the Equip button; console clean. Phone: the phone layout path is
+    unchanged (previews of the rebuilt screens come with their steps).
+
+### Changes to shared files (existing lines)
+
+- `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
+- `Config.luau`: `Config.UI.Kit` gains Motion.Drift/Shake/Glow/Sparkle/Stripes/RainbowSeconds/
+  Slam/Bob, `Big`, `Numbers`, `Vip`, `SecretGlitch`; new `Config.UI.Quality`;
+  `Config.UI.Menu.Frame.BottomGapPx`.
+
 ## Requests to other lanes or the integrator
 
 - **Integrator**: the Cutscenes lane is folded into this one (designer, 2026-10-03): every item

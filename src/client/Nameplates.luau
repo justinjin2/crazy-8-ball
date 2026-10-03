@@ -20,8 +20,8 @@
 -- when it goes up and is gone after a loss. The plate keeps its place over the head: the
 -- BillboardGui is StreakShare taller and lifted by SizeOffset so the new line sits above it.
 --
--- A VIP (the Vip attribute, set by the server) has their name in the house rainbow (a
--- UIGradient on the white name; designer, 2026-09-28), with the badge kept in front of it. The
+-- A VIP (the Vip attribute, set by the server) has their name in a gold shimmer (a UIGradient
+-- on the white name; rainbow until 2026-10-03), with the badge kept in front of it. The
 -- colours drift slowly along the name, one loop every VipRainbowCycleSeconds: calm, never a
 -- flash. Only here: in chat a VIP gets the [VIP] tag instead (ChatTags).
 local Players = game:GetService("Players")
@@ -39,8 +39,8 @@ local People = require(script.Parent.People)
 
 local P = Config.UI.Progress.Nameplate
 local K = Config.UI.Kit
--- The house rainbow (UI_STYLE 4, VIP), as the rank HUD's Reyes bar.
-local RAINBOW: { { number } } = Config.UI.Progress.RankHud.ReyesColors :: any
+-- VIP's gold shimmer (Config.UI.Kit.Vip; designer, 2026-10-03: the rainbow is for deals now).
+local RAINBOW: { { number } } = K.Vip.Colors :: any
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 -- Names are measured at this size to find how wide they are for their height.
 local MEASURE_PX = 100

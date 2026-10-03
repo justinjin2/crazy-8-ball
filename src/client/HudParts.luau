@@ -137,8 +137,10 @@ end
 --- faint pool-ball pattern. Returns the (clear) container; put content straight into it. A
 --- card that lays out a list should put the list in a child frame, or the list would take
 --- the shadow and fill as items too.
--- The faint 8-ball pattern, tiled over `parent` and clipped to its round corners.
-local function pattern(parent: Instance, cornerPx: number)
+-- The faint 8-ball pattern, tiled over `parent` and clipped to its round corners. A drifting
+-- one (menus and popups; UI_STYLE 13) is a tile bigger than its area, moved inside a
+-- CanvasGroup, the one frame Roblox clips to round corners; small cards keep a still one.
+local function pattern(parent: Instance, cornerPx: number, drift: boolean?)
 	local tiles = Instance.new("ImageLabel")
 	tiles.Name = "Pattern"
 	tiles.BackgroundTransparency = 1
@@ -148,11 +150,23 @@ local function pattern(parent: Instance, cornerPx: number)
 	tiles.ScaleType = Enum.ScaleType.Tile
 	tiles.TileSize = UDim2.fromOffset(K.PatternTilePx, K.PatternTilePx)
 	tiles.Size = UDim2.fromScale(1, 1)
-	tiles.Parent = parent
-	HudParts.corner(tiles, cornerPx) -- clips the tiles to the round corners
+	if not drift then
+		tiles.Parent = parent
+		HudParts.corner(tiles, cornerPx) -- clips the tiles to the round corners
+		return
+	end
+	local clip = Instance.new("CanvasGroup")
+	clip.Name = "PatternClip"
+	clip.BackgroundTransparency = 1
+	clip.Size = UDim2.fromScale(1, 1)
+	HudParts.corner(clip, cornerPx)
+	tiles.Size = UDim2.new(1, K.PatternTilePx, 1, K.PatternTilePx)
+	tiles.Parent = clip
+	clip.Parent = parent
+	UIAnim.drift(tiles, K.PatternTilePx)
 end
 
-function HudParts.card(parent: Instance, name: string, radius: number?): Frame
+function HudParts.card(parent: Instance, name: string, radius: number?, drift: boolean?): Frame
 	local cornerPx = radius or K.PanelCornerPx
 	local root = HudParts.frame(parent, name)
 	local shadow = Instance.new("ImageLabel")
@@ -180,8 +194,13 @@ function HudParts.card(parent: Instance, name: string, radius: number?): Frame
 	fade.Rotation = 90
 	fade.Color = ColorSequence.new(color(K.Colors.White), color(K.PanelFade))
 	fade.Parent = fill
-	pattern(fill, cornerPx)
+	pattern(fill, cornerPx, drift)
 	return root
+end
+
+--- A popup's card: a kit card whose 8-ball pattern drifts (UI_STYLE 13).
+function HudParts.popupCard(parent: Instance, name: string, radius: number?): Frame
+	return HudParts.card(parent, name, radius, true)
 end
 
 --- A menu's panel (the roadmap, the host menu, later the shop; UI_STYLE section 2): a kit
@@ -208,7 +227,7 @@ function HudParts.menuCard(parent: Instance, name: string, radius: number?): Fra
 	fade.Rotation = 90
 	fade.Color = ColorSequence.new(color(K.SheetTop), color(K.SheetBottom))
 	fade.Parent = sheet
-	pattern(sheet, K.SheetCornerPx)
+	pattern(sheet, K.SheetCornerPx, true)
 	HudParts.setSheetTop(root, 0)
 	return root
 end
@@ -467,6 +486,9 @@ function HudParts.candy(
 	end)
 	button.Activated:Connect(function()
 		if c.enabled then
+			-- A bigger click (designer, 2026-10-03): a glow bursts from behind the button.
+			local tint = K.Buttons[c.tone] or K.Buttons.White
+			UIAnim.glowBurst(body, color(tint.Mid))
 			action()
 		end
 	end)

@@ -90,11 +90,13 @@ order; that is Open.
 | Legendary | gold / dark yellow | `#F2B200` |
 | Mythic | celestial prismatic | shimmer `#7FE7FF` `#B79CFF` `#FF9CE6` `#FFFFFF` on space `#1A1446` |
 | Unique | pink | `#FF5CB8` |
-| VIP | rainbow | `#FF4D4D` `#FF9F1C` `#FFE14D` `#3DD66B` `#3B9BFF` `#A259FF` |
+| VIP | gold with a crown mark (placeholder, 2026-10-03; was rainbow) | `#FFC400` `#FFEC8C` `#FFAA00` |
+| Secret | near-black with a slow red-white glitch shimmer (designer, 2026-10-03) | `#1E1820`, glitch `#FF283C` `#FFFFFF` |
 
-- **Mythic and VIP must never look alike.** VIP is a bold, fully saturated rainbow. Mythic is
-  pale and holographic: a slow pastel shimmer over a deep-space background with small
-  twinkling stars.
+- **Mythic and VIP must never look alike.** Mythic is pale and holographic: a slow pastel
+  shimmer over a deep-space background with small twinkling stars. VIP is gold for now
+  (designer, 2026-10-03: VIP no longer uses the rainbow; its new look comes later). The
+  **rainbow is for deals and multipliers** (section 13).
 
 **Decided for now** (2026-09-25; may change)
 - **Traffic button colours:** green for Start, Play and Yes; red for Leave and Surrender (in a
@@ -484,3 +486,34 @@ Built on branch `abilities` (docs/prompts/ABILITIES_PROMPT.md 5.1, 5.4). Numbers
 - **Moments in the HUD:** Time Stop's frozen aim shows the pill "TIME STOPPED · STRIKE THE CUE
   BALL AGAIN" in place of the clock and the ability pill; Rewind's redo shows a pink "SECOND
   CHANCE: 10s" pill with the shot's full path drawn.
+
+## 13. Big, clear and never still (designer, 2026-10-03, GUI lane brief)
+
+Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers in
+`Config.UI.Kit.Motion`, `Kit.Big`, `Kit.Numbers`).
+
+**Decided**
+- **Never still.** Something on every screen always moves, sparkles or breathes: the 8-ball
+  pattern on menus and popups drifts slowly diagonally up and to the right, all balls the same
+  way (`HudParts.menuCard`, `HudParts.popupCard`; small cards keep a still pattern); big words
+  rattle now and then (`UIAnim.shake`); special things sparkle (`UIAnim.sparkle`); bars carry
+  moving stripes (`UIAnim.stripes`). Loops run only while on screen and calm down with Lower
+  effects (`Quality`).
+- **Bigger, cooler presses, opens and closes.** Every candy button bursts a glow of its own
+  colour from behind when pressed; a menu opening glows; a big word or card slams in
+  (`UIAnim.slam`: from huge to its size, a glow and a jolt).
+- **Big menus are centred on the screen.** On a computer the panel is centred on the whole
+  screen, clear of Roblox's bar, and never nearer the bottom than `Frame.BottomGapPx` (its
+  shadow included). Phones keep the full-screen panel.
+- **Big and simple, phone first.** Big text (`Kit.Big`: hero 56, title 40, heading 28, button
+  24, body 19, never under 16 on the new screens), big icons, one big arrow pointing at
+  things (before -> after), lots of white space. Avoid small text and description lines; use
+  one only where it is truly needed.
+- **Colours tell what a number is** (`Kit.Numbers`), one meaning each so the screen reads as a
+  theme: bright yellow for prices and money, green for what you get, FREE and bonuses, sky
+  blue for counts, odds and timers, red for a crossed-out price, rarity colours for rarity,
+  and the moving rainbow (`UIAnim.rainbow`) only for deals and multipliers ("x2", "BEST
+  DEAL").
+- **Crossed-out prices are always true** and used only where they matter most (big money
+  packs, VIP, 10 Mystery Cases, the release sale): the one-at-a-time total or a real sale price.
+- **Anything that looks lacklustre** gets the same treatment: big, clear, moving, animated.

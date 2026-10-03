@@ -5419,7 +5419,65 @@ Config.UI = {
 				WiggleShare = 0.3,
 				EaseSeconds = 0.15,
 			},
+			-- "Never still" (designer, 2026-10-03; UI_STYLE 13). The faint 8-ball pattern on
+			-- menus and popups drifts diagonally up and right, every ball the same way. It moves
+			-- in whole pixels, so its layer is redrawn only a few times a second. (tune)
+			Drift = { PxPerSecond = 9, LowPxPerSecond = 4 },
+			-- Big words shake now and then (UIAnim.shake): a quick rattle every `Every` seconds.
+			-- "Wiggle" is the louder one (one win from a rank-up, an icon calling for a click).
+			Shake = {
+				Text = { Degrees = 3, Every = 2.6, Seconds = 0.35, Speed = 46 },
+				Wiggle = { Degrees = 8, Every = 1.7, Seconds = 0.55, Speed = 24 },
+				Jolt = { Degrees = 6, Every = 0, Seconds = 0.4, Speed = 40 }, -- once (a slam)
+			},
+			-- The glow that bursts behind a pressed or hovered thing, or a menu opening.
+			Glow = { Seconds = 0.55, FromPad = 1.2, ToPad = 3.2, Transparency = 0 }, -- pads: shares of its smaller side
+			-- Twinkling sparkles over something special (a deal, a rare card): one appears
+			-- every `Every` seconds and lives `Seconds`, at most `Max` at once (half with Lower
+			-- effects).
+			Sparkle = { Every = 0.22, Seconds = 0.7, Max = 6, SizePx = { 10, 22 } },
+			-- Moving stripes over a fill (the XP bar): white bands sliding right. (tune)
+			Stripes = {
+				WidthPx = 7,
+				GapPx = 18,
+				Degrees = 35,
+				PxPerSecond = 22,
+				Transparency = 0.72,
+			},
+			RainbowSeconds = 3, -- one loop of a rainbow word's colours (deals, multipliers)
+			-- A big word or card slamming in: from this big down to its size, then a jolt.
+			Slam = { FromScale = 1.9, Seconds = 0.26 },
+			Bob = { Px = 4, Seconds = 1.6 }, -- an icon bobbing up and down to call for a click
 		},
+		-- Big and simple (designer, 2026-10-03): new and restyled screens use these sizes,
+		-- bigger than Text above, especially on a phone. (tune)
+		Big = { Hero = 56, Title = 40, Heading = 28, Button = 24, Body = 19, Min = 16 },
+		-- The number palette (UI_STYLE 13): one meaning per colour so the screen reads as a
+		-- theme, not a random rainbow. Rainbow (Config.Ranks.ChatRainbow) is for deals and
+		-- multipliers only.
+		Numbers = {
+			Money = { 255, 214, 10 }, -- prices and money amounts: bright yellow
+			Gain = { 61, 224, 107 }, -- what you get, FREE, +bonuses: green
+			Count = { 82, 196, 255 }, -- counts, odds and timers: sky blue
+			Old = { 255, 64, 64 }, -- a crossed-out price: red
+		},
+		-- VIP's colour now that the rainbow is for deals (designer, 2026-10-03): a rich gold
+		-- shimmer with a crown mark, a placeholder until the designer picks VIP's new look.
+		Vip = {
+			Colors = {
+				{ 255, 196, 0 },
+				{ 255, 236, 140 },
+				{ 255, 170, 0 },
+				{ 255, 226, 90 },
+			},
+		},
+		-- Secret's red-white glitch (UI_STYLE 4, designer 2026-10-03): over its near-black.
+		SecretGlitch = { { 255, 40, 60 }, { 255, 255, 255 } },
+	},
+	-- Lower effects (Settings, designer 2026-10-03): weaker devices get fewer particles and
+	-- auras, never none. Every particle rate and UI loop reads Quality (src/client/Quality).
+	Quality = {
+		LowRate = 0.35, -- particle rates and sparkle counts are multiplied by this
 	},
 }
 
@@ -6490,6 +6548,10 @@ Config.UI.Menu = {
 	Frame = {
 		MaxSizePx = { 920, 600 }, -- the panel's largest width and height (a computer)
 		MarginPx = 4, -- the least gap between the panel and the screen's edges
+		-- On a computer the panel is centred on the whole screen and never closer than this
+		-- to the bottom edge, its shadow included (designer, 2026-10-03: menus touched the
+		-- bottom on PC).
+		BottomGapPx = 36,
 		-- Shorter than this below Roblox's top bar is a phone: the panel takes the bar's row too.
 		ShortScreenPx = 500,
 		TopbarLeftFallbackPx = 212, -- where Roblox's buttons end, when Roblox does not say

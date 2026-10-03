@@ -84,9 +84,12 @@ function ChatTags.tagFor(tier: any): string?
 	return ChatTags.rainbow(text) -- Reyes: the rainbow, one colour a letter (brackets included)
 end
 
---- The RichText "[VIP]" tag, in the house rainbow.
+--- The RichText "[VIP]" tag, in VIP's gold (Config.UI.Kit.Vip; the rainbow until 2026-10-03).
 function ChatTags.vipTag(): string
-	return ChatTags.rainbow(Strings.Ranks.VipTag)
+	return ('<font color="%s">%s</font>'):format(
+		hex(Config.UI.Kit.Vip.Colors[1]),
+		escape(Strings.Ranks.VipTag)
+	)
 end
 
 --- A line from the game in this player's chat window (RichText allowed: escape any names in

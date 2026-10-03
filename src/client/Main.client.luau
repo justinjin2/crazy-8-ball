@@ -1492,4 +1492,6 @@ RunService.RenderStepped:Connect(function(dt)
 	-- and in the hands at once, nor missing from both.
 	backCue:update(dt, cueStick:GetAttribute("Visible") == true, hub.watched:holding())
 end)
+-- GUI lane: a Studio-only test hook for the screens (GuiQA; nothing in a live server).
+require(script.Parent.GuiQA).start()
 print("[8ball] multiplayer client ready")

@@ -524,11 +524,18 @@ function MenuFrame.layout(self: any): boolean
 	local margin = F.MarginPx
 	local short = size.Y - barBottom < F.ShortScreenPx
 	local roomTop = if short then 0 else barBottom
-	local roomHeight = size.Y - roomTop
+	-- A computer: centred on the whole screen (not just under the bar), clear of the bar, and
+	-- never closer than BottomGapPx to the bottom edge, shadow included (designer, 2026-10-03).
+	local roomBottom = if short then size.Y else size.Y - F.BottomGapPx
+	local roomHeight = roomBottom - roomTop
 	local w = math.floor(math.min(size.X - 2 * margin, F.MaxSizePx[1]))
 	local h = math.floor(math.min(roomHeight - 2 * margin, F.MaxSizePx[2]))
 	local left = math.floor((size.X - w) / 2)
-	local top = math.floor(roomTop + (roomHeight - h) / 2)
+	local top = if short
+		then math.floor(roomTop + (roomHeight - h) / 2)
+		else math.floor(
+			math.clamp((size.Y - h) / 2, roomTop + margin, roomBottom - margin - h)
+		)
 	self.panel.Size = UDim2.fromOffset(w, h)
 	self.panel.Position = UDim2.fromOffset(left + w / 2, top + h / 2)
 
@@ -763,6 +770,7 @@ function MenuFrame.open(self: any, tab: string?)
 	)
 	self.dimTween:Play()
 	UIAnim.popIn(self.panel)
+	UIAnim.glowBurst(self.panel, nil, 0.15) -- a bigger open (UI_STYLE 13)
 	self:listen()
 	if gamepadInUse() then
 		self:focus()
