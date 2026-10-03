@@ -240,6 +240,9 @@ play-solo on PC; the phone, gamepad and two-player checks are open.*
 
 ## Stage 2: Ranks and EXP
 
+  Progress 2026-10-03 (the GUI lane, merged into `release`): every screen and reward moment
+  reworked (shop, inventory, case opening, 8-ball reveal, column, settings, player list,
+  result cutscene, NEW RANK!). Still to do: the designer's list of fixes, phone and gamepad.
 - [x] **4.3 Save data.** Session-locked, versioned saves; money and stats persist.
   Moved ahead of ranks (2026-09-26): ranks, EXP and money must survive leaving.
   Done 2026-09-27 on the branch `ranks-money`: ProfileStore behind `PlayerData`, save layout
@@ -267,6 +270,8 @@ play-solo on PC; the phone, gamepad and two-player checks are open.*
 - [ ] **6.4 Leaderboards, flags, win streaks.** Rating board, wins-against-people board, nation
   board, country flags, win streak above the head, match history.
   Progress 2026-09-28: the win streak above the head is built ("🔥 3", Stats.WinStreak).
+  Progress 2026-10-03 (the GUI lane): Most wins vs players and Highest rank, as lobby signs
+  and a player-list tab. No nation board. Still to do: a live check (Studio has no DataStores).
 - [ ] **6.5 Real-match check.** Server-tracked match time, the one-minute mark, forfeit
   accounting (forfeiter always loses rating; repeat forfeits against the same opponent give
   the winner nothing), forfeit confirmation warning.
@@ -378,6 +383,8 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   3-second wait, the atomic swap with a ledger that replays a lost trade), anyone in the
   server, cues and ready cases. Still to do: the trade screen (GUI lane) and a real
   two-player trade.
+  Progress 2026-10-03 (the GUI lane): the trade screen, started from the player list. Still to
+  do: a real two-player trade.
 - [ ] **4.1 The hub map.** The rooftop pool club (GDD section 10): the map, the tables in it,
   lighting, sittable seats and zone signs.
   - [x] The rooftop pool club: the map, the tables in it, the day and sunset lighting, sittable
@@ -387,7 +394,13 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
     roof at release is Open (GDD section 10).
 - [ ] **8.1 First-time playthrough (the tutorial).** Hidden popup, disguised PC that walks in
   and blunders, ghost break guide, first-win cue box, Unranked to Bronze (GDD section 14).
+  Progress 2026-10-03 (the Tutorial lane, merged into `release`): built in the real public
+  server, all ten steps of its brief. Still to do: the 8-ball in the tutorial, the published
+  game's teleport halves of game 2, phone and gamepad.
 - [ ] **8.2 Analytics funnel** with Roblox's built-in analytics.
+  Progress 2026-10-03 (the Tutorial lane): onboarding (22 steps), skip/cancel, shop, Case
+  Drop and spin funnels in `src/server/Funnel.luau`. Still to do: check them in the Creator
+  Dashboard after publishing.
 - [ ] **4.4 Performance pass.** Low-end phone with sixteen busy tables: streaming, LOD, shadow
   and light budget, no stutter.
 - [ ] **8.3 Name, icon, thumbnails, game page.** Final name check.

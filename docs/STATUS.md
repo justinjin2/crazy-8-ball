@@ -1,6 +1,25 @@
 # Status
 
-**2026-10-03 (latest): the Economy lane is merged into `release`** (parallel build,
+**2026-10-03 (latest): the GUI (with cutscenes) and Tutorial lanes are merged into `release`**
+(`docs/parallel/gui.md`, `docs/parallel/tutorial.md`, briefs `docs/prompts/GUI_PROMPT.md` and
+`TUTORIAL_PROMPT.md`). Every lane of the parallel build is now in.
+- GUI: a new style foundation and cue pictures; the one-scroll shop with the release sale; the
+  Items + Index inventory; case opening with near-misses and rare-pull skies; the magic 8-ball
+  Case Drop reveal; the left column, settings, rank bar; our own player list with the global
+  boards (lobby signs too); the trade screen; the 1v1 result cutscene; the come-back moment;
+  NEW RANK!, spin reveal and the rest restyled.
+- Tutorial: a new player's first server (arrow, hand, the tutorial bot's rigged game 1, the
+  global-queue game 2, Case Drops, the Magnet spin, held rank rewards claimed in Rank), Skip,
+  resume, real-server nudges, and the analytics funnels (`Funnel.luau`).
+- Merge: three conflicts (Net, client Progression, Rewards) fixed; lint and all 974 tests
+  pass. Not yet checked together in Studio. Known gaps: the tutorial still shows its stand-in
+  case card instead of the 8-ball (MagicBall.play), and the Rank button's red dot for held
+  rewards is not in the new column.
+- The designer has a list of GUI issues to fix next. Open for the designer: Epic ownership
+  6.7% against ~5% (trim or keep); an Uncommon Case picture; whether VIP's cue pays finder's
+  money on the first join.
+
+**2026-10-03: the Economy lane is merged into `release`** (parallel build,
 `docs/parallel/economy.md`, brief `docs/prompts/ECONOMY_PROMPT.md`, numbers in
 `docs/ECONOMY.md`).
 - **Save v6 wipes every save** (only friends had played); money is x10 ($100 a ball, $500 a
