@@ -14,15 +14,15 @@ local DAY = 86400
 local HOUR = 3600
 local JOIN = 1790553600 -- a first join, 2026-09-28 00:00 UTC
 
--- ECONOMY 11.1: every money pack, smallest first.
+-- The economy plan (section 5): every money pack, smallest first.
 local PACKS = {
-	{ name = "Handful", robux = 49, money = 900, bonus = 0 },
-	{ name = "Stack", robux = 99, money = 1950, bonus = 7 },
-	{ name = "Bundle", robux = 249, money = 5250, bonus = 15 },
-	{ name = "Briefcase", robux = 499, money = 11000, bonus = 20 },
-	{ name = "Vault", robux = 999, money = 23500, bonus = 28 },
-	{ name = "Bank", robux = 2499, money = 62500, bonus = 36 },
-	{ name = "Fortune", robux = 4999, money = 130000, bonus = 42 },
+	{ name = "Handful", robux = 49, money = 9000, bonus = 0 },
+	{ name = "Stack", robux = 99, money = 19500, bonus = 7 },
+	{ name = "Bundle", robux = 249, money = 52500, bonus = 15 },
+	{ name = "Briefcase", robux = 499, money = 110000, bonus = 20 },
+	{ name = "Vault", robux = 999, money = 235000, bonus = 28 },
+	{ name = "Bank", robux = 2499, money = 625000, bonus = 36 },
+	{ name = "Fortune", robux = 4999, money = 1300000, bonus = 42 },
 }
 
 local function newShop(overrides: { [string]: any }?): any
@@ -316,23 +316,23 @@ return {
 	["the first money pack pays double, exactly once"] = function()
 		local shop = newShop()
 		local first = Shop.grantFor("Pack1", shop, JOIN, false)
-		H.expect(first.money == 1800 and first.firstPack == true, "Handful doubled: $1,800")
+		H.expect(first.money == 18000 and first.firstPack == true, "Handful doubled: $18,000")
 		H.expect(first.cue == nil and not first.vip and not first.party, "money only")
 		-- Asking again before it is applied changes nothing (grantFor is read-only).
 		H.expect(
-			Shop.grantFor("Pack1", shop, JOIN, false).money == 1800,
+			Shop.grantFor("Pack1", shop, JOIN, false).money == 18000,
 			"grantFor changes nothing"
 		)
 		Shop.markGrant(shop, first)
 		H.expect(shop.FirstPackBought, "marked")
 		local second = Shop.grantFor("Pack3", shop, JOIN, false)
-		H.expect(second.money == 5250 and not second.firstPack, "Bundle at its normal $5,250")
+		H.expect(second.money == 52500 and not second.firstPack, "Bundle at its normal $52,500")
 		-- Other products never use up the double.
 		local fresh = newShop()
 		Shop.markGrant(fresh, Shop.grantFor("StarterPack", fresh, JOIN, false))
 		Shop.markGrant(fresh, Shop.grantFor("MoneyParty", fresh, JOIN, false))
 		H.expect(
-			Shop.grantFor("Pack7", fresh, JOIN, false).money == 260000,
+			Shop.grantFor("Pack7", fresh, JOIN, false).money == 2600000,
 			"still doubled after other products"
 		)
 	end,
@@ -370,7 +370,7 @@ return {
 			Shop.grantFor("Vip", newShop(), JOIN, false) == nil,
 			"a pass is not granted by receipt"
 		)
-		H.expect(Shop.grantFor("FastOpen", newShop(), JOIN, false) == nil, "nor Fast Open")
+		H.expect(Shop.grantFor("QuickCases", newShop(), JOIN, false) == nil, "nor Quick Cases")
 		H.expect(Shop.grantFor("NoSuchProduct", newShop(), JOIN, false) == nil, "unknown")
 	end,
 
@@ -465,8 +465,8 @@ return {
 			Shop.grantFor("StarterPack", newShop({ StarterBought = true }), JOIN, false)
 		H.expect(why == "Owned" and grant ~= nil, "a fallback grant")
 		H.expect(
-			grant.money == 1451 and grant.key == "StarterPack",
-			"79 R$ at $900 / 49 R$: $1,451"
+			grant.money == 18183 and grant.key == "StarterPack",
+			"99 R$ at $9,000 / 49 R$: $18,183"
 		)
 		H.expect(
 			grant.cue == nil
@@ -479,17 +479,17 @@ return {
 			"money only"
 		)
 		local vipGrant, vipWhy = Shop.grantFor("VipOffer", newShop(), JOIN + HOUR, true)
-		H.expect(vipWhy == "Owned" and vipGrant.money == 5491, "299 R$: $5,491, no permanent VIP")
+		H.expect(vipWhy == "Owned" and vipGrant.money == 54918, "299 R$: $54,918, no permanent VIP")
 		local late = Shop.grantFor("VipOffer", newShop(), JOIN + 3 * DAY, false)
-		H.expect(late.money == 5491 and not late.vip, "outside the windows: money, not VIP")
+		H.expect(late.money == 54918 and not late.vip, "outside the windows: money, not VIP")
 		local shop = newShop({ StarterBought = true })
 		Shop.markGrant(shop, grant)
 		H.expect(
 			not shop.FirstPackBought and not shop.VipOffer and not shop.VipCueGiven,
 			"the fallback sets no flag, nor uses up the first pack's double"
 		)
-		H.expect(Shop.fallbackMoney("FoundersCue") == 27532, "1,499 R$: $27,532")
-		H.expect(Shop.fallbackMoney("Pack1") == 900, "the first pack's own rate")
+		H.expect(Shop.fallbackMoney("FoundersCue") == 275326, "1,499 R$: $275,326")
+		H.expect(Shop.fallbackMoney("Pack1") == 9000, "the first pack's own rate")
 		H.expect(Shop.fallbackMoney("NoSuchProduct") == 0, "unknown: nothing")
 		H.expect(Shop.fallbackGrant("NoSuchProduct") == nil, "no grant for nothing")
 		local rate = Config.Products.List.Pack1.Money / Config.Products.List.Pack1.Robux
@@ -512,10 +512,10 @@ return {
 		H.expect(Shop.processReceipt(server.deps, receipt(8, 104, "s-1")) == "Granted", "first")
 		H.expect(player.save.Money == 75000 and #player.save.Cues == 1, "$75,000 and the cue")
 		H.expect(Shop.processReceipt(server.deps, receipt(8, 104, "s-2")) == "Granted", "second")
-		H.expect(player.save.Money == 75000 + 1451, "the second pays $1,451 only")
+		H.expect(player.save.Money == 75000 + 18183, "the second pays $18,183 only")
 		H.expect(#player.save.Cues == 1, "no second Starter Cue")
 		H.expect(Shop.processReceipt(server.deps, receipt(8, 104, "s-2")) == "Granted", "a retry")
-		H.expect(player.save.Money == 75000 + 1451, "grants nothing more")
+		H.expect(player.save.Money == 75000 + 18183, "grants nothing more")
 	end,
 
 	["the Limited shelf's state"] = function()
@@ -548,10 +548,10 @@ return {
 
 	["Need $X more highlights the smallest pack that covers it"] = function()
 		H.expect(Shop.packForGap(0, true) == nil, "nothing missing")
-		H.expect(Shop.packForGap(900, true) == "Pack1", "exactly Handful")
-		H.expect(Shop.packForGap(901, true) == "Pack2", "one over")
-		H.expect(Shop.packForGap(1800, false) == "Pack1", "Handful doubled covers $1,800")
-		H.expect(Shop.packForGap(12000, true) == "Pack5", "Vault")
+		H.expect(Shop.packForGap(9000, true) == "Pack1", "exactly Handful")
+		H.expect(Shop.packForGap(9001, true) == "Pack2", "one over")
+		H.expect(Shop.packForGap(18000, false) == "Pack1", "Handful doubled covers $18,000")
+		H.expect(Shop.packForGap(120000, true) == "Pack5", "Vault")
 		H.expect(Shop.packForGap(1e9, true) == "Pack7", "nothing covers it: the biggest")
 		local last = 0
 		for _, pack in Shop.packs() do
@@ -568,15 +568,15 @@ return {
 		local player = server.join(1)
 		local r = receipt(1, 101, "p-1")
 		H.expect(Shop.processReceipt(server.deps, r) == "Granted", "granted")
-		H.expect(player.save.Money == 1800 and server.grants == 1, "the first pack, doubled")
+		H.expect(player.save.Money == 18000 and server.grants == 1, "the first pack, doubled")
 		H.expect(Shop.hasPurchase(player.save.Shop, "p-1"), "id recorded")
 		H.expect(Shop.processReceipt(server.deps, r) == "Granted", "the retry is acknowledged")
-		H.expect(player.save.Money == 1800 and server.grants == 1, "and grants nothing")
+		H.expect(player.save.Money == 18000 and server.grants == 1, "and grants nothing")
 		H.expect(
 			Shop.processReceipt(server.deps, receipt(1, 101, "p-2")) == "Granted",
 			"a new purchase"
 		)
-		H.expect(player.save.Money == 2700 and server.grants == 2, "not doubled the second time")
+		H.expect(player.save.Money == 27000 and server.grants == 2, "not doubled the second time")
 	end,
 
 	["a player who left or is not loaded: NotProcessedYet"] = function()
@@ -597,7 +597,7 @@ return {
 			Shop.processReceipt(server.deps, receipt(7, 101, "p-1")) == "Granted",
 			"later: granted"
 		)
-		H.expect(player.save.Money == 1800, "once")
+		H.expect(player.save.Money == 18000, "once")
 	end,
 
 	["a failed save: NotProcessedYet, then Granted on retry without a second grant"] = function()
@@ -724,7 +724,7 @@ return {
 			MoneyParty = 4,
 			FoundersCue = 5,
 			Vip = 6,
-			FastOpen = 7,
+			QuickCases = 7,
 		}, function()
 			local joined = ctxAt(JOIN + HOUR)
 			H.expect(ShopView.check("Pack1", joined) == nil, "a money pack always sells")
@@ -748,10 +748,10 @@ return {
 				"VIP through the offer owns the pass's perks"
 			)
 			H.expect(
-				ShopView.check("FastOpen", ctxAt(JOIN, { fastOpen = true })) == "Owned",
-				"Fast Open owned"
+				ShopView.check("QuickCases", ctxAt(JOIN, { fastOpen = true })) == "Owned",
+				"Quick Cases owned"
 			)
-			H.expect(ShopView.check("FastOpen", joined) == nil, "Fast Open on sale")
+			H.expect(ShopView.check("QuickCases", joined) == nil, "Quick Cases on sale")
 			H.expect(ShopView.check("StarterPack", joined) == nil, "the Starter Pack's week")
 			H.expect(
 				ShopView.check("StarterPack", ctxAt(JOIN + 7 * DAY)) == "Closed",
@@ -814,7 +814,7 @@ return {
 				H.expect(p.products[key] ~= nil, key .. " listed")
 			end
 			for _, key in
-				{ "VipOffer", "StarterPack", "MoneyParty", "FoundersCue", "Vip", "FastOpen" }
+				{ "VipOffer", "StarterPack", "MoneyParty", "FoundersCue", "Vip", "QuickCases" }
 			do
 				H.expect(p.products[key] ~= nil, key .. " listed")
 			end
@@ -825,10 +825,10 @@ return {
 				"Id 0: coming soon"
 			)
 			H.expect(pack2.available and pack2.canBuy and pack2.reason == nil, "made: on sale")
-			H.expect(pack1.money == 1800 and pack2.money == 3900, "the first pack doubled")
+			H.expect(pack1.money == 18000 and pack2.money == 39000, "the first pack doubled")
 			H.expect(p.products.StarterPack.money == 75000, "the Starter Pack's $75,000")
 			H.expect(p.products.Vip.kind == "Pass" and p.products.Vip.canBuy, "the VIP pass")
-			H.expect(not p.products.Vip.owned and not p.products.FastOpen.owned, "nothing owned")
+			H.expect(not p.products.Vip.owned and not p.products.QuickCases.owned, "nothing owned")
 			H.expect(
 				p.products.MoneyParty.canBuy == false
 					and p.products.MoneyParty.reason == "ComingSoon",
@@ -991,13 +991,113 @@ return {
 		)
 	end,
 
+	["the Dashboard list: 4 game passes and 24 developer products at the plan's prices"] = function()
+		local want = {
+			Vip = 599,
+			QuickCases = 299,
+			UltSlot2 = 59,
+			UltSlot3 = 99,
+			VipOffer = 299,
+			StarterPack = 99,
+			Pack1 = 49,
+			Pack2 = 99,
+			Pack3 = 249,
+			Pack4 = 499,
+			Pack5 = 999,
+			Pack6 = 2499,
+			Pack7 = 4999,
+			Mystery1 = 25,
+			Mystery10 = 229,
+			RestockEpic = 999,
+			RestockLegendary = 4999,
+			Skip1h = 15,
+			Skip6h = 49,
+			Skip24h = 99,
+			Skip48h = 149,
+			MoneyParty = 199,
+			Spin1 = 15,
+			Spin5 = 50,
+			Spin10 = 100,
+			Spin50 = 449,
+			Lucky1 = 49,
+			Lucky3 = 129,
+		}
+		local passes, products = 0, 0
+		for key, robux in want do
+			local row = Shop.product(key)
+			H.expect(row ~= nil and row.Robux == robux, key .. " costs " .. robux)
+			if row.Kind == "Pass" then
+				passes += 1
+			else
+				products += 1
+			end
+		end
+		H.expect(
+			passes == 4 and products == 24,
+			("%d passes, %d products"):format(passes, products)
+		)
+		H.expect(Shop.product("FastOpen") == nil, "Fast Open is Quick Cases now")
+		H.expect(Config.Products.BestValue == "Pack6", "Best value")
+		for _, key in { "Mystery1", "RestockEpic", "Skip48h", "Spin1", "Lucky3" } do
+			H.expect(Shop.isRandom(key), key .. " is a paid random item")
+		end
+		for _, key in { "Pack1", "Vip", "QuickCases", "StarterPack", "MoneyParty" } do
+			H.expect(not Shop.isRandom(key), key .. " is not random")
+		end
+	end,
+
+	["Mystery Cases grant paid Case Drops; the Starter Pack adds an hour of 2x money"] = function()
+		local one = Shop.grantFor("Mystery1", newShop(), JOIN, false)
+		local ten = Shop.grantFor("Mystery10", newShop(), JOIN, false)
+		H.expect(one.drops == 1 and one.money == 0 and ten.drops == 10, "Case Drops")
+		local shop = newShop()
+		local starter = Shop.grantFor("StarterPack", shop, JOIN, false)
+		H.expect(starter.boostEnds == JOIN + Config.Shop.StarterBoostSeconds, "an hour from now")
+		Shop.markGrant(shop, starter)
+		H.expect(shop.BoostEnds == JOIN + 3600, "marked")
+		-- A later grant never shortens it.
+		Shop.markGrant(shop, { key = "x", money = 0, boostEnds = JOIN + 10 })
+		H.expect(shop.BoostEnds == JOIN + 3600, "kept")
+	end,
+
+	["paid random items are refused where restricted; the page order and Roblox Plus"] = function()
+		withIds(
+			{ Mystery1 = 21, Mystery10 = 22, Pack1 = 23, RestockEpic = 24, Skip1h = 25 },
+			function()
+				local now = JOIN + HOUR
+				H.expect(ShopView.check("Mystery1", ctxAt(now)) == nil, "on sale")
+				H.expect(
+					ShopView.check("Mystery10", ctxAt(now, { restricted = true })) == "Restricted",
+					"restricted"
+				)
+				H.expect(
+					ShopView.check("Mystery1", ctxAt(now, { policyKnown = false })) == "NotLoaded",
+					"policy not known yet"
+				)
+				H.expect(ShopView.check("Pack1", ctxAt(now, { restricted = true })) == nil, "money")
+				H.expect(
+					ShopView.check("RestockEpic", ctxAt(now)) == "ComingSoon",
+					"restock: step 4"
+				)
+				H.expect(ShopView.check("Skip1h", ctxAt(now)) == "ComingSoon", "skip: on its case")
+				local p = ShopView.build(ctxAt(now))
+				H.expect(
+					table.concat(p.order, " ") == table.concat(Config.Shop.Order, " "),
+					"order"
+				)
+				H.expect(p.order[1] == "Offer" and p.order[#p.order] == "RobloxPlus", "top, bottom")
+				H.expect(p.robloxPlus == true and p.bestValue == "Pack6" and #p.packs == 7, "rest")
+			end
+		)
+	end,
+
 	["ShopView.build: a product not for this player shows no money"] = function()
 		local now = JOIN + HOUR
 		local vip = ShopView.build(ctxAt(now, { vipPass = true }))
 		H.expect(vip.products.VipOffer.money == 0, "VIP: the offer gives nothing more")
 		local bought = ShopView.build(ctxAt(now, { shop = newShop({ StarterBought = true }) }))
 		H.expect(bought.products.StarterPack.money == 0, "the Starter Pack bought")
-		H.expect(bought.products.Pack1.money == 1800, "the packs as before")
+		H.expect(bought.products.Pack1.money == 18000, "the packs as before")
 		local fresh = ShopView.build(ctxAt(now))
 		H.expect(fresh.products.StarterPack.money == 75000, "on offer: its $75,000")
 	end,

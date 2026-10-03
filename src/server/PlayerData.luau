@@ -412,14 +412,19 @@ local function addCasesTo(data: any, caseId: string, count: number, paid: boolea
 end
 
 -- Rolls one Case Drop into the save (pity counted in data.Drops), lands its case and notes the
--- reveal for commit. `forced`: the tier without a roll (the first win's Rare Case). Returns the
--- payload.
-local function rollDrop(data: any, source: string, forced: string?): CaseDrop.Payload
+-- reveal for commit. `forced`: the tier without a roll (the first win's Rare Case); `paid`:
+-- bought (Mystery Cases), paid origin. Returns the payload.
+local function rollDrop(
+	data: any,
+	source: string,
+	forced: string?,
+	paid: boolean?
+): CaseDrop.Payload
 	local tier, pity = CaseDrop.roll(CaseDrop.readPity(data.Drops), dropRoll, forced)
 	data.Drops.SinceRare = math.min(pity.SinceRare, S.StatCap)
 	data.Drops.SinceEpic = math.min(pity.SinceEpic, S.StatCap)
 	data.Drops.Total = math.min(pity.Total, S.StatCap)
-	local readyAt = addCasesTo(data, tier, 1) or 0
+	local readyAt = addCasesTo(data, tier, 1, paid) or 0
 	local payload = CaseDrop.payload(source, tier, readyAt, CaseDrop.readPity(data.Drops))
 	local list = pendingDrops[data]
 	if list == nil then
@@ -467,8 +472,8 @@ local function giveCue(data: any, id: string): boolean
 end
 
 -- Gives a Unique cue with its copy number (a first find pays its finder's money).
-local function giveUnique(data: any, id: string, copy: number)
-	local _, first = Inventory.addUnique(data, id, copy)
+local function giveUnique(data: any, id: string, copy: number, paid: boolean?)
+	local _, first = Inventory.addUnique(data, id, copy, paid)
 	if first then
 		payFind(data, id)
 	end
@@ -2567,6 +2572,8 @@ local GRANT_FIELDS: { [any]: boolean } = {
 	starterBought = true,
 	spins = true,
 	lucky = true,
+	drops = true,
+	boostEnds = true,
 }
 local GRANT_FLAGS = { "vip", "vipCue", "party", "firstPack", "starterBought" }
 
@@ -2599,6 +2606,14 @@ local function badGrant(grant: any, copy: any): string?
 	if spinsWhy ~= nil then
 		return spinsWhy
 	end
+	if grant.drops ~= nil and not intIn(grant.drops, 1, S.MaxSmallEntries) then
+		return ("grant.drops %s is not a whole number in 1..%d"):format(
+			tostring(grant.drops),
+			S.MaxSmallEntries
+		)
+	elseif grant.boostEnds ~= nil and not intIn(grant.boostEnds, 0, S.UnixTimeCap) then
+		return ("grant.boostEnds %s is not a unix time"):format(tostring(grant.boostEnds))
+	end
 	if grant.cue ~= nil then
 		local cue = Catalog.get(grant.cue)
 		if cue == nil or cue.Group == "Default" or cue.Group == "Unique" then
@@ -2624,7 +2639,8 @@ end
 --- Records a developer product purchase and applies its grant (Shop.grantFor) in ONE change,
 --- so a receipt is never granted without its id recorded, nor recorded without its grant:
 --- Shop.recordPurchase, the grant's money (bought: not MoneyEarned), its ult spins and Lucky
---- Spins (grant.spins, grant.lucky), its cue (the VIP Cue only
+--- Spins (grant.spins, grant.lucky), its paid Case Drops (grant.drops, Mystery Cases, each
+--- sent as a reveal), its cue (the VIP Cue only
 --- while Shop.VipCueGiven is false; an Exclusive cue already owned is not given twice), its
 --- Limited cue with copy number `copy` (required with grant.limited: the caller's Limited
 --- counter handed it out; refused, logged, when the player already owns that cue, so the
@@ -2667,10 +2683,14 @@ function PlayerData.applyPurchase(
 		giveCue(data, grant.cue)
 	end
 	if limited ~= nil and copy ~= nil then
-		giveUnique(data, limited, copy)
+		giveUnique(data, limited, copy, true) -- bought: paid origin
 		shop.Limited[limited] = copy
 	end
 	addSpinsTo(data, grant.spins, grant.lucky)
+	-- Mystery Cases: Case Drops bought with Robux, paid origin, each revealed (CaseDropped).
+	for _ = 1, grant.drops or 0 do
+		rollDrop(data, "Mystery", nil, true)
+	end
 	Shop.markGrant(shop, grant)
 	commit(player, data, op)
 	return true
@@ -2711,7 +2731,7 @@ function PlayerData.buyLimited(player: Player, cueId: string, copy: number, pric
 		return refuse(op, player, ("not enough money for %s (copy %d unused)"):format(cueId, copy))
 	end
 	takeMoney(data, price, "Limited:" .. cueId)
-	giveUnique(data, cueId, copy)
+	giveUnique(data, cueId, copy, true) -- bought: paid origin
 	data.Shop.Limited[cueId] = copy
 	commit(player, data, op)
 	return true

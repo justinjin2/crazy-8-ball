@@ -112,6 +112,28 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   `rarityPercent(rarity)`. New case names in Strings: Uncommon Case, Mythic Case (no chest
   icons of their own yet: the plain chest shows). The shop's case cards show nothing to buy
   (`Cases.list()` is empty).
+- **Step 3 done (2026-10-03): the Creator Dashboard list in Config, ids still 0.**
+  - `Config.Products`: exactly the 4 game passes and 24 developer products of the brief (step
+    3 table: names, prices, descriptions). Fast Open is now the `QuickCases` pass (299 R$);
+    the Starter Pack is 99 R$ and adds 1 hour of 2x money (`Shop.BoostEnds`); money packs are
+    $9,000 ... $1,300,000; `Mystery1`/`Mystery10` grant 1/10 paid Case Drops (each revealed on
+    the `CaseDrop` remote, source "Mystery"). `Random = true` marks paid random items (Mystery,
+    Restock, Skip, spins): refused with "Restricted" where PolicyService restricts them.
+    Restock and Skip products answer "ComingSoon" on a plain Buy until step 4 wires them.
+    The Founder's Cue product stays (off) until step 7 removes its Limited row.
+  - `Config.Shop.Order` (the one-scroll page), `Config.Shop.RobloxPlus`, `Products.BestValue`.
+    StoreRequest "RobloxPlus" prompts the Roblox Plus subscription.
+  - Limited cues bought with money or Robux are paid origin.
+  - Checked: lint, all Lune tests (+3 shop tests: the Dashboard list, Mystery and Starter
+    grants, restricted items and the page order); Studio: `/buy`-style grants of Mystery10
+    (10 paid drops, the 10th a Rare by pity, all 10 revealed), StarterPack ($75,000, the hour
+    of 2x, the `MoneyBoostEnds` attribute), Pack1 (doubled: $18,000); StoreRequest RobloxPlus
+    answers ok; the old "FastOpen" key still resolves. Waiting on the designer's ids to test
+    real purchases.
+- **For GUI** (step 3): `ShopState` gains `order`, `robloxPlus`, `bestValue`, `packs`. Product
+  key `FastOpen` is now `QuickCases` (the server still takes "FastOpen"; the player attribute
+  keeps the name `FastOpen`). New keys: Mystery1, Mystery10, RestockEpic, RestockLegendary,
+  Skip1h/6h/24h/48h. Roblox Plus: `StoreRequest:InvokeServer("RobloxPlus")`.
 - **For GUI**: `Format.money` changed (M from $1,000,000). Player attribute `MoneyBoostEnds`
   (unix time the Starter hour ends; 0 none).
 - **For Bots**: the disguised limit counts in `Daily.Disguised` (Ranking, on a disguised win).
@@ -140,6 +162,11 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   is now the Case Drop (`giveDrop`), `Ranking.freeCase` returns the tier only. `Announce`:
   Legendary here, Mythic/Secret published to every server. `Store`: halves timers when Quick
   Cases is owned. `Catalog`: case cues drop from every case in `Config.Cases.Order`.
+- (step 3) `Config.Products` rewritten; `Config.Shop` + `Order`, `RobloxPlus`. `Strings`:
+  `PassNames.QuickCases`, the /fastopen help line. `Net`: ShopState and StoreRequest docs.
+  `PlayerData`: grant fields `drops`, `boostEnds`; `giveUnique(..., paid)`; `rollDrop(...,
+  paid)`. `Store`: QuickCases, old-key alias, `RobloxPlus`. `UltSpins`: the pass key
+  `QuickCases`. `DevCommands`: `/fastopen` fakes QuickCases.
 
 ## Requests to other lanes or the integrator
 

@@ -168,16 +168,27 @@ local REMOTES: { [string]: string } = {
 	--   products = { [Config.Products key] = { kind = "Product" | "Pass", robux (live, else
 	--     Config's), available (Id set; false: "Coming soon"), owned, canBuy, reason? (the
 	--     StoreRequest reason a Buy would get now), money (what one purchase gives now: a first
-	--     pack doubled; 0 for none) } } }
+	--     pack doubled; 0 for none) } },
+	--   order = { section } (the one scrolling page top to bottom, Config.Shop.Order: "Offer",
+	--     "Vip", "Restock", "Limited", "Mystery", "Money", "Boosts", "RobloxPlus"),
+	--   robloxPlus (show Get Roblox Plus), bestValue (the pack marked "Best value"),
+	--   packs = { key } (the money packs in order) }
+	-- Product keys (Config.Products): passes Vip, QuickCases (was FastOpen), UltSlot2,
+	-- UltSlot3; products VipOffer, StarterPack, Pack1-7, Mystery1, Mystery10, RestockEpic,
+	-- RestockLegendary, Skip1h/6h/24h/48h, MoneyParty, Spin1/5/10/50, Lucky1/3. Paid random
+	-- items (Mystery, Restock, Skip, spins) answer "Restricted" where PolicyService restricts
+	-- them.
 	ShopState = "RemoteEvent",
-	-- client -> server, answered: ("Buy", a Config.Products key) -> { ok, reason? }. The server
+	-- client -> server, answered: ("Buy", a Config.Products key; "FastOpen" still means
+	-- QuickCases) -> { ok, reason? }, or ("RobloxPlus") -> { ok } (the Roblox Plus subscription
+	-- prompt; Roblox pays the game for a subscriber signed up in it). The server
 	-- checks it (Progression/ShopView.check) and prompts the purchase itself; ok = true means
 	-- the prompt is up, and the grant arrives later through ProcessReceipt (a pass: through
 	-- PromptGamePassPurchaseFinished) and a new ShopState. Reasons: "BadRequest" (not "Buy" or
 	-- not a product key), "TooFast", "NotLoaded", "Owned" (a pass owned, VIP already, the
 	-- Starter Pack or that Limited bought), "Closed" (its offer or Limited window is shut),
 	-- "SoldOut", "PartyFull" (an hour of Money Party already queued), "ComingSoon" (Id 0),
-	-- "Error" (the prompt failed).
+	-- "Restricted" (a paid random item where they are restricted), "Error" (the prompt failed).
 	StoreRequest = "RemoteFunction",
 	-- server -> one player: the Rewards menu's state (src/server/Rewards.luau builds it with
 	-- Progression/RewardView.build). Sent on load, after each claim or dev change, when a

@@ -13,7 +13,8 @@ local Config = require(script.Parent.Parent.Config)
 local Shop = require(script.Parent.Shop)
 
 local S = Config.Shop
-local LIST: { [string]: { Kind: string, Id: number, Robux: number } } = Config.Products.List :: any
+local LIST: { [string]: { Kind: string, Id: number, Robux: number, Restock: string?, SkipSeconds: number? } } =
+	Config.Products.List :: any
 local CASE_ORDER: { string } = Config.Cases.Order
 local MAX_SALE: number = Config.Cases.MaxSalePercent
 
@@ -25,7 +26,7 @@ export type Context = {
 	now: number,
 	shop: Shop.ShopSave, -- the save's Shop table (a read-only copy is fine)
 	vipPass: boolean, -- owns the VIP game pass (or the /vip dev override)
-	fastOpen: boolean, -- owns the Fast Open game pass (or /fastopen)
+	fastOpen: boolean, -- owns the Quick Cases game pass (or /fastopen)
 	restricted: boolean, -- the PaidRandomRestricted attribute (PolicyService)
 	-- false while PolicyService has not answered for this player (nil counts as answered)
 	policyKnown: boolean?,
@@ -90,17 +91,21 @@ export type Payload = {
 	sale: Sale?,
 	limited: { LimitedView },
 	products: { [string]: ProductView },
+	order: { string }, -- the shop page's sections, top to bottom (Config.Shop.Order)
+	robloxPlus: boolean, -- show the Get Roblox Plus button (StoreRequest "RobloxPlus")
+	bestValue: string, -- the money pack marked "Best value"
+	packs: { string }, -- the money packs in shop order
 }
 
 -- The products whose purchase depends on more than their Id (ECONOMY 11.2-11.5).
 local VIP_PASS = "Vip"
-local FAST_OPEN = "FastOpen"
+local FAST_OPEN = "QuickCases"
 local VIP_OFFER = "VipOffer"
 local STARTER_PACK = "StarterPack"
 local MONEY_PARTY = "MoneyParty"
 
--- The ult spin products (ECONOMY 11.8): paid random items, refused where PolicyService
--- restricts them (ECONOMY 11.7, 13).
+-- The ult spin products (ECONOMY 11.8): closed while the spin screen is (spinsLive). Every
+-- paid random item (Shop.isRandom) is refused where PolicyService restricts them.
 local SPIN_PRODUCTS: { [string]: boolean } = {}
 for _, key in Config.Ults.Earn.RobuxPacks do
 	SPIN_PRODUCTS[key] = true
@@ -136,7 +141,7 @@ local function limitedRow(key: string): Shop.LimitedRow?
 	return nil
 end
 
--- Whether a pass other than Vip and FastOpen (an ult slot) is owned.
+-- Whether a pass other than Vip and QuickCases (an ult slot) is owned.
 local function otherPassOwned(ctx: Context, key: string): boolean
 	local passes = ctx.passes
 	return type(passes) == "table" and passes[key] == true
@@ -224,12 +229,15 @@ function ShopView.check(key: string, ctx: Context): string?
 		if not Shop.canQueueParty(ctx.partyEndsAt, ctx.now) then
 			return "PartyFull"
 		end
-	elseif SPIN_PRODUCTS[key] then
+	elseif Shop.isRandom(key) then
 		if ctx.policyKnown == false then
 			return "NotLoaded"
 		elseif ctx.restricted then
 			return "Restricted"
-		elseif ctx.spinsLive == false then
+		elseif SPIN_PRODUCTS[key] and ctx.spinsLive == false then
+			return "ComingSoon"
+		elseif row.Restock ~= nil or row.SkipSeconds ~= nil then
+			-- Bought through the restock shop or a case's skip, not a plain Buy (economy step 4).
 			return "ComingSoon"
 		end
 	elseif row.Kind == "Pass" then
@@ -365,6 +373,10 @@ function ShopView.build(ctx: Context): Payload
 		sale = ctx.sale,
 		limited = limited,
 		products = products,
+		order = table.clone(S.Order),
+		robloxPlus = S.RobloxPlus == true,
+		bestValue = Config.Products.BestValue,
+		packs = table.clone(Config.Products.PackOrder),
 	}
 end
 

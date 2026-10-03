@@ -46,7 +46,7 @@ local Announce = require(script.Parent.Announce)
 
 local U = Config.Ults
 local IS_STUDIO = RunService:IsStudio()
-local FAST_OPEN = "FastOpen" -- the Fast Open pass's Config.Products key
+local FAST_OPEN = "QuickCases" -- the Quick Cases pass's Config.Products key
 local DEV_ALL_ATTR = "UltDevAll" -- on the player: the developer flag is on for them
 
 export type Reply = { [string]: any }

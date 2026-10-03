@@ -18,18 +18,21 @@
 --   past its end); already owned, sold out, ended or not started pay the money fallback too
 --   (logged), while a counter error, a busy retry or a save not loaded leave the receipt
 --   NotProcessedYet for Roblox to retry.
--- - Game passes (Vip, FastOpen, the ult slots UltSlot2 and UltSlot3): UserOwnsGamePassAsync on join (pcall, retried, cached; Id 0
+-- - Game passes (Vip, QuickCases, the ult slots UltSlot2 and UltSlot3): UserOwnsGamePassAsync on join (pcall, retried, cached; Id 0
 --   is never owned), and PromptGamePassPurchaseFinished with wasPurchased counts the pass for
 --   the session at once (Roblox fires it on the server; UserOwnsGamePassAsync may still answer
 --   false from its cache right after a purchase). VIP = owns the pass OR bought the welcome
---   offer: the player attributes Vip and FastOpen (the money and XP boosts, the chat tag and
---   the case opening read them), and the VIP Cue once (PlayerData.giveVipCue).
+--   offer: the player attributes Vip and FastOpen (FastOpen: owns Quick Cases, the attribute's
+--   old name the screens read; the money and XP boosts, the chat tag and the case opening read
+--   them), and the VIP Cue once (PlayerData.giveVipCue).
 -- - The Money Party is this server's: workspace attributes MoneyPartyEndsAt (unix) and
 --   MoneyPartyBuyer (a username), Announce.party on every purchase; cleared when it ends.
 -- - StoreRequest "Buy" (a Config.Products key): checked (ShopView.check), then this server
 --   prompts the purchase itself. ShopState goes to each player on load and whenever any of it
 --   changes (a purchase, a pass, the restriction, the sale, the party, a Limited count, an
---   offer window opening or closing on the clock).
+--   offer window opening or closing on the clock). The old key "FastOpen" is still taken for
+--   Quick Cases (the shop screens before the one-scroll shop). StoreRequest "RobloxPlus"
+--   prompts the Roblox Plus subscription (Config.Shop.RobloxPlus).
 -- - The ult spin service (UltSpins) reads passes through Store.ownsPass, hears changes on
 --   Store.PassChanged, prompts its Robux products through Store.prompt (the same check as a
 --   Buy: ShopView.check, which refuses spin packs where paid random items are restricted) and
@@ -59,13 +62,16 @@ local LIST: { [string]: { Kind: string, Id: number, Robux: number } } = Config.P
 -- Server-set attributes (clients and the other services only read them).
 local ATTR = {
 	Vip = "Vip", -- on the player: VIP (the pass or the welcome offer)
-	FastOpen = "FastOpen", -- on the player: owns Fast Open
+	FastOpen = "FastOpen", -- on the player: owns Quick Cases (the attribute's old name)
 	Restricted = "PaidRandomRestricted", -- on the player, set by Items (PolicyService)
 	PartyEndsAt = "MoneyPartyEndsAt", -- on workspace: this server's Money Party end, unix
 	PartyBuyer = "MoneyPartyBuyer", -- on workspace: the last buyer's username
 }
 -- The instance Counters keeps the Limited copy counts on (one attribute per Limited cue).
 local LIMITED_SOLD = "LimitedSold"
+-- The Quick Cases pass (Config.Products key), and old product keys a screen may still send.
+local QUICK_CASES = "QuickCases"
+local OLD_KEYS: { [string]: string } = { FastOpen = QUICK_CASES }
 -- A dev grant's purchase id starts with this (never a Roblox receipt's).
 local DEV_PREFIX = "Dev-"
 -- The product whose grant depends on the VIP pass (Shop.receiptCheck).
@@ -176,11 +182,11 @@ local function limitedSold(): { [string]: number }
 	return sold
 end
 
--- The passes other than Vip and FastOpen (the ult slots) this player owns, by key.
+-- The passes other than Vip and QuickCases (the ult slots) this player owns, by key.
 local function otherPasses(player: Player): { [string]: boolean }
 	local out: { [string]: boolean } = {}
 	for _, key in PASS_KEYS do
-		if key ~= "Vip" and key ~= "FastOpen" then
+		if key ~= "Vip" and key ~= QUICK_CASES then
 			out[key] = owns(player, key)
 		end
 	end
@@ -198,7 +204,7 @@ local function context(player: Player, now: number): ShopView.Context?
 		now = now,
 		shop = data.Shop,
 		vipPass = owns(player, "Vip"),
-		fastOpen = owns(player, "FastOpen"),
+		fastOpen = owns(player, QUICK_CASES),
 		restricted = player:GetAttribute(ATTR.Restricted) == true,
 		policyKnown = player:GetAttribute(ATTR.Restricted) ~= nil,
 		-- UltSpins' isLive, read here without requiring it (it requires Store).
@@ -211,13 +217,14 @@ local function context(player: Player, now: number): ShopView.Context?
 	}
 end
 
--- Sets Vip and FastOpen from the passes and the save (the save may not be loaded yet).
+-- Sets Vip and FastOpen (Quick Cases) from the passes and the save (the save may not be
+-- loaded yet).
 local function setAttributes(player: Player, shopSave: any?)
 	local vip = Shop.isVip(owns(player, "Vip"), shopSave)
 	if player:GetAttribute(ATTR.Vip) ~= vip then
 		player:SetAttribute(ATTR.Vip, vip)
 	end
-	local fastOpen = owns(player, "FastOpen")
+	local fastOpen = owns(player, QUICK_CASES)
 	if player:GetAttribute(ATTR.FastOpen) ~= fastOpen then
 		player:SetAttribute(ATTR.FastOpen, fastOpen)
 	end
@@ -630,12 +637,36 @@ local function prompt(player: Player, key: string): boolean
 	return ok
 end
 
+-- Prompts the Roblox Plus subscription (Roblox pays the game for each subscriber signed up in
+-- it). False when Roblox refused.
+local function promptPlus(player: Player): boolean
+	local ok, err = pcall(function()
+		MarketplaceService:PromptRobloxSubscriptionPurchase(player)
+	end)
+	if not ok then
+		log(("prompting Roblox Plus for %d failed: %s"):format(player.UserId, tostring(err)))
+	end
+	return ok
+end
+
 local function onStoreRequest(player: Player, action: any, key: any): Reply
+	local clock = os.clock()
+	local last = lastRequest[player]
+	if action == "RobloxPlus" then
+		if not S.RobloxPlus then
+			return reply(false, "BadRequest")
+		elseif last ~= nil and clock - last < S.RequestCooldownSeconds then
+			return reply(false, "TooFast")
+		end
+		lastRequest[player] = clock
+		return reply(promptPlus(player), nil)
+	end
+	if type(key) == "string" then
+		key = OLD_KEYS[key] or key
+	end
 	if action ~= "Buy" or type(key) ~= "string" or LIST[key] == nil then
 		return reply(false, "BadRequest")
 	end
-	local clock = os.clock()
-	local last = lastRequest[player]
 	if last ~= nil and clock - last < S.RequestCooldownSeconds then
 		return reply(false, "TooFast")
 	end
@@ -696,7 +727,7 @@ function Store.grant(player: Player, key: string, purchaseId: string?): (boolean
 end
 
 --- Dev (/vip, /fastopen): pretends the player owns (`on`) or does not own game pass `passKey`
---- ("Vip" or "FastOpen") for this session, whatever Roblox says. True when it is a pass key.
+--- ("Vip", "QuickCases" ...) for this session, whatever Roblox says. True when it is a pass key.
 function Store.setPass(player: Player, passKey: string, on: boolean): boolean
 	local row = LIST[passKey]
 	if row == nil or row.Kind ~= "Pass" or typeof(player) ~= "Instance" then
@@ -712,7 +743,7 @@ function Store.setPass(player: Player, passKey: string, on: boolean): boolean
 end
 
 --- Whether the player owns game pass `name` (a Config.Products key of Kind "Pass": "Vip",
---- "FastOpen", "UltSlot2", "UltSlot3"): Roblox's join answer, a purchase in this server, or the
+--- "QuickCases", "UltSlot2", "UltSlot3"): Roblox's join answer, a purchase in this server, or the
 --- dev override (Store.setPass). "Vip" is the pass alone (VIP also comes from the welcome
 --- offer: the Vip attribute). False for anything else and while the join check is running.
 function Store.ownsPass(player: Player, name: string): boolean

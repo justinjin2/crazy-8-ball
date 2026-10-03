@@ -30,6 +30,7 @@ export type ShopSave = {
 	VipCueGiven: boolean,
 	StarterBought: boolean,
 	FirstPackBought: boolean,
+	BoostEnds: number?, -- unix time the Starter Pack's 2x money hour ends (0: none)
 	Purchases: { string }, -- the last RecentPurchases receipt ids, oldest first
 	Limited: { [string]: number }, -- Limited cue id -> its copy number
 }
@@ -57,6 +58,8 @@ export type Grant = {
 	starterBought: boolean?, -- sets Shop.StarterBought
 	spins: number?, -- ult spins to add (Spin1..Spin50; the save's Ults.Spins)
 	lucky: number?, -- Lucky Spins to add (Lucky1, Lucky3; Ults.LuckySpins)
+	drops: number?, -- Case Drops to roll, paid origin (Mystery1, Mystery10)
+	boostEnds: number?, -- the Starter Pack's 2x money hour ends then (sets Shop.BoostEnds)
 }
 
 export type LimitedRow = {
@@ -101,6 +104,10 @@ type ProductRow = {
 	Was: number?, -- the original price shown crossed out (ult spin packs)
 	Spins: number?, -- ult spins one purchase adds
 	Lucky: number?, -- Lucky Spins one purchase adds
+	Drops: number?, -- Case Drops one purchase rolls (Mystery Cases)
+	Restock: string?, -- the restock case it buys (RestockEpic, RestockLegendary)
+	SkipSeconds: number?, -- the most time left on the timer it finishes (Skip1h ... Skip48h)
+	Random: boolean?, -- a paid random item (refused where PolicyService restricts them)
 }
 
 local LIST: { [string]: ProductRow } = P.List :: any
@@ -335,6 +342,13 @@ function Shop.fallbackGrant(key: string): Grant?
 	return { key = key, money = money }
 end
 
+--- Whether product `key` is a paid random item (Config.Products' Random: Mystery Cases, the
+--- restock cases, timer skips, ability spins), refused where PolicyService restricts them.
+function Shop.isRandom(key: string): boolean
+	local row = LIST[key]
+	return row ~= nil and row.Random == true
+end
+
 --- What buying developer product `key` gives this player at unix time `now` (`vipPass`: they
 --- own the VIP game pass), and why it is the money fallback instead (receiptCheck's reason), or
 --- nil for a pass, an unknown key, or a product that would give nothing (a receipt for it is
@@ -375,6 +389,7 @@ function Shop.grantFor(
 		grant.money += S.StarterMoney
 		grant.cue = S.StarterCue
 		grant.starterBought = true
+		grant.boostEnds = math.max(now, whole(shopSave.BoostEnds)) + S.StarterBoostSeconds
 	elseif key == MONEY_PARTY then
 		grant.party = true
 	end
@@ -392,6 +407,11 @@ function Shop.grantFor(
 	if lucky > 0 then
 		grant.lucky = lucky
 	end
+	-- Mystery Cases: Case Drops bought with Robux (paid origin).
+	local drops = whole(row.Drops)
+	if drops > 0 then
+		grant.drops = drops
+	end
 	if
 		grant.money <= 0
 		and grant.cue == nil
@@ -400,6 +420,7 @@ function Shop.grantFor(
 		and grant.limited == nil
 		and grant.spins == nil
 		and grant.lucky == nil
+		and grant.drops == nil
 	then
 		return nil, nil
 	end
@@ -407,8 +428,11 @@ function Shop.grantFor(
 end
 
 --- Sets the Shop save's flags a grant carries (VipOffer, VipCueGiven, FirstPackBought,
---- StarterBought). Changes `shopSave`; call it in the grant's save mutation.
+--- StarterBought, BoostEnds). Changes `shopSave`; call it in the grant's save mutation.
 function Shop.markGrant(shopSave: ShopSave, grant: Grant)
+	if grant.boostEnds ~= nil then
+		shopSave.BoostEnds = math.max(whole(shopSave.BoostEnds), whole(grant.boostEnds))
+	end
 	if grant.vip then
 		shopSave.VipOffer = true
 	end
