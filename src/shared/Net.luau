@@ -240,7 +240,8 @@ local REMOTES: { [string]: string } = {
 	RewardState = "RemoteEvent",
 	-- client -> server, answered: ("ClaimDaily"), ("ClaimPlaytime", index 1..#gifts),
 	-- ("Redeem", the typed code text), ("ClaimGroup"), ("ClaimFavorite": after Roblox's
-	-- favorite prompt said yes; GUI lane) -> { ok = true, money, cases = { { id,
+	-- favorite prompt said yes; GUI lane), ("ClaimLeaveGift": the first time Roblox's menu
+	-- opens or the window loses focus; once ever; GUI lane) -> { ok = true, money, cases = { { id,
 	-- count } }, drops, spins, lucky } or { ok = false, reason }. Reasons: "BadRequest" (an
 	-- unknown action, a bad index, text that is not a string), "TooFast" (a request every
 	-- Config.Daily.RequestCooldownSeconds, a code every RedeemCooldownSeconds, a group claim

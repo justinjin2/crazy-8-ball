@@ -1147,6 +1147,16 @@ return {
 			Default = "That didn't work. Try again",
 		},
 	},
+	-- The come-back message and the first-leave gift (ComeBack; GUI lane, C15).
+	ComeBack = {
+		Title = "COME BACK TOMORROW FOR",
+		Gifted = "A GIFT FOR YOU!",
+		GiftLine = "A free %s, ready in %s!", -- "Rare Case", "1 hour"
+		GiftWhere = "It's in your Inventory.",
+		Hour = "1 hour",
+		Hours = "%s hours",
+		Minutes = "%s minutes",
+	},
 	-- The hub's small corner buttons (HubCorners; GUI lane, C2).
 	Corners = {
 		Challenge = "Daily Challenge",

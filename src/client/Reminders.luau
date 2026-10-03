@@ -219,15 +219,14 @@ function Reminders.start(screen: ScreenGui, source: () -> any?)
 		if now - lastShown < T.CooldownSeconds then
 			return
 		end
-		-- The free ult spin first; else the login reward's line.
+		-- Only the free ult spin's line now: tomorrow's login reward has its own big message
+		-- (ComeBack, GUI lane, C15).
 		local free = Reminders.freeSpin()
 		local line: string? = nil
 		if free then
 			line = ULT_WORDS.Reminder
-		else
-			local ok, upcoming = pcall(source)
-			line = if ok then Reminders.line(upcoming) else nil
 		end
+		local _ = source
 		if not line then
 			return
 		end

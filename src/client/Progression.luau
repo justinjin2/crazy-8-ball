@@ -44,6 +44,7 @@ local ShopThanks = require(script.Parent.ShopThanks)
 local MagicBall = require(script.Parent.MagicBall)
 local FreeRewardMenu = require(script.Parent.FreeRewardMenu)
 local HubCorners = require(script.Parent.HubCorners)
+local ComeBack = require(script.Parent.ComeBack)
 local PlayerList = require(script.Parent.PlayerList)
 local ResultCutscene = require(script.Parent.ResultCutscene)
 local RewardPopups = require(script.Parent.RewardPopups)
@@ -221,6 +222,10 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	corners = HubCorners.new(screen, deps)
 	deps.corners = corners
 	playerList = PlayerList.new(screen)
+	ComeBack.start(screen, function(): any?
+		local latest = ItemState.rewards()
+		return if type(latest) == "table" then latest.next else nil
+	end)
 	banner = Banner.new(screen, { avoid = { rankHud.holder } })
 	Menus.setBlocker(function(): boolean
 		return lastState.inMatch or popupUp()
@@ -374,7 +379,10 @@ function Progression.update(state: State)
 		return
 	end
 	lastState = state
-	local busy = result:isOpen() or newRank:isOpen() or ResultCutscene.isPlaying()
+	local busy = result:isOpen()
+		or newRank:isOpen()
+		or ResultCutscene.isPlaying()
+		or ComeBack.isPlaying()
 	rankHud:setVisible(not state.inMatch and not busy)
 	-- Under the result screen and NEW RANK! the column still shows while a case or cue flies
 	-- into its Inventory tile (RewardChips), so the tile is there to catch it.

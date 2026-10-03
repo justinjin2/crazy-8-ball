@@ -21,7 +21,8 @@
 -- - GUI lane (designer 2026-10-03, C9): with Config.Daily.AutoClaimEveryDay every day's claim
 --   is given by itself on join (and at midnight UTC for those still here), and with
 --   AutoGivePlaytime each playtime gift as it is reached; RewardGiven tells the player, for
---   the popup. RewardRequest "ClaimFavorite" gives the favorite reward once.
+--   the popup. RewardRequest "ClaimFavorite" gives the favorite reward once, and
+--   "ClaimLeaveGift" the first-leave gift once (Config.Social.LeaveGift).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -165,6 +166,7 @@ local REWARD_OPS: { [string]: boolean } = {
 	reset = true,
 	claimGroup = true,
 	claimFavorite = true,
+	claimLeaveGift = true,
 	setInvitedBy = true,
 	giveInviteRewards = true,
 	recordMatch = true, -- an invited player's first win
@@ -350,6 +352,7 @@ local function onRewardRequest(player: Player, action: any, a: any): Reply
 		and action ~= "Redeem"
 		and action ~= "ClaimGroup"
 		and action ~= "ClaimFavorite"
+		and action ~= "ClaimLeaveGift"
 	then
 		return refused("BadRequest")
 	end
@@ -377,6 +380,9 @@ local function onRewardRequest(player: Player, action: any, a: any): Reply
 		return answer(ok, result, "BadRequest")
 	elseif action == "ClaimFavorite" then
 		local ok, result = PlayerData.claimFavorite(player)
+		return answer(ok, result, "BadRequest")
+	elseif action == "ClaimLeaveGift" then
+		local ok, result = PlayerData.claimLeaveGift(player)
 		return answer(ok, result, "BadRequest")
 	elseif action == "ClaimPlaytime" then
 		if type(a) ~= "number" or a ~= math.floor(a) or a < 1 or a > #D.Playtime then

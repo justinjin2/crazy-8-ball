@@ -2305,6 +2305,9 @@ Config.Social = {
 	-- GUI lane (D4): favoriting the game through Roblox's favorite prompt gives this once.
 	-- Roblox gives a server no way to check a favorite, so the client reports it.
 	FavoriteReward = { Money = 10000, Drops = 1 },
+	-- The first-leave gift (GUI lane, C15, D3): the first time ever Roblox's menu opens or the
+	-- window loses focus, this case on its normal timer (a Rare Case: ready in 1 hour), once.
+	LeaveGift = { Case = "Rare", Count = 1 },
 	-- A ClaimGroup request (it asks Roblox for the player's groups) at most this often.
 	ClaimCooldownSeconds = 5,
 }
@@ -7284,6 +7287,26 @@ Config.UI.Trade = {
 	DoneSeconds = 2.5, -- "Trade done!" stays this long before the screen closes
 }
 
+-- The come-back message (ComeBack; GUI lane, C15): every time Roblox's menu opens or the window
+-- loses focus, a big "COME BACK TOMORROW FOR" with tomorrow's login reward in a turning ring,
+-- in the middle of the screen. Pixels at a 1080-tall screen (scaled to the screen). (tune)
+Config.UI.ComeBack = {
+	DisplayOrder = 70, -- over the HUD, menus and popups
+	WidthPx = 620,
+	HeightPx = 520,
+	TitlePx = 52, -- COME BACK TOMORROW FOR
+	RingPx = 300, -- the ring
+	RingStrokePx = 10,
+	RaysShare = 1.7, -- the turning rays behind the ring, of the ring
+	RaysDegreesPerSecond = 30,
+	PicturePx = 130, -- the reward's pictures in the ring
+	LinePx = 34, -- the reward in words under the ring
+	LingerSeconds = 2.5, -- it stays this long after the player is back
+	MinScale = 0.45, -- never smaller than this on a small screen
+	GiftTitlePx = 64, -- the gift's big words
+	GiftLinePx = 30,
+}
+
 -- The ult bar in a match (UltHud and UltBar; docs/prompts/ULTIMATES_PROMPT.md 5 and 7.1,
 -- UI_STYLE section 11), the opponent's ult icon and the NO ULTS pills (MatchHUD, the result
 -- screen). Pixels and seconds. Pairs { a, b } are { a phone on its side, a computer or tablet }
@@ -10041,6 +10064,26 @@ Config.Cutscenes = {
 		ScreenShare = 0.6, -- the result screen keeps to this top share of the screen
 		ClearStuds = 20, -- other bodies this near the two are hidden while it plays (walk-ins)
 		ClearEverySeconds = 0.5,
+	},
+	-- The first-leave gift (ComeBack; GUI lane, C15): the case falls out of the sky in front of
+	-- the player, the camera looks up at it and follows it down as it crashes, then big words
+	-- say it is theirs. Studs and seconds.
+	LeaveGift = {
+		LookUpSeconds = 0.9, -- the camera tilts up to the case in the sky
+		FallSeconds = 0.9, -- its fall
+		HoldSeconds = 2.8, -- the words after the crash, then the camera comes back
+		SkyStuds = 70, -- it starts this high
+		AheadStuds = 9, -- it lands this far in front of the player
+		CameraBackStuds = 8, -- the camera, this far behind the player...
+		CameraUpStuds = 5, -- ...this high...
+		CameraSideStuds = 6, -- ...and this far to the side, so the player never hides the case
+		CaseStuds = 6, -- the case picture's size in the world
+		ShockSeconds = 0.6, -- the ring on the floor at the crash
+		ShockStuds = 18, -- its final width
+		ShakeSeconds = 0.45,
+		ShakeStuds = 0.6,
+		DustCount = 40, -- sparkles thrown up at the crash
+		Gold = { 255, 214, 10 },
 	},
 }
 

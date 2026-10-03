@@ -150,6 +150,7 @@ local FIRST_WIN_FLAG = "FirstWinCase"
 -- (Config.Social.InviterOnce), Flags[FAVORITE_FLAG] once the favorite reward was.
 local INVITER_FLAG = "InviterRewarded"
 local FAVORITE_FLAG = "FavoriteReward" -- RewardView.FavoriteFlag
+local LEAVE_GIFT_FLAG = "LeaveGift" -- GUI lane: the first-leave gift, once ever
 
 -- The most playtime one UTC day can hold (SaveSchema's cap on Daily.PlaySeconds).
 local SECONDS_PER_DAY = 86400
@@ -2935,6 +2936,35 @@ function PlayerData.claimFavorite(player: Player): (boolean, Daily.Reward | stri
 	}
 	data.Flags[FAVORITE_FLAG] = true
 	giveReward(data, reward, "Favorite")
+	commit(player, data, op)
+	return true, reward
+end
+
+--- The first-leave gift (Config.Social.LeaveGift; GUI lane, C15, D3): its case on the case's
+--- normal timer, once per player ever (Flags.LeaveGift). The client asks the first time Roblox's
+--- menu opens or the window loses focus; at worst a client asks early, and it is still once.
+--- Answers (true, the reward) or (false, "Claimed" | "NotLoaded").
+function PlayerData.claimLeaveGift(player: Player): (boolean, Daily.Reward | string)
+	local op = "claimLeaveGift"
+	if not isPlayer(player) then
+		return refuseInvalid(op, player, "not a player")
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false, "NotLoaded"
+	elseif data.Flags[LEAVE_GIFT_FLAG] == true then
+		return false, "Claimed"
+	end
+	local row = Config.Social.LeaveGift
+	local reward: Daily.Reward = {
+		money = 0,
+		cases = { [row.Case] = row.Count },
+		drops = 0,
+		spins = 0,
+		lucky = 0,
+	}
+	data.Flags[LEAVE_GIFT_FLAG] = true
+	giveReward(data, reward, "LeaveGift")
 	commit(player, data, op)
 	return true, reward
 end

@@ -344,6 +344,22 @@ step (steps 1-14 of the brief).
     match end (by hand: a 1v1 vs PC win and loss), an arena, the phone (the lifted screen
     scales down into the top 60%), a gamepad's A skip.
 
+- **Step 12 done: keeping players (C15, D3).** Every time Roblox's menu opens or the window
+  loses focus, a big "COME BACK TOMORROW FOR" appears in the middle of the screen with
+  tomorrow's login reward in a gold ring (turning rays behind it, the reward in words under it);
+  it stays while the player is away and goes 2.5 s after they are back. The small reminder toast
+  now only carries the free ult spin's line. The first time ever, the server gifts a Rare Case on
+  its normal 1 h timer (once per save, `Flags.LeaveGift`); when the player comes back (through
+  the popup queue, never in a match) the case falls out of the sky in front of them, the camera
+  looks up and follows it down, it crashes with a gold ring, sparkles and a shake, and big words
+  say "A GIFT FOR YOU! A free Rare Case, ready in 1 hour! It's in your Inventory." The HUD hides
+  meanwhile and the camera comes back as it was.
+  - Checked: lint, tests (958 pass); Studio PC through Studio hooks (the MCP cannot open
+    Roblox's menu): the message (away), back, the server's gift (the Inventory badge went to 1),
+    the gift's scene (look up, fall, crash, words, camera back), a second claim refused
+    ("AlreadyClaimed"). Console clean. Not checked: Roblox's real menu and a real focus loss
+    (by hand: press Esc, click outside the window), a rejoin (no second gift), the phone.
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
@@ -456,6 +472,14 @@ step (steps 1-14 of the brief).
   `ResultCutscene` first for a 1v1, `busy` includes it, the nameplates of its two stay hidden,
   and a match starting stops it.
 
+- Step 12: `Config.luau`: `Config.Social.LeaveGift` (after `FavoriteReward`), new
+  `Config.UI.ComeBack` (before the ult bar block), new `Config.Cutscenes.LeaveGift`;
+  `Strings.luau`: new `ComeBack` block; `Net.luau`: the RewardRequest comment names
+  `ClaimLeaveGift`; `Reminders.luau`: the toast shows only the free spin's line. Economy-owned:
+  `server/Rewards.luau` ("ClaimLeaveGift", `claimLeaveGift` in the op list), `server/PlayerData.luau`
+  (`LEAVE_GIFT_FLAG`, new `PlayerData.claimLeaveGift`), `server/EconomyLog.luau` (LeaveGift is an
+  Onboarding source). `Progression.luau` (client): starts `ComeBack`; `busy` includes its scene.
+
 ## Requests to other lanes or the integrator
 
 - **Integrator**: the Cutscenes lane is folded into this one (designer, 2026-10-03): every item
@@ -557,3 +581,8 @@ step (steps 1-14 of the brief).
 - 2026-10-03 (lane, step 11): the result cutscene uses local copies of both bodies posed by
   turning their shoulder joints (both Motor6D and Roblox's newer AnimationConstraint avatar
   joints); nobody else sees it. It skips surrenders and players who left, as the brief says.
+- 2026-10-03 (lane, step 12): the first-leave gift is asked by the client the first time the
+  menu opens or the window loses focus, and the server gives it once per save (a client asking
+  early still gets only the one Rare Case every player gets anyway). The scene plays when the
+  player comes back, through the popup queue. The old bottom toast keeps only the free ult
+  spin's line, since the big message now carries tomorrow's reward.
