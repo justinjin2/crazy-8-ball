@@ -75,6 +75,9 @@ your status).
   Step 6 added: `GlobalQueue.luau` (`botMatch` block), `TableService.luau` (`searchToMatch`,
   `waitingSearch` in the bot block), `ArenaService.luau` (`seatBots` block, two calls before
   `begin()`, the `StudioArenaBot` attribute).
+  Step 7 added: `TableService.luau` (`standingOnPad` in the bot block), `DevCommands.luau`
+  (`/lobbybots` block), `Config.luau` (`Bots.Lobby`, `Debug.Commands.LobbyBots`),
+  `Strings.luau` (four Dev lines).
 - **Step 4, disguised identity (done).** Real avatars from random accounts (2020 on): most
   accounts wear a starter outfit or nothing (measured: 30 of 60 in three default outfits, 6
   blank), so a look must be styled (two or more accessories that are not face parts, no
@@ -125,7 +128,24 @@ your status).
   The lobby half could not run in this unpublished window (the queue's MemoryStore answers
   "publish this place"): **to check in the published game:** Join Global Queue alone, wait 10
   s: "Match found!", the teleport, a disguised bot of your tier walks in.
-- Next: step 7, lobby bots.
+- **Step 7, lobby bots (done).** `src/server/Bots/LobbyBots.luau`, a director: public lobby
+  servers hold 11 people (10 bots with one player, none at 11); bots "join" at the entrance
+  one by one and vanish to make room, idle ones first, then bot-vs-bot players, one playing a
+  real player only at 11 real players (its forfeit pays in full). They stroll the aisles
+  (pathfinding round the tables), sit on the map's seats, wait on 1v1 pads (at most 2) and play
+  each other there (at most 60% of them; only while 3 1v1 tables stay free; one game, then
+  they get up), never at 2v2/3v3 tables. Checked in Studio: 10 bots, 3 to 4 bot-vs-bot games
+  with real shots (breaks, pots, safeties, Bronze scratches), 1 to 2 waiting, some sitting
+  and strolling; stepping onto a pad where two bots played made them get up and seated me in
+  3.5 s; my Request opponent was answered by a lobby bot after 10 s and I broke; lowering the
+  count sent idle and bot-vs-bot bots away first and kept the one playing me; console clean.
+  Live public servers start with them on; **in Studio they are off until the designer types
+  `/lobbybots on`** (or `/lobbybots <count>`, `/lobbybots off`), so other lanes' Studio tests
+  are not crowded. Never in private servers or arenas (`game.PrivateServerId`). Could not
+  check here: a second real player joining (a bot leaves) and the 11-real-player forfeit (two
+  clients needed). The tutorial's fake lobby: `BotService.startLobby({ count = 15, tiers = {
+  "Bronze", "Silver", "Gold" } })`; `BotService.startLobby(nil)` turns them off.
+- Next: step 8, 2v2/3v3 (Fill with PC and the 25 s all-bot team).
 
 ## Requests to other lanes or the integrator
 

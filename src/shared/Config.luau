@@ -8685,7 +8685,7 @@ Config.Bots = {
 			PlaceSamples = 10,
 		},
 		Diamond = {
-			Make = 0.55,
+			Make = 0.545,
 			Behind = 0.09,
 			Blunder = 0,
 			Scratch = 0,
@@ -8694,7 +8694,7 @@ Config.Bots = {
 			PlaceSamples = 12,
 		},
 		Expert = {
-			Make = 0.55,
+			Make = 0.555,
 			Behind = 0.1,
 			Blunder = 0,
 			Scratch = 0,
@@ -8858,6 +8858,46 @@ Config.Bots = {
 		WalkInStuds = 18, -- the arena bot walks this far in to its spot
 		WalkInSeconds = 4, -- at most this long, then it is put there
 	},
+	-- Lobby bots (the designer, 2026-10-02; public lobby servers only, never a private server
+	-- or an arena): the server looks like People people, so there are People minus the real
+	-- players of them (none at People real players). They stroll, sit, wait on 1v1 pads and
+	-- play each other there (one game, then they walk off), never at 2v2/3v3 tables. A real
+	-- player can step onto a waiting bot's pad to play it (at its badge's level); a real
+	-- Request opponent that nobody real answered in AnswerAfter seconds gets the idle bot
+	-- nearest in rank, which appears on the pad. When a real player joins, a bot leaves:
+	-- idle ones first, then bot-vs-bot players, and one playing a real player only once the
+	-- server holds People real players (its forfeit pays in full). In Studio they are off
+	-- unless the designer's /lobbybots turns them on.
+	Lobby = {
+		People = 11,
+		-- Their badges (weights, in this order): mostly Bronze to Gold, a few Platinum and
+		-- Diamond, none above.
+		Tiers = {
+			{ name = "Bronze", weight = 30 },
+			{ name = "Silver", weight = 30 },
+			{ name = "Gold", weight = 25 },
+			{ name = "Platinum", weight = 10 },
+			{ name = "Diamond", weight = 5 },
+		},
+		TickSeconds = 1, -- how often the director looks
+		JoinGapSeconds = { 3, 9 }, -- between one bot "joining" the server and the next
+		-- What an idle bot does next (weights); Play needs a second idle bot and a table.
+		Activities = {
+			{ name = "Play", weight = 40 },
+			{ name = "Wait", weight = 20 },
+			{ name = "Sit", weight = 15 },
+			{ name = "Stroll", weight = 25 },
+		},
+		MinFreeTables = 3, -- bot-vs-bot games start only while this many 1v1 tables stay free
+		PlayShare = 0.6, -- at most this share of the lobby bots are in bot-vs-bot games
+		MaxWaiting = 2, -- bots waiting on pads at once
+		WaitSeconds = { 45, 120 }, -- a waiting bot gives up on its pad after this long
+		SitSeconds = { 15, 45 },
+		StrollPauseSeconds = { 4, 12 }, -- standing about between walks
+		StrollSteps = { 1, 3 }, -- spots a stroll visits
+		AnswerAfter = 10, -- a real request nobody real answered gets a lobby bot after this
+		WalkTimeoutSeconds = 12, -- a walk that has not arrived by now is cut short
+	},
 	-- The tutorial's opponents (BotService.tutorialBot, tutorialSecondBot; the designer,
 	-- 2026-10-02): the first wears a Silver badge and plays the script, the second a normal
 	-- game; both play at Skill's level.
@@ -8884,6 +8924,7 @@ Config.Bots = {
 		Walk = "rbxassetid://507777826",
 		Jump = "rbxassetid://507765000",
 		Fall = "rbxassetid://507767968",
+		Sit = "rbxassetid://2506281703",
 	},
 	WalkSpeed = 16,
 	-- The tutorial bot's angry exit: it jumps, then is gone this long after (mid-air).
@@ -8987,6 +9028,10 @@ Config.Debug = {
 		-- /botrank <tier>: every bot you meet plays at that tier (Bots lane, for testing);
 		-- /botrank off: your own tier again. Only the accounts in UserIds, Studio and live.
 		BotRank = "/botrank",
+		-- /lobbybots on | off | <count>: lobby bots in this server (on: as live, People minus
+		-- the real players; a count: that many, like the tutorial's fake lobby). Studio starts
+		-- with them off. Only the accounts in UserIds.
+		LobbyBots = "/lobbybots",
 		-- The ult commands' old names, by command: each still runs its command.
 		OldAliases = {
 			UltBar = "/ultbar",

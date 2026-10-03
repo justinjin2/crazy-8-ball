@@ -70,6 +70,9 @@ local function animate(model: Model, hum: Humanoid)
 			play("Fall")
 		end
 	end)
+	hum.Seated:Connect(function(active: boolean)
+		play(if active then "Sit" else "Idle")
+	end)
 	play("Idle")
 	local _ = model
 end

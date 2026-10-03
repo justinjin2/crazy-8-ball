@@ -1099,6 +1099,25 @@ local function botRank(player: Player, args: { string })
 	tell(player, Dev.BotRankBad:format(word, table.concat(Config.Ranks.Tiers, ", ")))
 end
 
+-- /lobbybots on | off | <count>: the lobby bots in this server (the Bots lane's testing
+-- tool; Studio starts with them off).
+local function lobbyBots(player: Player, args: { string })
+	local word = string.lower(args[1] or "")
+	local n = tonumber(word)
+	if word == "on" then
+		BotService.startLobby({})
+		tell(player, Dev.LobbyBotsOn:format(Config.Bots.Lobby.People))
+	elseif word == "off" then
+		BotService.startLobby(nil)
+		tell(player, Dev.LobbyBotsOff)
+	elseif n and n >= 0 and n <= 30 and n == math.floor(n) then
+		BotService.startLobby({ count = n })
+		tell(player, Dev.LobbyBotsCount:format(n))
+	else
+		tell(player, Dev.LobbyBotsBad)
+	end
+end
+
 local function econHelp(player: Player)
 	tell(player, Dev.EconHelp)
 	for _, key in ECON do
@@ -1302,6 +1321,7 @@ function DevCommands.start()
 	command("AbilitySetup", D.AbilitySetup, abilitySetup)
 	command("UltHelp", D.UltHelp, ultHelp)
 	command("BotRank", D.BotRank, botRank)
+	command("LobbyBots", D.LobbyBots, lobbyBots)
 
 	-- Studio only: tests type a command through ServerStorage.DevCommandsQA, since a script
 	-- cannot type into Roblox's chat box: Invoke(userId, "/givecue chalk dust 3") -> (true,

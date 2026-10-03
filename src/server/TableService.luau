@@ -1359,6 +1359,18 @@ function Service.waitingSearch(t: any): ({ Player }?, number?)
 	return playersOf(search.ticket.users), e.search.at
 end
 
+--- Whether a real player not seated here stands on table `t`'s pad (bots playing there get up
+--- for them).
+function Service.standingOnPad(t: any): boolean
+	for _, p in Players:GetPlayers() do
+		local root = rootOf(p)
+		if root and not Engine.seat(t.engine, p.UserId) and onPad(t, root, 0) then
+			return true
+		end
+	end
+	return false
+end
+
 --- Where a body stands on table `t`'s queue pad (a bot appearing to play).
 function Service.padSpot(t: any, offset: number?): CFrame
 	local cx, cy = Placement.queuePad(t.engine.teamSize)

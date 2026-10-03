@@ -9,6 +9,7 @@
 --   BotService.joinTable(bot, t, options)   appear on t's pad after a delay and sit (a request)
 --   BotService.stand(bot, at) -> ok         stand it in the lobby (no table)
 --   BotService.tutorialBot() / tutorialSecondBot()   the tutorial's two opponents
+--   BotService.startLobby(options)          lobby bots on/off (the tutorial's fake lobby: a count)
 --   BotService.remove(bot, how)             "Vanish" (gone at once) or "Angry" (AUGHHHH!)
 --   BotService.say(bot, text)               a chat bubble and a chat line in its name
 --   BotService.matchEnded                   BindableEvent: (botId, { won, reason, epoch })
@@ -33,6 +34,7 @@ local UltService = require(script.Parent.Parent.UltService)
 local Body = require(script.Parent.Body)
 local Identity = require(script.Parent.Identity)
 local Driver = require(script.Parent.Driver)
+local LobbyBots = require(script.Parent.LobbyBots)
 
 local B = Config.Bots
 
@@ -62,6 +64,7 @@ export type Bot = {
 	endedEpoch: number?,
 	seq: number?,
 	gone: boolean?,
+	lobby: boolean?, -- a lobby bot (LobbyBots): freed from a table, it stays in the lobby
 }
 
 local bots: { [number]: Bot } = {}
@@ -70,6 +73,10 @@ local started = false
 
 --- Fired when a seated bot's game ends: (botId, { won = bool, reason, epoch }).
 BotService.matchEnded = Instance.new("BindableEvent")
+
+--- A lobby bot whose table let it go (its game over, or it stepped aside): LobbyBots sets
+--- this to take it back; without it the bot leaves.
+BotService.onFreed = nil :: ((Bot) -> ())?
 
 local function now(): number
 	return workspace:GetServerTimeNow()
@@ -216,6 +223,13 @@ function BotService.joinTable(bot: Bot, t: any, options: any?, done: ((boolean) 
 	end)
 end
 
+--- Lobby bots on (`options`: { count? (a fixed number: the tutorial's fake lobby, e.g. 15),
+--- tiers? (their badges, e.g. { "Bronze", "Silver", "Gold" }) }) or off (nil). Without a
+--- count they keep a public lobby at Config.Bots.Lobby.People people (on by themselves live).
+function BotService.startLobby(options: any?)
+	LobbyBots.set(options)
+end
+
 --- The tutorial's first opponent (the Tutorial lane): a Silver-badged bot with a real look and
 --- a made-up name, playing the tutorial script. Its first visit pots one of its balls, then
 --- scratches; its second knocks the 8 in early (AUGHHHH!, a jump, gone in mid-air). If it
@@ -259,6 +273,26 @@ function BotService.stand(bot: Bot, at: CFrame): boolean
 	Body.place(model, at, false)
 	Body.setGroup(model, "Default")
 	return true
+end
+
+--- Takes `bot` off its table without it leaving the game (a lobby bot getting up): its seat
+--- goes (mid-game that ends the game) and its body stands free where it is.
+function BotService.unseat(bot: Bot)
+	local t = bot.t
+	if t then
+		Tables.advance(t, now())
+		Engine.remove(t.engine, bot.id, now())
+		Tables.broadcast(t)
+	end
+	bot.t = nil
+	local model = bot.model
+	if model then
+		local root = Body.root(model)
+		if root then
+			Body.place(model, CFrame.new(root.Position) * root.CFrame.Rotation, false)
+		end
+		Body.setGroup(model, "Default")
+	end
 end
 
 --- `bot` says `text`: a bubble over its head and a chat line in its name, on every screen.
@@ -348,7 +382,14 @@ local function answerRematch(bot: Bot, t: any)
 		end
 	end
 	local rule = bot.rematch
-	if rule == "Never" then
+	local anyone = false
+	for _, s in e.seats do
+		if s.userId > 0 and s.connected then
+			anyone = true
+		end
+	end
+	-- Bots alone (a lobby game) play one game, then get up.
+	if not anyone or rule == "Never" then
 		bot.answered = e.epoch
 		vote("Decline")
 	elseif rule == "Request" then
@@ -387,9 +428,26 @@ local function poll(bot: Bot)
 	local seat = Engine.seat(e, bot.id)
 	if not seat then
 		-- The table moved on without it (the game's result reset the pad): it is done here.
+		-- A lobby bot goes back to the lobby; any other leaves.
 		bot.t = nil
-		BotService.remove(bot, "Vanish")
+		if bot.lobby and BotService.onFreed then
+			BotService.unseat(bot)
+			BotService.onFreed(bot)
+		else
+			BotService.remove(bot, "Vanish")
+		end
 		return
+	end
+	-- Whoever real is on its pad always breaks against it (a player who stepped onto a waiting
+	-- bot's pad included); bots alone toss the coin.
+	if e.phase == "Waiting" then
+		local real = nil
+		for _, s in e.seats do
+			if s.userId > 0 and real == nil then
+				real = s.userId
+			end
+		end
+		e.breakFor = real
 	end
 	if bot.model then
 		Tables.holdBot(t, bot.model, bot.id)
@@ -667,6 +725,7 @@ function BotService.start()
 	if RunService:IsStudio() then
 		studioHook()
 	end
+	LobbyBots.start(BotService)
 	local elapsed = 0
 	RunService.Heartbeat:Connect(function(dt)
 		elapsed += dt

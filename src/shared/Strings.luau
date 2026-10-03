@@ -427,6 +427,10 @@ return {
 		BotRankSet = "Bots you meet now play at %s.",
 		BotRankOff = "Bots you meet play at your own tier again.",
 		BotRankBad = 'No tier called "%s". Tiers: %s, or off.',
+		LobbyBotsOn = "Lobby bots on: the server looks like %d people.",
+		LobbyBotsCount = "Lobby bots on: %d of them.",
+		LobbyBotsOff = "Lobby bots off.",
+		LobbyBotsBad = "Try /lobbybots on, /lobbybots off or /lobbybots <count>.",
 	},
 	-- The rank and money screens (ResultScreen, NewRankPopup, Roadmap, RankHud).
 	Progress = {
