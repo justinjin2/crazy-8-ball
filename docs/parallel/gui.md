@@ -274,6 +274,15 @@ step (steps 1-14 of the brief).
     hand in the live game), the codes box (the Abilities screen is live in Studio), the
     music's feel (the designer should listen and approve the three tracks).
 
+- **Step 9 done: the rank and XP bar.** White stripes now slide along the gold XP fill all the
+  time. When one win against an equal player would rank up (the same XP rule as the server,
+  `Ranks.matchXp`), the badge wiggles, the bar rattles and a shaking gold "ONE MORE WIN!" sits
+  under the bar (on a phone, inside the pill's name row, right-aligned, so the column below
+  stays clear). It goes as soon as the XP moves out of reach.
+  - Checked: lint; Studio PC: /xp 220 (Bronze I, 220 / 300): stripes, the wiggle and ONE MORE
+    WIN! under the bar. Console clean. Not checked: the phone placement inside the pill (Studio
+    cannot shrink the rank HUD's screen through the MCP: by hand on a phone).
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
@@ -359,6 +368,8 @@ step (steps 1-14 of the brief).
   `Quality.rate()` (Lower effects).
 - `Progression.luau` (client, step 8): starts `SettingsState` and `Music`, builds
   `SettingsMenu`, tells Music when a match is on.
+- `Config.luau` (step 9): `UI.Progress.RankHud` gains `OneMoreTextPx`, `OneMoreGapPx`,
+  `OneMoreShortTextPx`. `Strings.luau`: `Ranks.OneMoreWin`.
 
 ## Requests to other lanes or the integrator
 

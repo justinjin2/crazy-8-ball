@@ -185,6 +185,8 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	local shade = Instance.new("UIGradient")
 	shade.Parent = fill
 	self.fill, self.shade = fill, shade
+	-- GUI lane (C3): white stripes slide along the fill, always.
+	self.stripes = UIAnim.stripes(fill, K.PillCornerPx)
 	local flash = HudParts.frame(track, "Flash")
 	flash.BackgroundColor3 = Color3.new(1, 1, 1)
 	flash.Size = UDim2.fromScale(1, 1)
@@ -198,6 +200,21 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	numbers.Size = UDim2.new(1, -8, 1, 4)
 	numbers.ZIndex = 3
 	self.numbers = numbers
+	-- "ONE MORE WIN!" under the pill, shaking, while one win would rank up (refreshOneMore).
+	local oneMore = HudParts.text(
+		body,
+		"OneMore",
+		H.OneMoreTextPx,
+		Copy.OneMoreWin,
+		HudParts.color(K.Numbers.Money)
+	)
+	oneMore.TextWrapped = false
+	oneMore.TextXAlignment = Enum.TextXAlignment.Left
+	oneMore.Position = UDim2.fromOffset(B / 2 + H.PadPx, (B + PH) / 2 + H.OneMoreGapPx)
+	oneMore.Size = UDim2.fromOffset(PW, H.OneMoreTextPx + 4)
+	oneMore.Visible = false
+	self.oneMore = oneMore
+	self.oneMoreLoops = nil :: { any }?
 	-- The pill presses and hovers the badge too; only the badge is a gamepad stop.
 	local pillButton = Instance.new("TextButton")
 	pillButton.Name = "Press"
@@ -305,7 +322,46 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	self:snap(self.shown)
 	self:layout()
 	self:refreshVisible()
+	self:refreshOneMore()
 	return self
+end
+
+--- Whether one win against an equal player (Ranks.matchXp) would rank up: then the badge and
+--- the bar wiggle and "ONE MORE WIN!" shows under the bar (GUI lane, C3).
+function RankHud.refreshOneMore(self: any)
+	local player = self.player
+	local on = false
+	if player then
+		local xp = player:GetAttribute("RankXp")
+		local matches = player:GetAttribute("RatedMatches")
+		local rank = Ranks.fromXp(
+			if type(xp) == "number" then xp else 0,
+			type(matches) == "number" and matches > 0
+		)
+		local width = rank.width
+		if rank.index > 0 and width ~= nil then
+			local gain = Ranks.matchXp(rank, { outcome = "Win", opponent = "Player" } :: any)
+			on = gain > 0 and width - rank.xpInDivision <= gain
+		end
+	end
+	if on == (self.oneMoreLoops ~= nil) then
+		return
+	end
+	if on then
+		self.oneMore.Visible = true
+		UIAnim.popIn(self.oneMore)
+		self.oneMoreLoops = {
+			UIAnim.shake(self.badge.root, "Wiggle"),
+			UIAnim.shake(self.pill, "Text"),
+			UIAnim.shake(self.oneMore, "Wiggle"),
+		}
+	else
+		for _, loop in self.oneMoreLoops :: { any } do
+			loop.stop()
+		end
+		self.oneMoreLoops = nil
+		self.oneMore.Visible = false
+	end
 end
 
 -- Fit the HUD into the free part of the top row: its natural size (a phone), bigger on a
@@ -322,6 +378,22 @@ function RankHud.layout(self: any)
 	local room = area.X - S.HeaderGap * 2
 	if room > 0 then
 		scale = math.min(scale, room / self.naturalWidth)
+	end
+	-- "ONE MORE WIN!": under the pill, or in its name row on a phone.
+	local B, PW, PH = H.BadgePx, H.PillWidthPx, H.PillHeightPx
+	local oneMore = self.oneMore
+	if short then
+		oneMore.Parent = self.pill
+		oneMore.TextXAlignment = Enum.TextXAlignment.Right
+		HudParts.setTextSize(oneMore, H.OneMoreShortTextPx, H.OneMoreShortTextPx)
+		oneMore.Position = UDim2.fromOffset(B / 2, H.NameTopPx + 2)
+		oneMore.Size = UDim2.fromOffset(PW - B / 2 - H.PadPx * 1.5, H.NameTextPx)
+	else
+		oneMore.Parent = self.body
+		oneMore.TextXAlignment = Enum.TextXAlignment.Left
+		HudParts.setTextSize(oneMore, H.OneMoreTextPx)
+		oneMore.Position = UDim2.fromOffset(B / 2 + H.PadPx, (B + PH) / 2 + H.OneMoreGapPx)
+		oneMore.Size = UDim2.fromOffset(PW, H.OneMoreTextPx + 4)
 	end
 	local rowHeight = if area.Y > 0 then area.Y else H.FallbackRowPx
 	self.fit.Scale = scale
@@ -510,6 +582,7 @@ function RankHud.changed(self: any)
 		if not self.alive then
 			return
 		end
+		self:refreshOneMore()
 		local target = readRank(self.player)
 		if sameShown(target, self.shown) and self.shownIndex == target.index then
 			return
@@ -607,6 +680,10 @@ function RankHud.destroy(self: any)
 	end
 	self.alive = false
 	self:stop()
+	self.stripes.stop()
+	for _, loop in self.oneMoreLoops or {} do
+		loop.stop()
+	end
 	for _, connection in self.connections do
 		connection:Disconnect()
 	end

@@ -4899,6 +4899,14 @@ Config.UI = {
 			FillSeconds = 0.6, -- the bar filling or draining to a new value (each leg)
 			FlashSeconds = 0.4, -- the flash as the bar crosses into another division
 			TickEvery = 0.07, -- the XP tick sounds at most this often
+			-- GUI lane (designer 2026-10-03, C3): white stripes slide along the gold fill, and
+			-- when one win (vs an equal player) would rank up, the badge and bar wiggle with
+			-- "ONE MORE WIN!" under the bar.
+			OneMoreTextPx = 18,
+			OneMoreGapPx = 2, -- under the pill
+			-- A phone: the column starts right under the badge, so the words sit in the pill's
+			-- name row instead, right-aligned and smaller.
+			OneMoreShortTextPx = 12,
 			-- The small badge under each portrait in the match bar (MatchHUD): this share of the
 			-- portrait, its centre this share of the badge above the portrait's lower edge, so it
 			-- overlaps the edge rather than growing the bar.
