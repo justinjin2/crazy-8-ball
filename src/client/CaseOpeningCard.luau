@@ -4,9 +4,9 @@
 -- colour: the cue's thumbnail on a tile dressed in its rarity (CueThumb.dress: Mythic's shimmer
 -- over deep space, Secret's red glow), its name, a rarity pill and "NEW!" or "Duplicate", the
 -- copies in existence ("1,284 exist", ReplicatedStorage.CueCounts; hidden until known), and a
--- row of buttons: Equip, Sell (duplicates only), and Open next (while cases of that type remain)
--- or Done; a red X in the corner. On the result screen (the first win's case) the row is Equip
--- and Continue, with no X.
+-- row of two buttons: a small Sell and a wide Keep (Keep, open next while cases of that type
+-- remain); a red X in the corner. On the result screen (the first win's case) the row is only
+-- Continue, with no X. No Equip here (designer, 2026-10-03): cues are equipped in the Inventory.
 --
 -- GUI lane (2026-10-03, C11d): "YOU PULLED" shakes over the card, the cue's odds in this case
 -- read under its pills in its rarity's colour, any sellable pull can be sold (not only
@@ -48,8 +48,7 @@ export type Info = {
 }
 
 export type Options = {
-	reveal: boolean?, -- the result screen's reveal: Equip and Continue, no X
-	onEquip: () -> (),
+	reveal: boolean?, -- the result screen's reveal: Continue only, no X
 	onSell: (() -> ())?,
 	onNext: (() -> ())?,
 	onDone: () -> (),
@@ -232,11 +231,6 @@ function Card.new(parent: Instance, info: Info, opts: Options): any
 	self.row = row
 	local reveal = opts.reveal == true
 	self.reveal = reveal
-	self.equip = HudParts.candy(row, W.Equip, function()
-		UISound.play("Click")
-		opts.onEquip()
-	end, "Blue")
-	self.equip.Name = "Equip"
 	self.sell = nil :: TextButton?
 	if not reveal and opts.onSell and Cases.sellValue(info.cue) > 0 then
 		local onSell = opts.onSell
@@ -300,13 +294,12 @@ function Card.new(parent: Instance, info: Info, opts: Options): any
 	return self
 end
 
--- The buttons share the row by what their words need ("Open next (4)" with its chest is
--- wider than "Equip"): each gets its words' width and an equal share of what is left, or all
--- shrink together when the row is short (the words then shrink to fit, never below the kit's
+-- Sell takes only its words' width (it is the small one); Keep takes the rest of the row. When
+-- the row is short both shrink together (the words then shrink to fit, never below the kit's
 -- minimum). Run again whenever a button's words change.
 function Card.layoutButtons(self: any)
 	local inner = D.WidthPx - 2 * D.PadPx
-	local buttons = { self.equip }
+	local buttons = {}
 	if self.sell then
 		table.insert(buttons, self.sell)
 	end
@@ -319,11 +312,10 @@ function Card.layoutButtons(self: any)
 		wants[i] = HudParts.candyWidth(button, D.ButtonPx, D.ButtonTextPx)
 		total += wants[i]
 	end
-	local extra = math.max(0, room - total) / #buttons
 	local squeeze = if total > room then room / total else 1
 	local x = 0
 	for i, button in buttons do
-		local width = math.floor(wants[i] * squeeze + extra)
+		local width = math.floor(wants[i] * squeeze)
 		if i == #buttons then
 			width = math.floor(inner - x) -- the last one ends flush with the row
 		end
@@ -488,20 +480,6 @@ function Card.step(self: any)
 	end
 end
 
---- The Equip button: "Equip", "Equipped" (a check, not pressable) or busy while it asks.
-function Card.setEquipped(self: any, equipped: boolean)
-	local W = words()
-	HudParts.setText(self.equip, if equipped then W.Equipped else W.Equip)
-	HudParts.setButtonIcon(self.equip, if equipped then "Check" else nil)
-	HudParts.setTone(self.equip, if equipped then "White" else "Blue")
-	HudParts.setEnabled(self.equip, not equipped, false)
-	self:layoutButtons()
-end
-
-function Card.setEquipBusy(self: any, busy: boolean)
-	HudParts.setEnabled(self.equip, not busy, false)
-end
-
 --- The Sell button: "Sell $600" (its price, from the catalog: the server pays what it pays),
 --- busy while it asks, or "Sold!" once sold.
 function Card.setSell(self: any, state: string, price: number?)
@@ -540,12 +518,8 @@ function Card.setNext(self: any, remaining: number?)
 	self:layoutButtons()
 end
 
---- The button a gamepad lands on: Equip on the result screen, else Open next / Done.
+--- The button a gamepad lands on: Keep (or Continue).
 function Card.focusButton(self: any): GuiObject
-	if self.reveal then
-		local equip: TextButton = self.equip
-		return if equip.Selectable then equip else self.next
-	end
 	return self.next
 end
 

@@ -16,5 +16,17 @@
     "assetType": "Decal",
     "imageId": "82136605713937",
     "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/tutorial/hand.png": {
+    "assetId": "136633068621749",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "71143067788609"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/tutorial/hand_rays.png": {
+    "assetId": "139070501554542",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "136125893092975"
   }
 }

@@ -15,6 +15,7 @@ Steps.Order = {
 	"Request", -- on the pad: press Request opponent
 	"Game1", -- the rigged match
 	"Drop", -- Bronze's Case Drop (a Standard Case) through the 8-ball, opened
+	"Equip", -- equip the Uncommon cue it gave: Inventory, its card, Equip (designer 2026-10-03)
 	"RareDrop", -- the match's Rare Case through the 8-ball (its 1 h timer runs)
 	"Abilities", -- the hand on the Abilities icon
 	"Spin", -- the one starter spin (Magnet)
@@ -117,13 +118,16 @@ local ITEMS = {
 }
 
 --- Whether the HUD item `item` (Shop, Inventory, Abilities, Rank, FreeReward) shows at `step`.
---- Anything not hidden by the tutorial shows.
+--- Anything not hidden by the tutorial shows. In the first server Inventory shows only for the
+--- Equip step.
 function Steps.shows(step: string?, item: string): boolean
 	if ITEMS[item] == nil or not Steps.firstServer(step) then
 		return true
 	end
 	if item == "Abilities" then
 		return Steps.atLeast(step, "Abilities")
+	elseif item == "Inventory" then
+		return step == "Equip"
 	end
 	return false
 end

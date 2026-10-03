@@ -899,7 +899,9 @@ step in the save (`Flags.Tutorial`) and owns every rigged part; the client only 
   wrong pocket puts it back as a plain foul). On the winning shot the bot shouts "AUGHHHH!",
   jumps and vanishes; the result screen shows Leave only.
 - **After game 1:** NEW RANK! Bronze ("Claim your rewards in Rank!") -> the Bronze Case Drop is
-  a Standard Case, the hand points at Open now, it opens to an Uncommon cue -> the match's Rare
+  a Standard Case, the hand points at Open now, it opens to an Uncommon cue -> Inventory appears
+  and the hand leads to it, the new cue's card and Equip ("Equip your new cue!"; closing the
+  Inventory without equipping moves on; designer 2026-10-03) -> the match's Rare
   Case drops with its 1 h timer -> the Abilities icon appears, the hand on it -> the one
   starter spin lands on Magnet -> "Type RELEASE for 3 more spins!" -> "Click Back".
 - **Game 2:** the arrow to a pad; the host card shows only Join Global Queue; the search turns

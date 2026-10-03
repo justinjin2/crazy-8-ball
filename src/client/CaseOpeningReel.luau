@@ -16,9 +16,6 @@
 --   thick edge in that colour; after a short hold the reel reports it is done.
 -- - skip() jumps straight to the prize (a tap, A or B).
 -- - Each card reads the cue's name and its odds in its rarity's colour (GUI lane, 2026-10-03).
--- - About 1 roll in 5 (Reel.NearMissChance; designer, D15) a rarer cue sits next to the prize
---   (ReelPlan): the reel slows onto it, waits a beat, then ticks over onto the prize. The prize
---   is always the server's and always where it ends; a skip lands on it at once.
 -- Built in natural pixels inside a CaseOpeningFx stage; layout(width) sizes it.
 local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -30,7 +27,6 @@ local Config = require(Shared:WaitForChild("Config"))
 local ProgressionRules = Shared:WaitForChild("Progression")
 local Cases = require(ProgressionRules:WaitForChild("Cases"))
 local Catalog = require(ProgressionRules:WaitForChild("Catalog"))
-local ReelPlan = require(ProgressionRules:WaitForChild("ReelPlan"))
 local CaseOpeningFx = require(script.Parent.CaseOpeningFx)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
@@ -145,7 +141,7 @@ local function makeCard(parent: Instance, index: number, id: string, rarity: str
 	}
 end
 
--- Show another cue on a card (the prize, a tease).
+-- Show another cue on a card (the prize).
 local function dressCard(slot: Slot, id: string, rarity: string)
 	slot.id = id
 	slot.rarity = rarity
@@ -202,8 +198,6 @@ function Reel.new(parent: Instance, caseId: string): any
 	self.strip = strip
 
 	local cues, weights, total = pool(caseId)
-	self.pool = cues
-	self.tease = nil :: ReelPlan.Tease?
 	self.slots = {} :: { Slot }
 	for index = 1, math.max(R.Cards, R.PrizeSlot + 1) do
 		local pick = self.random:NextNumber(0, total)
@@ -337,16 +331,6 @@ function Reel.setPrize(self: any, cueId: string, rarity: string)
 	self.prizeRarity = rarity
 	self.big = CaseOpeningFx.isBig(rarity)
 	dressCard(self.slots[R.PrizeSlot], cueId, rarity)
-	-- The near-miss: now and then a rarer cue right next to the prize.
-	local tease = ReelPlan.tease({
-		chance = self.random:NextNumber(),
-		side = self.random:NextNumber(),
-		pick = self.random:NextNumber(),
-	}, rarity, self.pool, Config.Cases.Rarities, R.NearMissChance)
-	self.tease = tease
-	if tease then
-		dressCard(self.slots[R.PrizeSlot + tease.side], tease.id, tease.rarity)
-	end
 end
 
 --- Spin onto the prize (setPrize first); `onSettled` runs once, after it has settled and held.
@@ -362,12 +346,6 @@ function Reel.start(self: any, onSettled: () -> ())
 	local spread = R.LandSpread * R.CardWidthPx / 2
 	self.offset = self.random:NextNumber(-spread, spread)
 	self.to = centreOf(R.PrizeSlot) + self.offset
-	if self.tease then
-		-- Slow onto the teased card first; the creep over to the prize follows.
-		local first =
-			ReelPlan.stops(centreOf(R.PrizeSlot), pitch(), self.tease, R.NearMissStopShare)
-		self.to = first
-	end
 	self.began = os.clock()
 	self.built = false
 	self.lastIndex = math.floor(self.pos / pitch())
@@ -442,28 +420,7 @@ function Reel.step(self: any)
 		end
 		self:tick(now)
 		if u >= 1 then
-			if self.tease then
-				-- Stopped on the rarer cue: a beat, then over onto the prize.
-				self.phase = "Teasing"
-				self.teaseFrom = now
-				self.creepFrom = self.pos
-				local slot: Slot = self.slots[R.PrizeSlot + self.tease.side]
-				UIAnim.bounce(slot.frame)
-			else
-				self:land(now)
-			end
-		end
-	elseif self.phase == "Teasing" then
-		local held = now - self.teaseFrom
-		if held >= R.NearMissPauseSeconds then
-			local u = math.clamp((held - R.NearMissPauseSeconds) / R.NearMissCreepSeconds, 0, 1)
-			local eased = u * u * (3 - 2 * u)
-			self.pos = self.creepFrom + (centreOf(R.PrizeSlot) - self.creepFrom) * eased
-			self:tick(now)
-			if u >= 1 then
-				self.to = centreOf(R.PrizeSlot)
-				self:land(now)
-			end
+			self:land(now)
 		end
 	elseif self.phase == "Centring" then
 		local u = math.clamp((now - self.centreFrom) / R.CentreSeconds, 0, 1)

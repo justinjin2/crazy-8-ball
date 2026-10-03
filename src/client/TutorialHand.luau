@@ -1,10 +1,11 @@
 --!strict
 -- TutorialHand: the tutorial's pointer hand (docs/prompts/TUTORIAL_PROMPT.md step 2; our own
--- drawing after reference 01's style, assets/ui/tutorial/hand.png). Its fingertip is the point
--- it shows.
+-- drawing, assets/ui/tutorial/hand.png: upright with the index finger up, after the designer's
+-- "tap here" icon, 2026-10-03). Its fingertip is the point it shows; it is never turned upside
+-- down.
 --
--- - point(target): solid, at a target (TutorialOverlay.Target), tapping (it dips and squishes
---   on a short loop).
+-- - point(target): solid, just under a target (TutorialOverlay.Target), tapping (it pokes up
+--   and squishes on a short loop, and the tap lines over the fingertip flash).
 -- - gesture(kind, ...): see-through demonstrations on a loop:
 --     "pull"  (target)        down the power bar, all the way;
 --     "hold"  (keyCode)       a gamepad button glyph held while a bar fills (Hold A);
@@ -33,6 +34,7 @@ export type Hand = typeof(setmetatable(
 	{} :: {
 		root: Frame,
 		hand: ImageLabel,
+		rays: ImageLabel, -- the tap lines, laid over the hand
 		scale: UIScale,
 		mouse: ImageLabel,
 		glyph: ImageLabel,
@@ -77,6 +79,9 @@ function TutorialHand.new(gui: ScreenGui): Hand
 	hand.ZIndex = 9
 	local scale = Instance.new("UIScale")
 	scale.Parent = hand
+	local rays = image(root, "Rays", ART.HandRays)
+	rays.AnchorPoint = hand.AnchorPoint
+	rays.ZIndex = 9
 	local mouse = image(root, "Mouse", ART.Mouse)
 	mouse.AnchorPoint = Vector2.new(0.5, 0.2)
 	mouse.ZIndex = 8
@@ -106,6 +111,7 @@ function TutorialHand.new(gui: ScreenGui): Hand
 	local self = setmetatable({
 		root = root,
 		hand = hand,
+		rays = rays,
 		scale = scale,
 		mouse = mouse,
 		glyph = glyph,
@@ -167,26 +173,14 @@ end
 -- Every part hidden, then the frame's parts shown as needed.
 local function reset(self: Hand)
 	self.hand.Visible = false
+	self.rays.Visible = false
 	self.mouse.Visible = false
 	self.glyph.Visible = false
 	self.ghost.Visible = false
 	self.bar.Visible = false
 end
 
-local function placeHand(
-	self: Hand,
-	at: Vector2,
-	size: number,
-	transparency: number,
-	flipped: boolean?
-)
-	-- Flipped: turned half round, pointing up from below (a target too near the screen's top
-	-- for the hand to fit over it). Turned about its middle, the fingertip lands at the
-	-- mirrored point of the picture, so that point is the anchor.
-	self.hand.Rotation = if flipped then 180 else 0
-	self.hand.AnchorPoint = if flipped
-		then Vector2.new(1 - H.TipX, 1 - H.TipY)
-		else Vector2.new(H.TipX, H.TipY)
+local function placeHand(self: Hand, at: Vector2, size: number, transparency: number)
 	self.hand.Visible = true
 	self.hand.Size = UDim2.fromOffset(size, size)
 	self.hand.Position = UDim2.fromOffset(at.X, at.Y)
@@ -213,19 +207,18 @@ function TutorialHand.update(self: Hand, dt: number)
 		if centre == nil then
 			return
 		end
-		-- The tap: a quick dip and squish, then a rest.
+		-- The tap: a quick poke up and squish, then a rest; the tap lines flash with it. Near the
+		-- screen's bottom the hand's lower part simply runs off the edge.
 		local phase = (t % H.TapSeconds) / H.TapSeconds
 		local dip = if phase < 0.3 then math.sin(phase / 0.3 * math.pi) else 0
+		local flash = if phase < 0.6 then math.sin(phase / 0.6 * math.pi) else 0
 		self.scale.Scale = 1 - H.TapSquish * dip
-		local flipped = centre.Y - size * H.TipY < 0
-		local toward = if flipped then -1 else 1
-		placeHand(
-			self,
-			centre + Vector2.new(0, toward * (-H.HoverPx + H.TapDipPx * dip)),
-			size,
-			0,
-			flipped
-		)
+		local at = centre + Vector2.new(0, H.HoverPx - H.TapDipPx * dip)
+		placeHand(self, at, size, 0)
+		self.rays.Visible = flash > 0
+		self.rays.Size = self.hand.Size
+		self.rays.Position = self.hand.Position
+		self.rays.ImageTransparency = 1 - flash
 		return
 	end
 

@@ -6,8 +6,9 @@
 --     Config.UI.Inventory.SortOrders) and "Sell all duplicates: $1,234" (the total worked out
 --     here from Cases.sellValue for show; the server's reply is the truth), which asks first.
 --   * A grid of big cue cards (InventoryCard), the whole page wide: the picture, the name,
---     "4.2% chance · 1,284 exist" (its rarity's share of Case Drops, in the rarity's colour;
---     "fewer than 10" under ten copies), "x3", NEW, Equipped; rarer cards shimmer and sparkle.
+--     "4.2% chance" (its rarity's share of Case Drops, in the rarity's colour; the copies in
+--     existence left off, designer 2026-10-03), "x3", NEW, Equipped; rarer cards shimmer and
+--     sparkle.
 --   * A card pressed opens the cue big over the page (ref 07's size): the picture on its
 --     dressed card, name, rarity, the odds line, "You own 3", Equip, and one "Sell duplicates"
 --     that opens a count chooser (- 1 +, Max; "Sell 3 for $360"; a confirm from
@@ -37,6 +38,7 @@ local HudParts = require(script.Parent.HudParts)
 local InventoryCard = require(script.Parent.InventoryCard)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -149,9 +151,8 @@ local function percentWords(rarity: string): string
 	return (("%." .. digits .. "f"):format(p):gsub("0+$", "")) .. "%"
 end
 
---- A cue's odds line: "<font color>4.2%</font> chance · 1,284 exist" (rich text; the copies
---- part only once known, "fewer than 10" under ten).
-function InventoryCues.oddsLine(id: string, copies: number?): string?
+--- A cue's odds line: "<font color>4.2%</font> chance" (rich text).
+function InventoryCues.oddsLine(id: string): string?
 	local cue = Catalog.get(id)
 	if not cue or cue.Group == "Exclusive" or cue.Group == "Unique" then
 		return nil
@@ -159,11 +160,7 @@ function InventoryCues.oddsLine(id: string, copies: number?): string?
 	local c = CueThumb.accentColor(cue.Rarity)
 	local hex = ("#%02X%02X%02X"):format(round(c.R * 255), round(c.G * 255), round(c.B * 255))
 	local percent = ('<font color="%s">%s</font>'):format(hex, percentWords(cue.Rarity))
-	if copies == nil or copies < 1 then
-		return WORDS.Odds:format(percent)
-	end
-	local exist = if copies < 10 then WORDS.FewExist else Format.commas(copies)
-	return WORDS.OddsExist:format(percent, exist)
+	return WORDS.Odds:format(percent)
 end
 
 --- The Cues page, built into `page` (the Items tab's cue area). `ctx`: InventoryMenu's;
@@ -348,6 +345,7 @@ function InventoryCues.buildDetail(self: any, page: Frame)
 	end, "Green")
 	self.equip.Name = "Equip"
 	self.equip.ZIndex = 4
+	TutorialAnchors.set("InventoryEquip", self.equip) -- the tutorial's Equip step
 	HudParts.setMinHit(self.equip, TOUCH)
 	-- One "Sell duplicates": it opens the count chooser under it.
 	self.sellDupes = HudParts.candy(scroll, WORDS.SellSome, function()
@@ -433,7 +431,7 @@ function InventoryCues.refreshDetail(self: any)
 	self.rarityLabel.Text = CueThumb.rarityName(cue.Rarity)
 	self.rarityLabel.TextColor3 = CueThumb.cueColor(id)
 	local copies = self:copies(id)
-	local odds = InventoryCues.oddsLine(id, copies)
+	local odds = InventoryCues.oddsLine(id)
 	if odds == nil and copies ~= nil and copies >= 1 then
 		odds = (if copies == 1 then WORDS.ExistOne else WORDS.Exist):format(Format.commas(copies))
 	end
@@ -682,11 +680,20 @@ function InventoryCues.redraw(self: any, items: any)
 			count = countLine(row),
 			new = row.new == true or self.sticky[id] == true,
 			equipped = items.equipped == id,
-			odds = InventoryCues.oddsLine(id, self:copies(id)),
+			odds = InventoryCues.oddsLine(id),
 		})
 		table.insert(order, id)
 	end
 	self.order = order
+	-- The tutorial's Equip step points at the first card that is not the equipped cue.
+	local unequipped: GuiObject? = nil
+	for _, id in order do
+		if id ~= items.equipped then
+			unequipped = self.cards[id].button
+			break
+		end
+	end
+	TutorialAnchors.set("InventoryCue", unequipped)
 	self.empty.Visible = #order == 0
 	self.empty.Text = WORDS.Empty
 

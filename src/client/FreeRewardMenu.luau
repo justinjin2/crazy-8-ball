@@ -78,7 +78,7 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	thanks.ZIndex = 3
 
 	local function makeCard(key: string, iconKey: string, titleText: string, press: () -> ()): Card
-		local root = HudParts.card(page, key, nil, true)
+		local root = HudParts.card(page, key)
 		root.ZIndex = 3
 		local icon = HudParts.icon(root, iconKey, "Icon")
 		icon.AnchorPoint = Vector2.new(0.5, 0)

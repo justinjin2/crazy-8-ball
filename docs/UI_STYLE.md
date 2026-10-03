@@ -494,8 +494,8 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
 
 **Decided**
 - **Never still.** Something on every screen always moves, sparkles or breathes: the 8-ball
-  pattern on menus and popups drifts slowly diagonally up and to the right, all balls the same
-  way (`HudParts.menuCard`, `HudParts.popupCard`; small cards keep a still pattern); big words
+  pattern on menus and popups stays still (its slow drift looked choppy and was removed,
+  designer 2026-10-03); big words
   rattle now and then (`UIAnim.shake`); special things sparkle (`UIAnim.sparkle`); bars carry
   moving stripes (`UIAnim.stripes`). Loops run only while on screen and calm down with Lower
   effects (`Quality`).

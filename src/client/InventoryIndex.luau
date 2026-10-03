@@ -658,7 +658,7 @@ function InventoryIndex.refreshDetail(self: any)
 	self.rarityLabel.TextColor3 = CueThumb.cueColor(id)
 	self.stateLabel.Text = if found then WORDS.Found else WORDS.NotFound
 	local copies = copiesOf(id)
-	local odds = InventoryCues.oddsLine(id, copies)
+	local odds = InventoryCues.oddsLine(id)
 	if odds == nil and copies then
 		odds = (if copies == 1 then WORDS.ExistOne else WORDS.Exist):format(Format.commas(copies))
 	end

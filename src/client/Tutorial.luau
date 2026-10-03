@@ -53,6 +53,7 @@ local HOST_HIDES: { [string]: { string } } = {
 	Request = { "HostMore", "HostLevels", "HostGlobal" },
 	Queue = { "HostMore", "HostLevels", "HostRequest" },
 	Drop = { "Rematch" },
+	Equip = { "Rematch" },
 	Game2 = { "Rematch", "Another", "Cancel" },
 	Lobby = { "Rematch", "Another", "Cancel" },
 }
@@ -318,6 +319,45 @@ end
 
 -- The step after game 1 shown last, so a new one can start its own way.
 local lastAfter = ""
+-- The Equip step: whether the Inventory has been opened (closing it again without equipping
+-- moves on: a suggestion, never a wall), and when RareDrop first found it still open.
+local equipVisited = false
+local inventoryLeftAt: number? = nil
+local INVENTORY = "Inventory"
+
+-- The Equip step (designer, 2026-10-03): the hand on Inventory, then the new cue's card, then
+-- its Equip. The server moves on when a cue is equipped (or SkippedEquip).
+local function equipScene(device: string, fresh: boolean): string
+	if fresh then
+		equipVisited = false
+	end
+	if Progression.isBusy() then
+		lineOnly(nil)
+		return "Equipbusy"
+	end
+	if not Menus.isOpen(INVENTORY) then
+		if equipVisited or shownKey == "EquipSkipped" then
+			if shownKey ~= "EquipSkipped" then
+				Tutorial.report("SkippedEquip")
+			end
+			equipVisited = false
+			lineOnly(nil)
+			return "EquipSkipped"
+		end
+		local key = "EquipOpen" .. device
+		pointAt("Inventory", words(Copy.EquipOpen, device), device, shownKey ~= key)
+		return key
+	end
+	equipVisited = true
+	if TutorialAnchors.showing("InventoryEquip") then
+		local key = "EquipButton" .. device
+		pointAt("InventoryEquip", words(Copy.EquipButton, device), device, shownKey ~= key, "Near")
+		return key
+	end
+	local key = "EquipCard" .. device
+	pointAt("InventoryCue", words(Copy.EquipCard, device), device, shownKey ~= key, "Near")
+	return key
+end
 
 -- After game 1 (step 5): the two cases, then the Abilities screen.
 local function afterScene(step: string, device: string): string
@@ -325,6 +365,23 @@ local function afterScene(step: string, device: string): string
 	local fresh = step ~= lastAfter
 	lastAfter = step
 	local ultsOpen = Menus.isOpen(ULTS)
+	if step == "Equip" then
+		reveal:hide()
+		return equipScene(device, fresh)
+	end
+	if step == "RareDrop" and Menus.isOpen(INVENTORY) then
+		-- Just equipped: the Inventory stays a moment (its "Equipped" notice), then closes.
+		local now = os.clock()
+		local since: number = inventoryLeftAt or now
+		inventoryLeftAt = since
+		if now - since >= Config.Tutorial.EquipCloseSeconds then
+			Menus.close(INVENTORY)
+		end
+		reveal:hide()
+		lineOnly(nil)
+		return "RareDropInventory"
+	end
+	inventoryLeftAt = nil
 	if step == "Drop" or step == "RareDrop" then
 		-- Wait for the result screen, NEW RANK! and the case opening.
 		if Progression.isBusy() then

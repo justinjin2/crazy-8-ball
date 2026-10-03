@@ -121,9 +121,9 @@ local function buildCue(parent: GuiObject, cueId: string, width: number): Frame
 	cue.Parent = parent
 
 	-- A cue with a skin shows its own rendered picture (the one the cards use, its 3D piece
-	-- frozen in place; designer, 2026-10-03), turned so the tip points up. The picture has the
-	-- cue on its diagonal, PowerCueArtDiagonal of the way across, so it is sized from the bar's
-	-- height to match the band-drawn cue's length.
+	-- frozen in place; designer, 2026-10-03), turned by its lean (PowerCueArtLeanDegrees) so
+	-- the cue stands straight with the tip up, and sized from the bar's height so the cue is
+	-- as long as the band-drawn one (PowerCueArtLength).
 	local row = Catalog.get(cueId)
 	local skin = CueSkins.index(if row then row.Id else cueId)
 	if skin and skin.Thumb ~= "" then
@@ -135,9 +135,9 @@ local function buildCue(parent: GuiObject, cueId: string, width: number): Frame
 		art.AnchorPoint = Vector2.new(0.5, 0.5)
 		art.Position = UDim2.fromScale(0.5, 0.5)
 		art.SizeConstraint = Enum.SizeConstraint.RelativeYY
-		local side = 1 / (math.sqrt(2) * U.PowerCueArtDiagonal)
+		local side = 1 / U.PowerCueArtLength
 		art.Size = UDim2.fromScale(side, side)
-		art.Rotation = -45
+		art.Rotation = -U.PowerCueArtLeanDegrees
 		art.ZIndex = 2
 		art.Parent = cue
 		task.spawn(function() -- fetched now, so the bar is never empty on the first shot

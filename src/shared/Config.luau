@@ -4687,9 +4687,13 @@ Config.UI = {
 	-- what makes a big pull look like a big pull. The bar deliberately does NOT clip its
 	-- children, or the cue would be cut off at the bottom edge instead of travelling past it.
 	PowerCueLengthScale = 0.97, -- of the bar's height
-	-- A skin's picture (assets/cue/thumbs) has the cue across this share of its diagonal; the
-	-- power bar sizes the turned picture from it so the cue keeps PowerCueLengthScale. (tune)
-	PowerCueArtDiagonal = 0.8,
+	-- A skin's picture (assets/cue/thumbs, rendered by CuePreview.py --thumb) has the cue this
+	-- many times the picture's side long, leaning this many degrees right of upright (measured
+	-- from the pictures, 2026-10-03: not 45, so turning it 45 left the bar's cue crooked). The
+	-- power bar turns the picture back by the lean and sizes it so the cue keeps
+	-- PowerCueLengthScale. Re-measure if the thumbnail camera changes.
+	PowerCueArtLength = 1.12,
+	PowerCueArtLeanDegrees = 37.45,
 	PowerCueTravelScale = 1.0, -- of the bar's height, at full pull
 	-- Slices used to draw the taper. A Frame cannot be a trapezoid, so the cue is built
 	-- from thin bands; enough of them and the steps disappear. (tune)
@@ -5531,10 +5535,6 @@ Config.UI = {
 				WiggleShare = 0.3,
 				EaseSeconds = 0.15,
 			},
-			-- "Never still" (designer, 2026-10-03; UI_STYLE 13). The faint 8-ball pattern on
-			-- menus and popups drifts diagonally up and right, every ball the same way. It moves
-			-- in whole pixels, so its layer is redrawn only a few times a second. (tune)
-			Drift = { PxPerSecond = 9, LowPxPerSecond = 4 },
 			-- Big words shake now and then (UIAnim.shake): a quick rattle every `Every` seconds.
 			-- "Wiggle" is the louder one (one win from a rank-up, an icon calling for a click).
 			Shake = {
@@ -7059,13 +7059,6 @@ Config.UI.CaseOpening = {
 		NameTopShare = 0.63, -- ...this far down
 		OddsTextPx = 15, -- its odds in its rarity's colour ("0.3%")...
 		OddsTopShare = 0.75, -- ...this far down
-		-- The near-miss (designer 2026-10-03, D15; ReelPlan): this share of rolls slow onto a
-		-- rarer cue next to the prize, stopping this share of a card's pitch from the prize's
-		-- middle, wait a beat, then creep over onto the prize.
-		NearMissChance = 0.2,
-		NearMissStopShare = 0.85,
-		NearMissPauseSeconds = 0.45,
-		NearMissCreepSeconds = 0.7,
 		PadYPx = 10, -- above and below the cards inside the window
 		CornerPx = 18, -- the window's corners (the strip is clipped inside their straight part)
 		MinWidthPx = 300,
@@ -7478,11 +7471,11 @@ Config.UI.Inventory = {
 		ChosenStrokePx = 4, -- the card whose details show: a thicker blue outline
 		PadShare = 0.06, -- inside the card, of its width
 		ArtShare = 0.55, -- the picture's size, of the card's height
-		NameTextPx = 14, -- the name (the kit's minimum; it wraps rather than shrinks)
+		NameTextPx = 18, -- the name (it wraps rather than shrinks; 14 read too small, 2026-10-03)
 		NameLines = 2, -- lines the name may wrap to
 		BottomShare = 0.1, -- room kept at the card's bottom for the rarity strip
-		PillPx = 20, -- NEW, Equipped, x3 and #412: their height
-		PillTextPx = 14,
+		PillPx = 24, -- NEW, Equipped, x3 and #412: their height
+		PillTextPx = 17,
 		PillPadPx = 6, -- room each side of a pill's word
 		LockPx = 20, -- the padlock on Exclusive and Unique cues
 		InsetPx = 3, -- the pills and the lock sit this far inside the card's corners
@@ -7494,11 +7487,11 @@ Config.UI.Inventory = {
 		PadPx = { 8, 12 },
 		GapPx = { 6, 8 },
 		ArtPx = { 76, 128 }, -- the picture: left of the words on a phone, on top on a computer
-		NameTextPx = { 18, 24 },
-		RarityTextPx = { 16, 18 },
-		LineTextPx = { 14, 16 }, -- "1,284 exist", "You own 3", "Can't be sold"
+		NameTextPx = { 22, 28 },
+		RarityTextPx = { 18, 22 },
+		LineTextPx = { 17, 20 }, -- "4.2% chance", "You own 3", "Can't be sold"
 		ButtonPx = { 40, 48 }, -- Equip, Sell, Sell duplicates
-		ButtonTextPx = { 14, 18 },
+		ButtonTextPx = { 17, 20 },
 		LockPx = { 18, 22 }, -- the padlock before "Can't be sold"
 		ThumbShare = 0.86, -- the cue's thumbnail, of the picture's box
 	},
@@ -7523,10 +7516,10 @@ Config.UI.Inventory = {
 		CaseStripPx = { 104, 124 }, -- the case strip's height (short: the cues keep the room)
 		CaseTileWidthPx = { 220, 260 }, -- wide: the two skip buttons sit side by side
 		CaseIconShare = 0.3, -- the chest (left, full height), at most this share of the width
-		CaseNameTextPx = { 15, 18 },
-		CaseTimerTextPx = { 14, 17 },
+		CaseNameTextPx = { 17, 20 },
+		CaseTimerTextPx = { 16, 19 },
 		CaseButtonPx = { 34, 40 }, -- Open, the skips (touch area 44)
-		CaseButtonTextPx = { 14, 16 },
+		CaseButtonTextPx = { 16, 18 },
 		HeaderTextPx = { 18, 24 }, -- "CASES", "CUES"
 		BigCardMaxWidthPx = 460, -- the chosen cue's card
 		BigArtShare = 0.42, -- its picture, of the card's height at most
@@ -7542,7 +7535,7 @@ Config.UI.Inventory = {
 		ShimmerFromRarity = "Uncommon", -- cards of this rarity and up shimmer
 		SparkleFromRarity = "Epic", -- and from this one also sparkle
 	},
-	CardOddsTextPx = 13, -- a cue card's "4.2% chance · 1,284 exist" line
+	CardOddsTextPx = 18, -- a cue card's "4.2% chance" line (bigger, and the exist count gone, 2026-10-03)
 	-- The Index's turning 3D cue (CueViewport, in the Index's detail panel; designer,
 	-- 2026-09-28): the game's own cue in a ViewportFrame, thicker so it reads small, turning
 	-- round the upright axis. A cue not found yet is one near-black colour.
@@ -9720,12 +9713,17 @@ Config.Tutorial = {
 	-- Game 1's rewards (answer 9): Bronze's Case Drop is a Standard Case, opened at once.
 	BronzeDropTier = "Standard",
 	BronzeCueRarity = "Uncommon", -- that case opens to a cue of this rarity (answer 9)
+	-- The Equip step (designer 2026-10-03): once that cue is equipped, the Inventory stays open
+	-- this long (its "Equipped" notice) before the tutorial closes it for the Rare Case.
+	EquipCloseSeconds = 1.2,
 	SpinUlt = "Magnet", -- the one starter spin lands on this ability
 	-- The art (tools/gen_tutorial_art.py; uploaded to the group, tools/upload_manifest_tutorial
-	-- .json): the pointer hand after reference 01's style, the mouse, the floor arrow after
-	-- reference 02's arrow path.
+	-- .json): the pointer hand (upright, index finger up; redrawn 2026-10-03 after the designer's
+	-- "tap here" icon) and its tap lines, the mouse, the floor arrow after reference 02's path.
 	Art = {
-		Hand = "rbxassetid://107703035077807",
+		Hand = "rbxassetid://71143067788609",
+		HandRays = "rbxassetid://136125893092975", -- the tap lines, laid exactly over Hand
+
 		Mouse = "rbxassetid://82136605713937",
 		FloorArrow = "rbxassetid://103256796918925",
 	},
@@ -9762,12 +9760,12 @@ Config.Tutorial = {
 	},
 	-- The hand (src/client/TutorialHand.luau). Pixels unless named.
 	Hand = {
-		TipX = 0.46, -- the fingertip in hand.png, as a share of the image
-		TipY = 0.9,
+		TipX = 0.425, -- the fingertip in hand.png (pointing up), as a share of the image
+		TipY = 0.18,
 		SizeShare = 0.2, -- of the screen's short side, between MinPx and MaxPx
 		MinPx = 90,
 		MaxPx = 170,
-		HoverPx = 6, -- the tip rests this far above a button's centre
+		HoverPx = 6, -- the tip rests this far below a button's centre
 		TapSeconds = 0.9, -- one tap (dip and squish) per loop
 		TapDipPx = 12,
 		TapSquish = 0.1,

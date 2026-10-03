@@ -50,6 +50,12 @@ return {
 			H.expect(Steps.shows("Nudges", item) and Steps.shows("Skipped", item), item .. " back")
 		end
 		H.expect(not Steps.shows("Drop", "Abilities") and Steps.shows("Abilities", "Abilities"), "")
+		H.expect(Steps.shows("Equip", "Inventory"), "Inventory for the Equip step")
+		H.expect(
+			not Steps.shows("Drop", "Inventory") and not Steps.shows("RareDrop", "Inventory"),
+			""
+		)
+		H.expect(Steps.after("Drop") == "Equip" and Steps.after("Equip") == "RareDrop", "the order")
 		H.expect(Steps.shows("Game1", "Money"), "anything else always shows")
 	end,
 

@@ -945,8 +945,6 @@ return {
 			ReadyIn = "Ready in %s", -- a case on its timer: "Ready in 5:12:03"
 			SkippedReady = "Your %s is ready to open!", -- a money skip went through
 			Odds = "%s chance", -- a cue's rarity per Case Drop: "4.2% chance"
-			OddsExist = "%s chance · %s exist", -- "4.2% chance · 1,284 exist"
-			FewExist = "fewer than 10", -- copies in existence while under 10
 			SellSome = "Sell duplicates", -- opens the count chooser
 			SellCount = "Sell %s for %s", -- the count and the money: "Sell 3 for $360"
 			Max = "Max",
@@ -1598,6 +1596,22 @@ return {
 			Mouse = "Click Open now!",
 			Touch = "Tap Open now!",
 			Gamepad = "Press A to open your case!",
+		},
+		-- The Equip step: the new Uncommon cue, equipped through the Inventory.
+		EquipOpen = {
+			Mouse = "Equip your new cue! Click Inventory.",
+			Touch = "Equip your new cue! Tap Inventory.",
+			Gamepad = "Equip your new cue! Open Inventory with A.",
+		},
+		EquipCard = {
+			Mouse = "Click your new cue!",
+			Touch = "Tap your new cue!",
+			Gamepad = "Press A on your new cue!",
+		},
+		EquipButton = {
+			Mouse = "Click Equip!",
+			Touch = "Tap Equip!",
+			Gamepad = "Press A to equip it!",
 		},
 		RareDrop = "Your Rare Case opens in 1 hour!",
 		Abilities = {

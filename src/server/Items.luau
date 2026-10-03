@@ -439,12 +439,23 @@ function HANDLERS.SellDuplicates(player: Player, r: Requests.Request): Reply
 	return { ok = true, money = money, sold = rows }
 end
 
+-- The tutorial's call once a cue is equipped (its Equip step). Nil: none.
+local onEquipped: ((Player, string) -> ())? = nil
+
+--- The tutorial lane's hook on EquipCue.
+function Items.setEquipHook(equipped: ((Player, string) -> ())?)
+	onEquipped = equipped
+end
+
 function HANDLERS.EquipCue(player: Player, r: Requests.Request): Reply
 	local cueId = r.cueId :: string
 	if not PlayerData.equipCue(player, cueId) then
 		return refuse("NotOwned")
 	end
 	Funnel.cueEquipped(player, cueId) -- the Case Drop funnel (the tutorial lane)
+	if onEquipped then
+		task.spawn(onEquipped, player, cueId)
+	end
 	return { ok = true, cueId = cueId }
 end
 

@@ -196,8 +196,8 @@ local function onChanged(player: Player)
 end
 
 ---------------------------------------------------------------------------------------------
--- After game 1 (docs/prompts/TUTORIAL_PROMPT.md step 5): Drop -> RareDrop -> Abilities -> Spin
--- -> Code -> Back -> Arrow2. What the server sees moves a step on itself (the case opened, the
+-- After game 1 (docs/prompts/TUTORIAL_PROMPT.md step 5): Drop -> Equip -> RareDrop -> Abilities
+-- -> Spin -> Code -> Back -> Arrow2. What the server sees moves a step on itself (the case opened, the
 -- spin, the code); what only the screen sees is reported (TutorialEvent).
 ---------------------------------------------------------------------------------------------
 
@@ -220,12 +220,19 @@ local function opened(player: Player, caseId: string, cues: { string })
 	local step = TutorialService.step(player)
 	if step == "Drop" and caseId == T.BronzeDropTier then
 		Funnel.onboarding(player, "OpenedStandardCase")
-		TutorialService.setStep(player, "RareDrop")
+		TutorialService.setStep(player, "Equip")
 	elseif caseId == "Rare" and (step == "Nudges" or step == "Done") then
 		Funnel.onboarding(player, "OpenedRareCase")
 		if step == "Nudges" then
 			PlayerData.setFlag(player, CASE_FLAG, "Done") -- no "Your case is ready!" after it
 		end
+	end
+end
+
+-- Equipping a cue at the Equip step (the Uncommon one, in the Inventory) moves on.
+local function equipped(player: Player, _cueId: string)
+	if TutorialService.step(player) == "Equip" then
+		TutorialService.setStep(player, "RareDrop")
 	end
 end
 
@@ -358,6 +365,7 @@ local lastFunnelEvent: { [string]: number } = {}
 
 -- What the client may report, and the step each report needs:
 --   Nudged           (Nudges)    the menu the nudge points at opened (its name)
+--   SkippedEquip     (Equip)     the Inventory was opened and closed again without equipping
 --   RareSeen         (RareDrop)  the Rare Case's reveal was closed
 --   OpenedAbilities  (Abilities) the Abilities screen opened
 --   ClosedAbilities  (Spin, Code, Back) it closed: Back moves on to game 2's arrow, closing
@@ -379,6 +387,8 @@ local function onEvent(player: Player, kind: any, data: any)
 			lastFunnelEvent[key] = now
 			FUNNEL_EVENTS[kind](player)
 		end
+	elseif kind == "SkippedEquip" and step == "Equip" then
+		TutorialService.setStep(player, "RareDrop")
 	elseif kind == "RareSeen" and step == "RareDrop" then
 		Funnel.onboarding(player, "SawRareCase")
 		TutorialService.setStep(player, "Abilities")
@@ -447,6 +457,7 @@ function TutorialService.start()
 		return nil
 	end)
 	Items.setOpenHooks(forcedOpen, opened)
+	Items.setEquipHook(equipped)
 	UltSpins.setSpinHooks(forcedSpin, spun)
 	Rewards.onRedeemed(codeRedeemed)
 	Net.get("TutorialEvent").OnServerEvent:Connect(onEvent)

@@ -419,42 +419,6 @@ function UIAnim.loop(object: GuiObject, step: (number, number) -> ()): Handle
 	}
 end
 
--- The drifting pattern layers (HudParts' menu and popup patterns): one clock for all, so
--- every panel's balls move together.
-local drifting: { [ImageLabel]: { tile: number, x: number, y: number } } = {}
-local driftClock = 0
-local driftConnection: RBXScriptConnection? = nil
-
-local function stepDrift(dt: number)
-	local D = M.Drift
-	driftClock += dt * (if Quality.isLow() then D.LowPxPerSecond else D.PxPerSecond)
-	for tiles, d in drifting do
-		if tiles.Parent == nil then
-			drifting[tiles] = nil
-		elseif onScreen(tiles) then
-			-- Whole pixels only: the layer is redrawn just when it really moves.
-			local off = math.floor(driftClock % d.tile)
-			if off ~= d.x then
-				d.x = off
-				tiles.Position = UDim2.fromOffset(-d.tile + off, -off)
-			end
-		end
-	end
-	if next(drifting) == nil and driftConnection then
-		driftConnection:Disconnect()
-		driftConnection = nil
-	end
-end
-
---- Drift a tiled pattern diagonally up and to the right, forever. `tiles` must be one tile
---- (`tilePx`) wider and taller than the area it covers, inside a clipping parent.
-function UIAnim.drift(tiles: ImageLabel, tilePx: number)
-	drifting[tiles] = { tile = tilePx, x = -1, y = -1 }
-	if not driftConnection then
-		driftConnection = RunService.RenderStepped:Connect(stepDrift)
-	end
-end
-
 --- A quick rattle every few seconds (big words; style "Text"), or the louder "Wiggle" (one win
 --- from a rank-up, an icon calling for a click). Owns `object.Rotation`. "Jolt" rattles once.
 function UIAnim.shake(object: GuiObject, style: string?): Handle

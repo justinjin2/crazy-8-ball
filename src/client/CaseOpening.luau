@@ -8,15 +8,15 @@
 --   settles; Mythic and Secret get a longer build-up (ReelBuild) and a glow that builds in their
 --   shimmer or red. Then the prize card (CaseOpeningCard) pops with the sting by rarity, rays
 --   from Epic, confetti from Legendary: name, rarity, NEW! or Duplicate, "1,284 exist", and
---   Equip (EquipCue), Sell (duplicates only; SellCue 1; a confirm from ConfirmSellFrom up; the
---   money flies into the HUD) and Open next (while cases of that type remain) or Done. A cue
+--   a small Sell (SellCue 1; a confirm from ConfirmSellFrom up; the money flies into the HUD) and
+--   Keep / Keep, open next (while cases of that type remain); no Equip (the Inventory). A cue
 --   new to the Index reads "NEW! +$250" and its finder's money flies from that pill into the
 --   HUD as the card pops (Fast Open: all of it from the grid once every card is up); the HUD
 --   waits for it from the server's answer on, so the reel is never given away.
 -- - Fast Open (a count above 1): the grid (CaseOpeningGrid), ten cards flipping over quickly,
 --   rarest last, no reel; then Equip on a chosen card, Done, and Open 10 again while ten remain.
 -- - The first win's case on the result screen: reveal() draws the same reel inside the result
---   screen's frame (fitted to it), then the prize card with Equip and Continue.
+--   screen's frame (fitted to it), then the prize card with Continue.
 -- - A tap or click anywhere, or gamepad A, skips to the result; B or Escape skips, then closes.
 --   While the server answers an open, none of them does anything for WaitCloseSeconds (the case
 --   is being spent); after that they close, and a prize that arrives later shows a line in the
@@ -1175,9 +1175,6 @@ function CaseOpening.showCard(self: any, s: Session)
 		found = result.found,
 	}, {
 		reveal = s.kind == "Reveal",
-		onEquip = function()
-			self:equip(s, result.cue)
-		end,
 		onSell = function()
 			self:sell(s)
 		end,
@@ -1223,12 +1220,11 @@ function CaseOpening.fail(self: any, s: Session, reply: any)
 	end)
 end
 
--- The buttons that follow the inventory: Equipped, Open next's count, Open 10 again.
+-- The buttons that follow the inventory: Open next's count, the grid's Equipped, Open 10 again.
 function CaseOpening.refresh(_self: any, s: Session)
 	local card, grid = s.card, s.grid
 	local left = ItemState.caseCount(s.caseId)
 	if card and s.result then
-		card:setEquipped(ItemState.equipped() == s.result.cue)
 		card:setNext(if left > 0 then left else nil)
 	end
 	if grid then
@@ -1252,24 +1248,21 @@ end
 -- Equip and sell
 --------------------------------------------------------------------------------------------
 
--- Equip a cue (the card's, or the grid's chosen one); the server's answer decides.
+-- Equip the grid's chosen cue (the single prize card has no Equip: the Inventory does it);
+-- the server's answer decides.
 function CaseOpening.equip(self: any, s: Session, cueId: string)
-	local view = s.card or s.grid
+	local view = s.grid
 	if not view then
 		return
 	end
 	view:setEquipBusy(true)
 	task.spawn(function()
 		local reply = ItemState.request("ItemRequest", "EquipCue", cueId)
-		if s.phase == "Closed" or (s.card or s.grid) ~= view then
+		if s.phase == "Closed" or s.grid ~= view then
 			return
 		end
 		if reply.ok == true then
-			if s.card then
-				s.card:setEquipped(true)
-			elseif s.grid then
-				s.grid:setEquipped(cueId)
-			end
+			view:setEquipped(cueId)
 		else
 			view:setEquipBusy(false)
 			self:notice(s, MenuFrame.reason(reply), "Red")
@@ -1296,9 +1289,6 @@ function CaseOpening.sell(self: any, s: Session)
 			if reply.ok == true then
 				s.sold = true
 				card:setSell("Sold")
-				if (result.count or 1) <= 1 then
-					card:setEquipBusy(true) -- the only copy went: nothing left to equip
-				end
 				local amount = if type(reply.money) == "number" then reply.money else 0
 				CaseOpeningFx.flyCash(
 					self.root,
