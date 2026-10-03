@@ -251,7 +251,7 @@ function InventoryCases.redraw(self: any, items: any)
 		HudParts.setButtonIcon(tile.second, nil)
 		HudParts.setEnabled(tile.second, not ctx.isHeld(tile.second))
 		if not tile.bob then
-			tile.bob = UIAnim.bob(tile.icon, 3)
+			tile.bob = UIAnim.bob(tile.icon)
 		end
 	end
 	for index, row in timers(items) do
@@ -429,7 +429,7 @@ function InventoryCases.arrange(self: any)
 		tile.icon.Position =
 			UDim2.fromOffset(pad + round(iconSize / 2), round((tileH - iconSize) / 2))
 		if tile.bob then
-			tile.bob = UIAnim.bob(tile.icon, 3)
+			tile.bob = UIAnim.bob(tile.icon)
 		end
 		local textX = pad * 2 + iconSize
 		local textW = tileW - textX - pad

@@ -1,7 +1,7 @@
 --!strict
 -- SettingsMenu: the Settings screen (GUI lane, designer 2026-10-03, C10), opened by the gear
 -- beside the rank HUD (HubCorners) through Menus. One row a switch, in Config.Settings.Order:
--- Sound effects, Music, Lower effects, Show my country flag (off until turned on). A row is one
+-- Sound effects, Lower effects, Show my country flag (off until turned on). A row is one
 -- big button: a press flips its switch (SettingsState shows it at once and saves it). Under
 -- them, while the Abilities screen is not live for this player (UltSpinState), the codes box
 -- (RewardsCodes, the same one the Rewards menu had), so codes are always reachable. The page

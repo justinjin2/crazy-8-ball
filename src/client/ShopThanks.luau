@@ -103,7 +103,7 @@ function ShopThanks.play(key: string)
 	UIAnim.popIn(heart)
 	local rainbow = UIAnim.rainbow(words)
 	local shake = UIAnim.shake(words, "Wiggle")
-	local spin = UIAnim.bob(heart, 6)
+	local spin = UIAnim.bob(heart)
 	UIAnim.confetti(root, Vector2.new(size.X / 2, size.Y * 0.36), nil, 1.6)
 	task.delay(0.35, function()
 		if playing == mine then

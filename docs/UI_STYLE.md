@@ -499,6 +499,14 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
   rattle now and then (`UIAnim.shake`); special things sparkle (`UIAnim.sparkle`); bars carry
   moving stripes (`UIAnim.stripes`). Loops run only while on screen and calm down with Lower
   effects (`Quality`).
+- **Smooth, never choppy** (designer, 2026-10-03). An icon never moves up and down in a loop:
+  a GUI move snaps to whole pixels and looks like a 2 fps sprite. Idle icons rock gently by
+  turning instead (`UIAnim.bob`, `Kit.Motion.Bob`), and every shake is slow enough that no
+  frame jumps far (`Kit.Motion.Shake`). Glows pulse smoothly, never blink.
+- **Hovering an icon** (the left column, the corner icons) keeps the small hover sway and adds
+  soft sun rays fading in behind it, turning slowly, like the Legendary ability's rays
+  (`UIAnim.sunRays`, `Kit.Motion.SunRays`). No hard shake on hover (designer, 2026-10-03).
+- **No lobby music** (designer, 2026-10-03: dropped). Settings has no Music switch.
 - **Bigger, cooler presses, opens and closes.** Every candy button bursts a glow of its own
   colour from behind when pressed; a menu opening glows; a big word or card slams in
   (`UIAnim.slam`: from huge to its size, a glow and a jolt).

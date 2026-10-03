@@ -1,10 +1,10 @@
 --!strict
--- SoundGroups: the two volume groups behind Settings (GUI lane, designer 2026-10-03, C10):
--- "Sfx" (every sound effect: the UI, the table, the abilities, the map) and "Music" (the lobby
--- music). Every Sound that turns up without a group in the places the game's sounds live
--- (the workspace, SoundService, the player's GUI and scripts, ReplicatedStorage) joins Sfx; the
--- music module puts its own sound in Music before parenting it. The groups are local to this
--- client, so switching one off silences only this player's game.
+-- SoundGroups: the volume group behind Settings (GUI lane, designer 2026-10-03, C10): "Sfx"
+-- (every sound effect: the UI, the table, the abilities, the map). Every Sound that turns up
+-- without a group in the places the game's sounds live (the workspace, SoundService, the
+-- player's GUI and scripts, ReplicatedStorage) joins Sfx. The group is local to this client,
+-- so switching it off silences only this player's game. (The lobby music was dropped by the
+-- designer, 2026-10-03.)
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
@@ -27,7 +27,7 @@ local function group(name: string): SoundGroup
 	return made
 end
 
---- The "Sfx" or "Music" group.
+--- The "Sfx" group.
 function SoundGroups.get(name: string): SoundGroup
 	return group(name)
 end
@@ -50,7 +50,6 @@ function SoundGroups.start()
 	end
 	started = true
 	group("Sfx")
-	group("Music")
 	local roots: { Instance } = { workspace, SoundService, ReplicatedStorage }
 	local player = Players.LocalPlayer
 	if player then

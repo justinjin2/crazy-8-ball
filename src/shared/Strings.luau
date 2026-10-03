@@ -1067,13 +1067,11 @@ return {
 		Title = "Settings",
 		Rows = {
 			Sfx = "Sound effects",
-			Music = "Music",
 			LowFx = "Lower effects",
 			ShowFlag = "Show my country flag",
 		},
 		Lines = {
 			Sfx = "Clicks, shots and ability sounds.",
-			Music = "The lobby music.",
 			LowFx = "Fewer particles. Smoother on slower devices.",
 			ShowFlag = "Other players see it in the player list.",
 		},

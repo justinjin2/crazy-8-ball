@@ -1,7 +1,7 @@
 --!strict
 -- SettingsState: this player's switches on the client (GUI lane, designer 2026-10-03, C10). It
 -- keeps the server's SettingsState (Config.Settings.Defaults until it arrives), applies them
--- (the Sfx and Music sound groups, Quality's Lower effects) and saves a change through
+-- (the Sfx sound group, Quality's Lower effects) and saves a change through
 -- SettingsRequest (shown at once, put back if the server refuses). It also gives Seen the
 -- saved "seen" moments, so a cutscene seen in an earlier session can be skipped.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -27,7 +27,6 @@ SettingsState.Changed = changed.Event
 
 local function apply()
 	SoundGroups.setOn("Sfx", current.Sfx ~= false)
-	SoundGroups.setOn("Music", current.Music ~= false)
 	Quality.set(current.LowFx == true)
 end
 

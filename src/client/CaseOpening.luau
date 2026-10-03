@@ -633,7 +633,7 @@ function CaseOpening.layout(self: any, s: Session)
 		intro.icon.Position =
 			UDim2.fromOffset(math.floor(natural.X / 2), y + math.floor(I.ChestPx / 2))
 		if s.phase == "Intro" then
-			intro.bob = UIAnim.bob(intro.icon, I.BobPx)
+			intro.bob = UIAnim.bob(intro.icon)
 		end
 		y += I.ChestPx + gap
 		if reel then

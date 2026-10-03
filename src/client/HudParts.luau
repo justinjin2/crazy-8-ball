@@ -292,6 +292,7 @@ type Candy = {
 	squish: (boolean) -> (),
 	light: (boolean) -> (),
 	hit: TextButton?,
+	onLit: ((boolean) -> ())?, -- told when the candy lights up or goes out (HudParts.onLit)
 }
 
 -- Held strongly and cleared on Destroying: a weak table keyed on Instances can lose entries.
@@ -458,6 +459,10 @@ function HudParts.candy(
 		edge.Thickness = if c.lit then K.SelectedStrokePx else K.ButtonStrokePx
 		squish(false)
 		UIAnim.sway(body, c.lit, nil, button)
+		local onLit = c.onLit
+		if onLit then
+			onLit(c.lit)
+		end
 	end
 	c.squish, c.light = squish, light
 	button.InputBegan:Connect(function(input)
@@ -632,6 +637,19 @@ function HudParts.setEnabled(button: TextButton, enabled: boolean, faded: boolea
 		c.edge.Thickness = K.ButtonStrokePx
 		c.press.Scale = 1
 		UIAnim.sway(c.body, false)
+		local onLit = c.onLit
+		if onLit then
+			onLit(false)
+		end
+	end
+end
+
+--- Run `fn(lit)` whenever a candy lights up (hover, a gamepad resting on it) or goes out: the
+--- icon tiles show their sun rays then.
+function HudParts.onLit(button: TextButton, fn: (boolean) -> ())
+	local c = candies[button]
+	if c then
+		c.onLit = fn
 	end
 end
 

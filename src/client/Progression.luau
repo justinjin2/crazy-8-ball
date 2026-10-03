@@ -48,7 +48,6 @@ local ComeBack = require(script.Parent.ComeBack)
 local PlayerList = require(script.Parent.PlayerList)
 local ResultCutscene = require(script.Parent.ResultCutscene)
 local RewardPopups = require(script.Parent.RewardPopups)
-local Music = require(script.Parent.Music)
 local SettingsMenu = require(script.Parent.SettingsMenu)
 local SettingsState = require(script.Parent.SettingsState)
 local Popups = require(script.Parent.Popups)
@@ -170,7 +169,6 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	UISound.preload()
 	ItemState.start() -- early, so the snapshots sent on load are heard
 	SettingsState.start() -- the switches (sound groups, Lower effects) and the seen moments
-	Music.start()
 	money = MoneyHud.new(screen)
 	flyer = CashFlyer.new(screen, money, hooks.pocketToScreen)
 	newRank = NewRankPopup.new(screen, flyer, money)
@@ -414,7 +412,6 @@ function Progression.update(state: State)
 	)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
 	banner:setInMatch(state.inMatch)
-	Music.setInMatch(state.inMatch)
 	if state.inMatch and ResultCutscene.isPlaying() then
 		-- A rematch (or any match) starting ends the result cutscene.
 		ResultCutscene.stop()

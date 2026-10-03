@@ -240,7 +240,7 @@ local function showCases(v: View)
 		rays.ZIndex = 5
 		table.insert(v.loops, UIAnim.spin(rays, M.RaysDegreesPerSecond))
 		UIAnim.slam(icon, colourOf(tier, 0))
-		table.insert(v.loops, UIAnim.bob(icon, 4))
+		table.insert(v.loops, UIAnim.bob(icon))
 		if counts[tier] > 1 then
 			local n = label(icon, "Count", 26, W.Count:format(counts[tier]))
 			n.AnchorPoint = Vector2.new(1, 1)

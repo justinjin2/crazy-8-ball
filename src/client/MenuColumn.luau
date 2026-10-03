@@ -38,7 +38,8 @@
 -- GUI lane (designer 2026-10-03, C2): the tiles are Shop, Inventory, Abilities and Free Reward
 -- (Config order). Rewards and Trade left the column. Free Reward shows only while the group or
 -- the favorite reward is left to claim (RewardState), bobbing in front of turning gold rays.
--- Hovering a tile (or pressing it) shakes its icon and bursts a glow behind it.
+-- Hovering a tile (or a gamepad resting on it) sways it a little, as every candy does, and sun
+-- rays fade in behind its icon (designer, 2026-10-03: no hard shake).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
@@ -84,7 +85,6 @@ local FREE = "FreeReward" -- the Free Reward tile (GUI lane)
 type Tile = {
 	name: string,
 	rays: ImageLabel?, -- Free Reward's turning rays
-	iconPos: UDim2?, -- the icon's laid-out place (Free Reward bobs round it)
 	button: TextButton,
 	body: Frame, -- the candy's body: everything on the tile squishes and grows with it
 	icon: ImageLabel,
@@ -144,6 +144,11 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	local root = HudParts.frame(screen, "MenuColumn")
 	root.ZIndex = C.ZIndex
 	self.root = root
+	-- The hover rays' layer, under the column (UIAnim.sunRays places them by screen pixels).
+	local raysLayer = HudParts.frame(screen, "MenuColumnRays")
+	raysLayer.Size = UDim2.fromScale(1, 1)
+	raysLayer.ZIndex = C.ZIndex - 1
+	self.raysLayer = raysLayer
 	local fit = Instance.new("UIScale")
 	fit.Name = "Fit"
 	fit.Parent = root
@@ -288,12 +293,8 @@ function MenuColumn.refreshFree(self: any)
 	end
 	if left and not self.freeLoop then
 		local icon, rays = t.icon, t.rays
+		-- Only the rays turn (a turn is smooth; a GUI move steps in whole pixels).
 		self.freeLoop = UIAnim.loop(icon, function(clock: number)
-			local base = t.iconPos
-			if base then
-				local y = math.sin(2 * math.pi * clock / K.Motion.Bob.Seconds) * C.FreeBobPx
-				icon.Position = base + UDim2.fromOffset(0, round(y))
-			end
 			if rays then
 				rays.Rotation = (clock * K.Motion.RaysDegreesPerSecond) % 360
 			end
@@ -308,17 +309,6 @@ end
 function MenuColumn.freeShown(self: any): boolean
 	local t: Tile? = self.tiles[FREE]
 	return t ~= nil and t.button.Visible
-end
-
---- A tile's icon shakes hard for a moment and a glow bursts behind it (hover, press).
-function MenuColumn.jiggle(self: any, name: string)
-	local t: Tile? = self.tiles[name]
-	if not t then
-		return
-	end
-	local shake = UIAnim.shake(t.icon, "Hard")
-	task.delay(C.HoverShakeSeconds, shake.stop)
-	UIAnim.glowBurst(t.icon, nil, C.HoverGlowReach)
 end
 
 -- The tiles showing, in their order.
@@ -365,11 +355,10 @@ function MenuColumn.buildTile(self: any, parent: Instance, name: string, index: 
 		r.Parent = body
 		rays = r
 	end
-	-- Hover: a bigger shake and a glow burst behind the icon.
-	button.MouseEnter:Connect(function()
-		if self.showing then
-			self:jiggle(name)
-		end
+	-- Hover (or a gamepad resting on it): sun rays behind the icon, on a layer under the whole
+	-- column so they never cover another tile's dot or words.
+	HudParts.onLit(button, function(lit: boolean)
+		UIAnim.sunRays(icon, lit, self.raysLayer)
 	end)
 	local word = HudParts.text(body, "Word", C.LabelTextPx, WORDS[name] or name)
 	word.TextWrapped = false
@@ -517,7 +506,6 @@ function MenuColumn.layout(self: any)
 		local iconSize = round(tile * C.IconShare)
 		t.icon.Size = UDim2.fromOffset(iconSize, iconSize)
 		t.icon.Position = UDim2.fromOffset(round(tile / 2), round(tile * C.IconCentreShare))
-		t.iconPos = t.icon.Position
 		local rays = t.rays
 		if rays then
 			local raysPx = round(tile * C.FreeRaysShare)
@@ -709,7 +697,6 @@ function MenuColumn.press(self: any, name: string)
 	end
 	UISound.play("Click")
 	UIAnim.bounce(t.button)
-	self:jiggle(name)
 	self.onPress(name)
 end
 

@@ -116,7 +116,7 @@ function ShopCards.new(parent: Instance, id: string, shape: string): Card
 	art.Size = UDim2.fromScale(1, 1)
 	art.ZIndex = 3
 	art.ScaleType = Enum.ScaleType.Fit
-	UIAnim.bob(art, P.ArtBobPx)
+	UIAnim.bob(art)
 
 	local title = HudParts.text(root, "Title", P.HeroTitlePx[1], "")
 	title.TextWrapped = false

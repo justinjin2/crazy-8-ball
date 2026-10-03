@@ -1,6 +1,6 @@
 --!strict
 -- Settings: each player's switches and the moments they have seen (GUI lane, designer
--- 2026-10-03, C10). The switches (Config.Settings.Defaults: sound effects, music, Lower
+-- 2026-10-03, C10). The switches (Config.Settings.Defaults: sound effects, Lower
 -- effects, show my country flag) live in the save's Settings map; the moments seen once
 -- (Config.Settings.SeenKinds: their Skip shows from then on) in Flags as "Seen:<kind>". Both
 -- change only through PlayerData (setSetting, markMomentSeen).

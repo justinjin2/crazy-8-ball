@@ -68,6 +68,10 @@ local function corner(
 	word.AnchorPoint = Vector2.new(0.5, 0.5)
 	word.Position = UDim2.fromScale(0.5, 0.92)
 	word.ZIndex = 4
+	-- Hover (or a gamepad resting on it): sun rays behind the icon, as on the column.
+	HudParts.onLit(button, function(lit: boolean)
+		UIAnim.sunRays(icon, lit)
+	end)
 	return { button = button, icon = icon, word = word }
 end
 
@@ -114,8 +118,9 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	glow.ZIndex = 1
 	glow.Parent = HudParts.candyParts(self.challenge.button).body
 	self.flash = UIAnim.loop(glow, function(clock: number)
-		local phase = (clock % C.ChallengeFlashSeconds) / C.ChallengeFlashSeconds
-		glow.ImageTransparency = 0.25 + 0.75 * phase
+		-- A smooth pulse (a sudden reset every flash looked like blinking).
+		local wave = 0.5 + 0.5 * math.cos(2 * math.pi * clock / C.ChallengeFlashSeconds)
+		glow.ImageTransparency = 0.25 + 0.75 * (1 - wave)
 	end)
 
 	local function queueLayout()

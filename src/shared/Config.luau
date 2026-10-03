@@ -5532,11 +5532,13 @@ Config.UI = {
 			-- Big words shake now and then (UIAnim.shake): a quick rattle every `Every` seconds.
 			-- "Wiggle" is the louder one (one win from a rank-up, an icon calling for a click).
 			Shake = {
-				Text = { Degrees = 3, Every = 2.6, Seconds = 0.35, Speed = 46 },
-				Wiggle = { Degrees = 8, Every = 1.7, Seconds = 0.55, Speed = 24 },
-				Jolt = { Degrees = 6, Every = 0, Seconds = 0.4, Speed = 40 }, -- once (a slam)
+				-- Speed: radians a second. Kept low enough that a frame never jumps far (fast
+				-- ones looked like a choppy sprite; designer, 2026-10-03).
+				Text = { Degrees = 3, Every = 2.6, Seconds = 0.45, Speed = 20 },
+				Wiggle = { Degrees = 6, Every = 1.7, Seconds = 0.6, Speed = 15 },
+				Jolt = { Degrees = 5, Every = 0, Seconds = 0.45, Speed = 22 }, -- once (a slam)
 				-- A rattle that keeps going (Every = Seconds): the grid's rarest card before it turns.
-				Hard = { Degrees = 9, Every = 0.3, Seconds = 0.3, Speed = 60 },
+				Hard = { Degrees = 6, Every = 0.4, Seconds = 0.4, Speed = 26 },
 			},
 			-- The glow that bursts behind a pressed or hovered thing, or a menu opening.
 			Glow = { Seconds = 0.55, FromPad = 1.2, ToPad = 3.2, Transparency = 0 }, -- pads: shares of its smaller side
@@ -5555,7 +5557,21 @@ Config.UI = {
 			RainbowSeconds = 3, -- one loop of a rainbow word's colours (deals, multipliers)
 			-- A big word or card slamming in: from this big down to its size, then a jolt.
 			Slam = { FromScale = 1.9, Seconds = 0.26 },
-			Bob = { Px = 4, Seconds = 1.6 }, -- an icon bobbing up and down to call for a click
+			-- An icon calling for a click rocks gently side to side (a turn, never a move: a GUI
+			-- move snaps to whole pixels and looked like a 2 fps sprite; designer, 2026-10-03).
+			Bob = { Degrees = 4, Seconds = 1.8 },
+			-- Hover on an icon (the column, the corners): soft sun rays fade in behind it and turn
+			-- slowly, two layers turning opposite ways, like the Legendary ability's rays.
+			SunRays = {
+				Reach = 3, -- the rays' size, of the icon's
+				Transparency = 0.2, -- at full strength
+				GlowTransparency = 0.05, -- the bright soft glow at their centre
+				GlowShare = 0.75, -- its size, of the rays'
+				Color = { 255, 240, 190 }, -- warm sunlight
+				DegreesPerSecond = 22,
+				EaseSeconds = 0.22, -- fading in and out
+				FromScale = 0.7, -- they grow from this size as they fade in
+			},
 		},
 		-- Big and simple (designer, 2026-10-03): new and restyled screens use these sizes,
 		-- bigger than Text above, especially on a phone. (tune)
@@ -6648,11 +6664,9 @@ Config.UI.Menu = {
 			FreeReward = "DPadDown",
 			PlayerList = "DPadLeft",
 		},
-		-- Hover or tap (GUI lane, C2): a bigger shake and a glow burst behind the icon.
-		HoverShakeSeconds = 0.35,
-		HoverGlowReach = 0.5, -- the burst's reach, of the tile
-		-- The Free Reward tile glows and bounces while it is up.
-		FreeBobPx = 4,
+		-- Hover (or a gamepad resting on a tile): the kit's small sway plus sun rays fading in
+		-- behind the icon (Kit.Motion.SunRays; designer, 2026-10-03: no hard shake).
+		-- The Free Reward tile has its own gold rays turning behind it while it is up.
 		FreeRaysShare = 2.2, -- its turning rays, of the tile
 		FreeRaysTransparency = 0.1,
 		GlyphPx = 26, -- the D-pad glyph on the tile's top-left corner while a gamepad is in use
@@ -6879,7 +6893,6 @@ Config.UI.Shop = {
 		TileNamePx = { 17, 22 },
 		TileBigPx = { 22, 30 },
 		TileLinePx = { 14, 16 },
-		ArtBobPx = 4, -- the art floats up and down this much
 		StickerPx = { 24, 30 }, -- corner stickers: "BEST VALUE", "x2", "LUCKY!", "30% OFF"
 		StickerTextPx = { 14, 18 },
 		StickerDegrees = 8, -- tilted like a sticker
@@ -7014,7 +7027,6 @@ Config.UI.CaseOpening = {
 	-- open"; opened, it shakes harder and swells, then bursts in a shine.
 	Intro = {
 		ChestPx = 200,
-		BobPx = 6,
 		ShakeSeconds = 0.7,
 		ShakeDegrees = 16, -- the shake's swing at its hardest
 		ShakeSpeed = 42, -- radians a second
@@ -9845,11 +9857,10 @@ Config.UI.Corners = {
 Config.Settings = {
 	Defaults = {
 		Sfx = true, -- sound effects on
-		Music = true, -- lobby music on
 		LowFx = false, -- Lower effects (Quality: fewer particles, calmer UI loops)
 		ShowFlag = false, -- show my country flag in the player list (off until turned on)
 	} :: { [string]: boolean },
-	Order = { "Sfx", "Music", "LowFx", "ShowFlag" }, -- the rows, top to bottom
+	Order = { "Sfx", "LowFx", "ShowFlag" }, -- the rows, top to bottom (the music is gone, 2026-10-03)
 	-- The kinds Seen may mark (anything else is refused).
 	SeenKinds = {
 		"MagicBall",
@@ -9876,20 +9887,6 @@ Config.UI.Settings = {
 	IconPx = { 30, 40 },
 	CodeBoxPx = { 44, 52 },
 	MaxWidthPx = 640,
-}
-
--- Lobby music (src/client/Music.luau; GUI lane, C10): calm, upbeat tracks from Roblox's licensed
--- APM library (no uploads), shuffled in turn, quieter in a match. The designer approves them.
-Config.Audio.Music = {
-	Tracks = {
-		"rbxassetid://1839639602", -- Nice Mood Guitar (APM)
-		"rbxassetid://1836575060", -- Tonight's Guest (APM, jazz-funk groove)
-		"rbxassetid://1836686969", -- Feeling Lucky (APM)
-	},
-	Volume = 0.25, -- in the lobby
-	MatchVolume = 0.08, -- seated at a table whose game is on
-	FadeSeconds = 1.5, -- between volumes and tracks
-	GapSeconds = 4, -- silence between two tracks
 }
 
 -- The global boards (src/server/Leaderboards.luau; GUI lane, designer 2026-10-03, D9): Most

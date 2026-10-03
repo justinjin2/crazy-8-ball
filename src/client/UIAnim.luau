@@ -671,21 +671,159 @@ function UIAnim.slam(object: GuiObject, tint: Color3?)
 	end)
 end
 
---- Bob `object` gently up and down from where it is now until stopped (an icon calling for a
---- click). Do not use on something a layout places.
-function UIAnim.bob(object: GuiObject, px: number?): Handle
-	local base = object.Position
-	local amount = px or M.Bob.Px
+--- Rock `object` gently side to side until stopped (an icon calling for a click). It turns,
+--- never moves (a moved GUI snaps to whole pixels and steps), so a layout may place it freely.
+--- Owns `object.Rotation`.
+function UIAnim.bob(object: GuiObject): Handle
+	local B = M.Bob
 	local handle = UIAnim.loop(object, function(clock)
-		local y = math.sin(2 * math.pi * clock / M.Bob.Seconds) * amount
-		object.Position = base + UDim2.fromOffset(0, math.floor(y + 0.5))
+		object.Rotation = B.Degrees * math.sin(2 * math.pi * clock / B.Seconds)
 	end)
 	return {
 		stop = function()
 			handle.stop()
-			object.Position = base
+			object.Rotation = 0
 		end,
 	}
+end
+
+-- Sun rays behind hovered icons: one record per icon, eased in and out on one clock.
+type Sun = {
+	holder: Frame,
+	layers: { ImageLabel },
+	glow: ImageLabel,
+	icon: GuiObject,
+	under: GuiObject?, -- a layer the rays sit on, placed by screen pixels (else the icon's parent)
+	on: boolean,
+	weight: number,
+	clock: number,
+}
+local suns: { [GuiObject]: Sun } = {}
+local sunLoop: RBXScriptConnection? = nil
+
+local function rgb(c: { number }): Color3
+	return Color3.fromRGB(c[1], c[2], c[3])
+end
+
+local function stepSuns(dt: number)
+	local R = M.SunRays
+	for icon, s in suns do
+		if not onScreen(icon) then
+			s.on = false
+			s.weight = 0 -- gone with its icon at once (a layer elsewhere would linger)
+		end
+		local ease = dt / math.max(R.EaseSeconds, 0.01)
+		s.weight = if s.on then math.min(1, s.weight + ease) else math.max(0, s.weight - ease)
+		if icon.Parent == nil or s.holder.Parent == nil then
+			s.holder:Destroy()
+			suns[icon] = nil
+		elseif s.weight <= 0 then
+			s.holder.Visible = false
+		else
+			s.clock += dt
+			local k = s.weight * s.weight * (3 - 2 * s.weight)
+			local holder = s.holder
+			holder.Visible = true
+			-- Centred on the icon (wherever a layout put it), Reach times its size.
+			local size, anchor = icon.Size, icon.AnchorPoint
+			local grow = R.Reach * (R.FromScale + (1 - R.FromScale) * k)
+			local under = s.under
+			if under then
+				local px = icon.AbsoluteSize
+				local centre = icon.AbsolutePosition + px / 2 - under.AbsolutePosition
+				holder.Size = UDim2.fromOffset(px.X * grow, px.Y * grow)
+				holder.Position = UDim2.fromOffset(centre.X, centre.Y)
+			else
+				holder.Size = UDim2.new(
+					size.X.Scale * grow,
+					size.X.Offset * grow,
+					size.Y.Scale * grow,
+					size.Y.Offset * grow
+				)
+				holder.Position = icon.Position
+					+ UDim2.new(
+						(0.5 - anchor.X) * size.X.Scale,
+						(0.5 - anchor.X) * size.X.Offset,
+						(0.5 - anchor.Y) * size.Y.Scale,
+						(0.5 - anchor.Y) * size.Y.Offset
+					)
+			end
+			local turn = s.clock * R.DegreesPerSecond
+			for i, layer in s.layers do
+				layer.ImageTransparency = 1 - (1 - R.Transparency) * k
+				layer.Rotation = if i == 1 then turn % 360 else (15 - turn * 0.7) % 360
+			end
+			s.glow.ImageTransparency = 1 - (1 - R.GlowTransparency) * k
+		end
+	end
+	if next(suns) == nil and sunLoop then
+		sunLoop:Disconnect()
+		sunLoop = nil
+	end
+end
+
+--- Sun rays fading in behind `icon` while `on` (a hovered icon, or a gamepad resting on it),
+--- turning slowly, and fading out once off. They sit in the icon's parent just under it, or on
+--- `under` (a full-screen layer under a group of icons, so they cover none of the others).
+--- Touch has no hover: switching on right after a tap does nothing.
+function UIAnim.sunRays(icon: GuiObject, on: boolean, under: GuiObject?)
+	local s = suns[icon]
+	if not on then
+		if s then
+			s.on = false
+		end
+		return
+	end
+	if UserInputService:GetLastInputType() == Enum.UserInputType.Touch then
+		return
+	end
+	if s then
+		s.on = true
+		return
+	end
+	local parent = under or icon.Parent
+	if not parent then
+		return
+	end
+	local R = M.SunRays
+	local holder = Instance.new("Frame")
+	holder.Name = "SunRays"
+	holder.BackgroundTransparency = 1
+	holder.AnchorPoint = Vector2.new(0.5, 0.5)
+	holder.ZIndex = if under then 1 else icon.ZIndex - 1
+	holder.Visible = false
+	holder.Parent = parent
+	local function image(name: string, art: string, scale: number): ImageLabel
+		local img = Instance.new("ImageLabel")
+		img.Name = name
+		img.BackgroundTransparency = 1
+		img.Image = art
+		img.ImageColor3 = rgb(R.Color)
+		img.ImageTransparency = 1
+		img.AnchorPoint = Vector2.new(0.5, 0.5)
+		img.Position = UDim2.fromScale(0.5, 0.5)
+		img.Size = UDim2.fromScale(scale, scale)
+		img.ZIndex = holder.ZIndex
+		img.Parent = holder
+		return img
+	end
+	local layers =
+		{ image("Rays", Config.UI.Kit.Art.Rays, 1), image("Rays2", Config.UI.Kit.Art.Rays, 0.8) }
+	-- The bright centre over the shafts (made last, so drawn on top), still under the icon.
+	local glow = image("Glow", Config.UI.Kit.Art.SoftGlow, R.GlowShare)
+	suns[icon] = {
+		holder = holder,
+		layers = layers,
+		glow = glow,
+		icon = icon,
+		under = under,
+		on = true,
+		weight = 0,
+		clock = 0,
+	}
+	if not sunLoop then
+		sunLoop = RunService.RenderStepped:Connect(stepSuns)
+	end
 end
 
 return UIAnim

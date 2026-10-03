@@ -389,6 +389,16 @@ step (steps 1-14 of the brief).
     TOMORROW) and a rejoin (no second gift, settings kept); Roblox's favorite, group and invite
     prompts; real Robux purchases in the published game; a new UTC day's login popup.
 
+- **Designer feedback 1 (2026-10-03).** The lobby music is gone (the `Music` module, its
+  Settings switch, its words and `Config.Audio.Music`; the request for track approval is void).
+  Hovering a column tile or a corner icon no longer shakes it hard: it keeps the original small
+  sway and soft sun rays fade in behind it (on a layer under the column, so they cover no other
+  tile). Every idle icon bob is now a gentle turn (a pixel move looked like a 2 fps sprite);
+  the shakes are slower so no frame jumps far; the Daily Challenge's glow pulses smoothly
+  instead of blinking; the Free Reward gift no longer bobs (its rays still turn).
+  - Checked: lint, tests (958 pass); Studio PC: hover on Shop, Inventory and Free Reward (rays
+    behind, the dots and words on top), console clean.
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
@@ -526,8 +536,6 @@ step (steps 1-14 of the brief).
 - **Tutorial lane**: please set a player attribute `TutorialActive = true` (server-side) while a
   player's tutorial runs and clear it when it ends. The GUI holds every join popup (daily login,
   offers, playtime, the come-back message) while it is true.
-- **Integrator**: the lobby music tracks (step 8) need the designer's OK: three APM tracks
-  are in `Config.Audio.Music.Tracks` (Nice Mood Guitar, Tonight's Guest, Feeling Lucky).
 
 - **Integrator**: merge `lane-gui`, then save `place/8ball.rbxl` and publish once (this lane
   built nothing in Edit mode: the boards and every scene are made by code; the place save is
@@ -535,8 +543,7 @@ step (steps 1-14 of the brief).
 - **Integrator**: created on Roblox in this lane: six sale products (`Pack4Sale`..`Pack7Sale`,
   `VipSale`, `Mystery10Sale`, ids in `Config.Products.List`), icons on all 34 passes and
   products, and VIP's descriptions now say gold. Sounds used are from Roblox's licensed library
-  (no uploads): Heartbeat 1839088414 and Shockwave 9120009360, plus the three music tracks
-  above that still need the designer's OK.
+  (no uploads): Heartbeat 1839088414 and Shockwave 9120009360 (the lobby music was dropped).
 - **Integrator**: `Strings.Menus.Trade` (the old "Soon" words) is unused now; safe to delete.
 - **Designer**: Epic ownership is still 6.72% against ~5% (since step 3); a lower Epic chance
   in Case Drops or the playtime gifts would bring it in. Your call.
@@ -641,3 +648,6 @@ step (steps 1-14 of the brief).
   it spins (the hint moves under it) and the description comes back 1.6 s after landing. The
   player list and the Daily Challenge hide while the queue card is up, since all three share
   the right edge.
+- 2026-10-03 (designer): **no lobby music** (dropped after hearing it). Hovering an icon keeps
+  the original small sway plus soft sun rays behind it, not a hard shake. No icon moves up and
+  down in a loop (it looked choppy); idle icons turn gently instead.
