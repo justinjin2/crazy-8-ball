@@ -1,6 +1,6 @@
 --!strict
--- ShopParts: the building blocks the Shop's pages share (ShopMenu, ShopCases, ShopOdds,
--- ShopLimited, ShopMoney, ShopVip; docs/prompts/ECONOMY_UI_PROMPT.md section 11):
+-- ShopParts: the building blocks the Shop shares (ShopMenu, ShopCards, ShopPage, ShopNeed,
+-- ShopOdds; docs/prompts/ECONOMY_UI_PROMPT.md section 11):
 --
 --   * the sizes of one layout, from MenuFrame's geo (phone to full size, Config.UI.Shop);
 --   * a plain card (white, a pale edge, like reference 03's reward tiles) that is not a button;

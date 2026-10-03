@@ -114,3 +114,29 @@ they still show at 64 px.
 | 8 | `cue_cap.png` | CueCap | Look.Cap (or the wrap at 0.6) | the butt cap with its rounded end, white || 93663666480532 |
 | 9 | `cue_gloss.png` | CueGloss | none | on top: a white shine along the lit side, a soft shade along the far side, and a thin ink line between each part (hides any seam between two tinted layers) || 80942448683389 |
 | alone | `cue_silhouette.png` | CueSilhouette | none | the whole cue as one flat dark slate shape with the outline and shadow: the Index's unowned cues || 116727821385649 |
+
+## GUI lane icons (2026-10-03)
+
+Made with `tools/openai_image.py` in the kit's sticker style (existing icons as style references,
+transparent background, no words), trimmed and padded to 256 px; the 1024 px raws stay local in
+`raw/` (not in git). Uploaded to the group; the Roblox ids are the image ids in Config.
+
+| File | Config key | What it is | Roblox id |
+|---|---|---|---|
+| `shop_basket.png` | Shop, ShopBasket | the Shop: a glossy red basket with a silver handle (ref 02) | 130453738066274 |
+| `deals.png` | Deals | a price tag with a star burst: the Deals jump button | 127731721548070 |
+| `cases_jump.png` | CasesJump | two stacked cases: the Cases jump button | 138027148960139 |
+| `passes.png` | Passes | a golden ticket: the Passes jump button | 93981799998814 |
+| `mystery_case.png` | MysteryCase | a purple case with a question mark | 108447374917770 |
+| `restock.png` | Restock | a refresh arrow round a chest | 75423782122752 |
+| `roblox_plus.png` | RobloxPlus | a gold badge with a plus | 132944105986264 |
+| `gift.png` | Gift | the Free Reward gift | 120885254928899 |
+| `group.png` | Group | three busts: join the group | 98530804278165 |
+| `invite.png` | Invite | an envelope with a plus | 121644690849571 |
+| `star.png` | Star | the favorite star | 125192913454809 |
+| `daily_target.png` | Challenge | the Daily Challenge target | 127346327357150 |
+| `gear.png` | Gear | Settings | 125677637012120 |
+| `thank_you.png` | Heart | a heart with sparkles: the thank-you burst | 93822415051422 |
+
+`tools/products_icons.json` maps every pass and developer product to its icon here or above;
+`python3 tools/roblox_products.py --icons` sets them on Roblox.

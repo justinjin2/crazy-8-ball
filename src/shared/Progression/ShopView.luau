@@ -15,7 +15,17 @@ local Restock = require(script.Parent.Restock)
 local CaseDrop = require(script.Parent.CaseDrop)
 
 local S = Config.Shop
-local LIST: { [string]: { Kind: string, Id: number, Robux: number, Restock: string?, SkipSeconds: number?, SaleOf: string?, Vip: boolean? } } =
+local LIST: {
+	[string]: {
+		Kind: string,
+		Id: number,
+		Robux: number,
+		Restock: string?,
+		SkipSeconds: number?,
+		SaleOf: string?,
+		Vip: boolean?,
+	},
+} =
 	Config.Products.List :: any
 local CASE_ORDER: { string } = Config.Cases.Order
 local MAX_SALE: number = Config.Cases.MaxSalePercent

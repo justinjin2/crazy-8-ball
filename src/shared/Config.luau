@@ -2320,11 +2320,13 @@ Config.Shop = {
 	-- personal offer (Starter Pack or VIP welcome offer, only while open), VIP, the restock
 	-- shop, Limited cues, Mystery Cases, money packs, Quick Cases and Money Party, Get Roblox
 	-- Plus. Timer skips sit on the case, ability spins on the Abilities screen.
+	-- (GUI lane, 2026-10-03: Limited moved up beside VIP, so the Deals jump button's sections
+	-- sit together.)
 	Order = {
 		"Offer",
 		"Vip",
-		"Restock",
 		"Limited",
+		"Restock",
 		"Mystery",
 		"Money",
 		"Boosts",
@@ -5357,7 +5359,7 @@ Config.UI = {
 			ChatTag = "rbxassetid://108097317615793", -- a speech bubble (the chat-tag reward tile)
 			-- The economy (2026-09-28; tools/gen_ui_art.py, assets/ui/icons/README.md). An empty id
 			-- draws nothing until the image is uploaded.
-			Shop = "rbxassetid://107658760787268", -- the left column: a shopping basket
+			Shop = "rbxassetid://130453738066274", -- the red basket (GUI lane, ref 02; was 107658760787268)
 			Inventory = "rbxassetid://105879289234800", -- a backpack
 			Rewards = "rbxassetid://92894769753979", -- a gift box with a bow
 			Trade = "rbxassetid://98977101809699", -- two arrows swapping
@@ -5378,6 +5380,22 @@ Config.UI = {
 			MoneyParty = "rbxassetid://70489851952209", -- a party popper with cash confetti
 			FastOpen = "rbxassetid://119005216671556", -- a chest with a lightning bolt
 			Limited = "rbxassetid://105313592367901", -- a numbered star ticket
+			-- The GUI lane's icons (2026-10-03; tools/openai_image.py in the kit's sticker style,
+			-- uploaded to the group).
+			ShopBasket = "rbxassetid://130453738066274", -- the Shop: a red basket, silver handle (ref 02)
+			Deals = "rbxassetid://127731721548070", -- a price tag with a star burst (the Deals jump button)
+			CasesJump = "rbxassetid://138027148960139", -- two stacked cases (the Cases jump button)
+			Passes = "rbxassetid://93981799998814", -- a golden ticket (the Passes jump button)
+			MysteryCase = "rbxassetid://108447374917770", -- a purple case with a question mark
+			Restock = "rbxassetid://75423782122752", -- a refresh arrow round a chest
+			RobloxPlus = "rbxassetid://132944105986264", -- a gold badge with a plus
+			Gift = "rbxassetid://120885254928899", -- the Free Reward gift
+			Group = "rbxassetid://98530804278165", -- three busts (join the group)
+			Invite = "rbxassetid://121644690849571", -- an envelope with a plus
+			Star = "rbxassetid://125192913454809", -- the favorite star
+			Challenge = "rbxassetid://127346327357150", -- the Daily Challenge
+			Gear = "rbxassetid://125677637012120", -- Settings
+			Heart = "rbxassetid://93822415051422", -- the thank-you burst
 			Calendar = "rbxassetid://81931904688937", -- the daily streak
 			Code = "rbxassetid://139681599835662", -- promo codes
 			Index = "rbxassetid://94908077553080", -- a book with a cue on it
@@ -6736,8 +6754,8 @@ Config.UI.Menu = {
 	EscapeAfterTypingSeconds = 0.1,
 }
 
--- The Shop (ShopMenu and its pages ShopCases, ShopOdds, ShopLimited, ShopMoney and ShopVip, with
--- ShopParts; docs/prompts/ECONOMY_UI_PROMPT.md section 11): cards laid out by hand from the
+-- The Shop (ShopMenu, one scrolling page built by ShopPage and ShopCards, with ShopNeed,
+-- ShopOdds and ShopParts; docs/prompts/GUI_PROMPT.md step 3): cards laid out by hand from the
 -- page's size. Sizes given as { a, b } run from a on a phone-sized panel to b on a full one
 -- (MenuFrame's geo.t, as Config.UI.Menu.Frame). Text never goes under Kit.Text.Min. Pixels and
 -- seconds. (tune)
@@ -6761,18 +6779,6 @@ Config.UI.Shop = {
 	PillTextPx = { 14, 16 },
 	PillPadPx = 10, -- room each side of a pill's words
 	CashShare = 1.3, -- the cash bundle beside a price, of the price's text size
-	-- The Cases tab: standing cards side by side (the chest on top) when each is at least
-	-- TallMinWidthPx wide and the page leaves the chest IconMinPx, else one row per case.
-	Cases = {
-		TallMinWidthPx = 150,
-		TallMaxPx = 420, -- a standing card is never taller than this (centred on a tall page)
-		IconMinPx = 56, -- the chest
-		IconMaxPx = 130,
-		OddsWidthPx = { 84, 104 }, -- the Odds button (its touch area is always 44)
-		OddsHeightPx = { 34, 40 },
-		RowButtonsPx = { 150, 180 }, -- a row's Buy / Buy 10 column (fits "Need $12,000 more")
-		NoteColor = { 255, 246, 214 }, -- the restricted note's card, a pale gold
-	},
 	-- The odds panel over the pages: a heading per rarity, a row per cue in as many columns as
 	-- keep a row RowMinWidthPx wide.
 	Odds = {
@@ -6787,43 +6793,106 @@ Config.UI.Shop = {
 		RowCornerPx = 10,
 		RowStrokePx = 2, -- a row's edge, in its rarity's colour
 	},
-	-- The Limited tab: a card per shelf row, the thumbnail at the left.
-	Limited = {
-		MinWidthPx = { 300, 360 }, -- cards side by side while each is this wide
-		MaxWidthPx = { 420, 440 },
-		ExtraHeightPx = 60, -- a card grows at most this much past its needs on a tall page
-		Aspect = 0.6, -- the height / width the fit prefers
-		ArtShare = 0.42, -- the thumbnail's slot, of the card's width
-		ArtCornerPx = 12,
-		ThumbInsetShare = 0.06, -- the cue inside its card
+	-- The one scrolling page (GUI lane, designer 2026-10-03; ref 01 Steal an Egg's format): big
+	-- "— VIP —" section headers, wide hero cards (offers, VIP, boosts) and grids of tiles (the
+	-- restock, Mystery Cases, money packs), four jump buttons down the right side. Sizes { a,
+	-- b } run from a phone-sized panel (a) to a full one (b). (tune)
+	Page = {
+		-- The jump buttons, top to bottom: each scrolls to its first section on the page and
+		-- glows while one of its sections is at the top. Icons are Config.UI.Kit.Icons keys.
+		Jump = {
+			{ Key = "Deals", Icon = "Deals", Sections = { "Offer", "Vip", "Limited" } },
+			{ Key = "Cases", Icon = "CasesJump", Sections = { "Restock", "Mystery" } },
+			{ Key = "Money", Icon = "Pack4", Sections = { "Money" } },
+			{ Key = "Passes", Icon = "Passes", Sections = { "Boosts", "RobloxPlus" } },
+		},
+		RailWidthPx = { 66, 96 }, -- a jump button
+		RailButtonPx = { 60, 86 },
+		RailGapPx = { 6, 12 },
+		RailTextPx = { 14, 18 },
+		-- On a computer the buttons stand outside the panel's right edge when the screen has
+		-- this much room there; otherwise (a phone) they take a column inside the page.
+		RailOutsidePx = 14,
+		JumpSeconds = 0.4, -- a jump's scroll
+		HeaderPx = { 40, 58 }, -- a section's "— VIP —" row
+		HeaderTextPx = { 26, 40 },
+		HeaderColor = { 255, 214, 10 }, -- bright yellow, ink outline (ref 01)
+		HeaderLineTextPx = { 16, 20 }, -- the line under a header ("NEW ITEMS IN 7:12")
+		SectionGapPx = { 14, 24 }, -- above each header
+		-- Hero cards: the art square at the left, title, huge numbers and a line in the middle,
+		-- the price and Buy at the right.
+		HeroPx = { 118, 160 },
+		HeroButtonWidthPx = { 128, 200 },
+		HeroTitlePx = { 22, 32 },
+		HeroBigPx = { 28, 46 }, -- "x1 > x2", "$75,000"
+		HeroLinePx = { 15, 18 },
+		-- Tiles in a grid: as many columns as keep each at least MinWidth wide.
+		TileMinWidthPx = { 128, 168 },
+		TileMaxWidthPx = 250,
+		TilePx = { 214, 262 },
+		TileArtShare = 0.36, -- the art's height, of the tile's
+		TileNamePx = { 17, 22 },
+		TileBigPx = { 22, 30 },
+		TileLinePx = { 14, 16 },
+		ArtBobPx = 4, -- the art floats up and down this much
+		StickerPx = { 24, 30 }, -- corner stickers: "BEST VALUE", "x2", "LUCKY!", "30% OFF"
+		StickerTextPx = { 14, 18 },
+		StickerDegrees = 8, -- tilted like a sticker
+		OldPx = { 15, 19 }, -- the crossed-out price above Buy, red
+		ArrowShare = 0.8, -- the before -> after arrow, of the big numbers' size
+		LitStrokePx = 4, -- the pack that covers what you need: a thick gold edge, breathing
+		CardCornerPx = 18,
+		NoteColor = { 255, 246, 214 }, -- the restricted note's card, a pale gold
 	},
-	-- The Money tab: the seven packs (one shelf on a phone), the ribbon over them.
-	Money = {
-		MinWidthPx = { 86, 100 }, -- a pack at least this wide
-		MaxWidthPx = 220,
-		IconMinPx = 40, -- the pack's icon
-		IconMaxPx = 96,
-		Aspect = 1.6, -- the height / width the fit prefers: tall cards, one shelf
-		RibbonPx = { 30, 36 }, -- "First purchase: double money!"
-		RibbonIconShare = 1.2, -- its cash stack, of its height (pokes out a little)
+	-- Need money (a buy the money does not cover): a popup over the shop with the smallest
+	-- covering pack made to look like a deal. Never offered while the player lost a match
+	-- this recently; the plain "Need $X more" notice shows instead.
+	Need = {
+		AfterLossSeconds = 60,
+		WidthPx = { 300, 420 },
+		HeightPx = { 250, 320 },
 	},
-	-- The VIP tab: the VIP card at the left, the other items as rows at the right.
-	Vip = {
-		SideBySideMinPx = 520, -- narrower: the card, then the rows under it
-		CardShare = 0.44, -- the VIP card's share of the width, side by side
-		CardMinPx = 260,
-		CardMaxPx = 520, -- stacked
-		CardMaxHeightPx = 440,
-		RowMinPx = 300, -- the rows' column at least this wide beside the card
-		RowMaxWidthPx = 620, -- stacked
-		RowMaxPx = { 90, 120 }, -- a row never taller than this
-		RowIconPx = { 40, 56 },
-		RowButtonPx = { 112, 150 }, -- a row's Buy
-		HeaderPx = { 32, 44 }, -- the crown and "VIP"
-		TitleTextPx = { 26, 34 },
-		PerkGapPx = { 3, 8 }, -- under each perk's line
-		PerkIconExtraPx = { 6, 8 }, -- a perk's icon is its text size plus this
-		TimerColor = { 214, 145, 0 }, -- a row's countdown ("Party on! 12:34 left"), a deep gold
+	-- The thank-you burst after a Robux purchase (any prompt that ends bought): confetti, the
+	-- item's icon flying in, a big "THANK YOU!". Seconds on screen.
+	Thanks = {
+		Seconds = 2.6,
+		IconPx = { 110, 170 },
+		TextPx = { 44, 72 },
+		DisplayOrderAbove = 40, -- over the menus and the case opening
+	},
+	-- The one join popup for limited offers (Starter Pack, VIP half off, the Limited cue, the
+	-- release sale): the open ones rotate in one card every RotateSeconds.
+	OfferPopup = {
+		RotateSeconds = 4,
+		AfterJoinSeconds = 6, -- the earliest it shows after the save loads
+		WidthPx = { 320, 460 },
+		HeightPx = { 240, 300 },
+	},
+	-- A kit icon per product key for the thank-you burst (a key missing here shows the
+	-- money stack).
+	ProductIcons = {
+		Vip = "Vip",
+		VipOffer = "Vip",
+		VipSale = "Vip",
+		QuickCases = "FastOpen",
+		StarterPack = "StarterPack",
+		MoneyParty = "MoneyParty",
+		Mystery1 = "MysteryCase",
+		Mystery10 = "MysteryCase",
+		Mystery10Sale = "MysteryCase",
+		RestockEpic = "CaseEpic",
+		RestockLegendary = "CaseLegendary",
+		Pack1 = "Pack1",
+		Pack2 = "Pack2",
+		Pack3 = "Pack3",
+		Pack4 = "Pack4",
+		Pack5 = "Pack5",
+		Pack6 = "Pack6",
+		Pack7 = "Pack7",
+		Pack4Sale = "Pack4",
+		Pack5Sale = "Pack5",
+		Pack6Sale = "Pack6",
+		Pack7Sale = "Pack7",
 	},
 }
 

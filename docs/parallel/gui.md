@@ -103,14 +103,37 @@ step (steps 1-14 of the brief).
     match the cue in hand; the Inventory cards show the new pictures. Phone: the power bar's
     place and size are unchanged.
 
-- **Step 3 in progress: the shop.** Server side done: the release sale (`Config.Shop.ReleaseSale`:
-  30% off money packs 4-7, VIP and 10 Mystery Cases for 14 days from the Grand Opening Cue's
-  start; six new sale products `Pack4Sale`..`Pack7Sale`, `VipSale`, `Mystery10Sale`, created on
-  Roblox, given exactly like their normal products and sold only inside the window); the
-  Legendary restock has no shared limit; Roblox Plus members earn +10% match money
-  (`Economy.PlusBoost`). `tools/economy_model.py` now models Plus (12% of players): Day 30
-  Epic 6.76% -> 6.72%, Legendary 1.17% -> 1.16%, so Plus moves nothing (Epic was already 35%
-  over its 5% target before this lane). Client shop next.
+- **Step 3 done: the shop.** Server side: the release sale (`Config.Shop.ReleaseSale`: 30% off
+  money packs 4-7, VIP and 10 Mystery Cases for 14 days from the Grand Opening Cue's start; six
+  new sale products `Pack4Sale`..`Pack7Sale`, `VipSale`, `Mystery10Sale`, created on Roblox,
+  given exactly like their normal products and sold only inside the window); the Legendary
+  restock has no shared limit; Roblox Plus members earn +10% match money
+  (`Economy.PlusBoost`). `tools/economy_model.py` now models Plus (12% of players): Day 30 Epic
+  6.76% -> 6.72%, Legendary 1.17% -> 1.16%, so Plus moves nothing (Epic was already 35% over
+  its 5% target before this lane).
+  Client: the Shop is one scrolling page (`ShopMenu`, `ShopPage` words it from ShopState,
+  `ShopCards` draws hero cards and tiles): big yellow "— VIP —" headers, the Starter Pack
+  offer, VIP "x1 > x2 MONEY" (welcome offer or sale price with the real old price crossed
+  out), Limited, the restock (countdown, lucky slot shining, money and Robux buys), Mystery
+  Cases (x1, x10 for money, x10 for Robux), the money packs (FIRST BUY x2, BEST VALUE, big
+  packs crossed out against the same money in Handfuls, sale prices during the sale), Quick
+  Cases, Money Party, Roblox Plus (hidden for members). Four jump buttons (Deals, Cases,
+  Money, Passes) outside the panel on a computer, inside on a phone; the current one glows;
+  red NEW badges on a new restock / offer, and a count on the column's Shop tile. LB / RB jump
+  with a gamepad. "Need $X more" opens a need-money popup with the smallest covering pack
+  (`ShopNeed`), never within 60 s of a lost match. A thank-you burst after any Robux purchase
+  (`ShopThanks`). A rotating limited-offer popup once a session after joining
+  (`ShopOfferPopup`) through the new one-at-a-time popup queue (`Popups`: no popup in a match,
+  over a menu or while `TutorialActive`). 14 new icons (`assets/ui/icons/README.md`), the
+  basket is the Shop icon, and every pass and product now has its icon on Roblox
+  (`tools/roblox_products.py --icons`); VIP's product descriptions say gold, not rainbow
+  (`--describe`). The old tab modules (`ShopCases`, `ShopLimited`, `ShopMoney`, `ShopVip`) are
+  gone.
+  - Checked: lint, Lune tests; Studio PC (1529 x 666): every section, each jump button, the
+    need-money popup (Handful $18,000 lit), the offer popup and "See offer", the thank-you
+    burst, console clean. Phone (the Shop in an 844 x 390 frame): jump buttons inside, cards
+    and the restock grid fit and read. Gamepad: LB / RB bound while open, a selected card
+    scrolls into view. Not checked: a real Robux purchase (needs the live game).
 
 ### Changes to shared files (existing lines)
 
@@ -135,6 +158,15 @@ step (steps 1-14 of the brief).
   - `tools/economy_model.py`: the `plus` addition; `tools/economy_config.json` regenerated.
   - Tests: `restock_test` (no shared Legendary limit), `shop_test` (the sale), `money_test`
     (Plus).
+- `Config.luau` (step 3, client): `Config.Shop.Order` moves "Limited" up after "Vip" (the Deals
+  group sits together); `Kit.Icons.Shop` is the new basket id; new icon keys after `Limited`;
+  `Config.UI.Shop`'s old Cases/Limited/Money/Vip blocks replaced by `Page`, `Need`, `Thanks`,
+  `OfferPopup`, `ProductIcons`.
+- `Strings.luau` (step 3): `Menus.Shop.VipName` says gold; new keys at the end of
+  `Menus.Shop` (Sections ... MoneyName).
+- `Progression.luau` (client, mine to change but shared by every screen): a loss sets
+  `deps.lostAt`; the popup gate (`Popups.setGate`), `ShopThanks.start`, `ShopOfferPopup.start`;
+  `MenuColumn` gets `shopNew`.
 
 ## Requests to other lanes or the integrator
 

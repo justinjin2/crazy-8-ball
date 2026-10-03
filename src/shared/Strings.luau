@@ -659,7 +659,7 @@ return {
 			PaidBlocked = "Bought items can't be traded where you live.",
 			Changed = "Something changed. Check the trade and accept again.",
 		},
-		-- The Shop (ShopMenu and its pages ShopCases, ShopOdds, ShopLimited, ShopMoney, ShopVip).
+		-- The Shop (ShopMenu, one scrolling page: ShopPage, ShopCards, ShopNeed, ShopOdds).
 		-- Case and cue names come from Items; money is "$1,500" (Progression/Format).
 		Shop = {
 			-- Buying, on every tab.
@@ -721,7 +721,7 @@ return {
 			Vip = "VIP",
 			VipMoney = "%sx money in matches", -- "2x money in matches"
 			VipCue = "The %s", -- "The VIP Cue"
-			VipName = "[VIP] chat tag and a rainbow name",
+			VipName = "[VIP] chat tag and a gold name",
 			VipOdds = "Same case odds as everyone", -- VIP never changes case odds
 			WelcomeOffer = "Welcome offer: %s", -- half-price VIP, its time left
 			WelcomeBack = "Welcome back offer: %s", -- the one comeback window
@@ -734,6 +734,74 @@ return {
 			PartyFull = "Full for now", -- an hour of Money Party already queued
 			FastOpen = "Fast Open",
 			FastOpenLine = "Open %d cases at once, no reel. Skip ability spins and Auto Spin",
+			-- The one scrolling page (GUI lane, 2026-10-03). Big, short words: about 40%
+			-- longer translations still fit.
+			Sections = {
+				Offer = "SPECIAL OFFER",
+				Vip = "VIP",
+				Limited = "LIMITED",
+				Restock = "RESTOCK",
+				Mystery = "MYSTERY CASES",
+				Money = "MONEY",
+				Boosts = "BOOSTS",
+				RobloxPlus = "ROBLOX PLUS",
+			},
+			Header = "— %s —", -- a section's header: "— VIP —"
+			Jump = { Deals = "Deals", Cases = "Cases", Money = "Money", Passes = "Passes" },
+			Times = "x%s", -- a multiplier: "x2"
+			MoneyWord = "MONEY", -- after VIP's "x1 > x2"
+			VipPerks = "VIP Cue · gold [VIP] tag · free daily spin",
+			StarterPerks = "%s + 1 hour of x2 money", -- the Starter Cue's name
+			Off = "%d%% OFF", -- a sticker: "30% OFF"
+			OfferEnds = "Ends in %s",
+			FirstBuy = "FIRST BUY x2", -- the first money pack's sticker
+			BestValue = "BEST VALUE",
+			RestockIn = "NEW ITEMS IN %s",
+			Left = "%d left",
+			Lucky = "LUCKY!", -- the restock's lucky slot
+			VipOnly = "VIP ONLY",
+			MysteryCount = "x%d", -- "x10"
+			MysteryLine = "Any case can drop!",
+			MysteryMany = "%d Mystery Cases", -- the restock's lucky item: "3 Mystery Cases"
+			Pity = "Rare Case or better in %d", -- Case Drops until one is guaranteed
+			NotHere = "Not available where you live",
+			QuickLine = "Case timers x0.5 · open all at once",
+			PartyLineShort = "%s money for everyone here", -- the boost: "x2"
+			PlusLine = "+%d%% money in every match",
+			PlusButton = "Get Plus",
+			Member = "Member", -- a Roblox Plus member's card
+			-- Need money: the popup.
+			NeedTitle = "NEED MONEY?",
+			NeedLine = "You need %s more", -- the gap
+			NeedPack = "This covers it!",
+			-- The thank-you burst.
+			Thanks = "THANK YOU!",
+			ThanksLine = "Enjoy your %s!", -- the item's name
+			-- The rotating join popup for limited offers.
+			OfferTitle = "LIMITED OFFER",
+			SeeShop = "See offer",
+			ReleaseSale = "RELEASE SALE",
+			ReleaseLine = "%d%% off big packs, VIP and 10 Mystery Cases",
+			GrandOpening = "The %s is here!", -- the Limited cue's name
+			New = "NEW", -- a red badge on a jump button and the Shop tile
+			-- A product's name in the thank-you burst (a key missing here says "purchase").
+			Names = {
+				Vip = "VIP",
+				VipOffer = "VIP",
+				VipSale = "VIP",
+				QuickCases = "Quick Cases",
+				StarterPack = "Starter Pack",
+				MoneyParty = "Money Party",
+				Mystery1 = "Mystery Case",
+				Mystery10 = "Mystery Cases",
+				Mystery10Sale = "Mystery Cases",
+				RestockEpic = "Epic Case",
+				RestockLegendary = "Legendary Case",
+				UltSlot2 = "ability slot",
+				UltSlot3 = "ability slot",
+			},
+			Purchase = "purchase",
+			MoneyName = "money", -- a money pack in "Enjoy your money!"
 		},
 		-- The Rewards (RewardsMenu and its pages RewardsDaily, RewardsPlaytime, RewardsCodes).
 		-- Case names come from Items.Cases; money is "$250" (Progression/Format).

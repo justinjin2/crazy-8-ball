@@ -39,6 +39,9 @@ local RewardChips = require(script.Parent.RewardChips)
 local RewardsMenu = require(script.Parent.RewardsMenu)
 local Roadmap = require(script.Parent.Roadmap)
 local ShopMenu = require(script.Parent.ShopMenu)
+local ShopOfferPopup = require(script.Parent.ShopOfferPopup)
+local ShopThanks = require(script.Parent.ShopThanks)
+local Popups = require(script.Parent.Popups)
 local TeleportScreen = require(script.Parent.TeleportScreen)
 local TradeMenu = require(script.Parent.TradeMenu)
 local UISound = require(script.Parent.UISound)
@@ -196,12 +199,19 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 		onPress = function(name: string)
 			Menus.open(name)
 		end,
+		shopNew = deps.shopNew,
 	})
 	deps.column = column
 	banner = Banner.new(screen, { avoid = { rankHud.holder } })
 	Menus.setBlocker(function(): boolean
 		return lastState.inMatch or popupUp()
 	end)
+	-- Join and reward popups wait for the hub: no match, no screen or menu up.
+	Popups.setGate(function(): boolean
+		return not lastState.inMatch and not popupUp() and not Menus.isOpen() and not teleportUp()
+	end)
+	ShopThanks.start(screen)
+	ShopOfferPopup.start(screen)
 	local player = Players.LocalPlayer
 	local playerGui = player and player:FindFirstChildOfClass("PlayerGui")
 	if playerGui then
@@ -215,6 +225,10 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	end)
 	Net.get("MatchSummary").OnClientEvent:Connect(function(summary: any)
 		if valid(summary) and valid(summary.you) and valid(summary.money) then
+			-- A loss is remembered for a minute: no need-money popup right after it.
+			if summary.you.outcome ~= "Win" then
+				deps.lostAt = os.clock()
+			end
 			closeScreens() -- the result screen takes the screen from them
 			result:show(summary)
 		end

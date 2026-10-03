@@ -245,6 +245,90 @@
     "imageId": "85291624813724",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/cases_jump.png": {
+    "assetId": "71358575158968",
+    "assetType": "Decal",
+    "imageId": "138027148960139",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/daily_target.png": {
+    "assetId": "97976286801508",
+    "assetType": "Decal",
+    "imageId": "127346327357150",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/deals.png": {
+    "assetId": "106999524106289",
+    "assetType": "Decal",
+    "imageId": "127731721548070",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/gear.png": {
+    "assetId": "138343510202554",
+    "assetType": "Decal",
+    "imageId": "125677637012120",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/gift.png": {
+    "assetId": "79519209124747",
+    "assetType": "Decal",
+    "imageId": "120885254928899",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/group.png": {
+    "assetId": "131102203019128",
+    "assetType": "Decal",
+    "imageId": "98530804278165",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/invite.png": {
+    "assetId": "84752319937611",
+    "assetType": "Decal",
+    "imageId": "121644690849571",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/mystery_case.png": {
+    "assetId": "102467975894873",
+    "assetType": "Decal",
+    "imageId": "108447374917770",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/passes.png": {
+    "assetId": "119370891462100",
+    "assetType": "Decal",
+    "imageId": "93981799998814",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/restock.png": {
+    "assetId": "78149391979916",
+    "assetType": "Decal",
+    "imageId": "75423782122752",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/roblox_plus.png": {
+    "assetId": "82530899105851",
+    "assetType": "Decal",
+    "imageId": "132944105986264",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/shop_basket.png": {
+    "assetId": "76129083384112",
+    "assetType": "Decal",
+    "imageId": "130453738066274",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/star.png": {
+    "assetId": "70569443492897",
+    "assetType": "Decal",
+    "imageId": "125192913454809",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/thank_you.png": {
+    "assetId": "138615306160139",
+    "assetType": "Decal",
+    "imageId": "93822415051422",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/abilities/BlackFlash/BlackFlash.glb": {
     "assetId": "75008622077798",
     "assetType": "Model",

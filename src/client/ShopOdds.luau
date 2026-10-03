@@ -391,11 +391,8 @@ function ShopOdds.close(self: any)
 	end
 	local selected = GuiService.SelectedObject
 	if selected and selected:IsDescendantOf(self.layer) then
-		local back = self.shop.cases:oddsButton(self.caseId or "")
 		local previous = self.previous
-		if back and back.Visible and frame:isOpen() then
-			GuiService.SelectedObject = back
-		elseif previous and previous:IsDescendantOf(game) and frame:isOpen() then
+		if previous and previous:IsDescendantOf(game) and frame:isOpen() then
 			GuiService.SelectedObject = previous
 		else
 			GuiService.SelectedObject = nil

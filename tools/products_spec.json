@@ -6,7 +6,7 @@
    "kind": "Pass",
    "name": "VIP",
    "robux": 599,
-   "description": "2x money from every match, 1 free Ability Spin every day, a VIP slot in the restock shop, the rainbow VIP Cue, a [VIP] chat tag and a rainbow name."
+   "description": "2x money from every match, 1 free Ability Spin every day, a VIP slot in the restock shop, the VIP Cue, a gold [VIP] chat tag and a gold name."
   },
   {
    "key": "QuickCases",
@@ -34,7 +34,7 @@
    "kind": "Product",
    "name": "VIP Welcome Offer",
    "robux": 299,
-   "description": "VIP at half price for a short time: 2x money, a free daily Ability Spin, the VIP restock slot, the VIP Cue, tag and rainbow name."
+   "description": "VIP at half price for a short time: 2x money, a free daily Ability Spin, the VIP restock slot, the VIP Cue, tag and gold name."
   },
   {
    "key": "StarterPack",

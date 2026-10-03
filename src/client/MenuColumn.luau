@@ -92,6 +92,7 @@ export type Options = {
 	rankHud: any?, -- RankHud (its `holder`): the column starts under it on a phone
 	money: any?, -- MoneyHud (its `root`): the column always ends above it
 	onPress: (name: string) -> (), -- a tile was pressed: open its menu (Menus.open)
+	shopNew: (() -> number)?, -- the Shop's groups with something new (its red dot)
 }
 
 local MenuColumn = {}
@@ -121,6 +122,7 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	self.rankHud = opts.rankHud
 	self.money = opts.money
 	self.onPress = opts.onPress
+	self.opts = opts
 	self.alive = true
 	self.wanted = false -- Progression's say (the hub, no popup up)
 	self.loaded = false -- the save is in (DataLoaded)
@@ -195,6 +197,7 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	end)
 	connect(ItemState.Changed.Shop, function()
 		self:refreshTimer()
+		self:refreshDots()
 	end)
 	-- The Ults tile follows whether the spin screen is live; gamepad X opens it in the hub.
 	UltSpinState.start()
@@ -497,6 +500,16 @@ function MenuColumn.refreshDots(self: any)
 	setDot(self, self.tiles.Inventory, casesText)
 	local ready = if player then player:GetAttribute("RewardReady") == true else false
 	setDot(self, self.tiles.Rewards, if ready then COPY.DotReady else nil)
+	-- The Shop: how many of its jump groups hold something new (a restock, an offer), while
+	-- its offer timer pill is not up in the same corner.
+	local shopNew = if self.opts.shopNew then self.opts.shopNew() else 0
+	local shopTile: Tile = self.tiles.Shop
+	local timerUp = shopTile.timer ~= nil and shopTile.timer.Visible
+	setDot(
+		self,
+		shopTile,
+		if shopNew > 0 and not timerUp then tostring(math.min(shopNew, C.DotMax)) else nil
+	)
 	local ults: Tile? = self.tiles[ULTS]
 	if ults then
 		local free = UltSpinState.freeSpinReady() and UltSpinState.isLive()
