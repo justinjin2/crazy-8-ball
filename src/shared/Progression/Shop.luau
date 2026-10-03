@@ -113,6 +113,8 @@ type ProductRow = {
 	Restock: string?, -- the restock case it buys (RestockEpic, RestockLegendary)
 	SkipSeconds: number?, -- the most time left on the timer it finishes (Skip1h ... Skip48h)
 	Random: boolean?, -- a paid random item (refused where PolicyService restricts them)
+	SaleOf: string?, -- a release-sale product: gives what this key gives (Shop.releaseSale)
+	Vip: boolean?, -- grants VIP in the save, like the welcome offer (the sale's VIP)
 }
 
 local LIST: { [string]: ProductRow } = P.List :: any
@@ -311,6 +313,10 @@ end
 --- Limited's window and cap are the server's Limited counter's.
 function Shop.receiptCheck(key: string, shopSave: ShopSave, now: number, vipPass: boolean): string?
 	local first = whole(shopSave.FirstJoin)
+	local saleRow = LIST[key]
+	if saleRow ~= nil and saleRow.Vip == true and Shop.isVip(vipPass, shopSave) then
+		return "Owned" -- the sale's VIP when VIP already (a receipt still pays the fallback)
+	end
 	if key == VIP_OFFER then
 		if Shop.isVip(vipPass, shopSave) then
 			return "Owned"
@@ -394,13 +400,13 @@ function Shop.grantFor(
 	-- The first money pack ever pays FirstPackMultiplier times its money, once (11.1).
 	if
 		grant.money > 0
-		and table.find(PACK_ORDER, key) ~= nil
+		and table.find(PACK_ORDER, row.SaleOf or key) ~= nil
 		and shopSave.FirstPackBought ~= true
 	then
 		grant.money *= S.FirstPackMultiplier
 		grant.firstPack = true
 	end
-	if key == VIP_OFFER then
+	if key == VIP_OFFER or row.Vip == true then
 		grant.vip = true
 		if shopSave.VipCueGiven ~= true then
 			grant.cue = S.VipCue
@@ -687,6 +693,56 @@ function Shop.processReceipt(deps: ReceiptDeps, receipt: Receipt): Decision
 		return NOT_YET
 	end
 	return result :: Decision
+end
+
+---------------------------------------------------------------------------------------------
+-- The release sale (Config.Shop.ReleaseSale; designer 2026-10-03, the GUI lane)
+---------------------------------------------------------------------------------------------
+
+export type SaleWindow = {
+	open: boolean,
+	startsAt: number,
+	endsAt: number,
+	percent: number,
+	swap: { [string]: string }, -- normal product key -> its sale product key
+}
+
+-- normal key -> sale key, from every Config.Products row with SaleOf (sorted walk).
+local SWAP: { [string]: string } = {}
+for _, key in KEYS do
+	local row = LIST[key]
+	if type(row.SaleOf) == "string" then
+		SWAP[row.SaleOf] = key
+	end
+end
+
+--- The release sale at unix time `now`: its window (StartsAt, else the start of the Limited row
+--- of With, this server's /limited window included) and the products it swaps in. Closed when
+--- no start is set.
+function Shop.releaseSale(now: number): SaleWindow
+	local R = S.ReleaseSale
+	local startsAt = whole(R and R.StartsAt)
+	if startsAt <= 0 and R and type(R.With) == "string" then
+		for _, row in LIMITED do
+			if row.Cue == R.With then
+				startsAt = whole(effective(row).StartsAt)
+			end
+		end
+	end
+	local endsAt = if startsAt > 0 then startsAt + whole(R and R.Seconds) else 0
+	return {
+		open = startsAt > 0 and now >= startsAt and now < endsAt,
+		startsAt = startsAt,
+		endsAt = endsAt,
+		percent = whole(R and R.Percent),
+		swap = table.clone(SWAP),
+	}
+end
+
+--- The normal product a release-sale product stands for, or nil for any other key.
+function Shop.saleOf(key: string): string?
+	local row = LIST[key]
+	return if row ~= nil and type(row.SaleOf) == "string" then row.SaleOf else nil
 end
 
 return Shop

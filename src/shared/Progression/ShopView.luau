@@ -15,7 +15,7 @@ local Restock = require(script.Parent.Restock)
 local CaseDrop = require(script.Parent.CaseDrop)
 
 local S = Config.Shop
-local LIST: { [string]: { Kind: string, Id: number, Robux: number, Restock: string?, SkipSeconds: number? } } =
+local LIST: { [string]: { Kind: string, Id: number, Robux: number, Restock: string?, SkipSeconds: number?, SaleOf: string?, Vip: boolean? } } =
 	Config.Products.List :: any
 local CASE_ORDER: { string } = Config.Cases.Order
 local MAX_SALE: number = Config.Cases.MaxSalePercent
@@ -114,6 +114,7 @@ export type Payload = {
 	robloxPlus: boolean, -- show the Get Roblox Plus button (StoreRequest "RobloxPlus")
 	bestValue: string, -- the money pack marked "Best value"
 	packs: { string }, -- the money packs in shop order
+	releaseSale: Shop.SaleWindow, -- the release sale: its window and which products it swaps in
 }
 
 -- The products whose purchase depends on more than their Id (ECONOMY 11.2-11.5).
@@ -221,6 +222,15 @@ function ShopView.check(key: string, ctx: Context): string?
 		return "BadRequest"
 	end
 	local vip = ShopView.isVip(ctx)
+	-- A release-sale product (Config.Shop.ReleaseSale) only inside its window; its VIP not
+	-- for a VIP. The checks below then run as for any product (Mystery10Sale is random).
+	if row.SaleOf ~= nil then
+		if not Shop.releaseSale(ctx.now).open then
+			return "Closed"
+		elseif row.Vip == true and vip then
+			return "Owned"
+		end
+	end
 	if key == VIP_PASS then
 		if vip then
 			return "Owned"
@@ -333,7 +343,7 @@ function ShopView.build(ctx: Context): Payload
 		end
 		local limited = limitedRow(key)
 		local owned = false
-		if key == VIP_PASS or key == VIP_OFFER then
+		if key == VIP_PASS or key == VIP_OFFER or row.Vip == true then
 			owned = vip
 		elseif key == FAST_OPEN then
 			owned = ctx.fastOpen
@@ -414,6 +424,7 @@ function ShopView.build(ctx: Context): Payload
 		skip = { moneyPerMinute = S.Skip.MoneyPerMinute, minMoney = S.Skip.MinMoney },
 		pity = CaseDrop.pityLeft(CaseDrop.readPity(ctx.drops)),
 		robloxPlus = S.RobloxPlus == true,
+		releaseSale = Shop.releaseSale(ctx.now),
 		bestValue = Config.Products.BestValue,
 		packs = table.clone(Config.Products.PackOrder),
 	}
@@ -452,6 +463,9 @@ function ShopView.nextChange(ctx: Context): number?
 	if ctx.sale ~= nil then
 		consider(ctx.sale.endsAt)
 	end
+	local release = Shop.releaseSale(now)
+	consider(release.startsAt)
+	consider(release.endsAt)
 	return soonest
 end
 

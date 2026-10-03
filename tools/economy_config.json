@@ -288,6 +288,7 @@
     "PcDropsPerDay": 10,
     "PcLossBonus": 80,
     "PcWinBonus": 250,
+    "PlusBoost": 0.1,
     "SameOpponent": [
       {
         "Balls": 1,
@@ -636,7 +637,6 @@
       "EpicChance": 400,
       "Legendary": {
         "Case": "Legendary",
-        "GlobalStock": 25,
         "Price": 3490000,
         "Product": "RestockLegendary",
         "Stock": 1

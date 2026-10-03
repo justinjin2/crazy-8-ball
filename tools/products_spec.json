@@ -196,6 +196,48 @@
    "name": "3 Lucky Spins",
    "robux": 129,
    "description": "Three Lucky Spins: no Commons. Odds are shown in the game."
+  },
+  {
+   "key": "Pack4Sale",
+   "kind": "Product",
+   "name": "Briefcase of Cash (Launch Sale)",
+   "robux": 349,
+   "description": "Launch sale, 30% off: $110,000 money. The first money pack you ever buy pays double."
+  },
+  {
+   "key": "Pack5Sale",
+   "kind": "Product",
+   "name": "Vault of Cash (Launch Sale)",
+   "robux": 699,
+   "description": "Launch sale, 30% off: $235,000 money. The first money pack you ever buy pays double."
+  },
+  {
+   "key": "Pack6Sale",
+   "kind": "Product",
+   "name": "Bank of Cash (Launch Sale)",
+   "robux": 1749,
+   "description": "Launch sale, 30% off: $625,000 money. The first money pack you ever buy pays double."
+  },
+  {
+   "key": "Pack7Sale",
+   "kind": "Product",
+   "name": "Fortune (Launch Sale)",
+   "robux": 3499,
+   "description": "Launch sale, 30% off: $1,300,000 money. The first money pack you ever buy pays double."
+  },
+  {
+   "key": "VipSale",
+   "kind": "Product",
+   "name": "VIP (Launch Sale)",
+   "robux": 419,
+   "description": "Launch sale, 30% off VIP for good: 2x money from every match, 1 free Ability Spin every day, a VIP slot in the restock shop, the VIP Cue and a [VIP] chat tag."
+  },
+  {
+   "key": "Mystery10Sale",
+   "kind": "Product",
+   "name": "10 Mystery Cases (Launch Sale)",
+   "robux": 160,
+   "description": "Launch sale, 30% off: 10 Case Drops. Each is revealed with the magic 8-ball: the same odds and pity as a free drop."
   }
  ]
 }

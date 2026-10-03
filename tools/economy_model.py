@@ -88,6 +88,7 @@ LIKE_CODE_DAYS = {"LIKES1K": 5, "LIKES5K": 12, "LIKES10K": 20, "LIKES25K": 35, "
 LIKE_CODE_REDEEM_SHARE = 0.4  # active players who redeem a like code once it is on (only with --like-codes)
 RESTOCK_BUYER_SHARE = 0.2  # players who buy the restock Rare and Uncommon slots when they have the money
 RESTOCK_VISITS_PER_DAY = 1  # restocks such a player buys from in a day
+PLUS_SHARE = 0.12  # players with Roblox Plus (Premium), an estimate: +Economy.PlusBoost match money
 SPIN_SPEND_SHARE = 0.10  # share of a spender's daily spend that goes on ability spins (money sink)
 EXTRAS = {
     "playtime120": "the 120-minute playtime Rare Case",
@@ -101,6 +102,7 @@ EXTRAS = {
     "index": "finder's money and Index row money",
     "spins": "ability spins bought with money (a sink)",
     "bulk": "Mystery Cases bought 10 at a time at the bulk price when the money allows",
+    "plus": "Roblox Plus members: +10% match money (about 12% of players)",
 }
 
 RAR = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret"]
@@ -144,6 +146,7 @@ class Game:
         self.loss_pay = LOSER_BALLS * e["BallPay"] + LOSER_NICE * nice + e["LossBonus"]
         self.streak_bonus = e["StreakBonus"]
         self.vip_boost, self.group_boost = e["VipBoost"], e["GroupBoost"]
+        self.plus_boost = e.get("PlusBoost", 0)
         dm = c["DifficultyMoney"] if e["UseDifficultyMultiplier"] else {k: 1 for k in MODE_MIX}
         self.mode_money = sum(MODE_MIX[m] * dm[m] for m in MODE_MIX)
         rk = c["Ranks"]
@@ -262,6 +265,8 @@ def run(g, extras, days=DAYS, sample=SAMPLE, seed=SEED, report=REPORT_DAYS, ref=
     invited = [xtra.random() < INVITED_SHARE for _ in range(N)]
     redeems = [xtra.random() < CODE_REDEEM_SHARE for _ in range(N)]
     restock_buyer = [xtra.random() < RESTOCK_BUYER_SHARE for _ in range(N)]
+    plus_rng = random.Random(seed + 4000)  # its own stream, so switching it on shifts nothing else
+    plus = [plus_rng.random() < PLUS_SHARE for _ in range(N)]
     if ref:
         life = [10**6] * N
         minutes = [ref["minutes"]] * N
@@ -339,6 +344,7 @@ def run(g, extras, days=DAYS, sample=SAMPLE, seed=SEED, report=REPORT_DAYS, ref=
             w = binomial(act, matches, wr[p])
             unlocked = on("difficulty") and tier_idx[p] > g.unlock_tier
             boost = 1 + (g.vip_boost if vip[p] else 0) + (g.group_boost if on("group") and group[p] else 0)
+            boost += g.plus_boost if on("plus") and plus[p] else 0
             win_pay = g.win_pay + (g.streak_bonus * wr[p] ** 2 if on("streak") else 0)  # 3rd+ win in a row: about wr^2 of wins
             money[p] += (w * win_pay + (matches - w) * g.loss_pay) * (g.mode_money if unlocked else 1) * boost
             # Login loop with the weekly freeze, and the 28-day track.

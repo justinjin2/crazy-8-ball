@@ -127,16 +127,19 @@ export type Boosts = {
 	party: boolean?, -- a Money Party is on in the server
 	starter: boolean?, -- inside the Starter Pack's hour of 2x money
 	group: boolean?, -- a member of the game's group
+	plus: boolean?, -- a Roblox Plus (Premium) subscriber (GUI lane, 2026-10-03)
 }
 
 --- The money boost (ECONOMY 3.5): VIP 1.0, Money Party 1.0, the Starter hour 1.0 and the
---- group 0.1 add, and the pay is then x (1 + boost). VIP during the Starter hour is x3.
+--- group 0.1 add (and Roblox Plus, PlusBoost), and the pay is then x (1 + boost). VIP during the
+--- Starter hour is x3.
 function Money.boost(on: Boosts): number
 	local flags: any = if type(on) == "table" then on else {}
 	return (if flags.vip == true then E.VipBoost else 0)
 		+ (if flags.party == true then E.PartyBoost else 0)
 		+ (if flags.starter == true then E.StarterBoost else 0)
 		+ (if flags.group == true then E.GroupBoost else 0)
+		+ (if flags.plus == true then E.PlusBoost or 0 else 0)
 end
 
 --- The anti-farm row for the n-th match against the same opponent in one UTC day (ECONOMY

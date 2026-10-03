@@ -1844,6 +1844,9 @@ Config.Economy = {
 	PartyBoost = 1.0,
 	StarterBoost = 1.0, -- the Starter Pack's hour of 2x money (Config.Shop.StarterBoostSeconds)
 	GroupBoost = 0.1, -- a member of the game's group (Config.Social.GroupId; the InGroup attribute)
+	-- A Roblox Plus (Premium) subscriber (designer, 2026-10-03, C14; the GUI lane): +10% if the
+	-- economy model allows it (tools/economy_model.py), else 0.05. The RobloxPlus attribute.
+	PlusBoost = 0.1,
 	-- Anti-farm (3.6): the same opponent in one UTC day. Each row covers matches up to UpTo
 	-- (the last row has no UpTo: every match after). Xp, Bonus and Balls multiply the match's
 	-- XP, its win/loss bonus and its ball pay; FreeCase says whether the winner's Case Drop
@@ -2353,12 +2356,13 @@ Config.Shop = {
 		-- else 3 Mystery Cases (plain price).
 		Epic = { Case = "Epic", Price = 349000, Product = "RestockEpic", Stock = 1 },
 		EpicChance = 400,
+		-- No shared limit across servers any more (designer, 2026-10-03, C14): anyone who can
+		-- afford it buys it, one per player. (GlobalStock = n would bring the shared limit back.)
 		Legendary = {
 			Case = "Legendary",
 			Price = 3490000,
 			Product = "RestockLegendary",
 			Stock = 1,
-			GlobalStock = 25,
 		},
 		LegendaryChance = 15,
 		Mystery = { Mystery = 3, Price = 14700, Stock = 1 },
@@ -2420,6 +2424,17 @@ Config.Shop = {
 			StartsAt: number,
 			Seconds: number,
 		}
+	},
+	-- The release sale (designer, 2026-10-03, D5; the GUI lane): money packs 4-7, VIP and 10
+	-- Mystery Cases at Percent off for Seconds, as their own developer products (Config.Products
+	-- rows with SaleOf), shown in place of the normal ones only inside the window, so the
+	-- crossed-out normal price is always true. StartsAt 0: it starts with the Limited row of
+	-- With (the Grand Opening Cue), so one date sets both.
+	ReleaseSale = {
+		StartsAt = 0,
+		With = "GrandOpeningCue",
+		Seconds = 14 * 86400,
+		Percent = 30,
 	},
 }
 
@@ -2542,6 +2557,45 @@ Config.Products = {
 			Was = 147,
 			Lucky = 3,
 			Random = true,
+		},
+		-- The release sale (Config.Shop.ReleaseSale): each gives what its SaleOf product gives,
+		-- sold only inside the sale window (created 2026-10-03 by tools/roblox_products.py).
+		Pack4Sale = {
+			Kind = "Product",
+			Id = 3716177484,
+			Robux = 349,
+			Money = 110000,
+			SaleOf = "Pack4",
+		},
+		Pack5Sale = {
+			Kind = "Product",
+			Id = 3716177486,
+			Robux = 699,
+			Money = 235000,
+			SaleOf = "Pack5",
+		},
+		Pack6Sale = {
+			Kind = "Product",
+			Id = 3716177488,
+			Robux = 1749,
+			Money = 625000,
+			SaleOf = "Pack6",
+		},
+		Pack7Sale = {
+			Kind = "Product",
+			Id = 3716177490,
+			Robux = 3499,
+			Money = 1300000,
+			SaleOf = "Pack7",
+		},
+		VipSale = { Kind = "Product", Id = 3716177492, Robux = 419, Vip = true, SaleOf = "Vip" },
+		Mystery10Sale = {
+			Kind = "Product",
+			Id = 3716177494,
+			Robux = 160,
+			Drops = 10,
+			Random = true,
+			SaleOf = "Mystery10",
 		},
 	},
 }

@@ -59,7 +59,14 @@ local Items = require(script.Parent.Items)
 local S = Config.Shop
 local IS_STUDIO = RunService:IsStudio()
 local LIST: {
-	[string]: { Kind: string, Id: number, Robux: number, Restock: string?, SkipSeconds: number? },
+	[string]: {
+		Kind: string,
+		Id: number,
+		Robux: number,
+		Restock: string?,
+		SkipSeconds: number?,
+		Vip: boolean?, -- the release sale's VIP (grants VIP like VipOffer)
+	},
 } =
 	Config.Products.List :: any
 
@@ -541,7 +548,8 @@ end
 -- money fallback, logged. True once granted (now, or by a concurrent try of the same
 -- receipt); false and a reason otherwise (the receipt stays NotProcessedYet).
 local function grantProduct(player: Player, key: string, purchaseId: string): (boolean, string?)
-	if key == VIP_OFFER then
+	local saleRow = LIST[key]
+	if key == VIP_OFFER or (saleRow ~= nil and saleRow.Vip == true) then
 		waitVipPassCheck(player)
 	end
 	local data = PlayerData.read(player)

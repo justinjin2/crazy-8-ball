@@ -103,12 +103,38 @@ step (steps 1-14 of the brief).
     match the cue in hand; the Inventory cards show the new pictures. Phone: the power bar's
     place and size are unchanged.
 
+- **Step 3 in progress: the shop.** Server side done: the release sale (`Config.Shop.ReleaseSale`:
+  30% off money packs 4-7, VIP and 10 Mystery Cases for 14 days from the Grand Opening Cue's
+  start; six new sale products `Pack4Sale`..`Pack7Sale`, `VipSale`, `Mystery10Sale`, created on
+  Roblox, given exactly like their normal products and sold only inside the window); the
+  Legendary restock has no shared limit; Roblox Plus members earn +10% match money
+  (`Economy.PlusBoost`). `tools/economy_model.py` now models Plus (12% of players): Day 30
+  Epic 6.76% -> 6.72%, Legendary 1.17% -> 1.16%, so Plus moves nothing (Epic was already 35%
+  over its 5% target before this lane). Client shop next.
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
 - `Config.luau`: `Config.UI.Kit` gains Motion.Drift/Shake/Glow/Sparkle/Stripes/RainbowSeconds/
   Slam/Bob, `Big`, `Numbers`, `Vip`, `SecretGlitch`; new `Config.UI.Quality`;
   `Config.UI.Menu.Frame.BottomGapPx`.
+- `Config.luau` (step 3): `Economy.PlusBoost = 0.1` (new line); `Shop.Restock.Legendary` loses
+  `GlobalStock = 25`; new `Shop.ReleaseSale`; six new `Products.List` rows (`*Sale`, with
+  `SaleOf`, and `Vip = true` on `VipSale`).
+- Economy-owned (C14), step 3:
+  - `Progression/Shop.luau`: `ProductRow` gains `SaleOf`, `Vip`; `receiptCheck` returns "Owned"
+    for a `Vip` row when VIP; the first-pack check reads `row.SaleOf or key`; `grantFor` sets
+    `vip` for `row.Vip`; new `Shop.releaseSale(now)` and `Shop.saleOf(key)` at the end.
+  - `Progression/ShopView.luau`: `check` closes a `SaleOf` row outside the window; `owned`
+    includes `row.Vip`; the payload gains `releaseSale`; `nextChange` wakes at the sale's start
+    and end; the LIST type gains `SaleOf`, `Vip`.
+  - `Progression/Money.luau`: `Boosts.plus`, added in `boost`.
+  - `server/Economy.luau`: the boosts read `plus` from `MembershipType`.
+  - `server/Store.luau`: a `Vip` product waits for the VIP pass check like the welcome offer.
+  - `Net.luau`: the ShopState comment lists `releaseSale`.
+  - `tools/economy_model.py`: the `plus` addition; `tools/economy_config.json` regenerated.
+  - Tests: `restock_test` (no shared Legendary limit), `shop_test` (the sale), `money_test`
+    (Plus).
 
 ## Requests to other lanes or the integrator
 

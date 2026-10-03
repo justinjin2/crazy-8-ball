@@ -25,7 +25,10 @@ return {
 		H.expect(R.Uncommon.Price == 14900 and R.Uncommon.Stock == 3, "Uncommon")
 		H.expect(R.Rare.Price == 34900 and R.Rare.Stock == 2 and R.RareChance == 6000, "Rare")
 		H.expect(R.Epic.Price == 349000 and R.Epic.Stock == 1 and R.EpicChance == 400, "Epic")
-		H.expect(R.Legendary.Price == 3490000 and R.Legendary.GlobalStock == 25, "Legendary")
+		H.expect(
+			R.Legendary.Price == 3490000 and R.Legendary.GlobalStock == nil,
+			"Legendary: no shared limit"
+		)
 		H.expect(R.LegendaryChance == 15, "0.15%")
 		H.expect(R.Mystery.Mystery == 3 and R.Mystery.Price == 14700, "3 Mystery Cases")
 		H.expect(R.Vip.Case == "Rare" and R.Vip.Price == 34900 and R.Vip.Stock == 1, "VIP")
@@ -98,7 +101,7 @@ return {
 		H.expect(Restock.stockKey(slot) == "Legendary:4000000", "the shared stock key")
 	end,
 
-	["the view: this player's stock left and the Legendary's shared stock"] = function()
+	["the view: this player's stock left; the Legendary has no shared limit"] = function()
 		local Restock = load()
 		local slot = 0
 		while Restock.find(slot, "Legendary") == nil do
@@ -112,21 +115,16 @@ return {
 		end
 		H.expect(byId.Uncommon.left == 1 and byId.Uncommon.canBuy, "one left")
 		H.expect(
-			byId.Legendary.global == 25 and byId.Legendary.globalLeft == 1,
-			"one left anywhere"
+			byId.Legendary.global == nil and byId.Legendary.globalLeft == nil,
+			"no shared stock"
 		)
 		H.expect(byId.Legendary.canBuy and byId.Legendary.product == "RestockLegendary", "")
 		H.expect(not byId.Vip.canBuy and byId.Vip.reason == "VipOnly", "VIP only")
-		local gone = Restock.view(slot, nil, true, 25)
-		for _, it in gone.items do
+		-- However many were sold everywhere, anyone who can afford it still buys it.
+		local many = Restock.view(slot, nil, true, 500)
+		for _, it in many.items do
 			if it.id == "Legendary" then
-				H.expect(not it.canBuy and it.reason == "SoldOut", "all 25 taken")
-			end
-		end
-		local unknown = Restock.view(slot, nil, true, nil)
-		for _, it in unknown.items do
-			if it.id == "Legendary" then
-				H.expect(it.globalLeft == nil and it.canBuy, "unknown is not sold out")
+				H.expect(it.canBuy and it.reason == nil, "never sold out")
 			end
 		end
 	end,

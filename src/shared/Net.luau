@@ -187,7 +187,10 @@ local REMOTES: { [string]: string } = {
 	--     reason? } } } (a new restock every Config.Shop.Restock.SlotSeconds; ShopState is
 	--     sent again when it changes),
 	--   mystery = { price, bulkCount, bulkPrice }, skip = { moneyPerMinute, minMoney },
-	--   pity = { rare, epic } (Case Drops until a Rare / Epic case is guaranteed) }
+	--   pity = { rare, epic } (Case Drops until a Rare / Epic case is guaranteed),
+	--   releaseSale = { open, startsAt, endsAt, percent, swap = { normal key -> sale key } }
+	--     (GUI lane, 2026-10-03: the release sale's products Pack4Sale-Pack7Sale, VipSale,
+	--     Mystery10Sale sell only while open; the Legendary restock has no shared stock now) }
 	-- Product keys (Config.Products): passes Vip, QuickCases (was FastOpen), UltSlot2,
 	-- UltSlot3; products VipOffer, StarterPack, Pack1-7, Mystery1, Mystery10, RestockEpic,
 	-- RestockLegendary, Skip1h/6h/24h/48h, MoneyParty, Spin1/5/10/50, Lucky1/3. Paid random

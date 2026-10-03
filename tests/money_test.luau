@@ -345,6 +345,7 @@ return {
 		H.expect(Money.boost({ vip = true }) == 1 and Money.boost({ party = true }) == 1)
 		H.expect(Money.boost({ starter = true }) == 1, "the Starter Pack's hour")
 		H.near(Money.boost({ group = true }), 0.1, 1e-9, "the group")
+		H.near(Money.boost({ plus = true }), 0.1, 1e-9, "Roblox Plus +10% (designer 2026-10-03)")
 		H.expect(Money.boost({ vip = true, party = true }) == 2)
 		H.expect(Money.boost({ vip = true, starter = true }) == 2, "VIP in the Starter hour: x3")
 		H.near(

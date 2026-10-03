@@ -72,6 +72,8 @@ function Economy.boost(player: Player): number
 		party = Economy.partyActive(),
 		starter = type(starterEnds) == "number" and starterEnds > os.time(),
 		group = player:GetAttribute("InGroup") == true,
+		-- Roblox Plus (Premium) members (GUI lane, 2026-10-03; Config.Economy.PlusBoost).
+		plus = player.MembershipType == Enum.MembershipType.Premium,
 	})
 end
 

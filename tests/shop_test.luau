@@ -1262,6 +1262,67 @@ return {
 		)
 	end,
 
+	["the release sale: 30% off for 14 days from the Grand Opening, off until scheduled"] = function()
+		local off = Shop.releaseSale(JOIN)
+		H.expect(not off.open and off.startsAt == 0 and off.percent == 30, "off while unscheduled")
+		H.expect(off.swap.Pack4 == "Pack4Sale" and off.swap.Vip == "VipSale", "the swaps")
+		H.expect(off.swap.Mystery10 == "Mystery10Sale" and off.swap.Pack1 == nil, "big items only")
+		H.expect(Shop.saleOf("Pack7Sale") == "Pack7" and Shop.saleOf("Pack7") == nil, "")
+		-- Every sale product is about 70% of the normal product's Robux price.
+		local list = Config.Products.List
+		for key, row in list do
+			if row.SaleOf ~= nil then
+				local normal = list[row.SaleOf]
+				H.expect(normal ~= nil, key .. ": its normal product")
+				local ratio = row.Robux / normal.Robux
+				H.expect(ratio > 0.68 and ratio < 0.72, key .. ": 30% off")
+			end
+		end
+		H.expect(Shop.setWindow("GrandOpeningCue", JOIN, 14 * DAY), "/limited start")
+		local open = Shop.releaseSale(JOIN + DAY)
+		H.expect(open.open and open.startsAt == JOIN and open.endsAt == JOIN + 14 * DAY, "")
+		H.expect(not Shop.releaseSale(JOIN + 14 * DAY).open, "over after 14 days")
+		H.expect(not Shop.releaseSale(JOIN - 1).open, "not before")
+		Shop.setWindow("GrandOpeningCue", nil, nil)
+	end,
+
+	["the release sale's products: given like the normal ones, sold only in the window"] = noIds(
+		function()
+			local list = Config.Products.List
+			for _, row in list do
+				if row.SaleOf ~= nil then
+					row.Id = 1 -- made
+				end
+			end
+			list.Vip.Id = 1
+			local pack = Shop.grantFor("Pack4Sale", newShop(), JOIN, false)
+			H.expect(pack ~= nil and pack.money == 220000 and pack.firstPack, "first pack x2")
+			local again =
+				Shop.grantFor("Pack4Sale", newShop({ FirstPackBought = true }), JOIN, false)
+			H.expect(again ~= nil and again.money == 110000, "the Briefcase's $110,000")
+			local vip = Shop.grantFor("VipSale", newShop(), JOIN, false)
+			H.expect(vip ~= nil and vip.vip == true, "the sale's VIP gives VIP")
+			H.expect(
+				Shop.receiptCheck("VipSale", newShop(), JOIN, true) == "Owned",
+				"not for a VIP"
+			)
+			local mystery = Shop.grantFor("Mystery10Sale", newShop(), JOIN, false)
+			H.expect(mystery ~= nil and mystery.drops == 10, "10 Mystery Cases")
+			-- The shop sells them only inside the window.
+			H.expect(ShopView.check("Pack4Sale", ctxAt(JOIN + HOUR)) == "Closed", "closed")
+			H.expect(Shop.setWindow("GrandOpeningCue", JOIN, 14 * DAY), "/limited start")
+			H.expect(ShopView.check("Pack4Sale", ctxAt(JOIN + HOUR)) == nil, "on sale")
+			H.expect(
+				ShopView.check("VipSale", ctxAt(JOIN + HOUR, { vipPass = true })) == "Owned",
+				"VIP owned"
+			)
+			local view = ShopView.build(ctxAt(JOIN + HOUR))
+			H.expect(view.releaseSale.open and view.releaseSale.percent == 30, "in the payload")
+			H.expect(ShopView.check("Pack4Sale", ctxAt(JOIN + 15 * DAY)) == "Closed", "over")
+			Shop.setWindow("GrandOpeningCue", nil, nil)
+		end
+	),
+
 	["ShopView.build: a product not for this player shows no money"] = function()
 		local now = JOIN + HOUR
 		local vip = ShopView.build(ctxAt(now, { vipPass = true }))
