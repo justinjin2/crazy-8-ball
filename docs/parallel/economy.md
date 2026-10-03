@@ -213,6 +213,21 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   Progression/Social.launchData(LocalPlayer.UserId)`). Rank rows carry `drops` (MatchSummary,
   RankEvent `rewardDrops`). `Config.Daily.WeeksForBonus`/`WeekBonus` are kept only so the
   current screen runs (WeekBonus now reads "an Epic Case").
+- **Step 6 done (2026-10-03): bots' cues.**
+  - New pure `Progression/BotCues.luau`: `BotCues.pick(tier, roll)` (roll in [0, 1)) picks
+    the rarity from `Config.BotCues` (the plan's Epic+ / Legendary+ / Mythic+ table per tier;
+    Common, Uncommon and Rare spread by the Case Drop's odds) and then one case cue of that
+    rarity, each equally. Mythic+ is a Mythic: a bot never shows the Secret cue.
+  - The disguised daily limit (20 wins, then PC rows, no drop) and the PC drop limit (10 a
+    UTC day) are the step 1 rules (`Settle.moneyKind`, `Cases.dropFor`), Lune-tested in
+    `settle_test` and `bots_settle_test`.
+  - Checked: lint, Lune `botcues_test` (100,000 picks per tier inside 4 sigma of the table;
+    never Secret; even within a rarity; the edges); Studio (Roblox Luau): 20,000 picks per tier
+    land on the table (Reyes 99.1% / 70.5% / 14.9%). Not checked in Studio: a full Play against
+    PC game and a disguised-bot game paying their rows (the QA hooks only fake human
+    opponents); try by hand: 11 PC wins in a day, the 11th drops no case.
+- **For Bots** (step 6): in `Look.cue`, replace the `Config.Bots.CueCase` roll with
+  `BotCues.pick(tier, Rng.uniform(rng))` (keep `TierCueChance` if you want the tier cues).
 
 ### Changes to shared files (existing lines)
 
@@ -266,6 +281,7 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   `Strings`: `/code` lines, reason NotMember. `Net`: RewardState/RewardRequest docs. Tests
   touched outside economy: `ult_roll_test`, `ult_spins_test`, `ult_slots_test` (Magnet's
   rarity, the spin price).
+- (step 6) new `Config.BotCues` (no existing lines changed).
 
 ## Requests to other lanes or the integrator
 
@@ -313,3 +329,5 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   (Monday start). VIP's daily +1 spin is added to each day's login claim. The like codes are
   named LIKES1K ... LIKES100K. "Any real match (bots count)" for invites = any recorded match
   win that is not solo (people, disguised bots, Play against PC).
+- 2026-10-03 (lane, step 6): a bot's Mythic+ cue is always a Mythic, never the Secret cue (a
+  bot carrying the one Secret would make the rarest cue look common).

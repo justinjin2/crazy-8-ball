@@ -2012,6 +2012,26 @@ Config.Cases = {
 }
 
 ---------------------------------------------------------------------------------------------
+-- A bot's equipped cue (src/shared/Progression/BotCues.luau; the Bots lane's Look.cue calls
+-- it): its rarity matches what real players at that rank own (the approved economy plan,
+-- 2026-10-02, section 3). Each row is the chance the cue is that rarity or better; the rest
+-- (Common, Uncommon, Rare) is spread by the Case Drop's odds. Mythic+ is a Mythic: a bot
+-- never shows the Secret cue (lane decision, 2026-10-03). (tune)
+---------------------------------------------------------------------------------------------
+Config.BotCues = {
+	Bronze = { EpicPlus = 0.05, LegendaryPlus = 0.008, MythicPlus = 0.001 },
+	Silver = { EpicPlus = 0.1, LegendaryPlus = 0.015, MythicPlus = 0.002 },
+	Gold = { EpicPlus = 0.2, LegendaryPlus = 0.03, MythicPlus = 0.004 },
+	Platinum = { EpicPlus = 0.34, LegendaryPlus = 0.06, MythicPlus = 0.008 },
+	Diamond = { EpicPlus = 0.5, LegendaryPlus = 0.1, MythicPlus = 0.013 },
+	Expert = { EpicPlus = 0.7, LegendaryPlus = 0.16, MythicPlus = 0.02 },
+	Veteran = { EpicPlus = 0.88, LegendaryPlus = 0.26, MythicPlus = 0.04 },
+	Master = { EpicPlus = 0.97, LegendaryPlus = 0.4, MythicPlus = 0.065 },
+	Grandmaster = { EpicPlus = 0.99, LegendaryPlus = 0.58, MythicPlus = 0.11 },
+	Reyes = { EpicPlus = 0.99, LegendaryPlus = 0.7, MythicPlus = 0.15 },
+}
+
+---------------------------------------------------------------------------------------------
 -- The Index (src/shared/Progression/Inventory.luau): completing a rarity row (every cue of
 -- that rarity ever owned; selling one later keeps it counted, and a vaulted cue still counts)
 -- pays once. ECONOMY section 18 (2026-09-28). (tune)
