@@ -44,7 +44,17 @@ your status).
 
 ## Status
 
-**2026-10-02: brief approved** (`docs/prompts/BOTS_PROMPT.md`).
+**2026-10-02: the whole brief is built** (`docs/prompts/BOTS_PROMPT.md`), steps 1 to 8 below,
+each checked in my Studio window and pushed on `lane-bots`.
+
+**Win rates** (`tools/bot_duel.luau`, 200 games a tier, the duel's model player of each rank
+against the bot of that rank; `tools/bot_duel_results.json`): Bronze 85% (target 90), Silver
+79 (80), Gold 64 (65), Platinum 56.5 (57), Diamond 53 (50), Expert 45.5 (50), Veteran 42 (45),
+Master 43 (40), Grandmaster 38 (35), Reyes 22.5 (30). Every tier is within about 5 points
+except Reyes: it is set to miss only 2-3% of its shots, as the designer asked, and at that
+rate a typical Reyes player wins about 1 in 4.5, not 3 in 10. Making Reyes miss more would
+fix the rate; tell me which matters more. The real rates come in after launch through the
+"BotMatch" analytics event (average value per tier = the player's win rate).
 
 - **Step 1, the bot brain (done, 22213d1).** `src/shared/Bots/` (Rng, ShotFinder, Brain, Look,
   Script), `Config.Bots`, `Strings.Bots`; `tests/bots_brain_test.luau`; the duel tuner

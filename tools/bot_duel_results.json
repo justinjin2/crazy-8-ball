@@ -1,0 +1,92 @@
+{
+  "Bronze": {
+    "playerWins": 0.85,
+    "target": 0.9,
+    "games": 200,
+    "played": 200,
+    "make": 0.08,
+    "seed": 23,
+    "at": "2026-10-02"
+  },
+  "Silver": {
+    "playerWins": 0.79,
+    "target": 0.8,
+    "games": 200,
+    "played": 200,
+    "make": 0.3,
+    "seed": 23,
+    "at": "2026-10-02"
+  },
+  "Gold": {
+    "playerWins": 0.64,
+    "target": 0.65,
+    "games": 200,
+    "played": 200,
+    "make": 0.45,
+    "seed": 23,
+    "at": "2026-10-02"
+  },
+  "Platinum": {
+    "playerWins": 0.565,
+    "target": 0.57,
+    "games": 200,
+    "played": 200,
+    "make": 0.525,
+    "seed": 23,
+    "at": "2026-10-02"
+  },
+  "Diamond": {
+    "playerWins": 0.53,
+    "target": 0.5,
+    "games": 200,
+    "played": 200,
+    "make": 0.545,
+    "seed": 23,
+    "at": "2026-10-02"
+  },
+  "Expert": {
+    "playerWins": 0.455,
+    "target": 0.5,
+    "games": 200,
+    "played": 200,
+    "make": 0.555,
+    "seed": 23,
+    "at": "2026-10-02"
+  },
+  "Veteran": {
+    "playerWins": 0.42,
+    "target": 0.45,
+    "games": 200,
+    "played": 200,
+    "make": 0.63,
+    "seed": 23,
+    "at": "2026-10-02"
+  },
+  "Master": {
+    "playerWins": 0.43,
+    "target": 0.4,
+    "games": 200,
+    "played": 200,
+    "make": 0.71,
+    "seed": 23,
+    "at": "2026-10-02"
+  },
+  "Grandmaster": {
+    "playerWins": 0.38,
+    "target": 0.35,
+    "games": 200,
+    "played": 200,
+    "make": 0.77,
+    "seed": 23,
+    "at": "2026-10-02"
+  },
+  "Reyes": {
+    "playerWins": 0.225,
+    "target": 0.3,
+    "games": 200,
+    "played": 200,
+    "make": 0.975,
+    "seed": 23,
+    "at": "2026-10-02"
+  }
+}
