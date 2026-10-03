@@ -9304,6 +9304,9 @@ Config.Tutorial = {
 		-- waits until this long after that (designer: it vanishes before the result screen).
 		ExitAfterDropSeconds = 0.25,
 		ExitHoldSeconds = 1.5,
+		-- Game 2: the global queue's search turns into the bot match after this long (a beat
+		-- of "Finding you an opponent..."), not Config.Bots.Fallback.SoloSeconds.
+		Game2BotAfterSeconds = 1,
 	},
 	-- Game 1's rigged rack and break (src/shared/Tutorial/Break.luau), found by
 	-- `lune run tools/tutorial_break.luau` (designer, 2026-10-03: 3 solids down, a 4th left

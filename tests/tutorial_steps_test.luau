@@ -32,6 +32,8 @@ return {
 		H.expect(Steps.resume("Spin", false) == "Spin", "a later step stays")
 		H.expect(Steps.resume("Drop", false) == "Drop", "the Bronze case resumes")
 		H.expect(Steps.resume("Queue", false) == "Arrow2", "the queue")
+		H.expect(Steps.resume("Queue", true) == "Game2", "arrived in the arena from the queue")
+		H.expect(Steps.resume("Arrow2", true) == "Game2", "a teleport before the pad was noted")
 		H.expect(Steps.resume("Game2", false) == "Arrow2", "game 2 in a lobby")
 		H.expect(Steps.resume("Game2", true) == "Game2", "game 2 in its arena")
 		H.expect(Steps.resume("Lobby", false) == "Nudges", "back from the arena")

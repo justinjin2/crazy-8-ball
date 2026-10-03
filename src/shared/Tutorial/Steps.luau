@@ -81,12 +81,13 @@ end
 
 --- Where a player picks up when they join again with `step` saved. A match cannot be saved
 --- halfway, so game 1 starts over (designer, 2026-10-03) and game 2 goes back to its arrow;
---- outside an arena, a finished game 2 is the real server. Anything not a step stays.
+--- outside an arena, a finished game 2 is the real server. Arriving in an arena from the
+--- global queue (Arrow2 or Queue saved in the lobby) is game 2. Anything not a step stays.
 function Steps.resume(step: string, inArena: boolean): string
 	if step == "Request" or step == "Game1" then
 		return "Arrow1"
-	elseif step == "Queue" then
-		return "Arrow2"
+	elseif step == "Arrow2" or step == "Queue" then
+		return if inArena then "Game2" else "Arrow2"
 	elseif step == "Game2" then
 		return if inArena then "Game2" else "Arrow2"
 	elseif step == "Lobby" then

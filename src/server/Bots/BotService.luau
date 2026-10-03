@@ -681,6 +681,14 @@ end
 
 local F = B.Fallback
 local fallbackBusy: { [any]: boolean } = {}
+-- The tutorial lane: how long a player's solo search waits for a real opponent, when it says
+-- (its game 2 meets the bot at once); nil: Fallback.SoloSeconds.
+local fallbackWait: ((Player) -> number?)? = nil
+
+--- The tutorial lane's hook on the solo fallback's wait (see above).
+function BotService.setFallbackWait(fn: ((Player) -> number?)?)
+	fallbackWait = fn
+end
 
 local function soloFallback(t: any, player: Player)
 	local tier = playerTier(player)
@@ -752,6 +760,9 @@ local function watchSearches()
 			players, at = Tables.waitingSearch(t)
 		end
 		local wait = if size == 1 then F.SoloSeconds else F.TeamSeconds
+		if size == 1 and players and players[1] and fallbackWait then
+			wait = fallbackWait(players[1]) or wait
+		end
 		if players and #players == size and at and now() - at >= wait then
 			local group = players
 			fallbackBusy[t] = true

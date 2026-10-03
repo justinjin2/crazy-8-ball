@@ -10,6 +10,9 @@
 -- - Request: the player's Request opponent brings the tutorial bot onto the pad 2 s later
 --   (Config.Bots.Tutorial.JoinDelay); its game starting is Game1. A second real player on the
 --   pad before then is a friend's game: the tutorial cancels ("Friend").
+-- - Queue: Join Global Queue's search turns into the Bots lane's arena bot match after
+--   Game2BotAfterSeconds (BotService.setFallbackWait); the arena loads the save as Game2
+--   (Steps.resume). Game2: its result moves on to Lobby (the post-match row shows only Lobby).
 --
 -- The opponent sits behind one small interface (`Opponent`): the Bots lane's tutorial bot.
 local Players = game:GetService("Players")
@@ -380,6 +383,31 @@ local function game1Over(player: Player, t: any?): boolean
 	return false
 end
 
+-- Game 2 (in its arena): once its result shows, the player goes back with Lobby. A win is the
+-- funnel's step; a loss is a side event (the bot is a fair Bronze one).
+local function game2Over(player: Player)
+	local t = Tables.arenaTable()
+	local e = if t then t.engine else nil
+	if e == nil or e.phase ~= "Result" or e.result == nil then
+		return
+	end
+	local team = nil
+	for _, s in e.seats do
+		if s.userId == player.UserId then
+			team = s.team
+		end
+	end
+	if team == nil then
+		return
+	end
+	if e.result.winner == team then
+		Funnel.onboarding(player, "WonGame2")
+	else
+		Funnel.event(player, "TutorialLostGame2")
+	end
+	service.setStep(player, "Lobby")
+end
+
 -- The steps that keep the player's table reserved (the arrow, the pad, the game on it).
 local KEEPS: { [string]: boolean } =
 	{ Arrow1 = true, Request = true, Game1 = true, Arrow2 = true, Queue = true }
@@ -391,6 +419,13 @@ local ARROW_STEP: { [string]: string } = { Request = "Arrow1", Queue = "Arrow2" 
 local function watch(player: Player)
 	local step = service.step(player)
 	if step == nil then
+		return
+	end
+	if Tables.arenaTable() ~= nil then
+		-- An arena has no pads to reserve: only game 2's end is watched here.
+		if step == "Game2" then
+			game2Over(player)
+		end
 		return
 	end
 	local seatedAt = Tables.tableOf(player)
@@ -432,6 +467,19 @@ local function watch(player: Player)
 			player:SetAttribute("TutorialCalling", false)
 			Funnel.onboarding(player, "Game1Started")
 			service.setStep(player, "Game1")
+		elseif step == "Queue" then
+			-- Join Global Queue pressed: the search runs (its bot match comes at once, see
+			-- start) until the teleport; a search that ended shows the button again.
+			local searching = t.engine.search ~= nil
+			if searching and not calling[player] then
+				Funnel.onboarding(player, "JoinedGlobalQueue")
+			end
+			if searching then
+				calling[player] = true
+			else
+				calling[player] = nil
+			end
+			player:SetAttribute("TutorialCalling", searching)
 		end
 	elseif step == "Game1" then
 		local t = if reserved[player] then Tables.get(reserved[player] :: number) else nil
@@ -469,6 +517,11 @@ function TutorialGames.start(tutorial: any)
 		return not service.firstServer(host) and not service.firstServer(player)
 	end)
 	Tables.onRequest(onRequest)
+	-- Game 2's search meets the Bots lane's disguised bot (the player's tier, no rematch) at
+	-- once instead of after the usual wait.
+	BotService.setFallbackWait(function(player: Player): number?
+		return if service.step(player) == "Queue" then G.Game2BotAfterSeconds else nil
+	end)
 	local since = 0
 	RunService.Heartbeat:Connect(function(dt: number)
 		since += dt

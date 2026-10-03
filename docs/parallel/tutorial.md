@@ -159,6 +159,30 @@ by step (steps 1-10 of the brief).
     NEW RANK! with the claim line, and the AUGHHHH exit (they ran; the captures came after);
     phone and gamepad. All three go into step 10's full run.
 
+- **Step 6 done: game 2.** After Back the arrow leads to a newly reserved 1v1 pad; on it the host card
+  shows only Join Global Queue (dim, hand, per-device words). The search goes into the real
+  global queue, and for a player at step Queue the Bots lane's fallback (a disguised bot of
+  the player's tier, Bronze by now, no rematch) comes after 1 s instead of 10 s
+  (`BotService.setFallbackWait`, `Config.Tutorial.Games.Game2BotAfterSeconds`); "Finding you an
+  opponent..." meanwhile (funnel 15 JoinedGlobalQueue). The arena loads the save at Queue as
+  Game2 (`Steps.resume`). When game 2's result shows, a win is funnel 16 WonGame2 and a loss is
+  the side event TutorialLostGame2, and the step becomes Lobby. The post-match row shows only
+  Lobby (no Rematch, no Play another), with the hand and "Click Lobby!". Back in a lobby
+  server, Lobby resumes as Nudges (step 7). While Free Reward is hidden, the result screen
+  shows no daily-reward line.
+  - Checked: lint, tests (962; steps test: the arena resume); Studio PC lobby: Arrow2 -> the
+    pad -> "Click Join Global Queue!" with the hand on the only button; the search itself
+    cannot start in this unpublished place (no MemoryStore: "could not start a search:
+    Store"). Studio arena (StudioArena 1 + StudioArenaBot Bronze, removed afterwards): Game2 ->
+    the game against a disguised Bronze bot -> a forfeit -> TutorialLostGame2 -> Lobby -> the
+    row with Lobby alone, hand and line -> Lobby -> "Studio cannot teleport ... back to the
+    lobby". Console clean. Fixed on the way: the arena no longer runs the lobby's pad rules,
+    the "Opponent left" line is gone while Rematch is hidden, and so is the daily-reward
+    reminder while Free Reward is hidden.
+  - **Needs the published game** (integrator or designer): the search becoming the bot match
+    after 1 s, the teleport into the arena with the step at Game2, a win (funnel 16), and
+    Lobby back to a public server with the step at Nudges.
+
 ### Rule changes for everyone (made in this lane; the integrator moves them to the docs)
 
 - Reaching Bronze gives 1 Case Drop (was 2), given at once after the first win.
@@ -239,6 +263,11 @@ by step (steps 1-10 of the brief).
 - `UltScreen.luau` (step 5): requires `TutorialAnchors`; anchors `UltOddsButton`, `SpinBack`,
   `SpinButton`, probe `UltSpinning`. `UltOdds.luau`: anchor `CodeBox`.
 - `Progression.luau` (step 5): `Progression.openCase(caseId)` and `Progression.caseOpeningUp()`.
+- `Bots/BotService.luau` (step 6): `fallbackWait` local and `BotService.setFallbackWait` after
+  `fallbackBusy`; `watchSearches` asks it for a solo search's wait (three lines).
+- `PostMatch.luau` (step 6): requires `TutorialAnchors`; anchor `Lobby`; `set` drops buttons the
+  tutorial hides (Rematch, Another, Cancel in game 2) and the "Opponent left" line with them.
+- `Reminders.luau` (step 6): `Reminders.line` answers nil while the tutorial hides Free Reward.
 - `Config.luau` / `Strings.luau` (step 5): only inside this lane's `Tutorial` blocks
   (BronzeCueRarity, SpinUlt, Reveal, Overlay.LineNearGapPx; the step 5 lines).
 - Tests changed for the new values: `ranks_test`, `save_schema_test`, `ult_slots_test`,
@@ -315,3 +344,8 @@ by step (steps 1-10 of the brief).
   spin (plus RELEASE's 3).
 - 2026-10-03 (lane): on the Abilities screen the tutorial's line sits just over the lit button
   instead of at the top, where it covered the menu's ability name.
+- 2026-10-03 (lane): game 2's search goes through the real global queue (a real Bronze player
+  who happens to search in that second is a fair game 2 too); only the bot's wait is cut to
+  1 s. A direct bot match that skips the queue would need a fake search inside TableService.
+- 2026-10-03 (lane): in the first server the result screen shows no daily-reward line (Free
+  Reward is hidden and its claim waits for the real server).

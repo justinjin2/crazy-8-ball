@@ -1364,6 +1364,18 @@ return {
 			Touch = "SELECT WHICH POCKET!",
 			Gamepad = "SELECT WHICH POCKET! D-pad to choose, A to select.",
 		},
+		-- Game 2 (step 6): the global queue, then back to the lobby.
+		Queue = {
+			Mouse = "Click Join Global Queue!",
+			Touch = "Tap Join Global Queue!",
+			Gamepad = "Press A to join the global queue!",
+			GamepadFocus = "Press Y, then A to join the global queue!",
+		},
+		Lobby = {
+			Mouse = "Click Lobby!",
+			Touch = "Tap Lobby!",
+			Gamepad = "Press A to go to the lobby!",
+		},
 	},
 	-- Rank rewards held until claimed (RankClaim; the roadmap's claim block, NEW RANK!).
 	RankClaim = {

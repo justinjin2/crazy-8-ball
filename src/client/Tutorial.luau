@@ -44,10 +44,13 @@ local L = Config.Tutorial.Lessons
 local ITEMS = { "Shop", "Inventory", "Abilities", "Rank", "FreeReward", "Trade" }
 
 -- The host card's parts hidden at a step, so it shows only the button the step teaches
--- (QueueMenu reads them: HostMore is vs PC, solo and fill with PC; HostLevels the PC levels).
+-- (QueueMenu reads them: HostMore is vs PC, solo and fill with PC; HostLevels the PC levels),
+-- and game 2's post-match row with Lobby only (PostMatch: no rematch, no Play another).
 local HOST_HIDES: { [string]: { string } } = {
 	Request = { "HostMore", "HostLevels", "HostGlobal" },
 	Queue = { "HostMore", "HostLevels", "HostRequest" },
+	Game2 = { "Rematch", "Another", "Cancel" },
+	Lobby = { "Rematch", "Another", "Cancel" },
 }
 
 -- The step whose scene is showing, and the device it was built for.
@@ -383,6 +386,13 @@ local function scene(step: string, device: string): string
 		return arrowScene()
 	elseif step == "Request" then
 		return padScene("Request", Copy.Request, device)
+	elseif step == "Queue" then
+		return padScene("GlobalQueue", Copy.Queue, device)
+	elseif step == "Lobby" then
+		arrow:show(nil)
+		local fresh = shownKey:sub(1, 5) ~= "Lobby"
+		pointAt("Lobby", words(Copy.Lobby, device), device, fresh)
+		return "Lobby" .. device
 	elseif step == "Game1" then
 		return game1Scene(device)
 	elseif Steps.atLeast(step, "Drop") and not Steps.atLeast(step, "Arrow2") then

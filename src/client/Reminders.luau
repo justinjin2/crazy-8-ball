@@ -53,7 +53,8 @@ local Reminders = {}
 ---     several of one case: "...for 2 Standard Cases!"; several parts: "...for your <best
 ---     case> and more!".
 function Reminders.line(nextReward: any): string?
-	if type(nextReward) ~= "table" then
+	-- Nothing while the tutorial hides Free Reward (its day-1 claim waits for the real server).
+	if type(nextReward) ~= "table" or TutorialAnchors.hidden("FreeReward") then
 		return nil
 	end
 	local reward = RewardsParts.reward(nextReward.reward)
