@@ -45,6 +45,7 @@ local MagicBall = require(script.Parent.MagicBall)
 local FreeRewardMenu = require(script.Parent.FreeRewardMenu)
 local HubCorners = require(script.Parent.HubCorners)
 local PlayerList = require(script.Parent.PlayerList)
+local ResultCutscene = require(script.Parent.ResultCutscene)
 local RewardPopups = require(script.Parent.RewardPopups)
 local Music = require(script.Parent.Music)
 local SettingsMenu = require(script.Parent.SettingsMenu)
@@ -249,7 +250,18 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 				deps.lostAt = os.clock()
 			end
 			closeScreens() -- the result screen takes the screen from them
-			result:show(summary)
+			-- A 1v1 first plays its cutscene (GUI lane, C11a); the result screen then sits in
+			-- the top part, and closing it puts the scene back.
+			local played = ResultCutscene.play(summary, function()
+				result:setLifted(true)
+				result:show(summary, function()
+					result:setLifted(false)
+					ResultCutscene.stop()
+				end)
+			end)
+			if not played then
+				result:show(summary)
+			end
 		end
 	end)
 	Net.get("RankEvent").OnClientEvent:Connect(function(event: any)
@@ -362,7 +374,7 @@ function Progression.update(state: State)
 		return
 	end
 	lastState = state
-	local busy = result:isOpen() or newRank:isOpen()
+	local busy = result:isOpen() or newRank:isOpen() or ResultCutscene.isPlaying()
 	rankHud:setVisible(not state.inMatch and not busy)
 	-- Under the result screen and NEW RANK! the column still shows while a case or cue flies
 	-- into its Inventory tile (RewardChips), so the tile is there to catch it.
@@ -386,13 +398,20 @@ function Progression.update(state: State)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
 	banner:setInMatch(state.inMatch)
 	Music.setInMatch(state.inMatch)
+	if state.inMatch and ResultCutscene.isPlaying() then
+		-- A rematch (or any match) starting ends the result cutscene.
+		ResultCutscene.stop()
+		result:setLifted(false)
+	end
 	if state.inMatch and not wasInMatch then
 		-- A full menu or the case opening would cover the table (and the overlay would keep
 		-- the gamepad's A and B): a player waiting on a pad may have opened either.
 		closeScreens()
 	end
 	wasInMatch = state.inMatch
-	plates:setHidden(if state.inMatch then state.matchUserIds else NOBODY)
+	plates:setHidden(
+		if state.inMatch then state.matchUserIds else ResultCutscene.hiddenIds() or NOBODY
+	)
 	-- Held rank popups also wait for the case opening's overlay to close.
 	if #heldRanks > 0 and not state.shooting and not popupUp() then
 		-- The menus draw over the HUD screen, so they make way for the popup.

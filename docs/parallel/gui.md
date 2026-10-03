@@ -327,6 +327,23 @@ step (steps 1-14 of the brief).
     844 x 390: everything fits. Console clean. Not checked: a real two-player trade (by hand,
     two accounts in a live server or a Studio 2-player test), the controller's moves.
 
+- **Step 11 done: the 1v1 match-result cutscene (C11a, D2).** After a 1v1 (a person, a
+  disguised bot or a PC robot; lobby table or arena) the screen fades to black, then beside the
+  table the winner stands holding their cue upright with the other arm up, and the loser lies
+  face down with their cue dropped beside them; the camera comes down onto them and the result
+  screen opens in the top part of the screen, both bodies in view under it. Closing the result
+  screen puts everything back. The bodies are local copies (the real ones, their back cues,
+  name tags and anyone else walking near are hidden on this screen only); the camera picks the
+  table side whose view is clear, and the lobby signs hide meanwhile. Not for 2v2, 3v3, Solo,
+  a draw, a surrender or a player who left (the plain screen). Once seen, a tap, click or A
+  skips the camera move. A rematch starting ends it.
+  - Checked: lint, tests (958 pass); Studio PC with a made-up 1v1 summary against a lobby bot
+    (Studio has no second player and no quick real match end): a win and a loss on tables 1
+    and 2, the pose on Roblox's newer avatar joints, the result screen lifted, the HUD hidden,
+    the skip, everything restored (camera, bodies) after. Console clean. Not checked: a real
+    match end (by hand: a 1v1 vs PC win and loss), an arena, the phone (the lifted screen
+    scales down into the top 60%), a gamepad's A skip.
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
@@ -433,6 +450,12 @@ step (steps 1-14 of the brief).
   `tests/trade_test.luau` (one test). `TradeMenu.luau` is rewritten (the screen; it no longer
   lists the players: the player list does).
 
+- Step 11: `Config.luau`: new `Config.Cutscenes.Result` at the end of `Config.Cutscenes`;
+  `ResultScreen.luau`: `layout` keeps to the top share of the screen when lifted (new
+  `ResultScreen.setLifted`); `Progression.luau` (client): the MatchSummary handler plays
+  `ResultCutscene` first for a 1v1, `busy` includes it, the nameplates of its two stay hidden,
+  and a match starting stops it.
+
 ## Requests to other lanes or the integrator
 
 - **Integrator**: the Cutscenes lane is folded into this one (designer, 2026-10-03): every item
@@ -531,3 +554,6 @@ step (steps 1-14 of the brief).
   it on their screen; nothing moves until they add it themselves and both press READY. Up to 8
   asks. Closing the trade screen calls the trade off; if the screen cannot open (a match or a
   popup is up) the trade is called off too.
+- 2026-10-03 (lane, step 11): the result cutscene uses local copies of both bodies posed by
+  turning their shoulder joints (both Motor6D and Roblox's newer AnimationConstraint avatar
+  joints); nobody else sees it. It skips surrenders and players who left, as the brief says.

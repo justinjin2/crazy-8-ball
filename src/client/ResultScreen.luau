@@ -840,7 +840,15 @@ function ResultScreen.layout(self: any, settled: boolean?)
 	local cardHeight = self:layoutCard(view)
 	local gap = C.ColumnGap
 	local availableX = screenSize.X - C.MarginPx * 2
-	local availableY = screenSize.Y - C.MarginPx * 2
+	-- Lifted (the 1v1 result cutscene, GUI lane): the top part only, so both bodies show below.
+	local lifted = self.lifted == true
+	local availableY = (
+		if lifted then screenSize.Y * Config.Cutscenes.Result.ScreenShare else screenSize.Y
+	) - C.MarginPx * 2
+	view.holder.AnchorPoint = Vector2.new(0.5, if lifted then 0 else 0.5)
+	view.holder.Position = if lifted
+		then UDim2.new(0.5, 0, 0, C.MarginPx)
+		else UDim2.fromScale(0.5, 0.5)
 	-- Side by side, or the rewards under the face-off: whichever lets it be bigger.
 	local wideWidth = C.FaceWidth + gap + C.RewardsWidth
 	local stackWidth = math.max(C.FaceWidth, C.RewardsWidth)
@@ -1482,6 +1490,15 @@ function ResultScreen.showRank(self: any, view: any)
 end
 
 --- Who presses the choices row's buttons: `fn(kind, summary)` (Main, through Progression).
+--- Keep the next screens in the top part of the screen (true while the 1v1 result cutscene
+--- shows the two players below it; GUI lane).
+function ResultScreen.setLifted(self: any, lifted: boolean)
+	self.lifted = lifted
+	if self.view then
+		self:layout()
+	end
+end
+
 function ResultScreen.setChoiceHandler(self: any, fn: ((string, any) -> ())?)
 	self.onChoice = fn
 end

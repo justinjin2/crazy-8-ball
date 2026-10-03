@@ -10014,6 +10014,34 @@ Config.Cutscenes = {
 	-- Quick Cases' grid: its rarest card (Rare and up) gets a short flash of its colour.
 	Flash = { Seconds = 0.5, TintShare = 0.45 },
 	HintAfterSeconds = 0.6, -- "Tap to skip" shows this late (only once the kind was seen)
+	-- The 1v1 match result (ResultCutscene; GUI lane, C11a, D2): fade to black, then on the
+	-- table the winner stands holding their cue upright with the other arm up, and the loser
+	-- lies face down with their cue dropped beside them (local copies of both bodies); the
+	-- camera comes down onto them and the result screen opens in the top part of the screen.
+	-- Studs and seconds.
+	Result = {
+		FadeInSeconds = 0.35, -- to black
+		HoldSeconds = 0.15, -- black, while the scene is set
+		FadeOutSeconds = 0.45,
+		PanSeconds = 2.4, -- the camera comes down onto them, then the result screen opens
+		SideStuds = 1.2, -- the two stand this far out from the table's long side
+		GapStuds = 5, -- between the winner and the loser, along the table
+		LieHeightStuds = 0.6, -- the lying body's root above the floor
+		CueSideStuds = 1.3, -- the dropped cue, this far from the lying body
+		CueAngleDegrees = 18, -- turned this much off the body's line
+		CueLiftStuds = 0.12, -- above the floor
+		WaveDegrees = 150, -- the winner's free arm, raised
+		HoldDegrees = 40, -- the arm on the cue, forward
+		DiveDegrees = 165, -- the loser's arms, past the head
+		CameraOutStuds = 17, -- the final view: this far out from the two...
+		CameraUpStuds = 6, -- ...this high...
+		LookUpStuds = 7, -- ...looking this far above the floor between them (they sit low)
+		StartUpStuds = 22, -- the pan starts this much higher...
+		StartInStuds = 6, -- ...and this much nearer the table
+		ScreenShare = 0.6, -- the result screen keeps to this top share of the screen
+		ClearStuds = 20, -- other bodies this near the two are hidden while it plays (walk-ins)
+		ClearEverySeconds = 0.5,
+	},
 }
 
 -- Derived values (do not edit; change the fractions above)
