@@ -44,6 +44,71 @@ your status).
 
 ## Status
 
+**2026-10-02: brief approved** (`docs/prompts/BOTS_PROMPT.md`). Building step 1 (the bot brain in
+Lune).
+
 ## Requests to other lanes or the integrator
 
+- **Integrator, global queue pairing** (the designer, 2026-10-02; `GlobalQueue.luau` is not
+  mine): 1v1 always pairs the closest rank, even 3+ divisions apart, and a real player always
+  beats a bot; at most 4 tiers apart (Bronze with Diamond yes, Bronze with Expert never).
+  2v2 / 3v3: rank barely matters, pair whoever is queueing. This replaces GDD 6's "anyone after
+  10 s". The bot fallbacks (1v1 at 10 s, teams at 25 s) are mine and come as a block.
+- **Integrator, GDD lines that changed** (move them over at the merge): GDD 6 "PC never plays
+  PC" (lobby bots play each other) and "each with friends or PC fill" (2v2/3v3 lobby tables:
+  only a host's Fill with PC for the other team); GDD 11 Open "Bots" (all decided, see
+  Decisions); GDD 13/14 "never a real user's avatar" and "disguised PCs stored as PC" (the
+  tutorial's wins count as real wins).
+- **GUI, the custom in-server player list**: show every bot model in `workspace.Bots` whose
+  `BotKind` attribute is `Disguised` or `Tutorial` exactly like a player (attributes on the
+  model: `DisplayName`, `RankTier`, `RankDivision`, `Money`, `AvatarUserId` for the headshot
+  via `rbxthumb://type=AvatarHeadShot&id=<id>&w=150&h=150`). PC robots (`BotKind = "Pc"`)
+  are not listed. Details firm up in my Status as I build.
+- **Economy**: (1) ECONOMY 3.2 needs a "Disguised bot" column: pays like a person (money, XP,
+  free case), no win streak, the win stored as a PC win; a disguised bot that forfeits pays a
+  full win even under the one-minute mark; the tutorial's two games are real wins (the early 8
+  pays in full). (2) The odds of a bot's cue rarity by tier (the designer: lower ranks mostly
+  the lower rarities, but a Legendary as likely as a real player pulling one, so a Silver bot
+  CAN carry a Legendary). Until you answer I use the Standard Case's odds.
+
 ## Decisions (dated; the integrator copies them to DECISIONS.md)
+
+- 2026-10-02 (designer): **disguised bots wear real Roblox avatars** from random real user ids
+  (accounts from 2020 on, never banned or blank) with a made-up username, each unique and never
+  an existing username. They are not in Roblox's own Esc player list (the one hint); the custom
+  in-server player list shows them. Replaces "never a real user's avatar, never pretend to be a
+  real person" (lane file, GDD 14). The designer knows other games do this; it is their call.
+- 2026-10-02 (designer): **lobby bots play each other** (replaces GDD 6 "PC never plays PC").
+- 2026-10-02 (designer): the real player **always breaks** against any bot (the coin is shown,
+  rigged; rematches too).
+- 2026-10-02 (designer): a bot shot takes **2 to 4 s** (random, +2 s with ball in hand), the
+  same at every rank; it lines up with small left-right adjustments. The ability cutscene is
+  extra.
+- 2026-10-02 (designer): **one skill level per tier**; the player's chance of beating the bot of
+  their own rank: Bronze 90%, Silver 80, Gold 65, Platinum 57, Diamond 50, Expert 50, Veteran
+  45, Master 40, Grandmaster 35, Reyes 30 (Reyes misses about 2-3% of shots). Behind by 2+
+  balls it makes its shots more often: +5, +6, +7, +8, +9, +10, +8, +6, +4, +1.5 points.
+  Misses are near misses, never wild.
+- 2026-10-02 (designer): a bot's ability is random, weighted like a real spin; none Legendary
+  or higher when the player is Gold or below. Bots never chat or emote (the tutorial bot's
+  "AUGHHHH!" is the one exception). The opponent's aim line is never shown (like a person's).
+- 2026-10-02 (designer): **Play against PC**: one robot from a Roblox catalog bundle (picked
+  from screenshots), named "<Tier> Bot", always the player's own tier (Unranked: Bronze),
+  table difficulty does not change it, Rematch accepted at once, works in private servers,
+  pays the PC rows.
+- 2026-10-02 (designer): **2v2/3v3 lobby tables**: bots never join by themselves; the host can
+  press **Fill with PC** once their own side is full, filling the other team with PC robots at
+  the team's average tier (replaces "PC can fill any seat"). The global queue's 2v2/3v3 gives a
+  disguised all-bot team after 25 s at the real team's average rank.
+- 2026-10-02 (designer): **global 1v1 fallback**: no real player after 10 s, a disguised bot of
+  the player's own tier in a real arena (teleport and all); no rematch.
+- 2026-10-02 (designer): **disguised wins** pay money, XP and the free case like a real match,
+  with no win streak, stored as PC wins (never on the most-wins board). A disguised bot that
+  forfeits gives a full disguised win even under the one-minute mark. Both tutorial games are
+  real wins; the tutorial bot's early 8 pays in full.
+- 2026-10-02 (designer): disguised lobby bot rematch: it waits for the player, answers 1-3 s
+  later and accepts about 85% of the time.
+- 2026-10-02 (designer): lobby bots start bot-vs-bot games only while at least 3 1v1 tables
+  stay free; a real player stepping onto their pad makes them stop and walk off.
+- 2026-10-02 (designer): bot names in a real-Roblox mix (`PixelPanda_482`, `itz_mikey77`,
+  `xXShadowStrikeXx`, `coolkid2013`...).
