@@ -334,8 +334,9 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   "Coming soon"), a live receipt, and a restricted-region direct-purchase shelf if needed.
   Progress 2026-10-03 (the Economy lane, merged into `release`): money x10, the new Dashboard
   list in `Config.Products` (4 passes, 24 products: packs $9,000 to $1,300,000, Mystery, restock
-  cases, skips), odds as percentages, restricted regions refused paid random items. Still to
-  do: create the products, paste the ids, a live purchase.
+  cases, skips), odds as percentages, restricted regions refused paid random items. The 4
+  passes and 24 products were created through Open Cloud on 2026-10-03 and their ids are in
+  Config. Still to do: a live purchase.
 - [x] **7.2 Loot boxes.** Permanent cue box; Season 0 limited cue box.
   Done 2026-09-28 (branch `economy`, overnight) for the money cases: Standard, Rare, Epic and
   Legendary cases bought with money (Buy 10 for the price of 9, sales), free win cases, the
@@ -358,7 +359,7 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   and a live purchase.
   Progress 2026-10-03 (the Economy lane): VIP 599 R$ (+1 daily spin), the Starter Pack 99 R$
   ($75,000 and an hour of 2x money), Quick Cases 299 R$ (replaces Fast Open: halves timers).
-  Still to do: the ids and a live purchase.
+  Ids in Config (2026-10-03). Still to do: a live purchase.
 - [x] **7.6 Retention.** 7-day daily streak, playtime reward, reminders on menu open, focus
   loss and the post-match screen.
   Done 2026-09-28 (branch `economy`, overnight): the daily streak in four-week cycles (a

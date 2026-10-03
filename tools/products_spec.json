@@ -1,0 +1,201 @@
+{
+ "universeId": 10767330648,
+ "items": [
+  {
+   "key": "Vip",
+   "kind": "Pass",
+   "name": "VIP",
+   "robux": 599,
+   "description": "2x money from every match, 1 free Ability Spin every day, a VIP slot in the restock shop, the rainbow VIP Cue, a [VIP] chat tag and a rainbow name."
+  },
+  {
+   "key": "QuickCases",
+   "kind": "Pass",
+   "name": "Quick Cases",
+   "robux": 299,
+   "description": "Case timers run twice as fast. Open all your ready cases at once and skip the reveal. Adds Skip and Auto Spin to Ability Spins."
+  },
+  {
+   "key": "UltSlot2",
+   "kind": "Pass",
+   "name": "Ability Slot 2",
+   "robux": 59,
+   "description": "Unlocks a second ability slot."
+  },
+  {
+   "key": "UltSlot3",
+   "kind": "Pass",
+   "name": "Ability Slot 3",
+   "robux": 99,
+   "description": "Unlocks a third ability slot."
+  },
+  {
+   "key": "VipOffer",
+   "kind": "Product",
+   "name": "VIP Welcome Offer",
+   "robux": 299,
+   "description": "VIP at half price for a short time: 2x money, a free daily Ability Spin, the VIP restock slot, the VIP Cue, tag and rainbow name."
+  },
+  {
+   "key": "StarterPack",
+   "kind": "Product",
+   "name": "Starter Pack",
+   "robux": 99,
+   "description": "The Starter Cue, $75,000 and 1 hour of 2x money. Once per player, in your first 7 days."
+  },
+  {
+   "key": "Pack1",
+   "kind": "Product",
+   "name": "Handful of Cash",
+   "robux": 49,
+   "description": "$9,000. Your first money pack pays double, once."
+  },
+  {
+   "key": "Pack2",
+   "kind": "Product",
+   "name": "Stack of Cash",
+   "robux": 99,
+   "description": "$19,500 (+7%)."
+  },
+  {
+   "key": "Pack3",
+   "kind": "Product",
+   "name": "Bundle of Cash",
+   "robux": 249,
+   "description": "$52,500 (+15%)."
+  },
+  {
+   "key": "Pack4",
+   "kind": "Product",
+   "name": "Briefcase of Cash",
+   "robux": 499,
+   "description": "$110,000 (+20%)."
+  },
+  {
+   "key": "Pack5",
+   "kind": "Product",
+   "name": "Vault of Cash",
+   "robux": 999,
+   "description": "$235,000 (+28%)."
+  },
+  {
+   "key": "Pack6",
+   "kind": "Product",
+   "name": "Bank of Cash",
+   "robux": 2499,
+   "description": "$625,000 (+36%). Best value."
+  },
+  {
+   "key": "Pack7",
+   "kind": "Product",
+   "name": "Fortune",
+   "robux": 4999,
+   "description": "$1,300,000 (+42%)."
+  },
+  {
+   "key": "Mystery1",
+   "kind": "Product",
+   "name": "Mystery Case",
+   "robux": 25,
+   "description": "One Mystery Case: the Magic 8-Ball picks a case from Standard to Mythic. Odds are shown in the game."
+  },
+  {
+   "key": "Mystery10",
+   "kind": "Product",
+   "name": "10 Mystery Cases",
+   "robux": 229,
+   "description": "Ten Mystery Cases, each picked by the Magic 8-Ball. Odds are shown in the game."
+  },
+  {
+   "key": "RestockEpic",
+   "kind": "Product",
+   "name": "Restock Epic Case",
+   "robux": 999,
+   "description": "The Epic Case in the restock shop, while it is in stock. Odds are shown in the game."
+  },
+  {
+   "key": "RestockLegendary",
+   "kind": "Product",
+   "name": "Restock Legendary Case",
+   "robux": 4999,
+   "description": "The Legendary Case in the restock shop, while it is in stock (25 worldwide each time it appears). Odds are shown in the game."
+  },
+  {
+   "key": "Skip1h",
+   "kind": "Product",
+   "name": "Finish Case Timer (1 h)",
+   "robux": 15,
+   "description": "Opens a case timer with up to 1 hour left right away."
+  },
+  {
+   "key": "Skip6h",
+   "kind": "Product",
+   "name": "Finish Case Timer (6 h)",
+   "robux": 49,
+   "description": "Opens a case timer with up to 6 hours left right away."
+  },
+  {
+   "key": "Skip24h",
+   "kind": "Product",
+   "name": "Finish Case Timer (24 h)",
+   "robux": 99,
+   "description": "Opens a case timer with up to 24 hours left right away."
+  },
+  {
+   "key": "Skip48h",
+   "kind": "Product",
+   "name": "Finish Case Timer (48 h)",
+   "robux": 149,
+   "description": "Opens a case timer with up to 48 hours left right away."
+  },
+  {
+   "key": "MoneyParty",
+   "kind": "Product",
+   "name": "Money Party",
+   "robux": 199,
+   "description": "+100% money for everyone in your server for 15 minutes. Your name is announced."
+  },
+  {
+   "key": "Spin1",
+   "kind": "Product",
+   "name": "1 Ability Spin",
+   "robux": 15,
+   "description": "One Ability Spin. Odds are shown in the game."
+  },
+  {
+   "key": "Spin5",
+   "kind": "Product",
+   "name": "5 Ability Spins",
+   "robux": 50,
+   "description": "Five Ability Spins. Odds are shown in the game."
+  },
+  {
+   "key": "Spin10",
+   "kind": "Product",
+   "name": "10 Ability Spins",
+   "robux": 100,
+   "description": "Ten Ability Spins. Odds are shown in the game."
+  },
+  {
+   "key": "Spin50",
+   "kind": "Product",
+   "name": "50 Ability Spins",
+   "robux": 449,
+   "description": "Fifty Ability Spins. Odds are shown in the game."
+  },
+  {
+   "key": "Lucky1",
+   "kind": "Product",
+   "name": "1 Lucky Spin",
+   "robux": 49,
+   "description": "One Lucky Spin: no Commons. Odds are shown in the game."
+  },
+  {
+   "key": "Lucky3",
+   "kind": "Product",
+   "name": "3 Lucky Spins",
+   "robux": 129,
+   "description": "Three Lucky Spins: no Commons. Odds are shown in the game."
+  }
+ ]
+}

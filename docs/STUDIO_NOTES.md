@@ -155,6 +155,14 @@ without Studio's import dialogs. It only uses the Python standard library.
   replaces it in the Keychain with the same `pbpaste` command. A stored length of exactly 128
   means the key was cut off. 403 means the key lacks Assets Read and Write for
   that owner, or was made under the user instead of the group.
+- **Game passes and developer products** (2026-10-03): the same key also has game-pass and
+  developer-product read and write. `tools/roblox_products.py` creates every row of
+  `tools/products_spec.json` that the universe (10767330648) lacks by name, for sale with
+  Managed Pricing off, and writes the ids to `tools/products_ids.json` for `Config.Products`.
+  `--dry-run` first; `--only Key1,Key2` for a few. Roblox never deletes a product, so a mistake
+  is fixed by renaming it or taking it off sale on the Creator Dashboard. `GetProductInfo` in
+  Studio shows the price for the account asking (the designer's read 80% of the set price),
+  while the Open Cloud config shows `defaultPriceInRobux`.
 - **Images come back as a Decal ID, not an image ID** (tested 2026-09-28). The Decal ID fails
   in `ImageLabel.Image`. To get the image ID, run `InsertService:LoadAsset(decalId)` in Edit
   and read the `Decal.Texture` inside. Store it as `imageId` in the manifest entry. The first

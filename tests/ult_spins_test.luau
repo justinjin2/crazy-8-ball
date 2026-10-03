@@ -9,6 +9,26 @@
 local H = require("./harness")
 
 local Config = H.require("Config")
+
+-- Runs `fn` as if no product were made yet (every Id 0), as these tests were written; the real
+-- ids from Config come back afterwards.
+local function noIds(fn: () -> ()): () -> ()
+	return function()
+		local list = Config.Products.List
+		local old = {}
+		for key, product in list do
+			old[key] = product.Id
+			product.Id = 0
+		end
+		local ok, err = pcall(fn)
+		for key, id in old do
+			list[key].Id = id
+		end
+		if not ok then
+			error(err, 0)
+		end
+	end
+end
 local SpinView = H.require("Ults.SpinView")
 local Slots = H.require("Ults.Slots")
 local Roll = H.require("Ults.Roll")
@@ -383,7 +403,7 @@ return {
 		H.expect(save.Ults.LuckySpins == 3, "3 Lucky Spins")
 	end,
 
-	["the shop refuses spin packs where restricted, and owned slot passes"] = function()
+	["the shop refuses spin packs where restricted, and owned slot passes"] = noIds(function()
 		local function context(extra: { [string]: any }): any
 			local c: { [string]: any } = {
 				now = 0,
@@ -414,7 +434,7 @@ return {
 		H.expect(ShopView.isSpinProduct("Spin50") and not ShopView.isSpinProduct("UltSlot3"), "")
 		local built = ShopView.build(context({ passes = { UltSlot3 = true } }))
 		H.expect(built.products.UltSlot3.owned and not built.products.UltSlot2.owned, "owned")
-	end,
+	end),
 
 	["rank-ups add spins by tier"] = function()
 		local byTier: { [string]: number } = {}
@@ -468,7 +488,7 @@ return {
 		H.expect(payload.playtime[3].reward.spins == 1, "the gift row's chip")
 	end,
 
-	["the UltState payload"] = function()
+	["the UltState payload"] = noIds(function()
 		local p = SpinView.state(ctx())
 		H.expect(#p.slots == U.Slots and p.slots[1] == "Magnet" and p.slots[2] == "", "slots")
 		H.expect(p.selected == 1 and #p.locked == U.Slots and not p.locked[1], "selected, locked")
@@ -546,5 +566,5 @@ return {
 		-- A broken save still gives a payload.
 		local broken = SpinView.state(ctx({ ults = 5 }))
 		H.expect(broken.slots[1] == "Magnet" and broken.selected == 1, "fresh values")
-	end,
+	end),
 }

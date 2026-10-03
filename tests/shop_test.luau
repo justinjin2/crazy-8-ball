@@ -7,6 +7,26 @@
 local H = require("./harness")
 
 local Config = H.require("Config")
+
+-- Runs `fn` as if no product were made yet (every Id 0), as these tests were written; the real
+-- ids from Config come back afterwards.
+local function noIds(fn: () -> ()): () -> ()
+	return function()
+		local list = Config.Products.List
+		local old = {}
+		for key, product in list do
+			old[key] = product.Id
+			product.Id = 0
+		end
+		local ok, err = pcall(fn)
+		for key, id in old do
+			list[key].Id = id
+		end
+		if not ok then
+			error(err, 0)
+		end
+	end
+end
 local Shop = H.require("Progression.Shop")
 local ShopView = H.require("Progression.ShopView")
 
@@ -325,7 +345,16 @@ return {
 		H.expect(not Shop.vipCueDue(false, newShop()), "not VIP")
 	end,
 
-	["product ids: 0 is never a match; products and passes are apart"] = function()
+	["every pass and product is made: a real id, each once"] = function()
+		local seen = {}
+		for key, product in Config.Products.List do
+			H.expect(product.Id > 0, key .. " has its id (tools/roblox_products.py)")
+			H.expect(seen[product.Id] == nil, key .. ": id used once")
+			seen[product.Id] = key
+		end
+	end,
+
+	["product ids: 0 is never a match; products and passes are apart"] = noIds(function()
 		H.expect(Shop.keyForId(0) == nil and Shop.passKeyForId(0) == nil, "id 0")
 		H.expect(not Shop.available("Pack1") and not Shop.available("Vip"), "nothing made yet")
 		H.expect(not Shop.available("NoSuchProduct"), "unknown")
@@ -340,7 +369,7 @@ return {
 			H.expect(not Shop.available("Pack1"), "still 0")
 		end)
 		H.expect(Shop.keyForId(111) == nil, "ids restored")
-	end,
+	end),
 
 	["the first money pack pays double, exactly once"] = function()
 		local shop = newShop()
@@ -784,7 +813,7 @@ return {
 		H.expect(Shop.hasPurchase(old, "x"), "list made")
 	end,
 
-	["ShopView.check: why a Buy may not prompt"] = function()
+	["ShopView.check: why a Buy may not prompt"] = noIds(function()
 		withLimiteds(function()
 			local founders = Shop.limitedFor("FoundersCue")
 			H.expect(founders ~= nil and founders.Product == "FoundersCue", "a Robux Limited")
@@ -884,9 +913,9 @@ return {
 				)
 			end)
 		end)
-	end,
+	end),
 
-	["ShopView.build: the ShopState payload"] = function()
+	["ShopView.build: the ShopState payload"] = noIds(function()
 		withLimiteds(function()
 			local sale =
 				ShopView.readSale({ Case = "Epic", Percent = 20, EndsAt = JOIN + DAY }, JOIN)
@@ -971,7 +1000,7 @@ return {
 				)
 			end)
 		end)
-	end,
+	end),
 
 	["ShopView.build: what the Shop tile's timer reads"] = function()
 		H.expect(

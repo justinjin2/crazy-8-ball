@@ -2424,15 +2424,17 @@ Config.Shop = {
 }
 
 ---------------------------------------------------------------------------------------------
--- Robux products (ECONOMY 11). The designer makes each in Creator Hub and pastes its id here;
--- while Id is 0 the shop says "Coming soon" and prompts nothing. Robux is the display
+-- Robux products (ECONOMY 11). tools/roblox_products.py creates each through Open Cloud and
+-- writes its id to tools/products_ids.json; paste it here. While Id is 0 the shop says
+-- "Coming soon" and prompts nothing. Robux is the display
 -- fallback only: the shop shows Roblox's live price once an id exists (11).
 ---------------------------------------------------------------------------------------------
 Config.Products = {
 	-- Everything Robux buys (the approved economy plan, 2026-10-02, section 5): 4 game passes
-	-- and 24 developer products, created on the Creator Dashboard with exactly these names,
-	-- prices and descriptions (docs/prompts/ECONOMY_PROMPT.md step 3). Id 0 until the designer
-	-- pastes the id: the shop shows "Coming soon". Robux is the fallback price; the live price
+	-- and 24 developer products with exactly these names, prices and descriptions
+	-- (docs/prompts/ECONOMY_PROMPT.md step 3), created 2026-10-03 through Open Cloud by
+	-- tools/roblox_products.py (managed pricing off). Id 0 would show "Coming soon" and prompt
+	-- nothing. Robux is the fallback price; the live price
 	-- is read from Roblox. Random = true: a paid random item, refused where PolicyService
 	-- restricts them (ArePaidRandomItemsRestricted).
 	-- The shop's order of the money packs (plan 5).
@@ -2441,48 +2443,106 @@ Config.Products = {
 	BestValue = "Pack6",
 	List = {
 		-- Game passes.
-		Vip = { Kind = "Pass", Id = 0, Robux = 599 }, -- 2x money, daily spin, VIP slot, cue, tag
-		QuickCases = { Kind = "Pass", Id = 0, Robux = 299 }, -- timers x0.5, open all, Auto Spin
-		UltSlot2 = { Kind = "Pass", Id = 0, Robux = 59 }, -- the second ability slot
-		UltSlot3 = { Kind = "Pass", Id = 0, Robux = 99 }, -- the third ability slot
+		Vip = { Kind = "Pass", Id = 2005370712, Robux = 599 }, -- 2x money, daily spin, VIP slot, cue, tag
+		QuickCases = { Kind = "Pass", Id = 2006144658, Robux = 299 }, -- timers x0.5, open all, Auto Spin
+		UltSlot2 = { Kind = "Pass", Id = 2006096679, Robux = 59 }, -- the second ability slot
+		UltSlot3 = { Kind = "Pass", Id = 2006012697, Robux = 99 }, -- the third ability slot
 		-- Offers (once).
-		VipOffer = { Kind = "Product", Id = 0, Robux = 299 }, -- VIP at half price, 24 h windows
-		StarterPack = { Kind = "Product", Id = 0, Robux = 99 }, -- Starter Cue, $75,000, 1 h 2x
+		VipOffer = { Kind = "Product", Id = 3716158339, Robux = 299 }, -- VIP at half price, 24 h windows
+		StarterPack = { Kind = "Product", Id = 3716158341, Robux = 99 }, -- Starter Cue, $75,000, 1 h 2x
 		-- Money packs: Money each, Bonus = % more money per Robux than Pack1 (shown).
-		Pack1 = { Kind = "Product", Id = 0, Robux = 49, Money = 9000, Bonus = 0 }, -- Handful
-		Pack2 = { Kind = "Product", Id = 0, Robux = 99, Money = 19500, Bonus = 7 }, -- Stack
-		Pack3 = { Kind = "Product", Id = 0, Robux = 249, Money = 52500, Bonus = 15 }, -- Bundle
-		Pack4 = { Kind = "Product", Id = 0, Robux = 499, Money = 110000, Bonus = 20 }, -- Briefcase
-		Pack5 = { Kind = "Product", Id = 0, Robux = 999, Money = 235000, Bonus = 28 }, -- Vault
-		Pack6 = { Kind = "Product", Id = 0, Robux = 2499, Money = 625000, Bonus = 36 }, -- Bank
-		Pack7 = { Kind = "Product", Id = 0, Robux = 4999, Money = 1300000, Bonus = 42 }, -- Fortune
+		Pack1 = { Kind = "Product", Id = 3716158342, Robux = 49, Money = 9000, Bonus = 0 }, -- Handful
+		Pack2 = { Kind = "Product", Id = 3716158345, Robux = 99, Money = 19500, Bonus = 7 }, -- Stack
+		Pack3 = { Kind = "Product", Id = 3716158347, Robux = 249, Money = 52500, Bonus = 15 }, -- Bundle
+		Pack4 = { Kind = "Product", Id = 3716158349, Robux = 499, Money = 110000, Bonus = 20 }, -- Briefcase
+		Pack5 = { Kind = "Product", Id = 3716158353, Robux = 999, Money = 235000, Bonus = 28 }, -- Vault
+		Pack6 = { Kind = "Product", Id = 3716158356, Robux = 2499, Money = 625000, Bonus = 36 }, -- Bank
+		Pack7 = { Kind = "Product", Id = 3716158358, Robux = 4999, Money = 1300000, Bonus = 42 }, -- Fortune
 		-- Mystery Cases: Drops Case Drops each (the same odds, pity and reveal; paid origin).
-		Mystery1 = { Kind = "Product", Id = 0, Robux = 25, Drops = 1, Random = true },
-		Mystery10 = { Kind = "Product", Id = 0, Robux = 229, Drops = 10, Random = true },
+		Mystery1 = { Kind = "Product", Id = 3716158359, Robux = 25, Drops = 1, Random = true },
+		Mystery10 = { Kind = "Product", Id = 3716158365, Robux = 229, Drops = 10, Random = true },
 		-- The restock shop's lucky slot (only while that case is in stock).
-		RestockEpic = { Kind = "Product", Id = 0, Robux = 999, Restock = "Epic", Random = true },
+		RestockEpic = {
+			Kind = "Product",
+			Id = 3716158370,
+			Robux = 999,
+			Restock = "Epic",
+			Random = true,
+		},
 		RestockLegendary = {
 			Kind = "Product",
-			Id = 0,
+			Id = 3716158374,
 			Robux = 4999,
 			Restock = "Legendary",
 			Random = true,
 		},
 		-- Finish one case timer that has at most SkipSeconds left (the case the player picked).
-		Skip1h = { Kind = "Product", Id = 0, Robux = 15, SkipSeconds = 3600, Random = true },
-		Skip6h = { Kind = "Product", Id = 0, Robux = 49, SkipSeconds = 21600, Random = true },
-		Skip24h = { Kind = "Product", Id = 0, Robux = 99, SkipSeconds = 86400, Random = true },
-		Skip48h = { Kind = "Product", Id = 0, Robux = 149, SkipSeconds = 172800, Random = true },
-		MoneyParty = { Kind = "Product", Id = 0, Robux = 199 }, -- +100% money, 15 min, server
+		Skip1h = {
+			Kind = "Product",
+			Id = 3716158375,
+			Robux = 15,
+			SkipSeconds = 3600,
+			Random = true,
+		},
+		Skip6h = {
+			Kind = "Product",
+			Id = 3716158376,
+			Robux = 49,
+			SkipSeconds = 21600,
+			Random = true,
+		},
+		Skip24h = {
+			Kind = "Product",
+			Id = 3716158378,
+			Robux = 99,
+			SkipSeconds = 86400,
+			Random = true,
+		},
+		Skip48h = {
+			Kind = "Product",
+			Id = 3716158383,
+			Robux = 149,
+			SkipSeconds = 172800,
+			Random = true,
+		},
+		MoneyParty = { Kind = "Product", Id = 3716158385, Robux = 199 }, -- +100% money, 15 min, server
 		-- Ability spins (ECONOMY 11.8; the spin screen's R$ buy row). Spins / Lucky: what one
 		-- purchase adds; Was: the original price shown crossed out (a real bulk saving against
 		-- Spin1 or Lucky1, never an always-on fake sale).
-		Spin1 = { Kind = "Product", Id = 0, Robux = 15, Spins = 1, Random = true },
-		Spin5 = { Kind = "Product", Id = 0, Robux = 50, Was = 75, Spins = 5, Random = true },
-		Spin10 = { Kind = "Product", Id = 0, Robux = 100, Was = 150, Spins = 10, Random = true },
-		Spin50 = { Kind = "Product", Id = 0, Robux = 449, Was = 750, Spins = 50, Random = true },
-		Lucky1 = { Kind = "Product", Id = 0, Robux = 49, Lucky = 1, Random = true }, -- no Commons
-		Lucky3 = { Kind = "Product", Id = 0, Robux = 129, Was = 147, Lucky = 3, Random = true },
+		Spin1 = { Kind = "Product", Id = 3716158388, Robux = 15, Spins = 1, Random = true },
+		Spin5 = {
+			Kind = "Product",
+			Id = 3716158389,
+			Robux = 50,
+			Was = 75,
+			Spins = 5,
+			Random = true,
+		},
+		Spin10 = {
+			Kind = "Product",
+			Id = 3716158392,
+			Robux = 100,
+			Was = 150,
+			Spins = 10,
+			Random = true,
+		},
+		Spin50 = {
+			Kind = "Product",
+			Id = 3716158395,
+			Robux = 449,
+			Was = 750,
+			Spins = 50,
+			Random = true,
+		},
+		Lucky1 = { Kind = "Product", Id = 3716158396, Robux = 49, Lucky = 1, Random = true }, -- no Commons
+		Lucky3 = {
+			Kind = "Product",
+			Id = 3716158399,
+			Robux = 129,
+			Was = 147,
+			Lucky = 3,
+			Random = true,
+		},
 	},
 }
 
