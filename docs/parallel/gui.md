@@ -550,6 +550,20 @@ step (steps 1-14 of the brief).
 - **Designer**: an Uncommon Case picture (a green chest) is missing; the grey Standard chest
   stands in.
 
+- **From the integrator, after merging Tutorial (2026-10-03)** (`release` has both lanes now;
+  take it before fixing anything):
+  - Done by the integrator: the Rank badge's red "!" while `RankPending` (RankHud), and
+    `MagicBall.push` skips drops while `TutorialActive` (the tutorial shows its own).
+  - Still to do: the tutorial's case reveals use its stand-in card (`TutorialReveal`). Add
+    `MagicBall.play(list, done)` that shows at once without the popup queue, register its
+    buttons as `TutorialAnchors.set("OpenNow", ...)` and `("RevealOk", ...)`, and point
+    `TutorialReveal.show` at it (tutorial.md, Requests (6)).
+  - Seen in Studio during the tutorial's first server: Free Reward, Daily Challenge, the
+    Settings gear, Invite and the player list all show (the tutorial hides the old column
+    only), and "Skip tutorial" sits on top of the player list's header. Hide the new pieces in
+    the first server (`TutorialActive`, or a `TutorialAnchors.hidden` check) and move Skip or
+    the list so they never overlap.
+
 ## Decisions (dated; the integrator copies them to DECISIONS.md)
 
 - 2026-10-03 (designer): **the Cutscenes lane is folded into the GUI lane**; everything

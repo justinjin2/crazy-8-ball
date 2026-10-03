@@ -4872,6 +4872,8 @@ Config.UI = {
 		-- then scaled by ComputerScale on a computer or tablet, and down if the room is short.
 		RankHud = {
 			BadgePx = 70, -- the badge, square: bigger than the pill, as in reference 02 (its art has margins)
+			PendingDotPx = 24, -- the red "!" on the badge while rank rewards wait in Rank (RankPending)
+			PendingDotTextPx = 18,
 			HoverScale = 1.06, -- the whole HUD grows this much under the mouse or a gamepad selection
 			HoverSeconds = 0.18, -- that fast, with a small overshoot
 			PillWidthPx = 196, -- the pill, from under the badge's centre to its right end

@@ -814,10 +814,13 @@ end
 -- Starting
 --------------------------------------------------------------------------------------------
 
---- Queue a reveal for drops the server sent (one reveal for the whole list).
+--- Queue a reveal for drops the server sent (one reveal for the whole list). Not while the
+--- tutorial runs (TutorialActive): it shows its own drops, which would otherwise play again
+--- once it ends (the tutorial lane's request).
 function MagicBall.push(list: any)
 	local drops = clean(list)
-	if #drops == 0 then
+	local player = Players.LocalPlayer
+	if #drops == 0 or (player and player:GetAttribute("TutorialActive") == true) then
 		return
 	end
 	batches += 1

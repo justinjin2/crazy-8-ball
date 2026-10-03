@@ -251,6 +251,19 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	})
 	badge.root.Position = UDim2.fromOffset(0, 0)
 	self.badge = badge
+	-- Held rank rewards (the tutorial lane's RankPending attribute): a red "!" dot breathes on
+	-- the badge's top right until they are claimed in Rank.
+	local pending = HudParts.pill(body, "PendingDot", HudParts.tone("Red"))
+	pending.AnchorPoint = Vector2.new(0.5, 0.5)
+	pending.Position = UDim2.fromOffset(B * 0.86, B * 0.14)
+	pending.Size = UDim2.fromOffset(H.PendingDotPx, H.PendingDotPx)
+	pending.ZIndex = 6
+	pending.Visible = false
+	local mark = HudParts.text(pending, "Mark", H.PendingDotTextPx, Strings.Menus.DotReady)
+	mark.Size = UDim2.fromScale(1, 1)
+	mark.ZIndex = 7
+	self.pending = pending
+	self.pendingPulse = nil :: UIAnim.Handle?
 	local button = badge.button :: GuiButton
 	-- Nothing is above or left of it on screen: a stick pushed that way stays on it.
 	button.NextSelectionUp = button
@@ -309,7 +322,11 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 			self:refreshVisible()
 		end)
 		self.loaded = player:GetAttribute("DataLoaded") == true
+		connect(player:GetAttributeChangedSignal("RankPending"), function()
+			self:refreshPending()
+		end)
 	end
+	self:refreshPending()
 	-- Reyes' full bar shimmers now and then while it shows.
 	task.spawn(function()
 		while self.alive do
@@ -324,6 +341,24 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	self:refreshVisible()
 	self:refreshOneMore()
 	return self
+end
+
+--- The red "!" on the badge while rank rewards wait to be claimed (RankPending).
+function RankHud.refreshPending(self: any)
+	local player = self.player
+	local show = player ~= nil and player:GetAttribute("RankPending") == true
+	if show == self.pending.Visible then
+		return
+	end
+	if self.pendingPulse then
+		self.pendingPulse.stop()
+		self.pendingPulse = nil
+	end
+	self.pending.Visible = show
+	if show then
+		UIAnim.popIn(self.pending)
+		self.pendingPulse = UIAnim.pulse(self.pending)
+	end
 end
 
 --- Whether one win against an equal player (Ranks.matchXp) would rank up: then the badge and
