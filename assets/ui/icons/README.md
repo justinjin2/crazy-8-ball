@@ -137,6 +137,10 @@ transparent background, no words), trimmed and padded to 256 px; the 1024 px raw
 | `daily_target.png` | Challenge | the Daily Challenge target | 127346327357150 |
 | `gear.png` | Gear | Settings | 125677637012120 |
 | `thank_you.png` | Heart | a heart with sparkles: the thank-you burst | 93822415051422 |
+| `magic_ball.png` | MagicBall | the Case Drop's magic 8-ball, front with the 8 (512 px) | 137828587348917 |
+| `magic_ball_window.png` | MagicBallWindow | the same ball turned to its empty blue answer window (512 px) | 98157748117655 |
+| `magic_triangle.png` | MagicTriangle | a white down-pointing die triangle, tinted in code (512 px) | 78612448466823 |
+| `hand_pointer.png` | HandPointer | a white cartoon hand pointing up: the shake hint (512 px) | 100619983981739 |
 
 `tools/products_icons.json` maps every pass and developer product to its icon here or above;
 `python3 tools/roblox_products.py --icons` sets them on Roblox.

@@ -191,6 +191,30 @@ step (steps 1-14 of the brief).
     Phone (844 x 390): the intro and the reel fit. Console clean. Not checked: a real second
     player seeing the tint, and a controller's A on the intro (both by hand).
 
+- **Step 6 done: the magic 8-ball Case Drop reveal.** Every Case Drop (a win's drop, read from
+  the match summary, so it shows after the result screen; the `CaseDrop` remote for the rest:
+  `/freecase`, login drops, Mystery Cases) now plays a giant magic 8-ball (`MagicBall`): "SHAKE
+  MAGIC 8 BALL!" shaking, turning rays behind it, a meter, and a see-through finger sweeping to
+  show how. A shake is a drag back and forth (touch or mouse), a tap or click, the left stick
+  pushed side to side, A, or a real phone shake. At each of the server's climbs the rays jump to
+  the next tier's colour with a ding, a burst and a bounce. Full, it flips to the triangle
+  window, which ticks slower and slower through the tier names to the real one in its colour.
+  Then the case slams in front: an openable case gets **Open now** (straight into the case
+  opening) and **Later**; a timed one says "Ready in 29:12" (ticking) and **OK**. Many drops at
+  once are one ball marked "x6", one shake, then a row of triangles ticking one by one (rarest
+  last), then the cases with their counts, "6 cases!", "They are in your Inventory." and
+  **Collect**. It waits its turn in the popup queue (never over a menu, a match or another
+  popup). Skip (bottom right; Y on a gamepad) shows once it was seen (this session for now; the
+  new `Seen` module is where step 8 plugs the saved Flags in; PullCutscene uses it too). Four
+  new icons (ball, ball window, triangle, hand pointer).
+  - Checked: lint, Lune tests (952 passed); Studio PC: one drop (drag shakes, the climbs, the
+    tick, Rare Case with the ticking timer, OK), six drops (rays, "x6", the triangle row, the
+    six cases, Collect), `/freecase` through the real server path ending on Open now, which
+    opened the case's intro; Skip on the second ball. Phone (844 x 390): the stage fits; Skip
+    moved from beside the title (it covered the "!") to the bottom right. Console clean. Not
+    checked: a real match win's drop (the summary path; code read only), a controller's stick
+    and A, and a real phone's shake (all by hand).
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
@@ -238,6 +262,10 @@ step (steps 1-14 of the brief).
 - `DayCycle.luau` (client): new `DayCycle.hold()`; `update` returns while held and rewrites
   everything once released.
 - New shared module `Progression/ReelPlan.luau` (pure; the reel's near-miss) and its test.
+- `Config.luau` (step 6): `Kit.Icons` gains `MagicBall`, `MagicBallWindow`, `MagicTriangle`,
+  `HandPointer` (after `Heart`); new `Config.UI.MagicBall` before `Config.Cutscenes`.
+- `Strings.luau` (step 6): new `MagicBall` block before `Banner`.
+- `Progression.luau` (client): one line starts `MagicBall`.
 
 ## Requests to other lanes or the integrator
 
@@ -298,6 +326,10 @@ step (steps 1-14 of the brief).
   Celestial Dragon, Kraken) keeps its still picture instead of turning in 3D: a ViewportFrame
   draws no Neon glow or ForceField, so the piece came out faint, while the new still picture
   (step 2) shows it in full. Plain cues still turn in 3D once loaded.
+- 2026-10-03 (lane): a win's 8-ball shows after the result screen, through the same popup
+  queue as every other popup, never over the result. A plain tap or click on the ball counts as
+  a shake too (so a mouse with no drag, or a player who does not get "drag", still gets
+  through).
 - 2026-10-03 (lane): a case's open is sent as the overlay opens (the "Click to open" moment is
   presentation, the case is already being spent), so closing during it gives the usual "Your
   cue is in your Inventory." line.

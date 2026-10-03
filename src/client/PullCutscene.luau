@@ -36,6 +36,7 @@ local CueThumb = require(script.Parent.CueThumb)
 local DayCycle = require(script.Parent.DayCycle)
 local HudParts = require(script.Parent.HudParts)
 local Quality = require(script.Parent.Quality)
+local Seen = require(script.Parent.Seen)
 local UISound = require(script.Parent.UISound)
 
 local CS = Config.Cutscenes
@@ -77,20 +78,6 @@ end
 --- Whether a rarity's pull reaches everyone else in the server (Legendary and up).
 function PullCutscene.isRemote(rarity: string): boolean
 	return rank(rarity) >= rank(CS.RemoteFrom)
-end
-
--- Which kinds were seen (skippable from then on). Settings' saved flags replace this store.
-local seenStore: { [string]: boolean } = {}
-local seenGet: (kind: string) -> boolean = function(kind: string): boolean
-	return seenStore[kind] == true
-end
-local seenMark: (kind: string) -> () = function(kind: string)
-	seenStore[kind] = true
-end
-
---- Where seen kinds are read and written (the saved flags, once they are wired).
-function PullCutscene.setSeenStore(get: (string) -> boolean, mark: (string) -> ())
-	seenGet, seenMark = get, mark
 end
 
 --------------------------------------------------------------------------------------------
@@ -284,7 +271,7 @@ local function finish(s: Scene)
 		return
 	end
 	s.ended = true
-	seenMark(s.rarity)
+	Seen.mark(s.rarity)
 	if scene == s then
 		scene = nil
 	end
@@ -839,7 +826,7 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> ())
 	skip.ZIndex = 10
 	skip.SelectionImageObject = CaseOpeningFx.noBox()
 	skip.Parent = root
-	local skippable = seenGet(rarity)
+	local skippable = Seen.get(rarity)
 	local W = Strings.CaseOpening
 	local hintWords = if UserInputService.GamepadEnabled
 			and UserInputService:GetLastInputType().Name:find("Gamepad")

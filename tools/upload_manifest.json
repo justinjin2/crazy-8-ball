@@ -281,10 +281,34 @@
     "imageId": "98530804278165",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/hand_pointer.png": {
+    "assetId": "85716788477313",
+    "assetType": "Decal",
+    "imageId": "100619983981739",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/invite.png": {
     "assetId": "84752319937611",
     "assetType": "Decal",
     "imageId": "121644690849571",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/magic_ball.png": {
+    "assetId": "84998051967740",
+    "assetType": "Decal",
+    "imageId": "137828587348917",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/magic_ball_window.png": {
+    "assetId": "119949268570068",
+    "assetType": "Decal",
+    "imageId": "98157748117655",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/magic_triangle.png": {
+    "assetId": "108664613473277",
+    "assetType": "Decal",
+    "imageId": "78612448466823",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-gui/assets/ui/icons/mystery_case.png": {

@@ -5400,6 +5400,10 @@ Config.UI = {
 			Challenge = "rbxassetid://127346327357150", -- the Daily Challenge
 			Gear = "rbxassetid://125677637012120", -- Settings
 			Heart = "rbxassetid://93822415051422", -- the thank-you burst
+			MagicBall = "rbxassetid://137828587348917", -- the Case Drop's magic 8-ball
+			MagicBallWindow = "rbxassetid://98157748117655", -- its answer side
+			MagicTriangle = "rbxassetid://78612448466823", -- the tier die in its window, tinted
+			HandPointer = "rbxassetid://100619983981739", -- the shake hint's finger
 			Calendar = "rbxassetid://81931904688937", -- the daily streak
 			Code = "rbxassetid://139681599835662", -- promo codes
 			Index = "rbxassetid://94908077553080", -- a book with a cue on it
@@ -9665,6 +9669,53 @@ Config.Debug = {
 }
 
 ---------------------------------------------------------------------------------------------
+-- The magic 8-ball Case Drop reveal (MagicBall; GUI lane, designer 2026-10-03, C11b). Natural
+-- pixels on a stage fitted to the screen (phone first), seconds. (tune)
+Config.UI.MagicBall = {
+	DisplayOrderAbove = 16, -- its screen over the HUD (over the case opening's +14)
+	BackdropTransparency = 0.45,
+	StageWidthPx = 620,
+	StageHeightPx = 470,
+	MinScale = 0.6,
+	MaxScale = 1.4,
+	TitlePx = 44, -- "SHAKE MAGIC 8 BALL!"
+	HintPx = 22, -- how to shake it on this device
+	BallPx = 250,
+	RaysShare = 2.2, -- the turning rays behind it in the tier's colour, of the ball
+	RaysDegreesPerSecond = 40,
+	GlowTransparency = 0.2,
+	CountPx = 48, -- "x10" on a many-drop ball
+	MeterWidthPx = 300, -- the meter under it
+	MeterPx = 16,
+	FingerPx = 90, -- the see-through finger sweeping to show how
+	FingerTransparency = 0.35,
+	FingerSweepPx = 90,
+	FingerSpeed = 4, -- radians a second
+	Shakes = 6, -- shakes to fill the meter (the climbs land evenly over them)
+	ShakeMinPx = 36, -- a drag turning back after this many pixels is a shake
+	StickThreshold = 0.6, -- the left stick past this, one side then the other
+	AccelThreshold = 1.4, -- a phone's acceleration jump (in g) that counts as a shake
+	JoltPx = 26, -- each shake throws the ball this far sideways...
+	SwayPx = 70, -- ...and a drag moves it at most this far
+	SwayReturnPerSecond = 9, -- it settles back this fast
+	RotatePerPx = 0.25, -- degrees it tilts per pixel of sway
+	FullPauseSeconds = 0.35, -- full: a beat before it turns round
+	FlipSeconds = 0.5,
+	TriangleShare = 0.46, -- the triangle in the window, of the ball
+	TickSeconds = 0.4, -- the first tier name's time in the window...
+	TickSlowdown = 1.3, -- ...each next one longer by this (a slow tick to the last)
+	QuickTickSeconds = 0.12, -- a many-drop row's triangles tick faster (the last one slow)
+	HoldSeconds = 1, -- the final tier held before the case shows
+	RowMax = 5, -- triangles to a row
+	TrianglePx = 110,
+	CasePx = 170, -- the case in front at the end
+	SmallCasePx = 110, -- several tiers side by side
+	ButtonPx = 52,
+	ButtonWidthPx = 200,
+	SkipWidthPx = 110, -- the Skip button, bottom right of the stage once seen
+	SkipHeightPx = 40,
+}
+
 -- The rare-pull cutscenes (PullCutscene; GUI lane, designer 2026-10-03, C11d). After the reel
 -- lands on a Rare or better cue, before its card: each rarity bigger than the last. Local only
 -- for Rare and Epic; from Legendary up every other player in the server sees a light sky tint

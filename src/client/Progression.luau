@@ -41,6 +41,7 @@ local Roadmap = require(script.Parent.Roadmap)
 local ShopMenu = require(script.Parent.ShopMenu)
 local ShopOfferPopup = require(script.Parent.ShopOfferPopup)
 local ShopThanks = require(script.Parent.ShopThanks)
+local MagicBall = require(script.Parent.MagicBall)
 local Popups = require(script.Parent.Popups)
 local TeleportScreen = require(script.Parent.TeleportScreen)
 local TradeMenu = require(script.Parent.TradeMenu)
@@ -212,6 +213,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	end)
 	ShopThanks.start(screen)
 	ShopOfferPopup.start(screen)
+	MagicBall.start(screen, deps) -- the Case Drop reveals, through the popup queue
 	local player = Players.LocalPlayer
 	local playerGui = player and player:FindFirstChildOfClass("PlayerGui")
 	if playerGui then

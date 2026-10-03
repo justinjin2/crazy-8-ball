@@ -991,6 +991,32 @@ return {
 		Keep = "Keep",
 		KeepNext = "Keep, open next (%s)", -- cases of this type left
 	},
+	-- The magic 8-ball Case Drop reveal (MagicBall; GUI lane, 2026-10-03).
+	MagicBall = {
+		Title = "SHAKE MAGIC 8 BALL!",
+		HintTouch = "Drag it back and forth!",
+		HintMouse = "Drag it back and forth, or click!",
+		HintPad = "Move the stick side to side!",
+		Count = "x%s", -- drops at once ("x10")
+		Skip = "Skip",
+		-- The tier names ticking in the triangle.
+		Tier = {
+			Standard = "STANDARD",
+			Uncommon = "UNCOMMON",
+			Rare = "RARE",
+			Epic = "EPIC",
+			Legendary = "LEGENDARY",
+			Mythic = "MYTHIC",
+		},
+		ManyCases = "%s cases!", -- the end of a many-drop reveal
+		ReadyIn = "Ready in %s", -- a case on its timer
+		Ready = "Ready to open!",
+		InInventory = "They are in your Inventory.",
+		OpenNow = "Open now",
+		Later = "Later",
+		Ok = "OK",
+		Collect = "Collect",
+	},
 	-- The banner at the top middle (Banner). Names are players' usernames.
 	Banner = {
 		-- "Painicane unboxed a Mythic Starfall Cue!" (username, the cue's name), by rarity.
