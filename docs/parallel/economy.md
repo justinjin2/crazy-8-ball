@@ -279,6 +279,21 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   The spin screen's odds rows carry `percent` (ppm / 10,000; each list adds to 100).
   Checked: Studio, VIP +1 spin and a 30-minute Rare timer unrestricted; 0 and 60 minutes
   restricted; `ult_spins_test` checks the percents.
+- **Step 9 done (2026-10-03): docs and the model.**
+  - `docs/ECONOMY.md` rewritten from the plan and what was built (section numbers kept;
+    section 19 lists the differences from the plan). GDD 11 (two bullets) and GDD 12 (in
+    full) updated.
+  - `tools/export_economy.luau` writes `tools/economy_config.json` from Config;
+    `python3 tools/economy_model.py` runs the plan's 60-day simulation on those numbers (it
+    re-exports when Config is newer). `--plan-only`, `--compare`, `--without a,b`,
+    `--like-codes`; the old subcommands (`tables`, `shop`, `loot`, `supply`, `ranks`) read
+    Config too. Assumptions are named constants at the top.
+  - Day 30, active players: plan-only Epic 5.60%, Legendary 0.88%, Mythic 0.10%, Secret
+    0.01% (on target). Full (with every addition built since the plan): **Epic 6.76% (+35%,
+    over the 20% line)**, Legendary 1.17% (+17%), Mythic 0.15%, Secret 0.02%. What adds most
+    Epic: launch codes +0.57, finder's and Index money +0.34, the 120-minute Rare Case +0.21,
+    rank money per division +0.19, invites +0.17. **Reported to the designer; nothing
+    trimmed** (the brief: ask before trimming).
 
 ### Changes to shared files (existing lines)
 
@@ -333,6 +348,9 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   touched outside economy: `ult_roll_test`, `ult_spins_test`, `ult_slots_test` (Magnet's
   rarity, the spin price).
 - (step 6) new `Config.BotCues` (no existing lines changed).
+- (step 9) `docs/ECONOMY.md`, `docs/GDD.md` 11-12, `tools/economy_model.py` (rewritten),
+  new `tools/export_economy.luau` and `tools/economy_config.json`; `Config.Shop.Mystery`'s
+  comment.
 - (follow-up) `PlayerData` (Quick Cases' timers need PaidRandomRestricted == false),
   `Store` (the halving likewise), `Rewards` (VIP's spin likewise), `Ults/SpinView` (odds
   rows carry `percent`), `tests/ult_spins_test`.

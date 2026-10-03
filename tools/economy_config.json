@@ -1,0 +1,719 @@
+{
+  "CaseCues": {
+    "Common": 7,
+    "Epic": 9,
+    "Legendary": 7,
+    "Mythic": 3,
+    "Rare": 10,
+    "Secret": 1,
+    "Uncommon": 9
+  },
+  "Cases": {
+    "Drop": {
+      "FirstWin": "Rare",
+      "PityEpic": 150,
+      "PityRare": 10,
+      "Weights": {
+        "Epic": 4000,
+        "Legendary": 286,
+        "Mythic": 4,
+        "Rare": 66667,
+        "Standard": 679043,
+        "Uncommon": 250000
+      }
+    },
+    "List": {
+      "Epic": {
+        "Enabled": false,
+        "Odds": {
+          "Epic": 190000,
+          "Legendary": 26000,
+          "Mythic": 3600,
+          "Rare": 780000,
+          "Secret": 400
+        },
+        "Price": 0,
+        "Timer": 21600
+      },
+      "Legendary": {
+        "Enabled": false,
+        "Odds": {
+          "Epic": 750000,
+          "Legendary": 220000,
+          "Mythic": 27000,
+          "Secret": 3000
+        },
+        "Price": 0,
+        "Timer": 86400
+      },
+      "Mythic": {
+        "Enabled": false,
+        "Odds": {
+          "Legendary": 750000,
+          "Mythic": 220000,
+          "Secret": 30000
+        },
+        "Price": 0,
+        "Timer": 172800
+      },
+      "Rare": {
+        "Enabled": false,
+        "Odds": {
+          "Epic": 3500,
+          "Legendary": 450,
+          "Mythic": 45,
+          "Rare": 296000,
+          "Secret": 5,
+          "Uncommon": 700000
+        },
+        "Price": 0,
+        "Timer": 3600
+      },
+      "Standard": {
+        "Enabled": false,
+        "Odds": {
+          "Common": 750000,
+          "Epic": 90,
+          "Legendary": 9,
+          "Mythic": 1,
+          "Rare": 19900,
+          "Uncommon": 230000
+        },
+        "Price": 0,
+        "Timer": 0
+      },
+      "Uncommon": {
+        "Enabled": false,
+        "Odds": {
+          "Common": 400000,
+          "Epic": 450,
+          "Legendary": 45,
+          "Mythic": 5,
+          "Rare": 59500,
+          "Uncommon": 540000
+        },
+        "Price": 0,
+        "Timer": 0
+      }
+    },
+    "OddsTotal": 1000000,
+    "Order": [
+      "Standard",
+      "Uncommon",
+      "Rare",
+      "Epic",
+      "Legendary",
+      "Mythic"
+    ],
+    "Rarities": [
+      "Common",
+      "Uncommon",
+      "Rare",
+      "Epic",
+      "Legendary",
+      "Mythic",
+      "Secret"
+    ],
+    "SellBack": {
+      "Common": 150,
+      "Epic": 25000,
+      "Legendary": 250000,
+      "Mythic": 2500000,
+      "Rare": 1500,
+      "Secret": 25000000,
+      "Uncommon": 400
+    }
+  },
+  "Daily": {
+    "Codes": {
+      "8BALL": {
+        "Money": 2500
+      },
+      "ABILITIES": {
+        "Spins": 3
+      },
+      "LIKES100K": {
+        "Cases": {
+          "Rare": 3
+        },
+        "Live": true,
+        "Spins": 5
+      },
+      "LIKES10K": {
+        "Cases": {
+          "Rare": 1
+        },
+        "Live": true,
+        "Spins": 3
+      },
+      "LIKES1K": {
+        "Drops": 1,
+        "Live": true,
+        "Money": 10000
+      },
+      "LIKES25K": {
+        "Cases": {
+          "Rare": 2
+        },
+        "Live": true
+      },
+      "LIKES50K": {
+        "Cases": {
+          "Rare": 2
+        },
+        "Live": true,
+        "Money": 100000
+      },
+      "LIKES5K": {
+        "Drops": 2,
+        "Live": true,
+        "Money": 25000
+      },
+      "ROOFTOP": {
+        "Cases": {
+          "Rare": 1
+        },
+        "Expires": 1798761600
+      },
+      "WELCOME": {
+        "Drops": 1,
+        "Money": 5000
+      }
+    },
+    "FreezePerWeek": 1,
+    "Playtime": [
+      {
+        "Minutes": 10,
+        "Money": 2000
+      },
+      {
+        "Drops": 1,
+        "Minutes": 30
+      },
+      {
+        "Drops": 2,
+        "Minutes": 60,
+        "Spins": 1
+      },
+      {
+        "Minutes": 90,
+        "Money": 10000
+      },
+      {
+        "Cases": {
+          "Rare": 1
+        },
+        "Minutes": 120
+      }
+    ],
+    "Streak": [
+      {
+        "Money": 5000
+      },
+      {
+        "Drops": 1
+      },
+      {
+        "Money": 10000
+      },
+      {
+        "Drops": 2
+      },
+      {
+        "Money": 15000
+      },
+      {
+        "Drops": 3
+      },
+      {
+        "Cases": {
+          "Rare": 1
+        },
+        "Spins": 2
+      }
+    ],
+    "Track": [
+      {
+        "Cases": {
+          "Rare": 1
+        },
+        "Day": 7
+      },
+      {
+        "Cases": {
+          "Rare": 2
+        },
+        "Day": 14
+      },
+      {
+        "Cases": {
+          "Rare": 2
+        },
+        "Day": 21
+      },
+      {
+        "Cases": {
+          "Epic": 1
+        },
+        "Day": 28
+      }
+    ],
+    "TrackDays": 28
+  },
+  "DifficultyMoney": {
+    "Challenger": 2,
+    "Classic": 1,
+    "Difficult": 1.5
+  },
+  "Economy": {
+    "Analytics": {
+      "Currency": "Money",
+      "FlushSeconds": 60
+    },
+    "BallPay": 100,
+    "DisguisedDailyWins": 20,
+    "FreeCaseLoserMinMatches": 5,
+    "FreeCasesPerOpponent": 3,
+    "GroupBoost": 0.1,
+    "LossBonus": 150,
+    "NiceShotPay": {
+      "Bank": 150,
+      "Carom": 200,
+      "Combo": 200,
+      "Kick": 150
+    },
+    "PartyBoost": 1,
+    "PcAfterCapShare": 0.5,
+    "PcDailyCap": 10000,
+    "PcDropsPerDay": 10,
+    "PcLossBonus": 80,
+    "PcWinBonus": 250,
+    "SameOpponent": [
+      {
+        "Balls": 1,
+        "Bonus": 1,
+        "FreeCase": true,
+        "UpTo": 5,
+        "Xp": 1
+      },
+      {
+        "Balls": 1,
+        "Bonus": 0.5,
+        "FreeCase": false,
+        "UpTo": 10,
+        "Xp": 0.5
+      },
+      {
+        "Balls": 0.5,
+        "Bonus": 0.25,
+        "FreeCase": false,
+        "Xp": 0
+      }
+    ],
+    "SameOpponentMaxEntries": 300,
+    "ShortAfterCapPay": 10,
+    "ShortDailyCap": 2000,
+    "SoloAfterCapPay": 10,
+    "SoloDailyCap": 3000,
+    "SoloShare": 0.3,
+    "StarterBoost": 1,
+    "StreakBonus": 250,
+    "StreakFrom": 3,
+    "TeamBallPay": true,
+    "UseDifficultyMultiplier": true,
+    "VipBoost": 1,
+    "WinBonus": 500,
+    "WinBonusGapFloor": 0.5
+  },
+  "Index": {
+    "FindMoney": {
+      "Common": 500,
+      "Epic": 7500,
+      "Exclusive": 5000,
+      "Legendary": 25000,
+      "Mythic": 100000,
+      "Rare": 2500,
+      "Secret": 500000,
+      "Uncommon": 1000,
+      "Unique": 10000
+    },
+    "Rows": {
+      "Common": {
+        "Money": 10000
+      },
+      "Epic": {
+        "Money": 250000
+      },
+      "Rare": {
+        "Money": 75000
+      },
+      "Uncommon": {
+        "Money": 25000
+      }
+    }
+  },
+  "Packs": [
+    {
+      "Key": "Pack1",
+      "Money": 9000,
+      "Robux": 49
+    },
+    {
+      "Key": "Pack2",
+      "Money": 19500,
+      "Robux": 99
+    },
+    {
+      "Key": "Pack3",
+      "Money": 52500,
+      "Robux": 249
+    },
+    {
+      "Key": "Pack4",
+      "Money": 110000,
+      "Robux": 499
+    },
+    {
+      "Key": "Pack5",
+      "Money": 235000,
+      "Robux": 999
+    },
+    {
+      "Key": "Pack6",
+      "Money": 625000,
+      "Robux": 2499
+    },
+    {
+      "Key": "Pack7",
+      "Money": 1300000,
+      "Robux": 4999
+    }
+  ],
+  "Ranks": {
+    "BaseXp": {
+      "Bronze": {
+        "Loss": 0,
+        "Win": 100
+      },
+      "Diamond": {
+        "Loss": 0,
+        "Win": 100
+      },
+      "Expert": {
+        "Loss": 0,
+        "Win": 100
+      },
+      "Gold": {
+        "Loss": 0,
+        "Win": 100
+      },
+      "Grandmaster": {
+        "Loss": 0,
+        "Win": 100
+      },
+      "Master": {
+        "Loss": 0,
+        "Win": 100
+      },
+      "Platinum": {
+        "Loss": 0,
+        "Win": 100
+      },
+      "Reyes": {
+        "Loss": 0,
+        "Win": 100
+      },
+      "Silver": {
+        "Loss": 0,
+        "Win": 100
+      },
+      "Veteran": {
+        "Loss": 0,
+        "Win": 100
+      }
+    },
+    "Boosts": {
+      "Streak": 0.25,
+      "StreakFrom": 3
+    },
+    "DivisionXp": {
+      "Bronze": [
+        300,
+        300,
+        400,
+        500,
+        600
+      ],
+      "Diamond": [
+        2500,
+        2800,
+        3200,
+        3600,
+        4000
+      ],
+      "Expert": [
+        4500,
+        5000,
+        5600,
+        6200,
+        6900
+      ],
+      "Gold": [
+        1200,
+        1300,
+        1400,
+        1500,
+        1600
+      ],
+      "Grandmaster": [
+        20000,
+        20500,
+        21000,
+        21500,
+        22000
+      ],
+      "Master": [
+        14300,
+        15700,
+        17000,
+        18000,
+        19500
+      ],
+      "Platinum": [
+        1700,
+        1800,
+        1900,
+        2000,
+        2200
+      ],
+      "Silver": [
+        700,
+        800,
+        900,
+        1000,
+        1100
+      ],
+      "Veteran": [
+        7700,
+        8800,
+        10000,
+        11300,
+        12700
+      ]
+    },
+    "Gap": {
+      "Floor": 0.3,
+      "LossMax": 1,
+      "Max": 1.5,
+      "Scale": 12,
+      "StrictFloor": 0.1,
+      "StrictFromTier": "Expert",
+      "StrictScale": 8
+    },
+    "ModeXp": {
+      "Challenger": 1.5,
+      "Classic": 1,
+      "Difficult": 1.25
+    },
+    "PcXp": {
+      "High": 0.5,
+      "Low": 0.75
+    },
+    "Rewards": {
+      "Step": {
+        "Bronze": 1000,
+        "Diamond": 15000,
+        "Expert": 30000,
+        "Gold": 3500,
+        "Grandmaster": 150000,
+        "Master": 80000,
+        "Platinum": 6000,
+        "Silver": 2000,
+        "Veteran": 50000
+      },
+      "Tier": {
+        "Bronze": {
+          "Cue": "BronzeCue",
+          "Drops": 2,
+          "Money": 2500
+        },
+        "Diamond": {
+          "Cases": {
+            "Epic": 1
+          },
+          "Cue": "DiamondCue",
+          "Money": 50000
+        },
+        "Expert": {
+          "Cases": {
+            "Epic": 2
+          },
+          "Cue": "ExpertCue",
+          "Money": 100000
+        },
+        "Gold": {
+          "Cases": {
+            "Rare": 2
+          },
+          "Cue": "GoldCue",
+          "Money": 10000
+        },
+        "Grandmaster": {
+          "Cases": {
+            "Legendary": 2
+          },
+          "Cue": "GrandmasterCue",
+          "Money": 750000
+        },
+        "Master": {
+          "Cases": {
+            "Legendary": 1
+          },
+          "Cue": "MasterCue",
+          "Money": 400000
+        },
+        "Platinum": {
+          "Cases": {
+            "Rare": 3
+          },
+          "Cue": "PlatinumCue",
+          "Money": 20000
+        },
+        "Reyes": {
+          "Cases": {
+            "Mythic": 1
+          },
+          "Cue": "ReyesCue",
+          "Money": 2000000
+        },
+        "Silver": {
+          "Cases": {
+            "Rare": 1
+          },
+          "Cue": "SilverCue",
+          "Money": 5000
+        },
+        "Veteran": {
+          "Cases": {
+            "Epic": 3
+          },
+          "Cue": "VeteranCue",
+          "Money": 200000
+        }
+      }
+    },
+    "Tiers": [
+      "Bronze",
+      "Silver",
+      "Gold",
+      "Platinum",
+      "Diamond",
+      "Expert",
+      "Veteran",
+      "Master",
+      "Grandmaster",
+      "Reyes"
+    ],
+    "Unlocks": {
+      "Challenger": "Gold",
+      "Difficult": "Gold"
+    }
+  },
+  "Shop": {
+    "Mystery": {
+      "BulkCount": 10,
+      "BulkPrice": 44100,
+      "Price": 4900
+    },
+    "Restock": {
+      "ChanceTotal": 10000,
+      "Epic": {
+        "Case": "Epic",
+        "Price": 349000,
+        "Product": "RestockEpic",
+        "Stock": 1
+      },
+      "EpicChance": 400,
+      "Legendary": {
+        "Case": "Legendary",
+        "GlobalStock": 25,
+        "Price": 3490000,
+        "Product": "RestockLegendary",
+        "Stock": 1
+      },
+      "LegendaryChance": 15,
+      "Mystery": {
+        "Mystery": 3,
+        "Price": 14700,
+        "Stock": 1
+      },
+      "Rare": {
+        "Case": "Rare",
+        "Price": 34900,
+        "Stock": 2
+      },
+      "RareChance": 6000,
+      "ReceiptGraceSeconds": 600,
+      "SlotSeconds": 600,
+      "Uncommon": {
+        "Case": "Uncommon",
+        "Price": 14900,
+        "Stock": 3
+      },
+      "Vip": {
+        "Case": "Rare",
+        "Price": 34900,
+        "Stock": 1
+      }
+    },
+    "Skip": {
+      "MinMoney": 250,
+      "MoneyPerMinute": 25
+    },
+    "StarterMoney": 75000
+  },
+  "Social": {
+    "GroupReward": {
+      "Drops": 3
+    },
+    "InviteCase": "Rare",
+    "InvitesPerMonth": 5
+  },
+  "Ults": {
+    "Earn": {
+      "DailyFree": 1,
+      "LuckyPacks": [
+        "Lucky1",
+        "Lucky3"
+      ],
+      "MaxSpins": 100000,
+      "MoneyPacks": [
+        1,
+        5,
+        10,
+        50
+      ],
+      "MoneyPerSpin": 17500,
+      "RankUp": {
+        "Bronze": 1,
+        "Diamond": 2,
+        "Expert": 3,
+        "Gold": 1,
+        "Grandmaster": 3,
+        "Master": 3,
+        "Platinum": 2,
+        "Reyes": 3,
+        "Silver": 1,
+        "Veteran": 3
+      },
+      "RobuxPacks": [
+        "Spin1",
+        "Spin5",
+        "Spin10",
+        "Spin50"
+      ],
+      "Starter": 3
+    }
+  },
+  "_note": "Generated by tools/export_economy.luau from src/shared/Config.luau. Do not edit."
+}

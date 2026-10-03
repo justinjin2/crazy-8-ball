@@ -667,124 +667,179 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   **Disguised bots** (the global queue's fallback after 10 s for 1v1 and 25 s for teams, the
   lobby bots that keep an empty server alive, the tutorial) wear real Roblox avatars of random
   accounts with made-up names (designer's call, 2026-10-02); their wins pay like a real match
-  with no win streak and are stored as PC wins (never on the most-wins board).
+  with no win streak and are stored as PC wins (never on the most-wins board). After 20
+  disguised wins in a UTC day they pay the PC rows and drop no case, with nothing on screen
+  (plan, 2026-10-02; designer, 2026-10-03: hidden). A bot's equipped cue is picked by its tier
+  to match what real players at that rank own, and is never the Secret cue (ECONOMY.md
+  section 15).
 - Rating is saved under a season label ("Season 0"). **Ranks never reset** (designer,
-  2026-09-28); seasons may give rewards for the highest tier reached that season.
+  2026-09-28); seasons may give rewards for the highest tier reached that season. (Save
+  version 6, 2026-10-03, started every save over before release: only friends had played.)
 - **Forfeits** (built 2026-09-27, the small version of 13): whoever surrenders, leaves or runs
   out of timeouts gets no XP. The winner is paid only after the one-minute mark; under it the
   match pays nobody.
-- **Rank-up rewards**, once, the first time you reach them: money for each new division (the
-  money Levels used to pay); for each new tier money, cases, the tier's cue (Exclusive, never
-  tradable) and the chat tag. ECONOMY.md section 4.8.
+- **Rank-up rewards**, once, the first time you reach them (plan, 2026-10-02): money for each
+  new division ($1,000 a Bronze division up to $150,000 a Grandmaster one); for each new tier
+  money, cases (Bronze: 2 Case Drops; Silver a Rare Case up to Reyes a Mythic Case and
+  $2,000,000), the tier's cue (Exclusive, never tradable), the chat tag and ability spins.
+  ECONOMY.md section 4.8.
 - **Rank and money show** in the top left rank HUD (badge, name, XP bar), over every head
   (badge then username), under each portrait in the match bar, and as Rank and Money columns
   in Roblox's player list (designer, 2026-09-27).
 
 ## 12. Economy
 
+Every number is in [ECONOMY.md](ECONOMY.md), rewritten 2026-10-03 from the economy plan the
+designer approved on 2026-10-02 and the designer's interview answers of 2026-10-03.
+
 **Decided**
-- **Money** is earned for every ball pocketed, more on streaks and trickshots, in every mode
-  including Solo and PC. Solo and PC income slows after a daily amount *(tune)*, never to zero.
-  Money farming with macros is not punished.
-- **Difficulty multiplies money** (designer, 2026-09-26): 1x Classic, 1.5x Difficult, 2x
-  Challenger *(tune)*, shown under each difficulty in the host menu
-  (`Config.Difficulty.MoneyMultiplier`). This is separate from the rating multiplier in
-  section 11.
-- **Money packs are sold for Robux.** Because of that, every loot box, gacha and trade is a
-  paid random item under Roblox policy: odds are shown on every box, and players in regions
-  where paid random items are restricted cannot buy cases with money (free cases still open;
-  the Limited shelf, a known cue at a fixed price, stays; ECONOMY.md section 13).
+- **Money** is earned for every ball pocketed, more for nice shots, wins and win streaks, in
+  every mode including Solo and PC; a loss still pays. All numbers are x10 of the old ones
+  (plan, 2026-10-02): **$100 a ball**, bank or kick +$150, combo or carom +$200, **win +$500**,
+  **loss +$150**, win streak +$250 from the 3rd win in a row against people. About **$7,300 an
+  hour** in Classic. Play against PC pays $250 / $80 match bonuses and half after $10,000 of PC
+  money a UTC day; Solo pays $30 a ball until $3,000 a UTC day, then $10; matches that end
+  before the one-minute mark pay $10 a ball past $2,000 a day. Each pot flies a "+$100" from
+  the pocket into your total, bottom left. Money farming with macros is not punished.
+  ECONOMY.md section 3.
+- **Difficulty multiplies money** (designer, 2026-09-26; switched on 2026-10-03): 1x Classic,
+  1.5x Difficult, 2x Challenger *(tune)*, shown under each difficulty in the host menu
+  (`Config.Difficulty.MoneyMultiplier`). This is separate from the XP multiplier in section 11.
+- **Boosts add, then difficulty multiplies**: base x difficulty x (1 + VIP 1 + Money Party 1 +
+  the Starter Pack's hour 1 + group 0.1), on match money only (designer, 2026-10-03: VIP and
+  the Starter hour together are x3).
+- **Money is shown** in full up to $999,999, then $1.2M. Money never trades.
+- **Money packs are sold for Robux.** So Mystery Cases, restock cases, timer skips and ability
+  spins are paid random items under Roblox policy: odds are shown as percentages that sum to
+  100, and where PolicyService says paid random items are restricted they are refused. Free
+  rewards still work there, and so does the Limited shelf (a known cue at a fixed price).
+  Paid-origin items can't be traded where `IsPaidItemTradingAllowed` is false. ECONOMY.md
+  section 13.
+- **Odds are percentages everywhere** (designer, 2026-10-02): Case Drops, every case, every cue,
+  ability spins. Never "1 in X".
 - **First release collectibles are cue skins only (decided 2026-09-23).** There are no table
   skins at release: every table uses the standard model. Table skins are parked in
   section 18 for after release.
-- **Cases** (designer, 2026-09-27): four permanent cases bought with money (Standard,
-  Rare, Epic, Legendary; each guarantees one rarity below its name, never a guaranteed
-  legendary), and **the winner of every real match gets a free Standard Case** (every win for
-  a new player's first 50 wins, then the first 10 wins a day and every 2nd win after; solo
-  never). Odds and prices: [ECONOMY.md](ECONOMY.md) section 7. At release: 46 case cues
-  (7/9/10/9/7/3/1 from Common to Secret, the cue skins plan, 2026-09-30).
+- **Case Drops** (plan, 2026-10-02): **every real win** gives a Case Drop, forever (solo never;
+  the anti-farm rules and the PC and disguised-bot limits still apply). The server rolls one of
+  six cases: **Standard 67.9043%, Uncommon 25%, Rare 6.6667%, Epic 0.4%, Legendary 0.0286%,
+  Mythic 0.0004%**, with pity (a Rare Case by the 10th drop without one, an Epic Case by the
+  150th; never a Legendary). The reveal is a **magic 8-ball the player shakes**; each shake can
+  climb one tier, but the server has already decided. The first win's drop is a guaranteed
+  Rare Case on its normal 1 h timer (designer, 2026-10-03). ECONOMY.md section 7.
+- **Cases** (plan, 2026-10-02): six cases, Standard, Uncommon, Rare, Epic, Legendary and
+  Mythic, each guaranteeing at least the rarity below its name. Standard and Uncommon open at
+  once; Rare, Epic, Legendary and Mythic open after 1 h, 6 h, 24 h and 48 h, all timers running
+  at once. **No case is sold permanently**: the four money cases, Buy-10, case sales and the
+  Event Case are gone. Cases come from Case Drops, rewards and the restock shop. At release:
+  46 case cues (7/9/10/9/7/3/1 from Common to Secret, the cue skins plan, 2026-09-30). Mythic
+  and Secret pulls are announced in every server, Legendary pulls in the server.
+- **What money buys** (plan, 2026-10-02): **Mystery Cases** ($4,900, one Case Drop each; 10 for
+  $44,100), the **restock shop** (new items every 10 minutes on the clock, the same in every
+  server: an Uncommon Case, sometimes a Rare Case, rarely an Epic Case or a Legendary Case with
+  25 copies worldwide, a VIP-only Rare Case), **timer skips** ($1,500 an hour left), **ability
+  spins** ($17,500 each) and **Limited cues** (from $149,000). ECONOMY.md section 9.
 - **Rarities** (designer, 2026-09-27): **Common, Uncommon, Rare, Epic, Legendary, Mythic,
-  Secret**, from cases and the shop. Two groups sit outside that ladder and never come from
-  cases: **Unique** (numbered limited copies: Founder's, Beta) and **Exclusive** (the VIP Cue,
-  the Starter Cue, the rank cues Bronze Cue to Reyes Cue, later season cues). "Ultra" is
-  dropped; VIP is an Exclusive cue, not a rarity. Colours in `docs/UI_STYLE.md`. Rarer cues
-  have special trail and pocket VFX.
-- **Duplicates can be sold back** for a little money (designer, 2026-09-27; no trade-up).
-- **No direct buying of case cues** (designer, 2026-09-27; it replaced a rotating "today's
-  deals" shop the same day): Common to Secret cues come only from cases and trading. A
-  **Limited shelf** sells exclusive, numbered Unique cues (never in cases) for a set time,
-  sometimes copy-capped, then never again, so they become trade-only. Every cue shows how many
-  copies exist. Deals are only on cases (bulk opening, occasional genuine sales, timed
-  special event cases with their own cues), never a guaranteed case cue. ECONOMY.md section 9.
+  Secret**, from cases. Two groups sit outside that ladder and never come from cases:
+  **Unique** (numbered Limited copies: the Grand Opening Cue; Founder's and Beta when
+  scheduled) and **Exclusive** (the VIP Cue, the Starter Cue, the rank cues Bronze Cue to Reyes
+  Cue, later season cues). "Ultra" is dropped; VIP is an Exclusive cue, not a rarity. Colours
+  in `docs/UI_STYLE.md`. Rarer cues have special trail and pocket VFX. Cue cards show the
+  rarity, its % per Case Drop and how many exist ("EPIC · 0.138% · 1,284 exist").
+- **Duplicates can be sold back** for money (designer, 2026-09-27; no trade-up): Common $150 up
+  to Secret $25,000,000 (plan, 2026-10-02).
+- **No direct buying of case cues** (designer, 2026-09-27): Common to Secret cues come only from
+  cases and trading. The **Limited shelf** sells exclusive, numbered Unique cues (never in
+  cases) for a set time, sometimes copy-capped, then never again, so they become trade-only.
+  Every cue shows how many copies exist. Retired (vaulted) cues never come back (plan,
+  2026-10-02). ECONOMY.md section 9.
 - **A cue carries its own effects.** Every cue defines the cue ball's TRAIL and the burst
   when a ball is pocketed, so the cue you equip changes how the table looks while you play,
   not just what the stick looks like. The default cue and every common one use the same
   minimalist trail: a thin white translucent wisp, like wind off the ball. Rarer cues
   replace it with their own trail and their own pocket effect, and that pairing is the main
   reason to want one. Effects are catalog data (a named style), never code per cue.
-- **Limited seasonal boxes** that leave and may or may not return. Season 0 has one, for cues.
-- **The Limited shelf** holds the high-priced, quantity-limited items that sell out and become
-  limited forever. At release: the Founder's Cue (1,499 R$, 50 copies) and the Beta Cue
-  ($40,000, 1,000 copies, first 30 days) *(tune)*. All economy screens live under one menu.
+- **The Limited shelf at release** (plan, 2026-10-02; designer, 2026-10-03): the **Grand
+  Opening Cue**, $149,000, numbered, one per player, no copy cap, for 14 days from a start date
+  the designer sets right before release (off until then; placeholder colours for now).
+  Founder's and Beta are off until the designer schedules them. After launch, about one new
+  Limited every 2 weeks when art exists ($149,000-$499,000, some for Robux); none is scheduled
+  yet. Seasons, the Cue Pass and event cases come after release.
+- **Free rewards** (plan, 2026-10-02; designer, 2026-10-03): a **7-day login loop** ($5,000,
+  1 Case Drop, $10,000, 2 Case Drops, $15,000, 3 Case Drops, a Rare Case + 2 ability spins;
+  day 1 given by itself on join; one free streak freeze a week); a **28-day track** of total
+  days (Rare Case, 2 Rare, 2 Rare, an Epic Case); **playtime gifts** (10 min $2,000 up to 120
+  min a Rare Case); the game's **group** (Join and Claim: 3 Case Drops once, +10% match money
+  while a member); six **like codes** the designer switches on live at like milestones;
+  **invites** (a brand-new friend's first real win gives both a Rare Case, at most 5 a month);
+  **codes** (WELCOME, 8BALL, ROOFTOP, ABILITIES). Codes give only money, Case Drops, cases and
+  spins. ECONOMY.md section 10.
 - **Ult spins** ("Ability Spins" to players; designer, 2026-09-28, section 9): the spin
-  screen gives ults; spins come from play (starter, daily, rank-ups, streak day 7, playtime,
-  codes), Robux packs and money, with true odds, pity and Lucky Spins (ECONOMY.md 11.8). Ults
-  are kept in 3 slots; a spin replaces the selected slot's ult.
-- **VIP** (one-time pass, 599 R$ *(tune)*): 2x money, the VIP Cue, a [VIP] chat tag before
-  the rank tag ("[VIP] [GOLD] Name"; the name in chat keeps Roblox's colour) and a rainbow
-  name over the head whose colours drift slowly (designer, 2026-09-28). Never better odds,
-  never cases, and no XP boost (designer, 2026-10-02: rank comes from skill only). A **welcome offer** at 50% off for 24 hours from the
-  first join, plus one 24-hour comeback window 7 days later (designer, 2026-09-27; Roblox's
-  rules call short pressure windows unfair, so not 15 minutes). ECONOMY.md section 11.
-- **Starter Pack:** the Starter Cue and $3,000 for 79 R$, in the first 7 days *(tune)*, with
-  no case inside.
-- **Other Robux products** at launch: money packs 49 to 4,999 R$, Money Party (a server-wide
-  money boost) and Fast Open; later a Cue Pass, gifts, emotes and more. Never anything that
-  protects rank or changes case odds; the one exception is ult spins and Lucky Spins (the
-  designer's choice, 2026-09-28: a luck boost for ult rolls, odds always shown, pity kept).
-  ECONOMY.md section 11.
+  screen gives ults; spins come from play (starter, daily, VIP's extra daily spin, rank-ups,
+  login day 7, playtime, codes), Robux packs and money ($17,500 a spin), with true odds shown as
+  %, pity and Lucky Spins. The plan (2026-10-02) moved Magnet to Uncommon and Heat Seeker to
+  Common; Portals is flagged for a re-measure. Ults are kept in 3 slots; a spin replaces the
+  selected slot's ult. ECONOMY.md section 11.8.
+- **VIP** (one-time pass, 599 R$ *(tune)*): 2x money, +1 free ability spin a day, the VIP slot
+  in the restock shop (an extra Rare Case), the VIP Cue, a [VIP] chat tag before the rank tag
+  ("[VIP] [GOLD] Name"; the name in chat keeps Roblox's colour) and a rainbow name over the
+  head whose colours drift slowly (designer, 2026-09-28). Never cases, never better odds, no
+  XP boost, no discount. A **welcome offer** at half price (299 R$) for 24 hours from the first
+  join, plus one 24-hour comeback window 7 days later (designer, 2026-09-27; Roblox's rules
+  call short pressure windows unfair, so not 15 minutes). ECONOMY.md section 11.
+- **Starter Pack** (99 R$, once, in the first 7 days *(tune)*): the Starter Cue, $75,000 and 1
+  hour of 2x money, with no case inside.
+- **Other Robux products** at release (plan, 2026-10-02): 4 game passes (VIP, **Quick Cases**
+  299 R$: case timers halved, open ready cases at once, skip the reveal; Ability Slot 2 and 3)
+  and 24 developer products (VIP offer, Starter Pack, 7 money packs 49 to 4,999 R$, Mystery
+  Cases, the restock Epic and Legendary Cases, 4 timer skips, Money Party, 4 spin packs, 2
+  Lucky Spin packs), plus a Get Roblox Plus button. The shop is one scrolling page with no tabs.
+  Never anything that protects rank, no luck economy, no money bets, no offline income; the one
+  luck purchase is ability spins (odds always shown, pity kept). Later: a Cue Pass, gifts,
+  Founder's and Beta cues. ECONOMY.md section 11.
 - **Items:** one catalog for cues and abilities (stable id, type, rarity, model, effect); the
   type field leaves room for table skins later. A cue is saved as a count per catalog id
   (2026-09-28, ECONOMY.md section 18: small saves, a duplicate is a count above 1); numbered
-  Unique cues keep their copy number (#412). Abilities are owned flags. **Case cues and
-  Unique cues can be traded; Exclusive cues never (VIP, Starter, rank and season cues;
-  designer, 2026-09-28). Ults are account-bound (never traded). Money is never traded.**
-  Trading is in the first release (designer, 2026-09-26; it was planned for after).
-- **Index** (designer, 2026-09-26): a collection screen of the game's cues (what it shows:
-  the 2026-09-28 line below).
+  Unique cues keep their copy number (#412). Every case and cue copy carries a free or paid
+  origin. Abilities are owned flags. **Case cues and Unique cues can be traded; Exclusive cues
+  never (VIP, rank and season cues; designer, 2026-09-28), except the Starter Cue. Ults are
+  account-bound (never traded). Money is never traded.**
+- **Trading is in the first release** (built 2026-10-03, the screen is the GUI lane's): open to
+  **anyone in the server, no gate** (designer, 2026-10-03; the plan's 25-win gate was dropped).
+  Cues and ready cases, up to 8 a side, never money; any change restarts a 3-second confirm on
+  both sides; a warning when the sides are far apart by copies in existence; the last 50 trades
+  in a history. The swap is server-side and atomic with a ledger: both saves change or neither.
+  A trade pays no finder's money. ECONOMY.md section 12.
+- **Index** (designer, 2026-09-26): a collection screen of the game's cues.
 - **Cue models:** every cue is its own small mesh plus a named effect style. Hundreds are
   expected, added as data rows plus assets.
 - **Shop, inventory, the index, trading, save data and the first-time flow exist before the
   game is public.**
-- **Money per ball** (built 2026-09-27, kept by the economy plan *(tune)*): $10 for every ball that counts
-  for the shooter (their group, any ball on a legal pot while the table is open, the break's
-  balls, the 8 when it wins), nothing for the other side's balls or on a foul shot. A nice shot
-  pays extra on top: bank or kick +$15, combo or carom +$20. Match bonus: win +$50, loss +$15
-  (money even when you lose), against PC half; the leaver gets nothing. Solo pays 30% ($3 a
-  ball) until $300 in a UTC day, then $1 a ball. Difficulty multiplies it (every table is
-  Classic today). Each pot flies a "+$10" from the pocket into your total, bottom left. The
-  rest of the money rules (PC and short-match limits, team pay, the win streak, anti-farm
-  rules, boosts) are in ECONOMY.md section 3.
-- **Trading is open from the start** (no level gate; designer, 2026-09-27); Exclusive cues
-  never trade (2026-09-28); players Roblox bars from trading paid items can't trade (ECONOMY.md section 12).
 
 - **The Index** (designer, 2026-09-28): every cue in the catalog by rarity; a cue never owned
   is a "?" card; a cue counts once ever owned (selling keeps it). Tapping a card shows it on
   the side: its name (even before it is found) and the cue turning in 3D, a black silhouette
-  until found, its real look after. Completing a rarity row pays once (Commons $1,000,
-  Uncommons $2,500, Rares $7,500, Epics $25,000; the rows above Epic have no reward). The
-  rows' "Collector" titles are gone (designer, 2026-09-28: they added nothing). ECONOMY.md
-  section 18.
+  until found, its real look after. Completing a rarity row pays once (Commons $10,000,
+  Uncommons $25,000, Rares $75,000, Epics $250,000; plan, 2026-10-02; the rows above Epic have
+  no reward). The rows' "Collector" titles are gone (designer, 2026-09-28: they added nothing).
+  ECONOMY.md section 18.
 - **The Cues tab** (designer, 2026-09-28): no rarity filter chips; one sort button turns
   through Rarest first (the default), Common first, Most copies and Name A-Z. Sorting by
   rarity puts Exclusive between Epic and Legendary, and Unique on top.
-- **Finder's money** (designer, 2026-09-28): the first time a player gets a cue it pays extra
-  money by rarity, once per cue ever (Common $50 up to Secret $50,000; Exclusive $500, Unique
-  $1,000; *(tune)*). ECONOMY.md section 18.
-- **The menus** (designer, 2026-09-28): four buttons in one column on the left, Shop
-  (Cases, Limited, Money, VIP), Inventory (Cues, Cases, Index), Rewards (Daily, Playtime,
-  Codes) and Trade (later). Cases open on a spinning reel; Fast Open opens ten at once without
-  it. Promo codes give only money or free cases.
+- **Finder's money** (designer, 2026-09-28; amounts from the plan, 2026-10-02): the first time
+  a player gets a cue it pays extra money by rarity, once per cue ever (Common $500 up to
+  Secret $500,000; Exclusive $5,000, Unique $10,000; *(tune)*); never for a cue got in a trade.
+  ECONOMY.md section 18.
+- **The menus** (designer, 2026-09-28; the shop changed 2026-10-02): four buttons in one column
+  on the left, Shop (one scrolling page, no tabs), Inventory (Cues and the Index, unopened cases
+  at the top), Rewards (login loop, 28-day track, playtime, codes, group, invites) and Trade.
+- **Bots' cues** (plan, 2026-10-02): a bot's cue rarity follows its tier (Bronze 5% Epic or
+  better up to Reyes 99%); a bot never shows the Secret cue. ECONOMY.md section 15.
+- **Targets** (designer, 2026-10-02): at day 30, about 5% of active players own an Epic, 1% a
+  Legendary, 0.5% or less a Mythic, the Secret far rarer. `tools/economy_model.py` checks them.
+- **Analytics**: every money source and sink goes to `AnalyticsService:LogEconomyEvent`.
+- **R15 only** (designer, 2026-10-02): Roblox pays more per Robux on purchases by age-checked
+  US adults only in games without R6.
 
 ## 13. Fair play and security
 

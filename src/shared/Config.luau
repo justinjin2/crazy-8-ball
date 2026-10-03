@@ -2331,7 +2331,7 @@ Config.Shop = {
 	-- pays the game for each subscriber signed up in it). false hides it.
 	RobloxPlus = true,
 	-- Mystery Cases for money (plan section 4): each is one Case Drop (the same odds, pity and
-	-- 8-ball reveal), paid origin. Price one; BulkCount for BulkPrice (no discount: 9 x 4,900).
+	-- 8-ball reveal), paid origin. Price one; BulkCount for BulkPrice (the plan's: 10 for the price of 9).
 	Mystery = { Price = 4900, BulkCount = 10, BulkPrice = 44100 },
 	-- Finishing a case timer with money (plan section 4): MoneyPerMinute for every minute left
 	-- (a part minute counts whole), at least MinMoney. Robux (Skip1h ... Skip48h) is cheaper.
