@@ -101,6 +101,7 @@ return {
 			Timeout = "Ran out of time",
 			Departure = "The shooter left",
 			Reset = "The shooter reset",
+			EightBack = "The 8 was put back on the table", -- the tutorial's game 1
 		},
 		Win = "YOU WIN!",
 		Lose = "YOU LOSE!",
@@ -143,6 +144,7 @@ return {
 			Timeout = "Shooting time expired",
 			Departure = "Shooter disconnected",
 			Reset = "Shooter reset",
+			EightBack = "8-ball put back", -- the tutorial's game 1 (Tutorial/Rig)
 			wrong_first = "Wrong first contact",
 			no_contact = "No ball contacted",
 			scratch = "Cue ball scratched",
@@ -1287,6 +1289,47 @@ return {
 			GamepadFocus = "Press Y, then A to request an opponent!",
 		},
 		Finding = "Finding you an opponent...",
+		-- Game 1's lessons (the TutorialLesson attribute), per device.
+		Break = {
+			Mouse = "Pull the power bar all the way down!",
+			Touch = "Drag the power bar all the way down!",
+			Gamepad = "Hold A to power up, then let go!",
+		},
+		Aim = {
+			Mouse = "Drag to aim at a glowing ball!",
+			Touch = "Swipe to aim at a glowing ball!",
+			Gamepad = "Tilt the left stick to aim!",
+		},
+		AimShoot = {
+			Mouse = "Now pull the power bar to shoot!",
+			Touch = "Now pull the power bar to shoot!",
+			Gamepad = "Now hold A, then let go!",
+		},
+		Ability = {
+			Mouse = "Press G to use your ability!",
+			Touch = "Tap your ability!",
+			Gamepad = "Press X to use your ability!",
+		},
+		Pick = {
+			Mouse = "Click one of your balls!",
+			Touch = "Tap one of your balls!",
+			Gamepad = "Pick one of your balls with A!",
+		},
+		PickConfirm = {
+			Mouse = "Now click Confirm!",
+			Touch = "Now tap Confirm!",
+			Gamepad = "Now press X to confirm!",
+		},
+		BallInHand = {
+			Mouse = "Ball in hand! Drag the white ball anywhere.",
+			Touch = "Ball in hand! Drag the white ball anywhere.",
+			Gamepad = "Ball in hand! Hold L2 and tilt the left stick to move it.",
+		},
+		Eight = {
+			Mouse = "SELECT WHICH POCKET!",
+			Touch = "SELECT WHICH POCKET!",
+			Gamepad = "SELECT WHICH POCKET! D-pad to choose, A to select.",
+		},
 	},
 	-- Rank rewards held until claimed (RankClaim; the roadmap's claim block, NEW RANK!).
 	RankClaim = {

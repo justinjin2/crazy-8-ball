@@ -57,6 +57,70 @@ function TutorialAnchors.hidden(name: string): boolean
 	return hiddenSet[name] == true
 end
 
+-- The aim, as the tutorial wants it: locked (game 1's break goes straight) and a direction to
+-- turn the aim to once (the aim lesson starts a little off its pot). Input and Main read them.
+local aimLock: number? = nil
+local aimWanted: number? = nil
+
+--- Locks the aim at `angle` (radians; nil unlocks): Input's turning does nothing meanwhile.
+function TutorialAnchors.setAimLock(angle: number?)
+	if angle ~= aimLock then
+		aimLock = angle
+		aimWanted = angle
+	end
+end
+
+--- The locked aim, or nil.
+function TutorialAnchors.aimLock(): number?
+	return aimLock
+end
+
+--- Asks Main to turn the aim to `angle` once.
+function TutorialAnchors.suggestAim(angle: number)
+	aimWanted = angle
+end
+
+--- The aim the tutorial asked for since the last call (Main, every frame), or nil.
+function TutorialAnchors.takeAim(): number?
+	local angle = aimWanted
+	aimWanted = nil
+	return angle
+end
+
+-- What the player did that only a screen knows: the aim turned (degrees, from Input), and
+-- flags a screen sets (UltPicked: a ball is chosen in Heat Seeker's pick view, UltPick).
+local turned = 0
+local flags: { [string]: boolean } = {}
+
+--- Input: the aim turned by `degrees`.
+function TutorialAnchors.noteTurn(degrees: number)
+	turned += math.abs(degrees)
+end
+
+--- How far the aim has turned (degrees) since the last resetTurn.
+function TutorialAnchors.turned(): number
+	return turned
+end
+
+function TutorialAnchors.resetTurn()
+	turned = 0
+end
+
+--- A screen's flag for the tutorial (see above).
+function TutorialAnchors.setFlag(name: string, on: boolean)
+	flags[name] = on
+end
+
+function TutorialAnchors.flag(name: string): boolean
+	return flags[name] == true
+end
+
+--- Whether the tutorial's game 1 is on (the longer guideline and the strong ball outlines).
+function TutorialAnchors.game1(): boolean
+	local player = game:GetService("Players").LocalPlayer
+	return player ~= nil and player:GetAttribute("TutorialStep") == "Game1"
+end
+
 --- The tutorial's call: hide exactly the items in `names` (a set), show the rest.
 function TutorialAnchors.setHidden(names: { [string]: boolean })
 	local same = true

@@ -27,6 +27,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
 local Menus = require(script.Parent.Menus)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local RewardsParts = require(script.Parent.RewardsParts)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -90,6 +91,7 @@ function Reminders.freeSpin(): boolean
 	return UltSpinState.isLive()
 		and UltSpinState.freeSpinReady()
 		and Menus.isRegistered(ULT.Column.Name)
+		and not TutorialAnchors.hidden("Abilities") -- the tutorial brings Abilities in later
 end
 
 --------------------------------------------------------------------------------------------

@@ -20,6 +20,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local Aim = require(Shared:WaitForChild("Physics"):WaitForChild("Aim"))
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 
 type Trace = Aim.Trace
 type Hop = Aim.Hop
@@ -227,7 +228,8 @@ function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?, level:
 	local G = Config.Guideline
 	local R = Config.Balls.RadiusInches
 	local ringR = Config.Balls.RenderRadiusInches * G.RingScale
-	local stub = G.StubLengthInches
+	-- The tutorial's game 1 draws the longer line (the tutorial lane).
+	local stub = if TutorialAnchors.game1() then G.TutorialStubLengthInches else G.StubLengthInches
 
 	-- A jump at a level that draws its flight: the arc in the air, and the corridor only from
 	-- where the ball settles (none when it meets something in the air).

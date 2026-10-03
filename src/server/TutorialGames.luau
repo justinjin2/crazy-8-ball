@@ -21,6 +21,11 @@ local Config = require(Shared.Config)
 local Tables = require(script.Parent.TableService)
 local BotService = require(script.Parent.Bots.BotService)
 local Funnel = require(script.Parent.Funnel)
+local Simulation = require(Shared.Physics.Simulation)
+local Break = require(Shared.Tutorial.Break)
+local Rig = require(Shared.Tutorial.Rig)
+local UltMatch = require(Shared.Ults.Match)
+local Judge = require(Shared.Rules.ShotJudge)
 
 local T = Config.Tutorial
 local G = T.Games
@@ -135,6 +140,29 @@ local function reserve(player: Player)
 	end
 end
 
+-- Game 1's rig on table `t` for `player` (Tutorial/Rig: the fixed rack and break, no clock,
+-- the hidden assist, the 8 guard), set while the table still waits for the bot.
+local function rig(t: any, player: Player)
+	local e = t.engine
+	if e.phase ~= "Waiting" then
+		return
+	end
+	e.tutorial = { player = player.UserId }
+	e.rackSeed = Break.shot().seed
+	e.state = Simulation.newState(e.state.geometry, Break.rack(e.state.geometry))
+	e.revision += 1
+	Tables.broadcast(t)
+end
+
+-- Takes the rig off the player's table while it still waits (they walked off before the bot).
+local function unrig(player: Player)
+	local id = reserved[player]
+	local t = if id then Tables.get(id) else nil
+	if t and t.engine.tutorial and t.engine.phase == "Waiting" then
+		t.engine.tutorial = nil
+	end
+end
+
 --- The table reserved for the player (its id), or nil.
 function TutorialGames.reservedTable(player: Player): number?
 	return reserved[player]
@@ -143,6 +171,198 @@ end
 ---------------------------------------------------------------------------------------------
 -- Watching the steps
 ---------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------
+-- Game 1 (the rigged match: Tutorial/Rig does the physics side, this the lessons)
+---------------------------------------------------------------------------------------------
+
+-- What happened so far in the player's game 1 (per game: `epoch`).
+type Game1 = {
+	epoch: number,
+	shots: number, -- the player's shots taken (1 = the break, 2 = the aim lesson)
+	lastSeq: number,
+	filled: boolean, -- the ability bar was filled after the aim shot
+	usedAbility: boolean,
+	exited: boolean, -- the bot stormed off
+}
+local games: { [Player]: Game1 } = {}
+
+local function now(): number
+	return workspace:GetServerTimeNow()
+end
+
+local function gameOf(player: Player, e: any): Game1
+	local g = games[player]
+	if g == nil or g.epoch ~= e.epoch then
+		g = {
+			epoch = e.epoch,
+			shots = 0,
+			lastSeq = 0,
+			filled = false,
+			usedAbility = false,
+			exited = false,
+		}
+		games[player] = g
+	end
+	return g
+end
+
+-- The bot seated at `e`, if any.
+local function botOf(e: any): any?
+	for _, s in e.seats do
+		if s.userId < 0 then
+			return BotService.get(s.userId)
+		end
+	end
+	return nil
+end
+
+-- The player's winning 8: the bot storms off just after it drops, and the result waits for it.
+local function exitOn(t: any, e: any, g: Game1)
+	local pending = e.pending
+	local shot = e.shot
+	if g.exited or not (shot and shot.eightWins and pending and pending.outcome) then
+		return
+	end
+	g.exited = true
+	local dropAt = shot.startedAt + shot.duration
+	for _, ev in pending.outcome.events do
+		if ev.type == "pocket" and ev.ball == 8 then
+			dropAt = shot.startedAt + ev.t
+			break
+		end
+	end
+	local exitAt = dropAt + G.ExitAfterDropSeconds
+	if e.deadline and e.deadline < exitAt + G.ExitHoldSeconds then
+		e.deadline = exitAt + G.ExitHoldSeconds
+		e.revision += 1
+		Tables.broadcast(t)
+	end
+	local bot = botOf(e)
+	if bot then
+		task.delay(math.max(0, exitAt - now()), function()
+			BotService.stormOff(bot)
+		end)
+	end
+end
+
+-- The lesson showing now (the player attribute TutorialLesson; the client shows it):
+-- Break, Aim, Ability, Pick, BallInHand, Eight, or "" (nothing to teach this moment).
+local function lessonOf(player: Player, e: any, g: Game1): string
+	if e.shooter ~= player.UserId then
+		return ""
+	end
+	local phase = e.phase
+	if phase == "PocketChoice" then
+		return "Eight"
+	elseif UltMatch.pickNeeded(e) then
+		return "Pick"
+	elseif phase ~= "Intro" and phase ~= "Aiming" and phase ~= "Placement" then
+		return ""
+	elseif e.breakShot then
+		return "Break"
+	elseif e.ballInHand and (e.placeSeq or 0) == 0 then
+		return "BallInHand" -- until they have moved it once
+	elseif g.shots == 1 then
+		return "Aim"
+	elseif g.filled and not g.usedAbility then
+		local view = UltMatch.view(e)
+		local bar = view.bars[tostring(player.UserId)]
+		if bar and bar.ready and view.armed == nil then
+			return "Ability"
+		end
+	end
+	return ""
+end
+
+-- Watches the player's game 1 at their table.
+local function watchGame1(player: Player, t: any)
+	local e = t.engine
+	local uid = player.UserId
+	if not Rig.isPlayer(e, uid) then
+		return
+	end
+	local g = gameOf(player, e)
+	local shot = e.shot
+	if shot and shot.shooter == uid and shot.seq ~= g.lastSeq then
+		g.lastSeq = shot.seq
+		g.shots += 1
+		local j = e.pending and e.pending.judgement
+		if g.shots == 1 then
+			Funnel.onboarding(player, "Broke")
+		elseif g.shots == 2 and j and j.keep then
+			Funnel.onboarding(player, "PottedAimShot")
+		end
+		if shot.ult and shot.ult.by == uid then
+			g.usedAbility = true
+			Funnel.onboarding(player, "UsedAbility")
+		end
+		exitOn(t, e, g)
+	end
+	-- The bar fills once the aim shot is over (designer: the ability comes after that shot).
+	if g.shots >= 2 and not g.filled and e.phase ~= "Resolving" then
+		g.filled = true
+		if UltMatch.setBar(e, uid, Config.Ults.BarMax) then
+			Tables.broadcast(t)
+		end
+	end
+	if e.calledPocket and e.shooter == uid then
+		Funnel.onboarding(player, "CalledEight")
+	end
+	local lesson = lessonOf(player, e, g)
+	if lesson == "Ability" then
+		-- Its ult armed counts as used (the press, before the shot).
+		local view = UltMatch.view(e)
+		if view.armed and view.armed.by == uid then
+			g.usedAbility = true
+		end
+	end
+	player:SetAttribute("TutorialLesson", lesson)
+	if lesson == "Pick" then
+		local group = Rig.playerGroup(e)
+		local pick = Break.lesson(e.state.geometry, e.state.balls, group)
+		local ball = if pick then pick.ball else nil
+		if ball == nil then
+			for _, b in e.state.balls do
+				if ball == nil and not b.pocketed and Judge.group(b.id) == group then
+					ball = b.id
+				end
+			end
+		end
+		player:SetAttribute("TutorialPickBall", ball or 0)
+	elseif lesson == "Eight" then
+		player:SetAttribute(
+			"TutorialPocket",
+			Break.eightPocket(e.state.geometry, e.state.balls) or 0
+		)
+	elseif lesson == "Aim" then
+		-- The aim lesson's pot (the client starts the aim a little off it).
+		local pot = Break.lesson(e.state.geometry, e.state.balls, Rig.playerGroup(e))
+		player:SetAttribute("TutorialAimAngle", if pot then pot.angle else nil)
+	end
+end
+
+-- The game is over: a win moves on to the rewards (step 5); the player gone from the table
+-- (they left mid-game) plays game 1 again from the arrow (designer, 2026-10-03).
+local function game1Over(player: Player, t: any?): boolean
+	local e = if t then t.engine else nil
+	local seat = if e then Rig.playerTeam(e) else nil
+	if e and e.phase == "Result" and e.result and Rig.isPlayer(e, player.UserId) then
+		if seat and e.result.winner == seat then
+			Funnel.onboarding(player, "WonGame1")
+			player:SetAttribute("TutorialLesson", "")
+			service.setStep(player, "Drop")
+			return true
+		end
+	end
+	if e == nil or not Rig.isPlayer(e, player.UserId) or seat == nil then
+		player:SetAttribute("TutorialLesson", "")
+		games[player] = nil
+		service.setStep(player, "Arrow1")
+		return true
+	end
+	return false
+end
 
 -- The steps that keep the player's table reserved (the arrow, the pad, the game on it).
 local KEEPS: { [string]: boolean } =
@@ -176,15 +396,18 @@ local function watch(player: Player)
 		if seatedAt == nil or t == nil or seatedAt ~= reserved[player] then
 			-- Walked off the pad (or onto another): back to the arrow.
 			if seatedAt ~= nil and seatedAt ~= reserved[player] then
+				unrig(player)
 				service.cancel(player, "OtherTable")
 			else
 				calling[player] = nil
 				player:SetAttribute("TutorialCalling", false)
+				unrig(player)
 				service.setStep(player, ARROW_STEP[step])
 			end
 			return
 		end
 		if realSeated(t, player) then
+			unrig(player)
 			service.cancel(player, "Friend")
 			return
 		end
@@ -193,6 +416,11 @@ local function watch(player: Player)
 			player:SetAttribute("TutorialCalling", false)
 			Funnel.onboarding(player, "Game1Started")
 			service.setStep(player, "Game1")
+		end
+	elseif step == "Game1" then
+		local t = if reserved[player] then Tables.get(reserved[player] :: number) else nil
+		if not game1Over(player, t) and t then
+			watchGame1(player, t)
 		end
 	elseif not KEEPS[step] and reserved[player] then
 		release(player)
@@ -206,6 +434,7 @@ local function onRequest(t: any, host: Player)
 	end
 	calling[host] = true
 	host:SetAttribute("TutorialCalling", true)
+	rig(t, host)
 	Funnel.onboarding(host, "PressedRequest")
 	log(("%s pressed Request opponent at table %d"):format(host.Name, t.engine.id))
 	if not Opponent.join(t) then
@@ -244,6 +473,7 @@ function TutorialGames.start(tutorial: any)
 	Players.PlayerRemoving:Connect(function(player: Player)
 		release(player)
 		calling[player] = nil
+		games[player] = nil
 	end)
 end
 

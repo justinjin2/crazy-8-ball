@@ -9300,6 +9300,42 @@ Config.Tutorial = {
 		WatchSeconds = 0.25, -- how often the server looks at each tutorial player's table
 		BotTries = 3, -- asks for the tutorial bot's look this many times before giving up
 		BotRetrySeconds = 1,
+		-- The bot storms off this long after the player's winning 8 drops, and the result
+		-- waits until this long after that (designer: it vanishes before the result screen).
+		ExitAfterDropSeconds = 0.25,
+		ExitHoldSeconds = 1.5,
+	},
+	-- Game 1's rigged rack and break (src/shared/Tutorial/Break.luau), found by
+	-- `lune run tools/tutorial_break.luau` (designer, 2026-10-03: 3 solids down, a 4th left
+	-- near a corner pocket). Inches and radians, table coordinates (+x towards the foot rail).
+	Break = {
+		Seed = 153, -- the rack's seed (Rack.newGame)
+		CueX = -25, -- where the cue ball stands for the break
+		CueY = -6,
+		Angle = 0.115429, -- the break's direction (straight at the rack's apex)
+		Power = 1, -- any pull plays the break at this power
+		Solids = 3, -- the break pots exactly this many solids and nothing else
+		-- The aim lesson's pot (Break.lesson): a cut no wider than this, the cue ball no
+		-- farther than LessonMaxInches from the ghost ball; cost per inch of travel.
+		LessonMaxCutDegrees = 20,
+		LessonMaxInches = 45,
+		LessonCostPerInch = 0.3,
+		-- The search prefers a break that leaves the 8 this close to a pocket (by this much).
+		EightNearInches = 20,
+		EightNearBonus = 15,
+	},
+	-- The tutorial bot's later visits (Bots/Script.poor): weak, legal shots at its own balls
+	-- that pot nothing and leave the player's balls and the 8 where they are.
+	BotPoor = {
+		Sweeps = 9, -- angles tried across each of its balls, thin hit to thin hit
+		Powers = { 0.3, 0.42, 0.55 }, -- soft, so little else moves
+		StillInches = 0.3, -- a ball that moved less than this counts as untouched
+	},
+	-- Game 1's lessons on screen (src/client/Tutorial.luau).
+	Lessons = {
+		AimOffsetDegrees = 7, -- the aim lesson starts this far off its pot: a small turn fixes it
+		AimTurnedDegrees = 2, -- once the player has turned this much, the line says to shoot
+		DragPx = { 170, -80 }, -- the ball-in-hand demo drags the ghost ball this far (px)
 	},
 	-- Game 1's rewards (answer 9): Bronze's Case Drop is a Standard Case, opened at once.
 	BronzeDropTier = "Standard",
@@ -9321,6 +9357,7 @@ Config.Tutorial = {
 		LineWidthScale = 0.8, -- of the screen's width, at most LineMaxWidthPx
 		LineMaxWidthPx = 900,
 		LineTopGapPx = 10, -- under Roblox's top bar
+		LineLowGapPx = 80, -- a low line clears a screen's own title (Heat Seeker's pick pill)
 		-- The light dim (designer, 2026-10-03: light): black at this transparency.
 		DimTransparency = 0.65,
 		DimFadeSeconds = 0.25,

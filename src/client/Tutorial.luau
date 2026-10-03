@@ -13,6 +13,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Strings = require(Shared.Strings)
 local Steps = require(Shared.Tutorial.Steps)
@@ -30,6 +31,7 @@ local hand: TutorialHand.Hand
 local arrow: TutorialArrow.Arrow
 
 local Copy = Strings.Tutorial
+local L = Config.Tutorial.Lessons
 
 -- The HUD items the tutorial brings in one by one.
 local ITEMS = { "Shop", "Inventory", "Abilities", "Rank", "FreeReward", "Trade" }
@@ -156,13 +158,127 @@ local function padScene(anchor: string, set: { [string]: string }, device: strin
 	return anchor .. device .. text
 end
 
+-- The lesson shown last (game 1), so a new one can start its own way (the aim suggestion).
+local lastLesson = ""
+
+-- Nothing on screen but the line (or nothing at all).
+local function lineOnly(text: string?)
+	overlay:dim(nil)
+	hand:hide()
+	overlay:say(text)
+end
+
+-- Game 1's lessons (the TutorialLesson attribute, set by the server's TutorialGames).
+local function game1Scene(device: string): string
+	arrow:show(nil)
+	local lesson = player:GetAttribute("TutorialLesson")
+	lesson = if type(lesson) == "string" then lesson else ""
+	local fresh = lesson ~= lastLesson
+	lastLesson = lesson
+	TutorialAnchors.setAimLock(if lesson == "Break" then Config.Tutorial.Break.Angle else nil)
+	if lesson == "Break" then
+		if device == "gamepad" then
+			overlay:dim(nil)
+			hand:gesture("hold", Enum.KeyCode.ButtonA)
+		else
+			local bar = TutorialOverlay.guiTarget("PowerBar")
+			overlay:dim(bar)
+			hand:gesture("pull", bar)
+		end
+		overlay:say(words(Copy.Break, device))
+	elseif lesson == "Aim" then
+		if fresh then
+			TutorialAnchors.resetTurn()
+			local angle = player:GetAttribute("TutorialAimAngle")
+			if type(angle) == "number" then
+				TutorialAnchors.suggestAim(angle + math.rad(L.AimOffsetDegrees))
+			end
+		end
+		overlay:dim(nil)
+		if TutorialAnchors.turned() < L.AimTurnedDegrees then
+			if device == "gamepad" then
+				hand:gesture("stick", Enum.KeyCode.Thumbstick1)
+			else
+				hand:gesture("swipe", device == "mouse")
+			end
+			overlay:say(words(Copy.Aim, device))
+		else
+			if device == "gamepad" then
+				hand:gesture("hold", Enum.KeyCode.ButtonA)
+			else
+				hand:gesture("pull", TutorialOverlay.guiTarget("PowerBar"))
+			end
+			overlay:say(words(Copy.AimShoot, device))
+		end
+	elseif lesson == "Ability" then
+		local button = TutorialOverlay.guiTarget("UltButton")
+		overlay:dim(button)
+		if device == "gamepad" then
+			hand:gesture("hold", (Enum.KeyCode :: any)[Config.UI.Ults.GamepadKey])
+		else
+			hand:point(button)
+		end
+		overlay:say(words(Copy.Ability, device))
+	elseif lesson == "Pick" then
+		if TutorialAnchors.flag("UltPicked") then
+			local confirm = TutorialOverlay.guiTarget("UltConfirm")
+			overlay:dim(confirm)
+			hand:point(confirm)
+			overlay:say(words(Copy.PickConfirm, device), true)
+		else
+			local id = player:GetAttribute("TutorialPickBall")
+			local ring = TutorialOverlay.guiTarget("PickBall" .. tostring(id))
+			overlay:dim(ring)
+			hand:point(ring)
+			overlay:say(words(Copy.Pick, device), true)
+		end
+	elseif lesson == "BallInHand" then
+		overlay:dim(nil)
+		if device == "gamepad" then
+			hand:gesture("stick", Enum.KeyCode.Thumbstick1)
+		else
+			local from = TutorialOverlay.guiTarget("CueBallHandle")
+			hand:gesture("drag", from, function(): (Vector2?, Vector2?)
+				-- Toward the middle of the screen (the table), DragPx long.
+				local centre, size = from()
+				local camera = workspace.CurrentCamera
+				if centre == nil or camera == nil then
+					return nil, nil
+				end
+				local toMiddle = camera.ViewportSize / 2 - centre
+				local long = Vector2.new(L.DragPx[1], L.DragPx[2]).Magnitude
+				if toMiddle.Magnitude < long / 2 then
+					return centre + Vector2.new(L.DragPx[1], L.DragPx[2]), size
+				end
+				return centre + toMiddle.Unit * long, size
+			end)
+		end
+		overlay:say(words(Copy.BallInHand, device))
+	elseif lesson == "Eight" then
+		local pocket =
+			TutorialOverlay.guiTarget("Pocket" .. tostring(player:GetAttribute("TutorialPocket")))
+		overlay:dim(pocket)
+		hand:point(pocket)
+		overlay:say(words(Copy.Eight, device))
+	else
+		lineOnly(nil)
+	end
+	return "game1" .. lesson .. device
+end
+
 -- Builds the scene for the step now (the line, the dim, the hand, the arrow). Cheap enough
 -- to run every frame: each piece only changes when its input does.
 local function scene(step: string, device: string): string
+	if step ~= "Game1" then
+		TutorialAnchors.setAimLock(nil)
+		lastLesson = ""
+	end
 	if step == "Arrow1" or step == "Arrow2" then
 		return arrowScene()
 	elseif step == "Request" then
 		return padScene("Request", Copy.Request, device)
+	elseif step == "Game1" then
+		return game1Scene(device)
 	end
 	-- Steps still to come keep the screen clear.
 	arrow:show(nil)
@@ -175,6 +291,7 @@ end
 local function update()
 	if not Tutorial.active() then
 		shownKey = ""
+		TutorialAnchors.setAimLock(nil)
 		return
 	end
 	shownKey = scene(Tutorial.step(), Tutorial.device())

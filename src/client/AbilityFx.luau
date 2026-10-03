@@ -836,7 +836,8 @@ local function makeKit(self: AbilityFx): Kit
 	--- True while `match` replays a shot whose overrides carry `effectName`.
 	function kit.isShotOf(match: any, effectName: string): boolean
 		local o = match.state.overrides
-		return match.shot ~= nil and o ~= nil and o.Effect == effectName
+		-- (`Hidden`: the tutorial's game-1 assist, Tutorial/Rig, which draws nothing.)
+		return match.shot ~= nil and o ~= nil and o.Effect == effectName and not o.Hidden
 	end
 
 	--- The snapshot's armed ult (snapshot.ults.armed), checked; with `effectName`, only one whose

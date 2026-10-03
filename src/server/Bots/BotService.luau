@@ -340,6 +340,19 @@ function BotService.remove(bot: Bot, how: string?)
 	bots[bot.id] = nil
 end
 
+--- The tutorial lane (designer, 2026-10-03): game 1's bot storms off as the player's winning
+--- 8 drops (AUGHHHH!, a jump, gone in mid-air), before the result. Its seat stays until the
+--- game is over (the win stays a LegalEight); `remove` later finds no body left.
+function BotService.stormOff(bot: Bot)
+	local model = bot.model
+	if bot.gone or model == nil then
+		return
+	end
+	bot.model = nil
+	BotService.say(bot, Strings.Bots.Angry)
+	Body.angryExit(model)
+end
+
 -- Its game ended: tell whoever listens, and the tutorial bot's exits.
 -- The designer's /botrank (DevCommands): the tier of every bot they meet, by user id.
 local forcedTier: { [number]: string } = {}

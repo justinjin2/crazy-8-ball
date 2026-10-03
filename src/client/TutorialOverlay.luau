@@ -41,6 +41,7 @@ export type Overlay = typeof(setmetatable(
 		gui: ScreenGui,
 		line: TextLabel,
 		lineText: string?,
+		lineLow: boolean, -- the line sits lower (under a screen's own title)
 		dimFrames: { Frame },
 		ring: Frame,
 		ringCorner: UICorner,
@@ -48,6 +49,8 @@ export type Overlay = typeof(setmetatable(
 		target: Target?,
 		dimOn: boolean,
 		dimAlpha: number, -- 0 clear .. 1 fully dimmed (eased)
+		lastCentre: Vector2?, -- the hole's last place, kept while a lost target fades out
+		lastSize: Vector2?,
 		skip: TextButton,
 		confirm: Frame,
 		onSkip: (() -> ())?,
@@ -167,6 +170,7 @@ function TutorialOverlay.new(): Overlay
 		gui = gui,
 		line = line,
 		lineText = nil,
+		lineLow = false,
 		dimFrames = frames,
 		ring = ring,
 		ringStroke = stroke,
@@ -174,6 +178,8 @@ function TutorialOverlay.new(): Overlay
 		target = nil,
 		dimOn = false,
 		dimAlpha = 0,
+		lastCentre = nil,
+		lastSize = nil,
 		skip = nil :: any,
 		confirm = nil :: any,
 		onSkip = nil,
@@ -256,7 +262,9 @@ function TutorialOverlay.setSkip(self: Overlay, visible: boolean, onSkip: (() ->
 end
 
 --- Shows `text` as the instruction line (a new line pops in with a ding); nil hides it.
-function TutorialOverlay.say(self: Overlay, text: string?)
+--- `low` puts it under a screen's own title.
+function TutorialOverlay.say(self: Overlay, text: string?, low: boolean?)
+	self.lineLow = low == true
 	if text == self.lineText then
 		return
 	end
@@ -322,14 +330,28 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 	local inset = GuiService:GetGuiInset()
 	local width = math.min(view.X * O.LineWidthScale, O.LineMaxWidthPx)
 	local height = if small then O.LinePhoneHeightPx else O.LineHeightPx
-	self.line.Position = UDim2.fromOffset(view.X / 2, inset.Y + O.LineTopGapPx)
+	local gap = if self.lineLow then O.LineLowGapPx else O.LineTopGapPx
+	self.line.Position = UDim2.fromOffset(view.X / 2, inset.Y + gap)
 	self.line.Size = UDim2.fromOffset(width, height)
 	-- The Skip button, top right under the bar.
 	local skipH = if small then O.SkipPhoneHeightPx else O.SkipHeightPx
 	self.skip.Position = UDim2.fromOffset(view.X - O.SkipEdgePx, inset.Y + O.SkipEdgePx)
 	self.skip.Size = UDim2.fromOffset(skipH * O.SkipWidthRatio, skipH)
+	-- The hole's target this frame; a target that has gone (its button hid) fades the dim out
+	-- round where it was, rather than darkening everything.
+	local centre, size = nil, nil
+	if self.target then
+		centre, size = self.target()
+		if centre then
+			self.lastCentre, self.lastSize = centre, size
+		end
+	end
+	local lost = self.target ~= nil and centre == nil
+	if lost then
+		centre, size = self.lastCentre, self.lastSize
+	end
 	-- The dim eases in and out.
-	local goal = if self.dimOn then 1 else 0
+	local goal = if self.dimOn and not lost then 1 else 0
 	local step = dt / O.DimFadeSeconds
 	self.dimAlpha = if goal > self.dimAlpha
 		then math.min(goal, self.dimAlpha + step)
@@ -337,10 +359,6 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 	local alpha = 1 - (1 - O.DimTransparency) * self.dimAlpha
 	for _, f in self.dimFrames do
 		f.BackgroundTransparency = alpha
-	end
-	local centre, size = nil, nil
-	if self.target then
-		centre, size = self.target()
 	end
 	layout(self, centre, size, view)
 	self.ringStroke.Transparency = 1 - self.dimAlpha

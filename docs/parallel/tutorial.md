@@ -105,6 +105,37 @@ by step (steps 1-10 of the brief).
     player sits at a table that is not the reserved one). Phone and gamepad presses: hand
     checks (the gamepad selection path is in the code; MCP cannot press a pad button).
 
+- **Step 4 done: game 1, the rigged match.** `Shared/Tutorial/Break` (the rack and break, found
+  offline by `lune run tools/tutorial_break.luau`: seed 153, cue ball at (-25, -6), straight at
+  the apex, full power; it pots 1, 6 and 7 and leaves the 4 a 3.7 degree cut into a corner),
+  `Shared/Tutorial/Rig` (called by MatchEngine only for a table with `t.tutorial`: the player
+  breaks from the fixed spot whatever they aim or pull, no shot clock, Magnet's pull on the
+  player's own first-hit ball with nothing drawn (`Hidden`), and the 8 guard: a loss on the 8
+  becomes the foul "EightBack" with the 8 put back). The bot (`Bots/Script`): it plays as if it
+  had stripes while the table is open, its first visit pots one and scratches, every later
+  visit is `Script.poor` (a soft legal miss that moves none of the player's balls or the 8, or
+  nudges the 8 beside a pocket). `TutorialGames` sets the rig when the bot is called, counts
+  the player's shots, fills the ability bar after the aim shot, publishes the lesson
+  (`TutorialLesson`: Break, Aim, Ability, Pick, BallInHand, Eight) and the hand's targets, and
+  makes the bot storm off (AUGHHHH!) just after the winning 8 drops, the result waiting for it
+  (`BotService.stormOff`). Client: each lesson's line, dim and gesture per device; the break's
+  aim locked straight; the aim lesson starts 7 degrees off its pot and says "Now pull the power
+  bar to shoot!" once the player turns; the longer guideline and the strong ball outlines (the
+  player's colour is solids from the break on) in game 1; the free-spin toast hides while
+  Abilities is hidden.
+  - Checked: lint, tests (962, new `tutorial_game_test`: the break's outcome, the engine's rigged
+    break whatever the input, the hidden assist, the 8 guard, the bot's poor shots); Studio PC:
+    a whole game 1 twice. The break dropped exactly 1, 6, 7 both times. A missed aim shot ->
+    the bot potted a stripe, then scratched -> "Ball in hand!" with the ghost-ball drag. A potted
+    aim shot -> the bar filled -> "Press G to use your ability!" (bar lit, hand) -> G -> Heat
+    Seeker's pick with the hand on the best solid -> CONFIRM lit -> the shot. The bot's later
+    visits were quiet misses. "SELECT WHICH POCKET!" lit the obvious open pocket (the nearer one
+    was blocked) -> the 8 -> WonGame1 -> step Drop. Funnel steps 1-10 printed in order.
+    Fixed on the way: the dim no longer sticks when its target hides; the drag demo heads for
+    the table; the ball-in-hand lesson ends once the ball is moved; the pick lines sit under the
+    pick view's own title. Not yet seen: the AUGHHHH exit on screen (it ran; the capture
+    missed it; checked again with step 5's result screen), phone and gamepad runs.
+
 ### Rule changes for everyone (made in this lane; the integrator moves them to the docs)
 
 - Reaching Bronze gives 1 Case Drop (was 2), given at once after the first win.
@@ -148,6 +179,28 @@ by step (steps 1-10 of the brief).
   tutorial hides it (refreshed on `TutorialAnchors.Changed`) (step 3).
 - `Progression.luau`: requires `TutorialAnchors`; registers `Rank` and `MoneyHud`; the rank HUD
   hides while the tutorial hides Rank (step 3).
+- `Rules/MatchEngine.luau` (step 4): requires `Tutorial.Rig`; `setup`'s `timed` also asks
+  `TutorialRig.timed`; `beginTurn` (a block before `t.ballInHand = hand`), `acceptShot` (a block
+  after the `sim` clone; the assist when no ult is armed), `finalizeShot` (the judgement through
+  `TutorialRig.judge`) and `resolve` (the `eightBack` block after `respotEight`), each only for
+  a table with `t.tutorial`.
+- `Bots/Script.luau` (step 4, this lane owns the script): requires `Tutorial.Break`;
+  `Script.Visits` names "Poor"; new `tutorialView` and `poor` at the end (eightBlunder stays).
+- `Bots/Driver.luau` (step 4): `decide` uses `tutorialView`, and every visit after the first
+  plays `poor` (was eightBlunder on visit 2).
+- `Bots/BotService.luau` (step 4): new `BotService.stormOff` before `ended`.
+- `MagnetFx.luau` and `AbilityFx.luau` (step 4): a Magnet shot with `overrides.Hidden` draws
+  nothing (one condition each).
+- `PowerCue.luau`, `UltHud.luau`, `UltPick.luau`, `MatchTargets.luau` (step 4): require
+  `TutorialAnchors`; one-line registrations (PowerBar, UltButton, UltConfirm, PickBall<id>,
+  Pocket<id>, CueBallHandle); UltPick also sets the `UltPicked` flag in `update`.
+- `Input.luau` (step 4): requires `TutorialAnchors`; `rotate` does nothing while the tutorial
+  locks the aim, and notes the turn.
+- `Main.client.luau` (step 4): requires `TutorialAnchors`; `renderFrame` applies an aim the
+  tutorial asked for; `highlightOwn` uses the strong style and solids in game 1.
+- `Guideline.luau` (step 4): requires `TutorialAnchors`; game 1 uses `TutorialStubLengthInches`.
+- `Reminders.luau` (step 4): the free-spin toast waits while the tutorial hides Abilities.
+- `Strings.luau` (step 4): `Match.FoulShort.EightBack` and `Match.FoulReasons.EightBack`.
 - Tests changed for the new values: `ranks_test`, `save_schema_test`, `ult_slots_test`,
   `ult_spins_test`; `tools/economy_config.json` re-exported.
 
@@ -195,3 +248,8 @@ by step (steps 1-10 of the brief).
   server.
 - 2026-10-03 (lane): on a gamepad the tutorial puts the selection on Request opponent itself,
   so one A press works; if the player moves it off, the line says "Press Y, then A".
+- 2026-10-03 (lane): game 1 has no shot clock (a first game, no hurry); the bot plays as if it
+  had stripes while the table is open, so its pot never takes the player's colour.
+- 2026-10-03 (lane): game 1's assist is Magnet's own effect on the player's first-hit ball
+  (theirs, or the 8 toward the called pocket), hidden; there is no separate stronger 8 pull,
+  since the bot's nudge and the guard already make the 8 safe.

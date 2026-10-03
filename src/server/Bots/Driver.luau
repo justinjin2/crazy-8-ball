@@ -65,6 +65,9 @@ local function decide(
 	yield: () -> ()
 ): Brain.Decision
 	if bot.script == "Tutorial" and not view.breakShot then
+		-- The tutorial lane: the bot never takes the player's colour, and after its first
+		-- visit only plays weak shots that leave the player's balls and the 8 alone.
+		view = BotScript.tutorialView(view)
 		if bot.visit == 1 then
 			if bot.shotInVisit == 1 then
 				local d = BotScript.pot(view, rng, hand, yield)
@@ -73,8 +76,8 @@ local function decide(
 				end
 			end
 			return BotScript.scratch(view, rng, hand, yield)
-		elseif bot.visit == 2 then
-			return BotScript.eightBlunder(view, rng, hand, yield)
+		else
+			return BotScript.poor(view, rng, hand, yield)
 		end
 	end
 	return Brain.decide(view, bot.skill, rng, { ballInHand = hand, yield = yield })
