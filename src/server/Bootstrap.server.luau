@@ -30,6 +30,7 @@ local Store = require(script.Parent:WaitForChild("Store"))
 local Rewards = require(script.Parent:WaitForChild("Rewards"))
 local EconomyLog = require(script.Parent:WaitForChild("EconomyLog"))
 local Trading = require(script.Parent:WaitForChild("Trading"))
+local Settings = require(script.Parent:WaitForChild("Settings")) -- the GUI lane's Settings
 local AbilityAssets = require(script.Parent:WaitForChild("AbilityAssets"))
 local FallGuard = require(script.Parent:WaitForChild("FallGuard"))
 
@@ -57,6 +58,7 @@ Store.start()
 Rewards.start()
 EconomyLog.start() -- AnalyticsService economy events for every money source and sink
 Trading.start() -- player-to-player trades (TradeRequest, TradeState) and the trade ledger
+Settings.start() -- each player's switches and seen moments (SettingsState, SettingsRequest)
 
 -- Then the imported meshes the clients need (a MeshId is plugin-only, so they live in the
 -- place, in ServerStorage), published to ReplicatedStorage.Assets before anything else so they

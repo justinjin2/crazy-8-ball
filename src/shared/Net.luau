@@ -347,6 +347,13 @@ local REMOTES: { [string]: string } = {
 	-- streak, track and freeze from RewardState) | "Playtime" (a gift reached; index, minutes),
 	-- reward = { money, cases, drops, spins, lucky } }. Its Case Drops come on CaseDrop too.
 	RewardGiven = "RemoteEvent",
+	-- Settings (src/server/Settings.luau; GUI lane, C10). server -> one player, on load and after
+	-- each change: { settings = { [key] = boolean } (Config.Settings.Defaults' keys), seen =
+	-- { [kind] = true } }.
+	SettingsState = "RemoteEvent",
+	-- client -> server, answered { ok = true } or { ok = false, reason ("BadRequest",
+	-- "TooFast", "NotLoaded") }: ("Set", key, boolean), ("Seen", kind in Config.Settings.SeenKinds).
+	SettingsRequest = "RemoteFunction",
 }
 
 -- Values per table in an AimBroadcast batch.

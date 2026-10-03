@@ -7,6 +7,7 @@
 -- - Bottom left, just right of the money HUD: Invite (Roblox's invite prompt, carrying the
 --   invite's launch data, Progression/Social.launchData) and Roblox Plus (the Store's Plus
 --   prompt; hidden for members and where the shop does not offer Plus).
+-- - Top left, right of the rank HUD: the Settings gear (GUI lane, C10; SettingsMenu).
 -- Sizes in Config.UI.Corners; words in Strings.Corners. Never gamepad stops (a selected button
 -- would take the left stick from walking); the D-pad reaches the challenge.
 local Players = game:GetService("Players")
@@ -20,10 +21,12 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local SocialRules = require(Shared:WaitForChild("Progression"):WaitForChild("Social"))
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
+local Menus = require(script.Parent.Menus)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local C = Config.UI.Corners
+local U = Config.UI.Settings
 local K = Config.UI.Kit
 local S = Config.Multiplayer.Style
 local W = Strings.Corners
@@ -90,6 +93,10 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 		UISound.play("Click")
 		self:invite()
 	end)
+	self.gearTile = corner(root, "Settings", "Gear", W.Settings, function()
+		UISound.play("Click")
+		Menus.open("Settings")
+	end)
 	self.plusTile = corner(root, "Plus", "RobloxPlus", W.Plus, function()
 		UISound.play("Click")
 		task.spawn(ItemState.request, "StoreRequest", "RobloxPlus")
@@ -118,6 +125,17 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 		self.connections,
 		screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(queueLayout)
 	)
+	local rankHolder = deps.rankHud and deps.rankHud.holder
+	if typeof(rankHolder) == "Instance" and rankHolder:IsA("GuiObject") then
+		table.insert(
+			self.connections,
+			rankHolder:GetPropertyChangedSignal("AbsoluteSize"):Connect(queueLayout)
+		)
+		table.insert(
+			self.connections,
+			rankHolder:GetPropertyChangedSignal("AbsolutePosition"):Connect(queueLayout)
+		)
+	end
 	local moneyRoot = deps.money and deps.money.root
 	if typeof(moneyRoot) == "Instance" and moneyRoot:IsA("GuiObject") then
 		table.insert(
@@ -176,6 +194,28 @@ function HubCorners.layout(self: any)
 	-- The word is wider than the icon: it overhangs both sides.
 	ch.word.Size = UDim2.fromOffset(big * 2, wordPx + 4)
 	HudParts.setTextSize(ch.word, wordPx)
+
+	-- The gear right of the rank HUD's card, centred on it.
+	local gearPx = if short then U.ShortGearPx else U.GearPx
+	local gear = self.gearTile
+	gear.button.AnchorPoint = Vector2.new(0, 0.5)
+	gear.button.Size = UDim2.fromOffset(gearPx, gearPx)
+	local rankFound = self.deps.rankHud and self.deps.rankHud.holder
+	local rankHolder: GuiObject? = if typeof(rankFound) == "Instance"
+			and rankFound:IsA("GuiObject")
+		then rankFound
+		else nil
+	if rankHolder and rankHolder.AbsoluteSize.X > 0 then
+		local o = self.screen.AbsolutePosition
+		gear.button.Position = UDim2.fromOffset(
+			round(rankHolder.AbsolutePosition.X - o.X + rankHolder.AbsoluteSize.X + U.GearGapPx),
+			round(rankHolder.AbsolutePosition.Y - o.Y + rankHolder.AbsoluteSize.Y / 2)
+		)
+	else
+		gear.button.Position = UDim2.fromOffset(300, 40)
+	end
+	gear.word.Size = UDim2.fromOffset(gearPx * 2, wordPx + 4)
+	HudParts.setTextSize(gear.word, wordPx)
 
 	-- Invite and Plus right of the money HUD, centred on it.
 	local origin = self.screen.AbsolutePosition

@@ -17,6 +17,7 @@ local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Quality = require(script.Parent.Quality)
 
 local A = Config.UI.UltScreen.Aura
 local K = Config.UI.Kit
@@ -251,6 +252,7 @@ end
 
 -- The emitters' rates for a tier, times `boost` (a burst runs them hotter for a moment).
 function UltAura.setRates(self: any, tier: any, boost: number)
+	boost *= Quality.rate() -- Lower effects (Settings, GUI lane)
 	local rate = tier.Rate * boost
 	self.back.Rate = rate
 	self.front.Rate = rate * A.FrontShare

@@ -2927,6 +2927,55 @@ function PlayerData.claimFavorite(player: Player): (boolean, Daily.Reward | stri
 end
 
 ---------------------------------------------------------------------------------------------
+-- Mutations: settings and seen moments (the Settings service; GUI lane, C10)
+---------------------------------------------------------------------------------------------
+
+--- Sets one switch (a key of Config.Settings.Defaults) in the save's Settings map. Answers
+--- whether it was set.
+function PlayerData.setSetting(player: Player, key: string, value: boolean): boolean
+	local op = "setSetting"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif type(key) ~= "string" or Config.Settings.Defaults[key] == nil then
+		return refuse(op, player, ("unknown setting %s"):format(tostring(key)))
+	elseif type(value) ~= "boolean" then
+		return refuse(op, player, "value is not a boolean")
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	if data.Settings[key] == value then
+		return true
+	end
+	data.Settings[key] = value
+	commit(player, data, op)
+	return true
+end
+
+--- Marks a moment (one of Config.Settings.SeenKinds) seen: Flags["Seen:<kind>"]. Answers
+--- whether it is marked.
+function PlayerData.markMomentSeen(player: Player, kind: string): boolean
+	local op = "markMomentSeen"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif type(kind) ~= "string" or not table.find(Config.Settings.SeenKinds, kind) then
+		return refuse(op, player, ("unknown kind %s"):format(tostring(kind)))
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	local key = "Seen:" .. kind
+	if data.Flags[key] == true then
+		return true
+	end
+	data.Flags[key] = true
+	commit(player, data, op)
+	return true
+end
+
+---------------------------------------------------------------------------------------------
 -- Mutations: purchases (the Store service)
 ---------------------------------------------------------------------------------------------
 

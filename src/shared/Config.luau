@@ -9790,6 +9790,59 @@ Config.UI.Corners = {
 	BubblePx = 16,
 }
 
+-- Settings (SettingsMenu, src/server/Settings.luau; GUI lane, designer 2026-10-03, C10): each
+-- switch and its default, saved in the save's Settings map; the moments a player has seen
+-- once (so their Skip shows) saved in Flags as "Seen:<kind>".
+Config.Settings = {
+	Defaults = {
+		Sfx = true, -- sound effects on
+		Music = true, -- lobby music on
+		LowFx = false, -- Lower effects (Quality: fewer particles, calmer UI loops)
+		ShowFlag = false, -- show my country flag in the player list (off until turned on)
+	} :: { [string]: boolean },
+	Order = { "Sfx", "Music", "LowFx", "ShowFlag" }, -- the rows, top to bottom
+	-- The kinds Seen may mark (anything else is refused).
+	SeenKinds = {
+		"MagicBall",
+		"Rare",
+		"Epic",
+		"Legendary",
+		"Mythic",
+		"Secret",
+		"Result",
+		"LeaveGift",
+	},
+	RequestBurst = 6, -- SettingsRequest: a burst, then this many a second (not design numbers)
+	RequestPerSecond = 3,
+}
+
+-- The Settings screen (SettingsMenu) and its gear beside the rank HUD (GUI lane, C10).
+Config.UI.Settings = {
+	GearPx = 44, -- the gear (a computer); a phone's is ShortGearPx
+	ShortGearPx = 36,
+	GearGapPx = 8, -- right of the rank HUD
+	RowPx = { 54, 70 }, -- a switch row ({ phone, full })
+	RowTextPx = { 17, 22 },
+	SwitchPx = { 40, 48 }, -- the on/off switch's height (twice as wide)
+	IconPx = { 30, 40 },
+	CodeBoxPx = { 44, 52 },
+	MaxWidthPx = 640,
+}
+
+-- Lobby music (src/client/Music.luau; GUI lane, C10): calm, upbeat tracks from Roblox's licensed
+-- APM library (no uploads), shuffled in turn, quieter in a match. The designer approves them.
+Config.Audio.Music = {
+	Tracks = {
+		"rbxassetid://1839639602", -- Nice Mood Guitar (APM)
+		"rbxassetid://1836575060", -- Tonight's Guest (APM, jazz-funk groove)
+		"rbxassetid://1836686969", -- Feeling Lucky (APM)
+	},
+	Volume = 0.25, -- in the lobby
+	MatchVolume = 0.08, -- seated at a table whose game is on
+	FadeSeconds = 1.5, -- between volumes and tracks
+	GapSeconds = 4, -- silence between two tracks
+}
+
 -- The rare-pull cutscenes (PullCutscene; GUI lane, designer 2026-10-03, C11d). After the reel
 -- lands on a Rare or better cue, before its card: each rarity bigger than the last. Local only
 -- for Rare and Epic; from Legendary up every other player in the server sees a light sky tint

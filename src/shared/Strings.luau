@@ -1061,6 +1061,24 @@ return {
 		NotYet = "Not favorited yet. Try again!",
 		NotMember = "Join the group first, then press Claim.",
 	},
+	-- The Settings screen (SettingsMenu; GUI lane, C10).
+	Settings = {
+		Title = "Settings",
+		Rows = {
+			Sfx = "Sound effects",
+			Music = "Music",
+			LowFx = "Lower effects",
+			ShowFlag = "Show my country flag",
+		},
+		Lines = {
+			Sfx = "Clicks, shots and ability sounds.",
+			Music = "The lobby music.",
+			LowFx = "Fewer particles. Smoother on slower devices.",
+			ShowFlag = "Other players see it in the player list.",
+		},
+		On = "ON",
+		Off = "OFF",
+	},
 	-- The hub's small corner buttons (HubCorners; GUI lane, C2).
 	Corners = {
 		Challenge = "Daily Challenge",
@@ -1068,6 +1086,7 @@ return {
 		Invite = "Invite",
 		InviteFailed = "Invites are not available right now.",
 		Plus = "Plus",
+		Settings = "Settings",
 	},
 	-- The banner at the top middle (Banner). Names are players' usernames.
 	Banner = {

@@ -14,6 +14,10 @@
 
 local CueVfx = {}
 
+local Quality = require(script.Parent.Quality)
+-- Every emitter CueVfx.emitter made, so Lower effects can change their rates later.
+local live: { [ParticleEmitter]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+
 --- A colour from "#RRGGBB" or {r, g, b}.
 function CueVfx.color(c: any): Color3
 	if type(c) == "string" then
@@ -139,7 +143,12 @@ function CueVfx.emitter(row: any, opts: EmitterOpts): ParticleEmitter
 	local e = Instance.new("ParticleEmitter")
 	e.Name = row.Name or "Emitter"
 	e.Texture = row.Texture or ""
-	e.Rate = (row.Rate or 0) * (opts.rateScale or 1)
+	-- Lower effects (Settings, GUI lane): every emitter made here follows Quality's rate, now
+	-- and when the setting changes (never to zero).
+	local baseRate = (row.Rate or 0) * (opts.rateScale or 1)
+	e.Rate = baseRate * Quality.rate()
+	e:SetAttribute("BaseRate", baseRate)
+	live[e] = true
 	e.Lifetime = CueVfx.range(row.Lifetime, 1)
 	e.Speed = CueVfx.range(row.Speed, 1)
 	e.Size = CueVfx.numberSeq(row.Size or 1, 0)
@@ -183,5 +192,18 @@ function CueVfx.emitter(row: any, opts: EmitterOpts): ParticleEmitter
 	e.Enabled = e.Rate > 0
 	return e
 end
+
+Quality.Changed:Connect(function()
+	for e in live do
+		if e.Parent == nil then
+			live[e] = nil
+		else
+			local base = e:GetAttribute("BaseRate")
+			if type(base) == "number" then
+				e.Rate = base * Quality.rate()
+			end
+		end
+	end
+end)
 
 return CueVfx

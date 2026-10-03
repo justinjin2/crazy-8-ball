@@ -250,6 +250,30 @@ step (steps 1-14 of the brief).
     (by hand): Roblox's favorite and join prompts (Studio cannot finish them), the invite
     prompt, the D-pad map on a controller, the corners on a real phone, and a real new UTC day.
 
+- **Step 8 done: Settings and music.** A gear beside the rank card (top left, word "Settings")
+  opens **Settings**: four big rows, each one press to flip its switch (green ON, grey OFF):
+  **Sound effects**, **Music**, **Lower effects**, **Show my country flag** (off until turned
+  on). Under them, the **codes box** whenever the Abilities screen is not live, so codes are
+  always reachable (the Rewards menu's box, moved). Every switch is saved on the server (the
+  save's existing `Settings` map; the new `src/server/Settings.luau`, SettingsState and
+  SettingsRequest, rate-limited) and comes back on the next join. Sound effects and Music are
+  two **sound groups**: every sound in the game joins "Sfx" by itself; the music is in
+  "Music". **Lobby music**: three calm, upbeat tracks from Roblox's licensed APM library (no
+  uploads: "Nice Mood Guitar", "Tonight's Guest", "Feeling Lucky"), shuffled with a short gap,
+  quieter in a match. **Lower effects** now really lowers the cue auras' and the ability
+  aura's particles (CueVfx's emitters follow the setting live; UltAura's rates) besides the UI
+  loops; never to zero. **Show my country flag** sets the player's `CountryFlag` attribute
+  (their country from Roblox) for the player list (step 10); off clears it. The cutscenes'
+  "seen once" (the Skip) is now saved too (Flags "Seen:<kind>"), so a moment seen in an
+  earlier session can be skipped.
+  - Checked: lint, Lune tests; Studio PC: the music loaded and playing (Tonight's Guest at
+    0.25), all 58 world sounds in the Sfx group, the gear beside the rank card, Settings
+    open, Music off (its group silent), Lower effects and the flag on (CountryFlag = US), each
+    held after the server's answer. Phone (844 x 390): the rows fit. Console clean. Not
+    checked: a rejoin keeping the switches (Studio's save store is wiped at each stop: by
+    hand in the live game), the codes box (the Abilities screen is live in Studio), the
+    music's feel (the designer should listen and approve the three tracks).
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
@@ -324,6 +348,17 @@ step (steps 1-14 of the brief).
   corners show with the column; the D-pad's down falls back to the Daily Challenge.
 - `MenuColumn.luau` (client): the Free Reward tile, hover jiggle, Rewards dot only if the tile
   exists.
+- `Config.luau` (step 8): new `Config.Settings`, `Config.UI.Settings`, `Config.Audio.Music`
+  before `Config.Cutscenes`.
+- `Strings.luau` (step 8): new `Settings` block; `Corners.Settings`.
+- `Net.luau` (step 8): new `SettingsState`, `SettingsRequest`.
+- `Bootstrap.server.luau` (step 8): requires and starts `Settings` (two lines).
+- `PlayerData.luau` (step 8): new `setSetting` and `markMomentSeen` (the save's existing
+  Settings map and Flags; no layout change).
+- `CueVfx.luau` and `UltAura.luau` (client, step 8): their particle rates follow
+  `Quality.rate()` (Lower effects).
+- `Progression.luau` (client, step 8): starts `SettingsState` and `Music`, builds
+  `SettingsMenu`, tells Music when a match is on.
 
 ## Requests to other lanes or the integrator
 
@@ -334,8 +369,8 @@ step (steps 1-14 of the brief).
 - **Tutorial lane**: please set a player attribute `TutorialActive = true` (server-side) while a
   player's tutorial runs and clear it when it ends. The GUI holds every join popup (daily login,
   offers, playtime, the come-back message) while it is true.
-- **Integrator**: the lobby music tracks (step 8) need the designer's OK; the ids will be in
-  `Config.Audio.Music`.
+- **Integrator**: the lobby music tracks (step 8) need the designer's OK: three APM tracks
+  are in `Config.Audio.Music.Tracks` (Nice Mood Guitar, Tonight's Guest, Feeling Lucky).
 
 ## Decisions (dated; the integrator copies them to DECISIONS.md)
 
@@ -396,6 +431,10 @@ step (steps 1-14 of the brief).
 - 2026-10-03 (lane, step 7): there is no Uncommon case picture yet, so an Uncommon Case shows
   the grey Standard chest (in the 8-ball's end screen and elsewhere). A green chest icon is
   worth making with the next batch of icons.
+- 2026-10-03 (lane, step 8): the switches are saved in the save's existing `Settings` map (it
+  was empty) and the seen moments in `Flags`; no layout change. The three lobby tracks are from
+  Roblox's licensed APM library (not uploaded); the designer approves or swaps them
+  (`Config.Audio.Music.Tracks`).
 - 2026-10-03 (lane): a case's open is sent as the overlay opens (the "Click to open" moment is
   presentation, the case is already being spent), so closing during it gives the usual "Your
   cue is in your Inventory." line.

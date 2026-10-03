@@ -45,6 +45,9 @@ local MagicBall = require(script.Parent.MagicBall)
 local FreeRewardMenu = require(script.Parent.FreeRewardMenu)
 local HubCorners = require(script.Parent.HubCorners)
 local RewardPopups = require(script.Parent.RewardPopups)
+local Music = require(script.Parent.Music)
+local SettingsMenu = require(script.Parent.SettingsMenu)
+local SettingsState = require(script.Parent.SettingsState)
 local Popups = require(script.Parent.Popups)
 local TeleportScreen = require(script.Parent.TeleportScreen)
 local TradeMenu = require(script.Parent.TradeMenu)
@@ -161,6 +164,8 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	started = true
 	UISound.preload()
 	ItemState.start() -- early, so the snapshots sent on load are heard
+	SettingsState.start() -- the switches (sound groups, Lower effects) and the seen moments
+	Music.start()
 	money = MoneyHud.new(screen)
 	flyer = CashFlyer.new(screen, money, hooks.pocketToScreen)
 	newRank = NewRankPopup.new(screen, flyer, money)
@@ -200,6 +205,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	TradeMenu.new(screen, deps)
 	RewardPopups.start(screen, deps) -- the daily login and playtime popups (before the page)
 	FreeRewardMenu.new(screen, deps)
+	SettingsMenu.new(screen, deps)
 	column = MenuColumn.new(screen, {
 		rankHud = rankHud,
 		money = money,
@@ -363,6 +369,7 @@ function Progression.update(state: State)
 	)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
 	banner:setInMatch(state.inMatch)
+	Music.setInMatch(state.inMatch)
 	if state.inMatch and not wasInMatch then
 		-- A full menu or the case opening would cover the table (and the overlay would keep
 		-- the gamepad's A and B): a player waiting on a pad may have opened either.
