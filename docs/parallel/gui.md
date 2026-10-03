@@ -283,6 +283,29 @@ step (steps 1-14 of the brief).
     WIN! under the bar. Console clean. Not checked: the phone placement inside the pill (Studio
     cannot shrink the rank HUD's screen through the MCP: by hand on a phone).
 
+- **Step 10a done: the player list and the global boards.** Roblox's list is off; ours sits
+  top right: a header "Players (N)" that opens and closes it (open on a computer, closed on a
+  phone at first) and three tabs. **Players**: you first, then by rank: the rank badge, the
+  username with the country flag when that player turned it on, wins vs players and money.
+  Disguised and tutorial bots are listed like people (their rank and money, a fixed believable
+  wins count for their tier, never a flag; pressing one does nothing); PC robots are not
+  listed. Pressing a real player opens a small card: Trade (a trade invite), Add friend and
+  View profile (Roblox's own prompts). **Top Wins** and **Top Rank**: the global boards (top 50)
+  and "Your place: #N" (or "Not on the board yet"). The list hides in a match, under menus and
+  popups. The D-pad's left in the hub opens it and selects the first row.
+  - New `src/server/Leaderboards.luau`: two OrderedDataStores (wins vs players, rank XP),
+    written by the server when a value changes (at most once a minute per player, and on
+    leaving), read once a minute and sent to everyone; two lobby signs (top 10) either side of
+    the spawn, facing it.
+  - Checked: lint, tests (957 pass, 3 new); Studio PC with `/lobbybots on`: 11 people listed,
+    you first, bots with badges, wins and money; the header collapses and opens; Top Rank shows
+    "#1 Painicane, Bronze III, Your place: #1" after /xp (Studio's fallback board: this
+    server's players); the list hides under the 8-ball and the daily popup; the signs read
+    "WINS VS PLAYERS" / "HIGHEST RANK" with "Be the first!" and the rank row. Console clean.
+    Not checked: the popout's buttons (need a second real player: by hand), the D-pad's left
+    (Studio cannot send it), the phone's collapsed list (by hand on a phone), the live
+    OrderedDataStores (the published game).
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
@@ -371,6 +394,14 @@ step (steps 1-14 of the brief).
 - `Config.luau` (step 9): `UI.Progress.RankHud` gains `OneMoreTextPx`, `OneMoreGapPx`,
   `OneMoreShortTextPx`. `Strings.luau`: `Ranks.OneMoreWin`.
 
+- Step 10a: `PlayerData.luau`: `ATTR.WinsVsPlayers` and one `replicate` line (Stats.Wins);
+  `Bootstrap.server.luau`: requires and starts `Leaderboards`; `Net.luau`: new `Leaderboards`
+  remote; `Config.luau`: `UI.Menu.Column.PadKeys` gains `PlayerList = "DPadLeft"`, new
+  `Config.Leaderboards` and `Config.UI.PlayerList` at the end; `Strings.luau`: new
+  `PlayerList` block; `Progression.luau` (client): builds `PlayerList`, shows it in `update`,
+  the D-pad's left in `padRoute`. New shared module `Progression/PlayerListView.luau` (pure)
+  and `tests/playerlist_test.luau`.
+
 ## Requests to other lanes or the integrator
 
 - **Integrator**: the Cutscenes lane is folded into this one (designer, 2026-10-03): every item
@@ -456,3 +487,12 @@ step (steps 1-14 of the brief).
 - 2026-10-03 (lane): the Inventory's Cues and Cases tabs become one **Items** tab (cases in a
   strip on top), as the brief asked; the chosen cue's big card lays out side by side on any
   landscape space.
+- 2026-10-03 (lane, step 10): the global boards are OrderedDataStores written only by the
+  server (the one exception to "saves go through the save layer": a public ranking, never a
+  save). "Wins vs players" is the save's `Stats.Wins` (wins against people only). In Studio,
+  where DataStores are closed, the boards show the server's own players.
+- 2026-10-03 (lane, step 10): the two lobby signs stand either side of the spawn, a little
+  toward the tables (X -24 and 24, Z 70), turned to face the spawn (`Config.Leaderboards.Signs`).
+- 2026-10-03 (lane, step 10): a disguised bot's wins in the list are a fixed number from its
+  seat, inside a range for its tier (`Config.UI.PlayerList.BotWins`), so it never changes while
+  you watch.

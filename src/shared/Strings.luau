@@ -1080,6 +1080,24 @@ return {
 		On = "ON",
 		Off = "OFF",
 	},
+	-- The player list and the global boards (PlayerList, Leaderboards; GUI lane, C7).
+	PlayerList = {
+		Tabs = { Players = "Players", Wins = "Top Wins", Rank = "Top Rank" },
+		Header = "Players (%s)", -- people here
+		Wins = "%s wins", -- vs players
+		You = "You",
+		YourPlace = "Your place: #%s",
+		NotPlaced = "Not on the board yet",
+		Loading = "Loading...",
+		Trade = "Trade",
+		AddFriend = "Add friend",
+		Profile = "View profile",
+		TradeSent = "Trade request sent!",
+		-- The lobby signs.
+		SignWins = "MOST WINS VS PLAYERS",
+		SignRank = "HIGHEST RANK",
+		SignEmpty = "Be the first!",
+	},
 	-- The hub's small corner buttons (HubCorners; GUI lane, C2).
 	Corners = {
 		Challenge = "Daily Challenge",

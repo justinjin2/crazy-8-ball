@@ -6637,12 +6637,13 @@ Config.UI.Menu = {
 		DaysFromSeconds = 86400, -- from a day left the timer reads "6d 4h", else "23:59:12"
 		-- Each tile's D-pad direction (UserInputService KeyCode names; Config has no Enum):
 		-- in the hub the D-pad opens that menu (overnight assumption, 2026-09-28).
-		-- GUI lane: down is Free Reward (the Daily Challenge when it is gone); left will be the
-		-- player list (step 10).
+		-- GUI lane: down is Free Reward (the Daily Challenge when it is gone); left focuses the
+		-- player list (PlayerList, no tile).
 		PadKeys = {
 			Shop = "DPadUp",
 			Inventory = "DPadRight",
 			FreeReward = "DPadDown",
+			PlayerList = "DPadLeft",
 		},
 		-- Hover or tap (GUI lane, C2): a bigger shake and a glow burst behind the icon.
 		HoverShakeSeconds = 0.35,
@@ -9849,6 +9850,68 @@ Config.Audio.Music = {
 	MatchVolume = 0.08, -- seated at a table whose game is on
 	FadeSeconds = 1.5, -- between volumes and tracks
 	GapSeconds = 4, -- silence between two tracks
+}
+
+-- The global boards (src/server/Leaderboards.luau; GUI lane, designer 2026-10-03, D9): Most
+-- wins vs players and Highest rank, in OrderedDataStores (the one exception to "saves go
+-- through the save layer": boards are not saves). Written from the server when a value
+-- changed (at most once a WriteSeconds per player, and on leave), read about once a minute.
+Config.Leaderboards = {
+	Boards = {
+		{ Key = "Wins", Store = "Board_WinsVsPlayers_v1", Attribute = "WinsVsPlayers" },
+		{ Key = "Rank", Store = "Board_RankXp_v1", Attribute = "RankXp" },
+	},
+	StudioSuffix = "_Studio", -- Studio writes to its own stores
+	Size = 50, -- the list's rows (the signs show the first SignRows)
+	SignRows = 10,
+	ReadSeconds = 60,
+	WriteSeconds = 60,
+	-- The two lobby signs, built by code: either side of the spawn, a little toward the tables,
+	-- each turned to face the spawn (a part's front is its -Z; yaw 180 faces +Z, the spawn).
+	Signs = {
+		{ Board = "Wins", X = -24, Z = 70, YawDegrees = -130 },
+		{ Board = "Rank", X = 24, Z = 70, YawDegrees = 130 },
+	},
+	SignSize = { 12, 9, 1 }, -- studs: width, height, depth
+	SignLiftStuds = 1, -- its bottom edge above the floor
+	SignPixelsPerStud = 40, -- the SurfaceGui's resolution
+	SignColor = { 27, 32, 51 }, -- the board's back and frame (Kit Ink)
+	SignTitlePx = 40, -- the sign's title (SurfaceGui pixels)
+	SignRowTextPx = 22, -- each row
+	SignTopPx = 70, -- the rows start this far down
+	SignPadPx = 30, -- the rows' side margins
+}
+
+-- The player list, top right (PlayerList; GUI lane, C7, D10, D11).
+Config.UI.PlayerList = {
+	WidthPx = 300, -- a computer; a phone's is ShortWidthPx
+	ShortWidthPx = 250,
+	RowPx = 40,
+	ShortRowPx = 34,
+	HeaderPx = 40,
+	TopGapPx = 6, -- under Roblox's top bar row
+	RightPx = 10,
+	MaxHeightShare = 0.36, -- of the screen's height, open (it scrolls past that)
+	ShortMaxHeightShare = 0.3, -- on a phone, so it ends above the Daily Challenge target
+	BadgePx = 30,
+	TextPx = 16,
+	ShortTextPx = 14,
+	PopoutWidthPx = 220,
+	PopoutButtonPx = 44,
+	-- Disguised and tutorial bots show a fixed, believable "wins vs players" for their tier
+	-- (D10): somewhere in { low, high }, picked from the bot's id so it never changes.
+	BotWins = {
+		Bronze = { 0, 12 },
+		Silver = { 8, 40 },
+		Gold = { 30, 110 },
+		Platinum = { 90, 260 },
+		Diamond = { 200, 520 },
+		Expert = { 420, 900 },
+		Veteran = { 800, 1500 },
+		Master = { 1300, 2400 },
+		Grandmaster = { 2200, 3800 },
+		Reyes = { 3500, 6000 },
+	} :: { [string]: { number } },
 }
 
 -- The rare-pull cutscenes (PullCutscene; GUI lane, designer 2026-10-03, C11d). After the reel

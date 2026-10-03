@@ -44,6 +44,7 @@ local ShopThanks = require(script.Parent.ShopThanks)
 local MagicBall = require(script.Parent.MagicBall)
 local FreeRewardMenu = require(script.Parent.FreeRewardMenu)
 local HubCorners = require(script.Parent.HubCorners)
+local PlayerList = require(script.Parent.PlayerList)
 local RewardPopups = require(script.Parent.RewardPopups)
 local Music = require(script.Parent.Music)
 local SettingsMenu = require(script.Parent.SettingsMenu)
@@ -90,6 +91,7 @@ local column: any = nil
 local banner: any = nil
 local caseOpening: any = nil
 local corners: any = nil
+local playerList: any = nil
 local started = false
 -- RankEvents held while you shoot or a result screen is up, shown in order afterwards.
 local heldRanks: { any } = {}
@@ -217,6 +219,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	deps.column = column
 	corners = HubCorners.new(screen, deps)
 	deps.corners = corners
+	playerList = PlayerList.new(screen)
 	banner = Banner.new(screen, { avoid = { rankHud.holder } })
 	Menus.setBlocker(function(): boolean
 		return lastState.inMatch or popupUp()
@@ -307,9 +310,9 @@ function Progression.toggleRank(): boolean
 	return Menus.open(RANKED)
 end
 
---- The D-pad in the hub (Main, for a press no GUI took): up, right, down and left open the
---- Shop, Inventory, Rewards and Trade, as the left column's tiles (overnight assumption,
---- 2026-09-28). Never in a match (the D-pad aims there), while a menu is open (the D-pad moves
+--- The D-pad in the hub (Main, for a press no GUI took): up, right and down open the Shop,
+--- Inventory and Free Reward (the Daily Challenge once that is gone), as the left column's
+--- tiles; left focuses the player list (GUI lane, 2026-10-03). Never in a match (the D-pad aims there), while a menu is open (the D-pad moves
 --- its selection), while a text box has focus, or while the column is hidden. Returns whether
 --- it took the press.
 function Progression.padRoute(key: Enum.KeyCode): boolean
@@ -322,6 +325,11 @@ function Progression.padRoute(key: Enum.KeyCode): boolean
 	end
 	if not column:isShown() then
 		return false
+	end
+	-- Left focuses the player list.
+	if name == "PlayerList" then
+		playerList:focus()
+		return true
 	end
 	-- Down is Free Reward while it is up, else the Daily Challenge.
 	if name == "FreeReward" and not column:freeShown() then
@@ -366,6 +374,14 @@ function Progression.update(state: State)
 	)
 	corners:setVisible(
 		not state.inMatch and not busy and not caseOpening:isOpen() and not teleportUp()
+	)
+	playerList:setVisible(
+		not state.inMatch
+			and not busy
+			and not caseOpening:isOpen()
+			and not teleportUp()
+			and not Menus.isOpen()
+			and not Popups.isShowing()
 	)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
 	banner:setInMatch(state.inMatch)

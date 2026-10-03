@@ -354,6 +354,10 @@ local REMOTES: { [string]: string } = {
 	-- client -> server, answered { ok = true } or { ok = false, reason ("BadRequest",
 	-- "TooFast", "NotLoaded") }: ("Set", key, boolean), ("Seen", kind in Config.Settings.SeenKinds).
 	SettingsRequest = "RemoteFunction",
+	-- The global boards (src/server/Leaderboards.luau; GUI lane, D9). server -> one player on
+	-- load, then everyone after each read: { at, boards = { Wins = { { userId, name, value } },
+	-- Rank = { ... } } } (best first, up to Config.Leaderboards.Size; Rank's value is RankXp).
+	Leaderboards = "RemoteEvent",
 }
 
 -- Values per table in an AimBroadcast batch.

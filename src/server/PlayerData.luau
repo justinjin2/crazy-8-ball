@@ -113,6 +113,8 @@ local ATTR = {
 	RankDivision = "RankDivision", -- 1 = I; 0 for Unranked
 	RankIndex = "RankIndex", -- 0 Unranked, 1 Bronze I ... the top division
 	WinStreak = "WinStreak", -- wins in a row against people (Stats.WinStreak), over the head
+	-- GUI lane: wins against people ever (Stats.Wins), for the player list and the boards.
+	WinsVsPlayers = "WinsVsPlayers",
 	EquippedCue = "EquippedCue", -- the equipped cue's catalog id (everyone's stick and trail)
 	CasesUnopened = "CasesUnopened", -- unopened cases of every type (a red dot)
 	-- Something can be claimed now: today's login streak, a playtime gift, or a complete Index
@@ -756,6 +758,7 @@ local function replicate(player: Player, data: any)
 	setAttribute(player, ATTR.RankDivision, rank.division)
 	setAttribute(player, ATTR.RankIndex, rank.index)
 	setAttribute(player, ATTR.WinStreak, data.Stats.WinStreak)
+	setAttribute(player, ATTR.WinsVsPlayers, data.Stats.Wins)
 	setAttribute(player, ATTR.EquippedCue, Inventory.equipped(data))
 	setAttribute(player, ATTR.CasesUnopened, casesUnopened(data))
 	setAttribute(player, ATTR.RewardReady, rewardReady(data, today()))
