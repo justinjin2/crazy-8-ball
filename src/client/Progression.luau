@@ -34,6 +34,7 @@ local MoneyHud = require(script.Parent.MoneyHud)
 local Nameplates = require(script.Parent.Nameplates)
 local NewRankPopup = require(script.Parent.NewRankPopup)
 local RankHud = require(script.Parent.RankHud)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local ResultScreen = require(script.Parent.ResultScreen)
 local RewardChips = require(script.Parent.RewardChips)
 local RewardsMenu = require(script.Parent.RewardsMenu)
@@ -175,6 +176,9 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	end)
 	plates = Nameplates.new()
 	ChatTags.start() -- the [TIER] tag before names in chat
+	-- The tutorial lane's hand points at these (TutorialAnchors).
+	TutorialAnchors.set("Rank", rankHud.holder)
+	TutorialAnchors.set("MoneyHud", money.root)
 
 	-- The economy's screens share one table of the things they fly to and open; a field set
 	-- after a menu is built is still seen by it (they read it when used).
@@ -320,7 +324,7 @@ function Progression.update(state: State)
 	end
 	lastState = state
 	local busy = result:isOpen() or newRank:isOpen()
-	rankHud:setVisible(not state.inMatch and not busy)
+	rankHud:setVisible(not state.inMatch and not busy and not TutorialAnchors.hidden("Rank"))
 	-- Under the result screen and NEW RANK! the column still shows while a case or cue flies
 	-- into its Inventory tile (RewardChips), so the tile is there to catch it.
 	column:setVisible(

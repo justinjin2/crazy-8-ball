@@ -106,7 +106,14 @@ end
 
 -- The column and HUD items the tutorial hides in the first server; each appears when the
 -- tutorial points at it (Abilities from its step) and all of them in the real server.
-local ITEMS = { Shop = true, Inventory = true, Abilities = true, Rank = true, FreeReward = true }
+local ITEMS = {
+	Shop = true,
+	Inventory = true,
+	Abilities = true,
+	Rank = true,
+	FreeReward = true,
+	Trade = true,
+}
 
 --- Whether the HUD item `item` (Shop, Inventory, Abilities, Rank, FreeReward) shows at `step`.
 --- Anything not hidden by the tutorial shows.

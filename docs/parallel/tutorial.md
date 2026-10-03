@@ -84,6 +84,27 @@ by step (steps 1-10 of the brief).
     phone sizes are checked with the flow in step 3. Gamepad: the glyphs are Roblox's own;
     a real pad press is a hand check (MCP cannot drive a gamepad).
 
+- **Step 3 done: joining game 1.** `TutorialGames` (server) reserves the nearest waiting 1v1
+  table for a player at Arrow1 / Arrow2 (`t.reservedFor`, the player attribute
+  `TutorialTable`); lobby bots get up from it and never walk to, wait on or answer requests at
+  it. Stepping on its pad moves to Request; walking off goes back to the arrow; any other
+  table cancels ("OtherTable"); a second real player on the pad cancels ("Friend"). Nobody in
+  the tutorial's first server sends or gets a Request opponent popup (`TableService`'s new
+  request filter). Pressing Request opponent there brings the tutorial bot (2 s,
+  `Config.Bots.Tutorial.JoinDelay`) and the game's start moves to Game1. Client: "Join a
+  table!" with the floor arrow ("Waiting for a free table..." while none is free); on the pad
+  the host card shows only Request opponent, lit in the dim with the hand tapping it, words
+  per device ("Click", "Tap", "Press A"; on a gamepad the button is selected for A, and "Press
+  Y, then A" once the selection moves off), then "Finding you an opponent...". Shop,
+  Inventory, Abilities, Rank, Free Reward and Trade are hidden in the first server.
+  - Checked: lint, tests (957); Studio PC: the arrow to table 2, onto the pad -> Request (the
+    card with only Request opponent, the dim and hand), the press -> the bot on the pad about
+    2 s later -> Starting in 3 -> Game1; funnel steps 1-5 printed in order. `/lobbybots on`:
+    a bot waiting on the reserved table left within a second and none came back in 30 s.
+    A `/tutorial reset` while seated in a running game cancels as "OtherTable" (correct: the
+    player sits at a table that is not the reserved one). Phone and gamepad presses: hand
+    checks (the gamepad selection path is in the code; MCP cannot press a pad button).
+
 ### Rule changes for everyone (made in this lane; the integrator moves them to the docs)
 
 - Reaching Bronze gives 1 Case Drop (was 2), given at once after the first win.
@@ -115,6 +136,18 @@ by step (steps 1-10 of the brief).
 - `ChatTags.luau`: the rank tag reads `RankTag` first (the claimed tier).
 - `UltSpins.luau`: a comment (RELEASE).
 - `Main.client.luau`: one line before the RenderStepped hook starts `Tutorial` (step 2).
+- `TableService.luau`: a `requestFilter` local and `Service.setRequestFilter` before
+  `sendRequest`; `sendRequest`'s loop condition also asks the filter (step 3).
+- `Bots/LobbyBots.luau`: a reserved table (`t.reservedFor`) is skipped in `freeTables`, on
+  arrival in `goPlay` and in `answer`; the tick's eviction also gets bots off a reserved table
+  (step 3).
+- `QueueMenu.luau`: requires `TutorialAnchors`; registers `Request` and `GlobalQueue`; the
+  update hides HostMore (vs PC, solo, fill with PC), HostRequest, HostGlobal, HostLevels when
+  the tutorial says so (step 3).
+- `MenuColumn.luau`: requires `TutorialAnchors`; registers each tile; a tile hides while the
+  tutorial hides it (refreshed on `TutorialAnchors.Changed`) (step 3).
+- `Progression.luau`: requires `TutorialAnchors`; registers `Rank` and `MoneyHud`; the rank HUD
+  hides while the tutorial hides Rank (step 3).
 - Tests changed for the new values: `ranks_test`, `save_schema_test`, `ult_slots_test`,
   `ult_spins_test`; `tools/economy_config.json` re-exported.
 
@@ -157,3 +190,8 @@ by step (steps 1-10 of the brief).
   with the guidance off; Skip asks to confirm.
 - 2026-10-03 (designer): real-server nudges show one at a time, only in the lobby, and an
   ignored one comes back until clicked.
+- 2026-10-03 (lane): Trade is hidden in the first server too (it sits in the same column and
+  would distract from the one button the tutorial teaches); it shows with the rest in the real
+  server.
+- 2026-10-03 (lane): on a gamepad the tutorial puts the selection on Request opponent itself,
+  so one A press works; if the player moves it off, the line says "Press Y, then A".

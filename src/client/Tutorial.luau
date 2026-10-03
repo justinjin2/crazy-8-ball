@@ -6,6 +6,7 @@
 --
 -- Every prompt is device-specific (designer, 2026-10-03): the words and the hand's gesture
 -- follow the last input used (mouse and keyboard, touch, gamepad).
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -13,6 +14,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared.Net)
+local Strings = require(Shared.Strings)
 local Steps = require(Shared.Tutorial.Steps)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local TutorialOverlay = require(script.Parent.TutorialOverlay)
@@ -27,8 +29,20 @@ local overlay: TutorialOverlay.Overlay
 local hand: TutorialHand.Hand
 local arrow: TutorialArrow.Arrow
 
+local Copy = Strings.Tutorial
+
 -- The HUD items the tutorial brings in one by one.
-local ITEMS = { "Shop", "Inventory", "Abilities", "Rank", "FreeReward" }
+local ITEMS = { "Shop", "Inventory", "Abilities", "Rank", "FreeReward", "Trade" }
+
+-- The host card's parts hidden at a step, so it shows only the button the step teaches
+-- (QueueMenu reads them: HostMore is vs PC, solo and fill with PC; HostLevels the PC levels).
+local HOST_HIDES: { [string]: { string } } = {
+	Request = { "HostMore", "HostLevels", "HostGlobal" },
+	Queue = { "HostMore", "HostLevels", "HostRequest" },
+}
+
+-- The step whose scene is showing, and the device it was built for.
+local shownKey = ""
 
 --- The input the player is using now: "mouse", "touch" or "gamepad".
 function Tutorial.device(): string
@@ -72,7 +86,98 @@ local function refreshHidden()
 			hidden[item] = true
 		end
 	end
+	local hostHides: { string } = HOST_HIDES[step] or {}
+	for _, item in hostHides do
+		hidden[item] = true
+	end
 	TutorialAnchors.setHidden(hidden)
+end
+
+-- The floor point of table `id`'s queue pad, if it is there.
+local function padPoint(id: number): Vector3?
+	local zones = workspace:FindFirstChild("TableZones")
+	local pad = zones and zones:FindFirstChild(("QueuePad_%02d"):format(id))
+	if pad and pad:IsA("BasePart") then
+		return pad.Position + Vector3.new(0, pad.Size.Y / 2, 0)
+	end
+	return nil
+end
+
+-- The words for this device from a { Mouse, Touch, Gamepad } set.
+local function words(set: { [string]: string }, device: string): string
+	return if device == "gamepad"
+		then set.Gamepad
+		elseif device == "touch" then set.Touch
+		else set.Mouse
+end
+
+-- The arrow steps: lead to the reserved table's pad.
+local function arrowScene(): string
+	local id = player:GetAttribute("TutorialTable")
+	local goal = if type(id) == "number" and id > 0 then padPoint(id) else nil
+	arrow:show(goal)
+	overlay:dim(nil)
+	hand:hide()
+	overlay:say(if goal then Copy.JoinTable else Copy.WaitTable)
+	return "arrow" .. tostring(id)
+end
+
+-- The pad steps: light the one host-card button the step teaches, the hand tapping it.
+local function padScene(anchor: string, set: { [string]: string }, device: string): string
+	arrow:show(nil)
+	if player:GetAttribute("TutorialCalling") == true then
+		overlay:dim(nil)
+		hand:hide()
+		overlay:say(Copy.Finding)
+		return "calling"
+	end
+	if not TutorialAnchors.showing(anchor) then
+		overlay:dim(nil)
+		hand:hide()
+		overlay:say(nil)
+		return "wait" .. anchor
+	end
+	local target = TutorialOverlay.guiTarget(anchor)
+	overlay:dim(target)
+	hand:point(target)
+	local text = words(set, device)
+	if device == "gamepad" then
+		-- Put the gamepad on the button so A presses it; once moved off, Y comes back to it.
+		local button = TutorialAnchors.get(anchor)
+		if shownKey:sub(1, #anchor) ~= anchor and button then
+			GuiService.SelectedObject = button
+		end
+		local selected = GuiService.SelectedObject
+		if selected == nil or selected ~= button then
+			text = set.GamepadFocus or text
+		end
+	end
+	overlay:say(text)
+	return anchor .. device .. text
+end
+
+-- Builds the scene for the step now (the line, the dim, the hand, the arrow). Cheap enough
+-- to run every frame: each piece only changes when its input does.
+local function scene(step: string, device: string): string
+	if step == "Arrow1" or step == "Arrow2" then
+		return arrowScene()
+	elseif step == "Request" then
+		return padScene("Request", Copy.Request, device)
+	end
+	-- Steps still to come keep the screen clear.
+	arrow:show(nil)
+	overlay:dim(nil)
+	hand:hide()
+	overlay:say(nil)
+	return step
+end
+
+local function update()
+	if not Tutorial.active() then
+		shownKey = ""
+		return
+	end
+	shownKey = scene(Tutorial.step(), Tutorial.device())
 end
 
 local function refresh()
@@ -134,6 +239,7 @@ function Tutorial.start()
 	arrow = TutorialArrow.new()
 	player:GetAttributeChangedSignal("TutorialStep"):Connect(refresh)
 	refresh()
+	RunService.RenderStepped:Connect(update)
 	startQA()
 end
 

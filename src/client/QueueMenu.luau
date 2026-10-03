@@ -48,6 +48,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Ranks = require(Shared:WaitForChild("Progression"):WaitForChild("Ranks"))
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local Copy = Strings.Match.Queue
 local M = Config.Multiplayer
 local S = M.Style
@@ -285,6 +286,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 			end
 		end
 	)
+	TutorialAnchors.set("Request", self.request) -- the tutorial lane's hand points here
 	-- The global queue: every server, by rank (designer, 2026-09-28).
 	self.global = button(
 		content,
@@ -300,6 +302,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 			end
 		end
 	)
+	TutorialAnchors.set("GlobalQueue", self.global)
 	-- On 2v2 and 3v3, why it is greyed: a whole side must be on the pad.
 	self.needs = HudParts.note(content, "GlobalNeeds", S.QueueText.Small, "")
 	self.needs.TextWrapped = false
@@ -885,10 +888,32 @@ function QueueMenu.update(self: any, now: number)
 	self.solo.Visible = alone and not sending
 	local fillable = self:fillable()
 	self.fillPc.Visible = fillable and not sending
+	-- The tutorial lane: the tutorial shows only the button it teaches (TutorialAnchors).
+	local hideMore = TutorialAnchors.hidden("HostMore")
+	if hideMore then
+		self.pc.Visible = false
+		self.solo.Visible = false
+		self.fillPc.Visible = false
+	end
+	if TutorialAnchors.hidden("HostRequest") then
+		self.request.Visible = false
+	end
+	if TutorialAnchors.hidden("HostGlobal") then
+		self.global.Visible = false
+	end
+	if TutorialAnchors.hidden("HostLevels") then
+		self.levelRow.Visible = false
+	end
 	local scale = self.scale.Scale
 	-- The waiting line folds away for a request; a search keeps it, saying it searches.
 	ease(self.statusFold, not folded or searching, dt, self.snap, scale)
-	ease(self.more, (alone or fillable) and not folded and not sending, dt, self.snap, scale)
+	ease(
+		self.more,
+		(alone or fillable) and not folded and not sending and not hideMore,
+		dt,
+		self.snap,
+		scale
+	)
 	self.snap = false
 
 	local gamepad = UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1

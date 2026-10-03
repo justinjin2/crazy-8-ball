@@ -885,6 +885,15 @@ local function wantsOpponent(t: any, epoch: any, time: number): boolean
 		and time - e.requestedAt <= M.Queue.RequestSeconds
 end
 
+-- The tutorial lane: whether `player` may see `host`'s ask (TutorialService: nobody in the
+-- tutorial's first server sends or gets one). Nil: everyone may.
+local requestFilter: ((host: Player, player: Player) -> boolean)? = nil
+
+--- The tutorial lane's filter on Request opponent's popups (see requestFilter).
+function Service.setRequestFilter(fn: ((host: Player, player: Player) -> boolean)?)
+	requestFilter = fn
+end
+
 -- Ask everyone free in the server (not seated at any table) whether they want to play at
 -- the host of table `t`'s table (designer, 2026-09-27).
 local function sendRequest(t: any, host: Player)
@@ -898,7 +907,11 @@ local function sendRequest(t: any, host: Player)
 		at = e.requestedAt,
 	}
 	for _, p in Players:GetPlayers() do
-		if p ~= host and not seatOf[p.UserId] then
+		if
+			p ~= host
+			and not seatOf[p.UserId]
+			and (requestFilter == nil or requestFilter(host, p))
+		then
 			Net.get("OpponentRequest"):FireClient(p, ask)
 		end
 	end

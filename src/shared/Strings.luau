@@ -1278,6 +1278,15 @@ return {
 		SkipAsk = "Skip the tutorial?",
 		SkipYes = "Yes",
 		SkipNo = "No",
+		JoinTable = "Join a table!",
+		WaitTable = "Waiting for a free table...",
+		Request = {
+			Mouse = "Click Request opponent!",
+			Touch = "Tap Request opponent!",
+			Gamepad = "Press A to request an opponent!",
+			GamepadFocus = "Press Y, then A to request an opponent!",
+		},
+		Finding = "Finding you an opponent...",
 	},
 	-- Rank rewards held until claimed (RankClaim; the roadmap's claim block, NEW RANK!).
 	RankClaim = {

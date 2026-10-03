@@ -21,6 +21,7 @@ local Rewards = require(script.Parent.Rewards)
 local Ranking = require(script.Parent.Ranking)
 local ArenaService = require(script.Parent.ArenaService)
 local Funnel = require(script.Parent.Funnel)
+local TutorialGames = require(script.Parent.TutorialGames)
 
 local T = Config.Tutorial
 
@@ -216,6 +217,7 @@ function TutorialService.start()
 		return nil
 	end)
 	Net.get("TutorialEvent").OnServerEvent:Connect(onEvent)
+	TutorialGames.start(TutorialService)
 	PlayerData.Loaded:Connect(onLoaded)
 	for _, player in Players:GetPlayers() do
 		if PlayerData.isLoaded(player) then

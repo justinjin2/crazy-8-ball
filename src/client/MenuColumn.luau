@@ -48,6 +48,7 @@ local ItemState = require(script.Parent.ItemState)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 local UltSpinState = require(script.Parent.UltSpinState)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 
 local C = Config.UI.Menu.Column
 local S = Config.Multiplayer.Style
@@ -58,6 +59,14 @@ local WORDS: { [string]: string } = table.clone(Strings.Menus.Column :: any)
 local COPY = Strings.Menus
 local ULTS = Config.UI.UltScreen.Column.Name -- the spin screen's tile ("Ults"), last
 local ORDER: { string } = table.clone(C.Order)
+-- The tutorial lane's names for the tiles (TutorialAnchors): the tile -> the item.
+local TUTORIAL_ITEMS: { [string]: string } = {
+	Shop = "Shop",
+	Inventory = "Inventory",
+	Rewards = "FreeReward",
+	Trade = "Trade",
+	[ULTS] = "Abilities",
+}
 if not table.find(ORDER, ULTS) then
 	table.insert(ORDER, ULTS)
 end
@@ -201,6 +210,16 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	connect(UltSpinState.Changed, function()
 		self:refreshUlts()
 	end)
+	-- The tutorial lane: the tutorial brings the tiles in one by one, and its hand finds them.
+	for name, item in TUTORIAL_ITEMS do
+		local t: Tile? = self.tiles[name]
+		if t then
+			TutorialAnchors.set(item, t.button)
+		end
+	end
+	connect(TutorialAnchors.Changed, function()
+		self:refreshUlts()
+	end)
 	connect(UserInputService.InputBegan, function(input: InputObject, processed: boolean)
 		if processed or ULT_KEY == nil or input.KeyCode ~= ULT_KEY then
 			return
@@ -244,9 +263,24 @@ function MenuColumn.refreshUlts(self: any)
 	if not t then
 		return
 	end
-	local live = UltSpinState.isLive()
+	local live = UltSpinState.isLive() and not TutorialAnchors.hidden(TUTORIAL_ITEMS[ULTS])
+	local changed = false
 	if t.button.Visible ~= live then
 		t.button.Visible = live
+		changed = true
+	end
+	-- The tutorial lane: the other tiles hide while the tutorial hides them.
+	for name, item in TUTORIAL_ITEMS do
+		local other: Tile? = self.tiles[name]
+		if other and name ~= ULTS then
+			local show = not TutorialAnchors.hidden(item)
+			if other.button.Visible ~= show then
+				other.button.Visible = show
+				changed = true
+			end
+		end
+	end
+	if changed then
 		self:queueLayout()
 		self:refreshDots()
 	end

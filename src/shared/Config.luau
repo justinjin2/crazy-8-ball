@@ -9295,6 +9295,12 @@ Config.Tutorial = {
 		DropsAtOnce = { Bronze = true },
 		MinGapSeconds = 0.5, -- one claim request at most this often per player (a double tap)
 	},
+	-- The tutorial's tables and opponents (src/server/TutorialGames.luau).
+	Games = {
+		WatchSeconds = 0.25, -- how often the server looks at each tutorial player's table
+		BotTries = 3, -- asks for the tutorial bot's look this many times before giving up
+		BotRetrySeconds = 1,
+	},
 	-- Game 1's rewards (answer 9): Bronze's Case Drop is a Standard Case, opened at once.
 	BronzeDropTier = "Standard",
 	-- The art (tools/gen_tutorial_art.py; uploaded to the group, tools/upload_manifest_tutorial
