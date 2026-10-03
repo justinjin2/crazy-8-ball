@@ -42,6 +42,60 @@ pictures may differ.
 
 ## Status
 
+2026-10-03: interview done, brief approved (`docs/prompts/TUTORIAL_PROMPT.md`). Building step
+by step (steps 1-10 of the brief).
+
+### Rule changes for everyone (made in this lane; the integrator moves them to the docs)
+
+- Reaching Bronze gives 1 Case Drop (was 2), given at once after the first win.
+- No money on join: the day-1 $5,000 auto-claim waits until the player is past the tutorial's
+  first server, so it arrives with the daily-reward popup.
+- 1 starter ability spin (was 3). Code RELEASE gives 3 ability spins; ABILITIES is removed.
+- Heat Seeker is everyone's default ability; Magnet stays Uncommon.
+- Rank rewards for every rank-up, for every player, are held until claimed in Rank (Bronze's
+  1 Case Drop excepted), with a fly animation on claim.
+- This lane owns the tutorial bot's script (replaces the Bots lane's step 5 version).
+
+### Changes to shared or other lanes' files (existing lines)
+
+(filled in step by step)
+
 ## Requests to other lanes or the integrator
 
+- **GUI**: (1) keep the one-line `TutorialAnchors.set(...)` registrations and the column's
+  hidden-tile check through your rework, so the tutorial's hand finds your buttons; (2) the
+  rank claim block on the roadmap is built in your style kit as a small block: restyle it
+  freely, keep its claim call; (3) `Popups` waits while the player attribute `TutorialActive`
+  is true (as your brief already plans); (4) the Rank button shows a red dot and a glow while
+  the player attribute `RankPending` is true; (5) a UI_STYLE line: the tutorial's light dim is
+  a deliberate exception to "popups never darken" (designer, 2026-10-03).
+- **Integrator**: the teleport halves of game 2 (Join Global Queue to the arena, Lobby back to
+  a public server) and the analytics funnels can only be checked in the published game.
+
 ## Decisions (dated; the integrator copies them to DECISIONS.md)
+
+- 2026-10-03 (designer, interview): the tutorial runs in the real public server the player
+  joins, with real players and lobby bots; the Bots lane's 15-bot tutorial lobby is dropped.
+- 2026-10-03 (designer): the break pots 3 solids (no stripe, no 8, no scratch) and leaves a
+  4th solid near a corner pocket; the aim is locked straight; any pull counts as full power.
+- 2026-10-03 (designer): no wander timeout; the arrow stays until the pad, Skip or another
+  table.
+- 2026-10-03 (designer): leaving mid-game-1 restarts game 1 next time; later steps resume where
+  they were.
+- 2026-10-03 (designer): the hand also shows Heat Seeker's ball pick; the instruction text is
+  our style (big white Fredoka, ink outline, no strip); the Rare Case timer sits beside
+  Inventory; the tutorial bot keeps its Silver badge.
+- 2026-10-03 (designer): the Bronze Case Drop is shown through the 8-ball (forced Standard),
+  opened with "Open now" to a forced Uncommon cue; then the match's Rare Case 8-ball.
+- 2026-10-03 (designer): game 1 gives the player's own balls a gentle hidden pull (Magnet's
+  strength, no visuals); the bot nudges the 8 beside a pocket if it has moved; losing on the 8
+  is impossible in game 1.
+- 2026-10-03 (designer): funnels: onboarding (22 steps), skipped/cancelled, shop (repeating),
+  Case Drop, ability spins.
+- 2026-10-03 (designer): Bronze's 1 Case Drop is given at once; every other rank reward and
+  every later rank-up is held until claimed in Rank. NEW RANK! still shows, with "Claim your
+  rewards in Rank!"; Rank gets a red dot and a glow until claimed.
+- 2026-10-03 (designer): Skip during game 1 keeps the game going (the bot still plays badly)
+  with the guidance off; Skip asks to confirm.
+- 2026-10-03 (designer): real-server nudges show one at a time, only in the lobby, and an
+  ignored one comes back until clicked.
