@@ -375,6 +375,20 @@ step (steps 1-14 of the brief).
     the PC (YOUR TURN!), the ability panel through its Studio preview. Console clean. Not
     checked: the phone (the tier word is 22 px there), a gamepad, a full match to the end.
 
+- **Step 14 done: finish.** The economy model rerun (`python3 tools/economy_model.py`):
+  day-30 ownership among players active in the last 7 days is Epic 6.72% (target ~5%, +34%,
+  the same as since step 3), Legendary 1.16% (~1%), Mythic 0.17% (cap 0.5%), Secret 0.03%
+  (cap 0.05%). The model does not count the favorite reward ($10,000 + 1 Case Drop) or the
+  first-leave Rare Case; both are once per player, so they add a little to Epic and up.
+  **The whole brief (steps 0-14) is built.** Lint OK, 958 Lune tests pass.
+  - What only a person can check (Studio cannot): two real players (a trade from start to
+    end, the player list's Trade / Add friend / View profile, the server-wide Secret sky); a
+    real phone (touch, the 844 x 390 layouts, a real shake for the 8-ball) and a real
+    controller (D-pad Left to the list, every new button, B backing out); a real 1v1 to the
+    end (the result cutscene, also in an arena); Esc and clicking outside the window (COME BACK
+    TOMORROW) and a rejoin (no second gift, settings kept); Roblox's favorite, group and invite
+    prompts; real Robux purchases in the published game; a new UTC day's login popup.
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
@@ -514,6 +528,20 @@ step (steps 1-14 of the brief).
   offers, playtime, the come-back message) while it is true.
 - **Integrator**: the lobby music tracks (step 8) need the designer's OK: three APM tracks
   are in `Config.Audio.Music.Tracks` (Nice Mood Guitar, Tonight's Guest, Feeling Lucky).
+
+- **Integrator**: merge `lane-gui`, then save `place/8ball.rbxl` and publish once (this lane
+  built nothing in Edit mode: the boards and every scene are made by code; the place save is
+  the milestone's).
+- **Integrator**: created on Roblox in this lane: six sale products (`Pack4Sale`..`Pack7Sale`,
+  `VipSale`, `Mystery10Sale`, ids in `Config.Products.List`), icons on all 34 passes and
+  products, and VIP's descriptions now say gold. Sounds used are from Roblox's licensed library
+  (no uploads): Heartbeat 1839088414 and Shockwave 9120009360, plus the three music tracks
+  above that still need the designer's OK.
+- **Integrator**: `Strings.Menus.Trade` (the old "Soon" words) is unused now; safe to delete.
+- **Designer**: Epic ownership is still 6.72% against ~5% (since step 3); a lower Epic chance
+  in Case Drops or the playtime gifts would bring it in. Your call.
+- **Designer**: an Uncommon Case picture (a green chest) is missing; the grey Standard chest
+  stands in.
 
 ## Decisions (dated; the integrator copies them to DECISIONS.md)
 
