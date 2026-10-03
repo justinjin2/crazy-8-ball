@@ -42,6 +42,9 @@ local ShopMenu = require(script.Parent.ShopMenu)
 local ShopOfferPopup = require(script.Parent.ShopOfferPopup)
 local ShopThanks = require(script.Parent.ShopThanks)
 local MagicBall = require(script.Parent.MagicBall)
+local FreeRewardMenu = require(script.Parent.FreeRewardMenu)
+local HubCorners = require(script.Parent.HubCorners)
+local RewardPopups = require(script.Parent.RewardPopups)
 local Popups = require(script.Parent.Popups)
 local TeleportScreen = require(script.Parent.TeleportScreen)
 local TradeMenu = require(script.Parent.TradeMenu)
@@ -83,6 +86,7 @@ local plates: any = nil
 local column: any = nil
 local banner: any = nil
 local caseOpening: any = nil
+local corners: any = nil
 local started = false
 -- RankEvents held while you shoot or a result screen is up, shown in order afterwards.
 local heldRanks: { any } = {}
@@ -194,6 +198,8 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	InventoryMenu.new(screen, deps)
 	RewardsMenu.new(screen, deps)
 	TradeMenu.new(screen, deps)
+	RewardPopups.start(screen, deps) -- the daily login and playtime popups (before the page)
+	FreeRewardMenu.new(screen, deps)
 	column = MenuColumn.new(screen, {
 		rankHud = rankHud,
 		money = money,
@@ -203,6 +209,8 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 		shopNew = deps.shopNew,
 	})
 	deps.column = column
+	corners = HubCorners.new(screen, deps)
+	deps.corners = corners
 	banner = Banner.new(screen, { avoid = { rankHud.holder } })
 	Menus.setBlocker(function(): boolean
 		return lastState.inMatch or popupUp()
@@ -309,6 +317,11 @@ function Progression.padRoute(key: Enum.KeyCode): boolean
 	if not column:isShown() then
 		return false
 	end
+	-- Down is Free Reward while it is up, else the Daily Challenge.
+	if name == "FreeReward" and not column:freeShown() then
+		corners:pressChallenge()
+		return true
+	end
 	column:press(name)
 	return true
 end
@@ -344,6 +357,9 @@ function Progression.update(state: State)
 			and (not busy or RewardChips.catching())
 			and not caseOpening:isOpen()
 			and not teleportUp()
+	)
+	corners:setVisible(
+		not state.inMatch and not busy and not caseOpening:isOpen() and not teleportUp()
 	)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
 	banner:setInMatch(state.inMatch)

@@ -235,10 +235,12 @@ local REMOTES: { [string]: string } = {
 	--   invite = { reward, used (this month), perMonth, invited, done } (the client's
 	--     SocialService:PromptGameInvite with ExperienceInviteOptions.LaunchData =
 	--     Progression/Social.launchData(its own UserId)),
+	--   favorite = { claimed, reward } (GUI lane: the Free Reward page's favorite card),
 	--   ready (the day, a gift or the group can be claimed) }
 	RewardState = "RemoteEvent",
 	-- client -> server, answered: ("ClaimDaily"), ("ClaimPlaytime", index 1..#gifts),
-	-- ("Redeem", the typed code text), ("ClaimGroup") -> { ok = true, money, cases = { { id,
+	-- ("Redeem", the typed code text), ("ClaimGroup"), ("ClaimFavorite": after Roblox's
+	-- favorite prompt said yes; GUI lane) -> { ok = true, money, cases = { { id,
 	-- count } }, drops, spins, lucky } or { ok = false, reason }. Reasons: "BadRequest" (an
 	-- unknown action, a bad index, text that is not a string), "TooFast" (a request every
 	-- Config.Daily.RequestCooldownSeconds, a code every RedeemCooldownSeconds, a group claim
@@ -340,6 +342,11 @@ local REMOTES: { [string]: string } = {
 	-- AUGHHHH!): (bot seat id, text); every client shows a chat bubble over its head and a chat
 	-- line in its name, like a person's.
 	BotSay = "RemoteEvent",
+	-- The GUI lane (designer 2026-10-03, C9). server -> one player: a reward the server gave by
+	-- itself, for its popup: { kind = "Daily" (today's login claim on join; the popup reads the
+	-- streak, track and freeze from RewardState) | "Playtime" (a gift reached; index, minutes),
+	-- reward = { money, cases, drops, spins, lucky } }. Its Case Drops come on CaseDrop too.
+	RewardGiven = "RemoteEvent",
 }
 
 -- Values per table in an AimBroadcast batch.

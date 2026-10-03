@@ -215,6 +215,41 @@ step (steps 1-14 of the brief).
     checked: a real match win's drop (the summary path; code read only), a controller's stick
     and A, and a real phone's shake (all by hand).
 
+- **Step 7 done: the left column, corners and rewards without a menu.** The column is now
+  **Shop, Inventory, Abilities, Free Reward** (Rewards and Trade left it). Hovering or pressing a
+  tile shakes its icon hard and bursts a glow behind it. **Free Reward** (the gift, bobbing in
+  front of turning gold rays) shows only while the group or the favorite reward is left; it
+  opens the **Free Reward page**: two big cards, "Join the group" (3 Case Drops, +10% match
+  money; Join is Roblox's join prompt, then the server checks and gives it; a member sees Claim)
+  and "Favorite the game" ($10,000 + 1 Case Drop; Roblox's favorite prompt, then GetFavorite
+  when Roblox answers it, then the claim) with "Liking the game helps us too!" and no reward
+  tied to a like. Each card goes once claimed; both gone: "All claimed. Thank you!" and the
+  tile leaves the column. **Right edge**: the Daily Challenge target, its glow flashing; a
+  press says "Daily Challenges are coming soon!" in a bubble. **Bottom left** beside the money:
+  **Invite** (Roblox's invite prompt with our launch data) and **Roblox Plus** (hidden for
+  members and where the shop does not offer Plus). **Daily login**: the server now claims
+  every day by itself on join (and at midnight UTC for players still online); a popup shows
+  "DAY 3 LOGIN REWARD!", what was given, the week's seven days (claimed checked, today gold),
+  "Day 10 of 28" with its bar and the next track prize, and the streak freeze; Collect flies
+  it in. **Playtime gifts** are given by the server as each is reached, each with a "THANKS FOR
+  PLAYING!" popup. Every popup waits its turn (one at a time, never in a match, over a menu or
+  during the tutorial); a reward's Case Drops play their 8-ball right after its popup. The
+  inviter's reward is now given **once ever** (their first invited friend's first win).
+  **D-pad** in the hub: up Shop, right Inventory, down Free Reward (the Daily Challenge once
+  Free Reward is gone); left is kept for the player list (step 10); X Abilities and Y the
+  roadmap stay. Also fixed: the 8-ball's Skip did nothing (its bigger touch area ran an empty
+  action).
+  - Checked: lint, Lune tests (954 passed: new invite-once and favorite-card tests); Studio
+    PC: the day 1 popup on join (day 1 checked, Day 1 of 28, freeze line), Collect flying the
+    money and spin, the offer popup after it; the Free Reward page, the group Claim (3 drops,
+    card gone, x3 8-ball after the menu closed), the favorite claim through the server (gave
+    $10,000 + 1 drop; a second claim refused), both gone: thank-you line and the tile gone;
+    /playtime 30: both reached gifts given by themselves, their popups in order, then the
+    gift's 8-ball; Skip on a seen 8-ball; hover shake; the Daily Challenge bubble. Phone (844
+    x 390): the daily popup and the Free Reward page fit and read. Console clean. Not checked
+    (by hand): Roblox's favorite and join prompts (Studio cannot finish them), the invite
+    prompt, the D-pad map on a controller, the corners on a real phone, and a real new UTC day.
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
@@ -266,6 +301,29 @@ step (steps 1-14 of the brief).
   `HandPointer` (after `Heart`); new `Config.UI.MagicBall` before `Config.Cutscenes`.
 - `Strings.luau` (step 6): new `MagicBall` block before `Banner`.
 - `Progression.luau` (client): one line starts `MagicBall`.
+- `Config.luau` (step 7): `Daily` gains `AutoClaimEveryDay` and `AutoGivePlaytime`; `Social`
+  gains `InviterOnce` and `FavoriteReward`; `UI.Menu.Column.Order` is Shop, Inventory, Ults,
+  FreeReward and `PadKeys` lose Rewards and Trade and gain FreeReward (down), plus new
+  hover and Free Reward keys; `Kit.Icons.FreeReward`; new `UI.RewardPopups`, `UI.FreeReward`,
+  `UI.Corners` before `Config.Cutscenes`; `UI.MagicBall.QueueDelaySeconds`.
+- `Strings.luau` (step 7): `Menus.Column` and `Menus.Titles` gain FreeReward (now one key a
+  line); new `RewardPopups`, `FreeReward`, `Corners` blocks before `Banner`.
+- `Net.luau` (step 7): new `RewardGiven`; the RewardRequest and RewardState comments name
+  `ClaimFavorite` and `favorite`.
+- Economy-owned (C9, C18), step 7:
+  - `server/Rewards.luau`: `claimToday` (every day with AutoClaimEveryDay, also at a new UTC
+    day for players here), `giveReachedGifts` after each playtime credit, `tell` (RewardGiven),
+    RewardRequest "ClaimFavorite", `claimFavorite` in REWARD_OPS, `build` passes the Flags.
+  - `server/PlayerData.luau`: `INVITER_FLAG` / `FAVORITE_FLAG`; `giveInviteRewards` gives at
+    most one, once ever (`Social.inviteOnce`); new `PlayerData.claimFavorite`.
+  - `Progression/Social.luau`: new `Social.inviteOnce`. `Progression/RewardView.luau`: new
+    `FavoriteFlag`, `FavoriteView`, `build`'s optional `flags`, the payload's `favorite`.
+  - `server/EconomyLog.luau`: `Favorite` is an Onboarding source.
+  - Tests: `social_test` (invite once), `daily_test` (the favorite card).
+- `Progression.luau` (client): builds `RewardPopups`, `FreeRewardMenu`, `HubCorners`; the
+  corners show with the column; the D-pad's down falls back to the Daily Challenge.
+- `MenuColumn.luau` (client): the Free Reward tile, hover jiggle, Rewards dot only if the tile
+  exists.
 
 ## Requests to other lanes or the integrator
 
@@ -330,6 +388,14 @@ step (steps 1-14 of the brief).
   queue as every other popup, never over the result. A plain tap or click on the ball counts as
   a shake too (so a mouse with no drag, or a player who does not get "drag", still gets
   through).
+- 2026-10-03 (lane, step 7): the daily login is claimed by the server on join every day and
+  also at midnight UTC for players still online (they get the popup then). The Rewards menu and
+  the Trade menu stay built but leave the column: the codes box moves to Settings in step 8 and
+  trading starts from the player list in step 10. The D-pad's left waits for the player list.
+  A reward's Case Drops play their 8-ball just after the reward's popup (a 0.5 s hold).
+- 2026-10-03 (lane, step 7): there is no Uncommon case picture yet, so an Uncommon Case shows
+  the grey Standard chest (in the 8-ball's end screen and elsewhere). A green chest icon is
+  worth making with the next batch of icons.
 - 2026-10-03 (lane): a case's open is sent as the overlay opens (the "Click to open" moment is
   presentation, the case is already being spent), so closing during it gives the usual "Your
   cue is in your Inventory." line.

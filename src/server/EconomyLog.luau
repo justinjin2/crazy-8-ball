@@ -33,6 +33,7 @@ local TRANSACTION: { [string]: string } = {
 	Code = "Onboarding",
 	Group = "Onboarding",
 	Invite = "Onboarding",
+	Favorite = "Onboarding", -- GUI lane: the Free Reward page's favorite reward
 	Purchase = "IAP",
 	SellBack = "Shop",
 	BuyCase = "Shop",

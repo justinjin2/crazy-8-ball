@@ -144,6 +144,10 @@ local MONEY_KINDS: { [string]: string } = {
 -- .FirstWin). Kept apart from Progress.Wins so a first win that an anti-farm rule kept from
 -- dropping a case does not use it up (Cases.DropContext.firstWinEver).
 local FIRST_WIN_FLAG = "FirstWinCase"
+-- GUI lane (designer 2026-10-03): Flags[INVITER_FLAG] once the inviter's reward was given
+-- (Config.Social.InviterOnce), Flags[FAVORITE_FLAG] once the favorite reward was.
+local INVITER_FLAG = "InviterRewarded"
+local FAVORITE_FLAG = "FavoriteReward" -- RewardView.FavoriteFlag
 
 -- The most playtime one UTC day can hold (SaveSchema's cap on Daily.PlaySeconds).
 local SECONDS_PER_DAY = 86400
@@ -2855,8 +2859,10 @@ function PlayerData.giveInviteRewards(player: Player, inviteeIds: { number }): n
 	local given, month, invites = Social.inviteGrant(social, os.time(), #inviteeIds)
 	social.InviteMonth = month
 	social.Invites = math.min(invites, S.StatCap)
+	given = Social.inviteOnce(given, data.Flags[INVITER_FLAG] == true)
 	if given > 0 then
 		addCasesTo(data, Config.Social.InviteCase, given)
+		data.Flags[INVITER_FLAG] = true
 	end
 	commit(player, data, op)
 	return given
@@ -2888,6 +2894,34 @@ function PlayerData.claimGroup(player: Player, member: boolean): (boolean, Daily
 	}
 	data.Social.Group = true
 	giveReward(data, reward, "Group")
+	commit(player, data, op)
+	return true, reward
+end
+
+--- The favorite reward (Config.Social.FavoriteReward), once per player (GUI lane, D4): the
+--- client says Roblox's favorite prompt answered yes (a server cannot check a favorite).
+--- Answers (true, Daily.Reward) or (false, "Claimed" | "NotLoaded").
+function PlayerData.claimFavorite(player: Player): (boolean, Daily.Reward | string)
+	local op = "claimFavorite"
+	if not isPlayer(player) then
+		return refuseInvalid(op, player, "not a player")
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false, "NotLoaded"
+	elseif data.Flags[FAVORITE_FLAG] == true then
+		return false, "Claimed"
+	end
+	local row = Config.Social.FavoriteReward
+	local reward: Daily.Reward = {
+		money = row.Money,
+		cases = {},
+		drops = row.Drops,
+		spins = 0,
+		lucky = 0,
+	}
+	data.Flags[FAVORITE_FLAG] = true
+	giveReward(data, reward, "Favorite")
 	commit(player, data, op)
 	return true, reward
 end

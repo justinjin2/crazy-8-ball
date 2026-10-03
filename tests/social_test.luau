@@ -56,6 +56,15 @@ return {
 		H.expect(Social.inviteGrant(nil, now, 9) == 5, "a missing save")
 	end,
 
+	["the inviter's reward is given once ever (GUI lane, D7)"] = function()
+		local Social, Config = load()
+		H.expect(Config.Social.InviterOnce == true, "on")
+		H.expect(Social.inviteOnce(3, false) == 1, "one of three")
+		H.expect(Social.inviteOnce(1, false) == 1, "the first")
+		H.expect(Social.inviteOnce(1, true) == 0, "never again")
+		H.expect(Social.inviteOnce(0, false) == 0, "none waiting")
+	end,
+
 	["the waiting rewards: added once each, taken all at once"] = function()
 		local Social, Config = load()
 		local stored: any = nil

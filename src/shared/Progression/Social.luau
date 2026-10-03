@@ -82,6 +82,18 @@ local function readPending(stored: any): { number }
 	return out
 end
 
+--- The inviter's rewards given now when Config.Social.InviterOnce (GUI lane, designer
+--- 2026-10-03, D7): at most one, and none once one was ever given (`givenBefore`).
+function Social.inviteOnce(given: number, givenBefore: boolean): number
+	if not C.InviterOnce then
+		return given
+	end
+	if givenBefore then
+		return 0
+	end
+	return math.min(given, 1)
+end
+
 --- The waiting invitees in a stored value.
 function Social.pending(stored: any): { number }
 	return readPending(stored)

@@ -557,6 +557,16 @@ return {
 		H.expect(p.ready and p.playSeconds == 0 and #p.titles == 0, "ready, nothing played")
 	end,
 
+	["RewardView: the favorite card (GUI lane, D4)"] = function()
+		local p = RewardView.build(fresh(), nil, nil, NOW)
+		H.expect(not p.favorite.claimed, "not yet")
+		H.expect(p.favorite.reward.money == Config.Social.FavoriteReward.Money, "the money")
+		H.expect(p.favorite.reward.drops == Config.Social.FavoriteReward.Drops, "the drop")
+		local flags = { [RewardView.FavoriteFlag] = true }
+		local after = RewardView.build(fresh(), nil, nil, NOW, false, nil, false, flags)
+		H.expect(after.favorite.claimed, "claimed")
+	end,
+
 	["RewardView: after the claim, tomorrow's reward is next"] = function()
 		local ok, login = Daily.claimLogin(fresh(), TODAY)
 		H.expect(ok, "claimed")

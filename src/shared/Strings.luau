@@ -592,9 +592,21 @@ return {
 	-- The left column and the full menus (MenuColumn, MenuFrame and the four menus).
 	Menus = {
 		-- Each column tile's word, across its bottom edge (real text, never in the image).
-		Column = { Shop = "Shop", Inventory = "Inventory", Rewards = "Rewards", Trade = "Trade" },
+		Column = {
+			Shop = "Shop",
+			Inventory = "Inventory",
+			Rewards = "Rewards",
+			Trade = "Trade",
+			FreeReward = "Free Reward",
+		},
 		-- Each menu's title in its header band.
-		Titles = { Shop = "Shop", Inventory = "Inventory", Rewards = "Rewards", Trade = "Trade" },
+		Titles = {
+			Shop = "Shop",
+			Inventory = "Inventory",
+			Rewards = "Rewards",
+			Trade = "Trade",
+			FreeReward = "Free Reward",
+		},
 		-- The tabs under (or beside) each title.
 		Tabs = {
 			Shop = { Cases = "Cases", Limited = "Limited", Money = "Money", Vip = "VIP" },
@@ -1016,6 +1028,46 @@ return {
 		Later = "Later",
 		Ok = "OK",
 		Collect = "Collect",
+	},
+	-- The rewards that pop up instead of living in a menu (GUI lane, 2026-10-03, C9).
+	RewardPopups = {
+		DailyTitle = "DAY %s LOGIN REWARD!", -- the loop day (1..7)
+		DayTile = "Day %s",
+		Streak = "%s day streak!", -- days in a row
+		Track = "Day %s of %s", -- the 28-day track ("Day 10 of 28")
+		TrackNext = "Day %s: %s", -- the track's next prize ("Day 14: 2 Rare Cases")
+		FreezeReady = "Streak freeze ready: miss a day and keep your streak.",
+		FreezeUsed = "Your streak freeze saved your streak!",
+		FreezeGone = "Streak freeze used this week.",
+		Tomorrow = "Tomorrow: %s",
+		PlaytimeTitle = "THANKS FOR PLAYING!",
+		PlaytimeLine = "You earned this for playing %s minutes!",
+		Collect = "Collect",
+		Drop = "1 Case Drop",
+		Drops = "%s Case Drops",
+		Plus = "%s + %s", -- two parts of a reward ("$5,000 + 1 Case Drop")
+	},
+	-- The Free Reward page (FreeRewardMenu; GUI lane, D4).
+	FreeReward = {
+		GroupTitle = "Join the group",
+		GroupLine = "Plus +%s%% money from every match while you are in it.",
+		Join = "Join",
+		FavoriteTitle = "Favorite the game",
+		FavoriteLine = "Tap the star, then come back here.",
+		Favorite = "Favorite",
+		Claim = "Claim",
+		LikeToo = "Liking the game helps us too!",
+		AllDone = "All claimed. Thank you!",
+		NotYet = "Not favorited yet. Try again!",
+		NotMember = "Join the group first, then press Claim.",
+	},
+	-- The hub's small corner buttons (HubCorners; GUI lane, C2).
+	Corners = {
+		Challenge = "Daily Challenge",
+		ChallengeSoon = "Daily Challenges are coming soon!",
+		Invite = "Invite",
+		InviteFailed = "Invites are not available right now.",
+		Plus = "Plus",
 	},
 	-- The banner at the top middle (Banner). Names are players' usernames.
 	Banner = {

@@ -34,6 +34,11 @@
 --
 -- Hidden until the save loads, in a match, and while the result screen, NEW RANK!, the case
 -- opening or the teleport screen is up (Progression.update calls setVisible every frame).
+--
+-- GUI lane (designer 2026-10-03, C2): the tiles are Shop, Inventory, Abilities and Free Reward
+-- (Config order). Rewards and Trade left the column. Free Reward shows only while the group or
+-- the favorite reward is left to claim (RewardState), bobbing in front of turning gold rays.
+-- Hovering a tile (or pressing it) shakes its icon and bursts a glow behind it.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
@@ -74,9 +79,12 @@ do
 	end
 end
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
+local FREE = "FreeReward" -- the Free Reward tile (GUI lane)
 
 type Tile = {
 	name: string,
+	rays: ImageLabel?, -- Free Reward's turning rays
+	iconPos: UDim2?, -- the icon's laid-out place (Free Reward bobs round it)
 	button: TextButton,
 	body: Frame, -- the candy's body: everything on the tile squishes and grows with it
 	icon: ImageLabel,
@@ -195,6 +203,9 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	connect(ItemState.Changed.Items, function()
 		self:refreshDots()
 	end)
+	connect(ItemState.Changed.Rewards, function()
+		self:refreshFree()
+	end)
 	connect(ItemState.Changed.Shop, function()
 		self:refreshTimer()
 		self:refreshDots()
@@ -226,6 +237,7 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 		end
 	end)
 	self:refreshUlts()
+	self:refreshFree()
 	self:layout()
 	self:refreshDots()
 	self:refreshTimer()
@@ -253,6 +265,60 @@ function MenuColumn.refreshUlts(self: any)
 		self:queueLayout()
 		self:refreshDots()
 	end
+end
+
+--- Show the Free Reward tile only while the group or the favorite reward is left to claim
+--- (RewardState); it bobs in front of its turning rays while up.
+function MenuColumn.refreshFree(self: any)
+	local t: Tile? = self.tiles[FREE]
+	if not t then
+		return
+	end
+	local state = ItemState.rewards()
+	local left = false
+	if type(state) == "table" then
+		local group = state.group
+		local favorite = state.favorite
+		left = (type(group) == "table" and group.claimed ~= true)
+			or (type(favorite) == "table" and favorite.claimed ~= true)
+	end
+	if t.button.Visible ~= left then
+		t.button.Visible = left
+		self:queueLayout()
+	end
+	if left and not self.freeLoop then
+		local icon, rays = t.icon, t.rays
+		self.freeLoop = UIAnim.loop(icon, function(clock: number)
+			local base = t.iconPos
+			if base then
+				local y = math.sin(2 * math.pi * clock / K.Motion.Bob.Seconds) * C.FreeBobPx
+				icon.Position = base + UDim2.fromOffset(0, round(y))
+			end
+			if rays then
+				rays.Rotation = (clock * K.Motion.RaysDegreesPerSecond) % 360
+			end
+		end)
+	elseif not left and self.freeLoop then
+		self.freeLoop.stop()
+		self.freeLoop = nil
+	end
+end
+
+--- Whether the Free Reward tile is up.
+function MenuColumn.freeShown(self: any): boolean
+	local t: Tile? = self.tiles[FREE]
+	return t ~= nil and t.button.Visible
+end
+
+--- A tile's icon shakes hard for a moment and a glow bursts behind it (hover, press).
+function MenuColumn.jiggle(self: any, name: string)
+	local t: Tile? = self.tiles[name]
+	if not t then
+		return
+	end
+	local shake = UIAnim.shake(t.icon, "Hard")
+	task.delay(C.HoverShakeSeconds, shake.stop)
+	UIAnim.glowBurst(t.icon, nil, C.HoverGlowReach)
 end
 
 -- The tiles showing, in their order.
@@ -286,6 +352,25 @@ function MenuColumn.buildTile(self: any, parent: Instance, name: string, index: 
 	local icon = HudParts.icon(body, name, "Art")
 	icon.AnchorPoint = Vector2.new(0.5, 0.5)
 	icon.ZIndex = 3
+	local rays: ImageLabel? = nil
+	if name == FREE then
+		local r = Instance.new("ImageLabel")
+		r.Name = "Rays"
+		r.BackgroundTransparency = 1
+		r.Image = K.Art.Rays
+		r.ImageColor3 = HudParts.tone("Gold")
+		r.ImageTransparency = C.FreeRaysTransparency
+		r.AnchorPoint = Vector2.new(0.5, 0.5)
+		r.ZIndex = 2
+		r.Parent = body
+		rays = r
+	end
+	-- Hover: a bigger shake and a glow burst behind the icon.
+	button.MouseEnter:Connect(function()
+		if self.showing then
+			self:jiggle(name)
+		end
+	end)
 	local word = HudParts.text(body, "Word", C.LabelTextPx, WORDS[name] or name)
 	word.TextWrapped = false
 	word.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -322,6 +407,7 @@ function MenuColumn.buildTile(self: any, parent: Instance, name: string, index: 
 	glyph.Parent = body
 	return {
 		name = name,
+		rays = rays,
 		button = button,
 		body = body,
 		icon = icon,
@@ -431,6 +517,13 @@ function MenuColumn.layout(self: any)
 		local iconSize = round(tile * C.IconShare)
 		t.icon.Size = UDim2.fromOffset(iconSize, iconSize)
 		t.icon.Position = UDim2.fromOffset(round(tile / 2), round(tile * C.IconCentreShare))
+		t.iconPos = t.icon.Position
+		local rays = t.rays
+		if rays then
+			local raysPx = round(tile * C.FreeRaysShare)
+			rays.Size = UDim2.fromOffset(raysPx, raysPx)
+			rays.Position = t.icon.Position
+		end
 		HudParts.setTextSize(t.word, textPx)
 		t.word.Size = UDim2.fromOffset(labelW, textPx + 6)
 		t.word.Position = UDim2.fromOffset(round(tile / 2), round(tile * C.LabelCentreShare))
@@ -498,8 +591,11 @@ function MenuColumn.refreshDots(self: any)
 		elseif count > C.DotMax then COPY.DotMore:format(C.DotMax)
 		else tostring(count)
 	setDot(self, self.tiles.Inventory, casesText)
-	local ready = if player then player:GetAttribute("RewardReady") == true else false
-	setDot(self, self.tiles.Rewards, if ready then COPY.DotReady else nil)
+	local rewardsTile: Tile? = self.tiles.Rewards
+	if rewardsTile then
+		local ready = if player then player:GetAttribute("RewardReady") == true else false
+		setDot(self, rewardsTile, if ready then COPY.DotReady else nil)
+	end
 	-- The Shop: how many of its jump groups hold something new (a restock, an offer), while
 	-- its offer timer pill is not up in the same corner.
 	local shopNew = if self.opts.shopNew then self.opts.shopNew() else 0
@@ -613,6 +709,7 @@ function MenuColumn.press(self: any, name: string)
 	end
 	UISound.play("Click")
 	UIAnim.bounce(t.button)
+	self:jiggle(name)
 	self.onPress(name)
 end
 

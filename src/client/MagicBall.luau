@@ -598,7 +598,11 @@ local function play(drops: { Drop }, done: () -> ())
 	finger.ImageTransparency = M.FingerTransparency
 	finger.ZIndex = 6
 	-- Skip, once it was seen.
-	local skip = HudParts.candy(frame, W.Skip, function() end, "White")
+	-- The candy's own action (its enlarged hit area calls only that), set once the view exists.
+	local onSkip: () -> () = function() end
+	local skip = HudParts.candy(frame, W.Skip, function()
+		onSkip()
+	end, "White")
 	skip.Name = "Skip"
 	skip.AnchorPoint = Vector2.new(1, 1) -- bottom right, clear of the title
 	skip.Position = UDim2.fromOffset(M.StageWidthPx - 8, M.StageHeightPx - 8)
@@ -638,10 +642,10 @@ local function play(drops: { Drop }, done: () -> ())
 		born = os.clock(),
 		selected = nil,
 	}
-	skip.Activated:Connect(function()
+	onSkip = function()
 		UISound.play("Click")
 		showCases(v)
-	end)
+	end
 	table.insert(v.loops, UIAnim.shake(title, "Wiggle"))
 
 	-- Fit the stage to the screen.
@@ -834,7 +838,8 @@ function MagicBall.start(screen: ScreenGui, d: any)
 		local ok, remote = pcall(Net.get, "CaseDrop")
 		if ok and typeof(remote) == "Instance" and remote:IsA("RemoteEvent") then
 			(remote :: RemoteEvent).OnClientEvent:Connect(function(list: any)
-				MagicBall.push(list)
+				-- A reward's drops come just before its RewardGiven: its popup goes first.
+				task.delay(M.QueueDelaySeconds, MagicBall.push, list)
 			end)
 		end
 	end)

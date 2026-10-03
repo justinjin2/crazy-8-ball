@@ -2156,7 +2156,12 @@ Config.Daily = {
 	-- Today's claim is given by itself on join when it is day 1 of the loop (a new player or a
 	-- streak that started over); the other days are claimed in the Rewards menu.
 	AutoClaimDayOne = true,
+	-- GUI lane (designer 2026-10-03, C9): every day's claim is given by itself on join (not
+	-- only day 1) and shown in the daily login popup; the Rewards menu's Claim goes.
+	AutoClaimEveryDay = true,
 	AutoClaimDelaySeconds = 3, -- after the save loads, so the VIP check lands first
+	-- GUI lane (C9): a playtime gift is given by itself once reached (a popup says so).
+	AutoGivePlaytime = true,
 	-- The 28-day track: total days claimed (never resets), repeating every TrackDays. On the
 	-- day the count reaches one of these it adds its reward to that day's claim.
 	TrackDays = 28,
@@ -2294,6 +2299,12 @@ Config.Social = {
 	InviteStudioStore = "InviteRewards_Studio_v1",
 	InviteTopic = "InviteRewards_v1",
 	MaxPending = 50, -- invitees one key keeps waiting (far above a month's cap)
+	-- GUI lane (designer 2026-10-03, D7): the inviter's reward is given once ever (their first
+	-- invited friend's first win); every invited friend still gets their own case.
+	InviterOnce = true,
+	-- GUI lane (D4): favoriting the game through Roblox's favorite prompt gives this once.
+	-- Roblox gives a server no way to check a favorite, so the client reports it.
+	FavoriteReward = { Money = 10000, Drops = 1 },
 	-- A ClaimGroup request (it asks Roblox for the player's groups) at most this often.
 	ClaimCooldownSeconds = 5,
 }
@@ -5403,7 +5414,8 @@ Config.UI = {
 			MagicBall = "rbxassetid://137828587348917", -- the Case Drop's magic 8-ball
 			MagicBallWindow = "rbxassetid://98157748117655", -- its answer side
 			MagicTriangle = "rbxassetid://78612448466823", -- the tier die in its window, tinted
-			HandPointer = "rbxassetid://100619983981739", -- the shake hint's finger
+			HandPointer = "rbxassetid://100619983981739",
+			FreeReward = "rbxassetid://120885254928899", -- the column's Free Reward tile (Gift) -- the shake hint's finger
 			Calendar = "rbxassetid://81931904688937", -- the daily streak
 			Code = "rbxassetid://139681599835662", -- promo codes
 			Index = "rbxassetid://94908077553080", -- a book with a cue on it
@@ -6582,7 +6594,10 @@ Config.UI.Menu = {
 	-- with no box behind it (designer, 2026-09-28). Keys name the menus (Menus.register) and
 	-- their words (Strings.Menus.Column) and icons (Kit.Icons).
 	Column = {
-		Order = { "Shop", "Inventory", "Rewards", "Trade" },
+		-- GUI lane (designer 2026-10-03, C2): Shop, Inventory, Abilities ("Ults"), and Free
+		-- Reward while something is left to claim. Rewards and Trade left the column (daily
+		-- and playtime rewards pop up; trading starts from the player list).
+		Order = { "Shop", "Inventory", "Ults", "FreeReward" },
 		TilePx = 78, -- a tile's square slot, its touch area (a computer or tablet)
 		ShortTilePx = 52, -- on a phone (at least a 44 px touch target)
 		GapPx = 4, -- between two slots (the icons' own margins space them out)
@@ -6614,12 +6629,20 @@ Config.UI.Menu = {
 		DaysFromSeconds = 86400, -- from a day left the timer reads "6d 4h", else "23:59:12"
 		-- Each tile's D-pad direction (UserInputService KeyCode names; Config has no Enum):
 		-- in the hub the D-pad opens that menu (overnight assumption, 2026-09-28).
+		-- GUI lane: down is Free Reward (the Daily Challenge when it is gone); left will be the
+		-- player list (step 10).
 		PadKeys = {
 			Shop = "DPadUp",
 			Inventory = "DPadRight",
-			Rewards = "DPadDown",
-			Trade = "DPadLeft",
+			FreeReward = "DPadDown",
 		},
+		-- Hover or tap (GUI lane, C2): a bigger shake and a glow burst behind the icon.
+		HoverShakeSeconds = 0.35,
+		HoverGlowReach = 0.5, -- the burst's reach, of the tile
+		-- The Free Reward tile glows and bounces while it is up.
+		FreeBobPx = 4,
+		FreeRaysShare = 2.2, -- its turning rays, of the tile
+		FreeRaysTransparency = 0.1,
 		GlyphPx = 26, -- the D-pad glyph on the tile's top-left corner while a gamepad is in use
 		ShortGlyphPx = 22,
 		GlyphInsetPx = 4, -- its centre sits this far inside the corner
@@ -9712,8 +9735,59 @@ Config.UI.MagicBall = {
 	SmallCasePx = 110, -- several tiers side by side
 	ButtonPx = 52,
 	ButtonWidthPx = 200,
+	-- A CaseDrop waits this long before it queues, so the popup of the reward that gave it
+	-- (RewardGiven, sent just after) shows first.
+	QueueDelaySeconds = 0.5,
 	SkipWidthPx = 110, -- the Skip button, bottom right of the stage once seen
 	SkipHeightPx = 40,
+}
+
+-- The rewards that pop up (RewardPopups; GUI lane, designer 2026-10-03, C9): the daily login
+-- popup after the server claimed today by itself, and a popup per playtime gift reached.
+Config.UI.RewardPopups = {
+	DisplayOrderAbove = 12, -- over the HUD screen, like the offer popup
+	WidthPx = { 360, 560 }, -- { phone, full } by screen height (360..1080 px)
+	HeightPx = { 330, 470 },
+	PlaytimeHeightPx = { 250, 330 },
+	TitlePx = { 22, 32 },
+	PicturePx = { 64, 110 }, -- the reward's pictures
+	AmountPx = { 22, 34 }, -- the big reward words
+	DayPx = { 34, 54 }, -- one of the week's seven day tiles
+	DayTextPx = { 11, 14 },
+	LinePx = { 14, 18 },
+	ButtonPx = { 44, 54 },
+	ButtonWidthPx = 220,
+	TrackBarPx = 14,
+	StateWaitSeconds = 2, -- the daily card waits this long at most for the claimed RewardState
+}
+
+-- The Free Reward page (FreeRewardMenu; GUI lane, D4): join the group, favorite the game.
+Config.UI.FreeReward = {
+	CardMaxWidthPx = 380, -- one card at most this wide (two side by side when they fit)
+	IconPx = { 72, 120 },
+	TitlePx = { 20, 28 },
+	RewardPx = { 22, 34 },
+	LinePx = { 14, 17 },
+	ButtonPx = { 44, 54 },
+	-- After Roblox's favorite prompt says yes, look again this long for GetFavorite to agree.
+	FavoriteCheckSeconds = 3,
+}
+
+-- The hub's small corner buttons (HubCorners; GUI lane, C2): the Daily Challenge on the right
+-- (flashing; says "Soon"), Invite and Roblox Plus beside the money HUD.
+Config.UI.Corners = {
+	ChallengePx = 70, -- the Daily Challenge target (a computer); a phone's is ShortChallengePx
+	ShortChallengePx = 50,
+	ChallengeRightPx = 14, -- from the right edge
+	ChallengeYShare = 0.42, -- its middle this far down the screen
+	ChallengeFlashSeconds = 1.2, -- one flash of its glow
+	SmallPx = 46, -- Invite and Plus (a computer)
+	ShortSmallPx = 38,
+	SmallGapPx = 8, -- between them, and from the money HUD
+	WordPx = 13, -- the word under each
+	ShortWordPx = 11,
+	BubbleSeconds = 2.5, -- the "Soon" bubble stays this long
+	BubblePx = 16,
 }
 
 -- The rare-pull cutscenes (PullCutscene; GUI lane, designer 2026-10-03, C11d). After the reel

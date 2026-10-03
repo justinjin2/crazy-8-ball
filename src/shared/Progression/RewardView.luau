@@ -90,6 +90,12 @@ export type InviteView = {
 	done: boolean, -- their own invite reward was given
 }
 
+-- The Free Reward page's favorite card (GUI lane, D4): Roblox's favorite prompt, then Claim.
+export type FavoriteView = {
+	claimed: boolean,
+	reward: RewardOut,
+}
+
 export type Payload = {
 	today: number,
 	resetsAt: number,
@@ -106,10 +112,14 @@ export type Payload = {
 	titles: { string },
 	group: GroupView,
 	invite: InviteView,
+	favorite: FavoriteView,
 	ready: boolean,
 }
 
 local RewardView = {}
+
+-- The save's Flags key set once the favorite reward was given (GUI lane, D4).
+RewardView.FavoriteFlag = "FavoriteReward"
 
 -- A finite number, else 0.
 local function num(x: any): number
@@ -161,7 +171,8 @@ end
 --- Net.luau, RewardState). `login` is the save's Login, `daily` today's Daily (a fresh one on
 --- a new day: PlayerData.dailyState), `titles` the save's Titles, `vip` whether the player
 --- is VIP (each day's claim adds Config.Daily.VipSpins), `social` the save's Social and
---- `member` whether the player is in the group (the InGroup attribute).
+--- `member` whether the player is in the group (the InGroup attribute), `flags` the save's
+--- Flags (the favorite reward's flag, RewardView.FavoriteFlag).
 function RewardView.build(
 	login: any,
 	daily: any,
@@ -169,7 +180,8 @@ function RewardView.build(
 	now: number,
 	vip: boolean?,
 	social: any,
-	member: boolean?
+	member: boolean?,
+	flags: any?
 ): Payload
 	local today = Daily.dayOf(num(now))
 	local state = Daily.loginState(login, today, vip)
@@ -280,6 +292,16 @@ function RewardView.build(
 			perMonth = Config.Social.InvitesPerMonth,
 			invited = num(soc.InvitedBy) > 0,
 			done = soc.InviteDone == true,
+		},
+		favorite = {
+			claimed = type(flags) == "table" and flags[RewardView.FavoriteFlag] == true,
+			reward = RewardView.reward({
+				money = Config.Social.FavoriteReward.Money,
+				cases = {},
+				drops = Config.Social.FavoriteReward.Drops,
+				spins = 0,
+				lucky = 0,
+			}),
 		},
 		ready = anyReady,
 	}
