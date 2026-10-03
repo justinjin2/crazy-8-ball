@@ -1278,7 +1278,12 @@ local function renderFrame(dt: number)
 			matchIds[s.userId] = true
 		end
 	end
-	Progression.update({ inMatch = inMatch, shooting = controlled, matchUserIds = matchIds })
+	Progression.update({
+		inMatch = inMatch,
+		shooting = controlled,
+		matchUserIds = matchIds,
+		queueOpen = queueMenu ~= nil and queueMenu.open == true, -- GUI lane (step 13)
+	})
 	-- The ult bar: it fades while the cue is pulled back, the bottom lines sit above it, and the
 	-- controller guide lists "Ult" while it offers its press.
 	ultHud:update(dt, currentPull > 0)

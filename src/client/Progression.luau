@@ -65,6 +65,7 @@ export type State = {
 	inMatch: boolean, -- seated at a table whose game is on (the match bar owns the top)
 	shooting: boolean, -- your shot is being aimed or is rolling: no popups now
 	matchUserIds: { [number]: boolean }, -- everyone at your table, for the nameplates
+	queueOpen: boolean?, -- the queue card is up (waiting at a table): the right edge is its
 }
 
 local Progression = {}
@@ -343,13 +344,19 @@ function Progression.padRoute(key: Enum.KeyCode): boolean
 	if not column:isShown() then
 		return false
 	end
-	-- Left focuses the player list.
+	-- Left focuses the player list (not while the queue card has the right edge).
 	if name == "PlayerList" then
+		if lastState.queueOpen == true then
+			return false
+		end
 		playerList:focus()
 		return true
 	end
 	-- Down is Free Reward while it is up, else the Daily Challenge.
 	if name == "FreeReward" and not column:freeShown() then
+		if lastState.queueOpen == true then
+			return false
+		end
 		corners:pressChallenge()
 		return true
 	end
@@ -395,8 +402,10 @@ function Progression.update(state: State)
 	corners:setVisible(
 		not state.inMatch and not busy and not caseOpening:isOpen() and not teleportUp()
 	)
+	corners:setChallengeHidden(state.queueOpen == true)
 	playerList:setVisible(
 		not state.inMatch
+			and state.queueOpen ~= true
 			and not busy
 			and not caseOpening:isOpen()
 			and not teleportUp()

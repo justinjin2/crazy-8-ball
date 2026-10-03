@@ -1531,6 +1531,8 @@ function MatchHUD.updateTurn(self: any, now: number)
 	if self.turnMine and not self.turnBounced then
 		self.turnBounced = true
 		UIAnim.bounce(self.turnIcon) -- your turn: the cue pops (UI_STYLE section 7)
+		-- GUI lane (step 13): YOUR TURN! slams in with a green glow.
+		UIAnim.slam(self.turnTitle, HudParts.tone("Green"))
 	end
 	local gap = S.HeaderGap
 	local height = S.TurnPopupTitleSize + gap

@@ -360,6 +360,21 @@ step (steps 1-14 of the brief).
     ("AlreadyClaimed"). Console clean. Not checked: Roblox's real menu and a real focus loss
     (by hand: press Esc, click outside the window), a rejoin (no second gift), the phone.
 
+- **Step 13 done: the rest restyled (C5, D14).** NEW RANK!'s title slams in (big pop, gold
+  shockwave) and then keeps a gentle shake; a new tier slams it again; the badge gets a gold glow
+  burst. The ability spin shows the tier word under the name in its rarity colour, ticking with
+  every name (reference 10's slot window) and slamming on the result; the skip hint sits under it
+  and the description comes back once it goes. The roadmap's XP bar has the moving stripes.
+  The queue card's Play against PC button twinkles gold while the card is up. YOUR TURN! slams
+  in green on your turn. The in-match ability panel's name flares gold and the title jolts as
+  the words land. While the queue card is up, the player list and the Daily Challenge step
+  aside (they sat on top of it), and the D-pad's Left and Down leave them alone.
+  - Checked: lint, tests (958 pass); Studio PC: NEW RANK! through `/xp`, four ability spins
+    (Common, Uncommon, Legendary, Mythic tiers ticking; the description back after), the
+    roadmap's stripes, the queue card on table 1 (list and target hidden), a match against
+    the PC (YOUR TURN!), the ability panel through its Studio preview. Console clean. Not
+    checked: the phone (the tier word is 22 px there), a gamepad, a full match to the end.
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
@@ -480,6 +495,14 @@ step (steps 1-14 of the brief).
   (`LEAVE_GIFT_FLAG`, new `PlayerData.claimLeaveGift`), `server/EconomyLog.luau` (LeaveGift is an
   Onboarding source). `Progression.luau` (client): starts `ComeBack`; `busy` includes its scene.
 
+- Step 13: `Config.luau`: `Config.UI.UltCutscene.WordsJoltSeconds` (new, at the top of the
+  block), `Config.UI.UltScreen.Spin.TierTextPx`, `TierGapPx`, `TierHoldSeconds` (new, at the
+  end of `Spin`); `Main.client.luau`: the `Progression.update` call passes `queueOpen` (the
+  queue card is up). Client modules: `NewRankPopup`, `UltSpinAnim`, `UltScreen` (the
+  description waits for the tier word; new `tierGone` hook), `Roadmap`, `QueueMenu`,
+  `MatchHUD`, `UltCutscene`, `HubCorners` (new `setChallengeHidden`), `Progression` (the
+  list and the target hide while the queue card is up).
+
 ## Requests to other lanes or the integrator
 
 - **Integrator**: the Cutscenes lane is folded into this one (designer, 2026-10-03): every item
@@ -586,3 +609,7 @@ step (steps 1-14 of the brief).
   early still gets only the one Rare Case every player gets anyway). The scene plays when the
   player comes back, through the popup queue. The old bottom toast keeps only the free ult
   spin's line, since the big message now carries tomorrow's reward.
+- 2026-10-03 (lane, step 13): the ability spin's tier word takes the description's row while
+  it spins (the hint moves under it) and the description comes back 1.6 s after landing. The
+  player list and the Daily Challenge hide while the queue card is up, since all three share
+  the right edge.

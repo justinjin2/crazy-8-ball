@@ -603,7 +603,15 @@ function QueueMenu.setOpen(self: any, open: boolean)
 		self.root.Visible = true
 		self.card.Visible = false
 		UIAnim.popIn(self.card)
+		-- GUI lane (step 13): Fill with PC twinkles while the card is up (the quick way in).
+		if not self.fillSparkle then
+			self.fillSparkle = UIAnim.sparkle(self.fillPc, HudParts.tone("Gold"))
+		end
 	else
+		if self.fillSparkle then
+			self.fillSparkle.stop()
+			self.fillSparkle = nil
+		end
 		UIAnim.popOut(self.card, function()
 			if not self.open then
 				self.root.Visible = false

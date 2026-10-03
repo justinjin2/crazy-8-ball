@@ -7577,6 +7577,8 @@ Config.UI.Inventory = {
 -- 1920 x 1080. Times are seconds from the activation (armed.at). (tune)
 Config.UI.UltCutscene = {
 	DisplayOrderAbove = 8, -- its ScreenGui sits this far over the HUD's (the menus sit at +10)
+	-- GUI lane (step 13): the words jolt and the name flares gold this long after they appear.
+	WordsJoltSeconds = 0.12,
 	-- The arming callback still fires for a client that hears of the activation this late
 	-- after readyAt (a slow snapshot); later than that, the armed look just appears.
 	ArmGraceSeconds = 0.3,
@@ -9115,6 +9117,11 @@ Config.UI.UltScreen = {
 		ConfettiScale = 1.3,
 		AutoStingFrom = "Rare", -- Auto Spin: only this rarity and up plays its sting (the rest tick)
 		HintTextPx = { 14, 18 }, -- "Tap to skip" under the name (phone, computer)
+		-- The tier ticking under the name in its colour, like a slot window (GUI lane, step 13,
+		-- reference 10): it ticks with every name and slams on the result.
+		TierTextPx = { 22, 30 }, -- (phone, computer) in the description's row; the hint goes under it
+		TierGapPx = 4, -- between the tier word and the hint under it
+		TierHoldSeconds = 1.6, -- it stays this long after landing, then the description returns
 	},
 	-- The stage (UltStage, section 9.2): the avatar where the player stands, the real world
 	-- behind it (the designer, 2026-09-28), the camera cut there. Studs unless named.

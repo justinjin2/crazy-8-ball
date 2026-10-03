@@ -1807,6 +1807,10 @@ function Roadmap.startLoops(self: any)
 	self.rowBadge:setShining(true)
 	self.rankBadge:setShining(true)
 	self.spinner = UIAnim.spin(self.glow, R.GlowDegreesPerSecond)
+	-- GUI lane (step 13): white stripes slide along the XP fill, as on the rank HUD.
+	if not self.barStripes then
+		self.barStripes = UIAnim.stripes(self.rankFill)
+	end
 	self.stepper = RunService.RenderStepped:Connect(function(dt)
 		self:step(dt)
 	end)
@@ -1822,6 +1826,10 @@ function Roadmap.stopLoops(self: any)
 	if self.spinner then
 		self.spinner.stop()
 		self.spinner = nil
+	end
+	if self.barStripes then
+		self.barStripes.stop()
+		self.barStripes = nil
 	end
 	if self.stepper then
 		self.stepper:Disconnect()

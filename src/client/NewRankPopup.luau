@@ -362,6 +362,13 @@ function NewRankPopup.openUp(self: any, item: any)
 	view.title.AnchorPoint = Vector2.new(0.5, 0)
 	view.title.Position = UDim2.fromOffset(C.Width / 2, 0)
 	view.title.ZIndex = 4
+	-- GUI lane (step 13): NEW RANK! slams in, then keeps shaking while it is up.
+	UIAnim.slam(view.title, tone("Gold"))
+	task.delay(K.Motion.Slam.Seconds + 0.1, function()
+		if not view.finished and view.title.Parent then
+			view.titleShake = UIAnim.shake(view.title)
+		end
+	end)
 
 	local function badgeAt(): any
 		local badge = RankBadge.new(stage, {
@@ -526,11 +533,21 @@ function NewRankPopup.stepUp(self: any, view: any)
 			UIAnim.popIn(view.badge.root)
 			view.title.Text = P.NewTier:format(string.upper(Ranks.tierName(tier)))
 			HudParts.setTextSize(view.title, C.TierTextPx)
-			UIAnim.bounce(view.title)
+			if view.titleShake then
+				view.titleShake.stop()
+				view.titleShake = nil
+			end
+			UIAnim.slam(view.title, tone("Gold"))
+			task.delay(K.Motion.Slam.Seconds + 0.1, function()
+				if not view.finished and view.title.Parent and not view.titleShake then
+					view.titleShake = UIAnim.shake(view.title)
+				end
+			end)
 			UIAnim.popIn(view.name)
 			UISound.play("NewTier")
 		end
 		view.badge:burst()
+		UIAnim.glowBurst(view.badge.root, tone("Gold"))
 		local centre = view.badge.root.AbsolutePosition
 			+ view.badge.root.AbsoluteSize / 2
 			- view.root.AbsolutePosition
@@ -645,6 +662,9 @@ function NewRankPopup.finish(self: any, view: any)
 	view.finished = true
 	if view.loop then
 		view.loop:Disconnect()
+	end
+	if view.titleShake then
+		view.titleShake.stop()
 	end
 	for _, badge in view.badges do
 		badge:destroy()

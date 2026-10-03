@@ -611,6 +611,13 @@ local function build(tableId: number, mine: boolean, armed: Armed, elapsed: numb
 	name.ZIndex = 5
 	local nameScale = Instance.new("UIScale")
 	nameScale.Parent = name
+	-- GUI lane (step 13): the words jolt as they land and the name flares gold.
+	task.delay(C.WordsJoltSeconds, function()
+		if name.Parent then
+			UIAnim.glowBurst(name, HudParts.tone("Gold"))
+			UIAnim.shake(title, "Jolt")
+		end
+	end)
 
 	-- The icon beside the avatar, on the words' twin so it rides the band's tilt and squeeze;
 	-- render stamps it in and bursts the glow.

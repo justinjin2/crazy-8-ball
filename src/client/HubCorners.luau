@@ -256,6 +256,18 @@ function HubCorners.setVisible(self: any, visible: boolean)
 	end
 end
 
+--- Hide only the Daily Challenge (the queue card stands over the right edge while you wait).
+function HubCorners.setChallengeHidden(self: any, hidden: boolean)
+	local button: GuiObject = self.challenge.button
+	if button.Visible == not hidden then
+		return
+	end
+	button.Visible = not hidden
+	if not hidden and self.showing then
+		UIAnim.popIn(button)
+	end
+end
+
 function HubCorners.isShown(self: any): boolean
 	return self.showing
 end

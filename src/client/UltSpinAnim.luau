@@ -36,6 +36,8 @@ export type Hooks = {
 	showName: (id: string, pop: boolean) -> (),
 	-- Where the name's middle is on the screen, for the confetti.
 	nameCenter: () -> Vector2,
+	-- The result's tier word has gone (the description may show again in its row).
+	tierGone: (() -> ())?,
 }
 
 local UltSpinAnim = {}
@@ -72,6 +74,17 @@ function UltSpinAnim.new(root: Frame, hooks: Hooks): any
 	end)
 	self.catcher = catcher
 
+	-- The tier under the name (GUI lane, step 13): it ticks with each name in its colour and
+	-- slams on the result.
+	local tier = HudParts.text(root, "Tier", SP.TierTextPx[2], "")
+	tier.AnchorPoint = Vector2.new(0.5, 0)
+	tier.Size = UDim2.fromOffset(SP.TierTextPx[2] * 10, SP.TierTextPx[2] + 8)
+	tier.TextWrapped = false
+	tier.ZIndex = 54
+	tier.Visible = false
+	self.tier = tier
+	self.tierToken = 0
+
 	local flash = HudParts.frame(root, "Flash")
 	flash.Size = UDim2.fromScale(1, 1)
 	flash.BackgroundColor3 = Color3.new(1, 1, 1)
@@ -101,7 +114,13 @@ end
 --- Place "Tap to skip": its top centre at `at` (the screen's pixels), `width` wide.
 function UltSpinAnim.layout(self: any, at: Vector2, width: number, short: boolean)
 	self.hintPx = if short then SP.HintTextPx[1] else SP.HintTextPx[2]
-	self.hint.Position = UDim2.fromOffset(at.X, at.Y)
+	self.hintAt = at
+	-- While it spins the tier word takes this row and the hint sits under it.
+	self.tierPx = if short then SP.TierTextPx[1] else SP.TierTextPx[2]
+	HudParts.setTextSize(self.tier, self.tierPx)
+	self.tier.Size = UDim2.fromOffset(self.tierPx * 10, self.tierPx + 8)
+	local below = if self.playing then self.tierPx + SP.TierGapPx else 0
+	self.hint.Position = UDim2.fromOffset(at.X, at.Y + below)
 	self.hint.Size = UDim2.fromOffset(width, self.hintPx + 6)
 	self:drawHint()
 end
@@ -168,6 +187,10 @@ function UltSpinAnim.play(self: any, result: Result, instant: boolean, done: (bo
 		return
 	end
 	self.catcher.Visible = true
+	local at: Vector2? = self.hintAt
+	if at then
+		self.hint.Position = UDim2.fromOffset(at.X, at.Y + (self.tierPx or 0) + SP.TierGapPx)
+	end
 	self:drawHint()
 	UIAnim.popIn(self.hint)
 	ContextActionService:BindActionAtPriority(
@@ -196,6 +219,7 @@ function UltSpinAnim.play(self: any, result: Result, instant: boolean, done: (bo
 			end
 			last = self:pick(last, building)
 			self.hooks.showName(last :: string, false)
+			self:showTier(Catalog.rarity(last) or "Common", false)
 			UISound.play("ReelTick")
 			local t = math.clamp(elapsed / total, 0, 1)
 			local step = SP.FirstStepSeconds
@@ -206,6 +230,45 @@ function UltSpinAnim.play(self: any, result: Result, instant: boolean, done: (bo
 			self:land()
 		end
 	end)
+end
+
+-- The tier word under the name (in the description's row), in its colour; `final`: the
+-- result's (it slams, stays a moment, then goes and the description comes back).
+function UltSpinAnim.showTier(self: any, rarity: string, final: boolean)
+	local tier: TextLabel = self.tier
+	local words: { [string]: string } = Strings.Ults.Rarities :: any
+	tier.Text = string.upper(words[rarity] or rarity)
+	Parts.paint(tier, rarity)
+	local at: Vector2 = self.hintAt or (self.hooks.nameCenter() - self.root.AbsolutePosition)
+	tier.Position = UDim2.fromOffset(at.X, at.Y)
+	tier.Visible = true
+	self.tierToken += 1
+	if final then
+		UIAnim.slam(tier, Parts.rarityColor(rarity))
+		local mine = self.tierToken
+		task.delay(SP.TierHoldSeconds, function()
+			if self.tierToken == mine and tier.Visible then
+				self:hideTier()
+			end
+		end)
+	end
+end
+
+--- Whether the tier word is on screen (the description waits for it).
+function UltSpinAnim.tierShowing(self: any): boolean
+	return self.tier.Visible
+end
+
+-- The tier word goes (it pops out) and the description may come back.
+function UltSpinAnim.hideTier(self: any)
+	self.tierToken += 1
+	if self.tier.Visible then
+		UIAnim.popOut(self.tier)
+	end
+	local gone = self.hooks.tierGone
+	if gone then
+		gone()
+	end
 end
 
 -- Stop listening for the skip.
@@ -229,6 +292,7 @@ function UltSpinAnim.land(self: any)
 	local result: Result = self.result
 	local rarity = result.rarity
 	self.hooks.showName(result.id, true)
+	self:showTier(rarity, true)
 	UISound.play(STINGS[rarity] or STINGS.Default)
 	if atLeast(rarity, SP.FlashFrom) then
 		local flash: Frame = self.flash
@@ -279,6 +343,8 @@ function UltSpinAnim.cancel(self: any)
 	self.playing = false
 	self.token += 1
 	self:release()
+	self.tierToken += 1
+	self.tier.Visible = false
 	local done = self.done
 	self.done = nil
 	if done then

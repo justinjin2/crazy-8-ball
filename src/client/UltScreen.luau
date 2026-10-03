@@ -219,6 +219,13 @@ function UltScreen.start(screen: ScreenGui): any
 		nameCenter = function(): Vector2
 			return self.nameLabel.AbsolutePosition + self.nameLabel.AbsoluteSize / 2
 		end,
+		-- GUI lane (step 13): the result's tier word sat in the description's row.
+		tierGone = function()
+			if self.opened and not self.anim:isPlaying() and not self.descLabel.Visible then
+				self.descLabel.Visible = true
+				UIAnim.popIn(self.descLabel)
+			end
+		end,
 	})
 	self.stage = UltStage.new()
 
@@ -514,7 +521,8 @@ function UltScreen.draw(self: any, state: any)
 	self:showName(equipped, false)
 	local desc = Catalog.description(equipped)
 	self.descLabel.Text = if Catalog.built(equipped) then desc else W.DescriptionSoon:format(desc)
-	self.descLabel.Visible = true
+	-- GUI lane (step 13): the result's tier word holds the row for a moment first.
+	self.descLabel.Visible = not self.anim:tierShowing()
 	self.stage:setRarity(Catalog.rarity(equipped), false)
 	self.slots:draw(state)
 	self.odds:draw(state)
