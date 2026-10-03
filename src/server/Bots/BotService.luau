@@ -197,6 +197,24 @@ function BotService.seat(bot: Bot, t: any, options: any?): boolean
 	return true
 end
 
+--- Stands `bot`'s body at `at`, free to walk (the lobby, off any table). True when it has a
+--- body there.
+function BotService.stand(bot: Bot, at: CFrame): boolean
+	if bot.gone or bot.t then
+		return false
+	end
+	if bot.model == nil and bot.description then
+		bot.model = Body.build(bot.description, bot.name, at, attributesOf(bot))
+	end
+	local model = bot.model
+	if not model then
+		return false
+	end
+	Body.place(model, at, false)
+	Body.setGroup(model, "Default")
+	return true
+end
+
 --- `bot` says `text`: a bubble over its head and a chat line in its name, on every screen.
 function BotService.say(bot: Bot, text: string)
 	Net.get("BotSay"):FireAllClients(bot.id, text)
@@ -427,6 +445,59 @@ local function playPc(t: any, p: Player, _payload: any): boolean
 	return true
 end
 
+-- Studio only: ServerStorage.BotsQA lets a test script make and place bots (no chat command
+-- can). Invoke("spawn", spec) -> bot id (spec as BotService.spawn); ("stand", id, x, y, z,
+-- yaw degrees); ("seat", id, tableId); ("remove", id, "Vanish"|"Angry"); ("say", id, text);
+-- ("list") -> { "id name kind tier cue ult avatar" }.
+local function studioHook()
+	local hook = Instance.new("BindableFunction")
+	hook.Name = "BotsQA"
+	hook.OnInvoke = function(command: string, ...: any): any
+		local args = { ... }
+		if command == "spawn" then
+			local bot = BotService.spawn(args[1] or {})
+			return if bot then bot.id else nil
+		elseif command == "list" then
+			local out = {}
+			for _, bot in BotService.list() do
+				table.insert(
+					out,
+					("%d %s %s %s %s %s %s"):format(
+						bot.id,
+						bot.name,
+						bot.kind,
+						bot.tier,
+						bot.cue,
+						tostring(bot.ult),
+						tostring(bot.avatarUserId)
+					)
+				)
+			end
+			return out
+		end
+		local bot = bots[args[1]]
+		if not bot then
+			return false
+		end
+		if command == "stand" then
+			local at = CFrame.new(args[2], args[3], args[4])
+				* CFrame.Angles(0, math.rad(args[5] or 0), 0)
+			return BotService.stand(bot, at)
+		elseif command == "seat" then
+			local t = Tables.get(args[2])
+			return t ~= nil and BotService.seat(bot, t)
+		elseif command == "remove" then
+			BotService.remove(bot, args[2])
+			return true
+		elseif command == "say" then
+			BotService.say(bot, args[2])
+			return true
+		end
+		return false
+	end
+	hook.Parent = game:GetService("ServerStorage")
+end
+
 --- Runs the bots (Bootstrap, after the table, shot and ult services).
 function BotService.start()
 	if started then
@@ -439,6 +510,9 @@ function BotService.start()
 		return if bot then bot.ult else nil
 	end
 	Tables.onAction("PlayPc", playPc)
+	if RunService:IsStudio() then
+		studioHook()
+	end
 	local elapsed = 0
 	RunService.Heartbeat:Connect(function(dt)
 		elapsed += dt

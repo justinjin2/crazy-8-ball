@@ -72,7 +72,21 @@ your status).
   `DevCommands.luau` (/botrank block), `QueueMenu.luau` (Play against PC sends PlayPc),
   `WatchedShooters`, `BackCue`, `Nameplates`, `MatchHUD`, `ResultScreen`, `Effects`,
   `UltCutscene`, `Main.client` (look people up through People, so bots show like players).
-- Next: step 4, disguised identity.
+- **Step 4, disguised identity (done).** Real avatars from random accounts (2020 on): most
+  accounts wear a starter outfit or nothing (measured: 30 of 60 in three default outfits, 6
+  blank), so a look must be styled (two or more accessories that are not face parts, no
+  starter shirt unless covered by layered clothing); about 1 in 7 passes and the server keeps
+  6 ready, so a bot appears at once. Made-up names (never an existing Roblox username, never
+  two alike). Checked in Studio: six bots in a row, all different real-looking avatars, each
+  with its own name and tier badge on the game's nameplate and its cue on its back; they are
+  not Players, so Roblox's Esc list never shows them. For the GUI lane's player list: every bot
+  body is a Model in `workspace.Bots` with attributes `BotSeat` (its id), `BotKind`
+  (Pc/Disguised/Tutorial), `DisplayName`, `RankTier`, `RankDivision`, `RankIndex`,
+  `EquippedCue`, `UltEquipped`, `AvatarUserId` (headshot); `src/client/People.luau` gives
+  them as Player-like stand-ins (`People.everyone()`, `People.botAdded/botRemoved`).
+  `BotService.stand(bot, at)` puts a bot standing in the lobby. Studio-only test hook:
+  `ServerStorage.BotsQA` (spawn, stand, seat, remove, say, list).
+- Next: step 5, the tutorial bot.
 
 ## Requests to other lanes or the integrator
 

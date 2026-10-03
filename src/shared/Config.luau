@@ -8652,7 +8652,7 @@ Config.Bots = {
 			Make = 0.08,
 			Behind = 0.05,
 			Blunder = 0.3,
-			Scratch = 0.08,
+			Scratch = 0.12,
 			Position = 1,
 			Safety = false,
 			PlaceSamples = 4,
@@ -8667,7 +8667,7 @@ Config.Bots = {
 			PlaceSamples = 6,
 		},
 		Gold = {
-			Make = 0.47,
+			Make = 0.45,
 			Behind = 0.07,
 			Blunder = 0.05,
 			Scratch = 0.02,
@@ -8676,7 +8676,7 @@ Config.Bots = {
 			PlaceSamples = 8,
 		},
 		Platinum = {
-			Make = 0.51,
+			Make = 0.525,
 			Behind = 0.08,
 			Blunder = 0,
 			Scratch = 0.01,
@@ -8712,7 +8712,7 @@ Config.Bots = {
 			PlaceSamples = 16,
 		},
 		Master = {
-			Make = 0.7,
+			Make = 0.71,
 			Behind = 0.06,
 			Blunder = 0,
 			Scratch = 0,
@@ -8827,15 +8827,26 @@ Config.Bots = {
 		Icon = "rbxthumb://type=BundleThumbnail&id=196&w=150&h=150", -- its portrait
 	},
 	-- Disguised bots wear a real account's avatar (the designer, 2026-10-02): a random user id
-	-- in this range (accounts made from 2020 on), kept only if the avatar loads and is not blank
-	-- (some clothing or an accessory: a terminated account's comes back blank), never anyone
-	-- in the server or the designer. The server keeps PoolSize looks ready.
+	-- in this range (accounts made from 2020 on), kept only if the avatar loads and looks styled
+	-- (below; a terminated account's comes back blank), never anyone in the server or the
+	-- designer. The server keeps PoolSize looks ready.
 	Avatars = {
 		MinUserId = 1400000000,
 		MaxUserId = 6000000000,
 		PoolSize = 6,
-		TriesPerLook = 12,
-		RetrySeconds = 0.4, -- between lookups (Roblox's web limits)
+		-- Most random accounts wear a starter look (measured in Studio 2026-10-02: of 60, 30
+		-- wore one of three default outfits and 6 were blank), so a look must be styled: at
+		-- least MinStyleItems accessories that are not face parts (eyebrows, eyelashes), a
+		-- graphic T-shirt counting as one, and no StarterShirts top unless layered clothing
+		-- covers it. About 1 look in 7 passes, so a look takes several lookups.
+		TriesPerLook = 30,
+		MinStyleItems = 2,
+		StarterShirts = {
+			144076358, -- Blue and Black Motorcycle Shirt (the "bacon hair" starter)
+			144076436, -- the starter's other shirt (with Chestnut Bun)
+			4047884939, -- My Favorite Pizza Shirt (a starter)
+		},
+		RetrySeconds = 0.25, -- between lookups (Roblox's web limits)
 	},
 	-- Rematch answers. A PC robot says yes at once once the player has; a disguised lobby bot
 	-- waits for the player, then answers after RematchDelay seconds, yes RematchAccept of the

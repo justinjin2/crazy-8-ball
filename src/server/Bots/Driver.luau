@@ -6,6 +6,7 @@
 -- and shoots through the same server path as ShotFired. The whole shot takes 2 to 4 seconds
 -- (plus 2 with ball in hand), the ability's cutscene extra.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
@@ -46,7 +47,10 @@ local function viewOf(e: any, team: number): Finder.View
 		team = team,
 		called = e.calledPocket,
 		breakShot = e.breakShot == true,
-		requireRail = Config.Multiplayer.RailAfterContact.Casual,
+		-- The engine's own rail rule for this table (MatchEngine's resolve).
+		requireRail = if e.ranked
+			then Config.Multiplayer.RailAfterContact.Ranked
+			else Config.Multiplayer.RailAfterContact.Casual,
 	} :: any
 end
 
@@ -323,6 +327,17 @@ function Driver.turn(bot: any, seed: number)
 	end)
 	if not result then
 		warn(("[8ball] bot %s shot refused: %s"):format(tostring(bot.name), tostring(reason)))
+	elseif RunService:IsStudio() then
+		-- What the bot meant and what the table made of it (Studio only, for tuning).
+		local j = e.pending and e.pending.judgement
+		print(
+			("[8ball] bot %s (%s) played %s: %s"):format(
+				tostring(bot.name),
+				tostring(bot.skill),
+				decision.kind,
+				if j then tostring(j.reason or (if j.foul then "foul" else "ok")) else "?"
+			)
+		)
 	end
 	local _ = Judge
 end

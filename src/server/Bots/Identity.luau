@@ -2,7 +2,8 @@
 -- Who a bot is: its looks and its name (the Bots lane; the designer, 2026-10-02).
 --
 -- * Disguised and tutorial bots wear a REAL Roblox avatar: a random account from 2020 on whose
---   avatar loads and is not blank, never anyone in this server and never the designer. A few
+--   avatar loads and looks styled (not blank, not a starter outfit: `dressed`), never anyone in
+--   this server and never the designer. A few
 --   looks are kept ready (Config.Bots.Avatars.PoolSize) so a bot appears at once.
 -- * Their username is made up (Bots/Look.name) and checked here: never an existing Roblox
 --   username, never one already in use in this server.
@@ -32,11 +33,37 @@ local function designer(id: number): boolean
 	return table.find(Config.Debug.Commands.UserIds, id) ~= nil
 end
 
--- True when a description looks like a real, dressed avatar (not a blank default one).
+-- Layered clothing worn over the shirt.
+local LAYERED_TOPS = {
+	[Enum.AccessoryType.Jacket] = true,
+	[Enum.AccessoryType.Sweater] = true,
+	[Enum.AccessoryType.TShirt] = true,
+	[Enum.AccessoryType.Shirt] = true,
+	[Enum.AccessoryType.DressSkirt] = true,
+}
+local FACE_PARTS = {
+	[Enum.AccessoryType.Eyebrow] = true,
+	[Enum.AccessoryType.Eyelash] = true,
+}
+
+-- True when a description looks styled by a person, not a blank or starter look
+-- (Config.Bots.Avatars).
 local function dressed(d: HumanoidDescription): boolean
-	local accessories = #d:GetAccessories(true)
-	local clothes = d.Shirt ~= 0 or d.Pants ~= 0 or d.GraphicTShirt ~= 0
-	return accessories >= 1 or clothes
+	local style = if d.GraphicTShirt ~= 0 then 1 else 0
+	local covered = false
+	for _, a in d:GetAccessories(true) do
+		local kind = a.AccessoryType
+		if not FACE_PARTS[kind] then
+			style += 1
+		end
+		if LAYERED_TOPS[kind] then
+			covered = true
+		end
+	end
+	if style < A.MinStyleItems then
+		return false
+	end
+	return covered or table.find(A.StarterShirts, d.Shirt) == nil
 end
 
 -- One look from a random account, or nil after TriesPerLook misses. Yields.
