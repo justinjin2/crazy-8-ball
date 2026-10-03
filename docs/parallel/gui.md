@@ -75,6 +75,61 @@ host card's logic; you own their look.
 
 ## Status
 
+2026-10-03: interview done, brief approved (`docs/prompts/GUI_PROMPT.md`). Building step by
+step (steps 1-14 of the brief).
+
 ## Requests to other lanes or the integrator
 
+- **Integrator**: the Cutscenes lane is folded into this one (designer, 2026-10-03): every item
+  `cutscenes.md` listed under "You own" (the case opening, the result moments, NEW RANK!, the
+  reward flyers, the banner, the spin reveal, `Config.Cutscenes`, the moments' sounds) and its
+  interview topics are this lane's.
+- **Tutorial lane**: please set a player attribute `TutorialActive = true` (server-side) while a
+  player's tutorial runs and clear it when it ends. The GUI holds every join popup (daily login,
+  offers, playtime, the come-back message) while it is true.
+- **Integrator**: the lobby music tracks (step 8) need the designer's OK; the ids will be in
+  `Config.Audio.Music`.
+
 ## Decisions (dated; the integrator copies them to DECISIONS.md)
+
+- 2026-10-03 (designer): **the Cutscenes lane is folded into the GUI lane**; everything
+  `cutscenes.md` owned and its interview topics are now this lane's.
+- 2026-10-03 (designer, interview; brief `docs/prompts/GUI_PROMPT.md`):
+  - The 1v1 match-result cutscene (winner standing with the cue, loser lying on the ground)
+    plays at lobby tables and in arenas, against people, disguised bots and PC robots; 2v2,
+    3v3 and Solo keep the current result screen.
+  - The first-leave gift is a Rare Case on its normal 1 h timer. The big "COME BACK TOMORROW"
+    message and ring play every time the window loses focus or the Roblox menu opens.
+  - The like + favorite reward becomes a **favorite** reward checked through Roblox's own
+    favorite prompt ($10,000 + 1 Case Drop); the card asks for a like with no reward tied to
+    it (Roblox gives games no way to check a like).
+  - Release sale: money packs 4-7, VIP and 10 Mystery Cases 30% off for 14 days from the Grand
+    Opening Cue's start, as separate sale products shown only in the window.
+  - Roblox Plus members get +10% match money (5% if the economy model objects).
+  - The invite reward is given to the inviter once ever; each invited friend still gets theirs.
+  - Secret's colour: near-black with a slow red-white glitch shimmer. VIP drops the rainbow:
+    gold with a crown mark until the designer picks its new look. The rainbow is for deals.
+  - Global boards: Most wins vs players and Highest rank, as lobby signs (top 10) and a tab in
+    the player list (top 50 and your place). No nation board.
+  - Disguised and tutorial bots appear in the player list with their rank, money and a fixed,
+    believable wins count for their tier; never a flag; clicking one does nothing.
+  - The settings gear sits next to the rank HUD; the player list is top right.
+  - Trade screen: two big halves, 8 slots each, giant READY with a 3-2-1; your items below;
+    the other player's tradable items shown, and tapping one asks for it ("They want: X").
+  - Shop jump buttons: Deals, Cases, Money, Passes.
+  - NEW RANK!, the ability spin reveal, the Quick Cases grid and the in-match ability cutscene
+    are restyled too.
+  - **Near-misses on the case reel**: about 1 roll in 5 on every case (paid cases too), the
+    real odds unchanged. This replaces ECONOMY 11.7's "no fake near-misses" (designer's call
+    after being shown the clash).
+  - Legendary, Mythic and Secret pulls: the gold beam, the deep-space sky and the red-white
+    glitch blackout; the sky effects are local for Rare and Epic and server-wide from
+    Legendary.
+  - The 8-ball shows each climb while it is shaken; many drops at once are one shake and a row
+    of triangles. Lobby music is added (tracks approved by the designer). A cutscene can be
+    skipped once it has been seen once.
+  - Roblox's rules (checked 2026-10-03): disguised bots in a player list break no written rule;
+    country flags are fine opt-in and off by default.
+- 2026-10-03 (lane): the code box also shows in Settings whenever the Abilities screen is not
+  live, so codes are always reachable. The favorite claim is reported by the client (Roblox
+  gives servers no way to check a favorite); it pays once per player.
