@@ -1720,32 +1720,34 @@ Config.Ranks = {
 	Unlocks = { Difficult = "Gold", Challenger = "Gold" },
 	-- Rank rewards, paid once, the first time you reach a division (PeakDivision passes it;
 	-- ECONOMY 4.8). Step: the money for each new division II-V of a tier. Tier: reaching a
-	-- tier's division I pays its money, its cases (into the inventory: { [caseId] = count })
-	-- and the tier's cue (an Exclusive catalog id, never tradable or sellable). The chat tag
+	-- tier's division I pays its money, its cases (into the inventory: { [caseId] = count }),
+	-- its Case Drops and the tier's cue (an Exclusive catalog id, never tradable or sellable). The chat tag
 	-- comes from the tier itself (ChatTags).
 	Rewards = {
+		-- The approved economy plan (2026-10-02, section 6).
 		Step = {
-			Bronze = 50,
-			Silver = 75,
-			Gold = 150,
-			Platinum = 250,
-			Diamond = 1500,
-			Expert = 3000,
-			Veteran = 5000,
-			Master = 8000,
-			Grandmaster = 15000,
+			Bronze = 1000,
+			Silver = 2000,
+			Gold = 3500,
+			Platinum = 6000,
+			Diamond = 15000,
+			Expert = 30000,
+			Veteran = 50000,
+			Master = 80000,
+			Grandmaster = 150000,
 		},
+		-- Drops: Case Drops (each rolled with pity and revealed through the 8-ball).
 		Tier = {
-			Bronze = { Money = 100, Cases = { Standard = 2 }, Cue = "BronzeCue" },
-			Silver = { Money = 300, Cases = { Rare = 1 }, Cue = "SilverCue" },
-			Gold = { Money = 600, Cases = { Rare = 2 }, Cue = "GoldCue" },
-			Platinum = { Money = 1200, Cases = { Epic = 1 }, Cue = "PlatinumCue" },
-			Diamond = { Money = 3000, Cases = { Epic = 2 }, Cue = "DiamondCue" },
-			Expert = { Money = 10000, Cases = { Legendary = 2 }, Cue = "ExpertCue" },
-			Veteran = { Money = 15000, Cases = { Legendary = 3 }, Cue = "VeteranCue" },
-			Master = { Money = 25000, Cases = { Legendary = 5 }, Cue = "MasterCue" },
-			Grandmaster = { Money = 50000, Cases = { Legendary = 10 }, Cue = "GrandmasterCue" },
-			Reyes = { Money = 150000, Cases = { Legendary = 25 }, Cue = "ReyesCue" },
+			Bronze = { Money = 2500, Drops = 2, Cue = "BronzeCue" },
+			Silver = { Money = 5000, Cases = { Rare = 1 }, Cue = "SilverCue" },
+			Gold = { Money = 10000, Cases = { Rare = 2 }, Cue = "GoldCue" },
+			Platinum = { Money = 20000, Cases = { Rare = 3 }, Cue = "PlatinumCue" },
+			Diamond = { Money = 50000, Cases = { Epic = 1 }, Cue = "DiamondCue" },
+			Expert = { Money = 100000, Cases = { Epic = 2 }, Cue = "ExpertCue" },
+			Veteran = { Money = 200000, Cases = { Epic = 3 }, Cue = "VeteranCue" },
+			Master = { Money = 400000, Cases = { Legendary = 1 }, Cue = "MasterCue" },
+			Grandmaster = { Money = 750000, Cases = { Legendary = 2 }, Cue = "GrandmasterCue" },
+			Reyes = { Money = 2000000, Cases = { Mythic = 1 }, Cue = "ReyesCue" },
 		},
 	},
 	-- The [TIER] tag before a player's name in chat (src/client/ChatTags.luau; designer,
@@ -1841,7 +1843,7 @@ Config.Economy = {
 	VipBoost = 1.0,
 	PartyBoost = 1.0,
 	StarterBoost = 1.0, -- the Starter Pack's hour of 2x money (Config.Shop.StarterBoostSeconds)
-	GroupBoost = 0.1, -- a member of the game's group (Config.Social.GroupId)
+	GroupBoost = 0.1, -- a member of the game's group (Config.Social.GroupId; the InGroup attribute)
 	-- Anti-farm (3.6): the same opponent in one UTC day. Each row covers matches up to UpTo
 	-- (the last row has no UpTo: every match after). Xp, Bonus and Balls multiply the match's
 	-- XP, its win/loss bonus and its ball pay; FreeCase says whether the winner's Case Drop
@@ -1987,13 +1989,13 @@ Config.Cases = {
 	MaxSalePercent = 50,
 	-- Selling a case cue back (section 8), by rarity. Exclusive and Unique never sell.
 	SellBack = {
-		Common = 15,
-		Uncommon = 40,
-		Rare = 120,
-		Epic = 600,
-		Legendary = 3000,
-		Mythic = 15000,
-		Secret = 75000,
+		Common = 150,
+		Uncommon = 400,
+		Rare = 1500,
+		Epic = 25000,
+		Legendary = 250000,
+		Mythic = 2500000,
+		Secret = 25000000,
 	},
 	ConfirmSellFrom = "Epic", -- the client asks "are you sure?" from this rarity up
 	-- Old names the result screen and the case reel still read: the case a win drop used to be
@@ -2019,25 +2021,26 @@ Config.Index = {
 	-- reward: Legendary, Mythic and Secret (money there would reward luck more than play),
 	-- Exclusive and Unique. The rows' "Collector" titles are gone (designer, 2026-09-28).
 	Rows = {
-		Common = { Money = 1000 },
-		Uncommon = { Money = 2500 },
-		Rare = { Money = 7500 },
-		Epic = { Money = 25000 },
+		Common = { Money = 10000 },
+		Uncommon = { Money = 25000 },
+		Rare = { Money = 75000 },
+		Epic = { Money = 250000 },
 	},
 	-- The finder's money (designer, 2026-09-28): the first time a player gets a cue (it enters
 	-- their Index), the server pays this much, by the cue's rarity or group; once per cue
-	-- ever (sold and found again pays nothing). Earned money, not boosted by VIP or a party.
+	-- ever (sold and found again pays nothing; a cue got in a trade pays nothing, plan section
+	-- 6). Earned money, not boosted by VIP or a party.
 	-- (tune)
 	FindMoney = {
-		Common = 50,
-		Uncommon = 100,
-		Rare = 250,
-		Epic = 750,
-		Legendary = 2500,
-		Mythic = 10000,
-		Secret = 50000,
-		Exclusive = 500, -- rank cues, the VIP and Starter cues
-		Unique = 1000, -- numbered Limited cues
+		Common = 500,
+		Uncommon = 1000,
+		Rare = 2500,
+		Epic = 7500,
+		Legendary = 25000,
+		Mythic = 100000,
+		Secret = 500000,
+		Exclusive = 5000, -- rank cues, the VIP and Starter cues
+		Unique = 10000, -- numbered Limited cues
 	},
 }
 
@@ -2108,47 +2111,96 @@ Config.Items = {
 -- src/server/Rewards.luau). Every number from docs/ECONOMY.md section 10. (tune)
 ---------------------------------------------------------------------------------------------
 Config.Daily = {
-	-- The login streak, one claim per UTC day (10). Missing a day starts again at day 1.
-	-- Each day: Money and/or Cases ({ [caseId] = count }).
+	-- The login loop (the approved economy plan, 2026-10-02, section 6): one claim per UTC day,
+	-- seven days that repeat. A missed day starts again at day 1, unless the week's streak
+	-- freeze covers it. Each day: Money, Cases ({ [caseId] = count }), Drops (Case Drops)
+	-- and/or Spins (ability spins).
 	Streak = {
-		{ Money = 250 },
-		{ Cases = { Standard = 2 } },
-		{ Money = 500 },
-		{ Cases = { Rare = 1 } },
-		{ Money = 1000 },
-		{ Cases = { Rare = 2 } },
-		{ Cases = { Epic = 1 } },
-	} :: { { Money: number?, Cases: { [string]: number }? } },
-	-- Four full weeks in a row add WeekBonus on day 28 (the 7th day of the 4th week).
+		{ Money = 5000 },
+		{ Drops = 1 },
+		{ Money = 10000 },
+		{ Drops = 2 },
+		{ Money = 15000 },
+		{ Drops = 3 },
+		{ Cases = { Rare = 1 }, Spins = 2 },
+	} :: { { Money: number?, Cases: { [string]: number }?, Drops: number?, Spins: number? } },
+	-- One free streak freeze a UTC week (weeks start Monday): a single missed day is covered
+	-- by itself, so the streak goes on. Two or more missed days start it over.
+	FreezePerWeek = 1,
+	-- VIP's extra free ability spin a day (plan section 5), added to each day's claim. Everyone's
+	-- one free spin a day is Config.Ults.Earn.DailyFree.
+	VipSpins = 1,
+	-- Today's claim is given by itself on join when it is day 1 of the loop (a new player or a
+	-- streak that started over); the other days are claimed in the Rewards menu.
+	AutoClaimDayOne = true,
+	AutoClaimDelaySeconds = 3, -- after the save loads, so the VIP check lands first
+	-- The 28-day track: total days claimed (never resets), repeating every TrackDays. On the
+	-- day the count reaches one of these it adds its reward to that day's claim.
+	TrackDays = 28,
+	Track = {
+		{ Day = 7, Cases = { Rare = 1 } },
+		{ Day = 14, Cases = { Rare = 2 } },
+		{ Day = 21, Cases = { Rare = 2 } },
+		{ Day = 28, Cases = { Epic = 1 } },
+	} :: { { Day: number, Money: number?, Cases: { [string]: number }?, Drops: number? } },
+	-- Old names the Rewards screen still reads until the GUI lane rebuilds it: the track's four
+	-- weeks ("Week 2 of 4") and its day-28 prize.
 	WeeksForBonus = 4,
-	WeekBonus = { Cases = { Legendary = 1 } },
+	WeekBonus = { Cases = { Epic = 1 } },
 	-- Playtime gifts: minutes played in a UTC day, each claimable once that day.
 	Playtime = {
-		{ Minutes = 10, Money = 100 },
-		{ Minutes = 30, Cases = { Standard = 1 } },
-		{ Minutes = 60, Cases = { Standard = 2 } },
-	} :: { { Minutes: number, Money: number?, Cases: { [string]: number }? } },
+		{ Minutes = 10, Money = 2000 },
+		{ Minutes = 30, Drops = 1 },
+		{ Minutes = 60, Drops = 2, Spins = 1 },
+		{ Minutes = 90, Money = 10000 },
+		{ Minutes = 120, Cases = { Rare = 1 } },
+	} :: {
+		{
+			Minutes: number,
+			Money: number?,
+			Cases: { [string]: number }?,
+			Drops: number?,
+			Spins: number?,
+		}
+	},
 	PlaytimeTickSeconds = 30, -- the server adds playtime this often (and on leave)
-	-- Promo codes (ECONOMY 18): case-insensitive, once per player, optional Expires (the unix
-	-- time it stops working: midnight UTC after its last day). Codes give money, free cases,
-	-- ult spins and Lucky Spins (the designer, 2026-09-28, the ultimates brief 9.3). Placeholders.
+	-- Promo codes (plan section 6): case-insensitive, once per player, optional Expires (the
+	-- unix time it stops working: midnight UTC after its last day). Live = true: off until the
+	-- designer switches it on in a live game (/code on <CODE>, every server at once; the like
+	-- milestone codes, designer 2026-10-03).
 	Codes = {
-		WELCOME = { Money = 500, Cases = { Standard = 1 } },
-		["8BALL"] = { Money = 250 },
+		WELCOME = { Money = 5000, Drops = 1 },
+		["8BALL"] = { Money = 2500 },
 		ROOFTOP = { Cases = { Rare = 1 }, Expires = 1798761600 }, -- through 2026-12-31 (UTC)
 		-- The spin screen's code box (Config.Ults.CodeBanner.ActiveCode names it): 3 ability
-		-- spins. Was ULTS until players' "ults" became "abilities" (2026-09-28, pre-release).
+		-- spins.
 		ABILITIES = { Spins = 3 },
+		-- Like milestones: 1k, 5k, 10k, 25k, 50k, 100k likes.
+		LIKES1K = { Money = 10000, Drops = 1, Live = true },
+		LIKES5K = { Money = 25000, Drops = 2, Live = true },
+		LIKES10K = { Cases = { Rare = 1 }, Spins = 3, Live = true },
+		LIKES25K = { Cases = { Rare = 2 }, Live = true },
+		LIKES50K = { Money = 100000, Cases = { Rare = 2 }, Live = true },
+		LIKES100K = { Cases = { Rare = 3 }, Spins = 5, Live = true },
 	} :: {
 		[string]: {
 			Money: number?,
 			Cases: { [string]: number }?,
-			Spins: number?, -- ult spins (the designer, 2026-09-28: codes give spins)
+			Drops: number?, -- Case Drops
+			Spins: number?, -- ability spins
 			LuckySpins: number?, -- Lucky Spins
 			Expires: number?,
+			Live: boolean?,
 		},
 	},
 	CodeMaxLength = 24,
+	-- The Live codes switched on (src/server/LiveCodes.luau): one DataStore key holding the set,
+	-- a MessagingService message so every server switches at once, and a read every
+	-- LiveReadSeconds in case a message was missed.
+	LiveStore = "LiveCodes_v1",
+	LiveStudioStore = "LiveCodes_Studio_v1",
+	LiveTopic = "LiveCodes_v1",
+	LiveReadSeconds = 300,
 	-- The Rewards service's limits (src/server/Rewards.luau; server limits, not ECONOMY.md
 	-- numbers): one RewardRequest per player this often, one code attempt this often (so codes
 	-- cannot be guessed quickly), and how often the server looks for a new UTC day (section 10:
@@ -2156,6 +2208,32 @@ Config.Daily = {
 	RequestCooldownSeconds = 0.5,
 	RedeemCooldownSeconds = 2,
 	DayCheckSeconds = 1,
+}
+
+---------------------------------------------------------------------------------------------
+-- The game's group and invites (the approved economy plan, 2026-10-02, section 6; designer,
+-- 2026-10-03). src/server/Social.luau, src/shared/Progression/Social.luau. (tune)
+---------------------------------------------------------------------------------------------
+Config.Social = {
+	GroupId = 675425213, -- "Lucky 8"
+	-- Join (the client's GroupService:PromptJoinAsync) then Claim: this once per player. While a
+	-- member, match money gets Config.Economy.GroupBoost (checked on join and on Claim).
+	GroupReward = { Drops = 3 },
+	-- Invites: a brand-new player who joined through a player's invite (the invite's launch
+	-- data) and wins any match that is not solo gives both of them this case. The inviter gets
+	-- at most InvitesPerMonth a UTC month; one who is offline gets theirs on the next join.
+	InviteCase = "Rare",
+	InvitesPerMonth = 5,
+	-- "Brand new": the save was made at most this long before the launch data is read.
+	NewPlayerSeconds = 600,
+	-- The inviters' rewards waiting to be given (one key per inviter, the invitees' ids), and
+	-- the message that tells the inviter's server.
+	InviteStore = "InviteRewards_v1",
+	InviteStudioStore = "InviteRewards_Studio_v1",
+	InviteTopic = "InviteRewards_v1",
+	MaxPending = 50, -- invitees one key keeps waiting (far above a month's cap)
+	-- A ClaimGroup request (it asks Roblox for the player's groups) at most this often.
+	ClaimCooldownSeconds = 5,
 }
 
 ---------------------------------------------------------------------------------------------
@@ -2440,7 +2518,8 @@ Config.Ults = {
 	-- Common 0.37, Uncommon 0.44, Rare 0.50, Epic 0.69, Legendary 1.15, Mythic 1.31.
 	Catalog = {
 		-- +0.38 / +0.54 / +0.44 (careless +0.37 / +0.56 / +0.52).
-		Magnet = { Rarity = "Common", Built = true, Effect = "Magnet", Worth = 0.46, Area = true },
+		-- Uncommon since the economy plan (2026-10-02, section 8: its measured strength).
+		Magnet = { Rarity = "Uncommon", Built = true, Effect = "Magnet", Worth = 0.46, Area = true },
 		-- +0.14 / +0.38 / +0.48.
 		EaglesEye = { Rarity = "Common", Built = true, Effect = "EaglesEye", Worth = 0.34 },
 		-- +0.27 / +0.39 / +0.32.
@@ -2449,7 +2528,7 @@ Config.Ults = {
 		Ghost = { Rarity = "Uncommon", Built = true, Effect = "Ghost", Worth = 0.47 },
 		-- +0.36 / +0.41 / +0.43 (30 degrees of cut correction).
 		HeatSeeker = {
-			Rarity = "Uncommon",
+			Rarity = "Common", -- Common since the economy plan (2026-10-02, section 8)
 			Built = true,
 			Effect = "HeatSeeker",
 			Worth = 0.4,
@@ -2579,10 +2658,8 @@ Config.Ults = {
 			Grandmaster = 3,
 			Reyes = 3,
 		},
-		StreakDay7 = 2, -- day 7 of the login streak (each week of the cycle), on top of its reward
-		PlaytimeLast = 1, -- the day's last playtime gift adds this many spins
 		-- Money spins: this much each, no bulk discount ("way more expensive" than Robux).
-		MoneyPerSpin = 1750,
+		MoneyPerSpin = 17500,
 		MoneyPacks = { 1, 5, 10, 50 }, -- BUY 1, 5, 10, 50 in $ mode
 		-- Robux packs: the developer products in Config.Products (Spin1..Spin50, Lucky1, Lucky3).
 		RobuxPacks = { "Spin1", "Spin5", "Spin10", "Spin50" },
@@ -9152,6 +9229,7 @@ Config.Debug = {
 		FreeCase = "/freecase", -- as if you won a real match (the Case Drop rule)
 		SkipTime = "/skiptime", -- case timers run that many minutes sooner
 		Restock = "/restock", -- this server shows a restock with that item until it ends
+		Code = "/code", -- /code on|off <CODE> | /code list: a Live code in every server
 		EconHelp = "/econhelp", -- lists these
 		-- Ultimates, acting on the caller only (`/abilityhelp` lists them). Players call ults
 		-- "abilities" (2026-09-28), so each command's name says ability; its old ult name in

@@ -40,7 +40,7 @@ return {
 			H.expect(id == Config.Ults.Order[i] and Catalog.exists(id), "in Order")
 		end
 		local magnet = Catalog.get("Magnet")
-		H.expect(magnet and magnet.Id == "Magnet" and magnet.Rarity == "Common", "Magnet")
+		H.expect(magnet and magnet.Id == "Magnet" and magnet.Rarity == "Uncommon", "Magnet")
 		H.expect(magnet and magnet.Built and magnet.Effect == "Magnet", "built")
 		H.expect(Catalog.name("EaglesEye") == "Eagle's Eye", "names from Strings")
 		H.expect(#Catalog.description("Magnet") > 0, "descriptions from Strings")

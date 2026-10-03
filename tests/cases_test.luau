@@ -53,13 +53,13 @@ local MIN_RARITY = {
 
 -- ECONOMY 8: sell-back per copy.
 local SELL = {
-	Common = 15,
-	Uncommon = 40,
-	Rare = 120,
-	Epic = 600,
-	Legendary = 3000,
-	Mythic = 15000,
-	Secret = 75000,
+	Common = 150,
+	Uncommon = 400,
+	Rare = 1500,
+	Epic = 25000,
+	Legendary = 250000,
+	Mythic = 2500000,
+	Secret = 25000000,
 }
 
 -- A seeded xorshift32: rng(n) -> a whole number in 1..n, the same sequence every run.

@@ -12,15 +12,13 @@
 --     save.Codes), so the mark and the reward can never drift apart. Call them on the live
 --     save inside the mutation, never on a read-only copy.
 --
--- A reward is always { money = n, cases = { [caseId] = count }, spins = n, lucky = n } (0 and
--- empty when there is none); Daily.caseList lists its cases in Config.Cases.Order. `spins` and
--- `lucky` are ult spins and Lucky Spins (docs/prompts/ULTIMATES_PROMPT.md section 10): day 7 of
--- every streak week adds Config.Ults.Earn.StreakDay7 spins, the day's last playtime gift
--- Earn.PlaytimeLast, and a code its Spins and LuckySpins.
+-- A reward is always { money = n, cases = { [caseId] = count }, drops = n, spins = n,
+-- lucky = n } (0 and empty when there is none); Daily.caseList lists its cases in
+-- Config.Cases.Order. `drops` are Case Drops (each rolled with pity when given), `spins` and
+-- `lucky` ability spins and Lucky Spins. The approved economy plan (2026-10-02, section 6).
 local Config = require(script.Parent.Parent.Config)
 
 local D = Config.Daily
-local EARN = Config.Ults.Earn
 local CASE_ORDER: { string } = Config.Cases.Order
 
 local SECONDS_PER_DAY = 86400
@@ -28,26 +26,33 @@ local SECONDS_PER_DAY = 86400
 export type Reward = {
 	money: number,
 	cases: { [string]: number },
-	spins: number, -- ult spins
+	drops: number, -- Case Drops
+	spins: number, -- ability spins
 	lucky: number, -- Lucky Spins
 }
 
--- The save's login streak (SaveSchema v2): the last claimed UTC day (0 none), the streak day
--- that claim was (1..7, 0 none) and its week of the cycle (1..WeeksForBonus, 0 none).
-export type Login = { LastDay: number, StreakDay: number, Week: number }
+-- The save's login loop (SaveSchema v6): the last claimed UTC day (0 none), the loop day that
+-- claim was (1..7, 0 none), every day ever claimed (the 28-day track) and the UTC week whose
+-- streak freeze was used (Daily.weekOf; 0 none).
+export type Login = { LastDay: number, StreakDay: number, Total: number, FreezeWeek: number }
 
 export type LoginState = {
 	canClaim: boolean,
 	claimedToday: boolean,
-	day: number, -- the streak day today's claim is (or was, once claimed): 1..7
-	week: number, -- its week of the cycle: 1..WeeksForBonus
-	reward: Reward, -- what that claim gives, the week bonus included
-	bonus: boolean, -- the claim includes Config.Daily.WeekBonus (day 7 of the last week)
+	day: number, -- the loop day today's claim is (or was, once claimed): 1..7
+	total: number, -- days claimed counting today's claim (the 28-day track)
+	week: number, -- the track's week today's claim is in: 1..TrackDays / 7
+	reward: Reward, -- what that claim gives: the loop day, the track and VIP's spin
+	bonus: boolean, -- the claim includes a 28-day track reward
+	track: Reward?, -- that track reward
+	frozen: boolean, -- the claim keeps the streak through this week's freeze
+	freezeReady: boolean, -- this week's freeze is not used yet
 }
 
 export type NextReward = {
 	day: number,
 	week: number,
+	total: number,
 	reward: Reward,
 	bonus: boolean,
 	tomorrow: boolean, -- false: today's claim is still waiting; true: it comes tomorrow
@@ -64,24 +69,27 @@ export type Gift = {
 
 export type CaseCount = { id: string, count: number }
 
--- A Config reward row: Money, Cases, Spins and/or LuckySpins, plus Minutes (playtime) or
--- Expires (codes).
+-- A Config reward row: Money, Cases, Drops, Spins and/or LuckySpins, plus Minutes (playtime),
+-- Day (the track) or Expires and Live (codes).
 type RewardRow = {
 	Money: number?,
 	Cases: { [string]: number }?,
+	Drops: number?,
 	Spins: number?,
 	LuckySpins: number?,
 	Minutes: number?,
+	Day: number?,
 	Expires: number?,
+	Live: boolean?,
 }
 
 -- Config's rows are table literals of mixed shapes; read them through one row type.
 local STREAK: { RewardRow } = D.Streak :: any
 local PLAYTIME: { RewardRow } = D.Playtime :: any
-local WEEK_BONUS: RewardRow = D.WeekBonus :: any
+local TRACK: { RewardRow } = D.Track :: any
 local CODES: { [string]: RewardRow } = D.Codes :: any
 local DAYS = #STREAK
-local WEEKS: number = D.WeeksForBonus
+local TRACK_DAYS: number = D.TrackDays
 
 -- The longest text normalizeCode looks at. The text comes from a client, and trimming is a
 -- pattern match that gets slow on very long runs of spaces, so anything far longer than a code
@@ -106,14 +114,15 @@ local function whole(x: any): number
 	return math.floor(num(x))
 end
 
--- A new reward from a Config row. Only Money, Cases, Spins and LuckySpins are read, so a
--- reward can never carry anything else.
+-- A new reward from a Config row. Only Money, Cases, Drops, Spins and LuckySpins are read, so
+-- a reward can never carry anything else.
 local function rewardOf(row: RewardRow?): Reward
-	local reward: Reward = { money = 0, cases = {}, spins = 0, lucky = 0 }
+	local reward: Reward = { money = 0, cases = {}, drops = 0, spins = 0, lucky = 0 }
 	if row == nil then
 		return reward
 	end
 	reward.money = math.max(0, whole(row.Money))
+	reward.drops = math.max(0, whole(row.Drops))
 	reward.spins = math.max(0, whole(row.Spins))
 	reward.lucky = math.max(0, whole(row.LuckySpins))
 	local cases = row.Cases
@@ -132,6 +141,7 @@ local function merge(a: Reward, b: Reward): Reward
 	local out: Reward = {
 		money = a.money + b.money,
 		cases = {},
+		drops = a.drops + b.drops,
 		spins = a.spins + b.spins,
 		lucky = a.lucky + b.lucky,
 	}
@@ -162,129 +172,182 @@ function Daily.caseList(reward: Reward): { CaseCount }
 end
 
 ---------------------------------------------------------------------------------------------
--- The login streak (ECONOMY 10)
+-- The login loop, its weekly freeze and the 28-day track (plan section 6)
 ---------------------------------------------------------------------------------------------
 
--- The save's streak, cleaned: (last claimed day, streak day 0..DAYS, week 0..WEEKS). A streak
--- day out of range means nothing claimed; a claimed day with a bad week sits in week 1.
-local function readLogin(login: any): (number, number, number)
+--- The UTC week a UTC day falls in, weeks starting on Monday (day 0, 1970-01-01, a Thursday).
+function Daily.weekOf(day: number): number
+	return (whole(day) + 3) // 7
+end
+
+-- The save's loop, cleaned: (last claimed day, loop day 0..DAYS, total days, freeze week).
+-- A loop day out of range means nothing claimed.
+local function readLogin(login: any): (number, number, number, number)
 	if type(login) ~= "table" then
-		return 0, 0, 0
+		return 0, 0, 0, 0
 	end
 	local last = whole(login.LastDay)
 	local day = whole(login.StreakDay)
-	local week = whole(login.Week)
+	local total = math.max(0, whole(login.Total))
+	local freeze = math.max(0, whole(login.FreezeWeek))
 	if day < 1 or day > DAYS then
-		return last, 0, 0
+		day = 0
 	end
-	if week < 1 or week > WEEKS then
-		week = 1
-	end
-	return last, day, week
+	return last, day, total, freeze
 end
 
--- The claim that follows (day, week) on the next UTC day. After the cycle's last day (day 7 of
--- week WEEKS, the one with the bonus) the cycle starts over at week 1.
-local function following(day: number, week: number): (number, number)
-	if day >= 1 and day < DAYS then
-		return day + 1, week
-	end
-	if day == DAYS and week < WEEKS then
-		return 1, week + 1
-	end
-	return 1, 1
+-- The loop day after `day` (day 7 starts the loop over).
+local function following(day: number): number
+	return if day >= 1 and day < DAYS then day + 1 else 1
 end
 
---- What streak day `day` of week `week` gives (the seven tiles show these), and whether it
---- includes the week bonus: WeekBonus is added on the last day of the last week (day 28).
---- The last day of every week also adds Config.Ults.Earn.StreakDay7 ult spins.
-function Daily.streakReward(day: number, week: number): (Reward, boolean)
-	local bonus = day == DAYS and week == WEEKS
+-- The track's place (1..TrackDays) and week (1..) of the `total`-th day claimed.
+local function trackPlace(total: number): (number, number)
+	local place = (math.max(1, total) - 1) % TRACK_DAYS + 1
+	return place, (place - 1) // 7 + 1
+end
+
+--- The 28-day track's reward on the `total`-th day claimed, or nil (most days).
+function Daily.trackReward(total: number): Reward?
+	local place = trackPlace(total)
+	for _, row in TRACK do
+		if whole(row.Day) == place then
+			return rewardOf(row)
+		end
+	end
+	return nil
+end
+
+--- What loop day `day` gives (the seven tiles show these), with VIP's daily ability spin
+--- (Config.Daily.VipSpins) when `vip`. The second answer is always false (the old week bonus
+--- is the track now: Daily.trackReward).
+function Daily.streakReward(day: number, vip: boolean?): (Reward, boolean)
 	local reward = rewardOf(STREAK[day])
-	if bonus then
-		reward = merge(reward, rewardOf(WEEK_BONUS))
+	if vip == true then
+		reward.spins += math.max(0, whole(D.VipSpins))
 	end
-	if day == DAYS then
-		reward.spins += math.max(0, whole(EARN.StreakDay7))
-	end
-	return reward, bonus
+	return reward, false
 end
 
---- Where a player's streak stands on UTC day `today`. One claim per day; a claim the day after
---- the last one continues the streak, anything later starts again at day 1 of week 1.
-function Daily.loginState(login: Login, today: number): LoginState
-	local now = whole(today)
-	local last, streakDay, week = readLogin(login)
-	local day, claimedToday
+-- Today's claim from the cleaned save: (loop day, claimed already, frozen).
+local function todaysDay(login: any, now: number): (number, boolean, boolean)
+	local last, streakDay, _, freeze = readLogin(login)
 	if streakDay > 0 and last >= now and last <= now + 1 then
 		-- Claimed today. A LastDay of tomorrow means another server's clock was a moment ahead
 		-- at midnight; it counts as today, so clock skew never gives a second claim.
-		day, claimedToday = streakDay, true
+		return streakDay, true, false
 	elseif streakDay > 0 and last == now - 1 then
-		day, week = following(streakDay, week)
-		claimedToday = false
-	else
-		-- Never claimed, a missed day, or a LastDay far in the future (a broken save).
-		day, week, claimedToday = 1, 1, false
+		return following(streakDay), false, false
+	elseif
+		streakDay > 0
+		and last == now - 2
+		and whole(D.FreezePerWeek) > 0
+		and freeze ~= Daily.weekOf(now)
+	then
+		-- One missed day, covered by this week's freeze.
+		return following(streakDay), false, true
 	end
-	local reward, bonus = Daily.streakReward(day, week)
+	-- Never claimed, two or more missed days, or a LastDay far in the future (a broken save).
+	return 1, false, false
+end
+
+--- Where a player's loop stands on UTC day `today` (`vip`: today's claim adds VIP's spin).
+--- One claim per day; a claim the day after the last one continues the loop, so does one
+--- two days after it while this week's freeze is unused; anything later starts at day 1.
+function Daily.loginState(login: Login, today: number, vip: boolean?): LoginState
+	local now = whole(today)
+	local _, _, total, freeze = readLogin(login)
+	local day, claimedToday, frozen = todaysDay(login, now)
+	local count = if claimedToday then math.max(1, total) else total + 1
+	local _, week = trackPlace(count)
+	local reward = Daily.streakReward(day, vip)
+	local track = Daily.trackReward(count)
+	if track ~= nil then
+		reward = merge(reward, track)
+	end
 	return {
 		canClaim = not claimedToday,
 		claimedToday = claimedToday,
 		day = day,
+		total = count,
 		week = week,
 		reward = reward,
-		bonus = bonus,
+		bonus = track ~= nil,
+		track = track,
+		frozen = frozen,
+		freezeReady = whole(D.FreezePerWeek) > 0 and freeze ~= Daily.weekOf(now),
 	}
 end
 
---- Claims today's streak reward. Returns (true, the new Login to store, the reward) or
+--- Claims today's loop reward. Returns (true, the new Login to store, the reward) or
 --- (false, an unchanged copy of the Login, nil) when today is already claimed. Never changes
 --- the table it is given.
-function Daily.claimLogin(login: Login, today: number): (boolean, Login, Reward?)
-	local state = Daily.loginState(login, today)
+function Daily.claimLogin(login: Login, today: number, vip: boolean?): (boolean, Login, Reward?)
+	local now = whole(today)
+	local last, streakDay, total, freeze = readLogin(login)
+	local state = Daily.loginState(login, now, vip)
 	if not state.canClaim then
-		local last, streakDay, week = readLogin(login)
-		return false, { LastDay = last, StreakDay = streakDay, Week = week }, nil
+		return false,
+			{ LastDay = last, StreakDay = streakDay, Total = total, FreezeWeek = freeze },
+			nil
 	end
-	return true, { LastDay = whole(today), StreakDay = state.day, Week = state.week }, state.reward
+	return true,
+		{
+			LastDay = now,
+			StreakDay = state.day,
+			Total = state.total,
+			FreezeWeek = if state.frozen then Daily.weekOf(now) else freeze,
+		},
+		state.reward
 end
 
---- The /setday dev command: a new Login whose NEXT claim (today) is day `n` (1..7) of week
---- `week` (1..WeeksForBonus; default: the week today's claim is in now). Works even when
---- today is already claimed, so the tester can claim day n straight away.
+--- The /setday dev command: a new Login whose NEXT claim (today) is loop day `n` (1..7) and,
+--- when `week` is given (1..TrackDays / 7), the track's day (week - 1) * 7 + n. Works even
+--- when today is already claimed, so the tester can claim day n straight away.
 function Daily.setStreakDay(login: Login, today: number, n: number, week: number?): Login
 	local now = whole(today)
 	local day = math.clamp(whole(n), 1, DAYS)
-	local w = if week ~= nil
-		then math.clamp(whole(week), 1, WEEKS)
-		else Daily.loginState(login, now).week
+	local _, _, _, freeze = readLogin(login)
+	local count = if week ~= nil
+		then (math.clamp(whole(week), 1, TRACK_DAYS // 7) - 1) * 7 + day
+		else Daily.loginState(login, now).total
 	-- Store the claim just before the one wanted, dated yesterday.
 	if day > 1 then
-		return { LastDay = now - 1, StreakDay = day - 1, Week = w }
+		return { LastDay = now - 1, StreakDay = day - 1, Total = count - 1, FreezeWeek = freeze }
 	end
-	if w > 1 then
-		return { LastDay = now - 1, StreakDay = DAYS, Week = w - 1 }
-	end
-	return { LastDay = 0, StreakDay = 0, Week = 0 }
+	return { LastDay = 0, StreakDay = 0, Total = math.max(0, count - 1), FreezeWeek = freeze }
 end
 
 --- What the next claim gives: today's while it is unclaimed, else tomorrow's (if the player
 --- comes back tomorrow). The reminder "Come back tomorrow for your Rare Case" reads this.
-function Daily.nextReward(login: Login, today: number): NextReward
-	local state = Daily.loginState(login, today)
+function Daily.nextReward(login: Login, today: number, vip: boolean?): NextReward
+	local state = Daily.loginState(login, today, vip)
 	if state.canClaim then
 		return {
 			day = state.day,
 			week = state.week,
+			total = state.total,
 			reward = state.reward,
 			bonus = state.bonus,
 			tomorrow = false,
 		}
 	end
-	local day, week = following(state.day, state.week)
-	local reward, bonus = Daily.streakReward(day, week)
-	return { day = day, week = week, reward = reward, bonus = bonus, tomorrow = true }
+	local day = following(state.day)
+	local count = state.total + 1
+	local _, week = trackPlace(count)
+	local reward = Daily.streakReward(day, vip)
+	local track = Daily.trackReward(count)
+	if track ~= nil then
+		reward = merge(reward, track)
+	end
+	return {
+		day = day,
+		week = week,
+		total = count,
+		reward = reward,
+		bonus = track ~= nil,
+		tomorrow = true,
+	}
 end
 
 ---------------------------------------------------------------------------------------------
@@ -301,8 +364,7 @@ local function claimedMap(daily: any): { [string]: boolean }
 end
 
 --- Every playtime gift in Config order with its progress, from the day's save
---- (Daily.PlaySeconds and Daily.PlaytimeClaimed). The day's last gift also adds
---- Config.Ults.Earn.PlaytimeLast ult spins.
+--- (Daily.PlaySeconds and Daily.PlaytimeClaimed).
 function Daily.playtimeState(daily: any): { Gift }
 	local seconds = math.max(0, num(if type(daily) == "table" then daily.PlaySeconds else 0))
 	local claimed = claimedMap(daily)
@@ -312,9 +374,6 @@ function Daily.playtimeState(daily: any): { Gift }
 		local need = minutes * 60
 		local done = claimed[tostring(index)] == true
 		local reward = rewardOf(row)
-		if index == #PLAYTIME then
-			reward.spins += math.max(0, whole(EARN.PlaytimeLast))
-		end
 		table.insert(list, {
 			index = index,
 			minutes = minutes,
@@ -365,21 +424,59 @@ function Daily.normalizeCode(text: any): string?
 	return code
 end
 
+--- Whether `code` (normalized) is a Live code: off until switched on (Config.Daily.Codes).
+function Daily.isLive(code: string): boolean
+	local row = CODES[code]
+	return row ~= nil and row.Live == true
+end
+
+--- The Live codes switched on, read from a stored value: { [CODE] = true } for Live codes in
+--- Config only (anything else is dropped). A fresh table.
+function Daily.readLive(stored: any): { [string]: boolean }
+	local out: { [string]: boolean } = {}
+	if type(stored) == "table" then
+		for code, on in stored do
+			if type(code) == "string" and on == true and Daily.isLive(code) then
+				out[code] = true
+			end
+		end
+	end
+	return out
+end
+
+--- The live-codes transform: the stored set with `code` switched on or off (a fresh table),
+--- or nil when `code` is not a Live code (nothing to write).
+function Daily.setLive(stored: any, code: string, on: boolean): { [string]: boolean }?
+	if not Daily.isLive(code) then
+		return nil
+	end
+	local out = Daily.readLive(stored)
+	if on then
+		out[code] = true
+	else
+		out[code] = nil
+	end
+	return out
+end
+
 --- Redeems typed text as a code at unix time `now` and marks it in `codesSave` (the save's
---- own Codes table). Returns (true, reward) or (false, reason): "Bad" (not a possible code),
---- "Unknown" (no such code), "Used" (this player already redeemed it), "Expired" (now is at
---- or after its Expires). Only codes in Config are ever written to the save.
+--- own Codes table). `liveOn`: the Live codes switched on ({ [CODE] = true }; a Live code
+--- not in it answers "Unknown", so it cannot be found early). Returns (true, reward) or
+--- (false, reason): "Bad" (not a possible code), "Unknown" (no such code), "Used" (this
+--- player already redeemed it), "Expired" (now is at or after its Expires). Only codes in
+--- Config are ever written to the save.
 function Daily.redeem(
 	codesSave: { [string]: boolean },
 	text: any,
-	now: number
+	now: number,
+	liveOn: { [string]: boolean }?
 ): (boolean, Reward | string)
 	local code = Daily.normalizeCode(text)
 	if code == nil then
 		return false, "Bad"
 	end
 	local row = CODES[code]
-	if row == nil then
+	if row == nil or (row.Live == true and not (liveOn ~= nil and liveOn[code] == true)) then
 		return false, "Unknown"
 	end
 	if codesSave[code] == true then

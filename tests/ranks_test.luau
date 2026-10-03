@@ -480,44 +480,47 @@ return {
 		H.expect(top.after.tier == "Reyes" and top.delta == 150, "Reyes keeps going")
 	end,
 
-	-- ECONOMY 4.8: every row of the rewards table.
-	["rank rewards are ECONOMY 4.8's table"] = function()
+	-- The approved economy plan (2026-10-02, section 6): every row of the rank rewards table.
+	["rank rewards are the economy plan's table"] = function()
 		local Ranks = load()
 		local steps: { [string]: number } = {
-			Bronze = 50,
-			Silver = 75,
-			Gold = 150,
-			Platinum = 250,
-			Diamond = 1500,
-			Expert = 3000,
-			Veteran = 5000,
-			Master = 8000,
-			Grandmaster = 15000,
+			Bronze = 1000,
+			Silver = 2000,
+			Gold = 3500,
+			Platinum = 6000,
+			Diamond = 15000,
+			Expert = 30000,
+			Veteran = 50000,
+			Master = 80000,
+			Grandmaster = 150000,
 		}
+		-- { money, case, count, cue, Case Drops }
 		local firsts: { [string]: { any } } = {
-			Bronze = { 100, "Standard", 2, "BronzeCue" },
-			Silver = { 300, "Rare", 1, "SilverCue" },
-			Gold = { 600, "Rare", 2, "GoldCue" },
-			Platinum = { 1200, "Epic", 1, "PlatinumCue" },
-			Diamond = { 3000, "Epic", 2, "DiamondCue" },
-			Expert = { 10000, "Legendary", 2, "ExpertCue" },
-			Veteran = { 15000, "Legendary", 3, "VeteranCue" },
-			Master = { 25000, "Legendary", 5, "MasterCue" },
-			Grandmaster = { 50000, "Legendary", 10, "GrandmasterCue" },
-			Reyes = { 150000, "Legendary", 25, "ReyesCue" },
+			Bronze = { 2500, nil, 0, "BronzeCue", 2 },
+			Silver = { 5000, "Rare", 1, "SilverCue", 0 },
+			Gold = { 10000, "Rare", 2, "GoldCue", 0 },
+			Platinum = { 20000, "Rare", 3, "PlatinumCue", 0 },
+			Diamond = { 50000, "Epic", 1, "DiamondCue", 0 },
+			Expert = { 100000, "Epic", 2, "ExpertCue", 0 },
+			Veteran = { 200000, "Epic", 3, "VeteranCue", 0 },
+			Master = { 400000, "Legendary", 1, "MasterCue", 0 },
+			Grandmaster = { 750000, "Legendary", 2, "GrandmasterCue", 0 },
+			Reyes = { 2000000, "Mythic", 1, "ReyesCue", 0 },
 		}
 		for _, tier in ALL_TIERS do
 			local want = firsts[tier]
 			local first = Ranks.rewardFor(Ranks.indexOf(tier, 1))
 			H.expect(first.money == want[1], tier .. " I money " .. first.money)
-			H.expect(sameValue(first.cases, { [want[2]] = want[3] }), tier .. " I cases")
+			local cases = if want[2] then { [want[2]] = want[3] } else {}
+			H.expect(sameValue(first.cases, cases), tier .. " I cases")
+			H.expect(first.drops == want[5], tier .. " I Case Drops")
 			H.expect(first.cue == want[4], tier .. " I cue " .. tostring(first.cue))
 			if tier ~= "Reyes" then
 				for division = 2, 5 do
 					local step = Ranks.rewardFor(Ranks.indexOf(tier, division))
 					H.expect(step.money == steps[tier], ("%s %d money"):format(tier, division))
 					H.expect(
-						next(step.cases) == nil and step.cue == nil,
+						next(step.cases) == nil and step.cue == nil and step.drops == 0,
 						tier .. " step: money only"
 					)
 				end
@@ -526,9 +529,10 @@ return {
 		local none = Ranks.rewardFor(0)
 		H.expect(none.money == 0 and next(none.cases) == nil and none.cue == nil, "Unranked")
 		-- Callers get copies.
-		local a = Ranks.rewardFor(1)
-		a.cases.Standard = 99
-		H.expect(Ranks.rewardFor(1).cases.Standard == 2, "rewardFor hands out copies")
+		local silver = Ranks.indexOf("Silver", 1)
+		local a = Ranks.rewardFor(silver)
+		a.cases.Rare = 99
+		H.expect(Ranks.rewardFor(silver).cases.Rare == 1, "rewardFor hands out copies")
 		-- Everything from Unranked to Reyes: ECONOMY's money column added up.
 		local all = Ranks.rewardsBetween(0, 46)
 		H.expect(#all == 46)
@@ -536,8 +540,17 @@ return {
 		for _, r in all do
 			total += r.money
 		end
-		local steps4 = (50 + 75 + 150 + 250 + 1500 + 3000 + 5000 + 8000 + 15000) * 4
-		local firstSum = 100 + 300 + 600 + 1200 + 3000 + 10000 + 15000 + 25000 + 50000 + 150000
+		local steps4 = (1000 + 2000 + 3500 + 6000 + 15000 + 30000 + 50000 + 80000 + 150000) * 4
+		local firstSum = 2500
+			+ 5000
+			+ 10000
+			+ 20000
+			+ 50000
+			+ 100000
+			+ 200000
+			+ 400000
+			+ 750000
+			+ 2000000
 		H.expect(total == steps4 + firstSum, "all the rank money")
 		H.expect(#Ranks.rewardsBetween(10, 10) == 0 and #Ranks.rewardsBetween(12, 3) == 0)
 	end,
@@ -550,12 +563,10 @@ return {
 		expectRank(win.after, "Bronze", 1, 100, "first win")
 		H.expect(win.ratedMatches == 1 and win.xpBefore == 0 and win.xpAfter == 100)
 		H.expect(#win.rewards == 1 and win.rewards[1].index == 1)
-		H.expect(win.rewards[1].money == 100 and win.rewards[1].cue == "BronzeCue")
-		H.expect(win.rewardTotal == 100 and win.peakAfter == 1)
-		H.expect(
-			sameValue(win.rewardCases, { Standard = 2 })
-				and sameValue(win.rewardCues, { "BronzeCue" })
-		)
+		H.expect(win.rewards[1].money == 2500 and win.rewards[1].cue == "BronzeCue")
+		H.expect(win.rewardTotal == 2500 and win.peakAfter == 1)
+		H.expect(sameValue(win.rewardCases, {}) and sameValue(win.rewardCues, { "BronzeCue" }))
+		H.expect(win.rewardDrops == 2, "Bronze's 2 Case Drops")
 		H.expect(win.newTier and win.promoted, "Unranked to Bronze is new")
 		-- Two more wins: Bronze II.
 		local w2 = Ranks.applyMatch(nextSave(win), ctx("Win"))
@@ -599,17 +610,18 @@ return {
 
 	["rank rewards are paid once per division, cases and cues merged"] = function()
 		local Ranks = load()
-		-- Gold V to Platinum I: a tier's money, its Epic Case and its cue.
+		-- Gold V to Platinum I: a tier's money, its 3 Rare Cases and its cue.
 		local r1 = Ranks.applyMatch(saveAt(Ranks, "Gold", 5, 1550), ctx("Win"))
 		expectRank(r1.after, "Platinum", 1, 50, "Gold V win")
-		H.expect(#r1.rewards == 1 and r1.rewards[1].index == 16 and r1.rewards[1].money == 1200)
-		H.expect(r1.rewardTotal == 1200 and r1.newTier and r1.promoted)
+		H.expect(#r1.rewards == 1 and r1.rewards[1].index == 16 and r1.rewards[1].money == 20000)
+		H.expect(r1.rewardTotal == 20000 and r1.newTier and r1.promoted)
 		H.expect(
-			sameValue(r1.rewardCases, { Epic = 1 }) and sameValue(r1.rewardCues, { "PlatinumCue" })
+			sameValue(r1.rewardCases, { Rare = 3 }) and sameValue(r1.rewardCues, { "PlatinumCue" })
 		)
+		H.expect(r1.rewardDrops == 0, "no Case Drops past Bronze")
 		-- Gold IV to V is a step: money only.
 		local r2 = Ranks.applyMatch(saveAt(Ranks, "Gold", 4, 1450), ctx("Win"))
-		H.expect(r2.rewardTotal == 150 and r2.promoted and not r2.newTier)
+		H.expect(r2.rewardTotal == 3500 and r2.promoted and not r2.newTier)
 		H.expect(next(r2.rewardCases) == nil and #r2.rewardCues == 0)
 		-- A jump from Bronze II to Gold II pays everything passed, in order, merged.
 		local jump = Ranks.applyXp(saveAt(Ranks, "Bronze", 2, 0), 7800 - 300)
@@ -619,7 +631,7 @@ return {
 			table.insert(indexes, r.index)
 		end
 		H.expect(sameValue(indexes, { 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }), "bottom first")
-		H.expect(jump.rewardTotal == 50 * 3 + 300 + 75 * 4 + 600 + 150, "the money")
+		H.expect(jump.rewardTotal == 1000 * 3 + 5000 + 2000 * 4 + 10000 + 3500, "the money")
 		H.expect(sameValue(jump.rewardCases, { Rare = 3 }), "Silver's Rare + Gold's two")
 		H.expect(sameValue(jump.rewardCues, { "SilverCue", "GoldCue" }), "cues bottom first")
 		-- Below an old peak (a bad save's) pays nothing until past it.
@@ -628,16 +640,17 @@ return {
 		H.expect(up.promoted and up.after.index == 27 and #up.rewards == 0 and up.rewardTotal == 0)
 		H.expect(up.peakBefore == 27 and up.peakAfter == 27)
 		local past = Ranks.applyXp(nextSave(up), 5000)
-		H.expect(#past.rewards == 1 and past.rewards[1].index == 28 and past.rewardTotal == 3000)
+		H.expect(#past.rewards == 1 and past.rewards[1].index == 28 and past.rewardTotal == 30000)
 		-- The whole ladder at once: 45 tiers' worth of cases.
 		local everything = Ranks.applyXp(unranked(), 307500)
 		H.expect(everything.after.tier == "Reyes" and #everything.rewards == 46)
 		H.expect(
 			sameValue(
 				everything.rewardCases,
-				{ Standard = 2, Rare = 3, Epic = 3, Legendary = 2 + 3 + 5 + 10 + 25 }
+				{ Rare = 1 + 2 + 3, Epic = 1 + 2 + 3, Legendary = 1 + 2, Mythic = 1 }
 			)
 		)
+		H.expect(everything.rewardDrops == 2, "Bronze's Case Drops")
 		H.expect(#everything.rewardCues == 10 and everything.rewardCues[10] == "ReyesCue")
 	end,
 
@@ -733,9 +746,9 @@ return {
 			H.expect(entry.startXp == Ranks.startXp(i) and entry.width == Ranks.width(i))
 			local reward = Ranks.rewardFor(i)
 			H.expect(entry.reward == reward.money and entry.cue == reward.cue)
-			H.expect(sameValue(entry.cases, reward.cases))
+			H.expect(sameValue(entry.cases, reward.cases) and entry.drops == reward.drops)
 		end
-		H.expect(list[46].width == nil and list[46].reward == 150000 and list[16].reward == 1200)
+		H.expect(list[46].width == nil and list[46].reward == 2000000 and list[16].reward == 20000)
 		H.expect(Ranks.rulesLine == nil and Ranks.floorXp == nil, "the loss rules are gone")
 	end,
 

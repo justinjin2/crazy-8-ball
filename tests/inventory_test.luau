@@ -376,8 +376,8 @@ return {
 		Inventory.addCue(save, "VipCue", 2) -- Exclusive: never a duplicate to sell
 		local dups = Inventory.duplicates(save)
 		H.expect(ids(dups) == "MidnightCue EclipseCue", "duplicates: " .. ids(dups))
-		H.expect(dups[1].extra == 2 and dups[1].value == 30, "MidnightCue: 2 extra, $30")
-		H.expect(dups[2].extra == 1 and dups[2].value == 75000, "EclipseCue: 1 extra, $75,000")
+		H.expect(dups[1].extra == 2 and dups[1].value == 300, "MidnightCue: 2 extra, $300")
+		H.expect(dups[2].extra == 1 and dups[2].value == 25000000, "EclipseCue: 1 extra, $25M")
 	end,
 
 	["selling pays the section 8 value and leaves money to the caller"] = function()
@@ -385,7 +385,7 @@ return {
 		local save = newSave()
 		Inventory.addCue(save, "ChromaCue", 2)
 		local ok, money = Inventory.sell(save, "ChromaCue")
-		H.expect(ok and money == 3000, "a Legendary sells for $3,000: " .. tostring(money))
+		H.expect(ok and money == 250000, "a Legendary sells for $250,000: " .. tostring(money))
 		H.expect(
 			Inventory.count(save, "ChromaCue") == 1 and save.Money == 0,
 			"one left, no money added"
@@ -393,7 +393,7 @@ return {
 		ok, money = Inventory.sell(save, "ChromaCue", 2)
 		H.expect(not ok and money == "TooMany", tostring(money))
 		ok, money = Inventory.sell(save, "ChromaCue")
-		H.expect(ok and money == 3000 and not Inventory.owns(save, "ChromaCue"), "the last one")
+		H.expect(ok and money == 250000 and not Inventory.owns(save, "ChromaCue"), "the last one")
 		H.expect(save.Index.Seen.ChromaCue == true, "still in the Index")
 
 		-- Exclusive and Unique never sell, owned or not.
@@ -430,7 +430,7 @@ return {
 		Inventory.addCue(save, "NeonCue", 3)
 		H.expect(Inventory.equip(save, "NeonCue"), "equip")
 		local ok, money = Inventory.sell(save, "NeonCue", 2)
-		H.expect(ok and money == 240, "sell down to one: " .. tostring(money))
+		H.expect(ok and money == 3000, "sell down to one: " .. tostring(money))
 		local can, reason = Inventory.canSell(save, "NeonCue")
 		H.expect(not can and reason == "Equipped", "the last copy: " .. tostring(reason))
 		H.expect(
@@ -444,16 +444,16 @@ return {
 	["sell all duplicates keeps one of each; one cue's extras alone"] = function()
 		local Inventory = load()
 		local save = newSave()
-		Inventory.addCue(save, "MidnightCue", 3) -- 2 x $15
-		Inventory.addCue(save, "GummyCue", 2) -- 1 x $40
-		Inventory.addCue(save, "VoidCue", 4) -- 3 x $600
+		Inventory.addCue(save, "MidnightCue", 3) -- 2 x $150
+		Inventory.addCue(save, "GummyCue", 2) -- 1 x $400
+		Inventory.addCue(save, "VoidCue", 4) -- 3 x $25,000
 		Inventory.addCue(save, "KitsuneCue") -- no extras
 		Inventory.addCue(save, "StarterCue", 2) -- Exclusive: kept
 		Inventory.equip(save, "VoidCue")
 
 		local total, sold = Inventory.sellDuplicates(save, "GummyCue")
 		H.expect(
-			total == 40 and ids(sold) == "GummyCue" and sold[1].count == 1,
+			total == 400 and ids(sold) == "GummyCue" and sold[1].count == 1,
 			"one cue: " .. total
 		)
 		H.expect(
@@ -462,7 +462,7 @@ return {
 		)
 
 		total, sold = Inventory.sellDuplicates(save)
-		H.expect(total == 30 + 1800, "all duplicates: " .. total)
+		H.expect(total == 300 + 75000, "all duplicates: " .. total)
 		H.expect(ids(sold) == "MidnightCue VoidCue", "sold " .. ids(sold))
 		for _, id in { "MidnightCue", "GummyCue", "VoidCue", "KitsuneCue" } do
 			H.expect(Inventory.count(save, id) == 1, id .. " keeps one")
@@ -512,7 +512,7 @@ return {
 		local Inventory, Catalog, Config = load()
 		-- ECONOMY 18: money for the four lower rows; no titles (the designer dropped them,
 		-- 2026-09-28), so the rows above Epic have no reward.
-		local MONEY = { Common = 1000, Uncommon = 2500, Rare = 7500, Epic = 25000 }
+		local MONEY = { Common = 10000, Uncommon = 25000, Rare = 75000, Epic = 250000 }
 		local TOTALS =
 			{ Common = 8, Uncommon = 9, Rare = 10, Epic = 9, Legendary = 7, Mythic = 3, Secret = 1 }
 		local save = newSave()
@@ -568,8 +568,8 @@ return {
 		local reward
 		ok, reward = Inventory.claimRow(save, "Common")
 		H.expect(
-			ok and reward.money == 1000 and (reward :: any).title == nil,
-			"the Common row pays $1,000, no title"
+			ok and reward.money == 10000 and (reward :: any).title == nil,
+			"the Common row pays $10,000, no title"
 		)
 		H.expect(save.Index.Rows.Common == true and next(save.Titles) == nil, "marked")
 		H.expect(save.Money == 0, "money is the caller's to add")

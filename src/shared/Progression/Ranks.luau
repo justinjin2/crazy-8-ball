@@ -23,7 +23,7 @@ local GAP = C.Gap
 local BOOSTS = C.Boosts
 
 type BaseRow = { Win: number, Loss: number }
-type TierRow = { Money: number, Cases: { [string]: number }?, Cue: string? }
+type TierRow = { Money: number, Cases: { [string]: number }?, Drops: number?, Cue: string? }
 
 -- Keyed by tier (or mode, or difficulty) name; read through these so strict mode allows a name
 -- held in a variable.
@@ -59,6 +59,7 @@ export type Reward = {
 	index: number,
 	money: number,
 	cases: { [string]: number },
+	drops: number, -- Case Drops (Config.Ranks.Rewards.Tier Drops)
 	cue: string?,
 	spins: number,
 }
@@ -110,6 +111,7 @@ export type MatchResult = {
 	rewardCases: { [string]: number }, -- their cases added up, by case id
 	rewardCues: { string }, -- their cues, bottom first
 	rewardSpins: number, -- their ult spins added up
+	rewardDrops: number, -- their Case Drops added up
 	promoted: boolean, -- after.index > before.index
 	newTier: boolean, -- promoted into a different tier (Unranked to Bronze counts)
 	breakdown: Breakdown?, -- how the XP was built (a match only; nil for applyXp)
@@ -123,6 +125,7 @@ export type Division = {
 	width: number?,
 	reward: number, -- the money for reaching it
 	cases: { [string]: number },
+	drops: number, -- the Case Drops for reaching it (a tier's division I only)
 	cue: string?,
 	spins: number, -- the ult spins for reaching it (a tier's division I only)
 }
@@ -203,6 +206,7 @@ local divStart: { number } = {}
 local divWidth: { [number]: number } = {} -- no entry for the top division
 local divMoney: { number } = {}
 local divCases: { { [string]: number } } = {}
+local divDrops: { number } = {} -- Case Drops (only tiers' division I pay any)
 local divCue: { [number]: string } = {} -- only tiers' division I
 local divSpins: { number } = {} -- ult spins (only tiers' division I pay any)
 local divPays: { boolean } = {} -- whether reaching it pays anything at all
@@ -230,6 +234,7 @@ do
 				local row = TIER_PAY[tier]
 				divMoney[index] = whole(row and row.Money)
 				divCases[index] = cleanCases(row and row.Cases)
+				divDrops[index] = whole(row and row.Drops)
 				local cue = row and row.Cue
 				if type(cue) == "string" and cue ~= "" then
 					divCue[index] = cue
@@ -238,10 +243,12 @@ do
 			else
 				divMoney[index] = whole(STEP_PAY[tier])
 				divCases[index] = {}
+				divDrops[index] = 0
 				divSpins[index] = 0
 			end
 			divPays[index] = divMoney[index] > 0
 				or next(divCases[index]) ~= nil
+				or divDrops[index] > 0
 				or divCue[index] ~= nil
 				or divSpins[index] > 0
 			if not isTop then
@@ -429,6 +436,7 @@ local function rewardAt(i: number): Reward
 		index = i,
 		money = divMoney[i],
 		cases = table.clone(divCases[i]),
+		drops = divDrops[i],
 		cue = divCue[i],
 		spins = divSpins[i],
 	}
@@ -437,15 +445,25 @@ end
 --- What reaching a division pays: `money`, `cases` ({ [caseId] = count }), the tier's `cue`
 --- and its ult `spins` (division I only; 0 otherwise). Division II-V pays its tier's step
 --- money; Unranked pays nothing.
-function Ranks.rewardFor(
-	index: number
-): { money: number, cases: { [string]: number }, cue: string?, spins: number }
+function Ranks.rewardFor(index: number): {
+	money: number,
+	cases: { [string]: number },
+	drops: number,
+	cue: string?,
+	spins: number,
+}
 	local i = clampIndex(index)
 	if i == 0 then
-		return { money = 0, cases = {}, cue = nil, spins = 0 }
+		return { money = 0, cases = {}, drops = 0, cue = nil, spins = 0 }
 	end
 	local reward = rewardAt(i)
-	return { money = reward.money, cases = reward.cases, cue = reward.cue, spins = reward.spins }
+	return {
+		money = reward.money,
+		cases = reward.cases,
+		drops = reward.drops,
+		cue = reward.cue,
+		spins = reward.spins,
+	}
 end
 
 --- Every division a new peak passes, above the old peak up to and including the new one,
@@ -571,11 +589,13 @@ local function buildResult(
 	local rewards = Ranks.rewardsBetween(peakBefore, peakAfter)
 	local total = 0
 	local spins = 0
+	local drops = 0
 	local cases: { [string]: number } = {}
 	local cues: { string } = {}
 	for _, reward in rewards do
 		total += reward.money
 		spins += reward.spins
+		drops += reward.drops
 		for _, id in CASE_ORDER do
 			local count = reward.cases[id]
 			if count then
@@ -600,6 +620,7 @@ local function buildResult(
 		rewardCases = cases,
 		rewardCues = cues,
 		rewardSpins = spins,
+		rewardDrops = drops,
 		promoted = after.index > before.index,
 		newTier = after.index > before.index and after.tier ~= before.tier,
 		breakdown = nil,
@@ -684,6 +705,7 @@ function Ranks.list(): { Division }
 			width = divWidth[i],
 			reward = divMoney[i],
 			cases = table.clone(divCases[i]),
+			drops = divDrops[i],
 			cue = divCue[i],
 			spins = divSpins[i],
 		})

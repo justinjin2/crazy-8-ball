@@ -305,6 +305,7 @@ return {
 			FreeCase = "%s",
 			SkipTime = "%s <minutes>",
 			Restock = "%s uncommon|rare|epic|legendary|mystery",
+			Code = "%s on|off <CODE>, or %s list",
 			UltBar = "%s <0-%d>",
 			UltFull = "%s",
 			UltArm = "%s",
@@ -339,6 +340,7 @@ return {
 			FreeCase = "the Case Drop rule, as if you won a real match (shows the reveal)",
 			SkipTime = "your case timers run that many minutes sooner",
 			Restock = "this server shows a restock with that item until the real one ends",
+			Code = "switches a like code on or off in every server",
 			UltBar = "sets your ability bar at your table",
 			UltFull = "fills your ability bar",
 			UltArm = "fills your bar and arms your equipped ability at once (practice in solo)",
@@ -395,6 +397,12 @@ return {
 		SkipTime = "Your case timers moved %d minutes on.",
 		RestockForced = "This server's restock now has the %s item until the real one ends.",
 		RestockNone = "No restock with that item soon.",
+		CodeOn = "%s is on in every server.",
+		CodeOff = "%s is off in every server.",
+		CodeFailed = "%s could not be saved; try again.",
+		CodeNotLive = "%s is not a like code. Like codes: %s.",
+		CodeList = "Like codes on: %s. Off: %s.",
+		CodeNone = "none",
 		-- The ability commands (/abilityhelp; the old /ulthelp still works).
 		UltHelp = "Ability commands (they act on you only):",
 		UltBarSet = "Your ability bar is %d%%.",
@@ -634,6 +642,7 @@ return {
 			Unknown = "That code doesn't exist.",
 			Used = "You already used that code.",
 			Expired = "That code has expired.",
+			NotMember = "Join the group first, then claim!",
 		},
 		-- The Shop (ShopMenu and its pages ShopCases, ShopOdds, ShopLimited, ShopMoney, ShopVip).
 		-- Case and cue names come from Items; money is "$1,500" (Progression/Format).

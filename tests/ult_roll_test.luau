@@ -116,7 +116,7 @@ return {
 		end
 		-- The brief's per-ult odds.
 		local normal = Roll.odds("Normal", true)
-		H.expect(ultPpm(normal, "Magnet") == 183334, "18.333% (the first gets the spare ppm)")
+		H.expect(ultPpm(normal, "EaglesEye") == 183334, "18.333% (the first gets the spare ppm)")
 		H.expect(ultPpm(normal, "BlackHole") == 500, "0.05%")
 	end,
 
@@ -146,11 +146,12 @@ return {
 		local Roll, Config = load()
 		local PityAt = Config.Ults.Roll.PityAt
 		H.expect(PityAt == 100, "the 100th spin")
-		-- The worst luck: every spin lands on the first ult (Common).
+		-- The worst luck: every spin lands on the first ult (Magnet, Uncommon since the economy
+		-- plan, 2026-10-02).
 		local pity = 0
 		for spin = 1, PityAt - 1 do
 			local id, rarity, newPity, wasPity = Roll.roll("Normal", pity, always(0), true)
-			H.expect(id == "Magnet" and rarity == "Common" and not wasPity, "spin " .. spin)
+			H.expect(id == "Magnet" and rarity == "Uncommon" and not wasPity, "spin " .. spin)
 			H.expect(newPity == pity + 1, "pity counts every spin")
 			pity = newPity
 		end
@@ -212,19 +213,25 @@ return {
 
 	["without the flag only built ults roll, and empty shares move down"] = function()
 		local Roll, Config = load()
-		-- A fixed catalog: only Magnet built (the abilities are switched on one by one).
+		-- A fixed catalog: only EaglesEye built (the abilities are switched on one by one).
 		local only = {}
 		for _, id in Config.Ults.Order do
-			only[id] = id == "Magnet"
+			only[id] = id == "EaglesEye"
 		end
 		withBuilt(Config, only, function()
 			local pool = Roll.pool(false)
-			H.expect(#pool == 1 and pool[1] == "Magnet", "only Magnet built: only Magnet rolls")
+			H.expect(
+				#pool == 1 and pool[1] == "EaglesEye",
+				"only EaglesEye built: only EaglesEye rolls"
+			)
 			H.expect(#Roll.pool(true) == #Config.Ults.Order, "the flag: all 13")
 			local odds = Roll.odds("Normal", false)
-			H.expect(#odds.ults == 1 and ultPpm(odds, "Magnet") == 1000000, "Normal: 100% Magnet")
+			H.expect(
+				#odds.ults == 1 and ultPpm(odds, "EaglesEye") == 1000000,
+				"Normal: 100% EaglesEye"
+			)
 			H.expect(rarityPpm(odds, "Common") == 1000000, "every share moved down to Common")
-			-- Lucky never lands a Common, so with only Magnet built it is closed (audit M3).
+			-- Lucky never lands a Common, so with only EaglesEye built it is closed (audit M3).
 			H.expect(
 				Roll.available("Normal", false) and not Roll.available("Lucky", false),
 				"closed"
@@ -233,15 +240,15 @@ return {
 			local ok = pcall(Roll.roll, "Lucky", 0, Roll.seeded(1), false)
 			H.expect(not ok, "a closed Lucky Spin never hands out a Common")
 			local pity = Roll.pityOdds(false)
-			H.expect(ultPpm(pity, "Magnet") == 1000000, "no Epic+ built: the normal odds")
+			H.expect(ultPpm(pity, "EaglesEye") == 1000000, "no Epic+ built: the normal odds")
 			local id, _, newPity, wasPity = Roll.roll("Normal", 99, Roll.seeded(3), false)
-			H.expect(id == "Magnet" and not wasPity and newPity == 99, "no pity without Epic+")
+			H.expect(id == "EaglesEye" and not wasPity and newPity == 99, "no pity without Epic+")
 
 			-- A Rare built too: Uncommon moves down to Common, Epic+ down to Rare.
 			withBuilt(Config, { Rewind = true }, function()
 				local R = Config.Ults.Roll.Normal
 				local odds = Roll.odds("Normal", false)
-				H.expect(ultPpm(odds, "Magnet") == R.Common + R.Uncommon, "Common + Uncommon")
+				H.expect(ultPpm(odds, "EaglesEye") == R.Common + R.Uncommon, "Common + Uncommon")
 				H.expect(
 					ultPpm(odds, "Rewind") == R.Rare + R.Epic + R.Legendary + R.Mythic,
 					"Rare + Epic + Legendary + Mythic"
@@ -253,11 +260,11 @@ return {
 				H.expect(ultPpm(odds, "Ghost") == nil, "not in the pool")
 				-- Lucky: Uncommon's share moves up to Rewind, never down to a Common.
 				local lucky = Roll.odds("Lucky", false)
-				H.expect((ultPpm(lucky, "Magnet") or 0) == 0, "no Commons from a Lucky Spin")
+				H.expect((ultPpm(lucky, "EaglesEye") or 0) == 0, "no Commons from a Lucky Spin")
 				H.expect(ultPpm(lucky, "Rewind") == 1000000, "every Lucky share to the only Rare")
 			end)
 			-- Nothing below: a share moves up to the nearest rarity that has an ult.
-			withBuilt(Config, { Magnet = false, Rewind = true }, function()
+			withBuilt(Config, { EaglesEye = false, Rewind = true }, function()
 				local odds = Roll.odds("Normal", false)
 				H.expect(ultPpm(odds, "Rewind") == 1000000, "everything to the only Rare")
 			end)

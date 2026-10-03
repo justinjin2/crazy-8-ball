@@ -9,16 +9,19 @@
 -- RewardView.reward.
 local Config = require(script.Parent.Parent.Config)
 local Daily = require(script.Parent.Daily)
+local Social = require(script.Parent.Social)
 
 local D = Config.Daily
 local DAYS = #D.Streak
 local SECONDS_PER_DAY = 86400
 
--- A reward as remotes carry it: money, the cases as a list in Config.Cases.Order, and the ult
--- spins and Lucky Spins it adds (0 for none: the client draws a spins chip when above 0).
+-- A reward as remotes carry it: money, the cases as a list in Config.Cases.Order, the Case
+-- Drops, ability spins and Lucky Spins it adds (0 for none: the client draws a chip when
+-- above 0).
 export type RewardOut = {
 	money: number,
 	cases: { Daily.CaseCount },
+	drops: number,
 	spins: number,
 	lucky: number,
 }
@@ -26,24 +29,35 @@ export type RewardOut = {
 export type LoginView = {
 	canClaim: boolean,
 	claimedToday: boolean,
-	day: number, -- the streak day today's claim is (or was): 1..7
-	week: number, -- its week of the cycle: 1..weeks
-	bonus: boolean, -- today's claim includes the week bonus (day 28)
-	reward: RewardOut,
+	day: number, -- the loop day today's claim is (or was): 1..7
+	week: number, -- the 28-day track's week that claim is in: 1..weeks
+	total: number, -- days claimed counting today's claim
+	bonus: boolean, -- today's claim includes a 28-day track reward
+	frozen: boolean, -- today's claim keeps the streak through this week's freeze
+	freezeReady: boolean, -- this week's streak freeze is unused
+	reward: RewardOut, -- the loop day, the track and VIP's spin together
 }
 
--- One of the seven day tiles of the current week.
+-- One of the seven day tiles of the loop.
 export type DayView = {
 	day: number,
-	reward: RewardOut,
-	bonus: boolean, -- the week bonus is in this tile (day 7 of the last week)
+	reward: RewardOut, -- the loop day's own reward (VIP's spin included for a VIP)
+	bonus: boolean, -- always false (the track has its own rows)
 	claimed: boolean, -- claimed in this streak (a check mark)
 	today: boolean, -- today's tile (it glows with Claim while canClaim)
+}
+
+-- One reward of the 28-day track.
+export type TrackView = {
+	day: number, -- 1..TrackDays
+	reward: RewardOut,
+	reached: boolean, -- claimed in this round of the track
 }
 
 export type NextView = {
 	day: number,
 	week: number,
+	total: number,
 	reward: RewardOut,
 	bonus: boolean,
 	tomorrow: boolean, -- false: today's claim is still waiting; true: it comes tomorrow
@@ -58,6 +72,24 @@ export type GiftView = {
 	progress: number, -- 0..1 of the minutes played today
 }
 
+-- The group card: Join (the client's prompt) then Claim (RewardRequest "ClaimGroup").
+export type GroupView = {
+	id: number, -- Config.Social.GroupId
+	member: boolean, -- in the group when last asked (match money +GroupBoost)
+	claimed: boolean, -- the one-time reward was claimed
+	reward: RewardOut,
+	boost: number, -- Config.Economy.GroupBoost (0.1 = +10%)
+}
+
+-- The invite card.
+export type InviteView = {
+	reward: RewardOut, -- what an invite gives each side
+	used: number, -- invite rewards got this UTC month
+	perMonth: number, -- Config.Social.InvitesPerMonth
+	invited: boolean, -- this player came through an invite
+	done: boolean, -- their own invite reward was given
+}
+
 export type Payload = {
 	today: number,
 	resetsAt: number,
@@ -65,10 +97,15 @@ export type Payload = {
 	weeks: number,
 	login: LoginView,
 	days: { DayView },
+	trackDays: number, -- Config.Daily.TrackDays
+	trackPlace: number, -- days claimed in this round of the track, 0..trackDays
+	track: { TrackView },
 	next: NextView,
 	playtime: { GiftView },
 	playSeconds: number,
 	titles: { string },
+	group: GroupView,
+	invite: InviteView,
 	ready: boolean,
 }
 
@@ -90,6 +127,7 @@ function RewardView.reward(reward: Daily.Reward): RewardOut
 	return {
 		money = math.max(0, math.floor(num(raw.money))),
 		cases = Daily.caseList(reward),
+		drops = math.max(0, math.floor(num(raw.drops))),
 		spins = math.max(0, math.floor(num(raw.spins))),
 		lucky = math.max(0, math.floor(num(raw.lucky))),
 	}
@@ -121,15 +159,40 @@ end
 
 --- The RewardState payload for one player at unix time `now` (its shape is written in
 --- Net.luau, RewardState). `login` is the save's Login, `daily` today's Daily (a fresh one on
---- a new day: PlayerData.dailyState), `titles` the save's Titles.
-function RewardView.build(login: any, daily: any, titles: any, now: number): Payload
+--- a new day: PlayerData.dailyState), `titles` the save's Titles, `vip` whether the player
+--- is VIP (each day's claim adds Config.Daily.VipSpins), `social` the save's Social and
+--- `member` whether the player is in the group (the InGroup attribute).
+function RewardView.build(
+	login: any,
+	daily: any,
+	titles: any,
+	now: number,
+	vip: boolean?,
+	social: any,
+	member: boolean?
+): Payload
 	local today = Daily.dayOf(num(now))
-	local state = Daily.loginState(login, today)
-	local nextReward = Daily.nextReward(login, today)
+	local state = Daily.loginState(login, today, vip)
+	local nextReward = Daily.nextReward(login, today, vip)
+
+	-- The track: the days claimed in this round (today's claim counts once made).
+	local claimedTotal = if state.claimedToday then state.total else state.total - 1
+	local place = if claimedTotal <= 0 then 0 else (claimedTotal - 1) % D.TrackDays + 1
+	local track: { TrackView } = {}
+	for _, row in D.Track :: { any } do
+		local reward = Daily.trackReward(row.Day)
+		if reward ~= nil then
+			table.insert(track, {
+				day = row.Day,
+				reward = RewardView.reward(reward),
+				reached = place >= row.Day,
+			})
+		end
+	end
 
 	local days: { DayView } = {}
 	for day = 1, DAYS do
-		local reward, bonus = Daily.streakReward(day, state.week)
+		local reward, bonus = Daily.streakReward(day, vip)
 		table.insert(days, {
 			day = day,
 			reward = RewardView.reward(reward),
@@ -154,6 +217,11 @@ function RewardView.build(login: any, daily: any, titles: any, now: number): Pay
 	end
 
 	local seconds = if type(daily) == "table" then num(daily.PlaySeconds) else 0
+	local soc = if type(social) == "table" then social else {}
+	local groupClaimed = soc.Group == true
+	anyReady = anyReady or (member == true and not groupClaimed)
+	local month = Social.monthOf(num(now))
+	local inviteCase: { [string]: number } = { [Config.Social.InviteCase] = 1 }
 	return {
 		today = today,
 		resetsAt = (today + 1) * SECONDS_PER_DAY,
@@ -164,13 +232,20 @@ function RewardView.build(login: any, daily: any, titles: any, now: number): Pay
 			claimedToday = state.claimedToday,
 			day = state.day,
 			week = state.week,
+			total = state.total,
 			bonus = state.bonus,
+			frozen = state.frozen,
+			freezeReady = state.freezeReady,
 			reward = RewardView.reward(state.reward),
 		},
 		days = days,
+		trackDays = D.TrackDays,
+		trackPlace = place,
+		track = track,
 		next = {
 			day = nextReward.day,
 			week = nextReward.week,
+			total = nextReward.total,
 			reward = RewardView.reward(nextReward.reward),
 			bonus = nextReward.bonus,
 			tomorrow = nextReward.tomorrow,
@@ -178,6 +253,34 @@ function RewardView.build(login: any, daily: any, titles: any, now: number): Pay
 		playtime = playtime,
 		playSeconds = math.max(0, math.floor(seconds)),
 		titles = RewardView.titles(titles),
+		group = {
+			id = Config.Social.GroupId,
+			member = member == true,
+			claimed = groupClaimed,
+			reward = RewardView.reward({
+				money = 0,
+				cases = {},
+				drops = Config.Social.GroupReward.Drops,
+				spins = 0,
+				lucky = 0,
+			}),
+			boost = Config.Economy.GroupBoost,
+		},
+		invite = {
+			reward = RewardView.reward({
+				money = 0,
+				cases = inviteCase,
+				drops = 0,
+				spins = 0,
+				lucky = 0,
+			}),
+			used = if soc.InviteMonth == month
+				then math.max(0, math.floor(num(soc.Invites)))
+				else 0,
+			perMonth = Config.Social.InvitesPerMonth,
+			invited = num(soc.InvitedBy) > 0,
+			done = soc.InviteDone == true,
+		},
 		ready = anyReady,
 	}
 end

@@ -171,6 +171,48 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   reasons `VipOnly`, `NoTimer` (Strings.Reasons). Robux: `StoreRequest:InvokeServer("Skip",
   caseId, readyAt)` and `StoreRequest("Buy", "RestockEpic"/"RestockLegendary")`. Banner
   `{ kind = "Restock", case = "Legendary", endsAt }`.
+- **Step 5 done (2026-10-03): free rewards and rank rewards.**
+  - Login loop (`Config.Daily.Streak`): $5,000 / 1 Case Drop / $10,000 / 2 / $15,000 / 3 /
+    Rare Case + 2 spins, repeating. Day 1 is claimed by itself on join (3 s after load, so
+    VIP is known). One streak freeze a UTC week (Monday start) covers one missed day by
+    itself. VIP adds 1 ability spin to each day's claim (`Config.Daily.VipSpins`).
+  - 28-day track (`Config.Daily.Track`): every day claimed counts (never resets, repeats):
+    day 7 Rare Case, 14 2 Rare, 21 2 Rare, 28 Epic Case, added to that day's claim.
+  - Playtime: 10 min $2,000; 30 min 1 Case Drop; 60 min 2 Case Drops + 1 spin; 90 min
+    $10,000; 120 min a Rare Case.
+  - Codes: WELCOME $5,000 + 1 Case Drop, 8BALL $2,500, ROOFTOP Rare (to 2026-12-31),
+    ABILITIES 3 spins; six like codes LIKES1K/5K/10K/25K/50K/100K (the designer's six steps)
+    are `Live` and refused as unknown until `/code on <CODE>` (new `src/server/LiveCodes.luau`:
+    a DataStore set + MessagingService, every server at once; `/code list`, `/code off`).
+  - Group 675425213 (new `src/server/Social.luau`, pure `Progression/Social.luau`): membership
+    asked of Roblox on join and on Claim (the `InGroup` attribute: +10% match money); Claim =
+    3 Case Drops once (RewardRequest "ClaimGroup").
+  - Invites: launch data `invite:<inviter UserId>`; a brand-new save (no match, made under
+    10 min ago) records the inviter; its first non-solo win gives it a Rare Case and queues
+    the inviter's (DataStore key per inviter, MessagingService to their server, or on their
+    next join), at most 5 a UTC month.
+  - Rank rewards, Index rows ($10,000 / $25,000 / $75,000 / $250,000), finder's money
+    ($500 ... $500,000; Exclusive $5,000, Unique $10,000) and sell-back ($150 ...
+    $25,000,000): the plan's tables. Bronze I gives 2 Case Drops (Ranks `drops`,
+    `rewardDrops`). Money ability spins $17,500. Magnet is Uncommon, Heat Seeker Common.
+  - Checked: lint, 933 Lune tests (new `social_test`; `daily_test` rewritten: loop, freeze,
+    track, VIP, playtime, codes, like codes); Studio: day 1 auto-claimed $5,000 on join;
+    InGroup true for the designer's account and ClaimGroup gave 3 Case Drops; day 2 (1 Case
+    Drop), track day 7 (2 Rare + 2 spins), day 28 (Rare + Epic + 2 spins); all five playtime
+    gifts; WELCOME; LIKES1K Unknown, then ok after `/code on likes1k`; 9 Case Drops revealed
+    on the client; an invited fresh save's win gave its Rare Case; the inviter's queue gave 5
+    Rare Cases and refused the 6th; `/xp 100` from a fresh save paid Bronze I's $2,500,
+    2 Case Drops, the Bronze Cue and its spin; console clean.
+- **For GUI** (step 5): `RewardState` changed (Net.luau): rewards carry `drops`; `login`
+  gains `total`, `frozen`, `freezeReady`; new `trackDays`, `trackPlace`, `track`, `group`,
+  `invite`; `days[].bonus` is always false (the old week bonus is the track). The Rewards
+  screen needs: Case Drop and spin chips on tiles and gifts (five gifts now), the 28-day track,
+  the freeze, a group card (Join = `GroupService:PromptJoinAsync(group.id)`, then
+  `RewardRequest("ClaimGroup")`, reason `NotMember` in Strings), an invite card
+  (`SocialService:PromptGameInvite` with `ExperienceInviteOptions.LaunchData =
+  Progression/Social.launchData(LocalPlayer.UserId)`). Rank rows carry `drops` (MatchSummary,
+  RankEvent `rewardDrops`). `Config.Daily.WeeksForBonus`/`WeekBonus` are kept only so the
+  current screen runs (WeekBonus now reads "an Epic Case").
 
 ### Changes to shared files (existing lines)
 
@@ -210,6 +252,20 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   `Items`: the three handlers, `restockSlot`, `forceRestock`, ItemsQA `forceRestock`.
   `Store`: restock and skip grants, the Legendary reserve, the restock tick and stock resend.
   `Counters`: shared stock. `Announce`: `restock`. `DevCommands`: `/restock`.
+- (step 5) `Config.Ranks.Rewards`, `Config.Cases.SellBack`, `Config.Index` (Rows,
+  FindMoney), `Config.Daily` (rewritten: Streak, FreezePerWeek, VipSpins, AutoClaimDayOne,
+  Track, Playtime, Codes with Live, Live* store names), new `Config.Social`,
+  `Config.Ults.Earn` (StreakDay7 and PlaytimeLast gone; MoneyPerSpin 17500),
+  `Config.Ults.Catalog` Magnet Uncommon / HeatSeeker Common, `Config.Debug` alias `Code`.
+  `SaveSchema` Login = { LastDay, StreakDay, Total, FreezeWeek } (Week dropped). `Ranks`:
+  `drops`, `rewardDrops`. `Ranking`: pays and sends rank Case Drops. `PlayerData`:
+  `claimDaily(player, vip)`, `redeemCode(player, text, liveOn)`, `recordMatch` invite case,
+  `setInvitedBy`, `giveInviteRewards`, `claimGroup`, `InviteWon`. `Rewards`: ClaimGroup,
+  day 1 auto-claim, VIP/InGroup resend, RewardsQA invitedBy/inviteWon/liveCode, starts
+  LiveCodes and Social. `RewardView`, `Daily` rewritten (above). `DevCommands`: `/code`.
+  `Strings`: `/code` lines, reason NotMember. `Net`: RewardState/RewardRequest docs. Tests
+  touched outside economy: `ult_roll_test`, `ult_spins_test`, `ult_slots_test` (Magnet's
+  rarity, the spin price).
 
 ## Requests to other lanes or the integrator
 
@@ -251,3 +307,9 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   anyone in the server with no gate; 50 trades of history; the hidden disguised limit shows
   nothing; Grand Opening starts on a date the designer sets; no next Limited scheduled; instant
   cases end the reveal on Open now / Later; the Grand Opening Cue gets placeholder colours.
+- 2026-10-03 (lane, step 5): "Day 1 claimed on join" read as: today's claim is given by itself
+  on join whenever it is loop day 1 (a new player or a streak that started over); other days
+  are claimed in the menu. The streak freeze covers exactly one missed day, once a UTC week
+  (Monday start). VIP's daily +1 spin is added to each day's login claim. The like codes are
+  named LIKES1K ... LIKES100K. "Any real match (bots count)" for invites = any recorded match
+  win that is not solo (people, disguised bots, Play against PC).

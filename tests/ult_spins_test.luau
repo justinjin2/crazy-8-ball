@@ -113,7 +113,7 @@ return {
 		local result, why = SpinView.spin(u, opts())
 		H.expect(result ~= nil and why == nil, "spun")
 		local r = result :: any
-		H.expect(r.id == "Magnet" and r.rarity == "Common", "the live pool is Magnet")
+		H.expect(r.id == "Magnet" and r.rarity == "Uncommon", "the live pool is Magnet")
 		H.expect(r.replaced == "SuperBounce" and r.slot == 1, "replaced slot 1's ult")
 		H.expect(u.Slots[1] == "Magnet", "in the selected slot")
 		H.expect(r.used == "Free" and u.Spins == E.Starter, "the free spin first")
@@ -221,13 +221,13 @@ return {
 		for _, pack in E.MoneyPacks do
 			H.expect(SpinView.moneyPrice(pack) == pack * E.MoneyPerSpin, "no bulk discount")
 			local price, why = SpinView.buyCheck(pack, pack * E.MoneyPerSpin, false)
-			H.expect(price == pack * 1750 and why == nil, "exactly enough")
+			H.expect(price == pack * 17500 and why == nil, "exactly enough")
 			local _, short, need = SpinView.buyCheck(pack, pack * E.MoneyPerSpin - 1, false)
 			H.expect(short == "NotEnoughMoney" and need == 1, "one short")
 			H.expect(select(2, SpinView.buyCheck(pack, 1e9, true)) == "Restricted", "restricted")
 			H.expect(select(2, SpinView.buyCheck(pack, 1e9, nil)) == "NotLoaded", "unanswered")
 		end
-		H.expect(SpinView.moneyPrice(1) == 1750, "$1,750 a spin")
+		H.expect(SpinView.moneyPrice(1) == 17500, "$17,500 a spin")
 		for _, bad in { -5, 0, 2, 7, 1.5, "5", 0 / 0, math.huge, true } do
 			H.expect(SpinView.moneyPrice(bad) == 0, "not a pack: " .. tostring(bad))
 			H.expect(select(2, SpinView.buyCheck(bad, 1e9, false)) == "BadRequest", "refused")
@@ -443,31 +443,29 @@ return {
 		H.expect(none.rewardSpins == 0, "no rank-up, no spins")
 	end,
 
-	["streak day 7 and the day's last playtime gift add spins"] = function()
-		for week = 1, Config.Daily.WeeksForBonus do
-			for day = 1, #Config.Daily.Streak do
-				local reward = Daily.streakReward(day, week)
-				local want = if day == #Config.Daily.Streak then E.StreakDay7 else 0
-				H.expect(reward.spins == want, ("day %d of week %d"):format(day, week))
-			end
+	["loop day 7 and the 60-minute playtime gift add spins (plan section 6)"] = function()
+		for day = 1, #Config.Daily.Streak do
+			local reward = Daily.streakReward(day)
+			local want = if day == #Config.Daily.Streak then 2 else 0
+			H.expect(reward.spins == want, ("day %d"):format(day))
 		end
 		local gifts = Daily.playtimeState({ PlaySeconds = 99999, PlaytimeClaimed = {} })
 		for i, gift in gifts do
-			local want = if i == #gifts then E.PlaytimeLast else 0
+			local want = if gift.minutes == 60 then 1 else 0
 			H.expect(gift.reward.spins == want, "gift " .. i)
 		end
 		local daily: any = { PlaySeconds = 99999, PlaytimeClaimed = {} }
-		local ok, reward = Daily.claimPlaytime(daily, #gifts)
-		H.expect(ok and (reward :: any).spins == E.PlaytimeLast, "claimed with its spin")
+		local ok, reward = Daily.claimPlaytime(daily, 3)
+		H.expect(ok and (reward :: any).spins == 1, "claimed with its spin")
 		local payload = RewardView.build(
-			{ LastDay = 0, StreakDay = 0, Week = 0 },
+			{ LastDay = 0, StreakDay = 0, Total = 0, FreezeWeek = 0 },
 			daily,
 			{},
 			DAY * 86400
 		)
-		H.expect(payload.days[7].reward.spins == E.StreakDay7, "the day 7 tile's chip")
+		H.expect(payload.days[7].reward.spins == 2, "the day 7 tile's chip")
 		H.expect(payload.days[1].reward.spins == 0, "day 1 has none")
-		H.expect(payload.playtime[#gifts].reward.spins == E.PlaytimeLast, "the gift row's chip")
+		H.expect(payload.playtime[3].reward.spins == 1, "the gift row's chip")
 	end,
 
 	["the UltState payload"] = function()
@@ -492,7 +490,7 @@ return {
 			H.expect(total == want, name .. ": odds add up")
 		end
 		H.expect(p.live and not p.restricted and not p.fastOpen and not p.devAll, "flags")
-		H.expect(p.moneyPerSpin == 1750 and #p.moneyPacks == 4, "money")
+		H.expect(p.moneyPerSpin == 17500 and #p.moneyPacks == 4, "money")
 		H.expect(p.code.active == "ABILITIES" and p.code.nextGoalLikes == 100, "the code box")
 		H.expect(not p.auto.running and p.auto.count == 0 and #p.autoStopChoices == 3, "auto")
 		for _, key in SpinView.productKeys() do

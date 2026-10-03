@@ -195,7 +195,8 @@ local function assertClean(Config: any, SaveSchema: any, save: any)
 
 	inRange(save.Login.LastDay, S.StatCap, "Login.LastDay")
 	inRange(save.Login.StreakDay, #Config.Daily.Streak, "Login.StreakDay")
-	inRange(save.Login.Week, Config.Daily.WeeksForBonus, "Login.Week")
+	inRange(save.Login.Total, S.StatCap, "Login.Total")
+	inRange(save.Login.FreezeWeek, S.StatCap, "Login.FreezeWeek")
 
 	local shop = save.Shop
 	inRange(shop.FirstJoin, S.UnixTimeCap, "Shop.FirstJoin")
@@ -394,7 +395,7 @@ local SUB_FIELDS: { [string]: { string } } = {
 		"PlaySeconds",
 		"PlaytimeClaimed",
 	},
-	Login = { "LastDay", "StreakDay", "Week" },
+	Login = { "LastDay", "StreakDay", "Total", "FreezeWeek" },
 	Shop = { "FirstJoin", "VipOffer", "Purchases", "Limited", "BoostEnds", "Restock" },
 	Ults = {
 		"Slots",
@@ -505,7 +506,8 @@ return {
 		H.expect(next(d.Opponents) == nil and next(d.PlaytimeClaimed) == nil, "daily maps")
 		H.expect(size(d) == 10, "Daily has ten fields")
 		local l = t.Login
-		H.expect(l.LastDay == 0 and l.StreakDay == 0 and l.Week == 0 and size(l) == 3, "login")
+		H.expect(l.LastDay == 0 and l.StreakDay == 0 and l.Total == 0, "login")
+		H.expect(l.FreezeWeek == 0 and size(l) == 4, "no freeze used")
 		local s = t.Shop
 		H.expect(s.FirstJoin == 0, "first join not set yet")
 		H.expect(not s.VipOffer and not s.VipCueGiven, "no VIP")
@@ -893,7 +895,7 @@ return {
 		save.Daily.PlaySeconds = 90000
 		save.Login.LastDay = -1
 		save.Login.StreakDay = 8
-		save.Login.Week = 5
+		save.Login.Total = -2
 		save.Shop.FirstJoin = 1e300
 		local out, fixes = SaveSchema.validate(save)
 		H.expect(#fixes == 10, ("one fix each, got: %s"):format(table.concat(fixes, "; ")))
@@ -902,7 +904,7 @@ return {
 		H.expect(out.Daily.Wins == 2 and out.Daily.PlaySeconds == 86400, "floored, one day")
 		H.expect(out.Login.LastDay == 0, "login day")
 		H.expect(out.Login.StreakDay == #Config.Daily.Streak, "streak day 0..7")
-		H.expect(out.Login.Week == Config.Daily.WeeksForBonus, "week 0..4")
+		H.expect(out.Login.Total == 0, "days claimed never below 0")
 		H.expect(out.Shop.FirstJoin == Config.Save.UnixTimeCap, "a time in range")
 		assertClean(Config, SaveSchema, out)
 	end,
@@ -1437,7 +1439,7 @@ return {
 			save.Daily.PlaytimeClaimed[tostring(i)] = true
 		end
 		save.Daily.PlaySeconds = 86400
-		save.Login = { LastDay = 20500, StreakDay = 7, Week = 4 }
+		save.Login = { LastDay = 20500, StreakDay = 7, Total = 300, FreezeWeek = 2930 }
 		save.Shop.FirstJoin = 1790553600
 		for i = 1, 50 do
 			table.insert(save.Shop.Purchases, ("%08x-4b1c-4d2e-9f3a-%012d"):format(i, i))

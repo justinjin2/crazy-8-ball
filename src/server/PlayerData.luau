@@ -43,6 +43,7 @@ local CaseDrop = require(Shared.Progression.CaseDrop)
 local Restock = require(Shared.Progression.Restock)
 local Inventory = require(Shared.Progression.Inventory)
 local Daily = require(Shared.Progression.Daily)
+local Social = require(Shared.Progression.Social)
 local Settle = require(Shared.Progression.Settle)
 local Shop = require(Shared.Progression.Shop)
 local UltCatalog = require(Shared.Ults.Catalog)
@@ -187,6 +188,13 @@ local dropEvent = Instance.new("BindableEvent")
 --- case is already in the save, on its timer or ready). Items sends the reveal (the CaseDrop
 --- remote) for every source but "Win", whose drop rides on MatchSummary.caseDrop.
 PlayerData.CaseDropped = dropEvent.Event
+
+-- The mutation under way's invite win (the inviter's UserId), by save table.
+local pendingInvite: { [any]: number } = setmetatable({}, { __mode = "k" }) :: any
+local inviteEvent = Instance.new("BindableEvent")
+--- (player, inviterId) Fires after an invited, brand-new player's first win gave them their
+--- invite case (Config.Social.InviteCase); src/server/Social.luau then queues the inviter's.
+PlayerData.InviteWon = inviteEvent.Event
 
 -- Whether the player whose save is being changed has Quick Cases (the Store's FastOpen
 -- attribute, read when the mutation fetched the save): new case timers run at half time.
@@ -811,6 +819,11 @@ local function commit(player: Player, data: any, op: string)
 	pendingDrops[data] = nil
 	if drops and #drops > 0 then
 		dropEvent:Fire(player, drops)
+	end
+	local inviter = pendingInvite[data]
+	pendingInvite[data] = nil
+	if inviter then
+		inviteEvent:Fire(player, inviter)
 	end
 end
 
@@ -1669,6 +1682,14 @@ function PlayerData.recordMatch(player: Player, outcome: string, opponent: strin
 	local counts = opponent == "Player"
 	stats.WinStreak = math.min(Ranks.nextStreak(stats.WinStreak, outcome, counts), S.StatCap)
 	stats.BestWinStreak = math.max(stats.BestWinStreak, stats.WinStreak)
+	-- An invited player's first win (any match that is not solo: solo records none) gives
+	-- them their invite case; the inviter's follows (InviteWon, src/server/Social.luau).
+	local social = data.Social
+	if outcome == "Win" and social.InvitedBy > 0 and not social.InviteDone then
+		social.InviteDone = true
+		addCasesTo(data, Config.Social.InviteCase, 1)
+		pendingInvite[data] = social.InvitedBy
+	end
 	commit(player, data, op)
 	return true
 end
@@ -2507,10 +2528,10 @@ end
 -- Mutations: daily streak, playtime, codes (the Rewards service)
 ---------------------------------------------------------------------------------------------
 
---- Claims today's login streak reward (Daily.claimLogin at today's UTC day) and gives its
---- money and cases, in one change. Answers (true, Daily.Reward) or (false, "Claimed" |
---- "NotLoaded").
-function PlayerData.claimDaily(player: Player): (boolean, Daily.Reward | string)
+--- Claims today's login loop reward (Daily.claimLogin at today's UTC day: the loop day, the
+--- 28-day track and, when `vip`, VIP's daily spin) and gives it, in one change. Answers
+--- (true, Daily.Reward) or (false, "Claimed" | "NotLoaded").
+function PlayerData.claimDaily(player: Player, vip: boolean?): (boolean, Daily.Reward | string)
 	local op = "claimDaily"
 	if not isPlayer(player) then
 		return refuseInvalid(op, player, "not a player")
@@ -2519,7 +2540,7 @@ function PlayerData.claimDaily(player: Player): (boolean, Daily.Reward | string)
 	if data == nil then
 		return false, "NotLoaded"
 	end
-	local ok, login, reward = Daily.claimLogin(data.Login, today())
+	local ok, login, reward = Daily.claimLogin(data.Login, today(), vip == true)
 	if not ok or reward == nil then
 		return false, "Claimed"
 	end
@@ -2529,9 +2550,9 @@ function PlayerData.claimDaily(player: Player): (boolean, Daily.Reward | string)
 	return true, reward
 end
 
---- Dev (/setday): the next claim (today's) becomes streak day `n` (1..#Config.Daily.Streak) of
---- week `week` (1..Config.Daily.WeeksForBonus; default the week today's claim is in), even
---- when today was claimed already (Daily.setStreakDay).
+--- Dev (/setday): the next claim (today's) becomes loop day `n` (1..#Config.Daily.Streak) and,
+--- with `week` (1..Config.Daily.WeeksForBonus), the 28-day track's day (week - 1) * 7 + n,
+--- even when today was claimed already (Daily.setStreakDay).
 function PlayerData.setStreakDay(player: Player, n: number, week: number?): boolean
 	local op = "setStreakDay"
 	local days, weeks = #Config.Daily.Streak, Config.Daily.WeeksForBonus
@@ -2654,10 +2675,14 @@ function PlayerData.claimPlaytime(player: Player, index: number): (boolean, Dail
 	return true, result
 end
 
---- Redeems typed text as a promo code (Daily.redeem at the server's time) and gives its money
---- and cases, in one change. Answers (true, Daily.Reward) or (false, reason): "Bad" (not a
---- possible code), "Unknown", "Used", "Expired", or "NotLoaded".
-function PlayerData.redeemCode(player: Player, text: string): (boolean, Daily.Reward | string)
+--- Redeems typed text as a promo code (Daily.redeem at the server's time; `liveOn`: the Live
+--- codes switched on) and gives it, in one change. Answers (true, Daily.Reward) or (false,
+--- reason): "Bad" (not a possible code), "Unknown", "Used", "Expired", or "NotLoaded".
+function PlayerData.redeemCode(
+	player: Player,
+	text: string,
+	liveOn: { [string]: boolean }?
+): (boolean, Daily.Reward | string)
 	local op = "redeemCode"
 	if not isPlayer(player) then
 		return refuseInvalid(op, player, "not a player")
@@ -2666,13 +2691,99 @@ function PlayerData.redeemCode(player: Player, text: string): (boolean, Daily.Re
 	if data == nil then
 		return false, "NotLoaded"
 	end
-	local ok, result = Daily.redeem(data.Codes, text, os.time())
+	local ok, result = Daily.redeem(data.Codes, text, os.time(), liveOn)
 	if not ok then
 		return false, result
 	end
 	giveReward(data, result, "Code")
 	commit(player, data, op)
 	return true, result
+end
+
+---------------------------------------------------------------------------------------------
+-- Mutations: the group and invites (the Social service)
+---------------------------------------------------------------------------------------------
+
+--- Records who invited this player (the invite's launch data, read on join), only for a
+--- brand-new save: no match played, made at most Config.Social.NewPlayerSeconds ago, never
+--- invited before. False when it does not apply.
+function PlayerData.setInvitedBy(player: Player, inviterId: number): boolean
+	local op = "setInvitedBy"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif not intIn(inviterId, 1, 2 ^ 53 - 1) or inviterId == player.UserId then
+		return refuse(op, player, ("inviter %s is not another UserId"):format(tostring(inviterId)))
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	local social = data.Social
+	local fresh = data.Stats.Matches == 0
+		and os.time() - data.Shop.FirstJoin <= Config.Social.NewPlayerSeconds
+	if not fresh or social.InvitedBy ~= 0 or social.InviteDone then
+		return false
+	end
+	social.InvitedBy = plain(inviterId)
+	commit(player, data, op)
+	return true
+end
+
+--- Gives the inviter the invite case for each invitee in `inviteeIds` (their first wins),
+--- up to Config.Social.InvitesPerMonth a UTC month (Social.inviteGrant); the rest are gone.
+--- Returns how many were given (0 when not loaded).
+function PlayerData.giveInviteRewards(player: Player, inviteeIds: { number }): number
+	local op = "giveInviteRewards"
+	if not isPlayer(player) then
+		refuse(op, player, "not a player")
+		return 0
+	elseif type(inviteeIds) ~= "table" or #inviteeIds > Config.Social.MaxPending then
+		refuse(op, player, "inviteeIds is not a short list")
+		return 0
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return 0
+	end
+	local social = data.Social
+	local given, month, invites = Social.inviteGrant(social, os.time(), #inviteeIds)
+	social.InviteMonth = month
+	social.Invites = math.min(invites, S.StatCap)
+	if given > 0 then
+		addCasesTo(data, Config.Social.InviteCase, given)
+	end
+	commit(player, data, op)
+	return given
+end
+
+--- Claims the group's one-time reward (Config.Social.GroupReward) for a member (`member`:
+--- the Social service asked Roblox just now). Answers (true, Daily.Reward) or (false,
+--- "Claimed" | "NotMember" | "NotLoaded").
+function PlayerData.claimGroup(player: Player, member: boolean): (boolean, Daily.Reward | string)
+	local op = "claimGroup"
+	if not isPlayer(player) then
+		return refuseInvalid(op, player, "not a player")
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false, "NotLoaded"
+	elseif data.Social.Group then
+		return false, "Claimed"
+	elseif member ~= true then
+		return false, "NotMember"
+	end
+	local row = Config.Social.GroupReward
+	local reward: Daily.Reward = {
+		money = 0,
+		cases = {},
+		drops = row.Drops,
+		spins = 0,
+		lucky = 0,
+	}
+	data.Social.Group = true
+	giveReward(data, reward, "Group")
+	commit(player, data, op)
+	return true, reward
 end
 
 ---------------------------------------------------------------------------------------------

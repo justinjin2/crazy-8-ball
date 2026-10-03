@@ -211,25 +211,38 @@ local REMOTES: { [string]: string } = {
 	StoreRequest = "RemoteFunction",
 	-- server -> one player: the Rewards menu's state (src/server/Rewards.luau builds it with
 	-- Progression/RewardView.build). Sent on load, after each claim or dev change, when a
-	-- playtime gift becomes ready, and to everyone when the UTC day rolls over. A reward is
-	-- always { money, cases = { { id, count } } } (cases in Config.Cases.Order). {
+	-- playtime gift becomes ready, when VIP or the group answer changes, and to everyone when
+	-- the UTC day rolls over. A reward is always { money, cases = { { id, count } }, drops
+	-- (Case Drops), spins, lucky } (cases in Config.Cases.Order). {
 	--   today (UTC day number), resetsAt (unix: the next UTC midnight), sentAt (unix),
-	--   weeks (Config.Daily.WeeksForBonus),
-	--   login = { canClaim, claimedToday, day (1..7), week, bonus (day 28), reward },
-	--   days = { { day, reward, bonus, claimed, today } } (this week's seven tiles),
-	--   next = { day, week, reward, bonus, tomorrow } (the reminder: "Come back tomorrow for
-	--     your Rare Case"),
+	--   weeks (the 28-day track's four weeks),
+	--   login = { canClaim, claimedToday, day (1..7 of the loop), week (the track's), total
+	--     (days claimed with today's), bonus (a track reward today), frozen (the week's streak
+	--     freeze kept the streak), freezeReady, reward (the loop day + track + VIP's spin) },
+	--   days = { { day, reward, bonus (false), claimed, today } } (the loop's seven tiles),
+	--   trackDays (28), trackPlace (days claimed this round, 0..28),
+	--   track = { { day (7, 14, 21, 28), reward, reached } },
+	--   next = { day, week, total, reward, bonus, tomorrow } (the reminder: "Come back
+	--     tomorrow for your Rare Case"),
 	--   playtime = { { index, minutes, reward, ready, claimed, progress (0..1) } },
 	--   playSeconds (played today at sentAt; it grows while the player stays),
-	--   titles = { titleId } (sorted), ready (the streak or a gift can be claimed) }
+	--   titles = { titleId } (sorted),
+	--   group = { id, member, claimed, reward, boost (0.1) } (Join: the client's
+	--     GroupService:PromptJoinAsync(id); then Claim),
+	--   invite = { reward, used (this month), perMonth, invited, done } (the client's
+	--     SocialService:PromptGameInvite with ExperienceInviteOptions.LaunchData =
+	--     Progression/Social.launchData(its own UserId)),
+	--   ready (the day, a gift or the group can be claimed) }
 	RewardState = "RemoteEvent",
 	-- client -> server, answered: ("ClaimDaily"), ("ClaimPlaytime", index 1..#gifts),
-	-- ("Redeem", the typed code text) -> { ok = true, money, cases = { { id, count } } } or
-	-- { ok = false, reason }. Reasons: "BadRequest" (an unknown action, a bad index, text that
-	-- is not a string), "TooFast" (a request every Config.Daily.RequestCooldownSeconds, a code
-	-- every RedeemCooldownSeconds), "NotLoaded", "AlreadyClaimed" (today's streak or that
-	-- gift), "NotReady" (not enough minutes yet), "Unknown" (no such code), "Used" (this code
-	-- already redeemed), "Expired", "Error".
+	-- ("Redeem", the typed code text), ("ClaimGroup") -> { ok = true, money, cases = { { id,
+	-- count } }, drops, spins, lucky } or { ok = false, reason }. Reasons: "BadRequest" (an
+	-- unknown action, a bad index, text that is not a string), "TooFast" (a request every
+	-- Config.Daily.RequestCooldownSeconds, a code every RedeemCooldownSeconds, a group claim
+	-- every Config.Social.ClaimCooldownSeconds), "NotLoaded", "AlreadyClaimed" (today's
+	-- claim, that gift or the group), "NotReady" (not enough minutes yet), "Unknown" (no such
+	-- code, or a like code not switched on), "Used" (this code already redeemed), "Expired",
+	-- "NotMember" (not in the group yet), "Error".
 	RewardRequest = "RemoteFunction",
 	-- server -> everyone here (or one player joining during a Money Party): a banner line at
 	-- the top middle and a system chat line (src/server/Announce.luau). The server sends ids and

@@ -93,12 +93,22 @@ local function rewardOf(result: Ranks.MatchResult): PlayerData.Reward?
 	local cues = table.clone(result.rewardCues)
 	local cases = table.clone(result.rewardCases)
 	local spins = result.rewardSpins
-	if result.rewardTotal <= 0 and #cues == 0 and next(cases) == nil and spins <= 0 then
+	local drops = result.rewardDrops
+	if
+		result.rewardTotal <= 0
+		and #cues == 0
+		and next(cases) == nil
+		and spins <= 0
+		and drops <= 0
+	then
 		return nil
 	end
 	local reward: PlayerData.Reward = { money = result.rewardTotal, cases = cases, cues = cues }
 	if spins > 0 then
 		reward.spins = spins
+	end
+	if drops > 0 then
+		reward.drops = drops
 	end
 	return reward
 end
@@ -154,8 +164,8 @@ local function applyMatch(
 	return result
 end
 
--- The rank-up rows for a remote: { index, money, cases = { [caseId] = count }, cue?, spins }
--- (spins: the ult spins a new tier adds, 0 for none).
+-- The rank-up rows for a remote: { index, money, cases = { [caseId] = count }, drops, cue?,
+-- spins } (drops: Case Drops; spins: the ult spins a new tier adds; 0 for none).
 local function rewardRows(rewards: { Ranks.Reward }): { any }
 	local rows = {}
 	for _, reward in rewards do
@@ -163,6 +173,7 @@ local function rewardRows(rewards: { Ranks.Reward }): { any }
 			index = reward.index,
 			money = reward.money,
 			cases = table.clone(reward.cases),
+			drops = reward.drops,
 			cue = reward.cue,
 			spins = reward.spins,
 		})
@@ -186,6 +197,7 @@ function Ranking.xpPart(result: any): any
 		rewardCases = table.clone(result.rewardCases),
 		rewardCues = table.clone(result.rewardCues),
 		rewardSpins = result.rewardSpins,
+		rewardDrops = result.rewardDrops,
 		breakdown = result.breakdown,
 	}
 end
@@ -647,6 +659,7 @@ local function rankEvent(result: Ranks.MatchResult): any
 		rewardCases = table.clone(result.rewardCases),
 		rewardCues = table.clone(result.rewardCues),
 		rewardSpins = result.rewardSpins,
+		rewardDrops = result.rewardDrops,
 	}
 end
 

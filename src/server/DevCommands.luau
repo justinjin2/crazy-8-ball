@@ -44,6 +44,7 @@ local Ranking = require(script.Parent.Ranking)
 local Items = require(script.Parent.Items)
 local Store = require(script.Parent.Store)
 local Counters = require(script.Parent.Counters)
+local LiveCodes = require(script.Parent.LiveCodes)
 local UltService = require(script.Parent.UltService)
 local UltSpins = require(script.Parent.UltSpins)
 local Tables = require(script.Parent.TableService)
@@ -523,6 +524,7 @@ local USAGE_ARGS: { [string]: { any } } = {
 	OpenCase = { CASE_WORDS },
 	SetDay = { #Config.Daily.Streak, Config.Daily.WeeksForBonus },
 	Sale = { D.Sale },
+	Code = { D.Code },
 	UltBar = { U.BarMax },
 	Spins = { U.Earn.MaxSpins },
 	Lucky = { U.Earn.MaxSpins },
@@ -565,6 +567,7 @@ local ECON: { string } = {
 	"FreeCase",
 	"SkipTime",
 	"Restock",
+	"Code",
 }
 
 -- Whether a cue's copies in existence are counted (Counters), as the game counts them: every
@@ -1244,6 +1247,35 @@ function DevCommands.start()
 		end
 		local slot = Items.forceRestock(itemId)
 		tell(player, if slot then Dev.RestockForced:format(itemId) else Dev.RestockNone)
+	end)
+	command("Code", D.Code, function(player, args)
+		local verb = string.lower(args[1] or "")
+		if verb == "list" then
+			local onList, offList = {}, {}
+			local live = LiveCodes.on()
+			for _, code in LiveCodes.all() do
+				table.insert(if live[code] then onList else offList, code)
+			end
+			local function words(list: { string }): string
+				return if #list > 0 then table.concat(list, ", ") else Dev.CodeNone
+			end
+			tell(player, Dev.CodeList:format(words(onList), words(offList)))
+			return
+		end
+		local code = string.upper(args[2] or "")
+		if (verb ~= "on" and verb ~= "off") or code == "" then
+			try(player, "Code")
+			return
+		end
+		if not table.find(LiveCodes.all(), code) then
+			tell(player, Dev.CodeNotLive:format(code, table.concat(LiveCodes.all(), ", ")))
+			return
+		end
+		if LiveCodes.set(code, verb == "on") then
+			tell(player, (if verb == "on" then Dev.CodeOn else Dev.CodeOff):format(code))
+		else
+			tell(player, Dev.CodeFailed:format(code))
+		end
 	end)
 	command("SkipTime", D.SkipTime, function(player, args)
 		local minutes = wholeIn(args[1], 1, 365 * 24 * 60)

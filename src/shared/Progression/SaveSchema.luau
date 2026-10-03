@@ -150,8 +150,9 @@ function SaveSchema.template(): any
 		Daily = SaveSchema.freshDaily(0),
 		Login = {
 			LastDay = 0, -- the UTC day of the last claim; 0 never claimed
-			StreakDay = 0, -- the streak day last claimed, 1..#Config.Daily.Streak; 0 none
-			Week = 0, -- the week of the Config.Daily.WeeksForBonus cycle, 1..; 0 none
+			StreakDay = 0, -- the loop day last claimed, 1..#Config.Daily.Streak; 0 none
+			Total = 0, -- every day ever claimed (the 28-day track, Config.Daily.Track)
+			FreezeWeek = 0, -- the UTC week whose streak freeze was used (Daily.weekOf); 0 none
 		},
 		Shop = {
 			-- Unix seconds of the first join; 0 until PlayerData sets it on load (the migration
@@ -1075,7 +1076,9 @@ function SaveSchema.validate(data: any): (any, { string })
 	local login = data.Login
 	fixInteger(login, "LastDay", "Login.LastDay", SaveCfg.StatCap, fixes)
 	fixInteger(login, "StreakDay", "Login.StreakDay", #Config.Daily.Streak, fixes)
-	fixInteger(login, "Week", "Login.Week", Config.Daily.WeeksForBonus, fixes)
+	fixInteger(login, "Total", "Login.Total", SaveCfg.StatCap, fixes)
+	fixInteger(login, "FreezeWeek", "Login.FreezeWeek", SaveCfg.StatCap, fixes)
+	login.Week = nil -- the old four-week cycle (the track replaced it, plan section 6)
 
 	local shop = data.Shop
 	fixInteger(shop, "FirstJoin", "Shop.FirstJoin", SaveCfg.UnixTimeCap, fixes)

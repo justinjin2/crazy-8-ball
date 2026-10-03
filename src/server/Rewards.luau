@@ -13,8 +13,9 @@
 --   (PlayerData.addPlaySeconds), and the rest when they leave.
 -- - RewardState goes to each player on load, after every change it shows, when a playtime
 --   gift becomes ready, and to everyone when the UTC day rolls over.
--- - Rewards carry ult spins too (docs/prompts/ULTIMATES_PROMPT.md section 10): day 7 of every
---   streak week, the day's last playtime gift and codes (Daily's rewards: `spins`, `lucky`).
+-- - Rewards carry Case Drops and ability spins too (the economy plan, 2026-10-02, section 6:
+--   Daily's rewards `drops`, `spins`, `lucky`). Day 1 of the loop is claimed by itself on
+--   join; VIP adds a spin to each day's claim; Live codes count only while LiveCodes has them on.
 --   A new UTC day also re-shows every save (PlayerData.refreshAll: the UltFreeSpin attribute)
 --   and tells UltSpins (the spin screen's FREE SPIN). Rewards.start starts UltSpins.
 local Players = game:GetService("Players")
@@ -28,6 +29,8 @@ local Net = require(Shared.Net)
 local Daily = require(Shared.Progression.Daily)
 local RewardView = require(Shared.Progression.RewardView)
 local PlayerData = require(script.Parent.PlayerData)
+local LiveCodes = require(script.Parent.LiveCodes)
+local Social = require(script.Parent.Social)
 
 local D = Config.Daily
 local SECONDS_PER_DAY = 86400
@@ -80,6 +83,11 @@ end
 -- The state (RewardState)
 ---------------------------------------------------------------------------------------------
 
+-- Whether the player is VIP now (the Store's attribute: the pass or the welcome offer).
+local function isVip(player: Player): boolean
+	return player:GetAttribute("Vip") == true
+end
+
 -- The RewardState payload for this player now, and today's Daily; nil when not loaded.
 local function build(player: Player): (RewardView.Payload?, any)
 	local data = PlayerData.read(player)
@@ -87,7 +95,16 @@ local function build(player: Player): (RewardView.Payload?, any)
 	if data == nil or daily == nil then
 		return nil, nil
 	end
-	return RewardView.build(data.Login, daily, data.Titles, os.time()), daily
+	return RewardView.build(
+		data.Login,
+		daily,
+		data.Titles,
+		os.time(),
+		isVip(player),
+		data.Social,
+		Social.isMember(player)
+	),
+		daily
 end
 
 local function send(player: Player)
@@ -137,6 +154,10 @@ local REWARD_OPS: { [string]: boolean } = {
 	setPlayMinutes = true,
 	claimIndexRow = true, -- a title
 	reset = true,
+	claimGroup = true,
+	setInvitedBy = true,
+	giveInviteRewards = true,
+	recordMatch = true, -- an invited player's first win
 }
 
 local function onChanged(player: Player, op: string)
@@ -220,7 +241,14 @@ end
 
 local function claimed(reward: Daily.Reward): Reply
 	local out = RewardView.reward(reward)
-	return { ok = true, money = out.money, cases = out.cases, spins = out.spins, lucky = out.lucky }
+	return {
+		ok = true,
+		money = out.money,
+		cases = out.cases,
+		drops = out.drops,
+		spins = out.spins,
+		lucky = out.lucky,
+	}
 end
 
 -- PlayerData's answers as the remote's reason codes.
@@ -231,6 +259,8 @@ local REASONS: { [string]: string } = {
 	Used = "Used",
 	Expired = "Expired",
 	Invalid = "BadRequest",
+	NotMember = "NotMember",
+	TooFast = "TooFast",
 }
 
 -- One claim's result: (true, reward) or (false, PlayerData's reason) as a reply. `unknown` is
@@ -246,7 +276,12 @@ local function answer(ok: boolean, result: any, unknown: string): Reply
 end
 
 local function onRewardRequest(player: Player, action: any, a: any): Reply
-	if action ~= "ClaimDaily" and action ~= "ClaimPlaytime" and action ~= "Redeem" then
+	if
+		action ~= "ClaimDaily"
+		and action ~= "ClaimPlaytime"
+		and action ~= "Redeem"
+		and action ~= "ClaimGroup"
+	then
 		return refused("BadRequest")
 	end
 	local clock = os.clock()
@@ -265,7 +300,11 @@ local function onRewardRequest(player: Player, action: any, a: any): Reply
 		return refused("NotLoaded")
 	end
 	if action == "ClaimDaily" then
-		local ok, result = PlayerData.claimDaily(player)
+		local ok, result = PlayerData.claimDaily(player, isVip(player))
+		return answer(ok, result, "BadRequest")
+	elseif action == "ClaimGroup" then
+		local ok, result = Social.claimGroup(player)
+		mark(player) -- the InGroup answer may have changed even when refused
 		return answer(ok, result, "BadRequest")
 	elseif action == "ClaimPlaytime" then
 		if type(a) ~= "number" or a ~= math.floor(a) or a < 1 or a > #D.Playtime then
@@ -284,7 +323,7 @@ local function onRewardRequest(player: Player, action: any, a: any): Reply
 		if #a > D.CodeMaxLength * 4 then
 			return refused("Unknown")
 		end
-		local ok, result = PlayerData.redeemCode(player, a)
+		local ok, result = PlayerData.redeemCode(player, a, LiveCodes.on())
 		return answer(ok, result, "Unknown")
 	end
 end
@@ -303,6 +342,9 @@ end
 --   ("state", userId)          -> the RewardState payload that player would get now
 --   ("request", userId, action, a) -> the RewardRequest answer (the cooldowns skipped)
 --   ("credit", userId)         -> credits the playtime due now
+--   ("invitedBy", userId, inviterId) -> PlayerData.setInvitedBy (a brand-new save only)
+--   ("inviteWon", userId, inviterId) -> the inviter's reward queued and given, as on a win
+--   ("liveCode", userId, code, on)   -> LiveCodes.set (every server; Studio: this one)
 local function startQA()
 	if not RunService:IsStudio() then
 		return
@@ -325,15 +367,48 @@ local function startQA()
 		elseif op == "credit" then
 			credit(player)
 			return true
+		elseif op == "invitedBy" then
+			return PlayerData.setInvitedBy(player, a)
+		elseif op == "inviteWon" then
+			Social.qaInviteWon(player, a)
+			return true
+		elseif op == "liveCode" then
+			return LiveCodes.set(a, b == true)
 		end
 		error("RewardsQA: unknown op " .. tostring(op))
 	end
 	hook.Parent = ServerStorage
 end
 
+-- Today's claim by itself on join when it is day 1 of the loop (Config.Daily.AutoClaimDayOne):
+-- after AutoClaimDelaySeconds, so the Store has checked VIP first.
+local function autoClaim(player: Player)
+	task.wait(D.AutoClaimDelaySeconds)
+	if player.Parent ~= Players or not ready(player) then
+		return
+	end
+	local data = PlayerData.read(player)
+	if data == nil then
+		return
+	end
+	local state = Daily.loginState(data.Login, Daily.dayOf(os.time()), isVip(player))
+	if state.canClaim and state.day == 1 then
+		PlayerData.claimDaily(player, isVip(player))
+	end
+end
+
 local function onLoaded(player: Player)
 	credited[player] = os.clock()
 	mark(player)
+	-- VIP (its daily spin on the tiles) and the group answer arrive after the load.
+	for _, attribute in { "Vip", "InGroup" } do
+		player:GetAttributeChangedSignal(attribute):Connect(function()
+			mark(player)
+		end)
+	end
+	if D.AutoClaimDayOne then
+		task.spawn(safely, ("the day 1 claim of %d"):format(player.UserId), autoClaim, player)
+	end
 end
 
 local function onPlayerRemoving(player: Player)
@@ -370,6 +445,8 @@ function Rewards.start()
 			onLoaded(player)
 		end
 	end
+	LiveCodes.start()
+	Social.start()
 	task.spawn(playtimeLoop)
 	task.spawn(dayLoop)
 	startQA()
