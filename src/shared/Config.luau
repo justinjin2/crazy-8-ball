@@ -1884,68 +1884,106 @@ Config.Economy = {
 -- number from docs/ECONOMY.md sections 7, 8 and 9 (2026-09-28). (tune)
 ---------------------------------------------------------------------------------------------
 Config.Cases = {
-	-- The case ladder, shop order.
-	Order = { "Standard", "Rare", "Epic", "Legendary", "Event" },
+	-- The case ladder, lowest first (the approved economy plan, 2026-10-02, section 3). Cases
+	-- come from Case Drops, rewards and the restock shop; none is sold permanently.
+	Order = { "Standard", "Uncommon", "Rare", "Epic", "Legendary", "Mythic" },
 	-- Rarities, bottom to top (GDD section 12). Exclusive and Unique sit outside the ladder.
 	Rarities = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret" },
 	-- When sorting by rarity, Exclusive cues sit just above this rarity (below Legendary;
 	-- designer, 2026-09-28). Unique sits above Secret.
 	ExclusiveRanksAbove = "Epic",
-	-- Odds are whole thousandths of a percent, so each row adds to exactly OddsTotal (a
-	-- load-time assert and tests/cases_test check it). Standard: 64.3% = 64300.
-	OddsTotal = 100000,
+	-- Odds are whole parts of OddsTotal (a million, so 0.0001% is 1), and each row adds to
+	-- exactly OddsTotal (a load-time assert and tests/cases_test check it).
+	OddsTotal = 1000000,
+	-- Timer: seconds from the moment the case lands until it can be opened (0: at once). Timers
+	-- start by themselves and all run at once; Quick Cases halves them (QuickTimerFactor).
+	-- Price and Enabled: no case is sold (kept 0 / false so the old shop screens still read).
 	List = {
 		Standard = {
-			Price = 150,
-			Enabled = true,
+			Timer = 0,
+			Price = 0,
+			Enabled = false,
 			Odds = {
-				Common = 64300,
-				Uncommon = 26000,
-				Rare = 8400,
-				Epic = 1000,
-				Legendary = 250,
-				Mythic = 47,
-				Secret = 3,
+				Common = 750000,
+				Uncommon = 230000,
+				Rare = 19900,
+				Epic = 90,
+				Legendary = 9,
+				Mythic = 1,
+			},
+		},
+		Uncommon = {
+			Timer = 0,
+			Price = 0,
+			Enabled = false,
+			Odds = {
+				Common = 400000,
+				Uncommon = 540000,
+				Rare = 59500,
+				Epic = 450,
+				Legendary = 45,
+				Mythic = 5,
 			},
 		},
 		Rare = {
-			Price = 500,
-			Enabled = true,
+			Timer = 3600, -- 1 hour
+			Price = 0,
+			Enabled = false,
 			Odds = {
-				Uncommon = 62500,
-				Rare = 31000,
-				Epic = 5500,
-				Legendary = 850,
-				Mythic = 140,
-				Secret = 10,
+				Uncommon = 700000,
+				Rare = 296000,
+				Epic = 3500,
+				Legendary = 450,
+				Mythic = 45,
+				Secret = 5,
 			},
 		},
 		Epic = {
-			Price = 1500,
-			Enabled = true,
-			Odds = { Rare = 73400, Epic = 22000, Legendary = 4000, Mythic = 560, Secret = 40 },
+			Timer = 6 * 3600,
+			Price = 0,
+			Enabled = false,
+			Odds = { Rare = 780000, Epic = 190000, Legendary = 26000, Mythic = 3600, Secret = 400 },
 		},
 		Legendary = {
-			Price = 5000,
-			Enabled = true,
-			Odds = { Epic = 76500, Legendary = 20000, Mythic = 3250, Secret = 250 },
-		},
-		-- The special Event Case (9.1): switched off until an event gives it its own cues.
-		Event = {
-			Price = 2000,
+			Timer = 24 * 3600,
+			Price = 0,
 			Enabled = false,
-			Odds = { Rare = 72500, Epic = 22000, Legendary = 4600, Mythic = 800, Secret = 100 },
+			Odds = { Epic = 750000, Legendary = 220000, Mythic = 27000, Secret = 3000 },
+		},
+		Mythic = {
+			Timer = 48 * 3600,
+			Price = 0,
+			Enabled = false,
+			Odds = { Legendary = 750000, Mythic = 220000, Secret = 30000 },
 		},
 	},
-	-- Bulk opening (9.1): BulkCount of any case for the price of BulkPayFor.
+	-- Quick Cases (the pass) multiplies a timer by this: twice as fast. Timers already running
+	-- when the pass is bought are halved once too (Shop.QuickApplied).
+	QuickTimerFactor = 0.5,
+	-- The Case Drop (plan section 2): after every real win (and from Mystery Cases and reward
+	-- drops) the server rolls a case tier by Weights (out of OddsTotal). Pity: the PityRare-th
+	-- drop in a row without a Rare-or-better case is a Rare Case; the PityEpic-th without an
+	-- Epic-or-better is an Epic Case; pity never gives Legendary. The first win's drop is
+	-- FirstWin. The reveal climbs one step at a time from Standard (Progression/CaseDrop).
+	Drop = {
+		Weights = {
+			Standard = 679043,
+			Uncommon = 250000,
+			Rare = 66667,
+			Epic = 4000,
+			Legendary = 286,
+			Mythic = 4,
+		},
+		PityRare = 10,
+		PityEpic = 150,
+		FirstWin = "Rare",
+	},
+	-- Old shop fields the GUI lane's screens still read until the one-scroll shop replaces them
+	-- (nothing is sold, so these change nothing): Buy-10, the case sale (none, and /sale
+	-- refuses a case that is not sold).
 	BulkCount = 10,
 	BulkPayFor = 9,
-	-- A real, timed sale on ONE case (9.1): Case = a case id, Percent off, EndsAt = a unix time.
-	-- Nothing is on by default (Case = ""). The /sale dev command sets it for this server only.
 	Sale = { Case = "", Percent = 0, EndsAt = 0 },
-	-- The most a sale may take off (percent). Above about 61% off, buying Legendary Cases 10 for
-	-- 9 and selling back what they drop makes money; tests/shop_test checks every case at this
-	-- percent still costs more than its drops sell for.
 	MaxSalePercent = 50,
 	-- Selling a case cue back (section 8), by rarity. Exclusive and Unique never sell.
 	SellBack = {
@@ -1958,19 +1996,16 @@ Config.Cases = {
 		Secret = 75000,
 	},
 	ConfirmSellFrom = "Epic", -- the client asks "are you sure?" from this rarity up
-	-- The winner's free case (7.1): FreeCase for every win for the first NewPlayerWins wins
-	-- ever, then the first DailyWins wins each UTC day, then every EveryAfter-th win. Real
-	-- matches only (people or PC; never solo), with the anti-farm limits of
-	-- Config.Economy.SameOpponent. The very first win ever gives FirstWinCase instead, rolled
-	-- by the server when the match settles and revealed on the result screen.
+	-- Old names the result screen and the case reel still read: the case a win drop used to be
+	-- (the reel's fallback pool) and the first win's case (Drop.FirstWin).
 	FreeCase = "Standard",
-	NewPlayerWins = 50,
-	DailyWins = 10,
-	EveryAfter = 2,
 	FirstWinCase = "Rare",
-	-- Unboxing one of these is announced to everyone in the server (7.4).
+	-- Unboxing one of these is announced in every server (7.4); AnnounceHere only in the
+	-- opener's server (plan section 3: Legendary pulls).
 	Announce = { Mythic = true, Secret = true },
-	-- How many cases one request may open: one on the reel, or FastOpenCount with Fast Open.
+	AnnounceHere = { Legendary = true },
+	-- How many ready cases of one type one request may open: one on the reel, or up to
+	-- FastOpenCount with Quick Cases.
 	FastOpenCount = 10,
 }
 
@@ -9028,7 +9063,8 @@ Config.Debug = {
 		Party = "/party", -- starts (or extends) a Money Party
 		Policy = "/policy", -- /policy restricted|normal: fake PolicyService's paid random items
 		Sale = "/sale", -- /sale <case> <percent> <minutes> | /sale off: a case sale on this server
-		FreeCase = "/freecase", -- as if you won a real match (the free-case rule)
+		FreeCase = "/freecase", -- as if you won a real match (the Case Drop rule)
+		SkipTime = "/skiptime", -- case timers run that many minutes sooner
 		EconHelp = "/econhelp", -- lists these
 		-- Ultimates, acting on the caller only (`/abilityhelp` lists them). Players call ults
 		-- "abilities" (2026-09-28), so each command's name says ability; its old ult name in

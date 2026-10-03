@@ -1,6 +1,6 @@
 --!strict
--- Announce: the top banner and system chat lines everyone sees (Net "Banner"): a Mythic or
--- Secret unboxed, a Money Party, a player reaching Reyes (the first ever in every server), an ult
+-- Announce: the top banner and system chat lines everyone sees (Net "Banner"): a Legendary
+-- unboxed (this server), a Mythic or Secret unboxed (every server), a Money Party, a player reaching Reyes (the first ever in every server), an ult
 -- spin landing a Legendary (this server) or a Mythic (every server).
 --
 -- The server sends ids and names only; the client words each line from Strings.Banner
@@ -9,7 +9,8 @@
 -- name }, { kind = "Ult", userId, name, ult, rarity }. `name` is the player's username
 -- (Strings.Banner words it).
 --
--- Reyes news and Mythic ult rolls (Config.Ults.Roll.AnnounceAll) go to every server: fired here
+-- Reyes news, Mythic and Secret unboxes (Config.Cases.Announce) and Mythic ult rolls
+-- (Config.Ults.Roll.AnnounceAll) go to every server: fired here
 -- at once, then published on the MessagingService
 -- topic Config.Items.AnnounceTopic with this server's id, and every other server's subscriber
 -- fires it for its own players (this server ignores its own message, so nobody sees it twice).
@@ -70,7 +71,7 @@ local function fire(payload: { [string]: any }, only: Player?)
 	end
 end
 
--- A Reyes or ult-roll message from another server, checked before it is shown here.
+-- A Reyes, unbox or ult-roll message from another server, checked before it is shown here.
 local function onMessage(message: any)
 	local data = if type(message) == "table" then message.Data else nil
 	if type(data) ~= "table" or data.from == SERVER then
@@ -78,7 +79,7 @@ local function onMessage(message: any)
 	end
 	local kind, userId, name = data.kind, data.userId, data.name
 	if
-		(kind ~= "Reyes" and kind ~= "FirstReyes" and kind ~= "Ult")
+		(kind ~= "Reyes" and kind ~= "FirstReyes" and kind ~= "Ult" and kind ~= "Unbox")
 		or type(userId) ~= "number"
 		or type(name) ~= "string"
 		or name == ""
@@ -86,7 +87,14 @@ local function onMessage(message: any)
 	then
 		return
 	end
-	if kind == "Ult" then
+	if kind == "Unbox" then
+		local cue = Catalog.get(data.cue)
+		if cue == nil or cue.Rarity ~= data.rarity or not Cases.announces(cue.Rarity) then
+			return
+		end
+		fire({ kind = kind, userId = userId, name = name, cue = cue.Id, rarity = cue.Rarity })
+		return
+	elseif kind == "Ult" then
 		local ult = data.ult
 		if not UltCatalog.exists(ult) or UltCatalog.rarity(ult) ~= data.rarity then
 			return
@@ -164,12 +172,16 @@ function Announce.start()
 	end)
 end
 
---- `player` unboxed `cueId`: announced to this server when its rarity announces
---- (Cases.announces), Config.Items.UnboxAnnounceDelaySeconds later so the opener's reel settles
---- first. Never yields.
+--- `player` unboxed `cueId`: a Legendary (Cases.announcesHere) is a banner for this server, a
+--- Mythic or Secret (Cases.announces) for every server, Config.Items.UnboxAnnounceDelaySeconds
+--- later so the opener's reel settles first. Never yields.
 function Announce.unbox(player: Player, cueId: string)
 	local cue = Catalog.get(cueId)
-	if not isPlayer(player) or cue == nil or not Cases.announces(cue.Rarity) then
+	if not isPlayer(player) or cue == nil then
+		return
+	end
+	local everywhere = Cases.announces(cue.Rarity)
+	if not everywhere and not Cases.announcesHere(cue.Rarity) then
 		return
 	end
 	local payload = {
@@ -179,7 +191,12 @@ function Announce.unbox(player: Player, cueId: string)
 		cue = cue.Id,
 		rarity = cue.Rarity,
 	}
-	task.delay(I.UnboxAnnounceDelaySeconds, fire, payload)
+	task.delay(I.UnboxAnnounceDelaySeconds, function()
+		fire(payload)
+		if everywhere then
+			publish(payload, "unbox")
+		end
+	end)
 end
 
 --- `player` just reached Reyes: claims the global first (Counters.claimFirst) and tells every

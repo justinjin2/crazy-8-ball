@@ -72,14 +72,12 @@ return {
 
 	buy_case_counts_and_ids = function()
 		local Requests, Config = load()
-		local bulk = Config.Cases.BulkCount
-		local r = Requests.parse("BuyCase", "Standard", 1)
-		H.expect(r ~= nil and r.caseId == "Standard" and r.count == 1, "one Standard")
-		r = Requests.parse("BuyCase", "Epic", bulk)
-		H.expect(r ~= nil and r.count == bulk, "a bulk lot")
-		r = Requests.parse("BuyCase", "Rare", nil)
-		H.expect(r ~= nil and r.count == 1, "a missing count is 1")
-		for _, count in { 0, 2, 9, 11, -1, 1.5, "1", 0 / 0, math.huge, bulk + 0.5 } do
+		-- No case is sold for money (economy plan section 3): every known case is NotSold.
+		for _, id in Config.Cases.Order do
+			local r, why = Requests.parse("BuyCase", id, 1)
+			H.expect(r == nil and why == "NotSold", id .. " is not sold")
+		end
+		for _, count in { 0, 2, 9, 11, -1, 1.5, "1", 0 / 0, math.huge } do
 			local _, why = Requests.parse("BuyCase", "Standard", count)
 			H.expect(why == "BadRequest", "count " .. tostring(count))
 		end
@@ -87,11 +85,11 @@ return {
 			local _, why = Requests.parse("BuyCase", id, 1)
 			H.expect(why == "BadRequest", "case " .. tostring(id))
 		end
-		-- The Event Case is switched off: never sold, though it can be opened.
-		local _, why = Requests.parse("BuyCase", "Event", 1)
-		H.expect(why == "NotSold", "a switched-off case is not sold")
-		local open = Requests.parse("OpenCase", "Event", 1)
-		H.expect(open ~= nil and open.caseId == "Event", "but a given one opens")
+		-- A given case opens.
+		local open = Requests.parse("OpenCase", "Mythic", 1)
+		H.expect(open ~= nil and open.caseId == "Mythic", "a given one opens")
+		H.expect(Requests.reasonFrom("NotReady") == "NotReady", "a case on its timer")
+		H.expect(table.find(Requests.Reasons, "NotReady") ~= nil, "a known reason")
 	end,
 
 	open_case_counts = function()

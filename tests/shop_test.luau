@@ -991,33 +991,6 @@ return {
 		)
 	end,
 
-	["at the biggest sale, no case's drops sell back for what 10 for 9 costs"] = function()
-		local C = Config.Cases
-		local Cases = H.require("Progression.Cases")
-		local now = JOIN
-		for _, case in Cases.list(true) do
-			local sale = { Case = case.Id, Percent = C.MaxSalePercent, EndsAt = now + DAY }
-			local price, _, onSale = Cases.price(case.Id, C.BulkCount, now, sale)
-			H.expect(onSale, case.Id .. " is on sale")
-			-- What one case's drop sells back for on average (every cue of a rarity at that
-			-- rarity's sell-back value: the most it can be).
-			local worth = 0
-			for _, entry in Cases.odds(case.Id) do
-				worth += entry.weight / C.OddsTotal * (C.SellBack[entry.rarity] or 0)
-			end
-			local perCase = price / C.BulkCount
-			H.expect(
-				perCase > worth,
-				("%s: $%.1f a case at %d%% off, drops sell for $%.1f"):format(
-					case.Id,
-					perCase,
-					C.MaxSalePercent,
-					worth
-				)
-			)
-		end
-	end,
-
 	["ShopView.build: a product not for this player shows no money"] = function()
 		local now = JOIN + HOUR
 		local vip = ShopView.build(ctxAt(now, { vipPass = true }))

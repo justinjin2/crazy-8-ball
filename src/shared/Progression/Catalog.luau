@@ -57,8 +57,9 @@ local Catalog = {}
 --- The default cue: always owned, never counted in the inventory, never sold or traded.
 Catalog.Default = "Classic"
 
--- Every case the launch case cues drop from (each case drops the rarities it has odds for).
-local ALL_CASES = { "Standard", "Rare", "Epic", "Legendary", "Event" }
+-- Every case the launch case cues drop from (each case drops the rarities it has odds for): the
+-- whole ladder, so every cue of a rarity has an equal share in every case with that rarity.
+local ALL_CASES: { string } = table.clone(Config.Cases.Order)
 
 -- A skinned cue's flat colours (CueSkins.Index, sampled from its colour map).
 local function skinLook(id: string): Look

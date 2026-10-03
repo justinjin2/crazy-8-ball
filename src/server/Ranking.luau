@@ -30,6 +30,7 @@ local Engine = require(Shared.Rules.MatchEngine)
 local Ranks = require(Shared.Progression.Ranks)
 local Money = require(Shared.Progression.Money)
 local Cases = require(Shared.Progression.Cases)
+local CaseDrop = require(Shared.Progression.CaseDrop)
 local Daily = require(Shared.Progression.Daily)
 local Inventory = require(Shared.Progression.Inventory)
 local Settle = require(Shared.Progression.Settle)
@@ -58,13 +59,6 @@ local closing = false
 local settledEpoch: { [number]: number } = {}
 -- Match key -> userId -> the facts of a player already settled by leaving.
 local departed: { [string]: { [number]: Facts } } = {}
-
--- The server's own randomness for the first win's case (Cases.roll takes it as rng(n) ->
--- 1..n).
-local random = Random.new()
-local function roll(n: number): number
-	return random:NextInteger(1, n)
-end
 
 local function rankOf(player: Player): any
 	local tier = player:GetAttribute("RankTier")
@@ -196,7 +190,7 @@ function Ranking.xpPart(result: any): any
 	}
 end
 
--- Counts a free case against every losing account (the anti-farm limit of
+-- Counts a Case Drop against every losing account (the anti-farm limit of
 -- Config.Economy.FreeCasesPerOpponent).
 local function countAgainst(player: Player, opponentIds: { number })
 	for _, id in opponentIds do
@@ -204,39 +198,20 @@ local function countAgainst(player: Player, opponentIds: { number })
 	end
 end
 
--- Gives the case the free-case rule picked. The first win's case (`firstWin`) is opened now:
--- its cue is rolled and given (with the save's first-win flag, in one change), counted as a
--- copy in existence and announced when its rarity is. Any other goes into the inventory.
--- `owned` is the save as read before (whether the cue is new). Returns (the case put in the
--- inventory?, the first win's reveal { case, cue, rarity, new, found }?; `found` is the
--- finder's money it paid, 0 when it was in the Index already).
-local function giveFreeCase(
+-- Gives the win's Case Drop (PlayerData.caseDrop: rolled with pity and landed, on its timer
+-- or ready), the first win's Rare Case when `firstWin`, and counts it against the losers.
+-- Returns the reveal payload, or nil when the save refused it.
+local function giveDrop(
 	player: Player,
-	caseId: string,
 	firstWin: boolean,
-	owned: any,
 	opponentIds: { number },
-	reason: string
-): (string?, any?)
-	if firstWin then
-		local cue, rarity = Cases.roll(caseId, roll)
-		local new = not Inventory.owns(owned, cue)
-		local found = if Inventory.found(owned, cue) then 0 else Inventory.findMoney(cue)
-		if not PlayerData.grantReward(player, { cues = { cue }, firstWinCase = true }, reason) then
-			return nil, nil
-		end
-		Counters.add(cue, 1)
-		if Cases.announces(rarity) then
-			Announce.unbox(player, cue)
-		end
+	source: string
+): CaseDrop.Payload?
+	local payload = PlayerData.caseDrop(player, source, firstWin)
+	if payload ~= nil then
 		countAgainst(player, opponentIds)
-		return nil, { case = caseId, cue = cue, rarity = rarity, new = new, found = found }
 	end
-	if not PlayerData.grantReward(player, { cases = { [caseId] = 1 } }, reason) then
-		return nil, nil
-	end
-	countAgainst(player, opponentIds)
-	return caseId, nil
+	return payload
 end
 
 -- A short match's pots (ECONOMY 3.6): what they paid this player adds to today's short total.
@@ -360,7 +335,7 @@ type Entry = {
 	opponents: { number }, -- the other side's accounts (empty against PC)
 	opponentIndex: number?, -- their average division (Settle.opponentIndex)
 	farm: Money.FarmRow, -- the anti-farm row for this match
-	losers: { Settle.Loser }, -- the other side's accounts, for this player's free case
+	losers: { Settle.Loser }, -- the other side's accounts, for this player's Case Drop
 }
 
 -- What one player's settle gave them, for the summary.
@@ -369,8 +344,8 @@ type Paid = {
 	bonus: number,
 	streak: number,
 	boost: number,
-	freeCase: string?,
-	firstWin: any?,
+	freeCase: string?, -- the win's Case Drop tier (the result screen's case line)
+	caseDrop: CaseDrop.Payload?, -- the win's Case Drop, for the reveal
 }
 
 -- Settles one player (every "before" count is on `entry`, read before anyone was paid).
@@ -453,24 +428,30 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 		PlayerData.countDaily(p, "Disguised")
 	end
 
-	-- The winner's free case (ECONOMY 7.1, 3.6), from the counts before this match. None from a
-	-- disguised bot past the day's limit.
+	-- The winner's Case Drop (economy plan section 2; ECONOMY 3.6), from the counts before this
+	-- match: every real win, the anti-farm rules, and Play against PC only for its first
+	-- Config.Economy.PcDropsPerDay wins a day. None from a disguised bot past the day's limit.
 	if won and not (disguised and pc) then
-		local ctx = Settle.freeCaseContext({
+		local ctx = Settle.dropContext({
 			real = real,
 			solo = false,
 			won = true,
 			pc = pc or Settle.botKind(m.e) ~= nil, -- a bot is no account to farm (the Bots lane)
-			winsBefore = progress.Wins,
-			winsTodayBefore = daily.Wins,
+			pcLimited = pc,
+			pcDropsToday = daily.PcDrops,
 			firstWinDue = progress.FirstWinCaseDue,
 			farmAllows = farm.FreeCase,
 			losers = entry.losers,
 		})
-		local caseId = Cases.freeCase(ctx)
-		if caseId ~= nil then
-			paid.freeCase, paid.firstWin =
-				giveFreeCase(p, caseId, ctx.firstWinEver, data, entry.opponents, "FreeCase")
+		local drops, forced = Cases.dropFor(ctx)
+		if drops then
+			local payload = giveDrop(p, forced ~= nil, entry.opponents, "Win")
+			if payload then
+				paid.caseDrop, paid.freeCase = payload, payload.tier
+				if pc then
+					PlayerData.countDaily(p, "PcDrops")
+				end
+			end
 		end
 	end
 	PlayerData.recordRealMatch(p, outcome == "Win", entry.opponents)
@@ -603,7 +584,9 @@ local function settle(e: any)
 				total = tally.ballMoney + tally.niceMoney + paid.bonus + paid.streak + reward,
 			},
 			freeCase = paid.freeCase,
-			firstWin = paid.firstWin,
+			-- The win's Case Drop (CaseDrop.Payload: source "Win", tier, climbs, readyAt,
+			-- instant, pity), revealed by the 8-ball; nil without one.
+			caseDrop = paid.caseDrop,
 			nextReward = if entry.data then Daily.nextReward(entry.data.Login, today) else nil,
 			-- The rematch row (designer, 2026-09-28): whether one is on offer, the series so
 			-- far (this game counted), and whether this is an arena (Play another, Lobby).
@@ -686,43 +669,30 @@ function Ranking.addXp(player: Player, delta: number): boolean
 	return true
 end
 
---- The /freecase developer command: the free-case rule run as if `player` had just won a real
+--- The /freecase developer command: the Case Drop rule run as if `player` had just won a real
 --- match against a fresh opponent (an account with enough real matches, met for the first
---- time today, that has given no case yet). The win is counted like a real one (Progress.Wins,
---- today's Daily.Wins, Progress.RealMatches), so repeating the command walks the rule (every
---- win for the first Config.Cases.NewPlayerWins, then DailyWins a day, then every EveryAfter-th
---- win). Returns (caseId?, cue?): the case put in the inventory (cue nil); or the first win's
---- case and the cue it was opened into; or nothing when this win drops no case or the save is
---- not loaded.
-function Ranking.freeCase(player: Player): (string?, string?)
-	local data = PlayerData.read(player)
+--- time today, that has given no drop yet). The win is counted like a real one
+--- (Progress.Wins, today's Daily.Wins, Progress.RealMatches). Returns the tier that dropped
+--- (its reveal goes out on the CaseDrop remote, source "Dev"), or nil when the save is not
+--- loaded.
+function Ranking.freeCase(player: Player): string?
 	local progress = PlayerData.progress(player)
-	local daily = PlayerData.dailyState(player)
-	if not data or not progress or not daily then
-		return nil, nil
+	if not progress then
+		return nil
 	end
-	local ctx = Settle.freeCaseContext({
+	local ctx = Settle.dropContext({
 		real = true,
 		solo = false,
 		won = true,
 		pc = false,
-		winsBefore = progress.Wins,
-		winsTodayBefore = daily.Wins,
 		firstWinDue = progress.FirstWinCaseDue,
 		farmAllows = Money.farmRow(1).FreeCase,
 		losers = { { realMatches = E.FreeCaseLoserMinMatches, casesToday = 0 } },
 	})
-	local caseId = Cases.freeCase(ctx)
-	local caseGiven, firstWin = nil, nil
-	if caseId ~= nil then
-		caseGiven, firstWin =
-			giveFreeCase(player, caseId, ctx.firstWinEver, data, {}, "DevFreeCase")
-	end
+	local drops, forced = Cases.dropFor(ctx)
+	local payload = if drops then giveDrop(player, forced ~= nil, {}, "Dev") else nil
 	PlayerData.recordRealMatch(player, true, {})
-	if firstWin then
-		return firstWin.case, firstWin.cue
-	end
-	return caseGiven, nil
+	return if payload then payload.tier else nil
 end
 
 return Ranking

@@ -72,12 +72,20 @@ local REMOTES: { [string]: string } = {
 	-- money = {balls, ballMoney, nice, niceMoney (the pots, paid live), bonus (win or loss),
 	--   streak (the win-streak bonus), reward (rank-up money), boost (the money boost share
 	--   applied at the end: VIP + Money Party, 0..2), total (all of them added)},
-	-- freeCase? (a case id put in the inventory), firstWin? = {case, cue, rarity, new, found}
-	-- (the first win's case, opened at once: its cue is already owned; found is the finder's
-	-- money it paid, 0 when the cue was in the Index already; freeCase is nil then),
+	-- freeCase? (the tier of the win's Case Drop, already in the inventory), caseDrop? (that
+	-- drop's reveal: the CaseDrop remote's payload with source "Win"; win drops come only
+	-- here, never on the CaseDrop remote),
 	-- nextReward? (Daily.nextReward: {day, week, reward = {money, cases}, bonus, tomorrow}, the
 	-- reminder line), rematch, arena, series? = {wins = {team 1, team 2}, games}}.
 	MatchSummary = "RemoteEvent",
+	-- server -> one player: Case Drops just landed outside a match result (Mystery Cases,
+	-- reward drops, /freecase), for the magic 8-ball reveal (the Cutscenes lane). A list, one
+	-- per drop: { { source ("Mystery", "Reward", "Dev" ...), tier (a Config.Cases.Order id),
+	-- climbs (steps above Standard the reveal climbs: 0..5; the server decided the tier
+	-- first), readyAt (unix time it opens; 0 = now), instant (no timer: end on Open now /
+	-- Later), pity = { rare, epic } (drops left until a Rare / Epic case is guaranteed; 1 =
+	-- the next one) } }. The case is already in the save.
+	CaseDrop = "RemoteEvent",
 	-- server -> one player: a promotion outside a match's result screen (/xp, /newrank). XP is
 	-- never lost, so there is no rank-down. {kind = "Up", preview?, before, after, reward
 	-- (money), newTier, rewards? = {{index, money, cases = {[caseId] = count}, cue?}},
@@ -103,12 +111,13 @@ local REMOTES: { [string]: string } = {
 	-- money, a price, a rarity or a result: the server prices, rolls and decides everything.
 	-- client -> server, answered (src/server/Items.luau): (action, a?, b?) -> { ok = true, ... }
 	-- or { ok = false, reason }; it never errors. A missing count is 1. Actions and replies:
-	--   "BuyCase" (caseId, count 1 | Config.Cases.BulkCount) -> { caseId, count, price,
-	--     perCase, onSale } (a failed buy for money adds { need, price })
+	--   "BuyCase" (caseId, count 1 | Config.Cases.BulkCount) -> no case is sold for money any
+	--     more (economy plan 3): always "NotSold"
 	--   "OpenCase" (caseId, count 1 | Config.Cases.FastOpenCount, more than 1 with Fast Open)
 	--     -> { caseId, results = { { cue, rarity, new, duplicate, count, found } } } (count:
 	--     copies owned once it was added; found: the finder's money a cue new to the Index
-	--     paid, else 0; rolled by the server; a switched-off case still opens)
+	--     paid, else 0; rolled by the server; only ready cases open: a case on its timer
+	--     answers "NotReady")
 	--   "SellCue" (cueId, count) -> { cueId, count, money }
 	--   "SellDuplicates" (cueId? for one cue's, else every case cue's) -> { money, sold = { {
 	--     id, count, money } } } (nothing to sell: money 0, sold {})
@@ -121,12 +130,14 @@ local REMOTES: { [string]: string } = {
 	-- "Busy" (another request still being answered), "NotLoaded" (the save, or for BuyCase the
 	-- PolicyService answer, is not ready), "Teleporting", "NotSold" (a switched-off case),
 	-- "Restricted" (paid random items), "NotEnoughMoney" (+ need, price), "NoCases",
+	-- "NotReady" (the case is still on its timer),
 	-- "NoFastOpen", "NotOwned", "CantSell" (Exclusive, Unique, Classic), "Equipped" (the last
 	-- copy of the equipped cue), "Claimed", "Incomplete", "NoReward" (Exclusive and Unique
 	-- rows), "NotStarted", "Ended", "SoldOut", "Owned" (a Limited is one per player), "Error".
 	ItemRequest = "RemoteFunction",
 	-- server -> one player: their inventory, the Progression/Inventory.snapshot table itself (no
-	-- wrapper): { cues = { { id, count, new, copy? } }, cases = { { id, count } }, equipped,
+	-- wrapper): { cues = { { id, count, new, copy? } }, cases = { { id, count } } (ready),
+	-- timers = { { id, readyAt, paid } } (cases on their timers, soonest first), equipped,
 	-- seen = { id }, rows = { { rarity, have, total, complete, claimed, reward = { money }? } },
 	-- titles = { id } }. Sent when the save loads and after every change that
 	-- touches it, at most once a frame, and only when it differs from the last one sent. The
@@ -136,8 +147,7 @@ local REMOTES: { [string]: string } = {
 	ItemState = "RemoteEvent",
 	-- server -> one player: cues that just entered their Index for the first time, and the
 	-- finder's money each paid (Config.Index.FindMoney, already added): { { cue, money } }.
-	-- Sent for every source but a case reel (OpenCase's reply and MatchSummary.firstWin carry
-	-- theirs): rank-up and reward cues, the VIP and Starter cues, Limited cues (src/server/
+	-- Sent for every source but a case reel (OpenCase's reply carries theirs): rank-up and reward cues, the VIP and Starter cues, Limited cues (src/server/
 	-- Items.luau, from PlayerData.CueFound). The client shows a banner line.
 	CueFound = "RemoteEvent",
 	-- server -> one player: the shop's state for them (src/server/Store.luau builds it with
@@ -195,7 +205,8 @@ local REMOTES: { [string]: string } = {
 	-- the top middle and a system chat line (src/server/Announce.luau). The server sends ids and
 	-- names only; the client words it from Strings.Banner. `name` is the player's username
 	-- (player.Name), not their DisplayName.
-	--   { kind = "Unbox", userId, name, cue, rarity } a Mythic or Secret unboxed here
+	--   { kind = "Unbox", userId, name, cue, rarity } a Legendary unboxed here
+	--     (Cases.announcesHere), or a Mythic or Secret unboxed in any server
 	--     (Cases.announces), sent Config.Items.UnboxAnnounceDelaySeconds after the roll
 	--   { kind = "Party", endsAt, name? } a Money Party started (endsAt: unix seconds)
 	--   { kind = "Reyes" | "FirstReyes", userId, name } a player reached Reyes, in every

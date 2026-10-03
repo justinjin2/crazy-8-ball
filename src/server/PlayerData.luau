@@ -39,6 +39,7 @@ local SaveSchema = require(Shared.Progression.SaveSchema)
 local Ranks = require(Shared.Progression.Ranks)
 local Catalog = require(Shared.Progression.Catalog)
 local Cases = require(Shared.Progression.Cases)
+local CaseDrop = require(Shared.Progression.CaseDrop)
 local Inventory = require(Shared.Progression.Inventory)
 local Daily = require(Shared.Progression.Daily)
 local Settle = require(Shared.Progression.Settle)
@@ -60,6 +61,7 @@ type Profile = ProfileStore.Profile<any>
 export type Reward = {
 	money: number?,
 	cases: { [string]: number }?,
+	drops: number?, -- Case Drops, each rolled with pity (CaseDrop.roll) and sent as a reveal
 	cues: { string }?,
 	firstWinCase: boolean?,
 	spins: number?,
@@ -135,9 +137,9 @@ local MONEY_KINDS: { [string]: string } = {
 	Short = "ShortMoney",
 }
 
--- Flags[FIRST_WIN_FLAG] = true once the first win's Rare Case was given (Config.Cases
--- .FirstWinCase). Kept apart from Progress.Wins so a first win that an anti-farm rule kept
--- from dropping a case does not use it up (Cases.FreeCaseContext.firstWinEver).
+-- Flags[FIRST_WIN_FLAG] = true once the first win's Rare Case was given (Config.Cases.Drop
+-- .FirstWin). Kept apart from Progress.Wins so a first win that an anti-farm rule kept from
+-- dropping a case does not use it up (Cases.DropContext.firstWinEver).
 local FIRST_WIN_FLAG = "FirstWinCase"
 
 -- The most playtime one UTC day can hold (SaveSchema's cap on Daily.PlaySeconds).
@@ -176,6 +178,25 @@ PlayerData.MoneyChanged = moneyEvent.Event
 -- saves whose finds a reel shows instead.
 local pendingFinds: { [any]: { Find } } = setmetatable({}, { __mode = "k" }) :: any
 local reelFinds: { [any]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+
+-- The mutation under way's Case Drops, by save table (commit fires and clears them).
+local pendingDrops: { [any]: { CaseDrop.Payload } } = setmetatable({}, { __mode = "k" }) :: any
+local dropEvent = Instance.new("BindableEvent")
+--- (player, drops: { CaseDrop.Payload }) Fires after a mutation that rolled Case Drops (the
+--- case is already in the save, on its timer or ready). Items sends the reveal (the CaseDrop
+--- remote) for every source but "Win", whose drop rides on MatchSummary.caseDrop.
+PlayerData.CaseDropped = dropEvent.Event
+
+-- Whether the player whose save is being changed has Quick Cases (the Store's FastOpen
+-- attribute, read when the mutation fetched the save): new case timers run at half time.
+local QUICK_ATTR = "FastOpen"
+local quickOf: { [any]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+
+-- The server's own randomness for Case Drops.
+local dropRandom = Random.new()
+local function dropRoll(n: number): number
+	return dropRandom:NextInteger(1, n)
+end
 
 local store: ProfileStore.ProfileStore<any>? = nil
 local started = false
@@ -241,7 +262,11 @@ end
 local function liveData(op: string, player: Player): any?
 	local profile = profiles[player]
 	if profile and profile:IsActive() then
-		return profile.Data
+		local data = profile.Data
+		-- Every change starts from a save whose finished case timers are in their stacks.
+		Inventory.finishTimers(data, os.time())
+		quickOf[data] = player:GetAttribute(QUICK_ATTR) == true
+		return data
 	end
 	warn(("[8ball] PlayerData: %s dropped for %s: not loaded"):format(op, who(player)))
 	return nil
@@ -373,13 +398,36 @@ local function takeMoney(data: any, amount: number, reason: string)
 	noteMoney(data, -amount, reason)
 end
 
--- Adds cases, up to Config.Save.ItemCountCap of one type (a count nobody reaches; past it the
--- extra is dropped rather than growing a number without limit).
-local function addCasesTo(data: any, caseId: string, count: number)
+-- Lands `count` new cases (Inventory.landCase: an instant case is ready, a timed one starts
+-- its timer, at half time with Quick Cases), up to Config.Save.ItemCountCap of one type (a
+-- count nobody reaches; past it the extra is dropped rather than growing a number without
+-- limit). `paid`: paid origin. Returns when the last one is ready (0: now), nil for none.
+local function addCasesTo(data: any, caseId: string, count: number, paid: boolean?): number?
 	local n = math.min(count, S.ItemCountCap - Inventory.caseCount(data, caseId))
-	if n >= 1 then
-		Inventory.addCases(data, caseId, n)
+	local readyAt: number? = nil
+	for _ = 1, n do
+		readyAt = Inventory.landCase(data, caseId, os.time(), quickOf[data] == true, paid)
 	end
+	return readyAt
+end
+
+-- Rolls one Case Drop into the save (pity counted in data.Drops), lands its case and notes the
+-- reveal for commit. `forced`: the tier without a roll (the first win's Rare Case). Returns the
+-- payload.
+local function rollDrop(data: any, source: string, forced: string?): CaseDrop.Payload
+	local tier, pity = CaseDrop.roll(CaseDrop.readPity(data.Drops), dropRoll, forced)
+	data.Drops.SinceRare = math.min(pity.SinceRare, S.StatCap)
+	data.Drops.SinceEpic = math.min(pity.SinceEpic, S.StatCap)
+	data.Drops.Total = math.min(pity.Total, S.StatCap)
+	local readyAt = addCasesTo(data, tier, 1) or 0
+	local payload = CaseDrop.payload(source, tier, readyAt, CaseDrop.readPity(data.Drops))
+	local list = pendingDrops[data]
+	if list == nil then
+		list = {}
+		pendingDrops[data] = list
+	end
+	table.insert(list, payload)
+	return payload
 end
 
 -- A cue just entered the save's Index for the first time: pay its finder's money (earned;
@@ -470,6 +518,7 @@ end
 local REWARD_FIELDS: { [any]: boolean } = {
 	money = true,
 	cases = true,
+	drops = true,
 	cues = true,
 	firstWinCase = true,
 	spins = true,
@@ -520,6 +569,11 @@ local function badReward(reward: any): string?
 		)
 	elseif reward.firstWinCase ~= nil and type(reward.firstWinCase) ~= "boolean" then
 		return "firstWinCase is not true or false"
+	elseif reward.drops ~= nil and not intIn(reward.drops, 0, S.MaxSmallEntries) then
+		return ("drops %s is not a whole number in 0..%d"):format(
+			tostring(reward.drops),
+			S.MaxSmallEntries
+		)
 	end
 	return badSpinCount(reward.spins, "spins")
 		or badSpinCount(reward.lucky, "lucky")
@@ -554,6 +608,9 @@ local function giveReward(data: any, reward: any, reason: string)
 				addCasesTo(data, caseId, count)
 			end
 		end
+	end
+	for _ = 1, reward.drops or 0 do
+		rollDrop(data, "Reward")
 	end
 	local cues = reward.cues
 	if cues ~= nil then
@@ -627,9 +684,9 @@ local function leaderstats(player: Player): (StringValue, IntValue)
 	return rank :: StringValue, money :: IntValue
 end
 
--- Unopened cases of every type.
+-- Unopened cases of every type, ready or on their timers.
 local function casesUnopened(data: any): number
-	local total = 0
+	local total = #Inventory.timers(data)
 	for _, caseId in Config.Cases.Order do
 		total += Inventory.caseCount(data, caseId)
 	end
@@ -732,6 +789,11 @@ local function commit(player: Player, data: any, op: string)
 	reelFinds[data] = nil
 	if finds and #finds > 0 and not onReel then
 		foundEvent:Fire(player, finds)
+	end
+	local drops = pendingDrops[data]
+	pendingDrops[data] = nil
+	if drops and #drops > 0 then
+		dropEvent:Fire(player, drops)
 	end
 end
 
@@ -1321,6 +1383,73 @@ function PlayerData.grantReward(player: Player, reward: Reward, reason: string):
 	return true
 end
 
+--- Rolls one Case Drop for `source` ("Win", "Mystery", "Reward" ...: a short word, sent in the
+--- payload) and lands its case, in one change: pity counted, a timed case on its timer (half
+--- time with Quick Cases). `firstWin` asks for the first win's Rare Case (Config.Cases.Drop
+--- .FirstWin) and marks it given; once given before, the drop rolls as usual. Returns the
+--- reveal payload (CaseDrop.Payload), or nil when the save is not loaded. CaseDropped fires
+--- with it too.
+function PlayerData.caseDrop(player: Player, source: string, firstWin: boolean?): CaseDrop.Payload?
+	local op = "caseDrop"
+	if not isPlayer(player) then
+		refuse(op, player, "not a player")
+		return nil
+	elseif type(source) ~= "string" or #source < 1 or #source > 20 then
+		refuse(op, player, "no source given")
+		return nil
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return nil
+	end
+	local forced: string? = nil
+	if firstWin == true and data.Flags[FIRST_WIN_FLAG] ~= true then
+		data.Flags[FIRST_WIN_FLAG] = true
+		forced = Config.Cases.Drop.FirstWin
+	end
+	local payload = rollDrop(data, source, forced)
+	commit(player, data, op)
+	return payload
+end
+
+--- Developer and QA only (the /skiptime command): every case timer runs `seconds` (1..one
+--- year) sooner, and any that ran out join their ready stacks. False when not loaded.
+function PlayerData.advanceTimers(player: Player, seconds: number): boolean
+	local op = "advanceTimers"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif not intIn(seconds, 1, 365 * SECONDS_PER_DAY) then
+		return refuse(op, player, ("seconds %s is not 1..a year"):format(tostring(seconds)))
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	for _, t in data.Inventory.Timers do
+		t.At -= seconds
+	end
+	Inventory.finishTimers(data, os.time())
+	commit(player, data, op)
+	return true
+end
+
+--- Quick Cases was bought (or first seen owned): the case timers already running are halved,
+--- once per save (Shop.QuickApplied). True when it changed the save.
+function PlayerData.applyQuickCases(player: Player): boolean
+	local op = "applyQuickCases"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	end
+	local data = liveData(op, player)
+	if data == nil or data.Shop.QuickApplied == true then
+		return false
+	end
+	data.Shop.QuickApplied = true
+	Inventory.halveTimers(data, os.time())
+	commit(player, data, op)
+	return true
+end
+
 --- Sets the rank fields together (the Ranking service's result, or /rank). Each must be a
 --- whole number in range, or nothing changes. `reward` (optional, the Reward type: the
 --- rank-up's money, cases and tier cue) is given in the same change, so a rank-up and its
@@ -1620,9 +1749,10 @@ function PlayerData.buyCases(player: Player, caseId: string, count: number, pric
 	return true
 end
 
---- Opens #cueIds cases of `caseId` (1..Config.Cases.FastOpenCount; the caller rolled each cue
---- with Cases.roll) and adds those cues, in one change. Answers (true, { Opened }) in the
---- order given, or (false, reason): "NotEnough" (fewer cases than cues), "NotLoaded",
+--- Opens #cueIds ready cases of `caseId` (1..Config.Cases.FastOpenCount; the caller rolled each
+--- cue with Cases.roll) and adds those cues, in one change; a cue from a paid case is paid
+--- origin. Answers (true, { Opened }) in the order given, or (false, reason): "NotReady" (not
+--- enough ready, more on their timers), "NotEnough" (fewer cases than cues), "NotLoaded",
 --- "Invalid" (logged: an unknown case, or a cue that case cannot drop: a case cue that lists
 --- the case, of a rarity the case has odds for; a vaulted cue is still accepted, so vaulting
 --- never fails an open already rolled).
@@ -1663,6 +1793,11 @@ function PlayerData.openCases(
 	end
 	local n = #cueIds
 	if Inventory.caseCount(data, caseId) < n then
+		for _, t in Inventory.timers(data) do
+			if t.id == caseId then
+				return false, "NotReady" -- the rest of that case are still on their timers
+			end
+		end
 		return false, "NotEnough"
 	end
 	for _, id in cueIds do
@@ -1674,12 +1809,14 @@ function PlayerData.openCases(
 			)
 		end
 	end
-	Inventory.takeCases(data, caseId, n)
+	-- Paid cases open first; each gives a paid-origin cue.
+	local _, paidLeft = Inventory.takeCases(data, caseId, n)
 	local seen = data.Index.Seen
 	local opened: { Opened } = {}
 	for _, id in cueIds do
 		local new = seen[id] ~= true and not Inventory.owns(data, id)
-		local _, first = Inventory.addCue(data, id, 1)
+		local _, first = Inventory.addCue(data, id, 1, paidLeft > 0)
+		paidLeft -= 1
 		local found = if first then payFind(data, id) else 0
 		local count = Inventory.count(data, id)
 		table.insert(
@@ -2791,6 +2928,15 @@ local QA_CALLS: { [string]: (Player, any, any, any, any) -> ...any } = {
 	end,
 	recordRealMatch = function(p, a, b)
 		return PlayerData.recordRealMatch(p, a, b)
+	end,
+	caseDrop = function(p, a, b)
+		return PlayerData.caseDrop(p, a, b)
+	end,
+	advanceTimers = function(p, a)
+		return PlayerData.advanceTimers(p, a)
+	end,
+	applyQuickCases = function(p)
+		return PlayerData.applyQuickCases(p)
 	end,
 	addOpponentCase = function(p, a)
 		return PlayerData.addOpponentCase(p, a)

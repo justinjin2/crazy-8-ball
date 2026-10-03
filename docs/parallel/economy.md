@@ -80,6 +80,38 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
     `LogEconomyEvent` fires, HUD reads $1.23M for $1,234,567.
   - Still old until their steps: case prices and the first-win cue (step 2), money packs
     (step 3), daily/playtime/codes/rank rewards (step 5).
+- **Step 2 done (2026-10-03): Case Drops, the six cases, timers, pity, the reveal payload.**
+  - `Config.Cases`: six cases (Standard, Uncommon, Rare, Epic, Legendary, Mythic), odds out of
+    1,000,000 exactly as the plan, timers 0 / 0 / 1 h / 6 h / 24 h / 48 h, Quick Cases x0.5.
+    No case is sold (Price 0, Enabled false; BuyCase answers NotSold). The Event Case is gone.
+    `Config.Cases.Drop`: the six weights, pity Rare by the 10th and Epic by the 150th, the first
+    win's Rare Case.
+  - New pure `Progression/CaseDrop.luau`: roll with pity, climbs, the per-drop rarity % and the
+    climb chances (both match the plan; tested), the payload.
+  - Every real win drops one (anti-farm rules kept; Play against PC: 10 drops a UTC day).
+    The first win's drop is a Rare Case on its normal 1 h timer. Cases land ready (instant) or
+    on a timer; timers finish by themselves on the next change; opening a case on its timer
+    answers "NotReady". Paid-origin cases and cues are tracked (taken first when opened; sold
+    first; a trade will move free copies first). Quick Cases owned halves running timers once.
+  - Announcements: Legendary pulls in the server; Mythic and Secret now in every server.
+  - Dev: `/freecase` now rolls a Case Drop and sends its reveal; new `/skiptime <minutes>`.
+  - Checked: lint, 914 Lune tests (a million drops against the weights, pity at exactly 10 and
+    150, 200,000 rolls per case); Studio: a fresh first win gave a Rare Case on a 1 h timer in
+    `MatchSummary.caseDrop`, opening it early answered NotReady, after skipping the hour it
+    opened, three reward drops came on the `CaseDrop` remote, BuyCase answers NotSold, the
+    inventory and the case reel still work (PC).
+- **For Cutscenes** (the 8-ball reveal): the payload is `{ source, tier, climbs, readyAt,
+  instant, pity = { rare, epic } }` (pity = drops left until guaranteed; 1 = the next).
+  A win's comes in `MatchSummary.caseDrop`; everything else (Mystery, rewards, /freecase) on
+  the new `CaseDrop` RemoteEvent as a list. The case is already in the save when it arrives.
+  Climb chances for any "shake" pacing: `CaseDrop.climbChances()`.
+- **For GUI**: `ItemState` gains `timers = { { id, readyAt, paid } }` (cases on their timers,
+  soonest first; `cases` lists only ready ones). New reason `NotReady` (Strings.Reasons has
+  "Not ready yet"). `MatchSummary.firstWin` is gone (the first win's case waits 1 h);
+  `freeCase` is now the drop's tier. Cue-card % per drop: `CaseDrop.rarityOdds()` /
+  `rarityPercent(rarity)`. New case names in Strings: Uncommon Case, Mythic Case (no chest
+  icons of their own yet: the plain chest shows). The shop's case cards show nothing to buy
+  (`Cases.list()` is empty).
 - **For GUI**: `Format.money` changed (M from $1,000,000). Player attribute `MoneyBoostEnds`
   (unix time the Starter hour ends; 0 none).
 - **For Bots**: the disguised limit counts in `Daily.Disguised` (Ranking, on a disguised win).
@@ -97,7 +129,17 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   from a disguised bot past the limit.
 - `Bootstrap.server.luau`: `EconomyLog.start()` after `Rewards.start()`.
 - `DevCommands.luau` (~line 320): `Money.boost({ vip = true, party = ... })` (a table now).
-- `Items.luau`: `QUIET_OPS` + `countDaily`.
+- `Items.luau`: `QUIET_OPS` + `countDaily`; (step 2) sends `CaseDrop` from
+  `PlayerData.CaseDropped`.
+- (step 2) `Config.Cases` rewritten; `Config.Debug` command alias `SkipTime`. `Strings`: case
+  names Uncommon and Mythic (Event removed), dev command words for `/freecase` and
+  `/skiptime`. `Net`: new `CaseDrop` RemoteEvent; MatchSummary docs (`caseDrop`, no
+  `firstWin`); ItemState `timers`. `PlayerData`: `liveData` finishes timers, `addCasesTo`
+  lands cases with timers, `rollDrop`, `caseDrop`, `advanceTimers`, `applyQuickCases`,
+  `CaseDropped`, reward `drops`, `openCases` NotReady and paid origin. `Ranking`: the free case
+  is now the Case Drop (`giveDrop`), `Ranking.freeCase` returns the tier only. `Announce`:
+  Legendary here, Mythic/Secret published to every server. `Store`: halves timers when Quick
+  Cases is owned. `Catalog`: case cues drop from every case in `Config.Cases.Order`.
 
 ## Requests to other lanes or the integrator
 

@@ -53,6 +53,7 @@ Requests.Reasons = table.freeze({
 	"Restricted", -- BuyCase: paid random items are restricted for this player (ECONOMY 13)
 	"NotEnoughMoney", -- BuyCase, BuyLimited: the reply adds `need` (and `price`)
 	"NoCases", -- OpenCase: fewer unopened cases of that type than asked
+	"NotReady", -- OpenCase: the rest of that case are still on their timers
 	"NoFastOpen", -- OpenCase: more than one at a time needs Fast Open
 	"NotOwned", -- SellCue, EquipCue: the player has none (or fewer than asked)
 	"CantSell", -- SellCue: Exclusive, Unique and Classic never sell
@@ -247,6 +248,7 @@ end
 local FROM_SAVE: { [string]: string } = {
 	NotLoaded = "NotLoaded",
 	NotEnough = "NoCases", -- openCases: fewer cases than cues
+	NotReady = "NotReady", -- openCases: the rest are on their timers
 	Invalid = "Error", -- logged by PlayerData: a bad argument that got past the checks here
 	Unknown = "BadRequest",
 	BadCount = "BadRequest",

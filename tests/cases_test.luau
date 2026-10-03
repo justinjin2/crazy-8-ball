@@ -1,7 +1,7 @@
 --!strict
--- Cases (Progression/Cases): the odds against ECONOMY 7.2 and 9.1, per-cue odds (7.3), seeded
--- rolls, the guarantee, vaulting, prices (bulk, sales), sell-back values (8) and the winner's
--- free case (7.1, 3.6).
+-- Cases (Progression/Cases): the six cases' odds and timers against the approved economy plan
+-- (2026-10-02, section 3), per-cue odds, seeded rolls, the guarantee, vaulting, sell-back values
+-- (ECONOMY 8), announcements and whether a win drops a Case Drop (plan sections 1-2, 3.6).
 
 local H = require("./harness")
 
@@ -9,32 +9,47 @@ local function load()
 	return H.require("Progression.Cases"), H.require("Progression.Catalog"), H.require("Config")
 end
 
--- ECONOMY 7.2 and 9.1, in percent as the tables print them (nil = "-").
+-- The plan's section 3 table, in percent as it prints them (nil = "-").
 local ODDS: { [string]: { [string]: number } } = {
 	Standard = {
-		Common = 64.3,
-		Uncommon = 26,
-		Rare = 8.4,
-		Epic = 1,
-		Legendary = 0.25,
-		Mythic = 0.047,
-		Secret = 0.003,
+		Common = 75,
+		Uncommon = 23,
+		Rare = 1.99,
+		Epic = 0.009,
+		Legendary = 0.0009,
+		Mythic = 0.0001,
+	},
+	Uncommon = {
+		Common = 40,
+		Uncommon = 54,
+		Rare = 5.95,
+		Epic = 0.045,
+		Legendary = 0.0045,
+		Mythic = 0.0005,
 	},
 	Rare = {
-		Uncommon = 62.5,
-		Rare = 31,
-		Epic = 5.5,
-		Legendary = 0.85,
-		Mythic = 0.14,
-		Secret = 0.01,
+		Uncommon = 70,
+		Rare = 29.6,
+		Epic = 0.35,
+		Legendary = 0.045,
+		Mythic = 0.0045,
+		Secret = 0.0005,
 	},
-	Epic = { Rare = 73.4, Epic = 22, Legendary = 4, Mythic = 0.56, Secret = 0.04 },
-	Legendary = { Epic = 76.5, Legendary = 20, Mythic = 3.25, Secret = 0.25 },
-	Event = { Rare = 72.5, Epic = 22, Legendary = 4.6, Mythic = 0.8, Secret = 0.1 },
+	Epic = { Rare = 78, Epic = 19, Legendary = 2.6, Mythic = 0.36, Secret = 0.04 },
+	Legendary = { Epic = 75, Legendary = 22, Mythic = 2.7, Secret = 0.3 },
+	Mythic = { Legendary = 75, Mythic = 22, Secret = 3 },
 }
-local PRICES = { Standard = 150, Rare = 500, Epic = 1500, Legendary = 5000, Event = 2000 }
-local MIN_RARITY =
-	{ Standard = "Common", Rare = "Uncommon", Epic = "Rare", Legendary = "Epic", Event = "Rare" }
+-- Opens in (seconds): instant, instant, 1 h, 6 h, 24 h, 48 h.
+local TIMERS =
+	{ Standard = 0, Uncommon = 0, Rare = 3600, Epic = 21600, Legendary = 86400, Mythic = 172800 }
+local MIN_RARITY = {
+	Standard = "Common",
+	Uncommon = "Common",
+	Rare = "Uncommon",
+	Epic = "Rare",
+	Legendary = "Epic",
+	Mythic = "Legendary",
+}
 
 -- ECONOMY 8: sell-back per copy.
 local SELL = {
@@ -83,8 +98,8 @@ local function ctx(overrides: { [string]: any }?): any
 		real = true,
 		solo = false,
 		won = true,
-		winsBefore = 100,
-		winsTodayBefore = 0,
+		pcLimited = false,
+		pcDropsToday = 0,
 		farmAllows = true,
 		casesFromOpponentToday = 0,
 		loserRealMatches = 100,
@@ -97,22 +112,19 @@ local function ctx(overrides: { [string]: any }?): any
 end
 
 return {
-	["every odds row adds to exactly 100,000 and matches ECONOMY 7.2 and 9.1"] = function()
+	["every odds row adds to exactly 1,000,000 and matches the plan"] = function()
 		local Cases, _, Config = load()
-		H.expect(Config.Cases.OddsTotal == 100000, "OddsTotal")
+		H.expect(Config.Cases.OddsTotal == 1000000, "OddsTotal")
 		local problems = Cases.validate()
 		H.expect(#problems == 0, "validate: " .. table.concat(problems, "; "))
 		for id, row in ODDS do
 			local case = Cases.get(id)
 			H.expect(case ~= nil, id .. " is not a case")
 			assert(case, "no case")
-			H.expect(
-				case.Price == PRICES[id],
-				("%s costs %d, expected %d"):format(id, case.Price, PRICES[id])
-			)
+			H.expect(case.Timer == TIMERS[id], ("%s opens in %d s"):format(id, case.Timer))
 			local sum = 0
 			for _, rarity in Config.Cases.Rarities do
-				local expected = math.floor((row[rarity] or 0) * 1000 + 0.5)
+				local expected = math.floor((row[rarity] or 0) * 10000 + 0.5)
 				local got = case.Odds[rarity] or 0
 				H.expect(
 					got == expected,
@@ -120,11 +132,11 @@ return {
 				)
 				sum += got
 			end
-			H.expect(sum == 100000, ("%s adds to %d"):format(id, sum))
+			H.expect(sum == 1000000, ("%s adds to %d"):format(id, sum))
 			-- odds() lists exactly the rarities with a share, bottom first, with percents.
-			local listed = Cases.odds(id)
 			local previous = 0
-			for _, entry in listed do
+			local total = 0
+			for _, entry in Cases.odds(id) do
 				H.near(
 					entry.percent,
 					row[entry.rarity],
@@ -134,40 +146,46 @@ return {
 				local rank = table.find(Config.Cases.Rarities, entry.rarity) or 0
 				H.expect(rank > previous, id .. " odds out of order")
 				previous = rank
+				total += entry.percent
 			end
+			H.near(total, 100, 1e-9, id .. " percents add to 100")
 			H.expect(Cases.minRarity(id) == MIN_RARITY[id], id .. " guarantee")
 		end
 		H.expect(Cases.odds("Nope")[1] == nil and Cases.minRarity("Nope") == nil, "unknown case")
 	end,
 
-	["list is the enabled cases in shop order; get knows every case"] = function()
-		local Cases = load()
-		local ids = {}
-		for _, case in Cases.list() do
-			table.insert(ids, case.Id)
-		end
+	["six cases on the ladder, none sold for money"] = function()
+		local Cases, _, Config = load()
 		H.expect(
-			table.concat(ids, " ") == "Standard Rare Epic Legendary",
-			"enabled: " .. table.concat(ids, " ")
+			table.concat(Config.Cases.Order, " ") == "Standard Uncommon Rare Epic Legendary Mythic",
+			"the ladder"
 		)
+		H.expect(#Cases.list() == 0, "no case is in the shop")
 		local all = {}
 		for _, case in Cases.list(true) do
 			table.insert(all, case.Id)
+			H.expect(not case.Enabled and case.Price == 0, case.Id .. " is not sold")
 		end
+		H.expect(table.concat(all, " ") == table.concat(Config.Cases.Order, " "), "all")
 		H.expect(
-			table.concat(all, " ") == "Standard Rare Epic Legendary Event",
-			"all: " .. table.concat(all, " ")
-		)
-		local event = Cases.get("Event")
-		H.expect(event ~= nil and event.Enabled == false, "the Event Case is off")
-		H.expect(
-			Cases.get("Nope") == nil and Cases.get(3) == nil and Cases.get(nil) == nil,
+			Cases.get("Event") == nil and Cases.get("Nope") == nil and Cases.get(3) == nil,
 			"unknown ids"
 		)
+		H.expect(Cases.get(nil) == nil, "nil")
+	end,
+
+	["timers: instant to 48 hours, halved with Quick Cases"] = function()
+		local Cases, _, Config = load()
+		H.expect(Config.Cases.QuickTimerFactor == 0.5, "twice as fast")
+		for id, seconds in TIMERS do
+			H.expect(Cases.timer(id) == seconds, id)
+			H.expect(Cases.timer(id, true) == seconds // 2, id .. " quick")
+		end
+		H.expect(Cases.timer("Nope") == 0 and Cases.timer(nil, true) == 0, "unknown: 0")
 	end,
 
 	["per-cue odds split each rarity evenly and total 100"] = function()
-		local Cases, Catalog = load()
+		local Cases, Catalog, Config = load()
 		for _, case in Cases.list(true) do
 			local total = 0
 			local lastRank = 0
@@ -176,7 +194,7 @@ return {
 				local pool = Catalog.droppable(case.Id, entry.rarity)
 				H.near(
 					entry.percent,
-					case.Odds[entry.rarity] / 1000 / #pool,
+					case.Odds[entry.rarity] * 100 / Config.Cases.OddsTotal / #pool,
 					1e-9,
 					case.Id .. " " .. entry.id
 				)
@@ -204,22 +222,21 @@ return {
 			)
 			H.near(total, 100, 1e-9, case.Id .. " total")
 		end
-		-- ECONOMY 7.3's example: in the Legendary Case each of the 7 Legendaries is 2.857%, each
-		-- of the 3 Mythics 1.083%.
+		-- In the Legendary Case each of the 7 Legendaries is 22/7%, each of the 3 Mythics 0.9%.
 		for _, entry in Cases.cueOdds("Legendary") do
 			if entry.rarity == "Legendary" then
-				H.near(entry.percent, 20 / 7, 1e-9, entry.id)
-				H.expect(entry.display == "2.857%", entry.id .. " shows " .. entry.display)
+				H.near(entry.percent, 22 / 7, 1e-9, entry.id)
+				H.expect(entry.display == "3.143%", entry.id .. " shows " .. entry.display)
 			elseif entry.rarity == "Mythic" then
-				H.near(entry.percent, 3.25 / 3, 1e-9, entry.id)
-				H.expect(entry.display == "1.083%", entry.id .. " shows " .. entry.display)
+				H.expect(entry.display == "0.9%", entry.id .. " shows " .. entry.display)
 			elseif entry.rarity == "Secret" then
-				H.expect(entry.display == "0.25%", entry.id .. " shows " .. entry.display)
+				H.expect(entry.display == "0.3%", entry.id .. " shows " .. entry.display)
 			end
 		end
+		-- The rarest share anywhere still reads as more than 0.
 		for _, entry in Cases.cueOdds("Standard") do
-			if entry.rarity == "Secret" then
-				H.expect(entry.display == "0.003%", "Standard Secret shows " .. entry.display)
+			if entry.rarity == "Mythic" then
+				H.expect(entry.display == "0.000033%", "Standard Mythic shows " .. entry.display)
 			end
 		end
 	end,
@@ -291,17 +308,22 @@ return {
 	end,
 
 	["roll uses the rng's top and bottom values and refuses bad input"] = function()
-		local Cases = load()
+		local Cases, Catalog = load()
 		-- rng always 1: the first weight (the guarantee's rarity), the first cue of it.
 		local low, lowRarity = Cases.roll("Epic", function(_n: number): number
 			return 1
 		end)
 		H.expect(lowRarity == "Rare" and low == "HoneycombCue", "lowest roll: " .. low)
-		-- rng always n: the last rarity (Secret), its last cue.
-		local high, highRarity = Cases.roll("Standard", function(n: number): number
+		-- rng always n: the last rarity, its last cue.
+		local high, highRarity = Cases.roll("Rare", function(n: number): number
 			return n
 		end)
 		H.expect(highRarity == "Secret" and high == "EclipseCue", "highest roll: " .. high)
+		local mythics = Catalog.droppable("Standard", "Mythic")
+		local top, topRarity = Cases.roll("Standard", function(n: number): number
+			return n
+		end)
+		H.expect(topRarity == "Mythic" and top == mythics[#mythics].Id, "Standard's top: " .. top)
 		H.expect(not pcall(Cases.roll, "Nope", seeded(1)), "unknown case")
 		H.expect(not pcall(Cases.roll, "Standard", function(n: number): number
 			return n + 1
@@ -314,7 +336,7 @@ return {
 			for _, entry in Cases.cueOdds("Standard") do
 				H.expect(entry.id ~= "MidnightCue", "MidnightCue still listed")
 				if entry.rarity == "Common" then
-					H.near(entry.percent, 64.3 / 6, 1e-9, entry.id)
+					H.near(entry.percent, 75 / 6, 1e-9, entry.id)
 				end
 			end
 			local total = 0
@@ -338,47 +360,6 @@ return {
 		H.expect(#Cases.validate() == 0, "valid again once restored")
 	end,
 
-	["bulk: 10 of any case for the price of 9"] = function()
-		local Cases, _, Config = load()
-		H.expect(Config.Cases.BulkCount == 10 and Config.Cases.BulkPayFor == 9, "10 for 9")
-		for id, price in PRICES do
-			local total, per, onSale = Cases.price(id, 1, 0, nil)
-			H.expect(total == price and per == price and not onSale, id .. " single")
-			total, per, onSale = Cases.price(id, 10, 0, nil)
-			H.expect(total == price * 9 and per == price and not onSale, id .. " bulk: " .. total)
-		end
-		H.expect(Cases.isBuyCount(1) and Cases.isBuyCount(10), "1 and 10")
-		H.expect(
-			not Cases.isBuyCount(2) and not Cases.isBuyCount(0) and not Cases.isBuyCount("10"),
-			"others"
-		)
-		H.expect(not pcall(Cases.price, "Nope", 1, 0, nil), "unknown case has no price")
-		H.expect(not pcall(Cases.price, "Standard", 0, 0, nil), "zero count has no price")
-		H.expect(not pcall(Cases.price, "Standard", 1.5, 0, nil), "fractional count")
-	end,
-
-	["a sale takes its percent off one case until it ends"] = function()
-		local Cases, _, Config = load()
-		local sale = { Case = "Epic", Percent = 20, EndsAt = 1000 }
-		local total, per, onSale = Cases.price("Epic", 1, 999, sale)
-		H.expect(total == 1200 and per == 1200 and onSale, "Epic 20% off: " .. total)
-		total, per, onSale = Cases.price("Epic", 10, 999, sale)
-		H.expect(total == 10800 and per == 1200 and onSale, "Epic bulk on sale: " .. total)
-		total, per, onSale = Cases.price("Epic", 1, 1000, sale)
-		H.expect(total == 1500 and per == 1500 and not onSale, "the sale ends at EndsAt")
-		total, _, onSale = Cases.price("Rare", 1, 999, sale)
-		H.expect(total == 500 and not onSale, "other cases keep their price")
-		-- Rounded half up to whole money: 15% off $150 is $127.50 -> $128.
-		total = Cases.price("Standard", 1, 0, { Case = "Standard", Percent = 15, EndsAt = 10 })
-		H.expect(total == 128, "rounding: " .. total)
-		total, _, onSale =
-			Cases.price("Standard", 1, 0, { Case = "Standard", Percent = 0, EndsAt = 10 })
-		H.expect(total == 150 and not onSale, "0% is no sale")
-		-- Config's default sale is off.
-		total, _, onSale = Cases.price("Standard", 1, 0, Config.Cases.Sale)
-		H.expect(total == 150 and not onSale, "no sale by default")
-	end,
-
 	["sell-back values match ECONOMY 8; confirm from Epic up; only case cues sell"] = function()
 		local Cases, Catalog = load()
 		for _, cue in Catalog.list() do
@@ -398,131 +379,60 @@ return {
 		H.expect(Cases.sellValue("Nope") == 0 and Cases.sellValue(nil) == 0, "unknown ids")
 	end,
 
-	["Mythic and Secret unboxings are announced, nothing else"] = function()
+	["Legendary pulls announce in the server; Mythic and Secret in every server"] = function()
 		local Cases, _, Config = load()
 		for _, rarity in Config.Cases.Rarities do
-			local expected = rarity == "Mythic" or rarity == "Secret"
-			H.expect(Cases.announces(rarity) == expected, rarity)
+			local everywhere = rarity == "Mythic" or rarity == "Secret"
+			H.expect(Cases.announces(rarity) == everywhere, rarity)
+			H.expect(Cases.announcesHere(rarity) == (rarity == "Legendary"), rarity .. " here")
 		end
 	end,
 
-	["free case: the first win ever gives the Rare Case"] = function()
+	["drop: every real win drops one, forever"] = function()
 		local Cases = load()
-		H.expect(
-			Cases.freeCase(ctx({ firstWinEver = true, winsBefore = 0 })) == "Rare",
-			"first win"
-		)
-		-- Against a PC too (the tutorial): the loser's matches are taken as many.
-		H.expect(
-			Cases.freeCase(
-				ctx({ firstWinEver = true, winsBefore = 0, loserRealMatches = math.huge })
-			) == "Rare",
-			"first win against a PC"
-		)
-	end,
-
-	["free case: every one of a new player's first 50 wins"] = function()
-		local Cases = load()
-		for winsBefore = 0, 49 do
-			-- However many wins today: the new-player stretch ignores the daily count.
-			local got =
-				Cases.freeCase(ctx({ winsBefore = winsBefore, winsTodayBefore = 30 + winsBefore }))
-			H.expect(got == "Standard", ("win %d: %s"):format(winsBefore + 1, tostring(got)))
-		end
-		H.expect(
-			Cases.freeCase(ctx({ winsBefore = 50, winsTodayBefore = 30 })) == nil,
-			"win 51 is the 31st today"
-		)
-	end,
-
-	["free case: after 50 wins, the first 10 of the day then every 2nd"] = function()
-		local Cases = load()
-		local dropped = {}
-		for winsToday = 0, 29 do
-			local got =
-				Cases.freeCase(ctx({ winsBefore = 200 + winsToday, winsTodayBefore = winsToday }))
-			if got then
-				H.expect(got == "Standard", "a Standard Case")
-				table.insert(dropped, winsToday + 1)
-			end
-		end
-		H.expect(
-			table.concat(dropped, ",") == "1,2,3,4,5,6,7,8,9,10,12,14,16,18,20,22,24,26,28,30",
-			"wins that drop: " .. table.concat(dropped, ",")
-		)
-		-- A day that crosses the 50th win counts the day's earlier wins too.
-		H.expect(
-			Cases.freeCase(ctx({ winsBefore = 49, winsTodayBefore = 14 })) == "Standard",
-			"the 50th win"
-		)
-		H.expect(
-			Cases.freeCase(ctx({ winsBefore = 50, winsTodayBefore = 15 })) == "Standard",
-			"16th today"
-		)
-		H.expect(
-			Cases.freeCase(ctx({ winsBefore = 51, winsTodayBefore = 16 })) == nil,
-			"17th today"
-		)
-	end,
-
-	["free case: never for solo, a loss or a match that was not real"] = function()
-		local Cases = load()
-		for _, over in { { solo = true }, { won = false }, { real = false } } do
-			H.expect(Cases.freeCase(ctx(over)) == nil, "no case")
-			local first = table.clone(over) :: { [string]: any }
-			first.firstWinEver = true
-			first.winsBefore = 0
-			H.expect(Cases.freeCase(ctx(first)) == nil, "not even the first win's")
+		for _, overrides in { {}, { loserRealMatches = 5 }, { casesFromOpponentToday = 2 } } do
+			local drops, forced = Cases.dropFor(ctx(overrides))
+			H.expect(drops and forced == nil, "a normal roll")
 		end
 	end,
 
-	["free case: the same opponent drops one in matches 1-5 only"] = function()
+	["drop: the first win ever is the Rare Case, under the same anti-farm rules"] = function()
+		local Cases = load()
+		local drops, forced = Cases.dropFor(ctx({ firstWinEver = true }))
+		H.expect(drops and forced == "Rare", "the first win's Rare Case")
+		drops = Cases.dropFor(ctx({ firstWinEver = true, loserRealMatches = 4 }))
+		H.expect(not drops, "a first win against a new account drops nothing")
+		drops = Cases.dropFor(ctx({ firstWinEver = true, farmAllows = false }))
+		H.expect(not drops, "nor on a farm row")
+	end,
+
+	["drop: never for solo, a loss or a match that was not real"] = function()
+		local Cases = load()
+		for _, overrides in { { solo = true }, { won = false }, { real = false } } do
+			H.expect(not (Cases.dropFor(ctx(overrides))), "no drop")
+		end
+	end,
+
+	["drop: the anti-farm rules (matches 6-10, 3 a day from one account, 5 real matches)"] = function()
 		local Cases, _, Config = load()
-		-- The row of Config.Economy.SameOpponent that covers the nth match with one account.
-		local function farmRow(match: number): any
-			for _, row in Config.Economy.SameOpponent do
-				if row.UpTo == nil or match <= row.UpTo then
-					return row
-				end
-			end
-			error("no row")
-		end
-		for match = 1, 15 do
-			local got = Cases.freeCase(ctx({ farmAllows = farmRow(match).FreeCase }))
-			H.expect(
-				(got ~= nil) == (match <= 5),
-				("match %d with the same account: %s"):format(match, tostring(got))
-			)
-		end
-	end,
-
-	["free case: at most 3 a day from one account"] = function()
-		local Cases, _, Config = load()
-		H.expect(Config.Economy.FreeCasesPerOpponent == 3, "3 a day")
-		for already = 0, 5 do
-			local got = Cases.freeCase(ctx({ casesFromOpponentToday = already }))
-			H.expect(
-				(got ~= nil) == (already < 3),
-				("%d already: %s"):format(already, tostring(got))
-			)
-		end
-	end,
-
-	["free case: the loser must have played 5 real matches"] = function()
-		local Cases, _, Config = load()
-		H.expect(Config.Economy.FreeCaseLoserMinMatches == 5, "5 matches")
-		for matches = 0, 6 do
-			local got = Cases.freeCase(ctx({ loserRealMatches = matches }))
-			H.expect(
-				(got ~= nil) == (matches >= 5),
-				("loser with %d matches: %s"):format(matches, tostring(got))
-			)
-		end
-		-- A fresh alt can't feed the first win's Rare Case either.
+		local E = Config.Economy
+		H.expect(not (Cases.dropFor(ctx({ farmAllows = false }))), "a row with no case")
 		H.expect(
-			Cases.freeCase(ctx({ firstWinEver = true, winsBefore = 0, loserRealMatches = 0 }))
-				== nil,
-			"alt"
+			not (Cases.dropFor(ctx({ casesFromOpponentToday = E.FreeCasesPerOpponent }))),
+			"3 from one account"
 		)
+		H.expect(
+			not (Cases.dropFor(ctx({ loserRealMatches = E.FreeCaseLoserMinMatches - 1 }))),
+			"a loser with too few real matches"
+		)
+	end,
+
+	["drop: Play against PC drops only for the first 10 PC wins of a day"] = function()
+		local Cases, _, Config = load()
+		local cap = Config.Economy.PcDropsPerDay
+		H.expect(cap == 10, "the plan's 10")
+		H.expect(Cases.dropFor(ctx({ pcLimited = true, pcDropsToday = cap - 1 })), "the 10th")
+		H.expect(not (Cases.dropFor(ctx({ pcLimited = true, pcDropsToday = cap }))), "the 11th")
+		H.expect(Cases.dropFor(ctx({ pcLimited = false, pcDropsToday = 99 })), "people: no cap")
 	end,
 }

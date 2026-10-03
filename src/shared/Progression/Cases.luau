@@ -1,6 +1,6 @@
 --!strict
--- Cases (ECONOMY sections 7, 8 and 9.1): the case rows, their odds, rolling one, prices, sell-back
--- values and the winner's free case. Pure: no Instances, no Roblox APIs, no clocks and no
+-- Cases (ECONOMY sections 7, 8 and 9.1): the case rows, their odds and timers, rolling one,
+-- sell-back values and whether a win drops a case (the Case Drop itself: Progression/CaseDrop). Pure: no Instances, no Roblox APIs, no clocks and no
 -- randomness of its own (the caller passes an rng, so the server uses Random.new() and the tests
 -- a seeded generator). Every list is walked in a Config or Catalog array order, never hash order.
 --
@@ -15,15 +15,17 @@ local C = Config.Cases
 local E = Config.Economy
 
 -- Config's literal tables, typed as the maps they are (indexed by a runtime id).
-type CaseConfig = { Price: number, Enabled: boolean, Odds: { [string]: number } }
+type CaseConfig = { Timer: number, Price: number, Enabled: boolean, Odds: { [string]: number } }
 local LIST: { [string]: CaseConfig } = C.List :: any
 local SELL_BACK: { [string]: number } = C.SellBack :: any
 local ANNOUNCE: { [string]: boolean } = C.Announce :: any
+local ANNOUNCE_HERE: { [string]: boolean } = C.AnnounceHere :: any
 
 export type Case = {
 	Id: string,
-	Price: number, -- the normal price of one
-	Enabled: boolean, -- sold in the shop (a disabled case can still be given and opened)
+	Timer: number, -- seconds from landing until it opens (0: at once)
+	Price: number, -- the old shop price (0: no case is sold)
+	Enabled: boolean, -- sold in the shop (none is; a case can still be given and opened)
 	Odds: { [string]: number }, -- rarity -> thousandths of a percent (the Config row itself)
 }
 
@@ -45,13 +47,15 @@ export type CueOdds = {
 -- now < EndsAt (a unix time).
 export type Sale = { Case: string, Percent: number, EndsAt: number }
 
--- What the free-case rule needs to know about a settled match, for one winner.
-export type FreeCaseContext = {
+-- What the Case Drop rule needs to know about a settled match, for one winner.
+export type DropContext = {
 	real: boolean, -- a real match: past the one-minute mark, not a quick forfeit (people or PC)
 	solo: boolean,
 	won: boolean,
-	winsBefore: number, -- Progress.Wins before this win
-	winsTodayBefore: number, -- Daily.Wins before this win (this UTC day)
+	-- Play against PC (the PC money rows): drops only for the first Config.Economy
+	-- .PcDropsPerDay such wins a UTC day (`pcDropsToday` so far).
+	pcLimited: boolean,
+	pcDropsToday: number,
 	farmAllows: boolean, -- the Config.Economy.SameOpponent row's FreeCase for this pairing
 	casesFromOpponentToday: number, -- free cases already won from this account today
 	loserRealMatches: number, -- the loser's real matches (a PC: any large number)
@@ -82,7 +86,23 @@ function Cases.get(id: any): Case?
 	if row == nil then
 		return nil
 	end
-	return { Id = id, Price = row.Price, Enabled = row.Enabled, Odds = row.Odds }
+	return {
+		Id = id,
+		Timer = row.Timer,
+		Price = row.Price,
+		Enabled = row.Enabled,
+		Odds = row.Odds,
+	}
+end
+
+--- Seconds from landing until case `id` opens (0 for an instant case or an unknown id), halved
+--- with Quick Cases (Config.Cases.QuickTimerFactor, rounded up to a whole second).
+function Cases.timer(id: any, quick: boolean?): number
+	local case = Cases.get(id)
+	if case == nil or case.Timer <= 0 then
+		return 0
+	end
+	return if quick then math.ceil(case.Timer * C.QuickTimerFactor) else case.Timer
 end
 
 --- The cases in shop order (Config.Cases.Order): only enabled ones unless includeDisabled.
@@ -200,6 +220,10 @@ function Cases.validate(): { string }
 		if sum ~= C.OddsTotal then
 			problem(("case %s odds add to %d, not %d"):format(id, sum, C.OddsTotal))
 		end
+		local timer = row.Timer
+		if type(timer) ~= "number" or timer < 0 or timer ~= math.floor(timer) then
+			problem(("case %s timer %s is not whole seconds"):format(id, tostring(timer)))
+		end
 		for _, rarity in C.Rarities do
 			if (row.Odds[rarity] or 0) > 0 and #Catalog.droppable(id, rarity) == 0 then
 				problem(
@@ -274,7 +298,7 @@ end
 -- Prices
 ---------------------------------------------------------------------------------------------
 
---- True for a count one purchase or open may name: 1, or the bulk count (10 for the price of 9).
+--- True for a count one purchase may name: 1, or the bulk count (the old shop; nothing is sold).
 function Cases.isBuyCount(count: any): boolean
 	return count == 1 or count == C.BulkCount
 end
@@ -326,50 +350,47 @@ function Cases.needsConfirm(cueId: any): boolean
 	return Catalog.rarityRank(cue.Rarity) >= Catalog.rarityRank(C.ConfirmSellFrom)
 end
 
---- True when unboxing a cue of this rarity is announced to the whole server (Mythic, Secret).
+--- True when unboxing a cue of this rarity is announced in every server (Mythic, Secret).
 function Cases.announces(rarity: string): boolean
 	return ANNOUNCE[rarity] == true
 end
 
+--- True when unboxing a cue of this rarity is announced in the opener's server only
+--- (Config.Cases.AnnounceHere: Legendary).
+function Cases.announcesHere(rarity: string): boolean
+	return ANNOUNCE_HERE[rarity] == true
+end
+
 ---------------------------------------------------------------------------------------------
--- The winner's free case (ECONOMY 7.1, 3.6)
+-- The win's Case Drop (economy plan sections 1 and 2; ECONOMY 3.6)
 ---------------------------------------------------------------------------------------------
 
---- The case a winner gets for this match, or nil. Never for a loss, solo, a match that was
---- not real, a same-opponent row that forbids it, FreeCasesPerOpponent cases from this account
---- today already, or a loser with fewer than FreeCaseLoserMinMatches real matches (the
---- anti-farm rules apply to the first win too). Then: the first win ever gives FirstWinCase;
---- a player with fewer than NewPlayerWins wins gets FreeCase every win; after that this is win
---- n = winsTodayBefore + 1 of the UTC day, and FreeCase drops for n <= DailyWins and then every
---- EveryAfter-th win after them (with 10 and 2: the 1st-10th, then the 12th, 14th, 16th ...).
---- The daily count includes wins from the new-player stretch.
-function Cases.freeCase(ctx: FreeCaseContext): string?
+--- Whether this win drops a Case Drop, and the tier it is forced to (the first win's Rare
+--- Case) or nil for a normal roll. Every real win drops one, except: a loss, solo, a match that
+--- was not real, a same-opponent row that forbids it, FreeCasesPerOpponent drops from this
+--- account today already, a loser with fewer than FreeCaseLoserMinMatches real matches (the
+--- anti-farm rules apply to the first win too), or Play against PC past PcDropsPerDay drops
+--- today.
+function Cases.dropFor(ctx: DropContext): (boolean, string?)
 	if not ctx.won or not ctx.real or ctx.solo then
-		return nil
+		return false, nil
+	end
+	if ctx.pcLimited and ctx.pcDropsToday >= E.PcDropsPerDay then
+		return false, nil
 	end
 	if not ctx.farmAllows then
-		return nil
+		return false, nil
 	end
 	if ctx.casesFromOpponentToday >= E.FreeCasesPerOpponent then
-		return nil
+		return false, nil
 	end
 	if ctx.loserRealMatches < E.FreeCaseLoserMinMatches then
-		return nil
+		return false, nil
 	end
 	if ctx.firstWinEver then
-		return C.FirstWinCase
+		return true, C.Drop.FirstWin
 	end
-	if ctx.winsBefore < C.NewPlayerWins then
-		return C.FreeCase
-	end
-	local winToday = ctx.winsTodayBefore + 1
-	if winToday <= C.DailyWins then
-		return C.FreeCase
-	end
-	if (winToday - C.DailyWins) % C.EveryAfter == 0 then
-		return C.FreeCase
-	end
-	return nil
+	return true, nil
 end
 
 return Cases

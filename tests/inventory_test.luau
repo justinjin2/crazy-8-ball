@@ -8,11 +8,20 @@ local function load()
 	return H.require("Progression.Inventory"), H.require("Progression.Catalog"), H.require("Config")
 end
 
--- The save v2 sections the inventory works on.
+-- The save v6 sections the inventory works on.
 local function newSave(): any
 	return {
 		Money = 0,
-		Inventory = { Cues = {}, Unique = {}, Cases = {}, New = {} },
+		Inventory = {
+			Cues = {},
+			PaidCues = {},
+			Unique = {},
+			PaidUnique = {},
+			Cases = {},
+			PaidCases = {},
+			Timers = {},
+			New = {},
+		},
 		Index = { Seen = {}, Rows = {} },
 		Titles = {},
 		Equipped = { Cue = "Classic" },
@@ -236,22 +245,26 @@ return {
 		end
 	end,
 
-	["unopened cases stack per type"] = function()
+	["ready cases stack per type and origin; paid ones are taken first"] = function()
 		local Inventory = load()
 		local save = newSave()
 		H.expect(
 			Inventory.addCases(save, "Standard", 2) and Inventory.addCases(save, "Rare"),
 			"add"
 		)
-		H.expect(
-			Inventory.caseCount(save, "Standard") == 2 and Inventory.caseCount(save, "Rare") == 1,
-			"counts"
-		)
-		H.expect(Inventory.addCases(save, "Event"), "a switched-off case can still be given")
-		H.expect(not Inventory.takeCases(save, "Standard", 3), "not enough")
-		H.expect(Inventory.caseCount(save, "Standard") == 2, "unchanged")
-		H.expect(Inventory.takeCases(save, "Standard", 2), "take both")
-		H.expect(save.Inventory.Cases.Standard == nil, "the key goes at 0")
+		H.expect(Inventory.addCases(save, "Standard", 1, true), "a paid one")
+		H.expect(Inventory.caseCount(save, "Standard") == 3, "free and paid together")
+		H.expect(Inventory.paidCases(save, "Standard") == 1, "one paid")
+		H.expect(Inventory.caseCount(save, "Rare") == 1, "Rare")
+		H.expect(not Inventory.addCases(save, "Event"), "no Event Case any more")
+		H.expect(not Inventory.takeCases(save, "Standard", 4), "not enough")
+		H.expect(Inventory.caseCount(save, "Standard") == 3, "unchanged")
+		local ok, paid = Inventory.takeCases(save, "Standard", 2)
+		H.expect(ok and paid == 1, "the paid one goes first")
+		H.expect(save.Inventory.PaidCases.Standard == nil, "the paid key goes at 0")
+		H.expect(save.Inventory.Cases.Standard == 2 - 1, "one free left")
+		ok, paid = Inventory.takeCases(save, "Standard", 1)
+		H.expect(ok and paid == 0 and save.Inventory.Cases.Standard == nil, "the last free one")
 		H.expect(not Inventory.takeCases(save, "Epic"), "none")
 		H.expect(
 			not Inventory.addCases(save, "Nope") and not Inventory.addCases(save, "Rare", 0),
@@ -262,6 +275,96 @@ return {
 			"bad take"
 		)
 		H.expect(Inventory.caseCount(save, "Nope") == 0, "unknown case")
+	end,
+
+	["a landing case: instant ones are ready, timed ones start their timer"] = function()
+		local Inventory = load()
+		local save = newSave()
+		local now = 1800000000
+		H.expect(Inventory.landCase(save, "Standard", now) == 0, "Standard is instant")
+		H.expect(Inventory.landCase(save, "Uncommon", now, false, true) == 0, "Uncommon too")
+		H.expect(Inventory.caseCount(save, "Standard") == 1, "ready at once")
+		H.expect(Inventory.paidCases(save, "Uncommon") == 1, "paid origin kept")
+		H.expect(Inventory.landCase(save, "Rare", now) == now + 3600, "a Rare: 1 h")
+		H.expect(Inventory.landCase(save, "Epic", now, true, true) == now + 3 * 3600, "Quick")
+		H.expect(Inventory.landCase(save, "Mythic", now + 0.7) == now + 48 * 3600, "whole")
+		H.expect(Inventory.landCase(save, "Nope", now) == nil, "unknown")
+		H.expect(Inventory.caseCount(save, "Rare") == 0, "not ready yet")
+		H.expect(Inventory.readyCount(save, "Rare", now + 3599) == 0, "a second early")
+		H.expect(Inventory.readyCount(save, "Rare", now + 3600) == 1, "ready on time")
+		local timers = Inventory.timers(save)
+		H.expect(#timers == 3 and timers[1].id == "Rare" and timers[2].id == "Epic", "soonest")
+		H.expect(timers[2].paid and not timers[1].paid, "origin")
+		-- Nothing moves before its time; then each joins its stack.
+		H.expect(Inventory.finishTimers(save, now + 3599) == 0, "none yet")
+		H.expect(Inventory.finishTimers(save, now + 3 * 3600) == 2, "Rare and Epic")
+		H.expect(Inventory.caseCount(save, "Rare") == 1, "Rare ready")
+		H.expect(Inventory.paidCases(save, "Epic") == 1, "the paid Epic is paid")
+		H.expect(#save.Inventory.Timers == 1 and save.Inventory.Timers[1].Case == "Mythic", "")
+		-- A skip finishes one named timer at once.
+		local mythicAt = save.Inventory.Timers[1].At
+		H.expect(not Inventory.finishTimer(save, "Mythic", mythicAt + 1), "no such timer")
+		H.expect(Inventory.finishTimer(save, "Mythic", mythicAt), "skipped")
+		H.expect(Inventory.caseCount(save, "Mythic") == 1 and #save.Inventory.Timers == 0, "")
+	end,
+
+	["Quick Cases halves the time left on running timers"] = function()
+		local Inventory = load()
+		local save = newSave()
+		local now = 1800000000
+		Inventory.landCase(save, "Legendary", now) -- 24 h
+		Inventory.landCase(save, "Rare", now - 3600) -- already done
+		H.expect(Inventory.halveTimers(save, now + 3600) == 1, "only the running one")
+		local t = Inventory.timers(save)
+		-- 23 h were left an hour in: half of that is 11.5 h.
+		H.expect(t[2].id == "Legendary" and t[2].readyAt == now + 3600 + 23 * 1800, "halved")
+		H.expect(t[1].readyAt == now, "a finished one is left alone")
+	end,
+
+	["MaxTimerEntries: a case past the cap lands ready"] = function()
+		local Inventory, _, Config = load()
+		local save = newSave()
+		for i = 1, Config.Save.MaxTimerEntries do
+			save.Inventory.Timers[i] = { Case = "Rare", At = 2000000000, Paid = false }
+		end
+		H.expect(Inventory.landCase(save, "Epic", 1800000000) == 0, "ready, no new timer")
+		H.expect(#save.Inventory.Timers == Config.Save.MaxTimerEntries, "the list stays")
+		H.expect(Inventory.caseCount(save, "Epic") == 1, "ready")
+	end,
+
+	["paid cues: counted on add, sold first, traded last"] = function()
+		local Inventory = load()
+		local save = newSave()
+		Inventory.addCue(save, "MidnightCue", 2)
+		Inventory.addCue(save, "MidnightCue", 2, true)
+		H.expect(Inventory.count(save, "MidnightCue") == 4, "four held")
+		H.expect(Inventory.paidCount(save, "MidnightCue") == 2, "two paid")
+		-- A sale takes paid copies first.
+		H.expect(Inventory.removeCue(save, "MidnightCue", 1), "sell one")
+		H.expect(Inventory.removedPaid() == 1 and Inventory.paidCount(save, "MidnightCue") == 1, "")
+		-- A trade takes free copies first.
+		H.expect(Inventory.removeCue(save, "MidnightCue", 2, true), "trade two")
+		H.expect(Inventory.removedPaid() == 0 and Inventory.paidCount(save, "MidnightCue") == 1, "")
+		H.expect(Inventory.removeCue(save, "MidnightCue", 1, true), "the last")
+		H.expect(Inventory.removedPaid() == 1 and save.Inventory.PaidCues.MidnightCue == nil, "")
+		-- A Unique cue: one copy, paid or not.
+		H.expect(Inventory.addUnique(save, "FoundersCue", 7, true), "a bought Unique")
+		H.expect(Inventory.paidCount(save, "FoundersCue") == 1, "paid")
+		H.expect(Inventory.removeCue(save, "FoundersCue"), "gone")
+		H.expect(Inventory.removedPaid() == 1 and save.Inventory.PaidUnique.FoundersCue == nil, "")
+		H.expect(Inventory.paidCount(save, "Nope") == 0, "unknown")
+	end,
+
+	["the snapshot lists ready cases and running timers"] = function()
+		local Inventory = load()
+		local save = newSave()
+		Inventory.addCases(save, "Uncommon", 2)
+		Inventory.landCase(save, "Epic", 1800000000, false, true)
+		local snap = Inventory.snapshot(save)
+		H.expect(#snap.cases == 1 and snap.cases[1].id == "Uncommon", "ready")
+		H.expect(snap.cases[1].count == 2, "count")
+		H.expect(#snap.timers == 1 and snap.timers[1].id == "Epic", "timer")
+		H.expect(snap.timers[1].readyAt == 1800000000 + 6 * 3600 and snap.timers[1].paid, "")
 	end,
 
 	["duplicates are case cues above one, in catalog order"] = function()

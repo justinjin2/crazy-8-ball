@@ -19,8 +19,11 @@
 --   Items.setSale (the /sale dev command). Mirrored on ReplicatedStorage attributes CaseSale,
 --   CaseSalePercent and CaseSaleEndsAt; Items.SaleChanged fires on every change and when it
 --   ends, so the Store can send ShopState again.
--- - Copies in existence move with every open, sale and Limited buy (Counters.add); a Mythic or
---   Secret unboxed is announced (Announce.unbox).
+-- - Copies in existence move with every open, sale and Limited buy (Counters.add); a Legendary,
+--   Mythic or Secret unboxed is announced (Announce.unbox).
+-- - CaseDrop (a RemoteEvent): Case Drops that landed outside a match result (PlayerData
+--   .CaseDropped, every source but "Win", whose drop rides on MatchSummary.caseDrop), for the
+--   8-ball reveal. No case is sold for money (BuyCase answers NotSold).
 -- - CueFound (a RemoteEvent): the cues that just entered a player's Index for the first time
 --   and the finder's money each paid (PlayerData.CueFound: every source but a case reel, whose
 --   answers carry it), so the client can say so.
@@ -635,6 +638,18 @@ function Items.start()
 	PlayerData.CueFound:Connect(function(player: Player, finds: { PlayerData.Find })
 		if player.Parent == Players then
 			found:FireClient(player, finds)
+		end
+	end)
+	local dropped = Net.get("CaseDrop") :: RemoteEvent
+	PlayerData.CaseDropped:Connect(function(player: Player, drops: { any })
+		local list = {}
+		for _, drop in drops do
+			if drop.source ~= "Win" then
+				table.insert(list, drop)
+			end
+		end
+		if #list > 0 and player.Parent == Players then
+			dropped:FireClient(player, list)
 		end
 	end)
 	RunService.Heartbeat:Connect(flushPushes)

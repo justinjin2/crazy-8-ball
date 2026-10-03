@@ -563,6 +563,7 @@ local ECON: { string } = {
 	"Policy",
 	"Sale",
 	"FreeCase",
+	"SkipTime",
 }
 
 -- Whether a cue's copies in existence are counted (Counters), as the game counts them: every
@@ -894,20 +895,18 @@ local function sale(player: Player, args: { string })
 	end
 end
 
--- /freecase: the free-case rule run as if the caller had just won a real match (Ranking).
+-- /freecase: the Case Drop rule run as if the caller had just won a real match (Ranking).
 local function freeCase(player: Player)
 	if not PlayerData.isLoaded(player) then
 		tell(player, Dev.NotLoaded)
 		return
 	end
-	local caseId, cue = Ranking.freeCase(player)
+	local caseId = Ranking.freeCase(player)
 	local progress = PlayerData.progress(player)
 	local daily = PlayerData.dailyState(player)
 	local wins = if progress then progress.Wins else 0
 	local today = if daily then daily.Wins else 0
-	if caseId and cue then
-		tell(player, Dev.FreeCaseFirst:format(caseName(caseId), cueName(cue), today, wins))
-	elseif caseId then
+	if caseId then
 		tell(player, Dev.FreeCaseGave:format(caseName(caseId), today, wins))
 	else
 		tell(player, Dev.FreeCaseNone:format(today, wins))
@@ -1229,6 +1228,18 @@ function DevCommands.start()
 	end)
 	command("Sale", D.Sale, sale)
 	command("FreeCase", D.FreeCase, freeCase)
+	command("SkipTime", D.SkipTime, function(player, args)
+		local minutes = wholeIn(args[1], 1, 365 * 24 * 60)
+		if minutes == nil then
+			try(player, "SkipTime")
+			return
+		end
+		if PlayerData.advanceTimers(player, minutes * 60) then
+			tell(player, Dev.SkipTime:format(minutes))
+		else
+			tell(player, Dev.NotLoaded)
+		end
+	end)
 	command("EconHelp", D.EconHelp, econHelp)
 
 	-- Ultimates.

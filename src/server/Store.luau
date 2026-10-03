@@ -221,6 +221,10 @@ local function setAttributes(player: Player, shopSave: any?)
 	if player:GetAttribute(ATTR.FastOpen) ~= fastOpen then
 		player:SetAttribute(ATTR.FastOpen, fastOpen)
 	end
+	-- Quick Cases also halves the case timers already running, once (PlayerData).
+	if fastOpen and type(shopSave) == "table" and shopSave.QuickApplied == false then
+		task.defer(PlayerData.applyQuickCases, player)
+	end
 end
 
 -- Sends one player's ShopState now, sets their attributes, and gives the VIP Cue when due.

@@ -8,8 +8,8 @@
 -- Team matches (ECONOMY 3.3, overnight assumptions 2026-09-28):
 -- - the anti-farm row uses the most-played account on the other side today;
 -- - the gap uses the other side's average division, Unranked counting as Bronze I;
--- - a winner's free case needs at least one loser with enough real matches (the most
---   experienced loser counts), may drop while no loser has given FreeCasesPerOpponent cases
+-- - a winner's Case Drop needs at least one loser with enough real matches (the most
+--   experienced loser counts), may drop while no loser has given FreeCasesPerOpponent drops
 --   today, and counts against every loser's account.
 local Config = require(script.Parent.Parent.Config)
 local Cases = require(script.Parent.Cases)
@@ -22,18 +22,18 @@ local E = Config.Economy
 local EIGHT_LOSSES: { [string]: boolean } =
 	{ EarlyEight = true, WrongPocket = true, FoulEight = true, EightOffTable = true }
 
--- One account on the losing side, for the winner's free case. `realMatches` nil: not known
+-- One account on the losing side, for the winner's Case Drop. `realMatches` nil: not known
 -- (the account is not in this server and left nothing behind), which never allows a case.
 export type Loser = { realMatches: number?, casesToday: number }
 
--- What the free-case rule needs about one player's settled match (Settle.freeCaseContext).
-export type FreeCaseFacts = {
+-- What the Case Drop rule needs about one player's settled match (Settle.dropContext).
+export type DropFacts = {
 	real: boolean, -- past the one-minute mark
 	solo: boolean,
 	won: boolean,
-	pc: boolean, -- against the computer: no account to farm, the loser rule is met
-	winsBefore: number, -- Progress.Wins before this match
-	winsTodayBefore: number, -- today's Daily.Wins before this match
+	pc: boolean, -- against the computer or a bot: no account to farm, the loser rule is met
+	pcLimited: boolean?, -- paid the PC rows (Play against PC): PcDropsPerDay drops a day
+	pcDropsToday: number?, -- today's Daily.PcDrops before this match
 	firstWinDue: boolean, -- the first win's Rare Case was never given (Progress.FirstWinCaseDue)
 	farmAllows: boolean, -- the anti-farm row's FreeCase (Money.farmRow)
 	losers: { Loser }, -- the other side's accounts (empty against PC)
@@ -255,11 +255,11 @@ function Settle.boosts(f: {
 	}
 end
 
---- The free-case rule's context (Cases.freeCase) for one player's settled match. Against PC
---- there is no account: no cases from it yet, and the loser rule is met. Otherwise the most
+--- The Case Drop rule's context (Cases.dropFor) for one player's settled match. Against PC
+--- there is no account: no drops from it yet, and the loser rule is met. Otherwise the most
 --- experienced loser counts for FreeCaseLoserMinMatches (an unknown one counts 0) and the
---- loser who has given the most cases today counts for FreeCasesPerOpponent.
-function Settle.freeCaseContext(f: FreeCaseFacts): Cases.FreeCaseContext
+--- loser who has given the most drops today counts for FreeCasesPerOpponent.
+function Settle.dropContext(f: DropFacts): Cases.DropContext
 	local casesToday, loserMatches = 0, 0
 	if f.pc then
 		loserMatches = math.huge
@@ -273,8 +273,8 @@ function Settle.freeCaseContext(f: FreeCaseFacts): Cases.FreeCaseContext
 		real = f.real == true,
 		solo = f.solo == true,
 		won = f.won == true,
-		winsBefore = whole(f.winsBefore),
-		winsTodayBefore = whole(f.winsTodayBefore),
+		pcLimited = f.pcLimited == true,
+		pcDropsToday = whole(f.pcDropsToday),
 		farmAllows = f.pc or f.farmAllows == true,
 		casesFromOpponentToday = casesToday,
 		loserRealMatches = loserMatches,
