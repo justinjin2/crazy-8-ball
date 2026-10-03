@@ -211,6 +211,24 @@ by step (steps 1-10 of the brief).
     with the pill counting -> /skiptime -> "Your case is ready!" + "Ready!" pill -> Inventory
     -> Done. Console clean. Not yet: phone and gamepad (step 10).
 
+- **Step 8 done: skip, cancel and resume** (nothing new to build; checked). Skip tutorial
+  asks "Skip the tutorial?" Yes / No. Yes ends it (Skipped). Stepping on another table ends
+  it at once (Cancelled, "OtherTable"); a second real player on the pad before the bot comes
+  is "Friend". Either way everything shows, the held day-1 claim comes (funnel 18) and
+  TutorialExit logs why. Skipped in game 1, the game goes on with no guidance, and the bot
+  keeps playing badly with the 8 guard on: the rig stays on the table until that game ends.
+  The first win is then the normal one: Bronze held, its drop rolled normally (not the
+  forced Standard), the Rare Case, and the GUI popups, since TutorialActive is off.
+  Resume: game 1 starts over from the arrow, the queue goes back to game 2's arrow, and every
+  other step resumes where it was (Steps.resume, tested).
+  - Checked: Studio PC: Arrow1 -> stepped on table 5 instead of the reserved 2 -> Cancelled,
+    the full host card and all menus, ClaimedDaily, TutorialExit LeftOtherTable. A real game 1
+    -> the aim lesson -> Skip -> "Skip the tutorial?" -> Yes -> Skipped, guidance gone, the
+    same game still on, TutorialExit LeftSkip, ClaimedDaily. Console clean.
+  - **For the designer by hand**: a friend stepping on the pad with a new player (needs two
+    players), and leaving then rejoining at each step (Studio's test saves reset on Stop, so a
+    real rejoin needs the published game).
+
 ### Rule changes for everyone (made in this lane; the integrator moves them to the docs)
 
 - Reaching Bronze gives 1 Case Drop (was 2), given at once after the first win.
@@ -385,7 +403,6 @@ by step (steps 1-10 of the brief).
   1 s. A direct bot match that skips the queue would need a fake search inside TableService.
 - 2026-10-03 (lane): in the first server the result screen shows no daily-reward line (Free
   Reward is hidden and its claim waits for the real server).
-
 - 2026-10-03 (lane): the nudges' "lobby only" means not on a table's pad or seat; a popup or
   an open menu also holds a nudge back for the moment. The Rank nudge is skipped when nothing
   is held (claimed already), and a later rank-up does not bring it back.
