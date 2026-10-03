@@ -982,6 +982,14 @@ return {
 		SellConfirm = "Sell one %s %s for %s?",
 		SellYes = "Sell",
 		SellNo = "Keep",
+		-- GUI lane (2026-10-03): the case pops up first, then the landing card.
+		OpenTouch = "Tap to open!",
+		OpenMouse = "Click to open!",
+		OpenPad = "Open", -- after the gamepad's A button picture
+		YouPulled = "YOU PULLED",
+		Odds = "%s chance", -- the cue's odds in this case ("0.3% chance")
+		Keep = "Keep",
+		KeepNext = "Keep, open next (%s)", -- cases of this type left
 	},
 	-- The banner at the top middle (Banner). Names are players' usernames.
 	Banner = {

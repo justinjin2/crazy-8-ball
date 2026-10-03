@@ -15,7 +15,12 @@
 --   (Mythic's drifts through its pastels, Secret's breathes red), the prize card bounces with a
 --   thick edge in that colour; after a short hold the reel reports it is done.
 -- - skip() jumps straight to the prize (a tap, A or B).
+-- - Each card reads the cue's name and its odds in its rarity's colour (GUI lane, 2026-10-03).
+-- - About 1 roll in 5 (Reel.NearMissChance; designer, D15) a rarer cue sits next to the prize
+--   (ReelPlan): the reel slows onto it, waits a beat, then ticks over onto the prize. The prize
+--   is always the server's and always where it ends; a skip lands on it at once.
 -- Built in natural pixels inside a CaseOpeningFx stage; layout(width) sizes it.
+local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -25,6 +30,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local ProgressionRules = Shared:WaitForChild("Progression")
 local Cases = require(ProgressionRules:WaitForChild("Cases"))
 local Catalog = require(ProgressionRules:WaitForChild("Catalog"))
+local ReelPlan = require(ProgressionRules:WaitForChild("ReelPlan"))
 local CaseOpeningFx = require(script.Parent.CaseOpeningFx)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
@@ -45,10 +51,14 @@ type Slot = {
 	edge: UIStroke,
 	thumb: Frame,
 	dressing: CueThumb.Dressing,
+	name: TextLabel,
+	odds: TextLabel,
 }
 
 local Reel = {}
 Reel.__index = Reel
+
+local ODDS_TEXT: { [string]: string } = {} -- a cue's odds in the case being opened ("0.3%")
 
 local function pitch(): number
 	return R.CardWidthPx + R.GapPx
@@ -67,6 +77,7 @@ local function pool(caseId: string): ({ { id: string, rarity: string } }, { numb
 	end
 	local cues, weights, total = {}, {}, 0
 	for _, entry in odds do
+		ODDS_TEXT[entry.id] = entry.display
 		local weight = math.max(0, entry.percent) ^ R.WeightPower
 		if weight > 0 then
 			table.insert(cues, { id = entry.id, rarity = entry.rarity })
@@ -110,6 +121,18 @@ local function makeCard(parent: Instance, index: number, id: string, rarity: str
 	thumb.Position = UDim2.fromScale(0.5, R.ThumbCentreShare)
 	thumb.Size = UDim2.fromOffset(side, side)
 	thumb.ZIndex = 2
+	local name = HudParts.text(frame, "Name", R.NameTextPx, CueThumb.cueName(id))
+	name.AnchorPoint = Vector2.new(0.5, 0)
+	name.Position = UDim2.fromScale(0.5, R.NameTopShare)
+	name.Size = UDim2.new(1, -8, 0, R.NameTextPx + 4)
+	name.ZIndex = 3
+	local odds = HudParts.text(frame, "Odds", R.OddsTextPx, ODDS_TEXT[id] or "")
+	odds.AnchorPoint = Vector2.new(0.5, 0)
+	odds.Position = UDim2.fromScale(0.5, R.OddsTopShare)
+	odds.Size = UDim2.new(1, -8, 0, R.OddsTextPx + 4)
+	odds.TextColor3 = CueThumb.accentColor(rarity)
+	odds.TextWrapped = false
+	odds.ZIndex = 3
 	return {
 		id = id,
 		rarity = rarity,
@@ -117,7 +140,20 @@ local function makeCard(parent: Instance, index: number, id: string, rarity: str
 		edge = edge,
 		thumb = thumb,
 		dressing = dressing,
+		name = name,
+		odds = odds,
 	}
+end
+
+-- Show another cue on a card (the prize, a tease).
+local function dressCard(slot: Slot, id: string, rarity: string)
+	slot.id = id
+	slot.rarity = rarity
+	CueThumb.set(slot.thumb, id)
+	slot.dressing.set(rarity)
+	slot.name.Text = CueThumb.cueName(id)
+	slot.odds.Text = ODDS_TEXT[id] or ""
+	slot.odds.TextColor3 = CueThumb.accentColor(rarity)
 end
 
 --- Build the reel for `caseId` in `parent` (a stage), its strip drawn at random from the case's
@@ -166,6 +202,8 @@ function Reel.new(parent: Instance, caseId: string): any
 	self.strip = strip
 
 	local cues, weights, total = pool(caseId)
+	self.pool = cues
+	self.tease = nil :: ReelPlan.Tease?
 	self.slots = {} :: { Slot }
 	for index = 1, math.max(R.Cards, R.PrizeSlot + 1) do
 		local pick = self.random:NextNumber(0, total)
@@ -180,6 +218,20 @@ function Reel.new(parent: Instance, caseId: string): any
 		self.slots[index] = makeCard(strip, index, chosen.id, chosen.rarity)
 	end
 	strip.Size = UDim2.fromOffset(#self.slots * pitch(), R.CardHeightPx)
+	-- Fetch the strip's pictures now (the case is still in front), so no card spins past blank.
+	task.spawn(function()
+		local images = {}
+		for _, slot in self.slots do
+			for _, image in slot.thumb:GetDescendants() do
+				if image:IsA("ImageLabel") and image.Image ~= "" then
+					table.insert(images, image)
+				end
+			end
+		end
+		pcall(function()
+			ContentProvider:PreloadAsync(images)
+		end)
+	end)
 
 	-- Soft white ends, so cards slide in and out of view.
 	self.fades = {} :: { Frame }
@@ -284,11 +336,17 @@ function Reel.setPrize(self: any, cueId: string, rarity: string)
 	self.prizeId = cueId
 	self.prizeRarity = rarity
 	self.big = CaseOpeningFx.isBig(rarity)
-	local slot: Slot = self.slots[R.PrizeSlot]
-	slot.id = cueId
-	slot.rarity = rarity
-	CueThumb.set(slot.thumb, cueId)
-	slot.dressing.set(rarity)
+	dressCard(self.slots[R.PrizeSlot], cueId, rarity)
+	-- The near-miss: now and then a rarer cue right next to the prize.
+	local tease = ReelPlan.tease({
+		chance = self.random:NextNumber(),
+		side = self.random:NextNumber(),
+		pick = self.random:NextNumber(),
+	}, rarity, self.pool, Config.Cases.Rarities, R.NearMissChance)
+	self.tease = tease
+	if tease then
+		dressCard(self.slots[R.PrizeSlot + tease.side], tease.id, tease.rarity)
+	end
 end
 
 --- Spin onto the prize (setPrize first); `onSettled` runs once, after it has settled and held.
@@ -304,6 +362,12 @@ function Reel.start(self: any, onSettled: () -> ())
 	local spread = R.LandSpread * R.CardWidthPx / 2
 	self.offset = self.random:NextNumber(-spread, spread)
 	self.to = centreOf(R.PrizeSlot) + self.offset
+	if self.tease then
+		-- Slow onto the teased card first; the creep over to the prize follows.
+		local first =
+			ReelPlan.stops(centreOf(R.PrizeSlot), pitch(), self.tease, R.NearMissStopShare)
+		self.to = first
+	end
 	self.began = os.clock()
 	self.built = false
 	self.lastIndex = math.floor(self.pos / pitch())
@@ -378,7 +442,28 @@ function Reel.step(self: any)
 		end
 		self:tick(now)
 		if u >= 1 then
-			self:land(now)
+			if self.tease then
+				-- Stopped on the rarer cue: a beat, then over onto the prize.
+				self.phase = "Teasing"
+				self.teaseFrom = now
+				self.creepFrom = self.pos
+				local slot: Slot = self.slots[R.PrizeSlot + self.tease.side]
+				UIAnim.bounce(slot.frame)
+			else
+				self:land(now)
+			end
+		end
+	elseif self.phase == "Teasing" then
+		local held = now - self.teaseFrom
+		if held >= R.NearMissPauseSeconds then
+			local u = math.clamp((held - R.NearMissPauseSeconds) / R.NearMissCreepSeconds, 0, 1)
+			local eased = u * u * (3 - 2 * u)
+			self.pos = self.creepFrom + (centreOf(R.PrizeSlot) - self.creepFrom) * eased
+			self:tick(now)
+			if u >= 1 then
+				self.to = centreOf(R.PrizeSlot)
+				self:land(now)
+			end
 		end
 	elseif self.phase == "Centring" then
 		local u = math.clamp((now - self.centreFrom) / R.CentreSeconds, 0, 1)

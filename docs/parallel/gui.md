@@ -157,6 +157,40 @@ step (steps 1-14 of the brief).
     Gamepad: the card is a selection group, B closes it (bound in code; Studio's emulator
     cannot press B or Escape, so this needs a controller by hand).
 
+- **Step 5 done: opening a case, the reel and rare pulls.** Opening a case now shows it big in
+  front ("Click to open!" / "Tap to open!" / A), bobbing; a press shakes it harder and harder,
+  it swells and bursts in a white shine, then the reel (or the Quick Cases grid). While it opens
+  every other screen hides (the menu under it, the HUD), so only the roll shows; they come back
+  with the prize card or the finished grid. The open is sent the moment the overlay opens, so
+  the answer is there when the case cracks. The reel's cards are bigger and read the cue's name
+  and its odds in its rarity's colour; the strip's pictures are fetched during the intro.
+  **Near-misses** (D15): about 1 roll in 5 a rarer cue sits next to the prize
+  (`Progression/ReelPlan`, pure, tested): the reel slows onto it, waits a beat, then creeps
+  over onto the server's prize (a skip lands on the prize at once). The landing card says
+  **YOU PULLED** (shaking), the cue's odds in this case, and **Sell / Keep** (any sellable pull
+  can be sold now, not only duplicates; Keep reads "Keep, open next (3)" while cases remain;
+  Equip stays). **Rare and up play a cutscene** before the card (`PullCutscene`): Rare blue
+  streaks; Epic purple streaks, a black beat, a white burst; Legendary the world drains to
+  grey, a gold beam (a thin bright core in a soft shell, the player visible inside) drops onto
+  the player, the camera swoops low round them, a gold burst; Mythic the sky turns to deep
+  space with pastel aurora, the camera rises into the stars, the cue comes down on a beam of
+  light; Secret a red-white glitch, the map's lights go out one by one, silence and a
+  heartbeat, a shockwave, the camera shakes and spins, the sky flickers red and white. One
+  owner holds the camera, light, sky, atmosphere, the map's lights and the playing sounds
+  (DayCycle is held) and puts every one back exactly. Others in the server get a short sky tint
+  from Legendary up (through the Unbox banner; never a camera or screen effect). Quick Cases'
+  grid has bigger cards; its rarest card, if Rare or better, rattles before it turns and the
+  sky flashes its colour. A cutscene can be skipped (tap, A, B, Escape) once its kind was seen
+  (this session for now; step 8 saves it in Flags).
+  - Checked: lint, Lune tests (new `reelplan_test`: 20,000 rolls tease 18-22%, always rarer,
+    always end on the prize); Studio PC: the intro, the crack, the reel with names and odds,
+    the card (Heritage Cue, NEW! +$500, 10.714% chance, Equip / Sell $150 / Keep, HUD back);
+    Legendary, Mythic and Secret cutscenes on screen; after each one the camera (Custom, FOV
+    70), sky, atmosphere density, clock time, brightness, all 58 map lights and the effects
+    were exactly as before; the remote tint on its own (camera untouched); the grid's rattle.
+    Phone (844 x 390): the intro and the reel fit. Console clean. Not checked: a real second
+    player seeing the tint, and a controller's A on the intro (both by hand).
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
@@ -194,6 +228,16 @@ step (steps 1-14 of the brief).
   `CardOddsTextPx` after `CardAspect`.
 - `Strings.luau` (step 4): `Menus.Tabs.Inventory` gains `Items`; new keys at the end of
   `Menus.Inventory` (CasesHeader ... Close).
+- `Config.luau` (step 5): `UI.CaseOpening.HintHeightPx` 24 -> 30 and `HintPx` 18 -> 24; `Reel`
+  card size 104 x 124 -> 136 x 176, `ThumbShare` 0.9 -> 0.8, `ThumbCentreShare` 0.46 -> 0.37,
+  new name / odds / near-miss keys; `Card.WidthPx` 380 -> 400 and new `PulledPx`; `Grid` card
+  112 x 116 -> 136 x 148, `ThumbPx` 64 -> 86, new `LastPauseSeconds`; new `Intro` block;
+  `Audio.Ui` gains `Heartbeat` and `Shockwave` (licensed library sounds); `Kit.Motion.Shake`
+  gains `Hard`; new `Config.Cutscenes` before the derived values.
+- `Strings.luau` (step 5): new keys at the end of `CaseOpening` (OpenTouch ... KeepNext).
+- `DayCycle.luau` (client): new `DayCycle.hold()`; `update` returns while held and rewrites
+  everything once released.
+- New shared module `Progression/ReelPlan.luau` (pure; the reel's near-miss) and its test.
 
 ## Requests to other lanes or the integrator
 
@@ -254,6 +298,13 @@ step (steps 1-14 of the brief).
   Celestial Dragon, Kraken) keeps its still picture instead of turning in 3D: a ViewportFrame
   draws no Neon glow or ForceField, so the piece came out faint, while the new still picture
   (step 2) shows it in full. Plain cues still turn in 3D once loaded.
+- 2026-10-03 (lane): a case's open is sent as the overlay opens (the "Click to open" moment is
+  presentation, the case is already being spent), so closing during it gives the usual "Your
+  cue is in your Inventory." line.
+- 2026-10-03 (lane): the landing card sells any sellable pull (not only duplicates), as "Sell /
+  Keep" asks; Equip stays as a third button.
+- 2026-10-03 (lane): sounds from Roblox's licensed library, no uploads: APM "Heart Beat"
+  (1839088414) and Pro Sound Effects "Thruster Blast 8" (9120009360) for the Secret pull.
 - 2026-10-03 (lane): the Inventory's Cues and Cases tabs become one **Items** tab (cases in a
   strip on top), as the brief asked; the chosen cue's big card lays out side by side on any
   landscape space.

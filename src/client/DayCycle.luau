@@ -23,6 +23,25 @@ local C = L.Cycle
 local DayCycle = {}
 DayCycle.__index = DayCycle
 
+-- A cutscene that owns the sky and light (PullCutscene) holds the cycle; on release every
+-- value is written again, so nothing it changed stays behind.
+local holds = 0
+local rewrite = false
+
+--- Hold the cycle still until the returned release runs (once).
+function DayCycle.hold(): () -> ()
+	holds += 1
+	local released = false
+	return function()
+		if released then
+			return
+		end
+		released = true
+		holds -= 1
+		rewrite = true
+	end
+end
+
 export type DayCycle = typeof(setmetatable(
 	{} :: {
 		handles: MapLighting.Handles?,
@@ -107,6 +126,13 @@ function DayCycle.look(self: DayCycle, now: number)
 end
 
 function DayCycle.update(self: DayCycle, now: number)
+	if holds > 0 then
+		return
+	end
+	if rewrite then
+		rewrite = false
+		self.last = nil
+	end
 	local handles = self.handles
 	if self.dirty or handles == nil or (not handles.complete and now >= self.nextLook) then
 		self:look(now)

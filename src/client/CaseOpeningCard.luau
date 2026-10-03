@@ -8,6 +8,10 @@
 -- or Done; a red X in the corner. On the result screen (the first win's case) the row is Equip
 -- and Continue, with no X.
 --
+-- GUI lane (2026-10-03, C11d): "YOU PULLED" shakes over the card, the cue's odds in this case
+-- read under its pills in its rarity's colour, any sellable pull can be sold (not only
+-- duplicates), and the green button is Keep ("Keep, open next (3)" while cases remain).
+--
 -- The moment grows with the rarity (Config.UI.CaseOpening): the reveal sting by tier, turning
 -- rays behind the card from RaysFrom (Epic) up, confetti from ConfettiFrom (Legendary) up, and
 -- for Mythic and Secret (BigFrom) a thicker edge that shimmers through the pastels or breathes
@@ -19,6 +23,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local ProgressionRules = Shared:WaitForChild("Progression")
+local Cases = require(ProgressionRules:WaitForChild("Cases"))
 local Format = require(ProgressionRules:WaitForChild("Format"))
 local CaseOpeningFx = require(script.Parent.CaseOpeningFx)
 local CueThumb = require(script.Parent.CueThumb)
@@ -125,6 +130,13 @@ function Card.new(parent: Instance, info: Info, opts: Options): any
 		end
 	end
 
+	-- "YOU PULLED", shaking over the picture.
+	local pulled = HudParts.text(body, "Pulled", D.PulledPx, W.YouPulled)
+	pulled.TextWrapped = false
+	pulled.TextColor3 = HudParts.tone("Gold")
+	pulled.ZIndex = 4
+	self.pulled = pulled
+
 	-- The thumbnail on its rarity tile.
 	local art = HudParts.frame(body, "Art")
 	art.AnchorPoint = Vector2.new(0.5, 0)
@@ -193,6 +205,26 @@ function Card.new(parent: Instance, info: Info, opts: Options): any
 	exist.TextWrapped = false
 	exist.ZIndex = 2
 	self.exist = exist
+	-- Its odds in this case, the % in its rarity's colour.
+	local oddsText = ""
+	for _, entry in Cases.cueOdds(info.caseId) do
+		if entry.id == info.cue then
+			oddsText = entry.display
+			break
+		end
+	end
+	local odds = HudParts.note(body, "Odds", D.ExistPx, "")
+	odds.RichText = true
+	odds.AutoLocalize = false
+	odds.TextWrapped = false
+	odds.ZIndex = 2
+	if oddsText ~= "" then
+		odds.Text = string.format(
+			W.Odds,
+			string.format('<font color="#%s">%s</font>', colour:ToHex(), oddsText)
+		)
+	end
+	self.odds = odds
 
 	-- The buttons.
 	local row = HudParts.frame(body, "Buttons")
@@ -206,7 +238,7 @@ function Card.new(parent: Instance, info: Info, opts: Options): any
 	end, "Blue")
 	self.equip.Name = "Equip"
 	self.sell = nil :: TextButton?
-	if not reveal and info.duplicate and opts.onSell then
+	if not reveal and opts.onSell and Cases.sellValue(info.cue) > 0 then
 		local onSell = opts.onSell
 		local sell = HudParts.candy(row, W.Sell, function()
 			UISound.play("Click")
@@ -215,7 +247,7 @@ function Card.new(parent: Instance, info: Info, opts: Options): any
 		sell.Name = "Sell"
 		self.sell = sell
 	end
-	self.next = HudParts.candy(row, if reveal then W.Continue else W.Done, function()
+	self.next = HudParts.candy(row, if reveal then W.Continue else W.Keep, function()
 		UISound.play("Click")
 		if self.nextCount and self.nextCount > 0 and opts.onNext then
 			opts.onNext()
@@ -312,6 +344,9 @@ function Card.layout(self: any)
 	local pad, gap = D.PadPx, D.GapPx
 	local inner = w - 2 * pad
 	local y = pad
+	self.pulled.Position = UDim2.fromOffset(pad, y)
+	self.pulled.Size = UDim2.fromOffset(inner, D.PulledPx + 6)
+	y += D.PulledPx + 6 + gap
 	self.art.Size = UDim2.fromOffset(D.ArtPx, D.ArtPx)
 	self.art.Position = UDim2.fromOffset(w / 2, y)
 	self.artMiddle = y + D.ArtPx / 2
@@ -342,6 +377,12 @@ function Card.layout(self: any)
 	self.pills.Position = UDim2.fromOffset(pad, y)
 	self.pills.Size = UDim2.fromOffset(inner, D.PillPx)
 	y += D.PillPx + gap
+	self.odds.Visible = self.odds.Text ~= ""
+	if self.odds.Visible then
+		self.odds.Position = UDim2.fromOffset(pad, y)
+		self.odds.Size = UDim2.fromOffset(inner, D.ExistHeightPx)
+		y += D.ExistHeightPx + gap
+	end
 	self.exist.Visible = self.exist.Text ~= ""
 	if self.exist.Visible then
 		self.exist.Position = UDim2.fromOffset(pad, y)
@@ -396,6 +437,7 @@ function Card.show(self: any, confettiParent: GuiObject?, origin: Vector2?)
 	local rarity = self.info.rarity
 	UIAnim.popIn(self.root)
 	CaseOpeningFx.sting(rarity)
+	self.pulledShake = UIAnim.shake(self.pulled)
 	if self.hasRays then
 		self.raysSpin = UIAnim.spin(self.rays, D.RaysDegreesPerSecond)
 	end
@@ -489,10 +531,10 @@ function Card.setNext(self: any, remaining: number?)
 	local W = words()
 	self.nextCount = remaining
 	if remaining and remaining > 0 then
-		HudParts.setText(self.next, string.format(W.OpenNextCount, Format.commas(remaining)))
+		HudParts.setText(self.next, string.format(W.KeepNext, Format.commas(remaining)))
 		HudParts.setButtonIcon(self.next, "Case" .. self.info.caseId)
 	else
-		HudParts.setText(self.next, W.Done)
+		HudParts.setText(self.next, W.Keep)
 		HudParts.setButtonIcon(self.next, nil)
 	end
 	self:layoutButtons()
@@ -540,6 +582,10 @@ function Card.destroy(self: any)
 	if self.raysSpin then
 		self.raysSpin.stop()
 		self.raysSpin = nil
+	end
+	if self.pulledShake then
+		self.pulledShake.stop()
+		self.pulledShake = nil
 	end
 	for _, connection in self.connections do
 		connection:Disconnect()

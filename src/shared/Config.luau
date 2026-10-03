@@ -3839,6 +3839,10 @@ Config.Audio = {
 		RevealEpic = { Id = "rbxassetid://1848281810", Volume = 0.32 },
 		RevealLegendary = { Id = "rbxassetid://9045294353", Volume = 0.35 },
 		RevealMythic = { Id = "rbxassetid://1839881844", Volume = 0.38 },
+		-- The Secret pull's heartbeat and shockwave (GUI lane, 2026-10-03; licensed library
+		-- sounds: APM "Heart Beat", Pro Sound Effects "Thruster Blast 8").
+		Heartbeat = { Id = "rbxassetid://1839088414", Volume = 0.7, Overlap = true },
+		Shockwave = { Id = "rbxassetid://9120009360", Volume = 0.5 },
 		-- "Roblox_UI_Tonal_Stinger" (1.5 s): a reward claimed (daily, playtime, index, code).
 		Claim = { Id = "rbxassetid://15675043410", Volume = 0.3 },
 		-- "Roblox_UI_Indicator" (3.4 s), quiet: a banner (Money Party, an announcement).
@@ -5504,6 +5508,8 @@ Config.UI = {
 				Text = { Degrees = 3, Every = 2.6, Seconds = 0.35, Speed = 46 },
 				Wiggle = { Degrees = 8, Every = 1.7, Seconds = 0.55, Speed = 24 },
 				Jolt = { Degrees = 6, Every = 0, Seconds = 0.4, Speed = 40 }, -- once (a slam)
+				-- A rattle that keeps going (Every = Seconds): the grid's rarest card before it turns.
+				Hard = { Degrees = 9, Every = 0.3, Seconds = 0.3, Speed = 60 },
 			},
 			-- The glow that bursts behind a pressed or hovered thing, or a menu opening.
 			Glow = { Seconds = 0.55, FromPad = 1.2, ToPad = 3.2, Transparency = 0 }, -- pads: shares of its smaller side
@@ -6927,8 +6933,8 @@ Config.UI.CaseOpening = {
 	TitleGapPx = 8, -- between the chest and the name
 	TitleMinWidthPx = 300, -- Fast Open's stage is at least this wide
 	GapPx = 10, -- between the title, the reel (or grid) and the hint
-	HintHeightPx = 24, -- "Tap to skip" (the gamepad's A glyph and "Skip" on a gamepad)
-	HintPx = 18,
+	HintHeightPx = 30, -- "Tap to skip" (the gamepad's A glyph and "Skip" on a gamepad)
+	HintPx = 24,
 	HintGlyphGapPx = 6,
 	ReelSideMarginPx = 12, -- the reel's room from the stage's sides
 	CardMarginPx = 12, -- the prize card's room in the fit (its glow and shadow)
@@ -6965,6 +6971,19 @@ Config.UI.CaseOpening = {
 	ChipHeightPx = 30,
 	ChipTextPx = 24,
 	ChipZIndex = 70, -- over everything in the overlay
+	-- The case in front before it opens (GUI lane, 2026-10-03): big and bobbing, "Click to
+	-- open"; opened, it shakes harder and swells, then bursts in a shine.
+	Intro = {
+		ChestPx = 200,
+		BobPx = 6,
+		ShakeSeconds = 0.7,
+		ShakeDegrees = 16, -- the shake's swing at its hardest
+		ShakeSpeed = 42, -- radians a second
+		SwellShare = 0.18, -- it grows this much while it shakes
+		BurstReach = 1.6, -- the glow it bursts in
+		ShineSeconds = 0.55, -- the white shine fading
+		AfterBurstSeconds = 0.25, -- the reel shows this long after the burst
+	},
 	-- The reel (CaseOpeningReel).
 	Reel = {
 		Cards = 40, -- cards on the strip
@@ -6972,13 +6991,24 @@ Config.UI.CaseOpening = {
 		-- Each cue's weight on the strip is its odds (Cases.cueOdds) to this power: 1 = the true
 		-- odds (a Standard strip is mostly grey and green); under 1 shows rarer cues more often.
 		WeightPower = 1,
-		CardWidthPx = 104,
-		CardHeightPx = 124,
+		CardWidthPx = 136, -- bigger cards with the cue's name and odds (GUI lane, 2026-10-03)
+		CardHeightPx = 176,
 		GapPx = 8, -- between two cards
 		CardCornerPx = 12,
 		CardStrokePx = 2.5, -- a card's ink outline
-		ThumbShare = 0.9, -- the thumbnail, of the card's width...
-		ThumbCentreShare = 0.46, -- ...its middle this far down the card
+		ThumbShare = 0.8, -- the thumbnail, of the card's width...
+		ThumbCentreShare = 0.37, -- ...its middle this far down the card
+		NameTextPx = 15, -- the cue's name under it...
+		NameTopShare = 0.63, -- ...this far down
+		OddsTextPx = 15, -- its odds in its rarity's colour ("0.3%")...
+		OddsTopShare = 0.75, -- ...this far down
+		-- The near-miss (designer 2026-10-03, D15; ReelPlan): this share of rolls slow onto a
+		-- rarer cue next to the prize, stopping this share of a card's pitch from the prize's
+		-- middle, wait a beat, then creep over onto the prize.
+		NearMissChance = 0.2,
+		NearMissStopShare = 0.85,
+		NearMissPauseSeconds = 0.45,
+		NearMissCreepSeconds = 0.7,
 		PadYPx = 10, -- above and below the cards inside the window
 		CornerPx = 18, -- the window's corners (the strip is clipped inside their straight part)
 		MinWidthPx = 300,
@@ -7010,8 +7040,9 @@ Config.UI.CaseOpening = {
 	},
 	-- The prize card (CaseOpeningCard). Its height follows what it shows (about 312).
 	Card = {
-		WidthPx = 380,
+		WidthPx = 400,
 		PadPx = 12,
+		PulledPx = 34, -- "YOU PULLED" over the picture (GUI lane, 2026-10-03)
 		GapPx = 6, -- between its rows
 		CornerPx = 18,
 		ArtPx = 140, -- the thumbnail's tile, square
@@ -7053,14 +7084,15 @@ Config.UI.CaseOpening = {
 	-- Fast Open's grid (CaseOpeningGrid): ten cards in two rows of five.
 	Grid = {
 		Columns = 5,
-		CardWidthPx = 112,
-		CardHeightPx = 116,
+		CardWidthPx = 136, -- bigger cards (GUI lane, 2026-10-03)
+		CardHeightPx = 148,
+		LastPauseSeconds = 0.8, -- a Rare or better last card shakes this long before it turns
 		GapPx = 10,
 		CornerPx = 12,
 		StrokePx = 2.5,
 		ChosenStrokePx = 5, -- the chosen card's gold outline
 		PadPx = 6, -- inside a card
-		ThumbPx = 64,
+		ThumbPx = 86,
 		NamePx = 16, -- a cue's name, two lines at most
 		NameHeightPx = 36,
 		BackIconShare = 0.62, -- the chest on a face-down card
@@ -9633,6 +9665,98 @@ Config.Debug = {
 }
 
 ---------------------------------------------------------------------------------------------
+-- The rare-pull cutscenes (PullCutscene; GUI lane, designer 2026-10-03, C11d). After the reel
+-- lands on a Rare or better cue, before its card: each rarity bigger than the last. Local only
+-- for Rare and Epic; from Legendary up every other player in the server sees a light sky tint
+-- (through the Unbox banner), never a camera or screen effect. One owner holds the camera, the
+-- light and the sky (DayCycle is held) and puts them back exactly as they were on the end, a
+-- skip, a second pull or a match starting. A kind can be skipped once it has been seen.
+-- Seconds, studs and 0..1 shares. (tune)
+Config.Cutscenes = {
+	From = "Rare", -- pulls of this rarity and up get a cutscene
+	RemoteFrom = "Legendary", -- and from this one up, everyone else in the server a sky tint
+	DisplayOrder = 60, -- its screen over the case opening (whose overlay hides while it plays)
+	Streaks = {
+		Count = 24, -- the sky streaks flying across (Rare blue, Epic purple)
+		Seconds = 0.45, -- one streak's flight
+		WidthPx = 14, -- thickness...
+		LengthShare = 0.45, -- ...and length, of the screen's width
+		AngleDegrees = -24, -- they fly up and to the right
+		Transparency = 0.15,
+	},
+	Rare = { Seconds = 1.5, Tint = { 160, 205, 255 }, TintShare = 0.5 },
+	Epic = {
+		Seconds = 2.3,
+		Tint = { 205, 150, 255 },
+		TintShare = 0.55,
+		BlackAt = 1.1, -- the screen goes black...
+		BlackFor = 0.45, -- ...this long, then a white burst
+		BurstSeconds = 0.35,
+	},
+	Legendary = {
+		Seconds = 4.2,
+		GreySaturation = -1, -- the world drains to grey (the gold stays: beam and glow)
+		GreyInSeconds = 0.5,
+		BeamFrom = 0.6, -- the gold beam drops from the sky...
+		BeamDropSeconds = 0.35,
+		BeamWidthStuds = 7, -- the soft shell...
+		ShellTransparency = 0.82,
+		CoreWidthStuds = 0.9, -- ...round a thin bright core (the player shows inside)
+		CoreTransparency = 0.1,
+		BeamHeightStuds = 260,
+		Gold = { 255, 205, 60 },
+		OrbitFrom = 0.3, -- the camera swoops low round the player
+		OrbitSeconds = 3.2,
+		OrbitDegrees = 140,
+		OrbitDistanceStuds = 15,
+		OrbitHeightStuds = 2.5, -- above the feet: low, looking up
+		OrbitFieldOfView = 62,
+		BurstAt = 3.6, -- the gold burst the card lands in
+	},
+	Mythic = {
+		Seconds = 4.6,
+		SpaceInSeconds = 0.6, -- the sky turns to deep space
+		Stars = 6000,
+		Tint = { 225, 210, 255 },
+		TintShare = 0.35,
+		Brightness = 0.6, -- the light while in space
+		RiseFrom = 0.4, -- the camera rises into the stars
+		RiseSeconds = 2.4,
+		RiseStuds = 40,
+		AuroraBands = 4, -- pastel aurora ribbons high in the sky
+		AuroraHeightStuds = 120,
+		AuroraWidthStuds = 26,
+		AuroraTransparency = 0.5, -- at a ribbon's middle (the stars show through)
+		AuroraSpreadStuds = 160,
+		DescendAt = 2.6, -- the cue comes down from the stars on a beam of light
+		DescendSeconds = 1.4,
+		CueSharePx = 0.42, -- the falling cue's size, of the screen's height
+	},
+	Secret = {
+		Seconds = 5.6,
+		GlitchSeconds = 1.6, -- red-white glitch blocks over the screen
+		GlitchBlocks = 10,
+		LightsFrom = 0.3, -- the map's lights go out one by one...
+		LightsSeconds = 1.8,
+		DarkBrightness = 0.05, -- ...down to this
+		SilenceSeconds = 0.4, -- every other sound fades out this fast
+		Heartbeats = { 2.2, 2.85, 3.5 }, -- a heartbeat in the silence
+		ShockAt = 3.9, -- the shockwave
+		ShockSeconds = 0.6,
+		SpinSeconds = 0.9, -- the camera shakes and spins
+		ShakeStuds = 0.6,
+		SkyGlitchSeconds = 1.4, -- the sky flickers red and white (everyone in the server)
+		FlickerHz = 9,
+		RestoreAt = 5.0, -- the lights come back in one go
+		Red = { 255, 40, 60 },
+	},
+	-- Others' pulls (Legendary and up): the sky tint only, never a camera or screen effect.
+	Remote = { Seconds = 2.2, TintShare = 0.35 },
+	-- Quick Cases' grid: its rarest card (Rare and up) gets a short flash of its colour.
+	Flash = { Seconds = 0.5, TintShare = 0.45 },
+	HintAfterSeconds = 0.6, -- "Tap to skip" shows this late (only once the kind was seen)
+}
+
 -- Derived values (do not edit; change the fractions above)
 ---------------------------------------------------------------------------------------------
 do

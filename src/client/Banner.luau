@@ -27,6 +27,7 @@
 -- (Banner.MaxAgeSeconds). It also keeps clear of the rank HUD's badge on a phone and of the
 -- global queue's status card when that shows. Words in Strings.Banner, sizes in
 -- Config.UI.Menu.Banner.
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
 
@@ -39,6 +40,7 @@ local UltCatalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
 local ChatTags = require(script.Parent.ChatTags)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
+local PullCutscene = require(script.Parent.PullCutscene)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -190,6 +192,18 @@ function Banner.onBanner(self: any, payload: any)
 		local tint = CueThumb.accentColor(rarity)
 		self:push({ text = text, color = tint, at = os.clock() })
 		ChatTags.system(ChatTags.paint(text, tint))
+		-- Someone else in this server pulled a Legendary or better: the sky's short tint
+		-- (GUI lane, 2026-10-03; never a camera or screen effect, in a match too).
+		local me = Players.LocalPlayer
+		local userId = payload.userId
+		if
+			type(userId) == "number"
+			and me
+			and userId ~= me.UserId
+			and Players:GetPlayerByUserId(userId) ~= nil
+		then
+			PullCutscene.remote(rarity)
+		end
 	elseif kind == "Ult" then
 		-- An ult spin's Legendary or Mythic: worded and coloured as an unboxing is.
 		local ult = name(payload.ult)

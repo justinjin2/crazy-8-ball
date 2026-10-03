@@ -22,6 +22,7 @@ local Format = require(ProgressionRules:WaitForChild("Format"))
 local CaseOpeningFx = require(script.Parent.CaseOpeningFx)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
+local PullCutscene = require(script.Parent.PullCutscene)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -378,6 +379,16 @@ function Grid.start(self: any)
 			if not self.alive or not self.flipping then
 				return
 			end
+			if index == #self.slots and PullCutscene.has(slot.result.rarity) then
+				-- The rarest, last: it shakes a beat before it turns (GUI lane, 2026-10-03).
+				local shaking = UIAnim.shake(slot.button, "Hard")
+				UISound.play("ReelBuild")
+				task.wait(G.LastPauseSeconds)
+				shaking.stop()
+				if not self.alive or not self.flipping then
+					return
+				end
+			end
 			self:flip(slot)
 			self.flipped = index
 			if index == #self.slots then
@@ -416,6 +427,7 @@ function Grid.finish(self: any)
 		local rarity = best.result.rarity
 		UIAnim.bounce(best.button)
 		CaseOpeningFx.sting(rarity)
+		PullCutscene.flash(rarity) -- the sky flashes its colour (Rare and up)
 		if CaseOpeningFx.atLeast(rarity, C.ConfettiFrom) then
 			local parent = self.root.Parent
 			if parent and parent:IsA("GuiObject") then

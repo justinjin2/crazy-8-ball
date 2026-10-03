@@ -23,6 +23,13 @@
 --   menu under it ("Your cue is in your Inventory."; its NEW tag marks it there).
 --   The dev command /opencase reaches here as a DevNotice table { kind = "OpenCase", caseId,
 --   count? } (string DevNotices are chat lines, Progression's).
+-- GUI lane (2026-10-03, C11c/C11d): the overlay first shows the case big in front ("Click to
+-- open"); a tap, click or A shakes it, cracks it open in a bright shine, and the reel (or
+-- the grid) follows. While it opens, every other screen (the menu under it, the HUD) hides so
+-- only the roll shows; they come back with the prize card or the finished grid. A Rare or
+-- better prize plays its cutscene (PullCutscene) before its card; the overlay hides while it
+-- plays and comes back with the card. The open is sent the moment the overlay opens, so the
+-- answer is usually there when the case cracks.
 -- The server decides everything: this sends ids and counts and animates the answers. While it
 -- is open the left column hides and menus wait (Progression reads isOpen; a match starting
 -- closes it). On closing, the gamepad goes back to what it was on if that still shows, else the
@@ -31,8 +38,10 @@
 -- reel and card fit 750 x 361 at full size). Tuning in Config.UI.CaseOpening, words in
 -- Strings.CaseOpening.
 local ContextActionService = game:GetService("ContextActionService")
+local Players = game:GetService("Players")
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -50,11 +59,14 @@ local CaseOpeningGrid = require(script.Parent.CaseOpeningGrid)
 local CaseOpeningReel = require(script.Parent.CaseOpeningReel)
 local CueAssets = require(script.Parent.CueAssets)
 local CueThumb = require(script.Parent.CueThumb)
+local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
+local PullCutscene = require(script.Parent.PullCutscene)
 local UIAnim = require(script.Parent.UIAnim)
+local UISound = require(script.Parent.UISound)
 
 local C = Config.UI.CaseOpening
 local INK = HudParts.tone("Ink")
@@ -78,7 +90,12 @@ type Session = {
 	hintGlyph: ImageLabel,
 	hintText: TextLabel,
 	focus: TextButton, -- clear and selectable: a gamepad's A on it skips
-	phase: string, -- "Waiting", "Reel", "Card", "Grid", "Failed", "Closed"
+	-- "Intro" (the case in front), "Cracking", "Waiting", "Reel", "Cutscene", "Card", "Grid",
+	-- "Failed", "Closed"
+	phase: string,
+	intro: { icon: ImageLabel, words: TextLabel, bob: any? }?,
+	reply: any?, -- the server's answer, kept while the case is still in front
+	cutsceneDone: boolean, -- this prize's cutscene has played
 	waitSince: number, -- os.clock() when the open was sent (the Waiting phase began)
 	closedWaiting: boolean, -- closed before the server answered (a late prize gets a line)
 	caseId: string,
@@ -193,6 +210,23 @@ function CaseOpening.new(screen: ScreenGui, deps: any): any
 	self.backdropTween = nil :: Tween?
 	self:build()
 	self:listenDev()
+	-- Studio checks: play a pull of a chosen rarity (the reel, its cutscene, the card) with a
+	-- made-up result (nothing is given), and the intro with "intro".
+	GuiQA.add("pull", function(rarity: string, count: number?)
+		for _, caseId in Config.Cases.Order do
+			for _, entry in Cases.cueOdds(caseId) do
+				if entry.rarity == rarity then
+					local results = {}
+					for _ = 1, count or 1 do
+						table.insert(results, { cue = entry.id, rarity = rarity, count = 2 })
+					end
+					self:play(caseId, results)
+					return entry.id
+				end
+			end
+		end
+		return "no case holds " .. tostring(rarity)
+	end)
 	return self
 end
 
@@ -333,6 +367,9 @@ function CaseOpening.newSession(self: any, kind: string, area: GuiObject, caseId
 		hintText = hintText,
 		focus = focus,
 		phase = "Waiting",
+		intro = nil,
+		reply = nil,
+		cutsceneDone = false,
 		waitSince = os.clock(),
 		closedWaiting = false,
 		caseId = caseId,
@@ -475,7 +512,17 @@ function CaseOpening.refreshHint(self: any, s: Session)
 	end
 	local W = words()
 	local text, glyph = W.Opening, ""
-	if s.phase == "Waiting" then
+	if s.phase == "Intro" then
+		if CaseOpeningFx.gamepad() then
+			text, glyph = W.OpenPad, glyphFor(Enum.KeyCode.ButtonA)
+		elseif CaseOpeningFx.touch() then
+			text = W.OpenTouch
+		else
+			text = W.OpenMouse
+		end
+	elseif s.phase == "Cracking" then
+		text = W.Opening
+	elseif s.phase == "Waiting" then
 		if mayCloseWaiting(s) then
 			if CaseOpeningFx.gamepad() then
 				text, glyph = W.WaitingPad, glyphFor(Enum.KeyCode.ButtonB)
@@ -569,6 +616,37 @@ function CaseOpening.layout(self: any, s: Session)
 		s.hint.Visible = false
 		return
 	end
+	-- The case in front: the title, the big chest, the hint line.
+	local intro = s.intro
+	if (s.phase == "Intro" or s.phase == "Cracking") and intro then
+		local I = C.Intro
+		local need = Vector2.new(C.StageMinWidthPx, titleH + gap + I.ChestPx + gap + hintH)
+		local natural = stage.fit(need, minScale, maxScale, margin)
+		local top = math.floor((natural.Y - need.Y) / 2)
+		self:layoutTitle(s, natural.X, top)
+		s.title.Visible = true
+		local y = top + titleH + gap
+		if intro.bob then
+			intro.bob.stop()
+		end
+		intro.icon.Size = UDim2.fromOffset(I.ChestPx, I.ChestPx)
+		intro.icon.Position =
+			UDim2.fromOffset(math.floor(natural.X / 2), y + math.floor(I.ChestPx / 2))
+		if s.phase == "Intro" then
+			intro.bob = UIAnim.bob(intro.icon, I.BobPx)
+		end
+		y += I.ChestPx + gap
+		if reel then
+			reel.root.Visible = false
+		end
+		s.hint.Position = UDim2.fromOffset(math.floor(natural.X / 2), y)
+		s.hint.Visible = true
+		self:refreshHint(s)
+		return
+	end
+	if reel then
+		reel.root.Visible = true
+	end
 	-- Waiting, the reel, or a failure: the title, the reel (one case), the hint line.
 	local reelH = if reel then CaseOpeningReel.height() else 0
 	local reelGap = if reel then gap else 0
@@ -608,7 +686,9 @@ function CaseOpening.focus(_self: any, s: Session)
 		return
 	end
 	local card, grid = s.card, s.grid
-	local skipping = s.phase == "Waiting"
+	local skipping = s.phase == "Intro"
+		or s.phase == "Cracking"
+		or s.phase == "Waiting"
 		or s.phase == "Reel"
 		or s.phase == "Failed"
 		or (s.phase == "Grid" and grid ~= nil and grid:isFlipping())
@@ -684,7 +764,9 @@ end
 -- A tap, click or A: skip what is turning (or close a failure, or a wait that has run long).
 function CaseOpening.tap(self: any, s: Session)
 	local reel, grid = s.reel, s.grid
-	if s.phase == "Reel" and reel then
+	if s.phase == "Intro" then
+		self:crack(s)
+	elseif s.phase == "Reel" and reel then
 		reel:skip()
 	elseif s.phase == "Grid" and grid and grid:isFlipping() then
 		grid:skip()
@@ -696,7 +778,12 @@ end
 -- B or Escape: skip what is turning, else close (not in the first moments of a wait: the case
 -- is being spent and its reel is on its way).
 function CaseOpening.back(self: any, s: Session)
-	if s.dialog or (s.phase == "Waiting" and not mayCloseWaiting(s)) then
+	if
+		s.dialog
+		or s.phase == "Cutscene" -- the cutscene answers B itself
+		or s.phase == "Cracking"
+		or (s.phase == "Waiting" and not mayCloseWaiting(s))
+	then
 		return
 	end
 	local grid = s.grid
@@ -745,6 +832,7 @@ function CaseOpening.show(self: any, caseId: string): Session
 		self.backdropTween:Play()
 		self:bindInput()
 	end
+	self:hideOthers()
 	if not s then
 		s = self:newSession("Overlay", self.area, caseId)
 		self.overlay = s
@@ -777,12 +865,13 @@ function CaseOpening.open(self: any, caseId: string, count: number?)
 	end
 	local s = self:show(caseId)
 	s.count = n
+	s.reply = nil
 	if n == 1 then
 		s.reel = CaseOpeningReel.new(s.stage.frame, caseId)
 		s.reel.root.ZIndex = 3
 	end
 	s.waitSince = os.clock()
-	self:setPhase(s, "Waiting")
+	self:startIntro(s)
 	self.token += 1
 	local token = self.token
 	s.token = token
@@ -794,6 +883,14 @@ function CaseOpening.open(self: any, caseId: string, count: number?)
 	end)
 	task.spawn(function()
 		local reply = ItemState.request("ItemRequest", "OpenCase", caseId, n)
+		if
+			self.overlay == s
+			and s.token == token
+			and (s.phase == "Intro" or s.phase == "Cracking")
+		then
+			s.reply = reply -- played once the case has cracked open
+			return
+		end
 		if self.overlay ~= s or s.token ~= token or s.phase ~= "Waiting" then
 			-- Closed, or opened again, while it was on its way. Closed while waiting: the prize
 			-- is in the inventory all the same, so the menu under it says so.
@@ -803,15 +900,157 @@ function CaseOpening.open(self: any, caseId: string, count: number?)
 			end
 			return
 		end
-		if reply.ok ~= true then
-			self:fail(s, reply)
+		self:answer(s, caseId, reply)
+	end)
+end
+
+-- The server's answer to an open, on screen: its reason, or the reel or grid.
+function CaseOpening.answer(self: any, s: Session, caseId: string, reply: any)
+	if reply.ok ~= true then
+		self:fail(s, reply)
+		return
+	end
+	local id = if type(reply.caseId) == "string" and Cases.get(reply.caseId)
+		then reply.caseId
+		else caseId
+	self:playIn(s, id, reply.results)
+end
+
+-- The case in front, big and bobbing: "Click to open".
+function CaseOpening.startIntro(self: any, s: Session)
+	if s.intro then
+		s.intro.icon:Destroy()
+		s.intro = nil
+	end
+	local icon = HudParts.icon(s.stage.frame, "Case" .. s.caseId, "IntroChest")
+	if icon.Image == "" then
+		HudParts.setIcon(icon, "Case")
+	end
+	icon.AnchorPoint = Vector2.new(0.5, 0.5)
+	icon.ZIndex = 3
+	s.intro = { icon = icon, words = s.hintText, bob = nil }
+	self:setPhase(s, "Intro")
+	UIAnim.popIn(icon)
+end
+
+-- Opened: it shakes harder and harder, cracks in a bright shine, and the roll follows.
+function CaseOpening.crack(self: any, s: Session)
+	local intro = s.intro
+	if s.phase ~= "Intro" or not intro then
+		return
+	end
+	local I = C.Intro
+	self:setPhase(s, "Cracking")
+	if intro.bob then
+		intro.bob.stop()
+		intro.bob = nil
+	end
+	UISound.play("ReelBuild")
+	local icon = intro.icon
+	local born = os.clock()
+	local base = icon.Size
+	local shaking: RBXScriptConnection? = nil
+	shaking = RunService.RenderStepped:Connect(function()
+		local t = os.clock() - born
+		if (s.phase :: string) ~= "Cracking" or not icon.Parent then
+			if shaking then
+				shaking:Disconnect()
+			end
 			return
 		end
-		local id = if type(reply.caseId) == "string" and Cases.get(reply.caseId)
-			then reply.caseId
-			else caseId
-		self:playIn(s, id, reply.results)
+		local u = math.clamp(t / I.ShakeSeconds, 0, 1)
+		icon.Rotation = I.ShakeDegrees * u * math.sin(t * I.ShakeSpeed)
+		icon.Size = UDim2.fromOffset(
+			base.X.Offset * (1 + I.SwellShare * u),
+			base.Y.Offset * (1 + I.SwellShare * u)
+		)
+		if u >= 1 then
+			if shaking then
+				shaking:Disconnect()
+			end
+			icon.Rotation = 0
+			UIAnim.glowBurst(icon, HudParts.tone("Gold"), I.BurstReach)
+			UISound.play("ReelSettle")
+			self:flashStage(s)
+			UIAnim.popOut(icon, function()
+				icon:Destroy()
+			end)
+			task.delay(I.AfterBurstSeconds, function()
+				if (s.phase :: string) ~= "Cracking" then
+					return
+				end
+				s.intro = nil
+				self:setPhase(s, "Waiting")
+				local reply = s.reply
+				s.reply = nil
+				if reply then
+					self:answer(s, s.caseId, reply)
+				end
+			end)
+		end
 	end)
+end
+
+-- A bright white shine over the stage as the case bursts open.
+function CaseOpening.flashStage(_self: any, s: Session)
+	local flash = Instance.new("Frame")
+	flash.Name = "Shine"
+	flash.BorderSizePixel = 0
+	flash.BackgroundColor3 = Color3.new(1, 1, 1)
+	flash.BackgroundTransparency = 0.15
+	flash.AnchorPoint = Vector2.new(0.5, 0.5)
+	flash.Position = UDim2.fromScale(0.5, 0.5)
+	flash.Size = UDim2.fromScale(3, 3)
+	flash.ZIndex = 8
+	flash.Parent = s.stage.frame
+	local tween = TweenService:Create(
+		flash,
+		TweenInfo.new(C.Intro.ShineSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ BackgroundTransparency = 1 }
+	)
+	tween.Completed:Once(function()
+		flash:Destroy()
+	end)
+	tween:Play()
+end
+
+-- Every other screen of ours hides while a case opens (only the roll shows) and comes back
+-- with the prize card, the finished grid or the overlay closing.
+function CaseOpening.hideOthers(self: any)
+	if self.hiddenGuis then
+		return
+	end
+	local hidden = {}
+	local player = Players.LocalPlayer
+	local playerGui = player and player:FindFirstChildOfClass("PlayerGui")
+	if playerGui then
+		for _, gui in playerGui:GetChildren() do
+			if
+				gui:IsA("ScreenGui")
+				and gui.Enabled
+				and gui ~= self.gui
+				and gui ~= self.backGui
+				and gui.Name ~= "PullCutscene"
+				and gui.Name ~= "Freecam"
+			then
+				gui.Enabled = false
+				table.insert(hidden, gui)
+			end
+		end
+	end
+	self.hiddenGuis = hidden
+end
+
+function CaseOpening.showOthers(self: any)
+	local hidden = self.hiddenGuis
+	self.hiddenGuis = nil
+	if hidden then
+		for _, gui in hidden do
+			if gui.Parent then
+				gui.Enabled = true
+			end
+		end
+	end
 end
 
 --- Play results the server already sent (an OpenCase reply's `results`): the reel for one, the
@@ -849,6 +1088,7 @@ function CaseOpening.playIn(self: any, s: Session, caseId: string, results: any)
 	if #list == 1 then
 		local result = list[1]
 		s.result = result
+		s.cutsceneDone = false
 		s.count = 1
 		local old = s.reel
 		local reel: any = old
@@ -883,6 +1123,7 @@ function CaseOpening.playIn(self: any, s: Session, caseId: string, results: any)
 			self:open(s.caseId, Config.Cases.FastOpenCount)
 		end,
 		onFlipped = function()
+			self:showOthers()
 			self:refresh(s)
 			self:focus(s)
 			local frame = s.stage.frame
@@ -903,6 +1144,26 @@ function CaseOpening.showCard(self: any, s: Session)
 	local result = s.result
 	if s.phase ~= "Reel" or not result then
 		return
+	end
+	-- A Rare or better pull plays its cutscene first; the overlay hides while it plays.
+	if s.kind == "Overlay" and not s.cutsceneDone and PullCutscene.has(result.rarity) then
+		s.cutsceneDone = true
+		s.phase = "Cutscene"
+		self.gui.Enabled = false
+		self.backGui.Enabled = false
+		PullCutscene.play(result.rarity, result.cue, function()
+			if self.overlay ~= s or (s.phase :: string) ~= "Cutscene" then
+				return
+			end
+			self.gui.Enabled = true
+			self.backGui.Enabled = true
+			s.phase = "Reel"
+			self:showCard(s)
+		end)
+		return
+	end
+	if s.kind == "Overlay" then
+		self:showOthers()
 	end
 	local card = CaseOpeningCard.new(s.stage.frame, {
 		caseId = s.caseId,
@@ -1035,6 +1296,9 @@ function CaseOpening.sell(self: any, s: Session)
 			if reply.ok == true then
 				s.sold = true
 				card:setSell("Sold")
+				if (result.count or 1) <= 1 then
+					card:setEquipBusy(true) -- the only copy went: nothing left to equip
+				end
 				local amount = if type(reply.money) == "number" then reply.money else 0
 				CaseOpeningFx.flyCash(
 					self.root,
@@ -1183,6 +1447,11 @@ function CaseOpening.close(self: any)
 	local s: Session? = self.overlay
 	self.overlay = nil
 	self.backdrop.Modal = false
+	if s and s.phase == "Cutscene" then
+		s.phase = "Closed"
+		PullCutscene.stop()
+	end
+	self:showOthers()
 	local selected = GuiService.SelectedObject
 	if selected == nil or selected:IsDescendantOf(self.gui) then
 		if usable(self.saved) then
@@ -1230,6 +1499,8 @@ function CaseOpening.close(self: any)
 		dialog.cancel()
 	end
 	session.closedWaiting = session.phase == "Waiting"
+		or session.phase == "Intro"
+		or session.phase == "Cracking"
 	session.phase = "Closed"
 	local view = session.card or session.grid or session.reel
 	if view and view.root.Visible then
