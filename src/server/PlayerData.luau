@@ -50,6 +50,7 @@ local Shop = require(Shared.Progression.Shop)
 local UltCatalog = require(Shared.Ults.Catalog)
 local UltSlots = require(Shared.Ults.Slots)
 local SpinView = require(Shared.Ults.SpinView)
+local RankClaim = require(Shared.Tutorial.RankClaim)
 local ProfileStore = require(script.Parent.Vendor.ProfileStore)
 
 type Profile = ProfileStore.Profile<any>
@@ -933,6 +934,11 @@ local function prepare(player: Player, profile: Profile): string?
 		if valid.Progress.Wins > 0 and valid.Flags[FIRST_WIN_FLAG] == nil then
 			valid.Flags[FIRST_WIN_FLAG] = true
 		end
+	end
+	-- Rank rewards are claimed in Rank since 2026-10-03 (tutorial lane): a save that never
+	-- recorded its claimed division had every reward up to its peak paid at the rank-up.
+	if valid.Flags.RankClaimed == nil then
+		valid.Flags.RankClaimed = valid.PeakDivision
 	end
 	profile.Data = valid
 	return nil
@@ -3227,6 +3233,115 @@ function PlayerData.addTitle(player: Player, titleId: string): boolean
 end
 
 ---------------------------------------------------------------------------------------------
+-- The tutorial lane (docs/prompts/TUTORIAL_PROMPT.md): flags, held rank rewards, a set drop
+---------------------------------------------------------------------------------------------
+
+-- A Flags key: a short word. A value: true/false, a finite number, a short string, or nil to
+-- clear it.
+local FLAG_TEXT_MAX = 40
+
+--- Sets one entry of the save's Flags map (the tutorial's step, the funnel's last step, the
+--- claimed rank): `key` a short string, `value` a boolean, a finite number, a short string or
+--- nil (removes it). False when refused or not loaded.
+function PlayerData.setFlag(player: Player, key: string, value: any): boolean
+	local op = "setFlag"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif type(key) ~= "string" or #key < 1 or #key > FLAG_TEXT_MAX then
+		return refuse(op, player, ("key %s is not a short word"):format(tostring(key)))
+	elseif key == FIRST_WIN_FLAG then
+		return refuse(op, player, "the first win's flag is set only with its case")
+	end
+	local kind = type(value)
+	local ok = value == nil
+		or kind == "boolean"
+		or (kind == "number" and value == value and math.abs(value) < math.huge)
+		or (kind == "string" and #value <= FLAG_TEXT_MAX)
+	if not ok then
+		return refuse(op, player, ("value %s is not a flag value"):format(tostring(value)))
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	if data.Flags[key] == value then
+		return true
+	end
+	data.Flags[key] = value
+	commit(player, data, op)
+	return true
+end
+
+--- One entry of the save's Flags map (a plain value, no copy needed), or nil when not set or
+--- not loaded.
+function PlayerData.flag(player: Player, key: string): any
+	local data = peek(player)
+	return if data ~= nil then data.Flags[key] else nil
+end
+
+--- The rank rewards waiting to be claimed (RankClaim.pending), or nil when not loaded.
+function PlayerData.rankPending(player: Player): RankClaim.Pending?
+	local data = peek(player)
+	if data == nil then
+		return nil
+	end
+	return RankClaim.pending(data.Flags.RankClaimed, data.PeakDivision)
+end
+
+--- Claims every held rank reward in one change (the Rank screen's Claim): pays them as
+--- "RankUp" and moves Flags.RankClaimed to the peak. Returns what was paid (RankClaim.Pending)
+--- or nil when nothing was pending, refused or not loaded.
+function PlayerData.claimRank(player: Player): RankClaim.Pending?
+	local op = "claimRank"
+	if not isPlayer(player) then
+		refuse(op, player, "not a player")
+		return nil
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return nil
+	end
+	local pending = RankClaim.pending(data.Flags.RankClaimed, data.PeakDivision)
+	local reward = RankClaim.reward(pending)
+	if reward == nil then
+		return nil
+	end
+	local why = badReward(reward) or blockedReward(data, reward)
+	if why ~= nil then
+		refuse(op, player, why)
+		return nil
+	end
+	giveReward(data, reward, "RankUp")
+	data.Flags.RankClaimed = data.PeakDivision
+	commit(player, data, op)
+	return pending
+end
+
+--- Rolls one Case Drop of a set `tier` (the tutorial's Standard Case for Bronze; a tier in
+--- Config.Cases.Drop's weights), pity counted as for any drop. Returns the reveal payload, or
+--- nil when refused or not loaded.
+function PlayerData.setDrop(player: Player, source: string, tier: string): CaseDrop.Payload?
+	local op = "setDrop"
+	if not isPlayer(player) then
+		refuse(op, player, "not a player")
+		return nil
+	elseif type(source) ~= "string" or #source < 1 or #source > 20 then
+		refuse(op, player, "no source given")
+		return nil
+	elseif type(tier) ~= "string" or Config.Cases.Drop.Weights[tier] == nil then
+		refuse(op, player, ("%s is not a Case Drop tier"):format(tostring(tier)))
+		return nil
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return nil
+	end
+	local payload = rollDrop(data, source, tier)
+	commit(player, data, op)
+	return payload
+end
+
+---------------------------------------------------------------------------------------------
 -- Dev
 ---------------------------------------------------------------------------------------------
 
@@ -3247,6 +3362,7 @@ function PlayerData.reset(player: Player): boolean
 		data[key] = value
 	end
 	data.Shop.FirstJoin = os.time()
+	data.Flags.RankClaimed = 0 -- a new player's: nothing claimed (as a first load sets it)
 	commit(player, data, op)
 	return true
 end

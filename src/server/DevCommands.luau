@@ -1406,6 +1406,10 @@ function DevCommands.start()
 	command("UltHelp", D.UltHelp, ultHelp)
 	command("BotRank", D.BotRank, botRank)
 	command("LobbyBots", D.LobbyBots, lobbyBots)
+	-- The tutorial lane: /tutorial reset | skip | off | step <name> (TutorialService.dev).
+	command("Tutorial", D.Tutorial, function(player: Player, args: { string })
+		tell(player, require(script.Parent.TutorialService).dev(player, args))
+	end)
 
 	-- Studio only: tests type a command through ServerStorage.DevCommandsQA, since a script
 	-- cannot type into Roblox's chat box: Invoke(userId, "/givecue chalk dust 3") -> (true,

@@ -1,0 +1,245 @@
+--!strict
+-- TutorialService: a new player's first session (docs/prompts/TUTORIAL_PROMPT.md). One step per
+-- player (Tutorial/Steps), saved as Flags.Tutorial and shown to the client through two player
+-- attributes: TutorialStep (the step's name, or "" once it is over) and TutorialActive (true in
+-- the first server: the menus hide and the GUI lane's popups wait).
+--
+-- The server decides every step; the client only reports what it alone can see (the
+-- TutorialEvent remote), and each report is checked against the step it may move.
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local ServerStorage = game:GetService("ServerStorage")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
+local Net = require(Shared.Net)
+local Strings = require(Shared.Strings)
+local Steps = require(Shared.Tutorial.Steps)
+local PlayerData = require(script.Parent.PlayerData)
+local Rewards = require(script.Parent.Rewards)
+local Ranking = require(script.Parent.Ranking)
+local ArenaService = require(script.Parent.ArenaService)
+local Funnel = require(script.Parent.Funnel)
+
+local T = Config.Tutorial
+
+local TutorialService = {}
+
+local STEP_FLAG = "Tutorial"
+local WHY_FLAG = "TutorialWhy"
+local SECONDS_PER_DAY = 86400
+
+local inArena = false
+
+-- Listeners for step changes: fn(player, step, previous).
+local stepChanged = Instance.new("BindableEvent")
+TutorialService.StepChanged = stepChanged.Event
+
+local function log(text: string)
+	print("[8ball] Tutorial: " .. text)
+end
+
+--- The player's step (a Steps.Order name, or an end state: Done, Skipped, Cancelled), or nil
+--- while their save is not loaded.
+function TutorialService.step(player: Player): string?
+	local step = PlayerData.flag(player, STEP_FLAG)
+	return if type(step) == "string" then step else nil
+end
+
+--- Whether the tutorial is still running for the player.
+function TutorialService.active(player: Player): boolean
+	return Steps.active(TutorialService.step(player))
+end
+
+--- Whether the player is in the tutorial's first server (menus hidden, popups held).
+function TutorialService.firstServer(player: Player): boolean
+	return Steps.firstServer(TutorialService.step(player))
+end
+
+local function publish(player: Player, step: string)
+	player:SetAttribute("TutorialStep", if Steps.active(step) then step else "")
+	player:SetAttribute("TutorialActive", Steps.firstServer(step))
+end
+
+-- What happens once when a step is entered.
+local function entered(player: Player, step: string, previous: string?)
+	if not Steps.firstServer(step) and (previous == nil or Steps.firstServer(previous)) then
+		-- Out of the first server (the real server, a skip, a cancel): today's day-1 claim,
+		-- held until now, comes with the GUI lane's daily popup.
+		task.spawn(function()
+			if Rewards.claimDayOne(player) then
+				Funnel.onboarding(player, "ClaimedDaily")
+			end
+		end)
+	end
+	if step == "Arrow1" then
+		Funnel.onboarding(player, "SawArrow")
+	elseif step == "Nudges" and not inArena then
+		Funnel.onboarding(player, "BackInLobby")
+	end
+end
+
+--- Moves the player to `step` (a Steps.Order name or an end state), saved at once. False when
+--- the save refused it.
+function TutorialService.setStep(player: Player, step: string): boolean
+	local previous = TutorialService.step(player)
+	if previous == step then
+		return true
+	end
+	if not PlayerData.setFlag(player, STEP_FLAG, step) then
+		return false
+	end
+	publish(player, step)
+	log(("%s: %s -> %s"):format(player.Name, tostring(previous), step))
+	entered(player, step, previous)
+	stepChanged:Fire(player, step, previous)
+	return true
+end
+
+--- Moves the player on from `from` to the next step, only if they are still at `from`.
+function TutorialService.advance(player: Player, from: string): boolean
+	if TutorialService.step(player) ~= from then
+		return false
+	end
+	local nextStep = Steps.after(from)
+	return nextStep ~= nil and TutorialService.setStep(player, nextStep)
+end
+
+--- Ends the tutorial early (Steps.Reasons: Skip, OtherTable, Friend). Everything shows at once,
+--- the held day-1 claim comes now, and the exit funnel notes why.
+function TutorialService.cancel(player: Player, reason: string)
+	local step = TutorialService.step(player)
+	if not Steps.active(step) or Steps.Reasons[reason] == nil then
+		return
+	end
+	PlayerData.setFlag(player, WHY_FLAG, reason)
+	TutorialService.setStep(player, if reason == "Skip" then "Skipped" else "Cancelled")
+	Funnel.once(player, "TutorialExit", 1, "Left" .. reason)
+	Funnel.event(player, "TutorialLeft", Steps.index(step), reason, step)
+end
+
+-- The day a unix time falls on (UTC).
+local function dayOf(t: number): number
+	return math.floor(t / SECONDS_PER_DAY)
+end
+
+local function onLoaded(player: Player)
+	local data = PlayerData.read(player)
+	if data == nil then
+		return
+	end
+	Funnel.onboarding(player, "Joined")
+	if dayOf(os.time()) > dayOf(data.Shop.FirstJoin) then
+		Funnel.onboarding(player, "CameBackNextDay")
+	end
+	local saved = data.Flags[STEP_FLAG]
+	local step: string
+	if type(saved) ~= "string" then
+		step = Steps.initial(data.Stats.Matches, data.Progress.Wins)
+	elseif Steps.active(saved) then
+		step = Steps.resume(saved, inArena)
+	else
+		step = saved
+	end
+	if step ~= saved then
+		if not PlayerData.setFlag(player, STEP_FLAG, step) then
+			return
+		end
+	end
+	publish(player, step)
+	log(("%s joins at %s"):format(player.Name, step))
+	entered(player, step, if type(saved) == "string" then saved else nil)
+	stepChanged:Fire(player, step, saved)
+end
+
+-- What the client may report, and the step each report needs.
+local function onEvent(player: Player, kind: any, _data: any)
+	if type(kind) ~= "string" then
+		return
+	end
+	if kind == "Skip" then
+		TutorialService.cancel(player, "Skip")
+	end
+end
+
+---------------------------------------------------------------------------------------------
+-- The /tutorial developer command (DevCommands): reset | skip | off | step <name>
+---------------------------------------------------------------------------------------------
+
+--- Runs the command's words; returns the line to tell the caller.
+function TutorialService.dev(player: Player, args: { string }): string
+	local Dev = Strings.Dev
+	local word = args[1]
+	local function names(): string
+		return table.concat(Steps.Order, ", ")
+	end
+	local function find(name: string?): string?
+		for _, step in Steps.Order do
+			if name and string.lower(step) == name then
+				return step
+			end
+		end
+		return nil
+	end
+	if word == "reset" then
+		PlayerData.setFlag(player, WHY_FLAG, nil)
+		TutorialService.setStep(player, "Arrow1")
+	elseif word == "skip" then
+		TutorialService.cancel(player, "Skip")
+	elseif word == "off" then
+		TutorialService.setStep(player, "Done")
+	elseif word == "step" and find(args[2]) then
+		TutorialService.setStep(player, find(args[2]) :: string)
+	else
+		return Dev.TutorialBad:format(names())
+	end
+	return Dev.TutorialStep:format(tostring(TutorialService.step(player)))
+end
+
+---------------------------------------------------------------------------------------------
+-- Start
+---------------------------------------------------------------------------------------------
+
+function TutorialService.start()
+	inArena = ArenaService.detect()
+	-- The day-1 claim waits while the player is in the tutorial's first server.
+	Rewards.setClaimGate(function(player: Player): boolean
+		return not TutorialService.firstServer(player)
+	end)
+	-- Bronze's Case Drop after game 1 is the tutorial's Standard Case (answer 9).
+	Ranking.setDropTier(function(player: Player): string?
+		local step = TutorialService.step(player)
+		if Steps.active(step) and not Steps.atLeast(step, "Drop") then
+			return T.BronzeDropTier
+		end
+		return nil
+	end)
+	Net.get("TutorialEvent").OnServerEvent:Connect(onEvent)
+	PlayerData.Loaded:Connect(onLoaded)
+	for _, player in Players:GetPlayers() do
+		if PlayerData.isLoaded(player) then
+			task.spawn(onLoaded, player)
+		end
+	end
+	-- Studio QA: read or set a test player's step from a script.
+	if RunService:IsStudio() then
+		local hook = Instance.new("BindableFunction")
+		hook.Name = "TutorialQA"
+		hook.OnInvoke = function(op: string, userId: number, a: any): any
+			local player = Players:GetPlayerByUserId(userId)
+			if player == nil then
+				return nil
+			end
+			if op == "step" then
+				return TutorialService.step(player)
+			elseif op == "set" then
+				return TutorialService.setStep(player, a)
+			end
+			error("TutorialQA: unknown op " .. tostring(op))
+		end
+		hook.Parent = ServerStorage
+	end
+end
+
+return TutorialService

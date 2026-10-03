@@ -450,6 +450,8 @@ return {
 		LobbyBotsCount = "Lobby bots on: %d of them.",
 		LobbyBotsOff = "Lobby bots off.",
 		LobbyBotsBad = "Try /lobbybots on, /lobbybots off or /lobbybots <count>.",
+		TutorialStep = "Your tutorial is at %s.",
+		TutorialBad = "Try /tutorial reset, skip, off or step <name>. Steps: %s.",
 	},
 	-- The rank and money screens (ResultScreen, NewRankPopup, Roadmap, RankHud).
 	Progress = {
@@ -1267,5 +1269,20 @@ return {
 			},
 			Joins = { "plays", "rblx", "yt", "xd", "official", "gaming", "pro", "fan" },
 		},
+	},
+	-- The first-time tutorial (src/client/Tutorial*.luau; docs/prompts/TUTORIAL_PROMPT.md). The
+	-- big instruction line at the top of the screen; a line with a device in its name has one
+	-- version per device (Mouse, Touch, Gamepad).
+	Tutorial = {
+		Skip = "Skip tutorial",
+		SkipAsk = "Skip the tutorial?",
+		SkipYes = "Yes",
+		SkipNo = "No",
+	},
+	-- Rank rewards held until claimed (RankClaim; the roadmap's claim block, NEW RANK!).
+	RankClaim = {
+		ClaimLine = "Claim your rewards in Rank!",
+		Claim = "CLAIM",
+		Ready = "Rewards ready!",
 	},
 }

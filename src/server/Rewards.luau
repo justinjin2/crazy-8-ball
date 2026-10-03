@@ -383,21 +383,40 @@ local function startQA()
 	hook.Parent = ServerStorage
 end
 
+-- The tutorial lane's gate (TutorialService): while it answers false the claim on join waits,
+-- so a new player's first money comes with the daily popup in the real server (designer,
+-- 2026-10-03); the tutorial then calls Rewards.claimDayOne itself.
+local claimGate: ((Player) -> boolean)? = nil
+
+--- Sets the gate on the claim on join (nil: always claim).
+function Rewards.setClaimGate(fn: ((Player) -> boolean)?)
+	claimGate = fn
+end
+
+--- Today's claim by itself when it is day 1 of the loop. True when it was claimed now.
+function Rewards.claimDayOne(player: Player): boolean
+	if player.Parent ~= Players or not ready(player) then
+		return false
+	end
+	local data = PlayerData.read(player)
+	if data == nil then
+		return false
+	end
+	local state = Daily.loginState(data.Login, Daily.dayOf(os.time()), isVip(player))
+	if state.canClaim and state.day == 1 then
+		return (PlayerData.claimDaily(player, isVip(player)))
+	end
+	return false
+end
+
 -- Today's claim by itself on join when it is day 1 of the loop (Config.Daily.AutoClaimDayOne):
 -- after AutoClaimDelaySeconds, so the Store has checked VIP first.
 local function autoClaim(player: Player)
 	task.wait(D.AutoClaimDelaySeconds)
-	if player.Parent ~= Players or not ready(player) then
+	if claimGate and not claimGate(player) then
 		return
 	end
-	local data = PlayerData.read(player)
-	if data == nil then
-		return
-	end
-	local state = Daily.loginState(data.Login, Daily.dayOf(os.time()), isVip(player))
-	if state.canClaim and state.day == 1 then
-		PlayerData.claimDaily(player, isVip(player))
-	end
+	Rewards.claimDayOne(player)
 end
 
 local function onLoaded(player: Player)

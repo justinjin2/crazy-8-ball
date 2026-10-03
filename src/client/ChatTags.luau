@@ -125,7 +125,9 @@ function ChatTags.start()
 		if player:GetAttribute("Vip") == true then
 			table.insert(tags, ChatTags.vipTag())
 		end
-		local rank = ChatTags.tagFor(player:GetAttribute("RankTier"))
+		-- The tag is a rank reward, claimed in Rank (RankTag; tutorial lane, 2026-10-03).
+		local rank =
+			ChatTags.tagFor(player:GetAttribute("RankTag") or player:GetAttribute("RankTier"))
 		if rank then
 			table.insert(tags, rank)
 		end

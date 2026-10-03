@@ -1736,9 +1736,11 @@ Config.Ranks = {
 			Master = 80000,
 			Grandmaster = 150000,
 		},
-		-- Drops: Case Drops (each rolled with pity and revealed through the 8-ball).
+		-- Drops: Case Drops (each rolled with pity and revealed through the 8-ball). Bronze's
+		-- drop is given at once with the first win; everything else waits until the player
+		-- claims it in Rank (designer, 2026-10-03; was 2 drops).
 		Tier = {
-			Bronze = { Money = 2500, Drops = 2, Cue = "BronzeCue" },
+			Bronze = { Money = 2500, Drops = 1, Cue = "BronzeCue" },
 			Silver = { Money = 5000, Cases = { Rare = 1 }, Cue = "SilverCue" },
 			Gold = { Money = 10000, Cases = { Rare = 2 }, Cue = "GoldCue" },
 			Platinum = { Money = 20000, Cases = { Rare = 3 }, Cue = "PlatinumCue" },
@@ -2193,8 +2195,8 @@ Config.Daily = {
 		["8BALL"] = { Money = 2500 },
 		ROOFTOP = { Cases = { Rare = 1 }, Expires = 1798761600 }, -- through 2026-12-31 (UTC)
 		-- The spin screen's code box (Config.Ults.CodeBanner.ActiveCode names it): 3 ability
-		-- spins.
-		ABILITIES = { Spins = 3 },
+		-- spins. The tutorial points at it (designer, 2026-10-03: RELEASE replaces ABILITIES).
+		RELEASE = { Spins = 3 },
 		-- Like milestones: 1k, 5k, 10k, 25k, 50k, 100k likes.
 		LIKES1K = { Money = 10000, Drops = 1, Live = true },
 		LIKES5K = { Money = 25000, Drops = 2, Live = true },
@@ -2562,7 +2564,9 @@ Config.Ults = {
 	-- The developer flag: every ult, built or not, can be rolled and equipped (friend tests).
 	-- `/ultsall on` turns it on for one player for the session.
 	DevAllUlts = false,
-	Default = "Magnet", -- everyone's starter ult, free forever; an empty or unusable slot plays as it
+	-- Everyone's starter ult, free forever; an empty or unusable slot plays as it (Heat Seeker
+	-- since 2026-10-03, the tutorial teaches it; was Magnet).
+	Default = "HeatSeeker",
 	BarMax = 100, -- a full bar
 	MaxPerMatch = 2, -- at most this many ults a match; after the second the bar stays empty
 	-- Solo shows the real bar, always full and ready: a press arms the equipped ult for free,
@@ -2757,7 +2761,7 @@ Config.Ults = {
 	},
 	-- Where spins come from (section 10, (tune)).
 	Earn = {
-		Starter = 3, -- a fresh save, and the migration for existing saves
+		Starter = 1, -- a fresh save, and the migration for existing saves (the tutorial spins it)
 		DailyFree = 1, -- one free spin a UTC day (Rewards > Daily's reset); never stacks
 		-- Reaching each tier (division I) adds spins: +1 up to Gold, +2 Platinum and Diamond, +3 above.
 		RankUp = {
@@ -2782,7 +2786,7 @@ Config.Ults = {
 	},
 	-- The code box on the spin screen (section 9.3): the designer edits these two in one place.
 	-- The code itself is a row in Config.Daily.Codes (Spins = 3).
-	CodeBanner = { ActiveCode = "ABILITIES", NextGoalLikes = 100 },
+	CodeBanner = { ActiveCode = "RELEASE", NextGoalLikes = 100 },
 	-- Fast Open's Auto Spin (section 9.6): one spin this often, server-checked.
 	AutoSpinSeconds = 0.4,
 	AutoStopChoices = { "Rare", "Epic", "Legendary" },
@@ -9281,6 +9285,28 @@ Config.Bots = {
 	LeaveAfterSeconds = 2.5,
 }
 
+-- The first-time tutorial and the onboarding funnels (docs/prompts/TUTORIAL_PROMPT.md;
+-- src/server/TutorialService.luau, src/client/Tutorial*.luau, src/shared/Tutorial/). (tune)
+Config.Tutorial = {
+	-- Rank rewards wait until the player claims them in Rank (designer, 2026-10-03), except
+	-- these tiers' Case Drops, given at once with the rank-up (Bronze's 1 drop follows the
+	-- first win as an 8-ball).
+	RankClaim = {
+		DropsAtOnce = { Bronze = true },
+		MinGapSeconds = 0.5, -- one claim request at most this often per player (a double tap)
+	},
+	-- Game 1's rewards (answer 9): Bronze's Case Drop is a Standard Case, opened at once.
+	BronzeDropTier = "Standard",
+	-- The funnels (src/server/Funnel.luau; step 9). Each mask is a Flags entry, one bit per
+	-- step, so a step is never logged twice.
+	Funnel = {
+		Print = true, -- Studio prints each logged step in the output (never live)
+		OnboardingFlag = "Funnel",
+		-- One-time funnels: the funnel's name on the dashboard -> its Flags key.
+		Once = { TutorialExit = "FunnelExit" },
+	},
+}
+
 Config.Debug = {
 	-- Test keys in play mode: B = rack and break (until rules handle new games).
 	TestKeysEnabled = true,
@@ -9384,6 +9410,10 @@ Config.Debug = {
 		-- the real players; a count: that many, like the tutorial's fake lobby). Studio starts
 		-- with them off. Only the accounts in UserIds.
 		LobbyBots = "/lobbybots",
+		-- /tutorial reset | skip | off | step <name> (the tutorial lane): restart your tutorial
+		-- from the arrow, end it as skipped, end it as done, or jump to a step (Tutorial/Steps
+		-- .Order). Only the accounts in UserIds, Studio and live.
+		Tutorial = "/tutorial",
 		-- The ult commands' old names, by command: each still runs its command.
 		OldAliases = {
 			UltBar = "/ultbar",

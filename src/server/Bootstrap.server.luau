@@ -146,6 +146,9 @@ FallGuard.start() -- anyone who drops below the floor goes back to the spawn at 
 ShotService.start()
 UltService.start() -- ults in a match: activation, the bar gains, the Studio UltQA hook
 require(script.Parent:WaitForChild("Bots"):WaitForChild("BotService")).start() -- the bots (the Bots lane)
+-- The tutorial lane: rank rewards claimed in Rank, then the first-time tutorial itself.
+require(script.Parent:WaitForChild("RankClaimService")).start()
+require(script.Parent:WaitForChild("TutorialService")).start()
 DevCommands.start() -- /day and /sunset, for the developer only
 GlobalQueue.start(not isArena) -- every server takes its turn pairing the global queue
 if isArena then

@@ -337,6 +337,16 @@ local REMOTES: { [string]: string } = {
 	-- AUGHHHH!): (bot seat id, text); every client shows a chat bubble over its head and a chat
 	-- line in its name, like a person's.
 	BotSay = "RemoteEvent",
+	-- The tutorial lane (TutorialService, src/client/Tutorial.luau). client -> server: something
+	-- the player did that only the client sees (kind, data?): "OpenedAbilities", "ClosedAbilities",
+	-- "Nudge" (data: its name), "Skip", "RareSeen", "ShopView" ... each checked against the step.
+	TutorialEvent = "RemoteEvent",
+	-- server -> one player: (kind, data?) "Prompt" (an extra cue for the client: the target
+	-- table id, the pocket to light ...), "Funnel" (Studio's debug print).
+	TutorialCue = "RemoteEvent",
+	-- client -> server: claim every held rank reward (RankClaim). server -> that player:
+	-- { ok, money, cases, drops, cues, spins, rows } for the fly animation, or { ok = false }.
+	RankClaim = "RemoteEvent",
 }
 
 -- Values per table in an AimBroadcast batch.

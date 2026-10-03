@@ -45,6 +45,24 @@ pictures may differ.
 2026-10-03: interview done, brief approved (`docs/prompts/TUTORIAL_PROMPT.md`). Building step
 by step (steps 1-10 of the brief).
 
+- **Step 1 done: foundations and the rule changes.** `TutorialService` (steps saved in
+  `Flags.Tutorial`, resume on rejoin, attributes `TutorialStep` / `TutorialActive`, Skip,
+  `/tutorial reset | skip | off | step <name>`, Studio hook `ServerStorage.TutorialQA`),
+  `Funnel` (onboarding once per player, one-time and repeating funnels, side events; Studio
+  prints each step), `RankClaimService` (held rank rewards, the `RankClaim` remote, attributes
+  `RankPending` and `RankTag`), pure `Tutorial/Steps` and `Tutorial/RankClaim`, `Config.Tutorial`,
+  `Strings.Tutorial` / `Strings.RankClaim`. Rule changes: Bronze 1 drop, 1 starter spin, Heat
+  Seeker default, RELEASE replaces ABILITIES, day-1 claim held while the tutorial's first server
+  runs, rank rewards held until claimed (chat tag included).
+  - Checked: lint, 957 Lune tests (new `tutorial_steps_test`, `tutorial_rankclaim_test`);
+    Studio (PC): a fresh save joins at Arrow1 (TutorialActive, Heat Seeker, 1 spin, no day-1
+    claim); `/xp 100` made Bronze I, gave 1 Standard Case and held $2,500, the spin and the
+    Bronze Cue (RankPending true, chat tag still none); the RankClaim remote paid them (spins
+    2, tag Bronze, funnel 19 logged); `/tutorial skip` gave the day-1 $5,000 at once. Console
+    clean. (The designer's Studio account starts with $5,000: Studio counts it as owning VIP,
+    so the VIP Cue's finder's money; a real new player starts at $0.) Phone and gamepad: no
+    screens yet in this step.
+
 ### Rule changes for everyone (made in this lane; the integrator moves them to the docs)
 
 - Reaching Bronze gives 1 Case Drop (was 2), given at once after the first win.
@@ -58,7 +76,25 @@ by step (steps 1-10 of the brief).
 
 ### Changes to shared or other lanes' files (existing lines)
 
-(filled in step by step)
+- `Config.luau`: `Ranks.Rewards.Tier.Bronze.Drops` 2 -> 1; `Daily.Codes` ABILITIES -> RELEASE;
+  `Ults.Default` Magnet -> HeatSeeker; `Ults.Earn.Starter` 3 -> 1; `Ults.CodeBanner.ActiveCode`
+  RELEASE; new blocks `Config.Tutorial` (before `Config.Debug`) and `Debug.Commands.Tutorial`.
+- `Strings.luau`: two `Dev` lines (Tutorial); new `Tutorial` and `RankClaim` blocks at the end.
+- `Net.luau`: `TutorialEvent`, `TutorialCue`, `RankClaim` remotes (end of the list).
+- `PlayerData.luau`: requires `Tutorial.RankClaim`; `prepare` sets `Flags.RankClaimed` to the
+  peak on a save without it; `reset` sets it to 0; new block (before Dev): `setFlag`, `flag`,
+  `rankPending`, `claimRank`, `setDrop`.
+- `Ranking.luau`: `rewardOf` replaced by `atOnceOf` + `Ranking.setDropTier` (a rank-up pays only
+  the at-once drops; the rest is claimed in Rank); `xpPart` and `rankEvent` carry `held` and
+  `dropsAtOnce`.
+- `Rewards.luau`: `autoClaim` split into the gate (`Rewards.setClaimGate`) and
+  `Rewards.claimDayOne`.
+- `Bootstrap.server.luau`: starts `RankClaimService` and `TutorialService` after BotService.
+- `DevCommands.luau`: the `/tutorial` command (one block).
+- `ChatTags.luau`: the rank tag reads `RankTag` first (the claimed tier).
+- `UltSpins.luau`: a comment (RELEASE).
+- Tests changed for the new values: `ranks_test`, `save_schema_test`, `ult_slots_test`,
+  `ult_spins_test`; `tools/economy_config.json` re-exported.
 
 ## Requests to other lanes or the integrator
 
