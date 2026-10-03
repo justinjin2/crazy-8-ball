@@ -508,6 +508,11 @@ local function onRequest(t: any, host: Player)
 	end
 end
 
+--- Whether the player is on a table's pad or seat (the real server's nudges wait meanwhile).
+function TutorialGames.seated(player: Player): boolean
+	return Tables.tableOf(player) ~= nil
+end
+
 --- Starts watching the tables. `tutorial` is TutorialService (step, setStep, cancel,
 --- firstServer).
 function TutorialGames.start(tutorial: any)

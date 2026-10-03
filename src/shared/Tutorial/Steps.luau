@@ -128,6 +128,29 @@ function Steps.shows(step: string?, item: string): boolean
 	return false
 end
 
+--- The real server's nudge now (step Nudges), from how many of Steps.Nudges are done, whether
+--- rank rewards wait, and when the newest Rare Case's timer ends (nil: none) at unix time
+--- `now`. Answers the nudge's name and its place in Steps.Nudges (nil for the case ones):
+--- the four in order (Rank only while something waits to be claimed), then "CaseWait" while
+--- the Rare Case's timer runs and "CaseReady" once it has ended; nil when nothing is left.
+function Steps.nudge(
+	done: number,
+	rankPending: boolean,
+	rareAt: number?,
+	now: number
+): (string?, number?)
+	for i = math.max(0, math.floor(done)) + 1, #Steps.Nudges do
+		local name = Steps.Nudges[i]
+		if name ~= "Rank" or rankPending then
+			return name, i
+		end
+	end
+	if rareAt then
+		return if now >= rareAt then "CaseReady" else "CaseWait", nil
+	end
+	return nil, nil
+end
+
 -- The onboarding funnel (AnalyticsService:LogOnboardingFunnelStepEvent), in the designer's order.
 Steps.Funnel = {
 	"Joined",

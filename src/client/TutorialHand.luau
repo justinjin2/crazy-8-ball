@@ -173,7 +173,20 @@ local function reset(self: Hand)
 	self.bar.Visible = false
 end
 
-local function placeHand(self: Hand, at: Vector2, size: number, transparency: number)
+local function placeHand(
+	self: Hand,
+	at: Vector2,
+	size: number,
+	transparency: number,
+	flipped: boolean?
+)
+	-- Flipped: turned half round, pointing up from below (a target too near the screen's top
+	-- for the hand to fit over it). Turned about its middle, the fingertip lands at the
+	-- mirrored point of the picture, so that point is the anchor.
+	self.hand.Rotation = if flipped then 180 else 0
+	self.hand.AnchorPoint = if flipped
+		then Vector2.new(1 - H.TipX, 1 - H.TipY)
+		else Vector2.new(H.TipX, H.TipY)
 	self.hand.Visible = true
 	self.hand.Size = UDim2.fromOffset(size, size)
 	self.hand.Position = UDim2.fromOffset(at.X, at.Y)
@@ -204,7 +217,15 @@ function TutorialHand.update(self: Hand, dt: number)
 		local phase = (t % H.TapSeconds) / H.TapSeconds
 		local dip = if phase < 0.3 then math.sin(phase / 0.3 * math.pi) else 0
 		self.scale.Scale = 1 - H.TapSquish * dip
-		placeHand(self, centre + Vector2.new(0, -H.HoverPx + H.TapDipPx * dip), size, 0)
+		local flipped = centre.Y - size * H.TipY < 0
+		local toward = if flipped then -1 else 1
+		placeHand(
+			self,
+			centre + Vector2.new(0, toward * (-H.HoverPx + H.TapDipPx * dip)),
+			size,
+			0,
+			flipped
+		)
 		return
 	end
 

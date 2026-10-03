@@ -29,6 +29,9 @@ local function refresh(player: Player)
 	end
 	player:SetAttribute("RankPending", RankClaim.any(pending))
 	player:SetAttribute("RankTag", RankClaim.tagTier(PlayerData.flag(player, "RankClaimed")))
+	-- The claim block works out the chips from this and PeakDivision.
+	local claimed = PlayerData.flag(player, "RankClaimed")
+	player:SetAttribute("RankClaimed", if type(claimed) == "number" then claimed else nil)
 end
 
 local function onClaim(player: Player)

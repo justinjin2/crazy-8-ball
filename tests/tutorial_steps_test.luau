@@ -68,4 +68,19 @@ return {
 		H.expect(not Steps.funnelHas(mask, 8) and not Steps.funnelHas(nil, 1), "others not")
 		H.expect(Steps.funnelMark(mask, 7) == mask, "marking twice changes nothing")
 	end,
+
+	["the real server's nudges come one at a time, then the case"] = function()
+		local Steps = load()
+		local function nudge(done: number, pending: boolean, at: number?, now: number): string?
+			local name = Steps.nudge(done, pending, at, now)
+			return name
+		end
+		H.expect(nudge(0, true, 100, 0) == "Rank", "rank rewards wait: Rank first")
+		H.expect(nudge(0, false, 100, 0) == "Inventory", "nothing to claim: Rank is skipped")
+		H.expect(nudge(1, true, 100, 0) == "Inventory", "a later rank-up does not bring Rank back")
+		H.expect(nudge(2, false, 100, 0) == "Shop" and nudge(3, false, 100, 0) == "FreeReward", "")
+		H.expect(nudge(4, false, 100, 50) == "CaseWait", "the Rare Case's timer runs")
+		H.expect(nudge(4, false, 100, 100) == "CaseReady", "then it is ready")
+		H.expect(nudge(4, false, nil, 0) == nil, "no Rare Case: the tutorial is over")
+	end,
 }

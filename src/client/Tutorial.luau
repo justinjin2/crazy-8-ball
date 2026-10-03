@@ -22,6 +22,7 @@ local TutorialOverlay = require(script.Parent.TutorialOverlay)
 local TutorialHand = require(script.Parent.TutorialHand)
 local TutorialArrow = require(script.Parent.TutorialArrow)
 local TutorialReveal = require(script.Parent.TutorialReveal)
+local TutorialCasePill = require(script.Parent.TutorialCasePill)
 local Progression = require(script.Parent.Progression)
 local Menus = require(script.Parent.Menus)
 local ItemState = require(script.Parent.ItemState)
@@ -34,6 +35,7 @@ local overlay: TutorialOverlay.Overlay
 local hand: TutorialHand.Hand
 local arrow: TutorialArrow.Arrow
 local reveal: TutorialReveal.Reveal
+local pill: TutorialCasePill.Pill
 
 local ULTS = Config.UI.UltScreen.Column.Name
 
@@ -375,6 +377,56 @@ local function afterScene(step: string, device: string): string
 	return step .. device
 end
 
+-- The real server's nudges (step 7): the menu each one opens and the anchor the hand points at.
+local NUDGE_MENUS: { [string]: string } = {
+	Rank = "Ranked",
+	Inventory = "Inventory",
+	Shop = "Shop",
+	FreeReward = "Rewards",
+	CaseReady = "Inventory",
+}
+local NUDGE_ANCHORS: { [string]: string } = {
+	Rank = "Rank",
+	Inventory = "Inventory",
+	Shop = "Shop",
+	FreeReward = "FreeReward",
+	CaseReady = "Inventory",
+}
+
+-- The nudge the server names (TutorialNudge; "" while the player is at a table): the hand
+-- and the light dim on its button while nothing else is up; once its menu opens the server
+-- is told (Rank's is done by its claim, so the hand moves on to CLAIM). An ignored nudge
+-- stays, and comes back after a match, until it is answered (designer, 2026-10-03).
+local function nudgeScene(device: string): string
+	arrow:show(nil)
+	local name = player:GetAttribute("TutorialNudge")
+	if type(name) ~= "string" or NUDGE_MENUS[name] == nil then
+		lineOnly(nil)
+		return "nudgeNone"
+	end
+	local menu = NUDGE_MENUS[name]
+	if Menus.isOpen(menu) then
+		if name == "Rank" then
+			-- The claim block says it itself ("Rewards ready!"): the hand alone.
+			local key = "nudgeClaim"
+			pointAt("RankClaim", "", device, shownKey ~= key)
+			return key
+		end
+		if shownKey ~= "nudged" .. name then
+			Tutorial.report("Nudged", name)
+		end
+		lineOnly(nil)
+		return "nudged" .. name
+	end
+	if Progression.isBusy() then
+		lineOnly(nil)
+		return "nudgeBusy"
+	end
+	local key = "nudge" .. name
+	pointAt(NUDGE_ANCHORS[name], Copy.Nudge[name], device, shownKey ~= key)
+	return key
+end
+
 -- Builds the scene for the step now (the line, the dim, the hand, the arrow). Cheap enough
 -- to run every frame: each piece only changes when its input does.
 local function scene(step: string, device: string): string
@@ -397,6 +449,8 @@ local function scene(step: string, device: string): string
 		return game1Scene(device)
 	elseif Steps.atLeast(step, "Drop") and not Steps.atLeast(step, "Arrow2") then
 		return afterScene(step, device)
+	elseif step == "Nudges" then
+		return nudgeScene(device)
 	end
 	reveal:hide()
 	lastAfter = ""
@@ -408,8 +462,13 @@ local function scene(step: string, device: string): string
 	return step
 end
 
-local function update()
+local function update(dt: number)
 	reveal:update()
+	-- The Rare Case timer beside Inventory, in the real server, while no menu or popup is up
+	-- (TutorialCaseAt: when it is ready, kept by the server past the timer's end).
+	local caseAt = player:GetAttribute("TutorialCaseAt")
+	local showPill = Tutorial.step() == "Nudges" and not Progression.isBusy()
+	pill:update(if showPill and type(caseAt) == "number" then caseAt else nil, dt)
 	if not Tutorial.active() then
 		shownKey = ""
 		TutorialAnchors.setAimLock(nil)
@@ -477,6 +536,7 @@ function Tutorial.start()
 	hand = TutorialHand.new(overlay.gui)
 	arrow = TutorialArrow.new()
 	reveal = TutorialReveal.new(overlay.gui)
+	pill = TutorialCasePill.new(overlay.gui)
 	player:GetAttributeChangedSignal("TutorialStep"):Connect(refresh)
 	refresh()
 	RunService.RenderStepped:Connect(update)

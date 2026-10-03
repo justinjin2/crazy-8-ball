@@ -1376,11 +1376,21 @@ return {
 			Touch = "Tap Lobby!",
 			Gamepad = "Press A to go to the lobby!",
 		},
+		-- The real server's nudges (step 7), one at a time.
+		Nudge = {
+			Rank = "Claim your rank rewards!",
+			Inventory = "Your Rare Case opens when its timer ends!",
+			Shop = "Check out the Shop!",
+			FreeReward = "Claim your free reward!",
+			CaseReady = "Your case is ready!",
+		},
+		CasePillReady = "Ready!", -- the Rare Case timer pill at 0
 	},
 	-- Rank rewards held until claimed (RankClaim; the roadmap's claim block, NEW RANK!).
 	RankClaim = {
 		ClaimLine = "Claim your rewards in Rank!",
 		Claim = "CLAIM",
 		Ready = "Rewards ready!",
+		DropCount = "Case Drop x%d", -- held Case Drops on the claim block
 	},
 }

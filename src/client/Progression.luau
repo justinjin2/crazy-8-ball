@@ -39,6 +39,7 @@ local ResultScreen = require(script.Parent.ResultScreen)
 local RewardChips = require(script.Parent.RewardChips)
 local RewardsMenu = require(script.Parent.RewardsMenu)
 local Roadmap = require(script.Parent.Roadmap)
+local RankClaimBlock = require(script.Parent.RankClaimBlock)
 local ShopMenu = require(script.Parent.ShopMenu)
 local TeleportScreen = require(script.Parent.TeleportScreen)
 local TradeMenu = require(script.Parent.TradeMenu)
@@ -194,6 +195,12 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	InventoryMenu.new(screen, deps)
 	RewardsMenu.new(screen, deps)
 	TradeMenu.new(screen, deps)
+	-- Held rank rewards: the claim block over the roadmap (the tutorial lane).
+	RankClaimBlock.new(screen, deps, function(): boolean
+		return roadmap:isOpen()
+	end, function()
+		Menus.close(RANKED)
+	end)
 	column = MenuColumn.new(screen, {
 		rankHud = rankHud,
 		money = money,

@@ -183,6 +183,34 @@ by step (steps 1-10 of the brief).
     after 1 s, the teleport into the arena with the step at Game2, a win (funnel 16), and
     Lobby back to a public server with the step at Nudges.
 
+- **Step 7 done: the real server.** Entering Nudges releases the held day-1 claim, which
+  comes with GUI's daily popup (funnel 18, logged after 17 BackInLobby). Then the nudges come
+  one at a time (`Steps.nudge`, server `TutorialService`; the player attribute TutorialNudge,
+  blank while the player is on a table's pad or seat). Each shows the hand, the light dim and
+  a line on its button: Rank ("Claim your rank rewards!"; skipped when nothing is held; inside
+  Rank the hand moves to CLAIM), Inventory ("Your Rare Case opens when its timer ends!"),
+  Shop ("Check out the Shop!") and Free Reward ("Claim your free reward!"). A nudge is answered
+  by opening its menu (Rank by the claim) and stays until it is. A popup or another menu hides
+  it for the moment. The Rare Case pill beside Inventory (`TutorialCasePill`) shows the case
+  and "28:52", then a breathing gold "Ready!". Then "Your case is ready!" with the hand on
+  Inventory, and opening Inventory is Done. The server keeps the case's time in
+  Flags.TutorialCase (an ended timer leaves the save's Timers), follows a skipped or halved
+  timer, and drops the case nudge if the case is opened first (funnel 20 OpenedRareCase).
+  - **The rank claim for everyone** (`RankClaimBlock`): with rewards held, Rank (the roadmap)
+    shows a small card at its foot: "Rewards ready!", chips (money, cases, Case Drops, spins,
+    cue, chat tag) and CLAIM. CLAIM is paid by the server (RankClaimService); the roadmap
+    closes, the money flies into the money HUD (which counts up), and the spins, cases and
+    cue fly into Abilities and Inventory (RewardsFlyer). The server now also publishes
+    RankClaimed for the chips.
+  - The hand turns round and points up when its target is too near the top of the screen
+    (the Rank HUD).
+  - Checked: lint, tests (963; steps test: the nudge order); Studio PC: /xp to Bronze held its
+    rewards -> NEW RANK! with "Claim your rewards in Rank!" -> the Rank nudge (hand turned up)
+    -> Rank -> the claim block -> CLAIM -> $5,500 and the spin flew, money counted up, tag on
+    -> Inventory, Shop, Free Reward nudges in order, each answered by opening it -> CaseWait
+    with the pill counting -> /skiptime -> "Your case is ready!" + "Ready!" pill -> Inventory
+    -> Done. Console clean. Not yet: phone and gamepad (step 10).
+
 ### Rule changes for everyone (made in this lane; the integrator moves them to the docs)
 
 - Reaching Bronze gives 1 Case Drop (was 2), given at once after the first win.
@@ -268,6 +296,10 @@ by step (steps 1-10 of the brief).
 - `PostMatch.luau` (step 6): requires `TutorialAnchors`; anchor `Lobby`; `set` drops buttons the
   tutorial hides (Rematch, Another, Cancel in game 2) and the "Opponent left" line with them.
 - `Reminders.luau` (step 6): `Reminders.line` answers nil while the tutorial hides Free Reward.
+- `Progression.luau` (step 7): requires `RankClaimBlock`; builds it after `TradeMenu.new`
+  (four lines).
+- `RankClaimService.luau` (step 7): `refresh` also sets the RankClaimed attribute.
+- `TutorialHand.luau` (step 7, this lane's): `placeHand` takes `flipped`.
 - `Config.luau` / `Strings.luau` (step 5): only inside this lane's `Tutorial` blocks
   (BronzeCueRarity, SpinUlt, Reveal, Overlay.LineNearGapPx; the step 5 lines).
 - Tests changed for the new values: `ranks_test`, `save_schema_test`, `ult_slots_test`,
@@ -299,6 +331,10 @@ by step (steps 1-10 of the brief).
   `Store` -> `PlayerData.giveVipCue`). The designer's Studio account is VIP, so a Studio test
   of "no money on join" shows $5,000; a normal new player starts at $0. Left as is (not this
   lane's rule); ask the designer whether VIP's cue should pay finder's money.
+- **GUI** (step 7): the rank claim block (`RankClaimBlock`, a card at the roadmap's foot) and
+  the Rare Case pill beside Inventory (`TutorialCasePill`) are stand-ins in the kit's style:
+  restyle or move them freely, keep the CLAIM call (RankClaim remote), the `RankClaim` and
+  `Inventory` anchors, and the TutorialCaseAt attribute the pill reads.
 - **Integrator**: the teleport halves of game 2 (Join Global Queue to the arena, Lobby back to
   a public server) and the analytics funnels can only be checked in the published game.
 
@@ -349,3 +385,11 @@ by step (steps 1-10 of the brief).
   1 s. A direct bot match that skips the queue would need a fake search inside TableService.
 - 2026-10-03 (lane): in the first server the result screen shows no daily-reward line (Free
   Reward is hidden and its claim waits for the real server).
+
+- 2026-10-03 (lane): the nudges' "lobby only" means not on a table's pad or seat; a popup or
+  an open menu also holds a nudge back for the moment. The Rank nudge is skipped when nothing
+  is held (claimed already), and a later rank-up does not bring it back.
+- 2026-10-03 (lane): the tutorial ends (Done) when "Your case is ready!" is answered; if the
+  Rare Case is opened first, the case part is simply over.
+- 2026-10-03 (lane): CLAIM closes Rank so the rewards are seen flying into the money HUD,
+  Abilities and Inventory.

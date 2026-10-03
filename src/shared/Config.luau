@@ -9294,6 +9294,25 @@ Config.Tutorial = {
 	RankClaim = {
 		DropsAtOnce = { Bronze = true },
 		MinGapSeconds = 0.5, -- one claim request at most this often per player (a double tap)
+		-- The claim block over the roadmap (src/client/RankClaimBlock.luau), in pixels.
+		Block = {
+			DisplayOrderAbove = 1, -- over the roadmap's ScreenGui
+			WidthPx = 560,
+			MaxWidthShare = 0.94, -- of the screen's width at most (a phone)
+			BottomGapPx = 24, -- from the screen's foot
+			PadPx = 16,
+			GapPx = 10,
+			TitlePx = 30,
+			ChipHeightPx = 40,
+			ChipTextPx = 22,
+			ChipGapPx = 8,
+			RowGapPx = 8,
+			ButtonPx = 52,
+			ButtonWidthPx = 220,
+			ReplyTimeoutSeconds = 5, -- CLAIM can be pressed again if no answer came
+			ItemsAfterSeconds = 0.6, -- the drops and cues fly this long after the money
+			StaggerSeconds = 0.15,
+		},
 	},
 	-- The tutorial's tables and opponents (src/server/TutorialGames.luau).
 	Games = {
@@ -9307,6 +9326,15 @@ Config.Tutorial = {
 		-- Game 2: the global queue's search turns into the bot match after this long (a beat
 		-- of "Finding you an opponent..."), not Config.Bots.Fallback.SoloSeconds.
 		Game2BotAfterSeconds = 1,
+	},
+	-- The real server's nudges (step 7, Steps.nudge): the server looks this often.
+	Nudges = {
+		WatchSeconds = 1,
+		PillWidthPx = 120, -- the Rare Case timer pill beside Inventory
+		PillHeightPx = 40,
+		PillGapPx = 8, -- from the Inventory tile's right edge
+		PillTextPx = 22,
+		PillPulseSeconds = 1.2, -- "Ready!" breathes this fast
 	},
 	-- Game 1's rigged rack and break (src/shared/Tutorial/Break.luau), found by
 	-- `lune run tools/tutorial_break.luau` (designer, 2026-10-03: 3 solids down, a 4th left
