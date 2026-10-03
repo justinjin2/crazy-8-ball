@@ -229,6 +229,28 @@ by step (steps 1-10 of the brief).
     players), and leaving then rejoining at each step (Studio's test saves reset on Stop, so a
     real rejoin needs the published game).
 
+- **Step 9 done: the funnels** (`Funnel.luau`, server; Studio prints each one).
+  - **Onboarding**: all 22 steps are logged, the last ones added now: 21 PlayedThirdMatch
+    (after any save change with 3 matches) and 20 OpenedRareCase (step 7). It follows new
+    players only: step 1 is logged for a brand-new save that starts the tutorial, and no
+    later step is logged for anyone without it, so long-time players never enter it.
+  - **TutorialExit** (one-time): 1 Left<Skip|OtherTable|Friend>, 2 FirstGame, 3 FirstWin,
+    4 SecondMatch, 5 NextDay.
+  - **Shop** (a session per visit): Opened, Viewed (a case's Odds, the shop's only "look at
+    an item"), PressedBuy (Robux after the shop's check, and money buys), Bought (a Robux
+    grant, a game pass, a money buy that went through).
+  - **CaseDrop** (a session per drop, from PlayerData's CaseDropped for every drop): Got,
+    Ready (its timer ended, or it was opened), Opened (that case opened), Equipped (one of
+    its cues equipped).
+  - **AbilitySpins** (a session per visit): OpenedAbilities, Spun, Equipped (a slot
+    selected), UsedInMatch (an ult used).
+  - **Side events**: TutorialBallInHand, TutorialBotScratch, TutorialLostGame2,
+    TutorialLeft (the step and reason).
+  - Checked: lint, tests (963); Studio PC: a fresh save logged Joined and SawArrow, ->
+    Done -> ClaimedDaily; /freecase -> CaseDrop Got; Shop -> Shop Opened; Abilities ->
+    AbilitySpins OpenedAbilities -> SPIN -> Spun, each with its session id. The Creator
+    Dashboard shows them only from the published game.
+
 ### Rule changes for everyone (made in this lane; the integrator moves them to the docs)
 
 - Reaching Bronze gives 1 Case Drop (was 2), given at once after the first win.
@@ -318,6 +340,15 @@ by step (steps 1-10 of the brief).
   (four lines).
 - `RankClaimService.luau` (step 7): `refresh` also sets the RankClaimed attribute.
 - `TutorialHand.luau` (step 7, this lane's): `placeHand` takes `flipped`.
+- `Items.luau` (step 9): requires `Funnel`; `onOpened` also gets the cue ids; `EquipCue` one
+  `Funnel.cueEquipped` line; `handle` logs a Buy* request's PressedBuy and Bought (five lines).
+- `Store.luau` (step 9): requires `Funnel`; one `Funnel.shop` line each after the shop's
+  check in `onStoreRequest`, at the end of `grantProduct`, and in `onPassPurchase`.
+- `UltSpins.luau` (step 9): requires `Funnel`; one line in `HANDLERS.Select`.
+- `UltService.luau` (step 9): requires `Funnel`; an `else` with one line after `activate` in
+  the UltActivate handler.
+- `ShopMenu.luau` (step 9): requires `Net`; one line in `openOdds` (the shop funnel's Viewed).
+- `Net.luau` (step 9): the `TutorialEvent` comment lists the funnel reports.
 - `Config.luau` / `Strings.luau` (step 5): only inside this lane's `Tutorial` blocks
   (BronzeCueRarity, SpinUlt, Reveal, Overlay.LineNearGapPx; the step 5 lines).
 - Tests changed for the new values: `ranks_test`, `save_schema_test`, `ult_slots_test`,
@@ -410,3 +441,8 @@ by step (steps 1-10 of the brief).
   Rare Case is opened first, the case part is simply over.
 - 2026-10-03 (lane): CLAIM closes Rank so the rewards are seen flying into the money HUD,
   Abilities and Inventory.
+- 2026-10-03 (lane): the onboarding funnel counts new players only (a brand-new save starting
+  the tutorial); a player with no step 1 never logs a later step, so existing players do not
+  blur it.
+- 2026-10-03 (lane): the shop funnel's "viewed an item" is opening a case's Odds (the shop
+  has no item detail view); the repeating funnels keep their sessions in the server only.

@@ -52,6 +52,7 @@ local ShopView = require(Shared.Progression.ShopView)
 local Restock = require(Shared.Progression.Restock)
 local Inventory = require(Shared.Progression.Inventory)
 local PlayerData = require(script.Parent.PlayerData)
+local Funnel = require(script.Parent.Funnel)
 local Counters = require(script.Parent.Counters)
 local Announce = require(script.Parent.Announce)
 local Items = require(script.Parent.Items)
@@ -384,6 +385,7 @@ local function onPassPurchase(player: Player, passId: number, purchased: boolean
 	passOwned[player] = owned
 	owned[key] = true
 	mark(player)
+	Funnel.shop(player, "Bought") -- the shop funnel (the tutorial lane)
 	passEvent:Fire(player)
 end
 
@@ -631,6 +633,7 @@ local function grantProduct(player: Player, key: string, purchaseId: string): (b
 	if grant.skip ~= nil then
 		pendingSkip[player] = nil
 	end
+	Funnel.shop(player, "Bought") -- the shop funnel (the tutorial lane)
 	return true, nil
 end
 
@@ -827,6 +830,7 @@ local function onStoreRequest(player: Player, action: any, key: any, extra: any)
 	if reason ~= nil then
 		return reply(false, reason)
 	end
+	Funnel.shop(player, "PressedBuy") -- the shop funnel (the tutorial lane)
 	-- A restock item: remember the restock seen, and hold a Legendary unit while the prompt is up.
 	if row.Restock ~= nil then
 		local slot = Items.restockSlot(ctx.now)

@@ -462,7 +462,20 @@ local function scene(step: string, device: string): string
 	return step
 end
 
+-- The menu open last frame: opening Shop or Abilities starts a visit of its funnel (the
+-- server's Funnel; for every player, tutorial or not).
+local lastMenu: string? = nil
+local MENU_FUNNELS: { [string]: string } = { Shop = "ShopOpened", [ULTS] = "AbilitiesOpened" }
+
 local function update(dt: number)
+	local menu = Menus.current()
+	if menu ~= lastMenu then
+		lastMenu = menu
+		local kind = if menu then MENU_FUNNELS[menu] else nil
+		if kind then
+			Tutorial.report(kind)
+		end
+	end
 	reveal:update()
 	-- The Rare Case timer beside Inventory, in the real server, while no menu or popup is up
 	-- (TutorialCaseAt: when it is ready, kept by the server past the timer's end).

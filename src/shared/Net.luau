@@ -339,7 +339,8 @@ local REMOTES: { [string]: string } = {
 	BotSay = "RemoteEvent",
 	-- The tutorial lane (TutorialService, src/client/Tutorial.luau). client -> server: something
 	-- the player did that only the client sees (kind, data?): "OpenedAbilities", "ClosedAbilities",
-	-- "Nudge" (data: its name), "Skip", "RareSeen", "ShopView" ... each checked against the step.
+	-- "Nudged" (data: its name), "Skip", "RareSeen" ... each checked against the step; and for
+	-- the repeating funnels "ShopOpened", "ShopViewed", "AbilitiesOpened" (any player).
 	TutorialEvent = "RemoteEvent",
 	-- server -> one player: (kind, data?) "Prompt" (an extra cue for the client: the target
 	-- table id, the pocket to light ...), "Funnel" (Studio's debug print).

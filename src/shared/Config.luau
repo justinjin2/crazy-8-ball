@@ -9473,6 +9473,12 @@ Config.Tutorial = {
 		OnboardingFlag = "Funnel",
 		-- One-time funnels: the funnel's name on the dashboard -> its Flags key.
 		Once = { TutorialExit = "FunnelExit" },
+		ThirdMatch = 3, -- onboarding step 21: this many matches played
+		EventGapSeconds = 0.5, -- a client's funnel report of one kind counts at most this often
+		-- The repeating funnels' steps, in order (Funnel.shop, .spins, .caseLanded ...).
+		Shop = { "Opened", "Viewed", "PressedBuy", "Bought" },
+		CaseDrop = { "Got", "Ready", "Opened", "Equipped" },
+		Spins = { "OpenedAbilities", "Spun", "Equipped", "UsedInMatch" },
 	},
 }
 

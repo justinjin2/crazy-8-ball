@@ -40,6 +40,7 @@ local UltCatalog = require(Shared.Ults.Catalog)
 local SpinView = require(Shared.Ults.SpinView)
 local Roll = require(Shared.Ults.Roll)
 local PlayerData = require(script.Parent.PlayerData)
+local Funnel = require(script.Parent.Funnel)
 local Store = require(script.Parent.Store)
 local Items = require(script.Parent.Items)
 local Announce = require(script.Parent.Announce)
@@ -390,6 +391,7 @@ function HANDLERS.Select(player: Player, r: SpinView.Request): Reply
 	if not ok then
 		return refuse(reasonFrom(reason))
 	end
+	Funnel.spins(player, "Equipped") -- the ability spins funnel (the tutorial lane)
 	return { ok = true, state = build(player) }
 end
 

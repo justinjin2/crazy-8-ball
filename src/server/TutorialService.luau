@@ -139,10 +139,6 @@ local function onLoaded(player: Player)
 	if data == nil then
 		return
 	end
-	Funnel.onboarding(player, "Joined")
-	if dayOf(os.time()) > dayOf(data.Shop.FirstJoin) then
-		Funnel.onboarding(player, "CameBackNextDay")
-	end
 	local saved = data.Flags[STEP_FLAG]
 	local step: string
 	if type(saved) ~= "string" then
@@ -151,6 +147,17 @@ local function onLoaded(player: Player)
 		step = Steps.resume(saved, inArena)
 	else
 		step = saved
+	end
+	-- The onboarding funnel follows new players only: its first step is a brand-new save
+	-- starting the tutorial, and Funnel logs no later step for anyone without it.
+	if type(saved) ~= "string" and step == "Arrow1" then
+		Funnel.onboarding(player, "Joined")
+	end
+	if dayOf(os.time()) > dayOf(data.Shop.FirstJoin) then
+		Funnel.onboarding(player, "CameBackNextDay")
+		if step == "Skipped" or step == "Cancelled" then
+			Funnel.once(player, "TutorialExit", 5, "NextDay")
+		end
 	end
 	if step ~= saved then
 		if not PlayerData.setFlag(player, STEP_FLAG, step) then
@@ -161,6 +168,31 @@ local function onLoaded(player: Player)
 	log(("%s joins at %s"):format(player.Name, step))
 	entered(player, step, if type(saved) == "string" then saved else nil)
 	stepChanged:Fire(player, step, saved)
+end
+
+-- After any save change: the onboarding funnel's 3rd match, and the exit funnel of a player
+-- who skipped or left the tutorial (their first game, first win and second match).
+local function onChanged(player: Player)
+	local data = PlayerData.read(player)
+	if data == nil then
+		return
+	end
+	local matches, wins = data.Stats.Matches or 0, data.Progress.Wins or 0
+	if matches >= T.Funnel.ThirdMatch then
+		Funnel.onboarding(player, "PlayedThirdMatch")
+	end
+	local step = TutorialService.step(player)
+	if step == "Skipped" or step == "Cancelled" then
+		if matches >= 1 then
+			Funnel.once(player, "TutorialExit", 2, "FirstGame")
+		end
+		if wins >= 1 then
+			Funnel.once(player, "TutorialExit", 3, "FirstWin")
+		end
+		if matches >= 2 then
+			Funnel.once(player, "TutorialExit", 4, "SecondMatch")
+		end
+	end
 end
 
 ---------------------------------------------------------------------------------------------
@@ -183,7 +215,8 @@ local function forcedOpen(player: Player, caseId: string, count: number): { stri
 	return { pool[cueRandom:NextInteger(1, #pool)].Id }
 end
 
-local function opened(player: Player, caseId: string)
+local function opened(player: Player, caseId: string, cues: { string })
+	Funnel.caseOpened(player, caseId, cues)
 	local step = TutorialService.step(player)
 	if step == "Drop" and caseId == T.BronzeDropTier then
 		Funnel.onboarding(player, "OpenedStandardCase")
@@ -202,6 +235,7 @@ local function forcedSpin(player: Player): string?
 end
 
 local function spun(player: Player, _id: string)
+	Funnel.spins(player, "Spun")
 	if TutorialService.step(player) == "Spin" then
 		Funnel.onboarding(player, "SpunAbility")
 		TutorialService.setStep(player, "Code")
@@ -308,6 +342,20 @@ local function nudged(player: Player, item: any)
 	end
 end
 
+-- The client's reports for the repeating funnels (Funnel), each at most once a moment.
+local FUNNEL_EVENTS: { [string]: (Player) -> () } = {
+	ShopOpened = function(player: Player)
+		Funnel.shop(player, "Opened")
+	end,
+	ShopViewed = function(player: Player)
+		Funnel.shop(player, "Viewed")
+	end,
+	AbilitiesOpened = function(player: Player)
+		Funnel.spins(player, "OpenedAbilities")
+	end,
+}
+local lastFunnelEvent: { [string]: number } = {}
+
 -- What the client may report, and the step each report needs:
 --   Nudged           (Nudges)    the menu the nudge points at opened (its name)
 --   RareSeen         (RareDrop)  the Rare Case's reveal was closed
@@ -323,6 +371,14 @@ local function onEvent(player: Player, kind: any, data: any)
 		TutorialService.cancel(player, "Skip")
 	elseif kind == "Nudged" then
 		nudged(player, data)
+	elseif FUNNEL_EVENTS[kind] then
+		-- The repeating funnels' moments only the screen sees (any player).
+		local now = os.clock()
+		local key = kind .. player.UserId
+		if now - (lastFunnelEvent[key] or -math.huge) >= T.Funnel.EventGapSeconds then
+			lastFunnelEvent[key] = now
+			FUNNEL_EVENTS[kind](player)
+		end
 	elseif kind == "RareSeen" and step == "RareDrop" then
 		Funnel.onboarding(player, "SawRareCase")
 		TutorialService.setStep(player, "Abilities")
@@ -418,6 +474,8 @@ function TutorialService.start()
 		end
 	end)
 	PlayerData.Loaded:Connect(onLoaded)
+	PlayerData.Changed:Connect(onChanged)
+	Funnel.start()
 	for _, player in Players:GetPlayers() do
 		if PlayerData.isLoaded(player) then
 			task.spawn(onLoaded, player)

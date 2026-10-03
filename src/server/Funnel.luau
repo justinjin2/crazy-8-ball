@@ -4,7 +4,9 @@
 -- client without a check by the caller (docs/prompts/TUTORIAL_PROMPT.md step 9).
 --
 -- - The onboarding funnel (LogOnboardingFunnelStepEvent): the 22 steps of Tutorial/Steps
---   .Funnel, each logged once per player ever (a bit in the save's Flags.Funnel).
+--   .Funnel, each logged once per player ever (a bit in the save's Flags.Funnel), and only for
+--   new players: step 1 is logged for a brand-new save (TutorialService), and no later step
+--   is logged for a player without it.
 -- - One-time funnels (LogFunnelStepEvent with the player's own session id): the tutorial's
 --   exit funnel, each step once per player (a bit in its own Flags key).
 -- - Repeating funnels (LogFunnelStepEvent with a session id per visit): the shop, a Case Drop's
@@ -62,7 +64,8 @@ function Funnel.onboarding(player: Player, name: string): boolean
 		return false
 	end
 	local m = mask(player, F.OnboardingFlag)
-	if m == nil or Steps.funnelHas(m, n) then
+	-- Only players whose first step was logged (a brand-new save): nobody joins it halfway.
+	if m == nil or Steps.funnelHas(m, n) or (n > 1 and not Steps.funnelHas(m, 1)) then
 		return false
 	end
 	if not PlayerData.setFlag(player, F.OnboardingFlag, Steps.funnelMark(m, n)) then
@@ -134,6 +137,173 @@ function Funnel.event(
 			fields[Enum.AnalyticsCustomFieldKeys.CustomField03.Name] = c
 		end
 		AnalyticsService:LogCustomEvent(player, name, value or 1, fields)
+	end)
+end
+
+---------------------------------------------------------------------------------------------
+-- The repeating funnels' sessions (kept in this server only: a visit, a Case Drop or a spin
+-- that moves to another server is not followed there). The steps are Config.Tutorial.Funnel
+-- .Shop, .CaseDrop and .Spins; other lanes' code calls these with one line each.
+---------------------------------------------------------------------------------------------
+
+local counter = 0
+local shopSession: { [Player]: string } = {}
+local spinSession: { [Player]: string } = {}
+-- Each Case Drop followed here: its session, case, when it is ready, and what came of it.
+type Drop = { session: string, caseId: string, at: number, ready: boolean, cues: { string }? }
+local drops: { [Player]: { Drop } } = {}
+
+local function newSession(player: Player, kind: string): string
+	counter += 1
+	return ("%d-%s-%d-%d"):format(player.UserId, kind, os.time(), counter)
+end
+
+local function stepOf(steps: { string }, name: string): number?
+	return table.find(steps, name)
+end
+
+--- A step of the Shop funnel ("Opened", "Viewed", "PressedBuy", "Bought"). Opened starts a
+--- new visit; a later step with no visit yet (a buy from a popup) starts one too.
+function Funnel.shop(player: Player, name: string)
+	local step = stepOf(F.Shop, name)
+	if step == nil then
+		return
+	end
+	if name == "Opened" or shopSession[player] == nil then
+		shopSession[player] = newSession(player, "shop")
+	end
+	Funnel.step(player, "Shop", shopSession[player], step, name)
+end
+
+--- A step of the Ability spins funnel ("OpenedAbilities", "Spun", "Equipped", "UsedInMatch").
+--- Opening Abilities starts a new session; the others belong to the latest one.
+function Funnel.spins(player: Player, name: string)
+	local step = stepOf(F.Spins, name)
+	if step == nil then
+		return
+	end
+	if name == "OpenedAbilities" or spinSession[player] == nil then
+		spinSession[player] = newSession(player, "spins")
+	end
+	Funnel.step(player, "AbilitySpins", spinSession[player], step, name)
+end
+
+--- A Case Drop landed (`at`: the unix time it is ready; now for one with no timer): the Case
+--- Drop funnel's "Got".
+function Funnel.caseLanded(player: Player, caseId: string, at: number)
+	local list = drops[player] or {}
+	drops[player] = list
+	local drop: Drop = {
+		session = newSession(player, "drop"),
+		caseId = caseId,
+		at = at,
+		ready = false,
+		cues = nil,
+	}
+	table.insert(list, drop)
+	Funnel.step(player, "CaseDrop", drop.session, stepOf(F.CaseDrop, "Got") or 1, "Got")
+end
+
+--- A case was opened: the oldest drop of that case still unopened is "Opened" (and "Ready"
+--- first if the watch had not seen it ready); its cues are remembered for "Equipped".
+function Funnel.caseOpened(player: Player, caseId: string, cues: { string }?)
+	local list: { Drop } = drops[player] or {}
+	for _, drop in list do
+		if drop.caseId == caseId and drop.cues == nil then
+			if not drop.ready then
+				drop.ready = true -- opened before the watch saw it ready (or its timer skipped)
+				Funnel.step(
+					player,
+					"CaseDrop",
+					drop.session,
+					stepOf(F.CaseDrop, "Ready") or 2,
+					"Ready"
+				)
+			end
+			drop.cues = cues or {}
+			Funnel.step(
+				player,
+				"CaseDrop",
+				drop.session,
+				stepOf(F.CaseDrop, "Opened") or 3,
+				"Opened"
+			)
+			return
+		end
+	end
+end
+
+--- A cue was equipped: the drop it came from is "Equipped" (and its following ends).
+function Funnel.cueEquipped(player: Player, cueId: string)
+	local list = drops[player]
+	if list == nil then
+		return
+	end
+	for i, drop in list do
+		if drop.cues and table.find(drop.cues, cueId) then
+			Funnel.step(
+				player,
+				"CaseDrop",
+				drop.session,
+				stepOf(F.CaseDrop, "Equipped") or 4,
+				"Equipped"
+			)
+			table.remove(list, i)
+			return
+		end
+	end
+end
+
+-- Each second: drops whose timer has ended are "Ready".
+local function watchDrops()
+	local now = os.time()
+	for player, list in drops do
+		for _, drop in list do
+			if not drop.ready and now >= drop.at then
+				drop.ready = true
+				Funnel.step(
+					player,
+					"CaseDrop",
+					drop.session,
+					stepOf(F.CaseDrop, "Ready") or 2,
+					"Ready"
+				)
+			end
+		end
+	end
+end
+
+local started = false
+
+--- Starts the Case Drop watch and forgets players who leave (TutorialService.start calls it).
+function Funnel.start()
+	if started then
+		return
+	end
+	started = true
+	local since = 0
+	RunService.Heartbeat:Connect(function(dt: number)
+		since += dt
+		if since >= 1 then
+			since = 0
+			watchDrops()
+		end
+	end)
+	-- Every Case Drop (a win's, a reward's, a Mystery Case's) lands through PlayerData.
+	PlayerData.CaseDropped:Connect(function(player: Player, list: any)
+		for _, drop in (if type(list) == "table" then list else {}) :: { any } do
+			if type(drop) == "table" and type(drop.tier) == "string" then
+				local at = if type(drop.readyAt) == "number" and drop.readyAt > 0
+					then drop.readyAt
+					else os.time()
+				Funnel.caseLanded(player, drop.tier, at)
+			end
+		end
+	end)
+	game:GetService("Players").PlayerRemoving:Connect(function(player: Player)
+		shopSession[player] = nil
+		spinSession[player] = nil
+		drops[player] = nil
 	end)
 end
 
