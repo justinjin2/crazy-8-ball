@@ -141,6 +141,7 @@ return {
 		local second = SpinView.spin(u, opts()) :: any
 		H.expect(second.used == "Spin" and u.Spins == E.Starter - 1, "then a spin")
 		-- Slot 2 with its pass: the spin goes there and slot 1 keeps its ult.
+		Slots.addSpins(u, 1)
 		Slots.select(u, 2, ALL)
 		local third = SpinView.spin(u, opts({ passes = ALL, devAll = true })) :: any
 		H.expect(third.slot == 2 and u.Slots[2] == third.id and third.replaced == "", "slot 2")
@@ -333,9 +334,9 @@ return {
 		local codes = {}
 		local row = Config.Daily.Codes[U.CodeBanner.ActiveCode]
 		H.expect(row ~= nil and row.Spins == 3, "the banner's code gives 3 spins")
-		local ok, reward = Daily.redeem(codes, "  abilities ", DAY * 86400)
+		local ok, reward = Daily.redeem(codes, "  release ", DAY * 86400)
 		H.expect(ok and (reward :: any).spins == 3 and (reward :: any).lucky == 0, "3 spins")
-		local again, why = Daily.redeem(codes, "ABILITIES", DAY * 86400)
+		local again, why = Daily.redeem(codes, "RELEASE", DAY * 86400)
 		H.expect(not again and why == "Used", "once per player")
 		local out = RewardView.reward(reward :: any)
 		H.expect(out.spins == 3 and out.lucky == 0 and out.money == 0, "the reply's chip")
@@ -490,11 +491,11 @@ return {
 
 	["the UltState payload"] = noIds(function()
 		local p = SpinView.state(ctx())
-		H.expect(#p.slots == U.Slots and p.slots[1] == "Magnet" and p.slots[2] == "", "slots")
+		H.expect(#p.slots == U.Slots and p.slots[1] == U.Default and p.slots[2] == "", "slots")
 		H.expect(p.selected == 1 and #p.locked == U.Slots and not p.locked[1], "selected, locked")
 		H.expect(p.owned[1] and not p.owned[2] and not p.owned[3], "slot 1 is free")
 		H.expect(p.slotPasses[2] == "UltSlot2", "passes")
-		H.expect(p.equipped == "Magnet" and p.spins == E.Starter and p.luckySpins == 0, "")
+		H.expect(p.equipped == U.Default and p.spins == E.Starter and p.luckySpins == 0, "")
 		H.expect(p.pity == 0 and p.pityAt == 100 and p.freeSpinReady and p.spinsDone == 0, "")
 		H.expect(p.canSpin and not p.canLucky and p.luckyReason == "NoLucky", "the buttons")
 		H.expect(not p.needsConfirm, "Magnet needs no confirm")
@@ -513,7 +514,7 @@ return {
 		end
 		H.expect(p.live and not p.restricted and not p.fastOpen and not p.devAll, "flags")
 		H.expect(p.moneyPerSpin == 17500 and #p.moneyPacks == 4, "money")
-		H.expect(p.code.active == "ABILITIES" and p.code.nextGoalLikes == 100, "the code box")
+		H.expect(p.code.active == "RELEASE" and p.code.nextGoalLikes == 100, "the code box")
 		H.expect(not p.auto.running and p.auto.count == 0 and #p.autoStopChoices == 3, "auto")
 		for _, key in SpinView.productKeys() do
 			local product = p.products[key]
@@ -565,6 +566,6 @@ return {
 		H.expect(#p.odds.normal.ults == built, "only the built ults without it")
 		-- A broken save still gives a payload.
 		local broken = SpinView.state(ctx({ ults = 5 }))
-		H.expect(broken.slots[1] == "Magnet" and broken.selected == 1, "fresh values")
+		H.expect(broken.slots[1] == U.Default and broken.selected == 1, "fresh values")
 	end),
 }

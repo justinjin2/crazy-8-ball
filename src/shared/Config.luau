@@ -1736,9 +1736,11 @@ Config.Ranks = {
 			Master = 80000,
 			Grandmaster = 150000,
 		},
-		-- Drops: Case Drops (each rolled with pity and revealed through the 8-ball).
+		-- Drops: Case Drops (each rolled with pity and revealed through the 8-ball). Bronze's
+		-- drop is given at once with the first win; everything else waits until the player
+		-- claims it in Rank (designer, 2026-10-03; was 2 drops).
 		Tier = {
-			Bronze = { Money = 2500, Drops = 2, Cue = "BronzeCue" },
+			Bronze = { Money = 2500, Drops = 1, Cue = "BronzeCue" },
 			Silver = { Money = 5000, Cases = { Rare = 1 }, Cue = "SilverCue" },
 			Gold = { Money = 10000, Cases = { Rare = 2 }, Cue = "GoldCue" },
 			Platinum = { Money = 20000, Cases = { Rare = 3 }, Cue = "PlatinumCue" },
@@ -2201,8 +2203,8 @@ Config.Daily = {
 		["8BALL"] = { Money = 2500 },
 		ROOFTOP = { Cases = { Rare = 1 }, Expires = 1798761600 }, -- through 2026-12-31 (UTC)
 		-- The spin screen's code box (Config.Ults.CodeBanner.ActiveCode names it): 3 ability
-		-- spins.
-		ABILITIES = { Spins = 3 },
+		-- spins. The tutorial points at it (designer, 2026-10-03: RELEASE replaces ABILITIES).
+		RELEASE = { Spins = 3 },
 		-- Like milestones: 1k, 5k, 10k, 25k, 50k, 100k likes.
 		LIKES1K = { Money = 10000, Drops = 1, Live = true },
 		LIKES5K = { Money = 25000, Drops = 2, Live = true },
@@ -2632,7 +2634,9 @@ Config.Ults = {
 	-- The developer flag: every ult, built or not, can be rolled and equipped (friend tests).
 	-- `/ultsall on` turns it on for one player for the session.
 	DevAllUlts = false,
-	Default = "Magnet", -- everyone's starter ult, free forever; an empty or unusable slot plays as it
+	-- Everyone's starter ult, free forever; an empty or unusable slot plays as it (Heat Seeker
+	-- since 2026-10-03, the tutorial teaches it; was Magnet).
+	Default = "HeatSeeker",
 	BarMax = 100, -- a full bar
 	MaxPerMatch = 2, -- at most this many ults a match; after the second the bar stays empty
 	-- Solo shows the real bar, always full and ready: a press arms the equipped ult for free,
@@ -2827,7 +2831,7 @@ Config.Ults = {
 	},
 	-- Where spins come from (section 10, (tune)).
 	Earn = {
-		Starter = 3, -- a fresh save, and the migration for existing saves
+		Starter = 1, -- a fresh save, and the migration for existing saves (the tutorial spins it)
 		DailyFree = 1, -- one free spin a UTC day (Rewards > Daily's reset); never stacks
 		-- Reaching each tier (division I) adds spins: +1 up to Gold, +2 Platinum and Diamond, +3 above.
 		RankUp = {
@@ -2852,7 +2856,7 @@ Config.Ults = {
 	},
 	-- The code box on the spin screen (section 9.3): the designer edits these two in one place.
 	-- The code itself is a row in Config.Daily.Codes (Spins = 3).
-	CodeBanner = { ActiveCode = "ABILITIES", NextGoalLikes = 100 },
+	CodeBanner = { ActiveCode = "RELEASE", NextGoalLikes = 100 },
 	-- Fast Open's Auto Spin (section 9.6): one spin this often, server-checked.
 	AutoSpinSeconds = 0.4,
 	AutoStopChoices = { "Rare", "Epic", "Legendary" },
@@ -9616,6 +9620,203 @@ Config.Bots = {
 	LeaveAfterSeconds = 2.5,
 }
 
+-- The first-time tutorial and the onboarding funnels (docs/prompts/TUTORIAL_PROMPT.md;
+-- src/server/TutorialService.luau, src/client/Tutorial*.luau, src/shared/Tutorial/). (tune)
+Config.Tutorial = {
+	-- Rank rewards wait until the player claims them in Rank (designer, 2026-10-03), except
+	-- these tiers' Case Drops, given at once with the rank-up (Bronze's 1 drop follows the
+	-- first win as an 8-ball).
+	RankClaim = {
+		DropsAtOnce = { Bronze = true },
+		MinGapSeconds = 0.5, -- one claim request at most this often per player (a double tap)
+		-- The claim block over the roadmap (src/client/RankClaimBlock.luau), in pixels.
+		Block = {
+			DisplayOrderAbove = 1, -- over the roadmap's ScreenGui
+			WidthPx = 560,
+			MaxWidthShare = 0.94, -- of the screen's width at most (a phone)
+			BottomGapPx = 24, -- from the screen's foot
+			PadPx = 16,
+			GapPx = 10,
+			TitlePx = 30,
+			ChipHeightPx = 40,
+			ChipTextPx = 22,
+			ChipGapPx = 8,
+			RowGapPx = 8,
+			ButtonPx = 52,
+			ButtonWidthPx = 220,
+			ReplyTimeoutSeconds = 5, -- CLAIM can be pressed again if no answer came
+			ItemsAfterSeconds = 0.6, -- the drops and cues fly this long after the money
+			StaggerSeconds = 0.15,
+		},
+	},
+	-- The tutorial's tables and opponents (src/server/TutorialGames.luau).
+	Games = {
+		WatchSeconds = 0.25, -- how often the server looks at each tutorial player's table
+		BotTries = 3, -- asks for the tutorial bot's look this many times before giving up
+		BotRetrySeconds = 1,
+		-- The bot storms off this long after the player's winning 8 drops, and the result
+		-- waits until this long after that (designer: it vanishes before the result screen).
+		ExitAfterDropSeconds = 0.25,
+		ExitHoldSeconds = 1.5,
+		-- Game 2: the global queue's search turns into the bot match after this long (a beat
+		-- of "Finding you an opponent..."), not Config.Bots.Fallback.SoloSeconds.
+		Game2BotAfterSeconds = 1,
+	},
+	-- The real server's nudges (step 7, Steps.nudge): the server looks this often.
+	Nudges = {
+		WatchSeconds = 1,
+		PillWidthPx = 120, -- the Rare Case timer pill beside Inventory
+		PillHeightPx = 40,
+		PillGapPx = 8, -- from the Inventory tile's right edge
+		PillTextPx = 22,
+		PillPulseSeconds = 1.2, -- "Ready!" breathes this fast
+	},
+	-- Game 1's rigged rack and break (src/shared/Tutorial/Break.luau), found by
+	-- `lune run tools/tutorial_break.luau` (designer, 2026-10-03: 3 solids down, a 4th left
+	-- near a corner pocket). Inches and radians, table coordinates (+x towards the foot rail).
+	Break = {
+		Seed = 153, -- the rack's seed (Rack.newGame)
+		CueX = -25, -- where the cue ball stands for the break
+		CueY = -6,
+		Angle = 0.115429, -- the break's direction (straight at the rack's apex)
+		Power = 1, -- any pull plays the break at this power
+		Solids = 3, -- the break pots exactly this many solids and nothing else
+		-- The aim lesson's pot (Break.lesson): a cut no wider than this, the cue ball no
+		-- farther than LessonMaxInches from the ghost ball; cost per inch of travel.
+		LessonMaxCutDegrees = 20,
+		LessonMaxInches = 45,
+		LessonCostPerInch = 0.3,
+		-- The search prefers a break that leaves the 8 this close to a pocket (by this much).
+		EightNearInches = 20,
+		EightNearBonus = 15,
+	},
+	-- The tutorial bot's later visits (Bots/Script.poor): weak, legal shots at its own balls
+	-- that pot nothing and leave the player's balls and the 8 where they are.
+	BotPoor = {
+		Sweeps = 9, -- angles tried across each of its balls, thin hit to thin hit
+		Powers = { 0.3, 0.42, 0.55 }, -- soft, so little else moves
+		StillInches = 0.3, -- a ball that moved less than this counts as untouched
+	},
+	-- Game 1's lessons on screen (src/client/Tutorial.luau).
+	Lessons = {
+		AimOffsetDegrees = 7, -- the aim lesson starts this far off its pot: a small turn fixes it
+		AimTurnedDegrees = 2, -- once the player has turned this much, the line says to shoot
+		DragPx = { 170, -80 }, -- the ball-in-hand demo drags the ghost ball this far (px)
+	},
+	-- The stand-in case card after game 1 (src/client/TutorialReveal.luau; the GUI lane's
+	-- 8-ball replaces it once merged). Pixels.
+	Reveal = {
+		WidthPx = 360,
+		HeightPx = 330,
+		PadPx = 18,
+		TitlePx = 28,
+		PicturePx = 150,
+		NotePx = 22,
+		ButtonPx = 52,
+		ButtonWidthPx = 200,
+	},
+	-- Game 1's rewards (answer 9): Bronze's Case Drop is a Standard Case, opened at once.
+	BronzeDropTier = "Standard",
+	BronzeCueRarity = "Uncommon", -- that case opens to a cue of this rarity (answer 9)
+	SpinUlt = "Magnet", -- the one starter spin lands on this ability
+	-- The art (tools/gen_tutorial_art.py; uploaded to the group, tools/upload_manifest_tutorial
+	-- .json): the pointer hand after reference 01's style, the mouse, the floor arrow after
+	-- reference 02's arrow path.
+	Art = {
+		Hand = "rbxassetid://107703035077807",
+		Mouse = "rbxassetid://82136605713937",
+		FloorArrow = "rbxassetid://103256796918925",
+	},
+	-- The screen layer (src/client/TutorialOverlay.luau). Pixels unless named.
+	Overlay = {
+		DisplayOrder = 40, -- over the HUD and menus, under the teleport screen
+		PhoneBelowPx = 500, -- a screen whose short side is under this is a phone
+		LineTextPx = 40, -- the instruction line (UI_STYLE 3: big white Fredoka, ink outline)
+		LineHeightPx = 56,
+		LinePhoneHeightPx = 40,
+		LineWidthScale = 0.8, -- of the screen's width, at most LineMaxWidthPx
+		LineMaxWidthPx = 900,
+		LineTopGapPx = 10, -- under Roblox's top bar
+		LineLowGapPx = 80, -- a low line clears a screen's own title (Heat Seeker's pick pill)
+		LineNearGapPx = 80, -- a "Near" line's gap over the lit hole: clears the hand
+		-- The light dim (designer, 2026-10-03: light): black at this transparency.
+		DimTransparency = 0.65,
+		DimFadeSeconds = 0.25,
+		BeyondEdgePx = 600, -- the dim runs this far past every edge so none ever shows
+		HolePadPx = 10, -- the lit hole's margin round a button
+		RingThicknessPx = 4,
+		RingColor = { 255, 214, 74 }, -- the house gold
+		RingCornerPx = 18,
+		RingPulse = 0.08, -- grows by this share at the top of each pulse
+		RingPulseSeconds = 1.1,
+		-- "Roblox_UI_Bright_Click" (Roblox, 0.37 s): a soft sound with each new line.
+		Ding = { Id = "rbxassetid://15675059323", Volume = 0.35 },
+		SkipHeightPx = 38,
+		SkipPhoneHeightPx = 32,
+		SkipWidthRatio = 4.2, -- the Skip button's width as a multiple of its height
+		SkipEdgePx = 12,
+		ConfirmSize = { 300, 150 },
+		ConfirmTextPx = 22,
+	},
+	-- The hand (src/client/TutorialHand.luau). Pixels unless named.
+	Hand = {
+		TipX = 0.46, -- the fingertip in hand.png, as a share of the image
+		TipY = 0.9,
+		SizeShare = 0.2, -- of the screen's short side, between MinPx and MaxPx
+		MinPx = 90,
+		MaxPx = 170,
+		HoverPx = 6, -- the tip rests this far above a button's centre
+		TapSeconds = 0.9, -- one tap (dip and squish) per loop
+		TapDipPx = 12,
+		TapSquish = 0.1,
+		GestureTransparency = 0.35, -- the see-through demonstrations
+		GestureSeconds = 1.8, -- one demonstration loop
+		SwipeHeightShare = 0.62, -- the swipe's height on the screen
+		SwipeWidthShare = 0.36, -- how far it swipes across
+		MouseShare = 0.55, -- the mouse's size against the hand's
+		GlyphHeightShare = 0.62, -- where a gamepad glyph shows
+		GlyphShare = 0.6, -- the glyph's size against the hand's
+		HoldBarPx = 10,
+		StickSeconds = 1.4,
+		StickDegrees = 18,
+		StickShiftPx = 22,
+		GhostBallShare = 0.32, -- the dragged ghost cue ball against the hand
+		GhostBallTransparency = 0.45,
+	},
+	-- The floor arrow path (src/client/TutorialArrow.luau). Studs unless named.
+	Arrow = {
+		MaxArrows = 60,
+		SizeStuds = 2, -- each arrow, square
+		SpacingStuds = 2.1, -- close together, like reference 02's line
+		SpeedStudsPerSecond = 3, -- how fast the line flows toward the pad
+		LiftStuds = 0.06, -- above the floor
+		FeetBelowRoot = 3, -- from the HumanoidRootPart to the floor
+		StartGapStuds = 2, -- clear of the player's feet
+		EndGapStuds = 1, -- stops just short of the pad's centre
+		FadeStuds = 2, -- the arrows fade in and out over this at each end
+		Transparency = 0.05,
+		ImageTurnDegrees = 180, -- turns the image on its part so its arrow points along the route
+		AgentRadius = 2,
+		AgentHeight = 5,
+		ReplanSeconds = 3,
+		ReplanMovedStuds = 4,
+	},
+	-- The funnels (src/server/Funnel.luau; step 9). Each mask is a Flags entry, one bit per
+	-- step, so a step is never logged twice.
+	Funnel = {
+		Print = true, -- Studio prints each logged step in the output (never live)
+		OnboardingFlag = "Funnel",
+		-- One-time funnels: the funnel's name on the dashboard -> its Flags key.
+		Once = { TutorialExit = "FunnelExit" },
+		ThirdMatch = 3, -- onboarding step 21: this many matches played
+		EventGapSeconds = 0.5, -- a client's funnel report of one kind counts at most this often
+		-- The repeating funnels' steps, in order (Funnel.shop, .spins, .caseLanded ...).
+		Shop = { "Opened", "Viewed", "PressedBuy", "Bought" },
+		CaseDrop = { "Got", "Ready", "Opened", "Equipped" },
+		Spins = { "OpenedAbilities", "Spun", "Equipped", "UsedInMatch" },
+	},
+}
+
 Config.Debug = {
 	-- Test keys in play mode: B = rack and break (until rules handle new games).
 	TestKeysEnabled = true,
@@ -9719,6 +9920,10 @@ Config.Debug = {
 		-- the real players; a count: that many, like the tutorial's fake lobby). Studio starts
 		-- with them off. Only the accounts in UserIds.
 		LobbyBots = "/lobbybots",
+		-- /tutorial reset | skip | off | step <name> (the tutorial lane): restart your tutorial
+		-- from the arrow, end it as skipped, end it as done, or jump to a step (Tutorial/Steps
+		-- .Order). Only the accounts in UserIds, Studio and live.
+		Tutorial = "/tutorial",
 		-- The ult commands' old names, by command: each still runs its command.
 		OldAliases = {
 			UltBar = "/ultbar",

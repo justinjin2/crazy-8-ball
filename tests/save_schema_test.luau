@@ -519,7 +519,10 @@ return {
 		H.expect(next(t.Settings) == nil and next(t.Flags) == nil, "empty maps")
 		local Config = H.require("Config")
 		local u = t.Ults
-		H.expect(u.Slots[1] == Config.Ults.Default and u.Slots[1] == "Magnet", "Magnet in slot 1")
+		H.expect(
+			u.Slots[1] == Config.Ults.Default and u.Slots[1] == "HeatSeeker",
+			"Heat Seeker in slot 1"
+		)
 		H.expect(#u.Slots == 3 and u.Slots[2] == "" and u.Slots[3] == "", "slots 2, 3 empty")
 		H.expect(#u.Locked == 3 and not u.Locked[1] and not u.Locked[2] and not u.Locked[3], "")
 		H.expect(u.Selected == 1 and u.Spins == Config.Ults.Earn.Starter, "starter spins")
@@ -1280,7 +1283,11 @@ return {
 		local lost = SaveSchema.template()
 		lost.Ults = nil
 		reconcile(lost, SaveSchema.template())
-		H.expect(lost.Ults.Slots[1] == "Magnet" and lost.Ults.Spins == 3, "refilled")
+		H.expect(
+			lost.Ults.Slots[1] == Config.Ults.Default
+				and lost.Ults.Spins == Config.Ults.Earn.Starter,
+			"refilled"
+		)
 		local _, again = SaveSchema.validate(lost)
 		H.expect(#again == 0, "clean after Reconcile")
 	end,
@@ -1323,7 +1330,7 @@ return {
 			local broken = SaveSchema.template()
 			broken.Ults = bad
 			local fixed, notes = SaveSchema.validate(broken)
-			H.expect(#notes == 1 and fixed.Ults.Slots[1] == "Magnet", "rebuilt")
+			H.expect(#notes == 1 and fixed.Ults.Slots[1] == Config.Ults.Default, "rebuilt")
 			assertClean(Config, SaveSchema, fixed)
 		end
 		-- Wrong-typed arrays inside it are rebuilt too; valid ids in every slot are kept.
@@ -1332,7 +1339,10 @@ return {
 		arrays.Ults.Locked = 1
 		arrays.Ults.Selected = "2"
 		local fixedArrays = SaveSchema.validate(arrays)
-		H.expect(fixedArrays.Ults.Slots[1] == "Magnet" and #fixedArrays.Ults.Locked == 3, "")
+		H.expect(
+			fixedArrays.Ults.Slots[1] == Config.Ults.Default and #fixedArrays.Ults.Locked == 3,
+			""
+		)
 		H.expect(fixedArrays.Ults.Selected == 1, "a string is not a slot")
 		local full = SaveSchema.template()
 		full.Ults.Slots = { "BlackHole", "Magnet", "GuangdongTiger" }

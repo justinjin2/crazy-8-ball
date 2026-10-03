@@ -14,6 +14,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local HudParts = require(script.Parent.HudParts)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UISound = require(script.Parent.UISound)
 
 local C = Config.UI.Progress.Result
@@ -66,6 +67,7 @@ function PostMatch.new(parent: Instance, onChoice: (string) -> ()): any
 	self.cancel.Name = "Cancel"
 	self.lobby = HudParts.candy(root, Copy.Lobby, choose("Lobby"), "Red")
 	self.lobby.Name = "Lobby"
+	TutorialAnchors.set("Lobby", self.lobby) -- the tutorial lane's hand (game 2)
 	self.leave = HudParts.candy(root, Copy.Leave, choose("Leave"), "Red")
 	self.leave.Name = "Leave"
 	for _, b in { self.rematch, self.another, self.cancel, self.lobby, self.leave } do
@@ -145,6 +147,12 @@ function PostMatch.set(self: any, state: State, now: number)
 	else
 		table.insert(shown, self.leave)
 	end
+	-- The tutorial's game 2 shows Lobby only (TutorialAnchors' hidden names).
+	for i = #shown, 1, -1 do
+		if TutorialAnchors.hidden(shown[i].Name) then
+			table.remove(shown, i)
+		end
+	end
 	HudParts.setEnabled(self.cancel, searching and not leaving)
 	HudParts.setEnabled(self.lobby, not leaving)
 	HudParts.setEnabled(self.leave, not leaving)
@@ -165,7 +173,7 @@ function PostMatch.set(self: any, state: State, now: number)
 	local line = ""
 	if searching and state.searchingSince then
 		line = clock(now - state.searchingSince)
-	elseif r == "gone" then
+	elseif r == "gone" and not TutorialAnchors.hidden("Rematch") then
 		line = Copy.OpponentLeft
 	end
 	self.status.Text = line

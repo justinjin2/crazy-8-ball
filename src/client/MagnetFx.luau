@@ -1543,7 +1543,11 @@ function MagnetFx.update(self: MagnetFx, dt: number)
 		local snapshot = self.hub.snapshots[id]
 		local armed = magnetArmed(snapshot)
 		local overrides = m.state.overrides
-		local magnetShot = m.shot ~= nil and overrides ~= nil and overrides.Effect == "Magnet"
+		-- (`Hidden`: the tutorial's game-1 assist, Tutorial/Rig, which draws nothing.)
+		local magnetShot = m.shot ~= nil
+			and overrides ~= nil
+			and overrides.Effect == "Magnet"
+			and not (overrides :: any).Hidden
 		if magnetShot and armed then
 			self.consumed[id] = armed.at -- this shot spends it: the armed look never returns
 		end

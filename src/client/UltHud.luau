@@ -48,6 +48,7 @@ local Catalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 local UltBar = require(script.Parent.UltBar)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 
 local U = Config.UI.Ults
 local K = Config.UI.Kit
@@ -205,6 +206,7 @@ function UltHud.new(screen: ScreenGui, activate: () -> ()): any
 	canvas.Visible = false
 	canvas.Parent = holder
 	self.canvas = canvas
+	TutorialAnchors.set("UltButton", canvas) -- the tutorial lane's hand taps it
 	local content = HudParts.frame(canvas, "Content")
 	self.content = content
 	self.bar = UltBar.new(content)

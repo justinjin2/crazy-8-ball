@@ -1,0 +1,20 @@
+{
+  "/Users/justinjin/Desktop/8ball-tutorial/assets/ui/tutorial/floor_arrow.png": {
+    "assetId": "128448222166301",
+    "assetType": "Decal",
+    "imageId": "103256796918925",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-tutorial/assets/ui/tutorial/hand.png": {
+    "assetId": "83205558658173",
+    "assetType": "Decal",
+    "imageId": "107703035077807",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-tutorial/assets/ui/tutorial/mouse.png": {
+    "assetId": "114857494420045",
+    "assetType": "Decal",
+    "imageId": "82136605713937",
+    "status": "ok"
+  }
+}

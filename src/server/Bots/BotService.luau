@@ -340,6 +340,19 @@ function BotService.remove(bot: Bot, how: string?)
 	bots[bot.id] = nil
 end
 
+--- The tutorial lane (designer, 2026-10-03): game 1's bot storms off as the player's winning
+--- 8 drops (AUGHHHH!, a jump, gone in mid-air), before the result. Its seat stays until the
+--- game is over (the win stays a LegalEight); `remove` later finds no body left.
+function BotService.stormOff(bot: Bot)
+	local model = bot.model
+	if bot.gone or model == nil then
+		return
+	end
+	bot.model = nil
+	BotService.say(bot, Strings.Bots.Angry)
+	Body.angryExit(model)
+end
+
 -- Its game ended: tell whoever listens, and the tutorial bot's exits.
 -- The designer's /botrank (DevCommands): the tier of every bot they meet, by user id.
 local forcedTier: { [number]: string } = {}
@@ -668,6 +681,14 @@ end
 
 local F = B.Fallback
 local fallbackBusy: { [any]: boolean } = {}
+-- The tutorial lane: how long a player's solo search waits for a real opponent, when it says
+-- (its game 2 meets the bot at once); nil: Fallback.SoloSeconds.
+local fallbackWait: ((Player) -> number?)? = nil
+
+--- The tutorial lane's hook on the solo fallback's wait (see above).
+function BotService.setFallbackWait(fn: ((Player) -> number?)?)
+	fallbackWait = fn
+end
 
 local function soloFallback(t: any, player: Player)
 	local tier = playerTier(player)
@@ -739,6 +760,9 @@ local function watchSearches()
 			players, at = Tables.waitingSearch(t)
 		end
 		local wait = if size == 1 then F.SoloSeconds else F.TeamSeconds
+		if size == 1 and players and players[1] and fallbackWait then
+			wait = fallbackWait(players[1]) or wait
+		end
 		if players and #players == size and at and now() - at >= wait then
 			local group = players
 			fallbackBusy[t] = true

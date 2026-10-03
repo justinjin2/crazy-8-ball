@@ -40,6 +40,7 @@ local UltCatalog = require(Shared.Ults.Catalog)
 local SpinView = require(Shared.Ults.SpinView)
 local Roll = require(Shared.Ults.Roll)
 local PlayerData = require(script.Parent.PlayerData)
+local Funnel = require(script.Parent.Funnel)
 local Store = require(script.Parent.Store)
 local Items = require(script.Parent.Items)
 local Announce = require(script.Parent.Announce)
@@ -235,11 +236,32 @@ end
 -- One spin through PlayerData (the caller holds the player's lock). Returns (true, the
 -- result) or (false, reason, the ult a "Confirm" would replace). A Legendary or Mythic result
 -- is announced.
+-- The tutorial lane: the ult a player's next normal spin lands on (its first spin: Magnet),
+-- and a call after each spin (TutorialService). Nil: none.
+local spinForce: ((Player) -> string?)? = nil
+local onSpun: ((Player, string) -> ())? = nil
+
+--- The tutorial lane's hooks on spins (see above).
+function UltSpins.setSpinHooks(force: ((Player) -> string?)?, spun: ((Player, string) -> ())?)
+	spinForce, onSpun = force, spun
+end
+
 local function spinOnce(player: Player, lucky: boolean, confirm: boolean): (boolean, any, string?)
-	local ok, result, current =
-		PlayerData.ultSpin(player, lucky, confirm, passesOf(player), devAllOf(player), roll01)
+	local forced = if spinForce and not lucky then spinForce(player) else nil
+	local ok, result, current = PlayerData.ultSpin(
+		player,
+		lucky,
+		confirm,
+		passesOf(player),
+		devAllOf(player),
+		roll01,
+		forced
+	)
 	if not ok then
 		return false, reasonFrom(result), current
+	end
+	if onSpun then
+		task.spawn(onSpun, player, result.id)
 	end
 	-- A placeholder rolled with the developer flag is never news.
 	if UltCatalog.built(result.id) then
@@ -369,6 +391,7 @@ function HANDLERS.Select(player: Player, r: SpinView.Request): Reply
 	if not ok then
 		return refuse(reasonFrom(reason))
 	end
+	Funnel.spins(player, "Equipped") -- the ability spins funnel (the tutorial lane)
 	return { ok = true, state = build(player) }
 end
 
@@ -607,7 +630,7 @@ local STATE_OPS: { [string]: boolean } = {
 	applyRank = true, -- rank-up spins
 	claimDaily = true, -- day 7's spins
 	claimPlaytime = true, -- the last gift's spin
-	redeemCode = true, -- ABILITIES
+	redeemCode = true, -- RELEASE
 	newDay = true,
 	reset = true,
 }

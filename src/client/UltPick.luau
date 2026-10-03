@@ -42,6 +42,7 @@ local Ults = Shared:WaitForChild("Ults")
 local Arming = require(Ults:WaitForChild("Arming"))
 local Catalog = require(Ults:WaitForChild("Catalog"))
 local HudParts = require(script.Parent.HudParts)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 
 local P = Config.UI.UltPick
 local K = Config.UI.Kit
@@ -199,6 +200,7 @@ function UltPick.new(screen: ScreenGui, send: ({ [string]: number }) -> ()): any
 	end, "Green")
 	self.confirm.AnchorPoint = Vector2.new(1, 1)
 	self.confirm.ZIndex = 3
+	TutorialAnchors.set("UltConfirm", self.confirm) -- the tutorial lane's hand taps it
 	self.reset = HudParts.candy(root, Copy.Reset, function()
 		self:resetPortals()
 	end, "Blue")
@@ -948,6 +950,7 @@ local function ballRing(self: any, id: number): any
 		frame.ZIndex = 1
 		r = { frame = frame, stroke = stroke, ink = ink }
 		self.rings[id] = r
+		TutorialAnchors.set("PickBall" .. id, frame) -- the tutorial lane's hand taps one
 	end
 	return r
 end
@@ -981,6 +984,8 @@ function UltPick.update(self: any, dt: number, camera: Camera?)
 		and self.match ~= nil
 		and self.placement ~= nil
 	self.root.Visible = visible
+	-- The tutorial lane: a ball chosen in the view (the hand moves on to CONFIRM).
+	TutorialAnchors.setFlag("UltPicked", visible and self.shown and self.ball ~= nil)
 	if not visible then
 		return
 	end

@@ -496,7 +496,7 @@ return {
 		}
 		-- { money, case, count, cue, Case Drops }
 		local firsts: { [string]: { any } } = {
-			Bronze = { 2500, nil, 0, "BronzeCue", 2 },
+			Bronze = { 2500, nil, 0, "BronzeCue", 1 },
 			Silver = { 5000, "Rare", 1, "SilverCue", 0 },
 			Gold = { 10000, "Rare", 2, "GoldCue", 0 },
 			Platinum = { 20000, "Rare", 3, "PlatinumCue", 0 },
@@ -566,7 +566,7 @@ return {
 		H.expect(win.rewards[1].money == 2500 and win.rewards[1].cue == "BronzeCue")
 		H.expect(win.rewardTotal == 2500 and win.peakAfter == 1)
 		H.expect(sameValue(win.rewardCases, {}) and sameValue(win.rewardCues, { "BronzeCue" }))
-		H.expect(win.rewardDrops == 2, "Bronze's 2 Case Drops")
+		H.expect(win.rewardDrops == 1, "Bronze's 1 Case Drop")
 		H.expect(win.newTier and win.promoted, "Unranked to Bronze is new")
 		-- Two more wins: Bronze II.
 		local w2 = Ranks.applyMatch(nextSave(win), ctx("Win"))
@@ -650,7 +650,7 @@ return {
 				{ Rare = 1 + 2 + 3, Epic = 1 + 2 + 3, Legendary = 1 + 2, Mythic = 1 }
 			)
 		)
-		H.expect(everything.rewardDrops == 2, "Bronze's Case Drops")
+		H.expect(everything.rewardDrops == 1, "Bronze's Case Drop")
 		H.expect(#everything.rewardCues == 10 and everything.rewardCues[10] == "ReyesCue")
 	end,
 

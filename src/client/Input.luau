@@ -36,6 +36,8 @@ local Config = require(Shared:WaitForChild("Config"))
 local Cue = require(Shared:WaitForChild("Physics"):WaitForChild("Cue"))
 local ShotInput = require(Shared:WaitForChild("ShotInput"))
 
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
+
 local Input = {}
 Input.__index = Input
 
@@ -334,6 +336,10 @@ function Input.rotate(self: Input, degrees: number)
 	if not self.enabled or self.spinEditing or degrees == 0 then
 		return
 	end
+	if TutorialAnchors.aimLock() then
+		return -- the tutorial's break goes straight (the tutorial lane)
+	end
+	TutorialAnchors.noteTurn(degrees)
 	self.angle = (self.angle + math.rad(degrees)) % (2 * math.pi)
 	self.degreesSinceTick += math.abs(degrees)
 	if self.degreesSinceTick >= Config.Input.TickEveryDegrees then

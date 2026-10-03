@@ -15,6 +15,7 @@ local Arming = require(script.Parent.Parent.Ults.Arming)
 local Catalog = require(script.Parent.Parent.Ults.Catalog)
 local TimeStop = require(script.Parent.Parent.Ults.Effects.TimeStop)
 local Cue = require(script.Parent.Parent.Physics.Cue)
+local TutorialRig = require(script.Parent.Parent.Tutorial.Rig)
 local M = Config.Multiplayer
 local S = Config.Ults.Shared
 local Engine = {}
@@ -293,7 +294,7 @@ end
 -- The call for the 8 comes before ball in hand: the pocket is chosen from the top-down view,
 -- then the ball is placed and shot in the 3D one. Solo has no clock: these wait for the player.
 local function setup(t: any, now: number)
-	local timed = t.solo == nil
+	local timed = t.solo == nil and TutorialRig.timed(t)
 	if needsCall(t) then
 		phase(t, "PocketChoice", now, if timed then M.PocketChoiceSeconds else nil)
 	elseif t.ballInHand then
@@ -317,6 +318,12 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 	t.lastOrder[team] = s.order
 	t.turnId += 1
 	t.calledPocket = nil
+	if t.tutorial then
+		-- The tutorial's game 1 (Tutorial/Rig): the player breaks from a fixed spot.
+		hand = TutorialRig.turnHand(t, hand, function(x: number, y: number): boolean
+			return Placement.set(t.state, 0, x, y)
+		end)
+	end
 	t.ballInHand = hand
 	t.placeSeq = 0 -- the shooter's placement counter; never part of the snapshot
 	t.foul = nil
@@ -496,6 +503,13 @@ local function resolve(t: any, now: number)
 	if j.respotEight then
 		local x, y = Placement.fallback(t.state, 8, false)
 		Placement.set(t.state, 8, x, y)
+	end
+	-- The tutorial's 8 guard (Tutorial/Rig): the 8 back where it stood, or the nearest free spot.
+	if j.eightBack then
+		if not Placement.set(t.state, 8, j.eightBack.x, j.eightBack.y) then
+			local x, y = Placement.fallback(t.state, 8, false)
+			Placement.set(t.state, 8, x, y)
+		end
 	end
 	-- Object balls that flew off the table go back on, in number order.
 	for _, id in j.respot or {} do
@@ -1093,6 +1107,9 @@ function finalizeShot(t: any, before: { any }, outcome: any, now: number, from: 
 		t.calledPocket,
 		requireRail
 	)
+	if t.tutorial then
+		j = TutorialRig.judge(t, before, j) -- game 1: no loss on the 8 (Tutorial/Rig)
+	end
 	local shot = t.shot
 	shot.final = Engine.pack(outcome.finalBalls)
 	shot.checksum = Simulation.checksum(outcome.finalBalls)
@@ -1190,6 +1207,16 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 		return nil, why
 	end
 	local sim = Simulation.cloneState(t.state)
+	if t.tutorial then
+		-- The tutorial's game 1 (Tutorial/Rig): the player's break is the rigged one.
+		shot = TutorialRig.shot(t, userId, shot, function(x: number, y: number): boolean
+			return Placement.set(sim, 0, x, y)
+		end)
+		if t.breakShot and TutorialRig.isPlayer(t, userId) then
+			payload = table.clone(payload)
+			payload.cueX, payload.cueY = nil, nil
+		end
+	end
 	if payload.cueX ~= nil or payload.cueY ~= nil then
 		if t.ballInHand then
 			if not Placement.valid(sim, payload.cueX, payload.cueY, t.breakShot) then
@@ -1219,6 +1246,9 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	-- The shooter's armed ult: its effect steps with the physics for this whole shot (a
 	-- placeholder has none), and the replay carries it in overrides.
 	local ult = Ults.shotOverrides(t, before)
+	if ult == nil and t.tutorial then
+		ult = TutorialRig.assist(t, userId, before) -- game 1's hidden pull (Tutorial/Rig)
+	end
 	if ult then
 		Simulation.armEffect(sim, ult.Effect, ult.Targets, ult.EightPocket, ult.extra)
 	end

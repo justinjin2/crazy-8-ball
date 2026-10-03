@@ -28,6 +28,7 @@ local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local Net = require(Shared:WaitForChild("Net"))
 local Progression = Shared:WaitForChild("Progression")
 local Format = require(Progression:WaitForChild("Format"))
 local Shop = require(Progression:WaitForChild("Shop"))
@@ -956,6 +957,7 @@ end
 
 --- Open the odds panel of a case.
 function ShopMenu.openOdds(self: any, caseId: string)
+	Net.get("TutorialEvent"):FireServer("ShopViewed") -- the shop funnel (the tutorial lane)
 	self.odds:open(caseId)
 end
 

@@ -101,6 +101,7 @@ return {
 			Timeout = "Ran out of time",
 			Departure = "The shooter left",
 			Reset = "The shooter reset",
+			EightBack = "The 8 was put back on the table", -- the tutorial's game 1
 		},
 		Win = "YOU WIN!",
 		Lose = "YOU LOSE!",
@@ -143,6 +144,7 @@ return {
 			Timeout = "Shooting time expired",
 			Departure = "Shooter disconnected",
 			Reset = "Shooter reset",
+			EightBack = "8-ball put back", -- the tutorial's game 1 (Tutorial/Rig)
 			wrong_first = "Wrong first contact",
 			no_contact = "No ball contacted",
 			scratch = "Cue ball scratched",
@@ -451,6 +453,8 @@ return {
 		LobbyBotsCount = "Lobby bots on: %d of them.",
 		LobbyBotsOff = "Lobby bots off.",
 		LobbyBotsBad = "Try /lobbybots on, /lobbybots off or /lobbybots <count>.",
+		TutorialStep = "Your tutorial is at %s.",
+		TutorialBad = "Try /tutorial reset, skip, off or step <name>. Steps: %s.",
 	},
 	-- The rank and money screens (ResultScreen, NewRankPopup, Roadmap, RankHud).
 	Progress = {
@@ -1529,5 +1533,126 @@ return {
 			},
 			Joins = { "plays", "rblx", "yt", "xd", "official", "gaming", "pro", "fan" },
 		},
+	},
+	-- The first-time tutorial (src/client/Tutorial*.luau; docs/prompts/TUTORIAL_PROMPT.md). The
+	-- big instruction line at the top of the screen; a line with a device in its name has one
+	-- version per device (Mouse, Touch, Gamepad).
+	Tutorial = {
+		Skip = "Skip tutorial",
+		SkipAsk = "Skip the tutorial?",
+		SkipYes = "Yes",
+		SkipNo = "No",
+		JoinTable = "Join a table!",
+		WaitTable = "Waiting for a free table...",
+		Request = {
+			Mouse = "Click Request opponent!",
+			Touch = "Tap Request opponent!",
+			Gamepad = "Press A to request an opponent!",
+			GamepadFocus = "Press Y, then A to request an opponent!",
+		},
+		Finding = "Finding you an opponent...",
+		-- Game 1's lessons (the TutorialLesson attribute), per device.
+		Break = {
+			Mouse = "Pull the power bar all the way down!",
+			Touch = "Drag the power bar all the way down!",
+			Gamepad = "Hold A to power up, then let go!",
+		},
+		Aim = {
+			Mouse = "Drag to aim at a glowing ball!",
+			Touch = "Swipe to aim at a glowing ball!",
+			Gamepad = "Tilt the left stick to aim!",
+		},
+		AimShoot = {
+			Mouse = "Now pull the power bar to shoot!",
+			Touch = "Now pull the power bar to shoot!",
+			Gamepad = "Now hold A, then let go!",
+		},
+		Ability = {
+			Mouse = "Press G to use your ability!",
+			Touch = "Tap your ability!",
+			Gamepad = "Press X to use your ability!",
+		},
+		Pick = {
+			Mouse = "Click one of your balls!",
+			Touch = "Tap one of your balls!",
+			Gamepad = "Pick one of your balls with A!",
+		},
+		PickConfirm = {
+			Mouse = "Now click Confirm!",
+			Touch = "Now tap Confirm!",
+			Gamepad = "Now press X to confirm!",
+		},
+		BallInHand = {
+			Mouse = "Ball in hand! Drag the white ball anywhere.",
+			Touch = "Ball in hand! Drag the white ball anywhere.",
+			Gamepad = "Ball in hand! Hold L2 and tilt the left stick to move it.",
+		},
+		-- After game 1 (step 5).
+		Reveal = {
+			Got = "You got a %s!",
+			OpenNow = "Open now",
+			Ok = "OK",
+			ReadyIn = "Opens in %s",
+		},
+		Drop = {
+			Mouse = "Click Open now!",
+			Touch = "Tap Open now!",
+			Gamepad = "Press A to open your case!",
+		},
+		RareDrop = "Your Rare Case opens in 1 hour!",
+		Abilities = {
+			Mouse = "Click Abilities!",
+			Touch = "Tap Abilities!",
+			Gamepad = "Press X to open Abilities!",
+		},
+		Spin = {
+			Mouse = "Click SPIN for a new ability!",
+			Touch = "Tap SPIN for a new ability!",
+			Gamepad = "Press A to SPIN for a new ability!",
+		},
+		Code = "Type RELEASE for 3 more spins!",
+		CodeOdds = {
+			Mouse = "Click Odds, then type RELEASE for 3 more spins!",
+			Touch = "Tap Odds, then type RELEASE for 3 more spins!",
+			Gamepad = "Open Odds, then type RELEASE for 3 more spins!",
+		},
+		Back = {
+			Mouse = "Click Back!",
+			Touch = "Tap Back!",
+			Gamepad = "Press B to go back!",
+		},
+		Eight = {
+			Mouse = "SELECT WHICH POCKET!",
+			Touch = "SELECT WHICH POCKET!",
+			Gamepad = "SELECT WHICH POCKET! D-pad to choose, A to select.",
+		},
+		-- Game 2 (step 6): the global queue, then back to the lobby.
+		Queue = {
+			Mouse = "Click Join Global Queue!",
+			Touch = "Tap Join Global Queue!",
+			Gamepad = "Press A to join the global queue!",
+			GamepadFocus = "Press Y, then A to join the global queue!",
+		},
+		Lobby = {
+			Mouse = "Click Lobby!",
+			Touch = "Tap Lobby!",
+			Gamepad = "Press A to go to the lobby!",
+		},
+		-- The real server's nudges (step 7), one at a time.
+		Nudge = {
+			Rank = "Claim your rank rewards!",
+			Inventory = "Your Rare Case opens when its timer ends!",
+			Shop = "Check out the Shop!",
+			FreeReward = "Claim your free reward!",
+			CaseReady = "Your case is ready!",
+		},
+		CasePillReady = "Ready!", -- the Rare Case timer pill at 0
+	},
+	-- Rank rewards held until claimed (RankClaim; the roadmap's claim block, NEW RANK!).
+	RankClaim = {
+		ClaimLine = "Claim your rewards in Rank!",
+		Claim = "CLAIM",
+		Ready = "Rewards ready!",
+		DropCount = "Case Drop x%d", -- held Case Drops on the claim block
 	},
 }

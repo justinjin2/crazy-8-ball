@@ -39,6 +39,7 @@ local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
 local CueSkins = require(Shared:WaitForChild("CueSkins"))
 local HudParts = require(script.Parent.HudParts)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local K = Config.UI.Kit
 
 local PowerCue = {}
@@ -191,6 +192,7 @@ function PowerCue.new(screen: ScreenGui, cueId: string?): PowerCue
 	bar.BackgroundTransparency = U.PowerBarTransparency
 	bar.AutoButtonColor = false
 	bar.Parent = screen
+	TutorialAnchors.set("PowerBar", bar) -- the tutorial lane's hand pulls it
 
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(0, K.ButtonCornerPx)

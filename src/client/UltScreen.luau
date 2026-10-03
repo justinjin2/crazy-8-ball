@@ -34,6 +34,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Catalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
@@ -163,6 +164,7 @@ function UltScreen.start(screen: ScreenGui): any
 	end, "Blue", "Odds")
 	self.oddsButton.Name = "OddsButton"
 	self.oddsButton.ZIndex = 5
+	TutorialAnchors.set("UltOddsButton", self.oddsButton) -- the tutorial lane's hand (phone)
 	HudParts.setMinHit(self.oddsButton, C.TouchPx)
 
 	self.buyPopup = Parts.popup(root, "BuyPopup", W.BuySpins)
@@ -206,6 +208,10 @@ function UltScreen.start(screen: ScreenGui): any
 	end, "Red")
 	self.back.Name = "Back"
 	self.back.ZIndex = 5
+	TutorialAnchors.set("SpinBack", self.back) -- the tutorial lane's hand
+	TutorialAnchors.setProbe("UltSpinning", function(): boolean
+		return self.spinning == true
+	end)
 	HudParts.setMinHit(self.back, C.TouchPx)
 	-- Where the server's answers show: a line just over LUCKY SPINS.
 	local noticeHolder = HudParts.frame(content, "Notices")
@@ -336,6 +342,7 @@ function UltScreen.buildSpin(self: any, parent: Instance)
 	end, "Yellow", "UltSpin")
 	spin.Name = "Spin"
 	spin.ZIndex = 5
+	TutorialAnchors.set("SpinButton", spin) -- the tutorial lane's hand
 	local left = HudParts.text(parent, "SpinsLeft", C.Full.SpinsLeftTextPx, "")
 	left.AutoLocalize = false
 	left.TextWrapped = false

@@ -46,6 +46,7 @@ local Restock = require(Shared.Progression.Restock)
 local Announce = require(script.Parent.Announce)
 local Counters = require(script.Parent.Counters)
 local PlayerData = require(script.Parent.PlayerData)
+local Funnel = require(script.Parent.Funnel)
 
 local I = Config.Items
 local IS_STUDIO = RunService:IsStudio()
@@ -364,18 +365,39 @@ function HANDLERS.BuyCase(player: Player, r: Requests.Request): Reply
 	return refuse("Error")
 end
 
+-- The tutorial lane: a forced result for a case opening (game 1's Standard Case lands on an
+-- Uncommon cue) and a call once a case is opened (TutorialService). Nil: none.
+local openForce: ((Player, string, number) -> { string }?)? = nil
+local onOpened: ((Player, string, { string }) -> ())? = nil
+
+--- The tutorial lane's hooks on OpenCase (see above; `opened` also gets the cues it gave).
+function Items.setOpenHooks(
+	force: ((Player, string, number) -> { string }?)?,
+	opened: ((Player, string, { string }) -> ())?
+)
+	openForce, onOpened = force, opened
+end
+
 function HANDLERS.OpenCase(player: Player, r: Requests.Request): Reply
 	local caseId, count = r.caseId :: string, r.count :: number
 	if count > 1 and player:GetAttribute(FAST_OPEN) ~= true then
 		return refuse("NoFastOpen")
 	end
-	local cueIds = {}
-	for _ = 1, count do
-		table.insert(cueIds, (Cases.roll(caseId, roll)))
+	local forced = if openForce then openForce(player, caseId, count) else nil
+	local cueIds: { string } = {}
+	if forced and #forced == count then
+		cueIds = forced
+	else
+		for _ = 1, count do
+			table.insert(cueIds, (Cases.roll(caseId, roll)))
+		end
 	end
 	local ok, result = PlayerData.openCases(player, caseId, cueIds)
 	if not ok then
 		return refuse(Requests.reasonFrom(result))
+	end
+	if onOpened then
+		task.spawn(onOpened, player, caseId, cueIds)
 	end
 	local results = {}
 	for _, opened in result :: { any } do
@@ -422,6 +444,7 @@ function HANDLERS.EquipCue(player: Player, r: Requests.Request): Reply
 	if not PlayerData.equipCue(player, cueId) then
 		return refuse("NotOwned")
 	end
+	Funnel.cueEquipped(player, cueId) -- the Case Drop funnel (the tutorial lane)
 	return { ok = true, cueId = cueId }
 end
 
@@ -651,8 +674,16 @@ local function handle(player: Player, action: any, a: any, b: any): Reply
 		return refuse("Busy")
 	end
 	busy[player] = true
+	-- The shop funnel (the tutorial lane): a money buy pressed, and bought when it went through.
+	local buying = string.sub(request.action, 1, 3) == "Buy"
+	if buying then
+		Funnel.shop(player, "PressedBuy")
+	end
 	local ok, reply = pcall(HANDLERS[request.action], player, request)
 	busy[player] = nil
+	if ok and buying and type(reply) == "table" and reply.ok == true then
+		Funnel.shop(player, "Bought")
+	end
 	if not ok then
 		warn(
 			("[8ball] Items: %s for %s failed: %s"):format(

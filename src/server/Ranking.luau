@@ -34,6 +34,7 @@ local CaseDrop = require(Shared.Progression.CaseDrop)
 local Daily = require(Shared.Progression.Daily)
 local Inventory = require(Shared.Progression.Inventory)
 local Settle = require(Shared.Progression.Settle)
+local RankClaim = require(Shared.Tutorial.RankClaim)
 local Economy = require(script.Parent.Economy)
 local PlayerData = require(script.Parent.PlayerData)
 local Counters = require(script.Parent.Counters)
@@ -87,30 +88,30 @@ local function factsOf(player: Player): Facts
 	}
 end
 
--- The rank-up rewards of a result in PlayerData's Reward shape (money, cases, the tier cues
--- and the new tiers' ult spins added up), or nil when it passed nothing that pays.
-local function rewardOf(result: Ranks.MatchResult): PlayerData.Reward?
-	local cues = table.clone(result.rewardCues)
-	local cases = table.clone(result.rewardCases)
-	local spins = result.rewardSpins
-	local drops = result.rewardDrops
-	if
-		result.rewardTotal <= 0
-		and #cues == 0
-		and next(cases) == nil
-		and spins <= 0
-		and drops <= 0
-	then
-		return nil
+-- Rank rewards are held until claimed in Rank (tutorial lane, 2026-10-03; RankClaim): a rank-up
+-- pays only the Case Drops of Config.Tutorial.RankClaim.DropsAtOnce's tiers. The tutorial sets
+-- their tier through `dropTier` (Bronze's drop is its Standard Case); nil rolls as usual.
+local dropTier: ((Player) -> string?)? = nil
+
+--- The tutorial's hook: `fn(player)` names the tier of the rank-up's at-once Case Drops, or nil.
+function Ranking.setDropTier(fn: ((Player) -> string?)?)
+	dropTier = fn
+end
+
+-- The rank-up's at-once drops: (the Reward to pay with the rank, the set tier or nil).
+local function atOnceOf(
+	player: Player,
+	result: Ranks.MatchResult
+): (PlayerData.Reward?, number, string?)
+	local drops = RankClaim.dropsAtOnce(result.peakBefore, result.peakAfter)
+	if drops <= 0 then
+		return nil, 0, nil
 	end
-	local reward: PlayerData.Reward = { money = result.rewardTotal, cases = cases, cues = cues }
-	if spins > 0 then
-		reward.spins = spins
+	local tier = if dropTier then dropTier(player) else nil
+	if tier ~= nil then
+		return nil, drops, tier
 	end
-	if drops > 0 then
-		reward.drops = drops
-	end
-	return reward
+	return { drops = drops }, drops, nil
 end
 
 -- Saves a result's rank and pays its rank-up rewards in the same change (PlayerData.applyRank:
@@ -124,14 +125,20 @@ local function applyRank(player: Player, result: Ranks.MatchResult): boolean
 	for _, cue in result.rewardCues do
 		owned[cue] = if before then Inventory.count(before, cue) else 0
 	end
+	local reward, drops, tier = atOnceOf(player, result)
 	local ok = PlayerData.applyRank(player, {
 		RankXp = result.xpAfter,
 		PeakDivision = result.peakAfter,
 		RatedMatches = result.ratedMatches,
-	}, rewardOf(result))
+	}, reward)
 	if not ok then
 		warn(("[8ball] Ranking: the rank change for %s was refused"):format(player.Name))
 		return false
+	end
+	if tier ~= nil then
+		for _ = 1, drops do
+			PlayerData.setDrop(player, "Reward", tier)
+		end
 	end
 	local after = PlayerData.read(player)
 	if after then
@@ -199,6 +206,9 @@ function Ranking.xpPart(result: any): any
 		rewardSpins = result.rewardSpins,
 		rewardDrops = result.rewardDrops,
 		breakdown = result.breakdown,
+		-- Everything above but the at-once drops waits to be claimed in Rank (RankClaim).
+		held = true,
+		dropsAtOnce = RankClaim.dropsAtOnce(result.peakBefore, result.peakAfter),
 	}
 end
 
@@ -660,6 +670,8 @@ local function rankEvent(result: Ranks.MatchResult): any
 		rewardCues = table.clone(result.rewardCues),
 		rewardSpins = result.rewardSpins,
 		rewardDrops = result.rewardDrops,
+		held = true, -- claimed in Rank (RankClaim), as xpPart
+		dropsAtOnce = RankClaim.dropsAtOnce(result.peakBefore, result.peakAfter),
 	}
 end
 

@@ -19,6 +19,7 @@ local CuePlacement = require(Rules:WaitForChild("CuePlacement"))
 local Engine = require(Rules:WaitForChild("MatchEngine"))
 local Judge = require(Rules:WaitForChild("ShotJudge"))
 local HudParts = require(script.Parent.HudParts)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local M = Config.Multiplayer
 local S = M.Style
 local tone = HudParts.tone
@@ -147,6 +148,7 @@ function MatchTargets.new(
 			hover = false,
 		}
 		table.insert(self.pockets, item)
+		TutorialAnchors.set("Pocket" .. id, button) -- the tutorial lane's hand taps one
 		button.Activated:Connect(function()
 			if self:canCall() then
 				self.confirmedAt = self.elapsed
@@ -172,6 +174,7 @@ function MatchTargets.new(
 	self.handle, self.handleStroke, self.handleInk, self.handleCaption =
 		ring(self.root, "CueBallPlacement", S.PlacementHandleSize, tone("Blue"))
 	self.handleCaption.Text = Strings.Match.PlacementHandle
+	TutorialAnchors.set("CueBallHandle", self.handle) -- the tutorial lane's hand drags it
 	-- A plain blue ring round the ball in hand, no ink: the outline read as black on the cloth
 	-- (designer, 2026-09-26).
 	self.handleInk.Enabled = false

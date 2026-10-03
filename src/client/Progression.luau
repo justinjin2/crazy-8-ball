@@ -34,10 +34,12 @@ local MoneyHud = require(script.Parent.MoneyHud)
 local Nameplates = require(script.Parent.Nameplates)
 local NewRankPopup = require(script.Parent.NewRankPopup)
 local RankHud = require(script.Parent.RankHud)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local ResultScreen = require(script.Parent.ResultScreen)
 local RewardChips = require(script.Parent.RewardChips)
 local RewardsMenu = require(script.Parent.RewardsMenu)
 local Roadmap = require(script.Parent.Roadmap)
+local RankClaimBlock = require(script.Parent.RankClaimBlock)
 local ShopMenu = require(script.Parent.ShopMenu)
 local ShopOfferPopup = require(script.Parent.ShopOfferPopup)
 local ShopThanks = require(script.Parent.ShopThanks)
@@ -191,6 +193,9 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	end)
 	plates = Nameplates.new()
 	ChatTags.start() -- the [TIER] tag before names in chat
+	-- The tutorial lane's hand points at these (TutorialAnchors).
+	TutorialAnchors.set("Rank", rankHud.holder)
+	TutorialAnchors.set("MoneyHud", money.root)
 
 	-- The economy's screens share one table of the things they fly to and open; a field set
 	-- after a menu is built is still seen by it (they read it when used).
@@ -209,6 +214,12 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	RewardPopups.start(screen, deps) -- the daily login and playtime popups (before the page)
 	FreeRewardMenu.new(screen, deps)
 	SettingsMenu.new(screen, deps)
+	-- Held rank rewards: the claim block over the roadmap (the tutorial lane).
+	RankClaimBlock.new(screen, deps, function(): boolean
+		return roadmap:isOpen()
+	end, function()
+		Menus.close(RANKED)
+	end)
 	column = MenuColumn.new(screen, {
 		rankHud = rankHud,
 		money = money,
@@ -286,6 +297,18 @@ end
 --- Main's B-to-leave waits while one is up.
 function Progression.isBusy(): boolean
 	return started and (popupUp() or Menus.isOpen())
+end
+
+--- The tutorial lane: opens one `caseId` from the inventory (the case opening plays).
+function Progression.openCase(caseId: string)
+	if started then
+		caseOpening:open(caseId, 1)
+	end
+end
+
+--- The tutorial lane: whether the case opening is up.
+function Progression.caseOpeningUp(): boolean
+	return started and caseOpening:isOpen()
 end
 
 --- The rematch row on the result screen (designer, 2026-09-28): Main presses its buttons
@@ -388,7 +411,7 @@ function Progression.update(state: State)
 		or newRank:isOpen()
 		or ResultCutscene.isPlaying()
 		or ComeBack.isPlaying()
-	rankHud:setVisible(not state.inMatch and not busy)
+	rankHud:setVisible(not state.inMatch and not busy and not TutorialAnchors.hidden("Rank"))
 	-- Under the result screen and NEW RANK! the column still shows while a case or cue flies
 	-- into its Inventory tile (RewardChips), so the tile is there to catch it.
 	column:setVisible(

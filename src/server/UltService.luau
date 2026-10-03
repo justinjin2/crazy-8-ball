@@ -36,6 +36,7 @@ local Fill = require(Shared.Ults.Fill)
 local Match = require(Shared.Ults.Match)
 local Slots = require(Shared.Ults.Slots)
 local PlayerData = require(script.Parent.PlayerData)
+local Funnel = require(script.Parent.Funnel)
 local Store = require(script.Parent.Store)
 local Tables = require(script.Parent.TableService)
 
@@ -308,6 +309,8 @@ function UltService.start()
 		local ok, reason = activate(t, player.UserId, nil)
 		if not ok then
 			refuse(player, reason)
+		else
+			Funnel.spins(player, "UsedInMatch") -- the ability spins funnel (the tutorial lane)
 		end
 	end)
 	Tables.onFlush(UltService.flush)

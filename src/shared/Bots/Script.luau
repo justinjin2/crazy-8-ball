@@ -10,6 +10,7 @@ local Judge = require(script.Parent.Parent.Rules.ShotJudge)
 local Finder = require(script.Parent.ShotFinder)
 local Brain = require(script.Parent.Brain)
 local Rng = require(script.Parent.Rng)
+local Break = require(script.Parent.Parent.Tutorial.Break)
 
 type Ball = Ball.Ball
 type Rng = Rng.Rng
@@ -20,8 +21,10 @@ local D = 2 * Config.Balls.RadiusInches
 
 local Script = {}
 
--- The visits, in order (the server counts the bot's visits).
-Script.Visits = { "PotThenScratch", "EightBlunder" }
+-- The visits, in order (the server counts the bot's visits). Since the tutorial lane took the
+-- script over (designer, 2026-10-03), every visit after the first is Poor (Script.poor);
+-- eightBlunder stays for its tests and the Studio hook.
+Script.Visits = { "PotThenScratch", "Poor" }
 
 local function decision(
 	kind: any,
@@ -212,6 +215,132 @@ function Script.eightBlunder(
 		return decision("eight", math.atan2(eight.y - cy, eight.x - cx), 1, cueX, cueY, 8, nil)
 	end
 	return decision("eight", 0, 0.5, cueX, cueY, nil, nil)
+end
+
+--- The tutorial lane (designer, 2026-10-03): the table as the tutorial bot sees it. The player
+--- broke 3 solids, so while the table is open the bot plays as if it had the other group
+--- (stripes): its pot never takes the player's colour.
+function Script.tutorialView(view: View): View
+	local mine = view.groups[view.team]
+	if mine ~= nil then
+		return view
+	end
+	local theirs = view.groups[3 - view.team] or "solids"
+	local v = table.clone(view)
+	v.groups = {}
+	v.groups[view.team] = Judge.opposite(theirs)
+	v.groups[3 - view.team] = theirs
+	return v
+end
+
+-- How far the player's balls and the 8 moved in a trial (inches, summed).
+local function disturbance(
+	before: { Ball },
+	after: { Ball },
+	watched: { [number]: boolean }
+): number
+	local moved = 0
+	for _, b in before do
+		if watched[b.id] and not b.pocketed then
+			local a = Finder.findBall(after, b.id) :: Ball
+			if a.pocketed then
+				moved += 100
+			else
+				moved += math.sqrt((a.x - b.x) ^ 2 + (a.y - b.y) ^ 2)
+			end
+		end
+	end
+	return moved
+end
+
+--- The tutorial bot's later visits (the tutorial lane, designer 2026-10-03): a weak, legal
+--- shot at one of its own balls that pots nothing and moves none of the player's balls or
+--- the 8. While the 8 is not ready by a pocket (Break.eightPlaced), a shot that nudges it
+--- there is preferred. Nothing qualifies: the shot that disturbs the player's balls least.
+--- `view` is Script.tutorialView's.
+function Script.poor(view: View, rng: Rng, ballInHand: boolean?, yield: (() -> ())?): Decision
+	local P = Config.Tutorial.BotPoor
+	local cue = Finder.findBall(view.balls, 0) :: Ball
+	local cueX, cueY = nil, nil
+	if ballInHand then
+		cueX, cueY = Brain.placeCue(view, Brain.tier("Gold"), rng, yield)
+	end
+	local cx, cy = cueX or cue.x, cueY or cue.y
+	local mine = view.groups[view.team]
+	local theirs = view.groups[3 - view.team]
+	-- The player's balls and the 8, which it must leave alone.
+	local watched: { [number]: boolean } = { [8] = true }
+	for _, b in view.balls do
+		if not b.pocketed and b.id ~= 0 and b.id ~= 8 and Judge.group(b.id) == theirs then
+			watched[b.id] = true
+		end
+	end
+	local own = {}
+	for _, b in view.balls do
+		if not b.pocketed and b.id ~= 0 and b.id ~= 8 and Judge.group(b.id) == mine then
+			table.insert(own, b.id)
+		end
+	end
+	if #own == 0 then
+		-- Only the 8 left for it (never on the tutorial's table): a soft touch on the 8.
+		table.insert(own, 8)
+		watched[8] = nil
+	end
+	local placed = Break.eightPlaced(view.geometry, view.balls)
+	local tries: { { number } } = {}
+	for _, id in own do
+		local b = Finder.findBall(view.balls, id) :: Ball
+		local base = math.atan2(b.y - cy, b.x - cx)
+		local dist = math.sqrt((b.x - cx) ^ 2 + (b.y - cy) ^ 2)
+		local half = math.asin(math.clamp(D * 0.9 / math.max(dist, D), 0, 1))
+		for i = 0, P.Sweeps - 1 do
+			for _, power in P.Powers do
+				local f = if P.Sweeps > 1 then i / (P.Sweeps - 1) * 2 - 1 else 0
+				table.insert(tries, { base + half * f, power, id })
+			end
+		end
+	end
+	-- A shuffled order, so it does not play the same kind of shot every time.
+	for i = #tries, 2, -1 do
+		local k = Rng.int(rng, 1, i)
+		tries[i], tries[k] = tries[k], tries[i]
+	end
+	local quiet, nudge, least = nil, nil, nil
+	local leastMoved = math.huge
+	for _, t in tries do
+		local trial = Brain.simulate(view, { angle = t[1], power = t[2] }, cueX, cueY)
+		if yield then
+			yield()
+		end
+		if trial.winner ~= nil or #trial.pockets > 0 then
+			continue
+		end
+		local others = table.clone(watched)
+		others[8] = nil
+		local moved = disturbance(view.balls, trial.balls, others)
+		local eightMoved = disturbance(view.balls, trial.balls, { [8] = watched[8] == true })
+		if trial.foul == nil and moved <= P.StillInches then
+			if eightMoved <= P.StillInches then
+				quiet = quiet or t
+				if placed then
+					break
+				end
+			elseif not placed and Break.eightPlaced(view.geometry, trial.balls) then
+				nudge = t
+				break
+			end
+		end
+		local score = moved + eightMoved + (if trial.foul then 50 else 0)
+		if score < leastMoved then
+			leastMoved, least = score, t
+		end
+	end
+	local pick = nudge or quiet or least
+	if pick == nil then
+		local plan = Finder.safePlan(view, cx, cy)
+		return decision("miss", plan.angle, P.Powers[1], cueX, cueY, plan.ball, nil)
+	end
+	return decision("miss", pick[1], pick[2], cueX, cueY, pick[3], nil)
 end
 
 local _ = Rng

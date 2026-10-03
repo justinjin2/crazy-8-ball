@@ -26,6 +26,7 @@ local Avatar = require(script.Parent.Avatar)
 local BackCue = require(script.Parent.BackCue)
 local BotChat = require(script.Parent.BotChat) -- the Bots lane
 local People = require(script.Parent.People) -- the Bots lane: players and bots behind one lookup
+local TutorialAnchors = require(script.Parent.TutorialAnchors) -- the tutorial lane
 local CueAssets = require(script.Parent.CueAssets)
 local CueSkinLook = require(script.Parent.CueSkinLook)
 local Effects = require(script.Parent.Effects)
@@ -371,6 +372,10 @@ local function highlightOwn()
 		end
 	end
 	local group = view.groups[team]
+	-- The tutorial's game 1: the player's colour is solids from the break on (Tutorial/Rig).
+	if group == nil and TutorialAnchors.game1() then
+		group = "solids"
+	end
 	local downMask = 0
 	local left: { [string]: number } = { solids = 0, stripes = 0 } -- balls still up per group
 	for id = 1, 15 do
@@ -407,7 +412,8 @@ local function highlightOwn()
 	-- Style.StrongBallHighlights (the tutorial style) makes that outline vivid and also
 	-- washes the other group grey. At most 15 Highlights, inside Roblox's per-client budget.
 	local S = M.Style
-	local strong = S.StrongBallHighlights
+	-- The tutorial's game 1 always uses the strong style (the tutorial lane).
+	local strong = S.StrongBallHighlights or TutorialAnchors.game1()
 	for _, b in match.state.balls do
 		local ball = Judge.group(b.id)
 		local own = ball == group or (b.id == 8 and eight)
@@ -1139,6 +1145,11 @@ local function quietAuras(dt: number)
 	AuraQuiet.apply(quietSticks, player.UserId, hub.snapshots)
 end
 local function renderFrame(dt: number)
+	-- The tutorial lane: an aim the tutorial asked for (its locked break, the aim lesson).
+	local tutorialAim = TutorialAnchors.takeAim()
+	if tutorialAim then
+		input:setAngle(tutorialAim)
+	end
 	-- A shot halted for Time Stop's second strike aims like a turn, not like a replay.
 	local busy = hub:update(dt) and not frozenTurn()
 	holdShots(dt)
@@ -1491,6 +1502,8 @@ local function renderFrame(dt: number)
 	end
 	lastBusy = busy
 end
+-- The first-time tutorial (the tutorial lane): its line, dim, hand and floor arrow.
+require(script.Parent.Tutorial).start()
 RunService.RenderStepped:Connect(function(dt)
 	renderFrame(dt)
 	-- The back cues last, once every hand cue of this frame is drawn: a cue is never on a back

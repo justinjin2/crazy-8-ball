@@ -79,13 +79,16 @@ return {
 	end,
 
 	["a spin replaces the selected slot's ult"] = function()
-		local Slots = load()
+		local Slots, Config = load()
 		local u = Slots.fresh()
 		H.expect(Slots.select(u, 2, ALL), "select slot 2")
 		H.expect(Slots.canSpin(u, false, DAY, ALL), "can spin")
 		H.expect(Slots.take(u, false, DAY) == "Free", "the free spin first")
 		local old = Slots.place(u, "Ghost")
-		H.expect(old == "" and u.Slots[2] == "Ghost" and u.Slots[1] == "Magnet", "into slot 2")
+		H.expect(
+			old == "" and u.Slots[2] == "Ghost" and u.Slots[1] == Config.Ults.Default,
+			"into slot 2"
+		)
 		H.expect(u.SpinsDone == 1, "counted")
 		H.expect(Slots.take(u, false, DAY) == "Spin", "then the held spins")
 		local replaced = Slots.place(u, "Rewind")
@@ -127,33 +130,33 @@ return {
 		H.expect(not spin and spinWhy == "NotOwned", "spin refused")
 	end,
 
-	["an empty, unowned or unusable slot plays as Magnet"] = function()
+	["an empty, unowned or unusable slot plays as the default"] = function()
 		local Slots, Config = load()
 		local u = Slots.fresh()
-		H.expect(Slots.equipped(u, NONE) == "Magnet", "a fresh save")
+		H.expect(Slots.equipped(u, NONE) == Config.Ults.Default, "a fresh save")
 		u.Slots[1] = ""
 		H.expect(Slots.equipped(u, NONE) == Config.Ults.Default, "an empty slot")
 		asPlaceholder(Config.Ults.Catalog, "GuangdongTiger", function()
 			u.Slots[1] = "GuangdongTiger"
-			H.expect(Slots.equipped(u, NONE) == "Magnet", "unbuilt without the flag")
+			H.expect(Slots.equipped(u, NONE) == Config.Ults.Default, "unbuilt without the flag")
 			H.expect(
 				Slots.equipped(u, NONE, true) == "GuangdongTiger",
 				"the flag equips placeholders"
 			)
 			u.Slots[2] = "GuangdongTiger"
 			H.expect(Slots.select(u, 2, ALL), "select 2")
-			H.expect(Slots.equipped(u, NONE, true) == "Magnet", "the pass is gone")
+			H.expect(Slots.equipped(u, NONE, true) == Config.Ults.Default, "the pass is gone")
 			H.expect(Slots.equipped(u, ALL, true) == "GuangdongTiger", "with the pass")
 		end)
 		u.Slots[2] = "Nope"
-		H.expect(Slots.equipped(u, ALL, true) == "Magnet", "an unknown id")
+		H.expect(Slots.equipped(u, ALL, true) == Config.Ults.Default, "an unknown id")
 		for _, broken in { nil :: any, 5, {}, { Slots = {}, Locked = {}, Selected = 9 } } do
-			H.expect(Slots.equipped(broken, ALL, true) == "Magnet", "a broken table")
+			H.expect(Slots.equipped(broken, ALL, true) == Config.Ults.Default, "a broken table")
 		end
 	end,
 
 	["the daily free spin is used first, and once a day"] = function()
-		local Slots = load()
+		local Slots, Config = load()
 		local u = Slots.fresh()
 		u.Spins = 0
 		H.expect(Slots.freeSpinReady(u, DAY), "ready on a new day")
@@ -173,7 +176,10 @@ return {
 		local lucky = Slots.fresh()
 		lucky.LuckySpins = 1
 		H.expect(Slots.take(lucky, true, DAY) == "Lucky" and lucky.FreeSpinDay == 0, "Lucky")
-		H.expect(lucky.LuckySpins == 0 and lucky.Spins == 3, "only a Lucky Spin taken")
+		H.expect(
+			lucky.LuckySpins == 0 and lucky.Spins == Config.Ults.Earn.Starter,
+			"only a Lucky Spin taken"
+		)
 		local noLucky, noLuckyWhy = Slots.canSpin(lucky, true, DAY, NONE)
 		H.expect(not noLucky and noLuckyWhy == "NoLucky", "none left")
 		for _, badDay in { -1, 1.5, "20725", nil :: any, 0 / 0 } do
@@ -186,7 +192,7 @@ return {
 	end,
 
 	["forged slots, counts and flags are refused"] = function()
-		local Slots = load()
+		local Slots, Config = load()
 		local u = Slots.fresh()
 		for _, bad in BAD_SLOTS do
 			local ok, why = Slots.select(u, bad, ALL)
@@ -207,7 +213,10 @@ return {
 			H.expect(not Slots.setLucky(u, badCount), "setLucky " .. tostring(badCount))
 			H.expect(not Slots.setPity(u, badCount), "setPity " .. tostring(badCount))
 		end
-		H.expect(u.Spins == 3 and u.LuckySpins == 0 and u.Pity == 0, "counts unchanged")
+		H.expect(
+			u.Spins == Config.Ults.Earn.Starter and u.LuckySpins == 0 and u.Pity == 0,
+			"counts unchanged"
+		)
 		for _, badFlag in { "true", 1, nil :: any } do
 			local _, why = Slots.canSpin(u, badFlag, DAY, ALL)
 			H.expect(why == "BadValue", "lucky must be a boolean")

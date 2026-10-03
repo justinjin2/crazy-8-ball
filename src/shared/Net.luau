@@ -363,6 +363,17 @@ local REMOTES: { [string]: string } = {
 	-- load, then everyone after each read: { at, boards = { Wins = { { userId, name, value } },
 	-- Rank = { ... } } } (best first, up to Config.Leaderboards.Size; Rank's value is RankXp).
 	Leaderboards = "RemoteEvent",
+	-- The tutorial lane (TutorialService, src/client/Tutorial.luau). client -> server: something
+	-- the player did that only the client sees (kind, data?): "OpenedAbilities", "ClosedAbilities",
+	-- "Nudged" (data: its name), "Skip", "RareSeen" ... each checked against the step; and for
+	-- the repeating funnels "ShopOpened", "ShopViewed", "AbilitiesOpened" (any player).
+	TutorialEvent = "RemoteEvent",
+	-- server -> one player: (kind, data?) "Prompt" (an extra cue for the client: the target
+	-- table id, the pocket to light ...), "Funnel" (Studio's debug print).
+	TutorialCue = "RemoteEvent",
+	-- client -> server: claim every held rank reward (RankClaim). server -> that player:
+	-- { ok, money, cases, drops, cues, spins, rows } for the fly animation, or { ok = false }.
+	RankClaim = "RemoteEvent",
 }
 
 -- Values per table in an AimBroadcast batch.

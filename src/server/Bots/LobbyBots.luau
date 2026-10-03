@@ -149,6 +149,7 @@ local function freeTables(): { any }
 			and not e.search
 			and not t.search
 			and not Tables.standingOnPad(t)
+			and not t.reservedFor -- the tutorial's table (the tutorial lane)
 		then
 			table.insert(out, t)
 		end
@@ -275,7 +276,7 @@ local function goPlay(entry: Entry, t: any, side: number)
 	local spot = Tables.padSpot(t, if side == 1 then -2 else 2)
 	if walkTo(entry, spot.Position) and entry.t == t then
 		local e = t.engine
-		if e.phase == "Waiting" and Engine.count(e) < Engine.capacity(e) then
+		if e.phase == "Waiting" and Engine.count(e) < Engine.capacity(e) and not t.reservedFor then
 			if BotService.seat(entry.bot, t, { at = spot }) then
 				entry.activity = if Engine.count(e) >= Engine.capacity(e) then "Play" else "Wait"
 				entry.untilAt = os.clock() + range(L.WaitSeconds)
@@ -469,7 +470,8 @@ local function tick()
 				allBots = false
 			end
 		end
-		if allBots and Tables.standingOnPad(t) then
+		-- The tutorial's reserved table too (the tutorial lane): they step aside for it.
+		if allBots and (Tables.standingOnPad(t) or t.reservedFor) then
 			for _, entry in entries do
 				if entry.bot.t == t then
 					BotService.unseat(entry.bot)
@@ -518,7 +520,7 @@ end
 -- A real Request opponent nobody real answered in AnswerAfter seconds: the idle lobby bot
 -- nearest the host's rank appears on the pad.
 local function answer(t: any, host: Player)
-	if not wanted() or t.engine.teamSize ~= 1 then
+	if not wanted() or t.engine.teamSize ~= 1 or t.reservedFor then
 		return
 	end
 	local e = t.engine

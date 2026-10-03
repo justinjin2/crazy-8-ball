@@ -258,24 +258,38 @@ local function playtimeLoop()
 	end
 end
 
+-- The tutorial lane's gate (TutorialService): while it answers false the claim on join waits,
+-- so a new player's first money comes with the daily popup in the real server (designer,
+-- 2026-10-03); the tutorial then calls Rewards.claimDayOne itself.
+local claimGate: ((Player) -> boolean)? = nil
+
+--- Sets the gate on the claim on join and at midnight (nil: always claim).
+function Rewards.setClaimGate(fn: ((Player) -> boolean)?)
+	claimGate = fn
+end
+
 -- Today's login claim by itself (Config.Daily.AutoClaimEveryDay; else only on day 1 of the
 -- loop, AutoClaimDayOne), told to the player for the daily login popup.
-local function claimToday(player: Player)
+local function claimToday(player: Player): boolean
 	if player.Parent ~= Players or not ready(player) then
-		return
+		return false
+	end
+	if claimGate and not claimGate(player) then
+		return false
 	end
 	local data = PlayerData.read(player)
 	if data == nil then
-		return
+		return false
 	end
 	local state = Daily.loginState(data.Login, Daily.dayOf(os.time()), isVip(player))
 	if not state.canClaim or (not D.AutoClaimEveryDay and state.day ~= 1) then
-		return
+		return false
 	end
 	local ok, result = PlayerData.claimDaily(player, isVip(player))
 	if ok and type(result) == "table" then
 		tell(player, "Daily", result)
 	end
+	return ok == true
 end
 
 -- Every DayCheckSeconds: a new UTC day re-sends everyone's state (the streak and the gifts
@@ -345,6 +359,15 @@ local function answer(ok: boolean, result: any, unknown: string): Reply
 	return refused(if type(result) == "string" then REASONS[result] or "Error" else "Error")
 end
 
+-- The tutorial lane: a call after each code redeemed (TutorialService: RELEASE moves its Code
+-- step on). Nil: none.
+local redeemed: ((Player, string) -> ())? = nil
+
+--- The tutorial lane's hook on redeemed codes (see above).
+function Rewards.onRedeemed(fn: ((Player, string) -> ())?)
+	redeemed = fn
+end
+
 local function onRewardRequest(player: Player, action: any, a: any): Reply
 	if
 		action ~= "ClaimDaily"
@@ -402,6 +425,9 @@ local function onRewardRequest(player: Player, action: any, a: any): Reply
 			return refused("Unknown")
 		end
 		local ok, result = PlayerData.redeemCode(player, a, LiveCodes.on())
+		if ok and redeemed then
+			task.spawn(redeemed, player, a) -- the tutorial lane (Rewards.onRedeemed)
+		end
 		return answer(ok, result, "Unknown")
 	end
 end
@@ -456,6 +482,12 @@ local function startQA()
 		error("RewardsQA: unknown op " .. tostring(op))
 	end
 	hook.Parent = ServerStorage
+end
+
+--- The tutorial's claim, held until the player leaves its first server: today's claim and
+--- its popup now (claimToday). True when it was claimed now.
+function Rewards.claimDayOne(player: Player): boolean
+	return claimToday(player)
 end
 
 -- Today's claim by itself on join (claimToday): after AutoClaimDelaySeconds, so the Store has
