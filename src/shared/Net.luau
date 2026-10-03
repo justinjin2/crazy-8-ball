@@ -244,6 +244,31 @@ local REMOTES: { [string]: string } = {
 	-- code, or a like code not switched on), "Used" (this code already redeemed), "Expired",
 	-- "NotMember" (not in the group yet), "Error".
 	RewardRequest = "RemoteFunction",
+	-- Trading (src/server/Trading.luau; the rules are Progression/Trade). An item is a cue id or
+	-- "Case:<caseId>"; a side is a list of up to Config.Trade.MaxSideItems (one entry a copy).
+	-- client -> server, answered { ok = true, ... } or { ok = false, reason }:
+	--   ("Invite", userId)   ask anyone in the server; they get TradeState { kind = "Invite" }
+	--   ("Accept", userId)   accept that player's invite: the session opens for both
+	--   ("Decline", userId)  turn it down; they get TradeState { kind = "Declined", by }
+	--   ("Offer", { items }) set my side (any change takes both accepts back)
+	--   ("Ready", true|false) accept / take it back; both accepted: the swap happens
+	--     Config.Trade.ConfirmSeconds later unless anything changes
+	--   ("Cancel")           close the session
+	--   ("History")          -> { ok, history = { { Id, With, At, Gave, Got } } } (last 50)
+	-- Reasons: "BadRequest", "TooFast", "NotLoaded", "NotHere" (that player left), "Self",
+	-- "Busy" (in another trade, or the swap is running), "NoInvite" (none, or it expired),
+	-- "NoSession", and Trade.check's "Empty", "NotTradable", "NotOwned", "PaidBlocked" (a
+	-- paid-origin copy where paid item trading is not allowed), "Owned" (one per player).
+	TradeRequest = "RemoteFunction",
+	-- server -> one player:
+	--   { kind = "Invite", from = { userId, name }, expiresAt (unix) }
+	--   { kind = "Declined", by = { userId, name } }
+	--   { kind = "Session", id, with = { userId, name }, mine = { items }, theirs = { items },
+	--     myReady, theirReady, confirmAt (unix the swap happens, or nil), problem (why these
+	--     sides cannot swap now, or nil), lopsided ("Mine" | "Theirs" | nil: one side worth
+	--     far more by N exist), paidOk (paid-origin copies may move) }
+	--   { kind = "Closed", reason = "Done" | "Cancelled" | "Left" | "Failed", gave?, got? }
+	TradeState = "RemoteEvent",
 	-- server -> everyone here (or one player joining during a Money Party): a banner line at
 	-- the top middle and a system chat line (src/server/Announce.luau). The server sends ids and
 	-- names only; the client words it from Strings.Banner. `name` is the player's username

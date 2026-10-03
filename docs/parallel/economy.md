@@ -246,6 +246,33 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
     NotStarted; `/limited start` then a buy took $149,000 and gave copy #1 (paid origin, +$10,000
     finder's money), a second buy answered Owned; after `/limited end` a fresh save got Ended;
     ShopState showed the row with `sold = 1`.
+- **Step 8 done (2026-10-03): trading, server side.**
+  - New pure `Progression/Trade.luau`: items are cue ids or `Case:<caseId>` (one entry a
+    copy), at most 8 a side, no empty side, never money; case and Unique cues and the Starter
+    Cue trade, Classic and other Exclusive cues never; ready cases only; free copies move
+    first and paid ones keep their paid origin; a paid copy moves only where both players'
+    PolicyService allows paid item trading; a Unique keeps its number, one per player; no
+    finder's money from a trade; history (last 50) and applied ids; the lopsided warning by
+    N exist (`Config.Trade`).
+  - New `src/server/Trading.luau` with remotes `TradeRequest` / `TradeState` (Net.luau):
+    invite anyone in the server, accept or decline, offers, both accept, then a 3-second
+    wait that any change restarts; cancel; leaving closes it.
+  - The swap: planned on copies of both saves, written to both players' ledger keys
+    (`TradeLedger_v1`), then both live saves change together (refused unless they move
+    exactly the plan), then both are saved and the ledger entries removed. A load replays a
+    ledger trade its save missed, 30 s after loading (`ReplayDelaySeconds`).
+  - Checked: lint, 946 Lune tests (new `trade_test`: every refusal, the swap, paid origin,
+    Unique numbers, history caps, replay once, the ledger key, the warning); Studio (one
+    player): Self / NotHere / NoSession / NoInvite answers, History; a ledger entry for a
+    "lost" trade replayed once (Neon Cue out, Rare Case in, history and applied id), the
+    ledger emptied, a second check changed nothing; console clean. **Not checked in Studio:
+    a real two-player trade** (Studio's 2-player local server cannot be started from the
+    MCP). Try by hand: Test > Clients and Servers > 2 players, trade, change an item during
+    the 3 seconds, leave mid-trade.
+- **For GUI** (step 8): the trade screen on `TradeRequest` / `TradeState` (shapes in
+  Net.luau), reasons in `Strings` (NotHere, Self, NoInvite, NoSession, Empty, NotTradable,
+  PaidBlocked, Changed). Show `lopsided` as a warning, `problem` as why accept is off, the
+  `confirmAt` countdown, and the history from "History".
 
 ### Changes to shared files (existing lines)
 
@@ -300,6 +327,10 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   touched outside economy: `ult_roll_test`, `ult_spins_test`, `ult_slots_test` (Magnet's
   rarity, the spin price).
 - (step 6) new `Config.BotCues` (no existing lines changed).
+- (step 8) new `Config.Trade`; `Inventory.takeCases(save, id, n, freeFirst)` (new optional
+  argument); `PlayerData`: `tradePlan`, `applyTrade`, `replayTrade`, `tradeApplied`,
+  `tradeHistory`; `Net`: `TradeRequest`, `TradeState`; `Bootstrap`: `Trading.start()`;
+  `Strings`: trade reasons.
 - (step 7) `Config.Shop.Limited` (only the Grand Opening row), `Config.Products` (FoundersCue
   removed), `Config.Debug` alias `Limited`. `Catalog`: GrandOpeningCue. `Strings`: its name,
   `/limited` lines. `Shop`: `limited()` lists scheduled rows only, `limitedState` treats

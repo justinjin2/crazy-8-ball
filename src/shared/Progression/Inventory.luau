@@ -380,18 +380,27 @@ function Inventory.addCases(save: any, caseId: any, n: number?, paid: boolean?):
 	return true
 end
 
---- Takes n (default 1) ready cases, paid origin first; false (and nothing changes) without
---- enough of them. The second answer is how many of them were paid.
-function Inventory.takeCases(save: any, caseId: any, n: number?): (boolean, number)
+--- Takes n (default 1) ready cases, paid origin first (opening), or free ones first with
+--- `freeFirst` (a trade); false (and nothing changes) without enough of them. The second
+--- answer is how many of them were paid.
+function Inventory.takeCases(
+	save: any,
+	caseId: any,
+	n: number?,
+	freeFirst: boolean?
+): (boolean, number)
 	local amount = n or 1
 	if not isCount(amount) then
 		return false, 0
 	end
-	if Inventory.caseCount(save, caseId) < amount then
+	local have = Inventory.caseCount(save, caseId)
+	if have < amount then
 		return false, 0
 	end
 	local paidHave = Inventory.paidCases(save, caseId)
-	local paid = math.min(amount, paidHave)
+	local paid = if freeFirst
+		then math.max(amount - (have - paidHave), 0)
+		else math.min(amount, paidHave)
 	local free = amount - paid
 	if paid > 0 then
 		writeMap(save, "Inventory", "PaidCases")[caseId] = if paidHave > paid

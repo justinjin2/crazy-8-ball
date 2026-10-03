@@ -44,6 +44,7 @@ local Restock = require(Shared.Progression.Restock)
 local Inventory = require(Shared.Progression.Inventory)
 local Daily = require(Shared.Progression.Daily)
 local Social = require(Shared.Progression.Social)
+local Trade = require(Shared.Progression.Trade)
 local Settle = require(Shared.Progression.Settle)
 local Shop = require(Shared.Progression.Shop)
 local UltCatalog = require(Shared.Ults.Catalog)
@@ -2698,6 +2699,107 @@ function PlayerData.redeemCode(
 	giveReward(data, result, "Code")
 	commit(player, data, op)
 	return true, result
+end
+
+---------------------------------------------------------------------------------------------
+-- Trading (the Trading service; the rules are Progression/Trade)
+---------------------------------------------------------------------------------------------
+
+-- A changeable copy of a live save with its finished timers in their stacks.
+local function planCopy(player: Player): any?
+	local data = peek(player)
+	if data == nil then
+		return nil
+	end
+	local copy = copyOf(data, false)
+	Inventory.finishTimers(copy, os.time())
+	return copy
+end
+
+--- Plans a trade on copies of both live saves (nothing changes): Trade.swap's answer, (true,
+--- nil, from A, from B) or (false, reason). "NotLoaded" when either save is not loaded.
+function PlayerData.tradePlan(
+	a: Player,
+	b: Player,
+	itemsA: { string },
+	itemsB: { string },
+	paidOk: boolean
+): (boolean, string?, Trade.Moved?, Trade.Moved?)
+	local copyA, copyB = planCopy(a), planCopy(b)
+	if copyA == nil or copyB == nil then
+		return false, "NotLoaded", nil, nil
+	end
+	return Trade.swap(copyA, copyB, itemsA, itemsB, paidOk)
+end
+
+--- Swaps a trade the ledger already holds (`entry`) in both live saves, together: planned
+--- again first and refused ("Changed") unless it moves exactly what the ledger says, then both
+--- saves change and record it (history, applied id). No finder's money. Answers (true) or
+--- (false, "NotLoaded" | "Changed" | a Trade.check reason).
+function PlayerData.applyTrade(
+	a: Player,
+	b: Player,
+	entry: Trade.Entry,
+	itemsA: { string },
+	itemsB: { string },
+	paidOk: boolean
+): (boolean, string?)
+	local op = "applyTrade"
+	if not isPlayer(a) or not isPlayer(b) or a == b then
+		return refuseInvalid(op, a, "not two players")
+	end
+	local ok, why, planA, planB = PlayerData.tradePlan(a, b, itemsA, itemsB, paidOk)
+	if not ok then
+		return false, why
+	elseif
+		not (Trade.same(planA :: any, entry.fromA) and Trade.same(planB :: any, entry.fromB))
+	then
+		return false, "Changed"
+	end
+	local dataA, dataB = liveData(op, a), liveData(op, b)
+	if dataA == nil or dataB == nil then
+		return false, "NotLoaded"
+	end
+	local done, reason, fromA, fromB = Trade.swap(dataA, dataB, itemsA, itemsB, paidOk)
+	if not done or fromA == nil or fromB == nil then
+		-- Nothing changed (swap checks before it changes anything); the plan just said yes.
+		return false, reason or "Changed"
+	end
+	Trade.record(dataA, entry.id, b.UserId, entry.at, fromA, fromB)
+	Trade.record(dataB, entry.id, a.UserId, entry.at, fromB, fromA)
+	commit(a, dataA, op)
+	commit(b, dataB, op)
+	return true, nil
+end
+
+--- Replays this player's side of a ledger trade their save missed (Trade.replay). False when
+--- it holds it already, is not in it, or is not loaded.
+function PlayerData.replayTrade(player: Player, entry: Trade.Entry): boolean
+	local op = "replayTrade"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	if not Trade.replay(data, entry, player.UserId) then
+		return false
+	end
+	commit(player, data, op)
+	return true
+end
+
+--- Whether the player's save holds trade `id` already (Trade.applied).
+function PlayerData.tradeApplied(player: Player, id: string): boolean
+	local data = peek(player)
+	return data ~= nil and Trade.applied(data, id)
+end
+
+--- The player's trade history (the last Config.Save.MaxTradeHistory, oldest first), a copy.
+function PlayerData.tradeHistory(player: Player): { any }
+	local data = peek(player)
+	return if data ~= nil then copyOf(data.Trades.History, false) else {}
 end
 
 ---------------------------------------------------------------------------------------------

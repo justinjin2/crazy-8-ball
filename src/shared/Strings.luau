@@ -649,6 +649,15 @@ return {
 			Used = "You already used that code.",
 			Expired = "That code has expired.",
 			NotMember = "Join the group first, then claim!",
+			-- Trading (TradeRequest's reasons; NotOwned, Owned and Busy above serve trades too).
+			NotHere = "That player isn't here anymore.",
+			Self = "You can't trade with yourself.",
+			NoInvite = "That trade invite has expired.",
+			NoSession = "That trade has closed.",
+			Empty = "Both sides need at least one item.",
+			NotTradable = "That item can't be traded.",
+			PaidBlocked = "Bought items can't be traded where you live.",
+			Changed = "Something changed. Check the trade and accept again.",
 		},
 		-- The Shop (ShopMenu and its pages ShopCases, ShopOdds, ShopLimited, ShopMoney, ShopVip).
 		-- Case and cue names come from Items; money is "$1,500" (Progression/Format).

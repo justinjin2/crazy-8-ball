@@ -2231,6 +2231,45 @@ Config.Daily = {
 }
 
 ---------------------------------------------------------------------------------------------
+-- Trading (the approved economy plan, 2026-10-02, section 9; designer, 2026-10-03):
+-- src/shared/Progression/Trade.luau, src/server/Trading.luau. Anyone in the server, no gate.
+-- Cues and ready cases only, never money; Exclusive cues never except ExclusiveTradable. (tune)
+---------------------------------------------------------------------------------------------
+Config.Trade = {
+	-- Items one side may offer (the history keeps as many: Config.Save.MaxTradeSideItems).
+	MaxSideItems = Config.Save.MaxTradeSideItems,
+	-- Both accept, then this long before the swap; any change starts it over on both sides.
+	ConfirmSeconds = 3,
+	InviteSeconds = 30, -- an unanswered trade invite goes away
+	ExclusiveTradable = { StarterCue = true },
+	-- The lopsided warning: one side's worth is more than this many times the other's. A
+	-- cue's worth is 1 / its copies in existence (fewer than MinExists counts as MinExists);
+	-- a case's is 1 / CaseExists (about the copies of a cue as rare as what it usually gives).
+	LopsidedRatio = 4,
+	MinExists = 10,
+	CaseExists = {
+		Standard = 100000,
+		Uncommon = 50000,
+		Rare = 10000,
+		Epic = 1000,
+		Legendary = 200,
+		Mythic = 30,
+	},
+	-- The ledger: each player's trades written before their saves change, replayed on a load
+	-- that missed one (one key per player: the trades not yet confirmed saved).
+	LedgerStore = "TradeLedger_v1",
+	LedgerStudioStore = "TradeLedger_Studio_v1",
+	MaxPending = 20,
+	SaveWaitSeconds = 10, -- how long the swap waits for both saves before leaving it to replay
+	-- A load reads its ledger this long after it loads, so a trade its old server was still
+	-- finishing or calling off (the player left mid-swap) is settled first.
+	ReplayDelaySeconds = 30,
+	-- TradeRequest limits (not design numbers): a burst, then this many a second.
+	RequestBurst = 8,
+	RequestPerSecond = 4,
+}
+
+---------------------------------------------------------------------------------------------
 -- The game's group and invites (the approved economy plan, 2026-10-02, section 6; designer,
 -- 2026-10-03). src/server/Social.luau, src/shared/Progression/Social.luau. (tune)
 ---------------------------------------------------------------------------------------------
