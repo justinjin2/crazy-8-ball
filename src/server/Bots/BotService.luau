@@ -6,6 +6,9 @@
 -- The API other lanes use (the Tutorial lane drives its bots through it):
 --   BotService.spawn(spec) -> Bot          make a bot (a body appears only once seated)
 --   BotService.seat(bot, t, options) -> ok  sit it at table t (TableService's record)
+--   BotService.joinTable(bot, t, options)   appear on t's pad after a delay and sit (a request)
+--   BotService.stand(bot, at) -> ok         stand it in the lobby (no table)
+--   BotService.tutorialBot() / tutorialSecondBot()   the tutorial's two opponents
 --   BotService.remove(bot, how)             "Vanish" (gone at once) or "Angry" (AUGHHHH!)
 --   BotService.say(bot, text)               a chat bubble and a chat line in its name
 --   BotService.matchEnded                   BindableEvent: (botId, { won, reason, epoch })
@@ -195,6 +198,48 @@ function BotService.seat(bot: Bot, t: any, options: any?): boolean
 	end
 	Tables.broadcast(t)
 	return true
+end
+
+--- Brings `bot` to table `t` the way a person answers a request: `options.delay` seconds later
+--- (default 0) it appears on the pad (teleported in) and steps on; the table starts by itself
+--- once its pad is full. Options: { delay?, breakFor? (the real player who always breaks;
+--- default the table's host) }. `done(ok)` is called once it sat down or could not.
+function BotService.joinTable(bot: Bot, t: any, options: any?, done: ((boolean) -> ())?)
+	local o = options or {}
+	task.delay(o.delay or 0, function()
+		local ok = t.engine.phase == "Waiting"
+			and BotService.seat(bot, t, { breakFor = o.breakFor or t.engine.hostId })
+		if done then
+			done(ok)
+		end
+	end)
+end
+
+--- The tutorial's first opponent (the Tutorial lane): a Silver-badged bot with a real look and
+--- a made-up name, playing the tutorial script. Its first visit pots one of its balls, then
+--- scratches; its second knocks the 8 in early (AUGHHHH!, a jump, gone in mid-air). If it
+--- wins anyway it asks for a rematch and plays the script again. Yields for its look.
+function BotService.tutorialBot(): Bot?
+	return BotService.spawn({
+		kind = "Tutorial",
+		tier = B.Tutorial.FirstTier,
+		skill = B.Tutorial.Skill,
+		script = "Tutorial",
+		rematch = "Request",
+		playerTier = "Unranked",
+	})
+end
+
+--- The tutorial's second opponent: a disguised-looking bot playing a normal game at Bronze
+--- level, which never rematches. Both tutorial games are real wins (Settle.botReal).
+function BotService.tutorialSecondBot(): Bot?
+	return BotService.spawn({
+		kind = "Tutorial",
+		tier = B.Tutorial.SecondTier,
+		skill = B.Tutorial.Skill,
+		rematch = "Never",
+		playerTier = "Unranked",
+	})
 end
 
 --- Stands `bot`'s body at `at`, free to walk (the lobby, off any table). True when it has a
@@ -446,8 +491,9 @@ local function playPc(t: any, p: Player, _payload: any): boolean
 end
 
 -- Studio only: ServerStorage.BotsQA lets a test script make and place bots (no chat command
--- can). Invoke("spawn", spec) -> bot id (spec as BotService.spawn); ("stand", id, x, y, z,
--- yaw degrees); ("seat", id, tableId); ("remove", id, "Vanish"|"Angry"); ("say", id, text);
+-- can). Invoke("spawn", spec) -> bot id (spec as BotService.spawn); ("tutorial") and
+-- ("tutorial2") -> the tutorial's bots' ids; ("stand", id, x, y, z, yaw degrees); ("seat", id,
+-- tableId); ("join", id, tableId, delay); ("remove", id, "Vanish"|"Angry"); ("say", id, text);
 -- ("list") -> { "id name kind tier cue ult avatar" }.
 local function studioHook()
 	local hook = Instance.new("BindableFunction")
@@ -456,6 +502,11 @@ local function studioHook()
 		local args = { ... }
 		if command == "spawn" then
 			local bot = BotService.spawn(args[1] or {})
+			return if bot then bot.id else nil
+		elseif command == "tutorial" or command == "tutorial2" then
+			local bot = if command == "tutorial"
+				then BotService.tutorialBot()
+				else BotService.tutorialSecondBot()
 			return if bot then bot.id else nil
 		elseif command == "list" then
 			local out = {}
@@ -488,6 +539,14 @@ local function studioHook()
 			return t ~= nil and BotService.seat(bot, t)
 		elseif command == "remove" then
 			BotService.remove(bot, args[2])
+			return true
+		elseif command == "join" then
+			-- ("join", id, tableId, delay): as a request's answer (joinTable).
+			local t = Tables.get(args[2])
+			if not t then
+				return false
+			end
+			BotService.joinTable(bot, t, { delay = args[3] })
 			return true
 		elseif command == "say" then
 			BotService.say(bot, args[2])

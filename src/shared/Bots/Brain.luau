@@ -18,6 +18,7 @@ local Simulation = require(script.Parent.Parent.Physics.Simulation)
 local TableGeometry = require(script.Parent.Parent.Physics.Table)
 local Judge = require(script.Parent.Parent.Rules.ShotJudge)
 local Placement = require(script.Parent.Parent.Rules.CuePlacement)
+local ShotInput = require(script.Parent.Parent.ShotInput)
 local Finder = require(script.Parent.ShotFinder)
 local Rng = require(script.Parent.Rng)
 
@@ -89,20 +90,32 @@ export type Trial = {
 --- Plays `shot` on a copy of the table (the cue ball at (cueX, cueY) when given) and judges
 --- it by the real rules.
 function Brain.simulate(view: View, shot: any, cueX: number?, cueY: number?, called: number?): Trial
-	local before = Ball.cloneList(view.balls)
-	local balls = Ball.cloneList(view.balls)
-	if cueX and cueY then
-		local cue = Finder.findBall(balls, 0) :: Ball
-		cue.x, cue.y, cue.pocketed = cueX, cueY, false
-		Ball.stop(cue)
-		local c0 = Finder.findBall(before, 0) :: Ball
-		c0.x, c0.y, c0.pocketed = cueX, cueY, false
+	-- Exactly the server's path (MatchEngine.acceptShot): the cue ball set down by the placement
+	-- rule, the shot read by ShotInput, the strike's seed quantised, then settled. A bot's
+	-- planned shot then plays the same on the table.
+	local sim = Simulation.newState(view.geometry, Ball.cloneList(view.balls))
+	if cueX and cueY and not Placement.set(sim, 0, cueX, cueY) then
+		return {
+			foul = "InvalidPlacement",
+			winner = nil,
+			keep = false,
+			pockets = {},
+			balls = sim.balls,
+			scratch = false,
+			groups = view.groups :: any,
+			respot = nil,
+			respotEight = nil,
+		} :: any
 	end
-	local out = Simulation.runHeadless(Simulation.newState(view.geometry, balls), {
+	local before = Ball.cloneList(sim.balls)
+	local input = ShotInput.validate({
 		angle = shot.angle,
-		power = shot.power,
-		spin = shot.spin,
-	})
+		power = math.clamp(shot.power, Config.Input.MinPowerToShoot, 1),
+		spin = shot.spin or { x = 0, y = 0 },
+	}, nil) :: any
+	local strike = Simulation.strike(sim, input)
+	ShotInput.quantiseSeed(Finder.findBall(sim.balls, 0) :: any)
+	local out = Simulation.settle(sim, { strike })
 	local verdict = Judge.resolve(
 		before,
 		out,

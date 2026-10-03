@@ -3,6 +3,10 @@
 -- (`breakFor`), on the first game and every rematch, whichever side the coin picks.
 local H = require("./harness")
 local E = H.require("Rules.MatchEngine")
+local Brain = H.require("Bots.Brain")
+local Rng = H.require("Bots.Rng")
+local Ball = H.require("Physics.Ball")
+local Placement = H.require("Rules.CuePlacement")
 local expect = H.expect
 
 local BOT = -1000
@@ -68,6 +72,92 @@ tests["without breakFor the coin decides as before"] = function()
 	expect(E.join(m, 2, "b", "b", 0.1))
 	expect(E.action(m, 1, { kind = "Start", epoch = m.epoch, turnId = m.turnId }, 0, 2))
 	expect(m.coin.winnerTeam == 2)
+end
+
+local AIM = { Placement = true, Aiming = true }
+
+-- Moves the clock on until someone has a shot to play (or the game is over).
+local function toShot(m: any, now: number): number
+	for _ = 1, 50 do
+		if AIM[m.phase] or m.phase == "Result" then
+			return now
+		end
+		now = math.max(now + 0.5, m.deadline or now)
+		E.advance(m, now)
+	end
+	error("no shot came up")
+end
+
+tests["a bot's planned shot plays exactly the same on the table"] = function()
+	-- Brain.simulate must follow the server's path (placement, ShotInput, the quantised seed),
+	-- or a bot's chosen pot or scripted 8 can miss for real. Several random shots in a row,
+	-- fouls and ball in hand included.
+	local m = pad(false)
+	expect(E.action(m, m.hostId, { kind = "Start", epoch = m.epoch, turnId = m.turnId }, 0, 1))
+	local rng = Rng.new(99)
+	local now = 0
+	local compared, placed = 0, 0
+	for _ = 1, 16 do
+		now = toShot(m, now)
+		if m.phase == "Result" then
+			break
+		end
+		local view = {
+			geometry = m.state.geometry,
+			balls = Ball.cloneList(m.state.balls),
+			groups = table.clone(m.groups),
+			team = m.activeTeam,
+			breakShot = m.breakShot == true,
+		}
+		local x, y = nil, nil
+		if m.ballInHand then
+			for _ = 1, 40 do
+				local tx = Rng.range(rng, -40, 40)
+				local ty = Rng.range(rng, -20, 20)
+				if Placement.valid(m.state, tx, ty, m.breakShot) then
+					x, y = tx, ty
+					break
+				end
+			end
+			placed += 1
+		end
+		local shot = {
+			angle = Rng.range(rng, 0, 2 * math.pi),
+			power = Rng.range(rng, 0.25, 0.95),
+			spin = { x = 0, y = 0 },
+		}
+		local trial = Brain.simulate(view :: any, shot, x, y)
+		local payload = {
+			tableId = m.id,
+			epoch = m.epoch,
+			turnId = m.turnId,
+			angle = shot.angle,
+			power = shot.power,
+			spin = shot.spin,
+			cueX = x,
+			cueY = y,
+		}
+		local result, why = E.acceptShot(m, m.shooter, payload, now)
+		expect(result ~= nil, "the shot was accepted: " .. tostring(why))
+		for _, real in m.pending.outcome.finalBalls do
+			local mine
+			for _, b in trial.balls do
+				if b.id == real.id then
+					mine = b
+				end
+			end
+			expect(mine ~= nil, "ball " .. real.id)
+			expect(
+				mine.pocketed == real.pocketed
+					and math.abs(mine.x - real.x) < 1e-9
+					and math.abs(mine.y - real.y) < 1e-9,
+				("ball %d ends in the same place"):format(real.id)
+			)
+		end
+		compared += 1
+	end
+	expect(compared >= 8, "enough shots compared")
+	expect(placed >= 1, "ball in hand was among them")
 end
 
 return tests

@@ -8848,6 +8848,15 @@ Config.Bots = {
 		},
 		RetrySeconds = 0.25, -- between lookups (Roblox's web limits)
 	},
+	-- The tutorial's opponents (BotService.tutorialBot, tutorialSecondBot; the designer,
+	-- 2026-10-02): the first wears a Silver badge and plays the script, the second a normal
+	-- game; both play at Skill's level.
+	Tutorial = {
+		FirstTier = "Silver",
+		SecondTier = "Bronze",
+		Skill = "Bronze",
+		JoinDelay = 2, -- seconds from Request opponent until it appears on the pad
+	},
 	-- Rematch answers. A PC robot says yes at once once the player has; a disguised lobby bot
 	-- waits for the player, then answers after RematchDelay seconds, yes RematchAccept of the
 	-- time; global-queue bots and the tutorial's second bot always say no.

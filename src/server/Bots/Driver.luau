@@ -33,12 +33,14 @@ local function now(): number
 	return workspace:GetServerTimeNow()
 end
 
--- The table as the brain sees it: the balls at rest (a frozen table's stopped where they
--- are), whose group is whose, and the bot's side.
+-- The table as the brain sees it: the balls exactly as the server holds them (a frozen
+-- table's stopped where they are), whose group is whose, and the bot's side.
 local function viewOf(e: any, team: number): Finder.View
 	local balls = Ball.cloneList(e.state.balls)
-	for _, b in balls do
-		Ball.stop(b)
+	if e.phase == "Frozen" then
+		for _, b in balls do
+			Ball.stop(b)
+		end
 	end
 	return {
 		geometry = e.state.geometry,

@@ -86,7 +86,28 @@ your status).
   them as Player-like stand-ins (`People.everyone()`, `People.botAdded/botRemoved`).
   `BotService.stand(bot, at)` puts a bot standing in the lobby. Studio-only test hook:
   `ServerStorage.BotsQA` (spawn, stand, seat, remove, say, list).
-- Next: step 5, the tutorial bot.
+- **Step 5, the tutorial bot (done; its fake lobby comes with step 7).** Checked in Studio: the
+  bot appears on the player's pad 2 s after Request opponent, the player breaks; on its first
+  visit it pots one ball then scratches, on its second it knocks the 8 in early (EarlyEight:
+  the player wins), says AUGHHHH! (bubble + chat line), jumps and vanishes; the player's result
+  screen shows WINNER, the bot's real avatar and Silver badge, +100 XP and a full win's money,
+  "Opponent left". If the player loses, the bot asks for a rematch at once and plays the script
+  again. The second tutorial bot plays a normal Bronze-level game and declines any rematch.
+  **Bug fixed on the way:** the brain's simulation now follows the server's shot path exactly
+  (placement rule, ShotInput, quantised seed, resting spin kept); before, a ball in hand after
+  a scratch could make a planned shot miss for real. A test now checks the brain and the
+  engine end every shot in the same place.
+  **How the Tutorial lane drives it** (server, `src/server/Bots/BotService.luau`):
+  `local bot = BotService.tutorialBot()` (yields for its look; nil if Roblox answers nothing:
+  try again), then `BotService.joinTable(bot, t, { delay = Config.Bots.Tutorial.JoinDelay })`
+  from the table's Request opponent (`TableService.onRequest(function(t, player) ... end)`);
+  the table starts by itself and the player always breaks. Second game:
+  `BotService.tutorialSecondBot()` the same way. `BotService.matchEnded.Event:Connect(function(
+  botId, info) end)` tells who won (`info.won` is the bot's); the bot leaves by itself after its
+  game (and when the player leaves). The snapshot's seat carries `bot = { kind = "Tutorial",
+  noRematch = true }` for the second game, so the GUI can grey "Find another". Both games pay
+  and count as real wins, whatever the match time (Settle.botReal).
+- Next: step 6, the global queue 1v1 fallback.
 
 ## Requests to other lanes or the integrator
 
