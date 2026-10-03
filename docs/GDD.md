@@ -869,42 +869,75 @@ designer approved on 2026-10-02 and the designer's interview answers of 2026-10-
 
 ## 14. First-time playthrough and onboarding
 
+The whole first session is the tutorial (built 2026-10-03, the tutorial lane; the brief is
+`docs/prompts/TUTORIAL_PROMPT.md`, the step-by-step record `docs/parallel/tutorial.md`). It
+runs in the real public server the player lands in, not a separate place. The server keeps the
+step in the save (`Flags.Tutorial`) and owns every rigged part; the client only shows guidance.
+
 **Decided**
-- The first match: the queue menu is hidden. The new player joins a match against what looks
-  like a real player and is actually a **disguised PC** (made-up name, never a real user's
-  name; a random real Roblox avatar since 2026-10-02; a higher rank badge) that walks into the box from the
-  edge of the player's view a few seconds after they arrive. They always break first. A
-  passive, looping ghost animation shows pulling the cue back and moving the ball on the break
-  line, and disappears on the first drag. No shot clock. They pocket a few balls, see the
-  sounds and the money, and (once their bar fills) try their starter ult. The PC blunders and pockets the
-  8 so they win early. Normal rules stand: if they lose, the same throwing PC repeats until the
-  first win.
-- **Stronger ball highlights for learning (2026-09-23):** during the first playthrough and
-  tutorial, turn on `Config.Multiplayer.Style.StrongBallHighlights`. The player's balls get a
-  vivid solid green outline, and the other group is washed grey, so "these are yours" is
-  unmissable. Normal play keeps the subtle outline with nothing greyed (the designer's choice).
-- **Longer guideline lines for learning (2026-09-23):** the tutorial and first playthrough use
-  the longer object/cue lines (`Config.Guideline.TutorialStubLengthInches`, 16 in). Normal play
-  uses the shorter `StubLengthInches` (7 in since 2026-09-30, 8 before; friends found the
-  game too easy) to keep aiming a challenge.
-- **First win:** a free **Rare Case**, rolled by the server when the match settles and opened
-  on the reel inside the post-match screen with an Equip button (built 2026-09-28; ECONOMY.md
-  sections 7.1 and 18).
-- Unranked to Bronze I with the first win. The first opponent shows a much higher rank so the win
-  feels earned. PC is labelled "PC" everywhere else; disguised PCs never appear on
-  leaderboards and are stored as PC in match records, but the tutorial's wins count as real
-  wins (pay, XP and free case; 2026-10-02).
-- **Daily 7-day streak:** every day's reward is meaningful: $250, 2 Standard Cases, $500, a
-  Rare Case, $1,000, 2 Rare Cases, an Epic Case, and a Legendary Case on day 28 of four full
-  weeks (the streak then starts week 1 again). Playtime gifts at 10, 30 and 60 minutes a day.
-  Numbers: ECONOMY.md section 10 (built 2026-09-28, in the Rewards menu).
+- **Who gets it:** a brand-new save (no match played). Anyone with a match or a win is done.
+- **The look:** big white Fredoka text at the top with a thick ink outline (no strip), a light
+  dim with a lit hole round the target, and a white cartoon pointing hand (our own drawing in
+  the style of the designer's reference) that taps, drags and pulls. A line of white arrows on
+  the floor leads to the table. Every prompt has its own words and gesture for mouse, touch
+  and gamepad. A small **Skip tutorial** button sits top right the whole time.
+- **What is hidden:** in the first server Shop, Inventory, Rank, Free Reward and Trade are
+  hidden; Abilities appears at its lesson. No popups (daily, offers) show while the tutorial
+  runs (the player attribute `TutorialActive`), and no money is given on join: the day-1 daily
+  claim waits for the real server.
+- **Game 1 (rigged, against a disguised bot):** the arrow leads to the nearest empty 1v1 table,
+  reserved for them (lobby bots leave it alone). On the pad the host card shows only Request
+  opponent; 2 s later the tutorial bot (a random real avatar and name, a Silver badge) joins
+  and the player breaks. The break is fixed: any pull plays the rigged break, which pots 3
+  solids and leaves a 4th by a corner and the 8 by a pocket. Then: "Drag to aim!" with the
+  long guideline and strong ball highlights; a hidden pull (Magnet's strength, no visuals)
+  helps the player's balls near pockets; the bar fills and "Use your ability!" teaches Heat
+  Seeker (the hand taps a ball, then Confirm). The first miss gives the bot a visit where it
+  pots one and scratches, which teaches ball in hand. After that the bot only plays weak shots
+  that never touch the player's balls or the 8. "SELECT WHICH POCKET!" lights the pocket
+  nearest the 8. Losing on the 8 is impossible in game 1 (an early 8, a scratch on it or a
+  wrong pocket puts it back as a plain foul). On the winning shot the bot shouts "AUGHHHH!",
+  jumps and vanishes; the result screen shows Leave only.
+- **After game 1:** NEW RANK! Bronze ("Claim your rewards in Rank!") -> the Bronze Case Drop is
+  a Standard Case, the hand points at Open now, it opens to an Uncommon cue -> the match's Rare
+  Case drops with its 1 h timer -> the Abilities icon appears, the hand on it -> the one
+  starter spin lands on Magnet -> "Type RELEASE for 3 more spins!" -> "Click Back".
+- **Game 2:** the arrow to a pad; the host card shows only Join Global Queue; the search turns
+  into a match after 1 s against the Bots lane's disguised Bronze bot in a global arena. Win or
+  lose, no rematch: "Press Lobby!" teleports them to a public server.
+- **The real server:** everything shows; the day-1 claim ($5,000) arrives with the daily popup.
+  Then nudges, one at a time and only in the lobby (an ignored one comes back): Rank (claim the
+  held rank rewards), Inventory ("Your Rare Case opens when its timer ends!"), Shop, Free
+  Reward. A pill beside Inventory counts down the Rare Case and says "Ready!" at 0, then one
+  "Your case is ready!" nudge. Then the tutorial is done.
+- **Leaving and coming back:** game 1 starts over from the arrow; the reward steps resume where
+  they were; game 2 goes back to its arrow (or continues in the arena); after game 2 it picks
+  up in the real server.
+- **Skip and cancel:** Skip asks "Skip the tutorial?" Yes / No. Skipping (mid-game 1 the game
+  goes on with guidance off), joining another table or a friend joining their pad ends it:
+  everything shows at once and the normal rules apply (the first win's Bronze, its Case Drop
+  rolled normally, the Rare Case).
+- **Rules changed for everyone with the tutorial (2026-10-03):** Bronze gives 1 Case Drop at
+  once; every other rank reward (money, cases, cue, tag, spins) and every later rank-up is held
+  until claimed in Rank (a claim card on the roadmap, the rewards fly to where they live); 1
+  starter ability spin; Heat Seeker is the default ability; the code RELEASE (3 spins) replaces
+  ABILITIES.
+- **Funnels (Roblox analytics, server only, `src/server/Funnel.luau`):** the onboarding funnel
+  of 22 steps, from Joined to Came back the next day (`Shared/Tutorial/Steps`, each logged once
+  per player); side events (ball in hand shown, the bot's scratch, lost game 2); the
+  TutorialExit funnel for skipped or cancelled players (then first game, first win, second
+  match, next day); Shop (opened, viewed an item, pressed buy, bought; per session); Case Drop
+  (got, timer done, opened, equipped; per case); Ability spins (opened Abilities, spun,
+  equipped, used in a match).
+- **Daily streak and playtime gifts:** in the Rewards menu; numbers in ECONOMY.md section 10.
 - **Reminders:** Roblox cannot put text inside its own leave menu, but the game knows when the
-  menu opens (`GuiService.MenuOpened`) and when the window loses focus. Both trigger a subtle
-  in-game reminder ("Come back tomorrow for your free rare box"). The same reminder sits on
-  the post-match screen. Built 2026-09-28: the line names tomorrow's real reward, or says
-  today's is ready while it is unclaimed.
-- A funnel is tracked with Roblox's built-in analytics: joined, reached a table, first shot,
-  first pocket, used ult, won, opened box, equipped, second match.
+  menu opens (`GuiService.MenuOpened`) and when the window loses focus. Both show a subtle
+  reminder naming tomorrow's real reward (or today's, while it is unclaimed); the same line sits
+  on the post-match screen (built 2026-09-28).
+
+**Open**
+- Whether the VIP Cue's finder's money should pay a VIP player on their very first join (it
+  gives $5,000 before the tutorial's real server; see the lane file's integrator notes).
 
 ## 15. Social
 

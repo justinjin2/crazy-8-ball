@@ -47,19 +47,27 @@ local ITEMS = { "Shop", "Inventory", "Abilities", "Rank", "FreeReward", "Trade" 
 
 -- The host card's parts hidden at a step, so it shows only the button the step teaches
 -- (QueueMenu reads them: HostMore is vs PC, solo and fill with PC; HostLevels the PC levels),
--- and game 2's post-match row with Lobby only (PostMatch: no rematch, no Play another).
+-- game 1's post-match row with Leave only (the bot has jumped off: no rematch), and game 2's
+-- with Lobby only (PostMatch: no rematch, no Play another).
 local HOST_HIDES: { [string]: { string } } = {
 	Request = { "HostMore", "HostLevels", "HostGlobal" },
 	Queue = { "HostMore", "HostLevels", "HostRequest" },
+	Drop = { "Rematch" },
 	Game2 = { "Rematch", "Another", "Cancel" },
 	Lobby = { "Rematch", "Another", "Cancel" },
 }
 
 -- The step whose scene is showing, and the device it was built for.
 local shownKey = ""
+-- Studio only (TutorialClientQA "forceDevice"): the device the prompts are built for, to check
+-- the touch and gamepad words and gestures without the emulator.
+local forcedDevice: string? = nil
 
 --- The input the player is using now: "mouse", "touch" or "gamepad".
 function Tutorial.device(): string
+	if forcedDevice then
+		return forcedDevice
+	end
 	local last = UserInputService:GetLastInputType()
 	if last.Name:match("^Gamepad") then
 		return "gamepad"
@@ -537,6 +545,9 @@ local function startQA()
 			arrow:show(nil)
 		elseif op == "device" then
 			return Tutorial.device()
+		elseif op == "forceDevice" then
+			forcedDevice = if a == "mouse" or a == "touch" or a == "gamepad" then a else nil
+			shownKey = ""
 		end
 		return true
 	end

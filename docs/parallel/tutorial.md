@@ -42,8 +42,8 @@ pictures may differ.
 
 ## Status
 
-2026-10-03: interview done, brief approved (`docs/prompts/TUTORIAL_PROMPT.md`). Building step
-by step (steps 1-10 of the brief).
+2026-10-03: interview done, brief approved (`docs/prompts/TUTORIAL_PROMPT.md`). All ten steps
+of the brief are built and checked; ready for the integrator.
 
 - **Step 1 done: foundations and the rule changes.** `TutorialService` (steps saved in
   `Flags.Tutorial`, resume on rejoin, attributes `TutorialStep` / `TutorialActive`, Skip,
@@ -251,6 +251,35 @@ by step (steps 1-10 of the brief).
     AbilitySpins OpenedAbilities -> SPIN -> Spun, each with its session id. The Creator
     Dashboard shows them only from the published game.
 
+- **Step 10 done: the final pass.** The whole first session again in Studio (PC): a fresh save
+  at Arrow1 ($0 for a non-VIP player, 1 spin, Heat Seeker), the arrow, the pad and Request,
+  the bot after 2 s, the rigged break (3 solids down), aim shots, the first miss -> the bot's
+  visit (one try, a scratch) -> ball in hand with the drag hand, "SELECT WHICH POCKET!" with
+  the hand on the pocket nearest the 8, the 8 down -> the bot gone (no humanoid left in the
+  workspace) -> the result screen -> Click Open now -> the Standard Case to an Uncommon cue
+  -> the Rare Case reveal (the rest of the chain, game 2's arena half and the nudges were
+  checked in steps 5-7; skip and cancel in step 8). Onboarding funnel steps 1-7, 9 and 10
+  printed in order, with the side events (TutorialBotScratch, TutorialBallInHand); console
+  clean of tutorial errors (only Studio's own DataStore/MemoryStore notices).
+  - Fixed: game 1's result screen still offered Rematch, though the bot has left: at step
+    Drop the row now shows Leave only (as game 2 shows Lobby only).
+  - Phone and gamepad: Studio's device emulator cannot be driven from an agent session, so a
+    Studio-only switch (`TutorialClientQA` "forceDevice") shows the touch and gamepad
+    prompts: "Tap Request opponent!" and "Press A to request an opponent!" with the hand on
+    the button were seen. Real touch and gamepad input, and the phone-sized layout, are hand
+    checks for the designer (below).
+  - GDD section 14 rewritten to describe the built tutorial.
+
+### What to try by hand (the designer)
+
+1. Studio, phone emulation (844 x 390): play a fresh save through game 1 by touch (swipe to
+   aim, pull the bar, tap the ability button, drag the cue ball, tap a pocket).
+2. Studio with a gamepad: the same with the left stick, hold A, X for the ability, the D-pad
+   for the pocket.
+3. Watch the bot's AUGHHHH! jump on the winning shot (the camera often faces away from it).
+4. The published game: Join Global Queue -> the arena -> Lobby -> a public server, and the
+   funnels in the Creator Dashboard the next day.
+
 ### Rule changes for everyone (made in this lane; the integrator moves them to the docs)
 
 - Reaching Bronze gives 1 Case Drop (was 2), given at once after the first win.
@@ -446,3 +475,5 @@ by step (steps 1-10 of the brief).
   blur it.
 - 2026-10-03 (lane): the shop funnel's "viewed an item" is opening a case's Odds (the shop
   has no item detail view); the repeating funnels keep their sessions in the server only.
+- 2026-10-03 (lane): game 1's result screen shows Leave only (no Rematch): the bot has jumped
+  off by then, so a rematch could never start.
