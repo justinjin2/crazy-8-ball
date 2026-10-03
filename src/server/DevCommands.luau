@@ -568,6 +568,7 @@ local ECON: { string } = {
 	"SkipTime",
 	"Restock",
 	"Code",
+	"Limited",
 }
 
 -- Whether a cue's copies in existence are counted (Counters), as the game counts them: every
@@ -1275,6 +1276,29 @@ function DevCommands.start()
 			tell(player, (if verb == "on" then Dev.CodeOn else Dev.CodeOff):format(code))
 		else
 			tell(player, Dev.CodeFailed:format(code))
+		end
+	end)
+	command("Limited", D.Limited, function(player, args)
+		local verb = string.lower(args[1] or "")
+		if verb == "start" then
+			local minutes = if args[2] ~= nil
+				then wholeIn(args[2], 1, 365 * 24 * 60)
+				else Config.Shop.Limited[1].Seconds // 60
+			if minutes == nil then
+				try(player, "Limited")
+				return
+			end
+			Items.setLimitedWindow(os.time(), minutes * 60)
+			tell(player, Dev.LimitedStart:format(minutes))
+		elseif verb == "end" then
+			-- Ended a second ago: refused as "Ended" from now on.
+			Items.setLimitedWindow(os.time() - 2, 1)
+			tell(player, Dev.LimitedEnd)
+		elseif verb == "off" then
+			Items.setLimitedWindow(nil, nil)
+			tell(player, Dev.LimitedOff)
+		else
+			try(player, "Limited")
 		end
 	end)
 	command("SkipTime", D.SkipTime, function(player, args)

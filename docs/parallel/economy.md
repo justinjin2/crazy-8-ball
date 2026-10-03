@@ -228,6 +228,24 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
     opponents); try by hand: 11 PC wins in a day, the 11th drops no case.
 - **For Bots** (step 6): in `Look.cue`, replace the `Config.Bots.CueCase` roll with
   `BotCues.pick(tier, Rng.uniform(rng))` (keep `TierCueChance` if you want the tier cues).
+- **Step 7 done (2026-10-03): the Limited shelf, Grand Opening Cue.**
+  - `Config.Shop.Limited` holds one row: `GrandOpeningCue`, $149,000, 14 days, no cap, one
+    per player, numbered (`Counters.takeLimited`). `StartsAt = 0` means off: not on the
+    shelf, BuyLimited answers "NotStarted" (never "Ended"). Founder's and Beta have no row
+    (off until scheduled; their catalog cues stay for saves); the `FoundersCue` product is
+    gone from `Config.Products`.
+  - New catalog cue `GrandOpeningCue` (Unique, Legendary colour tag, placeholder look:
+    black shaft, gold rings, felt-green wrap) and its name in Strings.
+  - Dev: `/limited start [minutes]` (default 14 days from now), `/limited end`, `/limited
+    off` set every Limited row's window in this server only (`Shop.setWindow`,
+    `Items.setLimitedWindow`; ShopState re-sent).
+  - `Counters.takeLimited` gained a Studio memory fallback (the lane place has no
+    DataStores), like the restock stock.
+  - Checked: lint, 938 Lune tests (the row, off, the override, NotStarted; the old Beta and
+    Founder's rows kept as test-only rows for the Limited paths); Studio: off answered
+    NotStarted; `/limited start` then a buy took $149,000 and gave copy #1 (paid origin, +$10,000
+    finder's money), a second buy answered Owned; after `/limited end` a fresh save got Ended;
+    ShopState showed the row with `sold = 1`.
 
 ### Changes to shared files (existing lines)
 
@@ -282,6 +300,12 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   touched outside economy: `ult_roll_test`, `ult_spins_test`, `ult_slots_test` (Magnet's
   rarity, the spin price).
 - (step 6) new `Config.BotCues` (no existing lines changed).
+- (step 7) `Config.Shop.Limited` (only the Grand Opening row), `Config.Products` (FoundersCue
+  removed), `Config.Debug` alias `Limited`. `Catalog`: GrandOpeningCue. `Strings`: its name,
+  `/limited` lines. `Shop`: `limited()` lists scheduled rows only, `limitedState` treats
+  StartsAt 0 as off, `setWindow`, `limitedIds`. `Items.setLimitedWindow`. `Counters.takeLimited`
+  Studio fallback. `DevCommands`: `/limited`. Tests: `catalog_test` (3 Unique), `shop_test`
+  and `requests_test` (test-only Beta/Founder's rows).
 
 ## Requests to other lanes or the integrator
 

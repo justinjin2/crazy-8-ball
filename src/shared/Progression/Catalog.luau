@@ -210,6 +210,15 @@ local CUES: { Cue } = {
 		Ring = { 255, 215, 80 },
 		Accent = { 255, 255, 255 },
 	}),
+	-- The Grand Opening's Limited (placeholder colours until its skin: black shaft, gold
+	-- rings, felt-green wrap; designer, 2026-10-03).
+	specialCue("GrandOpeningCue", "Unique", "Legendary", {
+		Shaft = { 22, 22, 24 },
+		Forearm = { 34, 34, 38 },
+		Wrap = { 30, 110, 62 },
+		Ring = { 255, 200, 60 },
+		Accent = { 255, 200, 60 },
+	}),
 	specialCue("BetaCue", "Unique", "Epic", {
 		Shaft = { 235, 230, 240 },
 		Forearm = { 30, 30, 40 },

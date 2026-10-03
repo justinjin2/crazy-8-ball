@@ -179,10 +179,11 @@ return {
 
 	buy_limited_only_money_rows = function()
 		local Requests = load()
-		local r = Requests.parse("BuyLimited", "BetaCue")
-		H.expect(r ~= nil and r.cueId == "BetaCue", "the Beta Cue is sold for money")
-		-- The Founder's Cue is a Robux product (StoreRequest), never bought here.
-		H.expect(select(2, Requests.parse("BuyLimited", "FoundersCue")) == "BadRequest", "Robux")
+		local r = Requests.parse("BuyLimited", "GrandOpeningCue")
+		H.expect(r ~= nil and r.cueId == "GrandOpeningCue", "the Grand Opening Cue is for money")
+		-- Founder's and Beta have no Limited row now (off until scheduled).
+		H.expect(select(2, Requests.parse("BuyLimited", "FoundersCue")) == "BadRequest", "off")
+		H.expect(select(2, Requests.parse("BuyLimited", "BetaCue")) == "BadRequest", "off")
 		H.expect(select(2, Requests.parse("BuyLimited", "Classic")) == "BadRequest", "not Limited")
 		for _, bad in JUNK do
 			H.expect(select(2, Requests.parse("BuyLimited", bad)) == "BadRequest", "limited id")
@@ -202,6 +203,9 @@ return {
 		H.expect(Requests.limitedCheck(row, 1200, 1, true) == "Owned", "one per player")
 		local open = { Cue = "BetaCue", Price = 1, StartsAt = 1000, Seconds = 500 }
 		H.expect(Requests.limitedCheck(open, 1200, 1e6, false) == nil, "no cap, never sold out")
+		-- StartsAt 0: off until the designer sets it, never "Ended".
+		local off = { Cue = "GrandOpeningCue", Price = 149000, StartsAt = 0, Seconds = 1209600 }
+		H.expect(Requests.limitedCheck(off, 1800000000, 0, false) == "NotStarted", "off")
 	end,
 
 	reasons_from_player_data = function()

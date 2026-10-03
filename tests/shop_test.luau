@@ -41,6 +41,35 @@ local function newShop(overrides: { [string]: any }?): any
 	return shop
 end
 
+-- Test-only Limited rows: Config's shelf holds only the Grand Opening (off until its date), so
+-- the old money Beta row and a Robux Founder's row stand in for every Limited path. Runs `fn`
+-- with them in Config, then takes them out even if it fails.
+local function withLimiteds(fn: () -> ())
+	local list: { any } = Config.Shop.Limited :: any
+	local n = #list
+	local products: any = Config.Products.List
+	products.FoundersCue = { Kind = "Product", Id = 0, Robux = 1499 }
+	table.insert(
+		list,
+		{ Cue = "BetaCue", Price = 40000, Cap = 1000, StartsAt = 1790553600, Seconds = 30 * DAY }
+	)
+	table.insert(list, {
+		Cue = "FoundersCue",
+		Product = "FoundersCue",
+		Cap = 50,
+		StartsAt = 1790553600,
+		Seconds = 30 * DAY,
+	})
+	local ok, err = pcall(fn)
+	for i = #list, n + 1, -1 do
+		table.remove(list, i)
+	end
+	products.FoundersCue = nil
+	if not ok then
+		error(err, 0)
+	end
+end
+
 -- Runs `fn` with product ids set in Config (all 0 until the designer makes them), then puts
 -- the zeros back even if it fails.
 local function withIds(ids: { [string]: number }, fn: () -> ())
@@ -338,40 +367,42 @@ return {
 	end,
 
 	["VIP offer, Starter Pack, Money Party and Founder's Cue grants"] = function()
-		local shop = newShop()
-		local vip = Shop.grantFor("VipOffer", shop, JOIN, false)
-		H.expect(vip.vip and vip.money == 0, "VIP, no money")
-		H.expect(vip.cue == Config.Shop.VipCue and vip.vipCue, "the VIP Cue")
-		Shop.markGrant(shop, vip)
-		H.expect(shop.VipOffer and shop.VipCueGiven, "flags set")
-		local again, why = Shop.grantFor("VipOffer", shop, JOIN, false)
-		H.expect(
-			not again.vip and again.cue == nil and not again.vipCue and why == "Owned",
-			"bought again: VIP already, so plain money and never a second VIP Cue"
-		)
+		withLimiteds(function()
+			local shop = newShop()
+			local vip = Shop.grantFor("VipOffer", shop, JOIN, false)
+			H.expect(vip.vip and vip.money == 0, "VIP, no money")
+			H.expect(vip.cue == Config.Shop.VipCue and vip.vipCue, "the VIP Cue")
+			Shop.markGrant(shop, vip)
+			H.expect(shop.VipOffer and shop.VipCueGiven, "flags set")
+			local again, why = Shop.grantFor("VipOffer", shop, JOIN, false)
+			H.expect(
+				not again.vip and again.cue == nil and not again.vipCue and why == "Owned",
+				"bought again: VIP already, so plain money and never a second VIP Cue"
+			)
 
-		local starter = Shop.grantFor("StarterPack", newShop(), JOIN, false)
-		H.expect(
-			starter.money == 75000 and starter.cue == "StarterCue",
-			"$75,000 and the Starter Cue"
-		)
-		H.expect(
-			starter.starterBought and not starter.firstPack,
-			"marks the starter, not the first pack"
-		)
+			local starter = Shop.grantFor("StarterPack", newShop(), JOIN, false)
+			H.expect(
+				starter.money == 75000 and starter.cue == "StarterCue",
+				"$75,000 and the Starter Cue"
+			)
+			H.expect(
+				starter.starterBought and not starter.firstPack,
+				"marks the starter, not the first pack"
+			)
 
-		local party = Shop.grantFor("MoneyParty", newShop(), JOIN, false)
-		H.expect(party.party and party.money == 0 and party.cue == nil, "a party only")
+			local party = Shop.grantFor("MoneyParty", newShop(), JOIN, false)
+			H.expect(party.party and party.money == 0 and party.cue == nil, "a party only")
 
-		local founders = Shop.grantFor("FoundersCue", newShop(), JOIN, false)
-		H.expect(founders.limited == "FoundersCue" and founders.cue == nil, "the Limited copy")
+			local founders = Shop.grantFor("FoundersCue", newShop(), JOIN, false)
+			H.expect(founders.limited == "FoundersCue" and founders.cue == nil, "the Limited copy")
 
-		H.expect(
-			Shop.grantFor("Vip", newShop(), JOIN, false) == nil,
-			"a pass is not granted by receipt"
-		)
-		H.expect(Shop.grantFor("QuickCases", newShop(), JOIN, false) == nil, "nor Quick Cases")
-		H.expect(Shop.grantFor("NoSuchProduct", newShop(), JOIN, false) == nil, "unknown")
+			H.expect(
+				Shop.grantFor("Vip", newShop(), JOIN, false) == nil,
+				"a pass is not granted by receipt"
+			)
+			H.expect(Shop.grantFor("QuickCases", newShop(), JOIN, false) == nil, "nor Quick Cases")
+			H.expect(Shop.grantFor("NoSuchProduct", newShop(), JOIN, false) == nil, "unknown")
+		end)
 	end,
 
 	["Money Party queues 15 minutes a purchase; the shop offers at most an hour"] = function()
@@ -404,106 +435,124 @@ return {
 	end,
 
 	["a receipt checks the offer windows and once-only again, and pays money when not for them"] = function()
-		local grace = Config.Shop.OfferGraceSeconds
-		H.expect(grace > 0 and grace < DAY, "a grace of minutes, not days")
-		local function check(key: string, shop: any, now: number, pass: boolean?): string?
-			return Shop.receiptCheck(key, shop, now, pass == true)
-		end
-		-- The VIP offer: its welcome and comeback windows, each a grace longer; never for a VIP.
-		H.expect(check("VipOffer", newShop(), JOIN + HOUR) == nil, "the welcome day")
-		H.expect(check("VipOffer", newShop(), JOIN + DAY + grace - 1) == nil, "just after: grace")
-		H.expect(check("VipOffer", newShop(), JOIN + DAY + grace) == "Closed", "then closed")
-		H.expect(check("VipOffer", newShop(), JOIN + 3 * DAY) == "Closed", "between the windows")
-		H.expect(
-			check("VipOffer", newShop(), JOIN + 7 * DAY - 1) == "Closed",
-			"a second before the comeback"
-		)
-		H.expect(check("VipOffer", newShop(), JOIN + 7 * DAY) == nil, "the comeback window")
-		H.expect(check("VipOffer", newShop(), JOIN + 8 * DAY + grace - 1) == nil, "its grace")
-		H.expect(check("VipOffer", newShop(), JOIN + 8 * DAY + grace) == "Closed", "never again")
-		H.expect(check("VipOffer", newShop(), JOIN + HOUR, true) == "Owned", "owns the VIP pass")
-		H.expect(
-			check("VipOffer", newShop({ VipOffer = true }), JOIN + HOUR) == "Owned",
-			"bought the offer before"
-		)
-		H.expect(
-			check("VipOffer", newShop({ FirstJoin = 0 }), JOIN) == "Closed",
-			"first join unknown"
-		)
-		-- The Starter Pack: its week plus the grace, once; a VIP may still buy it.
-		H.expect(check("StarterPack", newShop(), JOIN + 6 * DAY, true) == nil, "its week")
-		H.expect(check("StarterPack", newShop(), JOIN + 7 * DAY + grace - 1) == nil, "grace")
-		H.expect(check("StarterPack", newShop(), JOIN + 7 * DAY + grace) == "Closed", "closed")
-		H.expect(
-			check("StarterPack", newShop({ StarterBought = true }), JOIN + HOUR) == "Owned",
-			"once only"
-		)
-		H.expect(
-			check("StarterPack", newShop({ FirstJoin = 0 }), JOIN) == "Closed",
-			"first join unknown"
-		)
-		-- A Robux Limited already owned; packs and the party are always for everyone.
-		H.expect(
-			check("FoundersCue", newShop({ Limited = { FoundersCue = 3 } }), JOIN) == "Owned",
-			"the Founder's Cue owned"
-		)
-		H.expect(check("FoundersCue", newShop(), JOIN) == nil, "the counter decides the rest")
-		for _, key in { "Pack1", "Pack7", "MoneyParty" } do
+		withLimiteds(function()
+			local grace = Config.Shop.OfferGraceSeconds
+			H.expect(grace > 0 and grace < DAY, "a grace of minutes, not days")
+			local function check(key: string, shop: any, now: number, pass: boolean?): string?
+				return Shop.receiptCheck(key, shop, now, pass == true)
+			end
+			-- The VIP offer: its welcome and comeback windows, each a grace longer; never for a VIP.
+			H.expect(check("VipOffer", newShop(), JOIN + HOUR) == nil, "the welcome day")
 			H.expect(
-				check(
-					key,
-					newShop({ StarterBought = true, VipOffer = true }),
-					JOIN + 99 * DAY,
-					true
-				) == nil,
-				key .. " is always for everyone"
+				check("VipOffer", newShop(), JOIN + DAY + grace - 1) == nil,
+				"just after: grace"
 			)
-		end
+			H.expect(check("VipOffer", newShop(), JOIN + DAY + grace) == "Closed", "then closed")
+			H.expect(
+				check("VipOffer", newShop(), JOIN + 3 * DAY) == "Closed",
+				"between the windows"
+			)
+			H.expect(
+				check("VipOffer", newShop(), JOIN + 7 * DAY - 1) == "Closed",
+				"a second before the comeback"
+			)
+			H.expect(check("VipOffer", newShop(), JOIN + 7 * DAY) == nil, "the comeback window")
+			H.expect(check("VipOffer", newShop(), JOIN + 8 * DAY + grace - 1) == nil, "its grace")
+			H.expect(
+				check("VipOffer", newShop(), JOIN + 8 * DAY + grace) == "Closed",
+				"never again"
+			)
+			H.expect(
+				check("VipOffer", newShop(), JOIN + HOUR, true) == "Owned",
+				"owns the VIP pass"
+			)
+			H.expect(
+				check("VipOffer", newShop({ VipOffer = true }), JOIN + HOUR) == "Owned",
+				"bought the offer before"
+			)
+			H.expect(
+				check("VipOffer", newShop({ FirstJoin = 0 }), JOIN) == "Closed",
+				"first join unknown"
+			)
+			-- The Starter Pack: its week plus the grace, once; a VIP may still buy it.
+			H.expect(check("StarterPack", newShop(), JOIN + 6 * DAY, true) == nil, "its week")
+			H.expect(check("StarterPack", newShop(), JOIN + 7 * DAY + grace - 1) == nil, "grace")
+			H.expect(check("StarterPack", newShop(), JOIN + 7 * DAY + grace) == "Closed", "closed")
+			H.expect(
+				check("StarterPack", newShop({ StarterBought = true }), JOIN + HOUR) == "Owned",
+				"once only"
+			)
+			H.expect(
+				check("StarterPack", newShop({ FirstJoin = 0 }), JOIN) == "Closed",
+				"first join unknown"
+			)
+			-- A Robux Limited already owned; packs and the party are always for everyone.
+			H.expect(
+				check("FoundersCue", newShop({ Limited = { FoundersCue = 3 } }), JOIN) == "Owned",
+				"the Founder's Cue owned"
+			)
+			H.expect(check("FoundersCue", newShop(), JOIN) == nil, "the counter decides the rest")
+			for _, key in { "Pack1", "Pack7", "MoneyParty" } do
+				H.expect(
+					check(
+						key,
+						newShop({ StarterBought = true, VipOffer = true }),
+						JOIN + 99 * DAY,
+						true
+					) == nil,
+					key .. " is always for everyone"
+				)
+			end
 
-		-- The grant: plain money at the first pack's money per Robux, no flags.
-		local grant, why =
-			Shop.grantFor("StarterPack", newShop({ StarterBought = true }), JOIN, false)
-		H.expect(why == "Owned" and grant ~= nil, "a fallback grant")
-		H.expect(
-			grant.money == 18183 and grant.key == "StarterPack",
-			"99 R$ at $9,000 / 49 R$: $18,183"
-		)
-		H.expect(
-			grant.cue == nil
-				and not grant.vip
-				and not grant.vipCue
-				and not grant.party
-				and grant.limited == nil
-				and not grant.firstPack
-				and not grant.starterBought,
-			"money only"
-		)
-		local vipGrant, vipWhy = Shop.grantFor("VipOffer", newShop(), JOIN + HOUR, true)
-		H.expect(vipWhy == "Owned" and vipGrant.money == 54918, "299 R$: $54,918, no permanent VIP")
-		local late = Shop.grantFor("VipOffer", newShop(), JOIN + 3 * DAY, false)
-		H.expect(late.money == 54918 and not late.vip, "outside the windows: money, not VIP")
-		local shop = newShop({ StarterBought = true })
-		Shop.markGrant(shop, grant)
-		H.expect(
-			not shop.FirstPackBought and not shop.VipOffer and not shop.VipCueGiven,
-			"the fallback sets no flag, nor uses up the first pack's double"
-		)
-		H.expect(Shop.fallbackMoney("FoundersCue") == 275326, "1,499 R$: $275,326")
-		H.expect(Shop.fallbackMoney("Pack1") == 9000, "the first pack's own rate")
-		H.expect(Shop.fallbackMoney("NoSuchProduct") == 0, "unknown: nothing")
-		H.expect(Shop.fallbackGrant("NoSuchProduct") == nil, "no grant for nothing")
-		local rate = Config.Products.List.Pack1.Money / Config.Products.List.Pack1.Robux
-		for _, key in { "VipOffer", "StarterPack", "MoneyParty", "FoundersCue" } do
-			local robux = Config.Products.List[key].Robux
-			local money = Shop.fallbackMoney(key)
+			-- The grant: plain money at the first pack's money per Robux, no flags.
+			local grant, why =
+				Shop.grantFor("StarterPack", newShop({ StarterBought = true }), JOIN, false)
+			H.expect(why == "Owned" and grant ~= nil, "a fallback grant")
 			H.expect(
-				money <= robux * rate and money > robux * rate - 1,
-				("%s: $%d for %d R$"):format(key, money, robux)
+				grant.money == 18183 and grant.key == "StarterPack",
+				"99 R$ at $9,000 / 49 R$: $18,183"
 			)
-		end
-		-- Inside the window the real grant, with no reason.
-		local real, none = Shop.grantFor("StarterPack", newShop(), JOIN + 7 * DAY + grace - 1, true)
-		H.expect(none == nil and real.starterBought and real.money == 75000, "the real grant")
+			H.expect(
+				grant.cue == nil
+					and not grant.vip
+					and not grant.vipCue
+					and not grant.party
+					and grant.limited == nil
+					and not grant.firstPack
+					and not grant.starterBought,
+				"money only"
+			)
+			local vipGrant, vipWhy = Shop.grantFor("VipOffer", newShop(), JOIN + HOUR, true)
+			H.expect(
+				vipWhy == "Owned" and vipGrant.money == 54918,
+				"299 R$: $54,918, no permanent VIP"
+			)
+			local late = Shop.grantFor("VipOffer", newShop(), JOIN + 3 * DAY, false)
+			H.expect(late.money == 54918 and not late.vip, "outside the windows: money, not VIP")
+			local shop = newShop({ StarterBought = true })
+			Shop.markGrant(shop, grant)
+			H.expect(
+				not shop.FirstPackBought and not shop.VipOffer and not shop.VipCueGiven,
+				"the fallback sets no flag, nor uses up the first pack's double"
+			)
+			H.expect(Shop.fallbackMoney("FoundersCue") == 275326, "1,499 R$: $275,326")
+			H.expect(Shop.fallbackMoney("Pack1") == 9000, "the first pack's own rate")
+			H.expect(Shop.fallbackMoney("NoSuchProduct") == 0, "unknown: nothing")
+			H.expect(Shop.fallbackGrant("NoSuchProduct") == nil, "no grant for nothing")
+			local rate = Config.Products.List.Pack1.Money / Config.Products.List.Pack1.Robux
+			for _, key in { "VipOffer", "StarterPack", "MoneyParty", "FoundersCue" } do
+				local robux = Config.Products.List[key].Robux
+				local money = Shop.fallbackMoney(key)
+				H.expect(
+					money <= robux * rate and money > robux * rate - 1,
+					("%s: $%d for %d R$"):format(key, money, robux)
+				)
+			end
+			-- Inside the window the real grant, with no reason.
+			local real, none =
+				Shop.grantFor("StarterPack", newShop(), JOIN + 7 * DAY + grace - 1, true)
+			H.expect(none == nil and real.starterBought and real.money == 75000, "the real grant")
+		end)
 	end,
 
 	["a forged second Starter Pack receipt is acknowledged and paid as money"] = function()
@@ -518,32 +567,63 @@ return {
 		H.expect(player.save.Money == 75000 + 18183, "grants nothing more")
 	end,
 
-	["the Limited shelf's state"] = function()
+	["the Grand Opening Cue: $149,000, 14 days, no cap, off until its date"] = function()
+		local grand = Shop.limitedFor("GrandOpeningCue")
+		H.expect(grand ~= nil and grand.Price == 149000 and grand.Cap == nil, "$149,000, no cap")
+		H.expect(grand.Seconds == 14 * DAY and grand.StartsAt == 0, "14 days, not scheduled")
+		H.expect(#Shop.limited() == 0, "off: not on the shelf")
+		local off = Shop.limitedState(grand, JOIN, 0, false)
+		H.expect(not off.open and not off.canBuy, "never open while off")
+		H.expect(Shop.limitedFor("BetaCue") == nil and Shop.limitedFor("FoundersCue") == nil, "")
+		H.expect(Config.Products.List.FoundersCue == nil, "no Founder's Cue product")
+		-- /limited start: this server's window over Config's, then back.
+		H.expect(Shop.setWindow("GrandOpeningCue", JOIN, 14 * DAY), "set")
 		local rows = Shop.limited()
-		H.expect(#rows >= 1, "rows")
-		local beta = Shop.limitedFor("BetaCue")
-		H.expect(
-			beta ~= nil and beta.Price == 40000 and beta.Cap == 1000,
-			"the Beta Cue: $40,000, 1,000 copies"
-		)
-		H.expect(Shop.limitedFor("NoSuchCue") == nil, "unknown")
-		local row = { Cue = "TestCue", Price = 100, Cap = 10, StartsAt = 1000, Seconds = 500 }
-		local before = Shop.limitedState(row, 999, 0, false)
-		H.expect(not before.open and not before.canBuy, "not started")
-		local start = Shop.limitedState(row, 1000, 0, false)
-		H.expect(start.open and start.canBuy and start.endsAt == 1500, "open from StartsAt")
-		H.expect(Shop.limitedState(row, 1499, 9, false).canBuy, "the last copy, the last second")
-		H.expect(not Shop.limitedState(row, 1500, 0, false).open, "never again once ended")
-		local soldOut = Shop.limitedState(row, 1200, 10, false)
-		H.expect(soldOut.soldOut and not soldOut.open and not soldOut.canBuy, "sold out at the cap")
-		local owned = Shop.limitedState(row, 1200, 3, true)
-		H.expect(owned.open and owned.owned and not owned.canBuy, "one per player")
-		H.expect(
-			not Shop.limitedState(row, 1200, nil, false).soldOut,
-			"unknown count is not sold out"
-		)
-		local uncapped = { Cue = "Free", Price = 5, StartsAt = 0, Seconds = 10 }
-		H.expect(not Shop.limitedState(uncapped, 5, 1e9, false).soldOut, "no cap, never sold out")
+		H.expect(#rows == 1 and rows[1].Cue == "GrandOpeningCue" and rows[1].StartsAt == JOIN, "")
+		H.expect(Shop.limitedState(rows[1], JOIN + DAY, 5000, false).canBuy, "on sale, no cap")
+		H.expect(not Shop.limitedState(rows[1], JOIN + 14 * DAY, 0, false).open, "14 days")
+		H.expect(Config.Shop.Limited[1].StartsAt == 0, "Config itself untouched")
+		H.expect(Shop.setWindow("GrandOpeningCue", nil, nil), "cleared")
+		H.expect(#Shop.limited() == 0 and not Shop.setWindow("Nope", 1, 1), "back to off")
+	end,
+
+	["the Limited shelf's state"] = function()
+		withLimiteds(function()
+			local rows = Shop.limited()
+			H.expect(#rows >= 1, "rows")
+			local beta = Shop.limitedFor("BetaCue")
+			H.expect(
+				beta ~= nil and beta.Price == 40000 and beta.Cap == 1000,
+				"the Beta Cue: $40,000, 1,000 copies"
+			)
+			H.expect(Shop.limitedFor("NoSuchCue") == nil, "unknown")
+			local row = { Cue = "TestCue", Price = 100, Cap = 10, StartsAt = 1000, Seconds = 500 }
+			local before = Shop.limitedState(row, 999, 0, false)
+			H.expect(not before.open and not before.canBuy, "not started")
+			local start = Shop.limitedState(row, 1000, 0, false)
+			H.expect(start.open and start.canBuy and start.endsAt == 1500, "open from StartsAt")
+			H.expect(
+				Shop.limitedState(row, 1499, 9, false).canBuy,
+				"the last copy, the last second"
+			)
+			H.expect(not Shop.limitedState(row, 1500, 0, false).open, "never again once ended")
+			local soldOut = Shop.limitedState(row, 1200, 10, false)
+			H.expect(
+				soldOut.soldOut and not soldOut.open and not soldOut.canBuy,
+				"sold out at the cap"
+			)
+			local owned = Shop.limitedState(row, 1200, 3, true)
+			H.expect(owned.open and owned.owned and not owned.canBuy, "one per player")
+			H.expect(
+				not Shop.limitedState(row, 1200, nil, false).soldOut,
+				"unknown count is not sold out"
+			)
+			local uncapped = { Cue = "Free", Price = 5, StartsAt = 0, Seconds = 10 }
+			H.expect(
+				not Shop.limitedState(uncapped, 5, 1e9, false).soldOut,
+				"no cap, never sold out"
+			)
+		end)
 	end,
 
 	["Need $X more highlights the smallest pack that covers it"] = function()
@@ -705,164 +785,191 @@ return {
 	end,
 
 	["ShopView.check: why a Buy may not prompt"] = function()
-		local founders = Shop.limitedFor("FoundersCue")
-		H.expect(founders ~= nil and founders.Product == "FoundersCue", "a Robux Limited")
-		local start = founders.StartsAt
-		local now = math.max(JOIN, start) + HOUR
-		local ctx = ctxAt(now)
-		H.expect(ShopView.check("NoSuchProduct", ctx) == "BadRequest", "an unknown key")
-		H.expect(ShopView.check("Pack1", ctx) == "ComingSoon", "Id 0: coming soon")
-		H.expect(ShopView.check("Vip", ctx) == "ComingSoon", "a pass not made yet")
-		H.expect(
-			ShopView.check("Vip", ctxAt(now, { vipPass = true })) == "Owned",
-			"owned beats coming soon (the /vip override)"
-		)
-		withIds({
-			Pack1 = 1,
-			VipOffer = 2,
-			StarterPack = 3,
-			MoneyParty = 4,
-			FoundersCue = 5,
-			Vip = 6,
-			QuickCases = 7,
-		}, function()
-			local joined = ctxAt(JOIN + HOUR)
-			H.expect(ShopView.check("Pack1", joined) == nil, "a money pack always sells")
-			H.expect(ShopView.check("VipOffer", joined) == nil, "the welcome offer, first day")
+		withLimiteds(function()
+			local founders = Shop.limitedFor("FoundersCue")
+			H.expect(founders ~= nil and founders.Product == "FoundersCue", "a Robux Limited")
+			local start = founders.StartsAt
+			local now = math.max(JOIN, start) + HOUR
+			local ctx = ctxAt(now)
+			H.expect(ShopView.check("NoSuchProduct", ctx) == "BadRequest", "an unknown key")
+			H.expect(ShopView.check("Pack1", ctx) == "ComingSoon", "Id 0: coming soon")
+			H.expect(ShopView.check("Vip", ctx) == "ComingSoon", "a pass not made yet")
 			H.expect(
-				ShopView.check("VipOffer", ctxAt(JOIN + 2 * DAY)) == "Closed",
-				"between the windows"
+				ShopView.check("Vip", ctxAt(now, { vipPass = true })) == "Owned",
+				"owned beats coming soon (the /vip override)"
 			)
-			H.expect(
-				ShopView.check("VipOffer", ctxAt(JOIN + 7 * DAY + 5)) == nil,
-				"the comeback window"
-			)
-			H.expect(
-				ShopView.check("VipOffer", ctxAt(JOIN + HOUR, { vipPass = true })) == "Owned",
-				"VIP already"
-			)
-			H.expect(ShopView.check("Vip", joined) == nil, "VIP on sale")
-			H.expect(
-				ShopView.check("Vip", ctxAt(JOIN, { shop = newShop({ VipOffer = true }) }))
-					== "Owned",
-				"VIP through the offer owns the pass's perks"
-			)
-			H.expect(
-				ShopView.check("QuickCases", ctxAt(JOIN, { fastOpen = true })) == "Owned",
-				"Quick Cases owned"
-			)
-			H.expect(ShopView.check("QuickCases", joined) == nil, "Quick Cases on sale")
-			H.expect(ShopView.check("StarterPack", joined) == nil, "the Starter Pack's week")
-			H.expect(
-				ShopView.check("StarterPack", ctxAt(JOIN + 7 * DAY)) == "Closed",
-				"after 7 days"
-			)
-			H.expect(
-				ShopView.check(
-					"StarterPack",
-					ctxAt(JOIN, { shop = newShop({ StarterBought = true }) })
-				) == "Owned",
-				"once"
-			)
-			H.expect(ShopView.check("MoneyParty", joined) == nil, "no party: room")
-			H.expect(
-				ShopView.check("MoneyParty", ctxAt(JOIN, { partyEndsAt = JOIN + HOUR }))
-					== "PartyFull",
-				"an hour queued"
-			)
-			H.expect(
-				ShopView.check("MoneyParty", ctxAt(JOIN, { partyEndsAt = JOIN + 45 * 60 })) == nil,
-				"room for 15 more minutes"
-			)
-			H.expect(ShopView.check("FoundersCue", ctxAt(now)) == nil, "the Founder's Cue on sale")
-			H.expect(
-				ShopView.check("FoundersCue", ctxAt(start - 1)) == "Closed",
-				"before it starts"
-			)
-			H.expect(
-				ShopView.check("FoundersCue", ctxAt(start + founders.Seconds)) == "Closed",
-				"never again once ended"
-			)
-			H.expect(
-				ShopView.check("FoundersCue", ctxAt(now, { sold = { FoundersCue = founders.Cap } }))
-					== "SoldOut",
-				"sold out at the cap"
-			)
-			H.expect(
-				ShopView.check(
-					"FoundersCue",
-					ctxAt(now, { shop = newShop({ Limited = { FoundersCue = 7 } }) })
-				) == "Owned",
-				"one per player"
-			)
+			withIds({
+				Pack1 = 1,
+				VipOffer = 2,
+				StarterPack = 3,
+				MoneyParty = 4,
+				FoundersCue = 5,
+				Vip = 6,
+				QuickCases = 7,
+			}, function()
+				local joined = ctxAt(JOIN + HOUR)
+				H.expect(ShopView.check("Pack1", joined) == nil, "a money pack always sells")
+				H.expect(ShopView.check("VipOffer", joined) == nil, "the welcome offer, first day")
+				H.expect(
+					ShopView.check("VipOffer", ctxAt(JOIN + 2 * DAY)) == "Closed",
+					"between the windows"
+				)
+				H.expect(
+					ShopView.check("VipOffer", ctxAt(JOIN + 7 * DAY + 5)) == nil,
+					"the comeback window"
+				)
+				H.expect(
+					ShopView.check("VipOffer", ctxAt(JOIN + HOUR, { vipPass = true })) == "Owned",
+					"VIP already"
+				)
+				H.expect(ShopView.check("Vip", joined) == nil, "VIP on sale")
+				H.expect(
+					ShopView.check("Vip", ctxAt(JOIN, { shop = newShop({ VipOffer = true }) }))
+						== "Owned",
+					"VIP through the offer owns the pass's perks"
+				)
+				H.expect(
+					ShopView.check("QuickCases", ctxAt(JOIN, { fastOpen = true })) == "Owned",
+					"Quick Cases owned"
+				)
+				H.expect(ShopView.check("QuickCases", joined) == nil, "Quick Cases on sale")
+				H.expect(ShopView.check("StarterPack", joined) == nil, "the Starter Pack's week")
+				H.expect(
+					ShopView.check("StarterPack", ctxAt(JOIN + 7 * DAY)) == "Closed",
+					"after 7 days"
+				)
+				H.expect(
+					ShopView.check(
+						"StarterPack",
+						ctxAt(JOIN, { shop = newShop({ StarterBought = true }) })
+					) == "Owned",
+					"once"
+				)
+				H.expect(ShopView.check("MoneyParty", joined) == nil, "no party: room")
+				H.expect(
+					ShopView.check("MoneyParty", ctxAt(JOIN, { partyEndsAt = JOIN + HOUR }))
+						== "PartyFull",
+					"an hour queued"
+				)
+				H.expect(
+					ShopView.check("MoneyParty", ctxAt(JOIN, { partyEndsAt = JOIN + 45 * 60 }))
+						== nil,
+					"room for 15 more minutes"
+				)
+				H.expect(
+					ShopView.check("FoundersCue", ctxAt(now)) == nil,
+					"the Founder's Cue on sale"
+				)
+				H.expect(
+					ShopView.check("FoundersCue", ctxAt(start - 1)) == "Closed",
+					"before it starts"
+				)
+				H.expect(
+					ShopView.check("FoundersCue", ctxAt(start + founders.Seconds)) == "Closed",
+					"never again once ended"
+				)
+				H.expect(
+					ShopView.check(
+						"FoundersCue",
+						ctxAt(now, { sold = { FoundersCue = founders.Cap } })
+					) == "SoldOut",
+					"sold out at the cap"
+				)
+				H.expect(
+					ShopView.check(
+						"FoundersCue",
+						ctxAt(now, { shop = newShop({ Limited = { FoundersCue = 7 } }) })
+					) == "Owned",
+					"one per player"
+				)
+			end)
 		end)
 	end,
 
 	["ShopView.build: the ShopState payload"] = function()
-		local sale = ShopView.readSale({ Case = "Epic", Percent = 20, EndsAt = JOIN + DAY }, JOIN)
-		withIds({ Pack2 = 11, Vip = 12 }, function()
-			local now = JOIN + HOUR
-			local p = ShopView.build(ctxAt(now, {
-				prices = { Pack2 = 95 },
-				partyEndsAt = now + 600,
-				partyBuyer = "Painicane",
-				sold = { BetaCue = 412 },
-				shop = newShop({ Limited = { BetaCue = 412 } }),
-				sale = sale,
-			}))
-			for _, key in Config.Products.PackOrder do
-				H.expect(p.products[key] ~= nil, key .. " listed")
-			end
-			for _, key in
-				{ "VipOffer", "StarterPack", "MoneyParty", "FoundersCue", "Vip", "QuickCases" }
-			do
-				H.expect(p.products[key] ~= nil, key .. " listed")
-			end
-			local pack1, pack2 = p.products.Pack1, p.products.Pack2
-			H.expect(pack1.robux == 49 and pack2.robux == 95, "Config's price, else the live one")
-			H.expect(
-				not pack1.available and not pack1.canBuy and pack1.reason == "ComingSoon",
-				"Id 0: coming soon"
-			)
-			H.expect(pack2.available and pack2.canBuy and pack2.reason == nil, "made: on sale")
-			H.expect(pack1.money == 18000 and pack2.money == 39000, "the first pack doubled")
-			H.expect(p.products.StarterPack.money == 75000, "the Starter Pack's $75,000")
-			H.expect(p.products.Vip.kind == "Pass" and p.products.Vip.canBuy, "the VIP pass")
-			H.expect(not p.products.Vip.owned and not p.products.QuickCases.owned, "nothing owned")
-			H.expect(
-				p.products.MoneyParty.canBuy == false
-					and p.products.MoneyParty.reason == "ComingSoon",
-				"the party: room, but not made yet"
-			)
-			local welcome = p.offers.VipOffer
-			H.expect(
-				welcome.open and welcome.endsAt == JOIN + DAY and welcome.kind == "Welcome",
-				"the welcome window"
-			)
-			local starter = p.offers.StarterPack
-			H.expect(starter.open and starter.endsAt == JOIN + 7 * DAY, "the Starter Pack's week")
-			H.expect(
-				p.party ~= nil and p.party.endsAt == now + 600 and p.party.buyer == "Painicane",
-				"the party"
-			)
-			H.expect(p.sale ~= nil and p.sale.case == "Epic" and p.sale.percent == 20, "the sale")
-			local beta = nil
-			for _, row in p.limited do
-				if row.cue == "BetaCue" then
-					beta = row
+		withLimiteds(function()
+			local sale =
+				ShopView.readSale({ Case = "Epic", Percent = 20, EndsAt = JOIN + DAY }, JOIN)
+			withIds({ Pack2 = 11, Vip = 12 }, function()
+				local now = JOIN + HOUR
+				local p = ShopView.build(ctxAt(now, {
+					prices = { Pack2 = 95 },
+					partyEndsAt = now + 600,
+					partyBuyer = "Painicane",
+					sold = { BetaCue = 412 },
+					shop = newShop({ Limited = { BetaCue = 412 } }),
+					sale = sale,
+				}))
+				for _, key in Config.Products.PackOrder do
+					H.expect(p.products[key] ~= nil, key .. " listed")
 				end
-			end
-			H.expect(beta ~= nil and beta.price == 40000 and beta.cap == 1000, "the Beta Cue row")
-			H.expect(
-				beta.owned and beta.copy == 412 and beta.sold == 412 and not beta.canBuy,
-				"Owned #412"
-			)
-			H.expect(#p.limited == #Shop.limited(), "every Limited row, in shelf order")
-			H.expect(
-				not p.vip and not p.vipPass and not p.vipOffer and not p.fastOpen,
-				"no VIP, no Fast Open"
-			)
-			H.expect(not p.firstPackBought and not p.starterBought and not p.restricted, "flags")
+				for _, key in { "VipOffer", "StarterPack", "MoneyParty", "Vip", "QuickCases" } do
+					H.expect(p.products[key] ~= nil, key .. " listed")
+				end
+				local pack1, pack2 = p.products.Pack1, p.products.Pack2
+				H.expect(
+					pack1.robux == 49 and pack2.robux == 95,
+					"Config's price, else the live one"
+				)
+				H.expect(
+					not pack1.available and not pack1.canBuy and pack1.reason == "ComingSoon",
+					"Id 0: coming soon"
+				)
+				H.expect(pack2.available and pack2.canBuy and pack2.reason == nil, "made: on sale")
+				H.expect(pack1.money == 18000 and pack2.money == 39000, "the first pack doubled")
+				H.expect(p.products.StarterPack.money == 75000, "the Starter Pack's $75,000")
+				H.expect(p.products.Vip.kind == "Pass" and p.products.Vip.canBuy, "the VIP pass")
+				H.expect(
+					not p.products.Vip.owned and not p.products.QuickCases.owned,
+					"nothing owned"
+				)
+				H.expect(
+					p.products.MoneyParty.canBuy == false
+						and p.products.MoneyParty.reason == "ComingSoon",
+					"the party: room, but not made yet"
+				)
+				local welcome = p.offers.VipOffer
+				H.expect(
+					welcome.open and welcome.endsAt == JOIN + DAY and welcome.kind == "Welcome",
+					"the welcome window"
+				)
+				local starter = p.offers.StarterPack
+				H.expect(
+					starter.open and starter.endsAt == JOIN + 7 * DAY,
+					"the Starter Pack's week"
+				)
+				H.expect(
+					p.party ~= nil and p.party.endsAt == now + 600 and p.party.buyer == "Painicane",
+					"the party"
+				)
+				H.expect(
+					p.sale ~= nil and p.sale.case == "Epic" and p.sale.percent == 20,
+					"the sale"
+				)
+				local beta = nil
+				for _, row in p.limited do
+					if row.cue == "BetaCue" then
+						beta = row
+					end
+				end
+				H.expect(
+					beta ~= nil and beta.price == 40000 and beta.cap == 1000,
+					"the Beta Cue row"
+				)
+				H.expect(
+					beta.owned and beta.copy == 412 and beta.sold == 412 and not beta.canBuy,
+					"Owned #412"
+				)
+				H.expect(#p.limited == #Shop.limited(), "every Limited row, in shelf order")
+				H.expect(
+					not p.vip and not p.vipPass and not p.vipOffer and not p.fastOpen,
+					"no VIP, no Fast Open"
+				)
+				H.expect(
+					not p.firstPackBought and not p.starterBought and not p.restricted,
+					"flags"
+				)
+			end)
 		end)
 	end,
 

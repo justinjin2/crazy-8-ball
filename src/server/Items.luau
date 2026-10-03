@@ -480,6 +480,15 @@ function HANDLERS.BuyLimited(player: Player, r: Requests.Request): Reply
 	return { ok = true, cueId = cueId, copy = copy, price = price }
 end
 
+--- Developer only (/limited): every Limited row's window in this server, from `startsAt` for
+--- `seconds` (nil for both: back to Config's). Every player's ShopState is sent again.
+function Items.setLimitedWindow(startsAt: number?, seconds: number?)
+	for _, cueId in Shop.limitedIds() do
+		Shop.setWindow(cueId, startsAt, seconds)
+	end
+	saleEvent:Fire() -- the Store sends ShopState again (SaleChanged)
+end
+
 -- The /restock developer command's restock for this server: shown instead of the real one
 -- until the real one ends.
 local forcedSlot: number? = nil

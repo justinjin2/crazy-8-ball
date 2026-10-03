@@ -306,6 +306,7 @@ return {
 			SkipTime = "%s <minutes>",
 			Restock = "%s uncommon|rare|epic|legendary|mystery",
 			Code = "%s on|off <CODE>, or %s list",
+			Limited = "%s start [minutes] | end | off",
 			UltBar = "%s <0-%d>",
 			UltFull = "%s",
 			UltArm = "%s",
@@ -341,6 +342,7 @@ return {
 			SkipTime = "your case timers run that many minutes sooner",
 			Restock = "this server shows a restock with that item until the real one ends",
 			Code = "switches a like code on or off in every server",
+			Limited = "opens or closes the Limited cues in this server (start: now, 14 days or the minutes)",
 			UltBar = "sets your ability bar at your table",
 			UltFull = "fills your ability bar",
 			UltArm = "fills your bar and arms your equipped ability at once (practice in solo)",
@@ -403,6 +405,9 @@ return {
 		CodeNotLive = "%s is not a like code. Like codes: %s.",
 		CodeList = "Like codes on: %s. Off: %s.",
 		CodeNone = "none",
+		LimitedStart = "The Limited cues are on sale in this server for %d minutes.",
+		LimitedEnd = "The Limited cues ended in this server.",
+		LimitedOff = "The Limited cues are back to Config's start time in this server.",
 		-- The ability commands (/abilityhelp; the old /ulthelp still works).
 		UltHelp = "Ability commands (they act on you only):",
 		UltBarSet = "Your ability bar is %d%%.",
@@ -557,6 +562,7 @@ return {
 			StarterCue = "Starter Cue",
 			FoundersCue = "Founder's Cue",
 			BetaCue = "Beta Cue",
+			GrandOpeningCue = "Grand Opening Cue",
 		},
 		Cases = {
 			Standard = "Standard Case",

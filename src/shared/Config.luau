@@ -2363,17 +2363,15 @@ Config.Shop = {
 	StateTickSeconds = 1,
 	PassCheckTries = 3,
 	PassRetrySeconds = 5,
-	-- The Limited shelf (9): numbered Unique cues, one per player, for a set time. Price in
-	-- money (or Product = a Config.Products key for a Robux one), Cap copies at most.
+	-- The Limited shelf (the approved economy plan, 2026-10-02, section 7): numbered Unique
+	-- cues, one per player, for a set time with a real countdown; once ended never sold again,
+	-- tradable forever. Price in money (or Product = a Config.Products key for a Robux one),
+	-- Cap copies at most (none: no cap). StartsAt (unix, UTC) 0 = off: not shown, not sold,
+	-- until the designer sets it (the Grand Opening's: right before the release is published).
+	-- A new Limited is one row here plus its catalog cue. Founder's and Beta are off (no row)
+	-- until scheduled.
 	Limited = {
-		{ Cue = "BetaCue", Price = 40000, Cap = 1000, StartsAt = 1790553600, Seconds = 30 * 86400 },
-		{
-			Cue = "FoundersCue",
-			Product = "FoundersCue",
-			Cap = 50,
-			StartsAt = 1790553600,
-			Seconds = 30 * 86400,
-		},
+		{ Cue = "GrandOpeningCue", Price = 149000, StartsAt = 0, Seconds = 14 * 86400 },
 	} :: {
 		{
 			Cue: string,
@@ -2446,9 +2444,6 @@ Config.Products = {
 		Spin50 = { Kind = "Product", Id = 0, Robux = 449, Was = 750, Spins = 50, Random = true },
 		Lucky1 = { Kind = "Product", Id = 0, Robux = 49, Lucky = 1, Random = true }, -- no Commons
 		Lucky3 = { Kind = "Product", Id = 0, Robux = 129, Was = 147, Lucky = 3, Random = true },
-		-- The Founder's Cue Limited (Robux): switched off until the designer schedules it (not
-		-- on the Dashboard list; its Limited row is gone with step 7).
-		FoundersCue = { Kind = "Product", Id = 0, Robux = 1499 },
 	},
 }
 
@@ -9249,6 +9244,7 @@ Config.Debug = {
 		FreeCase = "/freecase", -- as if you won a real match (the Case Drop rule)
 		SkipTime = "/skiptime", -- case timers run that many minutes sooner
 		Restock = "/restock", -- this server shows a restock with that item until it ends
+		Limited = "/limited", -- /limited start [minutes] | end | off: this server's Limited window
 		Code = "/code", -- /code on|off <CODE> | /code list: a Live code in every server
 		EconHelp = "/econhelp", -- lists these
 		-- Ultimates, acting on the caller only (`/abilityhelp` lists them). Players call ults

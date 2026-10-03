@@ -271,10 +271,26 @@ function Shop.packForGap(gap: number, firstPackBought: boolean): string?
 	return biggest
 end
 
+-- This server's Limited windows set by the /limited dev command ({ StartsAt, Seconds } by
+-- cue id), over Config's. Only the server sets them (Shop.setWindow).
+local windows: { [string]: { StartsAt: number, Seconds: number } } = {}
+
+-- A row with this server's window applied (a copy when one is set).
+local function effective(row: LimitedRow): LimitedRow
+	local window = windows[row.Cue]
+	if window == nil then
+		return row
+	end
+	local copy = table.clone(row)
+	copy.StartsAt = window.StartsAt
+	copy.Seconds = window.Seconds
+	return copy
+end
+
 local function limitedForProduct(key: string): LimitedRow?
 	for _, row in LIMITED do
 		if row.Product == key then
-			return row
+			return effective(row)
 		end
 	end
 	return nil
@@ -519,18 +535,52 @@ end
 ---------------------------------------------------------------------------------------------
 
 --- Every Limited shelf row (Config.Shop.Limited, shelf order). Read-only.
+--- The scheduled Limited rows (StartsAt above 0), in Config order: what the shelf shows and
+--- the counters read. A row with StartsAt 0 is off.
 function Shop.limited(): { LimitedRow }
-	return LIMITED
+	local list: { LimitedRow } = {}
+	for _, row in LIMITED do
+		local live = effective(row)
+		if whole(live.StartsAt) > 0 then
+			table.insert(list, live)
+		end
+	end
+	return list
 end
 
---- The Limited row for a cue id, or nil.
+--- The Limited row for a cue id (scheduled or off), or nil.
 function Shop.limitedFor(cueId: string): LimitedRow?
 	for _, row in LIMITED do
 		if row.Cue == cueId then
-			return row
+			return effective(row)
 		end
 	end
 	return nil
+end
+
+--- The /limited dev command: Limited `cueId`'s window in this server, from `startsAt` (unix)
+--- for `seconds`; nil for both goes back to Config's. False when it is no Limited row.
+function Shop.setWindow(cueId: string, startsAt: number?, seconds: number?): boolean
+	for _, row in LIMITED do
+		if row.Cue == cueId then
+			if startsAt == nil or seconds == nil then
+				windows[cueId] = nil
+			else
+				windows[cueId] = { StartsAt = whole(startsAt), Seconds = whole(seconds) }
+			end
+			return true
+		end
+	end
+	return false
+end
+
+--- Every Limited row's cue id (scheduled or off), in Config order.
+function Shop.limitedIds(): { string }
+	local ids: { string } = {}
+	for _, row in LIMITED do
+		table.insert(ids, row.Cue)
+	end
+	return ids
 end
 
 --- A Limited row's state at `now`. `sold` is the global copy count (nil when unknown: never
@@ -543,7 +593,12 @@ function Shop.limitedState(
 	owned: boolean
 ): LimitedState
 	local startsAt = whole(row.StartsAt)
-	local endsAt = startsAt + whole(row.Seconds)
+	-- StartsAt 0: off (not scheduled yet), so never open and never ended.
+	local scheduled = startsAt > 0
+	local endsAt = if scheduled then startsAt + whole(row.Seconds) else math.huge
+	if not scheduled then
+		startsAt = math.huge
+	end
 	local soldOut = row.Cap ~= nil and sold ~= nil and sold >= row.Cap
 	local open = now >= startsAt and now < endsAt and not soldOut
 	return {

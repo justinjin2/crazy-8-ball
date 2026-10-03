@@ -54,15 +54,17 @@ return {
 		H.expect(total == 46, ("%d case cues, expected 46"):format(total))
 	end,
 
-	["12 Exclusive (the ten rank cues, VIP, Starter), 2 Unique, Classic, nothing else"] = function()
+	["12 Exclusive (the ten rank cues, VIP, Starter), 3 Unique, Classic, nothing else"] = function()
 		local Catalog, Config = load()
 		local exclusive = Catalog.ofRarity("Exclusive")
 		H.expect(#exclusive == 12, ("%d Exclusive, expected 12"):format(#exclusive))
 		local unique = Catalog.ofRarity("Unique")
-		H.expect(#unique == 2, ("%d Unique, expected 2"):format(#unique))
+		H.expect(#unique == 3, ("%d Unique, expected 3"):format(#unique))
 		H.expect(
-			Catalog.get("FoundersCue") ~= nil and Catalog.get("BetaCue") ~= nil,
-			"Founder's and Beta cues"
+			Catalog.get("FoundersCue") ~= nil
+				and Catalog.get("BetaCue") ~= nil
+				and Catalog.get("GrandOpeningCue") ~= nil,
+			"Founder's, Beta and Grand Opening cues"
 		)
 		H.expect(
 			Catalog.get("VipCue") ~= nil and Catalog.get("StarterCue") ~= nil,
@@ -120,7 +122,7 @@ return {
 		)
 
 		local all = Catalog.list()
-		H.expect(#all == 46 + 12 + 2 + 1, ("%d cues in all, expected 61"):format(#all))
+		H.expect(#all == 46 + 12 + 3 + 1, ("%d cues in all, expected 62"):format(#all))
 	end,
 
 	["ids are unique and every lookup agrees with the list"] = function()

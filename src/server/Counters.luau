@@ -32,6 +32,8 @@ local Shop = require(Shared.Progression.Shop)
 
 local I = Config.Items
 local IS_STUDIO = RunService:IsStudio()
+-- Studio without DataStore access keeps the Limited numbers here, so the shelf can be tried.
+local studioLimited: { [string]: any } = {}
 -- The shard key this server writes its copies to, for its whole life.
 local SHARD_KEY = Counts.shardKey(Counts.shardFor(game.JobId, I.CountsShards))
 
@@ -295,22 +297,31 @@ function Counters.takeLimited(
 	end
 	-- No early "Ended" here: only the stored value knows whether this player already has one.
 	local now = os.time()
-	local store = storeOf("Limited")
-	if store == nil then
-		return nil, "Error"
-	end
 	-- UpdateAsync may run the transform more than once; the last run is the one written.
 	local copy: number? = nil
 	local reason: string? = nil
 	local count = 0
-	local ok, err = pcall(function(): any
-		return store:UpdateAsync(cueId, function(stored: any): any
-			local value
-			value, copy, reason = Counts.takeNext(stored, userId, cap, now, endsAt)
-			count = Counts.sold(if value ~= nil then value else stored)
-			return value
+	local function transform(stored: any): any
+		local value
+		value, copy, reason = Counts.takeNext(stored, userId, cap, now, endsAt)
+		count = Counts.sold(if value ~= nil then value else stored)
+		return value
+	end
+	local store = storeOf("Limited")
+	local ok, err = false, "no DataStore"
+	if store ~= nil then
+		ok, err = pcall(function(): any
+			return store:UpdateAsync(cueId, transform)
 		end)
-	end)
+	end
+	if not ok and IS_STUDIO then
+		-- Studio without DataStores: this server's memory, so a Limited can be tried.
+		local value = transform(studioLimited[cueId])
+		if value ~= nil then
+			studioLimited[cueId] = value
+		end
+		ok = true
+	end
 	if not ok then
 		complain("taking a Limited copy", err)
 		return nil, "Error"
