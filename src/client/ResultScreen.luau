@@ -1477,6 +1477,7 @@ function ResultScreen.showRank(self: any, view: any)
 			rewardCues = xp.rewardCues,
 			preview = view.summary.preview == true,
 			paid = true, -- its money already came in with this screen's total chip
+			held = xp.held == true, -- claimed in Rank (the tutorial lane)
 		})
 	end
 end

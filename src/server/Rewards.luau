@@ -278,6 +278,15 @@ local function answer(ok: boolean, result: any, unknown: string): Reply
 	return refused(if type(result) == "string" then REASONS[result] or "Error" else "Error")
 end
 
+-- The tutorial lane: a call after each code redeemed (TutorialService: RELEASE moves its Code
+-- step on). Nil: none.
+local redeemed: ((Player, string) -> ())? = nil
+
+--- The tutorial lane's hook on redeemed codes (see above).
+function Rewards.onRedeemed(fn: ((Player, string) -> ())?)
+	redeemed = fn
+end
+
 local function onRewardRequest(player: Player, action: any, a: any): Reply
 	if
 		action ~= "ClaimDaily"
@@ -327,6 +336,9 @@ local function onRewardRequest(player: Player, action: any, a: any): Reply
 			return refused("Unknown")
 		end
 		local ok, result = PlayerData.redeemCode(player, a, LiveCodes.on())
+		if ok and redeemed then
+			task.spawn(redeemed, player, a) -- the tutorial lane (Rewards.onRedeemed)
+		end
 		return answer(ok, result, "Unknown")
 	end
 end

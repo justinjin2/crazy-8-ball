@@ -364,18 +364,39 @@ function HANDLERS.BuyCase(player: Player, r: Requests.Request): Reply
 	return refuse("Error")
 end
 
+-- The tutorial lane: a forced result for a case opening (game 1's Standard Case lands on an
+-- Uncommon cue) and a call once a case is opened (TutorialService). Nil: none.
+local openForce: ((Player, string, number) -> { string }?)? = nil
+local onOpened: ((Player, string) -> ())? = nil
+
+--- The tutorial lane's hooks on OpenCase (see above).
+function Items.setOpenHooks(
+	force: ((Player, string, number) -> { string }?)?,
+	opened: ((Player, string) -> ())?
+)
+	openForce, onOpened = force, opened
+end
+
 function HANDLERS.OpenCase(player: Player, r: Requests.Request): Reply
 	local caseId, count = r.caseId :: string, r.count :: number
 	if count > 1 and player:GetAttribute(FAST_OPEN) ~= true then
 		return refuse("NoFastOpen")
 	end
-	local cueIds = {}
-	for _ = 1, count do
-		table.insert(cueIds, (Cases.roll(caseId, roll)))
+	local forced = if openForce then openForce(player, caseId, count) else nil
+	local cueIds: { string } = {}
+	if forced and #forced == count then
+		cueIds = forced
+	else
+		for _ = 1, count do
+			table.insert(cueIds, (Cases.roll(caseId, roll)))
+		end
 	end
 	local ok, result = PlayerData.openCases(player, caseId, cueIds)
 	if not ok then
 		return refuse(Requests.reasonFrom(result))
+	end
+	if onOpened then
+		task.spawn(onOpened, player, caseId)
 	end
 	local results = {}
 	for _, opened in result :: { any } do

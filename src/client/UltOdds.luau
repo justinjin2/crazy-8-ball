@@ -17,6 +17,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Catalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
 local HudParts = require(script.Parent.HudParts)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 local Parts = require(script.Parent.UltScreenParts)
@@ -256,6 +257,7 @@ function UltOdds.buildCode(self: any, parent: Instance)
 	input.ZIndex = 5
 	input.Parent = box
 	self.box, self.boxStroke, self.hint, self.input = box, stroke, hint, input
+	TutorialAnchors.set("CodeBox", box) -- the tutorial lane's hand
 
 	local redeem = HudParts.candy(card, CODES.Redeem, function()
 		self:redeem()

@@ -136,6 +136,29 @@ by step (steps 1-10 of the brief).
     pick view's own title. Not yet seen: the AUGHHHH exit on screen (it ran; the capture
     missed it; checked again with step 5's result screen), phone and gamepad runs.
 
+- **Step 5 done: after game 1 (first server).** Server: `Items.setOpenHooks` (Bronze's
+  Standard Case opens to a random Uncommon cue from the Standard Case at step Drop),
+  `UltSpins.setSpinHooks` + `SpinView`'s `forced` (the starter spin lands on Magnet at step
+  Spin), `Rewards.onRedeemed` (RELEASE moves Code on); `TutorialService` runs Drop -> RareDrop
+  -> Abilities -> Spin -> Code -> Back -> Arrow2 from those hooks and the client's events
+  (RareSeen, OpenedAbilities, ClosedAbilities). Client: the stand-in case card
+  `TutorialReveal` ("You got a Standard Case!" + Open now, then "You got a Rare Case!" with its
+  timer + OK) until GUI's 8-ball is merged; the hand on Open now, OK, Abilities, SPIN, the code
+  box (phone: the Odds button first), Back; on the full-screen Abilities menu the line sits
+  just over the lit button ("Near") so the menu's title stays readable. NEW RANK! shows the
+  gold "Claim your rewards in Rank!" line with nothing flying when the rewards are held.
+  - Checked: lint, tests (962); Studio PC: a whole game 1 won -> step Drop -> the card with the
+    hand on Open now -> the case opening landed on the Hornet Cue (Uncommon) -> the Rare card
+    ("Opens in 59:xx") -> OK -> the hand on Abilities -> SPIN landed on Magnet (twice) ->
+    "Type RELEASE for 3 more spins!" on the code box -> RELEASE gave 3 spins -> "Click Back!"
+    -> Back -> Arrow2 with a new table reserved. Funnel 11-14 printed in order; console clean.
+    Fixed on the way: the hole and hand sat 58 px too high on screens that ignore the top-bar
+    inset (every ScreenGui's AbsolutePosition starts under the bar, so the overlay now always
+    adds the inset); the card's picture was blank and the card covered the hand; the Rare
+    timer read an older Rare timer (now the newest). Not yet seen on screen: the result screen,
+    NEW RANK! with the claim line, and the AUGHHHH exit (they ran; the captures came after);
+    phone and gamepad. All three go into step 10's full run.
+
 ### Rule changes for everyone (made in this lane; the integrator moves them to the docs)
 
 - Reaching Bronze gives 1 Case Drop (was 2), given at once after the first win.
@@ -201,6 +224,23 @@ by step (steps 1-10 of the brief).
 - `Guideline.luau` (step 4): requires `TutorialAnchors`; game 1 uses `TutorialStubLengthInches`.
 - `Reminders.luau` (step 4): the free-spin toast waits while the tutorial hides Abilities.
 - `Strings.luau` (step 4): `Match.FoulShort.EightBack` and `Match.FoulReasons.EightBack`.
+- `Items.luau` (step 5): `openForce`/`onOpened` locals and `Items.setOpenHooks`; `OpenCase`
+  uses the forced cues when the hook gives exactly one per case, and calls `onOpened` after.
+- `Ults/SpinView.luau` (step 5): `SpinOptions.forced`; after `Roll.roll` a forced id replaces
+  the roll (no pity credit).
+- `PlayerData.luau` (step 5): `ultSpin` takes `forced: string?` (last parameter) into the
+  SpinView options.
+- `UltSpins.luau` (step 5): `UltSpins.setSpinHooks`; `spinOnce` passes the forced id (normal
+  spins only) and calls `onSpun`.
+- `Rewards.luau` (step 5): `redeemed` local and `Rewards.onRedeemed` before `onRewardRequest`;
+  a successful Redeem spawns it.
+- `NewRankPopup.luau` (step 5): with `event.held`, a `ClaimLine` label under the chips, the card
+  one line taller, and no item flights. `ResultScreen.luau`: passes `held` on the rank event.
+- `UltScreen.luau` (step 5): requires `TutorialAnchors`; anchors `UltOddsButton`, `SpinBack`,
+  `SpinButton`, probe `UltSpinning`. `UltOdds.luau`: anchor `CodeBox`.
+- `Progression.luau` (step 5): `Progression.openCase(caseId)` and `Progression.caseOpeningUp()`.
+- `Config.luau` / `Strings.luau` (step 5): only inside this lane's `Tutorial` blocks
+  (BronzeCueRarity, SpinUlt, Reveal, Overlay.LineNearGapPx; the step 5 lines).
 - Tests changed for the new values: `ranks_test`, `save_schema_test`, `ult_slots_test`,
   `ult_spins_test`; `tools/economy_config.json` re-exported.
 
@@ -212,7 +252,24 @@ by step (steps 1-10 of the brief).
   freely, keep its claim call; (3) `Popups` waits while the player attribute `TutorialActive`
   is true (as your brief already plans); (4) the Rank button shows a red dot and a glow while
   the player attribute `RankPending` is true; (5) a UI_STYLE line: the tutorial's light dim is
-  a deliberate exception to "popups never darken" (designer, 2026-10-03).
+  a deliberate exception to "popups never darken" (designer, 2026-10-03); (6) step 5 (after
+  game 1) uses a stand-in case card (`TutorialReveal`) because the 8-ball (`MagicBall`) is in
+  `lane-gui` only. Once merged, please: (a) add `MagicBall.play(list, done)` that shows at once
+  without the popup queue (the tutorial calls it for Bronze's Standard Case and then the Rare
+  Case), and register its buttons with `TutorialAnchors.set("OpenNow", ...)` and
+  `TutorialAnchors.set("RevealOk", ...)`; (b) skip `MagicBall.push` for drops while
+  `TutorialActive` is true (the tutorial shows them itself; otherwise they show again in the
+  real server); the integrator then points `TutorialReveal.show` at `MagicBall.play`. (7) Your
+  NEW RANK! rework: keep the `held` line ("Claim your rewards in Rank!", nothing flies) this
+  lane added to `NewRankPopup`, and the one-line anchors in `UltScreen` / `UltOdds` (SpinButton,
+  SpinBack, UltOddsButton, CodeBox) and the `UltSpinning` probe. (8) Your Rewards change (the
+  server claims every day on join) must keep this lane's claim gate: no claim while the
+  player is in the tutorial's first server (`Rewards.setClaimGate`).
+- **Integrator**: a VIP account gets $5,000 on its very first join anyway: the VIP Cue enters
+  its Index and pays the Exclusive finder's money (`Config.Index.FindMoney.Exclusive` 5000, via
+  `Store` -> `PlayerData.giveVipCue`). The designer's Studio account is VIP, so a Studio test
+  of "no money on join" shows $5,000; a normal new player starts at $0. Left as is (not this
+  lane's rule); ask the designer whether VIP's cue should pay finder's money.
 - **Integrator**: the teleport halves of game 2 (Join Global Queue to the arena, Lobby back to
   a public server) and the analytics funnels can only be checked in the published game.
 
@@ -253,3 +310,8 @@ by step (steps 1-10 of the brief).
 - 2026-10-03 (lane): game 1's assist is Magnet's own effect on the player's first-hit ball
   (theirs, or the 8 toward the called pocket), hidden; there is no separate stronger 8 pull,
   since the bot's nudge and the guard already make the 8 safe.
+- 2026-10-03 (lane): the starter spin is forced to Magnet on the first normal spin at step Spin;
+  the existing daily free spin stays, so a new player has one spin left after the tutorial's
+  spin (plus RELEASE's 3).
+- 2026-10-03 (lane): on the Abilities screen the tutorial's line sits just over the lit button
+  instead of at the top, where it covered the menu's ability name.

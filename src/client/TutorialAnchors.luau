@@ -91,6 +91,7 @@ end
 -- flags a screen sets (UltPicked: a ball is chosen in Heat Seeker's pick view, UltPick).
 local turned = 0
 local flags: { [string]: boolean } = {}
+local probes: { [string]: () -> boolean } = {}
 
 --- Input: the aim turned by `degrees`.
 function TutorialAnchors.noteTurn(degrees: number)
@@ -111,7 +112,17 @@ function TutorialAnchors.setFlag(name: string, on: boolean)
 	flags[name] = on
 end
 
+--- A screen's flag read when asked (UltSpinning: the Abilities screen's spin is playing).
+function TutorialAnchors.setProbe(name: string, fn: () -> boolean)
+	probes[name] = fn
+end
+
 function TutorialAnchors.flag(name: string): boolean
+	local probe = probes[name]
+	if probe then
+		local ok, on = pcall(probe)
+		return ok and on == true
+	end
 	return flags[name] == true
 end
 

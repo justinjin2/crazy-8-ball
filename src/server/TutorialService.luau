@@ -22,6 +22,9 @@ local Ranking = require(script.Parent.Ranking)
 local ArenaService = require(script.Parent.ArenaService)
 local Funnel = require(script.Parent.Funnel)
 local TutorialGames = require(script.Parent.TutorialGames)
+local Items = require(script.Parent.Items)
+local UltSpins = require(script.Parent.UltSpins)
+local CueCatalog = require(Shared.Progression.Catalog)
 
 local T = Config.Tutorial
 
@@ -154,13 +157,76 @@ local function onLoaded(player: Player)
 	stepChanged:Fire(player, step, saved)
 end
 
--- What the client may report, and the step each report needs.
+---------------------------------------------------------------------------------------------
+-- After game 1 (docs/prompts/TUTORIAL_PROMPT.md step 5): Drop -> RareDrop -> Abilities -> Spin
+-- -> Code -> Back -> Arrow2. What the server sees moves a step on itself (the case opened, the
+-- spin, the code); what only the screen sees is reported (TutorialEvent).
+---------------------------------------------------------------------------------------------
+
+local cueRandom = Random.new()
+
+-- Bronze's Standard Case opens to an Uncommon cue (answer 9): one of the case's own.
+local function forcedOpen(player: Player, caseId: string, count: number): { string }?
+	if TutorialService.step(player) ~= "Drop" or caseId ~= T.BronzeDropTier or count ~= 1 then
+		return nil
+	end
+	local pool = CueCatalog.droppable(caseId, T.BronzeCueRarity)
+	if #pool == 0 then
+		return nil
+	end
+	return { pool[cueRandom:NextInteger(1, #pool)].Id }
+end
+
+local function opened(player: Player, caseId: string)
+	if TutorialService.step(player) == "Drop" and caseId == T.BronzeDropTier then
+		Funnel.onboarding(player, "OpenedStandardCase")
+		TutorialService.setStep(player, "RareDrop")
+	end
+end
+
+-- The one starter spin lands on Magnet (answer: the spin is rigged to Magnet).
+local function forcedSpin(player: Player): string?
+	return if TutorialService.step(player) == "Spin" then T.SpinUlt else nil
+end
+
+local function spun(player: Player, _id: string)
+	if TutorialService.step(player) == "Spin" then
+		Funnel.onboarding(player, "SpunAbility")
+		TutorialService.setStep(player, "Code")
+	end
+end
+
+local function codeRedeemed(player: Player, code: string)
+	local typed = string.upper((string.gsub(code, "%s", "")))
+	if TutorialService.step(player) == "Code" and typed == Config.Ults.CodeBanner.ActiveCode then
+		TutorialService.setStep(player, "Back")
+	end
+end
+
+-- What the client may report, and the step each report needs:
+--   RareSeen         (RareDrop)  the Rare Case's reveal was closed
+--   OpenedAbilities  (Abilities) the Abilities screen opened
+--   ClosedAbilities  (Spin, Code, Back) it closed: Back moves on to game 2's arrow, closing
+--                    before the spin goes back to the Abilities icon, before the code skips it
 local function onEvent(player: Player, kind: any, _data: any)
 	if type(kind) ~= "string" then
 		return
 	end
+	local step = TutorialService.step(player)
 	if kind == "Skip" then
 		TutorialService.cancel(player, "Skip")
+	elseif kind == "RareSeen" and step == "RareDrop" then
+		Funnel.onboarding(player, "SawRareCase")
+		TutorialService.setStep(player, "Abilities")
+	elseif kind == "OpenedAbilities" and step == "Abilities" then
+		Funnel.onboarding(player, "OpenedAbilities")
+		TutorialService.setStep(player, "Spin")
+	elseif kind == "ClosedAbilities" then
+		if step == "Spin" then
+			TutorialService.setStep(player, "Abilities")
+		elseif step == "Code" or step == "Back" then
+			TutorialService.setStep(player, "Arrow2")
+		end
 	end
 end
 
@@ -216,6 +282,9 @@ function TutorialService.start()
 		end
 		return nil
 	end)
+	Items.setOpenHooks(forcedOpen, opened)
+	UltSpins.setSpinHooks(forcedSpin, spun)
+	Rewards.onRedeemed(codeRedeemed)
 	Net.get("TutorialEvent").OnServerEvent:Connect(onEvent)
 	TutorialGames.start(TutorialService)
 	PlayerData.Loaded:Connect(onLoaded)
@@ -237,6 +306,9 @@ function TutorialService.start()
 				return TutorialService.step(player)
 			elseif op == "set" then
 				return TutorialService.setStep(player, a)
+			elseif op == "case" then
+				-- One case of id `a`, to replay the case steps without a whole game 1.
+				return PlayerData.grantReward(player, { cases = { [a] = 1 } }, "Dev")
 			end
 			error("TutorialQA: unknown op " .. tostring(op))
 		end

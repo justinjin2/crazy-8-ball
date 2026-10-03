@@ -184,6 +184,8 @@ type Game1 = {
 	filled: boolean, -- the ability bar was filled after the aim shot
 	usedAbility: boolean,
 	exited: boolean, -- the bot stormed off
+	sawHand: boolean, -- the ball-in-hand lesson was shown (side event, once)
+	botSeq: number, -- the bot's last shot seen (its scratch is a side event)
 }
 local games: { [Player]: Game1 } = {}
 
@@ -201,6 +203,8 @@ local function gameOf(player: Player, e: any): Game1
 			filled = false,
 			usedAbility = false,
 			exited = false,
+			sawHand = false,
+			botSeq = 0,
 		}
 		games[player] = g
 	end
@@ -306,6 +310,14 @@ local function watchGame1(player: Player, t: any)
 			Tables.broadcast(t)
 		end
 	end
+	-- Side events (the funnel lane of step 9): the bot's scratch, ball in hand shown.
+	if shot and shot.shooter ~= uid and shot.seq ~= g.botSeq then
+		g.botSeq = shot.seq
+		local j = e.pending and e.pending.judgement
+		if j and j.foul == "Scratch" then
+			Funnel.event(player, "TutorialBotScratch")
+		end
+	end
 	if e.calledPocket and e.shooter == uid then
 		Funnel.onboarding(player, "CalledEight")
 	end
@@ -318,6 +330,10 @@ local function watchGame1(player: Player, t: any)
 		end
 	end
 	player:SetAttribute("TutorialLesson", lesson)
+	if lesson == "BallInHand" and not g.sawHand then
+		g.sawHand = true
+		Funnel.event(player, "TutorialBallInHand")
+	end
 	if lesson == "Pick" then
 		local group = Rig.playerGroup(e)
 		local pick = Break.lesson(e.state.geometry, e.state.balls, group)

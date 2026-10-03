@@ -41,7 +41,7 @@ export type Overlay = typeof(setmetatable(
 		gui: ScreenGui,
 		line: TextLabel,
 		lineText: string?,
-		lineLow: boolean, -- the line sits lower (under a screen's own title)
+		linePlace: string, -- "Top", "Low" (under a screen's own title) or "Near" (over the hole)
 		dimFrames: { Frame },
 		ring: Frame,
 		ringCorner: UICorner,
@@ -74,13 +74,10 @@ function TutorialOverlay.guiTarget(object: GuiObject | string, pad: number?): Ta
 		if gui == nil or not gui.Visible then
 			return nil, nil
 		end
-		local layer = gui:FindFirstAncestorWhichIsA("LayerCollector")
-		local offset = Vector2.zero
-		if layer and layer:IsA("ScreenGui") and not layer.IgnoreGuiInset then
-			offset = GuiService:GetGuiInset()
-		end
+		-- AbsolutePosition is measured from under Roblox's top bar for every ScreenGui (one that
+		-- ignores the inset just starts above 0); the overlay's own origin is the screen's top.
 		local size = gui.AbsoluteSize
-		local centre = gui.AbsolutePosition + offset + size / 2
+		local centre = gui.AbsolutePosition + GuiService:GetGuiInset() + size / 2
 		local grow = (pad or O.HolePadPx) * 2
 		return centre, size + Vector2.new(grow, grow)
 	end
@@ -170,7 +167,7 @@ function TutorialOverlay.new(): Overlay
 		gui = gui,
 		line = line,
 		lineText = nil,
-		lineLow = false,
+		linePlace = "Top",
 		dimFrames = frames,
 		ring = ring,
 		ringStroke = stroke,
@@ -262,9 +259,10 @@ function TutorialOverlay.setSkip(self: Overlay, visible: boolean, onSkip: (() ->
 end
 
 --- Shows `text` as the instruction line (a new line pops in with a ding); nil hides it.
---- `low` puts it under a screen's own title.
-function TutorialOverlay.say(self: Overlay, text: string?, low: boolean?)
-	self.lineLow = low == true
+--- `place`: "Top" (the default, under Roblox's bar), "Low" (under a screen's own title) or
+--- "Near" (just over the lit hole, for a full-screen menu whose top is busy).
+function TutorialOverlay.say(self: Overlay, text: string?, place: string?)
+	self.linePlace = place or "Top"
 	if text == self.lineText then
 		return
 	end
@@ -330,7 +328,7 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 	local inset = GuiService:GetGuiInset()
 	local width = math.min(view.X * O.LineWidthScale, O.LineMaxWidthPx)
 	local height = if small then O.LinePhoneHeightPx else O.LineHeightPx
-	local gap = if self.lineLow then O.LineLowGapPx else O.LineTopGapPx
+	local gap = if self.linePlace == "Low" then O.LineLowGapPx else O.LineTopGapPx
 	self.line.Position = UDim2.fromOffset(view.X / 2, inset.Y + gap)
 	self.line.Size = UDim2.fromOffset(width, height)
 	-- The Skip button, top right under the bar.
@@ -361,6 +359,14 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 		f.BackgroundTransparency = alpha
 	end
 	layout(self, centre, size, view)
+	if self.linePlace == "Near" and centre and size then
+		-- Over the hole (under it when the hole is near the top), never under the top bar.
+		local above = centre.Y - size.Y / 2 - O.LineNearGapPx
+		local y = if above - height >= inset.Y + O.LineTopGapPx
+			then above - height
+			else centre.Y + size.Y / 2 + O.LineNearGapPx
+		self.line.Position = UDim2.fromOffset(view.X / 2, y)
+	end
 	self.ringStroke.Transparency = 1 - self.dimAlpha
 end
 

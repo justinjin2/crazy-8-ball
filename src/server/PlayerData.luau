@@ -2223,7 +2223,8 @@ function PlayerData.ultSpin(
 	confirm: boolean?,
 	passes: { [string]: boolean }?,
 	devAll: boolean?,
-	rng: () -> number
+	rng: () -> number,
+	forced: string? -- the tutorial lane: the ult this spin lands on (SpinView)
 ): (boolean, any, string?)
 	local op = "ultSpin"
 	if not isPlayer(player) then
@@ -2253,6 +2254,7 @@ function PlayerData.ultSpin(
 		passes = passes,
 		devAll = devAll == true or Config.Ults.DevAllUlts,
 		rng = rng,
+		forced = if type(forced) == "string" then forced else nil,
 	})
 	if not ok then
 		warn(("[8ball] PlayerData: %s failed for %s: %s"):format(op, who(player), tostring(result)))

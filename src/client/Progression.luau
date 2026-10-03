@@ -243,6 +243,18 @@ function Progression.isBusy(): boolean
 	return started and (popupUp() or Menus.isOpen())
 end
 
+--- The tutorial lane: opens one `caseId` from the inventory (the case opening plays).
+function Progression.openCase(caseId: string)
+	if started then
+		caseOpening:open(caseId, 1)
+	end
+end
+
+--- The tutorial lane: whether the case opening is up.
+function Progression.caseOpeningUp(): boolean
+	return started and caseOpening:isOpen()
+end
+
 --- The rematch row on the result screen (designer, 2026-09-28): Main presses its buttons
 --- (`fn(kind, summary)`), asks which summary's row is up, draws its state and ends it.
 function Progression.setChoiceHandler(fn: (string, any) -> ())

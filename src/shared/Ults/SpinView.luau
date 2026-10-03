@@ -241,6 +241,7 @@ export type SpinOptions = {
 	passes: Slots.Passes?, -- the slot passes owned
 	devAll: boolean?, -- the developer flag: placeholders roll too
 	rng: () -> number, -- [0, 1)
+	forced: string?, -- the tutorial lane: the ult this spin lands on (its first spin: Magnet)
 }
 
 export type SpinResult = {
@@ -273,6 +274,10 @@ function SpinView.spin(ults: any, opts: SpinOptions): (SpinResult?, string?, str
 	end
 	local kind = if opts.lucky then "Lucky" else "Normal"
 	local id, rarity, pity, wasPity = Roll.roll(kind, ults.Pity, opts.rng, opts.devAll)
+	if opts.forced and Catalog.get(opts.forced) then
+		-- The tutorial's spin (the pity still counts on as for the roll it replaces).
+		id, rarity, wasPity = opts.forced :: string, Catalog.rarity(opts.forced) or rarity, false
+	end
 	local used, takeWhy = Slots.take(ults, opts.lucky, opts.day)
 	if used == nil then
 		return nil, takeWhy, nil

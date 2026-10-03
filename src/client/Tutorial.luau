@@ -21,6 +21,10 @@ local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local TutorialOverlay = require(script.Parent.TutorialOverlay)
 local TutorialHand = require(script.Parent.TutorialHand)
 local TutorialArrow = require(script.Parent.TutorialArrow)
+local TutorialReveal = require(script.Parent.TutorialReveal)
+local Progression = require(script.Parent.Progression)
+local Menus = require(script.Parent.Menus)
+local ItemState = require(script.Parent.ItemState)
 
 local Tutorial = {}
 
@@ -29,6 +33,9 @@ local player = Players.LocalPlayer
 local overlay: TutorialOverlay.Overlay
 local hand: TutorialHand.Hand
 local arrow: TutorialArrow.Arrow
+local reveal: TutorialReveal.Reveal
+
+local ULTS = Config.UI.UltScreen.Column.Name
 
 local Copy = Strings.Tutorial
 local L = Config.Tutorial.Lessons
@@ -224,13 +231,13 @@ local function game1Scene(device: string): string
 			local confirm = TutorialOverlay.guiTarget("UltConfirm")
 			overlay:dim(confirm)
 			hand:point(confirm)
-			overlay:say(words(Copy.PickConfirm, device), true)
+			overlay:say(words(Copy.PickConfirm, device), "Low")
 		else
 			local id = player:GetAttribute("TutorialPickBall")
 			local ring = TutorialOverlay.guiTarget("PickBall" .. tostring(id))
 			overlay:dim(ring)
 			hand:point(ring)
-			overlay:say(words(Copy.Pick, device), true)
+			overlay:say(words(Copy.Pick, device), "Low")
 		end
 	elseif lesson == "BallInHand" then
 		overlay:dim(nil)
@@ -266,6 +273,105 @@ local function game1Scene(device: string): string
 	return "game1" .. lesson .. device
 end
 
+-- The match's Rare Case on its timer (the newest Rare timer, the first win's): when it is
+-- ready, or nil.
+local function rareReadyAt(): number?
+	local items = ItemState.items()
+	local latest: number? = nil
+	for _, timer in (items and items.timers) or {} do
+		if timer.id == "Rare" and (latest == nil or timer.readyAt > latest) then
+			latest = timer.readyAt
+		end
+	end
+	return latest
+end
+
+-- Points at a GUI anchor with the dim and the line (at `place`, see TutorialOverlay.say), the
+-- gamepad's selection on it when the scene is new. Nothing while the anchor is not on screen.
+local function pointAt(anchor: string, text: string, device: string, fresh: boolean, place: string?)
+	if not TutorialAnchors.showing(anchor) then
+		lineOnly(nil)
+		return
+	end
+	local target = TutorialOverlay.guiTarget(anchor)
+	overlay:dim(target)
+	hand:point(target)
+	overlay:say(text, place)
+	local object = TutorialAnchors.get(anchor)
+	if fresh and device == "gamepad" and object and object.Selectable then
+		GuiService.SelectedObject = object
+	end
+end
+
+-- The step after game 1 shown last, so a new one can start its own way.
+local lastAfter = ""
+
+-- After game 1 (step 5): the two cases, then the Abilities screen.
+local function afterScene(step: string, device: string): string
+	arrow:show(nil)
+	local fresh = step ~= lastAfter
+	lastAfter = step
+	local ultsOpen = Menus.isOpen(ULTS)
+	if step == "Drop" or step == "RareDrop" then
+		-- Wait for the result screen, NEW RANK! and the case opening.
+		if Progression.isBusy() then
+			reveal:hide()
+			lineOnly(nil)
+			return step .. "busy"
+		end
+		if step == "Drop" then
+			if ItemState.caseCount(Config.Tutorial.BronzeDropTier) <= 0 then
+				reveal:hide()
+				lineOnly(nil)
+				return "dropEmpty"
+			end
+			reveal:show("Drop", Config.Tutorial.BronzeDropTier, nil, function()
+				Progression.openCase(Config.Tutorial.BronzeDropTier)
+			end, nil)
+			pointAt("OpenNow", words(Copy.Drop, device), device, fresh)
+		else
+			reveal:show("Rare", "Rare", rareReadyAt(), nil, function()
+				Tutorial.report("RareSeen")
+			end)
+			pointAt("RevealOk", Copy.RareDrop, device, fresh)
+		end
+		return step .. device
+	end
+	reveal:hide()
+	if step == "Abilities" then
+		if ultsOpen then
+			Tutorial.report("OpenedAbilities")
+			lineOnly(nil)
+		else
+			pointAt("Abilities", words(Copy.Abilities, device), device, false)
+		end
+	elseif not ultsOpen then
+		-- The Abilities screen closed (Back, or early): the server moves the step on.
+		if fresh or shownKey ~= "closed" .. step then
+			Tutorial.report("ClosedAbilities")
+		end
+		lineOnly(nil)
+		return "closed" .. step
+	elseif step == "Spin" then
+		pointAt("SpinButton", words(Copy.Spin, device), device, fresh, "Near")
+	elseif step == "Code" then
+		if TutorialAnchors.flag("UltSpinning") then
+			lineOnly(nil)
+		elseif TutorialAnchors.showing("CodeBox") then
+			pointAt("CodeBox", Copy.Code, device, false, "Near")
+		else
+			pointAt("UltOddsButton", words(Copy.CodeOdds, device), device, fresh, "Near")
+		end
+	elseif step == "Back" then
+		if TutorialAnchors.flag("UltSpinning") then
+			lineOnly(nil)
+		else
+			pointAt("SpinBack", words(Copy.Back, device), device, fresh, "Near")
+		end
+	end
+	return step .. device
+end
+
 -- Builds the scene for the step now (the line, the dim, the hand, the arrow). Cheap enough
 -- to run every frame: each piece only changes when its input does.
 local function scene(step: string, device: string): string
@@ -279,7 +385,11 @@ local function scene(step: string, device: string): string
 		return padScene("Request", Copy.Request, device)
 	elseif step == "Game1" then
 		return game1Scene(device)
+	elseif Steps.atLeast(step, "Drop") and not Steps.atLeast(step, "Arrow2") then
+		return afterScene(step, device)
 	end
+	reveal:hide()
+	lastAfter = ""
 	-- Steps still to come keep the screen clear.
 	arrow:show(nil)
 	overlay:dim(nil)
@@ -289,9 +399,11 @@ local function scene(step: string, device: string): string
 end
 
 local function update()
+	reveal:update()
 	if not Tutorial.active() then
 		shownKey = ""
 		TutorialAnchors.setAimLock(nil)
+		reveal:hide()
 		return
 	end
 	shownKey = scene(Tutorial.step(), Tutorial.device())
@@ -354,6 +466,7 @@ function Tutorial.start()
 	overlay = TutorialOverlay.new()
 	hand = TutorialHand.new(overlay.gui)
 	arrow = TutorialArrow.new()
+	reveal = TutorialReveal.new(overlay.gui)
 	player:GetAttributeChangedSignal("TutorialStep"):Connect(refresh)
 	refresh()
 	RunService.RenderStepped:Connect(update)

@@ -412,6 +412,22 @@ function NewRankPopup.openUp(self: any, item: any)
 		C.ChipRowGap
 	)
 	view.height = chipsTop + rowsHeight + C.Gap + C.ButtonHeight
+	-- Held rewards (the tutorial lane, designer 2026-10-03): they wait in Rank, so nothing flies
+	-- and a line says where to claim them.
+	if event.held == true then
+		local line = HudParts.text(
+			stage,
+			"ClaimLine",
+			C.RewardTextPx,
+			Strings.RankClaim.ClaimLine,
+			tone("Gold")
+		)
+		line.TextWrapped = false
+		line.Position = UDim2.fromOffset(0, chipsTop + rowsHeight + 4)
+		line.Size = UDim2.fromOffset(C.Width, C.NameHeight)
+		line.ZIndex = 4
+		view.height += C.NameHeight
+	end
 	view.width = math.max(C.Width, widest)
 	holder.Size = UDim2.fromOffset(C.Width, view.height)
 	-- The cases and the cue fly to Inventory one after another, after the money; the spins
@@ -419,7 +435,7 @@ function NewRankPopup.openUp(self: any, item: any)
 	local at = view.rewardAt + C.ItemFlyAfter
 	for _, chip in view.chips do
 		local kind = chip.spec.kind
-		if kind == "Case" or kind == "Cue" or kind == "Spins" then
+		if (kind == "Case" or kind == "Cue" or kind == "Spins") and event.held ~= true then
 			table.insert(view.flights, { chip = chip, at = at })
 			at += C.ItemFlyStagger
 		end

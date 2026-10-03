@@ -9337,8 +9337,22 @@ Config.Tutorial = {
 		AimTurnedDegrees = 2, -- once the player has turned this much, the line says to shoot
 		DragPx = { 170, -80 }, -- the ball-in-hand demo drags the ghost ball this far (px)
 	},
+	-- The stand-in case card after game 1 (src/client/TutorialReveal.luau; the GUI lane's
+	-- 8-ball replaces it once merged). Pixels.
+	Reveal = {
+		WidthPx = 360,
+		HeightPx = 330,
+		PadPx = 18,
+		TitlePx = 28,
+		PicturePx = 150,
+		NotePx = 22,
+		ButtonPx = 52,
+		ButtonWidthPx = 200,
+	},
 	-- Game 1's rewards (answer 9): Bronze's Case Drop is a Standard Case, opened at once.
 	BronzeDropTier = "Standard",
+	BronzeCueRarity = "Uncommon", -- that case opens to a cue of this rarity (answer 9)
+	SpinUlt = "Magnet", -- the one starter spin lands on this ability
 	-- The art (tools/gen_tutorial_art.py; uploaded to the group, tools/upload_manifest_tutorial
 	-- .json): the pointer hand after reference 01's style, the mouse, the floor arrow after
 	-- reference 02's arrow path.
@@ -9358,6 +9372,7 @@ Config.Tutorial = {
 		LineMaxWidthPx = 900,
 		LineTopGapPx = 10, -- under Roblox's top bar
 		LineLowGapPx = 80, -- a low line clears a screen's own title (Heat Seeker's pick pill)
+		LineNearGapPx = 80, -- a "Near" line's gap over the lit hole: clears the hand
 		-- The light dim (designer, 2026-10-03: light): black at this transparency.
 		DimTransparency = 0.65,
 		DimFadeSeconds = 0.25,

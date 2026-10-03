@@ -1325,6 +1325,40 @@ return {
 			Touch = "Ball in hand! Drag the white ball anywhere.",
 			Gamepad = "Ball in hand! Hold L2 and tilt the left stick to move it.",
 		},
+		-- After game 1 (step 5).
+		Reveal = {
+			Got = "You got a %s!",
+			OpenNow = "Open now",
+			Ok = "OK",
+			ReadyIn = "Opens in %s",
+		},
+		Drop = {
+			Mouse = "Click Open now!",
+			Touch = "Tap Open now!",
+			Gamepad = "Press A to open your case!",
+		},
+		RareDrop = "Your Rare Case opens in 1 hour!",
+		Abilities = {
+			Mouse = "Click Abilities!",
+			Touch = "Tap Abilities!",
+			Gamepad = "Press X to open Abilities!",
+		},
+		Spin = {
+			Mouse = "Click SPIN for a new ability!",
+			Touch = "Tap SPIN for a new ability!",
+			Gamepad = "Press A to SPIN for a new ability!",
+		},
+		Code = "Type RELEASE for 3 more spins!",
+		CodeOdds = {
+			Mouse = "Click Odds, then type RELEASE for 3 more spins!",
+			Touch = "Tap Odds, then type RELEASE for 3 more spins!",
+			Gamepad = "Open Odds, then type RELEASE for 3 more spins!",
+		},
+		Back = {
+			Mouse = "Click Back!",
+			Touch = "Tap Back!",
+			Gamepad = "Press B to go back!",
+		},
 		Eight = {
 			Mouse = "SELECT WHICH POCKET!",
 			Touch = "SELECT WHICH POCKET!",
