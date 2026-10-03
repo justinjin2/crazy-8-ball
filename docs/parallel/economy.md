@@ -273,6 +273,12 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   Net.luau), reasons in `Strings` (NotHere, Self, NoInvite, NoSession, Empty, NotTradable,
   PaidBlocked, Changed). Show `lopsided` as a warning, `problem` as why accept is off, the
   `confirmAt` countdown, and the history from "History".
+- **Follow-up (2026-10-03): restricted regions and spin odds.** Where PolicyService restricts
+  paid random items, VIP's daily spin and Quick Cases' timer halving are off (both wait until
+  PolicyService has answered "not restricted"); Quick Cases' open-all-at-once still works.
+  The spin screen's odds rows carry `percent` (ppm / 10,000; each list adds to 100).
+  Checked: Studio, VIP +1 spin and a 30-minute Rare timer unrestricted; 0 and 60 minutes
+  restricted; `ult_spins_test` checks the percents.
 
 ### Changes to shared files (existing lines)
 
@@ -327,6 +333,9 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   touched outside economy: `ult_roll_test`, `ult_spins_test`, `ult_slots_test` (Magnet's
   rarity, the spin price).
 - (step 6) new `Config.BotCues` (no existing lines changed).
+- (follow-up) `PlayerData` (Quick Cases' timers need PaidRandomRestricted == false),
+  `Store` (the halving likewise), `Rewards` (VIP's spin likewise), `Ults/SpinView` (odds
+  rows carry `percent`), `tests/ult_spins_test`.
 - (step 8) new `Config.Trade`; `Inventory.takeCases(save, id, n, freeFirst)` (new optional
   argument); `PlayerData`: `tradePlan`, `applyTrade`, `replayTrade`, `tradeApplied`,
   `tradeHistory`; `Net`: `TradeRequest`, `TradeState`; `Bootstrap`: `Trading.start()`;
@@ -366,7 +375,10 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   purchases by age-checked US adults only in games without R6). (2) Create the 4 game passes
   and 24 developer products with the designer (list in the brief, step 3) and paste the ids
   into `Config.Products`. (3) Set `GrandOpeningCue`'s `StartsAt` (UTC) right before publishing
-  the release. (4) Save v6 wipes every save (designer, 2026-10-03).
+  the release. (4) Save v6 wipes every save (designer, 2026-10-03). (5) When creating the
+  VIP Welcome Offer product, opt it out of Managed Pricing, so "half price" stays true. (6)
+  `Bootstrap.server.luau` now starts `Trading` (and `EconomyLog`): keep both lines when
+  merging.
 
 ## Decisions (dated; the integrator copies them to DECISIONS.md)
 

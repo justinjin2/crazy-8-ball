@@ -364,7 +364,9 @@ export type Payload = {
 	spinReason: string?, -- why not ("Locked", "NoSpins", "NotOwned")
 	canLucky: boolean,
 	luckyReason: string?,
-	odds: { normal: Roll.Odds, lucky: Roll.Odds, pity: Roll.Odds }, -- the true current odds
+	-- The true current odds; each row also carries `percent` (ppm / 10,000: odds are shown as
+	-- percentages, the economy plan 2026-10-02), so a list's percents add to 100.
+	odds: { normal: Roll.Odds, lucky: Roll.Odds, pity: Roll.Odds },
 	live: boolean,
 	devAll: boolean,
 	restricted: boolean, -- hide the R$ and $ buy buttons and Lucky Spins, with the note
@@ -424,6 +426,17 @@ local function productView(key: string, ctx: Context): ProductView
 	}
 end
 
+-- Odds with each row's percent added (a copy: Roll.odds hands out copies already).
+local function withPercent(odds: Roll.Odds): Roll.Odds
+	for _, row in odds.rarities do
+		(row :: any).percent = row.ppm / 10000
+	end
+	for _, row in odds.ults do
+		(row :: any).percent = row.ppm / 10000
+	end
+	return odds
+end
+
 --- The UltState payload for one player (its shape is written in Net.luau, UltState). Fresh
 --- plain tables a remote can carry.
 function SpinView.state(ctx: Context): Payload
@@ -468,9 +481,9 @@ function SpinView.state(ctx: Context): Payload
 		canLucky = canLucky,
 		luckyReason = luckyReason,
 		odds = {
-			normal = Roll.odds("Normal", ctx.devAll),
-			lucky = Roll.odds("Lucky", ctx.devAll),
-			pity = Roll.pityOdds(ctx.devAll),
+			normal = withPercent(Roll.odds("Normal", ctx.devAll)),
+			lucky = withPercent(Roll.odds("Lucky", ctx.devAll)),
+			pity = withPercent(Roll.pityOdds(ctx.devAll)),
 		},
 		live = ctx.live == true,
 		devAll = ctx.devAll == true,

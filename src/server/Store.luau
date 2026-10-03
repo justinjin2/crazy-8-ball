@@ -245,8 +245,14 @@ local function setAttributes(player: Player, shopSave: any?)
 	if player:GetAttribute(ATTR.FastOpen) ~= fastOpen then
 		player:SetAttribute(ATTR.FastOpen, fastOpen)
 	end
-	-- Quick Cases also halves the case timers already running, once (PlayerData).
-	if fastOpen and type(shopSave) == "table" and shopSave.QuickApplied == false then
+	-- Quick Cases also halves the case timers already running, once (PlayerData); not where
+	-- paid random items are restricted (only once PolicyService has answered).
+	if
+		fastOpen
+		and player:GetAttribute(ATTR.Restricted) == false
+		and type(shopSave) == "table"
+		and shopSave.QuickApplied == false
+	then
 		task.defer(PlayerData.applyQuickCases, player)
 	end
 end

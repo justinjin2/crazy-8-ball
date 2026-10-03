@@ -83,9 +83,12 @@ end
 -- The state (RewardState)
 ---------------------------------------------------------------------------------------------
 
--- Whether the player is VIP now (the Store's attribute: the pass or the welcome offer).
+-- Whether the player gets VIP's daily ability spin now: VIP (the Store's attribute: the pass
+-- or the welcome offer) where paid random items are not restricted (PolicyService has
+-- answered no; plan section 4).
 local function isVip(player: Player): boolean
 	return player:GetAttribute("Vip") == true
+		and player:GetAttribute("PaidRandomRestricted") == false
 end
 
 -- The RewardState payload for this player now, and today's Daily; nil when not loaded.
@@ -401,7 +404,7 @@ local function onLoaded(player: Player)
 	credited[player] = os.clock()
 	mark(player)
 	-- VIP (its daily spin on the tiles) and the group answer arrive after the load.
-	for _, attribute in { "Vip", "InGroup" } do
+	for _, attribute in { "Vip", "InGroup", "PaidRandomRestricted" } do
 		player:GetAttributeChangedSignal(attribute):Connect(function()
 			mark(player)
 		end)

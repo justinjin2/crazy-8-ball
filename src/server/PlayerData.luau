@@ -200,6 +200,7 @@ PlayerData.InviteWon = inviteEvent.Event
 -- Whether the player whose save is being changed has Quick Cases (the Store's FastOpen
 -- attribute, read when the mutation fetched the save): new case timers run at half time.
 local QUICK_ATTR = "FastOpen"
+local RESTRICTED_ATTR = "PaidRandomRestricted"
 local quickOf: { [any]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 
 -- The server's own randomness for Case Drops.
@@ -275,7 +276,10 @@ local function liveData(op: string, player: Player): any?
 		local data = profile.Data
 		-- Every change starts from a save whose finished case timers are in their stacks.
 		Inventory.finishTimers(data, os.time())
+		-- Quick Cases' timer perk is a paid random item perk: only once PolicyService has
+		-- said this player is not restricted (Items' attribute; plan section 4).
 		quickOf[data] = player:GetAttribute(QUICK_ATTR) == true
+			and player:GetAttribute(RESTRICTED_ATTR) == false
 		return data
 	end
 	warn(("[8ball] PlayerData: %s dropped for %s: not loaded"):format(op, who(player)))

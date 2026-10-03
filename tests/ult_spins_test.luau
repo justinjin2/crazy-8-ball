@@ -479,15 +479,17 @@ return {
 		H.expect(p.canSpin and not p.canLucky and p.luckyReason == "NoLucky", "the buttons")
 		H.expect(not p.needsConfirm, "Magnet needs no confirm")
 		for name, odds in { normal = p.odds.normal, lucky = p.odds.lucky, pity = p.odds.pity } do
-			local total = 0
+			local total, percent = 0, 0
 			for _, row in odds.rarities do
 				total += row.ppm
+				percent += (row :: any).percent
 			end
 			-- While only Commons are built, Lucky (no Commons) has nothing to land.
 			local want = if name == "lucky" and not Roll.available("Lucky", false)
 				then 0
 				else Roll.TOTAL
 			H.expect(total == want, name .. ": odds add up")
+			H.near(percent, want / 10000, 1e-9, name .. ": shown as percents adding to 100")
 		end
 		H.expect(p.live and not p.restricted and not p.fastOpen and not p.devAll, "flags")
 		H.expect(p.moneyPerSpin == 17500 and #p.moneyPacks == 4, "money")
