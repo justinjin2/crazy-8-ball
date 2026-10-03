@@ -2260,3 +2260,14 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-10-02 (designer, Bots lane): disguised lobby bot rematch: it waits for the player, answers 1-3 s later and accepts about 85% of the time.
 - 2026-10-02 (designer, Bots lane): lobby bots start bot-vs-bot games only while at least 3 1v1 tables stay free; a real player stepping onto their pad makes them stop and walk off.
 - 2026-10-02 (designer, Bots lane): bot names in a real-Roblox mix (`PixelPanda_482`, `itz_mikey77`, `xXShadowStrikeXx`, `coolkid2013`...).
+- 2026-10-03 (designer, Economy lane): **save v6 is a full wipe** (only friends had played): every older save starts over as a new player's, keeping only its purchase receipt ids. This supersedes v5's rank-only reset.
+- 2026-10-03 (designer, Economy lane): **money is x10** everywhere ($100 a ball, $500 a win, $150 a loss); boosts add (VIP, Money Party, the Starter hour, group +10%), so the Starter hour's 2x on top of VIP's gives x3.
+- 2026-10-03 (designer, Economy lane): **Case Drops replace bought cases**: every real win rolls one of six cases with pity (Rare by the 10th, Epic by the 150th); Rare and up open on timers (1 h, 6 h, 24 h, 48 h); no case is sold for money. The first win's guaranteed Rare Case keeps its 1 h timer. Instant cases end the reveal on Open now / Later.
+- 2026-10-03 (designer, Economy lane): **the restock shop**: new cases every 10 minutes, the same in every server, with a filler of 3 Mystery Cases for $14,700 and a Legendary Case 0.15% of the time (25 across every server).
+- 2026-10-03 (designer, Economy lane): Legendary pulls are announced in the server; Mythic and Secret in every server.
+- 2026-10-03 (designer, Economy lane): **group 675425213**: Join + Claim gives 3 Case Drops once, and +10% match money while a member. Six like codes (LIKES1K to LIKES100K) are switched on live with `/code on`. Invites with light checks (invite launch data, a brand-new save, any real win, at most 5 a month).
+- 2026-10-03 (designer, Economy lane): **trading is in the release, open to anyone in the server** (no 25-win gate), cues and ready cases, never money; 50 trades of history.
+- 2026-10-03 (designer, Economy lane): the hidden disguised-bot limit (20 disguised wins a UTC day, then PC pay and no drop) shows nothing to the player.
+- 2026-10-03 (designer, Economy lane): **Grand Opening Cue** ($149,000, 14 days, numbered, placeholder colours) starts on a date the designer sets; no next Limited scheduled yet.
+- 2026-10-03 (Economy lane): the login reward is claimed by itself on join on loop day 1; the streak freeze covers one missed day once a UTC week (Monday start); VIP's daily spin is added to each day's login claim; "any real match" for invites means any non-solo win (people, disguised bots, Play against PC).
+- 2026-10-03 (Economy lane): a bot's Mythic+ cue is always a Mythic, never the Secret cue.

@@ -332,6 +332,10 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   every case, and PolicyService's restricted players refused paid random cases (a note in the
   Shop; free cases still open). Still to do: the product ids from the Creator Hub (id 0 shows
   "Coming soon"), a live receipt, and a restricted-region direct-purchase shelf if needed.
+  Progress 2026-10-03 (the Economy lane, merged into `release`): money x10, the new Dashboard
+  list in `Config.Products` (4 passes, 24 products: packs $9,000 to $1,300,000, Mystery, restock
+  cases, skips), odds as percentages, restricted regions refused paid random items. Still to
+  do: create the products, paste the ids, a live purchase.
 - [x] **7.2 Loot boxes.** Permanent cue box; Season 0 limited cue box.
   Done 2026-09-28 (branch `economy`, overnight) for the money cases: Standard, Rare, Epic and
   Legendary cases bought with money (Buy 10 for the price of 9, sales), free win cases, the
@@ -343,11 +347,18 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   money with numbered copies ("#1 of 1,000"), the Founder's Cue for Robux (id 0), and "N exist"
   on every cue from a shared counter. Still to do: a live check of the counters across
   servers, and the real timed drops.
+  Progress 2026-10-03 (the Economy lane): the shelf holds one row, the Grand Opening Cue
+  ($149,000, 14 days, numbered), off until its `StartsAt` is set before publishing; `/limited`
+  to test. Founder's and Beta have no row.
 - [ ] **7.5 VIP pass and starter offer.**
-  Progress 2026-09-28 (branch `economy`, overnight): VIP (2x money, +50% XP, the VIP Cue, the
+  Progress 2026-09-28 (branch `economy`, overnight): VIP (2x money, +50% XP (removed
+  2026-10-02), the VIP Cue, the
   [VIP] rainbow tag and name shine), Fast Open, the Starter Pack and the welcome VIP offer with
   their timers, the Money Party; all behind product ids that are still 0. Still to do: the ids
   and a live purchase.
+  Progress 2026-10-03 (the Economy lane): VIP 599 R$ (+1 daily spin), the Starter Pack 99 R$
+  ($75,000 and an hour of 2x money), Quick Cases 299 R$ (replaces Fast Open: halves timers).
+  Still to do: the ids and a live purchase.
 - [x] **7.6 Retention.** 7-day daily streak, playtime reward, reminders on menu open, focus
   loss and the post-match screen.
   Done 2026-09-28 (branch `economy`, overnight): the daily streak in four-week cycles (a
@@ -362,6 +373,10 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
 
 ## Stage 5: The first-time tutorial, the funnel and release
 
+  Progress 2026-10-03 (the Economy lane): the server side (invite, offers, both accept, a
+  3-second wait, the atomic swap with a ledger that replays a lost trade), anyone in the
+  server, cues and ready cases. Still to do: the trade screen (GUI lane) and a real
+  two-player trade.
 - [ ] **4.1 The hub map.** The rooftop pool club (GDD section 10): the map, the tables in it,
   lighting, sittable seats and zone signs.
   - [x] The rooftop pool club: the map, the tables in it, the day and sunset lighting, sittable

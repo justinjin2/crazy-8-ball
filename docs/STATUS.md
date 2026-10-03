@@ -1,6 +1,30 @@
 # Status
 
-**2026-10-02 (latest): the Bots lane is merged into `release`** (parallel build,
+**2026-10-03 (latest): the Economy lane is merged into `release`** (parallel build,
+`docs/parallel/economy.md`, brief `docs/prompts/ECONOMY_PROMPT.md`, numbers in
+`docs/ECONOMY.md`).
+- **Save v6 wipes every save** (only friends had played); money is x10 ($100 a ball, $500 a
+  win, about $7,300 an hour of Classic).
+- **Case Drops:** every real win rolls one of six cases (Standard 68% ... Mythic 0.0004%),
+  with pity (Rare by the 10th, Epic by the 150th); Rare and up open on timers (1 h to 48 h).
+  No case is sold for money. The first win gives a Rare Case on its 1 h timer.
+- **Shop (server):** Mystery Cases ($4,900), a restock shop every 10 minutes (the same in
+  every server; a Legendary Case 0.15% of the time, 25 across all servers), timer skips,
+  the Grand Opening Cue Limited (off until its start date is set), 4 game passes and 24
+  developer products (ids still 0), a Roblox Plus button.
+- **Rewards:** a 7-day login loop with a weekly freeze, the 28-day track, five playtime
+  gifts, codes (six like codes switched on live with `/code on`), the group (675425213: 3
+  Case Drops and +10% money), invites, new rank rewards.
+- **Trading on the server** (no screen yet: the GUI lane's).
+- **Bots' cues by tier** (`BotCues.pick`), not wired into the bots yet.
+- Rarity model (day 30, everything built): Epic 6.76% of active players, 35% over the plan's
+  5.6% (the plan allows 20%); Legendary 1.17%, Mythic 0.15%, Secret 0.02%. The designer has
+  not decided whether to trim.
+- Lint and all 946 tests pass on `release`. Checked in the Economy lane's Studio window on PC;
+  the designer has not playtested it yet. Still to check: real purchases (need the product
+  ids), a real two-player trade, phone and gamepad.
+
+**2026-10-02: the Bots lane is merged into `release`** (parallel build,
 `docs/parallel/bots.md`, brief `docs/prompts/BOTS_PROMPT.md`).
 - Built: the bot brain (shot finder, near misses, ball in hand) tuned per tier; **Play against
   PC** (a robot, "<Tier> Bot", rematch, PC pay); disguised bots with real avatars and made-up
