@@ -6,7 +6,7 @@ Folder `~/Desktop/8ball-economy`, branch `lane-economy`, Rojo port 34873, Studio
 ## The job
 
 Every number in the game's economy, and the server code behind buying things. The screens are
-the GUI lane's (the shop included); the reveal moments are the Cutscenes lane's.
+the GUI lane's (the shop and the reveal moments included; the Cutscenes lane was folded into GUI on 2026-10-03).
 
 - **Money** (the designer, 2026-10-02): how much a match, an hour, the Index, rank rewards,
   daily and playtime gifts, codes and sell-back pay; VIP's 2x money. Today a match pays about
@@ -100,7 +100,7 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
     `MatchSummary.caseDrop`, opening it early answered NotReady, after skipping the hour it
     opened, three reward drops came on the `CaseDrop` remote, BuyCase answers NotSold, the
     inventory and the case reel still work (PC).
-- **For Cutscenes** (the 8-ball reveal): the payload is `{ source, tier, climbs, readyAt,
+- **For Cutscenes, now GUI** (the 8-ball reveal): the payload is `{ source, tier, climbs, readyAt,
   instant, pity = { rare, epic } }` (pity = drops left until guaranteed; 1 = the next).
   A win's comes in `MatchSummary.caseDrop`; everything else (Mystery, rewards, /freecase) on
   the new `CaseDrop` RemoteEvent as a list. The case is already in the save when it arrives.
@@ -377,7 +377,7 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   The trade screen. The group, invite and code cards in Rewards. "Need $X more" opens the
   money packs with the smallest covering pack highlighted, never right after a loss. Payload
   fields are listed in Status as each step lands.
-- **Cutscenes**: the Case Drop reveal is a magic 8-ball the player shakes with a finger (mouse,
+- **Cutscenes, now GUI**: the Case Drop reveal is a magic 8-ball the player shakes with a finger (mouse,
   gamepad); it flips and the triangle shows the case tier; each shake can climb one step
   (Starr Drop style). The server decides first: the `CaseDrop` payload sends the final tier and
   `climbs`; no fake "almost" moments. Instant cases (Standard, Uncommon) end on Open now / Later;

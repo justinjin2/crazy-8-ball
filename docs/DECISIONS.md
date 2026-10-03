@@ -2271,3 +2271,4 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-10-03 (designer, Economy lane): **Grand Opening Cue** ($149,000, 14 days, numbered, placeholder colours) starts on a date the designer sets; no next Limited scheduled yet.
 - 2026-10-03 (Economy lane): the login reward is claimed by itself on join on loop day 1; the streak freeze covers one missed day once a UTC week (Monday start); VIP's daily spin is added to each day's login claim; "any real match" for invites means any non-solo win (people, disguised bots, Play against PC).
 - 2026-10-03 (Economy lane): a bot's Mythic+ cue is always a Mythic, never the Secret cue.
+- 2026-10-03 (designer): **the Cutscenes lane is folded into the GUI lane**: one lane owns every screen and every reward moment (match result, the 8-ball Case Drop reveal, case opening, cue pulls, rank-up, spin reveals), so one style runs through all of them. The remaining lanes are GUI and Tutorial.

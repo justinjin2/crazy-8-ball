@@ -15,8 +15,7 @@ CLAUDE.md still applies in full; this file only adds the rules for working side 
 | Integrator | `~/Desktop/8ball` | `release` | 34872 | the Team Create place | this file |
 | Economy | `~/Desktop/8ball-economy` | `lane-economy` | 34873 | `place/lane-economy.rbxl` | [economy.md](economy.md) |
 | Bots | `~/Desktop/8ball-bots` | `lane-bots` | 34874 | `place/lane-bots.rbxl` | [bots.md](bots.md) |
-| Cutscenes | `~/Desktop/8ball-cutscenes` | `lane-cutscenes` | 34875 | `place/lane-cutscenes.rbxl` | [cutscenes.md](cutscenes.md) |
-| GUI | `~/Desktop/8ball-gui` | `lane-gui` | 34876 | `place/lane-gui.rbxl` | [gui.md](gui.md) |
+| GUI and cutscenes | `~/Desktop/8ball-gui` | `lane-gui` | 34876 | `place/lane-gui.rbxl` | [gui.md](gui.md) |
 | Tutorial & funnel | `~/Desktop/8ball-tutorial` | `lane-tutorial` | 34877 | `place/lane-tutorial.rbxl` | [tutorial.md](tutorial.md) |
 
 `tools/lanes.sh` creates the worktrees and place copies (`setup`) and starts a lane's Rojo in
@@ -101,9 +100,8 @@ the background so it outlives the terminal (`rojo <lane>`; `status` shows them a
   flow, popups and guidance first with a stand-in, and plug the real bot in once Bots is merged.
 - **Numbers vs screens.** Economy decides every number (money, XP, odds, rarities, prices,
   products) and the server code behind purchases; GUI decides how every screen looks and
-  works, the shop included; Cutscenes owns the big reveal moments (match result, case opening,
-  pulling a cue, rank-up). A screen shows what the server already sends; if GUI or Cutscenes
-  needs a new field, ask Economy (or the integrator) in your lane file.
-- **GUI and Cutscenes** split the screens by the lists in their lane files; neither restyles the
-  other's. Both follow `docs/UI_STYLE.md` (and whatever new style GUI agrees with the designer:
-  GUI writes it into UI_STYLE and Cutscenes follows it).
+  works, the shop and every reveal moment included (match result, case opening, pulling a
+  cue, rank-up). A screen shows what the server already sends; if GUI needs a new field, ask
+  the integrator in your lane file.
+- **GUI owns every screen and cutscene** (the Cutscenes lane was folded into it, 2026-10-03).
+  It follows `docs/UI_STYLE.md` and writes any new style the designer agrees there.

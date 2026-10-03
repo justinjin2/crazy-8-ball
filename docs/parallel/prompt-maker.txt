@@ -1,21 +1,19 @@
 You are helping me, a beginner Roblox game designer, turn my messy thoughts and reference images into ONE ready-to-paste prompt for a Claude Code terminal. Read all of this before answering.
 
 === THE SITUATION ===
-My game: "Crazy 8 Ball", a 3D 8-ball pool game on Roblox, almost ready for release. To finish it fast, five Claude Code terminals ("lanes") build five systems at the same time, each in its own copy of the project, its own Studio window and its own git branch. A sixth terminal (the "integrator") merges them into one game. The lane terminals already have strict rules in the project (docs/parallel/README.md and one lane file each) about which files they own and how not to collide. You do NOT need to repeat those rules; just make sure the prompt tells the lane to read them first.
+My game: "Crazy 8 Ball", a 3D 8-ball pool game on Roblox, almost ready for release. To finish it fast, several Claude Code terminals ("lanes") build five systems at the same time, each in its own copy of the project, its own Studio window and its own git branch. A sixth terminal (the "integrator") merges them into one game. The lane terminals already have strict rules in the project (docs/parallel/README.md and one lane file each) about which files they own and how not to collide. You do NOT need to repeat those rules; just make sure the prompt tells the lane to read them first.
 
-The five lanes:
+The lanes (the Cutscenes lane was folded into GUI):
 | Lane | Folder | Studio window | Rojo port | Reference images | Brief it writes |
 | Economy | ~/Desktop/8ball-economy | lane-economy.rbxl | 34873 | ~/Desktop/8ball-refs/economy/ | docs/prompts/ECONOMY_PROMPT.md |
 | Bots | ~/Desktop/8ball-bots | lane-bots.rbxl | 34874 | ~/Desktop/8ball-refs/bots/ | docs/prompts/BOTS_PROMPT.md |
-| Cutscenes | ~/Desktop/8ball-cutscenes | lane-cutscenes.rbxl | 34875 | ~/Desktop/8ball-refs/cutscenes/ | docs/prompts/CUTSCENES_PROMPT.md |
 | GUI | ~/Desktop/8ball-gui | lane-gui.rbxl | 34876 | ~/Desktop/8ball-refs/gui/ | docs/prompts/GUI_PROMPT.md |
 | Tutorial & funnel | ~/Desktop/8ball-tutorial | lane-tutorial.rbxl | 34877 | ~/Desktop/8ball-refs/tutorial/ | docs/prompts/TUTORIAL_PROMPT.md |
 
 What each lane covers:
 - Economy: every NUMBER. Money earned per match/hour, rank XP and rank rewards, case and ability-spin pull rates, how many cues/abilities sit in each rarity (Epic and above must be truly rare), case prices, Robux prices and products, timed Limited cue drops (the server side). Not screens.
 - Bots: PC opponents, one per rank from Bronze (easy) to Reyes (hard); bots that fill empty seats in 2v2/3v3; lobby bots that walk around and play in empty servers (they must not pretend to be real players).
-- Cutscenes: the big moments: match results (win/lose, money and XP counting up), opening a case, pulling a rare cue (bigger by rarity), rank-ups, ability spin reveals.
-- GUI: every other screen, the shop included (HUDs, menus, inventory, rewards, roadmap, ability spin screen layout, settings) plus a simple leaderboard. How things look, not the numbers.
+- GUI and cutscenes: every screen, the shop included (HUDs, menus, inventory, rewards, roadmap, ability spin screen layout, settings, the trade screen), a simple leaderboard, AND the big moments: match results (win/lose, money and XP counting up), the magic 8-ball Case Drop reveal, opening a case, pulling a rare cue (bigger by rarity), rank-ups, ability spin reveals. How things look and move, not the numbers.
 - Tutorial & funnel: a brand-new player's first minutes (the first match is against a disguised bot), plus Roblox analytics steps that show where new players quit.
 
 === WHAT I WILL GIVE YOU ===

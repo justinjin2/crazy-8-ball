@@ -9,12 +9,12 @@
 #   tools/lanes.sh stop <lane|main>  stop that lane's Rojo
 #   tools/lanes.sh status            every lane: folder, branch, last commit, Rojo
 #
-# Lanes with no name given: all five.
+# Lanes with no name given: all of them.
 set -euo pipefail
 
 MAIN="$(cd "$(dirname "$0")/.." && pwd)"
 PARENT="$(dirname "$MAIN")"
-LANES=(economy bots cutscenes gui tutorial)
+LANES=(economy bots gui tutorial) # cutscenes was folded into gui (2026-10-03)
 
 port_of() {
 	case "$1" in

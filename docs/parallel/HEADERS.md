@@ -2,7 +2,7 @@
 
 Open a new terminal, `cd` into the lane's folder, run
 `claude --dangerously-skip-permissions`, then switch to plan mode (Shift+Tab until it says plan
-mode) and paste that lane's message. Suggested order: Bots, Economy, Cutscenes, Tutorial, GUI. Paste your reference images
+mode) and paste that lane's message. Suggested order: Bots, Economy, Tutorial, GUI (the Cutscenes lane was folded into GUI, 2026-10-03). Paste your reference images
 into the same terminal when it asks for them.
 
 ## Economy
@@ -25,20 +25,10 @@ interviewing me (I will paste reference images), then write docs/prompts/BOTS_PR
 approval before building anything.
 ```
 
-## Cutscenes
+## GUI and cutscenes
 
 ```
-You are the CUTSCENES lane of a parallel build: several Claude terminals are finishing this
-game at the same time. First read docs/parallel/README.md and docs/parallel/cutscenes.md, and
-follow them exactly. Your Studio window is the one named lane-cutscenes.rbxl; your Rojo port is
-34875. Start by interviewing me (I will paste reference images), then write
-docs/prompts/CUTSCENES_PROMPT.md for my approval before building anything.
-```
-
-## GUI
-
-```
-You are the GUI lane of a parallel build: several Claude terminals are finishing this game at
+You are the GUI AND CUTSCENES lane of a parallel build: several Claude terminals are finishing this game at
 the same time. First read docs/parallel/README.md and docs/parallel/gui.md, and follow them
 exactly. Your Studio window is the one named lane-gui.rbxl; your Rojo port is 34876. Start by
 interviewing me (I will paste reference images), then write docs/prompts/GUI_PROMPT.md for my
