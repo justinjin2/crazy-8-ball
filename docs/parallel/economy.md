@@ -137,6 +137,40 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
 - **For GUI**: `Format.money` changed (M from $1,000,000). Player attribute `MoneyBoostEnds`
   (unix time the Starter hour ends; 0 none).
 - **For Bots**: the disguised limit counts in `Daily.Disguised` (Ranking, on a disguised win).
+- **Step 4 done (2026-10-03): Mystery Cases, the restock shop and timer skips.**
+  - Mystery Cases for money: $4,900, 10 for $44,100 (`Config.Shop.Mystery`); each is a paid
+    Case Drop revealed on `CaseDrop` (source "Mystery"). Robux: Mystery1/Mystery10.
+  - New pure `Progression/Restock.luau`: a restock every 10 minutes on the clock, the same in
+    every server (an integer hash of the slot number). Uncommon Case $14,900 (3 a player),
+    Rare Case $34,900 in 60% (2), the lucky slot Epic Case 4% ($349,000 / RestockEpic, 1) or
+    Legendary Case 0.15% ($3,490,000 / RestockLegendary, 1, 25 in every server together) or
+    3 Mystery Cases $14,700 (1), and a VIP-only Rare Case $34,900 (1). Cases bought are paid
+    origin and land on their normal timers. A restock with a Legendary is announced in every
+    server (Banner kind "Restock").
+  - The Legendary's 25: an atomic DataStore counter (`Counters.reserveStock/releaseStock`,
+    `RestockStock_v1`; a Studio memory copy without DataStores). A Robux prompt reserves a unit
+    when it opens, a cancel or a leave gives it back; a money buy reserves and gives it back if
+    the buy fails. The shop reads the stock as soon as it shows a restock and with every
+    counts refresh (120 s), so other servers' buys show.
+  - Skips: money $25 a minute left (min $250, $1,500 an hour); Robux Skip1h/6h/24h/48h on the
+    case the player picked (StoreRequest "Skip", remembered from prompt to receipt).
+  - Restricted regions: Mystery Cases, restock buys and skips answer "Restricted".
+  - Dev: `/restock <item>` shows the next restock holding that item until the real one ends
+    (on the real countdown).
+  - Checked: lint, 924 Lune tests (100,000 restocks against each chance, per-player stock, the
+    shared-stock transforms, skip prices, the new requests); Studio: BuyMystery 10 ok;
+    BuyRestock Uncommon 3 times then SoldOut; Vip answers VipOnly for a non-VIP; SkipTimer took
+    $1,500 for an hour left; a forced Legendary restock bought for $3,490,000 landed a paid
+    Legendary Case on a 24 h timer, a second buy SoldOut, ShopState showed 24 of 25 left and
+    the Banner the real end; a restricted player refused; console clean.
+- **For GUI** (step 4): `ShopState` gains `restock = { slot, startsAt, endsAt, items = { { id,
+  case?, mystery?, price, product?, stock, left, global?, globalLeft?, vip, canBuy, reason? }
+  } }`, `mystery = { price, bulkPrice, bulkCount }`, `skip = { moneyPerMinute, minMoney }`,
+  `pity = { rare, epic }`. ItemRequest actions `BuyMystery` (count 1 or 10), `BuyRestock`
+  (item id), `SkipTimer` (case id, the timer's readyAt) reply `{ ok, price, ... }`; new
+  reasons `VipOnly`, `NoTimer` (Strings.Reasons). Robux: `StoreRequest:InvokeServer("Skip",
+  caseId, readyAt)` and `StoreRequest("Buy", "RestockEpic"/"RestockLegendary")`. Banner
+  `{ kind = "Restock", case = "Legendary", endsAt }`.
 
 ### Changes to shared files (existing lines)
 
@@ -167,6 +201,15 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
   `PlayerData`: grant fields `drops`, `boostEnds`; `giveUnique(..., paid)`; `rollDrop(...,
   paid)`. `Store`: QuickCases, old-key alias, `RobloxPlus`. `UltSpins`: the pass key
   `QuickCases`. `DevCommands`: `/fastopen` fakes QuickCases.
+- (step 4) `Config.Shop` + `Mystery`, `Skip`, `Restock`; `Config.Items` + `StockStore`,
+  `StockStudioStore`; `Config.Debug` alias `Restock`. `Strings`: `/restock` help, reasons
+  VipOnly and NoTimer. `Net`: ShopState, StoreRequest ("Skip"), ItemRequest and Banner docs.
+  `Progression/Counts` + shared stock; `Shop` + `skipPrice`, `skipProduct`, `mysteryPrice`,
+  grant `restock`/`skip`; `ShopView` restock checks and fields; `Requests` + 3 actions.
+  `PlayerData`: `buyMystery`, `buyRestock`, `skipTimer`, purchase `restock`/`skip`.
+  `Items`: the three handlers, `restockSlot`, `forceRestock`, ItemsQA `forceRestock`.
+  `Store`: restock and skip grants, the Legendary reserve, the restock tick and stock resend.
+  `Counters`: shared stock. `Announce`: `restock`. `DevCommands`: `/restock`.
 
 ## Requests to other lanes or the integrator
 

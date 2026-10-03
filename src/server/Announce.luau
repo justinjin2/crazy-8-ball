@@ -1,6 +1,7 @@
 --!strict
 -- Announce: the top banner and system chat lines everyone sees (Net "Banner"): a Legendary
--- unboxed (this server), a Mythic or Secret unboxed (every server), a Money Party, a player reaching Reyes (the first ever in every server), an ult
+-- unboxed (this server), a Mythic or Secret unboxed (every server), a Legendary Case in the
+-- restock shop (every server, each by itself), a Money Party, a player reaching Reyes (the first ever in every server), an ult
 -- spin landing a Legendary (this server) or a Mythic (every server).
 --
 -- The server sends ids and names only; the client words each line from Strings.Banner
@@ -247,6 +248,14 @@ function Announce.ult(player: Player, ultId: string)
 			publish(payload, "ult roll")
 		end
 	end)
+end
+
+--- A restock with case `caseId` in it began here (the Legendary Case: plan section 3): the
+--- banner for everyone in this server until `endsAt` (unix). Every server picks the same
+--- restock (Progression/Restock), so each announces it to its own players; nothing is
+--- published. Never yields.
+function Announce.restock(caseId: string, endsAt: number)
+	fire({ kind = "Restock", case = caseId, endsAt = endsAt })
 end
 
 --- A Money Party is on until `endsAt` (unix), bought by `buyerName`: the banner for everyone

@@ -49,6 +49,7 @@ local STORE_NAMES: { [string]: string } = {
 	Counts = if IS_STUDIO then I.CountsStudioStore else I.CountsStore,
 	Limited = if IS_STUDIO then I.LimitedStudioStore else I.LimitedStore,
 	Firsts = if IS_STUDIO then I.FirstsStudioStore else I.FirstsStore,
+	Stock = if IS_STUDIO then I.StockStudioStore else I.StockStore,
 }
 local stores: { [string]: DataStore } = {}
 
@@ -245,6 +246,7 @@ function Counters.refresh(): boolean
 		haveRead = true
 		publishAllCopies()
 	end
+	Counters.readWatchedStock()
 	local limited = storeOf("Limited")
 	if limited then
 		for _, row in Shop.limited() do
@@ -385,6 +387,110 @@ function Counters.first(key: string): number?
 end
 
 ---------------------------------------------------------------------------------------------
+-- Shared stock (the restock shop's Legendary Case)
+---------------------------------------------------------------------------------------------
+
+-- Studio without DataStore access keeps shared stock here, so the restock can be tried.
+local studioStock: { [string]: any } = {}
+-- The last units-taken count seen per stock key (Counters.stockTaken).
+local taken: { [string]: number } = {}
+
+-- Runs a stock transform on key `key` atomically (UpdateAsync; Studio without DataStores: in
+-- memory). Yields. True when it ran.
+local function updateStock(key: string, transform: (any) -> any): boolean
+	local store = storeOf("Stock")
+	local ok, err = false, "no DataStore"
+	if store ~= nil then
+		ok, err = pcall(function(): any
+			return store:UpdateAsync(key, transform)
+		end)
+	end
+	if ok then
+		return true
+	elseif IS_STUDIO then
+		local value = transform(studioStock[key])
+		if value ~= nil then
+			studioStock[key] = value
+		end
+		return true
+	end
+	complain("updating the restock stock", err)
+	return false
+end
+
+--- Reserves player `userId`'s unit of shared stock `key` (at most `cap` players), keeping one
+--- they hold already. Yields. Returns (true) or (false, "SoldOut" | "Error").
+function Counters.reserveStock(key: string, userId: number, cap: number): (boolean, string?)
+	if not isKey(key) or type(userId) ~= "number" or type(cap) ~= "number" then
+		return false, "Error"
+	end
+	local held, reason = false, nil
+	local ran = updateStock(key, function(stored: any): any
+		local value
+		value, held, reason = Counts.reserve(stored, userId, cap)
+		taken[key] = Counts.stockTaken(if value ~= nil then value else stored)
+		return value
+	end)
+	if not ran then
+		return false, "Error"
+	end
+	return held, if held then nil else reason or "Error"
+end
+
+--- Gives player `userId`'s unit of shared stock `key` back (a cancelled prompt, a buy that
+--- failed). Yields. True when it ran.
+function Counters.releaseStock(key: string, userId: number): boolean
+	if not isKey(key) or type(userId) ~= "number" then
+		return false
+	end
+	return updateStock(key, function(stored: any): any
+		local value = Counts.release(stored, userId)
+		taken[key] = Counts.stockTaken(if value ~= nil then value else stored)
+		return value
+	end)
+end
+
+-- The stock key the shop last asked about (this restock's): the read loop reads it.
+local watched: string? = nil
+
+-- Reads shared stock `key` into `taken` (Studio without DataStores: the memory copy). Yields.
+local function readStock(key: string): boolean
+	local store = storeOf("Stock")
+	local got, value = false, nil
+	if store ~= nil then
+		got, value = pcall(function(): any
+			return store:GetAsync(key)
+		end)
+	end
+	if not got and IS_STUDIO then
+		got, value = true, studioStock[key]
+	end
+	if not got then
+		complain("reading the restock stock", value)
+		return false
+	end
+	taken[key] = Counts.stockTaken(value)
+	return true
+end
+
+--- Reads the shared stock the shop last asked about again (refresh). Yields.
+function Counters.readWatchedStock()
+	if watched ~= nil then
+		readStock(watched)
+	end
+end
+
+--- Units of shared stock `key` taken, as last seen by this server (nil: not seen yet). Asking
+--- about a new key reads it at once, then with every refresh (other servers' buys).
+function Counters.stockTaken(key: string): number?
+	if isKey(key) and key ~= watched then
+		watched = key
+		task.spawn(readStock, key)
+	end
+	return taken[key]
+end
+
+---------------------------------------------------------------------------------------------
 -- Start
 ---------------------------------------------------------------------------------------------
 
@@ -410,7 +516,7 @@ function Counters.start()
 	end)
 	-- Read: at once (so a new server shows counts soon), then every ReadSeconds.
 	task.spawn(function()
-		local reads = I.CountsShards + #Shop.limited()
+		local reads = I.CountsShards + #Shop.limited() + 1 -- + the restock stock
 		while true do
 			if budgetFor(Enum.DataStoreRequestType.GetAsync, reads) then
 				Counters.refresh()

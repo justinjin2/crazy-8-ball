@@ -25,6 +25,8 @@ export type Request = {
 	count: number?, -- BuyCase, OpenCase, SellCue
 	ids: { string }?, -- MarkSeen
 	rarity: string?, -- ClaimIndexRow
+	itemId: string?, -- BuyRestock: a restock item id
+	at: number?, -- SkipTimer: the timer's end (unix), naming it with caseId
 }
 
 local Requests = {}
@@ -39,7 +41,14 @@ Requests.Actions = table.freeze({
 	"MarkSeen",
 	"ClaimIndexRow",
 	"BuyLimited",
+	"BuyMystery",
+	"BuyRestock",
+	"SkipTimer",
 })
+
+-- The restock item ids (Progression/Restock).
+local RESTOCK_IDS: { [string]: boolean } =
+	{ Uncommon = true, Rare = true, Epic = true, Legendary = true, Mystery = true, Vip = true }
 
 --- Every reason a refused ItemRequest may answer, for the client's words (Strings) and the
 --- protocol comment in Net. Short PascalCase words.
@@ -63,8 +72,10 @@ Requests.Reasons = table.freeze({
 	"NoReward", -- ClaimIndexRow: Exclusive and Unique rows pay nothing
 	"NotStarted", -- BuyLimited: its window has not opened
 	"Ended", -- BuyLimited: its window has closed
-	"SoldOut", -- BuyLimited: every numbered copy is taken
+	"SoldOut", -- BuyLimited: every numbered copy is taken; BuyRestock: none left for you
 	"Owned", -- BuyLimited: one per player
+	"VipOnly", -- BuyRestock: the VIP slot
+	"NoTimer", -- SkipTimer: no such case on its timer (it finished, or never was)
 	"Error", -- anything else (logged on the server): try again
 })
 
@@ -206,6 +217,23 @@ function Requests.parse(action: any, a: any, b: any): (Request?, string?)
 			return nil, "BadRequest"
 		end
 		return { action = action :: string, rarity = a }, nil
+	elseif action == "BuyMystery" then
+		local count = countOf(a)
+		if Shop.mysteryPrice(count) == nil then
+			return nil, "BadRequest"
+		end
+		return { action = action :: string, count = count }, nil
+	elseif action == "BuyRestock" then
+		if type(a) ~= "string" or not RESTOCK_IDS[a] then
+			return nil, "BadRequest"
+		end
+		return { action = action :: string, itemId = a }, nil
+	elseif action == "SkipTimer" then
+		local case = Cases.get(a)
+		if case == nil or not wholeIn(b, 0, Config.Save.UnixTimeCap) then
+			return nil, "BadRequest"
+		end
+		return { action = action :: string, caseId = case.Id, at = b }, nil
 	elseif action == "BuyLimited" then
 		local id = cueId(a)
 		local row = if id then Shop.limitedFor(id) else nil

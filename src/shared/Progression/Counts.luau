@@ -184,4 +184,65 @@ function Counts.claim(stored: any, userId: number): (number?, boolean)
 	return nil, stored == userId
 end
 
+---------------------------------------------------------------------------------------------
+-- Shared stock (the restock shop's Legendary Case: Config.Shop.Restock.Legendary.GlobalStock)
+---------------------------------------------------------------------------------------------
+
+-- The stored players holding a unit, as a fresh map (anything else reads as none).
+local function readStock(stored: any): { [string]: boolean }
+	local by: { [string]: boolean } = {}
+	if type(stored) == "table" and type(stored.by) == "table" then
+		for who, held in stored.by do
+			if type(who) == "string" and held == true then
+				by[who] = true
+			end
+		end
+	end
+	return by
+end
+
+local function holders(by: { [string]: boolean }): number
+	local n = 0
+	for _ in by do
+		n += 1
+	end
+	return n
+end
+
+--- Units of a shared stock taken.
+function Counts.stockTaken(stored: any): number
+	return holders(readStock(stored))
+end
+
+--- The reserve transform: (the value to store, or nil to write nothing; whether `userId` holds
+--- a unit now; why not). A player already holding one keeps it (a retry); otherwise a unit is
+--- taken while fewer than `cap` are, else "SoldOut".
+function Counts.reserve(
+	stored: any,
+	userId: number,
+	cap: number
+): ({ by: { [string]: boolean } }?, boolean, string?)
+	local by = readStock(stored)
+	local who = tostring(userId)
+	if by[who] then
+		return nil, true, nil
+	elseif holders(by) >= cap then
+		return nil, false, "SoldOut"
+	end
+	by[who] = true
+	return { by = by }, true, nil
+end
+
+--- The release transform: gives `userId`'s unit back (a cancelled prompt). nil when they hold
+--- none (nothing to write).
+function Counts.release(stored: any, userId: number): { by: { [string]: boolean } }?
+	local by = readStock(stored)
+	local who = tostring(userId)
+	if not by[who] then
+		return nil
+	end
+	by[who] = nil
+	return { by = by }
+end
+
 return Counts

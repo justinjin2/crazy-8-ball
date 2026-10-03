@@ -49,6 +49,7 @@ local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Shop = require(Shared.Progression.Shop)
 local ShopView = require(Shared.Progression.ShopView)
+local Restock = require(Shared.Progression.Restock)
 local Inventory = require(Shared.Progression.Inventory)
 local PlayerData = require(script.Parent.PlayerData)
 local Counters = require(script.Parent.Counters)
@@ -57,7 +58,10 @@ local Items = require(script.Parent.Items)
 
 local S = Config.Shop
 local IS_STUDIO = RunService:IsStudio()
-local LIST: { [string]: { Kind: string, Id: number, Robux: number } } = Config.Products.List :: any
+local LIST: {
+	[string]: { Kind: string, Id: number, Robux: number, Restock: string?, SkipSeconds: number? },
+} =
+	Config.Products.List :: any
 
 -- Server-set attributes (clients and the other services only read them).
 local ATTR = {
@@ -122,6 +126,15 @@ local partyBuyer: string? = nil
 -- this server reuses it), and the receipts taking one right now (a concurrent retry waits).
 local pendingCopies: { [string]: number } = {}
 local takingCopy: { [string]: boolean } = {}
+-- A Robux restock or skip remembered from its prompt until its receipt: the restock slot the
+-- player saw (and whether a Legendary unit was reserved for it), or the case timer they picked.
+local pendingRestock: { [Player]: { key: string, slot: number, at: number, reserved: boolean } } =
+	{}
+local pendingSkip: { [Player]: { key: string, case: string, at: number } } = {}
+-- The restock slot this server last saw (a new one re-sends ShopState and may announce).
+local restockSlot = -1
+-- The Legendary units taken last sent in ShopState (Counters.stockTaken).
+local stockSeen: number? = nil
 -- The last case sale seen (its fields joined), to notice a change.
 local saleKey = ""
 -- Dev grants made this session (their purchase ids count up).
@@ -213,6 +226,10 @@ local function context(player: Player, now: number): ShopView.Context?
 		partyBuyer = partyBuyer,
 		sale = currentSale(now),
 		sold = limitedSold(),
+		restock = data.Shop.Restock,
+		drops = data.Drops,
+		stockTaken = Counters.stockTaken(Restock.stockKey(Items.restockSlot(now))),
+		restockSlot = Items.restockSlot(now),
 		prices = prices,
 	}
 end
@@ -449,6 +466,69 @@ local function ownsLimited(data: any, cueId: string): boolean
 	return data.Shop.Limited[cueId] ~= nil or Inventory.owns(data, cueId)
 end
 
+-- A Robux restock receipt's grant: the item of the restock the player saw at the prompt (within
+-- Config.Shop.Restock.ReceiptGraceSeconds), else of the restock now; the Legendary's shared
+-- unit reserved (kept from the prompt). Not in that restock, the player's stock used, or the
+-- shared stock gone: the money fallback, with why. A third answer names a passing trouble (the
+-- counter could not be reached): the receipt stays NotProcessedYet.
+local function restockGrant(player: Player, key: string, data: any): (Shop.Grant?, string?, string?)
+	local now = os.time()
+	local pend = pendingRestock[player]
+	local slot = if pend ~= nil
+			and pend.key == key
+			and now - pend.at <= S.Restock.ReceiptGraceSeconds
+		then pend.slot
+		else Items.restockSlot(now)
+	local item = Restock.forProduct(slot, key)
+	local vip = player:GetAttribute(ATTR.Vip) == true
+	local why = Restock.check(item, data.Shop.Restock, slot, vip)
+	if why == nil and item ~= nil and item.global ~= nil then
+		local held, reason =
+			Counters.reserveStock(Restock.stockKey(slot), player.UserId, item.global)
+		if not held then
+			if reason ~= "SoldOut" then
+				return nil, nil, reason or "Error"
+			end
+			why = reason
+		end
+	end
+	if why ~= nil or item == nil then
+		return Shop.fallbackGrant(key), why or "NotSold", nil
+	end
+	return {
+		key = key,
+		money = 0,
+		restock = { slot = slot, id = item.id, case = item.case, mystery = item.mystery },
+	},
+		nil,
+		nil
+end
+
+-- A Robux skip receipt's grant: the timer the player picked at the prompt while it still runs
+-- and fits the product (SkipSeconds), else the running timer with the most time left that
+-- fits. None: the money fallback.
+local function skipGrant(player: Player, key: string, data: any): (Shop.Grant?, string?)
+	local now = os.time()
+	local limit = LIST[key].SkipSeconds or 0
+	local pend = pendingSkip[player]
+	local chosen: { id: string, readyAt: number }? = nil
+	for _, t in Inventory.timers(data) do
+		local left = t.readyAt - now
+		if left > 0 and left <= limit then
+			if pend ~= nil and pend.case == t.id and pend.at == t.readyAt then
+				chosen = t
+				break
+			elseif chosen == nil or t.readyAt > chosen.readyAt then
+				chosen = t
+			end
+		end
+	end
+	if chosen == nil then
+		return Shop.fallbackGrant(key), "NoTimer"
+	end
+	return { key = key, money = 0, skip = { case = chosen.id, at = chosen.readyAt } }, nil
+end
+
 -- Grants developer product `key` to `player` and records `purchaseId`, in one PlayerData
 -- mutation (Shop.processReceipt's `grant`). What it gives is decided now (Shop.grantFor, and
 -- the Limited counter for a Robux Limited); a receipt that cannot give its product pays the
@@ -462,7 +542,19 @@ local function grantProduct(player: Player, key: string, purchaseId: string): (b
 	if data == nil or not ready(player) then
 		return false, "NotLoaded"
 	end
-	local grant, notFor = Shop.grantFor(key, data.Shop, os.time(), owns(player, "Vip"))
+	local row = LIST[key]
+	local grant: Shop.Grant?, notFor: string? = nil, nil
+	if row ~= nil and row.Restock ~= nil then
+		local why: string?
+		grant, notFor, why = restockGrant(player, key, data)
+		if why ~= nil then
+			return false, why
+		end
+	elseif row ~= nil and row.SkipSeconds ~= nil then
+		grant, notFor = skipGrant(player, key, data)
+	else
+		grant, notFor = Shop.grantFor(key, data.Shop, os.time(), owns(player, "Vip"))
+	end
 	if grant == nil then
 		return false, "Unknown"
 	end
@@ -526,6 +618,12 @@ local function grantProduct(player: Player, key: string, purchaseId: string): (b
 	end
 	if grant.party then
 		addParty(player)
+	end
+	if grant.restock ~= nil then
+		pendingRestock[player] = nil
+	end
+	if grant.skip ~= nil then
+		pendingSkip[player] = nil
 	end
 	return true, nil
 end
@@ -649,9 +747,46 @@ local function promptPlus(player: Player): boolean
 	return ok
 end
 
-local function onStoreRequest(player: Player, action: any, key: any): Reply
+-- A Robux timer skip (StoreRequest "Skip", caseId, at): the cheapest Skip product that covers
+-- the time left on that running timer, remembered for its receipt, then prompted.
+local function promptSkip(player: Player, caseId: any, at: any): Reply
+	local data = PlayerData.read(player)
+	if data == nil or not ready(player) then
+		return reply(false, "NotLoaded")
+	end
+	local now = os.time()
+	local left = 0
+	for _, t in Inventory.timers(data) do
+		if t.id == caseId and t.readyAt == at then
+			left = t.readyAt - now
+		end
+	end
+	local key = Shop.skipProduct(left)
+	if key == nil then
+		return reply(false, "NoTimer")
+	end
+	local ctx = context(player, now)
+	local reason = if ctx then ShopView.check(key, ctx) else "NotLoaded"
+	if reason ~= nil then
+		return reply(false, reason)
+	end
+	pendingSkip[player] = { key = key, case = caseId :: string, at = at :: number }
+	if not prompt(player, key) then
+		return reply(false, "Error")
+	end
+	return { ok = true, key = key } :: any
+end
+
+local function onStoreRequest(player: Player, action: any, key: any, extra: any): Reply
 	local clock = os.clock()
 	local last = lastRequest[player]
+	if action == "Skip" then
+		if last ~= nil and clock - last < S.RequestCooldownSeconds then
+			return reply(false, "TooFast")
+		end
+		lastRequest[player] = clock
+		return promptSkip(player, key, extra)
+	end
 	if action == "RobloxPlus" then
 		if not S.RobloxPlus then
 			return reply(false, "BadRequest")
@@ -678,14 +813,59 @@ local function onStoreRequest(player: Player, action: any, key: any): Reply
 	if ctx == nil then
 		return reply(false, "NotLoaded")
 	end
+	local row = LIST[key]
+	if row.SkipSeconds ~= nil then
+		return reply(false, "BadRequest") -- a skip names its case: StoreRequest "Skip"
+	end
 	local reason = ShopView.check(key, ctx)
 	if reason ~= nil then
 		return reply(false, reason)
+	end
+	-- A restock item: remember the restock seen, and hold a Legendary unit while the prompt is up.
+	if row.Restock ~= nil then
+		local slot = Items.restockSlot(ctx.now)
+		local item = Restock.forProduct(slot, key)
+		local reserved = false
+		if item ~= nil and item.global ~= nil then
+			local held, why =
+				Counters.reserveStock(Restock.stockKey(slot), player.UserId, item.global)
+			if not held then
+				mark(player)
+				return reply(false, why or "Error")
+			end
+			reserved = true
+		end
+		pendingRestock[player] = { key = key, slot = slot, at = ctx.now, reserved = reserved }
 	end
 	if not prompt(player, key) then
 		return reply(false, "Error")
 	end
 	return reply(true)
+end
+
+-- A product prompt closed: a cancelled restock gives its Legendary unit back, a cancelled skip
+-- forgets its pick (a bought one waits for its receipt).
+local function onProductPromptFinished(userId: number, productId: number, purchased: boolean)
+	if purchased then
+		return
+	end
+	local player = Players:GetPlayerByUserId(userId)
+	if player == nil then
+		return
+	end
+	local key = Shop.keyForId(productId)
+	local pend = pendingRestock[player]
+	if pend ~= nil and pend.key == key then
+		pendingRestock[player] = nil
+		if pend.reserved then
+			Counters.releaseStock(Restock.stockKey(pend.slot), player.UserId)
+			mark(player)
+		end
+	end
+	local skip = pendingSkip[player]
+	if skip ~= nil and skip.key == key then
+		pendingSkip[player] = nil
+	end
 end
 
 ---------------------------------------------------------------------------------------------
@@ -903,11 +1083,28 @@ local function watchLimitedSold()
 	end
 end
 
--- Every StateTickSeconds: the party's end, a sale changing, and each player's next change.
+-- Every StateTickSeconds: the party's end, a sale changing, a new restock (a Legendary Case
+-- in it is announced here: every server picks the same restock), and each player's next change.
 local function tick()
 	local now = os.time()
+	local slot = Items.restockSlot(now)
+	if slot ~= restockSlot then
+		local first = restockSlot < 0
+		restockSlot = slot
+		markAll()
+		if not first and Restock.find(slot, "Legendary") ~= nil then
+			local _, endsAt = Restock.window(Restock.slotOf(now))
+			Announce.restock("Legendary", endsAt)
+		end
+	end
 	if partyEndsAt > 0 and now >= partyEndsAt then
 		setParty(0, nil)
+	end
+	-- The Legendary's shared stock changed (a buy here or, read every refresh, elsewhere).
+	local stock = Counters.stockTaken(Restock.stockKey(slot))
+	if stock ~= stockSeen then
+		stockSeen = stock
+		markAll()
 	end
 	local sale = currentSale(now)
 	local key = if sale ~= nil
@@ -940,11 +1137,22 @@ local function onPlayerRemoving(player: Player)
 	lastRequest[player] = nil
 	nextChange[player] = nil
 	dirty[player] = nil
+	-- A Legendary unit held for a prompt that never finished goes back.
+	local pend = pendingRestock[player]
+	pendingRestock[player] = nil
+	pendingSkip[player] = nil
+	if pend ~= nil and pend.reserved then
+		local userId = player.UserId
+		task.spawn(Counters.releaseStock, Restock.stockKey(pend.slot), userId)
+	end
 end
 
 -- The PlayerData changes that change the shop.
 local SHOP_OPS: { [string]: boolean } = {
 	applyPurchase = true,
+	buyRestock = true,
+	buyMystery = true,
+	caseDrop = true,
 	giveVipCue = true,
 	buyLimited = true,
 	clearInventory = true,
@@ -960,8 +1168,8 @@ function Store.start()
 	MarketplaceService.ProcessReceipt = processReceipt
 	shopState = Net.get("ShopState")
 	local request: RemoteFunction = Net.get("StoreRequest")
-	request.OnServerInvoke = function(player: Player, action: any, key: any): Reply
-		local ok, result = pcall(onStoreRequest, player, action, key)
+	request.OnServerInvoke = function(player: Player, action: any, key: any, extra: any): Reply
+		local ok, result = pcall(onStoreRequest, player, action, key, extra)
 		if not ok then
 			log(("StoreRequest from %d failed: %s"):format(player.UserId, tostring(result)))
 			return reply(false, "Error")
@@ -969,6 +1177,7 @@ function Store.start()
 		return result
 	end
 	MarketplaceService.PromptGamePassPurchaseFinished:Connect(onPassPurchase)
+	MarketplaceService.PromptProductPurchaseFinished:Connect(onProductPromptFinished)
 
 	PlayerData.Loaded:Connect(mark)
 	PlayerData.Changed:Connect(function(player: Player, op: string)

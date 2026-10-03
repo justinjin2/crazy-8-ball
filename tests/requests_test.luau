@@ -63,7 +63,7 @@ return {
 			local request, why = Requests.parse(action, "Standard", 1)
 			H.expect(request == nil and why == "BadRequest", "action " .. tostring(action))
 		end
-		H.expect(#Requests.Actions == 8, "eight actions")
+		H.expect(#Requests.Actions == 11, "eleven actions")
 		for _, action in Requests.Actions do
 			local _, why = Requests.parse(action, 0 / 0, 0 / 0)
 			H.expect(why ~= nil, action .. " refuses NaN ids")

@@ -125,12 +125,19 @@ local REMOTES: { [string]: string } = {
 	--   "MarkSeen" ({ cueId } at most Config.Items.MarkSeenMax) -> { cleared }
 	--   "ClaimIndexRow" (rarity) -> { rarity, money }
 	--   "BuyLimited" (cueId: a money-priced Limited shelf row) -> { cueId, copy, price }
+	--   "BuyMystery" (count 1 | Config.Shop.Mystery.BulkCount) -> { count, price } (each a
+	--     paid Case Drop; the reveals come on the CaseDrop remote)
+	--   "BuyRestock" (itemId of the restock now) -> { itemId, price } (its case lands on its
+	--     timer; "Mystery" rolls 3 Case Drops)
+	--   "SkipTimer" (caseId, at: that timer's readyAt) -> { caseId, price } (money: $25 a
+	--     minute left, at least $250)
 	-- Reasons (Progression/Requests.Reasons): "BadRequest" (unknown action, wrong type,
 	-- unknown id, count not allowed), "TooFast" (Config.Items.RateBurst / RatePerSecond),
 	-- "Busy" (another request still being answered), "NotLoaded" (the save, or for BuyCase the
 	-- PolicyService answer, is not ready), "Teleporting", "NotSold" (a switched-off case),
 	-- "Restricted" (paid random items), "NotEnoughMoney" (+ need, price), "NoCases",
-	-- "NotReady" (the case is still on its timer),
+	-- "NotReady" (the case is still on its timer), "VipOnly" (the restock's VIP slot), "NoTimer"
+	-- (SkipTimer: no such timer running),
 	-- "NoFastOpen", "NotOwned", "CantSell" (Exclusive, Unique, Classic), "Equipped" (the last
 	-- copy of the equipped cue), "Claimed", "Incomplete", "NoReward" (Exclusive and Unique
 	-- rows), "NotStarted", "Ended", "SoldOut", "Owned" (a Limited is one per player), "Error".
@@ -172,7 +179,15 @@ local REMOTES: { [string]: string } = {
 	--   order = { section } (the one scrolling page top to bottom, Config.Shop.Order: "Offer",
 	--     "Vip", "Restock", "Limited", "Mystery", "Money", "Boosts", "RobloxPlus"),
 	--   robloxPlus (show Get Roblox Plus), bestValue (the pack marked "Best value"),
-	--   packs = { key } (the money packs in order) }
+	--   packs = { key } (the money packs in order),
+	--   restock = { slot, startsAt, endsAt, items = { { id ("Uncommon", "Rare", "Epic",
+	--     "Legendary", "Mystery", "Vip"), case?, mystery? (Mystery Cases it gives), price
+	--     (money), product? (its Robux key), stock (per player), left (this player's), global?
+	--     (the Legendary's copies for everyone), globalLeft? (nil: unknown), vip, canBuy,
+	--     reason? } } } (a new restock every Config.Shop.Restock.SlotSeconds; ShopState is
+	--     sent again when it changes),
+	--   mystery = { price, bulkCount, bulkPrice }, skip = { moneyPerMinute, minMoney },
+	--   pity = { rare, epic } (Case Drops until a Rare / Epic case is guaranteed) }
 	-- Product keys (Config.Products): passes Vip, QuickCases (was FastOpen), UltSlot2,
 	-- UltSlot3; products VipOffer, StarterPack, Pack1-7, Mystery1, Mystery10, RestockEpic,
 	-- RestockLegendary, Skip1h/6h/24h/48h, MoneyParty, Spin1/5/10/50, Lucky1/3. Paid random
@@ -181,7 +196,11 @@ local REMOTES: { [string]: string } = {
 	ShopState = "RemoteEvent",
 	-- client -> server, answered: ("Buy", a Config.Products key; "FastOpen" still means
 	-- QuickCases) -> { ok, reason? }, or ("RobloxPlus") -> { ok } (the Roblox Plus subscription
-	-- prompt; Roblox pays the game for a subscriber signed up in it). The server
+	-- prompt; Roblox pays the game for a subscriber signed up in it), or ("Skip", caseId, at)
+	-- -> { ok, key?, reason? } (finish that case timer with Robux: the cheapest Skip product
+	-- that covers the time left is prompted; "NoTimer" when it is not running). A restock
+	-- product (RestockEpic, RestockLegendary) buys the item in the restock shown now, within
+	-- this player's stock ("SoldOut", "VipOnly", "NotSold"). The server
 	-- checks it (Progression/ShopView.check) and prompts the purchase itself; ok = true means
 	-- the prompt is up, and the grant arrives later through ProcessReceipt (a pass: through
 	-- PromptGamePassPurchaseFinished) and a new ShopState. Reasons: "BadRequest" (not "Buy" or
@@ -220,6 +239,8 @@ local REMOTES: { [string]: string } = {
 	--     (Cases.announcesHere), or a Mythic or Secret unboxed in any server
 	--     (Cases.announces), sent Config.Items.UnboxAnnounceDelaySeconds after the roll
 	--   { kind = "Party", endsAt, name? } a Money Party started (endsAt: unix seconds)
+	--   { kind = "Restock", case, endsAt } a restock with that case began (a Legendary Case;
+	--     every server picks the same restock and announces it by itself)
 	--   { kind = "Reyes" | "FirstReyes", userId, name } a player reached Reyes, in every
 	--     server (MessagingService); FirstReyes: the first player ever
 	Banner = "RemoteEvent",

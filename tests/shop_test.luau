@@ -895,9 +895,14 @@ return {
 	end,
 
 	["ShopView.nextChange: when a window opens or closes by itself"] = function()
+		-- The restock changes every Config.Shop.Restock.SlotSeconds on the clock.
+		local slotSeconds = Config.Shop.Restock.SlotSeconds
+		local function restockEnd(t: number): number
+			return (t // slotSeconds + 1) * slotSeconds
+		end
 		local function expected(t: number, extra: number?): number?
 			local offers = Shop.offers(newShop(), t, false)
-			local found: number? = soonest(limitedBoundary(t), extra)
+			local found: number? = soonest(soonest(limitedBoundary(t), extra), restockEnd(t))
 			for _, at in
 				{
 					offers.welcome.endsAt,
@@ -918,7 +923,10 @@ return {
 				("at join %+d s"):format(t - JOIN)
 			)
 		end
-		H.expect(ShopView.nextChange(ctxAt(JOIN + HOUR)) == JOIN + DAY, "the welcome offer ends")
+		H.expect(
+			ShopView.nextChange(ctxAt(JOIN + HOUR)) == JOIN + HOUR + slotSeconds,
+			"the next restock comes first"
+		)
 		-- The party ends, and makes room for another 15 minutes before that.
 		local t = JOIN + 9 * DAY
 		H.expect(
@@ -937,12 +945,12 @@ return {
 		)
 		local far = JOIN + 4000 * DAY
 		H.expect(
-			ShopView.nextChange(ctxAt(far)) == limitedBoundary(far),
-			"nothing left but Limiteds"
+			ShopView.nextChange(ctxAt(far)) == soonest(limitedBoundary(far), restockEnd(far)),
+			"nothing left but Limiteds and the restock"
 		)
 		H.expect(
 			ShopView.nextChange(ctxAt(far, { shop = newShop({ FirstJoin = 0 }) }))
-				== limitedBoundary(far),
+				== soonest(limitedBoundary(far), restockEnd(far)),
 			"an unknown first join has no windows"
 		)
 	end,
@@ -1075,11 +1083,33 @@ return {
 					"policy not known yet"
 				)
 				H.expect(ShopView.check("Pack1", ctxAt(now, { restricted = true })) == nil, "money")
+				-- RestockEpic sells only in a restock whose lucky slot is the Epic Case.
+				local Restock = H.require("Progression.Restock")
+				local epicSlot = 0
+				while Restock.find(epicSlot, "Epic") == nil do
+					epicSlot += 1
+				end
+				local epicAt = epicSlot * Config.Shop.Restock.SlotSeconds
+				H.expect(ShopView.check("RestockEpic", ctxAt(epicAt)) == nil, "in this restock")
 				H.expect(
-					ShopView.check("RestockEpic", ctxAt(now)) == "ComingSoon",
-					"restock: step 4"
+					ShopView.check(
+						"RestockEpic",
+						ctxAt(epicAt, { restock = { Slot = epicSlot, Bought = { Epic = 1 } } })
+					) == "SoldOut",
+					"one per player"
 				)
-				H.expect(ShopView.check("Skip1h", ctxAt(now)) == "ComingSoon", "skip: on its case")
+				local plainSlot = 0
+				while Restock.find(plainSlot, "Epic") ~= nil do
+					plainSlot += 1
+				end
+				H.expect(
+					ShopView.check(
+						"RestockEpic",
+						ctxAt(plainSlot * Config.Shop.Restock.SlotSeconds)
+					) == "NotSold",
+					"not in this restock"
+				)
+				H.expect(ShopView.check("Skip1h", ctxAt(now)) == nil, "a skip passes the check")
 				local p = ShopView.build(ctxAt(now))
 				H.expect(
 					table.concat(p.order, " ") == table.concat(Config.Shop.Order, " "),
@@ -1087,6 +1117,11 @@ return {
 				)
 				H.expect(p.order[1] == "Offer" and p.order[#p.order] == "RobloxPlus", "top, bottom")
 				H.expect(p.robloxPlus == true and p.bestValue == "Pack6" and #p.packs == 7, "rest")
+				-- A /restock forced restock shows its items on the real restock's countdown.
+				local forced = ShopView.build(ctxAt(now, { restockSlot = epicSlot }))
+				local _, realEnd = Restock.window(Restock.slotOf(now))
+				H.expect(forced.restock.slot == epicSlot, "the forced items")
+				H.expect(forced.restock.endsAt == realEnd, "the real countdown")
 			end
 		)
 	end,

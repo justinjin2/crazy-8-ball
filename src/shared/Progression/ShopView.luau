@@ -11,6 +11,8 @@
 -- the payload at ShopView.nextChange, when a window opens or closes by itself.
 local Config = require(script.Parent.Parent.Config)
 local Shop = require(script.Parent.Shop)
+local Restock = require(script.Parent.Restock)
+local CaseDrop = require(script.Parent.CaseDrop)
 
 local S = Config.Shop
 local LIST: { [string]: { Kind: string, Id: number, Robux: number, Restock: string?, SkipSeconds: number? } } =
@@ -39,7 +41,20 @@ export type Context = {
 	prices: { [string]: number }, -- product key -> live Robux price (missing: Config's)
 	-- Other game passes owned (the ult slots UltSlot2, UltSlot3), by product key; nil: none.
 	passes: { [string]: boolean }?,
+	restock: any?, -- the save's Shop.Restock (nil: nothing bought)
+	drops: any?, -- the save's Drops (the pity counters; nil: none yet)
+	stockTaken: number?, -- this restock's Legendary units taken everywhere (nil: unknown)
+	restockSlot: number?, -- the restock shown (nil: the one at `now`; /restock forces one)
 }
+
+-- The restock shown, timed by the real restock's window (a /restock forced one is shown only
+-- until the real one ends, so its countdown is the real one's too).
+local function restockView(ctx: Context, vip: boolean): any
+	local view =
+		Restock.view(ctx.restockSlot or Restock.slotOf(ctx.now), ctx.restock, vip, ctx.stockTaken)
+	view.startsAt, view.endsAt = Restock.window(Restock.slotOf(ctx.now))
+	return view
+end
 
 -- One timed offer as the client reads it (ItemState.offerEndsAt reads `open` and `endsAt`).
 export type OfferView = {
@@ -92,6 +107,10 @@ export type Payload = {
 	limited: { LimitedView },
 	products: { [string]: ProductView },
 	order: { string }, -- the shop page's sections, top to bottom (Config.Shop.Order)
+	restock: any, -- Restock.view: this restock's items, this player's stock left, its end
+	mystery: { price: number, bulkCount: number, bulkPrice: number }, -- money prices
+	skip: { moneyPerMinute: number, minMoney: number }, -- the money price of a timer skip
+	pity: { rare: number, epic: number }, -- Case Drops until a Rare / Epic is guaranteed
 	robloxPlus: boolean, -- show the Get Roblox Plus button (StoreRequest "RobloxPlus")
 	bestValue: string, -- the money pack marked "Best value"
 	packs: { string }, -- the money packs in shop order
@@ -236,9 +255,21 @@ function ShopView.check(key: string, ctx: Context): string?
 			return "Restricted"
 		elseif SPIN_PRODUCTS[key] and ctx.spinsLive == false then
 			return "ComingSoon"
-		elseif row.Restock ~= nil or row.SkipSeconds ~= nil then
-			-- Bought through the restock shop or a case's skip, not a plain Buy (economy step 4).
-			return "ComingSoon"
+		elseif row.Restock ~= nil then
+			-- In this restock, within this player's stock, and the Legendary's global stock.
+			local slot = ctx.restockSlot or Restock.slotOf(ctx.now)
+			local item = Restock.forProduct(slot, key)
+			local why = Restock.check(item, ctx.restock, slot, vip)
+			if why ~= nil then
+				return why
+			elseif
+				item ~= nil
+				and item.global ~= nil
+				and ctx.stockTaken ~= nil
+				and ctx.stockTaken >= item.global
+			then
+				return "SoldOut"
+			end
 		end
 	elseif row.Kind == "Pass" then
 		if otherPassOwned(ctx, key) then
@@ -374,6 +405,14 @@ function ShopView.build(ctx: Context): Payload
 		limited = limited,
 		products = products,
 		order = table.clone(S.Order),
+		restock = restockView(ctx, vip),
+		mystery = {
+			price = S.Mystery.Price,
+			bulkCount = S.Mystery.BulkCount,
+			bulkPrice = S.Mystery.BulkPrice,
+		},
+		skip = { moneyPerMinute = S.Skip.MoneyPerMinute, minMoney = S.Skip.MinMoney },
+		pity = CaseDrop.pityLeft(CaseDrop.readPity(ctx.drops)),
 		robloxPlus = S.RobloxPlus == true,
 		bestValue = Config.Products.BestValue,
 		packs = table.clone(Config.Products.PackOrder),
@@ -403,6 +442,8 @@ function ShopView.nextChange(ctx: Context): number?
 		consider(state.startsAt)
 		consider(state.endsAt)
 	end
+	local _, restockEnds = Restock.window(Restock.slotOf(now))
+	consider(restockEnds)
 	if ctx.partyEndsAt > now then
 		consider(ctx.partyEndsAt)
 		-- canQueueParty turns true again once less than PartyMax - PartySeconds is queued.

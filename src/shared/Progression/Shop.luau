@@ -59,6 +59,11 @@ export type Grant = {
 	spins: number?, -- ult spins to add (Spin1..Spin50; the save's Ults.Spins)
 	lucky: number?, -- Lucky Spins to add (Lucky1, Lucky3; Ults.LuckySpins)
 	drops: number?, -- Case Drops to roll, paid origin (Mystery1, Mystery10)
+	-- A restock item bought with Robux (RestockEpic, RestockLegendary): its restock slot, item
+	-- id and what it gives (the Store fills it in: the restock is the server's state).
+	restock: { slot: number, id: string, case: string?, mystery: number? }?,
+	-- A Robux timer skip (Skip1h ... Skip48h): the timer the player picked (the Store's).
+	skip: { case: string, at: number }?,
 	boostEnds: number?, -- the Starter Pack's 2x money hour ends then (sets Shop.BoostEnds)
 }
 
@@ -445,6 +450,50 @@ function Shop.markGrant(shopSave: ShopSave, grant: Grant)
 	if grant.starterBought then
 		shopSave.StarterBought = true
 	end
+end
+
+---------------------------------------------------------------------------------------------
+-- Timer skips and Mystery Cases for money (plan section 4)
+---------------------------------------------------------------------------------------------
+
+--- The money price of finishing a case timer with `secondsLeft` left: Config.Shop.Skip
+--- MoneyPerMinute for every minute (a part minute counts whole), at least MinMoney. 0 for a
+--- timer already done.
+function Shop.skipPrice(secondsLeft: number): number
+	local left = whole(secondsLeft)
+	if left <= 0 then
+		return 0
+	end
+	local minutes = math.ceil(left / 60)
+	return math.max(minutes * S.Skip.MoneyPerMinute, S.Skip.MinMoney)
+end
+
+--- The cheapest Robux skip product (Skip1h ... Skip48h) that finishes a timer with
+--- `secondsLeft` left, or nil when none covers it (or the timer is done).
+function Shop.skipProduct(secondsLeft: number): string?
+	local left = whole(secondsLeft)
+	if left <= 0 then
+		return nil
+	end
+	local best: string?, bestSeconds = nil, math.huge
+	for _, key in KEYS do
+		local seconds = whole(LIST[key].SkipSeconds)
+		if seconds >= left and seconds < bestSeconds then
+			best, bestSeconds = key, seconds
+		end
+	end
+	return best
+end
+
+--- The money price of `count` Mystery Cases (1 or Config.Shop.Mystery.BulkCount), or nil for
+--- any other count.
+function Shop.mysteryPrice(count: any): number?
+	if count == 1 then
+		return S.Mystery.Price
+	elseif count == S.Mystery.BulkCount then
+		return S.Mystery.BulkPrice
+	end
+	return nil
 end
 
 ---------------------------------------------------------------------------------------------

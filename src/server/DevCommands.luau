@@ -564,6 +564,7 @@ local ECON: { string } = {
 	"Sale",
 	"FreeCase",
 	"SkipTime",
+	"Restock",
 }
 
 -- Whether a cue's copies in existence are counted (Counters), as the game counts them: every
@@ -1228,6 +1229,22 @@ function DevCommands.start()
 	end)
 	command("Sale", D.Sale, sale)
 	command("FreeCase", D.FreeCase, freeCase)
+	command("Restock", D.Restock, function(player, args)
+		local words = {
+			uncommon = "Uncommon",
+			rare = "Rare",
+			epic = "Epic",
+			legendary = "Legendary",
+			mystery = "Mystery",
+		}
+		local itemId = words[string.lower(args[1] or "")]
+		if itemId == nil then
+			try(player, "Restock")
+			return
+		end
+		local slot = Items.forceRestock(itemId)
+		tell(player, if slot then Dev.RestockForced:format(itemId) else Dev.RestockNone)
+	end)
 	command("SkipTime", D.SkipTime, function(player, args)
 		local minutes = wholeIn(args[1], 1, 365 * 24 * 60)
 		if minutes == nil then

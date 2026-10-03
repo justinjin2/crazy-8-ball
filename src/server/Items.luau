@@ -42,6 +42,7 @@ local Cases = require(Shared.Progression.Cases)
 local Inventory = require(Shared.Progression.Inventory)
 local Requests = require(Shared.Progression.Requests)
 local Shop = require(Shared.Progression.Shop)
+local Restock = require(Shared.Progression.Restock)
 local Announce = require(script.Parent.Announce)
 local Counters = require(script.Parent.Counters)
 local PlayerData = require(script.Parent.PlayerData)
@@ -479,6 +480,147 @@ function HANDLERS.BuyLimited(player: Player, r: Requests.Request): Reply
 	return { ok = true, cueId = cueId, copy = copy, price = price }
 end
 
+-- The /restock developer command's restock for this server: shown instead of the real one
+-- until the real one ends.
+local forcedSlot: number? = nil
+local forcedUntil = 0
+
+--- The restock this server sells at unix time `now` (Progression/Restock's slot), or the one
+--- /restock forced.
+function Items.restockSlot(now: number): number
+	if forcedSlot ~= nil and now < forcedUntil then
+		return forcedSlot
+	end
+	return Restock.slotOf(now)
+end
+
+--- Developer only (/restock): shows the next restock whose items include `itemId` in this
+--- server until the real restock ends. Returns that slot, or nil when none is found soon.
+function Items.forceRestock(itemId: string): number?
+	local now = os.time()
+	local slot = Restock.slotOf(now)
+	for n = slot, slot + 200000 do
+		if Restock.find(n, itemId) ~= nil then
+			forcedSlot = n
+			local _, endsAt = Restock.window(slot)
+			forcedUntil = endsAt
+			saleEvent:Fire() -- the Store sends ShopState again (SaleChanged)
+			return n
+		end
+	end
+	return nil
+end
+
+-- The reply reasons PlayerData's restock and skip answers map to ("Invalid": logged there).
+local function replyReason(why: string?): string
+	if why == "Invalid" or why == nil then
+		return "Error"
+	end
+	return why
+end
+
+-- Refuses a paid random item (Mystery Cases, restock cases, timer skips) where PolicyService
+-- restricts them, or before it has answered; nil when it may go ahead.
+local function randomRefusal(player: Player): Reply?
+	local restricted = Items.isRestricted(player)
+	if restricted == nil then
+		return refuse("NotLoaded")
+	elseif restricted then
+		return refuse("Restricted")
+	end
+	return nil
+end
+
+function HANDLERS.BuyMystery(player: Player, r: Requests.Request): Reply
+	local blocked = randomRefusal(player)
+	if blocked then
+		return blocked
+	end
+	local count = r.count :: number
+	local price = Shop.mysteryPrice(count) :: number
+	if PlayerData.buyMystery(player, count, price) then
+		return { ok = true, count = count, price = price }
+	end
+	local money = moneyOf(player)
+	if money < price then
+		return refuse("NotEnoughMoney", { need = price - money, price = price })
+	end
+	return refuse("Error")
+end
+
+function HANDLERS.BuyRestock(player: Player, r: Requests.Request): Reply
+	local blocked = randomRefusal(player)
+	if blocked then
+		return blocked
+	end
+	local slot = Items.restockSlot(os.time())
+	local item = Restock.find(slot, r.itemId)
+	local data = PlayerData.read(player)
+	if data == nil then
+		return refuse("NotLoaded")
+	end
+	local vip = player:GetAttribute("Vip") == true
+	local why = Restock.check(item, data.Shop.Restock, slot, vip)
+	if why ~= nil or item == nil then
+		return refuse(why or "NotSold")
+	end
+	if data.Money < item.price then
+		return refuse("NotEnoughMoney", { need = item.price - data.Money, price = item.price })
+	end
+	-- The Legendary Case's shared stock: a unit is taken first, and given back if the buy fails.
+	local key = Restock.stockKey(slot)
+	if item.global ~= nil then
+		local held, reason = Counters.reserveStock(key, player.UserId, item.global)
+		if not held then
+			return refuse(reason or "Error")
+		end
+	end
+	local ok, failed = PlayerData.buyRestock(player, slot, item.id, vip)
+	if not ok then
+		if item.global ~= nil then
+			Counters.releaseStock(key, player.UserId)
+		end
+		local money = moneyOf(player)
+		if failed == "NotEnoughMoney" then
+			return refuse(failed, { need = item.price - money, price = item.price })
+		end
+		return refuse(replyReason(failed))
+	end
+	return { ok = true, itemId = item.id, price = item.price }
+end
+
+function HANDLERS.SkipTimer(player: Player, r: Requests.Request): Reply
+	local blocked = randomRefusal(player)
+	if blocked then
+		return blocked
+	end
+	local caseId, at = r.caseId :: string, r.at :: number
+	local data = PlayerData.read(player)
+	if data == nil then
+		return refuse("NotLoaded")
+	end
+	local left = at - os.time()
+	local running = false
+	for _, t in Inventory.timers(data) do
+		if t.id == caseId and t.readyAt == at then
+			running = left > 0
+		end
+	end
+	if not running then
+		return refuse("NoTimer")
+	end
+	local price = Shop.skipPrice(left)
+	local ok, why = PlayerData.skipTimer(player, caseId, at, price)
+	if not ok then
+		if why == "NotEnoughMoney" then
+			local money = moneyOf(player)
+			return refuse(why, { need = price - money, price = price })
+		end
+		return refuse(replyReason(why))
+	end
+	return { ok = true, caseId = caseId, price = price }
+end
+
 -- One request, start to finish. Never errors.
 local function handle(player: Player, action: any, a: any, b: any): Reply
 	local bucket = buckets[player]
@@ -532,6 +674,7 @@ end
 --                                      store, recorded under that userId)
 --   "claimFirst", key, userId / "first", key
 --   "unbox", userId, cueId / "reyes", userId / "party", endsAt, name
+--   "forceRestock", itemId             -> the slot now shown (as /restock), or nil
 local function startQA()
 	if not IS_STUDIO then
 		return
@@ -588,6 +731,8 @@ local function startQA()
 		elseif op == "party" then
 			Announce.party(a, b)
 			return true
+		elseif op == "forceRestock" then
+			return Items.forceRestock(a)
 		end
 		error("ItemsQA: unknown op " .. tostring(op))
 	end

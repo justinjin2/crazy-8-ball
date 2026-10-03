@@ -40,6 +40,7 @@ local Ranks = require(Shared.Progression.Ranks)
 local Catalog = require(Shared.Progression.Catalog)
 local Cases = require(Shared.Progression.Cases)
 local CaseDrop = require(Shared.Progression.CaseDrop)
+local Restock = require(Shared.Progression.Restock)
 local Inventory = require(Shared.Progression.Inventory)
 local Daily = require(Shared.Progression.Daily)
 local Settle = require(Shared.Progression.Settle)
@@ -433,6 +434,17 @@ local function rollDrop(
 	end
 	table.insert(list, payload)
 	return payload
+end
+
+-- Gives a restock item, paid origin: its case (landed on its timer) or its Mystery Cases
+-- (Case Drops, each revealed).
+local function giveRestockItem(data: any, caseId: string?, mystery: number?)
+	if caseId ~= nil then
+		addCasesTo(data, caseId, 1, true)
+	end
+	for _ = 1, mystery or 0 do
+		rollDrop(data, "Mystery", nil, true)
+	end
 end
 
 -- A cue just entered the save's Index for the first time: pay its finder's money (earned;
@@ -1436,6 +1448,113 @@ function PlayerData.advanceTimers(player: Player, seconds: number): boolean
 	Inventory.finishTimers(data, os.time())
 	commit(player, data, op)
 	return true
+end
+
+--- Buys `count` Mystery Cases (1..Config.Save.MaxSmallEntries) for `price` money
+--- (0..MoneyCap; the caller priced it with Shop.mysteryPrice and checked PolicyService), in
+--- one change: each is a paid Case Drop, revealed (CaseDropped, source "Mystery"). False, and
+--- nothing changes, when the money is short (quietly).
+function PlayerData.buyMystery(player: Player, count: number, price: number): boolean
+	local op = "buyMystery"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif not intIn(count, 1, S.MaxSmallEntries) then
+		return refuse(
+			op,
+			player,
+			("count %s is not 1..%d"):format(tostring(count), S.MaxSmallEntries)
+		)
+	elseif not intIn(price, 0, S.MoneyCap) then
+		return refuse(op, player, ("price %s is not 0..%d"):format(tostring(price), S.MoneyCap))
+	end
+	local data = liveData(op, player)
+	if data == nil or data.Money < price then
+		return false
+	end
+	takeMoney(data, price, "Mystery")
+	for _ = 1, count do
+		rollDrop(data, "Mystery", nil, true)
+	end
+	commit(player, data, op)
+	return true
+end
+
+--- Buys restock item `itemId` of restock `slot` for its money price, in one change: checks
+--- this player's stock and the VIP slot again (Restock.check), takes the money, records it
+--- (Shop.Restock) and gives the item, paid origin. Answers (true) or (false, reason):
+--- "NotSold", "VipOnly", "SoldOut", "NotEnoughMoney", "NotLoaded", "Invalid".
+function PlayerData.buyRestock(
+	player: Player,
+	slot: number,
+	itemId: string,
+	isVip: boolean
+): (boolean, string?)
+	local op = "buyRestock"
+	if not isPlayer(player) then
+		return refuseInvalid(op, player, "not a player")
+	elseif not intIn(slot, 0, S.UnixTimeCap) then
+		return refuseInvalid(op, player, "slot is not a restock slot")
+	end
+	local item = Restock.find(slot, itemId)
+	local data = liveData(op, player)
+	if data == nil then
+		return false, "NotLoaded"
+	end
+	local why = Restock.check(item, data.Shop.Restock, slot, isVip == true)
+	if why ~= nil or item == nil then
+		return false, why or "NotSold"
+	end
+	if data.Money < item.price then
+		return false, "NotEnoughMoney"
+	end
+	takeMoney(data, item.price, "Restock:" .. item.id)
+	Restock.record(data.Shop.Restock, slot, item.id)
+	giveRestockItem(data, item.case, item.mystery)
+	commit(player, data, op)
+	return true, nil
+end
+
+--- Finishes the case timer of `caseId` that ends at `at` for `price` money (the caller priced
+--- it with Shop.skipPrice from the time left), in one change. Answers (true) or (false,
+--- reason): "NoTimer" (no such timer running), "NotEnoughMoney", "NotLoaded", "Invalid".
+function PlayerData.skipTimer(
+	player: Player,
+	caseId: string,
+	at: number,
+	price: number
+): (boolean, string?)
+	local op = "skipTimer"
+	if not isPlayer(player) then
+		return refuseInvalid(op, player, "not a player")
+	elseif Cases.get(caseId) == nil or not intIn(at, 0, S.UnixTimeCap) then
+		return refuseInvalid(op, player, "not a case timer")
+	elseif not intIn(price, 0, S.MoneyCap) then
+		return refuseInvalid(
+			op,
+			player,
+			("price %s is not 0..%d"):format(tostring(price), S.MoneyCap)
+		)
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false, "NotLoaded"
+	end
+	local found = false
+	for _, t in Inventory.timers(data) do
+		if t.id == caseId and t.readyAt == at then
+			found = true
+			break
+		end
+	end
+	if not found then
+		return false, "NoTimer"
+	elseif data.Money < price then
+		return false, "NotEnoughMoney"
+	end
+	takeMoney(data, price, "Skip")
+	Inventory.finishTimer(data, caseId, at)
+	commit(player, data, op)
+	return true, nil
 end
 
 --- Quick Cases was bought (or first seen owned): the case timers already running are halved,
@@ -2574,6 +2693,8 @@ local GRANT_FIELDS: { [any]: boolean } = {
 	lucky = true,
 	drops = true,
 	boostEnds = true,
+	restock = true,
+	skip = true,
 }
 local GRANT_FLAGS = { "vip", "vipCue", "party", "firstPack", "starterBought" }
 
@@ -2613,6 +2734,26 @@ local function badGrant(grant: any, copy: any): string?
 		)
 	elseif grant.boostEnds ~= nil and not intIn(grant.boostEnds, 0, S.UnixTimeCap) then
 		return ("grant.boostEnds %s is not a unix time"):format(tostring(grant.boostEnds))
+	end
+	local restock = grant.restock
+	if restock ~= nil then
+		local item = if type(restock) == "table" and intIn(restock.slot, 0, S.UnixTimeCap)
+			then Restock.find(restock.slot, restock.id)
+			else nil
+		if item == nil or item.case ~= restock.case or item.mystery ~= restock.mystery then
+			return "grant.restock is not an item of its restock"
+		end
+	end
+	local skip = grant.skip
+	if
+		skip ~= nil
+		and not (
+			type(skip) == "table"
+			and Cases.get(skip.case) ~= nil
+			and intIn(skip.at, 0, S.UnixTimeCap)
+		)
+	then
+		return "grant.skip is not a case timer"
 	end
 	if grant.cue ~= nil then
 		local cue = Catalog.get(grant.cue)
@@ -2690,6 +2831,16 @@ function PlayerData.applyPurchase(
 	-- Mystery Cases: Case Drops bought with Robux, paid origin, each revealed (CaseDropped).
 	for _ = 1, grant.drops or 0 do
 		rollDrop(data, "Mystery", nil, true)
+	end
+	-- A restock item bought with Robux: counted against that restock, given paid.
+	local restock = grant.restock
+	if restock ~= nil then
+		Restock.record(shop.Restock, restock.slot, restock.id)
+		giveRestockItem(data, restock.case, restock.mystery)
+	end
+	-- A Robux skip: the picked timer finishes now (one that already finished stays ready).
+	if grant.skip ~= nil then
+		Inventory.finishTimer(data, grant.skip.case, grant.skip.at)
 	end
 	Shop.markGrant(shop, grant)
 	commit(player, data, op)
@@ -2957,6 +3108,15 @@ local QA_CALLS: { [string]: (Player, any, any, any, any) -> ...any } = {
 	end,
 	applyQuickCases = function(p)
 		return PlayerData.applyQuickCases(p)
+	end,
+	buyMystery = function(p, a, b)
+		return PlayerData.buyMystery(p, a, b)
+	end,
+	buyRestock = function(p, a, b, c)
+		return PlayerData.buyRestock(p, a, b, c)
+	end,
+	skipTimer = function(p, a, b, c)
+		return PlayerData.skipTimer(p, a, b, c)
 	end,
 	addOpponentCase = function(p, a)
 		return PlayerData.addOpponentCase(p, a)

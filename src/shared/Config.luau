@@ -2082,6 +2082,9 @@ Config.Items = {
 	-- that fails is tried this many times, this far apart, before it counts as not first.
 	FirstsStore = "Firsts_v1",
 	FirstsStudioStore = "Firsts_Studio_v1",
+	-- The restock shop's shared stock (the Legendary Case's GlobalStock), one key per restock.
+	StockStore = "RestockStock_v1",
+	StockStudioStore = "RestockStock_Studio_v1",
 	FirstRetries = 3,
 	FirstRetrySeconds = 2,
 	FirstReyesTitle = "FirstReyes", -- the one-of-one title (an id in Strings.Items.Titles; 4.6)
@@ -2190,6 +2193,44 @@ Config.Shop = {
 	-- The Get Roblox Plus button (MarketplaceService:PromptRobloxSubscriptionPurchase; Roblox
 	-- pays the game for each subscriber signed up in it). false hides it.
 	RobloxPlus = true,
+	-- Mystery Cases for money (plan section 4): each is one Case Drop (the same odds, pity and
+	-- 8-ball reveal), paid origin. Price one; BulkCount for BulkPrice (no discount: 9 x 4,900).
+	Mystery = { Price = 4900, BulkCount = 10, BulkPrice = 44100 },
+	-- Finishing a case timer with money (plan section 4): MoneyPerMinute for every minute left
+	-- (a part minute counts whole), at least MinMoney. Robux (Skip1h ... Skip48h) is cheaper.
+	Skip = { MoneyPerMinute = 25, MinMoney = 250 },
+	-- The restock shop (plan section 4; Progression/Restock): new items every SlotSeconds on
+	-- the clock (UTC :00, :10 ...), the same in every server (picked from the slot number).
+	-- Chances are parts of ChanceTotal. Stock is per player per restock; the Legendary Case's
+	-- GlobalStock is shared by every player in every server for that restock (an atomic
+	-- counter: reserved when its Robux prompt opens, given back on a cancel).
+	Restock = {
+		SlotSeconds = 600,
+		ChanceTotal = 10000,
+		-- Every restock.
+		Uncommon = { Case = "Uncommon", Price = 14900, Stock = 3 },
+		-- In RareChance of restocks.
+		Rare = { Case = "Rare", Price = 34900, Stock = 2 },
+		RareChance = 6000,
+		-- The lucky slot: an Epic Case in EpicChance, a Legendary Case in LegendaryChance,
+		-- else 3 Mystery Cases (plain price).
+		Epic = { Case = "Epic", Price = 349000, Product = "RestockEpic", Stock = 1 },
+		EpicChance = 400,
+		Legendary = {
+			Case = "Legendary",
+			Price = 3490000,
+			Product = "RestockLegendary",
+			Stock = 1,
+			GlobalStock = 25,
+		},
+		LegendaryChance = 15,
+		Mystery = { Mystery = 3, Price = 14700, Stock = 1 },
+		-- VIP only: an extra Rare Case every restock.
+		Vip = { Case = "Rare", Price = 34900, Stock = 1 },
+		-- A Robux restock receipt still counts for its restock this long after the prompt
+		-- opened (the prompt may be confirmed after the slot ended).
+		ReceiptGraceSeconds = 600,
+	},
 	-- The first money pack a player ever buys pays this many times its money (11.1).
 	FirstPackMultiplier = 2,
 	-- Money Party (11.5): +Config.Economy.PartyBoost money for everyone in the server for
@@ -9110,6 +9151,7 @@ Config.Debug = {
 		Sale = "/sale", -- /sale <case> <percent> <minutes> | /sale off: a case sale on this server
 		FreeCase = "/freecase", -- as if you won a real match (the Case Drop rule)
 		SkipTime = "/skiptime", -- case timers run that many minutes sooner
+		Restock = "/restock", -- this server shows a restock with that item until it ends
 		EconHelp = "/econhelp", -- lists these
 		-- Ultimates, acting on the caller only (`/abilityhelp` lists them). Players call ults
 		-- "abilities" (2026-09-28), so each command's name says ability; its old ult name in
