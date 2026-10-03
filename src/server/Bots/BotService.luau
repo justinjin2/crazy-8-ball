@@ -28,6 +28,7 @@ local Ranks = require(Shared.Progression.Ranks)
 local Look = require(Shared.Bots.Look)
 local Rng = require(Shared.Bots.Rng)
 local Tables = require(script.Parent.Parent.TableService)
+local GlobalQueue = require(script.Parent.Parent.GlobalQueue)
 local UltService = require(script.Parent.Parent.UltService)
 local Body = require(script.Parent.Body)
 local Identity = require(script.Parent.Identity)
@@ -557,6 +558,100 @@ local function studioHook()
 	hook.Parent = game:GetService("ServerStorage")
 end
 
+---------------------------------------------------------------------------------------------
+-- The global queue's safety net (Config.Bots.Fallback): a 1v1 search with no real opponent
+-- after SoloSeconds goes to an arena whose list names a disguised bot of the player's tier.
+---------------------------------------------------------------------------------------------
+
+local F = B.Fallback
+local fallbackBusy: { [any]: boolean } = {}
+
+local function soloFallback(t: any, player: Player)
+	local tier = playerTier(player)
+	local record = {
+		mode = 1,
+		teams = { { player.UserId }, {} },
+		homes = { [tostring(player.UserId)] = GlobalQueue.Server },
+		tickets = {},
+		ults = true,
+		bots = {
+			{ team = 2, kind = "Disguised", tier = tier, playerTier = tier, rematch = "Never" },
+		},
+	}
+	local match = GlobalQueue.botMatch(record, 1)
+	if match and not Tables.searchToMatch(t, match) then
+		print(("[8ball] GQ bot match %s not used: a real opponent came first"):format(match.id))
+	end
+end
+
+local function watchSearches()
+	for _, t in Tables.all() do
+		if not fallbackBusy[t] and t.engine.teamSize == 1 then
+			local players, at = Tables.waitingSearch(t)
+			if players and #players == 1 and at and now() - at >= F.SoloSeconds then
+				fallbackBusy[t] = true
+				task.spawn(function()
+					local ok, err = pcall(function(): any
+						soloFallback(t, players[1])
+						return nil
+					end)
+					if not ok then
+						warn("[8ball] GQ bot fallback failed: " .. tostring(err))
+					end
+					fallbackBusy[t] = nil
+				end)
+			end
+		end
+	end
+end
+
+--- Walks `bot` in to `to` (a few steps from further out), then sits it at arena table `t`
+--- on side `team`; `breakFor` is the real player who breaks. Yields. True when seated.
+function BotService.walkIn(bot: Bot, t: any, to: CFrame, team: number, breakFor: number?): boolean
+	local from = to * CFrame.new(0, 0, F.WalkInStuds)
+	if BotService.stand(bot, from) and bot.model then
+		local hum = bot.model:FindFirstChildOfClass("Humanoid")
+		if hum then
+			local arrived = false
+			local c = hum.MoveToFinished:Connect(function()
+				arrived = true
+			end)
+			hum:MoveTo(to.Position)
+			local deadline = os.clock() + F.WalkInSeconds
+			while not arrived and os.clock() < deadline do
+				task.wait(0.1)
+			end
+			c:Disconnect()
+		end
+	end
+	return BotService.seat(bot, t, { team = team, at = to, breakFor = breakFor })
+end
+
+--- An arena's bot opponents (ArenaService, from its list's `bots`): each made, walked in and
+--- seated on its side; the real player on the other side breaks. Yields. True when all sat.
+function BotService.seatArenaBots(t: any, record: any): boolean
+	-- The real player who breaks: the first one seated (the list's own sides are empty in a
+	-- Studio arena, where players fill the sides as they come).
+	local breakFor = nil
+	for _, seat in t.engine.seats do
+		if breakFor == nil and seat.userId > 0 then
+			breakFor = seat.userId
+		end
+	end
+	local all = true
+	for i, spec in record.bots do
+		local bot = BotService.spawn(spec)
+		local spot = Tables.padSpot(t, if record.mode == 1 then 2 else (i - 1) * 2)
+		if not bot or not BotService.walkIn(bot, t, spot, spec.team or 2, breakFor) then
+			all = false
+			if bot then
+				BotService.remove(bot)
+			end
+		end
+	end
+	return all
+end
+
 --- Runs the bots (Bootstrap, after the table, shot and ult services).
 function BotService.start()
 	if started then
@@ -579,6 +674,7 @@ function BotService.start()
 			return
 		end
 		elapsed = 0
+		watchSearches()
 		for _, bot in BotService.list() do
 			local ok, err = pcall(function(): any
 				poll(bot)

@@ -8651,7 +8651,7 @@ Config.Bots = {
 		Bronze = {
 			Make = 0.08,
 			Behind = 0.05,
-			Blunder = 0.3,
+			Blunder = 0.36,
 			Scratch = 0.12,
 			Position = 1,
 			Safety = false,
@@ -8685,7 +8685,7 @@ Config.Bots = {
 			PlaceSamples = 10,
 		},
 		Diamond = {
-			Make = 0.53,
+			Make = 0.55,
 			Behind = 0.09,
 			Blunder = 0,
 			Scratch = 0,
@@ -8847,6 +8847,16 @@ Config.Bots = {
 			4047884939, -- My Favorite Pizza Shirt (a starter)
 		},
 		RetrySeconds = 0.25, -- between lookups (Roblox's web limits)
+	},
+	-- The global queue's safety net (the designer, 2026-10-02): real players first; a 1v1
+	-- search with no real opponent after SoloSeconds gets a disguised bot of the player's own
+	-- tier in an arena (its list names the bot), with no rematch. A team search waits
+	-- TeamSeconds for an all-bot team (step 8).
+	Fallback = {
+		SoloSeconds = 10,
+		TeamSeconds = 25,
+		WalkInStuds = 18, -- the arena bot walks this far in to its spot
+		WalkInSeconds = 4, -- at most this long, then it is put there
 	},
 	-- The tutorial's opponents (BotService.tutorialBot, tutorialSecondBot; the designer,
 	-- 2026-10-02): the first wears a Silver badge and plays the script, the second a normal

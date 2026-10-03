@@ -1325,6 +1325,40 @@ function Service.botShotAccepted(
 	end
 end
 
+--- A lobby search that waited long enough is given a bot instead (the Bots lane): its search
+--- comes out of the global queue and `match` (a reserved arena whose list names the bot) goes
+--- ahead as if the queue had found it. Yields. False when the search was not waiting any more
+--- or the queue matched it with real players after all (then that match stands).
+function Service.searchToMatch(t: any, match: any): boolean
+	local e = t.engine
+	local search = t.search
+	if arena or not search or not GlobalQueue.isWaiting(search) or t.searchCancelling then
+		return false
+	end
+	t.searchCancelling = true
+	local outcome = GlobalQueue.cancel(search)
+	t.searchCancelling = false
+	if outcome ~= "cancelled" or t.search ~= search or not e.search or e.search.found then
+		return false
+	end
+	searchFound(t, t.searchEpoch, search, match)
+	return true
+end
+
+--- The players of table `t`'s waiting search, and when it began (server time); nil when it
+--- has none.
+function Service.waitingSearch(t: any): ({ Player }?, number?)
+	local e = t.engine
+	local search = t.search
+	if arena or not search or not GlobalQueue.isWaiting(search) or t.searchCancelling then
+		return nil, nil
+	end
+	if not e.search or e.search.found or e.phase ~= "Waiting" then
+		return nil, nil
+	end
+	return playersOf(search.ticket.users), e.search.at
+end
+
 --- Where a body stands on table `t`'s queue pad (a bot appearing to play).
 function Service.padSpot(t: any, offset: number?): CFrame
 	local cx, cy = Placement.queuePad(t.engine.teamSize)

@@ -38,11 +38,15 @@ local Placement = require(Shared.Placement)
 local GlobalQueue = require(script.Parent.GlobalQueue)
 local PlayerData = require(script.Parent.PlayerData)
 local TableService = require(script.Parent.TableService)
+local BotService = require(script.Parent.Bots.BotService)
 
 local A = Config.Arena
 local IS_STUDIO = RunService:IsStudio()
 local STUDIO_ATTRIBUTE = "StudioArena"
 local STUDIO_ULTS_ATTRIBUTE = "StudioArenaUlts" -- false: the Studio arena plays with no ults
+-- The Bots lane: a tier name here makes the Studio arena's other side a disguised bot of it
+-- (the global queue's fallback), instead of pretend players.
+local STUDIO_BOT_ATTRIBUTE = "StudioArenaBot"
 local ArenaService = {}
 
 -- The place's mode, for every client (Main reads it before building anything).
@@ -93,6 +97,16 @@ function ArenaService.loadRecord(matchId: string): any?
 			homes = {},
 			ults = ServerStorage:GetAttribute(STUDIO_ULTS_ATTRIBUTE) ~= false,
 			studio = true,
+			bots = if type(ServerStorage:GetAttribute(STUDIO_BOT_ATTRIBUTE)) == "string"
+				then {
+					{
+						team = 2,
+						kind = "Disguised",
+						tier = ServerStorage:GetAttribute(STUDIO_BOT_ATTRIBUTE),
+						rematch = "Never",
+					},
+				}
+				else nil,
 		}
 	end
 	local started = os.clock()
@@ -346,6 +360,19 @@ local function everyoneIn(): boolean
 	return next(teamOf) ~= nil
 end
 
+-- The Bots lane: a list may name bot opponents (`bots`, the global queue's fallback after its
+-- wait). Once the real players are in they walk in and sit down, just before the game starts.
+-- Yields. True when there are none or all sat.
+local botsSeated = false
+local function seatBots(): boolean
+	if type(record.bots) ~= "table" or botsSeated then
+		return true
+	end
+	botsSeated = true
+	local t = TableService.arenaTable()
+	return t ~= nil and BotService.seatArenaBots(t, record)
+end
+
 -- Studio: pretend players fill every side's empty seats.
 local function fillSynthetic()
 	local t = TableService.arenaTable()
@@ -441,6 +468,7 @@ local function arrive(p: Player)
 		if record.studio then
 			task.delay(1.5, function()
 				if not begun then
+					seatBots()
 					fillSynthetic()
 					sendState()
 					if everyoneIn() then
@@ -449,6 +477,7 @@ local function arrive(p: Player)
 				end
 			end)
 		elseif everyoneIn() then
+			seatBots()
 			begin()
 		end
 	end

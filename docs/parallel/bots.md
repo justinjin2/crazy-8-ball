@@ -72,6 +72,9 @@ your status).
   `DevCommands.luau` (/botrank block), `QueueMenu.luau` (Play against PC sends PlayPc),
   `WatchedShooters`, `BackCue`, `Nameplates`, `MatchHUD`, `ResultScreen`, `Effects`,
   `UltCutscene`, `Main.client` (look people up through People, so bots show like players).
+  Step 6 added: `GlobalQueue.luau` (`botMatch` block), `TableService.luau` (`searchToMatch`,
+  `waitingSearch` in the bot block), `ArenaService.luau` (`seatBots` block, two calls before
+  `begin()`, the `StudioArenaBot` attribute).
 - **Step 4, disguised identity (done).** Real avatars from random accounts (2020 on): most
   accounts wear a starter outfit or nothing (measured: 30 of 60 in three default outfits, 6
   blank), so a look must be styled (two or more accessories that are not face parts, no
@@ -107,7 +110,22 @@ your status).
   game (and when the player leaves). The snapshot's seat carries `bot = { kind = "Tutorial",
   noRematch = true }` for the second game, so the GUI can grey "Find another". Both games pay
   and count as real wins, whatever the match time (Settle.botReal).
-- Next: step 6, the global queue 1v1 fallback.
+- **Step 6, the global queue 1v1 fallback (done; the lobby half needs the published game).**
+  A 1v1 search with no real opponent after 10 s (`Config.Bots.Fallback.SoloSeconds`) comes out
+  of the queue (`TableService.searchToMatch`: if the queue matched it with a real player first,
+  that match stands) and goes ahead as a found match: "Match found!", then the teleport to a
+  reserved arena whose player list (`GlobalQueue.botMatch`, written before anyone is told)
+  names a disguised bot of the player's tier (`bots = { { team = 2, kind = "Disguised", tier,
+  rematch = "Never" } }`). In the arena (`ArenaService`, a small block) the bot is made once the
+  player is in, walks in to its spot and sits; the player breaks; no rematch (it declines, the
+  arena's Play another and Lobby stay). Checked in Studio with the Studio arena
+  (`ServerStorage` attributes `StudioArena = 1` and the new `StudioArenaBot = "Gold"`): the
+  Gold bot with a real avatar sat on side 2, the game started 6 s after the list, the player
+  broke, and after the game Rematch was greyed ("Opponent left") with Play another and Lobby.
+  The lobby half could not run in this unpublished window (the queue's MemoryStore answers
+  "publish this place"): **to check in the published game:** Join Global Queue alone, wait 10
+  s: "Match found!", the teleport, a disguised bot of your tier walks in.
+- Next: step 7, lobby bots.
 
 ## Requests to other lanes or the integrator
 

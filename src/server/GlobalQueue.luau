@@ -502,6 +502,27 @@ local function teleportGroup(
 	end
 end
 
+--- A match the global queue's leader did not make (the Bots lane: a bot opponent after the
+--- wait, Config.Bots.Fallback): a reserved arena whose list is `record` (its id is set here),
+--- written before anyone is told. Yields. The Match for side `team`, or nil. In Studio the
+--- list cannot be written or read by an arena, but the match comes back all the same (the
+--- teleport then reports "Studio").
+function GlobalQueue.botMatch(record: any, team: number): Match?
+	local code, id = reserve()
+	if not code or not id then
+		return nil
+	end
+	record.id = id
+	record.v = record.v or Ticket.Version
+	record.at = record.at or clock()
+	if not QueueCore.writeRecord(store, record) and not IS_STUDIO then
+		failed("bot match list", id)
+		return nil
+	end
+	log(("bot match %s made for side %d"):format(id, team))
+	return { id = id, code = code, team = team }
+end
+
 --- Send `players` to a match's arena. Their saves are let go first. `failed(player, why)`
 --- runs for anyone still here once every try failed (Studio: at once, "Studio").
 function GlobalQueue.teleport(players: { Player }, match: Match, failed: (Player, string) -> ())
