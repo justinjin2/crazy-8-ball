@@ -720,7 +720,7 @@ return {
 		},
 	},
 	Piece = "infernal",
-	Thumb = "rbxassetid://122411123325625",
+	Thumb = "rbxassetid://110999067480326",
 	Look = {
 		Shaft = { 56, 11, 6 },
 		Forearm = { 93, 42, 34 },

@@ -593,7 +593,7 @@ def blender_main(args):
             cm = cam_matrix()
             draw_emitters('Aura', ems, host, cm)
             draw_beams(aura_t, host, cm)
-        elif beams:
+        elif beams and '--noaura' not in args:
             draw_beams(1.0, cue_m(), cam_matrix())
         render_to(os.path.join(out_dir, 'stills', name + '.png'), samples or PREVIEW['still_samples'])
 
@@ -625,7 +625,9 @@ def blender_main(args):
         span = (7.0 + reach) * s + 1.3
         e = math.radians(THUMB_ELEVATION)
         eye = 20 * (Vector((0, -math.cos(e), 0)) + math.sin(e) * zw)
-        aura_t = PREVIEW['prewarm'] if (V.get('Aura') or {}).get('Emitters') or beams else None
+        # --noaura (the GUI lane, 2026-10-03): the picture shows the skin and its 3D piece frozen
+        # in place like a snapshot, with no moving aura or ribbons (the designer's C13).
+        aura_t = PREVIEW['prewarm'] if ((V.get('Aura') or {}).get('Emitters') or beams) and '--noaura' not in args else None
         stills = os.path.join(out_dir, 'stills')
 
         def shot(name):

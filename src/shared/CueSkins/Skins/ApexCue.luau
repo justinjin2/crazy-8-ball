@@ -629,7 +629,7 @@ return {
 		},
 	},
 	Piece = "apex",
-	Thumb = "rbxassetid://129111443014161",
+	Thumb = "rbxassetid://110374735717345",
 	Look = {
 		Shaft = { 98, 92, 86 },
 		Forearm = { 89, 67, 50 },

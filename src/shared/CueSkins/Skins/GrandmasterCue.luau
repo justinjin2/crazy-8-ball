@@ -342,7 +342,7 @@ return {
 			Seconds = 0.3,
 		},
 	},
-	Thumb = "rbxassetid://114428928487757",
+	Thumb = "rbxassetid://90292336369345",
 	Look = {
 		Shaft = { 35, 29, 26 },
 		Forearm = { 84, 68, 32 },

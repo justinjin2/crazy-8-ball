@@ -40,6 +40,11 @@ def asset_id(rel):
     """`vfx/x.png`, `textures/x.png` or `pieces/p/x.glb` -> its uploaded id string."""
     path = os.path.join(CUE, rel)
     row = manifest.get(path) or {}
+    if not row:
+        # Uploaded from another worktree (~/Desktop/8ball, 8ball-gui, ...): the manifest is keyed
+        # by absolute path, so match the path inside assets/cue instead.
+        tail = os.sep + os.path.join('assets', 'cue', rel)
+        row = next((r for k, r in manifest.items() if k.endswith(tail) and r.get('status') == 'ok'), {})
     if row.get('status') == 'ok':
         if rel.endswith('.png') and row.get('imageId'):
             return 'rbxassetid://%s' % row['imageId']

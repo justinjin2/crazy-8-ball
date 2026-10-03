@@ -5,7 +5,8 @@
 -- as before, and a top-down cue lies inside the bar and slides down as you pull, so the
 -- control shows the thing it controls.
 --
--- The cue is the catalog cue the player has equipped (Catalog.style, drawn through CueArt), so
+-- The cue is the catalog cue the player has equipped: its skin's rendered picture when it has
+-- one (2026-10-03), else its colours drawn through CueArt (Catalog.style), so
 -- the cue they pull back is the one on their stick - and a collectible cue is a data row,
 -- never new code here. follow() keeps it on the player's EquippedCue. CueArt does the
 -- arithmetic and is Lune-tested; this module only turns its slices into Frames.
@@ -25,6 +26,7 @@
 -- Every position and size is in SCALE rather than pixels, so the whole control is resolution
 -- independent and the pull reads the same on a phone and a monitor.
 
+local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -35,6 +37,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local CueArt = require(Shared:WaitForChild("CueArt"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
+local CueSkins = require(Shared:WaitForChild("CueSkins"))
 local HudParts = require(script.Parent.HudParts)
 local K = Config.UI.Kit
 
@@ -115,6 +118,32 @@ local function buildCue(parent: GuiObject, cueId: string, width: number): Frame
 	-- would quietly stop working the moment the fill is rebuilt or reordered.
 	cue.ZIndex = 2
 	cue.Parent = parent
+
+	-- A cue with a skin shows its own rendered picture (the one the cards use, its 3D piece
+	-- frozen in place; designer, 2026-10-03), turned so the tip points up. The picture has the
+	-- cue on its diagonal, PowerCueArtDiagonal of the way across, so it is sized from the bar's
+	-- height to match the band-drawn cue's length.
+	local row = Catalog.get(cueId)
+	local skin = CueSkins.index(if row then row.Id else cueId)
+	if skin and skin.Thumb ~= "" then
+		local art = Instance.new("ImageLabel")
+		art.Name = "Art"
+		art.BackgroundTransparency = 1
+		art.Image = skin.Thumb
+		art.ScaleType = Enum.ScaleType.Fit
+		art.AnchorPoint = Vector2.new(0.5, 0.5)
+		art.Position = UDim2.fromScale(0.5, 0.5)
+		art.SizeConstraint = Enum.SizeConstraint.RelativeYY
+		local side = 1 / (math.sqrt(2) * U.PowerCueArtDiagonal)
+		art.Size = UDim2.fromScale(side, side)
+		art.Rotation = -45
+		art.ZIndex = 2
+		art.Parent = cue
+		task.spawn(function() -- fetched now, so the bar is never empty on the first shot
+			ContentProvider:PreloadAsync({ art })
+		end)
+		return cue
+	end
 
 	local slices = CueArt.slices(style, U.PowerCueSlices)
 	for i, slice in slices do

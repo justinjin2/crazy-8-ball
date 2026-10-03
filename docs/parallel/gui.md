@@ -92,6 +92,17 @@ step (steps 1-14 of the brief).
     halo shows round the Equip button; console clean. Phone: the phone layout path is
     unchanged (previews of the rebuilt screens come with their steps).
 
+- **Step 2 done: cue pictures everywhere.** Every skin's card picture was rendered again with
+  no aura and its 3D piece frozen in place (`CuePreview.py --thumb --noaura`): the Celestial
+  Dragon now spirals round its cue, Phoenix shows its wings, Kraken its tentacles. 41 of the 59
+  changed (the rest had no aura); uploaded to the group and wired through
+  `tools/cue_skins_data.py` (which now finds ids uploaded from any worktree). The power bar's
+  cue is the equipped skin's picture, turned tip-up and preloaded (cues with no skin keep the
+  colour bands). A still picture costs one ImageLabel, so no live ViewportFrames are used.
+  - Checked: lint, 947 Lune tests; Studio PC: Phoenix and Celestial Dragon in the power bar
+    match the cue in hand; the Inventory cards show the new pictures. Phone: the power bar's
+    place and size are unchanged.
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).

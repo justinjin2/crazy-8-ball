@@ -7,7 +7,7 @@ return {
 		Id = "apex",
 		Name = "Apex",
 		Tier = "Mythic",
-		Thumb = "rbxassetid://129111443014161",
+		Thumb = "rbxassetid://110374735717345",
 		Look = {
 			Shaft = { 98, 92, 86 },
 			Forearm = { 89, 67, 50 },
@@ -36,7 +36,7 @@ return {
 		Id = "aurora",
 		Name = "Aurora",
 		Tier = "Epic",
-		Thumb = "rbxassetid://96100516476904",
+		Thumb = "rbxassetid://91338673541890",
 		Look = {
 			Shaft = { 28, 58, 89 },
 			Forearm = { 39, 68, 110 },
@@ -50,7 +50,7 @@ return {
 		Id = "blaze",
 		Name = "Blaze",
 		Tier = "Rare",
-		Thumb = "rbxassetid://132277705941981",
+		Thumb = "rbxassetid://133344597476092",
 		Look = {
 			Shaft = { 58, 37, 25 },
 			Forearm = { 89, 62, 39 },
@@ -64,7 +64,7 @@ return {
 		Id = "blood_moon",
 		Name = "Blood Moon",
 		Tier = "Epic",
-		Thumb = "rbxassetid://72782913270975",
+		Thumb = "rbxassetid://94610565238410",
 		Look = {
 			Shaft = { 29, 7, 10 },
 			Forearm = { 37, 9, 12 },
@@ -92,7 +92,7 @@ return {
 		Id = "candy",
 		Name = "Candy",
 		Tier = "Rare",
-		Thumb = "rbxassetid://111543032666620",
+		Thumb = "rbxassetid://130491560847459",
 		Look = {
 			Shaft = { 236, 142, 147 },
 			Forearm = { 237, 145, 149 },
@@ -106,7 +106,7 @@ return {
 		Id = "carbon",
 		Name = "Carbon",
 		Tier = "Common",
-		Thumb = "rbxassetid://127746063157964",
+		Thumb = "rbxassetid://114898837970865",
 		Look = {
 			Shaft = { 51, 52, 57 },
 			Forearm = { 51, 52, 57 },
@@ -120,7 +120,7 @@ return {
 		Id = "celestial_dragon",
 		Name = "Celestial Dragon",
 		Tier = "Mythic",
-		Thumb = "rbxassetid://74699909088639",
+		Thumb = "rbxassetid://99355591958648",
 		Look = {
 			Shaft = { 229, 225, 209 },
 			Forearm = { 216, 203, 155 },
@@ -149,7 +149,7 @@ return {
 		Id = "chroma",
 		Name = "Chroma",
 		Tier = "Legendary",
-		Thumb = "rbxassetid://91239383513956",
+		Thumb = "rbxassetid://94169397302117",
 		Look = {
 			Shaft = { 183, 32, 104 },
 			Forearm = { 104, 124, 142 },
@@ -178,7 +178,7 @@ return {
 		Id = "clockwork",
 		Name = "Clockwork",
 		Tier = "Legendary",
-		Thumb = "rbxassetid://125730919903001",
+		Thumb = "rbxassetid://74221051225928",
 		Look = {
 			Shaft = { 212, 164, 101 },
 			Forearm = { 75, 52, 25 },
@@ -221,7 +221,7 @@ return {
 		Id = "diamond_cue",
 		Name = "Diamond Cue",
 		Tier = "Rank",
-		Thumb = "rbxassetid://131440238988111",
+		Thumb = "rbxassetid://124131207117224",
 		Look = {
 			Shaft = { 215, 228, 241 },
 			Forearm = { 56, 76, 118 },
@@ -235,7 +235,7 @@ return {
 		Id = "disco",
 		Name = "Disco",
 		Tier = "Epic",
-		Thumb = "rbxassetid://122512857045142",
+		Thumb = "rbxassetid://107160929809158",
 		Look = {
 			Shaft = { 143, 148, 152 },
 			Forearm = { 143, 140, 145 },
@@ -249,7 +249,7 @@ return {
 		Id = "eclipse",
 		Name = "Eclipse",
 		Tier = "Secret",
-		Thumb = "rbxassetid://126661374686600",
+		Thumb = "rbxassetid://102199503029833",
 		Look = {
 			Shaft = { 56, 53, 48 },
 			Forearm = { 93, 79, 53 },
@@ -264,7 +264,7 @@ return {
 		Id = "expert_cue",
 		Name = "Expert Cue",
 		Tier = "Rank",
-		Thumb = "rbxassetid://116373262917244",
+		Thumb = "rbxassetid://94654451200983",
 		Look = {
 			Shaft = { 70, 22, 19 },
 			Forearm = { 111, 53, 29 },
@@ -292,7 +292,7 @@ return {
 		Id = "frostbite",
 		Name = "Frostbite",
 		Tier = "Rare",
-		Thumb = "rbxassetid://136717331944184",
+		Thumb = "rbxassetid://133076677802163",
 		Look = {
 			Shaft = { 171, 214, 242 },
 			Forearm = { 157, 209, 243 },
@@ -320,7 +320,7 @@ return {
 		Id = "gold_cue",
 		Name = "Gold Cue",
 		Tier = "Rank",
-		Thumb = "rbxassetid://138564340083879",
+		Thumb = "rbxassetid://130666090775623",
 		Look = {
 			Shaft = { 210, 173, 54 },
 			Forearm = { 68, 56, 25 },
@@ -334,7 +334,7 @@ return {
 		Id = "grandmaster_cue",
 		Name = "Grandmaster Cue",
 		Tier = "Rank",
-		Thumb = "rbxassetid://114428928487757",
+		Thumb = "rbxassetid://90292336369345",
 		Look = {
 			Shaft = { 35, 29, 26 },
 			Forearm = { 84, 68, 32 },
@@ -362,7 +362,7 @@ return {
 		Id = "hacked",
 		Name = "Hacked",
 		Tier = "Epic",
-		Thumb = "rbxassetid://75993771899930",
+		Thumb = "rbxassetid://84986374365672",
 		Look = {
 			Shaft = { 8, 17, 14 },
 			Forearm = { 13, 51, 25 },
@@ -390,7 +390,7 @@ return {
 		Id = "honeycomb",
 		Name = "Honeycomb",
 		Tier = "Rare",
-		Thumb = "rbxassetid://140429740838274",
+		Thumb = "rbxassetid://94038081288381",
 		Look = {
 			Shaft = { 216, 128, 28 },
 			Forearm = { 174, 99, 20 },
@@ -418,7 +418,7 @@ return {
 		Id = "infernal",
 		Name = "Infernal",
 		Tier = "Legendary",
-		Thumb = "rbxassetid://122411123325625",
+		Thumb = "rbxassetid://110999067480326",
 		Look = {
 			Shaft = { 56, 11, 6 },
 			Forearm = { 93, 42, 34 },
@@ -433,7 +433,7 @@ return {
 		Id = "kitsune",
 		Name = "Kitsune",
 		Tier = "Mythic",
-		Thumb = "rbxassetid://125211396304243",
+		Thumb = "rbxassetid://122458714729245",
 		Look = {
 			Shaft = { 237, 205, 192 },
 			Forearm = { 217, 128, 114 },
@@ -448,7 +448,7 @@ return {
 		Id = "kraken",
 		Name = "Kraken",
 		Tier = "Legendary",
-		Thumb = "rbxassetid://82850202642377",
+		Thumb = "rbxassetid://78157618650708",
 		Look = {
 			Shaft = { 2, 93, 109 },
 			Forearm = { 25, 62, 111 },
@@ -477,7 +477,7 @@ return {
 		Id = "magma",
 		Name = "Magma",
 		Tier = "Epic",
-		Thumb = "rbxassetid://76223656059423",
+		Thumb = "rbxassetid://123709539495532",
 		Look = {
 			Shaft = { 14, 11, 10 },
 			Forearm = { 64, 31, 14 },
@@ -491,7 +491,7 @@ return {
 		Id = "master_cue",
 		Name = "Master Cue",
 		Tier = "Rank",
-		Thumb = "rbxassetid://77139478486208",
+		Thumb = "rbxassetid://80665963759032",
 		Look = {
 			Shaft = { 44, 26, 56 },
 			Forearm = { 85, 58, 68 },
@@ -533,7 +533,7 @@ return {
 		Id = "nature",
 		Name = "Nature",
 		Tier = "Rare",
-		Thumb = "rbxassetid://122516877061604",
+		Thumb = "rbxassetid://94102418794976",
 		Look = {
 			Shaft = { 197, 159, 107 },
 			Forearm = { 158, 131, 75 },
@@ -547,7 +547,7 @@ return {
 		Id = "neon",
 		Name = "Neon",
 		Tier = "Rare",
-		Thumb = "rbxassetid://125150362667640",
+		Thumb = "rbxassetid://128682597285450",
 		Look = {
 			Shaft = { 25, 16, 27 },
 			Forearm = { 26, 21, 38 },
@@ -561,7 +561,7 @@ return {
 		Id = "phantom",
 		Name = "Phantom",
 		Tier = "Rare",
-		Thumb = "rbxassetid://104912679769968",
+		Thumb = "rbxassetid://84633199609627",
 		Look = {
 			Shaft = { 180, 214, 210 },
 			Forearm = { 78, 137, 146 },
@@ -575,7 +575,7 @@ return {
 		Id = "phoenix",
 		Name = "Phoenix",
 		Tier = "Legendary",
-		Thumb = "rbxassetid://132766124775957",
+		Thumb = "rbxassetid://113215182231069",
 		Look = {
 			Shaft = { 236, 161, 74 },
 			Forearm = { 214, 79, 20 },
@@ -604,7 +604,7 @@ return {
 		Id = "plasma",
 		Name = "Plasma",
 		Tier = "Rare",
-		Thumb = "rbxassetid://113995334813051",
+		Thumb = "rbxassetid://87852042385548",
 		Look = {
 			Shaft = { 41, 42, 51 },
 			Forearm = { 57, 51, 73 },
@@ -618,7 +618,7 @@ return {
 		Id = "platinum_cue",
 		Name = "Platinum Cue",
 		Tier = "Rank",
-		Thumb = "rbxassetid://117307624137525",
+		Thumb = "rbxassetid://128974598365817",
 		Look = {
 			Shaft = { 228, 234, 240 },
 			Forearm = { 185, 203, 222 },
@@ -632,7 +632,7 @@ return {
 		Id = "prism",
 		Name = "Prism",
 		Tier = "Epic",
-		Thumb = "rbxassetid://104440560646972",
+		Thumb = "rbxassetid://70657735368312",
 		Look = {
 			Shaft = { 173, 201, 235 },
 			Forearm = { 178, 199, 229 },
@@ -646,7 +646,7 @@ return {
 		Id = "reyes_cue",
 		Name = "Reyes Cue",
 		Tier = "Rank",
-		Thumb = "rbxassetid://99309842684067",
+		Thumb = "rbxassetid://110154565369703",
 		Look = {
 			Shaft = { 243, 236, 221 },
 			Forearm = { 245, 231, 197 },
@@ -660,7 +660,7 @@ return {
 		Id = "sakura",
 		Name = "Sakura",
 		Tier = "Rare",
-		Thumb = "rbxassetid://108470472399638",
+		Thumb = "rbxassetid://82280339428592",
 		Look = {
 			Shaft = { 62, 43, 40 },
 			Forearm = { 59, 39, 38 },
@@ -674,7 +674,7 @@ return {
 		Id = "seraph",
 		Name = "Seraph",
 		Tier = "Legendary",
-		Thumb = "rbxassetid://122260639902021",
+		Thumb = "rbxassetid://111077720995118",
 		Look = {
 			Shaft = { 243, 239, 227 },
 			Forearm = { 231, 219, 179 },
@@ -689,7 +689,7 @@ return {
 		Id = "shooting_star",
 		Name = "Shooting Star",
 		Tier = "Epic",
-		Thumb = "rbxassetid://79467336263589",
+		Thumb = "rbxassetid://73572724703985",
 		Look = {
 			Shaft = { 14, 23, 67 },
 			Forearm = { 32, 39, 64 },
@@ -703,7 +703,7 @@ return {
 		Id = "silver_cue",
 		Name = "Silver Cue",
 		Tier = "Rank",
-		Thumb = "rbxassetid://76966133120901",
+		Thumb = "rbxassetid://104152534426762",
 		Look = {
 			Shaft = { 199, 203, 210 },
 			Forearm = { 63, 65, 69 },
@@ -745,7 +745,7 @@ return {
 		Id = "thunderstrike",
 		Name = "Thunderstrike",
 		Tier = "Legendary",
-		Thumb = "rbxassetid://112368533364998",
+		Thumb = "rbxassetid://70573115679108",
 		Look = {
 			Shaft = { 47, 93, 141 },
 			Forearm = { 84, 130, 171 },
@@ -759,7 +759,7 @@ return {
 		Id = "tidal",
 		Name = "Tidal",
 		Tier = "Rare",
-		Thumb = "rbxassetid://88214410609529",
+		Thumb = "rbxassetid://125425019193753",
 		Look = {
 			Shaft = { 32, 96, 146 },
 			Forearm = { 28, 114, 172 },
@@ -773,7 +773,7 @@ return {
 		Id = "toxic",
 		Name = "Toxic",
 		Tier = "Epic",
-		Thumb = "rbxassetid://125905351860605",
+		Thumb = "rbxassetid://79381866969881",
 		Look = {
 			Shaft = { 95, 173, 42 },
 			Forearm = { 97, 131, 26 },
@@ -801,7 +801,7 @@ return {
 		Id = "veteran_cue",
 		Name = "Veteran Cue",
 		Tier = "Rank",
-		Thumb = "rbxassetid://108196076412760",
+		Thumb = "rbxassetid://99766418441783",
 		Look = {
 			Shaft = { 27, 52, 24 },
 			Forearm = { 66, 85, 35 },
@@ -815,7 +815,7 @@ return {
 		Id = "vip_cue",
 		Name = "VIP Cue",
 		Tier = "Exclusive",
-		Thumb = "rbxassetid://132113572132253",
+		Thumb = "rbxassetid://128461086095776",
 		Look = {
 			Shaft = { 46, 40, 27 },
 			Forearm = { 76, 67, 50 },
@@ -829,7 +829,7 @@ return {
 		Id = "void",
 		Name = "Void",
 		Tier = "Epic",
-		Thumb = "rbxassetid://83259920375434",
+		Thumb = "rbxassetid://85291624813724",
 		Look = {
 			Shaft = { 9, 8, 13 },
 			Forearm = { 28, 9, 54 },

@@ -612,7 +612,7 @@ return {
 		KeepRibbons = false,
 	},
 	Piece = "clockwork",
-	Thumb = "rbxassetid://125730919903001",
+	Thumb = "rbxassetid://74221051225928",
 	Look = {
 		Shaft = { 212, 164, 101 },
 		Forearm = { 75, 52, 25 },

@@ -520,7 +520,7 @@ return {
 		KeepRibbons = false,
 	},
 	Piece = "kraken",
-	Thumb = "rbxassetid://82850202642377",
+	Thumb = "rbxassetid://78157618650708",
 	Look = {
 		Shaft = { 2, 93, 109 },
 		Forearm = { 25, 62, 111 },

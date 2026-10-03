@@ -1,4 +1,250 @@
 {
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/apex.png": {
+    "assetId": "71804669294140",
+    "assetType": "Decal",
+    "imageId": "110374735717345",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/aurora.png": {
+    "assetId": "104189156522533",
+    "assetType": "Decal",
+    "imageId": "91338673541890",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/blaze.png": {
+    "assetId": "122886506667833",
+    "assetType": "Decal",
+    "imageId": "133344597476092",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/blood_moon.png": {
+    "assetId": "117303654834345",
+    "assetType": "Decal",
+    "imageId": "94610565238410",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/candy.png": {
+    "assetId": "124314187961168",
+    "assetType": "Decal",
+    "imageId": "130491560847459",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/carbon.png": {
+    "assetId": "85834005514379",
+    "assetType": "Decal",
+    "imageId": "114898837970865",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/celestial_dragon.png": {
+    "assetId": "100259547131891",
+    "assetType": "Decal",
+    "imageId": "99355591958648",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/chroma.png": {
+    "assetId": "80192014725089",
+    "assetType": "Decal",
+    "imageId": "94169397302117",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/clockwork.png": {
+    "assetId": "122567531960927",
+    "assetType": "Decal",
+    "imageId": "74221051225928",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/diamond_cue.png": {
+    "assetId": "87120536274452",
+    "assetType": "Decal",
+    "imageId": "124131207117224",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/disco.png": {
+    "assetId": "123580095866716",
+    "assetType": "Decal",
+    "imageId": "107160929809158",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/eclipse.png": {
+    "assetId": "124941235190753",
+    "assetType": "Decal",
+    "imageId": "102199503029833",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/expert_cue.png": {
+    "assetId": "111744147807615",
+    "assetType": "Decal",
+    "imageId": "94654451200983",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/frostbite.png": {
+    "assetId": "138770451745677",
+    "assetType": "Decal",
+    "imageId": "133076677802163",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/gold_cue.png": {
+    "assetId": "82403252431815",
+    "assetType": "Decal",
+    "imageId": "130666090775623",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/grandmaster_cue.png": {
+    "assetId": "140081758093922",
+    "assetType": "Decal",
+    "imageId": "90292336369345",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/hacked.png": {
+    "assetId": "85757754951765",
+    "assetType": "Decal",
+    "imageId": "84986374365672",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/honeycomb.png": {
+    "assetId": "117647208369075",
+    "assetType": "Decal",
+    "imageId": "94038081288381",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/infernal.png": {
+    "assetId": "131755555280490",
+    "assetType": "Decal",
+    "imageId": "110999067480326",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/kitsune.png": {
+    "assetId": "105958771766694",
+    "assetType": "Decal",
+    "imageId": "122458714729245",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/kraken.png": {
+    "assetId": "94954259426736",
+    "assetType": "Decal",
+    "imageId": "78157618650708",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/magma.png": {
+    "assetId": "104551151153558",
+    "assetType": "Decal",
+    "imageId": "123709539495532",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/master_cue.png": {
+    "assetId": "115514208089747",
+    "assetType": "Decal",
+    "imageId": "80665963759032",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/nature.png": {
+    "assetId": "132583653276088",
+    "assetType": "Decal",
+    "imageId": "94102418794976",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/neon.png": {
+    "assetId": "104467394354654",
+    "assetType": "Decal",
+    "imageId": "128682597285450",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/phantom.png": {
+    "assetId": "115054072355455",
+    "assetType": "Decal",
+    "imageId": "84633199609627",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/phoenix.png": {
+    "assetId": "107796891754382",
+    "assetType": "Decal",
+    "imageId": "113215182231069",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/plasma.png": {
+    "assetId": "138646840093794",
+    "assetType": "Decal",
+    "imageId": "87852042385548",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/platinum_cue.png": {
+    "assetId": "116161578188156",
+    "assetType": "Decal",
+    "imageId": "128974598365817",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/prism.png": {
+    "assetId": "88274660539413",
+    "assetType": "Decal",
+    "imageId": "70657735368312",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/reyes_cue.png": {
+    "assetId": "92865353105176",
+    "assetType": "Decal",
+    "imageId": "110154565369703",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/sakura.png": {
+    "assetId": "95469007980455",
+    "assetType": "Decal",
+    "imageId": "82280339428592",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/seraph.png": {
+    "assetId": "79350521722101",
+    "assetType": "Decal",
+    "imageId": "111077720995118",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/shooting_star.png": {
+    "assetId": "123073861215130",
+    "assetType": "Decal",
+    "imageId": "73572724703985",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/silver_cue.png": {
+    "assetId": "89799371423631",
+    "assetType": "Decal",
+    "imageId": "104152534426762",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/thunderstrike.png": {
+    "assetId": "78030809133054",
+    "assetType": "Decal",
+    "imageId": "70573115679108",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/tidal.png": {
+    "assetId": "110806176944959",
+    "assetType": "Decal",
+    "imageId": "125425019193753",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/toxic.png": {
+    "assetId": "130256121500367",
+    "assetType": "Decal",
+    "imageId": "79381866969881",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/veteran_cue.png": {
+    "assetId": "89899147675193",
+    "assetType": "Decal",
+    "imageId": "99766418441783",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/vip_cue.png": {
+    "assetId": "97923105998980",
+    "assetType": "Decal",
+    "imageId": "128461086095776",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-gui/assets/cue/thumbs/void.png": {
+    "assetId": "77092934454176",
+    "assetType": "Decal",
+    "imageId": "85291624813724",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/abilities/BlackFlash/BlackFlash.glb": {
     "assetId": "75008622077798",
     "assetType": "Model",
@@ -3665,8 +3911,8 @@
   "/Users/justinjin/Desktop/8ball/assets/ui/icons/person_grey.png": {
     "assetId": "129148035749149",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "102357114365453"
+    "imageId": "102357114365453",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/ui/icons/ult_badge.png": {
     "assetId": "129539443325735",

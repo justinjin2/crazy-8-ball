@@ -4609,6 +4609,9 @@ Config.UI = {
 	-- what makes a big pull look like a big pull. The bar deliberately does NOT clip its
 	-- children, or the cue would be cut off at the bottom edge instead of travelling past it.
 	PowerCueLengthScale = 0.97, -- of the bar's height
+	-- A skin's picture (assets/cue/thumbs) has the cue across this share of its diagonal; the
+	-- power bar sizes the turned picture from it so the cue keeps PowerCueLengthScale. (tune)
+	PowerCueArtDiagonal = 0.8,
 	PowerCueTravelScale = 1.0, -- of the bar's height, at full pull
 	-- Slices used to draw the taper. A Frame cannot be a trapezoid, so the cue is built
 	-- from thin bands; enough of them and the steps disappear. (tune)
