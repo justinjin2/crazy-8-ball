@@ -48,6 +48,7 @@ export type Overlay = typeof(setmetatable(
 		ringStroke: UIStroke,
 		target: Target?,
 		dimOn: boolean,
+		ringOnly: boolean, -- the gold ring round the target with no dim
 		dimAlpha: number, -- 0 clear .. 1 fully dimmed (eased)
 		lastCentre: Vector2?, -- the hole's last place, kept while a lost target fades out
 		lastSize: Vector2?,
@@ -174,6 +175,7 @@ function TutorialOverlay.new(): Overlay
 		ringCorner = corner,
 		target = nil,
 		dimOn = false,
+		ringOnly = false,
 		dimAlpha = 0,
 		lastCentre = nil,
 		lastSize = nil,
@@ -278,9 +280,11 @@ function TutorialOverlay.say(self: Overlay, text: string?, place: string?)
 end
 
 --- Dims the screen round `target` (nil: no dim). The hole follows the target every frame.
-function TutorialOverlay.dim(self: Overlay, target: Target?, on: boolean?)
+--- `on` false keeps the screen clear; `ringOnly` then still rings the target in gold.
+function TutorialOverlay.dim(self: Overlay, target: Target?, on: boolean?, ringOnly: boolean?)
 	self.target = target
 	self.dimOn = if on == nil then target ~= nil else on
+	self.ringOnly = ringOnly == true and target ~= nil
 end
 
 -- Lays the dim frames round the hole (centre, size) or over everything (no hole).
@@ -367,7 +371,7 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 			else centre.Y + size.Y / 2 + O.LineNearGapPx
 		self.line.Position = UDim2.fromOffset(view.X / 2, y)
 	end
-	self.ringStroke.Transparency = 1 - self.dimAlpha
+	self.ringStroke.Transparency = if self.ringOnly and centre then 0 else 1 - self.dimAlpha
 end
 
 --- Clears the line, the dim and the hole.

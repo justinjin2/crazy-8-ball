@@ -266,6 +266,7 @@ function UltOdds.buildCode(self: any, parent: Instance)
 	redeem.ZIndex = 3
 	HudParts.setMinHit(redeem, C.TouchPx)
 	self.redeemButton = redeem
+	TutorialAnchors.set("CodeRedeem", redeem) -- the tutorial's hand once the box is clicked
 	input.NextSelectionRight = redeem
 	redeem.NextSelectionLeft = input
 
@@ -288,7 +289,10 @@ function UltOdds.buildCode(self: any, parent: Instance)
 		lit = false
 		light()
 	end)
-	input.Focused:Connect(light)
+	input.Focused:Connect(function()
+		light()
+		TutorialAnchors.setFlag("CodeFocused", true) -- the tutorial moves on to Redeem
+	end)
 	input.FocusLost:Connect(function(enter: boolean)
 		light()
 		if enter then

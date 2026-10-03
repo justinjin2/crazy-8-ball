@@ -9,7 +9,8 @@
 -- press), UltConfirm (the pick's Confirm), Abilities, Inventory, Shop, FreeReward, Rank (the
 -- column and the rank HUD), SpinButton, CodeBox, SpinBack (the spin screen), OpenNow (the
 -- 8-ball's Open now), Lobby (the arena's result row), MoneyHud, InventoryCue (the first cue card
--- that is not the equipped one), InventoryEquip (the chosen cue's Equip).
+-- that is not the equipped one), InventoryEquip (the chosen cue's Equip), CodeRedeem (the code
+-- box's Redeem; the flag CodeFocused is set once the box is clicked).
 --
 -- A screen may also hide one of its parts while the tutorial says so (TutorialAnchors.hidden).
 

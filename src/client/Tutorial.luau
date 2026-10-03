@@ -427,6 +427,14 @@ local function afterScene(step: string, device: string): string
 	elseif step == "Code" then
 		if TutorialAnchors.flag("UltSpinning") then
 			lineOnly(nil)
+		elseif TutorialAnchors.flag("CodeFocused") and TutorialAnchors.showing("CodeRedeem") then
+			-- The box was clicked: no dim (it is typed into), the gold ring and the hand on
+			-- Redeem, trusting they type RELEASE (designer, 2026-10-03).
+			local target = TutorialOverlay.guiTarget("CodeRedeem")
+			overlay:dim(target, false, true)
+			hand:point(target)
+			overlay:say(words(Copy.CodeRedeem, device), "Near")
+			return "CodeRedeem" .. device
 		elseif TutorialAnchors.showing("CodeBox") then
 			pointAt("CodeBox", Copy.Code, device, false, "Near")
 		else
@@ -495,6 +503,9 @@ end
 -- Builds the scene for the step now (the line, the dim, the hand, the arrow). Cheap enough
 -- to run every frame: each piece only changes when its input does.
 local function scene(step: string, device: string): string
+	if step ~= "Code" then
+		TutorialAnchors.setFlag("CodeFocused", false)
+	end
 	if step ~= "Game1" then
 		TutorialAnchors.setAimLock(nil)
 		lastLesson = ""

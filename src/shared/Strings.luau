@@ -1625,6 +1625,11 @@ return {
 			Gamepad = "Press A to SPIN for a new ability!",
 		},
 		Code = "Type RELEASE for 3 more spins!",
+		CodeRedeem = {
+			Mouse = "Type RELEASE, then click Redeem!",
+			Touch = "Type RELEASE, then tap Redeem!",
+			Gamepad = "Type RELEASE, then press Redeem!",
+		},
 		CodeOdds = {
 			Mouse = "Click Odds, then type RELEASE for 3 more spins!",
 			Touch = "Tap Odds, then type RELEASE for 3 more spins!",

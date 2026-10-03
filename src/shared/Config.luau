@@ -10108,6 +10108,9 @@ Config.Leaderboards = {
 	SignRows = 10,
 	ReadSeconds = 60,
 	WriteSeconds = 60,
+	-- The lobby signs are off for now (designer, 2026-10-03: they looked ugly; a better place
+	-- to be found). The boards still save and still show in the player list's tabs.
+	SignsOn = false,
 	-- The two lobby signs, built by code: either side of the spawn, a little toward the tables,
 	-- each turned to face the spawn (a part's front is its -Z; yaw 180 faces +Z, the spawn).
 	Signs = {

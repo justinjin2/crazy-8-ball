@@ -8,7 +8,7 @@
 -- - Reads: the top Size of each board every ReadSeconds (names asked of Roblox once, cached),
 --   sent to everyone on the Leaderboards remote (and to a player as they load).
 -- - The lobby signs: two boards standing in front of the spawn (Config.Leaderboards.Signs),
---   built by code, showing the top SignRows.
+--   built by code, showing the top SignRows; off while Config.Leaderboards.SignsOn is false.
 -- Studio without DataStores (an unpublished place): the boards are this server's players.
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
@@ -273,7 +273,9 @@ function Leaderboards.start()
 	end
 	started = true
 	remote = Net.get("Leaderboards")
-	buildSigns()
+	if L.SignsOn then
+		buildSigns()
+	end
 	PlayerData.Loaded:Connect(function(player: Player)
 		task.spawn(function()
 			write(player)

@@ -2292,3 +2292,5 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-10-03 (designer, bug pass): the tutorial hand is **redrawn upright** (index finger up, after the designer's "tap here" icon) with tap lines that flash on each tap; it is never turned upside down.
 - 2026-10-03 (designer, bug pass): Inventory text is bigger and a cue card's line is only its chance ("34% chance"; the "fewer than 10 exist" part is gone). The menus' 8-ball pattern no longer drifts (it moved in whole pixels and looked choppy).
 - 2026-10-03 (bug pass): the power bar's cue picture is turned by its real lean (37.45 degrees, measured from the thumbnails), not 45, so it stands straight.
+- 2026-10-03 (designer, bug pass): the **lobby leaderboard signs are off for now** (`Config.Leaderboards.SignsOn = false`; the designer will find them a better place). The boards still save and still show in the player list's Top Wins / Top Rank tabs.
+- 2026-10-03 (designer, bug pass): the tutorial's code step: once the code box is clicked the dim goes away and the gold ring and hand move to **Redeem** ("Type RELEASE, then click Redeem!"), trusting the player types RELEASE.
