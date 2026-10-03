@@ -71,6 +71,7 @@ local QUIET_OPS: { [string]: boolean } = {
 	endStreak = true,
 	recordRealMatch = true,
 	addOpponentCase = true,
+	countDaily = true,
 	-- The ults (UltSpins): none touches the inventory.
 	ultSpin = true,
 	ultSelect = true,

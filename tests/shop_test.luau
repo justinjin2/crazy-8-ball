@@ -352,8 +352,8 @@ return {
 
 		local starter = Shop.grantFor("StarterPack", newShop(), JOIN, false)
 		H.expect(
-			starter.money == 3000 and starter.cue == "StarterCue",
-			"$3,000 and the Starter Cue"
+			starter.money == 75000 and starter.cue == "StarterCue",
+			"$75,000 and the Starter Cue"
 		)
 		H.expect(
 			starter.starterBought and not starter.firstPack,
@@ -503,19 +503,19 @@ return {
 		end
 		-- Inside the window the real grant, with no reason.
 		local real, none = Shop.grantFor("StarterPack", newShop(), JOIN + 7 * DAY + grace - 1, true)
-		H.expect(none == nil and real.starterBought and real.money == 3000, "the real grant")
+		H.expect(none == nil and real.starterBought and real.money == 75000, "the real grant")
 	end,
 
 	["a forged second Starter Pack receipt is acknowledged and paid as money"] = function()
 		local server = fakeServer()
 		local player = server.join(8)
 		H.expect(Shop.processReceipt(server.deps, receipt(8, 104, "s-1")) == "Granted", "first")
-		H.expect(player.save.Money == 3000 and #player.save.Cues == 1, "$3,000 and the cue")
+		H.expect(player.save.Money == 75000 and #player.save.Cues == 1, "$75,000 and the cue")
 		H.expect(Shop.processReceipt(server.deps, receipt(8, 104, "s-2")) == "Granted", "second")
-		H.expect(player.save.Money == 3000 + 1451, "the second pays $1,451 only")
+		H.expect(player.save.Money == 75000 + 1451, "the second pays $1,451 only")
 		H.expect(#player.save.Cues == 1, "no second Starter Cue")
 		H.expect(Shop.processReceipt(server.deps, receipt(8, 104, "s-2")) == "Granted", "a retry")
-		H.expect(player.save.Money == 4451, "grants nothing more")
+		H.expect(player.save.Money == 75000 + 1451, "grants nothing more")
 	end,
 
 	["the Limited shelf's state"] = function()
@@ -606,9 +606,9 @@ return {
 		server.failSaves = 1
 		local r = receipt(3, 104, "p-starter")
 		H.expect(Shop.processReceipt(server.deps, r) == "NotProcessedYet", "save failed")
-		H.expect(server.grants == 1 and player.save.Money == 3000, "granted in memory")
+		H.expect(server.grants == 1 and player.save.Money == 75000, "granted in memory")
 		H.expect(Shop.processReceipt(server.deps, r) == "Granted", "retry: saved now")
-		H.expect(server.grants == 1 and player.save.Money == 3000, "no second grant")
+		H.expect(server.grants == 1 and player.save.Money == 75000, "no second grant")
 		H.expect(#player.save.Cues == 1 and player.save.Cues[1] == "StarterCue", "one Starter Cue")
 		H.expect(server.saves == 2, "the retry saved again before acknowledging")
 		-- A retry whose save fails too stays NotProcessedYet, still without granting.
@@ -826,7 +826,7 @@ return {
 			)
 			H.expect(pack2.available and pack2.canBuy and pack2.reason == nil, "made: on sale")
 			H.expect(pack1.money == 1800 and pack2.money == 3900, "the first pack doubled")
-			H.expect(p.products.StarterPack.money == 3000, "the Starter Pack's $3,000")
+			H.expect(p.products.StarterPack.money == 75000, "the Starter Pack's $75,000")
 			H.expect(p.products.Vip.kind == "Pass" and p.products.Vip.canBuy, "the VIP pass")
 			H.expect(not p.products.Vip.owned and not p.products.FastOpen.owned, "nothing owned")
 			H.expect(
@@ -1026,6 +1026,6 @@ return {
 		H.expect(bought.products.StarterPack.money == 0, "the Starter Pack bought")
 		H.expect(bought.products.Pack1.money == 1800, "the packs as before")
 		local fresh = ShopView.build(ctxAt(now))
-		H.expect(fresh.products.StarterPack.money == 3000, "on offer: its $3,000")
+		H.expect(fresh.products.StarterPack.money == 75000, "on offer: its $75,000")
 	end,
 }

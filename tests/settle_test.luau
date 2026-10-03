@@ -124,12 +124,31 @@ return {
 		H.expect(odd.Matches == 0 and odd.Cases == 0, "a bad entry reads as whole numbers")
 	end,
 
-	["shortCapped: $200 of short-match money today, before the one-minute mark (3.6)"] = function()
+	["shortCapped: $2,000 of short-match money today, before the one-minute mark (3.6)"] = function()
 		local Settle = load()
-		H.expect(not Settle.shortCapped(199, 10), "under the cap")
-		H.expect(Settle.shortCapped(200, 10), "at the cap, 10 s in")
-		H.expect(Settle.shortCapped(450, nil), "at the cap, before the break")
-		H.expect(not Settle.shortCapped(200, 60), "past the mark pays in full")
+		H.expect(not Settle.shortCapped(1999, 10), "under the cap")
+		H.expect(Settle.shortCapped(2000, 10), "at the cap, 10 s in")
+		H.expect(Settle.shortCapped(4500, nil), "at the cap, before the break")
+		H.expect(not Settle.shortCapped(2000, 60), "past the mark pays in full")
+	end,
+
+	["moneyKind: a disguised bot pays the PC rows from the 20th disguised win of the day"] = function()
+		local Settle = load()
+		local Config = H.require("Config")
+		local cap = Config.Economy.DisguisedDailyWins
+		H.expect(cap == 20, "the plan's 20")
+		local disguised =
+			{ seats = { { userId = 1 }, { userId = -1, bot = { kind = "Disguised" } } } }
+		H.expect(Settle.moneyKind(disguised, 0) == "Player", "pays like a person at first")
+		H.expect(Settle.moneyKind(disguised, cap - 1) == "Player", "the 20th win still pays")
+		H.expect(Settle.moneyKind(disguised, cap) == "PC", "after 20 wins: the PC rows")
+		H.expect(Settle.moneyKind(disguised, 0 / 0) == "Player", "a bad count reads as 0")
+		H.expect(Settle.opponentKind(disguised) == "Player", "the XP still sees a person")
+		local people = { seats = { { userId = 1 }, { userId = 2 } } }
+		H.expect(Settle.moneyKind(people, 99) == "Player", "people always pay as people")
+		local pc = { pc = true, seats = { { userId = 1 } } }
+		H.expect(Settle.moneyKind(pc, 0) == "PC", "PC is PC")
+		H.expect(Settle.moneyKind({ solo = 1, seats = {} }, 99) == "Solo", "solo is solo")
 	end,
 
 	["boosts: only the streak, from the 3rd win in a row (4.3, 4.5)"] = function()

@@ -114,6 +114,9 @@ local ATTR = {
 	-- row's reward (a red dot). Also refreshed on a timer: a new UTC day changes it.
 	RewardReady = "RewardReady",
 	VipOffer = "VipOffer", -- bought VIP through the welcome offer (Store adds the pass: Vip)
+	-- Unix seconds the Starter Pack's hour of 2x money runs until (Shop.BoostEnds; 0 none):
+	-- Economy.boost reads it.
+	MoneyBoostEnds = "MoneyBoostEnds",
 	-- The ults (docs/prompts/ULTIMATES_PROMPT.md sections 8-10).
 	UltSpins = "UltSpins", -- normal ult spins held
 	UltLucky = "UltLucky", -- Lucky Spins held
@@ -156,6 +159,18 @@ local foundEvent = Instance.new("BindableEvent")
 --- (openCases and the first win's case: their answers carry the money). Items tells the
 --- player (the CueFound remote).
 PlayerData.CueFound = foundEvent.Event
+
+-- Money changes noted by the mutation under way, by save table (commit fires and clears them).
+local pendingMoney: { [any]: { { delta: number, reason: string } } } = setmetatable(
+	{},
+	{ __mode = "k" }
+) :: any
+local moneyEvent = Instance.new("BindableEvent")
+--- (player, delta, reason, balance) Fires after a mutation changed the player's money, once per
+--- change: `delta` (+ earned or given, - spent), `reason` ("Pocket", "MatchBonus", "Daily",
+--- "SellBack", "Purchase:Pack1", "BuyCase" ...) and the balance after the mutation. The
+--- economy analytics (EconomyLog) listen.
+PlayerData.MoneyChanged = moneyEvent.Event
 
 -- The mutation under way's first finds, by save table (commit sends and clears them), and the
 -- saves whose finds a reel shows instead.
@@ -326,13 +341,36 @@ end
 -- Changing the live save (callers check everything first; none of these can fail halfway)
 ---------------------------------------------------------------------------------------------
 
+-- Notes a change of money for commit (PlayerData.MoneyChanged, the economy analytics):
+-- `delta` (+ in, - out) and why.
+local function noteMoney(data: any, delta: number, reason: string)
+	if delta == 0 then
+		return
+	end
+	local notes = pendingMoney[data]
+	if notes == nil then
+		notes = {}
+		pendingMoney[data] = notes
+	end
+	table.insert(notes, { delta = delta, reason = reason })
+end
+
 -- Adds money, up to Config.Save.MoneyCap. `earned` also counts it in Stats.MoneyEarned: money
--- from play and rewards, never money bought with Robux or got by selling.
-local function addMoneyTo(data: any, amount: number, earned: boolean)
+-- from play and rewards, never money bought with Robux or got by selling. `reason` names the
+-- source for the analytics (PlayerData.MoneyChanged).
+local function addMoneyTo(data: any, amount: number, earned: boolean, reason: string)
+	local before = data.Money
 	data.Money = math.min(data.Money + amount, S.MoneyCap)
 	if earned then
 		data.Stats.MoneyEarned = math.min(data.Stats.MoneyEarned + amount, S.StatCap)
 	end
+	noteMoney(data, data.Money - before, reason)
+end
+
+-- Takes money the caller checked is there. `reason` names the sink for the analytics.
+local function takeMoney(data: any, amount: number, reason: string)
+	data.Money = plain(data.Money - amount)
+	noteMoney(data, -amount, reason)
 end
 
 -- Adds cases, up to Config.Save.ItemCountCap of one type (a count nobody reaches; past it the
@@ -349,7 +387,7 @@ end
 local function payFind(data: any, id: string): number
 	local money = Inventory.findMoney(id)
 	if money > 0 then
-		addMoneyTo(data, money, true)
+		addMoneyTo(data, money, true, "Find")
 	end
 	local finds = pendingFinds[data]
 	if finds == nil then
@@ -498,14 +536,15 @@ local function blockedReward(data: any, reward: any): string?
 end
 
 -- Applies a checked, unblocked reward (also a Daily.Reward: { money, cases, spins, lucky }):
--- the first-win flag, money (earned), cases in shop order, cues in the order given, ult spins.
-local function giveReward(data: any, reward: any)
+-- the first-win flag, money (earned; `reason` names it for the analytics), cases in shop
+-- order, cues in the order given, ult spins.
+local function giveReward(data: any, reward: any, reason: string)
 	if reward.firstWinCase == true then
 		data.Flags[FIRST_WIN_FLAG] = true
 	end
 	local money = reward.money or 0
 	if money > 0 then
-		addMoneyTo(data, money, true)
+		addMoneyTo(data, money, true, reason)
 	end
 	local cases = reward.cases
 	if cases ~= nil then
@@ -630,6 +669,7 @@ local function replicate(player: Player, data: any)
 	setAttribute(player, ATTR.CasesUnopened, casesUnopened(data))
 	setAttribute(player, ATTR.RewardReady, rewardReady(data, today()))
 	setAttribute(player, ATTR.VipOffer, data.Shop.VipOffer == true)
+	setAttribute(player, ATTR.MoneyBoostEnds, data.Shop.BoostEnds)
 	local ults = data.Ults
 	if type(ults) == "table" then
 		local access = ultAccess[player]
@@ -679,6 +719,13 @@ end
 local function commit(player: Player, data: any, op: string)
 	show(player, data)
 	changedEvent:Fire(player, op)
+	local moneyNotes = pendingMoney[data]
+	pendingMoney[data] = nil
+	if moneyNotes then
+		for _, note in moneyNotes do
+			moneyEvent:Fire(player, note.delta, note.reason, data.Money)
+		end
+	end
 	local finds = pendingFinds[data]
 	local onReel = reelFinds[data] == true
 	pendingFinds[data] = nil
@@ -1039,6 +1086,24 @@ function PlayerData.dailyMoney(player: Player, kind: string): number
 	return dailyOf(data, today())[field]
 end
 
+-- Today's counters (Daily) that dailyCount reads and countDaily adds to.
+local DAILY_COUNTS: { [string]: boolean } = { Wins = true, PcDrops = true, Disguised = true }
+
+--- Today's count of one kind (0 when another day's or not loaded): "Wins" (real wins),
+--- "PcDrops" (PC wins that dropped a case, Config.Economy.PcDropsPerDay) or "Disguised"
+--- (disguised-bot wins, Config.Economy.DisguisedDailyWins).
+function PlayerData.dailyCount(player: Player, field: string): number
+	if not DAILY_COUNTS[field] then
+		refuse("dailyCount", player, ("%s is not a daily count"):format(tostring(field)))
+		return 0
+	end
+	local data = peek(player)
+	if data == nil then
+		return 0
+	end
+	return dailyOf(data, today())[field]
+end
+
 --- Today's anti-farm count against one account: { Matches, Cases } (Settle.opponentDay: zeros
 --- for an account not met today, another day's table, or a save not loaded; once today's table
 --- is full, the worst count for an account it does not track).
@@ -1137,7 +1202,7 @@ function PlayerData.addMoney(
 	if data == nil then
 		return false
 	end
-	addMoneyTo(data, amount, true)
+	addMoneyTo(data, amount, true, reason)
 	if field ~= nil then
 		rollover(data)
 		data.Daily[field] = math.min(data.Daily[field] + amount, S.MoneyCap)
@@ -1198,7 +1263,7 @@ function PlayerData.spend(player: Player, amount: number, reason: string): boole
 	if data.Money < amount then
 		return false
 	end
-	data.Money = plain(data.Money - amount)
+	takeMoney(data, amount, reason)
 	commit(player, data, op)
 	return true
 end
@@ -1219,6 +1284,7 @@ function PlayerData.setMoney(player: Player, amount: number): boolean
 	if data == nil then
 		return false
 	end
+	noteMoney(data, plain(amount) - data.Money, "Dev")
 	data.Money = plain(amount)
 	commit(player, data, op)
 	return true
@@ -1247,7 +1313,7 @@ function PlayerData.grantReward(player: Player, reward: Reward, reason: string):
 	if blocked ~= nil then
 		return refuse(op, player, blocked)
 	end
-	giveReward(data, reward)
+	giveReward(data, reward, reason)
 	if reward.firstWinCase == true then
 		reelFinds[data] = true -- the result screen's reel shows the first win's cue
 	end
@@ -1312,7 +1378,7 @@ function PlayerData.applyRank(
 	data.PeakDivision = plain(peak)
 	data.RatedMatches = plain(rated)
 	if reward ~= nil then
-		giveReward(data, reward)
+		giveReward(data, reward, "RankUp")
 	end
 	commit(player, data, op)
 	return true
@@ -1462,6 +1528,25 @@ function PlayerData.recordRealMatch(
 	return true
 end
 
+--- Adds 1 to one of today's counts: "PcDrops" or "Disguised" (Wins moves with
+--- recordRealMatch). Rolled over to today first.
+function PlayerData.countDaily(player: Player, field: string): boolean
+	local op = "countDaily"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif field ~= "PcDrops" and field ~= "Disguised" then
+		return refuse(op, player, ("%s is not PcDrops or Disguised"):format(tostring(field)))
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	rollover(data)
+	data.Daily[field] = math.min(data.Daily[field] + 1, S.StatCap)
+	commit(player, data, op)
+	return true
+end
+
 --- Counts a free case won from one account today (Daily.Opponents[userId].Cases +1; the
 --- anti-farm limit Config.Economy.FreeCasesPerOpponent). False when the table is full and
 --- that account is not tracked today (it already reads as at the limit, Settle.opponentDay).
@@ -1529,7 +1614,7 @@ function PlayerData.buyCases(player: Player, caseId: string, count: number, pric
 			("would hold more than %d %s cases"):format(S.ItemCountCap, caseId)
 		)
 	end
-	data.Money = plain(data.Money - price)
+	takeMoney(data, price, "BuyCase")
 	Inventory.addCases(data, caseId, count)
 	commit(player, data, op)
 	return true
@@ -1636,7 +1721,7 @@ function PlayerData.sellCue(
 	end
 	local money = result :: number
 	if money > 0 then
-		addMoneyTo(data, money, false)
+		addMoneyTo(data, money, false, "SellBack")
 	end
 	commit(player, data, op)
 	return true, money
@@ -1667,7 +1752,7 @@ function PlayerData.sellDuplicates(
 		return true, 0, sold
 	end
 	if total > 0 then
-		addMoneyTo(data, total, false)
+		addMoneyTo(data, total, false, "SellBack")
 	end
 	commit(player, data, op)
 	return true, total, sold
@@ -1978,7 +2063,7 @@ function PlayerData.buyUltSpins(player: Player, count: number, price: number): (
 	elseif ults.Spins + count > Config.Ults.Earn.MaxSpins then
 		return false, "TooMany" -- the money would buy spins the cap throws away
 	end
-	data.Money = plain(data.Money - price)
+	takeMoney(data, price, "AbilitySpins")
 	UltSlots.addSpins(ults, count)
 	commit(player, data, op)
 	return true, nil
@@ -2126,7 +2211,7 @@ function PlayerData.claimIndexRow(player: Player, rarity: string): (boolean, any
 		return false, result
 	end
 	if result.money > 0 then
-		addMoneyTo(data, result.money, true)
+		addMoneyTo(data, result.money, true, "IndexRow")
 	end
 	commit(player, data, op)
 	return true, { money = result.money }
@@ -2178,7 +2263,7 @@ function PlayerData.claimDaily(player: Player): (boolean, Daily.Reward | string)
 		return false, "Claimed"
 	end
 	data.Login = login
-	giveReward(data, reward)
+	giveReward(data, reward, "Daily")
 	commit(player, data, op)
 	return true, reward
 end
@@ -2303,7 +2388,7 @@ function PlayerData.claimPlaytime(player: Player, index: number): (boolean, Dail
 	if not ok then
 		return false, result
 	end
-	giveReward(data, result)
+	giveReward(data, result, "Playtime")
 	commit(player, data, op)
 	return true, result
 end
@@ -2324,7 +2409,7 @@ function PlayerData.redeemCode(player: Player, text: string): (boolean, Daily.Re
 	if not ok then
 		return false, result
 	end
-	giveReward(data, result)
+	giveReward(data, result, "Code")
 	commit(player, data, op)
 	return true, result
 end
@@ -2439,7 +2524,7 @@ function PlayerData.applyPurchase(
 	end
 	Shop.recordPurchase(shop, purchaseId)
 	if grant.money > 0 then
-		addMoneyTo(data, grant.money, false)
+		addMoneyTo(data, grant.money, false, "Purchase:" .. grant.key)
 	end
 	if grant.cue ~= nil and not (grant.vipCue and shop.VipCueGiven) then
 		giveCue(data, grant.cue)
@@ -2488,7 +2573,7 @@ function PlayerData.buyLimited(player: Player, cueId: string, copy: number, pric
 	elseif data.Money < price then
 		return refuse(op, player, ("not enough money for %s (copy %d unused)"):format(cueId, copy))
 	end
-	data.Money = plain(data.Money - price)
+	takeMoney(data, price, "Limited:" .. cueId)
 	giveUnique(data, cueId, copy)
 	data.Shop.Limited[cueId] = copy
 	commit(player, data, op)
@@ -2661,6 +2746,12 @@ local QA_CALLS: { [string]: (Player, any, any, any, any) -> ...any } = {
 	end,
 	dailyMoney = function(p, a)
 		return PlayerData.dailyMoney(p, a)
+	end,
+	dailyCount = function(p, a)
+		return PlayerData.dailyCount(p, a)
+	end,
+	countDaily = function(p, a)
+		return PlayerData.countDaily(p, a)
 	end,
 	opponentToday = function(p, a)
 		return PlayerData.opponentToday(p, a)

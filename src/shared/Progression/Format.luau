@@ -1,10 +1,10 @@
 --!strict
 -- How numbers read on screen: money, XP and chips. Pure (no Instances, no Roblox APIs).
 --
--- Money is written in full with commas up to $9,999,999; from $10,000,000 it is shortened
--- to millions, billions or trillions with at most two decimals, cut (never rounded up, so a
--- balance never reads as more than it is) and without trailing zeros: $12.5M, $10M, $1.23B,
--- $999.99M, $1T.
+-- Money is written in full with commas up to $999,999; from $1,000,000 it is shortened to
+-- millions, billions or trillions with at most two decimals, cut (never rounded up, so a
+-- balance never reads as more than it is) and without trailing zeros: $1.2M, $3.49M, $10M,
+-- $1.23B, $999.99M, $1T (the economy plan, 2026-10-02: "$1.2M style").
 
 -- UI text: the templates below move into Strings later. `%s` is the number as written.
 local MONEY = "$%s"
@@ -14,7 +14,7 @@ local MINUS = "-"
 local UNITS = {
 	{ from = 1e12, size = 1e12, suffix = "T" },
 	{ from = 1e9, size = 1e9, suffix = "B" },
-	{ from = 1e7, size = 1e6, suffix = "M" },
+	{ from = 1e6, size = 1e6, suffix = "M" },
 }
 
 local Format = {}
@@ -39,7 +39,7 @@ function Format.commas(n: number): string
 	return if value < 0 then MINUS .. out else out
 end
 
---- "$1,250"; from $10,000,000 up shortened: "$12.5M", "$1.23B", "$1T".
+--- "$1,250"; from $1,000,000 up shortened: "$1.2M", "$12.5M", "$1.23B", "$1T".
 function Format.money(n: number): string
 	local value = whole(n)
 	if value < 0 then

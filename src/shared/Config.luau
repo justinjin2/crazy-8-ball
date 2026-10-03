@@ -1618,6 +1618,12 @@ Config.Save = {
 	-- the RewardReady attribute depends on the clock (a new UTC day makes the daily streak
 	-- claimable), so the red dot lights within this long of midnight.
 	ReplicateRefreshSeconds = 30,
+	-- Save layout v6 (2026-10-03, the economy plan): every save older than v6 starts over
+	-- (designer: a full wipe, only friends had played), keeping only Shop.Purchases.
+	MaxTimerEntries = 500, -- Inventory.Timers: cases whose timer is still running
+	MaxTradeHistory = 50, -- Trades.History: the last trades kept (designer, 2026-10-03)
+	MaxAppliedTrades = 100, -- Trades.Applied: trade ids this save already applied
+	MaxTradeSideItems = 8, -- items on one side of a trade (history entries too)
 }
 
 ---------------------------------------------------------------------------------------------
@@ -1783,49 +1789,62 @@ Config.Ranks = {
 
 ---------------------------------------------------------------------------------------------
 -- Money (src/shared/Progression/Money.luau, paid by src/server/Economy.luau and Ranking;
--- GDD section 12). Every number is from docs/ECONOMY.md section 3 (2026-09-28). (tune)
+-- GDD section 12). Every number is from docs/ECONOMY.md section 3, the economy plan the
+-- designer approved on 2026-10-02 (all money x10 of the 2026-09-28 numbers). (tune)
 ---------------------------------------------------------------------------------------------
 Config.Economy = {
-	BallPay = 10, -- every ball that counts for the shooter's team (3.1)
+	BallPay = 100, -- every ball that counts for the shooter's team (3.1)
 	-- A nice shot pays this on top of its ball (Rules/NiceShot's kinds), to the shooter only.
-	NiceShotPay = { Bank = 15, Kick = 15, Combo = 20, Carom = 20 },
+	-- Never in solo (3.2).
+	NiceShotPay = { Bank = 150, Kick = 150, Combo = 200, Carom = 200 },
 	-- The match bonus at the end of a real match (3.1, 3.2), by opponent. The leaver gets
 	-- nothing. The win bonus is multiplied by the opponent-gap factor (Config.Ranks.Gap) but
 	-- never below WinBonusGapFloor of it (4.4); the loss bonus is not.
-	WinBonus = 50,
-	LossBonus = 15,
-	PcWinBonus = 25,
-	PcLossBonus = 8,
+	WinBonus = 500,
+	LossBonus = 150,
+	PcWinBonus = 250, -- Play against PC (and a disguised bot past DisguisedDailyWins)
+	PcLossBonus = 80,
 	WinBonusGapFloor = 0.5,
 	-- Win streak money (3.1): +StreakBonus on each win from the StreakFrom-th in a row,
 	-- against people only (the same streak as the XP boost and the fire over the head).
-	StreakBonus = 25,
+	StreakBonus = 250,
 	StreakFrom = 3,
 	-- Team matches (3.3): every ball a team pots pays EACH teammate BallPay (with each
 	-- player's own solo/short/PC rules); the nice-shot bonus goes only to the shooter.
 	TeamBallPay = true,
 	-- PC (3.2): after PcDailyCap of PC money in a UTC day, PC pays PcAfterCapShare of
 	-- everything (rounded, never below $1 a ball).
-	PcDailyCap = 1000,
+	PcDailyCap = 10000,
 	PcAfterCapShare = 0.5,
-	-- Solo (3.2): this share of the normal pay (rounded, at least 1) until SoloDailyCap has
-	-- been earned in solo in a UTC day, then SoloAfterCapPay a ball and nothing for nice shots.
+	-- Case Drops from Play against PC (3.2, 7.1): only the first PcDropsPerDay PC wins of a
+	-- UTC day drop one.
+	PcDropsPerDay = 10,
+	-- Disguised bots (3.2; the queue's fallback bot, lobby bots): they pay like a person until
+	-- the player has DisguisedDailyWins disguised wins in a UTC day; after that a disguised win
+	-- pays the PC rows (PC bonuses, the PC cap) and drops no case. Hidden: nothing on screen
+	-- says so (designer, 2026-10-03). Stops farming lobby bots in an empty server.
+	DisguisedDailyWins = 20,
+	-- Solo (3.2): this share of BallPay ($30) until SoloDailyCap has been earned in solo in a
+	-- UTC day, then SoloAfterCapPay a ball. No nice shots, no bonus, no Case Drop in solo.
 	SoloShare = 0.3,
-	SoloDailyCap = 300,
-	SoloAfterCapPay = 1,
+	SoloDailyCap = 3000,
+	SoloAfterCapPay = 10,
 	-- Short matches (3.6): pots are paid live, but money from a match that ends before the
 	-- one-minute mark adds to a daily short-match total; once that total reaches ShortDailyCap
 	-- in a UTC day, balls potted before the one-minute mark pay ShortAfterCapPay each (and no
 	-- nice-shot bonus) until the mark passes.
-	ShortDailyCap = 200,
-	ShortAfterCapPay = 1,
-	-- Boosts (3.5): money = base x difficulty x (1 + VIP + Money Party) on everything earned
-	-- in play (balls, nice shots, match bonuses), never on rewards, sell-back or packs.
+	ShortDailyCap = 2000,
+	ShortAfterCapPay = 10,
+	-- Boosts (3.5): money = base x difficulty x (1 + VIP + Money Party + Starter + group) on
+	-- everything earned in play (balls, nice shots, match bonuses), never on rewards,
+	-- sell-back or packs. They add (designer, 2026-10-03: VIP plus the Starter hour is x3).
 	VipBoost = 1.0,
 	PartyBoost = 1.0,
+	StarterBoost = 1.0, -- the Starter Pack's hour of 2x money (Config.Shop.StarterBoostSeconds)
+	GroupBoost = 0.1, -- a member of the game's group (Config.Social.GroupId)
 	-- Anti-farm (3.6): the same opponent in one UTC day. Each row covers matches up to UpTo
 	-- (the last row has no UpTo: every match after). Xp, Bonus and Balls multiply the match's
-	-- XP, its win/loss bonus and its ball pay; FreeCase says whether the winner's free case
+	-- XP, its win/loss bonus and its ball pay; FreeCase says whether the winner's Case Drop
 	-- can drop. In a team match the most-played opponent's count is used.
 	SameOpponent = {
 		{ UpTo = 5, Xp = 1, Bonus = 1, Balls = 1, FreeCase = true },
@@ -1845,11 +1864,19 @@ Config.Economy = {
 	-- anti-farm off. 300 (about 12 KB of save) is far above a real day: a 3v3 meets 3 new
 	-- accounts at most, so even 100 team matches in a day stay inside it.
 	SameOpponentMaxEntries = 300,
-	FreeCasesPerOpponent = 3, -- at most this many free cases a day from beating one account
+	FreeCasesPerOpponent = 3, -- at most this many Case Drops a day from beating one account
 	FreeCaseLoserMinMatches = 5, -- the loser must have played this many real matches
-	-- Pay the table's difficulty multiplier (Config.Difficulty.MoneyMultiplier). Off: the
-	-- picker and its rank lock exist (2026-10-02) but paying more for them is not decided yet.
-	UseDifficultyMultiplier = false,
+	-- Pay the table's difficulty multiplier (Config.Difficulty.MoneyMultiplier: Difficult x1.5,
+	-- Challenger x2). On since 2026-10-03 (the designer decided it 2026-09-26; it waited for
+	-- the rank lock, which exists from Gold I).
+	UseDifficultyMultiplier = true,
+	-- The economy analytics (src/server/EconomyLog.luau; AnalyticsService:LogEconomyEvent for
+	-- every money source and sink): each player's changes are added up by reason and sent once
+	-- every FlushSeconds (and when they leave), so a match's many pots make one event.
+	Analytics = {
+		FlushSeconds = 60,
+		Currency = "Money",
+	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -2106,7 +2133,9 @@ Config.Shop = {
 	ComebackSeconds = 86400,
 	-- The Starter Pack (11.4): for StarterSeconds after the first join, once.
 	StarterSeconds = 7 * 86400,
-	StarterMoney = 3000,
+	StarterMoney = 75000,
+	-- The Starter Pack's hour of 2x money (Config.Economy.StarterBoost; it adds to VIP's).
+	StarterBoostSeconds = 3600,
 	StarterCue = "StarterCue",
 	VipCue = "VipCue", -- given once to every VIP
 	-- The first money pack a player ever buys pays this many times its money (11.1).

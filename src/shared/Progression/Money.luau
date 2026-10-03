@@ -12,7 +12,7 @@
 -- every object ball counts there. A shot that sinks the 8 early on an open table leaves no
 -- group and so pays nothing, as the match's bonus stings (Rules/MatchEngine `Engine.awards`).
 -- Each counting ball also pays the shooter a nice-shot bonus (Rules/NiceShot), except on the
--- break (the client never shows NICE SHOT! there either).
+-- break (the client never shows NICE SHOT! there either) and in solo (ECONOMY 3.2).
 --
 -- The order every amount is worked out in (ECONOMY 3.5, then the caps of 3.2 and 3.6):
 --   1. base x difficulty x (1 + boost) x anti-farm (boosts add, then multiply);
@@ -58,7 +58,7 @@ export type ShotInput = {
 	-- The short-match cap is reached and the match is still under the one-minute mark
 	-- (ECONOMY 3.6): ShortAfterCapPay a ball, no nice-shot bonus.
 	shortCapped: boolean?,
-	boost: number?, -- VIP + Money Party (Money.boost), default 0
+	boost: number?, -- VIP + Money Party + Starter + group (Money.boost), default 0
 	farmBalls: number?, -- the anti-farm ball-pay multiplier (Money.farmRow().Balls), default 1
 	multiplier: number, -- the table's difficulty (Config.Difficulty.MoneyMultiplier)
 }
@@ -80,7 +80,7 @@ export type BonusContext = {
 	forfeited: boolean, -- this player surrendered or left
 	multiplier: number?, -- the table's difficulty, default 1
 	gap: number?, -- Ranks.gapFactor for this player; the win bonus only (default 1)
-	boost: number?, -- VIP + Money Party (Money.boost), default 0
+	boost: number?, -- VIP + Money Party + Starter + group (Money.boost), default 0
 	farm: number?, -- the anti-farm bonus multiplier (Money.farmRow().Bonus), default 1
 	pcCapped: boolean?, -- the PC daily cap was reached before this bonus
 }
@@ -121,10 +121,22 @@ function Money.utcDay(unixSeconds: number): number
 	return math.floor(unixSeconds / 86400)
 end
 
---- The money boost from VIP and a Money Party (ECONOMY 3.5): they add (1.0 + 1.0), and the
---- pay is then x (1 + boost).
-function Money.boost(vip: boolean, party: boolean): number
-	return (if vip == true then E.VipBoost else 0) + (if party == true then E.PartyBoost else 0)
+-- Which money boosts are on for one player (Money.boost).
+export type Boosts = {
+	vip: boolean?, -- owns VIP (the pass or the welcome offer)
+	party: boolean?, -- a Money Party is on in the server
+	starter: boolean?, -- inside the Starter Pack's hour of 2x money
+	group: boolean?, -- a member of the game's group
+}
+
+--- The money boost (ECONOMY 3.5): VIP 1.0, Money Party 1.0, the Starter hour 1.0 and the
+--- group 0.1 add, and the pay is then x (1 + boost). VIP during the Starter hour is x3.
+function Money.boost(on: Boosts): number
+	local flags: any = if type(on) == "table" then on else {}
+	return (if flags.vip == true then E.VipBoost else 0)
+		+ (if flags.party == true then E.PartyBoost else 0)
+		+ (if flags.starter == true then E.StarterBoost else 0)
+		+ (if flags.group == true then E.GroupBoost else 0)
 end
 
 --- The anti-farm row for the n-th match against the same opponent in one UTC day (ECONOMY
@@ -206,7 +218,9 @@ function Money.shotPay(input: ShotInput): ShotPay
 			})
 			total += pay
 			balls += 1
-			local kind = if input.breakShot or not shooter
+			local kind = if input.breakShot
+					or not shooter
+					or solo
 				then nil
 				else NiceShot.kind(input.events, drop.ball, drop.index, input.pockets)
 			if kind and flat() == nil then

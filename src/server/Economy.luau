@@ -7,8 +7,12 @@
 --
 -- - Team pay (3.3): every ball the team pots pays each connected teammate too, by their own
 --   daily caps and boosts; the nice-shot bonus goes to the shooter only.
--- - Boosts (3.5): VIP (the player's Vip attribute) and a Money Party (workspace's
---   MoneyPartyEndsAt, a unix time still ahead) add, then multiply everything paid in play.
+-- - Boosts (3.5): VIP (the player's Vip attribute), a Money Party (workspace's
+--   MoneyPartyEndsAt, a unix time still ahead), the Starter Pack's hour (the player's
+--   MoneyBoostEnds attribute) and the group (the InGroup attribute) add, then multiply
+--   everything paid in play.
+-- - Disguised bots (3.2): past Config.Economy.DisguisedDailyWins disguised wins in a UTC day,
+--   a match against one pays the PC rows (Settle.moneyKind), hidden.
 -- - Caps: solo (3.2) and PC (3.2) money count toward their daily totals as they are paid; a
 --   short match's money counts toward the short-match total when it settles (Ranking), and once
 --   that total is full, balls potted before the one-minute mark pay the flat short rate (3.6).
@@ -59,9 +63,23 @@ function Economy.partyActive(): boolean
 	return type(endsAt) == "number" and endsAt > os.time()
 end
 
---- A player's money boost now (Money.boost): VIP plus a Money Party, added.
+--- A player's money boost now (Money.boost): VIP, a Money Party, the Starter hour and the
+--- group, added.
 function Economy.boost(player: Player): number
-	return Money.boost(player:GetAttribute("Vip") == true, Economy.partyActive())
+	local starterEnds = player:GetAttribute("MoneyBoostEnds")
+	return Money.boost({
+		vip = player:GetAttribute("Vip") == true,
+		party = Economy.partyActive(),
+		starter = type(starterEnds) == "number" and starterEnds > os.time(),
+		group = player:GetAttribute("InGroup") == true,
+	})
+end
+
+--- Who `player`'s match pays like (Settle.moneyKind): "Player", "PC" or "Solo". A disguised
+--- bot pays the PC rows once the player has Config.Economy.DisguisedDailyWins disguised wins
+--- today.
+function Economy.moneyKind(e: any, player: Player): string
+	return Settle.moneyKind(e, PlayerData.dailyCount(player, "Disguised"))
 end
 
 --- The seats of a match in slot order (the order every loop over players uses).
@@ -131,7 +149,7 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 		return
 	end
 	local j = pending.judgement
-	local kind = Settle.opponentKind(e)
+	local kind = Economy.moneyKind(e, player)
 	local sinceBreak = if type(e.brokeAt) == "number" then now - e.brokeAt else nil
 	local farm = if kind == "Player"
 		then Economy.farmRow(player, Economy.opponentIds(e, team))

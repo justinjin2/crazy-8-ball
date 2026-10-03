@@ -13,6 +13,12 @@
 --
 -- Changing the layout: bump `Version`, add `Migrations[old]` that turns an old save into the
 -- new one, and update `template()` and `validate`. Never edit an old migration once shipped.
+-- A new field alone needs no bump: ProfileStore's Reconcile copies it from the template.
+--
+-- Version 6 (2026-10-03, the economy plan; docs/ECONOMY.md): every save older than
+-- `WipeBelow` starts over as a new player's (the designer: a full wipe, only friends had
+-- played), keeping only Shop.Purchases so a receipt in flight is never granted twice. The
+-- migrations that led to version 5 were removed with it.
 local Config = require(script.Parent.Parent.Config)
 local Catalog = require(script.Parent.Catalog)
 local UltCatalog = require(script.Parent.Parent.Ults.Catalog)
@@ -23,7 +29,10 @@ local RanksCfg = Config.Ranks
 
 local SaveSchema = {}
 
-SaveSchema.Version = 5
+SaveSchema.Version = 6
+
+--- Saves older than this start over (a full wipe, version 6).
+SaveSchema.WipeBelow = 6
 
 -- The most playtime one UTC day can hold (Daily.PlaySeconds).
 local SECONDS_PER_DAY = 86400
@@ -58,10 +67,13 @@ local MAP_KEYS = {
 	"Settings",
 	"Flags",
 	"Ults",
+	"Drops",
+	"Social",
+	"Trades",
 }
 
 -- Shop's true/false fields, in the order fixes are reported.
-local SHOP_FLAGS = { "VipOffer", "VipCueGiven", "StarterBought", "FirstPackBought" }
+local SHOP_FLAGS = { "VipOffer", "VipCueGiven", "StarterBought", "FirstPackBought", "QuickApplied" }
 
 --- A fresh Daily table for UTC day `day`: every per-day count at zero. Everything in Daily
 --- belongs to one UTC day and starts over on the next (`rolloverDaily`).
@@ -71,7 +83,9 @@ function SaveSchema.freshDaily(day: number): any
 		SoloMoney = 0, -- money earned in solo today (Config.Economy.SoloDailyCap)
 		PcMoney = 0, -- money earned against PC today (Config.Economy.PcDailyCap)
 		ShortMoney = 0, -- money from matches that ended before the one-minute mark today
-		Wins = 0, -- real wins today (the free case: Config.Cases.DailyWins, EveryAfter)
+		Wins = 0, -- real wins today
+		PcDrops = 0, -- PC wins today that dropped a case (Config.Economy.PcDropsPerDay)
+		Disguised = 0, -- disguised-bot wins today (Config.Economy.DisguisedDailyWins)
 		Opponents = {}, -- [userId as a string] = { Matches, Cases } (anti-farm, ECONOMY 3.6)
 		PlaySeconds = 0, -- time played today (the playtime gifts)
 		PlaytimeClaimed = {}, -- [gift index as a string] = true, the gifts claimed today
@@ -85,6 +99,8 @@ local DAILY_KEYS = {
 	"PcMoney",
 	"ShortMoney",
 	"Wins",
+	"PcDrops",
+	"Disguised",
 	"Opponents",
 	"PlaySeconds",
 	"PlaytimeClaimed",
@@ -111,8 +127,18 @@ function SaveSchema.template(): any
 		},
 		Inventory = {
 			Cues = {}, -- [cueId] = count >= 1: case and Exclusive cues; never Catalog.Default
+			-- [cueId] = how many of Cues[cueId] came from something paid (a case bought with money
+			-- or Robux): at most the count. Paid copies cannot be traded where Roblox's
+			-- IsPaidItemTradingAllowed is false (ECONOMY 13).
+			PaidCues = {},
 			Unique = {}, -- [cueId] = copy number: numbered Limited cues (#412)
-			Cases = {}, -- [caseId] = count >= 1: unopened cases
+			PaidUnique = {}, -- [cueId] = true: that Unique cue was bought (money or Robux)
+			Cases = {}, -- [caseId] = count >= 1: unopened cases ready to open, free origin
+			PaidCases = {}, -- [caseId] = count >= 1: ready to open, bought (paid origin)
+			-- Cases whose timer is still running, a gapless array in the order they landed:
+			-- { Case = caseId, At = unix seconds it is ready, Paid = boolean }. Inventory moves
+			-- each into Cases or PaidCases once its time has come (Config.Cases timers).
+			Timers = {},
 			New = {}, -- [cueId] = true: the NEW tag until the player has seen it
 		},
 		Index = {
@@ -138,6 +164,11 @@ function SaveSchema.template(): any
 			FirstPackBought = false, -- the first money pack's double money is used
 			Purchases = {}, -- gapless array, oldest first: the last Config.Shop.RecentPurchases
 			Limited = {}, -- [cueId] = copy number: Limited cues bought (one per player)
+			BoostEnds = 0, -- unix seconds the Starter Pack's 2x money runs until; 0 none
+			QuickApplied = false, -- running timers were halved once for Quick Cases
+			-- The restock shop's purchases in one 10-minute slot (Config.Restock): Slot is the
+			-- slot number they belong to, Bought = { [item key] = count } (a new slot starts over).
+			Restock = { Slot = 0, Bought = {} },
 		},
 		Codes = {}, -- [CODE] = true: promo codes redeemed
 		Settings = {},
@@ -145,6 +176,22 @@ function SaveSchema.template(): any
 		-- The ults (v3; Ults/Slots.fresh): the default ult in slot 1, the starter spins. Slots
 		-- and Locked are gapless arrays of Config.Ults.Slots ("" = an empty slot).
 		Ults = UltSlots.fresh(),
+		-- Case Drop pity (Config.Cases.Drop; ECONOMY 7): drops since the last Rare-or-better
+		-- case and since the last Epic-or-better case, and every drop ever.
+		Drops = { SinceRare = 0, SinceEpic = 0, Total = 0 },
+		Social = {
+			Group = false, -- the group's one-time reward was claimed (Config.Social)
+			InvitedBy = 0, -- the UserId whose invite brought this player (0 none)
+			InviteDone = false, -- this player's own invite reward was settled (given or not due)
+			InviteMonth = 0, -- the month InvitesThisMonth counts (year * 12 + month)
+			Invites = 0, -- invite rewards this player got as the inviter that month
+		},
+		Trades = {
+			-- The last Config.Save.MaxTradeHistory trades, oldest first: { Id, With (UserId),
+			-- At (unix), Gave = { item }, Got = { item } } (an item: a cue id or "Case:<caseId>").
+			History = {},
+			Applied = {}, -- the last MaxAppliedTrades trade ids this save holds the result of
+		},
 	}
 end
 
@@ -229,272 +276,39 @@ local function describe(x: any): string
 	return kind
 end
 
--- `t[key]` as a table: made a new empty one when it is anything else. For the migration,
--- which must never error on a broken save (validate reports what it replaces later).
-local function tableAt(t: { [any]: any }, key: string): { [any]: any }
-	local value = t[key]
-	if type(value) ~= "table" then
-		value = {}
-		t[key] = value
-	end
-	return value
-end
-
--- A count read from a map that may be broken: a whole number >= 1, or 0.
-local function countIn(map: { [any]: any }, key: string): number
-	local value = map[key]
-	if SaveSchema.isInteger(value) and value >= 1 then
-		return value
-	end
-	return 0
-end
-
 ---------------------------------------------------------------------------------------------
 -- Migrations
 ---------------------------------------------------------------------------------------------
 
 -- `Migrations[n]` turns a version-n save into a version n+1 save (it may change the table in
--- place and return it). `migrate` stamps the new Version after each step. A migration sees the
--- save exactly as it was stored: PlayerData migrates a copy first, then runs ProfileStore's
--- Reconcile (which fills keys the template has and the save lacks), then `validate`. If a step
--- errors, the save keeps its old Version and PlayerData releases the stored save untouched
--- (and the player cannot play), so a step must read every old field defensively.
+-- place and return it), for n >= WipeBelow. `migrate` stamps the new Version after each step.
+-- A migration sees the save exactly as it was stored: PlayerData migrates a copy first, then
+-- runs ProfileStore's Reconcile (which fills keys the template has and the save lacks), then
+-- `validate`. If a step errors, the save keeps its old Version and PlayerData releases the
+-- stored save untouched (and the player cannot play), so a step must read every old field
+-- defensively. None yet: version 6 is the first after the wipe.
 SaveSchema.Migrations = {} :: { [number]: (data: any) -> any }
 
--- 0 -> 1: a save written before saves had a version (or a blank one). Reconcile, run after
--- migrating, fills any missing keys from the template, so this only stamps the version.
-SaveSchema.Migrations[0] = function(data: any): any
-	data.Version = 1
-	return data
-end
-
--- Version 1's ladder: every division was this many XP wide (46 divisions, Reyes at 45,000).
--- Frozen here because Config now holds the new ladder; only migration 1 -> 2 reads it.
-local V1_DIVISION_XP = 1000
-
--- Version 2's ladder (2026-09-28 to 2026-10-02): each tier's division widths, I to V, Bronze
--- to Grandmaster (Reyes, the top tier, has one division and no top). Frozen here because
--- Config now holds the 2026-10-02 ladder; only migration 1 -> 2 reads it, so that migration
--- stays exactly as it shipped.
-local V2_DIVISION_XP: { { number } } = {
-	{ 250, 250, 250, 250, 250 },
-	{ 350, 350, 350, 350, 350 },
-	{ 800, 800, 800, 800, 800 },
-	{ 1200, 1200, 1200, 1200, 1200 },
-	{ 8000, 9500, 11000, 13000, 15000 },
-	{ 17500, 20500, 24000, 28000, 33000 },
-	{ 38000, 45000, 53000, 62000, 72000 },
-	{ 85000, 100000, 115000, 135000, 160000 },
-	{ 185000, 215000, 255000, 295000, 345000 },
-}
-
--- Where each division starts on version 2's ladder (1 = Bronze I ... 46 = the top tier's one
--- division) and each division's width (none for the top, which has no top).
-local function ladder(): ({ number }, { number })
-	local starts: { number } = {}
-	local widths: { number } = {}
-	local xp = 0
-	for _, row in V2_DIVISION_XP do
-		for _, width in row do
-			table.insert(starts, xp)
-			table.insert(widths, width)
-			xp += width
-		end
-	end
-	table.insert(starts, xp)
-	return starts, widths
-end
-
--- 1 -> 2: the economy (docs/ECONOMY.md; ECONOMY_UI_PROMPT section 7).
--- * Rank XP moves to the new ladder, keeping the division a player sees at the same fraction
---   through it (the top tier: the XP past its start is kept as it is). An unrated save shows
---   Unranked whatever its XP, so its XP is left alone. PeakDivision indexes the same divisions
---   (1..46) on both ladders, so it stays. The target is version 2's ladder (V2_DIVISION_XP,
---   frozen when Config's ladder changed on 2026-10-02; migration 4 -> 5 then resets rank XP).
--- * Inventory.Cues was an array of ids and becomes a count per id. "default" and Classic (the
---   default cue, always owned, never counted) and anything that is not an id are dropped;
---   unknown ids are kept (a later catalog may know them). Every kept cue is marked in
---   Index.Seen (it was owned).
--- * Every tier whose division I the player already reached (PeakDivision) gives its rank
---   reward's cases and cue now, once: that money was paid under version 1, the items did not
---   exist yet. A tier cue already owned is not given twice (rank cues are one per player).
---   Given cues are marked Seen and New.
--- * Equipped.Cue "default", or any id the catalog does not know, becomes Classic.
--- * Progress is back-filled from Stats (version 1 counted only real matches against people),
---   so existing players do not get the Rookie Boost or the new player's free cases again.
--- * Daily keeps Day and SoloMoney and gains the rest fresh. Titles, Login, Shop (FirstJoin 0:
---   PlayerData sets it to the load time) and Codes start fresh.
-SaveSchema.Migrations[1] = function(data: any): any
-	local divisions = SaveSchema.divisionCount()
-	local rated = SaveSchema.cleanInteger(data.RatedMatches, 0, SaveCfg.StatCap, 0) > 0
-	local peak = SaveSchema.cleanInteger(data.PeakDivision, 0, divisions, 0)
+-- The wipe (version 6): a new player's save, keeping only the receipt ids of `old` (strings,
+-- the newest Config.Shop.RecentPurchases; validate checks them again).
+local function wiped(old: { [any]: any }): any
 	local fresh = SaveSchema.template()
-
-	if rated then
-		local oldXp = SaveSchema.cleanInteger(data.RankXp, 0, SaveCfg.RankXpCap, 0)
-		local index = math.min(oldXp // V1_DIVISION_XP + 1, divisions)
-		local into = oldXp - (index - 1) * V1_DIVISION_XP
-		local starts, widths = ladder()
-		local width = widths[index]
-		local xp = if width ~= nil
-			then starts[index] + (into * width) // V1_DIVISION_XP
-			else starts[index] + into
-		data.RankXp = math.min(xp, SaveCfg.RankXpCap)
-	end
-
-	local inventory = tableAt(data, "Inventory")
-	local oldCues = inventory.Cues
-	local cues: { [string]: number } = {}
-	if type(oldCues) == "table" then
-		-- Counting is the same in any order, so walking the array in hash order is safe.
-		for key, id in oldCues do
-			if
-				SaveSchema.isInteger(key)
-				and key >= 1
-				and SaveSchema.isId(id)
-				and id ~= "default"
-				and id ~= Catalog.Default
-			then
-				cues[id] = math.min((cues[id] or 0) + 1, SaveCfg.ItemCountCap)
+	local shop = old.Shop
+	local list = if type(shop) == "table" then shop.Purchases else nil
+	if type(list) == "table" then
+		local kept: { string } = {}
+		for i = 1, #list do
+			local id = list[i]
+			if type(id) == "string" and #id >= 1 and #id <= SaveCfg.MaxPurchaseIdLength then
+				table.insert(kept, id)
 			end
 		end
-	end
-	inventory.Cues = cues
-	tableAt(inventory, "Unique")
-	local cases = tableAt(inventory, "Cases")
-	local newTags = tableAt(inventory, "New")
-	local seen = tableAt(tableAt(data, "Index"), "Seen")
-	tableAt(data.Index, "Rows")
-	for id in cues do
-		seen[id] = true
-	end
-
-	local tierRewards: { [string]: any } = RanksCfg.Rewards.Tier :: any
-	for order, tier in RanksCfg.Tiers do
-		local reward = tierRewards[tier]
-		local first = (order - 1) * RanksCfg.DivisionsPerTier + 1
-		if reward ~= nil and first <= peak then
-			local rewardCases = reward.Cases or {}
-			for _, caseId in Config.Cases.Order do
-				local count = rewardCases[caseId]
-				if SaveSchema.isInteger(count) and count >= 1 then
-					cases[caseId] = math.min(countIn(cases, caseId) + count, SaveCfg.ItemCountCap)
-				end
-			end
-			local cue = reward.Cue
-			if SaveSchema.isId(cue) and cue ~= Catalog.Default and cues[cue] == nil then
-				cues[cue] = 1
-				seen[cue] = true
-				newTags[cue] = true
-			end
+		local extra = math.max(#kept - Config.Shop.RecentPurchases, 0)
+		for i = extra + 1, #kept do
+			table.insert(fresh.Shop.Purchases, kept[i])
 		end
 	end
-
-	local equipped = tableAt(data, "Equipped")
-	if not Catalog.exists(equipped.Cue) then
-		equipped.Cue = Catalog.Default
-	end
-
-	local stats = if type(data.Stats) == "table" then data.Stats else {}
-	local function stat(key: string): number
-		return (SaveSchema.cleanInteger(stats[key], 0, SaveCfg.StatCap, 0))
-	end
-	data.Progress = {
-		RealMatches = stat("Matches"),
-		Wins = math.min(stat("Wins") + stat("PcWins"), SaveCfg.StatCap),
-	}
-
-	local daily = tableAt(data, "Daily")
-	for _, key in DAILY_KEYS do
-		if daily[key] == nil then
-			daily[key] = fresh.Daily[key]
-		end
-	end
-
-	for _, key in { "Titles", "Login", "Shop", "Codes" } do
-		if data[key] == nil then
-			data[key] = fresh[key]
-		end
-	end
-	return data
-end
-
--- 2 -> 3: the ults (docs/prompts/ULTIMATES_PROMPT.md section 11). Adds `Ults` as a new
--- save's (Ults/Slots.fresh): the default ult (Magnet) in slot 1 and Config.Ults.Earn.Starter
--- spins, the same starter spins a new player gets. Everything else is untouched. A version-2
--- save has no Ults, so anything found there is replaced.
-SaveSchema.Migrations[2] = function(data: any): any
-	data.Ults = UltSlots.fresh()
-	return data
-end
-
--- 3 -> 4: the cue skins (docs/prompts/CUE_SKINS_REPORT.md). The 30 placeholder case cues
--- left the catalog; they are removed from saves, with no swap and no refund (designer,
--- 2026-09-30): from Inventory.Cues, Inventory.New and Index.Seen, and an equipped one becomes
--- Classic. The list is frozen here (the catalog no longer knows these ids).
-local RETIRED_CUES_V3 = {
-	"ChalkDust",
-	"CornerPocket",
-	"RooftopBreeze",
-	"RackRunner",
-	"SideSpin",
-	"FeltGreen",
-	"BankShot",
-	"Skyline",
-	"TikiTorch",
-	"PalmShade",
-	"SunsetRail",
-	"KickShot",
-	"CushionCrusher",
-	"HarborLights",
-	"Masse",
-	"NeonPocket",
-	"OceanBreak",
-	"RailRider",
-	"Tidewater",
-	"ThunderBreak",
-	"VioletVortex",
-	"Penthouse",
-	"Nightcap",
-	"JumpJet",
-	"GoldenBreak",
-	"SolarFlare",
-	"CrownJewel",
-	"Starfall",
-	"Nebula",
-	"Eclipse",
-}
-
-SaveSchema.Migrations[3] = function(data: any): any
-	local inventory = tableAt(data, "Inventory")
-	local cues, new = tableAt(inventory, "Cues"), tableAt(inventory, "New")
-	local seen = tableAt(tableAt(data, "Index"), "Seen")
-	local equipped = tableAt(data, "Equipped")
-	for _, id in RETIRED_CUES_V3 do
-		cues[id] = nil
-		new[id] = nil
-		seen[id] = nil
-		if equipped.Cue == id then
-			equipped.Cue = Catalog.Default
-		end
-	end
-	return data
-end
-
--- 4 -> 5: the rank rework (designer, 2026-10-02; docs/ECONOMY.md section 4). Rank XP is now
--- 100 a win and nothing for a loss, on a new ladder, so every rank starts over: RankXp and
--- RatedMatches go to 0 (Unranked until the next win). PeakDivision stays, so a division whose
--- rewards were already paid never pays them twice; everything those rewards gave (money,
--- cases, rank cues, spins) is kept. Daily.FirstWinUsed (the first-win-of-the-day XP boost,
--- removed) is dropped.
-SaveSchema.Migrations[4] = function(data: any): any
-	data.RankXp = 0
-	data.RatedMatches = 0
-	local daily = data.Daily
-	if type(daily) == "table" then
-		daily.FirstWinUsed = nil
-	end
-	return data
+	return fresh
 end
 
 -- The version a save claims: missing, broken or negative means 0 (older than versioning).
@@ -526,6 +340,16 @@ function SaveSchema.migrate(data: any): (any, { string })
 			)
 		)
 		return data, notes
+	end
+	if version < SaveSchema.WipeBelow then
+		table.insert(
+			notes,
+			("version %d is older than %d: started over (the version 6 wipe)"):format(
+				version,
+				SaveSchema.WipeBelow
+			)
+		)
+		return wiped(data), notes
 	end
 	while version < SaveSchema.Version do
 		local step = SaveSchema.Migrations[version]
@@ -935,6 +759,199 @@ local function fixUlts(ults: { [any]: any }, fixes: { string })
 	end
 end
 
+-- The largest UserId a save keeps (Social.InvitedBy, a trade's partner). Roblox's are far below.
+local USER_ID_CAP = 1e15
+
+-- Inventory.PaidCues and PaidUnique after the inventory is clean: a paid count never above the
+-- copies held, and no paid mark on a cue not held (selling or trading may have taken them).
+local function fixPaid(inventory: { [any]: any }, fixes: { string })
+	local cues, paid = inventory.Cues, inventory.PaidCues
+	local ids: { string } = {}
+	for id in paid do
+		table.insert(ids, id)
+	end
+	table.sort(ids)
+	local trimmed = 0
+	for _, id in ids do
+		local have = cues[id]
+		local held = if type(have) == "number" then have else 0
+		if held <= 0 then
+			paid[id] = nil
+			trimmed += 1
+		elseif paid[id] > held then
+			paid[id] = held
+			trimmed += 1
+		end
+	end
+	if trimmed > 0 then
+		table.insert(
+			fixes,
+			("Inventory.PaidCues: trimmed %s to the copies held"):format(entries(trimmed))
+		)
+	end
+	local unique, paidUnique = inventory.Unique, inventory.PaidUnique
+	local marks: { string } = {}
+	for id in paidUnique do
+		table.insert(marks, id)
+	end
+	table.sort(marks)
+	local dropped = 0
+	for _, id in marks do
+		if unique[id] == nil then
+			paidUnique[id] = nil
+			dropped += 1
+		end
+	end
+	if dropped > 0 then
+		table.insert(fixes, ("Inventory.PaidUnique: dropped %s not held"):format(entries(dropped)))
+	end
+end
+
+-- Inventory.Timers: a gapless array of { Case = a case id, At = unix seconds, Paid = boolean },
+-- in the order they landed, at most Config.Save.MaxTimerEntries (the first ones kept). A broken
+-- entry is dropped (a broken timer never becomes a case).
+local function fixTimers(inventory: { [any]: any }, fixes: { string })
+	local path = "Inventory.Timers"
+	local list = ensureTable(inventory, "Timers", path, {}, fixes)
+	fixArray(list, path, fixes)
+	local good = {}
+	local dropped = 0
+	for i = 1, #list do
+		local t = list[i]
+		if
+			type(t) == "table"
+			and SaveSchema.isId(t.Case)
+			and table.find(Config.Cases.Order, t.Case) ~= nil
+			and SaveSchema.isInteger(t.At)
+			and t.At >= 0
+			and t.At <= SaveCfg.UnixTimeCap
+			and type(t.Paid) == "boolean"
+		then
+			table.insert(good, { Case = t.Case, At = t.At, Paid = t.Paid })
+		else
+			dropped += 1
+		end
+	end
+	local cap = SaveCfg.MaxTimerEntries
+	local extra = math.max(#good - cap, 0)
+	if dropped == 0 and extra == 0 then
+		-- Rebuilt anyway so no entry keeps a stray field.
+		table.clear(list)
+		for i, t in good do
+			list[i] = t
+		end
+		return
+	end
+	table.clear(list)
+	for i = 1, math.min(#good, cap) do
+		list[i] = good[i]
+	end
+	if dropped > 0 then
+		table.insert(fixes, ("%s: dropped %s that were broken"):format(path, entries(dropped)))
+	end
+	if extra > 0 then
+		table.insert(fixes, ("%s: kept the first %d of %d"):format(path, cap, #good))
+	end
+end
+
+-- One side of a trade in the history: a gapless array of item strings (a cue id or
+-- "Case:<caseId>"), at most Config.Save.MaxTradeSideItems. nil when it is not one.
+local function tradeSide(value: any): { string }?
+	if type(value) ~= "table" then
+		return nil
+	end
+	local n = 0
+	for key in value do
+		if not (SaveSchema.isInteger(key) and key >= 1) then
+			return nil
+		end
+		n += 1
+	end
+	if n > SaveCfg.MaxTradeSideItems then
+		return nil
+	end
+	local out: { string } = {}
+	for i = 1, n do
+		local item = value[i]
+		if not SaveSchema.isId(item) then
+			return nil
+		end
+		table.insert(out, item)
+	end
+	return out
+end
+
+-- Trades: History, the last MaxTradeHistory entries { Id, With, At, Gave, Got }, oldest
+-- first; Applied, the last MaxAppliedTrades trade ids. A broken entry is dropped.
+local function fixTrades(trades: { [any]: any }, fixes: { string })
+	local path = "Trades.History"
+	local history = ensureTable(trades, "History", path, {}, fixes)
+	fixArray(history, path, fixes)
+	local good = {}
+	local dropped = 0
+	for i = 1, #history do
+		local h = history[i]
+		local gave = if type(h) == "table" then tradeSide(h.Gave) else nil
+		local got = if type(h) == "table" then tradeSide(h.Got) else nil
+		if
+			gave ~= nil
+			and got ~= nil
+			and SaveSchema.isId(h.Id)
+			and SaveSchema.isInteger(h.With)
+			and h.With >= 0
+			and h.With <= USER_ID_CAP
+			and SaveSchema.isInteger(h.At)
+			and h.At >= 0
+			and h.At <= SaveCfg.UnixTimeCap
+		then
+			table.insert(good, { Id = h.Id, With = h.With, At = h.At, Gave = gave, Got = got })
+		else
+			dropped += 1
+		end
+	end
+	local cap = SaveCfg.MaxTradeHistory
+	local extra = math.max(#good - cap, 0)
+	table.clear(history)
+	for i = extra + 1, #good do
+		table.insert(history, good[i])
+	end
+	if dropped > 0 then
+		table.insert(fixes, ("%s: dropped %s that were broken"):format(path, entries(dropped)))
+	end
+	if extra > 0 then
+		table.insert(fixes, ("%s: kept the last %d of %d"):format(path, cap, #good))
+	end
+
+	local appliedPath = "Trades.Applied"
+	local applied = ensureTable(trades, "Applied", appliedPath, {}, fixes)
+	fixArray(applied, appliedPath, fixes)
+	local ids: { string } = {}
+	local bad = 0
+	for i = 1, #applied do
+		if SaveSchema.isId(applied[i]) then
+			table.insert(ids, applied[i])
+		else
+			bad += 1
+		end
+	end
+	local over = math.max(#ids - SaveCfg.MaxAppliedTrades, 0)
+	if bad > 0 or over > 0 then
+		table.clear(applied)
+		for i = over + 1, #ids do
+			table.insert(applied, ids[i])
+		end
+		if bad > 0 then
+			table.insert(fixes, ("%s: dropped %d id(s) that were not ids"):format(appliedPath, bad))
+		end
+		if over > 0 then
+			table.insert(
+				fixes,
+				("%s: kept the last %d of %d"):format(appliedPath, SaveCfg.MaxAppliedTrades, #ids)
+			)
+		end
+	end
+end
+
 --- Repair a save in place so every field holds a safe value. Returns the same table (or a
 --- fresh template if `data` was not a table) and the fixes it made, empty when the save was
 --- clean. Unknown string keys at the top level and in the fixed-field tables are left alone
@@ -994,7 +1011,12 @@ function SaveSchema.validate(data: any): (any, { string })
 	fixMapAt(inventory, "Cues", "Inventory.Cues", cueCap, counts, fixes, Catalog.Default)
 	fixMapAt(inventory, "Unique", "Inventory.Unique", cueCap, copies, fixes, Catalog.Default)
 	fixMapAt(inventory, "Cases", "Inventory.Cases", SaveCfg.MaxCaseEntries, counts, fixes)
+	fixMapAt(inventory, "PaidCases", "Inventory.PaidCases", SaveCfg.MaxCaseEntries, counts, fixes)
 	fixMapAt(inventory, "New", "Inventory.New", cueCap, onlyTrue, fixes)
+	fixMapAt(inventory, "PaidCues", "Inventory.PaidCues", cueCap, counts, fixes, Catalog.Default)
+	fixMapAt(inventory, "PaidUnique", "Inventory.PaidUnique", cueCap, onlyTrue, fixes)
+	fixPaid(inventory, fixes)
+	fixTimers(inventory, fixes)
 
 	fixMapAt(data.Index, "Seen", "Index.Seen", cueCap, onlyTrue, fixes)
 	fixMapAt(data.Index, "Rows", "Index.Rows", SaveCfg.MaxSmallEntries, onlyTrue, fixes)
@@ -1030,6 +1052,8 @@ function SaveSchema.validate(data: any): (any, { string })
 	fixInteger(daily, "PcMoney", "Daily.PcMoney", SaveCfg.MoneyCap, fixes)
 	fixInteger(daily, "ShortMoney", "Daily.ShortMoney", SaveCfg.MoneyCap, fixes)
 	fixInteger(daily, "Wins", "Daily.Wins", SaveCfg.StatCap, fixes)
+	fixInteger(daily, "PcDrops", "Daily.PcDrops", SaveCfg.StatCap, fixes)
+	fixInteger(daily, "Disguised", "Daily.Disguised", SaveCfg.StatCap, fixes)
 	fixMapAt(
 		daily,
 		"Opponents",
@@ -1060,6 +1084,17 @@ function SaveSchema.validate(data: any): (any, { string })
 	end
 	fixPurchases(shop, fixes)
 	fixMapAt(shop, "Limited", "Shop.Limited", cueCap, copies, fixes)
+	fixInteger(shop, "BoostEnds", "Shop.BoostEnds", SaveCfg.UnixTimeCap, fixes)
+	local restock = ensureTable(shop, "Restock", "Shop.Restock", fresh.Shop.Restock, fixes)
+	fixInteger(restock, "Slot", "Shop.Restock.Slot", SaveCfg.StatCap, fixes)
+	fixMapAt(
+		restock,
+		"Bought",
+		"Shop.Restock.Bought",
+		SaveCfg.MaxSmallEntries,
+		wholeFrom1(SaveCfg.StatCap),
+		fixes
+	)
 
 	fixMap(data.Codes, "Codes", SaveCfg.MaxCodeEntries, onlyTrue, fixes)
 
@@ -1067,6 +1102,20 @@ function SaveSchema.validate(data: any): (any, { string })
 	dropNonFinite(data.Flags, "Flags", fixes)
 
 	fixUlts(data.Ults, fixes)
+
+	local drops = data.Drops
+	fixInteger(drops, "SinceRare", "Drops.SinceRare", SaveCfg.StatCap, fixes)
+	fixInteger(drops, "SinceEpic", "Drops.SinceEpic", SaveCfg.StatCap, fixes)
+	fixInteger(drops, "Total", "Drops.Total", SaveCfg.StatCap, fixes)
+
+	local social = data.Social
+	fixBoolean(social, "Group", "Social.Group", fixes)
+	fixInteger(social, "InvitedBy", "Social.InvitedBy", USER_ID_CAP, fixes)
+	fixBoolean(social, "InviteDone", "Social.InviteDone", fixes)
+	fixInteger(social, "InviteMonth", "Social.InviteMonth", SaveCfg.StatCap, fixes)
+	fixInteger(social, "Invites", "Social.Invites", SaveCfg.StatCap, fixes)
+
+	fixTrades(data.Trades, fixes)
 
 	return data, fixes
 end

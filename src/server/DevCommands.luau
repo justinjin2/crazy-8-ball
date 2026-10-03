@@ -317,7 +317,7 @@ local function previewResult(player: Player, args: { string })
 		left = false,
 	}
 	-- The money as the settle would pay it, with the sample's VIP (and a party if one runs).
-	local boost = Money.boost(true, Store.party() ~= nil)
+	local boost = Money.boost({ vip = true, party = Store.party() ~= nil })
 	local myIndex = Ranks.fromXp(data.RankXp, data.RatedMatches > 0).index
 	local balls, nice = 4, 1
 	local ballMoney = Money.round(balls * E.BallPay * (1 + boost))

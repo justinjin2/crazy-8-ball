@@ -418,11 +418,14 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 	end
 
 	-- The match bonus and the streak bonus (ECONOMY 3.1, 3.2, 3.6, 4.4): earned in play, so
-	-- the boosts apply; against PC they count toward the PC daily total.
-	local pc = kind == "PC"
+	-- the boosts apply; against PC they count toward the PC daily total. A disguised bot past
+	-- the day's DisguisedDailyWins pays the PC rows (Settle.moneyKind, hidden).
+	local payKind = Settle.moneyKind(m.e, daily.Disguised or 0)
+	local pc = payKind == "PC"
+	local disguised = Settle.botKind(m.e) == "Disguised"
 	local bonus = Money.matchBonus({
 		outcome = outcome,
-		opponent = kind,
+		opponent = payKind,
 		real = real,
 		forfeited = entry.forfeited,
 		multiplier = m.multiplier,
@@ -445,8 +448,14 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 		return
 	end
 
-	-- The winner's free case (ECONOMY 7.1, 3.6), from the counts before this match.
-	if won then
+	-- A disguised bot's win counts toward the day's hidden limit (Config.Economy.DisguisedDailyWins).
+	if won and disguised then
+		PlayerData.countDaily(p, "Disguised")
+	end
+
+	-- The winner's free case (ECONOMY 7.1, 3.6), from the counts before this match. None from a
+	-- disguised bot past the day's limit.
+	if won and not (disguised and pc) then
 		local ctx = Settle.freeCaseContext({
 			real = real,
 			solo = false,

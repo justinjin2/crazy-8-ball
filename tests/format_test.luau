@@ -31,13 +31,17 @@ return {
 		H.expect(Format.xp(1000) == "1,000" and Format.xp(0) == "0", "xp")
 	end,
 
-	["money in full below ten million, shortened from it"] = function()
+	["money in full below a million, shortened from it"] = function()
 		local Format = H.require("Progression.Format")
 		check(Format.money, {
 			{ 0, "$0" },
 			{ 10, "$10" },
 			{ 1250, "$1,250" },
-			{ 9999999, "$9,999,999" },
+			{ 999999, "$999,999" },
+			{ 1000000, "$1M" },
+			{ 1200000, "$1.2M" },
+			{ 3490000, "$3.49M" },
+			{ 9999999, "$9.99M" }, -- cut, never rounded up
 			{ 10000000, "$10M" },
 			{ 12500000, "$12.5M" },
 			{ 12340000, "$12.34M" },

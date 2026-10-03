@@ -100,6 +100,22 @@ function Settle.opponentKind(e: any): string
 	return "Player"
 end
 
+--- Who a match PAYS like, for one player (ECONOMY 3.2): Settle.opponentKind, except that a
+--- disguised bot pays the PC rows (the PC bonuses and daily cap, no Case Drop) once the player
+--- has Config.Economy.DisguisedDailyWins disguised wins today (`disguisedWinsToday`). Hidden:
+--- the XP and the stats still treat it as before (Settle.opponentKind, recordAs).
+function Settle.moneyKind(e: any, disguisedWinsToday: number): string
+	local kind = Settle.opponentKind(e)
+	if
+		kind == "Player"
+		and Settle.botKind(e) == "Disguised"
+		and whole(disguisedWinsToday) >= E.DisguisedDailyWins
+	then
+		return "PC"
+	end
+	return kind
+end
+
 --- A bot match that counts whatever the match time (the designer, 2026-10-02): every
 --- tutorial game (its early 8 pays in full) and a disguised bot that left mid-match (its
 --- forfeit pays the real player in full, even under the one-minute mark).

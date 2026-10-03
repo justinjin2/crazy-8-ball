@@ -58,7 +58,46 @@ number or a payload field changes, write it in your status so GUI and Cutscenes 
 
 ## Status
 
-2026-10-03: interview done, brief approved (`docs/prompts/ECONOMY_PROMPT.md`). Building step 1.
+2026-10-03: interview done, brief approved (`docs/prompts/ECONOMY_PROMPT.md`).
+
+- **Step 1 done (2026-10-03): save version 6 and money x10.**
+  - Save v6 (`SaveSchema.WipeBelow = 6`): any older save starts over as a new player's,
+    keeping only its `Shop.Purchases` receipt ids. The old migrations 1-5 are gone. New fields
+    for the whole brief: `Inventory.PaidCues/PaidUnique/PaidCases/Timers`, `Daily.PcDrops/
+    Disguised`, `Shop.BoostEnds/QuickApplied/Restock`, `Drops` (pity), `Social` (group,
+    invites), `Trades` (history 50, applied ids). Each is cleaned by `validate`.
+  - Money x10 (`Config.Economy`): ball $100, nice $150/$200, win $500, loss $150, streak $250,
+    PC win/loss bonus $250/$80, PC cap $10,000; solo 30% ($30 a ball) to $3,000 then $10;
+    short matches $2,000 then $10; difficulty multiplier on. Boosts add (VIP, Party, Starter
+    hour 1 each, group 0.1). Solo pays no nice shots. Disguised bots pay the PC rows after 20
+    disguised wins a UTC day (`Settle.moneyKind`, hidden). Starter Pack $75,000.
+  - `Format.money`: full digits to $999,999, then $1.2M.
+  - Analytics: `PlayerData.MoneyChanged` (player, delta, reason, balance) and the new
+    `src/server/EconomyLog.luau` (`AnalyticsService:LogEconomyEvent`, batched per reason,
+    every 60 s and on leave).
+  - Checked: lint, 906 Lune tests; Studio (lane-economy.rbxl): a fresh save reads v6 and $0, a
+    real 1v1 win paid $600 ($100 ball + $500 win), solo $30 a ball then $10 past $3,000,
+    `LogEconomyEvent` fires, HUD reads $1.23M for $1,234,567.
+  - Still old until their steps: case prices and the first-win cue (step 2), money packs
+    (step 3), daily/playtime/codes/rank rewards (step 5).
+- **For GUI**: `Format.money` changed (M from $1,000,000). Player attribute `MoneyBoostEnds`
+  (unix time the Starter hour ends; 0 none).
+- **For Bots**: the disguised limit counts in `Daily.Disguised` (Ranking, on a disguised win).
+
+### Changes to shared files (existing lines)
+
+- `Config.luau`: `Config.Economy` rewritten (x10, boosts, `DisguisedDailyWins`,
+  `PcDropsPerDay`, `Analytics`); `Config.Save` + `MaxTimerEntries`, `MaxTradeHistory`,
+  `MaxAppliedTrades`, `MaxTradeSideItems`; `Config.Shop.StarterMoney` 75000,
+  `StarterBoostSeconds` 3600.
+- `PlayerData.luau`: every money change carries a reason (`addMoneyTo`/`takeMoney`,
+  `giveReward(data, reward, reason)`), new `MoneyChanged` event, `dailyCount`, `countDaily`,
+  attribute `MoneyBoostEnds`, QA calls `dailyCount`/`countDaily`.
+- `Ranking.luau` `settleOne`: pays by `Settle.moneyKind`; counts disguised wins; no free case
+  from a disguised bot past the limit.
+- `Bootstrap.server.luau`: `EconomyLog.start()` after `Rewards.start()`.
+- `DevCommands.luau` (~line 320): `Money.boost({ vip = true, party = ... })` (a table now).
+- `Items.luau`: `QUIET_OPS` + `countDaily`.
 
 ## Requests to other lanes or the integrator
 
