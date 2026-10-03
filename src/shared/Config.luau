@@ -8628,6 +8628,195 @@ Config.UI.UltPick = {
 	PendingSeconds = 3,
 }
 
+---------------------------------------------------------------------------------------------
+-- Bots (the Bots lane, docs/prompts/BOTS_PROMPT.md; the designer, 2026-10-02). The brain is
+-- src/shared/Bots (pure), the bodies and the table driver src/server/Bots. Every bot is a
+-- negative seat id. (tune) on every number.
+---------------------------------------------------------------------------------------------
+Config.Bots = {
+	-- One skill level per tier (Gold I and Gold V meet the same bot). The player's chance of
+	-- beating the bot of their own rank (the designer's targets, for a typical player of that
+	-- rank): Bronze 90%, Silver 80, Gold 65, Platinum 57, Diamond 50, Expert 50, Veteran 45,
+	-- Master 40, Grandmaster 35, Reyes 30. tools/bot_duel.luau measures them; its table is in
+	-- tools/bot_duel_results.json (tuned 2026-10-02 against the duel's model player of each
+	-- rank, kept rising with the rank).
+	--   Make: how often it lands a pot it goes for (else a near miss, never wild).
+	--   Behind: added to Make while it has BehindBalls or more balls left than the opponent.
+	--   Blunder: share of pot attempts played as a full-ball hit with no real angle (Bronze).
+	--   Scratch: share of shots it scratches by accident when it can find such a shot.
+	--   Position: how many of its best pots it compares for where the cue ball stops.
+	--   Safety: with no pot, plays a real safety (else a soft hit on its nearest ball).
+	--   PlaceSamples: ball in hand spots it weighs.
+	Tiers = {
+		Bronze = {
+			Make = 0.12,
+			Behind = 0.05,
+			Blunder = 0.3,
+			Scratch = 0.08,
+			Position = 1,
+			Safety = false,
+			PlaceSamples = 4,
+		},
+		Silver = {
+			Make = 0.32,
+			Behind = 0.06,
+			Blunder = 0.15,
+			Scratch = 0.05,
+			Position = 1,
+			Safety = false,
+			PlaceSamples = 6,
+		},
+		Gold = {
+			Make = 0.5,
+			Behind = 0.07,
+			Blunder = 0.05,
+			Scratch = 0.02,
+			Position = 1,
+			Safety = false,
+			PlaceSamples = 8,
+		},
+		Platinum = {
+			Make = 0.54,
+			Behind = 0.08,
+			Blunder = 0,
+			Scratch = 0.01,
+			Position = 2,
+			Safety = false,
+			PlaceSamples = 10,
+		},
+		Diamond = {
+			Make = 0.57,
+			Behind = 0.09,
+			Blunder = 0,
+			Scratch = 0,
+			Position = 2,
+			Safety = true,
+			PlaceSamples = 12,
+		},
+		Expert = {
+			Make = 0.6,
+			Behind = 0.1,
+			Blunder = 0,
+			Scratch = 0,
+			Position = 3,
+			Safety = true,
+			PlaceSamples = 14,
+		},
+		Veteran = {
+			Make = 0.67,
+			Behind = 0.08,
+			Blunder = 0,
+			Scratch = 0,
+			Position = 3,
+			Safety = true,
+			PlaceSamples = 16,
+		},
+		Master = {
+			Make = 0.72,
+			Behind = 0.06,
+			Blunder = 0,
+			Scratch = 0,
+			Position = 4,
+			Safety = true,
+			PlaceSamples = 18,
+		},
+		Grandmaster = {
+			Make = 0.76,
+			Behind = 0.04,
+			Blunder = 0,
+			Scratch = 0,
+			Position = 4,
+			Safety = true,
+			PlaceSamples = 20,
+		},
+		Reyes = {
+			Make = 0.975,
+			Behind = 0.015,
+			Blunder = 0,
+			Scratch = 0,
+			Position = 5,
+			Safety = true,
+			PlaceSamples = 24,
+		},
+	},
+	BehindBalls = 2,
+	MaxMake = 0.99, -- Make + Behind never passes this
+	-- The shot finder (ported from the ability harness's model shooter): the thinnest cut,
+	-- how far off a pocket's axis a ball may arrive, the object ball's speed at the mouth.
+	Finder = {
+		MaxCutDegrees = 78,
+		CornerApproachDegrees = 60,
+		SideApproachDegrees = 50,
+		ArriveSpeed = 30, -- in/s
+		MaxPower = 0.85,
+		SafeSpeed = 60, -- the soft hit: cue ball in/s plus this per inch to go
+		SafeSpeedPerInch = 1,
+		CandidatesTried = 9, -- calibrations tried at most per decision
+	},
+	-- An "easy" pot (the ability policy's WhenNoEasyShot): its forgiveness score (radians of
+	-- aim error the pot allows) at least this.
+	EasyScore = 0.006,
+	-- A shot it means to make: this much natural aim spread (degrees), checked in our physics
+	-- (MakeTries draws) so the ball really drops.
+	MakeAimSigmaDegrees = 0.12,
+	MakePowerSigma = 0.04,
+	MakeTries = 6,
+	-- A near miss: the aim moved off the line by one of these (degrees, both sides tried,
+	-- smallest first) until the ball stays up with no foul; one that stops within NearInches of
+	-- the pocket is preferred.
+	NearMissDegrees = { 0.7, 1.0, 1.4, 1.9, 2.5, 3.2 },
+	NearInches = 12,
+	-- The break in a bot-vs-bot game (the real player always breaks against a bot).
+	BreakPower = { 0.88, 1 },
+	BreakAimSigmaDegrees = 0.5,
+	-- Safety search (Safety tiers): soft hits at its own balls, kept when legal, scored by how
+	-- little the opponent is left.
+	SafetyAngles = 9,
+	SafetyPowers = { 0.25, 0.35, 0.45 },
+	-- Blunder: a full-ball hit at this power.
+	BlunderPower = { 0.35, 0.6 },
+	-- Shot time: from the start of its turn to the strike, random in this range (seconds;
+	-- the designer: never over 4), plus PlaceExtraSeconds with ball in hand. The same at every
+	-- rank. The ability's cutscene is extra (it pauses the clock).
+	ShotSeconds = { 2, 4 },
+	PlaceExtraSeconds = 2,
+	-- Lining up: the cue swings onto the line from SwingFromDegrees away, then drifts a few
+	-- times by up to WiggleDegrees either side, settling on the line; the pull starts
+	-- PullSeconds before the strike.
+	Aim = {
+		SwingFromDegrees = { 12, 35 },
+		SwingShare = 0.35, -- of the lining-up time spent on the first swing
+		Wiggles = { 2, 4 },
+		WiggleDegrees = { 0.6, 2.5 },
+		PullSeconds = 0.7,
+		AimSendsPerSecond = 10, -- like a person's AimUpdate
+	},
+	-- Seat ids: the first bot is FirstSeatId, then one less each (clear of the QA fixtures).
+	FirstSeatId = -1000,
+	-- Looks (src/shared/Bots/Look.luau). A bot's cue comes from opening one of these cases
+	-- for its tier (a Legendary as rare as for a real player who opens the same case; the
+	-- Economy lane owns the real odds), or, TierCueChance of the time, the tier cue of its own
+	-- tier or one below.
+	CueCase = {
+		Bronze = "Standard",
+		Silver = "Standard",
+		Gold = "Standard",
+		Platinum = "Standard",
+		Diamond = "Rare",
+		Expert = "Rare",
+		Veteran = "Rare",
+		Master = "Epic",
+		Grandmaster = "Epic",
+		Reyes = "Epic",
+	},
+	TierCueChance = 0.25,
+	-- Its ability: weighted like a real spin (Config.Ults.Roll.Normal by rarity, then even
+	-- within the rarity, built ones only); none rarer than CappedRarity while the real player
+	-- is CapUpToTier or below (the designer: no Legendary or higher for Gold and below).
+	CapUpToTier = "Gold",
+	CappedRarity = "Epic",
+}
+
 Config.Debug = {
 	-- Test keys in play mode: B = rack and break (until rules handle new games).
 	TestKeysEnabled = true,
