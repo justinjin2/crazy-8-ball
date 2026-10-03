@@ -74,6 +74,27 @@ tests["without breakFor the coin decides as before"] = function()
 	expect(m.coin.winnerTeam == 2)
 end
 
+tests["fill with PC: the real side together, the robots on the other"] = function()
+	-- Teams alternate by arrival unless a seat carries presetTeam (BotService's Fill with PC),
+	-- and the preset is used once (a later game on the pad alternates again).
+	local m = E.new(1, 2)
+	expect(E.join(m, 7, "Real", "Real", 0))
+	expect(E.join(m, 8, "Mate", "Mate", 0.1))
+	expect(E.join(m, BOT, "Bot", "Bot", 0.2))
+	expect(E.join(m, BOT - 1, "Bot2", "Bot2", 0.3))
+	for _, s in m.seats do
+		s.presetTeam = if s.userId < 0 then 2 else 1
+	end
+	m.breakFor = 7
+	expect(E.action(m, 7, { kind = "Start", epoch = m.epoch, turnId = m.turnId }, 0, 2))
+	expect(teamOf(m, 7) == 1 and teamOf(m, 8) == 1, "the real players together")
+	expect(teamOf(m, BOT) == 2 and teamOf(m, BOT - 1) == 2, "the robots together")
+	expect(m.activeTeam == 1, "the real side breaks")
+	for _, s in m.seats do
+		expect(s.presetTeam == nil, "used once")
+	end
+end
+
 local AIM = { Placement = true, Aiming = true }
 
 -- Moves the clock on until someone has a shot to play (or the game is over).

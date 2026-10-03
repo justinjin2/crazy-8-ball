@@ -84,6 +84,19 @@ function ArenaService.prepare()
 	workspace:SetAttribute(C.OffsetAttribute, LightCycle.offsetToDayStart(t, C))
 end
 
+-- The Studio arena's bot side (StudioArenaBot): a whole side of disguised bots of that tier.
+local function studioBots(size: number): { any }?
+	local tier = ServerStorage:GetAttribute(STUDIO_BOT_ATTRIBUTE)
+	if type(tier) ~= "string" then
+		return nil
+	end
+	local bots = {}
+	for _ = 1, size do
+		table.insert(bots, { team = 2, kind = "Disguised", tier = tier, rematch = "Never" })
+	end
+	return bots
+end
+
 --- The match's player list (yields up to Arena.RecordWaitSeconds), or nil.
 function ArenaService.loadRecord(matchId: string): any?
 	if matchId == "studio-arena" then
@@ -97,16 +110,7 @@ function ArenaService.loadRecord(matchId: string): any?
 			homes = {},
 			ults = ServerStorage:GetAttribute(STUDIO_ULTS_ATTRIBUTE) ~= false,
 			studio = true,
-			bots = if type(ServerStorage:GetAttribute(STUDIO_BOT_ATTRIBUTE)) == "string"
-				then {
-					{
-						team = 2,
-						kind = "Disguised",
-						tier = ServerStorage:GetAttribute(STUDIO_BOT_ATTRIBUTE),
-						rematch = "Never",
-					},
-				}
-				else nil,
+			bots = studioBots(size),
 		}
 	end
 	local started = os.clock()

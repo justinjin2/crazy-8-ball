@@ -17,6 +17,7 @@
 -- default `tier`), name?, avatar? ({ userId, description } from Identity), cue?, ult?,
 -- script? ("Tutorial"), rematch? ("Instant" | "Wait" | "Request" | "Never"), playerTier? (caps
 -- its ability) }.
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -517,6 +518,19 @@ local function playerTier(p: Player): string
 	return forcedTier[p.UserId] or tierOf(p:GetAttribute("RankTier"))
 end
 
+-- The average tier of these seats' players (a player not in the server counts as Bronze).
+local function averageTier(seats: { any }): string
+	local sum, n = 0, 0
+	for _, s in seats do
+		local p = Players:GetPlayerByUserId(s.userId)
+		local tier = if p then playerTier(p) else "Bronze"
+		sum += Ranks.tierIndex(tier) or 1
+		n += 1
+	end
+	local index = math.clamp(math.floor(sum / math.max(1, n) + 0.5), 1, #Config.Ranks.Tiers)
+	return Config.Ranks.Tiers[index]
+end
+
 local function playPc(t: any, p: Player, _payload: any): boolean
 	local e = t.engine
 	if
@@ -642,23 +656,75 @@ local function soloFallback(t: any, player: Player)
 	end
 end
 
+-- A team search (2v2, 3v3) with no real team after TeamSeconds: a disguised all-bot team at
+-- the real team's average rank, each bot a different tier near it.
+local function teamFallback(t: any, players: { Player })
+	local size = #players
+	local seats = {}
+	local ids = {}
+	local homes = {}
+	for _, p in players do
+		table.insert(seats, { userId = p.UserId })
+		table.insert(ids, p.UserId)
+		homes[tostring(p.UserId)] = GlobalQueue.Server
+	end
+	local centre = Ranks.tierIndex(averageTier(seats)) or 1
+	local lowest = math.huge
+	for _, p in players do
+		lowest = math.min(lowest, Ranks.tierIndex(playerTier(p)) or 1)
+	end
+	local tiers = Config.Ranks.Tiers
+	local spread = if size == 2 then { 0, 1 } else { -1, 0, 1 }
+	local bots = {}
+	for i = 1, size do
+		local index = math.clamp(centre + (spread[i] or 0), 1, #tiers)
+		table.insert(bots, {
+			team = 2,
+			kind = "Disguised",
+			tier = tiers[index],
+			playerTier = tiers[math.clamp(lowest, 1, #tiers)],
+			rematch = "Never",
+		})
+	end
+	local record = {
+		mode = size,
+		teams = { ids, {} },
+		homes = homes,
+		tickets = {},
+		ults = true,
+		bots = bots,
+	}
+	local match = GlobalQueue.botMatch(record, 1)
+	if match and not Tables.searchToMatch(t, match) then
+		print(("[8ball] GQ bot team match %s not used: a real team came first"):format(match.id))
+	end
+end
+
 local function watchSearches()
 	for _, t in Tables.all() do
-		if not fallbackBusy[t] and t.engine.teamSize == 1 then
-			local players, at = Tables.waitingSearch(t)
-			if players and #players == 1 and at and now() - at >= F.SoloSeconds then
-				fallbackBusy[t] = true
-				task.spawn(function()
-					local ok, err = pcall(function(): any
-						soloFallback(t, players[1])
-						return nil
-					end)
-					if not ok then
-						warn("[8ball] GQ bot fallback failed: " .. tostring(err))
+		local size = t.engine.teamSize
+		local players, at = nil, nil
+		if not fallbackBusy[t] then
+			players, at = Tables.waitingSearch(t)
+		end
+		local wait = if size == 1 then F.SoloSeconds else F.TeamSeconds
+		if players and #players == size and at and now() - at >= wait then
+			local group = players
+			fallbackBusy[t] = true
+			task.spawn(function()
+				local ok, err = pcall(function(): any
+					if size == 1 then
+						soloFallback(t, group[1])
+					else
+						teamFallback(t, group)
 					end
-					fallbackBusy[t] = nil
+					return nil
 				end)
-			end
+				if not ok then
+					warn("[8ball] GQ bot fallback failed: " .. tostring(err))
+				end
+				fallbackBusy[t] = nil
+			end)
 		end
 	end
 end
@@ -699,7 +765,9 @@ function BotService.seatArenaBots(t: any, record: any): boolean
 	local all = true
 	for i, spec in record.bots do
 		local bot = BotService.spawn(spec)
-		local spot = Tables.padSpot(t, if record.mode == 1 then 2 else (i - 1) * 2)
+		-- Its side of the pad (side 2 right of the middle, side 1 left), 3 studs apart.
+		local side = if (spec.team or 2) == 2 then 1 else -1
+		local spot = Tables.padSpot(t, side * (2 + (i - 1) * 3))
 		if not bot or not BotService.walkIn(bot, t, spot, spec.team or 2, breakFor) then
 			all = false
 			if bot then
@@ -708,6 +776,64 @@ function BotService.seatArenaBots(t: any, record: any): boolean
 		end
 	end
 	return all
+end
+
+---------------------------------------------------------------------------------------------
+-- Fill with PC (2v2 and 3v3 lobby tables): once the host's side is on the pad, the other
+-- side fills with PC robots at that side's average tier; the real side breaks.
+---------------------------------------------------------------------------------------------
+
+local function fillPc(t: any, p: Player, _payload: any): boolean
+	local e = t.engine
+	if e.phase ~= "Waiting" or e.hostId ~= p.UserId or e.teamSize < 2 or e.search then
+		return false
+	end
+	local people = {}
+	for _, s in e.seats do
+		if s.connected and not s.bot then
+			table.insert(people, s)
+		end
+	end
+	if #people ~= e.teamSize or Engine.count(e) ~= e.teamSize then
+		return false
+	end
+	local tier = averageTier(people)
+	local lowest = tier
+	for _, s in people do
+		local q = Players:GetPlayerByUserId(s.userId)
+		local own = if q then playerTier(q) else "Bronze"
+		if (Ranks.tierIndex(own) or 1) < (Ranks.tierIndex(lowest) or 1) then
+			lowest = own
+		end
+	end
+	local made: { Bot } = {}
+	for i = 1, e.teamSize do
+		local bot = BotService.spawn({ kind = "Pc", tier = tier, playerTier = lowest })
+		local at = Tables.padSpot(t, (i - (e.teamSize + 1) / 2) * 3)
+		if not bot or not BotService.seat(bot, t, { at = at, breakFor = p.UserId }) then
+			if bot then
+				BotService.remove(bot)
+			end
+			for _, other in made do
+				BotService.remove(other)
+			end
+			return false
+		end
+		table.insert(made, bot)
+	end
+	for _, s in e.seats do
+		s.presetTeam = if s.bot then 2 else 1
+	end
+	Tables.advance(t, now())
+	local started =
+		Engine.action(e, p.UserId, { kind = "Start", epoch = e.epoch, turnId = e.turnId }, now(), 1)
+	if not started then
+		for _, bot in made do
+			BotService.remove(bot)
+		end
+		return false
+	end
+	return true
 end
 
 --- Runs the bots (Bootstrap, after the table, shot and ult services).
@@ -722,6 +848,7 @@ function BotService.start()
 		return if bot then bot.ult else nil
 	end
 	Tables.onAction("PlayPc", playPc)
+	Tables.onAction("FillPc", fillPc)
 	if RunService:IsStudio() then
 		studioHook()
 	end

@@ -326,6 +326,22 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 			self.onAction("PlayPc", nil)
 		end
 	end)
+	-- Fill with PC (the Bots lane; 2v2 and 3v3): once the host's whole side is on the pad, the
+	-- other side fills with PC robots at once.
+	self.fillPc = button(
+		self.more.inner,
+		"FillPC",
+		Strings.Bots.FillPc,
+		3,
+		"Blue",
+		"Robot",
+		function()
+			if self:canSend() and self:fillable() then
+				self.sentAt = self.now
+				self.onAction("FillPc", nil)
+			end
+		end
+	)
 	-- Blue like Play against PC (designer, 2026-10-02; was green).
 	self.solo = button(
 		self.more.inner,
@@ -412,6 +428,16 @@ function QueueMenu.alone(self: any): boolean
 		and self:isHost()
 		and self:count() == 1
 		and self.snapshot.teamSize == 1
+end
+
+--- The host of a 2v2 or 3v3 table with exactly their own side on the pad, no search on:
+--- Fill with PC is offered (the Bots lane).
+function QueueMenu.fillable(self: any): boolean
+	return self.snapshot ~= nil
+		and self:isHost()
+		and self.snapshot.teamSize > 1
+		and self:count() == self.snapshot.teamSize
+		and not self:searching()
 end
 
 function QueueMenu.canSend(self: any): boolean
@@ -650,6 +676,7 @@ function QueueMenu.focus(self: any)
 			self.cancel,
 			self.solo,
 			self.pc,
+			self.fillPc,
 		}
 	do
 		if self:usable(object) then
@@ -856,10 +883,12 @@ function QueueMenu.update(self: any, now: number)
 	local alone = self:alone()
 	self.pc.Visible = alone and not sending
 	self.solo.Visible = alone and not sending
+	local fillable = self:fillable()
+	self.fillPc.Visible = fillable and not sending
 	local scale = self.scale.Scale
 	-- The waiting line folds away for a request; a search keeps it, saying it searches.
 	ease(self.statusFold, not folded or searching, dt, self.snap, scale)
-	ease(self.more, alone and not folded and not sending, dt, self.snap, scale)
+	ease(self.more, (alone or fillable) and not folded and not sending, dt, self.snap, scale)
 	self.snap = false
 
 	local gamepad = UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1

@@ -717,7 +717,13 @@ function start(t: any, host: any, now: number, coinWinner: number?)
 	-- alternately (designer, 2026-09-26). An arena's teams were set by the global queue.
 	local slots = { 0, 0 }
 	for i, s in seats do
-		local team = if t.fixed and s.team then s.team else (i - 1) % 2 + 1
+		-- A lobby Fill with PC (the Bots lane) sets each seat's side beforehand (`presetTeam`):
+		-- the real players together, the PC robots on the other side. Used once.
+		local team = if t.fixed and s.team
+			then s.team
+			elseif s.presetTeam == 1 or s.presetTeam == 2 then s.presetTeam
+			else (i - 1) % 2 + 1
+		s.presetTeam = nil
 		slots[team] += 1
 		s.team, s.slot = team, slots[team]
 	end

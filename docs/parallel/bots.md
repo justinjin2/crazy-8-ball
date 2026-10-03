@@ -78,6 +78,9 @@ your status).
   Step 7 added: `TableService.luau` (`standingOnPad` in the bot block), `DevCommands.luau`
   (`/lobbybots` block), `Config.luau` (`Bots.Lobby`, `Debug.Commands.LobbyBots`),
   `Strings.luau` (four Dev lines).
+  Step 8 added: `MatchEngine.luau` (`presetTeam` in `start`, 6 lines), `QueueMenu.luau` (the
+  Fill with PC button, `fillable`, the fold opening for it), `ArenaService.luau`
+  (`studioBots`).
 - **Step 4, disguised identity (done).** Real avatars from random accounts (2020 on): most
   accounts wear a starter outfit or nothing (measured: 30 of 60 in three default outfits, 6
   blank), so a look must be styled (two or more accessories that are not face parts, no
@@ -145,7 +148,19 @@ your status).
   check here: a second real player joining (a bot leaves) and the 11-real-player forfeit (two
   clients needed). The tutorial's fake lobby: `BotService.startLobby({ count = 15, tiers = {
   "Bronze", "Silver", "Gold" } })`; `BotService.startLobby(nil)` turns them off.
-- Next: step 8, 2v2/3v3 (Fill with PC and the 25 s all-bot team).
+- **Step 8, 2v2/3v3 (done; the queue half needs the published game).** **Fill with PC**: a new
+  button in the host card's fold (QueueMenu, logic only: the GUI lane owns its look), shown on
+  a 2v2/3v3 table once exactly the host's side is on the pad; it fills the other side with PC
+  robots at that side's average tier and starts at once, the real side breaking (the engine
+  now honours a seat's `presetTeam` once, so the real players stay together). Checked in
+  Studio with the PoolMatchQA "queue" fixture on table 9 (me plus a pretend teammate): the
+  button showed, a click seated two Bronze Bots on side 2 and I broke. **Global queue team
+  fallback**: a 2v2/3v3 search with no real team after 25 s gets a disguised all-bot team at
+  the real team's average rank, each bot a different tier near it (2v2: the average and one
+  above; 3v3: one below, the average, one above), no rematch. The arena half was checked with
+  the Studio arena at 2v2 (`StudioArena = 2`, `StudioArenaBot = "Silver"`): two disguised
+  Silver bots walked in on side 2, three studs apart, and I broke. The queue half needs the
+  published game (as step 6).
 
 ## Requests to other lanes or the integrator
 
