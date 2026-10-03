@@ -63,6 +63,27 @@ by step (steps 1-10 of the brief).
     so the VIP Cue's finder's money; a real new player starts at $0.) Phone and gamepad: no
     screens yet in this step.
 
+- **Step 2 done: the overlay kit and the art.** `tools/gen_tutorial_art.py` draws our own
+  pointer hand in reference 01's style (flat white, light-blue shade on the lower-right edges,
+  very thick black outline, index finger down, the other three folded as separate blocks), a
+  mouse in the same style and reference 02's white floor arrow; uploaded to the group
+  (`Config.Tutorial.Art`, ids in `tools/upload_manifest_tutorial.json`). Client:
+  `TutorialOverlay` (the big instruction line with a ding, the light dim with a lit hole and a
+  pulsing gold ring, Skip tutorial with a Yes / No confirm, View button on a gamepad),
+  `TutorialHand` (point-and-tap, see-through gestures: pull, hold a button, swipe with or
+  without the mouse, stick, drag a ghost ball), `TutorialArrow` (a flowing line of white
+  arrows on the floor, routed by PathfindingService), `TutorialAnchors` (where other screens
+  register the buttons the hand points at), `Tutorial` (the controller, started from Main;
+  Studio hook `PlayerScripts.TutorialClientQA`).
+  - Checked: lint, tests; Studio PC (1529 x 666): the line "Join a table!", Skip, the hand
+    tapping the money HUD inside the dimmed screen's lit hole, the swipe with the mouse, Hold A
+    with Roblox's own A glyph and the filling bar; the arrows flow from the player round to
+    table 1's pad and point at it (seen from above; they pointed backwards at first, fixed).
+    The dim at 28% black was too faint to read in a capture; it is 35% now (still light).
+    Phone: the layer covers the whole screen past the safe area (`ScreenInsets.None`); its
+    phone sizes are checked with the flow in step 3. Gamepad: the glyphs are Roblox's own;
+    a real pad press is a hand check (MCP cannot drive a gamepad).
+
 ### Rule changes for everyone (made in this lane; the integrator moves them to the docs)
 
 - Reaching Bronze gives 1 Case Drop (was 2), given at once after the first win.
@@ -93,6 +114,7 @@ by step (steps 1-10 of the brief).
 - `DevCommands.luau`: the `/tutorial` command (one block).
 - `ChatTags.luau`: the rank tag reads `RankTag` first (the claimed tier).
 - `UltSpins.luau`: a comment (RELEASE).
+- `Main.client.luau`: one line before the RenderStepped hook starts `Tutorial` (step 2).
 - Tests changed for the new values: `ranks_test`, `save_schema_test`, `ult_slots_test`,
   `ult_spins_test`; `tools/economy_config.json` re-exported.
 

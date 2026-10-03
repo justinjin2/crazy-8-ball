@@ -9297,6 +9297,86 @@ Config.Tutorial = {
 	},
 	-- Game 1's rewards (answer 9): Bronze's Case Drop is a Standard Case, opened at once.
 	BronzeDropTier = "Standard",
+	-- The art (tools/gen_tutorial_art.py; uploaded to the group, tools/upload_manifest_tutorial
+	-- .json): the pointer hand after reference 01's style, the mouse, the floor arrow after
+	-- reference 02's arrow path.
+	Art = {
+		Hand = "rbxassetid://107703035077807",
+		Mouse = "rbxassetid://82136605713937",
+		FloorArrow = "rbxassetid://103256796918925",
+	},
+	-- The screen layer (src/client/TutorialOverlay.luau). Pixels unless named.
+	Overlay = {
+		DisplayOrder = 40, -- over the HUD and menus, under the teleport screen
+		PhoneBelowPx = 500, -- a screen whose short side is under this is a phone
+		LineTextPx = 40, -- the instruction line (UI_STYLE 3: big white Fredoka, ink outline)
+		LineHeightPx = 56,
+		LinePhoneHeightPx = 40,
+		LineWidthScale = 0.8, -- of the screen's width, at most LineMaxWidthPx
+		LineMaxWidthPx = 900,
+		LineTopGapPx = 10, -- under Roblox's top bar
+		-- The light dim (designer, 2026-10-03: light): black at this transparency.
+		DimTransparency = 0.65,
+		DimFadeSeconds = 0.25,
+		BeyondEdgePx = 600, -- the dim runs this far past every edge so none ever shows
+		HolePadPx = 10, -- the lit hole's margin round a button
+		RingThicknessPx = 4,
+		RingColor = { 255, 214, 74 }, -- the house gold
+		RingCornerPx = 18,
+		RingPulse = 0.08, -- grows by this share at the top of each pulse
+		RingPulseSeconds = 1.1,
+		-- "Roblox_UI_Bright_Click" (Roblox, 0.37 s): a soft sound with each new line.
+		Ding = { Id = "rbxassetid://15675059323", Volume = 0.35 },
+		SkipHeightPx = 38,
+		SkipPhoneHeightPx = 32,
+		SkipWidthRatio = 4.2, -- the Skip button's width as a multiple of its height
+		SkipEdgePx = 12,
+		ConfirmSize = { 300, 150 },
+		ConfirmTextPx = 22,
+	},
+	-- The hand (src/client/TutorialHand.luau). Pixels unless named.
+	Hand = {
+		TipX = 0.46, -- the fingertip in hand.png, as a share of the image
+		TipY = 0.9,
+		SizeShare = 0.2, -- of the screen's short side, between MinPx and MaxPx
+		MinPx = 90,
+		MaxPx = 170,
+		HoverPx = 6, -- the tip rests this far above a button's centre
+		TapSeconds = 0.9, -- one tap (dip and squish) per loop
+		TapDipPx = 12,
+		TapSquish = 0.1,
+		GestureTransparency = 0.35, -- the see-through demonstrations
+		GestureSeconds = 1.8, -- one demonstration loop
+		SwipeHeightShare = 0.62, -- the swipe's height on the screen
+		SwipeWidthShare = 0.36, -- how far it swipes across
+		MouseShare = 0.55, -- the mouse's size against the hand's
+		GlyphHeightShare = 0.62, -- where a gamepad glyph shows
+		GlyphShare = 0.6, -- the glyph's size against the hand's
+		HoldBarPx = 10,
+		StickSeconds = 1.4,
+		StickDegrees = 18,
+		StickShiftPx = 22,
+		GhostBallShare = 0.32, -- the dragged ghost cue ball against the hand
+		GhostBallTransparency = 0.45,
+	},
+	-- The floor arrow path (src/client/TutorialArrow.luau). Studs unless named.
+	Arrow = {
+		MaxArrows = 60,
+		SizeStuds = 2, -- each arrow, square
+		SpacingStuds = 2.1, -- close together, like reference 02's line
+		SpeedStudsPerSecond = 3, -- how fast the line flows toward the pad
+		LiftStuds = 0.06, -- above the floor
+		FeetBelowRoot = 3, -- from the HumanoidRootPart to the floor
+		StartGapStuds = 2, -- clear of the player's feet
+		EndGapStuds = 1, -- stops just short of the pad's centre
+		FadeStuds = 2, -- the arrows fade in and out over this at each end
+		Transparency = 0.05,
+		ImageTurnDegrees = 180, -- turns the image on its part so its arrow points along the route
+		AgentRadius = 2,
+		AgentHeight = 5,
+		ReplanSeconds = 3,
+		ReplanMovedStuds = 4,
+	},
 	-- The funnels (src/server/Funnel.luau; step 9). Each mask is a Flags entry, one bit per
 	-- step, so a step is never logged twice.
 	Funnel = {

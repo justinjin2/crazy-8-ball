@@ -1486,6 +1486,8 @@ local function renderFrame(dt: number)
 	end
 	lastBusy = busy
 end
+-- The first-time tutorial (the tutorial lane): its line, dim, hand and floor arrow.
+require(script.Parent.Tutorial).start()
 RunService.RenderStepped:Connect(function(dt)
 	renderFrame(dt)
 	-- The back cues last, once every hand cue of this frame is drawn: a cue is never on a back
