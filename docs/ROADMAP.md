@@ -285,6 +285,10 @@ play-solo on PC; the phone, gamepad and two-player checks are open.*
 *Progress (2026-09-25): the queue menu is built (host name, difficulty, abilities on/off as a
 placeholder, Start; alone, Play solo and Play against PC, which says "Coming soon"). There is
 no automatic start against PC (designer).*
+*Progress (2026-10-02, the Bots lane, merged into `release`): built, all ten tiers, Play
+against PC, Fill with PC on 2v2/3v3, disguised global-queue and lobby bots and the tutorial bot
+(`docs/parallel/bots.md`). Still to check: the published game's queue fallbacks, two real
+players, phone and gamepad.*
 
 ---
 

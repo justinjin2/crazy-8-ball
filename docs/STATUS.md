@@ -1,5 +1,22 @@
 # Status
 
+**2026-10-02 (latest): the Bots lane is merged into `release`** (parallel build,
+`docs/parallel/bots.md`, brief `docs/prompts/BOTS_PROMPT.md`).
+- Built: the bot brain (shot finder, near misses, ball in hand) tuned per tier; **Play against
+  PC** (a robot, "<Tier> Bot", rematch, PC pay); disguised bots with real avatars and made-up
+  names; the tutorial bot (script, early 8, AUGHHHH exit) and its second game; the global
+  queue's bot after 10 s (1v1) and all-bot team after 25 s (2v2/3v3); **lobby bots** that
+  stroll, sit, wait on pads and play each other in empty servers (Studio: `/lobbybots on`);
+  **Fill with PC** on 2v2/3v3 tables; a `BotMatch` analytics event.
+- Win rates against the bot of your own rank (model): all within about 5 points of the
+  designer's targets except Reyes (22.5% for the player, target 30%).
+- Lint and all 916 tests pass on `release`. Checked in the Bots lane's Studio window on PC.
+  Still to check: the global-queue halves (need the published game), two real players, phone
+  and gamepad.
+- Open requests: the integrator's global-queue pairing rule; GUI (player list showing
+  disguised bots, the Fill with PC button's look); Economy (a "Disguised bot" pay column, bot
+  cue rarity odds by tier).
+
 **2026-10-02 (latest): rank rework, XP only from winning** (designer; ECONOMY section 4).
 - A win is 100 XP (x1.25 Difficult, x1.5 Challenger, +25% on a 3+ win streak, the opponent
   gap and PC factors as before); a loss is 0. The Rookie Boost (and its ROOKIE pill and

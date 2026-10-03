@@ -237,7 +237,9 @@ Every feature is checked against these. If it serves none, it waits.
   choices; Request can be pressed again 3 s *(tune)* after the last request.
 - Every match is played on the one standard table model, in one of its looks (section 16).
   Collectible table skins are parked until after release (section 18).
-- **Modes at release: Solo, 1v1, 2v2, 3v3**, each with friends or PC fill.
+- **Modes at release: Solo, 1v1, 2v2, 3v3.** Lobby 2v2/3v3 tables: bots never join by
+  themselves; the host presses **Fill with PC** once their own side is full (designer,
+  2026-10-02).
   Solo: normal rules with no opponent; the first legally pocketed group is cleared first, then
   the other group, then the called 8. A foul gives yourself ball in hand; the 8 early, on a foul
   or in the wrong pocket loses (changed 2026-09-23; it no longer re-racks). No shot clock, money
@@ -285,7 +287,8 @@ Every feature is checked against these. If it serves none, it waits.
     the lobby.
   - Arena matches are rated and paid exactly like lobby matches.
 - Servers hold about 30 players *(tune)*. Every table seats 1v1, 2v2 or 3v3, decided by who
-  is in its box. PC never plays PC.
+  is in its box. Lobby bots may play each other at 1v1 tables while at least 3 stay free
+  (designer, 2026-10-02; was "PC never plays PC").
 
 - **Spectator seating:** the chairs and sofas are sittable, and sitting is free look - the
   player is seated and the camera is left alone. Watching a table through its own camera is
@@ -656,8 +659,15 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Difficulty unlocks by rank** (designer, 2026-09-27; Challenger moved to Gold I
   2026-10-02): host Difficult and Challenger from Gold I (about 18 hours of play since the
   rank rework); guests may join with a warning.
-- **Ten bots, one per tier** (designer, 2026-09-26): the Bronze bot is the easiest and the Reyes
-  bot the hardest, and each player meets the bot of their rank.
+- **Ten bots, one per tier** (designer, 2026-09-26; built 2026-10-02, `docs/prompts/BOTS_PROMPT.md`):
+  one skill level per tier; the player's chance of beating the bot of their own rank is
+  Bronze 90%, Silver 80, Gold 65, Platinum 57, Diamond 50, Expert 50, Veteran 45, Master 40,
+  Grandmaster 35, Reyes 30. **Play against PC** is a robot named "<Tier> Bot" at the player's
+  own tier (Unranked: Bronze), whatever the table's difficulty; the real player always breaks.
+  **Disguised bots** (the global queue's fallback after 10 s for 1v1 and 25 s for teams, the
+  lobby bots that keep an empty server alive, the tutorial) wear real Roblox avatars of random
+  accounts with made-up names (designer's call, 2026-10-02); their wins pay like a real match
+  with no win streak and are stored as PC wins (never on the most-wins board).
 - Rating is saved under a season label ("Season 0"). **Ranks never reset** (designer,
   2026-09-28); seasons may give rewards for the highest tier reached that season.
 - **Forfeits** (built 2026-09-27, the small version of 13): whoever surrenders, leaves or runs
@@ -669,11 +679,6 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Rank and money show** in the top left rank HUD (badge, name, XP bar), over every head
   (badge then username), under each portrait in the match bar, and as Rank and Money columns
   in Roblox's player list (designer, 2026-09-27).
-
-**Open**
-- **Bots:** whether the bot follows the current or the peak rank; which bot an Unranked player
-  meets; which bot fills a seat in a 2v2 or 3v3; whether the table's difficulty changes the
-  bot; the bots' names and looks.
 
 ## 12. Economy
 
@@ -812,7 +817,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 **Decided**
 - The first match: the queue menu is hidden. The new player joins a match against what looks
   like a real player and is actually a **disguised PC** (made-up name, never a real user's
-  name; random avatar; a higher rank badge once ranks exist) that walks into the box from the
+  name; a random real Roblox avatar since 2026-10-02; a higher rank badge) that walks into the box from the
   edge of the player's view a few seconds after they arrive. They always break first. A
   passive, looping ghost animation shows pulling the cue back and moving the ball on the break
   line, and disappears on the first drag. No shot clock. They pocket a few balls, see the
@@ -832,7 +837,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   sections 7.1 and 18).
 - Unranked to Bronze I with the first win. The first opponent shows a much higher rank so the win
   feels earned. PC is labelled "PC" everywhere else; disguised PCs never appear on
-  leaderboards and are stored as PC in match records.
+  leaderboards and are stored as PC in match records, but the tutorial's wins count as real
+  wins (pay, XP and free case; 2026-10-02).
 - **Daily 7-day streak:** every day's reward is meaningful: $250, 2 Standard Cases, $500, a
   Rare Case, $1,000, 2 Rare Cases, an Epic Case, and a Legendary Case on day 28 of four full
   weeks (the streak then starts week 1 again). Playtime gifts at 10, 30 and 60 minutes a day.
