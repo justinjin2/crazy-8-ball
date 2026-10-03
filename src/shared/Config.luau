@@ -6924,14 +6924,6 @@ Config.UI.Shop = {
 		TextPx = { 44, 72 },
 		DisplayOrderAbove = 40, -- over the menus and the case opening
 	},
-	-- The one join popup for limited offers (Starter Pack, VIP half off, the Limited cue, the
-	-- release sale): the open ones rotate in one card every RotateSeconds.
-	OfferPopup = {
-		RotateSeconds = 4,
-		AfterJoinSeconds = 6, -- the earliest it shows after the save loads
-		WidthPx = { 320, 460 },
-		HeightPx = { 240, 300 },
-	},
 	-- A kit icon per product key for the thank-you burst (a key missing here shows the
 	-- money stack).
 	ProductIcons = {
@@ -7250,6 +7242,9 @@ Config.UI.Rewards = {
 	-- The reminder toast (Reminders): "Come back tomorrow for your Rare Case" at the bottom
 	-- middle when Roblox's menu opens or the window loses focus (GDD 14, ECONOMY 10).
 	Toast = {
+		-- The "Your FREE SPIN is ready!" toast when Roblox's menu opens or the window loses
+		-- focus: off for now (designer, 2026-10-03).
+		ShowOnLeave = false,
 		DisplayOrderAbove = 6, -- its ScreenGui sits this far over a menu's
 		HeightPx = 46,
 		ShortHeightPx = 38, -- on a phone
@@ -7302,6 +7297,9 @@ Config.UI.Trade = {
 -- loses focus, a big "COME BACK TOMORROW FOR" with tomorrow's login reward in a turning ring,
 -- in the middle of the screen. Pixels at a 1080-tall screen (scaled to the screen). (tune)
 Config.UI.ComeBack = {
+	-- The big "COME BACK TOMORROW FOR" when Roblox's menu opens or the window loses focus: off
+	-- for now (designer, 2026-10-03: not needed). The first-time leave gift still comes.
+	ShowOnLeave = false,
 	DisplayOrder = 70, -- over the HUD, menus and popups
 	WidthPx = 620,
 	HeightPx = 520,
@@ -10054,6 +10052,13 @@ Config.UI.Corners = {
 	ShortWordPx = 11,
 	BubbleSeconds = 2.5, -- the "Soon" bubble stays this long
 	BubblePx = 16,
+	-- The open offers (the Starter Pack, VIP's welcome offer) stand in a column under the
+	-- Daily Challenge, each with its countdown: never a popup (designer, 2026-10-03).
+	OfferPx = 58, -- each offer's icon (a computer)
+	ShortOfferPx = 42,
+	OfferGapPx = 26, -- under the challenge (room for its word) and under each offer's countdown
+	TimerPx = 12, -- the countdown under each offer's word
+	ShortTimerPx = 10,
 }
 
 -- Settings (SettingsMenu, src/server/Settings.luau; GUI lane, designer 2026-10-03, C10): each

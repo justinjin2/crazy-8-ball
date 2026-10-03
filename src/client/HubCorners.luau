@@ -4,6 +4,9 @@
 -- - Right edge, a little above the middle: the Daily Challenge target, its glow flashing. Daily
 --   challenges are not built yet, so a press only says "Soon" in a bubble beside it. The
 --   gamepad's D-pad down presses it when the Free Reward tile is gone (Progression.padRoute).
+-- - Under it, while open for this player: the Starter Pack and VIP's welcome offer, each with
+--   its countdown; a press opens the Shop on its section. Offers never pop up by themselves
+--   (designer, 2026-10-03). Hidden while the tutorial hides the Shop.
 -- - Bottom left, just right of the money HUD: Invite (Roblox's invite prompt, carrying the
 --   invite's launch data, Progression/Social.launchData) and Roblox Plus (the Store's Plus
 --   prompt; hidden for members and where the shop does not offer Plus).
@@ -22,6 +25,8 @@ local SocialRules = require(Shared:WaitForChild("Progression"):WaitForChild("Soc
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local Menus = require(script.Parent.Menus)
+local RewardsParts = require(script.Parent.RewardsParts)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -83,6 +88,8 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	self.deps = deps
 	self.wanted = false
 	self.showing = false
+	self.alive = true
+	self.challengeHidden = false
 	self.connections = {} :: { RBXScriptConnection }
 	local root = HudParts.frame(screen, "HubCorners")
 	root.Size = UDim2.fromScale(1, 1)
@@ -105,6 +112,30 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 		UISound.play("Click")
 		task.spawn(ItemState.request, "StoreRequest", "RobloxPlus")
 	end)
+
+	-- The open offers under the challenge: the shop's offer window (`key` in ShopState.offers)
+	-- and the Shop section a press opens.
+	local list = Config.Products.List
+	local vipOff = math.floor((1 - list.VipOffer.Robux / list.Vip.Robux) * 100 + 0.5)
+	self.offers = {}
+	for _, spec in
+		{
+			{ key = "StarterPack", section = "Offer", icon = "StarterPack", words = W.Starter },
+			{ key = "VipOffer", section = "Vip", icon = "Vip", words = W.Vip:format(vipOff) },
+		}
+	do
+		local tile = corner(root, spec.key, spec.icon, spec.words, function()
+			UISound.play("Click")
+			Menus.open("Shop", spec.section)
+		end)
+		tile.button.Visible = false
+		local timer = HudParts.text(HudParts.candyParts(tile.button).body, "Timer", C.TimerPx, "")
+		timer.TextWrapped = false
+		timer.TextColor3 = HudParts.tone("Gold")
+		timer.AnchorPoint = Vector2.new(0.5, 0.5)
+		timer.ZIndex = 4
+		table.insert(self.offers, { key = spec.key, tile = tile, timer = timer })
+	end
 
 	-- The challenge's glow flashes behind it.
 	local glow = Instance.new("ImageLabel")
@@ -165,11 +196,61 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 		self.connections,
 		ItemState.Changed.Shop:Connect(function()
 			self:refreshPlus()
+			self:refreshOffers()
 		end)
 	)
+	table.insert(
+		self.connections,
+		TutorialAnchors.Changed:Connect(function()
+			self:refreshOffers()
+		end)
+	)
+	-- The countdowns tick once a second while the corners show.
+	task.spawn(function()
+		while self.alive do
+			if self.showing then
+				self:refreshOffers()
+			end
+			task.wait(1)
+		end
+	end)
 	self:refreshPlus()
+	self:refreshOffers()
 	self:layout()
 	return self
+end
+
+--- Show each offer while its window is open and it is not owned, with its countdown.
+function HubCorners.refreshOffers(self: any)
+	local shop = ItemState.shop()
+	local state: any = if type(shop) == "table" then shop else {}
+	local windows = if type(state.offers) == "table" then state.offers else {}
+	local now = workspace:GetServerTimeNow()
+	local allowed = not self.challengeHidden and not TutorialAnchors.hidden("Shop")
+	local changed = false
+	for _, offer in self.offers do
+		local window = windows[offer.key]
+		local owned = if offer.key == "StarterPack"
+			then state.starterBought == true
+			else state.vip == true
+		local open = allowed
+			and not owned
+			and type(window) == "table"
+			and window.open == true
+			and type(window.endsAt) == "number"
+			and window.endsAt > now
+		local button: GuiObject = offer.tile.button
+		if button.Visible ~= open then
+			button.Visible = open
+			changed = true
+		end
+		if open then
+			offer.timer.Text = RewardsParts.clock(window.endsAt - now)
+		end
+	end
+	if changed then
+		self:layout()
+	end
 end
 
 function HubCorners.refreshPlus(self: any)
@@ -199,6 +280,26 @@ function HubCorners.layout(self: any)
 	-- The word is wider than the icon: it overhangs both sides.
 	ch.word.Size = UDim2.fromOffset(big * 2, wordPx + 4)
 	HudParts.setTextSize(ch.word, wordPx)
+
+	-- The open offers in a column under the challenge, centred on it.
+	local offerPx = if short then C.ShortOfferPx else C.OfferPx
+	local timerPx = if short then C.ShortTimerPx else C.TimerPx
+	local centreX = -C.ChallengeRightPx - big / 2
+	local offerY = size.Y * C.ChallengeYShare + big / 2 + C.OfferGapPx + offerPx / 2
+	for _, offer in self.offers do
+		local button: GuiObject = offer.tile.button
+		button.AnchorPoint = Vector2.new(0.5, 0.5)
+		button.Size = UDim2.fromOffset(offerPx, offerPx)
+		button.Position = UDim2.new(1, round(centreX), 0, round(offerY))
+		offer.tile.word.Size = UDim2.fromOffset(round(offerPx * 2.4), wordPx + 4)
+		HudParts.setTextSize(offer.tile.word, wordPx)
+		offer.timer.Position = UDim2.new(0.5, 0, 0.92, wordPx + 2)
+		offer.timer.Size = UDim2.fromOffset(offerPx * 2, timerPx + 4)
+		HudParts.setTextSize(offer.timer, timerPx, timerPx)
+		if button.Visible then
+			offerY += offerPx + C.OfferGapPx + timerPx + 6 -- its word and countdown hang below it
+		end
+	end
 
 	-- The gear right of the rank HUD's card, centred on it.
 	local gearPx = if short then U.ShortGearPx else U.GearPx
@@ -268,6 +369,8 @@ function HubCorners.setChallengeHidden(self: any, hidden: boolean)
 		return
 	end
 	button.Visible = not hidden
+	self.challengeHidden = hidden
+	self:refreshOffers()
 	if not hidden and self.showing then
 		UIAnim.popIn(button)
 	end
@@ -351,6 +454,7 @@ function HubCorners.invite(self: any)
 end
 
 function HubCorners.destroy(self: any)
+	self.alive = false
 	for _, connection in self.connections do
 		connection:Disconnect()
 	end

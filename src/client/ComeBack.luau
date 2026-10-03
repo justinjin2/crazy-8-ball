@@ -1,5 +1,6 @@
 --!strict
 -- ComeBack: keeping players (GUI lane, designer 2026-10-03, C15, D3).
+--   * (Off for now: Config.UI.ComeBack.ShowOnLeave; designer 2026-10-03.)
 --   * Every time Roblox's menu opens or the window loses focus: a big "COME BACK TOMORROW FOR"
 --     over tomorrow's login reward (its pictures in a gold ring with turning rays, and the
 --     reward in words under it), in the middle of the screen. It stays while the player is
@@ -416,7 +417,7 @@ function ComeBack.start(screen: ScreenGui, source: () -> any?)
 	local function trigger()
 		away = true
 		token += 1
-		if not root.Visible then
+		if U.ShowOnLeave and not root.Visible then
 			show()
 		end
 		-- The first time ever: the gift (the server says no after the first).

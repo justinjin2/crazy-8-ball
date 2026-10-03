@@ -214,6 +214,9 @@ function Reminders.start(screen: ScreenGui, source: () -> any?)
 
 	local function trigger()
 		away = true
+		if not T.ShowOnLeave then
+			return
+		end
 		if root.Visible then
 			token += 1 -- it stays while the player is away
 			return

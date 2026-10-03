@@ -794,12 +794,6 @@ return {
 			-- The thank-you burst.
 			Thanks = "THANK YOU!",
 			ThanksLine = "Enjoy your %s!", -- the item's name
-			-- The rotating join popup for limited offers.
-			OfferTitle = "LIMITED OFFER",
-			SeeShop = "See offer",
-			ReleaseSale = "RELEASE SALE",
-			ReleaseLine = "%d%% off big packs, VIP and 10 Mystery Cases",
-			GrandOpening = "The %s is here!", -- the Limited cue's name
 			New = "NEW", -- a red badge on a jump button and the Shop tile
 			-- A product's name in the thank-you burst (a key missing here says "purchase").
 			Names = {
@@ -1165,6 +1159,9 @@ return {
 		InviteFailed = "Invites are not available right now.",
 		Plus = "Plus",
 		Settings = "Settings",
+		-- The open offers under the Daily Challenge (no popups; designer 2026-10-03).
+		Starter = "Starter Pack",
+		Vip = "VIP %d%% OFF", -- VIP's welcome offer: "VIP 50% OFF"
 	},
 	-- The banner at the top middle (Banner). Names are players' usernames.
 	Banner = {
