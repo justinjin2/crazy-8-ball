@@ -43,6 +43,7 @@ local REQUESTS: { [string]: boolean } = {
 	ItemRequest = true,
 	StoreRequest = true,
 	RewardRequest = true,
+	TradeRequest = true, -- GUI lane: the player list's Trade and the trade screen
 }
 
 local latest: { [string]: any } = {}

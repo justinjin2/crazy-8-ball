@@ -18,6 +18,34 @@ local function newSave(): any
 end
 
 return {
+	["offerable: tradable cues and ready cases, free copies only without paidOk"] = function()
+		local Trade, Inventory = load()
+		local a = newSave()
+		Inventory.addCue(a, "NeonCue", 2)
+		Inventory.addCue(a, "NeonCue", 1, true)
+		Inventory.addCue(a, "ChromaCue", 1, true)
+		Inventory.addCue(a, "VipCue")
+		Inventory.addCases(a, "Rare", 2)
+		Inventory.landCase(a, "Epic", 1000, false, false) -- on its timer: not offerable
+		local function countOf(list: { any }, item: string): number
+			for _, e in list do
+				if e.item == item then
+					return e.count
+				end
+			end
+			return 0
+		end
+		local all = Trade.offerable(a, true)
+		H.expect(countOf(all, "NeonCue") == 3, "every Neon copy")
+		H.expect(countOf(all, "ChromaCue") == 1, "the paid Chroma")
+		H.expect(countOf(all, "Case:Rare") == 2, "two ready Rare cases")
+		H.expect(countOf(all, "Case:Epic") == 0, "a case on its timer is not offerable")
+		H.expect(countOf(all, "VipCue") == 0, "an Exclusive cue never trades")
+		H.expect(countOf(all, "Classic") == 0, "Classic never trades")
+		local free = Trade.offerable(a, false)
+		H.expect(countOf(free, "NeonCue") == 2, "free Neon copies only")
+		H.expect(countOf(free, "ChromaCue") == 0, "no paid Chroma")
+	end,
 	["items: cue ids and ready cases, at most 8 a side"] = function()
 		local Trade = load()
 		local ok = Trade.parse({ "NeonCue", "Case:Rare", "NeonCue" })

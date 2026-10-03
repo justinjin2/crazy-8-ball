@@ -137,6 +137,32 @@ local function holding(save: any, item: string): (number, number)
 	return 0, 0
 end
 
+--- What this save can put in a trade now (GUI lane, the trade screen and its wish list):
+--- { item, count } for every tradable cue it holds and every READY case, cues in the Index's
+--- order then cases in shop order; `count` is how many may go (free copies only unless
+--- `paidOk`). Items with nothing to give are left out.
+function Trade.offerable(save: any, paidOk: boolean): { { item: string, count: number } }
+	local out: { { item: string, count: number } } = {}
+	for _, cue in Catalog.list() do
+		if Trade.tradable(cue.Id) then
+			local have, free = holding(save, cue.Id)
+			local n = if paidOk then have else free
+			if n > 0 then
+				table.insert(out, { item = cue.Id, count = n })
+			end
+		end
+	end
+	for _, case in Cases.list(true) do
+		local item = Trade.caseItem(case.Id)
+		local have, free = holding(save, item)
+		local n = if paidOk then have else free
+		if n > 0 then
+			table.insert(out, { item = item, count = n })
+		end
+	end
+	return out
+end
+
 --- Why this save cannot give `items`, or nil: "NotTradable" (Classic, an Exclusive cue),
 --- "NotOwned" (fewer than offered, or a case still on its timer), "PaidBlocked" (only paid
 --- copies would make the count and `paidOk` is false). Ready cases only: finish the save's

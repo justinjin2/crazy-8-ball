@@ -260,6 +260,8 @@ local REMOTES: { [string]: string } = {
 	--     Config.Trade.ConfirmSeconds later unless anything changes
 	--   ("Cancel")           close the session
 	--   ("History")          -> { ok, history = { { Id, With, At, Gave, Got } } } (last 50)
+	--   ("Want", item)       ask for one of their offerable items, or take the ask back (GUI
+	--     lane, D12: a highlight on their screen, nothing moves; "Full" past MaxSideItems)
 	-- Reasons: "BadRequest", "TooFast", "NotLoaded", "NotHere" (that player left), "Self",
 	-- "Busy" (in another trade, or the swap is running), "NoInvite" (none, or it expired),
 	-- "NoSession", and Trade.check's "Empty", "NotTradable", "NotOwned", "PaidBlocked" (a
@@ -271,7 +273,9 @@ local REMOTES: { [string]: string } = {
 	--   { kind = "Session", id, with = { userId, name }, mine = { items }, theirs = { items },
 	--     myReady, theirReady, confirmAt (unix the swap happens, or nil), problem (why these
 	--     sides cannot swap now, or nil), lopsided ("Mine" | "Theirs" | nil: one side worth
-	--     far more by N exist), paidOk (paid-origin copies may move) }
+	--     far more by N exist), paidOk (paid-origin copies may move), and (GUI lane, D12)
+	--     myItems / theirItems ({ { item, count } } each side may offer now), theyWant /
+	--     iWant ({ items } asked for) }
 	--   { kind = "Closed", reason = "Done" | "Cancelled" | "Left" | "Failed", gave?, got? }
 	TradeState = "RemoteEvent",
 	-- server -> everyone here (or one player joining during a Money Party): a banner line at

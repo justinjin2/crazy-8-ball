@@ -145,7 +145,7 @@ function PlayerList.new(screen: ScreenGui): any
 	self.footer = footer
 
 	-- The popout card beside the list (a real player's buttons).
-	local pop = HudParts.popupCard(gui, "Popout", 14)
+	local pop = HudParts.card(gui, "Popout", 14)
 	pop.AnchorPoint = Vector2.new(1, 0)
 	pop.Visible = false
 	self.popout = pop

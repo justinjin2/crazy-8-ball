@@ -2801,6 +2801,16 @@ function PlayerData.replayTrade(player: Player, entry: Trade.Entry): boolean
 	return true
 end
 
+--- What the player can put in a trade now (Trade.offerable on a copy with finished timers in
+--- their stacks): { item, count }; empty when not loaded. GUI lane (the trade screen).
+function PlayerData.tradeOfferable(
+	player: Player,
+	paidOk: boolean
+): { { item: string, count: number } }
+	local copy = planCopy(player)
+	return if copy ~= nil then Trade.offerable(copy, paidOk) else {}
+end
+
 --- Whether the player's save holds trade `id` already (Trade.applied).
 function PlayerData.tradeApplied(player: Player, id: string): boolean
 	local data = peek(player)

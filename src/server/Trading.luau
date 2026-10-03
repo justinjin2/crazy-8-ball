@@ -44,6 +44,9 @@ type Session = {
 	b: Player,
 	offers: { [Player]: { string } },
 	ready: { [Player]: boolean },
+	-- GUI lane (D12): what each player asked the other for (the wish list, "They want: X"),
+	-- never moved by itself; a request, shown on the other's screen.
+	wants: { [Player]: { string } },
 	version: number, -- bumped by every change; a pending swap checks it
 	confirmAt: number?, -- unix: when the swap runs (both accepted)
 	busy: boolean, -- the swap is running: no changes
@@ -215,6 +218,11 @@ local function send(session: Session)
 			problem = problem,
 			lopsided = if side == "A" then "Mine" elseif side == "B" then "Theirs" else nil,
 			paidOk = paidOk(session),
+			-- GUI lane (D12): both sides' offerable items ({ item, count }) and the wish list.
+			myItems = PlayerData.tradeOfferable(me, paidOk(session)),
+			theirItems = PlayerData.tradeOfferable(other, paidOk(session)),
+			theyWant = table.clone(session.wants[other]),
+			iWant = table.clone(session.wants[me]),
 		})
 	end
 end
@@ -327,6 +335,7 @@ local ACTIONS: { [string]: boolean } = {
 	Ready = true,
 	Cancel = true,
 	History = true,
+	Want = true, -- GUI lane (D12): ask for one of their items, or take the ask back
 }
 
 local function refused(reason: string): Reply
@@ -396,6 +405,7 @@ local function onRequest(player: Player, action: any, arg: any): Reply
 			b = player,
 			offers = { [from] = {}, [player] = {} },
 			ready = { [from] = false, [player] = false },
+			wants = { [from] = {}, [player] = {} },
 			version = 0,
 			confirmAt = nil,
 			busy = false,
@@ -423,6 +433,36 @@ local function onRequest(player: Player, action: any, arg: any): Reply
 		end
 		session.offers[player] = items
 		unready(session)
+		send(session)
+		return { ok = true }
+	elseif action == "Want" then
+		-- Ask for one of the other's offerable items (or take the ask back): a highlight on
+		-- their screen, at most MaxSideItems asks; nothing moves.
+		local items = Trade.parse({ arg })
+		if items == nil then
+			return refused("BadRequest")
+		end
+		local item = items[1]
+		local wants = session.wants[player]
+		local at = table.find(wants, item)
+		if at then
+			table.remove(wants, at)
+		else
+			local other = otherOf(session, player)
+			local offerable = false
+			for _, entry in PlayerData.tradeOfferable(other, paidOk(session)) do
+				if entry.item == item then
+					offerable = true
+					break
+				end
+			end
+			if not offerable then
+				return refused("NotOwned")
+			elseif #wants >= T.MaxSideItems then
+				return refused("Full")
+			end
+			table.insert(wants, item)
+		end
 		send(session)
 		return { ok = true }
 	elseif action == "Ready" then

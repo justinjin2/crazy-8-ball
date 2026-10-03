@@ -306,6 +306,27 @@ step (steps 1-14 of the brief).
     (Studio cannot send it), the phone's collapsed list (by hand on a phone), the live
     OrderedDataStores (the published game).
 
+- **Step 10b done: the trade screen (D12).** Trade from the player list sends an invite; the
+  other player gets a card at the top middle ("Painicane wants to trade!", Accept / Decline,
+  gone when it runs out). Accepting opens the screen for both: two big halves (you left, them
+  right) with headshots and 8 slots each, a giant READY under each (yours turns into "Undo
+  READY"; theirs shows "Waiting..." or "READY!"), a big 3-2-1 over the halves when both are
+  ready, a big yellow banner when one side gives far more (or a red line saying why the sides
+  cannot swap), and a strip of big cards below with two tabs: **Your items** (tap to add a
+  copy; a slot tap takes it back; what they asked for wears a gold ring and "They want this!")
+  and **Their items** (tap to ask, again to take the ask back: "Asked!"). Closing it (X, B, a
+  match) cancels the trade; a finished trade shows a big TRADE DONE! with confetti and closes.
+  - Server (small block in Economy's `Trading`): a "Want" action (an ask never moves anything;
+    at most 8; only for an item they can trade) and the Session payload's `myItems`,
+    `theirItems`, `theyWant`, `iWant`; pure `Trade.offerable` (tradable cues and ready cases,
+    free copies only when paid trading is off) with a test; `PlayerData.tradeOfferable`.
+  - Checked: lint, tests (958 pass); Studio PC through a Studio hook that plays TradeState
+    payloads (Studio has one player): the invite card, a session (slots, READY states, the
+    lopsided banner, the problem banner, both tabs, the gold ring), the 3-2-1, a tap answered
+    by the real server ("This trade is over" path), TRADE DONE! and the screen closing; phone
+    844 x 390: everything fits. Console clean. Not checked: a real two-player trade (by hand,
+    two accounts in a live server or a Studio 2-player test), the controller's moves.
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
@@ -402,6 +423,16 @@ step (steps 1-14 of the brief).
   the D-pad's left in `padRoute`. New shared module `Progression/PlayerListView.luau` (pure)
   and `tests/playerlist_test.luau`.
 
+- Step 10b: `Config.luau`: `Config.UI.Trade` (the old "Soon" list's sizes) replaced by the
+  trade screen's; `Strings.luau`: new top-level `Trade` block after `PlayerList` (the old
+  `Menus.Trade` "Soon" words are now unused: safe to delete); `Net.luau`: the TradeRequest and
+  TradeState comments name `Want` and the new Session fields; `ItemState.luau`: `REQUESTS`
+  allows `TradeRequest`. Economy-owned: `server/Trading.luau` (`Session.wants`, the "Want"
+  action, the Session payload's four new fields), `Progression/Trade.luau` (new
+  `Trade.offerable`), `server/PlayerData.luau` (new `PlayerData.tradeOfferable`),
+  `tests/trade_test.luau` (one test). `TradeMenu.luau` is rewritten (the screen; it no longer
+  lists the players: the player list does).
+
 ## Requests to other lanes or the integrator
 
 - **Integrator**: the Cutscenes lane is folded into this one (designer, 2026-10-03): every item
@@ -496,3 +527,7 @@ step (steps 1-14 of the brief).
 - 2026-10-03 (lane, step 10): a disguised bot's wins in the list are a fixed number from its
   seat, inside a range for its tier (`Config.UI.PlayerList.BotWins`), so it never changes while
   you watch.
+- 2026-10-03 (lane, step 10): asking for one of the other player's items ("Want") only marks
+  it on their screen; nothing moves until they add it themselves and both press READY. Up to 8
+  asks. Closing the trade screen calls the trade off; if the screen cannot open (a match or a
+  popup is up) the trade is called off too.

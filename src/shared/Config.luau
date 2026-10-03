@@ -7253,25 +7253,35 @@ Config.UI.Rewards = {
 	},
 }
 
--- The Trade menu (TradeMenu; trading itself is a later session): the players in this server,
--- each with a greyed Trade button, under a "Trading is coming soon" note. Pairs { a, b } as
--- above. (tune)
+-- The trade screen (TradeMenu; GUI lane, designer 2026-10-03, D12): two big halves (you left,
+-- them right) with a headshot, MaxSideItems slots each and a giant READY under each that turns
+-- into 3-2-1; under them a strip of big cards: your items (tap to add) or theirs (tap to ask);
+-- a big yellow banner when one side is worth far more. Pairs { a, b } are { a phone-sized
+-- panel, a full one } (MenuFrame's t). (tune)
 Config.UI.Trade = {
-	NotePx = { 48, 60 }, -- the note's strip at the top
-	NoteTextPx = { 16, 20 }, -- "Trading is coming soon!"
-	NoteDetailPx = { 14, 16 }, -- the line under it
-	SoonTextPx = { 14, 18 }, -- the gold SOON pill
-	RowPx = { 56, 72 }, -- a player's row
-	RowGapPx = { 6, 8 },
-	RowPadPx = { 6, 10 },
-	MaxWidthPx = 680, -- the list is never wider than this (centred)
-	NameTextPx = { 16, 20 }, -- the username (ends in "..." when too long)
-	RankTextPx = { 14, 16 }, -- "Gold III" under it
-	ButtonWidthPx = { 100, 130 },
-	ButtonPx = 44,
-	HeadshotShare = 0.82, -- the headshot, of the row's height
-	BadgeShare = 0.95, -- the rank badge, of the row's height
-	Thumbnail = "Size150x150", -- Enum.ThumbnailSize name (Config is loaded by Lune: no Enum)
+	SlotColumns = 4, -- each half's slots: 4 x 2 for 8
+	SlotGapPx = { 4, 8 },
+	HeadPx = { 28, 44 }, -- a half's header row (headshot, name, ready tick)
+	NameTextPx = { 16, 22 },
+	ReadyPx = { 34, 56 }, -- the giant READY button
+	ReadyTextPx = { 20, 30 },
+	HalfShare = 0.52, -- the halves' share of the page's height (the strip gets the rest)
+	HalfGapPx = { 8, 16 }, -- between the two halves
+	MaxWidthPx = 1100, -- the screen's content is never wider than this (centred)
+	StripTabPx = { 28, 36 }, -- the strip's two tab buttons
+	StripTabTextPx = { 13, 16 },
+	CardWidthShare = 0.95, -- a strip card's width, of its height
+	CardGapPx = { 6, 10 },
+	CardTextPx = { 12, 15 },
+	BannerPx = { 26, 36 }, -- the lopsided warning
+	BannerTextPx = { 14, 20 },
+	CountdownPx = { 70, 120 }, -- the 3-2-1 over the halves
+	WantGlow = { 255, 214, 10 }, -- the ring round an item the other player asked for (gold)
+	Thumbnail = "Size150x150", -- Enum.ThumbnailSize name for the headshots
+	InviteWidthPx = 340, -- the invite card at the top middle
+	InviteHeightPx = 118,
+	InviteTopPx = 70,
+	DoneSeconds = 2.5, -- "Trade done!" stays this long before the screen closes
 }
 
 -- The ult bar in a match (UltHud and UltBar; docs/prompts/ULTIMATES_PROMPT.md 5 and 7.1,
