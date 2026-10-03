@@ -1,19 +1,19 @@
 --!strict
--- InventoryCases: the Inventory's Cases tab (docs/prompts/ECONOMY_UI_PROMPT.md section 11).
---
---   * A line on top ("Open a case to win a cue!") and "Buy more", which jumps to the Shop's
---     Cases tab (Menus.open("Shop", "Cases")).
---   * A row per case type owned, in shop order as the snapshot sends them: the case's chest
---     (Config.UI.Kit.Icons CaseStandard ... CaseEvent), its name and "x4", then Open (one, on
---     CaseOpening's reel) and, for Fast Open owners (the player's FastOpen attribute) holding
---     at least Config.Cases.FastOpenCount, "Open 10" (CaseOpening's grid).
---   * No cases: the chest, a friendly line and Buy more, in the middle of the page.
---
--- The case opening (deps.caseOpening) asks the server and draws the result over this menu;
--- this page only starts it, and the rows redraw from the snapshot that follows.
+-- InventoryCases: the cases at the top of the Inventory's Items tab (GUI lane, designer
+-- 2026-10-03, C6): one strip of big tiles that scrolls sideways, owned cases first.
+--   * A ready case (the snapshot's `cases`): its chest, name and "x4", then Open (one, on
+--     CaseOpening's reel) and, for Quick Cases owners holding at least
+--     Config.Cases.FastOpenCount, "Open 10" (CaseOpening's grid).
+--   * A case on its timer (the snapshot's `timers`, soonest first): its chest, name and "Ready
+--     in 5:12:03" counting down, then two skips: money ("$1,500": ShopState.skip, $25 a minute
+--     left, at least $250; ItemRequest "SkipTimer") and Robux (the cheapest Skip product that
+--     covers the time left; StoreRequest "Skip", which prompts it). Players where paid random
+--     items are restricted see no skips.
+-- The strip hides when there is nothing in it. The server decides everything; a reply's new
+-- snapshot redraws the tiles.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TextService = game:GetService("TextService")
+local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -21,28 +21,35 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
 local InventoryCard = require(script.Parent.InventoryCard)
+local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
-local Menus = require(script.Parent.Menus)
+local RewardChips = require(script.Parent.RewardChips)
+local ShopParts = require(script.Parent.ShopParts)
+local UIAnim = require(script.Parent.UIAnim)
+local UISound = require(script.Parent.UISound)
 
 local I = Config.UI.Inventory
-local SC = Config.UI.Menu.Scroll
+local IT = I.Items
 local K = Config.UI.Kit
 local WORDS = Strings.Menus.Inventory
 local CASE_NAMES: { [string]: string } = Strings.Items.Cases :: any
-local ICONS: { [string]: string } = K.Icons :: any
 local CASES: { [string]: any } = Config.Cases.List :: any
-local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
+local LIST: { [string]: any } = Config.Products.List :: any
 local TOUCH = Config.UI.Menu.Frame.TouchMinPx
 local MANY = Config.Cases.FastOpenCount
 
-type Row = {
-	caseId: string,
+type Tile = {
+	key: string, -- "Case:<id>" or "Timer:<id>:<readyAt>"
 	box: Frame,
 	icon: ImageLabel,
 	name: TextLabel,
-	count: TextLabel,
-	open: TextButton,
-	openMany: TextButton,
+	line: TextLabel,
+	first: TextButton,
+	second: TextButton,
+	caseId: string,
+	readyAt: number?, -- a timer's
+	count: number,
+	bob: UIAnim.Handle?,
 }
 
 local InventoryCases = {}
@@ -52,33 +59,17 @@ local function round(n: number): number
 	return math.floor(n + 0.5)
 end
 
-local function textWidth(text: string, size: number): number
-	return TextService:GetTextSize(text, size, FONT, Vector2.new(4000, 400)).X
-end
-
-local function textHeight(text: string, size: number, width: number): number
-	return TextService:GetTextSize(text, size, FONT, Vector2.new(math.max(1, width), 4000)).Y
-end
-
--- The case's chest icon key: "CaseRare", or the plain chest for a case with no icon of its own.
-local function iconKey(caseId: string): string
-	local key = "Case" .. caseId
-	return if type(ICONS[key]) == "string" and ICONS[key] ~= "" then key else "Case"
-end
-
 local function fastOpen(): boolean
 	local player = Players.LocalPlayer
 	return player ~= nil and player:GetAttribute("FastOpen") == true
 end
 
--- The snapshot's cases ({ id, count }), only known case types with at least one.
-local function ownedCases(items: any): { any }
+-- The snapshot's ready cases ({ id, count }) and timers ({ id, readyAt, paid }).
+local function readyCases(items: any): { any }
 	local rows = {}
-	local cases = if type(items) == "table" then items.cases else nil
-	if type(cases) ~= "table" then
-		return rows
-	end
-	for _, row in cases do
+	for _, row in
+		(if type(items) == "table" and type(items.cases) == "table" then items.cases else {})
+	do
 		if
 			type(row) == "table"
 			and type(row.id) == "string"
@@ -92,151 +83,276 @@ local function ownedCases(items: any): { any }
 	return rows
 end
 
---- The Cases page, built into `page`. `ctx`: InventoryMenu's.
-function InventoryCases.new(page: Frame, ctx: any): any
+local function timers(items: any): { any }
+	local rows = {}
+	for _, row in
+		(if type(items) == "table" and type(items.timers) == "table" then items.timers else {})
+	do
+		if type(row) == "table" and type(row.id) == "string" and type(row.readyAt) == "number" then
+			table.insert(rows, row)
+		end
+	end
+	return rows
+end
+
+--- The money a skip costs with `seconds` left (ShopState.skip, else Config.Shop.Skip).
+function InventoryCases.skipMoney(seconds: number): number
+	local state = ItemState.shop()
+	local skip = if type(state) == "table" and type(state.skip) == "table" then state.skip else {}
+	local perMinute = if type(skip.moneyPerMinute) == "number"
+		then skip.moneyPerMinute
+		else Config.Shop.Skip.MoneyPerMinute
+	local least = if type(skip.minMoney) == "number"
+		then skip.minMoney
+		else Config.Shop.Skip.MinMoney
+	return math.max(least, math.ceil(math.max(0, seconds) / 60) * perMinute)
+end
+
+--- The Robux skip the server would prompt for `seconds` left: the cheapest Skip product whose
+--- SkipSeconds covers it (its key and live price), or nil.
+function InventoryCases.skipProduct(seconds: number): (string?, number)
+	local state = ItemState.shop()
+	local products = if type(state) == "table" and type(state.products) == "table"
+		then state.products
+		else {}
+	local best: string? = nil
+	local bestRobux = math.huge
+	for key, row in LIST do
+		if type(row.SkipSeconds) == "number" and row.SkipSeconds >= seconds then
+			local robux = ShopParts.robuxOf(products[key], key)
+			if robux < bestRobux then
+				best, bestRobux = key, robux
+			end
+		end
+	end
+	return best, if best then bestRobux else 0
+end
+
+--- The strip, built into `area` (the Items page's top). `ctx`: InventoryMenu's.
+function InventoryCases.new(area: Frame, ctx: any): any
 	local self: any = setmetatable({}, InventoryCases)
-	self.page = page
+	self.area = area
 	self.ctx = ctx
-	self.rows = {} :: { [string]: Row }
+	self.tiles = {} :: { [string]: Tile }
 	self.order = {} :: { string }
 	self.geo = nil :: MenuFrame.Geo?
+	self.ticker = nil :: RBXScriptConnection?
+	self.nextTick = 0
 
-	local function jump()
-		Menus.open("Shop", "Cases")
-	end
-
-	-- The top line and Buy more.
-	local top = HudParts.frame(page, "Top")
-	top.ZIndex = 2
-	self.top = top
-	self.hint = HudParts.note(top, "Hint", I.HintTextPx[2], WORDS.CasesHint)
-	self.hint.TextXAlignment = Enum.TextXAlignment.Left
-	self.hint.ZIndex = 2
-	self.buyMore = HudParts.candy(top, WORDS.BuyMore, jump, "Blue", "Shop")
-	self.buyMore.Name = "BuyMore"
-	self.buyMore.ZIndex = 2
-	HudParts.setMinHit(self.buyMore, TOUCH)
-
-	-- The rows.
-	local holder = HudParts.frame(page, "ListHolder")
-	holder.ZIndex = 2
-	self.holder = holder
-	local scroll, _ = MenuFrame.scroller(holder, { name = "Cases" })
+	local header = HudParts.text(
+		area,
+		"Header",
+		IT.HeaderTextPx[1],
+		WORDS.CasesHeader,
+		HudParts.color(Config.UI.Shop.Page.HeaderColor)
+	)
+	header.TextWrapped = false
+	header.TextXAlignment = Enum.TextXAlignment.Left
+	header.ZIndex = 3
+	self.header = header
+	local scroll = Instance.new("ScrollingFrame")
+	scroll.Name = "Strip"
+	scroll.BackgroundTransparency = 1
+	scroll.BorderSizePixel = 0
+	scroll.ScrollingDirection = Enum.ScrollingDirection.X
+	scroll.ScrollBarThickness = Config.UI.Menu.Scroll.BarPx
+	scroll.ScrollBarImageColor3 = HudParts.color(Config.UI.Menu.Scroll.BarColor)
+	scroll.HorizontalScrollBarInset = Enum.ScrollBarInset.Always
+	scroll.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
+	scroll.Selectable = false
+	scroll.ZIndex = 2
+	scroll.Parent = area
 	self.scroll = scroll
-
-	-- The empty state: the chest, a line, Buy more.
-	local empty = HudParts.frame(page, "Empty")
-	empty.ZIndex = 2
-	empty.Visible = false
-	self.empty = empty
-	self.emptyIcon = HudParts.icon(empty, "CaseStandard", "Chest")
-	self.emptyIcon.ZIndex = 2
-	self.emptyLine = HudParts.note(empty, "Line", I.EmptyTextPx[2], WORDS.CasesEmpty)
-	self.emptyLine.ZIndex = 2
-	self.emptyBuy = HudParts.candy(empty, WORDS.BuyMore, jump, "Blue", "Shop")
-	self.emptyBuy.Name = "BuyMore"
-	self.emptyBuy.ZIndex = 2
-	HudParts.setMinHit(self.emptyBuy, TOUCH)
-
-	self.loading = MenuFrame.placeholder(page)
-
-	local player = Players.LocalPlayer
-	if player then
-		-- Open 10 comes and goes with Fast Open.
-		player:GetAttributeChangedSignal("FastOpen"):Connect(function()
-			if ctx.isOpen() then
-				self:redraw(ctx.lastItems)
-			end
-		end)
-	end
 	return self
 end
 
-function InventoryCases.buildRow(self: any, caseId: string): Row
-	local box = InventoryCard.box(self.scroll, "Case" .. caseId)
+function InventoryCases.buildTile(self: any, key: string, caseId: string): Tile
+	local box = InventoryCard.box(self.scroll, key)
 	box.ZIndex = 2
-	local icon = HudParts.icon(box, iconKey(caseId), "Chest")
+	local icon = HudParts.icon(box, RewardChips.caseIcon(caseId), "Chest")
+	icon.AnchorPoint = Vector2.new(0.5, 0)
 	icon.ZIndex = 3
-	local name = HudParts.text(box, "Name", I.CaseNameTextPx[2], CASE_NAMES[caseId] or caseId)
+	local name = HudParts.text(box, "Name", IT.CaseNameTextPx[1], CASE_NAMES[caseId] or caseId)
 	name.TextWrapped = false
 	name.TextXAlignment = Enum.TextXAlignment.Left
 	name.ZIndex = 3
-	local count = HudParts.note(box, "Count", I.CaseCountTextPx[2], "")
-	count.TextWrapped = false
-	count.TextXAlignment = Enum.TextXAlignment.Left
-	count.ZIndex = 3
-	local open = HudParts.candy(box, WORDS.Open, function()
-		self:openCases(caseId, 1, self.rows[caseId].open)
+	local line =
+		HudParts.text(box, "Line", IT.CaseTimerTextPx[1], "", HudParts.color(K.Numbers.Count))
+	line.AutoLocalize = false
+	line.TextWrapped = false
+	line.TextXAlignment = Enum.TextXAlignment.Left
+	line.ZIndex = 3
+	local tile: Tile
+	local first = HudParts.candy(box, "", function()
+		self:pressFirst(tile)
 	end, "Green")
-	open.Name = "Open"
-	open.ZIndex = 3
-	HudParts.setMinHit(open, TOUCH)
-	local openMany = HudParts.candy(box, WORDS.OpenMany:format(tostring(MANY)), function()
-		self:openCases(caseId, MANY, self.rows[caseId].openMany)
-	end, "Yellow", "FastOpen")
-	openMany.Name = "OpenMany"
-	openMany.ZIndex = 3
-	HudParts.setMinHit(openMany, TOUCH)
-	return {
-		caseId = caseId,
+	first.Name = "First"
+	first.ZIndex = 3
+	HudParts.setMinHit(first, TOUCH)
+	local second = HudParts.candy(box, "", function()
+		self:pressSecond(tile)
+	end, "Green")
+	second.Name = "Second"
+	second.ZIndex = 3
+	HudParts.setMinHit(second, TOUCH)
+	tile = {
+		key = key,
 		box = box,
 		icon = icon,
 		name = name,
-		count = count,
-		open = open,
-		openMany = openMany,
+		line = line,
+		first = first,
+		second = second,
+		caseId = caseId,
+		readyAt = nil,
+		count = 0,
+		bob = nil,
 	}
+	return tile
 end
 
---- The tab's red dot: every unopened case.
+--- Whether there is anything in the strip (the Items page lays out round it).
+function InventoryCases.any(self: any): boolean
+	return #self.order > 0
+end
+
+--- The cases' red dot on the Items tab: every ready case.
 function InventoryCases.dot(_self: any, items: any): number
 	local total = 0
-	for _, row in ownedCases(items) do
+	for _, row in readyCases(items) do
 		total += math.floor(row.count)
 	end
 	return total
 end
 
---- Redraw from the snapshot (nil before the first: "Loading...").
 function InventoryCases.redraw(self: any, items: any)
 	local ctx = self.ctx
-	local loaded = type(items) == "table"
-	self.loading.Visible = not loaded
-	if not loaded then
-		self.top.Visible, self.holder.Visible, self.empty.Visible = false, false, false
-		return
-	end
-	local owned = ownedCases(items)
 	local keep: { [string]: boolean } = {}
-	local order = {}
+	local order: { string } = {}
 	local fast = fastOpen()
-	for index, entry in owned do
-		local caseId: string = entry.id
-		keep[caseId] = true
-		table.insert(order, caseId)
-		local row: Row = self.rows[caseId] or self:buildRow(caseId)
-		self.rows[caseId] = row
-		row.box.LayoutOrder = index
-		row.count.Text = WORDS.Count:format(Format.commas(entry.count))
-		row.openMany.Visible = fast and entry.count >= MANY
-		HudParts.setEnabled(row.open, not ctx.isHeld(row.open))
-		HudParts.setEnabled(row.openMany, not ctx.isHeld(row.openMany))
+	local state = ItemState.shop()
+	local restricted = type(state) == "table" and state.restricted == true
+	for _, row in readyCases(items) do
+		local key = "Case:" .. row.id
+		keep[key] = true
+		table.insert(order, key)
+		local tile: Tile = self.tiles[key] or self:buildTile(key, row.id)
+		self.tiles[key] = tile
+		tile.count = math.floor(row.count)
+		tile.readyAt = nil
+		tile.line.Text = WORDS.Count:format(Format.commas(tile.count))
+		HudParts.setText(tile.first, WORDS.Open)
+		HudParts.setTone(tile.first, "Green")
+		HudParts.setButtonIcon(tile.first, nil)
+		HudParts.setEnabled(tile.first, not ctx.isHeld(tile.first))
+		tile.second.Visible = fast and tile.count >= MANY
+		HudParts.setText(tile.second, WORDS.OpenMany:format(Format.commas(MANY)))
+		HudParts.setTone(tile.second, "Blue")
+		HudParts.setButtonIcon(tile.second, nil)
+		HudParts.setEnabled(tile.second, not ctx.isHeld(tile.second))
+		if not tile.bob then
+			tile.bob = UIAnim.bob(tile.icon, 3)
+		end
 	end
-	for caseId, row in self.rows do
-		if not keep[caseId] then
-			row.box:Destroy()
-			self.rows[caseId] = nil
+	for index, row in timers(items) do
+		-- Two cases can share a ready time: the place in the list keeps their keys apart.
+		local key = ("Timer:%s:%d:%d"):format(row.id, row.readyAt, index)
+		keep[key] = true
+		table.insert(order, key)
+		local tile: Tile = self.tiles[key] or self:buildTile(key, row.id)
+		self.tiles[key] = tile
+		tile.readyAt = row.readyAt
+		tile.count = 1
+		tile.first.Visible = not restricted
+		tile.second.Visible = not restricted
+		HudParts.setTone(tile.first, "Yellow")
+		HudParts.setButtonIcon(tile.first, "CashSingle")
+		HudParts.setTone(tile.second, "Green")
+		HudParts.setEnabled(tile.first, not ctx.isHeld(tile.first))
+		HudParts.setEnabled(tile.second, not ctx.isHeld(tile.second))
+	end
+	for key, tile in self.tiles :: { [string]: Tile } do
+		if not keep[key] then
+			if tile.bob then
+				tile.bob.stop()
+			end
+			tile.box:Destroy()
+			self.tiles[key] = nil
 		end
 	end
 	self.order = order
-	local any = #order > 0
-	self.top.Visible = any
-	self.holder.Visible = any
-	self.empty.Visible = not any
+	self:tick()
 	self:arrange()
+	if #order > 0 and not self.ticker then
+		self.ticker = RunService.Heartbeat:Connect(function()
+			local clock = os.clock()
+			if clock >= self.nextTick then
+				self.nextTick = clock + 0.5
+				self:tick()
+			end
+		end)
+	end
 end
 
---- Open cases on the reel (or Fast Open's grid): CaseOpening asks the server and shows it.
+-- The timers' countdowns and their skip prices.
+function InventoryCases.tick(self: any)
+	if not self.ctx.isOpen() then
+		if self.ticker then
+			self.ticker:Disconnect()
+			self.ticker = nil
+		end
+		return
+	end
+	local now = workspace:GetServerTimeNow()
+	for _, key in self.order do
+		local tile: Tile = self.tiles[key]
+		local readyAt = tile.readyAt
+		if readyAt then
+			local left = readyAt - now
+			tile.line.Text = WORDS.ReadyIn:format(ShopParts.timeLeft(left))
+			HudParts.setText(tile.first, Format.money(InventoryCases.skipMoney(left)))
+			local _, robux = InventoryCases.skipProduct(left)
+			HudParts.setText(tile.second, ShopParts.robux(robux))
+		end
+	end
+end
+
+function InventoryCases.pressFirst(self: any, tile: Tile)
+	local ctx = self.ctx
+	UISound.play("Click")
+	if tile.readyAt == nil then
+		self:openCases(tile.caseId, 1, tile.first)
+		return
+	end
+	local readyAt = tile.readyAt
+	ctx.hold(tile.first, function()
+		local reply = ctx.request("SkipTimer", tile.caseId, readyAt)
+		if reply.ok then
+			UISound.play("Claim")
+			ctx.notice(WORDS.SkippedReady:format(CASE_NAMES[tile.caseId] or tile.caseId), "Green")
+		else
+			ctx.refuse(reply)
+		end
+	end)
+end
+
+function InventoryCases.pressSecond(self: any, tile: Tile)
+	local ctx = self.ctx
+	UISound.play("Click")
+	if tile.readyAt == nil then
+		self:openCases(tile.caseId, MANY, tile.second)
+		return
+	end
+	local readyAt = tile.readyAt
+	ctx.hold(tile.second, function()
+		local reply = ItemState.request("StoreRequest", "Skip", tile.caseId, readyAt)
+		if not reply.ok then
+			ctx.refuse(reply)
+		end
+	end)
+end
+
+--- Open cases on the reel (or Quick Cases' grid): CaseOpening asks the server and shows it.
 function InventoryCases.openCases(self: any, caseId: string, count: number, button: TextButton)
 	local ctx = self.ctx
 	local opening = ctx.deps.caseOpening
@@ -248,9 +364,13 @@ function InventoryCases.openCases(self: any, caseId: string, count: number, butt
 	end)
 end
 
---------------------------------------------------------------------------------------------
--- Layout
---------------------------------------------------------------------------------------------
+--- The strip's height on this page, or 0 with nothing in it.
+function InventoryCases.height(self: any): number
+	if #self.order == 0 then
+		return 0
+	end
+	return self.ctx.span(IT.CaseStripPx) + self.ctx.span(IT.HeaderTextPx) + 6
+end
 
 function InventoryCases.layout(self: any, geo: MenuFrame.Geo)
 	self.geo = geo
@@ -263,125 +383,96 @@ function InventoryCases.arrange(self: any)
 		return
 	end
 	local span = self.ctx.span
-	local W, H = geo.content.X, geo.content.Y
-	local gap = span(I.GapPx)
-	local buttonH = span(I.CaseButtonPx)
-	local buttonText = span(I.CaseButtonTextPx)
-
-	-- The top: the line, and Buy more at the right.
-	local buyW =
-		math.max(span(I.BuyMoreWidthPx), self:buttonWidth(WORDS.BuyMore, buttonH, buttonText, true))
-	self.top.Position = UDim2.fromOffset(0, 0)
-	self.top.Size = UDim2.fromOffset(W, buttonH)
-	self.buyMore.AnchorPoint = Vector2.new(1, 0)
-	self.buyMore.Position = UDim2.fromOffset(W - SC.PadPx, 0)
-	self.buyMore.Size = UDim2.fromOffset(buyW, buttonH)
-	HudParts.setButtonTextSize(self.buyMore, buttonText)
-	HudParts.setTextSize(self.hint, span(I.HintTextPx))
-	self.hint.Position = UDim2.fromOffset(SC.PadPx, 0)
-	self.hint.Size = UDim2.fromOffset(math.max(1, W - buyW - 2 * SC.PadPx - gap), buttonH)
-	self.holder.Position = UDim2.fromOffset(0, buttonH + gap)
-	self.holder.Size = UDim2.fromOffset(W, math.max(1, H - buttonH - gap))
-
-	-- A row: the chest, the name over "x4", then Open 10 and Open at the right.
-	local rowW = W - 2 * SC.PadPx - SC.BarPx
-	local rowH = span(I.CaseRowPx)
-	local pad = math.max(4, round(rowH * I.CaseRowPadShare))
-	local iconS = round(rowH * I.CaseIconShare)
-	local nameText, countText = span(I.CaseNameTextPx), span(I.CaseCountTextPx)
-	local openW = span(I.CaseButtonWidthPx)
-	local rowButtonH = math.min(buttonH, rowH - 2 * pad)
-	for _, row in self.rows do
-		row.box.Size = UDim2.fromOffset(rowW, rowH)
-		row.icon.Size = UDim2.fromOffset(iconS, iconS)
-		row.icon.Position = UDim2.fromOffset(pad, round((rowH - iconS) / 2))
-		local right = rowW - pad
-		for _, button in { row.open, row.openMany } do
+	local any = #self.order > 0
+	self.header.Visible = any
+	self.scroll.Visible = any
+	if not any then
+		return
+	end
+	local W = self.area.AbsoluteSize.X / MenuFrame.scaleOf(self.area)
+	if W <= 1 then
+		W = geo.content.X
+	end
+	local headerH = span(IT.HeaderTextPx)
+	HudParts.setTextSize(self.header, headerH)
+	self.header.Position = UDim2.fromOffset(4, 0)
+	self.header.Size = UDim2.fromOffset(W - 8, headerH + 4)
+	local h = span(IT.CaseStripPx)
+	local bar = Config.UI.Menu.Scroll.BarPx
+	self.scroll.Position = UDim2.fromOffset(0, headerH + 6)
+	self.scroll.Size = UDim2.fromOffset(W, h)
+	local tileW = span(IT.CaseTileWidthPx)
+	local tileH = h - bar - 4
+	local gap = span(I.CardGapPx)
+	local pad = math.max(4, round(tileH * 0.07))
+	local buttonH = span(IT.CaseButtonPx)
+	local buttonText = span(IT.CaseButtonTextPx)
+	local nameSize = span(IT.CaseNameTextPx)
+	local lineSize = span(IT.CaseTimerTextPx)
+	local x = 2
+	for _, key in self.order do
+		local tile: Tile = self.tiles[key]
+		tile.box.Position = UDim2.fromOffset(x, 2)
+		tile.box.Size = UDim2.fromOffset(tileW, tileH)
+		local shown = {}
+		for _, button in { tile.first, tile.second } do
 			if button.Visible then
-				local words = HudParts.candyParts(button)
-				local text = if words then words.label.Text else ""
-				local width = math.max(
-					openW,
-					self:buttonWidth(text, rowButtonH, buttonText, button == row.openMany)
-				)
-				button.Position = UDim2.fromOffset(right - width, round((rowH - rowButtonH) / 2))
-				button.Size = UDim2.fromOffset(width, rowButtonH)
-				HudParts.setButtonTextSize(button, buttonText)
-				right -= width + gap
+				table.insert(shown, button)
 			end
 		end
-		local x = pad + iconS + gap
-		local wordsW = math.max(1, right - x)
-		local nameH = nameText + 6
-		local countH = countText + 4
-		local y = round((rowH - nameH - countH) / 2)
-		HudParts.setTextSize(row.name, nameText)
-		HudParts.setTextSize(row.count, countText)
-		row.name.Position = UDim2.fromOffset(x, y)
-		row.name.Size = UDim2.fromOffset(wordsW, nameH)
-		row.count.Position = UDim2.fromOffset(x, y + nameH)
-		row.count.Size = UDim2.fromOffset(wordsW, countH)
+		if tile.bob then
+			tile.bob.stop() -- before placing: stopping puts the icon back where it was
+		end
+		-- The chest big on the left; the name, the timer and the buttons (side by side) beside it.
+		local iconSize = math.max(24, math.min(tileH - pad * 2, round(tileW * IT.CaseIconShare)))
+		tile.icon.Size = UDim2.fromOffset(iconSize, iconSize)
+		tile.icon.Position =
+			UDim2.fromOffset(pad + round(iconSize / 2), round((tileH - iconSize) / 2))
+		if tile.bob then
+			tile.bob = UIAnim.bob(tile.icon, 3)
+		end
+		local textX = pad * 2 + iconSize
+		local textW = tileW - textX - pad
+		local textH = nameSize + lineSize + 8
+		local topH = tileH - pad * 3 - (if #shown > 0 then buttonH else 0)
+		local y = pad + math.max(0, round((topH - textH) / 2))
+		HudParts.setTextSize(tile.name, nameSize)
+		tile.name.Position = UDim2.fromOffset(textX, y)
+		tile.name.Size = UDim2.fromOffset(textW, nameSize + 4)
+		y += nameSize + 4
+		HudParts.setTextSize(tile.line, lineSize)
+		tile.line.Position = UDim2.fromOffset(textX, y)
+		tile.line.Size = UDim2.fromOffset(textW, lineSize + 4)
+		local buttonW = if #shown > 0 then (textW - (#shown - 1) * 4) / #shown else 0
+		for i, button in shown do
+			button.Position =
+				UDim2.fromOffset(round(textX + (i - 1) * (buttonW + 4)), tileH - pad - buttonH)
+			button.Size = UDim2.fromOffset(round(buttonW), buttonH)
+			HudParts.setButtonTextSize(button, buttonText)
+		end
+		x += tileW + gap
 	end
-
-	-- The empty state, centred: the chest, the line, Buy more.
-	local iconPx = span(I.EmptyIconPx)
-	local lineText = span(I.EmptyTextPx)
-	local lineW = math.min(W - 2 * SC.PadPx, I.EmptyLineMaxPx)
-	HudParts.setTextSize(self.emptyLine, lineText)
-	local lineH = math.ceil(textHeight(self.emptyLine.Text, lineText, lineW - 4)) + 6
-	local total = iconPx + gap + lineH + gap + buttonH
-	local y = math.max(0, round((H - total) / 2))
-	self.empty.Position = UDim2.fromOffset(0, 0)
-	self.empty.Size = UDim2.fromOffset(W, H)
-	self.emptyIcon.Position = UDim2.fromOffset(round((W - iconPx) / 2), y)
-	self.emptyIcon.Size = UDim2.fromOffset(iconPx, iconPx)
-	self.emptyLine.Position = UDim2.fromOffset(round((W - lineW) / 2), y + iconPx + gap)
-	self.emptyLine.Size = UDim2.fromOffset(lineW, lineH)
-	self.emptyBuy.Position = UDim2.fromOffset(round((W - buyW) / 2), y + iconPx + gap + lineH + gap)
-	self.emptyBuy.Size = UDim2.fromOffset(buyW, buttonH)
-	HudParts.setButtonTextSize(self.emptyBuy, buttonText)
+	self.scroll.CanvasSize = UDim2.fromOffset(x, 0)
 end
 
--- A candy's natural width for its words at this height and text size (as the kit lays it
--- out), with room for an icon.
-function InventoryCases.buttonWidth(
-	_self: any,
-	text: string,
-	height: number,
-	size: number,
-	icon: boolean
-): number
-	local usable = height - math.floor(height * K.ButtonLipShare + 0.5)
-	local pad = math.max(6, math.floor(usable * 0.18))
-	local left = if icon
-		then pad + math.floor(usable * K.ButtonIconShare) + math.floor(pad / 2)
-		else pad
-	return left + math.ceil(textWidth(text, size)) + 6 + pad
-end
-
---------------------------------------------------------------------------------------------
--- The tab showing
---------------------------------------------------------------------------------------------
-
-function InventoryCases.opened(_self: any) end
-
-function InventoryCases.shown(_self: any) end
-
-function InventoryCases.hidden(_self: any) end
-
-function InventoryCases.closed(_self: any) end
-
---- Where a gamepad starts on this page: the first case's Open, else Buy more.
+--- Where a gamepad starts in the strip: the first tile's first button.
 function InventoryCases.first(self: any): GuiObject?
-	local firstId = self.order[1]
-	local row: Row? = if firstId then self.rows[firstId] else nil
-	if row and row.open.Selectable then
-		return row.open
+	for _, key in self.order do
+		local tile: Tile = self.tiles[key]
+		for _, button in { tile.first, tile.second } do
+			if button.Visible and button.Selectable then
+				return button
+			end
+		end
 	end
-	if self.empty.Visible then
-		return self.emptyBuy
+	return nil
+end
+
+function InventoryCases.closed(self: any)
+	if self.ticker then
+		self.ticker:Disconnect()
+		self.ticker = nil
 	end
-	return self.buyMore
 end
 
 return InventoryCases

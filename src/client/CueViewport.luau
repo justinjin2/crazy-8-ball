@@ -55,6 +55,8 @@ function CueViewport.new(parent: Instance, name: string?): any
 	camera.CFrame = CFrame.lookAt(Vector3.new(0, 0, distance), Vector3.zero)
 	camera.Parent = frame
 	frame.CurrentCamera = camera
+	-- Called once a stick is built (the Index swaps its still picture for this then).
+	self.onBuilt = nil :: ((cueId: string, silhouette: boolean) -> ())?
 	self.frame = frame
 	self.camera = camera
 	self.model = nil :: Model?
@@ -108,6 +110,9 @@ function CueViewport.build(self: any)
 	)
 	self.angle = math.rad(V.StartDegrees)
 	self:pose()
+	if self.onBuilt and self.cueId then
+		self.onBuilt(self.cueId, silhouette)
+	end
 end
 
 --- Turn while `on` (and the frame is on screen); stop the loop when not.

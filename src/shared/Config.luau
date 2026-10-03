@@ -7348,9 +7348,9 @@ Config.UI.Inventory = {
 	-- and the grid; a shorter one (a phone) puts the picture left of the words and runs the
 	-- strip across the whole page.
 	StackFromPx = 360,
-	CardMinPx = { 104, 128 }, -- a grid card at least this wide (as many columns as fit)
+	CardMinPx = { 118, 150 }, -- a grid card at least this wide (bigger cards, GUI lane)
 	CardGapPx = { 6, 8 }, -- between two cards
-	CardAspect = 1.3, -- a card's height, of its width
+	CardAspect = 1.42, -- a card's height, of its width (room for the odds line, GUI lane)
 	-- A cue card (InventoryCard, in the grid and the Index): the picture, the name on up to
 	-- two lines under it, pills over its top corners.
 	Card = {
@@ -7397,6 +7397,33 @@ Config.UI.Inventory = {
 	EmptyIconPx = { 64, 110 }, -- the chest over the empty state's line
 	EmptyTextPx = { 16, 20 },
 	EmptyLineMaxPx = 460, -- the empty state's line wraps at this width
+	-- The Items tab (GUI lane, 2026-10-03): a strip of case tiles across the top (ready cases
+	-- with Open, cases on their timers counting down with their skips), the cue grid under it,
+	-- and the chosen cue as a big card over the page (ref 07's size).
+	Items = {
+		CaseStripPx = { 104, 124 }, -- the case strip's height (short: the cues keep the room)
+		CaseTileWidthPx = { 220, 260 }, -- wide: the two skip buttons sit side by side
+		CaseIconShare = 0.3, -- the chest (left, full height), at most this share of the width
+		CaseNameTextPx = { 15, 18 },
+		CaseTimerTextPx = { 14, 17 },
+		CaseButtonPx = { 34, 40 }, -- Open, the skips (touch area 44)
+		CaseButtonTextPx = { 14, 16 },
+		HeaderTextPx = { 18, 24 }, -- "CASES", "CUES"
+		BigCardMaxWidthPx = 460, -- the chosen cue's card
+		BigArtShare = 0.42, -- its picture, of the card's height at most
+		BigArtMinPx = 96, -- the picture never smaller (the card scrolls past this)
+		-- A landscape space (wider than tall by this) lays the card out side by side: the
+		-- picture fills the left, the words and buttons stand beside it (phones, short PCs).
+		BigWideRatio = 1.5,
+		BigWideMaxWidthPx = 760, -- the side-by-side card's width at most
+		BigWideArtMaxPx = 400, -- its picture's side at most
+		BigWideArtShare = 0.5, -- and at most this share of the card's width
+		ChooserPx = { 40, 48 }, -- the count chooser's row: - 3 + Max
+		ShimmerSeconds = 2.4, -- a rarity card's light sweeping across it
+		ShimmerFromRarity = "Uncommon", -- cards of this rarity and up shimmer
+		SparkleFromRarity = "Epic", -- and from this one also sparkle
+	},
+	CardOddsTextPx = 13, -- a cue card's "4.2% chance · 1,284 exist" line
 	-- The Index's turning 3D cue (CueViewport, in the Index's detail panel; designer,
 	-- 2026-09-28): the game's own cue in a ViewportFrame, thicker so it reads small, turning
 	-- round the upright axis. A cue not found yet is one near-black colour.

@@ -598,7 +598,7 @@ return {
 		-- The tabs under (or beside) each title.
 		Tabs = {
 			Shop = { Cases = "Cases", Limited = "Limited", Money = "Money", Vip = "VIP" },
-			Inventory = { Cues = "Cues", Cases = "Cases", Index = "Index" },
+			Inventory = { Items = "Items", Cues = "Cues", Cases = "Cases", Index = "Index" },
 			Rewards = { Daily = "Daily", Playtime = "Playtime", Codes = "Codes" },
 		},
 		Loading = "Loading...", -- a page whose contents have not arrived
@@ -922,6 +922,19 @@ return {
 			Found = "In your collection", -- ever owned (selling it keeps it here)
 			NotFound = "Not found yet",
 			FindReward = "Find it for +%s", -- a cue not found yet: its finder's money ("$250")
+			-- The Items tab (GUI lane, 2026-10-03): cases on top, then cues.
+			CasesHeader = "CASES",
+			CuesHeader = "CUES",
+			ReadyIn = "Ready in %s", -- a case on its timer: "Ready in 5:12:03"
+			SkippedReady = "Your %s is ready to open!", -- a money skip went through
+			Odds = "%s chance", -- a cue's rarity per Case Drop: "4.2% chance"
+			OddsExist = "%s chance · %s exist", -- "4.2% chance · 1,284 exist"
+			FewExist = "fewer than 10", -- copies in existence while under 10
+			SellSome = "Sell duplicates", -- opens the count chooser
+			SellCount = "Sell %s for %s", -- the count and the money: "Sell 3 for $360"
+			Max = "Max",
+			ConfirmSellCount = "Sell %s x %s for %s? You keep one.", -- count, cue, money
+			Close = "Close",
 		},
 	},
 	-- The reminder of the next login-streak reward (Reminders; GDD 14, ECONOMY 10): a toast when

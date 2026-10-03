@@ -49,6 +49,7 @@ export type Fields = {
 	count: string?, -- "x3", "#412", or nil / "" for none
 	new: boolean?, -- the gold NEW pill
 	equipped: boolean?, -- the green Equipped pill
+	odds: string?, -- the line under the name: "4.2% chance · 1,284 exist" (rich text)
 }
 
 export type Options = {
@@ -75,6 +76,10 @@ export type Card = {
 	equipPill: Frame,
 	equipText: TextLabel,
 	lock: ImageLabel,
+	odds: TextLabel,
+	shimmer: Frame?, -- the light sweeping across a rarer card
+	effects: { UIAnim.Handle },
+	effectKey: string, -- the rarity the effects were made for
 	dressing: CueThumb.Dressing?,
 	dressKey: string, -- what the dressing shows now ("" for none)
 	cueId: string,
@@ -178,16 +183,19 @@ function InventoryCard.layout(card: Card)
 	end
 	local pad = math.max(3, round(w * IC.PadShare))
 	local lineH = IC.NameTextPx + 3
-	local nameH = lineH * card.lines
+	local oddsH = if card.odds.Visible then Config.UI.Inventory.CardOddsTextPx + 3 else 0
+	local nameH = lineH * card.lines + oddsH
 	local bottom = round(h * IC.BottomShare)
 	local art =
 		math.max(1, math.min(w - 2 * pad, round(h * IC.ArtShare), h - pad - nameH - bottom - 2))
 	card.art.Size = UDim2.fromOffset(art, art)
 	card.art.Position = UDim2.fromOffset(round(w / 2), pad)
 	local nameTop = pad + art + 2
-	local nameBox = math.max(lineH, h - nameTop - bottom)
+	local nameBox = math.max(lineH, h - nameTop - bottom - oddsH)
 	card.name.Position = UDim2.fromOffset(pad, nameTop)
 	card.name.Size = UDim2.fromOffset(math.max(1, w - 2 * pad), nameBox)
+	card.odds.Position = UDim2.fromOffset(2, h - bottom - oddsH)
+	card.odds.Size = UDim2.fromOffset(math.max(1, w - 4), math.max(1, oddsH))
 	-- The "?" fills the picture's place (and the name's, which it has none of).
 	local mark = math.max(1, math.min(w - 2 * pad, h - 2 * pad - bottom))
 	card.unknown.Position = UDim2.fromOffset(round(w / 2), round((h - bottom) / 2))
@@ -265,6 +273,12 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 	local lock = HudParts.icon(body, "Lock", "Lock")
 	lock.ZIndex = 6
 	lock.Visible = false
+	local odds = HudParts.note(body, "Odds", Config.UI.Inventory.CardOddsTextPx, "")
+	odds.AutoLocalize = false
+	odds.RichText = true
+	odds.TextWrapped = false
+	odds.ZIndex = 4
+	odds.Visible = false
 	button.Parent = parent
 
 	local card: Card = {
@@ -283,6 +297,10 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 		equipPill = equipPill,
 		equipText = equipText,
 		lock = lock,
+		odds = odds,
+		shimmer = nil,
+		effects = {},
+		effectKey = "",
 		dressing = nil,
 		dressKey = "",
 		cueId = "",
@@ -343,15 +361,70 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 	return card
 end
 
+local ITEMS = Config.UI.Inventory.Items
+
+-- The rarer the card, the more it moves (designer, 2026-10-03): from ShimmerFromRarity a light
+-- sweeps across it every few seconds; from SparkleFromRarity sparkles twinkle over it too.
+-- Both scale down with Lower effects (UIAnim reads Quality) and run only while on screen.
+local function setEffects(card: Card, rarity: string)
+	if card.effectKey == rarity then
+		return
+	end
+	card.effectKey = rarity
+	for _, handle in card.effects do
+		handle.stop()
+	end
+	table.clear(card.effects)
+	if card.shimmer then
+		card.shimmer:Destroy()
+		card.shimmer = nil
+	end
+	local rank = Catalog.rarityRank(rarity)
+	if rarity == "" or rank < Catalog.rarityRank(ITEMS.ShimmerFromRarity) then
+		return
+	end
+	local band = HudParts.frame(card.body, "Shimmer")
+	band.Size = UDim2.fromScale(1, 1)
+	band.BackgroundTransparency = 0
+	band.BackgroundColor3 = WHITE
+	band.ZIndex = 2
+	HudParts.corner(band, IC.CornerPx)
+	local gradient = Instance.new("UIGradient")
+	gradient.Rotation = 25
+	gradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(0.42, 1),
+		NumberSequenceKeypoint.new(0.5, 0.55),
+		NumberSequenceKeypoint.new(0.58, 1),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	gradient.Parent = band
+	card.shimmer = band
+	local period = ITEMS.ShimmerSeconds
+	-- Each card starts at its own point, so a grid does not flash all at once.
+	local phase = (#card.cueId * 0.37) % 1
+	table.insert(
+		card.effects,
+		UIAnim.loop(band, function(clock)
+			local t = ((clock / period) + phase) % 1.6 -- a sweep, then a rest
+			gradient.Offset = Vector2.new(math.min(t, 1) * 2 - 1, 0)
+		end)
+	)
+	if rank >= Catalog.rarityRank(ITEMS.SparkleFromRarity) then
+		table.insert(card.effects, UIAnim.sparkle(card.body, CueThumb.accentColor(rarity)))
+	end
+end
+
 --- Show a cue on the card (or its silhouette), with its pills.
 function InventoryCard.set(card: Card, fields: Fields)
 	local id = fields.cueId
 	local silhouette = fields.silhouette == true
 	if id ~= card.cueId or silhouette ~= card.silhouette then
-		CueThumb.set(card.thumb, id, false)
+		-- A never-owned cue is its blacked-out silhouette (GUI lane, 2026-10-03).
+		CueThumb.set(card.thumb, id, silhouette)
 		card.cueId, card.silhouette = id, silhouette
 	end
-	card.thumb.Visible = not silhouette
+	card.thumb.Visible = true
 	local row = Catalog.get(id)
 	local rarity = if row then row.Rarity else "Default"
 	local tier = if row and row.Tier then row.Tier else ""
@@ -369,7 +442,7 @@ function InventoryCard.set(card: Card, fields: Fields)
 	end
 	card.name.Text = if silhouette then "" else CueThumb.cueName(id)
 	card.name.Visible = not silhouette
-	card.unknown.Visible = silhouette
+	card.unknown.Visible = false
 	card.unknown.TextColor3 = CueThumb.accentColor(rarity)
 	local count = if silhouette then "" else fields.count or ""
 	card.countText.Text = count
@@ -379,6 +452,9 @@ function InventoryCard.set(card: Card, fields: Fields)
 	card.lock.Visible = not silhouette
 		and row ~= nil
 		and (row.Group == "Exclusive" or row.Group == "Unique")
+	card.odds.Text = fields.odds or ""
+	card.odds.Visible = fields.odds ~= nil
+	setEffects(card, if silhouette then "" else rarity)
 	InventoryCard.layout(card)
 end
 
@@ -392,6 +468,9 @@ end
 
 --- Take the card away (its dressing's loop stops with it).
 function InventoryCard.destroy(card: Card)
+	for _, handle in card.effects do
+		handle.stop()
+	end
 	if card.dressing then
 		card.dressing.destroy()
 		card.dressing = nil

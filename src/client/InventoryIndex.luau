@@ -12,9 +12,11 @@
 --     ever-owned cues in colour with their names, never-owned ones as a big "?" in the
 --     rarity's colour with no name. A cue counts once ever owned (the snapshot's `seen`), sold
 --     or not.
---   * On the right, the chosen cue (designer, 2026-09-28): the cue turning in 3D (CueViewport),
---     in its colours once found, a black silhouette until then; its name (shown even before it
---     is found), rarity, "In your collection" or "Not found yet", "1,284 exist", and for a cue
+--   * On the right, the chosen cue (designer, 2026-09-28; GUI lane 2026-10-03): its still
+--     picture at once, replaced by the cue turning in 3D with its frozen piece (CueViewport) once
+--     its look has loaded; a black still silhouette until found. Its name (shown even before it
+--     is found), rarity, "In your collection" or "Not found yet", "4.2% chance · 1,284 exist",
+--     and for a cue
 --     not found yet the finder's money it pays ("Find it for +$250", Config.Index.FindMoney).
 --     A tap or click on a card chooses it; a gamepad chooses the card it lands on. It turns
 --     only while the tab shows.
@@ -25,6 +27,7 @@ local TextService = game:GetService("TextService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local CueSkins = require(Shared:WaitForChild("CueSkins"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
 local Catalog = require(Progression:WaitForChild("Catalog"))
@@ -34,6 +37,7 @@ local CueThumb = require(script.Parent.CueThumb)
 local CueViewport = require(script.Parent.CueViewport)
 local HudParts = require(script.Parent.HudParts)
 local InventoryCard = require(script.Parent.InventoryCard)
+local InventoryCues = require(script.Parent.InventoryCues)
 local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
 local UIAnim = require(script.Parent.UIAnim)
@@ -159,11 +163,30 @@ function InventoryIndex.buildDetail(self: any, page: Frame)
 	self.artBox = artBox
 	self.artDressing = nil :: CueThumb.Dressing?
 	self.artKey = ""
+	-- The still picture shows at once (GUI lane, 2026-10-03); the turning cue takes its place
+	-- once its look has loaded. A cue not found yet stays a black still silhouette, and a cue
+	-- with a 3D piece (wings, the dragon) keeps its still: a ViewportFrame draws no Neon glow
+	-- or ForceField, so the piece barely shows there, while the picture has it in full.
+	local still = CueThumb.new(artBox, Catalog.Default)
+	still.AnchorPoint = Vector2.new(0.5, 0.5)
+	still.Position = UDim2.fromScale(0.5, 0.5)
+	still.Size = UDim2.fromScale(D.ThumbShare, D.ThumbShare)
+	still.ZIndex = 3
+	self.still = still
 	local view = CueViewport.new(artBox, "Cue")
 	view.frame.AnchorPoint = Vector2.new(0.5, 0.5)
 	view.frame.Position = UDim2.fromScale(0.5, 0.5)
 	view.frame.Size = UDim2.fromScale(1, 1)
 	view.frame.ZIndex = 3
+	view.frame.Visible = false
+	view.onBuilt = function(cueId: string, silhouette: boolean)
+		local skin = CueSkins.get(cueId)
+		local piece = skin ~= nil and skin.Piece ~= nil
+		if cueId == self.chosen and not silhouette and not piece and self.seen[cueId] == true then
+			view.frame.Visible = true
+			still.Visible = false
+		end
+	end
 	self.view = view
 
 	self.nameLabel = HudParts.text(scroll, "Name", D.NameTextPx[2], "")
@@ -175,6 +198,8 @@ function InventoryIndex.buildDetail(self: any, page: Frame)
 	self.stateLabel.ZIndex = 3
 	self.existLabel = HudParts.note(scroll, "Exist", D.LineTextPx[2], "")
 	self.existLabel.TextWrapped = false
+	self.existLabel.RichText = true
+	self.existLabel.AutoLocalize = false
 	self.existLabel.ZIndex = 3
 	-- A cue not found yet: the cash and "Find it for +$250" in green.
 	local findRow = HudParts.frame(scroll, "FindRow")
@@ -606,7 +631,15 @@ function InventoryIndex.refreshDetail(self: any)
 		return
 	end
 	local found = self.seen[id] == true
-	self.view:set(id, not found)
+	CueThumb.set(self.still, id, not found)
+	local skin = CueSkins.get(id)
+	local turns = found and not (skin ~= nil and skin.Piece ~= nil) -- a piece keeps its still
+	local built = self.view.cueId == id and self.view.model ~= nil and not self.view.silhouette
+	self.view.frame.Visible = turns and built
+	self.still.Visible = not (turns and built)
+	if turns then
+		self.view:set(id, false)
+	end
 	-- A found cue's picture wears its rarity (as on its card); a cue not found yet stays plain.
 	local key = if found then cue.Rarity .. "/" .. (cue.Tier or "") else ""
 	if key ~= self.artKey then
@@ -625,10 +658,12 @@ function InventoryIndex.refreshDetail(self: any)
 	self.rarityLabel.TextColor3 = CueThumb.cueColor(id)
 	self.stateLabel.Text = if found then WORDS.Found else WORDS.NotFound
 	local copies = copiesOf(id)
-	self.existLabel.Text = if copies
-		then (if copies == 1 then WORDS.ExistOne else WORDS.Exist):format(Format.commas(copies))
-		else ""
-	self.existLabel.Visible = copies ~= nil
+	local odds = InventoryCues.oddsLine(id, copies)
+	if odds == nil and copies then
+		odds = (if copies == 1 then WORDS.ExistOne else WORDS.Exist):format(Format.commas(copies))
+	end
+	self.existLabel.Text = odds or ""
+	self.existLabel.Visible = odds ~= nil
 	local money = if found then 0 else Inventory.findMoney(id)
 	self.findRow.Visible = money > 0
 	self.findLabel.Text = WORDS.FindReward:format(Format.money(money))

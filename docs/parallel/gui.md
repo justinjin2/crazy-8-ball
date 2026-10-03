@@ -135,6 +135,28 @@ step (steps 1-14 of the brief).
     and the restock grid fit and read. Gamepad: LB / RB bound while open, a selected card
     scrolls into view. Not checked: a real Robux purchase (needs the live game).
 
+- **Step 4 done: Inventory and Index.** Two tabs, **Items** and **Index** (the Cues and Cases
+  tabs are merged into Items). Items opens with a strip of case tiles across the top
+  (`InventoryCases`): ready cases with Open (and Open 10 with Quick Cases), cases on their
+  timers counting down with a money skip and a Robux skip side by side (no skips for
+  restricted players). The cue grid under it has bigger cards, each reading "x% chance · N
+  exist" with the % in the rarity colour; Uncommon and up have a light sweeping across them,
+  Epic and up also sparkle. Tapping a cue opens a big card over the page: picture, name,
+  rarity, odds, "You own N", Equip and **one** "Sell duplicates" that turns into a count
+  chooser (- 1 +, Max) with a red "Sell N for $X" (confirm from `ConfirmSellFrom`, as
+  before). On a landscape space (phones, short PC windows) the card lays out side by side,
+  the picture filling the left like ref 07. The Index shows unfound cues as black silhouettes
+  (name, rarity and odds only), shows the still picture at once and swaps in the turning 3D
+  cue when it has loaded; cues with a 3D piece keep their still (see Decisions).
+  - Checked: lint, Lune tests; Studio PC (1529 x 666): the strip (Standard x3 Open; two Rare
+    Cases "Ready in 29:47", $750 / 12 R$ skips), the grid with shimmer and sparkle, Celestial
+    Dragon's and Phoenix's big cards, Sell duplicates -> Max (3) -> confirm -> sold
+    $750,000 and the card updated to "You own 1"; Index silhouettes, Classic Cue turning in 3D,
+    Celestial Dragon's still. Phone (844 x 390 frame): strip, grid and the side-by-side card
+    with its chooser fit and read; plus counted to 2 ("Sell 2 for $500,000"). Console clean.
+    Gamepad: the card is a selection group, B closes it (bound in code; Studio's emulator
+    cannot press B or Escape, so this needs a controller by hand).
+
 ### Changes to shared files (existing lines)
 
 - `Main.client.luau`: one line before the ready print starts `GuiQA` (Studio-only hook).
@@ -167,6 +189,11 @@ step (steps 1-14 of the brief).
 - `Progression.luau` (client, mine to change but shared by every screen): a loss sets
   `deps.lostAt`; the popup gate (`Popups.setGate`), `ShopThanks.start`, `ShopOfferPopup.start`;
   `MenuColumn` gets `shopNew`.
+- `Config.luau` (step 4): `Config.UI.Inventory.CardMinPx` {104,128} -> {118,150} and
+  `CardAspect` 1.3 -> 1.42 (bigger cards with an odds line); new `Items` block and
+  `CardOddsTextPx` after `CardAspect`.
+- `Strings.luau` (step 4): `Menus.Tabs.Inventory` gains `Items`; new keys at the end of
+  `Menus.Inventory` (CasesHeader ... Close).
 
 ## Requests to other lanes or the integrator
 
@@ -223,3 +250,10 @@ step (steps 1-14 of the brief).
 - 2026-10-03 (lane): the code box also shows in Settings whenever the Abilities screen is not
   live, so codes are always reachable. The favorite claim is reported by the client (Roblox
   gives servers no way to check a favorite); it pays once per player.
+- 2026-10-03 (lane): in the Index, a cue with a 3D piece (Phoenix and Kitsune wings, the
+  Celestial Dragon, Kraken) keeps its still picture instead of turning in 3D: a ViewportFrame
+  draws no Neon glow or ForceField, so the piece came out faint, while the new still picture
+  (step 2) shows it in full. Plain cues still turn in 3D once loaded.
+- 2026-10-03 (lane): the Inventory's Cues and Cases tabs become one **Items** tab (cases in a
+  strip on top), as the brief asked; the chosen cue's big card lays out side by side on any
+  landscape space.
