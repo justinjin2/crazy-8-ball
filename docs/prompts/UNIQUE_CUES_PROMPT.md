@@ -251,9 +251,9 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   real match.
 - [x] 6. Beta: polish next to Eclipse, Lower-effects variant, Index, inventory and shop cards,
   quieting in the shooter's hands.
-- [ ] 7. Grand Opening: painted surface from the board (navy lacquer, gold inlays, glowing
+- [x] 7. Grand Opening: painted surface from the board (navy lacquer, gold inlays, glowing
   fireworks and stars, quilted wrap, gold collars), skin file, upload, template, thumbnail.
-- [ ] 8. Grand Opening: the aura (two 3D gold sparkle ribbons, mini fireworks in five colours,
+- [x] 8. Grand Opening: the aura (two 3D gold sparkle ribbons, mini fireworks in five colours,
   bigger bursts, glow, lights); gate 2, designer approval.
 - [ ] 9. Grand Opening: trail and pocket finisher at Eclipse size or more, faint crackles and
   pops; checked in a real match.
@@ -288,6 +288,9 @@ worked, as the starting point for future rarer cues; write it if they say yes.
 - 2026-10-04: step 6 done: Lower-effects variant (far panels hide, rates follow Quality), the
   Index card and detail checked, quieting in the hands checked. The Beta Cue is complete
   pending gate 3.
+- 2026-10-04: steps 7 and 8 built: the Grand Opening Cue's maps, sprites, thumbnail and piece
+  uploaded, rows generated, template built, aura tuned on the lobby floor (both Unique cues'
+  lights dimmed). Waiting at gate 2 for the Grand Opening Cue.
 
 ## Decisions
 

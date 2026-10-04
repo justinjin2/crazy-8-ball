@@ -125,6 +125,20 @@ by hand in your copy (which is otherwise lost at the merge).
   yet" (`beta-index.jpg`); the owned card uses the same no-aura thumbnail. Quieting in the
   hands: the aura's emitters and the hum drop to a quarter (Config Quiet share 0.25); the
   piece and panels stay. Lint and tests green.
+- 2026-10-04 steps 7 and 8 (built, gate 2 pending): the Grand Opening Cue is in the game.
+  `"draft": true` removed from its skin; its five painted maps, three sprites, the thumbnail
+  and the ribbon piece GLB uploaded to the group with image ids; rows generated
+  (`Skins/GrandOpeningCue.luau`, `Pieces/grand_opening.luau`, the Index entry); the template
+  and the piece built in the lane window; `GrandOpeningCue` added to the mesh test's built
+  set. The aura on the lobby floor: the two gold ribbon helices turn round the cue, glitter,
+  star glints and crackle sparks round it, mini fireworks popping in five colours with a
+  bigger burst every few seconds, a warm gold halo beam, gold emissive stars pulsing on the
+  body. It blew out white on the floor: glitter, glints, crackle and glow rates and
+  brightness cut to about a third, the halo and the ribbon heads dimmed, the body's emissive
+  1.2 to 2.0, and the PointLights of both Unique cues dimmed (switching the lights off in the
+  lab proved they, not the particles, flooded the floor). Captures for the gate:
+  `assets/cue/concepts/unique/grand-opening-studio-{stand,close,back}.jpg`. Lint and the cue
+  tests green.
 
 ## Decisions
 
