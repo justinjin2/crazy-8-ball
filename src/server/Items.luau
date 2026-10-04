@@ -821,6 +821,13 @@ function Items.start()
 	else
 		mirrorSale()
 	end
+	if IS_STUDIO and Config.Debug.StudioOpening == true then
+		-- The Grand Opening is open in every Studio session (Config.Debug.StudioOpening).
+		local opening = Config.Shop.Deals.GrandOpening
+		if opening ~= nil and opening.StartsAt == 0 then
+			Items.setLimitedWindow(os.time(), opening.Seconds)
+		end
+	end
 
 	local remote = Net.get("ItemRequest") :: RemoteFunction
 	remote.OnServerInvoke = function(player: Player, action: any, a: any, b: any): Reply

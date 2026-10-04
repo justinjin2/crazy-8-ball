@@ -10336,6 +10336,10 @@ Config.Tutorial = {
 Config.Debug = {
 	-- Test keys in play mode: B = rack and break (until rules handle new games).
 	TestKeysEnabled = true,
+	-- In Studio only: the Grand Opening deal (and with it the release sale and every Limited
+	-- row) opens when the server starts, as if "/limited start" had been typed, so the Shop's
+	-- Featured section is always there to look at. Live, Config.Shop.Deals' StartsAt rules.
+	StudioOpening = true,
 	-- The developer status line in the top-left corner. It is a readout of aim, speed and
 	-- table counts, not part of the game, so it starts hidden and this key brings it in and
 	-- out. Held as a string because Config is loaded by the Lune tests, which have no Enum;
