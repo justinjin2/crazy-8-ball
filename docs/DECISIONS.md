@@ -2368,3 +2368,7 @@ timer of a new block stay the designer's call.
   are allowed only if they do not materially delay the main work. Balance performance with
   a preference for visual quality; designer will check on an iPhone. Existing paid generation
   tools and Roblox group 675425213 uploads have standing authorization after brief approval.
+
+- 2026-10-04: Designer approved the cue VFX brief (“begin”). Shape 3 retains the first 2.1 studs
+  and eases to the approved 0.36 butt; its extra transition rings raise the shared mesh from
+  3,840 to 4,160 triangles. Existing 1.15 thumbnail thickening and clean aura-free card art stay.

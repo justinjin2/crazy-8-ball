@@ -76,7 +76,7 @@
             "Kind": "Part",
             "FromStuds": 0.2,
             "ToStuds": 7.0,
-            "Width": 0.52,
+            "Width": 0.56,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -134,7 +134,7 @@
             "Kind": "Part",
             "FromStuds": 1.0,
             "ToStuds": 7.0,
-            "Width": 1.02,
+            "Width": 1.06,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -221,7 +221,7 @@
           "TravelSeconds": 2.4,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.9,
-          "Radius": 0.3,
+          "Radius": 0.32,
           "Wobble": 0.05,
           "WobbleHz": 0.9,
           "Phase": 0,
@@ -280,7 +280,7 @@
           "TravelSeconds": 2.9,
           "Loop": "pingpong",
           "TurnsPerSecond": -0.8,
-          "Radius": 0.36,
+          "Radius": 0.38,
           "Wobble": 0.05,
           "WobbleHz": 0.9,
           "Phase": 180,
@@ -430,5 +430,5 @@
       }
     }
   },
-  "shape": 2
+  "shape": 3
 }

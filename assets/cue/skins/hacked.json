@@ -57,7 +57,7 @@
           "FromStuds": 0.3,
           "ToStuds": 3.6,
           "Width0": 0.1107,
-          "Width1": 0.2529,
+          "Width1": 0.2818,
           "Segments": 20,
           "Texture": "vfx/hacked/code_strip.png",
           "TextureMode": "Wrap",
@@ -91,8 +91,8 @@
           "Name": "CodeScrollForearm",
           "FromStuds": 3.8,
           "ToStuds": 5.32,
-          "Width0": 0.2612,
-          "Width1": 0.3055,
+          "Width0": 0.2933,
+          "Width1": 0.3437,
           "Segments": 20,
           "Texture": "vfx/hacked/code_strip.png",
           "TextureMode": "Wrap",
@@ -120,14 +120,14 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.1422
+          "ZOffset": 0.16
         },
         {
           "Name": "CodeScrollSleeve",
           "FromStuds": 6.64,
           "ToStuds": 6.94,
-          "Width0": 0.3168,
-          "Width1": 0.3168,
+          "Width0": 0.3564,
+          "Width1": 0.3564,
           "Segments": 4,
           "Texture": "vfx/hacked/code_strip.png",
           "TextureMode": "Wrap",
@@ -155,7 +155,7 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.16
+          "ZOffset": 0.18
         }
       ]
     },
@@ -176,7 +176,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 1.02,
+            "Width": 1.06,
             "Shape": "Box",
             "ShapeStyle": "Volume",
             "Up": 0.35
@@ -235,7 +235,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.34,
+            "Width": 0.38,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -287,7 +287,7 @@
           "TravelSeconds": 2.4,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.8,
-          "Radius": 0.34,
+          "Radius": 0.36,
           "Phase": 0,
           "Delay": 0.0,
           "Trail": {
@@ -331,7 +331,7 @@
           "TravelSeconds": 2.9,
           "Loop": "pingpong",
           "TurnsPerSecond": -0.7,
-          "Radius": 0.42,
+          "Radius": 0.44,
           "Phase": 120,
           "Delay": 0.7,
           "Trail": {
@@ -375,7 +375,7 @@
           "TravelSeconds": 3.4,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.8,
-          "Radius": 0.5,
+          "Radius": 0.52,
           "Phase": 240,
           "Delay": 1.4,
           "Trail": {
@@ -571,5 +571,5 @@
       "Orbiters": 3
     }
   },
-  "shape": 2
+  "shape": 3
 }

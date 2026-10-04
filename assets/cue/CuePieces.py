@@ -1074,7 +1074,7 @@ def attach(bpy, pid, cue_obj):
 # Pieces
 # =============================================================================================
 
-def build(pid):
+def build(pid, render_preview=True):
     import bpy
     import cue_common as cc
     cc.clear_scene('CuePieces')
@@ -1085,7 +1085,8 @@ def build(pid):
     kit = CuePieces.Kit(bpy, pid)
     CuePieces.BUILDERS[pid](kit)
     spec = CuePieces.export(kit)
-    preview(pid)
+    if render_preview:
+        preview(pid)
     return spec
 
 
@@ -1281,8 +1282,8 @@ def main():
         stitch(sys.argv[sys.argv.index('--sheet') + 1])
         return
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
-    for pid in argv:
-        build(pid)
+    for pid in (arg for arg in argv if not arg.startswith('--')):
+        build(pid, render_preview='--no-preview' not in argv)
 
 
 if __name__ == '__main__':

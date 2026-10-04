@@ -1,23 +1,27 @@
 # Status
 
-**2026-10-04: cue VFX upgrade interview complete; brief awaiting approval.**
-- Branch `cue-vfx` starts from `release` at `d3b6c57`. The build brief is
-  [CUE_VFX_PROMPT.md](prompts/CUE_VFX_PROMPT.md); no production implementation has begun.
-- Designer approved a 0.36-stud butt with the slim tip retained, after Studio proportion
-  comparisons. The full mesh/UV/map/thumbnail/piece rebuild comes first after brief approval.
-- Every Rare+ cue gets a complete VFX review, with the accepted rank/Exclusive ladder.
-  Beta and Grand Opening are the two new Unique skins for release: translucent blue/magenta
-  blueprints at Secret quality, and navy/gold/cyan/magenta fireworks at Mythic quality.
-  Beta and Eclipse share the highest visual standard. **Founder's Cue is cancelled.**
-- Painted luminous spirit creatures; mechanical Apex; pastel-pink Kitsune; Eclipse retains
-  its colours with a grander stable silhouette; VIP is gold with rainbow accents, no crown.
-  Crowns are reserved for Reyes in cue art. Restrained aiming and short trails remain.
-- Scope is art, animation, VFX and Studio integration ready to use. Economy, sale rules,
-  ownership and receipts are explicitly outside this task. Existing generation APIs and
-  Roblox group uploads have standing approval once the brief is approved.
-- Reference images are preserved in `assets/cue/concepts/vfx-upgrade/`. Temporary width
-  studies were removed from Studio. No production templates or assets have changed.
-- Planning baseline: lint passed with four existing shadow warnings; all 983 tests passed.
+**2026-10-04: cue VFX pass — 0.36 width rebuild verified; Eclipse next.**
+- Approved brief: [CUE_VFX_PROMPT.md](prompts/CUE_VFX_PROMPT.md), branch `cue-vfx` from
+  `release`. Economy, sale rules, ownership and receipts remain outside this art task.
+- Shared mesh rebuilt at 0.36 butt, 0.09 tip, 7 length, retaining the approved slim front.
+  Mesh/UV/envelope checks pass; 4,160 triangles. All 59 existing skin maps and clean thumbnails,
+  16 pieces and 21 extra animated-surface frames rebuilt and imported.
+- 427 replacement assets uploaded to group 675425213; 408 images resolved and source hashes
+  recorded in the manifest. Shape-3 effects migration is idempotent; Phoenix hosts refit.
+  Classic replaced explicitly; every template has the new mesh and correct size.
+- Lint passes with four existing shadow warnings; all **984 tests pass**. Studio checks cover
+  bright-lobby back/stand, walking/seated carry, a 65%-scale avatar, aiming, off-centre spin,
+  60° elevation and a completed corner-rail shot. PC/phone views checked, console clean.
+  Controller emulation connects; real iPhone and physical-controller acceptance remain pending.
+- Lab fixed to await warm assets and reuse one back pool; unused slots remain hidden.
+  Width checkpoint captures: `assets/cue/renders/vfx-upgrade/width036_*.png` (local/ignored).
+- Next: Eclipse and shared effect/quiet/quality support, then Beta, following the approved
+  tier order. The width rebuild does not count as the promised visual-effects redesign.
+- Beta and Grand Opening are the only new Unique cues. Beta/Eclipse share Secret-quality art;
+  Grand Opening is Mythic-quality. Founder is cancelled. Painted spirit creatures, mechanical
+  Apex, pink Kitsune, Eclipse's existing colours, gold-focused VIP and Reyes-only crowns.
+- The imported library is Edit-mode place content in Studio/Team Create. Final
+  `place/8ball.rbxl` save and publish remain the designer's handoff at milestone completion.
 
 **2026-10-04: two-stage lucky-block reel skip.**
 - First click keeps a one-second, two-card approach so the preceding cue visibly passes

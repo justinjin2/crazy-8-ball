@@ -9,6 +9,7 @@
 --sheet   CuePreview.py --sheet <id>          (renders/skins/<id>/sheet.png)
 --clip    CuePreview.py --clip                (renders/skins/<id>/clip.mp4)
 --thumb   CuePreview.py --thumb               (thumbs/<id>.png, the game's card picture)
+--noaura  suppress thumbnail aura (the current game's clean card art)
 --all     every step (the default with no step flags). Headless Blender only, one at a time.
 """
 import os
@@ -33,7 +34,7 @@ def blender(script, *args):
 def main():
     args = sys.argv[1:]
     ids = [a for a in args if not a.startswith('--')]
-    steps = [a for a in args if a.startswith('--') and a != '--quick']
+    steps = [a for a in args if a.startswith('--') and a not in ('--quick', '--noaura')]
     if not steps or '--all' in steps:
         steps = ['--paint', '--maps', '--stills', '--sheet', '--clip']
     for skin_id in ids:
@@ -46,7 +47,7 @@ def main():
         if '--sheet' in steps:
             subprocess.run([sys.executable, os.path.join(CUE, 'CuePreview.py'), '--sheet', skin_id], cwd=ROOT, check=True)
         if '--thumb' in steps:
-            blender('CuePreview.py', '--skin', skin_id, '--thumb')
+            blender('CuePreview.py', '--skin', skin_id, '--thumb', *(['--noaura'] if '--noaura' in args else []))
         if '--clip' in steps:
             blender('CuePreview.py', '--skin', skin_id, '--clip', *(['--quick'] if '--quick' in args else []))
 

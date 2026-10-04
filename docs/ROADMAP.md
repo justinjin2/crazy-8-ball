@@ -22,8 +22,8 @@ Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (be
 The designer requested this art pass now. The earlier lucky-block controller/place handoff
 remains pending below. Brief: [CUE_VFX_PROMPT.md](prompts/CUE_VFX_PROMPT.md).
 
-- [ ] Approve the completed interview's detailed art brief. Width selected: 0.36, tip kept.
-- [ ] Rebuild the shared mesh, all existing skin maps/thumbnails, effects offsets and pieces;
+- [x] Approve the completed interview's detailed art brief. Width selected: 0.36, tip kept.
+- [x] Rebuild the shared mesh, all existing skin maps/thumbnails, effects offsets and pieces;
   verify final-width aiming and clearance before effects production.
 - [ ] Build Eclipse and new Beta to the same highest visual standard; Mythics and new
   Grand Opening next, followed by the accepted rank equivalents, Legendary, Epic and Rare.

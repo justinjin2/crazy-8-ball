@@ -1,11 +1,11 @@
 # Cue VFX upgrade pass
 
-**2026-10-04 — DRAFT FOR DESIGNER APPROVAL. Implementation has not started.**
+**2026-10-04 — APPROVED. Width rebuild verified; Eclipse is next.**
 
 Branch: `cue-vfx`, created from `release` at `d3b6c57`. Work in the main
 `~/Desktop/8ball` checkout and main Studio place, with Rojo on 34872. This brief supersedes
 the older cue-skins brief wherever they disagree. Accepted interview decisions are recorded
-below. The art interview is complete. Approval of this brief is the build gate.
+below. The art interview is complete. The designer approved this brief with “begin” on 2026-10-04.
 
 ## 1. The visual ladder
 
@@ -692,6 +692,10 @@ saved or live; record those states separately.
   hand/back transfers remain seamless. Blueprint details prioritize readable major lines
   over the reference's fine text. Preserve current source JSON over old generator recipes.
 
+- **2026-10-04, implementation:** shape 3 uses 4,160 triangles (budget 4,200; previously
+  3,840/4,000), retaining the 32-sided cross-section and adding rings for the approved smooth
+  widening. Existing card exaggeration stays at 1.15 with aura-free thumbnails.
+
 ## 15. Status
 
 - **2026-10-04 — Planning only:** repository/reference review complete; `cue-vfx` branch
@@ -701,3 +705,23 @@ saved or live; record those states separately.
   templates or game settings changed. Existing place save/publish work remains pending.
   Baseline verification: `tools/lint.sh` passed with four existing LocalShadow warnings;
   `tools/test.sh` passed all 983 tests. Brief coverage, reference links and diff whitespace checked.
+
+- **2026-10-04 — Implementation started:** designer approved the brief. Shape-2 source JSON
+  and piece definitions snapshotted; rebuilding the approved 0.36 profile before VFX work.
+
+- **2026-10-04 — Width verified:** 0.36 butt / 0.09 tip / 7 length, slim first 2.1 studs
+  retained. Mesh/UV/manifold/envelope checks pass at 4,160 triangles; all 59 maps/thumbnails
+  and 16 pieces rebuilt, 21 moving-surface frames imported. 427 replacement assets uploaded
+  to group 675425213, all 408 image IDs resolved, source hashes recorded. Shape 2 -> 3
+  migration preserves 123 emitter clearances and is a no-op on rerun; Phoenix Segment hosts
+  refit. Classic explicitly replaced; all 59 templates report the correct mesh and size.
+  Lint passes (four existing warnings); **984 tests pass**. Studio: bright-lobby back/stand,
+  moving and seated carry, 65%-scale avatar (butt 0.8 studs above floor), real aiming,
+  off-centre spin, 60° elevation, corner-rail pull/release and completed shot; console clean.
+  PC and phone-emulator views checked; controller emulator connected, physical pad/iPhone
+  acceptance remains pending. Frozen live-pose grip study is labelled as an inspection
+  (accessories/effects hidden), not a live-match screenshot. Evidence is locally preserved
+  under `assets/cue/renders/vfx-upgrade/width036_*.png` (ignored checkpoint captures).
+  The lab now waits for warm assets and reuses one back pool with hidden unused slots.
+  Edit-mode templates are in Studio/Team Create; the final place save/publish is still the
+  designer's handoff. No cue VFX redesign is marked complete by this width step.

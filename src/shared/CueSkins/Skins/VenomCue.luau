@@ -8,11 +8,11 @@ return {
 	Name = "Venom",
 	Tier = "Uncommon",
 	Maps = {
-		Color = "rbxassetid://83375475757413",
-		Normal = "rbxassetid://75374412232161",
-		Roughness = "rbxassetid://96713756723041",
-		Metalness = "rbxassetid://131158079298744",
-		Emissive = "rbxassetid://138888926267565",
+		Color = "rbxassetid://95871731768686",
+		Normal = "rbxassetid://138750879263932",
+		Roughness = "rbxassetid://99479280324488",
+		Metalness = "rbxassetid://139754971228160",
+		Emissive = "rbxassetid://130237092847004",
 	},
 	Surface = {
 		EmissiveStrength = 1.6,
@@ -55,13 +55,13 @@ return {
 			},
 		},
 	},
-	Thumb = "rbxassetid://71432868733176",
+	Thumb = "rbxassetid://77875308056689",
 	Look = {
 		Shaft = { 10, 11, 10 },
 		Forearm = { 18, 52, 12 },
 		Wrap = { 30, 33, 32 },
 		Ring = { 200, 204, 208 },
 		Tip = { 30, 36, 56 },
-		Cap = { 21, 22, 22 },
+		Cap = { 20, 21, 21 },
 	},
 }
