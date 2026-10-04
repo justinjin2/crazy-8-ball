@@ -294,6 +294,10 @@ worked, as the starting point for future rarer cues; write it if they say yes.
 - 2026-10-04: steps 9 and 10 done: the fireworks brightened (sprite re-uploaded), trail and
   finisher checked in a solo fixture match with both sounds, Lower effects and the Index card
   checked.
+- 2026-10-04: step 11: lint green, 984 tests green, every shared-file change listed in the
+  lane file; the six-cue lineup (Beta, Grand Opening, Eclipse, Apex, Kitsune, Celestial
+  Dragon) captured in the lobby lab (`assets/cue/concepts/unique/lineup-*.jpg`). Waiting at
+  gate 3.
 
 ## Decisions
 

@@ -151,6 +151,9 @@ by hand in your copy (which is otherwise lost at the merge).
   fixed, so the sound row reaches the game). Lower effects cuts its particle rates to a third
   through Quality (no piece joint hides: the two ribbons are the cue's main form). The Index
   shows it in the Unique row with its no-aura thumbnail. Lint and the cue tests green.
+- 2026-10-04 step 11: lint and the 984 tests green; the six-cue lineup captured in the lab
+  (`lineup-six-high.jpg`, `lineup-beta-grand-opening-eclipse.jpg`,
+  `lineup-apex-kitsune-dragon.jpg`); waiting at gate 3.
 
 ## Decisions
 
