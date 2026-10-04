@@ -767,12 +767,12 @@ return {
 			-- The one scrolling page (GUI lane, 2026-10-03). Big, short words: about 40%
 			-- longer translations still fit.
 			Sections = {
-				GrandOpening = "GRAND OPENING",
+				GrandOpening = "FEATURED", -- over the Grand Opening band (designer, 2026-10-04)
 				Offer = "STARTER & VIP",
 				Vip = "VIP",
 				Limited = "LIMITED",
-				Restock = "RESTOCK",
-				Mystery = "MYSTERY BLOCK",
+				Restock = "RESTOCK", -- (the restock has no header word now: its dark bar instead)
+				Mystery = "LUCKY BLOCKS", -- over the Mystery band and the restock tiles
 				Money = "MONEY",
 				Boosts = "PASSES",
 				RobloxPlus = "ROBLOX PLUS",
@@ -786,8 +786,12 @@ return {
 			},
 			-- The lucky block cards (designer, 2026-10-04).
 			Opening = {
-				Title = "GRAND OPENING",
-				Subtitle = "LUCKY BLOCK · LIMITED · YOU COULD PULL...",
+				Title = "GRAND OPENING LUCKY BLOCK", -- gold, a star each side (reference 12)
+				Subtitle = "YOU COULD PULL...",
+				-- The Robux buttons: the count and the price ("3 blocks · 129"; the old price is
+				-- struck through after it).
+				BlocksRobux = "%d block · %s",
+				BlocksRobuxMany = "%d blocks · %s",
 				Unique = "UNIQUE",
 				Limited = "LIMITED",
 				New = "NEW",
@@ -800,7 +804,10 @@ return {
 			Count = "x%d", -- over a column of buttons: "x10"
 			AlwaysInStock = "Always in stock",
 			MysteryTitle = "Mystery Lucky Block",
-			MysteryOpens = "Opens into one of the six blocks below", -- the Mystery block's line
+			-- The Mystery block's line (reference 13); the minutes from Config.LuckyBlocks.
+			MysteryOpens = "Opens into one of the six blocks below · %d min timer when won, instant when bought",
+			SaleSticker = "-%d%% SALE", -- the x10 column's sticker during the release sale
+			OffShort = "-%d%%", -- a money pack's corner ribbon
 			OrBetter = "%s cue or better: %s", -- "Epic cue or better: 0.13%"
 			RestockOdds = "each slot: %s", -- after the countdown: the slots' chances
 			OddsPair = "%s %s", -- "Rare 36.6%"

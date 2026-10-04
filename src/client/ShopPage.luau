@@ -88,6 +88,17 @@ local function off(now: number, old: number): string?
 	return COPY.Off:format(math.floor((1 - now / old) * 100 + 0.5))
 end
 
+-- A number's hex for rich text.
+local function hex(rgb: { number }): string
+	return ("%02x%02x%02x"):format(rgb[1], rgb[2], rgb[3])
+end
+
+-- A price struck through in red, for rich text after a button's words.
+local function struck(text: string): string
+	local numbers: { [string]: { number } } = K.Numbers :: any
+	return (' <font color="#%s"><s>%s</s></font>'):format(hex(numbers.Old), text)
+end
+
 --------------------------------------------------------------------------------------------
 -- Buttons
 --------------------------------------------------------------------------------------------
@@ -141,7 +152,7 @@ local function moneyButton(shop: any, key: string, price: number, buy: () -> ())
 	end
 	return {
 		text = Format.money(price),
-		tone = "Green",
+		tone = "Yellow", -- money is gold, Robux is green (the designer's references)
 		enabled = not busy,
 		icon = "CashSingle",
 		action = function()
@@ -206,6 +217,7 @@ local function dealColumns(
 			shop:buyBlocks(dealId, count)
 		end)
 		local robuxBtn: ShopCards.Button? = nil
+		local buyNow = 0 -- the Robux price on the button (the sale's while it runs)
 		if type(key) == "string" and products[key] ~= nil then
 			-- The sale's product while the release sale runs.
 			local saleKey = swap[key]
@@ -214,16 +226,28 @@ local function dealColumns(
 					and products[saleKey]
 				then saleKey
 				else key
-			robuxBtn = robuxButton(shop, buyKey, products)
+			local btn = robuxButton(shop, buyKey, products)
+			robuxBtn = btn
 			local row = list[buyKey] or {}
 			local was = if type(row.Was) == "number" then row.Was else nil
 			if buyKey ~= key then
 				was = ShopParts.robuxOf(products[key], key)
 			end
 			local now = ShopParts.robuxOf(products[buyKey], buyKey)
-			if was and was > now then
-				column.old = ShopParts.robux(was)
+			buyNow = now
+			if robuxFirst then
+				-- The Grand Opening (reference 12): "3 blocks · 129" with the old price struck
+				-- through after it, and no count label over the column.
+				local words = if count == 1 then OPENING.BlocksRobux else OPENING.BlocksRobuxMany
+				local text = words:format(count, ShopParts.robux(now))
+				if was and was > now then
+					text ..= struck(ShopParts.robux(was))
+				end
+				btn.text = text
+				column.label = nil
 			end
+			-- (The Mystery band shows no old price: its x10 column's "-30% SALE" sticker says
+			-- it, as in reference 13.)
 		end
 		if robuxFirst then
 			if robuxBtn then
@@ -236,9 +260,23 @@ local function dealColumns(
 				table.insert(column.buttons, robuxBtn)
 			end
 		end
-		if count > 1 and single > 0 and single * count > price then
-			column.note =
-				OPENING.Save:format(math.floor((1 - price / (single * count)) * 100 + 0.5))
+		-- "save 12%": against buying singles, by the Robux prices when the bundle has a
+		-- Robux product (reference 12), else by the money prices.
+		local singleKey = keys[1]
+		local singleRobux = if type(singleKey) == "string" and products[singleKey] ~= nil
+			then ShopParts.robuxOf(products[singleKey], singleKey)
+			else 0
+		if count > 1 then
+			local saveNow, saveWas = 0, 0
+			if robuxBtn and singleRobux > 0 and buyNow > 0 then
+				saveNow = buyNow
+				saveWas = singleRobux * count
+			elseif single > 0 then
+				saveNow, saveWas = price, single * count
+			end
+			if saveWas > saveNow and saveNow > 0 then
+				column.note = OPENING.Save:format(math.floor((1 - saveNow / saveWas) * 100 + 0.5))
+			end
 		end
 		table.insert(columns, column)
 	end
@@ -259,11 +297,11 @@ local function grandOpeningSection(state: any, products: any, shop: any, _now: n
 		id = "GrandOpening",
 		shape = "Opening",
 		kind = "GrandOpening",
-		title = OPENING.Title,
-		titleStyle = "Rainbow",
+		title = OPENING.Title, -- gold (the band paints an Opening title gold)
 		subtitle = OPENING.Subtitle,
 		chase = chase,
 		shine = true,
+		dark = true,
 	}
 	(spec :: any).kit = "Block"
 	if deal.vaulted == true then
@@ -292,12 +330,6 @@ local function grandOpeningSection(state: any, products: any, shop: any, _now: n
 	end
 	table.insert(cards, spec)
 	return { key = "GrandOpening", grid = false, cards = cards }
-end
-
--- The VIP card: the welcome offer while open, else the release sale's price, else the pass.
--- A number's hex for rich text.
-local function hex(rgb: { number }): string
-	return ("%02x%02x%02x"):format(rgb[1], rgb[2], rgb[3])
 end
 
 -- VIP's band (the designer's reference, 2026-10-04): the crown, "VIP", "x1 -> x2 MONEY",
@@ -553,6 +585,7 @@ local function tierRows(): { ShopBlockCards.OddsRow }
 			name = SHORT_NAMES[entry.tier] or entry.tier,
 			display = entry.display,
 			rarity = if entry.tier == "Standard" then "Common" else entry.tier,
+			kind = entry.tier, -- the tier's block, pictured on the row
 		})
 	end
 	return rows
@@ -588,21 +621,26 @@ local function mysterySection(state: any, products: any, shop: any, _now: number
 		shape = "Mystery",
 		kind = "Mystery",
 		title = COPY.MysteryTitle,
-		line = COPY.MysteryOpens,
+		line = COPY.MysteryOpens:format(
+			math.floor((tableOf(Config.LuckyBlocks.Kinds.Mystery).Timer or 0) / 60 + 0.5)
+		),
 		pill = COPY.AlwaysInStock,
 		pillTone = "Green",
 		odds = tierRows(),
+		oddsStyle = "Icons",
 		oddsNote = orBetterLine("Epic"),
 		columns = dealColumns(state, products, shop, "Mystery", deal, false),
 	}
 	(spec :: any).kit = "Block"
 	local sale = tableOf(state.releaseSale)
 	if sale.open == true then
-		spec.sticker = off(
-			ShopParts.robuxOf(products.Mystery10Sale, "Mystery10Sale"),
-			ShopParts.robuxOf(products.Mystery10, "Mystery10")
-		)
-		spec.stickerTone = "Red"
+		-- The sale's sticker sits on the x10 column (reference 13).
+		local saleNow = ShopParts.robuxOf(products.Mystery10Sale, "Mystery10Sale")
+		local saleWas = ShopParts.robuxOf(products.Mystery10, "Mystery10")
+		local last = spec.columns and spec.columns[#spec.columns]
+		if last and saleWas > saleNow and saleNow > 0 then
+			last.sticker = COPY.SaleSticker:format(math.floor((1 - saleNow / saleWas) * 100 + 0.5))
+		end
 		spec.timerEnds, spec.timerWords = sale.endsAt, COPY.SaleEnds
 		spec.shine = true
 	end

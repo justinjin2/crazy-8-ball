@@ -16,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Strings = require(Shared:WaitForChild("Strings"))
 local BlockIcon = require(script.Parent.BlockIcon)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
@@ -28,6 +29,7 @@ local B = P.Block
 local K = Config.UI.Kit
 local RARITY: { [string]: { number } } = K.Rarity :: any
 local RAINBOW: { { number } } = Config.Ranks.ChatRainbow :: any -- Secret's rim
+local OPENING: { [string]: string } = Strings.Menus.Shop.Opening :: any
 local color = HudParts.color
 local span = ShopParts.span
 local round = ShopParts.round
@@ -36,12 +38,20 @@ local ShopBlockCards = {}
 
 export type Button = ShopCards.Button
 
--- A column of buttons under a count ("x3"): the Robux button (its old price crossed out
--- above), the money button, a note under ("save 12%").
-export type Column = { label: string, buttons: { Button }, old: string?, note: string? }
+-- A column of buttons under a count ("x3"; none on the Grand Opening band, whose Robux
+-- buttons say the count): the Robux button (its old price crossed out above), the money
+-- button, a note under ("save 12%").
+export type Column = {
+	label: string?,
+	buttons: { Button },
+	old: string?,
+	note: string?,
+	sticker: string?, -- a red sticker over the column's bottom ("-30% SALE")
+}
 
--- One row of an odds strip: a rarity's (or a tier's) name and chance, in a rarity's colour.
-export type OddsRow = { name: string, display: string, rarity: string }
+-- One row of an odds strip: a rarity's (or a tier's) name and chance, in a rarity's colour;
+-- `kind` (a block kind) puts that block's small picture on the row (the "Icons" style).
+export type OddsRow = { name: string, display: string, rarity: string, kind: string? }
 
 -- A chase row: a Unique cue the block could pull.
 export type Chase = { cue: string, display: string }
@@ -65,6 +75,7 @@ export type Spec = {
 	pill: string?, -- a pill by the title ("Always in stock")
 	pillTone: string?,
 	odds: { OddsRow }?,
+	oddsStyle: string?, -- "Icons": pale rows with a block picture and a coloured name (Mystery)
 	oddsNote: string?, -- under the strip ("Epic cue or better: 0.13%")
 	chase: { Chase }?,
 	columns: { Column }?,
@@ -80,21 +91,42 @@ export type Spec = {
 	locked: boolean?, -- the VIP slot for a non-VIP: grey, a padlock, lockLine, one button
 	lockLine: string?,
 	shine: boolean?,
+	dark: boolean?, -- the Grand Opening's festive navy fill (white words on it)
 }
 
 type OddsStrip = {
 	root: Frame,
-	rows: { { root: Frame, name: TextLabel, pct: TextLabel, rim: UIStroke } },
+	rows: {
+		{
+			root: Frame,
+			name: TextLabel,
+			pct: TextLabel,
+			rim: UIStroke,
+			art: Frame,
+			icon: BlockIcon.Icon?,
+		}
+	},
 }
 type PerkRow = { root: Frame, icon: ImageLabel, text: TextLabel }
-type ChaseRow = { root: Frame, thumb: Frame?, name: TextLabel, tag: ShopParts.Pill, pct: TextLabel }
+-- A chase card: the cue's name in its colour, UNIQUE and LIMITED tags, the cue's picture at
+-- the right, its chance in a rimmed pill at the bottom right.
+type ChaseRow = {
+	root: Frame,
+	thumb: Frame?,
+	name: TextLabel,
+	tag: ShopParts.Pill,
+	tag2: ShopParts.Pill,
+	pct: ShopParts.Pill,
+}
 type ColumnUi = {
 	root: Frame,
+	box: UIStroke, -- the Mystery columns sit in a pale box
 	label: TextLabel,
 	old: TextLabel,
 	buttons: { TextButton },
 	actions: { () -> () },
 	note: TextLabel,
+	sticker: ShopParts.Pill,
 }
 
 export type Card = {
@@ -125,6 +157,7 @@ export type Card = {
 	stickerText: TextLabel,
 	lock: ImageLabel,
 	lockLine: TextLabel,
+	stars: { ImageLabel }, -- the Grand Opening title's two stars
 	spec: Spec?,
 	style: string?,
 	titleAnim: UIAnim.Handle?,
@@ -184,7 +217,10 @@ local function makeOdds(parent: Instance): OddsStrip
 		end
 		rainbow.Color = ColorSequence.new(stops)
 		rainbow.Parent = rim
-		rows[i] = { root = row, name = name, pct = pct, rim = rim }
+		local art = HudParts.frame(row, "Art")
+		art.ZIndex = 4
+		art.Visible = false
+		rows[i] = { root = row, name = name, pct = pct, rim = rim, art = art, icon = nil }
 	end
 	return { root = root, rows = rows }
 end
@@ -208,12 +244,18 @@ local function makeChase(parent: Instance, i: number): ChaseRow
 	name.ZIndex = 5
 	local tag = ShopParts.pill(root, "Tag", "Red")
 	tag.root.BackgroundColor3 = rarityColor("Unique")
-	local pct = HudParts.text(root, "Pct", B.ChaseNamePx[1], "", numberColor("Count"))
-	pct.AutoLocalize = false
-	pct.TextWrapped = false
-	pct.TextXAlignment = Enum.TextXAlignment.Left
-	pct.ZIndex = 5
-	return { root = root, thumb = nil, name = name, tag = tag, pct = pct }
+	tag.label.Text = OPENING.Unique
+	local tag2 = ShopParts.pill(root, "Tag2", "Gold")
+	tag2.label.Text = OPENING.Limited
+	-- The chance: a dark pill with the Unique pink rim, like the card's.
+	local pct = ShopParts.pill(root, "Pct", "Red")
+	pct.root.BackgroundColor3 = HudParts.tone("Ink")
+	pct.label.AutoLocalize = false
+	local rim = pct.root:FindFirstChildOfClass("UIStroke")
+	if rim then
+		rim.Color = rarityColor("Unique")
+	end
+	return { root = root, thumb = nil, name = name, tag = tag, tag2 = tag2, pct = pct }
 end
 
 local function makePerk(parent: Instance, i: number): PerkRow
@@ -247,6 +289,19 @@ local function makeColumn(parent: Instance, i: number): ColumnUi
 	local root = HudParts.frame(parent, "Column" .. i)
 	root.ZIndex = 3
 	root.Visible = false
+	root.BackgroundColor3 = HudParts.tone("White")
+	HudParts.corner(root, P.CardCornerPx - 4)
+	local box = Instance.new("UIStroke")
+	box.Name = "Edge"
+	box.Color = color(Config.UI.Menu.Card.EdgeColor)
+	box.Thickness = Config.UI.Shop.CardStrokePx
+	box.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	box.Enabled = false
+	box.Parent = root
+	local sticker = ShopParts.pill(root, "Sticker", "Red")
+	sticker.root.ZIndex = 8
+	sticker.label.ZIndex = 9
+	sticker.root.Visible = false
 	local label = HudParts.text(root, "Label", B.ColumnLabelPx[1], "", numberColor("Count"))
 	label.AutoLocalize = false
 	label.TextWrapped = false
@@ -261,11 +316,13 @@ local function makeColumn(parent: Instance, i: number): ColumnUi
 	note.ZIndex = 4
 	return {
 		root = root,
+		box = box,
 		label = label,
 		old = old,
 		buttons = buttons,
 		actions = actions,
 		note = note,
+		sticker = sticker,
 	}
 end
 
@@ -335,6 +392,14 @@ function ShopBlockCards.new(parent: Instance, id: string, shape: string): Card
 	local lockLine = HudParts.text(root, "LockLine", B.TileTitlePx[1], "", numberColor("Money"))
 	lockLine.ZIndex = 4
 	lockLine.Visible = false
+	local stars = {}
+	for i = 1, 2 do
+		local star = HudParts.icon(root, "Star", "Star" .. i)
+		star.AnchorPoint = Vector2.new(0.5, 0.5)
+		star.ZIndex = 5
+		star.Visible = false
+		stars[i] = star
+	end
 
 	return {
 		id = id,
@@ -364,6 +429,7 @@ function ShopBlockCards.new(parent: Instance, id: string, shape: string): Card
 		stickerText = stickerText,
 		lock = lock,
 		lockLine = lockLine,
+		stars = stars,
 		spec = nil,
 		style = nil,
 		titleAnim = nil,
@@ -436,16 +502,49 @@ function ShopBlockCards.paint(card: Card, spec: Spec)
 		card.pill.label.Text = spec.pill
 		card.pill.root.BackgroundColor3 = HudParts.tone(spec.pillTone or "Green")
 	end
-	-- The odds strip.
+	-- The odds strip: coloured rows with white words, or (the "Icons" style) pale rows with
+	-- a small block and the kind's name in its colour.
 	local odds = spec.odds or {}
+	local icons = spec.oddsStyle == "Icons"
 	for i, row in card.odds.rows do
 		local o = odds[i]
 		if o then
 			row.root.Visible = true
-			row.root.BackgroundColor3 = rarityColor(o.rarity)
+			row.root.BackgroundColor3 = if icons
+				then HudParts.tone("White")
+				else rarityColor(o.rarity)
+			local edge = row.root:FindFirstChild("Edge")
+			if edge and edge:IsA("UIStroke") then
+				edge.Color = if icons then card.edgeColor else HudParts.tone("Ink")
+			end
 			row.name.Text = o.name
+			row.name.TextColor3 = if icons
+				then CueThumb.accentColor(o.rarity)
+				else HudParts.tone("White")
 			row.pct.Text = o.display
+			row.pct.TextColor3 = if icons then HudParts.tone("Ink") else HudParts.tone("White")
+			local outline = row.pct:FindFirstChild("Outline")
+			if outline and outline:IsA("UIStroke") then
+				outline.Enabled = not icons
+			end
 			row.rim.Enabled = o.rarity == "Secret" and card.shape == "Pass"
+			local kind = if icons then o.kind else nil
+			if kind ~= nil then
+				local icon = row.icon
+				if icon == nil or icon.kind ~= kind then
+					if icon then
+						icon:destroy()
+					end
+					row.icon = BlockIcon.new(row.art, kind, true)
+				end
+				row.art.Visible = true
+			else
+				if row.icon then
+					row.icon:destroy()
+					row.icon = nil
+				end
+				row.art.Visible = false
+			end
 		else
 			row.root.Visible = false
 		end
@@ -467,8 +566,9 @@ function ShopBlockCards.paint(card: Card, spec: Spec)
 				made.ZIndex = 5
 				row.thumb = made
 			end
-			row.name.Text = CueThumb.cueName(c.cue)
-			row.pct.Text = c.display
+			row.name.Text = string.upper(CueThumb.cueName(c.cue))
+			row.name.TextColor3 = CueThumb.cueColor(c.cue)
+			row.pct.label.Text = c.display
 		else
 			row.root.Visible = false
 		end
@@ -485,14 +585,21 @@ function ShopBlockCards.paint(card: Card, spec: Spec)
 			row.root.Visible = false
 		end
 	end
-	-- The buy columns.
+	-- The buy columns (boxed, with gold count labels, on the Mystery band).
 	local columns = spec.columns or {}
 	local showStatus = spec.status ~= nil
+	local boxed = card.shape == "Mystery"
 	for i, ui in card.columns do
 		local c = columns[i]
 		if c and not showStatus then
 			ui.root.Visible = true
-			ui.label.Text = c.label
+			ui.root.BackgroundTransparency = if boxed then 0 else 1
+			ui.box.Enabled = boxed
+			ui.label.Text = c.label or ""
+			ui.label.Visible = c.label ~= nil
+			ui.label.TextColor3 = if boxed then color(B.ColumnLabelColor) else numberColor("Count")
+			ui.sticker.label.Text = c.sticker or ""
+			ui.sticker.root.Visible = c.sticker ~= nil
 			ui.old.Text = strike(c.old)
 			ui.old.Visible = c.old ~= nil
 			ui.note.Text = c.note or ""
@@ -517,17 +624,40 @@ function ShopBlockCards.paint(card: Card, spec: Spec)
 	card.sticker.Visible = spec.sticker ~= nil
 	card.stickerText.Text = spec.sticker or ""
 	card.sticker.BackgroundColor3 = HudParts.tone(spec.stickerTone or "Red")
-	-- Locked (the VIP slot): a grey card, the padlock over the block, the lock line.
+	-- Locked (the VIP slot): a grey card, the padlock over the block, the lock line. Dark (the
+	-- Grand Opening): the festive navy, white words.
 	local locked = spec.locked == true
+	local dark = spec.dark == true
 	card.fill.BackgroundColor3 = if locked
 		then color(B.LockedColor)
+		elseif dark then color(B.FestiveFill)
 		elseif spec.tint == "Cream" then color(B.CreamFill)
 		else HudParts.tone("White")
+	local fade = card.fill:FindFirstChildOfClass("UIGradient")
+	if fade then
+		fade.Color = if dark
+			then ColorSequence.new(color(B.FestiveFill), color(B.FestiveFade))
+			else ColorSequence.new(HudParts.tone("White"), color(K.PanelFade))
+	end
 	local edge = card.fill:FindFirstChild("Edge")
 	if edge and edge:IsA("UIStroke") then
 		edge.Color = if spec.tint == "Cream" and not locked
 			then color(B.CreamEdge)
+			elseif dark then color(B.FestiveEdge)
 			else card.edgeColor
+	end
+	local words = if dark then HudParts.tone("White") else HudParts.tone("Ink")
+	card.line.TextColor3 = words
+	card.oddsNote.TextColor3 = words
+	for _, ui in card.columns do
+		ui.note.TextColor3 = words
+	end
+	card.note.TextColor3 = words
+	if spec.titleStyle == nil and spec.shape == "Opening" then
+		card.title.TextColor3 = numberColor("Money")
+	end
+	for _, star in card.stars do
+		star.Visible = spec.shape == "Opening" and not locked
 	end
 	card.lock.Visible = locked
 	card.lockLine.Visible = locked and spec.lockLine ~= nil
@@ -575,6 +705,11 @@ local function place(object: GuiObject, x: number, y: number, w: number, h: numb
 	object.Size = UDim2.fromOffset(math.max(1, w), math.max(1, h))
 end
 
+-- Whether the strip is in the "Icons" style (a block picture on each row).
+local function oddsIcons(card: Card): boolean
+	return card.spec ~= nil and card.spec.oddsStyle == "Icons"
+end
+
 -- The odds strip's height at these sizes.
 local function oddsHeight(card: Card, t: number): number
 	local n = 0
@@ -586,14 +721,17 @@ local function oddsHeight(card: Card, t: number): number
 	if n == 0 then
 		return 0
 	end
-	return n * span(B.OddsRowPx, t) + (n - 1) * span(B.OddsGapPx, t)
+	local rowH = span(if oddsIcons(card) then B.OddsIconRowPx else B.OddsRowPx, t)
+	return n * rowH + (n - 1) * span(B.OddsGapPx, t)
 end
 
 -- Lay the strip out at (x, y), `w` wide. Returns its height.
 local function layoutOdds(card: Card, t: number, x: number, y: number, w: number): number
-	local rowH = span(B.OddsRowPx, t)
+	local icons = oddsIcons(card)
+	local rowH = span(if icons then B.OddsIconRowPx else B.OddsRowPx, t)
 	local gap = span(B.OddsGapPx, t)
-	local textSize = math.max(K.Text.Min - 2, span(B.OddsTextPx, t))
+	local textSize =
+		math.max(K.Text.Min - 2, span(if icons then B.OddsIconTextPx else B.OddsTextPx, t))
 	local at = 0
 	for _, row in card.odds.rows do
 		if row.root.Visible then
@@ -601,7 +739,13 @@ local function layoutOdds(card: Card, t: number, x: number, y: number, w: number
 			HudParts.setTextSize(row.name, textSize, textSize)
 			HudParts.setTextSize(row.pct, textSize, textSize)
 			local pctW = math.min(round(w * 0.45), widthOf(row.pct, textSize))
-			place(row.name, 8, 0, w - pctW - 16, rowH)
+			local nx = 8
+			if row.art.Visible then
+				local artPx = rowH + 4 -- the block pokes a little over the row
+				place(row.art, 6, -2, artPx, artPx)
+				nx = 6 + artPx + 6
+			end
+			place(row.name, nx, 0, w - pctW - nx - 8, rowH)
 			place(row.pct, w - pctW - 8, 0, pctW, rowH)
 			at += rowH + gap
 		end
@@ -627,7 +771,8 @@ local function layoutPill(
 	return w
 end
 
-local function layoutSticker(card: Card, t: number, w: number)
+-- The tilted sticker over the card's top right corner (or its top left with `left`).
+local function layoutSticker(card: Card, t: number, w: number, left: boolean?)
 	if not card.sticker.Visible then
 		return
 	end
@@ -636,13 +781,17 @@ local function layoutSticker(card: Card, t: number, w: number)
 	HudParts.setTextSize(card.stickerText, size)
 	local sw = math.min(widthOf(card.stickerText, size) + 14, math.max(h, w - 16))
 	card.sticker.Size = UDim2.fromOffset(sw, h)
-	card.sticker.Position = UDim2.fromOffset(w - round(sw / 2) + 4, 4)
+	card.sticker.Rotation = if left then -P.StickerDegrees else P.StickerDegrees
+	card.sticker.Position = if left
+		then UDim2.fromOffset(round(sw / 2) + 6, 4)
+		else UDim2.fromOffset(w - round(sw / 2) + 4, 4)
 	card.stickerText.Position = UDim2.fromOffset(5, 0)
 	card.stickerText.Size = UDim2.new(1, -10, 1, 0)
 end
 
--- A chase row at (x, y), `w` by `h`: the cue's picture at the left, the name, the tag and
--- the chance stacked at the right.
+-- A chase card at (x, y), `w` by `h` (reference 12): the cue's name and its UNIQUE and
+-- LIMITED tags at the top left, the cue's picture filling the right side, the chance in a
+-- rimmed pill at the bottom right.
 local function layoutChase(
 	row: ChaseRow,
 	s: ShopParts.Sizes,
@@ -654,37 +803,37 @@ local function layoutChase(
 	local t = s.t
 	place(row.root, x, y, w, h)
 	local pad = round(s.pad * 0.6)
-	local art = h - 2 * pad
+	local artW = round(w * B.ChaseThumbShare)
 	if row.thumb then
-		place(row.thumb, pad, pad, art, art)
+		place(row.thumb, w - artW - pad, pad, artW, h - 2 * pad)
 	end
 	local nameH = math.max(K.Text.Min, span(B.ChaseNamePx, t))
-	local tx = pad + art + round(s.gap * 0.75)
-	local tw = w - tx - pad
-	local tagH = span(B.PillPx, t) - 4
-	local block = nameH + 4 + tagH + 4 + nameH
-	local at = math.max(pad, round((h - block) / 2))
+	local tw = w - artW - 2 * pad
 	HudParts.setTextSize(row.name, nameH)
-	place(row.name, tx, at, tw, nameH + 4)
-	at += nameH + 4
-	ShopParts.setPill(
-		row.tag,
-		row.tag.label.Text,
-		tagH,
-		math.max(K.Text.Min, span(B.PillTextPx, t)) - 1,
-		tw
-	)
+	place(row.name, pad, pad, tw, nameH + 4)
+	local tagH = span(B.PillPx, t) - 4
+	local tagText = math.max(K.Text.Min, span(B.PillTextPx, t)) - 1
+	local at = pad + nameH + 6
+	local tagW = ShopParts.setPill(row.tag, row.tag.label.Text, tagH, tagText, tw)
 	row.tag.root.AnchorPoint = Vector2.new(0, 0)
-	row.tag.root.Position = UDim2.fromOffset(tx, at)
-	at += tagH + 4
-	HudParts.setTextSize(row.pct, nameH)
-	place(row.pct, tx, at, tw, nameH + 4)
+	row.tag.root.Position = UDim2.fromOffset(pad, at)
+	local left = tw - tagW - 4
+	row.tag2.root.Visible = left >= tagH
+	if left >= tagH then
+		ShopParts.setPill(row.tag2, row.tag2.label.Text, tagH, tagText, left)
+		row.tag2.root.AnchorPoint = Vector2.new(0, 0)
+		row.tag2.root.Position = UDim2.fromOffset(pad + tagW + 4, at)
+	end
+	local pctH = span(B.PillPx, t)
+	ShopParts.setPill(row.pct, row.pct.label.Text, pctH, math.max(K.Text.Min, nameH - 2), tw)
+	row.pct.root.AnchorPoint = Vector2.new(1, 1)
+	row.pct.root.Position = UDim2.fromOffset(w - pad, h - pad)
 end
 
 -- A column's height at these sizes: the label, the old price, its buttons and the note.
 local function columnHeight(ui: ColumnUi, s: ShopParts.Sizes): number
 	local t = s.t
-	local h = math.max(K.Text.Min, span(B.ColumnLabelPx, t)) + 4
+	local h = if ui.label.Visible then math.max(K.Text.Min, span(B.ColumnLabelPx, t)) + 4 else 0
 	if ui.old.Visible then
 		h += math.max(K.Text.Min, span(P.OldPx, t)) + 2
 	end
@@ -697,6 +846,12 @@ local function columnHeight(ui: ColumnUi, s: ShopParts.Sizes): number
 	h += n * s.button + math.max(0, n - 1) * round(s.gap / 2)
 	if ui.note.Visible then
 		h += math.max(K.Text.Min - 2, span(B.NotePx, t)) + 6
+	end
+	if ui.box.Enabled then
+		h += 2 * round(s.pad * 0.6) -- the box's padding
+	end
+	if ui.sticker.root.Visible then
+		h += round(span(P.StickerPx, t) / 2) -- the sticker pokes below the last button
 	end
 	return h
 end
@@ -711,27 +866,44 @@ local function layoutColumn(
 )
 	local t = s.t
 	place(ui.root, x, y, w, h)
-	local labelH = math.max(K.Text.Min, span(B.ColumnLabelPx, t))
-	HudParts.setTextSize(ui.label, labelH)
-	place(ui.label, 0, 0, w, labelH + 4)
-	local at = labelH + 4
+	local inset = if ui.box.Enabled then round(s.pad * 0.6) else 0
+	local iw = w - 2 * inset
+	local at = inset
+	if ui.label.Visible then
+		local labelH = math.max(K.Text.Min, span(B.ColumnLabelPx, t))
+		HudParts.setTextSize(ui.label, labelH)
+		place(ui.label, inset, at, iw, labelH + 4)
+		at += labelH + 4
+	end
 	if ui.old.Visible then
 		local oldH = math.max(K.Text.Min, span(P.OldPx, t))
 		HudParts.setTextSize(ui.old, oldH)
-		place(ui.old, 0, at, w, oldH + 2)
+		place(ui.old, inset, at, iw, oldH + 2)
 		at += oldH + 2
 	end
+	local lastBottom = at
 	for _, button in ui.buttons do
 		if button.Visible then
 			HudParts.setButtonTextSize(button, s.buttonText)
-			ShopParts.placeButton(button, 0, at, w, s.button)
+			ShopParts.placeButton(button, inset, at, iw, s.button)
+			lastBottom = at + s.button
 			at += s.button + round(s.gap / 2)
 		end
+	end
+	if ui.sticker.root.Visible then
+		-- Centred over the last button's bottom edge, tilted like the card stickers.
+		local sh = span(P.StickerPx, t)
+		local size = math.max(K.Text.Min, span(P.StickerTextPx, t))
+		ShopParts.setPill(ui.sticker, ui.sticker.label.Text, sh, size, iw)
+		ui.sticker.root.AnchorPoint = Vector2.new(0.5, 0.5)
+		ui.sticker.root.Rotation = -P.StickerDegrees
+		ui.sticker.root.Position = UDim2.fromOffset(round(w / 2), lastBottom)
+		at += round(sh / 2)
 	end
 	if ui.note.Visible then
 		local noteH = math.max(K.Text.Min - 2, span(B.NotePx, t))
 		HudParts.setTextSize(ui.note, noteH, noteH)
-		place(ui.note, 0, at, w, noteH + 6)
+		place(ui.note, inset, at, iw, noteH + 6)
 	end
 end
 
@@ -838,8 +1010,11 @@ local function hideSlotParts(card: Card)
 	card.note.Visible = false
 end
 
---- Lay a band (Opening or Mystery) out `w` wide at (x, y). Returns its height.
-function ShopBlockCards.layoutBand(
+-- The Grand Opening band (reference 12), `w` wide at (x, y): the NEW sticker, the crowned
+-- block and its countdown down the left; the gold title between two stars, "YOU COULD
+-- PULL...", the two chase cards, the three buy columns and the guarantee line at the right
+-- (under the block on a narrow card). Returns its height.
+local function layoutOpening(
 	card: Card,
 	s: ShopParts.Sizes,
 	x: number,
@@ -850,36 +1025,106 @@ function ShopBlockCards.layoutBand(
 	local pad = s.pad
 	local gap = s.gap
 	hideSlotParts(card)
+	card.pill.root.Visible = false
+	card.line.Visible = false
+	card.root.Position = UDim2.fromOffset(x, y)
+	local art = span(B.OpeningArtPx, t)
+	local wide = w >= B.WideMinPx
+	local stickerRoom = if card.sticker.Visible then round(span(P.StickerPx, t) * 0.6) else 0
+	local lineSize = math.max(K.Text.Min - 2, span(B.LinePx, t))
+	local timerH = if card.timer.Visible then lineSize + 8 else 0
+	local leftH = stickerRoom + art + timerH
+	local lx = pad
+	local rx, rw, ry
+	if wide then
+		rx, rw, ry = pad + art + gap, w - art - gap - 2 * pad, pad
+	else
+		rx, rw, ry = pad, w - 2 * pad, pad + leftH + round(gap / 2)
+		lx = round((w - art) / 2)
+	end
+	place(card.artSlot, lx, pad + stickerRoom, art, art)
+	if card.timer.Visible then
+		HudParts.setTextSize(card.timer, lineSize + 2)
+		card.timer.TextXAlignment = Enum.TextXAlignment.Center
+		local tw = art + 2 * pad
+		place(card.timer, math.max(0, lx - pad), pad + stickerRoom + art, tw, timerH)
+	end
+	-- The title between its stars.
+	local at = ry
+	local titleH = math.max(K.Text.Min, span(B.OpeningTitlePx, t))
+	HudParts.setTextSize(card.title, titleH)
+	card.title.TextXAlignment = Enum.TextXAlignment.Center
+	local starPx = round(titleH * B.StarShare)
+	local titleW = math.max(1, rw - 2 * (starPx + 6))
+	place(card.title, rx + starPx + 6, at, titleW, titleH + 4)
+	local textW = math.min(titleW, ShopParts.textWidth(card.title.ContentText, titleH) + 4)
+	local cx = rx + round(rw / 2)
+	local cy = at + round((titleH + 4) / 2)
+	local reach = round(textW / 2) + round(starPx / 2) + 4
+	card.stars[1].Size = UDim2.fromOffset(starPx, starPx)
+	card.stars[2].Size = UDim2.fromOffset(starPx, starPx)
+	card.stars[1].Position = UDim2.fromOffset(cx - reach, cy)
+	card.stars[2].Position = UDim2.fromOffset(cx + reach, cy)
+	at += titleH + 4
+	if card.subtitle.Visible then
+		local subH = math.max(K.Text.Min, span(B.SubtitlePx, t))
+		HudParts.setTextSize(card.subtitle, subH)
+		card.subtitle.TextXAlignment = Enum.TextXAlignment.Center
+		place(card.subtitle, rx, at, rw, subH + 4)
+		at += subH + 4
+	end
+	at += round(gap / 2)
+	-- The chase cards, side by side.
+	local shown = {}
+	for _, row in card.chase do
+		if row.root.Visible then
+			table.insert(shown, row)
+		end
+	end
+	if #shown > 0 then
+		local ch = span(B.ChasePx, t)
+		local cw = math.floor((rw - (#shown - 1) * gap) / #shown)
+		for i, row in shown do
+			layoutChase(row, s, rx + (i - 1) * (cw + gap), at, cw, ch)
+		end
+		at += ch + gap
+	end
+	at += layoutColumns(card, s, rx, at, rw)
+	if card.oddsNote.Visible then
+		-- The guarantee line.
+		local size = math.max(K.Text.Min - 2, span(B.LinePx, t))
+		local h = ShopParts.wrapHeight(card.oddsNote.ContentText, size, rw, 2)
+		HudParts.setTextSize(card.oddsNote, size, size)
+		card.oddsNote.TextXAlignment = Enum.TextXAlignment.Center
+		place(card.oddsNote, rx, at + 4, rw, h)
+		at += h + 4
+	end
+	local h = math.max(pad + leftH, at) + pad
+	card.root.Size = UDim2.fromOffset(w, h)
+	layoutSticker(card, t, w, true)
+	card.height = h
+	return h
+end
+
+--- Lay a band (Opening or Mystery) out `w` wide at (x, y). Returns its height.
+function ShopBlockCards.layoutBand(
+	card: Card,
+	s: ShopParts.Sizes,
+	x: number,
+	y: number,
+	w: number
+): number
+	if card.shape == "Opening" then
+		return layoutOpening(card, s, x, y, w)
+	end
+	local t = s.t
+	local pad = s.pad
+	local gap = s.gap
+	hideSlotParts(card)
 	card.root.Position = UDim2.fromOffset(x, y)
 	local at = layoutHeader(card, s, w)
 	local iw = w - 2 * pad
-	if card.shape == "Opening" then
-		-- The chase rows, side by side.
-		local shown = {}
-		for _, row in card.chase do
-			if row.root.Visible then
-				table.insert(shown, row)
-			end
-		end
-		if #shown > 0 then
-			local ch = span(B.ChasePx, t)
-			local cw = math.floor((iw - (#shown - 1) * gap) / #shown)
-			for i, row in shown do
-				layoutChase(row, s, pad + (i - 1) * (cw + gap), at, cw, ch)
-			end
-			at += ch + gap
-		end
-		at += layoutColumns(card, s, pad, at, iw)
-		if card.oddsNote.Visible then
-			-- The guarantee line.
-			local size = math.max(K.Text.Min - 2, span(B.LinePx, t))
-			local h = ShopParts.wrapHeight(card.oddsNote.ContentText, size, iw, 2)
-			HudParts.setTextSize(card.oddsNote, size, size)
-			card.oddsNote.TextXAlignment = Enum.TextXAlignment.Center
-			place(card.oddsNote, pad, at + 4, iw, h)
-			at += h + 4
-		end
-	else
+	do
 		-- Mystery: the odds strip beside the buy columns (under them on a narrow card).
 		local oddsH = oddsHeight(card, t)
 		local noteSize = math.max(K.Text.Min - 2, span(B.LinePx, t))
@@ -1363,6 +1608,11 @@ function ShopBlockCards.selectables(card: Card): { GuiObject }
 end
 
 function ShopBlockCards.destroy(card: Card)
+	for _, row in card.odds.rows do
+		if row.icon then
+			row.icon:destroy()
+		end
+	end
 	if card.titleAnim then
 		card.titleAnim.stop()
 	end

@@ -53,7 +53,7 @@ Uncommitted and to leave alone: `place/8ball.rbxl` (Studio saved it) and
 ## The reference images (use these, not the ChatGPT result sheets)
 
 All the images the designer pasted into the previous session are saved in
-`~/Desktop/8ball-refs/gui-v3/pasted/` (saved by the tool, numbered in paste order):
+`~/Desktop/GUI-refs/pasted/` (saved by the tool, numbered in paste order):
 
 | File | What it is |
 | --- | --- |
@@ -69,13 +69,18 @@ All the images the designer pasted into the previous session are saved in
 | `11-...png` | Starter block: Standard reskinned red with a gold gift tie. |
 | `01` to `05` | The earlier references the hero prompt was built from; `06` the hero result the designer called "close enough". |
 | `17`, `18`, `19` | **Gifting layout** from another game (layout only, never its style or colours): a gift square left of each Robux button in a row of packs (17) and in a pack grid (18); the "Gift Player" list with avatar, name, @username and a Gift button per row (19). |
-| (re-paste) | Two more the designer pasted at the end: a **collage of all the shop references** and the **restock section reference** (four slot tiles: coloured kind name "Uncommon Lucky Block", the odds rows, three mini cue thumbnails with their chances under the rows, a gold money button and a green Robux button side by side, "3 left for you"; the VIP slot as a grey locked tile with a gold padlock over the block, "VIP only · a 4th block every restock", Get VIP; the header pill "New blocks in 6:12 · each slot: Uncommon 62% · Rare 36.6% · Epic 1.35% · Legendary 0.05%" on a dark ink bar). These two did not reach the saved folder: ask the designer to paste them again and save them as `20-...` and `21-...`. |
+| `20-...png`, `21-...png` | **Restock section reference**: 21 is the ChatGPT sheet P4 (the designer
+  confirmed it is the restock truth: four slot tiles with the coloured kind name, odds rows,
+  three chase cue thumbnails with chances, gold money + green Robux side by side, "3 left
+  for you", the grey VIP tile with the gold padlock); 20 is the designer's crop of its dark
+  header bar (stopwatch, "New blocks in 6:12" with the time in gold, "· each slot: ...").
+  There is no collage. |
 
 The ChatGPT sheets in `~/Desktop/GUI-refs/results/` (P3 to P23) were only the prompt pipeline's
 output; the designer does not want the shop built from them (he pointed out that P3, P4, P5 and
 P6b's tabs had crept into the hero and the Starter + VIP work; the pasted images above are the
 truth for every section). More references may be pasted
-later: copy any new one into `~/Desktop/8ball-refs/gui-v3/pasted/` with the next number
+later: copy any new one into `~/Desktop/GUI-refs/pasted/` with the next number
 (memory rule: save refs yourself, do not ask).
 
 ## Shop GUI: what is left, in order

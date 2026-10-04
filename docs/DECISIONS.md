@@ -2345,7 +2345,7 @@ timer of a new block stay the designer's call.
   marker. Keep second-click immediate reveal.
 
 - **2026-10-04 — Shop GUI v3 (designer).** The shop follows the designer's pasted reference
-  images (`~/Desktop/8ball-refs/gui-v3/pasted/`), not the ChatGPT result sheets. Order:
+  images (`~/Desktop/GUI-refs/pasted/`), not the ChatGPT result sheets. Order:
   Grand Opening hero, Mystery block, restock, Starter + VIP, money, passes; tabs Featured,
   Blocks, Money, Passes (Starter and VIP under Passes). Menus build in from the top left;
   cards shimmer and icons pop now and then. A gold "+" by the money HUD opens the Shop on
@@ -2362,3 +2362,12 @@ timer of a new block stay the designer's call.
   are not giftable. The gift is the giver's own product purchase; the receipt grants the
   receiver (their first-buy double and offer windows), and a receiver who left leaves the
   item with the giver.
+- **2026-10-04 — Shop GUI v3 interview (designer, to the CLI session).** The rail's top
+  button says **Featured** (not Deals). The Grand Opening hero sits under a "— FEATURED —"
+  header with its own "GRAND OPENING LUCKY BLOCK" title inside the band. One "— LUCKY
+  BLOCKS —" header covers the Mystery band and the restock tiles; the restock keeps its dark
+  stopwatch bar ("New blocks in 6:12 · each slot: ...") above its tiles, as in the ChatGPT
+  sheet P4. "FIRST BUY x2" shows on every money pack until the first buy is used. The NEW
+  badges on Featured and Blocks stay up all through the Grand Opening window, and the
+  seen-once rule still clears every other mark. The designer's pasted references moved to
+  `~/Desktop/GUI-refs/pasted/` next to the ChatGPT results (one folder for all GUI refs).

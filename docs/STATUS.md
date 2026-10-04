@@ -12,7 +12,7 @@
 - Next, in order: phone and gamepad checks, then the Grand Opening, Mystery, Money and Passes
   sections polished to the designer's reference images; then the block models, products and
   docs. The brief for the CLI: `docs/prompts/SHOP_GUI_HANDOFF_PROMPT.md`. The designer's
-  pasted references are in `~/Desktop/8ball-refs/gui-v3/pasted/`.
+  pasted references are in `~/Desktop/GUI-refs/pasted/`.
 
 **2026-10-04: two-stage lucky-block reel skip.**
 - First click keeps a one-second, two-card approach so the preceding cue visibly passes

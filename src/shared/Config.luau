@@ -7258,10 +7258,28 @@ Config.UI.Shop = {
 			PillTextPx = { 13, 16 },
 			OddsRowPx = { 18, 23 }, -- one rarity's row of the odds strip
 			OddsTextPx = { 12, 15 },
+			-- The Mystery band's strip (reference 13): pale rows with a small still block per
+			-- row and the kind's name in its colour.
+			OddsIconRowPx = { 30, 38 },
+			OddsIconTextPx = { 14, 18 },
+			IconYawDegrees = 35, -- a still block icon's turn, so three faces show
+			ColumnLabelColor = { 255, 214, 10 }, -- "x1", "x10" over the Mystery columns: gold
 			OddsGapPx = { 3, 4 },
 			OddsMaxWidthPx = 320, -- the strip never grows wider than this beside buttons
-			ChasePx = { 84, 118 }, -- a chase row (the Unique cue's picture, name and odds)
-			ChaseNamePx = { 14, 18 },
+			ChasePx = { 96, 150 }, -- a chase card (the Unique cue's picture, name, tags and odds)
+			ChaseNamePx = { 16, 22 },
+			ChaseThumbShare = 0.55, -- the cue's picture takes this share of a chase card's width
+			-- The Grand Opening band after the designer's reference 12: a dark festive fill (navy
+			-- fading deeper, a pale blue edge), the crowned block and its countdown at the left
+			-- under a NEW sticker, the gold title with a star each side, "YOU COULD PULL...", the
+			-- two chase cards, then three buy columns (a green Robux button with the count and the
+			-- crossed old price in its words, a gold money button under, "save 12%").
+			FestiveFill = { 28, 40, 100 },
+			FestiveFade = { 12, 18, 54 },
+			FestiveEdge = { 126, 176, 255 },
+			OpeningArtPx = { 110, 180 }, -- the crowned block
+			OpeningTitlePx = { 24, 40 },
+			StarShare = 0.9, -- the stars by the title, of its text height
 			ColumnLabelPx = { 22, 30 }, -- "x1", "x3", "x10" over a column of buttons
 			NotePx = { 12, 15 }, -- "save 12%", "3 left for you"
 			-- A band this wide puts its odds strip beside the buy columns; narrower stacks them.

@@ -364,6 +364,7 @@ function ShopParts.button(parent: Instance, name: string, action: () -> ()): Tex
 	local parts = HudParts.candyParts(button)
 	if parts then
 		parts.label.TextWrapped = true
+		parts.label.RichText = true -- a struck-through old price inside the words
 	end
 	return button
 end

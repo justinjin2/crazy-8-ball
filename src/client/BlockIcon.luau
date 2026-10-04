@@ -42,8 +42,9 @@ local function fallbackKey(kind: string): string
 	return "Case"
 end
 
---- A block icon of `kind` filling `parent` (size the parent; the icon fills it).
-function BlockIcon.new(parent: Instance, kind: string): Icon
+--- A block icon of `kind` filling `parent` (size the parent; the icon fills it). `still`
+--- (an odds row's small block) does not turn: it holds a three-quarter view.
+function BlockIcon.new(parent: Instance, kind: string, still: boolean?): Icon
 	local root = HudParts.frame(parent, "BlockIcon")
 	root.Size = UDim2.fromScale(1, 1)
 	root.ZIndex = 3
@@ -104,11 +105,15 @@ function BlockIcon.new(parent: Instance, kind: string): Icon
 		icon.base = model:GetPivot()
 		local distance = edge * U.IconDistance / (if row then row.IconScale or 1 else 1)
 		camera.CFrame = CFrame.lookAt(Vector3.new(0, edge * 0.55, distance), Vector3.new(0, 0, 0))
-		-- A slow turn (only while on screen).
-		icon.turn = UIAnim.loop(viewport, function(clock)
-			local angle = math.rad(clock * U.IconTurnDegreesPerSecond)
-			model:PivotTo(icon.base * CFrame.Angles(0, angle, 0))
-		end)
+		if still then
+			model:PivotTo(icon.base * CFrame.Angles(0, math.rad(B.IconYawDegrees), 0))
+		else
+			-- A slow turn (only while on screen).
+			icon.turn = UIAnim.loop(viewport, function(clock)
+				local angle = math.rad(clock * U.IconTurnDegreesPerSecond)
+				model:PivotTo(icon.base * CFrame.Angles(0, angle, 0))
+			end)
+		end
 	else
 		viewport.Visible = false
 		local image = HudParts.icon(root, fallbackKey(kind), "Fallback")
@@ -118,7 +123,9 @@ function BlockIcon.new(parent: Instance, kind: string): Icon
 		image.ScaleType = Enum.ScaleType.Fit
 		image.ZIndex = 3
 		icon.fallback = image
-		icon.turn = UIAnim.bob(image)
+		if not still then
+			icon.turn = UIAnim.bob(image)
+		end
 	end
 	return icon
 end
