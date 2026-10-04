@@ -117,3 +117,21 @@ tools/test.sh   # cue_shape_test (Shape.json is current), cue_mesh_test (MeshSki
 - `tools/cue_preview_equip.luau` is a transient designer-only Studio Server art override.
   It changes only replicated appearance during Play, never ownership/profile/sale data;
   run with `CLEAR = true` or end Play to restore the actual equipped cue.
+
+### Eclipse exclusive visual review (2026-10-04)
+
+The current corona is built by `CueSolarSculpt.py`: the painted master under
+`concepts/vfx-upgrade/eclipse-solar-flame-sculpt.*` becomes the committed
+`models/eclipse_solar_flame/source.glb` and maps. Ten reduced copies wrap the sphere at
+different depths; thirty child bones independently grow, curl and stretch them. Main and
+pocket use the same builder. `CuePiecesDimensional.py` supplies closed violet currents and
+the continuous solar rim. Main aura artwork is geometry; individual breakaway particles
+can still use a painted sprite. `tools/vfx_wake_frames.py` rebuilds the short animated wake.
+
+Rebuild with `CuePieces.py -- eclipse eclipse_pocket --no-preview`, then
+`tools/cue_pieces_glb.py eclipse eclipse_pocket`. Upload changed models/maps, resolve image
+IDs, regenerate `tools/cue_skins_data.py` and rebuild **Eclipse only** in Studio. The template
+builder normalizes single-mesh rigs with a root/weld so they follow the cue and pocket.
+The original pre-pass template is preserved in `ServerStorage.CueVfxReview.Original`.
+See `docs/prompts/CUE_VFX_ECLIPSE_REVIEW.md` for actual gameplay comparisons. **Do not resume
+other cues until the designer approves Eclipse.**

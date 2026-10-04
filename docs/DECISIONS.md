@@ -2384,3 +2384,13 @@ timer of a new block stay the designer's call.
   sheets faint. Phone testing required thicker trail strokes and a shorter pocket funnel;
   fine pocket wirework opts out of the generic black outline. Unique acquisition remains
   outside this art pass. Temporary Studio appearance previews never grant ownership.
+
+- 2026-10-04: Main VFX artwork must animate internally in its theme. Whole static sprite
+  movement plus surrounding particles/rings does not qualify. Reopen Eclipse/Beta before
+  continuing; verify recorded gameplay loops, restrained aim and animated Lower effects.
+
+- 2026-10-04 — Cue VFX main forms must be dimensional: deforming corona ribbons, separate depth-staggered drafting panels and 3D diagrams, independent choreography, actual pulsing light and gameplay-scale sharpness. Whole-aura sprites rejected. Eclipse/Beta stay reopened.
+
+- **2026-10-04 — Eclipse review gate (designer):** stop all other cue work. Ribbon attempt failed visually. Rebuild Eclipse as sculpted, independently deforming flames, complete its effects, record matched gameplay against the original pre-pass Eclipse, leave it ready in Studio, then stop for explicit visual approval. Tests alone are not visual acceptance.
+
+- **2026-10-04 — Eclipse review candidate:** rejected rounded procedural flames as too ornamental; used a painted forked flame master and Meshy/Blender sculpture with independent bone deformation. Preserved the original pre-pass templates and matched gameplay clips. No visual completion inferred from technical checks; Eclipse approval remains the gate.

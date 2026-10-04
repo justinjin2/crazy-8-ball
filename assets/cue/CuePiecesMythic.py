@@ -1140,33 +1140,9 @@ def apex(k):
 # =============================================================================================
 
 def eclipse_corona(k, joint, centre, radius, normal=(0, 0, 1)):
-    """Sculpted hooked prominences, with dark rims and ivory inner edges (shared by pocket)."""
-    import bmesh
-    from mathutils import Vector
-    C, N = Vector(centre), Vector(normal).normalized()
-    U = N.orthogonal().normalized()
-    V = N.cross(U)
-    for mat, width, lift in (('Contour', 1.15, 0), ('Gold', 0.85, 0.012), ('Hot', 0.22, 0.025)):
-        bm = bmesh.new()
-        for n in range(11):
-            phase = n * math.tau / 11
-            length = (0.32 + 0.16 * math.sin(n * 2.3) ** 2) * radius
-            left, right = [], []
-            for i in range(13):
-                t = i / 12
-                angle = phase + 0.56 * t + 0.18 * math.sin(math.pi * t)
-                r = radius + length * math.sin(t * math.pi / 2)
-                half = radius * 0.12 * (1 - t) ** 0.8 * width
-                p = C + (U * math.cos(angle) + V * math.sin(angle)) * r + N * (lift + 0.08 * radius * math.sin(math.pi * t))
-                tangent = -U * math.sin(angle) + V * math.cos(angle)
-                left.append(bm.verts.new(p - tangent * half))
-                right.append(bm.verts.new(p + tangent * half))
-            for i in range(12):
-                bm.faces.new((left[i], left[i+1], right[i+1], right[i]))
-        # Double-sided sculpted ribbons, not a stack of transparent glow shells.
-        ob = k.mesh_object(joint + mat, bm, [mat])
-        apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=radius * 0.009)
-        k.add(joint, ob)
+    """Closed sculpted, independently deforming flame volumes, shared with the pocket eclipse."""
+    from CueSolarSculpt import corona
+    corona(k, joint, centre, radius, normal)
 
 
 @piece
@@ -1198,8 +1174,19 @@ def eclipse(k):
     bm = bmesh.new()
     bmesh.ops.create_uvsphere(bm, u_segments=40, v_segments=20, radius=0.78, matrix=Matrix.Translation(C))
     k.add('Orb', k.mesh_object('Totality', bm, ['Void']))
-    k.joint('Prominences', pivot=tuple(C), parent='Orb', motion=[{'Kind':'Spin','Axis':(1,0,0),'Rate':12}])
+    k.joint('Prominences', pivot=tuple(C), parent='Orb', motion=[{'Kind':'Spin','Axis':(1,0,0),'Rate':4}])
     eclipse_corona(k, 'Prominences', C, 0.80, normal=(1,0,0))
+    from CuePiecesDimensional import celestial_streams
+    celestial_streams(k)
+    # A short hot surge travels through the prominence envelope, separately from its curl.
+    k.joint('CoronaSurge',pivot=tuple(C),parent='Orb',layer='Structure',motion=[
+        {'Kind':'Spin','Axis':(1,0,0),'Rate':86}])
+    bm=bmesh.new()
+    for phase in (0, math.pi):
+        points=[C+Vector((.08, math.cos(phase+i*.024)*.91, math.sin(phase+i*.024)*.91)) for i in range(18)]
+        sweep(bm,points,[.025*(1-i/18) for i in range(18)],segs=5)
+    k.add('CoronaSurge',k.mesh_object('TravellingSurge',bm,['Hot']))
+
     # Two long paths with different inclinations, rather than six competing atom rings.
     for n, (at, A, B, tilt, roll, rate) in enumerate(((4.4,3.25,1.15,17,40,8),(4.7,2.8,0.85,-22,-55,-11)),1):
         c = Vector((0,-at,0))

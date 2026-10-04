@@ -2,8 +2,72 @@
   "id": "eclipse_pocket",
   "Frame": "pocket",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 7812,
+  "Triangles": 24592,
   "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/eclipse_pocket/CoronaSolarSculpt_base_color.png",
+        "EmissiveMask": "pieces/eclipse_pocket/CoronaSolarSculpt_emissive.png",
+        "EmissiveTint": "#FFF1D6",
+        "EmissiveStrength": 1.8,
+        "NormalMap": "pieces/eclipse_pocket/CoronaSolarSculpt_normal.png",
+        "RoughnessMap": "pieces/eclipse_pocket/CoronaSolarSculpt_roughness.png",
+        "MetalnessMap": "pieces/eclipse_pocket/CoronaSolarSculpt_metallic.png"
+      },
+      "Name": "CoronaSolarSculpt",
+      "File": "pieces/eclipse_pocket/CoronaSolarRig.glb",
+      "Mesh": "CoronaSolarSculptSkin",
+      "Joint": "Corona",
+      "Skinned": true,
+      "Bones": [
+        "Corona",
+        "CoronaTongue0",
+        "CoronaTongue0Curl",
+        "CoronaTongue0Tip",
+        "CoronaTongue1",
+        "CoronaTongue1Curl",
+        "CoronaTongue1Tip",
+        "CoronaTongue2",
+        "CoronaTongue2Curl",
+        "CoronaTongue2Tip",
+        "CoronaTongue3",
+        "CoronaTongue3Curl",
+        "CoronaTongue3Tip",
+        "CoronaTongue4",
+        "CoronaTongue4Curl",
+        "CoronaTongue4Tip",
+        "CoronaTongue5",
+        "CoronaTongue5Curl",
+        "CoronaTongue5Tip",
+        "CoronaTongue6",
+        "CoronaTongue6Curl",
+        "CoronaTongue6Tip",
+        "CoronaTongue7",
+        "CoronaTongue7Curl",
+        "CoronaTongue7Tip",
+        "CoronaTongue8",
+        "CoronaTongue8Curl",
+        "CoronaTongue8Tip",
+        "CoronaTongue9",
+        "CoronaTongue9Curl",
+        "CoronaTongue9Tip"
+      ],
+      "Triangles": 18000,
+      "Offset": [
+        0.0924,
+        1.6657,
+        -0.1109
+      ],
+      "Size": [
+        3.2827,
+        3.1886,
+        1.1209
+      ]
+    },
     {
       "Material": "SmoothPlastic",
       "Color": "#040208",
@@ -26,63 +90,30 @@
     },
     {
       "Material": "SmoothPlastic",
-      "Color": "#24102F",
+      "Color": "#FFFFFF",
       "Transparency": 0.0,
       "Reflectance": 0.0,
-      "Name": "Corona_Contour",
-      "File": "pieces/eclipse_pocket/Corona_Contour.obj",
+      "SurfaceAppearance": {
+        "ColorMap": "vfx/v3/eclipse/SolarVolume_colour.png",
+        "EmissiveMask": "vfx/v3/eclipse/SolarVolume_emissive.png",
+        "EmissiveTint": "#FFFFFF",
+        "EmissiveStrength": 1.4,
+        "AlphaMode": "Overlay"
+      },
+      "Name": "Corona_SolarVolume",
+      "File": "pieces/eclipse_pocket/Corona_SolarVolume.obj",
       "Joint": "Corona",
       "Offset": [
-        0.0299,
-        1.657,
-        -0.0311
+        0.004,
+        1.604,
+        -0.001
       ],
       "Size": [
-        2.4417,
-        2.426,
-        0.077
+        1.8931,
+        1.8641,
+        0.2246
       ],
-      "Triangles": 1100
-    },
-    {
-      "Material": "Metal",
-      "Color": "#E6A32A",
-      "Transparency": 0.0,
-      "Reflectance": 0.0,
-      "Name": "Corona_Gold",
-      "File": "pieces/eclipse_pocket/Corona_Gold.obj",
-      "Joint": "Corona",
-      "Offset": [
-        0.0299,
-        1.6578,
-        -0.0431
-      ],
-      "Size": [
-        2.4417,
-        2.4246,
-        0.077
-      ],
-      "Triangles": 1100
-    },
-    {
-      "Material": "Neon",
-      "Color": "#FFF2CE",
-      "Transparency": 0.0,
-      "Reflectance": 0.0,
-      "Name": "Corona_Hot",
-      "File": "pieces/eclipse_pocket/Corona_Hot.obj",
-      "Joint": "Corona",
-      "Offset": [
-        0.0299,
-        1.6584,
-        -0.0561
-      ],
-      "Size": [
-        2.4417,
-        2.4233,
-        0.077
-      ],
-      "Triangles": 1100
+      "Triangles": 2080
     },
     {
       "Material": "Neon",
@@ -162,6 +193,1126 @@
             0
           ],
           "Rate": 38
+        }
+      ]
+    },
+    "CoronaTongue0": {
+      "Parent": "Corona",
+      "Pivot": [
+        -0.5598164200782776,
+        0.0,
+        1.0401835441589355
+      ],
+      "PivotRoblox": [
+        0.5598,
+        1.0402,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.7071067690849304,
+            0.0,
+            -0.7071067690849304
+          ],
+          "Amp": 0.07395,
+          "Period": 3.3,
+          "Phase": 0.0,
+          "Shape": "pulse"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 5,
+          "Period": 2.5,
+          "Phase": 0.0
+        }
+      ]
+    },
+    "CoronaTongue0Curl": {
+      "Parent": "CoronaTongue0",
+      "Pivot": [
+        -0.6410118341445923,
+        -0.16853347420692444,
+        0.6808926463127136
+      ],
+      "PivotRoblox": [
+        0.641,
+        0.6809,
+        -0.1685
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 13,
+          "Period": 2.5,
+          "Phase": -55.0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            -0.7071067690849304,
+            0.0,
+            -0.7071067690849304
+          ],
+          "Amp": 11,
+          "Period": 3.075,
+          "Phase": 0.0
+        }
+      ]
+    },
+    "CoronaTongue0Tip": {
+      "Parent": "CoronaTongue0Curl",
+      "Pivot": [
+        -0.628085196018219,
+        -0.1305193156003952,
+        0.3900129795074463
+      ],
+      "PivotRoblox": [
+        0.6281,
+        0.39,
+        -0.1305
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 25,
+          "Period": 2.5,
+          "Phase": -115.0
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.7071067690849304,
+            0.0,
+            -0.7071067690849304
+          ],
+          "Amp": 0.04785,
+          "Period": 1.825,
+          "Phase": 0.0
+        }
+      ]
+    },
+    "CoronaTongue1": {
+      "Parent": "Corona",
+      "Pivot": [
+        -0.12384920567274094,
+        -0.18804894387722015,
+        0.8180471658706665
+      ],
+      "PivotRoblox": [
+        0.1238,
+        0.818,
+        -0.188
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.15643450617790222,
+            0.0,
+            -0.9876883029937744
+          ],
+          "Amp": 0.07395,
+          "Period": 3.42,
+          "Phase": 137.5,
+          "Shape": "pulse"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 5,
+          "Period": 2.81,
+          "Phase": 137.5
+        }
+      ]
+    },
+    "CoronaTongue1Curl": {
+      "Parent": "CoronaTongue1",
+      "Pivot": [
+        0.020587103441357613,
+        -0.3565824031829834,
+        0.5345685482025146
+      ],
+      "PivotRoblox": [
+        -0.0206,
+        0.5346,
+        -0.3566
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 13,
+          "Period": 2.81,
+          "Phase": 82.5
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            -0.15643450617790222,
+            0.0,
+            -0.9876883029937744
+          ],
+          "Amp": 11,
+          "Period": 3.4563,
+          "Phase": 137.5
+        }
+      ]
+    },
+    "CoronaTongue1Tip": {
+      "Parent": "CoronaTongue1Curl",
+      "Pivot": [
+        0.1888589709997177,
+        -0.31856828927993774,
+        0.34632813930511475
+      ],
+      "PivotRoblox": [
+        -0.1889,
+        0.3463,
+        -0.3186
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 25,
+          "Period": 2.81,
+          "Phase": 22.5
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.15643450617790222,
+            0.0,
+            -0.9876883029937744
+          ],
+          "Amp": 0.04785,
+          "Period": 2.0513,
+          "Phase": 137.5
+        }
+      ]
+    },
+    "CoronaTongue2": {
+      "Parent": "Corona",
+      "Pivot": [
+        0.35942432284355164,
+        0.27733221650123596,
+        0.8945901393890381
+      ],
+      "PivotRoblox": [
+        -0.3594,
+        0.8946,
+        0.2773
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.45399051904678345,
+            0.0,
+            -0.8910065293312073
+          ],
+          "Amp": 0.07395,
+          "Period": 3.54,
+          "Phase": 275.0,
+          "Shape": "pulse"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 5,
+          "Period": 3.12,
+          "Phase": 275.0
+        }
+      ]
+    },
+    "CoronaTongue2Curl": {
+      "Parent": "CoronaTongue2",
+      "Pivot": [
+        0.7124941945075989,
+        0.10879875719547272,
+        0.6581522226333618
+      ],
+      "PivotRoblox": [
+        -0.7125,
+        0.6582,
+        0.1088
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 13,
+          "Period": 3.12,
+          "Phase": 220.0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.45399051904678345,
+            0.0,
+            -0.8910065293312073
+          ],
+          "Amp": 11,
+          "Period": 3.8376,
+          "Phase": 275.0
+        }
+      ]
+    },
+    "CoronaTongue2Tip": {
+      "Parent": "CoronaTongue2Curl",
+      "Pivot": [
+        1.0303767919540405,
+        0.14681290090084076,
+        0.5539264678955078
+      ],
+      "PivotRoblox": [
+        -1.0304,
+        0.5539,
+        0.1468
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 25,
+          "Period": 3.12,
+          "Phase": 160.0
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.45399051904678345,
+            0.0,
+            -0.8910065293312073
+          ],
+          "Amp": 0.04785,
+          "Period": 2.2776,
+          "Phase": 275.0
+        }
+      ]
+    },
+    "CoronaTongue3": {
+      "Parent": "Corona",
+      "Pivot": [
+        0.7054098844528198,
+        -0.22095714509487152,
+        1.2405756711959839
+      ],
+      "PivotRoblox": [
+        -0.7054,
+        1.2406,
+        -0.221
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.8910065293312073,
+            0.0,
+            -0.45399051904678345
+          ],
+          "Amp": 0.07395,
+          "Period": 3.6599999999999997,
+          "Phase": 412.5,
+          "Shape": "pulse"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 5,
+          "Period": 3.4299999999999997,
+          "Phase": 412.5
+        }
+      ]
+    },
+    "CoronaTongue3Curl": {
+      "Parent": "CoronaTongue3",
+      "Pivot": [
+        1.0611644983291626,
+        -0.38949060440063477,
+        1.2777347564697266
+      ],
+      "PivotRoblox": [
+        -1.0612,
+        1.2777,
+        -0.3895
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 13,
+          "Period": 3.4299999999999997,
+          "Phase": 357.5
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.8910065293312073,
+            0.0,
+            -0.45399051904678345
+          ],
+          "Amp": 11,
+          "Period": 4.2189,
+          "Phase": 412.5
+        }
+      ]
+    },
+    "CoronaTongue3Tip": {
+      "Parent": "CoronaTongue3Curl",
+      "Pivot": [
+        1.3250683546066284,
+        -0.3514764606952667,
+        1.3798495531082153
+      ],
+      "PivotRoblox": [
+        -1.3251,
+        1.3798,
+        -0.3515
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 25,
+          "Period": 3.4299999999999997,
+          "Phase": 297.5
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.8910065293312073,
+            0.0,
+            -0.45399051904678345
+          ],
+          "Amp": 0.04785,
+          "Period": 2.5039,
+          "Phase": 412.5
+        }
+      ]
+    },
+    "CoronaTongue4": {
+      "Parent": "Corona",
+      "Pivot": [
+        0.7819528579711914,
+        0.048532575368881226,
+        1.7238491773605347
+      ],
+      "PivotRoblox": [
+        -0.782,
+        1.7238,
+        0.0485
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.9876883029937744,
+            0.0,
+            0.15643450617790222
+          ],
+          "Amp": 0.07395,
+          "Period": 3.78,
+          "Phase": 550.0,
+          "Shape": "pulse"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 5,
+          "Period": 2.5,
+          "Phase": 550.0
+        }
+      ]
+    },
+    "CoronaTongue4Curl": {
+      "Parent": "CoronaTongue4",
+      "Pivot": [
+        1.0137267112731934,
+        -0.12000089138746262,
+        1.9511725902557373
+      ],
+      "PivotRoblox": [
+        -1.0137,
+        1.9512,
+        -0.12
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 13,
+          "Period": 2.5,
+          "Phase": 495.0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.9876883029937744,
+            0.0,
+            0.15643450617790222
+          ],
+          "Amp": 11,
+          "Period": 3.075,
+          "Phase": 550.0
+        }
+      ]
+    },
+    "CoronaTongue4Tip": {
+      "Parent": "CoronaTongue4Curl",
+      "Pivot": [
+        1.1451441049575806,
+        -0.08198674768209457,
+        2.1726179122924805
+      ],
+      "PivotRoblox": [
+        -1.1451,
+        2.1726,
+        -0.082
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 25,
+          "Period": 2.5,
+          "Phase": 435.0
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.9876883029937744,
+            0.0,
+            0.15643450617790222
+          ],
+          "Amp": 0.04785,
+          "Period": 1.825,
+          "Phase": 550.0
+        }
+      ]
+    },
+    "CoronaTongue5": {
+      "Parent": "Corona",
+      "Pivot": [
+        0.5598164200782776,
+        0.14938190579414368,
+        2.1598165035247803
+      ],
+      "PivotRoblox": [
+        -0.5598,
+        2.1598,
+        0.1494
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.7071067690849304,
+            0.0,
+            0.7071067690849304
+          ],
+          "Amp": 0.07395,
+          "Period": 3.9,
+          "Phase": 687.5,
+          "Shape": "pulse"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 5,
+          "Period": 2.81,
+          "Phase": 687.5
+        }
+      ]
+    },
+    "CoronaTongue5Curl": {
+      "Parent": "CoronaTongue5",
+      "Pivot": [
+        0.6776487231254578,
+        -0.01915157027542591,
+        2.571638822555542
+      ],
+      "PivotRoblox": [
+        -0.6776,
+        2.5716,
+        -0.0192
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 13,
+          "Period": 2.81,
+          "Phase": 632.5
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.7071067690849304,
+            0.0,
+            0.7071067690849304
+          ],
+          "Amp": 11,
+          "Period": 3.4563,
+          "Phase": 687.5
+        }
+      ]
+    },
+    "CoronaTongue5Tip": {
+      "Parent": "CoronaTongue5Curl",
+      "Pivot": [
+        0.6793702840805054,
+        0.01886257529258728,
+        2.9087862968444824
+      ],
+      "PivotRoblox": [
+        -0.6794,
+        2.9088,
+        0.0189
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 25,
+          "Period": 2.81,
+          "Phase": 572.5
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.7071067690849304,
+            0.0,
+            0.7071067690849304
+          ],
+          "Amp": 0.04785,
+          "Period": 2.0513,
+          "Phase": 687.5
+        }
+      ]
+    },
+    "CoronaTongue6": {
+      "Parent": "Corona",
+      "Pivot": [
+        0.12384920567274094,
+        -0.26883912086486816,
+        2.3819527626037598
+      ],
+      "PivotRoblox": [
+        -0.1238,
+        2.382,
+        -0.2688
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.15643450617790222,
+            0.0,
+            0.9876883029937744
+          ],
+          "Amp": 0.07395,
+          "Period": 4.02,
+          "Phase": 825.0,
+          "Shape": "pulse"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 5,
+          "Period": 3.12,
+          "Phase": 825.0
+        }
+      ]
+    },
+    "CoronaTongue6Curl": {
+      "Parent": "CoronaTongue6",
+      "Pivot": [
+        -0.021209320053458214,
+        -0.4373725652694702,
+        2.6976327896118164
+      ],
+      "PivotRoblox": [
+        0.0212,
+        2.6976,
+        -0.4374
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 13,
+          "Period": 3.12,
+          "Phase": 770.0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.15643450617790222,
+            0.0,
+            0.9876883029937744
+          ],
+          "Amp": 11,
+          "Period": 3.8376,
+          "Phase": 825.0
+        }
+      ]
+    },
+    "CoronaTongue6Tip": {
+      "Parent": "CoronaTongue6Curl",
+      "Pivot": [
+        -0.1971978396177292,
+        -0.39935845136642456,
+        2.9090263843536377
+      ],
+      "PivotRoblox": [
+        0.1972,
+        2.909,
+        -0.3994
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 25,
+          "Period": 3.12,
+          "Phase": 710.0
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.15643450617790222,
+            0.0,
+            0.9876883029937744
+          ],
+          "Amp": 0.04785,
+          "Period": 2.2776,
+          "Phase": 825.0
+        }
+      ]
+    },
+    "CoronaTongue7": {
+      "Parent": "Corona",
+      "Pivot": [
+        -0.35942432284355164,
+        0.2470986545085907,
+        2.3054099082946777
+      ],
+      "PivotRoblox": [
+        0.3594,
+        2.3054,
+        0.2471
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.45399051904678345,
+            0.0,
+            0.8910065293312073
+          ],
+          "Amp": 0.07395,
+          "Period": 4.14,
+          "Phase": 962.5,
+          "Shape": "pulse"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 5,
+          "Period": 3.4299999999999997,
+          "Phase": 962.5
+        }
+      ]
+    },
+    "CoronaTongue7Curl": {
+      "Parent": "CoronaTongue7",
+      "Pivot": [
+        -0.6524807214736938,
+        0.07856519520282745,
+        2.4625158309936523
+      ],
+      "PivotRoblox": [
+        0.6525,
+        2.4625,
+        0.0786
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 13,
+          "Period": 3.4299999999999997,
+          "Phase": 907.5
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            -0.45399051904678345,
+            0.0,
+            0.8910065293312073
+          ],
+          "Amp": 11,
+          "Period": 4.2189,
+          "Phase": 962.5
+        }
+      ]
+    },
+    "CoronaTongue7Tip": {
+      "Parent": "CoronaTongue7Curl",
+      "Pivot": [
+        -0.909048318862915,
+        0.1165793389081955,
+        2.5228967666625977
+      ],
+      "PivotRoblox": [
+        0.909,
+        2.5229,
+        0.1166
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 25,
+          "Period": 3.4299999999999997,
+          "Phase": 847.5
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.45399051904678345,
+            0.0,
+            0.8910065293312073
+          ],
+          "Amp": 0.04785,
+          "Period": 2.5039,
+          "Phase": 962.5
+        }
+      ]
+    },
+    "CoronaTongue8": {
+      "Parent": "Corona",
+      "Pivot": [
+        -0.7054098844528198,
+        -0.0955788791179657,
+        1.959424376487732
+      ],
+      "PivotRoblox": [
+        0.7054,
+        1.9594,
+        -0.0956
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.8910065293312073,
+            -0.0,
+            0.45399051904678345
+          ],
+          "Amp": 0.07395,
+          "Period": 4.26,
+          "Phase": 1100.0,
+          "Shape": "pulse"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 5,
+          "Period": 2.5,
+          "Phase": 1100.0
+        }
+      ]
+    },
+    "CoronaTongue8Curl": {
+      "Parent": "CoronaTongue8",
+      "Pivot": [
+        -1.1350512504577637,
+        -0.26411235332489014,
+        1.9447039365768433
+      ],
+      "PivotRoblox": [
+        1.1351,
+        1.9447,
+        -0.2641
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 13,
+          "Period": 2.5,
+          "Phase": 1045.0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            -0.8910065293312073,
+            -0.0,
+            0.45399051904678345
+          ],
+          "Amp": 11,
+          "Period": 3.075,
+          "Phase": 1100.0
+        }
+      ]
+    },
+    "CoronaTongue8Tip": {
+      "Parent": "CoronaTongue8Curl",
+      "Pivot": [
+        -1.4574671983718872,
+        -0.2260981947183609,
+        1.8421475887298584
+      ],
+      "PivotRoblox": [
+        1.4575,
+        1.8421,
+        -0.2261
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 25,
+          "Period": 2.5,
+          "Phase": 985.0
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.8910065293312073,
+            -0.0,
+            0.45399051904678345
+          ],
+          "Amp": 0.04785,
+          "Period": 1.825,
+          "Phase": 1100.0
+        }
+      ]
+    },
+    "CoronaTongue9": {
+      "Parent": "Corona",
+      "Pivot": [
+        -0.7819528579711914,
+        -0.10614013671875,
+        1.4761508703231812
+      ],
+      "PivotRoblox": [
+        0.782,
+        1.4762,
+        -0.1061
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.9876883029937744,
+            -0.0,
+            -0.15643450617790222
+          ],
+          "Amp": 0.07395,
+          "Period": 4.38,
+          "Phase": 1237.5,
+          "Shape": "pulse"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 5,
+          "Period": 2.81,
+          "Phase": 1237.5
+        }
+      ]
+    },
+    "CoronaTongue9Curl": {
+      "Parent": "CoronaTongue9",
+      "Pivot": [
+        -1.0274567604064941,
+        -0.27467361092567444,
+        1.244071125984192
+      ],
+      "PivotRoblox": [
+        1.0275,
+        1.2441,
+        -0.2747
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 13,
+          "Period": 2.81,
+          "Phase": 1182.5
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            -0.9876883029937744,
+            -0.0,
+            -0.15643450617790222
+          ],
+          "Amp": 11,
+          "Period": 3.4563,
+          "Phase": 1237.5
+        }
+      ]
+    },
+    "CoronaTongue9Tip": {
+      "Parent": "CoronaTongue9Curl",
+      "Pivot": [
+        -1.1677329540252686,
+        -0.2366594672203064,
+        1.0160868167877197
+      ],
+      "PivotRoblox": [
+        1.1677,
+        1.0161,
+        -0.2367
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 25,
+          "Period": 2.81,
+          "Phase": 1122.5
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.9876883029937744,
+            -0.0,
+            -0.15643450617790222
+          ],
+          "Amp": 0.04785,
+          "Period": 2.0513,
+          "Phase": 1237.5
         }
       ]
     },

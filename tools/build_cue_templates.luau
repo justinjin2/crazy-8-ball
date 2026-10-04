@@ -222,6 +222,27 @@ for _, pid in sorted do
 				-- The importer wraps the rig in a Model named after the file: keep that Model.
 				local rig = m:FindFirstChildWhichIsA("Model") or m
 				rig.Name = spec.Model
+				-- Roblox omits RootPart for a one-mesh skin. Normalize that import to the
+				-- same piece-frame root as a multi-mesh rig, so it can follow a cue/pocket.
+				if not rig:FindFirstChild("RootPart") then
+					local root = Instance.new("Part")
+					root.Name = "RootPart"
+					root.Size = Vector3.new(0.05, 0.05, 0.05)
+					root.Transparency = 1
+					root.CanCollide, root.CanQuery, root.CanTouch = false, false, false
+					root.CastShadow, root.Massless = false, true
+					root.CFrame = CFrame.identity
+					for _, d in rig:GetDescendants() do
+						if d:IsA("BasePart") then
+							local weld = Instance.new("Weld")
+							weld.Part0, weld.Part1 = root, d
+							weld.C0 = d.CFrame
+							weld.Parent = root
+						end
+					end
+					root.Parent = rig
+					rig.PrimaryPart = root
+				end
 				for _, d in rig:GetDescendants() do
 					if d:IsA("AnimationController") or (d:IsA("Folder") and d.Name == "InitialPoses") then
 						d:Destroy()

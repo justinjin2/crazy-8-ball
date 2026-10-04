@@ -56,6 +56,7 @@ export type Effects = typeof(setmetatable(
 		trailHalf: number, -- half the trail's width, studs
 		trailLast: Vector3?, -- the ball's last place and the level line across its path
 		trailAcross: Vector3?,
+		trailFrames: any?, -- authored internal wake animation, preloaded with the skin's shot assets
 		-- The shooter whose equipped cue dresses this table (follow), and the listener that
 		-- restyles it when they equip another.
 		followId: number?,
@@ -147,6 +148,7 @@ function Effects.new(parent: Instance, styleName: string?): Effects
 		trailHalf = 0,
 		trailLast = nil,
 		trailAcross = nil,
+		trailFrames = nil,
 		followId = nil,
 		followPlayer = nil,
 		followConnection = nil,
@@ -332,6 +334,7 @@ function Effects.attachTrail(self: Effects, part: BasePart)
 
 	self.trail = trail
 	self.trailA, self.trailB = a0, a1
+	self.trailFrames = spec.TextureFrames
 end
 
 --- Keep the trail in step with the ball.
@@ -352,6 +355,14 @@ function Effects.updateTrail(self: Effects, ball: Ball.Ball?, active: boolean)
 		return
 	end
 	local visible = active and ball ~= nil and not ball.pocketed
+	local frames = self.trailFrames
+	if visible and frames and #frames.Maps > 0 and frames.FrameSeconds > 0 then
+		local frame = math.floor(os.clock() / frames.FrameSeconds) % #frames.Maps + 1
+		local textureId = frames.Maps[frame]
+		if trail.Texture ~= textureId then
+			trail.Texture = textureId
+		end
+	end
 	self:placeTrail(not trail.Enabled and visible)
 	if trail.Enabled ~= visible then
 		if visible then
@@ -410,6 +421,7 @@ function Effects.detachTrail(self: Effects)
 		self.trailCentre:Destroy()
 	end
 	self.trailCentre = nil
+	self.trailFrames = nil
 	self.trailEmitters = {}
 	self.trail, self.core, self.trailA, self.trailB = nil, nil, nil, nil
 	self.trailTo = nil

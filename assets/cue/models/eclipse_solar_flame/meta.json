@@ -1,0 +1,26 @@
+{
+  "name": "eclipse_solar_flame",
+  "endpoint": "image-to-3d",
+  "task_id": "01a1069d-cd6d-71b6-9b7a-51c51adb8624",
+  "status": "SUCCEEDED",
+  "credits": 30,
+  "params": {
+    "ai_model": "latest",
+    "should_texture": true,
+    "enable_pbr": true,
+    "geometry_resolution": "standard",
+    "target_formats": [
+      "glb"
+    ],
+    "texture_resolution": "2k",
+    "texture_prompt": "Hand-painted luminous solar fire: bright ivory yellow cores, rich gold and amber flowing ridges, deep violet thin outer contours. Matte painted fire, never metallic. Preserve carved flame tongues and sharp flowing tips on front and back, no background.",
+    "should_remesh": true,
+    "target_polycount": 20000,
+    "topology": "triangle",
+    "images": [
+      "assets/cue/concepts/vfx-upgrade/eclipse-solar-flame-sculpt.png"
+    ]
+  },
+  "finished_at": 1791112506754,
+  "task_error": null
+}

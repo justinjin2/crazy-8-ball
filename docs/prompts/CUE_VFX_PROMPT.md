@@ -1,6 +1,6 @@
 # Cue VFX upgrade pass
 
-**2026-10-04 — APPROVED. Width, Eclipse and Beta built and checked in Studio; Mythics are next.**
+**2026-10-04 — Eclipse ONLY. Rebuilt candidate in Studio; STOP for designer review. All other cues paused.**
 
 Branch: `cue-vfx`, created from `release` at `d3b6c57`. Work in the main
 `~/Desktop/8ball` checkout and main Studio place, with Rojo on 34872. This brief supersedes
@@ -115,6 +115,44 @@ Width acceptance: actual 0.36 butt and unchanged slim tip; consistent mesh and m
 envelope; passing cue-shape, mesh, stance and clearance tests; no new rail, ball, body or
 piece intersections. All subsequent VFX is judged on this final width.
 
+## Main-artwork motion requirement (designer correction, 2026-10-04)
+
+The main VFX artwork must visibly change within its own form, with motion suited to the cue.
+Static uploaded art with surrounding particles or rotating rings does not pass. Translating,
+rotating or fading the whole image is insufficient where its shape should evolve.
+
+- Beta: blueprints pulse, scan, assemble and shift; technical markings move and diagrams rotate
+  within the sheets. The cue remains visibly drafted at each stage of the cycle.
+- Eclipse: flowing, deforming corona prominences, orbiting particles and evolving celestial
+  layers. Painted flames curl, flicker and flow with smooth coherent animation.
+- Every subsequent cue receives equivalent theme-specific internal motion, authored with
+  coherent flipbooks, animated layers, deforming meshes or a suitable combination.
+- Verify complete animation loops and transitions in recorded real Studio gameplay, including
+  lobby/back movement, hands, ball trails and pocket finishers. Stills supplement motion
+  evidence; a collection of favourable screenshots is not animation acceptance.
+- Lower effects preserves the defining internal animation, reducing secondary work. Aiming
+  remains restrained and the cue ball, target balls and table stay readable.
+
+**Dimensional construction correction (2026-10-04):** Main aura forms must occupy real
+3D space. A complete aura on one camera-facing sprite is rejected even when its pixels animate.
+Eclipse uses overlapping curved, deforming flame ribbons around its sphere, separately timed
+prominences and eruptions, and travelling energy. Beta uses separate panels at different depths,
+dimensional wire diagrams, lines that draw, per-panel scans, sequential measurements and
+exploded sections that separate and reassemble. Painted textures belong to individual tongues,
+streaks, sparks or curls. Animated, short-range PointLights illuminate actual nearby surfaces;
+bright cores and darker contours retain colour under controlled glow. Important blueprint lines
+use geometry or beams, with simple per-panel textures readable at actual gameplay size.
+
+**D — Depth/light/sharpness acceptance:** record a moving camera around each cue, including
+oblique and edge-on views. Main forms must reveal parallax and changing overlap. Inspect each
+component's independent timing, actual light on avatar/floor, and sharpness on PC and phone at
+normal play distance. Repeat in Lower effects and aiming; reject washed-out cores, flat aura
+cards, synchronized whole-composition motion and details that only read in a close-up.
+
+Eclipse alone is active. Beta and all other cues remain paused until the designer explicitly
+approves Eclipse. This overrides automatic tier-by-tier continuation below. Their earlier completion entries describe the previous
+iteration and do not constitute acceptance under this stronger motion requirement.
+
 ## 4. Runtime work required by the art
 
 Extend the existing systems generically and only where a planned effect needs it. Every
@@ -167,7 +205,7 @@ Tool abbreviations in the cue plans:
 - **Wire:** JSON authoring, generators, uploads/manifest, template and piece builders, then
   real Studio captures. This is required for every row, even where omitted for brevity.
 
-**Every cue must pass checks L, H, P and Q below on PC and phone emulation.** Its individual
+**Every cue must pass checks L, H, P, Q and M below on PC and phone emulation.** Its individual
 plan adds a specific comparison or risk check. Include gamepad view/input regression checks;
 MCP keyboard-synthesized pad keys are not evidence of a physical controller test.
 
@@ -187,6 +225,12 @@ MCP keyboard-synthesized pad keys are not evidence of a physical controller test
   check memory/instance cleanup, load behaviour, console and frame times. Real iPhone check
   by the designer remains explicitly pending until performed. Studio emulation is not an
   iPhone GPU benchmark; account for unfocused Studio's frame-rate cap when measuring.
+
+- **M — Main-artwork motion:** record real gameplay over at least two complete cycles, including
+  loop boundaries and a quality toggle. Observe internal shape/layer changes, not just whole
+  sprite movement. Check smooth pacing, coherent direction, no frozen intervals, flashing
+  resets, atlas-cell bleed or loss of the main animation in Lower effects. Play back the
+  recording and inspect suspect intervals; save motion evidence with each cue's status.
 
 Starting performance targets from the interview are 60 FPS on capable devices and steady
 30 on weaker devices, not a claimed certification. Prefer reducing invisible work and tiny
@@ -768,3 +812,15 @@ saved or live; record those states separately.
   Lint and 984 tests pass. All new assets uploaded/resolved/imported; evidence is local ignored
   `renders/vfx-upgrade/beta_*`. Trail captures use a labelled close inspection camera.
   No sales, ownership, receipts or economy code changed. Studio restored to default viewport.
+
+- **2026-10-04 — Designer motion correction:** Eclipse and Beta reopened; Celestial Dragon
+  asset work paused. Internal artwork animation and recorded-gameplay acceptance are now
+  mandatory for every cue; earlier still/motion-frame studies are insufficient.
+
+### Eclipse exclusive review gate — designer correction, 2026-10-04
+
+The dimensional ribbon attempt is a **failed visual checkpoint**, worse to the designer than the original Eclipse. Replace the paper-like forms with a cohesive sculpted, deforming corona. Individual flames curl, stretch, overlap and erupt independently around the black sphere. Preserve black, gold and violet, real local illumination, rich colour and sharp contours. Complete aura, surface, short ball trail and pocket finisher; retain restrained aiming and an attractive Lower effects version.
+
+Acceptance requires short real-gameplay recordings at normal viewing distance: orbiting camera, walking, aiming and pocketing, plus Lower effects. Compare with **the original Eclipse before this VFX pass** under matching lighting, framing and actions. Preserve its data and asset IDs. Leave the candidate equipped and ready in Studio. Assets, code and passing tests are not visual acceptance. If the result falls short, report that plainly. **STOP for the designer’s review of Eclipse; do not work on Beta or any other cue.**
+
+- **2026-10-04 — Eclipse exclusive review candidate:** replaced the failed sheets/ribbons and rounded procedural attempts with ten painted, independently skinned flame sculptures around totality; dimensional violet currents, moving surface, internally animated short wake and rebuilt pocket corona. Actual local lights, restrained aiming and Lower effects checked. Matched original/current gameplay recordings and the original Studio templates are preserved. See [Eclipse review](CUE_VFX_ECLIPSE_REVIEW.md). **STOP: designer approval is required before any other cue resumes.**

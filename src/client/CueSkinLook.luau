@@ -310,14 +310,14 @@ function CueSkinLook.refresh(self: Look)
 			self:buildArc(a)
 		end
 		for _, l in aura.Lights or {} do
-			local att = attachment(mesh, CueVfx.onCue(l.AtStuds or 5), "Light")
+			local att =
+				self:pointAttachment(CueVfx.onCue(l.AtStuds or 5, l.Up, l.Side), l.Joint, "Light")
 			local light = Instance.new("PointLight")
 			light.Color = CueVfx.color(l.Color or "#FFFFFF")
 			light.Brightness = l.Brightness or 1
 			light.Range = l.Range or 6
 			light.Shadows = false
 			light.Parent = att
-			table.insert(self.built, att)
 			table.insert(self.lights, { light = light, row = l })
 		end
 		-- The stick's outline in its colour, and the piece's own (Aura.Highlight).

@@ -1,6 +1,14 @@
 # Status
 
-**2026-10-04: cue VFX pass — 0.36 width, Eclipse and Beta built; Mythics next.**
+**2026-10-04: Eclipse review candidate — STOP for designer review. Other cues paused.**
+- Designer rejected the ribbon result as moving PNGs and worse than the original.
+  Eclipse requires dimensional/compositional and actual gameplay-motion review. Original
+  pre-pass Eclipse is the comparison baseline. Every other cue is paused.
+  Earlier checks below describe prior iterations, not current visual acceptance.
+- Eclipse review candidate now imported: forked painted solar sculptures, independent bone
+  deformation, dimensional violet currents, animated short wake and matching pocket corona.
+  [Review recordings and checks](prompts/CUE_VFX_ECLIPSE_REVIEW.md). Original pre-pass templates
+  preserved separately in Studio. **STOP for designer review; no other cue resumes.**
 - Approved brief: [CUE_VFX_PROMPT.md](prompts/CUE_VFX_PROMPT.md), branch `cue-vfx` from
   `release`. Economy, sale rules, ownership and receipts remain outside this art task.
 - Shared mesh rebuilt at 0.36 butt, 0.09 tip, 7 length, retaining the approved slim front.
@@ -38,7 +46,14 @@
   Eight copies preserve major forms in Lower effects; small accents reduce fourfold.
   984 tests/lint pass; physical iPhone/controller and final tier comparisons remain pending.
   Imported in Studio; checkpoint evidence is local ignored `renders/vfx-upgrade/beta_*`.
-- Next: Celestial Dragon, Kitsune, Apex, Grand Opening and the approved Mythic-to-Rare order.
+- Designer correction: main artwork itself must animate. Eclipse/Beta reopened for flowing
+  corona and evolving celestial layers; scanning/assembling Beta blueprints. Record real
+  gameplay across full loops and Lower effects. Celestial Dragon source work is paused
+  until both pass; prior completion claims apply only to the earlier iteration.
+- Depth correction: whole-aura sheets removed from the active data. Eclipse now uses skinned
+  painted ribbons; Beta uses physical panels, dimensional wire diagrams and drafting beams.
+  Independent motion/local light and gameplay-size sharpness are mandatory; new imports and
+  moving-camera acceptance are still in progress.
 - Beta and Grand Opening are the only new Unique cues. Beta/Eclipse share Secret-quality art;
   Grand Opening is Mythic-quality. Founder is cancelled. Painted spirit creatures, mechanical
   Apex, pink Kitsune, Eclipse's existing colours, gold-focused VIP and Reyes-only crowns.
