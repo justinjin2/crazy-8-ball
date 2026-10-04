@@ -1,9 +1,11 @@
 # Status
 
 **2026-10-04: two-stage lucky-block reel skip.**
-- First click fast-forwards to the final approach, then centres and holds the winning cue
+- First click keeps a one-second, two-card approach so the preceding cue visibly passes
+  the marker, then centres and holds the winning cue
   before revealing it. A second click during that landing reveals immediately.
-- Verified the real LuckyOpening UI in Studio: first click stays on the reel through landing,
+- Verified the adjusted real LuckyOpening UI in Studio: first click retains a one-second
+  roll and stays on the reel through landing,
   then reveals; two clicks 80 ms apart reveal immediately without dismissing the result.
   Rojo sync and console are clean; all 983 tests pass. Lint passes with four existing shadow
   warnings. The shared tap handler serves mouse, touch and controller; physical controller

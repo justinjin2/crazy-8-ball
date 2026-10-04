@@ -2339,3 +2339,7 @@ timer of a new block stay the designer's call.
 - **2026-10-04 — Lucky-block skip landing (designer).** First skip advances to a short
   final reel approach and retains the winning-card settle before the cue reveal. A second
   skip during this sequence reveals immediately. Other case reels retain their existing skip.
+
+- **2026-10-04 — Readable first-skip approach (designer).** Extend the remaining roll
+  from 0.45 s / 1.5 cards to 1 s / 2 cards so the cue before the winner visibly passes the
+  marker. Keep second-click immediate reveal.
