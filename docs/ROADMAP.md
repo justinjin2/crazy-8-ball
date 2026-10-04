@@ -17,6 +17,15 @@ Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (be
 
 ---
 
+## Lucky-block follow-up (designer, 2026-10-03)
+
+- [x] Native hold prompt, larger held models, brighter world/hotbar/bag appearance, faster
+  1.4 s opening spin, 0.5 s hold and clear cue reveal. Keyboard and phone-emulator checks,
+  screenshots, lint and 979 tests passed.
+- [ ] Physical controller hold acceptance; save the updated place and publish its templates.
+
+---
+
 ## The road to release (2026-09-26)
 
 The designer's order, one stage at a time:

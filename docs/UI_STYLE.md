@@ -525,3 +525,13 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
 - **Crossed-out prices are always true** and used only where they matter most (big money
   packs, VIP, 10 Mystery Cases, the release sale): the one-at-a-time total or a real sale price.
 - **Anything that looks lacklustre** gets the same treatment: big, clear, moving, animated.
+
+## 14. Lucky blocks (designer, 2026-10-03)
+
+- Opening a thrown block uses Roblox's **default ProximityPrompt**, a 0.5 s hold on E,
+  controller X or touch. This is an explicit exception to the custom kit control style.
+- Held blocks are large, 2.8 studs per edge. World, hotbar and bag keep bright, saturated
+  blue/gold textures; neutral preview light and a gentle emissive fill prevent muddy colours.
+- The opening block spins immediately and rises for 1.4 s before bursting.
+- The cue result keeps rarity-coloured turning rays, with no square shadow halo. The dim
+  belongs to the reel only and fades away for the result; the world stays visible.

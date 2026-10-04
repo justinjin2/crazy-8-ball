@@ -81,6 +81,8 @@ local function makeIcon(parent: Instance, kind: string): Icon
 			if d:IsA("BasePart") then
 				-- The pack's grey base bleeds through its Overlay colour map.
 				d.Color = Color3.new(1, 1, 1)
+			elseif d:IsA("SurfaceAppearance") then
+				d.EmissiveStrength = L.Look.EmissiveStrength
 			end
 			if
 				d:IsA("ParticleEmitter")

@@ -2296,3 +2296,15 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-10-03 (designer, bug pass): the tutorial's code step: once the code box is clicked the dim goes away and the gold ring and hand move to **Redeem** ("Type RELEASE, then click Redeem!"), trusting the player types RELEASE.
 - 2026-10-03 (designer, bug pass): **no offer popups, ever.** The join popup for limited offers (ShopOfferPopup) is gone; the Starter Pack and VIP's welcome offer (50% off) stand as buttons with their countdowns under the Daily Challenge on the right while open, and a press opens the Shop on them. The "COME BACK TOMORROW FOR" screen and the "Your FREE SPIN is ready!" toast on leaving or losing focus are off for now (`Config.UI.ComeBack.ShowOnLeave`, `Config.UI.Rewards.Toast.ShowOnLeave`); the one-time leave gift still comes.
 - 2026-10-03 (designer): Reyes reads **"The King"** under its name on the rank roadmap (`Strings.Ranks.Titles`).
+
+## 2026-10-03: lucky blocks, native interaction and brighter presentation
+
+Designer requested Roblox's own hold prompt, much larger held blocks, stronger colours in
+the world and inventory, then a 0.5 s hold, an opening spin one second shorter and faster
+from its start, and removal of the black background behind a pulled cue. Native
+ProximityPrompt replaces the custom BillboardGui. Held edge is 2.8 studs (was 1.5); rise is
+1.4 s (was 2.4), spin 2 -> 9 turns/s. The result drops its square shadow-image halo and
+fades the reel dim away. The source models' texture ids were already identical; their
+original demo uses much brighter ambient light. Preserve the maps, use a neutral white
+base and gentle texture-coloured emissive fill, and light inventory viewports separately.
+The original source place is unchanged. Physical controller acceptance remains pending.

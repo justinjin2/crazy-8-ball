@@ -1,5 +1,21 @@
 # Status
 
+**2026-10-03 (latest): lucky-block interaction and appearance fixes.**
+- Roblox native owner-only proximity prompt, E / controller X / touch hold, now 0.5 s; no
+  custom ring. Duplicate requests are suppressed; a refused open re-enables the prompt.
+- Held block edge 1.5 -> 2.8 studs, moved forward to clear the body. Neutral white base,
+  texture-coloured emissive fill and brighter neutral hotbar/bag lights keep the original
+  blue/gold maps vivid in the rooftop lighting. Sparkles ignore warm scene lighting.
+- Opening rise/spin 2.4 -> 1.4 s, starts at 2 turns/s and reaches 9. Reveal has no dark
+  square halo and the reel dim fades out when the cue appears.
+- Verified: Rojo sync, native keyboard hold/cancel on PC, native touch hold in iPhone
+  emulation, large held model, brighter icons, clear reveal (screenshots), 979 tests and lint.
+  Lint retains four existing shadow warnings elsewhere. Controller emulation connects,
+  but MCP pad keys arrive as Keyboard; physical controller acceptance remains pending.
+- Edit templates in ReplicatedStorage.LuckyBlocks now include the emissive mask; the
+  updated source model and mask are in assets/luckyblocks. Save place/8ball.rbxl and publish
+  to include the template changes in the local place and live game.
+
 **2026-10-03 (latest): the GUI (with cutscenes) and Tutorial lanes are merged into `release`**
 (`docs/parallel/gui.md`, `docs/parallel/tutorial.md`, briefs `docs/prompts/GUI_PROMPT.md` and
 `TUTORIAL_PROMPT.md`). Every lane of the parallel build is now in.

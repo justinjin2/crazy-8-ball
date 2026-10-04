@@ -689,6 +689,12 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 
 ## 12. Economy
 
+**Lucky-block test presentation (designer, 2026-10-03):** the current test blocks use a
+Roblox native owner-only hold prompt (0.5 s), large two-handed models and vivid colours in
+the world and hotbar/bag. Their opening spin starts fast and lasts 1.4 s; the cue reveal
+uses rarity rays without a square dark halo or full-screen dim. This is presentation work
+on the existing designer-only test feature, not a change to case rewards or odds below.
+
 Every number is in [ECONOMY.md](ECONOMY.md), rewritten 2026-10-03 from the economy plan the
 designer approved on 2026-10-02 and the designer's interview answers of 2026-10-03.
 
