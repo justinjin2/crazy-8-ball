@@ -1100,6 +1100,18 @@ def cue_material(bpy, maps, surface, skin_id):
     tint.inputs['B'].default_value = (1, 1, 1, 1)
     out['tint'] = tint
     links.new(tint.outputs['Result'], bsdf.inputs['Base Color'])
+    if surface.get('AlphaMode') == 'Transparency':
+        # a hologram (the Unique cues): the colour map's alpha is the surface's transparency,
+        # as Roblox draws a SurfaceAppearance in AlphaMode Transparency
+        links.new(col.outputs['Alpha'], bsdf.inputs['Alpha'])
+        try:
+            mat.surface_render_method = 'BLENDED'
+        except Exception:
+            mat.blend_method = 'BLEND'
+        try:
+            mat.use_transparency_overlap = True
+        except Exception:
+            pass
     links.new(tex('roughness', False).outputs['Color'], bsdf.inputs['Roughness'])
     links.new(tex('metalness', False).outputs['Color'], bsdf.inputs['Metallic'])
     nm = nodes.new('ShaderNodeNormalMap')

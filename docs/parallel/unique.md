@@ -73,6 +73,21 @@ by hand in your copy (which is otherwise lost at the merge).
 
 (file, what, why)
 
+- `assets/cue/CuePaint.py`: the paint kit's Canvas carries an `alpha` companion (`put(alpha=)`,
+  written as `<panel>_alpha.png` only when a recipe sets it); two recipes `beta` and
+  `grand_opening` and a `quilt` wrap helper. Why: the hologram's see-through body.
+- `assets/cue/CueTextures.py`: `COMPANIONS` gains `alpha`; `panel_skin` returns it and
+  `write_maps` writes an RGBA colour map when a skin has one (the tip, ferrule and bumper stay
+  solid). Why: Roblox reads the colour map's alpha as transparency in AlphaMode Transparency.
+- `assets/cue/CuePreview.py`: `cue_material` links the colour map's alpha to the shader when
+  the skin's `surface.AlphaMode` is `Transparency` (blended). Why: the preview shows the
+  hologram as the game will.
+- `assets/cue/CuePieces.py`: `build` imports `CuePiecesUnique` (the new builders module).
+- `tools/build_cue_templates.luau`: `surfaceAppearance` sets `AlphaMode` from the skin row's
+  `Surface.AlphaMode`. Why: the Beta template's hologram.
+- `assets/cue/concepts/crops.json`: boxes for the two Unique reference boards
+  (`unique/beta-concept`, `unique/grand-opening-concept`).
+
 ## Requests
 
 (for the GUI lane and the integrator)

@@ -1081,6 +1081,7 @@ def build(pid, render_preview=True):
     import CuePiecesMythic  # noqa: F401  (registers the builders on the imported CuePieces module)
     import CuePiecesLegendary  # noqa: F401
     import CuePiecesPocket  # noqa: F401
+    import CuePiecesUnique  # noqa: F401
     import CuePieces
     kit = CuePieces.Kit(bpy, pid)
     CuePieces.BUILDERS[pid](kit)

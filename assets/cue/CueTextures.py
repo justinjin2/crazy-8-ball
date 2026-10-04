@@ -39,8 +39,10 @@ TAG = 'CUE textures'
 TEXTURES = os.path.join(HERE, 'textures')
 
 # Companion maps a painted panel may bring (same size, greyscale): relief (16-bit, centred on
-# 0.5, spanning HEIGHT_RANGE_STUDS), roughness, metalness and the emissive mask.
-COMPANIONS = ('height', 'rough', 'metal', 'glow')
+# 0.5, spanning HEIGHT_RANGE_STUDS), roughness, metalness, the emissive mask and alpha (the
+# colour map's alpha channel, for a skin whose surface.AlphaMode is "Transparency": a
+# hologram's see-through body; the Unique cues, 2026-10-04).
+COMPANIONS = ('height', 'rough', 'metal', 'glow', 'alpha')
 HEIGHT_RANGE_STUDS = 0.002
 
 TEXTURE = {
@@ -394,7 +396,12 @@ def panel_skin(atlas, skin, base_dir):
         height = height + wh
     plain_parts(atlas, skin, col, rough, metal, height)
     has_glow = bool(skin.get('glow')) or bool(extra.get('glow'))
-    return col, rough, metal, height, (glow if has_glow else None)
+    alpha = None
+    if extra.get('alpha'):
+        alpha = np.ones(atlas.n)  # the tip, ferrule and bumper stay solid
+        for panel, (m, v) in extra['alpha'].items():
+            alpha[m] = v
+    return col, rough, metal, height, (glow if has_glow else None), alpha
 
 
 def areas_skin(atlas):
@@ -427,11 +434,16 @@ def normal_map(atlas, height):
     return (n * 0.5 + 0.5) * 255.0
 
 
-def write_maps(atlas, out_prefix, col, rough, metal, height, glow):
+def write_maps(atlas, out_prefix, col, rough, metal, height, glow, alpha=None):
     mask = atlas.mask
     minimum = TEXTURE['dilate_px']
     paths = {}
     colour = cc.dilate(atlas.full(np.clip(col, 0, 255), 0.0), mask, minimum)
+    if alpha is not None:
+        # an RGBA colour map: Roblox reads the alpha as the surface's transparency when the
+        # SurfaceAppearance's AlphaMode is Transparency (the skin's surface.AlphaMode)
+        a = cc.dilate(atlas.full(np.clip(alpha, 0, 1) * 255.0, 0.0), mask, minimum)
+        colour = np.concatenate([colour, a[:, :, None]], axis=2)
     paths['color'] = out_prefix + '_color.png'
     cc.write_png(paths['color'], np.round(colour))
     nm = normal_map(atlas, height)
@@ -482,11 +494,11 @@ def main():
     base_dir = HERE  # panel paths in a skin are relative to assets/cue
     if skin.get('procedural') == 'classic':
         col, rough, metal, height = classic(atlas, skin)
-        glow = None
+        glow, alpha = None, None
     else:
-        col, rough, metal, height, glow = panel_skin(atlas, skin, base_dir)
+        col, rough, metal, height, glow, alpha = panel_skin(atlas, skin, base_dir)
     os.makedirs(TEXTURES, exist_ok=True)
-    maps = write_maps(atlas, os.path.join(TEXTURES, skin_id), col, rough, metal, height, glow)
+    maps = write_maps(atlas, os.path.join(TEXTURES, skin_id), col, rough, metal, height, glow, alpha)
     # moving-material frames: skin "frames": {"Count": n, "Keys": [...]}; frame f's panels are
     # in skins/<id>_f<f>/ (CuePaint.py); only the maps named in Keys are kept (the rest match
     # frame 0, so they are not uploaded twice)
@@ -495,8 +507,8 @@ def main():
         fskin = dict(skin)
         fskin['panels'] = {k: v.replace('skins/%s/' % skin_id, 'skins/%s_f%d/' % (skin_id, f))
                            for k, v in skin.get('panels', {}).items()}
-        fcol, frough, fmetal, fheight, fglow = panel_skin(atlas, fskin, base_dir)
-        fmaps = write_maps(atlas, os.path.join(TEXTURES, '%s_f%d' % (skin_id, f)), fcol, frough, fmetal, fheight, fglow)
+        fcol, frough, fmetal, fheight, fglow, falpha = panel_skin(atlas, fskin, base_dir)
+        fmaps = write_maps(atlas, os.path.join(TEXTURES, '%s_f%d' % (skin_id, f)), fcol, frough, fmetal, fheight, fglow, falpha)
         for key, path in fmaps.items():
             if key not in frames.get('Keys', ['color', 'normal', 'roughness', 'metalness', 'emissive']):
                 os.remove(path)

@@ -154,7 +154,11 @@ class Canvas:
         self.rough = np.full((h, w), 0.35)
         self.metal = np.zeros((h, w))
         self.glow = np.zeros((h, w))
-        self.used = {'height': False, 'rough': False, 'metal': False, 'glow': False}
+        # alpha: the colour map's alpha channel (1 solid). A hologram paints its body about
+        # 0.5 and its lines 1; CueTextures writes it into the colour map and the skin's
+        # surface.AlphaMode "Transparency" makes Roblox read it (the Unique cues, 2026-10-04).
+        self.alpha = np.ones((h, w))
+        self.used = {'height': False, 'rough': False, 'metal': False, 'glow': False, 'alpha': False}
 
     def zone(self, *names):
         m = np.zeros((self.h, self.w), bool)
@@ -169,14 +173,14 @@ class Canvas:
         return (self.d >= a) & (self.d < b)
 
     # --- writing -----------------------------------------------------------------------------
-    def put(self, mask, col=None, rough=None, metal=None, height=None, glow=None):
+    def put(self, mask, col=None, rough=None, metal=None, height=None, glow=None, alpha=None):
         m = mask.astype(np.float64) if mask.dtype == bool else np.clip(mask, 0, 1)
         if col is not None:
             c = np.asarray(col, np.float64)
             if c.ndim == 1:
                 c = np.broadcast_to(c, (self.h, self.w, 3))
             self.col = mix(self.col, c, m)
-        for key, value in (('rough', rough), ('metal', metal), ('height', height), ('glow', glow)):
+        for key, value in (('rough', rough), ('metal', metal), ('height', height), ('glow', glow), ('alpha', alpha)):
             if value is None:
                 continue
             arr = getattr(self, key)
@@ -814,14 +818,14 @@ class Kit:
         for name, c in self.c.items():
             col = np.clip(np.round(c.col), 0, 255).astype(np.uint8)
             Image.fromarray(col).save(os.path.join(out, name + '.png'), optimize=True)
-            companions = {'height': c.height, 'rough': c.rough, 'metal': c.metal, 'glow': c.glow}
+            companions = {'height': c.height, 'rough': c.rough, 'metal': c.metal, 'glow': c.glow, 'alpha': c.alpha}
             for key, arr in companions.items():
                 path = os.path.join(out, '%s_%s.png' % (name, key))
                 if key == 'height':
                     v = np.clip(arr / HEIGHT_RANGE_STUDS + 0.5, 0, 1) * 65535
                     Image.fromarray(np.round(v).astype(np.uint16)).save(path, optimize=True)
                 else:
-                    if key == 'glow' and not c.glow.any():
+                    if (key == 'glow' and not c.glow.any()) or (key == 'alpha' and not c.used['alpha']):
                         if os.path.isfile(path):
                             os.remove(path)
                         continue
@@ -3772,6 +3776,143 @@ def main():
         only = args[args.index('--ai') + 1].split(',')
     for skin_id in [a for a in args if not a.startswith('--') and (only is None or a != ','.join(only))]:
         paint(skin_id, only, force)
+
+
+
+# ---------------------------------------------------------------------------------------------
+# Unique recipes (the Beta Cue and the Grand Opening Cue, 2026-10-04)
+# ---------------------------------------------------------------------------------------------
+
+def quilt(c, m, pitch=0.16, depth=0.00035, stitch='#D9A42B', seed=71):
+    """A diamond-quilted leather wrap: two families of grooves at 45 degrees (a whole number of
+    diamonds round the cue), each diamond domed a little, a small raised gold stitch point at
+    every crossing. Colour is left as painted; only the relief, roughness and stitches change."""
+    r = float(np.mean(c.r[m])) if m.any() else float(np.mean(c.r))
+    n = max(6, int(round(2 * math.pi * r / pitch)))
+    u = c.d / pitch + c.theta / (2 * math.pi) * n
+    v = c.d / pitch - c.theta / (2 * math.pi) * n
+    fu, fv = np.mod(u, 1), np.mod(v, 1)
+    lu, lv = np.minimum(fu, 1 - fu), np.minimum(fv, 1 - fv)
+    groove = np.maximum(np.exp(-(lu / 0.07) ** 2), np.exp(-(lv / 0.07) ** 2))
+    dome = np.clip(1 - np.hypot(fu - 0.5, fv - 0.5) * 1.6, 0, 1) ** 0.7
+    grain = fbm(c, 900, 900, octaves=2, seed=seed)
+    h = depth * (0.45 * dome - 1.0 * groove + 0.08 * (grain - 0.5))
+    c.add_height(m, h)
+    c.put(m, None, rough=0.6 + 0.12 * groove - 0.08 * dome, metal=0.0)
+    # the stitch points: a small gold dot where the grooves cross
+    cross = np.exp(-((lu / 0.045) ** 2 + (lv / 0.045) ** 2))
+    dot = (cross > 0.35) & (m > 0)
+    metal(c, dot, stitch, rough=0.25, brushed=False)
+    c.add_height(dot, depth * 0.6)
+    c.put(dot, None, glow=0.35)
+
+
+@recipe
+def beta(k):
+    """The Beta Cue (U1): a see-through blueprint hologram. OpenAI paints each zone as dark glass
+    with glowing blueprint linework; the painting is read as a line mask (its brightness) and
+    rebuilt in the palette: the body very dark navy glass at alpha 0.42, the lines electric blue
+    (the brightest white-hot) at alpha 1, all of it in the emissive; magenta neon rings (two at
+    the joint collar, the ring, two on the butt sleeve) with white-hot edges, solid; a dark
+    solid end. The tip and ferrule are glowing magenta-white and ice-blue (skin glow keys), so
+    the tip still reads on the ball."""
+    s = k.skin['colours']
+    blue, light, mag = rgb(s['blue']), rgb(s['light']), rgb(s['magenta'])
+    body = rgb('#07102A')
+    white = np.array([255.0, 255.0, 255.0])
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.1, height=0.0)
+        c = k.c[panel]
+        if panel == 'shaft_top':
+            match_top_to_tile(k)
+            img = c.col
+        r, g, b = img[..., 0], img[..., 1], img[..., 2]
+        mx = img.max(-1) / 255.0
+        mn = img.min(-1) / 255.0
+        lines = smooth(0.16, 0.5, mx)
+        magenta = np.clip((r - g) / 255.0 * 2.2, 0, 1) * np.clip((b - g) / 255.0 * 2.2, 0, 1) * smooth(0.3, 0.6, mx)
+        if panel in ('shaft_tile', 'shaft_top'):
+            magenta = magenta * 0.0  # the rings are the collar's and the sleeve's; a tile's repeat would scatter them
+        hot = smooth(0.72, 0.95, mn)
+        shape = img.shape
+        linecol = mix(np.broadcast_to(blue, shape), np.broadcast_to(light, shape), smooth(0.45, 0.85, mx))
+        col = mix(np.broadcast_to(body, shape), linecol, lines)
+        col = mix(col, np.broadcast_to(mag, shape), magenta)
+        col = mix(col, np.broadcast_to(white, shape), hot * 0.9)
+        ones = np.ones((c.h, c.w), bool)
+        c.put(ones, col, rough=0.08, metal=0.0,
+              glow=np.clip(0.2 + 0.9 * lines + magenta, 0, 1),
+              alpha=np.clip(0.42 + 0.58 * np.maximum(lines, magenta), 0, 1))
+        c.add_height(ones, 0.00008 * lines)
+    hot_edge = np.array([255.0, 236.0, 252.0])
+    rings = []
+    for c, m in k.zone('joint'):
+        rings.append((c, m, [(J0, J0 + 0.035), (J1 - 0.035, J1)]))
+    for c, m in k.zone('ring'):
+        rings.append((c, m, [ZONES['ring']]))
+    for c, m in k.zone('cap'):
+        rings.append((c, m, [(C0 + 0.004, C0 + 0.05), (6.86, 6.905)]))
+    for c, m, spans in rings:
+        for d0, d1 in spans:
+            ring_ = band(c, d0, d1, soft=0.001) * m
+            c.put(ring_ > 0.5, mag, rough=0.18, metal=0.0, glow=1.0, alpha=1.0)
+            edge = (band(c, d0 - 0.004, d0 + 0.004, soft=0.0015) + band(c, d1 - 0.004, d1 + 0.004, soft=0.0015)) * m
+            c.put(edge > 0.4, hot_edge, glow=1.0, alpha=1.0)
+            c.add_height(ring_, 0.0004)
+    for c, m in k.zone('joint'):
+        # the collar between its two rings: a little denser glass
+        mid = band(c, J0 + 0.035, J1 - 0.035, soft=0.001) * m
+        c.put(mid > 0.5, None, alpha=0.6)
+    for c, m in k.zone('cap'):
+        end = band(c, 6.93, 7.3) * m
+        gloss(c, end > 0.5, '#0A1230', rough=0.14)
+        c.put(end > 0.5, None, glow=0.0, alpha=1.0)
+    seam_edges(k, [6.93])
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#070C20')
+    c.put(np.ones((c.h, c.w), bool), None, glow=0.0)
+
+
+@recipe
+def grand_opening(k):
+    """The Grand Opening Cue (U2): navy lacquer, gold and fireworks. OpenAI panels on the whole
+    cue (the board's crops); the gold is read from the painting as metal, the painted firework
+    bursts and stars (saturated pink, cyan, white-hot and the brightest gold) as the emissive,
+    the wrap is given a diamond-quilt relief with gold stitch points, the collar and ring are
+    polished gold, the end a black cap."""
+    s = k.skin['colours']
+    gold, lgold = s['gold'], s['light_gold']
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.12, height=0.00025)
+        c = k.c[panel]
+        if panel == 'shaft_top':
+            match_top_to_tile(k)
+            img = c.col
+        r, g, b = img[..., 0], img[..., 1], img[..., 2]
+        mx = img.max(-1) / 255.0
+        mn = img.min(-1) / 255.0
+        warm = (r > b + 40)
+        goldm = np.maximum(hue_mask(img, gold, tol=75, min_sat=0.3), hue_mask(img, lgold, tol=60, min_sat=0.2)) * warm
+        c.put(goldm > 0.4, None, rough=0.2, metal=0.95)
+        pink = np.clip((r - g) / 255.0 * 2.0, 0, 1) * np.clip((b - g) / 255.0 * 1.5 + 0.2, 0, 1) * smooth(0.35, 0.7, mx)
+        cyan = np.clip((b - r) / 255.0 * 2.0, 0, 1) * np.clip((g - r) / 255.0 * 2.0, 0, 1) * smooth(0.35, 0.7, mx)
+        bright_gold = goldm * smooth(0.78, 0.96, mx)
+        white = smooth(0.8, 0.97, mn)
+        glow = np.clip(0.9 * pink + 0.9 * cyan + 0.7 * bright_gold + white, 0, 1)
+        c.put(np.ones((c.h, c.w), bool), None, glow=glow)
+    for c, m in k.zone('joint'):
+        metal(c, m, gold, rough=0.14)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('ring'):
+        metal(c, m, gold, rough=0.14)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('wrap'):
+        quilt(c, m)
+    end_band(k, '#111111', d0=6.93)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#111111')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
 
 
 if __name__ == '__main__':

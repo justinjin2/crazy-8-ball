@@ -1,0 +1,1913 @@
+{
+  "id": "beta",
+  "name": "Beta Cue",
+  "tier": "Unique",
+  "catalog_id": "BetaCue",
+  "concept": "U1",
+  "shape": 3,
+  "palette": [
+    "#07102A",
+    "#1E6BFF",
+    "#7FD4FF",
+    "#FFFFFF",
+    "#FF2FD0"
+  ],
+  "painter": "mix",
+  "note": "A see-through blueprint hologram (designer, 2026-10-04): the whole cue is half-transparent electric-blue light with blueprint linework over it (cross-section circles, longitudinal lines, grids, dimension lines, small schematic marks, the brightest lines white-hot), magenta neon rings at the joint and the butt collar and a magenta-white glowing tip. The surface is an OpenAI panel per zone turned into a hologram (the colour map's alpha: body about 0.5, lines opaque), a strong blue emissive, magenta rings in the emissive, AlphaMode Transparency. The 3D piece (pieces/beta): a slowly turning Neon wireframe lattice shell round the body, magenta rings (tori) at the joint and collar, a scan ring travelling tip to butt, and eight blueprint panels floating well beyond the cue at several radii and tilts (thin tinted panes with glyph strings and diagrams, Neon frames, leader lines to the cue), orbiting slowly with the aura.",
+  "ai": {
+    "shaft_tile": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "size": "1536x768",
+      "prompt": "A translucent hologram surface: very dark navy-black (#07102A) glass covered in glowing electric-blue (#1E6BFF) blueprint linework: thin straight longitudinal construction lines running left to right, evenly spaced thin cross-section ellipses drawn as if looking at rings on a cylinder, a faint fine grid, small dimension ticks and arrows, tiny schematic marks, and a few of the lines white-hot (#FFFFFF). A clean technical CAD wireframe look: thin crisp glowing lines on a dark see-through body, nothing solid, no shading. No text, no letters, no numbers, no logos."
+    },
+    "shaft_top": {
+      "refs": [
+        "shaft",
+        "closeup",
+        "full"
+      ],
+      "prompt": "A translucent hologram surface: very dark navy-black (#07102A) glass with glowing electric-blue (#1E6BFF) blueprint linework: thin longitudinal construction lines, a faint fine grid, thin cross-section ellipses, dimension ticks, and toward the right two larger wireframe shapes drawn in thin lines (a wireframe sphere and a wireframe cylinder seen from the side), the linework growing denser toward the right edge, a few lines white-hot (#FFFFFF). A clean CAD wireframe look, nothing solid, no shading. No text, no letters, no numbers, no logos."
+    },
+    "forearm": {
+      "refs": [
+        "closeup",
+        "forearm",
+        "full"
+      ],
+      "prompt": "The two thin strips at the far left are the joint collar: paint them as two glowing magenta (#FF2FD0) neon rings with thin white-hot (#FFFFFF) edges. Everything to the right is a translucent hologram: very dark navy-black (#07102A) glass with glowing electric-blue (#1E6BFF) blueprint linework: one large wireframe sphere drawn in thin lines in the middle, a diamond cross-hatch lattice of thin lines, a faint grid, thin longitudinal lines, dimension ticks and small schematic marks, a few lines white-hot. Clean CAD wireframe, nothing solid, no shading. No text, no letters, no numbers, no logos.",
+      "size": "1536x512"
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "butt",
+        "full"
+      ],
+      "prompt": "Left thin strip (the ring): a glowing magenta (#FF2FD0) neon ring with thin white-hot edges. The wrap (from the ring to the next zone line): translucent hologram, very dark navy-black (#07102A) glass with a dense diamond lattice of thin glowing electric-blue (#1E6BFF) lines, a faint grid and small schematic marks, a few lines white-hot (#FFFFFF). The butt sleeve (between the two zone lines on the right): the same dark hologram glass with a glowing magenta neon ring at each of its two ends and thin blue wireframe cross-section ellipses between them. The very thin strip at the far right: plain very dark navy-black. Clean CAD wireframe, nothing solid, no shading. No text, no letters, no numbers, no logos."
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/beta/shaft_tile.png",
+    "shaft_top": "skins/beta/shaft_top.png",
+    "forearm": "skins/beta/forearm.png",
+    "butt": "skins/beta/butt.png",
+    "cap_end": "skins/beta/cap_end.png"
+  },
+  "colours": {
+    "tip": "#FFB4F2",
+    "ferrule": "#CFEBFF",
+    "bumper": "#0A1230",
+    "blue": "#1E6BFF",
+    "light": "#7FD4FF",
+    "magenta": "#FF2FD0",
+    "metal": "#3FA9FF"
+  },
+  "glow": [
+    {
+      "color": "#FFB4F2",
+      "tolerance": 60
+    },
+    {
+      "color": "#CFEBFF",
+      "tolerance": 40
+    }
+  ],
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "piece": "beta",
+  "surface": {
+    "AlphaMode": "Transparency",
+    "EmissiveStrength": 2.6,
+    "EmissiveTint": "#9FD0FF",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 2.0,
+        "Max": 3.4,
+        "Period": 1.6
+      }
+    }
+  },
+  "vfx": {
+    "Piece": {
+      "Note": "pieces/beta: Lattice (a Neon wireframe shell round the body, turning 9 degrees a second), Rings (four magenta tori at the joint and collar), Scan (a thin white-blue ring sliding tip to butt and back over 2.6 s), Panel1-8 (aura joints: tinted panes with glyph and diagram textures, Neon frames and a leader line each, orbiting the cue at 4-7 degrees a second at radii 0.9-1.9 studs, bobbing)."
+    },
+    "Moving": {
+      "Kind": "Piece + beams + emissive",
+      "Note": "Light flows along the whole cue: two cue-wide overlay beams scroll a wireframe energy strip tip to butt (one blue, one thinner magenta the other way), the emissive swells 2.0-3.4 over 1.6 s, the scan ring sweeps, the lattice turns, the panels orbit."
+    },
+    "Aura": {
+      "Note": "A hologram's light field: a blue haze body round the cue, blue additive glow, data motes and white-hot glints, glyph flecks typing in and out, small cross-section rings drifting off, three data-stream orbiters (two blue, one magenta) with glowing heads, blue and magenta lights, and the piece's panels well beyond the cue.",
+      "Emitters": [
+        {
+          "Name": "HazeBody",
+          "Texture": "vfx/v2/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.9,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Rate": 40,
+          "Lifetime": [
+            1.2,
+            1.8
+          ],
+          "Speed": [
+            0.2,
+            0.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.2,
+          "Size": [
+            [
+              0,
+              0.7
+            ],
+            [
+              1,
+              1.9
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.15,
+              0.45
+            ],
+            [
+              0.7,
+              0.6
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Color": [
+            [
+              0,
+              "#1E4FD0"
+            ],
+            [
+              0.6,
+              "#0F2E9A"
+            ],
+            [
+              1,
+              "#07102A"
+            ]
+          ],
+          "LightEmission": 0,
+          "Brightness": 1
+        },
+        {
+          "Name": "BlueGlow",
+          "Texture": "vfx/v2/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.8,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Rate": 18,
+          "Lifetime": [
+            1.0,
+            1.6
+          ],
+          "Speed": [
+            0.1,
+            0.4
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.2,
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              1,
+              1.5
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.2,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": [
+            [
+              0,
+              "#7FD4FF"
+            ],
+            [
+              0.5,
+              "#2A7BFF"
+            ],
+            [
+              1,
+              "#FF2FD0"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 1.8
+        },
+        {
+          "Name": "DataMotes",
+          "Texture": "vfx/v2/dust.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.3,
+            "Width": 1.5,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Rate": 36,
+          "Lifetime": [
+            1.0,
+            1.8
+          ],
+          "Speed": [
+            0.2,
+            0.6
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1,
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -40,
+            40
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#7FD4FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 4
+        },
+        {
+          "Name": "Glints",
+          "Texture": "vfx/v2/flare.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.4,
+            "Width": 1.2,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Rate": 50,
+          "Lifetime": [
+            0.4,
+            0.9
+          ],
+          "Speed": [
+            0.4,
+            1.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2.5,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.15,
+              0.4
+            ],
+            [
+              0.5,
+              0.18
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#9FD0FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 7
+        },
+        {
+          "Name": "Glyphs",
+          "Texture": "vfx/beta/glyphs_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": [
+            2,
+            5
+          ],
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.4,
+            "ToStuds": 7.2,
+            "Width": 1.9,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Rate": 14,
+          "Lifetime": [
+            0.9,
+            1.6
+          ],
+          "Speed": [
+            0,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              0.7
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1,
+              0.1
+            ],
+            [
+              0.8,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -8,
+            8
+          ],
+          "Color": [
+            [
+              0,
+              "#BFE9FF"
+            ],
+            [
+              1,
+              "#3FA9FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 3
+        },
+        {
+          "Name": "SectionRings",
+          "Texture": "vfx/beta/section_ring.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.5,
+            "ToStuds": 7.0,
+            "Width": 0.5,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Rate": 6,
+          "Lifetime": [
+            0.8,
+            1.3
+          ],
+          "Speed": [
+            0.3,
+            0.8
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.5,
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              1,
+              0.9
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -60,
+            60
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.5,
+              "#3FA9FF"
+            ],
+            [
+              1,
+              "#FF2FD0"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 3
+        },
+        {
+          "Name": "MagentaRings",
+          "Texture": "vfx/v2/ring.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 3.65
+          },
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Rate": 1.5,
+          "Lifetime": [
+            0.7,
+            0.7
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FF2FD0"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 4
+        },
+        {
+          "Name": "CollarRings",
+          "Texture": "vfx/v2/ring.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 6.85
+          },
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Rate": 1.5,
+          "Lifetime": [
+            0.7,
+            0.7
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.4
+            ],
+            [
+              1,
+              1.3
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FF2FD0"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 4
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Stream1",
+          "FromStuds": 0.3,
+          "ToStuds": 4.0,
+          "TravelSeconds": 2.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.9,
+          "Radius": 0.3,
+          "RadiusFromSurface": true,
+          "Wobble": 0.05,
+          "WobbleHz": 0.8,
+          "Phase": 0,
+          "Delay": 0,
+          "Trail": {
+            "Lifetime": 0.9,
+            "WidthStuds": 0.06,
+            "Color": "#3FA9FF",
+            "Brightness": 3,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/v2/orb.png",
+            "Size": 0.16,
+            "Color": "#BFE9FF",
+            "LightEmission": 1,
+            "Brightness": 3
+          }
+        },
+        {
+          "Name": "Stream2",
+          "FromStuds": 3.0,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.0,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.8,
+          "Radius": 0.3,
+          "RadiusFromSurface": true,
+          "Wobble": 0.05,
+          "WobbleHz": 0.8,
+          "Phase": 140,
+          "Delay": 0.8,
+          "Trail": {
+            "Lifetime": 0.9,
+            "WidthStuds": 0.06,
+            "Color": "#3FA9FF",
+            "Brightness": 3,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/v2/orb.png",
+            "Size": 0.16,
+            "Color": "#BFE9FF",
+            "LightEmission": 1,
+            "Brightness": 3
+          }
+        },
+        {
+          "Name": "Stream3",
+          "FromStuds": 1.5,
+          "ToStuds": 6.9,
+          "TravelSeconds": 4.0,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.6,
+          "Radius": 0.5,
+          "RadiusFromSurface": true,
+          "Wobble": 0.08,
+          "WobbleHz": 0.5,
+          "Phase": 260,
+          "Delay": 1.6,
+          "Trail": {
+            "Lifetime": 1.1,
+            "WidthStuds": 0.05,
+            "Color": "#FF2FD0",
+            "Brightness": 3,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/v2/orb.png",
+            "Size": 0.14,
+            "Color": "#FFB4F2",
+            "LightEmission": 1,
+            "Brightness": 3
+          }
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "LightFlow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.1,
+          "Width0": 0.5,
+          "Width1": 0.95,
+          "Segments": 24,
+          "Texture": "vfx/beta/holo_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.6,
+          "TextureSpeed": 1.1,
+          "Color": [
+            [
+              0,
+              "#7FD4FF"
+            ],
+            [
+              0.55,
+              "#2A7BFF"
+            ],
+            [
+              1,
+              "#FF2FD0"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.05,
+              0.55
+            ],
+            [
+              0.92,
+              0.5
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.7,
+            "Max": 1.0,
+            "Period": 1.6
+          },
+          "Brightness": 2.4
+        },
+        {
+          "Name": "WireFlow",
+          "FromStuds": 0.1,
+          "ToStuds": 7.0,
+          "Width0": 0.32,
+          "Width1": 0.6,
+          "Segments": 24,
+          "Texture": "vfx/beta/wire_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.2,
+          "TextureSpeed": -0.6,
+          "Color": [
+            [
+              0,
+              "#BFE9FF"
+            ],
+            [
+              1,
+              "#3FA9FF"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.05,
+              0.35
+            ],
+            [
+              0.95,
+              0.35
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Brightness": 2.2
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 2.4,
+          "Color": "#3FA9FF",
+          "Brightness": 1.2,
+          "Range": 10,
+          "Flicker": {
+            "Min": 0.85,
+            "Max": 1.15,
+            "Period": 1.6
+          }
+        },
+        {
+          "AtStuds": 5.6,
+          "Color": "#3FA9FF",
+          "Brightness": 1.2,
+          "Range": 10,
+          "Flicker": {
+            "Min": 0.85,
+            "Max": 1.15,
+            "Period": 1.6,
+            "Phase": 0.5
+          }
+        },
+        {
+          "AtStuds": 3.65,
+          "Color": "#FF2FD0",
+          "Brightness": 0.9,
+          "Range": 6,
+          "Flicker": {
+            "Min": 0.6,
+            "Max": 1.2,
+            "Period": 0.4,
+            "Shape": "flicker"
+          }
+        },
+        {
+          "AtStuds": 6.9,
+          "Color": "#FF2FD0",
+          "Brightness": 0.9,
+          "Range": 6,
+          "Flicker": {
+            "Min": 0.6,
+            "Max": 1.2,
+            "Period": 0.4,
+            "Shape": "flicker",
+            "Phase": 0.3
+          }
+        }
+      ],
+      "Outline": "#3FA9FF"
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            127,
+            212,
+            255
+          ],
+          [
+            255,
+            47,
+            208
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 1.3,
+        "WidthStuds": 0.5,
+        "LightEmission": 1,
+        "Texture": "vfx/beta/wire_strip.png",
+        "TextureMode": "Wrap",
+        "TextureLength": 1.4,
+        "WidthScale": [
+          [
+            0,
+            0.7
+          ],
+          [
+            0.3,
+            1.1
+          ],
+          [
+            1,
+            0.7
+          ]
+        ],
+        "Core": {
+          "Color": [
+            220,
+            245,
+            255
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "LightEmission": 1,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 2.4
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.6,
+            0.15
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 1.6
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            63,
+            169,
+            255
+          ],
+          [
+            255,
+            47,
+            208
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "A wide blue-to-magenta light stream with a scrolling wireframe texture and a white-blue core (1.3 s); cross-section rings peel off and grow, wireframe fragments and glyphs fly off, motes and glints sparkle.",
+      "Emitters": [
+        {
+          "Name": "Rings",
+          "Texture": "vfx/beta/section_ring.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.25
+            ],
+            [
+              1,
+              0.9
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              0.7,
+              0.3
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.5,
+              "#3FA9FF"
+            ],
+            [
+              1,
+              "#FF2FD0"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 2.5
+        },
+        {
+          "Name": "WireFrags",
+          "Texture": "vfx/beta/wire_frag.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.4,
+            0.8
+          ],
+          "Speed": [
+            0.6,
+            1.6
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.5,
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              1,
+              0.28
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -240,
+            240
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#BFE9FF"
+            ],
+            [
+              1,
+              "#3FA9FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 2.5
+        },
+        {
+          "Name": "Glyphs",
+          "Texture": "vfx/beta/glyphs_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": [
+            3,
+            6
+          ],
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.1,
+            0.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.35
+            ],
+            [
+              1,
+              0.5
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              0.7,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#3FA9FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 2.5
+        },
+        {
+          "Name": "Motes",
+          "Texture": "vfx/v2/dust.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 16,
+          "Lifetime": [
+            0.4,
+            0.9
+          ],
+          "Speed": [
+            0.5,
+            1.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              1,
+              0.6
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.6,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FF2FD0"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 4
+        },
+        {
+          "Name": "Glints",
+          "Texture": "vfx/v2/flare.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.25,
+            0.5
+          ],
+          "Speed": [
+            0.3,
+            1.0
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.25
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#9FD0FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 6
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "Over 1.9 s: a magenta flash and a blue ring on the cloth; a wireframe funnel (pieces/beta_pocket) rises about four studs out of the pocket turning, its rings lighting up; a column of blue light; cross-section rings climb and spread, digital shards and glyphs burst out, a white-hot flare; everything dissolves into motes.",
+      "Layers": [
+        {
+          "Name": "Column",
+          "Texture": "vfx/beta/column.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              2.2,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.05,
+          "Lifetime": 1.2,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              2.0
+            ],
+            [
+              0.2,
+              4.2
+            ],
+            [
+              1,
+              4.6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.4
+            ],
+            [
+              0.2,
+              0.1
+            ],
+            [
+              0.7,
+              0.4
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#BFE9FF"
+            ],
+            [
+              1,
+              "#2A7BFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp",
+          "Brightness": 2
+        },
+        {
+          "Name": "Flare",
+          "Texture": "vfx/v2/flare.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              0.6,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.05,
+          "Lifetime": 0.5,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              1.5
+            ],
+            [
+              0.3,
+              4.5
+            ],
+            [
+              1,
+              2.0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.6,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FF2FD0"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 4
+        },
+        {
+          "Name": "ClimbRings",
+          "Texture": "vfx/beta/section_ring.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              0.3,
+              0
+            ]
+          },
+          "Burst": 9,
+          "Delay": 0.15,
+          "Lifetime": [
+            1.0,
+            1.4
+          ],
+          "Speed": [
+            2.2,
+            3.4
+          ],
+          "SpreadAngle": [
+            4,
+            4
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 1.2,
+          "Orientation": "VelocityPerpendicular",
+          "Size": [
+            [
+              0,
+              0.8
+            ],
+            [
+              1,
+              3.2
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.5,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.5,
+              "#3FA9FF"
+            ],
+            [
+              1,
+              "#FF2FD0"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 3
+        },
+        {
+          "Name": "Shards",
+          "Texture": "vfx/beta/wire_frag.png",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.4
+          },
+          "Burst": 30,
+          "Delay": 0.35,
+          "Lifetime": [
+            0.8,
+            1.2
+          ],
+          "Speed": [
+            4,
+            9
+          ],
+          "SpreadAngle": [
+            55,
+            55
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 1.4,
+          "Acceleration": [
+            0,
+            -6,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              0.35
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -300,
+            300
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#3FA9FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 2.5
+        },
+        {
+          "Name": "GlyphBurst",
+          "Texture": "vfx/beta/glyphs_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": [
+            4,
+            8
+          ],
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              1.5,
+              0
+            ],
+            "Size": 1.5
+          },
+          "Burst": 24,
+          "Delay": 0.5,
+          "Lifetime": [
+            0.8,
+            1.3
+          ],
+          "Speed": [
+            1.5,
+            4
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.4
+            ],
+            [
+              1,
+              0.7
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              0.7,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#3FA9FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 3
+        },
+        {
+          "Name": "Motes",
+          "Texture": "vfx/v2/dust.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              1.0,
+              0
+            ],
+            "Size": 1.0
+          },
+          "Burst": 50,
+          "Delay": 0.45,
+          "Lifetime": [
+            0.7,
+            1.3
+          ],
+          "Speed": [
+            2,
+            6
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              1,
+              0.7
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.6,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.5,
+              "#7FD4FF"
+            ],
+            [
+              1,
+              "#FF2FD0"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 4
+        },
+        {
+          "Name": "RayBurst",
+          "Texture": "vfx/_shared/streak.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              2.4,
+              0
+            ]
+          },
+          "Burst": 26,
+          "Delay": 0.7,
+          "Lifetime": [
+            0.35,
+            0.6
+          ],
+          "Speed": [
+            8,
+            14
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 4,
+          "Orientation": "VelocityParallel",
+          "Size": [
+            [
+              0,
+              0.7
+            ],
+            [
+              1,
+              0.25
+            ]
+          ],
+          "Squash": -2.2,
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FF2FD0"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 2.5
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#3FA9FF",
+          "Start": 0.5,
+          "End": 5.5,
+          "Seconds": 0.5,
+          "Delay": 0.05
+        },
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#FF2FD0",
+          "Start": 0.5,
+          "End": 4.5,
+          "Seconds": 0.6,
+          "Delay": 0.7
+        }
+      ],
+      "Flash": {
+        "Color": [
+          255,
+          120,
+          230
+        ],
+        "Brightness": 12,
+        "Seconds": 0.45
+      },
+      "Piece": {
+        "Piece": "beta_pocket",
+        "Delay": 0.1,
+        "Seconds": 1.8,
+        "Rise": [
+          [
+            0,
+            -3.6
+          ],
+          [
+            0.3,
+            0.1
+          ],
+          [
+            1,
+            0.4
+          ]
+        ],
+        "Scale": [
+          [
+            0,
+            0.6
+          ],
+          [
+            0.3,
+            1.0
+          ],
+          [
+            1,
+            1.12
+          ]
+        ],
+        "Spin": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            200
+          ]
+        ],
+        "Transparency": [
+          [
+            0,
+            0.3
+          ],
+          [
+            0.15,
+            0.0
+          ],
+          [
+            0.7,
+            0.0
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 166,
+      "Beams": 2,
+      "Lights": 4,
+      "Orbiters": 3,
+      "Note": "Before the Lower-effects pass (step 6)."
+    }
+  }
+}
