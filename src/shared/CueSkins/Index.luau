@@ -345,6 +345,21 @@ return {
 			Cap = { 69, 58, 24 },
 		},
 	},
+	GrandOpeningCue = {
+		Id = "grand_opening",
+		Name = "Grand Opening Cue",
+		Tier = "Unique",
+		Thumb = "rbxassetid://114323135519020",
+		Look = {
+			Shaft = { 36, 44, 72 },
+			Forearm = { 47, 52, 78 },
+			Wrap = { 26, 38, 62 },
+			Ring = { 217, 164, 43 },
+			Tip = { 28, 34, 64 },
+			Cap = { 21, 26, 35 },
+		},
+		Piece = "grand_opening",
+	},
 	GrandmasterCue = {
 		Id = "grandmaster_cue",
 		Name = "Grandmaster Cue",
