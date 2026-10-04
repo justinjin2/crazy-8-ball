@@ -7277,7 +7277,27 @@ Config.UI.Shop = {
 				Sky = "CaseRare",
 				Legendary = "CaseLegendary",
 				Mythic = "CaseLegendary",
+				Vip = "Vip", -- the VIP band's crown (never a model)
 			},
+			-- The Starter Pack and VIP bands (the designer's reference, 2026-10-04): two side
+			-- by side on a computer, stacked on a phone. The art at the left, the title, big
+			-- number and line beside it, then the odds pills (Starter) or the perk list (VIP),
+			-- and the timer or sale ribbon at the bottom left with the button at the right.
+			PassArtPx = { 84, 132 },
+			PassMinPx = { 300, 400 }, -- a band at least this wide (one per row otherwise)
+			PassMaxPx = 720, -- and at most this wide
+			PassTitlePx = { 24, 38 },
+			PassBigPx = { 26, 42 }, -- the "$75,000" and "x1 -> x2 MONEY"
+			OddsPillPx = { 36, 46 }, -- a horizontal odds pill: the name over the chance
+			OddsPillGapPx = { 4, 6 },
+			OddsPillMinPx = 62, -- narrower than this: the pills wrap to a second row
+			PerkRowPx = { 24, 32 }, -- a VIP perk row (icon, words)
+			PerkTextPx = { 12, 15 },
+			PerkColumnMinPx = 150, -- two columns of perks when each has this much room
+			CreamFill = { 255, 247, 219 }, -- VIP's card
+			CreamEdge = { 236, 184, 56 },
+			-- The icons by VIP's perk lines (Strings Menus.Shop.VipPerkLines), in order.
+			VipPerkIcons = { "CashStack", "UltSpin", "Restock", "Stopwatch", "Lightning", "Star" },
 		},
 		-- The menu opening: its cards and headers pop in one after another from the top left
 		-- to the bottom right, like blocks being laid (designer, 2026-10-04). Each starts

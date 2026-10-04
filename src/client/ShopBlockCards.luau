@@ -27,6 +27,7 @@ local P = Config.UI.Shop.Page
 local B = P.Block
 local K = Config.UI.Kit
 local RARITY: { [string]: { number } } = K.Rarity :: any
+local RAINBOW: { { number } } = Config.Ranks.ChatRainbow :: any -- Secret's rim
 local color = HudParts.color
 local span = ShopParts.span
 local round = ShopParts.round
@@ -45,9 +46,12 @@ export type OddsRow = { name: string, display: string, rarity: string }
 -- A chase row: a Unique cue the block could pull.
 export type Chase = { cue: string, display: string }
 
+-- A perk row on a pass band: a kit icon and a few words.
+export type Perk = { icon: string, text: string }
+
 export type Spec = {
 	id: string,
-	shape: string, -- "Opening" | "Mystery" | "Slot"
+	shape: string, -- "Opening" | "Mystery" | "Slot" | "Pass"
 	kind: string, -- the lucky block kind drawn (BlockIcon)
 	title: string,
 	titleStyle: string?, -- "Rainbow", or nil
@@ -55,6 +59,9 @@ export type Spec = {
 	subtitle: string?,
 	line: string?, -- an ink line under the title
 	big: string?, -- a huge gold number (the Starter Pack's money)
+	bigRich: boolean?, -- the big text is rich text (VIP's "x1 -> x2 MONEY")
+	perks: { Perk }?, -- a pass band's perk list, in two columns
+	tint: string?, -- a pass band's fill: "Cream" (VIP), else white
 	pill: string?, -- a pill by the title ("Always in stock")
 	pillTone: string?,
 	odds: { OddsRow }?,
@@ -75,7 +82,11 @@ export type Spec = {
 	shine: boolean?,
 }
 
-type OddsStrip = { root: Frame, rows: { { root: Frame, name: TextLabel, pct: TextLabel } } }
+type OddsStrip = {
+	root: Frame,
+	rows: { { root: Frame, name: TextLabel, pct: TextLabel, rim: UIStroke } },
+}
+type PerkRow = { root: Frame, icon: ImageLabel, text: TextLabel }
 type ChaseRow = { root: Frame, thumb: Frame?, name: TextLabel, tag: ShopParts.Pill, pct: TextLabel }
 type ColumnUi = {
 	root: Frame,
@@ -101,6 +112,8 @@ export type Card = {
 	odds: OddsStrip,
 	oddsNote: TextLabel,
 	chase: { ChaseRow },
+	perks: { PerkRow },
+	edgeColor: Color3, -- the card's usual edge (a tint swaps it)
 	columns: { ColumnUi },
 	buttons: { TextButton },
 	actions: { () -> () },
@@ -121,6 +134,7 @@ export type Card = {
 
 local MAX_ODDS = 8
 local MAX_CHASE = 2
+local MAX_PERKS = 6
 local MAX_COLUMNS = 3
 local MAX_BUTTONS = 2
 
@@ -155,7 +169,22 @@ local function makeOdds(parent: Instance): OddsStrip
 		pct.TextWrapped = false
 		pct.TextXAlignment = Enum.TextXAlignment.Right
 		pct.ZIndex = 4
-		rows[i] = { root = row, name = name, pct = pct }
+		-- Secret's rainbow rim (a pass band's pills).
+		local rim = Instance.new("UIStroke")
+		rim.Name = "Rim"
+		rim.Thickness = 2
+		rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		rim.Enabled = false
+		rim.Parent = row
+		local rainbow = Instance.new("UIGradient")
+		local stops = {}
+		local n = #RAINBOW
+		for j, c in RAINBOW do
+			table.insert(stops, ColorSequenceKeypoint.new((j - 1) / math.max(1, n - 1), color(c)))
+		end
+		rainbow.Color = ColorSequence.new(stops)
+		rainbow.Parent = rim
+		rows[i] = { root = row, name = name, pct = pct, rim = rim }
 	end
 	return { root = root, rows = rows }
 end
@@ -185,6 +214,18 @@ local function makeChase(parent: Instance, i: number): ChaseRow
 	pct.TextXAlignment = Enum.TextXAlignment.Left
 	pct.ZIndex = 5
 	return { root = root, thumb = nil, name = name, tag = tag, pct = pct }
+end
+
+local function makePerk(parent: Instance, i: number): PerkRow
+	local root = HudParts.frame(parent, "Perk" .. i)
+	root.ZIndex = 3
+	root.Visible = false
+	local icon = HudParts.icon(root, "Star", "Icon")
+	icon.ZIndex = 4
+	local text = HudParts.note(root, "Words", B.PerkTextPx[1], "")
+	text.TextXAlignment = Enum.TextXAlignment.Left
+	text.ZIndex = 4
+	return { root = root, icon = icon, text = text }
 end
 
 local function makeButtons(parent: Instance, prefix: string): ({ TextButton }, { () -> () })
@@ -258,6 +299,12 @@ function ShopBlockCards.new(parent: Instance, id: string, shape: string): Card
 	for i = 1, MAX_COLUMNS do
 		columns[i] = makeColumn(root, i)
 	end
+	local perks = {}
+	for i = 1, MAX_PERKS do
+		perks[i] = makePerk(root, i)
+	end
+	local edge = fill:FindFirstChild("Edge")
+	local edgeColor = if edge and edge:IsA("UIStroke") then edge.Color else HudParts.tone("Ink")
 	local buttons, actions = makeButtons(root, "Buy")
 	local old = HudParts.text(root, "Old", P.OldPx[1], "", numberColor("Old"))
 	old.AutoLocalize = false
@@ -305,6 +352,8 @@ function ShopBlockCards.new(parent: Instance, id: string, shape: string): Card
 		oddsNote = oddsNote,
 		chase = chase,
 		columns = columns,
+		perks = perks,
+		edgeColor = edgeColor,
 		buttons = buttons,
 		actions = actions,
 		old = old,
@@ -377,6 +426,7 @@ function ShopBlockCards.paint(card: Card, spec: Spec)
 	card.subtitle.Visible = spec.subtitle ~= nil
 	card.line.Text = spec.line or ""
 	card.line.Visible = spec.line ~= nil
+	card.big.RichText = spec.bigRich == true
 	card.big.Text = spec.big or ""
 	card.big.Visible = spec.big ~= nil
 	card.pill.root.Visible = spec.pill ~= nil
@@ -393,6 +443,7 @@ function ShopBlockCards.paint(card: Card, spec: Spec)
 			row.root.BackgroundColor3 = rarityColor(o.rarity)
 			row.name.Text = o.name
 			row.pct.Text = o.display
+			row.rim.Enabled = o.rarity == "Secret" and card.shape == "Pass"
 		else
 			row.root.Visible = false
 		end
@@ -416,6 +467,18 @@ function ShopBlockCards.paint(card: Card, spec: Spec)
 			end
 			row.name.Text = CueThumb.cueName(c.cue)
 			row.pct.Text = c.display
+		else
+			row.root.Visible = false
+		end
+	end
+	-- The perk list.
+	local perks = spec.perks or {}
+	for i, row in card.perks do
+		local perk = perks[i]
+		if perk then
+			row.root.Visible = true
+			HudParts.setIcon(row.icon, perk.icon)
+			row.text.Text = perk.text
 		else
 			row.root.Visible = false
 		end
@@ -454,7 +517,16 @@ function ShopBlockCards.paint(card: Card, spec: Spec)
 	card.sticker.BackgroundColor3 = HudParts.tone(spec.stickerTone or "Red")
 	-- Locked (the VIP slot): a grey card, the padlock over the block, the lock line.
 	local locked = spec.locked == true
-	card.fill.BackgroundColor3 = if locked then color(B.LockedColor) else HudParts.tone("White")
+	card.fill.BackgroundColor3 = if locked
+		then color(B.LockedColor)
+		elseif spec.tint == "Cream" then color(B.CreamFill)
+		else HudParts.tone("White")
+	local edge = card.fill:FindFirstChild("Edge")
+	if edge and edge:IsA("UIStroke") then
+		edge.Color = if spec.tint == "Cream" and not locked
+			then color(B.CreamEdge)
+			else card.edgeColor
+	end
 	card.lock.Visible = locked
 	card.lockLine.Visible = locked and spec.lockLine ~= nil
 	card.lockLine.Text = spec.lockLine or ""
@@ -751,6 +823,9 @@ local function layoutColumns(
 end
 
 local function hideSlotParts(card: Card)
+	for _, row in card.perks do
+		row.root.Visible = false
+	end
 	card.big.Visible = false
 	card.lock.Visible = false
 	card.lockLine.Visible = false
@@ -861,8 +936,270 @@ local function slotButtonsHeight(card: Card, s: ShopParts.Sizes): number
 	return h
 end
 
---- A slot tile's height `w` wide at these sizes (before its row evens them out).
+--------------------------------------------------------------------------------------------
+-- Pass bands (Starter Pack, VIP): side by side in the Offer grid
+--------------------------------------------------------------------------------------------
+
+-- The odds pills in rows: as many per row as stay OddsPillMinPx wide. Returns the rows'
+-- total height (0 without odds) and the pills per row.
+local function oddsPillRows(card: Card, t: number, w: number): (number, number)
+	local n = 0
+	for _, row in card.odds.rows do
+		if row.root.Visible then
+			n += 1
+		end
+	end
+	if n == 0 then
+		return 0, 0
+	end
+	local gap = span(B.OddsPillGapPx, t)
+	local perRow = math.max(1, math.min(n, math.floor((w + gap) / (B.OddsPillMinPx + gap))))
+	local rows = math.ceil(n / perRow)
+	return rows * span(B.OddsPillPx, t) + (rows - 1) * gap, perRow
+end
+
+-- Lay the pills out at (x, y), `w` wide: the name over the chance, centred. Returns the height.
+local function layoutOddsPills(card: Card, t: number, x: number, y: number, w: number): number
+	local h, perRow = oddsPillRows(card, t, w)
+	if h == 0 then
+		return 0
+	end
+	local gap = span(B.OddsPillGapPx, t)
+	local pillH = span(B.OddsPillPx, t)
+	local pillW = math.floor((w - (perRow - 1) * gap) / perRow)
+	local textSize = math.max(K.Text.Min - 2, span(B.OddsTextPx, t))
+	local i = 0
+	for _, row in card.odds.rows do
+		if row.root.Visible then
+			local col = i % perRow
+			local line = math.floor(i / perRow)
+			place(row.root, col * (pillW + gap), line * (pillH + gap), pillW, pillH)
+			HudParts.setTextSize(row.name, textSize, textSize)
+			HudParts.setTextSize(row.pct, textSize, textSize)
+			row.name.TextXAlignment = Enum.TextXAlignment.Center
+			row.pct.TextXAlignment = Enum.TextXAlignment.Center
+			local half = round(pillH / 2)
+			place(row.name, 2, 1, pillW - 4, half)
+			place(row.pct, 2, half - 1, pillW - 4, pillH - half)
+			i += 1
+		end
+	end
+	place(card.odds.root, x, y, w, h)
+	return h
+end
+
+-- The perk list's height `w` wide: two columns when each has PerkColumnMinPx.
+local function perksHeight(card: Card, t: number, w: number): (number, number)
+	local n = 0
+	for _, row in card.perks do
+		if row.root.Visible then
+			n += 1
+		end
+	end
+	if n == 0 then
+		return 0, 0
+	end
+	local cols = if w >= 2 * B.PerkColumnMinPx then 2 else 1
+	local lines = math.ceil(n / cols)
+	return lines * span(B.PerkRowPx, t), cols
+end
+
+local function layoutPerks(card: Card, t: number, x: number, y: number, w: number): number
+	local h, cols = perksHeight(card, t, w)
+	if h == 0 then
+		return 0
+	end
+	local rowH = span(B.PerkRowPx, t)
+	local colW = math.floor(w / cols)
+	local textSize = math.max(K.Text.Min - 2, span(B.PerkTextPx, t))
+	local iconPx = rowH - 4
+	local i = 0
+	for _, row in card.perks do
+		if row.root.Visible then
+			local col = i % cols
+			local line = math.floor(i / cols)
+			place(row.root, x + col * colW, y + line * rowH, colW, rowH)
+			place(row.icon, 0, 2, iconPx, iconPx)
+			HudParts.setTextSize(row.text, textSize, textSize)
+			place(row.text, iconPx + 6, 0, colW - iconPx - 8, rowH)
+			i += 1
+		end
+	end
+	return h
+end
+
+-- The header's stack beside the art: the title, the big number, the line. Returns the height
+-- of the stack (laid out when `lay`).
+local function passStack(
+	card: Card,
+	s: ShopParts.Sizes,
+	x: number,
+	y: number,
+	w: number,
+	lay: boolean
+): number
+	local t = s.t
+	local at = 0
+	local titleH = math.max(K.Text.Min, span(B.PassTitlePx, t))
+	if lay then
+		HudParts.setTextSize(card.title, titleH)
+		card.title.TextXAlignment = Enum.TextXAlignment.Left
+		place(card.title, x, y + at, w, titleH + 4)
+	end
+	at += titleH + 2
+	if card.big.Visible then
+		local bigH = math.max(K.Text.Min, span(B.PassBigPx, t))
+		if lay then
+			HudParts.setTextSize(card.big, bigH)
+			card.big.TextXAlignment = Enum.TextXAlignment.Left
+			place(card.big, x, y + at, w, bigH + 4)
+		end
+		at += bigH + 4
+	end
+	local lineSize = math.max(K.Text.Min - 2, span(B.LinePx, t))
+	if card.line.Visible then
+		local lineH = ShopParts.wrapHeight(card.line.ContentText, lineSize, w, 3)
+		if lay then
+			HudParts.setTextSize(card.line, lineSize, lineSize)
+			card.line.TextXAlignment = Enum.TextXAlignment.Left
+			place(card.line, x, y + at, w, lineH)
+		end
+		at += lineH + 2
+	end
+	return at
+end
+
+-- The bottom row's height: the buttons (or the status) at the right, the timer or the ribbon
+-- and old price at the left.
+local function passBottomHeight(card: Card, s: ShopParts.Sizes): number
+	local n = 0
+	for _, button in card.buttons do
+		if button.Visible then
+			n += 1
+		end
+	end
+	local h = if card.status.root.Visible
+		then s.button - 6
+		else math.max(s.button, n * s.button + math.max(0, n - 1) * round(s.gap / 2))
+	return math.max(h, span(B.PillPx, s.t))
+end
+
+local function passNeed(card: Card, s: ShopParts.Sizes, w: number): number
+	local t = s.t
+	local pad = s.pad
+	local iw = w - 2 * pad
+	local art = span(B.PassArtPx, t)
+	local tw = iw - art - s.gap
+	local stack = passStack(card, s, 0, 0, tw, false)
+	local h = pad + math.max(art, stack) + round(s.gap / 2)
+	local odds = oddsPillRows(card, t, iw)
+	if odds > 0 then
+		h += odds + round(s.gap / 2)
+	end
+	local perks = perksHeight(card, t, iw)
+	if perks > 0 then
+		h += perks + round(s.gap / 2)
+	end
+	h += passBottomHeight(card, s)
+	if card.note.Visible then
+		h += math.max(K.Text.Min - 2, span(B.NotePx, t)) + 6
+	end
+	return h + pad
+end
+
+local function layoutPass(
+	card: Card,
+	s: ShopParts.Sizes,
+	x: number,
+	y: number,
+	w: number,
+	h: number
+)
+	local t = s.t
+	local pad = s.pad
+	local iw = w - 2 * pad
+	card.root.Position = UDim2.fromOffset(x, y)
+	card.root.Size = UDim2.fromOffset(w, h)
+	for _, ui in card.columns do
+		ui.root.Visible = false
+	end
+	for _, row in card.chase do
+		row.root.Visible = false
+	end
+	card.subtitle.Visible = false
+	card.lock.Visible = false
+	card.lockLine.Visible = false
+	card.oddsNote.Visible = false
+	local art = span(B.PassArtPx, t)
+	local tx = pad + art + s.gap
+	local tw = iw - art - s.gap
+	local stack = passStack(card, s, tx, pad, tw, true)
+	local headH = math.max(art, stack)
+	place(card.artSlot, pad, pad + round((headH - art) / 2), art, art)
+	local at = pad + headH + round(s.gap / 2)
+	local odds = layoutOddsPills(card, t, pad, at, iw)
+	if odds > 0 then
+		at += odds + round(s.gap / 2)
+	end
+	local perks = layoutPerks(card, t, pad, at, iw)
+	if perks > 0 then
+		at += perks + round(s.gap / 2)
+	end
+	-- The bottom row sits at the bottom (rows of bands even out): the button(s) at the right,
+	-- the timer, or the ribbon and the crossed-out price, at the left.
+	local bottom = h - pad
+	if card.note.Visible then
+		local noteH = math.max(K.Text.Min - 2, span(B.NotePx, t))
+		HudParts.setTextSize(card.note, noteH, noteH)
+		card.note.TextXAlignment = Enum.TextXAlignment.Center
+		place(card.note, pad, bottom - noteH - 4, iw, noteH + 4)
+		bottom -= noteH + 6
+	end
+	local rowH = passBottomHeight(card, s)
+	local top = bottom - rowH
+	local bw = math.max(s.button * 2, round(iw * 0.42))
+	local bx = pad + iw - bw
+	if card.status.root.Visible then
+		local sh = s.button - 6
+		layoutStatus(card, s, bx, top + round((rowH - sh) / 2), bw)
+	else
+		local by = top
+		for _, button in card.buttons do
+			if button.Visible then
+				HudParts.setButtonTextSize(button, s.buttonText)
+				place(button, bx, by, bw, s.button)
+				by += s.button + round(s.gap / 2)
+			end
+		end
+	end
+	local lx, lw = pad, bx - pad - s.gap
+	if card.pill.root.Visible then
+		local pw = layoutPill(card.pill, t, lx, top + round((rowH - span(B.PillPx, t)) / 2), lw)
+		lx += pw + s.gap
+		lw -= pw + s.gap
+	end
+	if card.old.Visible then
+		local oldH = math.max(K.Text.Min, span(P.OldPx, t))
+		HudParts.setTextSize(card.old, oldH)
+		card.old.TextXAlignment = Enum.TextXAlignment.Right
+		place(card.old, lx, top + round((rowH - oldH) / 2), math.max(1, lw), oldH + 2)
+	end
+	if card.timer.Visible then
+		local lineSize = math.max(K.Text.Min - 2, span(B.LinePx, t))
+		HudParts.setTextSize(card.timer, lineSize + 2)
+		card.timer.TextXAlignment = Enum.TextXAlignment.Left
+		place(card.timer, lx, top, math.max(1, lw), rowH)
+	end
+	layoutSticker(card, t, w)
+	card.height = h
+end
+
+--- A slot tile's (or a pass band's) height `w` wide at these sizes (before its row evens
+--- them out).
 function ShopBlockCards.tileNeed(card: Card, s: ShopParts.Sizes, w: number): number
+	if card.shape == "Pass" then
+		return passNeed(card, s, w)
+	end
 	local t = s.t
 	local pad = s.pad
 	local iw = w - 2 * pad
@@ -902,6 +1239,10 @@ function ShopBlockCards.layoutTile(
 	w: number,
 	h: number
 )
+	if card.shape == "Pass" then
+		layoutPass(card, s, x, y, w, h)
+		return
+	end
 	local t = s.t
 	local pad = s.pad
 	local iw = w - 2 * pad

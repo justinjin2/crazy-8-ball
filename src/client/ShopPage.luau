@@ -45,6 +45,12 @@ local SHORT_NAMES: { [string]: string } = Strings.LuckyBlocks.Short :: any
 local RARITY_NAMES: { [string]: string } = Strings.Items.Rarities :: any
 local BIG_PACK_FROM = 4 -- packs from the 4th up show what the same money costs in Handfuls
 local R = Config.Shop.Restock
+local K = Config.UI.Kit
+local B = Config.UI.Shop.Page.Block
+
+local function color(rgb: { number }): Color3
+	return Color3.fromRGB(rgb[1], rgb[2], rgb[3])
+end
 
 local ShopPage = {}
 
@@ -55,6 +61,8 @@ export type Section = {
 	key: string,
 	grid: boolean, -- tiles in a grid (else bands stacked)
 	cards: { Spec },
+	minPx: { number }?, -- a grid's tile at least this wide (else the page's TileMinWidthPx)
+	maxPx: number?, -- and at most this wide
 	line: string?, -- a line under the header
 	lineEnds: number?, -- or a countdown there
 	lineWords: string?,
@@ -274,19 +282,39 @@ local function grandOpeningSection(state: any, products: any, shop: any, _now: n
 end
 
 -- The VIP card: the welcome offer while open, else the release sale's price, else the pass.
-local function vipSpec(state: any, products: any, shop: any, now: number): ShopCards.Spec
-	local spec: ShopCards.Spec = {
+-- A number's hex for rich text.
+local function hex(rgb: { number }): string
+	return ("%02x%02x%02x"):format(rgb[1], rgb[2], rgb[3])
+end
+
+-- VIP's band (the designer's reference, 2026-10-04): the crown, "VIP", "x1 -> x2 MONEY",
+-- the perk list in two columns, and the release sale's ribbon with the crossed-out price.
+local function vipSpec(state: any, products: any, shop: any, now: number): ShopBlockCards.Spec
+	local numbers: { [string]: { number } } = K.Numbers :: any
+	local perks: { ShopBlockCards.Perk } = {}
+	local icons: { string } = B.VipPerkIcons :: any
+	for i, text in COPY.VipPerkLines :: { string } do
+		table.insert(perks, { icon = icons[i] or "Star", text = text })
+	end
+	local spec: ShopBlockCards.Spec = {
 		id = "Vip",
-		shape = "Tile",
-		icon = "Vip",
+		shape = "Pass",
+		kind = "Vip",
 		title = COPY.Vip,
-		titleStyle = "Vip",
-		from = times(1),
-		big = times(1 + Config.Economy.VipBoost),
-		bigTint = "Gain",
-		after = COPY.MoneyWord,
-		line = COPY.VipPerks,
+		titleTint = color(numbers.Money),
+		big = COPY.VipBoost:format(
+			times(1),
+			('<font color="#%s">%s</font>'):format(
+				hex(numbers.Gain),
+				times(1 + Config.Economy.VipBoost)
+			),
+			COPY.MoneyWord
+		),
+		bigRich = true,
+		perks = perks,
+		tint = "Cream",
 	}
+	(spec :: any).kit = "Block"
 	if state.vip == true then
 		spec.status = COPY.OwnedWord
 	else
@@ -305,22 +333,20 @@ local function vipSpec(state: any, products: any, shop: any, now: number): ShopC
 				else COPY.WelcomeOffer
 		elseif sale.open == true and type(saleKey) == "string" and products[saleKey] then
 			key = saleKey
-			spec.timerEnds = sale.endsAt
-			spec.timerWords = COPY.SaleEnds
+			spec.pill, spec.pillTone = COPY.LaunchSale, "Red"
 		end
 		spec.buttons = { robuxButton(shop, key, products) }
 		if key ~= "Vip" then
 			local old = ShopParts.robuxOf(products.Vip, "Vip")
-			local price = ShopParts.robuxOf(products[key], key)
 			spec.old = ShopParts.robux(old)
-			spec.sticker = off(price, old)
 			spec.shine = true
 		end
 	end
 	return spec
 end
 
--- The Starter Pack and VIP, side by side.
+-- Starter & VIP: the Starter Pack's band (while its window is open and it is unbought) and
+-- VIP's, side by side.
 local function offerSection(state: any, products: any, shop: any, now: number): Section
 	local cards: { Spec } = {}
 	local window = tableOf(tableOf(state.offers).StarterPack)
@@ -330,7 +356,7 @@ local function offerSection(state: any, products: any, shop: any, now: number): 
 		local row = LuckyBlocks.kind(kind)
 		local spec: ShopBlockCards.Spec = {
 			id = "StarterPack",
-			shape = "Slot",
+			shape = "Pass",
 			kind = kind,
 			title = COPY.StarterPack,
 			titleStyle = "Rainbow",
@@ -346,7 +372,7 @@ local function offerSection(state: any, products: any, shop: any, now: number): 
 		table.insert(cards, spec)
 	end
 	table.insert(cards, vipSpec(state, products, shop, now))
-	return { key = "Offer", grid = true, cards = cards }
+	return { key = "Offer", grid = true, cards = cards, minPx = B.PassMinPx, maxPx = B.PassMaxPx }
 end
 
 local function limitedSection(state: any, products: any, shop: any, now: number): Section

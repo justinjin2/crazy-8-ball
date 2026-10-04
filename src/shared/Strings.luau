@@ -812,6 +812,17 @@ return {
 			Times = "x%s", -- a multiplier: "x2"
 			MoneyWord = "MONEY", -- after VIP's "x1 > x2"
 			VipPerks = "VIP Cue · gold [VIP] tag · free daily spin",
+			-- The VIP band's perk list (icons in Config UI.Shop.Page.Block.VipPerkIcons).
+			VipPerkLines = {
+				"2x money",
+				"+1 spin a day",
+				"VIP restock slot",
+				"Timers halved",
+				"Fast reveals",
+				"VIP Cue + gold tag",
+			},
+			VipBoost = "%s → %s %s", -- "x1 → x2 MONEY" (rich text colours the parts)
+			LaunchSale = "LAUNCH SALE", -- the VIP band's ribbon while the release sale is on
 			StarterPerks = "%s (Rare or better) + 1 hour of x2 money", -- the Starter block
 			Off = "%d%% OFF", -- a sticker: "30% OFF"
 			OfferEnds = "Ends in %s",

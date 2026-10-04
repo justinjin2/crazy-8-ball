@@ -508,10 +508,11 @@ function ShopMenu.layoutGrid(
 ): number
 	local s = self.sizes
 	local gap = s.gap
-	local minW = span(P.TileMinWidthPx, s.t)
+	local minW = span(section.minPx or P.TileMinWidthPx, s.t)
+	local maxW = section.maxPx or P.TileMaxWidthPx
 	local n = #section.cards
 	local cols = math.max(1, math.min(n, math.floor((w + gap) / (minW + gap))))
-	local tileW = math.min(P.TileMaxWidthPx, math.floor((w - (cols - 1) * gap) / cols))
+	local tileW = math.min(maxW, math.floor((w - (cols - 1) * gap) / cols))
 	local index = 1
 	while index <= n do
 		local inRow = math.min(cols, n - index + 1)
