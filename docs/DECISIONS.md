@@ -2343,3 +2343,16 @@ timer of a new block stay the designer's call.
 - **2026-10-04 — Readable first-skip approach (designer).** Extend the remaining roll
   from 0.45 s / 1.5 cards to 1 s / 2 cards so the cue before the winner visibly passes the
   marker. Keep second-click immediate reveal.
+
+- **2026-10-04 — Shop GUI v3 (designer).** The shop follows the designer's pasted reference
+  images (`~/Desktop/8ball-refs/gui-v3/pasted/`), not the ChatGPT result sheets. Order:
+  Grand Opening hero, Mystery block, restock, Starter + VIP, money, passes; tabs Featured,
+  Blocks, Money, Passes (Starter and VIP under Passes). Menus build in from the top left;
+  cards shimmer and icons pop now and then. A gold "+" by the money HUD opens the Shop on
+  Money. Starter Pack and VIP are two wide bands side by side (stacked on a phone).
+- **2026-10-04 — Lucky block models (designer).** Standard yellow, Uncommon green, Rare blue,
+  Epic Void Lava, Grand Opening = Gold King, Legendary = Gold Majestic, Sky = Diamond Ghost
+  recoloured lighter baby blue, Mythic = Gold Titan painted pastel rainbow with a cycling
+  aura, Mystery = Standard reskinned black with rainbow rims, Lucky 8 = a part-built black
+  cube with white "8" discs and silver rims (code bob), Starter gift = Standard red with a
+  gold tie. VIP halves block timers and opens fast; Quick Cases is retired.

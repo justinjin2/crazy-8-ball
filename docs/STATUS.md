@@ -1,5 +1,16 @@
 # Status
 
+**2026-10-04 (latest): shop GUI v3, handed to the CLI mid-way.**
+- The lucky-block economy data layer (12 block kinds, deals, restock slots, guarantee) and the
+  new shop page are on `release` (`cc7b411`, `35f8432`, `274b046`): block cards with turning
+  3D icons, the Grand Opening hero, Mystery band, restock slot tiles, Starter Pack + VIP pass
+  bands, build-in from the top left, idle shimmer and pops, a gold "+" on the money HUD that
+  opens the Shop on Money. 984 tests and lint pass; verified in Studio play on PC only.
+- Next, in order: phone and gamepad checks, then the Grand Opening, Mystery, Money and Passes
+  sections polished to the designer's reference images; then the block models, products and
+  docs. The brief for the CLI: `docs/prompts/SHOP_GUI_HANDOFF_PROMPT.md`. The designer's
+  pasted references are in `~/Desktop/8ball-refs/gui-v3/pasted/`.
+
 **2026-10-04: two-stage lucky-block reel skip.**
 - First click keeps a one-second, two-card approach so the preceding cue visibly passes
   the marker, then centres and holds the winning cue
