@@ -55,9 +55,19 @@ by hand in your copy (which is otherwise lost at the merge).
 
 (one dated line per finished step)
 
+- 2026-10-04 step 0: docs read, lane window and Rojo 34878 checked, section 7 answered (0.36,
+  the three sound files, own outline colours, catalog helper). Commit 5650020 (0.36 width)
+  cherry-picked without the shared docs; lint and 984 tests green; the lane window's Classic
+  mesh swapped and all templates and pieces rebuilt; the wide cue checked on backs, stands
+  and in hands (PC). The integrator must do the same mesh swap and template rebuild in the
+  real place at the merge (Requests).
+
 ## Decisions
 
 (dated; small calls you made on your own)
+
+- 2026-10-04: the overnight Stop hook looked for its marker files under `.git/`, which is a
+  file in a worktree; it now resolves the real git directory (tools/overnight/keep_going.sh).
 
 ## Changes to shared files
 
@@ -66,3 +76,11 @@ by hand in your copy (which is otherwise lost at the merge).
 ## Requests
 
 (for the GUI lane and the integrator)
+
+- Integrator, at the merge (the 0.36 cue, commit 5650020 cherry-picked here): in the real
+  place, Edit mode, swap `ReplicatedStorage.CueSkins.Classic.Cue` to the new mesh
+  (`InsertService:LoadAsset(73474446131672)`, `cue:ApplyMesh(thatMeshPart)`, then
+  `cue.Size = Vector3.new(0.36, 0.36, 7)`), set Classic's four maps from
+  `src/shared/CueSkins/Skins/Classic.luau` (plugin writes of `*MapContent`), then run
+  `tools/build_cue_templates.luau` to rebuild every template and piece. Checked in the lane
+  window 2026-10-04: 58 templates, 16 pieces, no problems.

@@ -236,7 +236,7 @@ worked, as the starting point for future rarer cues; write it if they say yes.
 
 ## Progress
 
-- [ ] 0. Read everything in section 0, look at the three references, open the lane Studio
+- [x] 0. Read everything in section 0, look at the three references, open the lane Studio
   window (59 cue templates and 16 pieces present, Rojo 34878 connected), ask the section 7
   questions, apply the width answer.
 - [ ] 1. Concept boards for both cues (Blender renders and painted elements, laid out like the
@@ -264,6 +264,24 @@ worked, as the starting point for future rarer cues; write it if they say yes.
 
 ## Status
 
+- 2026-10-04: step 0 done. Section 0 read, the three references studied, the lane window
+  (`lane-unique.rbxl`) checked in Edit with 59 templates and 16 pieces, Rojo live on 34878.
+  The designer answered section 7: build on 0.36. Commit 5650020 (the 0.36 rebuild) was
+  cherry-picked onto `lane-unique` with the shared docs left alone; lint and 984 tests pass;
+  the Classic template's mesh swapped (ApplyMesh from model 73474446131672, Size 0.36) and
+  all 58 templates and 16 pieces rebuilt in the lane window; the lab (Classic, Eclipse, Apex)
+  and an aiming fixture showed the wide cue on backs, stands and in the hands, console clean.
+
 ## Decisions
+
+- 2026-10-04 (designer): the Unique cues are built on the 0.36 cue (Codex's commit 5650020).
+- 2026-10-04 (designer): sounds. Beta's aura hum is `223721-hologram-screens-01.wav`, the Grand
+  Opening's aura crackle `383774-Party-Pack-Sparkler-Extinguish-Water-01-07-Long.wav` and its
+  pocket fireworks `245195-shimmer_spark_05_deep.wav` (the designer's Downloads), uploaded to
+  the group; anything else missing takes a Roblox library placeholder or nothing.
+- 2026-10-04 (designer): each cue's outline is its own colour (Beta electric blue, Grand
+  Opening gold), not the Unique pink; pink stays the tier default in Config.
+- 2026-10-04 (designer): the catalog's Unique rows keep their placeholder bands; the helper
+  takes a finished skin's colours for the power-bar cue when the Index has one.
 
 ## Notes
