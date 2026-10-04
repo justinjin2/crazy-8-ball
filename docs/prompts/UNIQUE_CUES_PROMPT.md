@@ -239,9 +239,9 @@ worked, as the starting point for future rarer cues; write it if they say yes.
 - [x] 0. Read everything in section 0, look at the three references, open the lane Studio
   window (59 cue templates and 16 pieces present, Rojo 34878 connected), ask the section 7
   questions, apply the width answer.
-- [ ] 1. Concept boards for both cues (Blender renders and painted elements, laid out like the
+- [x] 1. Concept boards for both cues (Blender renders and painted elements, laid out like the
   references); gate 1, designer approval.
-- [ ] 2. Beta: surface maps (hologram body, linework, emissive, magenta rings and tip), the
+- [x] 2. Beta: surface maps (hologram body, linework, emissive, magenta rings and tip), the
   skin file, upload, template, thumbnail; checked on a stand and a back in the lab.
 - [ ] 3. Beta: the hologram shell as a piece (wireframe lattice, Neon core, ForceField shimmer,
   3D rings), light flow, scan line, glitch flicker; checked from every angle.
@@ -271,6 +271,10 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   the Classic template's mesh swapped (ApplyMesh from model 73474446131672, Size 0.36) and
   all 58 templates and 16 pieces rebuilt in the lane window; the lab (Classic, Eclipse, Apex)
   and an aiming fixture showed the wide cue on backs, stands and in the hands, console clean.
+- 2026-10-04: step 1 done and approved at gate 1 (one change: the holographic tip). Step 2
+  done: Beta's maps, sprites, panels, thumbnail and piece GLBs uploaded and in the manifest,
+  rows generated, templates and pieces built in the lane window, checked on a stand and a back
+  next to Eclipse in the lab, values tuned for the bright lobby. Lint and 984 tests green.
 
 ## Decisions
 
@@ -283,5 +287,9 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   Opening gold), not the Unique pink; pink stays the tier default in Config.
 - 2026-10-04 (designer): the catalog's Unique rows keep their placeholder bands; the helper
   takes a finished skin's colours for the power-bar cue when the Index has one.
+- 2026-10-04 (designer, gate 1): both concept boards approved as they are ("exactly what I
+  wanted"); one change for the Beta Cue: the white tip must be holographic too, matching the
+  rest of the cue (the tip and ferrule become part-transparent glowing hologram, magenta and
+  blue, not a solid white end). No changes to the Grand Opening Cue.
 
 ## Notes

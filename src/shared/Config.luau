@@ -4449,6 +4449,7 @@ Config.CueSkins = {
 			Legendary = 0.25,
 			Mythic = 0.25,
 			Secret = 0.25,
+			Unique = 0.25, -- the numbered Limited cues quiet like a Secret (designer, 2026-10-04)
 		},
 		DefaultShare = 0.5, -- a tier not listed (tune)
 		-- A skin's own share, by catalog id, in place of its tier's: the two biggest auras
@@ -4473,6 +4474,9 @@ Config.CueSkins = {
 			Secret = "#FF3048",
 			Rank = "#FFB000",
 			Exclusive = "#2F8CFF",
+			-- Unique's pink is only the default: each Unique cue sets its own Aura.Outline
+			-- (Beta electric blue, Grand Opening gold; designer, 2026-10-04).
+			Unique = "#FF5CB8",
 		},
 		OutlineTransparency = 0.65, -- 0 a solid line, 1 none (tune)
 		FillTransparency = 1, -- 1 no tint; lower tints the whole cue (tune)

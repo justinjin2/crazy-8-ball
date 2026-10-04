@@ -65,7 +65,17 @@ by hand in your copy (which is otherwise lost at the merge).
   (OpenAI panels, paint recipes, maps, pieces, sprites, VFX data, stills, clips); the boards
   `assets/cue/concepts/unique/beta-board.png` and `grand_opening-board.png` (+ the two clips)
   are composed from our own renders by `tools/unique_board.py`. OpenAI spend so far about
-  $0.29 (8 panels). Waiting for the designer's approval before building in Studio.
+  $0.29 (8 panels). Approved by the designer the same day (one change: a holographic tip).
+
+- 2026-10-04 step 2: Beta surface done. The holographic tip and ferrule (part-transparent,
+  magenta and blue, gate-1 change), the five painted panels, 22 VFX sprites and 8 blueprint
+  panel textures, the thumbnail and the two piece GLBs (`beta`, `beta_pocket`) uploaded to the
+  group and recorded in the manifest; rows generated (`Skins/BetaCue.luau`, `Pieces/beta.luau`,
+  `Pieces/beta_pocket.luau`, the Index entry); 59 templates and the two pieces built in the
+  lane window with no problems; checked in the lab on a stand and a back next to Eclipse from
+  four angles, console clean. The body blew out white in the bright lobby, so emissive
+  strength, glint and mote rates and beam brightness were tuned live and written back into
+  `assets/cue/skins/beta.json`. Lint and 984 tests green.
 
 ## Decisions
 
@@ -73,6 +83,12 @@ by hand in your copy (which is otherwise lost at the merge).
 
 - 2026-10-04: the overnight Stop hook looked for its marker files under `.git/`, which is a
   file in a worktree; it now resolves the real git directory (tools/overnight/keep_going.sh).
+- 2026-10-04: the Beta card picture is the `--noaura` thumbnail (the GUI lane's card
+  convention): it still shows the glowing hologram body and the blueprint panels, so the card
+  reads as the cue without the aura's haze filling the frame.
+- 2026-10-04: a skin file may carry `"draft": true`; `tools/cue_skins_data.py` skips it (no
+  row, no Index entry, no piece rows) so a half-built cue never reaches the game. The Grand
+  Opening skin carries the flag until step 7.
 
 ## Changes to shared files
 
@@ -92,6 +108,20 @@ by hand in your copy (which is otherwise lost at the merge).
   `Surface.AlphaMode`. Why: the Beta template's hologram.
 - `assets/cue/concepts/crops.json`: boxes for the two Unique reference boards
   (`unique/beta-concept`, `unique/grand-opening-concept`).
+- `tools/cue_skins_data.py`: skips skins marked `"draft": true`; writes only the pieces an
+  included skin wears; `uploaded()` finds a skin's maps through the manifest when the
+  gitignored textures are absent locally; `recorded_look()` keeps the Index's recorded Look for
+  a skin whose colour map is absent; `asset_id` prefers manifest keys under the main checkout
+  when several match. Why: the generator ran from a worktree without the other lanes' textures
+  and must change only the Beta rows.
+- `src/shared/Config.luau`: `CueSkins.Quiet.Shares.Unique = 0.25` (the brief: Unique auras
+  quiet to a quarter in the hands) and `CueSkins.Outline.Colors.Unique = "#FF5CB8"` (the
+  tier's pink; each Unique skin sets its own `Aura.Outline`).
+- `src/shared/Progression/Catalog.luau`: `specialCue` takes a Unique row's Look from the
+  CueSkins Index when the skin exists (the designer's section-7 answer); the placeholder bands
+  stay for rows without a skin.
+- `tests/cue_mesh_test.luau`: a `built` set of Unique cues that must have a skin (`BetaCue`);
+  unbuilt Unique cues must have none. Why: the Grand Opening row stays skinless until step 7.
 
 ## Requests
 

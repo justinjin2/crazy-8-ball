@@ -2204,5 +2204,6 @@
       "Orbiters": 2,
       "Note": "Before the Lower-effects pass (step 10)."
     }
-  }
+  },
+  "draft": true
 }

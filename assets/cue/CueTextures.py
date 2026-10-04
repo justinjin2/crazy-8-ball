@@ -398,9 +398,13 @@ def panel_skin(atlas, skin, base_dir):
     has_glow = bool(skin.get('glow')) or bool(extra.get('glow'))
     alpha = None
     if extra.get('alpha'):
-        alpha = np.ones(atlas.n)  # the tip, ferrule and bumper stay solid
+        alpha = np.ones(atlas.n)  # the tip, ferrule and bumper stay solid unless plain_alpha says
         for panel, (m, v) in extra['alpha'].items():
             alpha[m] = v
+        # "plain_alpha": {"tip": 0.8, "ferrule": 0.6}: a hologram's plain parts see-through too
+        # (designer, 2026-10-04: the Beta Cue's tip must be holographic like the rest)
+        for region, value in (skin.get('plain_alpha') or {}).items():
+            alpha[atlas.in_region(region)] = float(value)
     return col, rough, metal, height, (glow if has_glow else None), alpha
 
 
