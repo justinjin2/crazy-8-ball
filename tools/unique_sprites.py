@@ -235,14 +235,15 @@ def burst_8x8():
             LL = max(math.hypot(dx, dy), 1e-4)
             t = np.clip(((x - sx) * dx + (y - sy) * dy) / (LL * LL), 0, 1)
             d = np.hypot(x - (sx + t * dx), y - (sy + t * dy))
-            width = 0.012 + 0.01 * (1 - t)
-            ray = np.clip(1 - d / width, 0, 1) * (0.4 + 0.6 * t)
+            # fat rays and tips (the designer, gate 2: the thin first take was hard to see)
+            width = 0.03 + 0.02 * (1 - t)
+            ray = np.clip(1 - d / width, 0, 1) * (0.55 + 0.45 * t)
             a = np.maximum(a, ray * fade)
             # the spark at the tip
-            tip = np.exp(-(np.hypot(x - ex, y - ey) / 0.045) ** 2)
+            tip = np.exp(-(np.hypot(x - ex, y - ey) / 0.075) ** 2)
             a = np.maximum(a, tip * min(1.0, fade * 1.3))
-        core = np.exp(-(r / (0.28 * (1 - 0.8 * min(k / 0.3, 1)) + 0.02)) ** 2) * max(0.0, 1 - k / 0.35)
-        halo = 0.07 * np.exp(-(r / (0.45 * grow + 0.05)) ** 2) * fade
+        core = np.exp(-(r / (0.3 * (1 - 0.8 * min(k / 0.3, 1)) + 0.03)) ** 2) * max(0.0, 1 - k / 0.35)
+        halo = 0.16 * np.exp(-(r / (0.5 * grow + 0.05)) ** 2) * fade
         a = np.maximum(a, np.maximum(core, halo))
         a = a * np.clip((1 - r) / 0.1, 0, 1)
         rr, cc = divmod(i, 8)

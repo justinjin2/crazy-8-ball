@@ -310,5 +310,9 @@ worked, as the starting point for future rarer cues; write it if they say yes.
 - 2026-10-04 (designer, gate 2, Beta): the in-Studio look passes ("looks good"); one change:
   the tip is white, not pink (still holographic: part-transparent, glowing in the body's
   blue-white). Polish, trail and finisher may go ahead.
+- 2026-10-04 (designer, gate 2, Grand Opening): the in-Studio look passes ("looks good"); one
+  change: the mini fireworks are hard to see, so their colour intensity goes up (bigger,
+  brighter, more saturated pops with a thicker burst sprite). Polish, trail and finisher may
+  go ahead.
 
 ## Notes

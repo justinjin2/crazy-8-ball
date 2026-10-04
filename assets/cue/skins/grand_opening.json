@@ -471,20 +471,20 @@
           },
           "LightInfluence": 0,
           "LockedToPart": true,
-          "Rate": 0.5,
+          "Rate": 0.8,
           "Lifetime": [
-            0.7,
-            0.9
+            0.8,
+            1.0
           ],
           "Speed": 0,
           "Size": [
             [
               0,
-              0.6
+              1.0
             ],
             [
               1,
-              0.95
+              1.6
             ]
           ],
           "Transparency": 0,
@@ -498,16 +498,16 @@
               "#FFFFFF"
             ],
             [
-              0.3,
-              "#FF3FA4"
+              0.2,
+              "#FF2D9A"
             ],
             [
               1,
-              "#FF3FA4"
+              "#FF2D9A"
             ]
           ],
           "LightEmission": 1,
-          "Brightness": 4
+          "Brightness": 7
         },
         {
           "Name": "PopsCyan",
@@ -524,20 +524,20 @@
           },
           "LightInfluence": 0,
           "LockedToPart": true,
-          "Rate": 0.5,
+          "Rate": 0.8,
           "Lifetime": [
-            0.7,
-            0.9
+            0.8,
+            1.0
           ],
           "Speed": 0,
           "Size": [
             [
               0,
-              0.6
+              1.0
             ],
             [
               1,
-              0.95
+              1.6
             ]
           ],
           "Transparency": 0,
@@ -551,16 +551,16 @@
               "#FFFFFF"
             ],
             [
-              0.3,
-              "#35D6FF"
+              0.2,
+              "#19D8FF"
             ],
             [
               1,
-              "#35D6FF"
+              "#19D8FF"
             ]
           ],
           "LightEmission": 1,
-          "Brightness": 4
+          "Brightness": 7
         },
         {
           "Name": "PopsGold",
@@ -577,20 +577,20 @@
           },
           "LightInfluence": 0,
           "LockedToPart": true,
-          "Rate": 0.5,
+          "Rate": 0.8,
           "Lifetime": [
-            0.7,
-            0.9
+            0.8,
+            1.0
           ],
           "Speed": 0,
           "Size": [
             [
               0,
-              0.6
+              1.0
             ],
             [
               1,
-              0.95
+              1.6
             ]
           ],
           "Transparency": 0,
@@ -604,16 +604,16 @@
               "#FFFFFF"
             ],
             [
-              0.3,
-              "#FFD060"
+              0.2,
+              "#FFC32E"
             ],
             [
               1,
-              "#FFB020"
+              "#FFC32E"
             ]
           ],
           "LightEmission": 1,
-          "Brightness": 4
+          "Brightness": 7
         },
         {
           "Name": "PopsBlue",
@@ -630,20 +630,20 @@
           },
           "LightInfluence": 0,
           "LockedToPart": true,
-          "Rate": 0.4,
+          "Rate": 0.8,
           "Lifetime": [
-            0.7,
-            0.9
+            0.8,
+            1.0
           ],
           "Speed": 0,
           "Size": [
             [
               0,
-              0.6
+              1.0
             ],
             [
               1,
-              0.95
+              1.6
             ]
           ],
           "Transparency": 0,
@@ -657,16 +657,16 @@
               "#FFFFFF"
             ],
             [
-              0.3,
-              "#3F7BFF"
+              0.2,
+              "#2F6DFF"
             ],
             [
               1,
-              "#3F7BFF"
+              "#2F6DFF"
             ]
           ],
           "LightEmission": 1,
-          "Brightness": 4
+          "Brightness": 7
         },
         {
           "Name": "PopsPurple",
@@ -683,20 +683,20 @@
           },
           "LightInfluence": 0,
           "LockedToPart": true,
-          "Rate": 0.4,
+          "Rate": 0.8,
           "Lifetime": [
-            0.7,
-            0.9
+            0.8,
+            1.0
           ],
           "Speed": 0,
           "Size": [
             [
               0,
-              0.6
+              1.0
             ],
             [
               1,
-              0.95
+              1.6
             ]
           ],
           "Transparency": 0,
@@ -710,16 +710,16 @@
               "#FFFFFF"
             ],
             [
-              0.3,
-              "#9B5CFF"
+              0.2,
+              "#A34CFF"
             ],
             [
               1,
-              "#9B5CFF"
+              "#A34CFF"
             ]
           ],
           "LightEmission": 1,
-          "Brightness": 4
+          "Brightness": 7
         },
         {
           "Name": "BigBurst",
@@ -736,7 +736,7 @@
           },
           "LightInfluence": 0,
           "LockedToPart": true,
-          "Rate": 0.25,
+          "Rate": 0.35,
           "Lifetime": [
             1.0,
             1.2
@@ -745,11 +745,11 @@
           "Size": [
             [
               0,
-              1.4
+              2.0
             ],
             [
               1,
-              2.2
+              3.2
             ]
           ],
           "Transparency": 0,
@@ -776,7 +776,7 @@
             ]
           ],
           "LightEmission": 1,
-          "Brightness": 5
+          "Brightness": 8
         },
         {
           "Name": "BurstSparks",

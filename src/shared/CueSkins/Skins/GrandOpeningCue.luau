@@ -209,7 +209,7 @@ return {
 			},
 			{
 				Name = "PopsPink",
-				Texture = "rbxassetid://138533897976146",
+				Texture = "rbxassetid://137945828795312",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
@@ -222,26 +222,26 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 0.5,
-				Lifetime = { 0.7, 0.9 },
+				Rate = 0.8,
+				Lifetime = { 0.8, 1 },
 				Speed = 0,
 				Size = {
-					{ 0, 0.6 },
-					{ 1, 0.95 },
+					{ 0, 1 },
+					{ 1, 1.6 },
 				},
 				Transparency = 0,
 				Rotation = { 0, 360 },
 				Color = {
 					{ 0, "#FFFFFF" },
-					{ 0.3, "#FF3FA4" },
-					{ 1, "#FF3FA4" },
+					{ 0.2, "#FF2D9A" },
+					{ 1, "#FF2D9A" },
 				},
 				LightEmission = 1,
-				Brightness = 4,
+				Brightness = 7,
 			},
 			{
 				Name = "PopsCyan",
-				Texture = "rbxassetid://138533897976146",
+				Texture = "rbxassetid://137945828795312",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
@@ -254,26 +254,26 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 0.5,
-				Lifetime = { 0.7, 0.9 },
+				Rate = 0.8,
+				Lifetime = { 0.8, 1 },
 				Speed = 0,
 				Size = {
-					{ 0, 0.6 },
-					{ 1, 0.95 },
+					{ 0, 1 },
+					{ 1, 1.6 },
 				},
 				Transparency = 0,
 				Rotation = { 0, 360 },
 				Color = {
 					{ 0, "#FFFFFF" },
-					{ 0.3, "#35D6FF" },
-					{ 1, "#35D6FF" },
+					{ 0.2, "#19D8FF" },
+					{ 1, "#19D8FF" },
 				},
 				LightEmission = 1,
-				Brightness = 4,
+				Brightness = 7,
 			},
 			{
 				Name = "PopsGold",
-				Texture = "rbxassetid://138533897976146",
+				Texture = "rbxassetid://137945828795312",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
@@ -286,26 +286,26 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 0.5,
-				Lifetime = { 0.7, 0.9 },
+				Rate = 0.8,
+				Lifetime = { 0.8, 1 },
 				Speed = 0,
 				Size = {
-					{ 0, 0.6 },
-					{ 1, 0.95 },
+					{ 0, 1 },
+					{ 1, 1.6 },
 				},
 				Transparency = 0,
 				Rotation = { 0, 360 },
 				Color = {
 					{ 0, "#FFFFFF" },
-					{ 0.3, "#FFD060" },
-					{ 1, "#FFB020" },
+					{ 0.2, "#FFC32E" },
+					{ 1, "#FFC32E" },
 				},
 				LightEmission = 1,
-				Brightness = 4,
+				Brightness = 7,
 			},
 			{
 				Name = "PopsBlue",
-				Texture = "rbxassetid://138533897976146",
+				Texture = "rbxassetid://137945828795312",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
@@ -318,26 +318,26 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 0.4,
-				Lifetime = { 0.7, 0.9 },
+				Rate = 0.8,
+				Lifetime = { 0.8, 1 },
 				Speed = 0,
 				Size = {
-					{ 0, 0.6 },
-					{ 1, 0.95 },
+					{ 0, 1 },
+					{ 1, 1.6 },
 				},
 				Transparency = 0,
 				Rotation = { 0, 360 },
 				Color = {
 					{ 0, "#FFFFFF" },
-					{ 0.3, "#3F7BFF" },
-					{ 1, "#3F7BFF" },
+					{ 0.2, "#2F6DFF" },
+					{ 1, "#2F6DFF" },
 				},
 				LightEmission = 1,
-				Brightness = 4,
+				Brightness = 7,
 			},
 			{
 				Name = "PopsPurple",
-				Texture = "rbxassetid://138533897976146",
+				Texture = "rbxassetid://137945828795312",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
@@ -350,26 +350,26 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 0.4,
-				Lifetime = { 0.7, 0.9 },
+				Rate = 0.8,
+				Lifetime = { 0.8, 1 },
 				Speed = 0,
 				Size = {
-					{ 0, 0.6 },
-					{ 1, 0.95 },
+					{ 0, 1 },
+					{ 1, 1.6 },
 				},
 				Transparency = 0,
 				Rotation = { 0, 360 },
 				Color = {
 					{ 0, "#FFFFFF" },
-					{ 0.3, "#9B5CFF" },
-					{ 1, "#9B5CFF" },
+					{ 0.2, "#A34CFF" },
+					{ 1, "#A34CFF" },
 				},
 				LightEmission = 1,
-				Brightness = 4,
+				Brightness = 7,
 			},
 			{
 				Name = "BigBurst",
-				Texture = "rbxassetid://138533897976146",
+				Texture = "rbxassetid://137945828795312",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
@@ -382,12 +382,12 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 0.25,
+				Rate = 0.35,
 				Lifetime = { 1, 1.2 },
 				Speed = 0,
 				Size = {
-					{ 0, 1.4 },
-					{ 1, 2.2 },
+					{ 0, 2 },
+					{ 1, 3.2 },
 				},
 				Transparency = 0,
 				Rotation = { 0, 360 },
@@ -398,7 +398,7 @@ return {
 					{ 1, "#9B5CFF" },
 				},
 				LightEmission = 1,
-				Brightness = 5,
+				Brightness = 8,
 			},
 			{
 				Name = "BurstSparks",
@@ -638,7 +638,7 @@ return {
 		},
 		{
 			Name = "StarletsPink",
-			Texture = "rbxassetid://138533897976146",
+			Texture = "rbxassetid://137945828795312",
 			FlipbookLayout = "Grid8x8",
 			FlipbookMode = "OneShot",
 			Host = {
@@ -665,7 +665,7 @@ return {
 		},
 		{
 			Name = "StarletsCyan",
-			Texture = "rbxassetid://138533897976146",
+			Texture = "rbxassetid://137945828795312",
 			FlipbookLayout = "Grid8x8",
 			FlipbookMode = "OneShot",
 			Host = {
@@ -692,7 +692,7 @@ return {
 		},
 		{
 			Name = "StarletsPurple",
-			Texture = "rbxassetid://138533897976146",
+			Texture = "rbxassetid://137945828795312",
 			FlipbookLayout = "Grid8x8",
 			FlipbookMode = "OneShot",
 			Host = {
@@ -919,7 +919,7 @@ return {
 			},
 			{
 				Name = "BurstGold",
-				Texture = "rbxassetid://138533897976146",
+				Texture = "rbxassetid://137945828795312",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
@@ -947,7 +947,7 @@ return {
 			},
 			{
 				Name = "BurstPink",
-				Texture = "rbxassetid://138533897976146",
+				Texture = "rbxassetid://137945828795312",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
@@ -975,7 +975,7 @@ return {
 			},
 			{
 				Name = "BurstCyan",
-				Texture = "rbxassetid://138533897976146",
+				Texture = "rbxassetid://137945828795312",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
@@ -1003,7 +1003,7 @@ return {
 			},
 			{
 				Name = "BurstPurple",
-				Texture = "rbxassetid://138533897976146",
+				Texture = "rbxassetid://137945828795312",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
@@ -1031,7 +1031,7 @@ return {
 			},
 			{
 				Name = "BurstBlue",
-				Texture = "rbxassetid://138533897976146",
+				Texture = "rbxassetid://137945828795312",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
