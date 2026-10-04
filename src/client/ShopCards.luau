@@ -13,6 +13,8 @@
 --     countdown in the middle, the old price and Buy (one or two buttons) at the right.
 --   * "Tile": a grid cell: the art on top, the name, the huge number, a line, then the old
 --     price and Buy at the bottom.
+--   * "Wide": a pass tile (reference 15): the art at the left, the name and its line at the
+--     right, Buy across the bottom.
 --   * "Note": a pale gold card with one centred line (paid random items where restricted).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -56,6 +58,9 @@ export type Spec = {
 	timerWords: string?, -- its sentence ("Ends in %s")
 	sticker: string?, -- the tilted corner sticker
 	stickerTone: string?, -- its kit colour (Red by default)
+	badge: string?, -- a straight pill inside the top left corner ("FIRST BUY x2")
+	badgeTone: string?,
+	ribbon: string?, -- a band across the top right corner ("-30%"), red
 	old: string?, -- the crossed-out price above Buy (a real old price only)
 	buttons: { Button }?,
 	status: string?, -- instead of Buy: "Owned", "Sold out"
@@ -81,6 +86,10 @@ export type Card = {
 	timer: TextLabel,
 	sticker: Frame,
 	stickerText: TextLabel,
+	badge: ShopParts.Pill,
+	ribbonBox: Frame,
+	ribbon: Frame,
+	ribbonText: TextLabel,
 	old: TextLabel,
 	buttons: { TextButton },
 	actions: { () -> () },
@@ -154,6 +163,27 @@ function ShopCards.new(parent: Instance, id: string, shape: string): Card
 	stickerText.Size = UDim2.fromScale(1, 1)
 	stickerText.ZIndex = 9
 
+	-- The badge: a straight pill inside the top left corner.
+	local badge = ShopParts.pill(root, "Badge", "Red")
+	badge.root.ZIndex = 8
+	badge.label.ZIndex = 9
+	badge.root.Visible = false
+	-- The ribbon: a red band across the top right corner, clipped to a corner square.
+	local ribbonBox = HudParts.frame(root, "RibbonBox")
+	ribbonBox.ClipsDescendants = true
+	ribbonBox.ZIndex = 8
+	ribbonBox.Visible = false
+	local ribbon = HudParts.frame(ribbonBox, "Band")
+	ribbon.BackgroundTransparency = 0
+	ribbon.BackgroundColor3 = HudParts.tone("Red")
+	ribbon.AnchorPoint = Vector2.new(0.5, 0.5)
+	ribbon.Rotation = 45
+	ribbon.ZIndex = 8
+	local ribbonText = HudParts.text(ribbon, "Words", P.RibbonTextPx[1], "")
+	ribbonText.TextWrapped = false
+	ribbonText.Size = UDim2.fromScale(1, 1)
+	ribbonText.ZIndex = 9
+
 	-- The old price: red, struck through.
 	local old = HudParts.text(root, "Old", P.OldPx[1], "", numberColor("Old"))
 	old.AutoLocalize = false
@@ -193,6 +223,10 @@ function ShopCards.new(parent: Instance, id: string, shape: string): Card
 		timer = timer,
 		sticker = sticker,
 		stickerText = stickerText,
+		badge = badge,
+		ribbonBox = ribbonBox,
+		ribbon = ribbon,
+		ribbonText = ribbonText,
 		old = old,
 		buttons = buttons,
 		actions = actions,
@@ -282,6 +316,12 @@ function ShopCards.paint(card: Card, spec: Spec)
 	card.sticker.Visible = spec.sticker ~= nil
 	card.stickerText.Text = spec.sticker or ""
 	card.sticker.BackgroundColor3 = HudParts.tone(spec.stickerTone or "Red")
+	card.badge.root.Visible = spec.badge ~= nil
+	card.badge.label.Text = spec.badge or ""
+	card.badge.root.BackgroundColor3 = HudParts.tone(spec.badgeTone or "Red")
+	card.ribbonBox.Visible = spec.ribbon ~= nil
+	card.ribbonText.Text = spec.ribbon or ""
+	card.title.Visible = spec.title ~= ""
 	card.old.Text = if spec.old then ("<s>%s</s>"):format(spec.old) else ""
 	card.old.Visible = spec.old ~= nil
 
@@ -402,6 +442,31 @@ local function layoutSticker(card: Card, s: ShopParts.Sizes, w: number)
 	card.sticker.Position = UDim2.fromOffset(w - round(sw / 2) + 4, 4)
 	card.stickerText.Position = UDim2.fromOffset(5, 0)
 	card.stickerText.Size = UDim2.new(1, -10, 1, 0)
+end
+
+-- The badge inside the top left corner and the ribbon across the top right.
+local function layoutMarks(card: Card, s: ShopParts.Sizes, w: number)
+	local t = s.t
+	if card.badge.root.Visible then
+		local h = span(P.BadgePx, t)
+		local size = math.max(K.Text.Min - 4, span(P.BadgeTextPx, t))
+		ShopParts.setPill(card.badge, card.badge.label.Text, h, size, w - 2 * s.pad)
+		card.badge.root.AnchorPoint = Vector2.new(0, 0)
+		card.badge.root.Position = UDim2.fromOffset(round(s.pad * 0.6), round(s.pad * 0.6))
+	end
+	if card.ribbonBox.Visible then
+		local box = span(P.RibbonBoxPx, t)
+		local h = span(P.RibbonPx, t)
+		local size = math.max(K.Text.Min - 4, span(P.RibbonTextPx, t))
+		card.ribbonBox.Position = UDim2.fromOffset(w - box, 0)
+		card.ribbonBox.Size = UDim2.fromOffset(box, box)
+		-- The band cuts the corner off: its middle sits up and right of the box's centre.
+		local cx = round(box * P.RibbonCentreShare)
+		local cy = round(box * (1 - P.RibbonCentreShare))
+		card.ribbon.Size = UDim2.fromOffset(round(box * 1.6), h)
+		card.ribbon.Position = UDim2.fromOffset(cx, cy)
+		HudParts.setTextSize(card.ribbonText, size)
+	end
 end
 
 -- How many buttons show.
@@ -527,12 +592,36 @@ function ShopCards.layoutHero(
 	return h
 end
 
+-- A wide tile's words' height beside its art (the name and its line), `w` wide.
+local function wideWords(card: Card, s: ShopParts.Sizes, w: number): (number, number, number)
+	local t = s.t
+	local nameH = if card.title.Visible then math.max(K.Text.Min, span(P.TileNamePx, t)) + 4 else 0
+	local lineSize = math.max(K.Text.Min, span(P.TileLinePx, t))
+	local lineH = if card.line.Visible
+		then ShopParts.wrapHeight(card.line.ContentText, lineSize, w, 3)
+		else 0
+	local timerH = if card.timer.Visible then lineSize + 4 else 0
+	return nameH, lineH, timerH
+end
+
+--- A wide tile's height `w` wide.
+local function wideNeed(card: Card, s: ShopParts.Sizes, w: number): number
+	local pad = s.pad
+	local art = round(w * P.WideArtShare) - pad
+	local tw = w - 2 * pad - art - s.gap
+	local nameH, lineH, timerH = wideWords(card, s, tw)
+	return pad + math.max(art, nameH + lineH + timerH) + s.gap + buyHeight(card, s) + pad
+end
+
 --- A tile's height `w` wide at these sizes (before the row evens them out).
 function ShopCards.tileNeed(card: Card, s: ShopParts.Sizes, w: number): number
+	if card.shape == "Wide" then
+		return wideNeed(card, s, w)
+	end
 	local t = s.t
 	local base = span(P.TilePx, t)
 	local pad = s.pad
-	local nameH = math.max(K.Text.Min, span(P.TileNamePx, t)) + 4
+	local nameH = if card.title.Visible then math.max(K.Text.Min, span(P.TileNamePx, t)) + 4 else 0
 	local bigH = if card.big.Visible or card.from.Visible
 		then math.max(K.Text.Min, span(P.TileBigPx, t))
 		else 0
@@ -546,8 +635,9 @@ function ShopCards.tileNeed(card: Card, s: ShopParts.Sizes, w: number): number
 	return math.max(base, need)
 end
 
---- Lay a tile out at (x, y), `w` by `h`.
-function ShopCards.layoutTile(
+-- A wide tile (reference 15): the art at the left, the name and its line (and timer) at
+-- the right, centred on the art, Buy across the bottom.
+local function layoutWide(
 	card: Card,
 	s: ShopParts.Sizes,
 	x: number,
@@ -559,18 +649,74 @@ function ShopCards.layoutTile(
 	local pad = s.pad
 	card.root.Position = UDim2.fromOffset(x, y)
 	card.root.Size = UDim2.fromOffset(w, h)
+	local iw = w - 2 * pad
+	local art = round(w * P.WideArtShare) - pad
+	local tx = pad + art + s.gap
+	local tw = iw - art - s.gap
+	local nameH, lineH, timerH = wideWords(card, s, tw)
+	local block = nameH + lineH + timerH
+	local headH = math.max(art, block)
+	card.artSlot.Position = UDim2.fromOffset(pad, pad + round((headH - art) / 2))
+	card.artSlot.Size = UDim2.fromOffset(art, art)
+	local at = pad + round((headH - block) / 2)
+	if card.title.Visible then
+		HudParts.setTextSize(card.title, nameH - 4)
+		card.title.TextXAlignment = Enum.TextXAlignment.Center
+		card.title.Position = UDim2.fromOffset(tx, at)
+		card.title.Size = UDim2.fromOffset(tw, nameH)
+		at += nameH
+	end
+	card.from.Visible = false
+	card.arrow.Visible = false
+	card.big.Visible = false
+	card.after.Visible = false
+	local lineSize = math.max(K.Text.Min, span(P.TileLinePx, t))
+	HudParts.setTextSize(card.line, lineSize)
+	card.line.TextXAlignment = Enum.TextXAlignment.Center
+	card.line.Position = UDim2.fromOffset(tx, at)
+	card.line.Size = UDim2.fromOffset(tw, math.max(1, lineH))
+	at += lineH
+	HudParts.setTextSize(card.timer, lineSize)
+	card.timer.TextXAlignment = Enum.TextXAlignment.Center
+	card.timer.Position = UDim2.fromOffset(tx, at)
+	card.timer.Size = UDim2.fromOffset(tw, math.max(1, timerH))
+	layoutBuy(card, s, pad, iw, h - pad)
+	layoutSticker(card, s, w)
+	layoutMarks(card, s, w)
+	card.height = h
+end
+
+--- Lay a tile out at (x, y), `w` by `h`.
+function ShopCards.layoutTile(
+	card: Card,
+	s: ShopParts.Sizes,
+	x: number,
+	y: number,
+	w: number,
+	h: number
+)
+	if card.shape == "Wide" then
+		layoutWide(card, s, x, y, w, h)
+		return
+	end
+	local t = s.t
+	local pad = s.pad
+	card.root.Position = UDim2.fromOffset(x, y)
+	card.root.Size = UDim2.fromOffset(w, h)
 	local base = span(P.TilePx, t)
 	local art = round(base * P.TileArtShare)
 	card.artSlot.Position = UDim2.fromOffset(round((w - art) / 2), pad)
 	card.artSlot.Size = UDim2.fromOffset(art, art)
 	local iw = w - 2 * pad
 	local at = pad + art
-	local nameH = math.max(K.Text.Min, span(P.TileNamePx, t))
-	HudParts.setTextSize(card.title, nameH)
-	card.title.TextXAlignment = Enum.TextXAlignment.Center
-	card.title.Position = UDim2.fromOffset(pad, at)
-	card.title.Size = UDim2.fromOffset(iw, nameH + 4)
-	at += nameH + 4
+	if card.title.Visible then
+		local nameH = math.max(K.Text.Min, span(P.TileNamePx, t))
+		HudParts.setTextSize(card.title, nameH)
+		card.title.TextXAlignment = Enum.TextXAlignment.Center
+		card.title.Position = UDim2.fromOffset(pad, at)
+		card.title.Size = UDim2.fromOffset(iw, nameH + 4)
+		at += nameH + 4
+	end
 	if card.big.Visible or card.from.Visible then
 		local bigH = math.max(K.Text.Min, span(P.TileBigPx, t))
 		layoutBig(card, pad, at, iw, bigH, true)
@@ -591,6 +737,7 @@ function ShopCards.layoutTile(
 	card.timer.Size = UDim2.fromOffset(iw, lineSize + 4)
 	layoutBuy(card, s, pad, iw, h - pad)
 	layoutSticker(card, s, w)
+	layoutMarks(card, s, w)
 	card.height = h
 end
 

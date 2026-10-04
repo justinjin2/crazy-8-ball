@@ -39,7 +39,6 @@ local UISound = require(script.Parent.UISound)
 
 local COPY: { [string]: any } = Strings.Menus.Shop :: any
 local OPENING: { [string]: string } = COPY.Opening
-local PACK_NAMES: { [string]: string } = COPY.Packs
 local BLOCK_NAMES: { [string]: string } = Strings.LuckyBlocks.Names :: any
 local SHORT_NAMES: { [string]: string } = Strings.LuckyBlocks.Short :: any
 local RARITY_NAMES: { [string]: string } = Strings.Items.Rarities :: any
@@ -47,7 +46,8 @@ local BIG_PACK_FROM = 4 -- packs from the 4th up show what the same money costs 
 local R = Config.Shop.Restock
 local PRODUCTS: { [string]: any } = Config.Products.List :: any
 local K = Config.UI.Kit
-local B = Config.UI.Shop.Page.Block
+local P = Config.UI.Shop.Page
+local B = P.Block
 
 local function color(rgb: { number }): Color3
 	return Color3.fromRGB(rgb[1], rgb[2], rgb[3])
@@ -67,6 +67,7 @@ export type Section = {
 	line: string?, -- a line under the header
 	lineEnds: number?, -- or a countdown there
 	lineWords: string?,
+	bar: boolean?, -- the line in a dark bar with the stopwatch, and no header word (restock)
 }
 
 local function tableOf(value: any): { [any]: any }
@@ -79,13 +80,6 @@ local function times(n: number): string
 	end
 	local text = ("%.2f"):format(n):gsub("%.?0+$", "")
 	return COPY.Times:format(text)
-end
-
-local function off(now: number, old: number): string?
-	if old <= 0 or now >= old then
-		return nil
-	end
-	return COPY.Off:format(math.floor((1 - now / old) * 100 + 0.5))
 end
 
 -- A number's hex for rich text.
@@ -504,6 +498,41 @@ local function restockOddsLine(): string
 	return COPY.RestockOdds:format(table.concat(parts, " · "))
 end
 
+-- A restock tile's three chase pictures: one cue from each of the case's three highest
+-- rarities (the first of its pool in the catalog), the likeliest first, with its chance.
+local function chaseCues(caseId: string?): { ShopBlockCards.Chase }
+	local list: { ShopBlockCards.Chase } = {}
+	if caseId == nil then
+		return list
+	end
+	local firstOf: { [string]: any } = {}
+	local order = {}
+	for _, entry in Cases.cueOdds(caseId) do
+		if firstOf[entry.rarity] == nil then
+			firstOf[entry.rarity] = entry
+			table.insert(order, entry.rarity)
+		end
+	end
+	-- Cases.odds lists rarities from the commonest up: the last three are the rarest.
+	for i = math.max(1, #order - 2), #order do
+		local entry = firstOf[order[i]]
+		table.insert(list, { cue = entry.id, display = entry.display })
+	end
+	return list
+end
+
+-- A block kind's name with the kind word in its colour: "Uncommon Lucky Block".
+local function kindTitle(kind: string): (string, boolean)
+	local name = BLOCK_NAMES[kind] or kind
+	local short = SHORT_NAMES[kind]
+	if short and name:sub(1, #short) == short then
+		local c = CueThumb.rarityColor(kind)
+		local tint = ("%02x%02x%02x"):format(c.R * 255 + 0.5, c.G * 255 + 0.5, c.B * 255 + 0.5)
+		return ('<font color="#%s">%s</font>%s'):format(tint, short, name:sub(#short + 1)), true
+	end
+	return name, false
+end
+
 local function restockSection(state: any, products: any, shop: any, _now: number): Section
 	local restock = tableOf(state.restock)
 	local cards: { Spec } = {}
@@ -516,13 +545,15 @@ local function restockSection(state: any, products: any, shop: any, _now: number
 		local row = LuckyBlocks.kind(kind)
 		local left = if type(item.left) == "number" then item.left else 0
 		local price = if type(item.price) == "number" then item.price else 0
+		local title, rich = kindTitle(kind)
 		local spec: ShopBlockCards.Spec = {
 			id = "Restock:" .. id,
 			shape = "Slot",
 			kind = kind,
-			title = BLOCK_NAMES[kind] or kind,
-			titleTint = CueThumb.rarityColor(kind),
+			title = title,
+			titleRich = rich,
 			odds = oddsRows(if row then row.Case else nil),
+			cues = chaseCues(if row then row.Case else nil),
 			note = COPY.LeftForYou:format(left),
 		}
 		(spec :: any).kit = "Block"
@@ -536,6 +567,7 @@ local function restockSection(state: any, products: any, shop: any, _now: number
 			spec.locked = true
 			spec.lockLine = COPY.VipSlot
 			spec.odds = nil
+			spec.cues = nil
 			spec.note = nil
 			spec.buttons = {
 				{
@@ -574,6 +606,7 @@ local function restockSection(state: any, products: any, shop: any, _now: number
 		line = restockOddsLine(),
 		lineEnds = ends,
 		lineWords = COPY.RestockIn,
+		bar = true,
 	}
 end
 
@@ -667,21 +700,27 @@ local function moneySection(state: any, products: any, shop: any, _now: number):
 		local money = if type(product.money) == "number" and product.money > 0
 			then product.money
 			else pack.money * (if doubled then Config.Shop.FirstPackMultiplier else 1)
+		-- Reference 15: the art, the money and the button only (no pack name or bonus line);
+		-- "FIRST BUY x2" on every pack until the first buy is used (designer, 2026-10-04),
+		-- the sale's "-30%" band across the corner, the old price struck through.
 		local spec: ShopCards.Spec = {
 			id = "Money:" .. key,
 			shape = "Tile",
 			icon = key,
-			title = PACK_NAMES[key] or key,
+			title = "",
 			big = Format.money(money),
-			line = if pack.bonus > 0 then COPY.Bonus:format(pack.bonus) else nil,
 			buttons = { robuxButton(shop, buyKey, products) },
 			lit = shop.lit == key,
+			badge = if doubled then COPY.FirstBuy else nil,
+			badgeTone = "Red",
 		}
 		local price = ShopParts.robuxOf(products[buyKey], buyKey)
 		if onSale then
 			local normal = ShopParts.robuxOf(products[key], key)
 			spec.old = ShopParts.robux(normal)
-			spec.sticker = off(price, normal)
+			if normal > price then
+				spec.ribbon = COPY.OffShort:format(math.floor((1 - price / normal) * 100 + 0.5))
+			end
 			spec.shine = true
 		elseif index >= BIG_PACK_FROM and handful and handful.money > 0 then
 			-- The same money bought one Handful at a time (a real price on this page).
@@ -692,10 +731,8 @@ local function moneySection(state: any, products: any, shop: any, _now: number):
 		end
 		if spec.lit then
 			spec.sticker, spec.stickerTone = COPY.BestPick, "Gold"
-		elseif spec.sticker == nil and key == state.bestValue then
+		elseif spec.ribbon == nil and key == state.bestValue then
 			spec.sticker, spec.stickerTone, spec.shine = COPY.BestValue, "Gold", true
-		elseif spec.sticker == nil and doubled then
-			spec.sticker, spec.stickerTone = COPY.Double, "Gold"
 		end
 		table.insert(cards, spec)
 	end
@@ -725,17 +762,17 @@ end
 
 local function boostsSection(state: any, products: any, shop: any, now: number): Section
 	local cards: { Spec } = {}
+	-- The passes as wide tiles (reference 15): the art at the left, the name and a line.
 	local party: ShopCards.Spec = {
 		id = "MoneyParty",
-		shape = "Tile",
+		shape = "Wide",
 		icon = "MoneyParty",
 		title = COPY.MoneyParty,
 		titleStyle = "Rainbow",
-		from = times(1),
-		big = times(1 + Config.Economy.PartyBoost),
-		bigTint = "Gain",
-		after = COPY.MoneyWord,
-		line = COPY.PartyLineShort:format(times(1 + Config.Economy.PartyBoost)),
+		line = COPY.PartyLineShort:format(
+			times(1 + Config.Economy.PartyBoost),
+			math.floor(Config.Shop.PartySeconds / 60 + 0.5)
+		),
 	}
 	local ends, buyer = partyEnds(state, now)
 	if ends then
@@ -764,7 +801,7 @@ local function boostsSection(state: any, products: any, shop: any, now: number):
 		end
 		local spec: ShopCards.Spec = {
 			id = key,
-			shape = "Tile",
+			shape = "Wide",
 			icon = "Ults",
 			title = passNames[key] or key,
 			line = passLines[key],
@@ -783,12 +820,9 @@ local function boostsSection(state: any, products: any, shop: any, now: number):
 		local boost = math.floor((Config.Economy.PlusBoost or 0) * 100 + 0.5)
 		table.insert(cards, {
 			id = "RobloxPlus",
-			shape = "Tile",
+			shape = "Wide",
 			icon = "RobloxPlus",
 			title = COPY.Sections.RobloxPlus,
-			big = ("+%d%%"):format(boost),
-			bigTint = "Gain",
-			after = COPY.MoneyWord,
 			line = COPY.PlusLine:format(boost),
 			buttons = {
 				{
@@ -803,7 +837,7 @@ local function boostsSection(state: any, products: any, shop: any, now: number):
 			},
 		})
 	end
-	return { key = "Boosts", grid = true, cards = cards }
+	return { key = "Boosts", grid = true, cards = cards, minPx = P.WideMinPx }
 end
 
 local BUILDERS: { [string]: (any, any, any, number) -> Section } = {

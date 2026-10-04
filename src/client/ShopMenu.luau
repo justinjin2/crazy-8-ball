@@ -73,7 +73,13 @@ for _, jump in JUMPS do
 	end
 end
 
-type Header = { root: Frame, title: TextLabel, line: TextLabel, shake: UIAnim.Handle }
+type Header = {
+	root: Frame,
+	title: TextLabel,
+	line: TextLabel,
+	bar: Frame, -- the restock's dark bar with the stopwatch (instead of the title)
+	shake: UIAnim.Handle,
+}
 type Jump = { key: string, button: TextButton, badge: Frame }
 
 -- Whether a spec is drawn by ShopBlockCards (else ShopCards).
@@ -320,7 +326,19 @@ function ShopMenu.header(self: any, key: string): Header
 	line.AutoLocalize = false
 	line.TextWrapped = false
 	line.ZIndex = 3
-	header = { root = root, title = title, line = line, shake = UIAnim.shake(title, "Text") }
+	local bar = HudParts.pill(root, "Bar", HudParts.color(P.BarColor))
+	bar.ZIndex = 2
+	bar.Visible = false
+	local watch = HudParts.icon(bar, "Stopwatch", "Icon")
+	watch.AnchorPoint = Vector2.new(0, 0.5)
+	watch.ZIndex = 3
+	header = {
+		root = root,
+		title = title,
+		line = line,
+		bar = bar,
+		shake = UIAnim.shake(title, "Text"),
+	}
 	self.headers[key] = header
 	return header
 end
@@ -454,16 +472,42 @@ function ShopMenu.layout(self: any)
 		self.tops[section.key] = y
 		local header: Header = self.headers[section.key]
 		local hasLine = section.line ~= nil or section.lineEnds ~= nil
-		local h = headerH + (if hasLine then lineText + 6 else 0)
+		local bar = section.bar == true
+		header.title.Visible = not bar
+		header.bar.Visible = bar
+		header.line.RichText = bar
+		header.line.TextColor3 = if bar
+			then HudParts.tone("White")
+			else HudParts.color(K.Numbers.Count)
+		local h
+		if bar then
+			-- The dark bar: the stopwatch at the left, the words after it.
+			h = span(P.BarPx, t)
+			local iconPx = round(h * P.BarIconShare)
+			header.bar.Position = UDim2.fromOffset(0, 0)
+			header.bar.Size = UDim2.fromOffset(w, h)
+			local watch = header.bar:FindFirstChild("Icon")
+			if watch and watch:IsA("ImageLabel") then
+				watch.Size = UDim2.fromOffset(iconPx, iconPx)
+				watch.Position = UDim2.fromOffset(P.BarPadPx, round(h / 2))
+			end
+			local tx = P.BarPadPx + iconPx + round(P.BarPadPx / 2)
+			HudParts.setTextSize(header.line, lineText)
+			header.line.Visible = hasLine
+			header.line.Position = UDim2.fromOffset(tx, 0)
+			header.line.Size = UDim2.fromOffset(math.max(1, w - tx - P.BarPadPx), h)
+		else
+			h = headerH + (if hasLine then lineText + 6 else 0)
+			HudParts.setTextSize(header.title, headerText)
+			header.title.Position = UDim2.fromOffset(0, 0)
+			header.title.Size = UDim2.fromOffset(w, headerH)
+			header.line.Visible = hasLine
+			HudParts.setTextSize(header.line, lineText)
+			header.line.Position = UDim2.fromOffset(0, headerH)
+			header.line.Size = UDim2.fromOffset(w, lineText + 6)
+		end
 		header.root.Position = UDim2.fromOffset(x0, y)
 		header.root.Size = UDim2.fromOffset(w, h)
-		HudParts.setTextSize(header.title, headerText)
-		header.title.Position = UDim2.fromOffset(0, 0)
-		header.title.Size = UDim2.fromOffset(w, headerH)
-		header.line.Visible = hasLine
-		HudParts.setTextSize(header.line, lineText)
-		header.line.Position = UDim2.fromOffset(0, headerH)
-		header.line.Size = UDim2.fromOffset(w, lineText + 6)
 		y += h + round(s.gap / 2)
 		-- Room for the tilted stickers that poke above a card's top edge.
 		for _, spec in section.cards do
@@ -570,6 +614,16 @@ function ShopMenu.tick(self: any)
 		if header then
 			if section.lineEnds and section.lineWords then
 				local left = ShopParts.timeLeft(section.lineEnds - now)
+				if section.bar then
+					-- The bar's time in gold (rich text).
+					local gold: { number } = K.Numbers.Money :: any
+					left = ('<font color="#%02x%02x%02x">%s</font>'):format(
+						gold[1],
+						gold[2],
+						gold[3],
+						left
+					)
+				end
 				local text = section.lineWords:format(left)
 				header.line.Text = if section.line then text .. "  ·  " .. section.line else text
 				crossed = crossed or now >= section.lineEnds

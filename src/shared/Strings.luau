@@ -839,7 +839,7 @@ return {
 			OfferEnds = "Ends in %s",
 			FirstBuy = "FIRST BUY x2", -- the first money pack's sticker
 			BestValue = "BEST VALUE",
-			RestockIn = "NEW ITEMS IN %s",
+			RestockIn = "New blocks in %s", -- the restock bar (the time in gold)
 			Left = "%d left",
 			Lucky = "LUCKY!", -- the restock's lucky slot
 			VipOnly = "VIP ONLY",
@@ -849,9 +849,9 @@ return {
 			Pity = "Rare Case or better in %d", -- Case Drops until one is guaranteed
 			NotHere = "Not available where you live",
 			QuickLine = "Case timers x0.5 · open all at once",
-			PartyLineShort = "%s money for everyone here", -- the boost: "x2"
-			PlusLine = "+%d%% money in every match",
-			PlusButton = "Get Plus",
+			PartyLineShort = "%s money for everyone in your server, %d min", -- the boost, the minutes
+			PlusLine = "+%d%% money and a tag", -- Roblox Plus (reference 15)
+			PlusButton = "Get",
 			Member = "Member", -- a Roblox Plus member's card
 			-- Need money: the popup.
 			NeedTitle = "NEED MONEY?",

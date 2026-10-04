@@ -66,6 +66,7 @@ export type Spec = {
 	title: string,
 	titleStyle: string?, -- "Rainbow", or nil
 	titleTint: Color3?, -- a slot's name in its rarity's colour
+	titleRich: boolean?, -- the title is rich text (a kind word coloured in a slot's name)
 	subtitle: string?,
 	line: string?, -- an ink line under the title
 	big: string?, -- a huge gold number (the Starter Pack's money)
@@ -78,6 +79,7 @@ export type Spec = {
 	oddsStyle: string?, -- "Icons": pale rows with a block picture and a coloured name (Mystery)
 	oddsNote: string?, -- under the strip ("Epic cue or better: 0.13%")
 	chase: { Chase }?,
+	cues: { Chase }?, -- a slot tile's three chase pictures under its odds
 	columns: { Column }?,
 	buttons: { Button }?, -- a slot's buttons (money, then Robux)
 	old: string?, -- the slot's crossed-out price
@@ -108,6 +110,7 @@ type OddsStrip = {
 	},
 }
 type PerkRow = { root: Frame, icon: ImageLabel, text: TextLabel }
+type Thumb = { root: Frame, thumb: Frame?, rim: UIStroke, pct: TextLabel }
 -- A chase card: the cue's name in its colour, UNIQUE and LIMITED tags, the cue's picture at
 -- the right, its chance in a rimmed pill at the bottom right.
 type ChaseRow = {
@@ -144,6 +147,7 @@ export type Card = {
 	odds: OddsStrip,
 	oddsNote: TextLabel,
 	chase: { ChaseRow },
+	thumbs: { Thumb },
 	perks: { PerkRow },
 	edgeColor: Color3, -- the card's usual edge (a tint swaps it)
 	columns: { ColumnUi },
@@ -167,6 +171,7 @@ export type Card = {
 
 local MAX_ODDS = 8
 local MAX_CHASE = 2
+local MAX_THUMBS = 3
 local MAX_PERKS = 6
 local MAX_COLUMNS = 3
 local MAX_BUTTONS = 2
@@ -256,6 +261,29 @@ local function makeChase(parent: Instance, i: number): ChaseRow
 		rim.Color = rarityColor("Unique")
 	end
 	return { root = root, thumb = nil, name = name, tag = tag, tag2 = tag2, pct = pct }
+end
+
+-- A small chase picture (a slot tile): the cue in a rimmed box, its chance under.
+local function makeThumb(parent: Instance, i: number): Thumb
+	local root = HudParts.frame(parent, "Thumb" .. i)
+	root.ZIndex = 3
+	root.Visible = false
+	local box = HudParts.frame(root, "Box")
+	box.BackgroundTransparency = 0
+	box.BackgroundColor3 = HudParts.tone("White")
+	box.ZIndex = 3
+	HudParts.corner(box, P.CardCornerPx - 6)
+	local rim = Instance.new("UIStroke")
+	rim.Name = "Rim"
+	rim.Thickness = 2
+	rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	rim.Color = rarityColor("Common")
+	rim.Parent = box
+	local pct = HudParts.note(root, "Pct", B.ThumbPctPx[1], "")
+	pct.AutoLocalize = false
+	pct.TextWrapped = false
+	pct.ZIndex = 4
+	return { root = root, thumb = nil, rim = rim, pct = pct }
 end
 
 local function makePerk(parent: Instance, i: number): PerkRow
@@ -352,6 +380,10 @@ function ShopBlockCards.new(parent: Instance, id: string, shape: string): Card
 	for i = 1, MAX_CHASE do
 		chase[i] = makeChase(root, i)
 	end
+	local thumbs = {}
+	for i = 1, MAX_THUMBS do
+		thumbs[i] = makeThumb(root, i)
+	end
 	local columns = {}
 	for i = 1, MAX_COLUMNS do
 		columns[i] = makeColumn(root, i)
@@ -416,6 +448,7 @@ function ShopBlockCards.new(parent: Instance, id: string, shape: string): Card
 		odds = makeOdds(root),
 		oddsNote = oddsNote,
 		chase = chase,
+		thumbs = thumbs,
 		columns = columns,
 		perks = perks,
 		edgeColor = edgeColor,
@@ -487,6 +520,7 @@ function ShopBlockCards.paint(card: Card, spec: Spec)
 		end
 		card.icon = BlockIcon.new(card.artSlot, spec.kind)
 	end
+	card.title.RichText = spec.titleRich == true
 	card.title.Text = spec.title
 	card.title.TextColor3 = spec.titleTint or HudParts.tone("White")
 	setStyle(card, spec.titleStyle)
@@ -569,6 +603,27 @@ function ShopBlockCards.paint(card: Card, spec: Spec)
 			row.name.Text = string.upper(CueThumb.cueName(c.cue))
 			row.name.TextColor3 = CueThumb.cueColor(c.cue)
 			row.pct.label.Text = c.display
+		else
+			row.root.Visible = false
+		end
+	end
+	-- The chase pictures (a slot tile).
+	local cues = spec.cues or {}
+	for i, row in card.thumbs do
+		local c = cues[i]
+		if c then
+			row.root.Visible = true
+			local box = row.root:FindFirstChild("Box")
+			local thumb = row.thumb
+			if thumb then
+				CueThumb.set(thumb, c.cue)
+			elseif box then
+				local made = CueThumb.new(box, c.cue)
+				made.ZIndex = 4
+				row.thumb = made
+			end
+			row.rim.Color = CueThumb.cueColor(c.cue)
+			row.pct.Text = c.display
 		else
 			row.root.Visible = false
 		end
@@ -1167,6 +1222,7 @@ end
 -- Slot tiles
 --------------------------------------------------------------------------------------------
 
+-- A slot tile's buttons sit side by side in one row (money, then Robux; reference 21).
 local function slotButtonsHeight(card: Card, s: ShopParts.Sizes): number
 	local n = 0
 	for _, button in card.buttons do
@@ -1174,13 +1230,58 @@ local function slotButtonsHeight(card: Card, s: ShopParts.Sizes): number
 			n += 1
 		end
 	end
-	local h = if card.status.root.Visible
-		then s.button - 6
-		else n * s.button + math.max(0, n - 1) * round(s.gap / 2)
+	local h = if card.status.root.Visible then s.button - 6 elseif n > 0 then s.button else 0
 	if card.old.Visible then
 		h += math.max(K.Text.Min, span(P.OldPx, s.t)) + 4
 	end
 	return h
+end
+
+-- How many chase pictures a slot tile shows.
+local function thumbsShown(card: Card): number
+	local n = 0
+	for _, row in card.thumbs do
+		if row.root.Visible then
+			n += 1
+		end
+	end
+	return n
+end
+
+-- The chase pictures' row height: the box and the chance under it.
+local function thumbsHeight(t: number): number
+	return span(B.ThumbPx, t) + math.max(K.Text.Min - 2, span(B.ThumbPctPx, t)) + 4
+end
+
+-- The chase pictures in a row at (x, y), `w` wide, centred. Returns the row's height.
+local function layoutThumbs(card: Card, t: number, x: number, y: number, w: number): number
+	local n = thumbsShown(card)
+	if n == 0 then
+		return 0
+	end
+	local gap = span(B.ThumbGapPx, t)
+	local box = math.min(span(B.ThumbPx, t), math.floor((w - (n - 1) * gap) / n))
+	local pctH = math.max(K.Text.Min - 2, span(B.ThumbPctPx, t))
+	local rowW = n * box + (n - 1) * gap
+	local at = x + round((w - rowW) / 2)
+	for _, row in card.thumbs do
+		if row.root.Visible then
+			place(row.root, at, y, box, box + pctH + 4)
+			local frame = row.root:FindFirstChild("Box")
+			if frame and frame:IsA("Frame") then
+				place(frame, 0, 0, box, box)
+			end
+			if row.thumb then
+				row.thumb.Size = UDim2.new(1, -8, 1, -8)
+				row.thumb.Position = UDim2.fromOffset(4, 4)
+			end
+			-- A long chance ("0.00017%") shrinks rather than running into its neighbour.
+			HudParts.setTextSize(row.pct, pctH, 10)
+			place(row.pct, 0, box + 2, box, pctH + 2)
+			at += box + gap
+		end
+	end
+	return box + pctH + 4
 end
 
 --------------------------------------------------------------------------------------------
@@ -1469,6 +1570,9 @@ function ShopBlockCards.tileNeed(card: Card, s: ShopParts.Sizes, w: number): num
 	if odds > 0 then
 		h += odds + round(s.gap / 2)
 	end
+	if thumbsShown(card) > 0 then
+		h += thumbsHeight(t) + round(s.gap / 2)
+	end
 	h += round(s.gap / 2) + slotButtonsHeight(card, s)
 	if card.note.Visible then
 		h += math.max(K.Text.Min - 2, span(B.NotePx, t)) + 6
@@ -1549,8 +1653,11 @@ function ShopBlockCards.layoutTile(
 		layoutOdds(card, t, pad, at, iw)
 		at += odds + round(s.gap / 2)
 	end
+	if thumbsShown(card) > 0 then
+		at += layoutThumbs(card, t, pad, at, iw) + round(s.gap / 2)
+	end
 	card.oddsNote.Visible = false
-	-- The buttons sit at the bottom; the note under them.
+	-- The buttons sit at the bottom, side by side; the note under them.
 	local bottom = h - pad
 	if card.note.Visible then
 		local noteH = math.max(K.Text.Min - 2, span(B.NotePx, t))
@@ -1563,13 +1670,26 @@ function ShopBlockCards.layoutTile(
 		local sh = s.button - 6
 		layoutStatus(card, s, pad, bottom - sh, iw)
 	else
-		for i = MAX_BUTTONS, 1, -1 do
-			local button = card.buttons[i]
+		local shown = {}
+		for _, button in card.buttons do
 			if button.Visible then
-				HudParts.setButtonTextSize(button, s.buttonText)
-				ShopParts.placeButton(button, pad, bottom - s.button, iw, s.button)
-				bottom -= s.button + round(s.gap / 2)
+				table.insert(shown, button)
 			end
+		end
+		if #shown > 0 then
+			local gap = round(s.gap / 2)
+			local bw = math.floor((iw - (#shown - 1) * gap) / #shown)
+			for i, button in shown do
+				HudParts.setButtonTextSize(button, s.buttonText)
+				ShopParts.placeButton(
+					button,
+					pad + (i - 1) * (bw + gap),
+					bottom - s.button,
+					bw,
+					s.button
+				)
+			end
+			bottom -= s.button + gap
 		end
 		if card.old.Visible then
 			local oldH = math.max(K.Text.Min, span(P.OldPx, t))
@@ -1611,6 +1731,11 @@ function ShopBlockCards.destroy(card: Card)
 	for _, row in card.odds.rows do
 		if row.icon then
 			row.icon:destroy()
+		end
+	end
+	for _, row in card.thumbs do
+		if row.thumb then
+			row.thumb:Destroy()
 		end
 	end
 	if card.titleAnim then

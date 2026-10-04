@@ -7264,6 +7264,11 @@ Config.UI.Shop = {
 			OddsIconTextPx = { 14, 18 },
 			IconYawDegrees = 35, -- a still block icon's turn, so three faces show
 			ColumnLabelColor = { 255, 214, 10 }, -- "x1", "x10" over the Mystery columns: gold
+			-- A restock tile's three chase cues under its odds (the rarest three of its pool):
+			-- small pictures rimmed in the cue's colour, the chance under each.
+			ThumbPx = { 52, 76 },
+			ThumbPctPx = { 12, 15 },
+			ThumbGapPx = { 6, 10 },
 			OddsGapPx = { 3, 4 },
 			OddsMaxWidthPx = 320, -- the strip never grows wider than this beside buttons
 			ChasePx = { 96, 150 }, -- a chase card (the Unique cue's picture, name, tags and odds)
@@ -7340,6 +7345,12 @@ Config.UI.Shop = {
 		HeaderTextPx = { 26, 40 },
 		HeaderColor = { 255, 214, 10 }, -- bright yellow, ink outline (ref 01)
 		HeaderLineTextPx = { 16, 20 }, -- the line under a header ("NEW ITEMS IN 7:12")
+		-- The restock's bar instead of a header word (reference 20): a dark navy pill with
+		-- the stopwatch, "New blocks in 6:12" (the time in gold) and each slot's chances.
+		BarPx = { 36, 48 },
+		BarColor = { 24, 34, 84 },
+		BarIconShare = 0.8, -- the stopwatch, of the bar's height
+		BarPadPx = 12,
 		SectionGapPx = { 14, 24 }, -- above each header
 		-- Hero cards: the art square at the left, title, huge numbers and a line in the middle,
 		-- the price and Buy at the right.
@@ -7359,6 +7370,18 @@ Config.UI.Shop = {
 		StickerPx = { 24, 30 }, -- corner stickers: "BEST VALUE", "x2", "LUCKY!", "30% OFF"
 		StickerTextPx = { 14, 18 },
 		StickerDegrees = 8, -- tilted like a sticker
+		-- A money pack's marks (reference 15): a red "FIRST BUY x2" pill inside the top left
+		-- corner, and a red "-30%" band across the top right corner during the sale.
+		BadgePx = { 22, 28 },
+		BadgeTextPx = { 12, 15 },
+		RibbonBoxPx = { 64, 92 }, -- the corner square the band is clipped to
+		RibbonPx = { 20, 26 }, -- the band's height
+		RibbonTextPx = { 13, 17 },
+		RibbonCentreShare = 0.72, -- the band's middle this far right and (1 - this) far down the box
+		-- The pass tiles (reference 15): wide, the art at the left, the name and its line at
+		-- the right, the button across the bottom; at least WideMinPx wide (fewer per row).
+		WideMinPx = { 240, 250 },
+		WideArtShare = 0.42, -- the art, of a wide tile's width
 		OldPx = { 15, 19 }, -- the crossed-out price above Buy, red
 		ArrowShare = 0.8, -- the before -> after arrow, of the big numbers' size
 		LitStrokePx = 4, -- the pack that covers what you need: a thick gold edge, breathing
