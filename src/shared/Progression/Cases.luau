@@ -17,6 +17,8 @@ local E = Config.Economy
 -- Config's literal tables, typed as the maps they are (indexed by a runtime id).
 type CaseConfig = { Timer: number, Price: number, Enabled: boolean, Odds: { [string]: number } }
 local LIST: { [string]: CaseConfig } = C.List :: any
+-- The odds tables outside the ladder (Config.Cases.Extra: Sky, GrandOpening, Starter).
+local EXTRA: { string } = C.Extra or {}
 local SELL_BACK: { [string]: number } = C.SellBack :: any
 local ANNOUNCE: { [string]: boolean } = C.Announce :: any
 local ANNOUNCE_HERE: { [string]: boolean } = C.AnnounceHere :: any
@@ -79,7 +81,7 @@ end
 --- A case by id (Id, Price, Enabled, Odds), enabled or not; nil for an unknown id. Read live
 --- from Config, so a server that switches a case on at runtime is seen at once.
 function Cases.get(id: any): Case?
-	if type(id) ~= "string" or not table.find(C.Order, id) then
+	if type(id) ~= "string" or not (table.find(C.Order, id) or table.find(EXTRA, id)) then
 		return nil
 	end
 	local row = LIST[id]
@@ -157,6 +159,78 @@ function Cases.odds(id: string): { RarityOdds }
 	return list
 end
 
+--- A Unique row of a case's odds (a key that is a cue id, not a rarity: the Grand Opening
+--- block's two Unique cues), bottom first by weight, sorted by id among equals.
+export type UniqueOdds = { cue: string, weight: number, percent: number, display: string }
+
+--- The case's Unique rows (cue ids with a share), in sorted id order. Empty for most cases.
+function Cases.uniqueRows(id: string): { UniqueOdds }
+	local case = Cases.get(id)
+	local list: { UniqueOdds } = {}
+	if case == nil then
+		return list
+	end
+	local ids = {}
+	for key in case.Odds do
+		if not RARITY_KNOWN[key] then
+			table.insert(ids, key)
+		end
+	end
+	table.sort(ids)
+	for _, cue in ids do
+		local weight = case.Odds[cue] or 0
+		if weight > 0 then
+			local percent = weight * 100 / C.OddsTotal
+			table.insert(list, {
+				cue = cue,
+				weight = weight,
+				percent = percent,
+				display = percentText(percent),
+			})
+		end
+	end
+	return list
+end
+
+--- Whether opening case `caseId` may give cue `cueId`: one of its Unique rows, or a droppable
+--- case cue of a rarity the case has a share in.
+function Cases.canDrop(caseId: string, cueId: string): boolean
+	local case = Cases.get(caseId)
+	if case == nil then
+		return false
+	end
+	for _, row in Cases.uniqueRows(caseId) do
+		if row.cue == cueId then
+			return true
+		end
+	end
+	local cue = Catalog.get(cueId)
+	if cue == nil or cue.Group ~= "Case" or (case.Odds[cue.Rarity] or 0) <= 0 then
+		return false
+	end
+	for _, other in Catalog.droppable(caseId, cue.Rarity) do
+		if other.Id == cueId then
+			return true
+		end
+	end
+	return false
+end
+
+--- The highest rarity the case can drop (a share above 0 with a droppable cue), or nil.
+function Cases.topRarity(id: string): string?
+	local case = Cases.get(id)
+	if case == nil then
+		return nil
+	end
+	for i = #C.Rarities, 1, -1 do
+		local rarity = C.Rarities[i]
+		if (case.Odds[rarity] or 0) > 0 and #Catalog.droppable(id, rarity) > 0 then
+			return rarity
+		end
+	end
+	return nil
+end
+
 --- The lowest rarity the case can drop (its guarantee: "Uncommon or better"), or nil.
 function Cases.minRarity(id: string): string?
 	local odds = Cases.odds(id)
@@ -192,18 +266,26 @@ function Cases.validate(): { string }
 	local function problem(text: string)
 		table.insert(problems, text)
 	end
-	for _, id in C.Order do
+	local every = table.clone(C.Order)
+	for _, id in EXTRA do
+		table.insert(every, id)
+	end
+	for _, id in every do
 		local row = LIST[id]
 		if row == nil then
 			problem(("case %s is in Order but has no List row"):format(id))
 			continue
 		end
 		-- Walk the row to catch unknown rarity names and bad weights (the sum does not depend
-		-- on the order of the walk, and the problems are sorted below).
+		-- on the order of the walk, and the problems are sorted below). A key that is not a
+		-- rarity must be a Unique cue's id (a Unique row).
 		local sum = 0
 		for rarity, weight in row.Odds do
 			if not RARITY_KNOWN[rarity] then
-				problem(("case %s has odds for unknown rarity %s"):format(id, tostring(rarity)))
+				local cue = Catalog.get(rarity)
+				if cue == nil or cue.Group ~= "Unique" then
+					problem(("case %s has odds for unknown rarity %s"):format(id, tostring(rarity)))
+				end
 			end
 			if type(weight) ~= "number" or weight < 0 or weight ~= math.floor(weight) then
 				problem(
@@ -233,7 +315,7 @@ function Cases.validate(): { string }
 		end
 	end
 	for id in LIST do
-		if not table.find(C.Order, id) then
+		if not (table.find(C.Order, id) or table.find(EXTRA, id)) then
 			problem(("case %s has a List row but is not in Order"):format(id))
 		end
 	end
@@ -288,6 +370,13 @@ function Cases.roll(id: string, rng: (number) -> number): (string, string)
 				"Cases.roll: rng out of range"
 			)
 			return pool[index].Id, rarity
+		end
+	end
+	-- The Unique rows (the Grand Opening block's two cues), after the rarities.
+	for _, row in Cases.uniqueRows(id) do
+		reached += row.weight
+		if pick <= reached then
+			return row.cue, "Unique"
 		end
 	end
 	-- Unreachable while the row adds to OddsTotal (the load-time check).

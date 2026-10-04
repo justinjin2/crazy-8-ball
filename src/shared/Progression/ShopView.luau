@@ -13,6 +13,7 @@ local Config = require(script.Parent.Parent.Config)
 local Shop = require(script.Parent.Shop)
 local Restock = require(script.Parent.Restock)
 local CaseDrop = require(script.Parent.CaseDrop)
+local LuckyBlocks = require(script.Parent.LuckyBlocks)
 
 local S = Config.Shop
 local LIST: {
@@ -24,6 +25,9 @@ local LIST: {
 		SkipSeconds: number?,
 		SaleOf: string?,
 		Vip: boolean?,
+		Deal: string?,
+		Retired: boolean?,
+		Blocks: { Kind: string, Count: number }?,
 	},
 } =
 	Config.Products.List :: any
@@ -55,6 +59,8 @@ export type Context = {
 	drops: any?, -- the save's Drops (the pity counters; nil: none yet)
 	stockTaken: number?, -- this restock's Legendary units taken everywhere (nil: unknown)
 	restockSlot: number?, -- the restock shown (nil: the one at `now`; /restock forces one)
+	blocks: any?, -- the save's LuckyBlocks (its Opened counts; nil: none opened)
+	ownsCue: ((string) -> boolean)?, -- whether this player owns a cue (the guarantee line)
 }
 
 -- The restock shown, timed by the real restock's window (a /restock forced one is shown only
@@ -103,6 +109,29 @@ export type LimitedView = {
 
 export type PartyView = { endsAt: number, buyer: string? }
 
+-- A block deal as the client reads it (Config.Shop.Deals plus its window now).
+export type DealView = {
+	kind: string, -- the lucky block kind
+	money: { [number]: number }, -- count -> money price
+	products: { [number]: string }, -- count -> Config.Products key
+	counts: { number }, -- the counts sold, smallest first
+	open: boolean,
+	timed: boolean,
+	startsAt: number,
+	endsAt: number,
+	vaulted: boolean, -- ended, the "Vaulted" card still shows
+	vaultedUntil: number,
+}
+
+-- A block kind's guarantee for this player (Config.LuckyBlocks.Kinds[kind].Guarantee).
+export type GuaranteeView = {
+	cue: string,
+	at: number, -- the At-th opened block gives it
+	opened: number, -- opened so far
+	left: number, -- opens until it (0: the next one)
+	owned: boolean, -- the player has the cue already (the guarantee is spent)
+}
+
 export type Payload = {
 	vip: boolean,
 	vipPass: boolean,
@@ -118,7 +147,9 @@ export type Payload = {
 	products: { [string]: ProductView },
 	order: { string }, -- the shop page's sections, top to bottom (Config.Shop.Order)
 	restock: any, -- Restock.view: this restock's items, this player's stock left, its end
-	mystery: { price: number, bulkCount: number, bulkPrice: number }, -- money prices
+	deals: { [string]: DealView }, -- the block deals (Config.Shop.Deals) and their windows
+	guarantees: { [string]: GuaranteeView }, -- by block kind, for kinds with a Guarantee
+	mystery: { price: number, bulkCount: number, bulkPrice: number }, -- the Mystery deal's
 	skip: { moneyPerMinute: number, minMoney: number }, -- the money price of a timer skip
 	pity: { rare: number, epic: number }, -- Case Drops until a Rare / Epic is guaranteed
 	robloxPlus: boolean, -- show the Get Roblox Plus button (StoreRequest "RobloxPlus")
@@ -219,6 +250,15 @@ function ShopView.readSale(raw: any, now: number): Sale?
 	return { case = caseId, percent = percent, endsAt = whole(endsAt) }
 end
 
+--- Whether `count` more lucky blocks would pass Config.LuckyBlocks.MaxBlocks (the save's).
+function ShopView.full(ctx: Context, count: number): boolean
+	local blocks = ctx.blocks
+	local list = if type(blocks) == "table" and type(blocks.List) == "table"
+		then blocks.List
+		else {}
+	return #list + count > Config.LuckyBlocks.MaxBlocks
+end
+
 --- Why a StoreRequest "Buy" of `key` must not prompt now, or nil when it may: "BadRequest"
 --- (not a Config.Products key), "Owned" (a pass owned; VIP already, for the welcome offer; the
 --- Starter Pack or a Limited bought), "Closed" (its offer or Limited window is not open),
@@ -232,6 +272,19 @@ function ShopView.check(key: string, ctx: Context): string?
 		return "BadRequest"
 	end
 	local vip = ShopView.isVip(ctx)
+	if row.Retired == true then
+		return "Closed" -- no longer sold (its Id may still exist in Creator Hub)
+	end
+	-- A deal product (the Grand Opening block) only inside its deal's window.
+	if row.Deal ~= nil and not Shop.deal(row.Deal, ctx.now).open then
+		return "Closed"
+	end
+	-- Blocks need room in the hotbar ("Full": Config.LuckyBlocks.MaxBlocks).
+	if row.Blocks ~= nil and ShopView.full(ctx, row.Blocks.Count) then
+		return "Full"
+	elseif row.Restock ~= nil and ShopView.full(ctx, 1) then
+		return "Full"
+	end
 	-- A release-sale product (Config.Shop.ReleaseSale) only inside its window; its VIP not
 	-- for a VIP. The checks below then run as for any product (Mystery10Sale is random).
 	if row.SaleOf ~= nil then
@@ -246,7 +299,7 @@ function ShopView.check(key: string, ctx: Context): string?
 			return "Owned"
 		end
 	elseif key == FAST_OPEN then
-		if ctx.fastOpen then
+		if ctx.fastOpen or vip then
 			return "Owned"
 		end
 	elseif key == VIP_OFFER then
@@ -276,9 +329,9 @@ function ShopView.check(key: string, ctx: Context): string?
 		elseif SPIN_PRODUCTS[key] and ctx.spinsLive == false then
 			return "ComingSoon"
 		elseif row.Restock ~= nil then
-			-- In this restock, within this player's stock, and the Legendary's global stock.
+			-- In this restock, within this player's stock (and a shared stock, if any).
 			local slot = ctx.restockSlot or Restock.slotOf(ctx.now)
-			local item = Restock.forProduct(slot, key)
+			local item = Restock.forProduct(slot, key, ctx.restock, vip)
 			local why = Restock.check(item, ctx.restock, slot, vip)
 			if why ~= nil then
 				return why
@@ -346,6 +399,9 @@ function ShopView.build(ctx: Context): Payload
 	local products: { [string]: ProductView } = {}
 	for _, key in KEYS do
 		local row = LIST[key]
+		if row.Retired == true then
+			continue -- hidden
+		end
 		local reason = ShopView.check(key, ctx)
 		local grant: Shop.Grant?, notFor: string? = nil, nil
 		if row.Kind == "Product" then
@@ -356,7 +412,7 @@ function ShopView.build(ctx: Context): Payload
 		if key == VIP_PASS or key == VIP_OFFER or row.Vip == true then
 			owned = vip
 		elseif key == FAST_OPEN then
-			owned = ctx.fastOpen
+			owned = ctx.fastOpen or vip
 		elseif key == STARTER_PACK then
 			owned = shop.StarterBought == true
 		elseif limited ~= nil then
@@ -404,11 +460,51 @@ function ShopView.build(ctx: Context): Payload
 		party = { endsAt = ctx.partyEndsAt, buyer = ctx.partyBuyer }
 	end
 
+	local deals: { [string]: DealView } = {}
+	for _, key in Shop.dealKeys() do
+		local row = Shop.dealRow(key) :: Shop.DealRow
+		local window = Shop.deal(key, ctx.now)
+		local counts = {}
+		for count in row.Money do
+			table.insert(counts, count)
+		end
+		table.sort(counts)
+		deals[key] = {
+			kind = row.Kind,
+			money = table.clone(row.Money),
+			products = table.clone(row.Products),
+			counts = counts,
+			open = window.open,
+			timed = window.timed,
+			startsAt = window.startsAt,
+			endsAt = window.endsAt,
+			vaulted = window.vaulted,
+			vaultedUntil = window.vaultedUntil,
+		}
+	end
+
+	local guarantees: { [string]: GuaranteeView } = {}
+	local blocksSave = if type(ctx.blocks) == "table" then ctx.blocks else { Opened = {} }
+	for _, kind in Config.LuckyBlocks.Order do
+		local g = (LuckyBlocks.kind(kind) :: any).Guarantee
+		if g ~= nil then
+			local opened = LuckyBlocks.opened(blocksSave, kind)
+			local owns = ctx.ownsCue
+			guarantees[kind] = {
+				cue = g.Cue,
+				at = g.At,
+				opened = opened,
+				left = math.max(g.At - opened - 1, 0),
+				owned = owns ~= nil and owns(g.Cue) == true,
+			}
+		end
+	end
+
 	return {
 		vip = vip,
 		vipPass = ctx.vipPass == true,
 		vipOffer = shop.VipOffer == true,
-		fastOpen = ctx.fastOpen == true,
+		fastOpen = ctx.fastOpen == true or vip, -- VIP opens fast (QuickCases is retired)
 		restricted = ctx.restricted == true,
 		firstPackBought = shop.FirstPackBought == true,
 		starterBought = shop.StarterBought == true,
@@ -426,6 +522,8 @@ function ShopView.build(ctx: Context): Payload
 		products = products,
 		order = table.clone(S.Order),
 		restock = restockView(ctx, vip),
+		deals = deals,
+		guarantees = guarantees,
 		mystery = {
 			price = S.Mystery.Price,
 			bulkCount = S.Mystery.BulkCount,
@@ -476,6 +574,14 @@ function ShopView.nextChange(ctx: Context): number?
 	local release = Shop.releaseSale(now)
 	consider(release.startsAt)
 	consider(release.endsAt)
+	for _, key in Shop.dealKeys() do
+		local window = Shop.deal(key, now)
+		if window.timed then
+			consider(window.startsAt)
+			consider(window.endsAt)
+			consider(window.vaultedUntil)
+		end
+	end
 	return soonest
 end
 

@@ -14,26 +14,59 @@ return {
 		local L = load()
 		for _, row in
 			{
-				{ "Green", "Uncommon", 60 },
-				{ "VoidLava", "Epic", 3600 },
-				{ "GoldKing", "Legendary", 21600 },
+				{ "Uncommon", "Uncommon", 0 },
+				{ "Rare", "Rare", 3600 },
+				{ "Epic", "Epic", 21600 },
+				{ "Legendary", "Legendary", 86400 },
+				{ "Mythic", "Mythic", 172800 },
+				{ "Gift", "Rare", 43200 },
 			}
 		do
 			H.expect(L.kind(row[1]).Case == row[2] and L.timer(row[1]) == row[3], row[1])
 		end
+		-- VIP halves every timer; the Mystery block rolls a tier first (no case of its own).
+		H.expect(L.timer("Rare", true) == 1800 and L.timer("Standard", true) == 0, "VIP halves")
+		H.expect(L.kind("Mystery").Roll == true and L.kind("Mystery").Case == nil, "Mystery")
+		-- The old saved ids map to the new kinds (Config.LuckyBlocks.Renamed).
+		H.expect(L.current("Yellow") == "Standard" and L.current("GoldKing") == "Legendary", "")
+		H.expect(L.kind("Blue").Case == "Rare" and L.current("Rare") == "Rare", "renamed")
+	end,
+	["the Grand Opening block's guarantee: the 400th open gives the Beta Cue if none"] = function()
+		local L = load()
+		local state = L.fresh()
+		local function none(_: string): boolean
+			return false
+		end
+		local function has(_: string): boolean
+			return true
+		end
+		H.expect(L.opened(state, "GrandOpening") == 0, "none opened")
+		H.expect(L.guaranteed(state, "GrandOpening", none) == nil, "the first: a roll")
+		for _ = 1, 398 do
+			L.noteOpened(state, "GrandOpening")
+		end
+		H.expect(L.opened(state, "GrandOpening") == 398, "counted")
+		H.expect(L.guaranteed(state, "GrandOpening", none) == nil, "the 399th: a roll")
+		L.noteOpened(state, "GrandOpening")
+		H.expect(L.guaranteed(state, "GrandOpening", none) == "BetaCue", "the 400th: the Beta Cue")
+		H.expect(L.guaranteed(state, "GrandOpening", has) == nil, "owned already: a roll")
+		H.expect(L.guaranteed(state, "Standard", none) == nil, "no guarantee")
+		-- A paid block is ready at once and keeps its paid origin.
+		local paid = L.add(state, "GrandOpening", 1000, nil, true)
+		H.expect(paid.ReadyAt == 1000 and paid.Paid == true, "paid: ready now")
 	end,
 	["only the designer can bypass an unchanged countdown"] = function()
 		local L = load()
-		local b = L.add(L.fresh(), "GoldKing", 1000)
+		local b = L.add(L.fresh(), "Legendary", 1000)
 		H.expect(not L.canOpen(b, 1001, 1234), "another account cannot bypass")
 		H.expect(L.canOpen(b, 1001, 544959133), "designer can open")
-		H.expect(b.ReadyAt == 22600, "bypass does not erase the timer")
+		H.expect(b.ReadyAt == 87400, "bypass does not erase the timer")
 	end,
 	["late skip receipt preserves value and saved target across reconnect"] = function()
 		local L = load()
 		local Schema = H.require("Progression.SaveSchema")
 		local save = Schema.template()
-		local b = L.add(save.LuckyBlocks, "VoidLava", 1000)
+		local b = L.add(save.LuckyBlocks, "Epic", 1000)
 		save.LuckyBlocks.SkipTarget = b.Id
 		local restored = Schema.validate(save)
 		L.grantSkip(restored.LuckyBlocks, 1001)
@@ -46,7 +79,7 @@ return {
 		L.grantSkip(restored.LuckyBlocks, 1002)
 		H.expect(restored.LuckyBlocks.SkipCredits == 1, "no running target: credit retained")
 		H.expect(not L.useSkip(restored.LuckyBlocks, b.Id, 1002), "ready timer cannot waste credit")
-		local nextBlock = L.add(restored.LuckyBlocks, "GoldKing", 1002)
+		local nextBlock = L.add(restored.LuckyBlocks, "Legendary", 1002)
 		H.expect(L.useSkip(restored.LuckyBlocks, nextBlock.Id, 1003), "credit usable on next block")
 		local again = Schema.validate(restored)
 		H.expect(L.find(again.LuckyBlocks, nextBlock.Id).Paid, "paid origin survives save repair")
@@ -55,13 +88,13 @@ return {
 		local L = load()
 		local Schema = H.require("Progression.SaveSchema")
 		local save = Schema.template()
-		local a = L.add(save.LuckyBlocks, "Green", 1000)
-		local b = L.add(save.LuckyBlocks, "GoldKing", 1000)
+		local a = L.add(save.LuckyBlocks, "Rare", 1000)
+		local b = L.add(save.LuckyBlocks, "Legendary", 1000)
 		-- Floor instances are transient; the serialized save keeps both unopened ids and times.
 		local restored = Schema.validate(save)
 		H.expect(#restored.LuckyBlocks.List == 2, "both returned in inventory")
-		H.expect(L.find(restored.LuckyBlocks, a.Id).ReadyAt == 1060, "countdown unchanged")
-		H.expect(L.find(restored.LuckyBlocks, b.Id).ReadyAt == 22600, "long timer unchanged")
+		H.expect(L.find(restored.LuckyBlocks, a.Id).ReadyAt == 4600, "countdown unchanged")
+		H.expect(L.find(restored.LuckyBlocks, b.Id).ReadyAt == 87400, "long timer unchanged")
 	end,
 
 	["every kind rolls a real case and the test kinds match the designer's"] = function()
@@ -70,52 +103,65 @@ return {
 		H.expect(#LuckyBlocks.validate() == 0, "no problems")
 		for _, id in Config.LuckyBlocks.Order do
 			local kind = LuckyBlocks.kind(id)
-			H.expect(kind ~= nil and Cases.get(kind.Case) ~= nil, id .. " rolls a case")
-			H.expect(#Cases.cueOdds(kind.Case) > 0, id .. " has cues to roll")
+			H.expect(kind ~= nil, id .. " is a kind")
+			if kind.Roll then
+				H.expect(kind.Case == nil, id .. " rolls a tier, not a case")
+			else
+				H.expect(Cases.get(kind.Case) ~= nil, id .. " rolls a case")
+				H.expect(#Cases.cueOdds(kind.Case) > 0, id .. " has cues to roll")
+			end
 			H.expect(
 				type(Strings.LuckyBlocks.Names[id]) == "string",
 				id .. " has a name in Strings"
 			)
 		end
-		H.expect(LuckyBlocks.kind("Yellow").Case == "Standard", "Yellow rolls the Standard odds")
-		H.expect(LuckyBlocks.timer("Yellow") == 0, "Yellow opens at once")
-		H.expect(LuckyBlocks.kind("Blue").Case == "Rare", "Blue rolls the Rare odds")
-		H.expect(LuckyBlocks.timer("Blue") == 120, "Blue waits 2 minutes")
+		H.expect(
+			LuckyBlocks.kind("Standard").Case == "Standard",
+			"Standard rolls the Standard odds"
+		)
+		H.expect(LuckyBlocks.timer("Standard") == 0, "Standard opens at once")
+		H.expect(LuckyBlocks.kind("Rare").Case == "Rare", "Rare rolls the Rare odds")
+		H.expect(LuckyBlocks.timer("Rare") == 3600, "Rare waits an hour")
 		H.expect(LuckyBlocks.kind("Purple") == nil and LuckyBlocks.kind(5) == nil, "unknown: nil")
+		-- The extra tables roll the whole core pool; the Grand Opening block's Unique rows.
+		H.expect(LuckyBlocks.kind("Sky").Case == "Sky" and Cases.get("Sky") ~= nil, "Sky")
+		H.expect(#Cases.uniqueRows("GrandOpening") == 2, "two Unique rows")
+		H.expect(Cases.canDrop("GrandOpening", "BetaCue"), "the Beta Cue drops from it")
+		H.expect(not Cases.canDrop("Standard", "BetaCue"), "not from a Standard block")
 	end,
 
 	["a block's timer starts when it lands"] = function()
 		local LuckyBlocks = load()
 		local state = LuckyBlocks.fresh()
-		local yellow = LuckyBlocks.add(state, "Yellow", 1000)
-		local blue = LuckyBlocks.add(state, "Blue", 1000)
-		H.expect(LuckyBlocks.isReady(yellow, 1000), "Yellow is ready at once")
-		H.expect(not LuckyBlocks.isReady(blue, 1119), "Blue is not ready a second early")
-		H.expect(LuckyBlocks.isReady(blue, 1120), "Blue is ready after 2 minutes")
-		H.expect(LuckyBlocks.secondsLeft(blue, 1017.5) == 103, "seconds left round up")
-		H.expect(LuckyBlocks.secondsLeft(blue, 2000) == 0, "never below 0")
+		local standard = LuckyBlocks.add(state, "Standard", 1000)
+		local rare = LuckyBlocks.add(state, "Rare", 1000)
+		H.expect(LuckyBlocks.isReady(standard, 1000), "Standard is ready at once")
+		H.expect(not LuckyBlocks.isReady(rare, 4599), "Rare is not ready a second early")
+		H.expect(LuckyBlocks.isReady(rare, 4600), "Rare is ready after an hour")
+		H.expect(LuckyBlocks.secondsLeft(rare, 1017.5) == 3583, "seconds left round up")
+		H.expect(LuckyBlocks.secondsLeft(rare, 5000) == 0, "never below 0")
 	end,
 
 	["ids never repeat and new blocks go where asked"] = function()
 		local LuckyBlocks = load()
 		local state = LuckyBlocks.fresh()
-		local a = LuckyBlocks.add(state, "Yellow", 0)
-		local b = LuckyBlocks.add(state, "Blue", 0)
+		local a = LuckyBlocks.add(state, "Standard", 0)
+		local b = LuckyBlocks.add(state, "Rare", 0)
 		H.expect(a.Id == 1 and b.Id == 2 and state.Next == 2, "ids count up")
 		LuckyBlocks.remove(state, a.Id)
-		local c = LuckyBlocks.add(state, "Yellow", 0, 1)
+		local c = LuckyBlocks.add(state, "Standard", 0, 1)
 		H.expect(c.Id == 3, "a removed id is not given again")
 		H.expect(state.List[1] == c and state.List[2] == b, "put at the place asked")
-		local d = LuckyBlocks.add(state, "Yellow", 0, 99)
-		H.expect(state.List[3] == d, "a place past the end is the end")
-		H.expect(LuckyBlocks.count(state, "Yellow") == 2, "count by kind")
+		local d = LuckyBlocks.add(state, "Yellow", 0, 99) -- an old id: a Standard block
+		H.expect(state.List[3] == d and d.Kind == "Standard", "a place past the end is the end")
+		H.expect(LuckyBlocks.count(state, "Standard") == 2, "count by kind")
 	end,
 
 	["remove answers the place, move closes up round it"] = function()
 		local LuckyBlocks = load()
 		local state = LuckyBlocks.fresh()
 		for _ = 1, 4 do
-			LuckyBlocks.add(state, "Yellow", 0)
+			LuckyBlocks.add(state, "Standard", 0)
 		end
 		local block, place = LuckyBlocks.remove(state, 3)
 		H.expect(block ~= nil and block.Id == 3 and place == 3, "the third, from place 3")
@@ -134,12 +180,12 @@ return {
 	["the client's copy is in hotbar order"] = function()
 		local LuckyBlocks = load()
 		local state = LuckyBlocks.fresh()
-		LuckyBlocks.add(state, "Blue", 10)
-		LuckyBlocks.add(state, "Yellow", 10, 1)
+		LuckyBlocks.add(state, "Rare", 10)
+		LuckyBlocks.add(state, "Standard", 10, 1)
 		local copy = LuckyBlocks.snapshot(state)
 		H.expect(#copy == 2, "both")
-		H.expect(copy[1].kind == "Yellow" and copy[1].id == 2, "Yellow first")
-		H.expect(copy[2].kind == "Blue" and copy[2].readyAt == 130, "Blue with its ready time")
+		H.expect(copy[1].kind == "Standard" and copy[1].id == 2, "Standard first")
+		H.expect(copy[2].kind == "Rare" and copy[2].readyAt == 3610, "Rare with its ready time")
 	end,
 
 	["the countdown reads m:ss, or h:mm:ss past an hour"] = function()

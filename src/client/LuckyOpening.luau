@@ -145,13 +145,25 @@ local function hintFor(phase: string): string
 end
 
 --- Play a block's opening: `kind` (its name over the reel) and the server's Open answer
---- ({ cue, rarity }). `onClosed` runs once it is gone.
-function Opening.play(self: any, kind: string, cueId: string, rarity: string, onClosed: (() -> ())?)
+--- ({ cue, rarity, caseId }; `caseId` is the odds the reel shows: the Mystery block's rolled
+--- tier's case). `onClosed` runs once it is gone.
+function Opening.play(
+	self: any,
+	kind: string,
+	cueId: string,
+	rarity: string,
+	onClosed: (() -> ())?,
+	caseId: string?
+)
 	if self.open then
 		self:close()
 	end
 	local row = LuckyBlocks.kind(kind)
 	if row == nil then
+		return
+	end
+	local reelCase = if type(caseId) == "string" then caseId else row.Case
+	if reelCase == nil then
 		return
 	end
 	self.open = true
@@ -181,7 +193,7 @@ function Opening.play(self: any, kind: string, cueId: string, rarity: string, on
 	hint.ZIndex = 4
 	self.hint = hint
 
-	local reel = CaseOpeningReel.new(stage.frame, row.Case, { look = "Dark" })
+	local reel = CaseOpeningReel.new(stage.frame, reelCase, { look = "Dark" })
 	reel:setPrize(cueId, rarity)
 	self.reel = reel
 	self.cueId, self.rarity = cueId, rarity

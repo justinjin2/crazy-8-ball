@@ -8,6 +8,7 @@ local Config = require(script.Parent.Parent.Config)
 local Catalog = require(script.Parent.Catalog)
 local Cases = require(script.Parent.Cases)
 local Shop = require(script.Parent.Shop)
+local Restock = require(script.Parent.Restock)
 
 local I = Config.Items
 local C = Config.Cases
@@ -26,6 +27,7 @@ export type Request = {
 	ids: { string }?, -- MarkSeen
 	rarity: string?, -- ClaimIndexRow
 	itemId: string?, -- BuyRestock: a restock item id
+	dealId: string?, -- BuyBlocks: a Config.Shop.Deals key
 	at: number?, -- SkipTimer: the timer's end (unix), naming it with caseId
 }
 
@@ -42,13 +44,16 @@ Requests.Actions = table.freeze({
 	"ClaimIndexRow",
 	"BuyLimited",
 	"BuyMystery",
+	"BuyBlocks",
 	"BuyRestock",
 	"SkipTimer",
 })
 
--- The restock item ids (Progression/Restock).
-local RESTOCK_IDS: { [string]: boolean } =
-	{ Uncommon = true, Rare = true, Epic = true, Legendary = true, Mystery = true, Vip = true }
+-- The restock item ids (Progression/Restock: Slot1 .. Slot3, Vip).
+local RESTOCK_IDS: { [string]: boolean } = {}
+for _, id in Restock.ids() do
+	RESTOCK_IDS[id] = true
+end
 
 --- Every reason a refused ItemRequest may answer, for the client's words (Strings) and the
 --- protocol comment in Net. Short PascalCase words.
@@ -75,6 +80,7 @@ Requests.Reasons = table.freeze({
 	"SoldOut", -- BuyLimited: every numbered copy is taken; BuyRestock: none left for you
 	"Owned", -- BuyLimited: one per player
 	"VipOnly", -- BuyRestock: the VIP slot
+	"Full", -- BuyBlocks, BuyRestock: the hotbar holds Config.LuckyBlocks.MaxBlocks blocks
 	"NoTimer", -- SkipTimer: no such case on its timer (it finished, or never was)
 	"Error", -- anything else (logged on the server): try again
 })
@@ -218,11 +224,18 @@ function Requests.parse(action: any, a: any, b: any): (Request?, string?)
 		end
 		return { action = action :: string, rarity = a }, nil
 	elseif action == "BuyMystery" then
+		-- The old name of BuyBlocks for the Mystery deal.
 		local count = countOf(a)
 		if Shop.mysteryPrice(count) == nil then
 			return nil, "BadRequest"
 		end
-		return { action = action :: string, count = count }, nil
+		return { action = "BuyBlocks", dealId = "Mystery", count = count }, nil
+	elseif action == "BuyBlocks" then
+		local count = countOf(b)
+		if type(a) ~= "string" or Shop.blockPrice(a, count) == nil then
+			return nil, "BadRequest"
+		end
+		return { action = action :: string, dealId = a, count = count }, nil
 	elseif action == "BuyRestock" then
 		if type(a) ~= "string" or not RESTOCK_IDS[a] then
 			return nil, "BadRequest"

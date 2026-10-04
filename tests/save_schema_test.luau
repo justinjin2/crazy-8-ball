@@ -725,10 +725,18 @@ return {
 		local out, fixes = SaveSchema.validate(save)
 		local list = out.LuckyBlocks.List
 		H.expect(#list == 2, "two good blocks kept")
-		H.expect(list[1].Id == 1 and list[1].Kind == "Yellow", "the first kept in place")
+		H.expect(list[1].Id == 1 and list[1].Kind == "Standard", "the first kept, renamed")
+		H.expect(list[2].Kind == "Rare", "an old Blue is a Rare block now")
+		H.expect(type(out.LuckyBlocks.Opened) == "table", "the opened counts")
 		H.expect(list[2].Id == 9 and list[2].ReadyAt == 0, "a bad time clamped, not dropped")
 		H.expect(out.LuckyBlocks.Next == 9, "Next is never below an id in the list")
-		H.expect(out.LuckyBlocks.Extra == nil, "only Next and List stay")
+		H.expect(out.LuckyBlocks.Extra == nil, "only the known fields stay")
+		-- Opened counts: renamed and cleaned.
+		local counted = SaveSchema.template()
+		counted.LuckyBlocks.Opened = { GoldKing = 3, Legendary = 2, Purple = 9, Standard = -1 }
+		local fixedCounts = SaveSchema.validate(counted).LuckyBlocks.Opened
+		H.expect(fixedCounts.Legendary == 5 and fixedCounts.Purple == nil, "renamed and summed")
+		H.expect(fixedCounts.Standard == 0 and fixedCounts.GoldKing == nil, "a bad count is 0")
 		H.expect(#fixes > 0, "the fixes are reported")
 		local big = SaveSchema.template()
 		for i = 1, Config.LuckyBlocks.MaxBlocks + 5 do

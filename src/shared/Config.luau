@@ -1894,6 +1894,10 @@ Config.Cases = {
 	-- The case ladder, lowest first (the approved economy plan, 2026-10-02, section 3). Cases
 	-- come from Case Drops, rewards and the restock shop; none is sold permanently.
 	Order = { "Standard", "Uncommon", "Rare", "Epic", "Legendary", "Mythic" },
+	-- Odds tables outside the ladder (the lucky-block economy, designer 2026-10-04): the Sky
+	-- block (Lucky Rain), the Grand Opening block (21 days) and the Starter block (the Starter
+	-- Pack). They roll the whole core pool (every case cue of a rarity), never the tier roll.
+	Extra = { "Sky", "GrandOpening", "Starter" },
 	-- Rarities, bottom to top (GDD section 12). Exclusive and Unique sit outside the ladder.
 	Rarities = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret" },
 	-- When sorting by rarity, Exclusive cues sit just above this rarity (below Legendary;
@@ -1963,6 +1967,45 @@ Config.Cases = {
 			Enabled = false,
 			Odds = { Legendary = 750000, Mythic = 220000, Secret = 30000 },
 		},
+		-- Lucky Rain's Sky block (plan section 7): between Standard and Uncommon.
+		Sky = {
+			Timer = 0,
+			Price = 0,
+			Enabled = false,
+			Odds = {
+				Common = 450000,
+				Uncommon = 450000,
+				Rare = 99000,
+				Epic = 900,
+				Legendary = 90,
+				Mythic = 10,
+			},
+		},
+		-- The Grand Opening block (plan 2.3): Uncommon or better plus two Unique rows that exist
+		-- nowhere else, named by cue id: the Grand Opening Cue 3% and the Beta Cue 0.3% (the
+		-- 400th block guarantees Beta: Config.LuckyBlocks.Kinds.GrandOpening.Guarantee).
+		GrandOpening = {
+			Timer = 0,
+			Price = 0,
+			Enabled = false,
+			Odds = {
+				Uncommon = 563500,
+				Rare = 374500,
+				Epic = 25000,
+				Legendary = 3500,
+				Mythic = 460,
+				Secret = 40,
+				GrandOpeningCue = 30000,
+				BetaCue = 3000,
+			},
+		},
+		-- The Starter Pack's block: Rare or better, guaranteed.
+		Starter = {
+			Timer = 0,
+			Price = 0,
+			Enabled = false,
+			Odds = { Rare = 970000, Epic = 25000, Legendary = 4500, Mythic = 450, Secret = 50 },
+		},
 	},
 	-- Quick Cases (the pass) multiplies a timer by this: twice as fast. Timers already running
 	-- when the pass is bought are halved once too (Shop.QuickApplied).
@@ -1973,12 +2016,15 @@ Config.Cases = {
 	-- Epic-or-better is an Epic Case; pity never gives Legendary. The first win's drop is
 	-- FirstWin. The reveal climbs one step at a time from Standard (Progression/CaseDrop).
 	Drop = {
+		-- The tier roll (plan 4.2, trimmed 2026-10-04 so the day-30 targets hold with every
+		-- new block source): Standard 68, Uncommon 25, Rare 6.7, Epic 0.28, Legendary 0.0196,
+		-- Mythic 0.0004. A Mystery Lucky Block ticks through these tiers when it opens.
 		Weights = {
-			Standard = 679043,
+			Standard = 680000,
 			Uncommon = 250000,
-			Rare = 66667,
-			Epic = 4000,
-			Legendary = 286,
+			Rare = 67000,
+			Epic = 2800,
+			Legendary = 196,
 			Mythic = 4,
 		},
 		PityRare = 10,
@@ -2026,22 +2072,74 @@ Config.Cases = {
 -- bought pack, assets/luckyblocks/).
 ---------------------------------------------------------------------------------------------
 Config.LuckyBlocks = {
-	-- Every kind, in this order (the Lune tests and the dev command's list walk it).
-	Order = { "Yellow", "Green", "Blue", "VoidLava", "GoldKing" },
-	-- Case: the Config.Cases row whose odds and cue pool it rolls. Timer: seconds after it lands
-	-- in the inventory until it can be opened (0: at once). Model: its template's name in
-	-- ReplicatedStorage[ModelFolder]. Idle (optional): the block's own idle animation, uploaded to
-	-- the group; without one it plays Anim.BlockIdle. Adding a pack block: the recipe in
-	-- assets/luckyblocks/Readme.md.
+	-- Every kind, in this order (the Lune tests, the dev command's list and the icon sheet walk
+	-- it; the 12 kinds of the lucky-block economy, designer 2026-10-04).
+	Order = {
+		"Standard",
+		"Uncommon",
+		"Rare",
+		"Epic",
+		"Legendary",
+		"Mythic",
+		"Mystery",
+		"GrandOpening",
+		"Lucky8",
+		"Sky",
+		"Starter",
+		"Gift",
+	},
+	-- Saved ids from the test build (2026-10-03) and what they are now: read anywhere a kind
+	-- is looked up, and rewritten when a save loads (SaveSchema).
+	Renamed = {
+		Yellow = "Standard",
+		Green = "Uncommon",
+		Blue = "Rare",
+		VoidLava = "Epic",
+		GoldKing = "Legendary",
+	},
+	-- Case: the Config.Cases row whose odds and cue pool it rolls (Roll = true instead: the
+	-- Mystery block rolls a tier by Config.Cases.Drop.Weights first and opens as that tier's
+	-- block). Timer: seconds after it lands in the inventory until it can be opened (0: at
+	-- once); a bought block (Paid) opens at once and VIP halves every timer. Model: its
+	-- template's name in ReplicatedStorage[ModelFolder]. Idle (optional): the block's own idle
+	-- animation, uploaded to the group; without one it plays Anim.BlockIdle. Guarantee: the
+	-- At-th block of this kind a player opens is this cue if they have none (a paid pity, shown
+	-- live). Adding a pack block: the recipe in assets/luckyblocks/Readme.md.
 	Kinds = {
-		Yellow = { Case = "Standard", Timer = 0, Model = "YellowLuckyBlock" },
-		Blue = { Case = "Rare", Timer = 120, Model = "BlueLuckyBlock" }, -- 2 minutes
-		Green = { Case = "Uncommon", Timer = 60, Model = "GreenLuckyBlock" }, -- 1 minute
-		VoidLava = { Case = "Epic", Timer = 3600, Model = "VoidLavaLuckyBlock" }, -- 1 hour
-		GoldKing = {
+		Standard = { Case = "Standard", Timer = 0, Model = "YellowLuckyBlock" },
+		Uncommon = { Case = "Uncommon", Timer = 0, Model = "GreenLuckyBlock" },
+		Rare = { Case = "Rare", Timer = 3600, Model = "BlueLuckyBlock" }, -- 1 hour
+		Epic = { Case = "Epic", Timer = 6 * 3600, Model = "VoidLavaLuckyBlock" }, -- 6 hours
+		Legendary = {
 			Case = "Legendary",
-			Timer = 21600,
+			Timer = 24 * 3600,
+			Model = "GoldMajesticLuckyBlock", -- the winged gold block (designer, 2026-10-04)
+			SizeMultiplier = 1.6, -- its wings widen the bounding box
+			HoldCenterShare = 0.4,
+			IconScale = 1.2,
+			EmissiveStrength = 0.2,
+			IconAmbient = 0.7,
+			IconLight = 1,
+		},
+		Mythic = {
+			Case = "Mythic",
+			Timer = 48 * 3600,
+			Model = "GoldTitanLuckyBlock", -- reskinned pastel rainbow
+			SizeMultiplier = 1.6,
+			HoldCenterShare = 0.4,
+			IconScale = 1.2,
+			Rainbow = true, -- the client cycles its aura, light and particles through the rainbow
+			EmissiveStrength = 0.3,
+		},
+		-- The tier roll's block (plan 2, 4.2): 5 minutes when won (none when bought); on
+		-- opening it morphs into the tier's block and that block opens in the same flow.
+		Mystery = { Roll = true, Timer = 300, Model = "MysteryLuckyBlock" },
+		-- The shop's hero for 21 days (Config.Shop.Deals.GrandOpening), then retired.
+		GrandOpening = {
+			Case = "GrandOpening",
+			Timer = 0,
 			Model = "GoldKingLuckyBlock",
+			Guarantee = { Cue = "BetaCue", At = 400 },
 			SizeMultiplier = 1.8, -- crown/cape no longer shrink the central box below other tiers
 			HoldCenterShare = 0.3, -- align the box body, below the crown, with the hands
 			IconScale = 1.25, -- larger preview while leaving room around the crown
@@ -2049,7 +2147,11 @@ Config.LuckyBlocks = {
 			EmissiveStrength = 0.15, -- its bright gold albedo needs less fill to retain detail
 			IconAmbient = 0.7,
 			IconLight = 1,
-		}, -- 6 hours
+		},
+		Lucky8 = { Case = "Rare", Timer = 0, Model = "Lucky8Block", Bob = true }, -- group + favorite
+		Sky = { Case = "Sky", Timer = 0, Model = "SkyLuckyBlock" }, -- Lucky Rain
+		Starter = { Case = "Starter", Timer = 0, Model = "StarterLuckyBlock" }, -- the Starter Pack
+		Gift = { Case = "Rare", Timer = 12 * 3600, Model = "StarterLuckyBlock" }, -- the first leave
 	},
 	ModelFolder = "LuckyBlocks",
 	SkipProduct = "LuckyBlockSkip", -- 19 Robux: one durable timer skip
@@ -2063,12 +2165,28 @@ Config.LuckyBlocks = {
 		ParticleLightInfluence = 0, -- sparkles keep their authored colours under warm lobby light
 	},
 	MaxBlocks = 200, -- the save holds at most this many blocks
+	-- A block that rolls a Unique cue the player already owns (one per player) is rolled again,
+	-- at most this many times; then it gives the first cue of the case's top rarity.
+	UniqueRerolls = 10,
 	HotbarSlots = 9, -- the first 9 blocks sit in the hotbar (keys 1-9); the rest in the bag
 	-- The test build: on join every account in Config.Debug.Commands.UserIds is given one of
 	-- each Seed kind it lacks, and opening a block gives a fresh one of the same kind in the
 	-- same place (its timer starting again), so testing never runs out.
 	Test = {
-		Seed = { "Yellow", "Green", "Blue", "VoidLava", "GoldKing" },
+		Seed = {
+			"Standard",
+			"Uncommon",
+			"Rare",
+			"Epic",
+			"Legendary",
+			"Mythic",
+			"Mystery",
+			"GrandOpening",
+			"Lucky8",
+			"Sky",
+			"Starter",
+			"Gift",
+		},
 		Refill = true,
 		BypassTimer = true, -- only Config.Debug.Commands.UserIds; ReadyAt is left unchanged
 	},
@@ -2522,20 +2640,17 @@ Config.Shop = {
 	StarterMoney = 75000,
 	-- The Starter Pack's hour of 2x money (Config.Economy.StarterBoost; it adds to VIP's).
 	StarterBoostSeconds = 3600,
-	StarterCue = "StarterCue",
+	StarterBlock = "Starter", -- the Starter Lucky Block (Rare or better; designer 2026-10-04)
 	VipCue = "VipCue", -- given once to every VIP
-	-- The one scrolling shop page, top to bottom (plan section 5; the GUI lane draws it): the
-	-- personal offer (Starter Pack or VIP welcome offer, only while open), VIP, the restock
-	-- shop, Limited cues, Mystery Cases, money packs, Quick Cases and Money Party, Get Roblox
-	-- Plus. Timer skips sit on the case, ability spins on the Abilities screen.
-	-- (GUI lane, 2026-10-03: Limited moved up beside VIP, so the Deals jump button's sections
-	-- sit together.)
+	-- The one short shop page, top to bottom (designer, 2026-10-04): the Grand Opening Lucky
+	-- Block hero, the Mystery Lucky Block, the restock slots, the Starter Pack and VIP, money
+	-- packs, Money Party and Get Roblox Plus. Jump buttons: Config.UI.Shop.Page.Jump.
 	Order = {
+		"GrandOpening",
+		"Mystery",
+		"Restock",
 		"Offer",
 		"Vip",
-		"Limited",
-		"Restock",
-		"Mystery",
 		"Money",
 		"Boosts",
 		"RobloxPlus",
@@ -2543,41 +2658,47 @@ Config.Shop = {
 	-- The Get Roblox Plus button (MarketplaceService:PromptRobloxSubscriptionPurchase; Roblox
 	-- pays the game for each subscriber signed up in it). false hides it.
 	RobloxPlus = true,
-	-- Mystery Cases for money (plan section 4): each is one Case Drop (the same odds, pity and
-	-- 8-ball reveal), paid origin. Price one; BulkCount for BulkPrice (the plan's: 10 for the price of 9).
+	-- Lucky blocks sold by the count (plan section 12; ItemRequest "BuyBlocks" for money,
+	-- Config.Products for Robux): Kind, Money by count, Products by count (the same counts).
+	-- A deal with StartsAt runs StartsAt..StartsAt + Seconds only (0: off until the designer
+	-- sets it, right before the release is published; the release sale follows it).
+	Deals = {
+		Mystery = {
+			Kind = "Mystery",
+			Money = { [1] = 4900, [10] = 44100 },
+			Products = { [1] = "Mystery1", [10] = "Mystery10" },
+		},
+		GrandOpening = {
+			Kind = "GrandOpening",
+			Money = { [1] = 49000, [3] = 139000, [10] = 441000 },
+			Products = { [1] = "GrandOpening1", [3] = "GrandOpening3", [10] = "GrandOpening10" },
+			StartsAt = 0,
+			Seconds = 21 * 86400,
+			VaultedSeconds = 7 * 86400, -- the "Vaulted" card stays this long after the end
+		},
+	},
+	-- Old shop fields the Mystery Case screens still read (nothing is sold as a case now).
 	Mystery = { Price = 4900, BulkCount = 10, BulkPrice = 44100 },
 	-- Finishing a case timer with money (plan section 4): MoneyPerMinute for every minute left
 	-- (a part minute counts whole), at least MinMoney. Robux (Skip1h ... Skip48h) is cheaper.
 	Skip = { MoneyPerMinute = 25, MinMoney = 250 },
-	-- The restock shop (plan section 4; Progression/Restock): new items every SlotSeconds on
+	-- The restock shop (plan section 12; Progression/Restock): new blocks every SlotSeconds on
 	-- the clock (UTC :00, :10 ...), the same in every server (picked from the slot number).
-	-- Chances are parts of ChanceTotal. Stock is per player per restock; the Legendary Case's
-	-- GlobalStock is shared by every player in every server for that restock (an atomic
-	-- counter: reserved when its Robux prompt opens, given back on a cancel).
+	-- Three slots each roll one block kind by Odds (parts of ChanceTotal), a fourth for VIP by
+	-- VipOdds. Stock is per player per restock, per slot; one block per press. Robux where a
+	-- Product is named.
 	Restock = {
 		SlotSeconds = 600,
 		ChanceTotal = 10000,
-		-- Every restock.
-		Uncommon = { Case = "Uncommon", Price = 14900, Stock = 3 },
-		-- In RareChance of restocks.
-		Rare = { Case = "Rare", Price = 34900, Stock = 2 },
-		RareChance = 6000,
-		-- The lucky slot: an Epic Case in EpicChance, a Legendary Case in LegendaryChance,
-		-- else 3 Mystery Cases (plain price).
-		Epic = { Case = "Epic", Price = 349000, Product = "RestockEpic", Stock = 1 },
-		EpicChance = 400,
-		-- No shared limit across servers any more (designer, 2026-10-03, C14): anyone who can
-		-- afford it buys it, one per player. (GlobalStock = n would bring the shared limit back.)
-		Legendary = {
-			Case = "Legendary",
-			Price = 3490000,
-			Product = "RestockLegendary",
-			Stock = 1,
+		Slots = 3,
+		Odds = { Uncommon = 6200, Rare = 3660, Epic = 135, Legendary = 5 },
+		VipOdds = { Rare = 9600, Epic = 385, Legendary = 15 },
+		Kinds = {
+			Uncommon = { Price = 14900, Stock = 3 },
+			Rare = { Price = 34900, Product = "RestockRare", Stock = 1 },
+			Epic = { Price = 349000, Product = "RestockEpic", Stock = 1 },
+			Legendary = { Price = 3490000, Product = "RestockLegendary", Stock = 1 },
 		},
-		LegendaryChance = 15,
-		Mystery = { Mystery = 3, Price = 14700, Stock = 1 },
-		-- VIP only: an extra Rare Case every restock.
-		Vip = { Case = "Rare", Price = 34900, Stock = 1 },
 		-- A Robux restock receipt still counts for its restock this long after the prompt
 		-- opened (the prompt may be confirmed after the slot ended).
 		ReceiptGraceSeconds = 600,
@@ -2623,9 +2744,9 @@ Config.Shop = {
 	-- until the designer sets it (the Grand Opening's: right before the release is published).
 	-- A new Limited is one row here plus its catalog cue. Founder's and Beta are off (no row)
 	-- until scheduled.
-	Limited = {
-		{ Cue = "GrandOpeningCue", Price = 149000, StartsAt = 0, Seconds = 14 * 86400 },
-	} :: {
+	-- (Designer, 2026-10-04: the $149,000 Grand Opening Cue shelf is gone; the cue comes from
+	-- the Grand Opening block only. The shelf code stays for a later Limited.)
+	Limited = {} :: {
 		{
 			Cue: string,
 			Price: number?,
@@ -2642,8 +2763,8 @@ Config.Shop = {
 	-- With (the Grand Opening Cue), so one date sets both.
 	ReleaseSale = {
 		StartsAt = 0,
-		With = "GrandOpeningCue",
-		Seconds = 14 * 86400,
+		With = "GrandOpening", -- the Config.Shop.Deals key whose window it follows
+		Seconds = 21 * 86400,
 		Percent = 30,
 	},
 }
@@ -2668,13 +2789,17 @@ Config.Products = {
 	BestValue = "Pack6",
 	List = {
 		-- Game passes.
-		Vip = { Kind = "Pass", Id = 2005370712, Robux = 599 }, -- 2x money, daily spin, VIP slot, cue, tag
-		QuickCases = { Kind = "Pass", Id = 2006144658, Robux = 299 }, -- timers x0.5, open all, Auto Spin
+		-- VIP (499 R$, designer 2026-10-04: was 599; it absorbs the old Quick Cases perks:
+		-- halved timers, open all, fast reveals, Skip and Auto Spin). The live price is read
+		-- from Roblox; change the pass's price in Creator Hub to match.
+		Vip = { Kind = "Pass", Id = 2005370712, Robux = 499 },
+		QuickCases = { Kind = "Pass", Id = 2006144658, Robux = 299, Retired = true }, -- folded into VIP
 		UltSlot2 = { Kind = "Pass", Id = 2006096679, Robux = 59 }, -- the second ability slot
 		UltSlot3 = { Kind = "Pass", Id = 2006012697, Robux = 99 }, -- the third ability slot
 		-- Offers (once).
-		VipOffer = { Kind = "Product", Id = 3716158339, Robux = 299 }, -- VIP at half price, 24 h windows
-		StarterPack = { Kind = "Product", Id = 3716158341, Robux = 99 }, -- Starter Cue, $75,000, 1 h 2x
+		VipOffer = { Kind = "Product", Id = 3716158339, Robux = 249 }, -- VIP at half price, 24 h windows
+		-- The Starter Pack: a Starter Lucky Block (Rare or better), $75,000, 1 h of 2x money.
+		StarterPack = { Kind = "Product", Id = 3716158341, Robux = 99, Random = true },
 		-- Money packs: Money each, Bonus = % more money per Robux than Pack1 (shown).
 		Pack1 = { Kind = "Product", Id = 3716158342, Robux = 49, Money = 9000, Bonus = 0 }, -- Handful
 		Pack2 = { Kind = "Product", Id = 3716158345, Robux = 99, Money = 19500, Bonus = 7 }, -- Stack
@@ -2683,10 +2808,56 @@ Config.Products = {
 		Pack5 = { Kind = "Product", Id = 3716158353, Robux = 999, Money = 235000, Bonus = 28 }, -- Vault
 		Pack6 = { Kind = "Product", Id = 3716158356, Robux = 2499, Money = 625000, Bonus = 36 }, -- Bank
 		Pack7 = { Kind = "Product", Id = 3716158358, Robux = 4999, Money = 1300000, Bonus = 42 }, -- Fortune
-		-- Mystery Cases: Drops Case Drops each (the same odds, pity and reveal; paid origin).
-		Mystery1 = { Kind = "Product", Id = 3716158359, Robux = 25, Drops = 1, Random = true },
-		Mystery10 = { Kind = "Product", Id = 3716158365, Robux = 229, Drops = 10, Random = true },
-		-- The restock shop's lucky slot (only while that case is in stock).
+		-- Lucky blocks by the count (Config.Shop.Deals): Blocks = { Kind, Count }, paid origin
+		-- (they open at once). The Grand Opening ones sell inside their deal's window only.
+		Mystery1 = {
+			Kind = "Product",
+			Id = 3716158359,
+			Robux = 25,
+			Blocks = { Kind = "Mystery", Count = 1 },
+			Random = true,
+		},
+		Mystery10 = {
+			Kind = "Product",
+			Id = 3716158365,
+			Robux = 229,
+			Blocks = { Kind = "Mystery", Count = 10 },
+			Random = true,
+		},
+		GrandOpening1 = {
+			Kind = "Product",
+			Id = 0,
+			Robux = 49,
+			Blocks = { Kind = "GrandOpening", Count = 1 },
+			Deal = "GrandOpening",
+			Random = true,
+		},
+		GrandOpening3 = {
+			Kind = "Product",
+			Id = 0,
+			Robux = 129,
+			Was = 147,
+			Blocks = { Kind = "GrandOpening", Count = 3 },
+			Deal = "GrandOpening",
+			Random = true,
+		},
+		GrandOpening10 = {
+			Kind = "Product",
+			Id = 0,
+			Robux = 349,
+			Was = 490,
+			Blocks = { Kind = "GrandOpening", Count = 10 },
+			Deal = "GrandOpening",
+			Random = true,
+		},
+		-- The restock slots' Robux prices (only while that block is in stock).
+		RestockRare = {
+			Kind = "Product",
+			Id = 0,
+			Robux = 99,
+			Restock = "Rare",
+			Random = true,
+		},
 		RestockEpic = {
 			Kind = "Product",
 			Id = 3716158370,
@@ -2799,12 +2970,12 @@ Config.Products = {
 			Money = 1300000,
 			SaleOf = "Pack7",
 		},
-		VipSale = { Kind = "Product", Id = 3716177492, Robux = 419, Vip = true, SaleOf = "Vip" },
+		VipSale = { Kind = "Product", Id = 3716177492, Robux = 349, Vip = true, SaleOf = "Vip" },
 		Mystery10Sale = {
 			Kind = "Product",
 			Id = 3716177494,
 			Robux = 160,
-			Drops = 10,
+			Blocks = { Kind = "Mystery", Count = 10 },
 			Random = true,
 			SaleOf = "Mystery10",
 		},
@@ -7058,11 +7229,17 @@ Config.UI.Shop = {
 	Page = {
 		-- The jump buttons, top to bottom: each scrolls to its first section on the page and
 		-- glows while one of its sections is at the top. Icons are Config.UI.Kit.Icons keys.
+		-- (Designer, 2026-10-04: Featured, Blocks, Money, Passes; the Starter Pack and VIP
+		-- band belongs to Passes.)
 		Jump = {
-			{ Key = "Deals", Icon = "Deals", Sections = { "Offer", "Vip", "Limited" } },
-			{ Key = "Cases", Icon = "CasesJump", Sections = { "Restock", "Mystery" } },
+			{ Key = "Featured", Icon = "Deals", Sections = { "GrandOpening", "Limited" } },
+			{ Key = "Blocks", Icon = "CasesJump", Sections = { "Mystery", "Restock" } },
 			{ Key = "Money", Icon = "Pack4", Sections = { "Money" } },
-			{ Key = "Passes", Icon = "Passes", Sections = { "Boosts", "RobloxPlus" } },
+			{
+				Key = "Passes",
+				Icon = "Passes",
+				Sections = { "Offer", "Vip", "Boosts", "RobloxPlus" },
+			},
 		},
 		RailWidthPx = { 66, 96 }, -- a jump button
 		RailButtonPx = { 60, 86 },

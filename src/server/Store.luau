@@ -239,6 +239,10 @@ local function context(player: Player, now: number): ShopView.Context?
 		stockTaken = Counters.stockTaken(Restock.stockKey(Items.restockSlot(now))),
 		restockSlot = Items.restockSlot(now),
 		prices = prices,
+		blocks = data.LuckyBlocks,
+		ownsCue = function(id: string): boolean
+			return Inventory.owns(data, id)
+		end,
 	}
 end
 
@@ -249,7 +253,8 @@ local function setAttributes(player: Player, shopSave: any?)
 	if player:GetAttribute(ATTR.Vip) ~= vip then
 		player:SetAttribute(ATTR.Vip, vip)
 	end
-	local fastOpen = owns(player, QUICK_CASES)
+	-- VIP opens fast (the Quick Cases pass is retired; an owner keeps it).
+	local fastOpen = owns(player, QUICK_CASES) or vip
 	if player:GetAttribute(ATTR.FastOpen) ~= fastOpen then
 		player:SetAttribute(ATTR.FastOpen, fastOpen)
 	end
@@ -494,8 +499,8 @@ local function restockGrant(player: Player, key: string, data: any): (Shop.Grant
 			and now - pend.at <= S.Restock.ReceiptGraceSeconds
 		then pend.slot
 		else Items.restockSlot(now)
-	local item = Restock.forProduct(slot, key)
 	local vip = player:GetAttribute(ATTR.Vip) == true
+	local item = Restock.forProduct(slot, key, data.Shop.Restock, vip)
 	local why = Restock.check(item, data.Shop.Restock, slot, vip)
 	if why == nil and item ~= nil and item.global ~= nil then
 		local held, reason =
@@ -513,7 +518,7 @@ local function restockGrant(player: Player, key: string, data: any): (Shop.Grant
 	return {
 		key = key,
 		money = 0,
-		restock = { slot = slot, id = item.id, case = item.case, mystery = item.mystery },
+		restock = { slot = slot, id = item.id, block = item.block },
 	},
 		nil,
 		nil
@@ -874,7 +879,7 @@ local function onStoreRequest(player: Player, action: any, key: any, extra: any)
 	-- A restock item: remember the restock seen, and hold a Legendary unit while the prompt is up.
 	if row.Restock ~= nil then
 		local slot = Items.restockSlot(ctx.now)
-		local item = Restock.forProduct(slot, key)
+		local item = Restock.forProduct(slot, key, ctx.restock, ShopView.isVip(ctx))
 		local reserved = false
 		if item ~= nil and item.global ~= nil then
 			local held, why =
@@ -1142,7 +1147,7 @@ local function tick()
 		local first = restockSlot < 0
 		restockSlot = slot
 		markAll()
-		if not first and Restock.find(slot, "Legendary") ~= nil then
+		if not first and Restock.has(slot, "Legendary") then
 			local _, endsAt = Restock.window(Restock.slotOf(now))
 			Announce.restock("Legendary", endsAt)
 		end

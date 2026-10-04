@@ -271,6 +271,8 @@ end
 -- Limited copies and firsts
 ---------------------------------------------------------------------------------------------
 
+local takeCopy: (string, string, number, number, number) -> (number?, string?)
+
 --- Takes player `userId`'s numbered copy of a Limited cue with one atomic UpdateAsync: the
 --- number they were given before if any (a retry or a rejoin after a buy that did not land;
 --- even past the cap or the end), else the next one, refused past `cap` or once `endsAt`
@@ -282,9 +284,34 @@ function Counters.takeLimited(
 	cap: number,
 	endsAt: number
 ): (number?, string?)
+	if Shop.limitedFor(cueId) == nil then
+		warn(("[8ball] Counters.takeLimited: %s is not a Limited"):format(tostring(cueId)))
+		return nil, "Error"
+	end
+	return takeCopy("takeLimited", cueId, userId, cap, endsAt)
+end
+
+--- Takes player `userId`'s numbered copy of any Unique cue (the Grand Opening block's two
+--- cues): the same atomic counter as a Limited's, with no cap but the save's and no end.
+--- Yields. Returns the copy number, or nil and "Error".
+function Counters.takeUnique(cueId: string, userId: number): (number?, string?)
+	local cue = Catalog.get(cueId)
+	if cue == nil or cue.Group ~= "Unique" then
+		warn(("[8ball] Counters.takeUnique: %s is not a Unique cue"):format(tostring(cueId)))
+		return nil, "Error"
+	end
+	return takeCopy("takeUnique", cueId, userId, Config.Save.CopyNumberCap, math.huge)
+end
+
+function takeCopy(
+	op: string,
+	cueId: string,
+	userId: number,
+	cap: number,
+	endsAt: number
+): (number?, string?)
 	if
-		Shop.limitedFor(cueId) == nil
-		or type(userId) ~= "number"
+		type(userId) ~= "number"
 		or userId ~= math.floor(userId)
 		or type(cap) ~= "number"
 		or cap ~= cap
@@ -292,7 +319,7 @@ function Counters.takeLimited(
 		or type(endsAt) ~= "number"
 		or endsAt ~= endsAt
 	then
-		warn(("[8ball] Counters.takeLimited: bad arguments for %s"):format(tostring(cueId)))
+		warn(("[8ball] Counters.%s: bad arguments for %s"):format(op, tostring(cueId)))
 		return nil, "Error"
 	end
 	-- No early "Ended" here: only the stored value knows whether this player already has one.

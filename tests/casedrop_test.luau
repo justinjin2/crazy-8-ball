@@ -11,27 +11,27 @@ end
 
 -- The plan's tier weights out of 1,000,000.
 local WEIGHTS = {
-	Standard = 679043,
+	Standard = 680000,
 	Uncommon = 250000,
-	Rare = 66667,
-	Epic = 4000,
-	Legendary = 286,
+	Rare = 67000,
+	Epic = 2800,
+	Legendary = 196,
 	Mythic = 4,
 }
 
 -- The plan's chance per Case Drop of each rarity, in percent (as the plan prints them).
 local PER_DROP = {
-	Common = 60.9283,
-	Uncommon = 33.7847,
-	Rare = 5.1241,
-	Epic = 0.1381,
-	Legendary = 0.0217,
-	Mythic = 0.0028,
-	Secret = 0.00029,
+	Common = 61,
+	Uncommon = 33.83,
+	Rare = 5.0423,
+	Epic = 0.10872,
+	Legendary = 0.016644,
+	Mythic = 0.0021197,
+	Secret = 0.0002163,
 }
 
--- The plan's chance each reveal step climbs.
-local CLIMBS = { 32.0957, 22.108, 6.046, 6.76, 1.379 }
+-- The plan's chance each reveal step climbs (the lucky-block weights, 2026-10-04).
+local CLIMBS = { 32, 21.875, 4.2857, 6.6667, 2 }
 
 -- A seeded xorshift32: rng(n) -> a whole number in 1..n, the same sequence every run.
 local function seeded(seed: number): (number) -> number
@@ -74,15 +74,14 @@ return {
 		local total = 0
 		for _, entry in CaseDrop.rarityOdds() do
 			local plan = PER_DROP[entry.rarity]
-			-- The plan prints 4 decimals (Secret 5; its Common 60.9283 is 60.92822 exactly).
 			H.near(entry.percent, plan, 0.0001, entry.rarity)
 			total += entry.percent
 		end
 		H.near(total, 100, 1e-9, "the chances add to 100")
-		H.expect(CaseDrop.rarityPercent("Epic") > 0.138, "Epic")
+		H.expect(CaseDrop.rarityPercent("Epic") > 0.108, "Epic")
 		H.expect(CaseDrop.rarityPercent("Nope") == 0, "unknown rarity")
 		local secret = CaseDrop.rarityOdds()[7]
-		H.expect(secret.rarity == "Secret" and secret.display == "0.00029%", secret.display)
+		H.expect(secret.rarity == "Secret" and secret.display == "0.00022%", secret.display)
 		local climbs = CaseDrop.climbChances()
 		H.expect(#climbs == 5, "five steps")
 		for i, step in climbs do

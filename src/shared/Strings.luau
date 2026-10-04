@@ -970,11 +970,18 @@ return {
 	-- Lucky blocks (the test build, 2026-10-03; LuckyHotbar, LuckyWorld, LuckyOpening).
 	LuckyBlocks = {
 		Names = {
-			Yellow = "Standard Lucky Block",
-			Blue = "Rare Lucky Block",
-			Green = "Uncommon Lucky Block",
-			VoidLava = "Epic Lucky Block",
-			GoldKing = "Legendary Lucky Block",
+			Standard = "Standard Lucky Block",
+			Uncommon = "Uncommon Lucky Block",
+			Rare = "Rare Lucky Block",
+			Epic = "Epic Lucky Block",
+			Legendary = "Legendary Lucky Block",
+			Mythic = "Mythic Lucky Block",
+			Mystery = "Mystery Lucky Block",
+			GrandOpening = "Grand Opening Lucky Block",
+			Lucky8 = "Lucky 8 Block",
+			Sky = "Sky Lucky Block",
+			Starter = "Starter Lucky Block",
+			Gift = "Gift Lucky Block",
 		} :: { [string]: string },
 		ReadyIn = "Ready in %s", -- a block still on its timer: "Ready in 1:42"
 		Bag = "Bag", -- the hotbar's bag button and the panel's title

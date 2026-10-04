@@ -63,7 +63,7 @@ return {
 			local request, why = Requests.parse(action, "Standard", 1)
 			H.expect(request == nil and why == "BadRequest", "action " .. tostring(action))
 		end
-		H.expect(#Requests.Actions == 11, "eleven actions")
+		H.expect(#Requests.Actions == 12, "twelve actions")
 		for _, action in Requests.Actions do
 			local _, why = Requests.parse(action, 0 / 0, 0 / 0)
 			H.expect(why ~= nil, action .. " refuses NaN ids")
@@ -179,9 +179,9 @@ return {
 
 	buy_limited_only_money_rows = function()
 		local Requests = load()
-		local r = Requests.parse("BuyLimited", "GrandOpeningCue")
-		H.expect(r ~= nil and r.cueId == "GrandOpeningCue", "the Grand Opening Cue is for money")
-		-- Founder's and Beta have no Limited row now (off until scheduled).
+		-- No Limited row is scheduled now (the Grand Opening Cue comes from its block).
+		H.expect(select(2, Requests.parse("BuyLimited", "GrandOpeningCue")) == "BadRequest", "off")
+		-- Founder's and Beta have no Limited row either (off until scheduled).
 		H.expect(select(2, Requests.parse("BuyLimited", "FoundersCue")) == "BadRequest", "off")
 		H.expect(select(2, Requests.parse("BuyLimited", "BetaCue")) == "BadRequest", "off")
 		H.expect(select(2, Requests.parse("BuyLimited", "Classic")) == "BadRequest", "not Limited")

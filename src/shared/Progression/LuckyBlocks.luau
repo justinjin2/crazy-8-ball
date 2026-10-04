@@ -10,14 +10,19 @@
 -- save; LuckyBlockService checks BlockRequest's arguments with `parse`.
 local Config = require(script.Parent.Parent.Config)
 local Cases = require(script.Parent.Cases)
+local Catalog = require(script.Parent.Catalog)
 
 local L = Config.LuckyBlocks
 
 export type Kind = {
-	Case: string,
+	Case: string?, -- the odds table it rolls (nil with Roll: the tier roll first)
+	Roll: boolean?, -- the Mystery block: rolls a tier by Config.Cases.Drop.Weights, then that case
 	Timer: number,
 	Model: string,
 	Idle: string?,
+	Guarantee: { Cue: string, At: number }?, -- the At-th opened is this cue if none is owned
+	Rainbow: boolean?, -- the client cycles its aura through the rainbow (Mythic)
+	Bob: boolean?, -- no bones: the client bobs the model itself (the part-built Lucky 8)
 	EmissiveStrength: number?,
 	IconAmbient: number?,
 	IconLight: number?,
@@ -26,7 +31,14 @@ export type Kind = {
 	IconScale: number?,
 }
 export type Block = { Id: number, Kind: string, ReadyAt: number, Paid: boolean? }
-export type State = { Next: number, List: { Block }, SkipCredits: number?, SkipTarget: number? }
+-- Opened: how many blocks of each kind this player has opened (the Guarantee's count).
+export type State = {
+	Next: number,
+	List: { Block },
+	SkipCredits: number?,
+	SkipTarget: number?,
+	Opened: { [string]: number }?,
+}
 
 -- One checked BlockRequest. Only the fields its action uses are set.
 export type Request = {
@@ -36,6 +48,7 @@ export type Request = {
 }
 
 local KINDS: { [string]: Kind } = L.Kinds :: any
+local RENAMED: { [string]: string } = L.Renamed or {}
 
 local LuckyBlocks = {}
 
@@ -57,23 +70,67 @@ LuckyBlocks.Reasons = table.freeze({
 	"Error", -- anything else (logged on the server)
 })
 
---- A kind's row, or nil for an unknown kind.
+--- A kind's id as it is now: an old saved id (Config.LuckyBlocks.Renamed) is mapped, anything
+--- else is returned as it is.
+function LuckyBlocks.current(id: any): any
+	if type(id) == "string" and RENAMED[id] ~= nil then
+		return RENAMED[id]
+	end
+	return id
+end
+
+--- A kind's row, or nil for an unknown kind (an old saved id resolves to its new kind).
 function LuckyBlocks.kind(id: any): Kind?
-	if type(id) ~= "string" or table.find(L.Order, id) == nil then
+	local now = LuckyBlocks.current(id)
+	if type(now) ~= "string" or table.find(L.Order, now) == nil then
 		return nil
 	end
-	return KINDS[id]
+	return KINDS[now]
 end
 
 --- A new player's blocks: none.
 function LuckyBlocks.fresh(): State
-	return { Next = 0, List = {}, SkipCredits = 0, SkipTarget = 0 }
+	return { Next = 0, List = {}, SkipCredits = 0, SkipTarget = 0, Opened = {} }
 end
 
---- Seconds after landing until a block of `kind` can be thrown (0 for an unknown kind).
-function LuckyBlocks.timer(kind: string): number
+--- Seconds after landing until a block of `kind` can be thrown (0 for an unknown kind). VIP
+--- halves every timer (Config.Cases.QuickTimerFactor, rounded up to whole seconds).
+function LuckyBlocks.timer(kind: string, vip: boolean?): number
 	local row = LuckyBlocks.kind(kind)
-	return if row then row.Timer else 0
+	if row == nil or row.Timer <= 0 then
+		return 0
+	end
+	return if vip then math.ceil(row.Timer * Config.Cases.QuickTimerFactor) else row.Timer
+end
+
+--- How many blocks of `kind` this player has opened.
+function LuckyBlocks.opened(state: State, kind: string): number
+	local opened = state.Opened
+	local n = if type(opened) == "table" then opened[kind] else nil
+	return if type(n) == "number" and n == n and n >= 0 then math.floor(n) else 0
+end
+
+--- Counts one more opened block of `kind`. Changes `state`.
+function LuckyBlocks.noteOpened(state: State, kind: string)
+	if type(state.Opened) ~= "table" then
+		state.Opened = {}
+	end
+	local opened = state.Opened :: { [string]: number }
+	opened[kind] = LuckyBlocks.opened(state, kind) + 1
+end
+
+--- The cue the next opened block of `kind` must give by its Guarantee (the At-th opened,
+--- counting this one, when `owns` says the player has none), or nil for a normal roll.
+function LuckyBlocks.guaranteed(state: State, kind: string, owns: (string) -> boolean): string?
+	local row = LuckyBlocks.kind(kind)
+	local g = if row then row.Guarantee else nil
+	if g == nil or type(g.Cue) ~= "string" or type(g.At) ~= "number" then
+		return nil
+	end
+	if LuckyBlocks.opened(state, kind) + 1 >= g.At and not owns(g.Cue) then
+		return g.Cue
+	end
+	return nil
 end
 
 --- Whether `block` is off its timer at `now`.
@@ -132,12 +189,28 @@ function LuckyBlocks.find(state: State, id: number): (Block?, number?)
 	return nil, nil
 end
 
---- Adds a block of `kind` landing at `now` (its timer starts), at place `at` (1..#List + 1;
---- nil: the end). Returns the new block. Errors on an unknown kind: never a broken block.
-function LuckyBlocks.add(state: State, kind: string, now: number, at: number?): Block
+--- Adds a block of `kind` landing at `now` (its timer starts; a `paid` one is ready at once
+--- and keeps its paid origin; `vip` halves the timer), at place `at` (1..#List + 1; nil: the
+--- end). Returns the new block. Errors on an unknown kind: never a broken block.
+function LuckyBlocks.add(
+	state: State,
+	kind: string,
+	now: number,
+	at: number?,
+	paid: boolean?,
+	vip: boolean?
+): Block
 	assert(LuckyBlocks.kind(kind) ~= nil, "LuckyBlocks.add: unknown kind " .. tostring(kind))
+	kind = LuckyBlocks.current(kind)
 	state.Next += 1
-	local block = { Id = state.Next, Kind = kind, ReadyAt = now + LuckyBlocks.timer(kind) }
+	local block: Block = {
+		Id = state.Next,
+		Kind = kind,
+		ReadyAt = if paid then now else now + LuckyBlocks.timer(kind, vip),
+	}
+	if paid then
+		block.Paid = true
+	end
 	local place = math.clamp(at or #state.List + 1, 1, #state.List + 1)
 	table.insert(state.List, place, block)
 	return block
@@ -193,8 +266,24 @@ function LuckyBlocks.validate(): { string }
 		if row == nil then
 			table.insert(problems, id .. ": in Order but not in Kinds")
 		else
-			if Cases.get(row.Case) == nil then
+			if row.Roll then
+				if row.Case ~= nil then
+					table.insert(problems, id .. ": Roll and Case together")
+				end
+			elseif Cases.get(row.Case) == nil then
 				table.insert(problems, ("%s: no case %s"):format(id, tostring(row.Case)))
+			end
+			local g = row.Guarantee
+			if g ~= nil then
+				local cue = Catalog.get(g.Cue)
+				if cue == nil or cue.Group ~= "Unique" then
+					table.insert(problems, id .. ": Guarantee.Cue is not a Unique cue")
+				elseif row.Case == nil or not Cases.canDrop(row.Case, g.Cue) then
+					table.insert(problems, id .. ": Guarantee.Cue does not drop from its case")
+				end
+				if type(g.At) ~= "number" or g.At < 1 or g.At ~= math.floor(g.At) then
+					table.insert(problems, id .. ": Guarantee.At is not a whole count")
+				end
 			end
 			if
 				type(row.Timer) ~= "number"
@@ -217,6 +306,11 @@ function LuckyBlocks.validate(): { string }
 	for id in KINDS do
 		if table.find(L.Order, id) == nil then
 			table.insert(problems, id .. ": in Kinds but not in Order")
+		end
+	end
+	for old, new in RENAMED do
+		if KINDS[new] == nil or KINDS[old] ~= nil then
+			table.insert(problems, ("Renamed %s -> %s is not an old id of a kind"):format(old, new))
 		end
 	end
 	table.sort(problems)

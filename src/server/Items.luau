@@ -514,11 +514,18 @@ function HANDLERS.BuyLimited(player: Player, r: Requests.Request): Reply
 	return { ok = true, cueId = cueId, copy = copy, price = price }
 end
 
---- Developer only (/limited): every Limited row's window in this server, from `startsAt` for
+--- Developer only (/limited): every Limited row's window and every timed block deal's (the
+--- Grand Opening's, and with it the release sale) in this server, from `startsAt` for
 --- `seconds` (nil for both: back to Config's). Every player's ShopState is sent again.
 function Items.setLimitedWindow(startsAt: number?, seconds: number?)
 	for _, cueId in Shop.limitedIds() do
 		Shop.setWindow(cueId, startsAt, seconds)
+	end
+	for _, key in Shop.dealKeys() do
+		local row = Shop.dealRow(key)
+		if row ~= nil and row.StartsAt ~= nil then
+			Shop.setDeal(key, startsAt, seconds)
+		end
 	end
 	saleEvent:Fire() -- the Store sends ShopState again (SaleChanged)
 end
@@ -574,21 +581,27 @@ local function randomRefusal(player: Player): Reply?
 	return nil
 end
 
-function HANDLERS.BuyMystery(player: Player, r: Requests.Request): Reply
+function HANDLERS.BuyBlocks(player: Player, r: Requests.Request): Reply
 	local blocked = randomRefusal(player)
 	if blocked then
 		return blocked
 	end
-	local count = r.count :: number
-	local price = Shop.mysteryPrice(count) :: number
-	if PlayerData.buyMystery(player, count, price) then
-		return { ok = true, count = count, price = price }
+	local dealId, count = r.dealId :: string, r.count :: number
+	local deal = Shop.dealRow(dealId)
+	local price = Shop.blockPrice(dealId, count)
+	if deal == nil or price == nil then
+		return refuse("BadRequest")
+	elseif not Shop.deal(dealId, os.time()).open then
+		return refuse("NotSold")
 	end
-	local money = moneyOf(player)
-	if money < price then
-		return refuse("NotEnoughMoney", { need = price - money, price = price })
+	local ok, failed = PlayerData.buyBlocks(player, deal.Kind, count, price, dealId)
+	if ok then
+		return { ok = true, dealId = dealId, kind = deal.Kind, count = count, price = price }
+	elseif failed == "NotEnoughMoney" then
+		local money = moneyOf(player)
+		return refuse(failed, { need = price - money, price = price })
 	end
-	return refuse("Error")
+	return refuse(replyReason(failed))
 end
 
 function HANDLERS.BuyRestock(player: Player, r: Requests.Request): Reply

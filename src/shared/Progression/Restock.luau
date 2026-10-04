@@ -1,29 +1,35 @@
 --!strict
--- Restock: the restock shop (the approved economy plan, 2026-10-02, section 4). Every
--- Config.Shop.Restock.SlotSeconds on the clock (UTC :00, :10 ...) a new restock: an Uncommon
--- Case always, a Rare Case in RareChance of restocks, a lucky slot (an Epic Case, a Legendary
--- Case, else 3 Mystery Cases) and a VIP-only Rare Case. The items come from the slot number
--- through an integer hash, so every server shows the same restock with no messaging.
+-- Restock: the restock shop (the lucky-block economy, designer 2026-10-04; ECONOMY section
+-- 12). Every Config.Shop.Restock.SlotSeconds on the clock (UTC :00, :10 ...) a new restock:
+-- Slots slots that each roll one lucky block kind by Odds (an Uncommon most of the time, a
+-- Rare often, an Epic rarely, a Legendary almost never), and a VIP-only slot rolled by
+-- VipOdds. The kinds come from the slot number through an integer hash, so every server
+-- shows the same restock with no messaging.
 --
--- Stock is per player per restock (the save's Shop.Restock = { Slot, Bought = { [id] = n } },
--- which starts over when the slot changes). The Legendary Case also has a GlobalStock shared by
--- every player for that restock: the server's atomic counter (Counts.reserve), not this module.
+-- Stock is per player per restock per slot (the save's Shop.Restock = { Slot, Bought = { [id]
+-- = n } }, which starts over when the restock changes). No item has a shared stock now; the
+-- `global` field and stockKey stay so the server's stock counter code keeps working for a
+-- later item that has one.
 --
 -- Pure: no Instances, no clocks (the caller passes `now`), no randomness. Lune-tested.
 local Config = require(script.Parent.Parent.Config)
 
 local R = Config.Shop.Restock
+-- One kind's row: the money price, the Robux product (if any) and the stock per player.
+type KindRow = { Price: number, Product: string?, Stock: number, GlobalStock: number? }
+local KINDS: { [string]: KindRow } = R.Kinds :: any
+-- The kinds in Config.LuckyBlocks.Order (walked in that order when a roll is read, so the
+-- answer never depends on hash order).
+local KIND_ORDER: { string } = Config.LuckyBlocks.Order
 
--- One restock item. `id` names it in requests and the save ("Uncommon", "Rare", "Epic",
--- "Legendary", "Mystery", "Vip").
+-- One restock item. `id` names it in requests and the save ("Slot1" .. "Slot3", "Vip").
 export type Item = {
 	id: string,
-	case: string?, -- the case it gives (nil for the Mystery Cases)
-	mystery: number?, -- Mystery Cases it gives (Case Drops)
+	block: string, -- the lucky block kind it gives (Config.LuckyBlocks.Kinds)
 	price: number, -- money
 	product: string?, -- the Config.Products key that buys it with Robux
 	stock: number, -- per player per restock
-	global: number?, -- copies for everyone in every server this restock (the Legendary Case)
+	global: number?, -- copies for everyone everywhere this restock (none has one now)
 	vip: boolean, -- VIP only
 }
 
@@ -68,11 +74,31 @@ function Restock.window(slot: number): (number, number)
 	return slot * R.SlotSeconds, (slot + 1) * R.SlotSeconds
 end
 
-local function item(id: string, row: any, vip: boolean): Item
+--- The block kind a roll in 0..ChanceTotal-1 lands on in an odds table ({ kind = weight },
+--- parts of ChanceTotal; a short table lands on its last kind for the rest). Walks the kinds
+--- in Config.LuckyBlocks.Order.
+function Restock.kindOf(roll: number, odds: { [string]: number }): string
+	local reached = 0
+	local last = ""
+	for _, kind in KIND_ORDER do
+		local weight = odds[kind]
+		if type(weight) == "number" and weight > 0 then
+			last = kind
+			reached += weight
+			if roll < reached then
+				return kind
+			end
+		end
+	end
+	return last
+end
+
+local function item(id: string, kind: string, vip: boolean): Item
+	local row = KINDS[kind]
+	assert(row ~= nil, "Restock: no Config.Shop.Restock.Kinds row for " .. kind)
 	return {
 		id = id,
-		case = row.Case,
-		mystery = row.Mystery,
+		block = kind,
 		price = row.Price,
 		product = row.Product,
 		stock = row.Stock,
@@ -81,21 +107,26 @@ local function item(id: string, row: any, vip: boolean): Item
 	}
 end
 
---- Restock `slot`'s items in shop order: Uncommon, Rare (sometimes), the lucky slot, VIP.
+--- Restock `slot`'s items in shop order: Slot1 .. Slot<Slots> (each a rolled kind), then Vip.
 function Restock.items(slot: number): { Item }
-	local list = { item("Uncommon", R.Uncommon, false) }
-	if Restock.roll(slot, 1) < R.RareChance then
-		table.insert(list, item("Rare", R.Rare, false))
+	local list = {}
+	for i = 1, R.Slots do
+		table.insert(list, item("Slot" .. i, Restock.kindOf(Restock.roll(slot, i), R.Odds), false))
 	end
-	local lucky = Restock.roll(slot, 2)
-	if lucky < R.LegendaryChance then
-		table.insert(list, item("Legendary", R.Legendary, false))
-	elseif lucky < R.LegendaryChance + R.EpicChance then
-		table.insert(list, item("Epic", R.Epic, false))
-	else
-		table.insert(list, item("Mystery", R.Mystery, false))
+	table.insert(
+		list,
+		item("Vip", Restock.kindOf(Restock.roll(slot, R.Slots + 1), R.VipOdds), true)
+	)
+	return list
+end
+
+--- Every item id a restock may hold, in shop order.
+function Restock.ids(): { string }
+	local list = {}
+	for i = 1, R.Slots do
+		table.insert(list, "Slot" .. i)
 	end
-	table.insert(list, item("Vip", R.Vip, true))
+	table.insert(list, "Vip")
 	return list
 end
 
@@ -114,14 +145,14 @@ function Restock.find(slot: number, id: any): Item?
 	return nil
 end
 
---- The restock item a Robux product buys in `slot` (RestockEpic, RestockLegendary), or nil.
-function Restock.forProduct(slot: number, key: string): Item?
+--- Whether restock `slot` has block kind `kind` in a non-VIP slot (the Legendary shout).
+function Restock.has(slot: number, kind: string): boolean
 	for _, it in Restock.items(slot) do
-		if it.product == key then
-			return it
+		if it.block == kind and not it.vip then
+			return true
 		end
 	end
-	return nil
+	return false
 end
 
 local function whole(x: any): number
@@ -140,8 +171,7 @@ function Restock.bought(save: any, slot: number, id: string): number
 end
 
 --- Why this player cannot buy `it` in restock `slot` now, or nil: "NotSold" (not in this
---- restock), "VipOnly", "SoldOut" (their stock used up). The Legendary's global stock is the
---- server's counter's to answer.
+--- restock), "VipOnly", "SoldOut" (their stock used up).
 function Restock.check(it: Item?, save: any, slot: number, isVip: boolean): string?
 	if it == nil then
 		return "NotSold"
@@ -151,6 +181,23 @@ function Restock.check(it: Item?, save: any, slot: number, isVip: boolean): stri
 		return "SoldOut"
 	end
 	return nil
+end
+
+--- The restock item a Robux product buys in `slot` (RestockRare, RestockEpic,
+--- RestockLegendary): the first slot with that product this player can still buy (`save`,
+--- `isVip`), else the first with that product they may see (the VIP slot only for a VIP),
+--- else nil.
+function Restock.forProduct(slot: number, key: string, save: any?, isVip: boolean?): Item?
+	local first: Item? = nil
+	for _, it in Restock.items(slot) do
+		if it.product == key and (isVip == true or not it.vip) then
+			if Restock.check(it, save, slot, isVip == true) == nil then
+				return it
+			end
+			first = first or it
+		end
+	end
+	return first
 end
 
 --- Records one buy of item `id` in restock `slot` (the record starts over for a new slot; a
@@ -166,10 +213,9 @@ function Restock.record(save: any, slot: number, id: string)
 	save.Bought[id] = whole(save.Bought[id]) + 1
 end
 
---- Restock `slot` as ShopState shows it: { slot, startsAt, endsAt, items = { { id, case?,
---- mystery?, price, product?, stock, left (this player's), global?, globalLeft? (nil: not
---- known), vip, canBuy, reason? } } }. `globalSold`: the Legendary's copies taken this
---- restock (nil: unknown).
+--- Restock `slot` as ShopState shows it: { slot, startsAt, endsAt, items = { { id, block,
+--- price, product?, stock, left (this player's), global?, globalLeft?, vip, canBuy,
+--- reason? } } }. `globalSold`: a shared stock's copies taken this restock (nil: unknown).
 function Restock.view(slot: number, save: any, isVip: boolean, globalSold: number?): any
 	local startsAt, endsAt = Restock.window(slot)
 	local items = {}
@@ -184,8 +230,7 @@ function Restock.view(slot: number, save: any, isVip: boolean, globalSold: numbe
 		end
 		table.insert(items, {
 			id = it.id,
-			case = it.case,
-			mystery = it.mystery,
+			block = it.block,
 			price = it.price,
 			product = it.product,
 			stock = it.stock,
@@ -198,6 +243,29 @@ function Restock.view(slot: number, save: any, isVip: boolean, globalSold: numbe
 		})
 	end
 	return { slot = slot, startsAt = startsAt, endsAt = endsAt, items = items }
+end
+
+--- Problems in Config.Shop.Restock (empty when it is sound): every odds kind has a Kinds row
+--- and is a lucky block kind, the odds add up to ChanceTotal.
+function Restock.validate(): { string }
+	local problems = {}
+	local tables: { [string]: { [string]: number } } = { Odds = R.Odds, VipOdds = R.VipOdds }
+	for name, odds in tables do
+		local sum = 0
+		for kind, weight in odds do
+			sum += weight
+			if table.find(KIND_ORDER, kind) == nil then
+				table.insert(problems, ("%s: %s is not a lucky block kind"):format(name, kind))
+			elseif KINDS[kind] == nil then
+				table.insert(problems, ("%s: %s has no Kinds row"):format(name, kind))
+			end
+		end
+		if sum ~= R.ChanceTotal then
+			table.insert(problems, ("%s add up to %d, not %d"):format(name, sum, R.ChanceTotal))
+		end
+	end
+	table.sort(problems)
+	return problems
 end
 
 return Restock

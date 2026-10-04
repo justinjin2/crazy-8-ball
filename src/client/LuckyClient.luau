@@ -301,7 +301,7 @@ local function nextReveal()
 	opening:play(reward.kind, reward.cue, reward.rarity, function()
 		revealing = false
 		task.defer(nextReveal)
-	end)
+	end, if type(reward.caseId) == "string" then reward.caseId else nil)
 end
 
 local function openBlock(id: number)

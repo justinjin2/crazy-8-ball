@@ -125,10 +125,11 @@ local REMOTES: { [string]: string } = {
 	--   "MarkSeen" ({ cueId } at most Config.Items.MarkSeenMax) -> { cleared }
 	--   "ClaimIndexRow" (rarity) -> { rarity, money }
 	--   "BuyLimited" (cueId: a money-priced Limited shelf row) -> { cueId, copy, price }
-	--   "BuyMystery" (count 1 | Config.Shop.Mystery.BulkCount) -> { count, price } (each a
-	--     paid Case Drop; the reveals come on the CaseDrop remote)
-	--   "BuyRestock" (itemId of the restock now) -> { itemId, price } (its case lands on its
-	--     timer; "Mystery" rolls 3 Case Drops)
+	--   "BuyBlocks" (dealId: a Config.Shop.Deals key, count: a count it sells) -> { dealId,
+	--     kind, count, price } (the lucky blocks land ready at once, paid origin; "BuyMystery"
+	--     (count) is the old name for the Mystery deal)
+	--   "BuyRestock" (itemId "Slot1" .. "Slot3" | "Vip" of the restock now) -> { itemId,
+	--     price } (its lucky block lands ready at once)
 	--   "SkipTimer" (caseId, at: that timer's readyAt) -> { caseId, price } (money: $25 a
 	--     minute left, at least $250)
 	-- Reasons (Progression/Requests.Reasons): "BadRequest" (unknown action, wrong type,
@@ -136,7 +137,8 @@ local REMOTES: { [string]: string } = {
 	-- "Busy" (another request still being answered), "NotLoaded" (the save, or for BuyCase the
 	-- PolicyService answer, is not ready), "Teleporting", "NotSold" (a switched-off case),
 	-- "Restricted" (paid random items), "NotEnoughMoney" (+ need, price), "NoCases",
-	-- "NotReady" (the case is still on its timer), "VipOnly" (the restock's VIP slot), "NoTimer"
+	-- "NotReady" (the case is still on its timer), "VipOnly" (the restock's VIP slot), "Full"
+	-- (BuyBlocks, BuyRestock: the hotbar holds Config.LuckyBlocks.MaxBlocks), "NoTimer"
 	-- (SkipTimer: no such timer running),
 	-- "NoFastOpen", "NotOwned", "CantSell" (Exclusive, Unique, Classic), "Equipped" (the last
 	-- copy of the equipped cue), "Claimed", "Incomplete", "NoReward" (Exclusive and Unique
@@ -183,19 +185,26 @@ local REMOTES: { [string]: string } = {
 	--   restock = { slot, startsAt, endsAt, items = { { id ("Uncommon", "Rare", "Epic",
 	--     "Legendary", "Mystery", "Vip"), case?, mystery? (Mystery Cases it gives), price
 	--     (money), product? (its Robux key), stock (per player), left (this player's), global?
-	--     (the Legendary's copies for everyone), globalLeft? (nil: unknown), vip, canBuy,
-	--     reason? } } } (a new restock every Config.Shop.Restock.SlotSeconds; ShopState is
-	--     sent again when it changes),
+	--     (a shared stock, none now), globalLeft? (nil: unknown), vip, canBuy, reason? } },
+	--     each item's `block` the lucky block kind in that slot (Slot1 .. Slot3, Vip) } (a new
+	--     restock every Config.Shop.Restock.SlotSeconds; ShopState is sent again when it
+	--     changes),
+	--   deals = { [dealId] = { kind, money = { [count] = price }, products = { [count] = key },
+	--     counts, open, timed, startsAt, endsAt, vaulted, vaultedUntil } } (Config.Shop.Deals:
+	--     Mystery always open; GrandOpening for its 21 days, "vaulted" for 7 more),
+	--   guarantees = { [kind] = { cue, at, opened, left, owned } } (a block kind's Guarantee:
+	--     the Grand Opening block's Beta Cue on the 400th open),
 	--   mystery = { price, bulkCount, bulkPrice }, skip = { moneyPerMinute, minMoney },
 	--   pity = { rare, epic } (Case Drops until a Rare / Epic case is guaranteed),
 	--   releaseSale = { open, startsAt, endsAt, percent, swap = { normal key -> sale key } }
 	--     (GUI lane, 2026-10-03: the release sale's products Pack4Sale-Pack7Sale, VipSale,
 	--     Mystery10Sale sell only while open; the Legendary restock has no shared stock now) }
-	-- Product keys (Config.Products): passes Vip, QuickCases (was FastOpen), UltSlot2,
-	-- UltSlot3; products VipOffer, StarterPack, Pack1-7, Mystery1, Mystery10, RestockEpic,
-	-- RestockLegendary, Skip1h/6h/24h/48h, MoneyParty, Spin1/5/10/50, Lucky1/3. Paid random
-	-- items (Mystery, Restock, Skip, spins) answer "Restricted" where PolicyService restricts
-	-- them.
+	-- Product keys (Config.Products): passes Vip, QuickCases (retired: hidden, VIP opens
+	-- fast), UltSlot2, UltSlot3; products VipOffer, StarterPack, Pack1-7, Mystery1, Mystery10,
+	-- GrandOpening1/3/10, RestockRare, RestockEpic, RestockLegendary, Skip1h/6h/24h/48h,
+	-- MoneyParty, Spin1/5/10/50, Lucky1/3. Paid random items (blocks, Restock, Skip, spins)
+	-- answer "Restricted" where PolicyService restricts them; blocks answer "Full" when the
+	-- hotbar is full.
 	ShopState = "RemoteEvent",
 	-- client -> server, answered: ("Buy", a Config.Products key; "FastOpen" still means
 	-- QuickCases) -> { ok, reason? }, or ("RobloxPlus") -> { ok } (the Roblox Plus subscription
@@ -379,8 +388,10 @@ local REMOTES: { [string]: string } = {
 	-- "Hold" (block id, or nil to put it away), "Throw" (the held block's id, sent at the throw
 	-- animation's release), "Open" (the thrown block's id, after the 1 s hold), "Move" (id,
 	-- place in the list). Answers { ok = true, ... } or { ok = false, reason } (LuckyBlocks
-	-- .Reasons). Open's answer: { ok, cue, rarity, new, found, burstAt } (burstAt: server time
-	-- the block bursts and the reel may show).
+	-- .Reasons). Open's answer: { ok, cue, rarity, kind, caseId, tier?, copy?, forced, new,
+	-- found, count, burstAt } (caseId: the odds it rolled, a Mystery block's rolled tier's;
+	-- copy: a Unique cue's number; forced: the Guarantee gave it; burstAt: server time the
+	-- block bursts and the reel may show).
 	BlockRequest = "RemoteFunction",
 	-- server -> one player: their blocks { blocks = { { id, kind, readyAt } } } in hotbar order
 	-- (readyAt in unix seconds, compared with workspace:GetServerTimeNow()). Sent when the save

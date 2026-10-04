@@ -973,6 +973,20 @@ local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
 	fixInteger(blocks, "SkipTarget", "LuckyBlocks.SkipTarget", SaveCfg.StatCap, fixes)
 	local list = ensureTable(blocks, "List", "LuckyBlocks.List", {}, fixes)
 	fixArray(list, "LuckyBlocks.List", fixes)
+	-- Opened: a count per known kind (the Guarantee's). Old kind ids are renamed.
+	local opened = ensureTable(blocks, "Opened", "LuckyBlocks.Opened", {}, fixes)
+	local cleanOpened = {}
+	for kind, n in opened do
+		local now = LuckyBlocks.current(kind)
+		if LuckyBlocks.kind(now) ~= nil then
+			cleanOpened[now] = (cleanOpened[now] or 0)
+				+ SaveSchema.cleanInteger(n, 0, SaveCfg.StatCap, 0)
+		end
+	end
+	table.clear(opened)
+	for kind, n in cleanOpened do
+		opened[kind] = n
+	end
 	local kept, seen, dropped = {}, {}, 0
 	for _, block in list do
 		local id = if type(block) == "table" then block.Id else nil
@@ -987,10 +1001,12 @@ local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
 		else
 			seen[id] = true
 			local readyAt = SaveSchema.cleanInteger(block.ReadyAt, 0, SaveCfg.UnixTimeCap, 0)
-			table.insert(
-				kept,
-				{ Id = id, Kind = block.Kind, ReadyAt = readyAt, Paid = block.Paid == true }
-			)
+			table.insert(kept, {
+				Id = id,
+				Kind = LuckyBlocks.current(block.Kind), -- an old id becomes its new kind
+				ReadyAt = readyAt,
+				Paid = block.Paid == true,
+			})
 			if blocks.Next < id then
 				blocks.Next = id
 			end
@@ -1018,9 +1034,15 @@ local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
 	for i, block in kept do
 		list[i] = block
 	end
-	-- Only the inventory and durable skip fields stay.
+	-- Only the inventory, the opened counts and the durable skip fields stay.
 	for key in table.clone(blocks) do
-		if key ~= "Next" and key ~= "List" and key ~= "SkipCredits" and key ~= "SkipTarget" then
+		if
+			key ~= "Next"
+			and key ~= "List"
+			and key ~= "Opened"
+			and key ~= "SkipCredits"
+			and key ~= "SkipTarget"
+		then
 			blocks[key] = nil
 		end
 	end

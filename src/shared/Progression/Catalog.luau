@@ -287,12 +287,14 @@ end
 --- list the case and are not vaulted.
 function Catalog.droppable(caseId: string, rarity: string): { Cue }
 	local list = {}
+	-- The tables outside the ladder (Config.Cases.Extra) roll the whole core pool.
+	local core = table.find(Config.Cases.Extra or {}, caseId) ~= nil
 	for _, cue in CUES do
 		if
 			cue.Group == "Case"
 			and cue.Rarity == rarity
 			and not cue.Vaulted
-			and table.find(cue.Cases, caseId)
+			and (core or table.find(cue.Cases, caseId))
 		then
 			table.insert(list, cue)
 		end

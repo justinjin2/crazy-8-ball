@@ -49,7 +49,7 @@ export type Pack = { key: string, robux: number, money: number, bonus: number }
 export type Grant = {
 	key: string, -- the Config.Products key bought
 	money: number, -- money to add (0 for none)
-	cue: string?, -- a cue to add: the Starter Cue, or the VIP Cue the first time
+	cue: string?, -- a cue to add: the VIP Cue the first time
 	vip: boolean?, -- VIP from the welcome offer (sets Shop.VipOffer)
 	vipCue: boolean?, -- cue is the VIP Cue (sets Shop.VipCueGiven)
 	party: boolean?, -- start or extend this server's Money Party (Shop.partyEndsAt)
@@ -58,10 +58,11 @@ export type Grant = {
 	starterBought: boolean?, -- sets Shop.StarterBought
 	spins: number?, -- ult spins to add (Spin1..Spin50; the save's Ults.Spins)
 	lucky: number?, -- Lucky Spins to add (Lucky1, Lucky3; Ults.LuckySpins)
-	drops: number?, -- Case Drops to roll, paid origin (Mystery1, Mystery10)
-	-- A restock item bought with Robux (RestockEpic, RestockLegendary): its restock slot, item
-	-- id and what it gives (the Store fills it in: the restock is the server's state).
-	restock: { slot: number, id: string, case: string?, mystery: number? }?,
+	-- Lucky blocks to add, paid origin (Mystery1, GrandOpening3, the Starter Pack's block).
+	blocks: { kind: string, count: number }?,
+	-- A restock item bought with Robux (RestockRare .. RestockLegendary): its restock slot,
+	-- item id and the block kind it gives (the Store fills it in: the restock is the server's).
+	restock: { slot: number, id: string, block: string }?,
 	-- A Robux timer skip (Skip1h ... Skip48h): the timer the player picked (the Store's).
 	skip: { case: string, at: number }?,
 	luckySkip: boolean?, -- durable lucky block timer credit, applied by PlayerData
@@ -110,8 +111,10 @@ type ProductRow = {
 	Was: number?, -- the original price shown crossed out (ult spin packs)
 	Spins: number?, -- ult spins one purchase adds
 	Lucky: number?, -- Lucky Spins one purchase adds
-	Drops: number?, -- Case Drops one purchase rolls (Mystery Cases)
-	Restock: string?, -- the restock case it buys (RestockEpic, RestockLegendary)
+	Blocks: { Kind: string, Count: number }?, -- lucky blocks one purchase adds
+	Deal: string?, -- the Config.Shop.Deals key whose window it is sold in (GrandOpening)
+	Retired: boolean?, -- no longer sold (QuickCases): hidden, never prompted
+	Restock: string?, -- the restock block kind it buys (RestockRare .. RestockLegendary)
 	SkipSeconds: number?, -- the most time left on the timer it finishes (Skip1h ... Skip48h)
 	Random: boolean?, -- a paid random item (refused where PolicyService restricts them)
 	SaleOf: string?, -- a release-sale product: gives what this key gives (Shop.releaseSale)
@@ -121,6 +124,29 @@ type ProductRow = {
 local LIST: { [string]: ProductRow } = P.List :: any
 local PACK_ORDER: { string } = P.PackOrder
 local LIMITED: { LimitedRow } = S.Limited :: any
+
+-- A block deal (Config.Shop.Deals): blocks of Kind sold by the count, for money or Robux,
+-- inside a window when StartsAt is set.
+export type DealRow = {
+	Kind: string,
+	Money: { [number]: number },
+	Products: { [number]: string },
+	StartsAt: number?,
+	Seconds: number?,
+	VaultedSeconds: number?,
+}
+local DEALS: { [string]: DealRow } = S.Deals :: any
+
+-- A deal's window: always open when it has no StartsAt; closed (off) at StartsAt 0; else
+-- open from StartsAt for Seconds, and "vaulted" (shown as gone) for VaultedSeconds after.
+export type DealWindow = {
+	open: boolean,
+	timed: boolean, -- it has a window at all
+	startsAt: number, -- 0 when untimed or off
+	endsAt: number,
+	vaultedUntil: number, -- the end of the Vaulted card (endsAt when none)
+	vaulted: boolean, -- ended, and still inside VaultedSeconds
+}
 
 -- The products whose grant is more than their Money (ECONOMY 11.3-11.5).
 local VIP_OFFER = "VipOffer"
@@ -305,6 +331,107 @@ local function inGrace(now: number, endsAt: number): boolean
 	return now < endsAt + S.OfferGraceSeconds
 end
 
+--- The block deals' keys, sorted.
+function Shop.dealKeys(): { string }
+	local keys = {}
+	for key in DEALS do
+		table.insert(keys, key)
+	end
+	table.sort(keys)
+	return keys
+end
+
+--- The Config.Shop.Deals row for a key, or nil.
+function Shop.dealRow(key: any): DealRow?
+	if type(key) ~= "string" then
+		return nil
+	end
+	return DEALS[key]
+end
+
+-- This server's deal windows set by the dev command ({ StartsAt, Seconds } by deal key),
+-- over Config's. Only the server sets them (Shop.setDeal).
+local dealWindows: { [string]: { StartsAt: number, Seconds: number } } = {}
+
+-- A deal row with this server's window applied (a copy when one is set).
+local function effectiveDeal(key: string): DealRow?
+	local row = DEALS[key]
+	local window = dealWindows[key]
+	if row == nil or window == nil then
+		return row
+	end
+	local copy = table.clone(row)
+	copy.StartsAt = window.StartsAt
+	copy.Seconds = window.Seconds
+	return copy
+end
+
+--- The dev command: deal `key`'s window in this server, from `startsAt` (unix) for `seconds`;
+--- nil for both goes back to Config's. False when it is no deal.
+function Shop.setDeal(key: string, startsAt: number?, seconds: number?): boolean
+	if DEALS[key] == nil then
+		return false
+	end
+	if startsAt == nil or seconds == nil then
+		dealWindows[key] = nil
+	else
+		dealWindows[key] = { StartsAt = whole(startsAt), Seconds = whole(seconds) }
+	end
+	return true
+end
+
+--- Deal `key`'s window at unix time `now` (see DealWindow). An unknown key is closed.
+function Shop.deal(key: string, now: number): DealWindow
+	local row = effectiveDeal(key)
+	if row == nil then
+		return {
+			open = false,
+			timed = true,
+			startsAt = 0,
+			endsAt = 0,
+			vaultedUntil = 0,
+			vaulted = false,
+		}
+	end
+	if row.StartsAt == nil then
+		return {
+			open = true,
+			timed = false,
+			startsAt = 0,
+			endsAt = 0,
+			vaultedUntil = 0,
+			vaulted = false,
+		}
+	end
+	local startsAt = whole(row.StartsAt)
+	local endsAt = if startsAt > 0 then startsAt + whole(row.Seconds) else 0
+	local vaultedUntil = if startsAt > 0 then endsAt + whole(row.VaultedSeconds) else 0
+	return {
+		open = startsAt > 0 and now >= startsAt and now < endsAt,
+		timed = true,
+		startsAt = startsAt,
+		endsAt = endsAt,
+		vaultedUntil = vaultedUntil,
+		vaulted = startsAt > 0 and now >= endsAt and now < vaultedUntil,
+	}
+end
+
+--- The money price of `count` blocks of deal `key` (a count the deal sells), or nil for any
+--- other count or an unknown deal.
+function Shop.blockPrice(key: any, count: any): number?
+	local row = Shop.dealRow(key)
+	if row == nil or type(count) ~= "number" then
+		return nil
+	end
+	local price = row.Money[count]
+	return if type(price) == "number" then price else nil
+end
+
+--- The money price of `count` Mystery blocks (the Mystery deal), or nil for any other count.
+function Shop.mysteryPrice(count: any): number?
+	return Shop.blockPrice("Mystery", count)
+end
+
 --- Why a receipt for developer product `key` at unix time `now` must not give what the product
 --- gives, or nil when it may. `vipPass` is whether the player owns the VIP game pass. "Owned":
 --- VIP already (the pass or the offer) for the VIP offer, the Starter Pack bought, a Robux
@@ -342,6 +469,20 @@ function Shop.receiptCheck(key: string, shopSave: ShopSave, now: number, vipPass
 		local owned = shopSave.Limited
 		if limited ~= nil and type(owned) == "table" and owned[limited.Cue] ~= nil then
 			return "Owned"
+		end
+		-- A deal product (the Grand Opening block) only inside its window, plus the grace.
+		if saleRow ~= nil and saleRow.Deal ~= nil then
+			local window = Shop.deal(saleRow.Deal, now)
+			if
+				window.timed
+				and not (
+					window.startsAt > 0
+					and now >= window.startsAt
+					and inGrace(now, window.endsAt)
+				)
+			then
+				return "Closed"
+			end
 		end
 	end
 	return nil
@@ -415,7 +556,7 @@ function Shop.grantFor(
 		end
 	elseif key == STARTER_PACK then
 		grant.money += S.StarterMoney
-		grant.cue = S.StarterCue
+		grant.blocks = { kind = S.StarterBlock, count = 1 }
 		grant.starterBought = true
 		grant.boostEnds = math.max(now, whole(shopSave.BoostEnds)) + S.StarterBoostSeconds
 	elseif key == MONEY_PARTY then
@@ -435,10 +576,10 @@ function Shop.grantFor(
 	if lucky > 0 then
 		grant.lucky = lucky
 	end
-	-- Mystery Cases: Case Drops bought with Robux (paid origin).
-	local drops = whole(row.Drops)
-	if drops > 0 then
-		grant.drops = drops
+	-- Lucky blocks bought with Robux (paid origin: ready at once).
+	local blocks = row.Blocks
+	if blocks ~= nil and whole(blocks.Count) > 0 and type(blocks.Kind) == "string" then
+		grant.blocks = { kind = blocks.Kind, count = whole(blocks.Count) }
 	end
 	if
 		grant.money <= 0
@@ -448,7 +589,7 @@ function Shop.grantFor(
 		and grant.limited == nil
 		and grant.spins == nil
 		and grant.lucky == nil
-		and grant.drops == nil
+		and grant.blocks == nil
 	then
 		return nil, nil
 	end
@@ -476,7 +617,7 @@ function Shop.markGrant(shopSave: ShopSave, grant: Grant)
 end
 
 ---------------------------------------------------------------------------------------------
--- Timer skips and Mystery Cases for money (plan section 4)
+-- Timer skips for money (plan section 4)
 ---------------------------------------------------------------------------------------------
 
 --- The money price of finishing a case timer with `secondsLeft` left: Config.Shop.Skip
@@ -506,17 +647,6 @@ function Shop.skipProduct(secondsLeft: number): string?
 		end
 	end
 	return best
-end
-
---- The money price of `count` Mystery Cases (1 or Config.Shop.Mystery.BulkCount), or nil for
---- any other count.
-function Shop.mysteryPrice(count: any): number?
-	if count == 1 then
-		return S.Mystery.Price
-	elseif count == S.Mystery.BulkCount then
-		return S.Mystery.BulkPrice
-	end
-	return nil
 end
 
 ---------------------------------------------------------------------------------------------
@@ -717,17 +847,15 @@ for _, key in KEYS do
 	end
 end
 
---- The release sale at unix time `now`: its window (StartsAt, else the start of the Limited row
---- of With, this server's /limited window included) and the products it swaps in. Closed when
---- no start is set.
+--- The release sale at unix time `now`: its window (StartsAt, else the start of the block deal
+--- of With, the Grand Opening's) and the products it swaps in. Closed when no start is set.
 function Shop.releaseSale(now: number): SaleWindow
 	local R = S.ReleaseSale
 	local startsAt = whole(R and R.StartsAt)
 	if startsAt <= 0 and R and type(R.With) == "string" then
-		for _, row in LIMITED do
-			if row.Cue == R.With then
-				startsAt = whole(effective(row).StartsAt)
-			end
+		local deal = effectiveDeal(R.With)
+		if deal ~= nil then
+			startsAt = whole(deal.StartsAt)
 		end
 	end
 	local endsAt = if startsAt > 0 then startsAt + whole(R and R.Seconds) else 0

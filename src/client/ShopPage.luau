@@ -133,7 +133,9 @@ local function offerSection(state: any, products: any, shop: any, now: number): 
 			title = COPY.StarterPack,
 			titleStyle = "Rainbow",
 			big = Format.money(Config.Shop.StarterMoney),
-			line = COPY.StarterPerks:format(CueThumb.cueName(Config.Shop.StarterCue)),
+			line = COPY.StarterPerks:format(
+				Strings.LuckyBlocks.Names[Config.Shop.StarterBlock] or Config.Shop.StarterBlock
+			),
 			timerEnds = window.endsAt,
 			timerWords = COPY.OfferEnds,
 			buttons = { robuxButton(shop, "StarterPack", products) },

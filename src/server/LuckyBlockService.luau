@@ -26,7 +26,6 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Catalog = require(Shared.Progression.Catalog)
-local Cases = require(Shared.Progression.Cases)
 local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
 local Requests = require(Shared.Progression.Requests)
 local Announce = require(script.Parent.Announce)
@@ -461,8 +460,34 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		dropLive(player, id)
 		return refuse("NotOwned")
 	end
-	local cueId = Cases.roll(kind.Case, roll)
-	local ok, opened, place = PlayerData.openLuckyBlock(player, id, cueId)
+	local plan, why = PlayerData.planLuckyOpen(player, id, roll)
+	if plan == nil then
+		return refuse(
+			if why == "NotReady" or why == "NotOwned" or why == "NotLoaded" then why else "Error"
+		)
+	end
+	-- A Unique cue takes its copy number from the shared counter first (yields): the block
+	-- is busy meanwhile, so a second Open waits its turn.
+	local copy: number? = nil
+	if plan.unique then
+		entry.phase = "Opening"
+		local number, reason = Counters.takeUnique(plan.cueId, player.UserId)
+		if live[player] == nil or live[player][id] ~= entry then
+			return refuse("NotOwned")
+		end
+		entry.phase = "Landed"
+		if number == nil then
+			warn(
+				("[8ball] LuckyBlockService: no copy of %s (%s)"):format(
+					plan.cueId,
+					tostring(reason)
+				)
+			)
+			return refuse("Error")
+		end
+		copy = number
+	end
+	local ok, opened, place = PlayerData.openLuckyBlock(player, id, plan, copy)
 	if not ok then
 		return refuse(
 			if opened == "NotReady"
@@ -472,7 +497,7 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 				else "Error"
 		)
 	end
-	local cue = Catalog.get(cueId) :: Catalog.Cue
+	local cue = Catalog.get(plan.cueId) :: Catalog.Cue
 	Counters.add(cue.Id, 1)
 	Announce.unbox(player, cue.Id)
 	if L.Test.Refill and isTester(player) then
@@ -502,6 +527,10 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		cue = cue.Id,
 		rarity = cue.Rarity,
 		kind = block.Kind,
+		tier = plan.tier, -- the Mystery block's tier roll
+		caseId = plan.caseId,
+		copy = copy, -- a Unique cue's copy number
+		forced = plan.forced, -- the Guarantee gave it
 		new = opened.new,
 		found = opened.found,
 		count = opened.count,
