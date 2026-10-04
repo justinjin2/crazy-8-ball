@@ -2371,3 +2371,13 @@ timer of a new block stay the designer's call.
   badges on Featured and Blocks stay up all through the Grand Opening window, and the
   seen-once rule still clears every other mark. The designer's pasted references moved to
   `~/Desktop/GUI-refs/pasted/` next to the ChatGPT results (one folder for all GUI refs).
+- **2026-10-04 — Shop v3 sections built to the references (CLI session).** Money buttons are
+  gold and Robux buttons green everywhere on the page (references 12, 13, 21). The Grand
+  Opening band's "save 12% / 29%" notes come from the Robux prices, the sale's price while it
+  runs. The Mystery band shows no crossed-out price: its x10 column's "-30% SALE" sticker says
+  it (reference 13 over UI_STYLE 13's crossed-price list). Restock tiles show one chase cue
+  from each of the case's top three rarities with its chance. Money packs drop the pack name
+  and the bonus line (reference 15 shows the art, the amount and the button only). Passes
+  are wide tiles; Roblox Plus says "+10% money and a tag" with a Get button. A block kind
+  without a model shows its kit icon in the Shop, the hotbar and the bag; the Mythic block's
+  icons carry a cycling pastel aura.

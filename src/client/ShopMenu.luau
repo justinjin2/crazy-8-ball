@@ -857,9 +857,13 @@ end
 
 function ShopMenu.refreshBadges(self: any, state: any)
 	local marks = newMarks(state)
+	local deals = if type(state.deals) == "table" then state.deals else {}
+	local opening = type(deals.GrandOpening) == "table" and deals.GrandOpening.open == true
+	local pinned: { string } = P.PinnedBadges :: any
 	for _, jump in self.jumps :: { Jump } do
 		local mark = marks[jump.key]
-		jump.badge.Visible = mark ~= nil and self.seen[jump.key] ~= mark
+		local keep = opening and table.find(pinned, jump.key) ~= nil
+		jump.badge.Visible = keep or (mark ~= nil and self.seen[jump.key] ~= mark)
 	end
 end
 

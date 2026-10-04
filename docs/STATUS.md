@@ -1,18 +1,21 @@
 # Status
 
-**2026-10-04 (latest): shop GUI v3, handed to the CLI mid-way.**
-- The lucky-block economy data layer (12 block kinds, deals, restock slots, guarantee) and the
-  new shop page are on `release` (`cc7b411`, `35f8432`, `274b046`): block cards with turning
-  3D icons, the Grand Opening hero, Mystery band, restock slot tiles, Starter Pack + VIP pass
-  bands, build-in from the top left, idle shimmer and pops, a gold "+" on the money HUD that
-  opens the Shop on Money. 984 tests and lint pass; verified in Studio play on PC only.
-- Gifting: a gift square by every Robux product button opens the Gift Player popup (the other
-  players here); the same product purchase lands in the chosen player's save (Store "Gift").
-  Verified in Studio with stand-in players; the receipt path still needs a two-player test.
-- Next, in order: phone and gamepad checks, then the Grand Opening, Mystery, Money and Passes
-  sections polished to the designer's reference images; then the block models, products and
-  docs. The brief for the CLI: `docs/prompts/SHOP_GUI_HANDOFF_PROMPT.md`. The designer's
-  pasted references are in `~/Desktop/GUI-refs/pasted/`.
+**2026-10-04 (latest): shop GUI v3 built to the designer's references, phone-checked.**
+- On `release` (`c862285`, `bf6d4b8` and after): the Grand Opening band (dark festive fill,
+  chase cards, "3 blocks · 129" buttons with the old price struck through, gold money
+  buttons), the Mystery band (pale odds rows with small block pictures, boxed x1 / x10, the
+  -30% SALE sticker), the restock (dark stopwatch bar, coloured kind names, chase pictures,
+  side-by-side buttons), money packs (FIRST BUY x2 pill, -30% corner band) and wide pass
+  tiles; headers FEATURED and LUCKY BLOCKS; Featured and Blocks badges pinned through the
+  Grand Opening; the Mythic icon aura and kit-icon fallbacks in the hotbar and bag. Every
+  section was checked in Studio's 750x361 phone emulator with a clean console; lint is clean.
+  `docs/UI_STYLE.md` section 15 describes the page.
+- Still to do on the shop: a computer-sized pass of the same sections (the emulator was on
+  the phone), the gamepad pass with a real controller (the Studio input tool cannot fake
+  one), "each section about one screen tall" tuning, the two-player gift receipt test, and
+  gift squares on the hero once the Grand Opening products exist.
+- Then: the block models (Edit mode), the new developer products, `docs/ECONOMY.md`. The
+  brief: `docs/prompts/SHOP_GUI_HANDOFF_PROMPT.md`; references in `~/Desktop/GUI-refs/pasted/`.
 
 **2026-10-04: two-stage lucky-block reel skip.**
 - First click keeps a one-second, two-card approach so the preceding cue visibly passes

@@ -2272,6 +2272,21 @@ Config.LuckyBlocks = {
 		IconLight = 2, -- brighter directional key; retains the original texture colours
 		IconLightDirection = { -1, -2, -1.5 }, -- above and in front of the preview
 		IconDistance = 3.1, -- the icon camera's distance, in block edges
+		-- The Mythic block's aura on its icons (the shop's cards, the hotbar and the bag; a
+		-- kind with Rainbow = true): a soft glow behind the block cycling through pastels.
+		RainbowAura = {
+			Seconds = 5, -- one trip round the colours
+			Reach = 2.2, -- the glow's size, of the icon's (a soft image: big and solid reads)
+			Transparency = 0,
+			Colors = {
+				{ 255, 170, 190 },
+				{ 255, 214, 150 },
+				{ 255, 250, 160 },
+				{ 170, 255, 190 },
+				{ 160, 220, 255 },
+				{ 210, 170, 255 },
+			},
+		},
 		BagButtonPx = 44, -- the bag button at the hotbar's end (touch and mouse)
 		BagCountPx = 14, -- "+12" on it: blocks waiting in the bag
 		-- The bag panel (` key, the bag button, L3 on a gamepad): a grid of every block.
@@ -7330,6 +7345,9 @@ Config.UI.Shop = {
 		-- block pops a little (grows and settles); seconds between, picked between the two.
 		Shimmer = { Every = { 7, 15 } },
 		IconPop = { Every = { 4, 9 }, Scale = 1.12 },
+		-- These jump buttons keep their red NEW badge all through the Grand Opening window
+		-- (designer, 2026-10-04); every other badge clears once the Shop has been opened.
+		PinnedBadges = { "Featured", "Blocks" },
 		RailWidthPx = { 66, 96 }, -- a jump button
 		RailButtonPx = { 60, 86 },
 		RailGapPx = { 6, 12 },

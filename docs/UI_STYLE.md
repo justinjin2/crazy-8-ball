@@ -543,3 +543,62 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
 
 - Lucky-block reel skip has two stages: first tap/click keeps a one-second, two-card approach so
   the preceding cue visibly passes the marker before landing on the winner, then reveals after the settle; a second tap/click reveals immediately.
+
+## 15. Shop v3: block cards, pass bands, the build-in and the HUD's "+" (2026-10-04)
+
+The Shop is one scrolling page (section 10's format) rebuilt round the lucky blocks, after the
+designer's pasted references (`~/Desktop/GUI-refs/pasted/`; never the ChatGPT result sheets).
+Sizes in `Config.UI.Shop.Page` and `.Block`; words in `Strings.Menus.Shop`.
+
+**Decided**
+- **Four jump buttons** down the right: Featured, Blocks, Money, Passes (outside the panel on
+  a computer, a column inside it on a phone). Featured and Blocks keep a red NEW badge all
+  through the Grand Opening window (`PinnedBadges`); other badges clear once seen.
+- **Headers:** "— FEATURED —" over the Grand Opening band, "— LUCKY BLOCKS —" over the Mystery
+  band and the restock tiles, "— STARTER & VIP —", "— MONEY —", "— PASSES —". The restock has
+  no header word: a dark navy bar with the stopwatch, "New blocks in 6:12" (the time in gold)
+  and each slot's chances (`BarPx`, `BarColor`).
+- **Money is gold, Robux is green**, everywhere on the page: a gold candy with the cash
+  bundle for a money price, a green candy with the Robux glyph for Robux. A gift square (blue)
+  sits left of every Robux button for a developer product.
+- **The Grand Opening band** (reference 12): the only dark card on the page (`FestiveFill`,
+  navy fading deeper, a pale blue edge, gold sparkles). The NEW sticker, the crowned block
+  and "Ends in 20d 23h" down the left; at the right the gold title "GRAND OPENING LUCKY
+  BLOCK" between two stars, "YOU COULD PULL...", two chase cards (ink fill, pink Unique rim,
+  the cue's name in its colour, UNIQUE and LIMITED pills, the cue's picture, the chance in a
+  rimmed pill), then three columns: a green button "3 blocks · 129 ~~147~~" and a gold money
+  button, "save 12%" under (by the Robux prices). The guarantee line under all. On a narrow
+  card the block stacks over the rest.
+- **The Mystery band** (reference 13): the block at the left under "Always in stock", the
+  title and "Opens into one of the six blocks below · 5 min timer when won, instant when
+  bought"; pale odds rows with a small still block and the kind's name in its colour ("Icons"
+  odds style); "Epic cue or better: 0.13%"; x1 and x10 in pale boxes with gold labels, the
+  gold money button over the green Robux button, "-30% SALE" stuck on the x10 column during
+  the release sale (no crossed-out price there).
+- **Restock tiles** (references 20, 21): the block, "**Uncommon** Lucky Block" with the kind
+  word in its colour, the coloured odds rows, three chase pictures (one cue from each of the
+  top three rarities, rimmed in the cue's colour, its chance under), the gold money and green
+  Robux buttons side by side, "3 left for you". The VIP slot for a non-VIP: a grey tile, the
+  gold padlock over the block, "VIP only · a 4th block every restock" in gold, Get VIP.
+- **Starter Pack and VIP** (reference 14): two wide pass bands side by side (one per row on a
+  phone): art left, title / big number / line, odds pills (Secret with a rainbow rim) or
+  VIP's six perks in two columns, the timer or LAUNCH SALE ribbon and the crossed price
+  bottom left, the button bottom right; VIP's card is cream.
+- **Money packs** (reference 15): the art, the gold amount and the green button only (no
+  pack name or bonus line); a red "FIRST BUY x2" pill in the top left of every pack until the
+  first buy is used; a red "-30%" band across the top right corner during the sale, with the
+  old Robux price struck through above the button.
+- **Passes** (reference 15): wide tiles, the art at the left, the name and its line at the
+  right, the button across the bottom: Money Party ("x2 money for everyone in your server,
+  15 min"), Ability Slot 2 and 3, Roblox Plus ("+10% money and a tag", Get; hidden for
+  members).
+- **Opening the Shop** lays the first screen's headers and cards in from the top left to the
+  bottom right like blocks (`Build`); now and then a card shimmers and its block pops
+  (`Shimmer`, `IconPop`); the blocks turn slowly; the Mythic block's icons carry a cycling
+  pastel aura (`Config.LuckyBlocks.UI.RainbowAura`), in the hotbar and bag too.
+- **The HUD's "+"**: a small gold candy right of the money HUD opens the Shop on Money.
+- A block kind whose model is not in the place yet shows its kit icon (the case chests) in the
+  Shop, the hotbar and the bag (`Block.Fallback`), so nothing is ever an empty square.
+
+**Open**
+- The exact tuning of "each section about one screen tall" on a computer.

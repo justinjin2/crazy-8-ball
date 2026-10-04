@@ -21,6 +21,7 @@ local LuckyBlocks = require(Shared:WaitForChild("Progression"):WaitForChild("Luc
 local BottomLift = require(script.Parent.BottomLift)
 local CaseOpeningFx = require(script.Parent.CaseOpeningFx)
 local HudParts = require(script.Parent.HudParts)
+local BlockIcon = require(script.Parent.BlockIcon)
 local Menus = require(script.Parent.Menus)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -39,7 +40,7 @@ export type Handlers = {
 	move: (id: number, to: number) -> (), -- put this block at this place in the list
 }
 
-type Icon = { viewport: ViewportFrame, model: Model?, base: CFrame }
+type Icon = { viewport: ViewportFrame, model: Model?, base: CFrame, aura: UIAnim.Handle? }
 type Tile = {
 	entry: Entry,
 	button: TextButton,
@@ -78,7 +79,18 @@ local function makeIcon(parent: Instance, kind: string): Icon
 	viewport.LightColor = Color3.new(light, light, light)
 	local folder = ReplicatedStorage:FindFirstChild(L.ModelFolder)
 	local source = if row and folder then folder:FindFirstChild(row.Model) else nil
-	local icon: Icon = { viewport = viewport, model = nil, base = CFrame.identity }
+	local icon: Icon = { viewport = viewport, model = nil, base = CFrame.identity, aura = nil }
+	if row and row.Rainbow == true and parent:IsA("GuiObject") then
+		icon.aura = BlockIcon.aura(parent, viewport.ZIndex - 1)
+	end
+	if not (source and source:IsA("Model")) then
+		-- No model in the place yet: the kind's kit icon stands in (BlockIcon's fallback).
+		local image = HudParts.icon(viewport, BlockIcon.fallbackKey(kind), "Fallback")
+		image.AnchorPoint = Vector2.new(0.5, 0.5)
+		image.Position = UDim2.fromScale(0.5, 0.5)
+		image.Size = UDim2.fromScale(0.86, 0.86)
+		image.ZIndex = viewport.ZIndex + 1
+	end
 	if source and source:IsA("Model") then
 		local model = source:Clone()
 		for _, d in model:GetDescendants() do

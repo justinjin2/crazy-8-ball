@@ -28,18 +28,52 @@ export type Icon = {
 	fallback: ImageLabel?,
 	kind: string,
 	turn: UIAnim.Handle?,
+	aura: UIAnim.Handle?, -- a Rainbow kind's cycling glow
 	pop: (self: Icon) -> (),
 	destroy: (self: Icon) -> (),
 }
 
--- The kit icon a kind shows while its model is missing.
-local function fallbackKey(kind: string): string
+--- The kit icon a kind shows while its model is missing (the hotbar and bag use it too).
+function BlockIcon.fallbackKey(kind: string): string
 	local key = FALLBACK[kind]
 	local icons: { [string]: string } = Config.UI.Kit.Icons :: any
 	if key and icons[key] and icons[key] ~= "" then
 		return key
 	end
 	return "Case"
+end
+local fallbackKey = BlockIcon.fallbackKey
+
+--- The cycling pastel aura behind a Rainbow kind's icon (Config.LuckyBlocks.UI.RainbowAura):
+--- a soft glow under `parent`'s other children, its colour drifting round the palette.
+--- Returns the loop's handle (stop it with the icon).
+function BlockIcon.aura(parent: GuiObject, zIndex: number): UIAnim.Handle
+	local A = U.RainbowAura
+	local glow = HudParts.icon(parent, "SoftGlow", "Aura")
+	glow.Image = Config.UI.Kit.Art.SoftGlow -- (an Art image, not a kit icon)
+	glow.AnchorPoint = Vector2.new(0.5, 0.5)
+	glow.Position = UDim2.fromScale(0.5, 0.5)
+	glow.Size = UDim2.fromScale(A.Reach, A.Reach)
+	glow.ImageTransparency = A.Transparency
+	glow.ZIndex = zIndex
+	local colors: { Color3 } = {}
+	for _, c in A.Colors :: { { number } } do
+		table.insert(colors, Color3.fromRGB(c[1], c[2], c[3]))
+	end
+	local n = #colors
+	local loop = UIAnim.loop(glow, function(clock)
+		local at = (clock / A.Seconds) % 1 * n
+		local i = math.floor(at)
+		local a = colors[i + 1]
+		local b = colors[(i + 1) % n + 1]
+		glow.ImageColor3 = a:Lerp(b, at - i)
+	end)
+	return {
+		stop = function()
+			loop.stop()
+			glow:Destroy()
+		end,
+	}
 end
 
 --- A block icon of `kind` filling `parent` (size the parent; the icon fills it). `still`
@@ -73,9 +107,13 @@ function BlockIcon.new(parent: Instance, kind: string, still: boolean?): Icon
 		fallback = nil,
 		kind = kind,
 		turn = nil,
+		aura = nil,
 		pop = BlockIcon.pop,
 		destroy = BlockIcon.destroy,
 	}
+	if row and row.Rainbow == true and not still then
+		icon.aura = BlockIcon.aura(root, 2)
+	end
 	local folder = ReplicatedStorage:FindFirstChild(L.ModelFolder)
 	local source = if row and folder then folder:FindFirstChild(row.Model) else nil
 	if source and source:IsA("Model") then
@@ -149,6 +187,10 @@ function BlockIcon.destroy(icon: Icon)
 	if icon.turn then
 		icon.turn.stop()
 		icon.turn = nil
+	end
+	if icon.aura then
+		icon.aura.stop()
+		icon.aura = nil
 	end
 	icon.root:Destroy()
 end
