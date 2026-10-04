@@ -102,6 +102,10 @@ def _box(bm, centre, size, basis=None):
 
 # The eight panels: (distance along the cue, angle round it in degrees from the top, radius from
 # the axis, width, height, tilt degrees about the radial, orbit degrees a second, texture)
+# Each Beta panel's life (seconds) and the share of it already run at t = 0, so five or six of
+# the eight are up at any moment and no two are born together.
+PANEL_LIFE = [(7.5, 0.0), (8.5, 0.37), (6.5, 0.62), (9.0, 0.18), (7.0, 0.8), (8.0, 0.5), (6.0, 0.28), (9.5, 0.7)]
+
 BETA_PANELS = [
     (1.1, 40, 1.05, 0.95, 0.58, 18, 5.0, 1),
     (2.0, 200, 1.55, 0.7, 0.45, -24, -4.0, 2),
@@ -186,9 +190,6 @@ def beta(k):
     # --- the panels ------------------------------------------------------------------------
     for i, (d, ang, rad, w, h, tilt, orbit, tex) in enumerate(BETA_PANELS):
         name = 'Panel%d' % (i + 1)
-        k.joint(name, pivot=(0, -d, 0), aura=True, motion=[
-            {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': orbit, 'Phase': 0},
-            {'Kind': 'Bob', 'Dir': (0, 0, 1), 'Amp': 0.03, 'Period': 2.2 + 0.3 * i, 'Phase': 40 * i}])
         a = math.radians(ang)
         radial = Vector((math.sin(a), 0, math.cos(a)))      # out from the axis (angle from the top)
         along = Vector((0, -1, 0))                          # toward the butt
@@ -199,6 +200,21 @@ def beta(k):
         bx = rot @ along        # the pane's width runs along the cue
         bz = rot @ tangent      # its height runs round
         by = radial             # its normal
+        # Each panel lives PANEL_LIFE[i] seconds: pops in with a blink, types its gibberish
+        # (the Type visual: a SurfaceGui riding the joint, on the pane's lower two thirds under
+        # the painted title bar), holds, dissolves out, and is reborn with new text.
+        life, phase = PANEL_LIFE[i]
+        glyph_origin = centre + by * 0.012      # a hair in front of the pane
+        k.joint(name, pivot=(0, -d, 0), aura=True, motion=[
+            {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': orbit, 'Phase': 0},
+            {'Kind': 'Bob', 'Dir': (0, 0, 1), 'Amp': 0.03, 'Period': 2.2 + 0.3 * i, 'Phase': 40 * i}],
+            visual=[
+            {'Kind': 'Fade', 'Min': 0.0, 'Max': 1.0, 'Period': life, 'Phase': phase, 'Shape': 'life'},
+            {'Kind': 'Type', 'Frame': {'Origin': [round(v, 4) for v in glyph_origin],
+                                       'Right': [round(v, 5) for v in bx], 'Up': [round(v, 5) for v in bz]},
+             'Size': [w, h], 'Rows': 3 + (i % 3), 'Cols': int(w * 22), 'Rate': 26 + 4 * (i % 4),
+             'Delay': 0.4, 'Period': life, 'Phase': phase, 'Color': '#BFE9FF' if i % 2 else '#7FD4FF',
+             'Area': [0.06, 0.3, 0.94, 0.92]}])
         tex_name = 'Pane%d' % (((tex - 1) % PANEL_TEXTURES) + 1)
         n = ((tex - 1) % PANEL_TEXTURES) + 1
         k.material(tex_name, 'SmoothPlastic', '#FFFFFF', SurfaceAppearance={

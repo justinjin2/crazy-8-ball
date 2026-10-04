@@ -84,12 +84,12 @@
   "piece": "beta",
   "surface": {
     "AlphaMode": "Transparency",
-    "EmissiveStrength": 1.3,
-    "EmissiveTint": "#9FD0FF",
+    "EmissiveStrength": 1.0,
+    "EmissiveTint": "#6FB8FF",
     "Pulse": {
       "EmissiveStrength": {
-        "Min": 1.0,
-        "Max": 1.7,
+        "Min": 0.8,
+        "Max": 1.3,
         "Period": 1.6
       }
     }
@@ -120,7 +120,7 @@
           },
           "LightInfluence": 0,
           "LockedToPart": true,
-          "Rate": 30,
+          "Rate": 22,
           "Lifetime": [
             1.2,
             1.8
@@ -202,7 +202,7 @@
           },
           "LightInfluence": 0,
           "LockedToPart": true,
-          "Rate": 18,
+          "Rate": 14,
           "Lifetime": [
             1.0,
             1.6
@@ -259,7 +259,7 @@
             ]
           ],
           "LightEmission": 1,
-          "Brightness": 1.2
+          "Brightness": 1.0
         },
         {
           "Name": "DataMotes",
@@ -274,7 +274,7 @@
           },
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Rate": 16,
+          "Rate": 8,
           "Lifetime": [
             1.0,
             1.8
@@ -323,15 +323,15 @@
           "Color": [
             [
               0,
-              "#FFFFFF"
+              "#BFE9FF"
             ],
             [
               1,
-              "#7FD4FF"
+              "#3FA9FF"
             ]
           ],
           "LightEmission": 1,
-          "Brightness": 2.5
+          "Brightness": 1.5
         },
         {
           "Name": "Glints",
@@ -346,7 +346,7 @@
           },
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Rate": 14,
+          "Rate": 6,
           "Lifetime": [
             0.4,
             0.9
@@ -394,7 +394,7 @@
             ]
           ],
           "LightEmission": 1,
-          "Brightness": 4
+          "Brightness": 2
         },
         {
           "Name": "Glyphs",
@@ -416,7 +416,7 @@
           },
           "LightInfluence": 0,
           "LockedToPart": true,
-          "Rate": 14,
+          "Rate": 9,
           "Lifetime": [
             0.9,
             1.6
@@ -432,11 +432,11 @@
           "Size": [
             [
               0,
-              0.5
+              0.35
             ],
             [
               1,
-              0.7
+              0.5
             ]
           ],
           "Transparency": [
@@ -472,7 +472,7 @@
             ]
           ],
           "LightEmission": 1,
-          "Brightness": 3
+          "Brightness": 2
         },
         {
           "Name": "SectionRings",
@@ -832,7 +832,7 @@
             "Max": 1.0,
             "Period": 1.6
           },
-          "Brightness": 1.5
+          "Brightness": 1.2
         },
         {
           "Name": "WireFlow",
@@ -875,7 +875,7 @@
           ],
           "LightEmission": 1,
           "FaceCamera": true,
-          "Brightness": 1.5
+          "Brightness": 1.2
         }
       ],
       "Lights": [

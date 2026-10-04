@@ -279,6 +279,9 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   plus a `Blink` visual), ring pulse (`Glow` and `Fade` visuals) as generic piece kinds in the
   Blender reference, Motion and CuePiece; the Beta piece rebuilt and re-uploaded, checked in
   the lane window. Lint and 984 tests green.
+- 2026-10-04: step 4 built: the panels pop in, type and dissolve (the `life` wave and the
+  `Type` visual as generic kinds), the aura tuned on the bright floor; captures in
+  `assets/cue/concepts/unique/beta-studio-*.jpg`. Waiting at gate 2.
 
 ## Decisions
 

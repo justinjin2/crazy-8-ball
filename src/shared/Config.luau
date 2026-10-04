@@ -4465,6 +4465,20 @@ Config.CueSkins = {
 	-- the stick), so it stands out on the bright lobby (designer, 2026-10-01; made much
 	-- fainter and the tint over the whole cue dropped the same day). The colour is the
 	-- skin's Aura.Outline, else its tier's below.
+	-- A piece joint's Type visual (the Beta Cue's blueprint panels, 2026-10-04): a SurfaceGui
+	-- riding the joint that types made-up glyph strings, row by row, in step with the panel's
+	-- life (its Period and Phase), then clears and starts over. Never readable words.
+	Typing = {
+		Font = "Code", -- Enum.Font: monospaced, techy
+		Glyphs = "0123456789ABCDEF<>/|[]{}=+-*#%&^~:;._", -- the alphabet the gibberish is built from
+		TokenMin = 2, -- glyphs per token (a "word"), min and max
+		TokenMax = 5,
+		PixelsPerStud = 160, -- the gui's canvas density (text crispness)
+		Brightness = 2.5, -- SurfaceGui.Brightness: the text glows
+		LineHeight = 1.25, -- row pitch as a share of the text size
+		CursorGlyph = "_", -- blinks at the end of the typed text
+		CursorPeriod = 0.5, -- seconds per cursor blink
+	},
 	Outline = {
 		Colors = {
 			Rare = "#2F8CFF",

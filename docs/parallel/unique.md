@@ -87,6 +87,18 @@ by hand in your copy (which is otherwise lost at the merge).
   Lune checks the saw and the glitch against Blender. Rebuilt, re-uploaded (new GLB id),
   templates rebuilt in the lane window, probed in Play (the disc rides its rim, the lattice
   blinks and jolts), console clean, lint and 984 tests green.
+- 2026-10-04 step 4 (built, gate 2 pending): the Beta aura's panels live. New generic kinds:
+  the `life` effect-wave shape (pop in with a blink, hold, dissolve with a blink) in the
+  Python reference and Motion, and the `Type` joint visual: CuePiece builds a thin part
+  riding the joint at the pane's frame with a SurfaceGui that types made-up glyph tokens
+  (Config.CueSkins.Typing: the Code font, the alphabet, canvas density, glow), new text each
+  life, a blinking cursor, fading with the panel; the gui switches off with the aura and when
+  the stick is camera-faded. Each of the eight panels has its own life (6 to 9.5 s) and phase,
+  so five or six are up at once and none are born together. The aura was tuned on the bright
+  lobby floor (the body had blown out white): calmer glints, motes and glyph flecks, beams at
+  1.2, the body's emissive at 0.8 to 1.3 in a deeper blue. Captures for the gate:
+  `assets/cue/concepts/unique/beta-studio-{stand,close,back,panel}.jpg`. Lint and 984 tests
+  green.
 
 ## Decisions
 
@@ -144,6 +156,12 @@ by hand in your copy (which is otherwise lost at the merge).
 - `tools/cue_motion_fixture.py` + `tests/cue_motion_fixture.json`: the `beta` piece joins the
   fixture (saw and Glitch checked against Blender); `tests/cue_motion_test.luau` tests the saw,
   glitch and blink maths.
+- `assets/cue/CueVfx.py` `wave` and `src/shared/CueSkins/Motion.luau` `vfxWave`: the `life`
+  shape (a hologram panel's pop-in, hold and dissolve). Why: the Beta panels' life cycle.
+- `src/client/CuePiece.luau`: the `Type` joint visual (a typing SurfaceGui riding the joint:
+  `buildTyper`, `stepTyper`, `showTypers`), `shownShare`; `src/shared/Config.luau`
+  `CueSkins.Typing` (font, alphabet, token lengths, canvas density, glow, line height, cursor).
+  Why: the Beta panels type gibberish; any piece can carry a typing panel.
 
 ## Requests
 

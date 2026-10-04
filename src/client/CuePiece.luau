@@ -18,6 +18,9 @@
 -- from the template (the importer turns bones too: the dragon's top bone is half a turn
 -- about Y, and assuming square bones threw its body past the butt).
 -- Joints marked Aura (the dragon, the running fox) hide with the aura.
+-- A joint's Visual rows (Fade, Blink, Glow, Type) are looks applied every step: the first
+-- three on the joint's rigid parts, Type as a typing SurfaceGui riding the joint (the Beta
+-- Cue's blueprint panels), Config.CueSkins.Typing holding the shared numbers.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -48,6 +51,18 @@ type Skinned = {
 	bones: { { bone: Bone, joint: string, parent: string?, rest: CFrame } },
 }
 type Rider = { part: BasePart, weld: Weld, joint: string, rest: CFrame }
+-- A Type visual's typing panel: a SurfaceGui riding its joint (a Rider), one label per row.
+type Typer = {
+	gui: SurfaceGui,
+	labels: { TextLabel },
+	joint: string,
+	row: any,
+	visuals: { any },
+	text: { string }, -- the rows' full gibberish, redrawn each life
+	cycle: number, -- the life the text was drawn for
+	typed: number, -- glyphs shown last step
+	hidden: boolean, -- aura hidden or camera-faded
+}
 
 export type CuePiece = typeof(setmetatable(
 	{} :: {
@@ -57,6 +72,7 @@ export type CuePiece = typeof(setmetatable(
 		rigid: { Rigid },
 		skinned: { Skinned },
 		riders: { Rider },
+		typers: { Typer },
 		auraJoints: { [string]: boolean },
 		auraShown: boolean,
 		scale: number,
@@ -67,6 +83,93 @@ export type CuePiece = typeof(setmetatable(
 ))
 
 local WHITE = Color3.new(1, 1, 1)
+local T = Config.CueSkins.Typing
+local rng = Random.new()
+
+-- Fresh gibberish for a typing panel: `cols` glyphs a row, tokens of TokenMin..TokenMax
+-- glyphs from the Typing alphabet, split by spaces. Never words.
+local function gibberish(rows: number, cols: number): { string }
+	local out = {}
+	local glyphs = T.Glyphs
+	for _ = 1, rows do
+		local line = {}
+		local n = 0
+		while n < cols do
+			local len = math.min(rng:NextInteger(T.TokenMin, T.TokenMax), cols - n)
+			for _ = 1, len do
+				local i = rng:NextInteger(1, #glyphs)
+				table.insert(line, glyphs:sub(i, i))
+			end
+			table.insert(line, " ")
+			n += len + 1
+		end
+		table.insert(out, table.concat(line))
+	end
+	return out
+end
+
+-- A Type visual's rider part and gui: a thin part the size of the panel (Size [w, h] studs)
+-- at Frame (Origin, Right, Up in the Blender cue frame, turned to Roblox), its Front face
+-- carrying Rows labels.
+local function buildTyper(row: any, zoff: number): (BasePart, CFrame, Typer)
+	local f = row.Frame
+	local o = Motion.toRoblox(f.Origin)
+	local right = Motion.toRoblox(f.Right)
+	local up = Motion.toRoblox(f.Up)
+	local vx = Vector3.new(right[1], right[2], right[3])
+	local vy = Vector3.new(up[1], up[2], up[3])
+	local rest = CFrame.fromMatrix(Vector3.new(o[1], o[2], o[3] + zoff), vx, vy, vx:Cross(vy))
+	local part = Instance.new("Part")
+	part.Name = "Typer"
+	part.Size = Vector3.new(row.Size[1], row.Size[2], 0.01)
+	part.Transparency = 1
+	part.CastShadow = false
+	local gui = Instance.new("SurfaceGui")
+	gui.Name = "Typing"
+	gui.Face = Enum.NormalId.Front
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = T.PixelsPerStud
+	gui.LightInfluence = 0
+	gui.Brightness = T.Brightness
+	gui.AlwaysOnTop = false
+	gui.ResetOnSpawn = false
+	local area = row.Area or { 0.05, 0.1, 0.95, 0.9 }
+	local rows = row.Rows or 4
+	local pitch = (area[4] - area[2]) / rows
+	local color = Color3.fromHex(row.Color or "#9FD0FF")
+	local labels = {}
+	for i = 1, rows do
+		local label = Instance.new("TextLabel")
+		label.Name = "Row" .. i
+		label.BackgroundTransparency = 1
+		label.BorderSizePixel = 0
+		label.Position = UDim2.fromScale(area[1], area[2] + (i - 1) * pitch)
+		label.Size = UDim2.fromScale(area[3] - area[1], pitch)
+		label.Font = (Enum.Font :: any)[T.Font] or Enum.Font.Code
+		label.TextSize = math.max(8, row.Size[2] * T.PixelsPerStud * pitch / T.LineHeight)
+		label.TextColor3 = color
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.TextYAlignment = Enum.TextYAlignment.Center
+		label.TextTransparency = 1
+		label.Text = ""
+		label.Parent = gui
+		table.insert(labels, label)
+	end
+	gui.Parent = part
+	return part,
+		rest,
+		{
+			gui = gui,
+			labels = labels,
+			joint = "",
+			row = row,
+			visuals = {},
+			text = {},
+			cycle = -1,
+			typed = -1,
+			hidden = false,
+		}
+end
 
 local function cframe(x: Motion.Xf, scale: number?): CFrame
 	local R, P = x.R, x.P
@@ -209,12 +312,27 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
 		rigid = rigid,
 		skinned = skinned,
 		riders = {},
+		typers = {},
 		auraJoints = auraJoints,
 		auraShown = true,
 		scale = 1,
 		fade = 0,
 		pose = {},
 	}, CuePiece)
+	-- Typing panels: one rider per Type visual.
+	for _, name in rig.order do
+		local j = rig.joints[name]
+		for _, v in j.visuals do
+			if v.Kind == "Type" then
+				local part, rest, typer = buildTyper(v, rig.zoff)
+				typer.joint = name
+				typer.visuals = j.visuals
+				part.Parent = model
+				self:ride(part, name, rest, root)
+				table.insert(self.typers, typer)
+			end
+		end
+	end
 	self:step(0)
 	return self
 end
@@ -265,6 +383,55 @@ local function applyVisuals(r: Rigid, t: number, fade: number)
 	r.part.Color = r.color:Lerp(glowTo or WHITE, math.clamp(glow, 0, 1))
 end
 
+-- The visible share a joint's Fade and Blink rows give at time t (1 with none).
+local function shownShare(visuals: { any }, t: number): number
+	local shown = 1
+	for _, v in visuals do
+		if v.Kind == "Fade" then
+			shown *= Motion.vfxWave(t, v)
+		elseif v.Kind == "Blink" and Motion.blinkGone(t, v) then
+			shown = 0
+		end
+	end
+	return shown
+end
+
+-- Type a panel at time t: the life (Period, Phase as a share) is the clock; new gibberish
+-- each life, Rate glyphs a second from Delay seconds in, row by row, a blinking cursor at
+-- the end; the rows fade with the joint's Fade/Blink share.
+local function stepTyper(ty: Typer, t: number, fade: number)
+	local row = ty.row
+	local period = row.Period or 8
+	local u = (t / period + (row.Phase or 0)) % 1
+	local cycle = math.floor(t / period + (row.Phase or 0))
+	local rows = #ty.labels
+	local cols = row.Cols or 18
+	if cycle ~= ty.cycle then
+		ty.cycle = cycle
+		ty.text = gibberish(rows, cols)
+		ty.typed = -1
+	end
+	local typed =
+		math.clamp(math.floor((u * period - (row.Delay or 0.3)) * (row.Rate or 30)), 0, rows * cols)
+	local cursorOn = (t % T.CursorPeriod) < T.CursorPeriod / 2
+	local key = typed * 2 + (if cursorOn then 1 else 0)
+	if key ~= ty.typed then
+		ty.typed = key
+		local left = typed
+		for i, label in ty.labels do
+			local line = ty.text[i] or ""
+			local n = math.clamp(left, 0, #line)
+			left -= #line
+			local cursor = if left < 0 and cursorOn then T.CursorGlyph else ""
+			label.Text = line:sub(1, n) .. cursor
+		end
+	end
+	local alpha = 1 - (1 - fade) * shownShare(ty.visuals, t)
+	for _, label in ty.labels do
+		label.TextTransparency = alpha
+	end
+end
+
 --- Move every joint to time `t` (seconds on the piece's clock).
 function CuePiece.step(self: CuePiece, t: number)
 	local pose = Motion.pose(self.rig, t)
@@ -283,6 +450,11 @@ function CuePiece.step(self: CuePiece, t: number)
 	for _, r in self.riders do
 		local x = pose[r.joint]
 		r.weld.C0 = (if x then cframe(x, s) else CFrame.identity) * r.rest
+	end
+	for _, ty in self.typers do
+		if not ty.hidden then
+			stepTyper(ty, t, self.fade)
+		end
 	end
 	for _, sk in self.skinned do
 		for _, b in sk.bones do
@@ -325,6 +497,20 @@ function CuePiece.setAura(self: CuePiece, shown: boolean)
 			for _, part in sk.parts do
 				part.LocalTransparencyModifier = modifier
 			end
+		end
+	end
+	self:showTypers()
+end
+
+-- A typing panel's gui is on or off (a SurfaceGui ignores LocalTransparencyModifier): off
+-- while its aura joint is hidden or the stick is camera-faded past half.
+function CuePiece.showTypers(self: CuePiece, modifier: number?)
+	local faded = (modifier or 0) >= 0.5
+	for _, ty in self.typers do
+		local hidden = faded or (not self.auraShown and self.auraJoints[ty.joint] == true)
+		if hidden ~= ty.hidden then
+			ty.hidden = hidden
+			ty.gui.Enabled = not hidden
 		end
 	end
 end
@@ -389,6 +575,7 @@ function CuePiece.setModifier(self: CuePiece, modifier: number)
 			part.LocalTransparencyModifier = if hidden then 1 else modifier
 		end
 	end
+	self:showTypers(modifier)
 end
 
 --- Uniform scale about the root (the pocket piece grows as it rises): sizes and every

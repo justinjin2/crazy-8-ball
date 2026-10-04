@@ -85,6 +85,14 @@ return {
 			local f = Motion.vfxWave(t, { Min = 0, Max = 1, Shape = "flicker" })
 			H.expect(f >= 0.315 and f <= 1, "flicker stays in 0.315..1")
 		end
+		local life = { Min = 0, Max = 1, Period = 10, Shape = "life" }
+		H.near(Motion.vfxWave(0, life), 0, 1e-9, "life is born at Min")
+		H.near(Motion.vfxWave(0.45, life), 0.75, 1e-9, "life pops in")
+		H.near(Motion.vfxWave(0.28, life), 0.15, 1e-9, "life blinks on the way in")
+		H.near(Motion.vfxWave(5, life), 1, 1e-9, "life holds at Max")
+		H.near(Motion.vfxWave(9.1, life), 1 - (0.91 - 0.82) / 0.18, 1e-9, "life dissolves")
+		H.near(Motion.vfxWave(9.19, life), 0.1, 1e-9, "life blinks on the way out")
+		H.near(Motion.vfxWave(9.999, life), 1 - (0.9999 - 0.82) / 0.18, 1e-6, "life ends near Min")
 		H.near(Motion.curve({ { 0, -1 }, { 0.3, 0.2 }, { 1, 0.4 } }, 0.15), -0.4, 1e-9, "curve")
 		H.near(Motion.curve(0.7, 0.4), 0.7, 1e-9, "a number is a flat curve")
 	end,

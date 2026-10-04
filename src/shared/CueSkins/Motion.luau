@@ -144,14 +144,25 @@ function Motion.blinkGone(t: number, v: any): boolean
 end
 
 --- An effect wave between Min and Max (CueVfx.wave): Phase is a share of a period; Shape sine
---- (starts at Min), flicker (mostly near Max with quick dips; never reaches Min) or beat (a
---- heartbeat's two bumps).
+--- (starts at Min), flicker (mostly near Max with quick dips; never reaches Min), beat (a
+--- heartbeat's two bumps) or life (a hologram panel's life: Min at birth, popping in over
+--- the first 6% of the period with one blink, Max to 82%, then dissolving to Min with a blink
+--- halfway down).
 function Motion.vfxWave(t: number, spec: any): number
 	local lo, hi = spec.Min or 0, spec.Max or 1
 	local ph = (t / (spec.Period or 2) + (spec.Phase or 0)) % 1
 	local shape = spec.Shape or "sine"
 	local k
-	if shape == "flicker" then
+	if shape == "life" then
+		if ph < 0.06 then
+			k = if ph > 0.02 and ph < 0.035 then 0.15 else ph / 0.06
+		elseif ph < 0.82 then
+			k = 1
+		else
+			local u = (ph - 0.82) / 0.18
+			k = if u > 0.5 and u < 0.6 then 0.1 else 1 - u
+		end
+	elseif shape == "flicker" then
 		k = 0.85 + 0.15 * math.sin(2 * math.pi * ph)
 		if math.sin(37 * t) * math.sin(11.3 * t) > 0.93 then
 			k *= 0.45
