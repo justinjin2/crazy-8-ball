@@ -3830,8 +3830,9 @@ Config.Audio = {
 		XpTick = { Id = "rbxassetid://15675059323", Volume = 0.15, Overlap = true },
 		-- "Roblox_UI_Tonal_Stinger" (Roblox, 1.5 s): the XP bar reaching a division's top.
 		XpFull = { Id = "rbxassetid://15675043410", Volume = 0.3 },
-		-- "Game Show" (APM Music via Roblox, 2.2 s): NEW RANK!
-		RankUp = { Id = "rbxassetid://1844692556", Volume = 0.35 },
+		-- "Puzzle Game Achievement 02" (the designer's pick, 2026-10-03; 2.5 s, uploaded to the
+		-- group): NEW RANK! (was "Game Show", 1844692556).
+		RankUp = { Id = "rbxassetid://124844921098629", Volume = 0.35 },
 		-- "Glamour Fanfare 4" (APM Music via Roblox, 3.7 s): a new tier, the bigger fanfare.
 		NewTier = { Id = "rbxassetid://1844584807", Volume = 0.4 },
 		-- "RBLX UI Hover 01 (SFX)" (Roblox, 0.2 s, a soft tone near 900 Hz): the mouse or a
