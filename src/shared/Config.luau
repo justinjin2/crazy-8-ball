@@ -10031,6 +10031,7 @@ Config.Debug = {
 		GiveCase = "/givecase", -- /givecase <standard|rare|epic|legendary|event> [count]
 		GiveBlock = "/giveblock", -- /giveblock <yellow|blue> [count]: lucky blocks (the test build)
 		OpenCase = "/opencase", -- /opencase <type>: opens one on the reel, like the button
+		Cutscene = "/cutscene", -- /cutscene <rare|epic|legendary|mythic|secret>: the pull cutscene alone (nothing given)
 		Inv = "/inv", -- prints your inventory privately
 		ClearInv = "/clearinv", -- empties your cues (but Classic) and cases
 		Dupes = "/dupes", -- DupeCopies copies of DupeKinds random Common and Uncommon cues

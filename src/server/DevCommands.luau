@@ -490,6 +490,27 @@ end
 -- The case ids as they are typed, for the usage lines: "standard|rare|...".
 local CASE_WORDS = string.lower(table.concat(Config.Cases.Order, "|"))
 
+-- The rarities with a pull cutscene (Rare and up), as typed, for the usage line.
+local CUTSCENES: { string } = {}
+for index, rarity in Config.Cases.Rarities do
+	if index >= (table.find(Config.Cases.Rarities, "Rare") or math.huge) then
+		table.insert(CUTSCENES, rarity)
+	end
+end
+local CUTSCENE_WORDS = string.lower(table.concat(CUTSCENES, "|"))
+
+--- A cutscene's rarity from typed words ("legendary", "mythical"), or nil.
+local function findCutscene(words: { string }): string?
+	local key = squash(table.concat(words, ""))
+	for _, rarity in CUTSCENES do
+		local name = squash(rarity)
+		if key == name or key == name .. "al" then -- "mythical" too
+			return rarity
+		end
+	end
+	return nil
+end
+
 -- A lucky block kind from typed words ("yellow", "blue lucky block"), or nil.
 local function findBlock(words: { string }): string?
 	local key = trim(trim(squash(table.concat(words, "")), "block"), "lucky")
@@ -537,6 +558,7 @@ local USAGE_ARGS: { [string]: { any } } = {
 	GiveCase = { CASE_WORDS },
 	GiveBlock = { BLOCK_WORDS },
 	OpenCase = { CASE_WORDS },
+	Cutscene = { CUTSCENE_WORDS },
 	SetDay = { #Config.Daily.Streak, Config.Daily.WeeksForBonus },
 	Sale = { D.Sale },
 	Code = { D.Code },
@@ -568,6 +590,7 @@ local ECON: { string } = {
 	"GiveCase",
 	"GiveBlock",
 	"OpenCase",
+	"Cutscene",
 	"Inv",
 	"ClearInv",
 	"Dupes",
@@ -752,6 +775,18 @@ local function openCase(player: Player, args: { string })
 			Net.get("DevNotice"):FireClient(player, notice)
 		end
 	end)
+end
+
+-- /cutscene <rarity>: asks the caller's client to play that rarity's pull cutscene on its own
+-- (a table DevNotice; nothing is rolled or given).
+local function cutscene(player: Player, args: { string })
+	local rarity = findCutscene(args)
+	if rarity == nil then
+		try(player, "Cutscene")
+		return
+	end
+	tell(player, Dev.Cutscene:format(rarity))
+	Net.get("DevNotice"):FireClient(player, { kind = "Cutscene", rarity = rarity })
 end
 
 -- Joins entries after `prefix` with ", " into chat lines of at most D.LineChars characters (an
@@ -1233,6 +1268,7 @@ function DevCommands.start()
 	command("GiveCase", D.GiveCase, giveCase)
 	command("GiveBlock", D.GiveBlock, giveBlock)
 	command("OpenCase", D.OpenCase, openCase)
+	command("Cutscene", D.Cutscene, cutscene)
 	command("Inv", D.Inv, showInventory)
 	command("ClearInv", D.ClearInv, clearInventory)
 	command("Dupes", D.Dupes, giveDupes)

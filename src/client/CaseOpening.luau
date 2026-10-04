@@ -118,6 +118,19 @@ type Session = {
 local CaseOpening = {}
 CaseOpening.__index = CaseOpening
 
+-- The first case (in Config.Cases.Order) holding a cue of `rarity`, and that cue: for the test
+-- pulls (GuiQA "pull", /cutscene).
+local function cueOfRarity(rarity: string): (string?, string?)
+	for _, caseId in Config.Cases.Order do
+		for _, entry in Cases.cueOdds(caseId) do
+			if entry.rarity == rarity then
+				return caseId, entry.id
+			end
+		end
+	end
+	return nil, nil
+end
+
 local function words(): any
 	return Strings.CaseOpening
 end
@@ -213,19 +226,16 @@ function CaseOpening.new(screen: ScreenGui, deps: any): any
 	-- Studio checks: play a pull of a chosen rarity (the reel, its cutscene, the card) with a
 	-- made-up result (nothing is given), and the intro with "intro".
 	GuiQA.add("pull", function(rarity: string, count: number?)
-		for _, caseId in Config.Cases.Order do
-			for _, entry in Cases.cueOdds(caseId) do
-				if entry.rarity == rarity then
-					local results = {}
-					for _ = 1, count or 1 do
-						table.insert(results, { cue = entry.id, rarity = rarity, count = 2 })
-					end
-					self:play(caseId, results)
-					return entry.id
-				end
-			end
+		local caseId, cueId = cueOfRarity(rarity)
+		if not caseId or not cueId then
+			return "no case holds " .. tostring(rarity)
 		end
-		return "no case holds " .. tostring(rarity)
+		local results = {}
+		for _ = 1, count or 1 do
+			table.insert(results, { cue = cueId, rarity = rarity, count = 2 })
+		end
+		self:play(caseId, results)
+		return cueId
 	end)
 	return self
 end
@@ -306,15 +316,20 @@ function CaseOpening.listenDev(self: any)
 			return
 		end
 		(remote :: RemoteEvent).OnClientEvent:Connect(function(payload: any)
-			if
-				type(payload) == "table"
-				and payload.kind == "OpenCase"
-				and type(payload.caseId) == "string"
-			then
+			if type(payload) ~= "table" then
+				return
+			end
+			if payload.kind == "OpenCase" and type(payload.caseId) == "string" then
 				self:open(
 					payload.caseId,
 					if type(payload.count) == "number" then payload.count else 1
 				)
+			elseif payload.kind == "Cutscene" and type(payload.rarity) == "string" then
+				-- /cutscene: the pull cutscene alone, on a cue of that rarity (nothing given).
+				local _, cueId = cueOfRarity(payload.rarity)
+				if cueId and not PullCutscene.isPlaying() then
+					PullCutscene.play(payload.rarity, cueId, function() end)
+				end
 			end
 		end)
 	end)

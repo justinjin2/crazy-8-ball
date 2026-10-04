@@ -296,6 +296,7 @@ return {
 			GiveCase = "%s <%s> [count] [player]", -- the case ids
 			GiveBlock = "%s <%s> [count] [player]", -- the lucky block kinds
 			OpenCase = "%s <%s>",
+			Cutscene = "%s <%s>", -- the rarities with a cutscene
 			Inv = "%s",
 			ClearInv = "%s",
 			Dupes = "%s",
@@ -333,6 +334,7 @@ return {
 			GiveCase = "unopened cases",
 			GiveBlock = "lucky blocks into your hotbar (the test build)",
 			OpenCase = "opens one on the reel like the button (gives you one if you have none)",
+			Cutscene = "plays a rare pull's cutscene on its own (nothing is given)",
 			Inv = "lists your cues, cases and equipped cue",
 			ClearInv = "takes every cue but Classic and every case",
 			Dupes = "%d copies each of %d random Common and Uncommon cues (to test selling)",
@@ -378,6 +380,7 @@ return {
 		GaveBlock = "Gave %s x%d.",
 		BadBlock = 'No lucky block called "%s". Blocks: %s.',
 		Opening = "Opening a %s.",
+		Cutscene = "Playing the %s cutscene.", -- the rarity
 		InvEquipped = "Equipped: %s",
 		InvCases = "Cases: ",
 		InvNoCases = "Cases: none",
