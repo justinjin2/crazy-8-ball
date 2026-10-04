@@ -1,0 +1,595 @@
+--!strict
+-- LuckyBlockService: lucky blocks on the server (the test build, designer 2026-10-03;
+-- Config.LuckyBlocks, rules in Progression/LuckyBlocks, the save through PlayerData).
+--
+-- - BlockRequest (a RemoteFunction): Hold puts a copy of the block in the character's hands
+--   (welded to the upper torso, so everyone sees it); Throw (sent at the throw animation's
+--   release) moves it to the floor in front, in Workspace[Config.LuckyBlocks.LiveFolder], one
+--   per player; Open (after the owner's native prompt hold) rolls the cue from the block's case with
+--   server RNG, opens it through PlayerData.openLuckyBlock and starts the rise; Move reorders
+--   the hotbar and bag. Every answer is { ok = true, ... } or { ok = false, reason }.
+-- - A thrown block's model carries attributes every client animates from (LuckyWorld): Owner
+--   (UserId), BlockId, Kind, Phase ("Flying", "Landed", "Rising", "Burst") and PhaseAt (server
+--   time), plus To (its landing CFrame). The server moves it to To when the flight ends.
+-- - BlockState (a RemoteEvent): the player's blocks after every change (deduped).
+-- - The test build: the accounts in Config.Debug.Commands.UserIds get one of each
+--   Config.LuckyBlocks.Test.Seed kind they lack on join, and opening one gives a fresh one of
+--   the same kind in the same place (Test.Refill). Nobody else is ever given a block.
+-- - A thrown block nobody opens goes after ReturnSeconds, or once its owner is ReturnStuds
+--   away; it was never taken from the save, so it is simply back in the hotbar.
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
+local Net = require(Shared.Net)
+local Catalog = require(Shared.Progression.Catalog)
+local Cases = require(Shared.Progression.Cases)
+local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
+local Requests = require(Shared.Progression.Requests)
+local Announce = require(script.Parent.Announce)
+local Counters = require(script.Parent.Counters)
+local PlayerData = require(script.Parent.PlayerData)
+
+local L = Config.LuckyBlocks
+
+type Held = { id: number, model: Model }
+type Live = {
+	id: number,
+	kind: string,
+	model: Model,
+	to: CFrame,
+	phase: string,
+	landedAt: number, -- os.clock() it landed (the return timer)
+}
+export type Reply = { [string]: any }
+
+local LuckyBlockService = {}
+
+local held: { [Player]: Held } = {}
+local live: { [Player]: Live } = {}
+local buckets: { [Player]: Requests.Bucket } = {}
+local busy: { [Player]: boolean } = {}
+local dirty: { [Player]: boolean } = {}
+local lastSent: { [Player]: string } = {}
+local rolls = Random.new()
+-- The PlayerData mutations that change the blocks (BlockState is pushed after these).
+local BLOCK_OPS: { [string]: boolean } = {
+	giveLuckyBlocks = true,
+	moveLuckyBlock = true,
+	openLuckyBlock = true,
+	reset = true,
+}
+local warnedMissing: { [string]: boolean } = {}
+
+local function refuse(reason: string): Reply
+	return { ok = false, reason = reason }
+end
+
+local function isTester(player: Player): boolean
+	return table.find(Config.Debug.Commands.UserIds, player.UserId) ~= nil
+end
+
+local function serverNow(): number
+	return workspace:GetServerTimeNow()
+end
+
+local function liveFolder(): Folder
+	local folder = workspace:FindFirstChild(L.LiveFolder)
+	if folder and folder:IsA("Folder") then
+		return folder
+	end
+	local made = Instance.new("Folder")
+	made.Name = L.LiveFolder
+	made.Parent = workspace
+	return made
+end
+
+---------------------------------------------------------------------------------------------
+-- Models
+---------------------------------------------------------------------------------------------
+
+-- The kind's template in ReplicatedStorage (Edit-mode content in the place), or nil (warned
+-- once: the place was not saved with the models).
+local function template(kind: string): Model?
+	local row = LuckyBlocks.kind(kind)
+	local folder = ReplicatedStorage:FindFirstChild(L.ModelFolder)
+	local model = if row and folder then folder:FindFirstChild(row.Model) else nil
+	if model and model:IsA("Model") then
+		return model
+	end
+	if not warnedMissing[kind] then
+		warnedMissing[kind] = true
+		warn(
+			("[8ball] LuckyBlockService: no model for %s in ReplicatedStorage.%s"):format(
+				kind,
+				L.ModelFolder
+			)
+		)
+	end
+	return nil
+end
+
+-- A copy of the kind's model scaled so its edge is `edge` studs, nothing on it colliding or
+-- touching; `anchored` for the floor, else unanchored and massless for the hands.
+local function makeModel(kind: string, edge: number, anchored: boolean): Model?
+	local source = template(kind)
+	if source == nil then
+		return nil
+	end
+	local model = source:Clone()
+	local _, size = model:GetBoundingBox()
+	local longest = math.max(size.X, size.Y, size.Z)
+	if longest > 0 then
+		model:ScaleTo(model:GetScale() * edge / longest)
+	end
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = anchored
+			d.CanCollide = false
+			d.CanTouch = false
+			d.CanQuery = false
+			d.Massless = true
+			-- Neutral base under the pack's Overlay colour maps, rather than importer grey.
+			d.Color = Color3.new(1, 1, 1)
+		elseif d:IsA("SurfaceAppearance") then
+			d.EmissiveStrength = L.Look.EmissiveStrength
+		elseif d:IsA("ParticleEmitter") then
+			d.LightInfluence = L.Look.ParticleLightInfluence
+		elseif d:IsA("LuaSourceContainer") then
+			d:Destroy()
+		end
+	end
+	model:SetAttribute("Kind", kind)
+	return model
+end
+
+-- The upper torso (R15) or torso (R6) and which offset goes with it, or nil.
+local function torsoOf(character: Model): (BasePart?, { number })
+	local upper = character:FindFirstChild("UpperTorso")
+	if upper and upper:IsA("BasePart") then
+		return upper, L.Held.OffsetR15
+	end
+	local torso = character:FindFirstChild("Torso")
+	if torso and torso:IsA("BasePart") then
+		return torso, L.Held.OffsetR6
+	end
+	return nil, L.Held.OffsetR15
+end
+
+-- The character's root and humanoid while it can hold and throw (alive, not seated), or nil.
+local function bodyOf(player: Player): (BasePart?, Humanoid?)
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if humanoid == nil or root == nil or not root:IsA("BasePart") then
+		return nil, nil
+	end
+	if humanoid.Health <= 0 or humanoid.SeatPart ~= nil then
+		return nil, nil
+	end
+	return root, humanoid
+end
+
+local function dropHeld(player: Player)
+	local h = held[player]
+	held[player] = nil
+	if h and h.model.Parent then
+		h.model:Destroy()
+	end
+end
+
+local function dropLive(player: Player)
+	local l = live[player]
+	live[player] = nil
+	if l and l.model.Parent then
+		l.model:Destroy()
+	end
+end
+
+---------------------------------------------------------------------------------------------
+-- BlockState
+---------------------------------------------------------------------------------------------
+
+local function flushPushes()
+	local remote: RemoteEvent? = nil
+	for player in dirty do
+		dirty[player] = nil
+		local data = PlayerData.read(player)
+		if data ~= nil and player.Parent == Players then
+			local state = data.LuckyBlocks
+			local snapshot = { blocks = if state then LuckyBlocks.snapshot(state :: any) else {} }
+			local encoded = HttpService:JSONEncode(snapshot)
+			if encoded ~= lastSent[player] then
+				lastSent[player] = encoded
+				remote = remote or Net.get("BlockState");
+				(remote :: RemoteEvent):FireClient(player, snapshot)
+			end
+		end
+	end
+end
+
+---------------------------------------------------------------------------------------------
+-- Requests
+---------------------------------------------------------------------------------------------
+
+local HANDLERS: { [string]: (Player, LuckyBlocks.Request, any) -> Reply } = {}
+
+function HANDLERS.Hold(player: Player, r: LuckyBlocks.Request, data: any): Reply
+	local id = r.id
+	if id == nil then
+		dropHeld(player)
+		return { ok = true }
+	end
+	local block = LuckyBlocks.find(data.LuckyBlocks, id)
+	if block == nil then
+		return refuse("NotOwned")
+	end
+	local l = live[player]
+	if l and l.id == id then
+		return refuse("Busy")
+	end
+	local current = held[player]
+	if current and current.id == id and current.model.Parent then
+		return { ok = true }
+	end
+	local character = player.Character
+	local root = bodyOf(player)
+	local torso: BasePart?, offset = nil, L.Held.OffsetR15
+	if character then
+		torso, offset = torsoOf(character)
+	end
+	if character == nil or root == nil or torso == nil then
+		return refuse("NoBody")
+	end
+	local model = makeModel(block.Kind, L.Held.SizeStuds, false)
+	if model == nil then
+		return refuse("Error")
+	end
+	dropHeld(player)
+	-- No bounce in the hands: the pack's AnimationController only plays on the floor.
+	local controller = model:FindFirstChildOfClass("AnimationController")
+	if controller then
+		controller:Destroy()
+	end
+	local centre = torso.CFrame * CFrame.new(offset[1], offset[2], offset[3])
+	model:PivotTo(centre * CFrame.new(0, -L.Held.SizeStuds / 2, 0))
+	local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
+	if part == nil then
+		model:Destroy()
+		return refuse("Error")
+	end
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = torso
+	weld.Part1 = part
+	weld.Parent = part
+	model.Name = "LuckyHeld"
+	model:SetAttribute("BlockId", id)
+	model:SetAttribute("Owner", player.UserId)
+	model:SetAttribute("ReadyAt", block.ReadyAt)
+	model.Parent = character
+	held[player] = { id = id, model = model }
+	return { ok = true }
+end
+
+-- Where a block thrown now lands: in front of the root (short of a wall), on the floor found
+-- under that spot, turned to face the thrower give or take a little.
+local function landing(root: BasePart, humanoid: Humanoid): CFrame
+	local flat = root.CFrame.LookVector * Vector3.new(1, 0, 1)
+	local look = if flat.Magnitude > 1e-3 then flat.Unit else Vector3.new(0, 0, -1)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	local ignore: { Instance } = { liveFolder() }
+	for _, other in Players:GetPlayers() do
+		if other.Character then
+			table.insert(ignore, other.Character)
+		end
+	end
+	params.FilterDescendantsInstances = ignore
+	params.RespectCanCollide = true
+	local T = L.Throw
+	local distance = T.DistanceStuds
+	local wall = workspace:Raycast(root.Position, look * distance, params)
+	if wall then
+		distance = math.max(0, (wall.Position - root.Position).Magnitude - T.WallGapStuds)
+	end
+	local spot = root.Position + look * distance
+	local feet = root.Position.Y - root.Size.Y / 2 - humanoid.HipHeight
+	local floor = workspace:Raycast(
+		spot + Vector3.new(0, 2, 0),
+		Vector3.new(0, -T.FloorSearchStuds, 0),
+		params
+	)
+	local y = if floor then floor.Position.Y else feet
+	local jitter = math.rad(rolls:NextNumber(-T.LandYawJitterDegrees, T.LandYawJitterDegrees))
+	local facing = CFrame.lookAt(
+		Vector3.new(spot.X, y, spot.Z),
+		Vector3.new(root.Position.X, y, root.Position.Z)
+	)
+	return facing * CFrame.Angles(0, jitter, 0)
+end
+
+function HANDLERS.Throw(player: Player, r: LuckyBlocks.Request, data: any): Reply
+	local id = r.id :: number
+	local block = LuckyBlocks.find(data.LuckyBlocks, id)
+	if block == nil then
+		return refuse("NotOwned")
+	end
+	local h = held[player]
+	if h == nil or h.id ~= id or h.model.Parent == nil then
+		return refuse("NotHeld")
+	elseif not LuckyBlocks.isReady(block, os.time()) then
+		return refuse("NotReady")
+	elseif live[player] ~= nil then
+		return refuse("Busy")
+	end
+	local root, humanoid = bodyOf(player)
+	if root == nil or humanoid == nil then
+		return refuse("NoBody")
+	end
+	local model = makeModel(block.Kind, L.FloorSizeStuds, true)
+	if model == nil then
+		return refuse("Error")
+	end
+	local to = landing(root, humanoid)
+	local fromCentre = h.model:GetPivot().Position + Vector3.new(0, L.Held.SizeStuds / 2, 0)
+	dropHeld(player)
+	-- It starts in the hands; every client flies it to To (LuckyWorld), and the server puts it
+	-- there when the flight ends.
+	model:PivotTo(CFrame.new(fromCentre - Vector3.new(0, L.FloorSizeStuds / 2, 0)) * to.Rotation)
+	model.Name = "LuckyBlock" .. player.UserId
+	model:SetAttribute("Owner", player.UserId)
+	model:SetAttribute("BlockId", id)
+	model:SetAttribute("To", to)
+	model:SetAttribute("Phase", "Flying")
+	model:SetAttribute("PhaseAt", serverNow())
+	model.Parent = liveFolder()
+	local entry: Live = {
+		id = id,
+		kind = block.Kind,
+		model = model,
+		to = to,
+		phase = "Flying",
+		landedAt = math.huge,
+	}
+	live[player] = entry
+	task.delay(L.Throw.Seconds, function()
+		if live[player] == entry and entry.phase == "Flying" then
+			entry.phase = "Landed"
+			entry.landedAt = os.clock()
+			model:PivotTo(to)
+			model:SetAttribute("Phase", "Landed")
+			model:SetAttribute("PhaseAt", serverNow())
+		end
+	end)
+	return { ok = true }
+end
+
+local function roll(n: number): number
+	return rolls:NextInteger(1, n)
+end
+
+function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
+	local id = r.id :: number
+	local entry = live[player]
+	if entry == nil or entry.id ~= id then
+		return refuse("NotOwned")
+	elseif entry.phase == "Flying" then
+		return refuse("NotLanded")
+	elseif entry.phase ~= "Landed" then
+		return refuse("Busy")
+	end
+	local root = bodyOf(player)
+	if root == nil then
+		return refuse("NoBody")
+	end
+	local reach = L.Open.MaxDistanceStuds + L.Open.SlackStuds
+	if (root.Position - entry.to.Position).Magnitude > reach then
+		return refuse("TooFar")
+	end
+	local block = LuckyBlocks.find(data.LuckyBlocks, id)
+	local kind = if block then LuckyBlocks.kind(block.Kind) else nil
+	if block == nil or kind == nil then
+		dropLive(player)
+		return refuse("NotOwned")
+	end
+	local cueId = Cases.roll(kind.Case, roll)
+	local ok, opened, place = PlayerData.openLuckyBlock(player, id, cueId)
+	if not ok then
+		return refuse(
+			if opened == "NotReady"
+					or opened == "NotOwned"
+					or opened == "NotLoaded"
+				then opened
+				else "Error"
+		)
+	end
+	local cue = Catalog.get(cueId) :: Catalog.Cue
+	Counters.add(cue.Id, 1)
+	Announce.unbox(player, cue.Id)
+	if L.Test.Refill and isTester(player) then
+		PlayerData.giveLuckyBlocks(player, block.Kind, 1, place)
+	end
+	-- The rise, then the burst, then it is gone.
+	local now = serverNow()
+	local burstAt = now + L.Rise.Seconds
+	entry.phase = "Rising"
+	entry.model:SetAttribute("Phase", "Rising")
+	entry.model:SetAttribute("PhaseAt", now)
+	task.delay(L.Rise.Seconds, function()
+		if live[player] == entry then
+			entry.phase = "Burst"
+			entry.model:SetAttribute("Phase", "Burst")
+			entry.model:SetAttribute("PhaseAt", serverNow())
+		end
+		task.wait(L.BurstSeconds)
+		if live[player] == entry then
+			dropLive(player)
+		elseif entry.model.Parent then
+			entry.model:Destroy()
+		end
+	end)
+	return {
+		ok = true,
+		cue = cue.Id,
+		rarity = cue.Rarity,
+		kind = block.Kind,
+		new = opened.new,
+		found = opened.found,
+		count = opened.count,
+		burstAt = burstAt,
+	}
+end
+
+function HANDLERS.Move(player: Player, r: LuckyBlocks.Request, data: any): Reply
+	local id, to = r.id :: number, r.to :: number
+	if LuckyBlocks.find(data.LuckyBlocks, id) == nil then
+		return refuse("NotOwned")
+	end
+	if not PlayerData.moveLuckyBlock(player, id, to) then
+		return refuse("Error")
+	end
+	return { ok = true }
+end
+
+local function handle(player: Player, action: any, a: any, b: any): Reply
+	local bucket = buckets[player]
+	if bucket == nil then
+		bucket = Requests.newBucket(os.clock(), L.RateBurst)
+		buckets[player] = bucket
+	end
+	if not Requests.take(bucket, os.clock(), L.RateBurst, L.RatePerSecond) then
+		return refuse("TooFast")
+	end
+	local request, why = LuckyBlocks.parse(action, a, b)
+	if request == nil then
+		return refuse(why or "BadRequest")
+	end
+	local data = PlayerData.read(player)
+	if data == nil or type(data.LuckyBlocks) ~= "table" then
+		return refuse("NotLoaded")
+	end
+	if busy[player] then
+		return refuse("Busy")
+	end
+	busy[player] = true
+	local ok, reply = pcall(HANDLERS[request.action], player, request, data)
+	busy[player] = nil
+	if not ok then
+		warn(
+			("[8ball] LuckyBlockService: %s from %d failed: %s"):format(
+				request.action,
+				player.UserId,
+				tostring(reply)
+			)
+		)
+		return refuse("Error")
+	end
+	return reply
+end
+
+---------------------------------------------------------------------------------------------
+-- Start
+---------------------------------------------------------------------------------------------
+
+-- The test build's seed: one of each Seed kind the tester lacks.
+local function seed(player: Player)
+	if not isTester(player) then
+		return
+	end
+	local data = PlayerData.read(player)
+	if data == nil or type(data.LuckyBlocks) ~= "table" then
+		return
+	end
+	for _, kind in L.Test.Seed do
+		if LuckyBlocks.count(data.LuckyBlocks :: any, kind) == 0 then
+			PlayerData.giveLuckyBlocks(player, kind, 1)
+		end
+	end
+end
+
+-- Thrown blocks nobody opened go back (to the hotbar: they never left the save).
+local function returnStale()
+	local now = os.clock()
+	for player, entry in live do
+		if entry.phase == "Landed" then
+			local root = bodyOf(player)
+			local far = root == nil or (root.Position - entry.to.Position).Magnitude > L.ReturnStuds
+			if far or now - entry.landedAt > L.ReturnSeconds then
+				dropLive(player)
+			end
+		end
+	end
+end
+
+local started = false
+
+function LuckyBlockService.start()
+	if started then
+		return
+	end
+	started = true
+	liveFolder()
+	local remote = Net.get("BlockRequest") :: RemoteFunction
+	remote.OnServerInvoke = function(player: Player, action: any, a: any, b: any): Reply
+		local ok, reply = pcall(handle, player, action, a, b)
+		if not ok then
+			warn(
+				("[8ball] LuckyBlockService: a request from %d failed: %s"):format(
+					player.UserId,
+					tostring(reply)
+				)
+			)
+			return refuse("Error")
+		end
+		return reply
+	end
+	PlayerData.Loaded:Connect(function(player: Player)
+		lastSent[player] = nil
+		dirty[player] = true
+		task.spawn(seed, player)
+	end)
+	PlayerData.Changed:Connect(function(player: Player, op: string)
+		if BLOCK_OPS[op] then
+			dirty[player] = true
+		end
+	end)
+	RunService.Heartbeat:Connect(flushPushes)
+	local function joined(player: Player)
+		player.CharacterRemoving:Connect(function()
+			dropHeld(player)
+		end)
+		if PlayerData.isLoaded(player) then
+			dirty[player] = true
+			task.spawn(seed, player)
+		end
+	end
+	Players.PlayerAdded:Connect(joined)
+	for _, player in Players:GetPlayers() do
+		joined(player)
+	end
+	Players.PlayerRemoving:Connect(function(player: Player)
+		dropHeld(player)
+		dropLive(player)
+		buckets[player] = nil
+		busy[player] = nil
+		dirty[player] = nil
+		lastSent[player] = nil
+	end)
+	task.spawn(function()
+		while true do
+			task.wait(L.CheckSeconds)
+			local ok, err = pcall(function(): any
+				returnStale()
+				return nil
+			end)
+			if not ok then
+				warn("[8ball] LuckyBlockService: " .. tostring(err))
+			end
+		end
+	end)
+end
+
+return LuckyBlockService

@@ -490,6 +490,20 @@ end
 -- The case ids as they are typed, for the usage lines: "standard|rare|...".
 local CASE_WORDS = string.lower(table.concat(Config.Cases.Order, "|"))
 
+-- A lucky block kind from typed words ("yellow", "blue lucky block"), or nil.
+local function findBlock(words: { string }): string?
+	local key = trim(trim(squash(table.concat(words, "")), "block"), "lucky")
+	for _, id in Config.LuckyBlocks.Order do
+		if squash(id) == key then
+			return id
+		end
+	end
+	return nil
+end
+
+-- The lucky block kinds as they are typed, for the usage line: "yellow|blue".
+local BLOCK_WORDS = string.lower(table.concat(Config.LuckyBlocks.Order, "|"))
+
 -- Every Config.Products key, sorted (the /buy help and its refusal list them).
 local PRODUCT_KEYS: { string } = {}
 for key in Config.Products.List :: { [string]: any } do
@@ -521,6 +535,7 @@ end
 -- help line (Strings.Dev.What).
 local USAGE_ARGS: { [string]: { any } } = {
 	GiveCase = { CASE_WORDS },
+	GiveBlock = { BLOCK_WORDS },
 	OpenCase = { CASE_WORDS },
 	SetDay = { #Config.Daily.Streak, Config.Daily.WeeksForBonus },
 	Sale = { D.Sale },
@@ -551,6 +566,7 @@ end
 local ECON: { string } = {
 	"GiveCue",
 	"GiveCase",
+	"GiveBlock",
 	"OpenCase",
 	"Inv",
 	"ClearInv",
@@ -678,6 +694,24 @@ local function giveCase(player: Player, args: { string })
 		tell(player, Dev.BadCase:format(table.concat(words, " "), CASE_WORDS))
 	elseif PlayerData.grantReward(player, { cases = { [caseId] = count } }, "DevCommand") then
 		tell(player, Dev.GaveCase:format(caseName(caseId), count))
+	else
+		tell(player, Dev.NotLoaded)
+	end
+end
+
+-- /giveblock <kind> [count]: lucky blocks at the end of the hotbar (the test build).
+local function giveBlock(player: Player, args: { string })
+	local words, countWord = splitCount(args)
+	local count = if countWord then wholeIn(countWord, 1, D.MaxGive) else 1
+	if #words == 0 or count == nil then
+		try(player, "GiveBlock")
+		return
+	end
+	local kind = findBlock(words)
+	if kind == nil then
+		tell(player, Dev.BadBlock:format(table.concat(words, " "), BLOCK_WORDS))
+	elseif PlayerData.giveLuckyBlocks(player, kind, count) then
+		tell(player, Dev.GaveBlock:format(Strings.LuckyBlocks.Names[kind] or kind, count))
 	else
 		tell(player, Dev.NotLoaded)
 	end
@@ -1197,6 +1231,7 @@ function DevCommands.start()
 	-- The economy.
 	command("GiveCue", D.GiveCue, giveCue)
 	command("GiveCase", D.GiveCase, giveCase)
+	command("GiveBlock", D.GiveBlock, giveBlock)
 	command("OpenCase", D.OpenCase, openCase)
 	command("Inv", D.Inv, showInventory)
 	command("ClearInv", D.ClearInv, clearInventory)

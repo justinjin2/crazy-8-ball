@@ -2017,6 +2017,172 @@ Config.Cases = {
 }
 
 ---------------------------------------------------------------------------------------------
+-- Lucky blocks (designer, 2026-10-03): the economy moves from cases to lucky blocks you hold,
+-- throw on the floor and open with a 0.5 s hold. TEST BUILD: only the accounts in
+-- Config.Debug.Commands.UserIds get blocks (seeded on join, /giveblock), and cases keep working
+-- until every case source is converted. Pure rules: src/shared/Progression/LuckyBlocks.luau;
+-- server: src/server/LuckyBlockService.luau; client: LuckyClient, LuckyHotbar, LuckyWorld,
+-- LuckyOpening. The models are Edit-mode content in ReplicatedStorage.LuckyBlocks (from the
+-- bought pack, assets/luckyblocks/).
+---------------------------------------------------------------------------------------------
+Config.LuckyBlocks = {
+	-- Every kind, in this order (the Lune tests and the dev command's list walk it).
+	Order = { "Yellow", "Blue" },
+	-- Case: the Config.Cases row whose odds and cue pool it rolls. Timer: seconds after it lands
+	-- in the inventory until it can be thrown (0: at once). Model: its template's name in
+	-- ReplicatedStorage[ModelFolder].
+	Kinds = {
+		Yellow = { Case = "Standard", Timer = 0, Model = "YellowLuckyBlock" },
+		Blue = { Case = "Rare", Timer = 120, Model = "BlueLuckyBlock" }, -- 2 minutes (test)
+	},
+	ModelFolder = "LuckyBlocks",
+	LiveFolder = "LuckyBlocksLive", -- Workspace folder for thrown blocks (server-made)
+	Look = {
+		EmissiveStrength = 0.65, -- gentle texture-coloured fill in the rooftop's shadows/sunset
+		ParticleLightInfluence = 0, -- sparkles keep their authored colours under warm lobby light
+	},
+	MaxBlocks = 200, -- the save holds at most this many blocks
+	HotbarSlots = 9, -- the first 9 blocks sit in the hotbar (keys 1-9); the rest in the bag
+	-- The test build: on join every account in Config.Debug.Commands.UserIds is given one of
+	-- each Seed kind it lacks, and opening a block gives a fresh one of the same kind in the
+	-- same place (its timer starting again), so testing never runs out.
+	Test = { Seed = { "Yellow", "Blue" }, Refill = true },
+	-- BlockRequest's token bucket: this many at once, refilling this fast.
+	RateBurst = 8,
+	RatePerSecond = 4,
+	-- Animations, all uploaded to the group (675425213) so they play in the game. BlockIdle:
+	-- the pack's bounce, played on a thrown block. Hold and Throw: the arms (an empty id plays
+	-- nothing), per rig.
+	Anim = {
+		BlockIdle = "rbxassetid://120822945598411",
+		-- Built by tools/make_hand_anims.luau (assets/luckyblocks/anims), uploaded 2026-10-03.
+		HoldR15 = "rbxassetid://97081574599269",
+		ThrowR15 = "rbxassetid://127441949230799",
+		HoldR6 = "rbxassetid://91317833672251",
+		ThrowR6 = "rbxassetid://133046367802407",
+		HoldFadeSeconds = 0.15,
+		ThrowFadeSeconds = 0.05,
+		ReleaseMarker = "Release", -- the throw's keyframe marker where the block leaves the hands
+		ReleaseFallbackSeconds = 0.22, -- when there is no marker (or no animation), this long in
+	},
+	-- In the hands: the block's edge (studs) and where its centre sits against the upper torso
+	-- (R15 UpperTorso, R6 Torso; +Y up, -Z forward). Built to match the Hold animation's hands.
+	Held = {
+		SizeStuds = 2.8, -- nearly twice the old edge: a big two-handed block
+		OffsetR15 = { 0, 0.3, -2.1 },
+		OffsetR6 = { 0, 0.1, -1.9 },
+		TimerLiftStuds = 2.2, -- the countdown floats this far over the block's centre
+	},
+	-- The throw: the block lands this far in front of the root (shorter when a wall is
+	-- closer), on the floor found under that spot, and flies there on an arc in Seconds.
+	Throw = {
+		DistanceStuds = 6,
+		WallGapStuds = 1.5, -- stop this far short of a wall in the way
+		FloorSearchStuds = 12, -- how far down to look for the floor
+		ArcHeightStuds = 2.5,
+		Seconds = 0.45,
+		SpinTurns = 1, -- the block turns over this many times in the air
+		LandYawJitterDegrees = 25, -- it lands facing the thrower, give or take this
+	},
+	FloorSizeStuds = 3, -- the block's edge once it is on the floor
+	-- Opening: the owner holds E (gamepad X, or touch and hold the prompt) for HoldSeconds,
+	-- within MaxDistanceStuds (the server checks the distance again, with SlackStuds).
+	Open = {
+		HoldSeconds = 0.5, -- native prompt: a quick half-second hold
+		MaxDistanceStuds = 10,
+		SlackStuds = 4,
+		PromptLiftStuds = 2.4, -- the prompt floats this far over the block's base
+	},
+	-- After the hold: the block rises and spins faster and faster, then bursts and the reel
+	-- opens. Spin in turns a second, easing from SpinStart to SpinEnd.
+	Rise = {
+		HeightStuds = 4,
+		Seconds = 1.4, -- one second shorter before the burst/reel
+		SpinStart = 2, -- visibly spinning from the start
+		SpinEnd = 9,
+		ShakeStuds = 0.12, -- a growing shiver near the top
+		GlowBoost = 3, -- its light and particles grow to this many times as it rises
+	},
+	BurstSeconds = 0.35, -- the pop at the top: it swells and fades, then is gone
+	BurstScale = 1.6,
+	-- A thrown block nobody opens goes back to the hotbar after this long, or as soon as its
+	-- owner is this far away (it never leaves the save until it is opened).
+	ReturnSeconds = 60,
+	ReturnStuds = 60,
+	CheckSeconds = 1, -- how often the server looks for blocks to return
+	-- The screens (LuckyHotbar, LuckyWorld, LuckyOpening).
+	UI = {
+		SlotPx = 64, -- a hotbar slot, square (phone: PhoneSlotPx)
+		PhoneSlotPx = 48,
+		PhoneWidthPx = 900, -- a screen narrower than this uses the phone sizes
+		SlotGapPx = 6,
+		SlotCornerPx = 12,
+		SlotStrokePx = 2.5,
+		SelectedStrokePx = 4, -- the held block's slot: a thick gold outline
+		SlotFillTransparency = 0.35, -- the slots' ink fill, see-through over the world
+		BottomPx = 10, -- the hotbar's gap from the bottom of the screen
+		NumberPx = 14, -- the slot's number, top-left
+		TimerPx = 14, -- the countdown along the slot's bottom
+		IconTurnDegreesPerSecond = 30, -- the 3D icon turns slowly
+		IconFieldOfView = 30,
+		IconAmbient = 1, -- neutral fill keeps every turning face bright in the bag/hotbar
+		IconLight = 2, -- brighter directional key; retains the original texture colours
+		IconLightDirection = { -1, -2, -1.5 }, -- above and in front of the preview
+		IconDistance = 2.6, -- the icon camera's distance, in block edges
+		BagButtonPx = 44, -- the bag button at the hotbar's end (touch and mouse)
+		BagCountPx = 14, -- "+12" on it: blocks waiting in the bag
+		-- The bag panel (` key, the bag button, L3 on a gamepad): a grid of every block.
+		BagColumns = 6,
+		BagRowsShown = 3,
+		BagPadPx = 12,
+		BagTitlePx = 26,
+		BagHintPx = 16,
+		BagGapAbovePx = 12, -- between the panel and the hotbar
+		DragThresholdPx = 8, -- a press that moves this far is a drag
+		ShakeWords = 1.6, -- "Ready in 1:42" shows this long over the hotbar
+		NoticePx = 22,
+		-- The world countdown; Roblox draws the native open prompt.
+		BillboardTimerPx = 24,
+		-- Lifts for the bottom-centre prompts (OpponentPrompt, claim block, reminders,
+		-- Collect) while the hotbar shows, so they sit over it.
+		LiftPx = 80,
+		PhoneLiftPx = 62,
+		-- The dark reel (LuckyOpening): a very see-through grey-black over everything, so the
+		-- world still shows through (designer, 2026-10-03: no white panel).
+		DimColor = { 12, 14, 22 },
+		DimTransparency = 0.35,
+		DimSeconds = 0.25,
+		DisplayOrderAbove = 16, -- over the HUD screen (the case opening sits at +14)
+		TileFillTransparency = 0.45, -- each reel tile: a dark see-through card...
+		TileStrokePx = 2, -- ...with a slight border in its rarity's colour
+		TileStrokeTransparency = 0.25,
+		RarityTextPx = 16, -- "Epic" in its colour, under the name
+		-- A tile's rows, as shares of its height (thumbnail middle, then the tops of the name,
+		-- the rarity and the chance).
+		TileThumbCentreShare = 0.33,
+		TileNameTopShare = 0.58,
+		TileRarityTopShare = 0.7,
+		TileOddsTopShare = 0.82,
+		ReelFadeShare = 0.12, -- the strip fades out over this share of its width at each end
+		-- The result card: "YOU GOT <CUE>!" with turning rays in the rarity's colour.
+		CardWidthPx = 460,
+		CardArtPx = 220,
+		CardTitlePx = 40,
+		CardNamePx = 30,
+		CardRarityPx = 24,
+		CardHintPx = 18,
+		CardRaysShare = 2.6, -- the rays' size, of the card's width
+		CardRaysTransparency = 0.15,
+		CardRaysDegreesPerSecond = 25,
+		CardInSeconds = 0.35,
+		CardDismissAfterSeconds = 0.6, -- a tap before this does nothing (no accidental skip)
+		MinScale = 0.55,
+		MaxScale = 1.4,
+		MarginPx = 12,
+	},
+}
+
+---------------------------------------------------------------------------------------------
 -- A bot's equipped cue (src/shared/Progression/BotCues.luau; the Bots lane's Look.cue calls
 -- it): its rarity matches what real players at that rank own (the approved economy plan,
 -- 2026-10-02, section 3). Each row is the chance the cue is that rarity or better; the rest
@@ -9842,6 +10008,7 @@ Config.Debug = {
 			"AddMoney",
 			"GiveCue",
 			"GiveCase",
+			"GiveBlock",
 			"Spins",
 			"Lucky",
 			"Ult",
@@ -9862,6 +10029,7 @@ Config.Debug = {
 		-- and a Money Party are this server's, like the real ones).
 		GiveCue = "/givecue", -- /givecue <id|name> [count]: never Classic or a Unique cue
 		GiveCase = "/givecase", -- /givecase <standard|rare|epic|legendary|event> [count]
+		GiveBlock = "/giveblock", -- /giveblock <yellow|blue> [count]: lucky blocks (the test build)
 		OpenCase = "/opencase", -- /opencase <type>: opens one on the reel, like the button
 		Inv = "/inv", -- prints your inventory privately
 		ClearInv = "/clearinv", -- empties your cues (but Classic) and cases

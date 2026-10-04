@@ -16,6 +16,10 @@
 --   thick edge in that colour; after a short hold the reel reports it is done.
 -- - skip() jumps straight to the prize (a tap, A or B).
 -- - Each card reads the cue's name and its odds in its rarity's colour (GUI lane, 2026-10-03).
+-- - The Dark look (lucky blocks, designer 2026-10-03; Config.LuckyBlocks.UI): no white window or
+--   white ends, the strip floats over the dim with its ends fading out (a CanvasGroup), and each
+--   card is a dark see-through tile with a slight border in its rarity's colour reading the
+--   cue's name, its rarity in that colour and its chance.
 -- Built in natural pixels inside a CaseOpeningFx stage; layout(width) sizes it.
 local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -35,6 +39,7 @@ local UISound = require(script.Parent.UISound)
 
 local C = Config.UI.CaseOpening
 local R = C.Reel
+local LU = Config.LuckyBlocks.UI
 local K = Config.UI.Kit
 local INK = HudParts.tone("Ink")
 local GOLD = HudParts.tone("Gold")
@@ -46,9 +51,10 @@ type Slot = {
 	frame: Frame,
 	edge: UIStroke,
 	thumb: Frame,
-	dressing: CueThumb.Dressing,
+	dressing: CueThumb.Dressing?, -- the light look's rarity dressing (none in the Dark look)
 	name: TextLabel,
 	odds: TextLabel,
+	rarityText: TextLabel?, -- the Dark look's rarity word
 }
 
 local Reel = {}
@@ -87,6 +93,58 @@ local function pool(caseId: string): ({ { id: string, rarity: string } }, { numb
 		total = 1
 	end
 	return cues, weights, total
+end
+
+-- A Dark-look card: a dark see-through tile with a slight border in its rarity's colour, the
+-- thumbnail, then the cue's name, its rarity in that colour and its chance.
+local function makeDarkCard(parent: Instance, index: number, id: string, rarity: string): Slot
+	local frame = HudParts.frame(parent, "Card" .. index)
+	frame.Size = UDim2.fromOffset(R.CardWidthPx, R.CardHeightPx)
+	frame.Position = UDim2.fromOffset((index - 1) * pitch(), 0)
+	local fill = HudParts.frame(frame, "Fill")
+	fill.Size = UDim2.fromScale(1, 1)
+	fill.BackgroundTransparency = LU.TileFillTransparency
+	fill.BackgroundColor3 = INK
+	fill.ZIndex = 0
+	HudParts.corner(fill, R.CardCornerPx)
+	local edge = Instance.new("UIStroke")
+	edge.Name = "Edge"
+	edge.Color = CueThumb.accentColor(rarity)
+	edge.Thickness = LU.TileStrokePx
+	edge.Transparency = LU.TileStrokeTransparency
+	edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	edge.Parent = fill
+	local side = math.floor(R.CardWidthPx * R.ThumbShare)
+	local thumb = CueThumb.new(frame, id)
+	thumb.AnchorPoint = Vector2.new(0.5, 0.5)
+	thumb.Position = UDim2.fromScale(0.5, LU.TileThumbCentreShare)
+	thumb.Size = UDim2.fromOffset(side, side)
+	thumb.ZIndex = 2
+	local function row(name: string, size: number, top: number, text: string): TextLabel
+		local label = HudParts.text(frame, name, size, text)
+		label.AnchorPoint = Vector2.new(0.5, 0)
+		label.Position = UDim2.fromScale(0.5, top)
+		label.Size = UDim2.new(1, -8, 0, size + 4)
+		label.TextWrapped = false
+		label.ZIndex = 3
+		return label
+	end
+	local name = row("Name", R.NameTextPx, LU.TileNameTopShare, CueThumb.cueName(id))
+	local rarityText =
+		row("Rarity", LU.RarityTextPx, LU.TileRarityTopShare, CueThumb.rarityName(rarity))
+	rarityText.TextColor3 = CueThumb.accentColor(rarity)
+	local odds = row("Odds", R.OddsTextPx, LU.TileOddsTopShare, ODDS_TEXT[id] or "")
+	return {
+		id = id,
+		rarity = rarity,
+		frame = frame,
+		edge = edge,
+		thumb = thumb,
+		dressing = nil,
+		name = name,
+		odds = odds,
+		rarityText = rarityText,
+	}
 end
 
 -- One card of the strip: a white rounded face dressed in the rarity, the cue's thumbnail on it.
@@ -146,16 +204,28 @@ local function dressCard(slot: Slot, id: string, rarity: string)
 	slot.id = id
 	slot.rarity = rarity
 	CueThumb.set(slot.thumb, id)
-	slot.dressing.set(rarity)
 	slot.name.Text = CueThumb.cueName(id)
 	slot.odds.Text = ODDS_TEXT[id] or ""
-	slot.odds.TextColor3 = CueThumb.accentColor(rarity)
+	local rarityText = slot.rarityText
+	if rarityText then
+		rarityText.Text = CueThumb.rarityName(rarity)
+		rarityText.TextColor3 = CueThumb.accentColor(rarity)
+		slot.edge.Color = CueThumb.accentColor(rarity)
+	else
+		slot.odds.TextColor3 = CueThumb.accentColor(rarity)
+	end
+	if slot.dressing then
+		slot.dressing.set(rarity)
+	end
 end
 
 --- Build the reel for `caseId` in `parent` (a stage), its strip drawn at random from the case's
---- pool. Size it with layout(width); put the prize in with setPrize, then start().
-function Reel.new(parent: Instance, caseId: string): any
+--- pool. Size it with layout(width); put the prize in with setPrize, then start(). `opts.look`
+--- "Dark" is the lucky blocks' look (see the top).
+function Reel.new(parent: Instance, caseId: string, opts: { look: string? }?): any
 	local self: any = setmetatable({}, Reel)
+	local dark = opts ~= nil and opts.look == "Dark"
+	self.dark = dark
 	self.caseId = caseId
 	self.random = Random.new()
 	self.phase = "Idle" -- Idle, Spinning, Centring, Holding, Done
@@ -183,13 +253,34 @@ function Reel.new(parent: Instance, caseId: string): any
 	halo.ZIndex = 0
 	self.halo = halo
 
-	local window = HudParts.card(root, "Window", R.CornerPx)
+	local window = if dark
+		then HudParts.frame(root, "Window")
+		else HudParts.card(root, "Window", R.CornerPx)
 	window.Size = UDim2.fromScale(1, 1)
 	window.ZIndex = 1
 	self.window = window
 
-	-- The strip, clipped inside the window's straight part (a clip ignores round corners).
-	local clip = HudParts.frame(window, "Clip")
+	-- The strip, clipped inside the window's straight part (a clip ignores round corners). The
+	-- Dark look's clip is a CanvasGroup whose ends fade out over the dim.
+	local clip: GuiObject
+	if dark then
+		local group = Instance.new("CanvasGroup")
+		group.Name = "Clip"
+		group.BackgroundTransparency = 1
+		group.BorderSizePixel = 0
+		group.Parent = window
+		local ends = Instance.new("UIGradient")
+		ends.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(LU.ReelFadeShare, 0),
+			NumberSequenceKeypoint.new(1 - LU.ReelFadeShare, 0),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		ends.Parent = group
+		clip = group
+	else
+		clip = HudParts.frame(window, "Clip")
+	end
 	clip.ClipsDescendants = true
 	clip.ZIndex = 1
 	self.clip = clip
@@ -209,7 +300,9 @@ function Reel.new(parent: Instance, caseId: string): any
 				break
 			end
 		end
-		self.slots[index] = makeCard(strip, index, chosen.id, chosen.rarity)
+		self.slots[index] = if dark
+			then makeDarkCard(strip, index, chosen.id, chosen.rarity)
+			else makeCard(strip, index, chosen.id, chosen.rarity)
 	end
 	strip.Size = UDim2.fromOffset(#self.slots * pitch(), R.CardHeightPx)
 	-- Fetch the strip's pictures now (the case is still in front), so no card spins past blank.
@@ -227,9 +320,10 @@ function Reel.new(parent: Instance, caseId: string): any
 		end)
 	end)
 
-	-- Soft white ends, so cards slide in and out of view.
+	-- Soft white ends, so cards slide in and out of view (the Dark look fades its clip instead).
 	self.fades = {} :: { Frame }
-	for i, side in { 0, 1 } do
+	local sides: { number } = if dark then {} else { 0, 1 }
+	for i, side in sides do
 		local fade = HudParts.frame(clip, if side == 0 then "FadeLeft" else "FadeRight")
 		fade.BackgroundTransparency = 0
 		fade.BackgroundColor3 = WHITE
@@ -300,7 +394,10 @@ function Reel.layout(self: any, width: number)
 	local stroke = K.PanelStrokePx
 	self.width = width
 	self.root.Size = UDim2.fromOffset(width, h)
-	local inset = R.CornerPx
+	local inset = if self.dark then 0 else R.CornerPx
+	if self.dark then
+		stroke = 0
+	end
 	self.clipWidth = math.max(1, width - 2 * inset)
 	self.clip.Position = UDim2.fromOffset(inset, stroke)
 	self.clip.Size = UDim2.fromOffset(self.clipWidth, h - 2 * stroke)
@@ -321,7 +418,7 @@ end
 function Reel.place(self: any)
 	self.strip.Position = UDim2.fromOffset(
 		math.floor(self.clipWidth / 2 - self.pos + 0.5),
-		R.PadYPx - K.PanelStrokePx
+		R.PadYPx - (if self.dark then 0 else K.PanelStrokePx)
 	)
 end
 

@@ -3977,6 +3977,37 @@
     "imageId": "96469501734085",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/BoxIdle.rbxm": {
+    "assetId": "120822945598411",
+    "assetType": "Animation",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/LuckyHoldR15.rbxm": {
+    "assetId": "97081574599269",
+    "assetType": "Animation",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/LuckyHoldR6.rbxm": {
+    "assetId": "91317833672251",
+    "assetType": "Animation",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/LuckyThrowR15.rbxm": {
+    "assetId": "127441949230799",
+    "assetType": "Animation",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/LuckyThrowR6.rbxm": {
+    "assetId": "133046367802407",
+    "assetType": "Animation",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/neutral_mask.png": {
+    "assetId": "72694723354109",
+    "assetType": "Decal",
+    "imageId": "104192408636466",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/ui/art/aura_flame.png": {
     "assetId": "82997454954024",
     "assetType": "Decal",

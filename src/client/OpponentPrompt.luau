@@ -16,6 +16,7 @@ local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local BottomLift = require(script.Parent.BottomLift)
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 local Copy = Strings.Match.Request
@@ -162,7 +163,7 @@ function OpponentPrompt.update(
 	local screen: any = self.root.Parent
 	local width = if screen then screen.AbsoluteSize.X else S.PromptWidth
 	self.scale.Scale = math.clamp((width - 2 * S.HeaderMargin) / S.PromptWidth, S.PromptMinScale, 1)
-	self.root.Position = UDim2.new(0.5, 0, 1, -S.PromptBottom)
+	self.root.Position = UDim2.new(0.5, 0, 1, -S.PromptBottom - BottomLift.get())
 	local gamepad = UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1
 	local selected = GuiService.SelectedObject
 	self.hint.Visible = gamepad and not (selected and selected:IsDescendantOf(self.root))

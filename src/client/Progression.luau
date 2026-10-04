@@ -55,6 +55,7 @@ local Popups = require(script.Parent.Popups)
 local TeleportScreen = require(script.Parent.TeleportScreen)
 local TradeMenu = require(script.Parent.TradeMenu)
 local UISound = require(script.Parent.UISound)
+local LuckyClient = require(script.Parent.LuckyClient)
 
 export type Hooks = {
 	-- A pocket of a table, in the ScreenGui's pixels (may be off screen), or nil.
@@ -149,7 +150,7 @@ end
 -- A popup that has the player's attention: menus and held rank popups wait for it, the column
 -- hides under it.
 local function popupUp(): boolean
-	return result:isOpen() or newRank:isOpen() or caseOpening:isOpen()
+	return result:isOpen() or newRank:isOpen() or caseOpening:isOpen() or LuckyClient.isOpen()
 end
 
 -- Close the case opening (its overlay; the first win's reveal belongs to the result screen)
@@ -245,6 +246,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	end)
 	ShopThanks.start(screen)
 	MagicBall.start(screen, deps) -- the Case Drop reveals, through the popup queue
+	LuckyClient.start(screen) -- lucky blocks: the hotbar, the throw, the reel (the test build)
 	local player = Players.LocalPlayer
 	local playerGui = player and player:FindFirstChildOfClass("PlayerGui")
 	if playerGui then
@@ -430,6 +432,15 @@ function Progression.update(state: State)
 			and not teleportUp()
 			and not Menus.isOpen()
 			and not Popups.isShowing()
+	)
+	-- The lucky block hotbar: the lobby with nothing over it (its own bag aside).
+	local menu = Menus.current()
+	LuckyClient.setVisible(
+		not state.inMatch
+			and not busy
+			and not caseOpening:isOpen()
+			and not teleportUp()
+			and (menu == nil or menu == "LuckyBag")
 	)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
 	banner:setInMatch(state.inMatch)

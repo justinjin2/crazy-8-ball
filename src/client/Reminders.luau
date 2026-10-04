@@ -25,6 +25,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
+local BottomLift = require(script.Parent.BottomLift)
 local HudParts = require(script.Parent.HudParts)
 local Menus = require(script.Parent.Menus)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
@@ -180,7 +181,7 @@ function Reminders.start(screen: ScreenGui, source: () -> any?)
 				if short then R.ButtonTextPx[1] else R.ButtonTextPx[2]
 			)
 		end
-		local bottom = if short then T.ShortBottomPx else T.BottomPx
+		local bottom = (if short then T.ShortBottomPx else T.BottomPx) + BottomLift.get()
 		root.Size = UDim2.fromOffset(width, height)
 		root.Position = UDim2.new(0.5, math.floor(over / 2), 1, -bottom)
 		icon.Size = UDim2.fromOffset(iconPx, iconPx)

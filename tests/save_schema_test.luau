@@ -367,6 +367,7 @@ local FIELDS = {
 	"Drops",
 	"Social",
 	"Trades",
+	"LuckyBlocks",
 }
 
 -- Sub-fields the fuzz breaks, by table.
@@ -706,6 +707,39 @@ return {
 		big.Trades.History = { { Id = "x", With = 1, At = 1, Gave = side, Got = {} } }
 		H.expect(#SaveSchema.validate(big).Trades.History == 0, "too many items: dropped")
 	end,
+	["validate repairs lucky blocks: bad entries dropped, ids unique, Next caught up, capped"] = function()
+		local Config, SaveSchema = setup()
+		local save = SaveSchema.template()
+		H.expect(save.LuckyBlocks.Next == 0 and #save.LuckyBlocks.List == 0, "none to start")
+		save.LuckyBlocks = {
+			Next = 1,
+			List = {
+				{ Id = 1, Kind = "Yellow", ReadyAt = 0 },
+				{ Id = 1, Kind = "Blue", ReadyAt = 5 }, -- a repeated id
+				{ Id = 7, Kind = "Purple", ReadyAt = 0 }, -- no such kind
+				"junk",
+				{ Id = 9, Kind = "Blue", ReadyAt = -50 }, -- clamped to 0, Next caught up
+			},
+			Extra = true,
+		}
+		local out, fixes = SaveSchema.validate(save)
+		local list = out.LuckyBlocks.List
+		H.expect(#list == 2, "two good blocks kept")
+		H.expect(list[1].Id == 1 and list[1].Kind == "Yellow", "the first kept in place")
+		H.expect(list[2].Id == 9 and list[2].ReadyAt == 0, "a bad time clamped, not dropped")
+		H.expect(out.LuckyBlocks.Next == 9, "Next is never below an id in the list")
+		H.expect(out.LuckyBlocks.Extra == nil, "only Next and List stay")
+		H.expect(#fixes > 0, "the fixes are reported")
+		local big = SaveSchema.template()
+		for i = 1, Config.LuckyBlocks.MaxBlocks + 5 do
+			table.insert(big.LuckyBlocks.List, { Id = i, Kind = "Yellow", ReadyAt = 0 })
+		end
+		H.expect(
+			#SaveSchema.validate(big).LuckyBlocks.List == Config.LuckyBlocks.MaxBlocks,
+			"capped"
+		)
+	end,
+
 	["template copies are independent"] = function()
 		local _, SaveSchema = setup()
 		local a = SaveSchema.template()

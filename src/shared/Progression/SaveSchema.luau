@@ -23,6 +23,7 @@ local Config = require(script.Parent.Parent.Config)
 local Catalog = require(script.Parent.Catalog)
 local UltCatalog = require(script.Parent.Parent.Ults.Catalog)
 local UltSlots = require(script.Parent.Parent.Ults.Slots)
+local LuckyBlocks = require(script.Parent.LuckyBlocks)
 
 local SaveCfg = Config.Save
 local RanksCfg = Config.Ranks
@@ -70,6 +71,7 @@ local MAP_KEYS = {
 	"Drops",
 	"Social",
 	"Trades",
+	"LuckyBlocks",
 }
 
 -- Shop's true/false fields, in the order fixes are reported.
@@ -193,6 +195,9 @@ function SaveSchema.template(): any
 			History = {},
 			Applied = {}, -- the last MaxAppliedTrades trade ids this save holds the result of
 		},
+		-- Lucky blocks (Progression/LuckyBlocks; the test build, 2026-10-03): Next is the last
+		-- block id given; List, a gapless array in hotbar order of { Id, Kind, ReadyAt (unix) }.
+		LuckyBlocks = LuckyBlocks.fresh(),
 	}
 end
 
@@ -958,6 +963,64 @@ end
 --- clean. Unknown string keys at the top level and in the fixed-field tables are left alone
 --- (they may be a newer version's fields); maps of ids are cleaned entry by entry. Never
 --- errors, whatever it is given.
+-- Lucky blocks: Next a whole number; List a gapless array of at most Config.LuckyBlocks
+-- .MaxBlocks blocks, each { Id (1..Next, unique), Kind (a known kind), ReadyAt (unix) }. A block
+-- that cannot be read is dropped (it never becomes a block of another kind); a ReadyAt out of
+-- range is clamped, so a block is never lost to a clock bug.
+local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
+	fixInteger(blocks, "Next", "LuckyBlocks.Next", SaveCfg.StatCap, fixes)
+	local list = ensureTable(blocks, "List", "LuckyBlocks.List", {}, fixes)
+	fixArray(list, "LuckyBlocks.List", fixes)
+	local kept, seen, dropped = {}, {}, 0
+	for _, block in list do
+		local id = if type(block) == "table" then block.Id else nil
+		if
+			type(block) ~= "table"
+			or not SaveSchema.isInteger(id)
+			or id < 1
+			or seen[id]
+			or LuckyBlocks.kind(block.Kind) == nil
+		then
+			dropped += 1
+		else
+			seen[id] = true
+			local readyAt = SaveSchema.cleanInteger(block.ReadyAt, 0, SaveCfg.UnixTimeCap, 0)
+			table.insert(kept, { Id = id, Kind = block.Kind, ReadyAt = readyAt })
+			if blocks.Next < id then
+				blocks.Next = id
+			end
+		end
+	end
+	if #kept > Config.LuckyBlocks.MaxBlocks then
+		table.insert(
+			fixes,
+			("LuckyBlocks.List: kept the first %d of %s (the cap)"):format(
+				Config.LuckyBlocks.MaxBlocks,
+				entries(#kept)
+			)
+		)
+		for i = #kept, Config.LuckyBlocks.MaxBlocks + 1, -1 do
+			kept[i] = nil
+		end
+	end
+	if dropped > 0 then
+		table.insert(
+			fixes,
+			("LuckyBlocks.List: dropped %s with a bad value"):format(entries(dropped))
+		)
+	end
+	table.clear(list)
+	for i, block in kept do
+		list[i] = block
+	end
+	-- Only the two known keys stay.
+	for key in table.clone(blocks) do
+		if key ~= "Next" and key ~= "List" then
+			blocks[key] = nil
+		end
+	end
+end
+
 function SaveSchema.validate(data: any): (any, { string })
 	local fixes: { string } = {}
 	if type(data) ~= "table" then
@@ -1119,6 +1182,8 @@ function SaveSchema.validate(data: any): (any, { string })
 	fixInteger(social, "Invites", "Social.Invites", SaveCfg.StatCap, fixes)
 
 	fixTrades(data.Trades, fixes)
+
+	fixLuckyBlocks(data.LuckyBlocks, fixes)
 
 	return data, fixes
 end

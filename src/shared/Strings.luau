@@ -294,6 +294,7 @@ return {
 		Usage = {
 			GiveCue = "%s <id|name> [count] [player]",
 			GiveCase = "%s <%s> [count] [player]", -- the case ids
+			GiveBlock = "%s <%s> [count] [player]", -- the lucky block kinds
 			OpenCase = "%s <%s>",
 			Inv = "%s",
 			ClearInv = "%s",
@@ -330,6 +331,7 @@ return {
 		What = {
 			GiveCue = "copies of a cue, by id or name (not Classic or a Unique cue)",
 			GiveCase = "unopened cases",
+			GiveBlock = "lucky blocks into your hotbar (the test build)",
 			OpenCase = "opens one on the reel like the button (gives you one if you have none)",
 			Inv = "lists your cues, cases and equipped cue",
 			ClearInv = "takes every cue but Classic and every case",
@@ -373,6 +375,8 @@ return {
 		NotGiven = "No %s given (you hold the most allowed).",
 		GaveCue = "Gave %s x%d.",
 		GaveCase = "Gave %s x%d.",
+		GaveBlock = "Gave %s x%d.",
+		BadBlock = 'No lucky block called "%s". Blocks: %s.',
 		Opening = "Opening a %s.",
 		InvEquipped = "Equipped: %s",
 		InvCases = "Cases: ",
@@ -960,6 +964,38 @@ return {
 	},
 	-- The case opening (CaseOpening: the reel, the prize card, Fast Open's grid and the first
 	-- win's reveal on the result screen).
+	-- Lucky blocks (the test build, 2026-10-03; LuckyHotbar, LuckyWorld, LuckyOpening).
+	LuckyBlocks = {
+		Names = {
+			Yellow = "Yellow Lucky Block",
+			Blue = "Blue Lucky Block",
+		} :: { [string]: string },
+		ReadyIn = "Ready in %s", -- a block still on its timer: "Ready in 1:42"
+		Bag = "Bag", -- the hotbar's bag button and the panel's title
+		BagCount = "+%d", -- blocks waiting in the bag
+		BagHint = "Drag a block onto a hotbar slot", -- under the bag's grid (mouse and touch)
+		BagHintPad = "Pick a block, then a hotbar slot", -- the same on a gamepad
+		BagEmpty = "No lucky blocks yet",
+		Open = "Open", -- the prompt over a thrown block
+		YouGot = "YOU GOT %s!", -- the result card: the cue's name
+		Continue = "Tap to continue",
+		ContinuePad = "Press A to continue",
+		ContinueMouse = "Click to continue",
+		-- A refused BlockRequest (LuckyBlocks.Reasons).
+		Reasons = {
+			BadRequest = "Something went wrong. Try again.",
+			TooFast = "Slow down a little.",
+			NotLoaded = "Your save is still loading.",
+			NotOwned = "That block is gone.",
+			NotReady = "Not ready yet.",
+			NotHeld = "Hold the block first.",
+			Busy = "Open the block on the floor first.",
+			NoBody = "You can't throw that right now.",
+			TooFar = "Get closer to the block.",
+			NotLanded = "Wait for it to land.",
+			Error = "Something went wrong. Try again.",
+		} :: { [string]: string },
+	},
 	CaseOpening = {
 		FastTitle = "%s x%s", -- Fast Open's title: the case's name and the count ("Standard Case x10")
 		FirstWin = "First win! %s", -- the result screen's reveal: the case's name ("Rare Case")

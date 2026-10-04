@@ -374,6 +374,18 @@ local REMOTES: { [string]: string } = {
 	-- client -> server: claim every held rank reward (RankClaim). server -> that player:
 	-- { ok, money, cases, drops, cues, spins, rows } for the fly animation, or { ok = false }.
 	RankClaim = "RemoteEvent",
+	-- Lucky blocks (the test build, 2026-10-03; src/server/LuckyBlockService.luau).
+	-- client -> server: (action, a, b), checked by Progression/LuckyBlocks.parse:
+	-- "Hold" (block id, or nil to put it away), "Throw" (the held block's id, sent at the throw
+	-- animation's release), "Open" (the thrown block's id, after the 1 s hold), "Move" (id,
+	-- place in the list). Answers { ok = true, ... } or { ok = false, reason } (LuckyBlocks
+	-- .Reasons). Open's answer: { ok, cue, rarity, new, found, burstAt } (burstAt: server time
+	-- the block bursts and the reel may show).
+	BlockRequest = "RemoteFunction",
+	-- server -> one player: their blocks { blocks = { { id, kind, readyAt } } } in hotbar order
+	-- (readyAt in unix seconds, compared with workspace:GetServerTimeNow()). Sent when the save
+	-- loads and after every change, only when it differs from the last one sent.
+	BlockState = "RemoteEvent",
 }
 
 -- Values per table in an AimBroadcast batch.

@@ -42,6 +42,7 @@ local Cases = require(Shared.Progression.Cases)
 local CaseDrop = require(Shared.Progression.CaseDrop)
 local Restock = require(Shared.Progression.Restock)
 local Inventory = require(Shared.Progression.Inventory)
+local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
 local Daily = require(Shared.Progression.Daily)
 local Social = require(Shared.Progression.Social)
 local Trade = require(Shared.Progression.Trade)
@@ -2080,6 +2081,131 @@ function PlayerData.equipCue(player: Player, cueId: string): boolean
 	Inventory.equip(data, cueId)
 	commit(player, data, op)
 	return true
+end
+
+---------------------------------------------------------------------------------------------
+-- Lucky blocks (the test build, 2026-10-03; Progression/LuckyBlocks, LuckyBlockService)
+---------------------------------------------------------------------------------------------
+
+--- Gives `count` (1..Config.LuckyBlocks.MaxBlocks) blocks of `kind`, landing now (their timers
+--- start), at place `at` in the list (nil: the end). False when the save is not loaded, the
+--- arguments are bad (logged) or they would pass the cap (logged).
+function PlayerData.giveLuckyBlocks(
+	player: Player,
+	kind: string,
+	count: number,
+	at: number?
+): boolean
+	local op = "giveLuckyBlocks"
+	local L = Config.LuckyBlocks
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif LuckyBlocks.kind(kind) == nil then
+		return refuse(op, player, ("%s is not a lucky block"):format(tostring(kind)))
+	elseif not intIn(count, 1, L.MaxBlocks) then
+		return refuse(op, player, ("bad count %s"):format(tostring(count)))
+	elseif at ~= nil and not intIn(at, 1, L.MaxBlocks) then
+		return refuse(op, player, ("bad place %s"):format(tostring(at)))
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	local state = data.LuckyBlocks
+	if #state.List + count > L.MaxBlocks then
+		return refuse(op, player, ("would hold more than %d lucky blocks"):format(L.MaxBlocks))
+	end
+	local now = os.time()
+	for i = 1, count do
+		LuckyBlocks.add(state, kind, now, if at then at + i - 1 else nil)
+	end
+	commit(player, data, op)
+	return true
+end
+
+--- Moves the block `id` to place `to` in the list (the hotbar's slots come first). False when
+--- there is no such block or the save is not loaded.
+function PlayerData.moveLuckyBlock(player: Player, id: number, to: number): boolean
+	local op = "moveLuckyBlock"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif not intIn(id, 1, S.StatCap) or not intIn(to, 1, Config.LuckyBlocks.MaxBlocks) then
+		return refuse(op, player, ("bad block %s or place %s"):format(tostring(id), tostring(to)))
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	local _, from = LuckyBlocks.find(data.LuckyBlocks, id)
+	if from == nil then
+		return false
+	elseif from == math.min(to, #data.LuckyBlocks.List) then
+		return true
+	end
+	LuckyBlocks.move(data.LuckyBlocks, id, to)
+	commit(player, data, op)
+	return true
+end
+
+--- Opens the ready block `id` into `cueId` (the caller rolled it with Cases.roll from the
+--- block's case) in one change: the block goes, the cue is added (free origin) and a cue new
+--- to the Index pays the finder's money. Answers (true, Opened, place) where place was the
+--- block's place in the list, or (false, reason): "NotOwned", "NotReady", "NotLoaded",
+--- "Invalid" (logged: a cue that case cannot drop).
+function PlayerData.openLuckyBlock(
+	player: Player,
+	id: number,
+	cueId: string
+): (boolean, any, number?)
+	local op = "openLuckyBlock"
+	if not isPlayer(player) then
+		return refuseInvalid(op, player, "not a player")
+	elseif not intIn(id, 1, S.StatCap) then
+		return refuseInvalid(op, player, ("bad block %s"):format(tostring(id)))
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false, "NotLoaded"
+	end
+	local block = LuckyBlocks.find(data.LuckyBlocks, id)
+	if block == nil then
+		return false, "NotOwned"
+	elseif not LuckyBlocks.isReady(block, os.time()) then
+		return false, "NotReady"
+	end
+	local kind = LuckyBlocks.kind(block.Kind) :: LuckyBlocks.Kind
+	local case = Cases.get(kind.Case)
+	local cue = Catalog.get(cueId)
+	if
+		case == nil
+		or cue == nil
+		or cue.Group ~= "Case"
+		or table.find(cue.Cases, kind.Case) == nil
+		or (case.Odds[cue.Rarity] or 0) <= 0
+	then
+		return refuseInvalid(
+			op,
+			player,
+			("%s does not drop from %s"):format(tostring(cueId), block.Kind)
+		)
+	end
+	if Inventory.count(data, cueId) + 1 > S.ItemCountCap then
+		return refuseInvalid(
+			op,
+			player,
+			("would hold more than %d of %s"):format(S.ItemCountCap, cueId)
+		)
+	end
+	local new = data.Index.Seen[cueId] ~= true and not Inventory.owns(data, cueId)
+	local _, place = LuckyBlocks.remove(data.LuckyBlocks, id)
+	local _, first = Inventory.addCue(data, cueId, 1, false)
+	local found = if first then payFind(data, cueId) else 0
+	local count = Inventory.count(data, cueId)
+	reelFinds[data] = true -- the reel shows it
+	commit(player, data, op)
+	return true,
+		{ cue = cueId, new = new, duplicate = count > 1, count = count, found = found },
+		place
 end
 
 --- The global queue's Ults: On / Off choice (Ults.QueueUlts, save v3): true (ults on, the
