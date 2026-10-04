@@ -708,8 +708,8 @@ return {
 			SaleEnds = "Sale ends in %s",
 			Restricted = "Buying cases with money isn't available where you live. Cases you earn still open.",
 			Bought = "Bought!", -- the dialog after buying a case
-			BoughtOne = "Your %s is in your Inventory.", -- the case's name
-			BoughtMany = "%s x%d added to your Inventory.", -- the case's name, how many
+			BoughtOne = "Your %s is in your hotbar.", -- the block's name
+			BoughtMany = "%s x%d added to your hotbar.", -- the block's name, how many
 			OpenNow = "Open now",
 			Later = "Later",
 			-- The odds panel.
@@ -763,21 +763,56 @@ return {
 			-- The one scrolling page (GUI lane, 2026-10-03). Big, short words: about 40%
 			-- longer translations still fit.
 			Sections = {
-				Offer = "SPECIAL OFFER",
+				GrandOpening = "GRAND OPENING",
+				Offer = "STARTER & VIP",
 				Vip = "VIP",
 				Limited = "LIMITED",
 				Restock = "RESTOCK",
-				Mystery = "MYSTERY CASES",
+				Mystery = "MYSTERY BLOCK",
 				Money = "MONEY",
-				Boosts = "BOOSTS",
+				Boosts = "PASSES",
 				RobloxPlus = "ROBLOX PLUS",
 			},
 			Header = "— %s —", -- a section's header: "— VIP —"
-			Jump = { Deals = "Deals", Cases = "Cases", Money = "Money", Passes = "Passes" },
+			Jump = {
+				Featured = "Featured",
+				Blocks = "Blocks",
+				Money = "Money",
+				Passes = "Passes",
+			},
+			-- The lucky block cards (designer, 2026-10-04).
+			Opening = {
+				Title = "GRAND OPENING",
+				Subtitle = "LUCKY BLOCK · LIMITED · YOU COULD PULL...",
+				Unique = "UNIQUE",
+				Limited = "LIMITED",
+				New = "NEW",
+				Vaulted = "VAULTED", -- the band after the deal ended
+				VaultedLine = "The Grand Opening block is gone for good.",
+				Guarantee = "%s guaranteed by your %s block · %s opened", -- the cue, the count
+				GuaranteeDone = "%s is yours!", -- the guaranteed cue, once owned
+				Save = "save %d%%", -- under a bundle: "save 12%"
+			},
+			Count = "x%d", -- over a column of buttons: "x10"
+			AlwaysInStock = "Always in stock",
+			MysteryTitle = "Mystery Lucky Block",
+			MysteryOpens = "Opens into one of the six blocks below", -- the Mystery block's line
+			OrBetter = "%s cue or better: %s", -- "Epic cue or better: 0.13%"
+			RestockOdds = "each slot: %s", -- after the countdown: the slots' chances
+			OddsPair = "%s %s", -- "Rare 36.6%"
+			LeftForYou = "%d left for you",
+			VipSlot = "VIP only · a 4th block every restock",
+			GetVip = "Get VIP",
+			Ordinal = "%sth", -- "400th" (a count's ordinal; English only)
+			PassLines = { -- the passes' lines
+				UltSlot2 = "Equip a second ability",
+				UltSlot3 = "Equip a third ability",
+			},
+			PassNames = { UltSlot2 = "Ability Slot 2", UltSlot3 = "Ability Slot 3" },
 			Times = "x%s", -- a multiplier: "x2"
 			MoneyWord = "MONEY", -- after VIP's "x1 > x2"
 			VipPerks = "VIP Cue · gold [VIP] tag · free daily spin",
-			StarterPerks = "%s + 1 hour of x2 money", -- the Starter Cue's name
+			StarterPerks = "%s (Rare or better) + 1 hour of x2 money", -- the Starter block
 			Off = "%d%% OFF", -- a sticker: "30% OFF"
 			OfferEnds = "Ends in %s",
 			FirstBuy = "FIRST BUY x2", -- the first money pack's sticker
@@ -982,6 +1017,15 @@ return {
 			Sky = "Sky Lucky Block",
 			Starter = "Starter Lucky Block",
 			Gift = "Gift Lucky Block",
+		} :: { [string]: string },
+		-- The kinds' short names (the Mystery block's odds list).
+		Short = {
+			Standard = "Standard",
+			Uncommon = "Uncommon",
+			Rare = "Rare",
+			Epic = "Epic",
+			Legendary = "Legendary",
+			Mythic = "Mythic",
 		} :: { [string]: string },
 		ReadyIn = "Ready in %s", -- a block still on its timer: "Ready in 1:42"
 		Bag = "Bag", -- the hotbar's bag button and the panel's title

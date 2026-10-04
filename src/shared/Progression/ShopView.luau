@@ -109,12 +109,14 @@ export type LimitedView = {
 
 export type PartyView = { endsAt: number, buyer: string? }
 
--- A block deal as the client reads it (Config.Shop.Deals plus its window now).
+-- A block deal as the client reads it (Config.Shop.Deals plus its window now). Three arrays
+-- side by side (a sparse count-keyed table does not cross a remote): counts[i] blocks cost
+-- money[i] money, or Robux through products[i].
 export type DealView = {
 	kind: string, -- the lucky block kind
-	money: { [number]: number }, -- count -> money price
-	products: { [number]: string }, -- count -> Config.Products key
 	counts: { number }, -- the counts sold, smallest first
+	money: { number }, -- each count's money price
+	products: { string }, -- each count's Config.Products key
 	open: boolean,
 	timed: boolean,
 	startsAt: number,
@@ -469,11 +471,16 @@ function ShopView.build(ctx: Context): Payload
 			table.insert(counts, count)
 		end
 		table.sort(counts)
+		local money, keys = {}, {}
+		for i, count in counts do
+			money[i] = row.Money[count]
+			keys[i] = row.Products[count]
+		end
 		deals[key] = {
 			kind = row.Kind,
-			money = table.clone(row.Money),
-			products = table.clone(row.Products),
 			counts = counts,
+			money = money,
+			products = keys,
 			open = window.open,
 			timed = window.timed,
 			startsAt = window.startsAt,

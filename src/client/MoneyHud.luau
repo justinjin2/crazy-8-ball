@@ -11,8 +11,9 @@
 -- (up or down), so it can never drift. A landing never lifts it past the true value (a preview's
 -- made-up money only bumps the icon).
 --
--- Purely visual: small and tight in the corner, nothing in it takes input, so the touch
--- thumbstick under it still starts from the lower left. Hidden until the save is loaded
+-- Small and tight in the corner. The one thing in it that takes input is the gold "+" at the
+-- pill's right end (designer, 2026-10-04): it opens the Shop on its Money tab (Menus; nothing
+-- happens while menus are blocked, in a match). Hidden until the save is loaded
 -- (`DataLoaded`), then it starts at the saved total with no animation.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -23,6 +24,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
+local Menus = require(script.Parent.Menus)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -85,6 +87,20 @@ function MoneyHud.new(screen: ScreenGui): MoneyHud
 	self.amount.TextXAlignment = Enum.TextXAlignment.Left
 	self.icon = HudParts.icon(root, "CashStack", "CashIcon")
 	self.icon.ZIndex = 2
+	-- The "+": a round gold candy with a big plus, over the pill's right end.
+	local plus = HudParts.candy(root, "+", function()
+		UISound.play("Click")
+		Menus.open("Shop", "Money")
+	end, "Yellow")
+	plus.Name = "Plus"
+	plus.ZIndex = 3
+	plus.Selectable = false -- a gamepad never lands on it (the menus have their own way in)
+	local parts = HudParts.candyParts(plus)
+	if parts then
+		parts.label.AutoLocalize = false
+	end
+	self.plus = plus
+	self.plusBob = UIAnim.bob(plus)
 
 	table.insert(
 		self.connections,
@@ -162,15 +178,23 @@ function MoneyHud.layout(self: any)
 		self.amount.Font,
 		Vector2.new(10000, 1000)
 	).X
-	local pillWidth = over + 4 + words + C.TextPadPx
+	local plusSize = if short then C.ShortPlusPx else C.PlusPx
+	local plusOver = math.floor(plusSize * C.PlusOverPill)
+	local pillWidth = over + 4 + words + C.TextPadPx + plusOver
 	self.root.Position = UDim2.new(0, margin, 1, -margin)
-	self.root.Size = UDim2.fromOffset(pillLeft + pillWidth, iconSize)
+	self.root.Size = UDim2.fromOffset(pillLeft + pillWidth + (plusSize - plusOver), iconSize)
 	self.pill.Position = UDim2.fromOffset(pillLeft, math.floor((iconSize - pillHeight) / 2))
 	self.pill.Size = UDim2.fromOffset(pillWidth, pillHeight)
 	self.amount.Position = UDim2.fromOffset(over + 4, 1)
 	self.amount.Size = UDim2.fromOffset(words + C.TextPadPx / 2, pillHeight - 2)
 	self.icon.Position = UDim2.fromOffset(0, 0)
 	self.icon.Size = UDim2.fromOffset(iconSize, iconSize)
+	local plus: TextButton = self.plus
+	plus.Position =
+		UDim2.fromOffset(pillLeft + pillWidth - plusOver, math.floor((iconSize - plusSize) / 2))
+	plus.Size = UDim2.fromOffset(plusSize, plusSize)
+	HudParts.setButtonTextSize(plus, if short then C.ShortPlusTextPx else C.PlusTextPx)
+	HudParts.setMinHit(plus, Config.UI.Menu.Frame.TouchMinPx)
 end
 
 -- Count the shown number to `to` over `seconds`, easing out, from wherever it is now (a new
@@ -349,6 +373,9 @@ function MoneyHud.destroy(self: any)
 	if self.count then
 		self.count:Disconnect()
 		self.count = nil
+	end
+	if self.plusBob then
+		self.plusBob.stop()
 	end
 	for _, connection in self.connections do
 		connection:Disconnect()

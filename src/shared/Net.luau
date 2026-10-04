@@ -189,9 +189,10 @@ local REMOTES: { [string]: string } = {
 	--     each item's `block` the lucky block kind in that slot (Slot1 .. Slot3, Vip) } (a new
 	--     restock every Config.Shop.Restock.SlotSeconds; ShopState is sent again when it
 	--     changes),
-	--   deals = { [dealId] = { kind, money = { [count] = price }, products = { [count] = key },
-	--     counts, open, timed, startsAt, endsAt, vaulted, vaultedUntil } } (Config.Shop.Deals:
-	--     Mystery always open; GrandOpening for its 21 days, "vaulted" for 7 more),
+	--   deals = { [dealId] = { kind, counts, money, products (three arrays side by side:
+	--     counts[i] blocks for money[i] money or Robux product products[i]), open, timed,
+	--     startsAt, endsAt, vaulted, vaultedUntil } } (Config.Shop.Deals: Mystery always open;
+	--     GrandOpening for its 21 days, "vaulted" for 7 more),
 	--   guarantees = { [kind] = { cue, at, opened, left, owned } } (a block kind's Guarantee:
 	--     the Grand Opening block's Beta Cue on the 400th open),
 	--   mystery = { price, bulkCount, bulkPrice }, skip = { moneyPerMinute, minMoney },

@@ -1,19 +1,22 @@
 --!strict
 -- ShopPage: what the one scrolling Shop page shows, built from the server's ShopState (GUI
--- lane, 2026-10-03; Net.luau ShopState). Every number comes from the state or Config; this
--- only words it. Sections in Config.Shop.Order, each a list of ShopCards specs:
---   * Offer: the Starter Pack while its window is open (a rainbow title, its countdown).
---   * Vip: VIP "x1 > x2 MONEY", sold as the welcome offer (half price, the pass's price
---     crossed out) while that window is open, else at the release sale's price, else the
---     pass; "Owned" for a VIP.
---   * Limited: each Limited cue on the shelf.
---   * Restock: every item of this restock as a tile (the lucky slot shines), its countdown
---     under the header; restricted players see why instead of Buy.
---   * Mystery: x1 and x10 for money, x10 for Robux (old prices: ten singles; the sale's
---     normal price); restricted players see a note instead.
---   * Money: the seven packs (the sale's products swapped in during the release sale, the
---     normal price crossed out; big packs show what the same money costs in Handfuls).
---   * Boosts: Quick Cases and Money Party. RobloxPlus: Get Roblox Plus (not for members).
+-- lane, 2026-10-03; the lucky-block economy, designer 2026-10-04; Net.luau ShopState). Every
+-- number comes from the state or Config; this only words it. Sections in Config.Shop.Order,
+-- each a list of card specs (ShopCards draws the plain ones, ShopBlockCards the block ones:
+-- a spec with `kit = "Block"`):
+--   * GrandOpening: the Grand Opening block band while its deal runs (then "VAULTED" for a
+--     week): the two Unique cues it could pull, x1 / x3 / x10 for Robux (the old price
+--     crossed out) or money, the Beta Cue guarantee line, the countdown.
+--   * Mystery: the Mystery block: always in stock, the six tiers' odds, x1 / x10 for money
+--     or Robux (the sale's product while the release sale runs).
+--   * Restock: this restock's three slots and the VIP slot as block tiles with their odds,
+--     the countdown and the slots' chances under the header.
+--   * Offer: the Starter Pack (a Starter block tile with its odds, while its window is open)
+--     and VIP side by side: the welcome offer or the sale price with the pass's price
+--     crossed out; "Owned" for a VIP.
+--   * Limited: each Limited cue on the shelf (none scheduled now).
+--   * Money: the seven packs (the sale's products swapped in during the release sale).
+--   * Boosts: Money Party, the ability slot passes and Get Roblox Plus (not for members).
 -- Buttons call back into the ShopMenu (`shop`), which sends the requests.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -22,26 +25,36 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
+local CaseDrop = require(Progression:WaitForChild("CaseDrop"))
+local Cases = require(Progression:WaitForChild("Cases"))
 local Format = require(Progression:WaitForChild("Format"))
+local LuckyBlocks = require(Progression:WaitForChild("LuckyBlocks"))
 local Shop = require(Progression:WaitForChild("Shop"))
 local CueThumb = require(script.Parent.CueThumb)
 local ItemState = require(script.Parent.ItemState)
-local RewardChips = require(script.Parent.RewardChips)
+local ShopBlockCards = require(script.Parent.ShopBlockCards)
 local ShopCards = require(script.Parent.ShopCards)
 local ShopParts = require(script.Parent.ShopParts)
 local UISound = require(script.Parent.UISound)
 
 local COPY: { [string]: any } = Strings.Menus.Shop :: any
-local CASE_NAMES: { [string]: string } = Strings.Items.Cases :: any
+local OPENING: { [string]: string } = COPY.Opening
 local PACK_NAMES: { [string]: string } = COPY.Packs
+local BLOCK_NAMES: { [string]: string } = Strings.LuckyBlocks.Names :: any
+local SHORT_NAMES: { [string]: string } = Strings.LuckyBlocks.Short :: any
+local RARITY_NAMES: { [string]: string } = Strings.Items.Rarities :: any
 local BIG_PACK_FROM = 4 -- packs from the 4th up show what the same money costs in Handfuls
+local R = Config.Shop.Restock
 
 local ShopPage = {}
 
+-- A card spec of either kit: ShopCards.Spec, or ShopBlockCards.Spec with `kit = "Block"`.
+export type Spec = any
+
 export type Section = {
 	key: string,
-	grid: boolean, -- tiles in a grid (else hero cards stacked)
-	cards: { ShopCards.Spec },
+	grid: boolean, -- tiles in a grid (else bands stacked)
+	cards: { Spec },
 	line: string?, -- a line under the header
 	lineEnds: number?, -- or a countdown there
 	lineWords: string?,
@@ -121,34 +134,150 @@ end
 -- Sections
 --------------------------------------------------------------------------------------------
 
-local function offerSection(state: any, products: any, shop: any, now: number): Section
-	local cards: { ShopCards.Spec } = {}
-	local window = tableOf(tableOf(state.offers).StarterPack)
-	local open = window.open == true and type(window.endsAt) == "number" and window.endsAt > now
-	if open and state.starterBought ~= true then
-		table.insert(cards, {
-			id = "StarterPack",
-			shape = "Hero",
-			icon = "StarterPack",
-			title = COPY.StarterPack,
-			titleStyle = "Rainbow",
-			big = Format.money(Config.Shop.StarterMoney),
-			line = COPY.StarterPerks:format(
-				Strings.LuckyBlocks.Names[Config.Shop.StarterBlock] or Config.Shop.StarterBlock
-			),
-			timerEnds = window.endsAt,
-			timerWords = COPY.OfferEnds,
-			buttons = { robuxButton(shop, "StarterPack", products) },
-			shine = true,
+-- The odds strip of a case: its rarities, then its Unique rows.
+local function oddsRows(caseId: string?): { ShopBlockCards.OddsRow }
+	local rows = {}
+	if caseId == nil then
+		return rows
+	end
+	for _, o in Cases.odds(caseId) do
+		table.insert(rows, {
+			name = RARITY_NAMES[o.rarity] or o.rarity,
+			display = o.display,
+			rarity = o.rarity,
 		})
 	end
-	return { key = "Offer", grid = false, cards = cards }
+	for _, u in Cases.uniqueRows(caseId) do
+		table.insert(
+			rows,
+			{ name = CueThumb.cueName(u.cue), display = u.display, rarity = "Unique" }
+		)
+	end
+	return rows
 end
 
-local function vipSection(state: any, products: any, shop: any, now: number): Section
+-- A deal's columns (x1, x3, x10): the Robux button (the old price crossed out), the money
+-- button, and "save 12%" against buying singles. `robuxFirst` puts Robux on top.
+local function dealColumns(
+	state: any,
+	products: any,
+	shop: any,
+	dealId: string,
+	deal: any,
+	robuxFirst: boolean
+): { ShopBlockCards.Column }
+	local columns = {}
+	local counts = tableOf(deal.counts)
+	local money = tableOf(deal.money)
+	local keys = tableOf(deal.products)
+	local sale = tableOf(state.releaseSale)
+	local swap = tableOf(sale.swap)
+	local single = if type(money[1]) == "number" then money[1] else 0
+	local list: { [string]: any } = Config.Products.List :: any
+	for i, count in counts do
+		if type(count) ~= "number" or type(money[i]) ~= "number" then
+			continue
+		end
+		local price = money[i]
+		local key = keys[i]
+		local column: ShopBlockCards.Column = { label = COPY.Count:format(count), buttons = {} }
+		local moneyBtn = moneyButton(shop, shop.blocksKey(dealId, count), price, function()
+			shop:buyBlocks(dealId, count)
+		end)
+		local robuxBtn: ShopCards.Button? = nil
+		if type(key) == "string" and products[key] ~= nil then
+			-- The sale's product while the release sale runs.
+			local saleKey = swap[key]
+			local buyKey = if sale.open == true
+					and type(saleKey) == "string"
+					and products[saleKey]
+				then saleKey
+				else key
+			robuxBtn = robuxButton(shop, buyKey, products)
+			local row = list[buyKey] or {}
+			local was = if type(row.Was) == "number" then row.Was else nil
+			if buyKey ~= key then
+				was = ShopParts.robuxOf(products[key], key)
+			end
+			local now = ShopParts.robuxOf(products[buyKey], buyKey)
+			if was and was > now then
+				column.old = ShopParts.robux(was)
+			end
+		end
+		if robuxFirst then
+			if robuxBtn then
+				table.insert(column.buttons, robuxBtn)
+			end
+			table.insert(column.buttons, moneyBtn)
+		else
+			table.insert(column.buttons, moneyBtn)
+			if robuxBtn then
+				table.insert(column.buttons, robuxBtn)
+			end
+		end
+		if count > 1 and single > 0 and single * count > price then
+			column.note =
+				OPENING.Save:format(math.floor((1 - price / (single * count)) * 100 + 0.5))
+		end
+		table.insert(columns, column)
+	end
+	return columns
+end
+
+local function grandOpeningSection(state: any, products: any, shop: any, _now: number): Section
+	local cards: { Spec } = {}
+	local deal = tableOf(tableOf(state.deals).GrandOpening)
+	if not (deal.open == true or deal.vaulted == true) then
+		return { key = "GrandOpening", grid = false, cards = cards }
+	end
+	local chase = {}
+	for _, u in Cases.uniqueRows("GrandOpening") do
+		table.insert(chase, { cue = u.cue, display = u.display })
+	end
+	local spec: ShopBlockCards.Spec = {
+		id = "GrandOpening",
+		shape = "Opening",
+		kind = "GrandOpening",
+		title = OPENING.Title,
+		titleStyle = "Rainbow",
+		subtitle = OPENING.Subtitle,
+		chase = chase,
+		shine = true,
+	}
+	(spec :: any).kit = "Block"
+	if deal.vaulted == true then
+		spec.status, spec.statusTone = OPENING.Vaulted, "Grey"
+		spec.line = OPENING.VaultedLine
+	else
+		spec.sticker, spec.stickerTone = OPENING.New, "Red"
+		spec.timerEnds = deal.endsAt
+		spec.timerWords = COPY.OfferEnds
+		if state.restricted == true then
+			spec.status, spec.statusTone = COPY.NotHere, "Grey"
+		else
+			spec.columns = dealColumns(state, products, shop, "GrandOpening", deal, true)
+		end
+		local g = tableOf(tableOf(state.guarantees).GrandOpening)
+		if type(g.cue) == "string" and type(g.at) == "number" then
+			local name = CueThumb.cueName(g.cue)
+			spec.oddsNote = if g.owned == true
+				then OPENING.GuaranteeDone:format(name)
+				else OPENING.Guarantee:format(
+					name,
+					COPY.Ordinal:format(Format.commas(g.at)),
+					Format.commas(if type(g.opened) == "number" then g.opened else 0)
+				)
+		end
+	end
+	table.insert(cards, spec)
+	return { key = "GrandOpening", grid = false, cards = cards }
+end
+
+-- The VIP card: the welcome offer while open, else the release sale's price, else the pass.
+local function vipSpec(state: any, products: any, shop: any, now: number): ShopCards.Spec
 	local spec: ShopCards.Spec = {
 		id = "Vip",
-		shape = "Hero",
+		shape = "Tile",
 		icon = "Vip",
 		title = COPY.Vip,
 		titleStyle = "Vip",
@@ -188,7 +317,36 @@ local function vipSection(state: any, products: any, shop: any, now: number): Se
 			spec.shine = true
 		end
 	end
-	return { key = "Vip", grid = false, cards = { spec } }
+	return spec
+end
+
+-- The Starter Pack and VIP, side by side.
+local function offerSection(state: any, products: any, shop: any, now: number): Section
+	local cards: { Spec } = {}
+	local window = tableOf(tableOf(state.offers).StarterPack)
+	local open = window.open == true and type(window.endsAt) == "number" and window.endsAt > now
+	if open and state.starterBought ~= true then
+		local kind = Config.Shop.StarterBlock
+		local row = LuckyBlocks.kind(kind)
+		local spec: ShopBlockCards.Spec = {
+			id = "StarterPack",
+			shape = "Slot",
+			kind = kind,
+			title = COPY.StarterPack,
+			titleStyle = "Rainbow",
+			big = Format.money(Config.Shop.StarterMoney),
+			line = COPY.StarterPerks:format(BLOCK_NAMES[kind] or kind),
+			odds = oddsRows(if row then row.Case else nil),
+			timerEnds = window.endsAt,
+			timerWords = COPY.OfferEnds,
+			buttons = { robuxButton(shop, "StarterPack", products) },
+			shine = true,
+		}
+		(spec :: any).kit = "Block"
+		table.insert(cards, spec)
+	end
+	table.insert(cards, vipSpec(state, products, shop, now))
+	return { key = "Offer", grid = true, cards = cards }
 end
 
 local function limitedSection(state: any, products: any, shop: any, now: number): Section
@@ -261,51 +419,68 @@ local function limitedSection(state: any, products: any, shop: any, now: number)
 	return { key = "Limited", grid = false, cards = cards }
 end
 
-local LUCKY = { Epic = true, Legendary = true, Mystery = true }
+-- The slots' chances, as one line: "Uncommon 62% · Rare 36.6% · ...".
+local function restockOddsLine(): string
+	local parts = {}
+	for _, kind in Config.LuckyBlocks.Order do
+		local weight = R.Odds[kind]
+		if type(weight) == "number" and weight > 0 then
+			local name = SHORT_NAMES[kind] or BLOCK_NAMES[kind] or kind
+			local display = Cases.percentText(weight * 100 / R.ChanceTotal)
+			table.insert(parts, COPY.OddsPair:format(name, display))
+		end
+	end
+	return COPY.RestockOdds:format(table.concat(parts, " · "))
+end
 
 local function restockSection(state: any, products: any, shop: any, _now: number): Section
 	local restock = tableOf(state.restock)
-	local cards: { ShopCards.Spec } = {}
+	local cards: { Spec } = {}
 	local restricted = state.restricted == true
 	for _, item in tableOf(restock.items) do
-		if type(item) ~= "table" or type(item.id) ~= "string" then
+		if type(item) ~= "table" or type(item.id) ~= "string" or type(item.block) ~= "string" then
 			continue
 		end
-		local id = item.id
-		local count = if type(item.mystery) == "number" then item.mystery else 0
-		local caseId = if type(item.case) == "string" then item.case else nil
-		local spec: ShopCards.Spec = {
+		local id, kind = item.id, item.block
+		local row = LuckyBlocks.kind(kind)
+		local left = if type(item.left) == "number" then item.left else 0
+		local price = if type(item.price) == "number" then item.price else 0
+		local spec: ShopBlockCards.Spec = {
 			id = "Restock:" .. id,
-			shape = "Tile",
-			icon = if count > 0 then "MysteryCase" else RewardChips.caseIcon(caseId),
-			title = if count > 0
-				then COPY.MysteryMany:format(count)
-				else (CASE_NAMES[caseId or ""] or caseId or id),
-			big = Format.money(if type(item.price) == "number" then item.price else 0),
-			line = COPY.Left:format(if type(item.left) == "number" then item.left else 0),
+			shape = "Slot",
+			kind = kind,
+			title = BLOCK_NAMES[kind] or kind,
+			titleTint = CueThumb.rarityColor(kind),
+			odds = oddsRows(if row then row.Case else nil),
+			note = COPY.LeftForYou:format(left),
 		}
-		if LUCKY[id] then
-			spec.sticker, spec.stickerTone, spec.shine = COPY.Lucky, "Gold", true
-		elseif item.vip == true then
+		(spec :: any).kit = "Block"
+		if item.vip == true then
 			spec.sticker, spec.stickerTone = COPY.VipOnly, "Gold"
 		end
-		local price = if type(item.price) == "number" then item.price else 0
-		if restricted then
-			spec.status, spec.statusTone = COPY.NotHere, "Grey"
-		elseif type(item.left) == "number" and item.left <= 0 then
-			spec.status, spec.statusTone = COPY.SoldOut, "Grey"
-		elseif item.reason == "VipOnly" then
+		if kind == "Epic" or kind == "Legendary" then
+			spec.shine = true
+		end
+		if item.vip == true and state.vip ~= true then
+			spec.locked = true
+			spec.lockLine = COPY.VipSlot
+			spec.odds = nil
+			spec.note = nil
 			spec.buttons = {
 				{
-					text = COPY.VipOnly,
-					tone = "Grey",
+					text = COPY.GetVip,
+					tone = "Green",
 					enabled = true,
 					action = function()
 						UISound.play("Click")
-						shop:jumpTo("Vip")
+						shop:jumpTo("Offer")
 					end,
 				},
 			}
+		elseif restricted then
+			spec.status, spec.statusTone = COPY.NotHere, "Grey"
+		elseif left <= 0 then
+			spec.status, spec.statusTone = COPY.SoldOut, "Grey"
 		else
 			local busyKey = shop.restockKey(id)
 			local buttons = {
@@ -313,7 +488,7 @@ local function restockSection(state: any, products: any, shop: any, _now: number
 					shop:buyRestock(id)
 				end),
 			}
-			if type(item.product) == "string" then
+			if type(item.product) == "string" and products[item.product] ~= nil then
 				table.insert(buttons, robuxButton(shop, item.product, products, busyKey))
 			end
 			spec.buttons = buttons
@@ -325,15 +500,42 @@ local function restockSection(state: any, products: any, shop: any, _now: number
 		key = "Restock",
 		grid = true,
 		cards = cards,
+		line = restockOddsLine(),
 		lineEnds = ends,
 		lineWords = COPY.RestockIn,
 	}
 end
 
+-- The Mystery block's odds strip: the six tiers by Config.Cases.Drop.Weights.
+local function tierRows(): { ShopBlockCards.OddsRow }
+	local rows = {}
+	for _, entry in CaseDrop.tiers() do
+		table.insert(rows, {
+			name = SHORT_NAMES[entry.tier] or entry.tier,
+			display = entry.display,
+			rarity = if entry.tier == "Standard" then "Common" else entry.tier,
+		})
+	end
+	return rows
+end
+
+-- "Epic cue or better: 0.13%": the chance per Mystery block of a cue of `from` or above.
+local function orBetterLine(from: string): string
+	local sum = 0
+	local counting = false
+	for _, entry in CaseDrop.rarityOdds() do
+		if entry.rarity == from then
+			counting = true
+		end
+		if counting then
+			sum += entry.percent
+		end
+	end
+	return COPY.OrBetter:format(RARITY_NAMES[from] or from, Cases.percentText(sum))
+end
+
 local function mysterySection(state: any, products: any, shop: any, _now: number): Section
-	local cards: { ShopCards.Spec } = {}
-	local pity = tableOf(state.pity)
-	local line = if type(pity.rare) == "number" then COPY.Pity:format(pity.rare) else nil
+	local cards: { Spec } = {}
 	if state.restricted == true then
 		table.insert(
 			cards,
@@ -341,73 +543,32 @@ local function mysterySection(state: any, products: any, shop: any, _now: number
 		)
 		return { key = "Mystery", grid = false, cards = cards }
 	end
-	local m = tableOf(state.mystery)
-	local one = if type(m.price) == "number" then m.price else Config.Shop.Mystery.Price
-	local bulk = if type(m.bulkCount) == "number"
-		then m.bulkCount
-		else Config.Shop.Mystery.BulkCount
-	local bulkPrice = if type(m.bulkPrice) == "number"
-		then m.bulkPrice
-		else Config.Shop.Mystery.BulkPrice
-	table.insert(cards, {
-		id = "Mystery:1",
-		shape = "Tile",
-		icon = "MysteryCase",
-		title = COPY.Sections.Mystery,
-		big = COPY.MysteryCount:format(1),
-		bigTint = "Count",
-		line = COPY.MysteryLine,
-		buttons = {
-			moneyButton(shop, shop.mysteryKey(1), one, function()
-				shop:buyMystery(1)
-			end),
-			robuxButton(shop, "Mystery1", products),
-		},
-	})
-	table.insert(cards, {
-		id = "Mystery:" .. bulk,
-		shape = "Tile",
-		icon = "MysteryCase",
-		title = COPY.Sections.Mystery,
-		big = COPY.MysteryCount:format(bulk),
-		bigTint = "Count",
-		old = Format.money(one * bulk),
-		sticker = off(bulkPrice, one * bulk),
-		buttons = {
-			moneyButton(shop, shop.mysteryKey(bulk), bulkPrice, function()
-				shop:buyMystery(bulk)
-			end),
-		},
-		shine = true,
-	})
-	-- Ten for Robux: the release sale's product while it runs (the normal price crossed out),
-	-- else Mystery10 against ten singles.
+	local deal = tableOf(tableOf(state.deals).Mystery)
+	local spec: ShopBlockCards.Spec = {
+		id = "Mystery",
+		shape = "Mystery",
+		kind = "Mystery",
+		title = COPY.MysteryTitle,
+		line = COPY.MysteryOpens,
+		pill = COPY.AlwaysInStock,
+		pillTone = "Green",
+		odds = tierRows(),
+		oddsNote = orBetterLine("Epic"),
+		columns = dealColumns(state, products, shop, "Mystery", deal, false),
+	}
+	(spec :: any).kit = "Block"
 	local sale = tableOf(state.releaseSale)
-	local saleKey = tableOf(sale.swap).Mystery10
-	local key = if sale.open == true
-			and type(saleKey) == "string"
-			and products[saleKey]
-		then saleKey
-		else "Mystery10"
-	local price = ShopParts.robuxOf(products[key], key)
-	local old = if key ~= "Mystery10"
-		then ShopParts.robuxOf(products.Mystery10, "Mystery10")
-		else ShopParts.robuxOf(products.Mystery1, "Mystery1") * bulk
-	table.insert(cards, {
-		id = "Mystery:Robux",
-		shape = "Tile",
-		icon = "MysteryCase",
-		title = COPY.Sections.Mystery,
-		big = COPY.MysteryCount:format(bulk),
-		bigTint = "Count",
-		old = if old > price then ShopParts.robux(old) else nil,
-		sticker = off(price, old),
-		stickerTone = if key ~= "Mystery10" then "Red" else "Gold",
-		timerEnds = if key ~= "Mystery10" then sale.endsAt else nil,
-		timerWords = COPY.SaleEnds,
-		buttons = { robuxButton(shop, key, products) },
-	})
-	return { key = "Mystery", grid = true, cards = cards, line = line }
+	if sale.open == true then
+		spec.sticker = off(
+			ShopParts.robuxOf(products.Mystery10Sale, "Mystery10Sale"),
+			ShopParts.robuxOf(products.Mystery10, "Mystery10")
+		)
+		spec.stickerTone = "Red"
+		spec.timerEnds, spec.timerWords = sale.endsAt, COPY.SaleEnds
+		spec.shine = true
+	end
+	table.insert(cards, spec)
+	return { key = "Mystery", grid = false, cards = cards }
 end
 
 local function moneySection(state: any, products: any, shop: any, _now: number): Section
@@ -486,25 +647,10 @@ local function partyEnds(state: any, now: number): (number?, string?)
 end
 
 local function boostsSection(state: any, products: any, shop: any, now: number): Section
-	local cards: { ShopCards.Spec } = {}
-	local quick: ShopCards.Spec = {
-		id = "QuickCases",
-		shape = "Hero",
-		icon = "FastOpen",
-		title = Strings.Dev.PassNames.QuickCases,
-		big = times(Config.Cases.QuickTimerFactor),
-		bigTint = "Count",
-		line = COPY.QuickLine,
-	}
-	if state.fastOpen == true then
-		quick.status = COPY.OwnedWord
-	else
-		quick.buttons = { robuxButton(shop, "QuickCases", products) }
-	end
-	table.insert(cards, quick)
+	local cards: { Spec } = {}
 	local party: ShopCards.Spec = {
 		id = "MoneyParty",
-		shape = "Hero",
+		shape = "Tile",
 		icon = "MoneyParty",
 		title = COPY.MoneyParty,
 		titleStyle = "Rainbow",
@@ -531,18 +677,36 @@ local function boostsSection(state: any, products: any, shop: any, now: number):
 		party.buttons = { robuxButton(shop, "MoneyParty", products) }
 	end
 	table.insert(cards, party)
-	return { key = "Boosts", grid = false, cards = cards }
-end
-
-local function plusSection(state: any, _products: any, shop: any, _now: number): Section
-	local cards: { ShopCards.Spec } = {}
+	-- The ability slot passes.
+	local passNames: { [string]: string } = COPY.PassNames
+	local passLines: { [string]: string } = COPY.PassLines
+	for _, key in { "UltSlot2", "UltSlot3" } do
+		local pass = products[key]
+		if type(pass) ~= "table" then
+			continue
+		end
+		local spec: ShopCards.Spec = {
+			id = key,
+			shape = "Tile",
+			icon = "Ults",
+			title = passNames[key] or key,
+			line = passLines[key],
+		}
+		if pass.owned == true then
+			spec.status = COPY.OwnedWord
+		else
+			spec.buttons = { robuxButton(shop, key, products) }
+		end
+		table.insert(cards, spec)
+	end
+	-- Get Roblox Plus (not for members).
 	local player = Players.LocalPlayer
 	local member = player ~= nil and player.MembershipType == Enum.MembershipType.Premium
 	if state.robloxPlus == true and not member then
 		local boost = math.floor((Config.Economy.PlusBoost or 0) * 100 + 0.5)
 		table.insert(cards, {
 			id = "RobloxPlus",
-			shape = "Hero",
+			shape = "Tile",
 			icon = "RobloxPlus",
 			title = COPY.Sections.RobloxPlus,
 			big = ("+%d%%"):format(boost),
@@ -562,18 +726,17 @@ local function plusSection(state: any, _products: any, shop: any, _now: number):
 			},
 		})
 	end
-	return { key = "RobloxPlus", grid = false, cards = cards }
+	return { key = "Boosts", grid = true, cards = cards }
 end
 
 local BUILDERS: { [string]: (any, any, any, number) -> Section } = {
+	GrandOpening = grandOpeningSection,
 	Offer = offerSection,
-	Vip = vipSection,
 	Limited = limitedSection,
 	Restock = restockSection,
 	Mystery = mysterySection,
 	Money = moneySection,
 	Boosts = boostsSection,
-	RobloxPlus = plusSection,
 }
 
 --- Every section with something to show, in the page's order.

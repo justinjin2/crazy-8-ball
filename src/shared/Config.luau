@@ -2649,11 +2649,10 @@ Config.Shop = {
 		"GrandOpening",
 		"Mystery",
 		"Restock",
-		"Offer",
-		"Vip",
+		"Offer", -- the Starter Pack and VIP, side by side
 		"Money",
-		"Boosts",
-		"RobloxPlus",
+		"Boosts", -- Money Party, the ability slots and Roblox Plus
+		"RobloxPlus", -- (folded into Boosts on the page; kept for the jump groups)
 	},
 	-- The Get Roblox Plus button (MarketplaceService:PromptRobloxSubscriptionPurchase; Roblox
 	-- pays the game for each subscriber signed up in it). false hides it.
@@ -5316,6 +5315,14 @@ Config.UI = {
 			SparkleSizePx = 16,
 			SparkleSpreadPx = 30, -- how far from the icon's centre they pop
 			SparkleSeconds = 0.5, -- one twinkle, in and out
+			-- The gold "+" at the pill's right end (designer, 2026-10-04): opens the Shop on
+			-- its Money tab. Sized square; PlusOverPill of it sits over the pill's end.
+			PlusPx = 30,
+			ShortPlusPx = 24,
+			PlusTextPx = 24,
+			ShortPlusTextPx = 19,
+			PlusOverPill = 0.5,
+			PlusColor = { 255, 196, 0 }, -- the kit's gold
 		},
 		-- The flying cash from a pocket to the money HUD (CashFlyer): a chip (one cash bundle
 		-- and "+$10") pops out at the pocket, hangs, then flies on a curve into the HUD's icon,
@@ -7235,12 +7242,51 @@ Config.UI.Shop = {
 			{ Key = "Featured", Icon = "Deals", Sections = { "GrandOpening", "Limited" } },
 			{ Key = "Blocks", Icon = "CasesJump", Sections = { "Mystery", "Restock" } },
 			{ Key = "Money", Icon = "Pack4", Sections = { "Money" } },
-			{
-				Key = "Passes",
-				Icon = "Passes",
-				Sections = { "Offer", "Vip", "Boosts", "RobloxPlus" },
+			{ Key = "Passes", Icon = "Passes", Sections = { "Offer", "Boosts", "RobloxPlus" } },
+		},
+		-- The lucky block cards (designer, 2026-10-04; the ChatGPT mockups in
+		-- 8ball-refs/gui-v3/mockups): the Grand Opening band, the Mystery card, the restock
+		-- slots and the Starter Pack, each with its turning 3D block and its odds always shown.
+		Block = {
+			ArtPx = { 96, 150 }, -- a band's block picture (Grand Opening, Mystery)
+			TileArtPx = { 76, 104 }, -- a slot tile's
+			TitlePx = { 22, 34 },
+			SubtitlePx = { 13, 17 }, -- "LUCKY BLOCK · LIMITED · YOU COULD PULL..."
+			LinePx = { 13, 16 }, -- ink detail lines
+			TileTitlePx = { 15, 19 }, -- "Rare Lucky Block" on a slot tile
+			PillPx = { 22, 28 }, -- "Always in stock", "NEW", "VIP ONLY"
+			PillTextPx = { 13, 16 },
+			OddsRowPx = { 18, 23 }, -- one rarity's row of the odds strip
+			OddsTextPx = { 12, 15 },
+			OddsGapPx = { 3, 4 },
+			OddsMaxWidthPx = 320, -- the strip never grows wider than this beside buttons
+			ChasePx = { 84, 118 }, -- a chase row (the Unique cue's picture, name and odds)
+			ChaseNamePx = { 14, 18 },
+			ColumnLabelPx = { 22, 30 }, -- "x1", "x3", "x10" over a column of buttons
+			NotePx = { 12, 15 }, -- "save 12%", "3 left for you"
+			-- A band this wide puts its odds strip beside the buy columns; narrower stacks them.
+			WideMinPx = 540,
+			LockedColor = { 206, 214, 228 }, -- the VIP slot's grey card for non-VIPs
+			LockPx = { 44, 64 }, -- its padlock
+			-- A kit icon per block kind, shown until the block's 3D model is in the place.
+			Fallback = {
+				Mystery = "MysteryCase",
+				GrandOpening = "CaseLegendary",
+				Starter = "StarterPack",
+				Gift = "Gift",
+				Sky = "CaseRare",
+				Legendary = "CaseLegendary",
+				Mythic = "CaseLegendary",
 			},
 		},
+		-- The menu opening: its cards and headers pop in one after another from the top left
+		-- to the bottom right, like blocks being laid (designer, 2026-10-04). Each starts
+		-- after its (x + y) share of the page, times Seconds; one pop takes Kit.Motion.Pop.
+		Build = { Seconds = 0.28, FromScale = 0.25, AcrossShare = 0.35 }, -- AcrossShare: how much the x counts against the y
+		-- Every now and then a card shimmers (one shine band sweeps across it), and a card's
+		-- block pops a little (grows and settles); seconds between, picked between the two.
+		Shimmer = { Every = { 7, 15 } },
+		IconPop = { Every = { 4, 9 }, Scale = 1.12 },
 		RailWidthPx = { 66, 96 }, -- a jump button
 		RailButtonPx = { 60, 86 },
 		RailGapPx = { 6, 12 },
@@ -7249,6 +7295,9 @@ Config.UI.Shop = {
 		-- this much room there; otherwise (a phone) they take a column inside the page.
 		RailOutsidePx = 14,
 		JumpSeconds = 0.4, -- a jump's scroll
+		-- Opened on a tab (the HUD's "+", a corner): a layout within this many seconds of
+		-- opening jumps to the tab again, so a late geometry pass cannot leave it elsewhere.
+		JumpSettleSeconds = 0.6,
 		HeaderPx = { 40, 58 }, -- a section's "— VIP —" row
 		HeaderTextPx = { 26, 40 },
 		HeaderColor = { 255, 214, 10 }, -- bright yellow, ink outline (ref 01)
