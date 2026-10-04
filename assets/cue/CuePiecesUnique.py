@@ -119,8 +119,9 @@ def beta(k):
     """The hologram's depth: a Neon wireframe lattice round the body (rings every 0.32 studs,
     ten longitudinal lines, the wrap's stretch twisted into a diamond lattice), turning 9
     degrees a second; four magenta rings (tori) at the joint collar and two on the butt sleeve;
-    a scan plane (a ForceField disc with a white-blue Neon rim) sliding tip to butt and back
-    over 2.6 s; eight blueprint panels as aura joints: a textured pane (vfx/beta/panel_n.png,
+    a scan plane (a ForceField disc with a white-blue Neon rim) sweeping tip to butt every
+    2.6 s, fading at both ends; a glitch every 4 s (sideways jolts, a blink) on the lattice and
+    the rings; the rings pulsing; eight blueprint panels as aura joints: a textured pane (vfx/beta/panel_n.png,
     AlphaMode Transparency, glowing) in a Neon frame with a leader line down to the cue's
     surface, each orbiting the cue slowly and bobbing."""
     import bmesh
@@ -135,7 +136,14 @@ def beta(k):
     k.material('Leader', 'Neon', '#3FA9FF', Transparency=0.35)
 
     # --- the lattice shell -----------------------------------------------------------------
-    k.joint('Lattice', pivot=(0, -3.5, 0), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': 9.0}])
+    # Turning slowly; every 4 s a glitch: three sideways jolts over 0.2 s while the shell blinks,
+    # and a slow glow pulse (the light flowing through the lattice).
+    k.joint('Lattice', pivot=(0, -3.5, 0), motion=[
+        {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': 9.0},
+        {'Kind': 'Glitch', 'Dir': (1, 0, 0), 'Amp': 0.07, 'Period': 4.0, 'Seconds': 0.2, 'Steps': 3, 'Phase': 3.0}],
+        visual=[
+        {'Kind': 'Blink', 'Period': 4.0, 'Seconds': 0.2, 'Count': 4, 'Phase': 3.0},
+        {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.3, 'Period': 3.0}])
     bm = bmesh.new()
     ds = [0.3 + 0.32 * i for i in range(int((5.3 - 0.3) / 0.32) + 1)]
     _lathe(bm, ds, [R(d) + 0.045 for d in ds], 10)
@@ -146,23 +154,33 @@ def beta(k):
     k.add('Lattice', ob)
 
     # --- the magenta rings ----------------------------------------------------------------
-    k.joint('Rings', pivot=(0, -3.5, 0))
+    # The rings pulse: the magenta tori glow toward white every 1.6 s, their thin pale edges
+    # fading in and out half a beat behind; the whole collar glitches with the lattice.
+    k.joint('Rings', pivot=(0, -3.5, 0), motion=[
+        {'Kind': 'Glitch', 'Dir': (1, 0, 0), 'Amp': 0.05, 'Period': 4.0, 'Seconds': 0.2, 'Steps': 3, 'Phase': 3.0}],
+        visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.6, 'Period': 1.6}])
+    k.joint('RingEdges', pivot=(0, -3.5, 0), parent='Rings',
+            visual=[{'Kind': 'Fade', 'Min': 0.1, 'Max': 1.0, 'Period': 1.6, 'Phase': 0.3}])
     bm_r, bm_e = bmesh.new(), bmesh.new()
     for d in (3.62, 3.78, 6.76, 6.9):
         _torus(bm_r, (0, -d, 0), (0, 1, 0), R(d) + 0.035, 0.022)
         for dd in (d - 0.03, d + 0.03):
             _torus(bm_e, (0, -dd, 0), (0, 1, 0), R(d) + 0.04, 0.007, segs=28, minor=6)
     k.add('Rings', k.mesh_object('RingTori', bm_r, ['Ring']))
-    k.add('Rings', k.mesh_object('RingEdges', bm_e, ['RingEdge']))
+    k.add('RingEdges', k.mesh_object('RingEdges', bm_e, ['RingEdge']))
 
     # --- the scan plane --------------------------------------------------------------------
-    k.joint('Scan', pivot=(0, -3.6, 0), motion=[{'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 3.3, 'Period': 2.6}])
+    # The scan line sweeps one way, tip to butt, every 2.6 s (a saw wave along -Y, toward the
+    # butt), fading in at the tip and out at the butt so the jump back is never seen.
+    k.joint('Scan', pivot=(0, -3.6, 0),
+            motion=[{'Kind': 'Bob', 'Dir': (0, -1, 0), 'Amp': 3.3, 'Period': 2.6, 'Shape': 'saw'}],
+            visual=[{'Kind': 'Fade', 'Min': 0.0, 'Max': 1.0, 'Period': 2.6}])
     bm_s = bmesh.new()
     _torus(bm_s, (0, -3.6, 0), (0, 1, 0), 0.27, 0.01, segs=40, minor=6)
     k.add('Scan', k.mesh_object('ScanRing', bm_s, ['ScanRim']))
     bm_d = bmesh.new()
-    _lathe(bm_d, [-3.6 + 0.004, -3.6 - 0.004], [0.265, 0.265], 40, close=True)
-    # (_lathe takes d; a disc is two rings 0.008 apart, both closed)
+    _lathe(bm_d, [3.6 - 0.004, 3.6 + 0.004], [0.265, 0.265], 40, close=True)
+    # (_lathe takes d from the tip, positive; a disc is two rings 0.008 apart, both closed)
     k.add('Scan', k.mesh_object('ScanDisc', bm_d, ['ScanDisc']))
 
     # --- the panels ------------------------------------------------------------------------

@@ -104,7 +104,24 @@ def _wave(t, m):
     if shape == 'pulse':  # rest most of the time, a quick swing once a period
         u = (x / (2 * math.pi)) % 1.0
         return math.sin(math.pi * min(u / 0.3, 1.0)) if u < 0.3 else 0.0
+    if shape == 'saw':  # one way: -1 to 1 over a period, then straight back (a scan line sweeping)
+        u = (x / (2 * math.pi)) % 1.0
+        return 2.0 * u - 1.0
     return math.sin(x)
+
+
+def glitch_offset(t, m):
+    """A Glitch motion's jolt at time t: once every Period seconds (from Phase seconds in) the
+    joint jumps Amp studs along Dir for Seconds, the sign flipping on each of Steps equal
+    sub-steps (+, -, +, ...), then sits still; 0 outside the window (Motion.glitchOffset)."""
+    period = float(m.get('Period', 3.0))
+    secs = float(m.get('Seconds', 0.15))
+    steps = max(1, int(m.get('Steps', 3)))
+    u = (t - float(m.get('Phase', 0.0))) % period
+    if u >= secs:
+        return 0.0
+    n = int(math.floor(u / secs * steps))
+    return float(m.get('Amp', 0.05)) * (1.0 if n % 2 == 0 else -1.0)
 
 
 def _rot(axis, ang):
@@ -167,6 +184,11 @@ def motion_matrix(motions, t, pivot=(0, 0, 0)):
             M = M @ _rot(m.get('Axis', (1, 0, 0)), ang)
         elif kind == 'Spin':
             M = M @ _rot(m.get('Axis', (0, 1, 0)), math.radians(float(m.get('Rate', 90.0)) * t + float(m.get('Phase', 0.0))))
+        elif kind == 'Glitch':
+            d = np.asarray(m.get('Dir', (1, 0, 0)), float) * glitch_offset(t, m)
+            T = np.eye(4)
+            T[:3, 3] = d
+            M = M @ T
         elif kind == 'Bob':
             d = np.asarray(m.get('Dir', (0, 0, 1)), float) * float(m.get('Amp', 0.02)) * _wave(t, m)
             T = np.eye(4)
@@ -428,12 +450,18 @@ class Kit:
         return make_blender_material(bpy, key, self.mats[name])
 
     # ---- joints ---------------------------------------------------------------------------------
-    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None, aura=False):
+    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None, aura=False, visual=None):
         """aura: this joint and everything on it (and its child joints) is part of the aura, hidden
         on the player's turn to shoot with the rest of the aura (designer, 2026-09-30), not a fixed
-        part of the cue (the Celestial Dragon's coiling spirit, the Kitsune's running fox)."""
+        part of the cue (the Celestial Dragon's coiling spirit, the Kitsune's running fox).
+        visual: looks the runtime (CuePiece) applies to the joint's parts every frame, not moves:
+        {'Kind': 'Fade', Min, Max, Period, Shape, Phase} (the parts' visible share, an effect wave:
+        1 as built, 0 clear), {'Kind': 'Blink', Period, Seconds, Phase, Count} (gone on alternate
+        sub-steps of a short window once a period, a glitch) and {'Kind': 'Glow', Min, Max,
+        Period, Shape, Phase} (a Neon part's colour pushed toward white by the wave: a pulse).
+        The Blender preview renders them at their Max."""
         self.joints[name] = {'Parent': parent, 'Pivot': list(pivot), 'Motion': motion or [], 'objects': [],
-                             'Aura': aura}
+                             'Aura': aura, 'Visual': visual or []}
         for m in motion or []:
             if m.get('Kind') == 'Path':
                 m['_Path'] = self.paths[m['Path']]
@@ -834,6 +862,8 @@ def export(kit):
                          'Motion': [{k_: v_ for k_, v_ in m.items() if not k_.startswith('_')} for m in j['Motion']]}
         if j.get('Aura'):
             joints[jname]['Aura'] = True
+        if j.get('Visual'):
+            joints[jname]['Visual'] = j['Visual']
     spec = {'id': kit.pid, 'Frame': kit.frame, 'frame': 'Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; '
                                    'PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)',
             'Triangles': tris_total, 'Parts': parts, 'Joints': joints}

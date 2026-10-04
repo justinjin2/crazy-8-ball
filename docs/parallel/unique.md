@@ -76,6 +76,17 @@ by hand in your copy (which is otherwise lost at the merge).
   four angles, console clean. The body blew out white in the bright lobby, so emissive
   strength, glint and mote rates and beam brightness were tuned live and written back into
   `assets/cue/skins/beta.json`. Lint and 984 tests green.
+- 2026-10-04 step 3: the hologram shell moves. New generic kinds in the Blender reference and
+  the runtime: the `saw` wave shape (one-way sweep), the `Glitch` motion (sideways jolts in a
+  short window once a period) and per-joint `Visual` rows (`Fade`, `Blink`, `Glow`) that
+  CuePiece applies to the joint's parts every frame. The Beta piece: the scan line sweeps tip
+  to butt every 2.6 s and fades at both ends, the lattice and the rings glitch (jolt and
+  blink) every 4 s, the lattice's light pulses slowly, the magenta rings pulse toward white
+  with their pale edges fading in and out behind them. The scan disc had been built 7 studs
+  off its rim (a sign slip in step 1); fixed. The Beta piece is in the motion fixture, so
+  Lune checks the saw and the glitch against Blender. Rebuilt, re-uploaded (new GLB id),
+  templates rebuilt in the lane window, probed in Play (the disc rides its rim, the lattice
+  blinks and jolts), console clean, lint and 984 tests green.
 
 ## Decisions
 
@@ -122,6 +133,17 @@ by hand in your copy (which is otherwise lost at the merge).
   stay for rows without a skin.
 - `tests/cue_mesh_test.luau`: a `built` set of Unique cues that must have a skin (`BetaCue`);
   unbuilt Unique cues must have none. Why: the Grand Opening row stays skinless until step 7.
+- `assets/cue/CuePieces.py`: `_wave` gains the `saw` shape; `glitch_offset` and the `Glitch`
+  motion kind in `motion_matrix`; `Kit.joint(visual=)` and `Visual` rows exported in
+  piece.json. Why: the Beta scan line, glitch and ring pulse (any piece can use them).
+- `src/shared/CueSkins/Motion.luau`: `pieceWave` `saw`; `glitchOffset`, `blinkGone`; the
+  `Glitch` motion in `own`; rigs carry each joint's `visuals`.
+- `src/client/CuePiece.luau`: joint `Visual` rows (`Fade`, `Blink`, `Glow`) applied to the
+  joint's rigid parts each step, composed with the dressed base and the piece's fade
+  (`setFade` leaves those parts to the next step).
+- `tools/cue_motion_fixture.py` + `tests/cue_motion_fixture.json`: the `beta` piece joins the
+  fixture (saw and Glitch checked against Blender); `tests/cue_motion_test.luau` tests the saw,
+  glitch and blink maths.
 
 ## Requests
 

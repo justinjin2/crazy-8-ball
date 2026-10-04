@@ -243,7 +243,7 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   references); gate 1, designer approval.
 - [x] 2. Beta: surface maps (hologram body, linework, emissive, magenta rings and tip), the
   skin file, upload, template, thumbnail; checked on a stand and a back in the lab.
-- [ ] 3. Beta: the hologram shell as a piece (wireframe lattice, Neon core, ForceField shimmer,
+- [x] 3. Beta: the hologram shell as a piece (wireframe lattice, Neon core, ForceField shimmer,
   3D rings), light flow, scan line, glitch flicker; checked from every angle.
 - [ ] 4. Beta: the aura (3D blueprint panels with typing glyphs and diagrams at several depths,
   leader lines, motes, flecks, rings, haze, lights); gate 2, designer approval.
@@ -275,6 +275,10 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   done: Beta's maps, sprites, panels, thumbnail and piece GLBs uploaded and in the manifest,
   rows generated, templates and pieces built in the lane window, checked on a stand and a back
   next to Eclipse in the lab, values tuned for the bright lobby. Lint and 984 tests green.
+- 2026-10-04: step 3 done: the shell's scan line (one-way `saw` sweep), glitch (`Glitch` motion
+  plus a `Blink` visual), ring pulse (`Glow` and `Fade` visuals) as generic piece kinds in the
+  Blender reference, Motion and CuePiece; the Beta piece rebuilt and re-uploaded, checked in
+  the lane window. Lint and 984 tests green.
 
 ## Decisions
 

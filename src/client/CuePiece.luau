@@ -32,7 +32,15 @@ CuePiece.__index = CuePiece
 -- The importer's half turn about Y (its own inverse).
 local FLIP = CFrame.Angles(0, math.pi, 0)
 
-type Rigid = { part: BasePart, weld: Weld, joint: string, offset: CFrame, base: number }
+type Rigid = {
+	part: BasePart,
+	weld: Weld,
+	joint: string,
+	offset: CFrame,
+	base: number,
+	color: Color3, -- as dressed, for Glow visuals
+	visuals: { any }, -- the joint's Visual rows (Fade, Blink, Glow), empty for most
+}
 type Skinned = {
 	model: Model,
 	parts: { BasePart },
@@ -52,10 +60,13 @@ export type CuePiece = typeof(setmetatable(
 		auraJoints: { [string]: boolean },
 		auraShown: boolean,
 		scale: number,
+		fade: number,
 		pose: { [string]: Motion.Xf },
 	},
 	CuePiece
 ))
+
+local WHITE = Color3.new(1, 1, 1)
 
 local function cframe(x: Motion.Xf, scale: number?): CFrame
 	local R, P = x.R, x.P
@@ -177,12 +188,15 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
 				weld.Parent = part
 				part.Parent = model
 				local o = p.Offset
+				local joint = rig.joints[p.Joint]
 				table.insert(rigid, {
 					part = part,
 					weld = weld,
 					joint = p.Joint,
 					offset = CFrame.new(o[1], o[2], o[3]) * FLIP,
 					base = part.Transparency,
+					color = part.Color,
+					visuals = if joint then joint.visuals else {},
 				})
 			end
 		end
@@ -198,6 +212,7 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
 		auraJoints = auraJoints,
 		auraShown = true,
 		scale = 1,
+		fade = 0,
 		pose = {},
 	}, CuePiece)
 	self:step(0)
@@ -222,6 +237,34 @@ function CuePiece.isAura(self: CuePiece, joint: string): boolean
 	return self.auraJoints[joint] == true
 end
 
+-- A joint's Visual rows at time t on one rigid part: Fade (visible share by an effect wave,
+-- 1 as built), Blink (gone on alternate sub-steps of a short window once a period) and Glow
+-- (the colour pushed toward white, or the row's Color, by an effect wave). The part's
+-- Transparency composes the share with its dressed base and the piece's fade.
+local function applyVisuals(r: Rigid, t: number, fade: number)
+	local shown = 1
+	local glow = 0
+	local glowTo: Color3? = nil
+	for _, v in r.visuals do
+		local kind = v.Kind
+		if kind == "Fade" then
+			shown *= Motion.vfxWave(t, v)
+		elseif kind == "Blink" then
+			if Motion.blinkGone(t, v) then
+				shown = 0
+			end
+		elseif kind == "Glow" then
+			local k = Motion.vfxWave(t, v)
+			if k > glow then
+				glow = k
+				glowTo = if v.Color then Color3.fromHex(v.Color) else nil
+			end
+		end
+	end
+	r.part.Transparency = 1 - (1 - r.base) * (1 - fade) * shown
+	r.part.Color = r.color:Lerp(glowTo or WHITE, math.clamp(glow, 0, 1))
+end
+
 --- Move every joint to time `t` (seconds on the piece's clock).
 function CuePiece.step(self: CuePiece, t: number)
 	local pose = Motion.pose(self.rig, t)
@@ -232,6 +275,9 @@ function CuePiece.step(self: CuePiece, t: number)
 			local x = pose[r.joint]
 			local offset = if s == 1 then r.offset else CFrame.new(r.offset.Position * s) * FLIP
 			r.weld.C0 = (if x then cframe(x, s) else CFrame.identity) * offset
+		end
+		if #r.visuals > 0 then
+			applyVisuals(r, t, self.fade)
 		end
 	end
 	for _, r in self.riders do
@@ -283,10 +329,14 @@ function CuePiece.setAura(self: CuePiece, shown: boolean)
 	end
 end
 
---- Fade the whole piece: 0 as built, 1 gone (the pocket piece's Transparency curve).
+--- Fade the whole piece: 0 as built, 1 gone (the pocket piece's Transparency curve). Parts
+--- with visuals take it on their next step.
 function CuePiece.setFade(self: CuePiece, fade: number)
+	self.fade = fade
 	for _, r in self.rigid do
-		r.part.Transparency = r.base + (1 - r.base) * fade
+		if #r.visuals == 0 then
+			r.part.Transparency = r.base + (1 - r.base) * fade
+		end
 	end
 	for _, sk in self.skinned do
 		for i, part in sk.parts do

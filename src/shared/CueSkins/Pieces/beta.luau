@@ -5,7 +5,7 @@
 return {
 	Id = "beta",
 	Frame = "cue",
-	Rigid = "87736748707121",
+	Rigid = "132267715312294",
 	Models = {},
 	Parts = {
 		{
@@ -33,8 +33,8 @@ return {
 			Color = "#FFD9F8",
 			Transparency = 0,
 			Reflectance = 0,
-			Name = "Rings_RingEdge",
-			Joint = "Rings",
+			Name = "RingEdges_RingEdge",
+			Joint = "RingEdges",
 			Offset = { 0, 0, -1.76 },
 			Size = { 0.454, 0.454, 3.3521 },
 		},
@@ -55,7 +55,7 @@ return {
 			Reflectance = 0,
 			Name = "Scan_ScanDisc",
 			Joint = "Scan",
-			Offset = { 0, 0, 7.1 },
+			Offset = { 0, 0, -0.1 },
 			Size = { 0.53, 0.53, 0.008 },
 		},
 		{
@@ -365,12 +365,68 @@ return {
 					Axis = { 0, 1, 0 },
 					Rate = 9,
 				},
+				{
+					Kind = "Glitch",
+					Dir = { 1, 0, 0 },
+					Amp = 0.07,
+					Period = 4,
+					Seconds = 0.2,
+					Steps = 3,
+					Phase = 3,
+				},
+			},
+			Visual = {
+				{
+					Kind = "Blink",
+					Period = 4,
+					Seconds = 0.2,
+					Count = 4,
+					Phase = 3,
+				},
+				{
+					Kind = "Glow",
+					Min = 0,
+					Max = 0.3,
+					Period = 3,
+				},
 			},
 		},
 		Rings = {
 			Parent = nil,
 			PivotRoblox = { 0, 0, 0 },
+			Motion = {
+				{
+					Kind = "Glitch",
+					Dir = { 1, 0, 0 },
+					Amp = 0.05,
+					Period = 4,
+					Seconds = 0.2,
+					Steps = 3,
+					Phase = 3,
+				},
+			},
+			Visual = {
+				{
+					Kind = "Glow",
+					Min = 0,
+					Max = 0.6,
+					Period = 1.6,
+				},
+			},
+		},
+		RingEdges = {
+			Parent = "Rings",
+			PivotRoblox = { 0, 0, 0 },
 			Motion = {},
+			Visual = {
+				{
+					Kind = "Fade",
+					Min = 0.1,
+					Max = 1,
+					Period = 1.6,
+					Phase = 0.3,
+				},
+			},
 		},
 		Scan = {
 			Parent = nil,
@@ -378,8 +434,17 @@ return {
 			Motion = {
 				{
 					Kind = "Bob",
-					Dir = { 0, 1, 0 },
+					Dir = { 0, -1, 0 },
 					Amp = 3.3,
+					Period = 2.6,
+					Shape = "saw",
+				},
+			},
+			Visual = {
+				{
+					Kind = "Fade",
+					Min = 0,
+					Max = 1,
 					Period = 2.6,
 				},
 			},

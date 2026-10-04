@@ -13,7 +13,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CUE = os.path.join(ROOT, 'assets', 'cue')
 BLENDER = '/Applications/Blender.app/Contents/MacOS/Blender'
-PIECES = ['kitsune', 'celestial_dragon', 'chroma', 'phoenix_pocket', 'apex']
+PIECES = ['kitsune', 'celestial_dragon', 'chroma', 'phoenix_pocket', 'apex', 'beta']
 TIMES = [0.0, 0.73, 3.1, 7.45]
 
 
