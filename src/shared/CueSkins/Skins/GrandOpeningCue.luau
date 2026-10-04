@@ -42,7 +42,7 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 14,
+				Rate = 10,
 				Lifetime = { 1.2, 1.8 },
 				Speed = { 0.2, 0.5 },
 				SpreadAngle = { 180, 180 },
@@ -53,8 +53,8 @@ return {
 				},
 				Transparency = {
 					{ 0, 1 },
-					{ 0.15, 0.5 },
-					{ 0.7, 0.65 },
+					{ 0.15, 0.7 },
+					{ 0.7, 0.8 },
 					{ 1, 1 },
 				},
 				Rotation = { 0, 360 },
@@ -82,7 +82,7 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 7,
+				Rate = 5,
 				Lifetime = { 1, 1.6 },
 				Speed = { 0.1, 0.4 },
 				SpreadAngle = { 180, 180 },
@@ -103,7 +103,7 @@ return {
 					{ 1, "#9B5CFF" },
 				},
 				LightEmission = 1,
-				Brightness = 1,
+				Brightness = 0.8,
 			},
 			{
 				Name = "Glitter",
@@ -547,8 +547,8 @@ return {
 			{
 				AtStuds = 2.4,
 				Color = "#FFC860",
-				Brightness = 1.3,
-				Range = 10,
+				Brightness = 0.45,
+				Range = 7,
 				Flicker = {
 					Min = 0.7,
 					Max = 1.2,
@@ -559,8 +559,8 @@ return {
 			{
 				AtStuds = 5.8,
 				Color = "#FFC860",
-				Brightness = 1.3,
-				Range = 10,
+				Brightness = 0.45,
+				Range = 7,
 				Flicker = {
 					Min = 0.7,
 					Max = 1.2,
@@ -578,6 +578,7 @@ return {
 			RollOffMinStuds = 3,
 			RollOffMaxStuds = 24,
 		},
+		LightsNote = "PointLights dimmed 2026-10-04: on the lobby's white floor the lights, not the particles, flooded the ground white (checked by switching them off in the lab)",
 	},
 	TrailEmitters = {
 		{

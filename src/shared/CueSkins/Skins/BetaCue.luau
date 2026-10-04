@@ -475,8 +475,8 @@ return {
 			{
 				AtStuds = 2.4,
 				Color = "#3FA9FF",
-				Brightness = 1.2,
-				Range = 10,
+				Brightness = 0.7,
+				Range = 8,
 				Flicker = {
 					Min = 0.85,
 					Max = 1.15,
@@ -486,8 +486,8 @@ return {
 			{
 				AtStuds = 5.6,
 				Color = "#3FA9FF",
-				Brightness = 1.2,
-				Range = 10,
+				Brightness = 0.7,
+				Range = 8,
 				Flicker = {
 					Min = 0.85,
 					Max = 1.15,
@@ -498,8 +498,8 @@ return {
 			{
 				AtStuds = 3.65,
 				Color = "#FF2FD0",
-				Brightness = 0.9,
-				Range = 6,
+				Brightness = 0.7,
+				Range = 8,
 				Flicker = {
 					Min = 0.6,
 					Max = 1.2,
@@ -510,8 +510,8 @@ return {
 			{
 				AtStuds = 6.9,
 				Color = "#FF2FD0",
-				Brightness = 0.9,
-				Range = 6,
+				Brightness = 0.7,
+				Range = 8,
 				Flicker = {
 					Min = 0.6,
 					Max = 1.2,
@@ -529,6 +529,7 @@ return {
 			RollOffMinStuds = 3,
 			RollOffMaxStuds = 24,
 		},
+		LightsNote = "PointLights dimmed 2026-10-04: on the lobby's white floor the lights, not the particles, flooded the ground white (checked by switching them off in the lab)",
 	},
 	TrailEmitters = {
 		{
