@@ -5,7 +5,7 @@
 return {
 	Id = "beta_pocket",
 	Frame = "pocket",
-	Rigid = "137087086352324",
+	Rigid = "133912339862982",
 	Models = {},
 	Parts = {
 		{
@@ -15,13 +15,13 @@ return {
 			Reflectance = 0,
 			Name = "Funnel_Wire",
 			Joint = "Funnel",
-			Offset = { 0, -1.8037, -0 },
-			Size = { 3.5531, 3.609, 3.5531 },
+			Offset = { 0, -1.812, -0 },
+			Size = { 3.6023, 3.6289, 3.6023 },
 		},
 		{
 			Material = "ForceField",
 			Color = "#5AB0FF",
-			Transparency = 0.55,
+			Transparency = 0.35,
 			Reflectance = 0,
 			Name = "Funnel_Skin",
 			Joint = "Funnel",
@@ -36,7 +36,7 @@ return {
 			Name = "Funnel_Ring",
 			Joint = "Funnel",
 			Offset = { 0, 1.7, 0 },
-			Size = { 2.39, 1.86, 2.39 },
+			Size = { 2.47, 1.94, 2.47 },
 		},
 		{
 			Material = "Neon",
@@ -46,7 +46,7 @@ return {
 			Name = "Funnel_Rim",
 			Joint = "Funnel",
 			Offset = { 0, 2.575, 0 },
-			Size = { 3.4988, 1.81, 3.4988 },
+			Size = { 3.5788, 1.89, 3.5788 },
 		},
 	},
 	Joints = {
@@ -58,6 +58,14 @@ return {
 					Kind = "Spin",
 					Axis = { 0, 0, 1 },
 					Rate = 110,
+				},
+			},
+			Visual = {
+				{
+					Kind = "Glow",
+					Min = 0,
+					Max = 0.5,
+					Period = 0.5,
 				},
 			},
 		},

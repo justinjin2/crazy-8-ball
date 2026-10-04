@@ -200,12 +200,13 @@ def beta(k):
         bx = rot @ along        # the pane's width runs along the cue
         bz = rot @ tangent      # its height runs round
         by = radial             # its normal
+        # The four farthest panels (radius 1.5 and more) go under Lower effects (low='hide').
         # Each panel lives PANEL_LIFE[i] seconds: pops in with a blink, types its gibberish
         # (the Type visual: a SurfaceGui riding the joint, on the pane's lower two thirds under
         # the painted title bar), holds, dissolves out, and is reborn with new text.
         life, phase = PANEL_LIFE[i]
         glyph_origin = centre + by * 0.012      # a hair in front of the pane
-        k.joint(name, pivot=(0, -d, 0), aura=True, motion=[
+        k.joint(name, pivot=(0, -d, 0), aura=True, low=('hide' if rad >= 1.5 else None), motion=[
             {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': orbit, 'Phase': 0},
             {'Kind': 'Bob', 'Dir': (0, 0, 1), 'Amp': 0.03, 'Period': 2.2 + 0.3 * i, 'Phase': 40 * i}],
             visual=[
@@ -262,11 +263,14 @@ def beta_pocket(k):
     four glowing rings (magenta and white-blue) up its height."""
     import bmesh
     k.frame = 'pocket'
+    # Thick enough to read from across the table (the first build's 0.028 wire vanished at
+    # ten studs, 2026-10-04): 0.09-stud Neon wire, fat rings, a denser skin.
     k.material('Wire', 'Neon', '#3B8CFF')
-    k.material('Skin', 'ForceField', '#5AB0FF', Transparency=0.55)
+    k.material('Skin', 'ForceField', '#5AB0FF', Transparency=0.35)
     k.material('Ring', 'Neon', '#FF3FD6')
     k.material('Rim', 'Neon', '#DFF6FF')
-    k.joint('Funnel', pivot=(0, 0, 0), motion=[{'Kind': 'Spin', 'Axis': (0, 0, 1), 'Rate': 110.0}])
+    k.joint('Funnel', pivot=(0, 0, 0), motion=[{'Kind': 'Spin', 'Axis': (0, 0, 1), 'Rate': 110.0}],
+            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': 0.5}])
     H = 3.6
     zs = [H * i / 13 for i in range(14)]
     rs = [0.3 + 1.5 * (z / H) ** 1.8 for z in zs]
@@ -279,12 +283,12 @@ def beta_pocket(k):
         bmesh.ops.transform(bm, matrix=turn, verts=bm.verts[:])
         ob = k.mesh_object('Funnel' + mat, bm, [mat], smooth=not wire)
         if wire:
-            apply_modifier(k.bpy, ob, 'WIREFRAME', thickness=0.028, use_replace=True, use_even_offset=False)
+            apply_modifier(k.bpy, ob, 'WIREFRAME', thickness=0.09, use_replace=True, use_even_offset=False)
         k.add('Funnel', ob)
     bm_r, bm_m = bmesh.new(), bmesh.new()
     for i, z in enumerate((0.8, 1.7, 2.6, 3.45)):
         r = 0.3 + 1.5 * (z / H) ** 1.8 + 0.03
-        _torus(bm_m if i % 2 else bm_r, (0, 0, z), (0, 0, 1), r, 0.03, segs=40, minor=8)
+        _torus(bm_m if i % 2 else bm_r, (0, 0, z), (0, 0, 1), r, 0.07, segs=40, minor=8)
     k.add('Funnel', k.mesh_object('FunnelRings', bm_r, ['Ring']))
     k.add('Funnel', k.mesh_object('FunnelRims', bm_m, ['Rim']))
 

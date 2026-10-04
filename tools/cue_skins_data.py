@@ -29,7 +29,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CUE = os.path.join(ROOT, 'assets', 'cue')
 OUT = os.path.join(ROOT, 'src', 'shared', 'CueSkins')
 MANIFEST = os.path.join(ROOT, 'tools', 'upload_manifest.json')
-ASSET = re.compile(r'\.(png|glb|obj)$')
+ASSET = re.compile(r'\.(png|glb|obj|wav|ogg|mp3)$')
 DROP = {'Note', 'Budget', 'frame', 'Triangles', 'File'}  # notes and review-only keys
 MAPS = ('color', 'normal', 'roughness', 'metalness', 'emissive')
 
@@ -38,7 +38,8 @@ missing = []
 
 
 def asset_id(rel):
-    """`vfx/x.png`, `textures/x.png` or `pieces/p/x.glb` -> its uploaded id string."""
+    """`vfx/x.png`, `textures/x.png`, `pieces/p/x.glb` or `sounds/x.wav` -> its uploaded id string
+    (an image id for a picture, `rbxassetid://` for a sound, the bare id for a model)."""
     path = os.path.join(CUE, rel)
     row = manifest.get(path) or {}
     if not row:
@@ -52,6 +53,8 @@ def asset_id(rel):
     if row.get('status') == 'ok':
         if rel.endswith('.png') and row.get('imageId'):
             return 'rbxassetid://%s' % row['imageId']
+        if rel.endswith(('.wav', '.ogg', '.mp3')) and row.get('assetId'):
+            return 'rbxassetid://%s' % row['assetId']
         if not rel.endswith('.png') and row.get('assetId'):
             return row['assetId']
     missing.append(rel)

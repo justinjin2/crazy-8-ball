@@ -57,7 +57,7 @@
     "cap_end": "skins/beta/cap_end.png"
   },
   "colours": {
-    "tip": "#FF66E4",
+    "tip": "#FFFFFF",
     "ferrule": "#5FB8FF",
     "bumper": "#0A1230",
     "blue": "#1E6BFF",
@@ -67,7 +67,7 @@
   },
   "glow": [
     {
-      "color": "#FF66E4",
+      "color": "#FFFFFF",
       "tolerance": 70
     },
     {
@@ -928,7 +928,15 @@
           }
         }
       ],
-      "Outline": "#3FA9FF"
+      "Outline": "#3FA9FF",
+      "Sound": {
+        "Asset": "sounds/beta_hum.wav",
+        "Volume": 0.12,
+        "Looped": true,
+        "RollOffMinStuds": 3,
+        "RollOffMaxStuds": 24,
+        "Note": "a very faint hologram hum in the aura (designer, 2026-10-04), local, quiet in the hands with the aura"
+      }
     },
     "Style": {
       "Trail": {
@@ -946,11 +954,10 @@
         ],
         "NearTransparency": 0.0,
         "Lifetime": 1.3,
-        "WidthStuds": 0.5,
+        "WidthStuds": 0.7,
         "LightEmission": 1,
-        "Texture": "vfx/beta/wire_strip.png",
-        "TextureMode": "Wrap",
-        "TextureLength": 1.4,
+        "Texture": "vfx/beta/holo_strip.png",
+        "TextureMode": "Stretch",
         "WidthScale": [
           [
             0,
@@ -971,7 +978,7 @@
             245,
             255
           ],
-          "Width": 0.2,
+          "Width": 0.3,
           "NearTransparency": 0.0,
           "LightEmission": 1,
           "Transparency": [
@@ -1018,7 +1025,8 @@
             1
           ]
         ],
-        "Brightness": 1.6
+        "Brightness": 1.6,
+        "Note": "a wide blue-to-magenta light ribbon (the solid holo strip; the wire strip was invisible on cloth) with a bright core, Eclipse width or more"
       },
       "Pocket": {
         "Colors": [
@@ -1339,6 +1347,104 @@
       "Note": "Over 1.9 s: a magenta flash and a blue ring on the cloth; a wireframe funnel (pieces/beta_pocket) rises about four studs out of the pocket turning, its rings lighting up; a column of blue light; cross-section rings climb and spread, digital shards and glyphs burst out, a white-hot flare; everything dissolves into motes.",
       "Layers": [
         {
+          "Name": "DarkRing",
+          "Texture": "vfx/_shared/ring.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              0.1,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Lifetime": 0.6,
+          "Speed": 0.01,
+          "EmissionDirection": "Top",
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "Orientation": "VelocityPerpendicular",
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              1,
+              6.0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#0B1A4A",
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "Note": "a navy ring under the glow so the burst reads on the bright floor (Eclipse's dark-ring trick)"
+        },
+        {
+          "Name": "DarkColumn",
+          "Texture": "vfx/beta/column.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              2.4,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.05,
+          "Lifetime": 1.4,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              2.5
+            ],
+            [
+              0.2,
+              5.2
+            ],
+            [
+              1,
+              5.8
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.6
+            ],
+            [
+              0.25,
+              0.35
+            ],
+            [
+              0.7,
+              0.5
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#0B1A4A",
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp",
+          "Note": "the light column's dark navy core: additive light alone vanishes on the white floor"
+        },
+        {
           "Name": "Column",
           "Texture": "vfx/beta/column.png",
           "Host": {
@@ -1356,15 +1462,15 @@
           "Size": [
             [
               0,
-              2.0
+              3.0
             ],
             [
               0.2,
-              4.2
+              5.5
             ],
             [
               1,
-              4.6
+              6.0
             ]
           ],
           "Transparency": [
@@ -1418,15 +1524,15 @@
           "Size": [
             [
               0,
-              1.5
+              2.0
             ],
             [
               0.3,
-              4.5
+              5.5
             ],
             [
               1,
-              2.0
+              3.0
             ]
           ],
           "Transparency": [
@@ -1488,11 +1594,11 @@
           "Size": [
             [
               0,
-              0.8
+              1.0
             ],
             [
               1,
-              3.2
+              4.5
             ]
           ],
           "Transparency": [
@@ -1558,11 +1664,11 @@
           "Size": [
             [
               0,
-              0.2
+              0.25
             ],
             [
               1,
-              0.35
+              0.45
             ]
           ],
           "Rotation": [
@@ -1638,11 +1744,11 @@
           "Size": [
             [
               0,
-              0.4
+              0.5
             ],
             [
               1,
-              0.7
+              0.9
             ]
           ],
           "Transparency": [
@@ -1703,11 +1809,11 @@
           "Size": [
             [
               0,
-              0.3
+              0.35
             ],
             [
               1,
-              0.7
+              0.8
             ]
           ],
           "Rotation": [
@@ -1776,11 +1882,11 @@
           "Size": [
             [
               0,
-              0.7
+              1.2
             ],
             [
               1,
-              0.25
+              0.4
             ]
           ],
           "Squash": -2.2,
@@ -1818,7 +1924,7 @@
           "Texture": "vfx/_shared/ring.png",
           "Color": "#3FA9FF",
           "Start": 0.5,
-          "End": 5.5,
+          "End": 6.0,
           "Seconds": 0.5,
           "Delay": 0.05
         },
@@ -1826,7 +1932,7 @@
           "Texture": "vfx/_shared/ring.png",
           "Color": "#FF2FD0",
           "Start": 0.5,
-          "End": 4.5,
+          "End": 5.0,
           "Seconds": 0.6,
           "Delay": 0.7
         }
@@ -1843,7 +1949,7 @@
       "Piece": {
         "Piece": "beta_pocket",
         "Delay": 0.1,
-        "Seconds": 1.8,
+        "Seconds": 2.2,
         "Rise": [
           [
             0,
@@ -1851,25 +1957,25 @@
           ],
           [
             0.3,
-            0.1
+            0.2
           ],
           [
             1,
-            0.4
+            0.8
           ]
         ],
         "Scale": [
           [
             0,
-            0.6
+            0.8
           ],
           [
             0.3,
-            1.0
+            1.5
           ],
           [
             1,
-            1.12
+            1.7
           ]
         ],
         "Spin": [
@@ -1879,7 +1985,7 @@
           ],
           [
             1,
-            200
+            240
           ]
         ],
         "Transparency": [
@@ -1888,18 +1994,25 @@
             0.3
           ],
           [
-            0.15,
+            0.12,
             0.0
           ],
           [
-            0.7,
+            0.75,
             0.0
           ],
           [
             1,
             1
           ]
-        ]
+        ],
+        "Outline": {
+          "Color": "#3FA9FF",
+          "Transparency": 0.2
+        },
+        "Note": "the wireframe funnel rises about six studs (Eclipse size or more); its outline is the cue blue, not the finisher default dark",
+        "ShellFade": 0.2,
+        "EmissiveScale": 1.0
       }
     },
     "Budget": {

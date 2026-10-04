@@ -91,6 +91,7 @@ export type Look = typeof(setmetatable(
 		orbiters: { Orbiter },
 		arcs: { Arc },
 		lights: { Light },
+		sound: { s: Sound, volume: number }?, -- the aura's sound (Aura.Sound), volume unquieted
 		piece: any?,
 		highlights: { Highlight }, -- the stick's outline and the piece's (nearest cues only)
 		frames: { SurfaceAppearance }, -- frame 0 is the stick's own SurfaceAppearance
@@ -160,6 +161,7 @@ function CueSkinLook.attach(stick: Model, opts: Opts): Look
 		orbiters = {},
 		arcs = {},
 		lights = {},
+		sound = nil,
 		piece = nil,
 		highlights = {},
 		frames = {},
@@ -249,6 +251,7 @@ function CueSkinLook.clear(self: Look)
 	self.orbiters = {}
 	self.arcs = {}
 	self.lights = {}
+	self.sound = nil -- its attachment was in `built`
 	self.highlights = {} -- they live in the folder
 	if self.folder then
 		self.folder:Destroy()
@@ -316,6 +319,9 @@ function CueSkinLook.refresh(self: Look)
 			light.Parent = att
 			table.insert(self.built, att)
 			table.insert(self.lights, { light = light, row = l })
+		end
+		if aura.Sound then
+			self:buildSound(aura.Sound)
 		end
 		-- The stick's outline in its colour, and the piece's own (Aura.Highlight).
 		local O = C.Outline
@@ -469,6 +475,25 @@ function CueSkinLook.place(self: Look, part: BasePart, rest: CFrame, joint: stri
 	else
 		weldTo(part, mesh, rest)
 	end
+end
+
+--- The aura's sound (Config.CueSkins.Sound): a looping Sound on the cue, playing while the
+--- aura shows (applyVisible), its volume following the quiet share (ease).
+function CueSkinLook.buildSound(self: Look, row: any)
+	local S = C.Sound
+	local mesh = self.mesh :: MeshPart
+	local att = attachment(mesh, CueVfx.onCue(row.AtStuds or S.AtStuds), "AuraSound")
+	table.insert(self.built, att)
+	local sound = Instance.new("Sound")
+	sound.Name = "AuraSound"
+	sound.SoundId = row.Asset or ""
+	sound.Looped = row.Looped ~= false
+	sound.Volume = (row.Volume or 0.1) * self.share
+	sound.RollOffMode = Enum.RollOffMode.InverseTapered
+	sound.RollOffMinDistance = row.RollOffMinStuds or S.RollOffMinStuds
+	sound.RollOffMaxDistance = row.RollOffMaxStuds or S.RollOffMaxStuds
+	sound.Parent = att
+	self.sound = { s = sound, volume = row.Volume or 0.1 }
 end
 
 function CueSkinLook.buildEmitter(self: Look, row: any, aura: boolean)
@@ -746,6 +771,14 @@ function CueSkinLook.applyVisible(self: Look)
 	for _, item in self.emitters do
 		item.e.Enabled = aura and item.e.Rate > 0
 	end
+	local sound = self.sound
+	if sound then
+		if aura and not sound.s.IsPlaying then
+			sound.s:Play()
+		elseif not aura and sound.s.IsPlaying then
+			sound.s:Stop()
+		end
+	end
 	if appearing and C.ShowPrefillShare > 0 then
 		-- Coming into view: the aura is already there, not growing in (Config.CueSkins).
 		for _, item in self.emitters do
@@ -956,6 +989,9 @@ function CueSkinLook.ease(self: Look, dt: number)
 		if item.aura then
 			item.e.Rate = item.rate * self.share
 		end
+	end
+	if self.sound then
+		self.sound.s.Volume = self.sound.volume * self.share
 	end
 end
 

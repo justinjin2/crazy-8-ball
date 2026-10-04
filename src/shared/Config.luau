@@ -4465,6 +4465,16 @@ Config.CueSkins = {
 	-- the stick), so it stands out on the bright lobby (designer, 2026-10-01; made much
 	-- fainter and the tint over the whole cue dropped the same day). The colour is the
 	-- skin's Aura.Outline, else its tier's below.
+	-- A skin's aura sound (Aura.Sound in the skin data: the Beta Cue's faint hologram hum, the
+	-- Grand Opening's crackles; designer, 2026-10-04): a looping Sound on the cue, local to
+	-- this client, in the Sfx group (SoundGroups adopts it, so the Settings switch silences
+	-- it), playing while the aura shows and scaled by the aura's quiet share. The skin's row
+	-- gives Asset, Volume, Looped and may override the roll-off here.
+	Sound = {
+		AtStuds = 3.5, -- where on the cue it sits
+		RollOffMinStuds = 3, -- full volume inside this
+		RollOffMaxStuds = 24, -- silent beyond this
+	},
 	-- A piece joint's Type visual (the Beta Cue's blueprint panels, 2026-10-04): a SurfaceGui
 	-- riding the joint that types made-up glyph strings, row by row, in step with the panel's
 	-- life (its Period and Phase), then clears and starts over. Never readable words.
@@ -4601,6 +4611,14 @@ Config.Effects = {
 	-- FlashScale as bright, its glassy ForceField shell ShellFade of the way to clear and its
 	-- glow EmissiveScale as strong. A dark fill (FillTransparency below 1) greyed it: off.
 	Finisher = {
+		-- A skin's pocket sound (Pocket.Sound in the skin data: the Grand Opening's fireworks;
+		-- designer, 2026-10-04), played once at the pocket; the row gives Asset and Volume and
+		-- may override the roll-off; Seconds keeps the pocket's root alive for it.
+		Sound = {
+			RollOffMinStuds = 8,
+			RollOffMaxStuds = 60,
+			Seconds = 7,
+		},
 		OutlineColor = { 20, 10, 30 }, -- (tune)
 		OutlineTransparency = 0.3, -- (tune)
 		FillColor = { 0, 0, 0 },

@@ -245,9 +245,9 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   skin file, upload, template, thumbnail; checked on a stand and a back in the lab.
 - [x] 3. Beta: the hologram shell as a piece (wireframe lattice, Neon core, ForceField shimmer,
   3D rings), light flow, scan line, glitch flicker; checked from every angle.
-- [ ] 4. Beta: the aura (3D blueprint panels with typing glyphs and diagrams at several depths,
+- [x] 4. Beta: the aura (3D blueprint panels with typing glyphs and diagrams at several depths,
   leader lines, motes, flecks, rings, haze, lights); gate 2, designer approval.
-- [ ] 5. Beta: trail and pocket finisher at Eclipse size or more, the faint hum; checked in a
+- [x] 5. Beta: trail and pocket finisher at Eclipse size or more, the faint hum; checked in a
   real match.
 - [ ] 6. Beta: polish next to Eclipse, Lower-effects variant, Index, inventory and shop cards,
   quieting in the shooter's hands.
@@ -281,7 +281,10 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   the lane window. Lint and 984 tests green.
 - 2026-10-04: step 4 built: the panels pop in, type and dissolve (the `life` wave and the
   `Type` visual as generic kinds), the aura tuned on the bright floor; captures in
-  `assets/cue/concepts/unique/beta-studio-*.jpg`. Waiting at gate 2.
+  `assets/cue/concepts/unique/beta-studio-*.jpg`. Gate 2 passed (white tip).
+- 2026-10-04: step 5 done: the three sounds uploaded (`Aura.Sound`, `Pocket.Sound` as generic
+  kinds), the Beta funnel rebuilt thick and bright with its own blue outline, the trail
+  widened; checked in a solo fixture match and beside Eclipse in the lab.
 
 ## Decisions
 
@@ -298,5 +301,8 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   wanted"); one change for the Beta Cue: the white tip must be holographic too, matching the
   rest of the cue (the tip and ferrule become part-transparent glowing hologram, magenta and
   blue, not a solid white end). No changes to the Grand Opening Cue.
+- 2026-10-04 (designer, gate 2, Beta): the in-Studio look passes ("looks good"); one change:
+  the tip is white, not pink (still holographic: part-transparent, glowing in the body's
+  blue-white). Polish, trail and finisher may go ahead.
 
 ## Notes

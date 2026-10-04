@@ -98,7 +98,23 @@ by hand in your copy (which is otherwise lost at the merge).
   lobby floor (the body had blown out white): calmer glints, motes and glyph flecks, beams at
   1.2, the body's emissive at 0.8 to 1.3 in a deeper blue. Captures for the gate:
   `assets/cue/concepts/unique/beta-studio-{stand,close,back,panel}.jpg`. Lint and 984 tests
-  green.
+  green. Gate 2 passed the same day ("looks good"); the one change, a white tip instead of
+  pink, is in the skin file (`colours.tip`, the glow key).
+- 2026-10-04 step 5: Beta's trail, pocket finisher and hum in the game. The three designer
+  sounds converted to mono 16-bit 44.1 kHz WAVs (`assets/cue/sounds/`), uploaded to the group
+  and recorded in the manifest; new generic kinds: a skin's `Aura.Sound` (CueSkinLook: a
+  looping Sound on the cue, playing with the aura, volume following the quiet share, in the
+  Sfx group) and `Pocket.Sound` (Effects: played once at the pocket); Config
+  `CueSkins.Sound` and `Effects.Finisher.Sound` hold the roll-offs. A finisher's `Piece` row
+  may now set `Outline` {Color, Transparency}, `ShellFade` and `EmissiveScale` (the default
+  dark contrast outline turned the wire funnel black). The funnel is rebuilt three times
+  thicker (0.09-stud Neon wire, fat rings, a denser skin; new GLB id), rises bigger (scale
+  0.8 to 1.7, 2.2 s), with a navy ring and column under the glow so it reads on the white
+  floor; the trail is a 0.7-stud holo ribbon with a 0.3 core (every trail is capped at
+  Config.Effects.TrailMaxSeconds, 0.45 s, so lengths are equal across cues). Checked in a
+  solo fixture match (table 1: the trail's rings and glints round the rolling white, the
+  finisher on a scratch, the hum at a quarter volume in the hands) and in a lab beside the
+  Eclipse finisher; console clean. Lint and tests green.
 
 ## Decisions
 
@@ -162,6 +178,13 @@ by hand in your copy (which is otherwise lost at the merge).
   `buildTyper`, `stepTyper`, `showTypers`), `shownShare`; `src/shared/Config.luau`
   `CueSkins.Typing` (font, alphabet, token lengths, canvas density, glow, line height, cursor).
   Why: the Beta panels type gibberish; any piece can carry a typing panel.
+- `tools/cue_skins_data.py`: `ASSET` resolves `.wav/.ogg/.mp3` paths (`sounds/x.wav` ->
+  `rbxassetid://<audio id>`). Why: sounds in the skin data.
+- `src/client/CueSkinLook.luau`: `buildSound` (Aura.Sound), played in `applyVisible`, volume
+  eased in `ease`. `src/client/Effects.luau`: the finisher's `Sound` row; the piece row's
+  `Outline`, `ShellFade`, `EmissiveScale` overrides (hex outline colours through CueVfx).
+  `src/shared/Config.luau`: `CueSkins.Sound`, `Effects.Finisher.Sound`. Why: the Beta hum and
+  the Grand Opening's fireworks; a hologram finisher keeps its own colour.
 
 ## Requests
 

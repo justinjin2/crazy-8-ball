@@ -542,6 +542,7 @@ return {
 					Area = { 0.06, 0.3, 0.94, 0.92 },
 				},
 			},
+			Low = "hide",
 		},
 		Panel3 = {
 			Parent = nil,
@@ -636,6 +637,7 @@ return {
 					Area = { 0.06, 0.3, 0.94, 0.92 },
 				},
 			},
+			Low = "hide",
 		},
 		Panel5 = {
 			Parent = nil,
@@ -730,6 +732,7 @@ return {
 					Area = { 0.06, 0.3, 0.94, 0.92 },
 				},
 			},
+			Low = "hide",
 		},
 		Panel7 = {
 			Parent = nil,
@@ -824,6 +827,7 @@ return {
 					Area = { 0.06, 0.3, 0.94, 0.92 },
 				},
 			},
+			Low = "hide",
 		},
 	},
 }

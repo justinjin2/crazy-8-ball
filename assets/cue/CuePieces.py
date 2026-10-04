@@ -450,7 +450,7 @@ class Kit:
         return make_blender_material(bpy, key, self.mats[name])
 
     # ---- joints ---------------------------------------------------------------------------------
-    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None, aura=False, visual=None):
+    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None, aura=False, visual=None, low=None):
         """aura: this joint and everything on it (and its child joints) is part of the aura, hidden
         on the player's turn to shoot with the rest of the aura (designer, 2026-09-30), not a fixed
         part of the cue (the Celestial Dragon's coiling spirit, the Kitsune's running fox).
@@ -459,9 +459,11 @@ class Kit:
         1 as built, 0 clear), {'Kind': 'Blink', Period, Seconds, Phase, Count} (gone on alternate
         sub-steps of a short window once a period, a glitch) and {'Kind': 'Glow', Min, Max,
         Period, Shape, Phase} (a Neon part's colour pushed toward white by the wave: a pulse).
-        The Blender preview renders them at their Max."""
+        The Blender preview renders them at their Max.
+        low: what the joint does under the Lower effects setting (Quality): 'hide' takes it and
+        its children away (the Beta Cue's farthest panels), None keeps it."""
         self.joints[name] = {'Parent': parent, 'Pivot': list(pivot), 'Motion': motion or [], 'objects': [],
-                             'Aura': aura, 'Visual': visual or []}
+                             'Aura': aura, 'Visual': visual or [], 'Low': low}
         for m in motion or []:
             if m.get('Kind') == 'Path':
                 m['_Path'] = self.paths[m['Path']]
@@ -864,6 +866,8 @@ def export(kit):
             joints[jname]['Aura'] = True
         if j.get('Visual'):
             joints[jname]['Visual'] = j['Visual']
+        if j.get('Low'):
+            joints[jname]['Low'] = j['Low']
     spec = {'id': kit.pid, 'Frame': kit.frame, 'frame': 'Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; '
                                    'PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)',
             'Triangles': tris_total, 'Parts': parts, 'Joints': joints}

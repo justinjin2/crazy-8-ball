@@ -8,7 +8,7 @@ return {
 	Name = "Beta Cue",
 	Tier = "Unique",
 	Maps = {
-		Color = "rbxassetid://131793077829486",
+		Color = "rbxassetid://94321537002898",
 		Normal = "rbxassetid://134927404659353",
 		Roughness = "rbxassetid://120143279629859",
 		Metalness = "rbxassetid://90150517968117",
@@ -522,6 +522,13 @@ return {
 			},
 		},
 		Outline = "#3FA9FF",
+		Sound = {
+			Asset = "rbxassetid://97247198790531",
+			Volume = 0.12,
+			Looped = true,
+			RollOffMinStuds = 3,
+			RollOffMaxStuds = 24,
+		},
 	},
 	TrailEmitters = {
 		{
@@ -674,11 +681,10 @@ return {
 			},
 			NearTransparency = 0,
 			Lifetime = 1.3,
-			WidthStuds = 0.5,
+			WidthStuds = 0.7,
 			LightEmission = 1,
-			Texture = "rbxassetid://122526518721623",
-			TextureMode = "Wrap",
-			TextureLength = 1.4,
+			Texture = "rbxassetid://95876271191611",
+			TextureMode = "Stretch",
 			WidthScale = {
 				{ 0, 0.7 },
 				{ 0.3, 1.1 },
@@ -686,7 +692,7 @@ return {
 			},
 			Core = {
 				Color = { 220, 245, 255 },
-				Width = 0.2,
+				Width = 0.3,
 				NearTransparency = 0,
 				LightEmission = 1,
 				Transparency = {
@@ -719,6 +725,58 @@ return {
 	Pocket = {
 		Layers = {
 			{
+				Name = "DarkRing",
+				Texture = "rbxassetid://119134400645079",
+				Host = {
+					Kind = "Point",
+					Offset = { 0, 0.1, 0 },
+				},
+				Burst = 1,
+				Lifetime = 0.6,
+				Speed = 0.01,
+				EmissionDirection = "Top",
+				SpreadAngle = { 0, 0 },
+				Orientation = "VelocityPerpendicular",
+				Size = {
+					{ 0, 0.6 },
+					{ 1, 6 },
+				},
+				Transparency = {
+					{ 0, 0.1 },
+					{ 1, 1 },
+				},
+				Color = "#0B1A4A",
+				LightEmission = 0,
+				LightInfluence = 0,
+			},
+			{
+				Name = "DarkColumn",
+				Texture = "rbxassetid://108549118523611",
+				Host = {
+					Kind = "Point",
+					Offset = { 0, 2.4, 0 },
+				},
+				Burst = 1,
+				Delay = 0.05,
+				Lifetime = 1.4,
+				Speed = 0,
+				Size = {
+					{ 0, 2.5 },
+					{ 0.2, 5.2 },
+					{ 1, 5.8 },
+				},
+				Transparency = {
+					{ 0, 0.6 },
+					{ 0.25, 0.35 },
+					{ 0.7, 0.5 },
+					{ 1, 1 },
+				},
+				Color = "#0B1A4A",
+				LightEmission = 0,
+				LightInfluence = 0,
+				Orientation = "FacingCameraWorldUp",
+			},
+			{
 				Name = "Column",
 				Texture = "rbxassetid://108549118523611",
 				Host = {
@@ -730,9 +788,9 @@ return {
 				Lifetime = 1.2,
 				Speed = 0,
 				Size = {
-					{ 0, 2 },
-					{ 0.2, 4.2 },
-					{ 1, 4.6 },
+					{ 0, 3 },
+					{ 0.2, 5.5 },
+					{ 1, 6 },
 				},
 				Transparency = {
 					{ 0, 0.4 },
@@ -761,9 +819,9 @@ return {
 				Lifetime = 0.5,
 				Speed = 0,
 				Size = {
-					{ 0, 1.5 },
-					{ 0.3, 4.5 },
-					{ 1, 2 },
+					{ 0, 2 },
+					{ 0.3, 5.5 },
+					{ 1, 3 },
 				},
 				Transparency = {
 					{ 0, 0 },
@@ -794,8 +852,8 @@ return {
 				Drag = 1.2,
 				Orientation = "VelocityPerpendicular",
 				Size = {
-					{ 0, 0.8 },
-					{ 1, 3.2 },
+					{ 0, 1 },
+					{ 1, 4.5 },
 				},
 				Transparency = {
 					{ 0, 0.3 },
@@ -827,8 +885,8 @@ return {
 				Drag = 1.4,
 				Acceleration = { 0, -6, 0 },
 				Size = {
-					{ 0, 0.2 },
-					{ 1, 0.35 },
+					{ 0, 0.25 },
+					{ 1, 0.45 },
 				},
 				Rotation = { 0, 360 },
 				RotSpeed = { -300, 300 },
@@ -864,8 +922,8 @@ return {
 				SpreadAngle = { 180, 180 },
 				Drag = 2,
 				Size = {
-					{ 0, 0.4 },
-					{ 1, 0.7 },
+					{ 0, 0.5 },
+					{ 1, 0.9 },
 				},
 				Transparency = {
 					{ 0, 0.1 },
@@ -895,8 +953,8 @@ return {
 				SpreadAngle = { 180, 180 },
 				Drag = 2,
 				Size = {
-					{ 0, 0.3 },
-					{ 1, 0.7 },
+					{ 0, 0.35 },
+					{ 1, 0.8 },
 				},
 				Rotation = { 0, 360 },
 				Transparency = {
@@ -928,8 +986,8 @@ return {
 				Drag = 4,
 				Orientation = "VelocityParallel",
 				Size = {
-					{ 0, 0.7 },
-					{ 1, 0.25 },
+					{ 0, 1.2 },
+					{ 1, 0.4 },
 				},
 				Squash = -2.2,
 				Transparency = {
@@ -951,7 +1009,7 @@ return {
 				Texture = "rbxassetid://119134400645079",
 				Color = "#3FA9FF",
 				Start = 0.5,
-				End = 5.5,
+				End = 6,
 				Seconds = 0.5,
 				Delay = 0.05,
 			},
@@ -959,7 +1017,7 @@ return {
 				Texture = "rbxassetid://119134400645079",
 				Color = "#FF2FD0",
 				Start = 0.5,
-				End = 4.5,
+				End = 5,
 				Seconds = 0.6,
 				Delay = 0.7,
 			},
@@ -972,27 +1030,33 @@ return {
 		Piece = {
 			Piece = "beta_pocket",
 			Delay = 0.1,
-			Seconds = 1.8,
+			Seconds = 2.2,
 			Rise = {
 				{ 0, -3.6 },
-				{ 0.3, 0.1 },
-				{ 1, 0.4 },
+				{ 0.3, 0.2 },
+				{ 1, 0.8 },
 			},
 			Scale = {
-				{ 0, 0.6 },
-				{ 0.3, 1 },
-				{ 1, 1.12 },
+				{ 0, 0.8 },
+				{ 0.3, 1.5 },
+				{ 1, 1.7 },
 			},
 			Spin = {
 				{ 0, 0 },
-				{ 1, 200 },
+				{ 1, 240 },
 			},
 			Transparency = {
 				{ 0, 0.3 },
-				{ 0.15, 0 },
-				{ 0.7, 0 },
+				{ 0.12, 0 },
+				{ 0.75, 0 },
 				{ 1, 1 },
 			},
+			Outline = {
+				Color = "#3FA9FF",
+				Transparency = 0.2,
+			},
+			ShellFade = 0.2,
+			EmissiveScale = 1,
 		},
 	},
 	Piece = "beta",
@@ -1002,7 +1066,7 @@ return {
 		Forearm = { 32, 73, 140 },
 		Wrap = { 42, 65, 132 },
 		Ring = { 63, 169, 255 },
-		Tip = { 255, 102, 228 },
+		Tip = { 255, 255, 255 },
 		Cap = { 88, 46, 105 },
 	},
 }

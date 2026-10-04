@@ -1024,7 +1024,15 @@
           }
         }
       ],
-      "Outline": "#FFC040"
+      "Outline": "#FFC040",
+      "Sound": {
+        "Asset": "sounds/grand_opening_crackle.wav",
+        "Volume": 0.14,
+        "Looped": true,
+        "RollOffMinStuds": 3,
+        "RollOffMaxStuds": 24,
+        "Note": "faint sparkler crackles and pops in the aura (designer, 2026-10-04)"
+      }
     },
     "Style": {
       "Trail": {
@@ -2195,6 +2203,13 @@
         ],
         "Brightness": 14,
         "Seconds": 0.5
+      },
+      "Sound": {
+        "Asset": "sounds/grand_opening_fireworks.wav",
+        "Volume": 0.7,
+        "RollOffMinStuds": 8,
+        "RollOffMaxStuds": 60,
+        "Note": "the fireworks at the pocket (designer, 2026-10-04)"
       }
     },
     "Budget": {

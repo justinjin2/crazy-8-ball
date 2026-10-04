@@ -28,6 +28,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local CueSkins = require(Shared:WaitForChild("CueSkins"))
 local Motion = require(Shared:WaitForChild("CueSkins"):WaitForChild("Motion"))
+local Quality = require(script.Parent:WaitForChild("Quality"))
 
 local CuePiece = {}
 CuePiece.__index = CuePiece
@@ -74,7 +75,10 @@ export type CuePiece = typeof(setmetatable(
 		riders: { Rider },
 		typers: { Typer },
 		auraJoints: { [string]: boolean },
+		lowJoints: { [string]: boolean }, -- joints (and their children) gone under Lower effects
 		auraShown: boolean,
+		low: boolean, -- Lower effects is on
+		qualityConnection: RBXScriptConnection?,
 		scale: number,
 		fade: number,
 		pose: { [string]: Motion.Xf },
@@ -222,9 +226,11 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
 	model.Name = "Piece_" .. id
 	local rig = Motion.rig(row)
 	local auraJoints: { [string]: boolean } = {}
+	local lowJoints: { [string]: boolean } = {}
 	for _, name in rig.order do
 		local j = rig.joints[name]
 		auraJoints[name] = j.aura or (j.parent ~= nil and auraJoints[j.parent] == true)
+		lowJoints[name] = j.low == "hide" or (j.parent ~= nil and lowJoints[j.parent] == true)
 	end
 	local rigid: { Rigid } = {}
 	local skinned: { Skinned } = {}
@@ -314,7 +320,10 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
 		riders = {},
 		typers = {},
 		auraJoints = auraJoints,
+		lowJoints = lowJoints,
 		auraShown = true,
+		low = Quality.isLow(),
+		qualityConnection = nil :: RBXScriptConnection?,
 		scale = 1,
 		fade = 0,
 		pose = {},
@@ -334,7 +343,18 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
 		end
 	end
 	self:step(0)
+	self:applyHidden()
+	self.qualityConnection = Quality.Changed:Connect(function(on: boolean)
+		self.low = on
+		self:applyHidden()
+	end)
 	return self
+end
+
+--- Whether a joint is hidden now: its aura is off, or Lower effects took it.
+function CuePiece.hidden(self: CuePiece, joint: string): boolean
+	return (not self.auraShown and self.auraJoints[joint] == true)
+		or (self.low and self.lowJoints[joint] == true)
 end
 
 --- Weld `part` to ride joint `joint` (its rest place `rest` in the piece's frame): an
@@ -438,7 +458,7 @@ function CuePiece.step(self: CuePiece, t: number)
 	self.pose = pose
 	local s = self.scale
 	for _, r in self.rigid do
-		if self.auraShown or not self.auraJoints[r.joint] then
+		if not self:hidden(r.joint) then
 			local x = pose[r.joint]
 			local offset = if s == 1 then r.offset else CFrame.new(r.offset.Position * s) * FLIP
 			r.weld.C0 = (if x then cframe(x, s) else CFrame.identity) * offset
@@ -458,7 +478,7 @@ function CuePiece.step(self: CuePiece, t: number)
 	end
 	for _, sk in self.skinned do
 		for _, b in sk.bones do
-			if self.auraShown or not self.auraJoints[b.joint] then
+			if not self:hidden(b.joint) then
 				local x = Motion.jointDelta(pose, b.joint, b.parent)
 				local rest = if s == 1
 					then b.rest
@@ -469,45 +489,48 @@ function CuePiece.step(self: CuePiece, t: number)
 	end
 end
 
--- A skinned model counts as aura when its root bone's joint is.
-local function skinnedAura(self: CuePiece, sk: Skinned): boolean
+-- A skinned model's root joint.
+local function skinnedRoot(sk: Skinned): string?
 	for _, b in sk.bones do
 		if b.parent == nil then
-			return self.auraJoints[b.joint] == true
+			return b.joint
 		end
 	end
-	return false
+	return nil
 end
 
---- Show or hide the aura joints (the shooter's turn hides them; LocalTransparencyModifier, so
---- nothing about the parts is rebuilt).
+-- Hide or show every part by its joint's state (aura off, Lower effects):
+-- LocalTransparencyModifier, so nothing about the parts is rebuilt.
+function CuePiece.applyHidden(self: CuePiece, modifier: number?)
+	local base = modifier or 0
+	for _, r in self.rigid do
+		r.part.LocalTransparencyModifier = if self:hidden(r.joint) then 1 else base
+	end
+	for _, sk in self.skinned do
+		local root = skinnedRoot(sk)
+		local hidden = root ~= nil and self:hidden(root)
+		for _, part in sk.parts do
+			part.LocalTransparencyModifier = if hidden then 1 else base
+		end
+	end
+	self:showTypers(modifier)
+end
+
+--- Show or hide the aura joints (the shooter's turn hides them).
 function CuePiece.setAura(self: CuePiece, shown: boolean)
 	if shown == self.auraShown then
 		return
 	end
 	self.auraShown = shown
-	local modifier = if shown then 0 else 1
-	for _, r in self.rigid do
-		if self.auraJoints[r.joint] then
-			r.part.LocalTransparencyModifier = modifier
-		end
-	end
-	for _, sk in self.skinned do
-		if skinnedAura(self, sk) then
-			for _, part in sk.parts do
-				part.LocalTransparencyModifier = modifier
-			end
-		end
-	end
-	self:showTypers()
+	self:applyHidden()
 end
 
 -- A typing panel's gui is on or off (a SurfaceGui ignores LocalTransparencyModifier): off
--- while its aura joint is hidden or the stick is camera-faded past half.
+-- while its joint is hidden or the stick is camera-faded past half.
 function CuePiece.showTypers(self: CuePiece, modifier: number?)
 	local faded = (modifier or 0) >= 0.5
 	for _, ty in self.typers do
-		local hidden = faded or (not self.auraShown and self.auraJoints[ty.joint] == true)
+		local hidden = faded or self:hidden(ty.joint)
 		if hidden ~= ty.hidden then
 			ty.hidden = hidden
 			ty.gui.Enabled = not hidden
@@ -562,20 +585,10 @@ function CuePiece.deepen(self: CuePiece, shellFade: number, emissiveScale: numbe
 	end
 end
 
---- Every part of the piece follows `modifier` (a stick's camera fade), aura joints staying
---- hidden while the aura is.
+--- Every part of the piece follows `modifier` (a stick's camera fade), hidden joints staying
+--- hidden.
 function CuePiece.setModifier(self: CuePiece, modifier: number)
-	for _, r in self.rigid do
-		local hidden = not self.auraShown and self.auraJoints[r.joint]
-		r.part.LocalTransparencyModifier = if hidden then 1 else modifier
-	end
-	for _, sk in self.skinned do
-		local hidden = not self.auraShown and skinnedAura(self, sk)
-		for _, part in sk.parts do
-			part.LocalTransparencyModifier = if hidden then 1 else modifier
-		end
-	end
-	self:showTypers(modifier)
+	self:applyHidden(modifier)
 end
 
 --- Uniform scale about the root (the pocket piece grows as it rises): sizes and every
@@ -589,6 +602,10 @@ function CuePiece.setScale(self: CuePiece, scale: number)
 end
 
 function CuePiece.destroy(self: CuePiece)
+	if self.qualityConnection then
+		self.qualityConnection:Disconnect()
+		self.qualityConnection = nil
+	end
 	self.model:Destroy()
 end
 

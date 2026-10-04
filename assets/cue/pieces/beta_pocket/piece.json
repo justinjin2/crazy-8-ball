@@ -14,20 +14,20 @@
       "Joint": "Funnel",
       "Offset": [
         0.0,
-        -1.8037,
+        -1.812,
         -0.0
       ],
       "Size": [
-        3.5531,
-        3.609,
-        3.5531
+        3.6023,
+        3.6289,
+        3.6023
       ],
       "Triangles": 3328
     },
     {
       "Material": "ForceField",
       "Color": "#5AB0FF",
-      "Transparency": 0.55,
+      "Transparency": 0.35,
       "Reflectance": 0.0,
       "Name": "Funnel_Skin",
       "File": "pieces/beta_pocket/Funnel_Skin.obj",
@@ -58,9 +58,9 @@
         0.0
       ],
       "Size": [
-        2.39,
-        1.86,
-        2.39
+        2.47,
+        1.94,
+        2.47
       ],
       "Triangles": 1280
     },
@@ -78,9 +78,9 @@
         0.0
       ],
       "Size": [
-        3.4988,
-        1.81,
-        3.4988
+        3.5788,
+        1.89,
+        3.5788
       ],
       "Triangles": 1280
     }
@@ -107,6 +107,14 @@
             1
           ],
           "Rate": 110.0
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.5,
+          "Period": 0.5
         }
       ]
     }

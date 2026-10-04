@@ -359,14 +359,29 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/pieces/beta_pocket/beta_pocket_parts.glb": {
-    "assetId": "137087086352324",
+    "assetId": "133912339862982",
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/sounds/beta_hum.wav": {
+    "assetId": "97247198790531",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/sounds/grand_opening_crackle.wav": {
+    "assetId": "85271661860545",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/sounds/grand_opening_fireworks.wav": {
+    "assetId": "103382603543789",
+    "assetType": "Audio",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/beta_color.png": {
-    "assetId": "128060827602147",
+    "assetId": "84138076939768",
     "assetType": "Decal",
-    "imageId": "131793077829486",
+    "imageId": "94321537002898",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/beta_emissive.png": {
