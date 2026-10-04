@@ -28,7 +28,16 @@ local Client = Players.LocalPlayer.PlayerScripts:WaitForChild("Client")
 local CueStickBuilder = require(ReplicatedStorage.Shared.CueStickBuilder)
 local CueSkinLook = require(Client.CueSkinLook)
 local BackCue = require(Client.BackCue)
+local CueAssets = require(Client.CueAssets)
 
+-- BackCue watches player lifecycle events. Reuse one pool for this Play session instead of
+-- leaving another set of listeners and hidden looks behind on every lab rerun.
+if _G.VfxLabPool then
+	for character in _G.VfxLabPool.carried do
+		_G.VfxLabPool:release(character)
+	end
+	_G.VfxLabBackFolder.Parent = nil
+end
 local old = workspace:FindFirstChild("VfxLab")
 if old then
 	old:Destroy()
@@ -56,7 +65,23 @@ me.Archivable = true
 
 local out = {}
 local equipped = CueStickBuilder.equippedCue
+-- One pool for the whole comparison; parked slots stay hidden. Warm before carry(), which
+-- otherwise returns false on the first run and leaves the dummy with no cue to judge.
+local pool = _G.VfxLabPool
+if not pool then
+	pool = BackCue.new(lab)
+	_G.VfxLabPool = pool
+	_G.VfxLabBackFolder = lab.BackCues
+else
+	_G.VfxLabBackFolder.Parent = lab
+end
 for i, id in IDS do
+	CueAssets.preload(id)
+	local deadline = os.clock() + 60
+	while not CueAssets.ready(id) and os.clock() < deadline do
+		task.wait(0.1)
+	end
+	assert(CueAssets.ready(id), "VFX lab: cue did not warm: " .. id)
 	local x = ORIGIN.X + (i - 1) * SPACING
 	-- The avatar copy, standing, facing -Z (its back toward the +Z camera).
 	local dummy = me:Clone()
@@ -71,23 +96,14 @@ for i, id in IDS do
 	root.Anchored = true
 	dummy:PivotTo(CFrame.new(x, floorY + hip + root.Size.Y / 2, ORIGIN.Z))
 	dummy.Parent = lab
-	-- Its back cue: a pool of one, painted as `id` (BackCue paints the carrier's equipped cue).
-	local pool = BackCue.new(lab)
+	-- Its back cue, painted as `id` (BackCue paints the carrier's equipped cue).
 	CueStickBuilder.equippedCue = function()
 		return id
 	end
-	pool:carry(dummy, nil)
+	local carried = pool:carry(dummy, nil)
 	CueStickBuilder.equippedCue = equipped
-	for _, stick in lab:GetChildren() do
-		if stick:IsA("Folder") and stick.Name == "BackCues" then
-			stick.Name = "BackCues_" .. id
-			for _, s in stick:GetChildren() do
-				if s:GetAttribute("CueId") == id then
-					CueStickBuilder.setVisible(s, true)
-				end
-			end
-		end
-	end
+	assert(carried, "VFX lab: no free slot or back attachment: " .. id)
+	CueStickBuilder.setVisible(pool.carried[dummy].stick, true)
 	-- The stand: a free cue beside the avatar, level, tip toward -X.
 	local stand = Instance.new("Folder")
 	stand.Name = "Stand_" .. id

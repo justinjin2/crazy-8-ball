@@ -453,9 +453,9 @@ Config.Cue = {
 	-- true-scale 58 in cue would be 9.3 studs at this table's scale; the designer chose about
 	-- 7 (2026-09-24), between that and the old 4.4 that looked like a toy next to an avatar.
 	CueLengthStuds = 7,
-	-- 0.32 since 2026-10-01 (designer: 1.6x wider so a skin's art reads next to an avatar, the
-	-- tip kept as it was; 0.2 before). The shared cue mesh is built from these (Shape.json).
-	CueButtDiameterStuds = 0.32,
+	-- 0.36 approved 2026-10-04 (+12.5% over shape 2). Keep the slim front; ease the gain
+	-- between 2.1 and 3.85 studs. Shape.json drives the shared mesh and its UV rebuild.
+	CueButtDiameterStuds = 0.36,
 	CueTipDiameterStuds = 0.09,
 	-- The drawn cue's shape, tip to butt (CueShape). Each row ends at To (a fraction of the
 	-- length, ascending to 1) and is drawn Taper of the way from the tip diameter to the butt
@@ -463,10 +463,13 @@ Config.Cue = {
 	-- shape clear of the rail and the balls, so what is drawn is what is tested.
 	Profile = {
 		{ To = 0.012, Taper = 0, Look = "Tip" },
-		-- The first ~2 studs stay as slim as the 0.2 cue; the forearm and butt are 1.6x.
-		{ To = 0.3, Taper = 0.065, Look = "Shaft" },
-		{ To = 0.55, Taper = 0.435, Look = "Shaft" },
-		{ To = 0.78, Taper = 0.79, Look = "Butt" },
+		-- Unchanged shape-2 front, then quarter samples of the approved smoothstep widening.
+		{ To = 0.3, Taper = 0.05537037037037, Look = "Shaft" },
+		{ To = 0.3625, Taper = 0.37055555555556, Look = "Shaft" },
+		{ To = 0.425, Taper = 0.4613818359375, Look = "Shaft" },
+		{ To = 0.4875, Taper = 0.5752025462963, Look = "Shaft" },
+		{ To = 0.55, Taper = 0.69552029079861, Look = "Shaft" },
+		{ To = 0.78, Taper = 0.79875, Look = "Butt" },
 		{ To = 1, Taper = 1, Look = "Butt" },
 	},
 	-- Resting gap between the tip and the cue ball while aiming (table inches), how far the

@@ -7,8 +7,8 @@ return {
 	Frame = "cue",
 	Rigid = nil,
 	Models = {
-		DragonBody = "126700692538488",
-		DragonHead = "137833897790640",
+		DragonBody = "98823084046865",
+		DragonHead = "127545099322914",
 	},
 	Parts = {
 		{
@@ -17,8 +17,8 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://119671102184553",
-				EmissiveMask = "rbxassetid://70476139437160",
+				ColorMap = "rbxassetid://127140604766707",
+				EmissiveMask = "rbxassetid://135203709614722",
 				EmissiveTint = "#8CC8FF",
 				EmissiveStrength = 1.8,
 				AlphaMode = "Transparency",
@@ -208,11 +208,11 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://83038878686760",
-				EmissiveMask = "rbxassetid://114653488367501",
+				ColorMap = "rbxassetid://105853953627696",
+				EmissiveMask = "rbxassetid://120976294091594",
 				EmissiveTint = "#8CC8FF",
 				EmissiveStrength = 1.8,
-				NormalMap = "rbxassetid://115763527327607",
+				NormalMap = "rbxassetid://72711393230347",
 				AlphaMode = "Transparency",
 			},
 			Name = "DragonHead",

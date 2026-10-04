@@ -53,7 +53,7 @@
           "FromStuds": 0.3,
           "ToStuds": 3.6,
           "Width0": 0.1107,
-          "Width1": 0.2529,
+          "Width1": 0.2818,
           "Segments": 20,
           "Texture": "vfx/rank/shine_strip.png",
           "TextureMode": "Wrap",
@@ -87,8 +87,8 @@
           "Name": "ShineForearm",
           "FromStuds": 3.8,
           "ToStuds": 5.32,
-          "Width0": 0.2612,
-          "Width1": 0.3055,
+          "Width0": 0.2933,
+          "Width1": 0.3437,
           "Segments": 20,
           "Texture": "vfx/rank/shine_strip.png",
           "TextureMode": "Wrap",
@@ -116,14 +116,14 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.1422
+          "ZOffset": 0.16
         },
         {
           "Name": "ShineSleeve",
           "FromStuds": 6.64,
           "ToStuds": 6.94,
-          "Width0": 0.3168,
-          "Width1": 0.3168,
+          "Width0": 0.3564,
+          "Width1": 0.3564,
           "Segments": 4,
           "Texture": "vfx/rank/shine_strip.png",
           "TextureMode": "Wrap",
@@ -151,7 +151,7 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.16
+          "ZOffset": 0.18
         }
       ]
     },
@@ -167,5 +167,5 @@
       "Beams": 4
     }
   },
-  "shape": 2
+  "shape": 3
 }

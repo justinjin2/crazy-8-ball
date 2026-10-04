@@ -7,7 +7,7 @@ return {
 	Frame = "pocket",
 	Rigid = nil,
 	Models = {
-		PocketSkull = "128546372437219",
+		PocketSkull = "117489959323651",
 	},
 	Parts = {
 		{
@@ -16,11 +16,11 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://118692476689238",
-				EmissiveMask = "rbxassetid://91090806385056",
+				ColorMap = "rbxassetid://130177089218205",
+				EmissiveMask = "rbxassetid://139620336038707",
 				EmissiveTint = "#FF6A2A",
 				EmissiveStrength = 1.8,
-				NormalMap = "rbxassetid://107074109971422",
+				NormalMap = "rbxassetid://70582368360520",
 				AlphaMode = "Transparency",
 			},
 			Name = "PocketSkull",
@@ -28,8 +28,8 @@ return {
 			Joint = "Skull",
 			Skinned = true,
 			Bones = { "Skull", "Jaw" },
-			Offset = { 0.0011, 1.2961, -0.0004 },
-			Size = { 2.7124, 2.6009, 1.928 },
+			Offset = { 0.0015, 1.2969, -0.0007 },
+			Size = { 2.7134, 2.6008, 1.9287 },
 			Model = "PocketSkull",
 		},
 		{
@@ -42,8 +42,8 @@ return {
 			Joint = "Skull",
 			Skinned = true,
 			Bones = { "Skull", "Jaw" },
-			Offset = { -0.0025, 1.2918, -0.0004 },
-			Size = { 2.7593, 2.6596, 1.972 },
+			Offset = { -0.0019, 1.2915, 0.0011 },
+			Size = { 2.7587, 2.6577, 1.9731 },
 			Model = "PocketSkull",
 		},
 	},

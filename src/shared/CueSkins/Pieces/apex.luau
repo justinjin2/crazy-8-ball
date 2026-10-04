@@ -5,7 +5,7 @@
 return {
 	Id = "apex",
 	Frame = "cue",
-	Rigid = "81824144141286",
+	Rigid = "112290848993136",
 	Models = {},
 	Parts = {
 		{
@@ -15,8 +15,8 @@ return {
 			Reflectance = 0,
 			Name = "Housing_Gunmetal",
 			Joint = "Housing",
-			Offset = { 0, -0.0219, -3.6202 },
-			Size = { 0.4614, 0.4725, 0.7203 },
+			Offset = { 0, -0.0246, -3.6352 },
+			Size = { 0.5191, 0.5316, 0.8104 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -25,8 +25,8 @@ return {
 			Reflectance = 0.12,
 			Name = "Housing_Armour",
 			Joint = "Housing",
-			Offset = { 0, -0.009, -3.6039 },
-			Size = { 0.4333, 0.4161, 0.4798 },
+			Offset = { 0, -0.0101, -3.6169 },
+			Size = { 0.4874, 0.4681, 0.5398 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -35,8 +35,8 @@ return {
 			Reflectance = 0.1,
 			Name = "Housing_Dark",
 			Joint = "Housing",
-			Offset = { 0, 0.0383, -3.66 },
-			Size = { 0.4121, 0.3586, 0.304 },
+			Offset = { 0, 0.0431, -3.68 },
+			Size = { 0.4636, 0.4035, 0.342 },
 		},
 		{
 			Material = "Neon",
@@ -45,8 +45,8 @@ return {
 			Reflectance = 0,
 			Name = "Housing_Cyan",
 			Joint = "Housing",
-			Offset = { 0, 0.012, -3.68 },
-			Size = { 0.4056, 0.424, 0.696 },
+			Offset = { 0, 0.0135, -3.7025 },
+			Size = { 0.4563, 0.477, 0.783 },
 		},
 		{
 			Material = "Neon",
@@ -55,8 +55,8 @@ return {
 			Reflectance = 0,
 			Name = "Housing_Amber",
 			Joint = "Housing",
-			Offset = { 0, -0.0198, -3.563 },
-			Size = { 0.5139, 0.4664, 0.5204 },
+			Offset = { 0, -0.0223, -3.5709 },
+			Size = { 0.5781, 0.5247, 0.5854 },
 		},
 		{
 			Material = "Neon",
@@ -65,8 +65,8 @@ return {
 			Reflectance = 0,
 			Name = "Housing_Lens",
 			Joint = "Housing",
-			Offset = { -0, 0, -3.964 },
-			Size = { 0.224, 0.224, 0.0832 },
+			Offset = { -0, 0, -4.022 },
+			Size = { 0.252, 0.252, 0.0936 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -75,8 +75,8 @@ return {
 			Reflectance = 0.1,
 			Name = "Rotor_Dark",
 			Joint = "Rotor",
-			Offset = { 0, 0, -3.98 },
-			Size = { 0.2873, 0.2902, 0.032 },
+			Offset = { 0, 0, -4.04 },
+			Size = { 0.3233, 0.3264, 0.036 },
 		},
 		{
 			Material = "Metal",
@@ -85,8 +85,8 @@ return {
 			Reflectance = 0,
 			Name = "Claw1_Gunmetal",
 			Joint = "Claw1",
-			Offset = { 0, 0.3312, -4.0312 },
-			Size = { 0.136, 0.3136, 0.4256 },
+			Offset = { 0, 0.3726, -4.0976 },
+			Size = { 0.153, 0.3528, 0.4788 },
 		},
 		{
 			Material = "Neon",
@@ -95,8 +95,8 @@ return {
 			Reflectance = 0,
 			Name = "Claw1_Amber",
 			Joint = "Claw1",
-			Offset = { 0, 0.3336, -4.0336 },
-			Size = { 0.1488, 0.2608, 0.3728 },
+			Offset = { 0, 0.3753, -4.1003 },
+			Size = { 0.1674, 0.2934, 0.4194 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -105,8 +105,8 @@ return {
 			Reflectance = 0.12,
 			Name = "Claw1_Armour",
 			Joint = "Claw1",
-			Offset = { 0, 0.3645, -4.0053 },
-			Size = { 0.1239, 0.1895, 0.2724 },
+			Offset = { 0, 0.41, -4.0685 },
+			Size = { 0.1394, 0.2131, 0.3065 },
 		},
 		{
 			Material = "Neon",
@@ -115,8 +115,8 @@ return {
 			Reflectance = 0,
 			Name = "Claw1_Cyan",
 			Joint = "Claw1",
-			Offset = { 0, 0.3772, -3.9896 },
-			Size = { 0.0224, 0.1086, 0.163 },
+			Offset = { 0, 0.4243, -4.0508 },
+			Size = { 0.0252, 0.1221, 0.1833 },
 		},
 		{
 			Material = "Metal",
@@ -125,8 +125,8 @@ return {
 			Reflectance = 0,
 			Name = "Talon1_Steel",
 			Joint = "Talon1",
-			Offset = { 0, 0.2998, -4.3462 },
-			Size = { 0.1664, 0.4273, 0.3133 },
+			Offset = { 0, 0.3373, -4.452 },
+			Size = { 0.1872, 0.4807, 0.3525 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -135,8 +135,8 @@ return {
 			Reflectance = 0.12,
 			Name = "Talon1_Armour",
 			Joint = "Talon1",
-			Offset = { 0, 0.4148, -4.3021 },
-			Size = { 0.2046, 0.2406, 0.2178 },
+			Offset = { 0, 0.4666, -4.4024 },
+			Size = { 0.2302, 0.2707, 0.245 },
 		},
 		{
 			Material = "Neon",
@@ -145,8 +145,8 @@ return {
 			Reflectance = 0,
 			Name = "Talon1_Cyan",
 			Joint = "Talon1",
-			Offset = { 0, 0.2295, -4.3587 },
-			Size = { 0.0125, 0.2196, 0.212 },
+			Offset = { 0, 0.2582, -4.466 },
+			Size = { 0.014, 0.2471, 0.2385 },
 		},
 		{
 			Material = "Metal",
@@ -155,8 +155,8 @@ return {
 			Reflectance = 0,
 			Name = "Claw2_Gunmetal",
 			Joint = "Claw2",
-			Offset = { -0.2868, -0.1656, -4.0312 },
-			Size = { 0.3332, 0.2681, 0.4256 },
+			Offset = { -0.3227, -0.1863, -4.0976 },
+			Size = { 0.3748, 0.3016, 0.4788 },
 		},
 		{
 			Material = "Neon",
@@ -165,8 +165,8 @@ return {
 			Reflectance = 0,
 			Name = "Claw2_Amber",
 			Joint = "Claw2",
-			Offset = { -0.2889, -0.1668, -4.0336 },
-			Size = { 0.3003, 0.2593, 0.3728 },
+			Offset = { -0.325, -0.1876, -4.1003 },
+			Size = { 0.3378, 0.2917, 0.4194 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -175,8 +175,8 @@ return {
 			Reflectance = 0.12,
 			Name = "Claw2_Armour",
 			Joint = "Claw2",
-			Offset = { -0.3114, -0.175, -4.0053 },
-			Size = { 0.2119, 0.1807, 0.2724 },
+			Offset = { -0.3503, -0.1969, -4.0685 },
+			Size = { 0.2384, 0.2033, 0.3065 },
 		},
 		{
 			Material = "Neon",
@@ -185,8 +185,8 @@ return {
 			Reflectance = 0,
 			Name = "Claw2_Cyan",
 			Joint = "Claw2",
-			Offset = { -0.3258, -0.1871, -3.9896 },
-			Size = { 0.1035, 0.0708, 0.163 },
+			Offset = { -0.3665, -0.2105, -4.0508 },
+			Size = { 0.1165, 0.0796, 0.1833 },
 		},
 		{
 			Material = "Metal",
@@ -195,8 +195,8 @@ return {
 			Reflectance = 0,
 			Name = "Talon2_Steel",
 			Joint = "Talon2",
-			Offset = { -0.2596, -0.1666, -4.3462 },
-			Size = { 0.37, 0.2508, 0.3133 },
+			Offset = { -0.2921, -0.1875, -4.452 },
+			Size = { 0.4163, 0.2822, 0.3525 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -205,8 +205,8 @@ return {
 			Reflectance = 0.12,
 			Name = "Talon2_Armour",
 			Joint = "Talon2",
-			Offset = { -0.3465, -0.2075, -4.3021 },
-			Size = { 0.2377, 0.2216, 0.2178 },
+			Offset = { -0.3898, -0.2334, -4.4024 },
+			Size = { 0.2675, 0.2493, 0.245 },
 		},
 		{
 			Material = "Neon",
@@ -215,8 +215,8 @@ return {
 			Reflectance = 0,
 			Name = "Talon2_Cyan",
 			Joint = "Talon2",
-			Offset = { -0.1989, -0.1159, -4.3587 },
-			Size = { 0.1915, 0.1155, 0.212 },
+			Offset = { -0.2238, -0.1304, -4.4661 },
+			Size = { 0.2154, 0.1299, 0.2385 },
 		},
 		{
 			Material = "Metal",
@@ -225,8 +225,8 @@ return {
 			Reflectance = 0,
 			Name = "Claw3_Gunmetal",
 			Joint = "Claw3",
-			Offset = { 0.2868, -0.1656, -4.0312 },
-			Size = { 0.3332, 0.2681, 0.4256 },
+			Offset = { 0.3227, -0.1863, -4.0976 },
+			Size = { 0.3748, 0.3016, 0.4788 },
 		},
 		{
 			Material = "Neon",
@@ -235,8 +235,8 @@ return {
 			Reflectance = 0,
 			Name = "Claw3_Amber",
 			Joint = "Claw3",
-			Offset = { 0.2889, -0.1668, -4.0336 },
-			Size = { 0.3003, 0.2593, 0.3728 },
+			Offset = { 0.325, -0.1876, -4.1003 },
+			Size = { 0.3378, 0.2917, 0.4194 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -245,8 +245,8 @@ return {
 			Reflectance = 0.12,
 			Name = "Claw3_Armour",
 			Joint = "Claw3",
-			Offset = { 0.3114, -0.175, -4.0053 },
-			Size = { 0.2119, 0.1807, 0.2724 },
+			Offset = { 0.3503, -0.1969, -4.0685 },
+			Size = { 0.2384, 0.2033, 0.3065 },
 		},
 		{
 			Material = "Neon",
@@ -255,8 +255,8 @@ return {
 			Reflectance = 0,
 			Name = "Claw3_Cyan",
 			Joint = "Claw3",
-			Offset = { 0.3258, -0.1871, -3.9896 },
-			Size = { 0.1035, 0.0708, 0.163 },
+			Offset = { 0.3665, -0.2105, -4.0508 },
+			Size = { 0.1165, 0.0796, 0.1833 },
 		},
 		{
 			Material = "Metal",
@@ -265,8 +265,8 @@ return {
 			Reflectance = 0,
 			Name = "Talon3_Steel",
 			Joint = "Talon3",
-			Offset = { 0.2596, -0.1666, -4.3462 },
-			Size = { 0.37, 0.2508, 0.3133 },
+			Offset = { 0.2921, -0.1875, -4.452 },
+			Size = { 0.4163, 0.2822, 0.3525 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -275,8 +275,8 @@ return {
 			Reflectance = 0.12,
 			Name = "Talon3_Armour",
 			Joint = "Talon3",
-			Offset = { 0.3465, -0.2075, -4.3021 },
-			Size = { 0.2377, 0.2216, 0.2178 },
+			Offset = { 0.3898, -0.2334, -4.4024 },
+			Size = { 0.2675, 0.2493, 0.245 },
 		},
 		{
 			Material = "Neon",
@@ -285,8 +285,8 @@ return {
 			Reflectance = 0,
 			Name = "Talon3_Cyan",
 			Joint = "Talon3",
-			Offset = { 0.1989, -0.1159, -4.3587 },
-			Size = { 0.1915, 0.1155, 0.212 },
+			Offset = { 0.2238, -0.1304, -4.4661 },
+			Size = { 0.2154, 0.1299, 0.2385 },
 		},
 	},
 	Joints = {
@@ -308,7 +308,7 @@ return {
 		},
 		Claw1 = {
 			Parent = "Housing",
-			PivotRoblox = { -0, 0.232, -3.876 },
+			PivotRoblox = { -0, 0.261, -3.923 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -322,7 +322,7 @@ return {
 		},
 		Talon1 = {
 			Parent = "Claw1",
-			PivotRoblox = { -0, 0.44, -4.196 },
+			PivotRoblox = { -0, 0.495, -4.283 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -337,7 +337,7 @@ return {
 		},
 		Claw2 = {
 			Parent = "Housing",
-			PivotRoblox = { -0.2009, -0.116, -3.876 },
+			PivotRoblox = { -0.226, -0.1305, -3.923 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -351,7 +351,7 @@ return {
 		},
 		Talon2 = {
 			Parent = "Claw2",
-			PivotRoblox = { -0.3811, -0.22, -4.196 },
+			PivotRoblox = { -0.4287, -0.2475, -4.283 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -366,7 +366,7 @@ return {
 		},
 		Claw3 = {
 			Parent = "Housing",
-			PivotRoblox = { 0.2009, -0.116, -3.876 },
+			PivotRoblox = { 0.226, -0.1305, -3.923 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -380,7 +380,7 @@ return {
 		},
 		Talon3 = {
 			Parent = "Claw3",
-			PivotRoblox = { 0.3811, -0.22, -4.196 },
+			PivotRoblox = { 0.4287, -0.2475, -4.283 },
 			Motion = {
 				{
 					Kind = "Hinge",

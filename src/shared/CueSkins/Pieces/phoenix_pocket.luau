@@ -7,7 +7,7 @@ return {
 	Frame = "pocket",
 	Rigid = nil,
 	Models = {
-		PocketFirebird = "96658441051582",
+		PocketFirebird = "130180730915804",
 	},
 	Parts = {
 		{
@@ -16,11 +16,11 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://125747407803009",
-				EmissiveMask = "rbxassetid://137734105541195",
+				ColorMap = "rbxassetid://117452078291469",
+				EmissiveMask = "rbxassetid://118845783967405",
 				EmissiveTint = "#FFA030",
 				EmissiveStrength = 1.6,
-				NormalMap = "rbxassetid://138151673000349",
+				NormalMap = "rbxassetid://84619943536649",
 				AlphaMode = "Transparency",
 			},
 			Name = "PocketFirebird",
@@ -37,8 +37,8 @@ return {
 				"Tail",
 				"TailTip",
 			},
-			Offset = { 0.0037, 1.6006, -0.0008 },
-			Size = { 2.6042, 3.1955, 1.0443 },
+			Offset = { -0.0036, 1.6004, -0.0013 },
+			Size = { 2.5993, 3.1956, 1.0392 },
 			Model = "PocketFirebird",
 		},
 		{
@@ -60,8 +60,8 @@ return {
 				"Tail",
 				"TailTip",
 			},
-			Offset = { 0.0039, 1.6058, 0.0024 },
-			Size = { 2.6533, 3.2487, 1.1268 },
+			Offset = { 0.0008, 1.6013, -0.008 },
+			Size = { 2.6476, 3.2611, 1.125 },
 			Model = "PocketFirebird",
 		},
 	},

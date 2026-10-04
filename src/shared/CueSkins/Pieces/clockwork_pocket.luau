@@ -5,7 +5,7 @@
 return {
 	Id = "clockwork_pocket",
 	Frame = "pocket",
-	Rigid = "118539060984980",
+	Rigid = "92692812438632",
 	Models = {},
 	Parts = {
 		{

@@ -5,7 +5,7 @@
 return {
 	Id = "clockwork",
 	Frame = "cue",
-	Rigid = "127079430863511",
+	Rigid = "114947785621905",
 	Models = {},
 	Parts = {
 		{
@@ -15,7 +15,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear1_Brass",
 			Joint = "Gear1",
-			Offset = { 0.0495, 0.1746, -1.0502 },
+			Offset = { 0.0543, 0.1923, -1.0502 },
 			Size = { 0.5206, 0.1631, 0.5379 },
 		},
 		{
@@ -25,7 +25,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear1_Glow",
 			Joint = "Gear1",
-			Offset = { 0.0469, 0.1752, -1.05 },
+			Offset = { 0.0517, 0.1928, -1.05 },
 			Size = { 0.3908, 0.1334, 0.396 },
 		},
 		{
@@ -35,8 +35,8 @@ return {
 			Reflectance = 0,
 			Name = "Pins_Pin",
 			Joint = "Pins",
-			Offset = { -0.0198, -0.0026, -0.625 },
-			Size = { 0.3213, 0.3731, 4.886 },
+			Offset = { -0.0256, -0.0029, -0.625 },
+			Size = { 0.3449, 0.41, 4.886 },
 		},
 		{
 			Material = "Foil",
@@ -45,7 +45,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear2_Copper",
 			Joint = "Gear2",
-			Offset = { 0.0454, 0.1695, -0.6585 },
+			Offset = { 0.05, 0.1865, -0.6585 },
 			Size = { 0.3011, 0.1047, 0.3061 },
 		},
 		{
@@ -55,7 +55,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear2_Glow",
 			Joint = "Gear2",
-			Offset = { 0.0454, 0.1695, -0.6585 },
+			Offset = { 0.05, 0.1865, -0.6585 },
 			Size = { 0.2259, 0.0892, 0.2253 },
 		},
 		{
@@ -65,7 +65,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear3_Copper",
 			Joint = "Gear3",
-			Offset = { -0.1691, -0.0789, -1.4 },
+			Offset = { -0.1863, -0.0869, -1.4 },
 			Size = { 0.1847, 0.3562, 0.3832 },
 		},
 		{
@@ -75,7 +75,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear3_Glow",
 			Joint = "Gear3",
-			Offset = { -0.1691, -0.0789, -1.4 },
+			Offset = { -0.1863, -0.0869, -1.4 },
 			Size = { 0.148, 0.2687, 0.2816 },
 		},
 		{
@@ -85,7 +85,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear4_Brass",
 			Joint = "Gear4",
-			Offset = { -0.1732, -0.0807, -1.697 },
+			Offset = { -0.1908, -0.089, -1.697 },
 			Size = { 0.1277, 0.2338, 0.2482 },
 		},
 		{
@@ -95,7 +95,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear4_Glow",
 			Joint = "Gear4",
-			Offset = { -0.1732, -0.0807, -1.697 },
+			Offset = { -0.1908, -0.089, -1.697 },
 			Size = { 0.1064, 0.1794, 0.183 },
 		},
 		{
@@ -105,7 +105,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear5_Brass",
 			Joint = "Gear5",
-			Offset = { -0.0824, 0.1767, -3 },
+			Offset = { -0.0909, 0.1949, -3 },
 			Size = { 0.4498, 0.2282, 0.4985 },
 		},
 		{
@@ -115,7 +115,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear5_Glow",
 			Joint = "Gear5",
-			Offset = { -0.0824, 0.1767, -3 },
+			Offset = { -0.0909, 0.1949, -3 },
 			Size = { 0.3405, 0.1815, 0.3608 },
 		},
 		{
@@ -125,7 +125,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear6_Copper",
 			Joint = "Gear6",
-			Offset = { -0.0824, 0.1767, -2.6465 },
+			Offset = { -0.0909, 0.1949, -2.6465 },
 			Size = { 0.2513, 0.1358, 0.2675 },
 		},
 		{
@@ -135,7 +135,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear6_Glow",
 			Joint = "Gear6",
-			Offset = { -0.0824, 0.1767, -2.6465 },
+			Offset = { -0.0909, 0.1949, -2.6465 },
 			Size = { 0.1922, 0.1123, 0.1971 },
 		},
 		{
@@ -145,7 +145,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear7_Brass",
 			Joint = "Gear7",
-			Offset = { 0.0636, -0.1841, -3.0497 },
+			Offset = { 0.0705, -0.2029, -3.0497 },
 			Size = { 0.413, 0.1714, 0.4374 },
 		},
 		{
@@ -155,7 +155,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear7_Glow",
 			Joint = "Gear7",
-			Offset = { 0.0667, -0.1832, -3.05 },
+			Offset = { 0.0735, -0.202, -3.05 },
 			Size = { 0.302, 0.136, 0.3098 },
 		},
 		{
@@ -185,7 +185,7 @@ return {
 			Reflectance = 0,
 			Name = "Gear9_Copper",
 			Joint = "Gear9",
-			Offset = { 0.135, 0.0491, 0.6 },
+			Offset = { 0.141, 0.0513, 0.6 },
 			Size = { 0.1091, 0.2404, 0.2482 },
 		},
 		{
@@ -195,14 +195,14 @@ return {
 			Reflectance = 0,
 			Name = "Gear9_Glow",
 			Joint = "Gear9",
-			Offset = { 0.135, 0.0491, 0.6 },
+			Offset = { 0.141, 0.0513, 0.6 },
 			Size = { 0.0927, 0.1829, 0.183 },
 		},
 	},
 	Joints = {
 		Gear1 = {
 			Parent = nil,
-			PivotRoblox = { 0.0469, 0.1752, -1.05 },
+			PivotRoblox = { 0.0517, 0.1928, -1.05 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -219,7 +219,7 @@ return {
 		},
 		Gear2 = {
 			Parent = nil,
-			PivotRoblox = { 0.0454, 0.1695, -0.6585 },
+			PivotRoblox = { 0.05, 0.1865, -0.6585 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -231,7 +231,7 @@ return {
 		},
 		Gear3 = {
 			Parent = nil,
-			PivotRoblox = { -0.1691, -0.0789, -1.4 },
+			PivotRoblox = { -0.1863, -0.0869, -1.4 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -243,7 +243,7 @@ return {
 		},
 		Gear4 = {
 			Parent = nil,
-			PivotRoblox = { -0.1732, -0.0807, -1.697 },
+			PivotRoblox = { -0.1908, -0.089, -1.697 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -255,7 +255,7 @@ return {
 		},
 		Gear5 = {
 			Parent = nil,
-			PivotRoblox = { -0.0824, 0.1767, -3 },
+			PivotRoblox = { -0.0909, 0.1949, -3 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -267,7 +267,7 @@ return {
 		},
 		Gear6 = {
 			Parent = nil,
-			PivotRoblox = { -0.0824, 0.1767, -2.6465 },
+			PivotRoblox = { -0.0909, 0.1949, -2.6465 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -279,7 +279,7 @@ return {
 		},
 		Gear7 = {
 			Parent = nil,
-			PivotRoblox = { 0.0667, -0.1832, -3.05 },
+			PivotRoblox = { 0.0735, -0.202, -3.05 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -303,7 +303,7 @@ return {
 		},
 		Gear9 = {
 			Parent = nil,
-			PivotRoblox = { 0.135, 0.0491, 0.6 },
+			PivotRoblox = { 0.141, 0.0513, 0.6 },
 			Motion = {
 				{
 					Kind = "Spin",

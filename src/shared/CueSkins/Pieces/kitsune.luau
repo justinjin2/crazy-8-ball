@@ -7,8 +7,8 @@ return {
 	Frame = "cue",
 	Rigid = nil,
 	Models = {
-		FoxMask = "124590013191641",
-		RunningFox = "125033825476341",
+		FoxMask = "105740042709353",
+		RunningFox = "86187026382014",
 	},
 	Parts = {
 		{
@@ -17,11 +17,11 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://89213937447928",
-				EmissiveMask = "rbxassetid://72679398093444",
+				ColorMap = "rbxassetid://88372403751343",
+				EmissiveMask = "rbxassetid://90252703608948",
 				EmissiveTint = "#D8B8FF",
 				EmissiveStrength = 1.6,
-				NormalMap = "rbxassetid://99902336487404",
+				NormalMap = "rbxassetid://120751049683970",
 				AlphaMode = "Transparency",
 			},
 			Name = "FoxMask",
@@ -53,11 +53,11 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://71086102471623",
-				EmissiveMask = "rbxassetid://137024486209100",
+				ColorMap = "rbxassetid://112323165661657",
+				EmissiveMask = "rbxassetid://114901221265112",
 				EmissiveTint = "#C88CFF",
 				EmissiveStrength = 1.8,
-				NormalMap = "rbxassetid://70374803189224",
+				NormalMap = "rbxassetid://117696774808239",
 				AlphaMode = "Transparency",
 			},
 			Name = "RunningFox",

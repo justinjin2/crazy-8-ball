@@ -335,7 +335,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 1.02,
+            "Width": 1.06,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -417,7 +417,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.92,
+            "Width": 0.96,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -491,7 +491,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.2,
-            "Width": 1.22,
+            "Width": 1.26,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -563,7 +563,7 @@
             "Kind": "Part",
             "FromStuds": 0.2,
             "ToStuds": 7.4,
-            "Width": 1.22,
+            "Width": 1.26,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -626,7 +626,7 @@
             "Kind": "Part",
             "FromStuds": 0.5,
             "ToStuds": 7.0,
-            "Width": 0.62,
+            "Width": 0.66,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -1634,5 +1634,5 @@
       "PieceTriangles": 37640
     }
   },
-  "shape": 2
+  "shape": 3
 }

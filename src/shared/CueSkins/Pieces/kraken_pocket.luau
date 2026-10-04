@@ -5,7 +5,7 @@
 return {
 	Id = "kraken_pocket",
 	Frame = "pocket",
-	Rigid = "129065796281976",
+	Rigid = "93768000975054",
 	Models = {},
 	Parts = {
 		{
