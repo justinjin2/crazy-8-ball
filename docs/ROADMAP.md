@@ -17,6 +17,26 @@ Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (be
 
 ---
 
+## Cue VFX upgrade pass (designer, 2026-10-04; current work)
+
+The designer requested this art pass now. The earlier lucky-block controller/place handoff
+remains pending below. Brief: [CUE_VFX_PROMPT.md](prompts/CUE_VFX_PROMPT.md).
+
+- [ ] Approve the completed interview's detailed art brief. Width selected: 0.36, tip kept.
+- [ ] Rebuild the shared mesh, all existing skin maps/thumbnails, effects offsets and pieces;
+  verify final-width aiming and clearance before effects production.
+- [ ] Build Eclipse and new Beta to the same highest visual standard; Mythics and new
+  Grand Opening next, followed by the accepted rank equivalents, Legendary, Epic and Rare.
+  Every cue gets full aura/trail/finisher/surface/piece inspection and a verified commit.
+- [ ] Finish PC/phone/gamepad checks, crowded-lobby performance, review rows and final report;
+  designer saves/publishes the completed place. Economy and sale changes are outside this pass.
+
+Beta (Unique, Secret-quality blueprint hologram) and Grand Opening (Unique, Mythic-quality
+fireworks) are the two new release skins. **Founder's Cue is cancelled**, superseding older
+roadmap progress notes. No Founder assets are to be built.
+
+---
+
 ## Lucky-block follow-up (designer, 2026-10-03)
 
 - [x] Native hold prompt, larger held models, brighter world/hotbar/bag appearance, faster
@@ -365,7 +385,8 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   spinning reel and Fast Open's grid, duplicates and selling, Mythic and Secret banners. The
   Event Case exists switched off; a Season 0 limited case waits for seasons.
 - [ ] **7.3 Limited shelf.** One economy menu; timed, numbered Limited cues (never in cases),
-  including the Founder's and Beta cues; copies-in-existence counts on every cue.
+  including Beta and Grand Opening at release; copies-in-existence counts on every cue.
+  Designer 2026-10-04: Founder's is cancelled. Current cue art work does not change sale rules.
   Progress 2026-09-28 (branch `economy`, overnight): the Shop's Limited tab, the Beta Cue for
   money with numbered copies ("#1 of 1,000"), the Founder's Cue for Robux (id 0), and "N exist"
   on every cue from a shared counter. Still to do: a live check of the counters across

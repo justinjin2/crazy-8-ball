@@ -1,5 +1,9 @@
 # Brief: make every cue skin (61 new skins as renders and VFX clips, not imported yet)
 
+> Historical brief. **2026-10-04:** use [CUE_VFX_PROMPT.md](CUE_VFX_PROMPT.md) for the current
+> upgrade pass. Founder's Cue is cancelled. Beta and Grand Opening are the two new Unique
+> release skins, using the supplied blueprint/firework references, not the old Q1 plan.
+
 Written 2026-09-29 with the designer, after an interview and an approved plan. **The designer
 is awake and watching this run; it is not overnight.** Work through the Progress list at the
 bottom, which is the source of truth for where you are.

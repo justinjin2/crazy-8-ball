@@ -1,5 +1,10 @@
 # Cue skins: the review checklist
 
+> **2026-10-04:** these rows are the historical baseline for
+> [CUE_VFX_PROMPT.md](CUE_VFX_PROMPT.md); some accumulated descriptions predate the October
+> runtime fixes. The new pass rewrites them after each cue is actually verified. Founder's
+> is cancelled; Beta and Grand Opening will get new rows when their release art is built.
+
 One row per skin. Look at the **sheet** first (the render beside its concept, labelled), then the
 **clip**. Write `OK` or `fix: ...` in the **Designer** column; fixes are done before any new skin,
 then the note becomes `fixed (date)`.

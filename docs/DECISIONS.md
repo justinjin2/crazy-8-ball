@@ -2343,3 +2343,28 @@ timer of a new block stay the designer's call.
 - **2026-10-04 — Readable first-skip approach (designer).** Extend the remaining roll
   from 0.45 s / 1.5 cards to 1 s / 2 cards so the cue before the winner visibly passes the
   marker. Keep second-click immediate reveal.
+
+- **2026-10-04 — Cue VFX upgrade interview (designer; brief awaiting approval).** Widen the
+  0.32-stud cue to 0.36, retaining the 0.09 tip and slim front, length 7. Rebuild maps,
+  thumbnails, effect offsets and pieces before the effects pass. Rare must have a clearly
+  visible shaped aura; Epic layered motion; Legendary premium structure; Mythic a living
+  creature/mechanism or equivalent spectacle; Secret the highest standard. Upgrade full
+  aura/trail/finisher/surface/piece sets, judged in the actual bright lobby and matches.
+  Common/Uncommon retain existing effects. The rank/Exclusive equivalents and per-cue plan
+  are in `docs/prompts/CUE_VFX_PROMPT.md`.
+- **2026-10-04 — Two new Unique release skins; Founder cancelled (designer).** Exactly two
+  new skins: Beta, a partially transparent blue/magenta blueprint hologram, and Grand Opening,
+  navy/gold/cyan/magenta fireworks. Beta and Eclipse share the same highest visual standard;
+  Beta is intended to be rarer to own. Grand Opening gets Mythic-quality art. Both are for
+  release and never return after their limited sale. Founder's Cue is cancelled, superseding
+  older future-release plans. The cue art task changes no price, cap, date, product, receipt,
+  ownership or save rule: its deliverable is art and effects imported and ready in Studio.
+- **2026-10-04 — Cue visual refinements (designer).** Rebuild creatures as painted luminous
+  spirits with clear contours; Apex stays mechanical. Keep pastel-pink Kitsune and Eclipse's
+  black/gold/violet, allowing a grander stable silhouette. VIP stays mainly gold with some
+  rainbow; reserve crown motifs in cue art for Reyes alone. Retain restrained aiming,
+  nearby-cue quieting and short detailed trails. Finishers may rise above the pocket and a
+  legal winning 8 gets a larger version. Faint local sounds and small equip-change flourishes
+  are allowed only if they do not materially delay the main work. Balance performance with
+  a preference for visual quality; designer will check on an iPhone. Existing paid generation
+  tools and Roblox group 675425213 uploads have standing authorization after brief approval.
