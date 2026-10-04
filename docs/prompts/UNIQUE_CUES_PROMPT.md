@@ -255,9 +255,9 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   fireworks and stars, quilted wrap, gold collars), skin file, upload, template, thumbnail.
 - [x] 8. Grand Opening: the aura (two 3D gold sparkle ribbons, mini fireworks in five colours,
   bigger bursts, glow, lights); gate 2, designer approval.
-- [ ] 9. Grand Opening: trail and pocket finisher at Eclipse size or more, faint crackles and
+- [x] 9. Grand Opening: trail and pocket finisher at Eclipse size or more, faint crackles and
   pops; checked in a real match.
-- [ ] 10. Grand Opening: polish next to Eclipse and Beta, Lower-effects variant, cards.
+- [x] 10. Grand Opening: polish next to Eclipse and Beta, Lower-effects variant, cards.
 - [ ] 11. Both: lint and tests green, every change to shared files listed in the lane file,
   gate 3 with the designer.
 - [ ] 12. Handoff section, the report, the techniques doc if approved.
@@ -290,7 +290,10 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   pending gate 3.
 - 2026-10-04: steps 7 and 8 built: the Grand Opening Cue's maps, sprites, thumbnail and piece
   uploaded, rows generated, template built, aura tuned on the lobby floor (both Unique cues'
-  lights dimmed). Waiting at gate 2 for the Grand Opening Cue.
+  lights dimmed). Gate 2 passed (brighter fireworks).
+- 2026-10-04: steps 9 and 10 done: the fireworks brightened (sprite re-uploaded), trail and
+  finisher checked in a solo fixture match with both sounds, Lower effects and the Index card
+  checked.
 
 ## Decisions
 

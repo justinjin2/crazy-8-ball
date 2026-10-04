@@ -398,7 +398,7 @@ return {
 					{ 1, "#9B5CFF" },
 				},
 				LightEmission = 1,
-				Brightness = 8,
+				Brightness = 6,
 			},
 			{
 				Name = "BurstSparks",
@@ -1177,6 +1177,12 @@ return {
 			Color = { 255, 200, 110 },
 			Brightness = 14,
 			Seconds = 0.5,
+		},
+		Sound = {
+			Asset = "rbxassetid://103382603543789",
+			Volume = 0.7,
+			RollOffMinStuds = 8,
+			RollOffMaxStuds = 60,
 		},
 	},
 	Piece = "grand_opening",

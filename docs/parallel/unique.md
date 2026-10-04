@@ -139,6 +139,18 @@ by hand in your copy (which is otherwise lost at the merge).
   lab proved they, not the particles, flooded the floor). Captures for the gate:
   `assets/cue/concepts/unique/grand-opening-studio-{stand,close,back}.jpg`. Lint and the cue
   tests green.
+- 2026-10-04 steps 9 and 10: the Grand Opening Cue's trail, finisher, sounds, Lower-effects
+  variant and cards. Gate 2 passed the same day ("looks good"); the one change, the mini
+  fireworks were hard to see, is in: the burst sprite's rays and tips three times as fat with
+  a stronger halo (re-uploaded, new image id), the five pops bigger (1.0 to 1.6 studs),
+  brighter (7) and more saturated, 0.8 a second each, the big burst 2 to 3.2 studs
+  (`grand-opening-studio-fireworks.jpg`). In a solo fixture match: the gold sparkler streamer
+  with coloured starlets behind the rolling white, the spark fountain and staggered coloured
+  bursts on a scratch (`grand-opening-studio-trail.jpg`, `-pocket.jpg`), the crackle hum in
+  the aura and the fireworks sound at the pocket (the generator had dropped `Pocket.Sound`;
+  fixed, so the sound row reaches the game). Lower effects cuts its particle rates to a third
+  through Quality (no piece joint hides: the two ribbons are the cue's main form). The Index
+  shows it in the Unique row with its no-aura thumbnail. Lint and the cue tests green.
 
 ## Decisions
 
@@ -203,7 +215,7 @@ by hand in your copy (which is otherwise lost at the merge).
   `CueSkins.Typing` (font, alphabet, token lengths, canvas density, glow, line height, cursor).
   Why: the Beta panels type gibberish; any piece can carry a typing panel.
 - `tools/cue_skins_data.py`: `ASSET` resolves `.wav/.ogg/.mp3` paths (`sounds/x.wav` ->
-  `rbxassetid://<audio id>`). Why: sounds in the skin data.
+  `rbxassetid://<audio id>`); the pocket row keeps its `Sound`. Why: sounds in the skin data.
 - `src/client/CueSkinLook.luau`: `buildSound` (Aura.Sound), played in `applyVisible`, volume
   eased in `ease`. `src/client/Effects.luau`: the finisher's `Sound` row; the piece row's
   `Outline`, `ShellFade`, `EmissiveScale` overrides (hex outline colours through CueVfx).

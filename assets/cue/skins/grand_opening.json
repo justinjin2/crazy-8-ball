@@ -776,7 +776,7 @@
             ]
           ],
           "LightEmission": 1,
-          "Brightness": 8
+          "Brightness": 6
         },
         {
           "Name": "BurstSparks",
