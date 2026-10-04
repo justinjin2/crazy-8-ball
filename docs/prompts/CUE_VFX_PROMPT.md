@@ -1,6 +1,6 @@
 # Cue VFX upgrade pass
 
-**2026-10-04 — APPROVED. Width and Eclipse built and checked in Studio; Beta is next.**
+**2026-10-04 — APPROVED. Width, Eclipse and Beta built and checked in Studio; Mythics are next.**
 
 Branch: `cue-vfx`, created from `release` at `d3b6c57`. Work in the main
 `~/Desktop/8ball` checkout and main Studio place, with Rojo on 34872. This brief supersedes
@@ -702,6 +702,12 @@ saved or live; record those states separately.
   Ordinary major finishers have a shared 0.5-second spacing; a legal winning 8 bypasses it.
   OBJ export/import now preserves smooth normals, fixing faceted spheres in Studio.
 
+- **2026-10-04, implementation:** Beta uses an alpha ColorMap with opaque tip/ferrule/bumper,
+  permanent contour wires and camera-facing painted schematics supported by dimensional
+  drafting meshes. Its pocket wirework opts out of the generic black Highlight, which
+  overwhelmed thin luminous lines. Shortened the funnel height to fit the match camera;
+  thickened its short trail after fine lines disappeared against green phone felt.
+
 ## 15. Status
 
 - **2026-10-04 — Planning only:** repository/reference review complete; `cue-vfx` branch
@@ -746,3 +752,19 @@ saved or live; record those states separately.
   be repeated after the Mythics are rebuilt. Evidence is local ignored `eclipse_*` captures
   plus `eclipse_phone_motion_inspection.webp` (five captured frames, UI hidden, fixed camera).
   The lab now resets cloned Motor6D poses so a match's crouch cannot contaminate back studies.
+
+- **2026-10-04 — Beta built and checked:** new Unique hologram with partially transparent
+  blue glass, opaque contour wires/magenta collars and six travelling emissive frames.
+  Three painted blueprint panels, dimensional drafting assemblies and rotating rings remain
+  readable in daylight; the hand aura fades strongly. Main piece: 11 parts / 10,624 triangles.
+  Short cyan/magenta wire wake was thickened after phone testing; new pocket funnel has
+  scanning rings and a winning-eight schematic sweep (5 parts / 7,872 triangles).
+  PC/phone emulator back/stand/front, day/sunset, walking, quiet aiming, 60° elevation,
+  actual input shots, legal-eight pocket and four cloth colours checked. Lifecycle assertions
+  pass (ordinary/illegal/winning pots, cooldown, quiet/quality, AuraOff and cleanup).
+  Eight-copy full/reduced views preserve the major blueprint forms; accents drop from 32/s
+  to 8/s across eight cues. Sampled render CPU ~5 ms full / ~2.5 ms reduced, but ~66 ms capped
+  frames prevent an iPhone FPS claim. Physical iPhone/controller acceptance remains pending.
+  Lint and 984 tests pass. All new assets uploaded/resolved/imported; evidence is local ignored
+  `renders/vfx-upgrade/beta_*`. Trail captures use a labelled close inspection camera.
+  No sales, ownership, receipts or economy code changed. Studio restored to default viewport.

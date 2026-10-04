@@ -4596,5 +4596,122 @@
     "status": "ok",
     "imageId": "101749736113130",
     "sha256": "7b952f1ef86f57b5e65417cf2fe6f9dc92eee59ec95ff19b7f3ee38d78b54c68"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/pieces/beta/beta_parts.glb": {
+    "assetId": "119607506908373",
+    "assetType": "Model",
+    "sha256": "89f52d9f07b4b456e7e61c642772a5845799c779b64415033f5950323d7782dd",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/pieces/beta_pocket/beta_pocket_parts.glb": {
+    "assetId": "102419646747028",
+    "assetType": "Model",
+    "status": "ok",
+    "sha256": "40e83994581d433f5e6e7580bb6501b163c7df98aa93fd74b03df538818e44ea"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/beta_color.png": {
+    "assetId": "122680087271676",
+    "assetType": "Decal",
+    "status": "ok",
+    "sha256": "6a8f6b22451681283c9110b33abb2eb37899bb94495a98c289541aae0b6d1c72",
+    "imageId": "99121196173297"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/beta_emissive.png": {
+    "assetId": "127887269503636",
+    "assetType": "Decal",
+    "imageId": "119278790194447",
+    "sha256": "c80c011d6f1ccf21fdb925d0e89c49bd0dd28206f3692025aa944c30f8a7e605",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/beta_f1_emissive.png": {
+    "assetId": "73289795400833",
+    "assetType": "Decal",
+    "imageId": "111713075301410",
+    "sha256": "daa63276b7ef7cc1168063f258fcaf0bf19ed8cf9d17165e0584c4385759bbfe",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/beta_f2_emissive.png": {
+    "assetId": "131957628485828",
+    "assetType": "Decal",
+    "imageId": "132363223500614",
+    "sha256": "41bb3aec8d6516f0471b73a9ee2277d009b68c3956d4434ae946e89b6a51af72",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/beta_f3_emissive.png": {
+    "assetId": "111012426536401",
+    "assetType": "Decal",
+    "imageId": "95517308775062",
+    "sha256": "bcc719d6fd8c3a690abebedc5125bd1686eaa6c7c7a74a953744eb79ac09098a",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/beta_f4_emissive.png": {
+    "assetId": "111425706150531",
+    "assetType": "Decal",
+    "imageId": "101714204203946",
+    "sha256": "4d9b0a9353ba435248ee6dd9a56ca654c19c50031257da10fad8192c771aacf9",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/beta_f5_emissive.png": {
+    "assetId": "75973796343173",
+    "assetType": "Decal",
+    "imageId": "91466894241728",
+    "sha256": "b065f3cac34015ac191e1eaf9145df8c10722078444f6889ba6ba06f4ae4978a",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/beta_metalness.png": {
+    "assetId": "90615717715865",
+    "assetType": "Decal",
+    "imageId": "81142744879461",
+    "sha256": "87658cfaf8e619d7f15fe7179e5874c38663d3254302928d9c1e7eaacee0a9f4",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/beta_normal.png": {
+    "assetId": "121149662643429",
+    "assetType": "Decal",
+    "imageId": "109770192614286",
+    "sha256": "9d258f29695d92031577df2add4acb2b7b095e3ee35828f00f7c6d94d096ddab",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/beta_roughness.png": {
+    "assetId": "70756895717246",
+    "assetType": "Decal",
+    "imageId": "131116601745011",
+    "sha256": "2fbd2041bf117ce0d2c30be38715633574305b5a0a6ccd66b45ee598b3ad490f",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/beta.png": {
+    "assetId": "131718731150395",
+    "assetType": "Decal",
+    "status": "ok",
+    "sha256": "bb09962ce65f0000c99e98d9381a97dbc50d39ce007d0ad1fa381f5663151214",
+    "imageId": "87114006778185"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v3/beta/blueprint_constellation_clean.png": {
+    "assetId": "105503001313496",
+    "assetType": "Decal",
+    "imageId": "119774919188116",
+    "sha256": "aac6fdb2e7532f7c03bb555253544d8e735d4b2118581f4ebb0aa00e7d4a5e15",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v3/beta/draft_ring.png": {
+    "assetId": "82973861881805",
+    "assetType": "Decal",
+    "imageId": "118184628594740",
+    "sha256": "b73bafd87d7dc3377fee0567559bd6862fd2ebadfa4f718f5860e90424fe0a1d",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v3/beta/registration.png": {
+    "assetId": "78080703504741",
+    "assetType": "Decal",
+    "imageId": "98004870999498",
+    "sha256": "e2146f63c1d258af234b2ef0de2ef78b426664651c6842e79e0fa17977542216",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v3/beta/wire_wake.png": {
+    "assetId": "131119065046244",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "76309561347530",
+    "sha256": "d87d608b8690442eef4439c843b702240b8048d24c7d6c48d04425b039643f8d"
   }
 }

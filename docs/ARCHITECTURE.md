@@ -639,7 +639,7 @@ over the shooter's next shots too (up to `V.TURN_SHOTS`). The Blender scripts ar
 
 ## The shared cue mesh and the back cue (2026-09-29)
 
-- **One mesh, many skins.** `assets/cue/` builds one lathed cue mesh (3,840 triangles; tip 0.09, butt 0.32 studs since 2026-10-01) from
+- **One mesh, many skins.** `assets/cue/` builds one lathed cue mesh (4,160 triangles; tip 0.09, butt 0.36 studs since 2026-10-04) from
   `Shape.json`, which `tools/export_cue_shape.luau` exports from `Config.Cue` and the Classic
   catalog look, so the mesh has exactly the band cue's outline. A skin is four 1024 maps on
   that mesh, made from five flat paint-kit panels by `CueTextures.py` (see
@@ -694,7 +694,9 @@ cue. The skins were authored in `assets/cue/skins/<id>.json` (the cue-skins run,
   (run in Edit through the Studio MCP) builds `ReplicatedStorage.CueSkins.<CatalogId>` (the
   Classic mesh wearing the skin's maps, plus `Frames` F1..Fn for a moving surface) and
   `ReplicatedStorage.CuePieces.<piece>` (the rigid MeshParts and skinned Models loaded from
-  their uploads and dressed). They are saved with the place.
+  their uploads and dressed). They are saved with the place. Authored `Surface.AlphaMode`
+  applies to every frame appearance; Beta uses a transparent RGBA ColorMap, with opaque
+  tip/ferrule/bumper regions and separate contour wire meshes.
 - **CueSkinLook (client).** `CueSkinLook.attach(stick, {aura})` follows a stick's `CueId`,
   `Visible` and `Mesh` attributes and builds the skin's look on it: surface frames and pulses,
   the piece (CuePiece), Moving beams, and with `aura` the Aura's emitters, beams, orbiters,

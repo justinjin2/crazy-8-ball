@@ -1,0 +1,427 @@
+{
+  "id": "beta",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 10624,
+  "Parts": [
+    {
+      "Material": "Neon",
+      "Color": "#6ECFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Contour_Ice",
+      "File": "pieces/beta/Contour_Ice.obj",
+      "Joint": "Contour",
+      "Offset": [
+        0.0,
+        0.0,
+        -0.1037
+      ],
+      "Size": [
+        0.386,
+        0.386,
+        6.7193
+      ],
+      "Triangles": 5016
+    },
+    {
+      "Material": "Neon",
+      "Color": "#E52BCD",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Collars_Magenta",
+      "File": "pieces/beta/Collars_Magenta.obj",
+      "Joint": "Collars",
+      "Offset": [
+        0.0,
+        0.0,
+        -1.755
+      ],
+      "Size": [
+        0.406,
+        0.406,
+        3.274
+      ],
+      "Triangles": 1960
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#115AD0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Schematic_Blue",
+      "File": "pieces/beta/Schematic_Blue.obj",
+      "Joint": "Schematic",
+      "Offset": [
+        0.0,
+        0.0,
+        -1.2
+      ],
+      "Size": [
+        2.222,
+        1.5634,
+        2.7
+      ],
+      "Triangles": 1056
+    },
+    {
+      "Material": "Neon",
+      "Color": "#E52BCD",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Schematic_Magenta",
+      "File": "pieces/beta/Schematic_Magenta.obj",
+      "Joint": "Schematic",
+      "Offset": [
+        -0.2325,
+        0.1606,
+        -1.2
+      ],
+      "Size": [
+        1.5911,
+        1.1307,
+        2.2361
+      ],
+      "Triangles": 120
+    },
+    {
+      "Material": "Neon",
+      "Color": "#6ECFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "SectionRing_Ice",
+      "File": "pieces/beta/SectionRing_Ice.obj",
+      "Joint": "SectionRing",
+      "Offset": [
+        0.0,
+        0.0,
+        -2.45
+      ],
+      "Size": [
+        1.4638,
+        1.4638,
+        0.024
+      ],
+      "Triangles": 496
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#115AD0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Elevation_Blue",
+      "File": "pieces/beta/Elevation_Blue.obj",
+      "Joint": "Elevation",
+      "Offset": [
+        -1.0035,
+        0.3975,
+        0.5
+      ],
+      "Size": [
+        0.7553,
+        0.5342,
+        1.922
+      ],
+      "Triangles": 440
+    },
+    {
+      "Material": "Neon",
+      "Color": "#E52BCD",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Elevation_Magenta",
+      "File": "pieces/beta/Elevation_Magenta.obj",
+      "Joint": "Elevation",
+      "Offset": [
+        -1.0017,
+        0.3962,
+        0.4953
+      ],
+      "Size": [
+        0.6303,
+        0.4458,
+        1.6055
+      ],
+      "Triangles": 32
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#115AD0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Section_Blue",
+      "File": "pieces/beta/Section_Blue.obj",
+      "Joint": "Section",
+      "Offset": [
+        1.0526,
+        -0.5539,
+        -1.5
+      ],
+      "Size": [
+        0.8372,
+        0.5916,
+        1.222
+      ],
+      "Triangles": 976
+    },
+    {
+      "Material": "Neon",
+      "Color": "#E52BCD",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Section_Magenta",
+      "File": "pieces/beta/Section_Magenta.obj",
+      "Joint": "Section",
+      "Offset": [
+        1.0547,
+        -0.5554,
+        -1.503
+      ],
+      "Size": [
+        0.6987,
+        0.4937,
+        1.014
+      ],
+      "Triangles": 32
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#115AD0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Sleeve_Blue",
+      "File": "pieces/beta/Sleeve_Blue.obj",
+      "Joint": "Sleeve",
+      "Offset": [
+        -0.9208,
+        0.2541,
+        -3.1
+      ],
+      "Size": [
+        0.7553,
+        0.5342,
+        1.322
+      ],
+      "Triangles": 464
+    },
+    {
+      "Material": "Neon",
+      "Color": "#E52BCD",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Sleeve_Magenta",
+      "File": "pieces/beta/Sleeve_Magenta.obj",
+      "Joint": "Sleeve",
+      "Offset": [
+        -0.9189,
+        0.2528,
+        -3.1033
+      ],
+      "Size": [
+        0.6303,
+        0.4458,
+        1.0985
+      ],
+      "Triangles": 32
+    }
+  ],
+  "Joints": {
+    "Contour": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        3.5
+      ],
+      "Motion": []
+    },
+    "Collars": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        3.5
+      ],
+      "Motion": []
+    },
+    "Schematic": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        -4.699999809265137,
+        0.0
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.0,
+        -1.2
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.5735763907432556,
+            0.0,
+            -0.8191520571708679
+          ],
+          "Rate": 11
+        }
+      ],
+      "Aura": true,
+      "Layer": "Essential"
+    },
+    "SectionRing": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        -5.949999809265137,
+        0.0
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.0,
+        -2.45
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "Rate": -18
+        }
+      ],
+      "Aura": true,
+      "Layer": "Essential"
+    },
+    "Elevation": {
+      "Parent": null,
+      "Pivot": [
+        1.003503680229187,
+        -3.0,
+        0.39746713638305664
+      ],
+      "PivotRoblox": [
+        -1.0035,
+        0.3975,
+        0.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.8191520571708679,
+            0.0,
+            0.5735763907432556
+          ],
+          "Amp": 0.1,
+          "Period": 4.5,
+          "Phase": 0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "Amp": 8,
+          "Period": 6,
+          "Phase": 0
+        }
+      ],
+      "Aura": true,
+      "Layer": "Structure"
+    },
+    "Section": {
+      "Parent": null,
+      "Pivot": [
+        -1.052635908126831,
+        -5.0,
+        -0.5539472699165344
+      ],
+      "PivotRoblox": [
+        1.0526,
+        -0.5539,
+        -1.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.8191520571708679,
+            0.0,
+            0.5735763907432556
+          ],
+          "Amp": 0.1,
+          "Period": 4.5,
+          "Phase": 120
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "Amp": 8,
+          "Period": 6,
+          "Phase": 120
+        }
+      ],
+      "Aura": true,
+      "Layer": "Structure"
+    },
+    "Sleeve": {
+      "Parent": null,
+      "Pivot": [
+        0.9207813143730164,
+        -6.599999904632568,
+        0.2540900707244873
+      ],
+      "PivotRoblox": [
+        -0.9208,
+        0.2541,
+        -3.1
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.8191520571708679,
+            0.0,
+            0.5735763907432556
+          ],
+          "Amp": 0.1,
+          "Period": 4.5,
+          "Phase": 240
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "Amp": 8,
+          "Period": 6,
+          "Phase": 240
+        }
+      ],
+      "Aura": true,
+      "Layer": "Structure"
+    }
+  }
+}

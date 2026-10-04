@@ -829,6 +829,8 @@ function Effects.skinFinisher(
 			piece:deepen(F.ShellFade, F.EmissiveScale, tint)
 			local outline = Instance.new("Highlight")
 			outline.Name = "Contrast"
+			-- Fine drafted wirework already has its own contour; a mesh outline fills it in.
+			outline.Enabled = p.Outline ~= false
 			outline.OutlineColor = color(F.OutlineColor)
 			outline.FillColor = color(F.FillColor)
 			outline.DepthMode = Enum.HighlightDepthMode.Occluded

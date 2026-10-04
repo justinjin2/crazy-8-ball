@@ -65,6 +65,7 @@ local function surfaceAppearance(maps, surface)
 		end
 	end
 	surface = surface or {}
+	sa.AlphaMode = (Enum.AlphaMode :: any)[surface.AlphaMode or "Overlay"]
 	if maps.Emissive and maps.Emissive ~= "" then
 		sa.EmissiveStrength = surface.EmissiveStrength or 1
 		sa.EmissiveTint = color(surface.EmissiveTint or "#FFFFFF")

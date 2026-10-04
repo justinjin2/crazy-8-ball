@@ -427,11 +427,20 @@ def normal_map(atlas, height):
     return (n * 0.5 + 0.5) * 255.0
 
 
-def write_maps(atlas, out_prefix, col, rough, metal, height, glow):
+def write_maps(atlas, out_prefix, col, rough, metal, height, glow, alpha=None):
     mask = atlas.mask
     minimum = TEXTURE['dilate_px']
     paths = {}
     colour = cc.dilate(atlas.full(np.clip(col, 0, 255), 0.0), mask, minimum)
+    if alpha:
+        # Holographic bodies retain opaque drafted contours and a real tip/ferrule.
+        a = np.full(atlas.n, float(alpha['Base']))
+        if glow is not None:
+            a += np.clip(glow, 0, 1) * float(alpha.get('GlowGain', 0))
+        for region in alpha.get('OpaqueRegions', []):
+            a[atlas.in_region(region)] = 1
+        a = cc.dilate(atlas.full(np.clip(a, 0, 1) * 255, 0.0), mask, minimum)
+        colour = np.concatenate([colour, a[:, :, None]], axis=2)
     paths['color'] = out_prefix + '_color.png'
     cc.write_png(paths['color'], np.round(colour))
     nm = normal_map(atlas, height)
@@ -486,7 +495,7 @@ def main():
     else:
         col, rough, metal, height, glow = panel_skin(atlas, skin, base_dir)
     os.makedirs(TEXTURES, exist_ok=True)
-    maps = write_maps(atlas, os.path.join(TEXTURES, skin_id), col, rough, metal, height, glow)
+    maps = write_maps(atlas, os.path.join(TEXTURES, skin_id), col, rough, metal, height, glow, skin.get('alpha'))
     # moving-material frames: skin "frames": {"Count": n, "Keys": [...]}; frame f's panels are
     # in skins/<id>_f<f>/ (CuePaint.py); only the maps named in Keys are kept (the rest match
     # frame 0, so they are not uploaded twice)
@@ -496,7 +505,7 @@ def main():
         fskin['panels'] = {k: v.replace('skins/%s/' % skin_id, 'skins/%s_f%d/' % (skin_id, f))
                            for k, v in skin.get('panels', {}).items()}
         fcol, frough, fmetal, fheight, fglow = panel_skin(atlas, fskin, base_dir)
-        fmaps = write_maps(atlas, os.path.join(TEXTURES, '%s_f%d' % (skin_id, f)), fcol, frough, fmetal, fheight, fglow)
+        fmaps = write_maps(atlas, os.path.join(TEXTURES, '%s_f%d' % (skin_id, f)), fcol, frough, fmetal, fheight, fglow, skin.get('alpha'))
         for key, path in fmaps.items():
             if key not in frames.get('Keys', ['color', 'normal', 'roughness', 'metalness', 'emissive']):
                 os.remove(path)

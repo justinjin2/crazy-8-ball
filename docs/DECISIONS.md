@@ -2378,3 +2378,9 @@ timer of a new block stay the designer's call.
   keeps essential contours in Lower effects; quieting fades large sprites with a per-layer
   exponent. Ordinary major pocket finishers are spaced by 0.5 seconds, with a server-judged
   legal winning eight allowed its separate staged sweep. No economy changes.
+
+- 2026-10-04: Beta release art uses partially transparent blue glass, permanent contour wires,
+  painted blueprint panels plus dimensional drafting assemblies. Quiet aiming keeps those
+  sheets faint. Phone testing required thicker trail strokes and a shorter pocket funnel;
+  fine pocket wirework opts out of the generic black outline. Unique acquisition remains
+  outside this art pass. Temporary Studio appearance previews never grant ownership.

@@ -46,6 +46,21 @@ return {
 			Cap = { 32, 55, 90 },
 		},
 	},
+	BetaCue = {
+		Id = "beta",
+		Name = "Beta",
+		Tier = "Unique",
+		Thumb = "rbxassetid://87114006778185",
+		Look = {
+			Shaft = { 11, 44, 99 },
+			Forearm = { 17, 52, 105 },
+			Wrap = { 14, 53, 111 },
+			Ring = { 223, 56, 217 },
+			Tip = { 19, 42, 75 },
+			Cap = { 71, 52, 127 },
+		},
+		Piece = "beta",
+	},
 	BlazeCue = {
 		Id = "blaze",
 		Name = "Blaze",

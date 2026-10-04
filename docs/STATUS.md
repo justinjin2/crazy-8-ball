@@ -1,6 +1,6 @@
 # Status
 
-**2026-10-04: cue VFX pass — 0.36 width and Eclipse built; Beta next.**
+**2026-10-04: cue VFX pass — 0.36 width, Eclipse and Beta built; Mythics next.**
 - Approved brief: [CUE_VFX_PROMPT.md](prompts/CUE_VFX_PROMPT.md), branch `cue-vfx` from
   `release`. Economy, sale rules, ownership and receipts remain outside this art task.
 - Shared mesh rebuilt at 0.36 butt, 0.09 tip, 7 length, retaining the approved slim front.
@@ -31,7 +31,14 @@
   prevents a credible device FPS claim. Physical iPhone/controller and final upgraded-tier
   comparisons remain pending. Evidence: local ignored `renders/vfx-upgrade/eclipse_*` captures
   and a five-frame motion inspection. Lint passes; **984 tests pass**.
-- Next: build Beta from the reference, then the approved Mythic-to-Rare order.
+- Beta: new translucent blueprint skin, permanent contour wires/magenta collars, six surface
+  frames, painted drafting sheets and dimensional rings (11 parts / 10,624 tris); short
+  readable wire wake and pocket funnel with legal-eight variant (5 / 7,872). PC/phone
+  emulation, real input, four cloth colours, walking, quiet aiming and lifecycle checks pass.
+  Eight copies preserve major forms in Lower effects; small accents reduce fourfold.
+  984 tests/lint pass; physical iPhone/controller and final tier comparisons remain pending.
+  Imported in Studio; checkpoint evidence is local ignored `renders/vfx-upgrade/beta_*`.
+- Next: Celestial Dragon, Kitsune, Apex, Grand Opening and the approved Mythic-to-Rare order.
 - Beta and Grand Opening are the only new Unique cues. Beta/Eclipse share Secret-quality art;
   Grand Opening is Mythic-quality. Founder is cancelled. Painted spirit creatures, mechanical
   Apex, pink Kitsune, Eclipse's existing colours, gold-focused VIP and Reyes-only crowns.

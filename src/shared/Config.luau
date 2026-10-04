@@ -4460,6 +4460,7 @@ Config.CueSkins = {
 		-- A skin's own share, by catalog id, in place of its tier's: the two biggest auras
 		-- are barely there while quiet (designer, 2026-10-01: 5-10%). (tune)
 		SkinShares = {
+			BetaCue = 0.15, -- drafted planes stay faint while aiming; surface contours remain
 			KitsuneCue = 0.07,
 			CelestialDragonCue = 0.07,
 		},

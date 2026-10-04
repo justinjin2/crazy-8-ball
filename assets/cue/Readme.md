@@ -107,3 +107,13 @@ tools/test.sh   # cue_shape_test (Shape.json is current), cue_mesh_test (MeshSki
 - `tools/cue_vfx_checks.luau` runs transient Client assertions for quality/quiet toggles,
   actual skin-look AuraOff geometry, winning/illegal pots, rapid pots and teardown. It does
   not create saved scripts. Evidence captures remain ignored under `renders/vfx-upgrade`.
+- Transparent skins may author `alpha.Base`, `alpha.GlowGain` and `alpha.OpaqueRegions` in
+  their skin JSON. `CueTextures.write_maps` writes ColorMap RGBA; set
+  `surface.AlphaMode = "Transparency"` so all Edit-mode frame appearances use that alpha.
+  Beta keeps tip/ferrule/bumper opaque and adds permanent 3D contour wires.
+- `Pocket.Piece.Outline = false` disables the generic Highlight for fine wire meshes.
+- `CuePiecesUnique.py` contains Beta's drafting assemblies and pocket funnel;
+  `tools/vfx_blueprint.py` draws its exact ring, registration and short wake sprites.
+- `tools/cue_preview_equip.luau` is a transient designer-only Studio Server art override.
+  It changes only replicated appearance during Play, never ownership/profile/sale data;
+  run with `CLEAR = true` or end Play to restore the actual equipped cue.

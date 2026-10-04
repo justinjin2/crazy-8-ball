@@ -1,0 +1,602 @@
+{
+  "id": "beta",
+  "name": "Beta",
+  "tier": "Unique",
+  "catalog_id": "BetaCue",
+  "concept": "vfx-upgrade/beta-reference",
+  "palette": [
+    "#0871DE",
+    "#6ECFFF",
+    "#E52BCD",
+    "#092559"
+  ],
+  "painter": "procedural",
+  "note": "Release Beta art: translucent holographic cue with opaque contour wires, magenta collars, dimensional drafting assemblies and floating blueprint panels. Acquisition remains out of scope.",
+  "panels": {
+    "shaft_tile": "skins/beta/shaft_tile.png",
+    "shaft_top": "skins/beta/shaft_top.png",
+    "forearm": "skins/beta/forearm.png",
+    "butt": "skins/beta/butt.png",
+    "cap_end": "skins/beta/cap_end.png"
+  },
+  "colours": {
+    "tip": "#132A4B",
+    "ferrule": "#B1E7FF",
+    "bumper": "#113257",
+    "metal": "#DF38D9"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "alpha": {
+    "Base": 0.36,
+    "GlowGain": 0.64,
+    "OpaqueRegions": [
+      "tip",
+      "ferrule",
+      "bumper"
+    ]
+  },
+  "surface": {
+    "AlphaMode": "Transparency",
+    "EmissiveStrength": 1.5,
+    "EmissiveTint": "#FFFFFF",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.3,
+        "Max": 1.8,
+        "Period": 3.2
+      }
+    }
+  },
+  "frames": {
+    "Count": 6,
+    "Keys": [
+      "emissive"
+    ]
+  },
+  "piece": "beta",
+  "shape": 3,
+  "vfx": {
+    "Moving": {
+      "Frames": {
+        "Order": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "Maps": [
+          {
+            "emissive": "textures/beta_emissive.png"
+          },
+          {
+            "emissive": "textures/beta_f1_emissive.png"
+          },
+          {
+            "emissive": "textures/beta_f2_emissive.png"
+          },
+          {
+            "emissive": "textures/beta_f3_emissive.png"
+          },
+          {
+            "emissive": "textures/beta_f4_emissive.png"
+          },
+          {
+            "emissive": "textures/beta_f5_emissive.png"
+          }
+        ],
+        "FrameSeconds": 0.24,
+        "Keys": [
+          "emissive"
+        ]
+      }
+    },
+    "Aura": {
+      "Outline": "#339AFF",
+      "Emitters": [
+        {
+          "Name": "BlueprintConstellation",
+          "Layer": "Essential",
+          "QuietPower": 2,
+          "Texture": "vfx/v3/beta/blueprint_constellation_clean.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 3.9,
+            "Up": 0.15
+          },
+          "Rate": 0.8,
+          "Lifetime": 3.0,
+          "Speed": 0,
+          "Size": 4.5,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.14,
+              0.025
+            ],
+            [
+              0.83,
+              0.025
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": 0,
+          "RotSpeed": 0,
+          "LightEmission": 0.15,
+          "LightInfluence": 0,
+          "Brightness": 1.1,
+          "LockedToPart": true
+        },
+        {
+          "Name": "DraftingHalo",
+          "Layer": "Essential",
+          "QuietPower": 2,
+          "Texture": "vfx/v3/beta/draft_ring.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 4.55,
+            "Up": 0.05
+          },
+          "Rate": 0.8,
+          "Lifetime": 3.0,
+          "Speed": 0,
+          "Size": 3.35,
+          "Color": "#287AD9",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.14,
+              0.12
+            ],
+            [
+              0.83,
+              0.12
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": 0,
+          "RotSpeed": 8,
+          "LightEmission": 0.08,
+          "LightInfluence": 0,
+          "Brightness": 1,
+          "LockedToPart": true
+        },
+        {
+          "Name": "RegistrationPoints",
+          "Layer": "Accent",
+          "Texture": "vfx/v3/beta/registration.png",
+          "Host": {
+            "Kind": "Segment",
+            "From": [
+              2.4,
+              0,
+              0
+            ],
+            "To": [
+              6.8,
+              0,
+              0
+            ],
+            "Radius": 0.36
+          },
+          "Rate": 4,
+          "Lifetime": [
+            0.6,
+            1.0
+          ],
+          "Speed": [
+            0.03,
+            0.15
+          ],
+          "Size": [
+            [
+              0,
+              0.16
+            ],
+            [
+              1,
+              0.08
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#66D2FF"
+            ],
+            [
+              1,
+              "#CB3CC6"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.15,
+              0.12
+            ],
+            [
+              0.7,
+              0.25
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 0.2,
+          "LightInfluence": 0,
+          "Brightness": 1.2,
+          "LockedToPart": true,
+          "Rotation": [
+            0,
+            0
+          ],
+          "RotSpeed": [
+            0,
+            0
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ]
+        }
+      ],
+      "Lights": [
+        {
+          "Name": "BlueBounce",
+          "Layer": "Accent",
+          "AtStuds": 5.2,
+          "Color": "#268BFF",
+          "Brightness": 0.5,
+          "Range": 4
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Texture": "vfx/v3/beta/wire_wake.png",
+        "TextureMode": "Stretch",
+        "Lifetime": 0.45,
+        "Transparency": [
+          [
+            0,
+            0.04
+          ],
+          [
+            0.65,
+            0.2
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Core": false,
+        "Brightness": 1.8,
+        "LightEmission": 0.45,
+        "LightInfluence": 0,
+        "WidthStuds": 0.6,
+        "Colors": [
+          [
+            255,
+            255,
+            255
+          ]
+        ],
+        "WidthScale": [
+          [
+            0,
+            0.8
+          ],
+          [
+            0.5,
+            1
+          ],
+          [
+            1,
+            0.9
+          ]
+        ]
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            28,
+            145,
+            255
+          ],
+          [
+            223,
+            57,
+            218
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Emitters": [
+        {
+          "Name": "SectionChips",
+          "Layer": "Accent",
+          "Texture": "vfx/v3/beta/registration.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 7,
+          "Lifetime": [
+            0.2,
+            0.4
+          ],
+          "Speed": [
+            0.1,
+            0.3
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.13
+            ],
+            [
+              1,
+              0.04
+            ]
+          ],
+          "Color": "#2EABFF",
+          "Transparency": [
+            [
+              0,
+              0.05
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Brightness": 1.1,
+          "LightEmission": 0.2,
+          "LightInfluence": 0
+        }
+      ]
+    },
+    "Pocket": {
+      "KeepRibbons": false,
+      "Piece": {
+        "Piece": "beta_pocket",
+        "Delay": 0.06,
+        "Seconds": 1.75,
+        "Rise": [
+          [
+            0,
+            -0.5
+          ],
+          [
+            0.2,
+            0
+          ],
+          [
+            0.85,
+            0.08
+          ],
+          [
+            1,
+            0.2
+          ]
+        ],
+        "Scale": [
+          [
+            0,
+            0.1
+          ],
+          [
+            0.2,
+            1
+          ],
+          [
+            0.8,
+            1
+          ],
+          [
+            1,
+            0.65
+          ]
+        ],
+        "Spin": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            50
+          ]
+        ],
+        "Transparency": [
+          [
+            0,
+            1
+          ],
+          [
+            0.15,
+            0
+          ],
+          [
+            0.76,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Outline": false
+      },
+      "Layers": [
+        {
+          "Name": "DraftAperture",
+          "Texture": "vfx/v3/beta/draft_ring.png",
+          "Delay": 0,
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.15,
+              2.8
+            ],
+            [
+              0.85,
+              3.1
+            ],
+            [
+              1,
+              3.3
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.05
+            ],
+            [
+              0.7,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#188CFF",
+          "Rotation": 0,
+          "RotSpeed": 40,
+          "LightEmission": 0.3,
+          "Brightness": 1.3,
+          "Host": {
+            "Offset": [
+              0,
+              0.12,
+              0
+            ]
+          },
+          "Lifetime": 1.2,
+          "Rate": 0,
+          "Speed": 0,
+          "Burst": 1,
+          "Layer": "Essential",
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [],
+      "Win": {
+        "Piece": {
+          "Seconds": 2.2,
+          "Scale": [
+            [
+              0,
+              0.1
+            ],
+            [
+              0.2,
+              1.2
+            ],
+            [
+              0.8,
+              1.2
+            ],
+            [
+              1,
+              0.7
+            ]
+          ]
+        },
+        "Layers": [
+          {
+            "Name": "FinalSchematic",
+            "Texture": "vfx/v3/beta/draft_ring.png",
+            "Delay": 0.9,
+            "Size": [
+              [
+                0,
+                1
+              ],
+              [
+                0.35,
+                4
+              ],
+              [
+                1,
+                4.4
+              ]
+            ],
+            "Transparency": [
+              [
+                0,
+                1
+              ],
+              [
+                0.15,
+                0.05
+              ],
+              [
+                0.6,
+                0.1
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "Color": "#DE42DF",
+            "RotSpeed": -65,
+            "LightEmission": 0.2,
+            "Brightness": 1.4,
+            "Host": {
+              "Offset": [
+                0,
+                1.8,
+                0
+              ]
+            },
+            "Lifetime": 1.1,
+            "Rate": 0,
+            "Speed": 0,
+            "Burst": 1,
+            "Layer": "Essential",
+            "LightInfluence": 0
+          }
+        ]
+      }
+    }
+  }
+}

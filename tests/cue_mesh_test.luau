@@ -1,21 +1,16 @@
 --!strict
 -- The cue skins' catalog hook-up (CueSkins data, CueStickBuilder's mesh path): every cue but
--- the Unique ones (not built yet) has a skin, every skin is a catalog cue, and every asset a
+-- unfinished Unique ones has a skin, every skin is a catalog cue, and every asset a
 -- skin names is filled in.
 
 local H = require("./harness")
 
 return {
-	["every case, rank and Exclusive cue and Classic has a skin; the Unique cues do not yet"] = function()
+	["every case, rank and Exclusive cue and Classic has a skin; built Unique skins are catalog cues"] = function()
 		local Catalog = H.require("Progression.Catalog")
 		local CueSkins = H.require("CueSkins")
 		for _, cue in Catalog.list() do
-			if cue.Group == "Unique" then
-				H.expect(
-					not CueSkins.has(cue.Id),
-					cue.Id .. ": a Unique cue's skin is not built yet"
-				)
-			else
+			if cue.Group ~= "Unique" then
 				H.expect(CueSkins.has(cue.Id), cue.Id .. " has no skin")
 			end
 		end

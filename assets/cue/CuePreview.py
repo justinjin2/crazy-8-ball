@@ -1092,6 +1092,9 @@ def cue_material(bpy, maps, surface, skin_id):
         out['tex'][key] = node
         return node
     col = tex('color', True)
+    if surface.get('AlphaMode') == 'Transparency':
+        links.new(col.outputs['Alpha'], bsdf.inputs['Alpha'])
+        mat.surface_render_method = 'BLENDED'
     tint = nodes.new('ShaderNodeMix')
     tint.data_type = 'RGBA'
     tint.blend_type = 'MULTIPLY'

@@ -3239,6 +3239,40 @@ def eclipse(k):
 
 
 @recipe
+def beta(k):
+    """Precisely drafted hologram, mapped in cue coordinates without a painted black panel."""
+    for c in k.each():
+        m = c.inside | True
+        c.put(m, rgb('#092559'), rough=0.16, metal=0, glow=0.025)
+        # Eight meridians, periodic sections and a diagonal technical grip lattice.
+        axial = np.exp(-(np.sin(c.theta * 4) / 0.07) ** 2)
+        section = np.exp(-(np.sin(c.d * math.pi / 0.22) / 0.10) ** 2)
+        fine = np.maximum(axial * 0.7, section * 0.45)
+        wrap = c.zone('wrap')
+        diamond = np.maximum(np.exp(-(np.sin(c.theta * 5 + c.d * 19) / 0.09) ** 2),
+                             np.exp(-(np.sin(c.theta * 5 - c.d * 19) / 0.09) ** 2))
+        fine = np.maximum(fine, diamond * wrap * 0.8)
+        c.put(fine, rgb('#2599FF'), glow=0.65)
+        # Elliptical sections with clear axes: larger than the fine grid, sparse along the cue.
+        major = np.zeros_like(c.d)
+        for d in (1.1, 2.5, 3.38, 4.45, 5.05, 6.76):
+            shell = ((c.d - d) / 0.22) ** 2 + (np.sin(c.theta * 2) / 0.75) ** 2
+            major = np.maximum(major, np.exp(-((shell - 1) / 0.07) ** 2))
+            major = np.maximum(major, np.exp(-((c.d-d) / 0.011) ** 2))
+        c.put(major, rgb('#9AE4FF'), glow=0.95)
+        # A travelling signal through the existing linework, not a whole-body strobe.
+        sweep = 0.48 + 0.52 * ((1 + np.cos(c.d * 1.5 - math.tau*k.frame/6))/2) ** 6
+        c.glow *= sweep
+        for d in (3.64, 3.73, 5.345, 5.398, 6.9):
+            ring = np.exp(-((c.d-d)/0.021)**4)
+            c.put(ring, rgb('#F333D8'), glow=0.95)
+    c = k.c['cap_end']
+    rings = np.exp(-(np.sin(c.r * 60)/0.12)**2)
+    c.put(c.inside, rgb('#14376E'), glow=0.08)
+    c.put(rings*c.inside, rgb('#43BCFF'), glow=0.7)
+
+
+@recipe
 def starter_cue(k):
     """The friendly rookie cue (X1): cream maple shaft with four slim sky-blue points edged in
     white and small white diamonds before the collar; OpenAI forearm (sky-blue gloss with white
