@@ -97,6 +97,7 @@ type Cell = {
 	art: Frame, -- the badge's holder (breathes on the next tier)
 	image: ImageLabel, -- the still badge (your tier shows the shining RankBadge instead)
 	name: TextLabel,
+	title: TextLabel?, -- a line under the name (Strings.Ranks.Titles: Reyes's "The King")
 	dotRow: Frame,
 	dots: { Frame },
 	x: number, -- left edge, in the row's canvas pixels
@@ -427,6 +428,15 @@ local function makeCell(self: any, order: number, tier: string): Cell
 	local name = HudParts.text(body, "Name", K.Text.Body, Ranks.tierName(tier))
 	name.AnchorPoint = Vector2.new(0.5, 0)
 	name.ZIndex = 3
+	local titleWords = Strings.Ranks.Titles[tier]
+	local title: TextLabel? = nil
+	if titleWords then
+		local made = HudParts.text(body, "Title", K.Text.Min, titleWords, GOLD)
+		made.AnchorPoint = Vector2.new(0.5, 0)
+		made.TextWrapped = false
+		made.ZIndex = 3
+		title = made
+	end
 	local dotRow = HudParts.frame(body, "Dots")
 	dotRow.AnchorPoint = Vector2.new(0.5, 0)
 	dotRow.ZIndex = 3
@@ -451,6 +461,7 @@ local function makeCell(self: any, order: number, tier: string): Cell
 		art = art,
 		image = image,
 		name = name,
+		title = title,
 		dotRow = dotRow,
 		dots = dots,
 		x = 0,
@@ -974,13 +985,15 @@ function Roadmap.layoutRow(self: any)
 	local tagH = math.max(K.Text.Min + 6, spanPx(R.TagPx, t))
 	local tagText = math.max(K.Text.Min, round(tagH * 0.7))
 	local nameH, bigNameH = body + 4, heading + 4
+	local titleText = math.max(K.Text.Min, body - 2) -- Reyes's "The King" (room kept for all)
+	local titleH = titleText + 2
 	local dot = spanPx(R.DotPx, t)
 	local bigDot = round(dot * R.CurrentScale)
 	local stack = R.TagAboveShare + R.NameBelowShare
-	local room = h - tagH - bigNameH - bigDot - 8
+	local room = h - tagH - bigNameH - titleH - bigDot - 8
 	local bc = math.floor(math.clamp(room / stack, R.TouchMinPx, R.BadgeMaxPx * R.CurrentScale))
 	local b = math.floor(bc / R.CurrentScale)
-	local used = tagH + bc * stack + bigNameH + 2 + bigDot
+	local used = tagH + bc * stack + bigNameH + titleH + 2 + bigDot
 	local top = math.max(0, round((h - used) / 2))
 	local cy = round(top + tagH + bc * R.TagAboveShare)
 
@@ -1038,7 +1051,15 @@ function Roadmap.layoutRow(self: any)
 		local d = if mine then bigDot else dot
 		local spacing = math.max(2, round(d * R.DotGapShare))
 		local count = #cell.dots
-		cell.dotRow.Position = UDim2.fromOffset(mid, nameY + nh + 1)
+		local below = nameY + nh
+		local title: TextLabel? = cell.title
+		if title then
+			HudParts.setTextSize(title, titleText)
+			title.Position = UDim2.fromOffset(mid, below)
+			title.Size = UDim2.fromOffset(math.max(1, width - 4), titleH)
+			below += titleH
+		end
+		cell.dotRow.Position = UDim2.fromOffset(mid, below + 1)
 		cell.dotRow.Size = UDim2.fromOffset(count * d + (count - 1) * spacing, d)
 		for i, dotFrame in cell.dots do
 			dotFrame.Size = UDim2.fromOffset(d, d)

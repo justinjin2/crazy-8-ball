@@ -25,7 +25,7 @@ local SocialRules = require(Shared:WaitForChild("Progression"):WaitForChild("Soc
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local Menus = require(script.Parent.Menus)
-local RewardsParts = require(script.Parent.RewardsParts)
+local ShopParts = require(script.Parent.ShopParts)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -245,7 +245,7 @@ function HubCorners.refreshOffers(self: any)
 			changed = true
 		end
 		if open then
-			offer.timer.Text = RewardsParts.clock(window.endsAt - now)
+			offer.timer.Text = ShopParts.timeLeft(window.endsAt - now) -- "6d 4h", "2:59:12"
 		end
 	end
 	if changed then

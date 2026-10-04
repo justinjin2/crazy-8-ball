@@ -265,6 +265,8 @@ return {
 			Grandmaster = "Grandmaster",
 			Reyes = "Reyes",
 		},
+		-- A line under a tier's name on the rank roadmap (designer, 2026-10-03).
+		Titles = { Reyes = "The King" } :: { [string]: string },
 		Numerals = { "I", "II", "III", "IV", "V" },
 		Division = "%s %s", -- tier, numeral: "Gold III"
 		XpOf = "%s / %s XP", -- the XP bar: "520 / 1,000 XP"
