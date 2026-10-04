@@ -115,6 +115,16 @@ by hand in your copy (which is otherwise lost at the merge).
   solo fixture match (table 1: the trail's rings and glints round the rolling white, the
   finisher on a scratch, the hum at a quarter volume in the hands) and in a lab beside the
   Eclipse finisher; console clean. Lint and tests green.
+- 2026-10-04 step 6: Beta's Lower-effects variant and cards. A piece joint may carry
+  `Low = "hide"` (CuePieces `joint(low=)`, Motion rigs, CuePiece): under the Lower effects
+  setting the joint, its children and its typing panel go, and come back when the setting
+  changes (Quality.Changed). Beta hides its four farthest panels; its particle rates already
+  follow Quality through CueVfx (glints 6 -> 2.1 a second). Checked in the lab with the
+  setting toggled (`beta-studio-low.jpg`). The Index shows the Beta Cue in the Unique row with
+  its thumbnail silhouette until found, and the detail panel "Beta Cue / Unique / Not found
+  yet" (`beta-index.jpg`); the owned card uses the same no-aura thumbnail. Quieting in the
+  hands: the aura's emitters and the hum drop to a quarter (Config Quiet share 0.25); the
+  piece and panels stay. Lint and tests green.
 
 ## Decisions
 
@@ -185,6 +195,10 @@ by hand in your copy (which is otherwise lost at the merge).
   `Outline`, `ShellFade`, `EmissiveScale` overrides (hex outline colours through CueVfx).
   `src/shared/Config.luau`: `CueSkins.Sound`, `Effects.Finisher.Sound`. Why: the Beta hum and
   the Grand Opening's fireworks; a hologram finisher keeps its own colour.
+- `assets/cue/CuePieces.py` `joint(low=)` -> `Low` in piece.json; `Motion.rig` carries `low`;
+  `src/client/CuePiece.luau` `hidden`/`applyHidden` (aura off or Lower effects), a
+  Quality.Changed connection released in `destroy`. Why: a per-cue Lower-effects variant as
+  data.
 
 ## Requests
 

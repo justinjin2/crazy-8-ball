@@ -249,7 +249,7 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   leader lines, motes, flecks, rings, haze, lights); gate 2, designer approval.
 - [x] 5. Beta: trail and pocket finisher at Eclipse size or more, the faint hum; checked in a
   real match.
-- [ ] 6. Beta: polish next to Eclipse, Lower-effects variant, Index, inventory and shop cards,
+- [x] 6. Beta: polish next to Eclipse, Lower-effects variant, Index, inventory and shop cards,
   quieting in the shooter's hands.
 - [ ] 7. Grand Opening: painted surface from the board (navy lacquer, gold inlays, glowing
   fireworks and stars, quilted wrap, gold collars), skin file, upload, template, thumbnail.
@@ -285,6 +285,9 @@ worked, as the starting point for future rarer cues; write it if they say yes.
 - 2026-10-04: step 5 done: the three sounds uploaded (`Aura.Sound`, `Pocket.Sound` as generic
   kinds), the Beta funnel rebuilt thick and bright with its own blue outline, the trail
   widened; checked in a solo fixture match and beside Eclipse in the lab.
+- 2026-10-04: step 6 done: Lower-effects variant (far panels hide, rates follow Quality), the
+  Index card and detail checked, quieting in the hands checked. The Beta Cue is complete
+  pending gate 3.
 
 ## Decisions
 
