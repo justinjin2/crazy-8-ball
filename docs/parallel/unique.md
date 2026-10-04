@@ -61,6 +61,11 @@ by hand in your copy (which is otherwise lost at the merge).
   mesh swapped and all templates and pieces rebuilt; the wide cue checked on backs, stands
   and in hands (PC). The integrator must do the same mesh swap and template rebuild in the
   real place at the merge (Requests).
+- 2026-10-04 step 1 (boards ready, gate 1 pending): both skins exist end to end in Blender
+  (OpenAI panels, paint recipes, maps, pieces, sprites, VFX data, stills, clips); the boards
+  `assets/cue/concepts/unique/beta-board.png` and `grand_opening-board.png` (+ the two clips)
+  are composed from our own renders by `tools/unique_board.py`. OpenAI spend so far about
+  $0.29 (8 panels). Waiting for the designer's approval before building in Studio.
 
 ## Decisions
 

@@ -116,7 +116,7 @@ def board(skin_id):
         canvas.paste(fit(trail, 285, 215), (1410, 385))
     d.rectangle([1408, 383, 1696, 601], outline=(60, 64, 75), width=2)
     d.text((1410, 608), 'BALL TRAIL (CLIP FRAME)', fill=(150, 155, 170), font=font(14))
-    pocket = frame('pocket', 1.25)
+    pocket = frame('pocket', 1.0)
     if pocket:
         canvas.paste(fit(pocket, 285, 215), (1712, 385))
     d.rectangle([1710, 383, 1998, 601], outline=(60, 64, 75), width=2)
