@@ -15,8 +15,48 @@
 local CueVfx = {}
 
 local Quality = require(script.Parent.Quality)
+local Config =
+	require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Config"))
 -- Every emitter CueVfx.emitter made, so Lower effects can change their rates later.
-local live: { [ParticleEmitter]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+local live: { [ParticleEmitter]: { row: any, transparency: NumberSequence } } = setmetatable(
+	{},
+	{ __mode = "k" }
+) :: any
+
+--- Essential forms survive Lower effects; secondary structure and fine accents simplify.
+function CueVfx.qualityShare(row: any): number
+	if not Quality.isLow() then
+		return 1
+	end
+	return Config.CueSkins.LowerLayers[row.Layer or ""] or Quality.rate()
+end
+
+function CueVfx.fade(sequence: NumberSequence, share: number): NumberSequence
+	local keys = {}
+	for _, key in sequence.Keypoints do
+		table.insert(
+			keys,
+			NumberSequenceKeypoint.new(key.Time, 1 - (1 - key.Value) * share, key.Envelope * share)
+		)
+	end
+	return NumberSequence.new(keys)
+end
+
+--- One writer combines authored rate, quality and viewer restraint from their base values.
+function CueVfx.setShare(e: ParticleEmitter, share: number)
+	e:SetAttribute("QuietShare", share)
+	local item = live[e]
+	if item == nil then
+		return
+	end
+	local essential = item.row.Layer == "Essential"
+	e.Rate = (e:GetAttribute("BaseRate") :: number)
+		* CueVfx.qualityShare(item.row)
+		* (if essential then 1 else share)
+	-- Lowering a continuous silhouette's rate would make it blink out between particles.
+	e.Transparency =
+		CueVfx.fade(item.transparency, if essential then share ^ (item.row.QuietPower or 1) else 1)
+end
 
 --- A colour from "#RRGGBB" or {r, g, b}.
 function CueVfx.color(c: any): Color3
@@ -146,13 +186,14 @@ function CueVfx.emitter(row: any, opts: EmitterOpts): ParticleEmitter
 	-- Lower effects (Settings, GUI lane): every emitter made here follows Quality's rate, now
 	-- and when the setting changes (never to zero).
 	local baseRate = (row.Rate or 0) * (opts.rateScale or 1)
-	e.Rate = baseRate * Quality.rate()
+	e.Rate = baseRate * CueVfx.qualityShare(row)
 	e:SetAttribute("BaseRate", baseRate)
-	live[e] = true
 	e.Lifetime = CueVfx.range(row.Lifetime, 1)
 	e.Speed = CueVfx.range(row.Speed, 1)
 	e.Size = CueVfx.numberSeq(row.Size or 1, 0)
 	e.Transparency = CueVfx.numberSeq(row.Transparency or 0)
+	live[e] = { row = row, transparency = e.Transparency }
+	e:SetAttribute("QuietShare", 1)
 	e.Color = CueVfx.colorSeq(row.Color)
 	e.LightEmission = row.LightEmission or 0
 	e.LightInfluence = row.LightInfluence or 0
@@ -198,10 +239,7 @@ Quality.Changed:Connect(function()
 		if e.Parent == nil then
 			live[e] = nil
 		else
-			local base = e:GetAttribute("BaseRate")
-			if type(base) == "number" then
-				e.Rate = base * Quality.rate()
-			end
+			CueVfx.setShare(e, (e:GetAttribute("QuietShare") :: number?) or 1)
 		end
 	end
 end)

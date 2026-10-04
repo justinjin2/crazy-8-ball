@@ -1,6 +1,6 @@
 # Status
 
-**2026-10-04: cue VFX pass — 0.36 width rebuild verified; Eclipse next.**
+**2026-10-04: cue VFX pass — 0.36 width and Eclipse built; Beta next.**
 - Approved brief: [CUE_VFX_PROMPT.md](prompts/CUE_VFX_PROMPT.md), branch `cue-vfx` from
   `release`. Economy, sale rules, ownership and receipts remain outside this art task.
 - Shared mesh rebuilt at 0.36 butt, 0.09 tip, 7 length, retaining the approved slim front.
@@ -15,8 +15,23 @@
   Controller emulation connects; real iPhone and physical-controller acceptance remain pending.
 - Lab fixed to await warm assets and reuse one back pool; unused slots remain hidden.
   Width checkpoint captures: `assets/cue/renders/vfx-upgrade/width036_*.png` (local/ignored).
-- Next: Eclipse and shared effect/quiet/quality support, then Beta, following the approved
-  tier order. The width rebuild does not count as the promised visual-effects redesign.
+- Eclipse: three painted sprite masters, smooth obsidian core with sculpted gold prominences,
+  two orbital paths, violet galaxy curl, six travelling emissive frames, short crescent wake
+  and a new dimensional pocket eclipse. Legal winning 8 adds a second staged sweep.
+  Main piece is 15 parts / 9,956 triangles (was 37 / 37,640); pocket is 6 / 7,812.
+- Shared quiet/quality state no longer compounds across toggles. Authored essential forms
+  retain continuity; fine accents reduce, and classified aura geometry obeys quiet/AuraOff.
+  Scratch and illegal-eight suppression, winning variant, multi-pot cooldown and cleanup
+  pass Studio assertions. Eclipse passes PC/phone-emulator visual checks and real shots;
+  final fresh phone input shot completed in 4.54 seconds / 1,090 steps. Four felt colours
+  inspected, controller emulator connected. No new game errors; Roblox queue MemoryStore
+  returned unrelated InternalErrors during the final session.
+- Eight-copy comparison retains major forms in Lower effects. Studio sampled ~66.7 ms frames
+  in full, reduced and disabled runs, with ~5.8–6 ms render-thread work: its background cap
+  prevents a credible device FPS claim. Physical iPhone/controller and final upgraded-tier
+  comparisons remain pending. Evidence: local ignored `renders/vfx-upgrade/eclipse_*` captures
+  and a five-frame motion inspection. Lint passes; **984 tests pass**.
+- Next: build Beta from the reference, then the approved Mythic-to-Rare order.
 - Beta and Grand Opening are the only new Unique cues. Beta/Eclipse share Secret-quality art;
   Grand Opening is Mythic-quality. Founder is cancelled. Painted spirit creatures, mechanical
   Apex, pink Kitsune, Eclipse's existing colours, gold-focused VIP and Reyes-only crowns.

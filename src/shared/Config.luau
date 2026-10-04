@@ -4421,6 +4421,12 @@ Config.CueSkins = {
 	-- holds when running (rate x average lifetime) at once, so the aura is already there
 	-- rather than growing in (designer, 2026-10-01). 0 turns it off. (tune)
 	ShowPrefillShare = 0.7,
+	-- Authored VFX layer rates under Lower effects. Keep the main silhouette continuous;
+	-- secondary structure and fine sparks use fewer particles. Unclassified legacy rows
+	-- retain UI.Quality.LowRate. (tune)
+	LowerLayers = { Essential = 1, Structure = 0.55, Accent = 0.25 },
+	-- Keep major mesh contours opaque under Lower effects; omit tiny ornamental satellites.
+	LowerPieceLayers = { Essential = 1, Structure = 1, Accent = 0 },
 	-- The aura stays on the cue as you walk (designer, 2026-10-01: the flames smeared behind
 	-- the player). Every cue emitter is LockedToPart (its particles move with the cue) except
 	-- the tiny specks, whose largest size is at most MaxSizeStuds: they still drift off behind
@@ -4583,6 +4589,7 @@ Config.Effects = {
 	-- FlashScale as bright, its glassy ForceField shell ShellFade of the way to clear and its
 	-- glow EmissiveScale as strong. A dark fill (FillTransparency below 1) greyed it: off.
 	Finisher = {
+		MinInterval = 0.5, -- one major finisher per table in this interval; legal winning 8 always plays (tune)
 		OutlineColor = { 20, 10, 30 }, -- (tune)
 		OutlineTransparency = 0.3, -- (tune)
 		FillColor = { 0, 0, 0 },

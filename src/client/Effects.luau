@@ -61,6 +61,7 @@ export type Effects = typeof(setmetatable(
 		followId: number?,
 		followPlayer: Player?,
 		followConnection: RBXScriptConnection?,
+		lastFinisherAt: number?,
 	},
 	Effects
 ))
@@ -517,14 +518,41 @@ end
 ---   * a flat shockwave ring racing out across the cloth,
 ---   * sparkles drifting up and a coloured flash in the pocket.
 --- `at` is the pocket's centre at cloth height. Everything cleans itself up.
-function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
+function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number, winningEight: boolean?)
+	-- The caller supplies the accepted server judgement, never just the ball's number.
+	if ballId == 0 or (ballId == 8 and winningEight ~= true) then
+		return
+	end
 	local style = Effects.styleFor(self.styleName)
 	local spec = style.Pocket
 	if not spec.Enabled then
 		return
 	end
 	local finisher = style.Skin and style.Skin.Pocket
-	local big = ballId == 8
+	local big = ballId == 8 and winningEight == true
+	if finisher then
+		local now = os.clock()
+		if
+			not big
+			and self.lastFinisherAt
+			and now - self.lastFinisherAt < Config.Effects.Finisher.MinInterval
+		then
+			finisher = nil
+		else
+			self.lastFinisherAt = now
+			if big and finisher.Win then
+				local base = finisher
+				finisher = overlay(base, base.Win)
+				finisher.Piece = if base.Win.Piece
+					then overlay(base.Piece or {}, base.Win.Piece)
+					else base.Piece
+				finisher.Layers = table.clone(base.Layers or {})
+				for _, layer in base.Win.Layers or {} do
+					table.insert(finisher.Layers, layer)
+				end
+			end
+		end
+	end
 	-- How many particles: more only for the 8. How big the gust is: the 8's and the style's.
 	local more = if big then spec.EightBallScale else 1
 	local scale = more * spec.Scale
@@ -757,7 +785,9 @@ function Effects.skinFinisher(
 		end
 		task.delay(delay, function()
 			if e.Parent then
-				e:Emit(burst)
+				if burst > 0 then
+					e:Emit(math.max(1, math.floor(burst * CueVfx.qualityShare(row) + 0.5)))
+				end
 			end
 		end)
 	end
@@ -765,6 +795,9 @@ function Effects.skinFinisher(
 		local delay, seconds = r.Delay or 0, r.Seconds or 0.45
 		last = math.max(last, delay + seconds)
 		task.delay(delay, function()
+			if self.folder.Parent == nil or root.Parent == nil then
+				return
+			end
 			local ring = bare("SkinRing", self.folder, at + Vector3.new(0, 0.02, 0))
 			ring.Size = Vector3.new(r.Start or 0.2, 0.02, r.Start or 0.2)
 			local decal = Instance.new("Decal")
@@ -837,6 +870,7 @@ function Effects.skinFinisher(
 					k
 				)
 				piece:setFade(math.clamp(fade, 0, 1))
+				piece:setModifier(0)
 				fadeOutline(math.clamp(fade, 0, 1))
 				piece:step(tt)
 			end)

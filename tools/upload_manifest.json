@@ -791,10 +791,10 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/pieces/eclipse/eclipse_parts.glb": {
-    "assetId": "108252820855064",
+    "assetId": "80660088655243",
     "assetType": "Model",
-    "sha256": "b429dc8514d706043821e39088a3f9e5c55458c585b401072fbcb835911fea94",
-    "status": "ok"
+    "status": "ok",
+    "sha256": "ed3f4f23121d98c26d90d9d2588fdfe387b2403bc9d966212c8f3b6b4bf2e6d1"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/pieces/infernal/HornedSkull_base_color.png": {
     "assetId": "76324871281282",
@@ -1711,39 +1711,39 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_color.png": {
-    "assetId": "121309073964652",
+    "assetId": "89477696933483",
     "assetType": "Decal",
-    "imageId": "72014769957884",
-    "sha256": "474cf5d8dadc459b07e882744d5a9c45a1d39f9fd1fe8706771cdef9e3a9e8f9",
-    "status": "ok"
+    "status": "ok",
+    "imageId": "114667663329064",
+    "sha256": "474cf5d8dadc459b07e882744d5a9c45a1d39f9fd1fe8706771cdef9e3a9e8f9"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_emissive.png": {
-    "assetId": "90577531457549",
+    "assetId": "125694627101230",
     "assetType": "Decal",
-    "imageId": "104201201933899",
-    "sha256": "097581269b762d8330931778ffc2b7df479d253596928445ebfdcd4a14c42de5",
-    "status": "ok"
+    "status": "ok",
+    "imageId": "82502637010473",
+    "sha256": "0408ebc692a4d1131d98a302a0c44b2c242899efef7b88c5bff2dffdd40c0cd9"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_metalness.png": {
-    "assetId": "108726744826544",
+    "assetId": "122149802766467",
     "assetType": "Decal",
-    "imageId": "103336244865524",
-    "sha256": "657e26f962ba60cfd1f80f6cb5d716e846118a2f9bd8ac3a77d0c9b50f470a3b",
-    "status": "ok"
+    "status": "ok",
+    "imageId": "94804718242115",
+    "sha256": "657e26f962ba60cfd1f80f6cb5d716e846118a2f9bd8ac3a77d0c9b50f470a3b"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_normal.png": {
-    "assetId": "87572772259036",
+    "assetId": "93703966873603",
     "assetType": "Decal",
-    "imageId": "113138358945965",
-    "sha256": "d0cd42fc409e0f7fea08a0fc929d06270852460d6f50edca74158de05f6bfed4",
-    "status": "ok"
+    "status": "ok",
+    "imageId": "107044753341882",
+    "sha256": "d0cd42fc409e0f7fea08a0fc929d06270852460d6f50edca74158de05f6bfed4"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_roughness.png": {
-    "assetId": "125070894830848",
+    "assetId": "76178868253137",
     "assetType": "Decal",
-    "imageId": "138652560731505",
-    "sha256": "c3fc52add895ac407b79815067a24b24ae9f09d06d318869e07e08a4b3f01e3c",
-    "status": "ok"
+    "status": "ok",
+    "imageId": "138990402009089",
+    "sha256": "c3fc52add895ac407b79815067a24b24ae9f09d06d318869e07e08a4b3f01e3c"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/textures/expert_cue_color.png": {
     "assetId": "126985120886843",
@@ -3363,11 +3363,11 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/eclipse.png": {
-    "assetId": "139679126814437",
+    "assetId": "123263901838410",
     "assetType": "Decal",
-    "imageId": "72441911905972",
-    "sha256": "aabd5f2fdc7c5a27d785a4e3fe840b539f330bc177ded17ce24b55b0b6214856",
-    "status": "ok"
+    "status": "ok",
+    "imageId": "74788466986729",
+    "sha256": "548d34edf70ff7858ac48fb3268aaa65063d64dbb0be5c870ed1e8b84b513100"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/expert_cue.png": {
     "assetId": "117153029212075",
@@ -4534,5 +4534,67 @@
     "assetId": "124844921098629",
     "assetType": "Audio",
     "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/pieces/eclipse_pocket/eclipse_pocket_parts.glb": {
+    "assetId": "120856741946742",
+    "assetType": "Model",
+    "status": "ok",
+    "sha256": "d031ba94f13a47089cce90bdec0dff8359b2e593b55bfb21bd0ce92e177c35a2"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v3/eclipse/corona_painted.png": {
+    "assetId": "74017228014448",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "112316173258069",
+    "sha256": "cca1f5b71975f823267bc2eeb1323d9186cfb67693a7f76617f444eac1bf423d"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v3/eclipse/crescent_wake_painted.png": {
+    "assetId": "77332859591733",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "121107178397805",
+    "sha256": "0186d4c107dfdc2f3e4218d518ce1a7e1a62a17da27e4c5408f75a346a1b5543"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v3/eclipse/galaxy_curl_painted.png": {
+    "assetId": "135892930508756",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "127982861047954",
+    "sha256": "49177ac905a569d7c9155d485da2bf20654d8f6627c8a655161290cfbde01759"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_f1_emissive.png": {
+    "assetId": "137201985157796",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "109312337704844",
+    "sha256": "e474e73fee716fc45d63dce335f65ca0731f547e9465a463d4f2e287fe2534c3"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_f2_emissive.png": {
+    "assetId": "73742506014681",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "116352765905710",
+    "sha256": "7146b95de0f63fa6e8c8df1017fb8b18f14a38cb1f8f07083eccec0c39b18981"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_f3_emissive.png": {
+    "assetId": "113613322977995",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "126205135036140",
+    "sha256": "5c0c862a2c3d539382ed29fc265c52f255601b6a189c0dfeb8c2714a9ff2e415"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_f4_emissive.png": {
+    "assetId": "131709938703463",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "99891005738666",
+    "sha256": "f4e28d977039233941d46ba0026cf712290252955038e20800a611d6c26acaa2"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_f5_emissive.png": {
+    "assetId": "95432710020640",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "101749736113130",
+    "sha256": "7b952f1ef86f57b5e65417cf2fe6f9dc92eee59ec95ff19b7f3ee38d78b54c68"
   }
 }

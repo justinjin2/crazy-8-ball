@@ -708,6 +708,13 @@ cue. The skins were authored in `assets/cue/skins/<id>.json` (the cue-skins run,
   LockedToPart (the aura moves with the cue) but for tiny specks, and orbiter ribbons shorten
   while the stick moves (`Config.CueSkins.Drift`). The stick attribute `AuraQuiet` eases the
   aura (emitter rates, aura beams and lights) to its tier's `Config.CueSkins.Quiet` share.
+- **Authored VFX layers.** `Layer = Essential/Structure/Accent` opts an emitter or piece joint
+  into Config.CueSkins.LowerLayers/LowerPieceLayers. CueVfx owns each emitter's immutable
+  base transparency and current quiet share, so Quality changes never overwrite quieting or
+  compound rates. Essential emitters keep their rate and fade opacity (`QuietPower`, default
+  1); accents reduce rate. CueSkinLook passes quiet/AuraOff to classified aura geometry;
+  unclassified legacy pieces retain their old behaviour. Lower effects omits fine satellite
+  geometry while retaining major contours. Beams, orbiters and lights use the same layer share.
 - **AuraQuiet (shared, pure).** In a match the shooter's cue is quiet and, on your own turn,
   every cue at your table (`AuraQuiet.quiet(owner, me, snapshots)`, tested in Lune). Main calls
   `AuraQuiet.apply` every `Quiet.CheckSeconds` with every drawn stick and its owner (the hand
@@ -750,7 +757,11 @@ cue. The skins were authored in `assets/cue/skins/<id>.json` (the cue-skins run,
   Brightness, Texture/TextureMode/TextureLength, core extras, and TrailEmitters riding the ball.
   `Effects.skinFinisher` plays a skin's pocket: Layers at their Delay, Rings, Flash, and a
   rising Piece (rise, spin, scale and fade curves) facing the camera; `KeepRibbons = false`
-  drops the default ribbons.
+  drops the default ribbons. A `Pocket.Win` overlay (including extra `Layers` and merged
+  `Piece` curves) is selected only from the accepted replay's `eightWins`. Scratch and illegal
+  eight calls are rejected. `Config.Effects.Finisher.MinInterval` bounds ordinary major
+  finishers in rapid multi-pots; a legal winning eight bypasses the cooldown. Delayed layers
+  check lifecycle ownership, and pocket pieces apply the same authored Lower effects policy.
 - **UI.** `CueThumb` shows a skinned cue's rendered picture (`Thumb`, made by
   `assets/cue/CuePreview.py --thumb` into `assets/cue/thumbs/`, tinted for a silhouette); the
   Index viewport keeps the live 3D cue.

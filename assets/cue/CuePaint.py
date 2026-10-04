@@ -3217,7 +3217,9 @@ def eclipse(k):
         chrome = (sat < 0.15) * np.clip((L - 0.45) * 4, 0, 1)
         c.put(chrome > 0.5, None, rough=0.12, metal=0.95)
         c.put(molten > 0.4, None, rough=0.3, metal=0.2)
-        c.put(np.ones((c.h, c.w), bool), None, glow=np.clip(molten ** 0.8, 0, 1))
+        # V3: the gold flows along existing veins, leaving the obsidian genuinely dark.
+        wave = 0.3 + 0.7 * ((1 + np.cos(c.d * 1.25 - math.tau * k.frame / 6)) / 2) ** 3
+        c.put(np.ones((c.h, c.w), bool), None, glow=np.clip(molten ** 0.8 * wave, 0, 1))
     for c, m in k.zone('joint'):
         metal(c, m, s['silver'], rough=0.12)
         c.put(m, None, glow=0.0)

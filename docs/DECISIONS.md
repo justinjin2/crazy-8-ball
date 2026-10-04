@@ -2372,3 +2372,9 @@ timer of a new block stay the designer's call.
 - 2026-10-04: Designer approved the cue VFX brief (“begin”). Shape 3 retains the first 2.1 studs
   and eases to the approved 0.36 butt; its extra transition rings raise the shared mesh from
   3,840 to 4,160 triangles. Existing 1.15 thumbnail thickening and clean aura-free card art stay.
+
+- 2026-10-04: Eclipse VFX uses a smooth obsidian core, painted gold prominences/violet curl,
+  two sculpted orbital paths and a dimensional pocket eclipse. Authored layer classification
+  keeps essential contours in Lower effects; quieting fades large sprites with a per-layer
+  exponent. Ordinary major pocket finishers are spaced by 0.5 seconds, with a server-judged
+  legal winning eight allowed its separate staged sweep. No economy changes.

@@ -428,12 +428,12 @@ class Kit:
         return make_blender_material(bpy, key, self.mats[name])
 
     # ---- joints ---------------------------------------------------------------------------------
-    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None, aura=False):
+    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None, aura=False, layer=None):
         """aura: this joint and everything on it (and its child joints) is part of the aura, hidden
         on the player's turn to shoot with the rest of the aura (designer, 2026-09-30), not a fixed
         part of the cue (the Celestial Dragon's coiling spirit, the Kitsune's running fox)."""
         self.joints[name] = {'Parent': parent, 'Pivot': list(pivot), 'Motion': motion or [], 'objects': [],
-                             'Aura': aura}
+                             'Aura': aura, 'Layer': layer}
         for m in motion or []:
             if m.get('Kind') == 'Path':
                 m['_Path'] = self.paths[m['Path']]
@@ -790,13 +790,14 @@ def export(kit):
                 by_mat.setdefault(mname, []).append(bm)
         for mname, bms in by_mat.items():
             textured = bool(kit.mats[mname].get('SurfaceAppearance'))
-            verts, faces, uvs, fuv = [], [], [], []
+            verts, faces, uvs, fuv, smooth = [], [], [], [], []
             for bm in bms:
                 bmesh.ops.triangulate(bm, faces=bm.faces[:])
                 bm.verts.ensure_lookup_table()
                 base = len(verts)
                 verts += [tuple(v.co) for v in bm.verts]
                 faces += [[base + v.index for v in f.verts] for f in bm.faces]
+                smooth += [f.smooth for f in bm.faces]
                 uvl = bm.loops.layers.uv.active if textured else None
                 if uvl is not None:
                     for f in bm.faces:
@@ -816,10 +817,12 @@ def export(kit):
                 if fuv:
                     for uv in uvs:
                         fh.write('vt %.5f %.5f\n' % uv)
-                    for f, t in zip(faces, fuv):
+                    for f, t, shading in zip(faces, fuv, smooth):
+                        fh.write('s %d\n' % shading)
                         fh.write('f %s\n' % ' '.join('%d/%d' % (i + 1, j + 1) for i, j in zip(f, t)))
                 else:
-                    for f in faces:
+                    for f, shading in zip(faces, smooth):
+                        fh.write('s %d\n' % shading)
                         fh.write('f %s\n' % ' '.join(str(i + 1) for i in f))
             tris_total += len(faces)
             spec = dict(kit.mats[mname])
@@ -834,6 +837,8 @@ def export(kit):
                          'Motion': [{k_: v_ for k_, v_ in m.items() if not k_.startswith('_')} for m in j['Motion']]}
         if j.get('Aura'):
             joints[jname]['Aura'] = True
+        if j.get('Layer'):
+            joints[jname]['Layer'] = j['Layer']
     spec = {'id': kit.pid, 'Frame': kit.frame, 'frame': 'Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; '
                                    'PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)',
             'Triangles': tris_total, 'Parts': parts, 'Joints': joints}

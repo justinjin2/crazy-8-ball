@@ -1,6 +1,6 @@
 # Cue VFX upgrade pass
 
-**2026-10-04 — APPROVED. Width rebuild verified; Eclipse is next.**
+**2026-10-04 — APPROVED. Width and Eclipse built and checked in Studio; Beta is next.**
 
 Branch: `cue-vfx`, created from `release` at `d3b6c57`. Work in the main
 `~/Desktop/8ball` checkout and main Studio place, with Rojo on 34872. This brief supersedes
@@ -696,6 +696,12 @@ saved or live; record those states separately.
   3,840/4,000), retaining the 32-sided cross-section and adding rings for the approved smooth
   widening. Existing card exaggeration stays at 1.15 with aura-free thumbnails.
 
+- **2026-10-04, implementation:** essential sprites retain emission continuity and fade by
+  authored `QuietPower`; Eclipse uses 2 to keep its large painted forms off the aiming felt.
+  Lower effects removes fine satellite pieces, preserving the core and orbit contours.
+  Ordinary major finishers have a shared 0.5-second spacing; a legal winning 8 bypasses it.
+  OBJ export/import now preserves smooth normals, fixing faceted spheres in Studio.
+
 ## 15. Status
 
 - **2026-10-04 — Planning only:** repository/reference review complete; `cue-vfx` branch
@@ -725,3 +731,18 @@ saved or live; record those states separately.
   The lab now waits for warm assets and reuses one back pool with hidden unused slots.
   Edit-mode templates are in Studio/Team Create; the final place save/publish is still the
   designer's handoff. No cue VFX redesign is marked complete by this width step.
+
+- **2026-10-04 — Eclipse built and checked:** sculpted smooth black core, gold prominences,
+  two orbital paths and painted violet galaxy curl; six travelling gold surface frames;
+  short painted crescent wake with tiny gilded fragments; new 3D pocket eclipse and legal
+  winning-eight second sweep. 15 parts / 9,956 triangles for the cue piece, 6 / 7,812 for its
+  pocket piece. New assets uploaded/resolved/imported. PC and phone-emulator back/stand,
+  front, day/sunset, quiet aiming, real shots and ordinary/winning pockets inspected;
+  trails checked on all four cloth colours. Eight-copy full/reduced views retain the main
+  form. Shared quiet/quality toggle, AuraOff geometry, scratch/illegal-eight suppression,
+  multi-pot cooldown and teardown checks pass; **984 tests and lint pass**. Studio's ~15 FPS
+  cap affected full/reduced/off samples equally, so actual iPhone GPU acceptance is pending;
+  controller emulator connects, physical pad remains pending. Final tier comparison will
+  be repeated after the Mythics are rebuilt. Evidence is local ignored `eclipse_*` captures
+  plus `eclipse_phone_motion_inspection.webp` (five captured frames, UI hidden, fixed camera).
+  The lab now resets cloned Motor6D poses so a match's crouch cannot contaminate back studies.

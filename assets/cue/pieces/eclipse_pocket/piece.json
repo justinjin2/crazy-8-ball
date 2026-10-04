@@ -1,0 +1,219 @@
+{
+  "id": "eclipse_pocket",
+  "Frame": "pocket",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 7812,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#040208",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Totality_Obsidian",
+      "File": "pieces/eclipse_pocket/Totality_Obsidian.obj",
+      "Joint": "Totality",
+      "Offset": [
+        0.0,
+        1.6,
+        -0.0
+      ],
+      "Size": [
+        1.64,
+        1.64,
+        1.64
+      ],
+      "Triangles": 2208
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#24102F",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Corona_Contour",
+      "File": "pieces/eclipse_pocket/Corona_Contour.obj",
+      "Joint": "Corona",
+      "Offset": [
+        0.0299,
+        1.657,
+        -0.0311
+      ],
+      "Size": [
+        2.4417,
+        2.426,
+        0.077
+      ],
+      "Triangles": 1100
+    },
+    {
+      "Material": "Metal",
+      "Color": "#E6A32A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Corona_Gold",
+      "File": "pieces/eclipse_pocket/Corona_Gold.obj",
+      "Joint": "Corona",
+      "Offset": [
+        0.0299,
+        1.6578,
+        -0.0431
+      ],
+      "Size": [
+        2.4417,
+        2.4246,
+        0.077
+      ],
+      "Triangles": 1100
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFF2CE",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Corona_Hot",
+      "File": "pieces/eclipse_pocket/Corona_Hot.obj",
+      "Joint": "Corona",
+      "Offset": [
+        0.0299,
+        1.6584,
+        -0.0561
+      ],
+      "Size": [
+        2.4417,
+        2.4233,
+        0.077
+      ],
+      "Triangles": 1100
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFF2CE",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Orbit1_Hot",
+      "File": "pieces/eclipse_pocket/Orbit1_Hot.obj",
+      "Joint": "Orbit1",
+      "Offset": [
+        -0.0,
+        1.5998,
+        0.0
+      ],
+      "Size": [
+        2.6316,
+        1.5239,
+        2.1657
+      ],
+      "Triangles": 1152
+    },
+    {
+      "Material": "Neon",
+      "Color": "#E5B2FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Orbit2_Orbit",
+      "File": "pieces/eclipse_pocket/Orbit2_Orbit.obj",
+      "Joint": "Orbit2",
+      "Offset": [
+        -0.0,
+        1.6001,
+        0.0002
+      ],
+      "Size": [
+        2.6318,
+        2.0271,
+        1.7051
+      ],
+      "Triangles": 1152
+    }
+  ],
+  "Joints": {
+    "Totality": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        0.0,
+        1.600000023841858
+      ],
+      "PivotRoblox": [
+        -0.0,
+        1.6,
+        0.0
+      ],
+      "Motion": [],
+      "Layer": "Essential"
+    },
+    "Corona": {
+      "Parent": "Totality",
+      "Pivot": [
+        0.0,
+        0.0,
+        1.600000023841858
+      ],
+      "PivotRoblox": [
+        -0.0,
+        1.6,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 38
+        }
+      ]
+    },
+    "Orbit1": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        0.0,
+        1.600000023841858
+      ],
+      "PivotRoblox": [
+        -0.0,
+        1.6,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": -65
+        }
+      ],
+      "Layer": "Structure"
+    },
+    "Orbit2": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        0.0,
+        1.600000023841858
+      ],
+      "PivotRoblox": [
+        -0.0,
+        1.6,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": 65
+        }
+      ],
+      "Layer": "Structure"
+    }
+  }
+}

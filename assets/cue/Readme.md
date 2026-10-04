@@ -89,3 +89,21 @@ tools/test.sh   # cue_shape_test (Shape.json is current), cue_mesh_test (MeshSki
   is at local +Z 3.5 and the seam faces local −Y (down in the hand, toward the body on the
   back). The template's `PivotOffset` puts the pivot at the tip with +Z toward the butt, the
   frame `CueStickBuilder` places every cue in.
+
+## VFX upgrade authoring (2026-10-04)
+
+- `vfx/v3/<skin>/` holds painted sprite masters with their generation prompts. Upload every
+  new image, resolve its image ID and record source hashes in the manifest before generating
+  rows. Check actual bright-lobby/phone views; Blender previews are not acceptance evidence.
+- Classify emitters, beams/lights and piece joints with `Layer` (`Essential`, `Structure`,
+  `Accent`) for reduced effects. Essential emitter rates stay continuous; quieting fades
+  their alpha, optionally with `QuietPower` (Eclipse 2). Put `Aura = true` on aura joints;
+  major permanent mounts remain unclassified. Main core/orbit geometry is retained under
+  Lower effects; Accent satellites are omitted. Unclassified older skins retain defaults.
+- `Pocket.Win` overlays ordinary pocket data only on a legal winning eight. Its `Piece`
+  curves merge and its `Layers` append. Keep ordinary multi-pot bursts compact.
+- Piece OBJ export preserves `s 1` / `s 0`; GLB conversion respects smooth/flat faces.
+  Rebuild/re-upload changed geometry instead of compensating for flat normals with glow.
+- `tools/cue_vfx_checks.luau` runs transient Client assertions for quality/quiet toggles,
+  actual skin-look AuraOff geometry, winning/illegal pots, rapid pots and teardown. It does
+  not create saved scripts. Evidence captures remain ignored under `renders/vfx-upgrade`.

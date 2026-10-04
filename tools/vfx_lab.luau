@@ -88,6 +88,9 @@ for i, id in IDS do
 	for _, d in dummy:GetDescendants() do
 		if d:IsA("Script") or d:IsA("LocalScript") or d:IsA("Sound") then
 			d:Destroy()
+		elseif d:IsA("Motor6D") then
+			-- A lab opened during a match must not inherit the shooter's crouched pose.
+			d.Transform = CFrame.identity
 		end
 	end
 	dummy.Name = "Dummy_" .. id

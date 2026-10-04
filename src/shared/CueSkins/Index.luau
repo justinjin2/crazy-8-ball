@@ -249,7 +249,7 @@ return {
 		Id = "eclipse",
 		Name = "Eclipse",
 		Tier = "Secret",
-		Thumb = "rbxassetid://72441911905972",
+		Thumb = "rbxassetid://74788466986729",
 		Look = {
 			Shaft = { 57, 53, 45 },
 			Forearm = { 92, 79, 53 },
