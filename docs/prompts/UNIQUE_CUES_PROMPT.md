@@ -234,6 +234,50 @@ Then write `docs/prompts/UNIQUE_CUES_REPORT.md` (what was built, screenshots, wh
 spend) and ask the designer whether to write `docs/CUE_VFX_TECHNIQUES.md`, the techniques that
 worked, as the starting point for future rarer cues; write it if they say yes.
 
+### Handoff (2026-10-04, both cues passed gate 3)
+
+**Assets.** Everything is uploaded to the group and recorded in `tools/upload_manifest.json`
+under these paths (the manifest holds the asset and image ids; `tools/manifest_image_ids.py`
+resolved them):
+
+- Beta: `assets/cue/textures/beta_{color,emissive,metalness,normal,roughness}.png`,
+  `assets/cue/thumbs/beta.png`, `assets/cue/vfx/beta/` (`column`, `glyphs_4x4`, `holo_strip`,
+  `panel_1..8` with `_emissive` twins, `section_ring`, `wire_frag`, `wire_strip`),
+  `assets/cue/pieces/beta/beta_parts.glb` (mesh 132267715312294),
+  `assets/cue/pieces/beta_pocket/beta_pocket_parts.glb` (133912339862982),
+  `assets/cue/sounds/beta_hum.wav` (97247198790531).
+- Grand Opening: `assets/cue/textures/grand_opening_*.png`, `assets/cue/thumbs/grand_opening.png`,
+  `assets/cue/vfx/grand_opening/` (`burst_8x8`, `column`, `sparkle_strip`),
+  `assets/cue/pieces/grand_opening/grand_opening_parts.glb` (139007155198736),
+  `assets/cue/sounds/grand_opening_{crackle,fireworks}.wav` (85271661860545, 103382603543789).
+
+**In the real place (Edit mode, after the merge).** The lane window was a copy; nothing in it
+carries over. With the 0.36 cue in place (the Classic mesh swap in the lane file's Requests):
+
+1. Run `tools/build_cue_templates.luau` in the command bar. It rebuilds every template under
+   `ReplicatedStorage.CueSkins` from the generated rows, including `BetaCue` and
+   `GrandOpeningCue`, and every piece under `ReplicatedStorage.CuePieces`, including `beta`,
+   `beta_pocket` and `grand_opening` (their GLBs come in through `InsertService` by the mesh
+   ids above; the piece joints, visuals and `Low` flags come from `assets/cue/pieces/<id>/piece.json`
+   through the rows).
+2. Check the console for "built N templates, M pieces" with no warnings, then play: the lab
+   (`tools/vfx_lab.luau` with `IDS = { "BetaCue", "GrandOpeningCue", "EclipseCue" }`) and a
+   match.
+
+Nothing was built by hand in the lane copy: every part of both cues is data (skin JSON, rows,
+pieces, uploads), so the merge plus the builder reproduces them.
+
+**For the GUI lane.** The cards use the `--noaura` thumbnails already in the manifest. Both
+rows sit in the Unique band of the Index (`RowUnique`), which reads the tier from the skin row,
+not the catalog tags. The number badge (Limited count) is the GUI lane's call; the skin rows
+carry nothing for it.
+
+**For the designer to try by hand.** Equip each cue (designer command) and: aim with it (the
+aura quiets to a quarter in the hands, the tip stays visible), walk with it on your back
+(the aura comes back, the Beta panels type their glyphs), shoot (the trail), scratch (the
+funnel or the fireworks with their sounds), switch Lower effects in Settings (Beta's far
+panels go, the Grand Opening's sparkles thin), and open the Index to both cards.
+
 ## Progress
 
 - [x] 0. Read everything in section 0, look at the three references, open the lane Studio
@@ -258,9 +302,9 @@ worked, as the starting point for future rarer cues; write it if they say yes.
 - [x] 9. Grand Opening: trail and pocket finisher at Eclipse size or more, faint crackles and
   pops; checked in a real match.
 - [x] 10. Grand Opening: polish next to Eclipse and Beta, Lower-effects variant, cards.
-- [ ] 11. Both: lint and tests green, every change to shared files listed in the lane file,
+- [x] 11. Both: lint and tests green, every change to shared files listed in the lane file,
   gate 3 with the designer.
-- [ ] 12. Handoff section, the report, the techniques doc if approved.
+- [x] 12. Handoff section, the report, the techniques doc (the designer asked for it 2026-10-04).
 
 ## Status
 
@@ -296,8 +340,11 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   checked.
 - 2026-10-04: step 11: lint green, 984 tests green, every shared-file change listed in the
   lane file; the six-cue lineup (Beta, Grand Opening, Eclipse, Apex, Kitsune, Celestial
-  Dragon) captured in the lobby lab (`assets/cue/concepts/unique/lineup-*.jpg`). Waiting at
-  gate 3.
+  Dragon) captured in the lobby lab (`assets/cue/concepts/unique/lineup-*.jpg`). Gate 3
+  passed ("both cues get a pass").
+- 2026-10-04: step 12: the handoff above, `UNIQUE_CUES_REPORT.md` and
+  `docs/CUE_VFX_TECHNIQUES.md` written. The designer's next job (the rarity rework, Eclipse
+  first) has its own brief, `docs/prompts/CUE_RARITY_REWORK_PROMPT.md`.
 
 ## Decisions
 
@@ -321,5 +368,8 @@ worked, as the starting point for future rarer cues; write it if they say yes.
   change: the mini fireworks are hard to see, so their colour intensity goes up (bigger,
   brighter, more saturated pops with a thicker burst sprite). Polish, trail and finisher may
   go ahead.
+- 2026-10-04 (designer, gate 3): both cues pass as they are. The techniques doc is wanted
+  (written as `docs/CUE_VFX_TECHNIQUES.md`), and the same techniques are to go back into the
+  rarer existing cues, Eclipse first (see `CUE_RARITY_REWORK_PROMPT.md`).
 
 ## Notes

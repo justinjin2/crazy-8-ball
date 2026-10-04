@@ -153,7 +153,11 @@ by hand in your copy (which is otherwise lost at the merge).
   shows it in the Unique row with its no-aura thumbnail. Lint and the cue tests green.
 - 2026-10-04 step 11: lint and the 984 tests green; the six-cue lineup captured in the lab
   (`lineup-six-high.jpg`, `lineup-beta-grand-opening-eclipse.jpg`,
-  `lineup-apex-kitsune-dragon.jpg`); waiting at gate 3.
+  `lineup-apex-kitsune-dragon.jpg`); gate 3 passed ("both cues get a pass").
+- 2026-10-04 step 12: the Handoff section in the brief, `docs/prompts/UNIQUE_CUES_REPORT.md`
+  and `docs/CUE_VFX_TECHNIQUES.md` (the designer asked for it at gate 3). The lane's next
+  job, the rarity rework of the existing cues, has its own brief
+  (`docs/prompts/CUE_RARITY_REWORK_PROMPT.md`).
 
 ## Decisions
 
