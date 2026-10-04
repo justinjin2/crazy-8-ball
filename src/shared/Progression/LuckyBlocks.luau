@@ -21,6 +21,9 @@ export type Kind = {
 	EmissiveStrength: number?,
 	IconAmbient: number?,
 	IconLight: number?,
+	SizeMultiplier: number?,
+	HoldCenterShare: number?,
+	IconScale: number?,
 }
 export type Block = { Id: number, Kind: string, ReadyAt: number, Paid: boolean? }
 export type State = { Next: number, List: { Block }, SkipCredits: number?, SkipTarget: number? }

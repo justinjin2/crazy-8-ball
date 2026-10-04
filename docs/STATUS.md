@@ -1,5 +1,16 @@
 # Status
 
+**2026-10-03 bug fix: held animation cleanup and Legendary size.**
+- Fixed AnimationTrack caching: an unparented track is still valid. Reuse one track per
+  animator, keep the cache table stable during loading, and stop orphaned hold loops on
+  unequip. Respawn cleans up tracks; an unequip during throw cancels the delayed request.
+- Gold King scales 1.8x in hands/on floor, with its box body aligned to the hands below the
+  crown. Preview framing is 1.25x larger. Floor animation uses the model-specific height.
+- Reproduced nine orphaned hold loops in the reported running session. Verified in a fresh
+  Studio session: 12 successive kind switches retain one loop; unequip and throw each leave
+  zero loops and no held model. Checked enlarged Legendary visually and floor height 5.4.
+  Rojo sync, lint and all 983 tests pass; physical-controller acceptance remains pending.
+
 **2026-10-03 follow-up: multiple lucky blocks, timer skips, new tiers and audio.**
 - Multiple floor placements keep independent native 0.5 s holds; overlapping rewards queue.
   Unopened entries never leave the save; disconnect/respawn/stale cleanup removes only models.

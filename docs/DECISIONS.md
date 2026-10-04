@@ -2331,3 +2331,7 @@ timer of a new block stay the designer's call.
   Confirmed WAV order: 403299 Common–Uncommon, 403300 Rare–Epic, 403298 Legendary–Secret,
   403984 anticipation; placement 4612375802, rank-up 2789429656. Preserve authored PBR tints
   on new pack models and lower Gold King's fill to keep surface detail.
+
+- **2026-10-03 — Legendary size correction (designer).** Gold King uses 1.8x world/held
+  scale and 1.25x preview framing; its crown must not shrink the central box below the other
+  lucky blocks. Align the box body with the hands, and animate throws with its actual height.

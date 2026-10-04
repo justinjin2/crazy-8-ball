@@ -26,6 +26,8 @@ Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (be
   bypass, 19 Robux skip with durable receipts/credits, padded icons, rarity lights, softer
   reveal rays/dim and the confirmed audio replacements. Studio and automated checks recorded
   in STATUS.md.
+- [x] Fix orphaned holding animations after repeated equips; enlarge Legendary in hands,
+  on the floor and in inventory. Live equip/unequip/throw checks and 983 tests passed.
 - [ ] Physical controller hold acceptance; save the updated place and publish its templates.
 
 ---

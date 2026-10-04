@@ -121,6 +121,8 @@ local function makeModel(kind: string, edge: number, anchored: boolean): Model?
 	if source == nil then
 		return nil
 	end
+	local row = LuckyBlocks.kind(kind) :: LuckyBlocks.Kind
+	edge *= row.SizeMultiplier or 1
 	local model = source:Clone()
 	local _, size = model:GetBoundingBox()
 	local longest = math.max(size.X, size.Y, size.Z)
@@ -152,6 +154,7 @@ local function makeModel(kind: string, edge: number, anchored: boolean): Model?
 		end
 	end
 	model:SetAttribute("Kind", kind)
+	model:SetAttribute("SizeStuds", edge)
 	return model
 end
 
@@ -290,7 +293,9 @@ function HANDLERS.Hold(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		controller:Destroy()
 	end
 	local centre = torso.CFrame * CFrame.new(offset[1], offset[2], offset[3])
-	model:PivotTo(centre * CFrame.new(0, -L.Held.SizeStuds / 2, 0))
+	local row = LuckyBlocks.kind(block.Kind) :: LuckyBlocks.Kind
+	local edge = L.Held.SizeStuds * (row.SizeMultiplier or 1)
+	model:PivotTo(centre * CFrame.new(0, -edge * (row.HoldCenterShare or 0.5), 0))
 	local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
 	if part == nil then
 		model:Destroy()
@@ -390,11 +395,14 @@ function HANDLERS.Throw(player: Player, r: LuckyBlocks.Request, data: any): Repl
 		model:Destroy()
 		return refuse("Busy")
 	end
-	local fromCentre = h.model:GetPivot().Position + Vector3.new(0, L.Held.SizeStuds / 2, 0)
+	local fromBox = h.model:GetBoundingBox()
+	local fromCentre = fromBox.Position
+	local floorEdge = L.FloorSizeStuds
+		* ((LuckyBlocks.kind(block.Kind) :: LuckyBlocks.Kind).SizeMultiplier or 1)
 	dropHeld(player)
 	-- It starts in the hands; every client flies it to To (LuckyWorld), and the server puts it
 	-- there when the flight ends.
-	model:PivotTo(CFrame.new(fromCentre - Vector3.new(0, L.FloorSizeStuds / 2, 0)) * to.Rotation)
+	model:PivotTo(CFrame.new(fromCentre - Vector3.new(0, floorEdge / 2, 0)) * to.Rotation)
 	model.Name = "LuckyBlock" .. player.UserId .. "_" .. id
 	model:SetAttribute("Owner", player.UserId)
 	model:SetAttribute("BlockId", id)

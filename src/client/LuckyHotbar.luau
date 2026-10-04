@@ -105,7 +105,7 @@ local function makeIcon(parent: Instance, kind: string): Icon
 		model.Parent = viewport
 		icon.model = model
 		icon.base = model:GetPivot()
-		local distance = edge * U.IconDistance
+		local distance = edge * U.IconDistance / (if row then row.IconScale or 1 else 1)
 		camera.CFrame = CFrame.lookAt(Vector3.new(0, edge * 0.55, distance), Vector3.new(0, 0, 0))
 	end
 	return icon

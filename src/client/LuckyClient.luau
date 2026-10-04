@@ -109,13 +109,25 @@ local function animator(): (Animator?, boolean)
 	return humanoid:FindFirstChildOfClass("Animator"), humanoid.RigType == Enum.HumanoidRigType.R15
 end
 
+-- AnimationTracks are not parented Instances: Parent == nil does not mean unloaded.
+local function clearTracks()
+	for _, track in { tracks.hold, tracks.throw } do
+		if track then
+			track:Stop(0)
+			track:Destroy()
+		end
+	end
+	table.clear(tracks)
+end
+
 local function load(id: string): AnimationTrack?
 	local found = animator()
 	if found == nil or id == "" then
 		return nil
 	end
 	if tracks.animator ~= found then
-		tracks = { animator = found }
+		clearTracks()
+		tracks.animator = found
 	end
 	local animation = Instance.new("Animation")
 	animation.AnimationId = id
@@ -135,7 +147,7 @@ end
 
 local function playHold()
 	local holdId = rigIds()
-	if tracks.hold == nil or tracks.animator == nil or tracks.hold.Parent == nil then
+	if tracks.hold == nil or tracks.animator ~= animator() then
 		tracks.hold = load(holdId)
 		if tracks.hold then
 			tracks.hold.Looped = true
@@ -148,15 +160,31 @@ local function playHold()
 end
 
 local function stopHold()
-	if tracks.hold and tracks.hold.IsPlaying then
+	if tracks.hold then
 		tracks.hold:Stop(A.HoldFadeSeconds)
+	end
+	-- Also recover any orphaned hold loops from earlier equips without touching other poses.
+	local found = animator()
+	if found then
+		for _, track in found:GetPlayingAnimationTracks() do
+			local animation = track.Animation
+			if
+				animation
+				and (animation.AnimationId == A.HoldR15 or animation.AnimationId == A.HoldR6)
+			then
+				track:Stop(A.HoldFadeSeconds)
+				if track ~= tracks.hold then
+					track:Destroy()
+				end
+			end
+		end
 	end
 end
 
 -- Plays the throw and waits until its Release marker (or ReleaseFallbackSeconds without one).
 local function playThrow()
 	local _, throwId = rigIds()
-	if tracks.throw == nil or tracks.throw.Parent == nil then
+	if tracks.throw == nil or tracks.animator ~= animator() then
 		tracks.throw = load(throwId)
 		if tracks.throw then
 			tracks.throw.Looped = false
@@ -186,6 +214,10 @@ end
 ---------------------------------------------------------------------------------------------
 
 local function putAway()
+	stopHold()
+	if tracks.throw then
+		tracks.throw:Stop(A.ThrowFadeSeconds)
+	end
 	if heldId == nil then
 		return
 	end
@@ -242,6 +274,10 @@ local function throw()
 	throwing = true
 	task.spawn(function()
 		playThrow()
+		if heldId ~= id then
+			throwing = false
+			return
+		end
 		local reply = request("Throw", id)
 		throwing = false
 		if reply.ok then
@@ -386,11 +422,15 @@ function LuckyClient.start(screen: ScreenGui)
 	end)
 	local player = Players.LocalPlayer
 	if player then
+		player.CharacterRemoving:Connect(function()
+			stopHold()
+			clearTracks()
+		end)
 		player.CharacterAdded:Connect(function()
 			-- The server dropped the held copy with the old body.
 			heldId = nil
 			throwing = false
-			tracks = {}
+			clearTracks()
 			refresh()
 		end)
 	end

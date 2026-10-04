@@ -223,7 +223,8 @@ local function step(t: Tracked, now: number)
 		return
 	end
 	local target = to :: CFrame
-	local half = L.FloorSizeStuds / 2
+	local edge = model:GetAttribute("SizeStuds")
+	local half = (if type(edge) == "number" then edge else L.FloorSizeStuds) / 2
 	local elapsed = math.max(0, now - phaseAt)
 	local mine = model:GetAttribute("Owner") == myId()
 	if t.lastPhase ~= phase then

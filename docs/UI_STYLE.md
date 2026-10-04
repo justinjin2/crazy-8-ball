@@ -537,3 +537,6 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
   transparent 1024px rays fade toward the edges rather than enlarging the old pixelated kit image.
 - Hotbar/bag models leave padding around each icon. Gold King uses lower preview illumination
   so the bright gold albedo keeps its details.
+
+- Legendary uses 1.8x world/held scale to compensate for its crown and cape in the bounding
+  box. Its body aligns with the hands; its inventory preview is framed 1.25x closer.
