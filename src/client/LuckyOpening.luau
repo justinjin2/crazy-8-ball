@@ -276,7 +276,7 @@ function Opening.tap(self: any)
 		return
 	end
 	if self.phase == "Reel" and self.reel then
-		self.reel:skip()
+		self.reel:skip(true)
 	elseif self.phase == "Card" and self.card and self.card:canDismiss() then
 		self:close()
 	end

@@ -2335,3 +2335,7 @@ timer of a new block stay the designer's call.
 - **2026-10-03 — Legendary size correction (designer).** Gold King uses 1.8x world/held
   scale and 1.25x preview framing; its crown must not shrink the central box below the other
   lucky blocks. Align the box body with the hands, and animate throws with its actual height.
+
+- **2026-10-04 — Lucky-block skip landing (designer).** First skip advances to a short
+  final reel approach and retains the winning-card settle before the cue reveal. A second
+  skip during this sequence reveals immediately. Other case reels retain their existing skip.

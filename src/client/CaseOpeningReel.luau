@@ -562,12 +562,27 @@ function Reel.land(self: any, now: number)
 	self.holdUntil = now + R.CentreSeconds + hold
 end
 
---- Jump to the prize: settled at once (the settle effects play if they had not yet), done.
-function Reel.skip(self: any)
+--- Lucky blocks keep the final approach on the first skip; a second skip reveals immediately.
+--- Other callers retain the immediate skip unless they opt into landFirst.
+function Reel.skip(self: any, landFirst: boolean?)
 	if not self.alive or self.phase == "Done" or self.phase == "Idle" then
 		return
 	end
 	local now = os.clock()
+	if landFirst and not self.skipLanding then
+		self.skipLanding = true
+		if self.phase == "Spinning" then
+			-- Advance only: clicking late must never rewind the strip.
+			self.from = math.max(self.pos, self.to - pitch() * R.SkipApproachCards)
+			self.pos = self.from
+			self.began = now
+			self.duration = math.min(R.SkipApproachSeconds, self.duration)
+			self.power = R.SkipApproachPower
+			self.lastIndex = math.floor(self.pos / pitch())
+			self:place()
+		end
+		return
+	end
 	if not self.landed then
 		self.to = centreOf(R.PrizeSlot)
 		self:land(now)

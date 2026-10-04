@@ -540,3 +540,6 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
 
 - Legendary uses 1.8x world/held scale to compensate for its crown and cape in the bounding
   box. Its body aligns with the hands; its inventory preview is framed 1.25x closer.
+
+- Lucky-block reel skip has two stages: first tap/click advances to the last cards landing
+  on the winner, then reveals after the settle; a second tap/click reveals immediately.
