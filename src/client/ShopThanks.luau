@@ -34,6 +34,9 @@ end
 
 local gui: ScreenGui? = nil
 local playing = 0 -- the burst showing now (a newer one replaces it)
+-- A gift being bought: the product key and who gets it (the burst says so instead).
+local giftKey: string? = nil
+local giftName: string? = nil
 
 local function nameOf(key: string): string
 	local names: { [string]: string } = COPY.Names
@@ -47,8 +50,15 @@ local function nameOf(key: string): string
 	return COPY.Purchase
 end
 
---- Play the burst for a Config.Products key ("RobloxPlus" for the subscription).
-function ShopThanks.play(key: string)
+--- The next purchase of `key` is a gift for `name` (nil forgets it): its burst says "GIFT
+--- SENT!" instead of thanks.
+function ShopThanks.giftTo(key: string, name: string?)
+	giftKey, giftName = (if name ~= nil then key else nil), name
+end
+
+--- Play the burst for a Config.Products key ("RobloxPlus" for the subscription). `words`
+--- and `line` replace the thanks (a gift sent or received).
+function ShopThanks.play(key: string, words: string?, lineText: string?)
 	local screen = gui
 	if not screen then
 		return
@@ -77,16 +87,17 @@ function ShopThanks.play(key: string)
 	heart.Position = UDim2.new(0.5, math.floor(iconSize * 0.55), 0.36, -math.floor(iconSize * 0.4))
 	heart.Size = UDim2.fromOffset(math.floor(iconSize * 0.45), math.floor(iconSize * 0.45))
 	heart.ZIndex = 4
-	local words = HudParts.text(root, "Thanks", textSize, COPY.Thanks)
+	local words = HudParts.text(root, "Thanks", textSize, words or COPY.Thanks)
 	words.AnchorPoint = Vector2.new(0.5, 0)
 	words.Position = UDim2.new(0.5, 0, 0.36, math.floor(iconSize * 0.55))
 	words.Size = UDim2.fromOffset(math.min(size.X - 32, textSize * 9), textSize + 8)
 	words.TextWrapped = false
 	words.ZIndex = 3
 	local line = HudParts.text(root, "Line", math.max(K.Text.Min, math.floor(textSize * 0.42)), "")
-	line.Text = COPY.ThanksLine:format(
-		if key == "RobloxPlus" then COPY.Sections.RobloxPlus else nameOf(key)
-	)
+	line.Text = lineText
+		or COPY.ThanksLine:format(
+			if key == "RobloxPlus" then COPY.Sections.RobloxPlus else nameOf(key)
+		)
 	line.AnchorPoint = Vector2.new(0.5, 0)
 	line.Position = UDim2.new(0.5, 0, 0.36, math.floor(iconSize * 0.55) + textSize + 12)
 	line.Size =
@@ -154,7 +165,11 @@ function ShopThanks.start(screen: ScreenGui)
 		function(userId: number, id: number, bought: boolean)
 			if bought and player and userId == player.UserId then
 				local key = byId.Product[id]
-				if key then
+				if key and giftKey == key and giftName ~= nil then
+					local name = giftName
+					giftKey, giftName = nil, nil
+					ShopThanks.play(key, COPY.GiftSent, COPY.GiftSentLine:format(name, nameOf(key)))
+				elseif key then
 					ShopThanks.play(key)
 				end
 			end

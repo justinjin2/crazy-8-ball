@@ -395,9 +395,11 @@ local function paintButtons(buttons: { TextButton }, actions: { () -> () }, spec
 		local b = if specs then specs[i] else nil
 		if b then
 			ShopParts.setButton(button, b.text, b.tone, b.enabled, b.icon)
+			ShopParts.setGift(button, b.gift)
 			actions[i] = b.action
 			button.Visible = true
 		else
+			ShopParts.setGift(button, nil)
 			actions[i] = noop
 			button.Visible = false
 		end
@@ -722,7 +724,7 @@ local function layoutColumn(
 	for _, button in ui.buttons do
 		if button.Visible then
 			HudParts.setButtonTextSize(button, s.buttonText)
-			place(button, 0, at, w, s.button)
+			ShopParts.placeButton(button, 0, at, w, s.button)
 			at += s.button + round(s.gap / 2)
 		end
 	end
@@ -1167,7 +1169,7 @@ local function layoutPass(
 		for _, button in card.buttons do
 			if button.Visible then
 				HudParts.setButtonTextSize(button, s.buttonText)
-				place(button, bx, by, bw, s.button)
+				ShopParts.placeButton(button, bx, by, bw, s.button)
 				by += s.button + round(s.gap / 2)
 			end
 		end
@@ -1320,7 +1322,7 @@ function ShopBlockCards.layoutTile(
 			local button = card.buttons[i]
 			if button.Visible then
 				HudParts.setButtonTextSize(button, s.buttonText)
-				place(button, pad, bottom - s.button, iw, s.button)
+				ShopParts.placeButton(button, pad, bottom - s.button, iw, s.button)
 				bottom -= s.button + round(s.gap / 2)
 			end
 		end
@@ -1338,19 +1340,24 @@ end
 --- The card's buttons a gamepad may land on, in order.
 function ShopBlockCards.selectables(card: Card): { GuiObject }
 	local list: { GuiObject } = {}
+	local function add(button: TextButton)
+		if button.Visible then
+			local square = ShopParts.giftOf(button)
+			if square then
+				table.insert(list, square)
+			end
+			table.insert(list, button)
+		end
+	end
 	for _, ui in card.columns do
 		if ui.root.Visible then
 			for _, button in ui.buttons do
-				if button.Visible then
-					table.insert(list, button)
-				end
+				add(button)
 			end
 		end
 	end
 	for _, button in card.buttons do
-		if button.Visible then
-			table.insert(list, button)
-		end
+		add(button)
 	end
 	return list
 end

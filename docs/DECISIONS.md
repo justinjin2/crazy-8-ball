@@ -2356,3 +2356,9 @@ timer of a new block stay the designer's call.
   aura, Mystery = Standard reskinned black with rainbow rims, Lucky 8 = a part-built black
   cube with white "8" discs and silver rims (code bob), Starter gift = Standard red with a
   gold tie. VIP halves block timers and opens fast; Quick Cases is retired.
+- **2026-10-04 — Gifting (designer).** A small gift square beside every Robux option in the
+  shop, the hero included, buys that developer product for a player chosen from a Gift Player
+  list (the designer's layout references; our style). Passes, restock items and timer skips
+  are not giftable. The gift is the giver's own product purchase; the receipt grants the
+  receiver (their first-buy double and offer windows), and a receiver who left leaves the
+  item with the giver.

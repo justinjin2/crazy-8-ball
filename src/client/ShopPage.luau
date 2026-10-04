@@ -45,6 +45,7 @@ local SHORT_NAMES: { [string]: string } = Strings.LuckyBlocks.Short :: any
 local RARITY_NAMES: { [string]: string } = Strings.Items.Rarities :: any
 local BIG_PACK_FROM = 4 -- packs from the 4th up show what the same money costs in Handfuls
 local R = Config.Shop.Restock
+local PRODUCTS: { [string]: any } = Config.Products.List :: any
 local K = Config.UI.Kit
 local B = Config.UI.Shop.Page.Block
 
@@ -99,6 +100,12 @@ local function robuxButton(
 	busyKey: string?
 ): ShopCards.Button
 	local price = ShopParts.robuxOf(products[key], key)
+	local row = PRODUCTS[key]
+	local giftable = row ~= nil
+		and row.Kind == "Product"
+		and row.Restock == nil
+		and row.SkipSeconds == nil
+		and key ~= Config.LuckyBlocks.SkipProduct
 	return {
 		text = ShopParts.robux(price),
 		tone = "Green",
@@ -107,6 +114,12 @@ local function robuxButton(
 			UISound.play("Click")
 			shop:buyProduct(key, busyKey)
 		end,
+		gift = if giftable
+			then function()
+				UISound.play("Click")
+				shop:giftProduct(key)
+			end
+			else nil,
 	}
 end
 

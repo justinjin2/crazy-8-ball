@@ -37,6 +37,7 @@ export type Button = {
 	enabled: boolean,
 	icon: string?,
 	action: () -> (),
+	gift: (() -> ())?, -- a Robux product's gift square: opens the Gift Player popup
 }
 
 export type Spec = {
@@ -290,9 +291,11 @@ function ShopCards.paint(card: Card, spec: Spec)
 		local b = buttons[i]
 		if b and not showStatus then
 			ShopParts.setButton(button, b.text, b.tone, b.enabled, b.icon)
+			ShopParts.setGift(button, b.gift)
 			card.actions[i] = b.action
 			button.Visible = true
 		else
+			ShopParts.setGift(button, nil)
 			card.actions[i] = function() end
 			button.Visible = false
 		end
@@ -435,8 +438,7 @@ local function layoutBuy(
 			local button = card.buttons[i]
 			if button.Visible then
 				HudParts.setButtonTextSize(button, s.buttonText)
-				button.Size = UDim2.fromOffset(w, s.button)
-				button.Position = UDim2.fromOffset(x, at - s.button)
+				ShopParts.placeButton(button, x, at - s.button, w, s.button)
 				at -= s.button + (if i > 1 then gap else 0)
 			end
 		end
@@ -622,6 +624,10 @@ function ShopCards.selectables(card: Card): { GuiObject }
 	local list: { GuiObject } = {}
 	for _, button in card.buttons do
 		if button.Visible then
+			local square = ShopParts.giftOf(button)
+			if square then
+				table.insert(list, square)
+			end
 			table.insert(list, button)
 		end
 	end

@@ -44,10 +44,12 @@ local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
 local ShopBlockCards = require(script.Parent.ShopBlockCards)
 local ShopCards = require(script.Parent.ShopCards)
+local ShopGift = require(script.Parent.ShopGift)
 local ShopNeed = require(script.Parent.ShopNeed)
 local ShopOdds = require(script.Parent.ShopOdds)
 local ShopPage = require(script.Parent.ShopPage)
 local ShopParts = require(script.Parent.ShopParts)
+local ShopThanks = require(script.Parent.ShopThanks)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -207,6 +209,7 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 
 	self.odds = ShopOdds.new(self, frame)
 	self.need = ShopNeed.new(self, frame)
+	self.gift = ShopGift.new(self, frame)
 
 	frame.onOpen = function()
 		self:opened()
@@ -486,6 +489,7 @@ function ShopMenu.layout(self: any)
 	ShopParts.setCanvas(self.scroll, y + s.scrollPad + round(geo.content.Y * 0.25))
 	self.odds:layout(s)
 	self.need:layout(s, geo)
+	self.gift:layout(s, geo)
 	local pending: string? = self.pendingJump
 	if pending ~= nil then
 		if os.clock() < self.pendingUntil then
@@ -859,7 +863,7 @@ function ShopMenu.ensureSelection(self: any)
 	if not frame:isOpen() or #frame.dialogs > 0 or not ShopParts.gamepad() then
 		return
 	end
-	if self.need:isOpen() then
+	if self.need:isOpen() or self.gift:isOpen() then
 		return
 	end
 	local opener = self.deps and self.deps.caseOpening
@@ -938,6 +942,7 @@ end
 function ShopMenu.closed(self: any)
 	self.odds:close()
 	self.need:close()
+	self.gift:close()
 	self.lit = nil
 	ContextActionService:UnbindAction("8ballShopJump")
 	if self.ticker then
@@ -1128,6 +1133,34 @@ function ShopMenu.buyProduct(self: any, key: string, busyKey: string?)
 	end, function(reply)
 		if not reply.ok then
 			self:refused(flight, reply)
+		end
+	end)
+end
+
+--- The gift square by a Robux button: the Gift Player popup for that product.
+function ShopMenu.giftProduct(self: any, key: string)
+	local state = ItemState.shop()
+	local products = if type(state) == "table" and type(state.products) == "table"
+		then state.products
+		else {}
+	local product = products[key]
+	if type(product) ~= "table" or product.available ~= true then
+		self.frame:notice(REASONS.ComingSoon, "Ink")
+		return
+	end
+	self.gift:open(key)
+end
+
+--- Gift was pressed on a player in the popup: the server checks it for them and shows the
+--- purchase dialog; the item lands in their save with the receipt (ShopThanks tells).
+function ShopMenu.sendGift(self: any, key: string, userId: number, name: string)
+	ShopThanks.giftTo(key, name)
+	self:send("Gift", function()
+		return ItemState.request("StoreRequest", "Gift", key, userId)
+	end, function(reply)
+		if not reply.ok then
+			ShopThanks.giftTo(key, nil)
+			self.frame:notice(MenuFrame.reason(reply), "Red")
 		end
 	end)
 end

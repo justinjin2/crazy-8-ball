@@ -139,6 +139,9 @@ local takingCopy: { [string]: boolean } = {}
 local pendingRestock: { [Player]: { key: string, slot: number, at: number, reserved: boolean } } =
 	{}
 local pendingSkip: { [Player]: { key: string, case: string, at: number } } = {}
+-- A gift remembered from its prompt until its receipt: the product and who gets it.
+local pendingGift: { [Player]: { key: string, to: number, name: string } } = {}
+local giftEvent: RemoteEvent? = nil
 -- The restock slot this server last saw (a new one re-sends ShopState and may announce).
 local restockSlot = -1
 -- The Legendary units taken last sent in ShopState (Counters.stockTaken).
@@ -652,6 +655,67 @@ local function grantProduct(player: Player, key: string, purchaseId: string): (b
 	return true, nil
 end
 
+-- Whether Config.Products key `key` may be gifted: a developer product that is not a restock
+-- item or a timer skip (those name the buyer's own restock or timer).
+local function giftable(key: string): boolean
+	local row = LIST[key]
+	return row ~= nil
+		and row.Kind == "Product"
+		and row.Restock == nil
+		and row.SkipSeconds == nil
+		and key ~= Config.LuckyBlocks.SkipProduct
+end
+
+-- The giver's receipt for a gift: the product lands in the receiver's save (their own
+-- first-buy double, offer windows and fallbacks), then the purchase id is recorded in the
+-- giver's save so Roblox's retries never grant twice. A receiver who left gets nothing: the
+-- giver gets the item instead and is told. Returns (true) or (false, why).
+local function grantGift(
+	buyer: Player,
+	pend: { key: string, to: number, name: string },
+	key: string,
+	purchaseId: string
+): (boolean, string?)
+	local receiver = Players:GetPlayerByUserId(pend.to)
+	local remote = giftEvent
+	if receiver == nil or not ready(receiver) then
+		local ok, why = grantProduct(buyer, key, purchaseId)
+		if ok then
+			pendingGift[buyer] = nil
+			log(
+				("gift %s from %d: %d left; granted to the giver"):format(
+					key,
+					buyer.UserId,
+					pend.to
+				)
+			)
+			if remote ~= nil then
+				remote:FireClient(buyer, { key = key, returned = true })
+			end
+		end
+		return ok, why
+	end
+	local ok, why = grantProduct(receiver, key, purchaseId)
+	if not ok then
+		return false, why
+	end
+	-- Their copy of the id, saved now (the giver's receipt waits for the giver's save only).
+	if not PlayerData.saveNow(receiver, S.ReceiptSaveTimeoutSeconds, purchaseId) then
+		log(("gift %s to %d: their save is late (it saves again later)"):format(key, pend.to))
+	end
+	-- The giver's record of it: a grant of nothing but the purchase id.
+	if not PlayerData.applyPurchase(buyer, purchaseId, { key = key, money = 0 }) then
+		return false, "Failed"
+	end
+	pendingGift[buyer] = nil
+	log(("gift %s from %d to %d (receipt %s)"):format(key, buyer.UserId, pend.to, purchaseId))
+	if remote ~= nil then
+		remote:FireClient(receiver, { from = buyer.DisplayName, key = key })
+	end
+	mark(receiver)
+	return true, nil
+end
+
 -- Runs one receipt through Shop.processReceipt. `key` names the product for a dev grant
 -- (whose ProductId is 0); nil reads it from the ProductId. Returns the decision and, when not
 -- granted, why (for the dev command's answer).
@@ -693,7 +757,13 @@ local function runReceipt(receipt: Shop.Receipt, key: string?): (Shop.Decision, 
 			return PlayerData.hasPurchase(player, id)
 		end,
 		grant = function(player: any, productKey: string, id: string): boolean
-			local ok, reason = grantProduct(player, productKey, id)
+			local pend = pendingGift[player]
+			local ok, reason
+			if pend ~= nil and pend.key == productKey then
+				ok, reason = grantGift(player, pend, productKey, id)
+			else
+				ok, reason = grantProduct(player, productKey, id)
+			end
 			why = reason
 			return ok
 		end,
@@ -853,6 +923,45 @@ local function onStoreRequest(player: Player, action: any, key: any, extra: any)
 	if type(key) == "string" then
 		key = OLD_KEYS[key] or key
 	end
+	if action == "Gift" then
+		if type(key) ~= "string" or LIST[key] == nil then
+			return reply(false, "BadRequest")
+		elseif last ~= nil and clock - last < S.RequestCooldownSeconds then
+			return reply(false, "TooFast")
+		end
+		lastRequest[player] = clock
+		if not giftable(key) then
+			return reply(false, "NoGift")
+		elseif type(extra) ~= "number" or extra ~= extra or extra ~= math.floor(extra) then
+			return reply(false, "BadRequest")
+		elseif extra == player.UserId then
+			return reply(false, "GiftSelf")
+		elseif not ready(player) then
+			return reply(false, "NotLoaded")
+		end
+		local receiver = Players:GetPlayerByUserId(extra)
+		if receiver == nil then
+			return reply(false, "GiftGone")
+		elseif not ready(receiver) then
+			return reply(false, "GiftNotLoaded")
+		end
+		-- The product is checked for the one who gets it (owned, closed, coming soon...).
+		local ctx = context(receiver, os.time())
+		if ctx == nil then
+			return reply(false, "GiftNotLoaded")
+		end
+		local reason = ShopView.check(key, ctx)
+		if reason ~= nil then
+			return reply(false, reason)
+		end
+		Funnel.shop(player, "PressedBuy")
+		pendingGift[player] = { key = key, to = extra, name = receiver.DisplayName }
+		if not prompt(player, key) then
+			pendingGift[player] = nil
+			return reply(false, "Error")
+		end
+		return reply(true)
+	end
 	if action ~= "Buy" or type(key) ~= "string" or LIST[key] == nil then
 		return reply(false, "BadRequest")
 	end
@@ -892,6 +1001,7 @@ local function onStoreRequest(player: Player, action: any, key: any, extra: any)
 		end
 		pendingRestock[player] = { key = key, slot = slot, at = ctx.now, reserved = reserved }
 	end
+	pendingGift[player] = nil -- this prompt is for themselves
 	if not prompt(player, key) then
 		return reply(false, "Error")
 	end
@@ -920,6 +1030,10 @@ local function onProductPromptFinished(userId: number, productId: number, purcha
 	local skip = pendingSkip[player]
 	if skip ~= nil and skip.key == key then
 		pendingSkip[player] = nil
+	end
+	local gift = pendingGift[player]
+	if gift ~= nil and gift.key == key then
+		pendingGift[player] = nil
 	end
 end
 
@@ -1196,6 +1310,7 @@ local function onPlayerRemoving(player: Player)
 	local pend = pendingRestock[player]
 	pendingRestock[player] = nil
 	pendingSkip[player] = nil
+	pendingGift[player] = nil
 	if pend ~= nil and pend.reserved then
 		local userId = player.UserId
 		task.spawn(Counters.releaseStock, Restock.stockKey(pend.slot), userId)
@@ -1222,6 +1337,7 @@ function Store.start()
 	started = true
 	MarketplaceService.ProcessReceipt = processReceipt
 	shopState = Net.get("ShopState")
+	giftEvent = Net.get("GiftReceived")
 	local request: RemoteFunction = Net.get("StoreRequest")
 	request.OnServerInvoke = function(player: Player, action: any, key: any, extra: any): Reply
 		local ok, result = pcall(onStoreRequest, player, action, key, extra)

@@ -7355,6 +7355,23 @@ Config.UI.Shop = {
 		WidthPx = { 300, 420 },
 		HeightPx = { 250, 320 },
 	},
+	-- Gifting (designer, 2026-10-04): a small gift square left of every Robux button for a
+	-- developer product (never a pass). It opens the Gift Player popup over the Shop: the
+	-- other players in this server, a headshot, name, @username and a Gift button each. The
+	-- gift is the same product purchase, granted to the chosen player (Store "Gift").
+	Gift = {
+		SquareGapPx = 6, -- between the gift square and the Robux button
+		SquareTone = "Blue", -- the square's candy tone
+		WidthPx = { 320, 460 }, -- the popup
+		RowPx = { 54, 70 }, -- a player row
+		RowGapPx = { 4, 6 },
+		MaxRows = 5, -- more scroll
+		NamePx = { 16, 21 },
+		AtPx = { 12, 15 },
+		AtColor = { 120, 128, 142 }, -- the @username, grey
+		ButtonWidthPx = { 84, 110 }, -- the Gift button
+		Headshot = "rbxthumb://type=AvatarHeadShot&id=%d&w=150&h=150",
+	},
 	-- The thank-you burst after a Robux purchase (any prompt that ends bought): confetti, the
 	-- item's icon flying in, a big "THANK YOU!". Seconds on screen.
 	Thanks = {

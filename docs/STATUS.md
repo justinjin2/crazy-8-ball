@@ -6,6 +6,9 @@
   3D icons, the Grand Opening hero, Mystery band, restock slot tiles, Starter Pack + VIP pass
   bands, build-in from the top left, idle shimmer and pops, a gold "+" on the money HUD that
   opens the Shop on Money. 984 tests and lint pass; verified in Studio play on PC only.
+- Gifting: a gift square by every Robux product button opens the Gift Player popup (the other
+  players here); the same product purchase lands in the chosen player's save (Store "Gift").
+  Verified in Studio with stand-in players; the receipt path still needs a two-player test.
 - Next, in order: phone and gamepad checks, then the Grand Opening, Mystery, Money and Passes
   sections polished to the designer's reference images; then the block models, products and
   docs. The brief for the CLI: `docs/prompts/SHOP_GUI_HANDOFF_PROMPT.md`. The designer's

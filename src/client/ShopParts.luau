@@ -368,6 +368,70 @@ function ShopParts.button(parent: Instance, name: string, action: () -> ()): Tex
 	return button
 end
 
+-- The gift squares beside Robux buttons (Config.UI.Shop.Gift), by their button.
+local gifts: { [TextButton]: { square: TextButton, action: (() -> ())? } } = {}
+local G = Config.UI.Shop.Gift
+
+--- Give (or take away) `button` a gift square at its left: a small candy with the gift icon
+--- that runs `action` (opens the Gift Player popup). Nil takes it away. The square is a
+--- sibling of the button, laid out by ShopParts.placeButton.
+function ShopParts.setGift(button: TextButton, action: (() -> ())?)
+	local entry = gifts[button]
+	if entry == nil then
+		local parent = button.Parent
+		if action == nil or parent == nil then
+			return
+		end
+		local square = HudParts.candy(parent, "", function()
+			local now = gifts[button]
+			if now and now.action then
+				now.action()
+			end
+		end, G.SquareTone, "Gift")
+		square.Name = button.Name .. "Gift"
+		square.ZIndex = button.ZIndex
+		entry = { square = square, action = nil }
+		gifts[button] = entry
+		button.Destroying:Connect(function()
+			gifts[button] = nil
+			square:Destroy()
+		end)
+		button:GetPropertyChangedSignal("Visible"):Connect(function()
+			local e = gifts[button]
+			if e then
+				e.square.Visible = button.Visible and e.action ~= nil
+			end
+		end)
+	end
+	entry.action = action
+	entry.square.Visible = button.Visible and action ~= nil
+end
+
+--- The gift square beside `button` while it shows (a gamepad lands on it too), or nil.
+function ShopParts.giftOf(button: TextButton): TextButton?
+	local entry = gifts[button]
+	if entry ~= nil and entry.action ~= nil and button.Visible then
+		return entry.square
+	end
+	return nil
+end
+
+--- Place a buy button in the box (x, y, w, h); its gift square, when it has one, takes the
+--- left end of the box (a square `h` tall) and the button the rest.
+function ShopParts.placeButton(button: TextButton, x: number, y: number, w: number, h: number)
+	local square = ShopParts.giftOf(button)
+	if square ~= nil then
+		local side = math.min(h, math.floor(w * 0.4))
+		square.Position = UDim2.fromOffset(x, y + math.floor((h - side) / 2))
+		square.Size = UDim2.fromOffset(side, side)
+		HudParts.setMinHit(square, Config.UI.Menu.Frame.TouchMinPx)
+		x += side + G.SquareGapPx
+		w = math.max(1, w - side - G.SquareGapPx)
+	end
+	button.Position = UDim2.fromOffset(x, y)
+	button.Size = UDim2.fromOffset(math.max(1, w), math.max(1, h))
+end
+
 --- A buy button's words, colour and whether it may be pressed (a disabled one is faded and
 --- not selectable). An icon key puts that icon left of the words.
 function ShopParts.setButton(

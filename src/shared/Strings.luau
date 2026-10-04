@@ -646,6 +646,10 @@ return {
 			-- The server's answers (Items, Store, Rewards; the codes are listed in Net.luau).
 			BadRequest = "That didn't work. Try again.",
 			TooFast = "Slow down a little!",
+			NoGift = "That one can't be gifted.",
+			GiftSelf = "Pick someone else to gift!",
+			GiftGone = "They left the server.",
+			GiftNotLoaded = "They are still loading. Try again in a moment.",
 			NotLoaded = "Your save is still loading...",
 			Teleporting = "You're on your way to a match.",
 			Error = "Something went wrong. Try again soon.",
@@ -849,6 +853,15 @@ return {
 			-- The thank-you burst.
 			Thanks = "THANK YOU!",
 			ThanksLine = "Enjoy your %s!", -- the item's name
+			-- Gifting: the burst for the giver and for the one gifted.
+			GiftSent = "GIFT SENT!",
+			GiftSentLine = "%s gets your %s!", -- the player, the item
+			GiftGot = "A GIFT!",
+			GiftGotLine = "%s sent you %s!", -- the player, the item
+			GiftReturned = "%s left, so your %s is yours.", -- the gift came back (a notice)
+			GiftTitle = "Gift Player",
+			GiftButton = "Gift",
+			GiftNobody = "No one else is here to gift right now.",
 			New = "NEW", -- a red badge on a jump button and the Shop tile
 			-- A product's name in the thank-you burst (a key missing here says "purchase").
 			Names = {

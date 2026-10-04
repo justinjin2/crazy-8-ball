@@ -221,7 +221,17 @@ local REMOTES: { [string]: string } = {
 	-- Starter Pack or that Limited bought), "Closed" (its offer or Limited window is shut),
 	-- "SoldOut", "PartyFull" (an hour of Money Party already queued), "ComingSoon" (Id 0),
 	-- "Restricted" (a paid random item where they are restricted), "Error" (the prompt failed).
+	-- ("Gift", a Config.Products key, a user id) -> { ok, reason? } prompts the same product
+	-- purchase for the giver and grants it to that player when the receipt comes (their
+	-- save; a money pack pays their first-buy double, an offer they cannot have pays its money
+	-- fallback). Only Kind "Product" rows without Restock or SkipSeconds: "NoGift"; "GiftSelf"
+	-- (their own id), "GiftGone" (not in this server), "GiftNotLoaded", else as "Buy". A giver
+	-- whose receipt arrives after the receiver left gets the item (GiftReceived returned).
 	StoreRequest = "RemoteFunction",
+	-- server -> one player: a gift landed. { from (the giver's display name), key (the
+	-- Config.Products key) }, or to the giver { key, returned = true } when the receiver had
+	-- left and the item went to them instead.
+	GiftReceived = "RemoteEvent",
 	-- server -> one player: the Rewards menu's state (src/server/Rewards.luau builds it with
 	-- Progression/RewardView.build). Sent on load, after each claim or dev change, when a
 	-- playtime gift becomes ready, when VIP or the group answer changes, and to everyone when

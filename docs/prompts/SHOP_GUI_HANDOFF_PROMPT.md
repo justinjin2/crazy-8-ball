@@ -27,6 +27,21 @@ on PC, phone and gamepad.** Then the block models, then the new developer produc
   or VIP's six-perk list in two columns, timer or LAUNCH SALE ribbon + crossed price bottom
   left, button bottom right, cream VIP card. Matches reference image 14 below.
 
+- (uncommitted hash: see `git log`) **Gifting**: a small blue gift square left of every Robux
+  button for a developer product (never a pass, a restock item or a timer skip;
+  `ShopParts.setGift` / `placeButton`, `ShopCards.Button.gift`). It opens the Gift Player
+  popup (`src/client/ShopGift.luau`, modelled on the designer's "Gift Player" reference 19:
+  headshot, display name, @username, a Gift button per player, scrolls past 5). Gift sends
+  StoreRequest "Gift" (key, userId): the server checks the product for the receiver, remembers
+  the gift, prompts the giver's own product purchase, and the receipt grants it to the
+  receiver's save (`Store.grantGift`), recording the purchase id in the giver's save; a
+  receiver who left gets nothing and the giver keeps the item (`GiftReceived` returned).
+  ShopThanks says "GIFT SENT!" to the giver and "A GIFT!" to the receiver. Studio hook:
+  `GuiQA:Invoke("gift", "Mystery1", 4)` opens the popup with 4 stand-in players.
+  **Not yet tested with two real players** (the receipt path): use the two-client Studio
+  test (`docs/MULTIPLAYER_TESTING.md`) or two accounts live; the dev `/buy` command grants
+  to oneself only.
+
 Verified in Studio play (PC window only): every section draws with no console errors, the "+"
 lands on the Money header, the Grand Opening band shows when the deal is open, the VIP band in
 both the owned and the not-owned state. Lint is clean (`tools/lint.sh`, four old LocalShadow
@@ -53,9 +68,13 @@ All the images the designer pasted into the previous session are saved in
 | `10-...png` | Lucky 8: black cube, white "8" discs on the faces, silver rims. |
 | `11-...png` | Starter block: Standard reskinned red with a gold gift tie. |
 | `01` to `05` | The earlier references the hero prompt was built from; `06` the hero result the designer called "close enough". |
+| `17`, `18`, `19` | **Gifting layout** from another game (layout only, never its style or colours): a gift square left of each Robux button in a row of packs (17) and in a pack grid (18); the "Gift Player" list with avatar, name, @username and a Gift button per row (19). |
+| (re-paste) | Two more the designer pasted at the end: a **collage of all the shop references** and the **restock section reference** (four slot tiles: coloured kind name "Uncommon Lucky Block", the odds rows, three mini cue thumbnails with their chances under the rows, a gold money button and a green Robux button side by side, "3 left for you"; the VIP slot as a grey locked tile with a gold padlock over the block, "VIP only · a 4th block every restock", Get VIP; the header pill "New blocks in 6:12 · each slot: Uncommon 62% · Rare 36.6% · Epic 1.35% · Legendary 0.05%" on a dark ink bar). These two did not reach the saved folder: ask the designer to paste them again and save them as `20-...` and `21-...`. |
 
 The ChatGPT sheets in `~/Desktop/GUI-refs/results/` (P3 to P23) were only the prompt pipeline's
-output; the designer does not want the shop built from them. More references may be pasted
+output; the designer does not want the shop built from them (he pointed out that P3, P4, P5 and
+P6b's tabs had crept into the hero and the Starter + VIP work; the pasted images above are the
+truth for every section). More references may be pasted
 later: copy any new one into `~/Desktop/8ball-refs/gui-v3/pasted/` with the next number
 (memory rule: save refs yourself, do not ask).
 
@@ -73,6 +92,10 @@ later: copy any new one into `~/Desktop/8ball-refs/gui-v3/pasted/` with the next
    names in the odds rows, the subtitle words, the x10 sale sticker on the column, money
    button above the Robux button.
 4. **Money row to reference 15**: "FIRST BUY x2" pill, "-30%" corner ribbons, crossed prices.
+4b. **Restock to the restock reference** (re-pasted, see the table): coloured kind names, the
+   three chase cue thumbnails with chances under the odds rows, money + Robux buttons side by
+   side, "N left for you", the VIP tile grey with the gold padlock and "a 4th block every
+   restock", and the dark header pill with the stopwatch.
 5. **Passes to reference 15**: wide tiles (art left, words right), Roblox Plus "Get" tile back
    in (it was dropped from the page while folding Starter + VIP into Passes; the Passes jump
    is `Config.UI.Shop.Page.Jump` = Offer, Boosts, RobloxPlus).
@@ -80,6 +103,9 @@ later: copy any new one into `~/Desktop/8ball-refs/gui-v3/pasted/` with the next
    (the designer's words); tune `Config.UI.Shop.Page` sizes.
 7. **Mythic client aura** (cycling rainbow) on its block icon; hotbar icons for the new kinds.
 8. Rail word: Featured or Deals (ask, reference 16).
+9. **Gifting, two-player test** of the receipt path (above), and gift squares on the hero's
+   Robux buttons once the Grand Opening products exist (they show "Coming soon" until then,
+   like the buttons).
 
 Every tunable number goes in `src/shared/Config.luau` with a comment, every word in
 `src/shared/Strings.luau`. Scripts only under `src/` (never through the Studio MCP). Commit on
