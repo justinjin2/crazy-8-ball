@@ -637,15 +637,3 @@ basics (glb textures, face direction, axes, texture alpha) are under "Uploading 
 - **Sound sheets were not needed**: every ability sound is a public library clip played by id
   (`SoundSheet.library`), trimmed with `StartOffset` and pitched at runtime. The sheet player
   is ready for uploaded sheets (`Config.Ults.Assets.Sheets`).
-
-### Cue motion evidence (2026-10-04)
-
-`tools/cue_motion_capture.luau` calls the native `CaptureService` in a transient Client MCP
-execution. It works in Studio Play and yields a real video, even when macOS's Screenshot
-recording toolbar cannot launch. A successful callback includes a `VideoCapture` usable by
-`VideoFrame.VideoContent = Content.fromObject(video)` for local playback. Its private path
-properties are not exposed to plugins; do not try to elevate that access. On this Mac the
-newly recorded MP4 appears in `~/Library/Roblox/tmp-capture-storage/wob-*` without an extension.
-Identify the **new file** by timestamp and MP4 signature, copy it into the ignored cue renders
-folder, and inspect the full sequence/loop boundaries. Do not search unrelated media folders.
-Native capture omits the game's HUD; still screenshots and input checks supplement it.

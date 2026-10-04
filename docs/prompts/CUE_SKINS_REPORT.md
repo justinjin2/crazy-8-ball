@@ -1,10 +1,5 @@
 # Cue skins: the report
 
-> Historical report; the cues were subsequently imported (see STATUS.md). **2026-10-04:**
-> [CUE_VFX_PROMPT.md](CUE_VFX_PROMPT.md) supersedes the deferred-Unique plan below. Founder's
-> is cancelled; Beta and Grand Opening are the two new release skins. Keep the old record
-> below as history, not current production instructions.
-
 The cue-skins run (brief: `CUE_SKINS_PROMPT.md`, branch `cue-skins`, worktree
 `~/Desktop/8ball-skins`). Every skin is built on the shared cue mesh as textures, glow and a VFX
 spec, with renders and a clip to review. **Nothing is imported into Roblox yet**: the import is

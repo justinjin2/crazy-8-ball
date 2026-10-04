@@ -11,7 +11,7 @@
     "#C9CDD4"
   ],
   "painter": "mix",
-  "note": "V3 Eclipse: black obsidian with travelling molten-gold veins, sculpted totality, painted corona and violet galaxy curl, two distinct celestial paths; dimensional rising eclipse pocket finisher.",
+  "note": "Black obsidian with a molten-gold corona line: OpenAI panels on the whole cue (a glossy black obsidian shaft twisted with black-chrome spiral ribbons and one molten-gold line winding along it, a forearm of twisting obsidian and chrome ribbons veined with molten gold, a black engraved grip with gold cracks, a black sleeve with gold bands), a chrome collar with gold bands, a gold ring, a black end; the molten gold glows. The 3D piece (pieces/eclipse): a floating total eclipse past the butt: a glossy black sphere held by a black cup with gold rings and four slender gold prongs, two thin glowing orbit rings precessing round it, a small cratered silver moon orbiting it, obsidian shards drifting round the mount. The corona is camera-facing particles centred on the sphere, so it sits on its outline from every side.",
   "ai": {
     "shaft_tile": {
       "refs": [
@@ -69,60 +69,421 @@
   "glow": [],
   "piece": "eclipse",
   "surface": {
-    "EmissiveStrength": 2.0,
+    "EmissiveStrength": 2.4,
     "EmissiveTint": "#FFD27A",
     "Pulse": {
       "EmissiveStrength": {
-        "Min": 1.6,
-        "Max": 2.4,
-        "Period": 3.6
+        "Min": 1.8,
+        "Max": 3.0,
+        "Period": 2.4
       }
     }
   },
   "vfx": {
     "Piece": {
-      "Note": "Sculpted gold prominences, obsidian sphere, two separate orbital paths, sparse satellites. Major contours survive Lower effects; AuraQuiet fades the aura joints."
+      "Note": "pieces/eclipse: MeshParts by joint (Mount, Orb, Ring1-2, Moon, Debris) and material (Obsidian SmoothPlastic, Gold Foil, Void SmoothPlastic, Flare Neon, Moon SmoothPlastic); piece.json has each part's Offset and every joint's pivot and motion. Motion: the black sphere floats (a 0.012-stud bob over 3.4 s); the two orbit rings precess (22 and -30 degrees a second); the moon orbits on a tilted path (70 degrees a second); the shards drift round the mount (16 degrees a second, bobbing)."
     },
     "Moving": {
-      "Kind": "Traveling molten veins",
-      "Frames": {
-        "Keys": [
-          "emissive"
-        ],
-        "FrameSeconds": 0.3,
-        "Order": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5
-        ],
-        "Maps": [
-          {
-            "emissive": "textures/eclipse_emissive.png"
-          },
-          {
-            "emissive": "textures/eclipse_f1_emissive.png"
-          },
-          {
-            "emissive": "textures/eclipse_f2_emissive.png"
-          },
-          {
-            "emissive": "textures/eclipse_f3_emissive.png"
-          },
-          {
-            "emissive": "textures/eclipse_f4_emissive.png"
-          },
-          {
-            "emissive": "textures/eclipse_f5_emissive.png"
-          }
-        ]
-      }
+      "Kind": "Piece + emitters + emissive",
+      "Note": "The corona blazes and flares: overlapping corona particles (own texture: a white-hot ring sized to the sphere's outline, ragged gold streamers; ZOffset 0.3, the sphere's radius, so the ring draws in front of the outline from every side) turning slowly, and solar prominences looping up off the rim and snapping (own 16-frame flipbook, placed anywhere round it by a random Rotation); the molten gold's emissive swells 1.8-3.0 over 2.4 s."
     },
     "Aura": {
-      "Note": "Ten forked painted solar flame sculptures interlock around totality, with independent root growth, curling and stretching tips. Each has closed textured volume and staggered depth; violet currents flow down the cue. Animated local illumination, travelling surges and small breakaways; no whole-aura images.",
+      "Note": "v2 (2026-10-01, designer: a smaller glowing eclipse): just inside the butt a small eclipse, a black disc in a white-hot ring, blazing in a gold corona with an expanding gold ring, solar flares and sparks; round the cue a deep violet-navy space cloud with warm nebula glow, gold star dust, star flares and glints; three gold orbit trails with small eclipses loop along it, and the piece's gold orbits and asteroids turn round it.",
       "Emitters": [
+        {
+          "Name": "Flares",
+          "Texture": "vfx/eclipse/flare_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.3
+          },
+          "Rate": 3,
+          "Lifetime": [
+            0.9,
+            1.2
+          ],
+          "Speed": 0,
+          "Size": 1.8,
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": 0.3
+        },
+        {
+          "Name": "CoronaSparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.3
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.4,
+            0.9
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.5,
+          "Size": [
+            [
+              0,
+              0.07
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFF1B0"
+            ],
+            [
+              1,
+              "#FFB300"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "EclipseOrb",
+          "Texture": "vfx/v2/eclipse_orb.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.3
+          },
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Rate": 1,
+          "Lifetime": [
+            2.2,
+            2.2
+          ],
+          "Speed": [
+            0,
+            0
+          ],
+          "Size": 1.25,
+          "Rotation": [
+            0,
+            0
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0
+            ],
+            [
+              0.88,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "Brightness": 1,
+          "ZOffset": 0.2
+        },
+        {
+          "Name": "CoronaBlaze",
+          "Texture": "vfx/eclipse/corona.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.3
+          },
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Rate": 3,
+          "Lifetime": [
+            1.2,
+            1.6
+          ],
+          "Speed": [
+            0,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              1.35
+            ],
+            [
+              1,
+              1.6
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.2,
+              0.1
+            ],
+            [
+              0.8,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFF4C8"
+            ],
+            [
+              1,
+              "#FFB21E"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 5,
+          "ZOffset": 0.1
+        },
+        {
+          "Name": "CoronaRing",
+          "Texture": "vfx/v2/ring.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.3
+          },
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Rate": 2,
+          "Lifetime": [
+            1.0,
+            1.0
+          ],
+          "Speed": [
+            0,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              1.0
+            ],
+            [
+              1,
+              2.6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFE7A0"
+            ],
+            [
+              1,
+              "#FF9A1A"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 4
+        },
+        {
+          "Name": "SpaceBody",
+          "Texture": "vfx/v2/smoke_8x8.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 1.02,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Rate": 80,
+          "Lifetime": [
+            1.2,
+            1.8
+          ],
+          "Speed": [
+            0.3,
+            0.7
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.2,
+          "Size": [
+            [
+              0,
+              0.9
+            ],
+            [
+              1,
+              2.3
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.15,
+              0.2
+            ],
+            [
+              0.7,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -30,
+            30
+          ],
+          "Color": [
+            [
+              0,
+              "#4A2A9A"
+            ],
+            [
+              0.6,
+              "#24124F"
+            ],
+            [
+              1,
+              "#0D0820"
+            ]
+          ],
+          "LightEmission": 0,
+          "Brightness": 1
+        },
+        {
+          "Name": "Nebula",
+          "Texture": "vfx/v2/smoke_8x8.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.92,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Rate": 22,
+          "Lifetime": [
+            1.2,
+            1.8
+          ],
+          "Speed": [
+            0.2,
+            0.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.2,
+          "Size": [
+            [
+              0,
+              0.7
+            ],
+            [
+              1,
+              1.6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.2,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": [
+            [
+              0,
+              "#FFB24A"
+            ],
+            [
+              0.5,
+              "#C05AFF"
+            ],
+            [
+              1,
+              "#5A3CFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 1.6
+        },
         {
           "Name": "StarDust",
           "Texture": "vfx/v2/dust.png",
@@ -130,16 +491,16 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.2,
-            "Width": 1.26,
+            "Width": 1.22,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Rate": 7,
+          "Rate": 30,
           "Lifetime": [
-            0.5,
-            1.0
+            1.0,
+            1.6
           ],
           "Speed": [
             0.2,
@@ -150,7 +511,16 @@
             180
           ],
           "Drag": 1,
-          "Size": 0.14,
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              1,
+              1.2
+            ]
+          ],
           "Transparency": [
             [
               0,
@@ -184,8 +554,70 @@
             ]
           ],
           "LightEmission": 1,
-          "Brightness": 2.0,
-          "Layer": "Accent"
+          "Brightness": 4
+        },
+        {
+          "Name": "Stars",
+          "Texture": "vfx/v2/flare.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.4,
+            "Width": 1.22,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Rate": 80,
+          "Lifetime": [
+            0.5,
+            1.0
+          ],
+          "Speed": [
+            0.6,
+            1.6
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2.5,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.15,
+              0.45
+            ],
+            [
+              0.5,
+              0.2025
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FFE3A0"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 7
         },
         {
           "Name": "GoldGlints",
@@ -194,16 +626,16 @@
             "Kind": "Part",
             "FromStuds": 0.5,
             "ToStuds": 7.0,
-            "Width": 0.66,
+            "Width": 0.62,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
           "LightInfluence": 0,
           "LockedToPart": true,
-          "Rate": 4,
+          "Rate": 16,
           "Lifetime": [
-            0.5,
-            1.0
+            0.4,
+            0.7
           ],
           "Speed": [
             0,
@@ -213,7 +645,20 @@
             180,
             180
           ],
-          "Size": 0.2,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.25,
+              0.75
+            ],
+            [
+              1,
+              0
+            ]
+          ],
           "Transparency": 0,
           "Rotation": [
             -20,
@@ -230,415 +675,214 @@
             ]
           ],
           "LightEmission": 1,
-          "Brightness": 2.0,
-          "Layer": "Accent"
+          "Brightness": 7
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Orbit1",
+          "FromStuds": 0.3,
+          "ToStuds": 3.4,
+          "TravelSeconds": 3.2,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.7,
+          "Radius": 0.38,
+          "RadiusFromSurface": true,
+          "Wobble": 0.08,
+          "WobbleHz": 0.6,
+          "Phase": 0,
+          "Delay": 0,
+          "Trail": {
+            "Lifetime": 1.2,
+            "WidthStuds": 0.08,
+            "Color": "#FFB300",
+            "Brightness": 3,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.25
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/eclipse/mini_eclipse.png",
+            "Size": 0.24,
+            "Color": "#FFFFFF",
+            "LightEmission": 0
+          }
         },
         {
-          "Name": "ProminenceBreakaway0",
-          "Layer": "Accent",
-          "Host": {
-            "Kind": "Attachment",
-            "AtStuds": 6.982450485229492,
-            "Up": 1.1126317977905273,
-            "Joint": "ProminencesTongue0Tip",
-            "Side": 0.12001776695251465
+          "Name": "Orbit2",
+          "FromStuds": 2.4,
+          "ToStuds": 5.4,
+          "TravelSeconds": 3.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.6,
+          "Radius": 0.38,
+          "RadiusFromSurface": true,
+          "Wobble": 0.08,
+          "WobbleHz": 0.6,
+          "Phase": 120,
+          "Delay": 1.0,
+          "Trail": {
+            "Lifetime": 1.2,
+            "WidthStuds": 0.08,
+            "Color": "#FFB300",
+            "Brightness": 3,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.25
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
           },
-          "Texture": "vfx/v3/eclipse/flame_tongue_painted.png",
-          "Rate": 0.5,
-          "Lifetime": [
-            0.35,
-            0.6
-          ],
-          "Speed": [
-            1,
-            2.2
-          ],
-          "SpreadAngle": [
-            25,
-            25
-          ],
-          "Size": [
-            [
-              0,
-              0.19
+          "Head": {
+            "Texture": "vfx/eclipse/mini_eclipse.png",
+            "Size": 0.24,
+            "Color": "#FFFFFF",
+            "LightEmission": 0
+          }
+        },
+        {
+          "Name": "Orbit3",
+          "FromStuds": 4.6,
+          "ToStuds": 6.9,
+          "TravelSeconds": 2.8,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.8,
+          "Radius": 0.38,
+          "RadiusFromSurface": true,
+          "Wobble": 0.08,
+          "WobbleHz": 0.6,
+          "Phase": 240,
+          "Delay": 2.0,
+          "Trail": {
+            "Lifetime": 1.2,
+            "WidthStuds": 0.08,
+            "Color": "#FFB300",
+            "Brightness": 3,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.25
+              ],
+              [
+                1,
+                1
+              ]
             ],
-            [
-              0.35,
-              0.26
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Color": "#FFFFFF",
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/eclipse/mini_eclipse.png",
+            "Size": 0.24,
+            "Color": "#FFFFFF",
+            "LightEmission": 0
+          }
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "GoldGlow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.0,
+          "Width0": 0.6,
+          "Width1": 1.2,
+          "Segments": 20,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": "#FFB300",
           "Transparency": [
             [
               0,
-              0.1
+              1
             ],
             [
-              0.5,
-              0.1
+              0.06,
+              0.7
+            ],
+            [
+              0.9,
+              0.6
             ],
             [
               1,
               1
             ]
           ],
-          "LightEmission": 0.3,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -60,
-            60
-          ]
-        },
-        {
-          "Name": "ProminenceBreakaway1",
-          "Layer": "Accent",
-          "Host": {
-            "Kind": "Attachment",
-            "AtStuds": 8.50747299194336,
-            "Up": 0.9619067311286926,
-            "Joint": "ProminencesTongue2Tip",
-            "Side": -0.13500037789344788
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.6,
+            "Max": 1.0,
+            "Period": 2.4
           },
-          "Texture": "vfx/v3/eclipse/flame_tongue_painted.png",
-          "Rate": 0.5,
-          "Lifetime": [
-            0.35,
-            0.6
-          ],
-          "Speed": [
-            1,
-            2.2
-          ],
-          "SpreadAngle": [
-            25,
-            25
-          ],
-          "Size": [
-            [
-              0,
-              0.19
-            ],
-            [
-              0.35,
-              0.26
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Color": "#FFFFFF",
-          "Transparency": [
-            [
-              0,
-              0.1
-            ],
-            [
-              0.5,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "LightEmission": 0.3,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -60,
-            60
-          ]
-        },
-        {
-          "Name": "ProminenceBreakaway2",
-          "Layer": "Accent",
-          "Host": {
-            "Kind": "Attachment",
-            "AtStuds": 8.613005638122559,
-            "Up": -0.5265451669692993,
-            "Joint": "ProminencesTongue4Tip",
-            "Side": 0.07539011538028717
-          },
-          "Texture": "vfx/v3/eclipse/flame_tongue_painted.png",
-          "Rate": 0.5,
-          "Lifetime": [
-            0.35,
-            0.6
-          ],
-          "Speed": [
-            1,
-            2.2
-          ],
-          "SpreadAngle": [
-            25,
-            25
-          ],
-          "Size": [
-            [
-              0,
-              0.19
-            ],
-            [
-              0.35,
-              0.26
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Color": "#FFFFFF",
-          "Transparency": [
-            [
-              0,
-              0.1
-            ],
-            [
-              0.5,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "LightEmission": 0.3,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -60,
-            60
-          ]
-        },
-        {
-          "Name": "ProminenceBreakaway3",
-          "Layer": "Accent",
-          "Host": {
-            "Kind": "Attachment",
-            "AtStuds": 7.378668785095215,
-            "Up": -1.203702449798584,
-            "Joint": "ProminencesTongue6Tip",
-            "Side": 0.36722618341445923
-          },
-          "Texture": "vfx/v3/eclipse/flame_tongue_painted.png",
-          "Rate": 0.5,
-          "Lifetime": [
-            0.35,
-            0.6
-          ],
-          "Speed": [
-            1,
-            2.2
-          ],
-          "SpreadAngle": [
-            25,
-            25
-          ],
-          "Size": [
-            [
-              0,
-              0.19
-            ],
-            [
-              0.35,
-              0.26
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Color": "#FFFFFF",
-          "Transparency": [
-            [
-              0,
-              0.1
-            ],
-            [
-              0.5,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "LightEmission": 0.3,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -60,
-            60
-          ]
+          "Brightness": 2.5
         }
       ],
       "Lights": [
         {
-          "Name": "CoronaBounce",
-          "Layer": "Essential",
-          "AtStuds": 7.56,
-          "Side": 0.22,
-          "Color": "#FFC66B",
-          "Brightness": 2.1,
-          "Range": 5.5,
+          "AtStuds": 7.3,
+          "Color": "#FFB84A",
+          "Brightness": 1.5,
+          "Range": 8,
           "Flicker": {
-            "Period": 3.8,
-            "Shape": "beat",
-            "Min": 0.45,
-            "Max": 1
-          }
-        },
-        {
-          "Name": "VoidBounce",
-          "Layer": "Accent",
-          "AtStuds": 4.8,
-          "Color": "#9C6FFF",
-          "Brightness": 1.0,
-          "Range": 4.3,
-          "Flicker": {
-            "Period": 4.6,
-            "Min": 0.3,
-            "Max": 1
+            "Min": 0.8,
+            "Max": 1.2,
+            "Period": 0.5,
+            "Shape": "flicker"
           }
         }
       ],
-      "Outline": "#FFCB78",
-      "Orbiters": [
-        {
-          "Name": "CelestialSatellite1",
-          "FromStuds": 4.0,
-          "ToStuds": 6.5,
-          "TravelSeconds": 4.6,
-          "Loop": "pingpong",
-          "TurnsPerSecond": 0.24,
-          "Radius": 0.69,
-          "Wobble": 0.08,
-          "Phase": 0,
-          "Delay": 0.0,
-          "Trail": {
-            "Lifetime": 0.34,
-            "WidthStuds": 0.055,
-            "Color": "#FFD282",
-            "Transparency": [
-              [
-                0,
-                0.1
-              ],
-              [
-                1,
-                1
-              ]
-            ],
-            "WidthScale": [
-              [
-                0,
-                1
-              ],
-              [
-                1,
-                0.3
-              ]
-            ],
-            "LightEmission": 1,
-            "Texture": "vfx/_shared/spark.png",
-            "Brightness": 1.2
-          },
-          "Head": {
-            "Texture": "vfx/_shared/star4.png",
-            "Size": 0.17,
-            "Color": "#FFD282",
-            "LightEmission": 1
-          }
-        },
-        {
-          "Name": "CelestialSatellite2",
-          "FromStuds": 4.0,
-          "ToStuds": 6.5,
-          "TravelSeconds": 5.6,
-          "Loop": "pingpong",
-          "TurnsPerSecond": -0.18,
-          "Radius": 0.9,
-          "Wobble": 0.08,
-          "Phase": 180,
-          "Delay": 0.7,
-          "Trail": {
-            "Lifetime": 0.34,
-            "WidthStuds": 0.055,
-            "Color": "#B899FF",
-            "Transparency": [
-              [
-                0,
-                0.1
-              ],
-              [
-                1,
-                1
-              ]
-            ],
-            "WidthScale": [
-              [
-                0,
-                1
-              ],
-              [
-                1,
-                0.3
-              ]
-            ],
-            "LightEmission": 1,
-            "Texture": "vfx/_shared/spark.png",
-            "Brightness": 1.2
-          },
-          "Head": {
-            "Texture": "vfx/_shared/star4.png",
-            "Size": 0.17,
-            "Color": "#B899FF",
-            "LightEmission": 1
-          }
-        }
-      ]
+      "Outline": "#FFB21E"
     },
     "Style": {
       "Trail": {
         "Colors": [
           [
             255,
-            255,
-            255
+            241,
+            176
           ],
           [
-            200,
-            166,
-            255
+            255,
+            179,
+            0
           ]
         ],
         "NearTransparency": 0.0,
-        "Lifetime": 0.45,
-        "WidthStuds": 0.65,
-        "LightEmission": 0.45,
-        "Texture": "vfx/v3/eclipse/crescent_wake_painted.png",
+        "Lifetime": 1.2,
+        "WidthStuds": 0.44,
+        "LightEmission": 0.2,
+        "Texture": "vfx/eclipse/trail_eclipse.png",
         "TextureMode": "Stretch",
         "WidthScale": [
           [
@@ -654,43 +898,60 @@
             0.8
           ]
         ],
-        "Core": false,
+        "Core": {
+          "Color": [
+            255,
+            220,
+            130
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "LightEmission": 0.2,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 2.2
+        },
         "Transparency": [
           [
             0,
-            0.03
+            0.0
           ],
           [
-            0.65,
-            0.18
+            0.6,
+            0.1
           ],
           [
             1,
             1
           ]
         ],
-        "Brightness": 1.4,
-        "TextureFrames": {
-          "FrameSeconds": 0.05,
-          "Maps": [
-            "vfx/v3/eclipse/wake_frames/00.png",
-            "vfx/v3/eclipse/wake_frames/01.png",
-            "vfx/v3/eclipse/wake_frames/02.png",
-            "vfx/v3/eclipse/wake_frames/03.png",
-            "vfx/v3/eclipse/wake_frames/04.png",
-            "vfx/v3/eclipse/wake_frames/05.png",
-            "vfx/v3/eclipse/wake_frames/06.png",
-            "vfx/v3/eclipse/wake_frames/07.png",
-            "vfx/v3/eclipse/wake_frames/08.png",
-            "vfx/v3/eclipse/wake_frames/09.png",
-            "vfx/v3/eclipse/wake_frames/10.png",
-            "vfx/v3/eclipse/wake_frames/11.png",
-            "vfx/v3/eclipse/wake_frames/12.png",
-            "vfx/v3/eclipse/wake_frames/13.png",
-            "vfx/v3/eclipse/wake_frames/14.png",
-            "vfx/v3/eclipse/wake_frames/15.png"
-          ]
-        }
+        "Brightness": 1.0
       },
       "Pocket": {
         "Colors": [
@@ -709,15 +970,15 @@
       }
     },
     "Trail": {
-      "Note": "Short internally curling crescent wake (16 frames), sparse gilded chips and sparks.",
+      "Note": "A long half gold, half black light trail with a white-gold core (1.2 s); gold fire peels off the ball, obsidian chips and gold sparks fly off, small eclipses drop behind and fade.",
       "Emitters": [
         {
-          "Name": "GildedChips",
-          "Texture": "vfx/v2/shard.png",
+          "Name": "Obsidian",
+          "Texture": "vfx/eclipse/obsidian.png",
           "Host": {
             "Kind": "Point"
           },
-          "Rate": 6,
+          "Rate": 5,
           "Lifetime": [
             0.5,
             0.8
@@ -734,11 +995,11 @@
           "Size": [
             [
               0,
-              0.09
+              0.1
             ],
             [
               1,
-              0.04
+              0.05
             ]
           ],
           "Rotation": [
@@ -763,21 +1024,9 @@
               1
             ]
           ],
-          "Color": [
-            [
-              0,
-              "#FFCC78"
-            ],
-            [
-              1,
-              "#7751AE"
-            ]
-          ],
-          "LightEmission": 0.3,
-          "LightInfluence": 0,
-          "Layer": "Accent",
-          "Brightness": 1.4,
-          "Squash": 0.4
+          "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "LightInfluence": 0
         },
         {
           "Name": "Sparks",
@@ -785,7 +1034,7 @@
           "Host": {
             "Kind": "Point"
           },
-          "Rate": 6,
+          "Rate": 14,
           "Lifetime": [
             0.25,
             0.5
@@ -821,40 +1070,71 @@
             ]
           ],
           "LightEmission": 1,
-          "LightInfluence": 0,
-          "Layer": "Accent",
-          "Brightness": 1.4
-        }
-      ]
-    },
-    "Pocket": {
-      "Note": "Dimensional totality rises, turns within its corona and two orbits, then resolves into stars.",
-      "Layers": [
+          "LightInfluence": 0
+        },
         {
-          "Name": "ProminenceEruptions",
-          "Texture": "vfx/v3/eclipse/flame_tongue_painted.png",
-          "Layer": "Accent",
+          "Name": "Eclipses",
+          "Texture": "vfx/eclipse/mini_eclipse.png",
           "Host": {
-            "Offset": [
-              0,
-              1.8,
-              0
-            ]
+            "Kind": "Point"
           },
-          "Burst": 8,
-          "Delay": 0.45,
-          "Rate": 0,
+          "Rate": 2,
+          "Lifetime": 0.5,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              1,
+              0.22
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.6,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "GoldFire",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 10,
           "Lifetime": [
             0.4,
-            0.8
+            0.6
           ],
           "Speed": [
-            2,
-            3.5
+            0.2,
+            0.5
           ],
           "SpreadAngle": [
-            80,
-            80
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.5,
+            0
           ],
           "Size": [
             [
@@ -863,21 +1143,84 @@
             ],
             [
               0.35,
-              0.5
+              0.55
             ],
             [
               1,
-              0
+              0.2
             ]
           ],
           "Transparency": [
             [
               0,
-              0.1
+              0.3
+            ],
+            [
+              0.3,
+              0.05
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFF6D0"
             ],
             [
               0.5,
-              0.1
+              "#FFC030"
+            ],
+            [
+              1,
+              "#FF8A00"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 1.6
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "Staged over 1.5 s: a dark ring pulses out flat over the pocket twice as it is eclipsed (0 and 0.22 s, alpha-blended); a black eclipse swells above the pocket (0.4 s) exactly filling its corona as the corona bursts out, in front of a column of gold light; gold light streaks burst out radially, obsidian shards and gold sparks blast out, a gold ring spreads; a gold flash. The default gust is tinted gold.",
+      "Layers": [
+        {
+          "Name": "DarkRing",
+          "Texture": "vfx/eclipse/dark_ring.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              0.1,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Lifetime": 0.6,
+          "Speed": 0.01,
+          "EmissionDirection": "Top",
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "Orientation": "VelocityPerpendicular",
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              1,
+              6.0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.05
             ],
             [
               1,
@@ -885,206 +1228,411 @@
             ]
           ],
           "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "DarkRing2",
+          "Texture": "vfx/eclipse/dark_ring.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              0.1,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.22,
+          "Lifetime": 0.6,
+          "Speed": 0.01,
+          "EmissionDirection": "Top",
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "Orientation": "VelocityPerpendicular",
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              1,
+              5.0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Eclipse",
+          "Texture": "vfx/eclipse/mini_eclipse.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              1.8,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.4,
+          "Lifetime": 1.0,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              1.7
+            ],
+            [
+              0.3,
+              4.45
+            ],
+            [
+              1,
+              5.0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "Orientation": "FacingCamera",
+          "ZOffset": 0.6
+        },
+        {
+          "Name": "CoronaBurst",
+          "Texture": "vfx/eclipse/corona.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              1.8,
+              0
+            ]
+          },
+          "Burst": 2,
+          "Delay": 0.4,
+          "Lifetime": 1.0,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              1.3
+            ],
+            [
+              0.3,
+              3.4
+            ],
+            [
+              1,
+              3.8
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "ZOffset": 0.7
+        },
+        {
+          "Name": "Column",
+          "Texture": "vfx/eclipse/gold_column.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              2.6,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.4,
+          "Lifetime": 0.9,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              3
+            ],
+            [
+              0.2,
+              5.5
+            ],
+            [
+              1,
+              6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.2,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp"
+        },
+        {
+          "Name": "Shards",
+          "Texture": "vfx/eclipse/obsidian.png",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.4
+          },
+          "Burst": 20,
+          "Delay": 0.4,
+          "Lifetime": [
+            0.8,
+            1.1
+          ],
+          "Speed": [
+            4,
+            8
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 1.2,
+          "Acceleration": [
+            0,
+            -8,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.15
+            ],
+            [
+              1,
+              0.25
+            ]
+          ],
           "Rotation": [
             0,
             360
           ],
           "RotSpeed": [
-            -80,
-            80
+            -300,
+            300
           ],
-          "LightEmission": 0.3,
-          "LightInfluence": 0,
-          "Drag": 2
-        }
-      ],
-      "Piece": {
-        "Piece": "eclipse_pocket",
-        "Delay": 0.12,
-        "Seconds": 1.8,
-        "Rise": [
-          [
-            0,
-            -1.3
-          ],
-          [
-            0.25,
-            0.1
-          ],
-          [
-            0.75,
-            0.35
-          ],
-          [
-            1,
-            0.65
-          ]
-        ],
-        "Scale": [
-          [
-            0,
-            0.25
-          ],
-          [
-            0.25,
-            1
-          ],
-          [
-            0.8,
-            1
-          ],
-          [
-            1,
-            0.8
-          ]
-        ],
-        "Spin": [
-          [
-            0,
-            -25
-          ],
-          [
-            1,
-            55
-          ]
-        ],
-        "Transparency": [
-          [
-            0,
-            1
-          ],
-          [
-            0.18,
-            0
-          ],
-          [
-            0.75,
-            0
-          ],
-          [
-            1,
-            1
-          ]
-        ]
-      },
-      "Rings": [
-        {
-          "Delay": 0.05,
-          "Seconds": 0.7,
-          "Start": 0.2,
-          "End": 3.4,
-          "Texture": "vfx/_shared/ring.png",
-          "Color": "#E8B859"
-        }
-      ],
-      "Flash": {
-        "Brightness": 2.5,
-        "Seconds": 0.25,
-        "Color": "#FFD590"
-      },
-      "KeepRibbons": false,
-      "Win": {
-        "Piece": {
-          "Seconds": 2.2,
-          "Scale": [
+          "Transparency": [
             [
               0,
-              0.25
+              0
             ],
             [
-              0.25,
-              1.25
-            ],
-            [
-              0.8,
-              1.25
+              0.85,
+              0
             ],
             [
               1,
-              0.9
+              1
             ]
-          ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "LightInfluence": 0
         },
-        "Layers": [
-          {
-            "Name": "VictorySecondSweep",
-            "Texture": "vfx/v3/eclipse/flame_tongue_painted.png",
-            "Layer": "Accent",
-            "Host": {
-              "Offset": [
-                0,
-                1.8,
-                0
-              ]
-            },
-            "Burst": 10,
-            "Delay": 1.1,
-            "Rate": 0,
-            "Lifetime": [
-              0.4,
-              0.8
-            ],
-            "Speed": [
-              3,
-              5
-            ],
-            "SpreadAngle": [
-              80,
-              80
-            ],
-            "Size": [
-              [
-                0,
-                0.3
-              ],
-              [
-                0.35,
-                0.5
-              ],
-              [
-                1,
-                0
-              ]
-            ],
-            "Transparency": [
-              [
-                0,
-                0.1
-              ],
-              [
-                0.5,
-                0.1
-              ],
-              [
-                1,
-                1
-              ]
-            ],
-            "Color": "#FFFFFF",
-            "Rotation": [
+        {
+          "Name": "Sparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Burst": 30,
+          "Delay": 0.42,
+          "Lifetime": [
+            0.5,
+            1.0
+          ],
+          "Speed": [
+            3,
+            8
+          ],
+          "SpreadAngle": [
+            70,
+            70
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2,
+          "Acceleration": [
+            0,
+            -5,
+            0
+          ],
+          "Size": [
+            [
               0,
-              360
+              0.12
             ],
-            "RotSpeed": [
-              -80,
-              80
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFF1B0"
             ],
-            "LightEmission": 0.3,
-            "LightInfluence": 0,
-            "Drag": 2
-          }
-        ]
+            [
+              1,
+              "#FFB300"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "RayBurst",
+          "Texture": "vfx/_shared/streak.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              1.8,
+              0
+            ]
+          },
+          "Burst": 28,
+          "Delay": 0.42,
+          "Lifetime": [
+            0.35,
+            0.6
+          ],
+          "Speed": [
+            9,
+            15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 4,
+          "Orientation": "VelocityParallel",
+          "Size": [
+            [
+              0,
+              0.7
+            ],
+            [
+              1,
+              0.25
+            ]
+          ],
+          "Squash": -2.2,
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFF6D8"
+            ],
+            [
+              1,
+              "#FFB300"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 2
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#FFB300",
+          "Start": 0.5,
+          "End": 5.0,
+          "Seconds": 0.5,
+          "Delay": 0.4
+        }
+      ],
+      "Flash": {
+        "Color": [
+          255,
+          200,
+          110
+        ],
+        "Brightness": 12,
+        "Seconds": 0.4
       }
     },
     "Budget": {
-      "Note": "V3 shape first: two essential sprites, sparse accents; measured in Studio before acceptance."
+      "ParticlesPerSecond": 57.9,
+      "Back": 28.9,
+      "BallTrail": 31,
+      "Beams": 1,
+      "Lights": 1,
+      "Orbiters": 3,
+      "PieceTriangles": 37640
     }
   },
-  "shape": 3,
-  "frames": {
-    "Count": 6,
-    "Keys": [
-      "emissive"
-    ]
-  }
+  "shape": 2
 }

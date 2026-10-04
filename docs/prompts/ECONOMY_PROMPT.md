@@ -1,9 +1,5 @@
 # Economy lane brief (ECONOMY_PROMPT.md)
 
-> **Release-art correction, 2026-10-04:** Founder's is cancelled; Beta and Grand Opening
-> are the two Unique release skins in [CUE_VFX_PROMPT.md](CUE_VFX_PROMPT.md). This supersedes
-> the old deferral/art notes below. That art pass does not change any sale or economy rules.
-
 ## Context
 
 The game is close to release. The economy (money, cases, odds, Robux) was sized for an older,

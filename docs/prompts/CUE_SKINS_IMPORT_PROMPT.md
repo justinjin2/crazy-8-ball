@@ -1,9 +1,5 @@
 # Brief: import the cue skins into the game
 
-> Historical import brief. **2026-10-04:** current work is
-> [CUE_VFX_PROMPT.md](CUE_VFX_PROMPT.md). Founder's is cancelled; Beta and Grand Opening
-> are the two new Unique release skins, no longer deferred for a missing Q1 sheet.
-
 Written 2026-09-30 at the end of the cue-skins run, for the session that puts the new cues in the
 game. The skins are built as files on branch `cue-skins` (worktree `~/Desktop/8ball-skins`):
 textures, VFX sprites, 3D pieces and one data file per skin. Nothing is in Roblox yet.

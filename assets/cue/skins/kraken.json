@@ -99,7 +99,7 @@
           "FromStuds": 0.3,
           "ToStuds": 3.6,
           "Width0": 0.1107,
-          "Width1": 0.2818,
+          "Width1": 0.2529,
           "Segments": 20,
           "Texture": "vfx/kraken/caustic_strip.png",
           "TextureMode": "Wrap",
@@ -133,8 +133,8 @@
           "Name": "CausticsForearm",
           "FromStuds": 3.8,
           "ToStuds": 5.32,
-          "Width0": 0.2933,
-          "Width1": 0.3437,
+          "Width0": 0.2612,
+          "Width1": 0.3055,
           "Segments": 20,
           "Texture": "vfx/kraken/caustic_strip.png",
           "TextureMode": "Wrap",
@@ -162,14 +162,14 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.16
+          "ZOffset": 0.1422
         },
         {
           "Name": "CausticsSleeve",
           "FromStuds": 6.64,
           "ToStuds": 6.94,
-          "Width0": 0.3564,
-          "Width1": 0.3564,
+          "Width0": 0.3168,
+          "Width1": 0.3168,
           "Segments": 4,
           "Texture": "vfx/kraken/caustic_strip.png",
           "TextureMode": "Wrap",
@@ -197,7 +197,7 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.18
+          "ZOffset": 0.16
         }
       ],
       "Frames": {
@@ -238,7 +238,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.51,
+            "Width": 0.47,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -307,7 +307,7 @@
             "Kind": "Part",
             "FromStuds": 0.2,
             "ToStuds": 7.0,
-            "Width": 0.76,
+            "Width": 0.72,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -370,7 +370,7 @@
             "Kind": "Part",
             "FromStuds": 5.4,
             "ToStuds": 7.0,
-            "Width": 0.41,
+            "Width": 0.37,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -1039,5 +1039,5 @@
     }
   },
   "piece": "kraken",
-  "shape": 3
+  "shape": 2
 }

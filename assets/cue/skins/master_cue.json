@@ -143,7 +143,7 @@
             "Kind": "Part",
             "FromStuds": 0.8,
             "ToStuds": 7.0,
-            "Width": 0.38,
+            "Width": 0.34,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -219,7 +219,7 @@
             "Kind": "Part",
             "FromStuds": 0.8,
             "ToStuds": 7.0,
-            "Width": 1.06,
+            "Width": 1.02,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -271,7 +271,7 @@
             "Kind": "Part",
             "FromStuds": 0.2,
             "ToStuds": 7.0,
-            "Width": 0.56,
+            "Width": 0.52,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -457,5 +457,5 @@
       "Orbiters": 2
     }
   },
-  "shape": 3
+  "shape": 2
 }

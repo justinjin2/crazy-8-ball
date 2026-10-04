@@ -29,12 +29,12 @@ tools/test.sh   # cue_shape_test (Shape.json is current), cue_mesh_test (MeshSki
   in Blender.
 - Changing the mesh means uploading it again and rebuilding every skin's template in Studio,
   because a new upload is a new asset id. Do that only when the shape really changes.
-- **When the cue's width changes** (shape 3, 2026-10-04: butt 0.32 -> 0.36, slim front kept), everything built
+- **When the cue's width changes** (2026-10-01: butt 0.2 -> 0.32, tip kept), everything built
   on the old shape follows, in this order: Shape.json and the mesh (above); every skin repainted
-  (`python3 tools/cue_skin.py <ids> --paint --maps --thumb --noaura`; Classic with `--maps --thumb`
+  (`python3 tools/cue_skin.py <ids> --paint --maps --thumb`; Classic with `--maps --thumb`
   only, it has no paint recipe); `python3 tools/cue_widen.py` moves each skin's effects out with
-  the surface (idempotent, migrates from frozen `shapes/shape2.json`, stamps `"shape": 3`); the pieces on the butt read the new radius
-  (`CuePieces.butt_gain`/`butt_growth`) and are rebuilt with `CuePieces.py -- <ids> --no-preview` and
+  the surface (one-shot, stamps `"shape": 2`); the pieces on the butt read the new radius
+  (`CuePieces.butt_gain`/`butt_growth`) and are rebuilt with `CuePieces.py -- <ids>` and
   `tools/cue_pieces_glb.py`; the Dragon's and Phoenix's Segment hosts are copied from the build
   prints; then everything is uploaded again and the templates rebuilt in Studio. The AI-painted
   panels are resized to the new panel shapes, not re-bought: from the side only half the
@@ -46,7 +46,7 @@ tools/test.sh   # cue_shape_test (Shape.json is current), cue_mesh_test (MeshSki
 |---|---|
 | `Shape.json` | The cue's outline and zones, exported from Config and the catalog. Generated. |
 | `CueModel.py`, `cue_common.py` | The mesh and UV builder, and the shared helpers. |
-| `Cue.glb` | The mesh (4,160 triangles), uploaded to Roblox. |
+| `Cue.glb` | The mesh (3,840 triangles), uploaded to Roblox. |
 | `CueModel.blend` | The .blend (scripts embedded). |
 | `Parameters.json` | Axes, the UV layout, the paint-kit panels and every check's result. |
 | `CueTemplate.py`, `template/` | The paint kit: `sheet.png`, and per panel `_input` (for ChatGPT), `_guide` (for you), `_test` (the mapping check). `CHATGPT.md` is the how-to. |
@@ -89,49 +89,3 @@ tools/test.sh   # cue_shape_test (Shape.json is current), cue_mesh_test (MeshSki
   is at local +Z 3.5 and the seam faces local −Y (down in the hand, toward the body on the
   back). The template's `PivotOffset` puts the pivot at the tip with +Z toward the butt, the
   frame `CueStickBuilder` places every cue in.
-
-## VFX upgrade authoring (2026-10-04)
-
-- `vfx/v3/<skin>/` holds painted sprite masters with their generation prompts. Upload every
-  new image, resolve its image ID and record source hashes in the manifest before generating
-  rows. Check actual bright-lobby/phone views; Blender previews are not acceptance evidence.
-- Classify emitters, beams/lights and piece joints with `Layer` (`Essential`, `Structure`,
-  `Accent`) for reduced effects. Essential emitter rates stay continuous; quieting fades
-  their alpha, optionally with `QuietPower` (Eclipse 2). Put `Aura = true` on aura joints;
-  major permanent mounts remain unclassified. Main core/orbit geometry is retained under
-  Lower effects; Accent satellites are omitted. Unclassified older skins retain defaults.
-- `Pocket.Win` overlays ordinary pocket data only on a legal winning eight. Its `Piece`
-  curves merge and its `Layers` append. Keep ordinary multi-pot bursts compact.
-- Piece OBJ export preserves `s 1` / `s 0`; GLB conversion respects smooth/flat faces.
-  Rebuild/re-upload changed geometry instead of compensating for flat normals with glow.
-- `tools/cue_vfx_checks.luau` runs transient Client assertions for quality/quiet toggles,
-  actual skin-look AuraOff geometry, winning/illegal pots, rapid pots and teardown. It does
-  not create saved scripts. Evidence captures remain ignored under `renders/vfx-upgrade`.
-- Transparent skins may author `alpha.Base`, `alpha.GlowGain` and `alpha.OpaqueRegions` in
-  their skin JSON. `CueTextures.write_maps` writes ColorMap RGBA; set
-  `surface.AlphaMode = "Transparency"` so all Edit-mode frame appearances use that alpha.
-  Beta keeps tip/ferrule/bumper opaque and adds permanent 3D contour wires.
-- `Pocket.Piece.Outline = false` disables the generic Highlight for fine wire meshes.
-- `CuePiecesUnique.py` contains Beta's drafting assemblies and pocket funnel;
-  `tools/vfx_blueprint.py` draws its exact ring, registration and short wake sprites.
-- `tools/cue_preview_equip.luau` is a transient designer-only Studio Server art override.
-  It changes only replicated appearance during Play, never ownership/profile/sale data;
-  run with `CLEAR = true` or end Play to restore the actual equipped cue.
-
-### Eclipse exclusive visual review (2026-10-04)
-
-The current corona is built by `CueSolarSculpt.py`: the painted master under
-`concepts/vfx-upgrade/eclipse-solar-flame-sculpt.*` becomes the committed
-`models/eclipse_solar_flame/source.glb` and maps. Ten reduced copies wrap the sphere at
-different depths; thirty child bones independently grow, curl and stretch them. Main and
-pocket use the same builder. `CuePiecesDimensional.py` supplies closed violet currents and
-the continuous solar rim. Main aura artwork is geometry; individual breakaway particles
-can still use a painted sprite. `tools/vfx_wake_frames.py` rebuilds the short animated wake.
-
-Rebuild with `CuePieces.py -- eclipse eclipse_pocket --no-preview`, then
-`tools/cue_pieces_glb.py eclipse eclipse_pocket`. Upload changed models/maps, resolve image
-IDs, regenerate `tools/cue_skins_data.py` and rebuild **Eclipse only** in Studio. The template
-builder normalizes single-mesh rigs with a root/weld so they follow the cue and pocket.
-The original pre-pass template is preserved in `ServerStorage.CueVfxReview.Original`.
-See `docs/prompts/CUE_VFX_ECLIPSE_REVIEW.md` for actual gameplay comparisons. **Do not resume
-other cues until the designer approves Eclipse.**

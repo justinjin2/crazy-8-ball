@@ -21,8 +21,7 @@ BLENDER = '/Applications/Blender.app/Contents/MacOS/Blender'
 
 
 def read_obj(path):
-    verts, uvs, faces, smooth = [], [], [], []
-    shading = False
+    verts, uvs, faces = [], [], []
     with open(path) as fh:
         for line in fh:
             bits = line.split()
@@ -33,12 +32,9 @@ def read_obj(path):
                 verts.append((-x, z, y))
             elif bits[0] == 'vt':
                 uvs.append((float(bits[1]), float(bits[2])))
-            elif bits[0] == 's':
-                shading = bits[1] not in ('0', 'off')
             elif bits[0] == 'f':
                 faces.append([tuple(int(i) - 1 if i else None for i in (c.split('/') + [''])[:2]) for c in bits[1:]])
-                smooth.append(shading)
-    return verts, uvs, faces, smooth
+    return verts, uvs, faces
 
 
 def build(piece):
@@ -50,15 +46,14 @@ def build(piece):
         return
     bpy.ops.wm.read_factory_settings(use_empty=True)
     for part in rigid:
-        verts, uvs, faces, smooth = read_obj(os.path.join(ROOT, 'assets', 'cue', part['File']))
+        verts, uvs, faces = read_obj(os.path.join(ROOT, 'assets', 'cue', part['File']))
         mesh = bpy.data.meshes.new(part['Name'])
         bm = bmesh.new()
         bv = [bm.verts.new(v) for v in verts]
         uvl = bm.loops.layers.uv.new('UVMap') if uvs else None
-        for f, shading in zip(faces, smooth):
+        for f in faces:
             try:
                 face = bm.faces.new([bv[i] for i, _ in f])
-                face.smooth = shading
             except ValueError:
                 continue  # a duplicate face
             if uvl is not None:

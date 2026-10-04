@@ -25,7 +25,6 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local CueSkins = require(Shared:WaitForChild("CueSkins"))
 local Motion = require(Shared:WaitForChild("CueSkins"):WaitForChild("Motion"))
-local Quality = require(script.Parent.Quality)
 
 local CuePiece = {}
 CuePiece.__index = CuePiece
@@ -52,8 +51,6 @@ export type CuePiece = typeof(setmetatable(
 		riders: { Rider },
 		auraJoints: { [string]: boolean },
 		auraShown: boolean,
-		auraShare: number,
-		layers: { [string]: string },
 		scale: number,
 		pose: { [string]: Motion.Xf },
 	},
@@ -111,11 +108,9 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
 	model.Name = "Piece_" .. id
 	local rig = Motion.rig(row)
 	local auraJoints: { [string]: boolean } = {}
-	local layers: { [string]: string } = {}
 	for _, name in rig.order do
 		local j = rig.joints[name]
 		auraJoints[name] = j.aura or (j.parent ~= nil and auraJoints[j.parent] == true)
-		layers[name] = row.Joints[name].Layer or (j.parent and layers[j.parent]) or ""
 	end
 	local rigid: { Rigid } = {}
 	local skinned: { Skinned } = {}
@@ -202,8 +197,6 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
 		riders = {},
 		auraJoints = auraJoints,
 		auraShown = true,
-		auraShare = 1,
-		layers = layers,
 		scale = 1,
 		pose = {},
 	}, CuePiece)
@@ -336,27 +329,14 @@ end
 --- Every part of the piece follows `modifier` (a stick's camera fade), aura joints staying
 --- hidden while the aura is.
 function CuePiece.setModifier(self: CuePiece, modifier: number)
-	local function layerModifier(joint: string): number
-		local layer = self.layers[joint]
-		local quality = if Quality.isLow() then Config.CueSkins.LowerPieceLayers[layer] or 1 else 1
-		local quiet = if self.auraJoints[joint] and layer ~= "" then self.auraShare else 1
-		return 1 - (1 - modifier) * quality * quiet
-	end
 	for _, r in self.rigid do
 		local hidden = not self.auraShown and self.auraJoints[r.joint]
-		r.part.LocalTransparencyModifier = if hidden then 1 else layerModifier(r.joint)
+		r.part.LocalTransparencyModifier = if hidden then 1 else modifier
 	end
 	for _, sk in self.skinned do
 		local hidden = not self.auraShown and skinnedAura(self, sk)
-		local share = modifier
-		for _, bone in sk.bones do
-			if bone.parent == nil then
-				share = layerModifier(bone.joint)
-				break
-			end
-		end
 		for _, part in sk.parts do
-			part.LocalTransparencyModifier = if hidden then 1 else share
+			part.LocalTransparencyModifier = if hidden then 1 else modifier
 		end
 	end
 end

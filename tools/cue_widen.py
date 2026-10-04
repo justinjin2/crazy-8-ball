@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Move every skin's cue effects out with the wider cue (designer, 2026-10-01: shape 3 is the approved 0.36 butt,
-the slim front kept). Safe to re-run: each skin file is stamped "shape": 3 when done.
+"""Move every skin's cue effects out with the wider cue (designer, 2026-10-01: the cue 1.6x wider,
+the tip kept). One-shot and safe to re-run: each skin file is stamped "shape": 2 when done.
 
     python3 tools/cue_widen.py            # every skin file
     python3 tools/cue_widen.py --check    # list what would change, write nothing
 
-Shape 1 (before 2026-10-01): tip 0.09, butt 0.2, tapers 0/.1/.36/.73/1.
-Shape 2 is frozen in assets/cue/shapes/shape2.json. The target is read from
+Shape 1 (before 2026-10-01): tip 0.09, butt 0.2, tapers 0/.1/.36/.73/1. Shape 2 is read from
 assets/cue/Shape.json (Config.Cue). Everything a skin places in absolute studs from the cue's
 axis keeps its gap above the surface:
   * Part hosts (cylinder volumes along the cue): Width + 2 * the radius gain at their far end
@@ -26,14 +25,14 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKINS = os.path.join(ROOT, 'assets', 'cue', 'skins')
 SHAPE = os.path.join(ROOT, 'assets', 'cue', 'Shape.json')
-STAMP = 3
+STAMP = 2
 ON_AXIS = 0.05  # a Part host thinner than this emits on the axis on purpose (Apex's scan rings)
 
 TO = [0.012, 0.3, 0.55, 0.78, 1]
 OLD = {'tip': 0.09, 'butt': 0.2, 'tapers': [0, 0.1, 0.36, 0.73, 1], 'length': 7}
 
 
-def envelope(tip, butt, tapers, length, ends=TO):
+def envelope(tip, butt, tapers, length):
     """CueShape.radiusAt: within a piece the radius runs from its diameter to the next one's."""
     diam = [tip + (butt - tip) * t for t in tapers]
 
@@ -43,7 +42,7 @@ def envelope(tip, butt, tapers, length, ends=TO):
         if d >= length:
             return butt / 2
         start = 0
-        for i, to in enumerate(ends):
+        for i, to in enumerate(TO):
             end = length * to
             if d <= end:
                 here = diam[i]
@@ -55,28 +54,11 @@ def envelope(tip, butt, tapers, length, ends=TO):
     return radius
 
 
-def shape_envelope(shape):
-    rows = shape['profile']
-    tapers = [row.get('taper', row.get('Taper')) for row in rows]
-    ends = [row.get('to', row.get('To')) for row in rows]
-    assert len(ends) == len(tapers) and ends[-1] == 1
-    assert all(a < b for a, b in zip([0] + ends, ends))
-    return envelope(shape['tip_diameter_studs'], shape['butt_diameter_studs'], tapers,
-                    shape.get('length_studs', 7), ends)
-
-
 def new_envelope():
-    with open(SHAPE) as f:
-        return shape_envelope(json.load(f))
-
-
-def source_envelope(stamp):
-    if stamp == 1:
-        return envelope(OLD['tip'], OLD['butt'], OLD['tapers'], OLD['length'])
-    if stamp == 2:
-        with open(os.path.join(ROOT, 'assets', 'cue', 'shapes', 'shape2.json')) as f:
-            return shape_envelope(json.load(f))
-    raise ValueError('Unsupported cue shape: %r' % stamp)
+    shape = json.load(open(SHAPE))
+    tapers = [row['taper'] if 'taper' in row else row['Taper'] for row in shape['profile']]
+    return envelope(shape['tip_diameter_studs'], shape['butt_diameter_studs'], tapers,
+                    shape.get('length_studs', 7))
 
 
 R_OLD = envelope(OLD['tip'], OLD['butt'], OLD['tapers'], OLD['length'])
@@ -145,7 +127,7 @@ def widen_skin(skin, log):
 
 
 def main():
-    global R_NEW, R_OLD
+    global R_NEW
     R_NEW = new_envelope()
     check = '--check' in sys.argv
     for name in sorted(os.listdir(SKINS)):
@@ -155,7 +137,6 @@ def main():
         skin = json.load(open(path))
         if skin.get('shape', 1) >= STAMP:
             continue
-        R_OLD = source_envelope(skin.get('shape', 1))
         log = []
         widen_skin(skin, log)
         skin['shape'] = STAMP

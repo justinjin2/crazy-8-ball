@@ -5,7 +5,7 @@
 return {
 	Id = "chroma",
 	Frame = "cue",
-	Rigid = "99024778713528",
+	Rigid = "72147991851568",
 	Models = {},
 	Parts = {
 		{

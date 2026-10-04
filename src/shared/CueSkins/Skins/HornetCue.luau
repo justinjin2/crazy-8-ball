@@ -8,11 +8,11 @@ return {
 	Name = "Hornet",
 	Tier = "Uncommon",
 	Maps = {
-		Color = "rbxassetid://80888593152256",
-		Normal = "rbxassetid://116483220524567",
-		Roughness = "rbxassetid://124167197648274",
-		Metalness = "rbxassetid://77208281371699",
-		Emissive = "rbxassetid://99863581075632",
+		Color = "rbxassetid://111054583703993",
+		Normal = "rbxassetid://103925184988917",
+		Roughness = "rbxassetid://122546240003085",
+		Metalness = "rbxassetid://122210569575338",
+		Emissive = "rbxassetid://77038687383018",
 	},
 	Surface = {
 		EmissiveStrength = 1.6,
@@ -55,13 +55,13 @@ return {
 			},
 		},
 	},
-	Thumb = "rbxassetid://112054919368927",
+	Thumb = "rbxassetid://94955181640215",
 	Look = {
-		Shaft = { 19, 19, 17 },
+		Shaft = { 19, 18, 17 },
 		Forearm = { 77, 64, 9 },
 		Wrap = { 27, 25, 18 },
 		Ring = { 200, 204, 208 },
 		Tip = { 30, 36, 56 },
-		Cap = { 21, 19, 9 },
+		Cap = { 23, 20, 10 },
 	},
 }

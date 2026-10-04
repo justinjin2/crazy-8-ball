@@ -5,7 +5,7 @@
 return {
 	Id = "seraph",
 	Frame = "cue",
-	Rigid = "129366222686157",
+	Rigid = "101250524737309",
 	Models = {},
 	Parts = {
 		{

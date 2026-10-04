@@ -428,12 +428,12 @@ class Kit:
         return make_blender_material(bpy, key, self.mats[name])
 
     # ---- joints ---------------------------------------------------------------------------------
-    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None, aura=False, layer=None):
+    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None, aura=False):
         """aura: this joint and everything on it (and its child joints) is part of the aura, hidden
         on the player's turn to shoot with the rest of the aura (designer, 2026-09-30), not a fixed
         part of the cue (the Celestial Dragon's coiling spirit, the Kitsune's running fox)."""
         self.joints[name] = {'Parent': parent, 'Pivot': list(pivot), 'Motion': motion or [], 'objects': [],
-                             'Aura': aura, 'Layer': layer}
+                             'Aura': aura}
         for m in motion or []:
             if m.get('Kind') == 'Path':
                 m['_Path'] = self.paths[m['Path']]
@@ -790,14 +790,13 @@ def export(kit):
                 by_mat.setdefault(mname, []).append(bm)
         for mname, bms in by_mat.items():
             textured = bool(kit.mats[mname].get('SurfaceAppearance'))
-            verts, faces, uvs, fuv, smooth = [], [], [], [], []
+            verts, faces, uvs, fuv = [], [], [], []
             for bm in bms:
                 bmesh.ops.triangulate(bm, faces=bm.faces[:])
                 bm.verts.ensure_lookup_table()
                 base = len(verts)
                 verts += [tuple(v.co) for v in bm.verts]
                 faces += [[base + v.index for v in f.verts] for f in bm.faces]
-                smooth += [f.smooth for f in bm.faces]
                 uvl = bm.loops.layers.uv.active if textured else None
                 if uvl is not None:
                     for f in bm.faces:
@@ -817,12 +816,10 @@ def export(kit):
                 if fuv:
                     for uv in uvs:
                         fh.write('vt %.5f %.5f\n' % uv)
-                    for f, t, shading in zip(faces, fuv, smooth):
-                        fh.write('s %d\n' % shading)
+                    for f, t in zip(faces, fuv):
                         fh.write('f %s\n' % ' '.join('%d/%d' % (i + 1, j + 1) for i, j in zip(f, t)))
                 else:
-                    for f, shading in zip(faces, smooth):
-                        fh.write('s %d\n' % shading)
+                    for f in faces:
                         fh.write('f %s\n' % ' '.join(str(i + 1) for i in f))
             tris_total += len(faces)
             spec = dict(kit.mats[mname])
@@ -837,8 +834,6 @@ def export(kit):
                          'Motion': [{k_: v_ for k_, v_ in m.items() if not k_.startswith('_')} for m in j['Motion']]}
         if j.get('Aura'):
             joints[jname]['Aura'] = True
-        if j.get('Layer'):
-            joints[jname]['Layer'] = j['Layer']
     spec = {'id': kit.pid, 'Frame': kit.frame, 'frame': 'Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; '
                                    'PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)',
             'Triangles': tris_total, 'Parts': parts, 'Joints': joints}
@@ -1079,20 +1074,18 @@ def attach(bpy, pid, cue_obj):
 # Pieces
 # =============================================================================================
 
-def build(pid, render_preview=True):
+def build(pid):
     import bpy
     import cue_common as cc
     cc.clear_scene('CuePieces')
     import CuePiecesMythic  # noqa: F401  (registers the builders on the imported CuePieces module)
     import CuePiecesLegendary  # noqa: F401
     import CuePiecesPocket  # noqa: F401
-    import CuePiecesUnique  # noqa: F401
     import CuePieces
     kit = CuePieces.Kit(bpy, pid)
     CuePieces.BUILDERS[pid](kit)
     spec = CuePieces.export(kit)
-    if render_preview:
-        preview(pid)
+    preview(pid)
     return spec
 
 
@@ -1167,7 +1160,6 @@ def render_sprite(name):
     import CuePiecesMythic  # noqa: F401
     import CuePiecesLegendary  # noqa: F401
     import CuePiecesPocket  # noqa: F401
-    import CuePiecesUnique  # noqa: F401
     import CuePieces
     spec = CuePieces.SPRITES[name]
     cc.clear_scene('Sprite')
@@ -1289,8 +1281,8 @@ def main():
         stitch(sys.argv[sys.argv.index('--sheet') + 1])
         return
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
-    for pid in (arg for arg in argv if not arg.startswith('--')):
-        build(pid, render_preview='--no-preview' not in argv)
+    for pid in argv:
+        build(pid)
 
 
 if __name__ == '__main__':

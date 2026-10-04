@@ -159,7 +159,7 @@ def skin_row(skin):
         row['TrailEmitters'] = resolve(vfx['Trail']['Emitters'])
     if vfx.get('Style'):
         row['Style'] = resolve(vfx['Style'])
-    pocket = {k: v for k, v in (vfx.get('Pocket') or {}).items() if k in ('Layers', 'Rings', 'Flash', 'Piece', 'KeepRibbons', 'Win')}
+    pocket = {k: v for k, v in (vfx.get('Pocket') or {}).items() if k in ('Layers', 'Rings', 'Flash', 'Piece', 'KeepRibbons')}
     if pocket:
         row['Pocket'] = resolve(pocket)
     if skin.get('piece'):

@@ -7,7 +7,7 @@ return {
 	Frame = "pocket",
 	Rigid = nil,
 	Models = {
-		PocketDragon = "89469887063464",
+		PocketDragon = "105903753067210",
 	},
 	Parts = {
 		{
@@ -16,11 +16,11 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://89845196288476",
-				EmissiveMask = "rbxassetid://114924571181576",
+				ColorMap = "rbxassetid://86812947579012",
+				EmissiveMask = "rbxassetid://108170288486064",
 				EmissiveTint = "#7AC0FF",
 				EmissiveStrength = 1.8,
-				NormalMap = "rbxassetid://99672401419866",
+				NormalMap = "rbxassetid://137079491475110",
 				AlphaMode = "Transparency",
 			},
 			Name = "PocketDragon",
@@ -28,8 +28,8 @@ return {
 			Joint = "Body",
 			Skinned = true,
 			Bones = { "Body", "Neck", "Head", "Jaw", "Mane", "ArmRight", "ArmLeft" },
-			Offset = { -0.0026, 1.5981, -0.0004 },
-			Size = { 1.5428, 3.2084, 1.467 },
+			Offset = { -0.0046, 1.5985, 0.0024 },
+			Size = { 1.5422, 3.2085, 1.4668 },
 			Model = "PocketDragon",
 		},
 		{
@@ -42,8 +42,8 @@ return {
 			Joint = "Body",
 			Skinned = true,
 			Bones = { "Body", "Neck", "Head", "Jaw", "Mane", "ArmRight", "ArmLeft" },
-			Offset = { -0.0004, 1.5822, 0.0087 },
-			Size = { 1.5864, 3.2973, 1.4989 },
+			Offset = { -0.0019, 1.5951, 0.0105 },
+			Size = { 1.594, 3.2756, 1.5044 },
 			Model = "PocketDragon",
 		},
 	},

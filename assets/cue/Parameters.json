@@ -34,8 +34,8 @@
   },
   "colour_regions_s": {
     "bumper_colour": [
-      7.031311613,
-      7.069675948
+      7.028278301,
+      7.066642637
     ],
     "ferrule_colour": [
       0.138705573,
@@ -47,8 +47,8 @@
     ]
   },
   "density_px_per_stud": {
-    "handle": 398,
-    "shaft": 248.75
+    "handle": 412,
+    "shaft": 257.5
   },
   "failures": [],
   "frame": "1 Blender unit = 1 stud. The tip is at the origin and the cue runs along Blender -Y (tip to butt); the glTF exporter (+Y up) maps Blender (x, y, z) to glTF (x, z, -y), so the cue runs along glTF/Roblox local +Z with the tip at z = 0. The UV seam is at theta = 0, Blender -Z = Roblox local -Y (down in the hand). theta runs seam -> +X -> +Z (top) -> -X. Studio (checked 2026-09-29): Roblox's glTF importer turns the model 180 degrees about Y and centres the MeshPart on its bounds, so in the MeshPart the tip is at local +Z = length / 2 and the seam still at -Y; PivotOffset = CFrame.new(0, 0, length / 2) * CFrame.Angles(0, pi, 0) puts the pivot on the tip with +Z toward the butt.",
@@ -57,131 +57,131 @@
       "aspect_error": 0.0,
       "circumference_studs": [
         0.35106098,
-        0.520267088
+        0.529809928
       ],
       "d_from": 0.245,
-      "d_to": 1.52093083,
-      "default_repeats": 1,
-      "length_studs": 1.276214992,
+      "d_to": 1.592890432,
+      "default_repeats": 2,
+      "length_studs": 1.348190621,
       "lines": [],
-      "mean_circumference_studs": 0.435664034,
+      "mean_circumference_studs": 0.440435454,
       "name": "shaft_tile",
-      "natural_repeats": 1.483517595,
+      "natural_repeats": 1.552062671,
       "note": "repeats along the shaft, seamless on all four edges",
       "panel_aspect": 2.0,
-      "real_aspect": 2.929355864,
+      "real_aspect": 1.530520089,
       "s_from": 0.280880242,
-      "s_to": 1.557095235,
+      "s_to": 1.629070863,
       "size_px": [
         1024,
         512
       ],
-      "taper_squeeze": 0.674770686
+      "taper_squeeze": 0.662616839
     },
     {
       "aspect_error": 0.0,
       "circumference_studs": [
-        0.520267088,
-        0.898665673
+        0.529809928,
+        0.805092808
       ],
-      "d_from": 1.52093083,
+      "d_from": 1.592890432,
       "d_to": 3.605,
-      "length_studs": 2.085821462,
+      "length_studs": 2.013427064,
       "lines": [],
-      "mean_circumference_studs": 0.695273821,
+      "mean_circumference_studs": 0.671142355,
       "name": "shaft_top",
       "note": "its right edge meets the joint collar",
       "panel_aspect": 3.0,
       "real_aspect": 3.0,
-      "s_from": 1.557095235,
-      "s_to": 3.642916697,
+      "s_from": 1.629070863,
+      "s_to": 3.642497927,
       "size_px": [
         1536,
         512
       ],
-      "taper_squeeze": 0.57893286
+      "taper_squeeze": 0.658073111
     },
     {
-      "aspect_error": 0.003936442,
+      "aspect_error": 0.007790908,
       "circumference_studs": [
-        0.898665673,
-        1.103562959
+        0.805092808,
+        0.979548589
       ],
       "d_from": 3.605,
       "d_to": 5.32,
-      "length_studs": 1.720107242,
+      "length_studs": 1.719997689,
       "lines": [
         {
           "name": "joint seam",
-          "x": 0.051803645
+          "x": 0.05179292
         },
         {
           "name": "collar | forearm",
-          "x": 0.103589621
+          "x": 0.103572898
         }
       ],
-      "mean_circumference_studs": 1.023335316,
+      "mean_circumference_studs": 0.910185251,
       "name": "forearm",
       "note": "the joint collar, then the forearm, to the ring",
+      "panel_aspect": 1.875,
+      "real_aspect": 1.889722655,
+      "s_from": 3.642497927,
+      "s_to": 5.362495616,
+      "size_px": [
+        960,
+        512
+      ],
+      "taper_squeeze": 0.82190186
+    },
+    {
+      "aspect_error": 0.003368688,
+      "circumference_studs": [
+        0.979548589,
+        0.879645943
+      ],
+      "d_from": 5.32,
+      "d_to": 6.965,
+      "length_studs": 1.665782685,
+      "lines": [
+        {
+          "name": "ring | wrap",
+          "x": 0.064839937
+        },
+        {
+          "name": "wrap | sleeve",
+          "x": 0.779221199
+        },
+        {
+          "name": "rounded end",
+          "x": 0.984627511
+        }
+      ],
+      "mean_circumference_studs": 0.990455814,
+      "name": "butt",
+      "note": "the ring, the wrap, the sleeve and its rounded end",
       "panel_aspect": 1.6875,
-      "real_aspect": 1.6808833,
-      "s_from": 3.642916697,
-      "s_to": 5.363023939,
+      "real_aspect": 1.681834425,
+      "s_from": 5.362495616,
+      "s_to": 7.028278301,
       "size_px": [
         864,
         512
       ],
-      "taper_squeeze": 0.814331131
-    },
-    {
-      "aspect_error": 0.003302571,
-      "circumference_studs": [
-        1.103562959,
-        0.989601686
-      ],
-      "d_from": 5.32,
-      "d_to": 6.965,
-      "length_studs": 1.668287673,
-      "lines": [
-        {
-          "name": "ring | wrap",
-          "x": 0.064744941
-        },
-        {
-          "name": "wrap | sleeve",
-          "x": 0.778054163
-        },
-        {
-          "name": "rounded end",
-          "x": 0.983152051
-        }
-      ],
-      "mean_circumference_studs": 1.115864874,
-      "name": "butt",
-      "note": "the ring, the wrap, the sleeve and its rounded end",
-      "panel_aspect": 1.5,
-      "real_aspect": 1.495062451,
-      "s_from": 5.363023939,
-      "s_to": 7.031311613,
-      "size_px": [
-        768,
-        512
-      ],
-      "taper_squeeze": 0.896733329
+      "taper_squeeze": 0.898011546
     },
     {
       "aspect_error": 0.0,
       "d_from": 7.0,
       "d_to": 7.0,
       "disc_radius_px": 248.0,
-      "face_radius_studs": 0.1515,
+      "face_radius_studs": 0.134,
       "lines": [],
       "name": "cap_end",
       "note": "the flat end of the bumper, seen from behind the butt with the top up",
       "panel_aspect": 1.0,
       "real_aspect": 1.0,
-      "s_from": 7.069675948,
-      "s_to": 7.221175948,
+      "s_from": 7.066642637,
+      "s_to": 7.200642637,
       "size_px": [
         512,
         512
@@ -192,7 +192,7 @@
     "atlas_px": 1024,
     "bumper_edge_radius": 0.006,
     "bumper_length": 0.035,
-    "bumper_radius": 0.1575,
+    "bumper_radius": 0.14,
     "bumper_share": 0.875,
     "butt_round_radius": 0.01,
     "cap_end_margin_px": 8,
@@ -227,7 +227,7 @@
     "sharp_degrees": 30.0,
     "stretch_limit": 1.05,
     "tip_edge_radius": 0.005,
-    "triangle_budget": 4200,
+    "triangle_budget": 4000,
     "wrap_edge": 0.001,
     "wrap_inset": 0.003,
     "zone_tolerance": 0.002
@@ -378,262 +378,232 @@
       "s": 2.136293369
     },
     {
-      "d": 2.245833333,
-      "r": 0.099112183,
+      "d": 2.321666667,
+      "r": 0.100196167,
       "region": "shaft",
-      "s": 2.282183966
+      "s": 2.358020346
     },
     {
-      "d": 2.391666667,
-      "r": 0.103199365,
+      "d": 2.543333333,
+      "r": 0.105367333,
       "region": "shaft",
-      "s": 2.428074562
-    },
-    {
-      "d": 2.5375,
-      "r": 0.107286548,
-      "region": "shaft",
-      "s": 2.573965159
-    },
-    {
-      "d": 2.65125,
-      "r": 0.111281655,
-      "region": "shaft",
-      "s": 2.687785295
+      "s": 2.579747322
     },
     {
       "d": 2.765,
-      "r": 0.115276762,
+      "r": 0.1105385,
       "region": "shaft",
-      "s": 2.801605431
+      "s": 2.801474299
     },
     {
-      "d": 2.87,
-      "r": 0.118964553,
+      "d": 3.044333333,
+      "r": 0.117054948,
       "region": "shaft",
-      "s": 2.906670172
+      "s": 3.080883631
     },
     {
-      "d": 2.975,
-      "r": 0.122652344,
+      "d": 3.323666667,
+      "r": 0.123571395,
       "region": "shaft",
-      "s": 3.011734913
-    },
-    {
-      "d": 3.120833333,
-      "r": 0.128066642,
-      "region": "shaft",
-      "s": 3.157668719
-    },
-    {
-      "d": 3.266666667,
-      "r": 0.133480941,
-      "region": "shaft",
-      "s": 3.303602525
-    },
-    {
-      "d": 3.4125,
-      "r": 0.138895239,
-      "region": "shaft",
-      "s": 3.449536331
+      "s": 3.360292964
     },
     {
       "d": 3.603,
-      "r": 0.144963377,
+      "r": 0.130087843,
       "region": "shaft",
-      "s": 3.640132953
+      "s": 3.639702297
     },
     {
       "d": 3.605,
-      "r": 0.143027084,
+      "r": 0.1281345,
       "region": "shaft",
-      "s": 3.642916697
+      "s": 3.642497927
     },
     {
       "d": 3.607,
-      "r": 0.145090791,
+      "r": 0.130181157,
       "region": "joint",
-      "s": 3.645790525
+      "s": 3.645359536
     },
     {
       "d": 3.6913,
-      "r": 0.147776062,
+      "r": 0.132147756,
       "region": "joint",
-      "s": 3.730133282
+      "s": 3.729682472
     },
     {
       "d": 3.6925,
-      "r": 0.146314286,
+      "r": 0.13067575,
       "region": "joint",
-      "s": 3.732024522
+      "s": 3.73158163
     },
     {
       "d": 3.6937,
-      "r": 0.147852511,
+      "r": 0.132203744,
       "region": "joint",
-      "s": 3.733975454
+      "s": 3.733524505
     },
     {
       "d": 3.778,
-      "r": 0.150537781,
+      "r": 0.134170343,
       "region": "joint",
-      "s": 3.818318211
+      "s": 3.817847441
     },
     {
       "d": 3.78,
-      "r": 0.148601488,
+      "r": 0.132217,
       "region": "joint",
-      "s": 3.821101954
+      "s": 3.820643071
     },
     {
       "d": 3.782,
-      "r": 0.150665196,
+      "r": 0.134263657,
       "region": "forearm",
-      "s": 3.823975783
+      "s": 3.82350468
     },
     {
       "d": 3.85,
-      "r": 0.15283125,
+      "r": 0.13585,
       "region": "forearm",
-      "s": 3.892010272
+      "s": 3.891523181
     },
     {
       "d": 4.339333333,
-      "r": 0.16108875,
+      "r": 0.14319,
       "region": "forearm",
-      "s": 4.381413273
+      "s": 4.380911562
     },
     {
       "d": 4.828666667,
-      "r": 0.16934625,
+      "r": 0.15053,
       "region": "forearm",
-      "s": 4.870816274
+      "s": 4.870299942
     },
     {
       "d": 5.318,
-      "r": 0.17760375,
+      "r": 0.15787,
       "region": "forearm",
-      "s": 5.360219275
+      "s": 5.359688322
     },
     {
       "d": 5.32,
-      "r": 0.1756375,
+      "r": 0.1559,
       "region": "forearm",
-      "s": 5.363023939
+      "s": 5.362495616
     },
     {
       "d": 5.322,
-      "r": 0.17767125,
+      "r": 0.15793,
       "region": "ring",
-      "s": 5.365876331
+      "s": 5.365345335
     },
     {
       "d": 5.424,
-      "r": 0.1793925,
+      "r": 0.15946,
       "region": "ring",
-      "s": 5.467890853
+      "s": 5.46735681
     },
     {
       "d": 5.425,
-      "r": 0.176409375,
+      "r": 0.156475,
       "region": "ring",
-      "s": 5.471037126
+      "s": 5.470504861
     },
     {
       "d": 5.46,
-      "r": 0.177,
+      "r": 0.157,
       "region": "wrap",
-      "s": 5.506042109
+      "s": 5.505508798
     },
     {
       "d": 6.615,
-      "r": 0.177,
+      "r": 0.157,
       "region": "wrap",
-      "s": 6.661042109
+      "s": 6.660508798
     },
     {
       "d": 6.616,
-      "r": 0.18,
+      "r": 0.16,
       "region": "cap",
-      "s": 6.664204387
+      "s": 6.663671076
     },
     {
       "d": 6.955,
-      "r": 0.18,
+      "r": 0.16,
       "region": "cap",
-      "s": 7.003204387
+      "s": 7.002671076
     },
     {
       "d": 6.958826834,
-      "r": 0.179238795,
+      "r": 0.159238795,
       "region": "cap",
-      "s": 7.007106193
+      "s": 7.006572882
     },
     {
       "d": 6.962071068,
-      "r": 0.177071068,
+      "r": 0.157071068,
       "region": "cap",
-      "s": 7.011008
+      "s": 7.010474689
     },
     {
       "d": 6.964238795,
-      "r": 0.173826834,
+      "r": 0.153826834,
       "region": "cap",
-      "s": 7.014909806
+      "s": 7.014376495
     },
     {
       "d": 6.965,
-      "r": 0.17,
+      "r": 0.15,
       "region": "cap",
-      "s": 7.018811613
+      "s": 7.018278301
     },
     {
       "d": 6.965,
-      "r": 0.1575,
+      "r": 0.14,
       "region": "cap",
-      "s": 7.031311613
+      "s": 7.028278301
     },
     {
       "d": 6.994,
-      "r": 0.1575,
+      "r": 0.14,
       "region": "bumper",
-      "s": 7.060311613
+      "s": 7.057278301
     },
     {
       "d": 6.996296101,
-      "r": 0.157043277,
+      "r": 0.139543277,
       "region": "bumper",
-      "s": 7.062652696
+      "s": 7.059619385
     },
     {
       "d": 6.998242641,
-      "r": 0.155742641,
+      "r": 0.138242641,
       "region": "bumper",
-      "s": 7.06499378
+      "s": 7.061960469
     },
     {
       "d": 6.999543277,
-      "r": 0.153796101,
+      "r": 0.136296101,
       "region": "bumper",
-      "s": 7.067334864
+      "s": 7.064301553
     },
     {
       "d": 7.0,
-      "r": 0.1515,
+      "r": 0.134,
       "region": "bumper",
-      "s": 7.069675948
+      "s": 7.066642637
     },
     {
       "d": 7.0,
-      "r": 0.07575,
+      "r": 0.067,
       "region": "end",
-      "s": 7.145425948
+      "s": 7.133642637
     },
     {
       "d": 7.0,
       "r": 0.0,
       "region": "end",
-      "s": 7.221175948
+      "s": 7.200642637
     }
   ],
   "shaft_cuts_studs": [
@@ -643,9 +613,9 @@
   ],
   "shape_source": {
     "file": "Shape.json",
-    "inputs_sha256": "f77c64b7e6b6618b9a17b64334726279328cad054ae39aa4837f1b995e3a8408",
+    "inputs_sha256": "8925beb7363127e2a0a4eedda90719a0ec72bb818498da8ffe7b36bb8b97faa5",
     "schema": 1,
-    "sha256": "ea73ee73a149cf3ef3360c9a0fdd7cdc5e4f529dcaec81b64fa19b271e228a11"
+    "sha256": "d1cabb7f8b0f3b3aaaf917890343006634219588284ce7ecd1795ba70cd8b821"
   },
   "uv_layout": [
     {
@@ -653,20 +623,20 @@
         0.0,
         0.01919016
       ],
-      "density_px_per_stud": 248.75,
+      "density_px_per_stud": 257.5,
       "density_range": [
-        211.213554259,
-        245.869641495
+        218.648710839,
+        254.51754087
       ],
       "handle": false,
       "kind": "disc",
-      "mean_stretch": 1.024591896,
-      "measured_density": 225.66662931,
+      "mean_stretch": 1.024591868,
+      "measured_density": 233.604758762,
       "rect_px": [
-        970,
-        213,
-        25,
-        25
+        983,
+        535,
+        26,
+        26
       ],
       "rings": [
         0,
@@ -678,7 +648,7 @@
       ],
       "strip": "tip_face",
       "studs_covered": 0.052634952,
-      "worst_face_stretch": 1.081632591,
+      "worst_face_stretch": 1.081667712,
       "zones": [
         "tip"
       ]
@@ -688,20 +658,20 @@
         0.01919016,
         0.105
       ],
-      "density_px_per_stud": 248.75,
+      "density_px_per_stud": 257.5,
       "density_range": [
-        249.471473351,
-        277.845031486
+        258.24830752,
+        287.619450914
       ],
       "handle": false,
       "kind": "strip",
-      "mean_stretch": 1.02412815,
-      "measured_density": 261.858826175,
+      "mean_stretch": 1.024128133,
+      "measured_density": 271.070026108,
       "rect_px": [
-        967,
-        113,
-        24,
-        84
+        983,
+        432,
+        25,
+        87
       ],
       "rings": [
         7,
@@ -713,7 +683,7 @@
       ],
       "strip": "tip",
       "studs_covered": 0.086070621,
-      "worst_face_stretch": 1.033435274,
+      "worst_face_stretch": 1.033446997,
       "zones": [
         "tip"
       ]
@@ -723,20 +693,20 @@
         0.105,
         0.245
       ],
-      "density_px_per_stud": 248.75,
+      "density_px_per_stud": 257.5,
       "density_range": [
-        252.301760158,
-        269.230475586
+        261.174559902,
+        278.691932007
       ],
       "handle": false,
       "kind": "strip",
-      "mean_stretch": 1.028726438,
-      "measured_density": 255.95337144,
+      "mean_stretch": 1.028726412,
+      "measured_density": 264.956838044,
       "rect_px": [
-        967,
-        8,
-        38,
-        89
+        928,
+        432,
+        39,
+        92
       ],
       "rings": [
         10,
@@ -748,7 +718,7 @@
       ],
       "strip": "ferrule",
       "studs_covered": 0.142174669,
-      "worst_face_stretch": 1.104765391,
+      "worst_face_stretch": 1.104772268,
       "zones": [
         "ferrule"
       ]
@@ -758,20 +728,20 @@
         0.245,
         1.085
       ],
-      "density_px_per_stud": 248.75,
+      "density_px_per_stud": 257.5,
       "density_range": [
-        252.028903121,
-        322.913479905
+        260.894681804,
+        334.27286207
       ],
       "handle": false,
       "kind": "strip",
-      "mean_stretch": 1.027807926,
-      "measured_density": 283.932338803,
+      "mean_stretch": 1.027807925,
+      "measured_density": 293.919902954,
       "rect_px": [
-        774,
-        748,
-        241,
-        117
+        266,
+        866,
+        249,
+        121
       ],
       "rings": [
         13,
@@ -783,7 +753,7 @@
       ],
       "strip": "shaft_1",
       "studs_covered": 0.840187076,
-      "worst_face_stretch": 1.033133205,
+      "worst_face_stretch": 1.033135944,
       "zones": [
         "shaft"
       ]
@@ -793,20 +763,20 @@
         1.085,
         1.925
       ],
-      "density_px_per_stud": 248.75,
+      "density_px_per_stud": 257.5,
       "density_range": [
-        252.051254661,
-        304.412411949
+        260.918579071,
+        315.120133508
       ],
       "handle": false,
       "kind": "strip",
-      "mean_stretch": 1.027281794,
-      "measured_density": 276.244710621,
+      "mean_stretch": 1.027281796,
+      "measured_density": 285.961851886,
       "rect_px": [
-        774,
-        450,
-        234,
-        144
+        8,
+        866,
+        242,
+        149
       ],
       "rings": [
         18,
@@ -818,7 +788,7 @@
       ],
       "strip": "shaft_2",
       "studs_covered": 0.840187076,
-      "worst_face_stretch": 1.031545788,
+      "worst_face_stretch": 1.031544328,
       "zones": [
         "shaft"
       ]
@@ -828,32 +798,32 @@
         1.925,
         2.765
       ],
-      "density_px_per_stud": 248.75,
+      "density_px_per_stud": 257.5,
       "density_range": [
-        251.148083564,
-        311.111973532
+        260.799653444,
+        308.818209731
       ],
       "handle": false,
       "kind": "strip",
-      "mean_stretch": 1.019846633,
-      "measured_density": 281.345099177,
+      "mean_stretch": 1.024496469,
+      "measured_density": 283.095228676,
       "rect_px": [
-        716,
-        252,
-        238,
-        182
+        740,
+        236,
+        240,
+        180
       ],
       "rings": [
         22,
-        28
+        26
       ],
       "s_studs": [
         1.961254395,
-        2.801605431
+        2.801474299
       ],
       "strip": "shaft_3",
-      "studs_covered": 0.840351036,
-      "worst_face_stretch": 1.02317306,
+      "studs_covered": 0.840219904,
+      "worst_face_stretch": 1.028723601,
       "zones": [
         "shaft"
       ]
@@ -863,32 +833,32 @@
         2.765,
         3.605
       ],
-      "density_px_per_stud": 248.75,
+      "density_px_per_stud": 257.5,
       "density_range": [
-        250.078335091,
-        310.601224317
+        258.984062129,
+        298.952566718
       ],
       "handle": false,
       "kind": "strip",
-      "mean_stretch": 1.020350019,
-      "measured_density": 277.395279895,
+      "mean_stretch": 1.0276683,
+      "measured_density": 278.886699957,
       "rect_px": [
-        716,
+        740,
         8,
-        235,
-        228
+        236,
+        212
       ],
       "rings": [
-        28,
-        35
+        26,
+        30
       ],
       "s_studs": [
-        2.801605431,
-        3.642916697
+        2.801474299,
+        3.642497927
       ],
       "strip": "shaft_4",
-      "studs_covered": 0.841311266,
-      "worst_face_stretch": 1.071211516,
+      "studs_covered": 0.841023628,
+      "worst_face_stretch": 1.071658507,
       "zones": [
         "shaft"
       ]
@@ -898,32 +868,32 @@
         3.605,
         5.32
       ],
-      "density_px_per_stud": 398,
+      "density_px_per_stud": 412,
       "density_range": [
-        399.887266502,
-        493.450831309
+        414.098462947,
+        506.625760469
       ],
       "handle": true,
       "kind": "strip",
-      "mean_stretch": 1.023689027,
-      "measured_density": 435.005168748,
+      "mean_stretch": 1.023453153,
+      "measured_density": 450.004061874,
       "rect_px": [
         8,
-        476,
-        750,
-        446
+        440,
+        776,
+        410
       ],
       "rings": [
-        35,
-        47
+        30,
+        42
       ],
       "s_studs": [
-        3.642916697,
-        5.363023939
+        3.642497927,
+        5.362495616
       ],
       "strip": "forearm",
-      "studs_covered": 1.720107242,
-      "worst_face_stretch": 1.080843629,
+      "studs_covered": 1.719997689,
+      "worst_face_stretch": 1.080688269,
       "zones": [
         "joint",
         "forearm"
@@ -934,32 +904,32 @@
         5.32,
         7.0
       ],
-      "density_px_per_stud": 398,
+      "density_px_per_stud": 412,
       "density_range": [
-        398.319813869,
-        472.574235504
+        412.331301897,
+        491.382557559
       ],
       "handle": true,
       "kind": "strip",
-      "mean_stretch": 1.003940659,
-      "measured_density": 404.877657555,
+      "mean_stretch": 1.003781225,
+      "measured_density": 419.716850427,
       "rect_px": [
         8,
         8,
-        692,
-        452
+        716,
+        416
       ],
       "rings": [
-        47,
-        64
+        42,
+        59
       ],
       "s_studs": [
-        5.363023939,
-        7.069675948
+        5.362495616,
+        7.066642637
       ],
       "strip": "butt",
-      "studs_covered": 1.706652009,
-      "worst_face_stretch": 1.112044177,
+      "studs_covered": 1.704147021,
+      "worst_face_stretch": 1.110537675,
       "zones": [
         "ring",
         "wrap",
@@ -971,32 +941,32 @@
         7.0,
         7.0
       ],
-      "density_px_per_stud": 398,
+      "density_px_per_stud": 412,
       "density_range": [
-        397.998892259,
-        398.001750294
+        411.998052719,
+        412.001671166
       ],
       "handle": true,
       "kind": "disc",
-      "mean_stretch": 1.000002639,
-      "measured_density": 397.999976664,
+      "mean_stretch": 1.000004593,
+      "measured_density": 412.000067921,
       "rect_px": [
-        774,
-        610,
-        122,
-        122
+        800,
+        432,
+        112,
+        112
       ],
       "rings": [
-        64,
-        66
+        59,
+        61
       ],
       "s_studs": [
-        7.069675948,
-        7.221175948
+        7.066642637,
+        7.200642637
       ],
       "strip": "end_face",
-      "studs_covered": 0.1515,
-      "worst_face_stretch": 1.000009595,
+      "studs_covered": 0.134,
+      "worst_face_stretch": 1.000010414,
       "zones": [
         "cap"
       ]
@@ -1004,7 +974,7 @@
   ],
   "validation": {
     "envelope": {
-      "max_excess": 1e-08,
+      "max_excess": 1.1e-08,
       "min_ratio": 0.971654359,
       "min_ratio_at_d": 0.104999997,
       "ok": true
@@ -1013,12 +983,12 @@
       "bounds_error": 0.0,
       "materials": 1,
       "name": "Cue.001",
-      "triangles": 4160,
+      "triangles": 3840,
       "uv_layers": 1
     },
     "outward_faces_wrong": 0,
     "size": {
-      "butt_diameter": 0.360000014,
+      "butt_diameter": 0.320000007,
       "length": 7.0
     },
     "topology": {
@@ -1026,112 +996,112 @@
       "loose_vertices": 0,
       "manifold": true,
       "min_face_area": 7.523e-06,
-      "signed_volume": 0.410655841,
-      "triangles": 4160,
+      "signed_volume": 0.338339033,
+      "triangles": 3840,
       "triangles_only": true,
-      "vertices": 2082
+      "vertices": 1922
     },
     "uv": {
       "area_px": {
-        "butt": 310836.39112277,
-        "end_face": 11348.72516818,
-        "ferrule": 3175.570965797,
-        "forearm": 332549.251665231,
-        "shaft_1": 27507.042401875,
-        "shaft_2": 33168.384826019,
-        "shaft_3": 42660.720110942,
-        "shaft_4": 52953.212017335,
-        "tip": 1864.022361785,
-        "tip_face": 421.364896998
+        "butt": 296066.799892478,
+        "end_face": 9513.928783607,
+        "ferrule": 3402.909335375,
+        "forearm": 316507.882784344,
+        "shaft_1": 29476.245732065,
+        "shaft_2": 35542.877359888,
+        "shaft_3": 42571.41707046,
+        "shaft_4": 49380.98155006,
+        "tip": 1997.46730669,
+        "tip_face": 451.530446142
       },
       "density_range": {
         "butt": [
-          398.319813869,
-          472.574235504
+          412.331301897,
+          491.382557559
         ],
         "end_face": [
-          397.998892259,
-          398.001750294
+          411.998052719,
+          412.001671166
         ],
         "ferrule": [
-          252.301760158,
-          269.230475586
+          261.174559902,
+          278.691932007
         ],
         "forearm": [
-          399.887266502,
-          493.450831309
+          414.098462947,
+          506.625760469
         ],
         "shaft_1": [
-          252.028903121,
-          322.913479905
+          260.894681804,
+          334.27286207
         ],
         "shaft_2": [
-          252.051254661,
-          304.412411949
+          260.918579071,
+          315.120133508
         ],
         "shaft_3": [
-          251.148083564,
-          311.111973532
+          260.799653444,
+          308.818209731
         ],
         "shaft_4": [
-          250.078335091,
-          310.601224317
+          258.984062129,
+          298.952566718
         ],
         "tip": [
-          249.471473351,
-          277.845031486
+          258.24830752,
+          287.619450914
         ],
         "tip_face": [
-          211.213554259,
-          245.869641495
+          218.648710839,
+          254.51754087
         ]
       },
-      "handle_density": 419.233514386,
-      "handle_over_shaft": 1.500819477,
-      "handle_share": 0.801894242,
+      "handle_density": 434.200994566,
+      "handle_over_shaft": 1.52720942,
+      "handle_share": 0.792558375,
       "mean_stretch": {
-        "butt": 1.003940659,
-        "end_face": 1.000002639,
-        "ferrule": 1.028726438,
-        "forearm": 1.023689027,
-        "shaft_1": 1.027807926,
-        "shaft_2": 1.027281794,
-        "shaft_3": 1.019846633,
-        "shaft_4": 1.020350019,
-        "tip": 1.02412815,
-        "tip_face": 1.024591896
+        "butt": 1.003781225,
+        "end_face": 1.000004593,
+        "ferrule": 1.028726412,
+        "forearm": 1.023453153,
+        "shaft_1": 1.027807925,
+        "shaft_2": 1.027281796,
+        "shaft_3": 1.024496469,
+        "shaft_4": 1.0276683,
+        "tip": 1.024128133,
+        "tip_face": 1.024591868
       },
       "measured_density": {
-        "butt": 404.877657555,
-        "end_face": 397.999976664,
-        "ferrule": 255.95337144,
-        "forearm": 435.005168748,
-        "shaft_1": 283.932338803,
-        "shaft_2": 276.244710621,
-        "shaft_3": 281.345099177,
-        "shaft_4": 277.395279895,
-        "tip": 261.858826175,
-        "tip_face": 225.66662931
+        "butt": 419.716850427,
+        "end_face": 412.000067921,
+        "ferrule": 264.956838044,
+        "forearm": 450.004061874,
+        "shaft_1": 293.919902954,
+        "shaft_2": 285.961851886,
+        "shaft_3": 283.095228676,
+        "shaft_4": 278.886699957,
+        "tip": 271.070026108,
+        "tip_face": 233.604758762
       },
       "min_gap_px": 8,
       "mirrored_faces": 0,
       "overlap_px": 0,
-      "shaft_density": 279.336403095,
+      "shaft_density": 284.310055238,
       "stretch": {
-        "butt": 1.112044177,
-        "end_face": 1.000009595,
-        "ferrule": 1.104765391,
-        "forearm": 1.080843629,
-        "shaft_1": 1.033133205,
-        "shaft_2": 1.031545788,
-        "shaft_3": 1.02317306,
-        "shaft_4": 1.071211516,
-        "tip": 1.033435274,
-        "tip_face": 1.081632591
+        "butt": 1.110537675,
+        "end_face": 1.000010414,
+        "ferrule": 1.104772268,
+        "forearm": 1.080688269,
+        "shaft_1": 1.033135944,
+        "shaft_2": 1.031544328,
+        "shaft_3": 1.028723601,
+        "shaft_4": 1.071658507,
+        "tip": 1.033446997,
+        "tip_face": 1.081667712
       },
-      "used_px": 816484.685536931,
-      "worst_mean_stretch": 1.028726438,
-      "worst_stretch": 1.112044177
+      "used_px": 784912.040261109,
+      "worst_mean_stretch": 1.028726412,
+      "worst_stretch": 1.110537675
     },
     "zones": [
       {

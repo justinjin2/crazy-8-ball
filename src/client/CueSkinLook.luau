@@ -17,11 +17,10 @@
 --   * the aura stays on the cue as it moves: emitters are LockedToPart but for tiny specks,
 --     and an orbiter's ribbon shortens while the stick moves (Config.CueSkins.Drift);
 --   * the stick's AuraOff attribute turns the whole aura off at once (the raised hand cue,
---     Config.Cue.RaisedCueFade); the stick and permanent piece mounts stay, while authored
---     aura layers hide;
+--     Config.Cue.RaisedCueFade); the stick and its piece stay;
 --   * the stick's AuraQuiet attribute (AuraQuiet: in a match, the shooter's cue and, on your
 --     turn, every cue at your table) eases the aura down to its tier's Config.CueSkins.Quiet
---     share: emitter rates/opacity, aura beams/lights and classified aura geometry.
+--     share: emitter rates, aura beams and lights.
 --
 -- Emitters, Beams and Lights live on Attachments in the stick's mesh; the look's own parts (a
 -- Part host, a joint rider, the piece) sit in a Model next to the stick, welded to the mesh,
@@ -68,8 +67,6 @@ type Orbiter = {
 	head: ParticleEmitter?,
 	trail: Trail,
 	lap: number,
-	share: number,
-	transparency: NumberSequence,
 }
 type Arc = {
 	row: any,
@@ -88,7 +85,7 @@ export type Look = typeof(setmetatable(
 		mesh: MeshPart?,
 		folder: Model?, -- the look's own parts
 		built: { Instance }, -- everything to destroy on rebuild
-		emitters: { { e: ParticleEmitter, aura: boolean } },
+		emitters: { { e: ParticleEmitter, aura: boolean, rate: number } }, -- rate: unquieted
 		beams: { { b: Beam, aura: boolean } },
 		dynBeams: { DynBeam },
 		orbiters: { Orbiter },
@@ -310,14 +307,14 @@ function CueSkinLook.refresh(self: Look)
 			self:buildArc(a)
 		end
 		for _, l in aura.Lights or {} do
-			local att =
-				self:pointAttachment(CueVfx.onCue(l.AtStuds or 5, l.Up, l.Side), l.Joint, "Light")
+			local att = attachment(mesh, CueVfx.onCue(l.AtStuds or 5), "Light")
 			local light = Instance.new("PointLight")
 			light.Color = CueVfx.color(l.Color or "#FFFFFF")
 			light.Brightness = l.Brightness or 1
 			light.Range = l.Range or 6
 			light.Shadows = false
 			light.Parent = att
+			table.insert(self.built, att)
 			table.insert(self.lights, { light = light, row = l })
 		end
 		-- The stick's outline in its colour, and the piece's own (Aura.Highlight).
@@ -488,8 +485,9 @@ function CueSkinLook.buildEmitter(self: Look, row: any, aura: boolean)
 		zOffset = if behind then C.BehindBodyZOffset else 0,
 		locked = not drifts,
 	})
+	local rate = e.Rate
 	if aura then
-		CueVfx.setShare(e, self.share)
+		e.Rate = rate * self.share
 	end
 	if e.Texture == "" then
 		e.Texture = texture(nil, "Emitter")
@@ -508,7 +506,7 @@ function CueSkinLook.buildEmitter(self: Look, row: any, aura: boolean)
 	end
 	e.Parent = parent
 	table.insert(self.built, e)
-	table.insert(self.emitters, { e = e, aura = aura })
+	table.insert(self.emitters, { e = e, aura = aura, rate = rate })
 end
 
 -- A beam's curve control offsets: Curve0/Curve1 are [up, side] and land on Roblox (+side, up)
@@ -658,16 +656,7 @@ function CueSkinLook.buildOrbiter(self: Look, row: any)
 	table.insert(self.built, a)
 	table.insert(self.built, b)
 	table.insert(self.built, trail)
-	table.insert(self.orbiters, {
-		row = row,
-		a = a,
-		b = b,
-		head = head,
-		trail = trail,
-		lap = 0,
-		share = -1,
-		transparency = trail.Transparency,
-	})
+	table.insert(self.orbiters, { row = row, a = a, b = b, head = head, trail = trail, lap = 0 })
 end
 
 function CueSkinLook.buildArc(self: Look, row: any)
@@ -846,7 +835,6 @@ function CueSkinLook.step(self: Look, t: number)
 		if d.transparency then
 			local w = (if d.row.Pulse then Motion.vfxWave(t, d.row.Pulse) else 1)
 				* (if d.aura then self.share else 1)
-				* (if d.row.Layer then CueVfx.qualityShare(d.row) else 1)
 			local keys = {}
 			for _, k in d.transparency do
 				table.insert(keys, { k[1], 1 - (1 - k[2]) * w })
@@ -866,15 +854,6 @@ function CueSkinLook.step(self: Look, t: number)
 	local moving = math.clamp(self.speed / C.Drift.MovingSpeedStuds, 0, 1)
 	for _, o in self.orbiters do
 		local r = o.row
-		local share = self.share * (if r.Layer then CueVfx.qualityShare(r) else 1)
-		if share ~= o.share then
-			o.share = share
-			o.trail.Transparency = CueVfx.fade(o.transparency, share)
-			if o.head then
-				o.head.Transparency =
-					NumberSequence.new(1 - (1 - ((r.Head or {}).Transparency or 0)) * share)
-			end
-		end
 		local life = (r.Trail or {}).Lifetime or 0.34
 		o.trail.Lifetime = life + (math.min(C.Drift.MovingTrailSeconds, life) - life) * moving
 		local tt = t - (r.Delay or 0)
@@ -937,13 +916,11 @@ function CueSkinLook.step(self: Look, t: number)
 		l.light.Brightness = (lr.Brightness or 1)
 			* (if lr.Flicker then Motion.vfxWave(t, lr.Flicker) else 1)
 			* self.share
-			* (if lr.Layer then CueVfx.qualityShare(lr) else 1)
 		if lr.Hue then
 			l.light.Color = hsv(t, lr.Hue.Period or 4, lr.Hue.Saturation or 0.8)
 		end
 	end
 	if self.piece then
-		self.piece.auraShare = if self.aura then self.share else 0
 		self.piece:step(t)
 		if self.visible then
 			self.piece:setModifier(mesh.LocalTransparencyModifier)
@@ -977,7 +954,7 @@ function CueSkinLook.ease(self: Look, dt: number)
 		else math.max(target, self.share - stepBy)
 	for _, item in self.emitters do
 		if item.aura then
-			CueVfx.setShare(item.e, self.share)
+			item.e.Rate = item.rate * self.share
 		end
 	end
 end

@@ -118,7 +118,7 @@
             "Kind": "Part",
             "FromStuds": 3.8,
             "ToStuds": 7.0,
-            "Width": 0.36,
+            "Width": 0.32,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -190,7 +190,7 @@
             "Kind": "Part",
             "FromStuds": 0.5,
             "ToStuds": 7.0,
-            "Width": 0.41,
+            "Width": 0.37,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -257,7 +257,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.41,
+            "Width": 0.37,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -320,7 +320,7 @@
           "TravelSeconds": 3.2,
           "Loop": "pingpong",
           "TurnsPerSecond": 1.3,
-          "Radius": 0.38,
+          "Radius": 0.36,
           "Wobble": 0.03,
           "WobbleHz": 0.8,
           "Phase": 0,
@@ -372,7 +372,7 @@
           "TravelSeconds": 3.8,
           "Loop": "pingpong",
           "TurnsPerSecond": -1.1,
-          "Radius": 0.46,
+          "Radius": 0.44,
           "Wobble": 0.03,
           "WobbleHz": 0.8,
           "Phase": 150,
@@ -424,7 +424,7 @@
           "TravelSeconds": 2.8,
           "Loop": "pingpong",
           "TurnsPerSecond": 1.5,
-          "Radius": 0.32,
+          "Radius": 0.3,
           "Wobble": 0.03,
           "WobbleHz": 0.8,
           "Phase": 260,
@@ -1146,5 +1146,5 @@
     }
   },
   "piece": "clockwork",
-  "shape": 3
+  "shape": 2
 }

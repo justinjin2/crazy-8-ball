@@ -1054,7 +1054,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 1.06,
+            "Width": 1.02,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -1132,7 +1132,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.96,
+            "Width": 0.92,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -1206,7 +1206,7 @@
             "Kind": "Part",
             "FromStuds": 0.2,
             "ToStuds": 7.2,
-            "Width": 1.16,
+            "Width": 1.12,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -1286,7 +1286,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 1.26,
+            "Width": 1.22,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -1358,7 +1358,7 @@
             "Kind": "Part",
             "FromStuds": 0.5,
             "ToStuds": 7.0,
-            "Width": 0.66,
+            "Width": 0.62,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -1433,7 +1433,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.66,
+            "Width": 0.62,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -1503,7 +1503,7 @@
             "Kind": "Part",
             "FromStuds": 0.5,
             "ToStuds": 6.8,
-            "Width": 0.86,
+            "Width": 0.82,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -2091,5 +2091,5 @@
       "PocketPieceTriangles": 27500
     }
   },
-  "shape": 3
+  "shape": 2
 }

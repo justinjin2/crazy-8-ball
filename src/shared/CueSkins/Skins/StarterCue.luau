@@ -8,11 +8,11 @@ return {
 	Name = "Starter Cue",
 	Tier = "Exclusive",
 	Maps = {
-		Color = "rbxassetid://110651443888789",
-		Normal = "rbxassetid://97830532018013",
-		Roughness = "rbxassetid://126051354173025",
-		Metalness = "rbxassetid://123524589585844",
-		Emissive = "rbxassetid://92906836298579",
+		Color = "rbxassetid://129994551200411",
+		Normal = "rbxassetid://99736730065780",
+		Roughness = "rbxassetid://89979740594854",
+		Metalness = "rbxassetid://78790978722504",
+		Emissive = "rbxassetid://130446310738456",
 	},
 	Surface = {
 		EmissiveStrength = 1.6,
@@ -55,13 +55,13 @@ return {
 			},
 		},
 	},
-	Thumb = "rbxassetid://82947422763484",
+	Thumb = "rbxassetid://132238030130280",
 	Look = {
 		Shaft = { 233, 214, 175 },
 		Forearm = { 107, 176, 241 },
-		Wrap = { 234, 189, 37 },
+		Wrap = { 233, 188, 37 },
 		Ring = { 200, 204, 208 },
 		Tip = { 30, 36, 56 },
-		Cap = { 88, 87, 86 },
+		Cap = { 94, 93, 92 },
 	},
 }

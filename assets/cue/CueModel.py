@@ -60,7 +60,7 @@ PARAMETERS = {
     'bumper_edge_radius': 0.006,
     'max_taper_step': 1.06,  # the most a straight face may widen from ring to ring
     'sharp_degrees': 30.0,  # a profile turn sharper than this is a crisp edge
-    'triangle_budget': 4200,  # shape 3: extra profile rings preserve the approved slim-front easing
+    'triangle_budget': 4000,
     # The atlas (brief 3.4).
     'atlas_px': 1024,
     'padding_px': 16,  # between strips; each map is then bled at least 8 px (half of it)

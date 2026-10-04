@@ -1,10 +1,5 @@
 # ChatGPT concept prompts for the cue skins
 
-> **2026-10-04:** the old Q1 concepts below are superseded by
-> [CUE_VFX_PROMPT.md](CUE_VFX_PROMPT.md). Do not generate Founder's Cue; it is cancelled.
-> Beta is a blue/magenta blueprint hologram and Grand Opening is navy/gold/cyan/magenta
-> fireworks, from the supplied references in `assets/cue/concepts/vfx-upgrade/`.
-
 Made 2026-09-29 from the approved plan (`assets/cue/concepts/plan.json`, 62 cues). There are **26 images** to make. The skins run (`docs/prompts/CUE_SKINS_PROMPT.md`) builds every skin from them.
 
 ## How to make each image

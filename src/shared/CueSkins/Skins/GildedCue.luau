@@ -8,11 +8,11 @@ return {
 	Name = "Gilded",
 	Tier = "Uncommon",
 	Maps = {
-		Color = "rbxassetid://74797144089482",
-		Normal = "rbxassetid://100812069046702",
-		Roughness = "rbxassetid://105285033790101",
-		Metalness = "rbxassetid://90922003288205",
-		Emissive = "rbxassetid://129564841746526",
+		Color = "rbxassetid://89251185354854",
+		Normal = "rbxassetid://126182932671956",
+		Roughness = "rbxassetid://120904935068102",
+		Metalness = "rbxassetid://140712522798810",
+		Emissive = "rbxassetid://95539981422307",
 	},
 	Surface = {
 		EmissiveStrength = 1.6,
@@ -55,13 +55,13 @@ return {
 			},
 		},
 	},
-	Thumb = "rbxassetid://133588678082844",
+	Thumb = "rbxassetid://77610953370052",
 	Look = {
 		Shaft = { 224, 193, 138 },
 		Forearm = { 80, 69, 45 },
 		Wrap = { 29, 28, 27 },
 		Ring = { 200, 204, 208 },
 		Tip = { 30, 36, 56 },
-		Cap = { 43, 37, 19 },
+		Cap = { 45, 38, 19 },
 	},
 }

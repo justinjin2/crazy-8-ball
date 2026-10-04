@@ -99,7 +99,7 @@
           "FromStuds": 0.3,
           "ToStuds": 3.6,
           "Width0": 0.1107,
-          "Width1": 0.2818,
+          "Width1": 0.2529,
           "Segments": 20,
           "Texture": "vfx/infernal/lava_flow_strip.png",
           "TextureMode": "Wrap",
@@ -133,8 +133,8 @@
           "Name": "MagmaFlowForearm",
           "FromStuds": 3.8,
           "ToStuds": 5.32,
-          "Width0": 0.2933,
-          "Width1": 0.3437,
+          "Width0": 0.2612,
+          "Width1": 0.3055,
           "Segments": 20,
           "Texture": "vfx/infernal/lava_flow_strip.png",
           "TextureMode": "Wrap",
@@ -162,14 +162,14 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.16
+          "ZOffset": 0.1422
         },
         {
           "Name": "MagmaFlowSleeve",
           "FromStuds": 6.64,
           "ToStuds": 6.94,
-          "Width0": 0.3564,
-          "Width1": 0.3564,
+          "Width0": 0.3168,
+          "Width1": 0.3168,
           "Segments": 4,
           "Texture": "vfx/infernal/lava_flow_strip.png",
           "TextureMode": "Wrap",
@@ -197,7 +197,7 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.18
+          "ZOffset": 0.16
         }
       ],
       "Frames": {
@@ -245,7 +245,7 @@
             "Kind": "Part",
             "FromStuds": 3.6,
             "ToStuds": 7.0,
-            "Width": 0.36,
+            "Width": 0.32,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -340,7 +340,7 @@
             "Kind": "Part",
             "FromStuds": 0.4,
             "ToStuds": 3.6,
-            "Width": 0.2453,
+            "Width": 0.2156,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -435,7 +435,7 @@
             "Kind": "Part",
             "FromStuds": 4.5,
             "ToStuds": 7.0,
-            "Width": 0.41,
+            "Width": 0.37,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -506,7 +506,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.46,
+            "Width": 0.42,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -573,7 +573,7 @@
           "TravelSeconds": 2.2,
           "Loop": "pingpong",
           "TurnsPerSecond": 1.0,
-          "Radius": 0.32,
+          "Radius": 0.3,
           "Wobble": 0.08,
           "WobbleHz": 1.4,
           "Phase": 0,
@@ -623,7 +623,7 @@
           "TravelSeconds": 2.6,
           "Loop": "pingpong",
           "TurnsPerSecond": -0.9,
-          "Radius": 0.38,
+          "Radius": 0.36,
           "Wobble": 0.08,
           "WobbleHz": 1.4,
           "Phase": 140,
@@ -673,7 +673,7 @@
           "TravelSeconds": 1.9,
           "Loop": "pingpong",
           "TurnsPerSecond": 1.2,
-          "Radius": 0.28,
+          "Radius": 0.26,
           "Wobble": 0.08,
           "WobbleHz": 1.4,
           "Phase": 260,
@@ -1420,5 +1420,5 @@
     }
   },
   "piece": "infernal",
-  "shape": 3
+  "shape": 2
 }

@@ -754,8 +754,8 @@ designer approved on 2026-10-02 and the designer's interview answers of 2026-10-
   spins** ($17,500 each) and **Limited cues** (from $149,000). ECONOMY.md section 9.
 - **Rarities** (designer, 2026-09-27): **Common, Uncommon, Rare, Epic, Legendary, Mythic,
   Secret**, from cases. Two groups sit outside that ladder and never come from cases:
-  **Unique** (numbered Limited copies: Beta and Grand Opening at release; Founder's is
-  cancelled, designer 2026-10-04) and **Exclusive** (the VIP Cue, the Starter Cue, the rank cues Bronze Cue to Reyes
+  **Unique** (numbered Limited copies: the Grand Opening Cue; Founder's and Beta when
+  scheduled) and **Exclusive** (the VIP Cue, the Starter Cue, the rank cues Bronze Cue to Reyes
   Cue, later season cues). "Ultra" is dropped; VIP is an Exclusive cue, not a rarity. Colours
   in `docs/UI_STYLE.md`. Rarer cues have special trail and pocket VFX. Cue cards show the
   rarity, its % per Case Drop and how many exist ("EPIC · 0.138% · 1,284 exist").
@@ -774,10 +774,8 @@ designer approved on 2026-10-02 and the designer's interview answers of 2026-10-
   reason to want one. Effects are catalog data (a named style), never code per cue.
 - **The Limited shelf at release** (plan, 2026-10-02; designer, 2026-10-03): the **Grand
   Opening Cue**, $149,000, numbered, one per player, no copy cap, for 14 days from a start date
-  the designer sets right before release (off until then). **Beta is also a release cue**
-  (designer, 2026-10-04), replacing the cancelled Founder's concept. Its new blueprint art
-  and Grand Opening's firework art are in the cue VFX brief; sale configuration is separate
-  work and is not changed by that art pass. Both are limited and never return. After launch, about one new
+  the designer sets right before release (off until then; placeholder colours for now).
+  Founder's and Beta are off until the designer schedules them. After launch, about one new
   Limited every 2 weeks when art exists ($149,000-$499,000, some for Robux); none is scheduled
   yet. Seasons, the Cue Pass and event cases come after release.
 - **Free rewards** (plan, 2026-10-02; designer, 2026-10-03): a **7-day login loop** ($5,000,
@@ -810,8 +808,8 @@ designer approved on 2026-10-02 and the designer's interview answers of 2026-10-
   Cases, the restock Epic and Legendary Cases, 4 timer skips, Money Party, 4 spin packs, 2
   Lucky Spin packs), plus a Get Roblox Plus button. The shop is one scrolling page with no tabs.
   Never anything that protects rank, no luck economy, no money bets, no offline income; the one
-  luck purchase is ability spins (odds always shown, pity kept). Later: a Cue Pass and gifts.
-  Beta and Grand Opening are release art; Founder's is cancelled. ECONOMY.md section 11.
+  luck purchase is ability spins (odds always shown, pity kept). Later: a Cue Pass, gifts,
+  Founder's and Beta cues. ECONOMY.md section 11.
 - **Items:** one catalog for cues and abilities (stable id, type, rarity, model, effect); the
   type field leaves room for table skins later. A cue is saved as a count per catalog id
   (2026-09-28, ECONOMY.md section 18: small saves, a duplicate is a count above 1); numbered
@@ -1008,18 +1006,6 @@ step in the save (`Flags.Tutorial`) and owns every rigged part; the client only 
 - **The cue's size (designer, 2026-10-01):** 7 studs long, 1.6x wider than a real cue's
   proportions through the shaft and butt (0.32 stud butt) with a slim tip, so its art reads
   next to a Roblox character.
-- **Cue upgrade direction (designer, 2026-10-04; brief awaiting approval, not built yet):**
-  0.36-stud butt, unchanged 0.09 tip and slim front, length 7. Strong painted and layered
-  theme-specific VFX on every Rare+, with a clear ladder up to Eclipse. Beta is a new Unique
-  translucent blueprint hologram at the same Secret visual standard; Grand Opening is a new
-  Unique fireworks cue at Mythic standard. Exactly two additions; no Founder's Cue.
-  Painted luminous spirit creatures with clear contours (Apex stays mechanical), pastel-pink
-  Kitsune, larger stable black/gold/violet Eclipse, gold-focused VIP with some rainbow.
-  Crown motifs in cue art belong to Reyes alone. Keep restrained aiming, nearby-cue quieting,
-  short detailed trails and readable balls; legal winning-8 finishers may be larger. Common
-  and Uncommon get the width/map rebuild without new effects. Full rank/Exclusive visual
-  mapping, per-cue designs and checks: `docs/prompts/CUE_VFX_PROMPT.md`. Economy is outside
-  the art pass; the deliverable is finished art and effects imported and ready in Studio.
 - **The cue on the back (designer, 2026-09-28):** every player carries their equipped cue on
   their back, diagonal with the tip over the left shoulder, on any body (R15, R6, tall,
   small). It disappears the moment the cue is in their hands and comes back when they put it

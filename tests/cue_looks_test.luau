@@ -225,13 +225,14 @@ return {
 		end
 	end,
 
-	["Classic's stick: twelve bands, the tip and the joint snapped onto the shape's steps"] = function()
+	["Classic's stick: nine bands, the tip and the joint snapped onto the shape's steps"] = function()
 		local Catalog, Config, CueArt = load()
 		local ends = pieceEnds(Config)
 		local style = Catalog.style(Catalog.Default)
 		local bands = CueArt.bands(style, ends, Config.Cue.BandSnap)
-		-- Shape 3 adds three shaft transition steps to the previous nine-band fallback.
-		H.expect(#bands == 12, ("Classic has %d bands, expected 12"):format(#bands))
+		-- Tip, ferrule, shaft (thin piece), shaft (thicker piece), joint ring, forearm, ring,
+		-- wrap, cap.
+		H.expect(#bands == 9, ("Classic has %d bands, expected 9"):format(#bands))
 		H.expect(bands[1].to == ends[1], "the tip ends where the shape's tip piece does")
 		H.expect(sameRgb(bands[1].color, style.Segments[1].Color), "the tip is the tip's colour")
 		local forearm = style.Segments[5].Color

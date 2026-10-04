@@ -61,7 +61,7 @@
             0.75
           ],
           "Around": 120,
-          "Radius": 0.26,
+          "Radius": 0.24,
           "Segments": 18,
           "Jitter": 0.075,
           "Interval": 0.1,
@@ -82,7 +82,7 @@
             1.0
           ],
           "Around": 90,
-          "Radius": 0.2226,
+          "Radius": 0.2078,
           "Segments": 20,
           "Jitter": 0.07,
           "Interval": 0.13,
@@ -103,7 +103,7 @@
             1.6
           ],
           "Around": 200,
-          "Radius": 0.42,
+          "Radius": 0.4,
           "Segments": 24,
           "Jitter": 0.09,
           "Interval": 0.2,
@@ -123,7 +123,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.42,
+            "Width": 0.38,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -183,7 +183,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.36,
+            "Width": 0.32,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -243,7 +243,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.51,
+            "Width": 0.47,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -437,5 +437,5 @@
       "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
     }
   },
-  "shape": 3
+  "shape": 2
 }

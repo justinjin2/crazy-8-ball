@@ -7,13 +7,6 @@ first guesses; the kit's live values are in `Config.UI.Kit` (section 8).
 References live in `assets/ui/reference/`. More are coming (a shop, a victory or reward
 screen, a popup).
 
-**Cue-art direction, 2026-10-04:** `prompts/CUE_VFX_PROMPT.md` is the pending build brief.
-VIP's cue is predominantly gold with restrained rainbow accents; crown motifs in cue art
-are reserved for Reyes. Beta remains Unique with a blue/magenta blueprint hologram at
-Secret visual quality; Grand Opening remains Unique with navy/gold/cyan/magenta fireworks
-at Mythic visual quality. Founder's is cancelled. These are cue-art decisions, not changes
-to rarity labels, unrelated rank badges, winner UI or the Secret pull cutscene.
-
 ## 1. The look
 
 **Decided**

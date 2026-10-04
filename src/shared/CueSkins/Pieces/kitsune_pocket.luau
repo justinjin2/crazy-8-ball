@@ -7,7 +7,7 @@ return {
 	Frame = "pocket",
 	Rigid = nil,
 	Models = {
-		PocketFox = "124503913374362",
+		PocketFox = "89187348523429",
 	},
 	Parts = {
 		{
@@ -16,11 +16,11 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://100174493134656",
-				EmissiveMask = "rbxassetid://82555891731437",
+				ColorMap = "rbxassetid://97533950957736",
+				EmissiveMask = "rbxassetid://85835855876991",
 				EmissiveTint = "#C88CFF",
 				EmissiveStrength = 1.8,
-				NormalMap = "rbxassetid://92914999090709",
+				NormalMap = "rbxassetid://81627781656877",
 				AlphaMode = "Transparency",
 			},
 			Name = "PocketFox",
@@ -28,8 +28,8 @@ return {
 			Joint = "Body",
 			Skinned = true,
 			Bones = { "Body", "Head", "Tails", "TailTips" },
-			Offset = { -0.0029, 1.4959, 0.0013 },
-			Size = { 2.9128, 2.9979, 1.5249 },
+			Offset = { 0.0001, 1.5024, 0.0017 },
+			Size = { 2.9065, 3.0038, 1.5324 },
 			Model = "PocketFox",
 		},
 		{
@@ -42,8 +42,8 @@ return {
 			Joint = "Body",
 			Skinned = true,
 			Bones = { "Body", "Head", "Tails", "TailTips" },
-			Offset = { -0.0083, 1.4854, 0.0037 },
-			Size = { 2.9711, 3.0417, 1.5968 },
+			Offset = { -0.0083, 1.4817, -0.0004 },
+			Size = { 2.9732, 3.0378, 1.5906 },
 			Model = "PocketFox",
 		},
 	},

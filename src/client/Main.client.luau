@@ -918,7 +918,7 @@ for id = 1, Placement.tableCount() do
 				at = TableBuilder.toWorld(m.placement, b.x, b.y, 0)
 			end
 			if at and rewardsPocket(id, m, ev.ball) then
-				e:pocketBurst(at, ev.ball, m.shot ~= nil and m.shot.eightWins == true)
+				e:pocketBurst(at, ev.ball)
 				-- NICE SHOT! for a good pot that was a bank, combo, kick or carom; never on the
 				-- break, and not for a drop a late joiner's replay only caught up with.
 				local s = hub.snapshots[id]

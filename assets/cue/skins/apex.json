@@ -292,7 +292,7 @@
             "Kind": "Part",
             "FromStuds": 0.2,
             "ToStuds": 7.3,
-            "Width": 0.5,
+            "Width": 0.46,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -345,7 +345,7 @@
             "Kind": "Part",
             "FromStuds": 2.0,
             "ToStuds": 7.2,
-            "Width": 0.46,
+            "Width": 0.42,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -388,9 +388,9 @@
           "Texture": "vfx/apex/jet_flame.png",
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 7.09,
-            "Up": 0.126,
-            "Side": -0.2178
+            "AtStuds": 7.08,
+            "Up": 0.112,
+            "Side": -0.1936
           },
           "EmissionDirection": "Front",
           "Rate": 6,
@@ -441,8 +441,8 @@
           "Texture": "vfx/apex/jet_flame.png",
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 7.09,
-            "Up": -0.252,
+            "AtStuds": 7.08,
+            "Up": -0.224,
             "Side": -0.0
           },
           "EmissionDirection": "Front",
@@ -494,9 +494,9 @@
           "Texture": "vfx/apex/jet_flame.png",
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 7.09,
-            "Up": 0.126,
-            "Side": 0.2178
+            "AtStuds": 7.08,
+            "Up": 0.112,
+            "Side": 0.1936
           },
           "EmissionDirection": "Front",
           "Rate": 6,
@@ -1163,5 +1163,5 @@
       "PieceTriangles": 9408
     }
   },
-  "shape": 3
+  "shape": 2
 }

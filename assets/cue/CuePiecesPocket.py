@@ -12,35 +12,6 @@ import math
 from CuePieces import piece, sweep, ramp
 
 
-@piece
-def eclipse_pocket(k):
-    """A dimensional eclipse rising through two inclined, precessing orbital paths."""
-    import bmesh
-    from mathutils import Vector, Matrix
-    from CuePiecesMythic import eclipse_corona
-    k.frame = 'pocket'
-    k.material('Obsidian', 'SmoothPlastic', '#040208')
-    k.material('Contour', 'SmoothPlastic', '#24102F')
-    k.material('Gold', 'Metal', '#E6A32A')
-    k.material('Hot', 'Neon', '#FFF2CE')
-    k.material('Orbit', 'Neon', '#E5B2FF')
-    C = Vector((0, 0, 1.6))
-    k.joint('Totality', pivot=tuple(C), layer='Essential')
-    bm = bmesh.new()
-    bmesh.ops.create_uvsphere(bm, u_segments=48, v_segments=24, radius=0.82, matrix=Matrix.Translation(C))
-    k.add('Totality', k.mesh_object('Totality', bm, ['Obsidian']))
-    k.joint('Corona', pivot=tuple(C), parent='Totality', motion=[{'Kind':'Spin','Axis':(0,1,0),'Rate':38}])
-    eclipse_corona(k, 'Corona', C, 0.87, normal=(0, -1, 0))
-    for n, tilt in enumerate((35, -50), 1):
-        j = 'Orbit%d' % n
-        k.joint(j, pivot=tuple(C), layer='Structure', motion=[{'Kind':'Spin','Axis':(0,0,1),'Rate':(-1 if n==1 else 1)*65}])
-        R = Matrix.Rotation(math.radians(tilt), 3, 'X')
-        path = [C + R @ Vector((1.3*math.cos(i*math.tau/96),1.3*math.sin(i*math.tau/96),0)) for i in range(97)]
-        bm = bmesh.new()
-        sweep(bm, path, [0.018]*97, segs=6, cap=False)
-        k.add(j, k.mesh_object(j, bm, ['Hot' if n==1 else 'Orbit']))
-
-
 def _spirit_glow(px):
     """The whole creature glows, its bright parts most (a spirit made of light)."""
     import numpy as np

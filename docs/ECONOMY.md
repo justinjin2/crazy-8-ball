@@ -393,7 +393,7 @@ The account Level and its EXP are gone (designer, 2026-09-28). What they did mov
 | Group | Rarities | Comes from | Trade | Sell back |
 |---|---|---|---|---|
 | Case rarities | Common, Uncommon, Rare, Epic, Legendary, Mythic, Secret | cases (and trades) only | yes | yes |
-| **Unique** | numbered Limited cues (Beta and Grand Opening at release; Founder's cancelled, 2026-10-04) | the Limited shelf, for a set time | yes | no |
+| **Unique** | numbered Limited cues (the Grand Opening Cue; Founder's and Beta when scheduled) | the Limited shelf, for a set time | yes | no |
 | **Exclusive** | the VIP Cue, the Starter Cue, the ten rank cues (Bronze Cue ... Reyes Cue), later season cues | one special way each | **never**, except the Starter Cue (designer: VIP never, 2026-09-28; the Starter Cue trades, 2026-09-29) | no |
 
 What rarity looks like (GDD section 12, UI_STYLE section 4 colours): Common and Uncommon keep
@@ -404,9 +404,8 @@ Mythic the celestial shimmer and its own VFX; Secret a one-of-a-kind full set.
 **Launch catalog: 46 case cues** (unchanged by the plan): 7 Common, 9 Uncommon, 10 Rare,
 9 Epic, 7 Legendary, 3 Mythic, 1 Secret. Classic is labelled Common too but is the free
 default: everyone owns it, no case drops it, and it is never traded or sold. Plus 12 Exclusive
-(10 rank, VIP, Starter) and 2 Unique (Beta and Grand Opening; Founder's cancelled by the
-designer, 2026-10-04). The current code still contains the legacy Founder catalog row;
-removal of legacy economic/ownership references is separate from the cue art pass. The list and order are
+(10 rank, VIP, Starter) and 3 Unique (Grand Opening, plus Founder's and Beta, which stay in the
+catalog but are not sold until the designer schedules them). The list and order are
 `Progression/Catalog.luau`; each cue's look is its skin (`src/shared/CueSkins`).
 
 Adding cues later keeps each rarity's % per Case Drop; each cue's own share shrinks.
@@ -594,11 +593,10 @@ The Limited shelf sells **Unique** cues: exclusive designs that never appear in 
 
 - Its start time (`StartsAt`, UTC) is **0 = off** until the designer sets it right before the
   release is published. While off it is not on the shelf and a buy answers "NotStarted".
-- **Release art updated 2026-10-04:** Grand Opening receives a Mythic-quality fireworks skin;
-  Beta receives a Secret-quality blueprint hologram skin and is also intended for release.
-  Founder's Cue is cancelled; its Robux product is already gone. Beta still has no shelf row
-  in current code. The cue art pass does not set or change prices, copy caps, sale windows,
-  products or ownership rules; these old sale plans must not be inferred as new approvals.
+- It has placeholder colours for now (black shaft, gold rings, felt-green wrap; designer,
+  2026-10-03); the real skin comes later.
+- **Founder's Cue and Beta Cue are off** until the designer schedules them (no shelf row; their
+  catalog cues stay). The Founder's Cue Robux product is gone.
 - **After launch**: one new Limited about every 2 weeks when art exists, $149,000-$499,000,
   some for Robux. None is scheduled yet (designer, 2026-10-03). A new Limited is one Config row
   plus its catalog cue.
@@ -775,10 +773,9 @@ rate, Robux x 9,000 / 49 (VIP offer $54,918, Starter Pack $18,183).
 
 ### 11.6 Later (not at release)
 
-In this order (plan, 2026-10-02, corrected 2026-10-04): a season **Cue Pass** (449 / 1,199 R$),
-gift versions, a Robux restock refill (49 R$), a $4.99 a month subscription, rewarded ads
-paying money. Founder's is cancelled; Beta's art is now for release, with no new sale terms
-set by the art interview. Seasons, the
+In this order (plan, 2026-10-02): a season **Cue Pass** (449 / 1,199 R$), gift versions, the
+**Founder's Cue** (5,000 R$, 50 copies) and **Beta Cue** (1,000 R$, 500 copies), a Robux
+restock refill (49 R$), a $4.99 a month subscription, rewarded ads paying money. Seasons, the
 Cue Pass and event cases all come after release.
 
 ### 11.7 Never sell
@@ -992,8 +989,7 @@ rows, packs, sell-back. Sinks: Mystery Cases, restock, skips, ability spins, Lim
 ## 17. Open (the designer's call)
 
 - When the Grand Opening Cue starts (`StartsAt`), set right before the release is published.
-- Beta's release sale setup and the next Limited are separate economy work, not questions
-  for the cue art pass. Founder's is cancelled.
+- When to schedule the Founder's and Beta cues, and the next Limited.
 
 ---
 
