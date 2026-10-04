@@ -13,9 +13,17 @@ local Cases = require(script.Parent.Cases)
 
 local L = Config.LuckyBlocks
 
-export type Kind = { Case: string, Timer: number, Model: string, Idle: string? }
-export type Block = { Id: number, Kind: string, ReadyAt: number }
-export type State = { Next: number, List: { Block } }
+export type Kind = {
+	Case: string,
+	Timer: number,
+	Model: string,
+	Idle: string?,
+	EmissiveStrength: number?,
+	IconAmbient: number?,
+	IconLight: number?,
+}
+export type Block = { Id: number, Kind: string, ReadyAt: number, Paid: boolean? }
+export type State = { Next: number, List: { Block }, SkipCredits: number?, SkipTarget: number? }
 
 -- One checked BlockRequest. Only the fields its action uses are set.
 export type Request = {
@@ -37,9 +45,9 @@ LuckyBlocks.Reasons = table.freeze({
 	"TooFast", -- the token bucket is empty (Config.LuckyBlocks.RateBurst, RatePerSecond)
 	"NotLoaded", -- the save is not loaded yet
 	"NotOwned", -- no block with that id
-	"NotReady", -- Throw: it is still on its timer
+	"NotReady", -- Open: it is still on its timer
 	"NotHeld", -- Throw: that block is not the one in the hands
-	"Busy", -- Throw: another thrown block is still on the floor; Open: it is already opening
+	"Busy", -- Throw: no clear nearby spot; Open: it is already opening
 	"NoBody", -- the character is missing, dead or seated
 	"TooFar", -- Open: too far from the block
 	"NotLanded", -- Open: it is still flying
@@ -56,7 +64,7 @@ end
 
 --- A new player's blocks: none.
 function LuckyBlocks.fresh(): State
-	return { Next = 0, List = {} }
+	return { Next = 0, List = {}, SkipCredits = 0, SkipTarget = 0 }
 end
 
 --- Seconds after landing until a block of `kind` can be thrown (0 for an unknown kind).
@@ -68,6 +76,32 @@ end
 --- Whether `block` is off its timer at `now`.
 function LuckyBlocks.isReady(block: Block, now: number): boolean
 	return block.ReadyAt <= now
+end
+
+--- Designer-only bypass never changes ReadyAt: the original countdown remains visible.
+function LuckyBlocks.canOpen(block: Block, now: number, userId: number): boolean
+	return LuckyBlocks.isReady(block, now)
+		or (L.Test.BypassTimer and table.find(Config.Debug.Commands.UserIds, userId) ~= nil)
+end
+
+--- Spend one previously purchased credit on precisely this still-running timer.
+function LuckyBlocks.useSkip(state: State, id: number, now: number): boolean
+	local block = LuckyBlocks.find(state, id)
+	if block == nil or LuckyBlocks.isReady(block, now) or (state.SkipCredits or 0) < 1 then
+		return false
+	end
+	state.SkipCredits = (state.SkipCredits or 0) - 1
+	state.SkipTarget = 0
+	block.ReadyAt = now
+	block.Paid = true
+	return true
+end
+
+--- Receipt grant: never lose a purchase if its target disappeared or finished while offline.
+function LuckyBlocks.grantSkip(state: State, now: number)
+	state.SkipCredits = (state.SkipCredits or 0) + 1
+	LuckyBlocks.useSkip(state, state.SkipTarget or 0, now)
+	state.SkipTarget = 0
 end
 
 --- Whole seconds until `block` is ready (0 once it is), rounded up.

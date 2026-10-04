@@ -252,8 +252,13 @@ function Opening.showCard(self: any)
 		return
 	end
 	self.phase = "Card"
-	-- The cue reveals straight over the world; keep the transparent tap target active.
-	TweenService:Create(self.dim, TweenInfo.new(U.DimSeconds), { BackgroundTransparency = 1 })
+	-- Keep the world dimmed for contrast through the cue reveal.
+	TweenService
+		:Create(
+			self.dim,
+			TweenInfo.new(U.DimSeconds),
+			{ BackgroundTransparency = U.DimTransparency }
+		)
 		:Play()
 	if self.reel then
 		self.reel:destroy()

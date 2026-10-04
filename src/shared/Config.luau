@@ -2027,20 +2027,36 @@ Config.Cases = {
 ---------------------------------------------------------------------------------------------
 Config.LuckyBlocks = {
 	-- Every kind, in this order (the Lune tests and the dev command's list walk it).
-	Order = { "Yellow", "Blue" },
+	Order = { "Yellow", "Green", "Blue", "VoidLava", "GoldKing" },
 	-- Case: the Config.Cases row whose odds and cue pool it rolls. Timer: seconds after it lands
-	-- in the inventory until it can be thrown (0: at once). Model: its template's name in
+	-- in the inventory until it can be opened (0: at once). Model: its template's name in
 	-- ReplicatedStorage[ModelFolder]. Idle (optional): the block's own idle animation, uploaded to
 	-- the group; without one it plays Anim.BlockIdle. Adding a pack block: the recipe in
 	-- assets/luckyblocks/Readme.md.
 	Kinds = {
 		Yellow = { Case = "Standard", Timer = 0, Model = "YellowLuckyBlock" },
-		Blue = { Case = "Rare", Timer = 120, Model = "BlueLuckyBlock" }, -- 2 minutes (test)
+		Blue = { Case = "Rare", Timer = 120, Model = "BlueLuckyBlock" }, -- 2 minutes
+		Green = { Case = "Uncommon", Timer = 60, Model = "GreenLuckyBlock" }, -- 1 minute
+		VoidLava = { Case = "Epic", Timer = 3600, Model = "VoidLavaLuckyBlock" }, -- 1 hour
+		GoldKing = {
+			Case = "Legendary",
+			Timer = 21600,
+			Model = "GoldKingLuckyBlock",
+			Idle = "rbxassetid://77259119233155",
+			EmissiveStrength = 0.15, -- its bright gold albedo needs less fill to retain detail
+			IconAmbient = 0.7,
+			IconLight = 1,
+		}, -- 6 hours
 	},
 	ModelFolder = "LuckyBlocks",
+	SkipProduct = "LuckyBlockSkip", -- 19 Robux: one durable timer skip
+	PlacementGapStuds = 3.5, -- keep adjacent floor blocks and their prompts apart
+	PlacementAttempts = 24, -- nearby empty spots to try before asking the player to move
 	LiveFolder = "LuckyBlocksLive", -- Workspace folder for thrown blocks (server-made)
 	Look = {
 		EmissiveStrength = 0.65, -- gentle texture-coloured fill in the rooftop's shadows/sunset
+		LightBrightness = 2, -- non-standard blocks cast a small coloured pool of light
+		LightRangeStuds = 7,
 		ParticleLightInfluence = 0, -- sparkles keep their authored colours under warm lobby light
 	},
 	MaxBlocks = 200, -- the save holds at most this many blocks
@@ -2048,7 +2064,11 @@ Config.LuckyBlocks = {
 	-- The test build: on join every account in Config.Debug.Commands.UserIds is given one of
 	-- each Seed kind it lacks, and opening a block gives a fresh one of the same kind in the
 	-- same place (its timer starting again), so testing never runs out.
-	Test = { Seed = { "Yellow", "Blue" }, Refill = true },
+	Test = {
+		Seed = { "Yellow", "Green", "Blue", "VoidLava", "GoldKing" },
+		Refill = true,
+		BypassTimer = true, -- only Config.Debug.Commands.UserIds; ReadyAt is left unchanged
+	},
 	-- BlockRequest's token bucket: this many at once, refilling this fast.
 	RateBurst = 8,
 	RatePerSecond = 4,
@@ -2130,7 +2150,7 @@ Config.LuckyBlocks = {
 		IconAmbient = 1, -- neutral fill keeps every turning face bright in the bag/hotbar
 		IconLight = 2, -- brighter directional key; retains the original texture colours
 		IconLightDirection = { -1, -2, -1.5 }, -- above and in front of the preview
-		IconDistance = 2.6, -- the icon camera's distance, in block edges
+		IconDistance = 3.1, -- the icon camera's distance, in block edges
 		BagButtonPx = 44, -- the bag button at the hotbar's end (touch and mouse)
 		BagCountPx = 14, -- "+12" on it: blocks waiting in the bag
 		-- The bag panel (` key, the bag button, L3 on a gamepad): a grid of every block.
@@ -2173,8 +2193,9 @@ Config.LuckyBlocks = {
 		CardNamePx = 30,
 		CardRarityPx = 24,
 		CardHintPx = 18,
-		CardRaysShare = 2.6, -- the rays' size, of the card's width
-		CardRaysTransparency = 0.15,
+		CardRaysImage = "rbxassetid://103944500004159", -- 1024px soft rays, transparent edges
+		CardRaysShare = 1.8, -- the rays' size, of the card's width
+		CardRaysTransparency = 0.35,
 		CardRaysDegreesPerSecond = 25,
 		CardInSeconds = 0.35,
 		CardDismissAfterSeconds = 0.6, -- a tap before this does nothing (no accidental skip)
@@ -2677,6 +2698,7 @@ Config.Products = {
 			Restock = "Legendary",
 			Random = true,
 		},
+		LuckyBlockSkip = { Kind = "Product", Id = 3716368528, Robux = 19, Random = true },
 		-- Finish one case timer that has at most SkipSeconds left (the case the player picked).
 		Skip1h = {
 			Kind = "Product",
@@ -3998,9 +4020,8 @@ Config.Audio = {
 		XpTick = { Id = "rbxassetid://15675059323", Volume = 0.15, Overlap = true },
 		-- "Roblox_UI_Tonal_Stinger" (Roblox, 1.5 s): the XP bar reaching a division's top.
 		XpFull = { Id = "rbxassetid://15675043410", Volume = 0.3 },
-		-- "Puzzle Game Achievement 02" (the designer's pick, 2026-10-03; 2.5 s, uploaded to the
-		-- group): NEW RANK! (was "Game Show", 1844692556).
-		RankUp = { Id = "rbxassetid://124844921098629", Volume = 0.35 },
+		-- Rank-up sound picked by the designer, 2026-10-03.
+		RankUp = { Id = "rbxassetid://2789429656", Volume = 0.35 },
 		-- "Glamour Fanfare 4" (APM Music via Roblox, 3.7 s): a new tier, the bigger fanfare.
 		NewTier = { Id = "rbxassetid://1844584807", Volume = 0.4 },
 		-- "RBLX UI Hover 01 (SFX)" (Roblox, 0.2 s, a soft tone near 900 Hz): the mouse or a
@@ -4012,20 +4033,20 @@ Config.Audio = {
 		-- The case reel (2026-09-28, overnight placeholders; assets/audio/README.md). All from
 		-- Roblox's own library or APM Music via Roblox; each checked loading in this game.
 		-- "Roblox_UI_Small_Click" (0.13 s), pitched up and quiet: one card passing the marker.
+		LuckyPlace = { Id = "rbxassetid://4612375802", Volume = 0.35, Overlap = true },
+		LuckyAnticipation = { Id = "rbxassetid://86828699372798", Volume = 0.4, Overlap = true },
 		ReelTick = { Id = "rbxassetid://15675032796", Volume = 0.1, Overlap = true, Pitch = 1.7 },
 		-- "Roblox_UI_Sweep" (Roblox, 0.61 s): the reel settling on the prize.
 		ReelSettle = { Id = "rbxassetid://15675046931", Volume = 0.3 },
 		-- "Roblox_UI_Whoosh_03" (Roblox, 1.1 s): the longer build-up before a Mythic or Secret.
 		ReelBuild = { Id = "rbxassetid://15674975792", Volume = 0.35 },
-		-- The reveal sting by rarity tier: "Roblox_UI_Cute_Pop" (2.7 s) for Common and
-		-- Uncommon, "Fortune Fun Logo" (APM, 3.1 s) for Rare, "Everything Works Out - Tag2" (APM,
-		-- 3.7 s) for Epic, "Shooting Stars" (APM, 4.9 s) for Legendary, "Spinning Around (b)"
-		-- (APM, 5.4 s) for Mythic and Secret.
-		RevealLow = { Id = "rbxassetid://15675055424", Volume = 0.3 },
-		RevealRare = { Id = "rbxassetid://1846251729", Volume = 0.3 },
-		RevealEpic = { Id = "rbxassetid://1848281810", Volume = 0.32 },
-		RevealLegendary = { Id = "rbxassetid://9045294353", Volume = 0.35 },
-		RevealMythic = { Id = "rbxassetid://1839881844", Volume = 0.38 },
+		-- Designer-confirmed orchestral stings: 403299 Common/Uncommon, 403300 Rare/Epic,
+		-- 403298 Legendary/Mythic/Secret; assets/audio/luckyblocks/README.md.
+		RevealLow = { Id = "rbxassetid://126239656683349", Volume = 0.3 },
+		RevealRare = { Id = "rbxassetid://101099108525458", Volume = 0.3 },
+		RevealEpic = { Id = "rbxassetid://101099108525458", Volume = 0.32 },
+		RevealLegendary = { Id = "rbxassetid://83442240487773", Volume = 0.35 },
+		RevealMythic = { Id = "rbxassetid://83442240487773", Volume = 0.38 },
 		-- The Secret pull's heartbeat and shockwave (GUI lane, 2026-10-03; licensed library
 		-- sounds: APM "Heart Beat", Pro Sound Effects "Thruster Blast 8").
 		Heartbeat = { Id = "rbxassetid://1839088414", Volume = 0.7, Overlap = true },

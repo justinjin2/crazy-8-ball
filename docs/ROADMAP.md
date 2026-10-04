@@ -22,6 +22,10 @@ Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (be
 - [x] Native hold prompt, larger held models, brighter world/hotbar/bag appearance, faster
   1.4 s opening spin, 0.5 s hold and clear cue reveal. Keyboard and phone-emulator checks,
   screenshots, lint and 979 tests passed.
+- [x] Multiple independent floor blocks, reconnect safety, three new tiers, designer timer
+  bypass, 19 Robux skip with durable receipts/credits, padded icons, rarity lights, softer
+  reveal rays/dim and the confirmed audio replacements. Studio and automated checks recorded
+  in STATUS.md.
 - [ ] Physical controller hold acceptance; save the updated place and publish its templates.
 
 ---

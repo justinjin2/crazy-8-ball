@@ -20,7 +20,8 @@ here. Add a row for every new upload.
 
 | File | Motion in the pack | Id | Used by |
 | --- | --- | --- | --- |
-| `anims/BoxIdle.rbxm` | `Idle_Box_Take 001` (2.46 s) | `rbxassetid://120822945598411` | `Anim.BlockIdle` (Yellow, Blue) |
+| `anims/BoxIdle.rbxm` | `Idle_Box_Take 001` (2.46 s) | `rbxassetid://120822945598411` | `Anim.BlockIdle` (Standard, Uncommon, Rare, Epic) |
+| `anims/GoldKingLuckyBlockIdle.rbxm` | Gold King (2.46 s, different bone motion) | `rbxassetid://77259119233155` | Legendary |
 | `anims/LuckyHold/Throw R15/R6` | the arms | see `Config.LuckyBlocks.Anim` | every block |
 
 The pack has 3 idle styles: 27 blocks use `Idle_Box`, 20 use `Idle_Winged` and 73 use
@@ -67,13 +68,13 @@ request doesn't say. Run every command from the repo root.
    if old then old:Destroy() end
    -- The rooftop look (below): neutral base, white emissive mask.
    for _, d in model:GetDescendants() do
-   	if d:IsA("MeshPart") then
-   		d.Color = Color3.new(1, 1, 1)
-   	elseif d:IsA("SurfaceAppearance") then
-   		d.Color = Color3.new(1, 1, 1)
-   		d.EmissiveTint = Color3.new(1, 1, 1)
-   		d.EmissiveMaskContent = Content.fromUri("rbxassetid://104192408636466")
-   	end
+       if d:IsA("MeshPart") then
+           d.Color = Color3.new(1, 1, 1)
+       elseif d:IsA("SurfaceAppearance") then
+           -- Preserve the authored SurfaceAppearance tint: Gold King is gold; Void Lava violet.
+           d.EmissiveTint = Color3.new(1, 1, 1)
+           d.EmissiveMaskContent = Content.fromUri("rbxassetid://104192408636466")
+       end
    end
    model.Parent = folder
    return model.Name .. " " .. #model:GetDescendants()
@@ -86,7 +87,7 @@ request doesn't say. Run every command from the repo root.
    - `Config.LuckyBlocks.Kinds`: `Advanced = { Case = "<case>", Timer = <seconds>, Model =
      "<Name>", Idle = "rbxassetid://<id>" }`. Leave out `Idle` if it uses `Anim.BlockIdle`'s
      motion.
-   - `Strings.LuckyBlocks.Names`: `Advanced = "Advanced Lucky Block"`.
+   - `Strings.LuckyBlocks.Names`: `Advanced = "<case> Lucky Block"`.
    - `/giveblock advanced` gives it to the designer for testing.
 6. **Check.** Run `tools/lint.sh` and `tools/test.sh` (the tests check that every kind
    rolls a real case, has a name and a valid `Idle` id). Then playtest: hold it, throw it,
@@ -107,3 +108,18 @@ The original demo has much brighter ambient light than the rooftop. The neutral 
 texture-coloured fill and neutral viewport lights make up for it without changing the whole
 lobby. Hotbar and bag previews keep the original PBR maps and use `Config.LuckyBlocks.UI`
 IconAmbient, IconLight and IconLightDirection. Particles use `Look.ParticleLightInfluence`.
+
+## Added tiers (2026-10-03 follow-up)
+
+| Kind saved in inventory | Player-facing name | Pack model | Timer |
+| --- | --- | --- | --- |
+| Yellow | Standard Lucky Block | YellowLuckyBlock | none |
+| Green | Uncommon Lucky Block | GreenLuckyBlock | 1 minute |
+| Blue | Rare Lucky Block | BlueLuckyBlock | 2 minutes |
+| VoidLava | Epic Lucky Block | VoidLavaLuckyBlock | 1 hour |
+| GoldKing | Legendary Lucky Block | GoldKingLuckyBlock | 6 hours |
+
+Keep existing save kind IDs; names describe the odds tier. Designer-only join seeding/refills
+include all five. Only Standard disables physical lights; particles stay intact. Preserve
+SurfaceAppearance.Color: Void Lava uses RGB 151/130/255 and Gold King uses 255/170/0.
+Gold King has lower configurable emissive/preview light to retain its gold surface detail.

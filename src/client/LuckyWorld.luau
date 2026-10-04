@@ -20,6 +20,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local LuckyBlocks = require(Shared:WaitForChild("Progression"):WaitForChild("LuckyBlocks"))
 local HudParts = require(script.Parent.HudParts)
+local UISound = require(script.Parent.UISound)
 
 local L = Config.LuckyBlocks
 local U = L.UI
@@ -38,6 +39,7 @@ type Tracked = {
 	idle: AnimationTrack?,
 	glows: { Glow },
 	burstPuffed: boolean,
+	lastPhase: string?,
 	prompt: ProximityPrompt?,
 	promptAnchor: Attachment?,
 	asked: boolean, -- the prompt was held through: no new prompt unless the open is refused
@@ -224,6 +226,15 @@ local function step(t: Tracked, now: number)
 	local half = L.FloorSizeStuds / 2
 	local elapsed = math.max(0, now - phaseAt)
 	local mine = model:GetAttribute("Owner") == myId()
+	if t.lastPhase ~= phase then
+		if mine and phase == "Landed" then
+			UISound.play("LuckyPlace")
+		end
+		if mine and phase == "Rising" then
+			UISound.play("LuckyAnticipation")
+		end
+		t.lastPhase = phase
+	end
 	if phase == "Flying" then
 		local T = L.Throw
 		local u = math.clamp(elapsed / T.Seconds, 0, 1)
@@ -243,6 +254,15 @@ local function step(t: Tracked, now: number)
 		playIdle(t)
 		if mine then
 			addPrompt(t)
+			if t.prompt then
+				local readyAt = model:GetAttribute("ReadyAt")
+				local left = if type(readyAt) == "number" then readyAt - now else 0
+				local kind = model:GetAttribute("Kind")
+				local name = if type(kind) == "string" then W.Names[kind] or "" else ""
+				t.prompt.ObjectText = if left > 0
+					then name .. " · " .. LuckyBlocks.clockText(left)
+					else name
+			end
 		end
 	elseif phase == "Rising" or phase == "Burst" then
 		dropPrompt(t)
@@ -352,17 +372,18 @@ function World.allowPrompt(id: number)
 end
 
 --- My block on the floor (its id), or nil.
-function World.myLiveId(): number?
+function World.myLiveIds(): { [number]: boolean }
+	local ids: { [number]: boolean } = {}
 	local me = myId()
 	for model in tracked do
 		if model:GetAttribute("Owner") == me then
 			local id = model:GetAttribute("BlockId")
 			if type(id) == "number" then
-				return id
+				ids[id] = true
 			end
 		end
 	end
-	return nil
+	return ids
 end
 
 function World.start(opts: Options)

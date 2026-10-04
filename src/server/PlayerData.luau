@@ -2147,6 +2147,27 @@ function PlayerData.moveLuckyBlock(player: Player, id: number, to: number): bool
 	return true
 end
 
+--- Select a timer for a paid skip. An existing saved credit is used before another prompt.
+function PlayerData.prepareLuckySkip(player: Player, id: number): (boolean, boolean)
+	if not isPlayer(player) or not intIn(id, 1, S.StatCap) then
+		return false, false
+	end
+	local data = liveData("prepareLuckySkip", player)
+	if data == nil then
+		return false, false
+	end
+	local block = LuckyBlocks.find(data.LuckyBlocks, id)
+	if block == nil or LuckyBlocks.isReady(block, os.time()) then
+		return false, false
+	end
+	local used = LuckyBlocks.useSkip(data.LuckyBlocks, id, os.time())
+	if not used then
+		data.LuckyBlocks.SkipTarget = id
+	end
+	commit(player, data, "prepareLuckySkip")
+	return true, used
+end
+
 --- Opens the ready block `id` into `cueId` (the caller rolled it with Cases.roll from the
 --- block's case) in one change: the block goes, the cue is added (free origin) and a cue new
 --- to the Index pays the finder's money. Answers (true, Opened, place) where place was the
@@ -2170,7 +2191,7 @@ function PlayerData.openLuckyBlock(
 	local block = LuckyBlocks.find(data.LuckyBlocks, id)
 	if block == nil then
 		return false, "NotOwned"
-	elseif not LuckyBlocks.isReady(block, os.time()) then
+	elseif not LuckyBlocks.canOpen(block, os.time(), player.UserId) then
 		return false, "NotReady"
 	end
 	local kind = LuckyBlocks.kind(block.Kind) :: LuckyBlocks.Kind
@@ -2198,7 +2219,7 @@ function PlayerData.openLuckyBlock(
 	end
 	local new = data.Index.Seen[cueId] ~= true and not Inventory.owns(data, cueId)
 	local _, place = LuckyBlocks.remove(data.LuckyBlocks, id)
-	local _, first = Inventory.addCue(data, cueId, 1, false)
+	local _, first = Inventory.addCue(data, cueId, 1, block.Paid == true)
 	local found = if first then payFind(data, cueId) else 0
 	local count = Inventory.count(data, cueId)
 	reelFinds[data] = true -- the reel shows it
@@ -3172,8 +3193,9 @@ local GRANT_FIELDS: { [any]: boolean } = {
 	boostEnds = true,
 	restock = true,
 	skip = true,
+	luckySkip = true,
 }
-local GRANT_FLAGS = { "vip", "vipCue", "party", "firstPack", "starterBought" }
+local GRANT_FLAGS = { "vip", "vipCue", "party", "firstPack", "starterBought", "luckySkip" }
 
 -- Why a Shop.grantFor grant (with the Limited copy number, when it names one) cannot be
 -- applied, or nil when it can.
@@ -3318,6 +3340,9 @@ function PlayerData.applyPurchase(
 	-- A Robux skip: the picked timer finishes now (one that already finished stays ready).
 	if grant.skip ~= nil then
 		Inventory.finishTimer(data, grant.skip.case, grant.skip.at)
+	end
+	if grant.luckySkip then
+		LuckyBlocks.grantSkip(data.LuckyBlocks, os.time())
 	end
 	Shop.markGrant(shop, grant)
 	commit(player, data, op)

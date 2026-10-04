@@ -665,6 +665,26 @@
     "imageId": "91211346868786",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/audio/luckyblocks/LuckyAnticipation.wav": {
+    "assetId": "86828699372798",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/luckyblocks/LuckyRevealCommon.wav": {
+    "assetId": "126239656683349",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/luckyblocks/LuckyRevealLegendary.wav": {
+    "assetId": "83442240487773",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/luckyblocks/LuckyRevealRare.wav": {
+    "assetId": "101099108525458",
+    "assetType": "Audio",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/cue/Cue.glb": {
     "assetId": "131217612906495",
     "assetType": "Model",
@@ -3982,6 +4002,11 @@
     "assetType": "Animation",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/GoldKingLuckyBlockIdle.rbxm": {
+    "assetId": "77259119233155",
+    "assetType": "Animation",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/LuckyHoldR15.rbxm": {
     "assetId": "97081574599269",
     "assetType": "Animation",
@@ -4070,6 +4095,11 @@
   },
   "/Users/justinjin/Desktop/8ball/assets/ui/icons/ults.png": {
     "assetId": "134987873534606",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/lucky-rays.png": {
+    "assetId": "120465395898208",
     "assetType": "Decal",
     "status": "ok"
   },

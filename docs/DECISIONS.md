@@ -2318,3 +2318,16 @@ uploaded), an Open Cloud upload to the group, `tools/studio_relay.py` with an Ed
 SerializationService import, then a Config row and a name. Each kind may name its own idle
 animation (`Kinds[kind].Idle`, optional; it falls back to `Anim.BlockIdle`). The odds and
 timer of a new block stay the designer's call.
+
+- **2026-10-03 — Lucky-block follow-up (designer).** Multiple placed blocks retain separate
+  0.5 s native hold-E/X/touch prompts, not one open-all action. Unopened blocks stay in the
+  session-locked inventory; transient floor copies disappear on leave. Standard casts no
+  physical light, other tiers do; particles remain. Player names follow case odds, retaining
+  Yellow/Blue save IDs. Added Green/Uncommon (60 s), Void Lava/Epic (1 h), Gold King/Legendary
+  (6 h), all seeded/refilled solely for Painicane. Designer bypass retains countdowns; other
+  players can buy a 19 Robux skip (3716368528). A late receipt stores a reusable credit instead
+  of losing value; paid skips preserve paid cue origin. Darken the reel AND reveal (reverses
+  the earlier no-result-dim request); replace pixelated rays with a soft transparent texture.
+  Confirmed WAV order: 403299 Common–Uncommon, 403300 Rare–Epic, 403298 Legendary–Secret,
+  403984 anticipation; placement 4612375802, rank-up 2789429656. Preserve authored PBR tints
+  on new pack models and lower Gold King's fill to keep surface detail.

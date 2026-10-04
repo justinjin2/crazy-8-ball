@@ -1,5 +1,26 @@
 # Status
 
+**2026-10-03 follow-up: multiple lucky blocks, timer skips, new tiers and audio.**
+- Multiple floor placements keep independent native 0.5 s holds; overlapping rewards queue.
+  Unopened entries never leave the save; disconnect/respawn/stale cleanup removes only models.
+- Added Uncommon (Green, 60 s), Epic (Void Lava, 1 h), Legendary (Gold King, 6 h), including
+  their authored tints, particles and idle animations. Designer-only seed/refill includes all five.
+- Standard/Rare names replace Yellow/Blue labels without changing saved IDs. Standard has no
+  physical light; higher tiers do. Smaller padded inventory previews retain saturated colours.
+- Designer-only timer bypass leaves countdowns visible. Product 3716368528 has a 19 Robux base
+  price; Roblox Plus may discount the prompt. Existing ProcessReceipt atomically grants a skip
+  and receipt ID, then waits for persistence. Missing/finished targets retain a saved credit.
+- Darkened reel/reveal backdrop, soft transparent rays, confirmed three-tier orchestral stings,
+  anticipation 86828699372798, placement 4612375802 and rank-up 2789429656. All sounds load.
+- Verified: 983 tests, final focused 81 save/shop/lucky tests, lint (four pre-existing shadow
+  warnings); Rojo sync; four simultaneous floor blocks; independent keyboard and phone touch
+  holds; designer bypass; real Studio save-session reload; receipt replay before/after reload;
+  late credit persistence and reuse; PC/phone screenshots and clean game console.
+- Controller emulation reports connected and native prompts bind X/0.5 s. Physical controller
+  hold remains unverified because MCP synthesizes pad keys as keyboard input.
+- The three imported templates are in Studio Edit content (Team Create). Save place/8ball.rbxl
+  and publish to carry these assets into the versioned place and live experience.
+
 **2026-10-03 (latest): lucky-block interaction and appearance fixes.**
 - Roblox native owner-only proximity prompt, E / controller X / touch hold, now 0.5 s; no
   custom ring. Duplicate requests are suppressed; a refused open re-enables the prompt.
@@ -7,7 +28,7 @@
   texture-coloured emissive fill and brighter neutral hotbar/bag lights keep the original
   blue/gold maps vivid in the rooftop lighting. Sparkles ignore warm scene lighting.
 - Opening rise/spin 2.4 -> 1.4 s, starts at 2 turns/s and reaches 9. Reveal has no dark
-  square halo and the reel dim fades out when the cue appears.
+  square halo and the cue reveal is clear (the later follow-up below keeps its world dimmed).
 - Verified: Rojo sync, native keyboard hold/cancel on PC, native touch hold in iPhone
   emulation, large held model, brighter icons, clear reveal (screenshots), 979 tests and lint.
   Lint retains four existing shadow warnings elsewhere. Controller emulation connects,

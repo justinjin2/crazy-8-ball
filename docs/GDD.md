@@ -692,8 +692,15 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 **Lucky-block test presentation (designer, 2026-10-03):** the current test blocks use a
 Roblox native owner-only hold prompt (0.5 s), large two-handed models and vivid colours in
 the world and hotbar/bag. Their opening spin starts fast and lasts 1.4 s; the cue reveal
-uses rarity rays without a square dark halo or full-screen dim. This is presentation work
-on the existing designer-only test feature, not a change to case rewards or odds below.
+uses soft rarity rays without a square dark halo, over a dimmed world for contrast.
+Multiple blocks can be placed at once; each opens independently with its own native hold.
+Placed-but-unopened blocks remain saved and return to inventory on reconnect. Standard does
+not cast physical light; every higher tier does, with particles preserved.
+Standard/Uncommon/Rare/Epic/Legendary blocks use the corresponding existing case odds; the
+added Green, Void Lava and Gold King models wait 1 minute, 1 hour and 6 hours respectively.
+Only Painicane may bypass those timers for testing, while countdowns stay visible. Early
+opening offers a 19 Robux timer skip to other players. Late receipts retain a saved skip
+credit if the original target has already finished.
 
 Every number is in [ECONOMY.md](ECONOMY.md), rewritten 2026-10-03 from the economy plan the
 designer approved on 2026-10-02 and the designer's interview answers of 2026-10-03.

@@ -7,8 +7,8 @@
 -- - Hold a block: its hotbar slot (a tap or a click), keys 1-9, or LB / RB on a gamepad to step
 --   through the slots. The same slot again puts it away. Both arms hold it out (the Hold
 --   animation) and everyone sees it in the hands.
--- - Throw it: a tap on the world, a left click, or R2. A block still on its timer shakes its
---   slot and says "Ready in 1:42" instead. The Throw animation plays and the server is asked at
+-- - Throw it: a tap on the world, a left click, or R2, including blocks still counting down.
+--   Each keeps its own hold prompt and timer. The Throw animation asks the server at
 --   its Release marker.
 -- - Open it: the prompt over it (LuckyWorld). The server rolls; once the block bursts at the
 --   top of its rise, the reel plays.
@@ -24,12 +24,10 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
-local LuckyBlocks = require(Shared:WaitForChild("Progression"):WaitForChild("LuckyBlocks"))
 local LuckyHotbar = require(script.Parent.LuckyHotbar)
 local LuckyOpening = require(script.Parent.LuckyOpening)
 local LuckyWorld = require(script.Parent.LuckyWorld)
 local Menus = require(script.Parent.Menus)
-local UISound = require(script.Parent.UISound)
 
 local L = Config.LuckyBlocks
 local A = L.Anim
@@ -55,7 +53,9 @@ local hotbar: any = nil
 local opening: any = nil
 local entries: { Entry } = {}
 local heldId: number? = nil
-local liveId: number? = nil
+local liveIds: { [number]: boolean } = {}
+local reveals: { any } = {}
+local revealing = false
 local throwing = false
 local visible = false
 local started = false
@@ -76,7 +76,7 @@ end
 
 local function refresh()
 	if hotbar then
-		hotbar:set(entries, heldId, liveId)
+		hotbar:set(entries, heldId, liveIds)
 		hotbar:setVisible(visible)
 	end
 end
@@ -204,7 +204,7 @@ local function holdBlock(id: number)
 		return
 	end
 	local entry = find(id)
-	if entry == nil or entry.id == liveId then
+	if entry == nil or liveIds[entry.id] then
 		return
 	end
 	heldId = id
@@ -239,16 +239,6 @@ local function throw()
 	if entry == nil then
 		return
 	end
-	local left = entry.readyAt - serverNow()
-	if left > 0 then
-		UISound.play("Click", 0.6)
-		hotbar:shake(id, W.ReadyIn:format(LuckyBlocks.clockText(left)))
-		return
-	end
-	if liveId ~= nil then
-		hotbar:shake(id, REASONS.Busy)
-		return
-	end
 	throwing = true
 	task.spawn(function()
 		playThrow()
@@ -266,11 +256,31 @@ local function throw()
 	end)
 end
 
+local function nextReveal()
+	if revealing or #reveals == 0 then
+		return
+	end
+	local reward = table.remove(reveals, 1)
+	revealing = true
+	opening:play(reward.kind, reward.cue, reward.rarity, function()
+		revealing = false
+		task.defer(nextReveal)
+	end)
+end
+
 local function openBlock(id: number)
 	task.spawn(function()
 		local reply = request("Open", id)
 		if not reply.ok then
 			hotbar:say(reasonText(reply))
+			if reply.reason == "NotReady" then
+				local ok, skip = pcall(function()
+					return (Net.get("StoreRequest") :: RemoteFunction):InvokeServer("LuckySkip", id)
+				end)
+				if not ok or type(skip) ~= "table" or not skip.ok then
+					hotbar:say(W.SkipUnavailable)
+				end
+			end
 			LuckyWorld.allowPrompt(id)
 			return
 		end
@@ -284,7 +294,8 @@ local function openBlock(id: number)
 			and type(reply.rarity) == "string"
 			and type(reply.kind) == "string"
 		then
-			opening:play(reply.kind, reply.cue, reply.rarity)
+			table.insert(reveals, reply)
+			nextReveal()
 		end
 	end)
 end
@@ -384,9 +395,24 @@ function LuckyClient.start(screen: ScreenGui)
 		end)
 	end
 	RunService.Heartbeat:Connect(function()
-		local live = LuckyWorld.myLiveId()
-		if live ~= liveId then
-			liveId = live
+		local current = LuckyWorld.myLiveIds()
+		local changed = false
+		for id in current do
+			if not liveIds[id] then
+				changed = true
+				break
+			end
+		end
+		if not changed then
+			for id in liveIds do
+				if not current[id] then
+					changed = true
+					break
+				end
+			end
+		end
+		if changed then
+			liveIds = current
 			refresh()
 		end
 	end)

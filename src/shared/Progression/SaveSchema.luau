@@ -969,6 +969,8 @@ end
 -- range is clamped, so a block is never lost to a clock bug.
 local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
 	fixInteger(blocks, "Next", "LuckyBlocks.Next", SaveCfg.StatCap, fixes)
+	fixInteger(blocks, "SkipCredits", "LuckyBlocks.SkipCredits", SaveCfg.StatCap, fixes)
+	fixInteger(blocks, "SkipTarget", "LuckyBlocks.SkipTarget", SaveCfg.StatCap, fixes)
 	local list = ensureTable(blocks, "List", "LuckyBlocks.List", {}, fixes)
 	fixArray(list, "LuckyBlocks.List", fixes)
 	local kept, seen, dropped = {}, {}, 0
@@ -985,7 +987,10 @@ local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
 		else
 			seen[id] = true
 			local readyAt = SaveSchema.cleanInteger(block.ReadyAt, 0, SaveCfg.UnixTimeCap, 0)
-			table.insert(kept, { Id = id, Kind = block.Kind, ReadyAt = readyAt })
+			table.insert(
+				kept,
+				{ Id = id, Kind = block.Kind, ReadyAt = readyAt, Paid = block.Paid == true }
+			)
 			if blocks.Next < id then
 				blocks.Next = id
 			end
@@ -1013,9 +1018,9 @@ local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
 	for i, block in kept do
 		list[i] = block
 	end
-	-- Only the two known keys stay.
+	-- Only the inventory and durable skip fields stay.
 	for key in table.clone(blocks) do
-		if key ~= "Next" and key ~= "List" then
+		if key ~= "Next" and key ~= "List" and key ~= "SkipCredits" and key ~= "SkipTarget" then
 			blocks[key] = nil
 		end
 	end

@@ -566,6 +566,8 @@ local function grantProduct(player: Player, key: string, purchaseId: string): (b
 		if why ~= nil then
 			return false, why
 		end
+	elseif key == Config.LuckyBlocks.SkipProduct then
+		grant = { key = key, money = 0, luckySkip = true }
 	elseif row ~= nil and row.SkipSeconds ~= nil then
 		grant, notFor = skipGrant(player, key, data)
 	else
@@ -794,9 +796,39 @@ local function promptSkip(player: Player, caseId: any, at: any): Reply
 	return { ok = true, key = key } :: any
 end
 
+local function promptLuckySkip(player: Player, id: any): Reply
+	if not ready(player) then
+		return reply(false, "NotLoaded")
+	end
+	local product = Config.LuckyBlocks.SkipProduct
+	local ctx = context(player, os.time())
+	local reason = if ctx then ShopView.check(product, ctx) else "NotLoaded"
+	if reason ~= nil then
+		return reply(false, reason)
+	end
+	local selected, used = PlayerData.prepareLuckySkip(player, id)
+	if not selected then
+		return reply(false, "NoTimer")
+	end
+	if used then
+		return reply(true, nil)
+	end
+	-- Save the selection before prompting; if delivery moves servers without it, the receipt
+	-- still grants a durable credit. The receipt and credit use the existing save barrier.
+	PlayerData.saveNow(player, S.ReceiptSaveTimeoutSeconds)
+	return reply(prompt(player, product), nil)
+end
+
 local function onStoreRequest(player: Player, action: any, key: any, extra: any): Reply
 	local clock = os.clock()
 	local last = lastRequest[player]
+	if action == "LuckySkip" then
+		if last ~= nil and clock - last < S.RequestCooldownSeconds then
+			return reply(false, "TooFast")
+		end
+		lastRequest[player] = clock
+		return promptLuckySkip(player, key)
+	end
 	if action == "Skip" then
 		if last ~= nil and clock - last < S.RequestCooldownSeconds then
 			return reply(false, "TooFast")

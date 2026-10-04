@@ -56,6 +56,8 @@ function Result.new(parent: Instance, cueId: string, rarity: string): any
 
 	-- The sun rays in the rarity's colour (Mythic: its pastels), turning behind the cue.
 	local rays = CaseOpeningFx.rays(root, "Rays")
+	rays.Image = U.CardRaysImage
+	rays.ResampleMode = Enum.ResamplerMode.Default
 	local raysSide = math.floor(U.CardWidthPx * U.CardRaysShare)
 	rays.Size = UDim2.fromOffset(raysSide, raysSide)
 	rays.Position = UDim2.fromOffset(size.X / 2, artMiddle)

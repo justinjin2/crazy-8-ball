@@ -72,6 +72,10 @@ local function makeIcon(parent: Instance, kind: string): Icon
 	camera.Parent = viewport
 	viewport.CurrentCamera = camera
 	local row = LuckyBlocks.kind(kind)
+	local ambient = if row and row.IconAmbient then row.IconAmbient else U.IconAmbient
+	local light = if row and row.IconLight then row.IconLight else U.IconLight
+	viewport.Ambient = Color3.new(ambient, ambient, ambient)
+	viewport.LightColor = Color3.new(light, light, light)
 	local folder = ReplicatedStorage:FindFirstChild(L.ModelFolder)
 	local source = if row and folder then folder:FindFirstChild(row.Model) else nil
 	local icon: Icon = { viewport = viewport, model = nil, base = CFrame.identity }
@@ -82,7 +86,9 @@ local function makeIcon(parent: Instance, kind: string): Icon
 				-- The pack's grey base bleeds through its Overlay colour map.
 				d.Color = Color3.new(1, 1, 1)
 			elseif d:IsA("SurfaceAppearance") then
-				d.EmissiveStrength = L.Look.EmissiveStrength
+				d.EmissiveStrength = if row and row.EmissiveStrength
+					then row.EmissiveStrength
+					else L.Look.EmissiveStrength
 			end
 			if
 				d:IsA("ParticleEmitter")
@@ -161,7 +167,7 @@ function Hotbar.new(screen: ScreenGui, handlers: Handlers): any
 	self.handlers = handlers
 	self.entries = {} :: { Entry }
 	self.heldId = nil :: number?
-	self.hiddenId = nil :: number? -- a thrown block on the floor: not in the bar meanwhile
+	self.hiddenIds = {} :: { [number]: boolean } -- a thrown block on the floor: not in the bar meanwhile
 	self.visible = false
 	self.slots = {} :: { Tile }
 	self.tiles = {} :: { Tile } -- the bag's
@@ -317,7 +323,7 @@ end
 function Hotbar.shown(self: any): ({ Entry }, number)
 	local list = {}
 	for _, entry in self.entries do
-		if entry.id ~= self.hiddenId then
+		if not self.hiddenIds[entry.id] then
 			table.insert(list, entry)
 		end
 	end
@@ -327,15 +333,23 @@ end
 
 --- The player's blocks (BlockState's list), the held block's id and the thrown one's (hidden
 --- from the bar while it is on the floor).
-function Hotbar.set(self: any, entries: { Entry }, heldId: number?, hiddenId: number?)
+function Hotbar.set(
+	self: any,
+	entries: { Entry },
+	heldId: number?,
+	hiddenIds: { [number]: boolean }
+)
 	self.entries = entries
 	self.heldId = heldId
-	self.hiddenId = hiddenId
+	self.hiddenIds = hiddenIds
 	local parts = {}
 	for _, e in entries do
-		table.insert(parts, e.id .. ":" .. e.kind)
+		table.insert(
+			parts,
+			e.id .. ":" .. e.kind .. ":" .. e.readyAt .. ":" .. tostring(hiddenIds[e.id])
+		)
 	end
-	local key = table.concat(parts, ",") .. "|" .. tostring(hiddenId)
+	local key = table.concat(parts, ",")
 	if key ~= self.listKey then
 		self.listKey = key
 		self:rebuild()

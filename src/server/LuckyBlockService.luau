@@ -5,7 +5,7 @@
 -- - BlockRequest (a RemoteFunction): Hold puts a copy of the block in the character's hands
 --   (welded to the upper torso, so everyone sees it); Throw (sent at the throw animation's
 --   release) moves it to the floor in front, in Workspace[Config.LuckyBlocks.LiveFolder], one
---   per player; Open (after the owner's native prompt hold) rolls the cue from the block's case with
+--   or more per player; Open (after the owner's native prompt hold) rolls the cue from the block's case with
 --   server RNG, opens it through PlayerData.openLuckyBlock and starts the rise; Move reorders
 --   the hotbar and bag. Every answer is { ok = true, ... } or { ok = false, reason }.
 -- - A thrown block's model carries attributes every client animates from (LuckyWorld): Owner
@@ -49,7 +49,7 @@ export type Reply = { [string]: any }
 local LuckyBlockService = {}
 
 local held: { [Player]: Held } = {}
-local live: { [Player]: Live } = {}
+local live: { [Player]: { [number]: Live } } = {}
 local buckets: { [Player]: Requests.Bucket } = {}
 local busy: { [Player]: boolean } = {}
 local dirty: { [Player]: boolean } = {}
@@ -60,6 +60,8 @@ local BLOCK_OPS: { [string]: boolean } = {
 	giveLuckyBlocks = true,
 	moveLuckyBlock = true,
 	openLuckyBlock = true,
+	prepareLuckySkip = true,
+	applyPurchase = true,
 	reset = true,
 }
 local warnedMissing: { [string]: boolean } = {}
@@ -135,7 +137,14 @@ local function makeModel(kind: string, edge: number, anchored: boolean): Model?
 			-- Neutral base under the pack's Overlay colour maps, rather than importer grey.
 			d.Color = Color3.new(1, 1, 1)
 		elseif d:IsA("SurfaceAppearance") then
-			d.EmissiveStrength = L.Look.EmissiveStrength
+			d.EmissiveStrength = (LuckyBlocks.kind(kind) :: LuckyBlocks.Kind).EmissiveStrength
+				or L.Look.EmissiveStrength
+		elseif d:IsA("Light") then
+			d.Enabled = (LuckyBlocks.kind(kind) :: LuckyBlocks.Kind).Case ~= "Standard"
+			d.Brightness = L.Look.LightBrightness
+			-- All three concrete Light classes expose Range; the shared Light type does not.
+			local ranged: any = d
+			ranged.Range = L.Look.LightRangeStuds
 		elseif d:IsA("ParticleEmitter") then
 			d.LightInfluence = L.Look.ParticleLightInfluence
 		elseif d:IsA("LuaSourceContainer") then
@@ -181,11 +190,22 @@ local function dropHeld(player: Player)
 	end
 end
 
-local function dropLive(player: Player)
-	local l = live[player]
-	live[player] = nil
-	if l and l.model.Parent then
-		l.model:Destroy()
+local function dropLive(player: Player, id: number?)
+	local entries = live[player]
+	if entries == nil then
+		return
+	end
+	if id ~= nil then
+		local entry = entries[id]
+		entries[id] = nil
+		if entry then
+			entry.model:Destroy()
+		end
+	else
+		live[player] = nil
+		for _, entry in entries do
+			entry.model:Destroy()
+		end
 	end
 end
 
@@ -200,6 +220,21 @@ local function flushPushes()
 		local data = PlayerData.read(player)
 		if data ~= nil and player.Parent == Players then
 			local state = data.LuckyBlocks
+			-- Update visible countdowns after a skip receipt.
+			local placed: { [number]: Live } = live[player] or {}
+			for id, entry in placed do
+				local block = LuckyBlocks.find(state :: any, id)
+				if block then
+					entry.model:SetAttribute("ReadyAt", block.ReadyAt)
+				end
+			end
+			local h = held[player]
+			if h then
+				local block = LuckyBlocks.find(state :: any, h.id)
+				if block then
+					h.model:SetAttribute("ReadyAt", block.ReadyAt)
+				end
+			end
 			local snapshot = { blocks = if state then LuckyBlocks.snapshot(state :: any) else {} }
 			local encoded = HttpService:JSONEncode(snapshot)
 			if encoded ~= lastSent[player] then
@@ -228,7 +263,7 @@ function HANDLERS.Hold(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		return refuse("NotOwned")
 	end
 	local l = live[player]
-	if l and l.id == id then
+	if l and l[id] then
 		return refuse("Busy")
 	end
 	local current = held[player]
@@ -276,9 +311,10 @@ end
 
 -- Where a block thrown now lands: in front of the root (short of a wall), on the floor found
 -- under that spot, turned to face the thrower give or take a little.
-local function landing(root: BasePart, humanoid: Humanoid): CFrame
+local function landing(root: BasePart, humanoid: Humanoid): CFrame?
 	local flat = root.CFrame.LookVector * Vector3.new(1, 0, 1)
 	local look = if flat.Magnitude > 1e-3 then flat.Unit else Vector3.new(0, 0, -1)
+	local right = Vector3.new(-look.Z, 0, look.X)
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
 	local ignore: { Instance } = { liveFolder() }
@@ -290,25 +326,43 @@ local function landing(root: BasePart, humanoid: Humanoid): CFrame
 	params.FilterDescendantsInstances = ignore
 	params.RespectCanCollide = true
 	local T = L.Throw
-	local distance = T.DistanceStuds
-	local wall = workspace:Raycast(root.Position, look * distance, params)
-	if wall then
-		distance = math.max(0, (wall.Position - root.Position).Magnitude - T.WallGapStuds)
+	for attempt = 0, L.PlacementAttempts - 1 do
+		local side = math.ceil(attempt / 2) * (if attempt % 2 == 0 then -1 else 1)
+		local delta = look * T.DistanceStuds + right * side * L.PlacementGapStuds
+		if delta.Magnitude > L.Open.MaxDistanceStuds then
+			continue
+		end
+		local wall = workspace:Raycast(root.Position, delta, params)
+		if wall then
+			delta = delta.Unit * math.max(0, wall.Distance - T.WallGapStuds)
+		end
+		local spot = root.Position + delta
+		local floor = workspace:Raycast(
+			spot + Vector3.new(0, 2, 0),
+			Vector3.new(0, -T.FloorSearchStuds, 0),
+			params
+		)
+		local feet = root.Position.Y - root.Size.Y / 2 - humanoid.HipHeight
+		local at = Vector3.new(spot.X, if floor then floor.Position.Y else feet, spot.Z)
+		local occupied = false
+		for _, entries in live do
+			for _, entry in entries do
+				if (entry.to.Position - at).Magnitude < L.PlacementGapStuds then
+					occupied = true
+					break
+				end
+			end
+			if occupied then
+				break
+			end
+		end
+		if not occupied then
+			local jitter =
+				math.rad(rolls:NextNumber(-T.LandYawJitterDegrees, T.LandYawJitterDegrees))
+			return CFrame.lookAt(at, at - look) * CFrame.Angles(0, jitter, 0)
+		end
 	end
-	local spot = root.Position + look * distance
-	local feet = root.Position.Y - root.Size.Y / 2 - humanoid.HipHeight
-	local floor = workspace:Raycast(
-		spot + Vector3.new(0, 2, 0),
-		Vector3.new(0, -T.FloorSearchStuds, 0),
-		params
-	)
-	local y = if floor then floor.Position.Y else feet
-	local jitter = math.rad(rolls:NextNumber(-T.LandYawJitterDegrees, T.LandYawJitterDegrees))
-	local facing = CFrame.lookAt(
-		Vector3.new(spot.X, y, spot.Z),
-		Vector3.new(root.Position.X, y, root.Position.Z)
-	)
-	return facing * CFrame.Angles(0, jitter, 0)
+	return nil
 end
 
 function HANDLERS.Throw(player: Player, r: LuckyBlocks.Request, data: any): Reply
@@ -320,9 +374,7 @@ function HANDLERS.Throw(player: Player, r: LuckyBlocks.Request, data: any): Repl
 	local h = held[player]
 	if h == nil or h.id ~= id or h.model.Parent == nil then
 		return refuse("NotHeld")
-	elseif not LuckyBlocks.isReady(block, os.time()) then
-		return refuse("NotReady")
-	elseif live[player] ~= nil then
+	elseif live[player] and live[player][id] then
 		return refuse("Busy")
 	end
 	local root, humanoid = bodyOf(player)
@@ -334,14 +386,19 @@ function HANDLERS.Throw(player: Player, r: LuckyBlocks.Request, data: any): Repl
 		return refuse("Error")
 	end
 	local to = landing(root, humanoid)
+	if to == nil then
+		model:Destroy()
+		return refuse("Busy")
+	end
 	local fromCentre = h.model:GetPivot().Position + Vector3.new(0, L.Held.SizeStuds / 2, 0)
 	dropHeld(player)
 	-- It starts in the hands; every client flies it to To (LuckyWorld), and the server puts it
 	-- there when the flight ends.
 	model:PivotTo(CFrame.new(fromCentre - Vector3.new(0, L.FloorSizeStuds / 2, 0)) * to.Rotation)
-	model.Name = "LuckyBlock" .. player.UserId
+	model.Name = "LuckyBlock" .. player.UserId .. "_" .. id
 	model:SetAttribute("Owner", player.UserId)
 	model:SetAttribute("BlockId", id)
+	model:SetAttribute("ReadyAt", block.ReadyAt)
 	model:SetAttribute("To", to)
 	model:SetAttribute("Phase", "Flying")
 	model:SetAttribute("PhaseAt", serverNow())
@@ -354,9 +411,10 @@ function HANDLERS.Throw(player: Player, r: LuckyBlocks.Request, data: any): Repl
 		phase = "Flying",
 		landedAt = math.huge,
 	}
-	live[player] = entry
+	live[player] = live[player] or {}
+	live[player][id] = entry
 	task.delay(L.Throw.Seconds, function()
-		if live[player] == entry and entry.phase == "Flying" then
+		if live[player] and live[player][id] == entry and entry.phase == "Flying" then
 			entry.phase = "Landed"
 			entry.landedAt = os.clock()
 			model:PivotTo(to)
@@ -373,8 +431,8 @@ end
 
 function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local id = r.id :: number
-	local entry = live[player]
-	if entry == nil or entry.id ~= id then
+	local entry = live[player] and live[player][id]
+	if entry == nil then
 		return refuse("NotOwned")
 	elseif entry.phase == "Flying" then
 		return refuse("NotLanded")
@@ -392,7 +450,7 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local block = LuckyBlocks.find(data.LuckyBlocks, id)
 	local kind = if block then LuckyBlocks.kind(block.Kind) else nil
 	if block == nil or kind == nil then
-		dropLive(player)
+		dropLive(player, id)
 		return refuse("NotOwned")
 	end
 	local cueId = Cases.roll(kind.Case, roll)
@@ -419,14 +477,14 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	entry.model:SetAttribute("Phase", "Rising")
 	entry.model:SetAttribute("PhaseAt", now)
 	task.delay(L.Rise.Seconds, function()
-		if live[player] == entry then
+		if live[player] and live[player][id] == entry then
 			entry.phase = "Burst"
 			entry.model:SetAttribute("Phase", "Burst")
 			entry.model:SetAttribute("PhaseAt", serverNow())
 		end
 		task.wait(L.BurstSeconds)
-		if live[player] == entry then
-			dropLive(player)
+		if live[player] and live[player][id] == entry then
+			dropLive(player, id)
 		elseif entry.model.Parent then
 			entry.model:Destroy()
 		end
@@ -513,12 +571,15 @@ end
 -- Thrown blocks nobody opened go back (to the hotbar: they never left the save).
 local function returnStale()
 	local now = os.clock()
-	for player, entry in live do
-		if entry.phase == "Landed" then
-			local root = bodyOf(player)
-			local far = root == nil or (root.Position - entry.to.Position).Magnitude > L.ReturnStuds
-			if far or now - entry.landedAt > L.ReturnSeconds then
-				dropLive(player)
+	for player, entries in live do
+		for id, entry in entries do
+			if entry.phase == "Landed" then
+				local root = bodyOf(player)
+				local far = root == nil
+					or (root.Position - entry.to.Position).Magnitude > L.ReturnStuds
+				if far or now - entry.landedAt > L.ReturnSeconds then
+					dropLive(player, id)
+				end
 			end
 		end
 	end

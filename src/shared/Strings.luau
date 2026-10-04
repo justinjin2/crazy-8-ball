@@ -970,8 +970,11 @@ return {
 	-- Lucky blocks (the test build, 2026-10-03; LuckyHotbar, LuckyWorld, LuckyOpening).
 	LuckyBlocks = {
 		Names = {
-			Yellow = "Yellow Lucky Block",
-			Blue = "Blue Lucky Block",
+			Yellow = "Standard Lucky Block",
+			Blue = "Rare Lucky Block",
+			Green = "Uncommon Lucky Block",
+			VoidLava = "Epic Lucky Block",
+			GoldKing = "Legendary Lucky Block",
 		} :: { [string]: string },
 		ReadyIn = "Ready in %s", -- a block still on its timer: "Ready in 1:42"
 		Bag = "Bag", -- the hotbar's bag button and the panel's title
@@ -979,6 +982,7 @@ return {
 		BagHint = "Drag a block onto a hotbar slot", -- under the bag's grid (mouse and touch)
 		BagHintPad = "Pick a block, then a hotbar slot", -- the same on a gamepad
 		BagEmpty = "No lucky blocks yet",
+		SkipUnavailable = "Timer skips are unavailable right now. You can still wait for the timer.",
 		Open = "Open", -- the prompt over a thrown block
 		YouGot = "YOU GOT %s!", -- the result card: the cue's name
 		Continue = "Tap to continue",
@@ -992,7 +996,7 @@ return {
 			NotOwned = "That block is gone.",
 			NotReady = "Not ready yet.",
 			NotHeld = "Hold the block first.",
-			Busy = "Open the block on the floor first.",
+			Busy = "Move to a clear spot, or wait for this block to finish opening.",
 			NoBody = "You can't throw that right now.",
 			TooFar = "Get closer to the block.",
 			NotLanded = "Wait for it to land.",

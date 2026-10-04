@@ -1058,3 +1058,12 @@ rows, packs, sell-back. Sinks: Mystery Cases, restock, skips, ability spins, Lim
 **Not built as the plan says** (open):
 - **Quick Cases opens up to 10 ready cases of one kind at once** (`Config.Cases.FastOpenCount`
   = 10), not "every ready case at once".
+
+### Lucky-block test follow-up (2026-10-03)
+
+Lucky block timer skip: **19 Robux base price**, developer product **3716368528**; skips one
+owned block of any tier. Existing randomized-item purchase restrictions apply. Receipt grant
+and deduplication use PlayerData/Store's existing save barrier. If its selected timer is gone
+or already ready, retain a saved skip credit for the next timer instead. Only Painicane may
+bypass timers without a purchase; the visible countdown is unchanged. New test blocks use
+existing case odds: Uncommon 60 seconds, Epic 1 hour, Legendary 6 hours.

@@ -533,5 +533,7 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
 - Held blocks are large, 2.8 studs per edge. World, hotbar and bag keep bright, saturated
   blue/gold textures; neutral preview light and a gentle emissive fill prevent muddy colours.
 - The opening block spins immediately and rises for 1.4 s before bursting.
-- The cue result keeps rarity-coloured turning rays, with no square shadow halo. The dim
-  belongs to the reel only and fades away for the result; the world stays visible.
+- The cue result keeps rarity-coloured turning rays, with no square shadow halo. A dark full-screen dim stays through the reel and result for cue contrast. The soft,
+  transparent 1024px rays fade toward the edges rather than enlarging the old pixelated kit image.
+- Hotbar/bag models leave padding around each icon. Gold King uses lower preview illumination
+  so the bright gold albedo keeps its details.

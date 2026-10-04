@@ -754,3 +754,18 @@ cue. The skins were authored in `assets/cue/skins/<id>.json` (the cue-skins run,
 - **UI.** `CueThumb` shows a skinned cue's rendered picture (`Thumb`, made by
   `assets/cue/CuePreview.py --thumb` into `assets/cue/thumbs/`, tinted for a silhouette); the
   Index viewport keeps the live 3D cue.
+
+## Lucky-block placement and paid skips (2026-10-03)
+
+LuckyBlockService keeps transient floor models by player and immutable block ID. Placing,
+returning and disconnect cleanup never remove entries from PlayerData.LuckyBlocks.List.
+Only an accepted Open atomically exchanges one block for its rolled cue. LuckyClient tracks
+a set of floor IDs and queues independently opened rewards so reveals cannot replace each other.
+
+LuckyBlocks.SkipTarget and SkipCredits are additive reconciled save fields, with repair in
+SaveSchema. StoreRequest LuckySkip validates an owned running timer and existing purchase
+restrictions, uses a saved credit first, otherwise records the selection and prompts the
+configured product. The existing ProcessReceipt grants one credit and records the receipt
+in one PlayerData mutation; it acknowledges only after the existing persistence barrier.
+A current target consumes that credit; missing/finished targets retain it across reconnects.
+A skipped block carries Paid through save repair into the cue's paid-origin count.

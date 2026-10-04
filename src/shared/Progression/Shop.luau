@@ -64,6 +64,7 @@ export type Grant = {
 	restock: { slot: number, id: string, case: string?, mystery: number? }?,
 	-- A Robux timer skip (Skip1h ... Skip48h): the timer the player picked (the Store's).
 	skip: { case: string, at: number }?,
+	luckySkip: boolean?, -- durable lucky block timer credit, applied by PlayerData
 	boostEnds: number?, -- the Starter Pack's 2x money hour ends then (sets Shop.BoostEnds)
 }
 

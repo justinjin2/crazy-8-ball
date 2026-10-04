@@ -10,6 +10,60 @@ local function load()
 end
 
 return {
+	["new block tiers use the requested odds and timers"] = function()
+		local L = load()
+		for _, row in
+			{
+				{ "Green", "Uncommon", 60 },
+				{ "VoidLava", "Epic", 3600 },
+				{ "GoldKing", "Legendary", 21600 },
+			}
+		do
+			H.expect(L.kind(row[1]).Case == row[2] and L.timer(row[1]) == row[3], row[1])
+		end
+	end,
+	["only the designer can bypass an unchanged countdown"] = function()
+		local L = load()
+		local b = L.add(L.fresh(), "GoldKing", 1000)
+		H.expect(not L.canOpen(b, 1001, 1234), "another account cannot bypass")
+		H.expect(L.canOpen(b, 1001, 544959133), "designer can open")
+		H.expect(b.ReadyAt == 22600, "bypass does not erase the timer")
+	end,
+	["late skip receipt preserves value and saved target across reconnect"] = function()
+		local L = load()
+		local Schema = H.require("Progression.SaveSchema")
+		local save = Schema.template()
+		local b = L.add(save.LuckyBlocks, "VoidLava", 1000)
+		save.LuckyBlocks.SkipTarget = b.Id
+		local restored = Schema.validate(save)
+		L.grantSkip(restored.LuckyBlocks, 1001)
+		local skipped = L.find(restored.LuckyBlocks, b.Id)
+		H.expect(
+			skipped.ReadyAt == 1001 and skipped.Paid,
+			"selected timer finished and paid origin retained"
+		)
+		H.expect(restored.LuckyBlocks.SkipCredits == 0, "one credit spent")
+		L.grantSkip(restored.LuckyBlocks, 1002)
+		H.expect(restored.LuckyBlocks.SkipCredits == 1, "no running target: credit retained")
+		H.expect(not L.useSkip(restored.LuckyBlocks, b.Id, 1002), "ready timer cannot waste credit")
+		local nextBlock = L.add(restored.LuckyBlocks, "GoldKing", 1002)
+		H.expect(L.useSkip(restored.LuckyBlocks, nextBlock.Id, 1003), "credit usable on next block")
+		local again = Schema.validate(restored)
+		H.expect(L.find(again.LuckyBlocks, nextBlock.Id).Paid, "paid origin survives save repair")
+	end,
+	["floor placement does not change the persistent inventory"] = function()
+		local L = load()
+		local Schema = H.require("Progression.SaveSchema")
+		local save = Schema.template()
+		local a = L.add(save.LuckyBlocks, "Green", 1000)
+		local b = L.add(save.LuckyBlocks, "GoldKing", 1000)
+		-- Floor instances are transient; the serialized save keeps both unopened ids and times.
+		local restored = Schema.validate(save)
+		H.expect(#restored.LuckyBlocks.List == 2, "both returned in inventory")
+		H.expect(L.find(restored.LuckyBlocks, a.Id).ReadyAt == 1060, "countdown unchanged")
+		H.expect(L.find(restored.LuckyBlocks, b.Id).ReadyAt == 22600, "long timer unchanged")
+	end,
+
 	["every kind rolls a real case and the test kinds match the designer's"] = function()
 		local LuckyBlocks, Config, Cases = load()
 		local Strings = H.require("Strings")
