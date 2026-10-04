@@ -172,8 +172,15 @@ local function track(model: Model)
 	end)
 end
 
+-- The kind's own idle (Config.LuckyBlocks.Kinds[kind].Idle), else the shared one.
+local function idleId(model: Model): string
+	local row = LuckyBlocks.kind(model:GetAttribute("Kind"))
+	return if row and row.Idle and row.Idle ~= "" then row.Idle else L.Anim.BlockIdle
+end
+
 local function playIdle(t: Tracked)
-	if t.idle or L.Anim.BlockIdle == "" then
+	local id = idleId(t.model)
+	if t.idle or id == "" then
 		return
 	end
 	local controller = t.model:FindFirstChildOfClass("AnimationController")
@@ -182,7 +189,7 @@ local function playIdle(t: Tracked)
 		return
 	end
 	local animation = Instance.new("Animation")
-	animation.AnimationId = L.Anim.BlockIdle
+	animation.AnimationId = id
 	local ok, trackOrErr = pcall(function()
 		return (animator :: Animator):LoadAnimation(animation)
 	end)

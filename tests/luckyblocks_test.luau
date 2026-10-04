@@ -12,11 +12,16 @@ end
 return {
 	["every kind rolls a real case and the test kinds match the designer's"] = function()
 		local LuckyBlocks, Config, Cases = load()
+		local Strings = H.require("Strings")
 		H.expect(#LuckyBlocks.validate() == 0, "no problems")
 		for _, id in Config.LuckyBlocks.Order do
 			local kind = LuckyBlocks.kind(id)
 			H.expect(kind ~= nil and Cases.get(kind.Case) ~= nil, id .. " rolls a case")
 			H.expect(#Cases.cueOdds(kind.Case) > 0, id .. " has cues to roll")
+			H.expect(
+				type(Strings.LuckyBlocks.Names[id]) == "string",
+				id .. " has a name in Strings"
+			)
 		end
 		H.expect(LuckyBlocks.kind("Yellow").Case == "Standard", "Yellow rolls the Standard odds")
 		H.expect(LuckyBlocks.timer("Yellow") == 0, "Yellow opens at once")

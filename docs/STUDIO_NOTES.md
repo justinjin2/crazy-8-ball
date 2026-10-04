@@ -524,6 +524,17 @@ Studio's device emulator has a gamepad mode as a fallback, but a real pad is the
   `tools/manifest_image_ids.py emit` / `apply` turns the Decal ids into image ids, about 100 a
   batch through `execute_luau` in Edit.
 
+## Moving instances between Studio windows or from disk (2026-10-03)
+
+Studio can't read local files, but an Edit-mode command can fetch from this machine:
+`SerializationService:DeserializeInstancesAsync` takes the bytes of an `.rbxm`. Lune's
+`roblox.serializeModel` writes ones it accepts, and a round trip keeps MeshId,
+SurfaceAppearance maps, particles and bones. Serve the file base64-encoded with
+`tools/studio_relay.py` and decode it with `EncodingService:Base64Decode(buffer.fromstring(s))`.
+Turn `HttpService.HttpEnabled` on only for the fetch and put it back. Lune can't read Content
+properties (MeshId, EmissiveMaskContent: "missing default value"), so inspect those in Studio.
+The full snippet is in `assets/luckyblocks/Readme.md`.
+
 ## Lune tests
 
 - `tests/harness.luau` builds a fake `script.Parent` tree from `src/shared` and compiles each

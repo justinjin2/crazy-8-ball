@@ -13,7 +13,7 @@ local Cases = require(script.Parent.Cases)
 
 local L = Config.LuckyBlocks
 
-export type Kind = { Case: string, Timer: number, Model: string }
+export type Kind = { Case: string, Timer: number, Model: string, Idle: string? }
 export type Block = { Id: number, Kind: string, ReadyAt: number }
 export type State = { Next: number, List: { Block } }
 
@@ -168,6 +168,12 @@ function LuckyBlocks.validate(): { string }
 			end
 			if type(row.Model) ~= "string" or row.Model == "" then
 				table.insert(problems, id .. ": no Model")
+			end
+			if
+				row.Idle ~= nil
+				and (type(row.Idle) ~= "string" or not string.find(row.Idle, "^rbxassetid://%d+$"))
+			then
+				table.insert(problems, id .. ": Idle is not an rbxassetid:// id")
 			end
 		end
 	end

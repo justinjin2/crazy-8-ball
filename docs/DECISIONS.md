@@ -2308,3 +2308,13 @@ fades the reel dim away. The source models' texture ids were already identical; 
 original demo uses much brighter ambient light. Preserve the maps, use a neutral white
 base and gentle texture-coloured emissive fill, and light inventory viewports separately.
 The original source place is unchanged. Physical controller acceptance remains pending.
+
+## 2026-10-03: adding pack lucky blocks is a recipe, not a project
+
+Designer asked that "add <BlockName>" be enough for any assistant to bring a block from the
+bought pack into the game. The recipe is in `assets/luckyblocks/Readme.md`:
+`tools/luckyblock_extract.luau` (model plus idle animation, with a check for motions already
+uploaded), an Open Cloud upload to the group, `tools/studio_relay.py` with an Edit-mode
+SerializationService import, then a Config row and a name. Each kind may name its own idle
+animation (`Kinds[kind].Idle`, optional; it falls back to `Anim.BlockIdle`). The odds and
+timer of a new block stay the designer's call.

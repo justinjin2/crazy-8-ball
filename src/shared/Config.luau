@@ -2030,7 +2030,9 @@ Config.LuckyBlocks = {
 	Order = { "Yellow", "Blue" },
 	-- Case: the Config.Cases row whose odds and cue pool it rolls. Timer: seconds after it lands
 	-- in the inventory until it can be thrown (0: at once). Model: its template's name in
-	-- ReplicatedStorage[ModelFolder].
+	-- ReplicatedStorage[ModelFolder]. Idle (optional): the block's own idle animation, uploaded to
+	-- the group; without one it plays Anim.BlockIdle. Adding a pack block: the recipe in
+	-- assets/luckyblocks/Readme.md.
 	Kinds = {
 		Yellow = { Case = "Standard", Timer = 0, Model = "YellowLuckyBlock" },
 		Blue = { Case = "Rare", Timer = 120, Model = "BlueLuckyBlock" }, -- 2 minutes (test)
@@ -2051,7 +2053,7 @@ Config.LuckyBlocks = {
 	RateBurst = 8,
 	RatePerSecond = 4,
 	-- Animations, all uploaded to the group (675425213) so they play in the game. BlockIdle:
-	-- the pack's bounce, played on a thrown block. Hold and Throw: the arms (an empty id plays
+	-- the pack's bounce, played on a thrown block whose kind has no Idle of its own. Hold and Throw: the arms (an empty id plays
 	-- nothing), per rig.
 	Anim = {
 		BlockIdle = "rbxassetid://120822945598411",
