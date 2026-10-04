@@ -10,10 +10,13 @@
 set -u
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 BRIEF="$ROOT/${OVERNIGHT_BRIEF:-docs/prompts/RANKS_MONEY_PROMPT.md}"
-COUNT_FILE="$ROOT/.git/overnight-stop-count"
+# In a git worktree (the parallel lanes) `.git` is a file, so the marker files go in the real
+# git directory (`git rev-parse --absolute-git-dir`); a plain checkout gets `.git` as before.
+GITDIR="$(git -C "$ROOT" rev-parse --absolute-git-dir 2>/dev/null || echo "$ROOT/.git")"
+COUNT_FILE="$GITDIR/overnight-stop-count"
 MAX="${OVERNIGHT_MAX:-60}"
 ATTENDED="${OVERNIGHT_ATTENDED:-0}"
-WAITING_FILE="$ROOT/.git/overnight-waiting"
+WAITING_FILE="$GITDIR/overnight-waiting"
 
 cat >/dev/null # the hook's JSON input is not needed
 
