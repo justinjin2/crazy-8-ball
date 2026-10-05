@@ -358,9 +358,12 @@ def celestial_dragon(k):
     # turning round the cue at its own rate and direction, drifting along it, and fading in
     # and out on its own clock so the art is never still.
     import random
+    # Gate 2 (designer, 2026-10-04): the first twelve were hairlines in Studio: now twice as
+    # many, two to three times wider, the dragon's own pale blue, turning faster, pulsing
+    # toward white and never quite fading out.
     rnd = random.Random(23)
-    k.material('Energy', 'Neon', '#4FB4FF', Transparency=0.4)
-    k.material('EnergyPale', 'ForceField', '#A8E4FF', Transparency=0.15)
+    k.material('Energy', 'Neon', '#BFEFFF', Transparency=0.3)
+    k.material('EnergyPale', 'ForceField', '#D8F6FF', Transparency=0.1)
     G = P.butt_gain()
     def ribbon(bm, u0, span, turns, a0, r_, w, thick):
         rings = []
@@ -385,19 +388,20 @@ def celestial_dragon(k):
                 bm.faces.new((a_[j], a_[j1], b_[j1], b_[j]))
         bm.faces.new(rings[0][::-1])
         bm.faces.new(rings[-1])
-    for n in range(12):
-        u0 = 0.5 + 6.0 * n / 12 + rnd.uniform(-0.2, 0.2)
-        span = rnd.uniform(1.0, 2.3)
-        turns = rnd.uniform(0.35, 0.85) * rnd.choice((-1, 1))
+    for n in range(24):
+        u0 = 0.4 + 6.2 * n / 24 + rnd.uniform(-0.25, 0.25)
+        span = rnd.uniform(1.2, 2.6)
+        turns = rnd.uniform(0.5, 1.2) * rnd.choice((-1, 1))
         pale = n % 2 == 1
         nm = 'Energy%d' % (n + 1)
         k.joint(nm, pivot=(0, -(u0 + span / 2), 0), aura=True, motion=[
-            {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rnd.uniform(18, 42) * rnd.choice((-1, 1)), 'Phase': rnd.uniform(0, 360)},
-            {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': rnd.uniform(0.15, 0.35), 'Period': rnd.uniform(5.0, 8.0), 'Phase': rnd.uniform(0, 360)}],
-            visual=[{'Kind': 'Fade', 'Min': 0.0, 'Max': 1.0, 'Period': rnd.uniform(3.0, 5.5), 'Shape': 'sine', 'Phase': rnd.uniform(0, 360)}])
+            {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rnd.uniform(30, 70) * rnd.choice((-1, 1)), 'Phase': rnd.uniform(0, 360)},
+            {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': rnd.uniform(0.3, 0.6), 'Period': rnd.uniform(3.0, 5.0), 'Phase': rnd.uniform(0, 360)}],
+            visual=[{'Kind': 'Fade', 'Min': 0.2, 'Max': 1.0, 'Period': rnd.uniform(2.5, 4.5), 'Shape': 'sine', 'Phase': rnd.uniform(0, 360)},
+                    {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': rnd.uniform(1.6, 3.0), 'Shape': 'sine', 'Phase': rnd.uniform(0, 360)}])
         bm = bmesh.new()
-        ribbon(bm, u0, span, turns, rnd.uniform(0, 2 * math.pi), 0.19 + rnd.uniform(0.0, 0.08) + (0.05 if pale else 0.0),
-               rnd.uniform(0.05, 0.1) * (1.5 if pale else 1.0), 0.006)
+        ribbon(bm, u0, span, turns, rnd.uniform(0, 2 * math.pi), 0.2 + rnd.uniform(0.0, 0.1) + (0.06 if pale else 0.0),
+               rnd.uniform(0.12, 0.24) * (1.6 if pale else 1.0), 0.012)
         k.add(nm, k.mesh_object('Dragon' + nm, bm, ['EnergyPale' if pale else 'Energy'], smooth=True))
     for nm, tc in bone_names[2::3]:
         _, p, tg, nrm, side = frame_at(tc)

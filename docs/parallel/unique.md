@@ -203,8 +203,8 @@ generic-runtime rule; the catalog rows stay untouched.
   the long body dropped (it looked broken), twelve see-through blue energy ribbons turning
   and fading round the cue after the designer's reference. Gate 1 passed; built in the
   lane window (uploads, template, pieces), tuned on the floor (halo dimmed, sheath thinned);
-  then the whole dragon recoloured to the head's pale blue and its white filaments dropped.
-  Waiting at gate 2.
+  then the whole dragon recoloured to the head's pale blue, its white filaments dropped and
+  the energy ribbons doubled and widened in the same blue. Waiting at gate 2.
 
 ## Decisions
 

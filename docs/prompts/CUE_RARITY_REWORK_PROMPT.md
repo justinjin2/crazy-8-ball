@@ -297,6 +297,11 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 - 2026-10-04 (gate 2, third look): the two Neon spirit filaments round the body dropped
   (they read as white spirals in the sun); the body GLB re-uploaded, the piece rebuilt in
   the lane window, the clip re-rendered.
+- 2026-10-04 (gate 2, fourth look): the energy ribbons were hairlines in Studio: now 24
+  (from 12), two to three times wider and thicker, in the dragon's pale blue (`#BFEFFF`
+  Neon, `#D8F6FF` ForceField), turning faster (30-70 degrees a second), drifting further,
+  never fading below a fifth and pulsing toward white (a Glow visual). The ribbon GLB
+  re-uploaded, the piece rebuilt in the lane window, the clip re-rendered.
 
 ## Decisions
 
@@ -354,3 +359,6 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   the head's lighter blue. Done.
 - 2026-10-04 (designer, Dragon gate 2, second look): get rid of the noticeably whiter
   spirals on the dragon (the filaments). Done.
+- 2026-10-04 (designer, Dragon gate 2, third look): the ribbons need to be more obvious,
+  more of them, with energy, matching the lighter blue of the dragon and the aura. Done as
+  the fourth look.
