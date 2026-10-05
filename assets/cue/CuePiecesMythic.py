@@ -1366,7 +1366,7 @@ def eclipse_carrier(k):
     from mathutils import Vector, Matrix
     bpy = k.bpy
     k.material('Void', 'Neon', '#000000')          # unlit flat black: a hole in the sky
-    k.material('Flare', 'Neon', '#FFE070')
+    k.material('Flare', 'Neon', '#FFF0A0')
     k.material('OrbitLine', 'Neon', '#FFE070')
     k.material('OrbitGlow', 'ForceField', '#FFC830')
     k.material('BeadGlow', 'ForceField', '#FFB300')
@@ -1382,7 +1382,7 @@ def eclipse_carrier(k):
     bm = bmesh.new()
     bmesh.ops.create_uvsphere(bm, u_segments=48, v_segments=24, radius=RS, matrix=Matrix.Translation(S))
     k.add('Sun', k.mesh_object('CarrierSun', bm, ['Void']))
-    k.material('CoronaSpike', 'Neon', '#FFE070')
+    k.material('CoronaSpike', 'Neon', '#FFF0A0')
     for n, (tilt, rate, count, length) in enumerate(((15, 22.0, 26, 0.42), (-75, -17.0, 20, 0.3)), 1):
         nm = 'SunFlare%d' % n
         k.joint(nm, pivot=tuple(S), parent='Sun', aura=True, motion=[{'Kind': 'Spin', 'Axis': (0.2, 0.3, 1), 'Rate': rate}],

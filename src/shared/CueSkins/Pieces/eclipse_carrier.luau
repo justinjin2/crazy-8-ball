@@ -20,7 +20,7 @@ return {
 		},
 		{
 			Material = "Neon",
-			Color = "#FFE070",
+			Color = "#FFF0A0",
 			Transparency = 0,
 			Reflectance = 0,
 			Name = "SunFlare1_Flare",
@@ -30,7 +30,7 @@ return {
 		},
 		{
 			Material = "Neon",
-			Color = "#FFE070",
+			Color = "#FFF0A0",
 			Transparency = 0,
 			Reflectance = 0,
 			Name = "SunFlare1_CoronaSpike",
@@ -40,7 +40,7 @@ return {
 		},
 		{
 			Material = "Neon",
-			Color = "#FFE070",
+			Color = "#FFF0A0",
 			Transparency = 0,
 			Reflectance = 0,
 			Name = "SunFlare2_Flare",
@@ -50,7 +50,7 @@ return {
 		},
 		{
 			Material = "Neon",
-			Color = "#FFE070",
+			Color = "#FFF0A0",
 			Transparency = 0,
 			Reflectance = 0,
 			Name = "SunFlare2_CoronaSpike",
