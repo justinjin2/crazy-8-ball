@@ -584,7 +584,7 @@ return {
 			Rare = "Rare Case",
 			Epic = "Epic Case",
 			Legendary = "Legendary Case",
-			Mythic = "Mythic Case",
+			Mythic = "Mythical Case",
 		},
 		Rarities = {
 			Common = "Common",
@@ -592,7 +592,7 @@ return {
 			Rare = "Rare",
 			Epic = "Epic",
 			Legendary = "Legendary",
-			Mythic = "Mythic",
+			Mythic = "Mythical", -- the designer, 2026-10-04: the tier reads "Mythical"; the id stays Mythic
 			Secret = "Secret",
 			Exclusive = "Exclusive",
 			Unique = "Unique",
@@ -1060,7 +1060,7 @@ return {
 			Rare = "RARE",
 			Epic = "EPIC",
 			Legendary = "LEGENDARY",
-			Mythic = "MYTHIC",
+			Mythic = "MYTHICAL",
 		},
 		ManyCases = "%s cases!", -- the end of a many-drop reveal
 		ReadyIn = "Ready in %s", -- a case on its timer
@@ -1217,7 +1217,7 @@ return {
 			Rare = "%s unboxed a Rare %s!",
 			Epic = "%s unboxed an Epic %s!",
 			Legendary = "%s unboxed a Legendary %s!",
-			Mythic = "%s unboxed a Mythic %s!",
+			Mythic = "%s unboxed a Mythical %s!",
 			Secret = "%s unboxed a Secret %s!",
 			Default = "%s unboxed %s!",
 		},

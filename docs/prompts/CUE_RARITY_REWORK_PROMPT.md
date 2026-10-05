@@ -11,7 +11,7 @@ like a Roblox particle effect." The job: write the rules for what each rarity lo
 go back from the rarest down and bring every cue up to its rule with the techniques in
 `docs/CUE_VFX_TECHNIQUES.md` (real 3D depth, never warped moving pictures).
 
-Status: **plan written, waiting for the designer's answers to section 6.** Nothing built yet.
+Status: **plan approved 2026-10-04 (answers in Decisions); building, Eclipse first.**
 
 ## 0. Read first
 
@@ -58,7 +58,7 @@ cues read as the richest in the game at about 70).
 | Uncommon | texture plus one glowing accent (a ring, inlay or band) with a slow emissive pulse | standard, recoloured to the theme | none | tinted wisp | plain gust, tinted | no | no |
 | Rare | texture, glow accents | standard, recoloured; a glowing band on the ferrule allowed | **the first aura**: a dark body plus one glow layer plus one themed accent (own sprite or oriented shapes), one orbiter at most; budget 25 | own colours and texture; a core from Rare up | none: the gust in its colours | no | no |
 | Epic | moving material (overlay beams, emissive pulse), richer theming | standard, recoloured and glowing to the theme | the Rare aura plus a second themed accent and a moving-light pass; budget 40 | unique trail with one ball-riding emitter | **some** (where the theme pays off at the pocket; today 5 of 9) | no (decision 2026-09-30 stands) | no |
-| Legendary | surface frames (moving painted detail), own sprites | **themed and glowing**: collar, ferrule and tip painted from the panels in the cue's motif (feathers, brass, scales, ice), emissive, never the standard set | an aura that is its own kind of effect (not the body-glow-motes recipe repainted), brighter than any Epic; one real mesh element (wings, halo, gears, crystals, tentacles) with three motions at three periods; budget 60 | unique, with two or three ball-riding emitters | **all**: a staged 1.5 to 2 s finisher, the piece or a creature rising | yes, on at least the butt | optional faint loop (ask) |
+| Legendary | surface frames (moving painted detail), own sprites | **themed and glowing**: collar, ferrule and tip painted from the panels in the cue's motif (feathers, brass, scales, ice), emissive, never the standard set | an aura that is its own kind of effect (not the body-glow-motes recipe repainted), brighter than any Epic; one real mesh element (wings, halo, gears, crystals, tentacles) with three motions at three periods; budget 60 | unique, with two or three ball-riding emitters | **all**: a staged 1.5 to 2 s finisher, the piece or a creature rising | yes, on at least the butt | yes: a faint aura loop and a pocket sound (Roblox library placeholders for now) |
 | Mythic ("Mythical") | all of the above, more layering; the cue mesh **may deviate** from the base shape (a sword, a staff, a spine: creative liberty, no limits) | themed, glowing, and shaped (the ferrule can be a jaw, a crystal, a thruster) | a full set: body, glow, two accents, orbiters, moving light, a hero creature or construct that is the aura's centre and readable (nothing masking it); budget 80 | layered: texture plus core plus three emitters | staged with a 3D rise and a sound | yes, rigged or multi-joint, with visuals (Glow, Fade, life) | yes, aura loop and pocket sound |
 | Secret | everything Mythic, plus completely unique modelling, colours and techniques not used by any other cue | shaped and glowing; part of the modelling | **engulfing**: noticeably bigger than every other cue, around the cue and around the player carrying it (orbiting bodies, a field, a sky), still clear enough to read the cue; budget 120 | layered, with a pocket-sized event behind the ball | the biggest in the game, 2 s, a sky-sized rise | yes, several pieces along the whole cue, not one at the butt | yes |
 | Unique | the Legendary-to-Secret rules (Beta and Grand Opening already meet them) | themed | own tier, own kind | layered | staged with a rise and a sound | yes | yes |
@@ -83,19 +83,22 @@ Rules that cut across tiers:
 **Rank cues** (Exclusive, rank rewards) follow the ladder by rank; the trophy design stays
 shared and the tier adds to it:
 
+The designer chose "one step higher" than the plain mapping (2026-10-04): rank rewards
+outshine case cues of the same step.
+
 | Rank cue | Follows | Note |
 |---|---|---|
-| Bronze | Common | texture only |
-| Silver | Common + the shine sweep | |
-| Gold | Uncommon | the glowing ring |
-| Platinum | Uncommon | ring plus a second accent |
-| Diamond | Rare | first aura (today 17/s, keeps) |
-| Expert | Rare | |
-| Veteran | Epic | moving light |
-| Master | Epic | finisher added |
-| Grandmaster | Legendary | themed collar, a mesh element (laurels, a crown ring), finisher exists |
-| Reyes | Mythic | the summit: a construct, sound, a shaped ferrule |
-| VIP (Exclusive) | Legendary, in gold | the crown finisher exists; themed collar, a mesh crown |
+| Bronze | Uncommon | the glowing ring (today: texture only; gains the ring) |
+| Silver | Uncommon | ring plus the shine sweep |
+| Gold | Rare | the first aura (today 12/s, grows a themed accent) |
+| Platinum | Rare | aura plus the ring |
+| Diamond | Epic | moving light, unique trail (today 17/s) |
+| Expert | Epic | finisher added |
+| Veteran | Legendary | themed collar, a mesh element, finisher, sound |
+| Master | Legendary | same, richer |
+| Grandmaster | Mythic | a construct (laurels and a crown that turn), shaped ferrule, sound |
+| Reyes | Secret-level | the summit: engulfing, unique modelling, the biggest finisher after Eclipse |
+| VIP (Exclusive) | Legendary, in gold | the crown finisher exists; themed collar, a mesh crown, sound |
 | Starter (Exclusive) | Uncommon | the ring; nothing more |
 
 The catalog's `Effect` fallbacks (Bronze to Gold "Uncommon", Platinum and Diamond "Rare", and
@@ -178,7 +181,7 @@ file, every shared-file change listed there. Spend on OpenAI and Meshy freely. T
 reviews boards at gate 1 and the Studio look at gate 2 per cue for Secret and Mythic; for
 Legendary and below the gates are per tier batch (one board sheet and one lineup).
 
-## 6. Questions for the designer (asked 2026-10-04)
+## 6. Questions for the designer (asked and answered 2026-10-04; see Decisions)
 
 1. **Gates and pace.** Per cue for Eclipse and the three Mythics, then one board sheet and
    one lineup per tier batch below that: agreed?
@@ -196,7 +199,7 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 
 ## Progress
 
-- [ ] 0. The plan approved; the rules copied into the GDD by the integrator (not this lane).
+- [x] 0. The plan approved (2026-10-04); the rules go into the GDD at the merge (the integrator, not this lane).
 - [ ] 1. Generic capabilities: themed ends in the painter, the budget check, the carrier
   host (if yes), mesh variants (if yes).
 - [ ] 2. Eclipse: board, gate 1.
@@ -218,4 +221,15 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 
 ## Decisions
 
-(dated)
+- 2026-10-04 (designer): gates per cue for Eclipse and the Mythics, per tier batch below.
+- 2026-10-04 (designer): rank cues follow the rules one step higher than their plain step
+  (table in section 2).
+- 2026-10-04 (designer): a Secret's aura engulfs the cue and the player carrying it (a
+  generic Carrier host).
+- 2026-10-04 (designer): sounds from Legendary up; Roblox library placeholders picked by the
+  lane, listed per cue, swappable later.
+- 2026-10-04 (designer): remodelling allowed for Mythic and Secret in this pass (approved at
+  each cue's board gate).
+- 2026-10-04 (designer): the tier label reads "Mythical" (the item rarity, the case name,
+  the reveal band and the unbox line in `Strings.luau`); ids stay `Mythic`. The ability
+  rarity label was left as "Mythic" (not asked).
