@@ -320,7 +320,7 @@ local function step(t: Tracked, now: number)
 end
 
 ---------------------------------------------------------------------------------------------
--- The countdown over a held block
+-- The countdown over a held block, then READY!
 ---------------------------------------------------------------------------------------------
 
 local function watchHeld(model: Instance)
@@ -357,15 +357,19 @@ local function watchHeld(model: Instance)
 	end)
 end
 
+-- The countdown while the block waits, then "READY!" in green in the same place (designer,
+-- 2026-10-05): a block with no timer at all shows it from the start.
 local function stepTimer(timer: Timer, now: number)
 	local readyAt = timer.model:GetAttribute("ReadyAt")
 	local left = if type(readyAt) == "number" then readyAt - now else 0
 	if left > 0 then
 		timer.label.Text = LuckyBlocks.clockText(left)
-		timer.gui.Enabled = true
+		timer.label.TextColor3 = HudParts.tone("White")
 	else
-		timer.gui.Enabled = false
+		timer.label.Text = W.Ready
+		timer.label.TextColor3 = HudParts.tone("Green")
 	end
+	timer.gui.Enabled = true
 end
 
 ---------------------------------------------------------------------------------------------

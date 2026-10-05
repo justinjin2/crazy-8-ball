@@ -821,6 +821,8 @@ return {
 			Starter = "Starter Lucky Block",
 			Gift = "Gift Lucky Block",
 		} :: { [string]: string },
+		-- Over a held block whose timer is done (designer, 2026-10-05), where its countdown was.
+		Ready = "READY!",
 		-- The kinds' short names (the Mystery block's odds list).
 		Short = {
 			Standard = "Standard",
