@@ -5,6 +5,7 @@ the butt (-7), Z is the top. Heads and masks sit on or past the butt end.
 """
 import math
 import os
+import random
 
 import CuePieces as P
 from CuePieces import piece, sweep, metaball_mesh, assign_by_region, apply_modifier, ramp
@@ -746,6 +747,138 @@ def kitsune(k):
             emissive_tint='#C070FF', emissive_strength=3.0, bones=bones,
             hologram={'Tint': '#D8B8FF', 'Shell': '#C070FF', 'Strength': 1.6})
     _running_fox(k)
+    _foxfire_tails(k)
+    _foxfire_orbs(k)
+
+
+def _foxfire_tails(k):
+    """The nine foxfire tails as real meshes (rarity rework, 2026-10-04: they were nine camera-
+    facing Beams): each a see-through swept tail of pale pink spirit light with a white-pink
+    Neon core, streaming from the mask's collar forward along the handle and fanning out round
+    it (never over the face), thin at the root, full in the middle, pointed at the tip. Each
+    sways on its own two periods, breathes (Fade) and pulses (Glow); the even tails hide under
+    Lower effects. Children of the Mask, so they follow its tilt."""
+    import bmesh
+    from mathutils import Vector
+    rnd = random.Random(41)
+    # see-through like the Dragon's threads (designer 2026-10-04: energy, never solid cloth)
+    k.material('TailFire', 'ForceField', '#FFD6F2', Transparency=0.74)
+    k.material('TailCore', 'Neon', '#FFF0FA', Transparency=0.8)
+    U0, LEN, R0, R1 = 6.9, 1.3, 0.2, 0.78
+    for i in range(9):
+        th = math.radians(i * 40.0 + rnd.uniform(-6, 6))
+        curl = math.radians(rnd.uniform(18, 30)) * rnd.choice((-1, 1))
+        length = LEN * rnd.uniform(0.85, 1.1)
+        r1 = R1 * rnd.uniform(0.85, 1.1)
+        pts, body, core = [], [], []
+        N = 28
+        for j in range(N + 1):
+            t = j / N
+            sm = t * t * (3 - 2 * t)
+            rho = R0 + (r1 - R0) * sm + 0.06 * math.sin(2 * math.pi * t)
+            phi = th + curl * math.sin(math.pi * t)
+            rad = Vector((math.sin(phi), 0, math.cos(phi)))
+            pts.append(Vector((0, -(U0 - length * t), 0)) + rad * rho)
+            w = 0.03 + 0.085 * math.sin(math.pi * t) ** 0.8 * (1 - 0.25 * t)
+            if j == N:
+                w = 0.008
+            body.append((w, w * 0.5))
+            core.append(0.004 + 0.012 * math.sin(math.pi * t))
+        nm = 'Tail%d' % (i + 1)
+        root = pts[0]
+        tang = (pts[1] - pts[0]).normalized()
+        rad0 = Vector((math.sin(th), 0, math.cos(th)))
+        k.joint(nm, pivot=tuple(root), parent='Mask', aura=True, low='hide' if i % 2 == 1 else None, motion=[
+            {'Kind': 'Sway', 'Axis': tuple(rad0), 'Amp': rnd.uniform(6, 9), 'Period': rnd.uniform(2.4, 3.4), 'Phase': i * 40},
+            {'Kind': 'Sway', 'Axis': tuple(tang.cross(rad0).normalized()), 'Amp': rnd.uniform(3, 5),
+             'Period': rnd.uniform(3.8, 5.2), 'Phase': i * 73}],
+            visual=[{'Kind': 'Fade', 'Min': 0.55, 'Max': 1.0, 'Period': rnd.uniform(2.0, 3.2), 'Shape': 'sine', 'Phase': i * 47},
+                    {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.3, 'Period': rnd.uniform(2.6, 4.0), 'Shape': 'sine', 'Phase': i * 91}])
+        bm = bmesh.new()
+        sweep(bm, pts, body, segs=10, cap=True)
+        k.add(nm, k.mesh_object('Kitsune' + nm, bm, ['TailFire'], smooth=True))
+        bm = bmesh.new()
+        sweep(bm, pts, core, segs=6, cap=True)
+        k.add(nm, k.mesh_object('Kitsune' + nm + 'Core', bm, ['TailCore'], smooth=True))
+
+
+def _foxfire_orbs(k):
+    """Three foxfire orbs as glowing spheres riding one looping path (rarity rework, 2026-10-04:
+    they were sprite orbiters): the path spirals out from the ferrule to the butt a third of a
+    stud off the cue and back along the other side, so two spirals interleave; each orb is a
+    white-pink Neon core in a pink ForceField halo with a short flame of light streaming
+    behind it, pulsing (Glow) and breathing (Fade). All aura."""
+    import bmesh
+    import numpy as np
+    from mathutils import Vector
+    import cue_common as cc
+    env = cc.Envelope(cc.load_shape()[0])
+    k.material('OrbCore', 'Neon', '#FFF4FB', Transparency=0.1)
+    k.material('OrbHalo', 'ForceField', '#FFB3E6', Transparency=0.4)
+    k.material('OrbFlame', 'Neon', '#F0B8FF', Transparency=0.6)
+    U_A, U_B, TURNS, OFF = 1.0, 6.6, 3.0, 0.3
+
+    def point(s):
+        # s in 0..1 round the loop: out along one spiral, back along the other
+        if s < 0.5:
+            t = s * 2
+            u = U_A + (U_B - U_A) * t
+            a = 2 * math.pi * TURNS * t
+        else:
+            t = (s - 0.5) * 2
+            u = U_B - (U_B - U_A) * t
+            a = 2 * math.pi * TURNS * (1 - t) + math.pi
+        rho = env(u) + OFF
+        return Vector((rho * math.sin(a), -u, rho * math.cos(a)))
+
+    n_fine = 40000
+    P = np.array([point(i / n_fine)[:] for i in range(n_fine)])
+    seg = np.linalg.norm(np.roll(P, -1, 0) - P, axis=1)
+    cum = np.concatenate([[0], np.cumsum(seg)])
+    length = float(cum[-1])
+    step = 0.03
+    n = int(round(length / step))
+    step = length / n
+    mats, frames = [], []
+    for i in range(n):
+        s_ = i * step
+        kk = int(np.searchsorted(cum, s_, side='right') - 1) % n_fine
+        f = (s_ - cum[kk]) / max(seg[kk], 1e-9)
+        sp = (kk + f) / n_fine
+        p = point(sp)
+        tg = (point((sp + 2e-5) % 1.0) - point((sp - 2e-5) % 1.0)).normalized()
+        nrm = Vector((p.x, 0, p.z)).normalized()
+        nrm = (nrm - tg * nrm.dot(tg)).normalized()
+        side = tg.cross(nrm)
+        M = np.eye(4)
+        M[:3, 0], M[:3, 1], M[:3, 2], M[:3, 3] = tuple(side), tuple(tg), tuple(nrm), tuple(p)
+        mats.append(M)
+        frames.append((p, tg))
+    k.path('Foxfire', mats, step)
+    SPEED = 2.0
+    for i in range(3):
+        rest = length * i / 3
+        j = int(round(rest / step)) % n
+        p, tg = frames[j]
+        nm = 'Orb%d' % (i + 1)
+        k.joint(nm, pivot=tuple(p), aura=True, motion=[{'Kind': 'Path', 'Path': 'Foxfire', 'Rest': rest, 'Speed': SPEED}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': 2.2 + 0.4 * i, 'Shape': 'sine', 'Phase': i * 120},
+                        {'Kind': 'Fade', 'Min': 0.6, 'Max': 1.0, 'Period': 1.8 + 0.35 * i, 'Shape': 'sine', 'Phase': i * 77}])
+        for mat, rr in (('OrbCore', 0.055), ('OrbHalo', 0.12)):
+            bm = bmesh.new()
+            bmesh.ops.create_icosphere(bm, subdivisions=2, radius=rr)
+            for v in bm.verts:
+                v.co += p
+            k.add(nm, k.mesh_object('Kitsune' + nm + mat[3:], bm, [mat], smooth=True))
+        pts, radii = [], []
+        for q in range(9):
+            t = q / 8
+            pts.append(p - tg * (0.08 + 0.42 * t))
+            radii.append(0.07 * (1 - t) ** 0.9 + 0.004)
+        bm = bmesh.new()
+        sweep(bm, pts, radii, segs=8, cap=True)
+        k.add(nm, k.mesh_object('Kitsune' + nm + 'Flame', bm, ['OrbFlame'], smooth=True))
+    print('CUE foxfire orbs: loop %.2f studs, lap %.1f s' % (length, length / SPEED))
 
 
 # the spirit fox that runs round the Kitsune cue (designer, 2026-09-30: "a small kitsune model

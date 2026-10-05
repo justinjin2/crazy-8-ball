@@ -207,7 +207,9 @@ generic-runtime rule; the catalog rows stay untouched.
   the energy ribbons doubled and widened in the same blue, then (too much) cut to 32
   thin see-through threads hugging the cue like a barrier, then made mostly clear and kept
   inside the cue's length, doming over the butt. Gate 2 passed 2026-10-04 ("good enough").
-  Next: the Kitsune board (step 5).
+  Kitsune (step 5) first look 2026-10-04: nine tails and three foxfire orbs as real meshes
+  (the Beams and sprite orbiters gone), the cloud cut to a third, themed ends; board and clip
+  rendered. Waiting at gate 1.
 
 ## Decisions
 

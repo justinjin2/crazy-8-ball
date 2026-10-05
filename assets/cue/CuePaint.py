@@ -3200,6 +3200,30 @@ def kitsune(k):
     rubber(c, c.inside | True, '#0C0C0E')
     joint_seam(k)
     seam_edges(k, [F1, W0, W1])
+    # Themed ends (designer 2026-10-04, the Mythic rule): the collar is shrine-red torii
+    # lacquer between gold rims with a black crossbeam band, the ferrule a glowing foxfire band
+    # (pink pearl) between gold rims, the tip's side black lacquer.
+    for c, m in k.zone('joint'):
+        gloss(c, m, '#C8102E', rough=0.08)
+        c.put(m, None, glow=0.04)
+        for d in (J0 + 0.012, J1 - 0.012):
+            rim = band(c, d - 0.008, d + 0.008, soft=0.003) * m
+            metal(c, rim > 0.5, s['gold'], rough=0.2)
+            c.put(rim > 0.5, None, glow=0.0)
+        mid = band(c, (J0 + J1) / 2 - 0.018, (J0 + J1) / 2 + 0.018) * m
+        gloss(c, mid > 0.5, '#101014', rough=0.12)
+        c.put(mid > 0.5, None, glow=0.0)
+    e = k.ends()
+    tip = e.zone('tip')
+    gloss(e, tip, '#15121A', rough=0.12)
+    fer = e.zone('ferrule')
+    pearl(e, fer, '#F8CCF0', rough=0.14, seed=4, fire=0.6)
+    e.put(fer, None, glow=0.4)
+    T0, T1 = ZONES['ferrule']
+    for d in (T0 + 0.012, T1 - 0.012):
+        rim = band(e, d - 0.007, d + 0.007, soft=0.004) * fer
+        metal(e, rim > 0.5, s['gold'], rough=0.2)
+        e.put(rim > 0.5, None, glow=0.1)
 
 
 @recipe

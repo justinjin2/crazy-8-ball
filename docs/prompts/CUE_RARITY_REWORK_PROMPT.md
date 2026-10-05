@@ -207,7 +207,7 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   finisher kept as they were (designer: they were fine); no sound; cards unchanged.
 - [x] 4. Celestial Dragon: board, gate 1 (passed 2026-10-04 at the third look, "good enough");
   build (done 2026-10-04), gate 2 (passed 2026-10-04 at the sixth look, "good enough").
-- [ ] 5. Kitsune: board, gate 1; build, gate 2, polish.
+- [ ] 5. Kitsune: board, gate 1 (first look rendered 2026-10-04); build, gate 2, polish.
 - [ ] 6. Apex: board, gate 1; build, gate 2, polish.
 - [ ] 7. Reyes, Grandmaster, VIP.
 - [ ] 8. Legendaries (7): board sheet, gate; build; lineup gate.
@@ -382,3 +382,11 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   shield barrier. Done as the sixth look.
 - 2026-10-04 (designer, Dragon gate 2, sixth look): passes ("good enough"). The Dragon is
   done; on to the Kitsune.
+- 2026-10-04 (Kitsune, gate 1, first look): the nine tails are real swept meshes off the
+  mask's collar (pink ForceField bodies with white-pink Neon cores, two Sways each, Fade and
+  Glow, even tails hidden under Lower effects) in place of the nine Beams; the three sprite
+  orbiters are three foxfire orbs (Neon core, ForceField halo, a flame of light) riding a
+  double-spiral path tip to butt (a lap in 11 s) with Glow and Fade; the cloud cut to a third
+  (68 a second from 219: body 18 over a deeper violet, foxfire 12, petals 12, flares 8); the
+  running fox kept; themed ends (a torii-red lacquer collar with gold rims and a black band, a
+  glowing pink-pearl foxfire ferrule with gold rims, a black lacquer tip side).
