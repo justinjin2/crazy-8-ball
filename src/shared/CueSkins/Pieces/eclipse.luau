@@ -5,28 +5,28 @@
 return {
 	Id = "eclipse",
 	Frame = "cue",
-	Rigid = "126113204776439",
+	Rigid = "89593875944515",
 	Models = {},
 	Parts = {
 		{
-			Material = "ForceField",
-			Color = "#FFC830",
-			Transparency = 0.25,
+			Material = "Neon",
+			Color = "#FFE070",
+			Transparency = 0,
 			Reflectance = 0,
-			Name = "Sheath_Sheath",
-			Joint = "Sheath",
-			Offset = { 0, 0, -0.05 },
-			Size = { 0.92, 0.92, 7.3 },
+			Name = "Wires_Wire",
+			Joint = "Wires",
+			Offset = { 0, 0, -0.0248 },
+			Size = { 0.8279, 0.8275, 6.3739 },
 		},
 		{
 			Material = "Neon",
 			Color = "#FFE070",
-			Transparency = 0.72,
+			Transparency = 0,
 			Reflectance = 0,
-			Name = "SheathCore_SheathCore",
-			Joint = "SheathCore",
-			Offset = { 0, 0, -0.05 },
-			Size = { 0.6, 0.6, 7.3 },
+			Name = "Wires_Flare",
+			Joint = "Wires",
+			Offset = { 0, 0, -0.025 },
+			Size = { 0.8508, 0.89, 5.17 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -490,44 +490,23 @@ return {
 		},
 	},
 	Joints = {
-		Sheath = {
+		Wires = {
 			Parent = nil,
 			PivotRoblox = { 0, 0, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = 18,
+					Rate = 36,
 				},
 			},
 			Aura = true,
 			Visual = {
 				{
 					Kind = "Glow",
-					Min = 0.15,
-					Max = 0.55,
-					Period = 3.4,
-					Shape = "sine",
-				},
-			},
-		},
-		SheathCore = {
-			Parent = nil,
-			PivotRoblox = { 0, 0, 0 },
-			Motion = {
-				{
-					Kind = "Spin",
-					Axis = { 0, 1, 0 },
-					Rate = -26,
-				},
-			},
-			Aura = true,
-			Visual = {
-				{
-					Kind = "Glow",
-					Min = 0.55,
-					Max = 0.85,
-					Period = 2.6,
+					Min = 0,
+					Max = 0.45,
+					Period = 3.2,
 					Shape = "sine",
 				},
 			},

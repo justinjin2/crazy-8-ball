@@ -58,10 +58,10 @@ cues read as the richest in the game at about 70).
 | Uncommon | texture plus one glowing accent (a ring, inlay or band) with a slow emissive pulse | standard, recoloured to the theme | none | tinted wisp | plain gust, tinted | no | no |
 | Rare | texture, glow accents | standard, recoloured; a glowing band on the ferrule allowed | **the first aura**: a dark body plus one glow layer plus one themed accent (own sprite or oriented shapes), one orbiter at most; budget 25 | own colours and texture; a core from Rare up | none: the gust in its colours | no | no |
 | Epic | moving material (overlay beams, emissive pulse), richer theming | standard, recoloured and glowing to the theme | the Rare aura plus a second themed accent and a moving-light pass; budget 40 | unique trail with one ball-riding emitter | **some** (where the theme pays off at the pocket; today 5 of 9) | no (decision 2026-09-30 stands) | no |
-| Legendary | surface frames (moving painted detail), own sprites | **themed and glowing**: collar, ferrule and tip painted from the panels in the cue's motif (feathers, brass, scales, ice), emissive, never the standard set | an aura that is its own kind of effect (not the body-glow-motes recipe repainted), brighter than any Epic; one real mesh element (wings, halo, gears, crystals, tentacles) with three motions at three periods; budget 60 | unique, with two or three ball-riding emitters | **all**: a staged 1.5 to 2 s finisher, the piece or a creature rising | yes, on at least the butt | yes: a faint aura loop and a pocket sound (Roblox library placeholders for now) |
-| Mythic ("Mythical") | all of the above, more layering; the cue mesh **may deviate** from the base shape (a sword, a staff, a spine: creative liberty, no limits) | themed, glowing, and shaped (the ferrule can be a jaw, a crystal, a thruster) | a full set: body, glow, two accents, orbiters, moving light, a hero creature or construct that is the aura's centre and readable (nothing masking it); budget 80 | layered: texture plus core plus three emitters | staged with a 3D rise and a sound | yes, rigged or multi-joint, with visuals (Glow, Fade, life) | yes, aura loop and pocket sound |
+| Legendary | surface frames (moving painted detail), own sprites | **themed and glowing**: collar, ferrule and tip painted from the panels in the cue's motif (feathers, brass, scales, ice), emissive, never the standard set | an aura that is its own kind of effect (not the body-glow-motes recipe repainted), brighter than any Epic; one real mesh element (wings, halo, gears, crystals, tentacles) with three motions at three periods; budget 60 | unique, with two or three ball-riding emitters | **all**: a staged 1.5 to 2 s finisher, the piece or a creature rising | yes, on at least the butt | none (designer, 2026-10-04: no sounds, no placeholders) |
+| Mythic ("Mythical") | all of the above, more layering; the cue mesh **may deviate** from the base shape (a sword, a staff, a spine: creative liberty, no limits) | themed, glowing, and shaped (the ferrule can be a jaw, a crystal, a thruster) | a full set: body, glow, two accents, orbiters, moving light, a hero creature or construct that is the aura's centre and readable (nothing masking it); budget 80 | layered: texture plus core plus three emitters | staged with a 3D rise | yes, rigged or multi-joint, with visuals (Glow, Fade, life) | none |
 | Secret | everything Mythic, plus completely unique modelling, colours and techniques not used by any other cue | shaped and glowing; part of the modelling | **engulfing**: noticeably bigger than every other cue, around the cue and around the player carrying it (orbiting bodies, a field, a sky), still clear enough to read the cue; budget 120 | layered, with a pocket-sized event behind the ball | the biggest in the game, 2 s, a sky-sized rise | yes, several pieces along the whole cue, not one at the butt | yes |
-| Unique | the Legendary-to-Secret rules (Beta and Grand Opening already meet them) | themed | own tier, own kind | layered | staged with a rise and a sound | yes | yes |
+| Unique | the Legendary-to-Secret rules (Beta and Grand Opening already meet them) | themed | own tier, own kind | layered | staged with a rise | yes | the two existing ones keep their designer-supplied sounds; no new ones |
 
 Rules that cut across tiers:
 
@@ -94,11 +94,11 @@ outshine case cues of the same step.
 | Platinum | Rare | aura plus the ring |
 | Diamond | Epic | moving light, unique trail (today 17/s) |
 | Expert | Epic | finisher added |
-| Veteran | Legendary | themed collar, a mesh element, finisher, sound |
+| Veteran | Legendary | themed collar, a mesh element, finisher |
 | Master | Legendary | same, richer |
-| Grandmaster | Mythic | a construct (laurels and a crown that turn), shaped ferrule, sound |
+| Grandmaster | Mythic | a construct (laurels and a crown that turn), shaped ferrule |
 | Reyes | Secret-level | the summit: engulfing, unique modelling, the biggest finisher after Eclipse |
-| VIP (Exclusive) | Legendary, in gold | the crown finisher exists; themed collar, a mesh crown, sound |
+| VIP (Exclusive) | Legendary, in gold | the crown finisher exists; themed collar, a mesh crown |
 | Starter (Exclusive) | Uncommon | the ring; nothing more |
 
 The catalog's `Effect` fallbacks (Bronze to Gold "Uncommon", Platinum and Diamond "Rare", and
@@ -123,8 +123,7 @@ cards → next.
    "eclipsed" every few seconds. Engulfing: a wide orbit ring with two planets round the
    carrier when the cue is on the back (section 4). Surface: obsidian with gold corona
    crack-lines that glow and pulse 1.8 to 3 over 4 s; collar as a gold corona ring with a
-   black-sun disc; the ferrule a glowing gold ring, the tip obsidian with a gold rim. Sound:
-   a deep space hum. Budget 120 (down from 247, bigger and slower). The cue mesh stays the
+   black-sun disc; the ferrule a glowing gold ring, the tip obsidian with a gold rim. (No sound: designer, 2026-10-04.) Budget 120 (down from 247, bigger and slower). The cue mesh stays the
    base shape unless the designer wants a remodel (question 5).
 2. **Celestial Dragon (Mythic).** Diagnosis above. Rework: the dragon is the hero. Its
    body gets a slow Glow visual (period 4 s) on emissive vein lines and a scrolling energy
@@ -133,14 +132,13 @@ cards → next.
    whole life) in pale cyan-white into violet; stars at 8 a second, slow; mist to 18 a
    second, deep indigo; gold motes stay. Colours lifted: `#EAFBFF` cores, `#3FD6FF` main,
    `#1A1F7A` body, gold `#FFD27A`. Collar: gold dragon scales with a pearl; ferrule a glowing
-   pearl band; tip a pearl. The pocket head roar keeps, slower. Sound: a low spirit tone.
+   pearl band; tip a pearl. The pocket head roar keeps, slower. (No sound: designer, 2026-10-04.)
 3. **Kitsune (Mythic).** Nine tails as real swept meshes with Sway (today nine beams), the
    foxfire orbs as glowing spheres on orbit paths with Glow, the petal and body layers cut to
-   a third, shrine-red torii lacquer on the collar with gold, a fox-fire ferrule. Sound: a
-   soft bell.
+   a third, shrine-red torii lacquer on the collar with gold, a fox-fire ferrule. (No sound: designer, 2026-10-04.)
 4. **Apex (Mythic).** Not in the v2 pass. HUD rings as real ring meshes with Spin and
    Glitch, the thrusters as cone meshes with flame emitters, a data-stream beam, cyan-orange
-   plating on the collar (already glows), a thruster ferrule. Sound: a soft turbine.
+   plating on the collar (already glows), a thruster ferrule. (No sound: designer, 2026-10-04.)
 5. **Reyes, then Grandmaster and VIP** (Mythic, Legendary, Legendary rules).
 6. **The seven Legendaries**: themed collars for all; Thunderstrike gets its mesh element
    (a storm ring or a charged coil); each aura checked against "its own kind of effect", the
@@ -166,9 +164,10 @@ cards → next.
 - **Glowing veins on textured pieces** (the Dragon's body): Roblox has no per-part emissive
   strength, so the Glow visual lerps the part's colour and a thin Neon twin under the
   translucent shell carries the pulse. A kit option (`vein=`) builds the twin.
-- **Sounds** for Mythic and Secret (and Legendary if the designer says yes): the existing
-  `Aura.Sound` and `Pocket.Sound` rows; the sound files from the designer or a Roblox
-  library placeholder.
+- **Sounds**: none. The designer dropped them on 2026-10-04 (no imports, no placeholders;
+  the time goes into the models and effects). The two Unique cues keep the sounds the
+  designer supplied; the `Aura.Sound` and `Pocket.Sound` data kinds stay for the day the
+  designer brings a file.
 - **Budget check**: `tools/cue_skins_data.py` prints each skin's summed particle rate against
   its tier's ceiling and warns (the written `Budget` numbers are stale and go).
 
@@ -246,8 +245,13 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   core on the piece (`Sheath`, `SheathCore`, breathing and turning) and three sleeve sprite
   rows locked along the whole stick (`SunSleeve`, `SunSleeveCore`, `SunSleeveCorona`).
   Budget about 101 particles a second. Piece re-uploaded, the template rebuilt in the lane
-  window; captures `eclipse-studio-{back,stand,far}.jpg` (the carrier captures removed);
+  window; captures `eclipse-studio-{back,stand,close,far}.jpg` (the carrier captures removed);
   the clip re-rendered.
+- 2026-10-04 (gate 2, fourth look): the sheath covered the paint: replaced by two thin gold
+  Neon wires spiralling round the stick at 0.4 studs with beads, turning, and the three halo
+  rows now sit on the cue axis and draw behind the cue (ZOffset -0.55 to -0.75), so only the
+  glow round the edges shows. The two sound placeholders removed. Budget about 98 particles
+  a second. Piece re-uploaded, the template rebuilt, the clip re-rendered.
 
 ## Decisions
 
@@ -283,3 +287,10 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   and move the glowing ring onto the cue so the cue itself has a very bright shining aura
   that masks and wraps it, not a ring moved down. Built as the sheath and sleeve above. The
   newer request beats the older: Eclipse no longer has anything on the player.
+- 2026-10-04 (designer, Eclipse gate 2, third look): the blazing wrap covered the texture;
+  the blaze must be meticulously placed to surround the cue, never over it. Built as two
+  thin gold wires spiralling round the stick at a distance and halo sprites drawn behind
+  the cue (a negative ZOffset), so the paint stays in front.
+- 2026-10-04 (designer): no sound effects. The Eclipse placeholders are removed, and no cue
+  gets a sound from now on: no library imports, no placeholders; the time goes into the
+  models and effects. (Replaces the "placeholders now" answer of the same day.)

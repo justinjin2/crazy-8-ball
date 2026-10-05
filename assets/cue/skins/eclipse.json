@@ -11,7 +11,7 @@
   "#C9CDD4"
  ],
  "painter": "mix",
- "note": "Black obsidian veined with molten gold: OpenAI panels on the whole cue (obsidian twisted with black-chrome ribbons and a molten-gold line, a forearm veined with gold, an engraved grip with gold cracks, a sleeve with gold bands); the collar is obsidian split by glowing cracks between gold bands, the tip's side obsidian with molten cracks, the ferrule a gold corona ring round a black-sun band (themed ends). The 3D piece: a black sun past the butt in a cup of obsidian and gold, two rings of corona spikes turning round it with flare rings, breathing; a moon; four orbit rings along the cue carrying four planets (gold, a ringed ember, ice, violet), two great orbits, twelve asteroids tumbling, and an eclipse-shadow ring that sweeps the cue every five seconds. The aura is a star system, not a cloud: a dark nebula, a far and a near star field, gold dust, a comet now and then, sparks and slow prominences at the sun. The whole cue is wrapped in a blazing gold sheath: a ForceField capsule with a Neon core on the piece, and sleeve sprites locked along the stick, so the Secret shines from across the lobby (designer, 2026-10-04: the glow that first floated over the carrying player's head now masks and wraps the cue).",
+ "note": "Black obsidian veined with molten gold: OpenAI panels on the whole cue (obsidian twisted with black-chrome ribbons and a molten-gold line, a forearm veined with gold, an engraved grip with gold cracks, a sleeve with gold bands); the collar is obsidian split by glowing cracks between gold bands, the tip's side obsidian with molten cracks, the ferrule a gold corona ring round a black-sun band (themed ends). The 3D piece: a black sun past the butt in a cup of obsidian and gold, two rings of corona spikes turning round it with flare rings, breathing; a moon; four orbit rings along the cue carrying four planets (gold, a ringed ember, ice, violet), two great orbits, twelve asteroids tumbling, and an eclipse-shadow ring that sweeps the cue every five seconds. The aura is a star system, not a cloud: a dark nebula, a far and a near star field, gold dust, a comet now and then, sparks and slow prominences at the sun. A blazing gold halo surrounds the cue without covering it: two thin Neon wires spiral round the stick at a distance with beads riding them, and halo sprites on the axis draw behind the cue so the obsidian and gold paint stay in view and only the glow shows round the edges (designer, 2026-10-04: the glow that first floated over the carrying player's head surrounds the cue, meticulously, never over the texture).",
  "ai": {
   "shaft_tile": {
    "refs": [
@@ -775,17 +775,17 @@
      "Note": "the soft gold glow round the corona Tuned in the lobby 2026-10-04: drawn behind the black disc (a negative ZOffset) so the hole stays black from every side; fewer, dimmer sprites so the halo does not wash out."
     },
     {
-     "Name": "SunSleeve",
+     "Name": "SunHalo",
      "Texture": "vfx/_shared/glow_soft.png",
      "Host": {
       "Kind": "Part",
       "FromStuds": 0.2,
       "ToStuds": 7.05,
-      "Width": 0.5
+      "Width": 0.08
      },
      "LightInfluence": 0,
      "LockedToPart": true,
-     "Rate": 14,
+     "Rate": 12,
      "Lifetime": [
       1.4,
       2.0
@@ -794,15 +794,15 @@
      "Size": [
       [
        0,
-       1.5
+       1.2
       ],
       [
        0.5,
-       2.1
+       1.7
       ],
       [
        1,
-       1.7
+       1.4
       ]
      ],
      "Transparency": [
@@ -812,11 +812,11 @@
       ],
       [
        0.25,
-       0.45
+       0.4
       ],
       [
        0.75,
-       0.5
+       0.45
       ],
       [
        1,
@@ -834,18 +834,18 @@
       ]
      ],
      "LightEmission": 1,
-     "Brightness": 2.2,
-     "ZOffset": -0.2,
-     "Note": "the blazing sleeve (designer, 2026-10-04: the glow that sat over the carrier's head wraps the cue): soft gold glow sprites locked along the whole stick, a continuous bright wrap"
+     "Brightness": 1.8,
+     "ZOffset": -0.75,
+     "Note": "the blazing halo (designer, 2026-10-04: the glow surrounds the cue, never over its skin): soft gold glow sprites on the cue axis drawn behind the cue (ZOffset), so the paint masks their middle and only the halo shows round the edges"
     },
     {
-     "Name": "SunSleeveCore",
+     "Name": "SunRim",
      "Texture": "vfx/_shared/glow_soft.png",
      "Host": {
       "Kind": "Part",
       "FromStuds": 0.2,
       "ToStuds": 7.05,
-      "Width": 0.3
+      "Width": 0.06
      },
      "LightInfluence": 0,
      "LockedToPart": true,
@@ -862,11 +862,11 @@
       ],
       [
        0.5,
-       1.1
+       0.95
       ],
       [
        1,
-       0.9
+       0.8
       ]
      ],
      "Transparency": [
@@ -898,22 +898,22 @@
       ]
      ],
      "LightEmission": 1,
-     "Brightness": 4.0,
-     "ZOffset": 0,
-     "Note": "the sleeve's white-gold core, hot against the obsidian"
+     "Brightness": 2.6,
+     "ZOffset": -0.55,
+     "Note": "a tighter white-gold rim right round the outline, behind the cue too"
     },
     {
-     "Name": "SunSleeveCorona",
+     "Name": "SunCoronaWrap",
      "Texture": "vfx/eclipse/corona.png",
      "Host": {
       "Kind": "Part",
       "FromStuds": 0.2,
       "ToStuds": 7.05,
-      "Width": 0.4
+      "Width": 0.08
      },
      "LightInfluence": 0,
      "LockedToPart": true,
-     "Rate": 4,
+     "Rate": 3,
      "Lifetime": [
       1.0,
       1.5
@@ -962,9 +962,9 @@
       ]
      ],
      "LightEmission": 1,
-     "Brightness": 3,
-     "ZOffset": 0,
-     "Note": "corona sprites turning along the stick: the spiky blaze of the butt's eclipse, now round the whole cue",
+     "Brightness": 2.5,
+     "ZOffset": -0.65,
+     "Note": "corona sprites turning along the stick, behind it: the butt eclipse's spiky blaze peeking out round the whole cue",
      "Rotation": [
       0,
       360
@@ -1115,13 +1115,7 @@
      }
     }
    ],
-   "Outline": "#FFB21E",
-   "Sound": {
-    "Asset": "rbxassetid://9116386092",
-    "Volume": 0.12,
-    "Looped": true,
-    "Note": "placeholder (Roblox library, Pro Sound Effects \"Magic Force Field Constant 1\"): a slow pulsing hum; swap when the designer supplies one"
-   }
+   "Outline": "#FFB21E"
   },
   "Style": {
    "Trail": {
@@ -1881,19 +1875,14 @@
     ],
     "Brightness": 12,
     "Seconds": 0.4
-   },
-   "Sound": {
-    "Asset": "rbxassetid://9125484367",
-    "Volume": 0.6,
-    "Note": "placeholder (Roblox library, Pro Sound Effects \"Deep Hits Big Reverberant Booms 2\"): the eclipse swallowing the ball"
    }
   },
   "Budget": {
-   "ParticlesPerSecond": 101.1,
+   "ParticlesPerSecond": 98.1,
    "Beams": 1,
    "Lights": 1,
    "Orbiters": 2,
-   "Note": "The 2026-10-04 rework; the blazing sleeve wraps the cue (no carrier rows)."
+   "Note": "The 2026-10-04 rework; the halo rows draw behind the cue (no carrier rows)."
   }
  },
  "shape": 3

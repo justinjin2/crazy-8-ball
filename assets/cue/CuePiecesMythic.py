@@ -1154,25 +1154,37 @@ def eclipse(k):
     k.material('Void', 'Neon', '#000000')          # unlit flat black: a hole in space, not a ball (designer, 2026-10-04)
     k.material('Flare', 'Neon', '#FFE070')
     k.material('Moon', 'SmoothPlastic', '#B9BEC6', Reflectance=0.12)
-    k.material('Sheath', 'ForceField', '#FFC830', Transparency=0.25)
-    k.material('SheathCore', 'Neon', '#FFE070', Transparency=0.72)
+    k.material('Wire', 'Neon', '#FFE070')
 
     U0 = 7.0
 
-    # The blazing sheath (designer, 2026-10-04, gate 2: the bright glow that sat over the
-    # carrying player's head now wraps the cue itself): a ForceField capsule round the whole
-    # stick, tip to butt, with a see-through Neon core inside it, both breathing and turning so
-    # the shimmer moves; the skin's sleeve sprites ride the same length. Aura joints: gone in
-    # the hands and while quiet.
-    for nm, mat, rr, rate, lo, hi, period in (('Sheath', 'Sheath', 0.46, 18.0, 0.15, 0.55, 3.4),
-                                               ('SheathCore', 'SheathCore', 0.3, -26.0, 0.55, 0.85, 2.6)):
-        k.joint(nm, pivot=(0, -3.5, 0), aura=True,
-                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate}],
-                visual=[{'Kind': 'Glow', 'Min': lo, 'Max': hi, 'Period': period, 'Shape': 'sine'}])
-        prof = [(-0.1, 0.0), (0.0, rr * 0.55), (0.12, rr * 0.85), (0.3, rr), (6.7, rr), (6.95, rr * 0.85), (7.1, rr * 0.55), (7.2, 0.0)]
+    # The solar wires (designer, 2026-10-04, gate 2: the blaze surrounds the cue, never sits on
+    # its skin): two thin gold Neon helices spiralling round the whole stick at a distance,
+    # turning about it, with small beads riding them; the paint stays in full view between
+    # the wires. The skin's halo sprites draw behind the cue (a negative ZOffset) for the
+    # same reason. Aura joints: gone in the hands and while quiet.
+    k.joint('Wires', pivot=(0, -3.5, 0), aura=True,
+            motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': 36.0}],
+            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.45, 'Period': 3.2, 'Shape': 'sine'}])
+    RW, TURNS, N = 0.4, 4.5, 260
+    for h in range(2):
+        pts = []
+        for i in range(N + 1):
+            f = i / N
+            u = 0.35 + f * 6.35
+            a = 2 * math.pi * (TURNS * f + h / 2)
+            pts.append((RW * math.cos(a), -u, RW * math.sin(a)))
         bm = bmesh.new()
-        sweep(bm, [(0, -u, 0) for u, _ in prof], [max(r, 0.004) for _, r in prof], segs=28)
-        k.add(nm, k.mesh_object('Eclipse' + nm, bm, [mat]))
+        sweep(bm, pts, [0.014] * len(pts), segs=6)
+        k.add('Wires', k.mesh_object('EclipseWire%d' % (h + 1), bm, ['Wire']))
+        bm = bmesh.new()
+        for j in range(5):
+            f = (j + 0.5) / 5
+            u = 0.35 + f * 6.35
+            a = 2 * math.pi * (TURNS * f + h / 2)
+            bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=6, radius=0.045,
+                                      matrix=Matrix.Translation(Vector((RW * math.cos(a), -u, RW * math.sin(a)))))
+        k.add('Wires', k.mesh_object('EclipseBeads%d' % (h + 1), bm, ['Flare']))
     RS, UC = 0.36, 0.56                         # the sphere's radius and centre past the butt (0.28 until the
                                                 # 2026-09-30 space rework: a bigger, bolder eclipse)
 

@@ -192,6 +192,9 @@ generic-runtime rule; the catalog rows stay untouched.
   head-height lift); the bright glow wraps the cue instead (a ForceField sheath with a Neon
   core on the piece, sleeve sprites along the stick). Piece re-uploaded, template rebuilt in
   the lane window, clip re-rendered. Waiting at gate 2.
+- 2026-10-04: gate 2, fourth look: the sheath hid the paint; now two thin gold wires spiral
+  round the cue and the halo sprites draw behind it. The designer dropped sounds for good
+  (no imports, no placeholders): Eclipse's two removed. Waiting at gate 2.
 
 ## Decisions
 
