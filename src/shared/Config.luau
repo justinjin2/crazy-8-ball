@@ -4165,13 +4165,16 @@ Config.Audio = {
 		ReelSettle = { Id = "rbxassetid://15675046931", Volume = 0.3 },
 		-- "Roblox_UI_Whoosh_03" (Roblox, 1.1 s): the longer build-up before a Mythic or Secret.
 		ReelBuild = { Id = "rbxassetid://15674975792", Volume = 0.35 },
-		-- Designer-confirmed orchestral stings: 403299 Common/Uncommon, 403300 Rare/Epic,
-		-- 403298 Legendary/Mythic/Secret; assets/audio/luckyblocks/README.md.
-		RevealLow = { Id = "rbxassetid://126239656683349", Volume = 0.3 },
-		RevealRare = { Id = "rbxassetid://101099108525458", Volume = 0.28 },
-		RevealEpic = { Id = "rbxassetid://101099108525458", Volume = 0.31 },
-		RevealLegendary = { Id = "rbxassetid://83442240487773", Volume = 0.28 },
-		RevealMythic = { Id = "rbxassetid://83442240487773", Volume = 0.3 },
+		-- TRIAL (designer, 2026-10-04): every rarity plays 4612378086 while the designer
+		-- tries it. To go back, restore the orchestral stings: RevealLow 126239656683349
+		-- (0.3), RevealRare 101099108525458 (0.28), RevealEpic 101099108525458 (0.31),
+		-- RevealLegendary 83442240487773 (0.28), RevealMythic 83442240487773 (0.3);
+		-- assets/audio/luckyblocks/README.md.
+		RevealLow = { Id = "rbxassetid://4612378086", Volume = 0.3 },
+		RevealRare = { Id = "rbxassetid://4612378086", Volume = 0.3 },
+		RevealEpic = { Id = "rbxassetid://4612378086", Volume = 0.3 },
+		RevealLegendary = { Id = "rbxassetid://4612378086", Volume = 0.3 },
+		RevealMythic = { Id = "rbxassetid://4612378086", Volume = 0.3 },
 		-- The Secret pull's heartbeat and shockwave (GUI lane, 2026-10-03; licensed library
 		-- sounds: APM "Heart Beat", Pro Sound Effects "Thruster Blast 8").
 		Heartbeat = { Id = "rbxassetid://1839088414", Volume = 0.15, Overlap = true },
