@@ -1,0 +1,23 @@
+{
+  "name": "spirit_fox_head",
+  "endpoint": "image-to-3d",
+  "task_id": "01a10a70-8994-720f-b2c6-b455b31f8fe0",
+  "status": "SUCCEEDED",
+  "credits": 35,
+  "params": {
+    "ai_model": "latest",
+    "should_texture": true,
+    "enable_pbr": true,
+    "geometry_resolution": "2k",
+    "target_formats": [
+      "glb"
+    ],
+    "texture_resolution": "2k",
+    "texture_prompt": "A spirit fox head made of glowing violet and magenta flame energy, flowing flame-like fur streaks, white-hot glowing eyes, bright pink-white inner glow along the mane, smooth luminous surface, no fur strands, no gold.",
+    "images": [
+      "assets/cue/models/refs/spirit_fox_head.png"
+    ]
+  },
+  "finished_at": 1791176601989,
+  "task_error": null
+}

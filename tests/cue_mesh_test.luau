@@ -1,16 +1,19 @@
 --!strict
 -- The cue skins' catalog hook-up (CueSkins data, CueStickBuilder's mesh path): every cue but
--- the Unique ones (not built yet) has a skin, every skin is a catalog cue, and every asset a
--- skin names is filled in.
+-- the Unique ones still to be built has a skin, every skin is a catalog cue, and every asset
+-- a skin names is filled in.
 
 local H = require("./harness")
 
 return {
-	["every block, rank and Exclusive cue and Classic has a skin; the Unique cues do not yet"] = function()
+	["every block, rank and Exclusive cue and Classic has a skin; a Unique cue may still be unbuilt"] = function()
 		local Catalog = H.require("Progression.Catalog")
 		local CueSkins = H.require("CueSkins")
+		-- The Unique cues are built one at a time (the Beta Cue first, 2026-10-04); a Unique
+		-- cue without a skin keeps its placeholder bands.
+		local built = { BetaCue = true, GrandOpeningCue = true }
 		for _, cue in Catalog.list() do
-			if cue.Group == "Unique" then
+			if cue.Group == "Unique" and not built[cue.Id] then
 				H.expect(
 					not CueSkins.has(cue.Id),
 					cue.Id .. ": a Unique cue's skin is not built yet"

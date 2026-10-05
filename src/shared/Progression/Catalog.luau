@@ -109,7 +109,9 @@ local function specialCue(id: string, group: string, effect: string, look: Look)
 		Blocks = {},
 		Vaulted = false,
 		Effect = effect,
-		Look = look,
+		-- A Unique cue keeps its placeholder bands until its skin is built; once the Index has
+		-- the skin, the power-bar cue takes the skin's colours (designer, 2026-10-04).
+		Look = if SkinIndex[id] then SkinIndex[id].Look else look,
 	}
 end
 

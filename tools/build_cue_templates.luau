@@ -72,6 +72,10 @@ local function surfaceAppearance(maps, surface)
 	if surface.Color then
 		sa.Color = color(surface.Color)
 	end
+	-- A hologram (the Unique cues, 2026-10-04): the colour map's alpha is the transparency.
+	if surface.AlphaMode then
+		sa.AlphaMode = (Enum.AlphaMode :: any)[surface.AlphaMode]
+	end
 	return sa
 end
 
@@ -168,6 +172,9 @@ for _, id in CueSkins.ids() do
 	local row = CueSkins.get(id)
 	if row.Piece then
 		pieceIds[row.Piece] = true
+	end
+	if row.Carrier then
+		pieceIds[row.Carrier] = true -- the piece worn by the carrying player (a Secret's engulfing aura)
 	end
 	if row.Pocket and row.Pocket.Piece then
 		pieceIds[row.Pocket.Piece.Piece] = true

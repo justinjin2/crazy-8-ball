@@ -165,6 +165,18 @@ local function attach(c: Carried): boolean
 	local tilt = B.TiltDegrees + (if c.seated then B.SeatedExtraTiltDegrees else 0)
 	local grip = gripFor(c.character, c.torso, attachment, tilt)
 	c.cueId = CueStickBuilder.equippedCue(c.player)
+	-- The carrier, for the look's Carrier piece and hosts (CueSkinLook), set before the paint
+	-- so one rebuild sees both.
+	local found = c.stick:FindFirstChild("Carrier")
+	local carrier: ObjectValue
+	if found and found:IsA("ObjectValue") then
+		carrier = found
+	else
+		carrier = Instance.new("ObjectValue")
+		carrier.Name = "Carrier"
+		carrier.Parent = c.stick
+	end
+	carrier.Value = c.character
 	CueStickBuilder.paint(c.stick, c.cueId)
 	c.stick:PivotTo(c.torso.CFrame * tipInTorso(attachment, grip, tilt))
 	for _, d in c.stick:GetDescendants() do
@@ -193,6 +205,10 @@ local function detach(c: Carried)
 		weld:Destroy()
 	end
 	table.clear(c.welds)
+	local carrier = c.stick:FindFirstChild("Carrier")
+	if carrier and carrier:IsA("ObjectValue") then
+		carrier.Value = nil
+	end
 	CueStickBuilder.setVisible(c.stick, false)
 	c.stick.WorldPivot = PARKED
 	CueStickBuilder.relayout(c.stick)

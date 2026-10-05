@@ -18,6 +18,9 @@
 -- from the template (the importer turns bones too: the dragon's top bone is half a turn
 -- about Y, and assuming square bones threw its body past the butt).
 -- Joints marked Aura (the dragon, the running fox) hide with the aura.
+-- A joint's Visual rows (Fade, Blink, Glow, Type) are looks applied every step: the first
+-- three on the joint's rigid parts, Type as a typing SurfaceGui riding the joint (the Beta
+-- Cue's blueprint panels), Config.CueSkins.Typing holding the shared numbers.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -25,6 +28,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local CueSkins = require(Shared:WaitForChild("CueSkins"))
 local Motion = require(Shared:WaitForChild("CueSkins"):WaitForChild("Motion"))
+local Quality = require(script.Parent:WaitForChild("Quality"))
 
 local CuePiece = {}
 CuePiece.__index = CuePiece
@@ -32,7 +36,15 @@ CuePiece.__index = CuePiece
 -- The importer's half turn about Y (its own inverse).
 local FLIP = CFrame.Angles(0, math.pi, 0)
 
-type Rigid = { part: BasePart, weld: Weld, joint: string, offset: CFrame, base: number }
+type Rigid = {
+	part: BasePart,
+	weld: Weld,
+	joint: string,
+	offset: CFrame,
+	base: number,
+	color: Color3, -- as dressed, for Glow visuals
+	visuals: { any }, -- the joint's Visual rows (Fade, Blink, Glow), empty for most
+}
 type Skinned = {
 	model: Model,
 	parts: { BasePart },
@@ -40,6 +52,18 @@ type Skinned = {
 	bones: { { bone: Bone, joint: string, parent: string?, rest: CFrame } },
 }
 type Rider = { part: BasePart, weld: Weld, joint: string, rest: CFrame }
+-- A Type visual's typing panel: a SurfaceGui riding its joint (a Rider), one label per row.
+type Typer = {
+	gui: SurfaceGui,
+	labels: { TextLabel },
+	joint: string,
+	row: any,
+	visuals: { any },
+	text: { string }, -- the rows' full gibberish, redrawn each life
+	cycle: number, -- the life the text was drawn for
+	typed: number, -- glyphs shown last step
+	hidden: boolean, -- aura hidden or camera-faded
+}
 
 export type CuePiece = typeof(setmetatable(
 	{} :: {
@@ -49,13 +73,108 @@ export type CuePiece = typeof(setmetatable(
 		rigid: { Rigid },
 		skinned: { Skinned },
 		riders: { Rider },
+		typers: { Typer },
 		auraJoints: { [string]: boolean },
+		lowJoints: { [string]: boolean }, -- joints (and their children) gone under Lower effects
 		auraShown: boolean,
+		low: boolean, -- Lower effects is on
+		qualityConnection: RBXScriptConnection?,
 		scale: number,
+		lift: CFrame, -- the whole piece raised on its root (a Carrier piece to the body's head)
+		fade: number,
 		pose: { [string]: Motion.Xf },
 	},
 	CuePiece
 ))
+
+local WHITE = Color3.new(1, 1, 1)
+local T = Config.CueSkins.Typing
+local rng = Random.new()
+
+-- Fresh gibberish for a typing panel: `cols` glyphs a row, tokens of TokenMin..TokenMax
+-- glyphs from the Typing alphabet, split by spaces. Never words.
+local function gibberish(rows: number, cols: number): { string }
+	local out = {}
+	local glyphs = T.Glyphs
+	for _ = 1, rows do
+		local line = {}
+		local n = 0
+		while n < cols do
+			local len = math.min(rng:NextInteger(T.TokenMin, T.TokenMax), cols - n)
+			for _ = 1, len do
+				local i = rng:NextInteger(1, #glyphs)
+				table.insert(line, glyphs:sub(i, i))
+			end
+			table.insert(line, " ")
+			n += len + 1
+		end
+		table.insert(out, table.concat(line))
+	end
+	return out
+end
+
+-- A Type visual's rider part and gui: a thin part the size of the panel (Size [w, h] studs)
+-- at Frame (Origin, Right, Up in the Blender cue frame, turned to Roblox), its Front face
+-- carrying Rows labels.
+local function buildTyper(row: any, zoff: number): (BasePart, CFrame, Typer)
+	local f = row.Frame
+	local o = Motion.toRoblox(f.Origin)
+	local right = Motion.toRoblox(f.Right)
+	local up = Motion.toRoblox(f.Up)
+	local vx = Vector3.new(right[1], right[2], right[3])
+	local vy = Vector3.new(up[1], up[2], up[3])
+	local rest = CFrame.fromMatrix(Vector3.new(o[1], o[2], o[3] + zoff), vx, vy, vx:Cross(vy))
+	local part = Instance.new("Part")
+	part.Name = "Typer"
+	part.Size = Vector3.new(row.Size[1], row.Size[2], 0.01)
+	part.Transparency = 1
+	part.CastShadow = false
+	local gui = Instance.new("SurfaceGui")
+	gui.Name = "Typing"
+	gui.Face = Enum.NormalId.Front
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = T.PixelsPerStud
+	gui.LightInfluence = 0
+	gui.Brightness = T.Brightness
+	gui.AlwaysOnTop = false
+	gui.ResetOnSpawn = false
+	local area = row.Area or { 0.05, 0.1, 0.95, 0.9 }
+	local rows = row.Rows or 4
+	local pitch = (area[4] - area[2]) / rows
+	local color = Color3.fromHex(row.Color or "#9FD0FF")
+	local labels = {}
+	for i = 1, rows do
+		local label = Instance.new("TextLabel")
+		label.Name = "Row" .. i
+		label.BackgroundTransparency = 1
+		label.BorderSizePixel = 0
+		label.Position = UDim2.fromScale(area[1], area[2] + (i - 1) * pitch)
+		label.Size = UDim2.fromScale(area[3] - area[1], pitch)
+		label.Font = (Enum.Font :: any)[T.Font] or Enum.Font.Code
+		label.TextSize = math.max(8, row.Size[2] * T.PixelsPerStud * pitch / T.LineHeight)
+		label.TextColor3 = color
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.TextYAlignment = Enum.TextYAlignment.Center
+		label.TextTransparency = 1
+		label.Text = ""
+		label.Parent = gui
+		table.insert(labels, label)
+	end
+	gui.Parent = part
+	return part,
+		rest,
+		{
+			gui = gui,
+			labels = labels,
+			joint = "",
+			row = row,
+			visuals = {},
+			text = {},
+			cycle = -1,
+			typed = -1,
+			hidden = false,
+		}
+end
 
 local function cframe(x: Motion.Xf, scale: number?): CFrame
 	local R, P = x.R, x.P
@@ -98,7 +217,8 @@ end
 
 --- Build piece `id` welded to `root` (its frame: the cue mesh for a cue piece, the pocket
 --- root for a pocket piece), in `parent`. Nil when the row or the template is missing.
-function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
+--- `lift`: studs the whole piece is raised on its root (a Carrier piece lifted to the body's head).
+function CuePiece.new(id: string, root: BasePart, parent: Instance, lift: number?): CuePiece?
 	local row = CueSkins.piece(id)
 	local source = template(id)
 	if row == nil or source == nil then
@@ -108,9 +228,11 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
 	model.Name = "Piece_" .. id
 	local rig = Motion.rig(row)
 	local auraJoints: { [string]: boolean } = {}
+	local lowJoints: { [string]: boolean } = {}
 	for _, name in rig.order do
 		local j = rig.joints[name]
 		auraJoints[name] = j.aura or (j.parent ~= nil and auraJoints[j.parent] == true)
+		lowJoints[name] = j.low == "hide" or (j.parent ~= nil and lowJoints[j.parent] == true)
 	end
 	local rigid: { Rigid } = {}
 	local skinned: { Skinned } = {}
@@ -177,12 +299,15 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
 				weld.Parent = part
 				part.Parent = model
 				local o = p.Offset
+				local joint = rig.joints[p.Joint]
 				table.insert(rigid, {
 					part = part,
 					weld = weld,
 					joint = p.Joint,
 					offset = CFrame.new(o[1], o[2], o[3]) * FLIP,
 					base = part.Transparency,
+					color = part.Color,
+					visuals = if joint then joint.visuals else {},
 				})
 			end
 		end
@@ -195,13 +320,44 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
 		rigid = rigid,
 		skinned = skinned,
 		riders = {},
+		typers = {},
 		auraJoints = auraJoints,
+		lowJoints = lowJoints,
 		auraShown = true,
+		low = Quality.isLow(),
+		qualityConnection = nil :: RBXScriptConnection?,
 		scale = 1,
+		lift = CFrame.new(0, lift or 0, 0),
+		fade = 0,
 		pose = {},
 	}, CuePiece)
+	-- Typing panels: one rider per Type visual.
+	for _, name in rig.order do
+		local j = rig.joints[name]
+		for _, v in j.visuals do
+			if v.Kind == "Type" then
+				local part, rest, typer = buildTyper(v, rig.zoff)
+				typer.joint = name
+				typer.visuals = j.visuals
+				part.Parent = model
+				self:ride(part, name, rest, root)
+				table.insert(self.typers, typer)
+			end
+		end
+	end
 	self:step(0)
+	self:applyHidden()
+	self.qualityConnection = Quality.Changed:Connect(function(on: boolean)
+		self.low = on
+		self:applyHidden()
+	end)
 	return self
+end
+
+--- Whether a joint is hidden now: its aura is off, or Lower effects took it.
+function CuePiece.hidden(self: CuePiece, joint: string): boolean
+	return (not self.auraShown and self.auraJoints[joint] == true)
+		or (self.low and self.lowJoints[joint] == true)
 end
 
 --- Weld `part` to ride joint `joint` (its rest place `rest` in the piece's frame): an
@@ -214,12 +370,89 @@ function CuePiece.ride(self: CuePiece, part: BasePart, joint: string, rest: CFra
 	weld.Parent = part
 	table.insert(self.riders, { part = part, weld = weld, joint = joint, rest = rest })
 	local x = self.pose[joint]
-	weld.C0 = (if x then cframe(x, self.scale) else CFrame.identity) * rest
+	weld.C0 = self.lift * (if x then cframe(x, self.scale) else CFrame.identity) * rest
 end
 
 --- Whether a joint (or one of its parents) is aura.
 function CuePiece.isAura(self: CuePiece, joint: string): boolean
 	return self.auraJoints[joint] == true
+end
+
+-- A joint's Visual rows at time t on one rigid part: Fade (visible share by an effect wave,
+-- 1 as built), Blink (gone on alternate sub-steps of a short window once a period) and Glow
+-- (the colour pushed toward white, or the row's Color, by an effect wave). The part's
+-- Transparency composes the share with its dressed base and the piece's fade.
+local function applyVisuals(r: Rigid, t: number, fade: number)
+	local shown = 1
+	local glow = 0
+	local glowTo: Color3? = nil
+	for _, v in r.visuals do
+		local kind = v.Kind
+		if kind == "Fade" then
+			shown *= Motion.vfxWave(t, v)
+		elseif kind == "Blink" then
+			if Motion.blinkGone(t, v) then
+				shown = 0
+			end
+		elseif kind == "Glow" then
+			local k = Motion.vfxWave(t, v)
+			if k > glow then
+				glow = k
+				glowTo = if v.Color then Color3.fromHex(v.Color) else nil
+			end
+		end
+	end
+	r.part.Transparency = 1 - (1 - r.base) * (1 - fade) * shown
+	r.part.Color = r.color:Lerp(glowTo or WHITE, math.clamp(glow, 0, 1))
+end
+
+-- The visible share a joint's Fade and Blink rows give at time t (1 with none).
+local function shownShare(visuals: { any }, t: number): number
+	local shown = 1
+	for _, v in visuals do
+		if v.Kind == "Fade" then
+			shown *= Motion.vfxWave(t, v)
+		elseif v.Kind == "Blink" and Motion.blinkGone(t, v) then
+			shown = 0
+		end
+	end
+	return shown
+end
+
+-- Type a panel at time t: the life (Period, Phase as a share) is the clock; new gibberish
+-- each life, Rate glyphs a second from Delay seconds in, row by row, a blinking cursor at
+-- the end; the rows fade with the joint's Fade/Blink share.
+local function stepTyper(ty: Typer, t: number, fade: number)
+	local row = ty.row
+	local period = row.Period or 8
+	local u = (t / period + (row.Phase or 0)) % 1
+	local cycle = math.floor(t / period + (row.Phase or 0))
+	local rows = #ty.labels
+	local cols = row.Cols or 18
+	if cycle ~= ty.cycle then
+		ty.cycle = cycle
+		ty.text = gibberish(rows, cols)
+		ty.typed = -1
+	end
+	local typed =
+		math.clamp(math.floor((u * period - (row.Delay or 0.3)) * (row.Rate or 30)), 0, rows * cols)
+	local cursorOn = (t % T.CursorPeriod) < T.CursorPeriod / 2
+	local key = typed * 2 + (if cursorOn then 1 else 0)
+	if key ~= ty.typed then
+		ty.typed = key
+		local left = typed
+		for i, label in ty.labels do
+			local line = ty.text[i] or ""
+			local n = math.clamp(left, 0, #line)
+			left -= #line
+			local cursor = if left < 0 and cursorOn then T.CursorGlyph else ""
+			label.Text = line:sub(1, n) .. cursor
+		end
+	end
+	local alpha = 1 - (1 - fade) * shownShare(ty.visuals, t)
+	for _, label in ty.labels do
+		label.TextTransparency = alpha
+	end
 end
 
 --- Move every joint to time `t` (seconds on the piece's clock).
@@ -228,19 +461,27 @@ function CuePiece.step(self: CuePiece, t: number)
 	self.pose = pose
 	local s = self.scale
 	for _, r in self.rigid do
-		if self.auraShown or not self.auraJoints[r.joint] then
+		if not self:hidden(r.joint) then
 			local x = pose[r.joint]
 			local offset = if s == 1 then r.offset else CFrame.new(r.offset.Position * s) * FLIP
-			r.weld.C0 = (if x then cframe(x, s) else CFrame.identity) * offset
+			r.weld.C0 = self.lift * (if x then cframe(x, s) else CFrame.identity) * offset
+		end
+		if #r.visuals > 0 then
+			applyVisuals(r, t, self.fade)
 		end
 	end
 	for _, r in self.riders do
 		local x = pose[r.joint]
-		r.weld.C0 = (if x then cframe(x, s) else CFrame.identity) * r.rest
+		r.weld.C0 = self.lift * (if x then cframe(x, s) else CFrame.identity) * r.rest
+	end
+	for _, ty in self.typers do
+		if not ty.hidden then
+			stepTyper(ty, t, self.fade)
+		end
 	end
 	for _, sk in self.skinned do
 		for _, b in sk.bones do
-			if self.auraShown or not self.auraJoints[b.joint] then
+			if not self:hidden(b.joint) then
 				local x = Motion.jointDelta(pose, b.joint, b.parent)
 				local rest = if s == 1
 					then b.rest
@@ -251,42 +492,63 @@ function CuePiece.step(self: CuePiece, t: number)
 	end
 end
 
--- A skinned model counts as aura when its root bone's joint is.
-local function skinnedAura(self: CuePiece, sk: Skinned): boolean
+-- A skinned model's root joint.
+local function skinnedRoot(sk: Skinned): string?
 	for _, b in sk.bones do
 		if b.parent == nil then
-			return self.auraJoints[b.joint] == true
+			return b.joint
 		end
 	end
-	return false
+	return nil
 end
 
---- Show or hide the aura joints (the shooter's turn hides them; LocalTransparencyModifier, so
---- nothing about the parts is rebuilt).
+-- Hide or show every part by its joint's state (aura off, Lower effects):
+-- LocalTransparencyModifier, so nothing about the parts is rebuilt.
+function CuePiece.applyHidden(self: CuePiece, modifier: number?)
+	local base = modifier or 0
+	for _, r in self.rigid do
+		r.part.LocalTransparencyModifier = if self:hidden(r.joint) then 1 else base
+	end
+	for _, sk in self.skinned do
+		local root = skinnedRoot(sk)
+		local hidden = root ~= nil and self:hidden(root)
+		for _, part in sk.parts do
+			part.LocalTransparencyModifier = if hidden then 1 else base
+		end
+	end
+	self:showTypers(modifier)
+end
+
+--- Show or hide the aura joints (the shooter's turn hides them).
 function CuePiece.setAura(self: CuePiece, shown: boolean)
 	if shown == self.auraShown then
 		return
 	end
 	self.auraShown = shown
-	local modifier = if shown then 0 else 1
-	for _, r in self.rigid do
-		if self.auraJoints[r.joint] then
-			r.part.LocalTransparencyModifier = modifier
-		end
-	end
-	for _, sk in self.skinned do
-		if skinnedAura(self, sk) then
-			for _, part in sk.parts do
-				part.LocalTransparencyModifier = modifier
-			end
+	self:applyHidden()
+end
+
+-- A typing panel's gui is on or off (a SurfaceGui ignores LocalTransparencyModifier): off
+-- while its joint is hidden or the stick is camera-faded past half.
+function CuePiece.showTypers(self: CuePiece, modifier: number?)
+	local faded = (modifier or 0) >= 0.5
+	for _, ty in self.typers do
+		local hidden = faded or self:hidden(ty.joint)
+		if hidden ~= ty.hidden then
+			ty.hidden = hidden
+			ty.gui.Enabled = not hidden
 		end
 	end
 end
 
---- Fade the whole piece: 0 as built, 1 gone (the pocket piece's Transparency curve).
+--- Fade the whole piece: 0 as built, 1 gone (the pocket piece's Transparency curve). Parts
+--- with visuals take it on their next step.
 function CuePiece.setFade(self: CuePiece, fade: number)
+	self.fade = fade
 	for _, r in self.rigid do
-		r.part.Transparency = r.base + (1 - r.base) * fade
+		if #r.visuals == 0 then
+			r.part.Transparency = r.base + (1 - r.base) * fade
+		end
 	end
 	for _, sk in self.skinned do
 		for i, part in sk.parts do
@@ -326,19 +588,10 @@ function CuePiece.deepen(self: CuePiece, shellFade: number, emissiveScale: numbe
 	end
 end
 
---- Every part of the piece follows `modifier` (a stick's camera fade), aura joints staying
---- hidden while the aura is.
+--- Every part of the piece follows `modifier` (a stick's camera fade), hidden joints staying
+--- hidden.
 function CuePiece.setModifier(self: CuePiece, modifier: number)
-	for _, r in self.rigid do
-		local hidden = not self.auraShown and self.auraJoints[r.joint]
-		r.part.LocalTransparencyModifier = if hidden then 1 else modifier
-	end
-	for _, sk in self.skinned do
-		local hidden = not self.auraShown and skinnedAura(self, sk)
-		for _, part in sk.parts do
-			part.LocalTransparencyModifier = if hidden then 1 else modifier
-		end
-	end
+	self:applyHidden(modifier)
 end
 
 --- Uniform scale about the root (the pocket piece grows as it rises): sizes and every
@@ -352,6 +605,10 @@ function CuePiece.setScale(self: CuePiece, scale: number)
 end
 
 function CuePiece.destroy(self: CuePiece)
+	if self.qualityConnection then
+		self.qualityConnection:Disconnect()
+		self.qualityConnection = nil
+	end
 	self.model:Destroy()
 end
 

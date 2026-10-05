@@ -72,7 +72,8 @@ def butt_gain():
 def butt_growth():
     """The butt's radius over the one the pieces were modelled on."""
     return butt_radius() / OLD_BUTT_RADIUS
-ZOFF = {'cue': 3.5, 'pocket': 0.0}   # Roblox Z = ZOFF + Blender Y (the cue MeshPart's centre is 3.5 from the tip)
+ZOFF = {'cue': 3.5, 'pocket': 0.0, 'carrier': 0.0}   # Roblox Z = ZOFF + Blender Y (the cue MeshPart's centre is 3.5 from the tip;
+# a pocket or carrier piece sits on its own root, no shift)
 
 
 def piece(fn):
@@ -104,7 +105,24 @@ def _wave(t, m):
     if shape == 'pulse':  # rest most of the time, a quick swing once a period
         u = (x / (2 * math.pi)) % 1.0
         return math.sin(math.pi * min(u / 0.3, 1.0)) if u < 0.3 else 0.0
+    if shape == 'saw':  # one way: -1 to 1 over a period, then straight back (a scan line sweeping)
+        u = (x / (2 * math.pi)) % 1.0
+        return 2.0 * u - 1.0
     return math.sin(x)
+
+
+def glitch_offset(t, m):
+    """A Glitch motion's jolt at time t: once every Period seconds (from Phase seconds in) the
+    joint jumps Amp studs along Dir for Seconds, the sign flipping on each of Steps equal
+    sub-steps (+, -, +, ...), then sits still; 0 outside the window (Motion.glitchOffset)."""
+    period = float(m.get('Period', 3.0))
+    secs = float(m.get('Seconds', 0.15))
+    steps = max(1, int(m.get('Steps', 3)))
+    u = (t - float(m.get('Phase', 0.0))) % period
+    if u >= secs:
+        return 0.0
+    n = int(math.floor(u / secs * steps))
+    return float(m.get('Amp', 0.05)) * (1.0 if n % 2 == 0 else -1.0)
 
 
 def _rot(axis, ang):
@@ -167,6 +185,11 @@ def motion_matrix(motions, t, pivot=(0, 0, 0)):
             M = M @ _rot(m.get('Axis', (1, 0, 0)), ang)
         elif kind == 'Spin':
             M = M @ _rot(m.get('Axis', (0, 1, 0)), math.radians(float(m.get('Rate', 90.0)) * t + float(m.get('Phase', 0.0))))
+        elif kind == 'Glitch':
+            d = np.asarray(m.get('Dir', (1, 0, 0)), float) * glitch_offset(t, m)
+            T = np.eye(4)
+            T[:3, 3] = d
+            M = M @ T
         elif kind == 'Bob':
             d = np.asarray(m.get('Dir', (0, 0, 1)), float) * float(m.get('Amp', 0.02)) * _wave(t, m)
             T = np.eye(4)
@@ -212,7 +235,8 @@ class Kit:
         self.mats = {}     # name -> roblox spec
         # 'cue': modelled in the cue's frame (a piece on the cue); 'pocket': in a frame of its own
         # with the origin at the pocket's mouth, Z up, the front toward -Y (a pocket finisher's
-        # creature, placed and turned by the finisher)
+        # creature, placed and turned by the finisher); 'carrier': on the carrying character's
+        # root (the hips), Z up, X right, -Y behind the body (a skin's Carrier piece)
         self.frame = 'cue'
         # skinned models: name -> {'root': joint, 'bones': {bone: weight fn}, 'meshes': [objects]}
         self.skins = {}
@@ -247,7 +271,7 @@ class Kit:
         as a skinned GLB (see export_skin).
 
         hologram (designer, 2026-09-30: spiritual energy, holograms, not solid models): {'Tint',
-        'Strength', 'Shell', 'ShellOffset', 'ShellTris', 'Alpha'}. The SurfaceAppearance becomes a
+        'Strength', 'Shell', 'ShellOffset', 'ShellTris', 'ShellTransparency', 'Alpha'}. The SurfaceAppearance becomes a
         see-through glowing spirit of the model's own texture (ColorMap in the tint, its alpha from
         the brightness, AlphaMode Transparency, glowing all over, the emissive() parts brightest),
         and a ForceField shell (the same mesh pushed out by ShellOffset of its height, reduced to
@@ -412,7 +436,7 @@ class Kit:
         size = max(max(zs) - min(zs), max(ys) - min(ys))
         apply_modifier(bpy, sh, 'DISPLACE', strength=float(holo.get('ShellOffset', 0.012)) * size, mid_level=0.0)
         mname = name + 'Shell'
-        self.material(mname, 'ForceField', holo.get('Shell', holo['Tint']))
+        self.material(mname, 'ForceField', holo.get('Shell', holo['Tint']), Transparency=holo.get('ShellTransparency', 0.0))
         sh.data.materials.clear()
         sh.data.materials.append(self.blender_mat(mname))
         for poly in sh.data.polygons:
@@ -428,12 +452,20 @@ class Kit:
         return make_blender_material(bpy, key, self.mats[name])
 
     # ---- joints ---------------------------------------------------------------------------------
-    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None, aura=False):
+    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None, aura=False, visual=None, low=None):
         """aura: this joint and everything on it (and its child joints) is part of the aura, hidden
         on the player's turn to shoot with the rest of the aura (designer, 2026-09-30), not a fixed
-        part of the cue (the Celestial Dragon's coiling spirit, the Kitsune's running fox)."""
+        part of the cue (the Celestial Dragon's coiling spirit, the Kitsune's running fox).
+        visual: looks the runtime (CuePiece) applies to the joint's parts every frame, not moves:
+        {'Kind': 'Fade', Min, Max, Period, Shape, Phase} (the parts' visible share, an effect wave:
+        1 as built, 0 clear), {'Kind': 'Blink', Period, Seconds, Phase, Count} (gone on alternate
+        sub-steps of a short window once a period, a glitch) and {'Kind': 'Glow', Min, Max,
+        Period, Shape, Phase} (a Neon part's colour pushed toward white by the wave: a pulse).
+        The Blender preview renders them at their Max.
+        low: what the joint does under the Lower effects setting (Quality): 'hide' takes it and
+        its children away (the Beta Cue's farthest panels), None keeps it."""
         self.joints[name] = {'Parent': parent, 'Pivot': list(pivot), 'Motion': motion or [], 'objects': [],
-                             'Aura': aura}
+                             'Aura': aura, 'Visual': visual or [], 'Low': low}
         for m in motion or []:
             if m.get('Kind') == 'Path':
                 m['_Path'] = self.paths[m['Path']]
@@ -834,6 +866,10 @@ def export(kit):
                          'Motion': [{k_: v_ for k_, v_ in m.items() if not k_.startswith('_')} for m in j['Motion']]}
         if j.get('Aura'):
             joints[jname]['Aura'] = True
+        if j.get('Visual'):
+            joints[jname]['Visual'] = j['Visual']
+        if j.get('Low'):
+            joints[jname]['Low'] = j['Low']
     spec = {'id': kit.pid, 'Frame': kit.frame, 'frame': 'Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; '
                                    'PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)',
             'Triangles': tris_total, 'Parts': parts, 'Joints': joints}
@@ -1074,18 +1110,20 @@ def attach(bpy, pid, cue_obj):
 # Pieces
 # =============================================================================================
 
-def build(pid):
+def build(pid, render_preview=True):
     import bpy
     import cue_common as cc
     cc.clear_scene('CuePieces')
     import CuePiecesMythic  # noqa: F401  (registers the builders on the imported CuePieces module)
     import CuePiecesLegendary  # noqa: F401
     import CuePiecesPocket  # noqa: F401
+    import CuePiecesUnique  # noqa: F401
     import CuePieces
     kit = CuePieces.Kit(bpy, pid)
     CuePieces.BUILDERS[pid](kit)
     spec = CuePieces.export(kit)
-    preview(pid)
+    if render_preview:
+        preview(pid)
     return spec
 
 
@@ -1281,8 +1319,8 @@ def main():
         stitch(sys.argv[sys.argv.index('--sheet') + 1])
         return
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
-    for pid in argv:
-        build(pid)
+    for pid in (arg for arg in argv if not arg.startswith('--')):
+        build(pid, render_preview='--no-preview' not in argv)
 
 
 if __name__ == '__main__':

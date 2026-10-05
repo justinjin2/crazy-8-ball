@@ -5,6 +5,7 @@ the butt (-7), Z is the top. Heads and masks sit on or past the butt end.
 """
 import math
 import os
+import random
 
 import CuePieces as P
 from CuePieces import piece, sweep, metaball_mesh, assign_by_region, apply_modifier, ramp
@@ -38,8 +39,9 @@ SWIM_AT = (0.65, 6.5)     # AtStuds the front of the spine reaches at the tip en
 SWIM_TURNS = 3.0          # turns round the cue on each leg
 SWIM_ROUND = 0.96         # how sharply each end turns round (1 a sharp triangle, 0 a sine)
 SWIM_R = (0.40, 0.1)      # the loop's radius round the cue's axis: r0 + dr sin(phase) (0.34 on the 0.2 cue)
-SWIM_PERIOD = 10.0        # seconds for a whole lap, tip to butt and back
-SWIM_BODY = 4.5           # the spine's length, studs (the head sits on its front)
+SWIM_PERIOD = 12.0        # seconds for a whole lap, tip to butt and back (10 before the 2026-10-04 rework: calmer)
+SWIM_BODY = 4.5           # the spine's length, studs (the head sits on its front); a 9.4-stud body
+                          # coiling the whole cue was tried 2026-10-04 and looked broken: back to 4.5
 SWIM_STEP = 0.02          # the path's sample spacing, studs
 
 
@@ -146,8 +148,8 @@ def _dragon_scales_png(k, name, w=256, h=512):
     du = np.minimum(U, 1 - U)                        # distance round from the dorsal line
     stripe = np.exp(-(du / 0.035) ** 2)
     belly = np.exp(-((U - 0.5) / 0.12) ** 2) * (0.5 + 0.5 * (np.cos(2 * np.pi * V * 24) > 0.2))
-    base = np.array([0.30, 0.62, 1.0])
-    pale = np.array([0.80, 0.92, 1.0])
+    base = np.array([0.62, 0.90, 1.0])               # the head's pale spirit blue (0.30, 0.62, 1.0 before the 2026-10-04 rework)
+    pale = np.array([0.92, 0.98, 1.0])
     col = (base[None, None] * (0.35 + 0.5 * inner[..., None] * 0.4 + 0.6 * rim[..., None])
            + pale[None, None] * (belly[..., None] * 0.5) + np.ones(3)[None, None] * stripe[..., None])
     alpha = np.clip(0.16 + 0.55 * rim + 0.7 * stripe + 0.22 * belly, 0, 0.9)
@@ -179,15 +181,19 @@ def celestial_dragon(k):
     (Path motions, piece.json Paths: a lap in SWIM_PERIOD seconds), so the body slithers through
     the curves the head swam; on top a quick wave runs down the body from the neck to the tail
     (each bone a sideways and an outward bob a beat after the one before), the tail flicks, the
-    head nods and looks round and every 4.8 s rears back roaring, the jaw gaping; the mane
+    head nods and looks round and every 9 s rears back roaring, the jaw gaping; the mane
     streams."""
     import numpy as np
     import bmesh
     from mathutils import Matrix, Vector
     bpy = k.bpy
-    k.material('Sheath', 'ForceField', '#8FCBFF')
-    k.material('Core', 'Neon', '#D8EEFF', Transparency=0.45)
-    k.material('Fin', 'Neon', '#9ACFFF', Transparency=0.35)
+    # The 2026-10-04 rework: pale spirit light, one blue for the whole dragon (designer: the
+    # head's lighter blue, the body the same), every beat slowed; sheath and core thinned on
+    # the lobby floor. (Two Neon filaments spiralling round the body were tried and dropped:
+    # they read as white spirals in the sun, designer 2026-10-04.)
+    k.material('Sheath', 'ForceField', '#D8F6FF', Transparency=0.45)
+    k.material('Core', 'Neon', '#EAFBFF', Transparency=0.55)
+    k.material('Fin', 'Neon', '#C4F0FF', Transparency=0.3)
 
     loop, step, length = _swim_loop()
     n = len(loop)
@@ -220,7 +226,8 @@ def celestial_dragon(k):
     NB = 30
     centres = [0.02 + 0.96 * b / (NB - 1) for b in range(NB)]
     width = 0.96 / (NB - 1)
-    WAVE = 1.5                                        # the body wave's length, studs
+    WAVE = 2.2                                        # the body wave's length, studs
+    WAVE_PERIOD = 3.2                                 # the body wave's beat, seconds (1.1 before the 2026-10-04 rework)
     bone_names = []
     for b, tc in enumerate(centres):
         _, p, tg, nrm, side = frame_at(tc)
@@ -228,10 +235,10 @@ def celestial_dragon(k):
         ph = 360.0 * tc * SWIM_BODY / WAVE
         nm = 'Spine%d' % (b + 1)
         motion = [{'Kind': 'Path', 'Path': 'Swim', 'Rest': round(arc(tc), 4), 'Speed': round(speed, 4)},
-                  {'Kind': 'Bob', 'Dir': tuple(side), 'Amp': round(env, 4), 'Period': 1.1, 'Phase': round(ph, 1)},
-                  {'Kind': 'Bob', 'Dir': tuple(nrm), 'Amp': round(0.4 * env, 4), 'Period': 1.1, 'Phase': round(ph + 90, 1)}]
+                  {'Kind': 'Bob', 'Dir': tuple(side), 'Amp': round(env, 4), 'Period': WAVE_PERIOD, 'Phase': round(ph, 1)},
+                  {'Kind': 'Bob', 'Dir': tuple(nrm), 'Amp': round(0.4 * env, 4), 'Period': WAVE_PERIOD, 'Phase': round(ph + 90, 1)}]
         if b == 0:                                    # the tail flicks
-            motion.append({'Kind': 'Hinge', 'Axis': tuple(nrm), 'Amp': 25.0, 'Period': 0.9})
+            motion.append({'Kind': 'Hinge', 'Axis': tuple(nrm), 'Amp': 22.0, 'Period': 2.8})
         k.joint(nm, pivot=tuple(p), parent='Dragon', aura=True, motion=motion)
         bone_names.append((nm, tc))
 
@@ -262,8 +269,8 @@ def celestial_dragon(k):
     # the spirit body (textured), its sheath, its core
     paths = _dragon_scales_png(k, 'DragonBody')
     k.material('DragonBody', 'SmoothPlastic', '#FFFFFF', SurfaceAppearance={
-        'ColorMap': paths['spirit'], 'EmissiveMask': paths['emissive'], 'EmissiveTint': '#8CC8FF',
-        'EmissiveStrength': 1.8, 'AlphaMode': 'Transparency'})
+        'ColorMap': paths['spirit'], 'EmissiveMask': paths['emissive'], 'EmissiveTint': '#9FE8FF',
+        'EmissiveStrength': 2.4, 'AlphaMode': 'Transparency'})
     rings = frames[::2]
     bm = bmesh.new()
     uv = bm.loops.layers.uv.new('UVMap')
@@ -327,23 +334,96 @@ def celestial_dragon(k):
         return (Matrix.Translation(C) @ R.to_4x4() @ Matrix.Scale(s_, 4)
                 @ Matrix.Translation((-(lo[0] + hi[0]) / 2, -hi[1], -lo[2])))
 
-    # the head nods, looks round and, every 4.8 s, rears back roaring (a pulse) as the jaw gapes
+    # the head nods, looks round and, every 9 s, rears back roaring (a pulse) as the jaw gapes
     # (positive about side lifts the snout away from the cue)
     k.joint('Head', pivot=tuple(pe), parent='Spine%d' % NB, aura=True, motion=[
-        {'Kind': 'Hinge', 'Axis': tuple(side), 'Base': 5.0, 'Amp': 8.0, 'Period': 2.2},
-        {'Kind': 'Hinge', 'Axis': tuple(up), 'Amp': 16.0, 'Period': 3.1, 'Phase': 40},
-        {'Kind': 'Hinge', 'Axis': tuple(side), 'Amp': 14.0, 'Period': 4.8, 'Shape': 'pulse'}])
+        {'Kind': 'Hinge', 'Axis': tuple(side), 'Base': 5.0, 'Amp': 8.0, 'Period': 4.6},
+        {'Kind': 'Hinge', 'Axis': tuple(up), 'Amp': 16.0, 'Period': 6.4, 'Phase': 40},
+        {'Kind': 'Hinge', 'Axis': tuple(side), 'Amp': 14.0, 'Period': 9.0, 'Shape': 'pulse'}])
     k.joint('Jaw', pivot=tuple(to_cue((0, -7.22, 0.02))), parent='Head', aura=True, motion=[
-        {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Base': 6.0, 'Amp': 6.0, 'Period': 2.4},
-        {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Amp': 16.0, 'Period': 4.8, 'Shape': 'pulse'}])
+        {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Base': 6.0, 'Amp': 6.0, 'Period': 5.0},
+        {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Amp': 16.0, 'Period': 9.0, 'Shape': 'pulse'}])
     k.joint('Mane', pivot=tuple(to_cue((0, -7.1, 0.15))), parent='Head', aura=True, motion=[
-        {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Amp': 10.0, 'Period': 1.3, 'Phase': 60}])
+        {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Amp': 10.0, 'Period': 3.4, 'Phase': 60}])
     head_bones = {'Jaw': lambda V: (lambda O: ramp(O[:, 1], -7.25, -7.33) * ramp(O[:, 2], 0.03, -0.02))(from_cue(V)),
                   'Mane': lambda V: (lambda O: ramp(O[:, 1], -7.15, -7.0) * ramp(O[:, 2], 0.12, 0.2))(from_cue(V))}
     k.model('Head', 'DragonHead', 'dragon_head', place, target_tris=15000, emissive=_icy_eyes,
-            emissive_tint='#7FC8FF', emissive_strength=3.0, cut_below=0.3, bones=head_bones,
-            hologram={'Tint': '#8CC8FF', 'Shell': '#CFEAFF', 'Strength': 1.8, 'ShellTris': 6000,
+            emissive_tint='#9FF0FF', emissive_strength=3.4, cut_below=0.3, bones=head_bones,
+            hologram={'Tint': '#7FE6FF', 'Shell': '#D8F6FF', 'Strength': 2.2, 'ShellTris': 6000, 'ShellTransparency': 0.4,
                       'Alpha': (0.14, 0.55)})     # more solid than the pocket spirits: the face must read small
+    # The spirit energy (designer, 2026-10-04, the reference photo: see-through blue energy art
+    # flowing round the cue, surrounding the paint without masking it; its own look, not the
+    # Beta Cue's lattice): twelve thin ribbons of blue light wrapping part-way round the stick
+    # at a little distance, flat against it and tapered at both ends, half Neon (see-through,
+    # glowing) and half ForceField (the paler hologram shimmer). Each on its own aura joint:
+    # turning round the cue at its own rate and direction, drifting along it, and fading in
+    # and out on its own clock so the art is never still.
+    import random
+    # Gate 2 (designer, 2026-10-04): the first twelve were hairlines in Studio: now twice as
+    # many, two to three times wider, the dragon's own pale blue, turning faster, pulsing
+    # toward white and never quite fading out.
+    rnd = random.Random(23)
+    # Gate 2, fifth look (designer, 2026-10-04): the wide ribbons read as solid cloth. Now thin
+    # threads of spirit energy hovering a hair above the cue's own profile like a shield barrier.
+    # Sixth look (designer, 2026-10-04): they still read solid in the clip (the preview renders
+    # no Fade, only the material), and ran past the butt: the materials are now mostly clear
+    # (Neon 0.82, ForceField 0.75), no thread leaves the cue's length, and the last ones fold
+    # over the butt end as a dome, the barrier closing round the cue.
+    import cue_common as cc
+    env = cc.Envelope(cc.load_shape()[0])
+    L = env.length
+    HOVER = 0.045   # studs above the cue surface
+    k.material('Energy', 'Neon', '#BFEFFF', Transparency=0.82)
+    k.material('EnergyPale', 'ForceField', '#D8F6FF', Transparency=0.75)
+    def along(u, rad, gap):
+        """A point on the barrier: round the cue at u (studs from the tip), or, past the butt,
+        on a dome of the butt's radius closing over the end; and the barrier's outward normal."""
+        if u <= L:
+            return Vector((0, -u, 0)) + rad * (env(u) + gap), rad
+        R = env(L) + gap
+        phi = min((u - L) / R, math.radians(82))
+        n = rad * math.cos(phi) + Vector((0, -1, 0)) * math.sin(phi)
+        return Vector((0, -L, 0)) + n * R, n
+    def ribbon(bm, u0, span, turns, a0, gap, w, thick):
+        rings = []
+        N = max(12, int(span * 28))
+        for i in range(N + 1):
+            t = i / N
+            u = u0 + span * t
+            a = a0 + 2 * math.pi * turns * t
+            rad = Vector((math.sin(a), 0, math.cos(a)))
+            c, n = along(u, rad, gap)
+            wt = w * math.sin(math.pi * t) ** 0.6
+            ax = n.cross(rad.cross(Vector((0, -1, 0)))).normalized() if u > L else Vector((0, -1, 0))
+            ring = [bm.verts.new(c + ax * wt / 2 + n * thick / 2), bm.verts.new(c - ax * wt / 2 + n * thick / 2),
+                    bm.verts.new(c - ax * wt / 2 - n * thick / 2), bm.verts.new(c + ax * wt / 2 - n * thick / 2)]
+            rings.append(ring)
+        for i in range(N):
+            a_, b_ = rings[i], rings[i + 1]
+            for j in range(4):
+                j1 = (j + 1) % 4
+                bm.faces.new((a_[j], a_[j1], b_[j1], b_[j]))
+        bm.faces.new(rings[0][::-1])
+        bm.faces.new(rings[-1])
+    NT = 32
+    DOME = (env(L) + HOVER) * math.radians(82)   # how far a thread may run past the butt
+    for n in range(NT):
+        span = rnd.uniform(0.9, 1.9)
+        u0 = 0.15 + (L - 0.3) * n / NT + rnd.uniform(-0.2, 0.2)
+        u0 = min(max(u0, 0.1), L + DOME - span)
+        turns = rnd.uniform(0.8, 1.6) * rnd.choice((-1, 1))
+        pale = n % 2 == 1
+        nm = 'Energy%d' % (n + 1)
+        bob = min(rnd.uniform(0.12, 0.25), max(0.0, L + DOME - (u0 + span)), u0 - 0.05)
+        k.joint(nm, pivot=(0, -(u0 + span / 2), 0), aura=True, motion=[
+            {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rnd.uniform(30, 70) * rnd.choice((-1, 1)), 'Phase': rnd.uniform(0, 360)},
+            {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': bob, 'Period': rnd.uniform(3.0, 5.0), 'Phase': rnd.uniform(0, 360)}],
+            visual=[{'Kind': 'Fade', 'Min': 0.0, 'Max': 0.55, 'Period': rnd.uniform(2.5, 4.5), 'Shape': 'sine', 'Phase': rnd.uniform(0, 360)},
+                    {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.12, 'Period': rnd.uniform(1.6, 3.0), 'Shape': 'sine', 'Phase': rnd.uniform(0, 360)}])
+        bm = bmesh.new()
+        ribbon(bm, u0, span, turns, rnd.uniform(0, 2 * math.pi), HOVER + rnd.uniform(0.0, 0.03) + (0.015 if pale else 0.0),
+               rnd.uniform(0.025, 0.05) * (1.5 if pale else 1.0), 0.008)
+        k.add(nm, k.mesh_object('Dragon' + nm, bm, ['EnergyPale' if pale else 'Energy'], smooth=True))
     for nm, tc in bone_names[2::3]:
         _, p, tg, nrm, side = frame_at(tc)
         q = p + nrm * _dragon_radius(tc)
@@ -667,6 +747,138 @@ def kitsune(k):
             emissive_tint='#C070FF', emissive_strength=3.0, bones=bones,
             hologram={'Tint': '#D8B8FF', 'Shell': '#C070FF', 'Strength': 1.6})
     _running_fox(k)
+    _foxfire_tails(k)
+    _foxfire_orbs(k)
+
+
+def _foxfire_tails(k):
+    """The nine foxfire tails as real meshes (rarity rework, 2026-10-04: they were nine camera-
+    facing Beams): each a see-through swept tail of pale pink spirit light with a white-pink
+    Neon core, streaming from the mask's collar forward along the handle and fanning out round
+    it (never over the face), thin at the root, full in the middle, pointed at the tip. Each
+    sways on its own two periods, breathes (Fade) and pulses (Glow); the even tails hide under
+    Lower effects. Children of the Mask, so they follow its tilt."""
+    import bmesh
+    from mathutils import Vector
+    rnd = random.Random(41)
+    # see-through like the Dragon's threads (designer 2026-10-04: energy, never solid cloth)
+    k.material('TailFire', 'ForceField', '#FFD6F2', Transparency=0.74)
+    k.material('TailCore', 'Neon', '#FFF0FA', Transparency=0.8)
+    U0, LEN, R0, R1 = 6.9, 1.3, 0.2, 0.78
+    for i in range(9):
+        th = math.radians(i * 40.0 + rnd.uniform(-6, 6))
+        curl = math.radians(rnd.uniform(18, 30)) * rnd.choice((-1, 1))
+        length = LEN * rnd.uniform(0.85, 1.1)
+        r1 = R1 * rnd.uniform(0.85, 1.1)
+        pts, body, core = [], [], []
+        N = 28
+        for j in range(N + 1):
+            t = j / N
+            sm = t * t * (3 - 2 * t)
+            rho = R0 + (r1 - R0) * sm + 0.06 * math.sin(2 * math.pi * t)
+            phi = th + curl * math.sin(math.pi * t)
+            rad = Vector((math.sin(phi), 0, math.cos(phi)))
+            pts.append(Vector((0, -(U0 - length * t), 0)) + rad * rho)
+            w = 0.03 + 0.085 * math.sin(math.pi * t) ** 0.8 * (1 - 0.25 * t)
+            if j == N:
+                w = 0.008
+            body.append((w, w * 0.5))
+            core.append(0.004 + 0.012 * math.sin(math.pi * t))
+        nm = 'Tail%d' % (i + 1)
+        root = pts[0]
+        tang = (pts[1] - pts[0]).normalized()
+        rad0 = Vector((math.sin(th), 0, math.cos(th)))
+        k.joint(nm, pivot=tuple(root), parent='Mask', aura=True, low='hide' if i % 2 == 1 else None, motion=[
+            {'Kind': 'Sway', 'Axis': tuple(rad0), 'Amp': rnd.uniform(6, 9), 'Period': rnd.uniform(2.4, 3.4), 'Phase': i * 40},
+            {'Kind': 'Sway', 'Axis': tuple(tang.cross(rad0).normalized()), 'Amp': rnd.uniform(3, 5),
+             'Period': rnd.uniform(3.8, 5.2), 'Phase': i * 73}],
+            visual=[{'Kind': 'Fade', 'Min': 0.55, 'Max': 1.0, 'Period': rnd.uniform(2.0, 3.2), 'Shape': 'sine', 'Phase': i * 47},
+                    {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.3, 'Period': rnd.uniform(2.6, 4.0), 'Shape': 'sine', 'Phase': i * 91}])
+        bm = bmesh.new()
+        sweep(bm, pts, body, segs=10, cap=True)
+        k.add(nm, k.mesh_object('Kitsune' + nm, bm, ['TailFire'], smooth=True))
+        bm = bmesh.new()
+        sweep(bm, pts, core, segs=6, cap=True)
+        k.add(nm, k.mesh_object('Kitsune' + nm + 'Core', bm, ['TailCore'], smooth=True))
+
+
+def _foxfire_orbs(k):
+    """Three foxfire orbs as glowing spheres riding one looping path (rarity rework, 2026-10-04:
+    they were sprite orbiters): the path spirals out from the ferrule to the butt a third of a
+    stud off the cue and back along the other side, so two spirals interleave; each orb is a
+    white-pink Neon core in a pink ForceField halo with a short flame of light streaming
+    behind it, pulsing (Glow) and breathing (Fade). All aura."""
+    import bmesh
+    import numpy as np
+    from mathutils import Vector
+    import cue_common as cc
+    env = cc.Envelope(cc.load_shape()[0])
+    k.material('OrbCore', 'Neon', '#FFF4FB', Transparency=0.1)
+    k.material('OrbHalo', 'ForceField', '#FFB3E6', Transparency=0.4)
+    k.material('OrbFlame', 'Neon', '#F0B8FF', Transparency=0.6)
+    U_A, U_B, TURNS, OFF = 1.0, 6.6, 3.0, 0.3
+
+    def point(s):
+        # s in 0..1 round the loop: out along one spiral, back along the other
+        if s < 0.5:
+            t = s * 2
+            u = U_A + (U_B - U_A) * t
+            a = 2 * math.pi * TURNS * t
+        else:
+            t = (s - 0.5) * 2
+            u = U_B - (U_B - U_A) * t
+            a = 2 * math.pi * TURNS * (1 - t) + math.pi
+        rho = env(u) + OFF
+        return Vector((rho * math.sin(a), -u, rho * math.cos(a)))
+
+    n_fine = 40000
+    P = np.array([point(i / n_fine)[:] for i in range(n_fine)])
+    seg = np.linalg.norm(np.roll(P, -1, 0) - P, axis=1)
+    cum = np.concatenate([[0], np.cumsum(seg)])
+    length = float(cum[-1])
+    step = 0.03
+    n = int(round(length / step))
+    step = length / n
+    mats, frames = [], []
+    for i in range(n):
+        s_ = i * step
+        kk = int(np.searchsorted(cum, s_, side='right') - 1) % n_fine
+        f = (s_ - cum[kk]) / max(seg[kk], 1e-9)
+        sp = (kk + f) / n_fine
+        p = point(sp)
+        tg = (point((sp + 2e-5) % 1.0) - point((sp - 2e-5) % 1.0)).normalized()
+        nrm = Vector((p.x, 0, p.z)).normalized()
+        nrm = (nrm - tg * nrm.dot(tg)).normalized()
+        side = tg.cross(nrm)
+        M = np.eye(4)
+        M[:3, 0], M[:3, 1], M[:3, 2], M[:3, 3] = tuple(side), tuple(tg), tuple(nrm), tuple(p)
+        mats.append(M)
+        frames.append((p, tg))
+    k.path('Foxfire', mats, step)
+    SPEED = 2.0
+    for i in range(3):
+        rest = length * i / 3
+        j = int(round(rest / step)) % n
+        p, tg = frames[j]
+        nm = 'Orb%d' % (i + 1)
+        k.joint(nm, pivot=tuple(p), aura=True, motion=[{'Kind': 'Path', 'Path': 'Foxfire', 'Rest': rest, 'Speed': SPEED}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': 2.2 + 0.4 * i, 'Shape': 'sine', 'Phase': i * 120},
+                        {'Kind': 'Fade', 'Min': 0.6, 'Max': 1.0, 'Period': 1.8 + 0.35 * i, 'Shape': 'sine', 'Phase': i * 77}])
+        for mat, rr in (('OrbCore', 0.055), ('OrbHalo', 0.12)):
+            bm = bmesh.new()
+            bmesh.ops.create_icosphere(bm, subdivisions=2, radius=rr)
+            for v in bm.verts:
+                v.co += p
+            k.add(nm, k.mesh_object('Kitsune' + nm + mat[3:], bm, [mat], smooth=True))
+        pts, radii = [], []
+        for q in range(9):
+            t = q / 8
+            pts.append(p - tg * (0.08 + 0.42 * t))
+            radii.append(0.07 * (1 - t) ** 0.9 + 0.004)
+        bm = bmesh.new()
+        sweep(bm, pts, radii, segs=8, cap=True)
+        k.add(nm, k.mesh_object('Kitsune' + nm + 'Flame', bm, ['OrbFlame'], smooth=True))
+    print('CUE foxfire orbs: loop %.2f studs, lap %.1f s' % (length, length / SPEED))
 
 
 # the spirit fox that runs round the Kitsune cue (designer, 2026-09-30: "a small kitsune model
@@ -1151,11 +1363,40 @@ def eclipse(k):
     bpy = k.bpy
     k.material('Obsidian', 'SmoothPlastic', '#0B0B0D', Reflectance=0.35)
     k.material('Gold', 'Foil', '#E3A21A')
-    k.material('Void', 'SmoothPlastic', '#050505', Reflectance=0.25)
-    k.material('Flare', 'Neon', '#FFC940')
+    k.material('Void', 'Neon', '#000000')          # unlit flat black: a hole in space, not a ball (designer, 2026-10-04)
+    k.material('Flare', 'Neon', '#FFE070')
     k.material('Moon', 'SmoothPlastic', '#B9BEC6', Reflectance=0.12)
+    k.material('Wire', 'Neon', '#FFE070')
 
     U0 = 7.0
+
+    # The solar wires (designer, 2026-10-04, gate 2: the blaze surrounds the cue, never sits on
+    # its skin): two thin gold Neon helices spiralling round the whole stick at a distance,
+    # turning about it, with small beads riding them; the paint stays in full view between
+    # the wires. The skin's halo sprites draw behind the cue (a negative ZOffset) for the
+    # same reason. Aura joints: gone in the hands and while quiet.
+    k.joint('Wires', pivot=(0, -3.5, 0), aura=True,
+            motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': 36.0}],
+            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.45, 'Period': 3.2, 'Shape': 'sine'}])
+    RW, TURNS, N = 0.4, 4.5, 260
+    for h in range(2):
+        pts = []
+        for i in range(N + 1):
+            f = i / N
+            u = 0.35 + f * 6.35
+            a = 2 * math.pi * (TURNS * f + h / 2)
+            pts.append((RW * math.cos(a), -u, RW * math.sin(a)))
+        bm = bmesh.new()
+        sweep(bm, pts, [0.014] * len(pts), segs=6)
+        k.add('Wires', k.mesh_object('EclipseWire%d' % (h + 1), bm, ['Wire']))
+        bm = bmesh.new()
+        for j in range(5):
+            f = (j + 0.5) / 5
+            u = 0.35 + f * 6.35
+            a = 2 * math.pi * (TURNS * f + h / 2)
+            bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=6, radius=0.045,
+                                      matrix=Matrix.Translation(Vector((RW * math.cos(a), -u, RW * math.sin(a)))))
+        k.add('Wires', k.mesh_object('EclipseBeads%d' % (h + 1), bm, ['Flare']))
     RS, UC = 0.36, 0.56                         # the sphere's radius and centre past the butt (0.28 until the
                                                 # 2026-09-30 space rework: a bigger, bolder eclipse)
 
@@ -1199,6 +1440,29 @@ def eclipse(k):
         bm = bmesh.new()
         bmesh.ops.create_uvsphere(bm, u_segments=segs, v_segments=segs // 2, radius=r, matrix=_scale_at(C, (1, 1, 1)))
         k.add('Orb', k.mesh_object(name, bm, [mat]))
+    # the corona as real geometry (rarity rework, 2026-10-04: no camera-facing pictures): a
+    # glowing shell round the black sun, breathing, and two flare rings on tilted spins
+    # two rings of tapered corona spikes (prominences) on tilted, counter-turning spins, each
+    # with a thin flare ring at its root, breathing: a corona that reads from every side and
+    # leaves the sun black
+    k.material('CoronaSpike', 'Neon', '#FFE070')
+    for n, (tilt, rate, count, length) in enumerate(((12, 25.0, 22, 0.14), (-78, -19.0, 18, 0.10)), 1):
+        nm = 'Flare%d' % n
+        k.joint(nm, pivot=tuple(C), parent='Orb', motion=[{'Kind': 'Spin', 'Axis': (0.3, 1, 0.2), 'Rate': rate}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.6, 'Period': 2.8, 'Shape': 'sine', 'Phase': 90 * n}])
+        R = Matrix.Rotation(math.radians(tilt), 3, 'X')
+        rr = RS + 0.03
+        bm = bmesh.new()
+        sweep(bm, [C + R @ Vector((rr * math.cos(2 * math.pi * i / 72), rr * math.sin(2 * math.pi * i / 72), 0)) for i in range(73)],
+              [0.009] * 73, segs=6, cap=False)
+        k.add(nm, k.mesh_object('Eclipse' + nm, bm, ['Flare']))
+        bm = bmesh.new()
+        for i in range(count):
+            ang = 2 * math.pi * i / count
+            out = R @ Vector((math.cos(ang), math.sin(ang), 0))
+            ln = length * (0.6 + 0.4 * math.sin(3.1 * i + n))
+            sweep(bm, [C + out * (rr + 0.01 + ln * j / 4) for j in range(5)], [0.02, 0.016, 0.011, 0.006, 0.002], segs=6)
+        k.add(nm, k.mesh_object('EclipseSpikes%d' % n, bm, ['CoronaSpike']))
 
     # two thin gold orbit rings, tilted, precessing
     for n, (tilt, rate, rr) in enumerate(((68, 22.0, RS + 0.2), (-58, -30.0, RS + 0.27)), 1):
@@ -1240,11 +1504,15 @@ def eclipse(k):
     # gold orbital rings round the cue, tilted every way like an atom's orbits, each precessing
     # slowly with a glowing planet-bead running round it; an asteroid belt of dark rocks orbiting
     # the cue and tumbling
-    k.material('OrbitLine', 'Neon', '#FFB84A', Transparency=0.2)
-    k.material('OrbitGlow', 'ForceField', '#FFB300')          # a soft glowing sheath round each ring
+    k.material('OrbitLine', 'Neon', '#FFE070')                # bright neon gold (designer, 2026-10-04: more glowing)
+    k.material('OrbitGlow', 'ForceField', '#FFC830')          # a soft glowing sheath round each ring
     k.material('Bead', 'Neon', '#FFE6A0')
     k.material('BeadGlow', 'ForceField', '#FFB300')
     k.material('Rock', 'SmoothPlastic', '#2B2622', Reflectance=0.05)
+    # four planets (rarity rework, 2026-10-04: readable bodies, not beads): gold, ember, ice, violet
+    planets = [('#FFE6A0', 0.06), ('#FF7A3A', 0.078), ('#9FD8FF', 0.056), ('#C58CFF', 0.07)]
+    for n, (col, _) in enumerate(planets, 1):
+        k.material('Planet%d' % n, 'Neon', col)
     orbits = [(1.3, 0.46 + G, 62, 20, 14.0, 150.0), (2.8, 0.62 + G, -55, 110, -11.0, -120.0),
               (4.3, 0.52 + G, 70, 230, 16.0, 135.0), (5.8, 0.7 + G, -64, 320, -9.0, -105.0)]
     for n, (a_, rr, tilt, yaw, prec, run) in enumerate(orbits, 1):
@@ -1256,18 +1524,26 @@ def eclipse(k):
         w = nrm.cross(u)
         ring = [c + (u * math.cos(2 * math.pi * i / 96) + w * math.sin(2 * math.pi * i / 96)) * rr for i in range(97)]
         orb_j, bead_j = 'Orbital%d' % n, 'Planet%d' % n
-        k.joint(orb_j, pivot=tuple(c), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': prec, 'Phase': yaw}])
-        for mat, tube, segs in (('OrbitLine', 0.007, 6), ('OrbitGlow', 0.024, 8)):
+        k.joint(orb_j, pivot=tuple(c), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': prec, 'Phase': yaw}],
+                visual=[{'Kind': 'Glow', 'Min': 0.2, 'Max': 0.8, 'Period': 2.6 + 0.5 * n, 'Shape': 'sine', 'Phase': 70 * n}])
+        for mat, tube, segs in (('OrbitLine', 0.017, 8), ('OrbitGlow', 0.05, 10)):
             bm = bmesh.new()
             sweep(bm, ring, [tube] * len(ring), segs=segs, cap=False)
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
             k.add(orb_j, k.mesh_object('Eclipse%s%d' % (mat, n), bm, [mat]))
         k.joint(bead_j, pivot=tuple(c), parent=orb_j, motion=[{'Kind': 'Spin', 'Axis': tuple(nrm), 'Rate': run}])
         p0 = ring[0]
-        for mat, r_ in (('Bead', 0.03), ('BeadGlow', 0.065)):
+        pr = planets[n - 1][1]
+        for mat, r_ in (('Planet%d' % n, pr), ('BeadGlow', pr * 1.7)):
             bm = bmesh.new()
-            bmesh.ops.create_uvsphere(bm, u_segments=16, v_segments=10, radius=r_, matrix=Matrix.Translation(p0))
+            bmesh.ops.create_uvsphere(bm, u_segments=20, v_segments=12, radius=r_, matrix=Matrix.Translation(p0))
             k.add(bead_j, k.mesh_object('Eclipse%s%d' % (mat, n), bm, [mat]))
+        if n == 2:  # the ember planet wears a ring
+            Rr = Matrix.Rotation(math.radians(35), 3, 'X')
+            bm = bmesh.new()
+            sweep(bm, [p0 + Rr @ Vector((pr * 1.9 * math.cos(2 * math.pi * i / 48), pr * 1.9 * math.sin(2 * math.pi * i / 48), 0))
+                       for i in range(49)], [0.007] * 49, segs=6, cap=False)
+            k.add(bead_j, k.mesh_object('EclipsePlanetRing%d' % n, bm, ['OrbitLine']))
     # two huge sweeping loops (designer, 2026-09-30, the concept's long gold orbits round the giant
     # eclipse): ellipses nearly along the cue, the cue running through them, turning slowly round it
     for n, (u0, A, B, tip, roll, prec) in enumerate(((4.2, 3.5, 1.35, 16, 55, 7.0), (4.6, 3.1, 1.1, -12, -65, -5.0)), 1):
@@ -1277,14 +1553,14 @@ def eclipse(k):
         loop = [c + d * A * math.cos(2 * math.pi * i / 128) + m * B * math.sin(2 * math.pi * i / 128) for i in range(129)]
         j = 'GreatOrbit%d' % n
         k.joint(j, pivot=tuple(c), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': prec, 'Phase': 90 * n}])
-        for mat, tube, segs in (('OrbitLine', 0.009, 6), ('OrbitGlow', 0.03, 8)):
+        for mat, tube, segs in (('OrbitLine', 0.017, 8), ('OrbitGlow', 0.055, 10)):
             bm = bmesh.new()
             sweep(bm, loop, [tube] * len(loop), segs=segs, cap=False)
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
             k.add(j, k.mesh_object('EclipseGreat%s%d' % (mat, n), bm, [mat]))
     rnd = random.Random(23)
-    for n in range(1, 11):
-        a_ = 0.9 + 6.0 * (n - 0.5) / 10 + rnd.uniform(-0.25, 0.25)
+    for n in range(1, 13):
+        a_ = 0.9 + 6.0 * (n - 0.5) / 12 + rnd.uniform(-0.25, 0.25)
         rr = rnd.uniform(0.5, 0.9)
         ang = rnd.uniform(0, 360)
         c = Vector((rr * math.sin(math.radians(ang)), -a_, rr * math.cos(math.radians(ang))))
@@ -1296,10 +1572,22 @@ def eclipse(k):
             {'Kind': 'Spin', 'Axis': (rnd.uniform(-1, 1), rnd.uniform(-1, 1), 1), 'Rate': rnd.uniform(40, 90)}])
         bm = bmesh.new()
         geom = bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
-        sz = rnd.uniform(0.045, 0.1)
+        sz = rnd.uniform(0.06, 0.14)
         stretch = Vector((rnd.uniform(0.8, 1.3), rnd.uniform(0.8, 1.4), rnd.uniform(0.6, 1.0)))
         for v in geom['verts']:
             d = v.co.normalized()
             bump = 1 + 0.28 * math.sin(d.x * 5.1 + n) * math.sin(d.y * 4.3 + 2 * n) + 0.12 * math.sin(d.z * 9 + n)
             v.co = c + Vector((d.x * stretch.x, d.y * stretch.y, d.z * stretch.z)) * sz * bump
         k.add(rock, k.mesh_object('EclipseAsteroid%d' % n, bm, ['Rock'], smooth=False))
+    # the eclipse shadow (rarity rework, 2026-10-04): a dark umbra ring with a gold penumbra
+    # rim sweeps the cue tip to butt every five seconds and snaps back, the cue eclipsed
+    k.joint('Shadow', pivot=(0, -3.5, 0),
+            motion=[{'Kind': 'Bob', 'Dir': (0, -1, 0), 'Amp': 3.3, 'Period': 5.0, 'Shape': 'saw'}],
+            visual=[{'Kind': 'Glow', 'Min': 0.2, 'Max': 0.8, 'Period': 5.0, 'Shape': 'saw'}])
+    cs = Vector((0, -3.5, 0))
+    for mat, rr, tube, segs in (('Void', 0.25 + G, 0.04, 10), ('Flare', 0.29 + G, 0.008, 6)):
+        bm = bmesh.new()
+        sweep(bm, [cs + Vector((rr * math.cos(2 * math.pi * i / 64), 0, rr * math.sin(2 * math.pi * i / 64))) for i in range(65)],
+              [tube] * 65, segs=segs, cap=False)
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+        k.add('Shadow', k.mesh_object('EclipseShadow' + mat, bm, [mat]))

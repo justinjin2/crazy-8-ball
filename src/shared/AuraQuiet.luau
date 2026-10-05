@@ -10,6 +10,13 @@
 -- Config.CueSkins.Quiet.CheckSeconds with every drawn stick and its owner; the stick's
 -- AuraQuiet attribute carries the answer to CueSkinLook, which eases the aura down to its
 -- tier's Config.CueSkins.Quiet share.
+--
+-- The engulfing aura round the player (a skin's Carrier piece and Carrier-host emitters) has
+-- its own rule (designer, 2026-10-04): gone while a shot is in flight at the owner's table
+-- (Config.CueSkins.Carrier.ShotPhases, whoever shot it), back between shots while the owner
+-- watches. apply() writes it to the stick's CarrierQuiet attribute.
+
+local Config = require(script.Parent.Config)
 
 local AuraQuiet = {}
 
@@ -43,12 +50,36 @@ function AuraQuiet.quiet(owner: number, me: number, snapshots: { [number]: Snaps
 	return false
 end
 
---- Set each stick's AuraQuiet attribute (sticks: stick -> its owner's UserId).
+--- Whether `owner`'s engulfing aura is quiet: a shot is in flight at the table they sit at.
+function AuraQuiet.carrierQuiet(owner: number, snapshots: { [number]: Snapshot }): boolean
+	for _, s in snapshots do
+		local seats = s.seats
+		if seats == nil or s.phase == nil then
+			continue
+		end
+		if not table.find(Config.CueSkins.Carrier.ShotPhases, s.phase) then
+			continue
+		end
+		for _, seat in seats do
+			if seat.userId == owner then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+--- Set each stick's AuraQuiet and CarrierQuiet attributes (sticks: stick -> its owner's
+--- UserId).
 function AuraQuiet.apply(sticks: { [Model]: number }, me: number, snapshots: { [number]: Snapshot })
 	for stick, owner in sticks do
 		local quiet = AuraQuiet.quiet(owner, me, snapshots)
 		if stick:GetAttribute("AuraQuiet") ~= quiet then
 			stick:SetAttribute("AuraQuiet", quiet)
+		end
+		local carrier = AuraQuiet.carrierQuiet(owner, snapshots)
+		if stick:GetAttribute("CarrierQuiet") ~= carrier then
+			stick:SetAttribute("CarrierQuiet", carrier)
 		end
 	end
 end

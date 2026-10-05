@@ -453,9 +453,9 @@ Config.Cue = {
 	-- true-scale 58 in cue would be 9.3 studs at this table's scale; the designer chose about
 	-- 7 (2026-09-24), between that and the old 4.4 that looked like a toy next to an avatar.
 	CueLengthStuds = 7,
-	-- 0.32 since 2026-10-01 (designer: 1.6x wider so a skin's art reads next to an avatar, the
-	-- tip kept as it was; 0.2 before). The shared cue mesh is built from these (Shape.json).
-	CueButtDiameterStuds = 0.32,
+	-- 0.36 approved 2026-10-04 (+12.5% over shape 2). Keep the slim front; ease the gain
+	-- between 2.1 and 3.85 studs. Shape.json drives the shared mesh and its UV rebuild.
+	CueButtDiameterStuds = 0.36,
 	CueTipDiameterStuds = 0.09,
 	-- The drawn cue's shape, tip to butt (CueShape). Each row ends at To (a fraction of the
 	-- length, ascending to 1) and is drawn Taper of the way from the tip diameter to the butt
@@ -463,10 +463,13 @@ Config.Cue = {
 	-- shape clear of the rail and the balls, so what is drawn is what is tested.
 	Profile = {
 		{ To = 0.012, Taper = 0, Look = "Tip" },
-		-- The first ~2 studs stay as slim as the 0.2 cue; the forearm and butt are 1.6x.
-		{ To = 0.3, Taper = 0.065, Look = "Shaft" },
-		{ To = 0.55, Taper = 0.435, Look = "Shaft" },
-		{ To = 0.78, Taper = 0.79, Look = "Butt" },
+		-- Unchanged shape-2 front, then quarter samples of the approved smoothstep widening.
+		{ To = 0.3, Taper = 0.05537037037037, Look = "Shaft" },
+		{ To = 0.3625, Taper = 0.37055555555556, Look = "Shaft" },
+		{ To = 0.425, Taper = 0.4613818359375, Look = "Shaft" },
+		{ To = 0.4875, Taper = 0.5752025462963, Look = "Shaft" },
+		{ To = 0.55, Taper = 0.69552029079861, Look = "Shaft" },
+		{ To = 0.78, Taper = 0.79875, Look = "Butt" },
 		{ To = 1, Taper = 1, Look = "Butt" },
 	},
 	-- Resting gap between the tip and the cue ball while aiming (table inches), how far the
@@ -4579,6 +4582,7 @@ Config.CueSkins = {
 			Legendary = 0.25,
 			Mythic = 0.25,
 			Secret = 0.25,
+			Unique = 0.25, -- the numbered Limited cues quiet like a Secret (designer, 2026-10-04)
 		},
 		DefaultShare = 0.5, -- a tier not listed (tune)
 		-- A skin's own share, by catalog id, in place of its tier's: the two biggest auras
@@ -4590,10 +4594,46 @@ Config.CueSkins = {
 		FadeSeconds = 0.4, -- (tune)
 		CheckSeconds = 0.2, -- how often the match state is looked at (internal)
 	},
+	-- The engulfing aura round a player (a skin's Carrier piece and its Carrier-host emitters,
+	-- Secret cues) is gone while a shot is being watched at the owner's table and comes back
+	-- between shots (designer, 2026-10-04): the match phases that count as a shot in flight.
+	-- (It also goes while the stick is AuraQuiet: the owner shooting, or your own turn.)
+	Carrier = {
+		ShotPhases = { "Resolving", "Frozen", "Rewinding" },
+		-- A Carrier piece and its hosts are modelled for the default R15 body, whose head top
+		-- is this far above the HumanoidRootPart; the look lifts them by the difference to the
+		-- carrying body's own head top, so a tall or short avatar wears them at its head
+		-- (designer, 2026-10-04). (measured in Studio)
+		HeadTopStuds = 2.1,
+	},
 	-- Every cue with an aura also wears a thin, faint outline of its colour (a Highlight on
 	-- the stick), so it stands out on the bright lobby (designer, 2026-10-01; made much
 	-- fainter and the tint over the whole cue dropped the same day). The colour is the
 	-- skin's Aura.Outline, else its tier's below.
+	-- A skin's aura sound (Aura.Sound in the skin data: the Beta Cue's faint hologram hum, the
+	-- Grand Opening's crackles; designer, 2026-10-04): a looping Sound on the cue, local to
+	-- this client, in the Sfx group (SoundGroups adopts it, so the Settings switch silences
+	-- it), playing while the aura shows and scaled by the aura's quiet share. The skin's row
+	-- gives Asset, Volume, Looped and may override the roll-off here.
+	Sound = {
+		AtStuds = 3.5, -- where on the cue it sits
+		RollOffMinStuds = 3, -- full volume inside this
+		RollOffMaxStuds = 24, -- silent beyond this
+	},
+	-- A piece joint's Type visual (the Beta Cue's blueprint panels, 2026-10-04): a SurfaceGui
+	-- riding the joint that types made-up glyph strings, row by row, in step with the panel's
+	-- life (its Period and Phase), then clears and starts over. Never readable words.
+	Typing = {
+		Font = "Code", -- Enum.Font: monospaced, techy
+		Glyphs = "0123456789ABCDEF<>/|[]{}=+-*#%&^~:;._", -- the alphabet the gibberish is built from
+		TokenMin = 2, -- glyphs per token (a "word"), min and max
+		TokenMax = 5,
+		PixelsPerStud = 160, -- the gui's canvas density (text crispness)
+		Brightness = 2.5, -- SurfaceGui.Brightness: the text glows
+		LineHeight = 1.25, -- row pitch as a share of the text size
+		CursorGlyph = "_", -- blinks at the end of the typed text
+		CursorPeriod = 0.5, -- seconds per cursor blink
+	},
 	Outline = {
 		Colors = {
 			Rare = "#2F8CFF",
@@ -4603,6 +4643,9 @@ Config.CueSkins = {
 			Secret = "#FF3048",
 			Rank = "#FFB000",
 			Exclusive = "#2F8CFF",
+			-- Unique's pink is only the default: each Unique cue sets its own Aura.Outline
+			-- (Beta electric blue, Grand Opening gold; designer, 2026-10-04).
+			Unique = "#FF5CB8",
 		},
 		OutlineTransparency = 0.65, -- 0 a solid line, 1 none (tune)
 		FillTransparency = 1, -- 1 no tint; lower tints the whole cue (tune)
@@ -4713,6 +4756,14 @@ Config.Effects = {
 	-- FlashScale as bright, its glassy ForceField shell ShellFade of the way to clear and its
 	-- glow EmissiveScale as strong. A dark fill (FillTransparency below 1) greyed it: off.
 	Finisher = {
+		-- A skin's pocket sound (Pocket.Sound in the skin data: the Grand Opening's fireworks;
+		-- designer, 2026-10-04), played once at the pocket; the row gives Asset and Volume and
+		-- may override the roll-off; Seconds keeps the pocket's root alive for it.
+		Sound = {
+			RollOffMinStuds = 8,
+			RollOffMaxStuds = 60,
+			Seconds = 7,
+		},
 		OutlineColor = { 20, 10, 30 }, -- (tune)
 		OutlineTransparency = 0.3, -- (tune)
 		FillColor = { 0, 0, 0 },

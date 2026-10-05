@@ -219,6 +219,13 @@ class Emitter:
             else:
                 pos = np.stack([(rs.random_sample(n) - 0.5) * wdt, -along, (rs.random_sample(n) - 0.5) * wdt], -1)
             pos = pos + np.array([h.get('Side', 0.0), 0.0, h.get('Up', 0.0)])
+        elif kind == 'Carrier':
+            # a box round the carrying character (CueSkinLook's Carrier host): Size [x, y, z]
+            # and Offset in the character's frame (Roblox axes); the host is the character's
+            # root (CuePreview's avatar root in the back segment)
+            off = roblox_to_blender(h.get('Offset', [0, 0, 0]))
+            size = roblox_to_blender(h.get('Size', [4, 4, 4]))
+            pos = off[None] + (rs.random_sample((n, 3)) - 0.5) * np.abs(np.array(size, np.float64))[None]
         else:  # 'Point' in the host's own frame (the pocket): Offset [x, y, z] Roblox axes
             off = roblox_to_blender(h.get('Offset', [0, 0, 0]))
             size = h.get('Size', 0)
@@ -274,6 +281,9 @@ class Emitter:
             self.p[key] = np.concatenate([self.p[key], val])
 
     def step(self, dt, host_m, emitting=True):
+        fixed = getattr(self, 'fixed_host', None)
+        if fixed is not None:
+            host_m = fixed()  # a Carrier host: the character's root, not the cue (CuePreview)
         if self.joint_m is not None:
             host_m = host_m @ self.joint_m()
         p = self.p
@@ -299,6 +309,9 @@ class Emitter:
 
     # --- drawing -------------------------------------------------------------------------------
     def quads(self, host_m, cam_m):
+        fixed = getattr(self, 'fixed_host', None)
+        if fixed is not None:
+            host_m = fixed()
         """Per live particle: 4 world corners, UVs (flipbook), RGBA; sorted back to front."""
         p = self.p
         n = len(p['age'])
@@ -744,13 +757,25 @@ def make_pieces(aura, seed=1, rate_scale=1.0, texture_root=HERE):
 
 
 def wave(t, spec):
-    """A runtime pulse (a script tweening a property): {"Min", "Max", "Period", "Shape": sine|flicker|beat}."""
+    """A runtime pulse (a script tweening a property): {"Min", "Max", "Period", "Shape":
+    sine|flicker|beat|life}. life: a hologram panel's life (Min at birth): pops in over the
+    first 6% of the period with one blink, holds at Max to 82%, then dissolves to Min with a
+    blink halfway down (Motion.vfxWave)."""
     if not spec:
         return None
     lo, hi = spec.get('Min', 0), spec.get('Max', 1)
     period = spec.get('Period', 2.0)
     shape = spec.get('Shape', 'sine')
     ph = (t / period + spec.get('Phase', 0.0)) % 1.0
+    if shape == 'life':
+        if ph < 0.06:
+            k = 0.15 if 0.02 < ph < 0.035 else ph / 0.06
+        elif ph < 0.82:
+            k = 1.0
+        else:
+            u = (ph - 0.82) / 0.18
+            k = 0.1 if 0.5 < u < 0.6 else 1.0 - u
+        return lo + (hi - lo) * k
     if shape == 'flicker':
         # mostly steady with quick dips, as a neon tube
         k = 0.85 + 0.15 * math.sin(2 * math.pi * ph)

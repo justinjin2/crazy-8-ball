@@ -1,0 +1,122 @@
+{
+  "id": "beta_pocket",
+  "Frame": "pocket",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 6304,
+  "Parts": [
+    {
+      "Material": "Neon",
+      "Color": "#3B8CFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Funnel_Wire",
+      "File": "pieces/beta_pocket/Funnel_Wire.obj",
+      "Joint": "Funnel",
+      "Offset": [
+        0.0,
+        -1.812,
+        -0.0
+      ],
+      "Size": [
+        3.6023,
+        3.6289,
+        3.6023
+      ],
+      "Triangles": 3328
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#5AB0FF",
+      "Transparency": 0.35,
+      "Reflectance": 0.0,
+      "Name": "Funnel_Skin",
+      "File": "pieces/beta_pocket/Funnel_Skin.obj",
+      "Joint": "Funnel",
+      "Offset": [
+        0.0,
+        -1.8,
+        -0.0
+      ],
+      "Size": [
+        3.6,
+        3.6,
+        3.6
+      ],
+      "Triangles": 416
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FF3FD6",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Funnel_Ring",
+      "File": "pieces/beta_pocket/Funnel_Ring.obj",
+      "Joint": "Funnel",
+      "Offset": [
+        0.0,
+        1.7,
+        0.0
+      ],
+      "Size": [
+        2.47,
+        1.94,
+        2.47
+      ],
+      "Triangles": 1280
+    },
+    {
+      "Material": "Neon",
+      "Color": "#DFF6FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Funnel_Rim",
+      "File": "pieces/beta_pocket/Funnel_Rim.obj",
+      "Joint": "Funnel",
+      "Offset": [
+        0.0,
+        2.575,
+        0.0
+      ],
+      "Size": [
+        3.5788,
+        1.89,
+        3.5788
+      ],
+      "Triangles": 1280
+    }
+  ],
+  "Joints": {
+    "Funnel": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": 110.0
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.5,
+          "Period": 0.5
+        }
+      ]
+    }
+  }
+}

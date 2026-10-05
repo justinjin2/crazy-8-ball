@@ -12,6 +12,7 @@ tools/upload_manifest.json, and writes (generated, never edited by hand):
                                                  (small: the catalog and the UI read it)
     src/shared/CueSkins/Textures.luau            the default texture of each effect role
 
+A skin with "draft": true is left out (still being built; its assets are not uploaded yet).
 Every file path in the skin data becomes its uploaded id ("rbxassetid://<image id>"); a path with
 no id stops the run unless --allow-missing (then it is "" and listed). Notes, budgets and the
 review-only keys are dropped. Colours stay as the skin files write them (hex strings or 0-255
@@ -28,7 +29,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CUE = os.path.join(ROOT, 'assets', 'cue')
 OUT = os.path.join(ROOT, 'src', 'shared', 'CueSkins')
 MANIFEST = os.path.join(ROOT, 'tools', 'upload_manifest.json')
-ASSET = re.compile(r'\.(png|glb|obj)$')
+ASSET = re.compile(r'\.(png|glb|obj|wav|ogg|mp3)$')
 DROP = {'Note', 'Budget', 'frame', 'Triangles', 'File'}  # notes and review-only keys
 MAPS = ('color', 'normal', 'roughness', 'metalness', 'emissive')
 
@@ -37,21 +38,32 @@ missing = []
 
 
 def asset_id(rel):
-    """`vfx/x.png`, `textures/x.png` or `pieces/p/x.glb` -> its uploaded id string."""
+    """`vfx/x.png`, `textures/x.png`, `pieces/p/x.glb` or `sounds/x.wav` -> its uploaded id string
+    (an image id for a picture, `rbxassetid://` for a sound, the bare id for a model)."""
     path = os.path.join(CUE, rel)
     row = manifest.get(path) or {}
     if not row:
         # Uploaded from another worktree (~/Desktop/8ball, 8ball-gui, ...): the manifest is keyed
-        # by absolute path, so match the path inside assets/cue instead.
+        # by absolute path, so match the path inside assets/cue instead, the main checkout's
+        # upload first (the rows the game runs on), so every lane generates the same rows.
         tail = os.sep + os.path.join('assets', 'cue', rel)
-        row = next((r for k, r in manifest.items() if k.endswith(tail) and r.get('status') == 'ok'), {})
+        hits = [(k, r) for k, r in manifest.items() if k.endswith(tail) and r.get('status') == 'ok']
+        hits.sort(key=lambda kr: 0 if kr[0].startswith(os.path.join(os.path.expanduser('~'), 'Desktop', '8ball') + os.sep) else 1)
+        row = hits[0][1] if hits else {}
     if row.get('status') == 'ok':
         if rel.endswith('.png') and row.get('imageId'):
             return 'rbxassetid://%s' % row['imageId']
+        if rel.endswith(('.wav', '.ogg', '.mp3')) and row.get('assetId'):
+            return 'rbxassetid://%s' % row['assetId']
         if not rel.endswith('.png') and row.get('assetId'):
             return row['assetId']
     missing.append(rel)
     return ''
+
+
+def uploaded(rel):
+    tail = os.sep + os.path.join('assets', 'cue', rel)
+    return any(k.endswith(tail) and r.get('status') == 'ok' for k, r in manifest.items())
 
 
 def resolve(x):
@@ -108,13 +120,36 @@ def hexrgb(h):
     return [int(h[i:i + 2], 16) for i in (0, 2, 4)]
 
 
-def sample_look(skin_id, colours):
+def recorded_look(catalog_id):
+    """The Look the current Index.luau records for a cue (its generated, fixed layout), for a
+    worktree without that skin's colour map (textures/ is not committed; a lane rebuilds only
+    its own skins' maps)."""
+    try:
+        text = open(os.path.join(OUT, 'Index.luau')).read()
+    except FileNotFoundError:
+        return None
+    m = re.search(r'\n\t%s = \{\n(.*?)\n\t\},' % re.escape(catalog_id), text, re.S)
+    if not m:
+        return None
+    look = re.search(r'Look = \{\n(.*?)\n\t\t\},', m.group(1), re.S)
+    if not look:
+        return None
+    out = {k: [int(a), int(b), int(c)] for k, a, b, c in re.findall(r'(\w+) = \{ (\d+), (\d+), (\d+) \}', look.group(1))}
+    return out or None
+
+
+def sample_look(skin_id, colours, catalog_id=None):
     """The cue's flat colours from its colour map: the shaft, forearm and butt strips' middles."""
     path = os.path.join(CUE, 'textures', skin_id + '_color.png')
     try:
         from PIL import Image
     except ImportError:
         sys.exit('needs Pillow (pip3 install pillow)')
+    if not os.path.isfile(path):
+        kept = recorded_look(catalog_id or '')
+        if kept:
+            return kept
+        sys.exit('no colour map for %s (textures/%s_color.png) and no Look recorded in Index.luau' % (skin_id, skin_id))
     im = Image.open(path).convert('RGB')
     layout = {u['strip']: u for u in json.load(open(os.path.join(CUE, 'Parameters.json')))['uv_layout']}
 
@@ -140,8 +175,11 @@ def skin_row(skin):
     row = {'Id': sid, 'CatalogId': skin['catalog_id'], 'Name': skin['name'], 'Tier': skin['tier']}
     maps = {}
     for key in MAPS:
-        if os.path.isfile(os.path.join(CUE, 'textures', '%s_%s.png' % (sid, key))):
-            maps[key.capitalize()] = asset_id('textures/%s_%s.png' % (sid, key))
+        rel = 'textures/%s_%s.png' % (sid, key)
+        # the map is on disk, or (a lane without the other skins' maps: textures/ is not
+        # committed) already uploaded
+        if os.path.isfile(os.path.join(CUE, rel)) or uploaded(rel):
+            maps[key.capitalize()] = asset_id(rel)
     row['Maps'] = maps
     if skin.get('surface'):
         row['Surface'] = resolve(skin['surface'])
@@ -159,13 +197,15 @@ def skin_row(skin):
         row['TrailEmitters'] = resolve(vfx['Trail']['Emitters'])
     if vfx.get('Style'):
         row['Style'] = resolve(vfx['Style'])
-    pocket = {k: v for k, v in (vfx.get('Pocket') or {}).items() if k in ('Layers', 'Rings', 'Flash', 'Piece', 'KeepRibbons')}
+    pocket = {k: v for k, v in (vfx.get('Pocket') or {}).items() if k in ('Layers', 'Rings', 'Flash', 'Piece', 'KeepRibbons', 'Sound')}
     if pocket:
         row['Pocket'] = resolve(pocket)
     if skin.get('piece'):
         row['Piece'] = skin['piece']
+    if skin.get('carrier'):
+        row['Carrier'] = skin['carrier']  # a piece built on the carrying character (a Secret's engulfing aura)
     row['Thumb'] = asset_id('thumbs/%s.png' % sid)
-    row['Look'] = sample_look(sid, skin.get('colours') or {})
+    row['Look'] = sample_look(sid, skin.get('colours') or {}, skin['catalog_id'])
     return row
 
 
@@ -196,8 +236,8 @@ def main():
     for name in sorted(os.listdir(os.path.join(CUE, 'skins'))):
         if name.endswith('.json') and not name.startswith('_'):
             skin = json.load(open(os.path.join(CUE, 'skins', name)))
-            if skin.get('catalog_id'):
-                skins.append(skin)
+            if skin.get('catalog_id') and not skin.get('draft'):
+                skins.append(skin)  # "draft": true keeps a skin still being built out of the game
     os.makedirs(os.path.join(OUT, 'Skins'), exist_ok=True)
     os.makedirs(os.path.join(OUT, 'Pieces'), exist_ok=True)
     for sub in ('Skins', 'Pieces'):  # a skin or piece removed from assets/cue goes too
@@ -210,7 +250,18 @@ def main():
         if row.get('Piece'):
             index[row['CatalogId']]['Piece'] = row['Piece']
         write_module(os.path.join(OUT, 'Skins', row['CatalogId'] + '.luau'), '%s (%s): the cue skin\'s look.' % (skin['name'], skin['tier']), row)
-    pieces = sorted(d for d in os.listdir(os.path.join(CUE, 'pieces')) if os.path.isfile(os.path.join(CUE, 'pieces', d, 'piece.json')))
+    # only the pieces an included skin wears (a draft skin's pieces are not uploaded yet)
+    used = set()
+    for skin in skins:
+        if skin.get('piece'):
+            used.add(skin['piece'])
+        if skin.get('carrier'):
+            used.add(skin['carrier'])
+        pocket = ((skin.get('vfx') or {}).get('Pocket') or {}).get('Piece') or {}
+        if pocket.get('Piece'):
+            used.add(pocket['Piece'])
+    pieces = sorted(d for d in os.listdir(os.path.join(CUE, 'pieces'))
+                    if os.path.isfile(os.path.join(CUE, 'pieces', d, 'piece.json')) and d in used)
     for pid in pieces:
         row = piece_row(json.load(open(os.path.join(CUE, 'pieces', pid, 'piece.json'))))
         write_module(os.path.join(OUT, 'Pieces', pid + '.luau'), 'The %s piece: parts, joints and motions.' % pid, row)

@@ -1,1914 +1,1244 @@
 {
-  "id": "kitsune",
-  "name": "Kitsune",
-  "tier": "Mythic",
-  "catalog_id": "KitsuneCue",
-  "concept": "M2",
-  "palette": [
-    "#FAF7F2",
-    "#C8102E",
-    "#D4AF37",
-    "#C77DFF"
-  ],
-  "painter": "mix",
-  "note": "White porcelain with crimson lacquer and gold: OpenAI panels on the whole cue (a porcelain shaft wound with a crimson ribbon edged in gold and small pink blossoms, a porcelain-and-crimson forearm of flowing swirls with gold filigree and blossoms, a black grip with a crimson crosshatch, a black lacquer sleeve with thin crimson lines), gold collar and rings, a black end. The 3D piece (pieces/kitsune): a porcelain spirit-fox mask on the butt with twitching ears, violet foxfire eyes, crimson markings, a gold-framed gem and a small jaw; nine see-through foxfire tails (Beams) flow off it and sway.",
-  "ai": {
-    "shaft_tile": {
-      "refs": [
-        "shaft",
-        "full"
-      ],
-      "size": "1536x768",
-      "prompt": "Glossy white porcelain (#FAF7F2) with faint pearly swirls, wound by one flowing crimson lacquer ribbon (#C8102E) edged with thin gold lines (#D4AF37) that twists gently along the length, with a few small pink cherry blossoms (#FF9ACB) with gold centres beside it. No other shapes."
-    },
-    "shaft_top": {
-      "refs": [
-        "shaft",
-        "full"
-      ],
-      "prompt": "Glossy white porcelain (#FAF7F2) with faint pearly swirls, wound by flowing crimson lacquer ribbons (#C8102E) edged with thin gold lines, growing wider and more ornate toward the right edge, with small pink cherry blossoms (#FF9ACB) with gold centres. No other shapes."
-    },
-    "forearm": {
-      "refs": [
-        "closeup",
-        "forearm",
-        "full"
-      ],
-      "prompt": "Flowing swirls of glossy white porcelain (#FAF7F2) and deep crimson lacquer (#C8102E) sweeping along the forearm like flames and waves, edged and scrolled with fine gold filigree (#D4AF37), with pink cherry blossoms (#FF9ACB) with gold centres scattered over them. The two thin strips at the far left are the joint collar: paint them plain polished gold (#D4AF37)."
-    },
-    "butt": {
-      "refs": [
-        "closeup",
-        "butt",
-        "full"
-      ],
-      "prompt": "Left thin strip (the ring): plain polished gold (#D4AF37). The wrap (from the ring to the next zone line): a black leather grip (#121014) with a fine crimson crosshatch stitch pattern (#C8102E). The butt sleeve (between the two zone lines on the right): glossy black lacquer with thin crimson lines and a gold band at each end. The very thin strip at the far right: plain black."
-    }
-  },
-  "panels": {
-    "shaft_tile": "skins/kitsune/shaft_tile.png",
-    "shaft_top": "skins/kitsune/shaft_top.png",
-    "forearm": "skins/kitsune/forearm.png",
-    "butt": "skins/kitsune/butt.png",
-    "cap_end": "skins/kitsune/cap_end.png"
-  },
-  "colours": {
-    "tip": "#1E2438",
-    "ferrule": "#EFEDE6",
-    "bumper": "#0C0C0E",
-    "gold": "#D4AF37",
-    "metal": "#D4AF37"
-  },
+ "id": "kitsune",
+ "name": "Kitsune",
+ "tier": "Mythic",
+ "catalog_id": "KitsuneCue",
+ "concept": "M2",
+ "palette": [
+  "#FAF7F2",
+  "#C8102E",
+  "#D4AF37",
+  "#C77DFF"
+ ],
+ "painter": "mix",
+ "note": "White porcelain with crimson lacquer and gold: OpenAI panels on the whole cue (a porcelain shaft wound with a crimson ribbon edged in gold and small pink blossoms, a porcelain-and-crimson forearm of flowing swirls with gold filigree and blossoms, a black grip with a crimson crosshatch, a black lacquer sleeve with thin crimson lines), gold collar and rings, a black end. The 3D piece (pieces/kitsune): a porcelain spirit-fox mask on the butt with twitching ears, violet foxfire eyes, crimson markings, a gold-framed gem and a small jaw; nine see-through foxfire tails (real swept meshes) stream from its collar along the handle and sway; three foxfire orbs ride a spiral path round the cue; a small spirit fox runs round the forearm. Reworked 2026-10-04 (the Mythic rule): themed ends (torii-red collar, a foxfire ferrule), the cloud cut to a third so the fox and mask read.",
+ "ai": {
   "shaft_tile": {
-    "repeats": 1,
-    "fade": 0
+   "refs": [
+    "shaft",
+    "full"
+   ],
+   "size": "1536x768",
+   "prompt": "Glossy white porcelain (#FAF7F2) with faint pearly swirls, wound by one flowing crimson lacquer ribbon (#C8102E) edged with thin gold lines (#D4AF37) that twists gently along the length, with a few small pink cherry blossoms (#FF9ACB) with gold centres beside it. No other shapes."
   },
-  "wrap_relief": "panel",
-  "metal": [],
-  "glow": [],
-  "piece": "kitsune",
-  "surface": {
-    "EmissiveStrength": 1.8,
-    "EmissiveTint": "#FFD8F4",
-    "Pulse": {
-      "EmissiveStrength": {
-        "Min": 1.4,
-        "Max": 2.2,
-        "Period": 4.4
-      }
-    }
+  "shaft_top": {
+   "refs": [
+    "shaft",
+    "full"
+   ],
+   "prompt": "Glossy white porcelain (#FAF7F2) with faint pearly swirls, wound by flowing crimson lacquer ribbons (#C8102E) edged with thin gold lines, growing wider and more ornate toward the right edge, with small pink cherry blossoms (#FF9ACB) with gold centres. No other shapes."
   },
-  "vfx": {
-    "Piece": {
-      "Note": "pieces/kitsune: FoxMask.glb, the generated mask as a hologram (Mask, EarLeft/Right, Jaw), on the butt; RunningFox.glb, a small generated nine-tailed fox as a violet hologram, on the bones FoxRun (root, a Spin round the forearm: its lap), FoxBody (rise and pitch each stride), FoxFront and FoxHind (the legs, half a stride apart), FoxHead and FoxTails. The fox's joints are Aura (hidden on the shooter's turn)."
-    },
-    "Moving": {
-      "Kind": "Piece + Beams (tails) + emissive",
-      "Note": "The nine tails sway and flicker: nine curved Beams (the foxtail texture made for Kitsune, stretched) from the back of the mask fan out over the top and both sides; a script swings each far attachment (Sway: 0.18 studs across its own direction, 1.7-2.2 s, each out of step) and the curve follows a quarter period late, so each tail waves like a flame; each flickers (a Transparency pulse). The blossoms' emissive breathes 1.4-2.2.",
-      "Beams": [
-        {
-          "Name": "Tail1",
-          "FromStuds": 6.9,
-          "ToStuds": 5.672,
-          "Up": 0.03,
-          "Up1": -0.693,
-          "Side1": -0.4,
-          "Curve0": [
-            -0.253,
-            -0.1
-          ],
-          "Curve1": [
-            0.029,
-            -0.549
-          ],
-          "Sway": {
-            "Up": 0.08,
-            "Side": -0.139,
-            "Period": 2.55,
-            "Phase": 0
-          },
-          "Width0": 0.192,
-          "Width1": 0.48,
-          "Segments": 20,
-          "Texture": "vfx/kitsune/foxtail.png",
-          "TextureMode": "Stretch",
-          "Color": "#E8C8FF",
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.25,
-              0.2
-            ],
-            [
-              1,
-              0.2
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 1.0,
-          "FaceCamera": true,
-          "Pulse": {
-            "Min": 0.7,
-            "Max": 1.0,
-            "Period": 1.2
-          }
-        },
-        {
-          "Name": "Tail2",
-          "FromStuds": 6.9,
-          "ToStuds": 5.74,
-          "Up": 0.03,
-          "Up1": -0.39,
-          "Side1": -0.941,
-          "Curve0": [
-            -0.157,
-            -0.185
-          ],
-          "Curve1": [
-            0.357,
-            -0.418
-          ],
-          "Sway": {
-            "Up": 0.148,
-            "Side": -0.061,
-            "Period": 2.925,
-            "Phase": 47
-          },
-          "Width0": 0.192,
-          "Width1": 0.48,
-          "Segments": 20,
-          "Texture": "vfx/kitsune/foxtail.png",
-          "TextureMode": "Stretch",
-          "Color": "#E8C8FF",
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.25,
-              0.2
-            ],
-            [
-              1,
-              0.2
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 1.0,
-          "FaceCamera": true,
-          "Pulse": {
-            "Min": 0.7,
-            "Max": 1.0,
-            "Period": 1.4
-          }
-        },
-        {
-          "Name": "Tail3",
-          "FromStuds": 6.9,
-          "ToStuds": 5.893,
-          "Up": 0.03,
-          "Up1": 0.193,
-          "Side1": -0.718,
-          "Curve0": [
-            -0.028,
-            -0.193
-          ],
-          "Curve1": [
-            0.538,
-            -0.114
-          ],
-          "Sway": {
-            "Up": 0.155,
-            "Side": 0.041,
-            "Period": 3.3,
-            "Phase": 94
-          },
-          "Width0": 0.192,
-          "Width1": 0.48,
-          "Segments": 20,
-          "Texture": "vfx/kitsune/foxtail.png",
-          "TextureMode": "Stretch",
-          "Color": "#E8C8FF",
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.25,
-              0.2
-            ],
-            [
-              1,
-              0.2
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 1.0,
-          "FaceCamera": true,
-          "Pulse": {
-            "Min": 0.7,
-            "Max": 1.0,
-            "Period": 1.6
-          }
-        },
-        {
-          "Name": "Tail4",
-          "FromStuds": 6.9,
-          "ToStuds": 6.015,
-          "Up": 0.03,
-          "Up1": 0.473,
-          "Side1": -0.363,
-          "Curve0": [
-            0.079,
-            -0.122
-          ],
-          "Curve1": [
-            0.496,
-            0.237
-          ],
-          "Sway": {
-            "Up": 0.097,
-            "Side": 0.127,
-            "Period": 2.55,
-            "Phase": 141
-          },
-          "Width0": 0.192,
-          "Width1": 0.48,
-          "Segments": 20,
-          "Texture": "vfx/kitsune/foxtail.png",
-          "TextureMode": "Stretch",
-          "Color": "#E8C8FF",
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.25,
-              0.2
-            ],
-            [
-              1,
-              0.2
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 1.0,
-          "FaceCamera": true,
-          "Pulse": {
-            "Min": 0.7,
-            "Max": 1.0,
-            "Period": 1.8
-          }
-        },
-        {
-          "Name": "Tail5",
-          "FromStuds": 6.9,
-          "ToStuds": 6.013,
-          "Up": 0.03,
-          "Up1": 0.909,
-          "Side1": 0.0,
-          "Curve0": [
-            0.12,
-            0.0
-          ],
-          "Curve1": [
-            0.249,
-            0.49
-          ],
-          "Sway": {
-            "Up": -0.0,
-            "Side": 0.16,
-            "Period": 2.925,
-            "Phase": 188
-          },
-          "Width0": 0.192,
-          "Width1": 0.48,
-          "Segments": 20,
-          "Texture": "vfx/kitsune/foxtail.png",
-          "TextureMode": "Stretch",
-          "Color": "#E8C8FF",
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.25,
-              0.2
-            ],
-            [
-              1,
-              0.2
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 1.0,
-          "FaceCamera": true,
-          "Pulse": {
-            "Min": 0.7,
-            "Max": 1.0,
-            "Period": 1.2
-          }
-        },
-        {
-          "Name": "Tail6",
-          "FromStuds": 6.9,
-          "ToStuds": 5.89,
-          "Up": 0.03,
-          "Up1": 0.774,
-          "Side1": 0.594,
-          "Curve0": [
-            0.079,
-            0.122
-          ],
-          "Curve1": [
-            -0.1,
-            0.541
-          ],
-          "Sway": {
-            "Up": -0.097,
-            "Side": 0.127,
-            "Period": 3.3,
-            "Phase": 235
-          },
-          "Width0": 0.192,
-          "Width1": 0.48,
-          "Segments": 20,
-          "Texture": "vfx/kitsune/foxtail.png",
-          "TextureMode": "Stretch",
-          "Color": "#E8C8FF",
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.25,
-              0.2
-            ],
-            [
-              1,
-              0.2
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 1.0,
-          "FaceCamera": true,
-          "Pulse": {
-            "Min": 0.7,
-            "Max": 1.0,
-            "Period": 1.4
-          }
-        },
-        {
-          "Name": "Tail7",
-          "FromStuds": 6.9,
-          "ToStuds": 5.738,
-          "Up": 0.03,
-          "Up1": 0.167,
-          "Side1": 0.624,
-          "Curve0": [
-            -0.028,
-            0.193
-          ],
-          "Curve1": [
-            -0.409,
-            0.368
-          ],
-          "Sway": {
-            "Up": -0.155,
-            "Side": 0.041,
-            "Period": 2.55,
-            "Phase": 282
-          },
-          "Width0": 0.192,
-          "Width1": 0.48,
-          "Segments": 20,
-          "Texture": "vfx/kitsune/foxtail.png",
-          "TextureMode": "Stretch",
-          "Color": "#E8C8FF",
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.25,
-              0.2
-            ],
-            [
-              1,
-              0.2
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 1.0,
-          "FaceCamera": true,
-          "Pulse": {
-            "Min": 0.7,
-            "Max": 1.0,
-            "Period": 1.6
-          }
-        },
-        {
-          "Name": "Tail8",
-          "FromStuds": 6.9,
-          "ToStuds": 5.672,
-          "Up": 0.03,
-          "Up1": -0.254,
-          "Side1": 0.613,
-          "Curve0": [
-            -0.157,
-            0.185
-          ],
-          "Curve1": [
-            -0.548,
-            0.043
-          ],
-          "Sway": {
-            "Up": -0.148,
-            "Side": -0.061,
-            "Period": 2.925,
-            "Phase": 329
-          },
-          "Width0": 0.192,
-          "Width1": 0.48,
-          "Segments": 20,
-          "Texture": "vfx/kitsune/foxtail.png",
-          "TextureMode": "Stretch",
-          "Color": "#E8C8FF",
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.25,
-              0.2
-            ],
-            [
-              1,
-              0.2
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 1.0,
-          "FaceCamera": true,
-          "Pulse": {
-            "Min": 0.7,
-            "Max": 1.0,
-            "Period": 1.8
-          }
-        },
-        {
-          "Name": "Tail9",
-          "FromStuds": 6.9,
-          "ToStuds": 5.742,
-          "Up": 0.03,
-          "Up1": -0.857,
-          "Side1": 0.495,
-          "Curve0": [
-            -0.253,
-            0.1
-          ],
-          "Curve1": [
-            -0.461,
-            -0.3
-          ],
-          "Sway": {
-            "Up": -0.08,
-            "Side": -0.139,
-            "Period": 3.3,
-            "Phase": 376
-          },
-          "Width0": 0.192,
-          "Width1": 0.48,
-          "Segments": 20,
-          "Texture": "vfx/kitsune/foxtail.png",
-          "TextureMode": "Stretch",
-          "Color": "#E8C8FF",
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.25,
-              0.2
-            ],
-            [
-              1,
-              0.2
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 1.0,
-          "FaceCamera": true,
-          "Pulse": {
-            "Min": 0.7,
-            "Max": 1.0,
-            "Period": 1.2
-          }
-        }
+  "forearm": {
+   "refs": [
+    "closeup",
+    "forearm",
+    "full"
+   ],
+   "prompt": "Flowing swirls of glossy white porcelain (#FAF7F2) and deep crimson lacquer (#C8102E) sweeping along the forearm like flames and waves, edged and scrolled with fine gold filigree (#D4AF37), with pink cherry blossoms (#FF9ACB) with gold centres scattered over them. The two thin strips at the far left are the joint collar: paint them plain polished gold (#D4AF37)."
+  },
+  "butt": {
+   "refs": [
+    "closeup",
+    "butt",
+    "full"
+   ],
+   "prompt": "Left thin strip (the ring): plain polished gold (#D4AF37). The wrap (from the ring to the next zone line): a black leather grip (#121014) with a fine crimson crosshatch stitch pattern (#C8102E). The butt sleeve (between the two zone lines on the right): glossy black lacquer with thin crimson lines and a gold band at each end. The very thin strip at the far right: plain black."
+  }
+ },
+ "panels": {
+  "shaft_tile": "skins/kitsune/shaft_tile.png",
+  "shaft_top": "skins/kitsune/shaft_top.png",
+  "forearm": "skins/kitsune/forearm.png",
+  "butt": "skins/kitsune/butt.png",
+  "cap_end": "skins/kitsune/cap_end.png",
+  "ends": "skins/kitsune/ends.png"
+ },
+ "colours": {
+  "tip": "#1E2438",
+  "ferrule": "#EFEDE6",
+  "bumper": "#0C0C0E",
+  "gold": "#D4AF37",
+  "metal": "#D4AF37"
+ },
+ "shaft_tile": {
+  "repeats": 1,
+  "fade": 0
+ },
+ "wrap_relief": "panel",
+ "metal": [],
+ "glow": [],
+ "piece": "kitsune",
+ "surface": {
+  "EmissiveStrength": 1.8,
+  "EmissiveTint": "#FFD8F4",
+  "Pulse": {
+   "EmissiveStrength": {
+    "Min": 1.4,
+    "Max": 2.2,
+    "Period": 4.4
+   }
+  }
+ },
+ "vfx": {
+  "Piece": {
+   "Note": "pieces/kitsune: FoxMask.glb, the generated mask as a hologram (Mask, EarLeft/Right, Jaw), on the butt; RunningFox.glb, a small generated nine-tailed fox as a violet hologram, on the bones FoxRun (root, a Spin round the forearm: its lap), FoxBody, FoxFront, FoxHind, FoxHead, FoxTails. Tail1-9 (rework 2026-10-04): the nine foxfire tails as swept meshes (pink ForceField with a Neon core) off the mask's collar, each on two Sways with Fade and Glow, even tails hidden under Lower effects. Orb1-3: three foxfire orbs (Neon core, ForceField halo, a flame of light) riding the Foxfire path (a double spiral tip to butt) with Glow and Fade. The fox, tails and orbs are Aura (hidden on the shooter's turn)."
+  },
+  "Moving": {
+   "Kind": "Piece + emissive",
+   "Note": "The nine tails and the three orbs are the piece's own moving meshes (rework 2026-10-04; they were Beams and sprite orbiters). The blossoms' emissive breathes 1.4-2.2 over 4.4 s."
+  },
+  "Aura": {
+   "Note": "Rework 2026-10-04 (the Mythic rule, 'readable first'): a soft pink body at 18 a second over a deeper violet, rising pink foxfire at 12, sakura petals at 12, star flares at 8 (slower), gold glints, the fox's running trail; the orbs and tails are meshes now. About 68 a second (was 219).",
+   "Emitters": [
+    {
+     "Name": "Petals",
+     "Texture": "vfx/kitsune/petal_2x2.png",
+     "FlipbookLayout": "Grid2x2",
+     "FlipbookMode": "Loop",
+     "FlipbookFramerate": [
+      3.0,
+      5.0
+     ],
+     "FlipbookStartRandom": true,
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.5,
+      "ToStuds": 7.2,
+      "Width": 1.56,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "Rate": 12,
+     "Lifetime": [
+      2.0,
+      3.0
+     ],
+     "Speed": [
+      0.07,
+      0.21
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 0.6,
+     "Acceleration": [
+      0,
+      -0.3,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.3
+      ],
+      [
+       1,
+       0.36
       ]
-    },
-    "Aura": {
-      "Note": "v2 (2026-10-01): a saturated magenta-violet foxfire cloud round the cue (smoke body), rising pink foxfire flames, sakura petals drifting, pink star flares and gold glints, three foxfire orbs looping along it; the mask and the running fox are outlined (Highlight) so they read through the cloud.",
-      "Emitters": [
-        {
-          "Name": "Petals",
-          "Texture": "vfx/kitsune/petal_2x2.png",
-          "FlipbookLayout": "Grid2x2",
-          "FlipbookMode": "Loop",
-          "FlipbookFramerate": [
-            3.0,
-            5.0
-          ],
-          "FlipbookStartRandom": true,
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.5,
-            "ToStuds": 7.2,
-            "Width": 1.52,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "Rate": 40,
-          "Lifetime": [
-            1.6,
-            2.4
-          ],
-          "Speed": [
-            0.07,
-            0.21
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 0.6,
-          "Acceleration": [
-            0,
-            -0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.3
-            ],
-            [
-              1,
-              0.36
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.1,
-              0
-            ],
-            [
-              0.85,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -40.0,
-            40.0
-          ],
-          "Color": "#FFD3EC",
-          "LightEmission": 0,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Brightness": 1.2
-        },
-        {
-          "Name": "FoxTrail",
-          "Texture": "vfx/v2/flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Rate": 18,
-          "Lifetime": [
-            0.4,
-            0.6
-          ],
-          "Speed": [
-            0.014,
-            0.07
-          ],
-          "SpreadAngle": [
-            40,
-            40
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.3
-            ],
-            [
-              0.4,
-              0.6
-            ],
-            [
-              1,
-              0.2
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.4
-            ],
-            [
-              0.3,
-              0.15
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#FFF0FA"
-            ],
-            [
-              0.4,
-              "#FFB3DE"
-            ],
-            [
-              1,
-              "#E6B8F2"
-            ]
-          ],
-          "Brightness": 2,
-          "LightEmission": 0.4,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "FoxRun",
-            "From": [
-              4.3,
-              0.527,
-              0.16
-            ],
-            "To": [
-              4.3,
-              0.5,
-              -0.07
-            ],
-            "Radius": 0.04
-          }
-        },
-        {
-          "Name": "FoxBody",
-          "Texture": "vfx/v2/smoke_8x8.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 1.02,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rate": 85,
-          "Lifetime": [
-            1.2,
-            1.8
-          ],
-          "Speed": [
-            0.21,
-            0.49
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 1.2,
-          "Size": [
-            [
-              0,
-              0.9
-            ],
-            [
-              1,
-              2.4
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.15,
-              0.1
-            ],
-            [
-              0.7,
-              0.35
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -15.0,
-            15.0
-          ],
-          "Color": [
-            [
-              0,
-              "#FFD3EC"
-            ],
-            [
-              0.5,
-              "#FFA8DA"
-            ],
-            [
-              1,
-              "#E6B8F2"
-            ]
-          ],
-          "LightEmission": 0,
-          "Brightness": 1
-        },
-        {
-          "Name": "Foxfire",
-          "Texture": "vfx/v2/flame_8x8.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 0.92,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rate": 40,
-          "Lifetime": [
-            0.6,
-            1.0
-          ],
-          "Speed": [
-            0.21,
-            0.56
-          ],
-          "SpreadAngle": [
-            30,
-            30
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            1.6,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.4
-            ],
-            [
-              0.4,
-              0.9
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.7
-            ],
-            [
-              0.2,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#FFE6F6"
-            ],
-            [
-              0.3,
-              "#FFB3DE"
-            ],
-            [
-              1,
-              "#E6B8F2"
-            ]
-          ],
-          "LightEmission": 0.25,
-          "Brightness": 1.6
-        },
-        {
-          "Name": "FoxOrbs",
-          "Texture": "vfx/v2/orb.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.4,
-            "ToStuds": 6.8,
-            "Width": 1.32,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rate": 8,
-          "Lifetime": [
-            0.8,
-            1.4
-          ],
-          "Speed": [
-            0.07,
-            0.21
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Size": [
-            [
-              0,
-              0
-            ],
-            [
-              0.2,
-              0.25
-            ],
-            [
-              0.8,
-              0.2
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": 0,
-          "Color": [
-            [
-              0,
-              "#FFC4E6"
-            ],
-            [
-              1,
-              "#FF9FD6"
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 2.5
-        },
-        {
-          "Name": "Sparkles",
-          "Texture": "vfx/v2/flare.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.2,
-            "ToStuds": 7.2,
-            "Width": 1.12,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rate": 22.0,
-          "Lifetime": [
-            0.7,
-            1.4
-          ],
-          "Speed": [
-            0.3,
-            0.8
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 2.5,
-          "Size": [
-            [
-              0,
-              0
-            ],
-            [
-              0.15,
-              0.55
-            ],
-            [
-              0.5,
-              0.24750000000000003
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.3,
-              0
-            ],
-            [
-              0.7,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            45
-          ],
-          "Color": [
-            [
-              0,
-              "#FFFFFF"
-            ],
-            [
-              1,
-              "#FFD3EC"
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 4
-        },
-        {
-          "Name": "GoldGlints",
-          "Texture": "vfx/v2/glint.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.5,
-            "ToStuds": 7.0,
-            "Width": 0.62,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "LightInfluence": 0,
-          "LockedToPart": true,
-          "Rate": 5.6,
-          "Lifetime": [
-            0.56,
-            0.98
-          ],
-          "Speed": [
-            0.0,
-            0.05
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Size": [
-            [
-              0,
-              0
-            ],
-            [
-              0.25,
-              0.75
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.3,
-              0
-            ],
-            [
-              0.7,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            -20,
-            20
-          ],
-          "Color": [
-            [
-              0,
-              "#FFE9A8"
-            ],
-            [
-              1,
-              "#FFC94A"
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 4
-        }
+     ],
+     "Transparency": [
+      [
+       0,
+       1
       ],
-      "Orbiters": [
-        {
-          "Name": "Foxfire1",
-          "FromStuds": 1.0,
-          "ToStuds": 6.6,
-          "TravelSeconds": 5.1,
-          "Loop": "pingpong",
-          "TurnsPerSecond": 0.3,
-          "Radius": 0.3,
-          "RadiusFromSurface": true,
-          "Wobble": 0.05,
-          "WobbleHz": 0.48,
-          "Phase": 0,
-          "Delay": 0,
-          "Trail": {
-            "Lifetime": 0.85,
-            "WidthStuds": 0.18,
-            "Color": "#FFB3DE",
-            "Brightness": 2.6,
-            "Transparency": [
-              [
-                0,
-                0
-              ],
-              [
-                0.6,
-                0.3
-              ],
-              [
-                1,
-                1
-              ]
-            ],
-            "WidthScale": [
-              [
-                0,
-                1
-              ],
-              [
-                1,
-                0.3
-              ]
-            ],
-            "LightEmission": 1,
-            "Texture": "vfx/kitsune/trail_foxfire.png",
-            "TextureMode": "Stretch"
-          },
-          "Head": {
-            "Texture": "vfx/kitsune/foxfire_orb.png",
-            "Size": 0.36,
-            "Color": "#FFA8DA",
-            "LightEmission": 1
-          }
-        },
-        {
-          "Name": "Foxfire2",
-          "FromStuds": 1.0,
-          "ToStuds": 6.6,
-          "TravelSeconds": 6.0,
-          "Loop": "pingpong",
-          "TurnsPerSecond": -0.27,
-          "Radius": 0.38,
-          "RadiusFromSurface": true,
-          "Wobble": 0.05,
-          "WobbleHz": 0.48,
-          "Phase": 120,
-          "Delay": 1.0,
-          "Trail": {
-            "Lifetime": 0.85,
-            "WidthStuds": 0.18,
-            "Color": "#FFB3DE",
-            "Brightness": 2.6,
-            "Transparency": [
-              [
-                0,
-                0
-              ],
-              [
-                0.6,
-                0.3
-              ],
-              [
-                1,
-                1
-              ]
-            ],
-            "WidthScale": [
-              [
-                0,
-                1
-              ],
-              [
-                1,
-                0.3
-              ]
-            ],
-            "LightEmission": 1,
-            "Texture": "vfx/kitsune/trail_foxfire.png",
-            "TextureMode": "Stretch"
-          },
-          "Head": {
-            "Texture": "vfx/kitsune/foxfire_orb.png",
-            "Size": 0.36,
-            "Color": "#FFA8DA",
-            "LightEmission": 1
-          }
-        },
-        {
-          "Name": "Foxfire3",
-          "FromStuds": 1.0,
-          "ToStuds": 6.6,
-          "TravelSeconds": 4.5,
-          "Loop": "pingpong",
-          "TurnsPerSecond": 0.36,
-          "Radius": 0.26,
-          "RadiusFromSurface": true,
-          "Wobble": 0.05,
-          "WobbleHz": 0.48,
-          "Phase": 240,
-          "Delay": 2.0,
-          "Trail": {
-            "Lifetime": 0.85,
-            "WidthStuds": 0.18,
-            "Color": "#FFB3DE",
-            "Brightness": 2.6,
-            "Transparency": [
-              [
-                0,
-                0
-              ],
-              [
-                0.6,
-                0.3
-              ],
-              [
-                1,
-                1
-              ]
-            ],
-            "WidthScale": [
-              [
-                0,
-                1
-              ],
-              [
-                1,
-                0.3
-              ]
-            ],
-            "LightEmission": 1,
-            "Texture": "vfx/kitsune/trail_foxfire.png",
-            "TextureMode": "Stretch"
-          },
-          "Head": {
-            "Texture": "vfx/kitsune/foxfire_orb.png",
-            "Size": 0.36,
-            "Color": "#FFA8DA",
-            "LightEmission": 1
-          }
-        }
+      [
+       0.1,
+       0
       ],
-      "Beams": [
-        {
-          "Name": "FoxGlow",
-          "FromStuds": 0.0,
-          "ToStuds": 7.3,
-          "Width0": 0.7,
-          "Width1": 1.4,
-          "Segments": 20,
-          "Texture": "vfx/_shared/halo_strip.png",
-          "TextureMode": "Stretch",
-          "Color": [
-            [
-              0,
-              "#FFC4E6"
-            ],
-            [
-              1,
-              "#FFA8DA"
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.06,
-              0.6
-            ],
-            [
-              0.9,
-              0.45
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "LightEmission": 1,
-          "FaceCamera": true,
-          "Pulse": {
-            "Min": 0.6,
-            "Max": 1.0,
-            "Period": 4.4
-          },
-          "Brightness": 2.5
-        }
+      [
+       0.85,
+       0
       ],
-      "Lights": [
-        {
-          "AtStuds": 7.2,
-          "Color": "#FF9FD6",
-          "Brightness": 1.2,
-          "Range": 7,
-          "Flicker": {
-            "Min": 0.75,
-            "Max": 1.15,
-            "Period": 1.6
-          }
-        }
-      ],
-      "Highlight": {
-        "FillColor": "#FFC4E6",
-        "FillTransparency": 0.4,
-        "OutlineColor": "#FFFFFF",
-        "OutlineTransparency": 0
-      },
-      "Outline": "#FF8FD0"
-    },
-    "Style": {
-      "Trail": {
-        "Colors": [
-          [
-            255,
-            240,
-            255
-          ],
-          [
-            255,
-            120,
-            220
-          ],
-          [
-            138,
-            60,
-            255
-          ]
-        ],
-        "NearTransparency": 0.0,
-        "Lifetime": 1.2,
-        "WidthStuds": 0.5,
-        "LightEmission": 1,
-        "Texture": "vfx/kitsune/trail_foxfire.png",
-        "TextureMode": "Wrap",
-        "TextureLength": 1.3,
-        "WidthScale": [
-          [
-            0,
-            0.7
-          ],
-          [
-            0.35,
-            1.2
-          ],
-          [
-            0.6,
-            0.8
-          ],
-          [
-            1,
-            0.5
-          ]
-        ],
-        "Core": {
-          "Color": [
-            255,
-            220,
-            250
-          ],
-          "Width": 0.2,
-          "NearTransparency": 0.0,
-          "LightEmission": 0.6,
-          "Transparency": [
-            [
-              0,
-              0.0
-            ],
-            [
-              0.5,
-              0.15
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "WidthScale": [
-            [
-              0,
-              1
-            ],
-            [
-              0.6,
-              0.75
-            ],
-            [
-              1,
-              0.4
-            ]
-          ],
-          "Brightness": 2.2
-        },
-        "Transparency": [
-          [
-            0,
-            0.0
-          ],
-          [
-            0.55,
-            0.12
-          ],
-          [
-            1,
-            1
-          ]
-        ],
-        "Brightness": 2.4
-      },
-      "Pocket": {
-        "Colors": [
-          [
-            255,
-            120,
-            220
-          ],
-          [
-            160,
-            80,
-            255
-          ]
-        ],
-        "ColorShare": 1
-      }
-    },
-    "Trail": {
-      "Note": "A violet foxfire trail: licking violet and pink flame streaks (own texture, wrapping) round a pale pink core; foxfire orbs drop off behind the ball and fade, with cherry petals.",
-      "Emitters": [
-        {
-          "Name": "Orbs",
-          "Texture": "vfx/kitsune/foxfire_orb.png",
-          "Host": {
-            "Kind": "Point"
-          },
-          "Rate": 3,
-          "Lifetime": [
-            0.6,
-            0.9
-          ],
-          "Speed": [
-            0.2,
-            0.5
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 2,
-          "Size": [
-            [
-              0,
-              0.3
-            ],
-            [
-              1,
-              0.1
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0
-            ],
-            [
-              0.7,
-              0.2
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": "#FFFFFF",
-          "LightEmission": 1,
-          "LightInfluence": 0
-        },
-        {
-          "Name": "Petals",
-          "Texture": "vfx/kitsune/petal_2x2.png",
-          "FlipbookLayout": "Grid2x2",
-          "FlipbookMode": "Loop",
-          "FlipbookFramerate": 8,
-          "Host": {
-            "Kind": "Point"
-          },
-          "Rate": 7,
-          "Lifetime": [
-            0.6,
-            1.0
-          ],
-          "Speed": [
-            0.3,
-            0.8
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 1.5,
-          "Size": 0.12,
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -120,
-            120
-          ],
-          "Transparency": [
-            [
-              0,
-              0
-            ],
-            [
-              0.8,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": "#FFFFFF",
-          "LightEmission": 0.4,
-          "LightInfluence": 0
-        },
-        {
-          "Name": "Sparks",
-          "Texture": "vfx/_shared/glow_soft.png",
-          "Host": {
-            "Kind": "Point"
-          },
-          "Rate": 12,
-          "Lifetime": [
-            0.3,
-            0.6
-          ],
-          "Speed": [
-            0.3,
-            0.9
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Size": [
-            [
-              0,
-              0.08
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": 0.1,
-          "Color": [
-            [
-              0,
-              "#FFF0FF"
-            ],
-            [
-              0.35,
-              "#FF78DC"
-            ],
-            [
-              1,
-              "#8A3CFF"
-            ]
-          ],
-          "LightEmission": 1,
-          "LightInfluence": 0
-        }
+      [
+       1,
+       1
       ]
+     ],
+     "Rotation": [
+      0,
+      360
+     ],
+     "RotSpeed": [
+      -40.0,
+      40.0
+     ],
+     "Color": "#FFD3EC",
+     "LightEmission": 0,
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Brightness": 1.2
     },
-    "Pocket": {
-      "Note": "Staged over 1.5 s: a violet flash and a column of foxfire out of the pocket (0 s); nine foxfire orbs burst out and swirl up round it, slowing and rising (0.05 s); a spectral fox spirit rises above the pocket, ears flicking and jaw parting, then fades (a 16-frame flipbook rendered from the 3D mask with a spectral glow, 3.6 studs, 0.15 s); a pink ring (0.05 s); cherry petals and sparkles drift down and linger (0.4-1.5 s). The default gust is tinted pink and violet.",
-      "Layers": [
-        {
-          "Name": "Column",
-          "Texture": "vfx/_shared/energy_flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Host": {
-            "Kind": "Point",
-            "Size": 0.5
-          },
-          "Burst": 14,
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            2.5,
-            5
-          ],
-          "SpreadAngle": [
-            15,
-            15
-          ],
-          "EmissionDirection": "Top",
-          "Drag": 2,
-          "Size": [
-            [
-              0,
-              0.5
-            ],
-            [
-              0.4,
-              1.0
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.1
-            ],
-            [
-              0.6,
-              0.3
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#FFD0F6"
-            ],
-            [
-              0.5,
-              "#D070FF"
-            ],
-            [
-              1,
-              "#7A30E0"
-            ]
-          ],
-          "LightEmission": 1,
-          "LightInfluence": 0
-        },
-        {
-          "Name": "Orbs",
-          "Texture": "vfx/kitsune/foxfire_orb.png",
-          "Burst": 9,
-          "Delay": 0.05,
-          "Lifetime": [
-            1.1,
-            1.3
-          ],
-          "Speed": [
-            3.5,
-            5
-          ],
-          "SpreadAngle": [
-            55,
-            55
-          ],
-          "EmissionDirection": "Top",
-          "Drag": 2.2,
-          "Acceleration": [
-            0,
-            1.2,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.3
-            ],
-            [
-              0.2,
-              0.6
-            ],
-            [
-              1,
-              0.4
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0
-            ],
-            [
-              0.8,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": "#FFFFFF",
-          "LightEmission": 1,
-          "LightInfluence": 0
-        },
-        {
-          "Name": "Petals",
-          "Texture": "vfx/kitsune/petal_2x2.png",
-          "FlipbookLayout": "Grid2x2",
-          "FlipbookMode": "Loop",
-          "FlipbookFramerate": 8,
-          "Host": {
-            "Kind": "Point",
-            "Offset": [
-              0,
-              2.0,
-              0
-            ],
-            "Size": 2.4
-          },
-          "Burst": 16,
-          "Delay": 0.4,
-          "Lifetime": [
-            0.9,
-            1.1
-          ],
-          "Speed": [
-            0.2,
-            0.6
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Acceleration": [
-            0,
-            -1.5,
-            0
-          ],
-          "Size": 0.2,
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -120,
-            120
-          ],
-          "Transparency": [
-            [
-              0,
-              0
-            ],
-            [
-              0.8,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": "#FFFFFF",
-          "LightEmission": 0.4,
-          "LightInfluence": 0
-        },
-        {
-          "Name": "Sparkles",
-          "Texture": "vfx/_shared/star4.png",
-          "Burst": 20,
-          "Delay": 0.5,
-          "Lifetime": [
-            0.5,
-            0.9
-          ],
-          "Speed": [
-            0.5,
-            2
-          ],
-          "SpreadAngle": [
-            70,
-            70
-          ],
-          "EmissionDirection": "Top",
-          "Size": [
-            [
-              0,
-              0
-            ],
-            [
-              0.3,
-              0.25,
-              0.08
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": 0,
-          "Rotation": [
-            0,
-            45
-          ],
-          "Color": [
-            [
-              0,
-              "#FFF0FF"
-            ],
-            [
-              0.35,
-              "#FF78DC"
-            ],
-            [
-              1,
-              "#8A3CFF"
-            ]
-          ],
-          "LightEmission": 1,
-          "LightInfluence": 0
-        }
+    {
+     "Name": "FoxTrail",
+     "Texture": "vfx/v2/flame_8x8.png",
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "Rate": 12,
+     "Lifetime": [
+      0.4,
+      0.6
+     ],
+     "Speed": [
+      0.014,
+      0.07
+     ],
+     "SpreadAngle": [
+      40,
+      40
+     ],
+     "EmissionDirection": "Top",
+     "Acceleration": [
+      0,
+      0.3,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.3
       ],
-      "Rings": [
-        {
-          "Texture": "vfx/_shared/ring.png",
-          "Color": "#FF78DC",
-          "Start": 0.4,
-          "End": 4.8,
-          "Seconds": 0.5,
-          "Delay": 0.05
-        }
+      [
+       0.4,
+       0.6
       ],
-      "Flash": {
-        "Color": [
-          230,
-          160,
-          255
-        ],
-        "Brightness": 12,
-        "Seconds": 0.35
-      },
-      "Piece": {
-        "Piece": "kitsune_pocket",
-        "Delay": 0.1,
-        "Seconds": 1.35,
-        "Rise": [
-          [
-            0,
-            -2.6
-          ],
-          [
-            0.3,
-            0.15
-          ],
-          [
-            1,
-            0.6
-          ]
-        ],
-        "Scale": [
-          [
-            0,
-            0.7
-          ],
-          [
-            0.3,
-            1.0
-          ],
-          [
-            1,
-            1.05
-          ]
-        ],
-        "Spin": [
-          [
-            0,
-            20
-          ],
-          [
-            1,
-            -15
-          ]
-        ],
-        "Transparency": [
-          [
-            0,
-            0
-          ],
-          [
-            0.7,
-            0
-          ],
-          [
-            1,
-            1
-          ]
-        ]
-      },
-      "KeepRibbons": false
+      [
+       1,
+       0.2
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.4
+      ],
+      [
+       0.3,
+       0.15
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#FFF0FA"
+      ],
+      [
+       0.4,
+       "#FFB3DE"
+      ],
+      [
+       1,
+       "#E6B8F2"
+      ]
+     ],
+     "Brightness": 2,
+     "LightEmission": 0.4,
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Host": {
+      "Kind": "Segment",
+      "Joint": "FoxRun",
+      "From": [
+       4.3,
+       0.527,
+       0.16
+      ],
+      "To": [
+       4.3,
+       0.5,
+       -0.07
+      ],
+      "Radius": 0.04
+     }
     },
-    "Budget": {
-      "ParticlesPerSecond": 58,
-      "Back": 29.0,
-      "BallTrail": 22,
-      "Beams": 10,
-      "Lights": 1,
-      "Orbiters": 3,
-      "PieceTriangles": 39000,
-      "PocketPieceTriangles": 27500
+    {
+     "Name": "FoxBody",
+     "Texture": "vfx/v2/smoke_8x8.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.3,
+      "ToStuds": 7.0,
+      "Width": 1.06,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Rate": 18,
+     "Lifetime": [
+      1.2,
+      1.8
+     ],
+     "Speed": [
+      0.21,
+      0.49
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 1.2,
+     "Size": [
+      [
+       0,
+       0.9
+      ],
+      [
+       1,
+       2.0
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.15,
+       0.2
+      ],
+      [
+       0.7,
+       0.45
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Rotation": [
+      0,
+      360
+     ],
+     "RotSpeed": [
+      -15.0,
+      15.0
+     ],
+     "Color": [
+      [
+       0,
+       "#F2B4E6"
+      ],
+      [
+       0.5,
+       "#C27AD6"
+      ],
+      [
+       1,
+       "#7E50BE"
+      ]
+     ],
+     "LightEmission": 0,
+     "Brightness": 1
+    },
+    {
+     "Name": "Foxfire",
+     "Texture": "vfx/v2/flame_8x8.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.3,
+      "ToStuds": 7.0,
+      "Width": 0.96,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Rate": 12,
+     "Lifetime": [
+      1.0,
+      1.6
+     ],
+     "Speed": [
+      0.21,
+      0.56
+     ],
+     "SpreadAngle": [
+      30,
+      30
+     ],
+     "EmissionDirection": "Top",
+     "Acceleration": [
+      0,
+      1.6,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.4
+      ],
+      [
+       0.4,
+       0.9
+      ],
+      [
+       1,
+       0.3
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.7
+      ],
+      [
+       0.2,
+       0.1
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#FFF6FC"
+      ],
+      [
+       0.3,
+       "#FFB3DE"
+      ],
+      [
+       1,
+       "#C890FF"
+      ]
+     ],
+     "LightEmission": 0.25,
+     "Brightness": 2.2
+    },
+    {
+     "Name": "Sparkles",
+     "Texture": "vfx/v2/flare.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.2,
+      "ToStuds": 7.2,
+      "Width": 1.16,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Rate": 8,
+     "Lifetime": [
+      1.0,
+      1.8
+     ],
+     "Speed": [
+      0.3,
+      0.8
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 2.5,
+     "Size": [
+      [
+       0,
+       0
+      ],
+      [
+       0.15,
+       0.55
+      ],
+      [
+       0.5,
+       0.24750000000000003
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.3,
+       0
+      ],
+      [
+       0.7,
+       0
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Rotation": [
+      0,
+      45
+     ],
+     "Color": [
+      [
+       0,
+       "#FFFFFF"
+      ],
+      [
+       1,
+       "#FFD3EC"
+      ]
+     ],
+     "LightEmission": 1,
+     "Brightness": 4
+    },
+    {
+     "Name": "GoldGlints",
+     "Texture": "vfx/v2/glint.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.5,
+      "ToStuds": 7.0,
+      "Width": 0.66,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "LightInfluence": 0,
+     "LockedToPart": true,
+     "Rate": 5.6,
+     "Lifetime": [
+      0.56,
+      0.98
+     ],
+     "Speed": [
+      0.0,
+      0.05
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Size": [
+      [
+       0,
+       0
+      ],
+      [
+       0.25,
+       0.75
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.3,
+       0
+      ],
+      [
+       0.7,
+       0
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Rotation": [
+      -20,
+      20
+     ],
+     "Color": [
+      [
+       0,
+       "#FFE9A8"
+      ],
+      [
+       1,
+       "#FFC94A"
+      ]
+     ],
+     "LightEmission": 1,
+     "Brightness": 4
     }
+   ],
+   "Beams": [
+    {
+     "Name": "FoxGlow",
+     "FromStuds": 0.0,
+     "ToStuds": 7.3,
+     "Width0": 0.7,
+     "Width1": 1.4,
+     "Segments": 20,
+     "Texture": "vfx/_shared/halo_strip.png",
+     "TextureMode": "Stretch",
+     "Color": [
+      [
+       0,
+       "#FFC4E6"
+      ],
+      [
+       1,
+       "#FFA8DA"
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.06,
+       0.6
+      ],
+      [
+       0.9,
+       0.45
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "LightEmission": 1,
+     "FaceCamera": true,
+     "Pulse": {
+      "Min": 0.6,
+      "Max": 1.0,
+      "Period": 4.4
+     },
+     "Brightness": 2.5
+    }
+   ],
+   "Lights": [
+    {
+     "AtStuds": 7.2,
+     "Color": "#FF9FD6",
+     "Brightness": 1.2,
+     "Range": 7,
+     "Flicker": {
+      "Min": 0.75,
+      "Max": 1.15,
+      "Period": 1.6
+     }
+    }
+   ],
+   "Highlight": {
+    "FillColor": "#FFC4E6",
+    "FillTransparency": 0.4,
+    "OutlineColor": "#FFFFFF",
+    "OutlineTransparency": 0
+   },
+   "Outline": "#FF8FD0"
   },
-  "shape": 2
+  "Style": {
+   "Trail": {
+    "Colors": [
+     [
+      255,
+      240,
+      255
+     ],
+     [
+      255,
+      120,
+      220
+     ],
+     [
+      138,
+      60,
+      255
+     ]
+    ],
+    "NearTransparency": 0.0,
+    "Lifetime": 1.2,
+    "WidthStuds": 0.5,
+    "LightEmission": 1,
+    "Texture": "vfx/kitsune/trail_foxfire.png",
+    "TextureMode": "Wrap",
+    "TextureLength": 1.3,
+    "WidthScale": [
+     [
+      0,
+      0.7
+     ],
+     [
+      0.35,
+      1.2
+     ],
+     [
+      0.6,
+      0.8
+     ],
+     [
+      1,
+      0.5
+     ]
+    ],
+    "Core": {
+     "Color": [
+      255,
+      220,
+      250
+     ],
+     "Width": 0.2,
+     "NearTransparency": 0.0,
+     "LightEmission": 0.6,
+     "Transparency": [
+      [
+       0,
+       0.0
+      ],
+      [
+       0.5,
+       0.15
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "WidthScale": [
+      [
+       0,
+       1
+      ],
+      [
+       0.6,
+       0.75
+      ],
+      [
+       1,
+       0.4
+      ]
+     ],
+     "Brightness": 2.2
+    },
+    "Transparency": [
+     [
+      0,
+      0.0
+     ],
+     [
+      0.55,
+      0.12
+     ],
+     [
+      1,
+      1
+     ]
+    ],
+    "Brightness": 2.4
+   },
+   "Pocket": {
+    "Colors": [
+     [
+      255,
+      120,
+      220
+     ],
+     [
+      160,
+      80,
+      255
+     ]
+    ],
+    "ColorShare": 1
+   }
+  },
+  "Trail": {
+   "Note": "A violet foxfire trail: licking violet and pink flame streaks (own texture, wrapping) round a pale pink core; foxfire orbs drop off behind the ball and fade, with cherry petals.",
+   "Emitters": [
+    {
+     "Name": "Orbs",
+     "Texture": "vfx/kitsune/foxfire_orb.png",
+     "Host": {
+      "Kind": "Point"
+     },
+     "Rate": 3,
+     "Lifetime": [
+      0.6,
+      0.9
+     ],
+     "Speed": [
+      0.2,
+      0.5
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 2,
+     "Size": [
+      [
+       0,
+       0.3
+      ],
+      [
+       1,
+       0.1
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0
+      ],
+      [
+       0.7,
+       0.2
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": "#FFFFFF",
+     "LightEmission": 1,
+     "LightInfluence": 0
+    },
+    {
+     "Name": "Petals",
+     "Texture": "vfx/kitsune/petal_2x2.png",
+     "FlipbookLayout": "Grid2x2",
+     "FlipbookMode": "Loop",
+     "FlipbookFramerate": 8,
+     "Host": {
+      "Kind": "Point"
+     },
+     "Rate": 7,
+     "Lifetime": [
+      0.6,
+      1.0
+     ],
+     "Speed": [
+      0.3,
+      0.8
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 1.5,
+     "Size": 0.12,
+     "Rotation": [
+      0,
+      360
+     ],
+     "RotSpeed": [
+      -120,
+      120
+     ],
+     "Transparency": [
+      [
+       0,
+       0
+      ],
+      [
+       0.8,
+       0
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": "#FFFFFF",
+     "LightEmission": 0.4,
+     "LightInfluence": 0
+    },
+    {
+     "Name": "Sparks",
+     "Texture": "vfx/_shared/glow_soft.png",
+     "Host": {
+      "Kind": "Point"
+     },
+     "Rate": 12,
+     "Lifetime": [
+      0.3,
+      0.6
+     ],
+     "Speed": [
+      0.3,
+      0.9
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Size": [
+      [
+       0,
+       0.08
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "Transparency": 0.1,
+     "Color": [
+      [
+       0,
+       "#FFF0FF"
+      ],
+      [
+       0.35,
+       "#FF78DC"
+      ],
+      [
+       1,
+       "#8A3CFF"
+      ]
+     ],
+     "LightEmission": 1,
+     "LightInfluence": 0
+    }
+   ]
+  },
+  "Pocket": {
+   "Note": "Staged over 1.5 s: a violet flash and a column of foxfire out of the pocket (0 s); nine foxfire orbs burst out and swirl up round it, slowing and rising (0.05 s); a spectral fox spirit rises above the pocket, ears flicking and jaw parting, then fades (a 16-frame flipbook rendered from the 3D mask with a spectral glow, 3.6 studs, 0.15 s); a pink ring (0.05 s); cherry petals and sparkles drift down and linger (0.4-1.5 s). The default gust is tinted pink and violet.",
+   "Layers": [
+    {
+     "Name": "Column",
+     "Texture": "vfx/_shared/energy_flame_8x8.png",
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "Host": {
+      "Kind": "Point",
+      "Size": 0.5
+     },
+     "Burst": 14,
+     "Lifetime": [
+      0.5,
+      0.8
+     ],
+     "Speed": [
+      2.5,
+      5
+     ],
+     "SpreadAngle": [
+      15,
+      15
+     ],
+     "EmissionDirection": "Top",
+     "Drag": 2,
+     "Size": [
+      [
+       0,
+       0.5
+      ],
+      [
+       0.4,
+       1.0
+      ],
+      [
+       1,
+       0.3
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.1
+      ],
+      [
+       0.6,
+       0.3
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#FFD0F6"
+      ],
+      [
+       0.5,
+       "#D070FF"
+      ],
+      [
+       1,
+       "#7A30E0"
+      ]
+     ],
+     "LightEmission": 1,
+     "LightInfluence": 0
+    },
+    {
+     "Name": "Orbs",
+     "Texture": "vfx/kitsune/foxfire_orb.png",
+     "Burst": 9,
+     "Delay": 0.05,
+     "Lifetime": [
+      1.1,
+      1.3
+     ],
+     "Speed": [
+      3.5,
+      5
+     ],
+     "SpreadAngle": [
+      55,
+      55
+     ],
+     "EmissionDirection": "Top",
+     "Drag": 2.2,
+     "Acceleration": [
+      0,
+      1.2,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.3
+      ],
+      [
+       0.2,
+       0.6
+      ],
+      [
+       1,
+       0.4
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0
+      ],
+      [
+       0.8,
+       0.1
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": "#FFFFFF",
+     "LightEmission": 1,
+     "LightInfluence": 0
+    },
+    {
+     "Name": "Petals",
+     "Texture": "vfx/kitsune/petal_2x2.png",
+     "FlipbookLayout": "Grid2x2",
+     "FlipbookMode": "Loop",
+     "FlipbookFramerate": 8,
+     "Host": {
+      "Kind": "Point",
+      "Offset": [
+       0,
+       2.0,
+       0
+      ],
+      "Size": 2.4
+     },
+     "Burst": 16,
+     "Delay": 0.4,
+     "Lifetime": [
+      0.9,
+      1.1
+     ],
+     "Speed": [
+      0.2,
+      0.6
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Acceleration": [
+      0,
+      -1.5,
+      0
+     ],
+     "Size": 0.2,
+     "Rotation": [
+      0,
+      360
+     ],
+     "RotSpeed": [
+      -120,
+      120
+     ],
+     "Transparency": [
+      [
+       0,
+       0
+      ],
+      [
+       0.8,
+       0
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": "#FFFFFF",
+     "LightEmission": 0.4,
+     "LightInfluence": 0
+    },
+    {
+     "Name": "Sparkles",
+     "Texture": "vfx/_shared/star4.png",
+     "Burst": 20,
+     "Delay": 0.5,
+     "Lifetime": [
+      0.5,
+      0.9
+     ],
+     "Speed": [
+      0.5,
+      2
+     ],
+     "SpreadAngle": [
+      70,
+      70
+     ],
+     "EmissionDirection": "Top",
+     "Size": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       0.25,
+       0.08
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "Transparency": 0,
+     "Rotation": [
+      0,
+      45
+     ],
+     "Color": [
+      [
+       0,
+       "#FFF0FF"
+      ],
+      [
+       0.35,
+       "#FF78DC"
+      ],
+      [
+       1,
+       "#8A3CFF"
+      ]
+     ],
+     "LightEmission": 1,
+     "LightInfluence": 0
+    }
+   ],
+   "Rings": [
+    {
+     "Texture": "vfx/_shared/ring.png",
+     "Color": "#FF78DC",
+     "Start": 0.4,
+     "End": 4.8,
+     "Seconds": 0.5,
+     "Delay": 0.05
+    }
+   ],
+   "Flash": {
+    "Color": [
+     230,
+     160,
+     255
+    ],
+    "Brightness": 12,
+    "Seconds": 0.35
+   },
+   "Piece": {
+    "Piece": "kitsune_pocket",
+    "Delay": 0.1,
+    "Seconds": 1.35,
+    "Rise": [
+     [
+      0,
+      -2.6
+     ],
+     [
+      0.3,
+      0.15
+     ],
+     [
+      1,
+      0.6
+     ]
+    ],
+    "Scale": [
+     [
+      0,
+      0.7
+     ],
+     [
+      0.3,
+      1.0
+     ],
+     [
+      1,
+      1.05
+     ]
+    ],
+    "Spin": [
+     [
+      0,
+      20
+     ],
+     [
+      1,
+      -15
+     ]
+    ],
+    "Transparency": [
+     [
+      0,
+      0
+     ],
+     [
+      0.7,
+      0
+     ],
+     [
+      1,
+      1
+     ]
+    ]
+   },
+   "KeepRibbons": false
+  },
+  "Budget": {
+   "ParticlesPerSecond": 67.6,
+   "Back": 29.0,
+   "BallTrail": 22,
+   "Beams": 0,
+   "Lights": 1,
+   "Orbiters": 0,
+   "PieceTriangles": 39000,
+   "PocketPieceTriangles": 27500
+  }
+ },
+ "shape": 3
 }

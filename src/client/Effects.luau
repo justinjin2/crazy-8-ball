@@ -713,6 +713,21 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 	if finisher then
 		local skinId = style.Skin and style.Skin.CatalogId
 		lifetime = math.max(lifetime, self:skinFinisher(finisher, at, root, skinId, spec.Colors))
+		-- The skin's pocket sound (Config.Effects.Finisher.Sound), once, from the pocket.
+		local row = finisher.Sound
+		if row and row.Asset then
+			local S = Config.Effects.Finisher.Sound
+			local sound = Instance.new("Sound")
+			sound.Name = "PocketSound"
+			sound.SoundId = row.Asset
+			sound.Volume = row.Volume or 0.5
+			sound.RollOffMode = Enum.RollOffMode.InverseTapered
+			sound.RollOffMinDistance = row.RollOffMinStuds or S.RollOffMinStuds
+			sound.RollOffMaxDistance = row.RollOffMaxStuds or S.RollOffMaxStuds
+			sound.Parent = root
+			sound:Play()
+			lifetime = math.max(lifetime, S.Seconds)
+		end
 	end
 	Debris:AddItem(root, lifetime)
 end
@@ -793,17 +808,24 @@ function Effects.skinFinisher(
 			local tint = if colors and colors[1]
 				then Color3.new(1, 1, 1):Lerp(color(colors[1]), F.TintShare)
 				else nil
-			piece:deepen(F.ShellFade, F.EmissiveScale, tint)
+			-- (a row may keep more of its shell and glow: ShellFade, EmissiveScale on the Piece)
+			piece:deepen(p.ShellFade or F.ShellFade, p.EmissiveScale or F.EmissiveScale, tint)
+			-- The contrast outline: the finisher default (dark, for a creature against bright
+			-- light), or the piece row's own Outline {Color, Transparency} (a hologram's wire
+			-- funnel keeps its cue colour; the Unique cues, 2026-10-04).
+			local own = p.Outline or {}
+			local outlineTransparency = own.Transparency or F.OutlineTransparency
 			local outline = Instance.new("Highlight")
 			outline.Name = "Contrast"
-			outline.OutlineColor = color(F.OutlineColor)
+			outline.OutlineColor = if own.Color
+				then CueVfx.color(own.Color)
+				else color(F.OutlineColor)
 			outline.FillColor = color(F.FillColor)
 			outline.DepthMode = Enum.HighlightDepthMode.Occluded
 			outline.Adornee = piece.model
 			outline.Parent = piece.model
 			local function fadeOutline(fade: number)
-				outline.OutlineTransparency = F.OutlineTransparency
-					+ (1 - F.OutlineTransparency) * fade
+				outline.OutlineTransparency = outlineTransparency + (1 - outlineTransparency) * fade
 				outline.FillTransparency = F.FillTransparency + (1 - F.FillTransparency) * fade
 			end
 			fadeOutline(1)

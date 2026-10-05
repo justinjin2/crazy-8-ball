@@ -1,0 +1,6 @@
+Image 1 is a layout template. Paint it as a flat unrolled texture for a cylinder: the upper end of the shaft; its right edge meets the joint collar of a pool cue, in the style of the cue in the other images.
+Keep the exact layout and zone lines of image 1 and the exact size, 1536 x 512 pixels. The left edge is the tip end and the right edge is the butt end. The top and bottom edges join seamlessly (they meet underneath the cue); the middle row is the top of the cue.
+A translucent hologram surface: very dark navy-black (#07102A) glass with glowing electric-blue (#1E6BFF) blueprint linework: thin longitudinal construction lines, a faint fine grid, thin cross-section ellipses, dimension ticks, and toward the right two larger wireframe shapes drawn in thin lines (a wireframe sphere and a wireframe cylinder seen from the side), the linework growing denser toward the right edge, a few lines white-hot (#FFFFFF). A clean CAD wireframe look, nothing solid, no shading. No text, no letters, no numbers, no logos.
+A flat texture map: no lighting, no shading, no highlights, no reflections, no shadows, no gloss streaks, no depth. Crisp clean shapes.
+Use only these colours and their darker and lighter tones: #07102A #1E6BFF #7FD4FF #FFFFFF #FF2FD0.
+No text, no letters, no numbers, no logos, no symbols with words.

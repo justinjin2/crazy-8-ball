@@ -1,0 +1,98 @@
+{
+  "id": "grand_opening",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 4152,
+  "Parts": [
+    {
+      "Material": "Neon",
+      "Color": "#FFB83A",
+      "Transparency": 0.1,
+      "Reflectance": 0.0,
+      "Name": "RibbonA_RibbonA",
+      "File": "pieces/grand_opening/RibbonA_RibbonA.obj",
+      "Joint": "RibbonA",
+      "Offset": [
+        -0.0001,
+        0.0,
+        -0.1169
+      ],
+      "Size": [
+        0.6922,
+        0.6926,
+        6.6664
+      ],
+      "Triangles": 2076
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFD070",
+      "Transparency": 0.15,
+      "Reflectance": 0.0,
+      "Name": "RibbonB_RibbonB",
+      "File": "pieces/grand_opening/RibbonB_RibbonB.obj",
+      "Joint": "RibbonB",
+      "Offset": [
+        -0.0001,
+        0.0,
+        -0.1169
+      ],
+      "Size": [
+        0.6922,
+        0.6926,
+        6.6664
+      ],
+      "Triangles": 2076
+    }
+  ],
+  "Joints": {
+    "RibbonA": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 50.0
+        }
+      ]
+    },
+    "RibbonB": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -50.0
+        }
+      ]
+    }
+  }
+}

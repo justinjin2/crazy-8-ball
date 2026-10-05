@@ -97,12 +97,30 @@ class Params:
         self.ps = np.array([q['s'] for q in prof])
         self.pd = np.array([q['d'] for q in prof])
         self.pr = np.array([q['r'] for q in prof])
+        # The optional "ends" panel (themed ends, designer 2026-10-04: from Legendary up the
+        # tip and ferrule are painted to the cue's theme, never the standard chalk and ivory):
+        # the tip's side and the ferrule, from the tip face's rim to the shaft, once round.
+        self.panels['ends'] = ends_panel(self)
 
     def d_of_s(self, s):
         return np.interp(s, self.ps, self.pd)
 
     def r_of_s(self, s):
         return np.interp(s, self.ps, self.pr)
+
+
+def ends_panel(P):
+    """The ends panel's parameters: s from the tip face's rim (the largest s at d = 0) to the
+    ferrule's end (ZONES), sized to its real aspect at 512 px round."""
+    d1 = ZONES['ferrule'][1]
+    rim = P.ps[P.pd <= 1e-6].max() if (P.pd <= 1e-6).any() else P.ps[0]
+    s1 = float(np.interp(d1, P.pd, P.ps))
+    r = float(P.r_of_s((rim + s1) / 2))
+    length = s1 - rim
+    h = 512
+    w = int(round(h * length / (2 * math.pi * r)))
+    return {'name': 'ends', 's_from': float(rim), 's_to': s1, 'size_px': [max(w, 64), h], 'd_from': 0.0, 'd_to': d1,
+            'note': 'the tip side and the ferrule (optional, a recipe asks for it with Kit.ends())'}
 
 
 class Canvas:
@@ -154,7 +172,11 @@ class Canvas:
         self.rough = np.full((h, w), 0.35)
         self.metal = np.zeros((h, w))
         self.glow = np.zeros((h, w))
-        self.used = {'height': False, 'rough': False, 'metal': False, 'glow': False}
+        # alpha: the colour map's alpha channel (1 solid). A hologram paints its body about
+        # 0.5 and its lines 1; CueTextures writes it into the colour map and the skin's
+        # surface.AlphaMode "Transparency" makes Roblox read it (the Unique cues, 2026-10-04).
+        self.alpha = np.ones((h, w))
+        self.used = {'height': False, 'rough': False, 'metal': False, 'glow': False, 'alpha': False}
 
     def zone(self, *names):
         m = np.zeros((self.h, self.w), bool)
@@ -169,14 +191,14 @@ class Canvas:
         return (self.d >= a) & (self.d < b)
 
     # --- writing -----------------------------------------------------------------------------
-    def put(self, mask, col=None, rough=None, metal=None, height=None, glow=None):
+    def put(self, mask, col=None, rough=None, metal=None, height=None, glow=None, alpha=None):
         m = mask.astype(np.float64) if mask.dtype == bool else np.clip(mask, 0, 1)
         if col is not None:
             c = np.asarray(col, np.float64)
             if c.ndim == 1:
                 c = np.broadcast_to(c, (self.h, self.w, 3))
             self.col = mix(self.col, c, m)
-        for key, value in (('rough', rough), ('metal', metal), ('height', height), ('glow', glow)):
+        for key, value in (('rough', rough), ('metal', metal), ('height', height), ('glow', glow), ('alpha', alpha)):
             if value is None:
                 continue
             arr = getattr(self, key)
@@ -791,6 +813,13 @@ class Kit:
         reps = (skin.get('shaft_tile') or {}).get('repeats') or 1
         self.c = {name: Canvas(self.P, name, reps) for name in PANELS}
 
+    def ends(self):
+        """Add the ends panel (the tip's side and the ferrule) so the recipe paints them; the
+        skin's panels must list "ends": "skins/<id>/ends.png" for CueTextures to use it."""
+        if 'ends' not in self.c:
+            self.c['ends'] = Canvas(self.P, 'ends')
+        return self.c['ends']
+
     def each(self):
         return list(self.c.values())
 
@@ -814,14 +843,14 @@ class Kit:
         for name, c in self.c.items():
             col = np.clip(np.round(c.col), 0, 255).astype(np.uint8)
             Image.fromarray(col).save(os.path.join(out, name + '.png'), optimize=True)
-            companions = {'height': c.height, 'rough': c.rough, 'metal': c.metal, 'glow': c.glow}
+            companions = {'height': c.height, 'rough': c.rough, 'metal': c.metal, 'glow': c.glow, 'alpha': c.alpha}
             for key, arr in companions.items():
                 path = os.path.join(out, '%s_%s.png' % (name, key))
                 if key == 'height':
                     v = np.clip(arr / HEIGHT_RANGE_STUDS + 0.5, 0, 1) * 65535
                     Image.fromarray(np.round(v).astype(np.uint16)).save(path, optimize=True)
                 else:
-                    if key == 'glow' and not c.glow.any():
+                    if (key == 'glow' and not c.glow.any()) or (key == 'alpha' and not c.used['alpha']):
                         if os.path.isfile(path):
                             os.remove(path)
                         continue
@@ -3083,10 +3112,10 @@ def celestial_dragon(k):
         sat = (mx - mn) / np.maximum(mx, 1)
         gold = np.clip((sat - 0.3) * 4, 0, 1) * (r > b + 50) * np.clip((L - 0.3) * 3, 0, 1)
         blue = np.clip((b - r - 20) / 60.0, 0, 1) * np.clip((L - 0.15) * 3, 0, 1)
-        pearl = np.clip((L - 0.7) * 5, 0, 1) * (sat < 0.15)
+        pearl_m = np.clip((L - 0.7) * 5, 0, 1) * (sat < 0.15)
         c.put(gold > 0.4, None, rough=0.24, metal=0.9)
         c.add_height(gold, 0.0004)
-        c.put(pearl > 0.5, None, rough=0.12, metal=0.15)
+        c.put(pearl_m > 0.5, None, rough=0.12, metal=0.15)
         c.put(np.ones((c.h, c.w), bool), None, glow=np.clip(gold * 0.12 + blue * 0.45, 0, 1))
     for c, m in k.zone('joint'):
         metal(c, m, s['gold'], rough=0.2)
@@ -3107,6 +3136,27 @@ def celestial_dragon(k):
     star_gem(c, '#6FB8FF')
     joint_seam(k)
     seam_edges(k, [F1, W0, W1, 6.93])
+    # Themed ends (designer 2026-10-04, the Mythic rule): the collar is gold dragon scales
+    # round a mother-of-pearl band, the ferrule a glowing pearl band between gold rims, the
+    # tip's side a pearl.
+    for c, m in k.zone('joint'):
+        scales(c, m, s['gold'], size=0.022, rough=0.22, depth=0.0005, seed=7, sheen=0.5, edge_col='#8A6A1A')
+        c.put(m, None, metal=0.9)
+        mid = band(c, (J0 + J1) / 2 - 0.03, (J0 + J1) / 2 + 0.03) * m
+        pearl(c, mid > 0.5, s['pearl'], rough=0.14, seed=5, fire=0.5)
+        c.put(mid > 0.5, None, glow=0.22)
+    e = k.ends()
+    tip = e.zone('tip')
+    pearl(e, tip, s['pearl'], rough=0.12, seed=3, fire=0.45)
+    e.put(tip, None, glow=0.12)
+    fer = e.zone('ferrule')
+    pearl(e, fer, s['pearl'], rough=0.14, seed=4, fire=0.55)
+    e.put(fer, None, glow=0.35)
+    T0, T1 = ZONES['ferrule']
+    for d in (T0 + 0.012, T1 - 0.012):
+        rim = band(e, d - 0.007, d + 0.007, soft=0.004) * fer
+        metal(e, rim > 0.5, s['gold'], rough=0.2)
+        e.put(rim > 0.5, None, glow=0.1)
 
 
 @recipe
@@ -3150,6 +3200,30 @@ def kitsune(k):
     rubber(c, c.inside | True, '#0C0C0E')
     joint_seam(k)
     seam_edges(k, [F1, W0, W1])
+    # Themed ends (designer 2026-10-04, the Mythic rule): the collar is shrine-red torii
+    # lacquer between gold rims with a black crossbeam band, the ferrule a glowing foxfire band
+    # (pink pearl) between gold rims, the tip's side black lacquer.
+    for c, m in k.zone('joint'):
+        gloss(c, m, '#C8102E', rough=0.08)
+        c.put(m, None, glow=0.04)
+        for d in (J0 + 0.012, J1 - 0.012):
+            rim = band(c, d - 0.008, d + 0.008, soft=0.003) * m
+            metal(c, rim > 0.5, s['gold'], rough=0.2)
+            c.put(rim > 0.5, None, glow=0.0)
+        mid = band(c, (J0 + J1) / 2 - 0.018, (J0 + J1) / 2 + 0.018) * m
+        gloss(c, mid > 0.5, '#101014', rough=0.12)
+        c.put(mid > 0.5, None, glow=0.0)
+    e = k.ends()
+    tip = e.zone('tip')
+    gloss(e, tip, '#15121A', rough=0.12)
+    fer = e.zone('ferrule')
+    pearl(e, fer, '#F8CCF0', rough=0.14, seed=4, fire=0.6)
+    e.put(fer, None, glow=0.4)
+    T0, T1 = ZONES['ferrule']
+    for d in (T0 + 0.012, T1 - 0.012):
+        rim = band(e, d - 0.007, d + 0.007, soft=0.004) * fer
+        metal(e, rim > 0.5, s['gold'], rough=0.2)
+        e.put(rim > 0.5, None, glow=0.1)
 
 
 @recipe
@@ -3219,11 +3293,13 @@ def eclipse(k):
         c.put(molten > 0.4, None, rough=0.3, metal=0.2)
         c.put(np.ones((c.h, c.w), bool), None, glow=np.clip(molten ** 0.8, 0, 1))
     for c, m in k.zone('joint'):
-        metal(c, m, s['silver'], rough=0.12)
-        c.put(m, None, glow=0.0)
-        for d in (J0 + 0.03, J1 - 0.03):
-            line = band(c, d - 0.01, d + 0.01) * m
+        # the collar: obsidian split by glowing molten cracks between two gold bands, a black
+        # sun disc band in the middle (themed collar, designer 2026-10-04)
+        crack_plates(c, m, 26, '#0B0B0D', '#7A3A00', s['gold'], seed=9, width=0.09, live=0.85, rough=0.14)
+        for d in (J0 + 0.02, J1 - 0.02):
+            line = band(c, d - 0.012, d + 0.012) * m
             metal(c, line > 0.5, s['gold'], rough=0.2)
+            c.put(line > 0.5, None, glow=0.15)
     for c, m in k.zone('wrap'):
         c.put(m, None, rough=0.35, metal=0.0)
     for c, m in k.zone('ring'):
@@ -3234,6 +3310,21 @@ def eclipse(k):
     rubber(c, c.inside | True, '#050505')
     joint_seam(k)
     seam_edges(k, [F1, W0, W1])
+    # Themed ends (designer 2026-10-04): the tip's side is obsidian veined with molten gold, the
+    # ferrule a gold corona ring round a black-sun band: an eclipse at the tip.
+    e = k.ends()
+    tip = e.zone('tip')
+    crack_plates(e, tip, 60, '#0B0B0D', '#7A3A00', s['gold'], seed=5, width=0.08, live=0.8, rough=0.16)
+    fer = e.zone('ferrule')
+    metal(e, fer, s['gold'], rough=0.18)
+    e.put(fer, None, glow=0.2)
+    T0, T1 = ZONES['ferrule']
+    sun = band(e, T0 + 0.035, T1 - 0.035) * fer
+    gloss(e, sun > 0.5, '#050505', rough=0.08)
+    e.put(sun > 0.5, None, glow=0.0, metal=0.0)
+    for d in (T0 + 0.035, T1 - 0.035):
+        rim = band(e, d - 0.006, d + 0.006, soft=0.004) * fer
+        e.put(rim, rgb('#FFE08A'), rough=0.2, metal=0.4, glow=rim)
 
 
 @recipe
@@ -3772,6 +3863,143 @@ def main():
         only = args[args.index('--ai') + 1].split(',')
     for skin_id in [a for a in args if not a.startswith('--') and (only is None or a != ','.join(only))]:
         paint(skin_id, only, force)
+
+
+
+# ---------------------------------------------------------------------------------------------
+# Unique recipes (the Beta Cue and the Grand Opening Cue, 2026-10-04)
+# ---------------------------------------------------------------------------------------------
+
+def quilt(c, m, pitch=0.16, depth=0.00035, stitch='#D9A42B', seed=71):
+    """A diamond-quilted leather wrap: two families of grooves at 45 degrees (a whole number of
+    diamonds round the cue), each diamond domed a little, a small raised gold stitch point at
+    every crossing. Colour is left as painted; only the relief, roughness and stitches change."""
+    r = float(np.mean(c.r[m])) if m.any() else float(np.mean(c.r))
+    n = max(6, int(round(2 * math.pi * r / pitch)))
+    u = c.d / pitch + c.theta / (2 * math.pi) * n
+    v = c.d / pitch - c.theta / (2 * math.pi) * n
+    fu, fv = np.mod(u, 1), np.mod(v, 1)
+    lu, lv = np.minimum(fu, 1 - fu), np.minimum(fv, 1 - fv)
+    groove = np.maximum(np.exp(-(lu / 0.07) ** 2), np.exp(-(lv / 0.07) ** 2))
+    dome = np.clip(1 - np.hypot(fu - 0.5, fv - 0.5) * 1.6, 0, 1) ** 0.7
+    grain = fbm(c, 900, 900, octaves=2, seed=seed)
+    h = depth * (0.45 * dome - 1.0 * groove + 0.08 * (grain - 0.5))
+    c.add_height(m, h)
+    c.put(m, None, rough=0.6 + 0.12 * groove - 0.08 * dome, metal=0.0)
+    # the stitch points: a small gold dot where the grooves cross
+    cross = np.exp(-((lu / 0.045) ** 2 + (lv / 0.045) ** 2))
+    dot = (cross > 0.35) & (m > 0)
+    metal(c, dot, stitch, rough=0.25, brushed=False)
+    c.add_height(dot, depth * 0.6)
+    c.put(dot, None, glow=0.35)
+
+
+@recipe
+def beta(k):
+    """The Beta Cue (U1): a see-through blueprint hologram. OpenAI paints each zone as dark glass
+    with glowing blueprint linework; the painting is read as a line mask (its brightness) and
+    rebuilt in the palette: the body very dark navy glass at alpha 0.42, the lines electric blue
+    (the brightest white-hot) at alpha 1, all of it in the emissive; magenta neon rings (two at
+    the joint collar, the ring, two on the butt sleeve) with white-hot edges, solid; a dark
+    solid end. The tip and ferrule are glowing magenta-white and ice-blue (skin glow keys), so
+    the tip still reads on the ball."""
+    s = k.skin['colours']
+    blue, light, mag = rgb(s['blue']), rgb(s['light']), rgb(s['magenta'])
+    body = rgb('#07102A')
+    white = np.array([255.0, 255.0, 255.0])
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.1, height=0.0)
+        c = k.c[panel]
+        if panel == 'shaft_top':
+            match_top_to_tile(k)
+            img = c.col
+        r, g, b = img[..., 0], img[..., 1], img[..., 2]
+        mx = img.max(-1) / 255.0
+        mn = img.min(-1) / 255.0
+        lines = smooth(0.16, 0.5, mx)
+        magenta = np.clip((r - g) / 255.0 * 2.2, 0, 1) * np.clip((b - g) / 255.0 * 2.2, 0, 1) * smooth(0.3, 0.6, mx)
+        if panel in ('shaft_tile', 'shaft_top'):
+            magenta = magenta * 0.0  # the rings are the collar's and the sleeve's; a tile's repeat would scatter them
+        hot = smooth(0.72, 0.95, mn)
+        shape = img.shape
+        linecol = mix(np.broadcast_to(blue, shape), np.broadcast_to(light, shape), smooth(0.45, 0.85, mx))
+        col = mix(np.broadcast_to(body, shape), linecol, lines)
+        col = mix(col, np.broadcast_to(mag, shape), magenta)
+        col = mix(col, np.broadcast_to(white, shape), hot * 0.9)
+        ones = np.ones((c.h, c.w), bool)
+        c.put(ones, col, rough=0.08, metal=0.0,
+              glow=np.clip(0.2 + 0.9 * lines + magenta, 0, 1),
+              alpha=np.clip(0.42 + 0.58 * np.maximum(lines, magenta), 0, 1))
+        c.add_height(ones, 0.00008 * lines)
+    hot_edge = np.array([255.0, 236.0, 252.0])
+    rings = []
+    for c, m in k.zone('joint'):
+        rings.append((c, m, [(J0, J0 + 0.035), (J1 - 0.035, J1)]))
+    for c, m in k.zone('ring'):
+        rings.append((c, m, [ZONES['ring']]))
+    for c, m in k.zone('cap'):
+        rings.append((c, m, [(C0 + 0.004, C0 + 0.05), (6.86, 6.905)]))
+    for c, m, spans in rings:
+        for d0, d1 in spans:
+            ring_ = band(c, d0, d1, soft=0.001) * m
+            c.put(ring_ > 0.5, mag, rough=0.18, metal=0.0, glow=1.0, alpha=1.0)
+            edge = (band(c, d0 - 0.004, d0 + 0.004, soft=0.0015) + band(c, d1 - 0.004, d1 + 0.004, soft=0.0015)) * m
+            c.put(edge > 0.4, hot_edge, glow=1.0, alpha=1.0)
+            c.add_height(ring_, 0.0004)
+    for c, m in k.zone('joint'):
+        # the collar between its two rings: a little denser glass
+        mid = band(c, J0 + 0.035, J1 - 0.035, soft=0.001) * m
+        c.put(mid > 0.5, None, alpha=0.6)
+    for c, m in k.zone('cap'):
+        end = band(c, 6.93, 7.3) * m
+        gloss(c, end > 0.5, '#0A1230', rough=0.14)
+        c.put(end > 0.5, None, glow=0.0, alpha=1.0)
+    seam_edges(k, [6.93])
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#070C20')
+    c.put(np.ones((c.h, c.w), bool), None, glow=0.0)
+
+
+@recipe
+def grand_opening(k):
+    """The Grand Opening Cue (U2): navy lacquer, gold and fireworks. OpenAI panels on the whole
+    cue (the board's crops); the gold is read from the painting as metal, the painted firework
+    bursts and stars (saturated pink, cyan, white-hot and the brightest gold) as the emissive,
+    the wrap is given a diamond-quilt relief with gold stitch points, the collar and ring are
+    polished gold, the end a black cap."""
+    s = k.skin['colours']
+    gold, lgold = s['gold'], s['light_gold']
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.12, height=0.00025)
+        c = k.c[panel]
+        if panel == 'shaft_top':
+            match_top_to_tile(k)
+            img = c.col
+        r, g, b = img[..., 0], img[..., 1], img[..., 2]
+        mx = img.max(-1) / 255.0
+        mn = img.min(-1) / 255.0
+        warm = (r > b + 40)
+        goldm = np.maximum(hue_mask(img, gold, tol=75, min_sat=0.3), hue_mask(img, lgold, tol=60, min_sat=0.2)) * warm
+        c.put(goldm > 0.4, None, rough=0.2, metal=0.95)
+        pink = np.clip((r - g) / 255.0 * 2.0, 0, 1) * np.clip((b - g) / 255.0 * 1.5 + 0.2, 0, 1) * smooth(0.35, 0.7, mx)
+        cyan = np.clip((b - r) / 255.0 * 2.0, 0, 1) * np.clip((g - r) / 255.0 * 2.0, 0, 1) * smooth(0.35, 0.7, mx)
+        bright_gold = goldm * smooth(0.78, 0.96, mx)
+        white = smooth(0.8, 0.97, mn)
+        glow = np.clip(0.9 * pink + 0.9 * cyan + 0.7 * bright_gold + white, 0, 1)
+        c.put(np.ones((c.h, c.w), bool), None, glow=glow)
+    for c, m in k.zone('joint'):
+        metal(c, m, gold, rough=0.14)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('ring'):
+        metal(c, m, gold, rough=0.14)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('wrap'):
+        quilt(c, m)
+    end_band(k, '#111111', d0=6.93)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#111111')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
 
 
 if __name__ == '__main__':

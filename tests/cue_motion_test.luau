@@ -1,7 +1,8 @@
 --!strict
 -- CueSkins.Motion against the Blender reference: joint transforms from CuePieces.joint_matrix
 -- (tests/cue_motion_fixture.json, written by tools/cue_motion_fixture.py) for pieces with
--- every motion kind (Hinge with sine/snap/pulse waves, Spin, Bob, the dragon's Path), at
+-- every motion kind (Hinge with sine/snap/pulse waves, Spin, Bob with a saw wave, Glitch, the
+-- dragon's Path), at
 -- several times, in the Roblox cue frame. piece.json rounds pivots to 0.1 mm, hence 1e-3.
 
 local fs = require("@lune/fs")
@@ -54,6 +55,22 @@ return {
 		)
 		H.near(Motion.pieceWave(0.3, { Period = 2, Shape = "pulse" }), 1, 1e-9, "pulse peak")
 		H.near(Motion.pieceWave(1.2, { Period = 2, Shape = "pulse" }), 0, 1e-9, "pulse rest")
+		H.near(Motion.pieceWave(0, { Period = 2, Shape = "saw" }), -1, 1e-9, "saw starts at -1")
+		H.near(Motion.pieceWave(1.5, { Period = 2, Shape = "saw" }), 0.5, 1e-9, "saw climbs")
+		H.near(Motion.pieceWave(1.999, { Period = 2, Shape = "saw" }), 0.999, 1e-9, "saw top")
+		H.near(Motion.pieceWave(2, { Period = 2, Shape = "saw" }), -1, 1e-9, "saw snaps back")
+		local g = { Period = 4, Seconds = 0.3, Amp = 0.1, Steps = 3, Phase = 1 }
+		H.near(Motion.glitchOffset(0.5, g), 0, 1e-9, "glitch rests outside its window")
+		H.near(Motion.glitchOffset(1.05, g), 0.1, 1e-9, "glitch first step +")
+		H.near(Motion.glitchOffset(1.15, g), -0.1, 1e-9, "glitch second step -")
+		H.near(Motion.glitchOffset(5.25, g), 0.1, 1e-9, "glitch third step +, next period")
+		H.near(Motion.glitchOffset(1.3, g), 0, 1e-9, "glitch over")
+		local b = { Period = 4, Seconds = 0.4, Count = 4, Phase = 1 }
+		H.expect(not Motion.blinkGone(0.5, b), "blink shown outside its window")
+		H.expect(not Motion.blinkGone(1.05, b), "blink shown on the first sub-step")
+		H.expect(Motion.blinkGone(1.15, b), "blink gone on the second")
+		H.expect(not Motion.blinkGone(1.25, b), "blink shown on the third")
+		H.expect(Motion.blinkGone(5.35, b), "blink gone on the fourth, next period")
 		H.near(Motion.vfxWave(0, { Min = 0.2, Max = 1 }), 0.2, 1e-9, "sine starts at Min")
 		H.near(Motion.vfxWave(1, { Min = 0.2, Max = 1, Period = 2 }), 1, 1e-9, "sine Max at half")
 		H.near(
@@ -68,6 +85,14 @@ return {
 			local f = Motion.vfxWave(t, { Min = 0, Max = 1, Shape = "flicker" })
 			H.expect(f >= 0.315 and f <= 1, "flicker stays in 0.315..1")
 		end
+		local life = { Min = 0, Max = 1, Period = 10, Shape = "life" }
+		H.near(Motion.vfxWave(0, life), 0, 1e-9, "life is born at Min")
+		H.near(Motion.vfxWave(0.45, life), 0.75, 1e-9, "life pops in")
+		H.near(Motion.vfxWave(0.28, life), 0.15, 1e-9, "life blinks on the way in")
+		H.near(Motion.vfxWave(5, life), 1, 1e-9, "life holds at Max")
+		H.near(Motion.vfxWave(9.1, life), 1 - (0.91 - 0.82) / 0.18, 1e-9, "life dissolves")
+		H.near(Motion.vfxWave(9.19, life), 0.1, 1e-9, "life blinks on the way out")
+		H.near(Motion.vfxWave(9.999, life), 1 - (0.9999 - 0.82) / 0.18, 1e-6, "life ends near Min")
 		H.near(Motion.curve({ { 0, -1 }, { 0.3, 0.2 }, { 1, 0.4 } }, 0.15), -0.4, 1e-9, "curve")
 		H.near(Motion.curve(0.7, 0.4), 0.7, 1e-9, "a number is a flat curve")
 	end,

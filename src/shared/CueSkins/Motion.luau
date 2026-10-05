@@ -94,8 +94,9 @@ end
 ---------------------------------------------------------------------------------------------
 
 --- A piece motion's wave in -1..1 (CuePieces._wave): Phase in degrees; Shape sine, snap (a
---- sharpened sine: quick close, slow open) or pulse (a quick swing in the first 30% of each
---- period, rest after).
+--- sharpened sine: quick close, slow open), pulse (a quick swing in the first 30% of each
+--- period, rest after) or saw (one way, -1 to 1 over a period, then straight back: a scan
+--- line sweeping tip to butt).
 function Motion.pieceWave(t: number, m: any): number
 	local period = m.Period or 2
 	local x = 2 * math.pi * t / period + math.rad(m.Phase or 0)
@@ -106,19 +107,62 @@ function Motion.pieceWave(t: number, m: any): number
 	elseif shape == "pulse" then
 		local u = (x / (2 * math.pi)) % 1
 		return if u < 0.3 then math.sin(math.pi * math.min(u / 0.3, 1)) else 0
+	elseif shape == "saw" then
+		local u = (x / (2 * math.pi)) % 1
+		return 2 * u - 1
 	end
 	return math.sin(x)
 end
 
+--- A Glitch motion's jolt at time t (CuePieces.glitch_offset): once every Period seconds
+--- (from Phase seconds in) the joint jumps Amp studs along Dir for Seconds, the sign flipping
+--- on each of Steps equal sub-steps, then sits still; 0 outside the window.
+function Motion.glitchOffset(t: number, m: any): number
+	local period = m.Period or 3
+	local secs = m.Seconds or 0.15
+	local steps = math.max(1, m.Steps or 3)
+	local u = (t - (m.Phase or 0)) % period
+	if u >= secs then
+		return 0
+	end
+	local n = math.floor(u / secs * steps)
+	return (m.Amp or 0.05) * (if n % 2 == 0 then 1 else -1)
+end
+
+--- Whether a Blink visual has its parts gone at time t: during a window of Seconds once every
+--- Period (from Phase seconds in), the parts vanish on every other of Count equal sub-steps
+--- (shown, gone, shown, ...), a glitch's blink.
+function Motion.blinkGone(t: number, v: any): boolean
+	local period = v.Period or 3
+	local secs = v.Seconds or 0.15
+	local count = math.max(1, v.Count or 4)
+	local u = (t - (v.Phase or 0)) % period
+	if u >= secs then
+		return false
+	end
+	return math.floor(u / secs * count) % 2 == 1
+end
+
 --- An effect wave between Min and Max (CueVfx.wave): Phase is a share of a period; Shape sine
---- (starts at Min), flicker (mostly near Max with quick dips; never reaches Min) or beat (a
---- heartbeat's two bumps).
+--- (starts at Min), flicker (mostly near Max with quick dips; never reaches Min), beat (a
+--- heartbeat's two bumps) or life (a hologram panel's life: Min at birth, popping in over
+--- the first 6% of the period with one blink, Max to 82%, then dissolving to Min with a blink
+--- halfway down).
 function Motion.vfxWave(t: number, spec: any): number
 	local lo, hi = spec.Min or 0, spec.Max or 1
 	local ph = (t / (spec.Period or 2) + (spec.Phase or 0)) % 1
 	local shape = spec.Shape or "sine"
 	local k
-	if shape == "flicker" then
+	if shape == "life" then
+		if ph < 0.06 then
+			k = if ph > 0.02 and ph < 0.035 then 0.15 else ph / 0.06
+		elseif ph < 0.82 then
+			k = 1
+		else
+			local u = (ph - 0.82) / 0.18
+			k = if u > 0.5 and u < 0.6 then 0.1 else 1 - u
+		end
+	elseif shape == "flicker" then
 		k = 0.85 + 0.15 * math.sin(2 * math.pi * ph)
 		if math.sin(37 * t) * math.sin(11.3 * t) > 0.93 then
 			k *= 0.45
@@ -222,7 +266,9 @@ export type Joint = {
 	parent: string?,
 	pivot: { number },
 	motions: { any },
+	visuals: { any }, -- Fade, Blink, Glow rows the client applies to the joint's parts
 	aura: boolean,
+	low: string?, -- "hide": gone under Lower effects (Quality)
 }
 
 export type Rig = {
@@ -253,7 +299,9 @@ function Motion.rig(piece: any): Rig
 			parent = j.Parent,
 			pivot = j.PivotRoblox,
 			motions = motions,
+			visuals = j.Visual or {},
 			aura = j.Aura == true,
+			low = j.Low,
 		}
 	end
 	local depth: { [string]: number } = {}
@@ -279,7 +327,9 @@ function Motion.rig(piece: any): Rig
 		joints = joints,
 		order = order,
 		paths = piece.Paths or {},
-		zoff = if piece.Frame == "pocket" then 0 else 3.5,
+		-- A piece on the cue is 3.5 studs from the MeshPart's centre to the tip; a pocket or
+		-- carrier piece sits on its own root.
+		zoff = if piece.Frame == "pocket" or piece.Frame == "carrier" then 0 else 3.5,
 	}
 end
 
@@ -308,6 +358,10 @@ local function own(rig: Rig, joint: Joint, t: number): Xf
 		elseif kind == "Bob" then
 			local d = m.Dir or { 0, 1, 0 }
 			local k = (m.Amp or 0.02) * Motion.pieceWave(t, m)
+			M = Motion.mul(M, Motion.translate(d[1] * k, d[2] * k, d[3] * k))
+		elseif kind == "Glitch" then
+			local d = m.Dir or { -1, 0, 0 }
+			local k = Motion.glitchOffset(t, m)
 			M = Motion.mul(M, Motion.translate(d[1] * k, d[2] * k, d[3] * k))
 		end
 	end
