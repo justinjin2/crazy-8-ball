@@ -207,7 +207,8 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   finisher kept as they were (designer: they were fine); no sound; cards unchanged.
 - [x] 4. Celestial Dragon: board, gate 1 (passed 2026-10-04 at the third look, "good enough");
   build (done 2026-10-04), gate 2 (passed 2026-10-04 at the sixth look, "good enough").
-- [ ] 5. Kitsune: board, gate 1 (first look rendered 2026-10-04); build, gate 2, polish.
+- [ ] 5. Kitsune: board, gate 1 (first look 2026-10-04; second look 2026-10-05 after the
+  designer's reference: the spirit fox); build, gate 2, polish.
 - [ ] 6. Apex: board, gate 1; build, gate 2, polish.
 - [ ] 7. Reyes, Grandmaster, VIP.
 - [ ] 8. Legendaries (7): board sheet, gate; build; lineup gate.
@@ -382,6 +383,9 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   shield barrier. Done as the sixth look.
 - 2026-10-04 (designer, Dragon gate 2, sixth look): passes ("good enough"). The Dragon is
   done; on to the Kitsune.
+- 2026-10-05 (designer, Kitsune gate 1, first look): replicate the reference picture: a
+  spirit fox like the Celestial Dragon, with particle effects constantly moving like flames
+  blown by wind toward the butt. Done as the second look (the running fox dropped for it).
 - 2026-10-04 (Kitsune, gate 1, first look): the nine tails are real swept meshes off the
   mask's collar (pink ForceField bodies with white-pink Neon cores, two Sways each, Fade and
   Glow, even tails hidden under Lower effects) in place of the nine Beams; the three sprite
@@ -390,3 +394,17 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   (68 a second from 219: body 18 over a deeper violet, foxfire 12, petals 12, flares 8); the
   running fox kept; themed ends (a torii-red lacquer collar with gold rims and a black band, a
   glowing pink-pearl foxfire ferrule with gold rims, a black lacquer tip side).
+- 2026-10-05 (Kitsune, gate 1, second look, the designer's reference picture): a great
+  spirit fox of violet flame along the cue, like the Celestial Dragon. A new Meshy head
+  (assets/cue/models/spirit_fox_head, from an OpenAI reference painted off the designer's
+  picture, 35 credits), cut at the neck and seated on a flame body (its own streaked
+  see-through SurfaceAppearance in a ForceField sheath round a thin Neon core, flame licks
+  raked toward the butt) that flows from above the shaft back over the forearm; fourteen
+  bones carry a wave head to tail, the whole fox drifts round the cue (a lap in 26 s), the
+  head nods and looks round. The wind: twelve licks of flame riding a loop that runs from
+  the ferrule to the butt above the cue and back inside it, so they only blow toward the
+  butt; flame and ember sprites emitted toward the butt (EmissionDirection Bottom). The
+  tails violet and streaming out past the mask; the foxfire orbs violet, each wearing a
+  fox-face sprite (`vfx/kitsune/foxface_orb.png`, drawn) riding its joint. The whole aura
+  violet (`#B040FF` main, `#FF8AE8` pink, white-hot cores), two lights. The running fox is
+  out (the great fox replaces it; the model stays in assets/cue/models). About 71 a second.
