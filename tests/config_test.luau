@@ -66,6 +66,7 @@ return {
 				RailThud = "Rail",
 				PocketDrop = "Pocket",
 				PocketBonus = "Bonus",
+				NiceClap = "NiceClap",
 				AimTick = "Tick",
 			} :: any)[name]]
 			local gain = 0

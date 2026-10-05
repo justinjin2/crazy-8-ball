@@ -930,6 +930,7 @@ for id = 1, Placement.tableCount() do
 					and NiceShot.isNice(shot.events, ev.ball, index, m.state.geometry.pockets)
 				then
 					e:niceShot(at)
+					a:niceClap(at)
 				end
 			end
 			if snapshot and snapshot.id == id then

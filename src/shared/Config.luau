@@ -3988,6 +3988,12 @@ Config.Audio = {
 			-- ball_pocketed_bonus_sfx, peak 0.786, 3.496s
 			{ Id = "rbxassetid://139288823087630", Gain = 0.64 },
 		},
+		-- A short crowd clap under NICE SHOT! (designer, 2026-10-05): the designer's "XMS
+		-- CROWD Clap Small", cut to 1.6 s with a fast fade (assets/audio/NiceShotClap.wav),
+		-- peak 0.93. Layered UNDER the bonus sting, never the main sound: Config.Audio.NiceClap.
+		NiceClap = {
+			{ Id = "rbxassetid://127893799484932", Gain = 0.54 },
+		},
 		-- The tick while the aim turns. A UI click, not a pool sound. Replace it the same way
 		-- as the rest; this is v1 of the designer's own recording, in to be listened to.
 		--
@@ -4210,6 +4216,16 @@ Config.Audio = {
 		-- this long after its ball dropped still sounds. Later would read as a separate
 		-- event rather than the ball's reward. (tune)
 		LateSeconds = 0.25,
+	},
+	-- The NICE SHOT! clap's level (Clips.NiceClap): 0.09 x 0.54 x its 0.93 peak is about 0.045,
+	-- a bit over half the bonus sting it sits under (0.16 x 0.64 x 0.79 = 0.08). Played at the
+	-- pocket with the NICE SHOT! pop, so everyone who sees the words hears it. (tune)
+	NiceClap = {
+		MinVolume = 0.09,
+		MaxVolume = 0.09,
+		MinPitch = 1,
+		MaxPitch = 1,
+		PitchJitter = 0.03, -- two nice shots in a row never clap identically
 	},
 	-- The shot clock's last seconds (designer, 2026-09-26): one clock tick a second from
 	-- FromSeconds down to 1, for the shooter only, so they know to shoot now. Flat, not placed

@@ -2457,3 +2457,7 @@ timer of a new block stay the designer's call.
 - **2026-10-05 — There is no Founder's Cue (designer).** It never exists in the game: its
   catalog row and name are removed (2 Unique cues: Grand Opening and Beta, both from the Grand
   Opening block). The tests' stand-in Unique and Robux Limited are now the Grand Opening Cue.
+- **2026-10-05 — A crowd clap under NICE SHOT! (designer).** The designer's "XMS CROWD Clap
+  Small", cut to 1.6 s with a fast fade (`Audio.Clips.NiceClap`, `Audio.NiceClap`), plays at the
+  pocket with the NICE SHOT! pop, about half as loud as the bonus sting it sits under; the sting
+  stays the main sound.

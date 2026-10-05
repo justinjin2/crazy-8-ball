@@ -395,6 +395,12 @@ function Audio.bonus(self: Audio, at: Vector3, speed: number)
 	self.pocketedThisShot = true
 end
 
+--- The crowd's short clap under NICE SHOT! (Config.Audio.NiceClap), at the pocket. It never
+--- replaces the drop or the bonus sting: it sits under them.
+function Audio.niceClap(self: Audio, at: Vector3)
+	self:playAt("NiceClap", at, Config.Audio.NiceClap, 0, true)
+end
+
 --- Listen to a table. Every contact the simulation reports becomes a sound.
 function Audio.attach(self: Audio, match: any)
 	match:onEvent(function(ev: Event)
