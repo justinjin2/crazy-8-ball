@@ -764,6 +764,8 @@ reworked for lucky blocks on 2026-10-04.
   Hit" on the white flash (`Audio.Ui.LegendaryHit`) and the very faint looping angelic
   "Aurora" ambience under the card that tapers after it closes (`Audio.Ui.LegendaryAurora`).
   The Legendary has no sky effect (its gold aurora was dropped, 2026-10-05).
+- **The player stands still through every pull cutscene** (designer, 2026-10-05): no walking
+  or jumping, and no turning with the camera, even with shift lock on.
 - **What money buys** (plan, 2026-10-02; blocks 2026-10-04): **Mystery blocks** ($4,900; 10 for
   $44,100), the **Grand Opening block** while its 21-day deal runs ($49,000; 3 for $139,000;
   10 for $441,000), the **restock shop** (new blocks every 10 minutes on the clock, the same

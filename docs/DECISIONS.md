@@ -2518,3 +2518,6 @@ timer of a new block stay the designer's call.
 - 2026-10-05: Pull announcements never name the cue, only its rarity (designer): "X unboxed a
   Legendary Cue!" in the server, "[GLOBAL]: X pulled a Mythical Cue!" / "... a Secret Cue!" in
   every server.
+- 2026-10-05: The player stands still through every pull cutscene (designer): walk speed and
+  jump go to 0 and AutoRotate off for the scene, so shift lock no longer turns the character
+  as the cutscene camera moves; everything goes back when the scene ends.

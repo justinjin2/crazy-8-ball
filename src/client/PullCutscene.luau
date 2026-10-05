@@ -119,6 +119,7 @@ type Scene = {
 	cc: ColorCorrectionEffect,
 	model: Model,
 	release: () -> (),
+	held: { [string]: any }?, -- the player's Humanoid as it was, while it stands still
 	camera: { [string]: any }?,
 	lighting: { [string]: any },
 	atmosphere: { [string]: any }?,
@@ -151,6 +152,42 @@ local function character(): (BasePart?, Vector3?)
 		return root, root.Position - Vector3.new(0, hip + root.Size.Y / 2, 0)
 	end
 	return nil, nil
+end
+
+-- The player stands still through the scene (designer 2026-10-05): no walking or jumping,
+-- and no turning, even with shift lock on (its camera-relative turn follows AutoRotate).
+local function holdCharacter(): { [string]: any }?
+	local player = Players.LocalPlayer
+	local body = player and player.Character
+	local humanoid = body and body:FindFirstChildOfClass("Humanoid")
+	if not humanoid then
+		return nil
+	end
+	local held = {
+		humanoid = humanoid,
+		WalkSpeed = humanoid.WalkSpeed,
+		JumpPower = humanoid.JumpPower,
+		JumpHeight = humanoid.JumpHeight,
+		AutoRotate = humanoid.AutoRotate,
+	}
+	humanoid.WalkSpeed = 0
+	humanoid.JumpPower = 0
+	humanoid.JumpHeight = 0
+	humanoid.AutoRotate = false
+	humanoid:Move(Vector3.zero)
+	return held
+end
+
+local function releaseCharacter(held: { [string]: any }?)
+	local humanoid = held and held.humanoid
+	if not humanoid or not humanoid.Parent then
+		return
+	end
+	for key, value in held :: { [string]: any } do
+		if key ~= "humanoid" then
+			humanoid[key] = value
+		end
+	end
 end
 
 local function fullFrame(parent: Instance, name: string, colour: Color3, z: number): Frame
@@ -238,6 +275,8 @@ end
 
 -- Everything back exactly as it was. Safe to call twice.
 local function restore(s: Scene)
+	releaseCharacter(s.held)
+	s.held = nil
 	for _, entry in s.lights do
 		if entry.light.Parent then
 			entry.light.Enabled = entry.enabled
@@ -1646,6 +1685,7 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> (), onBlac
 		cc = cc,
 		model = model,
 		release = DayCycle.hold(),
+		held = holdCharacter(),
 		camera = nil,
 		lighting = lighting,
 		atmosphere = atmosphereSaved,
