@@ -1044,6 +1044,11 @@
     "assetType": "Audio",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/audio/cutscenes/LegendaryAurora.wav": {
+    "assetId": "138935380522596",
+    "assetType": "Audio",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/audio/cutscenes/LegendaryCinematic.wav": {
     "assetId": "111448999523683",
     "assetType": "Audio",
@@ -4814,6 +4819,12 @@
     "assetId": "80015313274648",
     "assetType": "Decal",
     "imageId": "114536414580559",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/star_flare.png": {
+    "assetId": "100355805252400",
+    "assetType": "Decal",
+    "imageId": "84051192712402",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/BoxIdle.rbxm": {

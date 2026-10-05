@@ -4200,6 +4200,10 @@ Config.Audio = {
 		LegendaryCinematic = { Id = "rbxassetid://111448999523683", Volume = 0.35 },
 		LegendaryRise = { Id = "rbxassetid://119943211186448", Volume = 0.6 },
 		LegendaryHit = { Id = "rbxassetid://98145599201576", Volume = 0.45 },
+		-- "Aurora" (the designer's 214981, its first 40 s, 1 s fade in, 3 s fade out; quiet
+		-- already): looped VERY faintly under the Legendary card (Config.Cutscenes.Legendary
+		-- .Ambience).
+		LegendaryAurora = { Id = "rbxassetid://138935380522596", Volume = 0.3, Looped = true },
 		-- The Secret pull's heartbeat and shockwave (GUI lane, 2026-10-03; licensed library
 		-- sounds: APM "Heart Beat", Pro Sound Effects "Thruster Blast 8").
 		Heartbeat = { Id = "rbxassetid://1839088414", Volume = 0.15, Overlap = true },
@@ -10301,7 +10305,9 @@ Config.Cutscenes = {
 	Legendary = {
 		FadeInSeconds = 0.5, -- the black fades up on the first shot
 		BarsShare = 0.12, -- each letterbox bar, of the screen's height
-		BarsInSeconds = 0.5, -- they slide in during the fade
+		BarsInSeconds = 0.5, -- they slide in during the fade...
+		BarsOutAt = 0.5, -- ...and out once the warp is this far to the flash (designer 2026-10-05)...
+		BarsOutSeconds = 0.5, -- ...over this long
 		Gold = { 255, 196, 60 }, -- the beam, the star, the sparks (the Legendary gold)
 		Light = { 255, 240, 190 }, -- the white-gold hottest parts (the beam's core, the star's centre)
 		Grade = { -- the world's colour while the film plays (ColorCorrection)
@@ -10391,16 +10397,20 @@ Config.Cutscenes = {
 		WarpSpeedFrom = 0.35, -- the streaks' speed (screens a second), at the start...
 		WarpSpeedTo = 2.2, -- ...and at the end
 		Pillars = 5, -- vertical shafts of gold light sweeping across
-		-- The star (designer 2026-10-05): plain backdrop first, then a sharp eight-point yellow star
-		-- pulses up from nothing in the middle, spinning faster and growing with the rise.
+		-- The star (designer 2026-10-05; Art.StarFlare: long thin vertical spikes, shorter
+		-- horizontal ones, short diagonals): plain backdrop first, then it pulses up from nothing
+		-- in the middle a few times, turning; then it stops pulsing and expands, spinning faster
+		-- and faster, until it fills the screen on the flash.
 		WarpHoldSeconds = 0.25, -- just the backdrop this long
-		WarpGrowPower = 1.4, -- then everything grows to full at the flash: share^power
-		StarShare = 0.38, -- the star's size at the flash, of the screen's longer side (bigger blurs it)
-		StarPulse = 0.18, -- its pulse, a share of its size...
-		StarPulseHzFrom = 2, -- ...this often at the start...
-		StarPulseHzTo = 7, -- ...and at the flash
-		StarSpinFrom = 30, -- its spin, degrees a second, at the start...
-		StarSpinTo = 420, -- ...and at the flash
+		StarLight = { 255, 238, 150 }, -- the inner star and the hot core: a shade lighter than WarpGold
+		StarPulses = 3, -- it pulses this many times...
+		StarPulseHz = 2.6, -- ...this often...
+		StarPulseShare = 0.22, -- ...at about this size, of the screen's longer side
+		StarFillShare = 4, -- then expands to this size on the flash (its core fills the screen)
+		StarExpandPower = 2.2, -- the expansion speeds up: share^power
+		StarSpinPulse = 70, -- its spin while it pulses, degrees a second...
+		StarSpinTo = 900, -- ...rising to this at the flash
+		WarpGrowPower = 1.4, -- the rays, streaks and rings grow with the expansion: share^power
 		-- How strongly the softer pieces show over a bright backdrop (they wash it out on white).
 		BrightHaze = 0.2, -- the haze's most (0.6 on black)
 		BrightPillars = 0.15, -- the light shafts' most (0.35 on black)
@@ -10411,6 +10421,8 @@ Config.Cutscenes = {
 		Logo = "LegendaryCinematic", -- with the scene (its bass drop at once, its impact at ImpactAt)
 		Rise = "LegendaryRise", -- just after the hit (its peak 3.1 s in: the flash)
 		Finale = "LegendaryHit", -- on the flash, over the card's own reveal sound
+		Ambience = "LegendaryAurora", -- very faint, looping under the card; after it is closed it
+		-- plays on Aurora.SoundTailSeconds, then fades over Aurora.SoundFadeSeconds
 		Skippable = true, -- once it has been seen
 	},
 	Mythic = {
@@ -10458,6 +10470,7 @@ Config.Cutscenes = {
 		BeamSoft = "rbxassetid://98573532343624", -- a soft falloff across a beam
 		AuroraCurtain = "rbxassetid://137361940974937", -- an aurora curtain's rays
 		LightStreak = "rbxassetid://114536414580559", -- one soft streak of light
+		StarFlare = "rbxassetid://84051192712402", -- a pointed eight-spike star (the Legendary warp)
 	},
 	-- The gold aurora after a Legendary pull (SkyAurora; designer 2026-10-05): curtains of gold
 	-- light high in the sky, streaks of light shooting across it and sparkles drifting all
@@ -10465,7 +10478,13 @@ Config.Cutscenes = {
 	-- opener's card shows). Around each player's own camera, so it is overhead wherever they
 	-- are. Seconds, studs and 0..1 shares.
 	Aurora = {
-		Seconds = 14, -- in all
+		Seconds = 18, -- in all, for everyone else in the server
+		-- The opener's (designer 2026-10-05): it stays while their card shows, and lingers this
+		-- long after they close it (the fade out included); at most HeldMaxSeconds.
+		LingerSeconds = 5.5,
+		HeldMaxSeconds = 120,
+		SoundTailSeconds = 1, -- the card's ambience plays on this long after it closes...
+		SoundFadeSeconds = 1.2, -- ...then tapers away over this long
 		InSeconds = 1.5, -- it fades in...
 		OutSeconds = 3, -- ...and out
 		Curtains = 7, -- curtains of light (scaled by the quality setting, at least 3)

@@ -34,6 +34,7 @@ local function soundFor(key: string): Sound?
 	made.Name = key
 	made.SoundId = clip.Id
 	made.Volume = clip.Volume
+	made.Looped = clip.Looped == true
 	made.Parent = folder
 	sounds[key] = made
 	return made
@@ -65,6 +66,7 @@ function UISound.play(key: string, pitch: number?, volume: number?)
 	else
 		sound.PlaybackSpeed = pitch or 1
 		sound.Volume = clip.Volume * (volume or 1)
+		sound:SetAttribute("FadeStamp", nil) -- a taper under way is cancelled
 		sound:Stop() -- Play() alone does not rewind (docs/STUDIO_NOTES.md, Audio)
 		sound:Play()
 	end
@@ -76,6 +78,31 @@ function UISound.stop(key: string)
 	if sound then
 		sound:Stop()
 	end
+end
+
+--- Let a playing UI sound (not an Overlap one's copies) play on for `after` seconds, then
+--- taper it away over `seconds` and stop it. A Play in the meantime cancels the taper.
+function UISound.fadeOut(key: string, after: number, seconds: number)
+	local sound = sounds[key]
+	if not sound or not sound.IsPlaying then
+		return
+	end
+	local from = sound.Volume
+	local stamp = os.clock()
+	sound:SetAttribute("FadeStamp", stamp)
+	task.delay(after, function()
+		local started = os.clock()
+		while sound.Parent and sound:GetAttribute("FadeStamp") == stamp do
+			local u = (os.clock() - started) / math.max(seconds, 1e-3)
+			if u >= 1 then
+				sound:Stop()
+				sound.Volume = from
+				return
+			end
+			sound.Volume = from * (1 - u)
+			task.wait()
+		end
+	end)
 end
 
 --- Where a UI sound is in its clip (seconds) and whether it is playing: a cutscene keeping

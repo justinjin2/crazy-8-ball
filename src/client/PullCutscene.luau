@@ -1046,9 +1046,10 @@ local function warpLegendary(s: Scene, t: number, shown: number)
 		p.warpGlow = makeGlow(s, "WarpGlow", gold, 3)
 		-- The star: two four-point sparkles a quarter turn apart, the inner one deeper.
 		-- (Under the letterbox bars, 5.)
-		p.starOuter = makeArt(s, "WarpStar", K.Spark, gold, 4)
-		p.starInner = makeArt(s, "WarpStarInner", K.Spark, deep, 4)
-		p.starCore = makeGlow(s, "WarpStarCore", if bright then gold else light, 4)
+		local starLight = rgb(L.StarLight)
+		p.starOuter = makeArt(s, "WarpStar", CS.Art.StarFlare, gold, 4)
+		p.starInner = makeArt(s, "WarpStarInner", CS.Art.StarFlare, starLight, 4)
+		p.starCore = makeGlow(s, "WarpStarCore", starLight, 4)
 		local stars = {}
 		for _ = 1, math.max(16, math.floor(L.WarpStars * Quality.rate())) do
 			table.insert(stars, {
@@ -1070,13 +1071,19 @@ local function warpLegendary(s: Scene, t: number, shown: number)
 			p.pulses[index] = makeArt(s, "Pulse", K.RingGlow, gold, 3)
 		end
 		p.spin = 0
-		p.beat = 0
 		p.last = t
 	end
 	s.black.BackgroundTransparency = 0
-	-- `grow` runs 0 -> 1 from the end of the plain hold to the flash.
+	-- The star's two stages from the end of the plain hold: StarPulses pulses, then the
+	-- expansion to the flash (`expand` 0 -> 1). `grow` (0 -> 1) drives everything round it:
+	-- a little through the pulses, the rest with the expansion.
 	local span = math.max(0.1, L.InterludeSeconds - (t - shown) - L.WarpHoldSeconds)
-	local grow = math.clamp((shown - L.WarpHoldSeconds) / span, 0, 1) ^ L.WarpGrowPower
+	local since = shown - L.WarpHoldSeconds
+	local pulsing = L.StarPulses / L.StarPulseHz
+	local expand = math.clamp((since - pulsing) / math.max(span - pulsing, 0.1), 0, 1)
+	local grow = if since < pulsing
+		then 0.15 * math.clamp(since / pulsing, 0, 1)
+		else 0.15 + 0.85 * expand ^ L.WarpGrowPower
 	local screen = s.veilRoot.AbsoluteSize
 	local longer = math.max(screen.X, screen.Y)
 	local dt = math.max(0, t - p.last)
@@ -1113,11 +1120,28 @@ local function warpLegendary(s: Scene, t: number, shown: number)
 	end
 	local haze: Frame = p.haze
 	haze.BackgroundTransparency = 1 - (if bright then L.BrightHaze else 0.6) * grow
-	-- The star: pulsing from nothing, ever faster, spinning ever faster, growing.
-	p.beat += dt * (L.StarPulseHzFrom + (L.StarPulseHzTo - L.StarPulseHzFrom) * grow)
-	p.spin += dt * (L.StarSpinFrom + (L.StarSpinTo - L.StarSpinFrom) * grow)
-	local pulse = 1 + L.StarPulse * math.sin(p.beat * math.pi * 2)
-	local starSize = longer * L.StarShare * grow * pulse
+	-- The letterbox bars slide away partway through.
+	local warpSeconds = L.InterludeSeconds - (t - shown)
+	local out = smooth((shown - warpSeconds * L.BarsOutAt) / L.BarsOutSeconds)
+	for _, bar: Frame in p.bars do
+		bar.Size = UDim2.fromScale(1, L.BarsShare * (1 - out))
+	end
+	-- The star: pulses up from nothing and turns; then stops pulsing and expands, spinning
+	-- faster and faster, until it fills the screen on the flash.
+	local starSize, pulse
+	if since < 0 then
+		starSize, pulse = 0, 1
+	elseif since < pulsing then
+		local beat = 0.5 - 0.5 * math.cos(since * L.StarPulseHz * math.pi * 2) -- 0 -> 1 -> 0
+		pulse = 0.55 + 0.45 * beat
+		starSize = longer * L.StarPulseShare * pulse * smooth(since / 0.3)
+		p.spin += dt * L.StarSpinPulse
+	else
+		pulse = 1
+		local from = L.StarPulseShare * 0.55 -- where the last pulse left it
+		starSize = longer * (from + (L.StarFillShare - from) * expand ^ L.StarExpandPower)
+		p.spin += dt * (L.StarSpinPulse + (L.StarSpinTo - L.StarSpinPulse) * expand * expand)
+	end
 	local outer: ImageLabel = p.starOuter
 	outer.Visible = starSize >= 1
 	outer.Size = UDim2.fromOffset(starSize, starSize)
@@ -1125,7 +1149,7 @@ local function warpLegendary(s: Scene, t: number, shown: number)
 	local inner: ImageLabel = p.starInner
 	inner.Visible = starSize >= 1
 	inner.Size = UDim2.fromOffset(starSize * 0.6, starSize * 0.6)
-	inner.Rotation = p.spin + 45
+	inner.Rotation = -p.spin * 0.6 -- a lighter star turning the other way inside it
 	local starCore: GuiObject = p.starCore
 	starCore.Visible = starSize >= 1
 	starCore.Size = UDim2.fromOffset(starSize * 0.3, starSize * 0.3)
@@ -1205,7 +1229,7 @@ local function revealLegendary(s: Scene)
 		UISound.stop(L.Logo)
 		UISound.stop(L.Rise)
 	end
-	SkyAurora.play()
+	SkyAurora.play(true, L.Ambience) -- held while the card shows (LuckyOpening releases it)
 	task.spawn(function()
 		local ok, err = pcall(function()
 			(Net.get("BlockRequest") :: RemoteFunction):InvokeServer("Reveal")

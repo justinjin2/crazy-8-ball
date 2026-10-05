@@ -103,12 +103,35 @@ def light_streak():
     save("light_streak.png", np.outer(along, across))
 
 
+def star_flare():
+    size = 512
+    c = (size - 1) / 2
+    yy, xx = np.mgrid[0:size, 0:size]
+    x = (xx - c) / c  # -1..1
+    y = (yy - c) / c
+    r = np.sqrt(x * x + y * y)
+    alpha = np.zeros((size, size))
+    # (angle, length, base width): vertical longest, horizontal next, diagonals short.
+    spikes = [(90, 1.0, 0.05), (0, 0.72, 0.045), (45, 0.42, 0.035), (135, 0.42, 0.035)]
+    for angle, length, width in spikes:
+        a = np.radians(angle)
+        along = np.abs(x * np.cos(a) + y * np.sin(a))  # both directions
+        across = np.abs(-x * np.sin(a) + y * np.cos(a))
+        k = np.clip(1 - along / length, 0, 1)  # 1 at the middle, 0 at the tip
+        w = width * k ** 1.3 + 1e-4  # tapers to a point
+        alpha = np.maximum(alpha, np.exp(-((across / w) ** 2)) * k ** 0.8)
+    core = np.exp(-((r / 0.07) ** 2))
+    halo = np.exp(-((r / 0.22) ** 2)) * 0.35
+    save("star_flare.png", np.clip(alpha + core + halo, 0, 1))
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     beam_energy()
     beam_soft()
     aurora_curtain()
     light_streak()
+    star_flare()
 
 
 if __name__ == "__main__":

@@ -5,8 +5,11 @@
 -- the server sees it: the opener from their card (PullCutscene), everyone else when the
 -- opener's card shows (the server's "Aurora" banner). It is built round the local camera and
 -- follows it, so it is overhead wherever the player is (a match too), and it never touches the
--- map: our own parts and our own ColorCorrection, gone when it ends. A second pull while it
--- shows starts it over. Tuning in Config.Cutscenes.Aurora (art in Config.Cutscenes.Art).
+-- map: our own parts and our own ColorCorrection, gone when it ends. The opener's is held: it
+-- stays while their card shows, with a very faint ambience under it, and lingers a few seconds
+-- after they close the card (release) while the ambience plays on a moment and tapers away.
+-- Everyone else's runs a fixed time. A second pull while it shows starts it over. Tuning in
+-- Config.Cutscenes.Aurora (art in Config.Cutscenes.Art).
 local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -14,6 +17,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Quality = require(script.Parent.Quality)
+local UISound = require(script.Parent.UISound)
 
 local A = Config.Cutscenes.Aurora
 local ART = Config.Cutscenes.Art
@@ -26,6 +30,8 @@ type Curtain = { beam: Beam, a0: Attachment, a1: Attachment, phase: number, brig
 
 type Show = {
 	born: number,
+	ends: number, -- os.clock() it is gone by (math.huge while held)
+	sound: string?, -- its ambience (Config.Audio.Ui key), the opener's only
 	model: Model,
 	anchor: Part,
 	curtains: { Curtain },
@@ -70,6 +76,9 @@ local function fade(share: number): NumberSequence
 end
 
 local function finish(s: Show)
+	if s.sound and s.ends == math.huge then
+		UISound.fadeOut(s.sound, 0, 0.3) -- replaced while still held
+	end
 	if s.connection then
 		s.connection:Disconnect()
 		s.connection = nil
@@ -207,6 +216,8 @@ local function build(): Show
 	cc.Parent = Lighting
 	return {
 		born = os.clock(),
+		ends = os.clock() + A.Seconds,
+		sound = nil,
 		model = model,
 		anchor = anchor,
 		curtains = curtains,
@@ -217,12 +228,16 @@ local function build(): Show
 end
 
 local function step(s: Show)
-	local t = os.clock() - s.born
-	if t >= A.Seconds or not s.model.Parent then
+	local now = os.clock()
+	local t = now - s.born
+	if s.ends == math.huge and t >= A.HeldMaxSeconds then
+		SkyAurora.release()
+	end
+	if now >= s.ends or not s.model.Parent then
 		finish(s)
 		return
 	end
-	local share = smooth(t / A.InSeconds) * smooth((A.Seconds - t) / A.OutSeconds)
+	local share = smooth(t / A.InSeconds) * smooth((s.ends - now) / A.OutSeconds)
 	-- Round the camera, never turning with it.
 	local eye = workspace.CurrentCamera.CFrame.Position
 	s.anchor.CFrame = CFrame.new(eye)
@@ -248,13 +263,26 @@ local function step(s: Show)
 	s.cc.TintColor = WHITE:Lerp(rgb(A.Colours[1]), A.TintShare * share)
 end
 
---- The gold aurora, from now (a second call while it shows starts it over).
-function SkyAurora.play()
+--- The gold aurora, from now. `held` (the opener's): it stays until release(), with the
+--- `sound` ambience (a Config.Audio.Ui key) under it. Everyone else's (not held) runs
+--- Aurora.Seconds, and never cuts short a held one that is showing. Otherwise a second call
+--- while it shows starts it over.
+function SkyAurora.play(held: boolean?, sound: string?)
 	local old = show
 	if old then
+		if old.ends == math.huge and not held then
+			return
+		end
 		finish(old)
 	end
 	local s = build()
+	if held then
+		s.ends = math.huge
+		s.sound = sound
+		if sound then
+			UISound.play(sound)
+		end
+	end
 	show = s
 	s.connection = RunService.Heartbeat:Connect(function()
 		local ok, err = pcall(function()
@@ -265,6 +293,20 @@ function SkyAurora.play()
 			finish(s)
 		end
 	end)
+end
+
+--- The opener's card closed: a held aurora lingers Aurora.LingerSeconds (its fade out
+--- included), its ambience plays on Aurora.SoundTailSeconds and tapers away. Safe to call
+--- when nothing is held.
+function SkyAurora.release()
+	local s = show
+	if not s or s.ends ~= math.huge then
+		return
+	end
+	s.ends = os.clock() + math.max(A.LingerSeconds, A.OutSeconds)
+	if s.sound then
+		UISound.fadeOut(s.sound, A.SoundTailSeconds, A.SoundFadeSeconds)
+	end
 end
 
 --- Whether it shows now.

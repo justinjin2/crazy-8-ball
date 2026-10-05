@@ -26,6 +26,7 @@ local HudParts = require(script.Parent.HudParts)
 local LuckyResult = require(script.Parent.LuckyResult)
 local PullCutscene = require(script.Parent.PullCutscene)
 local ReelFx = require(script.Parent.ReelFx)
+local SkyAurora = require(script.Parent.SkyAurora)
 
 local U = Config.LuckyBlocks.UI
 local CO = Config.UI.Reel
@@ -366,6 +367,7 @@ function Opening.close(self: any)
 	self.backGui.Enabled = false
 	self.gui.Enabled = false
 	self:showOthers()
+	SkyAurora.release() -- a Legendary's aurora lingers a few seconds more, its ambience tapers
 	local done = self.onClosed
 	self.onClosed = nil
 	if done then

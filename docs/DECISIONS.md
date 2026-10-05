@@ -2460,7 +2460,13 @@ timer of a new block stay the designer's call.
   (0.2 s before the hit), a brighter yellow for the warp (`WarpGold`), and the warp starts on
   plain white: a sharp eight-point yellow star pulses up from nothing in the middle, spinning
   and pulsing faster as it grows with the rise; the round glow, haze and shafts stay faint on
-  white so it keeps its shape. The beam falls in 0.45 s (was 1.3 s)
+  white so it keeps its shape. Then: the star is a pointed eight-spike flare (long vertical
+  spikes, `Art.StarFlare`) with a lighter inner one; it pulses 3 times while turning, then
+  stops pulsing and expands, spinning faster and faster, until it fills the screen on the
+  flash; the letterbox bars slide away halfway through the white. The opener's aurora is held
+  while their card shows and lingers 5.5 s after they close it; a very faint looping "Aurora"
+  ambience plays under the card and runs on 1 s after it closes, then tapers away (1.2 s).
+  Everyone else's aurora runs 18 s. The beam falls in 0.45 s (was 1.3 s)
   and lands on the track's final hit (4.03 s); the film follows the track's own playback clock,
   so a late-loading sound cannot put them out of step. The hit's shake is far heavier: a jolt
   down, then a smooth-noise shake with roll dying over 1.2 s, with a rumble as the beam falls.
