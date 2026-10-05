@@ -205,8 +205,8 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 - [x] 2. Eclipse: board, gate 1 (passed 2026-10-04 at the third look).
 - [x] 3. Eclipse: build, gate 2 (passed 2026-10-04 at the fourth look); the trail and pocket
   finisher kept as they were (designer: they were fine); no sound; cards unchanged.
-- [ ] 4. Celestial Dragon: board, gate 1 (passed 2026-10-04 at the third look, "good enough");
-  build (done 2026-10-04), gate 2, polish.
+- [x] 4. Celestial Dragon: board, gate 1 (passed 2026-10-04 at the third look, "good enough");
+  build (done 2026-10-04), gate 2 (passed 2026-10-04 at the sixth look, "good enough").
 - [ ] 5. Kitsune: board, gate 1; build, gate 2, polish.
 - [ ] 6. Apex: board, gate 1; build, gate 2, polish.
 - [ ] 7. Reyes, Grandmaster, VIP.
@@ -380,3 +380,5 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 - 2026-10-04 (designer, Dragon gate 2, fifth look): it does not look transparent at all; the
   ribbons must not go past the butt, at the end they should wrap round, like a spiritual
   shield barrier. Done as the sixth look.
+- 2026-10-04 (designer, Dragon gate 2, sixth look): passes ("good enough"). The Dragon is
+  done; on to the Kitsune.
