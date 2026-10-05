@@ -253,7 +253,7 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 3,
+				Rate = 2,
 				Lifetime = { 1, 1.4 },
 				Speed = 0,
 				Size = {
@@ -274,8 +274,8 @@ return {
 					{ 1, "#FFB21E" },
 				},
 				LightEmission = 1,
-				Brightness = 5,
-				ZOffset = 0.3,
+				Brightness = 3,
+				ZOffset = -0.38,
 			},
 			{
 				Name = "CoronaSparks",
@@ -456,7 +456,7 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 2,
+				Rate = 1.5,
 				Lifetime = { 1.6, 2.2 },
 				Speed = 0,
 				Size = {
@@ -474,8 +474,8 @@ return {
 					{ 1, "#FF9A1A" },
 				},
 				LightEmission = 1,
-				Brightness = 2,
-				ZOffset = 0.1,
+				Brightness = 0.8,
+				ZOffset = -0.45,
 			},
 			{
 				Name = "CarrierCorona",
@@ -487,7 +487,7 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 4,
+				Rate = 1.5,
 				Lifetime = { 1, 1.4 },
 				Speed = 0,
 				Size = {
@@ -508,8 +508,8 @@ return {
 					{ 1, "#FFB21E" },
 				},
 				LightEmission = 1,
-				Brightness = 7,
-				ZOffset = 0.9,
+				Brightness = 3,
+				ZOffset = -0.9,
 			},
 			{
 				Name = "CarrierHalo",
@@ -521,7 +521,7 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 3,
+				Rate = 1,
 				Lifetime = { 1.6, 2.2 },
 				Speed = 0,
 				Size = {
@@ -530,8 +530,8 @@ return {
 				},
 				Transparency = {
 					{ 0, 1 },
-					{ 0.3, 0.45 },
-					{ 0.7, 0.55 },
+					{ 0.3, 0.6 },
+					{ 0.7, 0.7 },
 					{ 1, 1 },
 				},
 				Color = {
@@ -539,8 +539,8 @@ return {
 					{ 1, "#FF9A1A" },
 				},
 				LightEmission = 1,
-				Brightness = 3,
-				ZOffset = 0.3,
+				Brightness = 0.6,
+				ZOffset = -1.2,
 			},
 			{
 				Name = "CarrierCorona2",
@@ -552,7 +552,7 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 2,
+				Rate = 1,
 				Lifetime = { 1.4, 2 },
 				Speed = 0,
 				Size = {
@@ -572,8 +572,8 @@ return {
 					{ 1, "#FFD060" },
 				},
 				LightEmission = 1,
-				Brightness = 7,
-				ZOffset = 0.95,
+				Brightness = 3,
+				ZOffset = -0.95,
 			},
 		},
 		Orbiters = {

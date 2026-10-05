@@ -531,7 +531,7 @@
      },
      "LightInfluence": 0,
      "LockedToPart": true,
-     "Rate": 3,
+     "Rate": 2,
      "Lifetime": [
       1.0,
       1.4
@@ -588,9 +588,9 @@
       ]
      ],
      "LightEmission": 1,
-     "Brightness": 5,
-     "ZOffset": 0.3,
-     "Note": "the corona as in the pocket finisher: a white-hot ring with ragged gold rays sized to the black sun, drawn in front of its outline"
+     "Brightness": 3,
+     "ZOffset": -0.38,
+     "Note": "the corona as in the pocket finisher: a white-hot ring with ragged gold rays sized to the black sun, drawn in front of its outline Tuned in the lobby 2026-10-04: drawn behind the black disc (a negative ZOffset) so the hole stays black from every side; fewer, dimmer sprites so the halo does not wash out."
     },
     {
      "Name": "CoronaSparks",
@@ -952,7 +952,7 @@
      },
      "LightInfluence": 0,
      "LockedToPart": true,
-     "Rate": 2,
+     "Rate": 1.5,
      "Lifetime": [
       1.6,
       2.2
@@ -997,9 +997,9 @@
       ]
      ],
      "LightEmission": 1,
-     "Brightness": 2,
-     "ZOffset": 0.1,
-     "Note": "the soft gold glow round the corona"
+     "Brightness": 0.8,
+     "ZOffset": -0.45,
+     "Note": "the soft gold glow round the corona Tuned in the lobby 2026-10-04: drawn behind the black disc (a negative ZOffset) so the hole stays black from every side; fewer, dimmer sprites so the halo does not wash out."
     },
     {
      "Name": "CarrierCorona",
@@ -1019,7 +1019,7 @@
      },
      "LightInfluence": 0,
      "LockedToPart": true,
-     "Rate": 4,
+     "Rate": 1.5,
      "Lifetime": [
       1.0,
       1.4
@@ -1076,9 +1076,9 @@
       ]
      ],
      "LightEmission": 1,
-     "Brightness": 7,
-     "ZOffset": 0.9,
-     "Note": "the corona as in the pocket finisher: a white-hot ring with ragged gold rays sized to the black sun, drawn in front of its outline"
+     "Brightness": 3,
+     "ZOffset": -0.9,
+     "Note": "the corona as in the pocket finisher: a white-hot ring with ragged gold rays sized to the black sun, drawn in front of its outline Tuned in the lobby 2026-10-04: drawn behind the black disc (a negative ZOffset) so the hole stays black from every side; fewer, dimmer sprites so the halo does not wash out."
     },
     {
      "Name": "CarrierHalo",
@@ -1098,7 +1098,7 @@
      },
      "LightInfluence": 0,
      "LockedToPart": true,
-     "Rate": 3,
+     "Rate": 1.0,
      "Lifetime": [
       1.6,
       2.2
@@ -1121,11 +1121,11 @@
       ],
       [
        0.3,
-       0.45
+       0.6
       ],
       [
        0.7,
-       0.55
+       0.7
       ],
       [
        1,
@@ -1143,9 +1143,9 @@
       ]
      ],
      "LightEmission": 1,
-     "Brightness": 3,
-     "ZOffset": 0.3,
-     "Note": "the soft gold glow round the corona"
+     "Brightness": 0.6,
+     "ZOffset": -1.2,
+     "Note": "the soft gold glow round the corona Tuned in the lobby 2026-10-04: drawn behind the black disc (a negative ZOffset) so the hole stays black from every side; fewer, dimmer sprites so the halo does not wash out."
     },
     {
      "Name": "CarrierCorona2",
@@ -1165,7 +1165,7 @@
      },
      "LightInfluence": 0,
      "LockedToPart": true,
-     "Rate": 2,
+     "Rate": 1.0,
      "Lifetime": [
       1.4,
       2.0
@@ -1218,9 +1218,9 @@
       ]
      ],
      "LightEmission": 1,
-     "Brightness": 7,
-     "ZOffset": 0.95,
-     "Note": "a second corona turning the other way, so the ring is always dense and white-hot"
+     "Brightness": 3,
+     "ZOffset": -0.95,
+     "Note": "a second corona turning the other way, so the ring is always dense and white-hot Tuned in the lobby 2026-10-04: drawn behind the black disc (a negative ZOffset) so the hole stays black from every side; fewer, dimmer sprites so the halo does not wash out."
     }
    ],
    "Orbiters": [
@@ -2137,7 +2137,7 @@
    }
   },
   "Budget": {
-   "ParticlesPerSecond": 111.6,
+   "ParticlesPerSecond": 104.6,
    "Beams": 1,
    "Lights": 1,
    "Orbiters": 2,
