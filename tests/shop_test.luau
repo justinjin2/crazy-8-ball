@@ -62,20 +62,20 @@ local function newShop(overrides: { [string]: any }?): any
 end
 
 -- Test-only Limited rows: Config's shelf holds only the Grand Opening (off until its date), so
--- the old money Beta row and a Robux Founder's row stand in for every Limited path. Runs `fn`
+-- the old money Beta row and a Robux Grand Opening row stand in for every Limited path. Runs `fn`
 -- with them in Config, then takes them out even if it fails.
 local function withLimiteds(fn: () -> ())
 	local list: { any } = Config.Shop.Limited :: any
 	local n = #list
 	local products: any = Config.Products.List
-	products.FoundersCue = { Kind = "Product", Id = 0, Robux = 1499 }
+	products.GrandOpeningCue = { Kind = "Product", Id = 0, Robux = 1499 }
 	table.insert(
 		list,
 		{ Cue = "BetaCue", Price = 40000, Cap = 1000, StartsAt = 1790553600, Seconds = 30 * DAY }
 	)
 	table.insert(list, {
-		Cue = "FoundersCue",
-		Product = "FoundersCue",
+		Cue = "GrandOpeningCue",
+		Product = "GrandOpeningCue",
 		Cap = 50,
 		StartsAt = 1790553600,
 		Seconds = 30 * DAY,
@@ -84,7 +84,7 @@ local function withLimiteds(fn: () -> ())
 	for i = #list, n + 1, -1 do
 		table.remove(list, i)
 	end
-	products.FoundersCue = nil
+	products.GrandOpeningCue = nil
 	if not ok then
 		error(err, 0)
 	end
@@ -411,7 +411,7 @@ return {
 		)
 	end,
 
-	["VIP offer, Starter Pack, Money Party and Founder's Cue grants"] = function()
+	["VIP offer, Starter Pack, Money Party and a Robux Limited's grants"] = function()
 		withLimiteds(function()
 			local shop = newShop()
 			local vip = Shop.grantFor("VipOffer", shop, JOIN, false)
@@ -442,8 +442,11 @@ return {
 			local party = Shop.grantFor("MoneyParty", newShop(), JOIN, false)
 			H.expect(party.party and party.money == 0 and party.cue == nil, "a party only")
 
-			local founders = Shop.grantFor("FoundersCue", newShop(), JOIN, false)
-			H.expect(founders.limited == "FoundersCue" and founders.cue == nil, "the Limited copy")
+			local limited = Shop.grantFor("GrandOpeningCue", newShop(), JOIN, false)
+			H.expect(
+				limited.limited == "GrandOpeningCue" and limited.cue == nil,
+				"the Limited copy"
+			)
 
 			H.expect(
 				Shop.grantFor("Vip", newShop(), JOIN, false) == nil,
@@ -536,10 +539,14 @@ return {
 			)
 			-- A Robux Limited already owned; packs and the party are always for everyone.
 			H.expect(
-				check("FoundersCue", newShop({ Limited = { FoundersCue = 3 } }), JOIN) == "Owned",
-				"the Founder's Cue owned"
+				check("GrandOpeningCue", newShop({ Limited = { GrandOpeningCue = 3 } }), JOIN)
+					== "Owned",
+				"the Robux Limited owned"
 			)
-			H.expect(check("FoundersCue", newShop(), JOIN) == nil, "the counter decides the rest")
+			H.expect(
+				check("GrandOpeningCue", newShop(), JOIN) == nil,
+				"the counter decides the rest"
+			)
 			for _, key in { "Pack1", "Pack7", "MoneyParty" } do
 				H.expect(
 					check(
@@ -583,12 +590,12 @@ return {
 				not shop.FirstPackBought and not shop.VipOffer and not shop.VipCueGiven,
 				"the fallback sets no flag, nor uses up the first pack's double"
 			)
-			H.expect(Shop.fallbackMoney("FoundersCue") == 275326, "1,499 R$: $275,326")
+			H.expect(Shop.fallbackMoney("GrandOpeningCue") == 275326, "1,499 R$: $275,326")
 			H.expect(Shop.fallbackMoney("Pack1") == 9000, "the first pack's own rate")
 			H.expect(Shop.fallbackMoney("NoSuchProduct") == 0, "unknown: nothing")
 			H.expect(Shop.fallbackGrant("NoSuchProduct") == nil, "no grant for nothing")
 			local rate = Config.Products.List.Pack1.Money / Config.Products.List.Pack1.Robux
-			for _, key in { "VipOffer", "StarterPack", "MoneyParty", "FoundersCue" } do
+			for _, key in { "VipOffer", "StarterPack", "MoneyParty", "GrandOpeningCue" } do
 				local robux = Config.Products.List[key].Robux
 				local money = Shop.fallbackMoney(key)
 				H.expect(
@@ -618,8 +625,8 @@ return {
 	["the Grand Opening block deal: 21 days, vaulted 7 more, off until its date"] = function()
 		H.expect(#Shop.limited() == 0 and #Config.Shop.Limited == 0, "no Limited shelf now")
 		H.expect(Shop.limitedFor("GrandOpeningCue") == nil, "the cue comes from the block")
-		H.expect(Shop.limitedFor("BetaCue") == nil and Shop.limitedFor("FoundersCue") == nil, "")
-		H.expect(Config.Products.List.FoundersCue == nil, "no Founder's Cue product")
+		H.expect(Shop.limitedFor("BetaCue") == nil, "no Beta row")
+		H.expect(Config.Products.List.GrandOpeningCue == nil, "no Robux Limited product")
 		local row = Shop.dealRow("GrandOpening")
 		H.expect(row ~= nil and row.Kind == "GrandOpening" and row.StartsAt == 0, "off")
 		H.expect(row.Seconds == 21 * DAY and row.VaultedSeconds == 7 * DAY, "21 days, 7 vaulted")
@@ -851,9 +858,9 @@ return {
 
 	["ShopView.check: why a Buy may not prompt"] = noIds(function()
 		withLimiteds(function()
-			local founders = Shop.limitedFor("FoundersCue")
-			H.expect(founders ~= nil and founders.Product == "FoundersCue", "a Robux Limited")
-			local start = founders.StartsAt
+			local limited = Shop.limitedFor("GrandOpeningCue")
+			H.expect(limited ~= nil and limited.Product == "GrandOpeningCue", "a Robux Limited")
+			local start = limited.StartsAt
 			local now = math.max(JOIN, start) + HOUR
 			local ctx = ctxAt(now)
 			H.expect(ShopView.check("NoSuchProduct", ctx) == "BadRequest", "an unknown key")
@@ -868,7 +875,7 @@ return {
 				VipOffer = 2,
 				StarterPack = 3,
 				MoneyParty = 4,
-				FoundersCue = 5,
+				GrandOpeningCue = 5,
 				Vip = 6,
 			}, function()
 				local joined = ctxAt(JOIN + HOUR)
@@ -920,28 +927,28 @@ return {
 					"room for 15 more minutes"
 				)
 				H.expect(
-					ShopView.check("FoundersCue", ctxAt(now)) == nil,
-					"the Founder's Cue on sale"
+					ShopView.check("GrandOpeningCue", ctxAt(now)) == nil,
+					"the Robux Limited on sale"
 				)
 				H.expect(
-					ShopView.check("FoundersCue", ctxAt(start - 1)) == "Closed",
+					ShopView.check("GrandOpeningCue", ctxAt(start - 1)) == "Closed",
 					"before it starts"
 				)
 				H.expect(
-					ShopView.check("FoundersCue", ctxAt(start + founders.Seconds)) == "Closed",
+					ShopView.check("GrandOpeningCue", ctxAt(start + limited.Seconds)) == "Closed",
 					"never again once ended"
 				)
 				H.expect(
 					ShopView.check(
-						"FoundersCue",
-						ctxAt(now, { sold = { FoundersCue = founders.Cap } })
+						"GrandOpeningCue",
+						ctxAt(now, { sold = { GrandOpeningCue = limited.Cap } })
 					) == "SoldOut",
 					"sold out at the cap"
 				)
 				H.expect(
 					ShopView.check(
-						"FoundersCue",
-						ctxAt(now, { shop = newShop({ Limited = { FoundersCue = 7 } }) })
+						"GrandOpeningCue",
+						ctxAt(now, { shop = newShop({ Limited = { GrandOpeningCue = 7 } }) })
 					) == "Owned",
 					"one per player"
 				)

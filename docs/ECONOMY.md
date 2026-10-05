@@ -403,7 +403,7 @@ The account Level and its EXP are gone (designer, 2026-09-28). What they did mov
 | Group | Rarities | Comes from | Trade | Sell back |
 |---|---|---|---|---|
 | Block rarities | Common, Uncommon, Rare, Epic, Legendary, Mythic, Secret | lucky blocks (and trades) only | yes | yes |
-| **Unique** | numbered Limited cues (the Grand Opening Cue and the Beta Cue from the Grand Opening block; Founder's when scheduled) | the Grand Opening block's two Unique rows (9.2), or the Limited shelf for a set time | yes | no |
+| **Unique** | numbered Limited cues (only two: the Grand Opening Cue and the Beta Cue, both from the Grand Opening block; there is no Founder's Cue, ever) | the Grand Opening block's two Unique rows (9.2), or the Limited shelf for a set time | yes | no |
 | **Exclusive** | the VIP Cue, the Starter Cue, the ten rank cues (Bronze Cue ... Reyes Cue), later season cues | one special way each | **never**, except the Starter Cue (designer: VIP never, 2026-09-28; the Starter Cue trades, 2026-09-29) | no |
 
 What rarity looks like (GDD section 12, UI_STYLE section 4 colours): Common and Uncommon keep
@@ -414,8 +414,8 @@ Mythic the celestial shimmer and its own VFX; Secret a one-of-a-kind full set.
 **Launch catalog: 46 block cues** (unchanged by the plan): 7 Common, 9 Uncommon, 10 Rare,
 9 Epic, 7 Legendary, 3 Mythic, 1 Secret. Classic is labelled Common too but is the free
 default: everyone owns it, no block drops it, and it is never traded or sold. Plus 12 Exclusive
-(10 rank, VIP, Starter) and 3 Unique (Grand Opening, plus Founder's and Beta, which stay in the
-catalog but are not sold until the designer schedules them). The list and order are
+(10 rank, VIP, Starter) and 2 Unique (Grand Opening and Beta, both from the Grand Opening
+block; there is no Founder's Cue, ever: designer, 2026-10-05). The list and order are
 `Progression/Catalog.luau`; each cue's look is its skin (`src/shared/CueSkins`).
 
 Adding cues later keeps each rarity's % per block; each cue's own share shrinks.
@@ -619,8 +619,8 @@ the big money packs, VIP and 10 Mystery blocks) runs on the same window
   a later Limited; while empty nothing shows.
 - The Grand Opening Cue has placeholder colours for now (black shaft, gold rings, felt-green
   wrap; designer, 2026-10-03); the real skin comes later.
-- **The Founder's Cue is off** until the designer schedules it (its catalog cue stays). The
-  Founder's Cue Robux product is gone.
+- **There is no Founder's Cue**, ever (designer, 2026-10-05): its catalog cue, name and Robux
+  product are gone.
 - **After launch**: one new Limited about every 2 weeks when art exists, $149,000-$499,000,
   some for Robux. None is scheduled yet (designer, 2026-10-03). A new Limited is one Config row
   plus its catalog cue.
@@ -814,7 +814,7 @@ rate, Robux x 9,000 / 49 (the VIP offer about $45,700, the Starter Pack about $1
 ### 11.6 Later (not at release)
 
 In this order (plan, 2026-10-02): a season **Cue Pass** (449 / 1,199 R$), gift versions, the
-**Founder's Cue** (5,000 R$, 50 copies) and **Beta Cue** (1,000 R$, 500 copies), a Robux
+**Beta Cue** on its own (1,000 R$, 500 copies), a Robux
 restock refill (49 R$), a $4.99 a month subscription, rewarded ads paying money. Seasons, the
 Cue Pass and event blocks all come after release.
 
@@ -1032,7 +1032,7 @@ Limited cues.
 ## 17. Open (the designer's call)
 
 - When the Grand Opening Cue starts (`StartsAt`), set right before the release is published.
-- When to schedule the Founder's and Beta cues, and the next Limited.
+- When to schedule the Beta Cue on its own, and the next Limited.
 
 ---
 

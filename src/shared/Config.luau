@@ -2719,8 +2719,8 @@ Config.Shop = {
 	-- tradable forever. Price in money (or Product = a Config.Products key for a Robux one),
 	-- Cap copies at most (none: no cap). StartsAt (unix, UTC) 0 = off: not shown, not sold,
 	-- until the designer sets it (the Grand Opening's: right before the release is published).
-	-- A new Limited is one row here plus its catalog cue. Founder's and Beta are off (no row)
-	-- until scheduled.
+	-- A new Limited is one row here plus its catalog cue. Beta is off (no row) until
+	-- scheduled; there is no Founder's Cue (designer, 2026-10-05).
 	-- (Designer, 2026-10-04: the $149,000 Grand Opening Cue shelf is gone; the cue comes from
 	-- the Grand Opening block only. The shelf code stays for a later Limited.)
 	Limited = {} :: {

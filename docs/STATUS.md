@@ -393,8 +393,8 @@ new looks for the Starter, VIP and ten Rank cues. Every skin is data
 templates and 3D pieces live in the place (`tools/build_cue_templates.luau`). In the hands a
 cue shows its surface and moving glow; on the back it adds its aura behind the body; balls
 get the cue's trail and pocket finisher (the Mythics' rising creatures). Shop, cases and
-inventory show rendered pictures; the Index keeps the live cue. The Unique cues (Founder's,
-Beta, Grand Opening) keep their placeholder bands for now.
+inventory show rendered pictures; the Index keeps the live cue. The Unique cues (Beta,
+Grand Opening) keep their placeholder bands for now.
 - Checked in Studio on PC: the Celestial Dragon on the back and on a stand (swimming tip to
   butt after a fix: the importer turns bones, which threw its body past the butt), every
   3D piece (Chroma, Clockwork, Infernal, Kraken, Phoenix, Seraph, Apex, Kitsune, Eclipse),

@@ -478,7 +478,7 @@ when it arrives (`Shop.receiptCheck`), because a client can open any product's p
 itself: the VIP offer when already VIP or outside its windows, the Starter Pack when bought or
 past its week (each window gets `Config.Shop.OfferGraceSeconds` more here than at the prompt)
 pay money instead (`Shop.fallbackMoney`: the Robux price at the first pack's money per Robux),
-logged, so nobody pays for nothing. A Robux Limited (the Founder's Cue) takes its copy number
+logged, so nobody pays for nothing. A Robux Limited (none yet) takes its copy number
 from `Counters.takeLimited` (with `LimitedReceiptGraceSeconds` past its end); sold out, ended,
 not started or already owned pay the same money; a counter error or a busy counter leave the
 receipt NotProcessedYet (Roblox retries it). A Money Party receipt always adds its full 15

@@ -554,7 +554,6 @@ return {
 			ReyesCue = "Reyes Cue",
 			VipCue = "VIP Cue",
 			StarterCue = "Starter Cue",
-			FoundersCue = "Founder's Cue",
 			BetaCue = "Beta Cue",
 			GrandOpeningCue = "Grand Opening Cue",
 		},

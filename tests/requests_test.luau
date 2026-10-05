@@ -163,8 +163,11 @@ return {
 		local Requests = load()
 		-- No Limited row is scheduled now (the Grand Opening Cue comes from its block).
 		H.expect(select(2, Requests.parse("BuyLimited", "GrandOpeningCue")) == "BadRequest", "off")
-		-- Founder's and Beta have no Limited row either (off until scheduled).
-		H.expect(select(2, Requests.parse("BuyLimited", "FoundersCue")) == "BadRequest", "off")
+		-- Beta has no Limited row either (off until scheduled); there is no Founder's Cue.
+		H.expect(
+			select(2, Requests.parse("BuyLimited", "FoundersCue")) == "BadRequest",
+			"no such cue"
+		)
 		H.expect(select(2, Requests.parse("BuyLimited", "BetaCue")) == "BadRequest", "off")
 		H.expect(select(2, Requests.parse("BuyLimited", "Classic")) == "BadRequest", "not Limited")
 		for _, bad in JUNK do

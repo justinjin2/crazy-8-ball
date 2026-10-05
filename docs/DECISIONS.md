@@ -2454,3 +2454,6 @@ timer of a new block stay the designer's call.
   copy (`Inventory.OwnerUnique`): no copy number, never counted among the copies in existence,
   never takes a Limited number or stock, never traded or sold. Given to anyone else it is
   refused. The old "buy it on the Limited shelf" refusal is gone.
+- **2026-10-05 — There is no Founder's Cue (designer).** It never exists in the game: its
+  catalog row and name are removed (2 Unique cues: Grand Opening and Beta, both from the Grand
+  Opening block). The tests' stand-in Unique and Robux Limited are now the Grand Opening Cue.

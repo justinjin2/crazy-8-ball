@@ -765,7 +765,7 @@ reworked for lucky blocks on 2026-10-04.
 - **Rarities** (designer, 2026-09-27): **Common, Uncommon, Rare, Epic, Legendary, Mythic,
   Secret**, from lucky blocks. Two groups sit outside that ladder and never come from a tier
   block: **Unique** (numbered Limited copies: the Grand Opening Cue and the Beta Cue, from the
-  Grand Opening block; Founder's when scheduled) and **Exclusive** (the VIP Cue, the Starter Cue, the rank cues Bronze Cue to Reyes
+  Grand Opening block; there is no Founder's Cue, ever) and **Exclusive** (the VIP Cue, the Starter Cue, the rank cues Bronze Cue to Reyes
   Cue, later season cues). "Ultra" is dropped; VIP is an Exclusive cue, not a rarity. Colours
   in `docs/UI_STYLE.md`. Rarer cues have special trail and pocket VFX. Cue cards show the
   rarity, its % per Mystery block and how many exist ("EPIC · 0.109% · 1,284 exist").
@@ -787,8 +787,8 @@ reworked for lucky blocks on 2026-10-04.
   the **Grand Opening Cue** and the **Beta Cue** come only from the **Grand Opening block**
   (3% and 0.3% a block; the 400th opened guarantees Beta), sold for 21 days from a start date
   the designer sets right before release (off until then; placeholder colours for now), with
-  the release sale on the same window. The $149,000 shelf is gone. Founder's is off until the
-  designer schedules it. After launch, about one new Limited every 2 weeks when art exists
+  the release sale on the same window. The $149,000 shelf is gone. There is no Founder's Cue
+  (designer, 2026-10-05). After launch, about one new Limited every 2 weeks when art exists
   ($149,000-$499,000, some for Robux); none is scheduled yet. Seasons, the Cue Pass and event
   blocks come after release.
 - **Free rewards** (plan, 2026-10-02; designer, 2026-10-03; blocks and no popups, 2026-10-04):
@@ -827,7 +827,7 @@ reworked for lucky blocks on 2026-10-04.
   timer skips are retired. The shop is one scrolling page with no tabs.
   Never anything that protects rank, no luck economy, no money bets, no offline income; the one
   luck purchase is ability spins (odds always shown, pity kept). Later: a Cue Pass, gifts,
-  Founder's and Beta cues. ECONOMY.md section 11.
+  the Beta Cue on its own. ECONOMY.md section 11.
 - **Items:** one catalog for cues and abilities (stable id, type, rarity, model, effect); the
   type field leaves room for table skins later. A cue is saved as a count per catalog id
   (2026-09-28, ECONOMY.md section 18: small saves, a duplicate is a count above 1); numbered
@@ -1072,7 +1072,7 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - **Collectible table skins** (parked 2026-09-23, after release): each a retexture of the one
   standard table model (changed 2026-09-24; it used to be a full model per skin), the host's
   table used for the match, rare ones with VFX, a
-  table loot box, Founder's/Beta/VIP tables, tradable, serial plaques for limited ones.
+  table loot box, Beta/VIP tables, tradable, serial plaques for limited ones.
 - **Walk to the next shot** (parked 2026-09-24): when the same player shoots again from a
   different spot, their body currently jumps there; a short walk round the table would read
   better for watchers.

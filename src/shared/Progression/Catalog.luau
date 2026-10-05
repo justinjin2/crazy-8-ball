@@ -205,14 +205,8 @@ local CUES: { Cue } = {
 	-- Exclusive: VIP (rainbow) and the Starter Pack's cue.
 	specialCue("VipCue", "Exclusive", "Legendary", skinLook("VipCue")),
 	specialCue("StarterCue", "Exclusive", "Uncommon", skinLook("StarterCue")),
-	-- Unique: numbered Limited copies (the Limited shelf, Config.Shop.Limited).
-	specialCue("FoundersCue", "Unique", "Legendary", {
-		Shaft = { 250, 235, 245 },
-		Forearm = { 255, 92, 184 },
-		Wrap = { 40, 20, 40 },
-		Ring = { 255, 215, 80 },
-		Accent = { 255, 255, 255 },
-	}),
+	-- Unique: numbered copies, only these two, both from the Grand Opening block (designer,
+	-- 2026-10-05: there is no Founder's Cue, ever).
 	-- The Grand Opening's Limited (placeholder colours until its skin: black shaft, gold
 	-- rings, felt-green wrap; designer, 2026-10-03).
 	specialCue("GrandOpeningCue", "Unique", "Legendary", {

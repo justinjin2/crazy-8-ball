@@ -13,7 +13,7 @@
 -- - A receipt is Robux already paid and any client can prompt any product itself, so what it
 --   gives is decided again at the receipt (Shop.grantFor): an offer outside its window (plus
 --   Config.Shop.OfferGraceSeconds), VIP or the Starter Pack had already, pays plain money
---   instead (Shop.fallbackGrant), logged. A Robux Limited (the Founder's Cue) takes this
+--   instead (Shop.fallbackGrant), logged. A Robux Limited (none yet) takes this
 --   player's copy number from Counters.takeLimited first (Config.Shop.LimitedReceiptGraceSeconds
 --   past its end); already owned, sold out, ended or not started pay the money fallback too
 --   (logged), while a counter error, a busy retry or a save not loaded leave the receipt

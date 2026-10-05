@@ -643,8 +643,8 @@ return {
 		local inv = save.Inventory
 		inv.Cues = { GoldCue = 2, MidnightCue = 1 }
 		inv.PaidCues = { GoldCue = 5, MidnightCue = 1, CherryCue = 2 } -- 5 > 2; Cherry not held
-		inv.Unique = { FoundersCue = 3 }
-		inv.PaidUnique = { FoundersCue = true, BetaCue = true, GoldCue = "yes" }
+		inv.Unique = { GrandOpeningCue = 3 }
+		inv.PaidUnique = { GrandOpeningCue = true, BetaCue = true, GoldCue = "yes" }
 		save.Daily.PcDrops = -3
 		save.Daily.Disguised = 4.5
 		save.Shop.BoostEnds = INF
@@ -664,7 +664,7 @@ return {
 		local i = out.Inventory
 		H.expect(i.PaidCues.GoldCue == 2 and i.PaidCues.MidnightCue == 1, "clamped to held")
 		H.expect(i.PaidCues.CherryCue == nil, "not held: dropped")
-		H.expect(i.PaidUnique.FoundersCue == true and i.PaidUnique.BetaCue == nil, "unique")
+		H.expect(i.PaidUnique.GrandOpeningCue == true and i.PaidUnique.BetaCue == nil, "unique")
 		H.expect(i.PaidUnique.GoldCue == nil, "not true: dropped")
 		local d = out.Daily
 		H.expect(d.PcDrops == 0 and d.Disguised == 4, "daily counts")
@@ -1069,8 +1069,8 @@ return {
 	["validate repairs copy numbers and sets"] = function()
 		local Config, SaveSchema = setup()
 		local save = SaveSchema.template()
-		save.Inventory.Unique = { BetaCue = 412, FoundersCue = 0, Classic = 1, X = 1.5 }
-		save.Shop.Limited = { BetaCue = 412, FoundersCue = "7", Y = 1e300 }
+		save.Inventory.Unique = { BetaCue = 412, GrandOpeningCue = 0, Classic = 1, X = 1.5 }
+		save.Shop.Limited = { BetaCue = 412, GrandOpeningCue = "7", Y = 1e300 }
 		save.Inventory.New = { A = true, B = false, C = 1, D = "true" }
 		save.Index.Seen = { A = true, B = {}, C = NAN }
 		save.Index.Rows = { Common = true, Rare = 1 }
@@ -1079,10 +1079,10 @@ return {
 		save.Daily.PlaytimeClaimed = { ["1"] = true, ["2"] = 0 }
 		local out = SaveSchema.validate(save)
 		local u = out.Inventory.Unique
-		H.expect(u.BetaCue == 412 and u.X == 1 and u.FoundersCue == nil, "copy numbers")
+		H.expect(u.BetaCue == 412 and u.X == 1 and u.GrandOpeningCue == nil, "copy numbers")
 		H.expect(u.Classic == nil, "Classic never numbered")
 		local l = out.Shop.Limited
-		H.expect(l.BetaCue == 412 and l.FoundersCue == nil, "Limited bought")
+		H.expect(l.BetaCue == 412 and l.GrandOpeningCue == nil, "Limited bought")
 		H.expect(l.Y == Config.Save.CopyNumberCap, "clamped")
 		H.expect(size(out.Inventory.New) == 1 and out.Inventory.New.A, "true only")
 		H.expect(size(out.Index.Seen) == 1 and out.Index.Seen.A, "true only")
