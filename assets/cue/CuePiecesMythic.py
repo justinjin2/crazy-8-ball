@@ -362,19 +362,23 @@ def celestial_dragon(k):
     # many, two to three times wider, the dragon's own pale blue, turning faster, pulsing
     # toward white and never quite fading out.
     rnd = random.Random(23)
-    k.material('Energy', 'Neon', '#BFEFFF', Transparency=0.3)
-    k.material('EnergyPale', 'ForceField', '#D8F6FF', Transparency=0.1)
-    G = P.butt_gain()
-    def ribbon(bm, u0, span, turns, a0, r_, w, thick):
+    # Gate 2, fifth look (designer, 2026-10-04): the wide ribbons read as solid cloth. Now thin
+    # threads of spirit energy, mostly faint (Fade peaks at 0.55, Neon 0.6 and ForceField 0.5
+    # see-through), hovering a hair above the cue's own profile like a shield barrier.
+    import cue_common as cc
+    env = cc.Envelope(cc.load_shape()[0])
+    HOVER = 0.045   # studs above the cue surface
+    k.material('Energy', 'Neon', '#BFEFFF', Transparency=0.6)
+    k.material('EnergyPale', 'ForceField', '#D8F6FF', Transparency=0.5)
+    def ribbon(bm, u0, span, turns, a0, gap, w, thick):
         rings = []
-        N = max(12, int(span * 24))
+        N = max(12, int(span * 28))
         for i in range(N + 1):
             t = i / N
             u = u0 + span * t
             a = a0 + 2 * math.pi * turns * t
             rad = Vector((math.sin(a), 0, math.cos(a)))
-            # a little wider past the joint where the cue is thicker
-            rr = r_ + (G if u > 3.7 else 0.0)
+            rr = env(u) + gap
             c = Vector((0, -u, 0)) + rad * rr
             wt = w * math.sin(math.pi * t) ** 0.6
             ax = Vector((0, -1, 0))
@@ -388,20 +392,21 @@ def celestial_dragon(k):
                 bm.faces.new((a_[j], a_[j1], b_[j1], b_[j]))
         bm.faces.new(rings[0][::-1])
         bm.faces.new(rings[-1])
-    for n in range(24):
-        u0 = 0.4 + 6.2 * n / 24 + rnd.uniform(-0.25, 0.25)
-        span = rnd.uniform(1.2, 2.6)
-        turns = rnd.uniform(0.5, 1.2) * rnd.choice((-1, 1))
+    NT = 32
+    for n in range(NT):
+        u0 = 0.3 + 6.3 * n / NT + rnd.uniform(-0.2, 0.2)
+        span = rnd.uniform(0.9, 1.9)
+        turns = rnd.uniform(0.8, 1.6) * rnd.choice((-1, 1))
         pale = n % 2 == 1
         nm = 'Energy%d' % (n + 1)
         k.joint(nm, pivot=(0, -(u0 + span / 2), 0), aura=True, motion=[
             {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rnd.uniform(30, 70) * rnd.choice((-1, 1)), 'Phase': rnd.uniform(0, 360)},
-            {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': rnd.uniform(0.3, 0.6), 'Period': rnd.uniform(3.0, 5.0), 'Phase': rnd.uniform(0, 360)}],
-            visual=[{'Kind': 'Fade', 'Min': 0.2, 'Max': 1.0, 'Period': rnd.uniform(2.5, 4.5), 'Shape': 'sine', 'Phase': rnd.uniform(0, 360)},
-                    {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': rnd.uniform(1.6, 3.0), 'Shape': 'sine', 'Phase': rnd.uniform(0, 360)}])
+            {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': rnd.uniform(0.12, 0.25), 'Period': rnd.uniform(3.0, 5.0), 'Phase': rnd.uniform(0, 360)}],
+            visual=[{'Kind': 'Fade', 'Min': 0.0, 'Max': 0.55, 'Period': rnd.uniform(2.5, 4.5), 'Shape': 'sine', 'Phase': rnd.uniform(0, 360)},
+                    {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.3, 'Period': rnd.uniform(1.6, 3.0), 'Shape': 'sine', 'Phase': rnd.uniform(0, 360)}])
         bm = bmesh.new()
-        ribbon(bm, u0, span, turns, rnd.uniform(0, 2 * math.pi), 0.2 + rnd.uniform(0.0, 0.1) + (0.06 if pale else 0.0),
-               rnd.uniform(0.12, 0.24) * (1.6 if pale else 1.0), 0.012)
+        ribbon(bm, u0, span, turns, rnd.uniform(0, 2 * math.pi), HOVER + rnd.uniform(0.0, 0.03) + (0.015 if pale else 0.0),
+               rnd.uniform(0.025, 0.05) * (1.5 if pale else 1.0), 0.008)
         k.add(nm, k.mesh_object('Dragon' + nm, bm, ['EnergyPale' if pale else 'Energy'], smooth=True))
     for nm, tc in bone_names[2::3]:
         _, p, tg, nrm, side = frame_at(tc)

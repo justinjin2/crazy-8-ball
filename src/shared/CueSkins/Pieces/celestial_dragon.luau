@@ -5,7 +5,7 @@
 return {
 	Id = "celestial_dragon",
 	Frame = "cue",
-	Rigid = "97181485557991",
+	Rigid = "125911790621541",
 	Models = {
 		DragonBody = "107949447633042",
 		DragonHead = "127545099322914",
@@ -241,242 +241,322 @@ return {
 		{
 			Material = "Neon",
 			Color = "#BFEFFF",
-			Transparency = 0.3,
+			Transparency = 0.6,
 			Reflectance = 0,
 			Name = "Energy1_Energy",
 			Joint = "Energy1",
-			Offset = { 0.0002, 0.0001, 1.6235 },
-			Size = { 0.5537, 0.5539, 2.528 },
+			Offset = { 0.0065, 0.0022, 2.1058 },
+			Size = { 0.3176, 0.313, 1.8486 },
 		},
 		{
 			Material = "ForceField",
 			Color = "#D8F6FF",
-			Transparency = 0.1,
+			Transparency = 0.5,
 			Reflectance = 0,
 			Name = "Energy2_EnergyPale",
 			Joint = "Energy2",
-			Offset = { -0.0229, -0, 1.7214 },
-			Size = { 0.5491, 0.5946, 2.2279 },
+			Offset = { 0.008, 0.0018, 2.181 },
+			Size = { 0.3114, 0.3072, 1.6342 },
 		},
 		{
 			Material = "Neon",
 			Color = "#BFEFFF",
-			Transparency = 0.3,
+			Transparency = 0.6,
 			Reflectance = 0,
 			Name = "Energy3_Energy",
 			Joint = "Energy3",
-			Offset = { 0.0017, -0, 1.4938 },
-			Size = { 0.5232, 0.5264, 2.2051 },
+			Offset = { -0.0065, -0.007, 2.0077 },
+			Size = { 0.3012, 0.3153, 1.6179 },
 		},
 		{
 			Material = "ForceField",
 			Color = "#D8F6FF",
-			Transparency = 0.1,
+			Transparency = 0.5,
 			Reflectance = 0,
 			Name = "Energy4_EnergyPale",
 			Joint = "Energy4",
-			Offset = { -0.0507, -0.0001, 1.5508 },
-			Size = { 0.5487, 0.6504, 1.7175 },
+			Offset = { 0.0065, 0.0014, 2.0422 },
+			Size = { 0.3292, 0.3328, 1.2697 },
 		},
 		{
 			Material = "Neon",
 			Color = "#BFEFFF",
-			Transparency = 0.3,
+			Transparency = 0.6,
 			Reflectance = 0,
 			Name = "Energy5_Energy",
 			Joint = "Energy5",
-			Offset = { 0.0268, -0.0076, 0.9505 },
-			Size = { 0.5531, 0.5914, 2.565 },
+			Offset = { -0.0072, 0.0128, 1.6081 },
+			Size = { 0.3505, 0.3385, 1.875 },
 		},
 		{
 			Material = "ForceField",
 			Color = "#D8F6FF",
-			Transparency = 0.1,
+			Transparency = 0.5,
 			Reflectance = 0,
 			Name = "Energy6_EnergyPale",
 			Joint = "Energy6",
-			Offset = { 0.0004, 0.021, 1.3086 },
-			Size = { 0.711, 0.6698, 1.3062 },
+			Offset = { -0.0053, -0.0043, 1.8504 },
+			Size = { 0.3637, 0.3553, 0.9759 },
 		},
 		{
 			Material = "Neon",
 			Color = "#BFEFFF",
-			Transparency = 0.3,
+			Transparency = 0.6,
 			Reflectance = 0,
 			Name = "Energy7_Energy",
 			Joint = "Energy7",
-			Offset = { -0.0337, 0.0401, 0.404 },
-			Size = { 0.6722, 0.6843, 2.4493 },
+			Offset = { -0.0093, -0.0108, 1.1855 },
+			Size = { 0.3685, 0.389, 1.7923 },
 		},
 		{
 			Material = "ForceField",
 			Color = "#D8F6FF",
-			Transparency = 0.1,
+			Transparency = 0.5,
 			Reflectance = 0,
 			Name = "Energy8_EnergyPale",
 			Joint = "Energy8",
-			Offset = { -0.0006, 0.0001, 0.6107 },
-			Size = { 0.704, 0.7042, 1.4315 },
+			Offset = { -0.0058, -0.0043, 1.317 },
+			Size = { 0.3821, 0.3915, 1.0653 },
 		},
 		{
 			Material = "Neon",
 			Color = "#BFEFFF",
-			Transparency = 0.3,
+			Transparency = 0.6,
 			Reflectance = 0,
 			Name = "Energy9_Energy",
 			Joint = "Energy9",
-			Offset = { 0.0399, 0.0051, 0.2216 },
-			Size = { 0.6668, 0.597, 1.4424 },
+			Offset = { -0.0083, 0.0073, 1.016 },
+			Size = { 0.3826, 0.3679, 1.0732 },
 		},
 		{
 			Material = "ForceField",
 			Color = "#D8F6FF",
-			Transparency = 0.1,
+			Transparency = 0.5,
 			Reflectance = 0,
 			Name = "Energy10_EnergyPale",
 			Joint = "Energy10",
-			Offset = { -0.0019, -0.04, -0.3678 },
-			Size = { 0.8637, 0.7879, 2.2877 },
+			Offset = { 0.0112, 0.0111, 0.5905 },
+			Size = { 0.4287, 0.4505, 1.6769 },
 		},
 		{
 			Material = "Neon",
 			Color = "#BFEFFF",
-			Transparency = 0.3,
+			Transparency = 0.6,
 			Reflectance = 0,
 			Name = "Energy11_Energy",
 			Joint = "Energy11",
-			Offset = { 0.0002, 0.0403, -0.4477 },
-			Size = { 0.6842, 0.6038, 1.7376 },
+			Offset = { -0.0082, -0.0079, 0.5128 },
+			Size = { 0.4071, 0.3931, 1.284 },
 		},
 		{
 			Material = "ForceField",
 			Color = "#D8F6FF",
-			Transparency = 0.1,
+			Transparency = 0.5,
 			Reflectance = 0,
 			Name = "Energy12_EnergyPale",
 			Joint = "Energy12",
-			Offset = { 0.0744, -0.0399, -0.3508 },
-			Size = { 0.5671, 0.6359, 1.3117 },
+			Offset = { -0.0091, -0.0048, 0.5818 },
+			Size = { 0.3804, 0.3704, 0.9796 },
 		},
 		{
 			Material = "Neon",
 			Color = "#BFEFFF",
-			Transparency = 0.3,
+			Transparency = 0.6,
 			Reflectance = 0,
 			Name = "Energy13_Energy",
 			Joint = "Energy13",
-			Offset = { 0.0001, 0.0002, -0.9382 },
-			Size = { 0.6128, 0.6126, 1.3905 },
+			Offset = { -0.0011, 0.0059, 0.1251 },
+			Size = { 0.3974, 0.3954, 1.0361 },
 		},
 		{
 			Material = "ForceField",
 			Color = "#D8F6FF",
-			Transparency = 0.1,
+			Transparency = 0.5,
 			Reflectance = 0,
 			Name = "Energy14_EnergyPale",
 			Joint = "Energy14",
-			Offset = { -0.0072, -0, -1.2005 },
-			Size = { 0.8433, 0.8577, 2.0675 },
+			Offset = { 0.0088, 0.0064, -0.0459 },
+			Size = { 0.469, 0.4861, 1.5196 },
 		},
 		{
 			Material = "Neon",
 			Color = "#BFEFFF",
-			Transparency = 0.3,
+			Transparency = 0.6,
 			Reflectance = 0,
 			Name = "Energy15_Energy",
 			Joint = "Energy15",
-			Offset = { 0, 0.0002, -1.5711 },
-			Size = { 0.6307, 0.6306, 2.2138 },
+			Offset = { 0.0049, 0.0065, -0.3264 },
+			Size = { 0.4333, 0.4202, 1.6242 },
 		},
 		{
 			Material = "ForceField",
 			Color = "#D8F6FF",
-			Transparency = 0.1,
+			Transparency = 0.5,
 			Reflectance = 0,
 			Name = "Energy16_EnergyPale",
 			Joint = "Energy16",
-			Offset = { -0.0052, 0.0001, -1.5815 },
-			Size = { 0.7319, 0.7423, 1.7143 },
+			Offset = { 0.0066, -0.0046, -0.3463 },
+			Size = { 0.4459, 0.4582, 1.2673 },
 		},
 		{
 			Material = "Neon",
 			Color = "#BFEFFF",
-			Transparency = 0.3,
+			Transparency = 0.6,
 			Reflectance = 0,
 			Name = "Energy17_Energy",
 			Joint = "Energy17",
-			Offset = { -0.0001, -0.0005, -1.8392 },
-			Size = { 0.7001, 0.6988, 1.6904 },
+			Offset = { -0.0027, -0.0027, -0.5437 },
+			Size = { 0.4521, 0.4549, 1.2503 },
 		},
 		{
 			Material = "ForceField",
 			Color = "#D8F6FF",
-			Transparency = 0.1,
+			Transparency = 0.5,
 			Reflectance = 0,
 			Name = "Energy18_EnergyPale",
 			Joint = "Energy18",
-			Offset = { 0.0001, -0, -2.4771 },
-			Size = { 0.8052, 0.8059, 2.2503 },
+			Offset = { 0.0056, -0.0055, -1.0202 },
+			Size = { 0.4959, 0.507, 1.6502 },
 		},
 		{
 			Material = "Neon",
 			Color = "#BFEFFF",
-			Transparency = 0.3,
+			Transparency = 0.6,
 			Reflectance = 0,
 			Name = "Energy19_Energy",
 			Joint = "Energy19",
-			Offset = { -0.0001, -0.0001, -2.459 },
-			Size = { 0.6737, 0.6739, 2.1649 },
+			Offset = { -0.0043, -0.0043, -0.9996 },
+			Size = { 0.4684, 0.4598, 1.5892 },
 		},
 		{
 			Material = "ForceField",
 			Color = "#D8F6FF",
-			Transparency = 0.1,
+			Transparency = 0.5,
 			Reflectance = 0,
 			Name = "Energy20_EnergyPale",
 			Joint = "Energy20",
-			Offset = { -0.0001, 0.0002, -3.1395 },
-			Size = { 0.769, 0.7688, 2.5894 },
+			Offset = { 0.0011, -0.0042, -1.516 },
+			Size = { 0.5026, 0.5016, 1.8925 },
 		},
 		{
 			Material = "Neon",
 			Color = "#BFEFFF",
-			Transparency = 0.3,
+			Transparency = 0.6,
 			Reflectance = 0,
 			Name = "Energy21_Energy",
 			Joint = "Energy21",
-			Offset = { -0.0212, -0.0616, -3.0907 },
-			Size = { 0.652, 0.5708, 1.7898 },
+			Offset = { -0.0129, 0.0069, -1.5015 },
+			Size = { 0.4533, 0.4789, 1.3213 },
 		},
 		{
 			Material = "ForceField",
 			Color = "#D8F6FF",
-			Transparency = 0.1,
+			Transparency = 0.5,
 			Reflectance = 0,
 			Name = "Energy22_EnergyPale",
 			Joint = "Energy22",
-			Offset = { 0, 0, -3.3419 },
-			Size = { 0.8591, 0.859, 2.3259 },
+			Offset = { 0.0038, -0.0013, -1.6696 },
+			Size = { 0.5294, 0.5338, 1.7042 },
 		},
 		{
 			Material = "Neon",
 			Color = "#BFEFFF",
-			Transparency = 0.3,
+			Transparency = 0.6,
 			Reflectance = 0,
 			Name = "Energy23_Energy",
 			Joint = "Energy23",
-			Offset = { 0, 0.0001, -3.8096 },
-			Size = { 0.663, 0.663, 2.3523 },
+			Offset = { -0.0002, 0.0003, -2.0329 },
+			Size = { 0.4849, 0.485, 1.7231 },
 		},
 		{
 			Material = "ForceField",
 			Color = "#D8F6FF",
-			Transparency = 0.1,
+			Transparency = 0.5,
 			Reflectance = 0,
 			Name = "Energy24_EnergyPale",
 			Joint = "Energy24",
-			Offset = { 0.0079, 0.1186, -3.6398 },
-			Size = { 0.8175, 0.5952, 1.5461 },
+			Offset = { 0.0096, -0.0027, -1.9218 },
+			Size = { 0.5098, 0.5247, 1.1472 },
+		},
+		{
+			Material = "Neon",
+			Color = "#BFEFFF",
+			Transparency = 0.6,
+			Reflectance = 0,
+			Name = "Energy25_Energy",
+			Joint = "Energy25",
+			Offset = { 0.0003, 0, -2.2962 },
+			Size = { 0.4637, 0.4634, 1.7018 },
+		},
+		{
+			Material = "ForceField",
+			Color = "#D8F6FF",
+			Transparency = 0.5,
+			Reflectance = 0,
+			Name = "Energy26_EnergyPale",
+			Joint = "Energy26",
+			Offset = { 0.0002, 0.0006, -2.5937 },
+			Size = { 0.5279, 0.5272, 1.5263 },
+		},
+		{
+			Material = "Neon",
+			Color = "#BFEFFF",
+			Transparency = 0.6,
+			Reflectance = 0,
+			Name = "Energy27_Energy",
+			Joint = "Energy27",
+			Offset = { 0.0001, -0.0001, -2.6388 },
+			Size = { 0.4589, 0.4589, 1.625 },
+		},
+		{
+			Material = "ForceField",
+			Color = "#D8F6FF",
+			Transparency = 0.5,
+			Reflectance = 0,
+			Name = "Energy28_EnergyPale",
+			Joint = "Energy28",
+			Offset = { 0.001, 0, -2.9094 },
+			Size = { 0.5299, 0.5309, 1.2652 },
+		},
+		{
+			Material = "Neon",
+			Color = "#BFEFFF",
+			Transparency = 0.6,
+			Reflectance = 0,
+			Name = "Energy29_Energy",
+			Joint = "Energy29",
+			Offset = { 0.0004, 0.0004, -3.0739 },
+			Size = { 0.5103, 0.5103, 1.4881 },
+		},
+		{
+			Material = "ForceField",
+			Color = "#D8F6FF",
+			Transparency = 0.5,
+			Reflectance = 0,
+			Name = "Energy30_EnergyPale",
+			Joint = "Energy30",
+			Offset = { 0.0002, -0, -3.3112 },
+			Size = { 0.5191, 0.5204, 1.7678 },
+		},
+		{
+			Material = "Neon",
+			Color = "#BFEFFF",
+			Transparency = 0.6,
+			Reflectance = 0,
+			Name = "Energy31_Energy",
+			Joint = "Energy31",
+			Offset = { 0.0006, 0.0004, -3.2125 },
+			Size = { 0.5045, 0.5052, 1.3775 },
+		},
+		{
+			Material = "ForceField",
+			Color = "#D8F6FF",
+			Transparency = 0.5,
+			Reflectance = 0,
+			Name = "Energy32_EnergyPale",
+			Joint = "Energy32",
+			Offset = { -0.0002, 0.0009, -3.4482 },
+			Size = { 0.4997, 0.4995, 1.0722 },
 		},
 	},
 	Joints = {
@@ -1367,7 +1447,7 @@ return {
 		},
 		Energy1 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, 1.6235 },
+			PivotRoblox = { 0, 0, 2.1058 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1378,7 +1458,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.4590264030354019,
+					Amp = 0.18891144131534082,
 					Period = 3.260605882494961,
 					Phase = 69.11897671414538,
 				},
@@ -1387,8 +1467,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 3.389147147746026,
 					Shape = "sine",
 					Phase = 79.57410233659888,
@@ -1396,7 +1476,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.237046142386803,
 					Shape = "sine",
 					Phase = 8.91610829624467,
@@ -1405,7 +1485,7 @@ return {
 		},
 		Energy2 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, 1.7214 },
+			PivotRoblox = { 0, 0, 2.181 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1416,7 +1496,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.49737381302996864,
+					Amp = 0.2055286523129864,
 					Period = 4.241982910276134,
 					Phase = 349.46468192842457,
 				},
@@ -1425,8 +1505,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 3.225585036956217,
 					Shape = "sine",
 					Phase = 273.52318040767113,
@@ -1434,7 +1514,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.1161573406754894,
 					Shape = "sine",
 					Phase = 205.9368412290411,
@@ -1443,7 +1523,7 @@ return {
 		},
 		Energy3 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, 1.4938 },
+			PivotRoblox = { 0, 0, 2.0077 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1454,7 +1534,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.35356198519524934,
+					Amp = 0.14321019358460804,
 					Period = 3.64682469775332,
 					Phase = 293.7144573571109,
 				},
@@ -1463,8 +1543,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 2.8912157056078,
 					Shape = "sine",
 					Phase = 41.1484339061213,
@@ -1472,7 +1552,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 1.7380458771929101,
 					Shape = "sine",
 					Phase = 14.015941057232308,
@@ -1481,7 +1561,7 @@ return {
 		},
 		Energy4 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, 1.5508 },
+			PivotRoblox = { 0, 0, 2.0422 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1492,7 +1572,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.3775255571667848,
+					Amp = 0.15359440810560676,
 					Period = 3.2142544630118053,
 					Phase = 282.1712640150024,
 				},
@@ -1501,8 +1581,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 3.9142869084340486,
 					Shape = "sine",
 					Phase = 298.28351719293835,
@@ -1510,7 +1590,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 1.933236957040183,
 					Shape = "sine",
 					Phase = 196.37244829000554,
@@ -1519,7 +1599,7 @@ return {
 		},
 		Energy5 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, 0.9505 },
+			PivotRoblox = { 0, 0, 1.6081 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1530,7 +1610,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.5061616078303812,
+					Amp = 0.20933669672649852,
 					Period = 4.94747129413787,
 					Phase = 289.78694488552617,
 				},
@@ -1539,8 +1619,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 4.397656232966085,
 					Shape = "sine",
 					Phase = 193.8946042960146,
@@ -1548,7 +1628,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.983504592054409,
 					Shape = "sine",
 					Phase = 269.6451708183681,
@@ -1557,7 +1637,7 @@ return {
 		},
 		Energy6 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, 1.3086 },
+			PivotRoblox = { 0, 0, 1.8504 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1568,7 +1648,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.36478533243757627,
+					Amp = 0.14807364405628307,
 					Period = 3.207006909792721,
 					Phase = 190.42919482157478,
 				},
@@ -1577,8 +1657,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 2.839359889784597,
 					Shape = "sine",
 					Phase = 195.71340114530992,
@@ -1586,7 +1666,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.7379798616028874,
 					Shape = "sine",
 					Phase = 91.10244718196988,
@@ -1595,7 +1675,7 @@ return {
 		},
 		Energy7 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, 0.404 },
+			PivotRoblox = { 0, 0, 1.1855 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1606,7 +1686,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.42753248827818724,
+					Amp = 0.17526407825388113,
 					Period = 3.597710144097591,
 					Phase = 309.7609096806692,
 				},
@@ -1615,8 +1695,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 3.7195980034759266,
 					Shape = "sine",
 					Phase = 18.545777034422276,
@@ -1624,7 +1704,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 1.9988004129515944,
 					Shape = "sine",
 					Phase = 9.110489392622355,
@@ -1633,7 +1713,7 @@ return {
 		},
 		Energy8 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, 0.6107 },
+			PivotRoblox = { 0, 0, 1.317 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1644,7 +1724,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.46825446402494375,
+					Amp = 0.1929102677441423,
 					Period = 3.9414539456298225,
 					Phase = 161.85418274844469,
 				},
@@ -1653,8 +1733,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 3.936760384919024,
 					Shape = "sine",
 					Phase = 1.4191147814771066,
@@ -1662,7 +1742,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.1280475812636728,
 					Shape = "sine",
 					Phase = 282.8163428930828,
@@ -1671,7 +1751,7 @@ return {
 		},
 		Energy9 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, 0.2216 },
+			PivotRoblox = { 0, 0, 1.016 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1682,7 +1762,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.4440524800062289,
+					Amp = 0.18242274133603253,
 					Period = 4.3780192284583785,
 					Phase = 194.08801242232624,
 				},
@@ -1691,8 +1771,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 3.6117416795737576,
 					Shape = "sine",
 					Phase = 189.40560990330772,
@@ -1700,7 +1780,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.0169123528271657,
 					Shape = "sine",
 					Phase = 323.5512578322934,
@@ -1709,7 +1789,7 @@ return {
 		},
 		Energy10 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -0.3678 },
+			PivotRoblox = { 0, 0, 0.5905 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1720,7 +1800,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.5414231128294135,
+					Amp = 0.22461668222607917,
 					Period = 3.5473782414153616,
 					Phase = 334.8631561015525,
 				},
@@ -1729,8 +1809,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 2.8208927867941593,
 					Shape = "sine",
 					Phase = 15.405118398676825,
@@ -1738,7 +1818,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.841636925511744,
 					Shape = "sine",
 					Phase = 240.44446119661004,
@@ -1747,7 +1827,7 @@ return {
 		},
 		Energy11 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -0.4477 },
+			PivotRoblox = { 0, 0, 0.5128 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1758,7 +1838,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.596932002427271,
+					Amp = 0.24867053438515077,
 					Period = 3.555068814248247,
 					Phase = 277.0835757193584,
 				},
@@ -1767,8 +1847,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 2.515181330714887,
 					Shape = "sine",
 					Phase = 13.335391382413388,
@@ -1776,7 +1856,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.695933438772014,
 					Shape = "sine",
 					Phase = 40.07194853676054,
@@ -1785,7 +1865,7 @@ return {
 		},
 		Energy12 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -0.3508 },
+			PivotRoblox = { 0, 0, 0.5818 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1796,7 +1876,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.452718455483895,
+					Amp = 0.1861779973763545,
 					Period = 4.22168105363015,
 					Phase = 130.01910645890027,
 				},
@@ -1805,8 +1885,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 4.47214172897155,
 					Shape = "sine",
 					Phase = 224.89469624654333,
@@ -1814,7 +1894,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.5749718689669105,
 					Shape = "sine",
 					Phase = 217.80396357987607,
@@ -1823,7 +1903,7 @@ return {
 		},
 		Energy13 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -0.9382 },
+			PivotRoblox = { 0, 0, 0.1251 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1834,7 +1914,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.5312121191192063,
+					Amp = 0.2201919182849894,
 					Period = 4.643256039069179,
 					Phase = 217.04527015643725,
 				},
@@ -1843,8 +1923,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 3.682796122169653,
 					Shape = "sine",
 					Phase = 117.66928203819437,
@@ -1852,7 +1932,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 1.7877260334099652,
 					Shape = "sine",
 					Phase = 33.296071422189144,
@@ -1861,7 +1941,7 @@ return {
 		},
 		Energy14 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -1.2005 },
+			PivotRoblox = { 0, 0, -0.0459 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1872,7 +1952,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.5776395136297328,
+					Amp = 0.24031045590621752,
 					Period = 3.6236612864805378,
 					Phase = 319.13157997645897,
 				},
@@ -1881,8 +1961,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 4.4628672742195885,
 					Shape = "sine",
 					Phase = 353.6544906330071,
@@ -1890,7 +1970,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 1.7808733232262888,
 					Shape = "sine",
 					Phase = 136.84021527702802,
@@ -1899,7 +1979,7 @@ return {
 		},
 		Energy15 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -1.5711 },
+			PivotRoblox = { 0, 0, -0.3264 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1910,7 +1990,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.3122023552261638,
+					Amp = 0.12528768726467096,
 					Period = 4.471883228829036,
 					Phase = 170.10965687229023,
 				},
@@ -1919,8 +1999,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 2.8205746053060086,
 					Shape = "sine",
 					Phase = 335.17561487236355,
@@ -1928,7 +2008,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.11315985131492,
 					Shape = "sine",
 					Phase = 343.8469334952556,
@@ -1937,7 +2017,7 @@ return {
 		},
 		Energy16 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -1.5815 },
+			PivotRoblox = { 0, 0, -0.3463 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1948,7 +2028,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.3545101290617165,
+					Amp = 0.1436210559267438,
 					Period = 3.8803237673832487,
 					Phase = 68.49586306470327,
 				},
@@ -1957,8 +2037,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 4.046412146542062,
 					Shape = "sine",
 					Phase = 353.2063992512601,
@@ -1966,7 +2046,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.2389633877298096,
 					Shape = "sine",
 					Phase = 1.1365602978448885,
@@ -1975,7 +2055,7 @@ return {
 		},
 		Energy17 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -1.8392 },
+			PivotRoblox = { 0, 0, -0.5437 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -1986,7 +2066,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.3190684424740117,
+					Amp = 0.1282629917387384,
 					Period = 4.17615310567014,
 					Phase = 185.21262502004055,
 				},
@@ -1995,8 +2075,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 3.584996636970815,
 					Shape = "sine",
 					Phase = 43.680551454604526,
@@ -2004,7 +2084,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 1.6946393116778906,
 					Shape = "sine",
 					Phase = 170.3637260730297,
@@ -2013,7 +2093,7 @@ return {
 		},
 		Energy18 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -2.4771 },
+			PivotRoblox = { 0, 0, -1.0202 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -2024,7 +2104,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.38529846093872283,
+					Amp = 0.1569626664067799,
 					Period = 3.9865681217944813,
 					Phase = 196.54341710758027,
 				},
@@ -2033,8 +2113,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 4.081488766400337,
 					Shape = "sine",
 					Phase = 106.28753275978958,
@@ -2042,7 +2122,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.9479589300944893,
 					Shape = "sine",
 					Phase = 8.001625532448697,
@@ -2051,7 +2131,7 @@ return {
 		},
 		Energy19 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -2.459 },
+			PivotRoblox = { 0, 0, -0.9996 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -2062,7 +2142,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.33324120854276446,
+					Amp = 0.1344045237018646,
 					Period = 4.654536345340288,
 					Phase = 28.558326501700833,
 				},
@@ -2071,8 +2151,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 2.662585228115032,
 					Shape = "sine",
 					Phase = 286.3348702502919,
@@ -2080,7 +2160,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.607882468906155,
 					Shape = "sine",
 					Phase = 344.58738846417316,
@@ -2089,7 +2169,7 @@ return {
 		},
 		Energy20 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -3.1395 },
+			PivotRoblox = { 0, 0, -1.516 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -2100,7 +2180,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.3395060222806136,
+					Amp = 0.13711927632159923,
 					Period = 4.670820492764443,
 					Phase = 175.93944148746485,
 				},
@@ -2109,8 +2189,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 3.972876960972997,
 					Shape = "sine",
 					Phase = 323.1293226124876,
@@ -2118,7 +2198,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 1.9639753488151508,
 					Shape = "sine",
 					Phase = 333.5424274207256,
@@ -2127,7 +2207,7 @@ return {
 		},
 		Energy21 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -3.0907 },
+			PivotRoblox = { 0, 0, -1.5015 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -2138,7 +2218,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.47513002292923656,
+					Amp = 0.19588967660266915,
 					Period = 4.024869301285375,
 					Phase = 325.45258455914205,
 				},
@@ -2147,8 +2227,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 3.328721419101603,
 					Shape = "sine",
 					Phase = 307.23110898424284,
@@ -2156,7 +2236,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 1.7145284312895919,
 					Shape = "sine",
 					Phase = 117.42073851083454,
@@ -2165,7 +2245,7 @@ return {
 		},
 		Energy22 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -3.3419 },
+			PivotRoblox = { 0, 0, -1.6696 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -2176,7 +2256,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.42838599700970137,
+					Amp = 0.17563393203753724,
 					Period = 4.013732525656958,
 					Phase = 291.4381729191077,
 				},
@@ -2185,8 +2265,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 3.5445736002474133,
 					Shape = "sine",
 					Phase = 193.23327804339502,
@@ -2194,7 +2274,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.430598195201584,
 					Shape = "sine",
 					Phase = 335.55425555403156,
@@ -2203,7 +2283,7 @@ return {
 		},
 		Energy23 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -3.8096 },
+			PivotRoblox = { 0, 0, -2.0329 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -2214,7 +2294,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.3615408845492061,
+					Amp = 0.14666771663798928,
 					Period = 4.001600002920139,
 					Phase = 354.0959250957079,
 				},
@@ -2223,8 +2303,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 4.036545169537172,
 					Shape = "sine",
 					Phase = 35.687704801636436,
@@ -2232,7 +2312,7 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 1.9468220979478277,
 					Shape = "sine",
 					Phase = 133.0776142115285,
@@ -2241,7 +2321,7 @@ return {
 		},
 		Energy24 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0, -3.6398 },
+			PivotRoblox = { 0, 0, -1.9218 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -2252,7 +2332,7 @@ return {
 				{
 					Kind = "Bob",
 					Dir = { 0, 1, 0 },
-					Amp = 0.41181898855475874,
+					Amp = 0.16845489504039546,
 					Period = 3.062823858248102,
 					Phase = 12.836822873465167,
 				},
@@ -2261,8 +2341,8 @@ return {
 			Visual = {
 				{
 					Kind = "Fade",
-					Min = 0.2,
-					Max = 1,
+					Min = 0,
+					Max = 0.55,
 					Period = 4.133787737090996,
 					Shape = "sine",
 					Phase = 58.69170050304154,
@@ -2270,10 +2350,314 @@ return {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.5,
+					Max = 0.3,
 					Period = 2.8459917945545525,
 					Shape = "sine",
 					Phase = 125.70403416329188,
+				},
+			},
+		},
+		Energy25 = {
+			Parent = nil,
+			PivotRoblox = { 0, 0, -2.2962 },
+			Motion = {
+				{
+					Kind = "Spin",
+					Axis = { 0, 1, 0 },
+					Rate = 46.15019665120326,
+					Phase = 135.47150187878023,
+				},
+				{
+					Kind = "Bob",
+					Dir = { 0, 1, 0 },
+					Amp = 0.21524590985608844,
+					Period = 3.3484519953342318,
+					Phase = 316.8237161160481,
+				},
+			},
+			Aura = true,
+			Visual = {
+				{
+					Kind = "Fade",
+					Min = 0,
+					Max = 0.55,
+					Period = 4.388781056818976,
+					Shape = "sine",
+					Phase = 8.535521424752535,
+				},
+				{
+					Kind = "Glow",
+					Min = 0,
+					Max = 0.3,
+					Period = 2.8017564348707857,
+					Shape = "sine",
+					Phase = 280.10316877281934,
+				},
+			},
+		},
+		Energy26 = {
+			Parent = nil,
+			PivotRoblox = { 0, 0, -2.5937 },
+			Motion = {
+				{
+					Kind = "Spin",
+					Axis = { 0, 1, 0 },
+					Rate = -55.344146176677285,
+					Phase = 147.41708895106245,
+				},
+				{
+					Kind = "Bob",
+					Dir = { 0, 1, 0 },
+					Amp = 0.13659046060502608,
+					Period = 3.5491008985441432,
+					Phase = 195.5722429083497,
+				},
+			},
+			Aura = true,
+			Visual = {
+				{
+					Kind = "Fade",
+					Min = 0,
+					Max = 0.55,
+					Period = 3.6946449970594104,
+					Shape = "sine",
+					Phase = 292.1777449821795,
+				},
+				{
+					Kind = "Glow",
+					Min = 0,
+					Max = 0.3,
+					Period = 2.39742821059956,
+					Shape = "sine",
+					Phase = 227.60781511968128,
+				},
+			},
+		},
+		Energy27 = {
+			Parent = nil,
+			PivotRoblox = { 0, 0, -2.6388 },
+			Motion = {
+				{
+					Kind = "Spin",
+					Axis = { 0, 1, 0 },
+					Rate = 65.66707084655926,
+					Phase = 197.5040882024131,
+				},
+				{
+					Kind = "Bob",
+					Dir = { 0, 1, 0 },
+					Amp = 0.23432044687205728,
+					Period = 3.9593723915650507,
+					Phase = 257.7745232981573,
+				},
+			},
+			Aura = true,
+			Visual = {
+				{
+					Kind = "Fade",
+					Min = 0,
+					Max = 0.55,
+					Period = 2.6090684798437076,
+					Shape = "sine",
+					Phase = 148.74941825442036,
+				},
+				{
+					Kind = "Glow",
+					Min = 0,
+					Max = 0.3,
+					Period = 2.659624853624287,
+					Shape = "sine",
+					Phase = 28.404988489159916,
+				},
+			},
+		},
+		Energy28 = {
+			Parent = nil,
+			PivotRoblox = { 0, 0, -2.9094 },
+			Motion = {
+				{
+					Kind = "Spin",
+					Axis = { 0, 1, 0 },
+					Rate = 54.09714433363958,
+					Phase = 92.16989889961752,
+				},
+				{
+					Kind = "Bob",
+					Dir = { 0, 1, 0 },
+					Amp = 0.24048416745752643,
+					Period = 4.946278053728989,
+					Phase = 247.41441385436724,
+				},
+			},
+			Aura = true,
+			Visual = {
+				{
+					Kind = "Fade",
+					Min = 0,
+					Max = 0.55,
+					Period = 4.462681376005814,
+					Shape = "sine",
+					Phase = 353.9388379003158,
+				},
+				{
+					Kind = "Glow",
+					Min = 0,
+					Max = 0.3,
+					Period = 1.807401166025321,
+					Shape = "sine",
+					Phase = 262.9292875207209,
+				},
+			},
+		},
+		Energy29 = {
+			Parent = nil,
+			PivotRoblox = { 0, 0, -3.0739 },
+			Motion = {
+				{
+					Kind = "Spin",
+					Axis = { 0, 1, 0 },
+					Rate = 59.88355081534623,
+					Phase = 212.83000443101525,
+				},
+				{
+					Kind = "Bob",
+					Dir = { 0, 1, 0 },
+					Amp = 0.21561674263448172,
+					Period = 3.1300214687241588,
+					Phase = 45.869376670974745,
+				},
+			},
+			Aura = true,
+			Visual = {
+				{
+					Kind = "Fade",
+					Min = 0,
+					Max = 0.55,
+					Period = 2.8681076782350305,
+					Shape = "sine",
+					Phase = 312.417092894522,
+				},
+				{
+					Kind = "Glow",
+					Min = 0,
+					Max = 0.3,
+					Period = 1.9976917088924195,
+					Shape = "sine",
+					Phase = 45.260813592741805,
+				},
+			},
+		},
+		Energy30 = {
+			Parent = nil,
+			PivotRoblox = { 0, 0, -3.3112 },
+			Motion = {
+				{
+					Kind = "Spin",
+					Axis = { 0, 1, 0 },
+					Rate = 64.07136755144666,
+					Phase = 324.4321532215754,
+				},
+				{
+					Kind = "Bob",
+					Dir = { 0, 1, 0 },
+					Amp = 0.21701825244649778,
+					Period = 3.564438462122191,
+					Phase = 181.65486405263488,
+				},
+			},
+			Aura = true,
+			Visual = {
+				{
+					Kind = "Fade",
+					Min = 0,
+					Max = 0.55,
+					Period = 4.044547627188669,
+					Shape = "sine",
+					Phase = 282.47795059265343,
+				},
+				{
+					Kind = "Glow",
+					Min = 0,
+					Max = 0.3,
+					Period = 2.6224939219409293,
+					Shape = "sine",
+					Phase = 303.50753108926904,
+				},
+			},
+		},
+		Energy31 = {
+			Parent = nil,
+			PivotRoblox = { 0, 0, -3.2125 },
+			Motion = {
+				{
+					Kind = "Spin",
+					Axis = { 0, 1, 0 },
+					Rate = -61.17132223534987,
+					Phase = 236.62485135546655,
+				},
+				{
+					Kind = "Bob",
+					Dir = { 0, 1, 0 },
+					Amp = 0.14490678542496205,
+					Period = 3.0753863495667604,
+					Phase = 316.0992518626296,
+				},
+			},
+			Aura = true,
+			Visual = {
+				{
+					Kind = "Fade",
+					Min = 0,
+					Max = 0.55,
+					Period = 3.653422775776246,
+					Shape = "sine",
+					Phase = 39.409067563156334,
+				},
+				{
+					Kind = "Glow",
+					Min = 0,
+					Max = 0.3,
+					Period = 2.985888971989633,
+					Shape = "sine",
+					Phase = 211.40693723977694,
+				},
+			},
+		},
+		Energy32 = {
+			Parent = nil,
+			PivotRoblox = { 0, 0, -3.4482 },
+			Motion = {
+				{
+					Kind = "Spin",
+					Axis = { 0, 1, 0 },
+					Rate = -46.84870415628092,
+					Phase = 41.687833186510666,
+				},
+				{
+					Kind = "Bob",
+					Dir = { 0, 1, 0 },
+					Amp = 0.14671979331830926,
+					Period = 3.7740658368711295,
+					Phase = 0.5658813772006477,
+				},
+			},
+			Aura = true,
+			Visual = {
+				{
+					Kind = "Fade",
+					Min = 0,
+					Max = 0.55,
+					Period = 3.3131374734747085,
+					Shape = "sine",
+					Phase = 346.5238301829387,
+				},
+				{
+					Kind = "Glow",
+					Min = 0,
+					Max = 0.3,
+					Period = 2.8120065061741943,
+					Shape = "sine",
+					Phase = 64.81517922779304,
 				},
 			},
 		},

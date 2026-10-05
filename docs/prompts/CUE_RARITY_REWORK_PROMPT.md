@@ -302,6 +302,12 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   Neon, `#D8F6FF` ForceField), turning faster (30-70 degrees a second), drifting further,
   never fading below a fifth and pulsing toward white (a Glow visual). The ribbon GLB
   re-uploaded, the piece rebuilt in the lane window, the clip re-rendered.
+- 2026-10-04 (gate 2, fifth look): the wide ribbons read as solid cloth: now 32 thin threads
+  of spirit energy (a thirtieth to a twentieth of a stud wide), far more see-through (Neon at
+  0.6, ForceField at 0.5, each thread visible at most half the time and dark between), each
+  hovering a hair (0.045 studs) above the cue's own profile from `Shape.json` like a shield
+  barrier, turning the same, drifting half as far. The thread GLB re-uploaded, the piece
+  rebuilt in the lane window, the clip re-rendered.
 
 ## Decisions
 
@@ -362,3 +368,7 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 - 2026-10-04 (designer, Dragon gate 2, third look): the ribbons need to be more obvious,
   more of them, with energy, matching the lighter blue of the dragon and the aura. Done as
   the fourth look.
+- 2026-10-04 (designer, Dragon gate 2, fourth look): the ribbons are too much now: way more
+  translucent, like energy not physical ribbon, shrunk to very individual threads of
+  spiritual energy, closer to the cue mesh but still hovering, like a shield barrier. Done
+  as the fifth look.
