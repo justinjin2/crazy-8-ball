@@ -700,6 +700,8 @@ local function cutscene(player: Player, args: { string })
 		return
 	end
 	tell(player, Dev.Cutscene:format(rarity))
+	-- Its reveal reaches everyone in the server as a real pull's does (the aurora).
+	require(script.Parent.LuckyBlockService).expectReveal(player, rarity)
 	Net.get("DevNotice"):FireClient(player, { kind = "Cutscene", rarity = rarity })
 end
 

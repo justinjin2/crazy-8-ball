@@ -70,6 +70,14 @@ function UISound.play(key: string, pitch: number?, volume: number?)
 	end
 end
 
+--- Stop a UI sound that is playing (not an Overlap one's copies): a cutscene cut short.
+function UISound.stop(key: string)
+	local sound = sounds[key]
+	if sound then
+		sound:Stop()
+	end
+end
+
 --- Load every UI sound now, so the first chip does not land in silence.
 function UISound.preload()
 	for key: string in Clips do

@@ -284,6 +284,8 @@ local REMOTES: { [string]: string } = {
 	--     block; every server picks the same restock and announces it by itself)
 	--   { kind = "Reyes" | "FirstReyes", userId, name } a player reached Reyes, in every
 	--     server (MessagingService); FirstReyes: the first player ever
+	--   { kind = "Aurora", userId, rarity } a Legendary pull's card is showing for that player
+	--     (this server only, no line): the gold aurora in the sky (SkyAurora)
 	Banner = "RemoteEvent",
 	-- Ults in a match (src/server/UltService.luau, Ults/Match; the table's snapshot carries
 	-- `ults` = { on, bars = { [tostring(userId)] = { bar, used, ready } }, armed = { by, id,
@@ -366,7 +368,9 @@ local REMOTES: { [string]: string } = {
 	-- client -> server: (action, a, b), checked by Progression/LuckyBlocks.parse:
 	-- "Hold" (block id, or nil to put it away), "Throw" (the held block's id, sent at the throw
 	-- animation's release), "Open" (the thrown block's id, after the 1 s hold), "Move" (id,
-	-- place in the list). Answers { ok = true, ... } or { ok = false, reason } (LuckyBlocks
+	-- place in the list), "Reveal" (no arguments: this player's Legendary card is showing, after
+	-- its cutscene; the server checks there is one and sends everyone the Banner "Aurora").
+	-- Answers { ok = true, ... } or { ok = false, reason } (LuckyBlocks
 	-- .Reasons). Open's answer: { ok, cue, rarity, kind, oddsId, tier?, copy?, forced, new,
 	-- found, count, burstAt } (oddsId: the odds row it rolled, a Mystery block's rolled tier's;
 	-- copy: a Unique cue's number; forced: the Guarantee gave it; burstAt: server time the

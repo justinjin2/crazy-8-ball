@@ -12,9 +12,14 @@
 --   fade; a ring pulses out in the black, purple rays spin up and grow while sparkles spiral
 --   in from the edges, then it all implodes into a bright point and bursts white on the
 --   riser's peak. Never skipped.
+-- - Legendary (redone 2026-10-05): two parts. A film behind black bars: the camera close on
+--   the player from their side round to their front, then low looking up past them at a gold
+--   star gathering light, then from high in the sky as a beam of gold light falls from the star
+--   and slams into them on the track's impact (sparks, a shockwave, the screen shaking). A
+--   hard cut to black, a gold starlight warp while a rising tone builds, the white flash with
+--   a cinematic hit, and the card. Then a gold aurora (SkyAurora) for everyone in the server.
+--   Skippable once seen.
 -- The ones below are the old scenes, still to be redone; they lift the black off as they begin.
--- - Legendary: the world drains to grey, a golden beam drops from the sky onto the player, the
---   camera swoops low round them, and it all lands in a gold burst.
 -- - Mythic: the sky turns to deep space with pastel aurora, the camera rises into the stars,
 --   and the cue comes down from them on a beam of light.
 -- - Secret: a red-white glitch, the map's lights go out one by one, silence and a heartbeat, a
@@ -25,11 +30,12 @@
 -- ColorCorrection, our own Sky swapped in, parts in our own model), so nothing of the map is
 -- edited except values saved first. A kind can be skipped (a tap, A, B or Escape) once it has
 -- been seen; it always ends on the server's prize, which the card then shows.
--- Others' pulls from Legendary up arrive through the Unbox banner: remote() gives the sky a
+-- Others' pulls from Mythic up arrive through the Unbox banner: remote() gives the sky a
 -- short tint in the rarity's colour, nothing else (a player in a match sees only that too).
+-- A Legendary's gold aurora reaches them when the opener's card shows instead (the opener's
+-- client says so, the server checks it and sends the Banner "Aurora").
 -- Tuning in Config.Cutscenes.
 local ContextActionService = game:GetService("ContextActionService")
-local GuiService = game:GetService("GuiService")
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -40,6 +46,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local ReelFx = require(script.Parent.ReelFx)
 local CueThumb = require(script.Parent.CueThumb)
@@ -47,6 +54,7 @@ local DayCycle = require(script.Parent.DayCycle)
 local HudParts = require(script.Parent.HudParts)
 local Quality = require(script.Parent.Quality)
 local Seen = require(script.Parent.Seen)
+local SkyAurora = require(script.Parent.SkyAurora)
 local UISound = require(script.Parent.UISound)
 
 local CS = Config.Cutscenes
@@ -127,6 +135,9 @@ type Scene = {
 }
 
 local scene: Scene? = nil
+
+-- What a rarity does as its card shows (filled in below with the scenes).
+local REVEALS: { [string]: (Scene) -> () } = {}
 
 local LIGHTING_KEYS =
 	{ "Brightness", "ClockTime", "Ambient", "OutdoorAmbient", "ExposureCompensation" }
@@ -285,6 +296,7 @@ end
 -- length; otherwise everything still showing fades over Black.OutSeconds.
 local function releaseVeil(s: Scene, instant: boolean)
 	local veil = s.veil
+	s.hint.Visible = false
 	if instant then
 		veil:Destroy()
 		return
@@ -333,6 +345,13 @@ local function finish(s: Scene, instant: boolean?)
 	if not ok then
 		warn("[8ball] PullCutscene veil: " .. tostring(err))
 		s.veil:Destroy()
+	end
+	local reveal = REVEALS[s.rarity]
+	if reveal then
+		ok, err = pcall(reveal, s)
+		if not ok then
+			warn("[8ball] PullCutscene reveal: " .. tostring(err))
+		end
 	end
 	local done = s.done
 	s.done = nil
@@ -405,6 +424,9 @@ local function flashAt(rarity: string): number
 	elseif rarity == "Epic" then
 		local E = CS.Epic
 		return E.BlackSeconds + E.BuildSeconds + E.ImplodeSeconds
+	elseif rarity == "Legendary" then
+		local L = CS.Legendary
+		return L.ImpactAt + L.ImpactHoldSeconds + L.InterludeSeconds
 	end
 	return 0
 end
@@ -530,110 +552,601 @@ local function stepEpic(s: Scene, t: number)
 	s.white.BackgroundTransparency = 1 - math.clamp((t - flashAt("Epic")) / E.FlashInSeconds, 0, 1)
 end
 
+-- Legendary: the film's pieces, built on its first frame round where the player stands.
+local function key(at: number, value: number): NumberSequenceKeypoint
+	return NumberSequenceKeypoint.new(at, value)
+end
+
+local function ghostPart(s: Scene, name: string, size: Vector3, at: Vector3): Part
+	local part = Instance.new("Part")
+	part.Name = name
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = false
+	part.Transparency = 1
+	part.Size = size
+	part.CFrame = CFrame.new(at)
+	part.Parent = s.model
+	return part
+end
+
+-- A glowing particle emitter that emits nothing until it is told to.
+local function emitter(
+	parent: Instance,
+	name: string,
+	art: string,
+	a: Color3,
+	b: Color3
+): ParticleEmitter
+	local e = Instance.new("ParticleEmitter")
+	e.Name = name
+	e.Texture = art
+	e.Color = ColorSequence.new(a, b)
+	e.LightEmission = 1
+	e.LightInfluence = 0
+	e.Rate = 0
+	e.Speed = NumberRange.new(0)
+	e.Rotation = NumberRange.new(0, 360)
+	e.Parent = parent
+	return e
+end
+
+-- A flat piece of art lying on the ground under the player.
+local function groundArt(s: Scene, name: string, art: string, colour: Color3): (Part, Decal)
+	local part = ghostPart(s, name, Vector3.new(1, 0.05, 1), s.parts.feet)
+	local decal = Instance.new("Decal")
+	decal.Face = Enum.NormalId.Top
+	decal.Texture = art
+	decal.Color3 = colour
+	decal.Transparency = 1
+	decal.Parent = part
+	return part, decal
+end
+
+-- The camera wants to be at `to`, looking from about `from`: it stops CameraPadStuds short
+-- of anything solid in between (a table, a wall), never inside it. Near-invisible parts
+-- (zones, triggers) are seen through.
+local function clampEye(s: Scene, from: Vector3, to: Vector3): Vector3
+	local params: RaycastParams = s.parts.params
+	local pad = CS.Legendary.CameraPadStuds
+	local origin = from
+	for _ = 1, 6 do
+		local offset = to - origin
+		if offset.Magnitude < 1e-3 then
+			return to
+		end
+		local hit = workspace:Raycast(origin, offset, params)
+		if not hit then
+			return to
+		end
+		local part = hit.Instance
+		if part:IsA("BasePart") and part.Transparency > 0.9 then
+			params:AddToFilter(part)
+		else
+			local back = (from - hit.Position)
+			local room = math.min(pad, back.Magnitude)
+			return hit.Position + (if back.Magnitude > 1e-3 then back.Unit * room else Vector3.zero)
+		end
+	end
+	return to
+end
+
+local function buildLegendary(s: Scene)
+	local L = CS.Legendary
+	local K = Config.UI.Kit.Art
+	local ART = CS.Art
+	local gold, light = rgb(L.Gold), rgb(L.Light)
+	local p = s.parts
+	takeCamera(s)
+	local cam = workspace.CurrentCamera
+	local root, standing = character()
+	local feet: Vector3 = standing or (cam.Focus.Position - Vector3.new(0, 3, 0))
+	local look = if root then root.CFrame.LookVector else cam.CFrame.LookVector
+	local facing = Vector3.new(look.X, 0, look.Z)
+	facing = if facing.Magnitude > 1e-3 then facing.Unit else Vector3.new(0, 0, -1)
+	p.feet = feet
+	p.facing = facing
+	p.right = facing:Cross(Vector3.yAxis)
+	p.starAt = feet + Vector3.new(0, L.StarHeightStuds, 0)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.IgnoreWater = true
+	local skip: { Instance } = { s.model }
+	for _, other in Players:GetPlayers() do
+		if other.Character then
+			table.insert(skip, other.Character)
+		end
+	end
+	params.FilterDescendantsInstances = skip
+	p.params = params
+
+	-- The screen: black bars top and bottom, and the gold glare of the hit.
+	local bars = {}
+	for i, edge in { 0, 1 } do
+		local bar = fullFrame(s.veilRoot, "Bar", BLACK, 5)
+		bar.BackgroundTransparency = 0
+		bar.AnchorPoint = Vector2.new(0, edge)
+		bar.Position = UDim2.fromScale(0, edge)
+		bar.Size = UDim2.fromScale(1, 0)
+		bars[i] = bar
+	end
+	p.bars = bars
+	p.glare = fullFrame(s.veilRoot, "Glare", gold, 4)
+
+	local rig = ghostPart(s, "Rig", Vector3.one, feet)
+	local function attach(at: Vector3): Attachment
+		local a = Instance.new("Attachment")
+		a.Parent = rig
+		a.WorldPosition = at
+		return a
+	end
+
+	-- Gold motes drifting up round the player from the first shot.
+	local air = ghostPart(s, "Motes", Vector3.new(14, 7, 14), feet + Vector3.new(0, 3.5, 0))
+	local motes = emitter(air, "Motes", K.Spark, light, gold)
+	motes.Speed = NumberRange.new(0.5, 1.5)
+	motes.EmissionDirection = Enum.NormalId.Top
+	motes.SpreadAngle = Vector2.new(30, 30)
+	motes.Lifetime = NumberRange.new(1.2, 2.2)
+	motes.RotSpeed = NumberRange.new(-90, 90)
+	motes.Size = NumberSequence.new({ key(0, 0), key(0.3, 0.35), key(1, 0) })
+	p.motes = motes
+
+	-- The star: a hot glow with turning rays, light streaming in to it from all round.
+	local star = attach(p.starAt)
+	local starGlow = emitter(star, "StarGlow", K.SoftGlow, light, gold)
+	starGlow.Lifetime = NumberRange.new(0.25, 0.35)
+	starGlow.LockedToPart = true
+	local starRays = emitter(star, "StarRays", K.Rays, gold, gold)
+	starRays.Lifetime = NumberRange.new(0.5, 0.7)
+	starRays.RotSpeed = NumberRange.new(-50, 50)
+	starRays.LockedToPart = true
+	starRays.Transparency = NumberSequence.new({ key(0, 1), key(0.3, 0.3), key(1, 1) })
+	local shell = ghostPart(s, "Gather", Vector3.one * L.GatherStuds, p.starAt)
+	shell.Shape = Enum.PartType.Ball
+	local gather = emitter(shell, "Gather", K.Spark, light, gold)
+	gather.Shape = Enum.ParticleEmitterShape.Sphere
+	gather.ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface
+	gather.ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward
+	gather.Speed = NumberRange.new(L.GatherStuds / 2 / 0.7)
+	gather.Lifetime = NumberRange.new(0.7)
+	gather.Orientation = Enum.ParticleOrientation.VelocityParallel
+	gather.Squash = NumberSequence.new(1.5)
+	gather.Size = NumberSequence.new({ key(0, 0.8), key(1, 1.8) })
+	gather.Transparency = NumberSequence.new({ key(0, 1), key(0.3, 0), key(1, 0.2) })
+	p.starGlow, p.starRays, p.gather = starGlow, starRays, gather
+
+	-- The beam, from the star to its falling head: a bright core of streaming energy in a
+	-- gold glow in a faint haze.
+	local top = attach(p.starAt)
+	local head = attach(p.starAt)
+	local function beam(
+		name: string,
+		art: string,
+		colour: Color3,
+		transparency: number,
+		brightness: number
+	): Beam
+		local b = Instance.new("Beam")
+		b.Name = name
+		b.Attachment0 = top
+		b.Attachment1 = head
+		b.Texture = art
+		b.TextureMode = Enum.TextureMode.Wrap
+		b.TextureLength = 16
+		b.Color = ColorSequence.new(colour)
+		b.LightEmission = 1
+		b.LightInfluence = 0
+		b.Brightness = brightness
+		b.FaceCamera = true
+		b.Segments = 1
+		b.Transparency = NumberSequence.new(transparency)
+		b.Enabled = false
+		b.Parent = rig
+		return b
+	end
+	local core = beam("Core", ART.BeamEnergy, light, 0, 3)
+	core.TextureSpeed = 4
+	p.beams = {
+		{ beam = core, width = L.CoreStuds },
+		{ beam = beam("Glow", ART.BeamSoft, gold, 0.35, 1.5), width = L.GlowStuds },
+		{ beam = beam("Haze", ART.BeamSoft, gold, 0.88, 1), width = L.HazeStuds },
+	}
+	p.head = head
+	-- Its head: a blazing glow shedding sparks, lighting what it nears.
+	local headGlow = emitter(head, "HeadGlow", K.SoftGlow, light, gold)
+	headGlow.Lifetime = NumberRange.new(0.15, 0.25)
+	headGlow.LockedToPart = true
+	headGlow.Size = NumberSequence.new(L.GlowStuds * 1.2)
+	local headSparks = emitter(head, "HeadSparks", K.Spark, light, gold)
+	headSparks.Speed = NumberRange.new(3, 14)
+	headSparks.SpreadAngle = Vector2.new(180, 180)
+	headSparks.Lifetime = NumberRange.new(0.4, 0.8)
+	headSparks.Drag = 2
+	headSparks.RotSpeed = NumberRange.new(-180, 180)
+	headSparks.Size = NumberSequence.new({ key(0, 1.3), key(1, 0) })
+	local headLight = Instance.new("PointLight")
+	headLight.Color = gold
+	headLight.Range = 24
+	headLight.Brightness = 0
+	headLight.Parent = head
+	p.headGlow, p.headSparks, p.headLight = headGlow, headSparks, headLight
+	-- Ribbons of light winding down round the falling beam.
+	local spirals = {}
+	for i = 1, L.Spirals do
+		local a0, a1 = attach(p.starAt), attach(p.starAt)
+		local trail = Instance.new("Trail")
+		trail.Attachment0 = a0
+		trail.Attachment1 = a1
+		trail.Color = ColorSequence.new(light, gold)
+		trail.LightEmission = 1
+		trail.LightInfluence = 0
+		trail.Brightness = 2
+		trail.FaceCamera = true
+		trail.Lifetime = 0.35
+		trail.MinLength = 0
+		trail.Transparency = NumberSequence.new(0, 1)
+		trail.Enabled = false
+		trail.Parent = rig
+		spirals[i] = { a0 = a0, a1 = a1, trail = trail }
+	end
+	p.spirals = spirals
+	-- Sparkles all along the lit column.
+	local column = ghostPart(s, "Column", Vector3.new(L.GlowStuds, 1, L.GlowStuds), p.starAt)
+	local dust = emitter(column, "Dust", K.Spark, light, gold)
+	dust.Speed = NumberRange.new(0.5, 2)
+	dust.SpreadAngle = Vector2.new(180, 180)
+	dust.Lifetime = NumberRange.new(0.5, 1)
+	dust.RotSpeed = NumberRange.new(-120, 120)
+	dust.Size = NumberSequence.new({ key(0, 0), key(0.4, 0.9), key(1, 0) })
+	p.column, p.dust = column, dust
+
+	-- On the ground: a ring and a sigil of rays turning under the player, the shockwave.
+	p.ring, p.ringArt = groundArt(s, "Ring", K.RingGlow, gold)
+	p.sigil, p.sigilArt = groundArt(s, "Sigil", K.Rays, gold)
+	p.shock, p.shockArt = groundArt(s, "Shock", K.RingGlow, light)
+	-- The hit: sparks thrown out and falling, a blinding burst, rays, a flash of light.
+	local impact = attach(feet + Vector3.new(0, 0.5, 0))
+	local sparks = emitter(impact, "ImpactSparks", K.Spark, light, gold)
+	sparks.EmissionDirection = Enum.NormalId.Top
+	sparks.SpreadAngle = Vector2.new(80, 80)
+	sparks.Speed = NumberRange.new(35, 80)
+	sparks.Acceleration = Vector3.new(0, -70, 0)
+	sparks.Drag = 1.2
+	sparks.Lifetime = NumberRange.new(0.6, 1.3)
+	sparks.Orientation = Enum.ParticleOrientation.VelocityParallel
+	sparks.Squash = NumberSequence.new(2)
+	sparks.Size = NumberSequence.new({ key(0, 1.4), key(1, 0) })
+	local burst = emitter(impact, "ImpactBurst", K.SoftGlow, light, gold)
+	burst.Lifetime = NumberRange.new(0.35, 0.45)
+	burst.Size = NumberSequence.new({ key(0, 8), key(1, 30) })
+	burst.Transparency = NumberSequence.new(0.3, 1)
+	local rays = emitter(impact, "ImpactRays", K.Rays, gold, gold)
+	rays.Lifetime = NumberRange.new(0.5)
+	rays.RotSpeed = NumberRange.new(-90, 90)
+	rays.Size = NumberSequence.new({ key(0, 20), key(1, 55) })
+	rays.Transparency = NumberSequence.new(0.1, 1)
+	local flare = Instance.new("PointLight")
+	flare.Color = gold
+	flare.Range = 50
+	flare.Brightness = 0
+	flare.Parent = impact
+	p.sparks, p.burst, p.rays, p.flare = sparks, burst, rays, flare
+end
+
+-- Legendary, part one: the film, to the cut.
+local function filmLegendary(s: Scene, t: number)
+	local L = CS.Legendary
+	local G = L.Grade
+	local p = s.parts
+	local q = Quality.rate()
+	local feet: Vector3, facing: Vector3, right: Vector3 = p.feet, p.facing, p.right
+	local up = Vector3.yAxis
+	local cut = L.ImpactAt + L.ImpactHoldSeconds
+	local hit = t >= L.ImpactAt
+	local after = t - L.ImpactAt
+
+	-- The black fades up as the bars come in; the world takes its grade.
+	local fadeIn = smooth(t / L.FadeInSeconds)
+	s.black.BackgroundTransparency = fadeIn
+	for _, bar: Frame in p.bars do
+		bar.Size = UDim2.fromScale(1, L.BarsShare * smooth(t / L.BarsInSeconds))
+	end
+	local flashOfHit = if hit then math.exp(-after * 8) else 0
+	s.cc.Brightness = G.Brightness * fadeIn + 0.12 * flashOfHit
+	s.cc.Contrast = G.Contrast * fadeIn
+	s.cc.Saturation = G.Saturation * fadeIn
+	s.cc.TintColor = WHITE:Lerp(rgb(G.Tint), fadeIn)
+	p.motes.Rate = 25 * q
+	p.glare.BackgroundTransparency = 1 - L.Glare * (if hit then math.exp(-after * 9) else 0)
+
+	-- The star gathers light.
+	local charge = smooth((t - L.StarFrom) / (L.StarFullAt - L.StarFrom))
+	local lit = t >= L.StarFrom
+	local starSize = L.StarStuds * (0.15 + 0.85 * charge) * (1 + 0.08 * math.sin(t * 22))
+	p.starGlow.Size = NumberSequence.new(starSize)
+	p.starGlow.Rate = if lit then 30 else 0
+	p.starRays.Size = NumberSequence.new(starSize * 1.8)
+	p.starRays.Rate = if lit then 6 else 0
+	p.gather.Rate = if lit and not hit then 90 * q * (0.3 + 0.7 * charge) else 0
+
+	-- The beam falls from it, faster and faster, and swells as it hits.
+	local dropFrom = L.ImpactAt - L.DropSeconds
+	local falling = t >= dropFrom
+	local fall = math.clamp((t - dropFrom) / L.DropSeconds, 0, 1) ^ L.DropPower
+	local headAt = (p.starAt :: Vector3):Lerp(feet, fall)
+	p.head.WorldPosition = headAt
+	local swell = if hit then 1 + (L.SwellAfterHit - 1) * math.exp(-after * 5) else 1
+	for _, entry in p.beams do
+		local b: Beam = entry.beam
+		b.Enabled = falling
+		b.Width0 = entry.width * swell
+		b.Width1 = entry.width * swell * (if hit then 1 else 0.75)
+	end
+	p.headGlow.Rate = if falling and not hit then 60 else 0
+	p.headSparks.Rate = if falling and not hit then 220 * q else 0
+	p.headLight.Brightness = if hit then 3 * math.exp(-after * 4) elseif falling then 3 * fall else 0
+	for i, spiral in p.spirals do
+		spiral.trail.Enabled = falling and not hit
+		local phi = math.pi * 2 * (L.SpiralTurnsPerSecond * t + i / #p.spirals)
+		local at = headAt + Vector3.new(math.cos(phi), 0, math.sin(phi)) * L.SpiralStuds
+		spiral.a0.WorldPosition = at - up * 0.3
+		spiral.a1.WorldPosition = at + up * 0.3
+	end
+	local length = ((p.starAt :: Vector3) - headAt).Magnitude
+	local column: Part = p.column
+	column.Size = Vector3.new(L.GlowStuds, math.max(length, 0.1), L.GlowStuds)
+	column.CFrame = CFrame.new(((p.starAt :: Vector3) + headAt) / 2)
+	p.dust.Rate = if falling then 120 * q else 0
+
+	-- The ring and the sigil grow and turn under the player; the shockwave races out.
+	local ringK = smooth((t - L.RingFrom) / (L.ImpactAt - L.RingFrom))
+	local ringSize = L.RingStuds * (0.3 + 0.7 * ringK) * (if hit then 1 + after * 1.5 else 1)
+	local ground = feet + Vector3.new(0, 0.06, 0)
+	p.ring.Size = Vector3.new(ringSize, 0.05, ringSize)
+	p.ring.CFrame = CFrame.new(ground) * CFrame.Angles(0, t * 1.4, 0)
+	p.ringArt.Transparency = 1 - ringK * (0.85 + 0.15 * math.sin(t * 16))
+	p.sigil.Size = Vector3.new(ringSize * 1.4, 0.05, ringSize * 1.4)
+	p.sigil.CFrame = CFrame.new(ground + Vector3.new(0, 0.01, 0)) * CFrame.Angles(0, -t * 0.8, 0)
+	p.sigilArt.Transparency = 1 - ringK * 0.55
+	if hit then
+		local k = math.clamp(after / L.ShockSeconds, 0, 1)
+		local size = L.RingStuds + (L.ShockStuds - L.RingStuds) * (1 - (1 - k) ^ 3)
+		p.shock.Size = Vector3.new(size, 0.05, size)
+		p.shock.CFrame = CFrame.new(ground + Vector3.new(0, 0.02, 0))
+		p.shockArt.Transparency = k
+		if not s.fired.impact then
+			s.fired.impact = true
+			p.sparks:Emit(math.floor(L.Sparks * q))
+			p.burst:Emit(3)
+			p.rays:Emit(2)
+		end
+	end
+	p.flare.Brightness = if hit then 7 * math.exp(-after * 5) else 0
+
+	-- The camera: close from the side round to the front; low, looking up past the player at
+	-- the star; then high in the sky looking down for the hit, shaking with it.
+	local cam = workspace.CurrentCamera
+	cam.CameraType = Enum.CameraType.Scriptable
+	local eye: Vector3, focus: Vector3, fov: number
+	if t < L.Side.To then
+		local S = L.Side
+		local u = smooth(t / S.To)
+		local a = math.rad(S.FromDegrees + (S.ToDegrees - S.FromDegrees) * u)
+		local dir = facing * math.cos(a) + right * math.sin(a)
+		focus = feet + up * S.LookHeightStuds
+		eye = clampEye(
+			s,
+			focus,
+			feet + dir * (S.FromStuds + (S.ToStuds - S.FromStuds) * u) + up * S.HeightStuds
+		)
+		fov = L.FieldOfView
+	elseif t < L.LookUp.To then
+		local U = L.LookUp
+		local k = smooth((t - L.Side.To) / (U.To - L.Side.To))
+		eye = clampEye(
+			s,
+			feet + up * 2,
+			feet + facing * (U.Studs - U.PushStuds * k) + up * U.HeightStuds
+		)
+		-- Tilted up between the player's shoulders and the star, so both are in the picture.
+		local flat = Vector3.new(feet.X - eye.X, 0, feet.Z - eye.Z)
+		local across = math.max(flat.Magnitude, 0.5)
+		local low = math.atan2(feet.Y + 3.5 - eye.Y, across)
+		local high = math.atan2((p.starAt :: Vector3).Y - eye.Y, across)
+		local tilt = low + (high - low) * U.TiltShare
+		local toward = if flat.Magnitude > 1e-3 then flat.Unit else -facing
+		focus = eye + toward * math.cos(tilt) + up * math.sin(tilt)
+		fov = U.FieldOfView
+	else
+		local O = L.Overhead
+		local k = smooth((t - L.LookUp.To) / (cut - L.LookUp.To))
+		local a = math.rad(150 + O.TurnDegrees * k)
+		local dir = facing * math.cos(a) + right * math.sin(a)
+		focus = feet + up * O.LookHeightStuds
+		eye = clampEye(
+			s,
+			feet + up * 2,
+			feet + dir * O.Studs + up * (O.HeightStuds - O.DropStuds * k)
+		)
+		fov = O.FieldOfView
+	end
+	local frame = CFrame.lookAt(eye, focus)
+	if hit then
+		local shake = L.ShakeStuds * math.max(0, 1 - after / L.ShakeSeconds) ^ 2
+		local r = s.random
+		frame = frame
+			* CFrame.new(r:NextNumber(-shake, shake), r:NextNumber(-shake, shake), 0)
+			* CFrame.Angles(0, 0, math.rad(r:NextNumber(-3, 3) * shake))
+		fov -= 6 * math.exp(-after * 8) -- a punch in on the hit
+	end
+	cam.FieldOfView = fov
+	cam.CFrame = frame
+	cam.Focus = CFrame.new(focus)
+end
+
+-- Legendary, part two: the starlight warp on the black, from the cut to the flash.
+local function warpLegendary(s: Scene, t: number)
+	local L = CS.Legendary
+	local K = Config.UI.Kit.Art
+	local gold, light = rgb(L.Gold), rgb(L.Light)
+	local p = s.parts
+	if not p.warp then
+		s.model.Parent = nil -- the film is over
+		UISound.play(L.Rise)
+		p.warp = true
+		p.haze = fullFrame(s.veilRoot, "WarpHaze", gold:Lerp(BLACK, 0.75), 2)
+		local pillars = {}
+		for i = 1, L.Pillars do
+			local pillar = fullFrame(s.veilRoot, "Pillar", gold, 2)
+			pillar.AnchorPoint = Vector2.new(0.5, 0)
+			pillar.BackgroundTransparency = 0
+			local soft = Instance.new("UIGradient")
+			soft.Transparency = NumberSequence.new({ key(0, 1), key(0.5, 0.2), key(1, 1) })
+			soft.Parent = pillar
+			pillars[i] = {
+				frame = pillar,
+				from = s.random:NextNumber(-0.1, 1.1),
+				speed = s.random:NextNumber(0.08, 0.25) * (if i % 2 == 0 then -1 else 1),
+				width = s.random:NextNumber(0.02, 0.07),
+			}
+		end
+		p.pillars = pillars
+		p.warpRays = makeArt(s, "WarpRays", K.Rays, gold, 3)
+		p.warpGlow = makeGlow(s, "WarpGlow", gold, 3)
+		p.warpCore = makeGlow(s, "WarpCore", light, 4)
+		local stars = {}
+		for _ = 1, math.max(16, math.floor(L.WarpStars * Quality.rate())) do
+			table.insert(stars, {
+				image = makeArt(
+					s,
+					"Star",
+					CS.Art.LightStreak,
+					if s.random:NextNumber() < 0.6 then gold else light,
+					3
+				),
+				angle = s.random:NextNumber(0, math.pi * 2),
+				r = s.random:NextNumber(0.02, 0.6),
+				k = s.random:NextNumber(0.6, 1.4),
+			})
+		end
+		p.stars = stars
+		p.pulses = {}
+		for index = 1, 3 do
+			p.pulses[index] = makeArt(s, "Pulse", K.RingGlow, gold, 3)
+		end
+		p.spin = 0
+		p.last = t
+	end
+	s.black.BackgroundTransparency = 0
+	local u = math.clamp(t / L.InterludeSeconds, 0, 1)
+	local screen = s.veilRoot.AbsoluteSize
+	local longer = math.max(screen.X, screen.Y)
+	local dt = math.max(0, t - p.last)
+	p.last = t
+
+	-- Streaks of light fly out from the middle, faster and longer as it builds.
+	local speed = L.WarpSpeedFrom + (L.WarpSpeedTo - L.WarpSpeedFrom) * u * u
+	local show = smooth(t / 0.4)
+	for _, star in p.stars do
+		star.r += speed * dt * (0.3 + star.r * 2) * star.k
+		if star.r > 0.8 then
+			star.r = s.random:NextNumber(0.01, 0.06)
+			star.angle = s.random:NextNumber(0, math.pi * 2)
+		end
+		local image: ImageLabel = star.image
+		local len = longer * L.WarpStreakShare * star.r * (0.5 + u)
+		local width = math.max(2, longer * 0.004 * (0.5 + star.r * 2))
+		local middle = star.r * longer - len / 2
+		image.Visible = true
+		image.Position =
+			UDim2.new(0.5, math.cos(star.angle) * middle, 0.5, math.sin(star.angle) * middle)
+		image.Size = UDim2.fromOffset(width, len)
+		image.Rotation = math.deg(star.angle) - 90
+		image.ImageTransparency = 1 - math.clamp(star.r * 6, 0, 1) * show
+	end
+	-- Shafts of gold light sweep across behind them.
+	for _, pillar in p.pillars do
+		local frame: Frame = pillar.frame
+		local x = (pillar.from + pillar.speed * t) % 1.2 - 0.1
+		frame.Position = UDim2.fromScale(x, 0)
+		frame.Size = UDim2.fromScale(pillar.width, 1)
+		frame.BackgroundTransparency = 1 - 0.35 * smooth(u * 2)
+	end
+	local haze: Frame = p.haze
+	haze.BackgroundTransparency = 1 - 0.6 * smooth(u)
+	-- Rays turn ever faster round a gold glow that swells into the flash.
+	p.spin += (20 + 200 * u * u) * dt
+	local rays: ImageLabel = p.warpRays
+	local raysSize = longer * (0.6 + 0.9 * u)
+	rays.Visible = true
+	rays.Size = UDim2.fromOffset(raysSize, raysSize)
+	rays.Rotation = p.spin
+	rays.ImageTransparency = 0.7 - 0.45 * u
+	local pulse = 1 + 0.06 * math.sin(t * 14)
+	local glow: GuiObject = p.warpGlow
+	local glowSize = longer * (0.25 + 1.1 * u ^ 2) * pulse
+	glow.Visible = true
+	glow.Size = UDim2.fromOffset(glowSize, glowSize)
+	local core: GuiObject = p.warpCore
+	local coreSize = longer * L.CoreScale * (0.15 + 0.85 * u ^ 2.5) * pulse
+	core.Visible = true
+	core.Size = UDim2.fromOffset(coreSize, coreSize)
+	-- Rings out from the middle as the rise climbs.
+	for index, at in { 0.15, 0.45, 0.7 } do
+		local ring: ImageLabel = p.pulses[index]
+		local k = (u - at) / 0.25
+		ring.Visible = k >= 0 and k <= 1
+		if ring.Visible then
+			local size = longer * 1.4 * (1 - (1 - k) * (1 - k))
+			ring.Size = UDim2.fromOffset(size, size)
+			ring.ImageTransparency = 0.2 + 0.8 * k
+		end
+	end
+end
+
+-- Legendary: the film (the side, the look up at the star, the beam's hit from the sky), a
+-- hard cut to black, the starlight warp, then the white flash on the rise's peak.
 local function stepLegendary(s: Scene, t: number)
 	local L = CS.Legendary
-	local gold = rgb(L.Gold)
-	local _, feet = character()
-	if not s.fired.setup then
-		s.fired.setup = true
-		takeCamera(s)
-		UISound.play("ReelBuild")
-		-- A thin bright core in a wide soft shell: the player stays visible inside it.
-		local function column(name: string): Part
-			local part = Instance.new("Part")
-			part.Name = name
-			part.Anchored = true
-			part.CanCollide = false
-			part.CanQuery = false
-			part.CanTouch = false
-			part.CastShadow = false
-			part.Material = Enum.Material.Neon
-			part.Color = gold
-			part.Shape = Enum.PartType.Cylinder
-			part.Transparency = 1
-			part.Parent = s.model
-			return part
-		end
-		local beam = column("GoldBeam")
-		s.parts.shell = column("GoldShell")
-		local glow = Instance.new("PointLight")
-		glow.Color = gold
-		glow.Range = 24
-		glow.Brightness = 0
-		glow.Parent = beam
-		s.parts.beam = beam
-		s.parts.glow = glow
-		local overlay = Instance.new("Frame")
-		overlay.Name = "BeamGlow"
-		overlay.BorderSizePixel = 0
-		overlay.BackgroundColor3 = gold
-		overlay.AnchorPoint = Vector2.new(0.5, 0)
-		overlay.ZIndex = 1
-		overlay.Visible = false
-		local fade = Instance.new("UIGradient")
-		fade.Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 1),
-			NumberSequenceKeypoint.new(0.5, 0.55),
-			NumberSequenceKeypoint.new(1, 1),
-		})
-		fade.Parent = overlay
-		overlay.Parent = s.root
-		s.parts.overlay = overlay
-		s.parts.flash = fullFrame(s.root, "GoldBurst", gold, 6)
-		local look = workspace.CurrentCamera.CFrame.Position - (feet or Vector3.zero)
-		s.parts.angle = math.atan2(look.Z, look.X)
+	if not s.parts.feet then
+		buildLegendary(s)
+		UISound.play(L.Logo)
 	end
-	s.cc.Saturation = L.GreySaturation
-		* smooth(t / L.GreyInSeconds)
-		* (1 - smooth((t - L.BurstAt) / 0.4))
-	local beam: Part = s.parts.beam
-	local overlay: Frame = s.parts.overlay
-	if feet then
-		local drop = smooth((t - L.BeamFrom) / L.BeamDropSeconds)
-		local height = L.BeamHeightStuds * drop
-		local top = feet + Vector3.new(0, L.BeamHeightStuds, 0)
-		if height > 0.1 then
-			local at = CFrame.new(top - Vector3.new(0, height / 2, 0))
-				* CFrame.Angles(0, 0, math.pi / 2)
-			beam.Transparency = L.CoreTransparency
-			beam.Size = Vector3.new(height, L.CoreWidthStuds, L.CoreWidthStuds)
-			beam.CFrame = at
-			local shell: Part = s.parts.shell
-			shell.Transparency = L.ShellTransparency
-			shell.Size = Vector3.new(height, L.BeamWidthStuds, L.BeamWidthStuds)
-			shell.CFrame = at
-			s.parts.glow.Brightness = 4 * drop
-		end
-		-- The gold stays gold over the grey world: a glow drawn over the beam on the screen.
-		local cam = workspace.CurrentCamera
-		local base, onScreen = cam:WorldToViewportPoint(feet)
-		if drop > 0 and onScreen then
-			overlay.Visible = true
-			local inset = GuiService:GetGuiInset()
-			overlay.Position = UDim2.fromOffset(base.X, 0)
-			local widthPx = math.clamp(2000 / math.max(base.Z, 1), 24, 240)
-			overlay.Size = UDim2.fromOffset(widthPx, base.Y + inset.Y)
-			overlay.BackgroundTransparency = 1 - drop
-		else
-			overlay.Visible = false
-		end
-		-- The camera swoops low round the player.
-		local u = smooth((t - L.OrbitFrom) / L.OrbitSeconds)
-		local angle = s.parts.angle + math.rad(L.OrbitDegrees) * u
-		local eye = feet
-			+ Vector3.new(math.cos(angle), 0, math.sin(angle)) * L.OrbitDistanceStuds
-			+ Vector3.new(0, L.OrbitHeightStuds, 0)
-		local cam2 = workspace.CurrentCamera
-		cam2.CameraType = Enum.CameraType.Scriptable
-		cam2.FieldOfView = L.OrbitFieldOfView
-		cam2.CFrame = CFrame.lookAt(eye, feet + Vector3.new(0, 4, 0))
+	local cut = L.ImpactAt + L.ImpactHoldSeconds
+	if t < cut then
+		filmLegendary(s, t)
+	else
+		warpLegendary(s, t - cut)
 	end
-	local flash: Frame = s.parts.flash
-	flash.BackgroundTransparency = 1 - 0.85 * window(t, L.BurstAt, L.Seconds - L.BurstAt, 0.08)
-	if t >= L.BurstAt and not s.fired.burst then
-		s.fired.burst = true
-		ReelFx.sting("Legendary")
+	local flash = flashAt("Legendary")
+	if t >= flash and not s.fired.finale then
+		s.fired.finale = true
+		UISound.play(L.Finale)
 	end
+	s.white.BackgroundTransparency = 1 - math.clamp((t - flash) / L.FlashInSeconds, 0, 1)
+end
+
+-- The Legendary card is showing (played out, skipped or stopped): if it was cut short its
+-- sounds stop with it; the gold aurora fills the sky, and the server tells everyone else in
+-- it so theirs does too.
+local function revealLegendary(s: Scene)
+	local L = CS.Legendary
+	if not s.fired.finale then
+		UISound.stop(L.Logo)
+		UISound.stop(L.Rise)
+	end
+	SkyAurora.play()
+	task.spawn(function()
+		local ok, err = pcall(function()
+			(Net.get("BlockRequest") :: RemoteFunction):InvokeServer("Reveal")
+		end)
+		if not ok then
+			warn("[8ball] PullCutscene reveal: " .. tostring(err))
+		end
+	end)
 end
 
 local function makeAurora(s: Scene, feet: Vector3)
@@ -896,7 +1409,8 @@ local function stepSecret(s: Scene, t: number)
 end
 
 -- The redone scenes draw on the veil themselves; the rest lift the black off as they begin.
-local OWNS_VEIL: { [string]: boolean } = { Rare = true, Epic = true }
+local OWNS_VEIL: { [string]: boolean } = { Rare = true, Epic = true, Legendary = true }
+REVEALS.Legendary = revealLegendary
 
 local STEPS: { [string]: (Scene, number) -> () } = {
 	Rare = stepRare,
@@ -1002,11 +1516,12 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> (), onBlac
 		then W.SkipPad
 		elseif UserInputService.TouchEnabled then W.SkipTouch
 		else W.SkipMouse
-	local hint = HudParts.text(root, "Hint", 20, hintWords)
+	-- Over the veil's black, bars and scene layers.
+	local hint = HudParts.text(veilRoot, "Hint", 20, hintWords)
 	hint.AnchorPoint = Vector2.new(0.5, 1)
 	hint.Position = UDim2.new(0.5, 0, 1, -24)
 	hint.Size = UDim2.fromOffset(360, 28)
-	hint.ZIndex = 11
+	hint.ZIndex = 8
 	hint.Visible = false
 	local cc = Instance.new("ColorCorrectionEffect")
 	cc.Name = "PullCutsceneGrade"
@@ -1184,9 +1699,10 @@ local function coloursOf(rarity: string): { Color3 }
 	return { ReelFx.color(rarity) }
 end
 
---- Someone else in the server pulled a Legendary or better: the sky's short tint.
+--- Someone else in the server pulled a Legendary or better: the sky's short tint. Not for a
+--- Legendary: its gold aurora comes when the opener's card shows (Banner, "Aurora").
 function PullCutscene.remote(rarity: string)
-	if not PullCutscene.isRemote(rarity) then
+	if not PullCutscene.isRemote(rarity) or rarity == "Legendary" then
 		return
 	end
 	skyTint(

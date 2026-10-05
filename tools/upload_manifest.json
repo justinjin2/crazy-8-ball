@@ -1044,6 +1044,21 @@
     "assetType": "Audio",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/audio/cutscenes/LegendaryCinematic.wav": {
+    "assetId": "111448999523683",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/cutscenes/LegendaryHit.wav": {
+    "assetId": "98145599201576",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/cutscenes/LegendaryRise.wav": {
+    "assetId": "119943211186448",
+    "assetType": "Audio",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/audio/luckyblocks/ImpactEpic.wav": {
     "assetId": "124125612588605",
     "assetType": "Audio",
@@ -4775,6 +4790,30 @@
     "assetId": "111808567384788",
     "assetType": "Decal",
     "imageId": "96469501734085",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/aurora_curtain.png": {
+    "assetId": "101661426687731",
+    "assetType": "Decal",
+    "imageId": "137361940974937",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/beam_energy.png": {
+    "assetId": "106769341622649",
+    "assetType": "Decal",
+    "imageId": "90134123684817",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/beam_soft.png": {
+    "assetId": "135238538819705",
+    "assetType": "Decal",
+    "imageId": "98573532343624",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/light_streak.png": {
+    "assetId": "80015313274648",
+    "assetType": "Decal",
+    "imageId": "114536414580559",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/BoxIdle.rbxm": {

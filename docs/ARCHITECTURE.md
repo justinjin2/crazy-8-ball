@@ -410,7 +410,10 @@ the lucky-block section below is the item flow now.
   CaseOpeningReel and CaseOpeningFx 2026-10-04), `PullCutscene` (the Rare-and-up pull, moved
   from the cases to the lucky blocks; being redone one by one: every scene starts on its veil,
   a black fade from a second before the reel stops (`BlockReel.start`'s `onStopping`), and Rare and Epic draw
-  only on the veil), `ShopMenu` (emptied 2026-10-04 to its
+  only on the veil; Legendary's film holds the camera, clamped short of anything solid, under
+  letterbox bars on the veil), `SkyAurora` (the gold aurora after a Legendary pull, round each
+  player's camera: the opener's from its card, everyone else's from the Banner "Aurora" the
+  server sends on the opener's BlockRequest "Reveal"), `ShopMenu` (emptied 2026-10-04 to its
   frame and the four jump buttons for the GUI overhaul; the page, card, odds, need, gift and
   thank-you modules are deleted), `RewardsMenu`, `RewardChips` (a block chip flies to the
   hotbar as its 3D icon, `BlockIcon`), `TradeMenu`, `CueViewport` (the Index's cue turning in 3D: a ViewportFrame holding

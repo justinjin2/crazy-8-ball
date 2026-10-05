@@ -200,6 +200,15 @@ function Announce.unbox(player: Player, cueId: string)
 	end)
 end
 
+--- `player`'s Legendary pull card is showing (LuckyBlockService checked it): the gold aurora
+--- in the sky for everyone in this server (Banner "Aurora", no line). Never yields.
+function Announce.aurora(player: Player, rarity: string)
+	if not isPlayer(player) then
+		return
+	end
+	fire({ kind = "Aurora", userId = player.UserId, rarity = rarity })
+end
+
 --- `player` just reached Reyes: claims the global first (Counters.claimFirst) and tells every
 --- server. Yields in its own thread; returns at once.
 function Announce.reyes(player: Player)

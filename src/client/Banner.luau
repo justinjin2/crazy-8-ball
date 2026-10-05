@@ -41,6 +41,7 @@ local ChatTags = require(script.Parent.ChatTags)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local PullCutscene = require(script.Parent.PullCutscene)
+local SkyAurora = require(script.Parent.SkyAurora)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -192,8 +193,9 @@ function Banner.onBanner(self: any, payload: any)
 		local tint = CueThumb.accentColor(rarity)
 		self:push({ text = text, color = tint, at = os.clock() })
 		ChatTags.system(ChatTags.paint(text, tint))
-		-- Someone else in this server pulled a Legendary or better: the sky's short tint
-		-- (GUI lane, 2026-10-03; never a camera or screen effect, in a match too).
+		-- Someone else in this server pulled a Mythic or better: the sky's short tint (GUI
+		-- lane, 2026-10-03; never a camera or screen effect, in a match too). A Legendary's
+		-- gold aurora comes with the opener's card instead ("Aurora" below).
 		local me = Players.LocalPlayer
 		local userId = payload.userId
 		if
@@ -203,6 +205,12 @@ function Banner.onBanner(self: any, payload: any)
 			and Players:GetPlayerByUserId(userId) ~= nil
 		then
 			PullCutscene.remote(rarity)
+		end
+	elseif kind == "Aurora" then
+		-- Someone else's Legendary card is showing: the gold aurora (theirs started with it).
+		local me = Players.LocalPlayer
+		if type(payload.userId) == "number" and me and payload.userId ~= me.UserId then
+			SkyAurora.play()
 		end
 	elseif kind == "Ult" then
 		-- An ult spin's Legendary or Mythic: worded and coloured as an unboxing is.

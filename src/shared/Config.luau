@@ -4193,6 +4193,13 @@ Config.Audio = {
 		-- fade to black (Config.Cutscenes.Epic).
 		RiserEpic = { Id = "rbxassetid://96196182552147", Volume = 0.5 },
 		ImpactEpic = { Id = "rbxassetid://124125612588605", Volume = 0.35 },
+		-- The Legendary pull cutscene (Config.Cutscenes.Legendary), the designer's files trimmed
+		-- (assets/audio/cutscenes): "Logo_Reveal_Sequence_01" (5 s: a bass drop at once, its
+		-- impact at 4.0 s; loud, kept low), "Chaos-Rise" (from 1.8 s, 3.4 s: peak at 3.1 s) and
+		-- "Cinematic-Hit-016" (from its onset, 4.5 s).
+		LegendaryCinematic = { Id = "rbxassetid://111448999523683", Volume = 0.35 },
+		LegendaryRise = { Id = "rbxassetid://119943211186448", Volume = 0.6 },
+		LegendaryHit = { Id = "rbxassetid://98145599201576", Volume = 0.45 },
 		-- The Secret pull's heartbeat and shockwave (GUI lane, 2026-10-03; licensed library
 		-- sounds: APM "Heart Beat", Pro Sound Effects "Thruster Blast 8").
 		Heartbeat = { Id = "rbxassetid://1839088414", Volume = 0.15, Overlap = true },
@@ -10281,25 +10288,98 @@ Config.Cutscenes = {
 		Impact = "ImpactEpic", -- the bass hit, with the fade to black
 		Skippable = false,
 	},
+	-- Legendary (designer, 2026-10-05): two parts. First a film: black bars come in (a wider
+	-- picture) and the black fades up on the player while the "Logo Reveal" plays from its bass
+	-- drop. The camera, close in, swings from their side round to their front; then low, looking
+	-- up past them at a gold star gathering light high above; then from high in the sky looking
+	-- down as a beam of gold light falls from the star and slams into them on the track's impact
+	-- (sparks, a shockwave, a ground ring, the screen shaking). A hard cut to black, and the
+	-- second part: a gold starlight warp on the screen while a rising tone builds, a white flash
+	-- on its peak with a cinematic hit, and the card under the white. Then a gold aurora fills
+	-- the sky for everyone in the server (Config.Cutscenes.Aurora). Skippable once seen.
+	-- Scene seconds (from the end of the fade to black), studs, degrees and 0..1 shares.
 	Legendary = {
-		Seconds = 4.2,
-		GreySaturation = -1, -- the world drains to grey (the gold stays: beam and glow)
-		GreyInSeconds = 0.5,
-		BeamFrom = 0.6, -- the gold beam drops from the sky...
-		BeamDropSeconds = 0.35,
-		BeamWidthStuds = 7, -- the soft shell...
-		ShellTransparency = 0.82,
-		CoreWidthStuds = 0.9, -- ...round a thin bright core (the player shows inside)
-		CoreTransparency = 0.1,
-		BeamHeightStuds = 260,
-		Gold = { 255, 205, 60 },
-		OrbitFrom = 0.3, -- the camera swoops low round the player
-		OrbitSeconds = 3.2,
-		OrbitDegrees = 140,
-		OrbitDistanceStuds = 15,
-		OrbitHeightStuds = 2.5, -- above the feet: low, looking up
-		OrbitFieldOfView = 62,
-		BurstAt = 3.6, -- the gold burst the card lands in
+		FadeInSeconds = 0.5, -- the black fades up on the first shot
+		BarsShare = 0.12, -- each letterbox bar, of the screen's height
+		BarsInSeconds = 0.5, -- they slide in during the fade
+		Gold = { 255, 196, 60 }, -- the beam, the star, the sparks (the Legendary gold)
+		Light = { 255, 240, 190 }, -- the white-gold hottest parts (the beam's core, the star's centre)
+		Grade = { -- the world's colour while the film plays (ColorCorrection)
+			Brightness = -0.04,
+			Contrast = 0.18,
+			Saturation = -0.15,
+			Tint = { 255, 236, 200 },
+		},
+		-- The camera. Every shot is clamped so it never passes through a table or a wall: it
+		-- stops this far short of anything solid between the player and where it wants to be.
+		CameraPadStuds = 0.6,
+		FieldOfView = 55,
+		Side = { -- shot 1: close in, from the player's side round to their front
+			To = 1.7, -- it ends here (it starts with the scene)
+			FromDegrees = 95, -- round from straight in front (0) to their side...
+			ToDegrees = 14, -- ...and on to nearly their front
+			FromStuds = 6.5, -- from the player, closing in
+			ToStuds = 5.2,
+			HeightStuds = 3.6, -- the camera's height above their feet
+			LookHeightStuds = 3.4, -- it looks at this height on them (chest and face)
+		},
+		LookUp = { -- shot 2: low, looking up past the player at the star
+			To = 3.3,
+			Studs = 10, -- in front of them
+			HeightStuds = 0.9,
+			TiltShare = 0.5, -- where it looks between their shoulders (0) and the star (1), by angle
+			PushStuds = 1.5, -- a slow push in through the shot
+			FieldOfView = 90, -- wide, so the player and the star both fit between the bars
+		},
+		Overhead = { -- shot 3: from high in the sky, looking down for the hit (to the cut)
+			HeightStuds = 30,
+			Studs = 20, -- out to one side, so the falling beam is seen coming in
+			LookHeightStuds = 6, -- it looks at this height above the player's feet
+			DropStuds = 4, -- it sinks a little toward the hit
+			TurnDegrees = 25, -- and turns slowly
+			FieldOfView = 68,
+		},
+		-- The star the beam falls from: it gathers light from the second shot on.
+		StarHeightStuds = 48, -- straight above the player
+		StarFrom = 1.5, -- it starts to glow...
+		StarFullAt = 3.15, -- ...and is at full size here
+		StarStuds = 15, -- its glow's size at full (particles)
+		GatherStuds = 32, -- light streams in toward it from a sphere this wide
+		-- The beam: falls from the star and hits the player on the Logo Reveal's impact.
+		ImpactAt = 4.0, -- the impact (the track's own, 4.0 s in: it starts with the scene)
+		DropSeconds = 1.3, -- the beam's fall from the star to the ground (it leaves in the look-up shot)
+		DropPower = 2.4, -- its fall speeds up: u^power
+		CoreStuds = 2.4, -- the bright core's width
+		GlowStuds = 6, -- its glow
+		HazeStuds = 16, -- and the faint haze round it
+		SwellAfterHit = 1.6, -- every width swells this much at the hit
+		Spirals = 2, -- ribbons of light that wind down round the falling beam
+		SpiralStuds = 2.6, -- their distance from its middle
+		SpiralTurnsPerSecond = 2.2,
+		RingFrom = 2.9, -- a gold ring on the ground round the player, turning and growing
+		RingStuds = 16, -- its size at the hit
+		ShockSeconds = 0.55, -- the shockwave out along the ground after the hit
+		ShockStuds = 70, -- its last size
+		Sparks = 160, -- sparks thrown out by the hit (scaled by the quality setting)
+		ShakeStuds = 0.9, -- the camera's shake at the hit, dying away...
+		ShakeSeconds = 0.35, -- ...over this long
+		Glare = 0.35, -- a gold glare over the screen at the hit (0..1)
+		ImpactHoldSeconds = 0.3, -- the hit holds this long, then a hard cut to black
+		-- Part two, on the screen: the starlight warp.
+		InterludeSeconds = 3.1, -- black to flash (the rise's peak lands on the flash)
+		WarpStars = 70, -- streaks of light flying out from the middle (scaled by quality)
+		WarpStreakShare = 0.2, -- a streak's length at the edge, of the screen's longer side
+		WarpSpeedFrom = 0.35, -- the streaks' speed (screens a second), at the start...
+		WarpSpeedTo = 2.2, -- ...and at the end
+		Pillars = 5, -- vertical shafts of gold light sweeping across
+		CoreScale = 0.6, -- the gold glow in the middle at the end, of the longer side
+		FlashInSeconds = 0.08, -- the white flash on the rise's peak...
+		FlashOutSeconds = 0.5, -- ...and its fade off the card
+		-- Sounds (Config.Audio.Ui), each from the start of its moment.
+		Logo = "LegendaryCinematic", -- with the scene (its bass drop at once, its impact at ImpactAt)
+		Rise = "LegendaryRise", -- at the cut to black (its peak 3.1 s in: the flash)
+		Finale = "LegendaryHit", -- on the flash, over the card's own reveal sound
+		Skippable = true, -- once it has been seen
 	},
 	Mythic = {
 		Seconds = 4.6,
@@ -10340,6 +10420,38 @@ Config.Cutscenes = {
 	},
 	-- Others' pulls (Legendary and up): the sky tint only, never a camera or screen effect.
 	Remote = { Seconds = 2.2, TintShare = 0.35 },
+	-- The cutscene effects' own art (tools/gen_cutscene_art.py; white, tinted here).
+	Art = {
+		BeamEnergy = "rbxassetid://90134123684817", -- streaks running along a beam
+		BeamSoft = "rbxassetid://98573532343624", -- a soft falloff across a beam
+		AuroraCurtain = "rbxassetid://137361940974937", -- an aurora curtain's rays
+		LightStreak = "rbxassetid://114536414580559", -- one soft streak of light
+	},
+	-- The gold aurora after a Legendary pull (SkyAurora; designer 2026-10-05): curtains of gold
+	-- light high in the sky, streaks of light shooting across it and sparkles drifting all
+	-- around, for everyone in the server (the opener from their card, everyone else when the
+	-- opener's card shows). Around each player's own camera, so it is overhead wherever they
+	-- are. Seconds, studs and 0..1 shares.
+	Aurora = {
+		Seconds = 14, -- in all
+		InSeconds = 1.5, -- it fades in...
+		OutSeconds = 3, -- ...and out
+		Curtains = 7, -- curtains of light (scaled by the quality setting, at least 3)
+		HeightStuds = 170, -- their lower edge above the camera
+		DistanceStuds = 260, -- out from the camera
+		LengthStuds = 420, -- each curtain's length
+		WidthStuds = 150, -- and height
+		WaveStuds = 45, -- how far a curtain folds (toward and away from the player)
+		WaveSpeed = 0.35, -- how fast the folds move
+		TextureSpeed = 0.05, -- how fast the rays drift along a curtain
+		Colours = { { 255, 190, 40 }, { 255, 140, 20 }, { 255, 225, 120 } }, -- gold, amber, pale gold
+		Transparency = 0.15, -- at a curtain's brightest
+		StreaksPerSecond = 9, -- streaks of light shooting across the sky
+		SparklesPerSecond = 40, -- gold sparkles drifting round the player
+		Darken = -0.08, -- the world dims a touch so the sky glows (ColorCorrection brightness)
+		TintShare = 0.12, -- and warms
+		RevealWindowSeconds = 60, -- the server accepts the opener's "my card shows" this long after the roll
+	},
 	HintAfterSeconds = 0.6, -- "Tap to skip" shows this late (only once the kind was seen)
 	-- The 1v1 match result (ResultCutscene; GUI lane, C11a, D2): fade to black, then on the
 	-- table the winner stands holding their cue upright with the other arm up, and the loser

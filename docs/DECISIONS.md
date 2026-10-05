@@ -2445,6 +2445,21 @@ timer of a new block stay the designer's call.
   the riser's peak, the card under the white. Never skipped. The old streak scene is gone;
   a redone scene's riser and impact are now generic (`Riser`, `RiserPeakSeconds`, `Impact` in
   its `Config.Cutscenes` row).
+- **2026-10-05 — Legendary pull cutscene redone: a film, a starlight warp and a gold aurora
+  (designer's brief and sounds, Claude's look).** Part one is a film behind black letterbox
+  bars, close on the player: the black fades up on them as the designer's "Logo Reveal" plays;
+  the camera swings from their side round to their front, then looks up past them (wide lens)
+  at a gold star gathering light above, then from high in the sky as a beam of gold light
+  (energy core, glow, haze, spiralling ribbons, sparks) falls from the star and slams into them
+  on the track's impact (4.0 s): sparks, a shockwave, a turning ring and sigil on the ground,
+  a gold glare, the screen shaking. Every shot stops short of anything solid between the
+  camera and the player (no more clipping through tables). A hard cut to black, then part two:
+  a gold starlight warp (streaks flying out, rays, light pillars, rings) while "Chaos Rise"
+  builds; a white flash on its peak with "Cinematic Hit", and the card. Skippable once seen.
+  Then a gold aurora (`SkyAurora`: curtains of light, shooting streaks, sparkles, a slight dim)
+  for 14 s for everyone in the server: the opener's client says its card is showing
+  (BlockRequest "Reveal"), the server checks a Legendary was opened in the last minute and
+  sends the Banner "Aurora". The old grey-world beam and the Legendary sky tint are gone.
 - **2026-10-05 — No introduction when the 8 must be called (designer).** A turn that starts
   owing the call for the 8 goes straight to PocketChoice: the 2 s Intro held the pocket rings
   back while the top-down view and the prompt were already up (every return to the table after
