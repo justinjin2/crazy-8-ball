@@ -431,16 +431,13 @@ return {
 		)
 			local row = Money.farmRow(n)
 			H.expect(
-				row.Xp == xp
-					and row.Bonus == bonusShare
-					and row.Balls == balls
-					and row.FreeCase == case,
-				("match %s: Xp %s Bonus %s Balls %s FreeCase %s"):format(
+				row.Xp == xp and row.Bonus == bonusShare and row.Balls == balls and row.Drop == case,
+				("match %s: Xp %s Bonus %s Balls %s Drop %s"):format(
 					tostring(n),
 					tostring(row.Xp),
 					tostring(row.Bonus),
 					tostring(row.Balls),
-					tostring(row.FreeCase)
+					tostring(row.Drop)
 				)
 			)
 		end
@@ -448,7 +445,7 @@ return {
 			expectRow(n, 1, 1, 1, true) -- matches 1-5 in full
 		end
 		for n = 6, 10 do
-			expectRow(n, 0.5, 0.5, 1, false) -- 6-10: half the XP and bonus, no Case Drop
+			expectRow(n, 0.5, 0.5, 1, false) -- 6-10: half the XP and bonus, no block
 		end
 		for _, n in { 11, 12, 50, 1000 } do
 			expectRow(n, 0, 0.25, 0.5, false) -- from 11: no XP, a quarter bonus, half the balls
@@ -468,8 +465,8 @@ return {
 		expectPay(half, "3:Ball:50 3:Bank:75 5:Ball:50 5:Combo:100", 275, "half the ball pay")
 		-- The rest of 3.6 lives in Config for the server.
 		local E = Config.Economy
-		H.expect(E.FreeCasesPerOpponent == 3, "at most 3 Case Drops a day from one account")
-		H.expect(E.FreeCaseLoserMinMatches == 5, "the loser must have played 5 real matches")
+		H.expect(E.DropsPerOpponent == 3, "at most 3 blocks a day from one account")
+		H.expect(E.DropLoserMinMatches == 5, "the loser must have played 5 real matches")
 	end,
 
 	["the win bonus follows the opponent gap, never under half (ECONOMY 4.4)"] = function()

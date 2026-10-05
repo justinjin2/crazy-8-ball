@@ -2,7 +2,7 @@
 -- Daily rewards (ECONOMY sections 10 and 18): the login streak, the playtime gifts and the
 -- promo codes. Pure: no Instances, no Roblox APIs, no clocks (the caller passes the UTC day or
 -- the unix time), no randomness, and every loop walks an array (the streak and playtime lists,
--- Config.Cases.Order), never a keyed table, so nothing depends on hash order.
+-- Config.LuckyBlocks.Order), never a keyed table, so nothing depends on hash order.
 --
 -- The server (src/server/Rewards.luau) owns the save and calls these inside ONE save mutation
 -- that also grants the reward; the client only shows the states. Who changes what:
@@ -12,21 +12,20 @@
 --     save.Codes), so the mark and the reward can never drift apart. Call them on the live
 --     save inside the mutation, never on a read-only copy.
 --
--- A reward is always { money = n, cases = { [caseId] = count }, drops = n, spins = n,
--- lucky = n } (0 and empty when there is none); Daily.caseList lists its cases in
--- Config.Cases.Order. `drops` are Case Drops (each rolled with pity when given), `spins` and
--- `lucky` ability spins and Lucky Spins. The approved economy plan (2026-10-02, section 6).
+-- A reward is always { money = n, blocks = { [kind] = count }, spins = n, lucky = n } (0 and
+-- empty when there is none); Daily.blockList lists its lucky blocks in
+-- Config.LuckyBlocks.Order. `spins` and `lucky` are ability spins and Lucky Spins. The
+-- approved economy plan (2026-10-02, section 6; cases retired for blocks 2026-10-04).
 local Config = require(script.Parent.Parent.Config)
 
 local D = Config.Daily
-local CASE_ORDER: { string } = Config.Cases.Order
+local BLOCK_ORDER: { string } = Config.LuckyBlocks.Order
 
 local SECONDS_PER_DAY = 86400
 
 export type Reward = {
 	money: number,
-	cases: { [string]: number },
-	drops: number, -- Case Drops
+	blocks: { [string]: number }, -- lucky blocks by kind
 	spins: number, -- ability spins
 	lucky: number, -- Lucky Spins
 }
@@ -49,15 +48,6 @@ export type LoginState = {
 	freezeReady: boolean, -- this week's freeze is not used yet
 }
 
-export type NextReward = {
-	day: number,
-	week: number,
-	total: number,
-	reward: Reward,
-	bonus: boolean,
-	tomorrow: boolean, -- false: today's claim is still waiting; true: it comes tomorrow
-}
-
 export type Gift = {
 	index: number,
 	minutes: number,
@@ -67,14 +57,13 @@ export type Gift = {
 	progress: number, -- 0..1 of the minutes played today
 }
 
-export type CaseCount = { id: string, count: number }
+export type BlockCount = { kind: string, count: number }
 
--- A Config reward row: Money, Cases, Drops, Spins and/or LuckySpins, plus Minutes (playtime),
+-- A Config reward row: Money, Blocks, Spins and/or LuckySpins, plus Minutes (playtime),
 -- Day (the track) or Expires and Live (codes).
 type RewardRow = {
 	Money: number?,
-	Cases: { [string]: number }?,
-	Drops: number?,
+	Blocks: { [string]: number }?,
 	Spins: number?,
 	LuckySpins: number?,
 	Minutes: number?,
@@ -114,23 +103,22 @@ local function whole(x: any): number
 	return math.floor(num(x))
 end
 
--- A new reward from a Config row. Only Money, Cases, Drops, Spins and LuckySpins are read, so
--- a reward can never carry anything else.
+-- A new reward from a Config row. Only Money, Blocks, Spins and LuckySpins are read, so a
+-- reward can never carry anything else.
 local function rewardOf(row: RewardRow?): Reward
-	local reward: Reward = { money = 0, cases = {}, drops = 0, spins = 0, lucky = 0 }
+	local reward: Reward = { money = 0, blocks = {}, spins = 0, lucky = 0 }
 	if row == nil then
 		return reward
 	end
 	reward.money = math.max(0, whole(row.Money))
-	reward.drops = math.max(0, whole(row.Drops))
 	reward.spins = math.max(0, whole(row.Spins))
 	reward.lucky = math.max(0, whole(row.LuckySpins))
-	local cases = row.Cases
-	if cases ~= nil then
-		for _, caseId in CASE_ORDER do
-			local count = whole(cases[caseId])
+	local blocks = row.Blocks
+	if blocks ~= nil then
+		for _, kind in BLOCK_ORDER do
+			local count = whole(blocks[kind])
 			if count > 0 then
-				reward.cases[caseId] = count
+				reward.blocks[kind] = count
 			end
 		end
 	end
@@ -140,15 +128,14 @@ end
 local function merge(a: Reward, b: Reward): Reward
 	local out: Reward = {
 		money = a.money + b.money,
-		cases = {},
-		drops = a.drops + b.drops,
+		blocks = {},
 		spins = a.spins + b.spins,
 		lucky = a.lucky + b.lucky,
 	}
-	for _, caseId in CASE_ORDER do
-		local count = (a.cases[caseId] or 0) + (b.cases[caseId] or 0)
+	for _, kind in BLOCK_ORDER do
+		local count = (a.blocks[kind] or 0) + (b.blocks[kind] or 0)
 		if count > 0 then
-			out.cases[caseId] = count
+			out.blocks[kind] = count
 		end
 	end
 	return out
@@ -159,13 +146,13 @@ function Daily.dayOf(unix: number): number
 	return math.floor(unix / SECONDS_PER_DAY)
 end
 
---- A reward's cases as a list in Config.Cases.Order, for showing them.
-function Daily.caseList(reward: Reward): { CaseCount }
-	local list: { CaseCount } = {}
-	for _, caseId in CASE_ORDER do
-		local count = reward.cases[caseId]
+--- A reward's lucky blocks as a list in Config.LuckyBlocks.Order, for showing them.
+function Daily.blockList(reward: Reward): { BlockCount }
+	local list: { BlockCount } = {}
+	for _, kind in BLOCK_ORDER do
+		local count = reward.blocks[kind]
 		if count ~= nil and count > 0 then
-			table.insert(list, { id = caseId, count = count })
+			table.insert(list, { kind = kind, count = count })
 		end
 	end
 	return list
@@ -316,38 +303,6 @@ function Daily.setStreakDay(login: Login, today: number, n: number, week: number
 		return { LastDay = now - 1, StreakDay = day - 1, Total = count - 1, FreezeWeek = freeze }
 	end
 	return { LastDay = 0, StreakDay = 0, Total = math.max(0, count - 1), FreezeWeek = freeze }
-end
-
---- What the next claim gives: today's while it is unclaimed, else tomorrow's (if the player
---- comes back tomorrow). The reminder "Come back tomorrow for your Rare Case" reads this.
-function Daily.nextReward(login: Login, today: number, vip: boolean?): NextReward
-	local state = Daily.loginState(login, today, vip)
-	if state.canClaim then
-		return {
-			day = state.day,
-			week = state.week,
-			total = state.total,
-			reward = state.reward,
-			bonus = state.bonus,
-			tomorrow = false,
-		}
-	end
-	local day = following(state.day)
-	local count = state.total + 1
-	local _, week = trackPlace(count)
-	local reward = Daily.streakReward(day, vip)
-	local track = Daily.trackReward(count)
-	if track ~= nil then
-		reward = merge(reward, track)
-	end
-	return {
-		day = day,
-		week = week,
-		total = count,
-		reward = reward,
-		bonus = track ~= nil,
-		tomorrow = true,
-	}
 end
 
 ---------------------------------------------------------------------------------------------

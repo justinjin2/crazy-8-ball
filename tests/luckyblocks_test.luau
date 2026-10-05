@@ -1,17 +1,19 @@
 --!strict
 -- Lucky blocks (Progression/LuckyBlocks; the test build, designer 2026-10-03): the kinds point
--- at real cases, timers and readiness, the hotbar order (add, remove, move), the client's copy,
+-- at real odds rows, timers and readiness, the hotbar order (add, remove, move), the client's copy,
 -- the countdown text and BlockRequest's argument checks.
 
 local H = require("./harness")
 
 local function load()
-	return H.require("Progression.LuckyBlocks"), H.require("Config"), H.require("Progression.Cases")
+	return H.require("Progression.LuckyBlocks"),
+		H.require("Config"),
+		H.require("Progression.BlockOdds")
 end
 
 return {
 	["new block tiers use the requested odds and timers"] = function()
-		local L = load()
+		local L, Config = load()
 		for _, row in
 			{
 				{ "Uncommon", "Uncommon", 0 },
@@ -22,14 +24,17 @@ return {
 				{ "Gift", "Rare", 43200 },
 			}
 		do
-			H.expect(L.kind(row[1]).Case == row[2] and L.timer(row[1]) == row[3], row[1])
+			H.expect(L.kind(row[1]).Odds == row[2] and L.timer(row[1]) == row[3], row[1])
 		end
-		-- VIP halves every timer; the Mystery block rolls a tier first (no case of its own).
+		-- VIP halves every timer (Config.LuckyBlocks.VipTimerFactor); the Mystery block rolls a
+		-- tier first (no odds row of its own).
+		H.expect(Config.LuckyBlocks.VipTimerFactor == 0.5, "twice as fast")
 		H.expect(L.timer("Rare", true) == 1800 and L.timer("Standard", true) == 0, "VIP halves")
-		H.expect(L.kind("Mystery").Roll == true and L.kind("Mystery").Case == nil, "Mystery")
+		H.expect(L.timer("Mythic", true) == 86400, "48 h becomes 24 h")
+		H.expect(L.kind("Mystery").Roll == true and L.kind("Mystery").Odds == nil, "Mystery")
 		-- The old saved ids map to the new kinds (Config.LuckyBlocks.Renamed).
 		H.expect(L.current("Yellow") == "Standard" and L.current("GoldKing") == "Legendary", "")
-		H.expect(L.kind("Blue").Case == "Rare" and L.current("Rare") == "Rare", "renamed")
+		H.expect(L.kind("Blue").Odds == "Rare" and L.current("Rare") == "Rare", "renamed")
 	end,
 	["the Grand Opening block's guarantee: the 400th open gives the Beta Cue if none"] = function()
 		local L = load()
@@ -97,18 +102,18 @@ return {
 		H.expect(L.find(restored.LuckyBlocks, b.Id).ReadyAt == 87400, "long timer unchanged")
 	end,
 
-	["every kind rolls a real case and the test kinds match the designer's"] = function()
-		local LuckyBlocks, Config, Cases = load()
+	["every kind rolls a real odds row and the test kinds match the designer's"] = function()
+		local LuckyBlocks, Config, BlockOdds = load()
 		local Strings = H.require("Strings")
 		H.expect(#LuckyBlocks.validate() == 0, "no problems")
 		for _, id in Config.LuckyBlocks.Order do
 			local kind = LuckyBlocks.kind(id)
 			H.expect(kind ~= nil, id .. " is a kind")
 			if kind.Roll then
-				H.expect(kind.Case == nil, id .. " rolls a tier, not a case")
+				H.expect(kind.Odds == nil, id .. " rolls a tier, not a row")
 			else
-				H.expect(Cases.get(kind.Case) ~= nil, id .. " rolls a case")
-				H.expect(#Cases.cueOdds(kind.Case) > 0, id .. " has cues to roll")
+				H.expect(BlockOdds.get(kind.Odds) ~= nil, id .. " rolls an odds row")
+				H.expect(#BlockOdds.cueOdds(kind.Odds) > 0, id .. " has cues to roll")
 			end
 			H.expect(
 				type(Strings.LuckyBlocks.Names[id]) == "string",
@@ -116,18 +121,18 @@ return {
 			)
 		end
 		H.expect(
-			LuckyBlocks.kind("Standard").Case == "Standard",
+			LuckyBlocks.kind("Standard").Odds == "Standard",
 			"Standard rolls the Standard odds"
 		)
 		H.expect(LuckyBlocks.timer("Standard") == 0, "Standard opens at once")
-		H.expect(LuckyBlocks.kind("Rare").Case == "Rare", "Rare rolls the Rare odds")
+		H.expect(LuckyBlocks.kind("Rare").Odds == "Rare", "Rare rolls the Rare odds")
 		H.expect(LuckyBlocks.timer("Rare") == 3600, "Rare waits an hour")
 		H.expect(LuckyBlocks.kind("Purple") == nil and LuckyBlocks.kind(5) == nil, "unknown: nil")
 		-- The extra tables roll the whole core pool; the Grand Opening block's Unique rows.
-		H.expect(LuckyBlocks.kind("Sky").Case == "Sky" and Cases.get("Sky") ~= nil, "Sky")
-		H.expect(#Cases.uniqueRows("GrandOpening") == 2, "two Unique rows")
-		H.expect(Cases.canDrop("GrandOpening", "BetaCue"), "the Beta Cue drops from it")
-		H.expect(not Cases.canDrop("Standard", "BetaCue"), "not from a Standard block")
+		H.expect(LuckyBlocks.kind("Sky").Odds == "Sky" and BlockOdds.get("Sky") ~= nil, "Sky")
+		H.expect(#BlockOdds.uniqueRows("GrandOpening") == 2, "two Unique rows")
+		H.expect(BlockOdds.canDrop("GrandOpening", "BetaCue"), "the Beta Cue drops from it")
+		H.expect(not BlockOdds.canDrop("Standard", "BetaCue"), "not from a Standard block")
 	end,
 
 	["a block's timer starts when it lands"] = function()

@@ -3,20 +3,20 @@
 -- player holds. The save keeps them as { Next, List }: List is a gapless array in hotbar order
 -- (the first Config.LuckyBlocks.HotbarSlots are the hotbar's slots 1..9, the rest wait in the
 -- bag), each { Id, Kind, ReadyAt }; Next is the last id given, so ids never repeat in a save.
--- A block's cue is rolled from its kind's case (Cases.roll / Cases.cueOdds): no odds of its own.
+-- A block's cue is rolled from its kind's odds row (BlockOdds.roll / cueOdds): no odds of its own.
 --
 -- Pure: no Instances, no Roblox APIs, no clocks (the caller passes `now`, unix seconds) and no
 -- randomness; Lune-tested (tests/luckyblocks_test.luau). PlayerData calls the changes on the live
 -- save; LuckyBlockService checks BlockRequest's arguments with `parse`.
 local Config = require(script.Parent.Parent.Config)
-local Cases = require(script.Parent.Cases)
+local BlockOdds = require(script.Parent.BlockOdds)
 local Catalog = require(script.Parent.Catalog)
 
 local L = Config.LuckyBlocks
 
 export type Kind = {
-	Case: string?, -- the odds table it rolls (nil with Roll: the tier roll first)
-	Roll: boolean?, -- the Mystery block: rolls a tier by Config.Cases.Drop.Weights, then that case
+	Odds: string?, -- the Config.BlockOdds row it rolls (nil with Roll: the tier roll first)
+	Roll: boolean?, -- the Mystery block: rolls a tier by Config.BlockOdds.Drop.Weights, then that row
 	Timer: number,
 	Model: string,
 	Idle: string?,
@@ -94,13 +94,13 @@ function LuckyBlocks.fresh(): State
 end
 
 --- Seconds after landing until a block of `kind` can be thrown (0 for an unknown kind). VIP
---- halves every timer (Config.Cases.QuickTimerFactor, rounded up to whole seconds).
+--- shortens every timer (Config.LuckyBlocks.VipTimerFactor, rounded up to whole seconds).
 function LuckyBlocks.timer(kind: string, vip: boolean?): number
 	local row = LuckyBlocks.kind(kind)
 	if row == nil or row.Timer <= 0 then
 		return 0
 	end
-	return if vip then math.ceil(row.Timer * Config.Cases.QuickTimerFactor) else row.Timer
+	return if vip then math.ceil(row.Timer * L.VipTimerFactor) else row.Timer
 end
 
 --- How many blocks of `kind` this player has opened.
@@ -256,8 +256,8 @@ function LuckyBlocks.snapshot(state: State): { { id: number, kind: string, ready
 	return list
 end
 
---- Everything wrong with the kinds against the cases, sorted (empty when all is well): a kind
---- missing from Order or Kinds, a case that does not exist, a timer that is not a whole number
+--- Everything wrong with the kinds against the odds rows, sorted (empty when all is well): a kind
+--- missing from Order or Kinds, an odds row that does not exist, a timer that is not a whole number
 --- of seconds, or an empty model name. Checked when this module loads.
 function LuckyBlocks.validate(): { string }
 	local problems = {}
@@ -267,19 +267,19 @@ function LuckyBlocks.validate(): { string }
 			table.insert(problems, id .. ": in Order but not in Kinds")
 		else
 			if row.Roll then
-				if row.Case ~= nil then
-					table.insert(problems, id .. ": Roll and Case together")
+				if row.Odds ~= nil then
+					table.insert(problems, id .. ": Roll and Odds together")
 				end
-			elseif Cases.get(row.Case) == nil then
-				table.insert(problems, ("%s: no case %s"):format(id, tostring(row.Case)))
+			elseif BlockOdds.get(row.Odds) == nil then
+				table.insert(problems, ("%s: no odds row %s"):format(id, tostring(row.Odds)))
 			end
 			local g = row.Guarantee
 			if g ~= nil then
 				local cue = Catalog.get(g.Cue)
 				if cue == nil or cue.Group ~= "Unique" then
 					table.insert(problems, id .. ": Guarantee.Cue is not a Unique cue")
-				elseif row.Case == nil or not Cases.canDrop(row.Case, g.Cue) then
-					table.insert(problems, id .. ": Guarantee.Cue does not drop from its case")
+				elseif row.Odds == nil or not BlockOdds.canDrop(row.Odds, g.Cue) then
+					table.insert(problems, id .. ": Guarantee.Cue does not drop from its odds row")
 				end
 				if type(g.At) ~= "number" or g.At < 1 or g.At ~= math.floor(g.At) then
 					table.insert(problems, id .. ": Guarantee.At is not a whole count")

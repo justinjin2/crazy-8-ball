@@ -91,7 +91,7 @@ export type FarmRow = {
 	Xp: number,
 	Bonus: number,
 	Balls: number,
-	FreeCase: boolean,
+	Drop: boolean,
 }
 
 local Money = {}

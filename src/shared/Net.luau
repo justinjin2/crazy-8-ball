@@ -65,35 +65,23 @@ local REMOTES: { [string]: string } = {
 	-- "Draw", forfeited},
 	-- xp? (nil: solo, under the one-minute mark, or no save) = {before, after (ranks: tier,
 	--   division, index, xpInDivision, width?), xpBefore, xpAfter, delta (never below 0),
-	--   promoted, newTier, rewards = {{index, money, cases = {[caseId] = count}, cue?}} (every
-	--   division the new peak passed, bottom first), rewardTotal, rewardCases = {[caseId] =
+	--   promoted, newTier, rewards = {{index, money, blocks = {[kind] = count}, cue?}} (every
+	--   division the new peak passed, bottom first), rewardTotal, rewardBlocks = {[kind] =
 	--   count}, rewardCues = {cueId}, breakdown = {base, mode, fade, gap, pc, farm, boosts =
 	--   {{kind = "Streak", share}}, boostTotal}},
 	-- money = {balls, ballMoney, nice, niceMoney (the pots, paid live), bonus (win or loss),
 	--   streak (the win-streak bonus), reward (rank-up money), boost (the money boost share
 	--   applied at the end: VIP + Money Party, 0..2), total (all of them added)},
-	-- freeCase? (the tier of the win's Case Drop, already in the inventory), caseDrop? (that
-	-- drop's reveal: the CaseDrop remote's payload with source "Win"; win drops come only
-	-- here, never on the CaseDrop remote),
-	-- nextReward? (Daily.nextReward: {day, week, reward = {money, cases}, bonus, tomorrow}, the
-	-- reminder line), rematch, arena, series? = {wins = {team 1, team 2}, games}}.
+	-- block? = { kind, readyAt } (the win's lucky block, already in the hotbar: a Mystery
+	-- block, the first win's Rare one; readyAt in unix seconds, 0 = ready now),
+	-- rematch, arena, series? = {wins = {team 1, team 2}, games}}.
 	MatchSummary = "RemoteEvent",
-	-- server -> one player: Case Drops just landed outside a match result (Mystery Cases,
-	-- reward drops, /freecase), for the magic 8-ball reveal (the Cutscenes lane). A list, one
-	-- per drop: { { source ("Mystery", "Reward", "Dev" ...), tier (a Config.Cases.Order id),
-	-- climbs (steps above Standard the reveal climbs: 0..5; the server decided the tier
-	-- first), readyAt (unix time it opens; 0 = now), instant (no timer: end on Open now /
-	-- Later), pity = { rare, epic } (drops left until a Rare / Epic case is guaranteed; 1 =
-	-- the next one) } }. The case is already in the save.
-	CaseDrop = "RemoteEvent",
 	-- server -> one player: a promotion outside a match's result screen (/xp, /newrank). XP is
 	-- never lost, so there is no rank-down. {kind = "Up", preview?, before, after, reward
-	-- (money), newTier, rewards? = {{index, money, cases = {[caseId] = count}, cue?}},
-	-- rewardCases? = {[caseId] = count}, rewardCues? = {cueId}} (the NEW RANK! chips).
+	-- (money), newTier, rewards? = {{index, money, blocks = {[kind] = count}, cue?}},
+	-- rewardBlocks? = {[kind] = count}, rewardCues? = {cueId}} (the NEW RANK! chips).
 	RankEvent = "RemoteEvent",
-	-- server -> one player: a private line for the chat window (the developer commands), or a
-	-- table { kind = "OpenCase", caseId, count } that opens that case on the reel (/opencase;
-	-- CaseOpening listens, the chat handler ignores tables).
+	-- server -> one player: a private line for the chat window (the developer commands).
 	DevNotice = "RemoteEvent",
 	-- The global queue and the arena (designer, 2026-09-28).
 	-- server -> the players of one search: {kind = "Found" | "Teleporting" | "Failed" |
@@ -111,15 +99,8 @@ local REMOTES: { [string]: string } = {
 	-- money, a price, a rarity or a result: the server prices, rolls and decides everything.
 	-- client -> server, answered (src/server/Items.luau): (action, a?, b?) -> { ok = true, ... }
 	-- or { ok = false, reason }; it never errors. A missing count is 1. Actions and replies:
-	--   "BuyCase" (caseId, count 1 | Config.Cases.BulkCount) -> no case is sold for money any
-	--     more (economy plan 3): always "NotSold"
-	--   "OpenCase" (caseId, count 1 | Config.Cases.FastOpenCount, more than 1 with Fast Open)
-	--     -> { caseId, results = { { cue, rarity, new, duplicate, count, found } } } (count:
-	--     copies owned once it was added; found: the finder's money a cue new to the Index
-	--     paid, else 0; rolled by the server; only ready cases open: a case on its timer
-	--     answers "NotReady")
 	--   "SellCue" (cueId, count) -> { cueId, count, money }
-	--   "SellDuplicates" (cueId? for one cue's, else every case cue's) -> { money, sold = { {
+	--   "SellDuplicates" (cueId? for one cue's, else every block cue's) -> { money, sold = { {
 	--     id, count, money } } } (nothing to sell: money 0, sold {})
 	--   "EquipCue" (cueId) -> { cueId }
 	--   "MarkSeen" ({ cueId } at most Config.Items.MarkSeenMax) -> { cleared }
@@ -130,23 +111,19 @@ local REMOTES: { [string]: string } = {
 	--     (count) is the old name for the Mystery deal)
 	--   "BuyRestock" (itemId "Slot1" .. "Slot3" | "Vip" of the restock now) -> { itemId,
 	--     price } (its lucky block lands ready at once)
-	--   "SkipTimer" (caseId, at: that timer's readyAt) -> { caseId, price } (money: $25 a
-	--     minute left, at least $250)
 	-- Reasons (Progression/Requests.Reasons): "BadRequest" (unknown action, wrong type,
 	-- unknown id, count not allowed), "TooFast" (Config.Items.RateBurst / RatePerSecond),
-	-- "Busy" (another request still being answered), "NotLoaded" (the save, or for BuyCase the
-	-- PolicyService answer, is not ready), "Teleporting", "NotSold" (a switched-off case),
-	-- "Restricted" (paid random items), "NotEnoughMoney" (+ need, price), "NoCases",
-	-- "NotReady" (the case is still on its timer), "VipOnly" (the restock's VIP slot), "Full"
-	-- (BuyBlocks, BuyRestock: the hotbar holds Config.LuckyBlocks.MaxBlocks), "NoTimer"
-	-- (SkipTimer: no such timer running),
-	-- "NoFastOpen", "NotOwned", "CantSell" (Exclusive, Unique, Classic), "Equipped" (the last
+	-- "Busy" (another request still being answered), "NotLoaded" (the save, or for a block
+	-- purchase the PolicyService answer, is not ready), "Teleporting",
+	-- "Restricted" (paid random items), "NotEnoughMoney" (+ need, price),
+	-- "VipOnly" (the restock's VIP slot), "Full"
+	-- (BuyBlocks, BuyRestock: the hotbar holds Config.LuckyBlocks.MaxBlocks),
+	-- "NotOwned", "CantSell" (Exclusive, Unique, Classic), "Equipped" (the last
 	-- copy of the equipped cue), "Claimed", "Incomplete", "NoReward" (Exclusive and Unique
 	-- rows), "NotStarted", "Ended", "SoldOut", "Owned" (a Limited is one per player), "Error".
 	ItemRequest = "RemoteFunction",
 	-- server -> one player: their inventory, the Progression/Inventory.snapshot table itself (no
-	-- wrapper): { cues = { { id, count, new, copy? } }, cases = { { id, count } } (ready),
-	-- timers = { { id, readyAt, paid } } (cases on their timers, soonest first), equipped,
+	-- wrapper): { cues = { { id, count, new, copy? } }, equipped,
 	-- seen = { id }, rows = { { rarity, have, total, complete, claimed, reward = { money }? } },
 	-- titles = { id } }. Sent when the save loads and after every change that
 	-- touches it, at most once a frame, and only when it differs from the last one sent. The
@@ -156,22 +133,22 @@ local REMOTES: { [string]: string } = {
 	ItemState = "RemoteEvent",
 	-- server -> one player: cues that just entered their Index for the first time, and the
 	-- finder's money each paid (Config.Index.FindMoney, already added): { { cue, money } }.
-	-- Sent for every source but a case reel (OpenCase's reply carries theirs): rank-up and reward cues, the VIP and Starter cues, Limited cues (src/server/
+	-- Sent for every source but a lucky block's reel (BlockRequest Open's reply carries
+	-- theirs): rank-up and reward cues, the VIP and Starter cues, Limited cues (src/server/
 	-- Items.luau, from PlayerData.CueFound). The client shows a banner line.
 	CueFound = "RemoteEvent",
 	-- server -> one player: the shop's state for them (src/server/Store.luau builds it with
 	-- Progression/ShopView.build). Sent on load and whenever any of it changes: a purchase, a
-	-- pass, the Vip/FastOpen/PaidRandomRestricted attributes, the case sale, the Money Party,
+	-- pass, the Vip/PaidRandomRestricted attributes, the Money Party,
 	-- a Limited count, an offer or Limited window opening or closing on the clock. Times are
 	-- unix seconds on the server's clock (workspace:GetServerTimeNow()). {
-	--   vip (the pass OR the welcome offer), vipPass, vipOffer (bought the offer), fastOpen,
+	--   vip (the pass OR the welcome offer), vipPass, vipOffer (bought the offer),
 	--   restricted (paid random items), firstPackBought, starterBought,
 	--   offers = { VipOffer = { open, startsAt, endsAt, kind = "Welcome" | "Comeback" },
 	--     StarterPack = { open, startsAt, endsAt } } (keyed by Config.Products key, read by
 	--     ItemState.offerEndsAt; VipOffer shows the open window, else the comeback still to
 	--     come, else zeros),
 	--   party = { endsAt, buyer? }? (this server's Money Party while it runs),
-	--   sale = { case, percent, endsAt }? (the one case on sale now),
 	--   limited = { { cue, product?, price?, cap?, sold?, startsAt, endsAt, open, soldOut,
 	--     owned, copy?, canBuy } } (Config.Shop.Limited order),
 	--   products = { [Config.Products key] = { kind = "Product" | "Pass", robux (live, else
@@ -183,7 +160,7 @@ local REMOTES: { [string]: string } = {
 	--   robloxPlus (show Get Roblox Plus), bestValue (the pack marked "Best value"),
 	--   packs = { key } (the money packs in order),
 	--   restock = { slot, startsAt, endsAt, items = { { id ("Uncommon", "Rare", "Epic",
-	--     "Legendary", "Mystery", "Vip"), case?, mystery? (Mystery Cases it gives), price
+	--     "Legendary", "Mystery", "Vip"), price
 	--     (money), product? (its Robux key), stock (per player), left (this player's), global?
 	--     (a shared stock, none now), globalLeft? (nil: unknown), vip, canBuy, reason? } },
 	--     each item's `block` the lucky block kind in that slot (Slot1 .. Slot3, Vip) } (a new
@@ -195,23 +172,21 @@ local REMOTES: { [string]: string } = {
 	--     GrandOpening for its 21 days, "vaulted" for 7 more),
 	--   guarantees = { [kind] = { cue, at, opened, left, owned } } (a block kind's Guarantee:
 	--     the Grand Opening block's Beta Cue on the 400th open),
-	--   mystery = { price, bulkCount, bulkPrice }, skip = { moneyPerMinute, minMoney },
-	--   pity = { rare, epic } (Case Drops until a Rare / Epic case is guaranteed),
+	--   mystery = { price, bulkCount, bulkPrice },
+	--   pity = { rare, epic } (Mystery blocks until a Rare / Epic tier is guaranteed),
 	--   releaseSale = { open, startsAt, endsAt, percent, swap = { normal key -> sale key } }
 	--     (GUI lane, 2026-10-03: the release sale's products Pack4Sale-Pack7Sale, VipSale,
 	--     Mystery10Sale sell only while open; the Legendary restock has no shared stock now) }
-	-- Product keys (Config.Products): passes Vip, QuickCases (retired: hidden, VIP opens
-	-- fast), UltSlot2, UltSlot3; products VipOffer, StarterPack, Pack1-7, Mystery1, Mystery10,
-	-- GrandOpening1/3/10, RestockRare, RestockEpic, RestockLegendary, Skip1h/6h/24h/48h,
-	-- MoneyParty, Spin1/5/10/50, Lucky1/3. Paid random items (blocks, Restock, Skip, spins)
+	-- Product keys (Config.Products): passes Vip, UltSlot2, UltSlot3; products VipOffer,
+	-- StarterPack, Pack1-7, Mystery1, Mystery10, GrandOpening1/3/10, RestockRare, RestockEpic,
+	-- RestockLegendary, LuckyBlockSkip, MoneyParty, Spin1/5/10/50, Lucky1/3. Paid random
+	-- items (blocks, Restock, the block skip, spins)
 	-- answer "Restricted" where PolicyService restricts them; blocks answer "Full" when the
 	-- hotbar is full.
 	ShopState = "RemoteEvent",
-	-- client -> server, answered: ("Buy", a Config.Products key; "FastOpen" still means
-	-- QuickCases) -> { ok, reason? }, or ("RobloxPlus") -> { ok } (the Roblox Plus subscription
-	-- prompt; Roblox pays the game for a subscriber signed up in it), or ("Skip", caseId, at)
-	-- -> { ok, key?, reason? } (finish that case timer with Robux: the cheapest Skip product
-	-- that covers the time left is prompted; "NoTimer" when it is not running). A restock
+	-- client -> server, answered: ("Buy", a Config.Products key) -> { ok, reason? }, or
+	-- ("RobloxPlus") -> { ok } (the Roblox Plus subscription prompt; Roblox pays the game for
+	-- a subscriber signed up in it). A restock
 	-- product (RestockEpic, RestockLegendary) buys the item in the restock shown now, within
 	-- this player's stock ("SoldOut", "VipOnly", "NotSold"). The server
 	-- checks it (Progression/ShopView.check) and prompts the purchase itself; ok = true means
@@ -235,8 +210,8 @@ local REMOTES: { [string]: string } = {
 	-- server -> one player: the Rewards menu's state (src/server/Rewards.luau builds it with
 	-- Progression/RewardView.build). Sent on load, after each claim or dev change, when a
 	-- playtime gift becomes ready, when VIP or the group answer changes, and to everyone when
-	-- the UTC day rolls over. A reward is always { money, cases = { { id, count } }, drops
-	-- (Case Drops), spins, lucky } (cases in Config.Cases.Order). {
+	-- the UTC day rolls over. A reward is always { money, blocks = { { kind, count } }, spins,
+	-- lucky } (blocks in Config.LuckyBlocks.Order). {
 	--   today (UTC day number), resetsAt (unix: the next UTC midnight), sentAt (unix),
 	--   weeks (the 28-day track's four weeks),
 	--   login = { canClaim, claimedToday, day (1..7 of the loop), week (the track's), total
@@ -245,8 +220,6 @@ local REMOTES: { [string]: string } = {
 	--   days = { { day, reward, bonus (false), claimed, today } } (the loop's seven tiles),
 	--   trackDays (28), trackPlace (days claimed this round, 0..28),
 	--   track = { { day (7, 14, 21, 28), reward, reached } },
-	--   next = { day, week, total, reward, bonus, tomorrow } (the reminder: "Come back
-	--     tomorrow for your Rare Case"),
 	--   playtime = { { index, minutes, reward, ready, claimed, progress (0..1) } },
 	--   playSeconds (played today at sentAt; it grows while the player stays),
 	--   titles = { titleId } (sorted),
@@ -260,9 +233,8 @@ local REMOTES: { [string]: string } = {
 	RewardState = "RemoteEvent",
 	-- client -> server, answered: ("ClaimDaily"), ("ClaimPlaytime", index 1..#gifts),
 	-- ("Redeem", the typed code text), ("ClaimGroup"), ("ClaimFavorite": after Roblox's
-	-- favorite prompt said yes; GUI lane), ("ClaimLeaveGift": the first time Roblox's menu
-	-- opens or the window loses focus; once ever; GUI lane) -> { ok = true, money, cases = { { id,
-	-- count } }, drops, spins, lucky } or { ok = false, reason }. Reasons: "BadRequest" (an
+	-- favorite prompt said yes; GUI lane) -> { ok = true, money, blocks = { { kind,
+	-- count } }, spins, lucky } or { ok = false, reason }. Reasons: "BadRequest" (an
 	-- unknown action, a bad index, text that is not a string), "TooFast" (a request every
 	-- Config.Daily.RequestCooldownSeconds, a code every RedeemCooldownSeconds, a group claim
 	-- every Config.Social.ClaimCooldownSeconds), "NotLoaded", "AlreadyClaimed" (today's
@@ -271,7 +243,8 @@ local REMOTES: { [string]: string } = {
 	-- "NotMember" (not in the group yet), "Error".
 	RewardRequest = "RemoteFunction",
 	-- Trading (src/server/Trading.luau; the rules are Progression/Trade). An item is a cue id or
-	-- "Case:<caseId>"; a side is a list of up to Config.Trade.MaxSideItems (one entry a copy).
+	-- "Block:<kind>" (a READY lucky block); a side is a list of up to Config.Trade.MaxSideItems
+	-- (one entry a copy).
 	-- client -> server, answered { ok = true, ... } or { ok = false, reason }:
 	--   ("Invite", userId)   ask anyone in the server; they get TradeState { kind = "Invite" }
 	--   ("Accept", userId)   accept that player's invite: the session opens for both
@@ -304,11 +277,11 @@ local REMOTES: { [string]: string } = {
 	-- names only; the client words it from Strings.Banner. `name` is the player's username
 	-- (player.Name), not their DisplayName.
 	--   { kind = "Unbox", userId, name, cue, rarity } a Legendary unboxed here
-	--     (Cases.announcesHere), or a Mythic or Secret unboxed in any server
-	--     (Cases.announces), sent Config.Items.UnboxAnnounceDelaySeconds after the roll
+	--     (BlockOdds.announcesHere), or a Mythic or Secret unboxed in any server
+	--     (BlockOdds.announces), sent Config.Items.UnboxAnnounceDelaySeconds after the roll
 	--   { kind = "Party", endsAt, name? } a Money Party started (endsAt: unix seconds)
-	--   { kind = "Restock", case, endsAt } a restock with that case began (a Legendary Case;
-	--     every server picks the same restock and announces it by itself)
+	--   { kind = "Restock", block, endsAt } a restock with that block began (a Legendary
+	--     block; every server picks the same restock and announces it by itself)
 	--   { kind = "Reyes" | "FirstReyes", userId, name } a player reached Reyes, in every
 	--     server (MessagingService); FirstReyes: the first player ever
 	Banner = "RemoteEvent",
@@ -367,11 +340,6 @@ local REMOTES: { [string]: string } = {
 	-- AUGHHHH!): (bot seat id, text); every client shows a chat bubble over its head and a chat
 	-- line in its name, like a person's.
 	BotSay = "RemoteEvent",
-	-- The GUI lane (designer 2026-10-03, C9). server -> one player: a reward the server gave by
-	-- itself, for its popup: { kind = "Daily" (today's login claim on join; the popup reads the
-	-- streak, track and freeze from RewardState) | "Playtime" (a gift reached; index, minutes),
-	-- reward = { money, cases, drops, spins, lucky } }. Its Case Drops come on CaseDrop too.
-	RewardGiven = "RemoteEvent",
 	-- Settings (src/server/Settings.luau; GUI lane, C10). server -> one player, on load and after
 	-- each change: { settings = { [key] = boolean } (Config.Settings.Defaults' keys), seen =
 	-- { [kind] = true } }.
@@ -392,19 +360,19 @@ local REMOTES: { [string]: string } = {
 	-- table id, the pocket to light ...), "Funnel" (Studio's debug print).
 	TutorialCue = "RemoteEvent",
 	-- client -> server: claim every held rank reward (RankClaim). server -> that player:
-	-- { ok, money, cases, drops, cues, spins, rows } for the fly animation, or { ok = false }.
+	-- { ok, money, blocks, cues, spins, rows } for the fly animation, or { ok = false }.
 	RankClaim = "RemoteEvent",
-	-- Lucky blocks (the test build, 2026-10-03; src/server/LuckyBlockService.luau).
+	-- Lucky blocks (2026-10-03; src/server/LuckyBlockService.luau).
 	-- client -> server: (action, a, b), checked by Progression/LuckyBlocks.parse:
 	-- "Hold" (block id, or nil to put it away), "Throw" (the held block's id, sent at the throw
 	-- animation's release), "Open" (the thrown block's id, after the 1 s hold), "Move" (id,
 	-- place in the list). Answers { ok = true, ... } or { ok = false, reason } (LuckyBlocks
-	-- .Reasons). Open's answer: { ok, cue, rarity, kind, caseId, tier?, copy?, forced, new,
-	-- found, count, burstAt } (caseId: the odds it rolled, a Mystery block's rolled tier's;
+	-- .Reasons). Open's answer: { ok, cue, rarity, kind, oddsId, tier?, copy?, forced, new,
+	-- found, count, burstAt } (oddsId: the odds row it rolled, a Mystery block's rolled tier's;
 	-- copy: a Unique cue's number; forced: the Guarantee gave it; burstAt: server time the
 	-- block bursts and the reel may show).
 	BlockRequest = "RemoteFunction",
-	-- server -> one player: their blocks { blocks = { { id, kind, readyAt } } } in hotbar order
+	-- server -> one player: their blocks { blocks = { { id, kind, readyAt, paid? } } } in hotbar order
 	-- (readyAt in unix seconds, compared with workspace:GetServerTimeNow()). Sent when the save
 	-- loads and after every change, only when it differs from the last one sent.
 	BlockState = "RemoteEvent",

@@ -8,11 +8,11 @@
 -- Team matches (ECONOMY 3.3, overnight assumptions 2026-09-28):
 -- - the anti-farm row uses the most-played account on the other side today;
 -- - the gap uses the other side's average division, Unranked counting as Bronze I;
--- - a winner's Case Drop needs at least one loser with enough real matches (the most
---   experienced loser counts), may drop while no loser has given FreeCasesPerOpponent drops
+-- - a winner's lucky block needs at least one loser with enough real matches (the most
+--   experienced loser counts), may drop while no loser has given DropsPerOpponent blocks
 --   today, and counts against every loser's account.
 local Config = require(script.Parent.Parent.Config)
-local Cases = require(script.Parent.Cases)
+local BlockDrop = require(script.Parent.BlockDrop)
 
 local R = Config.Ranks
 local E = Config.Economy
@@ -22,11 +22,11 @@ local E = Config.Economy
 local EIGHT_LOSSES: { [string]: boolean } =
 	{ EarlyEight = true, WrongPocket = true, FoulEight = true, EightOffTable = true }
 
--- One account on the losing side, for the winner's Case Drop. `realMatches` nil: not known
--- (the account is not in this server and left nothing behind), which never allows a case.
-export type Loser = { realMatches: number?, casesToday: number }
+-- One account on the losing side, for the winner's lucky block. `realMatches` nil: not known
+-- (the account is not in this server and left nothing behind), which never allows a block.
+export type Loser = { realMatches: number?, dropsToday: number }
 
--- What the Case Drop rule needs about one player's settled match (Settle.dropContext).
+-- What the block-drop rule needs about one player's settled match (Settle.dropContext).
 export type DropFacts = {
 	real: boolean, -- past the one-minute mark
 	solo: boolean,
@@ -34,15 +34,15 @@ export type DropFacts = {
 	pc: boolean, -- against the computer or a bot: no account to farm, the loser rule is met
 	pcLimited: boolean?, -- paid the PC rows (Play against PC): PcDropsPerDay drops a day
 	pcDropsToday: number?, -- today's Daily.PcDrops before this match
-	firstWinDue: boolean, -- the first win's Rare Case was never given (Progress.FirstWinCaseDue)
-	farmAllows: boolean, -- the anti-farm row's FreeCase (Money.farmRow)
+	firstWinDue: boolean, -- the first win's Rare block was never given (Progress.FirstWinDue)
+	farmAllows: boolean, -- the anti-farm row's Drop (Money.farmRow)
 	losers: { Loser }, -- the other side's accounts (empty against PC)
 }
 
 export type BoostFlags = { streak: boolean }
 
 -- Today's anti-farm count against one account (the save's Daily.Opponents entry).
-export type OpponentDay = { Matches: number, Cases: number }
+export type OpponentDay = { Matches: number, Drops: number }
 
 local Settle = {}
 
@@ -101,7 +101,7 @@ function Settle.opponentKind(e: any): string
 end
 
 --- Who a match PAYS like, for one player (ECONOMY 3.2): Settle.opponentKind, except that a
---- disguised bot pays the PC rows (the PC bonuses and daily cap, no Case Drop) once the player
+--- disguised bot pays the PC rows (the PC bonuses and daily cap, no block drop) once the player
 --- has Config.Economy.DisguisedDailyWins disguised wins today (`disguisedWinsToday`). Hidden:
 --- the XP and the stats still treat it as before (Settle.opponentKind, recordAs).
 function Settle.moneyKind(e: any, disguisedWinsToday: number): string
@@ -213,14 +213,14 @@ end
 --- (Daily.Opponents, `tracked` entries in all): its own `entry` when the table keeps one;
 --- zeros for an account not met today while the table has room; and, once the table is full
 --- (Config.Economy.SameOpponentMaxEntries), the worst count for an account it does not track:
---- enough matches to put the next one on SameOpponent's last row, and FreeCasesPerOpponent
---- cases. Meeting many accounts in a day never switches the anti-farm off: a new account then
---- pays the floor and gives no free case.
+--- enough matches to put the next one on SameOpponent's last row, and DropsPerOpponent
+--- blocks. Meeting many accounts in a day never switches the anti-farm off: a new account then
+--- pays the floor and gives no block.
 function Settle.opponentDay(entry: OpponentDay?, tracked: number): OpponentDay
 	if entry ~= nil then
-		return { Matches = whole(entry.Matches), Cases = whole(entry.Cases) }
+		return { Matches = whole(entry.Matches), Drops = whole(entry.Drops) }
 	elseif whole(tracked) < E.SameOpponentMaxEntries then
-		return { Matches = 0, Cases = 0 }
+		return { Matches = 0, Drops = 0 }
 	end
 	-- The last row (no UpTo) starts right after the row before it ends: that row's UpTo
 	-- matches already played put the next one on it (0 with one row).
@@ -228,7 +228,7 @@ function Settle.opponentDay(entry: OpponentDay?, tracked: number): OpponentDay
 	local before = rows[#rows - 1]
 	return {
 		Matches = if before ~= nil then whole(before.UpTo) else 0,
-		Cases = E.FreeCasesPerOpponent,
+		Drops = E.DropsPerOpponent,
 	}
 end
 
@@ -255,17 +255,17 @@ function Settle.boosts(f: {
 	}
 end
 
---- The Case Drop rule's context (Cases.dropFor) for one player's settled match. Against PC
---- there is no account: no drops from it yet, and the loser rule is met. Otherwise the most
---- experienced loser counts for FreeCaseLoserMinMatches (an unknown one counts 0) and the
---- loser who has given the most drops today counts for FreeCasesPerOpponent.
-function Settle.dropContext(f: DropFacts): Cases.DropContext
-	local casesToday, loserMatches = 0, 0
+--- The block-drop rule's context (BlockDrop.dropFor) for one player's settled match. Against
+--- PC there is no account: no drops from it yet, and the loser rule is met. Otherwise the most
+--- experienced loser counts for DropLoserMinMatches (an unknown one counts 0) and the loser
+--- who has given the most drops today counts for DropsPerOpponent.
+function Settle.dropContext(f: DropFacts): BlockDrop.DropContext
+	local dropsToday, loserMatches = 0, 0
 	if f.pc then
 		loserMatches = math.huge
 	else
 		for _, loser in f.losers do
-			casesToday = math.max(casesToday, whole(loser.casesToday))
+			dropsToday = math.max(dropsToday, whole(loser.dropsToday))
 			loserMatches = math.max(loserMatches, whole(loser.realMatches))
 		end
 	end
@@ -276,7 +276,7 @@ function Settle.dropContext(f: DropFacts): Cases.DropContext
 		pcLimited = f.pcLimited == true,
 		pcDropsToday = whole(f.pcDropsToday),
 		farmAllows = f.pc or f.farmAllows == true,
-		casesFromOpponentToday = casesToday,
+		dropsFromOpponentToday = dropsToday,
 		loserRealMatches = loserMatches,
 		firstWinEver = f.firstWinDue == true,
 	}

@@ -63,46 +63,28 @@ return {
 			local request, why = Requests.parse(action, "Standard", 1)
 			H.expect(request == nil and why == "BadRequest", "action " .. tostring(action))
 		end
-		H.expect(#Requests.Actions == 12, "twelve actions")
+		H.expect(#Requests.Actions == 9, "nine actions")
 		for _, action in Requests.Actions do
 			local _, why = Requests.parse(action, 0 / 0, 0 / 0)
 			H.expect(why ~= nil, action .. " refuses NaN ids")
 		end
 	end,
 
-	buy_case_counts_and_ids = function()
+	the_case_actions_are_gone = function()
 		local Requests, Config = load()
-		-- No case is sold for money (economy plan section 3): every known case is NotSold.
-		for _, id in Config.Cases.Order do
-			local r, why = Requests.parse("BuyCase", id, 1)
-			H.expect(r == nil and why == "NotSold", id .. " is not sold")
+		-- Cases are retired (2026-10-04): no case is bought, opened or skipped through
+		-- ItemRequest; lucky blocks open through BlockRequest.
+		for _, action in { "BuyCase", "OpenCase", "SkipTimer" } do
+			H.expect(table.find(Requests.Actions, action) == nil, action .. " is gone")
+			for _, id in Config.BlockOdds.Order do
+				local r, why = Requests.parse(action, id, 1)
+				H.expect(r == nil and why == "BadRequest", action .. " " .. id)
+			end
 		end
-		for _, count in { 0, 2, 9, 11, -1, 1.5, "1", 0 / 0, math.huge } do
-			local _, why = Requests.parse("BuyCase", "Standard", count)
-			H.expect(why == "BadRequest", "count " .. tostring(count))
+		for _, reason in { "NotSold", "NoCases", "NotReady", "NoFastOpen", "NoTimer" } do
+			H.expect(table.find(Requests.Reasons, reason) == nil, reason .. " is gone")
 		end
-		for _, id in JUNK do
-			local _, why = Requests.parse("BuyCase", id, 1)
-			H.expect(why == "BadRequest", "case " .. tostring(id))
-		end
-		-- A given case opens.
-		local open = Requests.parse("OpenCase", "Mythic", 1)
-		H.expect(open ~= nil and open.caseId == "Mythic", "a given one opens")
-		H.expect(Requests.reasonFrom("NotReady") == "NotReady", "a case on its timer")
-		H.expect(table.find(Requests.Reasons, "NotReady") ~= nil, "a known reason")
-	end,
-
-	open_case_counts = function()
-		local Requests, Config = load()
-		local fast = Config.Cases.FastOpenCount
-		local r = Requests.parse("OpenCase", "Legendary", fast)
-		H.expect(r ~= nil and r.count == fast, "Fast Open's count")
-		r = Requests.parse("OpenCase", "Standard")
-		H.expect(r ~= nil and r.count == 1, "a missing count is 1")
-		for _, count in { 0, 2, fast - 1, fast + 1, -fast, "10", 0 / 0 } do
-			local _, why = Requests.parse("OpenCase", "Standard", count)
-			H.expect(why == "BadRequest", "count " .. tostring(count))
-		end
+		H.expect(Requests.reasonFrom("NotReady") == "Error", "no case reason survives")
 	end,
 
 	sell_equip_and_duplicates_need_catalog_ids = function()
@@ -164,7 +146,7 @@ return {
 
 	claim_index_row_names_a_row = function()
 		local Requests, Config = load()
-		for _, rarity in Config.Cases.Rarities do
+		for _, rarity in Config.BlockOdds.Rarities do
 			local r = Requests.parse("ClaimIndexRow", rarity)
 			H.expect(r ~= nil and r.rarity == rarity, rarity)
 		end
@@ -218,7 +200,6 @@ return {
 		end
 		local cases = {
 			NotLoaded = "NotLoaded",
-			NotEnough = "NoCases",
 			Invalid = "Error",
 			Unknown = "BadRequest",
 			BadCount = "BadRequest",
@@ -236,6 +217,7 @@ return {
 			H.expect(known[to], to .. " is a listed reason")
 		end
 		H.expect(Requests.reasonFrom("Whatever") == "Error", "unknown words are Error")
+		H.expect(Requests.reasonFrom("NotEnough") == "Error", "the case words are Error now")
 		H.expect(Requests.reasonFrom(nil) == "Error", "nil is Error")
 		H.expect(Requests.reasonFrom(5) == "Error", "a number is Error")
 	end,

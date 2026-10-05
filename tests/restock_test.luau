@@ -184,25 +184,14 @@ return {
 		H.expect(Counts.stockTaken(nil) == 0 and Counts.stockTaken({ by = { x = 5 } }) == 0, "")
 	end,
 
-	["skips: $25 a minute left, at least $250; the cheapest Robux skip that covers it"] = function()
+	["the Mystery deal's money prices; the case timer skips are gone"] = function()
 		local Shop = H.require("Progression.Shop")
-		H.expect(Shop.skipPrice(0) == 0 and Shop.skipPrice(-5) == 0, "a done timer")
-		H.expect(Shop.skipPrice(30) == 250 and Shop.skipPrice(600) == 250, "the minimum")
-		H.expect(Shop.skipPrice(601) == 275, "a part minute counts whole")
-		H.expect(Shop.skipPrice(3600) == 1500, "$1,500 an hour")
-		H.expect(Shop.skipPrice(48 * 3600) == 72000, "48 h")
-		H.expect(Shop.skipProduct(3600) == "Skip1h" and Shop.skipProduct(3601) == "Skip6h", "")
-		H.expect(
-			Shop.skipProduct(6 * 3600) == "Skip6h" and Shop.skipProduct(86400) == "Skip24h",
-			""
-		)
-		H.expect(Shop.skipProduct(86401) == "Skip48h" and Shop.skipProduct(172801) == nil, "")
-		H.expect(Shop.skipProduct(0) == nil, "nothing to skip")
+		H.expect(Shop.skipPrice == nil and Shop.skipProduct == nil, "no case timer skips")
 		H.expect(Shop.mysteryPrice(1) == 4900 and Shop.mysteryPrice(10) == 44100, "Mystery")
 		H.expect(Shop.mysteryPrice(2) == nil and Shop.mysteryPrice("1") == nil, "other counts")
 	end,
 
-	["the money requests: BuyBlocks (and the old BuyMystery), BuyRestock, SkipTimer"] = function()
+	["the money requests: BuyBlocks (and the old BuyMystery), BuyRestock"] = function()
 		local Requests = H.require("Progression.Requests")
 		local r = Requests.parse("BuyMystery", nil)
 		H.expect(r ~= nil and r.action == "BuyBlocks" and r.dealId == "Mystery", "the old name")
@@ -232,14 +221,15 @@ return {
 			local _, why = Requests.parse("BuyRestock", bad)
 			H.expect(why == "BadRequest", "item " .. tostring(bad))
 		end
-		r = Requests.parse("SkipTimer", "Rare", 1800000000)
-		H.expect(r ~= nil and r.caseId == "Rare" and r.at == 1800000000, "a timer")
-		for _, args in { { "Nope", 1 }, { "Rare", -1 }, { "Rare", 1.5 }, { "Rare", "1" } } do
-			local _, why = Requests.parse("SkipTimer", args[1], args[2])
-			H.expect(why == "BadRequest", "skip " .. tostring(args[1]) .. " " .. tostring(args[2]))
-		end
-		for _, reason in { "VipOnly", "NoTimer", "NotReady", "Full" } do
+		H.expect(
+			select(2, Requests.parse("SkipTimer", "Rare", 1800000000)) == "BadRequest",
+			"no skips"
+		)
+		for _, reason in { "VipOnly", "Full", "Restricted" } do
 			H.expect(table.find(Requests.Reasons, reason) ~= nil, reason)
+		end
+		for _, reason in { "NoTimer", "NotReady", "NoCases", "NoFastOpen", "NotSold" } do
+			H.expect(table.find(Requests.Reasons, reason) == nil, reason .. " is gone")
 		end
 	end,
 }

@@ -13,16 +13,13 @@
 --   (PlayerData.addPlaySeconds), and the rest when they leave.
 -- - RewardState goes to each player on load, after every change it shows, when a playtime
 --   gift becomes ready, and to everyone when the UTC day rolls over.
--- - Rewards carry Case Drops and ability spins too (the economy plan, 2026-10-02, section 6:
---   Daily's rewards `drops`, `spins`, `lucky`). Day 1 of the loop is claimed by itself on
---   join; VIP adds a spin to each day's claim; Live codes count only while LiveCodes has them on.
---   A new UTC day also re-shows every save (PlayerData.refreshAll: the UltFreeSpin attribute)
---   and tells UltSpins (the spin screen's FREE SPIN). Rewards.start starts UltSpins.
--- - GUI lane (designer 2026-10-03, C9): with Config.Daily.AutoClaimEveryDay every day's claim
---   is given by itself on join (and at midnight UTC for those still here), and with
---   AutoGivePlaytime each playtime gift as it is reached; RewardGiven tells the player, for
---   the popup. RewardRequest "ClaimFavorite" gives the favorite reward once, and
---   "ClaimLeaveGift" the first-leave gift once (Config.Social.LeaveGift).
+-- - Rewards carry lucky blocks and ability spins too (the economy plan, 2026-10-02, section
+--   6: Daily's rewards `blocks`, `spins`, `lucky`). Every reward is claimed in the Rewards
+--   menu (designer 2026-10-04: no popups, nothing given by itself); VIP adds a spin to each
+--   day's claim; Live codes count only while LiveCodes has them on. A new UTC day also
+--   re-shows every save (PlayerData.refreshAll: the UltFreeSpin attribute) and tells UltSpins
+--   (the spin screen's FREE SPIN). Rewards.start starts UltSpins.
+-- - RewardRequest "ClaimFavorite" gives the favorite reward once (GUI lane, D4).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -40,15 +37,14 @@ local Social = require(script.Parent.Social)
 local D = Config.Daily
 local SECONDS_PER_DAY = 86400
 
--- A RewardRequest answer: { ok, reason? } and, once claimed, { money, cases = { { id,
--- count } } } (RewardView.reward).
+-- A RewardRequest answer: { ok, reason? } and, once claimed, { money, blocks = { { kind,
+-- count } }, spins, lucky } (RewardView.reward).
 export type Reply = { [string]: any }
 
 local Rewards = {}
 
 local started = false
 local rewardState: RemoteEvent? = nil
-local rewardGiven: RemoteEvent? = nil
 
 -- The last RewardRequest and the last code attempt per player (os.clock), for the cooldowns.
 local lastRequest: { [Player]: number } = {}
@@ -166,7 +162,6 @@ local REWARD_OPS: { [string]: boolean } = {
 	reset = true,
 	claimGroup = true,
 	claimFavorite = true,
-	claimLeaveGift = true,
 	setInvitedBy = true,
 	giveInviteRewards = true,
 	recordMatch = true, -- an invited player's first win
@@ -187,40 +182,6 @@ end
 -- The playtime clock
 ---------------------------------------------------------------------------------------------
 
--- Tells the player about a reward the server gave by itself (RewardGiven, for its popup).
-local function tell(player: Player, kind: string, reward: Daily.Reward, extra: { [string]: any }?)
-	local remote = rewardGiven
-	if remote == nil or player.Parent ~= Players then
-		return
-	end
-	local payload: { [string]: any } = { kind = kind, reward = RewardView.reward(reward) }
-	if extra ~= nil then
-		for key, value in extra do
-			payload[key] = value
-		end
-	end
-	remote:FireClient(player, payload)
-end
-
--- Gives every playtime gift reached and not yet claimed (Config.Daily.AutoGivePlaytime).
-local function giveReachedGifts(player: Player)
-	if not D.AutoGivePlaytime or not ready(player) then
-		return
-	end
-	local daily = PlayerData.dailyState(player)
-	if daily == nil then
-		return
-	end
-	for _, gift in Daily.playtimeState(daily) do
-		if gift.ready and not gift.claimed then
-			local ok, result = PlayerData.claimPlaytime(player, gift.index)
-			if ok and type(result) == "table" then
-				tell(player, "Playtime", result, { index = gift.index, minutes = gift.minutes })
-			end
-		end
-	end
-end
-
 -- Credits the whole seconds played since the last credit (the fraction waits for the next).
 local function credit(player: Player)
 	local since = credited[player]
@@ -239,7 +200,6 @@ local function credit(player: Player)
 	seconds = math.min(seconds, SECONDS_PER_DAY)
 	if PlayerData.addPlaySeconds(player, seconds) then
 		credited[player] = since + seconds
-		giveReachedGifts(player)
 	else
 		credited[player] = now
 	end
@@ -258,40 +218,6 @@ local function playtimeLoop()
 	end
 end
 
--- The tutorial lane's gate (TutorialService): while it answers false the claim on join waits,
--- so a new player's first money comes with the daily popup in the real server (designer,
--- 2026-10-03); the tutorial then calls Rewards.claimDayOne itself.
-local claimGate: ((Player) -> boolean)? = nil
-
---- Sets the gate on the claim on join and at midnight (nil: always claim).
-function Rewards.setClaimGate(fn: ((Player) -> boolean)?)
-	claimGate = fn
-end
-
--- Today's login claim by itself (Config.Daily.AutoClaimEveryDay; else only on day 1 of the
--- loop, AutoClaimDayOne), told to the player for the daily login popup.
-local function claimToday(player: Player): boolean
-	if player.Parent ~= Players or not ready(player) then
-		return false
-	end
-	if claimGate and not claimGate(player) then
-		return false
-	end
-	local data = PlayerData.read(player)
-	if data == nil then
-		return false
-	end
-	local state = Daily.loginState(data.Login, Daily.dayOf(os.time()), isVip(player))
-	if not state.canClaim or (not D.AutoClaimEveryDay and state.day ~= 1) then
-		return false
-	end
-	local ok, result = PlayerData.claimDaily(player, isVip(player))
-	if ok and type(result) == "table" then
-		tell(player, "Daily", result)
-	end
-	return ok == true
-end
-
 -- Every DayCheckSeconds: a new UTC day re-sends everyone's state (the streak and the gifts
 -- start over at midnight UTC).
 local function dayLoop()
@@ -302,9 +228,6 @@ local function dayLoop()
 			currentDay = day
 			for _, player in Players:GetPlayers() do
 				mark(player)
-				if D.AutoClaimEveryDay then
-					task.spawn(safely, "a new day's claim", claimToday, player)
-				end
 			end
 			safely("re-showing the saves", PlayerData.refreshAll)
 			local ultSpins = UltSpinsModule
@@ -328,8 +251,7 @@ local function claimed(reward: Daily.Reward): Reply
 	return {
 		ok = true,
 		money = out.money,
-		cases = out.cases,
-		drops = out.drops,
+		blocks = out.blocks,
 		spins = out.spins,
 		lucky = out.lucky,
 	}
@@ -375,7 +297,6 @@ local function onRewardRequest(player: Player, action: any, a: any): Reply
 		and action ~= "Redeem"
 		and action ~= "ClaimGroup"
 		and action ~= "ClaimFavorite"
-		and action ~= "ClaimLeaveGift"
 	then
 		return refused("BadRequest")
 	end
@@ -403,9 +324,6 @@ local function onRewardRequest(player: Player, action: any, a: any): Reply
 		return answer(ok, result, "BadRequest")
 	elseif action == "ClaimFavorite" then
 		local ok, result = PlayerData.claimFavorite(player)
-		return answer(ok, result, "BadRequest")
-	elseif action == "ClaimLeaveGift" then
-		local ok, result = PlayerData.claimLeaveGift(player)
 		return answer(ok, result, "BadRequest")
 	elseif action == "ClaimPlaytime" then
 		if type(a) ~= "number" or a ~= math.floor(a) or a < 1 or a > #D.Playtime then
@@ -484,19 +402,6 @@ local function startQA()
 	hook.Parent = ServerStorage
 end
 
---- The tutorial's claim, held until the player leaves its first server: today's claim and
---- its popup now (claimToday). True when it was claimed now.
-function Rewards.claimDayOne(player: Player): boolean
-	return claimToday(player)
-end
-
--- Today's claim by itself on join (claimToday): after AutoClaimDelaySeconds, so the Store has
--- checked VIP first.
-local function autoClaim(player: Player)
-	task.wait(D.AutoClaimDelaySeconds)
-	claimToday(player)
-end
-
 local function onLoaded(player: Player)
 	credited[player] = os.clock()
 	mark(player)
@@ -505,9 +410,6 @@ local function onLoaded(player: Player)
 		player:GetAttributeChangedSignal(attribute):Connect(function()
 			mark(player)
 		end)
-	end
-	if D.AutoClaimDayOne or D.AutoClaimEveryDay then
-		task.spawn(safely, ("today's claim of %d"):format(player.UserId), autoClaim, player)
 	end
 end
 
@@ -528,7 +430,6 @@ function Rewards.start()
 	end
 	started = true
 	rewardState = Net.get("RewardState")
-	rewardGiven = Net.get("RewardGiven")
 	local request: RemoteFunction = Net.get("RewardRequest")
 	request.OnServerInvoke = function(player: Player, action: any, a: any): Reply
 		local ok, result = pcall(onRewardRequest, player, action, a)

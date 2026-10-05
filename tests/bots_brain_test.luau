@@ -130,7 +130,7 @@ tests["every tier's numbers are there and rise with the rank"] = function()
 		assert(row, "a row for " .. tier)
 		assert(row.Make > last, tier .. " makes more than the tier below")
 		last = row.Make
-		assert((Config.Bots.CueCase :: any)[tier], "a cue case for " .. tier)
+		assert((Config.Bots.CueBlock :: any)[tier], "a cue block for " .. tier)
 	end
 end
 

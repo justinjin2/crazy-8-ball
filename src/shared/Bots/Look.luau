@@ -5,7 +5,7 @@
 
 local Config = require(script.Parent.Parent.Config)
 local Strings = require(script.Parent.Parent.Strings)
-local Cases = require(script.Parent.Parent.Progression.Cases)
+local BlockOdds = require(script.Parent.Parent.Progression.BlockOdds)
 local CueCatalog = require(script.Parent.Parent.Progression.Catalog)
 local UltCatalog = require(script.Parent.Parent.Ults.Catalog)
 local Rng = require(script.Parent.Rng)
@@ -178,7 +178,7 @@ local function tierIndex(tier: string): number
 	return 1
 end
 
---- The cue a bot of `tier` carries: its tier's case opened once, or now and then the tier cue
+--- The cue a bot of `tier` carries: its tier's lucky block opened once, or now and then the tier cue
 --- of its own tier or the one below.
 function Look.cue(rng: Rng, tier: string): string
 	if Rng.chance(rng, B.TierCueChance) then
@@ -189,8 +189,8 @@ function Look.cue(rng: Rng, tier: string): string
 			return id
 		end
 	end
-	local caseId = (B.CueCase :: any)[tier] or "Standard"
-	local id = Cases.roll(caseId, function(n: number): number
+	local oddsId = (B.CueBlock :: any)[tier] or "Standard"
+	local id = BlockOdds.roll(oddsId, function(n: number): number
 		return Rng.int(rng, 1, n)
 	end)
 	return id

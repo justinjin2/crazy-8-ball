@@ -425,7 +425,7 @@ function Counters.first(key: string): number?
 end
 
 ---------------------------------------------------------------------------------------------
--- Shared stock (the restock shop's Legendary Case)
+-- Shared stock (the restock shop's Legendary block)
 ---------------------------------------------------------------------------------------------
 
 -- Studio without DataStore access keeps shared stock here, so the restock can be tried.

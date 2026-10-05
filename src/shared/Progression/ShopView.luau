@@ -6,13 +6,13 @@
 -- array (the sorted product keys, the Limited rows), so nothing depends on hash order.
 --
 -- src/server/Store.luau gathers a Context (the save's Shop table, pass ownership, this
--- server's Money Party, the case sale, the Limited counts, the live Robux prices), sends
+-- server's Money Party, the Limited counts, the live Robux prices), sends
 -- ShopView.build's payload, asks ShopView.check before it prompts a purchase, and re-sends
 -- the payload at ShopView.nextChange, when a window opens or closes by itself.
 local Config = require(script.Parent.Parent.Config)
 local Shop = require(script.Parent.Shop)
 local Restock = require(script.Parent.Restock)
-local CaseDrop = require(script.Parent.CaseDrop)
+local BlockDrop = require(script.Parent.BlockDrop)
 local LuckyBlocks = require(script.Parent.LuckyBlocks)
 
 local S = Config.Shop
@@ -22,27 +22,18 @@ local LIST: {
 		Id: number,
 		Robux: number,
 		Restock: string?,
-		SkipSeconds: number?,
 		SaleOf: string?,
 		Vip: boolean?,
 		Deal: string?,
-		Retired: boolean?,
 		Blocks: { Kind: string, Count: number }?,
 	},
 } =
 	Config.Products.List :: any
-local CASE_ORDER: { string } = Config.Cases.Order
-local MAX_SALE: number = Config.Cases.MaxSalePercent
-
--- A timed sale on one case type (ECONOMY 9.1).
-export type Sale = { case: string, percent: number, endsAt: number }
-
 -- Everything the server knows about one player's shop at unix time `now`.
 export type Context = {
 	now: number,
 	shop: Shop.ShopSave, -- the save's Shop table (a read-only copy is fine)
 	vipPass: boolean, -- owns the VIP game pass (or the /vip dev override)
-	fastOpen: boolean, -- owns the Quick Cases game pass (or /fastopen)
 	restricted: boolean, -- the PaidRandomRestricted attribute (PolicyService)
 	-- false while PolicyService has not answered for this player (nil counts as answered)
 	policyKnown: boolean?,
@@ -50,13 +41,12 @@ export type Context = {
 	spinsLive: boolean?,
 	partyEndsAt: number, -- this server's Money Party end, unix (0: none)
 	partyBuyer: string?, -- the last buyer's username
-	sale: Sale?, -- the case sale running now (ShopView.readSale), or nil
 	sold: { [string]: number }, -- Limited cue id -> copies sold (missing: unknown)
 	prices: { [string]: number }, -- product key -> live Robux price (missing: Config's)
 	-- Other game passes owned (the ult slots UltSlot2, UltSlot3), by product key; nil: none.
 	passes: { [string]: boolean }?,
 	restock: any?, -- the save's Shop.Restock (nil: nothing bought)
-	drops: any?, -- the save's Drops (the pity counters; nil: none yet)
+	drops: any?, -- the save's Drops (the Mystery block's pity counters; nil: none yet)
 	stockTaken: number?, -- this restock's Legendary units taken everywhere (nil: unknown)
 	restockSlot: number?, -- the restock shown (nil: the one at `now`; /restock forces one)
 	blocks: any?, -- the save's LuckyBlocks (its Opened counts; nil: none opened)
@@ -138,13 +128,11 @@ export type Payload = {
 	vip: boolean,
 	vipPass: boolean,
 	vipOffer: boolean,
-	fastOpen: boolean,
 	restricted: boolean,
 	firstPackBought: boolean,
 	starterBought: boolean,
 	offers: { [string]: OfferView },
 	party: PartyView?,
-	sale: Sale?,
 	limited: { LimitedView },
 	products: { [string]: ProductView },
 	order: { string }, -- the shop page's sections, top to bottom (Config.Shop.Order)
@@ -152,8 +140,7 @@ export type Payload = {
 	deals: { [string]: DealView }, -- the block deals (Config.Shop.Deals) and their windows
 	guarantees: { [string]: GuaranteeView }, -- by block kind, for kinds with a Guarantee
 	mystery: { price: number, bulkCount: number, bulkPrice: number }, -- the Mystery deal's
-	skip: { moneyPerMinute: number, minMoney: number }, -- the money price of a timer skip
-	pity: { rare: number, epic: number }, -- Case Drops until a Rare / Epic is guaranteed
+	pity: { rare: number, epic: number }, -- Mystery blocks until a Rare / Epic tier is guaranteed
 	robloxPlus: boolean, -- show the Get Roblox Plus button (StoreRequest "RobloxPlus")
 	bestValue: string, -- the money pack marked "Best value"
 	packs: { string }, -- the money packs in shop order
@@ -162,7 +149,6 @@ export type Payload = {
 
 -- The products whose purchase depends on more than their Id (ECONOMY 11.2-11.5).
 local VIP_PASS = "Vip"
-local FAST_OPEN = "QuickCases"
 local VIP_OFFER = "VipOffer"
 local STARTER_PACK = "StarterPack"
 local MONEY_PARTY = "MoneyParty"
@@ -204,7 +190,7 @@ local function limitedRow(key: string): Shop.LimitedRow?
 	return nil
 end
 
--- Whether a pass other than Vip and QuickCases (an ult slot) is owned.
+-- Whether a pass other than Vip (an ult slot) is owned.
 local function otherPassOwned(ctx: Context, key: string): boolean
 	local passes = ctx.passes
 	return type(passes) == "table" and passes[key] == true
@@ -229,29 +215,6 @@ function ShopView.isVip(ctx: Context): boolean
 	return Shop.isVip(ctx.vipPass, ctx.shop)
 end
 
---- The case sale in `raw` if one is really running at `now`: a known case id, a percent above
---- 0 and at most Config.Cases.MaxSalePercent, an end still ahead. Reads { Case, Percent,
---- EndsAt } (Config's spelling) or { case, percent, endsAt }. nil for anything else, so a
---- stale or broken sale is never shown (ECONOMY 9.1: a true countdown or no sale).
-function ShopView.readSale(raw: any, now: number): Sale?
-	if type(raw) ~= "table" then
-		return nil
-	end
-	local caseId = raw.case or raw.Case
-	local percent = raw.percent or raw.Percent
-	local endsAt = raw.endsAt or raw.EndsAt
-	if type(caseId) ~= "string" or table.find(CASE_ORDER, caseId) == nil then
-		return nil
-	end
-	if type(percent) ~= "number" or not (percent > 0 and percent <= MAX_SALE) then
-		return nil
-	end
-	if type(endsAt) ~= "number" or endsAt ~= endsAt or endsAt <= now then
-		return nil
-	end
-	return { case = caseId, percent = percent, endsAt = whole(endsAt) }
-end
-
 --- Whether `count` more lucky blocks would pass Config.LuckyBlocks.MaxBlocks (the save's).
 function ShopView.full(ctx: Context, count: number): boolean
 	local blocks = ctx.blocks
@@ -274,9 +237,6 @@ function ShopView.check(key: string, ctx: Context): string?
 		return "BadRequest"
 	end
 	local vip = ShopView.isVip(ctx)
-	if row.Retired == true then
-		return "Closed" -- no longer sold (its Id may still exist in Creator Hub)
-	end
 	-- A deal product (the Grand Opening block) only inside its deal's window.
 	if row.Deal ~= nil and not Shop.deal(row.Deal, ctx.now).open then
 		return "Closed"
@@ -298,10 +258,6 @@ function ShopView.check(key: string, ctx: Context): string?
 	end
 	if key == VIP_PASS then
 		if vip then
-			return "Owned"
-		end
-	elseif key == FAST_OPEN then
-		if ctx.fastOpen or vip then
 			return "Owned"
 		end
 	elseif key == VIP_OFFER then
@@ -401,9 +357,6 @@ function ShopView.build(ctx: Context): Payload
 	local products: { [string]: ProductView } = {}
 	for _, key in KEYS do
 		local row = LIST[key]
-		if row.Retired == true then
-			continue -- hidden
-		end
 		local reason = ShopView.check(key, ctx)
 		local grant: Shop.Grant?, notFor: string? = nil, nil
 		if row.Kind == "Product" then
@@ -413,8 +366,6 @@ function ShopView.build(ctx: Context): Payload
 		local owned = false
 		if key == VIP_PASS or key == VIP_OFFER or row.Vip == true then
 			owned = vip
-		elseif key == FAST_OPEN then
-			owned = ctx.fastOpen or vip
 		elseif key == STARTER_PACK then
 			owned = shop.StarterBought == true
 		elseif limited ~= nil then
@@ -511,7 +462,6 @@ function ShopView.build(ctx: Context): Payload
 		vip = vip,
 		vipPass = ctx.vipPass == true,
 		vipOffer = shop.VipOffer == true,
-		fastOpen = ctx.fastOpen == true or vip, -- VIP opens fast (QuickCases is retired)
 		restricted = ctx.restricted == true,
 		firstPackBought = shop.FirstPackBought == true,
 		starterBought = shop.StarterBought == true,
@@ -524,7 +474,6 @@ function ShopView.build(ctx: Context): Payload
 			},
 		},
 		party = party,
-		sale = ctx.sale,
 		limited = limited,
 		products = products,
 		order = table.clone(S.Order),
@@ -536,8 +485,7 @@ function ShopView.build(ctx: Context): Payload
 			bulkCount = S.Mystery.BulkCount,
 			bulkPrice = S.Mystery.BulkPrice,
 		},
-		skip = { moneyPerMinute = S.Skip.MoneyPerMinute, minMoney = S.Skip.MinMoney },
-		pity = CaseDrop.pityLeft(CaseDrop.readPity(ctx.drops)),
+		pity = BlockDrop.pityLeft(BlockDrop.readPity(ctx.drops)),
 		robloxPlus = S.RobloxPlus == true,
 		releaseSale = Shop.releaseSale(ctx.now),
 		bestValue = Config.Products.BestValue,
@@ -546,7 +494,7 @@ function ShopView.build(ctx: Context): Payload
 end
 
 --- The next unix time after `now` at which this player's shop changes by itself (an offer
---- window, a Limited or the sale opening or closing, the Money Party ending or making room
+--- window, a Limited opening or closing, the Money Party ending or making room
 --- for another purchase), or nil when nothing is due. The server re-sends ShopState then.
 function ShopView.nextChange(ctx: Context): number?
 	local now = ctx.now
@@ -574,9 +522,6 @@ function ShopView.nextChange(ctx: Context): number?
 		consider(ctx.partyEndsAt)
 		-- canQueueParty turns true again once less than PartyMax - PartySeconds is queued.
 		consider(ctx.partyEndsAt + S.PartySeconds - S.PartyMaxSeconds)
-	end
-	if ctx.sale ~= nil then
-		consider(ctx.sale.endsAt)
 	end
 	local release = Shop.releaseSale(now)
 	consider(release.startsAt)

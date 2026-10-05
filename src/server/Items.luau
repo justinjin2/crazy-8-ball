@@ -8,25 +8,20 @@
 --   errors back to the client. The order of the checks: the player's token bucket
 --   (Config.Items.RateBurst, RatePerSecond), the arguments (Progression/Requests.parse), the
 --   save (loaded, not handed off for a teleport), then one request per player at a time (a
---   lock, so two racing requests can never spend the same money or open the same case).
+--   lock, so two racing requests can never spend the same money twice).
 -- - ItemState (a RemoteEvent): the player's inventory snapshot (PlayerData.snapshot) when the
 --   save loads and after every change that touches it, at most once a frame per player, and
 --   only when it differs from the last one sent.
--- - PolicyService (ECONOMY 13): asked on join. Player attributes PaidRandomRestricted (no cases
---   for money; free cases still open) and PaidItemTradingAllowed (kept for trading). Studio is
---   never restricted; Items.setRestricted is the /policy dev command's.
--- - The case sale (ECONOMY 9.1): at most one, from Config.Cases.Sale, changed at runtime by
---   Items.setSale (the /sale dev command). Mirrored on ReplicatedStorage attributes CaseSale,
---   CaseSalePercent and CaseSaleEndsAt; Items.SaleChanged fires on every change and when it
---   ends, so the Store can send ShopState again.
--- - Copies in existence move with every open, sale and Limited buy (Counters.add); a Legendary,
+-- - PolicyService (ECONOMY 13): asked on join. Player attributes PaidRandomRestricted (no
+--   lucky blocks for money; free blocks still open) and PaidItemTradingAllowed (kept for
+--   trading). Studio is never restricted; Items.setRestricted is the /policy dev command's.
+-- - Items.ShopChanged fires when a shop window changes in this server (/limited, /restock), so
+--   the Store can send ShopState again.
+-- - Copies in existence move with every open and Limited buy (Counters.add); a Legendary,
 --   Mythic or Secret unboxed is announced (Announce.unbox).
--- - CaseDrop (a RemoteEvent): Case Drops that landed outside a match result (PlayerData
---   .CaseDropped, every source but "Win", whose drop rides on MatchSummary.caseDrop), for the
---   8-ball reveal. No case is sold for money (BuyCase answers NotSold).
 -- - CueFound (a RemoteEvent): the cues that just entered a player's Index for the first time
---   and the finder's money each paid (PlayerData.CueFound: every source but a case reel, whose
---   answers carry it), so the client can say so.
+--   and the finder's money each paid (PlayerData.CueFound: every source but a lucky block's
+--   reel, whose answer carries it), so the client can say so.
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local PolicyService = game:GetService("PolicyService")
@@ -37,8 +32,6 @@ local ServerStorage = game:GetService("ServerStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
-local Catalog = require(Shared.Progression.Catalog)
-local Cases = require(Shared.Progression.Cases)
 local Inventory = require(Shared.Progression.Inventory)
 local Requests = require(Shared.Progression.Requests)
 local Shop = require(Shared.Progression.Shop)
@@ -53,14 +46,11 @@ local IS_STUDIO = RunService:IsStudio()
 
 -- Player attributes this module owns (server-set; clients only read them).
 local ATTR = {
-	Restricted = "PaidRandomRestricted", -- no cases for money (ECONOMY 13)
+	Restricted = "PaidRandomRestricted", -- no lucky blocks for money (ECONOMY 13)
 	Trading = "PaidItemTradingAllowed", -- paid item trading allowed (for trading, later)
 }
 -- Read from other modules' attributes.
-local FAST_OPEN = "FastOpen" -- the Store's: owns the Fast Open pass
 local MONEY = "Money" -- PlayerData's: the save's money
--- The sale's mirror on ReplicatedStorage.
-local SALE_ATTR = { Case = "CaseSale", Percent = "CaseSalePercent", EndsAt = "CaseSaleEndsAt" }
 
 -- PlayerData mutations that never touch the inventory snapshot, so they push nothing (the
 -- frequent ones: playtime every Config.Daily.PlaytimeTickSeconds, every shot, money).
@@ -75,8 +65,13 @@ local QUIET_OPS: { [string]: boolean } = {
 	recordMatch = true,
 	endStreak = true,
 	recordRealMatch = true,
-	addOpponentCase = true,
+	addOpponentDrop = true,
 	countDaily = true,
+	-- Lucky blocks (LuckyBlockService pushes BlockState; the Inventory shows no blocks).
+	winBlock = true,
+	giveLuckyBlocks = true,
+	moveLuckyBlock = true,
+	prepareLuckySkip = true,
 	-- The ults (UltSpins): none touches the inventory.
 	ultSpin = true,
 	ultSelect = true,
@@ -93,13 +88,13 @@ local QUIET_OPS: { [string]: boolean } = {
 }
 
 export type Reply = { [string]: any }
-export type Sale = Cases.Sale
 
 local Items = {}
 
-local saleEvent = Instance.new("BindableEvent")
---- () Fires when the case sale changes or ends (Items.sale() is the new one, or nil).
-Items.SaleChanged = saleEvent.Event
+local shopEvent = Instance.new("BindableEvent")
+--- () Fires when a shop window in this server changes (/limited, /restock): the Store sends
+--- ShopState again.
+Items.ShopChanged = shopEvent.Event
 local policyEvent = Instance.new("BindableEvent")
 --- (player) Fires when a player's PolicyService answer arrives or /policy changes it.
 Items.PolicyChanged = policyEvent.Event
@@ -111,9 +106,6 @@ local busy: { [Player]: boolean } = {}
 local policies: { [Player]: Policy } = {}
 local dirty: { [Player]: boolean } = {} -- a snapshot push is due at the next Heartbeat
 local lastSent: { [Player]: string } = {} -- the last snapshot sent, encoded
-local sale: Sale? = nil
-local saleVersion = 0 -- bumped by every change, so an old sale's end timer does nothing
-local rolls = Random.new()
 
 local function refuse(reason: string, extra: { [string]: any }?): Reply
 	local reply: Reply = { ok = false, reason = reason }
@@ -221,7 +213,7 @@ local function loadPolicy(player: Player)
 	setPolicy(player, true, false)
 end
 
---- Whether paid random items are restricted for the player (no cases for money): nil while
+--- Whether paid random items are restricted for the player (no blocks for money): nil while
 --- PolicyService has not answered yet.
 function Items.isRestricted(player: Player): boolean?
 	local policy = policies[player]
@@ -246,85 +238,6 @@ function Items.setRestricted(player: Player, on: boolean)
 end
 
 ---------------------------------------------------------------------------------------------
--- The case sale (ECONOMY 9.1)
----------------------------------------------------------------------------------------------
-
-local function mirrorSale()
-	local current = Items.sale()
-	ReplicatedStorage:SetAttribute(SALE_ATTR.Case, if current then current.Case else nil)
-	ReplicatedStorage:SetAttribute(SALE_ATTR.Percent, if current then current.Percent else nil)
-	ReplicatedStorage:SetAttribute(SALE_ATTR.EndsAt, if current then current.EndsAt else nil)
-end
-
--- A sale's own check: a case sold in the shop, a whole percent 1..Config.Cases.MaxSalePercent
--- off (past it, buying cases and selling back what they drop would make money), an end in the
--- future.
-local function validSale(caseId: any, percent: any, endsAt: any, now: number): boolean
-	local case = Cases.get(caseId)
-	return case ~= nil
-		and case.Enabled
-		and type(percent) == "number"
-		and percent == math.floor(percent)
-		and percent >= 1
-		and percent <= Config.Cases.MaxSalePercent
-		and type(endsAt) == "number"
-		and endsAt == endsAt
-		and endsAt > now
-		and endsAt < Config.Save.UnixTimeCap
-end
-
--- Puts a sale on (or none) and times its end.
-local function applySale(value: Sale?)
-	sale = value
-	saleVersion += 1
-	local version = saleVersion
-	mirrorSale()
-	saleEvent:Fire()
-	if value then
-		task.delay(math.max(0, value.EndsAt - os.time()), function()
-			if saleVersion == version then
-				sale = nil
-				saleVersion += 1
-				mirrorSale()
-				saleEvent:Fire()
-			end
-		end)
-	end
-end
-
---- The case sale on now ({ Case, Percent, EndsAt }, a fresh table), or nil: none, or it ended.
-function Items.sale(): Sale?
-	local current = sale
-	if current == nil or os.time() >= current.EndsAt then
-		return nil
-	end
-	return { Case = current.Case, Percent = current.Percent, EndsAt = current.EndsAt }
-end
-
---- The /sale dev command: `percent` off case `caseId` until `endsAt` (unix), replacing any
---- sale; a nil or "" caseId ends the sale. True when done; false (logged) for a case not sold
---- in the shop, a percent that is not a whole 1..Config.Cases.MaxSalePercent, or an end not in
---- the future.
-function Items.setSale(caseId: string?, percent: number?, endsAt: number?): boolean
-	if caseId == nil or caseId == "" then
-		applySale(nil)
-		return true
-	end
-	if not validSale(caseId, percent, endsAt, os.time()) then
-		warn(
-			("[8ball] Items.setSale: refused %s %s%% until %s"):format(
-				tostring(caseId),
-				tostring(percent),
-				tostring(endsAt)
-			)
-		)
-		return false
-	end
-	applySale({ Case = caseId, Percent = percent :: number, EndsAt = endsAt :: number })
-	return true
-end
-
----------------------------------------------------------------------------------------------
 -- The actions
 ---------------------------------------------------------------------------------------------
 
@@ -333,88 +246,7 @@ local function moneyOf(player: Player): number
 	return if type(money) == "number" then money else 0
 end
 
-local function roll(n: number): number
-	return rolls:NextInteger(1, n)
-end
-
 local HANDLERS: { [string]: (Player, Requests.Request) -> Reply } = {}
-
-function HANDLERS.BuyCase(player: Player, r: Requests.Request): Reply
-	local caseId, count = r.caseId :: string, r.count :: number
-	local restricted = Items.isRestricted(player)
-	if restricted == nil then
-		return refuse("NotLoaded") -- PolicyService has not answered yet
-	elseif restricted then
-		return refuse("Restricted")
-	end
-	local price, perCase, onSale = Cases.price(caseId, count, os.time(), Items.sale())
-	if PlayerData.buyCases(player, caseId, count, price) then
-		return {
-			ok = true,
-			caseId = caseId,
-			count = count,
-			price = price,
-			perCase = perCase,
-			onSale = onSale,
-		}
-	end
-	local money = moneyOf(player)
-	if money < price then
-		return refuse("NotEnoughMoney", { need = price - money, price = price })
-	end
-	return refuse("Error")
-end
-
--- The tutorial lane: a forced result for a case opening (game 1's Standard Case lands on an
--- Uncommon cue) and a call once a case is opened (TutorialService). Nil: none.
-local openForce: ((Player, string, number) -> { string }?)? = nil
-local onOpened: ((Player, string, { string }) -> ())? = nil
-
---- The tutorial lane's hooks on OpenCase (see above; `opened` also gets the cues it gave).
-function Items.setOpenHooks(
-	force: ((Player, string, number) -> { string }?)?,
-	opened: ((Player, string, { string }) -> ())?
-)
-	openForce, onOpened = force, opened
-end
-
-function HANDLERS.OpenCase(player: Player, r: Requests.Request): Reply
-	local caseId, count = r.caseId :: string, r.count :: number
-	if count > 1 and player:GetAttribute(FAST_OPEN) ~= true then
-		return refuse("NoFastOpen")
-	end
-	local forced = if openForce then openForce(player, caseId, count) else nil
-	local cueIds: { string } = {}
-	if forced and #forced == count then
-		cueIds = forced
-	else
-		for _ = 1, count do
-			table.insert(cueIds, (Cases.roll(caseId, roll)))
-		end
-	end
-	local ok, result = PlayerData.openCases(player, caseId, cueIds)
-	if not ok then
-		return refuse(Requests.reasonFrom(result))
-	end
-	if onOpened then
-		task.spawn(onOpened, player, caseId, cueIds)
-	end
-	local results = {}
-	for _, opened in result :: { any } do
-		local cue = Catalog.get(opened.cue) :: Catalog.Cue
-		Counters.add(cue.Id, 1)
-		Announce.unbox(player, cue.Id)
-		table.insert(results, {
-			cue = cue.Id,
-			rarity = cue.Rarity,
-			new = opened.new,
-			duplicate = opened.duplicate,
-			count = opened.count,
-			found = opened.found,
-		})
-	end
-	return { ok = true, caseId = caseId, results = results }
-end
 
 function HANDLERS.SellCue(player: Player, r: Requests.Request): Reply
 	local cueId, count = r.cueId :: string, r.count :: number
@@ -452,7 +284,7 @@ function HANDLERS.EquipCue(player: Player, r: Requests.Request): Reply
 	if not PlayerData.equipCue(player, cueId) then
 		return refuse("NotOwned")
 	end
-	Funnel.cueEquipped(player, cueId) -- the Case Drop funnel (the tutorial lane)
+	Funnel.cueEquipped(player, cueId) -- the lucky block funnel (the tutorial lane)
 	if onEquipped then
 		task.spawn(onEquipped, player, cueId)
 	end
@@ -527,7 +359,7 @@ function Items.setLimitedWindow(startsAt: number?, seconds: number?)
 			Shop.setDeal(key, startsAt, seconds)
 		end
 	end
-	saleEvent:Fire() -- the Store sends ShopState again (SaleChanged)
+	shopEvent:Fire() -- the Store sends ShopState again (ShopChanged)
 end
 
 -- The /restock developer command's restock for this server: shown instead of the real one
@@ -554,7 +386,7 @@ function Items.forceRestock(itemId: string): number?
 			forcedSlot = n
 			local _, endsAt = Restock.window(slot)
 			forcedUntil = endsAt
-			saleEvent:Fire() -- the Store sends ShopState again (SaleChanged)
+			shopEvent:Fire() -- the Store sends ShopState again (ShopChanged)
 			return n
 		end
 	end
@@ -569,7 +401,7 @@ local function replyReason(why: string?): string
 	return why
 end
 
--- Refuses a paid random item (Mystery Cases, restock cases, timer skips) where PolicyService
+-- Refuses a paid random item (lucky blocks, restock blocks) where PolicyService
 -- restricts them, or before it has answered; nil when it may go ahead.
 local function randomRefusal(player: Player): Reply?
 	local restricted = Items.isRestricted(player)
@@ -623,7 +455,7 @@ function HANDLERS.BuyRestock(player: Player, r: Requests.Request): Reply
 	if data.Money < item.price then
 		return refuse("NotEnoughMoney", { need = item.price - data.Money, price = item.price })
 	end
-	-- The Legendary Case's shared stock: a unit is taken first, and given back if the buy fails.
+	-- The Legendary block's shared stock: a unit is taken first, and given back if the buy fails.
 	local key = Restock.stockKey(slot)
 	if item.global ~= nil then
 		local held, reason = Counters.reserveStock(key, player.UserId, item.global)
@@ -643,38 +475,6 @@ function HANDLERS.BuyRestock(player: Player, r: Requests.Request): Reply
 		return refuse(replyReason(failed))
 	end
 	return { ok = true, itemId = item.id, price = item.price }
-end
-
-function HANDLERS.SkipTimer(player: Player, r: Requests.Request): Reply
-	local blocked = randomRefusal(player)
-	if blocked then
-		return blocked
-	end
-	local caseId, at = r.caseId :: string, r.at :: number
-	local data = PlayerData.read(player)
-	if data == nil then
-		return refuse("NotLoaded")
-	end
-	local left = at - os.time()
-	local running = false
-	for _, t in Inventory.timers(data) do
-		if t.id == caseId and t.readyAt == at then
-			running = left > 0
-		end
-	end
-	if not running then
-		return refuse("NoTimer")
-	end
-	local price = Shop.skipPrice(left)
-	local ok, why = PlayerData.skipTimer(player, caseId, at, price)
-	if not ok then
-		if why == "NotEnoughMoney" then
-			local money = moneyOf(player)
-			return refuse(why, { need = price - money, price = price })
-		end
-		return refuse(replyReason(why))
-	end
-	return { ok = true, caseId = caseId, price = price }
 end
 
 -- One request, start to finish. Never errors.
@@ -732,7 +532,6 @@ end
 --   "push", userId                     -> sends the snapshot again (even if unchanged)
 --   "policy", userId                   -> { restricted, trading } or nil
 --   "setRestricted", userId, on        -> as /policy
---   "sale" / "setSale", caseId?, percent, endsAt
 --   "copies", cueId / "limitedSold", cueId / "flush" / "refresh"
 --   "takeLimited", cueId, userId, cap, endsAt -> copy, reason (a real number in the Studio
 --                                      store, recorded under that userId)
@@ -768,10 +567,6 @@ local function startQA()
 		elseif op == "setRestricted" then
 			Items.setRestricted(playerOf(a), b == true)
 			return Items.isRestricted(playerOf(a))
-		elseif op == "sale" then
-			return Items.sale()
-		elseif op == "setSale" then
-			return Items.setSale(a, b, c)
 		elseif op == "copies" then
 			return Counters.copies(a)
 		elseif op == "limitedSold" then
@@ -815,12 +610,6 @@ function Items.start()
 		return
 	end
 	started = true
-	local initial = Config.Cases.Sale
-	if validSale(initial.Case, initial.Percent, initial.EndsAt, os.time()) then
-		applySale({ Case = initial.Case, Percent = initial.Percent, EndsAt = initial.EndsAt })
-	else
-		mirrorSale()
-	end
 	if IS_STUDIO and Config.Debug.StudioOpening == true then
 		-- The Grand Opening is open in every Studio session (Config.Debug.StudioOpening).
 		local opening = Config.Shop.Deals.GrandOpening
@@ -854,18 +643,6 @@ function Items.start()
 	PlayerData.CueFound:Connect(function(player: Player, finds: { PlayerData.Find })
 		if player.Parent == Players then
 			found:FireClient(player, finds)
-		end
-	end)
-	local dropped = Net.get("CaseDrop") :: RemoteEvent
-	PlayerData.CaseDropped:Connect(function(player: Player, drops: { any })
-		local list = {}
-		for _, drop in drops do
-			if drop.source ~= "Win" then
-				table.insert(list, drop)
-			end
-		end
-		if #list > 0 and player.Parent == Players then
-			dropped:FireClient(player, list)
 		end
 	end)
 	RunService.Heartbeat:Connect(flushPushes)

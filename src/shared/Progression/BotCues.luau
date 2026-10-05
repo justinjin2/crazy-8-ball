@@ -3,13 +3,13 @@
 -- 2026-10-02, section 3), so a bot's cue is as rare as real players' at that rank. The Bots
 -- lane's Look.cue calls BotCues.pick(tier, Rng.uniform(rng)).
 --
--- One roll in [0, 1) picks the rarity (Common, Uncommon, Rare by the Case Drop's odds below
+-- One roll in [0, 1) picks the rarity (Common, Uncommon, Rare by the Mystery block's odds below
 -- the tier's Epic+ chance; then Epic, Legendary, Mythic by the tier's bands) and, inside that
--- rarity's band, an equal share of its case cues (not vaulted). Pure: no Instances, no clocks,
+-- rarity's band, an equal share of its block cues (not vaulted). Pure: no Instances, no clocks,
 -- no randomness of its own; every loop walks an array. Lune-tested (tests/botcues_test.luau).
 local Config = require(script.Parent.Parent.Config)
 local Catalog = require(script.Parent.Catalog)
-local CaseDrop = require(script.Parent.CaseDrop)
+local BlockDrop = require(script.Parent.BlockDrop)
 
 local TIERS: { string } = Config.Ranks.Tiers
 local ROWS: { [string]: { EpicPlus: number, LegendaryPlus: number, MythicPlus: number } } =
@@ -23,14 +23,14 @@ local sharesOf: { [string]: { Share } } = {}
 
 local BotCues = {}
 
--- The case cues a bot may carry at one rarity, in catalog order (built once per rarity).
+-- The block cues a bot may carry at one rarity, in catalog order (built once per rarity).
 local pools: { [string]: { string } } = {}
 local function pool(rarity: string): { string }
 	local list = pools[rarity]
 	if list == nil then
 		list = {}
 		for _, cue in Catalog.ofRarity(rarity) do
-			if cue.Group == "Case" and not cue.Vaulted then
+			if cue.Group == "Block" and not cue.Vaulted then
 				table.insert(list, cue.Id)
 			end
 		end
@@ -46,13 +46,13 @@ function BotCues.shares(tier: string): { Share }
 	local below = 1 - row.EpicPlus
 	local weight = 0
 	for _, rarity in BELOW do
-		weight += CaseDrop.rarityPercent(rarity)
+		weight += BlockDrop.rarityPercent(rarity)
 	end
 	local list: { Share } = {}
 	for _, rarity in BELOW do
 		table.insert(
 			list,
-			{ rarity = rarity, share = below * CaseDrop.rarityPercent(rarity) / weight }
+			{ rarity = rarity, share = below * BlockDrop.rarityPercent(rarity) / weight }
 		)
 	end
 	table.insert(list, { rarity = "Epic", share = row.EpicPlus - row.LegendaryPlus })

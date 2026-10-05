@@ -2,27 +2,28 @@
 -- Trade: the pure half of trading (the approved economy plan, 2026-10-02, section 9; designer,
 -- 2026-10-03). src/server/Trading.luau owns the sessions, the remotes and the ledger.
 --
--- An item is a string: a cue id ("NeonCue") or "Case:" and a case id ("Case:Rare"). A side
--- is a list of up to Config.Trade.MaxSideItems items; one entry is one copy, so three of a
--- cue are three entries. What may trade: case cues and Unique (numbered Limited) cues, the
--- Exclusive cues in Config.Trade.ExclusiveTradable, and READY cases (never one on its timer);
--- never money, never Classic, never another Exclusive cue. A paid-origin copy moves only when
--- both players may trade paid items (PolicyService); free copies always move first.
+-- An item is a string: a cue id ("NeonCue") or "Block:" and a lucky block kind
+-- ("Block:Rare"). A side is a list of up to Config.Trade.MaxSideItems items; one entry is one
+-- copy, so three of a cue are three entries. What may trade: block cues and Unique (numbered
+-- Limited) cues, the Exclusive cues in Config.Trade.ExclusiveTradable, and READY lucky blocks
+-- (never one on its timer; the caller passes `now`); never money, never Classic, never
+-- another Exclusive cue. A paid-origin copy moves only when both players may trade paid items
+-- (PolicyService); free copies always move first. A traded block lands ready at once.
 --
 -- Trade.swap checks both sides against both saves and then changes them together, or changes
 -- nothing. What moved (`Moved`: each item's count, how many were paid, a Unique's number) is
 -- what the ledger keeps, so a save that missed the swap can replay its side (Trade.replay).
 -- A cue got in a trade enters the Index but pays no finder's money (the caller pays none).
 --
--- Pure: no Instances, no clocks (the caller passes `now`), no randomness; every loop walks an
--- array. Lune-tested (tests/trade_test.luau).
+-- Pure: no Instances, no clocks (the caller passes `now`, unix seconds), no randomness; every
+-- loop walks an array. Lune-tested (tests/trade_test.luau).
 local Config = require(script.Parent.Parent.Config)
 local Catalog = require(script.Parent.Catalog)
-local Cases = require(script.Parent.Cases)
 local Inventory = require(script.Parent.Inventory)
+local LuckyBlocks = require(script.Parent.LuckyBlocks)
 
 local T = Config.Trade
-local CASE_PREFIX = "Case:"
+local BLOCK_PREFIX = "Block:"
 
 -- One kind of item moved: `count` copies, `paid` of them paid origin, a Unique's `copy`.
 export type MovedItem = { item: string, count: number, paid: number, copy: number? }
@@ -44,15 +45,15 @@ export type Entry = {
 
 local Trade = {}
 
--- What an item string names: ("Cue", cue id) or ("Case", case id), or nil.
+-- What an item string names: ("Cue", cue id) or ("Block", block kind), or nil.
 local function parseItem(item: any): (string?, string?)
 	if type(item) ~= "string" then
 		return nil, nil
 	end
-	if string.sub(item, 1, #CASE_PREFIX) == CASE_PREFIX then
-		local caseId = string.sub(item, #CASE_PREFIX + 1)
-		if Cases.get(caseId) ~= nil then
-			return "Case", caseId
+	if string.sub(item, 1, #BLOCK_PREFIX) == BLOCK_PREFIX then
+		local kind = string.sub(item, #BLOCK_PREFIX + 1)
+		if LuckyBlocks.kind(kind) ~= nil and LuckyBlocks.current(kind) == kind then
+			return "Block", kind
 		end
 		return nil, nil
 	end
@@ -63,12 +64,12 @@ local function parseItem(item: any): (string?, string?)
 	return nil, nil
 end
 
---- The item string of a case.
-function Trade.caseItem(caseId: string): string
-	return CASE_PREFIX .. caseId
+--- The item string of a lucky block kind.
+function Trade.blockItem(kind: string): string
+	return BLOCK_PREFIX .. kind
 end
 
---- Whether a cue may ever be traded: case and Unique cues, and the Exclusive ones listed in
+--- Whether a cue may ever be traded: block and Unique cues, and the Exclusive ones listed in
 --- Config.Trade.ExclusiveTradable (the Starter Cue).
 function Trade.tradable(cueId: string): boolean
 	local cue = Catalog.get(cueId)
@@ -78,7 +79,7 @@ function Trade.tradable(cueId: string): boolean
 	if cue.Group == "Exclusive" then
 		return (T.ExclusiveTradable :: any)[cue.Id] == true
 	end
-	return cue.Group == "Case" or cue.Group == "Unique"
+	return cue.Group == "Block" or cue.Group == "Unique"
 end
 
 --- A side from a client: a list of known item strings, at most MaxSideItems (a fresh copy), or
@@ -124,12 +125,39 @@ local function counted(items: { string }): { { item: string, count: number } }
 	return list
 end
 
--- How many copies of an item the save may give: (all it holds, the free ones).
-local function holding(save: any, item: string): (number, number)
+-- The save's lucky block list (empty for a save without one).
+local function blockList(save: any): { LuckyBlocks.Block }
+	local state = if type(save) == "table" then save.LuckyBlocks else nil
+	local list = if type(state) == "table" then state.List else nil
+	return if type(list) == "table" then list else {}
+end
+
+-- The save's READY blocks of `kind` at `now`, oldest first (by id).
+local function readyBlocks(save: any, kind: string, now: number): { LuckyBlocks.Block }
+	local out: { LuckyBlocks.Block } = {}
+	for _, block in blockList(save) do
+		if type(block) == "table" and block.Kind == kind and LuckyBlocks.isReady(block, now) then
+			table.insert(out, block)
+		end
+	end
+	table.sort(out, function(a, b)
+		return a.Id < b.Id
+	end)
+	return out
+end
+
+-- How many copies of an item the save may give at `now`: (all it holds, the free ones).
+local function holding(save: any, item: string, now: number): (number, number)
 	local kind, id = parseItem(item)
-	if kind == "Case" then
-		local have = Inventory.caseCount(save, id)
-		return have, have - Inventory.paidCases(save, id)
+	if kind == "Block" then
+		local have, free = 0, 0
+		for _, block in readyBlocks(save, id :: string, now) do
+			have += 1
+			if not block.Paid then
+				free += 1
+			end
+		end
+		return have, free
 	elseif kind == "Cue" then
 		local have = Inventory.count(save, id)
 		return have, have - Inventory.paidCount(save, id)
@@ -137,24 +165,28 @@ local function holding(save: any, item: string): (number, number)
 	return 0, 0
 end
 
---- What this save can put in a trade now (GUI lane, the trade screen and its wish list):
---- { item, count } for every tradable cue it holds and every READY case, cues in the Index's
---- order then cases in shop order; `count` is how many may go (free copies only unless
---- `paidOk`). Items with nothing to give are left out.
-function Trade.offerable(save: any, paidOk: boolean): { { item: string, count: number } }
+--- What this save can put in a trade at `now` (GUI lane, the trade screen and its wish
+--- list): { item, count } for every tradable cue it holds and every READY lucky block, cues
+--- in the Index's order then blocks in Config.LuckyBlocks.Order; `count` is how many may go
+--- (free copies only unless `paidOk`). Items with nothing to give are left out.
+function Trade.offerable(
+	save: any,
+	paidOk: boolean,
+	now: number
+): { { item: string, count: number } }
 	local out: { { item: string, count: number } } = {}
 	for _, cue in Catalog.list() do
 		if Trade.tradable(cue.Id) then
-			local have, free = holding(save, cue.Id)
+			local have, free = holding(save, cue.Id, now)
 			local n = if paidOk then have else free
 			if n > 0 then
 				table.insert(out, { item = cue.Id, count = n })
 			end
 		end
 	end
-	for _, case in Cases.list(true) do
-		local item = Trade.caseItem(case.Id)
-		local have, free = holding(save, item)
+	for _, kind in Config.LuckyBlocks.Order do
+		local item = Trade.blockItem(kind)
+		local have, free = holding(save, item, now)
 		local n = if paidOk then have else free
 		if n > 0 then
 			table.insert(out, { item = item, count = n })
@@ -163,17 +195,16 @@ function Trade.offerable(save: any, paidOk: boolean): { { item: string, count: n
 	return out
 end
 
---- Why this save cannot give `items`, or nil: "NotTradable" (Classic, an Exclusive cue),
---- "NotOwned" (fewer than offered, or a case still on its timer), "PaidBlocked" (only paid
---- copies would make the count and `paidOk` is false). Ready cases only: finish the save's
---- timers first.
-function Trade.canGive(save: any, items: { string }, paidOk: boolean): string?
+--- Why this save cannot give `items` at `now`, or nil: "NotTradable" (Classic, an Exclusive
+--- cue), "NotOwned" (fewer than offered, or a block still on its timer), "PaidBlocked" (only
+--- paid copies would make the count and `paidOk` is false).
+function Trade.canGive(save: any, items: { string }, paidOk: boolean, now: number): string?
 	for _, entry in counted(items) do
 		local kind, id = parseItem(entry.item)
 		if kind == "Cue" and not Trade.tradable(id :: string) then
 			return "NotTradable"
 		end
-		local have, free = holding(save, entry.item)
+		local have, free = holding(save, entry.item, now)
 		if entry.count > have then
 			return "NotOwned"
 		elseif not paidOk and entry.count > free then
@@ -201,31 +232,58 @@ function Trade.canReceive(save: any, items: { string }): string?
 	return nil
 end
 
---- Why these two saves cannot swap these sides, or nil: "Empty" (a side with nothing: no
---- gifts), then canGive's and canReceive's reasons, A's side first.
+--- Why these two saves cannot swap these sides at `now`, or nil: "Empty" (a side with
+--- nothing: no gifts), then canGive's and canReceive's reasons, A's side first.
 function Trade.check(
 	saveA: any,
 	saveB: any,
 	itemsA: { string },
 	itemsB: { string },
-	paidOk: boolean
+	paidOk: boolean,
+	now: number
 ): string?
 	if #itemsA == 0 or #itemsB == 0 then
 		return "Empty"
 	end
-	return Trade.canGive(saveA, itemsA, paidOk)
-		or Trade.canGive(saveB, itemsB, paidOk)
+	return Trade.canGive(saveA, itemsA, paidOk, now)
+		or Trade.canGive(saveB, itemsB, paidOk, now)
 		or Trade.canReceive(saveB, itemsA)
 		or Trade.canReceive(saveA, itemsB)
 end
 
--- Takes a side out of a save (free copies first): what moved. Checked first by the caller.
-local function take(save: any, items: { string }): Moved
+-- Takes `count` ready blocks of `kind` out of a save at `now`, free ones first, then the
+-- oldest: how many of them were paid.
+local function takeBlocks(save: any, kind: string, count: number, now: number): number
+	local ready = readyBlocks(save, kind, now)
+	local picked: { LuckyBlocks.Block } = {}
+	for _, block in ready do
+		if #picked < count and not block.Paid then
+			table.insert(picked, block)
+		end
+	end
+	for _, block in ready do
+		if #picked < count and block.Paid then
+			table.insert(picked, block)
+		end
+	end
+	local paid = 0
+	for _, block in picked do
+		LuckyBlocks.remove(save.LuckyBlocks, block.Id)
+		if block.Paid then
+			paid += 1
+		end
+	end
+	return paid
+end
+
+-- Takes a side out of a save at `now` (free copies first): what moved. Checked first by the
+-- caller.
+local function take(save: any, items: { string }, now: number): Moved
 	local moved: Moved = {}
 	for _, entry in counted(items) do
 		local kind, id = parseItem(entry.item)
-		if kind == "Case" then
-			local _, paid = Inventory.takeCases(save, id, entry.count, true)
+		if kind == "Block" then
+			local paid = takeBlocks(save, id :: string, entry.count, now)
 			table.insert(moved, { item = entry.item, count = entry.count, paid = paid })
 		else
 			local copy = Inventory.copy(save, id)
@@ -241,17 +299,15 @@ local function take(save: any, items: { string }): Moved
 	return moved
 end
 
--- Gives what moved to a save, keeping each copy's paid origin and a Unique's number.
-local function give(save: any, moved: Moved)
+-- Gives what moved to a save at `now`, keeping each copy's paid origin and a Unique's number.
+-- A block lands at the end of the list, ready at once.
+local function give(save: any, moved: Moved, now: number)
 	for _, m in moved do
 		local kind, id = parseItem(m.item)
-		if kind == "Case" then
-			local free = m.count - m.paid
-			if free > 0 then
-				Inventory.addCases(save, id, free, false)
-			end
-			if m.paid > 0 then
-				Inventory.addCases(save, id, m.paid, true)
+		if kind == "Block" then
+			for i = 1, m.count do
+				local block = LuckyBlocks.add(save.LuckyBlocks, id :: string, now, nil, i <= m.paid)
+				block.ReadyAt = now
 			end
 		else
 			local cue = Catalog.get(id) :: Catalog.Cue
@@ -270,23 +326,25 @@ local function give(save: any, moved: Moved)
 	end
 end
 
---- Swaps A's `itemsA` for B's `itemsB` in the two saves: everything checked first, then both
---- changed. Returns (true, nil, from A, from B) or (false, reason) with nothing changed.
+--- Swaps A's `itemsA` for B's `itemsB` in the two saves at `now`: everything checked first,
+--- then both changed. Returns (true, nil, from A, from B) or (false, reason) with nothing
+--- changed.
 function Trade.swap(
 	saveA: any,
 	saveB: any,
 	itemsA: { string },
 	itemsB: { string },
-	paidOk: boolean
+	paidOk: boolean,
+	now: number
 ): (boolean, string?, Moved?, Moved?)
-	local why = Trade.check(saveA, saveB, itemsA, itemsB, paidOk)
+	local why = Trade.check(saveA, saveB, itemsA, itemsB, paidOk, now)
 	if why ~= nil then
 		return false, why, nil, nil
 	end
-	local fromA = take(saveA, itemsA)
-	local fromB = take(saveB, itemsB)
-	give(saveB, fromA)
-	give(saveA, fromB)
+	local fromA = take(saveA, itemsA, now)
+	local fromB = take(saveB, itemsB, now)
+	give(saveB, fromA, now)
+	give(saveA, fromB, now)
 	return true, nil, fromA, fromB
 end
 
@@ -341,10 +399,10 @@ function Trade.applied(save: any, id: string): boolean
 end
 
 --- Replays one player's side of a ledger trade on a save that missed it (its load came after
---- a crash that lost the swap): takes what that player gave as far as the save still holds it
---- (free first) and gives what they got, then records it. False (nothing changed) when the
---- save already holds it or the player is not in it.
-function Trade.replay(save: any, entry: Entry, userId: number): boolean
+--- a crash that lost the swap) at `now`: takes what that player gave as far as the save still
+--- holds it (free first; a block ready now) and gives what they got, then records it. False
+--- (nothing changed) when the save already holds it or the player is not in it.
+function Trade.replay(save: any, entry: Entry, userId: number, now: number): boolean
 	if Trade.applied(save, entry.id) or (userId ~= entry.a and userId ~= entry.b) then
 		return false
 	end
@@ -353,10 +411,10 @@ function Trade.replay(save: any, entry: Entry, userId: number): boolean
 	local got = if isA then entry.fromB else entry.fromA
 	for _, m in gave do
 		local kind, id = parseItem(m.item)
-		if kind == "Case" then
-			local n = math.min(m.count, Inventory.caseCount(save, id))
+		if kind == "Block" then
+			local n = math.min(m.count, #readyBlocks(save, id :: string, now))
 			if n > 0 then
-				Inventory.takeCases(save, id, n, true)
+				takeBlocks(save, id :: string, n, now)
 			end
 		elseif kind == "Cue" then
 			local n = math.min(m.count, Inventory.count(save, id))
@@ -373,7 +431,7 @@ function Trade.replay(save: any, entry: Entry, userId: number): boolean
 			table.insert(receivable, m)
 		end
 	end
-	give(save, receivable)
+	give(save, receivable, now)
 	Trade.record(save, entry.id, if isA then entry.b else entry.a, entry.at, gave, got)
 	return true
 end
@@ -383,11 +441,11 @@ end
 ---------------------------------------------------------------------------------------------
 
 -- An item's worth: 1 / its copies in existence (cues; fewer than MinExists counts as
--- MinExists, unknown as MinExists) or 1 / Config.Trade.CaseExists (cases).
+-- MinExists, unknown as MinExists) or 1 / Config.Trade.BlockExists (lucky blocks).
 local function worth(item: string, copies: { [string]: number }): number
 	local kind, id = parseItem(item)
-	if kind == "Case" then
-		return 1 / math.max(1, (T.CaseExists :: any)[id] or 1)
+	if kind == "Block" then
+		return 1 / math.max(T.MinExists, (T.BlockExists :: any)[id] or T.MinExists)
 	elseif kind == "Cue" then
 		local n = copies[id :: string]
 		return 1 / math.max(T.MinExists, if type(n) == "number" then n else T.MinExists)

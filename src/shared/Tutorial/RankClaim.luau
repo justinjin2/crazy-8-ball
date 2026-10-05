@@ -2,14 +2,14 @@
 -- RankClaim: rank rewards held until the player claims them in Rank (designer, 2026-10-03;
 -- docs/prompts/TUTORIAL_PROMPT.md, "Rule changes for everyone"). The save keeps the last
 -- division whose rewards were claimed (Flags.RankClaimed); everything between it and the
--- peak is pending, except the Case Drops of the tiers in Config.Tutorial.RankClaim
--- .DropsAtOnce, which are given with the rank-up itself (Bronze's 1 drop follows the first
--- win). Pure: no Instances, no clocks, arrays walked in order.
+-- peak is pending, except the lucky blocks of the tiers in Config.Tutorial.RankClaim
+-- .BlocksAtOnce, which are given with the rank-up itself (Bronze's block follows the first
+-- win: the tutorial's Standard block). Pure: no Instances, no clocks, arrays walked in order.
 local Config = require(script.Parent.Parent.Config)
 local Ranks = require(script.Parent.Parent.Progression.Ranks)
 
-local AT_ONCE: { [string]: boolean } = Config.Tutorial.RankClaim.DropsAtOnce
-local CASE_ORDER: { string } = Config.Cases.Order
+local AT_ONCE: { [string]: boolean } = Config.Tutorial.RankClaim.BlocksAtOnce
+local BLOCK_ORDER: { string } = Config.LuckyBlocks.Order
 
 local RankClaim = {}
 
@@ -17,8 +17,7 @@ local RankClaim = {}
 export type Row = {
 	index: number,
 	money: number,
-	cases: { [string]: number },
-	drops: number,
+	blocks: { [string]: number },
 	cue: string?,
 	spins: number,
 }
@@ -26,15 +25,14 @@ export type Row = {
 -- Everything pending, added up, plus the rows it came from (bottom first).
 export type Pending = {
 	money: number,
-	cases: { [string]: number },
-	drops: number,
+	blocks: { [string]: number },
 	cues: { string },
 	spins: number,
 	rows: { Row },
 }
 
--- Whether a division's Case Drops are given at once (its tier is in DropsAtOnce).
-local function dropsAtOnce(index: number): boolean
+-- Whether a division's lucky blocks are given at once (its tier is in BlocksAtOnce).
+local function blocksAtOnce(index: number): boolean
 	local tier = Ranks.at(index)
 	return AT_ONCE[tier] == true
 end
@@ -46,15 +44,25 @@ local function whole(n: any): number
 	return math.max(0, math.floor(n))
 end
 
---- The Case Drops given at once with a rank-up from peak `before` to peak `after`.
-function RankClaim.dropsAtOnce(before: number, after: number): number
-	local drops = 0
-	for _, reward in Ranks.rewardsBetween(whole(before), whole(after)) do
-		if dropsAtOnce(reward.index) then
-			drops += reward.drops
+local function addBlocks(into: { [string]: number }, from: { [string]: number })
+	for _, id in BLOCK_ORDER do
+		local count = from[id]
+		if count then
+			into[id] = (into[id] or 0) + count
 		end
 	end
-	return drops
+end
+
+--- The lucky blocks given at once with a rank-up from peak `before` to peak `after`, by kind
+--- (empty when none).
+function RankClaim.blocksAtOnce(before: number, after: number): { [string]: number }
+	local blocks: { [string]: number } = {}
+	for _, reward in Ranks.rewardsBetween(whole(before), whole(after)) do
+		if blocksAtOnce(reward.index) then
+			addBlocks(blocks, reward.blocks)
+		end
+	end
+	return blocks
 end
 
 --- What is held between the claimed division and the peak (nothing when the claimed one is
@@ -63,36 +71,23 @@ end
 function RankClaim.pending(claimed: number?, peak: number): Pending
 	local valid = type(claimed) == "number" and claimed == claimed and math.abs(claimed) < math.huge
 	local from = if valid then whole(claimed) else whole(peak)
-	local out: Pending = { money = 0, cases = {}, drops = 0, cues = {}, spins = 0, rows = {} }
+	local out: Pending = { money = 0, blocks = {}, cues = {}, spins = 0, rows = {} }
 	for _, reward in Ranks.rewardsBetween(from, whole(peak)) do
-		local drops = if dropsAtOnce(reward.index) then 0 else reward.drops
+		local blocks = if blocksAtOnce(reward.index) then {} else table.clone(reward.blocks)
 		local row: Row = {
 			index = reward.index,
 			money = reward.money,
-			cases = table.clone(reward.cases),
-			drops = drops,
+			blocks = blocks,
 			cue = reward.cue,
 			spins = reward.spins,
 		}
 		out.money += row.money
-		out.drops += drops
 		out.spins += row.spins
-		for _, id in CASE_ORDER do
-			local count = row.cases[id]
-			if count then
-				out.cases[id] = (out.cases[id] or 0) + count
-			end
-		end
+		addBlocks(out.blocks, row.blocks)
 		if row.cue then
 			table.insert(out.cues, row.cue)
 		end
-		if
-			row.money > 0
-			or drops > 0
-			or row.spins > 0
-			or row.cue ~= nil
-			or next(row.cases) ~= nil
-		then
+		if row.money > 0 or row.spins > 0 or row.cue ~= nil or next(row.blocks) ~= nil then
 			table.insert(out.rows, row)
 		end
 	end
@@ -104,19 +99,16 @@ function RankClaim.any(p: Pending): boolean
 	return #p.rows > 0
 end
 
---- The pending rewards in PlayerData's Reward shape (money, cases, drops, cues, spins), or
---- nil when nothing is pending.
+--- The pending rewards in PlayerData's Reward shape (money, blocks, cues, spins), or nil when
+--- nothing is pending.
 function RankClaim.reward(p: Pending): any
 	if not RankClaim.any(p) then
 		return nil
 	end
 	local reward: any =
-		{ money = p.money, cases = table.clone(p.cases), cues = table.clone(p.cues) }
+		{ money = p.money, blocks = table.clone(p.blocks), cues = table.clone(p.cues) }
 	if p.spins > 0 then
 		reward.spins = p.spins
-	end
-	if p.drops > 0 then
-		reward.drops = p.drops
 	end
 	return reward
 end

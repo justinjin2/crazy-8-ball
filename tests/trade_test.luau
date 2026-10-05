@@ -9,24 +9,41 @@ local function load()
 	return H.require("Progression.Trade"),
 		H.require("Progression.Inventory"),
 		H.require("Progression.SaveSchema"),
-		H.require("Config")
+		H.require("Config"),
+		H.require("Progression.LuckyBlocks")
 end
+
+-- The unix time every trade here runs at.
+local NOW = 1800000000
 
 local function newSave(): any
 	local _, _, SaveSchema = load()
 	return SaveSchema.template()
 end
 
+-- A block of `kind` that is ready at NOW (it landed long ago), paid or free.
+local function readyBlock(save: any, kind: string, paid: boolean?)
+	local LuckyBlocks = select(5, load())
+	return LuckyBlocks.add(save.LuckyBlocks, kind, NOW - 7 * 86400, nil, paid)
+end
+
+local function blocksOf(save: any, kind: string): number
+	local LuckyBlocks = select(5, load())
+	return LuckyBlocks.count(save.LuckyBlocks, kind)
+end
+
 return {
-	["offerable: tradable cues and ready cases, free copies only without paidOk"] = function()
-		local Trade, Inventory = load()
+	["offerable: tradable cues and ready blocks, free copies only without paidOk"] = function()
+		local Trade, Inventory, _, _, LuckyBlocks = load()
 		local a = newSave()
 		Inventory.addCue(a, "NeonCue", 2)
 		Inventory.addCue(a, "NeonCue", 1, true)
 		Inventory.addCue(a, "ChromaCue", 1, true)
 		Inventory.addCue(a, "VipCue")
-		Inventory.addCases(a, "Rare", 2)
-		Inventory.landCase(a, "Epic", 1000, false, false) -- on its timer: not offerable
+		readyBlock(a, "Rare")
+		readyBlock(a, "Rare")
+		readyBlock(a, "Rare", true) -- bought: only with paidOk
+		LuckyBlocks.add(a.LuckyBlocks, "Epic", NOW) -- on its timer: not offerable
 		local function countOf(list: { any }, item: string): number
 			for _, e in list do
 				if e.item == item then
@@ -35,27 +52,32 @@ return {
 			end
 			return 0
 		end
-		local all = Trade.offerable(a, true)
+		local all = Trade.offerable(a, true, NOW)
 		H.expect(countOf(all, "NeonCue") == 3, "every Neon copy")
 		H.expect(countOf(all, "ChromaCue") == 1, "the paid Chroma")
-		H.expect(countOf(all, "Case:Rare") == 2, "two ready Rare cases")
-		H.expect(countOf(all, "Case:Epic") == 0, "a case on its timer is not offerable")
+		H.expect(countOf(all, "Block:Rare") == 3, "three ready Rare blocks")
+		H.expect(countOf(all, "Block:Epic") == 0, "a block on its timer is not offerable")
 		H.expect(countOf(all, "VipCue") == 0, "an Exclusive cue never trades")
 		H.expect(countOf(all, "Classic") == 0, "Classic never trades")
-		local free = Trade.offerable(a, false)
+		local free = Trade.offerable(a, false, NOW)
 		H.expect(countOf(free, "NeonCue") == 2, "free Neon copies only")
 		H.expect(countOf(free, "ChromaCue") == 0, "no paid Chroma")
+		H.expect(countOf(free, "Block:Rare") == 2, "free Rare blocks only")
+		-- Six hours on, the Epic block is ready and offerable too.
+		local later = Trade.offerable(a, true, NOW + 6 * 3600)
+		H.expect(countOf(later, "Block:Epic") == 1, "ready now")
 	end,
-	["items: cue ids and ready cases, at most 8 a side"] = function()
+	["items: cue ids and ready blocks, at most 8 a side"] = function()
 		local Trade = load()
-		local ok = Trade.parse({ "NeonCue", "Case:Rare", "NeonCue" })
+		local ok = Trade.parse({ "NeonCue", "Block:Rare", "NeonCue" })
 		H.expect(ok ~= nil and #ok == 3, "three entries")
 		H.expect(Trade.parse({}) ~= nil, "an empty side parses (refused at the swap)")
 		for _, bad in
 			{
 				"NeonCue",
 				{ "Nope" },
-				{ "Case:Nope" },
+				{ "Block:Nope" },
+				{ "Case:Rare" },
 				{ 5 },
 				{ [2] = "NeonCue" },
 				{ x = "NeonCue" },
@@ -65,8 +87,9 @@ return {
 			local items, why = Trade.parse(bad)
 			H.expect(items == nil and why == "BadRequest", "bad side")
 		end
-		H.expect(Trade.caseItem("Epic") == "Case:Epic", "a case's item")
-		H.expect(Trade.tradable("NeonCue") and Trade.tradable("GrandOpeningCue"), "case, Unique")
+		H.expect(Trade.blockItem("Epic") == "Block:Epic", "a block's item")
+		H.expect(Trade.parse({ "Block:Mystery" }) ~= nil, "a Mystery block trades once ready")
+		H.expect(Trade.tradable("NeonCue") and Trade.tradable("GrandOpeningCue"), "block, Unique")
 		H.expect(Trade.tradable("StarterCue"), "the Starter Cue may")
 		H.expect(not Trade.tradable("VipCue") and not Trade.tradable("GoldCue"), "Exclusive never")
 		H.expect(not Trade.tradable("Classic"), "Classic never")
@@ -77,21 +100,25 @@ return {
 		local a, b = newSave(), newSave()
 		Inventory.addCue(a, "NeonCue", 2)
 		Inventory.addCue(a, "NeonCue", 1, true) -- one paid
-		Inventory.addCases(a, "Rare", 1)
+		readyBlock(a, "Rare")
 		Inventory.addCue(b, "ChromaCue", 1, true)
 		local ok, why, fromA, fromB = Trade.swap(
 			a,
 			b,
-			{ "NeonCue", "NeonCue", "Case:Rare" },
+			{ "NeonCue", "NeonCue", "Block:Rare" },
 			{ "ChromaCue" },
-			true
+			true,
+			NOW
 		)
 		H.expect(ok and why == nil, tostring(why))
 		assert(fromA and fromB, "moved")
 		H.expect(fromA[1].item == "NeonCue" and fromA[1].count == 2 and fromA[1].paid == 0, "free")
-		H.expect(fromA[2].item == "Case:Rare" and fromA[2].paid == 0, "the case")
+		H.expect(fromA[2].item == "Block:Rare" and fromA[2].paid == 0, "the block")
 		H.expect(Inventory.count(a, "NeonCue") == 1 and Inventory.paidCount(a, "NeonCue") == 1, "")
-		H.expect(Inventory.count(b, "NeonCue") == 2 and Inventory.caseCount(b, "Rare") == 1, "got")
+		H.expect(Inventory.count(b, "NeonCue") == 2 and blocksOf(b, "Rare") == 1, "got")
+		H.expect(blocksOf(a, "Rare") == 0, "the block left")
+		local landed = b.LuckyBlocks.List[1]
+		H.expect(landed.Kind == "Rare" and landed.ReadyAt == NOW and not landed.Paid, "ready now")
 		H.expect(
 			Inventory.count(a, "ChromaCue") == 1 and Inventory.paidCount(a, "ChromaCue") == 1,
 			""
@@ -105,7 +132,7 @@ return {
 		Inventory.addCue(a, "NeonCue", 1)
 		Inventory.addCue(b, "MidnightCue", 1, true)
 		local function refused(itemsA: { string }, itemsB: { string }, paidOk: boolean): string?
-			local ok, why = Trade.swap(a, b, itemsA, itemsB, paidOk)
+			local ok, why = Trade.swap(a, b, itemsA, itemsB, paidOk, NOW)
 			H.expect(not ok, "refused")
 			H.expect(
 				Inventory.count(a, "NeonCue") == 1 and Inventory.count(b, "MidnightCue") == 1,
@@ -120,10 +147,15 @@ return {
 		H.expect(refused({ "Classic" }, { "MidnightCue" }, true) == "NotTradable", "Classic")
 		Inventory.addCue(a, "VipCue")
 		H.expect(refused({ "VipCue" }, { "MidnightCue" }, true) == "NotTradable", "Exclusive")
-		H.expect(refused({ "Case:Rare" }, { "MidnightCue" }, true) == "NotOwned", "no case")
-		-- A case on its timer is not ready, so not tradable.
-		Inventory.landCase(a, "Rare", 1000, false, false)
-		H.expect(refused({ "Case:Rare" }, { "MidnightCue" }, true) == "NotOwned", "on its timer")
+		H.expect(refused({ "Block:Rare" }, { "MidnightCue" }, true) == "NotOwned", "no block")
+		-- A block on its timer is not ready, so not tradable.
+		local _, _, _, _, LuckyBlocks = load()
+		LuckyBlocks.add(a.LuckyBlocks, "Rare", NOW)
+		H.expect(refused({ "Block:Rare" }, { "MidnightCue" }, true) == "NotOwned", "on its timer")
+		H.expect(blocksOf(a, "Rare") == 1, "the block stays")
+		-- A bought block only moves with paidOk.
+		readyBlock(a, "Epic", true)
+		H.expect(refused({ "Block:Epic" }, { "MidnightCue" }, false) == "PaidBlocked", "paid block")
 		-- The Starter Cue may trade, but not to someone who has one.
 		Inventory.addCue(a, "StarterCue")
 		Inventory.addCue(b, "StarterCue")
@@ -135,7 +167,7 @@ return {
 		local a, b = newSave(), newSave()
 		Inventory.addUnique(a, "GrandOpeningCue", 42, true)
 		Inventory.addCue(b, "NeonCue")
-		local ok, _, fromA = Trade.swap(a, b, { "GrandOpeningCue" }, { "NeonCue" }, true)
+		local ok, _, fromA = Trade.swap(a, b, { "GrandOpeningCue" }, { "NeonCue" }, true, NOW)
 		H.expect(ok and fromA ~= nil and fromA[1].copy == 42 and fromA[1].paid == 1, "moved")
 		H.expect(Inventory.copy(b, "GrandOpeningCue") == 42, "#42 kept")
 		H.expect(Inventory.paidCount(b, "GrandOpeningCue") == 1, "paid origin kept")
@@ -143,7 +175,7 @@ return {
 		local c = newSave()
 		Inventory.addUnique(c, "GrandOpeningCue", 7)
 		Inventory.addCue(b, "NeonCue")
-		local no, why = Trade.swap(c, b, { "GrandOpeningCue" }, { "NeonCue" }, true)
+		local no, why = Trade.swap(c, b, { "GrandOpeningCue" }, { "NeonCue" }, true, NOW)
 		H.expect(not no and why == "Owned", "b holds one already")
 	end,
 
@@ -151,13 +183,13 @@ return {
 		local Trade, _, _, Config = load()
 		local save = newSave()
 		local gave = { { item = "NeonCue", count = 2, paid = 0 } }
-		local got = { { item = "Case:Rare", count = 1, paid = 0 } }
+		local got = { { item = "Block:Rare", count = 1, paid = 0 } }
 		for i = 1, Config.Save.MaxTradeHistory + 3 do
 			Trade.record(save, "t" .. i, 99, 1000 + i, gave, got)
 		end
 		local h = save.Trades.History
 		H.expect(#h == Config.Save.MaxTradeHistory and h[1].Id == "t4", "the last 50")
-		H.expect(#h[1].Gave == 2 and h[1].Got[1] == "Case:Rare" and h[1].With == 99, "entries")
+		H.expect(#h[1].Gave == 2 and h[1].Got[1] == "Block:Rare" and h[1].With == 99, "entries")
 		H.expect(Trade.applied(save, "t53") and not Trade.applied(save, "nope"), "applied")
 		local _, _, SaveSchema = load()
 		local _, fixes = SaveSchema.validate(save)
@@ -168,33 +200,38 @@ return {
 		local Trade, Inventory = load()
 		local a, b = newSave(), newSave()
 		Inventory.addCue(a, "NeonCue", 2)
+		readyBlock(a, "Rare")
 		Inventory.addUnique(b, "GrandOpeningCue", 3)
 		-- The swap ran (here on stand-in saves) and the ledger kept what moved; both real saves
 		-- lost it in a crash, so each replays its side on its next load.
 		local planA, planB = newSave(), newSave()
 		Inventory.addCue(planA, "NeonCue", 2)
+		readyBlock(planA, "Rare")
 		Inventory.addUnique(planB, "GrandOpeningCue", 3)
 		local ok, _, fromA, fromB = Trade.swap(
 			planA,
 			planB,
-			{ "NeonCue" },
+			{ "NeonCue", "Block:Rare" },
 			{ "GrandOpeningCue" },
-			true
+			true,
+			NOW
 		)
 		assert(ok and fromA and fromB, "planned")
 		local entry = { id = "T1", at = 5000, a = 1, b = 2, fromA = fromA, fromB = fromB }
-		H.expect(Trade.replay(a, entry, 1), "a replays")
+		H.expect(Trade.replay(a, entry, 1, NOW), "a replays")
 		H.expect(
 			Inventory.count(a, "NeonCue") == 1 and Inventory.copy(a, "GrandOpeningCue") == 3,
 			""
 		)
-		H.expect(not Trade.replay(a, entry, 1), "once")
-		H.expect(Trade.replay(b, entry, 2), "b replays")
+		H.expect(blocksOf(a, "Rare") == 0, "the block went")
+		H.expect(not Trade.replay(a, entry, 1, NOW), "once")
+		H.expect(Trade.replay(b, entry, 2, NOW), "b replays")
 		H.expect(
 			Inventory.count(b, "NeonCue") == 1 and not Inventory.owns(b, "GrandOpeningCue"),
 			""
 		)
-		H.expect(not Trade.replay(newSave(), entry, 3), "not in it")
+		H.expect(blocksOf(b, "Rare") == 1 and b.LuckyBlocks.List[1].ReadyAt == NOW, "ready")
+		H.expect(not Trade.replay(newSave(), entry, 3, NOW), "not in it")
 		H.expect(a.Trades.History[1].With == 2 and b.Trades.History[1].With == 1, "partners")
 	end,
 
@@ -230,7 +267,8 @@ return {
 				== nil,
 			"four times is not more than four times"
 		)
-		H.expect(Trade.lopsided({ "Case:Mythic" }, { "Case:Standard" }, copies) == "A", "cases")
+		H.expect(Trade.lopsided({ "Block:Mythic" }, { "Block:Standard" }, copies) == "A", "blocks")
+		H.expect(Trade.lopsided({ "Block:Mystery" }, { "Block:Standard" }, copies) == nil, "near")
 		H.expect(Trade.lopsided({}, { "NeonCue" }, copies) == nil, "an empty side: no warning")
 	end,
 }

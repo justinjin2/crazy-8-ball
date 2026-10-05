@@ -18,10 +18,10 @@ return {
 
 	["the order moves on one step at a time and ends at Done"] = function()
 		local Steps = load()
-		H.expect(Steps.after("Arrow1") == "Request" and Steps.after("Game1") == "Drop", "")
+		H.expect(Steps.after("Arrow1") == "Request" and Steps.after("Game1") == "Block", "")
 		H.expect(Steps.after("Nudges") == "Done" and Steps.after("Done") == "Done", "the end")
 		H.expect(Steps.after("Skipped") == nil, "an end state has no next")
-		H.expect(Steps.atLeast("Spin", "Abilities") and not Steps.atLeast("Drop", "Abilities"), "")
+		H.expect(Steps.atLeast("Spin", "Abilities") and not Steps.atLeast("Block", "Abilities"), "")
 		H.expect(not Steps.atLeast("Skipped", "Arrow1"), "an end state is not a step")
 	end,
 
@@ -30,7 +30,7 @@ return {
 		H.expect(Steps.resume("Game1", false) == "Arrow1", "game 1 again from the start")
 		H.expect(Steps.resume("Request", false) == "Arrow1", "on the pad")
 		H.expect(Steps.resume("Spin", false) == "Spin", "a later step stays")
-		H.expect(Steps.resume("Drop", false) == "Drop", "the Bronze case resumes")
+		H.expect(Steps.resume("Block", false) == "Block", "the Bronze block resumes")
 		H.expect(Steps.resume("Queue", false) == "Arrow2", "the queue")
 		H.expect(Steps.resume("Queue", true) == "Game2", "arrived in the arena from the queue")
 		H.expect(Steps.resume("Arrow2", true) == "Game2", "a teleport before the pad was noted")
@@ -49,13 +49,19 @@ return {
 			H.expect(not Steps.shows("Game1", item) and not Steps.shows("Arrow2", item), item)
 			H.expect(Steps.shows("Nudges", item) and Steps.shows("Skipped", item), item .. " back")
 		end
-		H.expect(not Steps.shows("Drop", "Abilities") and Steps.shows("Abilities", "Abilities"), "")
-		H.expect(Steps.shows("Equip", "Inventory"), "Inventory for the Equip step")
 		H.expect(
-			not Steps.shows("Drop", "Inventory") and not Steps.shows("RareDrop", "Inventory"),
+			not Steps.shows("Block", "Abilities") and Steps.shows("Abilities", "Abilities"),
 			""
 		)
-		H.expect(Steps.after("Drop") == "Equip" and Steps.after("Equip") == "RareDrop", "the order")
+		H.expect(Steps.shows("Equip", "Inventory"), "Inventory for the Equip step")
+		H.expect(
+			not Steps.shows("Block", "Inventory") and not Steps.shows("RareBlock", "Inventory"),
+			""
+		)
+		H.expect(
+			Steps.after("Block") == "Equip" and Steps.after("Equip") == "RareBlock",
+			"the order"
+		)
 		H.expect(Steps.shows("Game1", "Money"), "anything else always shows")
 	end,
 
@@ -75,7 +81,7 @@ return {
 		H.expect(Steps.funnelMark(mask, 7) == mask, "marking twice changes nothing")
 	end,
 
-	["the real server's nudges come one at a time, then the case"] = function()
+	["the real server's nudges come one at a time, then the block"] = function()
 		local Steps = load()
 		local function nudge(done: number, pending: boolean, at: number?, now: number): string?
 			local name = Steps.nudge(done, pending, at, now)
@@ -85,8 +91,8 @@ return {
 		H.expect(nudge(0, false, 100, 0) == "Inventory", "nothing to claim: Rank is skipped")
 		H.expect(nudge(1, true, 100, 0) == "Inventory", "a later rank-up does not bring Rank back")
 		H.expect(nudge(2, false, 100, 0) == "Shop" and nudge(3, false, 100, 0) == "FreeReward", "")
-		H.expect(nudge(4, false, 100, 50) == "CaseWait", "the Rare Case's timer runs")
-		H.expect(nudge(4, false, 100, 100) == "CaseReady", "then it is ready")
-		H.expect(nudge(4, false, nil, 0) == nil, "no Rare Case: the tutorial is over")
+		H.expect(nudge(4, false, 100, 50) == "BlockWait", "the Rare block's timer runs")
+		H.expect(nudge(4, false, 100, 100) == "BlockReady", "then it is ready")
+		H.expect(nudge(4, false, nil, 0) == nil, "no Rare block: the tutorial is over")
 	end,
 }

@@ -63,8 +63,6 @@ export type Grant = {
 	-- A restock item bought with Robux (RestockRare .. RestockLegendary): its restock slot,
 	-- item id and the block kind it gives (the Store fills it in: the restock is the server's).
 	restock: { slot: number, id: string, block: string }?,
-	-- A Robux timer skip (Skip1h ... Skip48h): the timer the player picked (the Store's).
-	skip: { case: string, at: number }?,
 	luckySkip: boolean?, -- durable lucky block timer credit, applied by PlayerData
 	boostEnds: number?, -- the Starter Pack's 2x money hour ends then (sets Shop.BoostEnds)
 }
@@ -113,9 +111,7 @@ type ProductRow = {
 	Lucky: number?, -- Lucky Spins one purchase adds
 	Blocks: { Kind: string, Count: number }?, -- lucky blocks one purchase adds
 	Deal: string?, -- the Config.Shop.Deals key whose window it is sold in (GrandOpening)
-	Retired: boolean?, -- no longer sold (QuickCases): hidden, never prompted
 	Restock: string?, -- the restock block kind it buys (RestockRare .. RestockLegendary)
-	SkipSeconds: number?, -- the most time left on the timer it finishes (Skip1h ... Skip48h)
 	Random: boolean?, -- a paid random item (refused where PolicyService restricts them)
 	SaleOf: string?, -- a release-sale product: gives what this key gives (Shop.releaseSale)
 	Vip: boolean?, -- grants VIP in the save, like the welcome offer (the sale's VIP)
@@ -511,8 +507,9 @@ function Shop.fallbackGrant(key: string): Grant?
 	return { key = key, money = money }
 end
 
---- Whether product `key` is a paid random item (Config.Products' Random: Mystery Cases, the
---- restock cases, timer skips, ability spins), refused where PolicyService restricts them.
+--- Whether product `key` is a paid random item (Config.Products' Random: lucky blocks, the
+--- restock blocks, the block timer skip, ability spins), refused where PolicyService restricts
+--- them.
 function Shop.isRandom(key: string): boolean
 	local row = LIST[key]
 	return row ~= nil and row.Random == true
@@ -614,39 +611,6 @@ function Shop.markGrant(shopSave: ShopSave, grant: Grant)
 	if grant.starterBought then
 		shopSave.StarterBought = true
 	end
-end
-
----------------------------------------------------------------------------------------------
--- Timer skips for money (plan section 4)
----------------------------------------------------------------------------------------------
-
---- The money price of finishing a case timer with `secondsLeft` left: Config.Shop.Skip
---- MoneyPerMinute for every minute (a part minute counts whole), at least MinMoney. 0 for a
---- timer already done.
-function Shop.skipPrice(secondsLeft: number): number
-	local left = whole(secondsLeft)
-	if left <= 0 then
-		return 0
-	end
-	local minutes = math.ceil(left / 60)
-	return math.max(minutes * S.Skip.MoneyPerMinute, S.Skip.MinMoney)
-end
-
---- The cheapest Robux skip product (Skip1h ... Skip48h) that finishes a timer with
---- `secondsLeft` left, or nil when none covers it (or the timer is done).
-function Shop.skipProduct(secondsLeft: number): string?
-	local left = whole(secondsLeft)
-	if left <= 0 then
-		return nil
-	end
-	local best: string?, bestSeconds = nil, math.huge
-	for _, key in KEYS do
-		local seconds = whole(LIST[key].SkipSeconds)
-		if seconds >= left and seconds < bestSeconds then
-			best, bestSeconds = key, seconds
-		end
-	end
-	return best
 end
 
 ---------------------------------------------------------------------------------------------

@@ -23,8 +23,10 @@ local ArenaService = require(script.Parent.ArenaService)
 local Funnel = require(script.Parent.Funnel)
 local TutorialGames = require(script.Parent.TutorialGames)
 local Items = require(script.Parent.Items)
+local LuckyBlockService = require(script.Parent.LuckyBlockService)
 local UltSpins = require(script.Parent.UltSpins)
 local CueCatalog = require(Shared.Progression.Catalog)
+local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
 
 local T = Config.Tutorial
 
@@ -34,9 +36,6 @@ local STEP_FLAG = "Tutorial"
 local WHY_FLAG = "TutorialWhy"
 -- The real server's nudges: how many of Steps.Nudges are done.
 local NUDGE_FLAG = "TutorialNudge"
--- The Rare Case the nudges wait on: the unix time its timer ends, kept when first seen (an
--- ended timer leaves the save's Timers for the ready cases), or "Done" once it is opened.
-local CASE_FLAG = "TutorialCase"
 local SECONDS_PER_DAY = 86400
 
 local inArena = false
@@ -72,17 +71,7 @@ local function publish(player: Player, step: string)
 end
 
 -- What happens once when a step is entered.
-local function entered(player: Player, step: string, previous: string?)
-	if not Steps.firstServer(step) and (previous == nil or Steps.firstServer(previous)) then
-		-- Out of the first server (the real server, a skip, a cancel): today's day-1 claim,
-		-- held until now, comes with the GUI lane's daily popup (deferred: the funnel's step 17,
-		-- back in the lobby, is logged first).
-		task.defer(function()
-			if Rewards.claimDayOne(player) then
-				Funnel.onboarding(player, "ClaimedDaily")
-			end
-		end)
-	end
+local function entered(player: Player, step: string, _previous: string?)
 	if step == "Arrow1" then
 		Funnel.onboarding(player, "SawArrow")
 	elseif step == "Nudges" and not inArena then
@@ -116,8 +105,8 @@ function TutorialService.advance(player: Player, from: string): boolean
 	return nextStep ~= nil and TutorialService.setStep(player, nextStep)
 end
 
---- Ends the tutorial early (Steps.Reasons: Skip, OtherTable, Friend). Everything shows at once,
---- the held day-1 claim comes now, and the exit funnel notes why.
+--- Ends the tutorial early (Steps.Reasons: Skip, OtherTable, Friend). Everything shows at once
+--- and the exit funnel notes why.
 function TutorialService.cancel(player: Player, reason: string)
 	local step = TutorialService.step(player)
 	if not Steps.active(step) or Steps.Reasons[reason] == nil then
@@ -196,35 +185,37 @@ local function onChanged(player: Player)
 end
 
 ---------------------------------------------------------------------------------------------
--- After game 1 (docs/prompts/TUTORIAL_PROMPT.md step 5): Drop -> Equip -> RareDrop -> Abilities
--- -> Spin -> Code -> Back -> Arrow2. What the server sees moves a step on itself (the case opened, the
--- spin, the code); what only the screen sees is reported (TutorialEvent).
+-- After game 1 (docs/prompts/TUTORIAL_PROMPT.md step 5): Block -> Equip -> RareBlock ->
+-- Abilities -> Spin -> Code -> Back -> Arrow2. What the server sees moves a step on itself
+-- (the block opened, the spin, the code); what only the screen sees is reported
+-- (TutorialEvent).
 ---------------------------------------------------------------------------------------------
 
 local cueRandom = Random.new()
 
--- Bronze's Standard Case opens to an Uncommon cue (answer 9): one of the case's own.
-local function forcedOpen(player: Player, caseId: string, count: number): { string }?
-	if TutorialService.step(player) ~= "Drop" or caseId ~= T.BronzeDropTier or count ~= 1 then
+-- Bronze's Standard block opens to an Uncommon cue (answer 9): one of its odds row's own.
+local function forcedOpen(player: Player, kind: string): string?
+	if TutorialService.step(player) ~= "Block" or kind ~= T.BronzeBlockKind then
 		return nil
 	end
-	local pool = CueCatalog.droppable(caseId, T.BronzeCueRarity)
+	local row = LuckyBlocks.kind(kind)
+	local pool = if row and row.Odds then CueCatalog.droppable(row.Odds, T.BronzeCueRarity) else {}
 	if #pool == 0 then
 		return nil
 	end
-	return { pool[cueRandom:NextInteger(1, #pool)].Id }
+	return pool[cueRandom:NextInteger(1, #pool)].Id
 end
 
-local function opened(player: Player, caseId: string, cues: { string })
-	Funnel.caseOpened(player, caseId, cues)
+local function opened(player: Player, kind: string, cueId: string)
+	Funnel.blockOpened(player, kind, { cueId })
 	local step = TutorialService.step(player)
-	if step == "Drop" and caseId == T.BronzeDropTier then
-		Funnel.onboarding(player, "OpenedStandardCase")
+	if step == "Block" and kind == T.BronzeBlockKind then
+		Funnel.onboarding(player, "OpenedStandardBlock")
 		TutorialService.setStep(player, "Equip")
-	elseif caseId == "Rare" and (step == "Nudges" or step == "Done") then
-		Funnel.onboarding(player, "OpenedRareCase")
+	elseif kind == "Rare" and (step == "Nudges" or step == "Done") then
+		Funnel.onboarding(player, "OpenedRareBlock")
 		if step == "Nudges" then
-			PlayerData.setFlag(player, CASE_FLAG, "Done") -- no "Your case is ready!" after it
+			TutorialService.setStep(player, "Done") -- no "Your block is ready!" after it
 		end
 	end
 end
@@ -232,7 +223,7 @@ end
 -- Equipping a cue at the Equip step (the Uncommon one, in the Inventory) moves on.
 local function equipped(player: Player, _cueId: string)
 	if TutorialService.step(player) == "Equip" then
-		TutorialService.setStep(player, "RareDrop")
+		TutorialService.setStep(player, "RareBlock")
 	end
 end
 
@@ -259,39 +250,27 @@ end
 ---------------------------------------------------------------------------------------------
 -- The real server (step 7): the nudges, one at a time and only off the tables (Steps.nudge);
 -- the player attribute TutorialNudge names the one to show ("" for none). Flags.TutorialNudge
--- counts the four done; the Rare Case's ready nudge ends the tutorial (Done).
+-- counts the four done; the Rare block's ready nudge ends the tutorial (Done).
 ---------------------------------------------------------------------------------------------
 
--- When the newest Rare Case timer in the save ends (unix time), or nil.
-local function newestRareTimer(player: Player): number?
+-- When the newest Rare lucky block in the save (the first win's) is ready (unix time), or nil
+-- when the player holds none (opened, traded, or never given). The live time: a skip or VIP
+-- moves it.
+local function rareAt(player: Player): number?
 	local data = PlayerData.read(player)
-	local timers = data and data.Inventory and data.Inventory.Timers
-	local latest: number? = nil
-	for _, timer in (if type(timers) == "table" then timers else {}) :: { any } do
-		if type(timer) == "table" and timer.Case == "Rare" and type(timer.At) == "number" then
-			if latest == nil or timer.At > latest then
-				latest = timer.At
+	local blocks = data and data.LuckyBlocks
+	local list = if type(blocks) == "table" and type(blocks.List) == "table"
+		then blocks.List
+		else {}
+	local newest: any = nil
+	for _, block in list :: { any } do
+		if type(block) == "table" and block.Kind == "Rare" and type(block.ReadyAt) == "number" then
+			if newest == nil or block.Id > newest.Id then
+				newest = block
 			end
 		end
 	end
-	return latest
-end
-
--- When the tutorial's Rare Case is ready, or nil (none, or opened already). The live timer
--- while it runs (a skip or VIP's halving moves it); once it has left the timers it is ready,
--- so a remembered time still ahead becomes now.
-local function rareAt(player: Player): number?
-	local kept = PlayerData.flag(player, CASE_FLAG)
-	if kept ~= nil and type(kept) ~= "number" then
-		return nil
-	end
-	local live = newestRareTimer(player)
-	local now = os.time()
-	local at = live or (if type(kept) == "number" then math.min(kept, now) else nil)
-	if at ~= kept then
-		PlayerData.setFlag(player, CASE_FLAG, at)
-	end
-	return at
+	return if newest then newest.ReadyAt else nil
 end
 
 local function nudgeDone(player: Player): number
@@ -315,10 +294,8 @@ local function watchNudges(player: Player)
 		return
 	end
 	local name, index = nudgeOf(player)
-	player:SetAttribute("TutorialCaseAt", rareAt(player)) -- the pill beside Inventory
 	if name == nil then
 		player:SetAttribute("TutorialNudge", "")
-		player:SetAttribute("TutorialCaseAt", nil)
 		TutorialService.setStep(player, "Done")
 		return
 	end
@@ -330,7 +307,7 @@ local function watchNudges(player: Player)
 	player:SetAttribute("TutorialNudge", if TutorialGames.seated(player) then "" else name)
 end
 
--- The client opened the menu a nudge points at (Inventory, Shop, FreeReward, CaseReady).
+-- The client opened the menu a nudge points at (Inventory, Shop, FreeReward, BlockReady).
 local function nudged(player: Player, item: any)
 	if TutorialService.step(player) ~= "Nudges" or type(item) ~= "string" then
 		return
@@ -339,9 +316,8 @@ local function nudged(player: Player, item: any)
 	if item ~= name then
 		return
 	end
-	if name == "CaseReady" then
+	if name == "BlockReady" then
 		player:SetAttribute("TutorialNudge", "")
-		player:SetAttribute("TutorialCaseAt", nil)
 		TutorialService.setStep(player, "Done")
 	elseif index and name ~= "Rank" then
 		PlayerData.setFlag(player, NUDGE_FLAG, index)
@@ -366,7 +342,7 @@ local lastFunnelEvent: { [string]: number } = {}
 -- What the client may report, and the step each report needs:
 --   Nudged           (Nudges)    the menu the nudge points at opened (its name)
 --   SkippedEquip     (Equip)     the Inventory was opened and closed again without equipping
---   RareSeen         (RareDrop)  the Rare Case's reveal was closed
+--   RareSeen         (RareBlock) the Rare block's slot was tapped (its countdown seen)
 --   OpenedAbilities  (Abilities) the Abilities screen opened
 --   ClosedAbilities  (Spin, Code, Back) it closed: Back moves on to game 2's arrow, closing
 --                    before the spin goes back to the Abilities icon, before the code skips it
@@ -388,9 +364,9 @@ local function onEvent(player: Player, kind: any, data: any)
 			FUNNEL_EVENTS[kind](player)
 		end
 	elseif kind == "SkippedEquip" and step == "Equip" then
-		TutorialService.setStep(player, "RareDrop")
-	elseif kind == "RareSeen" and step == "RareDrop" then
-		Funnel.onboarding(player, "SawRareCase")
+		TutorialService.setStep(player, "RareBlock")
+	elseif kind == "RareSeen" and step == "RareBlock" then
+		Funnel.onboarding(player, "SawRareBlock")
 		TutorialService.setStep(player, "Abilities")
 	elseif kind == "OpenedAbilities" and step == "Abilities" then
 		Funnel.onboarding(player, "OpenedAbilities")
@@ -444,19 +420,15 @@ end
 
 function TutorialService.start()
 	inArena = ArenaService.detect()
-	-- The day-1 claim waits while the player is in the tutorial's first server.
-	Rewards.setClaimGate(function(player: Player): boolean
-		return not TutorialService.firstServer(player)
-	end)
-	-- Bronze's Case Drop after game 1 is the tutorial's Standard Case (answer 9).
-	Ranking.setDropTier(function(player: Player): string?
+	-- Bronze's at-once block after game 1 is the tutorial's Standard block (answer 9).
+	Ranking.setBlockKind(function(player: Player): string?
 		local step = TutorialService.step(player)
-		if Steps.active(step) and not Steps.atLeast(step, "Drop") then
-			return T.BronzeDropTier
+		if Steps.active(step) and not Steps.atLeast(step, "Block") then
+			return T.BronzeBlockKind
 		end
 		return nil
 	end)
-	Items.setOpenHooks(forcedOpen, opened)
+	LuckyBlockService.setOpenHooks(forcedOpen, opened)
 	Items.setEquipHook(equipped)
 	UltSpins.setSpinHooks(forcedSpin, spun)
 	Rewards.onRedeemed(codeRedeemed)
@@ -506,11 +478,11 @@ function TutorialService.start()
 			elseif op == "set" then
 				return TutorialService.setStep(player, a)
 			elseif op == "flag" then
-				-- A tutorial flag (TutorialNudge, TutorialCase), to jump inside step 7.
+				-- A tutorial flag (TutorialNudge), to jump inside step 7.
 				return PlayerData.setFlag(player, a, b)
-			elseif op == "case" then
-				-- One case of id `a`, to replay the case steps without a whole game 1.
-				return PlayerData.grantReward(player, { cases = { [a] = 1 } }, "Dev")
+			elseif op == "block" then
+				-- One lucky block of kind `a`, to replay the block steps without a whole game 1.
+				return PlayerData.giveLuckyBlocks(player, a, 1)
 			end
 			error("TutorialQA: unknown op " .. tostring(op))
 		end

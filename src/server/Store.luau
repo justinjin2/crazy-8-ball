@@ -18,20 +18,18 @@
 --   past its end); already owned, sold out, ended or not started pay the money fallback too
 --   (logged), while a counter error, a busy retry or a save not loaded leave the receipt
 --   NotProcessedYet for Roblox to retry.
--- - Game passes (Vip, QuickCases, the ult slots UltSlot2 and UltSlot3): UserOwnsGamePassAsync on join (pcall, retried, cached; Id 0
+-- - Game passes (Vip, the ult slots UltSlot2 and UltSlot3): UserOwnsGamePassAsync on join (pcall, retried, cached; Id 0
 --   is never owned), and PromptGamePassPurchaseFinished with wasPurchased counts the pass for
 --   the session at once (Roblox fires it on the server; UserOwnsGamePassAsync may still answer
 --   false from its cache right after a purchase). VIP = owns the pass OR bought the welcome
---   offer: the player attributes Vip and FastOpen (FastOpen: owns Quick Cases, the attribute's
---   old name the screens read; the money and XP boosts, the chat tag and the case opening read
---   them), and the VIP Cue once (PlayerData.giveVipCue).
+--   offer: the player attribute Vip (the money and XP boosts, the chat tag and the block
+--   timers read it), and the VIP Cue once (PlayerData.giveVipCue).
 -- - The Money Party is this server's: workspace attributes MoneyPartyEndsAt (unix) and
 --   MoneyPartyBuyer (a username), Announce.party on every purchase; cleared when it ends.
 -- - StoreRequest "Buy" (a Config.Products key): checked (ShopView.check), then this server
 --   prompts the purchase itself. ShopState goes to each player on load and whenever any of it
---   changes (a purchase, a pass, the restriction, the sale, the party, a Limited count, an
---   offer window opening or closing on the clock). The old key "FastOpen" is still taken for
---   Quick Cases (the shop screens before the one-scroll shop). StoreRequest "RobloxPlus"
+--   changes (a purchase, a pass, the restriction, the party, a Limited count, an
+--   offer window opening or closing on the clock). StoreRequest "RobloxPlus"
 --   prompts the Roblox Plus subscription (Config.Shop.RobloxPlus).
 -- - The ult spin service (UltSpins) reads passes through Store.ownsPass, hears changes on
 --   Store.PassChanged, prompts its Robux products through Store.prompt (the same check as a
@@ -65,7 +63,6 @@ local LIST: {
 		Id: number,
 		Robux: number,
 		Restock: string?,
-		SkipSeconds: number?,
 		Vip: boolean?, -- the release sale's VIP (grants VIP like VipOffer)
 	},
 } =
@@ -74,16 +71,12 @@ local LIST: {
 -- Server-set attributes (clients and the other services only read them).
 local ATTR = {
 	Vip = "Vip", -- on the player: VIP (the pass or the welcome offer)
-	FastOpen = "FastOpen", -- on the player: owns Quick Cases (the attribute's old name)
 	Restricted = "PaidRandomRestricted", -- on the player, set by Items (PolicyService)
 	PartyEndsAt = "MoneyPartyEndsAt", -- on workspace: this server's Money Party end, unix
 	PartyBuyer = "MoneyPartyBuyer", -- on workspace: the last buyer's username
 }
 -- The instance Counters keeps the Limited copy counts on (one attribute per Limited cue).
 local LIMITED_SOLD = "LimitedSold"
--- The Quick Cases pass (Config.Products key), and old product keys a screen may still send.
-local QUICK_CASES = "QuickCases"
-local OLD_KEYS: { [string]: string } = { FastOpen = QUICK_CASES }
 -- A dev grant's purchase id starts with this (never a Roblox receipt's).
 local DEV_PREFIX = "Dev-"
 -- The product whose grant depends on the VIP pass (Shop.receiptCheck).
@@ -134,11 +127,10 @@ local partyBuyer: string? = nil
 -- this server reuses it), and the receipts taking one right now (a concurrent retry waits).
 local pendingCopies: { [string]: number } = {}
 local takingCopy: { [string]: boolean } = {}
--- A Robux restock or skip remembered from its prompt until its receipt: the restock slot the
--- player saw (and whether a Legendary unit was reserved for it), or the case timer they picked.
+-- A Robux restock remembered from its prompt until its receipt: the restock slot the player
+-- saw (and whether a Legendary unit was reserved for it).
 local pendingRestock: { [Player]: { key: string, slot: number, at: number, reserved: boolean } } =
 	{}
-local pendingSkip: { [Player]: { key: string, case: string, at: number } } = {}
 -- A gift remembered from its prompt until its receipt: the product and who gets it.
 local pendingGift: { [Player]: { key: string, to: number, name: string } } = {}
 local giftEvent: RemoteEvent? = nil
@@ -146,8 +138,6 @@ local giftEvent: RemoteEvent? = nil
 local restockSlot = -1
 -- The Legendary units taken last sent in ShopState (Counters.stockTaken).
 local stockSeen: number? = nil
--- The last case sale seen (its fields joined), to notice a change.
-local saleKey = ""
 -- Dev grants made this session (their purchase ids count up).
 local devGrants = 0
 
@@ -189,12 +179,6 @@ local function owns(player: Player, passKey: string): boolean
 	return real ~= nil and real[passKey] == true
 end
 
--- The case sale running now (Items.sale: Config.Cases.Sale, or the /sale dev command's).
-local function currentSale(now: number): ShopView.Sale?
-	local ok, sale = pcall(Items.sale)
-	return if ok then ShopView.readSale(sale, now) else nil
-end
-
 local function limitedSold(): { [string]: number }
 	local sold: { [string]: number } = {}
 	for _, row in Shop.limited() do
@@ -206,11 +190,11 @@ local function limitedSold(): { [string]: number }
 	return sold
 end
 
--- The passes other than Vip and QuickCases (the ult slots) this player owns, by key.
+-- The passes other than Vip (the ult slots) this player owns, by key.
 local function otherPasses(player: Player): { [string]: boolean }
 	local out: { [string]: boolean } = {}
 	for _, key in PASS_KEYS do
-		if key ~= "Vip" and key ~= QUICK_CASES then
+		if key ~= "Vip" then
 			out[key] = owns(player, key)
 		end
 	end
@@ -228,14 +212,12 @@ local function context(player: Player, now: number): ShopView.Context?
 		now = now,
 		shop = data.Shop,
 		vipPass = owns(player, "Vip"),
-		fastOpen = owns(player, QUICK_CASES),
 		restricted = player:GetAttribute(ATTR.Restricted) == true,
 		policyKnown = player:GetAttribute(ATTR.Restricted) ~= nil,
 		-- UltSpins' isLive, read here without requiring it (it requires Store).
 		spinsLive = Config.Ults.ScreenLive or IS_STUDIO or player:GetAttribute("UltDevAll") == true,
 		partyEndsAt = partyEndsAt,
 		partyBuyer = partyBuyer,
-		sale = currentSale(now),
 		sold = limitedSold(),
 		restock = data.Shop.Restock,
 		drops = data.Drops,
@@ -249,27 +231,11 @@ local function context(player: Player, now: number): ShopView.Context?
 	}
 end
 
--- Sets Vip and FastOpen (Quick Cases) from the passes and the save (the save may not be
--- loaded yet).
+-- Sets Vip from the pass and the save (the save may not be loaded yet).
 local function setAttributes(player: Player, shopSave: any?)
 	local vip = Shop.isVip(owns(player, "Vip"), shopSave)
 	if player:GetAttribute(ATTR.Vip) ~= vip then
 		player:SetAttribute(ATTR.Vip, vip)
-	end
-	-- VIP opens fast (the Quick Cases pass is retired; an owner keeps it).
-	local fastOpen = owns(player, QUICK_CASES) or vip
-	if player:GetAttribute(ATTR.FastOpen) ~= fastOpen then
-		player:SetAttribute(ATTR.FastOpen, fastOpen)
-	end
-	-- Quick Cases also halves the case timers already running, once (PlayerData); not where
-	-- paid random items are restricted (only once PolicyService has answered).
-	if
-		fastOpen
-		and player:GetAttribute(ATTR.Restricted) == false
-		and type(shopSave) == "table"
-		and shopSave.QuickApplied == false
-	then
-		task.defer(PlayerData.applyQuickCases, player)
 	end
 end
 
@@ -527,31 +493,6 @@ local function restockGrant(player: Player, key: string, data: any): (Shop.Grant
 		nil
 end
 
--- A Robux skip receipt's grant: the timer the player picked at the prompt while it still runs
--- and fits the product (SkipSeconds), else the running timer with the most time left that
--- fits. None: the money fallback.
-local function skipGrant(player: Player, key: string, data: any): (Shop.Grant?, string?)
-	local now = os.time()
-	local limit = LIST[key].SkipSeconds or 0
-	local pend = pendingSkip[player]
-	local chosen: { id: string, readyAt: number }? = nil
-	for _, t in Inventory.timers(data) do
-		local left = t.readyAt - now
-		if left > 0 and left <= limit then
-			if pend ~= nil and pend.case == t.id and pend.at == t.readyAt then
-				chosen = t
-				break
-			elseif chosen == nil or t.readyAt > chosen.readyAt then
-				chosen = t
-			end
-		end
-	end
-	if chosen == nil then
-		return Shop.fallbackGrant(key), "NoTimer"
-	end
-	return { key = key, money = 0, skip = { case = chosen.id, at = chosen.readyAt } }, nil
-end
-
 -- Grants developer product `key` to `player` and records `purchaseId`, in one PlayerData
 -- mutation (Shop.processReceipt's `grant`). What it gives is decided now (Shop.grantFor, and
 -- the Limited counter for a Robux Limited); a receipt that cannot give its product pays the
@@ -576,8 +517,6 @@ local function grantProduct(player: Player, key: string, purchaseId: string): (b
 		end
 	elseif key == Config.LuckyBlocks.SkipProduct then
 		grant = { key = key, money = 0, luckySkip = true }
-	elseif row ~= nil and row.SkipSeconds ~= nil then
-		grant, notFor = skipGrant(player, key, data)
 	else
 		grant, notFor = Shop.grantFor(key, data.Shop, os.time(), owns(player, "Vip"))
 	end
@@ -648,21 +587,17 @@ local function grantProduct(player: Player, key: string, purchaseId: string): (b
 	if grant.restock ~= nil then
 		pendingRestock[player] = nil
 	end
-	if grant.skip ~= nil then
-		pendingSkip[player] = nil
-	end
 	Funnel.shop(player, "Bought") -- the shop funnel (the tutorial lane)
 	return true, nil
 end
 
 -- Whether Config.Products key `key` may be gifted: a developer product that is not a restock
--- item or a timer skip (those name the buyer's own restock or timer).
+-- item or the block timer skip (those name the buyer's own restock or block).
 local function giftable(key: string): boolean
 	local row = LIST[key]
 	return row ~= nil
 		and row.Kind == "Product"
 		and row.Restock == nil
-		and row.SkipSeconds == nil
 		and key ~= Config.LuckyBlocks.SkipProduct
 end
 
@@ -841,36 +776,6 @@ local function promptPlus(player: Player): boolean
 	return ok
 end
 
--- A Robux timer skip (StoreRequest "Skip", caseId, at): the cheapest Skip product that covers
--- the time left on that running timer, remembered for its receipt, then prompted.
-local function promptSkip(player: Player, caseId: any, at: any): Reply
-	local data = PlayerData.read(player)
-	if data == nil or not ready(player) then
-		return reply(false, "NotLoaded")
-	end
-	local now = os.time()
-	local left = 0
-	for _, t in Inventory.timers(data) do
-		if t.id == caseId and t.readyAt == at then
-			left = t.readyAt - now
-		end
-	end
-	local key = Shop.skipProduct(left)
-	if key == nil then
-		return reply(false, "NoTimer")
-	end
-	local ctx = context(player, now)
-	local reason = if ctx then ShopView.check(key, ctx) else "NotLoaded"
-	if reason ~= nil then
-		return reply(false, reason)
-	end
-	pendingSkip[player] = { key = key, case = caseId :: string, at = at :: number }
-	if not prompt(player, key) then
-		return reply(false, "Error")
-	end
-	return { ok = true, key = key } :: any
-end
-
 local function promptLuckySkip(player: Player, id: any): Reply
 	if not ready(player) then
 		return reply(false, "NotLoaded")
@@ -904,13 +809,6 @@ local function onStoreRequest(player: Player, action: any, key: any, extra: any)
 		lastRequest[player] = clock
 		return promptLuckySkip(player, key)
 	end
-	if action == "Skip" then
-		if last ~= nil and clock - last < S.RequestCooldownSeconds then
-			return reply(false, "TooFast")
-		end
-		lastRequest[player] = clock
-		return promptSkip(player, key, extra)
-	end
 	if action == "RobloxPlus" then
 		if not S.RobloxPlus then
 			return reply(false, "BadRequest")
@@ -919,9 +817,6 @@ local function onStoreRequest(player: Player, action: any, key: any, extra: any)
 		end
 		lastRequest[player] = clock
 		return reply(promptPlus(player), nil)
-	end
-	if type(key) == "string" then
-		key = OLD_KEYS[key] or key
 	end
 	if action == "Gift" then
 		if type(key) ~= "string" or LIST[key] == nil then
@@ -977,9 +872,6 @@ local function onStoreRequest(player: Player, action: any, key: any, extra: any)
 		return reply(false, "NotLoaded")
 	end
 	local row = LIST[key]
-	if row.SkipSeconds ~= nil then
-		return reply(false, "BadRequest") -- a skip names its case: StoreRequest "Skip"
-	end
 	local reason = ShopView.check(key, ctx)
 	if reason ~= nil then
 		return reply(false, reason)
@@ -1008,7 +900,7 @@ local function onStoreRequest(player: Player, action: any, key: any, extra: any)
 	return reply(true)
 end
 
--- A product prompt closed: a cancelled restock gives its Legendary unit back, a cancelled skip
+-- A product prompt closed: a cancelled restock gives its Legendary unit back, a cancelled gift
 -- forgets its pick (a bought one waits for its receipt).
 local function onProductPromptFinished(userId: number, productId: number, purchased: boolean)
 	if purchased then
@@ -1026,10 +918,6 @@ local function onProductPromptFinished(userId: number, productId: number, purcha
 			Counters.releaseStock(Restock.stockKey(pend.slot), player.UserId)
 			mark(player)
 		end
-	end
-	local skip = pendingSkip[player]
-	if skip ~= nil and skip.key == key then
-		pendingSkip[player] = nil
 	end
 	local gift = pendingGift[player]
 	if gift ~= nil and gift.key == key then
@@ -1076,7 +964,7 @@ function Store.grant(player: Player, key: string, purchaseId: string?): (boolean
 end
 
 --- Dev (/vip, /fastopen): pretends the player owns (`on`) or does not own game pass `passKey`
---- ("Vip", "QuickCases" ...) for this session, whatever Roblox says. True when it is a pass key.
+--- ("Vip", "UltSlot2" ...) for this session, whatever Roblox says. True when it is a pass key.
 function Store.setPass(player: Player, passKey: string, on: boolean): boolean
 	local row = LIST[passKey]
 	if row == nil or row.Kind ~= "Pass" or typeof(player) ~= "Instance" then
@@ -1092,7 +980,7 @@ function Store.setPass(player: Player, passKey: string, on: boolean): boolean
 end
 
 --- Whether the player owns game pass `name` (a Config.Products key of Kind "Pass": "Vip",
---- "QuickCases", "UltSlot2", "UltSlot3"): Roblox's join answer, a purchase in this server, or the
+--- "UltSlot2", "UltSlot3"): Roblox's join answer, a purchase in this server, or the
 --- dev override (Store.setPass). "Vip" is the pass alone (VIP also comes from the welcome
 --- offer: the Vip attribute). False for anything else and while the join check is running.
 function Store.ownsPass(player: Player, name: string): boolean
@@ -1158,7 +1046,7 @@ function Store.party(): (number?, string?)
 	return nil, nil
 end
 
---- Sends the player's ShopState again (and refreshes Vip and FastOpen).
+--- Sends the player's ShopState again (and refreshes Vip).
 function Store.refresh(player: Player)
 	mark(player)
 end
@@ -1252,8 +1140,8 @@ local function watchLimitedSold()
 	end
 end
 
--- Every StateTickSeconds: the party's end, a sale changing, a new restock (a Legendary Case
--- in it is announced here: every server picks the same restock), and each player's next change.
+-- Every StateTickSeconds: the party's end, a new restock (a Legendary block in it is
+-- announced here: every server picks the same restock), and each player's next change.
 local function tick()
 	local now = os.time()
 	local slot = Items.restockSlot(now)
@@ -1273,14 +1161,6 @@ local function tick()
 	local stock = Counters.stockTaken(Restock.stockKey(slot))
 	if stock ~= stockSeen then
 		stockSeen = stock
-		markAll()
-	end
-	local sale = currentSale(now)
-	local key = if sale ~= nil
-		then ("%s:%s:%d"):format(sale.case, tostring(sale.percent), sale.endsAt)
-		else ""
-	if key ~= saleKey then
-		saleKey = key
 		markAll()
 	end
 	for player, at in nextChange do
@@ -1309,7 +1189,6 @@ local function onPlayerRemoving(player: Player)
 	-- A Legendary unit held for a prompt that never finished goes back.
 	local pend = pendingRestock[player]
 	pendingRestock[player] = nil
-	pendingSkip[player] = nil
 	pendingGift[player] = nil
 	if pend ~= nil and pend.reserved then
 		local userId = player.UserId
@@ -1322,7 +1201,9 @@ local SHOP_OPS: { [string]: boolean } = {
 	applyPurchase = true,
 	buyRestock = true,
 	buyMystery = true,
-	caseDrop = true,
+	buyBlocks = true,
+	openLuckyBlock = true, -- the Mystery block's pity count
+	winBlock = true,
 	giveVipCue = true,
 	buyLimited = true,
 	clearInventory = true,
@@ -1356,7 +1237,7 @@ function Store.start()
 			mark(player)
 		end
 	end)
-	Items.SaleChanged:Connect(markAll)
+	Items.ShopChanged:Connect(markAll)
 	watchLimitedSold()
 
 	Players.PlayerAdded:Connect(onPlayerAdded)

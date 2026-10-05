@@ -15,13 +15,12 @@ local D = Config.Daily
 local DAYS = #D.Streak
 local SECONDS_PER_DAY = 86400
 
--- A reward as remotes carry it: money, the cases as a list in Config.Cases.Order, the Case
--- Drops, ability spins and Lucky Spins it adds (0 for none: the client draws a chip when
--- above 0).
+-- A reward as remotes carry it: money, the lucky blocks as a list in
+-- Config.LuckyBlocks.Order, the ability spins and Lucky Spins it adds (0 for none: the client
+-- draws a chip when above 0).
 export type RewardOut = {
 	money: number,
-	cases: { Daily.CaseCount },
-	drops: number,
+	blocks: { Daily.BlockCount },
 	spins: number,
 	lucky: number,
 }
@@ -52,15 +51,6 @@ export type TrackView = {
 	day: number, -- 1..TrackDays
 	reward: RewardOut,
 	reached: boolean, -- claimed in this round of the track
-}
-
-export type NextView = {
-	day: number,
-	week: number,
-	total: number,
-	reward: RewardOut,
-	bonus: boolean,
-	tomorrow: boolean, -- false: today's claim is still waiting; true: it comes tomorrow
 }
 
 export type GiftView = {
@@ -106,7 +96,6 @@ export type Payload = {
 	trackDays: number, -- Config.Daily.TrackDays
 	trackPlace: number, -- days claimed in this round of the track, 0..trackDays
 	track: { TrackView },
-	next: NextView,
 	playtime: { GiftView },
 	playSeconds: number,
 	titles: { string },
@@ -129,15 +118,14 @@ local function num(x: any): number
 	return x
 end
 
---- A Daily.Reward as a remote carries it: { money, cases = { { id, count } }, spins, lucky }
---- with the cases in Config.Cases.Order (a list, so the client shows and flies them in a fixed
---- order); spins and lucky are 0 when the reward adds none.
+--- A Daily.Reward as a remote carries it: { money, blocks = { { kind, count } }, spins,
+--- lucky } with the blocks in Config.LuckyBlocks.Order (a list, so the client shows and flies
+--- them in a fixed order); spins and lucky are 0 when the reward adds none.
 function RewardView.reward(reward: Daily.Reward): RewardOut
 	local raw: any = reward
 	return {
 		money = math.max(0, math.floor(num(raw.money))),
-		cases = Daily.caseList(reward),
-		drops = math.max(0, math.floor(num(raw.drops))),
+		blocks = Daily.blockList(reward),
 		spins = math.max(0, math.floor(num(raw.spins))),
 		lucky = math.max(0, math.floor(num(raw.lucky))),
 	}
@@ -185,7 +173,6 @@ function RewardView.build(
 ): Payload
 	local today = Daily.dayOf(num(now))
 	local state = Daily.loginState(login, today, vip)
-	local nextReward = Daily.nextReward(login, today, vip)
 
 	-- The track: the days claimed in this round (today's claim counts once made).
 	local claimedTotal = if state.claimedToday then state.total else state.total - 1
@@ -233,7 +220,7 @@ function RewardView.build(
 	local groupClaimed = soc.Group == true
 	anyReady = anyReady or (member == true and not groupClaimed)
 	local month = Social.monthOf(num(now))
-	local inviteCase: { [string]: number } = { [Config.Social.InviteCase] = 1 }
+	local inviteBlock: { [string]: number } = { [Config.Social.InviteBlock] = 1 }
 	return {
 		today = today,
 		resetsAt = (today + 1) * SECONDS_PER_DAY,
@@ -254,14 +241,6 @@ function RewardView.build(
 		trackDays = D.TrackDays,
 		trackPlace = place,
 		track = track,
-		next = {
-			day = nextReward.day,
-			week = nextReward.week,
-			total = nextReward.total,
-			reward = RewardView.reward(nextReward.reward),
-			bonus = nextReward.bonus,
-			tomorrow = nextReward.tomorrow,
-		},
 		playtime = playtime,
 		playSeconds = math.max(0, math.floor(seconds)),
 		titles = RewardView.titles(titles),
@@ -271,8 +250,7 @@ function RewardView.build(
 			claimed = groupClaimed,
 			reward = RewardView.reward({
 				money = 0,
-				cases = {},
-				drops = Config.Social.GroupReward.Drops,
+				blocks = table.clone(Config.Social.GroupReward.Blocks),
 				spins = 0,
 				lucky = 0,
 			}),
@@ -281,8 +259,7 @@ function RewardView.build(
 		invite = {
 			reward = RewardView.reward({
 				money = 0,
-				cases = inviteCase,
-				drops = 0,
+				blocks = inviteBlock,
 				spins = 0,
 				lucky = 0,
 			}),
@@ -297,8 +274,7 @@ function RewardView.build(
 			claimed = type(flags) == "table" and flags[RewardView.FavoriteFlag] == true,
 			reward = RewardView.reward({
 				money = Config.Social.FavoriteReward.Money,
-				cases = {},
-				drops = Config.Social.FavoriteReward.Drops,
+				blocks = table.clone(Config.Social.FavoriteReward.Blocks),
 				spins = 0,
 				lucky = 0,
 			}),

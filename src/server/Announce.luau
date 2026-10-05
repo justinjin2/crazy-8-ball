@@ -1,6 +1,6 @@
 --!strict
 -- Announce: the top banner and system chat lines everyone sees (Net "Banner"): a Legendary
--- unboxed (this server), a Mythic or Secret unboxed (every server), a Legendary Case in the
+-- unboxed (this server), a Mythic or Secret unboxed (every server), a Legendary block in the
 -- restock shop (every server, each by itself), a Money Party, a player reaching Reyes (the first ever in every server), an ult
 -- spin landing a Legendary (this server) or a Mythic (every server).
 --
@@ -10,7 +10,7 @@
 -- name }, { kind = "Ult", userId, name, ult, rarity }. `name` is the player's username
 -- (Strings.Banner words it).
 --
--- Reyes news, Mythic and Secret unboxes (Config.Cases.Announce) and Mythic ult rolls
+-- Reyes news, Mythic and Secret unboxes (Config.BlockOdds.Announce) and Mythic ult rolls
 -- (Config.Ults.Roll.AnnounceAll) go to every server: fired here
 -- at once, then published on the MessagingService
 -- topic Config.Items.AnnounceTopic with this server's id, and every other server's subscriber
@@ -28,7 +28,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Catalog = require(Shared.Progression.Catalog)
-local Cases = require(Shared.Progression.Cases)
+local BlockOdds = require(Shared.Progression.BlockOdds)
 local UltCatalog = require(Shared.Ults.Catalog)
 local Counters = require(script.Parent.Counters)
 local PlayerData = require(script.Parent.PlayerData)
@@ -90,7 +90,7 @@ local function onMessage(message: any)
 	end
 	if kind == "Unbox" then
 		local cue = Catalog.get(data.cue)
-		if cue == nil or cue.Rarity ~= data.rarity or not Cases.announces(cue.Rarity) then
+		if cue == nil or cue.Rarity ~= data.rarity or not BlockOdds.announces(cue.Rarity) then
 			return
 		end
 		fire({ kind = kind, userId = userId, name = name, cue = cue.Id, rarity = cue.Rarity })
@@ -173,16 +173,16 @@ function Announce.start()
 	end)
 end
 
---- `player` unboxed `cueId`: a Legendary (Cases.announcesHere) is a banner for this server, a
---- Mythic or Secret (Cases.announces) for every server, Config.Items.UnboxAnnounceDelaySeconds
+--- `player` unboxed `cueId`: a Legendary (BlockOdds.announcesHere) is a banner for this server,
+--- a Mythic or Secret (BlockOdds.announces) for every server, Config.Items.UnboxAnnounceDelaySeconds
 --- later so the opener's reel settles first. Never yields.
 function Announce.unbox(player: Player, cueId: string)
 	local cue = Catalog.get(cueId)
 	if not isPlayer(player) or cue == nil then
 		return
 	end
-	local everywhere = Cases.announces(cue.Rarity)
-	if not everywhere and not Cases.announcesHere(cue.Rarity) then
+	local everywhere = BlockOdds.announces(cue.Rarity)
+	if not everywhere and not BlockOdds.announcesHere(cue.Rarity) then
 		return
 	end
 	local payload = {
@@ -250,12 +250,12 @@ function Announce.ult(player: Player, ultId: string)
 	end)
 end
 
---- A restock with case `caseId` in it began here (the Legendary Case: plan section 3): the
---- banner for everyone in this server until `endsAt` (unix). Every server picks the same
+--- A restock with block kind `kind` in it began here (the Legendary block: plan section 3):
+--- the banner for everyone in this server until `endsAt` (unix). Every server picks the same
 --- restock (Progression/Restock), so each announces it to its own players; nothing is
 --- published. Never yields.
-function Announce.restock(caseId: string, endsAt: number)
-	fire({ kind = "Restock", case = caseId, endsAt = endsAt })
+function Announce.restock(kind: string, endsAt: number)
+	fire({ kind = "Restock", block = kind, endsAt = endsAt })
 end
 
 --- A Money Party is on until `endsAt` (unix), bought by `buyerName`: the banner for everyone

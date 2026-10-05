@@ -7,7 +7,7 @@
 --   every client's DayCycle reads, and the cycle runs on from there.
 -- - The rank and money ones (/rank, /xp, /money, /addmoney, /result, /newrank, /resetdata;
 --   /rankhelp lists them) and the economy ones (/econhelp lists them) act on the caller only
---   and answer privately (DevNotice). A /sale or a /party is this server's, like the real ones.
+--   and answer privately (DevNotice). A /party or a /restock is this server's, like the real ones.
 --   They go through the same server APIs as the game (PlayerData, Ranking, Items, Store,
 --   Counters), so they can do nothing the save's own checks refuse. They work in a live server
 --   too, for the designer only.
@@ -15,7 +15,7 @@
 --   replay rate at the caller's table for everyone (a workspace attribute the clients read).
 --   /abilitysetup <id|name> puts that ability in the caller's selected slot: the designer's
 --   own account only (Config.Debug.Commands.UserIds), in Studio and live.
--- - The giving commands (Config.Debug.Commands.Gives: rank, XP, money, cues, cases, spins,
+-- - The giving commands (Config.Debug.Commands.Gives: rank, XP, money, cues, blocks, spins,
 --   abilities) are the designer's account only (UserIds), and their last word may be a
 --   player's username (or display name) in this server, "@" optional: it acts on that player
 --   instead, and the answers come back to the designer with the name in front.
@@ -35,10 +35,10 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared.Progression.Format)
 local Ranks = require(Shared.Progression.Ranks)
 local Money = require(Shared.Progression.Money)
-local Cases = require(Shared.Progression.Cases)
 local Catalog = require(Shared.Progression.Catalog)
-local Daily = require(Shared.Progression.Daily)
 local Inventory = require(Shared.Progression.Inventory)
+local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
+local Daily = require(Shared.Progression.Daily)
 local PlayerData = require(script.Parent.PlayerData)
 local Ranking = require(script.Parent.Ranking)
 local Items = require(script.Parent.Items)
@@ -62,7 +62,6 @@ local ALIAS: { [string]: string } = D :: any
 local USAGE: { [string]: string } = Strings.Dev.Usage :: any
 local WHAT: { [string]: string } = Strings.Dev.What :: any
 local CUE_NAMES: { [string]: string } = Strings.Items.Cues :: any
-local CASE_NAMES: { [string]: string } = Strings.Items.Cases :: any
 local PASS_NAMES: { [string]: string } = Strings.Dev.PassNames :: any
 local ULT_REASONS: { [string]: string } = Strings.Dev.UltReasons :: any
 -- A command's old name that still runs it (the ult commands' names before "abilities").
@@ -275,8 +274,8 @@ local RESULTS: { [string]: string } =
 
 -- /result win|lose|draw|firstwin: the result screen with made-up numbers (the caller against a
 -- stand-in opponent), worked out from the caller's real rank but never saved. A sample: every
--- boost that can apply is on (the streak, on a win) so every chip shows, a win brings the free
--- case, and `firstwin` brings the first win's opened case instead.
+-- boost that can apply is on (the streak, on a win) so every chip shows, a win brings the
+-- Mystery block chip, and `firstwin` the first win's Rare block instead (nothing is given).
 local function previewResult(player: Player, args: { string })
 	local word = args[1] or ""
 	local outcome = RESULTS[word]
@@ -334,15 +333,12 @@ local function previewResult(player: Player, args: { string })
 		farm = 1,
 	})
 	local streak = if win then Money.streakBonus(E.StreakFrom, "Player", 1, boost, 1) else 0
-	-- The first win's case, opened at once (a sample roll: nothing is given).
-	local reveal = nil
-	if firstWin then
-		local caseId = Config.Cases.FirstWinCase
-		local ok, cue, rarity = pcall(Cases.roll, caseId, roll)
-		if ok then
-			reveal =
-				{ case = caseId, cue = cue, rarity = rarity, new = not Inventory.owns(data, cue) }
-		end
+	-- The win's block chip (a sample: nothing is given).
+	local block = nil
+	if win then
+		local kind = if firstWin then Config.BlockOdds.Drop.FirstWin else "Mystery"
+		local timer = LuckyBlocks.timer(kind, player:GetAttribute("Vip") == true)
+		block = { kind = kind, readyAt = if timer > 0 then os.time() + timer else 0 }
 	end
 	local reward = xp.rewardTotal
 	Net.get("MatchSummary"):FireClient(player, {
@@ -368,9 +364,7 @@ local function previewResult(player: Player, args: { string })
 			boost = boost,
 			total = ballMoney + niceMoney + bonus + streak + reward,
 		},
-		freeCase = if win and not firstWin then Config.Cases.FreeCase else nil,
-		firstWin = reveal,
-		nextReward = Daily.nextReward(data.Login, Daily.dayOf(os.time())),
+		block = block,
 		rematch = false,
 		arena = false,
 	})
@@ -396,18 +390,20 @@ local function previewNewRank(player: Player, args: { string })
 	local before = if index > 1
 		then Ranks.fromXp(Ranks.startXp(index - 1), true)
 		else Ranks.fromXp(0, false)
-	-- The rows as Ranking sends them: { index, money, cases, cue? }, and their totals.
-	local rows, total, cases, cues = {}, 0, {}, {}
+	-- The rows as Ranking sends them: { index, money, blocks, cue? }, and their totals.
+	local rows, total, blocks, cues = {}, 0, {}, {}
 	for _, row in Ranks.rewardsBetween(index - 1, index) do
 		total += row.money
-		table.insert(
-			rows,
-			{ index = row.index, money = row.money, cases = table.clone(row.cases), cue = row.cue }
-		)
-		for _, caseId in Config.Cases.Order do
-			local count = row.cases[caseId]
+		table.insert(rows, {
+			index = row.index,
+			money = row.money,
+			blocks = table.clone(row.blocks),
+			cue = row.cue,
+		})
+		for _, kind in Config.LuckyBlocks.Order do
+			local count = row.blocks[kind]
 			if count then
-				cases[caseId] = (cases[caseId] or 0) + count
+				blocks[kind] = (blocks[kind] or 0) + count
 			end
 		end
 		if row.cue then
@@ -422,7 +418,7 @@ local function previewNewRank(player: Player, args: { string })
 		reward = total,
 		newTier = division == 1 or tier == "Reyes",
 		rewards = rows,
-		rewardCases = cases,
+		rewardBlocks = blocks,
 		rewardCues = cues,
 	})
 end
@@ -449,10 +445,6 @@ local function cueName(id: string): string
 	return CUE_NAMES[id] or id
 end
 
-local function caseName(id: string): string
-	return CASE_NAMES[id] or id
-end
-
 -- Every cue by its squashed id and name, with and without "cue" at the end (catalog order:
 -- the first cue to claim a key keeps it).
 local cueByKey: { [string]: string } = {}
@@ -476,24 +468,10 @@ local function findCue(words: { string }): string?
 	return cueByKey[key] or cueByKey[trim(key, "cue")]
 end
 
--- The case named by typed words ("rare", "rare case"), or nil.
-local function findCase(words: { string }): string?
-	local key = trim(squash(table.concat(words, "")), "case")
-	for _, id in Config.Cases.Order do
-		if squash(id) == key then
-			return id
-		end
-	end
-	return nil
-end
-
--- The case ids as they are typed, for the usage lines: "standard|rare|...".
-local CASE_WORDS = string.lower(table.concat(Config.Cases.Order, "|"))
-
 -- The rarities with a pull cutscene (Rare and up), as typed, for the usage line.
 local CUTSCENES: { string } = {}
-for index, rarity in Config.Cases.Rarities do
-	if index >= (table.find(Config.Cases.Rarities, "Rare") or math.huge) then
+for index, rarity in Config.BlockOdds.Rarities do
+	if index >= (table.find(Config.BlockOdds.Rarities, "Rare") or math.huge) then
 		table.insert(CUTSCENES, rarity)
 	end
 end
@@ -555,12 +533,9 @@ end
 -- What follows each alias in its usage line (Strings.Dev.Usage), and the numbers in its
 -- help line (Strings.Dev.What).
 local USAGE_ARGS: { [string]: { any } } = {
-	GiveCase = { CASE_WORDS },
 	GiveBlock = { BLOCK_WORDS },
-	OpenCase = { CASE_WORDS },
 	Cutscene = { CUTSCENE_WORDS },
 	SetDay = { #Config.Daily.Streak, Config.Daily.WeeksForBonus },
-	Sale = { D.Sale },
 	Code = { D.Code },
 	UltBar = { U.BarMax },
 	Spins = { U.Earn.MaxSpins },
@@ -587,9 +562,7 @@ end
 -- The /econhelp order.
 local ECON: { string } = {
 	"GiveCue",
-	"GiveCase",
 	"GiveBlock",
-	"OpenCase",
 	"Cutscene",
 	"Inv",
 	"ClearInv",
@@ -599,19 +572,15 @@ local ECON: { string } = {
 	"Playtime",
 	"Buy",
 	"Vip",
-	"FastOpen",
 	"Party",
 	"Policy",
-	"Sale",
-	"FreeCase",
-	"SkipTime",
 	"Restock",
 	"Code",
 	"Limited",
 }
 
 -- Whether a cue's copies in existence are counted (Counters), as the game counts them: every
--- cue but Classic (case cues, the Exclusive tier cues a rank-up gives (Ranking), the Starter
+-- cue but Classic (block cues, the Exclusive tier cues a rank-up gives (Ranking), the Starter
 -- and VIP cues (Store), the Limited ones).
 local function counted(id: string): boolean
 	local cue = Catalog.get(id)
@@ -704,25 +673,7 @@ local function giveCue(player: Player, args: { string })
 	end
 end
 
--- /givecase <type> [count]
-local function giveCase(player: Player, args: { string })
-	local words, countWord = splitCount(args)
-	local count = if countWord then wholeIn(countWord, 1, D.MaxGive) else 1
-	if #words == 0 or count == nil then
-		try(player, "GiveCase")
-		return
-	end
-	local caseId = findCase(words)
-	if caseId == nil then
-		tell(player, Dev.BadCase:format(table.concat(words, " "), CASE_WORDS))
-	elseif PlayerData.grantReward(player, { cases = { [caseId] = count } }, "DevCommand") then
-		tell(player, Dev.GaveCase:format(caseName(caseId), count))
-	else
-		tell(player, Dev.NotLoaded)
-	end
-end
-
--- /giveblock <kind> [count]: lucky blocks at the end of the hotbar (the test build).
+-- /giveblock <kind> [count]: lucky blocks at the end of the hotbar.
 local function giveBlock(player: Player, args: { string })
 	local words, countWord = splitCount(args)
 	local count = if countWord then wholeIn(countWord, 1, D.MaxGive) else 1
@@ -738,43 +689,6 @@ local function giveBlock(player: Player, args: { string })
 	else
 		tell(player, Dev.NotLoaded)
 	end
-end
-
--- /opencase <type>: gives one of that case when the player has none, then asks their client
--- to open one on the reel, exactly as its button does (a table DevNotice: CaseOpening sends
--- the real OpenCase request, so the server rolls and takes the case as always).
-local function openCase(player: Player, args: { string })
-	local caseId = findCase(args)
-	if #args == 0 or caseId == nil then
-		try(player, "OpenCase")
-		return
-	end
-	local data = PlayerData.read(player)
-	if not data then
-		tell(player, Dev.NotLoaded)
-		return
-	end
-	local gave = false
-	if Inventory.caseCount(data, caseId) < 1 then
-		if not PlayerData.grantReward(player, { cases = { [caseId] = 1 } }, "DevCommand") then
-			tell(player, Dev.NotLoaded)
-			return
-		end
-		gave = true
-	end
-	tell(player, Dev.Opening:format(caseName(caseId)))
-	local notice = { kind = "OpenCase", caseId = caseId, count = 1 }
-	task.spawn(function()
-		-- A case just given reaches the client in its ItemState at the next Heartbeat (Items):
-		-- the reel is asked for after that, so the client already holds the case it opens.
-		if gave then
-			RunService.Heartbeat:Wait()
-			RunService.Heartbeat:Wait()
-		end
-		if player.Parent == Players then
-			Net.get("DevNotice"):FireClient(player, notice)
-		end
-	end)
 end
 
 -- /cutscene <rarity>: asks the caller's client to play that rarity's pull cutscene on its own
@@ -808,17 +722,22 @@ local function packLines(prefix: string, entries: { string }): { string }
 	return lines
 end
 
--- /inv: the equipped cue, the unopened cases and the cues owned (Classic left out).
+-- /inv: the equipped cue, the lucky blocks held and the cues owned (Classic left out).
 local function showInventory(player: Player)
 	local snapshot = PlayerData.snapshot(player)
-	if not snapshot then
+	local data = PlayerData.read(player)
+	if not snapshot or not data then
 		tell(player, Dev.NotLoaded)
 		return
 	end
 	tell(player, Dev.InvEquipped:format(cueName(snapshot.equipped)))
-	local cases = {}
-	for _, row in snapshot.cases do
-		table.insert(cases, Dev.InvCount:format(caseName(row.id), row.count))
+	local blocks = {}
+	local blockNames: { [string]: string } = Strings.LuckyBlocks.Names :: any
+	for _, kind in Config.LuckyBlocks.Order do
+		local count = LuckyBlocks.count(data.LuckyBlocks, kind)
+		if count > 0 then
+			table.insert(blocks, Dev.InvCount:format(blockNames[kind] or kind, count))
+		end
 	end
 	local cues, copies = {}, 0
 	for _, row in snapshot.cues do
@@ -833,9 +752,9 @@ local function showInventory(player: Player)
 			)
 		end
 	end
-	local lines: { string } = if #cases > 0
-		then packLines(Dev.InvCases, cases)
-		else { Dev.InvNoCases }
+	local lines: { string } = if #blocks > 0
+		then packLines(Dev.InvBlocks, blocks)
+		else { Dev.InvNoBlocks }
 	local cueLines: { string } = if #cues > 0
 		then packLines(Dev.InvCues:format(#cues, copies), cues)
 		else { Dev.InvNoCues }
@@ -845,7 +764,7 @@ local function showInventory(player: Player)
 	end
 end
 
--- /clearinv: every cue but Classic and every case gone; the copies in existence follow.
+-- /clearinv: every cue but Classic and every lucky block gone; the copies in existence follow.
 local function clearInventory(player: Player)
 	local snapshot = PlayerData.snapshot(player)
 	if not snapshot or not PlayerData.clearInventory(player) then
@@ -856,12 +775,12 @@ local function clearInventory(player: Player)
 	tell(player, Dev.Cleared)
 end
 
--- /dupes: D.DupeCopies copies of D.DupeKinds different random Common and Uncommon case cues.
+-- /dupes: D.DupeCopies copies of D.DupeKinds different random Common and Uncommon block cues.
 local function giveDupes(player: Player)
 	local pool = {}
 	for _, rarity in { "Common", "Uncommon" } do
 		for _, cue in Catalog.ofRarity(rarity) do
-			if cue.Group == "Case" and not cue.Vaulted then
+			if cue.Group == "Block" and not cue.Vaulted then
 				table.insert(pool, cue.Id)
 			end
 		end
@@ -943,47 +862,6 @@ local function pass(key: string): (Player, { string }) -> ()
 		if not on and key == "Vip" and player:GetAttribute("VipOffer") == true then
 			tell(player, Dev.VipOfferStays)
 		end
-	end
-end
-
--- /sale <case> <percent> <minutes>, or /sale off. The percent is at most
--- Config.Cases.MaxSalePercent (a deeper sale would pay to buy, open and sell back).
-local function sale(player: Player, args: { string })
-	if args[1] == "off" and #args == 1 then
-		Items.setSale(nil)
-		tell(player, Dev.SaleOff)
-		return
-	end
-	local caseId = findCase({ args[1] or "" })
-	local percent = wholeIn(args[2], 1, Config.Cases.MaxSalePercent)
-	local minutes = wholeIn(args[3], 1, D.MaxSaleMinutes)
-	if caseId == nil or percent == nil or minutes == nil then
-		try(player, "Sale")
-		return
-	end
-	local case = Cases.get(caseId)
-	if case and case.Enabled and Items.setSale(caseId, percent, os.time() + minutes * 60) then
-		tell(player, Dev.SaleOn:format(caseName(caseId), percent, minutes))
-	else
-		tell(player, Dev.SaleNotSold:format(caseName(caseId)))
-	end
-end
-
--- /freecase: the Case Drop rule run as if the caller had just won a real match (Ranking).
-local function freeCase(player: Player)
-	if not PlayerData.isLoaded(player) then
-		tell(player, Dev.NotLoaded)
-		return
-	end
-	local caseId = Ranking.freeCase(player)
-	local progress = PlayerData.progress(player)
-	local daily = PlayerData.dailyState(player)
-	local wins = if progress then progress.Wins else 0
-	local today = if daily then daily.Wins else 0
-	if caseId then
-		tell(player, Dev.FreeCaseGave:format(caseName(caseId), today, wins))
-	else
-		tell(player, Dev.FreeCaseNone:format(today, wins))
 	end
 end
 
@@ -1265,9 +1143,7 @@ function DevCommands.start()
 
 	-- The economy.
 	command("GiveCue", D.GiveCue, giveCue)
-	command("GiveCase", D.GiveCase, giveCase)
 	command("GiveBlock", D.GiveBlock, giveBlock)
-	command("OpenCase", D.OpenCase, openCase)
 	command("Cutscene", D.Cutscene, cutscene)
 	command("Inv", D.Inv, showInventory)
 	command("ClearInv", D.ClearInv, clearInventory)
@@ -1288,7 +1164,6 @@ function DevCommands.start()
 	end)
 	command("Buy", D.Buy, buy)
 	command("Vip", D.Vip, pass("Vip"))
-	command("FastOpen", D.FastOpen, pass("QuickCases"))
 	command("Party", D.Party, function(player)
 		local endsAt = Store.startParty(player)
 		tell(player, Dev.Party:format(math.max(0, math.ceil((endsAt - os.time()) / 60))))
@@ -1302,8 +1177,6 @@ function DevCommands.start()
 		Items.setRestricted(player, on)
 		tell(player, if on then Dev.PolicyOn else Dev.PolicyOff)
 	end)
-	command("Sale", D.Sale, sale)
-	command("FreeCase", D.FreeCase, freeCase)
 	command("Restock", D.Restock, function(player, args)
 		local words = {
 			uncommon = "Uncommon",
@@ -1370,18 +1243,6 @@ function DevCommands.start()
 			tell(player, Dev.LimitedOff)
 		else
 			try(player, "Limited")
-		end
-	end)
-	command("SkipTime", D.SkipTime, function(player, args)
-		local minutes = wholeIn(args[1], 1, 365 * 24 * 60)
-		if minutes == nil then
-			try(player, "SkipTime")
-			return
-		end
-		if PlayerData.advanceTimers(player, minutes * 60) then
-			tell(player, Dev.SkipTime:format(minutes))
-		else
-			tell(player, Dev.NotLoaded)
 		end
 	end)
 	command("EconHelp", D.EconHelp, econHelp)
@@ -1486,7 +1347,7 @@ function DevCommands.start()
 	-- cannot type into Roblox's chat box: Invoke(userId, "/givecue chalk dust 3") -> (true,
 	-- { the lines told back, in order }), or (false, {}) when that player is not here. Every
 	-- command in `handlers` is reachable. A /buy waits for its grant (up to about 15 s) so its
-	-- answer is in the lines; /opencase's reel request reaches the client a moment later.
+	-- answer is in the lines.
 	if RunService:IsStudio() then
 		local hook = Instance.new("BindableFunction")
 		hook.Name = "DevCommandsQA"

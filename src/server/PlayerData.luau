@@ -18,10 +18,10 @@
 --   already claimed, not owned) is answered quietly with false or a reason word: players
 --   cause those all day, and they are not bugs. None makes a DataStore request of its own
 --   (saveNow only asks ProfileStore to save sooner).
--- * A change with several parts (take money and add cases, take cases and add cues, record a
+-- * A change with several parts (take money and add blocks, take a block and add a cue, record a
 --   purchase and grant it) is ONE mutation: every part is checked first, then all of it is
 --   applied, and nothing yields in between, so it can never half-apply. The rules live in the
---   pure, Lune-tested modules (Progression/Inventory, Daily, Shop, Cases); a mutation checks,
+--   pure, Lune-tested modules (Progression/Inventory, Daily, Shop, BlockOdds); a mutation checks,
 --   calls them on the live save and commits (replicate, then fire Changed) only on success.
 -- * Everything in Daily belongs to one UTC day: a mutation that touches it rolls it over to
 --   today first (rollover), and reads treat another day's Daily as a fresh one (dailyOf).
@@ -38,8 +38,8 @@ local Strings = require(Shared.Strings)
 local SaveSchema = require(Shared.Progression.SaveSchema)
 local Ranks = require(Shared.Progression.Ranks)
 local Catalog = require(Shared.Progression.Catalog)
-local Cases = require(Shared.Progression.Cases)
-local CaseDrop = require(Shared.Progression.CaseDrop)
+local BlockOdds = require(Shared.Progression.BlockOdds)
+local BlockDrop = require(Shared.Progression.BlockDrop)
 local Restock = require(Shared.Progression.Restock)
 local Inventory = require(Shared.Progression.Inventory)
 local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
@@ -58,42 +58,34 @@ type Profile = ProfileStore.Profile<any>
 
 --- What a reward gives (rank-ups, the daily streak, playtime gifts, codes, dev commands); every
 --- field is optional. `money` is money given, not earned in play (no daily caps; it counts in
---- Stats.MoneyEarned). `cases` is { [caseId] = count }. `cues` are catalog ids given one copy
---- each (never Classic or a Unique cue; an Exclusive cue already owned is skipped: one per
---- player). `firstWinCase` marks the first win's Rare Case as given, in the same change
---- (refused when it was given before; see PlayerData.progress). `spins` and `lucky` add ult
---- spins and Lucky Spins (Ults.Spins, Ults.LuckySpins; capped at Config.Ults.Earn.MaxSpins).
+--- Stats.MoneyEarned). `blocks` is { [kind] = count }: lucky blocks landing in the hotbar,
+--- free origin, their timers starting (Config.LuckyBlocks). `cues` are catalog ids given one
+--- copy each (never Classic or a Unique cue; an Exclusive cue already owned is skipped: one
+--- per player). `spins` and `lucky` add ult spins and Lucky Spins (Ults.Spins,
+--- Ults.LuckySpins; capped at Config.Ults.Earn.MaxSpins).
 export type Reward = {
 	money: number?,
-	cases: { [string]: number }?,
-	drops: number?, -- Case Drops, each rolled with pity (CaseDrop.roll) and sent as a reveal
+	blocks: { [string]: number }?,
 	cues: { string }?,
-	firstWinCase: boolean?,
 	spins: number?,
 	lucky: number?,
 }
 
---- One cue out of openCases, in the order given.
-export type Opened = {
-	cue: string,
-	new: boolean, -- never owned before this open (the first of two in one open is the new one)
-	duplicate: boolean, -- more than one copy once it was added
-	count: number, -- copies owned once it was added
-	found: number, -- the finder's money it paid (new to the Index), else 0
-}
+--- The win's lucky block (PlayerData.winBlock): its kind and when it opens (unix; 0 = now).
+export type WinBlock = { kind: string, readyAt: number }
 
 --- A cue that entered a player's Index for the first time, and the finder's money it paid.
 export type Find = { cue: string, money: number }
 
 --- PlayerData.progress: the match counts the settle needs.
 export type Progress = {
-	RealMatches: number, -- real matches played (Config.Economy.FreeCaseLoserMinMatches)
-	Wins: number, -- real wins ever, people or PC (the new player's free cases)
-	FirstWinCaseDue: boolean, -- the first win's Rare Case was never given
+	RealMatches: number, -- real matches played (Config.Economy.DropLoserMinMatches)
+	Wins: number, -- real wins ever, people or PC
+	FirstWinDue: boolean, -- the first win's Rare block was never given
 }
 
 --- PlayerData.opponentToday: today's anti-farm count against one account.
-export type OpponentDay = { Matches: number, Cases: number }
+export type OpponentDay = { Matches: number, Drops: number }
 
 local S = Config.Save
 local IS_STUDIO = RunService:IsStudio()
@@ -118,7 +110,6 @@ local ATTR = {
 	-- GUI lane: wins against people ever (Stats.Wins), for the player list and the boards.
 	WinsVsPlayers = "WinsVsPlayers",
 	EquippedCue = "EquippedCue", -- the equipped cue's catalog id (everyone's stick and trail)
-	CasesUnopened = "CasesUnopened", -- unopened cases of every type (a red dot)
 	-- Something can be claimed now: today's login streak, a playtime gift, or a complete Index
 	-- row's reward (a red dot). Also refreshed on a timer: a new UTC day changes it.
 	RewardReady = "RewardReady",
@@ -144,15 +135,14 @@ local MONEY_KINDS: { [string]: string } = {
 	Short = "ShortMoney",
 }
 
--- Flags[FIRST_WIN_FLAG] = true once the first win's Rare Case was given (Config.Cases.Drop
--- .FirstWin). Kept apart from Progress.Wins so a first win that an anti-farm rule kept from
--- dropping a case does not use it up (Cases.DropContext.firstWinEver).
-local FIRST_WIN_FLAG = "FirstWinCase"
+-- Flags[FIRST_WIN_FLAG] = true once the first win's Rare block was given (Config.BlockOdds
+-- .Drop.FirstWin). Kept apart from Progress.Wins so a first win that an anti-farm rule kept
+-- from dropping a block does not use it up (BlockDrop.DropContext.firstWinEver).
+local FIRST_WIN_FLAG = "FirstWinBlock"
 -- GUI lane (designer 2026-10-03): Flags[INVITER_FLAG] once the inviter's reward was given
 -- (Config.Social.InviterOnce), Flags[FAVORITE_FLAG] once the favorite reward was.
 local INVITER_FLAG = "InviterRewarded"
 local FAVORITE_FLAG = "FavoriteReward" -- RewardView.FavoriteFlag
-local LEAVE_GIFT_FLAG = "LeaveGift" -- GUI lane: the first-leave gift, once ever
 
 -- The most playtime one UTC day can hold (SaveSchema's cap on Daily.PlaySeconds).
 local SECONDS_PER_DAY = 86400
@@ -164,14 +154,14 @@ local changedEvent = Instance.new("BindableEvent")
 --- (player) Fires once each time a player's save is ready.
 PlayerData.Loaded = loadedEvent.Event
 --- (player, op) Fires after any successful mutation, once the attributes are updated. `op` is
---- the mutation's name ("openCases", "addPlaySeconds"...), so a listener can skip changes it
+--- the mutation's name ("openLuckyBlock", "addPlaySeconds"...), so a listener can skip changes it
 --- does not show (addPlaySeconds fires every Config.Daily.PlaytimeTickSeconds).
 PlayerData.Changed = changedEvent.Event
 local foundEvent = Instance.new("BindableEvent")
 --- (player, finds: { Find }) Fires after a mutation that put cues into the player's Index for
---- the first time (the finder's money already added), except the ones a case reel reveals
---- (openCases and the first win's case: their answers carry the money). Items tells the
---- player (the CueFound remote).
+--- the first time (the finder's money already added), except the ones a lucky block's reel
+--- reveals (openLuckyBlock: its answer carries the money). Items tells the player (the
+--- CueFound remote).
 PlayerData.CueFound = foundEvent.Event
 
 -- Money changes noted by the mutation under way, by save table (commit fires and clears them).
@@ -182,7 +172,7 @@ local pendingMoney: { [any]: { { delta: number, reason: string } } } = setmetata
 local moneyEvent = Instance.new("BindableEvent")
 --- (player, delta, reason, balance) Fires after a mutation changed the player's money, once per
 --- change: `delta` (+ earned or given, - spent), `reason` ("Pocket", "MatchBonus", "Daily",
---- "SellBack", "Purchase:Pack1", "BuyCase" ...) and the balance after the mutation. The
+--- "SellBack", "Purchase:Pack1", "Blocks:Mystery" ...) and the balance after the mutation. The
 --- economy analytics (EconomyLog) listen.
 PlayerData.MoneyChanged = moneyEvent.Event
 
@@ -191,28 +181,31 @@ PlayerData.MoneyChanged = moneyEvent.Event
 local pendingFinds: { [any]: { Find } } = setmetatable({}, { __mode = "k" }) :: any
 local reelFinds: { [any]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 
--- The mutation under way's Case Drops, by save table (commit fires and clears them).
-local pendingDrops: { [any]: { CaseDrop.Payload } } = setmetatable({}, { __mode = "k" }) :: any
-local dropEvent = Instance.new("BindableEvent")
---- (player, drops: { CaseDrop.Payload }) Fires after a mutation that rolled Case Drops (the
---- case is already in the save, on its timer or ready). Items sends the reveal (the CaseDrop
---- remote) for every source but "Win", whose drop rides on MatchSummary.caseDrop.
-PlayerData.CaseDropped = dropEvent.Event
+-- The mutation under way's lucky blocks given free (rewards, wins, invites), by save table
+-- (commit fires and clears them).
+local pendingBlocks: { [any]: { { kind: string, readyAt: number } } } = setmetatable(
+	{},
+	{ __mode = "k" }
+) :: any
+local blockEvent = Instance.new("BindableEvent")
+--- (player, blocks: { { kind, readyAt } }) Fires after a mutation that put free lucky blocks
+--- in the hotbar (a win, a reward, an invite; never a purchase). The onboarding funnel listens.
+PlayerData.BlocksGiven = blockEvent.Event
 
 -- The mutation under way's invite win (the inviter's UserId), by save table.
 local pendingInvite: { [any]: number } = setmetatable({}, { __mode = "k" }) :: any
 local inviteEvent = Instance.new("BindableEvent")
 --- (player, inviterId) Fires after an invited, brand-new player's first win gave them their
---- invite case (Config.Social.InviteCase); src/server/Social.luau then queues the inviter's.
+--- invite block (Config.Social.InviteBlock); src/server/Social.luau then queues the inviter's.
 PlayerData.InviteWon = inviteEvent.Event
 
--- Whether the player whose save is being changed has Quick Cases (the Store's FastOpen
--- attribute, read when the mutation fetched the save): new case timers run at half time.
-local QUICK_ATTR = "FastOpen"
-local RESTRICTED_ATTR = "PaidRandomRestricted"
-local quickOf: { [any]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+-- The Store's VIP attribute on the player (VIP shortens every lucky block timer:
+-- Config.LuckyBlocks.VipTimerFactor). Read when a mutation fetched the save (vipOfSave), so
+-- every block given in that change gets the right timer.
+local VIP_ATTR = "Vip"
+local vipOfSave: { [any]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 
--- The server's own randomness for Case Drops.
+-- The server's own randomness for the Mystery block's tier roll.
 local dropRandom = Random.new()
 local function dropRoll(n: number): number
 	return dropRandom:NextInteger(1, n)
@@ -283,12 +276,7 @@ local function liveData(op: string, player: Player): any?
 	local profile = profiles[player]
 	if profile and profile:IsActive() then
 		local data = profile.Data
-		-- Every change starts from a save whose finished case timers are in their stacks.
-		Inventory.finishTimers(data, os.time())
-		-- Quick Cases' timer perk is a paid random item perk: only once PolicyService has
-		-- said this player is not restricted (Items' attribute; plan section 4).
-		quickOf[data] = player:GetAttribute(QUICK_ATTR) == true
-			and player:GetAttribute(RESTRICTED_ATTR) == false
+		vipOfSave[data] = player:GetAttribute(VIP_ATTR) == true
 		return data
 	end
 	warn(("[8ball] PlayerData: %s dropped for %s: not loaded"):format(op, who(player)))
@@ -357,7 +345,7 @@ end
 
 -- Whether a save's Daily belongs to UTC day `day`. A Daily dated tomorrow counts as today:
 -- another server's clock was a moment ahead at midnight, and rolling it back would start the
--- day's counts over twice (twice the free cases, twice the capped money). Daily.loginState
+-- day's counts over twice (twice the block drops, twice the capped money). Daily.loginState
 -- treats a LastDay of tomorrow the same way.
 local function isDay(daily: any, day: number): boolean
 	return daily.Day == day or daily.Day == day + 1
@@ -421,60 +409,43 @@ local function takeMoney(data: any, amount: number, reason: string)
 	noteMoney(data, -amount, reason)
 end
 
--- Lands `count` new cases (Inventory.landCase: an instant case is ready, a timed one starts
--- its timer, at half time with Quick Cases), up to Config.Save.ItemCountCap of one type (a
--- count nobody reaches; past it the extra is dropped rather than growing a number without
--- limit). `paid`: paid origin. Returns when the last one is ready (0: now), nil for none.
-local function addCasesTo(data: any, caseId: string, count: number, paid: boolean?): number?
-	local n = math.min(count, S.ItemCountCap - Inventory.caseCount(data, caseId))
-	local readyAt: number? = nil
-	for _ = 1, n do
-		readyAt = Inventory.landCase(data, caseId, os.time(), quickOf[data] == true, paid)
-	end
-	return readyAt
-end
-
--- Rolls one Case Drop into the save (pity counted in data.Drops), lands its case and notes the
--- reveal for commit. `forced`: the tier without a roll (the first win's Rare Case); `paid`:
--- bought (Mystery Cases), paid origin. Returns the payload.
-local function rollDrop(
-	data: any,
-	source: string,
-	forced: string?,
-	paid: boolean?
-): CaseDrop.Payload
-	local tier, pity = CaseDrop.roll(CaseDrop.readPity(data.Drops), dropRoll, forced)
-	data.Drops.SinceRare = math.min(pity.SinceRare, S.StatCap)
-	data.Drops.SinceEpic = math.min(pity.SinceEpic, S.StatCap)
-	data.Drops.Total = math.min(pity.Total, S.StatCap)
-	local readyAt = addCasesTo(data, tier, 1, paid) or 0
-	local payload = CaseDrop.payload(source, tier, readyAt, CaseDrop.readPity(data.Drops))
-	local list = pendingDrops[data]
-	if list == nil then
-		list = {}
-		pendingDrops[data] = list
-	end
-	table.insert(list, payload)
-	return payload
-end
-
--- The Store's VIP attribute on the player (VIP halves every lucky block timer).
-local VIP_ATTR = "Vip"
-
 -- Whether the player has VIP now (the Store's attribute; false before the Store has set it).
 local function vipOf(player: Player): boolean
 	return player:GetAttribute(VIP_ATTR) == true
 end
 
 -- Adds `count` lucky blocks of `kind` to the save, landing now (`paid`: bought, ready at
--- once, paid origin; `vip` halves a free one's timer). Nothing checks the cap here: a
--- purchase is Robux already paid (the shop refuses the prompt when the hotbar is full,
--- ShopView "Full").
-local function giveBlocksTo(data: any, kind: string, count: number, paid: boolean?, vip: boolean?)
+-- once, paid origin; `vip` shortens a free one's timer). A purchase is Robux already paid
+-- and is never cut (the shop refuses the prompt when the hotbar is full, ShopView "Full"); a
+-- free block past Config.LuckyBlocks.MaxBlocks is dropped rather than growing the list
+-- without limit (a count nobody reaches). Free blocks are noted for commit (BlocksGiven).
+-- Returns when the last one is ready (0: now), or nil when none landed.
+local function giveBlocksTo(
+	data: any,
+	kind: string,
+	count: number,
+	paid: boolean?,
+	vip: boolean?
+): number?
 	local now = os.time()
+	local state = data.LuckyBlocks
+	local readyAt: number? = nil
 	for _ = 1, count do
-		LuckyBlocks.add(data.LuckyBlocks, kind, now, nil, paid, vip)
+		if not paid and #state.List >= Config.LuckyBlocks.MaxBlocks then
+			break
+		end
+		local block = LuckyBlocks.add(state, kind, now, nil, paid, vip)
+		readyAt = if block.ReadyAt <= now then 0 else block.ReadyAt
+		if not paid then
+			local list = pendingBlocks[data]
+			if list == nil then
+				list = {}
+				pendingBlocks[data] = list
+			end
+			table.insert(list, { kind = block.Kind, readyAt = readyAt :: number })
+		end
 	end
+	return readyAt
 end
 
 -- A cue just entered the save's Index for the first time: pay its finder's money (earned;
@@ -493,7 +464,7 @@ local function payFind(data: any, id: string): number
 	return money
 end
 
--- Gives one copy of a case or Exclusive cue (marked Seen and NEW; a first find pays its
+-- Gives one copy of a block or Exclusive cue (marked Seen and NEW; a first find pays its
 -- finder's money). An Exclusive cue (a rank, the VIP or the Starter Cue) is one per player: it
 -- never sells, so a second copy would be worth nothing, and one already owned is not given
 -- again. Returns whether it was given.
@@ -521,20 +492,20 @@ local function giveUnique(data: any, id: string, copy: number, paid: boolean?)
 	end
 end
 
--- Why `cases` ({ [caseId] = count }) cannot be given, or nil when it can.
-local function badCases(cases: any): string?
-	if cases == nil then
+-- Why `blocks` ({ [kind] = count }) cannot be given, or nil when it can.
+local function badBlocks(blocks: any): string?
+	if blocks == nil then
 		return nil
-	elseif type(cases) ~= "table" then
-		return "cases is not a table"
+	elseif type(blocks) ~= "table" then
+		return "blocks is not a table"
 	end
-	for caseId, count in cases do
-		if Cases.get(caseId) == nil then
-			return ("%s is not a case"):format(tostring(caseId))
-		elseif not intIn(count, 0, S.ItemCountCap) then
-			return ("case count %s is not a whole number in 0..%d"):format(
+	for kind, count in blocks do
+		if LuckyBlocks.kind(kind) == nil then
+			return ("%s is not a lucky block"):format(tostring(kind))
+		elseif not intIn(count, 0, Config.LuckyBlocks.MaxBlocks) then
+			return ("block count %s is not a whole number in 0..%d"):format(
 				tostring(count),
-				S.ItemCountCap
+				Config.LuckyBlocks.MaxBlocks
 			)
 		end
 	end
@@ -564,10 +535,8 @@ end
 
 local REWARD_FIELDS: { [any]: boolean } = {
 	money = true,
-	cases = true,
-	drops = true,
+	blocks = true,
 	cues = true,
-	firstWinCase = true,
 	spins = true,
 	lucky = true,
 }
@@ -614,50 +583,29 @@ local function badReward(reward: any): string?
 			tostring(reward.money),
 			S.GrantCap
 		)
-	elseif reward.firstWinCase ~= nil and type(reward.firstWinCase) ~= "boolean" then
-		return "firstWinCase is not true or false"
-	elseif reward.drops ~= nil and not intIn(reward.drops, 0, S.MaxSmallEntries) then
-		return ("drops %s is not a whole number in 0..%d"):format(
-			tostring(reward.drops),
-			S.MaxSmallEntries
-		)
 	end
 	return badSpinCount(reward.spins, "spins")
 		or badSpinCount(reward.lucky, "lucky")
-		or badCases(reward.cases)
+		or badBlocks(reward.blocks)
 		or badGiftCues(reward.cues)
 end
 
--- Why a checked reward cannot go to this save, or nil: the first win's case is given once.
-local function blockedReward(data: any, reward: any): string?
-	if reward.firstWinCase == true and data.Flags[FIRST_WIN_FLAG] == true then
-		return "the first win's case was given before"
-	end
-	return nil
-end
-
--- Applies a checked, unblocked reward (also a Daily.Reward: { money, cases, spins, lucky }):
--- the first-win flag, money (earned; `reason` names it for the analytics), cases in shop
--- order, cues in the order given, ult spins.
+-- Applies a checked reward (also a Daily.Reward: { money, blocks, spins, lucky }): money
+-- (earned; `reason` names it for the analytics), lucky blocks in Config.LuckyBlocks.Order
+-- (free origin, their timers starting), cues in the order given, ult spins.
 local function giveReward(data: any, reward: any, reason: string)
-	if reward.firstWinCase == true then
-		data.Flags[FIRST_WIN_FLAG] = true
-	end
 	local money = reward.money or 0
 	if money > 0 then
 		addMoneyTo(data, money, true, reason)
 	end
-	local cases = reward.cases
-	if cases ~= nil then
-		for _, caseId in Config.Cases.Order do
-			local count = cases[caseId]
+	local blocks = reward.blocks
+	if blocks ~= nil then
+		for _, kind in Config.LuckyBlocks.Order do
+			local count = blocks[kind]
 			if count ~= nil and count > 0 then
-				addCasesTo(data, caseId, count)
+				giveBlocksTo(data, kind, count, false, vipOfSave[data] == true)
 			end
 		end
-	end
-	for _ = 1, reward.drops or 0 do
-		rollDrop(data, "Reward")
 	end
 	local cues = reward.cues
 	if cues ~= nil then
@@ -688,7 +636,7 @@ local function opponentEntry(daily: any, key: string): any?
 		if opponentCount(opponents) >= Config.Economy.SameOpponentMaxEntries then
 			return nil
 		end
-		entry = { Matches = 0, Cases = 0 }
+		entry = { Matches = 0, Drops = 0 }
 		opponents[key] = entry
 	end
 	return entry
@@ -731,15 +679,6 @@ local function leaderstats(player: Player): (StringValue, IntValue)
 	return rank :: StringValue, money :: IntValue
 end
 
--- Unopened cases of every type, ready or on their timers.
-local function casesUnopened(data: any): number
-	local total = #Inventory.timers(data)
-	for _, caseId in Config.Cases.Order do
-		total += Inventory.caseCount(data, caseId)
-	end
-	return total
-end
-
 -- Whether anything can be claimed on UTC day `day`: the login streak, a playtime gift, or a
 -- complete Index row whose reward is unclaimed.
 local function rewardReady(data: any, day: number): boolean
@@ -771,7 +710,6 @@ local function replicate(player: Player, data: any)
 	setAttribute(player, ATTR.WinStreak, data.Stats.WinStreak)
 	setAttribute(player, ATTR.WinsVsPlayers, data.Stats.Wins)
 	setAttribute(player, ATTR.EquippedCue, Inventory.equipped(data))
-	setAttribute(player, ATTR.CasesUnopened, casesUnopened(data))
 	setAttribute(player, ATTR.RewardReady, rewardReady(data, today()))
 	setAttribute(player, ATTR.VipOffer, data.Shop.VipOffer == true)
 	setAttribute(player, ATTR.MoneyBoostEnds, data.Shop.BoostEnds)
@@ -838,10 +776,10 @@ local function commit(player: Player, data: any, op: string)
 	if finds and #finds > 0 and not onReel then
 		foundEvent:Fire(player, finds)
 	end
-	local drops = pendingDrops[data]
-	pendingDrops[data] = nil
-	if drops and #drops > 0 then
-		dropEvent:Fire(player, drops)
+	local blocks = pendingBlocks[data]
+	pendingBlocks[data] = nil
+	if blocks and #blocks > 0 then
+		blockEvent:Fire(player, blocks)
 	end
 	local inviter = pendingInvite[data]
 	pendingInvite[data] = nil
@@ -943,8 +881,8 @@ local function prepare(player: Player, profile: Profile): string?
 	-- The migration and the template are pure and have no clock, so the first join is stamped
 	-- here (the welcome offer, the comeback window and the Starter Pack count from it). A save
 	-- that arrives with FirstJoin 0 is new or from before v2; one from before v2 that already
-	-- has wins had its first win before the first win's Rare Case existed, so that case counts
-	-- as given (this runs on its first v2 load only, since FirstJoin is set right after).
+	-- has wins had its first win before the first win's Rare block existed, so that block
+	-- counts as given (this runs on its first v2 load only, since FirstJoin is set right after).
 	local shop = valid.Shop
 	if shop.FirstJoin == 0 then
 		shop.FirstJoin = os.time()
@@ -1210,7 +1148,7 @@ end
 local DAILY_COUNTS: { [string]: boolean } = { Wins = true, PcDrops = true, Disguised = true }
 
 --- Today's count of one kind (0 when another day's or not loaded): "Wins" (real wins),
---- "PcDrops" (PC wins that dropped a case, Config.Economy.PcDropsPerDay) or "Disguised"
+--- "PcDrops" (PC wins that dropped a block, Config.Economy.PcDropsPerDay) or "Disguised"
 --- (disguised-bot wins, Config.Economy.DisguisedDailyWins).
 function PlayerData.dailyCount(player: Player, field: string): number
 	if not DAILY_COUNTS[field] then
@@ -1224,13 +1162,13 @@ function PlayerData.dailyCount(player: Player, field: string): number
 	return dailyOf(data, today())[field]
 end
 
---- Today's anti-farm count against one account: { Matches, Cases } (Settle.opponentDay: zeros
+--- Today's anti-farm count against one account: { Matches, Drops } (Settle.opponentDay: zeros
 --- for an account not met today, another day's table, or a save not loaded; once today's table
 --- is full, the worst count for an account it does not track).
 function PlayerData.opponentToday(player: Player, userId: number): OpponentDay
 	local data = peek(player)
 	if data == nil or not SaveSchema.isInteger(userId) then
-		return { Matches = 0, Cases = 0 }
+		return { Matches = 0, Drops = 0 }
 	end
 	local opponents = dailyOf(data, today()).Opponents
 	return Settle.opponentDay(opponents[opponentKey(userId)], opponentCount(opponents))
@@ -1256,7 +1194,7 @@ function PlayerData.progress(player: Player): Progress?
 	local progress: Progress = {
 		RealMatches = data.Progress.RealMatches,
 		Wins = data.Progress.Wins,
-		FirstWinCaseDue = data.Flags[FIRST_WIN_FLAG] ~= true,
+		FirstWinDue = data.Flags[FIRST_WIN_FLAG] ~= true,
 	}
 	return table.freeze(progress)
 end
@@ -1412,8 +1350,7 @@ end
 
 --- Gives a reward (see the Reward type): rank-ups, the daily streak, gifts, codes, dev
 --- commands. All of it or nothing: a bad field refuses the whole reward. `reason` says why,
---- for the logs. A cue new to the Index pays its finder's money (CueFound tells the player,
---- except for the first win's case, which the result screen's reel reveals).
+--- for the logs. A cue new to the Index pays its finder's money (CueFound tells the player).
 function PlayerData.grantReward(player: Player, reward: Reward, reason: string): boolean
 	local op = "grantReward"
 	if not isPlayer(player) then
@@ -1429,66 +1366,37 @@ function PlayerData.grantReward(player: Player, reward: Reward, reason: string):
 	if data == nil then
 		return false
 	end
-	local blocked = blockedReward(data, reward)
-	if blocked ~= nil then
-		return refuse(op, player, blocked)
-	end
 	giveReward(data, reward, reason)
-	if reward.firstWinCase == true then
-		reelFinds[data] = true -- the result screen's reel shows the first win's cue
-	end
 	commit(player, data, op)
 	return true
 end
 
---- Rolls one Case Drop for `source` ("Win", "Mystery", "Reward" ...: a short word, sent in the
---- payload) and lands its case, in one change: pity counted, a timed case on its timer (half
---- time with Quick Cases). `firstWin` asks for the first win's Rare Case (Config.Cases.Drop
---- .FirstWin) and marks it given; once given before, the drop rolls as usual. Returns the
---- reveal payload (CaseDrop.Payload), or nil when the save is not loaded. CaseDropped fires
---- with it too.
-function PlayerData.caseDrop(player: Player, source: string, firstWin: boolean?): CaseDrop.Payload?
-	local op = "caseDrop"
+--- The win's lucky block (ECONOMY 7.1; BlockDrop.dropFor said this win drops): a Mystery
+--- block landing in the hotbar on its timer, free origin, in one change. `firstWin` asks for
+--- the first win's block (Config.BlockOdds.Drop.FirstWin: a Rare block) and marks it given;
+--- once given before, the win gives the Mystery block as usual. Returns { kind, readyAt }
+--- (readyAt unix, 0 = ready now), or nil when the save is not loaded or the hotbar is full.
+function PlayerData.winBlock(player: Player, firstWin: boolean?): WinBlock?
+	local op = "winBlock"
 	if not isPlayer(player) then
 		refuse(op, player, "not a player")
 		return nil
-	elseif type(source) ~= "string" or #source < 1 or #source > 20 then
-		refuse(op, player, "no source given")
-		return nil
 	end
 	local data = liveData(op, player)
 	if data == nil then
 		return nil
 	end
-	local forced: string? = nil
+	local kind = "Mystery"
 	if firstWin == true and data.Flags[FIRST_WIN_FLAG] ~= true then
 		data.Flags[FIRST_WIN_FLAG] = true
-		forced = Config.Cases.Drop.FirstWin
+		kind = Config.BlockOdds.Drop.FirstWin
 	end
-	local payload = rollDrop(data, source, forced)
+	local readyAt = giveBlocksTo(data, kind, 1, false, vipOfSave[data] == true)
 	commit(player, data, op)
-	return payload
-end
-
---- Developer and QA only (the /skiptime command): every case timer runs `seconds` (1..one
---- year) sooner, and any that ran out join their ready stacks. False when not loaded.
-function PlayerData.advanceTimers(player: Player, seconds: number): boolean
-	local op = "advanceTimers"
-	if not isPlayer(player) then
-		return refuse(op, player, "not a player")
-	elseif not intIn(seconds, 1, 365 * SECONDS_PER_DAY) then
-		return refuse(op, player, ("seconds %s is not 1..a year"):format(tostring(seconds)))
+	if readyAt == nil then
+		return nil
 	end
-	local data = liveData(op, player)
-	if data == nil then
-		return false
-	end
-	for _, t in data.Inventory.Timers do
-		t.At -= seconds
-	end
-	Inventory.finishTimers(data, os.time())
-	commit(player, data, op)
-	return true
+	return { kind = kind, readyAt = readyAt }
 end
 
 --- Buys `count` lucky blocks of `kind` (1..Config.Save.MaxSmallEntries) for `price` money
@@ -1574,69 +1482,9 @@ function PlayerData.buyRestock(
 	return true, nil
 end
 
---- Finishes the case timer of `caseId` that ends at `at` for `price` money (the caller priced
---- it with Shop.skipPrice from the time left), in one change. Answers (true) or (false,
---- reason): "NoTimer" (no such timer running), "NotEnoughMoney", "NotLoaded", "Invalid".
-function PlayerData.skipTimer(
-	player: Player,
-	caseId: string,
-	at: number,
-	price: number
-): (boolean, string?)
-	local op = "skipTimer"
-	if not isPlayer(player) then
-		return refuseInvalid(op, player, "not a player")
-	elseif Cases.get(caseId) == nil or not intIn(at, 0, S.UnixTimeCap) then
-		return refuseInvalid(op, player, "not a case timer")
-	elseif not intIn(price, 0, S.MoneyCap) then
-		return refuseInvalid(
-			op,
-			player,
-			("price %s is not 0..%d"):format(tostring(price), S.MoneyCap)
-		)
-	end
-	local data = liveData(op, player)
-	if data == nil then
-		return false, "NotLoaded"
-	end
-	local found = false
-	for _, t in Inventory.timers(data) do
-		if t.id == caseId and t.readyAt == at then
-			found = true
-			break
-		end
-	end
-	if not found then
-		return false, "NoTimer"
-	elseif data.Money < price then
-		return false, "NotEnoughMoney"
-	end
-	takeMoney(data, price, "Skip")
-	Inventory.finishTimer(data, caseId, at)
-	commit(player, data, op)
-	return true, nil
-end
-
---- Quick Cases was bought (or first seen owned): the case timers already running are halved,
---- once per save (Shop.QuickApplied). True when it changed the save.
-function PlayerData.applyQuickCases(player: Player): boolean
-	local op = "applyQuickCases"
-	if not isPlayer(player) then
-		return refuse(op, player, "not a player")
-	end
-	local data = liveData(op, player)
-	if data == nil or data.Shop.QuickApplied == true then
-		return false
-	end
-	data.Shop.QuickApplied = true
-	Inventory.halveTimers(data, os.time())
-	commit(player, data, op)
-	return true
-end
-
 --- Sets the rank fields together (the Ranking service's result, or /rank). Each must be a
 --- whole number in range, or nothing changes. `reward` (optional, the Reward type: the
---- rank-up's money, cases and tier cue) is given in the same change, so a rank-up and its
+--- rank-up's money, blocks and tier cue) is given in the same change, so a rank-up and its
 --- reward can never be split.
 function PlayerData.applyRank(
 	player: Player,
@@ -1681,12 +1529,6 @@ function PlayerData.applyRank(
 	if data == nil then
 		return false
 	end
-	if reward ~= nil then
-		local blocked = blockedReward(data, reward)
-		if blocked ~= nil then
-			return refuse(op, player, "reward: " .. blocked)
-		end
-	end
 	data.RankXp = plain(xp)
 	data.PeakDivision = plain(peak)
 	data.RatedMatches = plain(rated)
@@ -1730,11 +1572,11 @@ function PlayerData.recordMatch(player: Player, outcome: string, opponent: strin
 	stats.WinStreak = math.min(Ranks.nextStreak(stats.WinStreak, outcome, counts), S.StatCap)
 	stats.BestWinStreak = math.max(stats.BestWinStreak, stats.WinStreak)
 	-- An invited player's first win (any match that is not solo: solo records none) gives
-	-- them their invite case; the inviter's follows (InviteWon, src/server/Social.luau).
+	-- them their invite block; the inviter's follows (InviteWon, src/server/Social.luau).
 	local social = data.Social
 	if outcome == "Win" and social.InvitedBy > 0 and not social.InviteDone then
 		social.InviteDone = true
-		addCasesTo(data, Config.Social.InviteCase, 1)
+		giveBlocksTo(data, Config.Social.InviteBlock, 1, false, vipOfSave[data] == true)
 		pendingInvite[data] = social.InvitedBy
 	end
 	commit(player, data, op)
@@ -1868,11 +1710,11 @@ function PlayerData.countDaily(player: Player, field: string): boolean
 	return true
 end
 
---- Counts a free case won from one account today (Daily.Opponents[userId].Cases +1; the
---- anti-farm limit Config.Economy.FreeCasesPerOpponent). False when the table is full and
+--- Counts a lucky block won from one account today (Daily.Opponents[userId].Drops +1; the
+--- anti-farm limit Config.Economy.DropsPerOpponent). False when the table is full and
 --- that account is not tracked today (it already reads as at the limit, Settle.opponentDay).
-function PlayerData.addOpponentCase(player: Player, opponentUserId: number): boolean
-	local op = "addOpponentCase"
+function PlayerData.addOpponentDrop(player: Player, opponentUserId: number): boolean
+	local op = "addOpponentDrop"
 	if not isPlayer(player) then
 		return refuse(op, player, "not a player")
 	elseif not SaveSchema.isInteger(opponentUserId) then
@@ -1887,139 +1729,14 @@ function PlayerData.addOpponentCase(player: Player, opponentUserId: number): boo
 	if entry == nil then
 		return false
 	end
-	entry.Cases = math.min(entry.Cases + 1, S.StatCap)
+	entry.Drops = math.min(entry.Drops + 1, S.StatCap)
 	commit(player, data, op)
 	return true
 end
 
 ---------------------------------------------------------------------------------------------
--- Mutations: cases and cues (the Items service)
+-- Mutations: cues (the Items service)
 ---------------------------------------------------------------------------------------------
-
---- Buys `count` cases (1..Config.Save.ItemCountCap) of a case sold in the shop for `price`
---- money (0..MoneyCap; the caller priced it with Cases.price and checked PolicyService), in
---- one change. False, and nothing changes, when the money is short (quietly).
-function PlayerData.buyCases(player: Player, caseId: string, count: number, price: number): boolean
-	local op = "buyCases"
-	local case = Cases.get(caseId)
-	if not isPlayer(player) then
-		return refuse(op, player, "not a player")
-	elseif case == nil then
-		return refuse(op, player, ("%s is not a case"):format(tostring(caseId)))
-	elseif not case.Enabled then
-		return refuse(op, player, ("%s is not sold (switched off)"):format(caseId))
-	elseif not intIn(count, 1, S.ItemCountCap) then
-		return refuse(
-			op,
-			player,
-			("count %s is not a whole number in 1..%d"):format(tostring(count), S.ItemCountCap)
-		)
-	elseif not intIn(price, 0, S.MoneyCap) then
-		return refuse(
-			op,
-			player,
-			("price %s is not a whole number in 0..%d"):format(tostring(price), S.MoneyCap)
-		)
-	end
-	local data = liveData(op, player)
-	if data == nil then
-		return false
-	end
-	if data.Money < price then
-		return false
-	end
-	if Inventory.caseCount(data, caseId) + count > S.ItemCountCap then
-		return refuse(
-			op,
-			player,
-			("would hold more than %d %s cases"):format(S.ItemCountCap, caseId)
-		)
-	end
-	takeMoney(data, price, "BuyCase")
-	Inventory.addCases(data, caseId, count)
-	commit(player, data, op)
-	return true
-end
-
---- Opens #cueIds ready cases of `caseId` (1..Config.Cases.FastOpenCount; the caller rolled each
---- cue with Cases.roll) and adds those cues, in one change; a cue from a paid case is paid
---- origin. Answers (true, { Opened }) in the order given, or (false, reason): "NotReady" (not
---- enough ready, more on their timers), "NotEnough" (fewer cases than cues), "NotLoaded",
---- "Invalid" (logged: an unknown case, or a cue that case cannot drop: a case cue that lists
---- the case, of a rarity the case has odds for; a vaulted cue is still accepted, so vaulting
---- never fails an open already rolled).
-function PlayerData.openCases(
-	player: Player,
-	caseId: string,
-	cueIds: { string }
-): (boolean, { Opened } | string)
-	local op = "openCases"
-	local case = Cases.get(caseId)
-	if not isPlayer(player) then
-		return refuseInvalid(op, player, "not a player")
-	elseif case == nil then
-		return refuseInvalid(op, player, ("%s is not a case"):format(tostring(caseId)))
-	end
-	local why = badArray(cueIds, "cueIds", 1, Config.Cases.FastOpenCount)
-	if why ~= nil then
-		return refuseInvalid(op, player, why)
-	end
-	for _, id in cueIds do
-		local cue = Catalog.get(id)
-		if
-			cue == nil
-			or cue.Group ~= "Case"
-			or table.find(cue.Cases, caseId) == nil
-			or (case.Odds[cue.Rarity] or 0) <= 0
-		then
-			return refuseInvalid(
-				op,
-				player,
-				("%s does not drop from %s"):format(tostring(id), caseId)
-			)
-		end
-	end
-	local data = liveData(op, player)
-	if data == nil then
-		return false, "NotLoaded"
-	end
-	local n = #cueIds
-	if Inventory.caseCount(data, caseId) < n then
-		for _, t in Inventory.timers(data) do
-			if t.id == caseId then
-				return false, "NotReady" -- the rest of that case are still on their timers
-			end
-		end
-		return false, "NotEnough"
-	end
-	for _, id in cueIds do
-		if Inventory.count(data, id) + n > S.ItemCountCap then
-			return refuseInvalid(
-				op,
-				player,
-				("would hold more than %d of %s"):format(S.ItemCountCap, id)
-			)
-		end
-	end
-	-- Paid cases open first; each gives a paid-origin cue.
-	local _, paidLeft = Inventory.takeCases(data, caseId, n)
-	local seen = data.Index.Seen
-	local opened: { Opened } = {}
-	for _, id in cueIds do
-		local new = seen[id] ~= true and not Inventory.owns(data, id)
-		local _, first = Inventory.addCue(data, id, 1, paidLeft > 0)
-		paidLeft -= 1
-		local found = if first then payFind(data, id) else 0
-		local count = Inventory.count(data, id)
-		table.insert(
-			opened,
-			{ cue = id, new = new, duplicate = count > 1, count = count, found = found }
-		)
-	end
-	reelFinds[data] = true -- the reel shows them
-	commit(player, data, op)
-	return true, opened
-end
 
 --- Sells `count` copies (1..Config.Save.ItemCountCap) of a cue back and adds the money (not
 --- MoneyEarned). Answers (true, money) or (false, reason): Inventory.canSell's "Unknown",
@@ -2056,7 +1773,7 @@ function PlayerData.sellCue(
 	return true, money
 end
 
---- Sells every duplicate, keeping one of each: only `cueId`'s when given, else every case
+--- Sells every duplicate, keeping one of each: only `cueId`'s when given, else every block
 --- cue's. Answers (true, money, sold) with Inventory.Sold rows in catalog order ((true, 0, {})
 --- when there was nothing to sell; nothing changes), or (false, 0, {}) when not loaded or
 --- `cueId` is not a catalog cue (logged).
@@ -2111,11 +1828,11 @@ function PlayerData.equipCue(player: Player, cueId: string): boolean
 end
 
 ---------------------------------------------------------------------------------------------
--- Lucky blocks (the test build, 2026-10-03; Progression/LuckyBlocks, LuckyBlockService)
+-- Lucky blocks (2026-10-03; Progression/LuckyBlocks, LuckyBlockService)
 ---------------------------------------------------------------------------------------------
 
 --- Gives `count` (1..Config.LuckyBlocks.MaxBlocks) blocks of `kind`, landing now (their timers
---- start, halved for a VIP; `paid`: ready at once, paid origin), at place `at` in the list
+--- start, shortened for a VIP; `paid`: ready at once, paid origin), at place `at` in the list
 --- (nil: the end). False when the save is not loaded, the arguments are bad (logged) or they
 --- would pass the cap (logged).
 function PlayerData.giveLuckyBlocks(
@@ -2198,11 +1915,11 @@ function PlayerData.prepareLuckySkip(player: Player, id: number): (boolean, bool
 	return true, used
 end
 
--- The open of one block as the server rolled it (PlayerData.planLuckyOpen): the case the cue
--- came from (a Roll kind's tier's case), the tier (Roll kinds only), the cue, whether it is a
--- Unique cue (the caller takes its copy number first) and whether a Guarantee forced it.
+-- The open of one block as the server rolled it (PlayerData.planLuckyOpen): the odds row the
+-- cue came from (a Roll kind's tier's row), the tier (Roll kinds only), the cue, whether it
+-- is a Unique cue (the caller takes its copy number first) and whether a Guarantee forced it.
 export type OpenPlan = {
-	caseId: string,
+	oddsId: string,
 	tier: string?,
 	cueId: string,
 	unique: boolean,
@@ -2215,17 +1932,18 @@ local function planRefused(op: string, player: any, why: string): (nil, string)
 	return nil, "Invalid"
 end
 
--- The case a Roll kind's tier opens (Config.LuckyBlocks.Kinds[tier].Case).
-local function caseOfTier(tier: any): string?
+-- The odds row a Roll kind's tier opens (Config.LuckyBlocks.Kinds[tier].Odds).
+local function oddsOfTier(tier: any): string?
 	local row = LuckyBlocks.kind(tier)
-	return if row ~= nil then row.Case else nil
+	return if row ~= nil then row.Odds else nil
 end
 
---- Plans the open of the ready block `id` without changing the save: the case (a Roll kind,
---- the Mystery block, rolls its tier first by Config.Cases.Drop.Weights, with this player's
---- pity for a free block), then the cue (`rng(n)` gives 1..n): a Guarantee due is forced
---- (the Grand Opening block's Beta Cue), a Unique cue this player already owns is rolled
---- again (Config.LuckyBlocks.UniqueRerolls times, then the case's top rarity's first cue).
+--- Plans the open of the ready block `id` without changing the save: the odds row (a Roll
+--- kind, the Mystery block, rolls its tier first by Config.BlockOdds.Drop.Weights, with this
+--- player's pity for a free block), then the cue (`rng(n)` gives 1..n): a Guarantee due is
+--- forced (the Grand Opening block's Beta Cue), a Unique cue this player already owns is
+--- rolled again (Config.LuckyBlocks.UniqueRerolls times, then the row's top rarity's first
+--- cue).
 --- Answers (plan) or (nil, reason): "NotOwned", "NotReady", "NotLoaded", "Invalid".
 function PlayerData.planLuckyOpen(
 	player: Player,
@@ -2250,15 +1968,15 @@ function PlayerData.planLuckyOpen(
 	end
 	local kind = LuckyBlocks.kind(block.Kind) :: LuckyBlocks.Kind
 	local tier: string? = nil
-	local caseId = kind.Case
+	local oddsId = kind.Odds
 	if kind.Roll then
 		-- A paid block rolls the natural odds (no pity counted or used).
-		local pity = if block.Paid then CaseDrop.readPity(nil) else CaseDrop.readPity(data.Drops)
-		tier = CaseDrop.roll(pity, rng, nil)
-		caseId = caseOfTier(tier)
+		local pity = if block.Paid then BlockDrop.readPity(nil) else BlockDrop.readPity(data.Drops)
+		tier = BlockDrop.roll(pity, rng, nil)
+		oddsId = oddsOfTier(tier)
 	end
-	if caseId == nil or Cases.get(caseId) == nil then
-		return planRefused(op, player, ("%s has no case to open"):format(block.Kind))
+	if oddsId == nil or BlockOdds.get(oddsId) == nil then
+		return planRefused(op, player, ("%s has no odds row to open"):format(block.Kind))
 	end
 	local function owns(cueId: string): boolean
 		return Inventory.owns(data, cueId)
@@ -2268,25 +1986,25 @@ function PlayerData.planLuckyOpen(
 	if forced ~= nil then
 		cueId = forced
 	else
-		cueId = Cases.roll(caseId, rng)
+		cueId = BlockOdds.roll(oddsId, rng)
 		local tries = 0
 		while (Catalog.get(cueId) :: Catalog.Cue).Group == "Unique" and owns(cueId) do
 			tries += 1
 			if tries > Config.LuckyBlocks.UniqueRerolls then
-				local top = Cases.topRarity(caseId)
-				local pool = if top then Catalog.droppable(caseId, top) else {}
+				local top = BlockOdds.topRarity(oddsId)
+				local pool = if top then Catalog.droppable(oddsId, top) else {}
 				if pool[1] == nil then
-					return planRefused(op, player, ("%s has no cue to give"):format(caseId))
+					return planRefused(op, player, ("%s has no cue to give"):format(oddsId))
 				end
 				cueId = pool[1].Id
 				break
 			end
-			cueId = Cases.roll(caseId, rng)
+			cueId = BlockOdds.roll(oddsId, rng)
 		end
 	end
 	local cue = Catalog.get(cueId) :: Catalog.Cue
 	return {
-		caseId = caseId,
+		oddsId = oddsId,
 		tier = tier,
 		cueId = cueId,
 		unique = cue.Group == "Unique",
@@ -2300,7 +2018,7 @@ end
 --- (the Guarantee), a free Mystery block's tier counts for pity, the cue is added (the block's
 --- origin) and a cue new to the Index pays the finder's money. Answers (true, Opened, place)
 --- where place was the block's place in the list, or (false, reason): "NotOwned",
---- "NotReady", "NotLoaded", "Invalid" (logged: a cue that case cannot drop, a Unique cue
+--- "NotReady", "NotLoaded", "Invalid" (logged: a cue that odds row cannot drop, a Unique cue
 --- without a copy number or already owned).
 function PlayerData.openLuckyBlock(
 	player: Player,
@@ -2316,7 +2034,7 @@ function PlayerData.openLuckyBlock(
 	elseif
 		type(plan) ~= "table"
 		or type(plan.cueId) ~= "string"
-		or type(plan.caseId) ~= "string"
+		or type(plan.oddsId) ~= "string"
 	then
 		return refuseInvalid(op, player, "plan is not an open plan")
 	end
@@ -2331,20 +2049,20 @@ function PlayerData.openLuckyBlock(
 		return false, "NotReady"
 	end
 	local kind = LuckyBlocks.kind(block.Kind) :: LuckyBlocks.Kind
-	local cueId, caseId = plan.cueId, plan.caseId
+	local cueId, oddsId = plan.cueId, plan.oddsId
 	local cue = Catalog.get(cueId)
 	if kind.Roll then
-		if caseOfTier(plan.tier) ~= caseId then
-			return refuseInvalid(op, player, ("%s is not a tier's case"):format(caseId))
+		if oddsOfTier(plan.tier) ~= oddsId then
+			return refuseInvalid(op, player, ("%s is not a tier's odds row"):format(oddsId))
 		end
-	elseif caseId ~= kind.Case then
-		return refuseInvalid(op, player, ("%s is not %s's case"):format(caseId, block.Kind))
+	elseif oddsId ~= kind.Odds then
+		return refuseInvalid(op, player, ("%s is not %s's odds row"):format(oddsId, block.Kind))
 	end
-	if cue == nil or not Cases.canDrop(caseId, cueId) then
+	if cue == nil or not BlockOdds.canDrop(oddsId, cueId) then
 		return refuseInvalid(
 			op,
 			player,
-			("%s does not drop from %s"):format(tostring(cueId), caseId)
+			("%s does not drop from %s"):format(tostring(cueId), oddsId)
 		)
 	end
 	local unique = cue.Group == "Unique"
@@ -2364,9 +2082,9 @@ function PlayerData.openLuckyBlock(
 	local new = data.Index.Seen[cueId] ~= true and not Inventory.owns(data, cueId)
 	local _, place = LuckyBlocks.remove(data.LuckyBlocks, id)
 	LuckyBlocks.noteOpened(data.LuckyBlocks, block.Kind)
-	-- A free Mystery block's tier counts for pity (Config.Cases.Drop.Pity).
+	-- A free Mystery block's tier counts for pity (Config.BlockOdds.Drop pity).
 	if kind.Roll and not block.Paid and plan.tier ~= nil then
-		local _, pity = CaseDrop.roll(CaseDrop.readPity(data.Drops), dropRoll, plan.tier)
+		local _, pity = BlockDrop.roll(BlockDrop.readPity(data.Drops), dropRoll, plan.tier)
 		data.Drops.SinceRare = math.min(pity.SinceRare, S.StatCap)
 		data.Drops.SinceEpic = math.min(pity.SinceEpic, S.StatCap)
 		data.Drops.Total = math.min(pity.Total, S.StatCap)
@@ -2834,7 +2552,7 @@ function PlayerData.claimIndexRow(player: Player, rarity: string): (boolean, any
 	return true, { money = result.money }
 end
 
---- Dev (/clearinv): takes every cue but Classic and every case, clears the NEW tags, equips
+--- Dev (/clearinv): takes every cue but Classic and every lucky block, clears the NEW tags, equips
 --- Classic, and forgets the one-per-player guards of the cues it took (Shop.Limited,
 --- Shop.VipCueGiven), so buying a Limited and getting the VIP Cue can be tested again.
 --- Index.Seen, the Index rows and titles stay.
@@ -2850,8 +2568,8 @@ function PlayerData.clearInventory(player: Player): boolean
 	local inventory = data.Inventory
 	inventory.Cues = {}
 	inventory.Unique = {}
-	inventory.Cases = {}
 	inventory.New = {}
+	data.LuckyBlocks.List = {}
 	data.Equipped.Cue = Catalog.Default
 	data.Shop.Limited = {}
 	data.Shop.VipCueGiven = false
@@ -2989,7 +2707,7 @@ function PlayerData.setPlayMinutes(player: Player, minutes: number): boolean
 end
 
 --- Claims today's playtime gift `index` (1..#Config.Daily.Playtime) and gives its money and
---- cases, in one change. Answers (true, Daily.Reward) or (false, reason):
+--- blocks, in one change. Answers (true, Daily.Reward) or (false, reason):
 --- Daily.claimPlaytime's "Unknown", "Claimed", "NotReady", or "NotLoaded".
 function PlayerData.claimPlaytime(player: Player, index: number): (boolean, Daily.Reward | string)
 	local op = "claimPlaytime"
@@ -3039,15 +2757,13 @@ end
 -- Trading (the Trading service; the rules are Progression/Trade)
 ---------------------------------------------------------------------------------------------
 
--- A changeable copy of a live save with its finished timers in their stacks.
+-- A changeable copy of a live save.
 local function planCopy(player: Player): any?
 	local data = peek(player)
 	if data == nil then
 		return nil
 	end
-	local copy = copyOf(data, false)
-	Inventory.finishTimers(copy, os.time())
-	return copy
+	return copyOf(data, false)
 end
 
 --- Plans a trade on copies of both live saves (nothing changes): Trade.swap's answer, (true,
@@ -3063,7 +2779,7 @@ function PlayerData.tradePlan(
 	if copyA == nil or copyB == nil then
 		return false, "NotLoaded", nil, nil
 	end
-	return Trade.swap(copyA, copyB, itemsA, itemsB, paidOk)
+	return Trade.swap(copyA, copyB, itemsA, itemsB, paidOk, os.time())
 end
 
 --- Swaps a trade the ledger already holds (`entry`) in both live saves, together: planned
@@ -3094,7 +2810,7 @@ function PlayerData.applyTrade(
 	if dataA == nil or dataB == nil then
 		return false, "NotLoaded"
 	end
-	local done, reason, fromA, fromB = Trade.swap(dataA, dataB, itemsA, itemsB, paidOk)
+	local done, reason, fromA, fromB = Trade.swap(dataA, dataB, itemsA, itemsB, paidOk, os.time())
 	if not done or fromA == nil or fromB == nil then
 		-- Nothing changed (swap checks before it changes anything); the plan just said yes.
 		return false, reason or "Changed"
@@ -3117,21 +2833,21 @@ function PlayerData.replayTrade(player: Player, entry: Trade.Entry): boolean
 	if data == nil then
 		return false
 	end
-	if not Trade.replay(data, entry, player.UserId) then
+	if not Trade.replay(data, entry, player.UserId, os.time()) then
 		return false
 	end
 	commit(player, data, op)
 	return true
 end
 
---- What the player can put in a trade now (Trade.offerable on a copy with finished timers in
---- their stacks): { item, count }; empty when not loaded. GUI lane (the trade screen).
+--- What the player can put in a trade now (Trade.offerable on a copy of the save): { item,
+--- count }; empty when not loaded. GUI lane (the trade screen).
 function PlayerData.tradeOfferable(
 	player: Player,
 	paidOk: boolean
 ): { { item: string, count: number } }
 	local copy = planCopy(player)
-	return if copy ~= nil then Trade.offerable(copy, paidOk) else {}
+	return if copy ~= nil then Trade.offerable(copy, paidOk, os.time()) else {}
 end
 
 --- Whether the player's save holds trade `id` already (Trade.applied).
@@ -3175,7 +2891,7 @@ function PlayerData.setInvitedBy(player: Player, inviterId: number): boolean
 	return true
 end
 
---- Gives the inviter the invite case for each invitee in `inviteeIds` (their first wins),
+--- Gives the inviter the invite block for each invitee in `inviteeIds` (their first wins),
 --- up to Config.Social.InvitesPerMonth a UTC month (Social.inviteGrant); the rest are gone.
 --- Returns how many were given (0 when not loaded).
 function PlayerData.giveInviteRewards(player: Player, inviteeIds: { number }): number
@@ -3197,7 +2913,7 @@ function PlayerData.giveInviteRewards(player: Player, inviteeIds: { number }): n
 	social.Invites = math.min(invites, S.StatCap)
 	given = Social.inviteOnce(given, data.Flags[INVITER_FLAG] == true)
 	if given > 0 then
-		addCasesTo(data, Config.Social.InviteCase, given)
+		giveBlocksTo(data, Config.Social.InviteBlock, given, false, vipOfSave[data] == true)
 		data.Flags[INVITER_FLAG] = true
 	end
 	commit(player, data, op)
@@ -3223,8 +2939,7 @@ function PlayerData.claimGroup(player: Player, member: boolean): (boolean, Daily
 	local row = Config.Social.GroupReward
 	local reward: Daily.Reward = {
 		money = 0,
-		cases = {},
-		drops = row.Drops,
+		blocks = table.clone(row.Blocks),
 		spins = 0,
 		lucky = 0,
 	}
@@ -3251,42 +2966,12 @@ function PlayerData.claimFavorite(player: Player): (boolean, Daily.Reward | stri
 	local row = Config.Social.FavoriteReward
 	local reward: Daily.Reward = {
 		money = row.Money,
-		cases = {},
-		drops = row.Drops,
+		blocks = table.clone(row.Blocks),
 		spins = 0,
 		lucky = 0,
 	}
 	data.Flags[FAVORITE_FLAG] = true
 	giveReward(data, reward, "Favorite")
-	commit(player, data, op)
-	return true, reward
-end
-
---- The first-leave gift (Config.Social.LeaveGift; GUI lane, C15, D3): its case on the case's
---- normal timer, once per player ever (Flags.LeaveGift). The client asks the first time Roblox's
---- menu opens or the window loses focus; at worst a client asks early, and it is still once.
---- Answers (true, the reward) or (false, "Claimed" | "NotLoaded").
-function PlayerData.claimLeaveGift(player: Player): (boolean, Daily.Reward | string)
-	local op = "claimLeaveGift"
-	if not isPlayer(player) then
-		return refuseInvalid(op, player, "not a player")
-	end
-	local data = liveData(op, player)
-	if data == nil then
-		return false, "NotLoaded"
-	elseif data.Flags[LEAVE_GIFT_FLAG] == true then
-		return false, "Claimed"
-	end
-	local row = Config.Social.LeaveGift
-	local reward: Daily.Reward = {
-		money = 0,
-		cases = { [row.Case] = row.Count },
-		drops = 0,
-		spins = 0,
-		lucky = 0,
-	}
-	data.Flags[LEAVE_GIFT_FLAG] = true
-	giveReward(data, reward, "LeaveGift")
 	commit(player, data, op)
 	return true, reward
 end
@@ -3359,7 +3044,6 @@ local GRANT_FIELDS: { [any]: boolean } = {
 	drops = true,
 	boostEnds = true,
 	restock = true,
-	skip = true,
 	luckySkip = true,
 }
 local GRANT_FLAGS = { "vip", "vipCue", "party", "firstPack", "starterBought", "luckySkip" }
@@ -3415,17 +3099,6 @@ local function badGrant(grant: any, copy: any): string?
 		if item == nil or item.block ~= restock.block then
 			return "grant.restock is not an item of its restock"
 		end
-	end
-	local skip = grant.skip
-	if
-		skip ~= nil
-		and not (
-			type(skip) == "table"
-			and Cases.get(skip.case) ~= nil
-			and intIn(skip.at, 0, S.UnixTimeCap)
-		)
-	then
-		return "grant.skip is not a case timer"
 	end
 	if grant.cue ~= nil then
 		local cue = Catalog.get(grant.cue)
@@ -3511,10 +3184,6 @@ function PlayerData.applyPurchase(
 	if restock ~= nil then
 		Restock.record(shop.Restock, restock.slot, restock.id)
 		giveBlocksTo(data, restock.block, 1, true, vipOf(player))
-	end
-	-- A Robux skip: the picked timer finishes now (one that already finished stays ready).
-	if grant.skip ~= nil then
-		Inventory.finishTimer(data, grant.skip.case, grant.skip.at)
 	end
 	if grant.luckySkip then
 		LuckyBlocks.grantSkip(data.LuckyBlocks, os.time())
@@ -3704,7 +3373,7 @@ function PlayerData.setFlag(player: Player, key: string, value: any): boolean
 	elseif type(key) ~= "string" or #key < 1 or #key > FLAG_TEXT_MAX then
 		return refuse(op, player, ("key %s is not a short word"):format(tostring(key)))
 	elseif key == FIRST_WIN_FLAG then
-		return refuse(op, player, "the first win's flag is set only with its case")
+		return refuse(op, player, "the first win's flag is set only with its block")
 	end
 	local kind = type(value)
 	local ok = value == nil
@@ -3760,7 +3429,7 @@ function PlayerData.claimRank(player: Player): RankClaim.Pending?
 	if reward == nil then
 		return nil
 	end
-	local why = badReward(reward) or blockedReward(data, reward)
+	local why = badReward(reward)
 	if why ~= nil then
 		refuse(op, player, why)
 		return nil
@@ -3769,30 +3438,6 @@ function PlayerData.claimRank(player: Player): RankClaim.Pending?
 	data.Flags.RankClaimed = data.PeakDivision
 	commit(player, data, op)
 	return pending
-end
-
---- Rolls one Case Drop of a set `tier` (the tutorial's Standard Case for Bronze; a tier in
---- Config.Cases.Drop's weights), pity counted as for any drop. Returns the reveal payload, or
---- nil when refused or not loaded.
-function PlayerData.setDrop(player: Player, source: string, tier: string): CaseDrop.Payload?
-	local op = "setDrop"
-	if not isPlayer(player) then
-		refuse(op, player, "not a player")
-		return nil
-	elseif type(source) ~= "string" or #source < 1 or #source > 20 then
-		refuse(op, player, "no source given")
-		return nil
-	elseif type(tier) ~= "string" or Config.Cases.Drop.Weights[tier] == nil then
-		refuse(op, player, ("%s is not a Case Drop tier"):format(tostring(tier)))
-		return nil
-	end
-	local data = liveData(op, player)
-	if data == nil then
-		return nil
-	end
-	local payload = rollDrop(data, source, tier)
-	commit(player, data, op)
-	return payload
 end
 
 ---------------------------------------------------------------------------------------------
@@ -3887,14 +3532,8 @@ local QA_CALLS: { [string]: (Player, any, any, any, any) -> ...any } = {
 	recordRealMatch = function(p, a, b)
 		return PlayerData.recordRealMatch(p, a, b)
 	end,
-	caseDrop = function(p, a, b)
-		return PlayerData.caseDrop(p, a, b)
-	end,
-	advanceTimers = function(p, a)
-		return PlayerData.advanceTimers(p, a)
-	end,
-	applyQuickCases = function(p)
-		return PlayerData.applyQuickCases(p)
+	winBlock = function(p, a)
+		return PlayerData.winBlock(p, a)
 	end,
 	buyBlocks = function(p, a, b, c, d)
 		return PlayerData.buyBlocks(p, a, b, c, d)
@@ -3902,29 +3541,8 @@ local QA_CALLS: { [string]: (Player, any, any, any, any) -> ...any } = {
 	buyRestock = function(p, a, b, c)
 		return PlayerData.buyRestock(p, a, b, c)
 	end,
-	skipTimer = function(p, a, b, c)
-		return PlayerData.skipTimer(p, a, b, c)
-	end,
-	addOpponentCase = function(p, a)
-		return PlayerData.addOpponentCase(p, a)
-	end,
-	buyCases = function(p, a, b, c)
-		return PlayerData.buyCases(p, a, b, c)
-	end,
-	openCases = function(p, a, b)
-		return PlayerData.openCases(p, a, b)
-	end,
-	-- QA only: rolls `b` cues of case `a` (Cases.roll with Random.new(), as the Items service
-	-- will) and opens them.
-	openRolled = function(p, a, b)
-		local rng = Random.new()
-		local cues = {}
-		for _ = 1, (if type(b) == "number" then b else 1) do
-			table.insert(cues, (Cases.roll(a, function(n: number): number
-				return rng:NextInteger(1, n)
-			end)))
-		end
-		return PlayerData.openCases(p, a, cues)
+	addOpponentDrop = function(p, a)
+		return PlayerData.addOpponentDrop(p, a)
 	end,
 	sellCue = function(p, a, b)
 		return PlayerData.sellCue(p, a, b)

@@ -9,8 +9,8 @@
 --   is logged for a player without it.
 -- - One-time funnels (LogFunnelStepEvent with the player's own session id): the tutorial's
 --   exit funnel, each step once per player (a bit in its own Flags key).
--- - Repeating funnels (LogFunnelStepEvent with a session id per visit): the shop, a Case Drop's
---   life, the ability spins.
+-- - Repeating funnels (LogFunnelStepEvent with a session id per visit): the shop, a free lucky
+--   block's life, the ability spins.
 -- - Side events (LogCustomEvent): moments not everyone sees (ball in hand, the bot's scratch,
 --   a lost game 2).
 --
@@ -100,7 +100,7 @@ function Funnel.once(player: Player, funnel: string, step: number, stepName: str
 	return true
 end
 
---- Logs step `step` of a repeating funnel (the shop, a Case Drop, the spins) for one visit
+--- Logs step `step` of a repeating funnel (the shop, a lucky block, the spins) for one visit
 --- `session` (any short string the caller keeps for that visit).
 function Funnel.step(
 	player: Player,
@@ -141,16 +141,17 @@ function Funnel.event(
 end
 
 ---------------------------------------------------------------------------------------------
--- The repeating funnels' sessions (kept in this server only: a visit, a Case Drop or a spin
+-- The repeating funnels' sessions (kept in this server only: a visit, a lucky block or a spin
 -- that moves to another server is not followed there). The steps are Config.Tutorial.Funnel
--- .Shop, .CaseDrop and .Spins; other lanes' code calls these with one line each.
+-- .Shop, .Block and .Spins; other lanes' code calls these with one line each.
 ---------------------------------------------------------------------------------------------
 
 local counter = 0
 local shopSession: { [Player]: string } = {}
 local spinSession: { [Player]: string } = {}
--- Each Case Drop followed here: its session, case, when it is ready, and what came of it.
-type Drop = { session: string, caseId: string, at: number, ready: boolean, cues: { string }? }
+-- Each free lucky block followed here: its session, kind, when it is ready, and what came of
+-- it.
+type Drop = { session: string, kind: string, at: number, ready: boolean, cues: { string }? }
 local drops: { [Player]: { Drop } } = {}
 
 local function newSession(player: Player, kind: string): string
@@ -188,46 +189,34 @@ function Funnel.spins(player: Player, name: string)
 	Funnel.step(player, "AbilitySpins", spinSession[player], step, name)
 end
 
---- A Case Drop landed (`at`: the unix time it is ready; now for one with no timer): the Case
---- Drop funnel's "Got".
-function Funnel.caseLanded(player: Player, caseId: string, at: number)
+--- A free lucky block landed (`at`: the unix time it is ready; now for one with no timer):
+--- the Block funnel's "Got".
+function Funnel.blockLanded(player: Player, kind: string, at: number)
 	local list = drops[player] or {}
 	drops[player] = list
 	local drop: Drop = {
-		session = newSession(player, "drop"),
-		caseId = caseId,
+		session = newSession(player, "block"),
+		kind = kind,
 		at = at,
 		ready = false,
 		cues = nil,
 	}
 	table.insert(list, drop)
-	Funnel.step(player, "CaseDrop", drop.session, stepOf(F.CaseDrop, "Got") or 1, "Got")
+	Funnel.step(player, "Block", drop.session, stepOf(F.Block, "Got") or 1, "Got")
 end
 
---- A case was opened: the oldest drop of that case still unopened is "Opened" (and "Ready"
---- first if the watch had not seen it ready); its cues are remembered for "Equipped".
-function Funnel.caseOpened(player: Player, caseId: string, cues: { string }?)
+--- A block was opened: the oldest followed block of that kind still unopened is "Opened" (and
+--- "Ready" first if the watch had not seen it ready); its cues are remembered for "Equipped".
+function Funnel.blockOpened(player: Player, kind: string, cues: { string }?)
 	local list: { Drop } = drops[player] or {}
 	for _, drop in list do
-		if drop.caseId == caseId and drop.cues == nil then
+		if drop.kind == kind and drop.cues == nil then
 			if not drop.ready then
 				drop.ready = true -- opened before the watch saw it ready (or its timer skipped)
-				Funnel.step(
-					player,
-					"CaseDrop",
-					drop.session,
-					stepOf(F.CaseDrop, "Ready") or 2,
-					"Ready"
-				)
+				Funnel.step(player, "Block", drop.session, stepOf(F.Block, "Ready") or 2, "Ready")
 			end
 			drop.cues = cues or {}
-			Funnel.step(
-				player,
-				"CaseDrop",
-				drop.session,
-				stepOf(F.CaseDrop, "Opened") or 3,
-				"Opened"
-			)
+			Funnel.step(player, "Block", drop.session, stepOf(F.Block, "Opened") or 3, "Opened")
 			return
 		end
 	end
@@ -241,13 +230,7 @@ function Funnel.cueEquipped(player: Player, cueId: string)
 	end
 	for i, drop in list do
 		if drop.cues and table.find(drop.cues, cueId) then
-			Funnel.step(
-				player,
-				"CaseDrop",
-				drop.session,
-				stepOf(F.CaseDrop, "Equipped") or 4,
-				"Equipped"
-			)
+			Funnel.step(player, "Block", drop.session, stepOf(F.Block, "Equipped") or 4, "Equipped")
 			table.remove(list, i)
 			return
 		end
@@ -261,13 +244,7 @@ local function watchDrops()
 		for _, drop in list do
 			if not drop.ready and now >= drop.at then
 				drop.ready = true
-				Funnel.step(
-					player,
-					"CaseDrop",
-					drop.session,
-					stepOf(F.CaseDrop, "Ready") or 2,
-					"Ready"
-				)
+				Funnel.step(player, "Block", drop.session, stepOf(F.Block, "Ready") or 2, "Ready")
 			end
 		end
 	end
@@ -275,7 +252,7 @@ end
 
 local started = false
 
---- Starts the Case Drop watch and forgets players who leave (TutorialService.start calls it).
+--- Starts the block watch and forgets players who leave (TutorialService.start calls it).
 function Funnel.start()
 	if started then
 		return
@@ -289,14 +266,14 @@ function Funnel.start()
 			watchDrops()
 		end
 	end)
-	-- Every Case Drop (a win's, a reward's, a Mystery Case's) lands through PlayerData.
-	PlayerData.CaseDropped:Connect(function(player: Player, list: any)
-		for _, drop in (if type(list) == "table" then list else {}) :: { any } do
-			if type(drop) == "table" and type(drop.tier) == "string" then
-				local at = if type(drop.readyAt) == "number" and drop.readyAt > 0
-					then drop.readyAt
+	-- Every free lucky block (a win's, a reward's, an invite's) lands through PlayerData.
+	PlayerData.BlocksGiven:Connect(function(player: Player, list: any)
+		for _, block in (if type(list) == "table" then list else {}) :: { any } do
+			if type(block) == "table" and type(block.kind) == "string" then
+				local at = if type(block.readyAt) == "number" and block.readyAt > 0
+					then block.readyAt
 					else os.time()
-				Funnel.caseLanded(player, drop.tier, at)
+				Funnel.blockLanded(player, block.kind, at)
 			end
 		end
 	end)

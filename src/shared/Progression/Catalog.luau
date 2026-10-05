@@ -6,14 +6,14 @@
 --
 -- A row:
 --   Id        stable catalog id (saved; never renamed)
---   Rarity    Common ... Secret for case cues and Classic (a Common, designer 2026-09-30);
+--   Rarity    Common ... Secret for block cues and Classic (a Common, designer 2026-09-30);
 --             "Exclusive" or "Unique"
---   Group     "Case" (drops from cases), "Exclusive" (one special way each), "Unique"
+--   Group     "Block" (drops from lucky blocks), "Exclusive" (one special way each), "Unique"
 --             (numbered Limited copies) or "Default"
 --   Tradable  may be traded (trading is a later session; the flag is stored now): case and
 --             Unique cues and the Starter Cue yes; the other Exclusive cues and Classic never
---   Sellable  may be sold back (case cues only)
---   Cases     the case ids that drop it (case cues only)
+--   Sellable  may be sold back (block cues only)
+--   Blocks    the odds rows (Config.BlockOdds) that drop it (block cues only)
 --   Vaulted   true stops it dropping (ECONOMY 12); it stays in the Index and in saves
 --   Tier      the rank tier whose reward it is (rank cues)
 --   Effect    the Config.Effects.Styles tier row for its trail and pocket burst, used where
@@ -45,7 +45,7 @@ export type Cue = {
 	Group: string,
 	Tradable: boolean,
 	Sellable: boolean,
-	Cases: { string },
+	Blocks: { string },
 	Vaulted: boolean,
 	Tier: string?,
 	Effect: string,
@@ -57,9 +57,10 @@ local Catalog = {}
 --- The default cue: always owned, never counted in the inventory, never sold or traded.
 Catalog.Default = "Classic"
 
--- Every case the launch case cues drop from (each case drops the rarities it has odds for): the
--- whole ladder, so every cue of a rarity has an equal share in every case with that rarity.
-local ALL_CASES: { string } = table.clone(Config.Cases.Order)
+-- Every odds row the launch block cues drop from (each row drops the rarities it has odds
+-- for): the whole ladder, so every cue of a rarity has an equal share in every row with that
+-- rarity.
+local ALL_ROWS: { string } = table.clone(Config.BlockOdds.Order)
 
 -- A skinned cue's flat colours (CueSkins.Index, sampled from its colour map).
 local function skinLook(id: string): Look
@@ -67,14 +68,14 @@ local function skinLook(id: string): Look
 	return row.Look
 end
 
-local function caseCue(id: string, rarity: string): Cue
+local function blockCue(id: string, rarity: string): Cue
 	return {
 		Id = id,
 		Rarity = rarity,
-		Group = "Case",
+		Group = "Block",
 		Tradable = true,
 		Sellable = true,
-		Cases = ALL_CASES,
+		Blocks = ALL_ROWS,
 		Vaulted = false,
 		Effect = rarity,
 		Look = skinLook(id),
@@ -88,7 +89,7 @@ local function rankCue(id: string, tier: string, effect: string): Cue
 		Group = "Exclusive",
 		Tradable = false, -- a Reyes Cue proves Reyes (ECONOMY 4.8)
 		Sellable = false,
-		Cases = {},
+		Blocks = {},
 		Vaulted = false,
 		Tier = tier,
 		Effect = effect,
@@ -105,25 +106,25 @@ local function specialCue(id: string, group: string, effect: string, look: Look)
 		-- 2026-09-29); it is still never sold back
 		Tradable = group == "Unique" or id == "StarterCue",
 		Sellable = false,
-		Cases = {},
+		Blocks = {},
 		Vaulted = false,
 		Effect = effect,
 		Look = look,
 	}
 end
 
--- The rows, in the Index's order: Classic, then case cues bottom rarity first, then the
+-- The rows, in the Index's order: Classic, then block cues bottom rarity first, then the
 -- Exclusive and Unique groups.
 local CUES: { Cue } = {
 	{
 		-- Shown as a Common (designer, 2026-09-30) but still everyone's free default: owned from
-		-- the start, in no case, never traded or sold (Group "Default").
+		-- the start, in no block, never traded or sold (Group "Default").
 		Id = "Classic",
 		Rarity = "Common",
 		Group = "Default",
 		Tradable = false,
 		Sellable = false,
-		Cases = {},
+		Blocks = {},
 		Vaulted = false,
 		Effect = "Default",
 		Look = {
@@ -136,58 +137,58 @@ local CUES: { Cue } = {
 		},
 	},
 	-- Common (8, Classic counted): real cues from the real world: wood, carbon, lacquer.
-	caseCue("MidnightCue", "Common"),
-	caseCue("ArcticCue", "Common"),
-	caseCue("CherryCue", "Common"),
-	caseCue("CarbonCue", "Common"),
-	caseCue("HeritageCue", "Common"),
-	caseCue("MonarchCue", "Common"),
-	caseCue("CobaltCue", "Common"),
+	blockCue("MidnightCue", "Common"),
+	blockCue("ArcticCue", "Common"),
+	blockCue("CherryCue", "Common"),
+	blockCue("CarbonCue", "Common"),
+	blockCue("HeritageCue", "Common"),
+	blockCue("MonarchCue", "Common"),
+	blockCue("CobaltCue", "Common"),
 	-- Uncommon (9): bold colours and patterns, one glowing ring.
-	caseCue("GummyCue", "Uncommon"),
-	caseCue("FlareCue", "Uncommon"),
-	caseCue("HornetCue", "Uncommon"),
-	caseCue("VenomCue", "Uncommon"),
-	caseCue("LagoonCue", "Uncommon"),
-	caseCue("SpliceCue", "Uncommon"),
-	caseCue("CosmoCue", "Uncommon"),
-	caseCue("GildedCue", "Uncommon"),
-	caseCue("PixelCue", "Uncommon"),
+	blockCue("GummyCue", "Uncommon"),
+	blockCue("FlareCue", "Uncommon"),
+	blockCue("HornetCue", "Uncommon"),
+	blockCue("VenomCue", "Uncommon"),
+	blockCue("LagoonCue", "Uncommon"),
+	blockCue("SpliceCue", "Uncommon"),
+	blockCue("CosmoCue", "Uncommon"),
+	blockCue("GildedCue", "Uncommon"),
+	blockCue("PixelCue", "Uncommon"),
 	-- Rare (10): the first aura.
-	caseCue("HoneycombCue", "Rare"),
-	caseCue("NeonCue", "Rare"),
-	caseCue("NatureCue", "Rare"),
-	caseCue("CandyCue", "Rare"),
-	caseCue("FrostbiteCue", "Rare"),
-	caseCue("PlasmaCue", "Rare"),
-	caseCue("BlazeCue", "Rare"),
-	caseCue("PhantomCue", "Rare"),
-	caseCue("TidalCue", "Rare"),
-	caseCue("SakuraCue", "Rare"),
+	blockCue("HoneycombCue", "Rare"),
+	blockCue("NeonCue", "Rare"),
+	blockCue("NatureCue", "Rare"),
+	blockCue("CandyCue", "Rare"),
+	blockCue("FrostbiteCue", "Rare"),
+	blockCue("PlasmaCue", "Rare"),
+	blockCue("BlazeCue", "Rare"),
+	blockCue("PhantomCue", "Rare"),
+	blockCue("TidalCue", "Rare"),
+	blockCue("SakuraCue", "Rare"),
 	-- Epic (9): a moving material and an aura.
-	caseCue("VoidCue", "Epic"),
-	caseCue("ShootingStarCue", "Epic"),
-	caseCue("MagmaCue", "Epic"),
-	caseCue("ToxicCue", "Epic"),
-	caseCue("BloodMoonCue", "Epic"),
-	caseCue("PrismCue", "Epic"),
-	caseCue("AuroraCue", "Epic"),
-	caseCue("DiscoCue", "Epic"),
-	caseCue("HackedCue", "Epic"),
+	blockCue("VoidCue", "Epic"),
+	blockCue("ShootingStarCue", "Epic"),
+	blockCue("MagmaCue", "Epic"),
+	blockCue("ToxicCue", "Epic"),
+	blockCue("BloodMoonCue", "Epic"),
+	blockCue("PrismCue", "Epic"),
+	blockCue("AuroraCue", "Epic"),
+	blockCue("DiscoCue", "Epic"),
+	blockCue("HackedCue", "Epic"),
 	-- Legendary (7): a stronger aura, its own ball trail and pocket finisher.
-	caseCue("ChromaCue", "Legendary"),
-	caseCue("ThunderstrikeCue", "Legendary"),
-	caseCue("PhoenixCue", "Legendary"),
-	caseCue("KrakenCue", "Legendary"),
-	caseCue("SeraphCue", "Legendary"),
-	caseCue("InfernalCue", "Legendary"),
-	caseCue("ClockworkCue", "Legendary"),
+	blockCue("ChromaCue", "Legendary"),
+	blockCue("ThunderstrikeCue", "Legendary"),
+	blockCue("PhoenixCue", "Legendary"),
+	blockCue("KrakenCue", "Legendary"),
+	blockCue("SeraphCue", "Legendary"),
+	blockCue("InfernalCue", "Legendary"),
+	blockCue("ClockworkCue", "Legendary"),
 	-- Mythic (3): a moving 3D piece and everything at full strength.
-	caseCue("CelestialDragonCue", "Mythic"),
-	caseCue("KitsuneCue", "Mythic"),
-	caseCue("ApexCue", "Mythic"),
+	blockCue("CelestialDragonCue", "Mythic"),
+	blockCue("KitsuneCue", "Mythic"),
+	blockCue("ApexCue", "Mythic"),
 	-- Secret (1): one of a kind.
-	caseCue("EclipseCue", "Secret"),
+	blockCue("EclipseCue", "Secret"),
 	-- Exclusive: the ten rank cues, in their tier colours (Reyes in the house rainbow).
 	rankCue("BronzeCue", "Bronze", "Uncommon"),
 	rankCue("SilverCue", "Silver", "Uncommon"),
@@ -236,19 +237,19 @@ end
 
 -- Rarity -> its place in the ladder (1 = Common ... 7 = Secret), for sorting.
 local RARITY_ORDER: { [string]: number } = {}
-for i, rarity in Config.Cases.Rarities do
+for i, rarity in Config.BlockOdds.Rarities do
 	RARITY_ORDER[rarity] = i
 end
--- Outside the ladder: Exclusive halfway between Config.Cases.ExclusiveRanksAbove and the next
+-- Outside the ladder: Exclusive halfway between Config.BlockOdds.ExclusiveRanksAbove and the next
 -- rarity up (Epic 4.5 Legendary), Unique above them all, "Default" (no rarity) below them all.
 RARITY_ORDER.Exclusive = assert(
-	RARITY_ORDER[Config.Cases.ExclusiveRanksAbove],
+	RARITY_ORDER[Config.BlockOdds.ExclusiveRanksAbove],
 	"Catalog: ExclusiveRanksAbove names no rarity"
 ) + 0.5
-RARITY_ORDER.Unique = #Config.Cases.Rarities + 1
+RARITY_ORDER.Unique = #Config.BlockOdds.Rarities + 1
 RARITY_ORDER.Default = 0
 
---- Every cue, in the Index's order (Classic, case cues by rarity, Exclusive, Unique).
+--- Every cue, in the Index's order (Classic, block cues by rarity, Exclusive, Unique).
 function Catalog.list(): { Cue }
 	return CUES
 end
@@ -283,18 +284,18 @@ function Catalog.ofRarity(rarity: string): { Cue }
 	return list
 end
 
---- The cues a case can drop at one rarity, in catalog order: case cues of that rarity that
---- list the case and are not vaulted.
-function Catalog.droppable(caseId: string, rarity: string): { Cue }
+--- The cues an odds row can drop at one rarity, in catalog order: block cues of that rarity
+--- that list the row and are not vaulted.
+function Catalog.droppable(oddsId: string, rarity: string): { Cue }
 	local list = {}
-	-- The tables outside the ladder (Config.Cases.Extra) roll the whole core pool.
-	local core = table.find(Config.Cases.Extra or {}, caseId) ~= nil
+	-- The tables outside the ladder (Config.BlockOdds.Extra) roll the whole core pool.
+	local core = table.find(Config.BlockOdds.Extra or {}, oddsId) ~= nil
 	for _, cue in CUES do
 		if
-			cue.Group == "Case"
+			cue.Group == "Block"
 			and cue.Rarity == rarity
 			and not cue.Vaulted
-			and (core or table.find(cue.Cases, caseId))
+			and (core or table.find(cue.Blocks, oddsId))
 		then
 			table.insert(list, cue)
 		end

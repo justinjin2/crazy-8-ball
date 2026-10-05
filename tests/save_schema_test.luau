@@ -136,8 +136,6 @@ local function assertClean(Config: any, SaveSchema: any, save: any)
 	H.expect(inv.Cues.Classic == nil, "Classic is never counted")
 	checkMap(inv.Unique, S.MaxCueEntries, "Inventory.Unique", countUpTo(S.CopyNumberCap))
 	H.expect(inv.Unique.Classic == nil, "Classic is never numbered")
-	checkMap(inv.Cases, S.MaxCaseEntries, "Inventory.Cases", countUpTo(S.ItemCountCap))
-	checkMap(inv.PaidCases, S.MaxCaseEntries, "Inventory.PaidCases", countUpTo(S.ItemCountCap))
 	checkMap(inv.New, S.MaxCueEntries, "Inventory.New", isTrue)
 	checkMap(inv.PaidCues, S.MaxCueEntries, "Inventory.PaidCues", countUpTo(S.ItemCountCap))
 	for id, n in inv.PaidCues do
@@ -147,14 +145,8 @@ local function assertClean(Config: any, SaveSchema: any, save: any)
 	for id in inv.PaidUnique do
 		H.expect(inv.Unique[id] ~= nil, "a paid mark only on a Unique cue held: " .. id)
 	end
-	H.expect(isGaplessArray(inv.Timers), "Inventory.Timers must be a gapless array")
-	H.expect(#inv.Timers <= S.MaxTimerEntries, "Inventory.Timers over its cap")
-	for i = 1, #inv.Timers do
-		local t = inv.Timers[i]
-		H.expect(type(t) == "table" and size(t) == 3, "a timer is { Case, At, Paid }")
-		H.expect(table.find(Config.Cases.Order, t.Case) ~= nil, "a timer's case is a case")
-		inRange(t.At, S.UnixTimeCap, "a timer's At")
-		H.expect(type(t.Paid) == "boolean", "a timer's Paid is a boolean")
+	for _, gone in { "Cases", "PaidCases", "Timers" } do
+		H.expect(inv[gone] == nil, "Inventory." .. gone .. " is gone (save v7)")
 	end
 	checkMap(save.Index.Seen, S.MaxCueEntries, "Index.Seen", isTrue)
 	checkMap(save.Index.Rows, S.MaxSmallEntries, "Index.Rows", isTrue)
@@ -185,9 +177,9 @@ local function assertClean(Config: any, SaveSchema: any, save: any)
 				and isInt(v.Matches)
 				and v.Matches >= 0
 				and v.Matches <= S.StatCap
-				and isInt(v.Cases)
-				and v.Cases >= 0
-				and v.Cases <= S.StatCap
+				and isInt(v.Drops)
+				and v.Drops >= 0
+				and v.Drops <= S.StatCap
 		end
 	)
 	inRange(daily.PlaySeconds, 86400, "Daily.PlaySeconds")
@@ -200,9 +192,10 @@ local function assertClean(Config: any, SaveSchema: any, save: any)
 
 	local shop = save.Shop
 	inRange(shop.FirstJoin, S.UnixTimeCap, "Shop.FirstJoin")
-	for _, key in { "VipOffer", "VipCueGiven", "StarterBought", "FirstPackBought", "QuickApplied" } do
+	for _, key in { "VipOffer", "VipCueGiven", "StarterBought", "FirstPackBought" } do
 		H.expect(type(shop[key]) == "boolean", "Shop." .. key .. " must be a boolean")
 	end
+	H.expect(shop.QuickApplied == nil, "Shop.QuickApplied is gone (save v7)")
 	H.expect(isGaplessArray(shop.Purchases), "Shop.Purchases must be a gapless array")
 	H.expect(#shop.Purchases <= Config.Shop.RecentPurchases, "Shop.Purchases over its cap")
 	for i = 1, #shop.Purchases do
@@ -286,7 +279,7 @@ local FUZZ_KEYS = {
 	"GoldCue",
 	"Standard",
 	"Matches",
-	"Cases",
+	"Blocks",
 }
 
 -- A random value that could turn up anywhere in a broken save.
@@ -379,9 +372,6 @@ local SUB_FIELDS: { [string]: { string } } = {
 		"PaidCues",
 		"Unique",
 		"PaidUnique",
-		"Cases",
-		"PaidCases",
-		"Timers",
 		"New",
 	},
 	Index = { "Seen", "Rows" },
@@ -478,8 +468,8 @@ return {
 	["the template has every field at its starting value"] = function()
 		local _, SaveSchema = setup()
 		local t = SaveSchema.template()
-		H.expect(SaveSchema.Version == 6, "version 6")
-		H.expect(SaveSchema.WipeBelow == 6, "everything older is wiped")
+		H.expect(SaveSchema.Version == 7, "version 7")
+		H.expect(SaveSchema.WipeBelow == 6, "everything older than 6 is wiped")
 		H.expect(t.Version == SaveSchema.Version, "template carries the current version")
 		H.expect(t.Money == 0 and t.RankXp == 0 and t.PeakDivision == 0, "starts at zero")
 		H.expect(t.RatedMatches == 0, "starts unranked")
@@ -490,13 +480,12 @@ return {
 		H.expect(size(t) == #FIELDS, "exactly the listed fields")
 		H.expect(t.Progress.RealMatches == 0 and t.Progress.Wins == 0, "no progress yet")
 		H.expect(size(t.Progress) == 2, "Progress has two counters")
-		local inventoryKeys =
-			{ "Cues", "PaidCues", "Unique", "PaidUnique", "Cases", "PaidCases", "Timers", "New" }
+		local inventoryKeys = { "Cues", "PaidCues", "Unique", "PaidUnique", "New" }
 		for _, key in inventoryKeys do
 			H.expect(type(t.Inventory[key]) == "table", "Inventory." .. key)
 			H.expect(next(t.Inventory[key]) == nil, "Inventory." .. key .. " starts empty")
 		end
-		H.expect(size(t.Inventory) == #inventoryKeys, "Inventory has its eight tables")
+		H.expect(size(t.Inventory) == #inventoryKeys, "Inventory has its five tables")
 		H.expect(next(t.Index.Seen) == nil and next(t.Index.Rows) == nil, "empty Index")
 		H.expect(size(t.Index) == 2, "Index has two maps")
 		H.expect(next(t.Titles) == nil and next(t.Codes) == nil, "no titles or codes")
@@ -514,9 +503,9 @@ return {
 		H.expect(not s.VipOffer and not s.VipCueGiven, "no VIP")
 		H.expect(not s.StarterBought and not s.FirstPackBought, "nothing bought")
 		H.expect(type(s.Purchases) == "table" and #s.Purchases == 0, "no receipts")
-		H.expect(s.BoostEnds == 0 and s.QuickApplied == false, "no boost, no halving yet")
+		H.expect(s.BoostEnds == 0 and s.QuickApplied == nil, "no boost; Quick Cases is gone")
 		H.expect(s.Restock.Slot == 0 and next(s.Restock.Bought) == nil, "no restock buys")
-		H.expect(next(s.Limited) == nil and size(s) == 10, "shop fields")
+		H.expect(next(s.Limited) == nil and size(s) == 9, "shop fields")
 		H.expect(next(t.Settings) == nil and next(t.Flags) == nil, "empty maps")
 		local Config = H.require("Config")
 		local u = t.Ults
@@ -555,7 +544,7 @@ return {
 			H.expect(out ~= old, "a new table")
 			H.expect(out.Version == SaveSchema.Version, "now current, from " .. tostring(version))
 			H.expect(out.Money == 0 and out.RankXp == 0, "money and rank start over")
-			H.expect(next(out.Inventory.Cues) == nil and next(out.Inventory.Cases) == nil, "")
+			H.expect(next(out.Inventory.Cues) == nil and out.Inventory.Cases == nil, "")
 			H.expect(out.Shop.StarterBought == false and out.Flags.FirstWinCase == nil, "flags")
 			H.expect(#out.Shop.Purchases == 2, "the receipt ids that are strings are kept")
 			H.expect(out.Shop.Purchases[1] == "r1" and out.Shop.Purchases[2] == "r2", "in order")
@@ -580,36 +569,75 @@ return {
 		end
 	end,
 
-	["a migration from version 6 on that errors or is missing stops at the old version"] = function()
+	["version 6 to 7: the cases, their timers and Quick Cases go; the first-win flag moves"] = function()
+		local Config, SaveSchema = setup()
+		local old = SaveSchema.template()
+		old.Version = 6
+		old.Money = 777
+		old.Inventory.Cues.GoldCue = 2
+		old.Inventory.Cases = { Rare = 3, Standard = 1 }
+		old.Inventory.PaidCases = { Rare = 1 }
+		old.Inventory.Timers = { { Case = "Epic", At = 1790000000, Paid = false } }
+		old.Shop.QuickApplied = true
+		old.Flags = { FirstWinCase = true, TutorialCase = true, LeaveGift = true, Other = true }
+		local out, notes = SaveSchema.migrate(old)
+		H.expect(out.Version == SaveSchema.Version, "now version 7")
+		H.expect(#notes == 1 and notes[1] == "migrated 6 -> 7", table.concat(notes, "; "))
+		H.expect(out.Money == 777 and out.Inventory.Cues.GoldCue == 2, "money and cues kept")
+		H.expect(
+			out.Inventory.Cases == nil
+				and out.Inventory.PaidCases == nil
+				and out.Inventory.Timers == nil,
+			"the cases are dropped, not converted (designer, 2026-10-04)"
+		)
+		H.expect(out.Shop.QuickApplied == nil, "Quick Cases forgotten")
+		H.expect(out.Flags.FirstWinBlock == true and out.Flags.FirstWinCase == nil, "flag renamed")
+		H.expect(out.Flags.TutorialCase == nil and out.Flags.LeaveGift == nil, "old flags gone")
+		H.expect(out.Flags.Other == true, "other flags kept")
+		local _, fixes = SaveSchema.validate(out)
+		H.expect(#fixes == 0, "clean: " .. table.concat(fixes, "; "))
+		assertClean(Config, SaveSchema, out)
+		-- A save that never won keeps no first-win flag.
+		local never = SaveSchema.template()
+		never.Version = 6
+		never.Flags = { FirstWinCase = false }
+		H.expect(SaveSchema.migrate(never).Flags.FirstWinBlock == nil, "no flag from false")
+	end,
+
+	["a migration from version 7 on that errors or is missing stops at the old version"] = function()
 		local _, SaveSchema = setup()
 		local version = SaveSchema.Version
-		-- Pretend the code knows one more version, so a version-6 save has a step to take.
+		-- Pretend the code knows one more version, so a current save has a step to take.
 		SaveSchema.Version = version + 1
 		SaveSchema.Migrations[version] = function(data: any): any
 			data.Money = -1
 			error("disk on fire")
 		end
-		local okBroken, broken, brokenNotes = pcall(SaveSchema.migrate, { Version = 6, Money = 5 })
+		local okBroken, broken, brokenNotes =
+			pcall(SaveSchema.migrate, { Version = version, Money = 5 })
 		SaveSchema.Migrations[version] = nil
 		local okMissing, missing, missingNotes =
-			pcall(SaveSchema.migrate, { Version = 6, Money = 5 })
+			pcall(SaveSchema.migrate, { Version = version, Money = 5 })
 		SaveSchema.Version = version
 		H.expect(okBroken and okMissing, "migrate never errors")
 		-- PlayerData tells a failed migration by the version, and then releases the save as it
 		-- was stored (it migrates a copy), so the half-changed table is never written back.
-		H.expect(broken.Version == 6, "a failed step leaves the old version")
+		H.expect(broken.Version == version, "a failed step leaves the old version")
 		H.expect(
 			#brokenNotes == 1 and brokenNotes[1]:find("failed", 1, true) ~= nil,
 			table.concat(brokenNotes, "; ")
 		)
-		H.expect(missing.Version == 6 and missing.Money == 5, "a missing step changes nothing")
+		H.expect(
+			missing.Version == version and missing.Money == 5,
+			"a missing step changes nothing"
+		)
 		H.expect(
 			#missingNotes == 1 and missingNotes[1]:find("no migration", 1, true) ~= nil,
 			table.concat(missingNotes, "; ")
 		)
 	end,
 
-	["validate repairs the version 6 fields"] = function()
+	["validate repairs the version 7 fields"] = function()
 		local Config, SaveSchema = setup()
 		local save = SaveSchema.template()
 		local inv = save.Inventory
@@ -617,19 +645,9 @@ return {
 		inv.PaidCues = { GoldCue = 5, MidnightCue = 1, CherryCue = 2 } -- 5 > 2; Cherry not held
 		inv.Unique = { FoundersCue = 3 }
 		inv.PaidUnique = { FoundersCue = true, BetaCue = true, GoldCue = "yes" }
-		inv.PaidCases = { Rare = 2.5, Epic = -1 }
-		local timers: any = {
-			{ Case = "Rare", At = 1790000000, Paid = false },
-			{ Case = "Nope", At = 1, Paid = false },
-			{ Case = "Epic", At = NAN, Paid = true },
-			{ Case = "Legendary", At = 1790003600, Paid = true, Extra = 1 },
-			"broken",
-		}
-		inv.Timers = timers
 		save.Daily.PcDrops = -3
 		save.Daily.Disguised = 4.5
 		save.Shop.BoostEnds = INF
-		save.Shop.QuickApplied = "yes"
 		save.Shop.Restock = { Slot = "9", Bought = { Rare = 2, Lucky = 0, Vip = 1.5 } }
 		save.Drops = { SinceRare = 3, SinceEpic = -1, Total = NAN }
 		save.Social = { Group = 1, InvitedBy = 12.5, InviteDone = true, Invites = -2 }
@@ -648,13 +666,9 @@ return {
 		H.expect(i.PaidCues.CherryCue == nil, "not held: dropped")
 		H.expect(i.PaidUnique.FoundersCue == true and i.PaidUnique.BetaCue == nil, "unique")
 		H.expect(i.PaidUnique.GoldCue == nil, "not true: dropped")
-		H.expect(i.PaidCases.Rare == 2 and i.PaidCases.Epic == nil, "case counts")
-		H.expect(#i.Timers == 2, "two good timers kept")
-		H.expect(i.Timers[1].Case == "Rare" and i.Timers[2].Case == "Legendary", "in order")
-		H.expect(i.Timers[2].Extra == nil and i.Timers[2].Paid == true, "rebuilt clean")
 		local d = out.Daily
 		H.expect(d.PcDrops == 0 and d.Disguised == 4, "daily counts")
-		H.expect(out.Shop.BoostEnds == 0 and out.Shop.QuickApplied == false, "shop")
+		H.expect(out.Shop.BoostEnds == 0, "shop")
 		H.expect(out.Shop.Restock.Slot == 0, "a string is not a slot")
 		local bought = out.Shop.Restock.Bought
 		H.expect(bought.Rare == 2 and bought.Lucky == nil and bought.Vip == 1, "restock buys")
@@ -673,7 +687,7 @@ return {
 		H.expect(#again == 0, "a repaired save is clean: " .. table.concat(again, "; "))
 	end,
 
-	["validate keeps the newest trades and the first timers within their caps"] = function()
+	["validate keeps the newest trades within their caps"] = function()
 		local Config, SaveSchema = setup()
 		local S = Config.Save
 		local save = SaveSchema.template()
@@ -683,21 +697,16 @@ return {
 				With = n,
 				At = 1790000000 + n,
 				Gave = { "GoldCue" },
-				Got = { "Case:Rare" },
+				Got = { "Block:Rare" },
 			})
 		end
 		for n = 1, S.MaxAppliedTrades + 3 do
 			table.insert(save.Trades.Applied, "a" .. n)
 		end
-		for n = 1, S.MaxTimerEntries + 4 do
-			table.insert(save.Inventory.Timers, { Case = "Rare", At = n, Paid = false })
-		end
 		local out = SaveSchema.validate(save)
 		H.expect(#out.Trades.History == S.MaxTradeHistory, "history capped")
 		H.expect(out.Trades.History[1].Id == "t6", "the newest kept")
 		H.expect(#out.Trades.Applied == S.MaxAppliedTrades and out.Trades.Applied[1] == "a4", "")
-		H.expect(#out.Inventory.Timers == S.MaxTimerEntries, "timers capped")
-		H.expect(out.Inventory.Timers[1].At == 1, "the first ones kept")
 		-- A side with more than MaxTradeSideItems items is broken.
 		local big = SaveSchema.template()
 		local side = {}
@@ -754,7 +763,7 @@ return {
 		a.Money = 5
 		a.Stats.Wins = 3
 		a.Daily.Day = 9
-		a.Daily.Opponents["1"] = { Matches = 1, Cases = 0 }
+		a.Daily.Opponents["1"] = { Matches = 1, Drops = 0 }
 		a.Inventory.Cues.GoldCue = 1
 		a.Index.Seen.GoldCue = true
 		a.Equipped.Cue = "GoldCue"
@@ -840,7 +849,7 @@ return {
 		daily.PcMoney = 500
 		daily.ShortMoney = 80
 		daily.Wins = 4
-		daily.Opponents["123"] = { Matches = 3, Cases = 1 }
+		daily.Opponents["123"] = { Matches = 3, Drops = 1 }
 		daily.PlaySeconds = 1800
 		daily.PlaytimeClaimed["1"] = true
 		daily.Stale = 5 -- a field the day left behind
@@ -1019,7 +1028,7 @@ return {
 		assertClean(Config, SaveSchema, out)
 	end,
 
-	["validate repairs cue and case counts"] = function()
+	["validate repairs cue counts"] = function()
 		local Config, SaveSchema = setup()
 		local save = SaveSchema.template()
 		local long = string.rep("q", 65)
@@ -1042,7 +1051,6 @@ return {
 		cues[5] = 1
 		cues[true] = 1
 		save.Inventory.Cues = cues
-		save.Inventory.Cases = { Standard = 3, Rare = -2, Epic = Config.Save.ItemCountCap + 1 }
 		local out, fixes = SaveSchema.validate(save)
 		local c = out.Inventory.Cues
 		H.expect(c.Oak == 2 and c.Fraction == 2, "good kept, fraction floored")
@@ -1052,13 +1060,10 @@ return {
 		end
 		H.expect(c.Classic == nil and c[""] == nil and c[long] == nil, "Classic and bad keys")
 		H.expect(size(c) == 3, "three left")
-		local cases = out.Inventory.Cases
-		H.expect(cases.Standard == 3 and cases.Rare == nil, "cases")
-		H.expect(cases.Epic == Config.Save.ItemCountCap, "case count clamped")
 		assertClean(Config, SaveSchema, out)
 		local _, again = SaveSchema.validate(out)
 		H.expect(#again == 0, "clean after one pass")
-		H.expect(#fixes >= 6, table.concat(fixes, "; "))
+		H.expect(#fixes >= 5, table.concat(fixes, "; "))
 	end,
 
 	["validate repairs copy numbers and sets"] = function()
@@ -1101,7 +1106,6 @@ return {
 		end
 		save.Inventory.Cues = fill(S.MaxCueEntries + 7, 1)
 		save.Inventory.Unique = fill(S.MaxCueEntries + 1, 3)
-		save.Inventory.Cases = fill(S.MaxCaseEntries + 5, 2)
 		save.Inventory.New = fill(S.MaxCueEntries * 3, true)
 		save.Index.Seen = fill(S.MaxCueEntries + 1, true)
 		save.Index.Rows = fill(S.MaxSmallEntries + 1, true)
@@ -1113,9 +1117,8 @@ return {
 		H.expect(size(out.Inventory.Cues) == S.MaxCueEntries, "cues capped")
 		H.expect(out.Inventory.Cues.id00001 and out.Inventory.Cues.id00500, "smallest kept")
 		H.expect(out.Inventory.Cues.id00501 == nil, "largest dropped")
-		H.expect(size(out.Inventory.Cases) == S.MaxCaseEntries, "cases capped")
 		H.expect(size(out.Inventory.New) == S.MaxCueEntries, "a huge map capped")
-		H.expect(#fixes == 10, "one note per map: " .. table.concat(fixes, "; "))
+		H.expect(#fixes == 9, "one note per map: " .. table.concat(fixes, "; "))
 		assertClean(Config, SaveSchema, out)
 	end,
 
@@ -1125,18 +1128,18 @@ return {
 		local save = SaveSchema.template()
 		local opponents: any = {}
 		for i = 1, max + 10 do
-			opponents[tostring(5000 + i)] = { Matches = i, Cases = 0 }
+			opponents[tostring(5000 + i)] = { Matches = i, Drops = 0 }
 		end
-		opponents["1"] = { Matches = -3, Cases = NAN, Extra = { deep = 1 } }
+		opponents["1"] = { Matches = -3, Drops = NAN, Extra = { deep = 1 } }
 		opponents["2"] = "x"
 		opponents["3"] = { Matches = 2.5 }
-		opponents[4] = { Matches = 1, Cases = 0 }
+		opponents[4] = { Matches = 1, Drops = 0 }
 		save.Daily.Opponents = opponents
 		local out, fixes = SaveSchema.validate(save)
 		local o = out.Daily.Opponents
 		H.expect(size(o) == max, "capped at SameOpponentMaxEntries")
-		H.expect(o["1"].Matches == 0 and o["1"].Cases == 0 and o["1"].Extra == nil, "rebuilt")
-		H.expect(o["2"] == nil and o["3"].Matches == 2 and o["3"].Cases == 0, "repaired")
+		H.expect(o["1"].Matches == 0 and o["1"].Drops == 0 and o["1"].Extra == nil, "rebuilt")
+		H.expect(o["2"] == nil and o["3"].Matches == 2 and o["3"].Drops == 0, "repaired")
 		-- Sorted as strings: "1", "3", "5001" ... are kept, the biggest ids go.
 		H.expect(o["5001"] ~= nil and o[tostring(5000 + max - 2)] ~= nil, "smallest keys kept")
 		H.expect(o[tostring(5000 + max - 1)] == nil, "the rest dropped")
@@ -1475,17 +1478,14 @@ return {
 				end
 			end
 		end
-		for _, caseId in Config.Cases.Order do
-			save.Inventory.Cases[caseId] = 999
-		end
-		for _, rarity in Config.Cases.Rarities do
+		for _, rarity in Config.BlockOdds.Rarities do
 			save.Index.Rows[rarity] = true
 			save.Titles[rarity .. "Collector"] = true
 		end
 		save.Equipped.Cue = "GoldCue"
 		save.Daily = SaveSchema.freshDaily(20500)
 		for i = 1, 50 do
-			save.Daily.Opponents[tostring(1234567890 + i)] = { Matches = 99, Cases = 3 }
+			save.Daily.Opponents[tostring(1234567890 + i)] = { Matches = 99, Drops = 3 }
 		end
 		for i = 1, #Config.Daily.Playtime do
 			save.Daily.PlaytimeClaimed[tostring(i)] = true
@@ -1503,7 +1503,7 @@ return {
 		H.expect(#fixes == 0, "a full save is valid: " .. table.concat(fixes, "; "))
 		local bytes = jsonLength(save)
 		print(
-			("    a full save (%d cues x99, cases x999, 50 opponents, 50 receipts, 20 codes): about %d bytes"):format(
+			("    a full save (%d cues x99, 50 opponents, 50 receipts, 20 codes): about %d bytes"):format(
 				cueCount,
 				bytes
 			)

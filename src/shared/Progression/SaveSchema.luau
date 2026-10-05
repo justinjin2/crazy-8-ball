@@ -19,6 +19,9 @@
 -- `WipeBelow` starts over as a new player's (the designer: a full wipe, only friends had
 -- played), keeping only Shop.Purchases so a receipt in flight is never granted twice. The
 -- migrations that led to version 5 were removed with it.
+-- Version 7 (2026-10-04, cases retired for lucky blocks): Inventory.Cases, PaidCases and
+-- Timers, Shop.QuickApplied and the TutorialCase and LeaveGift flags are dropped (the
+-- designer: nothing converted), and the first-win flag is renamed FirstWinBlock.
 local Config = require(script.Parent.Parent.Config)
 local Catalog = require(script.Parent.Catalog)
 local UltCatalog = require(script.Parent.Parent.Ults.Catalog)
@@ -30,7 +33,7 @@ local RanksCfg = Config.Ranks
 
 local SaveSchema = {}
 
-SaveSchema.Version = 6
+SaveSchema.Version = 7
 
 --- Saves older than this start over (a full wipe, version 6).
 SaveSchema.WipeBelow = 6
@@ -75,7 +78,7 @@ local MAP_KEYS = {
 }
 
 -- Shop's true/false fields, in the order fixes are reported.
-local SHOP_FLAGS = { "VipOffer", "VipCueGiven", "StarterBought", "FirstPackBought", "QuickApplied" }
+local SHOP_FLAGS = { "VipOffer", "VipCueGiven", "StarterBought", "FirstPackBought" }
 
 --- A fresh Daily table for UTC day `day`: every per-day count at zero. Everything in Daily
 --- belongs to one UTC day and starts over on the next (`rolloverDaily`).
@@ -86,9 +89,9 @@ function SaveSchema.freshDaily(day: number): any
 		PcMoney = 0, -- money earned against PC today (Config.Economy.PcDailyCap)
 		ShortMoney = 0, -- money from matches that ended before the one-minute mark today
 		Wins = 0, -- real wins today
-		PcDrops = 0, -- PC wins today that dropped a case (Config.Economy.PcDropsPerDay)
+		PcDrops = 0, -- PC wins today that dropped a lucky block (Config.Economy.PcDropsPerDay)
 		Disguised = 0, -- disguised-bot wins today (Config.Economy.DisguisedDailyWins)
-		Opponents = {}, -- [userId as a string] = { Matches, Cases } (anti-farm, ECONOMY 3.6)
+		Opponents = {}, -- [userId as a string] = { Matches, Drops } (anti-farm, ECONOMY 3.6)
 		PlaySeconds = 0, -- time played today (the playtime gifts)
 		PlaytimeClaimed = {}, -- [gift index as a string] = true, the gifts claimed today
 	}
@@ -124,23 +127,17 @@ function SaveSchema.template(): any
 		RatedMatches = 0, -- 0 means Unranked
 		Stats = stats, -- every counter an integer 0..Config.Save.StatCap
 		Progress = {
-			RealMatches = 0, -- real matches played (past one minute, not solo): the free-case alt rule
-			Wins = 0, -- real wins ever, people or PC: the new player's free cases
+			RealMatches = 0, -- real matches played (past one minute, not solo): the block-drop alt rule
+			Wins = 0, -- real wins ever, people or PC
 		},
 		Inventory = {
-			Cues = {}, -- [cueId] = count >= 1: case and Exclusive cues; never Catalog.Default
-			-- [cueId] = how many of Cues[cueId] came from something paid (a case bought with money
-			-- or Robux): at most the count. Paid copies cannot be traded where Roblox's
+			Cues = {}, -- [cueId] = count >= 1: block and Exclusive cues; never Catalog.Default
+			-- [cueId] = how many of Cues[cueId] came from something paid (a lucky block bought
+			-- with money or Robux): at most the count. Paid copies cannot be traded where Roblox's
 			-- IsPaidItemTradingAllowed is false (ECONOMY 13).
 			PaidCues = {},
 			Unique = {}, -- [cueId] = copy number: numbered Limited cues (#412)
 			PaidUnique = {}, -- [cueId] = true: that Unique cue was bought (money or Robux)
-			Cases = {}, -- [caseId] = count >= 1: unopened cases ready to open, free origin
-			PaidCases = {}, -- [caseId] = count >= 1: ready to open, bought (paid origin)
-			-- Cases whose timer is still running, a gapless array in the order they landed:
-			-- { Case = caseId, At = unix seconds it is ready, Paid = boolean }. Inventory moves
-			-- each into Cases or PaidCases once its time has come (Config.Cases timers).
-			Timers = {},
 			New = {}, -- [cueId] = true: the NEW tag until the player has seen it
 		},
 		Index = {
@@ -168,7 +165,6 @@ function SaveSchema.template(): any
 			Purchases = {}, -- gapless array, oldest first: the last Config.Shop.RecentPurchases
 			Limited = {}, -- [cueId] = copy number: Limited cues bought (one per player)
 			BoostEnds = 0, -- unix seconds the Starter Pack's 2x money runs until; 0 none
-			QuickApplied = false, -- running timers were halved once for Quick Cases
 			-- The restock shop's purchases in one 10-minute slot (Config.Restock): Slot is the
 			-- slot number they belong to, Bought = { [item key] = count } (a new slot starts over).
 			Restock = { Slot = 0, Bought = {} },
@@ -179,8 +175,8 @@ function SaveSchema.template(): any
 		-- The ults (v3; Ults/Slots.fresh): the default ult in slot 1, the starter spins. Slots
 		-- and Locked are gapless arrays of Config.Ults.Slots ("" = an empty slot).
 		Ults = UltSlots.fresh(),
-		-- Case Drop pity (Config.Cases.Drop; ECONOMY 7): drops since the last Rare-or-better
-		-- case and since the last Epic-or-better case, and every drop ever.
+		-- The Mystery block's pity (Config.BlockOdds.Drop; ECONOMY 7): opens since the last
+		-- Rare-or-better tier and since the last Epic-or-better tier, and every roll ever.
 		Drops = { SinceRare = 0, SinceEpic = 0, Total = 0 },
 		Social = {
 			Group = false, -- the group's one-time reward was claimed (Config.Social)
@@ -191,12 +187,12 @@ function SaveSchema.template(): any
 		},
 		Trades = {
 			-- The last Config.Save.MaxTradeHistory trades, oldest first: { Id, With (UserId),
-			-- At (unix), Gave = { item }, Got = { item } } (an item: a cue id or "Case:<caseId>").
+			-- At (unix), Gave = { item }, Got = { item } } (an item: a cue id or "Block:<kind>").
 			History = {},
 			Applied = {}, -- the last MaxAppliedTrades trade ids this save holds the result of
 		},
-		-- Lucky blocks (Progression/LuckyBlocks; the test build, 2026-10-03): Next is the last
-		-- block id given; List, a gapless array in hotbar order of { Id, Kind, ReadyAt (unix) }.
+		-- Lucky blocks (Progression/LuckyBlocks, 2026-10-03): Next is the last block id given;
+		-- List, a gapless array in hotbar order of { Id, Kind, ReadyAt (unix), Paid? }.
 		LuckyBlocks = LuckyBlocks.fresh(),
 	}
 end
@@ -292,8 +288,34 @@ end
 -- runs ProfileStore's Reconcile (which fills keys the template has and the save lacks), then
 -- `validate`. If a step errors, the save keeps its old Version and PlayerData releases the
 -- stored save untouched (and the player cannot play), so a step must read every old field
--- defensively. None yet: version 6 is the first after the wipe.
+-- defensively.
 SaveSchema.Migrations = {} :: { [number]: (data: any) -> any }
+
+-- 6 -> 7 (2026-10-04): cases are gone. Their inventory fields, the Quick Cases flag and the
+-- tutorial's and first-leave gift's case flags are dropped; the first-win flag keeps its
+-- meaning under its new name, so no old player gets a second first-win block.
+SaveSchema.Migrations[6] = function(data: any): any
+	local inventory = data.Inventory
+	if type(inventory) == "table" then
+		inventory.Cases = nil
+		inventory.PaidCases = nil
+		inventory.Timers = nil
+	end
+	local shop = data.Shop
+	if type(shop) == "table" then
+		shop.QuickApplied = nil
+	end
+	local flags = data.Flags
+	if type(flags) == "table" then
+		if flags.FirstWinCase == true then
+			flags.FirstWinBlock = true
+		end
+		flags.FirstWinCase = nil
+		flags.TutorialCase = nil
+		flags.LeaveGift = nil
+	end
+	return data
+end
 
 -- The wipe (version 6): a new player's save, keeping only the receipt ids of `old` (strings,
 -- the newest Config.Shop.RecentPurchases; validate checks them again).
@@ -588,24 +610,24 @@ local function onlyTrue(value: any): (any, boolean)
 	return nil, true
 end
 
--- A cleaner for Daily.Opponents entries: exactly { Matches, Cases }, whole numbers in
+-- A cleaner for Daily.Opponents entries: exactly { Matches, Drops }, whole numbers in
 -- 0..StatCap. Anything else in an entry is dropped, so an entry has a fixed size.
 local function opponentEntry(value: any): (any, boolean)
 	if type(value) ~= "table" then
 		return nil, true
 	end
 	local matches, badMatches = SaveSchema.cleanInteger(value.Matches, 0, SaveCfg.StatCap, 0)
-	local cases, badCases = SaveSchema.cleanInteger(value.Cases, 0, SaveCfg.StatCap, 0)
+	local drops, badDrops = SaveSchema.cleanInteger(value.Drops, 0, SaveCfg.StatCap, 0)
 	local extra = false
 	-- Only whether any other key exists matters, so the walk's order does not.
 	for key in value do
-		if key ~= "Matches" and key ~= "Cases" then
+		if key ~= "Matches" and key ~= "Drops" then
 			extra = true
 			break
 		end
 	end
-	if badMatches or badCases or extra then
-		return { Matches = matches, Cases = cases }, true
+	if badMatches or badDrops or extra then
+		return { Matches = matches, Drops = drops }, true
 	end
 	return value, false
 end
@@ -813,55 +835,8 @@ local function fixPaid(inventory: { [any]: any }, fixes: { string })
 	end
 end
 
--- Inventory.Timers: a gapless array of { Case = a case id, At = unix seconds, Paid = boolean },
--- in the order they landed, at most Config.Save.MaxTimerEntries (the first ones kept). A broken
--- entry is dropped (a broken timer never becomes a case).
-local function fixTimers(inventory: { [any]: any }, fixes: { string })
-	local path = "Inventory.Timers"
-	local list = ensureTable(inventory, "Timers", path, {}, fixes)
-	fixArray(list, path, fixes)
-	local good = {}
-	local dropped = 0
-	for i = 1, #list do
-		local t = list[i]
-		if
-			type(t) == "table"
-			and SaveSchema.isId(t.Case)
-			and table.find(Config.Cases.Order, t.Case) ~= nil
-			and SaveSchema.isInteger(t.At)
-			and t.At >= 0
-			and t.At <= SaveCfg.UnixTimeCap
-			and type(t.Paid) == "boolean"
-		then
-			table.insert(good, { Case = t.Case, At = t.At, Paid = t.Paid })
-		else
-			dropped += 1
-		end
-	end
-	local cap = SaveCfg.MaxTimerEntries
-	local extra = math.max(#good - cap, 0)
-	if dropped == 0 and extra == 0 then
-		-- Rebuilt anyway so no entry keeps a stray field.
-		table.clear(list)
-		for i, t in good do
-			list[i] = t
-		end
-		return
-	end
-	table.clear(list)
-	for i = 1, math.min(#good, cap) do
-		list[i] = good[i]
-	end
-	if dropped > 0 then
-		table.insert(fixes, ("%s: dropped %s that were broken"):format(path, entries(dropped)))
-	end
-	if extra > 0 then
-		table.insert(fixes, ("%s: kept the first %d of %d"):format(path, cap, #good))
-	end
-end
-
 -- One side of a trade in the history: a gapless array of item strings (a cue id or
--- "Case:<caseId>"), at most Config.Save.MaxTradeSideItems. nil when it is not one.
+-- "Block:<kind>"), at most Config.Save.MaxTradeSideItems. nil when it is not one.
 local function tradeSide(value: any): { string }?
 	if type(value) ~= "table" then
 		return nil
@@ -1101,13 +1076,10 @@ function SaveSchema.validate(data: any): (any, { string })
 	local cueCap = SaveCfg.MaxCueEntries
 	fixMapAt(inventory, "Cues", "Inventory.Cues", cueCap, counts, fixes, Catalog.Default)
 	fixMapAt(inventory, "Unique", "Inventory.Unique", cueCap, copies, fixes, Catalog.Default)
-	fixMapAt(inventory, "Cases", "Inventory.Cases", SaveCfg.MaxCaseEntries, counts, fixes)
-	fixMapAt(inventory, "PaidCases", "Inventory.PaidCases", SaveCfg.MaxCaseEntries, counts, fixes)
 	fixMapAt(inventory, "New", "Inventory.New", cueCap, onlyTrue, fixes)
 	fixMapAt(inventory, "PaidCues", "Inventory.PaidCues", cueCap, counts, fixes, Catalog.Default)
 	fixMapAt(inventory, "PaidUnique", "Inventory.PaidUnique", cueCap, onlyTrue, fixes)
 	fixPaid(inventory, fixes)
-	fixTimers(inventory, fixes)
 
 	fixMapAt(data.Index, "Seen", "Index.Seen", cueCap, onlyTrue, fixes)
 	fixMapAt(data.Index, "Rows", "Index.Rows", SaveCfg.MaxSmallEntries, onlyTrue, fixes)

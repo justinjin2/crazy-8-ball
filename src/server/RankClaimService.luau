@@ -68,8 +68,7 @@ local function onClaim(player: Player)
 	Net.get("RankClaim"):FireClient(player, {
 		ok = true,
 		money = paid.money,
-		cases = paid.cases,
-		drops = paid.drops,
+		blocks = paid.blocks,
 		cues = paid.cues,
 		spins = paid.spins,
 		rows = paid.rows,

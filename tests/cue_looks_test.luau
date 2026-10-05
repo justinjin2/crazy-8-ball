@@ -110,7 +110,7 @@ return {
 				)
 			)
 		end
-		for _, rarity in Config.Cases.Rarities do
+		for _, rarity in Config.BlockOdds.Rarities do
 			H.expect(styles[rarity] ~= nil, "no effect style for rarity " .. rarity)
 		end
 	end,

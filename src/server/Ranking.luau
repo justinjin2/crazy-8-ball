@@ -1,7 +1,7 @@
 --!strict
 -- Ranking: settles a finished match once for every player in it (rank XP, rank-up rewards,
--- the match and streak bonuses, the winner's free case, stats; the pure rules are
--- Progression/Ranks, Money, Cases and Settle) through PlayerData, then sends each of them the
+-- the match and streak bonuses, the winner's lucky block, stats; the pure rules are
+-- Progression/Ranks, Money, BlockDrop and Settle) through PlayerData, then sends each of them the
 -- result screen's numbers (MatchSummary). The client only animates what it is sent.
 --
 -- - A match is settled once, when its table's engine first shows the Result phase:
@@ -29,9 +29,7 @@ local Net = require(Shared.Net)
 local Engine = require(Shared.Rules.MatchEngine)
 local Ranks = require(Shared.Progression.Ranks)
 local Money = require(Shared.Progression.Money)
-local Cases = require(Shared.Progression.Cases)
-local CaseDrop = require(Shared.Progression.CaseDrop)
-local Daily = require(Shared.Progression.Daily)
+local BlockDrop = require(Shared.Progression.BlockDrop)
 local Inventory = require(Shared.Progression.Inventory)
 local Settle = require(Shared.Progression.Settle)
 local RankClaim = require(Shared.Tutorial.RankClaim)
@@ -89,29 +87,32 @@ local function factsOf(player: Player): Facts
 end
 
 -- Rank rewards are held until claimed in Rank (tutorial lane, 2026-10-03; RankClaim): a rank-up
--- pays only the Case Drops of Config.Tutorial.RankClaim.DropsAtOnce's tiers. The tutorial sets
--- their tier through `dropTier` (Bronze's drop is its Standard Case); nil rolls as usual.
-local dropTier: ((Player) -> string?)? = nil
+-- pays only the lucky blocks of Config.Tutorial.RankClaim.BlocksAtOnce's tiers. The tutorial
+-- sets their kind through `blockKind` (Bronze's block is its Standard block); nil gives the
+-- Config kinds.
+local blockKind: ((Player) -> string?)? = nil
 
---- The tutorial's hook: `fn(player)` names the tier of the rank-up's at-once Case Drops, or nil.
-function Ranking.setDropTier(fn: ((Player) -> string?)?)
-	dropTier = fn
+--- The tutorial's hook: `fn(player)` names the kind of the rank-up's at-once blocks, or nil.
+function Ranking.setBlockKind(fn: ((Player) -> string?)?)
+	blockKind = fn
 end
 
--- The rank-up's at-once drops: (the Reward to pay with the rank, the set tier or nil).
-local function atOnceOf(
-	player: Player,
-	result: Ranks.MatchResult
-): (PlayerData.Reward?, number, string?)
-	local drops = RankClaim.dropsAtOnce(result.peakBefore, result.peakAfter)
-	if drops <= 0 then
-		return nil, 0, nil
+-- The rank-up's at-once blocks: the Reward to pay with the rank, or nil for none. With the
+-- tutorial's kind set, every at-once block is of that kind.
+local function atOnceOf(player: Player, result: Ranks.MatchResult): PlayerData.Reward?
+	local blocks = RankClaim.blocksAtOnce(result.peakBefore, result.peakAfter)
+	if next(blocks) == nil then
+		return nil
 	end
-	local tier = if dropTier then dropTier(player) else nil
-	if tier ~= nil then
-		return nil, drops, tier
+	local kind = if blockKind then blockKind(player) else nil
+	if kind ~= nil then
+		local total = 0
+		for _, count in blocks do
+			total += count
+		end
+		blocks = { [kind] = total }
 	end
-	return { drops = drops }, drops, nil
+	return { blocks = blocks }
 end
 
 -- Saves a result's rank and pays its rank-up rewards in the same change (PlayerData.applyRank:
@@ -125,7 +126,7 @@ local function applyRank(player: Player, result: Ranks.MatchResult): boolean
 	for _, cue in result.rewardCues do
 		owned[cue] = if before then Inventory.count(before, cue) else 0
 	end
-	local reward, drops, tier = atOnceOf(player, result)
+	local reward = atOnceOf(player, result)
 	local ok = PlayerData.applyRank(player, {
 		RankXp = result.xpAfter,
 		PeakDivision = result.peakAfter,
@@ -134,11 +135,6 @@ local function applyRank(player: Player, result: Ranks.MatchResult): boolean
 	if not ok then
 		warn(("[8ball] Ranking: the rank change for %s was refused"):format(player.Name))
 		return false
-	end
-	if tier ~= nil then
-		for _ = 1, drops do
-			PlayerData.setDrop(player, "Reward", tier)
-		end
 	end
 	local after = PlayerData.read(player)
 	if after then
@@ -171,16 +167,15 @@ local function applyMatch(
 	return result
 end
 
--- The rank-up rows for a remote: { index, money, cases = { [caseId] = count }, drops, cue?,
--- spins } (drops: Case Drops; spins: the ult spins a new tier adds; 0 for none).
+-- The rank-up rows for a remote: { index, money, blocks = { [kind] = count }, cue?, spins }
+-- (spins: the ult spins a new tier adds; 0 for none).
 local function rewardRows(rewards: { Ranks.Reward }): { any }
 	local rows = {}
 	for _, reward in rewards do
 		table.insert(rows, {
 			index = reward.index,
 			money = reward.money,
-			cases = table.clone(reward.cases),
-			drops = reward.drops,
+			blocks = table.clone(reward.blocks),
 			cue = reward.cue,
 			spins = reward.spins,
 		})
@@ -201,39 +196,37 @@ function Ranking.xpPart(result: any): any
 		newTier = result.newTier,
 		rewards = rewardRows(result.rewards),
 		rewardTotal = result.rewardTotal,
-		rewardCases = table.clone(result.rewardCases),
+		rewardBlocks = table.clone(result.rewardBlocks),
 		rewardCues = table.clone(result.rewardCues),
 		rewardSpins = result.rewardSpins,
-		rewardDrops = result.rewardDrops,
 		breakdown = result.breakdown,
-		-- Everything above but the at-once drops waits to be claimed in Rank (RankClaim).
+		-- Everything above but the at-once blocks waits to be claimed in Rank (RankClaim).
 		held = true,
-		dropsAtOnce = RankClaim.dropsAtOnce(result.peakBefore, result.peakAfter),
+		blocksAtOnce = RankClaim.blocksAtOnce(result.peakBefore, result.peakAfter),
 	}
 end
 
--- Counts a Case Drop against every losing account (the anti-farm limit of
--- Config.Economy.FreeCasesPerOpponent).
+-- Counts a lucky block against every losing account (the anti-farm limit of
+-- Config.Economy.DropsPerOpponent).
 local function countAgainst(player: Player, opponentIds: { number })
 	for _, id in opponentIds do
-		PlayerData.addOpponentCase(player, id)
+		PlayerData.addOpponentDrop(player, id)
 	end
 end
 
--- Gives the win's Case Drop (PlayerData.caseDrop: rolled with pity and landed, on its timer
--- or ready), the first win's Rare Case when `firstWin`, and counts it against the losers.
--- Returns the reveal payload, or nil when the save refused it.
-local function giveDrop(
+-- Gives the win's lucky block (PlayerData.winBlock: a Mystery block landed in the hotbar on
+-- its timer; the first win's Rare block when `firstWin`) and counts it against the losers.
+-- Returns { kind, readyAt }, or nil when the save refused it.
+local function giveBlock(
 	player: Player,
 	firstWin: boolean,
-	opponentIds: { number },
-	source: string
-): CaseDrop.Payload?
-	local payload = PlayerData.caseDrop(player, source, firstWin)
-	if payload ~= nil then
+	opponentIds: { number }
+): PlayerData.WinBlock?
+	local block = PlayerData.winBlock(player, firstWin)
+	if block ~= nil then
 		countAgainst(player, opponentIds)
 	end
-	return payload
+	return block
 end
 
 -- A short match's pots (ECONOMY 3.6): what they paid this player adds to today's short total.
@@ -357,7 +350,7 @@ type Entry = {
 	opponents: { number }, -- the other side's accounts (empty against PC)
 	opponentIndex: number?, -- their average division (Settle.opponentIndex)
 	farm: Money.FarmRow, -- the anti-farm row for this match
-	losers: { Settle.Loser }, -- the other side's accounts, for this player's Case Drop
+	losers: { Settle.Loser }, -- the other side's accounts, for this player's lucky block
 }
 
 -- What one player's settle gave them, for the summary.
@@ -366,8 +359,7 @@ type Paid = {
 	bonus: number,
 	streak: number,
 	boost: number,
-	freeCase: string?, -- the win's Case Drop tier (the result screen's case line)
-	caseDrop: CaseDrop.Payload?, -- the win's Case Drop, for the reveal
+	block: PlayerData.WinBlock?, -- the win's lucky block (the result screen's block chip)
 }
 
 -- Settles one player (every "before" count is on `entry`, read before anyone was paid).
@@ -450,7 +442,7 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 		PlayerData.countDaily(p, "Disguised")
 	end
 
-	-- The winner's Case Drop (economy plan section 2; ECONOMY 3.6), from the counts before this
+	-- The winner's lucky block (economy plan section 2; ECONOMY 3.6), from the counts before this
 	-- match: every real win, the anti-farm rules, and Play against PC only for its first
 	-- Config.Economy.PcDropsPerDay wins a day. None from a disguised bot past the day's limit.
 	if won and not (disguised and pc) then
@@ -461,15 +453,15 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 			pc = pc or Settle.botKind(m.e) ~= nil, -- a bot is no account to farm (the Bots lane)
 			pcLimited = pc,
 			pcDropsToday = daily.PcDrops,
-			firstWinDue = progress.FirstWinCaseDue,
-			farmAllows = farm.FreeCase,
+			firstWinDue = progress.FirstWinDue,
+			farmAllows = farm.Drop,
 			losers = entry.losers,
 		})
-		local drops, forced = Cases.dropFor(ctx)
+		local drops, forced = BlockDrop.dropFor(ctx)
 		if drops then
-			local payload = giveDrop(p, forced ~= nil, entry.opponents, "Win")
-			if payload then
-				paid.caseDrop, paid.freeCase = payload, payload.tier
+			local block = giveBlock(p, forced ~= nil, entry.opponents)
+			if block then
+				paid.block = block
 				if pc then
 					PlayerData.countDaily(p, "PcDrops")
 				end
@@ -513,7 +505,7 @@ local function settle(e: any)
 				}
 				else nil)
 			or (if p then factsOf(p) else nil)
-			or { index = nil, realMatches = if IS_STUDIO then E.FreeCaseLoserMinMatches else nil }
+			or { index = nil, realMatches = if IS_STUDIO then E.DropLoserMinMatches else nil }
 	end
 
 	-- Then each player's own counts, all before anyone is paid.
@@ -531,7 +523,7 @@ local function settle(e: any)
 				end
 				table.insert(losers, {
 					realMatches = f.realMatches,
-					casesToday = PlayerData.opponentToday(p, id).Cases,
+					dropsToday = PlayerData.opponentToday(p, id).Drops,
 				})
 			end
 			table.insert(entries, {
@@ -572,7 +564,6 @@ local function settle(e: any)
 
 	-- The cards show everyone's rank after the match, so they are read once it is paid.
 	local teams = { teamList(e, 1), teamList(e, 2) }
-	local today = Daily.dayOf(os.time())
 	for i, entry in entries do
 		local p = entry.player
 		local paid = results[i]
@@ -605,11 +596,8 @@ local function settle(e: any)
 				boost = paid.boost,
 				total = tally.ballMoney + tally.niceMoney + paid.bonus + paid.streak + reward,
 			},
-			freeCase = paid.freeCase,
-			-- The win's Case Drop (CaseDrop.Payload: source "Win", tier, climbs, readyAt,
-			-- instant, pity), revealed by the 8-ball; nil without one.
-			caseDrop = paid.caseDrop,
-			nextReward = if entry.data then Daily.nextReward(entry.data.Login, today) else nil,
+			-- The win's lucky block ({ kind, readyAt }), already in the hotbar; nil without one.
+			block = paid.block,
 			-- The rematch row (designer, 2026-09-28): whether one is on offer, the series so
 			-- far (this game counted), and whether this is an arena (Play another, Lobby).
 			rematch = e.rematch ~= nil,
@@ -666,17 +654,16 @@ local function rankEvent(result: Ranks.MatchResult): any
 		reward = result.rewardTotal,
 		newTier = result.newTier,
 		rewards = rewardRows(result.rewards),
-		rewardCases = table.clone(result.rewardCases),
+		rewardBlocks = table.clone(result.rewardBlocks),
 		rewardCues = table.clone(result.rewardCues),
 		rewardSpins = result.rewardSpins,
-		rewardDrops = result.rewardDrops,
 		held = true, -- claimed in Rank (RankClaim), as xpPart
-		dropsAtOnce = RankClaim.dropsAtOnce(result.peakBefore, result.peakAfter),
+		blocksAtOnce = RankClaim.blocksAtOnce(result.peakBefore, result.peakAfter),
 	}
 end
 
 --- The /xp developer command: `delta` XP (a gain; XP is never lost) through the real rules
---- (peak, rank-up rewards with their money, cases and cues, the Reyes announcement), with the
+--- (peak, rank-up rewards with their money, blocks and cues, the Reyes announcement), with the
 --- NEW RANK! popup and its reward chips. Not a match. Returns false when the save is not
 --- loaded (or refused the change).
 function Ranking.addXp(player: Player, delta: number): boolean
@@ -692,32 +679,6 @@ function Ranking.addXp(player: Player, delta: number): boolean
 		Net.get("RankEvent"):FireClient(player, rankEvent(result))
 	end
 	return true
-end
-
---- The /freecase developer command: the Case Drop rule run as if `player` had just won a real
---- match against a fresh opponent (an account with enough real matches, met for the first
---- time today, that has given no drop yet). The win is counted like a real one
---- (Progress.Wins, today's Daily.Wins, Progress.RealMatches). Returns the tier that dropped
---- (its reveal goes out on the CaseDrop remote, source "Dev"), or nil when the save is not
---- loaded.
-function Ranking.freeCase(player: Player): string?
-	local progress = PlayerData.progress(player)
-	if not progress then
-		return nil
-	end
-	local ctx = Settle.dropContext({
-		real = true,
-		solo = false,
-		won = true,
-		pc = false,
-		firstWinDue = progress.FirstWinCaseDue,
-		farmAllows = Money.farmRow(1).FreeCase,
-		losers = { { realMatches = E.FreeCaseLoserMinMatches, casesToday = 0 } },
-	})
-	local drops, forced = Cases.dropFor(ctx)
-	local payload = if drops then giveDrop(player, forced ~= nil, {}, "Dev") else nil
-	PlayerData.recordRealMatch(player, true, {})
-	return if payload then payload.tier else nil
 end
 
 return Ranking

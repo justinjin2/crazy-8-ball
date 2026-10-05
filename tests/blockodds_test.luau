@@ -1,12 +1,12 @@
 --!strict
--- Cases (Progression/Cases): the six cases' odds and timers against the approved economy plan
--- (2026-10-02, section 3), per-cue odds, seeded rolls, the guarantee, vaulting, sell-back values
--- (ECONOMY 8), announcements and whether a win drops a Case Drop (plan sections 1-2, 3.6).
+-- BlockOdds (Progression/BlockOdds): the odds rows the lucky blocks roll (the approved economy
+-- plan, 2026-10-02, section 3; cases retired for lucky blocks 2026-10-04), per-cue odds, seeded
+-- rolls, the guarantee, vaulting, sell-back values (ECONOMY 8) and announcements.
 
 local H = require("./harness")
 
 local function load()
-	return H.require("Progression.Cases"), H.require("Progression.Catalog"), H.require("Config")
+	return H.require("Progression.BlockOdds"), H.require("Progression.Catalog"), H.require("Config")
 end
 
 -- The plan's section 3 table, in percent as it prints them (nil = "-").
@@ -39,9 +39,6 @@ local ODDS: { [string]: { [string]: number } } = {
 	Legendary = { Epic = 75, Legendary = 22, Mythic = 2.7, Secret = 0.3 },
 	Mythic = { Legendary = 75, Mythic = 22, Secret = 3 },
 }
--- Opens in (seconds): instant, instant, 1 h, 6 h, 24 h, 48 h.
-local TIMERS =
-	{ Standard = 0, Uncommon = 0, Rare = 3600, Epic = 21600, Legendary = 86400, Mythic = 172800 }
 local MIN_RARITY = {
 	Standard = "Common",
 	Uncommon = "Common",
@@ -92,40 +89,21 @@ local function withVaulted(Catalog: any, id: string, body: () -> ())
 	end
 end
 
--- A settled real 1v1 win by a veteran player, overridden per test.
-local function ctx(overrides: { [string]: any }?): any
-	local base: { [string]: any } = {
-		real = true,
-		solo = false,
-		won = true,
-		pcLimited = false,
-		pcDropsToday = 0,
-		farmAllows = true,
-		casesFromOpponentToday = 0,
-		loserRealMatches = 100,
-		firstWinEver = false,
-	}
-	for key, value in overrides or {} do
-		base[key] = value
-	end
-	return base
-end
-
 return {
 	["every odds row adds to exactly 1,000,000 and matches the plan"] = function()
-		local Cases, _, Config = load()
-		H.expect(Config.Cases.OddsTotal == 1000000, "OddsTotal")
-		local problems = Cases.validate()
+		local BlockOdds, _, Config = load()
+		H.expect(Config.BlockOdds.OddsTotal == 1000000, "OddsTotal")
+		local problems = BlockOdds.validate()
 		H.expect(#problems == 0, "validate: " .. table.concat(problems, "; "))
 		for id, row in ODDS do
-			local case = Cases.get(id)
-			H.expect(case ~= nil, id .. " is not a case")
-			assert(case, "no case")
-			H.expect(case.Timer == TIMERS[id], ("%s opens in %d s"):format(id, case.Timer))
+			local odds = BlockOdds.get(id)
+			H.expect(odds ~= nil, id .. " is not an odds row")
+			assert(odds, "no row")
+			H.expect(odds.Id == id and (odds :: any).Timer == nil, "a row is its id and odds")
 			local sum = 0
-			for _, rarity in Config.Cases.Rarities do
+			for _, rarity in Config.BlockOdds.Rarities do
 				local expected = math.floor((row[rarity] or 0) * 10000 + 0.5)
-				local got = case.Odds[rarity] or 0
+				local got = odds.Odds[rarity] or 0
 				H.expect(
 					got == expected,
 					("%s %s: %d, expected %d"):format(id, rarity, got, expected)
@@ -136,65 +114,76 @@ return {
 			-- odds() lists exactly the rarities with a share, bottom first, with percents.
 			local previous = 0
 			local total = 0
-			for _, entry in Cases.odds(id) do
+			for _, entry in BlockOdds.odds(id) do
 				H.near(
 					entry.percent,
 					row[entry.rarity],
 					1e-9,
 					id .. " " .. entry.rarity .. " percent"
 				)
-				local rank = table.find(Config.Cases.Rarities, entry.rarity) or 0
+				local rank = table.find(Config.BlockOdds.Rarities, entry.rarity) or 0
 				H.expect(rank > previous, id .. " odds out of order")
 				previous = rank
 				total += entry.percent
 			end
 			H.near(total, 100, 1e-9, id .. " percents add to 100")
-			H.expect(Cases.minRarity(id) == MIN_RARITY[id], id .. " guarantee")
+			H.expect(BlockOdds.minRarity(id) == MIN_RARITY[id], id .. " guarantee")
 		end
-		H.expect(Cases.odds("Nope")[1] == nil and Cases.minRarity("Nope") == nil, "unknown case")
+		H.expect(
+			BlockOdds.odds("Nope")[1] == nil and BlockOdds.minRarity("Nope") == nil,
+			"unknown row"
+		)
 	end,
 
-	["six cases on the ladder, none sold for money"] = function()
-		local Cases, _, Config = load()
+	["six tier rows on the ladder, then the extra rows; nothing is a case any more"] = function()
+		local BlockOdds, _, Config = load()
 		H.expect(
-			table.concat(Config.Cases.Order, " ") == "Standard Uncommon Rare Epic Legendary Mythic",
+			table.concat(Config.BlockOdds.Order, " ")
+				== "Standard Uncommon Rare Epic Legendary Mythic",
 			"the ladder"
 		)
-		H.expect(#Cases.list() == 0, "no case is in the shop")
 		local all = {}
-		for _, case in Cases.list(true) do
-			table.insert(all, case.Id)
-			H.expect(not case.Enabled and case.Price == 0, case.Id .. " is not sold")
+		for _, row in BlockOdds.list() do
+			table.insert(all, row.Id)
+			H.expect(
+				(row :: any).Price == nil
+					and (row :: any).Enabled == nil
+					and (row :: any).Timer == nil,
+				row.Id .. " is odds only: a lucky block kind carries the timer"
+			)
 		end
-		H.expect(table.concat(all, " ") == table.concat(Config.Cases.Order, " "), "all")
+		local want = table.clone(Config.BlockOdds.Order)
+		for _, id in Config.BlockOdds.Extra do
+			table.insert(want, id)
+		end
 		H.expect(
-			Cases.get("Event") == nil and Cases.get("Nope") == nil and Cases.get(3) == nil,
+			table.concat(all, " ") == table.concat(want, " "),
+			"all: " .. table.concat(all, " ")
+		)
+		H.expect(
+			BlockOdds.get("Event") == nil
+				and BlockOdds.get("Nope") == nil
+				and BlockOdds.get(3) == nil,
 			"unknown ids"
 		)
-		H.expect(Cases.get(nil) == nil, "nil")
-	end,
-
-	["timers: instant to 48 hours, halved with Quick Cases"] = function()
-		local Cases, _, Config = load()
-		H.expect(Config.Cases.QuickTimerFactor == 0.5, "twice as fast")
-		for id, seconds in TIMERS do
-			H.expect(Cases.timer(id) == seconds, id)
-			H.expect(Cases.timer(id, true) == seconds // 2, id .. " quick")
+		H.expect(BlockOdds.get(nil) == nil, "nil")
+		H.expect(Config.Cases == nil, "Config.Cases is gone")
+		for _, gone in { "timer", "price", "isBuyCount", "dropFor" } do
+			H.expect((BlockOdds :: any)[gone] == nil, gone .. " is gone")
 		end
-		H.expect(Cases.timer("Nope") == 0 and Cases.timer(nil, true) == 0, "unknown: 0")
 	end,
 
 	["per-cue odds split each rarity evenly and total 100"] = function()
-		local Cases, Catalog, Config = load()
-		for _, case in Cases.list(true) do
+		local BlockOdds, Catalog, Config = load()
+		for _, case in BlockOdds.list() do
 			local total = 0
 			local lastRank = 0
 			local listed = 0
-			for _, entry in Cases.cueOdds(case.Id) do
+			for _, entry in BlockOdds.cueOdds(case.Id) do
 				local pool = Catalog.droppable(case.Id, entry.rarity)
 				H.near(
 					entry.percent,
-					case.Odds[entry.rarity] * 100 / Config.Cases.OddsTotal / #pool,
+					case.Odds[entry.rarity] * 100 / Config.BlockOdds.OddsTotal / #pool,
 					1e-9,
 					case.Id .. " " .. entry.id
 				)
@@ -213,17 +202,21 @@ return {
 			end
 			-- Every droppable cue is listed once.
 			local droppable = 0
-			for _, entry in Cases.odds(case.Id) do
+			for _, entry in BlockOdds.odds(case.Id) do
 				droppable += #Catalog.droppable(case.Id, entry.rarity)
 			end
 			H.expect(
 				listed == droppable,
 				("%s lists %d cues, expected %d"):format(case.Id, listed, droppable)
 			)
+			-- An extra row's Unique rows (the Grand Opening Cue, the Beta Cue) take the rest.
+			for _, unique in BlockOdds.uniqueRows(case.Id) do
+				total += unique.percent
+			end
 			H.near(total, 100, 1e-9, case.Id .. " total")
 		end
-		-- In the Legendary Case each of the 7 Legendaries is 22/7%, each of the 3 Mythics 0.9%.
-		for _, entry in Cases.cueOdds("Legendary") do
+		-- In the Legendary row each of the 7 Legendaries is 22/7%, each of the 3 Mythics 0.9%.
+		for _, entry in BlockOdds.cueOdds("Legendary") do
 			if entry.rarity == "Legendary" then
 				H.near(entry.percent, 22 / 7, 1e-9, entry.id)
 				H.expect(entry.display == "3.143%", entry.id .. " shows " .. entry.display)
@@ -234,7 +227,7 @@ return {
 			end
 		end
 		-- The rarest share anywhere still reads as more than 0.
-		for _, entry in Cases.cueOdds("Standard") do
+		for _, entry in BlockOdds.cueOdds("Standard") do
 			if entry.rarity == "Mythic" then
 				H.expect(entry.display == "0.000033%", "Standard Mythic shows " .. entry.display)
 			end
@@ -242,7 +235,7 @@ return {
 	end,
 
 	["percent text keeps small odds visible"] = function()
-		local Cases = load()
+		local BlockOdds = load()
 		local cases: { { any } } = {
 			{ 64.3, "64.3%" },
 			{ 20, "20%" },
@@ -255,34 +248,34 @@ return {
 			{ 0.00012, "0.00012%" },
 		}
 		for _, c in cases do
-			local got = Cases.percentText(c[1])
+			local got = BlockOdds.percentText(c[1])
 			H.expect(got == c[2], ("%s -> %s, expected %s"):format(tostring(c[1]), got, c[2]))
 		end
 	end,
 
-	["200,000 seeded rolls per case land on each share and never break the guarantee"] = function()
-		local Cases, Catalog, Config = load()
+	["200,000 seeded rolls per row land on each share and never break the guarantee"] = function()
+		local BlockOdds, Catalog, Config = load()
 		local ROLLS = 200000
-		for caseIndex, case in Cases.list(true) do
+		for caseIndex, case in BlockOdds.list() do
 			local rng = seeded(0x9E3779B9 + caseIndex * 7919)
 			local byRarity: { [string]: number } = {}
 			local byCue: { [string]: number } = {}
-			local floor = Catalog.rarityRank(Cases.minRarity(case.Id) :: string)
+			local floor = Catalog.rarityRank(BlockOdds.minRarity(case.Id) :: string)
 			for _ = 1, ROLLS do
-				local id, rarity = Cases.roll(case.Id, rng)
+				local id, rarity = BlockOdds.roll(case.Id, rng)
 				local cue = Catalog.get(id)
 				assert(cue, "rolled unknown cue " .. tostring(id))
 				if cue.Rarity ~= rarity or Catalog.rarityRank(rarity) < floor then
 					error(("%s rolled %s (%s) as %s"):format(case.Id, id, cue.Rarity, rarity))
 				end
-				if cue.Group ~= "Case" or cue.Vaulted or not table.find(cue.Cases, case.Id) then
+				if not BlockOdds.canDrop(case.Id, id) then
 					error(("%s rolled %s, which it cannot drop"):format(case.Id, id))
 				end
 				byRarity[rarity] = (byRarity[rarity] or 0) + 1
 				byCue[id] = (byCue[id] or 0) + 1
 			end
-			for _, rarity in Config.Cases.Rarities do
-				local p = (case.Odds[rarity] or 0) / Config.Cases.OddsTotal
+			for _, rarity in Config.BlockOdds.Rarities do
+				local p = (case.Odds[rarity] or 0) / Config.BlockOdds.OddsTotal
 				local got = byRarity[rarity] or 0
 				local expected = ROLLS * p
 				H.expect(
@@ -296,7 +289,7 @@ return {
 					)
 				)
 			end
-			for _, entry in Cases.cueOdds(case.Id) do
+			for _, entry in BlockOdds.cueOdds(case.Id) do
 				local p = entry.percent / 100
 				local got = byCue[entry.id] or 0
 				H.expect(
@@ -308,131 +301,99 @@ return {
 	end,
 
 	["roll uses the rng's top and bottom values and refuses bad input"] = function()
-		local Cases, Catalog = load()
+		local BlockOdds, Catalog = load()
 		-- rng always 1: the first weight (the guarantee's rarity), the first cue of it.
-		local low, lowRarity = Cases.roll("Epic", function(_n: number): number
+		local low, lowRarity = BlockOdds.roll("Epic", function(_n: number): number
 			return 1
 		end)
 		H.expect(lowRarity == "Rare" and low == "HoneycombCue", "lowest roll: " .. low)
 		-- rng always n: the last rarity, its last cue.
-		local high, highRarity = Cases.roll("Rare", function(n: number): number
+		local high, highRarity = BlockOdds.roll("Rare", function(n: number): number
 			return n
 		end)
 		H.expect(highRarity == "Secret" and high == "EclipseCue", "highest roll: " .. high)
 		local mythics = Catalog.droppable("Standard", "Mythic")
-		local top, topRarity = Cases.roll("Standard", function(n: number): number
+		local top, topRarity = BlockOdds.roll("Standard", function(n: number): number
 			return n
 		end)
 		H.expect(topRarity == "Mythic" and top == mythics[#mythics].Id, "Standard's top: " .. top)
-		H.expect(not pcall(Cases.roll, "Nope", seeded(1)), "unknown case")
-		H.expect(not pcall(Cases.roll, "Standard", function(n: number): number
+		H.expect(not pcall(BlockOdds.roll, "Nope", seeded(1)), "unknown row")
+		H.expect(not pcall(BlockOdds.roll, "Standard", function(n: number): number
 			return n + 1
 		end), "out-of-range rng")
 	end,
 
 	["a vaulted cue never drops and leaves the Odds screen at once"] = function()
-		local Cases, Catalog = load()
+		local BlockOdds, Catalog = load()
 		withVaulted(Catalog, "MidnightCue", function()
-			for _, entry in Cases.cueOdds("Standard") do
+			H.expect(not BlockOdds.canDrop("Standard", "MidnightCue"), "vaulted: cannot drop")
+			for _, entry in BlockOdds.cueOdds("Standard") do
 				H.expect(entry.id ~= "MidnightCue", "MidnightCue still listed")
 				if entry.rarity == "Common" then
 					H.near(entry.percent, 75 / 6, 1e-9, entry.id)
 				end
 			end
 			local total = 0
-			for _, entry in Cases.cueOdds("Standard") do
+			for _, entry in BlockOdds.cueOdds("Standard") do
 				total += entry.percent
 			end
 			H.near(total, 100, 1e-9, "total with a cue vaulted")
 			local rng = seeded(12345)
 			for _ = 1, 20000 do
-				local id = Cases.roll("Standard", rng)
+				local id = BlockOdds.roll("Standard", rng)
 				H.expect(id ~= "MidnightCue", "a vaulted cue dropped")
 			end
 		end)
 		H.expect(not (Catalog.get("MidnightCue") :: any).Vaulted, "restored")
+		H.expect(BlockOdds.canDrop("Standard", "MidnightCue"), "drops again")
 		-- Vaulting the only Secret leaves a share with no cue: validate says so.
 		withVaulted(Catalog, "EclipseCue", function()
-			local problems = Cases.validate()
+			local problems = BlockOdds.validate()
 			H.expect(#problems >= 4, "validate missed the empty Secret pool")
 			H.expect(problems[1]:find("Secret") ~= nil, problems[1] or "")
 		end)
-		H.expect(#Cases.validate() == 0, "valid again once restored")
+		H.expect(#BlockOdds.validate() == 0, "valid again once restored")
 	end,
 
-	["sell-back values match ECONOMY 8; confirm from Epic up; only case cues sell"] = function()
-		local Cases, Catalog = load()
+	["sell-back values match ECONOMY 8; confirm from Epic up; only block cues sell"] = function()
+		local BlockOdds, Catalog = load()
 		for _, cue in Catalog.list() do
-			local value = Cases.sellValue(cue.Id)
-			if cue.Group == "Case" then
+			local value = BlockOdds.sellValue(cue.Id)
+			if cue.Group == "Block" then
 				H.expect(value == SELL[cue.Rarity], ("%s sells for %d"):format(cue.Id, value))
 				local rank = Catalog.rarityRank(cue.Rarity)
 				H.expect(
-					Cases.needsConfirm(cue.Id) == (rank >= Catalog.rarityRank("Epic")),
+					BlockOdds.needsConfirm(cue.Id) == (rank >= Catalog.rarityRank("Epic")),
 					cue.Id .. " confirm"
 				)
 			else
 				H.expect(value == 0, cue.Id .. " must not sell")
-				H.expect(not Cases.needsConfirm(cue.Id), cue.Id .. " has nothing to confirm")
+				H.expect(not BlockOdds.needsConfirm(cue.Id), cue.Id .. " has nothing to confirm")
 			end
 		end
-		H.expect(Cases.sellValue("Nope") == 0 and Cases.sellValue(nil) == 0, "unknown ids")
+		H.expect(BlockOdds.sellValue("Nope") == 0 and BlockOdds.sellValue(nil) == 0, "unknown ids")
 	end,
 
 	["Legendary pulls announce in the server; Mythic and Secret in every server"] = function()
-		local Cases, _, Config = load()
-		for _, rarity in Config.Cases.Rarities do
+		local BlockOdds, _, Config = load()
+		for _, rarity in Config.BlockOdds.Rarities do
 			local everywhere = rarity == "Mythic" or rarity == "Secret"
-			H.expect(Cases.announces(rarity) == everywhere, rarity)
-			H.expect(Cases.announcesHere(rarity) == (rarity == "Legendary"), rarity .. " here")
+			H.expect(BlockOdds.announces(rarity) == everywhere, rarity)
+			H.expect(BlockOdds.announcesHere(rarity) == (rarity == "Legendary"), rarity .. " here")
 		end
 	end,
 
-	["drop: every real win drops one, forever"] = function()
-		local Cases = load()
-		for _, overrides in { {}, { loserRealMatches = 5 }, { casesFromOpponentToday = 2 } } do
-			local drops, forced = Cases.dropFor(ctx(overrides))
-			H.expect(drops and forced == nil, "a normal roll")
-		end
-	end,
-
-	["drop: the first win ever is the Rare Case, under the same anti-farm rules"] = function()
-		local Cases = load()
-		local drops, forced = Cases.dropFor(ctx({ firstWinEver = true }))
-		H.expect(drops and forced == "Rare", "the first win's Rare Case")
-		drops = Cases.dropFor(ctx({ firstWinEver = true, loserRealMatches = 4 }))
-		H.expect(not drops, "a first win against a new account drops nothing")
-		drops = Cases.dropFor(ctx({ firstWinEver = true, farmAllows = false }))
-		H.expect(not drops, "nor on a farm row")
-	end,
-
-	["drop: never for solo, a loss or a match that was not real"] = function()
-		local Cases = load()
-		for _, overrides in { { solo = true }, { won = false }, { real = false } } do
-			H.expect(not (Cases.dropFor(ctx(overrides))), "no drop")
-		end
-	end,
-
-	["drop: the anti-farm rules (matches 6-10, 3 a day from one account, 5 real matches)"] = function()
-		local Cases, _, Config = load()
-		local E = Config.Economy
-		H.expect(not (Cases.dropFor(ctx({ farmAllows = false }))), "a row with no case")
-		H.expect(
-			not (Cases.dropFor(ctx({ casesFromOpponentToday = E.FreeCasesPerOpponent }))),
-			"3 from one account"
-		)
-		H.expect(
-			not (Cases.dropFor(ctx({ loserRealMatches = E.FreeCaseLoserMinMatches - 1 }))),
-			"a loser with too few real matches"
-		)
-	end,
-
-	["drop: Play against PC drops only for the first 10 PC wins of a day"] = function()
-		local Cases, _, Config = load()
-		local cap = Config.Economy.PcDropsPerDay
-		H.expect(cap == 10, "the plan's 10")
-		H.expect(Cases.dropFor(ctx({ pcLimited = true, pcDropsToday = cap - 1 })), "the 10th")
-		H.expect(not (Cases.dropFor(ctx({ pcLimited = true, pcDropsToday = cap }))), "the 11th")
-		H.expect(Cases.dropFor(ctx({ pcLimited = false, pcDropsToday = 99 })), "people: no cap")
+	["the top rarity and the Unique rows of the extra tables"] = function()
+		local BlockOdds, Catalog = load()
+		H.expect(BlockOdds.topRarity("Standard") == "Mythic", "Standard tops at Mythic")
+		H.expect(BlockOdds.topRarity("Rare") == "Secret", "Rare reaches Secret")
+		H.expect(BlockOdds.topRarity("Nope") == nil, "unknown")
+		H.expect(#BlockOdds.uniqueRows("GrandOpening") == 2, "two Unique rows")
+		H.expect(#BlockOdds.uniqueRows("Standard") == 0, "the ladder rows have none")
+		H.expect(BlockOdds.canDrop("GrandOpening", "BetaCue"), "the Beta Cue drops from it")
+		H.expect(not BlockOdds.canDrop("Standard", "BetaCue"), "not from the Standard row")
+		H.expect(not BlockOdds.canDrop("Standard", "Classic"), "Classic never drops")
+		H.expect(not BlockOdds.canDrop("Nope", "MidnightCue"), "unknown row")
+		H.expect(Catalog.get("MidnightCue").Group == "Block", "a droppable cue is a Block cue")
 	end,
 }

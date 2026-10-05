@@ -346,7 +346,7 @@ return {
 		local base: { [string]: { Win: number, Loss: number } } = R.BaseXp :: any
 		local steps: { [string]: number } = R.Rewards.Step :: any
 		local firsts: { [string]: any } = R.Rewards.Tier :: any
-		local caseList: { [string]: any } = Config.Cases.List :: any
+		local kinds: { [string]: any } = Config.LuckyBlocks.Kinds :: any
 		local cues: { [string]: boolean } = {}
 		for _, tier in tiers do
 			if tier ~= top then
@@ -362,10 +362,13 @@ return {
 			H.expect(row.Loss >= 0 and row.Loss <= row.Win, tier .. " a loss never costs XP")
 			local first = firsts[tier]
 			H.expect(first ~= nil and first.Money > 0, tier .. " Rewards.Tier")
-			for id, count in first.Cases or {} do
-				H.expect(caseList[id] ~= nil, ("%s rewards an unknown case %s"):format(tier, id))
-				H.expect(table.find(Config.Cases.Order, id) ~= nil, id .. " is in Cases.Order")
-				H.expect(count >= 1 and count % 1 == 0, tier .. " case counts are whole")
+			for id, count in first.Blocks or {} do
+				H.expect(kinds[id] ~= nil, ("%s rewards an unknown block %s"):format(tier, id))
+				H.expect(
+					table.find(Config.LuckyBlocks.Order, id) ~= nil,
+					id .. " is in LuckyBlocks.Order"
+				)
+				H.expect(count >= 1 and count % 1 == 0, tier .. " block counts are whole")
 			end
 			H.expect(
 				type(first.Cue) == "string" and not cues[first.Cue],
@@ -443,11 +446,11 @@ return {
 			for _, key in { "Xp", "Bonus", "Balls" } do
 				H.expect(row[key] >= 0 and row[key] <= 1, ("row %d %s"):format(i, key))
 			end
-			H.expect(type(row.FreeCase) == "boolean", "row FreeCase")
+			H.expect(type(row.Drop) == "boolean", "row Drop")
 		end
 		H.expect(rows[1].Xp == 1 and rows[1].Bonus == 1 and rows[1].Balls == 1, "first row full")
-		H.expect(E.SameOpponentMaxEntries >= 1 and E.FreeCasesPerOpponent >= 1, "limits")
-		H.expect(E.FreeCaseLoserMinMatches >= 1, "FreeCaseLoserMinMatches")
+		H.expect(E.SameOpponentMaxEntries >= 1 and E.DropsPerOpponent >= 1, "limits")
+		H.expect(E.DropLoserMinMatches >= 1, "DropLoserMinMatches")
 	end,
 
 	["the unbox news never beats the opener's Mythic reel to its card"] = function()

@@ -6,14 +6,7 @@
    "kind": "Pass",
    "name": "VIP",
    "robux": 599,
-   "description": "2x money from every match, 1 free Ability Spin every day, a VIP slot in the restock shop, the VIP Cue, a gold [VIP] chat tag and a gold name."
-  },
-  {
-   "key": "QuickCases",
-   "kind": "Pass",
-   "name": "Quick Cases",
-   "robux": 299,
-   "description": "Case timers run twice as fast. Open all your ready cases at once and skip the reveal. Adds Skip and Auto Spin to Ability Spins."
+   "description": "2x money from every match, lucky block timers twice as fast, 1 free Ability Spin every day, a VIP slot in the restock shop, the VIP Cue, a gold [VIP] chat tag and a gold name. Adds Skip and Auto Spin to Ability Spins."
   },
   {
    "key": "UltSlot2",
@@ -95,58 +88,30 @@
   {
    "key": "Mystery1",
    "kind": "Product",
-   "name": "Mystery Case",
+   "name": "Mystery Lucky Block",
    "robux": 25,
-   "description": "One Mystery Case: the Magic 8-Ball picks a case from Standard to Mythic. Odds are shown in the game."
+   "description": "One Mystery Lucky Block: it rolls a tier from Standard to Mythic when you open it. Odds are shown in the game."
   },
   {
    "key": "Mystery10",
    "kind": "Product",
-   "name": "10 Mystery Cases",
+   "name": "10 Mystery Lucky Blocks",
    "robux": 229,
-   "description": "Ten Mystery Cases, each picked by the Magic 8-Ball. Odds are shown in the game."
+   "description": "Ten Mystery Lucky Blocks, each rolling its own tier. Odds are shown in the game."
   },
   {
    "key": "RestockEpic",
    "kind": "Product",
-   "name": "Restock Epic Case",
+   "name": "Restock Epic Lucky Block",
    "robux": 999,
-   "description": "The Epic Case in the restock shop, while it is in stock. Odds are shown in the game."
+   "description": "The Epic Lucky Block in the restock shop, while it is in stock. Odds are shown in the game."
   },
   {
    "key": "RestockLegendary",
    "kind": "Product",
-   "name": "Restock Legendary Case",
+   "name": "Restock Legendary Lucky Block",
    "robux": 4999,
-   "description": "The Legendary Case in the restock shop, while it is in stock (25 worldwide each time it appears). Odds are shown in the game."
-  },
-  {
-   "key": "Skip1h",
-   "kind": "Product",
-   "name": "Finish Case Timer (1 h)",
-   "robux": 15,
-   "description": "Opens a case timer with up to 1 hour left right away."
-  },
-  {
-   "key": "Skip6h",
-   "kind": "Product",
-   "name": "Finish Case Timer (6 h)",
-   "robux": 49,
-   "description": "Opens a case timer with up to 6 hours left right away."
-  },
-  {
-   "key": "Skip24h",
-   "kind": "Product",
-   "name": "Finish Case Timer (24 h)",
-   "robux": 99,
-   "description": "Opens a case timer with up to 24 hours left right away."
-  },
-  {
-   "key": "Skip48h",
-   "kind": "Product",
-   "name": "Finish Case Timer (48 h)",
-   "robux": 149,
-   "description": "Opens a case timer with up to 48 hours left right away."
+   "description": "The Legendary Lucky Block in the restock shop, while it is in stock (25 worldwide each time it appears). Odds are shown in the game."
   },
   {
    "key": "MoneyParty",
@@ -235,9 +200,9 @@
   {
    "key": "Mystery10Sale",
    "kind": "Product",
-   "name": "10 Mystery Cases (Launch Sale)",
+   "name": "10 Mystery Lucky Blocks (Launch Sale)",
    "robux": 160,
-   "description": "Launch sale, 30% off: 10 Case Drops. Each is revealed with the magic 8-ball: the same odds and pity as a free drop."
+   "description": "Launch sale, 30% off: 10 Mystery Lucky Blocks, each rolling its own tier with the same odds and pity as a free one."
   },
   {
    "key": "LuckyBlockSkip",

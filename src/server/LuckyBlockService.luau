@@ -1,20 +1,25 @@
 --!strict
--- LuckyBlockService: lucky blocks on the server (the test build, designer 2026-10-03;
--- Config.LuckyBlocks, rules in Progression/LuckyBlocks, the save through PlayerData).
+-- LuckyBlockService: lucky blocks on the server (designer 2026-10-03; Config.LuckyBlocks,
+-- rules in Progression/LuckyBlocks, the save through PlayerData). Blocks come from wins
+-- (PlayerData.winBlock), rewards, the shop and trades; this service is how they are held,
+-- thrown and opened.
 --
 -- - BlockRequest (a RemoteFunction): Hold puts a copy of the block in the character's hands
 --   (welded to the upper torso, so everyone sees it); Throw (sent at the throw animation's
 --   release) moves it to the floor in front, in Workspace[Config.LuckyBlocks.LiveFolder], one
---   or more per player; Open (after the owner's native prompt hold) rolls the cue from the block's case with
---   server RNG, opens it through PlayerData.openLuckyBlock and starts the rise; Move reorders
+--   or more per player; Open (after the owner's native prompt hold) rolls the cue from the
+--   block's odds row with server RNG, opens it through PlayerData.openLuckyBlock and starts
+--   the rise; Move reorders
 --   the hotbar and bag. Every answer is { ok = true, ... } or { ok = false, reason }.
 -- - A thrown block's model carries attributes every client animates from (LuckyWorld): Owner
 --   (UserId), BlockId, Kind, Phase ("Flying", "Landed", "Rising", "Burst") and PhaseAt (server
 --   time), plus To (its landing CFrame). The server moves it to To when the flight ends.
--- - BlockState (a RemoteEvent): the player's blocks after every change (deduped).
--- - The test build: the accounts in Config.Debug.Commands.UserIds get one of each
+-- - BlockState (a RemoteEvent): the player's blocks after every save change (deduped).
+-- - The tutorial's hooks (setOpenHooks): a forced cue for game 1's Standard block and a call
+--   after every open (TutorialService).
+-- - Testing: the accounts in Config.Debug.Commands.UserIds get one of each
 --   Config.LuckyBlocks.Test.Seed kind they lack on join, and opening one gives a fresh one of
---   the same kind in the same place (Test.Refill). Nobody else is ever given a block.
+--   the same kind in the same place (Test.Refill). Nobody else is ever given a block this way.
 -- - A thrown block nobody opens goes after ReturnSeconds, or once its owner is ReturnStuds
 --   away; it was never taken from the save, so it is simply back in the hotbar.
 local Players = game:GetService("Players")
@@ -25,6 +30,7 @@ local HttpService = game:GetService("HttpService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
+local BlockOdds = require(Shared.Progression.BlockOdds)
 local Catalog = require(Shared.Progression.Catalog)
 local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
 local Requests = require(Shared.Progression.Requests)
@@ -54,15 +60,10 @@ local busy: { [Player]: boolean } = {}
 local dirty: { [Player]: boolean } = {}
 local lastSent: { [Player]: string } = {}
 local rolls = Random.new()
--- The PlayerData mutations that change the blocks (BlockState is pushed after these).
-local BLOCK_OPS: { [string]: boolean } = {
-	giveLuckyBlocks = true,
-	moveLuckyBlock = true,
-	openLuckyBlock = true,
-	prepareLuckySkip = true,
-	applyPurchase = true,
-	reset = true,
-}
+-- The tutorial lane (TutorialService.setOpenHooks): a forced cue for an open (game 1's
+-- Standard block lands on an Uncommon cue) and a call once a block is opened. Nil: none.
+local openForce: ((Player, string) -> string?)? = nil
+local onOpened: ((Player, string, string) -> ())? = nil
 local warnedMissing: { [string]: boolean } = {}
 
 local function refuse(reason: string): Reply
@@ -144,7 +145,7 @@ local function makeModel(kind: string, edge: number, anchored: boolean): Model?
 			d.EmissiveStrength = (LuckyBlocks.kind(kind) :: LuckyBlocks.Kind).EmissiveStrength
 				or L.Look.EmissiveStrength
 		elseif d:IsA("Light") then
-			d.Enabled = (LuckyBlocks.kind(kind) :: LuckyBlocks.Kind).Case ~= "Standard"
+			d.Enabled = (LuckyBlocks.kind(kind) :: LuckyBlocks.Kind).Odds ~= "Standard"
 			d.Brightness = L.Look.LightBrightness
 			-- All three concrete Light classes expose Range; the shared Light type does not.
 			local ranged: any = d
@@ -439,6 +440,16 @@ local function roll(n: number): number
 	return rolls:NextInteger(1, n)
 end
 
+--- The tutorial lane's hooks on Open: `force(player, kind)` names the cue the block gives
+--- (only one its odds row can drop; anything else is ignored), `opened(player, kind, cueId)`
+--- runs after an open.
+function LuckyBlockService.setOpenHooks(
+	force: ((Player, string) -> string?)?,
+	opened: ((Player, string, string) -> ())?
+)
+	openForce, onOpened = force, opened
+end
+
 function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local id = r.id :: number
 	local entry = live[player] and live[player][id]
@@ -468,6 +479,15 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		return refuse(
 			if why == "NotReady" or why == "NotOwned" or why == "NotLoaded" then why else "Error"
 		)
+	end
+	-- The tutorial's forced cue (never a Unique or Guarantee cue: those keep their roll).
+	local forcedCue = if openForce
+			and not plan.unique
+			and not plan.forced
+		then openForce(player, block.Kind)
+		else nil
+	if forcedCue ~= nil and BlockOdds.canDrop(plan.oddsId, forcedCue) then
+		plan.cueId = forcedCue
 	end
 	-- A Unique cue takes its copy number from the shared counter first (yields): the block
 	-- is busy meanwhile, so a second Open waits its turn.
@@ -503,6 +523,9 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local cue = Catalog.get(plan.cueId) :: Catalog.Cue
 	Counters.add(cue.Id, 1)
 	Announce.unbox(player, cue.Id)
+	if onOpened then
+		task.spawn(onOpened, player, block.Kind, cue.Id)
+	end
 	if L.Test.Refill and isTester(player) then
 		PlayerData.giveLuckyBlocks(player, block.Kind, 1, place)
 	end
@@ -531,7 +554,7 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		rarity = cue.Rarity,
 		kind = block.Kind,
 		tier = plan.tier, -- the Mystery block's tier roll
-		caseId = plan.caseId,
+		oddsId = plan.oddsId,
 		copy = copy, -- a Unique cue's copy number
 		forced = plan.forced, -- the Guarantee gave it
 		new = opened.new,
@@ -592,7 +615,7 @@ end
 -- Start
 ---------------------------------------------------------------------------------------------
 
--- The test build's seed: one of each Seed kind the tester lacks.
+-- The testers' seed: one of each Seed kind the tester lacks.
 local function seed(player: Player)
 	if not isTester(player) then
 		return
@@ -652,10 +675,10 @@ function LuckyBlockService.start()
 		dirty[player] = true
 		task.spawn(seed, player)
 	end)
-	PlayerData.Changed:Connect(function(player: Player, op: string)
-		if BLOCK_OPS[op] then
-			dirty[player] = true
-		end
+	-- Blocks come from many mutations (wins, rewards, purchases, trades, the dev commands):
+	-- every change is checked and the push is deduped (lastSent).
+	PlayerData.Changed:Connect(function(player: Player)
+		dirty[player] = true
 	end)
 	RunService.Heartbeat:Connect(flushPushes)
 	local function joined(player: Player)

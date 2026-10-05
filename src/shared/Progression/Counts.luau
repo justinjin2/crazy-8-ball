@@ -185,7 +185,7 @@ function Counts.claim(stored: any, userId: number): (number?, boolean)
 end
 
 ---------------------------------------------------------------------------------------------
--- Shared stock (the restock shop's Legendary Case: Config.Shop.Restock.Legendary.GlobalStock)
+-- Shared stock (the restock shop's Legendary block: Config.Shop.Restock.Legendary.GlobalStock)
 ---------------------------------------------------------------------------------------------
 
 -- The stored players holding a unit, as a fresh map (anything else reads as none).

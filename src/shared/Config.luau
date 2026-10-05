@@ -1588,9 +1588,8 @@ Config.Save = {
 	-- Save layout v2 (SaveSchema.validate): every map in a save is bounded, so a bug can never
 	-- grow one without limit (a DataStore key holds at most 4 MB). Far above any honest need;
 	-- validate keeps the entries with the smallest keys when a map is over its cap.
-	MaxIdLength = 64, -- the longest key or id a save may hold (cue, case, title, code, user id)
+	MaxIdLength = 64, -- the longest key or id a save may hold (cue, block, title, code, user id)
 	MaxCueEntries = 500, -- Inventory.Cues, .Unique, .New, Index.Seen, Shop.Limited
-	MaxCaseEntries = 50, -- Inventory.Cases (one entry per case type)
 	MaxTitleEntries = 200, -- Titles
 	MaxCodeEntries = 500, -- Codes redeemed
 	MaxSmallEntries = 50, -- Index.Rows (rarities) and Daily.PlaytimeClaimed (gift indices)
@@ -1620,7 +1619,6 @@ Config.Save = {
 	ReplicateRefreshSeconds = 30,
 	-- Save layout v6 (2026-10-03, the economy plan): every save older than v6 starts over
 	-- (designer: a full wipe, only friends had played), keeping only Shop.Purchases.
-	MaxTimerEntries = 500, -- Inventory.Timers: cases whose timer is still running
 	MaxTradeHistory = 50, -- Trades.History: the last trades kept (designer, 2026-10-03)
 	MaxAppliedTrades = 100, -- Trades.Applied: trade ids this save already applied
 	MaxTradeSideItems = 8, -- items on one side of a trade (history entries too)
@@ -1720,8 +1718,8 @@ Config.Ranks = {
 	Unlocks = { Difficult = "Gold", Challenger = "Gold" },
 	-- Rank rewards, paid once, the first time you reach a division (PeakDivision passes it;
 	-- ECONOMY 4.8). Step: the money for each new division II-V of a tier. Tier: reaching a
-	-- tier's division I pays its money, its cases (into the inventory: { [caseId] = count }),
-	-- its Case Drops and the tier's cue (an Exclusive catalog id, never tradable or sellable). The chat tag
+	-- tier's division I pays its money, its lucky blocks ({ [kind] = count }, into the hotbar)
+	-- and the tier's cue (an Exclusive catalog id, never tradable or sellable). The chat tag
 	-- comes from the tier itself (ChatTags).
 	Rewards = {
 		-- The approved economy plan (2026-10-02, section 6).
@@ -1736,20 +1734,20 @@ Config.Ranks = {
 			Master = 80000,
 			Grandmaster = 150000,
 		},
-		-- Drops: Case Drops (each rolled with pity and revealed through the 8-ball). Bronze's
-		-- drop is given at once with the first win; everything else waits until the player
-		-- claims it in Rank (designer, 2026-10-03; was 2 drops).
+		-- Blocks: lucky blocks by kind (a Mystery block rolls its tier with pity when opened).
+		-- Bronze's block is given at once with the first win (the tutorial's Standard block);
+		-- everything else waits until the player claims it in Rank (designer, 2026-10-03).
 		Tier = {
-			Bronze = { Money = 2500, Drops = 1, Cue = "BronzeCue" },
-			Silver = { Money = 5000, Cases = { Rare = 1 }, Cue = "SilverCue" },
-			Gold = { Money = 10000, Cases = { Rare = 2 }, Cue = "GoldCue" },
-			Platinum = { Money = 20000, Cases = { Rare = 3 }, Cue = "PlatinumCue" },
-			Diamond = { Money = 50000, Cases = { Epic = 1 }, Cue = "DiamondCue" },
-			Expert = { Money = 100000, Cases = { Epic = 2 }, Cue = "ExpertCue" },
-			Veteran = { Money = 200000, Cases = { Epic = 3 }, Cue = "VeteranCue" },
-			Master = { Money = 400000, Cases = { Legendary = 1 }, Cue = "MasterCue" },
-			Grandmaster = { Money = 750000, Cases = { Legendary = 2 }, Cue = "GrandmasterCue" },
-			Reyes = { Money = 2000000, Cases = { Mythic = 1 }, Cue = "ReyesCue" },
+			Bronze = { Money = 2500, Blocks = { Mystery = 1 }, Cue = "BronzeCue" },
+			Silver = { Money = 5000, Blocks = { Rare = 1 }, Cue = "SilverCue" },
+			Gold = { Money = 10000, Blocks = { Rare = 2 }, Cue = "GoldCue" },
+			Platinum = { Money = 20000, Blocks = { Rare = 3 }, Cue = "PlatinumCue" },
+			Diamond = { Money = 50000, Blocks = { Epic = 1 }, Cue = "DiamondCue" },
+			Expert = { Money = 100000, Blocks = { Epic = 2 }, Cue = "ExpertCue" },
+			Veteran = { Money = 200000, Blocks = { Epic = 3 }, Cue = "VeteranCue" },
+			Master = { Money = 400000, Blocks = { Legendary = 1 }, Cue = "MasterCue" },
+			Grandmaster = { Money = 750000, Blocks = { Legendary = 2 }, Cue = "GrandmasterCue" },
+			Reyes = { Money = 2000000, Blocks = { Mythic = 1 }, Cue = "ReyesCue" },
 		},
 	},
 	-- The [TIER] tag before a player's name in chat (src/client/ChatTags.luau; designer,
@@ -1820,16 +1818,16 @@ Config.Economy = {
 	-- everything (rounded, never below $1 a ball).
 	PcDailyCap = 10000,
 	PcAfterCapShare = 0.5,
-	-- Case Drops from Play against PC (3.2, 7.1): only the first PcDropsPerDay PC wins of a
+	-- Lucky blocks from Play against PC (3.2, 7.1): only the first PcDropsPerDay PC wins of a
 	-- UTC day drop one.
 	PcDropsPerDay = 10,
 	-- Disguised bots (3.2; the queue's fallback bot, lobby bots): they pay like a person until
 	-- the player has DisguisedDailyWins disguised wins in a UTC day; after that a disguised win
-	-- pays the PC rows (PC bonuses, the PC cap) and drops no case. Hidden: nothing on screen
+	-- pays the PC rows (PC bonuses, the PC cap) and drops no block. Hidden: nothing on screen
 	-- says so (designer, 2026-10-03). Stops farming lobby bots in an empty server.
 	DisguisedDailyWins = 20,
 	-- Solo (3.2): this share of BallPay ($30) until SoloDailyCap has been earned in solo in a
-	-- UTC day, then SoloAfterCapPay a ball. No nice shots, no bonus, no Case Drop in solo.
+	-- UTC day, then SoloAfterCapPay a ball. No nice shots, no bonus, no block drop in solo.
 	SoloShare = 0.3,
 	SoloDailyCap = 3000,
 	SoloAfterCapPay = 10,
@@ -1851,19 +1849,19 @@ Config.Economy = {
 	PlusBoost = 0.1,
 	-- Anti-farm (3.6): the same opponent in one UTC day. Each row covers matches up to UpTo
 	-- (the last row has no UpTo: every match after). Xp, Bonus and Balls multiply the match's
-	-- XP, its win/loss bonus and its ball pay; FreeCase says whether the winner's Case Drop
+	-- XP, its win/loss bonus and its ball pay; Drop says whether the winner's lucky block
 	-- can drop. In a team match the most-played opponent's count is used.
 	SameOpponent = {
-		{ UpTo = 5, Xp = 1, Bonus = 1, Balls = 1, FreeCase = true },
-		{ UpTo = 10, Xp = 0.5, Bonus = 0.5, Balls = 1, FreeCase = false },
-		{ Xp = 0, Bonus = 0.25, Balls = 0.5, FreeCase = false },
+		{ UpTo = 5, Xp = 1, Bonus = 1, Balls = 1, Drop = true },
+		{ UpTo = 10, Xp = 0.5, Bonus = 0.5, Balls = 1, Drop = false },
+		{ Xp = 0, Bonus = 0.25, Balls = 0.5, Drop = false },
 	} :: {
 		{
 			UpTo: number?,
 			Xp: number,
 			Bonus: number,
 			Balls: number,
-			FreeCase: boolean,
+			Drop: boolean,
 		}
 	},
 	-- The save's per-day opponent table keeps at most this many accounts; past it, a new
@@ -1871,8 +1869,8 @@ Config.Economy = {
 	-- anti-farm off. 300 (about 12 KB of save) is far above a real day: a 3v3 meets 3 new
 	-- accounts at most, so even 100 team matches in a day stay inside it.
 	SameOpponentMaxEntries = 300,
-	FreeCasesPerOpponent = 3, -- at most this many Case Drops a day from beating one account
-	FreeCaseLoserMinMatches = 5, -- the loser must have played this many real matches
+	DropsPerOpponent = 3, -- at most this many lucky blocks a day from beating one account
+	DropLoserMinMatches = 5, -- the loser must have played this many real matches
 	-- Pay the table's difficulty multiplier (Config.Difficulty.MoneyMultiplier: Difficult x1.5,
 	-- Challenger x2). On since 2026-10-03 (the designer decided it 2026-09-26; it waited for
 	-- the rank lock, which exists from Gold I).
@@ -1887,16 +1885,18 @@ Config.Economy = {
 }
 
 ---------------------------------------------------------------------------------------------
--- Cases (src/shared/Progression/Cases.luau; the server's src/server/Items.luau). Every
--- number from docs/ECONOMY.md sections 7, 8 and 9 (2026-09-28). (tune)
+-- Block odds (src/shared/Progression/BlockOdds.luau and BlockDrop.luau): the odds tables every
+-- lucky block rolls, the win's tier roll with pity, and cue sell-back. Every number from
+-- docs/ECONOMY.md sections 7, 8 and 9 (2026-09-28; cases retired for lucky blocks 2026-10-04).
+-- (tune)
 ---------------------------------------------------------------------------------------------
-Config.Cases = {
-	-- The case ladder, lowest first (the approved economy plan, 2026-10-02, section 3). Cases
-	-- come from Case Drops, rewards and the restock shop; none is sold permanently.
+Config.BlockOdds = {
+	-- The tier ladder, lowest first (the approved economy plan, 2026-10-02, section 3). A lucky
+	-- block kind names the row it rolls (Config.LuckyBlocks.Kinds[kind].Odds).
 	Order = { "Standard", "Uncommon", "Rare", "Epic", "Legendary", "Mythic" },
 	-- Odds tables outside the ladder (the lucky-block economy, designer 2026-10-04): the Sky
 	-- block (Lucky Rain), the Grand Opening block (21 days) and the Starter block (the Starter
-	-- Pack). They roll the whole core pool (every case cue of a rarity), never the tier roll.
+	-- Pack). They roll the whole core pool (every block cue of a rarity), never the tier roll.
 	Extra = { "Sky", "GrandOpening", "Starter" },
 	-- Rarities, bottom to top (GDD section 12). Exclusive and Unique sit outside the ladder.
 	Rarities = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret" },
@@ -1904,16 +1904,10 @@ Config.Cases = {
 	-- designer, 2026-09-28). Unique sits above Secret.
 	ExclusiveRanksAbove = "Epic",
 	-- Odds are whole parts of OddsTotal (a million, so 0.0001% is 1), and each row adds to
-	-- exactly OddsTotal (a load-time assert and tests/cases_test check it).
+	-- exactly OddsTotal (a load-time assert and tests/blockodds_test check it).
 	OddsTotal = 1000000,
-	-- Timer: seconds from the moment the case lands until it can be opened (0: at once). Timers
-	-- start by themselves and all run at once; Quick Cases halves them (QuickTimerFactor).
-	-- Price and Enabled: no case is sold (kept 0 / false so the old shop screens still read).
 	List = {
 		Standard = {
-			Timer = 0,
-			Price = 0,
-			Enabled = false,
 			Odds = {
 				Common = 750000,
 				Uncommon = 230000,
@@ -1924,9 +1918,6 @@ Config.Cases = {
 			},
 		},
 		Uncommon = {
-			Timer = 0,
-			Price = 0,
-			Enabled = false,
 			Odds = {
 				Common = 400000,
 				Uncommon = 540000,
@@ -1937,9 +1928,6 @@ Config.Cases = {
 			},
 		},
 		Rare = {
-			Timer = 3600, -- 1 hour
-			Price = 0,
-			Enabled = false,
 			Odds = {
 				Uncommon = 700000,
 				Rare = 296000,
@@ -1950,28 +1938,16 @@ Config.Cases = {
 			},
 		},
 		Epic = {
-			Timer = 6 * 3600,
-			Price = 0,
-			Enabled = false,
 			Odds = { Rare = 780000, Epic = 190000, Legendary = 26000, Mythic = 3600, Secret = 400 },
 		},
 		Legendary = {
-			Timer = 24 * 3600,
-			Price = 0,
-			Enabled = false,
 			Odds = { Epic = 750000, Legendary = 220000, Mythic = 27000, Secret = 3000 },
 		},
 		Mythic = {
-			Timer = 48 * 3600,
-			Price = 0,
-			Enabled = false,
 			Odds = { Legendary = 750000, Mythic = 220000, Secret = 30000 },
 		},
 		-- Lucky Rain's Sky block (plan section 7): between Standard and Uncommon.
 		Sky = {
-			Timer = 0,
-			Price = 0,
-			Enabled = false,
 			Odds = {
 				Common = 450000,
 				Uncommon = 450000,
@@ -1985,9 +1961,6 @@ Config.Cases = {
 		-- nowhere else, named by cue id: the Grand Opening Cue 3% and the Beta Cue 0.3% (the
 		-- 400th block guarantees Beta: Config.LuckyBlocks.Kinds.GrandOpening.Guarantee).
 		GrandOpening = {
-			Timer = 0,
-			Price = 0,
-			Enabled = false,
 			Odds = {
 				Uncommon = 563500,
 				Rare = 374500,
@@ -2001,24 +1974,18 @@ Config.Cases = {
 		},
 		-- The Starter Pack's block: Rare or better, guaranteed.
 		Starter = {
-			Timer = 0,
-			Price = 0,
-			Enabled = false,
 			Odds = { Rare = 970000, Epic = 25000, Legendary = 4500, Mythic = 450, Secret = 50 },
 		},
 	},
-	-- Quick Cases (the pass) multiplies a timer by this: twice as fast. Timers already running
-	-- when the pass is bought are halved once too (Shop.QuickApplied).
-	QuickTimerFactor = 0.5,
-	-- The Case Drop (plan section 2): after every real win (and from Mystery Cases and reward
-	-- drops) the server rolls a case tier by Weights (out of OddsTotal). Pity: the PityRare-th
-	-- drop in a row without a Rare-or-better case is a Rare Case; the PityEpic-th without an
-	-- Epic-or-better is an Epic Case; pity never gives Legendary. The first win's drop is
-	-- FirstWin. The reveal climbs one step at a time from Standard (Progression/CaseDrop).
+	-- The win's block (plan section 2): every real win gives a Mystery lucky block; when it
+	-- opens the server rolls its tier by Weights (out of OddsTotal), then that tier's row.
+	-- Pity: the PityRare-th drop in a row without a Rare-or-better tier is Rare; the
+	-- PityEpic-th without an Epic-or-better is Epic; pity never gives Legendary. The first
+	-- win ever gives a FirstWin block instead (Progression/BlockDrop).
 	Drop = {
 		-- The tier roll (plan 4.2, trimmed 2026-10-04 so the day-30 targets hold with every
 		-- new block source): Standard 68, Uncommon 25, Rare 6.7, Epic 0.28, Legendary 0.0196,
-		-- Mythic 0.0004. A Mystery Lucky Block ticks through these tiers when it opens.
+		-- Mythic 0.0004. A Mystery lucky block ticks through these tiers when it opens.
 		Weights = {
 			Standard = 680000,
 			Uncommon = 250000,
@@ -2031,14 +1998,7 @@ Config.Cases = {
 		PityEpic = 150,
 		FirstWin = "Rare",
 	},
-	-- Old shop fields the GUI lane's screens still read until the one-scroll shop replaces them
-	-- (nothing is sold, so these change nothing): Buy-10, the case sale (none, and /sale
-	-- refuses a case that is not sold).
-	BulkCount = 10,
-	BulkPayFor = 9,
-	Sale = { Case = "", Percent = 0, EndsAt = 0 },
-	MaxSalePercent = 50,
-	-- Selling a case cue back (section 8), by rarity. Exclusive and Unique never sell.
+	-- Selling a block cue back (section 8), by rarity. Exclusive and Unique never sell.
 	SellBack = {
 		Common = 150,
 		Uncommon = 400,
@@ -2049,24 +2009,16 @@ Config.Cases = {
 		Secret = 25000000,
 	},
 	ConfirmSellFrom = "Epic", -- the client asks "are you sure?" from this rarity up
-	-- Old names the result screen and the case reel still read: the case a win drop used to be
-	-- (the reel's fallback pool) and the first win's case (Drop.FirstWin).
-	FreeCase = "Standard",
-	FirstWinCase = "Rare",
 	-- Unboxing one of these is announced in every server (7.4); AnnounceHere only in the
 	-- opener's server (plan section 3: Legendary pulls).
 	Announce = { Mythic = true, Secret = true },
 	AnnounceHere = { Legendary = true },
-	-- How many ready cases of one type one request may open: one on the reel, or up to
-	-- FastOpenCount with Quick Cases.
-	FastOpenCount = 10,
 }
 
 ---------------------------------------------------------------------------------------------
--- Lucky blocks (designer, 2026-10-03): the economy moves from cases to lucky blocks you hold,
--- throw on the floor and open with a 0.5 s hold. TEST BUILD: only the accounts in
--- Config.Debug.Commands.UserIds get blocks (seeded on join, /giveblock), and cases keep working
--- until every case source is converted. Pure rules: src/shared/Progression/LuckyBlocks.luau;
+-- Lucky blocks (designer, 2026-10-03): the cue gacha. You hold a block, throw it on the floor
+-- and open it with a 0.5 s hold. Blocks come from wins, rewards, the shop and trades (cases
+-- retired 2026-10-04). Pure rules: src/shared/Progression/LuckyBlocks.luau;
 -- server: src/server/LuckyBlockService.luau; client: LuckyClient, LuckyHotbar, LuckyWorld,
 -- LuckyOpening. The models are Edit-mode content in ReplicatedStorage.LuckyBlocks (from the
 -- bought pack, assets/luckyblocks/).
@@ -2097,21 +2049,22 @@ Config.LuckyBlocks = {
 		VoidLava = "Epic",
 		GoldKing = "Legendary",
 	},
-	-- Case: the Config.Cases row whose odds and cue pool it rolls (Roll = true instead: the
-	-- Mystery block rolls a tier by Config.Cases.Drop.Weights first and opens as that tier's
-	-- block). Timer: seconds after it lands in the inventory until it can be opened (0: at
-	-- once); a bought block (Paid) opens at once and VIP halves every timer. Model: its
+	-- Odds: the Config.BlockOdds row whose odds and cue pool it rolls (Roll = true instead:
+	-- the Mystery block rolls a tier by Config.BlockOdds.Drop.Weights first and opens as that
+	-- tier's block). Timer: seconds after it lands in the inventory until it can be opened (0:
+	-- at once); a bought block (Paid) opens at once and VIP multiplies every timer by
+	-- VipTimerFactor. Model: its
 	-- template's name in ReplicatedStorage[ModelFolder]. Idle (optional): the block's own idle
 	-- animation, uploaded to the group; without one it plays Anim.BlockIdle. Guarantee: the
 	-- At-th block of this kind a player opens is this cue if they have none (a paid pity, shown
 	-- live). Adding a pack block: the recipe in assets/luckyblocks/Readme.md.
 	Kinds = {
-		Standard = { Case = "Standard", Timer = 0, Model = "YellowLuckyBlock" },
-		Uncommon = { Case = "Uncommon", Timer = 0, Model = "GreenLuckyBlock" },
-		Rare = { Case = "Rare", Timer = 3600, Model = "BlueLuckyBlock" }, -- 1 hour
-		Epic = { Case = "Epic", Timer = 6 * 3600, Model = "VoidLavaLuckyBlock" }, -- 6 hours
+		Standard = { Odds = "Standard", Timer = 0, Model = "YellowLuckyBlock" },
+		Uncommon = { Odds = "Uncommon", Timer = 0, Model = "GreenLuckyBlock" },
+		Rare = { Odds = "Rare", Timer = 3600, Model = "BlueLuckyBlock" }, -- 1 hour
+		Epic = { Odds = "Epic", Timer = 6 * 3600, Model = "VoidLavaLuckyBlock" }, -- 6 hours
 		Legendary = {
-			Case = "Legendary",
+			Odds = "Legendary",
 			Timer = 24 * 3600,
 			Model = "GoldMajesticLuckyBlock", -- the winged gold block (designer, 2026-10-04)
 			Idle = "rbxassetid://80469786057791", -- the pack's Luckbox_Idle (uploaded 2026-10-04)
@@ -2123,7 +2076,7 @@ Config.LuckyBlocks = {
 			IconLight = 1,
 		},
 		Mythic = {
-			Case = "Mythic",
+			Odds = "Mythic",
 			Timer = 48 * 3600,
 			Model = "GoldTitanLuckyBlock", -- reskinned pastel rainbow
 			Idle = "rbxassetid://80469786057791", -- the same Luckbox_Idle motion as Legendary
@@ -2138,7 +2091,7 @@ Config.LuckyBlocks = {
 		Mystery = { Roll = true, Timer = 300, Model = "MysteryLuckyBlock" },
 		-- The shop's hero for 21 days (Config.Shop.Deals.GrandOpening), then retired.
 		GrandOpening = {
-			Case = "GrandOpening",
+			Odds = "GrandOpening",
 			Timer = 0,
 			Model = "GoldKingLuckyBlock",
 			Guarantee = { Cue = "BetaCue", At = 400 },
@@ -2150,10 +2103,10 @@ Config.LuckyBlocks = {
 			IconAmbient = 0.7,
 			IconLight = 1,
 		},
-		Lucky8 = { Case = "Rare", Timer = 0, Model = "Lucky8Block", Bob = true }, -- group + favorite
+		Lucky8 = { Odds = "Rare", Timer = 0, Model = "Lucky8Block", Bob = true }, -- group + favorite
 		-- Lucky Rain: Diamond Ghost recoloured baby blue, the same Luckbox_Idle motion.
 		Sky = {
-			Case = "Sky",
+			Odds = "Sky",
 			Timer = 0,
 			Model = "SkyLuckyBlock",
 			Idle = "rbxassetid://80469786057791",
@@ -2161,14 +2114,15 @@ Config.LuckyBlocks = {
 			HoldCenterShare = 0.4,
 			IconScale = 2, -- close in on the body
 		},
-		Starter = { Case = "Starter", Timer = 0, Model = "StarterLuckyBlock" }, -- the Starter Pack
-		Gift = { Case = "Rare", Timer = 12 * 3600, Model = "StarterLuckyBlock" }, -- the first leave
+		Starter = { Odds = "Starter", Timer = 0, Model = "StarterLuckyBlock" }, -- the Starter Pack
+		Gift = { Odds = "Rare", Timer = 12 * 3600, Model = "StarterLuckyBlock" }, -- no source yet
 	},
 	ModelFolder = "LuckyBlocks",
 	-- A kind with Bob = true (the part-built Lucky 8 block, which has no animation) hovers and
 	-- turns by code once it has landed: this high, this fast.
 	Bob = { HeightStuds = 0.35, Seconds = 2.4, TurnDegreesPerSecond = 30 },
 	SkipProduct = "LuckyBlockSkip", -- 19 Robux: one durable timer skip
+	VipTimerFactor = 0.5, -- VIP multiplies every block timer by this: twice as fast
 	PlacementGapStuds = 3.5, -- keep adjacent floor blocks and their prompts apart
 	PlacementAttempts = 24, -- nearby empty spots to try before asking the player to move
 	LiveFolder = "LuckyBlocksLive", -- Workspace folder for thrown blocks (server-made)
@@ -2180,7 +2134,7 @@ Config.LuckyBlocks = {
 	},
 	MaxBlocks = 200, -- the save holds at most this many blocks
 	-- A block that rolls a Unique cue the player already owns (one per player) is rolled again,
-	-- at most this many times; then it gives the first cue of the case's top rarity.
+	-- at most this many times; then it gives the first cue of the row's top rarity.
 	UniqueRerolls = 10,
 	HotbarSlots = 9, -- the first 9 blocks sit in the hotbar (keys 1-9); the rest in the bag
 	-- The test build: on join every account in Config.Debug.Commands.UserIds is given one of
@@ -2325,7 +2279,7 @@ Config.LuckyBlocks = {
 		DimColor = { 12, 14, 22 },
 		DimTransparency = 0.35,
 		DimSeconds = 0.25,
-		DisplayOrderAbove = 16, -- over the HUD screen (the case opening sits at +14)
+		DisplayOrderAbove = 16, -- over the HUD screen
 		TileFillTransparency = 0.45, -- each reel tile: a dark see-through card...
 		TileStrokePx = 2, -- ...with a slight border in its rarity's colour
 		TileStrokeTransparency = 0.25,
@@ -2478,58 +2432,49 @@ Config.Items = {
 Config.Daily = {
 	-- The login loop (the approved economy plan, 2026-10-02, section 6): one claim per UTC day,
 	-- seven days that repeat. A missed day starts again at day 1, unless the week's streak
-	-- freeze covers it. Each day: Money, Cases ({ [caseId] = count }), Drops (Case Drops)
-	-- and/or Spins (ability spins).
+	-- freeze covers it. Each day: Money, Blocks (lucky blocks, { [kind] = count }) and/or
+	-- Spins (ability spins). Every reward is claimed in the Rewards menu (no popups,
+	-- designer 2026-10-04).
 	Streak = {
 		{ Money = 5000 },
-		{ Drops = 1 },
+		{ Blocks = { Mystery = 1 } },
 		{ Money = 10000 },
-		{ Drops = 2 },
+		{ Blocks = { Mystery = 2 } },
 		{ Money = 15000 },
-		{ Drops = 3 },
-		{ Cases = { Rare = 1 }, Spins = 2 },
-	} :: { { Money: number?, Cases: { [string]: number }?, Drops: number?, Spins: number? } },
+		{ Blocks = { Mystery = 3 } },
+		{ Blocks = { Rare = 1 }, Spins = 2 },
+	} :: { { Money: number?, Blocks: { [string]: number }?, Spins: number? } },
 	-- One free streak freeze a UTC week (weeks start Monday): a single missed day is covered
 	-- by itself, so the streak goes on. Two or more missed days start it over.
 	FreezePerWeek = 1,
 	-- VIP's extra free ability spin a day (plan section 5), added to each day's claim. Everyone's
 	-- one free spin a day is Config.Ults.Earn.DailyFree.
 	VipSpins = 1,
-	-- Today's claim is given by itself on join when it is day 1 of the loop (a new player or a
-	-- streak that started over); the other days are claimed in the Rewards menu.
-	AutoClaimDayOne = true,
-	-- GUI lane (designer 2026-10-03, C9): every day's claim is given by itself on join (not
-	-- only day 1) and shown in the daily login popup; the Rewards menu's Claim goes.
-	AutoClaimEveryDay = true,
-	AutoClaimDelaySeconds = 3, -- after the save loads, so the VIP check lands first
-	-- GUI lane (C9): a playtime gift is given by itself once reached (a popup says so).
-	AutoGivePlaytime = true,
 	-- The 28-day track: total days claimed (never resets), repeating every TrackDays. On the
 	-- day the count reaches one of these it adds its reward to that day's claim.
 	TrackDays = 28,
 	Track = {
-		{ Day = 7, Cases = { Rare = 1 } },
-		{ Day = 14, Cases = { Rare = 2 } },
-		{ Day = 21, Cases = { Rare = 2 } },
-		{ Day = 28, Cases = { Epic = 1 } },
-	} :: { { Day: number, Money: number?, Cases: { [string]: number }?, Drops: number? } },
+		{ Day = 7, Blocks = { Rare = 1 } },
+		{ Day = 14, Blocks = { Rare = 2 } },
+		{ Day = 21, Blocks = { Rare = 2 } },
+		{ Day = 28, Blocks = { Epic = 1 } },
+	} :: { { Day: number, Money: number?, Blocks: { [string]: number }? } },
 	-- Old names the Rewards screen still reads until the GUI lane rebuilds it: the track's four
 	-- weeks ("Week 2 of 4") and its day-28 prize.
 	WeeksForBonus = 4,
-	WeekBonus = { Cases = { Epic = 1 } },
+	WeekBonus = { Blocks = { Epic = 1 } },
 	-- Playtime gifts: minutes played in a UTC day, each claimable once that day.
 	Playtime = {
 		{ Minutes = 10, Money = 2000 },
-		{ Minutes = 30, Drops = 1 },
-		{ Minutes = 60, Drops = 2, Spins = 1 },
+		{ Minutes = 30, Blocks = { Mystery = 1 } },
+		{ Minutes = 60, Blocks = { Mystery = 2 }, Spins = 1 },
 		{ Minutes = 90, Money = 10000 },
-		{ Minutes = 120, Cases = { Rare = 1 } },
+		{ Minutes = 120, Blocks = { Rare = 1 } },
 	} :: {
 		{
 			Minutes: number,
 			Money: number?,
-			Cases: { [string]: number }?,
-			Drops: number?,
+			Blocks: { [string]: number }?,
 			Spins: number?,
 		}
 	},
@@ -2539,24 +2484,23 @@ Config.Daily = {
 	-- designer switches it on in a live game (/code on <CODE>, every server at once; the like
 	-- milestone codes, designer 2026-10-03).
 	Codes = {
-		WELCOME = { Money = 5000, Drops = 1 },
+		WELCOME = { Money = 5000, Blocks = { Mystery = 1 } },
 		["8BALL"] = { Money = 2500 },
-		ROOFTOP = { Cases = { Rare = 1 }, Expires = 1798761600 }, -- through 2026-12-31 (UTC)
+		ROOFTOP = { Blocks = { Rare = 1 }, Expires = 1798761600 }, -- through 2026-12-31 (UTC)
 		-- The spin screen's code box (Config.Ults.CodeBanner.ActiveCode names it): 3 ability
 		-- spins. The tutorial points at it (designer, 2026-10-03: RELEASE replaces ABILITIES).
 		RELEASE = { Spins = 3 },
 		-- Like milestones: 1k, 5k, 10k, 25k, 50k, 100k likes.
-		LIKES1K = { Money = 10000, Drops = 1, Live = true },
-		LIKES5K = { Money = 25000, Drops = 2, Live = true },
-		LIKES10K = { Cases = { Rare = 1 }, Spins = 3, Live = true },
-		LIKES25K = { Cases = { Rare = 2 }, Live = true },
-		LIKES50K = { Money = 100000, Cases = { Rare = 2 }, Live = true },
-		LIKES100K = { Cases = { Rare = 3 }, Spins = 5, Live = true },
+		LIKES1K = { Money = 10000, Blocks = { Mystery = 1 }, Live = true },
+		LIKES5K = { Money = 25000, Blocks = { Mystery = 2 }, Live = true },
+		LIKES10K = { Blocks = { Rare = 1 }, Spins = 3, Live = true },
+		LIKES25K = { Blocks = { Rare = 2 }, Live = true },
+		LIKES50K = { Money = 100000, Blocks = { Rare = 2 }, Live = true },
+		LIKES100K = { Blocks = { Rare = 3 }, Spins = 5, Live = true },
 	} :: {
 		[string]: {
 			Money: number?,
-			Cases: { [string]: number }?,
-			Drops: number?, -- Case Drops
+			Blocks: { [string]: number }?, -- lucky blocks by kind
 			Spins: number?, -- ability spins
 			LuckySpins: number?, -- Lucky Spins
 			Expires: number?,
@@ -2594,16 +2538,23 @@ Config.Trade = {
 	ExclusiveTradable = { StarterCue = true },
 	-- The lopsided warning: one side's worth is more than this many times the other's. A
 	-- cue's worth is 1 / its copies in existence (fewer than MinExists counts as MinExists);
-	-- a case's is 1 / CaseExists (about the copies of a cue as rare as what it usually gives).
+	-- a lucky block's is 1 / BlockExists (about the copies of a cue as rare as what it usually
+	-- gives). Only READY blocks trade (Progression/Trade).
 	LopsidedRatio = 4,
 	MinExists = 10,
-	CaseExists = {
+	BlockExists = {
 		Standard = 100000,
 		Uncommon = 50000,
 		Rare = 10000,
 		Epic = 1000,
 		Legendary = 200,
 		Mythic = 30,
+		Mystery = 70000, -- the tier roll: mostly Standard
+		GrandOpening = 20000,
+		Lucky8 = 10000, -- the Rare row
+		Sky = 60000,
+		Starter = 10000,
+		Gift = 10000,
 	},
 	-- The ledger: each player's trades written before their saves change, replayed on a load
 	-- that missed one (one key per player: the trades not yet confirmed saved).
@@ -2627,11 +2578,11 @@ Config.Social = {
 	GroupId = 675425213, -- "Lucky 8"
 	-- Join (the client's GroupService:PromptJoinAsync) then Claim: this once per player. While a
 	-- member, match money gets Config.Economy.GroupBoost (checked on join and on Claim).
-	GroupReward = { Drops = 3 },
+	GroupReward = { Blocks = { Mystery = 3 } },
 	-- Invites: a brand-new player who joined through a player's invite (the invite's launch
-	-- data) and wins any match that is not solo gives both of them this case. The inviter gets
+	-- data) and wins any match that is not solo gives both of them this lucky block. The inviter gets
 	-- at most InvitesPerMonth a UTC month; one who is offline gets theirs on the next join.
-	InviteCase = "Rare",
+	InviteBlock = "Rare",
 	InvitesPerMonth = 5,
 	-- "Brand new": the save was made at most this long before the launch data is read.
 	NewPlayerSeconds = 600,
@@ -2642,14 +2593,11 @@ Config.Social = {
 	InviteTopic = "InviteRewards_v1",
 	MaxPending = 50, -- invitees one key keeps waiting (far above a month's cap)
 	-- GUI lane (designer 2026-10-03, D7): the inviter's reward is given once ever (their first
-	-- invited friend's first win); every invited friend still gets their own case.
+	-- invited friend's first win); every invited friend still gets their own block.
 	InviterOnce = true,
 	-- GUI lane (D4): favoriting the game through Roblox's favorite prompt gives this once.
 	-- Roblox gives a server no way to check a favorite, so the client reports it.
-	FavoriteReward = { Money = 10000, Drops = 1 },
-	-- The first-leave gift (GUI lane, C15, D3): the first time ever Roblox's menu opens or the
-	-- window loses focus, this case on its normal timer (a Rare Case: ready in 1 hour), once.
-	LeaveGift = { Case = "Rare", Count = 1 },
+	FavoriteReward = { Money = 10000, Blocks = { Mystery = 1 } },
 	-- A ClaimGroup request (it asks Roblox for the player's groups) at most this often.
 	ClaimCooldownSeconds = 5,
 }
@@ -2706,11 +2654,8 @@ Config.Shop = {
 			VaultedSeconds = 7 * 86400, -- the "Vaulted" card stays this long after the end
 		},
 	},
-	-- Old shop fields the Mystery Case screens still read (nothing is sold as a case now).
+	-- The Mystery block's money price (plan section 4; the shop's Mystery band reads it).
 	Mystery = { Price = 4900, BulkCount = 10, BulkPrice = 44100 },
-	-- Finishing a case timer with money (plan section 4): MoneyPerMinute for every minute left
-	-- (a part minute counts whole), at least MinMoney. Robux (Skip1h ... Skip48h) is cheaper.
-	Skip = { MoneyPerMinute = 25, MinMoney = 250 },
 	-- The restock shop (plan section 12; Progression/Restock): new blocks every SlotSeconds on
 	-- the clock (UTC :00, :10 ...), the same in every server (picked from the slot number).
 	-- Three slots each roll one block kind by Odds (parts of ChanceTotal), a fourth for VIP by
@@ -2818,11 +2763,10 @@ Config.Products = {
 	BestValue = "Pack6",
 	List = {
 		-- Game passes.
-		-- VIP (499 R$, designer 2026-10-04: was 599; it absorbs the old Quick Cases perks:
-		-- halved timers, open all, fast reveals, Skip and Auto Spin). The live price is read
-		-- from Roblox; change the pass's price in Creator Hub to match.
+		-- VIP (499 R$, designer 2026-10-04: was 599; halved block timers, fast reveals and
+		-- Auto Spin). The live price is read from Roblox; change the pass's price in Creator
+		-- Hub to match. The Quick Cases pass (id 2006144658) was retired into VIP 2026-10-04.
 		Vip = { Kind = "Pass", Id = 2005370712, Robux = 499 },
-		QuickCases = { Kind = "Pass", Id = 2006144658, Robux = 299, Retired = true }, -- folded into VIP
 		UltSlot2 = { Kind = "Pass", Id = 2006096679, Robux = 59 }, -- the second ability slot
 		UltSlot3 = { Kind = "Pass", Id = 2006012697, Robux = 99 }, -- the third ability slot
 		-- Offers (once).
@@ -2902,35 +2846,6 @@ Config.Products = {
 			Random = true,
 		},
 		LuckyBlockSkip = { Kind = "Product", Id = 3716368528, Robux = 19, Random = true },
-		-- Finish one case timer that has at most SkipSeconds left (the case the player picked).
-		Skip1h = {
-			Kind = "Product",
-			Id = 3716158375,
-			Robux = 15,
-			SkipSeconds = 3600,
-			Random = true,
-		},
-		Skip6h = {
-			Kind = "Product",
-			Id = 3716158376,
-			Robux = 49,
-			SkipSeconds = 21600,
-			Random = true,
-		},
-		Skip24h = {
-			Kind = "Product",
-			Id = 3716158378,
-			Robux = 99,
-			SkipSeconds = 86400,
-			Random = true,
-		},
-		Skip48h = {
-			Kind = "Product",
-			Id = 3716158383,
-			Robux = 149,
-			SkipSeconds = 172800,
-			Random = true,
-		},
 		MoneyParty = { Kind = "Product", Id = 3716158385, Robux = 199 }, -- +100% money, 15 min, server
 		-- Ability spins (ECONOMY 11.8; the spin screen's R$ buy row). Spins / Lucky: what one
 		-- purchase adds; Was: the original price shown crossed out (a real bulk saving against
@@ -9992,11 +9907,11 @@ Config.Bots = {
 	},
 	-- Seat ids: the first bot is FirstSeatId, then one less each (clear of the QA fixtures).
 	FirstSeatId = -1000,
-	-- Looks (src/shared/Bots/Look.luau). A bot's cue comes from opening one of these cases
-	-- for its tier (a Legendary as rare as for a real player who opens the same case; the
-	-- Economy lane owns the real odds), or, TierCueChance of the time, the tier cue of its own
-	-- tier or one below.
-	CueCase = {
+	-- Looks (src/shared/Bots/Look.luau). A bot's cue comes from opening one of these lucky
+	-- blocks (a Config.BlockOdds row) for its tier (a Legendary as rare as for a real player
+	-- who opens the same block), or, TierCueChance of the time, the tier cue of its own tier
+	-- or one below.
+	CueBlock = {
 		Bronze = "Standard",
 		Silver = "Standard",
 		Gold = "Standard",
@@ -10143,10 +10058,10 @@ Config.Bots = {
 -- src/server/TutorialService.luau, src/client/Tutorial*.luau, src/shared/Tutorial/). (tune)
 Config.Tutorial = {
 	-- Rank rewards wait until the player claims them in Rank (designer, 2026-10-03), except
-	-- these tiers' Case Drops, given at once with the rank-up (Bronze's 1 drop follows the
-	-- first win as an 8-ball).
+	-- these tiers' lucky blocks, given at once with the rank-up (Bronze's block follows the
+	-- first win: the tutorial's Standard block, BronzeBlockKind).
 	RankClaim = {
-		DropsAtOnce = { Bronze = true },
+		BlocksAtOnce = { Bronze = true },
 		MinGapSeconds = 0.5, -- one claim request at most this often per player (a double tap)
 		-- The claim block over the roadmap (src/client/RankClaimBlock.luau), in pixels.
 		Block = {
@@ -10184,11 +10099,6 @@ Config.Tutorial = {
 	-- The real server's nudges (step 7, Steps.nudge): the server looks this often.
 	Nudges = {
 		WatchSeconds = 1,
-		PillWidthPx = 120, -- the Rare Case timer pill beside Inventory
-		PillHeightPx = 40,
-		PillGapPx = 8, -- from the Inventory tile's right edge
-		PillTextPx = 22,
-		PillPulseSeconds = 1.2, -- "Ready!" breathes this fast
 	},
 	-- Game 1's rigged rack and break (src/shared/Tutorial/Break.luau), found by
 	-- `lune run tools/tutorial_break.luau` (designer, 2026-10-03: 3 solids down, a 4th left
@@ -10222,23 +10132,12 @@ Config.Tutorial = {
 		AimTurnedDegrees = 2, -- once the player has turned this much, the line says to shoot
 		DragPx = { 170, -80 }, -- the ball-in-hand demo drags the ghost ball this far (px)
 	},
-	-- The stand-in case card after game 1 (src/client/TutorialReveal.luau; the GUI lane's
-	-- 8-ball replaces it once merged). Pixels.
-	Reveal = {
-		WidthPx = 360,
-		HeightPx = 330,
-		PadPx = 18,
-		TitlePx = 28,
-		PicturePx = 150,
-		NotePx = 22,
-		ButtonPx = 52,
-		ButtonWidthPx = 200,
-	},
-	-- Game 1's rewards (answer 9): Bronze's Case Drop is a Standard Case, opened at once.
-	BronzeDropTier = "Standard",
-	BronzeCueRarity = "Uncommon", -- that case opens to a cue of this rarity (answer 9)
+	-- Game 1's rewards (answer 9): Bronze's at-once block is a Standard lucky block, thrown and
+	-- opened in the tutorial (cases retired for blocks 2026-10-04).
+	BronzeBlockKind = "Standard",
+	BronzeCueRarity = "Uncommon", -- that block opens to a cue of this rarity (answer 9)
 	-- The Equip step (designer 2026-10-03): once that cue is equipped, the Inventory stays open
-	-- this long (its "Equipped" notice) before the tutorial closes it for the Rare Case.
+	-- this long (its "Equipped" notice) before the tutorial closes it for the Rare block.
 	EquipCloseSeconds = 1.2,
 	SpinUlt = "Magnet", -- the one starter spin lands on this ability
 	-- The art (tools/gen_tutorial_art.py; uploaded to the group, tools/upload_manifest_tutorial
@@ -10334,9 +10233,9 @@ Config.Tutorial = {
 		Once = { TutorialExit = "FunnelExit" },
 		ThirdMatch = 3, -- onboarding step 21: this many matches played
 		EventGapSeconds = 0.5, -- a client's funnel report of one kind counts at most this often
-		-- The repeating funnels' steps, in order (Funnel.shop, .spins, .caseLanded ...).
+		-- The repeating funnels' steps, in order (Funnel.shop, .spins, .blockLanded ...).
 		Shop = { "Opened", "Viewed", "PressedBuy", "Bought" },
-		CaseDrop = { "Got", "Ready", "Opened", "Equipped" },
+		Block = { "Got", "Ready", "Opened", "Equipped" },
 		Spins = { "OpenedAbilities", "Spun", "Equipped", "UsedInMatch" },
 	},
 }
@@ -10370,7 +10269,6 @@ Config.Debug = {
 			"Money",
 			"AddMoney",
 			"GiveCue",
-			"GiveCase",
 			"GiveBlock",
 			"Spins",
 			"Lucky",
@@ -10391,24 +10289,18 @@ Config.Debug = {
 		-- The economy (DevCommands; `/econhelp` lists them), acting on the caller only (a sale
 		-- and a Money Party are this server's, like the real ones).
 		GiveCue = "/givecue", -- /givecue <id|name> [count]: never Classic or a Unique cue
-		GiveCase = "/givecase", -- /givecase <standard|rare|epic|legendary|event> [count]
-		GiveBlock = "/giveblock", -- /giveblock <yellow|blue> [count]: lucky blocks (the test build)
-		OpenCase = "/opencase", -- /opencase <type>: opens one on the reel, like the button
+		GiveBlock = "/giveblock", -- /giveblock <standard|rare|mystery ...> [count]: lucky blocks
 		Cutscene = "/cutscene", -- /cutscene <rare|epic|legendary|mythic|secret>: the pull cutscene alone (nothing given)
 		Inv = "/inv", -- prints your inventory privately
-		ClearInv = "/clearinv", -- empties your cues (but Classic) and cases
+		ClearInv = "/clearinv", -- empties your cues (but Classic) and lucky blocks
 		Dupes = "/dupes", -- DupeCopies copies of DupeKinds random Common and Uncommon cues
 		SetDay = "/setday", -- /setday <1-7> [week]: the login streak's next claim
 		NewDay = "/newday", -- as if a new UTC day began (daily claim, playtime, limits)
 		Playtime = "/playtime", -- /playtime <minutes>: set today's minutes played
 		Buy = "/buy", -- /buy <product> [purchaseId]: the receipt grant with a fake purchase id
 		Vip = "/vip", -- /vip on|off: fake owning the VIP pass
-		FastOpen = "/fastopen", -- /fastopen on|off: fake owning Fast Open
 		Party = "/party", -- starts (or extends) a Money Party
 		Policy = "/policy", -- /policy restricted|normal: fake PolicyService's paid random items
-		Sale = "/sale", -- /sale <case> <percent> <minutes> | /sale off: a case sale on this server
-		FreeCase = "/freecase", -- as if you won a real match (the Case Drop rule)
-		SkipTime = "/skiptime", -- case timers run that many minutes sooner
 		Restock = "/restock", -- this server shows a restock with that item until it ends
 		Limited = "/limited", -- /limited start [minutes] | end | off: this server's Limited window
 		Code = "/code", -- /code on|off <CODE> | /code list: a Live code in every server
@@ -10469,7 +10361,6 @@ Config.Debug = {
 		MaxGive = 100, -- the most copies one /givecue, or cases one /givecase, gives
 		DupeKinds = 5, -- /dupes: how many different cues...
 		DupeCopies = 3, -- ...and how many copies of each
-		MaxSaleMinutes = 10080, -- the longest /sale (a week)
 		LineChars = 180, -- /inv packs its lists into chat lines of at most this many characters
 		UserIds = { 544959133 }, -- the designer (Painicane) and nobody else, ever
 	},

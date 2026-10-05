@@ -1,5 +1,5 @@
 {
-  "CaseCues": {
+  "BlockCues": {
     "Common": 7,
     "Epic": 9,
     "Legendary": 7,
@@ -8,56 +8,58 @@
     "Secret": 1,
     "Uncommon": 9
   },
-  "Cases": {
+  "BlockOdds": {
     "Drop": {
       "FirstWin": "Rare",
       "PityEpic": 150,
       "PityRare": 10,
       "Weights": {
-        "Epic": 4000,
-        "Legendary": 286,
+        "Epic": 2800,
+        "Legendary": 196,
         "Mythic": 4,
-        "Rare": 66667,
-        "Standard": 679043,
+        "Rare": 67000,
+        "Standard": 680000,
         "Uncommon": 250000
       }
     },
     "List": {
       "Epic": {
-        "Enabled": false,
         "Odds": {
           "Epic": 190000,
           "Legendary": 26000,
           "Mythic": 3600,
           "Rare": 780000,
           "Secret": 400
-        },
-        "Price": 0,
-        "Timer": 21600
+        }
+      },
+      "GrandOpening": {
+        "Odds": {
+          "BetaCue": 3000,
+          "Epic": 25000,
+          "GrandOpeningCue": 30000,
+          "Legendary": 3500,
+          "Mythic": 460,
+          "Rare": 374500,
+          "Secret": 40,
+          "Uncommon": 563500
+        }
       },
       "Legendary": {
-        "Enabled": false,
         "Odds": {
           "Epic": 750000,
           "Legendary": 220000,
           "Mythic": 27000,
           "Secret": 3000
-        },
-        "Price": 0,
-        "Timer": 86400
+        }
       },
       "Mythic": {
-        "Enabled": false,
         "Odds": {
           "Legendary": 750000,
           "Mythic": 220000,
           "Secret": 30000
-        },
-        "Price": 0,
-        "Timer": 172800
+        }
       },
       "Rare": {
-        "Enabled": false,
         "Odds": {
           "Epic": 3500,
           "Legendary": 450,
@@ -65,12 +67,19 @@
           "Rare": 296000,
           "Secret": 5,
           "Uncommon": 700000
-        },
-        "Price": 0,
-        "Timer": 3600
+        }
+      },
+      "Sky": {
+        "Odds": {
+          "Common": 450000,
+          "Epic": 900,
+          "Legendary": 90,
+          "Mythic": 10,
+          "Rare": 99000,
+          "Uncommon": 450000
+        }
       },
       "Standard": {
-        "Enabled": false,
         "Odds": {
           "Common": 750000,
           "Epic": 90,
@@ -78,12 +87,18 @@
           "Mythic": 1,
           "Rare": 19900,
           "Uncommon": 230000
-        },
-        "Price": 0,
-        "Timer": 0
+        }
+      },
+      "Starter": {
+        "Odds": {
+          "Epic": 25000,
+          "Legendary": 4500,
+          "Mythic": 450,
+          "Rare": 970000,
+          "Secret": 50
+        }
       },
       "Uncommon": {
-        "Enabled": false,
         "Odds": {
           "Common": 400000,
           "Epic": 450,
@@ -91,9 +106,7 @@
           "Mythic": 5,
           "Rare": 59500,
           "Uncommon": 540000
-        },
-        "Price": 0,
-        "Timer": 0
+        }
       }
     },
     "OddsTotal": 1000000,
@@ -130,39 +143,43 @@
         "Money": 2500
       },
       "LIKES100K": {
-        "Cases": {
+        "Blocks": {
           "Rare": 3
         },
         "Live": true,
         "Spins": 5
       },
       "LIKES10K": {
-        "Cases": {
+        "Blocks": {
           "Rare": 1
         },
         "Live": true,
         "Spins": 3
       },
       "LIKES1K": {
-        "Drops": 1,
+        "Blocks": {
+          "Mystery": 1
+        },
         "Live": true,
         "Money": 10000
       },
       "LIKES25K": {
-        "Cases": {
+        "Blocks": {
           "Rare": 2
         },
         "Live": true
       },
       "LIKES50K": {
-        "Cases": {
+        "Blocks": {
           "Rare": 2
         },
         "Live": true,
         "Money": 100000
       },
       "LIKES5K": {
-        "Drops": 2,
+        "Blocks": {
+          "Mystery": 2
+        },
         "Live": true,
         "Money": 25000
       },
@@ -170,13 +187,15 @@
         "Spins": 3
       },
       "ROOFTOP": {
-        "Cases": {
+        "Blocks": {
           "Rare": 1
         },
         "Expires": 1798761600
       },
       "WELCOME": {
-        "Drops": 1,
+        "Blocks": {
+          "Mystery": 1
+        },
         "Money": 5000
       }
     },
@@ -187,11 +206,15 @@
         "Money": 2000
       },
       {
-        "Drops": 1,
+        "Blocks": {
+          "Mystery": 1
+        },
         "Minutes": 30
       },
       {
-        "Drops": 2,
+        "Blocks": {
+          "Mystery": 2
+        },
         "Minutes": 60,
         "Spins": 1
       },
@@ -200,7 +223,7 @@
         "Money": 10000
       },
       {
-        "Cases": {
+        "Blocks": {
           "Rare": 1
         },
         "Minutes": 120
@@ -211,22 +234,28 @@
         "Money": 5000
       },
       {
-        "Drops": 1
+        "Blocks": {
+          "Mystery": 1
+        }
       },
       {
         "Money": 10000
       },
       {
-        "Drops": 2
+        "Blocks": {
+          "Mystery": 2
+        }
       },
       {
         "Money": 15000
       },
       {
-        "Drops": 3
+        "Blocks": {
+          "Mystery": 3
+        }
       },
       {
-        "Cases": {
+        "Blocks": {
           "Rare": 1
         },
         "Spins": 2
@@ -234,25 +263,25 @@
     ],
     "Track": [
       {
-        "Cases": {
+        "Blocks": {
           "Rare": 1
         },
         "Day": 7
       },
       {
-        "Cases": {
+        "Blocks": {
           "Rare": 2
         },
         "Day": 14
       },
       {
-        "Cases": {
+        "Blocks": {
           "Rare": 2
         },
         "Day": 21
       },
       {
-        "Cases": {
+        "Blocks": {
           "Epic": 1
         },
         "Day": 28
@@ -272,8 +301,8 @@
     },
     "BallPay": 100,
     "DisguisedDailyWins": 20,
-    "FreeCaseLoserMinMatches": 5,
-    "FreeCasesPerOpponent": 3,
+    "DropLoserMinMatches": 5,
+    "DropsPerOpponent": 3,
     "GroupBoost": 0.1,
     "LossBonus": 150,
     "NiceShotPay": {
@@ -293,21 +322,21 @@
       {
         "Balls": 1,
         "Bonus": 1,
-        "FreeCase": true,
+        "Drop": true,
         "UpTo": 5,
         "Xp": 1
       },
       {
         "Balls": 1,
         "Bonus": 0.5,
-        "FreeCase": false,
+        "Drop": false,
         "UpTo": 10,
         "Xp": 0.5
       },
       {
         "Balls": 0.5,
         "Bonus": 0.25,
-        "FreeCase": false,
+        "Drop": false,
         "Xp": 0
       }
     ],
@@ -352,6 +381,114 @@
         "Money": 25000
       }
     }
+  },
+  "LuckyBlocks": {
+    "Kinds": {
+      "Epic": {
+        "Model": "VoidLavaLuckyBlock",
+        "Odds": "Epic",
+        "Timer": 21600
+      },
+      "Gift": {
+        "Model": "StarterLuckyBlock",
+        "Odds": "Rare",
+        "Timer": 43200
+      },
+      "GrandOpening": {
+        "EmissiveStrength": 0.15,
+        "Guarantee": {
+          "At": 400,
+          "Cue": "BetaCue"
+        },
+        "HoldCenterShare": 0.3,
+        "IconAmbient": 0.7,
+        "IconLight": 1,
+        "IconScale": 1.25,
+        "Idle": "rbxassetid://77259119233155",
+        "Model": "GoldKingLuckyBlock",
+        "Odds": "GrandOpening",
+        "SizeMultiplier": 1.8,
+        "Timer": 0
+      },
+      "Legendary": {
+        "EmissiveStrength": 0.2,
+        "HoldCenterShare": 0.4,
+        "IconAmbient": 0.7,
+        "IconLight": 1,
+        "IconScale": 2.1,
+        "Idle": "rbxassetid://80469786057791",
+        "Model": "GoldMajesticLuckyBlock",
+        "Odds": "Legendary",
+        "SizeMultiplier": 1.6,
+        "Timer": 86400
+      },
+      "Lucky8": {
+        "Bob": true,
+        "Model": "Lucky8Block",
+        "Odds": "Rare",
+        "Timer": 0
+      },
+      "Mystery": {
+        "Model": "MysteryLuckyBlock",
+        "Roll": true,
+        "Timer": 300
+      },
+      "Mythic": {
+        "EmissiveStrength": 0.3,
+        "HoldCenterShare": 0.4,
+        "IconScale": 2.4,
+        "Idle": "rbxassetid://80469786057791",
+        "Model": "GoldTitanLuckyBlock",
+        "Odds": "Mythic",
+        "Rainbow": true,
+        "SizeMultiplier": 1.6,
+        "Timer": 172800
+      },
+      "Rare": {
+        "Model": "BlueLuckyBlock",
+        "Odds": "Rare",
+        "Timer": 3600
+      },
+      "Sky": {
+        "HoldCenterShare": 0.4,
+        "IconScale": 2,
+        "Idle": "rbxassetid://80469786057791",
+        "Model": "SkyLuckyBlock",
+        "Odds": "Sky",
+        "SizeMultiplier": 1.4,
+        "Timer": 0
+      },
+      "Standard": {
+        "Model": "YellowLuckyBlock",
+        "Odds": "Standard",
+        "Timer": 0
+      },
+      "Starter": {
+        "Model": "StarterLuckyBlock",
+        "Odds": "Starter",
+        "Timer": 0
+      },
+      "Uncommon": {
+        "Model": "GreenLuckyBlock",
+        "Odds": "Uncommon",
+        "Timer": 0
+      }
+    },
+    "Order": [
+      "Standard",
+      "Uncommon",
+      "Rare",
+      "Epic",
+      "Legendary",
+      "Mythic",
+      "Mystery",
+      "GrandOpening",
+      "Lucky8",
+      "Sky",
+      "Starter",
+      "Gift"
+    ],
+    "VipTimerFactor": 0.5
   },
   "Packs": [
     {
@@ -534,68 +671,70 @@
       },
       "Tier": {
         "Bronze": {
+          "Blocks": {
+            "Mystery": 1
+          },
           "Cue": "BronzeCue",
-          "Drops": 1,
           "Money": 2500
         },
         "Diamond": {
-          "Cases": {
+          "Blocks": {
             "Epic": 1
           },
           "Cue": "DiamondCue",
           "Money": 50000
         },
         "Expert": {
-          "Cases": {
+          "Blocks": {
             "Epic": 2
           },
           "Cue": "ExpertCue",
           "Money": 100000
         },
         "Gold": {
-          "Cases": {
+          "Blocks": {
             "Rare": 2
           },
           "Cue": "GoldCue",
           "Money": 10000
         },
         "Grandmaster": {
-          "Cases": {
+          "Blocks": {
             "Legendary": 2
           },
           "Cue": "GrandmasterCue",
           "Money": 750000
         },
         "Master": {
-          "Cases": {
+          "Blocks": {
             "Legendary": 1
           },
           "Cue": "MasterCue",
           "Money": 400000
         },
         "Platinum": {
-          "Cases": {
+          "Blocks": {
             "Rare": 3
           },
           "Cue": "PlatinumCue",
           "Money": 20000
         },
         "Reyes": {
-          "Cases": {
+          "Blocks": {
             "Mythic": 1
           },
           "Cue": "ReyesCue",
           "Money": 2000000
         },
         "Silver": {
-          "Cases": {
+          "Blocks": {
             "Rare": 1
           },
           "Cue": "SilverCue",
           "Money": 5000
         },
         "Veteran": {
-          "Cases": {
+          "Blocks": {
             "Epic": 3
           },
           "Cue": "VeteranCue",
@@ -628,55 +767,51 @@
     },
     "Restock": {
       "ChanceTotal": 10000,
-      "Epic": {
-        "Case": "Epic",
-        "Price": 349000,
-        "Product": "RestockEpic",
-        "Stock": 1
+      "Kinds": {
+        "Epic": {
+          "Price": 349000,
+          "Product": "RestockEpic",
+          "Stock": 1
+        },
+        "Legendary": {
+          "Price": 3490000,
+          "Product": "RestockLegendary",
+          "Stock": 1
+        },
+        "Rare": {
+          "Price": 34900,
+          "Product": "RestockRare",
+          "Stock": 1
+        },
+        "Uncommon": {
+          "Price": 14900,
+          "Stock": 3
+        }
       },
-      "EpicChance": 400,
-      "Legendary": {
-        "Case": "Legendary",
-        "Price": 3490000,
-        "Product": "RestockLegendary",
-        "Stock": 1
+      "Odds": {
+        "Epic": 135,
+        "Legendary": 5,
+        "Rare": 3660,
+        "Uncommon": 6200
       },
-      "LegendaryChance": 15,
-      "Mystery": {
-        "Mystery": 3,
-        "Price": 14700,
-        "Stock": 1
-      },
-      "Rare": {
-        "Case": "Rare",
-        "Price": 34900,
-        "Stock": 2
-      },
-      "RareChance": 6000,
       "ReceiptGraceSeconds": 600,
       "SlotSeconds": 600,
-      "Uncommon": {
-        "Case": "Uncommon",
-        "Price": 14900,
-        "Stock": 3
-      },
-      "Vip": {
-        "Case": "Rare",
-        "Price": 34900,
-        "Stock": 1
+      "Slots": 3,
+      "VipOdds": {
+        "Epic": 385,
+        "Legendary": 15,
+        "Rare": 9600
       }
-    },
-    "Skip": {
-      "MinMoney": 250,
-      "MoneyPerMinute": 25
     },
     "StarterMoney": 75000
   },
   "Social": {
     "GroupReward": {
-      "Drops": 3
+      "Blocks": {
+        "Mystery": 3
+      }
     },
-    "InviteCase": "Rare",
+    "InviteBlock": "Rare",
     "InvitesPerMonth": 5
   },
   "Ults": {

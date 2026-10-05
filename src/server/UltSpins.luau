@@ -47,7 +47,7 @@ local Announce = require(script.Parent.Announce)
 
 local U = Config.Ults
 local IS_STUDIO = RunService:IsStudio()
-local FAST_OPEN = "QuickCases" -- the Quick Cases pass's Config.Products key
+local VIP_ATTR = "Vip" -- the Store's attribute: VIP (Auto Spin and fast reveals are VIP perks)
 local DEV_ALL_ATTR = "UltDevAll" -- on the player: the developer flag is on for them
 
 export type Reply = { [string]: any }
@@ -152,7 +152,7 @@ local function build(player: Player): SpinView.Payload?
 		devAll = devAllOf(player),
 		live = isLive(player),
 		restricted = restrictedOf(player) ~= false,
-		fastOpen = Store.ownsPass(player, FAST_OPEN),
+		fastOpen = player:GetAttribute(VIP_ATTR) == true,
 		prices = Store.prices(),
 		auto = if auto ~= nil
 			then { stopAt = auto.stopAt, lucky = auto.lucky, count = auto.count }
@@ -457,7 +457,7 @@ end
 function HANDLERS.AutoStart(player: Player, r: SpinView.Request): Reply
 	if not isLive(player) then
 		return refuse("NotLive")
-	elseif not Store.ownsPass(player, FAST_OPEN) then
+	elseif player:GetAttribute(VIP_ATTR) ~= true then
 		return refuse("NoFastOpen")
 	elseif autos[player] ~= nil then
 		return refuse("AutoRunning")

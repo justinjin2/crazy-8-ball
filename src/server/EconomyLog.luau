@@ -7,7 +7,7 @@
 --
 -- The reason words: what PlayerData's callers pass ("Pocket", "MatchBonus", "StreakBonus",
 -- "Daily", "Playtime", "Code", "RankUp", "Find", "IndexRow", "SellBack", "Purchase:<key>",
--- "BuyCase", "Mystery", "Restock", "Skip", "AbilitySpins", "Limited:<cue>" ...). The part
+-- "Blocks:<deal>", "Restock:<item>", "AbilitySpins", "Limited:<cue>" ...). The part
 -- before a colon picks the transaction type; the whole word is the item SKU.
 local AnalyticsService = game:GetService("AnalyticsService")
 local Players = game:GetService("Players")
@@ -34,13 +34,11 @@ local TRANSACTION: { [string]: string } = {
 	Group = "Onboarding",
 	Invite = "Onboarding",
 	Favorite = "Onboarding", -- GUI lane: the Free Reward page's favorite reward
-	LeaveGift = "Onboarding", -- GUI lane: the first-leave gift
 	Purchase = "IAP",
 	SellBack = "Shop",
-	BuyCase = "Shop",
+	Blocks = "Shop",
 	Mystery = "Shop",
 	Restock = "Shop",
-	Skip = "ContextualPurchase",
 	AbilitySpins = "Shop",
 	Limited = "Shop",
 }

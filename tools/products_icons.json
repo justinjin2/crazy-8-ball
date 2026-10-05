@@ -1,7 +1,6 @@
 {
  "UltSlot2": "assets/ui/icons/ults.png",
  "Vip": "assets/ui/icons/vip.png",
- "QuickCases": "assets/ui/icons/fast_open.png",
  "UltSlot3": "assets/ui/icons/ults.png",
  "VipOffer": "assets/ui/icons/vip.png",
  "StarterPack": "assets/ui/icons/starter_pack.png",
@@ -16,10 +15,6 @@
  "Mystery10": "assets/ui/icons/mystery_case.png",
  "RestockEpic": "assets/ui/icons/case_epic.png",
  "RestockLegendary": "assets/ui/icons/case_legendary.png",
- "Skip1h": "assets/ui/icons/hourglass.png",
- "Skip6h": "assets/ui/icons/hourglass.png",
- "Skip24h": "assets/ui/icons/hourglass.png",
- "Skip48h": "assets/ui/icons/hourglass.png",
  "MoneyParty": "assets/ui/icons/money_party.png",
  "Spin1": "assets/ui/icons/ult_spin.png",
  "Spin5": "assets/ui/icons/ult_spin.png",

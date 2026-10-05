@@ -63,7 +63,7 @@ return {
 			for _ = 1, n do
 				local cue = Catalog.get(BotCues.pick(tier, roll()))
 				assert(cue, "a catalog cue")
-				H.expect(cue.Group == "Case" and not cue.Vaulted, "a case cue")
+				H.expect(cue.Group == "Block" and not cue.Vaulted, "a block cue")
 				H.expect(cue.Rarity ~= "Secret", "never the Secret cue")
 				local rank = Catalog.rarityRank(cue.Rarity)
 				if rank >= Catalog.rarityRank("Epic") then
@@ -92,19 +92,19 @@ return {
 		end
 	end,
 
-	["below Epic follows the Case Drop's odds; within a rarity every cue is equal"] = function()
+	["below Epic follows the Mystery block's odds; within a rarity every cue is equal"] = function()
 		local BotCues, Catalog = load()
-		local CaseDrop = H.require("Progression.CaseDrop")
+		local BlockDrop = H.require("Progression.BlockDrop")
 		local shares = BotCues.shares("Bronze")
-		local weight = CaseDrop.rarityPercent("Common")
-			+ CaseDrop.rarityPercent("Uncommon")
-			+ CaseDrop.rarityPercent("Rare")
-		H.near(shares[1].share, 0.95 * CaseDrop.rarityPercent("Common") / weight, 1e-12, "Common")
-		H.near(shares[3].share, 0.95 * CaseDrop.rarityPercent("Rare") / weight, 1e-12, "Rare")
+		local weight = BlockDrop.rarityPercent("Common")
+			+ BlockDrop.rarityPercent("Uncommon")
+			+ BlockDrop.rarityPercent("Rare")
+		H.near(shares[1].share, 0.95 * BlockDrop.rarityPercent("Common") / weight, 1e-12, "Common")
+		H.near(shares[3].share, 0.95 * BlockDrop.rarityPercent("Rare") / weight, 1e-12, "Rare")
 		-- Evenly spaced rolls through the Common band give each Common cue the same count.
 		local commons = 0
 		for _, cue in Catalog.ofRarity("Common") do
-			if cue.Group == "Case" and not cue.Vaulted then
+			if cue.Group == "Block" and not cue.Vaulted then
 				commons += 1
 			end
 		end

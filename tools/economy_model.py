@@ -7,7 +7,7 @@ reading every game number from src/shared/Config.luau (through tools/economy_con
     python3 tools/economy_model.py --without group,codes   # switch some additions off
     python3 tools/economy_model.py --compare     # plan-only, full, and full minus each addition, side by side
     python3 tools/economy_model.py --like-codes  # also hand out the like-milestone codes
-    python3 tools/economy_model.py tables        # odds per Case Drop, money per hour, rank ladder hours, gap factors
+    python3 tools/economy_model.py tables        # odds per Mystery block, money per hour, rank ladder hours, gap factors
     python3 tools/economy_model.py shop          # money packs, restock shop, prices in Robux and hours
     python3 tools/economy_model.py loot          # reference players: hours and days to a first Epic ... Secret
     python3 tools/economy_model.py hours         # (same as loot)
@@ -19,7 +19,7 @@ The numbers come from tools/economy_config.json, which tools/export_economy.luau
 (how players behave) is an ASSUMPTION constant below, each with a one-line comment.
 
 Not modelled: sell-back money, the Starter Pack, Money Party, timer skips, Limited cues, trading,
-the restock Legendary Case's 25-worldwide cap, anti-farm and PC/bot money rules.
+the restock Legendary block's 25-worldwide cap, anti-farm and PC/bot money rules.
 Nothing here runs in the game. Python 3 standard library only.
 """
 
@@ -69,8 +69,8 @@ PAYER_SHARE_STAYERS, PAYER_SHARE_OTHERS = 0.06, 0.012  # pay Robux: lifetime 7+ 
 BUDGET_MEDIAN, BUDGET_SIGMA, BUDGET_CAP = 450, 1.2, 40000  # a payer's Robux a month (lognormal)
 BUDGET_DAYS = 20  # a payer spends budget / this on each day played
 VIP_SHARE_OF_PAYERS = 0.4  # payers who own VIP
-SAVER_SHARE = 0.3  # players who never buy Mystery Cases (save for the restock shop / Limited)
-MYSTERY_SPEND_SHARE = 0.7  # the others spend this share of their balance on Mystery Cases each day
+SAVER_SHARE = 0.3  # players who never buy Mystery blocks (save for the restock shop / Limited)
+MYSTERY_SPEND_SHARE = 0.7  # the others spend this share of their balance on Mystery blocks each day
 WINNER_BALLS, LOSER_BALLS = 7.5, 4.0  # balls that pay the winner / loser in a match
 WINNER_NICE, LOSER_NICE = 0.5, 0.3  # nice shots per match, winner / loser
 PAYER_PACKS = ("Pack3", "Pack4", "Pack5", "Pack6", "Pack7")  # packs a payer buys (average money per Robux)
@@ -78,8 +78,8 @@ PAYER_PACKS = ("Pack3", "Pack4", "Pack5", "Pack6", "Pack7")  # packs a payer buy
 # ------------------------------------------------------------------------------------------------
 # The additions the plan's sim lacked (each can be switched off; --plan-only switches all off)
 # ------------------------------------------------------------------------------------------------
-PLAN_PLAYTIME_MAX_MINUTES = 90  # the plan's sim had playtime gifts up to 90 min (no 120-min Rare Case)
-GROUP_JOIN_SHARE = 0.30  # players who join the group on their first day (3 Case Drops, +10% money)
+PLAN_PLAYTIME_MAX_MINUTES = 90  # the plan's sim had playtime gifts up to 90 min (no 120-min Rare block)
+GROUP_JOIN_SHARE = 0.30  # players who join the group on their first day (3 Mystery blocks, +10% money)
 MODE_MIX = {"Classic": 0.5, "Difficult": 0.3, "Challenger": 0.2}  # tables played once harder ones unlock
 INVITED_SHARE = 0.05  # new players who arrive through a friend's invite
 CODE_REDEEM_SHARE = 0.7  # new players who redeem the launch codes (WELCOME, 8BALL, ROOFTOP) on day 1
@@ -91,17 +91,17 @@ RESTOCK_VISITS_PER_DAY = 1  # restocks such a player buys from in a day
 PLUS_SHARE = 0.12  # players with Roblox Plus (Premium), an estimate: +Economy.PlusBoost match money
 SPIN_SPEND_SHARE = 0.10  # share of a spender's daily spend that goes on ability spins (money sink)
 EXTRAS = {
-    "playtime120": "the 120-minute playtime Rare Case",
-    "group": "group: 3 Case Drops once, +10% match money",
+    "playtime120": "the 120-minute playtime Rare block",
+    "group": "group: 3 Mystery blocks once, +10% match money",
     "difficulty": "difficulty money multiplier (and mode XP) once Gold unlocks harder tables",
-    "invites": "invites: both players get a Rare Case, 5 a month cap",
+    "invites": "invites: both players get a Rare block, 5 a month cap",
     "codes": "launch codes (WELCOME, 8BALL, ROOFTOP; like codes only with --like-codes)",
     "restock": "restock Rare and Uncommon slots (and VIP's extra Rare)",
     "streak": "win-streak money and XP (3rd win in a row on)",
     "rankSteps": "rank money for each new division II-V",
     "index": "finder's money and Index row money",
     "spins": "ability spins bought with money (a sink)",
-    "bulk": "Mystery Cases bought 10 at a time at the bulk price when the money allows",
+    "bulk": "Mystery blocks bought 10 at a time at the bulk price when the money allows",
     "plus": "Roblox Plus members: +10% match money (about 12% of players)",
 }
 
@@ -130,7 +130,7 @@ class Game:
 
     def __init__(self, c):
         self.c = c
-        cs = c["Cases"]
+        cs = c["BlockOdds"]
         self.cases = cs["Order"]
         self.total = cs["OddsTotal"]
         assert cs["Rarities"] == RAR, cs["Rarities"]
@@ -180,7 +180,7 @@ class Game:
         self.like_codes = [(LIKE_CODE_DAYS[k], codes[k]) for k in sorted(LIKE_CODE_DAYS) if k in codes]
         so = c["Social"]
         self.group_reward = so["GroupReward"]
-        self.invite_case = self.cases.index(so["InviteCase"])
+        self.invite_case = self.cases.index(so["InviteBlock"])
         self.invites_per_month = so["InvitesPerMonth"]
         rs = c["Shop"]["Restock"]
         ct = rs["ChanceTotal"]
@@ -189,7 +189,7 @@ class Game:
         self.rare_slot = (self.cases.index(rs["Rare"]["Case"]), rs["RareChance"] / ct, rs["Rare"]["Price"], rs["Rare"]["Stock"])
         self.unc_slot = (self.cases.index(rs["Uncommon"]["Case"]), rs["Uncommon"]["Price"], rs["Uncommon"]["Stock"])
         self.vip_slot = (self.cases.index(rs["Vip"]["Case"]), rs["Vip"]["Price"], rs["Vip"]["Stock"])
-        self.cue_count = [c["CaseCues"].get(r, 0) for r in RAR]
+        self.cue_count = [c["BlockCues"].get(r, 0) for r in RAR]
         ix = c["Index"]
         self.find_money = [ix["FindMoney"].get(r, 0) for r in RAR]
         self.row_money = [ix["Rows"].get(r, {}).get("Money", 0) for r in RAR]
@@ -203,12 +203,12 @@ class Game:
         return out
 
     def per_drop_odds(self):
-        """Each rarity's chance per Case Drop, no pity (fractions)."""
+        """Each rarity's chance per Mystery block, no pity (fractions)."""
         p = [0.0] * 7
-        w = self.c["Cases"]["Drop"]["Weights"]
+        w = self.c["BlockOdds"]["Drop"]["Weights"]
         for k in self.cases:
             for i, r in enumerate(RAR):
-                p[i] += w.get(k, 0) / self.total * self.c["Cases"]["List"][k]["Odds"].get(r, 0) / self.total
+                p[i] += w.get(k, 0) / self.total * self.c["BlockOdds"]["List"][k]["Odds"].get(r, 0) / self.total
         return p
 
 
@@ -241,7 +241,7 @@ def run(g, extras, days=DAYS, sample=SAMPLE, seed=SEED, report=REPORT_DAYS, ref=
     on = lambda k: k in extras
     pop = random.Random(seed)  # player traits
     act = random.Random(seed + 1000)  # who plays, minutes, matches
-    loot = random.Random(seed + 2000)  # Case Drops and case openings
+    loot = random.Random(seed + 2000)  # block drops and block openings
     xtra = random.Random(seed + 3000)  # decisions of the additions (kept apart so they do not shift the rest)
 
     if ref:
@@ -287,7 +287,7 @@ def run(g, extras, days=DAYS, sample=SAMPLE, seed=SEED, report=REPORT_DAYS, ref=
     found = [[0] * 7 for _ in range(N)]  # Index: bitmask of the cues found, per rarity
     row_paid = [0] * N  # Index rows paid (bitmask by rarity)
     like_tried = [0] * N  # like codes already offered (bitmask)
-    invites_month = {}  # (inviter, month) -> invite cases received
+    invites_month = {}  # (inviter, month) -> invite blocks received
     hours = [0.0] * N
     first_hour = {r: [math.inf] * N for r in range(3, 7)} if ref else None
     source = [[0] * 7 for _ in SRC]
@@ -323,11 +323,11 @@ def run(g, extras, days=DAYS, sample=SAMPLE, seed=SEED, report=REPORT_DAYS, ref=
 
     def give_reward(p, row, src):
         money[p] += row.get("Money", 0)
-        for _ in range(row.get("Drops", 0)):
+        blocks = row.get("Blocks", {})
+        for _ in range(blocks.get("Mystery", 0)):
             give_drop(p, src)
-        cases = row.get("Cases", {})
         for k in g.cases:
-            for _ in range(cases.get(k, 0)):
+            for _ in range(blocks.get(k, 0)):
                 give_case(p, g.cases.index(k), src)
 
     playtime = [row for row in g.playtime if on("playtime120") or row["Minutes"] <= PLAN_PLAYTIME_MAX_MINUTES]
@@ -400,7 +400,7 @@ def run(g, extras, days=DAYS, sample=SAMPLE, seed=SEED, report=REPORT_DAYS, ref=
             # Robux: payers turn their budget into money on days they play.
             if payer[p]:
                 money[p] += budget[p] / BUDGET_DAYS * g.money_per_robux
-            # Restock shop: the lucky Epic / Legendary Case, bought by anyone who sees it and can pay.
+            # Restock shop: the lucky Epic / Legendary block, bought by anyone who sees it and can pay.
             restocks = int(mins / g.slot_minutes)
             for tier, q, price in g.lucky:
                 if loot.random() < 1 - (1 - q) ** restocks and money[p] >= price:
@@ -420,7 +420,7 @@ def run(g, extras, days=DAYS, sample=SAMPLE, seed=SEED, report=REPORT_DAYS, ref=
                         money[p] -= n * price
                         for _ in range(n):
                             give_case(p, tier, 2)
-            # Mystery Cases with money (and, an addition, ability spins).
+            # Mystery blocks with money (and, an addition, ability spins).
             if not saver[p]:
                 spend = money[p] * MYSTERY_SPEND_SHARE
                 if on("spins"):
@@ -531,7 +531,7 @@ def _job(job):
 
 def cmd_sim(g, args):
     p = g.per_drop_odds()
-    print("Per Case Drop (no pity): " + ", ".join(f"{r} {x * 100:.4g}%" for r, x in zip(RAR, p) if x > 0))
+    print("Per Mystery block (no pity): " + ", ".join(f"{r} {x * 100:.4g}%" for r, x in zip(RAR, p) if x > 0))
     print(f"Money: winner ${g.win_pay:,.0f}, loser ${g.loss_pay:,.0f} a match (Classic, before boosts); "
           f"difficulty mix x{g.mode_money:.2f} from {g.tiers[g.unlock_tier]}; ${g.money_per_robux:.0f} per Robux\n")
     if args.compare:
@@ -586,13 +586,13 @@ def cmd_supply(g, _args):
     a day = average CCU x 24, the average CCU about half the peak)."""
     p = g.per_drop_odds()
     drops_per_hour = 60 / MIN_PER_MATCH * 0.5  # win drops alone, 50% win rate
-    print("Cue supply from win drops alone (1 Case Drop a win, 7.5 matches an hour, 50% win rate):\n")
+    print("Cue supply from win drops alone (1 Mystery block a win, 7.5 matches an hour, 50% win rate):\n")
     print(f"  {'rarity':10s} {'per hour':>9s} {'500 CCU':>10s} {'2k CCU':>10s} {'10k CCU':>10s}  (a day)")
     for i, r in enumerate(RAR):
         rate = p[i] * drops_per_hour
         cells = [rate * ccu * 0.5 * 24 for ccu in (500, 2000, 10000)]
         print(f"  {r:10s} {rate:9.4f} " + " ".join(f"{c:10,.1f}" for c in cells))
-    print("\n  The full sim's 'copies by source' lines (default command) add rewards and Mystery Cases.")
+    print("\n  The full sim's 'copies by source' lines (default command) add rewards and Mystery blocks.")
 
 
 def cmd_shop(g, _args):
@@ -606,14 +606,14 @@ def cmd_shop(g, _args):
         print(f"  {pk['Key']:6s} {pk['Robux']:>5} R$  ${pk['Money']:>10,}  ${rate:6.1f} per R$  +{(rate / base - 1) * 100:3.0f}%")
     best = max(pk["Money"] / pk["Robux"] for pk in c["Packs"])
     rs = c["Shop"]["Restock"]
-    items = [("Mystery Case", g.mystery), ("Ability spin", g.spin_price), ("Restock Uncommon Case", rs["Uncommon"]["Price"]),
-             ("Restock Rare Case", rs["Rare"]["Price"]), ("Restock Epic Case", rs["Epic"]["Price"]),
-             ("Restock Legendary Case", rs["Legendary"]["Price"])]
+    items = [("Mystery block", g.mystery), ("Ability spin", g.spin_price), ("Restock Uncommon block", rs["Uncommon"]["Price"]),
+             ("Restock Rare block", rs["Rare"]["Price"]), ("Restock Epic block", rs["Epic"]["Price"]),
+             ("Restock Legendary block", rs["Legendary"]["Price"])]
     items += [(f"Limited {row['Cue']}", row["Price"]) for row in c["Shop"].get("Limited", []) if row.get("Price")]
     print("\nWhat things cost: Robux at the best pack rate, and hours of Classic play\n")
     for name, price in items:
         print(f"  {name:24s} ${price:>10,}  ~{price / best:7,.0f} R$  {price / hour_money:7.1f} h")
-    print(f"\nRestock shop every {rs['SlotSeconds'] // 60} min: Rare Case in {rs['RareChance'] / rs['ChanceTotal']:.0%} of restocks, "
+    print(f"\nRestock shop every {rs['SlotSeconds'] // 60} min: Rare block in {rs['RareChance'] / rs['ChanceTotal']:.0%} of restocks, "
           f"Epic {rs['EpicChance'] / rs['ChanceTotal']:.2%}, Legendary {rs['LegendaryChance'] / rs['ChanceTotal']:.2%} "
           f"(one in {rs['ChanceTotal'] / rs['LegendaryChance'] * rs['SlotSeconds'] / 3600:.0f} h)")
 
@@ -684,11 +684,11 @@ def ladder_hours(L, p, classic_only):
 
 def cmd_tables(g, _args):
     p = g.per_drop_odds()
-    print("Per Case Drop (no pity), and each case's odds (must sum to OddsTotal)\n")
+    print("Per Mystery block (no pity), and each odds row (must sum to OddsTotal)\n")
     print("  " + ", ".join(f"{r} {x * 100:.4g}% (1 in {1 / x:,.0f})" for r, x in zip(RAR, p) if x > 0))
     for k in g.cases:
-        odds = g.c["Cases"]["List"][k]["Odds"]
-        print(f"  {k:10s} sum {sum(odds.values()):>9,}  timer {g.c['Cases']['List'][k]['Timer'] / 3600:4.0f} h  "
+        odds = g.c["BlockOdds"]["List"][k]["Odds"]
+        print(f"  {k:10s} sum {sum(odds.values()):>9,}  timer {g.c['LuckyBlocks']['Kinds'][k]['Timer'] / 3600:4.0f} h  "
               + "  ".join(f"{r} {odds[r] / g.total * 100:.4g}%" for r in RAR if r in odds))
     print()
     for mode in ("Classic", "Difficult", "Challenger"):

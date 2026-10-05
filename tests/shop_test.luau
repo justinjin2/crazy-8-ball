@@ -182,13 +182,12 @@ local function receipt(userId: number, productId: number, purchaseId: string): a
 end
 
 -- A ShopView context at unix time `now`: a player who joined at JOIN, owns nothing, in a
--- server with no party, no sale, no Limited counts read and no live prices.
+-- server with no party, no Limited counts read and no live prices.
 local function ctxAt(now: number, overrides: { [string]: any }?): any
 	local ctx: { [string]: any } = {
 		now = now,
 		shop = newShop(),
 		vipPass = false,
-		fastOpen = false,
 		restricted = false,
 		partyEndsAt = 0,
 		sold = {},
@@ -450,7 +449,6 @@ return {
 				Shop.grantFor("Vip", newShop(), JOIN, false) == nil,
 				"a pass is not granted by receipt"
 			)
-			H.expect(Shop.grantFor("QuickCases", newShop(), JOIN, false) == nil, "nor Quick Cases")
 			H.expect(Shop.grantFor("NoSuchProduct", newShop(), JOIN, false) == nil, "unknown")
 		end)
 	end,
@@ -872,7 +870,6 @@ return {
 				MoneyParty = 4,
 				FoundersCue = 5,
 				Vip = 6,
-				QuickCases = 7,
 			}, function()
 				local joined = ctxAt(JOIN + HOUR)
 				H.expect(ShopView.check("Pack1", joined) == nil, "a money pack always sells")
@@ -896,10 +893,9 @@ return {
 					"VIP through the offer owns the pass's perks"
 				)
 				H.expect(
-					ShopView.check("QuickCases", ctxAt(JOIN, { fastOpen = true })) == "Closed",
-					"Quick Cases is retired"
+					ShopView.check("QuickCases", joined) == "BadRequest",
+					"Quick Cases is gone"
 				)
-				H.expect(ShopView.check("QuickCases", joined) == "Closed", "never sold")
 				H.expect(ShopView.check("StarterPack", joined) == nil, "the Starter Pack's week")
 				H.expect(
 					ShopView.check("StarterPack", ctxAt(JOIN + 7 * DAY)) == "Closed",
@@ -955,8 +951,6 @@ return {
 
 	["ShopView.build: the ShopState payload"] = noIds(function()
 		withLimiteds(function()
-			local sale =
-				ShopView.readSale({ Case = "Epic", Percent = 20, EndsAt = JOIN + DAY }, JOIN)
 			withIds({ Pack2 = 11, Vip = 12 }, function()
 				local now = JOIN + HOUR
 				local p = ShopView.build(ctxAt(now, {
@@ -965,7 +959,6 @@ return {
 					partyBuyer = "Painicane",
 					sold = { BetaCue = 412 },
 					shop = newShop({ Limited = { BetaCue = 412 } }),
-					sale = sale,
 				}))
 				for _, key in Config.Products.PackOrder do
 					H.expect(p.products[key] ~= nil, key .. " listed")
@@ -973,7 +966,9 @@ return {
 				for _, key in { "VipOffer", "StarterPack", "MoneyParty", "Vip" } do
 					H.expect(p.products[key] ~= nil, key .. " listed")
 				end
-				H.expect(p.products.QuickCases == nil, "a retired product is hidden")
+				H.expect(p.products.QuickCases == nil, "Quick Cases is gone")
+				H.expect(p.products.Skip1h == nil and p.products.Skip48h == nil, "no case skips")
+				H.expect((p :: any).sale == nil and (p :: any).fastOpen == nil, "no case sale")
 				local pack1, pack2 = p.products.Pack1, p.products.Pack2
 				H.expect(
 					pack1.robux == 49 and pack2.robux == 95,
@@ -1007,10 +1002,6 @@ return {
 					p.party ~= nil and p.party.endsAt == now + 600 and p.party.buyer == "Painicane",
 					"the party"
 				)
-				H.expect(
-					p.sale ~= nil and p.sale.case == "Epic" and p.sale.percent == 20,
-					"the sale"
-				)
 				local beta = nil
 				for _, row in p.limited do
 					if row.cue == "BetaCue" then
@@ -1026,10 +1017,7 @@ return {
 					"Owned #412"
 				)
 				H.expect(#p.limited == #Shop.limited(), "every Limited row, in shelf order")
-				H.expect(
-					not p.vip and not p.vipPass and not p.vipOffer and not p.fastOpen,
-					"no VIP, no Fast Open"
-				)
+				H.expect(not p.vip and not p.vipPass and not p.vipOffer, "no VIP")
 				H.expect(
 					not p.firstPackBought and not p.starterBought and not p.restricted,
 					"flags"
@@ -1109,12 +1097,6 @@ return {
 			ShopView.nextChange(ctxAt(t, { partyEndsAt = t + 60 })) == expected(t, t + 60),
 			"the party's end"
 		)
-		H.expect(
-			ShopView.nextChange(
-				ctxAt(t, { sale = { case = "Epic", percent = 20, endsAt = t + 30 } })
-			) == t + 30,
-			"the sale's end"
-		)
 		local far = JOIN + 4000 * DAY
 		H.expect(
 			ShopView.nextChange(ctxAt(far)) == soonest(limitedBoundary(far), restockEnd(far)),
@@ -1127,54 +1109,9 @@ return {
 		)
 	end,
 
-	["ShopView.readSale: only a real, running sale"] = function()
-		local now = JOIN
-		local sale = ShopView.readSale({ Case = "Rare", Percent = 25, EndsAt = now + 60 }, now)
-		H.expect(
-			sale ~= nil and sale.case == "Rare" and sale.percent == 25 and sale.endsAt == now + 60,
-			"Config's spelling"
-		)
-		H.expect(
-			ShopView.readSale({ case = "Epic", percent = 10, endsAt = now + 1 }, now) ~= nil,
-			"the payload's spelling"
-		)
-		H.expect(ShopView.readSale(Config.Cases.Sale, now) == nil, "Config's default: no sale")
-		H.expect(
-			ShopView.readSale({ Case = "NoSuchCase", Percent = 25, EndsAt = now + 60 }, now) == nil,
-			"an unknown case"
-		)
-		H.expect(
-			ShopView.readSale({ Case = "Rare", Percent = 0, EndsAt = now + 60 }, now) == nil,
-			"0% off"
-		)
-		H.expect(
-			ShopView.readSale({ Case = "Rare", Percent = 100, EndsAt = now + 60 }, now) == nil,
-			"free is no sale"
-		)
-		H.expect(
-			ShopView.readSale({ Case = "Rare", Percent = 25, EndsAt = now }, now) == nil,
-			"ended"
-		)
-		H.expect(
-			ShopView.readSale(nil, now) == nil and ShopView.readSale("Rare", now) == nil,
-			"not a table"
-		)
-		local max = Config.Cases.MaxSalePercent
-		H.expect(max == 50, "at most 50% off")
-		H.expect(
-			ShopView.readSale({ Case = "Rare", Percent = max, EndsAt = now + 60 }, now) ~= nil,
-			"the max is a sale"
-		)
-		H.expect(
-			ShopView.readSale({ Case = "Rare", Percent = max + 1, EndsAt = now + 60 }, now) == nil,
-			"past the max is no sale"
-		)
-	end,
-
-	["the Dashboard list: 4 game passes and 28 developer products at the plan's prices"] = function()
+	["the Dashboard list: 3 game passes and 24 developer products at the plan's prices"] = function()
 		local want = {
 			Vip = 499,
-			QuickCases = 299,
 			UltSlot2 = 59,
 			UltSlot3 = 99,
 			VipOffer = 249,
@@ -1194,10 +1131,6 @@ return {
 			Mystery10 = 229,
 			RestockEpic = 999,
 			RestockLegendary = 4999,
-			Skip1h = 15,
-			Skip6h = 49,
-			Skip24h = 99,
-			Skip48h = 149,
 			MoneyParty = 199,
 			Spin1 = 15,
 			Spin5 = 50,
@@ -1217,15 +1150,18 @@ return {
 			end
 		end
 		H.expect(
-			passes == 4 and products == 28,
+			passes == 3 and products == 24,
 			("%d passes, %d products"):format(passes, products)
 		)
-		H.expect(Shop.product("FastOpen") == nil, "Fast Open is Quick Cases now")
+		-- Retired with the cases (2026-10-04): Quick Cases, Fast Open and the timer skips.
+		for _, key in { "FastOpen", "QuickCases", "Skip1h", "Skip6h", "Skip24h", "Skip48h" } do
+			H.expect(Shop.product(key) == nil, key .. " is gone")
+		end
 		H.expect(Config.Products.BestValue == "Pack6", "Best value")
-		for _, key in { "Mystery1", "RestockEpic", "Skip48h", "Spin1", "Lucky3", "StarterPack" } do
+		for _, key in { "Mystery1", "RestockEpic", "Spin1", "Lucky3", "StarterPack" } do
 			H.expect(Shop.isRandom(key), key .. " is a paid random item")
 		end
-		for _, key in { "Pack1", "Vip", "QuickCases", "MoneyParty" } do
+		for _, key in { "Pack1", "Vip", "MoneyParty" } do
 			H.expect(not Shop.isRandom(key), key .. " is not random")
 		end
 	end,
@@ -1259,91 +1195,81 @@ return {
 	end,
 
 	["paid random items are refused where restricted; the page order and Roblox Plus"] = function()
-		withIds(
-			{ Mystery1 = 21, Mystery10 = 22, Pack1 = 23, RestockEpic = 24, Skip1h = 25 },
-			function()
-				local now = JOIN + HOUR
-				H.expect(ShopView.check("Mystery1", ctxAt(now)) == nil, "on sale")
-				H.expect(
-					ShopView.check("Mystery10", ctxAt(now, { restricted = true })) == "Restricted",
-					"restricted"
-				)
-				H.expect(
-					ShopView.check("Mystery1", ctxAt(now, { policyKnown = false })) == "NotLoaded",
-					"policy not known yet"
-				)
-				H.expect(ShopView.check("Pack1", ctxAt(now, { restricted = true })) == nil, "money")
-				-- RestockEpic sells only in a restock with an Epic block in a slot.
-				local Restock = H.require("Progression.Restock")
-				local epicSlot = 0
-				while Restock.forProduct(epicSlot, "RestockEpic") == nil do
-					epicSlot += 1
-				end
-				local epicAt = epicSlot * Config.Shop.Restock.SlotSeconds
-				local epicItem = Restock.forProduct(epicSlot, "RestockEpic")
-				H.expect(ShopView.check("RestockEpic", ctxAt(epicAt)) == nil, "in this restock")
-				local bought = {}
-				for _, it in Restock.items(epicSlot) do
-					if it.product == "RestockEpic" then
-						bought[it.id] = 1
-					end
-				end
-				H.expect(
-					ShopView.check(
-						"RestockEpic",
-						ctxAt(epicAt, { restock = { Slot = epicSlot, Bought = bought } })
-					) == "SoldOut",
-					"one per player per slot"
-				)
-				H.expect(epicItem ~= nil and epicItem.block == "Epic", "an Epic block")
-				local full = {}
-				for i = 1, Config.LuckyBlocks.MaxBlocks do
-					full[i] = { Id = i, Kind = "Standard", ReadyAt = 0 }
-				end
-				H.expect(
-					ShopView.check("RestockEpic", ctxAt(epicAt, { blocks = { List = full } }))
-						== "Full",
-					"no room in the hotbar"
-				)
-				H.expect(
-					ShopView.check("Mystery10", ctxAt(now, { blocks = { List = full } })) == "Full",
-					"nor for ten Mystery blocks"
-				)
-				local plainSlot = 0
-				while Restock.forProduct(plainSlot, "RestockEpic") ~= nil do
-					plainSlot += 1
-				end
-				H.expect(
-					ShopView.check(
-						"RestockEpic",
-						ctxAt(plainSlot * Config.Shop.Restock.SlotSeconds)
-					) == "NotSold",
-					"not in this restock"
-				)
-				H.expect(ShopView.check("Skip1h", ctxAt(now)) == nil, "a skip passes the check")
-				local p = ShopView.build(ctxAt(now))
-				H.expect(
-					table.concat(p.order, " ") == table.concat(Config.Shop.Order, " "),
-					"order"
-				)
-				H.expect(
-					p.order[1] == "GrandOpening" and p.order[#p.order] == "RobloxPlus",
-					"top, bottom"
-				)
-				H.expect(p.deals.Mystery.open and p.deals.Mystery.counts[2] == 10, "the deals")
-				H.expect(p.deals.GrandOpening.timed and not p.deals.GrandOpening.open, "off")
-				local g = p.guarantees.GrandOpening
-				H.expect(g ~= nil and g.cue == "BetaCue" and g.at == 400 and g.left == 399, "")
-				H.expect(p.fastOpen == false, "no fast open")
-				H.expect(ShopView.build(ctxAt(now, { vipPass = true })).fastOpen, "VIP opens fast")
-				H.expect(p.robloxPlus == true and p.bestValue == "Pack6" and #p.packs == 7, "rest")
-				-- A /restock forced restock shows its items on the real restock's countdown.
-				local forced = ShopView.build(ctxAt(now, { restockSlot = epicSlot }))
-				local _, realEnd = Restock.window(Restock.slotOf(now))
-				H.expect(forced.restock.slot == epicSlot, "the forced items")
-				H.expect(forced.restock.endsAt == realEnd, "the real countdown")
+		withIds({ Mystery1 = 21, Mystery10 = 22, Pack1 = 23, RestockEpic = 24 }, function()
+			local now = JOIN + HOUR
+			H.expect(ShopView.check("Mystery1", ctxAt(now)) == nil, "on sale")
+			H.expect(
+				ShopView.check("Mystery10", ctxAt(now, { restricted = true })) == "Restricted",
+				"restricted"
+			)
+			H.expect(
+				ShopView.check("Mystery1", ctxAt(now, { policyKnown = false })) == "NotLoaded",
+				"policy not known yet"
+			)
+			H.expect(ShopView.check("Pack1", ctxAt(now, { restricted = true })) == nil, "money")
+			-- RestockEpic sells only in a restock with an Epic block in a slot.
+			local Restock = H.require("Progression.Restock")
+			local epicSlot = 0
+			while Restock.forProduct(epicSlot, "RestockEpic") == nil do
+				epicSlot += 1
 			end
-		)
+			local epicAt = epicSlot * Config.Shop.Restock.SlotSeconds
+			local epicItem = Restock.forProduct(epicSlot, "RestockEpic")
+			H.expect(ShopView.check("RestockEpic", ctxAt(epicAt)) == nil, "in this restock")
+			local bought = {}
+			for _, it in Restock.items(epicSlot) do
+				if it.product == "RestockEpic" then
+					bought[it.id] = 1
+				end
+			end
+			H.expect(
+				ShopView.check(
+					"RestockEpic",
+					ctxAt(epicAt, { restock = { Slot = epicSlot, Bought = bought } })
+				) == "SoldOut",
+				"one per player per slot"
+			)
+			H.expect(epicItem ~= nil and epicItem.block == "Epic", "an Epic block")
+			local full = {}
+			for i = 1, Config.LuckyBlocks.MaxBlocks do
+				full[i] = { Id = i, Kind = "Standard", ReadyAt = 0 }
+			end
+			H.expect(
+				ShopView.check("RestockEpic", ctxAt(epicAt, { blocks = { List = full } })) == "Full",
+				"no room in the hotbar"
+			)
+			H.expect(
+				ShopView.check("Mystery10", ctxAt(now, { blocks = { List = full } })) == "Full",
+				"nor for ten Mystery blocks"
+			)
+			local plainSlot = 0
+			while Restock.forProduct(plainSlot, "RestockEpic") ~= nil do
+				plainSlot += 1
+			end
+			H.expect(
+				ShopView.check("RestockEpic", ctxAt(plainSlot * Config.Shop.Restock.SlotSeconds))
+					== "NotSold",
+				"not in this restock"
+			)
+			local p = ShopView.build(ctxAt(now))
+			H.expect(table.concat(p.order, " ") == table.concat(Config.Shop.Order, " "), "order")
+			H.expect(
+				p.order[1] == "GrandOpening" and p.order[#p.order] == "RobloxPlus",
+				"top, bottom"
+			)
+			H.expect(p.deals.Mystery.open and p.deals.Mystery.counts[2] == 10, "the deals")
+			H.expect(p.deals.GrandOpening.timed and not p.deals.GrandOpening.open, "off")
+			local g = p.guarantees.GrandOpening
+			H.expect(g ~= nil and g.cue == "BetaCue" and g.at == 400 and g.left == 399, "")
+			H.expect((p :: any).fastOpen == nil, "Fast Open went with the cases")
+			H.expect(ShopView.build(ctxAt(now, { vipPass = true })).vip, "VIP")
+			H.expect(p.robloxPlus == true and p.bestValue == "Pack6" and #p.packs == 7, "rest")
+			-- A /restock forced restock shows its items on the real restock's countdown.
+			local forced = ShopView.build(ctxAt(now, { restockSlot = epicSlot }))
+			local _, realEnd = Restock.window(Restock.slotOf(now))
+			H.expect(forced.restock.slot == epicSlot, "the forced items")
+			H.expect(forced.restock.endsAt == realEnd, "the real countdown")
+		end)
 	end,
 
 	["the release sale: 30% off for 21 days with the Grand Opening deal, off until scheduled"] = function()

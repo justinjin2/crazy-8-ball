@@ -8,8 +8,8 @@ local function load()
 	return H.require("Progression.Catalog"), H.require("Config"), H.require("Strings")
 end
 
--- The cue skins' plan (designer, 2026-09-30): the case cues per rarity. Classic is shown as
--- an eighth Common but is in no case.
+-- The cue skins' plan (designer, 2026-09-30): the block cues per rarity. Classic is shown as
+-- an eighth Common but is in no block.
 local CASE_CUES = {
 	Common = 7,
 	Uncommon = 9,
@@ -21,10 +21,10 @@ local CASE_CUES = {
 }
 
 return {
-	["46 case cues, 7/9/10/9/7/3/1, all sellable, tradable and dropping from known cases"] = function()
+	["46 block cues, 7/9/10/9/7/3/1, all sellable, tradable and dropping from known rows"] = function()
 		local Catalog, Config = load()
 		local total = 0
-		for _, rarity in Config.Cases.Rarities do
+		for _, rarity in Config.BlockOdds.Rarities do
 			local cues = {}
 			for _, cue in Catalog.ofRarity(rarity) do
 				if cue.Id ~= Catalog.Default then
@@ -38,20 +38,20 @@ return {
 			total += #cues
 			for _, cue in cues do
 				H.expect(
-					cue.Group == "Case",
-					cue.Id .. " is a case rarity but not in the Case group"
+					cue.Group == "Block",
+					cue.Id .. " is a block rarity but not in the Block group"
 				)
 				H.expect(cue.Sellable and cue.Tradable, cue.Id .. " must sell and trade")
-				H.expect(#cue.Cases > 0, cue.Id .. " drops from no case")
-				for _, caseId in cue.Cases do
+				H.expect(#cue.Blocks > 0, cue.Id .. " drops from no odds row")
+				for _, caseId in cue.Blocks do
 					H.expect(
-						(Config.Cases.List :: any)[caseId] ~= nil,
-						("%s lists unknown case %s"):format(cue.Id, caseId)
+						(Config.BlockOdds.List :: any)[caseId] ~= nil,
+						("%s lists the unknown odds row %s"):format(cue.Id, caseId)
 					)
 				end
 			end
 		end
-		H.expect(total == 46, ("%d case cues, expected 46"):format(total))
+		H.expect(total == 46, ("%d block cues, expected 46"):format(total))
 	end,
 
 	["12 Exclusive (the ten rank cues, VIP, Starter), 3 Unique, Classic, nothing else"] = function()
@@ -98,14 +98,14 @@ return {
 			H.expect(not cue.Sellable, cue.Id .. " must not sell")
 			-- No Exclusive cue trades but the Starter Cue (designer, 2026-09-29).
 			H.expect(cue.Tradable == (cue.Id == "StarterCue"), cue.Id .. " trading rule")
-			H.expect(#cue.Cases == 0, cue.Id .. " must not drop from a case")
+			H.expect(#cue.Blocks == 0, cue.Id .. " must not drop from a block")
 		end
 		for _, cue in unique do
 			H.expect(
 				cue.Group == "Unique" and not cue.Sellable and cue.Tradable,
 				cue.Id .. " Unique rules"
 			)
-			H.expect(#cue.Cases == 0, cue.Id .. " must not drop from a case")
+			H.expect(#cue.Blocks == 0, cue.Id .. " must not drop from a block")
 		end
 
 		local classic = Catalog.get(Catalog.Default)
@@ -115,10 +115,10 @@ return {
 		)
 		assert(classic, "no Classic")
 		H.expect(not classic.Sellable and not classic.Tradable, "Classic never sells or trades")
-		-- Shown as a Common (designer, 2026-09-30), still in no case.
+		-- Shown as a Common (designer, 2026-09-30), still in no odds row.
 		H.expect(
-			classic.Rarity == "Common" and #classic.Cases == 0,
-			"Classic is a Common in no case"
+			classic.Rarity == "Common" and #classic.Blocks == 0,
+			"Classic is a Common in no odds row"
 		)
 
 		local all = Catalog.list()
@@ -161,7 +161,7 @@ return {
 
 	["every rarity and group has a name, and rarityRank orders the ladder"] = function()
 		local Catalog, Config, Strings = load()
-		for i, rarity in Config.Cases.Rarities do
+		for i, rarity in Config.BlockOdds.Rarities do
 			H.expect(type(Strings.Items.Rarities[rarity]) == "string", "no name for " .. rarity)
 			H.expect(Catalog.rarityRank(rarity) == i, rarity .. " rank")
 		end

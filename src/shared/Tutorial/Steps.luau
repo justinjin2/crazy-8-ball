@@ -14,9 +14,9 @@ Steps.Order = {
 	"Arrow1", -- the floor arrow to the reserved table, "Join a table!"
 	"Request", -- on the pad: press Request opponent
 	"Game1", -- the rigged match
-	"Drop", -- Bronze's Case Drop (a Standard Case) through the 8-ball, opened
+	"Block", -- Bronze's Standard lucky block in the hotbar: hold, throw, open (an Uncommon cue)
 	"Equip", -- equip the Uncommon cue it gave: Inventory, its card, Equip (designer 2026-10-03)
-	"RareDrop", -- the match's Rare Case through the 8-ball (its 1 h timer runs)
+	"RareBlock", -- the win's Rare lucky block in the hotbar (its 1 h timer runs)
 	"Abilities", -- the hand on the Abilities icon
 	"Spin", -- the one starter spin (Magnet)
 	"Code", -- type RELEASE for 3 more spins
@@ -133,10 +133,11 @@ function Steps.shows(step: string?, item: string): boolean
 end
 
 --- The real server's nudge now (step Nudges), from how many of Steps.Nudges are done, whether
---- rank rewards wait, and when the newest Rare Case's timer ends (nil: none) at unix time
---- `now`. Answers the nudge's name and its place in Steps.Nudges (nil for the case ones):
---- the four in order (Rank only while something waits to be claimed), then "CaseWait" while
---- the Rare Case's timer runs and "CaseReady" once it has ended; nil when nothing is left.
+--- rank rewards wait, and when the newest Rare lucky block's timer ends (nil: none) at unix
+--- time `now`. Answers the nudge's name and its place in Steps.Nudges (nil for the block
+--- ones): the four in order (Rank only while something waits to be claimed), then
+--- "BlockWait" while the Rare block's timer runs and "BlockReady" once it has ended; nil when
+--- nothing is left.
 function Steps.nudge(
 	done: number,
 	rankPending: boolean,
@@ -150,7 +151,7 @@ function Steps.nudge(
 		end
 	end
 	if rareAt then
-		return if now >= rareAt then "CaseReady" else "CaseWait", nil
+		return if now >= rareAt then "BlockReady" else "BlockWait", nil
 	end
 	return nil, nil
 end
@@ -167,8 +168,8 @@ Steps.Funnel = {
 	"UsedAbility",
 	"CalledEight",
 	"WonGame1",
-	"OpenedStandardCase",
-	"SawRareCase",
+	"OpenedStandardBlock",
+	"SawRareBlock",
 	"OpenedAbilities",
 	"SpunAbility",
 	"JoinedGlobalQueue",
@@ -176,7 +177,7 @@ Steps.Funnel = {
 	"BackInLobby",
 	"ClaimedDaily",
 	"ClaimedRank",
-	"OpenedRareCase",
+	"OpenedRareBlock",
 	"PlayedThirdMatch",
 	"CameBackNextDay",
 }

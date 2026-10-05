@@ -19,25 +19,23 @@ local NOW = TODAY * SECONDS_PER_DAY + 3600
 -- The plan's seven loop days (2026-10-02, section 6).
 local STREAK = {
 	"$5000",
-	"Drops x1",
+	"Mystery x1",
 	"$10000",
-	"Drops x2",
+	"Mystery x2",
 	"$15000",
-	"Drops x3",
+	"Mystery x3",
 	"Rare x1 Spins x2",
 }
 
--- A reward as one short line: "$5000", "Rare x1 Drops x2 Spins x1", "nothing".
+-- A reward as one short line: "$5000", "Rare x1 Mystery x2 Spins x1", "nothing". Blocks
+-- are listed in Config.LuckyBlocks.Order (the tiers, then Mystery).
 local function describe(reward: any): string
 	local words = {}
 	if reward.money > 0 then
 		table.insert(words, "$" .. reward.money)
 	end
-	for _, entry in Daily.caseList(reward) do
-		table.insert(words, ("%s x%d"):format(entry.id, entry.count))
-	end
-	if (reward.drops or 0) > 0 then
-		table.insert(words, ("Drops x%d"):format(reward.drops))
+	for _, entry in Daily.blockList(reward) do
+		table.insert(words, ("%s x%d"):format(entry.kind, entry.count))
 	end
 	if (reward.spins or 0) > 0 then
 		table.insert(words, ("Spins x%d"):format(reward.spins))
@@ -103,7 +101,7 @@ return {
 		H.expect(Daily.weekOf(TODAY + 7) == Daily.weekOf(TODAY) + 1, "next Monday")
 	end,
 
-	["the seven loop days match the plan; day 7 is also the track's first Rare Case"] = function()
+	["the seven loop days match the plan; day 7 is also the track's first Rare block"] = function()
 		H.expect(#Config.Daily.Streak == 7, "seven loop days")
 		local _, claims = claimRun(fresh(), TODAY, 7)
 		for i, claim in claims do
@@ -204,7 +202,7 @@ return {
 		local broken = claimRun(fresh(), TODAY, 5)
 		local _, later = claimOn(broken, { TODAY + 8, TODAY + 9 })
 		H.expect(later[1].day == 1 and later[2].day == 2 and later[2].total == 7, "counted")
-		H.expect(describe(later[2].reward) == "Rare x1 Drops x1", describe(later[2].reward))
+		H.expect(describe(later[2].reward) == "Rare x1 Mystery x1", describe(later[2].reward))
 		H.expect(Daily.trackReward(35) ~= nil and Daily.trackReward(36) == nil, "repeats")
 	end,
 
@@ -240,8 +238,8 @@ return {
 				local ok, _, reward = Daily.claimLogin(login, TODAY)
 				H.expect(ok and reward ~= nil, "claims")
 				H.expect(
-					(reward :: any).cases.Epic == (if n == 7 and week == 4 then 1 else nil),
-					"the Epic Case only on day 28"
+					(reward :: any).blocks.Epic == (if n == 7 and week == 4 then 1 else nil),
+					"the Epic block only on day 28"
 				)
 			end
 		end
@@ -264,31 +262,11 @@ return {
 		)
 	end,
 
-	["nextReward is today's while unclaimed, else tomorrow's"] = function()
-		local first = Daily.nextReward(fresh(), TODAY)
-		H.expect(
-			not first.tomorrow and first.day == 1 and describe(first.reward) == "$5000",
-			"today's day 1"
-		)
-		local login = claimRun(fresh(), TODAY, 3)
-		local next = Daily.nextReward(login, TODAY + 2)
-		H.expect(next.tomorrow and next.day == 4, "tomorrow is day 4")
-		H.expect(describe(next.reward) == "Drops x2", "Come back tomorrow for 2 Case Drops")
-		-- The day before day 28 promises the Epic Case.
-		local week4 = claimRun(fresh(), TODAY, 27)
-		local big = Daily.nextReward(week4, TODAY + 26)
-		H.expect(big.tomorrow and big.bonus and big.day == 7 and big.week == 4, "day 28 tomorrow")
-		H.expect(describe(big.reward) == "Rare x1 Epic x1 Spins x2", describe(big.reward))
-		-- A missed day (two): today's day 1.
-		local missed = Daily.nextReward(login, TODAY + 5)
-		H.expect(not missed.tomorrow and missed.day == 1, "missed: day 1 today")
-	end,
-
 	["playtime gifts at 10, 30, 60, 90 and 120 minutes"] = function()
 		local expected = {
 			{ 10, "$2000" },
-			{ 30, "Drops x1" },
-			{ 60, "Drops x2 Spins x1" },
+			{ 30, "Mystery x1" },
+			{ 60, "Mystery x2 Spins x1" },
 			{ 90, "$10000" },
 			{ 120, "Rare x1" },
 		}
@@ -379,7 +357,7 @@ return {
 	["WELCOME and 8BALL pay once each, in any case"] = function()
 		local codes = {}
 		local ok, reward = Daily.redeem(codes, "welcome", TODAY * 86400)
-		H.expect(ok and describe(reward) == "$5000 Drops x1", "WELCOME: $5,000 and a Case Drop")
+		H.expect(ok and describe(reward) == "$5000 Mystery x1", "WELCOME: $5,000 and a block")
 		H.expect(codes.WELCOME == true, "saved upper-case")
 		local again, why = Daily.redeem(codes, " WELCOME ", TODAY * 86400)
 		H.expect(not again and why == "Used", "once per player")
@@ -423,10 +401,10 @@ return {
 		H.expect(not late and why == "Expired", "expired at 00:00 on Jan 1")
 	end,
 
-	["every Config code gives only money, cases, Case Drops and spins"] = function()
+	["every Config code gives only money, lucky blocks and spins"] = function()
 		local known = {}
-		for _, caseId in Config.Cases.Order do
-			known[caseId] = true
+		for _, kind in Config.LuckyBlocks.Order do
+			known[kind] = true
 		end
 		local names = {}
 		for code in Config.Daily.Codes do
@@ -443,33 +421,27 @@ return {
 			for field, value in row do
 				H.expect(
 					field == "Money"
-						or field == "Cases"
-						or field == "Drops"
+						or field == "Blocks"
 						or field == "Spins"
 						or field == "LuckySpins"
 						or field == "Expires"
 						or field == "Live",
-					("%s has %s: codes give only money, cases, drops and spins"):format(code, field)
+					("%s has %s: codes give only money, blocks and spins"):format(code, field)
 				)
-				if
-					field == "Money"
-					or field == "Drops"
-					or field == "Spins"
-					or field == "LuckySpins"
-				then
+				if field == "Money" or field == "Spins" or field == "LuckySpins" then
 					H.expect(
 						value > 0 and value == math.floor(value),
 						("%s %s is whole"):format(code, field)
 					)
-				elseif field == "Cases" then
-					for caseId, count in value do
+				elseif field == "Blocks" then
+					for kind, count in value do
 						H.expect(
-							known[caseId] == true,
-							("%s names the unknown case %s"):format(code, caseId)
+							known[kind] == true,
+							("%s names the unknown block %s"):format(code, kind)
 						)
 						H.expect(
 							count > 0 and count == math.floor(count),
-							code .. " case count is whole"
+							code .. " block count is whole"
 						)
 					end
 				end
@@ -479,12 +451,8 @@ return {
 			H.expect(ok, code .. " redeems before it expires")
 			for field in reward :: any do
 				H.expect(
-					field == "money"
-						or field == "cases"
-						or field == "drops"
-						or field == "spins"
-						or field == "lucky",
-					code .. " reward has only money, cases, drops and spins"
+					field == "money" or field == "blocks" or field == "spins" or field == "lucky",
+					code .. " reward has only money, blocks and spins"
 				)
 			end
 			local gives = describe(reward) ~= "nothing" or (reward :: any).lucky > 0
@@ -494,8 +462,8 @@ return {
 
 	["the like codes: off until switched on, the plan's six steps"] = function()
 		local expect = {
-			LIKES1K = "$10000 Drops x1",
-			LIKES5K = "$25000 Drops x2",
+			LIKES1K = "$10000 Mystery x1",
+			LIKES5K = "$25000 Mystery x2",
 			LIKES10K = "Rare x1 Spins x3",
 			LIKES25K = "Rare x2",
 			LIKES50K = "$100000 Rare x2",
@@ -525,13 +493,17 @@ return {
 		H.expect(next(Daily.readLive("x")) == nil, "not a table")
 	end,
 
-	["reward cases are listed in the case ladder's order"] = function()
-		local list =
-			Daily.caseList({ money = 0, cases = { Legendary = 1, Standard = 3, Epic = 2 } })
-		H.expect(#list == 3, "three")
+	["reward blocks are listed in Config.LuckyBlocks.Order"] = function()
+		local list = Daily.blockList({
+			money = 0,
+			blocks = { Legendary = 1, Standard = 3, Mystery = 2, Epic = 0 },
+			spins = 0,
+			lucky = 0,
+		})
+		H.expect(#list == 3, "three (a zero count is left out)")
 		H.expect(
-			list[1].id == "Standard" and list[2].id == "Epic" and list[3].id == "Legendary",
-			"ladder order"
+			list[1].kind == "Standard" and list[2].kind == "Legendary" and list[3].kind == "Mystery",
+			"Config order"
 		)
 		H.expect(list[1].count == 3, "count kept")
 	end,
@@ -544,16 +516,17 @@ return {
 		H.expect(p.weeks == Config.Daily.WeeksForBonus, "weeks in the cycle")
 		H.expect(p.login.canClaim and not p.login.claimedToday, "today's claim waits")
 		H.expect(p.login.day == 1 and p.login.week == 1 and not p.login.bonus, "day 1, week 1")
-		H.expect(p.login.reward.money == 5000 and #p.login.reward.cases == 0, "$5,000")
+		H.expect(p.login.reward.money == 5000 and #p.login.reward.blocks == 0, "$5,000")
 		H.expect(p.login.total == 1 and p.login.freezeReady and not p.login.frozen, "the track")
 		H.expect(#p.days == 7, "seven tiles")
 		H.expect(p.days[1].today and not p.days[1].claimed, "day 1 glows")
 		H.expect(not p.days[2].today and not p.days[2].claimed, "day 2 later")
-		H.expect(p.days[2].reward.drops == 1 and #p.days[2].reward.cases == 0, "1 Case Drop")
+		local day2 = p.days[2].reward.blocks
+		H.expect(#day2 == 1 and day2[1].kind == "Mystery" and day2[1].count == 1, "1 Mystery block")
 		H.expect(p.trackDays == 28 and p.trackPlace == 0 and #p.track == 4, "the 28-day track")
 		H.expect(p.track[1].day == 7 and not p.track[1].reached, "day 7 to come")
-		H.expect(p.track[4].reward.cases[1].id == "Epic", "day 28's Epic Case")
-		H.expect(not p.next.tomorrow and p.next.day == 1, "the next claim is today's")
+		H.expect(p.track[4].reward.blocks[1].kind == "Epic", "day 28's Epic block")
+		H.expect((p :: any).next == nil, "no reminder of tomorrow (the popups are gone)")
 		H.expect(p.ready and p.playSeconds == 0 and #p.titles == 0, "ready, nothing played")
 	end,
 
@@ -561,7 +534,12 @@ return {
 		local p = RewardView.build(fresh(), nil, nil, NOW)
 		H.expect(not p.favorite.claimed, "not yet")
 		H.expect(p.favorite.reward.money == Config.Social.FavoriteReward.Money, "the money")
-		H.expect(p.favorite.reward.drops == Config.Social.FavoriteReward.Drops, "the drop")
+		H.expect(
+			p.favorite.reward.blocks[1].kind == "Mystery"
+				and p.favorite.reward.blocks[1].count
+					== Config.Social.FavoriteReward.Blocks.Mystery,
+			"the block"
+		)
 		local flags = { [RewardView.FavoriteFlag] = true }
 		local after = RewardView.build(fresh(), nil, nil, NOW, false, nil, false, flags)
 		H.expect(after.favorite.claimed, "claimed")
@@ -576,8 +554,6 @@ return {
 			p.days[1].claimed and p.days[1].today and not p.days[2].claimed,
 			"a check on day 1"
 		)
-		H.expect(p.next.tomorrow and p.next.day == 2, "tomorrow is day 2")
-		H.expect(p.next.reward.drops == 1, "tomorrow's Case Drop (the reminder)")
 		H.expect(p.trackPlace == 1, "one day on the track")
 		H.expect(not p.ready, "nothing to claim")
 		local tomorrow = RewardView.build(login, nil, nil, NOW + SECONDS_PER_DAY)
@@ -590,15 +566,15 @@ return {
 		H.expect(missed.login.day == 1 and not missed.days[1].claimed, "two missed: day 1 again")
 	end,
 
-	["RewardView: day 28 carries the track's Epic Case; VIP's spin on every tile"] = function()
+	["RewardView: day 28 carries the track's Epic block; VIP's spin on every tile"] = function()
 		local weeks = Config.Daily.WeeksForBonus
 		local login = Daily.setStreakDay(fresh(), TODAY, 7, weeks)
 		local p = RewardView.build(login, nil, nil, NOW, true)
 		H.expect(p.login.day == 7 and p.login.week == weeks and p.login.bonus, "day 28")
-		local cases = p.login.reward.cases
+		local blocks = p.login.reward.blocks
 		H.expect(
-			#cases == 2 and cases[1].id == "Rare" and cases[2].id == "Epic",
-			"the Rare Case and the Epic Case, in ladder order"
+			#blocks == 2 and blocks[1].kind == "Rare" and blocks[2].kind == "Epic",
+			"the Rare block and the Epic block, in Config order"
 		)
 		H.expect(p.login.reward.spins == 3, "2 + VIP's 1")
 		H.expect(p.days[1].reward.spins == 1 and p.days[7].reward.spins == 3, "VIP tiles")
@@ -621,7 +597,7 @@ return {
 		)
 		H.expect(first.reward.money == 2000, "$2,000")
 		H.expect(not second.ready and math.abs(second.progress - 11 / 30) < 1e-9, "30 min at 11/30")
-		H.expect(second.reward.drops == 1, "a Case Drop")
+		H.expect(second.reward.blocks[1].kind == "Mystery", "a Mystery block")
 		H.expect(RewardView.readyKey(daily) == "10000", "the first gift ready")
 		daily.PlaytimeClaimed["1"] = true
 		H.expect(RewardView.readyKey(daily) == "00000", "claimed: none ready")
@@ -636,10 +612,11 @@ return {
 	["RewardView: the group and invite cards"] = function()
 		local p = RewardView.build(fresh(), nil, nil, NOW, false, nil, false)
 		H.expect(p.group.id == Config.Social.GroupId and not p.group.member, "not a member")
-		H.expect(not p.group.claimed and p.group.reward.drops == 3, "3 Case Drops")
+		local group = p.group.reward.blocks
+		H.expect(not p.group.claimed and group[1].kind == "Mystery" and group[1].count == 3, "3")
 		H.expect(p.group.boost == 0.1, "+10%")
 		H.expect(p.invite.perMonth == 5 and p.invite.used == 0, "five a month")
-		H.expect(p.invite.reward.cases[1].id == "Rare", "a Rare Case each")
+		H.expect(p.invite.reward.blocks[1].kind == "Rare", "a Rare block each")
 		local _, claimed = Daily.claimLogin(fresh(), TODAY)
 		local member = RewardView.build(claimed, nil, nil, NOW, false, { Group = false }, true)
 		H.expect(member.group.member and member.ready, "a member can claim")
@@ -668,12 +645,18 @@ return {
 			"sorted, true only"
 		)
 		H.expect(#RewardView.titles(nil) == 0, "none")
-		local out =
-			RewardView.reward({ money = 500, cases = { Rare = 1, Standard = 2 }, drops = 2 })
-		H.expect(out.drops == 2, "Case Drops")
-		H.expect(out.money == 500 and #out.cases == 2, "money and two case types")
-		H.expect(out.cases[1].id == "Standard" and out.cases[1].count == 2, "Standard first")
-		H.expect(out.cases[2].id == "Rare" and out.cases[2].count == 1, "then Rare")
-		H.expect(RewardView.reward({ money = -5, cases = {} }).money == 0, "never negative")
+		local out = RewardView.reward({
+			money = 500,
+			blocks = { Rare = 1, Standard = 2, Mystery = 2 },
+			spins = 0,
+			lucky = 0,
+		})
+		H.expect(out.money == 500 and #out.blocks == 3, "money and three block kinds")
+		H.expect(out.blocks[1].kind == "Standard" and out.blocks[1].count == 2, "Standard first")
+		H.expect(out.blocks[2].kind == "Rare" and out.blocks[2].count == 1, "then Rare")
+		H.expect(out.blocks[3].kind == "Mystery" and out.blocks[3].count == 2, "then Mystery")
+		H.expect(out.spins == 0 and out.lucky == 0, "no spins")
+		local bad = RewardView.reward({ money = -5, blocks = {}, spins = -1, lucky = 0 } :: any)
+		H.expect(bad.money == 0 and bad.spins == 0, "never negative")
 	end,
 }

@@ -6,12 +6,11 @@
 -- `now`) and no randomness; Lune-tested (tests/requests_test.luau).
 local Config = require(script.Parent.Parent.Config)
 local Catalog = require(script.Parent.Catalog)
-local Cases = require(script.Parent.Cases)
 local Shop = require(script.Parent.Shop)
 local Restock = require(script.Parent.Restock)
 
 local I = Config.Items
-local C = Config.Cases
+local C = Config.BlockOdds
 
 export type Bucket = {
 	tokens: number, -- requests left right now (a fraction while it refills)
@@ -21,22 +20,18 @@ export type Bucket = {
 -- One checked request. Only the fields its action uses are set.
 export type Request = {
 	action: string,
-	caseId: string?, -- BuyCase, OpenCase
 	cueId: string?, -- SellCue, SellDuplicates (optional), EquipCue, BuyLimited
-	count: number?, -- BuyCase, OpenCase, SellCue
+	count: number?, -- SellCue, BuyBlocks
 	ids: { string }?, -- MarkSeen
 	rarity: string?, -- ClaimIndexRow
 	itemId: string?, -- BuyRestock: a restock item id
 	dealId: string?, -- BuyBlocks: a Config.Shop.Deals key
-	at: number?, -- SkipTimer: the timer's end (unix), naming it with caseId
 }
 
 local Requests = {}
 
 --- Every action an ItemRequest may name (Net "ItemRequest").
 Requests.Actions = table.freeze({
-	"BuyCase",
-	"OpenCase",
 	"SellCue",
 	"SellDuplicates",
 	"EquipCue",
@@ -46,7 +41,6 @@ Requests.Actions = table.freeze({
 	"BuyMystery",
 	"BuyBlocks",
 	"BuyRestock",
-	"SkipTimer",
 })
 
 -- The restock item ids (Progression/Restock: Slot1 .. Slot3, Vip).
@@ -61,14 +55,10 @@ Requests.Reasons = table.freeze({
 	"BadRequest", -- an unknown action, a wrong type, an unknown id or a count not allowed
 	"TooFast", -- the player's token bucket is empty (Config.Items.RateBurst, RatePerSecond)
 	"Busy", -- another request of theirs is still being answered
-	"NotLoaded", -- the save (or, for BuyCase, the PolicyService answer) is not ready yet
+	"NotLoaded", -- the save (or, for BuyBlocks, the PolicyService answer) is not ready yet
 	"Teleporting", -- the save was let go for a teleport (PlayerData.isHandedOff)
-	"NotSold", -- BuyCase: that case is switched off in the shop
-	"Restricted", -- BuyCase: paid random items are restricted for this player (ECONOMY 13)
-	"NotEnoughMoney", -- BuyCase, BuyLimited: the reply adds `need` (and `price`)
-	"NoCases", -- OpenCase: fewer unopened cases of that type than asked
-	"NotReady", -- OpenCase: the rest of that case are still on their timers
-	"NoFastOpen", -- OpenCase: more than one at a time needs Fast Open
+	"Restricted", -- BuyBlocks, BuyRestock: paid random items are restricted for this player (ECONOMY 13)
+	"NotEnoughMoney", -- BuyBlocks, BuyRestock, BuyLimited: the reply adds `need` (and `price`)
 	"NotOwned", -- SellCue, EquipCue: the player has none (or fewer than asked)
 	"CantSell", -- SellCue: Exclusive, Unique and Classic never sell
 	"Equipped", -- SellCue: the last copy of the equipped cue ("Equip another cue first")
@@ -81,7 +71,6 @@ Requests.Reasons = table.freeze({
 	"Owned", -- BuyLimited: one per player
 	"VipOnly", -- BuyRestock: the VIP slot
 	"Full", -- BuyBlocks, BuyRestock: the hotbar holds Config.LuckyBlocks.MaxBlocks blocks
-	"NoTimer", -- SkipTimer: no such case on its timer (it finished, or never was)
 	"Error", -- anything else (logged on the server): try again
 })
 
@@ -168,29 +157,11 @@ end
 
 --- Checks an ItemRequest's arguments (anything a client sent: any type at all) and answers the
 --- request, or (nil, reason). Only shapes and ids are checked here; the player's state (money,
---- ownership, Fast Open, the policy, the save) is the server's to check. Counts: BuyCase 1 or
---- Config.Cases.BulkCount, OpenCase 1 or Config.Cases.FastOpenCount, SellCue 1 up to
---- Config.Save.ItemCountCap (a missing count is 1). BuyCase refuses a switched-off case
---- ("NotSold"); OpenCase takes any known case (a switched-off one can still be given and
---- opened). BuyLimited names a money-priced Limited shelf row (a Robux one is StoreRequest's).
+--- ownership, the policy, the save) is the server's to check. Counts: SellCue 1 up to
+--- Config.Save.ItemCountCap, BuyBlocks a count its deal sells (a missing count is 1).
+--- BuyLimited names a money-priced Limited shelf row (a Robux one is StoreRequest's).
 function Requests.parse(action: any, a: any, b: any): (Request?, string?)
-	if action == "BuyCase" then
-		local case = Cases.get(a)
-		local count = countOf(b)
-		if case == nil or not Cases.isBuyCount(count) then
-			return nil, "BadRequest"
-		elseif not case.Enabled then
-			return nil, "NotSold"
-		end
-		return { action = action :: string, caseId = case.Id, count = count }, nil
-	elseif action == "OpenCase" then
-		local case = Cases.get(a)
-		local count = countOf(b)
-		if case == nil or not (count == 1 or count == C.FastOpenCount) then
-			return nil, "BadRequest"
-		end
-		return { action = action :: string, caseId = case.Id, count = count }, nil
-	elseif action == "SellCue" then
+	if action == "SellCue" then
 		local id = cueId(a)
 		local count = countOf(b)
 		if id == nil or not wholeIn(count, 1, Config.Save.ItemCountCap) then
@@ -241,12 +212,6 @@ function Requests.parse(action: any, a: any, b: any): (Request?, string?)
 			return nil, "BadRequest"
 		end
 		return { action = action :: string, itemId = a }, nil
-	elseif action == "SkipTimer" then
-		local case = Cases.get(a)
-		if case == nil or not wholeIn(b, 0, Config.Save.UnixTimeCap) then
-			return nil, "BadRequest"
-		end
-		return { action = action :: string, caseId = case.Id, at = b }, nil
 	elseif action == "BuyLimited" then
 		local id = cueId(a)
 		local row = if id then Shop.limitedFor(id) else nil
@@ -288,8 +253,6 @@ end
 -- PlayerData's reason words -> the reply's.
 local FROM_SAVE: { [string]: string } = {
 	NotLoaded = "NotLoaded",
-	NotEnough = "NoCases", -- openCases: fewer cases than cues
-	NotReady = "NotReady", -- openCases: the rest are on their timers
 	Invalid = "Error", -- logged by PlayerData: a bad argument that got past the checks here
 	Unknown = "BadRequest",
 	BadCount = "BadRequest",
@@ -303,7 +266,7 @@ local FROM_SAVE: { [string]: string } = {
 	NoReward = "NoReward",
 }
 
---- The reply reason for a PlayerData refusal (openCases, sellCue, claimIndexRow): "Error" for
+--- The reply reason for a PlayerData refusal (sellCue, claimIndexRow): "Error" for
 --- anything it does not know.
 function Requests.reasonFrom(saveReason: any): string
 	return if type(saveReason) == "string" then FROM_SAVE[saveReason] or "Error" else "Error"

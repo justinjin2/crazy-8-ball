@@ -3,7 +3,7 @@
 -- a player's total rank XP into their rank and back, and works out what a finished match (or
 -- the /xp dev command) does to it: the XP and how it was built, the new peak, and the rewards
 -- for reaching new divisions. Pure and deterministic: no Instances, no clocks, no randomness,
--- and every loop walks an ordered list (Config.Ranks.Tiers, Config.Cases.Order or the
+-- and every loop walks an ordered list (Config.Ranks.Tiers, Config.LuckyBlocks.Order or the
 -- division list built from them), never a keyed table.
 --
 -- XP is never lost (ECONOMY 4.1, designer 2026-09-28): a match gives 0 or more, so nobody ever
@@ -23,7 +23,7 @@ local GAP = C.Gap
 local BOOSTS = C.Boosts
 
 type BaseRow = { Win: number, Loss: number }
-type TierRow = { Money: number, Cases: { [string]: number }?, Drops: number?, Cue: string? }
+type TierRow = { Money: number, Blocks: { [string]: number }?, Cue: string? }
 
 -- Keyed by tier (or mode, or difficulty) name; read through these so strict mode allows a name
 -- held in a variable.
@@ -38,8 +38,8 @@ local UNLOCKS: { [string]: string } = C.Unlocks :: any
 local TIER_SPINS: { [string]: number } = Config.Ults.Earn.RankUp :: any
 local DIFFICULTIES: { [string]: any } = Config.Difficulty.Levels :: any
 local TIER_WORDS: { [string]: string } = S.Tiers :: any
--- Case ids in shop order: a reward's cases are always read in this order.
-local CASE_ORDER: { string } = Config.Cases.Order
+-- Block kinds in Config order: a reward's blocks are always read in this order.
+local BLOCK_ORDER: { string } = Config.LuckyBlocks.Order
 
 local UNRANKED = "Unranked"
 local CLASSIC = "Classic"
@@ -52,14 +52,13 @@ export type Rank = {
 	width: number?, -- the division's XP width; nil for the top tier and Unranked
 }
 
--- What reaching a division pays, once (ECONOMY 4.8): money, cases by case id, the tier's
+-- What reaching a division pays, once (ECONOMY 4.8): money, lucky blocks by kind, the tier's
 -- Exclusive cue on a tier's division I, and the ult spins a new tier adds there
 -- (Config.Ults.Earn.RankUp; 0 on divisions II-V).
 export type Reward = {
 	index: number,
 	money: number,
-	cases: { [string]: number },
-	drops: number, -- Case Drops (Config.Ranks.Rewards.Tier Drops)
+	blocks: { [string]: number }, -- lucky blocks by kind (Config.Ranks.Rewards.Tier Blocks)
 	cue: string?,
 	spins: number,
 }
@@ -108,10 +107,9 @@ export type MatchResult = {
 	ratedMatches: number, -- the save's new RatedMatches
 	rewards: { Reward }, -- every division the new peak passed, bottom first
 	rewardTotal: number, -- their money added up
-	rewardCases: { [string]: number }, -- their cases added up, by case id
+	rewardBlocks: { [string]: number }, -- their lucky blocks added up, by kind
 	rewardCues: { string }, -- their cues, bottom first
 	rewardSpins: number, -- their ult spins added up
-	rewardDrops: number, -- their Case Drops added up
 	promoted: boolean, -- after.index > before.index
 	newTier: boolean, -- promoted into a different tier (Unranked to Bronze counts)
 	breakdown: Breakdown?, -- how the XP was built (a match only; nil for applyXp)
@@ -124,8 +122,7 @@ export type Division = {
 	startXp: number,
 	width: number?,
 	reward: number, -- the money for reaching it
-	cases: { [string]: number },
-	drops: number, -- the Case Drops for reaching it (a tier's division I only)
+	blocks: { [string]: number }, -- the lucky blocks for reaching it (a tier's division I only)
 	cue: string?,
 	spins: number, -- the ult spins for reaching it (a tier's division I only)
 }
@@ -177,14 +174,14 @@ function Ranks.roundHalfEven(x: number): number
 	return math.floor(x + 0.5)
 end
 
--- A reward's cases, cleaned and copied: whole counts above 0, case ids in CASE_ORDER only.
-local function cleanCases(cases: { [string]: number }?): { [string]: number }
+-- A reward's blocks, cleaned and copied: whole counts above 0, kinds in BLOCK_ORDER only.
+local function cleanBlocks(blocks: { [string]: number }?): { [string]: number }
 	local out: { [string]: number } = {}
-	if type(cases) ~= "table" then
+	if type(blocks) ~= "table" then
 		return out
 	end
-	for _, id in CASE_ORDER do
-		local count = whole(cases[id])
+	for _, id in BLOCK_ORDER do
+		local count = whole(blocks[id])
 		if count > 0 then
 			out[id] = count
 		end
@@ -205,8 +202,7 @@ local divNumber: { number } = {}
 local divStart: { number } = {}
 local divWidth: { [number]: number } = {} -- no entry for the top division
 local divMoney: { number } = {}
-local divCases: { { [string]: number } } = {}
-local divDrops: { number } = {} -- Case Drops (only tiers' division I pay any)
+local divBlocks: { { [string]: number } } = {} -- lucky blocks (only tiers' division I pay any)
 local divCue: { [number]: string } = {} -- only tiers' division I
 local divSpins: { number } = {} -- ult spins (only tiers' division I pay any)
 local divPays: { boolean } = {} -- whether reaching it pays anything at all
@@ -233,8 +229,7 @@ do
 				tierFirstIndex[tier] = index
 				local row = TIER_PAY[tier]
 				divMoney[index] = whole(row and row.Money)
-				divCases[index] = cleanCases(row and row.Cases)
-				divDrops[index] = whole(row and row.Drops)
+				divBlocks[index] = cleanBlocks(row and row.Blocks)
 				local cue = row and row.Cue
 				if type(cue) == "string" and cue ~= "" then
 					divCue[index] = cue
@@ -242,13 +237,11 @@ do
 				divSpins[index] = whole(TIER_SPINS[tier])
 			else
 				divMoney[index] = whole(STEP_PAY[tier])
-				divCases[index] = {}
-				divDrops[index] = 0
+				divBlocks[index] = {}
 				divSpins[index] = 0
 			end
 			divPays[index] = divMoney[index] > 0
-				or next(divCases[index]) ~= nil
-				or divDrops[index] > 0
+				or next(divBlocks[index]) ~= nil
 				or divCue[index] ~= nil
 				or divSpins[index] > 0
 			if not isTop then
@@ -435,32 +428,29 @@ local function rewardAt(i: number): Reward
 	return {
 		index = i,
 		money = divMoney[i],
-		cases = table.clone(divCases[i]),
-		drops = divDrops[i],
+		blocks = table.clone(divBlocks[i]),
 		cue = divCue[i],
 		spins = divSpins[i],
 	}
 end
 
---- What reaching a division pays: `money`, `cases` ({ [caseId] = count }), the tier's `cue`
+--- What reaching a division pays: `money`, `blocks` ({ [kind] = count }), the tier's `cue`
 --- and its ult `spins` (division I only; 0 otherwise). Division II-V pays its tier's step
 --- money; Unranked pays nothing.
 function Ranks.rewardFor(index: number): {
 	money: number,
-	cases: { [string]: number },
-	drops: number,
+	blocks: { [string]: number },
 	cue: string?,
 	spins: number,
 }
 	local i = clampIndex(index)
 	if i == 0 then
-		return { money = 0, cases = {}, drops = 0, cue = nil, spins = 0 }
+		return { money = 0, blocks = {}, cue = nil, spins = 0 }
 	end
 	local reward = rewardAt(i)
 	return {
 		money = reward.money,
-		cases = reward.cases,
-		drops = reward.drops,
+		blocks = reward.blocks,
 		cue = reward.cue,
 		spins = reward.spins,
 	}
@@ -589,17 +579,15 @@ local function buildResult(
 	local rewards = Ranks.rewardsBetween(peakBefore, peakAfter)
 	local total = 0
 	local spins = 0
-	local drops = 0
-	local cases: { [string]: number } = {}
+	local blocks: { [string]: number } = {}
 	local cues: { string } = {}
 	for _, reward in rewards do
 		total += reward.money
 		spins += reward.spins
-		drops += reward.drops
-		for _, id in CASE_ORDER do
-			local count = reward.cases[id]
+		for _, id in BLOCK_ORDER do
+			local count = reward.blocks[id]
 			if count then
-				cases[id] = (cases[id] or 0) + count
+				blocks[id] = (blocks[id] or 0) + count
 			end
 		end
 		if reward.cue then
@@ -617,10 +605,9 @@ local function buildResult(
 		ratedMatches = ratedMatches,
 		rewards = rewards,
 		rewardTotal = total,
-		rewardCases = cases,
+		rewardBlocks = blocks,
 		rewardCues = cues,
 		rewardSpins = spins,
-		rewardDrops = drops,
 		promoted = after.index > before.index,
 		newTier = after.index > before.index and after.tier ~= before.tier,
 		breakdown = nil,
@@ -704,8 +691,7 @@ function Ranks.list(): { Division }
 			startXp = divStart[i],
 			width = divWidth[i],
 			reward = divMoney[i],
-			cases = table.clone(divCases[i]),
-			drops = divDrops[i],
+			blocks = table.clone(divBlocks[i]),
 			cue = divCue[i],
 			spins = divSpins[i],
 		})
