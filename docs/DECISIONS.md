@@ -2445,6 +2445,13 @@ timer of a new block stay the designer's call.
   the riser's peak, the card under the white. Never skipped. The old streak scene is gone;
   a redone scene's riser and impact are now generic (`Riser`, `RiserPeakSeconds`, `Impact` in
   its `Config.Cutscenes` row).
+- **2026-10-05 — Legendary cutscene tuned (designer).** The cinematic track plays out whole:
+  after the hit the picture fades to black (0.6 s; a cut was too sudden, 0.9 s too slow)
+  while it rings out, then a short black silence (0.25 s; 0.7 s held the rise too late)
+  before the rise starts, just as the track ends. The beam falls in 0.45 s (was 1.3 s)
+  and lands on the track's final hit (4.03 s); the film follows the track's own playback clock,
+  so a late-loading sound cannot put them out of step. The hit's shake is far heavier: a jolt
+  down, then a smooth-noise shake with roll dying over 1.2 s, with a rumble as the beam falls.
 - **2026-10-05 — Legendary pull cutscene redone: a film, a starlight warp and a gold aurora
   (designer's brief and sounds, Claude's look).** Part one is a film behind black letterbox
   bars, close on the player: the black fades up on them as the designer's "Logo Reveal" plays;

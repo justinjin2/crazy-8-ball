@@ -15,8 +15,9 @@
 -- - Legendary (redone 2026-10-05): two parts. A film behind black bars: the camera close on
 --   the player from their side round to their front, then low looking up past them at a gold
 --   star gathering light, then from high in the sky as a beam of gold light falls from the star
---   and slams into them on the track's impact (sparks, a shockwave, the screen shaking). A
---   hard cut to black, a gold starlight warp while a rising tone builds, the white flash with
+--   and slams into them on the track's impact (sparks, a shockwave, a heavy shake). A slow
+--   fade to black as the track rings out, a held silence, then a gold starlight warp while a
+--   rising tone builds, the white flash with
 --   a cinematic hit, and the card. Then a gold aurora (SkyAurora) for everyone in the server.
 --   Skippable once seen.
 -- The ones below are the old scenes, still to be redone; they lift the black off as they begin.
@@ -426,7 +427,11 @@ local function flashAt(rarity: string): number
 		return E.BlackSeconds + E.BuildSeconds + E.ImplodeSeconds
 	elseif rarity == "Legendary" then
 		local L = CS.Legendary
-		return L.ImpactAt + L.ImpactHoldSeconds + L.InterludeSeconds
+		return L.ImpactAt
+			+ L.ImpactHoldSeconds
+			+ L.FadeOutSeconds
+			+ L.SilenceSeconds
+			+ L.InterludeSeconds
 	end
 	return 0
 end
@@ -844,13 +849,15 @@ local function filmLegendary(s: Scene, t: number)
 	local q = Quality.rate()
 	local feet: Vector3, facing: Vector3, right: Vector3 = p.feet, p.facing, p.right
 	local up = Vector3.yAxis
-	local cut = L.ImpactAt + L.ImpactHoldSeconds
+	local cut = L.ImpactAt + L.ImpactHoldSeconds + L.FadeOutSeconds
 	local hit = t >= L.ImpactAt
 	local after = t - L.ImpactAt
 
-	-- The black fades up as the bars come in; the world takes its grade.
+	-- The black fades up as the bars come in; the world takes its grade. After the hit it
+	-- fades back down, slowly, as the track rings out.
 	local fadeIn = smooth(t / L.FadeInSeconds)
-	s.black.BackgroundTransparency = fadeIn
+	local fadeOut = smooth((after - L.ImpactHoldSeconds) / L.FadeOutSeconds)
+	s.black.BackgroundTransparency = fadeIn * (1 - fadeOut)
 	for _, bar: Frame in p.bars do
 		bar.Size = UDim2.fromScale(1, L.BarsShare * smooth(t / L.BarsInSeconds))
 	end
@@ -974,13 +981,28 @@ local function filmLegendary(s: Scene, t: number)
 		fov = O.FieldOfView
 	end
 	local frame = CFrame.lookAt(eye, focus)
+	-- The shake: a rumble growing as the beam falls, then the hit's jolt down and back and a
+	-- heavy shake (smooth noise, so it moves like a body, not a flicker) dying away.
+	local amount = 0
+	local kick = 0
 	if hit then
-		local shake = L.ShakeStuds * math.max(0, 1 - after / L.ShakeSeconds) ^ 2
-		local r = s.random
+		amount = L.ShakeStuds * math.max(0, 1 - after / L.ShakeSeconds) ^ 2
+		local k = after * 14
+		kick = L.KickStuds * k * math.exp(1 - k) -- up to KickStuds at 1/14 s, then back
+		fov -= 8 * math.exp(-after * 8) -- a punch in on the hit
+	elseif falling then
+		amount = L.RumbleStuds * fall
+	end
+	if amount > 0 or kick > 0 then
+		local f = t * L.ShakeHz
+		local roll = L.ShakeRollDegrees / L.ShakeStuds
 		frame = frame
-			* CFrame.new(r:NextNumber(-shake, shake), r:NextNumber(-shake, shake), 0)
-			* CFrame.Angles(0, 0, math.rad(r:NextNumber(-3, 3) * shake))
-		fov -= 6 * math.exp(-after * 8) -- a punch in on the hit
+			* CFrame.new(math.noise(f, 1.3) * amount * 2, math.noise(f, 7.1) * amount * 2 - kick, 0)
+			* CFrame.Angles(
+				math.rad(math.noise(f, 3.7) * amount * 2) - math.rad(kick * 4),
+				math.rad(math.noise(f, 5.3) * amount * 2),
+				math.rad(math.noise(f, 9.9) * amount * roll * 2)
+			)
 	end
 	cam.FieldOfView = fov
 	cam.CFrame = frame
@@ -994,7 +1016,6 @@ local function warpLegendary(s: Scene, t: number)
 	local gold, light = rgb(L.Gold), rgb(L.Light)
 	local p = s.parts
 	if not p.warp then
-		s.model.Parent = nil -- the film is over
 		UISound.play(L.Rise)
 		p.warp = true
 		p.haze = fullFrame(s.veilRoot, "WarpHaze", gold:Lerp(BLACK, 0.75), 2)
@@ -1108,18 +1129,34 @@ local function warpLegendary(s: Scene, t: number)
 end
 
 -- Legendary: the film (the side, the look up at the star, the beam's hit from the sky), a
--- hard cut to black, the starlight warp, then the white flash on the rise's peak.
+-- slow fade to black, a held silence, the starlight warp, then the white flash on the rise's
+-- peak.
 local function stepLegendary(s: Scene, t: number)
 	local L = CS.Legendary
 	if not s.parts.feet then
 		buildLegendary(s)
 		UISound.play(L.Logo)
 	end
-	local cut = L.ImpactAt + L.ImpactHoldSeconds
+	-- The film keeps to the track's own clock, so the beam lands on its drop even if the
+	-- sound started late (it is measured over the track's first second, then held).
+	local position, playing = UISound.position(L.Logo)
+	if playing and position > 0.05 and position < 1 then
+		s.parts.lag = math.clamp(t - position, 0, 0.5)
+	end
+	t -= s.parts.lag or 0
+	local cut = L.ImpactAt + L.ImpactHoldSeconds + L.FadeOutSeconds
+	local riseAt = cut + L.SilenceSeconds
 	if t < cut then
 		filmLegendary(s, t)
 	else
-		warpLegendary(s, t - cut)
+		if not s.fired.cut then
+			s.fired.cut = true
+			s.model.Parent = nil -- the film is over
+		end
+		s.black.BackgroundTransparency = 0
+		if t >= riseAt then
+			warpLegendary(s, t - riseAt)
+		end
 	end
 	local flash = flashAt("Legendary")
 	if t >= flash and not s.fired.finale then
@@ -1645,7 +1682,7 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> (), onBlac
 				finish(s)
 				return
 			end
-			if t >= total then
+			if t >= total + (s.parts.lag or 0) then
 				finish(s)
 			end
 		end

@@ -10293,8 +10293,8 @@ Config.Cutscenes = {
 	-- drop. The camera, close in, swings from their side round to their front; then low, looking
 	-- up past them at a gold star gathering light high above; then from high in the sky looking
 	-- down as a beam of gold light falls from the star and slams into them on the track's impact
-	-- (sparks, a shockwave, a ground ring, the screen shaking). A hard cut to black, and the
-	-- second part: a gold starlight warp on the screen while a rising tone builds, a white flash
+	-- (sparks, a shockwave, a ground ring, a heavy shake). A slow fade to black as the track
+	-- rings out, a held silence (designer 2026-10-05: the rise came too early), and the second part: a gold starlight warp on the screen while a rising tone builds, a white flash
 	-- on its peak with a cinematic hit, and the card under the white. Then a gold aurora fills
 	-- the sky for everyone in the server (Config.Cutscenes.Aurora). Skippable once seen.
 	-- Scene seconds (from the end of the fade to black), studs, degrees and 0..1 shares.
@@ -10346,9 +10346,9 @@ Config.Cutscenes = {
 		StarStuds = 15, -- its glow's size at full (particles)
 		GatherStuds = 32, -- light streams in toward it from a sphere this wide
 		-- The beam: falls from the star and hits the player on the Logo Reveal's impact.
-		ImpactAt = 4.0, -- the impact (the track's own, 4.0 s in: it starts with the scene)
-		DropSeconds = 1.3, -- the beam's fall from the star to the ground (it leaves in the look-up shot)
-		DropPower = 2.4, -- its fall speeds up: u^power
+		ImpactAt = 4.03, -- the impact: the track's final hit, 4.03 s in (the film follows the track's own clock)
+		DropSeconds = 0.45, -- the beam's fall from the star to the ground: a slam (designer 2026-10-05: was 1.3)
+		DropPower = 1.5, -- its fall speeds up: u^power
 		CoreStuds = 2.4, -- the bright core's width
 		GlowStuds = 6, -- its glow
 		HazeStuds = 16, -- and the faint haze round it
@@ -10361,12 +10361,20 @@ Config.Cutscenes = {
 		ShockSeconds = 0.55, -- the shockwave out along the ground after the hit
 		ShockStuds = 70, -- its last size
 		Sparks = 160, -- sparks thrown out by the hit (scaled by the quality setting)
-		ShakeStuds = 0.9, -- the camera's shake at the hit, dying away...
-		ShakeSeconds = 0.35, -- ...over this long
+		-- The hit shakes the camera hard (designer 2026-10-05: "way more physical"): a jolt down
+		-- and back, then a heavy shake (move and roll) dying away; the falling beam rumbles it first.
+		ShakeStuds = 2.2, -- the shake's size at the hit...
+		ShakeSeconds = 1.2, -- ...dying away over this long
+		ShakeRollDegrees = 7, -- its roll at the hit
+		ShakeHz = 18, -- how fast it shakes
+		KickStuds = 1.6, -- the jolt down at the hit
+		RumbleStuds = 0.35, -- the falling beam's rumble, growing to the hit
 		Glare = 0.35, -- a gold glare over the screen at the hit (0..1)
-		ImpactHoldSeconds = 0.3, -- the hit holds this long, then a hard cut to black
+		ImpactHoldSeconds = 0.25, -- the hit holds this long, then fades to black...
+		FadeOutSeconds = 0.6, -- ...this slowly while the track rings out (designer 2026-10-05: was a cut, then 0.9)
+		SilenceSeconds = 0.25, -- black, the track's last ring, then the rise (designer 2026-10-05: was 0.7)
 		-- Part two, on the screen: the starlight warp.
-		InterludeSeconds = 3.1, -- black to flash (the rise's peak lands on the flash)
+		InterludeSeconds = 3.1, -- the rise's start to the flash (its peak lands on the flash)
 		WarpStars = 70, -- streaks of light flying out from the middle (scaled by quality)
 		WarpStreakShare = 0.2, -- a streak's length at the edge, of the screen's longer side
 		WarpSpeedFrom = 0.35, -- the streaks' speed (screens a second), at the start...
@@ -10377,7 +10385,7 @@ Config.Cutscenes = {
 		FlashOutSeconds = 0.5, -- ...and its fade off the card
 		-- Sounds (Config.Audio.Ui), each from the start of its moment.
 		Logo = "LegendaryCinematic", -- with the scene (its bass drop at once, its impact at ImpactAt)
-		Rise = "LegendaryRise", -- at the cut to black (its peak 3.1 s in: the flash)
+		Rise = "LegendaryRise", -- after the black's silence (its peak 3.1 s in: the flash)
 		Finale = "LegendaryHit", -- on the flash, over the card's own reveal sound
 		Skippable = true, -- once it has been seen
 	},

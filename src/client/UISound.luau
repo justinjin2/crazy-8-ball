@@ -78,6 +78,16 @@ function UISound.stop(key: string)
 	end
 end
 
+--- Where a UI sound is in its clip (seconds) and whether it is playing: a cutscene keeping
+--- to its track's clock.
+function UISound.position(key: string): (number, boolean)
+	local sound = sounds[key]
+	if sound then
+		return sound.TimePosition, sound.IsPlaying
+	end
+	return 0, false
+end
+
 --- Load every UI sound now, so the first chip does not land in silence.
 function UISound.preload()
 	for key: string in Clips do
