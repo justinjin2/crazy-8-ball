@@ -2466,7 +2466,11 @@ timer of a new block stay the designer's call.
   flash; the letterbox bars slide away halfway through the white. The opener's aurora is held
   while their card shows and lingers 5.5 s after they close it; a very faint looping "Aurora"
   ambience plays under the card and runs on 1 s after it closes, then tapers away (1.2 s).
-  Everyone else's aurora runs 18 s. The beam falls in 0.45 s (was 1.3 s)
+  Everyone else's aurora runs 18 s.
+- **2026-10-05 — No Legendary aurora in the sky (designer).** The gold sky aurora (SkyAurora,
+  the server's checked "Reveal" and the Banner "Aurora") is removed; nothing shows in the sky
+  for a Legendary, for the opener or anyone else. The card's faint "Aurora" ambience stays
+  (PullCutscene.cardClosed tapers it). The rest of the Legendary scene is good for now. The beam falls in 0.45 s (was 1.3 s)
   and lands on the track's final hit (4.03 s); the film follows the track's own playback clock,
   so a late-loading sound cannot put them out of step. The hit's shake is far heavier: a jolt
   down, then a smooth-noise shake with roll dying over 1.2 s, with a rumble as the beam falls.

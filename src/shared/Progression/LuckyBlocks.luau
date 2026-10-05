@@ -43,7 +43,7 @@ export type State = {
 -- One checked BlockRequest. Only the fields its action uses are set.
 export type Request = {
 	action: string,
-	id: number?, -- Hold (nil: put it away), Throw, Open, Move (Reveal has none)
+	id: number?, -- Hold (nil: put it away), Throw, Open, Move
 	to: number?, -- Move: the place in the list, 1..MaxBlocks
 }
 
@@ -53,7 +53,7 @@ local RENAMED: { [string]: string } = L.Renamed or {}
 local LuckyBlocks = {}
 
 --- Every action a BlockRequest may name (Net "BlockRequest").
-LuckyBlocks.Actions = table.freeze({ "Hold", "Throw", "Open", "Move", "Reveal" })
+LuckyBlocks.Actions = table.freeze({ "Hold", "Throw", "Open", "Move" })
 
 --- Every reason a refused BlockRequest may answer (Strings.LuckyBlocks.Reasons words them).
 LuckyBlocks.Reasons = table.freeze({
@@ -346,10 +346,6 @@ function LuckyBlocks.parse(action: any, a: any, b: any): (Request?, string?)
 	elseif action == "Move" then
 		if wholeIn(a, 1, ID_CAP) and wholeIn(b, 1, L.MaxBlocks) then
 			return { action = "Move", id = a, to = b }, nil
-		end
-	elseif action == "Reveal" then
-		if a == nil and b == nil then
-			return { action = "Reveal" }, nil
 		end
 	end
 	return nil, "BadRequest"

@@ -211,9 +211,6 @@ return {
 			H.expect(LuckyBlocks.parse(action, 2) ~= nil, action .. " a block")
 			H.expect(LuckyBlocks.parse(action, nil) == nil, action .. " needs an id")
 		end
-		r = LuckyBlocks.parse("Reveal")
-		H.expect(r ~= nil and r.action == "Reveal", "a Legendary card showing")
-		H.expect(LuckyBlocks.parse("Reveal", 1) == nil, "Reveal takes nothing")
 		r = LuckyBlocks.parse("Move", 4, 2)
 		H.expect(r ~= nil and r.id == 4 and r.to == 2, "Move a block to a place")
 		local bad: { { any } } = {

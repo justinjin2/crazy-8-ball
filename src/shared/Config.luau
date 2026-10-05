@@ -10297,10 +10297,12 @@ Config.Cutscenes = {
 	-- drop. The camera, close in, swings from their side round to their front; then low, looking
 	-- up past them at a gold star gathering light high above; then from high in the sky looking
 	-- down as a beam of gold light falls from the star and slams into them on the track's impact
-	-- (sparks, a shockwave, a ground ring, a heavy shake). A fade to black as the track rings
-	-- out with the rise starting under it, and the second part: a gold starlight warp on the
-	-- screen as the rise builds, a white flash on its peak with a cinematic hit, and the card under the white. Then a gold aurora fills
-	-- the sky for everyone in the server (Config.Cutscenes.Aurora). Skippable once seen.
+	-- (sparks, a shockwave, a ground ring, a heavy shake), its light blinding the screen into
+	-- the backdrop (white) as the rise starts. The second part: a pointed yellow star pulses up
+	-- from nothing, then expands spinning faster and faster to fill the screen as the rise
+	-- builds; a white flash on its peak with a cinematic hit, and the card under the white, a
+	-- very faint ambience under it. Skippable once seen. (No sky effect: the designer dropped
+	-- the gold aurora, 2026-10-05.)
 	-- Scene seconds (from the end of the fade to black), studs, degrees and 0..1 shares.
 	Legendary = {
 		FadeInSeconds = 0.5, -- the black fades up on the first shot
@@ -10421,8 +10423,9 @@ Config.Cutscenes = {
 		Logo = "LegendaryCinematic", -- with the scene (its bass drop at once, its impact at ImpactAt)
 		Rise = "LegendaryRise", -- just after the hit (its peak 3.1 s in: the flash)
 		Finale = "LegendaryHit", -- on the flash, over the card's own reveal sound
-		Ambience = "LegendaryAurora", -- very faint, looping under the card; after it is closed it
-		-- plays on Aurora.SoundTailSeconds, then fades over Aurora.SoundFadeSeconds
+		Ambience = "LegendaryAurora", -- very faint, looping under the card; after it is closed...
+		AmbienceTailSeconds = 1, -- ...it plays on this long...
+		AmbienceFadeSeconds = 1.2, -- ...then tapers away over this long
 		Skippable = true, -- once it has been seen
 	},
 	Mythic = {
@@ -10468,40 +10471,8 @@ Config.Cutscenes = {
 	Art = {
 		BeamEnergy = "rbxassetid://90134123684817", -- streaks running along a beam
 		BeamSoft = "rbxassetid://98573532343624", -- a soft falloff across a beam
-		AuroraCurtain = "rbxassetid://137361940974937", -- an aurora curtain's rays
-		LightStreak = "rbxassetid://114536414580559", -- one soft streak of light
+		LightStreak = "rbxassetid://114536414580559", -- one soft streak of light (the warp's streaks)
 		StarFlare = "rbxassetid://84051192712402", -- a pointed eight-spike star (the Legendary warp)
-	},
-	-- The gold aurora after a Legendary pull (SkyAurora; designer 2026-10-05): curtains of gold
-	-- light high in the sky, streaks of light shooting across it and sparkles drifting all
-	-- around, for everyone in the server (the opener from their card, everyone else when the
-	-- opener's card shows). Around each player's own camera, so it is overhead wherever they
-	-- are. Seconds, studs and 0..1 shares.
-	Aurora = {
-		Seconds = 18, -- in all, for everyone else in the server
-		-- The opener's (designer 2026-10-05): it stays while their card shows, and lingers this
-		-- long after they close it (the fade out included); at most HeldMaxSeconds.
-		LingerSeconds = 5.5,
-		HeldMaxSeconds = 120,
-		SoundTailSeconds = 1, -- the card's ambience plays on this long after it closes...
-		SoundFadeSeconds = 1.2, -- ...then tapers away over this long
-		InSeconds = 1.5, -- it fades in...
-		OutSeconds = 3, -- ...and out
-		Curtains = 7, -- curtains of light (scaled by the quality setting, at least 3)
-		HeightStuds = 170, -- their lower edge above the camera
-		DistanceStuds = 260, -- out from the camera
-		LengthStuds = 420, -- each curtain's length
-		WidthStuds = 150, -- and height
-		WaveStuds = 45, -- how far a curtain folds (toward and away from the player)
-		WaveSpeed = 0.35, -- how fast the folds move
-		TextureSpeed = 0.05, -- how fast the rays drift along a curtain
-		Colours = { { 255, 190, 40 }, { 255, 140, 20 }, { 255, 225, 120 } }, -- gold, amber, pale gold
-		Transparency = 0.15, -- at a curtain's brightest
-		StreaksPerSecond = 9, -- streaks of light shooting across the sky
-		SparklesPerSecond = 40, -- gold sparkles drifting round the player
-		Darken = -0.08, -- the world dims a touch so the sky glows (ColorCorrection brightness)
-		TintShare = 0.12, -- and warms
-		RevealWindowSeconds = 60, -- the server accepts the opener's "my card shows" this long after the roll
 	},
 	HintAfterSeconds = 0.6, -- "Tap to skip" shows this late (only once the kind was seen)
 	-- The 1v1 match result (ResultCutscene; GUI lane, C11a, D2): fade to black, then on the

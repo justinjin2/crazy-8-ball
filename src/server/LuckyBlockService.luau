@@ -10,9 +10,7 @@
 --   or more per player; Open (after the owner's native prompt hold) rolls the cue from the
 --   block's odds row with server RNG, opens it through PlayerData.openLuckyBlock and starts
 --   the rise; Move reorders
---   the hotbar and bag; Reveal (the opener's Legendary card is showing, after its cutscene)
---   sends everyone in the server the gold aurora (Announce.aurora), once per Legendary or
---   better opened, within Config.Cutscenes.Aurora.RevealWindowSeconds. Every answer is { ok = true, ... } or { ok = false, reason }.
+--   the hotbar and bag. Every answer is { ok = true, ... } or { ok = false, reason }.
 -- - A thrown block's model carries attributes every client animates from (LuckyWorld): Owner
 --   (UserId), BlockId, Kind, Phase ("Flying", "Landed", "Rising", "Burst") and PhaseAt (server
 --   time), plus To (its landing CFrame). The server moves it to To when the flight ends.
@@ -59,8 +57,6 @@ local held: { [Player]: Held } = {}
 local live: { [Player]: { [number]: Live } } = {}
 local buckets: { [Player]: Requests.Bucket } = {}
 local busy: { [Player]: boolean } = {}
--- A Legendary or better just opened, waiting for its card to show (Reveal).
-local reveals: { [Player]: { rarity: string, at: number } } = {}
 local dirty: { [Player]: boolean } = {}
 local lastSent: { [Player]: string } = {}
 local rolls = Random.new()
@@ -447,14 +443,6 @@ end
 --- The tutorial lane's hooks on Open: `force(player, kind)` names the cue the block gives
 --- (only one its odds row can drop; anything else is ignored), `opened(player, kind, cueId)`
 --- runs after an open.
---- `player` opened (or, /cutscene, is shown) a pull of `rarity`: from Legendary up, their
---- next Reveal within the window sends everyone the aurora.
-function LuckyBlockService.expectReveal(player: Player, rarity: string)
-	if BlockOdds.announcesHere(rarity) or BlockOdds.announces(rarity) then
-		reveals[player] = { rarity = rarity, at = os.clock() }
-	end
-end
-
 function LuckyBlockService.setOpenHooks(
 	force: ((Player, string) -> string?)?,
 	opened: ((Player, string, string) -> ())?
@@ -535,7 +523,6 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local cue = Catalog.get(plan.cueId) :: Catalog.Cue
 	Counters.add(cue.Id, 1)
 	Announce.unbox(player, cue.Id)
-	LuckyBlockService.expectReveal(player, cue.Rarity)
 	if onOpened then
 		task.spawn(onOpened, player, block.Kind, cue.Id)
 	end
@@ -575,17 +562,6 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		count = opened.count,
 		burstAt = burstAt,
 	}
-end
-
--- The opener's Legendary card is showing: the aurora for everyone, once per open.
-function HANDLERS.Reveal(player: Player, _r: LuckyBlocks.Request, _data: any): Reply
-	local pending = reveals[player]
-	reveals[player] = nil
-	if pending == nil or os.clock() - pending.at > Config.Cutscenes.Aurora.RevealWindowSeconds then
-		return refuse("BadRequest")
-	end
-	Announce.aurora(player, pending.rarity)
-	return { ok = true }
 end
 
 function HANDLERS.Move(player: Player, r: LuckyBlocks.Request, data: any): Reply
@@ -723,7 +699,6 @@ function LuckyBlockService.start()
 		dropLive(player)
 		buckets[player] = nil
 		busy[player] = nil
-		reveals[player] = nil
 		dirty[player] = nil
 		lastSent[player] = nil
 	end)

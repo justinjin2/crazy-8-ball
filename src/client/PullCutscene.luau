@@ -15,9 +15,10 @@
 -- - Legendary (redone 2026-10-05): two parts. A film behind black bars: the camera close on
 --   the player from their side round to their front, then low looking up past them at a gold
 --   star gathering light, then from high in the sky as a beam of gold light falls from the star
---   and slams into them on the track's impact (sparks, a shockwave, a heavy shake). A fade
---   to black as the track rings out and a rising tone starts, a gold starlight warp as it
---   builds, the white flash with a cinematic hit, and the card. Then a gold aurora (SkyAurora) for everyone in the server.
+--   and slams into them on the track's impact (sparks, a shockwave, a heavy shake), its light
+--   blinding the screen to white as a rising tone starts. On the white a pointed yellow star
+--   pulses up from nothing, then expands spinning ever faster until it fills the screen; the
+--   white flash with a cinematic hit, and the card, a very faint ambience under it.
 --   Skippable once seen.
 -- The ones below are the old scenes, still to be redone; they lift the black off as they begin.
 -- - Mythic: the sky turns to deep space with pastel aurora, the camera rises into the stars,
@@ -32,8 +33,7 @@
 -- been seen; it always ends on the server's prize, which the card then shows.
 -- Others' pulls from Mythic up arrive through the Unbox banner: remote() gives the sky a
 -- short tint in the rarity's colour, nothing else (a player in a match sees only that too).
--- A Legendary's gold aurora reaches them when the opener's card shows instead (the opener's
--- client says so, the server checks it and sends the Banner "Aurora").
+-- A Legendary shows nothing in the sky (designer 2026-10-05: the sky aurora was dropped).
 -- Tuning in Config.Cutscenes.
 local ContextActionService = game:GetService("ContextActionService")
 local Lighting = game:GetService("Lighting")
@@ -46,7 +46,6 @@ local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
-local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local ReelFx = require(script.Parent.ReelFx)
 local CueThumb = require(script.Parent.CueThumb)
@@ -54,7 +53,6 @@ local DayCycle = require(script.Parent.DayCycle)
 local HudParts = require(script.Parent.HudParts)
 local Quality = require(script.Parent.Quality)
 local Seen = require(script.Parent.Seen)
-local SkyAurora = require(script.Parent.SkyAurora)
 local UISound = require(script.Parent.UISound)
 
 local CS = Config.Cutscenes
@@ -1221,23 +1219,14 @@ local function stepLegendary(s: Scene, t: number)
 end
 
 -- The Legendary card is showing (played out, skipped or stopped): if it was cut short its
--- sounds stop with it; the gold aurora fills the sky, and the server tells everyone else in
--- it so theirs does too.
+-- sounds stop with it; its very faint ambience starts under the card (cardClosed tapers it).
 local function revealLegendary(s: Scene)
 	local L = CS.Legendary
 	if not s.fired.finale then
 		UISound.stop(L.Logo)
 		UISound.stop(L.Rise)
 	end
-	SkyAurora.play(true, L.Ambience) -- held while the card shows (LuckyOpening releases it)
-	task.spawn(function()
-		local ok, err = pcall(function()
-			(Net.get("BlockRequest") :: RemoteFunction):InvokeServer("Reveal")
-		end)
-		if not ok then
-			warn("[8ball] PullCutscene reveal: " .. tostring(err))
-		end
-	end)
+	UISound.play(L.Ambience)
 end
 
 local function makeAurora(s: Scene, feet: Vector3)
@@ -1523,6 +1512,12 @@ end
 -- Playing
 --------------------------------------------------------------------------------------------
 
+--- The pull's card closed: a Legendary's ambience plays on a moment, then tapers away.
+function PullCutscene.cardClosed()
+	local L = CS.Legendary
+	UISound.fadeOut(L.Ambience, L.AmbienceTailSeconds, L.AmbienceFadeSeconds)
+end
+
 --- Whether a scene is playing now.
 function PullCutscene.isPlaying(): boolean
 	return scene ~= nil
@@ -1790,8 +1785,8 @@ local function coloursOf(rarity: string): { Color3 }
 	return { ReelFx.color(rarity) }
 end
 
---- Someone else in the server pulled a Legendary or better: the sky's short tint. Not for a
---- Legendary: its gold aurora comes when the opener's card shows (Banner, "Aurora").
+--- Someone else in the server pulled a Mythic or better: the sky's short tint (a Legendary
+--- shows nothing in the sky: the designer dropped its aurora, 2026-10-05).
 function PullCutscene.remote(rarity: string)
 	if not PullCutscene.isRemote(rarity) or rarity == "Legendary" then
 		return

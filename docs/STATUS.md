@@ -1,15 +1,17 @@
 # Status
 
-**2026-10-05 (latest): the Legendary pull cutscene redone.**
+**2026-10-05 (latest): the Legendary pull cutscene redone (designer: "good for now").**
 - A film behind letterbox bars (side to front close on the player, low up at a gold star, from
-  the sky as its gold beam hits on the "Logo Reveal" impact, sparks, shockwave, shake), a hard
-  cut to a gold starlight warp under "Chaos Rise", a white flash with "Cinematic Hit" and the
-  card; then a gold aurora in the sky for everyone in the server (`SkyAurora`, server-checked
-  BlockRequest "Reveal" -> Banner "Aurora"). Skippable once seen. Verified in Studio with
-  `/cutscene legendary`: timings (film 0-4.3 s, flash at 7.4 s), frozen frames of every shot,
-  the camera clamp, a skip mid-film (camera, light, sounds and parts back, aurora on), the
-  server accepting one Reveal and refusing a repeat; lint clean, tests pass. Not checked by the
-  tool: the sounds by ear, a second player seeing the aurora, phone and gamepad skip.
+  the sky in front of them as its gold beam slams in on the "Logo Reveal" impact at 3.83 s:
+  sparks, shockwave, a heavy shake), the light blinding the screen to white as "Chaos Rise"
+  starts; on the white a pointed yellow star pulses up from nothing three times, then expands
+  spinning ever faster until it fills the screen, the bars sliding away halfway; a white
+  flash with "Cinematic Hit" on the rise's peak and the card, a very faint "Aurora" ambience
+  under it that tapers after the card closes. Skippable once seen. No sky effect (the gold
+  aurora was built and then dropped by the designer). Verified in Studio with
+  `/cutscene legendary`: every timing logged against the tracks' own clocks, frozen frames of
+  each shot and the star's stages, a skip mid-film, the ambience's taper; lint clean, tests
+  pass. Not checked by the tool: the sounds by ear, phone and gamepad skip.
 
 **2026-10-04 (latest): designer's tweak list, first batch.**
 - Pocket settle 0.6 s (was 1 s); the ability-ready sound at a third of its volume and silent

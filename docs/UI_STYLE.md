@@ -383,7 +383,7 @@ then; the reel's rules hold for the blocks.
   and a white burst on the riser's peak (about 2 s from the fade, never skipped). Legendary is
   a film behind letterbox bars (side to front, low up at a gold star, from the sky as its beam
   hits on the track's impact, a heavy shake and sparks), a fade to black with the rise starting under it,
-  a gold starlight warp, a white flash and the card (about 9 s, skippable once seen), then a gold aurora in everyone's sky. Tap (or A) skips, in two stages (section 14). Fast Open's grid, the first
+  a gold starlight warp, a white flash and the card (about 9 s, skippable once seen). Tap (or A) skips, in two stages (section 14). Fast Open's grid, the first
   win's reel inside the result screen and the "Still opening" wait are gone: a block is
   opened in the world, and the server has already answered when the reel starts.
 - **Prices**: money with the cash bundle; Robux with Roblox's own Robux glyph inside the text
