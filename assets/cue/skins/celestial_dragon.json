@@ -11,7 +11,7 @@
   "#C9E6FF"
  ],
  "painter": "mix",
- "note": "Pearl white and gold, wrapped by a see-through starlight dragon: OpenAI panels on the whole cue (pearl white with gold lattice straps crossing round dark sapphire diamonds, a pale maple tip end, a dark navy snakeskin grip), gold collar and rings, a gold cap end with a glowing eight-point star gem. The 3D piece (pieces/celestial_dragon): a pearl dragon head with gold horns and lips, fangs and glowing eyes resting past the butt, a mane of blue energy, and its see-through energy body (two ForceField ribbons with Neon cores) coiling round the cue to the shaft. Reworked 2026-10-04 (designer: it pulsed too fast, the colours were dull and the particles masked the detail): every motion slowed two to three times, the palette lifted to cyan-white spirit energy (#EAFBFF cores, #3FD6FF main) over deep indigo, two Neon spirit filaments spiralling round the body, ten quick spine flames replaced by four slow wisps, the mist and stars cut to a third; themed ends: a gold-scaled collar with a pearl band, a glowing pearl ferrule band, a pearl tip. Gate 1, second look (designer): a light-blue hologram aura round the whole cue (halo sprites behind the stick, a light-blue outline, the strip beam lifted) and the dragon long enough to coil the cue from tip to butt all the time.",
+ "note": "Pearl white and gold, wrapped by a see-through starlight dragon: OpenAI panels on the whole cue (pearl white with gold lattice straps crossing round dark sapphire diamonds, a pale maple tip end, a dark navy snakeskin grip), gold collar and rings, a gold cap end with a glowing eight-point star gem. The 3D piece (pieces/celestial_dragon): a pearl dragon head with gold horns and lips, fangs and glowing eyes resting past the butt, a mane of blue energy, and its see-through energy body (two ForceField ribbons with Neon cores) coiling round the cue to the shaft. Reworked 2026-10-04 (designer: it pulsed too fast, the colours were dull and the particles masked the detail): every motion slowed two to three times, the palette lifted to cyan-white spirit energy (#EAFBFF cores, #3FD6FF main) over deep indigo, two Neon spirit filaments spiralling round the body, ten quick spine flames replaced by four slow wisps, the mist and stars cut to a third; themed ends: a gold-scaled collar with a pearl band, a glowing pearl ferrule band, a pearl tip. Gate 1, second look (designer): a light-blue hologram aura round the whole cue (halo sprites behind the stick, a light-blue outline, the strip beam lifted) and the dragon long enough to coil the cue from tip to butt all the time. Gate 1, third look: the long body looked broken and went back to 4.5 studs; the spirit energy is now twelve see-through ribbons of blue light on the piece (Neon and ForceField, turning, drifting and fading on their own clocks) round the cue, after the designer's reference photo.",
  "ai": {
   "shaft_tile": {
    "refs": [
@@ -1217,11 +1217,11 @@
       ],
       [
        0.06,
-       0.45
+       0.62
       ],
       [
        0.9,
-       0.4
+       0.6
       ],
       [
        1,
@@ -1235,7 +1235,7 @@
       "Max": 0.9,
       "Period": 7.0
      },
-     "Brightness": 2.6
+     "Brightness": 2.0
     }
    ],
    "Lights": [

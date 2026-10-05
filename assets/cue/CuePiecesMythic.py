@@ -39,9 +39,8 @@ SWIM_TURNS = 3.0          # turns round the cue on each leg
 SWIM_ROUND = 0.96         # how sharply each end turns round (1 a sharp triangle, 0 a sine)
 SWIM_R = (0.40, 0.1)      # the loop's radius round the cue's axis: r0 + dr sin(phase) (0.34 on the 0.2 cue)
 SWIM_PERIOD = 12.0        # seconds for a whole lap, tip to butt and back (10 before the 2026-10-04 rework: calmer)
-SWIM_BODY = 9.4           # the spine's length, studs (the head sits on its front): a whole leg of the
-                          # 19.4-stud lap, so the dragon coils the cue tip to butt all the time
-                          # (designer, 2026-10-04; 4.5 before)
+SWIM_BODY = 4.5           # the spine's length, studs (the head sits on its front); a 9.4-stud body
+                          # coiling the whole cue was tried 2026-10-04 and looked broken: back to 4.5
 SWIM_STEP = 0.02          # the path's sample spacing, studs
 
 
@@ -92,7 +91,7 @@ def _dragon_radius(t):
     grow = min(t / 0.3, 1.0)
     grow = grow * grow * (3 - 2 * grow)
     neck = min(max(t - 0.88, 0.0) / 0.12, 1.0)
-    return 0.012 + 0.088 * grow - 0.012 * neck
+    return 0.012 + 0.078 * grow - 0.012 * neck
 
 
 def _dragon_tube(bm, frames, radius, segs, uv=None, v_per_stud=3.0, flat=0.85):
@@ -220,7 +219,7 @@ def celestial_dragon(k):
     k.joint('Dragon', pivot=(0, 0, 0), aura=True)
 
     # the spine: bones riding the loop, a quick wave on top running from the neck to the tail
-    NB = 44                                           # spine bones (30 on the 4.5-stud body)
+    NB = 30
     centres = [0.02 + 0.96 * b / (NB - 1) for b in range(NB)]
     width = 0.96 / (NB - 1)
     WAVE = 2.2                                        # the body wave's length, studs
@@ -311,7 +310,7 @@ def celestial_dragon(k):
         for i, (t, p, tg, nrm, side) in enumerate(frames):
             if i % 2:
                 continue
-            a = 2 * math.pi * (t * SWIM_BODY / 0.8 + h / 2)
+            a = 2 * math.pi * (t * SWIM_BODY / 0.55 + h / 2)
             rr = _dragon_radius(t) * 1.18 + 0.008
             pts.append(p + (nrm * math.cos(a) + side * math.sin(a)) * rr)
             radii.append(0.006 + 0.004 * min(t / 0.3, 1.0))
@@ -325,7 +324,7 @@ def celestial_dragon(k):
     fwd = tg
     up = nrm
     R = Matrix((tuple(fwd.cross(up) * -1), tuple(-fwd), tuple(up))).transposed()   # columns: X, Y, Z
-    HEAD_L = 1.2                                   # snout to the back of the mane, studs (1.0 before the 2026-10-04 rework)
+    HEAD_L = 1.0                                   # snout to the back of the mane, studs
     OLD_L, OLD_T = 0.78, Vector((0, -6.76, -0.1))  # the head's size and place when it sat on the butt
     scale = HEAD_L / OLD_L
     attach = Vector((0, -0.12, 0.12)) * scale      # where the neck meets the back of the head (local)
@@ -363,6 +362,55 @@ def celestial_dragon(k):
             emissive_tint='#9FF0FF', emissive_strength=3.4, cut_below=0.3, bones=head_bones,
             hologram={'Tint': '#7FE6FF', 'Shell': '#D8F6FF', 'Strength': 2.2, 'ShellTris': 6000,
                       'Alpha': (0.14, 0.55)})     # more solid than the pocket spirits: the face must read small
+    # The spirit energy (designer, 2026-10-04, the reference photo: see-through blue energy art
+    # flowing round the cue, surrounding the paint without masking it; its own look, not the
+    # Beta Cue's lattice): twelve thin ribbons of blue light wrapping part-way round the stick
+    # at a little distance, flat against it and tapered at both ends, half Neon (see-through,
+    # glowing) and half ForceField (the paler hologram shimmer). Each on its own aura joint:
+    # turning round the cue at its own rate and direction, drifting along it, and fading in
+    # and out on its own clock so the art is never still.
+    import random
+    rnd = random.Random(23)
+    k.material('Energy', 'Neon', '#4FB4FF', Transparency=0.4)
+    k.material('EnergyPale', 'ForceField', '#A8E4FF', Transparency=0.15)
+    G = P.butt_gain()
+    def ribbon(bm, u0, span, turns, a0, r_, w, thick):
+        rings = []
+        N = max(12, int(span * 24))
+        for i in range(N + 1):
+            t = i / N
+            u = u0 + span * t
+            a = a0 + 2 * math.pi * turns * t
+            rad = Vector((math.sin(a), 0, math.cos(a)))
+            # a little wider past the joint where the cue is thicker
+            rr = r_ + (G if u > 3.7 else 0.0)
+            c = Vector((0, -u, 0)) + rad * rr
+            wt = w * math.sin(math.pi * t) ** 0.6
+            ax = Vector((0, -1, 0))
+            ring = [bm.verts.new(c + ax * wt / 2 + rad * thick / 2), bm.verts.new(c - ax * wt / 2 + rad * thick / 2),
+                    bm.verts.new(c - ax * wt / 2 - rad * thick / 2), bm.verts.new(c + ax * wt / 2 - rad * thick / 2)]
+            rings.append(ring)
+        for i in range(N):
+            a_, b_ = rings[i], rings[i + 1]
+            for j in range(4):
+                j1 = (j + 1) % 4
+                bm.faces.new((a_[j], a_[j1], b_[j1], b_[j]))
+        bm.faces.new(rings[0][::-1])
+        bm.faces.new(rings[-1])
+    for n in range(12):
+        u0 = 0.5 + 6.0 * n / 12 + rnd.uniform(-0.2, 0.2)
+        span = rnd.uniform(1.0, 2.3)
+        turns = rnd.uniform(0.35, 0.85) * rnd.choice((-1, 1))
+        pale = n % 2 == 1
+        nm = 'Energy%d' % (n + 1)
+        k.joint(nm, pivot=(0, -(u0 + span / 2), 0), aura=True, motion=[
+            {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rnd.uniform(18, 42) * rnd.choice((-1, 1)), 'Phase': rnd.uniform(0, 360)},
+            {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': rnd.uniform(0.15, 0.35), 'Period': rnd.uniform(5.0, 8.0), 'Phase': rnd.uniform(0, 360)}],
+            visual=[{'Kind': 'Fade', 'Min': 0.0, 'Max': 1.0, 'Period': rnd.uniform(3.0, 5.5), 'Shape': 'sine', 'Phase': rnd.uniform(0, 360)}])
+        bm = bmesh.new()
+        ribbon(bm, u0, span, turns, rnd.uniform(0, 2 * math.pi), 0.19 + rnd.uniform(0.0, 0.08) + (0.05 if pale else 0.0),
+               rnd.uniform(0.05, 0.1) * (1.5 if pale else 1.0), 0.006)
+        k.add(nm, k.mesh_object('Dragon' + nm, bm, ['EnergyPale' if pale else 'Energy'], smooth=True))
     for nm, tc in bone_names[2::3]:
         _, p, tg, nrm, side = frame_at(tc)
         q = p + nrm * _dragon_radius(tc)

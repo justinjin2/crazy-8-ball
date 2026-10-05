@@ -272,6 +272,14 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   cue tip to butt all the time; a light-blue hologram aura round the whole cue (two halo
   sprite rows on the axis drawn behind the stick, the outline `#9FE8FF`, the strip beam
   lifted; about 96 particles a second). Board and clip re-rendered.
+- 2026-10-04 (gate 1, third look): the long body looked broken to the designer: back to the
+  4.5-stud dragon (30 bones, the 1-stud head). The spirit energy built after the designer's
+  reference photo: twelve see-through ribbons of blue light on the piece, flat against the
+  cue at a little distance and tapered at both ends, six Neon (`#4FB4FF`, 40% clear) and six
+  wider ForceField (`#A8E4FF`), each on its own aura joint turning round the cue at its own
+  rate and direction, drifting along it and fading in and out on its own clock (Fade
+  visuals), so the art is never still and never covers the paint. The strip beam dimmed.
+  Board and clip re-rendered.
 
 ## Decisions
 
@@ -321,3 +329,7 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   outline, more spiritual energy (the reference card: a soft light-blue aura round the whole
   cue), and the dragon longer so it is almost always spiralling round the entire cue from
   tip to butt. Built as the second look above.
+- 2026-10-04 (designer, Dragon gate 1, second look): "the dragon is bugged, go back to the
+  old version"; and replicate the reference photo 1:1: a see-through, transparent spiritual
+  energy animation always round the cue, in the spirit of the Beta Cue's technique but its
+  own look, surrounding the texture without masking it. Built as the third look.

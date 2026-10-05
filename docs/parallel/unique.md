@@ -199,8 +199,9 @@ generic-runtime rule; the catalog rows stay untouched.
 - 2026-10-04: the Celestial Dragon reworked in data (beats slowed two to three times,
   cyan-white spirit palette, spirit filaments, four slow wisps for ten flames, the cloud cut
   to a third, gold-scale and pearl ends); board and clip rendered. Second look: the dragon
-  lengthened to coil the whole cue, a light-blue hologram aura round the stick. Waiting at
-  gate 1.
+  lengthened to coil the whole cue, a light-blue hologram aura round the stick. Third look:
+  the long body dropped (it looked broken), twelve see-through blue energy ribbons turning
+  and fading round the cue after the designer's reference. Waiting at gate 1.
 
 ## Decisions
 
