@@ -179,8 +179,10 @@ generic-runtime rule; the catalog rows stay untouched.
   ring sweeping the cue), the `eclipse_carrier` piece (a black sun with corona over the head,
   two orbit rings with planets round the body, a third small orbit, an asteroid belt), the
   aura rewritten as a star system (about 99 particles a second, from 247; carrier rows for
-  the player), sounds as Roblox library placeholders. Lint and the 984 tests green. The board
-  for gate 1 is rendering.
+  the player), sounds as Roblox library placeholders. Lint and the 984 tests green. Gate 1
+  passed at the third look (vanta-black suns with finisher coronas, neon rings, the head sun
+  blooming like the butt). Built in the lane window: uploads, template, both pieces; the
+  coronas tuned on the floor; quiet checked. Waiting at gate 2.
 
 ## Decisions
 

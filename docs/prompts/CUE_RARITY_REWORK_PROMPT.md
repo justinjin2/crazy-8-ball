@@ -222,7 +222,13 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 - 2026-10-04: step 1 built (themed ends, the Carrier piece and host, the preview's carrier);
   Eclipse rebuilt in data (collar and ends, the piece, the carrier piece, the aura as a star
   system at about 99 particles a second, placeholder sounds). The board
-  (`assets/cue/concepts/rework/eclipse-board.png`) at gate 1.
+  (`assets/cue/concepts/rework/eclipse-board.png`) at gate 1; passed at the third look.
+- 2026-10-04: step 3 begun: Eclipse built in the lane window (maps and both pieces uploaded,
+  the template and pieces rebuilt, the lab beside Beta and the Dragon). Tuned on the lobby
+  floor: the orbit rings thicker (they read thin in Roblox), the coronas drawn behind the
+  black disc with fewer, dimmer sprites so the hole stays black from every side; quiet hides
+  all 26 carrier parts and cuts the carrier emitters to a quarter. Captures
+  `assets/cue/concepts/rework/eclipse-studio-{back,stand,side,front}.jpg`. Waiting at gate 2.
 
 ## Decisions
 
