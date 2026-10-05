@@ -10379,9 +10379,10 @@ Config.Cutscenes = {
 		-- The second part's background: the designer is trying white (2026-10-05); black was
 		-- { 0, 0, 0 }. On a bright one the warp's palest pieces turn deep gold so they still show.
 		Backdrop = { 255, 255, 255 },
-		DeepGold = { 235, 150, 20 },
-		RiseAfterHitSeconds = 0.3, -- the rise starts this long after the hit (4.13 s in), under the fade and the
-		-- track's last ring (designer 2026-10-05: it came 1.1 s after the hit, then too late)
+		WarpGold = { 255, 206, 0 }, -- the warp's yellow (designer 2026-10-05: brighter than Gold)
+		DeepGold = { 255, 160, 0 }, -- its deeper yellow, for edges and the inner star
+		RiseAfterHitSeconds = -0.2, -- the rise starts this long after the hit (negative: before it;
+		-- 3.63 s in). Designer 2026-10-05: it came 1.1 s after the hit, then 0.1, then 0.3, too late.
 		-- Part two, on the screen: the starlight warp.
 		InterludeSeconds = 3.1, -- the rise's start to the flash (its peak lands on the flash); the
 		-- warp shows from the black
@@ -10390,9 +10391,20 @@ Config.Cutscenes = {
 		WarpSpeedFrom = 0.35, -- the streaks' speed (screens a second), at the start...
 		WarpSpeedTo = 2.2, -- ...and at the end
 		Pillars = 5, -- vertical shafts of gold light sweeping across
-		CoreScale = 0.6, -- the gold glow in the middle at the end, of the longer side
-		StarStartShare = 0.012, -- it opens as a tiny star this big, of the longer side...
-		WarpGrowPower = 1.4, -- ...and grows into the full warp at the flash: share^power
+		-- The star (designer 2026-10-05): plain backdrop first, then a sharp eight-point yellow star
+		-- pulses up from nothing in the middle, spinning faster and growing with the rise.
+		WarpHoldSeconds = 0.25, -- just the backdrop this long
+		WarpGrowPower = 1.4, -- then everything grows to full at the flash: share^power
+		StarShare = 0.38, -- the star's size at the flash, of the screen's longer side (bigger blurs it)
+		StarPulse = 0.18, -- its pulse, a share of its size...
+		StarPulseHzFrom = 2, -- ...this often at the start...
+		StarPulseHzTo = 7, -- ...and at the flash
+		StarSpinFrom = 30, -- its spin, degrees a second, at the start...
+		StarSpinTo = 420, -- ...and at the flash
+		-- How strongly the softer pieces show over a bright backdrop (they wash it out on white).
+		BrightHaze = 0.2, -- the haze's most (0.6 on black)
+		BrightPillars = 0.15, -- the light shafts' most (0.35 on black)
+		BrightGlow = 0.55, -- the round glow's transparency (0 on black)
 		FlashInSeconds = 0.08, -- the white flash on the rise's peak...
 		FlashOutSeconds = 0.5, -- ...and its fade off the card
 		-- Sounds (Config.Audio.Ui), each from the start of its moment.
