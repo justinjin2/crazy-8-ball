@@ -199,7 +199,7 @@ function Banner.onBanner(self: any, payload: any)
 		if global[rarity] then
 			-- A Mythic or Secret pull (every server): "[GLOBAL]: ...", Mythic in a pastel
 			-- rainbow, Secret in red (designer 2026-10-05).
-			local text = global[rarity]:format(who, CueThumb.cueName(cue))
+			local text = global[rarity]:format(who)
 			if rarity == "Mythic" then
 				self:push({ text = text, colours = B.GlobalMythic, at = os.clock() })
 				ChatTags.system(ChatTags.letters(text, B.GlobalMythic))
@@ -211,7 +211,7 @@ function Banner.onBanner(self: any, payload: any)
 		else
 			local sentences: { [string]: string } = COPY.Unbox :: any
 			local sentence = sentences[rarity] or sentences.Default
-			local text = sentence:format(who, CueThumb.cueName(cue))
+			local text = sentence:format(who)
 			local tint = CueThumb.accentColor(rarity)
 			self:push({ text = text, color = tint, at = os.clock() })
 			ChatTags.system(ChatTags.paint(text, tint))

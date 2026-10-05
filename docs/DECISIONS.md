@@ -2515,3 +2515,6 @@ timer of a new block stay the designer's call.
   stays the main sound.
   Fixed the same day: the first cut (0.25 s full, then the fade, at volume 0.09) played but was
   buried under the sting's opening hit; the clap is now full for 0.6 s (1.8 s in all) at 0.26.
+- 2026-10-05: Pull announcements never name the cue, only its rarity (designer): "X unboxed a
+  Legendary Cue!" in the server, "[GLOBAL]: X pulled a Mythical Cue!" / "... a Secret Cue!" in
+  every server.

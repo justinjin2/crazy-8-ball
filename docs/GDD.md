@@ -755,9 +755,10 @@ reworked for lucky blocks on 2026-10-04.
   wins, rewards, the shop's Mystery and Grand Opening deals and the restock shop. At release:
   46 block cues (7/9/10/9/7/3/1 from Common to Secret, the cue skins plan, 2026-09-30). Mythic
   and Secret pulls are announced in every server, Legendary pulls in the server only
-  ("X unboxed a Legendary <cue>!"). The every-server line (designer, 2026-10-05) reads
-  **[GLOBAL]: <username> pulled a Mythical <cue>!** in a pastel rainbow, or **... a Secret
-  <cue>!** in red, on the top banner and in chat.
+  ("X unboxed a Legendary Cue!"). The every-server line (designer, 2026-10-05) reads
+  **[GLOBAL]: <username> pulled a Mythical Cue!** in a pastel rainbow, or **... a Secret
+  Cue!** in red, on the top banner and in chat. No announcement names the cue, only its
+  rarity.
 - **Pull cutscene sounds, for later** (designer, 2026-10-05): when the Mythic and Secret
   cutscenes are redone, they also get the Legendary's two bonus reveal sounds: the "Cinematic
   Hit" on the white flash (`Audio.Ui.LegendaryHit`) and the very faint looping angelic

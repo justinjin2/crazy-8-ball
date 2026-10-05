@@ -527,7 +527,8 @@ reel show the odds; an **"Odds"** button (a word, not just an icon) lists every 
 
 - Unboxing a **Mythic or Secret** is announced in every server; a **Legendary** in the opener's
   server (plan, 2026-10-02). The every-server line reads "[GLOBAL]: <username> pulled a
-  Mythical <cue>!" in a pastel rainbow, or "... a Secret <cue>!" in red (designer, 2026-10-05).
+  Mythical Cue!" in a pastel rainbow, or "... a Secret Cue!" in red (designer, 2026-10-05). No
+  announcement names the cue, only its rarity (designer, 2026-10-05).
 - A **Legendary block appearing in the restock shop** is announced in every server.
 - **Retired (vaulted) cues never come back** (plan, 2026-10-02; the old event-case return is
   gone). Odds screens update the moment a cue is retired.

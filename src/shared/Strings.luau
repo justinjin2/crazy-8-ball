@@ -976,22 +976,23 @@ return {
 	},
 	-- The banner at the top middle (Banner). Names are players' usernames.
 	Banner = {
-		-- "Painicane unboxed a Mythic Starfall Cue!" (username, the cue's name), by rarity.
+		-- "Painicane unboxed a Legendary Cue!" (username), by rarity; never the cue's name
+		-- (designer 2026-10-05).
 		Unbox = {
-			Common = "%s unboxed a Common %s!",
-			Uncommon = "%s unboxed an Uncommon %s!",
-			Rare = "%s unboxed a Rare %s!",
-			Epic = "%s unboxed an Epic %s!",
-			Legendary = "%s unboxed a Legendary %s!",
-			Mythic = "%s unboxed a Mythic %s!",
-			Secret = "%s unboxed a Secret %s!",
-			Default = "%s unboxed %s!",
+			Common = "%s unboxed a Common Cue!",
+			Uncommon = "%s unboxed an Uncommon Cue!",
+			Rare = "%s unboxed a Rare Cue!",
+			Epic = "%s unboxed an Epic Cue!",
+			Legendary = "%s unboxed a Legendary Cue!",
+			Mythic = "%s unboxed a Mythic Cue!",
+			Secret = "%s unboxed a Secret Cue!",
+			Default = "%s unboxed a Cue!",
 		},
 		-- A Mythic or Secret pull, announced in every server (designer 2026-10-05): the
-		-- username, then the cue's name.
+		-- username; never the cue's name.
 		Global = {
-			Mythic = "[GLOBAL]: %s pulled a Mythical %s!",
-			Secret = "[GLOBAL]: %s pulled a Secret %s!",
+			Mythic = "[GLOBAL]: %s pulled a Mythical Cue!",
+			Secret = "[GLOBAL]: %s pulled a Secret Cue!",
 		},
 		PartyStarted = "%s started a Money Party!", -- the buyer's username
 		PartyStartedAnon = "A Money Party started!",
