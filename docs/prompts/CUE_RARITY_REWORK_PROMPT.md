@@ -210,7 +210,7 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 - [x] 5. Kitsune: board, gate 1 (the first look of 2026-10-04 passes; the spirit-fox second
   look of 2026-10-05 was dropped by the designer); built and uploaded 2026-10-05, no gate 2
   (designer: "upload it and move onto the next").
-- [ ] 6. Apex: board, gate 1 (first look rendered 2026-10-05); build, gate 2, polish.
+- [ ] 6. Apex: board, gate 1; build, gate 2, polish.
 - [ ] 7. Reyes, Grandmaster, VIP.
 - [ ] 8. Legendaries (7): board sheet, gate; build; lineup gate.
 - [ ] 9. Epics (9): board sheet, gate; build; lineup gate.
@@ -391,16 +391,6 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   upload it and move onto the next". The first look (tails and orbs as meshes, the cloud cut,
   themed ends, the running fox kept) is the Kitsune; built and uploaded; on to Apex. The
   spirit fox head model stays in assets/cue/models/spirit_fox_head, unused.
-- 2026-10-05 (Apex, gate 1, first look): the HUD rings and scan pulses were sprites: now
-  three segmented cyan rings as real meshes, each sweeping its third of the cue tip to butt
-  and snapping back (a saw Bob), turning, glitching out for a few frames (Blink) and pulsing
-  (Glow), plus two orange targeting arcs sweeping butt to tip (hidden under Lower effects);
-  jet-flame cones (orange with a white-cyan core, flickering) behind the three vents under the
-  jet sprites; two data-stream beams along the cue (a drawn dash texture, cyan scrolling
-  toward the butt on one side, orange toward the tip on the other); a faint dark exhaust haze
-  body (the depth rule); themed ends (a thruster-nozzle ferrule with dark vent rings and a
-  glowing cyan mouth, the collar plated with orange bands, a cyan rim at the tip); an outline.
-  About 52 a second. The claw, trail and pocket finisher unchanged.
 - 2026-10-04 (Kitsune, gate 1, first look): the nine tails are real swept meshes off the
   mask's collar (pink ForceField bodies with white-pink Neon cores, two Sways each, Fade and
   Glow, even tails hidden under Lower effects) in place of the nine Beams; the three sprite

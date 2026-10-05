@@ -3266,28 +3266,6 @@ def apex(k):
     rubber(c, c.inside | True, '#16181C')
     joint_seam(k)
     seam_edges(k, [F1, W0, W1])
-    # Themed ends (designer 2026-10-04, the Mythic rule): the collar is gunmetal plated with
-    # orange armour bands and cyan light lines; the ferrule a thruster nozzle (gunmetal with
-    # dark vent rings and a glowing cyan band at the mouth); the tip's side dark with a cyan rim.
-    for c, m in k.zone('joint'):
-        for d in (J0 + 0.012, J1 - 0.012):
-            plate = band(c, d - 0.009, d + 0.009, soft=0.002) * m
-            gloss(c, plate > 0.5, s['orange'], rough=0.22)
-            c.put(plate > 0.5, None, glow=0.1)
-    e = k.ends()
-    tip = e.zone('tip')
-    gloss(e, tip, s['tip'], rough=0.2)
-    fer = e.zone('ferrule')
-    metal(e, fer, s['gunmetal'], rough=0.3)
-    e.put(fer, None, glow=0.0)
-    T0, T1 = ZONES['ferrule']
-    for d in (T0 + 0.035, T0 + 0.06, T0 + 0.085):
-        vent = band(e, d - 0.005, d + 0.005, soft=0.002) * fer
-        gloss(e, vent > 0.5, '#101418', rough=0.5)
-    mouth = band(e, T0 + 0.008, T0 + 0.02, soft=0.003) * fer
-    e.put(mouth > 0.5, np.broadcast_to(rgb(s['cyan']), e.col.shape), rough=0.2, metal=0.0, glow=1.0)
-    rim = band(e, T0 - 0.012, T0 - 0.004, soft=0.003) * tip
-    e.put(rim > 0.5, np.broadcast_to(rgb(s['cyan']), e.col.shape), rough=0.2, metal=0.0, glow=0.8)
 
 
 @recipe
