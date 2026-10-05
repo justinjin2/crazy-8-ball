@@ -26,6 +26,9 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local Progression = Shared:WaitForChild("Progression")
+local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
+local LuckyBlocks = require(Progression:WaitForChild("LuckyBlocks"))
 local LuckyHotbar = require(script.Parent.LuckyHotbar)
 local LuckyOpening = require(script.Parent.LuckyOpening)
 local LuckyWorld = require(script.Parent.LuckyWorld)
@@ -312,6 +315,28 @@ local function nextReveal()
 	end, if type(reward.oddsId) == "string" then reward.oddsId else nil)
 end
 
+-- A block kind that can drop a cue of `rarity`, and that cue (the kind named after the rarity
+-- first): for /cutscene.
+local function blockOfRarity(rarity: string): (string?, string?)
+	local order = table.clone(L.Order)
+	local own = table.find(order, rarity)
+	if own then
+		table.remove(order, own)
+		table.insert(order, 1, rarity)
+	end
+	for _, kind in order do
+		local row = LuckyBlocks.kind(kind)
+		if row and row.Odds then
+			for _, entry in BlockOdds.cueOdds(row.Odds) do
+				if entry.rarity == rarity then
+					return kind, entry.id
+				end
+			end
+		end
+	end
+	return nil, nil
+end
+
 local function openBlock(id: number)
 	task.spawn(function()
 		local reply = request("Open", id)
@@ -421,6 +446,22 @@ function LuckyClient.start(screen: ScreenGui)
 			stopHold()
 		end
 		refresh()
+	end)
+	-- /cutscene <rarity> (the designer's dev command, checked on the server): a whole opening
+	-- that lands on a cue of that rarity, the reel, the cutscene and the card; nothing is given.
+	Net.get("DevNotice").OnClientEvent:Connect(function(payload: any)
+		if
+			type(payload) ~= "table"
+			or payload.kind ~= "Cutscene"
+			or type(payload.rarity) ~= "string"
+		then
+			return
+		end
+		local kind, cueId = blockOfRarity(payload.rarity)
+		if kind and cueId then
+			table.insert(reveals, { kind = kind, cue = cueId, rarity = payload.rarity })
+			nextReveal()
+		end
 	end)
 	UserInputService.InputBegan:Connect(onInput)
 	UserInputService.TouchTapInWorld:Connect(function(_position: Vector2, processed: boolean)

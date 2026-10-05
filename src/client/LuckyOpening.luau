@@ -4,9 +4,10 @@
 -- grey-black (no white panel: the world shows through), the block's name sits over a Dark-look
 -- reel (BlockReel { look = "Dark" }: bordered tiles with each cue's name, rarity and chance)
 -- that slows onto the cue the server rolled. A Rare or better cue then plays its pull
--- cutscene (PullCutscene; moved here from the cases 2026-10-04, being redone): from the moment
--- the reel stops (designer, 2026-10-05) everything fades to black over the reel's glide and
--- hold, the reel's screens go once it is black, and the scene plays; then the big "YOU GOT
+-- cutscene (PullCutscene; moved here from the cases 2026-10-04, being redone): a second before
+-- the reel stops (designer, 2026-10-05: the suspense of "did I really just pull this")
+-- everything fades to black over the reel's last crawl, the reel's screens go once it is
+-- black, and the scene plays; then the big "YOU GOT
 -- <CUE>!" card (LuckyResult) over the dimmed world with rays in the rarity's colour. A tap,
 -- click or A skips the reel, then the cutscene (an old one, once it has been seen; never Rare),
 -- then closes the card; the cue is already in the inventory. The rest of the HUD
@@ -223,8 +224,8 @@ function Opening.play(
 	reel:start(function()
 		self:afterReel()
 	end, function()
-		self:landed()
-	end)
+		self:stopping()
+	end, if PullCutscene.has(rarity) then Config.Cutscenes.Black.LeadSeconds else 0)
 end
 
 function Opening.layout(self: any)
@@ -266,10 +267,10 @@ function Opening.layout(self: any)
 	self.hint.Text = hintFor("Reel")
 end
 
--- The reel has stopped on the prize: a Rare or better cue's pull cutscene starts now, fading
--- everything to black over the reel's glide and hold (its screens go once it is black), then
+-- The reel is a second from stopping on the prize: a Rare or better cue's pull cutscene starts
+-- now, fading everything to black over its last crawl (its screens go once it is black), then
 -- the card. Anything else waits for the reel to settle (afterReel).
-function Opening.landed(self: any)
+function Opening.stopping(self: any)
 	if not self.open or self.phase ~= "Reel" or not PullCutscene.has(self.rarity) then
 		return
 	end

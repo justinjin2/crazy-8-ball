@@ -13,8 +13,8 @@
 --   (ReelTick, rate-limited) sounds for each card passing the marker.
 -- - As it settles: ReelSettle, the marker and a glow round the window turn the prize's colour
 --   (Mythic's drifts through its pastels, Secret's breathes red), the prize card bounces with a
---   thick edge in that colour; after a short hold the reel reports it is done. It reports the
---   stop itself too (a Rare or better pull's cutscene starts there, LuckyOpening).
+--   thick edge in that colour; after a short hold the reel reports it is done. It can report a
+--   set time before the stop too (a Rare or better pull's cutscene starts there, LuckyOpening).
 -- - skip() (a tap, A or B; once per spin) races the strip on to the prize in Reel.SkipSeconds.
 -- - Each card reads the cue's name and its odds in its rarity's colour (GUI lane, 2026-10-03).
 -- - The Dark look (lucky blocks, designer 2026-10-03; Config.LuckyBlocks.UI): no white window or
@@ -239,7 +239,8 @@ function Reel.new(parent: Instance, oddsId: string, opts: { look: string? }?): a
 	self.pos = 0 -- where the marker is along the strip, in the strip's pixels
 	self.loop = nil :: RBXScriptConnection?
 	self.onSettled = nil :: (() -> ())?
-	self.onLanded = nil :: (() -> ())?
+	self.onStopping = nil :: (() -> ())?
+	self.stoppingLead = 0
 	self.lastTick = -math.huge
 	self.lastIndex = 0
 	self.glowFrom = 0 -- os.clock() when the glow round the window began
@@ -433,13 +434,15 @@ function Reel.setPrize(self: any, cueId: string, rarity: string)
 end
 
 --- Spin onto the prize (setPrize first); `onSettled` runs once, after it has settled and held;
---- `onLanded` (optional) the moment the spin stops on it, before the glide and the hold.
-function Reel.start(self: any, onSettled: () -> (), onLanded: (() -> ())?)
+--- `onStopping` (optional) runs once `lead` seconds before the spin stops on it (at once if a
+--- skip leaves less than that, at the stop itself at the latest).
+function Reel.start(self: any, onSettled: () -> (), onStopping: (() -> ())?, lead: number?)
 	if not self.alive or self.phase ~= "Idle" then
 		return
 	end
 	self.onSettled = onSettled
-	self.onLanded = onLanded
+	self.onStopping = onStopping
+	self.stoppingLead = lead or 0
 	self.phase = "Spinning"
 	self.duration = if self.big then R.BigSeconds else R.Seconds
 	self.power = if self.big then R.BigEasePower else R.EasePower
@@ -521,6 +524,9 @@ function Reel.step(self: any)
 			UISound.play("ReelBuild")
 		end
 		self:tick(now)
+		if now >= self.began + self.duration - self.stoppingLead then
+			self:stopping()
+		end
 		if u >= 1 then
 			self:land(now)
 		end
@@ -565,10 +571,15 @@ function Reel.land(self: any, now: number)
 	self.centreFrom = now
 	local hold = if self.big then R.BigSettleHoldSeconds else R.SettleHoldSeconds
 	self.holdUntil = now + R.CentreSeconds + hold
-	local landed = self.onLanded
-	self.onLanded = nil
-	if landed then
-		landed()
+	self:stopping()
+end
+
+-- The spin is about to stop (or has): report once.
+function Reel.stopping(self: any)
+	local stopping = self.onStopping
+	self.onStopping = nil
+	if stopping then
+		stopping()
 	end
 end
 
@@ -619,7 +630,7 @@ function Reel.destroy(self: any)
 	end
 	self.alive = false
 	self.onSettled = nil
-	self.onLanded = nil
+	self.onStopping = nil
 	if self.loop then
 		self.loop:Disconnect()
 		self.loop = nil

@@ -2432,3 +2432,8 @@ timer of a new block stay the designer's call.
   lifting the black off as they begin, until each is redone. The reveal sting is still the
   trial 4612378086 for every rarity. First timings (0.35 s fade, 0.15 s held, 0.45 s swell) were too fast:
   the black is 0.5 s longer and the swell 15% slower.
+- **2026-10-05 — The pull cutscene starts a second before the reel stops (designer).** For
+  Rare and up the black fade begins `Cutscenes.Black.LeadSeconds` (1 s) before the reel lands,
+  so the prize is glimpsed in the last crawl but never seen to settle: the suspense of "did I
+  really just pull this". `/cutscene <rarity>` works again for the designer: it plays a whole
+  lucky block opening (reel, cutscene, card) on a cue of that rarity, giving nothing.

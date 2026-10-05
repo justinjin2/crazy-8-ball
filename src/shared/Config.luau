@@ -10145,12 +10145,14 @@ Config.Cutscenes = {
 		AngleDegrees = -24, -- they fly up and to the right
 		Transparency = 0.15,
 	},
-	-- Every pull cutscene starts the same way (designer, 2026-10-05, Sol's RNG style): the
-	-- moment the reel stops on a Rare or better, everything fades to black (the reel's own
-	-- glide and hold play on under it), then the rarity's scene. The scenes not yet redone
+	-- Every pull cutscene starts the same way (designer, 2026-10-05, Sol's RNG style): a second
+	-- before the reel stops on a Rare or better, everything fades to black (the reel's last
+	-- crawl plays on under it, so the prize is glimpsed, never seen to land), then the
+	-- rarity's scene. The scenes not yet redone
 	-- (Epic and up) lift the black off as they begin.
 	Black = {
-		InSeconds = 0.6, -- the fade to black from the reel's stop (designer 2026-10-05: was 0.35)
+		LeadSeconds = 1, -- the fade starts this long before the reel stops
+		InSeconds = 0.6, -- the fade to black (designer 2026-10-05: was 0.35)
 		OutSeconds = 0.3, -- an old scene lifting it off
 		DisplayOrder = 70, -- its screen: over the scenes (60) and the lucky block's card
 	},

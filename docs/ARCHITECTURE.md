@@ -409,7 +409,7 @@ the lucky-block section below is the item flow now.
   `ReelFx` (the reel and its stage, used by `LuckyOpening` with the Dark look; renamed from
   CaseOpeningReel and CaseOpeningFx 2026-10-04), `PullCutscene` (the Rare-and-up pull, moved
   from the cases to the lucky blocks; being redone one by one: every scene starts on its veil,
-  a black fade from the reel's stop (`BlockReel.start`'s `onLanded`), and Rare draws only on
+  a black fade from a second before the reel stops (`BlockReel.start`'s `onStopping`), and Rare draws only on
   the veil), `ShopMenu` (emptied 2026-10-04 to its
   frame and the four jump buttons for the GUI overhaul; the page, card, odds, need, gift and
   thank-you modules are deleted), `RewardsMenu`, `RewardChips` (a block chip flies to the
