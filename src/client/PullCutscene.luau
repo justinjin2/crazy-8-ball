@@ -662,7 +662,7 @@ local function buildLegendary(s: Scene)
 	params.FilterDescendantsInstances = skip
 	p.params = params
 
-	-- The screen: black bars top and bottom, and the gold glare of the hit.
+	-- The screen: black bars top and bottom, and the blinding glare of the hit.
 	local bars = {}
 	for i, edge in { 0, 1 } do
 		local bar = fullFrame(s.veilRoot, "Bar", BLACK, 5)
@@ -673,7 +673,7 @@ local function buildLegendary(s: Scene)
 		bars[i] = bar
 	end
 	p.bars = bars
-	p.glare = fullFrame(s.veilRoot, "Glare", gold, 4)
+	p.glare = fullFrame(s.veilRoot, "Glare", gold:Lerp(light, 0.6), 4)
 
 	local rig = ghostPart(s, "Rig", Vector3.one, feet)
 	local function attach(at: Vector3): Attachment
@@ -862,7 +862,9 @@ local function filmLegendary(s: Scene, t: number)
 	s.cc.Saturation = G.Saturation * fadeIn
 	s.cc.TintColor = WHITE:Lerp(rgb(G.Tint), fadeIn)
 	p.motes.Rate = 25 * q
-	p.glare.BackgroundTransparency = 1 - L.Glare * (if hit then math.exp(-after * 9) else 0)
+	-- The hit's light blinds the screen, then the black takes over beneath it.
+	local blind = if hit then smooth(after / L.GlareInSeconds) * (1 - fadeOut) else 0
+	p.glare.BackgroundTransparency = 1 - L.Glare * blind
 
 	-- The star gathers light.
 	local charge = smooth((t - L.StarFrom) / (L.StarFullAt - L.StarFrom))

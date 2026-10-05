@@ -10370,9 +10370,11 @@ Config.Cutscenes = {
 		ShakeHz = 18, -- how fast it shakes
 		KickStuds = 1.6, -- the jolt down at the hit
 		RumbleStuds = 0.35, -- the falling beam's rumble, growing to the hit
-		Glare = 0.35, -- a gold glare over the screen at the hit (0..1)
-		ImpactHoldSeconds = 0.25, -- the hit holds this long, then fades to black...
-		FadeOutSeconds = 0.35, -- ...this fast while the track rings out (designer 2026-10-05: was a cut, then 0.9, 0.6)
+		-- The hit's light blinds the screen, then it goes black at once (designer 2026-10-05).
+		Glare = 0.92, -- the white-gold glare the hit floods the screen with (0..1)...
+		GlareInSeconds = 0.06, -- ...this fast
+		ImpactHoldSeconds = 0.1, -- the blinding holds this long, then fades to black...
+		FadeOutSeconds = 0.15, -- ...this fast (designer 2026-10-05: was a cut, then 0.9, 0.6, 0.35)
 		RiseAfterHitSeconds = 0.3, -- the rise starts this long after the hit (4.13 s in), under the fade and the
 		-- track's last ring (designer 2026-10-05: it came 1.1 s after the hit, then too late)
 		-- Part two, on the screen: the starlight warp.
