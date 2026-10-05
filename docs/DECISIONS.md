@@ -2461,3 +2461,5 @@ timer of a new block stay the designer's call.
   Small", cut to 1.6 s with a fast fade (`Audio.Clips.NiceClap`, `Audio.NiceClap`), plays at the
   pocket with the NICE SHOT! pop, about half as loud as the bonus sting it sits under; the sting
   stays the main sound.
+  Fixed the same day: the first cut (0.25 s full, then the fade, at volume 0.09) played but was
+  buried under the sting's opening hit; the clap is now full for 0.6 s (1.8 s in all) at 0.26.

@@ -3989,10 +3989,11 @@ Config.Audio = {
 			{ Id = "rbxassetid://139288823087630", Gain = 0.64 },
 		},
 		-- A short crowd clap under NICE SHOT! (designer, 2026-10-05): the designer's "XMS
-		-- CROWD Clap Small", cut to 1.6 s with a fast fade (assets/audio/NiceShotClap.wav),
-		-- peak 0.93. Layered UNDER the bonus sting, never the main sound: Config.Audio.NiceClap.
+		-- CROWD Clap Small", cut to 1.8 s: full for 0.6 s (past the sting's opening hit, which
+		-- buried a 0.25 s first cut), then a fast fade (assets/audio/NiceShotClap.wav), peak
+		-- 0.93. Layered UNDER the bonus sting, never the main sound: Config.Audio.NiceClap.
 		NiceClap = {
-			{ Id = "rbxassetid://127893799484932", Gain = 0.54 },
+			{ Id = "rbxassetid://114608192396126", Gain = 0.54 },
 		},
 		-- The tick while the aim turns. A UI click, not a pool sound. Replace it the same way
 		-- as the rest; this is v1 of the designer's own recording, in to be listened to.
@@ -4217,12 +4218,15 @@ Config.Audio = {
 		-- event rather than the ball's reward. (tune)
 		LateSeconds = 0.25,
 	},
-	-- The NICE SHOT! clap's level (Clips.NiceClap): 0.09 x 0.54 x its 0.93 peak is about 0.045,
-	-- a bit over half the bonus sting it sits under (0.16 x 0.64 x 0.79 = 0.08). Played at the
-	-- pocket with the NICE SHOT! pop, so everyone who sees the words hears it. (tune)
+	-- The NICE SHOT! clap's level (Clips.NiceClap). Measured in Studio (PlaybackLoudness at the
+	-- pocket): at 0.09 the clap peaked at 82 against the bonus sting's 239 and nobody heard it
+	-- (designer, 2026-10-05). Clapping is spiky: at 0.2 it peaked at 175 against 229 but
+	-- averaged a third of the sting between claps; 0.26 matches the sting's peaks while its
+	-- body stays well under the sting's (the sting is still the main sound). Played at the pocket with the NICE SHOT! pop, so everyone who sees the words hears
+	-- it. (tune)
 	NiceClap = {
-		MinVolume = 0.09,
-		MaxVolume = 0.09,
+		MinVolume = 0.26,
+		MaxVolume = 0.26,
 		MinPitch = 1,
 		MaxPitch = 1,
 		PitchJitter = 0.03, -- two nice shots in a row never clap identically
