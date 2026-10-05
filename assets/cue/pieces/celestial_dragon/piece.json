@@ -2,7 +2,7 @@
   "id": "celestial_dragon",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 37350,
+  "Triangles": 36790,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -296,319 +296,319 @@
     {
       "Material": "Neon",
       "Color": "#BFEFFF",
-      "Transparency": 0.6,
+      "Transparency": 0.82,
       "Reflectance": 0.0,
       "Name": "Energy1_Energy",
       "File": "pieces/celestial_dragon/Energy1_Energy.obj",
       "Joint": "Energy1",
       "Offset": [
         0.0065,
-        0.0022,
-        2.1058
+        0.0026,
+        2.2581
       ],
       "Size": [
-        0.3176,
-        0.313,
-        1.8486
+        0.311,
+        0.3056,
+        1.8249
       ],
       "Triangles": 412
     },
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.5,
+      "Transparency": 0.75,
       "Reflectance": 0.0,
       "Name": "Energy2_EnergyPale",
       "File": "pieces/celestial_dragon/Energy2_EnergyPale.obj",
       "Joint": "Energy2",
       "Offset": [
-        0.008,
-        0.0018,
-        2.181
+        0.0068,
+        0.0027,
+        2.3406
       ],
       "Size": [
-        0.3114,
-        0.3072,
-        1.6342
+        0.3036,
+        0.2983,
+        1.4126
       ],
-      "Triangles": 364
+      "Triangles": 316
     },
     {
       "Material": "Neon",
       "Color": "#BFEFFF",
-      "Transparency": 0.6,
+      "Transparency": 0.82,
       "Reflectance": 0.0,
       "Name": "Energy3_Energy",
       "File": "pieces/celestial_dragon/Energy3_Energy.obj",
       "Joint": "Energy3",
       "Offset": [
-        -0.0065,
-        -0.007,
-        2.0077
+        -0.0033,
+        0.0056,
+        2.1571
       ],
       "Size": [
-        0.3012,
-        0.3153,
-        1.6179
+        0.287,
+        0.2807,
+        1.3741
       ],
-      "Triangles": 364
+      "Triangles": 308
     },
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.5,
+      "Transparency": 0.75,
       "Reflectance": 0.0,
       "Name": "Energy4_EnergyPale",
       "File": "pieces/celestial_dragon/Energy4_EnergyPale.obj",
       "Joint": "Energy4",
       "Offset": [
-        0.0065,
-        0.0014,
-        2.0422
+        -0.0044,
+        0.0037,
+        2.0573
       ],
       "Size": [
-        0.3292,
-        0.3328,
-        1.2697
+        0.3227,
+        0.3129,
+        1.009
       ],
-      "Triangles": 284
+      "Triangles": 228
     },
     {
       "Material": "Neon",
       "Color": "#BFEFFF",
-      "Transparency": 0.6,
+      "Transparency": 0.82,
       "Reflectance": 0.0,
       "Name": "Energy5_Energy",
       "File": "pieces/celestial_dragon/Energy5_Energy.obj",
       "Joint": "Energy5",
       "Offset": [
-        -0.0072,
-        0.0128,
-        1.6081
+        -0.0043,
+        -0.0039,
+        1.9933
       ],
       "Size": [
-        0.3505,
-        0.3385,
-        1.875
+        0.2848,
+        0.2759,
+        0.9338
       ],
-      "Triangles": 420
+      "Triangles": 212
     },
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.5,
+      "Transparency": 0.75,
       "Reflectance": 0.0,
       "Name": "Energy6_EnergyPale",
       "File": "pieces/celestial_dragon/Energy6_EnergyPale.obj",
       "Joint": "Energy6",
       "Offset": [
-        -0.0053,
-        -0.0043,
-        1.8504
+        -0.0016,
+        0.0053,
+        1.7415
       ],
       "Size": [
-        0.3637,
-        0.3553,
-        0.9759
+        0.3436,
+        0.3413,
+        1.366
       ],
-      "Triangles": 220
+      "Triangles": 308
     },
     {
       "Material": "Neon",
       "Color": "#BFEFFF",
-      "Transparency": 0.6,
+      "Transparency": 0.82,
       "Reflectance": 0.0,
       "Name": "Energy7_Energy",
       "File": "pieces/celestial_dragon/Energy7_Energy.obj",
       "Joint": "Energy7",
       "Offset": [
-        -0.0093,
-        -0.0108,
-        1.1855
+        0.0141,
+        0.0109,
+        1.2111
       ],
       "Size": [
-        0.3685,
-        0.389,
-        1.7923
+        0.3651,
+        0.3404,
+        1.517
       ],
-      "Triangles": 404
+      "Triangles": 340
     },
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.5,
+      "Transparency": 0.75,
       "Reflectance": 0.0,
       "Name": "Energy8_EnergyPale",
       "File": "pieces/celestial_dragon/Energy8_EnergyPale.obj",
       "Joint": "Energy8",
       "Offset": [
-        -0.0058,
-        -0.0043,
-        1.317
+        -0.0127,
+        -0.0113,
+        1.1272
       ],
       "Size": [
-        0.3821,
-        0.3915,
-        1.0653
+        0.4087,
+        0.3852,
+        1.8515
       ],
-      "Triangles": 236
+      "Triangles": 412
     },
     {
       "Material": "Neon",
       "Color": "#BFEFFF",
-      "Transparency": 0.6,
+      "Transparency": 0.82,
       "Reflectance": 0.0,
       "Name": "Energy9_Energy",
       "File": "pieces/celestial_dragon/Energy9_Energy.obj",
       "Joint": "Energy9",
       "Offset": [
-        -0.0083,
-        0.0073,
-        1.016
+        -0.0088,
+        0.0087,
+        0.7994
       ],
       "Size": [
-        0.3826,
-        0.3679,
-        1.0732
+        0.3954,
+        0.378,
+        1.5546
       ],
-      "Triangles": 244
+      "Triangles": 348
     },
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.5,
+      "Transparency": 0.75,
       "Reflectance": 0.0,
       "Name": "Energy10_EnergyPale",
       "File": "pieces/celestial_dragon/Energy10_EnergyPale.obj",
       "Joint": "Energy10",
       "Offset": [
-        0.0112,
-        0.0111,
-        0.5905
+        0.0043,
+        0.0094,
+        0.942
       ],
       "Size": [
-        0.4287,
-        0.4505,
-        1.6769
+        0.357,
+        0.3671,
+        1.1916
       ],
-      "Triangles": 372
+      "Triangles": 268
     },
     {
       "Material": "Neon",
       "Color": "#BFEFFF",
-      "Transparency": 0.6,
+      "Transparency": 0.82,
       "Reflectance": 0.0,
       "Name": "Energy11_Energy",
       "File": "pieces/celestial_dragon/Energy11_Energy.obj",
       "Joint": "Energy11",
       "Offset": [
-        -0.0082,
-        -0.0079,
-        0.5128
+        -0.0165,
+        0.0174,
+        0.3791
       ],
       "Size": [
-        0.4071,
-        0.3931,
-        1.284
+        0.3774,
+        0.3463,
+        1.7523
       ],
-      "Triangles": 284
+      "Triangles": 396
     },
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.5,
+      "Transparency": 0.75,
       "Reflectance": 0.0,
       "Name": "Energy12_EnergyPale",
       "File": "pieces/celestial_dragon/Energy12_EnergyPale.obj",
       "Joint": "Energy12",
       "Offset": [
-        -0.0091,
-        -0.0048,
-        0.5818
+        0.007,
+        0.0088,
+        0.2654
       ],
       "Size": [
-        0.3804,
-        0.3704,
-        0.9796
+        0.4242,
+        0.4088,
+        1.4653
       ],
-      "Triangles": 220
+      "Triangles": 332
     },
     {
       "Material": "Neon",
       "Color": "#BFEFFF",
-      "Transparency": 0.6,
+      "Transparency": 0.82,
       "Reflectance": 0.0,
       "Name": "Energy13_Energy",
       "File": "pieces/celestial_dragon/Energy13_Energy.obj",
       "Joint": "Energy13",
       "Offset": [
-        -0.0011,
-        0.0059,
-        0.1251
+        -0.0075,
+        -0.007,
+        0.2252
       ],
       "Size": [
-        0.3974,
-        0.3954,
-        1.0361
+        0.3823,
+        0.397,
+        1.0392
       ],
       "Triangles": 236
     },
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.5,
+      "Transparency": 0.75,
       "Reflectance": 0.0,
       "Name": "Energy14_EnergyPale",
       "File": "pieces/celestial_dragon/Energy14_EnergyPale.obj",
       "Joint": "Energy14",
       "Offset": [
-        0.0088,
-        0.0064,
-        -0.0459
+        0.0087,
+        0.0059,
+        -0.2322
       ],
       "Size": [
-        0.469,
-        0.4861,
-        1.5196
+        0.4524,
+        0.4674,
+        1.4333
       ],
-      "Triangles": 340
+      "Triangles": 324
     },
     {
       "Material": "Neon",
       "Color": "#BFEFFF",
-      "Transparency": 0.6,
+      "Transparency": 0.82,
       "Reflectance": 0.0,
       "Name": "Energy15_Energy",
       "File": "pieces/celestial_dragon/Energy15_Energy.obj",
       "Joint": "Energy15",
       "Offset": [
-        0.0049,
-        0.0065,
-        -0.3264
+        -0.0048,
+        0.0081,
+        -0.1967
       ],
       "Size": [
-        0.4333,
-        0.4202,
-        1.6242
+        0.4513,
+        0.4394,
+        1.1104
       ],
-      "Triangles": 364
+      "Triangles": 252
     },
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.5,
+      "Transparency": 0.75,
       "Reflectance": 0.0,
       "Name": "Energy16_EnergyPale",
       "File": "pieces/celestial_dragon/Energy16_EnergyPale.obj",
       "Joint": "Energy16",
       "Offset": [
-        0.0066,
-        -0.0046,
-        -0.3463
+        0.0087,
+        -0.0167,
+        -0.4236
       ],
       "Size": [
-        0.4459,
-        0.4582,
+        0.436,
+        0.4067,
         1.2673
       ],
       "Triangles": 284
@@ -616,322 +616,322 @@
     {
       "Material": "Neon",
       "Color": "#BFEFFF",
-      "Transparency": 0.6,
+      "Transparency": 0.82,
       "Reflectance": 0.0,
       "Name": "Energy17_Energy",
       "File": "pieces/celestial_dragon/Energy17_Energy.obj",
       "Joint": "Energy17",
       "Offset": [
-        -0.0027,
-        -0.0027,
-        -0.5437
+        -0.0057,
+        0.0058,
+        -1.0336
       ],
       "Size": [
-        0.4521,
-        0.4549,
-        1.2503
+        0.4891,
+        0.4787,
+        1.8747
       ],
-      "Triangles": 284
+      "Triangles": 420
     },
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.5,
+      "Transparency": 0.75,
       "Reflectance": 0.0,
       "Name": "Energy18_EnergyPale",
       "File": "pieces/celestial_dragon/Energy18_EnergyPale.obj",
       "Joint": "Energy18",
       "Offset": [
-        0.0056,
-        -0.0055,
-        -1.0202
+        -0.004,
+        -0.0033,
+        -0.6763
       ],
       "Size": [
-        0.4959,
-        0.507,
-        1.6502
+        0.4933,
+        0.4838,
+        0.9177
       ],
-      "Triangles": 372
+      "Triangles": 204
     },
     {
       "Material": "Neon",
       "Color": "#BFEFFF",
-      "Transparency": 0.6,
+      "Transparency": 0.82,
       "Reflectance": 0.0,
       "Name": "Energy19_Energy",
       "File": "pieces/celestial_dragon/Energy19_Energy.obj",
       "Joint": "Energy19",
       "Offset": [
-        -0.0043,
-        -0.0043,
-        -0.9996
+        0.0056,
+        0.0052,
+        -1.1806
       ],
       "Size": [
-        0.4684,
-        0.4598,
-        1.5892
+        0.4819,
+        0.4702,
+        1.8012
       ],
-      "Triangles": 356
+      "Triangles": 404
     },
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.5,
+      "Transparency": 0.75,
       "Reflectance": 0.0,
       "Name": "Energy20_EnergyPale",
       "File": "pieces/celestial_dragon/Energy20_EnergyPale.obj",
       "Joint": "Energy20",
       "Offset": [
-        0.0011,
-        -0.0042,
-        -1.516
+        0.0033,
+        -0.0032,
+        -1.2433
       ],
       "Size": [
-        0.5026,
-        0.5016,
-        1.8925
-      ],
-      "Triangles": 420
-    },
-    {
-      "Material": "Neon",
-      "Color": "#BFEFFF",
-      "Transparency": 0.6,
-      "Reflectance": 0.0,
-      "Name": "Energy21_Energy",
-      "File": "pieces/celestial_dragon/Energy21_Energy.obj",
-      "Joint": "Energy21",
-      "Offset": [
-        -0.0129,
-        0.0069,
-        -1.5015
-      ],
-      "Size": [
-        0.4533,
-        0.4789,
-        1.3213
-      ],
-      "Triangles": 292
-    },
-    {
-      "Material": "ForceField",
-      "Color": "#D8F6FF",
-      "Transparency": 0.5,
-      "Reflectance": 0.0,
-      "Name": "Energy22_EnergyPale",
-      "File": "pieces/celestial_dragon/Energy22_EnergyPale.obj",
-      "Joint": "Energy22",
-      "Offset": [
-        0.0038,
-        -0.0013,
-        -1.6696
-      ],
-      "Size": [
-        0.5294,
-        0.5338,
-        1.7042
-      ],
-      "Triangles": 380
-    },
-    {
-      "Material": "Neon",
-      "Color": "#BFEFFF",
-      "Transparency": 0.6,
-      "Reflectance": 0.0,
-      "Name": "Energy23_Energy",
-      "File": "pieces/celestial_dragon/Energy23_Energy.obj",
-      "Joint": "Energy23",
-      "Offset": [
-        -0.0002,
-        0.0003,
-        -2.0329
-      ],
-      "Size": [
-        0.4849,
-        0.485,
-        1.7231
-      ],
-      "Triangles": 388
-    },
-    {
-      "Material": "ForceField",
-      "Color": "#D8F6FF",
-      "Transparency": 0.5,
-      "Reflectance": 0.0,
-      "Name": "Energy24_EnergyPale",
-      "File": "pieces/celestial_dragon/Energy24_EnergyPale.obj",
-      "Joint": "Energy24",
-      "Offset": [
-        0.0096,
-        -0.0027,
-        -1.9218
-      ],
-      "Size": [
-        0.5098,
-        0.5247,
-        1.1472
+        0.4996,
+        0.5061,
+        1.1721
       ],
       "Triangles": 260
     },
     {
       "Material": "Neon",
       "Color": "#BFEFFF",
-      "Transparency": 0.6,
+      "Transparency": 0.82,
+      "Reflectance": 0.0,
+      "Name": "Energy21_Energy",
+      "File": "pieces/celestial_dragon/Energy21_Energy.obj",
+      "Joint": "Energy21",
+      "Offset": [
+        -0.0031,
+        -0.0046,
+        -1.4136
+      ],
+      "Size": [
+        0.4855,
+        0.4778,
+        0.9456
+      ],
+      "Triangles": 212
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#D8F6FF",
+      "Transparency": 0.75,
+      "Reflectance": 0.0,
+      "Name": "Energy22_EnergyPale",
+      "File": "pieces/celestial_dragon/Energy22_EnergyPale.obj",
+      "Joint": "Energy22",
+      "Offset": [
+        0.0017,
+        0.0003,
+        -1.7962
+      ],
+      "Size": [
+        0.5317,
+        0.5354,
+        1.7323
+      ],
+      "Triangles": 388
+    },
+    {
+      "Material": "Neon",
+      "Color": "#BFEFFF",
+      "Transparency": 0.82,
+      "Reflectance": 0.0,
+      "Name": "Energy23_Energy",
+      "File": "pieces/celestial_dragon/Energy23_Energy.obj",
+      "Joint": "Energy23",
+      "Offset": [
+        0.0013,
+        -0.0001,
+        -1.8794
+      ],
+      "Size": [
+        0.4829,
+        0.4823,
+        1.1662
+      ],
+      "Triangles": 260
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#D8F6FF",
+      "Transparency": 0.75,
+      "Reflectance": 0.0,
+      "Name": "Energy24_EnergyPale",
+      "File": "pieces/celestial_dragon/Energy24_EnergyPale.obj",
+      "Joint": "Energy24",
+      "Offset": [
+        0.0035,
+        0.0008,
+        -2.0896
+      ],
+      "Size": [
+        0.4932,
+        0.4986,
+        1.4502
+      ],
+      "Triangles": 324
+    },
+    {
+      "Material": "Neon",
+      "Color": "#BFEFFF",
+      "Transparency": 0.82,
       "Reflectance": 0.0,
       "Name": "Energy25_Energy",
       "File": "pieces/celestial_dragon/Energy25_Energy.obj",
       "Joint": "Energy25",
       "Offset": [
-        0.0003,
-        0.0,
-        -2.2962
+        0.0001,
+        -0.0002,
+        -2.382
       ],
       "Size": [
-        0.4637,
-        0.4634,
-        1.7018
+        0.4981,
+        0.4991,
+        1.5735
       ],
-      "Triangles": 380
+      "Triangles": 356
     },
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.5,
+      "Transparency": 0.75,
       "Reflectance": 0.0,
       "Name": "Energy26_EnergyPale",
       "File": "pieces/celestial_dragon/Energy26_EnergyPale.obj",
       "Joint": "Energy26",
       "Offset": [
-        0.0002,
-        0.0006,
-        -2.5937
+        0.0003,
+        -0.0002,
+        -2.8079
       ],
       "Size": [
-        0.5279,
-        0.5272,
-        1.5263
+        0.5181,
+        0.5184,
+        1.6297
+      ],
+      "Triangles": 364
+    },
+    {
+      "Material": "Neon",
+      "Color": "#BFEFFF",
+      "Transparency": 0.82,
+      "Reflectance": 0.0,
+      "Name": "Energy27_Energy",
+      "File": "pieces/celestial_dragon/Energy27_Energy.obj",
+      "Joint": "Energy27",
+      "Offset": [
+        -0.0001,
+        0.0004,
+        -2.5402
+      ],
+      "Size": [
+        0.4685,
+        0.4661,
+        1.0779
+      ],
+      "Triangles": 244
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#D8F6FF",
+      "Transparency": 0.75,
+      "Reflectance": 0.0,
+      "Name": "Energy28_EnergyPale",
+      "File": "pieces/celestial_dragon/Energy28_EnergyPale.obj",
+      "Joint": "Energy28",
+      "Offset": [
+        -0.0006,
+        0.0,
+        -3.031
+      ],
+      "Size": [
+        0.5299,
+        0.5327,
+        1.4397
       ],
       "Triangles": 340
     },
     {
       "Material": "Neon",
       "Color": "#BFEFFF",
-      "Transparency": 0.6,
-      "Reflectance": 0.0,
-      "Name": "Energy27_Energy",
-      "File": "pieces/celestial_dragon/Energy27_Energy.obj",
-      "Joint": "Energy27",
-      "Offset": [
-        0.0001,
-        -0.0001,
-        -2.6388
-      ],
-      "Size": [
-        0.4589,
-        0.4589,
-        1.625
-      ],
-      "Triangles": 364
-    },
-    {
-      "Material": "ForceField",
-      "Color": "#D8F6FF",
-      "Transparency": 0.5,
-      "Reflectance": 0.0,
-      "Name": "Energy28_EnergyPale",
-      "File": "pieces/celestial_dragon/Energy28_EnergyPale.obj",
-      "Joint": "Energy28",
-      "Offset": [
-        0.001,
-        0.0,
-        -2.9094
-      ],
-      "Size": [
-        0.5299,
-        0.5309,
-        1.2652
-      ],
-      "Triangles": 284
-    },
-    {
-      "Material": "Neon",
-      "Color": "#BFEFFF",
-      "Transparency": 0.6,
+      "Transparency": 0.82,
       "Reflectance": 0.0,
       "Name": "Energy29_Energy",
       "File": "pieces/celestial_dragon/Energy29_Energy.obj",
       "Joint": "Energy29",
       "Offset": [
-        0.0004,
-        0.0004,
-        -3.0739
+        0.0005,
+        -0.0001,
+        -3.124
       ],
       "Size": [
-        0.5103,
-        0.5103,
-        1.4881
+        0.4783,
+        0.4793,
+        1.1883
       ],
-      "Triangles": 332
+      "Triangles": 276
     },
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.5,
+      "Transparency": 0.75,
       "Reflectance": 0.0,
       "Name": "Energy30_EnergyPale",
       "File": "pieces/celestial_dragon/Energy30_EnergyPale.obj",
       "Joint": "Energy30",
       "Offset": [
-        0.0002,
         -0.0,
-        -3.3112
+        0.0,
+        -2.9018
       ],
       "Size": [
-        0.5191,
-        0.5204,
-        1.7678
+        0.5259,
+        0.5258,
+        1.6951
       ],
       "Triangles": 396
     },
     {
       "Material": "Neon",
       "Color": "#BFEFFF",
-      "Transparency": 0.6,
+      "Transparency": 0.82,
       "Reflectance": 0.0,
       "Name": "Energy31_Energy",
       "File": "pieces/celestial_dragon/Energy31_Energy.obj",
       "Joint": "Energy31",
       "Offset": [
-        0.0006,
-        0.0004,
-        -3.2125
+        0.001,
+        -0.0005,
+        -3.3037
       ],
       "Size": [
-        0.5045,
-        0.5052,
-        1.3775
+        0.5009,
+        0.5026,
+        0.8557
       ],
-      "Triangles": 308
+      "Triangles": 204
     },
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.5,
+      "Transparency": 0.75,
       "Reflectance": 0.0,
       "Name": "Energy32_EnergyPale",
       "File": "pieces/celestial_dragon/Energy32_EnergyPale.obj",
       "Joint": "Energy32",
       "Offset": [
-        -0.0002,
-        0.0009,
-        -3.4482
+        -0.0105,
+        0.0001,
+        -3.204
       ],
       "Size": [
-        0.4997,
-        0.4995,
-        1.0722
+        0.4797,
+        0.5002,
+        1.0757
       ],
-      "Triangles": 244
+      "Triangles": 260
     }
   ],
   "Joints": {
@@ -2398,13 +2398,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -1.3942489896469668,
+        -1.2418749370102433,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        2.1058
+        2.2581
       ],
       "Motion": [
         {
@@ -2414,8 +2414,8 @@
             1,
             0
           ],
-          "Rate": 30.683064041145805,
-          "Phase": 152.5490669645861
+          "Rate": 42.26975662223917,
+          "Phase": 190.83168364248232
         },
         {
           "Kind": "Bob",
@@ -2424,7 +2424,7 @@
             1,
             0
           ],
-          "Amp": 0.18891144131534082,
+          "Amp": 0.12221995813372387,
           "Period": 3.260605882494961,
           "Phase": 69.11897671414538
         }
@@ -2442,7 +2442,7 @@
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
+          "Max": 0.12,
           "Period": 2.237046142386803,
           "Shape": "sine",
           "Phase": 8.91610829624467
@@ -2453,13 +2453,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -1.3190331091486902,
+        -1.1593755937095762,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        2.181
+        2.3406
       ],
       "Motion": [
         {
@@ -2469,8 +2469,8 @@
             1,
             0
           ],
-          "Rate": -38.22506987544964,
-          "Phase": 212.08445379792175
+          "Rate": 31.41238706979855,
+          "Phase": 236.84857563596233
         },
         {
           "Kind": "Bob",
@@ -2479,7 +2479,7 @@
             1,
             0
           ],
-          "Amp": 0.2055286523129864,
+          "Amp": 0.14673147709521134,
           "Period": 4.241982910276134,
           "Phase": 349.46468192842457
         }
@@ -2497,7 +2497,7 @@
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
+          "Max": 0.12,
           "Period": 2.1161573406754894,
           "Shape": "sine",
           "Phase": 205.9368412290411
@@ -2508,13 +2508,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -1.4923335709616152,
+        -1.3429488128576392,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        2.0077
+        2.1571
       ],
       "Motion": [
         {
@@ -2524,8 +2524,8 @@
             1,
             0
           ],
-          "Rate": -57.02897090982749,
-          "Phase": 65.5305177542721
+          "Rate": -36.543392891296506,
+          "Phase": 192.09120598754618
         },
         {
           "Kind": "Bob",
@@ -2534,9 +2534,9 @@
             1,
             0
           ],
-          "Amp": 0.14321019358460804,
-          "Period": 3.64682469775332,
-          "Phase": 293.7144573571109
+          "Amp": 0.20784415545693935,
+          "Period": 4.346737352250122,
+          "Phase": 187.22431324734407
         }
       ],
       "Aura": true,
@@ -2545,17 +2545,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 2.8912157056078,
+          "Period": 3.6645957993611873,
           "Shape": "sine",
-          "Phase": 41.1484339061213
+          "Phase": 29.63776883108547
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 1.7380458771929101,
+          "Max": 0.12,
+          "Period": 2.196599425781566,
           "Shape": "sine",
-          "Phase": 14.015941057232308
+          "Phase": 204.4836391449213
         }
       ]
     },
@@ -2563,13 +2563,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -1.457773905200369,
+        -1.4426980137841456,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        2.0422
+        2.0573
       ],
       "Motion": [
         {
@@ -2579,8 +2579,8 @@
             1,
             0
           ],
-          "Rate": 65.78157150077298,
-          "Phase": 197.63764916797194
+          "Rate": -40.336740955571315,
+          "Phase": 223.07481439539242
         },
         {
           "Kind": "Bob",
@@ -2589,9 +2589,9 @@
             1,
             0
           ],
-          "Amp": 0.15359440810560676,
-          "Period": 3.2142544630118053,
-          "Phase": 282.1712640150024
+          "Amp": 0.1913691510884343,
+          "Period": 3.238787676500431,
+          "Phase": 286.2291692069435
         }
       ],
       "Aura": true,
@@ -2600,17 +2600,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 3.9142869084340486,
+          "Period": 3.486028466195261,
           "Shape": "sine",
-          "Phase": 298.28351719293835
+          "Phase": 118.17436483779882
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 1.933236957040183,
+          "Max": 0.12,
+          "Period": 1.7994301206338439,
           "Shape": "sine",
-          "Phase": 196.37244829000554
+          "Phase": 268.31304768748925
         }
       ]
     },
@@ -2618,13 +2618,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -1.8919071368620912,
+        -1.5067300371412131,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        1.6081
+        1.9933
       ],
       "Motion": [
         {
@@ -2634,8 +2634,8 @@
             1,
             0
           ],
-          "Rate": -45.73527485828483,
-          "Phase": 291.44277573546685
+          "Rate": -57.48821437738417,
+          "Phase": 289.78694488552617
         },
         {
           "Kind": "Bob",
@@ -2644,9 +2644,9 @@
             1,
             0
           ],
-          "Amp": 0.20933669672649852,
-          "Period": 4.94747129413787,
-          "Phase": 289.78694488552617
+          "Amp": 0.22524322457114082,
+          "Period": 4.897656232966085,
+          "Phase": 193.8946042960146
         }
       ],
       "Aura": true,
@@ -2655,17 +2655,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 4.397656232966085,
+          "Period": 4.476435131506299,
           "Shape": "sine",
-          "Phase": 193.8946042960146
+          "Phase": 269.6451708183681
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.983504592054409,
+          "Max": 0.12,
+          "Period": 2.0845995740767997,
           "Shape": "sine",
-          "Phase": 269.6451708183681
+          "Phase": 350.7808152121455
         }
       ]
     },
@@ -2673,13 +2673,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -1.6496390919905588,
+        -1.7585118642160062,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        1.8504
+        1.7415
       ],
       "Motion": [
         {
@@ -2689,8 +2689,8 @@
             1,
             0
           ],
-          "Rate": 60.19797323154751,
-          "Phase": 342.16332693719687
+          "Rate": -34.140138195854426,
+          "Phase": 248.6194294371709
         },
         {
           "Kind": "Bob",
@@ -2700,8 +2700,8 @@
             0
           ],
           "Amp": 0.14807364405628307,
-          "Period": 3.207006909792721,
-          "Phase": 190.42919482157478
+          "Period": 4.115978312683742,
+          "Phase": 85.90988405870235
         }
       ],
       "Aura": true,
@@ -2710,17 +2710,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 2.839359889784597,
+          "Period": 2.7000222417973223,
           "Shape": "sine",
-          "Phase": 195.71340114530992
+          "Phase": 59.375044139573006
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.7379798616028874,
+          "Max": 0.12,
+          "Period": 1.6164906190527197,
           "Shape": "sine",
-          "Phase": 91.10244718196988
+          "Phase": 274.2926243200856
         }
       ]
     },
@@ -2728,13 +2728,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -2.3145249230404685,
+        -2.2889446058043914,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        1.1855
+        1.2111
       ],
       "Motion": [
         {
@@ -2744,8 +2744,8 @@
             1,
             0
           ],
-          "Rate": -32.78300544411628,
-          "Phase": 196.48740013160662
+          "Rate": 47.00433177042497,
+          "Phase": 277.7996381354399
         },
         {
           "Kind": "Bob",
@@ -2754,9 +2754,9 @@
             1,
             0
           ],
-          "Amp": 0.17526407825388113,
-          "Period": 3.597710144097591,
-          "Phase": 309.7609096806692
+          "Amp": 0.19095378338085794,
+          "Period": 4.1141812594205,
+          "Phase": 197.97749801386726
         }
       ],
       "Aura": true,
@@ -2765,17 +2765,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 3.7195980034759266,
+          "Period": 4.153081868363283,
           "Shape": "sine",
-          "Phase": 18.545777034422276
+          "Phase": 39.040657349754035
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 1.9988004129515944,
+          "Max": 0.12,
+          "Period": 2.4837339609481184,
           "Shape": "sine",
-          "Phase": 9.110489392622355
+          "Phase": 119.70082988870013
         }
       ]
     },
@@ -2783,13 +2783,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -2.1829701801769428,
+        -2.3728141759742956,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        1.317
+        1.1272
       ],
       "Motion": [
         {
@@ -2799,8 +2799,8 @@
             1,
             0
           ],
-          "Rate": -52.48085131899795,
-          "Phase": 84.62901293704806
+          "Rate": 52.43392853665917,
+          "Phase": 287.8326517481668
         },
         {
           "Kind": "Bob",
@@ -2809,9 +2809,9 @@
             1,
             0
           ],
-          "Amp": 0.1929102677441423,
-          "Period": 3.9414539456298225,
-          "Phase": 161.85418274844469
+          "Amp": 0.150560476893934,
+          "Period": 4.976628031110469,
+          "Phase": 97.96263099774058
         }
       ],
       "Aura": true,
@@ -2820,17 +2820,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 3.936760384919024,
+          "Period": 3.176339304107082,
           "Shape": "sine",
-          "Phase": 1.4191147814771066
+          "Phase": 8.512850722792301
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.1280475812636728,
+          "Max": 0.12,
+          "Period": 2.9392497792736343,
           "Shape": "sine",
-          "Phase": 282.8163428930828
+          "Phase": 269.7042726893773
         }
       ]
     },
@@ -2838,13 +2838,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -2.4840335766924975,
+        -2.7006438031321918,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        1.016
+        0.7994
       ],
       "Motion": [
         {
@@ -2854,8 +2854,8 @@
             1,
             0
           ],
-          "Rate": 68.18767073208085,
-          "Phase": 251.85839727382864
+          "Rate": -49.20699733416385,
+          "Phase": 189.40560990330772
         },
         {
           "Kind": "Bob",
@@ -2864,9 +2864,9 @@
             1,
             0
           ],
-          "Amp": 0.18242274133603253,
-          "Period": 4.3780192284583785,
-          "Phase": 194.08801242232624
+          "Amp": 0.21094886568221588,
+          "Period": 3.5955890754673794,
+          "Phase": 323.5512578322934
         }
       ],
       "Aura": true,
@@ -2875,17 +2875,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 3.6117416795737576,
+          "Period": 2.6727812174930747,
           "Shape": "sine",
-          "Phase": 189.40560990330772
+          "Phase": 315.581800806487
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.0169123528271657,
+          "Max": 0.12,
+          "Period": 2.8088497001385466,
           "Shape": "sine",
-          "Phase": 323.5512578322934
+          "Phase": 179.21033453825265
         }
       ]
     },
@@ -2893,13 +2893,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -2.9094717082371124,
+        -2.5580478832391376,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        0.5905
+        0.942
       ],
       "Motion": [
         {
@@ -2909,8 +2909,8 @@
             1,
             0
           ],
-          "Rate": 41.66506698168587,
-          "Phase": 146.6506022645299
+          "Rate": -67.20701734461694,
+          "Phase": 139.51807927642105
         },
         {
           "Kind": "Bob",
@@ -2919,9 +2919,9 @@
             1,
             0
           ],
-          "Amp": 0.22461668222607917,
-          "Period": 3.5473782414153616,
-          "Phase": 334.8631561015525
+          "Amp": 0.1555795856919985,
+          "Period": 3.8391189111304804,
+          "Phase": 293.93781334492905
         }
       ],
       "Aura": true,
@@ -2930,17 +2930,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 2.8208927867941593,
+          "Period": 3.455517586408831,
           "Shape": "sine",
-          "Phase": 15.405118398676825
+          "Phase": 199.35083954052044
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.841636925511744,
+          "Max": 0.12,
+          "Period": 1.9576747682267226,
           "Shape": "sine",
-          "Phase": 240.44446119661004
+          "Phase": 100.10516530848392
         }
       ]
     },
@@ -2948,13 +2948,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -2.9871698658486046,
+        -3.1208732733246283,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        0.5128
+        0.3791
       ],
       "Motion": [
         {
@@ -2964,8 +2964,8 @@
             1,
             0
           ],
-          "Rate": -50.09879600138986,
-          "Phase": 223.3664581669883
+          "Rate": 41.10137628496494,
+          "Phase": 2.7326395286796856
         },
         {
           "Kind": "Bob",
@@ -2975,8 +2975,8 @@
             0
           ],
           "Amp": 0.24867053438515077,
-          "Period": 3.555068814248247,
-          "Phase": 277.0835757193584
+          "Period": 3.074085507680074,
+          "Phase": 281.81145568423216
         }
       ],
       "Aura": true,
@@ -2985,17 +2985,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 2.515181330714887,
+          "Period": 2.7226219363153366,
           "Shape": "sine",
-          "Phase": 13.335391382413388
+          "Phase": 274.47305823669615
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.695933438772014,
+          "Max": 0.12,
+          "Period": 2.389458381294097,
           "Shape": "sine",
-          "Phase": 40.07194853676054
+          "Phase": 169.0143425417294
         }
       ]
     },
@@ -3003,13 +3003,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -2.9181882430664716,
+        -3.2345638342817535,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        0.5818
+        0.2654
       ],
       "Motion": [
         {
@@ -3019,8 +3019,8 @@
             1,
             0
           ],
-          "Rate": -54.880859505365606,
-          "Phase": 64.92397893798322
+          "Rate": 45.82900363529936,
+          "Phase": 105.50372328598431
         },
         {
           "Kind": "Bob",
@@ -3029,9 +3029,9 @@
             1,
             0
           ],
-          "Amp": 0.1861779973763545,
-          "Period": 4.22168105363015,
-          "Phase": 130.01910645890027
+          "Amp": 0.21597465296222268,
+          "Period": 3.1565533373461285,
+          "Phase": 329.46117736925964
         }
       ],
       "Aura": true,
@@ -3040,17 +3040,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 4.47214172897155,
+          "Period": 3.8095034600050894,
           "Shape": "sine",
-          "Phase": 224.89469624654333
+          "Phase": 61.085714509826445
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.5749718689669105,
+          "Max": 0.12,
+          "Period": 2.9666685057310285,
           "Shape": "sine",
-          "Phase": 217.80396357987607
+          "Phase": 328.2543872925803
         }
       ]
     },
@@ -3058,13 +3058,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -3.3748668135191418,
+        -3.274831868588314,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        0.1251
+        0.2252
       ],
       "Motion": [
         {
@@ -3074,8 +3074,8 @@
             1,
             0
           ],
-          "Rate": 48.75502523680291,
-          "Phase": 205.12489770478032
+          "Rate": -60.82828254922751,
+          "Phase": 217.04527015643725
         },
         {
           "Kind": "Bob",
@@ -3084,9 +3084,9 @@
             1,
             0
           ],
-          "Amp": 0.2201919182849894,
-          "Period": 4.643256039069179,
-          "Phase": 217.04527015643725
+          "Amp": 0.1940728797267262,
+          "Period": 4.182796122169653,
+          "Phase": 117.66928203819437
         }
       ],
       "Aura": true,
@@ -3095,17 +3095,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 3.682796122169653,
+          "Period": 2.7681800477285217,
           "Shape": "sine",
-          "Phase": 117.66928203819437
+          "Phase": 33.296071422189144
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 1.7877260334099652,
+          "Max": 0.12,
+          "Period": 2.7997213758525836,
           "Shape": "sine",
-          "Phase": 33.296071422189144
+          "Phase": 74.19224283177915
         }
       ]
     },
@@ -3113,13 +3113,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -3.545894864307727,
+        -3.7321640541329444,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -0.0459
+        -0.2322
       ],
       "Motion": [
         {
@@ -3129,8 +3129,8 @@
             1,
             0
           ],
-          "Rate": -56.53652917203476,
-          "Phase": 268.1289246821909
+          "Rate": 38.77687953257637,
+          "Phase": 164.33548598834557
         },
         {
           "Kind": "Bob",
@@ -3139,9 +3139,9 @@
             1,
             0
           ],
-          "Amp": 0.24031045590621752,
-          "Period": 3.6236612864805378,
-          "Phase": 319.13157997645897
+          "Amp": 0.1891147581834968,
+          "Period": 4.319392338118458,
+          "Phase": 344.03511638681954
         }
       ],
       "Aura": true,
@@ -3150,17 +3150,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 4.4628672742195885,
+          "Period": 3.7764416058241608,
           "Shape": "sine",
-          "Phase": 353.6544906330071
+          "Phase": 128.3765406671182
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 1.7808733232262888,
+          "Max": 0.12,
+          "Period": 2.9747751003770935,
           "Shape": "sine",
-          "Phase": 136.84021527702802
+          "Phase": 111.73107191301223
         }
       ]
     },
@@ -3168,13 +3168,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -3.8263539146280507,
+        -3.6967391311613933,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -0.3264
+        -0.1967
       ],
       "Motion": [
         {
@@ -3184,8 +3184,8 @@
             1,
             0
           ],
-          "Rate": 38.42216024275495,
-          "Phase": 152.17126623597898
+          "Rate": 32.34180123826101,
+          "Phase": 264.9389811892264
         },
         {
           "Kind": "Bob",
@@ -3194,9 +3194,9 @@
             1,
             0
           ],
-          "Amp": 0.12528768726467096,
-          "Period": 4.471883228829036,
-          "Phase": 170.10965687229023
+          "Amp": 0.1728850089382435,
+          "Period": 3.945053649290501,
+          "Phase": 57.703428955081584
         }
       ],
       "Aura": true,
@@ -3205,17 +3205,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 2.8205746053060086,
+          "Period": 4.362086749290909,
           "Shape": "sine",
-          "Phase": 335.17561487236355
+          "Phase": 131.95539033812227
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.11315985131492,
+          "Max": 0.12,
+          "Period": 2.9371825191482164,
           "Shape": "sine",
-          "Phase": 343.8469334952556
+          "Phase": 12.623990189061987
         }
       ]
     },
@@ -3223,13 +3223,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -3.8463111103810412,
+        -3.9235917782397216,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -0.3463
+        -0.4236
       ],
       "Motion": [
         {
@@ -3239,8 +3239,8 @@
             1,
             0
           ],
-          "Rate": 51.45539727763676,
-          "Phase": 292.9677413328145
+          "Rate": 37.26801720822886,
+          "Phase": 353.26442650329966
         },
         {
           "Kind": "Bob",
@@ -3249,9 +3249,9 @@
             1,
             0
           ],
-          "Amp": 0.1436210559267438,
-          "Period": 3.8803237673832487,
-          "Phase": 68.49586306470327
+          "Amp": 0.22579390659240522,
+          "Period": 4.321908843118043,
+          "Phase": 154.88615507786272
         }
       ],
       "Aura": true,
@@ -3260,17 +3260,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 4.046412146542062,
+          "Period": 2.625361300355232,
           "Shape": "sine",
-          "Phase": 353.2063992512601
+          "Phase": 302.47152239931046
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.2389633877298096,
+          "Max": 0.12,
+          "Period": 2.1479901231223737,
           "Shape": "sine",
-          "Phase": 1.1365602978448885
+          "Phase": 137.68118777611846
         }
       ]
     },
@@ -3278,13 +3278,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -4.043663862672294,
+        -4.533595084698401,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -0.5437
+        -1.0336
       ],
       "Motion": [
         {
@@ -3294,8 +3294,8 @@
             1,
             0
           ],
-          "Rate": -58.768545141414975,
-          "Phase": 216.8472379015654
+          "Rate": -35.743802369342276,
+          "Phase": 270.4326660313275
         },
         {
           "Kind": "Bob",
@@ -3304,9 +3304,9 @@
             1,
             0
           ],
-          "Amp": 0.1282629917387384,
-          "Period": 4.17615310567014,
-          "Phase": 185.21262502004055
+          "Amp": 0.21349777170959866,
+          "Period": 4.623190202034705,
+          "Phase": 167.10579928233764
         }
       ],
       "Aura": true,
@@ -3315,17 +3315,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 3.584996636970815,
+          "Period": 4.001863585730416,
           "Shape": "sine",
-          "Phase": 43.680551454604526
+          "Phase": 334.0241174722897
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 1.6946393116778906,
+          "Max": 0.12,
+          "Period": 2.1928903480062307,
           "Shape": "sine",
-          "Phase": 170.3637260730297
+          "Phase": 247.13641354744863
         }
       ]
     },
@@ -3333,13 +3333,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -4.520237874740139,
+        -4.176302972567676,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -1.0202
+        -0.6763
       ],
       "Motion": [
         {
@@ -3349,7 +3349,7 @@
             1,
             0
           ],
-          "Rate": 64.0773705682722,
+          "Rate": 61.31567060290218,
           "Phase": 96.6849196951278
         },
         {
@@ -3359,9 +3359,9 @@
             1,
             0
           ],
-          "Amp": 0.1569626664067799,
-          "Period": 3.9865681217944813,
-          "Phase": 196.54341710758027
+          "Amp": 0.23075145434688465,
+          "Period": 3.5686564062581523,
+          "Phase": 177.58226192300668
         }
       ],
       "Aura": true,
@@ -3370,17 +3370,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 4.081488766400337,
+          "Period": 3.59190787281989,
           "Shape": "sine",
-          "Phase": 106.28753275978958
+          "Phase": 284.66797795206065
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.9479589300944893,
+          "Max": 0.12,
+          "Period": 2.0133404051769594,
           "Shape": "sine",
-          "Phase": 8.001625532448697
+          "Phase": 346.6180105957258
         }
       ]
     },
@@ -3388,13 +3388,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -4.49958612557998,
+        -4.680558340298815,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -0.9996
+        -1.1806
       ],
       "Motion": [
         {
@@ -3404,7 +3404,7 @@
             1,
             0
           ],
-          "Rate": 57.86183384684783,
+          "Rate": 34.49548175828035,
           "Phase": 349.0694437192233
         },
         {
@@ -3414,9 +3414,9 @@
             1,
             0
           ],
-          "Amp": 0.1344045237018646,
-          "Period": 4.654536345340288,
-          "Phase": 28.558326501700833
+          "Amp": 0.20671726659282816,
+          "Period": 3.221608056951763,
+          "Phase": 297.81654216125185
         }
       ],
       "Aura": true,
@@ -3425,17 +3425,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 2.662585228115032,
+          "Period": 2.6586573694538935,
           "Shape": "sine",
-          "Phase": 286.3348702502919
+          "Phase": 29.265341060705794
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.607882468906155,
+          "Max": 0.12,
+          "Period": 2.7135244954178015,
           "Shape": "sine",
-          "Phase": 344.58738846417316
+          "Phase": 259.16977771872547
         }
       ]
     },
@@ -3443,13 +3443,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -5.015996233271861,
+        -4.743301438100916,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -1.516
+        -1.2433
       ],
       "Motion": [
         {
@@ -3459,7 +3459,7 @@
             1,
             0
           ],
-          "Rate": -66.82018450944625,
+          "Rate": -37.897927141339956,
           "Phase": 236.51221227103323
         },
         {
@@ -3469,9 +3469,9 @@
             1,
             0
           ],
-          "Amp": 0.13711927632159923,
-          "Period": 4.670820492764443,
-          "Phase": 175.93944148746485
+          "Amp": 0.23382084153289218,
+          "Period": 3.263373481870757,
+          "Phase": 300.74768869759976
         }
       ],
       "Aura": true,
@@ -3480,17 +3480,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 3.972876960972997,
+          "Period": 3.477441341597027,
           "Shape": "sine",
-          "Phase": 323.1293226124876
+          "Phase": 265.11785297513944
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 1.9639753488151508,
+          "Max": 0.12,
+          "Period": 2.8566140323818963,
           "Shape": "sine",
-          "Phase": 333.5424274207256
+          "Phase": 93.59366112389591
         }
       ]
     },
@@ -3498,13 +3498,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -5.001469981132309,
+        -4.913621069591063,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -1.5015
+        -1.4136
       ],
       "Motion": [
         {
@@ -3524,9 +3524,9 @@
             1,
             0
           ],
-          "Amp": 0.19588967660266915,
-          "Period": 4.024869301285375,
-          "Phase": 325.45258455914205
+          "Amp": 0.20272710086650078,
+          "Period": 4.167533486194911,
+          "Phase": 184.47647423136758
         }
       ],
       "Aura": true,
@@ -3535,17 +3535,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 3.328721419101603,
+          "Period": 4.308069914217456,
           "Shape": "sine",
-          "Phase": 307.23110898424284
+          "Phase": 149.16985543828855
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 1.7145284312895919,
+          "Max": 0.12,
+          "Period": 2.7947876460498335,
           "Shape": "sine",
-          "Phase": 117.42073851083454
+          "Phase": 29.450168045895047
         }
       ]
     },
@@ -3553,13 +3553,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -5.1696352783104675,
+        -5.296198745862349,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -1.6696
+        -1.7962
       ],
       "Motion": [
         {
@@ -3569,7 +3569,7 @@
             1,
             0
           ],
-          "Rate": -36.29840407962484,
+          "Rate": -35.59317732459684,
           "Phase": 220.9432684024471
         },
         {
@@ -3579,9 +3579,9 @@
             1,
             0
           ],
-          "Amp": 0.17563393203753724,
-          "Period": 4.013732525656958,
-          "Phase": 291.4381729191077
+          "Amp": 0.1385802842711643,
+          "Period": 3.8559066467313423,
+          "Phase": 182.47185461825248
         }
       ],
       "Aura": true,
@@ -3590,17 +3590,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 3.5445736002474133,
+          "Period": 4.11910096066171,
           "Shape": "sine",
-          "Phase": 193.23327804339502
+          "Phase": 188.02324804453443
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.430598195201584,
+          "Max": 0.12,
+          "Period": 2.3514627479465364,
           "Shape": "sine",
-          "Phase": 335.55425555403156
+          "Phase": 213.58239305183585
         }
       ]
     },
@@ -3608,13 +3608,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -5.532852350411909,
+        -5.379411815613486,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -2.0329
+        -1.8794
       ],
       "Motion": [
         {
@@ -3624,8 +3624,8 @@
             1,
             0
           ],
-          "Rate": 34.60569188243197,
-          "Phase": 128.79415708116886
+          "Rate": -47.210534619617924,
+          "Phase": 73.84906145904728
         },
         {
           "Kind": "Bob",
@@ -3634,7 +3634,7 @@
             1,
             0
           ],
-          "Amp": 0.14666771663798928,
+          "Amp": 0.1349684986179039,
           "Period": 4.001600002920139,
           "Phase": 354.0959250957079
         }
@@ -3652,7 +3652,7 @@
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
+          "Max": 0.12,
           "Period": 1.9468220979478277,
           "Shape": "sine",
           "Phase": 133.0776142115285
@@ -3663,13 +3663,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -5.421816456205725,
+        -5.589613417765001,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -1.9218
+        -2.0896
       ],
       "Motion": [
         {
@@ -3679,7 +3679,7 @@
             1,
             0
           ],
-          "Rate": -61.036650875300246,
+          "Rate": -59.44816764122835,
           "Phase": 25.30753405553416
         },
         {
@@ -3689,9 +3689,9 @@
             1,
             0
           ],
-          "Amp": 0.16845489504039546,
-          "Period": 3.062823858248102,
-          "Phase": 12.836822873465167
+          "Amp": 0.2208691153447258,
+          "Period": 3.745459923698392,
+          "Phase": 11.308294484658399
         }
       ],
       "Aura": true,
@@ -3700,17 +3700,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 4.133787737090996,
+          "Period": 2.5713156826303623,
           "Shape": "sine",
-          "Phase": 58.69170050304154
+          "Phase": 294.0817926763793
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.8459917945545525,
+          "Max": 0.12,
+          "Period": 1.8282455019562727,
           "Shape": "sine",
-          "Phase": 125.70403416329188
+          "Phase": 320.39789002831344
         }
       ]
     },
@@ -3718,13 +3718,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -5.796163171164635,
+        -5.88200559173412,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -2.2962
+        -2.382
       ],
       "Motion": [
         {
@@ -3734,7 +3734,7 @@
             1,
             0
           ],
-          "Rate": 46.15019665120326,
+          "Rate": 34.17667192332593,
           "Phase": 135.47150187878023
         },
         {
@@ -3744,9 +3744,9 @@
             1,
             0
           ],
-          "Amp": 0.21524590985608844,
-          "Period": 3.3484519953342318,
-          "Phase": 316.8237161160481
+          "Amp": 0.2226601098703873,
+          "Period": 4.465321690093669,
+          "Phase": 62.721359160161676
         }
       ],
       "Aura": true,
@@ -3755,17 +3755,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 4.388781056818976,
+          "Period": 4.260131756200267,
           "Shape": "sine",
-          "Phase": 8.535521424752535
+          "Phase": 339.98059022741575
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.8017564348707857,
+          "Max": 0.12,
+          "Period": 1.6331936944295933,
           "Shape": "sine",
-          "Phase": 280.10316877281934
+          "Phase": 309.0230832524878
         }
       ]
     },
@@ -3773,13 +3773,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -6.093682973730347,
+        -6.309473489194031,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -2.5937
+        -2.8095
       ],
       "Motion": [
         {
@@ -3799,9 +3799,9 @@
             1,
             0
           ],
-          "Amp": 0.13659046060502608,
-          "Period": 3.5491008985441432,
-          "Phase": 195.5722429083497
+          "Amp": 0.19611041148962816,
+          "Period": 3.2552378554619397,
+          "Phase": 98.83816173794574
         }
       ],
       "Aura": true,
@@ -3810,17 +3810,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 3.6946449970594104,
+          "Period": 3.5865124606019427,
           "Shape": "sine",
-          "Phase": 292.1777449821795
+          "Phase": 215.03609947069393
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.39742821059956,
+          "Max": 0.12,
+          "Period": 2.736246786041809,
           "Shape": "sine",
-          "Phase": 227.60781511968128
+          "Phase": 205.05296843988685
         }
       ]
     },
@@ -3828,13 +3828,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -6.138783200312275,
+        -6.040188136406616,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -2.6388
+        -2.5402
       ],
       "Motion": [
         {
@@ -3854,9 +3854,9 @@
             1,
             0
           ],
-          "Amp": 0.23432044687205728,
-          "Period": 3.9593723915650507,
-          "Phase": 257.7745232981573
+          "Amp": 0.22610920542044854,
+          "Period": 4.758776105723958,
+          "Phase": 172.68703048170914
         }
       ],
       "Aura": true,
@@ -3865,17 +3865,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 2.6090684798437076,
+          "Period": 3.9320806849897627,
           "Shape": "sine",
-          "Phase": 148.74941825442036
+          "Phase": 19.632326371867407
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.659624853624287,
+          "Max": 0.12,
+          "Period": 2.1784699598783015,
           "Shape": "sine",
-          "Phase": 28.404988489159916
+          "Phase": 272.4749623605308
         }
       ]
     },
@@ -3883,13 +3883,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -6.409368947941949,
+        -6.566589870926435,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -2.9094
+        -3.0666
       ],
       "Motion": [
         {
@@ -3899,7 +3899,7 @@
             1,
             0
           ],
-          "Rate": 54.09714433363958,
+          "Rate": 62.56589997619402,
           "Phase": 92.16989889961752
         },
         {
@@ -3909,9 +3909,9 @@
             1,
             0
           ],
-          "Amp": 0.24048416745752643,
-          "Period": 4.946278053728989,
-          "Phase": 247.41441385436724
+          "Amp": 0.0,
+          "Period": 4.853602576269638,
+          "Phase": 350.330049671218
         }
       ],
       "Aura": true,
@@ -3920,17 +3920,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 4.462681376005814,
+          "Period": 3.8745245214131514,
           "Shape": "sine",
-          "Phase": 353.9388379003158
+          "Phase": 353.28264768104646
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 1.807401166025321,
+          "Max": 0.12,
+          "Period": 2.9764288140567836,
           "Shape": "sine",
-          "Phase": 262.9292875207209
+          "Phase": 53.33172840651109
         }
       ]
     },
@@ -3938,13 +3938,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -6.573860859882983,
+        -6.649600013148827,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -3.0739
+        -3.1496
       ],
       "Motion": [
         {
@@ -3954,8 +3954,8 @@
             1,
             0
           ],
-          "Rate": 59.88355081534623,
-          "Phase": 212.83000443101525
+          "Rate": -65.92990944232706,
+          "Phase": 23.40386437034858
         },
         {
           "Kind": "Bob",
@@ -3964,9 +3964,9 @@
             1,
             0
           ],
-          "Amp": 0.21561674263448172,
-          "Period": 3.1300214687241588,
-          "Phase": 45.869376670974745
+          "Amp": 0.05264042868177654,
+          "Period": 3.254829870394304,
+          "Phase": 66.25938208230549
         }
       ],
       "Aura": true,
@@ -3975,17 +3975,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 2.8681076782350305,
+          "Period": 4.235650516080677,
           "Shape": "sine",
-          "Phase": 312.417092894522
+          "Phase": 102.26358228662212
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 1.9976917088924195,
+          "Max": 0.12,
+          "Period": 1.776014275082885,
           "Shape": "sine",
-          "Phase": 45.260813592741805
+          "Phase": 60.86754647205276
         }
       ]
     },
@@ -3993,13 +3993,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -6.811151973920183,
+        -6.438119861658541,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -3.3112
+        -2.9381
       ],
       "Motion": [
         {
@@ -4009,8 +4009,8 @@
             1,
             0
           ],
-          "Rate": 64.07136755144666,
-          "Phase": 324.4321532215754
+          "Rate": 60.49399000309413,
+          "Phase": 356.7338217918192
         },
         {
           "Kind": "Bob",
@@ -4019,9 +4019,9 @@
             1,
             0
           ],
-          "Amp": 0.21701825244649778,
-          "Period": 3.564438462122191,
-          "Phase": 181.65486405263488
+          "Amp": 0.0,
+          "Period": 3.0738529529016287,
+          "Phase": 235.6297385877218
         }
       ],
       "Aura": true,
@@ -4030,17 +4030,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 4.044547627188669,
+          "Period": 2.8257899989240287,
           "Shape": "sine",
-          "Phase": 282.47795059265343
+          "Phase": 230.5853779875303
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.6224939219409293,
+          "Max": 0.12,
+          "Period": 1.6532430079161016,
           "Shape": "sine",
-          "Phase": 303.50753108926904
+          "Phase": 164.5564829913934
         }
       ]
     },
@@ -4048,13 +4048,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -6.712496880867715,
+        -6.832492637848781,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -3.2125
+        -3.3325
       ],
       "Motion": [
         {
@@ -4064,7 +4064,7 @@
             1,
             0
           ],
-          "Rate": -61.17132223534987,
+          "Rate": -51.72735419439153,
           "Phase": 236.62485135546655
         },
         {
@@ -4074,9 +4074,9 @@
             1,
             0
           ],
-          "Amp": 0.14490678542496205,
-          "Period": 3.0753863495667604,
-          "Phase": 316.0992518626296
+          "Amp": 0.03283440698028883,
+          "Period": 3.3831813142301854,
+          "Phase": 13.56954292201683
         }
       ],
       "Aura": true,
@@ -4085,17 +4085,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 3.653422775776246,
+          "Period": 4.256106954792386,
           "Shape": "sine",
-          "Phase": 39.409067563156334
+          "Phase": 207.6160996397243
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.985888971989633,
+          "Max": 0.12,
+          "Period": 1.7532574849678302,
           "Shape": "sine",
-          "Phase": 211.40693723977694
+          "Phase": 356.37144994019127
         }
       ]
     },
@@ -4103,13 +4103,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -6.948179796460706,
+        -6.744058918617105,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -3.4482
+        -3.2441
       ],
       "Motion": [
         {
@@ -4119,8 +4119,8 @@
             1,
             0
           ],
-          "Rate": -46.84870415628092,
-          "Phase": 41.687833186510666
+          "Rate": -38.02711192244277,
+          "Phase": 337.32844694951064
         },
         {
           "Kind": "Bob",
@@ -4129,9 +4129,9 @@
             1,
             0
           ],
-          "Amp": 0.14671979331830926,
-          "Period": 3.7740658368711295,
-          "Phase": 0.5658813772006477
+          "Amp": 0.0,
+          "Period": 4.947261646413384,
+          "Phase": 312.76538570496996
         }
       ],
       "Aura": true,
@@ -4140,17 +4140,17 @@
           "Kind": "Fade",
           "Min": 0.0,
           "Max": 0.55,
-          "Period": 3.3131374734747085,
+          "Period": 2.7414356762553185,
           "Shape": "sine",
-          "Phase": 346.5238301829387
+          "Phase": 265.0118606661172
         },
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.3,
-          "Period": 2.8120065061741943,
+          "Max": 0.12,
+          "Period": 1.9799183685485948,
           "Shape": "sine",
-          "Phase": 64.81517922779304
+          "Phase": 95.86717888281495
         }
       ]
     }

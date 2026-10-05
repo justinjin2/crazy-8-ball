@@ -308,6 +308,11 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   hovering a hair (0.045 studs) above the cue's own profile from `Shape.json` like a shield
   barrier, turning the same, drifting half as far. The thread GLB re-uploaded, the piece
   rebuilt in the lane window, the clip re-rendered.
+- 2026-10-04 (gate 2, sixth look): the threads still read solid in the clip (the Blender
+  preview renders no Fade or Glow, only the material) and ran past the butt: the materials
+  are now mostly clear (Neon at 0.82, ForceField at 0.75, the Glow pulse cut to 0.12), no
+  thread leaves the cue's length, and the last ones fold over the butt end as a dome of the
+  butt's radius, the barrier closing round the cue. Re-uploaded, rebuilt, re-rendered.
 
 ## Decisions
 
@@ -372,3 +377,6 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   translucent, like energy not physical ribbon, shrunk to very individual threads of
   spiritual energy, closer to the cue mesh but still hovering, like a shield barrier. Done
   as the fifth look.
+- 2026-10-04 (designer, Dragon gate 2, fifth look): it does not look transparent at all; the
+  ribbons must not go past the butt, at the end they should wrap round, like a spiritual
+  shield barrier. Done as the sixth look.

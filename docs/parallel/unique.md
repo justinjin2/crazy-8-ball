@@ -205,7 +205,8 @@ generic-runtime rule; the catalog rows stay untouched.
   lane window (uploads, template, pieces), tuned on the floor (halo dimmed, sheath thinned);
   then the whole dragon recoloured to the head's pale blue, its white filaments dropped and
   the energy ribbons doubled and widened in the same blue, then (too much) cut to 32
-  thin see-through threads hugging the cue like a barrier. Waiting at gate 2.
+  thin see-through threads hugging the cue like a barrier, then made mostly clear and kept
+  inside the cue's length, doming over the butt. Waiting at gate 2.
 
 ## Decisions
 

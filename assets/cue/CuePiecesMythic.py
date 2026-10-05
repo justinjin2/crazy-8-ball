@@ -363,13 +363,26 @@ def celestial_dragon(k):
     # toward white and never quite fading out.
     rnd = random.Random(23)
     # Gate 2, fifth look (designer, 2026-10-04): the wide ribbons read as solid cloth. Now thin
-    # threads of spirit energy, mostly faint (Fade peaks at 0.55, Neon 0.6 and ForceField 0.5
-    # see-through), hovering a hair above the cue's own profile like a shield barrier.
+    # threads of spirit energy hovering a hair above the cue's own profile like a shield barrier.
+    # Sixth look (designer, 2026-10-04): they still read solid in the clip (the preview renders
+    # no Fade, only the material), and ran past the butt: the materials are now mostly clear
+    # (Neon 0.82, ForceField 0.75), no thread leaves the cue's length, and the last ones fold
+    # over the butt end as a dome, the barrier closing round the cue.
     import cue_common as cc
     env = cc.Envelope(cc.load_shape()[0])
+    L = env.length
     HOVER = 0.045   # studs above the cue surface
-    k.material('Energy', 'Neon', '#BFEFFF', Transparency=0.6)
-    k.material('EnergyPale', 'ForceField', '#D8F6FF', Transparency=0.5)
+    k.material('Energy', 'Neon', '#BFEFFF', Transparency=0.82)
+    k.material('EnergyPale', 'ForceField', '#D8F6FF', Transparency=0.75)
+    def along(u, rad, gap):
+        """A point on the barrier: round the cue at u (studs from the tip), or, past the butt,
+        on a dome of the butt's radius closing over the end; and the barrier's outward normal."""
+        if u <= L:
+            return Vector((0, -u, 0)) + rad * (env(u) + gap), rad
+        R = env(L) + gap
+        phi = min((u - L) / R, math.radians(82))
+        n = rad * math.cos(phi) + Vector((0, -1, 0)) * math.sin(phi)
+        return Vector((0, -L, 0)) + n * R, n
     def ribbon(bm, u0, span, turns, a0, gap, w, thick):
         rings = []
         N = max(12, int(span * 28))
@@ -378,12 +391,11 @@ def celestial_dragon(k):
             u = u0 + span * t
             a = a0 + 2 * math.pi * turns * t
             rad = Vector((math.sin(a), 0, math.cos(a)))
-            rr = env(u) + gap
-            c = Vector((0, -u, 0)) + rad * rr
+            c, n = along(u, rad, gap)
             wt = w * math.sin(math.pi * t) ** 0.6
-            ax = Vector((0, -1, 0))
-            ring = [bm.verts.new(c + ax * wt / 2 + rad * thick / 2), bm.verts.new(c - ax * wt / 2 + rad * thick / 2),
-                    bm.verts.new(c - ax * wt / 2 - rad * thick / 2), bm.verts.new(c + ax * wt / 2 - rad * thick / 2)]
+            ax = n.cross(rad.cross(Vector((0, -1, 0)))).normalized() if u > L else Vector((0, -1, 0))
+            ring = [bm.verts.new(c + ax * wt / 2 + n * thick / 2), bm.verts.new(c - ax * wt / 2 + n * thick / 2),
+                    bm.verts.new(c - ax * wt / 2 - n * thick / 2), bm.verts.new(c + ax * wt / 2 - n * thick / 2)]
             rings.append(ring)
         for i in range(N):
             a_, b_ = rings[i], rings[i + 1]
@@ -393,17 +405,20 @@ def celestial_dragon(k):
         bm.faces.new(rings[0][::-1])
         bm.faces.new(rings[-1])
     NT = 32
+    DOME = (env(L) + HOVER) * math.radians(82)   # how far a thread may run past the butt
     for n in range(NT):
-        u0 = 0.3 + 6.3 * n / NT + rnd.uniform(-0.2, 0.2)
         span = rnd.uniform(0.9, 1.9)
+        u0 = 0.15 + (L - 0.3) * n / NT + rnd.uniform(-0.2, 0.2)
+        u0 = min(max(u0, 0.1), L + DOME - span)
         turns = rnd.uniform(0.8, 1.6) * rnd.choice((-1, 1))
         pale = n % 2 == 1
         nm = 'Energy%d' % (n + 1)
+        bob = min(rnd.uniform(0.12, 0.25), max(0.0, L + DOME - (u0 + span)), u0 - 0.05)
         k.joint(nm, pivot=(0, -(u0 + span / 2), 0), aura=True, motion=[
             {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rnd.uniform(30, 70) * rnd.choice((-1, 1)), 'Phase': rnd.uniform(0, 360)},
-            {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': rnd.uniform(0.12, 0.25), 'Period': rnd.uniform(3.0, 5.0), 'Phase': rnd.uniform(0, 360)}],
+            {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': bob, 'Period': rnd.uniform(3.0, 5.0), 'Phase': rnd.uniform(0, 360)}],
             visual=[{'Kind': 'Fade', 'Min': 0.0, 'Max': 0.55, 'Period': rnd.uniform(2.5, 4.5), 'Shape': 'sine', 'Phase': rnd.uniform(0, 360)},
-                    {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.3, 'Period': rnd.uniform(1.6, 3.0), 'Shape': 'sine', 'Phase': rnd.uniform(0, 360)}])
+                    {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.12, 'Period': rnd.uniform(1.6, 3.0), 'Shape': 'sine', 'Phase': rnd.uniform(0, 360)}])
         bm = bmesh.new()
         ribbon(bm, u0, span, turns, rnd.uniform(0, 2 * math.pi), HOVER + rnd.uniform(0.0, 0.03) + (0.015 if pale else 0.0),
                rnd.uniform(0.025, 0.05) * (1.5 if pale else 1.0), 0.008)
