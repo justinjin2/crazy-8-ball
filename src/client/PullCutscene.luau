@@ -8,8 +8,11 @@
 -- - Rare (redone 2026-10-05): a moment of black, a soft blue glow swells from the middle until
 --   the screen is blue while a riser builds, a white flash on its peak, and the card is there
 --   as the white fades. Never skipped: it is short.
+-- - Epic (redone 2026-10-05): the purple vortex. A bass hit and a longer riser start with the
+--   fade; a ring pulses out in the black, purple rays spin up and grow while sparkles spiral
+--   in from the edges, then it all implodes into a bright point and bursts white on the
+--   riser's peak. Never skipped.
 -- The ones below are the old scenes, still to be redone; they lift the black off as they begin.
--- - Epic: purple streaks, then the screen goes black for a beat and bursts white.
 -- - Legendary: the world drains to grey, a golden beam drops from the sky onto the player, the
 --   camera swoops low round them, and it all lands in a gold burst.
 -- - Mythic: the sky turns to deep space with pastel aurora, the camera rises into the stars,
@@ -342,61 +345,6 @@ end
 -- The pieces
 --------------------------------------------------------------------------------------------
 
-local function makeStreaks(s: Scene, colour: Color3)
-	local streaks = {}
-	local count = math.max(4, math.floor(CS.Streaks.Count * Quality.rate()))
-	for i = 1, count do
-		local streak = Instance.new("Frame")
-		streak.Name = "Streak"
-		streak.BorderSizePixel = 0
-		streak.BackgroundColor3 = colour
-		streak.AnchorPoint = Vector2.new(0.5, 0.5)
-		streak.Rotation = CS.Streaks.AngleDegrees
-		streak.ZIndex = 2
-		streak.Visible = false
-		local fade = Instance.new("UIGradient")
-		fade.Color = ColorSequence.new(colour, WHITE)
-		fade.Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 1),
-			NumberSequenceKeypoint.new(0.7, CS.Streaks.Transparency),
-			NumberSequenceKeypoint.new(1, 0),
-		})
-		fade.Parent = streak
-		HudParts.corner(streak, CS.Streaks.WidthPx)
-		streak.Parent = s.root
-		table.insert(streaks, {
-			frame = streak,
-			y = s.random:NextNumber(0.1, 0.9),
-			start = (i - 1) / count,
-		})
-	end
-	s.parts.streaks = streaks
-end
-
--- Streaks fly across from `from` for `seconds` (each one CS.Streaks.Seconds).
-local function stepStreaks(s: Scene, t: number, from: number, seconds: number)
-	local streaks = s.parts.streaks
-	if not streaks then
-		return
-	end
-	local size = s.root.AbsoluteSize
-	local length = math.max(40, size.X * CS.Streaks.LengthShare)
-	local span = math.max(0.01, seconds - CS.Streaks.Seconds)
-	for _, streak in streaks do
-		local begin = from + streak.start * span
-		local u = (t - begin) / CS.Streaks.Seconds
-		local frame: Frame = streak.frame
-		if u < 0 or u > 1 then
-			frame.Visible = false
-		else
-			frame.Visible = true
-			frame.Size = UDim2.fromOffset(length, CS.Streaks.WidthPx)
-			local x = -0.4 + 1.8 * u
-			frame.Position = UDim2.fromScale(x, streak.y - 0.25 * u)
-		end
-	end
-end
-
 local function tint(s: Scene, colour: Color3, share: number)
 	s.cc.TintColor = WHITE:Lerp(colour, math.clamp(share, 0, 1))
 end
@@ -434,6 +382,33 @@ local function makeGlow(s: Scene, name: string, colour: Color3, z: number): GuiO
 	return glow
 end
 
+-- A tinted piece of the kit's white art on the veil, centred and hidden until it is placed.
+local function makeArt(s: Scene, name: string, art: string, colour: Color3, z: number): ImageLabel
+	local image = Instance.new("ImageLabel")
+	image.Name = name
+	image.Image = art
+	image.ImageColor3 = colour
+	image.BackgroundTransparency = 1
+	image.AnchorPoint = Vector2.new(0.5, 0.5)
+	image.Position = UDim2.fromScale(0.5, 0.5)
+	image.Size = UDim2.fromOffset(0, 0)
+	image.ZIndex = z
+	image.Visible = false
+	image.Parent = s.veilRoot
+	return image
+end
+
+-- When a redone scene's white flash starts, on its clock (from the end of the fade to black).
+local function flashAt(rarity: string): number
+	if rarity == "Rare" then
+		return CS.Rare.BlackSeconds + CS.Rare.GlowSeconds
+	elseif rarity == "Epic" then
+		local E = CS.Epic
+		return E.BlackSeconds + E.BuildSeconds + E.ImplodeSeconds
+	end
+	return 0
+end
+
 -- Rare: held black, the blue glow swells from the middle (a flat blue filling in behind it)
 -- while the riser builds, then the white flash on its peak; the scene ends there and the card
 -- comes in under the white.
@@ -445,11 +420,7 @@ local function stepRare(s: Scene, t: number)
 		p.glow = makeGlow(s, "Glow", rgb(R.Blue), 3)
 		p.core = makeGlow(s, "Core", rgb(R.Core), 4)
 	end
-	local flashAt = R.BlackSeconds + R.GlowSeconds
-	if not s.fired.riser and t >= flashAt - R.RiserPeakSeconds then
-		s.fired.riser = true
-		UISound.play("RiserRare")
-	end
+	local flash = flashAt("Rare")
 	local u = math.clamp((t - R.BlackSeconds) / R.GlowSeconds, 0, 1)
 	local screen = s.veilRoot.AbsoluteSize
 	local size = math.max(screen.X, screen.Y) * R.GlowEndScale * u ^ R.GlowEasePower
@@ -461,29 +432,102 @@ local function stepRare(s: Scene, t: number)
 	local fill: Frame = p.fill
 	fill.BackgroundTransparency = 1
 		- smooth((u - R.FillFrom) / math.max(R.FillTo - R.FillFrom, 1e-3))
-	s.white.BackgroundTransparency = 1 - math.clamp((t - flashAt) / R.FlashInSeconds, 0, 1)
+	s.white.BackgroundTransparency = 1 - math.clamp((t - flash) / R.FlashInSeconds, 0, 1)
 end
 
+-- Epic: the purple vortex. Held black with a ring pulsing out on the bass; the rays spin up
+-- and grow over the glow and haze while sparkles spiral in; then everything collapses into a
+-- bright point and bursts white (the riser started with the fade, so its peak is the flash).
 local function stepEpic(s: Scene, t: number)
 	local E = CS.Epic
-	if not s.parts.streaks then
-		makeStreaks(s, rgb(E.Tint))
-		s.parts.black = fullFrame(s.root, "Black", BLACK, 5)
-		s.parts.flash = fullFrame(s.root, "Flash", WHITE, 6)
+	local K = Config.UI.Kit.Art
+	local p = s.parts
+	local purple = rgb(E.Purple)
+	if not p.rays then
+		p.haze = fullFrame(s.veilRoot, "Haze", rgb(E.Haze), 2)
+		p.glow = makeGlow(s, "Glow", purple, 3)
+		p.rays = makeArt(s, "Rays", K.Rays, purple, 4)
+		p.core = makeGlow(s, "Core", rgb(E.Core), 5)
+		local pulses = {}
+		for index in E.Pulses do
+			pulses[index] = makeArt(s, "Pulse", K.RingGlow, purple, 5)
+		end
+		p.pulses = pulses
+		local sparks = {}
+		local count = math.max(4, math.floor(E.Sparks * Quality.rate()))
+		for i = 1, count do
+			table.insert(sparks, {
+				image = makeArt(s, "Spark", K.Spark, rgb(E.Core), 5),
+				angle = math.rad(360 * i / count + s.random:NextNumber(-12, 12)),
+				offset = s.random:NextNumber(0, 1),
+			})
+		end
+		p.sparks = sparks
+		p.angle = 0
+		p.last = t
 	end
-	stepStreaks(s, t, 0, E.BlackAt)
-	tint(s, rgb(E.Tint), E.TintShare * window(t, 0, E.BlackAt + 0.2, 0.3))
-	local black: Frame = s.parts.black
-	black.BackgroundTransparency = 1 - window(t, E.BlackAt - 0.12, E.BlackFor + 0.12, 0.12)
-	local burst = E.BlackAt + E.BlackFor
-	local flash: Frame = s.parts.flash
-	flash.BackgroundTransparency = if t >= burst
-		then math.clamp((t - burst) / E.BurstSeconds, 0, 1)
-		else 1
-	if t >= burst and not s.fired.burst then
-		s.fired.burst = true
-		ReelFx.sting("Epic")
+	local screen = s.veilRoot.AbsoluteSize
+	local longer = math.max(screen.X, screen.Y)
+	local buildEnd = E.BlackSeconds + E.BuildSeconds
+	local u = math.clamp((t - E.BlackSeconds) / E.BuildSeconds, 0, 1)
+	local v = math.clamp((t - buildEnd) / E.ImplodeSeconds, 0, 1)
+	local grow = smooth(u)
+	local keep = 1 - v ^ E.ImplodePower
+
+	-- The spin speeds up through the build and faster still as it falls in.
+	local dt = math.max(0, t - p.last)
+	p.last = t
+	if u > 0 then
+		p.angle += (E.SpinFrom + (E.SpinTo - E.SpinFrom) * u + E.SpinTo * v) * dt
 	end
+	local rays: ImageLabel = p.rays
+	local raysSize = longer * E.RaysEndScale * grow * keep
+	rays.Visible = raysSize >= 1
+	rays.Size = UDim2.fromOffset(raysSize, raysSize)
+	rays.Rotation = p.angle
+	rays.ImageTransparency = 1 - (1 - E.RaysTransparency) * smooth(u * 3)
+	local glow: GuiObject = p.glow
+	local glowSize = longer * E.GlowEndScale * grow * keep
+	glow.Visible = glowSize >= 1
+	glow.Size = UDim2.fromOffset(glowSize, glowSize)
+	local haze: Frame = p.haze
+	haze.BackgroundTransparency = 1 - E.HazeShare * grow * (1 - smooth(v))
+	local core: GuiObject = p.core
+	local coreSize = longer * (E.CoreScale * grow * keep + E.CorePointScale * v)
+	core.Visible = u > 0
+	core.Size = UDim2.fromOffset(coreSize, coreSize)
+
+	-- Rings out from the middle on the bass.
+	for index, at in E.Pulses do
+		local ring: ImageLabel = p.pulses[index]
+		local k = (t - at) / E.PulseSeconds
+		ring.Visible = k >= 0 and k <= 1
+		if ring.Visible then
+			local size = longer * E.PulseEndScale * (1 - (1 - k) * (1 - k))
+			ring.Size = UDim2.fromOffset(size, size)
+			ring.ImageTransparency = E.PulseTransparency + (1 - E.PulseTransparency) * k
+		end
+	end
+
+	-- Sparkles spiral in from beyond the edges, faster as they near the middle, through the
+	-- build and the first part of the collapse.
+	local active = u > 0 and v < 0.6
+	for _, spark in p.sparks do
+		local image: ImageLabel = spark.image
+		image.Visible = active
+		if active then
+			local phase = ((t - E.BlackSeconds) / E.SparkSeconds + spark.offset) % 1
+			local radius = screen.Magnitude / 2 * (1 - phase * phase) -- from the corners in
+			local angle = spark.angle + math.rad(E.SparkSwirlDegrees) * phase
+			image.Position = UDim2.new(0.5, math.cos(angle) * radius, 0.5, math.sin(angle) * radius)
+			local px = longer * E.SparkShare * (0.35 + 0.65 * (1 - phase))
+			image.Size = UDim2.fromOffset(px, px)
+			image.Rotation = math.deg(angle)
+			image.ImageTransparency = 0.1 + 0.9 * (1 - math.min(1, phase * 4))
+		end
+	end
+
+	s.white.BackgroundTransparency = 1 - math.clamp((t - flashAt("Epic")) / E.FlashInSeconds, 0, 1)
 end
 
 local function stepLegendary(s: Scene, t: number)
@@ -852,7 +896,7 @@ local function stepSecret(s: Scene, t: number)
 end
 
 -- The redone scenes draw on the veil themselves; the rest lift the black off as they begin.
-local OWNS_VEIL: { [string]: boolean } = { Rare = true }
+local OWNS_VEIL: { [string]: boolean } = { Rare = true, Epic = true }
 
 local STEPS: { [string]: (Scene, number) -> () } = {
 	Rare = stepRare,
@@ -864,6 +908,9 @@ local STEPS: { [string]: (Scene, number) -> () } = {
 
 local function length(rarity: string): number
 	local spec = (CS :: any)[rarity]
+	if spec and OWNS_VEIL[rarity] then
+		return flashAt(rarity) + spec.FlashInSeconds -- the card comes in under the white
+	end
 	return if spec then spec.Seconds else 0
 end
 
@@ -1041,6 +1088,14 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> (), onBlac
 	local total = length(rarity)
 	local intro = CS.Black.InSeconds
 	local ownsVeil = OWNS_VEIL[rarity] == true
+	-- A redone scene's sounds: its impact with the fade to black, its riser timed so the peak
+	-- lands on the flash (at the fade at the earliest).
+	if spec and spec.Impact then
+		UISound.play(spec.Impact)
+	end
+	local riserAt = if spec and spec.Riser
+		then math.max(0, intro + flashAt(rarity) - spec.RiserPeakSeconds)
+		else math.huge
 	RunService:BindToRenderStep(
 		RENDER_NAME,
 		Enum.RenderPriority.Camera.Value + 3,
@@ -1050,6 +1105,10 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> (), onBlac
 			end
 			s.clock += dt
 			hint.Visible = s.skippable and s.clock >= CS.HintAfterSeconds
+			if not s.fired.riser and s.clock >= riserAt then
+				s.fired.riser = true
+				UISound.play(spec.Riser)
+			end
 			if s.clock < intro then
 				black.BackgroundTransparency = 1 - smooth(s.clock / intro)
 				return

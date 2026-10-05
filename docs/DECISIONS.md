@@ -2437,3 +2437,11 @@ timer of a new block stay the designer's call.
   so the prize is glimpsed in the last crawl but never seen to settle: the suspense of "did I
   really just pull this". `/cutscene <rarity>` works again for the designer: it plays a whole
   lucky block opening (reel, cutscene, card) on a cue of that rarity, giving nothing.
+- **2026-10-05 — Epic pull cutscene redone: the purple vortex (designer's sounds, Claude's
+  look).** The designer's longer riser (`Audio.Ui.RiserEpic`, peak 1.98 s) and a pulsing bass
+  hit (`ImpactEpic`) both start with the fade to black. In the black a purple ring pulses out on
+  the bass; purple rays spin up and grow over a glow and haze while sparkles spiral in from the
+  corners, a second pulse; then everything collapses into a bright point and bursts white on
+  the riser's peak, the card under the white. Never skipped. The old streak scene is gone;
+  a redone scene's riser and impact are now generic (`Riser`, `RiserPeakSeconds`, `Impact` in
+  its `Config.Cutscenes` row).

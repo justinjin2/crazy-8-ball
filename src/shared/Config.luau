@@ -4178,6 +4178,11 @@ Config.Audio = {
 		-- "Riser_104" (the designer's file, trimmed to 1.5 s; peak at 0.45 s): the Rare pull
 		-- cutscene's build into its white flash (Config.Cutscenes.Rare).
 		RiserRare = { Id = "rbxassetid://97579914761531", Volume = 0.5 },
+		-- "Riser_080" (the designer's file, trimmed to 2.7 s; peak at 1.98 s) and a pulsing bass
+		-- hit ("InnerCircle01", 1.75 s, loud: kept low): the Epic pull cutscene, both from the
+		-- fade to black (Config.Cutscenes.Epic).
+		RiserEpic = { Id = "rbxassetid://96196182552147", Volume = 0.5 },
+		ImpactEpic = { Id = "rbxassetid://124125612588605", Volume = 0.35 },
 		-- The Secret pull's heartbeat and shockwave (GUI lane, 2026-10-03; licensed library
 		-- sounds: APM "Heart Beat", Pro Sound Effects "Thruster Blast 8").
 		Heartbeat = { Id = "rbxassetid://1839088414", Volume = 0.15, Overlap = true },
@@ -10137,19 +10142,11 @@ Config.Cutscenes = {
 	From = "Rare", -- pulls of this rarity and up get a cutscene
 	RemoteFrom = "Legendary", -- and from this one up, everyone else in the server a sky tint
 	DisplayOrder = 60, -- its screen over the lucky block reel (whose overlay hides while it plays)
-	Streaks = {
-		Count = 24, -- the sky streaks flying across (Rare blue, Epic purple)
-		Seconds = 0.45, -- one streak's flight
-		WidthPx = 14, -- thickness...
-		LengthShare = 0.45, -- ...and length, of the screen's width
-		AngleDegrees = -24, -- they fly up and to the right
-		Transparency = 0.15,
-	},
 	-- Every pull cutscene starts the same way (designer, 2026-10-05, Sol's RNG style): a second
 	-- before the reel stops on a Rare or better, everything fades to black (the reel's last
 	-- crawl plays on under it, so the prize is glimpsed, never seen to land), then the
-	-- rarity's scene. The scenes not yet redone
-	-- (Epic and up) lift the black off as they begin.
+	-- rarity's scene. The scenes not yet redone (Legendary and up) lift the black off as they
+	-- begin.
 	Black = {
 		LeadSeconds = 1, -- the fade starts this long before the reel stops
 		InSeconds = 0.6, -- the fade to black (designer 2026-10-05: was 0.35)
@@ -10171,17 +10168,47 @@ Config.Cutscenes = {
 		CoreShare = 0.45, -- the bright middle's size, of the glow's
 		FlashInSeconds = 0.06, -- the white flash snaps in on the riser's peak...
 		FlashOutSeconds = 0.35, -- ...and fades off the card
-		RiserPeakSeconds = 0.45, -- the riser's loudest moment, from its start (lined up with the flash)
-		Seconds = 0.98, -- BlackSeconds + GlowSeconds + FlashInSeconds: the card comes in under the white
+		Riser = "RiserRare", -- Config.Audio.Ui: starts so its peak lands on the flash
+		RiserPeakSeconds = 0.45, -- the riser's loudest moment, from its start
 		Skippable = false, -- too short to need it
 	},
+	-- Epic (designer, 2026-10-05): the purple vortex. The bass hit and a longer riser start
+	-- with the fade to black. In the black a ring pulses out on the bass; purple rays spin up
+	-- and grow over a purple glow and haze while sparkles spiral in from the edges, a second
+	-- pulse; then it all implodes into a bright point and bursts white on the riser's peak,
+	-- the card under the white. No skip. Black.InSeconds + BlackSeconds + BuildSeconds +
+	-- ImplodeSeconds = RiserPeakSeconds puts the flash on the peak with the riser starting at
+	-- the fade.
 	Epic = {
-		Seconds = 2.3,
-		Tint = { 205, 150, 255 },
-		TintShare = 0.55,
-		BlackAt = 1.1, -- the screen goes black...
-		BlackFor = 0.45, -- ...this long, then a white burst
-		BurstSeconds = 0.35,
+		BlackSeconds = 0.25, -- held black after the fade (the first pulse)
+		BuildSeconds = 0.8, -- the vortex spins up and grows
+		ImplodeSeconds = 0.33, -- and collapses into the point
+		ImplodePower = 1.8, -- the collapse: 1 - v^power (higher: holds, then falls in fast)
+		Purple = { 162, 89, 255 }, -- the rays, the glow and the pulses (the Epic colour)
+		Haze = { 45, 12, 80 }, -- the dark purple that rises behind them...
+		HazeShare = 0.85, -- ...this far over the black at its fullest
+		Core = { 235, 215, 255 }, -- the bright point everything falls into, and the sparkles
+		RaysEndScale = 1.25, -- the rays' last size, of the screen's longer side (their ends fade out)
+		RaysTransparency = 0.35, -- at their brightest
+		GlowEndScale = 1,
+		CoreScale = 0.35, -- the core's size at the build's end, of the longer side...
+		CorePointScale = 0.05, -- ...and as the point at the collapse's end
+		SpinFrom = 40, -- the rays' spin, degrees a second, rising through the build...
+		SpinTo = 520, -- ...to this, and faster still as it collapses
+		Pulses = { 0.1, 0.5 }, -- rings out from the middle (scene seconds, on the bass)
+		PulseSeconds = 0.7,
+		PulseEndScale = 1.4, -- a ring's last size, of the longer side
+		PulseTransparency = 0.2, -- at its start
+		Sparks = 18, -- sparkles spiralling in (scaled by the quality setting)
+		SparkSeconds = 0.6, -- one's trip from the edge to the middle
+		SparkShare = 0.055, -- its size at the edge, of the longer side
+		SparkSwirlDegrees = 120, -- how far round it turns on the way in
+		FlashInSeconds = 0.08, -- the white burst on the riser's peak...
+		FlashOutSeconds = 0.4, -- ...and its fade off the card
+		Riser = "RiserEpic", -- Config.Audio.Ui
+		RiserPeakSeconds = 1.98,
+		Impact = "ImpactEpic", -- the bass hit, with the fade to black
+		Skippable = false,
 	},
 	Legendary = {
 		Seconds = 4.2,

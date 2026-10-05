@@ -15,3 +15,8 @@ All six assets loaded successfully in Crazy 8 Ball Studio. Volumes are in Config
 
 RiserRare.wav (the designer's "Riser_104", trimmed to 1.5 s with a short fade; peak at 0.45 s):
 the Rare pull cutscene's build into its white flash, uploaded 2026-10-05 as 97579914761531.
+
+RiserEpic.wav (the designer's "Riser_080", trimmed to 2.7 s with a fade; peak at 1.98 s) and
+ImpactEpic.wav (the designer's bass hit "InnerCircle01", 1.75 s, as supplied): the Epic pull
+cutscene, both from the fade to black; uploaded 2026-10-05 as 96196182552147 and
+124125612588605.

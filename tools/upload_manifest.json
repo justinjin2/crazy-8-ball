@@ -665,6 +665,11 @@
     "imageId": "91211346868786",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/audio/luckyblocks/ImpactEpic.wav": {
+    "assetId": "124125612588605",
+    "assetType": "Audio",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/audio/luckyblocks/LuckyAnticipation.wav": {
     "assetId": "86828699372798",
     "assetType": "Audio",
@@ -682,6 +687,11 @@
   },
   "/Users/justinjin/Desktop/8ball/assets/audio/luckyblocks/LuckyRevealRare.wav": {
     "assetId": "101099108525458",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/luckyblocks/RiserEpic.wav": {
+    "assetId": "96196182552147",
     "assetType": "Audio",
     "status": "ok"
   },
