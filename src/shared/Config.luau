@@ -4461,6 +4461,13 @@ Config.CueSkins = {
 		FadeSeconds = 0.4, -- (tune)
 		CheckSeconds = 0.2, -- how often the match state is looked at (internal)
 	},
+	-- The engulfing aura round a player (a skin's Carrier piece and its Carrier-host emitters,
+	-- Secret cues) is gone while a shot is being watched at the owner's table and comes back
+	-- between shots (designer, 2026-10-04): the match phases that count as a shot in flight.
+	-- (It also goes while the stick is AuraQuiet: the owner shooting, or your own turn.)
+	Carrier = {
+		ShotPhases = { "Resolving", "Frozen", "Rewinding" },
+	},
 	-- Every cue with an aura also wears a thin, faint outline of its colour (a Highlight on
 	-- the stick), so it stands out on the bright lobby (designer, 2026-10-01; made much
 	-- fainter and the tint over the whole cue dropped the same day). The colour is the

@@ -183,6 +183,10 @@ generic-runtime rule; the catalog rows stay untouched.
   passed at the third look (vanta-black suns with finisher coronas, neon rings, the head sun
   blooming like the butt). Built in the lane window: uploads, template, both pieces; the
   coronas tuned on the floor; quiet checked. Waiting at gate 2.
+- 2026-10-04: gate 2 feedback built: the carrier piece centred (a `carrier` piece frame; it
+  was exported in the cue frame, 3.5 studs forward) and the engulfing aura gone while a shot
+  is in flight at the owner's table, back between shots (`CarrierQuiet`, generic). Lint and
+  the 986 tests green; checked in the lab. Waiting at gate 2 again.
 
 ## Decisions
 
@@ -283,6 +287,16 @@ generic-runtime rule; the catalog rows stay untouched.
   Why: the carrier piece.
 - `assets/cue/CuePiecesMythic.py`: `eclipse` reworked, `eclipse_carrier` added. (Owned by
   the rework job; listed because the integrator rebuilds both pieces.)
+- `assets/cue/CuePieces.py` and `src/shared/CueSkins/Motion.luau`: a third piece frame,
+  `carrier` (`Kit.frame`, `ZOFF`; `Motion.rig` gives it no tip shift, like `pocket`). Why: a
+  Carrier piece sits on the character's root, not the cue mesh.
+- `src/shared/Config.luau`: `CueSkins.Carrier.ShotPhases`. Why: the designer, 2026-10-04:
+  the aura round the player goes while a shot is watched at their table.
+- `src/shared/AuraQuiet.luau`: `carrierQuiet(owner, snapshots)` and the stick's
+  `CarrierQuiet` attribute written by `apply` (now requires Config). Why: the same.
+- `src/client/CueSkinLook.luau`: `carrierShown()` (AuraQuiet or CarrierQuiet hides the
+  Carrier piece and the Carrier-host emitters, flagged `carrier` in `emitters`). Why: the same.
+- `tests/aura_quiet_test.luau`: two tests for the carrier rule.
 
 ## Requests
 

@@ -20,7 +20,10 @@
 --     Config.Cue.RaisedCueFade); the stick and its piece stay;
 --   * the stick's AuraQuiet attribute (AuraQuiet: in a match, the shooter's cue and, on your
 --     turn, every cue at your table) eases the aura down to its tier's Config.CueSkins.Quiet
---     share: emitter rates, aura beams and lights.
+--     share: emitter rates, aura beams and lights;
+--   * the engulfing aura round the carrying player (the skin's Carrier piece and its
+--     Carrier-host emitters) is all or nothing: gone while the stick is AuraQuiet or
+--     CarrierQuiet (AuraQuiet: a shot in flight at the owner's table), back between shots.
 --
 -- Emitters, Beams and Lights live on Attachments in the stick's mesh; the look's own parts (a
 -- Part host, a joint rider, the piece) sit in a Model next to the stick, welded to the mesh,
@@ -91,7 +94,7 @@ export type Look = typeof(setmetatable(
 		mesh: MeshPart?,
 		folder: Model?, -- the look's own parts
 		built: { Instance }, -- everything to destroy on rebuild
-		emitters: { { e: ParticleEmitter, aura: boolean, rate: number } }, -- rate: unquieted
+		emitters: { { e: ParticleEmitter, aura: boolean, rate: number, carrier: boolean } }, -- rate: unquieted; carrier: a Carrier host
 		beams: { { b: Beam, aura: boolean } },
 		dynBeams: { DynBeam },
 		orbiters: { Orbiter },
@@ -100,6 +103,7 @@ export type Look = typeof(setmetatable(
 		sound: { s: Sound, volume: number }?, -- the aura's sound (Aura.Sound), volume unquieted
 		piece: any?,
 		carrierPiece: any?, -- the skin's Carrier piece on the carrying character (backs only)
+		carrierOn: boolean, -- the engulfing aura is drawn (see carrierShown)
 		highlights: { Highlight }, -- the stick's outline and the piece's (nearest cues only)
 		frames: { SurfaceAppearance }, -- frame 0 is the stick's own SurfaceAppearance
 		frame: number,
@@ -171,6 +175,7 @@ function CueSkinLook.attach(stick: Model, opts: Opts): Look
 		sound = nil,
 		piece = nil,
 		carrierPiece = nil,
+		carrierOn = true,
 		highlights = {},
 		frames = {},
 		frame = 0,
@@ -390,8 +395,9 @@ function CueSkinLook.refresh(self: Look)
 	if self.piece then
 		self.piece:setAura(self.opts.aura)
 	end
+	self.carrierOn = self:carrierShown()
 	if self.carrierPiece then
-		self.carrierPiece:setAura(self:quietTarget() >= 1)
+		self.carrierPiece:setAura(self.carrierOn)
 	end
 	self:applyVisible()
 	self:step(0)
@@ -602,7 +608,12 @@ function CueSkinLook.buildEmitter(self: Look, row: any, aura: boolean)
 	end
 	e.Parent = parent
 	table.insert(self.built, e)
-	table.insert(self.emitters, { e = e, aura = aura, rate = rate })
+	local h = row.Host
+	local carrier = h ~= nil and h.Kind == "Carrier"
+	if carrier then
+		e.Enabled = self:carrierShown()
+	end
+	table.insert(self.emitters, { e = e, aura = aura, rate = rate, carrier = carrier })
 end
 
 -- A beam's curve control offsets: Curve0/Curve1 are [up, side] and land on Roblox (+side, up)
@@ -840,7 +851,7 @@ function CueSkinLook.applyVisible(self: Look)
 	self.visible = visible
 	self.aura = aura
 	for _, item in self.emitters do
-		item.e.Enabled = aura and item.e.Rate > 0
+		item.e.Enabled = aura and item.e.Rate > 0 and (not item.carrier or self.carrierOn)
 	end
 	local sound = self.sound
 	if sound then
@@ -1027,8 +1038,17 @@ function CueSkinLook.step(self: Look, t: number)
 			l.light.Color = hsv(t, lr.Hue.Period or 4, lr.Hue.Saturation or 0.8)
 		end
 	end
+	local carrierOn = self:carrierShown()
+	if carrierOn ~= self.carrierOn then
+		self.carrierOn = carrierOn
+		for _, item in self.emitters do
+			if item.carrier then
+				item.e.Enabled = self.aura and item.e.Rate > 0 and carrierOn
+			end
+		end
+	end
 	if self.carrierPiece then
-		self.carrierPiece:setAura(self:quietTarget() >= 1)
+		self.carrierPiece:setAura(carrierOn)
 		self.carrierPiece:step(t)
 	end
 	if self.piece then
@@ -1037,6 +1057,13 @@ function CueSkinLook.step(self: Look, t: number)
 			self.piece:setModifier(mesh.LocalTransparencyModifier)
 		end
 	end
+end
+
+-- Whether the engulfing aura round the carrying player is drawn: never while the stick is
+-- AuraQuiet (the owner shooting, or your own turn) or CarrierQuiet (a shot in flight at the
+-- owner's table); back between shots.
+function CueSkinLook.carrierShown(self: Look): boolean
+	return self:quietTarget() >= 1 and self.stick:GetAttribute("CarrierQuiet") ~= true
 end
 
 -- The share the aura eases toward while the stick is AuraQuiet: its skin's Quiet share, else

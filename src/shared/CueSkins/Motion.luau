@@ -327,7 +327,9 @@ function Motion.rig(piece: any): Rig
 		joints = joints,
 		order = order,
 		paths = piece.Paths or {},
-		zoff = if piece.Frame == "pocket" then 0 else 3.5,
+		-- A piece on the cue is 3.5 studs from the MeshPart's centre to the tip; a pocket or
+		-- carrier piece sits on its own root.
+		zoff = if piece.Frame == "pocket" or piece.Frame == "carrier" then 0 else 3.5,
 	}
 end
 

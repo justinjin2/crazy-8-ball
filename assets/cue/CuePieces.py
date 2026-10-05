@@ -72,7 +72,8 @@ def butt_gain():
 def butt_growth():
     """The butt's radius over the one the pieces were modelled on."""
     return butt_radius() / OLD_BUTT_RADIUS
-ZOFF = {'cue': 3.5, 'pocket': 0.0}   # Roblox Z = ZOFF + Blender Y (the cue MeshPart's centre is 3.5 from the tip)
+ZOFF = {'cue': 3.5, 'pocket': 0.0, 'carrier': 0.0}   # Roblox Z = ZOFF + Blender Y (the cue MeshPart's centre is 3.5 from the tip;
+# a pocket or carrier piece sits on its own root, no shift)
 
 
 def piece(fn):
@@ -234,7 +235,8 @@ class Kit:
         self.mats = {}     # name -> roblox spec
         # 'cue': modelled in the cue's frame (a piece on the cue); 'pocket': in a frame of its own
         # with the origin at the pocket's mouth, Z up, the front toward -Y (a pocket finisher's
-        # creature, placed and turned by the finisher)
+        # creature, placed and turned by the finisher); 'carrier': on the carrying character's
+        # root (the hips), Z up, X right, -Y behind the body (a skin's Carrier piece)
         self.frame = 'cue'
         # skinned models: name -> {'root': joint, 'bones': {bone: weight fn}, 'meshes': [objects]}
         self.skins = {}

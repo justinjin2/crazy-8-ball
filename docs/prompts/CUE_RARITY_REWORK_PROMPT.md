@@ -229,6 +229,15 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   black disc with fewer, dimmer sprites so the hole stays black from every side; quiet hides
   all 26 carrier parts and cuts the carrier emitters to a quarter. Captures
   `assets/cue/concepts/rework/eclipse-studio-{back,stand,side,front}.jpg`. Waiting at gate 2.
+- 2026-10-04 (gate 2, second look): the carrier piece was 3.5 studs in front of the body
+  (exported in the cue frame, which bakes the cue mesh's tip offset): a `carrier` piece
+  frame added (the kit, the exporter, `Motion.rig`), the piece rebuilt (no re-upload: the
+  mesh data is unchanged). The engulfing aura now goes while a shot is in flight at the
+  owner's table (`Config.CueSkins.Carrier.ShotPhases`: Resolving, Frozen, Rewinding;
+  whoever shot) and comes back between shots: `AuraQuiet.carrierQuiet` writes the stick's
+  `CarrierQuiet` attribute, `CueSkinLook.carrierShown` hides the Carrier piece and the
+  Carrier-host emitters (tested in Lune, 986 tests; toggled in the lab). Captures
+  `eclipse-studio-{back,top,shot-hidden}.jpg`; the clip re-rendered.
 
 ## Decisions
 
@@ -251,3 +260,9 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   `assets/cue/concepts/rework/<id>-clip.mp4` is committed with the board each time).
 - 2026-10-04 (designer, Eclipse gate 1, third look): passes ("good move on") with the head
   sun blooming like the butt's.
+- 2026-10-04 (designer, Eclipse gate 2, first look): the aura round the player must be
+  centred on them, and it goes while anyone at their table is shooting (themselves, the
+  opponent or a teammate) and comes back between shots while they watch. Built as a
+  generic rule for every Carrier aura: hidden while the table's phase is a shot in flight
+  (`Config.CueSkins.Carrier.ShotPhases`), and while the stick is AuraQuiet (the owner is
+  the shooter, or it is your own turn), shown otherwise.

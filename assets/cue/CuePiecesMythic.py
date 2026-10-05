@@ -1365,6 +1365,7 @@ def eclipse_carrier(k):
     import random
     from mathutils import Vector, Matrix
     bpy = k.bpy
+    k.frame = 'carrier'   # on the character's root, not the cue: no 3.5-stud tip shift
     k.material('Void', 'Neon', '#000000')          # unlit flat black: a hole in the sky
     k.material('Flare', 'Neon', '#FFF0A0')
     k.material('OrbitLine', 'Neon', '#FFE070')

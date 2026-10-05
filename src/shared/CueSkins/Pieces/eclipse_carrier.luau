@@ -4,7 +4,7 @@
 
 return {
 	Id = "eclipse_carrier",
-	Frame = "cue",
+	Frame = "carrier",
 	Rigid = "89768034927410",
 	Models = {},
 	Parts = {
@@ -15,7 +15,7 @@ return {
 			Reflectance = 0,
 			Name = "Sun_Void",
 			Joint = "Sun",
-			Offset = { 0, 3.6, 3.1 },
+			Offset = { 0, 3.6, -0.4 },
 			Size = { 1.6, 1.6, 1.6 },
 		},
 		{
@@ -25,7 +25,7 @@ return {
 			Reflectance = 0,
 			Name = "SunFlare1_Flare",
 			Joint = "SunFlare1",
-			Offset = { 0, 3.6, 3.1 },
+			Offset = { 0, 3.6, -0.4 },
 			Size = { 1.76, 0.4838, 1.7 },
 		},
 		{
@@ -35,7 +35,7 @@ return {
 			Reflectance = 0,
 			Name = "SunFlare1_CoronaSpike",
 			Joint = "SunFlare1",
-			Offset = { -0.0475, 3.6111, 3.1414 },
+			Offset = { -0.0475, 3.6111, -0.3586 },
 			Size = { 2.4517, 0.6261, 2.3098 },
 		},
 		{
@@ -45,7 +45,7 @@ return {
 			Reflectance = 0,
 			Name = "SunFlare2_Flare",
 			Joint = "SunFlare2",
-			Offset = { 0, 3.6, 3.1 },
+			Offset = { 0, 3.6, -0.4 },
 			Size = { 1.76, 1.7, 0.4838 },
 		},
 		{
@@ -55,7 +55,7 @@ return {
 			Reflectance = 0,
 			Name = "SunFlare2_CoronaSpike",
 			Joint = "SunFlare2",
-			Offset = { 0.0054, 3.6002, 3.0999 },
+			Offset = { 0.0054, 3.6002, -0.4001 },
 			Size = { 2.3491, 2.1681, 0.5878 },
 		},
 		{
@@ -65,7 +65,7 @@ return {
 			Reflectance = 0,
 			Name = "Orbit1_OrbitLine",
 			Joint = "Orbit1",
-			Offset = { -0.0001, 0.9007, 3.5007 },
+			Offset = { -0.0001, 0.9007, 0.0007 },
 			Size = { 4.8865, 1.5712, 4.6521 },
 		},
 		{
@@ -75,7 +75,7 @@ return {
 			Reflectance = 0,
 			Name = "Orbit1_OrbitGlow",
 			Joint = "Orbit1",
-			Offset = { 0.0001, 0.9001, 3.4998 },
+			Offset = { 0.0001, 0.9001, -0.0002 },
 			Size = { 5.0175, 1.7019, 4.7782 },
 		},
 		{
@@ -85,7 +85,7 @@ return {
 			Reflectance = 0,
 			Name = "Planet1_Planet1",
 			Joint = "Planet1",
-			Offset = { -1.654, 1.4374, 5.154 },
+			Offset = { -1.654, 1.4374, 1.654 },
 			Size = { 0.28, 0.28, 0.28 },
 		},
 		{
@@ -95,7 +95,7 @@ return {
 			Reflectance = 0,
 			Name = "Planet1_BeadGlow",
 			Joint = "Planet1",
-			Offset = { -1.654, 1.4374, 5.154 },
+			Offset = { -1.654, 1.4374, 1.654 },
 			Size = { 0.448, 0.448, 0.448 },
 		},
 		{
@@ -105,7 +105,7 @@ return {
 			Reflectance = 0,
 			Name = "Orbit2_OrbitLine",
 			Joint = "Orbit2",
-			Offset = { 0.0001, 0.2999, 3.5008 },
+			Offset = { 0.0001, 0.2999, 0.0008 },
 			Size = { 5.4026, 2.4483, 5.8702 },
 		},
 		{
@@ -115,7 +115,7 @@ return {
 			Reflectance = 0,
 			Name = "Orbit2_OrbitGlow",
 			Joint = "Orbit2",
-			Offset = { 0.0002, 0.3001, 3.5001 },
+			Offset = { 0.0002, 0.3001, 0.0001 },
 			Size = { 5.5283, 2.5771, 6.0049 },
 		},
 		{
@@ -125,7 +125,7 @@ return {
 			Reflectance = 0,
 			Name = "Planet2_Planet2",
 			Joint = "Planet2",
-			Offset = { -1.9265, 1.2936, 5.4265 },
+			Offset = { -1.9265, 1.2936, 1.9265 },
 			Size = { 0.36, 0.36, 0.36 },
 		},
 		{
@@ -135,7 +135,7 @@ return {
 			Reflectance = 0,
 			Name = "Planet2_BeadGlow",
 			Joint = "Planet2",
-			Offset = { -1.9265, 1.2936, 5.4265 },
+			Offset = { -1.9265, 1.2936, 1.9265 },
 			Size = { 0.576, 0.576, 0.576 },
 		},
 		{
@@ -145,7 +145,7 @@ return {
 			Reflectance = 0,
 			Name = "Planet2_OrbitLine",
 			Joint = "Planet2",
-			Offset = { -1.9265, 1.2934, 5.4265 },
+			Offset = { -1.9265, 1.2934, 1.9265 },
 			Size = { 0.7088, 0.4176, 0.5882 },
 		},
 		{
@@ -155,7 +155,7 @@ return {
 			Reflectance = 0,
 			Name = "Orbit3_Planet3",
 			Joint = "Orbit3",
-			Offset = { -2, 1.6, 3.5 },
+			Offset = { -2, 1.6, -0 },
 			Size = { 0.26, 0.26, 0.26 },
 		},
 		{
@@ -165,7 +165,7 @@ return {
 			Reflectance = 0,
 			Name = "Orbit3_BeadGlow",
 			Joint = "Orbit3",
-			Offset = { -2, 1.6, 3.5 },
+			Offset = { -2, 1.6, 0 },
 			Size = { 0.416, 0.416, 0.416 },
 		},
 		{
@@ -175,7 +175,7 @@ return {
 			Reflectance = 0.05,
 			Name = "Asteroid1_Rock",
 			Joint = "Asteroid1",
-			Offset = { -1.6713, 0.331, 4.9325 },
+			Offset = { -1.6713, 0.331, 1.4325 },
 			Size = { 0.3658, 0.2066, 0.3706 },
 		},
 		{
@@ -185,7 +185,7 @@ return {
 			Reflectance = 0.05,
 			Name = "Asteroid2_Rock",
 			Joint = "Asteroid2",
-			Offset = { 2.3359, 0.3518, 4.3187 },
+			Offset = { 2.3359, 0.3518, 0.8187 },
 			Size = { 0.3191, 0.309, 0.3573 },
 		},
 		{
@@ -195,7 +195,7 @@ return {
 			Reflectance = 0.05,
 			Name = "Asteroid3_Rock",
 			Joint = "Asteroid3",
-			Offset = { -0.4717, 0.6102, 5.7488 },
+			Offset = { -0.4717, 0.6102, 2.2488 },
 			Size = { 0.7429, 0.4432, 0.3963 },
 		},
 		{
@@ -205,7 +205,7 @@ return {
 			Reflectance = 0.05,
 			Name = "Asteroid4_Rock",
 			Joint = "Asteroid4",
-			Offset = { 1.512, 0.0397, 1.3561 },
+			Offset = { 1.512, 0.0397, -2.1439 },
 			Size = { 0.2477, 0.1962, 0.279 },
 		},
 		{
@@ -215,7 +215,7 @@ return {
 			Reflectance = 0.05,
 			Name = "Asteroid5_Rock",
 			Joint = "Asteroid5",
-			Offset = { -1.3008, 1.24, 1.3231 },
+			Offset = { -1.3008, 1.24, -2.1769 },
 			Size = { 0.4241, 0.3306, 0.487 },
 		},
 		{
@@ -225,7 +225,7 @@ return {
 			Reflectance = 0.05,
 			Name = "Asteroid6_Rock",
 			Joint = "Asteroid6",
-			Offset = { -2.0289, 0.6735, 2.4001 },
+			Offset = { -2.0289, 0.6735, -1.0999 },
 			Size = { 0.5246, 0.5109, 0.5739 },
 		},
 		{
@@ -235,7 +235,7 @@ return {
 			Reflectance = 0.05,
 			Name = "Asteroid7_Rock",
 			Joint = "Asteroid7",
-			Offset = { -0.5767, 0.6036, 1.1511 },
+			Offset = { -0.5767, 0.6036, -2.3489 },
 			Size = { 0.4086, 0.293, 0.4535 },
 		},
 		{
@@ -245,7 +245,7 @@ return {
 			Reflectance = 0.05,
 			Name = "Asteroid8_Rock",
 			Joint = "Asteroid8",
-			Offset = { -0.5908, 0.1394, 1.1625 },
+			Offset = { -0.5908, 0.1394, -2.3375 },
 			Size = { 0.3554, 0.2821, 0.3911 },
 		},
 		{
@@ -255,7 +255,7 @@ return {
 			Reflectance = 0.05,
 			Name = "Asteroid9_Rock",
 			Joint = "Asteroid9",
-			Offset = { 0.0812, 0.9069, 6.0738 },
+			Offset = { 0.0812, 0.9069, 2.5738 },
 			Size = { 0.2735, 0.2839, 0.2744 },
 		},
 		{
@@ -265,14 +265,14 @@ return {
 			Reflectance = 0.05,
 			Name = "Asteroid10_Rock",
 			Joint = "Asteroid10",
-			Offset = { 1.6466, 0.0174, 2.0522 },
+			Offset = { 1.6466, 0.0174, -1.4478 },
 			Size = { 0.4942, 0.3411, 0.6434 },
 		},
 	},
 	Joints = {
 		Sun = {
 			Parent = nil,
-			PivotRoblox = { -0, 3.6, 3.1 },
+			PivotRoblox = { -0, 3.6, -0.4 },
 			Motion = {
 				{
 					Kind = "Bob",
@@ -285,7 +285,7 @@ return {
 		},
 		SunFlare1 = {
 			Parent = "Sun",
-			PivotRoblox = { -0, 3.6, 3.1 },
+			PivotRoblox = { -0, 3.6, -0.4 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -307,7 +307,7 @@ return {
 		},
 		SunFlare2 = {
 			Parent = "Sun",
-			PivotRoblox = { -0, 3.6, 3.1 },
+			PivotRoblox = { -0, 3.6, -0.4 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -329,7 +329,7 @@ return {
 		},
 		Orbit1 = {
 			Parent = nil,
-			PivotRoblox = { -0, 0.9, 3.5 },
+			PivotRoblox = { -0, 0.9, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -352,7 +352,7 @@ return {
 		},
 		Planet1 = {
 			Parent = "Orbit1",
-			PivotRoblox = { -0, 0.9, 3.5 },
+			PivotRoblox = { -0, 0.9, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -364,7 +364,7 @@ return {
 		},
 		Orbit2 = {
 			Parent = nil,
-			PivotRoblox = { -0, 0.3, 3.5 },
+			PivotRoblox = { -0, 0.3, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -387,7 +387,7 @@ return {
 		},
 		Planet2 = {
 			Parent = "Orbit2",
-			PivotRoblox = { -0, 0.3, 3.5 },
+			PivotRoblox = { -0, 0.3, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -399,7 +399,7 @@ return {
 		},
 		Orbit3 = {
 			Parent = nil,
-			PivotRoblox = { -0, 1.6, 3.5 },
+			PivotRoblox = { -0, 1.6, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -411,7 +411,7 @@ return {
 		},
 		Belt1 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0.3285, 3.5 },
+			PivotRoblox = { 0, 0.3285, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -430,7 +430,7 @@ return {
 		},
 		Asteroid1 = {
 			Parent = "Belt1",
-			PivotRoblox = { -1.6785, 0.3285, 4.9317 },
+			PivotRoblox = { -1.6785, 0.3285, 1.4317 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -442,7 +442,7 @@ return {
 		},
 		Belt2 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0.3601, 3.5 },
+			PivotRoblox = { 0, 0.3601, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -461,7 +461,7 @@ return {
 		},
 		Asteroid2 = {
 			Parent = "Belt2",
-			PivotRoblox = { 2.336, 0.3601, 4.2957 },
+			PivotRoblox = { 2.336, 0.3601, 0.7957 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -473,7 +473,7 @@ return {
 		},
 		Belt3 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0.6358, 3.5 },
+			PivotRoblox = { 0, 0.6358, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -492,7 +492,7 @@ return {
 		},
 		Asteroid3 = {
 			Parent = "Belt3",
-			PivotRoblox = { -0.4756, 0.6358, 5.7556 },
+			PivotRoblox = { -0.4756, 0.6358, 2.2556 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -504,7 +504,7 @@ return {
 		},
 		Belt4 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0.0494, 3.5 },
+			PivotRoblox = { 0, 0.0494, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -523,7 +523,7 @@ return {
 		},
 		Asteroid4 = {
 			Parent = "Belt4",
-			PivotRoblox = { 1.5329, 0.0494, 1.3578 },
+			PivotRoblox = { 1.5329, 0.0494, -2.1422 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -535,7 +535,7 @@ return {
 		},
 		Belt5 = {
 			Parent = nil,
-			PivotRoblox = { 0, 1.2381, 3.5 },
+			PivotRoblox = { 0, 1.2381, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -554,7 +554,7 @@ return {
 		},
 		Asteroid5 = {
 			Parent = "Belt5",
-			PivotRoblox = { -1.3005, 1.2381, 1.3375 },
+			PivotRoblox = { -1.3005, 1.2381, -2.1625 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -566,7 +566,7 @@ return {
 		},
 		Belt6 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0.6622, 3.5 },
+			PivotRoblox = { 0, 0.6622, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -585,7 +585,7 @@ return {
 		},
 		Asteroid6 = {
 			Parent = "Belt6",
-			PivotRoblox = { -2.0194, 0.6622, 2.4066 },
+			PivotRoblox = { -2.0194, 0.6622, -1.0934 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -597,7 +597,7 @@ return {
 		},
 		Belt7 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0.5987, 3.5 },
+			PivotRoblox = { 0, 0.5987, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -616,7 +616,7 @@ return {
 		},
 		Asteroid7 = {
 			Parent = "Belt7",
-			PivotRoblox = { -0.5864, 0.5987, 1.1497 },
+			PivotRoblox = { -0.5864, 0.5987, -2.3503 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -628,7 +628,7 @@ return {
 		},
 		Belt8 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0.1448, 3.5 },
+			PivotRoblox = { 0, 0.1448, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -647,7 +647,7 @@ return {
 		},
 		Asteroid8 = {
 			Parent = "Belt8",
-			PivotRoblox = { -0.5857, 0.1448, 1.122 },
+			PivotRoblox = { -0.5857, 0.1448, -2.378 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -659,7 +659,7 @@ return {
 		},
 		Belt9 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0.9248, 3.5 },
+			PivotRoblox = { 0, 0.9248, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -678,7 +678,7 @@ return {
 		},
 		Asteroid9 = {
 			Parent = "Belt9",
-			PivotRoblox = { 0.0772, 0.9248, 6.0826 },
+			PivotRoblox = { 0.0772, 0.9248, 2.5826 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -690,7 +690,7 @@ return {
 		},
 		Belt10 = {
 			Parent = nil,
-			PivotRoblox = { 0, 0.0304, 3.5 },
+			PivotRoblox = { 0, 0.0304, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
@@ -709,7 +709,7 @@ return {
 		},
 		Asteroid10 = {
 			Parent = "Belt10",
-			PivotRoblox = { 1.6787, 0.0304, 2.0396 },
+			PivotRoblox = { 1.6787, 0.0304, -1.4604 },
 			Motion = {
 				{
 					Kind = "Spin",
