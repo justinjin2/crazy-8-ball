@@ -336,7 +336,10 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 		local x, y = Placement.fallback(t.state, 0, t.breakShot)
 		Placement.set(t.state, 0, x, y)
 	end
-	if skipIntro then
+	-- A shooter who owes the call for the 8 picks the pocket at once: the introduction would
+	-- only hold the rings back (the top-down view and the prompt are already up; designer,
+	-- 2026-10-05).
+	if skipIntro or needsCall(t) then
 		setup(t, now)
 	else
 		phase(t, "Intro", now, M.IntroSeconds)

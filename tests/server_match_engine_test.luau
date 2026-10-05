@@ -375,12 +375,11 @@ function tests.eligible_ball_in_hand_calls_before_placement()
 	end
 	resolveFixture(m, false, "Scratch")
 	expire(m)
-	expect(m.phase == "Intro" and m.shooter == 21 and m.ballInHand)
+	-- The call is owed, so there is no introduction: the pocket is chosen at once.
+	expect(m.phase == "PocketChoice" and m.shooter == 21 and m.ballInHand)
 	local early, why = E.acceptShot(m, 21, shotPayload(m), m.phaseStartedAt)
-	expect(early == nil and why == "CallRequired")
+	expect(early == nil and why == "WrongPhase")
 	expect(not action(m, 21, "Place", { x = -30, y = 3 }), "the call comes first")
-	expire(m)
-	expect(m.phase == "PocketChoice")
 	local now = m.phaseStartedAt + 1
 	expect(not action(m, 11, "Pocket", { pocket = 1 }, now))
 	expect(action(m, 21, "Pocket", { pocket = 2 }, now))

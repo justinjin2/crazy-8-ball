@@ -2445,3 +2445,7 @@ timer of a new block stay the designer's call.
   the riser's peak, the card under the white. Never skipped. The old streak scene is gone;
   a redone scene's riser and impact are now generic (`Riser`, `RiserPeakSeconds`, `Impact` in
   its `Config.Cutscenes` row).
+- **2026-10-05 — No introduction when the 8 must be called (designer).** A turn that starts
+  owing the call for the 8 goes straight to PocketChoice: the 2 s Intro held the pocket rings
+  back while the top-down view and the prompt were already up (every return to the table after
+  missing the 8).
