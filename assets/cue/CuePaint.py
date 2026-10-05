@@ -3112,10 +3112,10 @@ def celestial_dragon(k):
         sat = (mx - mn) / np.maximum(mx, 1)
         gold = np.clip((sat - 0.3) * 4, 0, 1) * (r > b + 50) * np.clip((L - 0.3) * 3, 0, 1)
         blue = np.clip((b - r - 20) / 60.0, 0, 1) * np.clip((L - 0.15) * 3, 0, 1)
-        pearl = np.clip((L - 0.7) * 5, 0, 1) * (sat < 0.15)
+        pearl_m = np.clip((L - 0.7) * 5, 0, 1) * (sat < 0.15)
         c.put(gold > 0.4, None, rough=0.24, metal=0.9)
         c.add_height(gold, 0.0004)
-        c.put(pearl > 0.5, None, rough=0.12, metal=0.15)
+        c.put(pearl_m > 0.5, None, rough=0.12, metal=0.15)
         c.put(np.ones((c.h, c.w), bool), None, glow=np.clip(gold * 0.12 + blue * 0.45, 0, 1))
     for c, m in k.zone('joint'):
         metal(c, m, s['gold'], rough=0.2)
@@ -3136,6 +3136,27 @@ def celestial_dragon(k):
     star_gem(c, '#6FB8FF')
     joint_seam(k)
     seam_edges(k, [F1, W0, W1, 6.93])
+    # Themed ends (designer 2026-10-04, the Mythic rule): the collar is gold dragon scales
+    # round a mother-of-pearl band, the ferrule a glowing pearl band between gold rims, the
+    # tip's side a pearl.
+    for c, m in k.zone('joint'):
+        scales(c, m, s['gold'], size=0.022, rough=0.22, depth=0.0005, seed=7, sheen=0.5, edge_col='#8A6A1A')
+        c.put(m, None, metal=0.9)
+        mid = band(c, (J0 + J1) / 2 - 0.03, (J0 + J1) / 2 + 0.03) * m
+        pearl(c, mid > 0.5, s['pearl'], rough=0.14, seed=5, fire=0.5)
+        c.put(mid > 0.5, None, glow=0.22)
+    e = k.ends()
+    tip = e.zone('tip')
+    pearl(e, tip, s['pearl'], rough=0.12, seed=3, fire=0.45)
+    e.put(tip, None, glow=0.12)
+    fer = e.zone('ferrule')
+    pearl(e, fer, s['pearl'], rough=0.14, seed=4, fire=0.55)
+    e.put(fer, None, glow=0.35)
+    T0, T1 = ZONES['ferrule']
+    for d in (T0 + 0.012, T1 - 0.012):
+        rim = band(e, d - 0.007, d + 0.007, soft=0.004) * fer
+        metal(e, rim > 0.5, s['gold'], rough=0.2)
+        e.put(rim > 0.5, None, glow=0.1)
 
 
 @recipe

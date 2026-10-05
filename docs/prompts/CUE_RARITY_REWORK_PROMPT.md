@@ -205,7 +205,7 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 - [x] 2. Eclipse: board, gate 1 (passed 2026-10-04 at the third look).
 - [x] 3. Eclipse: build, gate 2 (passed 2026-10-04 at the fourth look); the trail and pocket
   finisher kept as they were (designer: they were fine); no sound; cards unchanged.
-- [ ] 4. Celestial Dragon: board, gate 1; build, gate 2, polish.
+- [ ] 4. Celestial Dragon: board (rendered 2026-10-04), gate 1; build, gate 2, polish.
 - [ ] 5. Kitsune: board, gate 1; build, gate 2, polish.
 - [ ] 6. Apex: board, gate 1; build, gate 2, polish.
 - [ ] 7. Reyes, Grandmaster, VIP.
@@ -253,7 +253,20 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   rows now sit on the cue axis and draw behind the cue (ZOffset -0.55 to -0.75), so only the
   glow round the edges shows. The two sound placeholders removed. Budget about 98 particles
   a second. Piece re-uploaded, the template rebuilt, the clip re-rendered. Gate 2 passed.
-- 2026-10-04: step 4 begun: the Celestial Dragon surveyed for its board.
+- 2026-10-04: step 4: the Celestial Dragon reworked in data for its board. Diagnosis: the
+  body wave beat at 1.1 s, the tail at 0.9 s, ten spine flames flickering at 0.5-0.8 s life
+  and a mist of about 90 a second over 36 stars, 28 dust, 35 streaks: the pulsing and the
+  cloud the designer saw. Rework: every beat slowed two to three times (wave 3.2 s, tail
+  2.8 s, head nod 4.6 s, look 6.4 s, roar every 9 s, mane 3.4 s, the lap 12 s); the palette
+  lifted to cyan-white spirit light (`#EAFBFF` core, `#3FD6FF` sheath and emissive, cyan
+  scales) over deep indigo mist; two Neon spirit filaments spiralling round the body,
+  skinned with it; the ten flames became four slow wisps (2 a second, 1.5-2.5 s, cyan-white
+  into violet); the mist cut to 18, stars 8, dust 10, streaks 8, swirls 4 (about 74 a
+  second, from about 240); the beam, light and outline recoloured cyan with 7 s pulses;
+  the pocket head rises over 2 s. Themed ends: a gold-scaled collar round a pearl band, a
+  glowing pearl ferrule between gold rims, a pearl tip. Board
+  `assets/cue/concepts/rework/celestial_dragon-board.png` and clip
+  `celestial_dragon-clip.mp4`. Waiting at gate 1.
 
 ## Decisions
 

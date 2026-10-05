@@ -2,7 +2,7 @@
   "id": "celestial_dragon",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 26902,
+  "Triangles": 29162,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -12,8 +12,8 @@
       "SurfaceAppearance": {
         "ColorMap": "pieces/celestial_dragon/DragonBody_spirit.png",
         "EmissiveMask": "pieces/celestial_dragon/DragonBody_emissive.png",
-        "EmissiveTint": "#8CC8FF",
-        "EmissiveStrength": 1.8,
+        "EmissiveTint": "#3FD6FF",
+        "EmissiveStrength": 2.4,
         "AlphaMode": "Transparency"
       },
       "Name": "DragonBody",
@@ -68,7 +68,7 @@
     },
     {
       "Material": "ForceField",
-      "Color": "#8FCBFF",
+      "Color": "#3FD6FF",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "DragonSheath",
@@ -123,8 +123,8 @@
     },
     {
       "Material": "Neon",
-      "Color": "#D8EEFF",
-      "Transparency": 0.45,
+      "Color": "#EAFBFF",
+      "Transparency": 0.3,
       "Reflectance": 0.0,
       "Name": "DragonCore",
       "File": "pieces/celestial_dragon/DragonBody.glb",
@@ -178,8 +178,8 @@
     },
     {
       "Material": "Neon",
-      "Color": "#9ACFFF",
-      "Transparency": 0.35,
+      "Color": "#7FE6FF",
+      "Transparency": 0.3,
       "Reflectance": 0.0,
       "Name": "DragonFins",
       "File": "pieces/celestial_dragon/DragonBody.glb",
@@ -232,6 +232,61 @@
       ]
     },
     {
+      "Material": "Neon",
+      "Color": "#9FF0FF",
+      "Transparency": 0.1,
+      "Reflectance": 0.0,
+      "Name": "DragonFilaments",
+      "File": "pieces/celestial_dragon/DragonBody.glb",
+      "Mesh": "DragonFilamentsSkin",
+      "Joint": "Dragon",
+      "Skinned": true,
+      "Bones": [
+        "Dragon",
+        "Spine1",
+        "Spine2",
+        "Spine3",
+        "Spine4",
+        "Spine5",
+        "Spine6",
+        "Spine7",
+        "Spine8",
+        "Spine9",
+        "Spine10",
+        "Spine11",
+        "Spine12",
+        "Spine13",
+        "Spine14",
+        "Spine15",
+        "Spine16",
+        "Spine17",
+        "Spine18",
+        "Spine19",
+        "Spine20",
+        "Spine21",
+        "Spine22",
+        "Spine23",
+        "Spine24",
+        "Spine25",
+        "Spine26",
+        "Spine27",
+        "Spine28",
+        "Spine29",
+        "Spine30"
+      ],
+      "Triangles": 2260,
+      "Offset": [
+        0.0018,
+        -0.0181,
+        -1.5288
+      ],
+      "Size": [
+        0.8929,
+        0.9139,
+        3.002
+      ]
+    },
+    {
       "Material": "SmoothPlastic",
       "Color": "#FFFFFF",
       "Transparency": 0.0,
@@ -239,8 +294,8 @@
       "SurfaceAppearance": {
         "ColorMap": "pieces/celestial_dragon/DragonHead_spirit.png",
         "EmissiveMask": "pieces/celestial_dragon/DragonHead_emissive.png",
-        "EmissiveTint": "#8CC8FF",
-        "EmissiveStrength": 1.8,
+        "EmissiveTint": "#7FE6FF",
+        "EmissiveStrength": 2.2,
         "NormalMap": "pieces/celestial_dragon/DragonHead_normal.png",
         "AlphaMode": "Transparency"
       },
@@ -268,7 +323,7 @@
     },
     {
       "Material": "ForceField",
-      "Color": "#CFEAFF",
+      "Color": "#D8F6FF",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "DragonHeadShell",
@@ -327,7 +382,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 10.5749,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -337,8 +392,8 @@
             0.01031138189136982
           ],
           "Amp": 0.0595,
-          "Period": 1.1,
-          "Phase": 21.6
+          "Period": 3.2,
+          "Phase": 14.7
         },
         {
           "Kind": "Bob",
@@ -348,8 +403,8 @@
             0.9272003173828125
           ],
           "Amp": 0.0238,
-          "Period": 1.1,
-          "Phase": 111.6
+          "Period": 3.2,
+          "Phase": 104.7
         },
         {
           "Kind": "Hinge",
@@ -358,8 +413,8 @@
             -0.0012740587117150426,
             0.9272003173828125
           ],
-          "Amp": 25.0,
-          "Period": 0.9
+          "Amp": 22.0,
+          "Period": 2.8
         }
       ],
       "Aura": true
@@ -381,7 +436,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 10.7239,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -391,8 +446,8 @@
             -0.12265969067811966
           ],
           "Amp": 0.0587,
-          "Period": 1.1,
-          "Phase": 57.4
+          "Period": 3.2,
+          "Phase": 39.1
         },
         {
           "Kind": "Bob",
@@ -402,8 +457,8 @@
             0.7084422707557678
           ],
           "Amp": 0.0235,
-          "Period": 1.1,
-          "Phase": 147.4
+          "Period": 3.2,
+          "Phase": 129.1
         }
       ],
       "Aura": true
@@ -425,7 +480,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 10.8729,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -435,8 +490,8 @@
             -0.29685652256011963
           ],
           "Amp": 0.0578,
-          "Period": 1.1,
-          "Phase": 93.1
+          "Period": 3.2,
+          "Phase": 63.5
         },
         {
           "Kind": "Bob",
@@ -446,8 +501,8 @@
             0.4310283958911896
           ],
           "Amp": 0.0231,
-          "Period": 1.1,
-          "Phase": 183.1
+          "Period": 3.2,
+          "Phase": 153.5
         }
       ],
       "Aura": true
@@ -469,7 +524,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 11.022,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -479,8 +534,8 @@
             -0.4543226361274719
           ],
           "Amp": 0.057,
-          "Period": 1.1,
-          "Phase": 128.9
+          "Period": 3.2,
+          "Phase": 87.9
         },
         {
           "Kind": "Bob",
@@ -490,8 +545,8 @@
             0.0694710910320282
           ],
           "Amp": 0.0228,
-          "Period": 1.1,
-          "Phase": 218.9
+          "Period": 3.2,
+          "Phase": 177.9
         }
       ],
       "Aura": true
@@ -513,7 +568,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 11.171,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -523,8 +578,8 @@
             -0.5150166749954224
           ],
           "Amp": 0.0562,
-          "Period": 1.1,
-          "Phase": 164.6
+          "Period": 3.2,
+          "Phase": 112.2
         },
         {
           "Kind": "Bob",
@@ -534,8 +589,8 @@
             -0.24527336657047272
           ],
           "Amp": 0.0225,
-          "Period": 1.1,
-          "Phase": 254.6
+          "Period": 3.2,
+          "Phase": 202.2
         }
       ],
       "Aura": true
@@ -557,7 +612,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 11.32,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -567,8 +622,8 @@
             -0.4884593188762665
           ],
           "Amp": 0.0554,
-          "Period": 1.1,
-          "Phase": 200.4
+          "Period": 3.2,
+          "Phase": 136.6
         },
         {
           "Kind": "Bob",
@@ -578,8 +633,8 @@
             -0.5649089813232422
           ],
           "Amp": 0.0221,
-          "Period": 1.1,
-          "Phase": 290.4
+          "Period": 3.2,
+          "Phase": 226.6
         }
       ],
       "Aura": true
@@ -601,7 +656,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 11.4691,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -611,8 +666,8 @@
             -0.3936825096607208
           ],
           "Amp": 0.0545,
-          "Period": 1.1,
-          "Phase": 236.1
+          "Period": 3.2,
+          "Phase": 161.0
         },
         {
           "Kind": "Bob",
@@ -622,8 +677,8 @@
             -0.7846733927726746
           ],
           "Amp": 0.0218,
-          "Period": 1.1,
-          "Phase": 326.1
+          "Period": 3.2,
+          "Phase": 251.0
         }
       ],
       "Aura": true
@@ -645,7 +700,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 11.6181,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -655,8 +710,8 @@
             -0.22224120795726776
           ],
           "Amp": 0.0537,
-          "Period": 1.1,
-          "Phase": 271.9
+          "Period": 3.2,
+          "Phase": 185.4
         },
         {
           "Kind": "Bob",
@@ -666,8 +721,8 @@
             -0.9463847279548645
           ],
           "Amp": 0.0215,
-          "Period": 1.1,
-          "Phase": 361.9
+          "Period": 3.2,
+          "Phase": 275.4
         }
       ],
       "Aura": true
@@ -689,7 +744,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 11.7671,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -699,8 +754,8 @@
             -0.03799864277243614
           ],
           "Amp": 0.0529,
-          "Period": 1.1,
-          "Phase": 307.6
+          "Period": 3.2,
+          "Phase": 209.7
         },
         {
           "Kind": "Bob",
@@ -710,8 +765,8 @@
             -0.9992098808288574
           ],
           "Amp": 0.0212,
-          "Period": 1.1,
-          "Phase": 397.6
+          "Period": 3.2,
+          "Phase": 299.7
         }
       ],
       "Aura": true
@@ -733,7 +788,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 11.9162,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -743,8 +798,8 @@
             0.18594740331172943
           ],
           "Amp": 0.0521,
-          "Period": 1.1,
-          "Phase": 343.4
+          "Period": 3.2,
+          "Phase": 234.1
         },
         {
           "Kind": "Bob",
@@ -754,8 +809,8 @@
             -0.9550314545631409
           ],
           "Amp": 0.0208,
-          "Period": 1.1,
-          "Phase": 433.4
+          "Period": 3.2,
+          "Phase": 324.1
         }
       ],
       "Aura": true
@@ -777,7 +832,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 12.0652,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -787,8 +842,8 @@
             0.3721894919872284
           ],
           "Amp": 0.0512,
-          "Period": 1.1,
-          "Phase": 379.1
+          "Period": 3.2,
+          "Phase": 258.5
         },
         {
           "Kind": "Bob",
@@ -798,8 +853,8 @@
             -0.8299471139907837
           ],
           "Amp": 0.0205,
-          "Period": 1.1,
-          "Phase": 469.1
+          "Period": 3.2,
+          "Phase": 348.5
         }
       ],
       "Aura": true
@@ -821,7 +876,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 12.2142,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -831,8 +886,8 @@
             0.531050980091095
           ],
           "Amp": 0.0504,
-          "Period": 1.1,
-          "Phase": 414.9
+          "Period": 3.2,
+          "Phase": 282.9
         },
         {
           "Kind": "Bob",
@@ -842,8 +897,8 @@
             -0.6355715394020081
           ],
           "Amp": 0.0202,
-          "Period": 1.1,
-          "Phase": 504.9
+          "Period": 3.2,
+          "Phase": 372.9
         }
       ],
       "Aura": true
@@ -865,7 +920,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 12.3633,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -875,8 +930,8 @@
             0.6601250767707825
           ],
           "Amp": 0.0496,
-          "Period": 1.1,
-          "Phase": 450.6
+          "Period": 3.2,
+          "Phase": 307.2
         },
         {
           "Kind": "Bob",
@@ -886,8 +941,8 @@
             -0.3498557507991791
           ],
           "Amp": 0.0198,
-          "Period": 1.1,
-          "Phase": 540.6
+          "Period": 3.2,
+          "Phase": 397.2
         }
       ],
       "Aura": true
@@ -909,7 +964,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 12.5123,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -919,8 +974,8 @@
             0.7148407697677612
           ],
           "Amp": 0.0487,
-          "Period": 1.1,
-          "Phase": 486.4
+          "Period": 3.2,
+          "Phase": 331.6
         },
         {
           "Kind": "Bob",
@@ -930,8 +985,8 @@
             -0.06749828159809113
           ],
           "Amp": 0.0195,
-          "Period": 1.1,
-          "Phase": 576.4
+          "Period": 3.2,
+          "Phase": 421.6
         }
       ],
       "Aura": true
@@ -953,7 +1008,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 12.6613,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -963,8 +1018,8 @@
             0.7033901214599609
           ],
           "Amp": 0.0479,
-          "Period": 1.1,
-          "Phase": 522.1
+          "Period": 3.2,
+          "Phase": 356.0
         },
         {
           "Kind": "Bob",
@@ -974,8 +1029,8 @@
             0.2607932686805725
           ],
           "Amp": 0.0192,
-          "Period": 1.1,
-          "Phase": 612.1
+          "Period": 3.2,
+          "Phase": 446.0
         }
       ],
       "Aura": true
@@ -997,7 +1052,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 12.8104,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1007,8 +1062,8 @@
             0.6279641389846802
           ],
           "Amp": 0.0471,
-          "Period": 1.1,
-          "Phase": 557.9
+          "Period": 3.2,
+          "Phase": 380.4
         },
         {
           "Kind": "Bob",
@@ -1018,8 +1073,8 @@
             0.5262325406074524
           ],
           "Amp": 0.0188,
-          "Period": 1.1,
-          "Phase": 647.9
+          "Period": 3.2,
+          "Phase": 470.4
         }
       ],
       "Aura": true
@@ -1041,7 +1096,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 12.9594,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1051,8 +1106,8 @@
             0.4747568666934967
           ],
           "Amp": 0.0463,
-          "Period": 1.1,
-          "Phase": 593.6
+          "Period": 3.2,
+          "Phase": 404.7
         },
         {
           "Kind": "Bob",
@@ -1062,8 +1117,8 @@
             0.7747893929481506
           ],
           "Amp": 0.0185,
-          "Period": 1.1,
-          "Phase": 683.6
+          "Period": 3.2,
+          "Phase": 494.7
         }
       ],
       "Aura": true
@@ -1085,7 +1140,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 13.1084,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1095,8 +1150,8 @@
             0.2939583957195282
           ],
           "Amp": 0.0454,
-          "Period": 1.1,
-          "Phase": 629.4
+          "Period": 3.2,
+          "Phase": 429.1
         },
         {
           "Kind": "Bob",
@@ -1106,8 +1161,8 @@
             0.9236441254615784
           ],
           "Amp": 0.0182,
-          "Period": 1.1,
-          "Phase": 719.4
+          "Period": 3.2,
+          "Phase": 519.1
         }
       ],
       "Aura": true
@@ -1129,7 +1184,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 13.2575,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1139,8 +1194,8 @@
             0.0543079674243927
           ],
           "Amp": 0.0446,
-          "Period": 1.1,
-          "Phase": 665.1
+          "Period": 3.2,
+          "Phase": 453.5
         },
         {
           "Kind": "Bob",
@@ -1150,8 +1205,8 @@
             0.9981154203414917
           ],
           "Amp": 0.0178,
-          "Period": 1.1,
-          "Phase": 755.1
+          "Period": 3.2,
+          "Phase": 543.5
         }
       ],
       "Aura": true
@@ -1173,7 +1228,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 13.4065,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1183,8 +1238,8 @@
             -0.1643504947423935
           ],
           "Amp": 0.0438,
-          "Period": 1.1,
-          "Phase": 700.9
+          "Period": 3.2,
+          "Phase": 477.9
         },
         {
           "Kind": "Bob",
@@ -1194,8 +1249,8 @@
             0.9729545712471008
           ],
           "Amp": 0.0175,
-          "Period": 1.1,
-          "Phase": 790.9
+          "Period": 3.2,
+          "Phase": 567.9
         }
       ],
       "Aura": true
@@ -1217,7 +1272,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 13.5555,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1227,8 +1282,8 @@
             -0.37139835953712463
           ],
           "Amp": 0.0429,
-          "Period": 1.1,
-          "Phase": 736.6
+          "Period": 3.2,
+          "Phase": 502.3
         },
         {
           "Kind": "Bob",
@@ -1238,8 +1293,8 @@
             0.8650191426277161
           ],
           "Amp": 0.0172,
-          "Period": 1.1,
-          "Phase": 826.6
+          "Period": 3.2,
+          "Phase": 592.3
         }
       ],
       "Aura": true
@@ -1261,7 +1316,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 13.7046,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1271,8 +1326,8 @@
             -0.5700673460960388
           ],
           "Amp": 0.0421,
-          "Period": 1.1,
-          "Phase": 772.4
+          "Period": 3.2,
+          "Phase": 526.6
         },
         {
           "Kind": "Bob",
@@ -1282,8 +1337,8 @@
             0.6518564224243164
           ],
           "Amp": 0.0168,
-          "Period": 1.1,
-          "Phase": 862.4
+          "Period": 3.2,
+          "Phase": 616.6
         }
       ],
       "Aura": true
@@ -1305,7 +1360,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 13.8536,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1315,8 +1370,8 @@
             -0.6933292150497437
           ],
           "Amp": 0.0413,
-          "Period": 1.1,
-          "Phase": 808.1
+          "Period": 3.2,
+          "Phase": 551.0
         },
         {
           "Kind": "Bob",
@@ -1326,8 +1381,8 @@
             0.40431034564971924
           ],
           "Amp": 0.0165,
-          "Period": 1.1,
-          "Phase": 898.1
+          "Period": 3.2,
+          "Phase": 641.0
         }
       ],
       "Aura": true
@@ -1349,7 +1404,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 14.0027,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1359,8 +1414,8 @@
             -0.7606134414672852
           ],
           "Amp": 0.0405,
-          "Period": 1.1,
-          "Phase": 843.9
+          "Period": 3.2,
+          "Phase": 575.4
         },
         {
           "Kind": "Bob",
@@ -1370,8 +1425,8 @@
             0.07976661622524261
           ],
           "Amp": 0.0162,
-          "Period": 1.1,
-          "Phase": 933.9
+          "Period": 3.2,
+          "Phase": 665.4
         }
       ],
       "Aura": true
@@ -1393,7 +1448,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 14.1517,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1403,8 +1458,8 @@
             -0.7492842674255371
           ],
           "Amp": 0.0396,
-          "Period": 1.1,
-          "Phase": 879.6
+          "Period": 3.2,
+          "Phase": 599.8
         },
         {
           "Kind": "Bob",
@@ -1414,8 +1469,8 @@
             -0.21321134269237518
           ],
           "Amp": 0.0159,
-          "Period": 1.1,
-          "Phase": 969.6
+          "Period": 3.2,
+          "Phase": 689.8
         }
       ],
       "Aura": true
@@ -1437,7 +1492,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 14.3007,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1447,8 +1502,8 @@
             -0.655785858631134
           ],
           "Amp": 0.0352,
-          "Period": 1.1,
-          "Phase": 915.4
+          "Period": 3.2,
+          "Phase": 624.1
         },
         {
           "Kind": "Bob",
@@ -1458,8 +1513,8 @@
             -0.5244814157485962
           ],
           "Amp": 0.0141,
-          "Period": 1.1,
-          "Phase": 1005.4
+          "Period": 3.2,
+          "Phase": 714.1
         }
       ],
       "Aura": true
@@ -1481,7 +1536,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 14.4498,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1491,8 +1546,8 @@
             -0.5113559365272522
           ],
           "Amp": 0.0303,
-          "Period": 1.1,
-          "Phase": 951.1
+          "Period": 3.2,
+          "Phase": 648.5
         },
         {
           "Kind": "Bob",
@@ -1502,8 +1557,8 @@
             -0.7496552467346191
           ],
           "Amp": 0.0121,
-          "Period": 1.1,
-          "Phase": 1041.1
+          "Period": 3.2,
+          "Phase": 738.5
         }
       ],
       "Aura": true
@@ -1525,7 +1580,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 14.5988,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1535,8 +1590,8 @@
             -0.2916181683540344
           ],
           "Amp": 0.0255,
-          "Period": 1.1,
-          "Phase": 986.9
+          "Period": 3.2,
+          "Phase": 672.9
         },
         {
           "Kind": "Bob",
@@ -1546,8 +1601,8 @@
             -0.926657497882843
           ],
           "Amp": 0.0102,
-          "Period": 1.1,
-          "Phase": 1076.9
+          "Period": 3.2,
+          "Phase": 762.9
         }
       ],
       "Aura": true
@@ -1569,7 +1624,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 14.7478,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1579,8 +1634,8 @@
             -0.07030824571847916
           ],
           "Amp": 0.021,
-          "Period": 1.1,
-          "Phase": 1022.6
+          "Period": 3.2,
+          "Phase": 697.3
         },
         {
           "Kind": "Bob",
@@ -1590,8 +1645,8 @@
             -0.9959973096847534
           ],
           "Amp": 0.0084,
-          "Period": 1.1,
-          "Phase": 1112.6
+          "Period": 3.2,
+          "Phase": 787.3
         }
       ],
       "Aura": true
@@ -1613,7 +1668,7 @@
           "Kind": "Path",
           "Path": "Swim",
           "Rest": 14.8969,
-          "Speed": 1.9369
+          "Speed": 1.6141
         },
         {
           "Kind": "Bob",
@@ -1623,8 +1678,8 @@
             0.15757393836975098
           ],
           "Amp": 0.0166,
-          "Period": 1.1,
-          "Phase": 1058.4
+          "Period": 3.2,
+          "Phase": 721.6
         },
         {
           "Kind": "Bob",
@@ -1634,8 +1689,8 @@
             -0.9787623882293701
           ],
           "Amp": 0.0066,
-          "Period": 1.1,
-          "Phase": 1148.4
+          "Period": 3.2,
+          "Phase": 811.6
         }
       ],
       "Aura": true
@@ -1662,7 +1717,7 @@
           ],
           "Base": 5.0,
           "Amp": 8.0,
-          "Period": 2.2
+          "Period": 4.6
         },
         {
           "Kind": "Hinge",
@@ -1672,7 +1727,7 @@
             -0.9139332175254822
           ],
           "Amp": 16.0,
-          "Period": 3.1,
+          "Period": 6.4,
           "Phase": 40
         },
         {
@@ -1683,7 +1738,7 @@
             0.3130875825881958
           ],
           "Amp": 14.0,
-          "Period": 4.8,
+          "Period": 9.0,
           "Shape": "pulse"
         }
       ],
@@ -1711,7 +1766,7 @@
           ],
           "Base": 6.0,
           "Amp": 6.0,
-          "Period": 2.4
+          "Period": 5.0
         },
         {
           "Kind": "Hinge",
@@ -1721,7 +1776,7 @@
             -0.3130875825881958
           ],
           "Amp": 16.0,
-          "Period": 4.8,
+          "Period": 9.0,
           "Shape": "pulse"
         }
       ],
@@ -1748,7 +1803,7 @@
             -0.3130875825881958
           ],
           "Amp": 10.0,
-          "Period": 1.3,
+          "Period": 3.4,
           "Phase": 60
         }
       ],

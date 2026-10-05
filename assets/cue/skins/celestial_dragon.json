@@ -1,2095 +1,1588 @@
 {
-  "id": "celestial_dragon",
-  "name": "Celestial Dragon",
-  "tier": "Mythic",
-  "catalog_id": "CelestialDragonCue",
-  "concept": "M1",
-  "palette": [
-    "#FAFAF5",
-    "#D4AF37",
-    "#4FA8FF",
-    "#C9E6FF"
-  ],
-  "painter": "mix",
-  "note": "Pearl white and gold, wrapped by a see-through starlight dragon: OpenAI panels on the whole cue (pearl white with gold lattice straps crossing round dark sapphire diamonds, a pale maple tip end, a dark navy snakeskin grip), gold collar and rings, a gold cap end with a glowing eight-point star gem. The 3D piece (pieces/celestial_dragon): a pearl dragon head with gold horns and lips, fangs and glowing eyes resting past the butt, a mane of blue energy, and its see-through energy body (two ForceField ribbons with Neon cores) coiling round the cue to the shaft.",
-  "ai": {
-    "shaft_tile": {
-      "refs": [
-        "shaft",
-        "full"
-      ],
-      "size": "1536x768",
-      "take": 2,
-      "prompt": "Lustrous pearl white (#FAFAF5) with a soft iridescent pearly sheen and faint swirls, covered edge to edge (from the very top to the very bottom of the image, no plain bands) by an even lattice of thin polished gold straps (#D4AF37) crossing in long X shapes, two rows of diamonds high, each diamond cell holding a small dark sapphire-navy diamond inlay (#1A2450) with a gold edge. No glow, no energy, no other shapes."
-    },
-    "shaft_top": {
-      "refs": [
-        "shaft",
-        "full"
-      ],
-      "prompt": "Lustrous pearl white (#FAFAF5) with a soft pearly sheen, crossed by thin polished gold straps (#D4AF37) forming long X shapes that frame dark sapphire-navy diamond inlays (#1A2450), the lattice growing a little bolder toward the right edge. No glow, no energy, no other shapes."
-    },
-    "forearm": {
-      "refs": [
-        "closeup",
-        "forearm",
-        "full"
-      ],
-      "zones_px": [
-        79,
-        161
-      ],
-      "prompt": "Lustrous pearl white (#FAFAF5) with a pearly sheen, crossed by bold polished gold straps (#D4AF37) forming large X shapes and chevrons along the forearm, each framing a dark sapphire-navy diamond inlay (#1A2450) with a gold edge; the right end finishes with a gold band. No glow, no blue energy, no dragon. The two thin strips at the far left are the joint collar: paint them plain polished gold (#D4AF37)."
-    },
-    "butt": {
-      "refs": [
-        "closeup",
-        "butt",
-        "full"
-      ],
-      "zones_px": [
-        73,
-        739,
-        1319
-      ],
-      "prompt": "Left thin strip (the ring): plain polished gold (#D4AF37). The wrap (from the ring to the next zone line): a dark navy snakeskin grip (#141A30), small overlapping glossy scales. The butt sleeve (between the two zone lines on the right): lustrous pearl white with bold polished gold X straps framing dark sapphire-navy diamond inlays, and gold bands at both ends. The very thin strip at the far right: plain gold. No glow, no blue energy, no dragon."
-    }
-  },
-  "panels": {
-    "shaft_tile": "skins/celestial_dragon/shaft_tile.png",
-    "shaft_top": "skins/celestial_dragon/shaft_top.png",
-    "forearm": "skins/celestial_dragon/forearm.png",
-    "butt": "skins/celestial_dragon/butt.png",
-    "cap_end": "skins/celestial_dragon/cap_end.png"
-  },
-  "colours": {
-    "tip": "#1E2438",
-    "ferrule": "#EFEDE6",
-    "bumper": "#101830",
-    "gold": "#D4AF37",
-    "metal": "#D4AF37"
-  },
+ "id": "celestial_dragon",
+ "name": "Celestial Dragon",
+ "tier": "Mythic",
+ "catalog_id": "CelestialDragonCue",
+ "concept": "M1",
+ "palette": [
+  "#FAFAF5",
+  "#D4AF37",
+  "#4FA8FF",
+  "#C9E6FF"
+ ],
+ "painter": "mix",
+ "note": "Pearl white and gold, wrapped by a see-through starlight dragon: OpenAI panels on the whole cue (pearl white with gold lattice straps crossing round dark sapphire diamonds, a pale maple tip end, a dark navy snakeskin grip), gold collar and rings, a gold cap end with a glowing eight-point star gem. The 3D piece (pieces/celestial_dragon): a pearl dragon head with gold horns and lips, fangs and glowing eyes resting past the butt, a mane of blue energy, and its see-through energy body (two ForceField ribbons with Neon cores) coiling round the cue to the shaft. Reworked 2026-10-04 (designer: it pulsed too fast, the colours were dull and the particles masked the detail): every motion slowed two to three times, the palette lifted to cyan-white spirit energy (#EAFBFF cores, #3FD6FF main) over deep indigo, two Neon spirit filaments spiralling round the body, ten quick spine flames replaced by four slow wisps, the mist and stars cut to a third; themed ends: a gold-scaled collar with a pearl band, a glowing pearl ferrule band, a pearl tip.",
+ "ai": {
   "shaft_tile": {
-    "repeats": 1,
-    "fade": 0
+   "refs": [
+    "shaft",
+    "full"
+   ],
+   "size": "1536x768",
+   "take": 2,
+   "prompt": "Lustrous pearl white (#FAFAF5) with a soft iridescent pearly sheen and faint swirls, covered edge to edge (from the very top to the very bottom of the image, no plain bands) by an even lattice of thin polished gold straps (#D4AF37) crossing in long X shapes, two rows of diamonds high, each diamond cell holding a small dark sapphire-navy diamond inlay (#1A2450) with a gold edge. No glow, no energy, no other shapes."
   },
-  "wrap_relief": "panel",
-  "metal": [],
-  "glow": [],
-  "piece": "celestial_dragon",
-  "surface": {
-    "EmissiveStrength": 1.8,
-    "EmissiveTint": "#C9E6FF",
-    "Pulse": {
-      "EmissiveStrength": {
-        "Min": 1.4,
-        "Max": 2.2,
-        "Period": 5.2
-      }
-    }
+  "shaft_top": {
+   "refs": [
+    "shaft",
+    "full"
+   ],
+   "prompt": "Lustrous pearl white (#FAFAF5) with a soft pearly sheen, crossed by thin polished gold straps (#D4AF37) forming long X shapes that frame dark sapphire-navy diamond inlays (#1A2450), the lattice growing a little bolder toward the right edge. No glow, no energy, no other shapes."
   },
-  "vfx": {
-    "Piece": {
-      "Note": "pieces/celestial_dragon: the spirit dragon as two skinned GLBs. DragonBody.glb: the body (DragonBody, a SurfaceAppearance of translucent blue scales, AlphaMode Transparency), its ForceField sheath, Neon core and Neon flame fins, on the bones Dragon (root, still) and Spine1-30, each a Path motion riding the swimming loop Swim (piece.json Paths: a lap round the cue, tip end to butt end and back, in 10 s) with two Bobs on top (a quick wave down the body) and on Spine1 a tail flick. DragonHead.glb: the generated head as a hologram with its ForceField shell, on Head (riding Spine30: nods, looks round, rears back roaring every 4.8 s), Jaw (gapes on the roar) and Mane. Every joint is Aura (hidden on the shooter's turn); piece.json has each pivot and motion, and each Bone's Transform is set as the report says (6.3).",
-      "Triangles": 20536
-    },
-    "Moving": {
-      "Kind": "Piece + Orbiters + emissive",
-      "Note": "Energy flows through the dragon's body: four Orbiters ride its exact coil (from the butt to the shaft in 2.4 s, turning -1.333 turns a second so they follow the 3.2-turn helix, their radius measured from the cue's surface) with bright trails and glowing heads, two per ribbon, half a lap apart; star dust shimmers round it; the head breathes and roars (the piece motion); the cue's emissive (the sapphires and the star gem) breathes 1.4-2.2."
-    },
-    "Aura": {
-      "Note": "v2 (2026-10-01): a dense deep-blue starlight cloud round the whole cue (smoke body, soft blue glow), white star flares bursting out, star dust, gold glints, light streaks rising and swirls; big blue spirit flames along the coiling dragon, which is outlined (Highlight) so it reads through the cloud.",
-      "Emitters": [
-        {
-          "Name": "Wisps",
-          "Texture": "vfx/v2/flame_8x8.png",
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "Head",
-            "From": [
-              3.568,
-              -0.274,
-              -0.122
-            ],
-            "To": [
-              3.818,
-              -0.274,
-              -0.222
-            ],
-            "Radius": 0.08
-          },
-          "Rate": 14,
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            0.035,
-            0.14
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Size": [
-            [
-              0,
-              0.45
-            ],
-            [
-              0.4,
-              0.95
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Squash": 0,
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.2,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#CFEBFF"
-            ],
-            [
-              0.35,
-              "#4E9BFF"
-            ],
-            [
-              1,
-              "#1F3FD0"
-            ]
-          ],
-          "LightEmission": 0.5,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Brightness": 2,
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ]
-        },
-        {
-          "Texture": "vfx/v2/flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            0.035,
-            0.14
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.45
-            ],
-            [
-              0.4,
-              0.95
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.2,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#CFEBFF"
-            ],
-            [
-              0.35,
-              "#4E9BFF"
-            ],
-            [
-              1,
-              "#1F3FD0"
-            ]
-          ],
-          "Brightness": 2,
-          "LightEmission": 0.5,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Name": "SpiritFlamesSpine3",
-          "Rate": 6,
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "Spine3",
-            "From": [
-              6.45,
-              0.193,
-              0.369
-            ],
-            "To": [
-              6.534,
-              0.406,
-              0.268
-            ],
-            "Radius": 0.04
-          }
-        },
-        {
-          "Texture": "vfx/v2/flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            0.035,
-            0.14
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.45
-            ],
-            [
-              0.4,
-              0.95
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.2,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#CFEBFF"
-            ],
-            [
-              0.35,
-              "#4E9BFF"
-            ],
-            [
-              1,
-              "#1F3FD0"
-            ]
-          ],
-          "Brightness": 2,
-          "LightEmission": 0.5,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Name": "SpiritFlamesSpine6",
-          "Rate": 6,
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "Spine6",
-            "From": [
-              6.227,
-              -0.238,
-              0.366
-            ],
-            "To": [
-              6.372,
-              -0.071,
-              0.483
-            ],
-            "Radius": 0.04
-          }
-        },
-        {
-          "Texture": "vfx/v2/flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            0.035,
-            0.14
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.45
-            ],
-            [
-              0.4,
-              0.95
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.2,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#CFEBFF"
-            ],
-            [
-              0.35,
-              "#4E9BFF"
-            ],
-            [
-              1,
-              "#1F3FD0"
-            ]
-          ],
-          "Brightness": 2,
-          "LightEmission": 0.5,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Name": "SpiritFlamesSpine9",
-          "Rate": 6,
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "Spine9",
-            "From": [
-              5.951,
-              -0.446,
-              0.024
-            ],
-            "To": [
-              6.116,
-              -0.443,
-              0.211
-            ],
-            "Radius": 0.04
-          }
-        },
-        {
-          "Texture": "vfx/v2/flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            0.035,
-            0.14
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.45
-            ],
-            [
-              0.4,
-              0.95
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.2,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#CFEBFF"
-            ],
-            [
-              0.35,
-              "#4E9BFF"
-            ],
-            [
-              1,
-              "#1F3FD0"
-            ]
-          ],
-          "Brightness": 2,
-          "LightEmission": 0.5,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Name": "SpiritFlamesSpine12",
-          "Rate": 6,
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "Spine12",
-            "From": [
-              5.651,
-              -0.281,
-              -0.33
-            ],
-            "To": [
-              5.826,
-              -0.421,
-              -0.219
-            ],
-            "Radius": 0.04
-          }
-        },
-        {
-          "Texture": "vfx/v2/flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            0.035,
-            0.14
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.45
-            ],
-            [
-              0.4,
-              0.95
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.2,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#CFEBFF"
-            ],
-            [
-              0.35,
-              "#4E9BFF"
-            ],
-            [
-              1,
-              "#1F3FD0"
-            ]
-          ],
-          "Brightness": 2,
-          "LightEmission": 0.5,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Name": "SpiritFlamesSpine15",
-          "Rate": 6,
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "Spine15",
-            "From": [
-              5.323,
-              0.104,
-              -0.408
-            ],
-            "To": [
-              5.504,
-              -0.061,
-              -0.456
-            ],
-            "Radius": 0.04
-          }
-        },
-        {
-          "Texture": "vfx/v2/flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            0.035,
-            0.14
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.45
-            ],
-            [
-              0.4,
-              0.95
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.2,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#CFEBFF"
-            ],
-            [
-              0.35,
-              "#4E9BFF"
-            ],
-            [
-              1,
-              "#1F3FD0"
-            ]
-          ],
-          "Brightness": 2,
-          "LightEmission": 0.5,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Name": "SpiritFlamesSpine18",
-          "Rate": 6,
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "Spine18",
-            "From": [
-              5.0,
-              0.378,
-              -0.162
-            ],
-            "To": [
-              5.185,
-              0.316,
-              -0.318
-            ],
-            "Radius": 0.04
-          }
-        },
-        {
-          "Texture": "vfx/v2/flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            0.035,
-            0.14
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.45
-            ],
-            [
-              0.4,
-              0.95
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.2,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#CFEBFF"
-            ],
-            [
-              0.35,
-              "#4E9BFF"
-            ],
-            [
-              1,
-              "#1F3FD0"
-            ]
-          ],
-          "Brightness": 2,
-          "LightEmission": 0.5,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Name": "SpiritFlamesSpine21",
-          "Rate": 6,
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "Spine21",
-            "From": [
-              4.671,
-              0.35,
-              0.199
-            ],
-            "To": [
-              4.859,
-              0.434,
-              0.058
-            ],
-            "Radius": 0.04
-          }
-        },
-        {
-          "Texture": "vfx/v2/flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            0.035,
-            0.14
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.45
-            ],
-            [
-              0.4,
-              0.95
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.2,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#CFEBFF"
-            ],
-            [
-              0.35,
-              "#4E9BFF"
-            ],
-            [
-              1,
-              "#1F3FD0"
-            ]
-          ],
-          "Brightness": 2,
-          "LightEmission": 0.5,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Name": "SpiritFlamesSpine24",
-          "Rate": 6,
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "Spine24",
-            "From": [
-              4.321,
-              0.034,
-              0.394
-            ],
-            "To": [
-              4.512,
-              0.195,
-              0.383
-            ],
-            "Radius": 0.04
-          }
-        },
-        {
-          "Texture": "vfx/v2/flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            0.035,
-            0.14
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.45
-            ],
-            [
-              0.4,
-              0.95
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.2,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#CFEBFF"
-            ],
-            [
-              0.35,
-              "#4E9BFF"
-            ],
-            [
-              1,
-              "#1F3FD0"
-            ]
-          ],
-          "Brightness": 2,
-          "LightEmission": 0.5,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Name": "SpiritFlamesSpine27",
-          "Rate": 6,
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "Spine27",
-            "From": [
-              3.984,
-              -0.293,
-              0.26
-            ],
-            "To": [
-              4.177,
-              -0.188,
-              0.381
-            ],
-            "Radius": 0.04
-          }
-        },
-        {
-          "Texture": "vfx/v2/flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            0.035,
-            0.14
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.45
-            ],
-            [
-              0.4,
-              0.95
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.6
-            ],
-            [
-              0.2,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#CFEBFF"
-            ],
-            [
-              0.35,
-              "#4E9BFF"
-            ],
-            [
-              1,
-              "#1F3FD0"
-            ]
-          ],
-          "Brightness": 2,
-          "LightEmission": 0.5,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Name": "SpiritFlamesSpine30",
-          "Rate": 6,
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "Spine30",
-            "From": [
-              3.646,
-              -0.372,
-              -0.078
-            ],
-            "To": [
-              3.838,
-              -0.405,
-              0.078
-            ],
-            "Radius": 0.04
-          }
-        },
-        {
-          "Name": "MistBody",
-          "Texture": "vfx/v2/smoke_8x8.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 1.06,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rate": 90,
-          "Lifetime": [
-            1.2,
-            1.8
-          ],
-          "Speed": [
-            0.21,
-            0.49
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 1.2,
-          "Size": [
-            [
-              0,
-              0.9
-            ],
-            [
-              1,
-              2.4
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.15,
-              0.15
-            ],
-            [
-              0.7,
-              0.4
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -15.0,
-            15.0
-          ],
-          "Color": [
-            [
-              0,
-              "#2A5CFF"
-            ],
-            [
-              1,
-              "#12237A"
-            ]
-          ],
-          "LightEmission": 0,
-          "Brightness": 1
-        },
-        {
-          "Name": "MistGlow",
-          "Texture": "vfx/v2/smoke_8x8.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 0.96,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rate": 16,
-          "Lifetime": [
-            1.0,
-            1.5
-          ],
-          "Speed": [
-            0.07,
-            0.245
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 1.2,
-          "Size": [
-            [
-              0,
-              0.5
-            ],
-            [
-              1,
-              1.2
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.2,
-              0.7
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -20.0,
-            20.0
-          ],
-          "Color": [
-            [
-              0,
-              "#7FC0FF"
-            ],
-            [
-              1,
-              "#4D74FF"
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 1.2
-        },
-        {
-          "Name": "Starlight",
-          "Texture": "vfx/v2/flare.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.2,
-            "ToStuds": 7.2,
-            "Width": 1.16,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rate": 36.0,
-          "Lifetime": [
-            0.7,
-            1.4
-          ],
-          "Speed": [
-            0.3,
-            0.8
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 2.5,
-          "Size": [
-            [
-              0,
-              0
-            ],
-            [
-              0.15,
-              0.45
-            ],
-            [
-              0.5,
-              0.2025
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.3,
-              0
-            ],
-            [
-              0.7,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            45
-          ],
-          "Color": [
-            [
-              0,
-              "#FFFFFF"
-            ],
-            [
-              1,
-              "#BFE3FF"
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 4
-        },
-        {
-          "Name": "StarDust",
-          "Texture": "vfx/v2/dust.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 1.26,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rate": 28,
-          "Lifetime": [
-            1.0,
-            1.6
-          ],
-          "Speed": [
-            0.14,
-            0.35
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 1,
-          "Size": [
-            [
-              0,
-              0.6
-            ],
-            [
-              1,
-              1.2
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.3,
-              0.15
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -30.0,
-            30.0
-          ],
-          "Color": [
-            [
-              0,
-              "#FFFFFF"
-            ],
-            [
-              1,
-              "#9FD2FF"
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 3
-        },
-        {
-          "Name": "GoldGlints",
-          "Texture": "vfx/v2/glint.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.5,
-            "ToStuds": 7.0,
-            "Width": 0.66,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "LightInfluence": 0,
-          "LockedToPart": true,
-          "Rate": 7.2,
-          "Lifetime": [
-            0.56,
-            0.98
-          ],
-          "Speed": [
-            0.0,
-            0.05
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Size": [
-            [
-              0,
-              0
-            ],
-            [
-              0.25,
-              0.75
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.3,
-              0
-            ],
-            [
-              0.7,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            -20,
-            20
-          ],
-          "Color": [
-            [
-              0,
-              "#FFE9A8"
-            ],
-            [
-              1,
-              "#FFC94A"
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 4
-        },
-        {
-          "Name": "Rising",
-          "Texture": "vfx/v2/streak.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 0.66,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rate": 35,
-          "Lifetime": [
-            0.5,
-            0.9
-          ],
-          "Speed": [
-            1.05,
-            2.1
-          ],
-          "SpreadAngle": [
-            25,
-            25
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            2,
-            0
-          ],
-          "Orientation": "VelocityParallel",
-          "Size": [
-            [
-              0,
-              0.35
-            ],
-            [
-              1,
-              0.15
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.2,
-              0.2
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#C9EDFF"
-            ],
-            [
-              1,
-              "#6FB3FF"
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 3
-        },
-        {
-          "Name": "Swirls",
-          "Texture": "vfx/v2/swirl_8x8.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.5,
-            "ToStuds": 6.8,
-            "Width": 0.86,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Rate": 14,
-          "Lifetime": [
-            0.9,
-            1.3
-          ],
-          "Speed": [
-            0.07,
-            0.21
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Size": [
-            [
-              0,
-              0.6
-            ],
-            [
-              1,
-              1.4
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.25,
-              0.3
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -45.0,
-            45.0
-          ],
-          "Color": [
-            [
-              0,
-              "#BFE6FF"
-            ],
-            [
-              1,
-              "#3E6BFF"
-            ]
-          ],
-          "LightEmission": 0.6,
-          "Brightness": 2
-        }
+  "forearm": {
+   "refs": [
+    "closeup",
+    "forearm",
+    "full"
+   ],
+   "zones_px": [
+    79,
+    161
+   ],
+   "prompt": "Lustrous pearl white (#FAFAF5) with a pearly sheen, crossed by bold polished gold straps (#D4AF37) forming large X shapes and chevrons along the forearm, each framing a dark sapphire-navy diamond inlay (#1A2450) with a gold edge; the right end finishes with a gold band. No glow, no blue energy, no dragon. The two thin strips at the far left are the joint collar: paint them plain polished gold (#D4AF37)."
+  },
+  "butt": {
+   "refs": [
+    "closeup",
+    "butt",
+    "full"
+   ],
+   "zones_px": [
+    73,
+    739,
+    1319
+   ],
+   "prompt": "Left thin strip (the ring): plain polished gold (#D4AF37). The wrap (from the ring to the next zone line): a dark navy snakeskin grip (#141A30), small overlapping glossy scales. The butt sleeve (between the two zone lines on the right): lustrous pearl white with bold polished gold X straps framing dark sapphire-navy diamond inlays, and gold bands at both ends. The very thin strip at the far right: plain gold. No glow, no blue energy, no dragon."
+  }
+ },
+ "panels": {
+  "shaft_tile": "skins/celestial_dragon/shaft_tile.png",
+  "shaft_top": "skins/celestial_dragon/shaft_top.png",
+  "forearm": "skins/celestial_dragon/forearm.png",
+  "butt": "skins/celestial_dragon/butt.png",
+  "cap_end": "skins/celestial_dragon/cap_end.png",
+  "ends": "skins/celestial_dragon/ends.png"
+ },
+ "colours": {
+  "tip": "#1E2438",
+  "ferrule": "#EFEDE6",
+  "bumper": "#101830",
+  "gold": "#D4AF37",
+  "metal": "#D4AF37",
+  "pearl": "#F4F1EA",
+  "cyan": "#3FD6FF"
+ },
+ "shaft_tile": {
+  "repeats": 1,
+  "fade": 0
+ },
+ "wrap_relief": "panel",
+ "metal": [],
+ "glow": [],
+ "piece": "celestial_dragon",
+ "surface": {
+  "EmissiveStrength": 2.0,
+  "EmissiveTint": "#7FE6FF",
+  "Pulse": {
+   "EmissiveStrength": {
+    "Min": 1.6,
+    "Max": 2.4,
+    "Period": 6.5
+   }
+  }
+ },
+ "vfx": {
+  "Piece": {
+   "Note": "pieces/celestial_dragon: the spirit dragon as two skinned GLBs. DragonBody.glb: the body (DragonBody, a SurfaceAppearance of translucent blue scales, AlphaMode Transparency), its ForceField sheath, Neon core and Neon flame fins, on the bones Dragon (root, still) and Spine1-30, each a Path motion riding the swimming loop Swim (piece.json Paths: a lap round the cue, tip end to butt end and back, in 10 s) with two Bobs on top (a quick wave down the body) and on Spine1 a tail flick. DragonHead.glb: the generated head as a hologram with its ForceField shell, on Head (riding Spine30: nods, looks round, rears back roaring every 4.8 s), Jaw (gapes on the roar) and Mane. Every joint is Aura (hidden on the shooter's turn); piece.json has each pivot and motion, and each Bone's Transform is set as the report says (6.3).",
+   "Triangles": 20536
+  },
+  "Moving": {
+   "Kind": "Piece + Orbiters + emissive",
+   "Note": "Energy flows through the dragon's body: four Orbiters ride its exact coil (from the butt to the shaft in 2.4 s, turning -1.333 turns a second so they follow the 3.2-turn helix, their radius measured from the cue's surface) with bright trails and glowing heads, two per ribbon, half a lap apart; star dust shimmers round it; the head breathes and roars (the piece motion); the cue's emissive (the sapphires and the star gem) breathes 1.4-2.2."
+  },
+  "Aura": {
+   "Note": "v2 (2026-10-01): a dense deep-blue starlight cloud round the whole cue (smoke body, soft blue glow), white star flares bursting out, star dust, gold glints, light streaks rising and swirls; big blue spirit flames along the coiling dragon, which is outlined (Highlight) so it reads through the cloud.",
+   "Emitters": [
+    {
+     "Name": "Wisps",
+     "Texture": "vfx/v2/flame_8x8.png",
+     "Host": {
+      "Kind": "Segment",
+      "Joint": "Head",
+      "From": [
+       3.568,
+       -0.274,
+       -0.122
       ],
-      "Beams": [
-        {
-          "Name": "StarGlow",
-          "FromStuds": 0.0,
-          "ToStuds": 7.3,
-          "Width0": 0.8,
-          "Width1": 1.6,
-          "Segments": 20,
-          "Texture": "vfx/_shared/halo_strip.png",
-          "TextureMode": "Stretch",
-          "Color": [
-            [
-              0,
-              "#8CCBFF"
-            ],
-            [
-              1,
-              "#4F7AFF"
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.06,
-              0.55
-            ],
-            [
-              0.9,
-              0.45
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "LightEmission": 1,
-          "FaceCamera": true,
-          "Pulse": {
-            "Min": 0.6,
-            "Max": 1.0,
-            "Period": 5.2
-          },
-          "Brightness": 3
-        }
+      "To": [
+       3.818,
+       -0.274,
+       -0.222
       ],
-      "Lights": [
-        {
-          "AtStuds": 3.6,
-          "Color": "#3F7BFF",
-          "Brightness": 1.2,
-          "Range": 7,
-          "Flicker": {
-            "Min": 0.8,
-            "Max": 1.15,
-            "Period": 5.2
-          }
-        }
+      "Radius": 0.08
+     },
+     "Rate": 5,
+     "Lifetime": [
+      1.2,
+      2.0
+     ],
+     "Speed": [
+      0.03,
+      0.1
+     ],
+     "SpreadAngle": [
+      60,
+      60
+     ],
+     "EmissionDirection": "Top",
+     "Size": [
+      [
+       0,
+       0.35
       ],
-      "Highlight": {
-        "FillColor": "#7FC8FF",
-        "FillTransparency": 0.55,
-        "OutlineColor": "#E6F6FF",
-        "OutlineTransparency": 0
-      },
-      "Outline": "#3E8BFF"
-    },
-    "Style": {
-      "Trail": {
-        "Colors": [
-          [
-            255,
-            255,
-            255
-          ],
-          [
-            201,
-            230,
-            255
-          ],
-          [
-            79,
-            168,
-            255
-          ]
-        ],
-        "NearTransparency": 0.0,
-        "Lifetime": 1.2,
-        "WidthStuds": 0.5,
-        "LightEmission": 1,
-        "Texture": "vfx/celestial_dragon/trail_starlight.png",
-        "TextureMode": "Wrap",
-        "TextureLength": 1.5,
-        "WidthScale": [
-          [
-            0,
-            0.7
-          ],
-          [
-            0.3,
-            1.15
-          ],
-          [
-            0.6,
-            0.8
-          ],
-          [
-            1,
-            0.5
-          ]
-        ],
-        "Core": {
-          "Color": [
-            230,
-            244,
-            255
-          ],
-          "Width": 0.2,
-          "NearTransparency": 0.0,
-          "LightEmission": 0.6,
-          "Transparency": [
-            [
-              0,
-              0.0
-            ],
-            [
-              0.5,
-              0.15
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "WidthScale": [
-            [
-              0,
-              1
-            ],
-            [
-              0.6,
-              0.75
-            ],
-            [
-              1,
-              0.4
-            ]
-          ],
-          "Brightness": 2.2
-        },
-        "Transparency": [
-          [
-            0,
-            0.0
-          ],
-          [
-            0.55,
-            0.12
-          ],
-          [
-            1,
-            1
-          ]
-        ],
-        "Brightness": 2.4
-      },
-      "Pocket": {
-        "Colors": [
-          [
-            140,
-            203,
-            255
-          ],
-          [
-            255,
-            255,
-            255
-          ]
-        ],
-        "ColorShare": 1
-      }
-    },
-    "Trail": {
-      "Note": "A comet of starlight with a dragon-tail swish: a ribbon of silky blue-white streaks and star points (own texture, wrapping) whose width swells, narrows and flares again before the end like a dragon's tail fin, round a white core; stars and blue motes stream off the ball.",
-      "Emitters": [
-        {
-          "Name": "Stars",
-          "Texture": "vfx/_shared/star4.png",
-          "Host": {
-            "Kind": "Point"
-          },
-          "Rate": 16,
-          "Lifetime": [
-            0.4,
-            0.8
-          ],
-          "Speed": [
-            0.3,
-            0.9
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 2,
-          "Size": [
-            [
-              0,
-              0
-            ],
-            [
-              0.3,
-              0.18,
-              0.05
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": 0,
-          "Rotation": [
-            0,
-            45
-          ],
-          "Color": [
-            [
-              0,
-              "#FFFFFF"
-            ],
-            [
-              0.4,
-              "#C9E6FF"
-            ],
-            [
-              1,
-              "#4FA8FF"
-            ]
-          ],
-          "LightEmission": 1,
-          "LightInfluence": 0
-        },
-        {
-          "Name": "Motes",
-          "Texture": "vfx/_shared/glow_soft.png",
-          "Host": {
-            "Kind": "Point"
-          },
-          "Rate": 12,
-          "Lifetime": [
-            0.4,
-            0.7
-          ],
-          "Speed": [
-            0.2,
-            0.6
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Size": [
-            [
-              0,
-              0.1
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": 0.2,
-          "Color": "#8CCBFF",
-          "LightEmission": 1,
-          "LightInfluence": 0
-        }
+      [
+       0.5,
+       0.8
+      ],
+      [
+       1,
+       0.3
       ]
-    },
-    "Pocket": {
-      "Note": "Staged over 1.5 s: a white-blue flash and a starburst of rays and four-point stars out of the pocket (0 s); a spectral dragon head rises out of it, lunging up with its jaw dropping open in a roar, then pulls back and fades (a 16-frame flipbook rendered from the 3D head with a spectral glow material, 4.6 studs, 0.1 s); a blue shockwave ring (0.05 s); star dust lingers and drifts up (0.5-1.5 s). The default gust is tinted blue and white.",
-      "Layers": [
-        {
-          "Name": "Rays",
-          "Texture": "vfx/_shared/streak.png",
-          "Burst": 26,
-          "Lifetime": [
-            0.3,
-            0.5
-          ],
-          "Speed": [
-            7,
-            12
-          ],
-          "SpreadAngle": [
-            70,
-            70
-          ],
-          "EmissionDirection": "Top",
-          "Drag": 3,
-          "Size": [
-            [
-              0,
-              0.35
-            ],
-            [
-              1,
-              0.1
-            ]
-          ],
-          "Squash": -2.2,
-          "Orientation": "VelocityParallel",
-          "Transparency": 0,
-          "Color": [
-            [
-              0,
-              "#FFFFFF"
-            ],
-            [
-              0.4,
-              "#C9E6FF"
-            ],
-            [
-              1,
-              "#4FA8FF"
-            ]
-          ],
-          "LightEmission": 1,
-          "LightInfluence": 0
-        },
-        {
-          "Name": "Stars",
-          "Texture": "vfx/_shared/star4.png",
-          "Burst": 24,
-          "Lifetime": [
-            0.5,
-            0.9
-          ],
-          "Speed": [
-            3,
-            7
-          ],
-          "SpreadAngle": [
-            80,
-            80
-          ],
-          "EmissionDirection": "Top",
-          "Drag": 2.5,
-          "Size": [
-            [
-              0,
-              0
-            ],
-            [
-              0.2,
-              0.4,
-              0.1
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": 0,
-          "Rotation": [
-            0,
-            45
-          ],
-          "RotSpeed": [
-            -120,
-            120
-          ],
-          "Color": [
-            [
-              0,
-              "#FFFFFF"
-            ],
-            [
-              0.4,
-              "#C9E6FF"
-            ],
-            [
-              1,
-              "#4FA8FF"
-            ]
-          ],
-          "LightEmission": 1,
-          "LightInfluence": 0
-        },
-        {
-          "Name": "Dust",
-          "Texture": "vfx/_shared/glow_soft.png",
-          "Host": {
-            "Kind": "Point",
-            "Size": 1.4
-          },
-          "Burst": 26,
-          "Delay": 0.5,
-          "Lifetime": [
-            0.7,
-            1.0
-          ],
-          "Speed": [
-            0.3,
-            1.2
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.8,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.1
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": 0.1,
-          "Color": "#C9E6FF",
-          "LightEmission": 1,
-          "LightInfluence": 0
-        }
+     ],
+     "Squash": 0,
+     "Transparency": [
+      [
+       0,
+       0.7
       ],
-      "Rings": [
-        {
-          "Texture": "vfx/_shared/ring.png",
-          "Color": "#6FB8FF",
-          "Start": 0.4,
-          "End": 5.0,
-          "Seconds": 0.5,
-          "Delay": 0.05
-        }
+      [
+       0.25,
+       0.2
       ],
-      "Flash": {
-        "Color": [
-          200,
-          230,
-          255
-        ],
-        "Brightness": 13,
-        "Seconds": 0.35
-      },
-      "Piece": {
-        "Piece": "celestial_dragon_pocket",
-        "Delay": 0.1,
-        "Seconds": 1.35,
-        "Rise": [
-          [
-            0,
-            -3.2
-          ],
-          [
-            0.35,
-            -0.25
-          ],
-          [
-            1,
-            0.1
-          ]
-        ],
-        "Scale": [
-          [
-            0,
-            0.7
-          ],
-          [
-            0.35,
-            1.0
-          ],
-          [
-            1,
-            1.05
-          ]
-        ],
-        "Spin": [
-          [
-            0,
-            -25
-          ],
-          [
-            1,
-            10
-          ]
-        ],
-        "Transparency": [
-          [
-            0,
-            0
-          ],
-          [
-            0.7,
-            0
-          ],
-          [
-            1,
-            1
-          ]
-        ]
-      },
-      "KeepRibbons": false
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#EAFBFF"
+      ],
+      [
+       0.4,
+       "#3FD6FF"
+      ],
+      [
+       1,
+       "#8A5CFF"
+      ]
+     ],
+     "LightEmission": 0.5,
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "Brightness": 2.6,
+     "Acceleration": [
+      0,
+      0.3,
+      0
+     ]
     },
-    "Budget": {
-      "ParticlesPerSecond": 50.0,
-      "Back": 25.0,
-      "BallTrail": 28,
-      "Beams": 1,
-      "Lights": 1,
-      "PieceTriangles": 26902,
-      "PocketPieceTriangles": 27500
+    {
+     "Texture": "vfx/v2/flame_8x8.png",
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "Lifetime": [
+      1.5,
+      2.5
+     ],
+     "Speed": [
+      0.03,
+      0.1
+     ],
+     "SpreadAngle": [
+      60,
+      60
+     ],
+     "EmissionDirection": "Top",
+     "Acceleration": [
+      0,
+      0.15,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.3
+      ],
+      [
+       0.5,
+       0.7
+      ],
+      [
+       1,
+       0.25
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.7
+      ],
+      [
+       0.25,
+       0.2
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#EAFBFF"
+      ],
+      [
+       0.4,
+       "#3FD6FF"
+      ],
+      [
+       1,
+       "#8A5CFF"
+      ]
+     ],
+     "Brightness": 2.6,
+     "LightEmission": 0.5,
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Name": "SpiritWispSpine6",
+     "Rate": 2,
+     "Host": {
+      "Kind": "Segment",
+      "Joint": "Spine6",
+      "From": [
+       6.227,
+       -0.238,
+       0.366
+      ],
+      "To": [
+       6.372,
+       -0.071,
+       0.483
+      ],
+      "Radius": 0.04
+     },
+     "Note": "a slow spirit wisp off the dragon's back (the 2026-10-04 rework: ten quick flames became four slow wisps, pale cyan-white into violet)"
+    },
+    {
+     "Texture": "vfx/v2/flame_8x8.png",
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "Lifetime": [
+      1.5,
+      2.5
+     ],
+     "Speed": [
+      0.03,
+      0.1
+     ],
+     "SpreadAngle": [
+      60,
+      60
+     ],
+     "EmissionDirection": "Top",
+     "Acceleration": [
+      0,
+      0.15,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.3
+      ],
+      [
+       0.5,
+       0.7
+      ],
+      [
+       1,
+       0.25
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.7
+      ],
+      [
+       0.25,
+       0.2
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#EAFBFF"
+      ],
+      [
+       0.4,
+       "#3FD6FF"
+      ],
+      [
+       1,
+       "#8A5CFF"
+      ]
+     ],
+     "Brightness": 2.6,
+     "LightEmission": 0.5,
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Name": "SpiritWispSpine12",
+     "Rate": 2,
+     "Host": {
+      "Kind": "Segment",
+      "Joint": "Spine12",
+      "From": [
+       5.651,
+       -0.281,
+       -0.33
+      ],
+      "To": [
+       5.826,
+       -0.421,
+       -0.219
+      ],
+      "Radius": 0.04
+     },
+     "Note": "a slow spirit wisp off the dragon's back (the 2026-10-04 rework: ten quick flames became four slow wisps, pale cyan-white into violet)"
+    },
+    {
+     "Texture": "vfx/v2/flame_8x8.png",
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "Lifetime": [
+      1.5,
+      2.5
+     ],
+     "Speed": [
+      0.03,
+      0.1
+     ],
+     "SpreadAngle": [
+      60,
+      60
+     ],
+     "EmissionDirection": "Top",
+     "Acceleration": [
+      0,
+      0.15,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.3
+      ],
+      [
+       0.5,
+       0.7
+      ],
+      [
+       1,
+       0.25
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.7
+      ],
+      [
+       0.25,
+       0.2
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#EAFBFF"
+      ],
+      [
+       0.4,
+       "#3FD6FF"
+      ],
+      [
+       1,
+       "#8A5CFF"
+      ]
+     ],
+     "Brightness": 2.6,
+     "LightEmission": 0.5,
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Name": "SpiritWispSpine18",
+     "Rate": 2,
+     "Host": {
+      "Kind": "Segment",
+      "Joint": "Spine18",
+      "From": [
+       5.0,
+       0.378,
+       -0.162
+      ],
+      "To": [
+       5.185,
+       0.316,
+       -0.318
+      ],
+      "Radius": 0.04
+     },
+     "Note": "a slow spirit wisp off the dragon's back (the 2026-10-04 rework: ten quick flames became four slow wisps, pale cyan-white into violet)"
+    },
+    {
+     "Texture": "vfx/v2/flame_8x8.png",
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "Lifetime": [
+      1.5,
+      2.5
+     ],
+     "Speed": [
+      0.03,
+      0.1
+     ],
+     "SpreadAngle": [
+      60,
+      60
+     ],
+     "EmissionDirection": "Top",
+     "Acceleration": [
+      0,
+      0.15,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.3
+      ],
+      [
+       0.5,
+       0.7
+      ],
+      [
+       1,
+       0.25
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.7
+      ],
+      [
+       0.25,
+       0.2
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#EAFBFF"
+      ],
+      [
+       0.4,
+       "#3FD6FF"
+      ],
+      [
+       1,
+       "#8A5CFF"
+      ]
+     ],
+     "Brightness": 2.6,
+     "LightEmission": 0.5,
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Name": "SpiritWispSpine24",
+     "Rate": 2,
+     "Host": {
+      "Kind": "Segment",
+      "Joint": "Spine24",
+      "From": [
+       4.321,
+       0.034,
+       0.394
+      ],
+      "To": [
+       4.512,
+       0.195,
+       0.383
+      ],
+      "Radius": 0.04
+     },
+     "Note": "a slow spirit wisp off the dragon's back (the 2026-10-04 rework: ten quick flames became four slow wisps, pale cyan-white into violet)"
+    },
+    {
+     "Name": "MistBody",
+     "Texture": "vfx/v2/smoke_8x8.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.3,
+      "ToStuds": 7.0,
+      "Width": 1.06,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Rate": 18,
+     "Lifetime": [
+      1.8,
+      2.6
+     ],
+     "Speed": [
+      0.1,
+      0.25
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 1.2,
+     "Size": [
+      [
+       0,
+       0.8
+      ],
+      [
+       1,
+       1.6
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.2,
+       0.4
+      ],
+      [
+       0.7,
+       0.55
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Rotation": [
+      0,
+      360
+     ],
+     "RotSpeed": [
+      -8,
+      8
+     ],
+     "Color": [
+      [
+       0,
+       "#1A1F7A"
+      ],
+      [
+       1,
+       "#0B0F3A"
+      ]
+     ],
+     "LightEmission": 0,
+     "Brightness": 1,
+     "Note": "deep indigo body, a third of the old cloud (2026-10-04: the particles must not mask the dragon)"
+    },
+    {
+     "Name": "MistGlow",
+     "Texture": "vfx/v2/smoke_8x8.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.3,
+      "ToStuds": 7.0,
+      "Width": 0.96,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Rate": 6,
+     "Lifetime": [
+      1.6,
+      2.2
+     ],
+     "Speed": [
+      0.05,
+      0.15
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 1.2,
+     "Size": [
+      [
+       0,
+       0.5
+      ],
+      [
+       1,
+       1.2
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.2,
+       0.7
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Rotation": [
+      0,
+      360
+     ],
+     "RotSpeed": [
+      -10,
+      10
+     ],
+     "Color": [
+      [
+       0,
+       "#3FD6FF"
+      ],
+      [
+       1,
+       "#5A7CFF"
+      ]
+     ],
+     "LightEmission": 1,
+     "Brightness": 1.4
+    },
+    {
+     "Name": "Starlight",
+     "Texture": "vfx/v2/flare.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.2,
+      "ToStuds": 7.2,
+      "Width": 1.16,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Rate": 8,
+     "Lifetime": [
+      1.6,
+      2.6
+     ],
+     "Speed": [
+      0.1,
+      0.3
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 2.5,
+     "Size": [
+      [
+       0,
+       0
+      ],
+      [
+       0.15,
+       0.45
+      ],
+      [
+       0.5,
+       0.2025
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.3,
+       0
+      ],
+      [
+       0.7,
+       0
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Rotation": [
+      0,
+      45
+     ],
+     "Color": [
+      [
+       0,
+       "#FFFFFF"
+      ],
+      [
+       1,
+       "#EAFBFF"
+      ]
+     ],
+     "LightEmission": 1,
+     "Brightness": 5
+    },
+    {
+     "Name": "StarDust",
+     "Texture": "vfx/v2/dust.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.3,
+      "ToStuds": 7.0,
+      "Width": 1.26,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Rate": 10,
+     "Lifetime": [
+      1.6,
+      2.4
+     ],
+     "Speed": [
+      0.08,
+      0.2
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 1,
+     "Size": [
+      [
+       0,
+       0.4
+      ],
+      [
+       1,
+       0.8
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.3,
+       0.15
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Rotation": [
+      0,
+      360
+     ],
+     "RotSpeed": [
+      -12,
+      12
+     ],
+     "Color": [
+      [
+       0,
+       "#FFFFFF"
+      ],
+      [
+       1,
+       "#9FE8FF"
+      ]
+     ],
+     "LightEmission": 1,
+     "Brightness": 3
+    },
+    {
+     "Name": "GoldGlints",
+     "Texture": "vfx/v2/glint.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.5,
+      "ToStuds": 7.0,
+      "Width": 0.66,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "LightInfluence": 0,
+     "LockedToPart": true,
+     "Rate": 7.2,
+     "Lifetime": [
+      0.9,
+      1.4
+     ],
+     "Speed": [
+      0.0,
+      0.05
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Size": [
+      [
+       0,
+       0
+      ],
+      [
+       0.25,
+       0.75
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.3,
+       0
+      ],
+      [
+       0.7,
+       0
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Rotation": [
+      -20,
+      20
+     ],
+     "Color": [
+      [
+       0,
+       "#FFF1C8"
+      ],
+      [
+       1,
+       "#FFD27A"
+      ]
+     ],
+     "LightEmission": 1,
+     "Brightness": 4
+    },
+    {
+     "Name": "Rising",
+     "Texture": "vfx/v2/streak.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.3,
+      "ToStuds": 7.0,
+      "Width": 0.66,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Rate": 8,
+     "Lifetime": [
+      1.2,
+      1.8
+     ],
+     "Speed": [
+      0.5,
+      0.9
+     ],
+     "SpreadAngle": [
+      25,
+      25
+     ],
+     "EmissionDirection": "Top",
+     "Acceleration": [
+      0,
+      0.8,
+      0
+     ],
+     "Orientation": "VelocityParallel",
+     "Size": [
+      [
+       0,
+       0.35
+      ],
+      [
+       1,
+       0.15
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.2,
+       0.2
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#EAFBFF"
+      ],
+      [
+       1,
+       "#3FD6FF"
+      ]
+     ],
+     "LightEmission": 1,
+     "Brightness": 3
+    },
+    {
+     "Name": "Swirls",
+     "Texture": "vfx/v2/swirl_8x8.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.5,
+      "ToStuds": 6.8,
+      "Width": 0.86,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Rate": 4,
+     "Lifetime": [
+      1.8,
+      2.6
+     ],
+     "Speed": [
+      0.04,
+      0.12
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Size": [
+      [
+       0,
+       0.6
+      ],
+      [
+       1,
+       1.4
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.25,
+       0.3
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Rotation": [
+      0,
+      360
+     ],
+     "RotSpeed": [
+      -20,
+      20
+     ],
+     "Color": [
+      [
+       0,
+       "#EAFBFF"
+      ],
+      [
+       1,
+       "#5A7CFF"
+      ]
+     ],
+     "LightEmission": 0.6,
+     "Brightness": 2
     }
+   ],
+   "Beams": [
+    {
+     "Name": "StarGlow",
+     "FromStuds": 0.0,
+     "ToStuds": 7.3,
+     "Width0": 0.8,
+     "Width1": 1.6,
+     "Segments": 20,
+     "Texture": "vfx/_shared/halo_strip.png",
+     "TextureMode": "Stretch",
+     "Color": [
+      [
+       0,
+       "#3FD6FF"
+      ],
+      [
+       1,
+       "#6A8CFF"
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.06,
+       0.55
+      ],
+      [
+       0.9,
+       0.45
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "LightEmission": 1,
+     "FaceCamera": true,
+     "Pulse": {
+      "Min": 0.5,
+      "Max": 0.9,
+      "Period": 7.0
+     },
+     "Brightness": 2.2
+    }
+   ],
+   "Lights": [
+    {
+     "AtStuds": 3.6,
+     "Color": "#3FD6FF",
+     "Brightness": 1.0,
+     "Range": 7,
+     "Flicker": {
+      "Min": 0.85,
+      "Max": 1.1,
+      "Period": 7.0
+     }
+    }
+   ],
+   "Highlight": {
+    "FillColor": "#7FE6FF",
+    "FillTransparency": 0.6,
+    "OutlineColor": "#EAFBFF",
+    "OutlineTransparency": 0
+   },
+   "Outline": "#3E8BFF"
   },
-  "shape": 3
+  "Style": {
+   "Trail": {
+    "Colors": [
+     [
+      255,
+      255,
+      255
+     ],
+     [
+      201,
+      230,
+      255
+     ],
+     [
+      79,
+      168,
+      255
+     ]
+    ],
+    "NearTransparency": 0.0,
+    "Lifetime": 1.2,
+    "WidthStuds": 0.5,
+    "LightEmission": 1,
+    "Texture": "vfx/celestial_dragon/trail_starlight.png",
+    "TextureMode": "Wrap",
+    "TextureLength": 1.5,
+    "WidthScale": [
+     [
+      0,
+      0.7
+     ],
+     [
+      0.3,
+      1.15
+     ],
+     [
+      0.6,
+      0.8
+     ],
+     [
+      1,
+      0.5
+     ]
+    ],
+    "Core": {
+     "Color": [
+      230,
+      244,
+      255
+     ],
+     "Width": 0.2,
+     "NearTransparency": 0.0,
+     "LightEmission": 0.6,
+     "Transparency": [
+      [
+       0,
+       0.0
+      ],
+      [
+       0.5,
+       0.15
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "WidthScale": [
+      [
+       0,
+       1
+      ],
+      [
+       0.6,
+       0.75
+      ],
+      [
+       1,
+       0.4
+      ]
+     ],
+     "Brightness": 2.2
+    },
+    "Transparency": [
+     [
+      0,
+      0.0
+     ],
+     [
+      0.55,
+      0.12
+     ],
+     [
+      1,
+      1
+     ]
+    ],
+    "Brightness": 2.4
+   },
+   "Pocket": {
+    "Colors": [
+     [
+      140,
+      203,
+      255
+     ],
+     [
+      255,
+      255,
+      255
+     ]
+    ],
+    "ColorShare": 1
+   }
+  },
+  "Trail": {
+   "Note": "A comet of starlight with a dragon-tail swish: a ribbon of silky blue-white streaks and star points (own texture, wrapping) whose width swells, narrows and flares again before the end like a dragon's tail fin, round a white core; stars and blue motes stream off the ball.",
+   "Emitters": [
+    {
+     "Name": "Stars",
+     "Texture": "vfx/_shared/star4.png",
+     "Host": {
+      "Kind": "Point"
+     },
+     "Rate": 16,
+     "Lifetime": [
+      0.4,
+      0.8
+     ],
+     "Speed": [
+      0.3,
+      0.9
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 2,
+     "Size": [
+      [
+       0,
+       0
+      ],
+      [
+       0.3,
+       0.18,
+       0.05
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "Transparency": 0,
+     "Rotation": [
+      0,
+      45
+     ],
+     "Color": [
+      [
+       0,
+       "#FFFFFF"
+      ],
+      [
+       0.4,
+       "#C9E6FF"
+      ],
+      [
+       1,
+       "#4FA8FF"
+      ]
+     ],
+     "LightEmission": 1,
+     "LightInfluence": 0
+    },
+    {
+     "Name": "Motes",
+     "Texture": "vfx/_shared/glow_soft.png",
+     "Host": {
+      "Kind": "Point"
+     },
+     "Rate": 12,
+     "Lifetime": [
+      0.4,
+      0.7
+     ],
+     "Speed": [
+      0.2,
+      0.6
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Size": [
+      [
+       0,
+       0.1
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "Transparency": 0.2,
+     "Color": "#8CCBFF",
+     "LightEmission": 1,
+     "LightInfluence": 0
+    }
+   ]
+  },
+  "Pocket": {
+   "Note": "Staged over 1.5 s: a white-blue flash and a starburst of rays and four-point stars out of the pocket (0 s); a spectral dragon head rises out of it, lunging up with its jaw dropping open in a roar, then pulls back and fades (a 16-frame flipbook rendered from the 3D head with a spectral glow material, 4.6 studs, 0.1 s); a blue shockwave ring (0.05 s); star dust lingers and drifts up (0.5-1.5 s). The default gust is tinted blue and white. Slowed in the 2026-10-04 rework (the head rises over 2 s).",
+   "Layers": [
+    {
+     "Name": "Rays",
+     "Texture": "vfx/_shared/streak.png",
+     "Burst": 26,
+     "Lifetime": [
+      0.3,
+      0.5
+     ],
+     "Speed": [
+      7,
+      12
+     ],
+     "SpreadAngle": [
+      70,
+      70
+     ],
+     "EmissionDirection": "Top",
+     "Drag": 3,
+     "Size": [
+      [
+       0,
+       0.35
+      ],
+      [
+       1,
+       0.1
+      ]
+     ],
+     "Squash": -2.2,
+     "Orientation": "VelocityParallel",
+     "Transparency": 0,
+     "Color": [
+      [
+       0,
+       "#FFFFFF"
+      ],
+      [
+       0.4,
+       "#C9E6FF"
+      ],
+      [
+       1,
+       "#4FA8FF"
+      ]
+     ],
+     "LightEmission": 1,
+     "LightInfluence": 0
+    },
+    {
+     "Name": "Stars",
+     "Texture": "vfx/_shared/star4.png",
+     "Burst": 24,
+     "Lifetime": [
+      0.5,
+      0.9
+     ],
+     "Speed": [
+      3,
+      7
+     ],
+     "SpreadAngle": [
+      80,
+      80
+     ],
+     "EmissionDirection": "Top",
+     "Drag": 2.5,
+     "Size": [
+      [
+       0,
+       0
+      ],
+      [
+       0.2,
+       0.4,
+       0.1
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "Transparency": 0,
+     "Rotation": [
+      0,
+      45
+     ],
+     "RotSpeed": [
+      -120,
+      120
+     ],
+     "Color": [
+      [
+       0,
+       "#FFFFFF"
+      ],
+      [
+       0.4,
+       "#C9E6FF"
+      ],
+      [
+       1,
+       "#4FA8FF"
+      ]
+     ],
+     "LightEmission": 1,
+     "LightInfluence": 0
+    },
+    {
+     "Name": "Dust",
+     "Texture": "vfx/_shared/glow_soft.png",
+     "Host": {
+      "Kind": "Point",
+      "Size": 1.4
+     },
+     "Burst": 26,
+     "Delay": 0.5,
+     "Lifetime": [
+      0.7,
+      1.0
+     ],
+     "Speed": [
+      0.3,
+      1.2
+     ],
+     "SpreadAngle": [
+      60,
+      60
+     ],
+     "EmissionDirection": "Top",
+     "Acceleration": [
+      0,
+      0.8,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.1
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "Transparency": 0.1,
+     "Color": "#C9E6FF",
+     "LightEmission": 1,
+     "LightInfluence": 0
+    }
+   ],
+   "Rings": [
+    {
+     "Texture": "vfx/_shared/ring.png",
+     "Color": "#6FB8FF",
+     "Start": 0.4,
+     "End": 5.0,
+     "Seconds": 0.5,
+     "Delay": 0.05
+    }
+   ],
+   "Flash": {
+    "Color": [
+     200,
+     230,
+     255
+    ],
+    "Brightness": 13,
+    "Seconds": 0.35
+   },
+   "Piece": {
+    "Piece": "celestial_dragon_pocket",
+    "Delay": 0.1,
+    "Seconds": 2.0,
+    "Rise": [
+     [
+      0,
+      -3.2
+     ],
+     [
+      0.4,
+      -0.25
+     ],
+     [
+      1,
+      0.1
+     ]
+    ],
+    "Scale": [
+     [
+      0,
+      0.7
+     ],
+     [
+      0.4,
+      1.0
+     ],
+     [
+      1,
+      1.05
+     ]
+    ],
+    "Spin": [
+     [
+      0,
+      -18
+     ],
+     [
+      1,
+      8
+     ]
+    ],
+    "Transparency": [
+     [
+      0,
+      0
+     ],
+     [
+      0.75,
+      0
+     ],
+     [
+      1,
+      1
+     ]
+    ]
+   },
+   "KeepRibbons": false
+  },
+  "Budget": {
+   "ParticlesPerSecond": 74.2,
+   "Back": 25.0,
+   "BallTrail": 28,
+   "Beams": 1,
+   "Lights": 1,
+   "PieceTriangles": 26902,
+   "PocketPieceTriangles": 27500,
+   "Note": "The 2026-10-04 rework: the dragon is the hero; the cloud cut to a third, every beat slowed."
+  }
+ },
+ "shape": 3
 }

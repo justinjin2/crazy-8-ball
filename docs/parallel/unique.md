@@ -196,6 +196,9 @@ generic-runtime rule; the catalog rows stay untouched.
   round the cue and the halo sprites draw behind it. The designer dropped sounds for good
   (no imports, no placeholders): Eclipse's two removed. Gate 2 passed; the designer keeps
   Eclipse's old trail and pocket finisher. On to the Celestial Dragon (board, gate 1).
+- 2026-10-04: the Celestial Dragon reworked in data (beats slowed two to three times,
+  cyan-white spirit palette, spirit filaments, four slow wisps for ten flames, the cloud cut
+  to a third, gold-scale and pearl ends); board and clip rendered. Waiting at gate 1.
 
 ## Decisions
 
