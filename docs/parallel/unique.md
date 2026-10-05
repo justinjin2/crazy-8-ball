@@ -277,6 +277,8 @@ generic-runtime rule; the catalog rows stay untouched.
 - `tools/cue_skins_data.py`: skin `carrier` -> row `Carrier`, its piece generated. Why: the same.
 - `src/shared/Strings.luau`: the Mythic tier's labels read "Mythical" (item rarity, case,
   reveal band, unbox line). Why: the designer, 2026-10-04.
+- `tools/build_cue_templates.luau`: a skin row's `Carrier` piece is built with the others.
+  Why: the carrier piece.
 - `assets/cue/CuePiecesMythic.py`: `eclipse` reworked, `eclipse_carrier` added. (Owned by
   the rework job; listed because the integrator rebuilds both pieces.)
 

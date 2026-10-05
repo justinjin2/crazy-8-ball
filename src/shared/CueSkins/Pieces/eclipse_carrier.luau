@@ -5,7 +5,7 @@
 return {
 	Id = "eclipse_carrier",
 	Frame = "cue",
-	Rigid = "",
+	Rigid = "134506985367466",
 	Models = {},
 	Parts = {
 		{

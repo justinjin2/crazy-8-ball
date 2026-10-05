@@ -203,7 +203,7 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 - [x] 1. Generic capabilities: themed ends in the painter, the carrier piece and host
   (2026-10-04). Still to do when first needed: the budget check in the generator, mesh
   variants.
-- [ ] 2. Eclipse: board, gate 1.
+- [x] 2. Eclipse: board, gate 1 (passed 2026-10-04 at the third look).
 - [ ] 3. Eclipse: build, gate 2, polish, trail, pocket, sound, cards.
 - [ ] 4. Celestial Dragon: board, gate 1; build, gate 2, polish.
 - [ ] 5. Kitsune: board, gate 1; build, gate 2, polish.
@@ -243,3 +243,5 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   over the player's head, each with a glowing yellow aura like the pocket finisher's corona;
   and the clip is re-rendered after every change (the designer judges by the video:
   `assets/cue/concepts/rework/<id>-clip.mp4` is committed with the board each time).
+- 2026-10-04 (designer, Eclipse gate 1, third look): passes ("good move on") with the head
+  sun blooming like the butt's.

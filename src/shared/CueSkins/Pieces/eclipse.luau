@@ -5,7 +5,7 @@
 return {
 	Id = "eclipse",
 	Frame = "cue",
-	Rigid = "108252820855064",
+	Rigid = "88318986521085",
 	Models = {},
 	Parts = {
 		{

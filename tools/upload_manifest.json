@@ -363,6 +363,16 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/pieces/eclipse/eclipse_parts.glb": {
+    "assetId": "88318986521085",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/pieces/eclipse_carrier/eclipse_carrier_parts.glb": {
+    "assetId": "134506985367466",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/pieces/grand_opening/grand_opening_parts.glb": {
     "assetId": "139007155198736",
     "assetType": "Model",
@@ -416,26 +426,31 @@
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/eclipse_color.png": {
     "assetId": "134775260010340",
     "assetType": "Decal",
+    "imageId": "123173709739782",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/eclipse_emissive.png": {
     "assetId": "92546820369074",
     "assetType": "Decal",
+    "imageId": "111236817378101",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/eclipse_metalness.png": {
     "assetId": "82138751793395",
     "assetType": "Decal",
+    "imageId": "120232788696038",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/eclipse_normal.png": {
     "assetId": "114719288832094",
     "assetType": "Decal",
+    "imageId": "128921148307732",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/eclipse_roughness.png": {
     "assetId": "71333732016203",
     "assetType": "Decal",
+    "imageId": "96819958661495",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/grand_opening_color.png": {
@@ -1065,12 +1080,6 @@
     "assetId": "92692812438632",
     "assetType": "Model",
     "sha256": "0d8fdc9bafd74ce4d1a38a8199038549edaa34eb91472112e587a9ff7fff1e7d",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/cue/pieces/eclipse/eclipse_parts.glb": {
-    "assetId": "108252820855064",
-    "assetType": "Model",
-    "sha256": "b429dc8514d706043821e39088a3f9e5c55458c585b401072fbcb835911fea94",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/pieces/infernal/HornedSkull_base_color.png": {

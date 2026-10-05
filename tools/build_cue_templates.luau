@@ -173,6 +173,9 @@ for _, id in CueSkins.ids() do
 	if row.Piece then
 		pieceIds[row.Piece] = true
 	end
+	if row.Carrier then
+		pieceIds[row.Carrier] = true -- the piece worn by the carrying player (a Secret's engulfing aura)
+	end
 	if row.Pocket and row.Pocket.Piece then
 		pieceIds[row.Pocket.Piece.Piece] = true
 	end

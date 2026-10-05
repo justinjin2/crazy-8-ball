@@ -8,11 +8,11 @@ return {
 	Name = "Eclipse",
 	Tier = "Secret",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://123173709739782",
+		Normal = "rbxassetid://128921148307732",
+		Roughness = "rbxassetid://96819958661495",
+		Metalness = "rbxassetid://120232788696038",
+		Emissive = "rbxassetid://111236817378101",
 	},
 	Surface = {
 		EmissiveStrength = 2,
