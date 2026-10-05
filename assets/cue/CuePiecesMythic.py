@@ -1345,6 +1345,95 @@ def apex(k):
         k.add(tname, k.mesh_object(tname + 'Edge', bm, ['Cyan']))
     # modelled on the 0.2 butt: the whole housing and its claws grow with the butt (2026-10-01)
     k.grow((0, -U0, 0), P.butt_growth())
+    _apex_hud(k)
+    _apex_jets(k, CLAWS, U0, P.butt_growth())
+
+
+def _apex_hud(k):
+    """Holographic HUD rings as real meshes (rarity rework, 2026-10-05: they were sprites):
+    three segmented cyan rings, each sweeping its third of the cue from the tip toward the butt
+    and snapping back (a saw Bob), turning as it goes, glitching out for a few frames now and
+    then (Blink) and pulsing (Glow); two orange targeting arcs sweeping the other way. All aura;
+    the arcs hide under Lower effects."""
+    import bmesh
+    from mathutils import Vector
+    import cue_common as cc
+    env = cc.Envelope(cc.load_shape()[0])
+    k.material('HudCyan', 'Neon', '#19E6FF', Transparency=0.35)
+    k.material('HudOrange', 'Neon', '#FF9A3A', Transparency=0.4)
+
+    def ring(bm, u, R, arcs, gap, tube, ticks):
+        for i in range(arcs):
+            a0 = 360.0 * i / arcs + gap / 2
+            a1 = 360.0 * (i + 1) / arcs - gap / 2
+            n = 14
+            pts = [Vector((R * math.sin(math.radians(a0 + (a1 - a0) * j / n)), -u, R * math.cos(math.radians(a0 + (a1 - a0) * j / n)))) for j in range(n + 1)]
+            sweep(bm, pts, [tube] * (n + 1), segs=6, cap=True)
+        for i in range(ticks):
+            a = math.radians(360.0 * i / ticks)
+            rad = Vector((math.sin(a), 0, math.cos(a)))
+            pts = [Vector((0, -u, 0)) + rad * (R - 0.02), Vector((0, -u, 0)) + rad * (R + 0.035)]
+            sweep(bm, pts, [tube * 0.8] * 2, segs=4, cap=True)
+
+    spans = ((0.5, 2.6), (2.6, 4.7), (4.7, 6.8))
+    for i, (u0, u1) in enumerate(spans):
+        mid = (u0 + u1) / 2
+        R = env(u1) + 0.12
+        nm = 'Hud%d' % (i + 1)
+        k.joint(nm, pivot=(0, -u0, 0), aura=True, motion=[
+            {'Kind': 'Bob', 'Dir': (0, -1, 0), 'Amp': (u1 - u0) / 2, 'Period': 4.2 + 0.9 * i, 'Shape': 'saw', 'Phase': 120 * i},
+            {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': 40.0 * (1 if i % 2 == 0 else -1)}],
+            visual=[{'Kind': 'Blink', 'Period': 3.1 + 0.7 * i, 'Seconds': 0.25, 'Phase': 90 * i, 'Count': 3},
+                    {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.35, 'Period': 2.2 + 0.3 * i, 'Shape': 'sine', 'Phase': 60 * i}])
+        bm = bmesh.new()
+        ring(bm, u0 + (u1 - u0) / 2 - (u1 - u0) / 2, R, 6, 14, 0.008, 12)
+        k.add(nm, k.mesh_object('Apex' + nm, bm, ['HudCyan'], smooth=True))
+    for i, (u0, u1) in enumerate(((1.4, 4.0), (4.0, 6.6))):
+        R = env(u1) + 0.2
+        nm = 'Arc%d' % (i + 1)
+        k.joint(nm, pivot=(0, -u1, 0), aura=True, low='hide', motion=[
+            {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': (u1 - u0) / 2, 'Period': 5.0 + 1.3 * i, 'Shape': 'saw', 'Phase': 200 * i},
+            {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': -55.0}],
+            visual=[{'Kind': 'Blink', 'Period': 4.3 + 0.9 * i, 'Seconds': 0.2, 'Phase': 45 * i, 'Count': 2},
+                    {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.3, 'Period': 2.8, 'Shape': 'sine', 'Phase': 100 * i}])
+        bm = bmesh.new()
+        for a0 in (0, 180):
+            n = 16
+            pts = [Vector((R * math.sin(math.radians(a0 + 110 * j / n)), -u1, R * math.cos(math.radians(a0 + 110 * j / n)))) for j in range(n + 1)]
+            sweep(bm, pts, [0.01 * (1 - 0.5 * abs(2 * j / n - 1)) + 0.003 for j in range(n + 1)], segs=6, cap=True)
+        k.add(nm, k.mesh_object('Apex' + nm, bm, ['HudOrange'], smooth=True))
+
+
+def _apex_jets(k, claws, U0, growth):
+    """Jet flames as meshes behind the three thruster vents (rarity rework, 2026-10-05): a
+    translucent orange flame cone with a white-cyan core, flickering (Fade) and pulsing (Glow)
+    like fire, blowing back along the cue from each vent. Built after the housing grew with the
+    butt, so placed on the grown vents."""
+    import bmesh
+    from mathutils import Vector
+    k.material('JetFlame', 'Neon', '#FF9A3A', Transparency=0.45)
+    k.material('JetCore', 'Neon', '#DFFBFF', Transparency=0.5)
+    F = Vector((0, -1, 0))
+    about = Vector((0, -U0, 0))
+
+    def rad(a):
+        return Vector((math.sin(math.radians(a)), 0, math.cos(math.radians(a))))
+    for n, a in enumerate((60, 180, 300), 1):
+        d = (rad(a) * 0.55 - F * 0.85).normalized()
+        base = Vector((0, -(U0 - 0.05), 0)) + rad(a) * 0.1
+        base = about + (base - about) * growth
+        mouth = base + d * 0.069 * growth
+        nm = 'Jet%d' % n
+        k.joint(nm, pivot=tuple(mouth), parent='Housing', motion=[
+            {'Kind': 'Bob', 'Dir': tuple(d), 'Amp': 0.02, 'Period': 0.9, 'Phase': 120 * n}],
+            visual=[{'Kind': 'Fade', 'Min': 0.55, 'Max': 1.0, 'Period': 0.8 + 0.1 * n, 'Shape': 'sine', 'Phase': 90 * n},
+                    {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.4, 'Period': 1.1, 'Shape': 'sine', 'Phase': 70 * n}])
+        for mat, L, r0 in (('JetFlame', 0.42, 0.034), ('JetCore', 0.24, 0.016)):
+            pts = [mouth + d * (L * j / 10) for j in range(11)]
+            radii = [r0 * growth * (1 - j / 10) ** 0.8 * (1 + 0.5 * math.sin(math.pi * j / 10)) + 0.002 for j in range(11)]
+            bm = bmesh.new()
+            sweep(bm, pts, radii, segs=10, cap=True)
+            k.add(nm, k.mesh_object('Apex' + nm + mat[3:], bm, [mat], smooth=True))
 
 
 # =============================================================================================

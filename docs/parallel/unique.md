@@ -213,7 +213,9 @@ generic-runtime rule; the catalog rows stay untouched.
   (new Meshy head, a waving flame body), wind wisps and flame sprites blowing toward the
   butt, fox-face orbs, the aura violet; dropped by the designer ("terrible"). The first look
   is the Kitsune: uploaded (parts, textures) and built in the lane window 2026-10-05.
-  Next: Apex (step 6).
+  Apex (step 6) first look 2026-10-05: HUD rings and arcs as sweeping meshes, jet cones,
+  data-stream beams, a thruster ferrule and plated collar; board and clip rendered. Waiting
+  at gate 1.
 
 ## Decisions
 
