@@ -1001,8 +1001,8 @@ end)
 local zones = workspace:WaitForChild("TableZones")
 local padEffects = PadEffects.new(zones)
 local mapAmbience = MapAmbience.new() -- the map's drifting sailboats
-local dayCycle = DayCycle.new() -- the map's day and sunset light (an arena starts at day)
-local firePit = FirePit.new() -- the fire pit's fire, lit at sunset
+local dayCycle = DayCycle.new() -- the map's day, sunset and night light (an arena starts at day)
+local firePit = FirePit.new() -- the fire pit's fire, lit at sunset and night
 local tableSign = TableSign.new(player:WaitForChild("PlayerGui"))
 -- A table's box stays lit only while it waits for its host.
 local function queueOpen(id: number): boolean
@@ -1199,7 +1199,7 @@ local function renderFrame(dt: number)
 	end
 	mapAmbience:update(os.clock())
 	dayCycle:update(os.clock())
-	firePit:update(os.clock(), dayCycle.blend or 0)
+	firePit:update(os.clock(), dayCycle.fire)
 	-- The sign over the table you walk up to, or over your own while you wait on its pad as a
 	-- guest; none while you host (your own card stands there) or play. Stepping onto an
 	-- empty pad makes you its host before the server says so (predictedPad, below).

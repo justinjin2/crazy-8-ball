@@ -1,10 +1,11 @@
 --!strict
--- LightCycle: the map's day and sunset cycle as pure numbers (Config.Lighting; the rooftop
--- brief, Stage 7). blend(t) says how far into sunset the world is at a moment of the server's
--- clock (0 Day, 1 Sunset); state(blend) mixes the Day and Sunset presets into the whole light
--- state for that moment. Pure Luau (no Instances, no Color3, no clocks): Lune tests it, and every
--- client computes the same state from the same server time with nothing sent over the network.
--- MapLighting puts a state onto the place; DayCycle drives it on each client.
+-- LightCycle: the map's day, sunset and night cycle as pure numbers (Config.Lighting; the
+-- rooftop brief, Stage 7; night added 2026-10-05). blend(t) says where the world is at a moment
+-- of the server's clock (0 Day, 1 Sunset, 2 Night, fractions in between); state(blend) mixes
+-- the neighbouring presets into the whole light state for that moment. Pure Luau (no Instances,
+-- no Color3, no clocks): Lune tests it, and every client computes the same state from the same
+-- server time with nothing sent over the network. MapLighting puts a state onto the place;
+-- DayCycle drives it on each client.
 
 local LightCycle = {}
 
@@ -12,6 +13,8 @@ export type Cycle = {
 	Day: number,
 	Fade: number,
 	Sunset: number,
+	Night: number,
+	Dawn: number,
 	Speed: number,
 	Rate: number,
 	Look: number,
@@ -19,9 +22,32 @@ export type Cycle = {
 
 export type SunKey = { Blend: number, GeographicLatitude: number, ClockTime: number }
 
--- One whole cycle in seconds: the day, a fade, the sunset and the fade back.
+-- A developer's hold (DevCommands): the blend shown when it was set (From), the scaled clock
+-- then (At), and the blend it eases to and stays at (Goal), or none to ease back into the cycle.
+export type Hold = { From: number, At: number, Goal: number? }
+
+-- The presets by blend: 0 Day, 1 Sunset, 2 Night (Config.Lighting's keys).
+LightCycle.PRESETS = { "Day", "Sunset", "Night" }
+
+-- The cycle's stretches in order, as { seconds, from blend, to blend }: a hold where the two
+-- match, a fade where they differ. Night goes back to day through a short dawn (the sunset's
+-- light), so every fade is between neighbouring presets.
+local function stretches(cycle: Cycle): { { number } }
+	return {
+		{ cycle.Day, 0, 0 },
+		{ cycle.Fade, 0, 1 },
+		{ cycle.Sunset, 1, 1 },
+		{ cycle.Fade, 1, 2 },
+		{ cycle.Night, 2, 2 },
+		{ cycle.Fade, 2, 1 },
+		{ cycle.Dawn, 1, 1 },
+		{ cycle.Fade, 1, 0 },
+	}
+end
+
+-- One whole cycle in seconds: the day, the sunset, the night, the dawn and the four fades.
 function LightCycle.period(cycle: Cycle): number
-	return cycle.Day + cycle.Fade + cycle.Sunset + cycle.Fade
+	return cycle.Day + cycle.Sunset + cycle.Night + cycle.Dawn + 4 * cycle.Fade
 end
 
 -- Smoothstep: a fade starts and ends gently.
@@ -29,52 +55,43 @@ local function ease(x: number): number
 	return x * x * (3 - 2 * x)
 end
 
---- How far into sunset the world is at time t (seconds; the caller scales the server's clock
---- by Cycle.Speed): 0 through the day, easing up to 1 over the fade, 1 through the sunset and
---- easing back down. The cycle starts at t = 0, so the same t gives the same answer everywhere.
+--- Where the world is at time t (seconds; the caller scales the server's clock by
+--- Cycle.Speed): 0 through the day, 1 through the sunset and the dawn, 2 through the night,
+--- easing between them over each fade. The cycle starts at t = 0, so the same t gives the same
+--- answer everywhere.
 function LightCycle.blend(t: number, cycle: Cycle): number
 	local s = t % LightCycle.period(cycle) -- floored: in [0, period) for any t
-	if s < cycle.Day then
-		return 0
+	for _, stretch in stretches(cycle) do
+		local seconds, from, to = stretch[1], stretch[2], stretch[3]
+		if s < seconds then
+			return if from == to then from else from + (to - from) * ease(s / seconds)
+		end
+		s -= seconds
 	end
-	s -= cycle.Day
-	if s < cycle.Fade then
-		return ease(s / cycle.Fade)
-	end
-	s -= cycle.Fade
-	if s < cycle.Sunset then
-		return 1
-	end
-	s -= cycle.Sunset
-	return 1 - ease(s / cycle.Fade)
+	return 0 -- s rounded up to the period: the next day
 end
 
---- A new offset (scaled seconds, added to the scaled clock) that sends the cycle toward a hold,
---- "Day" or "Sunset", through its fade, from the light it shows now: t is the scaled clock and
---- offset the one in use. Holding the other state, the fade starts at once; half way through
---- the fade back, it turns round at the same blend; already on its way, nothing changes. The
---- cycle runs on from there. A developer's chat command sets it (DevCommands), so every client
---- moves together.
-function LightCycle.offsetToward(t: number, offset: number, cycle: Cycle, hold: string): number
-	local period = LightCycle.period(cycle)
-	local s = (t + offset) % period
-	local fadeIn, sunset = cycle.Day, cycle.Day + cycle.Fade
-	local fadeOut = sunset + cycle.Sunset
-	local target = s
-	if hold == "Sunset" then
-		if s < fadeIn then
-			target = fadeIn -- from the day hold: the fade in starts now
-		elseif s >= fadeOut then
-			target = fadeIn + (period - s) -- mid fade out: the same blend on the fade in
-		end
-	else
-		if s >= sunset and s < fadeOut then
-			target = fadeOut -- from the sunset hold: the fade out starts now
-		elseif s >= fadeIn and s < sunset then
-			target = fadeOut + (sunset - s) -- mid fade in: the same blend on the fade out
-		end
+--- A hold from a developer command's workspace attributes (Config.Lighting.Cycle.Hold), or
+--- nil when none is set (the cycle runs).
+function LightCycle.readHold(goal: any, from: any, at: any): Hold?
+	if type(from) ~= "number" or type(at) ~= "number" then
+		return nil
 	end
-	return (offset + target - s) % period
+	return { From = from, At = at, Goal = if type(goal) == "number" then goal else nil }
+end
+
+--- The blend shown at t: the cycle's, or under a hold, From easing to Goal over one Fade per
+--- preset passed (so day to night passes through the sunset) and staying there; a hold with
+--- no Goal eases from From back into the running cycle the same way.
+function LightCycle.shown(t: number, cycle: Cycle, hold: Hold?): number
+	local running = LightCycle.blend(t, cycle)
+	if hold == nil then
+		return running
+	end
+	local goal = if hold.Goal ~= nil then hold.Goal else running
+	local seconds = cycle.Fade * math.max(1, math.abs(goal - hold.From))
+	local k = math.clamp((t - hold.At) / seconds, 0, 1)
+	return hold.From + (goal - hold.From) * ease(k)
 end
 
 --- The offset (scaled seconds, added to the scaled clock t) that puts the cycle at the very
@@ -86,7 +103,7 @@ function LightCycle.offsetToDayStart(t: number, cycle: Cycle): number
 end
 
 --- The sun at a blend: GeographicLatitude and ClockTime along the SunPath keyframes (by Blend,
---- rising), straight between them and held past the ends.
+--- rising, 0 to 2), straight between them and held past the ends.
 function LightCycle.sun(blend: number, path: { SunKey }): (number, number)
 	local first, last = path[1], path[#path]
 	if blend <= first.Blend then
@@ -165,11 +182,19 @@ local function mix(
 	return out
 end
 
---- The whole light state at a blend (Config.Lighting's Day and Sunset keys, plus the sun's
---- GeographicLatitude and ClockTime from SunPath). Half way, DuskWarm warms it. The sky's images are Day's, DuskSky's or
---- Sunset's (skyStage). Round each swap, where they change in one frame, SwapHaze thickens the
---- Atmosphere and dims the sky's light on the scene so the change hides in a passing haze.
+--- The whole light state at a blend (Config.Lighting's preset keys, plus the sun's
+--- GeographicLatitude and ClockTime from SunPath). From 1 to 2 it is Sunset mixed toward Night
+--- (the sky's images and other non-numbers Night's from half way). From 0 to 1: half way,
+--- DuskWarm warms it. The sky's images are Day's, DuskSky's or Sunset's (skyStage). Round each
+--- swap, where they change in one frame, SwapHaze thickens the Atmosphere and dims the sky's
+--- light on the scene so the change hides in a passing haze.
 function LightCycle.state(blend: number, lighting: any): { [string]: any }
+	if blend > 1 then
+		local w = math.min(blend, 2) - 1
+		local night = mix(lighting.Sunset, lighting.Night, w, w >= 0.5)
+		night.GeographicLatitude, night.ClockTime = LightCycle.sun(blend, lighting.SunPath)
+		return night
+	end
 	local stage = LightCycle.skyStage(blend, lighting)
 	local out = mix(lighting.Day, lighting.Sunset, blend, stage >= #lighting.SkySwaps)
 	if stage > 0 and stage < #lighting.SkySwaps then

@@ -1,5 +1,5 @@
 --!strict
--- DayCycle: the map's day and sunset cycle on this client (Config.Lighting). The server's clock
+-- DayCycle: the map's day, sunset and night cycle on this client (Config.Lighting). The server's clock
 -- sets where the cycle is (LightCycle.blend), so every player sees the same light with nothing
 -- sent over the network. MapLighting writes the state onto the place: every tick of a fade (at
 -- Cycle.Rate), once per hold. Visual only, and it needs no input, so it works the same on phone,
@@ -47,6 +47,7 @@ export type DayCycle = typeof(setmetatable(
 		handles: MapLighting.Handles?,
 		last: { [string]: any }?,
 		blend: number?,
+		fire: number, -- the fire pit's intensity in the light now (Config.Lighting's Fire)
 		nextApply: number,
 		nextLook: number,
 		dirty: boolean,
@@ -78,6 +79,7 @@ function DayCycle.new(): DayCycle
 		handles = nil :: MapLighting.Handles?,
 		last = nil :: { [string]: any }?,
 		blend = nil :: number?,
+		fire = 0,
 		nextApply = 0,
 		nextLook = 0,
 		dirty = true,
@@ -137,11 +139,18 @@ function DayCycle.update(self: DayCycle, now: number)
 	if self.dirty or handles == nil or (not handles.complete and now >= self.nextLook) then
 		self:look(now)
 	end
-	-- The /day and /sunset developer commands shift the cycle for everyone (DevCommands).
+	-- An arena's offset starts its cycle at day (ArenaService); the /day, /sunset, /night and
+	-- /cycle developer commands hold the light for everyone (DevCommands).
 	local offset = workspace:GetAttribute(C.OffsetAttribute)
 	local t = workspace:GetServerTimeNow() * C.Speed
 		+ (if type(offset) == "number" then offset else 0)
-	local blend = LightCycle.blend(t, C)
+	local A = C.Hold
+	local hold = LightCycle.readHold(
+		workspace:GetAttribute(A.Goal),
+		workspace:GetAttribute(A.From),
+		workspace:GetAttribute(A.At)
+	)
+	local blend = LightCycle.shown(t, C, hold)
 	if self.last ~= nil and (blend == self.blend or now < self.nextApply) then
 		return
 	end
@@ -149,7 +158,9 @@ function DayCycle.update(self: DayCycle, now: number)
 	self.blend = blend
 	local found = self.handles
 	assert(found, "looked above")
-	self.last = MapLighting.apply(LightCycle.state(blend, L), found, self.last)
+	local state = LightCycle.state(blend, L)
+	self.fire = state.Fire.Intensity
+	self.last = MapLighting.apply(state, found, self.last)
 end
 
 return DayCycle

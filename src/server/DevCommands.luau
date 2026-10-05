@@ -2,9 +2,9 @@
 -- DevCommands: developer chat commands, checked here on the server (Config.Debug.Commands).
 -- Only the designer's own account (Config.Debug.Commands.UserIds) may use them; any other
 -- player gets nothing, so no player can change everyone's sky, their own save or the shop.
--- - /day and /sunset send the day/sunset cycle toward that state for the whole server, through
---   its one-minute fade (LightCycle.offsetToward): the offset goes on a workspace attribute
---   every client's DayCycle reads, and the cycle runs on from there.
+-- - /day, /sunset and /night fade the light to that state for the whole server and hold it
+--   there; /cycle fades back into the running cycle (LightCycle.shown): the hold goes on
+--   workspace attributes every client's DayCycle reads.
 -- - The rank and money ones (/rank, /xp, /money, /addmoney, /result, /newrank, /resetdata;
 --   /rankhelp lists them) and the economy ones (/econhelp lists them) act on the caller only
 --   and answer privately (DevNotice). A /party or a /restock is this server's, like the real ones.
@@ -69,12 +69,22 @@ local OLD_ALIASES: { [string]: string } = D.OldAliases :: any
 
 local DevCommands = {}
 
---- Sends the cycle toward "Day" or "Sunset" (the commands' work; Studio tests call it too).
+--- Holds the light at "Day", "Sunset" or "Night", or with "Cycle" lets it run again, fading
+--- from the light shown now (the commands' work; Studio tests call it too).
 function DevCommands.toward(hold: string)
-	local t = workspace:GetServerTimeNow() * C.Speed
 	local offset = workspace:GetAttribute(C.OffsetAttribute)
-	local now = if type(offset) == "number" then offset else 0
-	workspace:SetAttribute(C.OffsetAttribute, LightCycle.offsetToward(t, now, C, hold))
+	local t = workspace:GetServerTimeNow() * C.Speed
+		+ (if type(offset) == "number" then offset else 0)
+	local A = C.Hold
+	local current = LightCycle.readHold(
+		workspace:GetAttribute(A.Goal),
+		workspace:GetAttribute(A.From),
+		workspace:GetAttribute(A.At)
+	)
+	local shown = LightCycle.shown(t, C, current)
+	workspace:SetAttribute(A.Goal, C.Holds[hold])
+	workspace:SetAttribute(A.From, shown)
+	workspace:SetAttribute(A.At, t)
 end
 
 -- Only the designer's own account (Config.Debug.Commands.UserIds), in Studio and live alike:
@@ -1078,7 +1088,7 @@ local function econHelp(player: Player)
 end
 
 function DevCommands.start()
-	for _, hold in { "Day", "Sunset" } do
+	for _, hold in { "Day", "Sunset", "Night", "Cycle" } do
 		command(hold, D[hold], function()
 			DevCommands.toward(hold)
 		end)

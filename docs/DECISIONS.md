@@ -2521,3 +2521,12 @@ timer of a new block stay the designer's call.
 - 2026-10-05: The player stands still through every pull cutscene (designer): walk speed and
   jump go to 0 and AutoRotate off for the scene, so shift lock no longer turns the character
   as the cutscene camera moves; everything goes back when the scene ends.
+- 2026-10-05: A night in the day cycle, and no sun disc for now (designer: a lighting test to
+  see if the cue models' textures and auras pop more in the dark). The cycle is Day 10 min,
+  fade, Sunset 5 min, fade, Night 5 min, fade, a 30 s dawn (the sunset's light), fade back
+  (`Config.Lighting.Cycle`; this replaces "no night" from Stage 7). Night is a moonlit roof:
+  the painted sky dimmed to black by Roblox with stars and a moon over the sea, a deep blue
+  shade, the table lamps at 5 (sunset 3) and the under-table glow stronger. The sun disc is
+  hidden by day and sunset (`SunAngularSize` 0; it still lights the roof). `/day`, `/sunset`
+  and the new `/night` now hold the light there for the whole server (a minute's fade per
+  step) instead of letting the cycle run on; the new `/cycle` fades back into the cycle.

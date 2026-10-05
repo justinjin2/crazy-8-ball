@@ -1,8 +1,8 @@
 --!strict
 -- FirePit: the fire pit's fire on this client (Config.Map.FirePit): Roblox's own Fire over the
 -- pit's bed and a flickering warm light, and the pit's static flame mesh hidden. It burns by
--- the day cycle: Config.Lighting's Fire intensity at DayCycle's blend (out by day, lit at
--- sunset; designer, 2026-09-26). Visual only and local; it needs no input, so it works the
+-- the day cycle: Config.Lighting's Fire intensity in DayCycle's light (out by day, lit at
+-- sunset and night; designer, 2026-09-26). Visual only and local; it needs no input, so it works the
 -- same on phone, PC and gamepad.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -98,8 +98,8 @@ local function findPits(): { Pit }?
 	return if #pits > 0 then pits else nil
 end
 
---- `now` is os.clock(); `blend` is the day cycle's (0 day, 1 sunset; DayCycle.blend).
-function FirePit.update(self: FirePit, now: number, blend: number)
+--- `now` is os.clock(); `intensity` is the fire's in the day cycle's light (DayCycle.fire).
+function FirePit.update(self: FirePit, now: number, intensity: number)
 	local pits = self.pits
 	if pits == nil then
 		if now < self.nextLook then
@@ -114,8 +114,6 @@ function FirePit.update(self: FirePit, now: number, blend: number)
 		end
 	end
 	assert(pits, "found above")
-	local day, sunset = L.Day.Fire.Intensity, L.Sunset.Fire.Intensity
-	local intensity = day + (sunset - day) * blend
 	local lit = intensity > 0.01
 	for _, pit in pits do
 		if pit.holder.Parent == nil then
