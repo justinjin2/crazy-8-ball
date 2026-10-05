@@ -17,9 +17,9 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://105041129537608",
+				ColorMap = "rbxassetid://89411636784837",
 				EmissiveMask = "rbxassetid://135203709614722",
-				EmissiveTint = "#3FD6FF",
+				EmissiveTint = "#9FE8FF",
 				EmissiveStrength = 2.4,
 				AlphaMode = "Transparency",
 			},
@@ -66,7 +66,7 @@ return {
 		},
 		{
 			Material = "ForceField",
-			Color = "#3FD6FF",
+			Color = "#D8F6FF",
 			Transparency = 0.45,
 			Reflectance = 0,
 			Name = "DragonSheath",
@@ -158,7 +158,7 @@ return {
 		},
 		{
 			Material = "Neon",
-			Color = "#7FE6FF",
+			Color = "#C4F0FF",
 			Transparency = 0.3,
 			Reflectance = 0,
 			Name = "DragonFins",
@@ -204,7 +204,7 @@ return {
 		},
 		{
 			Material = "Neon",
-			Color = "#9FF0FF",
+			Color = "#D8F6FF",
 			Transparency = 0.1,
 			Reflectance = 0,
 			Name = "DragonFilaments",

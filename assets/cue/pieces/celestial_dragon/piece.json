@@ -12,7 +12,7 @@
       "SurfaceAppearance": {
         "ColorMap": "pieces/celestial_dragon/DragonBody_spirit.png",
         "EmissiveMask": "pieces/celestial_dragon/DragonBody_emissive.png",
-        "EmissiveTint": "#3FD6FF",
+        "EmissiveTint": "#9FE8FF",
         "EmissiveStrength": 2.4,
         "AlphaMode": "Transparency"
       },
@@ -68,7 +68,7 @@
     },
     {
       "Material": "ForceField",
-      "Color": "#3FD6FF",
+      "Color": "#D8F6FF",
       "Transparency": 0.45,
       "Reflectance": 0.0,
       "Name": "DragonSheath",
@@ -178,7 +178,7 @@
     },
     {
       "Material": "Neon",
-      "Color": "#7FE6FF",
+      "Color": "#C4F0FF",
       "Transparency": 0.3,
       "Reflectance": 0.0,
       "Name": "DragonFins",
@@ -233,7 +233,7 @@
     },
     {
       "Material": "Neon",
-      "Color": "#9FF0FF",
+      "Color": "#D8F6FF",
       "Transparency": 0.1,
       "Reflectance": 0.0,
       "Name": "DragonFilaments",

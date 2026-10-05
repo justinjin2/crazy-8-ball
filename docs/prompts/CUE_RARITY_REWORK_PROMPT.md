@@ -290,6 +290,10 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   (a new kit key, `ShellTransparency` 0.4) so the scales and filaments show through.
   Captures `celestial_dragon-studio-{stand,close,back}.jpg`; the motion fixture
   regenerated for the slower beats; the clip re-rendered. Waiting at gate 2.
+- 2026-10-04 (gate 2, second look): the whole dragon one blue, the head's pale spirit blue
+  (`#D8F6FF` sheath and filaments, `#C4F0FF` fins, paler scales, emissive `#9FE8FF`); the
+  body's spirit map re-uploaded, the piece rebuilt in the lane window. Captures
+  `celestial_dragon-studio-{stand,close,back,head}.jpg`; the clip re-rendered.
 
 ## Decisions
 
@@ -343,3 +347,5 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   old version"; and replicate the reference photo 1:1: a see-through, transparent spiritual
   energy animation always round the cue, in the spirit of the Beta Cue's technique but its
   own look, surrounding the texture without masking it. Built as the third look.
+- 2026-10-04 (designer, Dragon gate 2, first look): the head and body must be one colour,
+  the head's lighter blue. Done.

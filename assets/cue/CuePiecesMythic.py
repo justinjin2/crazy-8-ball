@@ -147,7 +147,7 @@ def _dragon_scales_png(k, name, w=256, h=512):
     du = np.minimum(U, 1 - U)                        # distance round from the dorsal line
     stripe = np.exp(-(du / 0.035) ** 2)
     belly = np.exp(-((U - 0.5) / 0.12) ** 2) * (0.5 + 0.5 * (np.cos(2 * np.pi * V * 24) > 0.2))
-    base = np.array([0.25, 0.84, 1.0])               # cyan spirit light (0.30, 0.62, 1.0 before the 2026-10-04 rework)
+    base = np.array([0.62, 0.90, 1.0])               # the head's pale spirit blue (0.30, 0.62, 1.0 before the 2026-10-04 rework)
     pale = np.array([0.92, 0.98, 1.0])
     col = (base[None, None] * (0.35 + 0.5 * inner[..., None] * 0.4 + 0.6 * rim[..., None])
            + pale[None, None] * (belly[..., None] * 0.5) + np.ones(3)[None, None] * stripe[..., None])
@@ -186,10 +186,13 @@ def celestial_dragon(k):
     import bmesh
     from mathutils import Matrix, Vector
     bpy = k.bpy
-    k.material('Sheath', 'ForceField', '#3FD6FF', Transparency=0.45)   # the 2026-10-04 rework: cyan-white spirit energy,
-    k.material('Core', 'Neon', '#EAFBFF', Transparency=0.55)            # every beat slowed; both thinned on the lobby floor
-    k.material('Fin', 'Neon', '#7FE6FF', Transparency=0.3)
-    k.material('Filament', 'Neon', '#9FF0FF', Transparency=0.1)
+    # The 2026-10-04 rework: pale spirit light, one blue for the whole dragon (designer: the
+    # head's lighter blue, the body the same), every beat slowed; sheath and core thinned on
+    # the lobby floor.
+    k.material('Sheath', 'ForceField', '#D8F6FF', Transparency=0.45)
+    k.material('Core', 'Neon', '#EAFBFF', Transparency=0.55)
+    k.material('Fin', 'Neon', '#C4F0FF', Transparency=0.3)
+    k.material('Filament', 'Neon', '#D8F6FF', Transparency=0.1)
 
     loop, step, length = _swim_loop()
     n = len(loop)
@@ -265,7 +268,7 @@ def celestial_dragon(k):
     # the spirit body (textured), its sheath, its core
     paths = _dragon_scales_png(k, 'DragonBody')
     k.material('DragonBody', 'SmoothPlastic', '#FFFFFF', SurfaceAppearance={
-        'ColorMap': paths['spirit'], 'EmissiveMask': paths['emissive'], 'EmissiveTint': '#3FD6FF',
+        'ColorMap': paths['spirit'], 'EmissiveMask': paths['emissive'], 'EmissiveTint': '#9FE8FF',
         'EmissiveStrength': 2.4, 'AlphaMode': 'Transparency'})
     rings = frames[::2]
     bm = bmesh.new()
