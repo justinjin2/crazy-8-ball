@@ -10,7 +10,7 @@
 --             "Exclusive" or "Unique"
 --   Group     "Block" (drops from lucky blocks), "Exclusive" (one special way each), "Unique"
 --             (numbered Limited copies) or "Default"
---   Tradable  may be traded (trading is a later session; the flag is stored now): case and
+--   Tradable  may be traded (trading is a later session; the flag is stored now): block and
 --             Unique cues and the Starter Cue yes; the other Exclusive cues and Classic never
 --   Sellable  may be sold back (block cues only)
 --   Blocks    the odds rows (Config.BlockOdds) that drop it (block cues only)
@@ -23,7 +23,7 @@
 --             forearm) and Rainbow (the forearm in the house rainbow). A skinned cue's comes
 --             from its colour map (CueSkins.Index, generated); its real look is its skin.
 --
--- The cues are the cue-skins run's (2026-09-30, docs/prompts/CUE_SKINS_REPORT.md): every case,
+-- The cues are the cue-skins run's (2026-09-30, docs/prompts/CUE_SKINS_REPORT.md): every block,
 -- rank and Exclusive cue has a skin; the Unique cues keep placeholder bands until theirs exist.
 local Config = require(script.Parent.Parent.Config)
 local SkinIndex = require(script.Parent.Parent.CueSkins.Index)

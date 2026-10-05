@@ -3,7 +3,7 @@
 -- middle with sun rays turning behind it in its rarity's colour (Common grey ... Mythic's
 -- pastels), "YOU GOT <CUE NAME>!" over it, its rarity under it, and "Tap to continue". There is
 -- no Keep or Sell: the cue is already in the inventory, and a tap, a click or A closes it.
--- Confetti from Config.UI.CaseOpening.ConfettiFrom, the reveal sting by rarity. Built in
+-- Confetti from Config.UI.Reel.ConfettiFrom, the reveal sting by rarity. Built in
 -- natural pixels inside LuckyOpening's stage; tuning in Config.LuckyBlocks.UI.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -11,13 +11,13 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
-local CaseOpeningFx = require(script.Parent.CaseOpeningFx)
+local ReelFx = require(script.Parent.ReelFx)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 
 local U = Config.LuckyBlocks.UI
-local CO = Config.UI.CaseOpening
+local CO = Config.UI.Reel
 local W = Strings.LuckyBlocks
 local WHITE = Color3.new(1, 1, 1)
 
@@ -41,7 +41,7 @@ function Result.new(parent: Instance, cueId: string, rarity: string): any
 	self.alive = true
 	self.rarity = rarity
 	self.born = os.clock()
-	local colour = CaseOpeningFx.color(rarity)
+	local colour = ReelFx.color(rarity)
 	local size = Result.size()
 
 	local root = HudParts.frame(parent, "LuckyResult")
@@ -55,7 +55,7 @@ function Result.new(parent: Instance, cueId: string, rarity: string): any
 	local artMiddle = titleH + artH / 2
 
 	-- The sun rays in the rarity's colour (Mythic: its pastels), turning behind the cue.
-	local rays = CaseOpeningFx.rays(root, "Rays")
+	local rays = ReelFx.rays(root, "Rays")
 	rays.Image = U.CardRaysImage
 	rays.ResampleMode = Enum.ResamplerMode.Default
 	local raysSide = math.floor(U.CardWidthPx * U.CardRaysShare)
@@ -65,7 +65,7 @@ function Result.new(parent: Instance, cueId: string, rarity: string): any
 	rays.ZIndex = 0
 	if rarity == "Mythic" then
 		local tint = Instance.new("UIGradient")
-		tint.Color = CaseOpeningFx.shimmer()
+		tint.Color = ReelFx.shimmer()
 		tint.Parent = rays
 	end
 	self.rays = rays
@@ -122,13 +122,13 @@ function Result.show(self: any, confettiParent: GuiObject?)
 	end
 	self.root.Visible = true
 	UIAnim.popIn(self.root)
-	CaseOpeningFx.sting(self.rarity)
+	ReelFx.sting(self.rarity)
 	self.spin = UIAnim.spin(self.rays, U.CardRaysDegreesPerSecond)
 	UIAnim.bounce(self.thumb)
-	if confettiParent and CaseOpeningFx.atLeast(self.rarity, CO.ConfettiFrom) then
+	if confettiParent and ReelFx.atLeast(self.rarity, CO.ConfettiFrom) then
 		local at = self.thumb.AbsolutePosition + self.thumb.AbsoluteSize / 2
 		local origin = at - confettiParent.AbsolutePosition
-		UIAnim.confetti(confettiParent, origin, CaseOpeningFx.palette(self.rarity))
+		UIAnim.confetti(confettiParent, origin, ReelFx.palette(self.rarity))
 	end
 	self.born = os.clock()
 	self.loop = RunService.RenderStepped:Connect(function()

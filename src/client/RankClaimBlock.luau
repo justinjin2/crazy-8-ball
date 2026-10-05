@@ -2,10 +2,10 @@
 -- RankClaimBlock: the claim for rank rewards held until claimed in Rank (designer, 2026-10-03;
 -- docs/prompts/TUTORIAL_PROMPT.md, "Rule changes for everyone"). While the roadmap (Rank) is
 -- open and something waits (the player attribute RankPending), a small card stands over the
--- roadmap's foot: "Rewards ready!", a chip per reward (the money, each case, the Case Drops,
--- the ult spins, each cue, the chat tag) and CLAIM. CLAIM asks the server (the RankClaim
--- remote); its answer closes the roadmap and the rewards fly to where they live: the money to
--- the money HUD, the cases, drops and cues to Inventory, the spins to Abilities
+-- roadmap's foot: "Rewards ready!", a chip per reward (the money, each lucky block, the ult
+-- spins, each cue, the chat tag) and CLAIM. CLAIM asks the server (the RankClaim remote); its
+-- answer closes the roadmap and the rewards fly to where they live: the money to the money
+-- HUD, the blocks to the hotbar, the cues to Inventory, the spins to Abilities
 -- (RewardsFlyer, as the Rewards menu's claims fly). The chat tag is simply on from then.
 --
 -- A stand-in in the kit's style: the GUI lane may restyle or move it (keep the CLAIM call and
@@ -34,7 +34,7 @@ local UISound = require(script.Parent.UISound)
 
 local B = Config.Tutorial.RankClaim.Block
 local ROADMAP = Config.UI.Progress.Roadmap
-local CASE_ORDER: { string } = Config.Cases.Order
+local BLOCK_ORDER: { string } = Config.LuckyBlocks.Order
 local Copy = Strings.RankClaim
 local player = Players.LocalPlayer
 
@@ -51,7 +51,7 @@ local function pendingNow(): RankClaim.Pending
 	)
 end
 
--- The chips for what is held: money, cases (the shop's order), drops, spins, cues, the tag.
+-- The chips for what is held: money, lucky blocks (the kinds' order), spins, cues, the tag.
 local function specsOf(p: RankClaim.Pending): { RewardChips.Spec }
 	local specs: { RewardChips.Spec } = {}
 	if p.money > 0 then
@@ -60,17 +60,14 @@ local function specsOf(p: RankClaim.Pending): { RewardChips.Spec }
 			{ kind = "Money", text = Format.moneyDelta(p.money), tint = HudParts.tone("Green") }
 		)
 	end
-	for _, id in CASE_ORDER do
-		local count = p.cases[id]
+	for _, kind in BLOCK_ORDER do
+		local count = p.blocks[kind]
 		if count and count > 0 then
 			table.insert(
 				specs,
-				{ kind = "Case", id = id, text = Strings.Progress.RewardCount:format(count) }
+				{ kind = "Block", id = kind, text = Strings.Progress.RewardCount:format(count) }
 			)
 		end
-	end
-	if p.drops > 0 then
-		table.insert(specs, { kind = "Case", text = Copy.DropCount:format(p.drops) })
 	end
 	local spins = RewardChips.spinsSpec(p.spins)
 	if spins then
@@ -214,16 +211,11 @@ function RankClaimBlock.onReply(self: any, reply: any)
 	UISound.play("Claim")
 	self.card.Visible = false
 	self.close()
-	local cases: { [string]: number } = if type(reply.cases) == "table"
-		then table.clone(reply.cases)
+	local blocks: { [string]: number } = if type(reply.blocks) == "table"
+		then table.clone(reply.blocks)
 		else {}
-	self.flyer:reward({ money = reply.money, cases = cases, spins = reply.spins }, from)
+	self.flyer:reward({ money = reply.money, blocks = blocks, spins = reply.spins }, from)
 	local delay = B.ItemsAfterSeconds
-	local drops = if type(reply.drops) == "number" then reply.drops else 0
-	if drops > 0 then
-		self.flyer:flyPicture({ key = "Case", count = drops }, { "Inventory" }, from, delay)
-		delay += B.StaggerSeconds
-	end
 	for _, id in (if type(reply.cues) == "table" then reply.cues else {}) :: { any } do
 		if type(id) == "string" then
 			self.flyer:flyPicture({ key = "Cue", count = 1 }, { "Inventory" }, from, delay)

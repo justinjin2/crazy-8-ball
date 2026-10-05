@@ -1,10 +1,10 @@
 --!strict
--- CaseOpeningReel: the case opening's spinning reel (CaseOpening; docs/prompts/ECONOMY_UI_PROMPT.md
+-- BlockReel: the lucky block opening's spinning reel (LuckyOpening; docs/prompts/ECONOMY_UI_PROMPT.md
 -- section 11), Rivals / CS style: a white kit card holding a strip of about 40 cue cards (each the
 -- tinted thumbnail on its rarity's dressing, CueThumb) that slides behind a gold marker and slows
 -- onto the prize the server already chose.
 --
--- - The strip is drawn from the case's pool by the odds (Cases.cueOdds, each weight raised to
+-- - The strip is drawn from the block's odds row (BlockOdds.cueOdds, each weight raised to
 --   Reel.WeightPower; 1 = the true odds). It is purely visual (a client Random): the prize is
 --   put at a fixed late slot (Reel.PrizeSlot) once the server's answer is known.
 -- - The spin eases out over Reel.Seconds (Mythic and Secret: BigSeconds, a longer crawl, the
@@ -20,7 +20,7 @@
 --   white ends, the strip floats over the dim with its ends fading out (a CanvasGroup), and each
 --   card is a dark see-through tile with a slight border in its rarity's colour reading the
 --   cue's name, its rarity in that colour and its chance.
--- Built in natural pixels inside a CaseOpeningFx stage; layout(width) sizes it.
+-- Built in natural pixels inside a ReelFx stage; layout(width) sizes it.
 local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -29,15 +29,15 @@ local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local ProgressionRules = Shared:WaitForChild("Progression")
-local Cases = require(ProgressionRules:WaitForChild("Cases"))
+local BlockOdds = require(ProgressionRules:WaitForChild("BlockOdds"))
 local Catalog = require(ProgressionRules:WaitForChild("Catalog"))
-local CaseOpeningFx = require(script.Parent.CaseOpeningFx)
+local ReelFx = require(script.Parent.ReelFx)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
-local C = Config.UI.CaseOpening
+local C = Config.UI.Reel
 local R = C.Reel
 local LU = Config.LuckyBlocks.UI
 local K = Config.UI.Kit
@@ -71,11 +71,11 @@ local function centreOf(slot: number): number
 	return (slot - 1) * pitch() + R.CardWidthPx / 2
 end
 
--- The case's cues with their draw weights (the odds, flattened by WeightPower).
-local function pool(caseId: string): ({ { id: string, rarity: string } }, { number }, number)
-	local odds = Cases.cueOdds(caseId)
+-- The odds row's cues with their draw weights (the odds, flattened by WeightPower).
+local function pool(oddsId: string): ({ { id: string, rarity: string } }, { number }, number)
+	local odds = BlockOdds.cueOdds(oddsId)
 	if #odds == 0 then
-		odds = Cases.cueOdds(Config.Cases.FreeCase)
+		odds = BlockOdds.cueOdds("Standard")
 	end
 	local cues, weights, total = {}, {}, 0
 	for _, entry in odds do
@@ -219,14 +219,14 @@ local function dressCard(slot: Slot, id: string, rarity: string)
 	end
 end
 
---- Build the reel for `caseId` in `parent` (a stage), its strip drawn at random from the case's
---- pool. Size it with layout(width); put the prize in with setPrize, then start(). `opts.look`
+--- Build the reel for the odds row `oddsId` (Config.BlockOdds.List) in `parent` (a stage), its
+--- strip drawn at random from that pool. Size it with layout(width); put the prize in with setPrize, then start(). `opts.look`
 --- "Dark" is the lucky blocks' look (see the top).
-function Reel.new(parent: Instance, caseId: string, opts: { look: string? }?): any
+function Reel.new(parent: Instance, oddsId: string, opts: { look: string? }?): any
 	local self: any = setmetatable({}, Reel)
 	local dark = opts ~= nil and opts.look == "Dark"
 	self.dark = dark
-	self.caseId = caseId
+	self.oddsId = oddsId
 	self.random = Random.new()
 	self.phase = "Idle" -- Idle, Spinning, Centring, Holding, Done
 	self.alive = true
@@ -249,7 +249,7 @@ function Reel.new(parent: Instance, caseId: string, opts: { look: string? }?): a
 	self.root = root
 
 	-- The glow round the window, under it.
-	local halo = CaseOpeningFx.halo(root, "Halo")
+	local halo = ReelFx.halo(root, "Halo")
 	halo.ZIndex = 0
 	self.halo = halo
 
@@ -288,7 +288,7 @@ function Reel.new(parent: Instance, caseId: string, opts: { look: string? }?): a
 	strip.ZIndex = 1
 	self.strip = strip
 
-	local cues, weights, total = pool(caseId)
+	local cues, weights, total = pool(oddsId)
 	self.slots = {} :: { Slot }
 	for index = 1, math.max(R.Cards, R.PrizeSlot + 1) do
 		local pick = self.random:NextNumber(0, total)
@@ -407,7 +407,7 @@ function Reel.layout(self: any, width: number)
 	end
 	self.marker.Position = UDim2.fromOffset(width / 2, h / 2)
 	self.marker.Size = UDim2.fromOffset(R.MarkerTipPx, h + 2 * R.MarkerOverPx)
-	CaseOpeningFx.placeHalo(self.halo, Vector2.zero, Vector2.new(width, h), R.HaloSpreadPx)
+	ReelFx.placeHalo(self.halo, Vector2.zero, Vector2.new(width, h), R.HaloSpreadPx)
 	if self.phase == "Idle" then
 		self.pos = centreOf(self:startSlot())
 	end
@@ -426,7 +426,7 @@ end
 function Reel.setPrize(self: any, cueId: string, rarity: string)
 	self.prizeId = cueId
 	self.prizeRarity = rarity
-	self.big = CaseOpeningFx.isBig(rarity)
+	self.big = ReelFx.isBig(rarity)
 	dressCard(self.slots[R.PrizeSlot], cueId, rarity)
 end
 
@@ -449,7 +449,7 @@ function Reel.start(self: any, onSettled: () -> ())
 	self.loop = RunService.RenderStepped:Connect(function()
 		local ok, err = pcall(self.step, self)
 		if not ok then
-			warn("[8ball] CaseOpeningReel: " .. tostring(err))
+			warn("[8ball] BlockReel: " .. tostring(err))
 			self:finish()
 		end
 	end)
@@ -484,12 +484,12 @@ function Reel.glow(self: any, now: number)
 	local t = now - self.glowFrom
 	local strength = share
 	if rarity == "Secret" then
-		strength *= 1 - R.SecretBreathDepth * (1 - CaseOpeningFx.breath(t, R.BreathSeconds))
+		strength *= 1 - R.SecretBreathDepth * (1 - ReelFx.breath(t, R.BreathSeconds))
 	end
-	self.halo.ImageColor3 = CaseOpeningFx.glowAt(rarity, t)
+	self.halo.ImageColor3 = ReelFx.glowAt(rarity, t)
 	self.halo.ImageTransparency = 1 - (1 - R.HaloTransparency) * strength
 	if self.landed and rarity == "Mythic" then
-		local colour = CaseOpeningFx.shimmerAt(t)
+		local colour = ReelFx.shimmerAt(t)
 		self.bar.BackgroundColor3 = colour
 		for _, tip in self.tips do
 			tip.BackgroundColor3 = colour
@@ -546,7 +546,7 @@ function Reel.land(self: any, now: number)
 		self.glowFrom = now
 	end
 	UISound.play("ReelSettle")
-	local colour = CaseOpeningFx.color(self.prizeRarity)
+	local colour = ReelFx.color(self.prizeRarity)
 	local slot: Slot = self.slots[R.PrizeSlot]
 	slot.edge.Color = colour
 	slot.edge.Thickness = R.PrizeStrokePx

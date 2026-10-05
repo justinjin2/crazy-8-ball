@@ -2,10 +2,10 @@
 -- UltSpinAnim: the spin itself on the ult spin screen (docs/prompts/ULTIMATES_PROMPT.md section
 -- 9.4), UBG style. The server has already rolled and saved; this only plays what it sent.
 -- The name at the top cycles through ult names in their rarity colours, fast then slowing
--- (Config.UI.UltScreen.Spin), with the case reel's tick per change, and lands on the result
+-- (Config.UI.UltScreen.Spin), with the block reel's tick per change, and lands on the result
 -- with the reel's sting for its tier. Epic and up get a 1 s build-up before landing (the reel's
 -- whoosh, the names teasing the top rarities), a screen flash and the bigger sting; Legendary
--- and up confetti too. A tap, a click or gamepad A skips to the result; Fast Open's Skip lands
+-- and up confetti too. A tap, a click or gamepad A skips to the result; VIP's Skip lands
 -- at once. The screen (UltScreen) does the rest on landing: the aura's burst, the avatar's hop,
 -- the new state drawn.
 local ContextActionService = game:GetService("ContextActionService")
@@ -23,8 +23,8 @@ local UISound = require(script.Parent.UISound)
 local Parts = require(script.Parent.UltScreenParts)
 
 local SP = Config.UI.UltScreen.Spin
-local STINGS: { [string]: string } = Config.UI.CaseOpening.Stings :: any
-local SKIP = Strings.CaseOpening
+local STINGS: { [string]: string } = Config.UI.Reel.Stings :: any
+local SKIP = Strings.Reel
 local SKIP_ACTION = "8ballUltSpinSkip"
 -- Over Menus' B (+20) and a popup's (+30): A skips the spin before a selected button hears it.
 local SKIP_PRIORITY = Enum.ContextActionPriority.High.Value + 35
@@ -173,7 +173,7 @@ function UltSpinAnim.pick(self: any, last: string?, top: boolean): string
 	return list[1]
 end
 
---- Play a spin that landed on `result`. `instant` (Fast Open's Skip) lands at once. `done`
+--- Play a spin that landed on `result`. `instant` (VIP's Skip) lands at once. `done`
 --- runs once it has landed (false) or was cut short silently by cancel (true).
 function UltSpinAnim.play(self: any, result: Result, instant: boolean, done: (boolean) -> ())
 	self:cancel()

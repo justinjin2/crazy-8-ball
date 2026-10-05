@@ -1,8 +1,8 @@
 --!strict
 -- Progression: the client side of ranks, money and the economy. It builds the screens (the rank
 -- HUD top left, the money HUD bottom left, nameplates, the flying cash, the result screen, NEW
--- RANK!, the roadmap; the left column, the Shop, Inventory, Rewards and Trade menus, the case
--- opening and the top banner) and routes the server's messages to them:
+-- RANK!, the roadmap; the left column, the Shop, Inventory, Rewards and Trade menus, the lucky
+-- blocks and the top banner) and routes the server's messages to them:
 -- - MoneyGrant (a shot paid you): cash chips fly from the pockets into the money HUD.
 -- - MatchSummary (your match ended): the result screen, then NEW RANK! if you ranked up.
 -- - RankEvent (/xp, /newrank): NEW RANK!, never during a shot.
@@ -11,9 +11,11 @@
 -- It also starts ChatTags (the [TIER] tag before names in chat).
 --
 -- Every full menu (the roadmap too) opens through Menus, one at a time. The left column hides
--- in a match and under the popups (the result screen, NEW RANK!, the case opening, the
--- teleport screen); a match starting (or its result screen) closes the case opening and any
--- open menu. Nothing here ever sends an amount back: the numbers are already in the save.
+-- in a match and under the popups (the result screen, NEW RANK!, a lucky block's reel, the
+-- teleport screen); a match starting (or its result screen) closes the reel and any open
+-- menu. No reward ever pops up by itself: the daily login and playtime gifts are claimed in
+-- Rewards (designer, 2026-10-04). Nothing here ever sends an amount back: the numbers are
+-- already in the save.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextChatService = game:GetService("TextChatService")
@@ -23,7 +25,6 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Banner = require(script.Parent.Banner)
-local CaseOpening = require(script.Parent.CaseOpening)
 local CashFlyer = require(script.Parent.CashFlyer)
 local ChatTags = require(script.Parent.ChatTags)
 local InventoryMenu = require(script.Parent.InventoryMenu)
@@ -41,17 +42,12 @@ local RewardsMenu = require(script.Parent.RewardsMenu)
 local Roadmap = require(script.Parent.Roadmap)
 local RankClaimBlock = require(script.Parent.RankClaimBlock)
 local ShopMenu = require(script.Parent.ShopMenu)
-local ShopThanks = require(script.Parent.ShopThanks)
-local MagicBall = require(script.Parent.MagicBall)
 local FreeRewardMenu = require(script.Parent.FreeRewardMenu)
 local HubCorners = require(script.Parent.HubCorners)
-local ComeBack = require(script.Parent.ComeBack)
 local PlayerList = require(script.Parent.PlayerList)
 local ResultCutscene = require(script.Parent.ResultCutscene)
-local RewardPopups = require(script.Parent.RewardPopups)
 local SettingsMenu = require(script.Parent.SettingsMenu)
 local SettingsState = require(script.Parent.SettingsState)
-local Popups = require(script.Parent.Popups)
 local TeleportScreen = require(script.Parent.TeleportScreen)
 local TradeMenu = require(script.Parent.TradeMenu)
 local UISound = require(script.Parent.UISound)
@@ -93,7 +89,6 @@ local rankHud: any = nil
 local plates: any = nil
 local column: any = nil
 local banner: any = nil
-local caseOpening: any = nil
 local corners: any = nil
 local playerList: any = nil
 local started = false
@@ -150,14 +145,13 @@ end
 -- A popup that has the player's attention: menus and held rank popups wait for it, the column
 -- hides under it.
 local function popupUp(): boolean
-	return result:isOpen() or newRank:isOpen() or caseOpening:isOpen() or LuckyClient.isOpen()
+	return result:isOpen() or newRank:isOpen() or LuckyClient.isOpen()
 end
 
--- Close the case opening (its overlay; the first win's reveal belongs to the result screen)
--- and then any open menu, in that order, so the gamepad's selection is not handed back to a
--- button in a menu that is closing.
+-- Close a lucky block's reel (and its pull cutscene) and then any open menu, in that order,
+-- so the gamepad's selection is not handed back to a button in a menu that is closing.
 local function closeScreens()
-	caseOpening:close()
+	LuckyClient.close()
 	Menus.close()
 end
 
@@ -198,20 +192,24 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	TutorialAnchors.set("MoneyHud", money.root)
 
 	-- The economy's screens share one table of the things they fly to and open; a field set
-	-- after a menu is built is still seen by it (they read it when used).
-	local deps: any = { money = money, flyer = flyer, rankHud = rankHud }
+	-- after a menu is built is still seen by it (they read it when used). A lucky block
+	-- flies to the hotbar (hotbarCenter, bumpHotbar) when it shows, else to deps.column's
+	-- Inventory tile.
+	local deps: any = {
+		money = money,
+		flyer = flyer,
+		rankHud = rankHud,
+		hotbarCenter = LuckyClient.hotbarCenter,
+		bumpHotbar = LuckyClient.bumpHotbar,
+	}
 	-- The result screen and NEW RANK! were built before this table: they read it when used
-	-- (the free case and rank rewards fly to deps.column; the first win's reveal is
-	-- deps.caseOpening's).
+	-- (the win's block and rank rewards fly to the hotbar or deps.column).
 	result:setDeps(deps)
 	newRank:setDeps(deps)
-	caseOpening = CaseOpening.new(screen, deps)
-	deps.caseOpening = caseOpening
 	ShopMenu.new(screen, deps)
 	InventoryMenu.new(screen, deps)
 	RewardsMenu.new(screen, deps)
 	TradeMenu.new(screen, deps)
-	RewardPopups.start(screen, deps) -- the daily login and playtime popups (before the page)
 	FreeRewardMenu.new(screen, deps)
 	SettingsMenu.new(screen, deps)
 	-- Held rank rewards: the claim block over the roadmap (the tutorial lane).
@@ -232,21 +230,11 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	corners = HubCorners.new(screen, deps)
 	deps.corners = corners
 	playerList = PlayerList.new(screen)
-	ComeBack.start(screen, function(): any?
-		local latest = ItemState.rewards()
-		return if type(latest) == "table" then latest.next else nil
-	end)
 	banner = Banner.new(screen, { avoid = { rankHud.holder } })
 	Menus.setBlocker(function(): boolean
 		return lastState.inMatch or popupUp()
 	end)
-	-- Join and reward popups wait for the hub: no match, no screen or menu up.
-	Popups.setGate(function(): boolean
-		return not lastState.inMatch and not popupUp() and not Menus.isOpen() and not teleportUp()
-	end)
-	ShopThanks.start(screen)
-	MagicBall.start(screen, deps) -- the Case Drop reveals, through the popup queue
-	LuckyClient.start(screen) -- lucky blocks: the hotbar, the throw, the reel (the test build)
+	LuckyClient.start(screen) -- lucky blocks: the hotbar, the throw, the reel
 	local player = Players.LocalPlayer
 	local playerGui = player and player:FindFirstChildOfClass("PlayerGui")
 	if playerGui then
@@ -260,7 +248,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	end)
 	Net.get("MatchSummary").OnClientEvent:Connect(function(summary: any)
 		if valid(summary) and valid(summary.you) and valid(summary.money) then
-			-- A loss is remembered for a minute: no need-money popup right after it.
+			-- A loss is remembered for a minute (the ult screen's need-money notice).
 			if summary.you.outcome ~= "Win" then
 				deps.lostAt = os.clock()
 			end
@@ -293,22 +281,10 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 end
 
 --- Whether a rank, money or economy screen has the player's attention (the result screen, NEW
---- RANK!, the case opening, or any full menu: the roadmap, Shop, Inventory, Rewards, Trade):
---- Main's B-to-leave waits while one is up.
+--- RANK!, a lucky block's reel, or any full menu: the roadmap, Shop, Inventory, Rewards,
+--- Trade): Main's B-to-leave waits while one is up.
 function Progression.isBusy(): boolean
 	return started and (popupUp() or Menus.isOpen())
-end
-
---- The tutorial lane: opens one `caseId` from the inventory (the case opening plays).
-function Progression.openCase(caseId: string)
-	if started then
-		caseOpening:open(caseId, 1)
-	end
-end
-
---- The tutorial lane: whether the case opening is up.
-function Progression.caseOpeningUp(): boolean
-	return started and caseOpening:isOpen()
 end
 
 --- The rematch row on the result screen (designer, 2026-09-28): Main presses its buttons
@@ -351,9 +327,9 @@ end
 
 --- The D-pad in the hub (Main, for a press no GUI took): up, right and down open the Shop,
 --- Inventory and Free Reward (the Daily Challenge once that is gone), as the left column's
---- tiles; left focuses the player list (GUI lane, 2026-10-03). Never in a match (the D-pad aims there), while a menu is open (the D-pad moves
---- its selection), while a text box has focus, or while the column is hidden. Returns whether
---- it took the press.
+--- tiles; left focuses the player list (GUI lane, 2026-10-03). Never in a match (the D-pad
+--- aims there), while a menu is open (the D-pad moves its selection), while a text box has
+--- focus, or while the column is hidden. Returns whether it took the press.
 function Progression.padRoute(key: Enum.KeyCode): boolean
 	local name = PAD_ROUTE[key]
 	if not name or not started or lastState.inMatch then
@@ -386,7 +362,7 @@ function Progression.padRoute(key: Enum.KeyCode): boolean
 end
 
 --- Where something earned elsewhere flies to: a column tile's centre in absolute pixels
---- ("Inventory" for a case or a cue), or nil.
+--- ("Inventory" for a cue), or nil.
 function Progression.menuTarget(name: string): Vector2?
 	return if started then column:tileCenter(name) else nil
 end
@@ -399,46 +375,39 @@ function Progression.bumpMenu(name: string)
 end
 
 --- Main calls this every frame with where the player is: the rank HUD and the left column
---- hide in a match and under the popups, a match starting closes the case opening and any open
---- menu, the banner waits during a match, the nameplates of your match's players hide, and held
+--- hide in a match and under the popups, a match starting closes the reel and any open menu,
+--- the banner waits during a match, the nameplates of your match's players hide, and held
 --- rank popups wait for a quiet moment.
 function Progression.update(state: State)
 	if not started then
 		return
 	end
 	lastState = state
-	local busy = result:isOpen()
-		or newRank:isOpen()
-		or ResultCutscene.isPlaying()
-		or ComeBack.isPlaying()
+	local busy = result:isOpen() or newRank:isOpen() or ResultCutscene.isPlaying()
+	local reelUp = LuckyClient.isOpen()
 	rankHud:setVisible(not state.inMatch and not busy and not TutorialAnchors.hidden("Rank"))
-	-- Under the result screen and NEW RANK! the column still shows while a case or cue flies
-	-- into its Inventory tile (RewardChips), so the tile is there to catch it.
+	-- Under the result screen and NEW RANK! the column and the hotbar still show while a block
+	-- or cue flies into them (RewardChips), so the target is there to catch it.
+	local catching = RewardChips.catching()
 	column:setVisible(
-		not state.inMatch
-			and (not busy or RewardChips.catching())
-			and not caseOpening:isOpen()
-			and not teleportUp()
+		not state.inMatch and (not busy or catching) and not reelUp and not teleportUp()
 	)
-	corners:setVisible(
-		not state.inMatch and not busy and not caseOpening:isOpen() and not teleportUp()
-	)
+	corners:setVisible(not state.inMatch and not busy and not reelUp and not teleportUp())
 	corners:setChallengeHidden(state.queueOpen == true)
 	playerList:setVisible(
 		not state.inMatch
 			and state.queueOpen ~= true
 			and not busy
-			and not caseOpening:isOpen()
+			and not reelUp
 			and not teleportUp()
 			and not Menus.isOpen()
-			and not Popups.isShowing()
 	)
 	-- The lucky block hotbar: the lobby with nothing over it (its own bag aside).
 	local menu = Menus.current()
 	LuckyClient.setVisible(
 		not state.inMatch
-			and not busy
-			and not caseOpening:isOpen()
+			and (not busy or catching)
+			and not reelUp
 			and not teleportUp()
 			and (menu == nil or menu == "LuckyBag")
 	)
@@ -450,15 +419,15 @@ function Progression.update(state: State)
 		result:setLifted(false)
 	end
 	if state.inMatch and not wasInMatch then
-		-- A full menu or the case opening would cover the table (and the overlay would keep
-		-- the gamepad's A and B): a player waiting on a pad may have opened either.
+		-- A full menu or the reel would cover the table (and the overlay would keep the
+		-- gamepad's A and B): a player waiting on a pad may have opened either.
 		closeScreens()
 	end
 	wasInMatch = state.inMatch
 	plates:setHidden(
 		if state.inMatch then state.matchUserIds else ResultCutscene.hiddenIds() or NOBODY
 	)
-	-- Held rank popups also wait for the case opening's overlay to close.
+	-- Held rank popups also wait for the reel to close.
 	if #heldRanks > 0 and not state.shooting and not popupUp() then
 		-- The menus draw over the HUD screen, so they make way for the popup.
 		Menus.close()

@@ -17,7 +17,7 @@
 --   PaidRandomRestricted), money spins, the R$ spin packs and Lucky Spins are refused; a player
 --   PolicyService has not answered yet is refused "NotLoaded". Free spins, codes and grants
 --   still work.
--- - Auto Spin (Fast Open owners): one loop per player, one spin every Config.Ults.AutoSpinSeconds
+-- - Auto Spin (VIPs): one loop per player, one spin every Config.Ults.AutoSpinSeconds
 --   through the same lock, each result on UltAuto; it stops when the stop rarity or better
 --   lands, spins run out, the slot is locked or not owned, the next spin would replace an Epic
 --   or better (before it), the player sends AutoStop, leaves, or the server shuts down.
@@ -152,7 +152,7 @@ local function build(player: Player): SpinView.Payload?
 		devAll = devAllOf(player),
 		live = isLive(player),
 		restricted = restrictedOf(player) ~= false,
-		fastOpen = player:GetAttribute(VIP_ATTR) == true,
+		vip = player:GetAttribute(VIP_ATTR) == true,
 		prices = Store.prices(),
 		auto = if auto ~= nil
 			then { stopAt = auto.stopAt, lucky = auto.lucky, count = auto.count }
@@ -458,7 +458,7 @@ function HANDLERS.AutoStart(player: Player, r: SpinView.Request): Reply
 	if not isLive(player) then
 		return refuse("NotLive")
 	elseif player:GetAttribute(VIP_ATTR) ~= true then
-		return refuse("NoFastOpen")
+		return refuse("NoVip")
 	elseif autos[player] ~= nil then
 		return refuse("AutoRunning")
 	end

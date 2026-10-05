@@ -1,7 +1,7 @@
 --!strict
 -- UltScreen: the ult spin screen (docs/prompts/ULTIMATES_PROMPT.md section 9; reference 09,
 -- Untitled Boxing Game's style screen), a full menu opened through Menus ("Ults": the left
--- column's 5th tile, gamepad X in the hub, the leave reminder's button). One menu at a time,
+-- column's 5th tile, gamepad X in the hub). One menu at a time,
 -- Modal; B, Escape and BACK TO MENU close it. Not the white menu frame: a dark stage
 -- (UltStage: the camera cuts to a hidden room with the avatar in its idle and its rarity aura)
 -- with the kit's parts over it. While it is open the HUD, Roblox's touch controls and walking
@@ -13,7 +13,7 @@
 -- the three slot cards (UltSlots); right the odds bars and the code box (UltOdds); bottom
 -- centre LUCKY SPINS, the big gold SPIN (FREE SPIN while today's free spin is unused, SLOT
 -- LOCKED greyed while the selected slot is locked) and SPINS LEFT; bottom right pity, the money
--- and the buy row (UltBuy); bottom left the red BACK TO MENU, with Fast Open's Skip and AUTO
+-- and the buy row (UltBuy); bottom left the red BACK TO MENU, with VIP's Skip and AUTO
 -- SPIN beside it (UltFast). On a phone (Short, section 9.5) the slots are a compact column,
 -- the odds open from an "Odds" button and the buy row from "Buy spins", each in a popup.
 --
@@ -932,7 +932,7 @@ function UltScreen.layout(self: any)
 	local fastW = g.px("FastWidthPx")
 	local popupW = math.min(g.px("PopupWidthPx"), W_ - 2 * m - 40)
 	if g.short then
-		-- Odds button top right under Roblox's row, Fast Open under it.
+		-- Odds button top right under Roblox's row, VIP's Skip under it.
 		self.oddsButton.Visible = true
 		self.oddsButton.Position = UDim2.fromOffset(W_ - m - openW, topRow + 4)
 		self.oddsButton.Size = UDim2.fromOffset(openW, openH)
@@ -991,7 +991,7 @@ function UltScreen.layout(self: any)
 		self.odds.scroll.Position = UDim2.fromOffset(W_ - m - oddsW, oddsTop)
 		self.odds.scroll.Size = UDim2.fromOffset(oddsW, math.max(80, statusY - gap - oddsTop))
 		self.odds:layout(g, oddsW, false)
-		-- Fast Open between BACK TO MENU and SPIN, or over BACK TO MENU when that is too tight.
+		-- VIP's Skip between BACK TO MENU and SPIN, or over BACK TO MENU when that is too tight.
 		local fastH = self.fast:layout(g, fastW)
 		local fastX = m + backW + 2 * gap
 		local spinLeft = cx - math.floor(spinW / 2)
@@ -1002,7 +1002,7 @@ function UltScreen.layout(self: any)
 		end
 	end
 
-	-- Left: the slot cards, between the title row and BACK TO MENU (and Fast Open over it).
+	-- Left: the slot cards, between the title row and BACK TO MENU (and VIP's Skip over it).
 	local slotsTop = topRow + m
 	local slotsBottom = backY - gap
 	if not g.short and self.fast.holder.Visible then

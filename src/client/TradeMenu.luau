@@ -31,7 +31,7 @@ local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
-local RewardChips = require(script.Parent.RewardChips)
+local BlockIcon = require(script.Parent.BlockIcon)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -40,7 +40,7 @@ local C = Config.UI.Trade
 local K = Config.UI.Kit
 local W = Strings.Trade
 local MAX = Config.Trade.MaxSideItems
-local CASE = "Case:"
+local BLOCK = "Block:" -- a ready lucky block, by kind (Progression/Trade)
 local THUMB_SIZE: Enum.ThumbnailSize = (Enum.ThumbnailSize :: any)[C.Thumbnail]
 	or Enum.ThumbnailSize.Size150x150
 
@@ -68,26 +68,30 @@ local function gamepad(): boolean
 	return string.sub(UserInputService:GetLastInputType().Name, 1, 7) == "Gamepad"
 end
 
-local function caseId(item: string): string?
-	return if string.sub(item, 1, #CASE) == CASE then string.sub(item, #CASE + 1) else nil
+local function blockKind(item: string): string?
+	return if string.sub(item, 1, #BLOCK) == BLOCK then string.sub(item, #BLOCK + 1) else nil
 end
 
 local function itemName(item: string): string
-	local id = caseId(item)
-	if id then
-		local names: { [string]: string } = Strings.Items.Cases :: any
-		return names[id] or id
+	local kind = blockKind(item)
+	if kind then
+		local names: { [string]: string } = Strings.LuckyBlocks.Names :: any
+		return names[kind] or kind
 	end
 	return CueThumb.cueName(item)
 end
 
--- An item's picture filling `parent` (a cue's thumbnail or a case's chest).
+-- An item's picture filling `parent` (a cue's thumbnail or a lucky block's 3D icon).
 local function picture(parent: Instance, item: string, z: number)
-	local id = caseId(item)
-	if id then
-		local icon = HudParts.icon(parent, RewardChips.caseIcon(id), "Picture")
-		icon.Size = UDim2.fromScale(1, 1)
-		icon.ZIndex = z
+	local kind = blockKind(item)
+	if kind then
+		local icon = BlockIcon.new(parent, kind, true)
+		icon.root.Name = "Picture"
+		icon.root.ZIndex = z
+		icon.viewport.ZIndex = z
+		if icon.fallback then
+			icon.fallback.ZIndex = z
+		end
 	else
 		local thumb = CueThumb.new(parent, item)
 		thumb.Name = "Picture"

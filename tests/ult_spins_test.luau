@@ -117,7 +117,7 @@ local function ctx(extra: { [string]: any }?): any
 		devAll = false,
 		live = true,
 		restricted = false,
-		fastOpen = false,
+		vip = false,
 		prices = {},
 	}
 	for key, value in extra or {} do
@@ -410,7 +410,7 @@ return {
 				now = 0,
 				shop = { FirstJoin = 0, Purchases = {}, Limited = {} },
 				vipPass = false,
-				fastOpen = false,
+				vip = false,
 				restricted = false,
 				partyEndsAt = 0,
 				sold = {},
@@ -512,7 +512,7 @@ return {
 			H.expect(total == want, name .. ": odds add up")
 			H.near(percent, want / 10000, 1e-9, name .. ": shown as percents adding to 100")
 		end
-		H.expect(p.live and not p.restricted and not p.fastOpen and not p.devAll, "flags")
+		H.expect(p.live and not p.restricted and not p.vip and not p.devAll, "flags")
 		H.expect(p.moneyPerSpin == 17500 and #p.moneyPacks == 4, "money")
 		H.expect(p.code.active == "RELEASE" and p.code.nextGoalLikes == 100, "the code box")
 		H.expect(not p.auto.running and p.auto.count == 0 and #p.autoStopChoices == 3, "auto")
@@ -543,7 +543,7 @@ return {
 			ults = u,
 			passes = ALL,
 			devAll = true,
-			fastOpen = true,
+			vip = true,
 			auto = { stopAt = "Epic", lucky = false, count = 4 },
 		}))
 		H.expect(q.owned[3] and q.selected == 3 and q.locked[3], "slot 3")

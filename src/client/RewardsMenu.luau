@@ -3,18 +3,18 @@
 -- column's Rewards tile (or the D-pad's down in the hub) through Menus. Tabs, each its own
 -- module:
 -- - Daily (RewardsDaily): the week's seven day tiles, claimed ones with a check, today's
---   glowing with Claim, later ones dimmer; "Week 1 of 4: a Legendary Case on day 28".
--- - Playtime (RewardsPlaytime): 10 min $100, 30 min a Standard Case, 60 min 2 Standard Cases,
+--   glowing with Claim, later ones dimmer; "Week 1 of 4: a Legendary Lucky Block on day 28".
+-- - Playtime (RewardsPlaytime): $100, lucky blocks and the day's last ult spin, with
 --   progress bars from the server's playtime today, Claim when due.
 -- - Codes (RewardsCodes): a text box and Redeem; the server's answer under the box.
 -- A tab with something to claim wears a small red "!" and the menu opens on it when opened
 -- without a tab. An Index row's reward (the Rewards tile's dot counts it, the Inventory's Index
 -- tab claims it) shows as a banner on the Daily tab with Open Index, which closes this menu and
 -- opens the Inventory on its Index tab (ItemState's "Items" snapshot says when). What a claim
--- gave flies out of its button (RewardsFlyer): money into the money HUD, each case to the
--- column's Inventory tile, ult spins to its Ults button (the Rewards tile without one), with
--- the Claim sound. The reminder toast when Roblox's menu opens or
--- the window loses focus starts here too (Reminders.start).
+-- gave flies out of its button (RewardsFlyer): money into the money HUD, each lucky block to
+-- the hotbar (or the column's Inventory tile), ult spins to its Ults button (the Rewards tile
+-- without one), with the Claim sound. Nothing is ever claimed by itself and nothing pops up
+-- (designer, 2026-10-04: every reward is claimed here).
 --
 -- Data: ItemState's "Rewards" snapshot (RewardState, src/shared/Net.luau), redrawn on every
 -- ItemState.Changed.Rewards; claims through ItemState.request("RewardRequest", action, arg)
@@ -35,7 +35,6 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
-local Reminders = require(script.Parent.Reminders)
 local RewardsCodes = require(script.Parent.RewardsCodes)
 local RewardsDaily = require(script.Parent.RewardsDaily)
 local RewardsFlyer = require(script.Parent.RewardsFlyer)
@@ -58,7 +57,7 @@ local function gamepadInUse(): boolean
 end
 
 --- Build the Rewards (closed) and register it with Menus. `deps` is Progression's shared
---- table: money (MoneyHud), flyer (CashFlyer), column (MenuColumn), caseOpening, rankHud; a
+--- table: money (MoneyHud), flyer (CashFlyer), column (MenuColumn), rankHud; a
 --- field may be filled after this returns, so it is read when used.
 function RewardsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local words: { [string]: string } = Strings.Menus.Tabs.Rewards :: any
@@ -312,11 +311,6 @@ function RewardsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 		return nil
 	end
-
-	Reminders.start(screen, function(): any?
-		local latest = ItemState.rewards()
-		return if type(latest) == "table" then latest.next else nil
-	end)
 
 	local handle: Menus.Handle = {
 		open = function(tab: string?)

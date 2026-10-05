@@ -18,7 +18,7 @@
 --   in the same colours (ChatTags.system): at once, even in a match, since chat is not the top
 --   of the screen.
 -- - This player's own finds from the CueFound remote (a cue new to their Index, not from a
---   case reel, which shows its own): "New in your Index: VIP Cue! +$500", in the cue's rarity
+--   block reel, which shows its own): "New in your Index: VIP Cue! +$500", in the cue's rarity
 --   colour, queued like the rest.
 --
 -- In a match everything waits (overnight decision, 2026-09-28): the top of the screen is the

@@ -1,11 +1,11 @@
 --!strict
 -- RewardsFlyer: what a claim in the Rewards menu gave flies out of the button that claimed it
 -- (docs/prompts/ECONOMY_UI_PROMPT.md section 11): the money as the kit's cash chip ("+$250",
--- CashFlyer's look and timing) into the money HUD, which counts up as it lands; each case as
--- its chest (with "x2") on a curve to the left column's Inventory tile, which bounces
--- (MenuColumn.tileCenter and bump); ult spins and Lucky Spins (their icons with "+2") the same
--- way to the column's Ults button, or the Rewards tile when the column has no Ults button
--- (RewardsParts.SpinTiles). Everything flies in its own ScreenGui just over the menus,
+-- CashFlyer's look and timing) into the money HUD, which counts up as it lands; each lucky
+-- block as its 3D icon (with "x2") on a curve to the hotbar when it shows (deps.hotbarCenter,
+-- bumpHotbar), else the left column's Inventory tile, which bounces (MenuColumn.tileCenter and
+-- bump); ult spins and Lucky Spins (their icons with "+2") the same way to the column's Ults
+-- button, or the Rewards tile when the column has no Ults button (RewardsParts.SpinTiles). Everything flies in its own ScreenGui just over the menus,
 -- so it is seen over the open menu's panel (the HUDs sit under it; on a phone the panel covers
 -- them and the chips land where they are). Purely visual: the server already put the reward
 -- in the save.
@@ -15,6 +15,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local BlockIcon = require(script.Parent.BlockIcon)
 local CashFlyer = require(script.Parent.CashFlyer)
 local HudParts = require(script.Parent.HudParts)
 local RewardsParts = require(script.Parent.RewardsParts)
@@ -59,7 +60,7 @@ function RewardsFlyer.new(screen: ScreenGui, deps: any): any
 	gui.DisplayOrder = screen.DisplayOrder + DIM.DisplayOrderAbove + F.DisplayOrderAbove
 	gui.Parent = screen.Parent
 	self.gui = gui
-	local layer = HudParts.frame(gui, "Cases")
+	local layer = HudParts.frame(gui, "Flights")
 	layer.Size = UDim2.fromScale(1, 1)
 	layer.ZIndex = F.ZIndex
 	self.layer = layer
@@ -82,8 +83,8 @@ function RewardsFlyer.cashFlyer(self: any): any?
 	return self.cash
 end
 
---- Fly a reward ({ money, cases } in either shape, as RewardRequest answers) out of `from`
---- (absolute pixels: the button's centre).
+--- Fly a reward ({ money, blocks, spins, lucky } in either shape, as RewardRequest answers)
+--- out of `from` (absolute pixels: the button's centre).
 function RewardsFlyer.reward(self: any, value: any, from: Vector2)
 	local reward = RewardsParts.reward(value)
 	local start = if finitePoint(from)
@@ -99,10 +100,10 @@ function RewardsFlyer.reward(self: any, value: any, from: Vector2)
 			delay = F.AfterMoneySeconds
 		end
 	end
-	-- The cases' chests, then the spins' icons, one after another.
+	-- The blocks, then the spins' icons, one after another.
 	local items = RewardsParts.pictures({
 		money = 0,
-		cases = reward.cases,
+		blocks = reward.blocks,
 		spins = reward.spins,
 		lucky = reward.lucky,
 	})
@@ -112,8 +113,19 @@ function RewardsFlyer.reward(self: any, value: any, from: Vector2)
 	end
 end
 
--- The first of `tiles` the column has, and its centre now (nil: no column, or none of them).
-local function tileOf(column: any, tiles: { string }): (string?, Vector2?)
+-- Where a picture lands: a block's the hotbar's middle while the bar shows ("Hotbar"); else
+-- the first of `tiles` the column has, and its centre now (nil: no column, or none of them).
+local function tileOf(deps: any, block: boolean, tiles: { string }): (string?, Vector2?)
+	if type(deps) ~= "table" then
+		return nil, nil
+	end
+	if block and type(deps.hotbarCenter) == "function" then
+		local ok, point = pcall(deps.hotbarCenter)
+		if ok and finitePoint(point) then
+			return "Hotbar", point
+		end
+	end
+	local column = deps.column
 	if not column then
 		return nil, nil
 	end
@@ -126,8 +138,9 @@ local function tileOf(column: any, tiles: { string }): (string?, Vector2?)
 	return nil, nil
 end
 
--- One picture (a case's chest with "x2", or a spin icon with "+2") from `from` to the first of
--- the column's `tiles` it has, after `delay` seconds.
+-- One picture (a lucky block with "x2", a cue's thumbnail, or a spin icon with "+2") from
+-- `from` to the hotbar (a block) or the first of the column's `tiles` it has, after `delay`
+-- seconds.
 function RewardsFlyer.flyPicture(
 	self: any,
 	picture: RewardsParts.Picture,
@@ -137,17 +150,29 @@ function RewardsFlyer.flyPicture(
 )
 	local layer: Frame = self.layer
 	local short = layer.AbsoluteSize.Y < Config.Multiplayer.Style.ShortHeight
-	local size = if short then F.ShortCaseSizePx else F.CaseSizePx
-	local chip = HudParts.frame(layer, if picture.label then "SpinChip" else "CaseChip")
+	local size = if short then F.ShortBlockSizePx else F.BlockSizePx
+	local block = picture.key == "Block"
+	local chip = HudParts.frame(layer, if picture.label then "SpinChip" else "ItemChip")
 	chip.AnchorPoint = Vector2.new(0.5, 0.5)
 	chip.Size = UDim2.fromOffset(size, size)
 	chip.ZIndex = F.ZIndex
 	chip.Visible = false
-	local icon = HudParts.icon(chip, picture.key, "Picture")
-	icon.Size = UDim2.fromScale(1, 1)
-	icon.ZIndex = F.ZIndex + 1
+	if block then
+		local icon = BlockIcon.new(chip, picture.kind or "", false)
+		icon.root.ZIndex = F.ZIndex + 1
+		icon.viewport.ZIndex = F.ZIndex + 1
+		if icon.fallback then
+			icon.fallback.ZIndex = F.ZIndex + 1
+		end
+	else
+		local icon = HudParts.icon(chip, picture.key, "Picture")
+		icon.Size = UDim2.fromScale(1, 1)
+		icon.ZIndex = F.ZIndex + 1
+	end
 	local words = picture.label
-		or (if picture.count > 1 then Strings.Menus.Rewards.CaseCount:format(picture.count) else "")
+		or (
+			if picture.count > 1 then Strings.Menus.Rewards.BlockCount:format(picture.count) else ""
+		)
 	if words ~= "" then
 		local count = HudParts.text(chip, "Count", F.CountTextPx, words)
 		count.AutoLocalize = false
@@ -176,7 +201,9 @@ function RewardsFlyer.flyPicture(
 		end
 		chip:Destroy()
 		local column = deps and deps.column
-		if landed and column and landing then
+		if landed and landing == "Hotbar" and deps and type(deps.bumpHotbar) == "function" then
+			pcall(deps.bumpHotbar)
+		elseif landed and column and landing then
 			pcall(column.bump, column, landing)
 		end
 	end
@@ -190,7 +217,7 @@ function RewardsFlyer.flyPicture(
 			return
 		end
 		local origin = layer.AbsolutePosition
-		local name, target = tileOf(deps and deps.column, tiles)
+		local name, target = tileOf(deps, block, tiles)
 		landing = name
 		local point, k
 		if elapsed < popEnd then
@@ -207,7 +234,7 @@ function RewardsFlyer.flyPicture(
 			finish(true)
 			return
 		else
-			-- Nowhere to land (no column): it pops out where it is.
+			-- Nowhere to land (no column, no hotbar): it pops out where it is.
 			UIAnim.popOut(chip, function()
 				finish(false)
 			end)

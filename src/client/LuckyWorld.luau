@@ -384,7 +384,17 @@ function World.allowPrompt(id: number)
 	end
 end
 
---- My block on the floor (its id), or nil.
+--- My block `id` on the floor: its part (the tutorial's hand points at it), or nil.
+function World.myLivePart(id: number): BasePart?
+	for model, t in tracked do
+		if model:GetAttribute("BlockId") == id and model:GetAttribute("Owner") == myId() then
+			return t.part
+		end
+	end
+	return nil
+end
+
+--- My blocks on the floor (their ids).
 function World.myLiveIds(): { [number]: boolean }
 	local ids: { [number]: boolean } = {}
 	local me = myId()

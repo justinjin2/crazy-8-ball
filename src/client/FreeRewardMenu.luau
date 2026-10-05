@@ -7,10 +7,10 @@
 --   member, the button reads Claim.
 -- - Favorite the game: Favorite is Roblox's own favorite prompt (AvatarEditorService:
 --   PromptSetFavorite on the place); when it answers yes (and GetFavorite agrees, when Roblox
---   answers it), the client claims (RewardRequest "ClaimFavorite": $10,000 + 1 Case Drop,
+--   answers it), the client claims (RewardRequest "ClaimFavorite": $10,000 + a Mystery block,
 --   once; a server cannot check a favorite). Under it: "Liking the game helps us too!" with no
 --   reward tied to it (Roblox gives games no way to check a like).
--- What a claim gave flies out of its button (RewardsFlyer); its Case Drops play the 8-ball.
+-- What a claim gave flies out of its button (RewardsFlyer); its blocks land in the hotbar.
 -- With both claimed the page says thank you (and the column's tile goes). Gamepad: opening
 -- lands on the first card's button; B closes (Menus). Sizes in Config.UI.FreeReward.
 local AvatarEditorService = game:GetService("AvatarEditorService")
@@ -26,8 +26,8 @@ local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
-local RewardPopups = require(script.Parent.RewardPopups)
 local RewardsFlyer = require(script.Parent.RewardsFlyer)
+local RewardsParts = require(script.Parent.RewardsParts)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -211,12 +211,12 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		local g = if type(state) == "table" then state.group else nil
 		local f = if type(state) == "table" then state.favorite else nil
 		if type(g) == "table" then
-			group.reward.Text = RewardPopups.words(g.reward)
+			group.reward.Text = RewardsParts.words(RewardsParts.reward(g.reward))
 			group.line.Text = W.GroupLine:format(round((tonumber(g.boost) or 0) * 100))
 			HudParts.setText(group.button, if g.member == true then W.Claim else W.Join)
 		end
 		if type(f) == "table" then
-			favorite.reward.Text = RewardPopups.words(f.reward)
+			favorite.reward.Text = RewardsParts.words(RewardsParts.reward(f.reward))
 			favorite.line.Text = W.FavoriteLine
 			HudParts.setText(favorite.button, W.Favorite)
 		end

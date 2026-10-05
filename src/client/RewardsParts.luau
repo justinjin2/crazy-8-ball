@@ -1,13 +1,13 @@
 --!strict
 -- RewardsParts: what the Rewards menu's pages (RewardsDaily, RewardsPlaytime, RewardsCodes),
--- its flying rewards (RewardsFlyer) and the reminders (Reminders) share:
---   * a reward read from either shape the server sends ({ money, cases, spins?, lucky? } with
---     `cases` a list of { id, count } (RewardState, RewardRequest) or a map id -> count
---     (MatchSummary's nextReward, Daily.nextReward)), and its words ("$250", "2 Standard
---     Cases", "Epic Case + 2 Ult Spins", "+$500 and a Standard Case"); `spins` and `lucky` are
+-- its flying rewards (RewardsFlyer), the Free Reward page and the rank claim share:
+--   * a reward read from either shape the server sends ({ money, blocks, spins?, lucky? } with
+--     `blocks` a list of { kind, count } (RewardState, RewardRequest) or a map kind -> count
+--     (Config.Daily rows, Ranks)), and its words ("$250", "2 Mystery Lucky Blocks", "a Rare
+--     Lucky Block + 2 Ult Spins", "+$500 and a Mystery Lucky Block"); `spins` and `lucky` are
 --     ult spins and Lucky Spins (docs/prompts/ULTIMATES_PROMPT.md section 10);
---   * a reward's pictures (the cash stack, each case's chest with "x2", the ult spin and the
---     Lucky Spin icons with "+2"), a white tile card like
+--   * a reward's pictures (the cash stack, each lucky block as its turning 3D icon (BlockIcon)
+--     with "x2", the ult spin and the Lucky Spin icons with "+2"), a white tile card like
 --     MenuFrame.tile's, a progress bar, a footer line of two parts, a tab's red dot;
 --   * { phone, full } pairs at a layout's t (Config.UI.Menu.Frame's convention) and times.
 -- Every word is from Strings; every size from Config.UI.Rewards and Config.UI.Kit.
@@ -18,26 +18,28 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
+local BlockIcon = require(script.Parent.BlockIcon)
 local HudParts = require(script.Parent.HudParts)
 
 local R = Config.UI.Rewards
 local K = Config.UI.Kit
 local CARD = Config.UI.Menu.Card
 local ICONS: { [string]: string } = K.Icons :: any
-local CASE_ORDER: { string } = Config.Cases.Order
-local CASE_NAMES: { [string]: string } = Strings.Items.Cases :: any
+local BLOCK_ORDER: { string } = Config.LuckyBlocks.Order
+local BLOCK_NAMES: { [string]: string } = Strings.LuckyBlocks.Names :: any
 local W = Strings.Menus.Rewards
-local CASE_MANY: { [string]: string } = W.CaseMany :: any
-local CASE_A: { [string]: string } = W.CaseA :: any
+local BLOCK_MANY: { [string]: string } = W.BlockMany :: any
+local BLOCK_A: { [string]: string } = W.BlockA :: any
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 local color = HudParts.color
 
-export type CaseCount = { id: string, count: number }
-export type Reward = { money: number, cases: { CaseCount }, spins: number, lucky: number }
+export type BlockCount = { kind: string, count: number }
+export type Reward = { money: number, blocks: { BlockCount }, spins: number, lucky: number }
 
 -- One picture of a reward: an icon key and how many ("x2" shows above 1), or `label` instead
--- (an ult spin's "+1", shown at any count).
-export type Picture = { key: string, count: number, label: string? }
+-- (an ult spin's "+1", shown at any count). A lucky block is key "Block" with its `kind`
+-- (drawn as its 3D icon, BlockIcon).
+export type Picture = { key: string, count: number, label: string?, kind: string? }
 
 -- The left column's tiles that ult spins fly into, the first that exists: the Ults button, else
 -- Rewards (a column without the Ults button yet).
@@ -88,53 +90,58 @@ end
 -- Rewards and their words
 --------------------------------------------------------------------------------------------
 
---- A reward from anything the server sends: { money, cases, spins?, lucky? } where `cases` is a
---- list of { id, count } (kept in its order) or a map of id -> count (in Config.Cases.Order,
---- then any other ids by name). Anything missing or malformed reads as nothing.
+--- A reward from anything the server sends: { money, blocks, spins?, lucky? } where `blocks`
+--- is a list of { kind, count } (kept in its order) or a map of kind -> count (in
+--- Config.LuckyBlocks.Order, then any other kinds by name). Anything missing or malformed
+--- reads as nothing.
 function RewardsParts.reward(value: any): Reward
-	local out: Reward = { money = 0, cases = {}, spins = 0, lucky = 0 }
+	local out: Reward = { money = 0, blocks = {}, spins = 0, lucky = 0 }
 	if type(value) ~= "table" then
 		return out
 	end
 	out.money = whole(value.money)
 	out.spins = whole(value.spins)
 	out.lucky = whole(value.lucky)
-	local cases = value.cases
-	if type(cases) ~= "table" then
+	local blocks = value.blocks
+	if type(blocks) ~= "table" then
 		return out
 	end
-	if #cases > 0 then
-		for _, entry in ipairs(cases) do
-			if type(entry) == "table" and type(entry.id) == "string" and whole(entry.count) > 0 then
-				table.insert(out.cases, { id = entry.id, count = whole(entry.count) })
+	if #blocks > 0 then
+		for _, entry in ipairs(blocks) do
+			if
+				type(entry) == "table"
+				and type(entry.kind) == "string"
+				and whole(entry.count) > 0
+			then
+				table.insert(out.blocks, { kind = entry.kind, count = whole(entry.count) })
 			end
 		end
 		return out
 	end
 	local seen: { [string]: boolean } = {}
-	for _, id in CASE_ORDER do
-		seen[id] = true
-		local count = whole(cases[id])
+	for _, kind in BLOCK_ORDER do
+		seen[kind] = true
+		local count = whole(blocks[kind])
 		if count > 0 then
-			table.insert(out.cases, { id = id, count = count })
+			table.insert(out.blocks, { kind = kind, count = count })
 		end
 	end
 	local others: { string } = {}
-	for id, count in cases do
-		if type(id) == "string" and not seen[id] and whole(count) > 0 then
-			table.insert(others, id)
+	for kind, count in blocks do
+		if type(kind) == "string" and not seen[kind] and whole(count) > 0 then
+			table.insert(others, kind)
 		end
 	end
 	table.sort(others)
-	for _, id in others do
-		table.insert(out.cases, { id = id, count = whole(cases[id]) })
+	for _, kind in others do
+		table.insert(out.blocks, { kind = kind, count = whole(blocks[kind]) })
 	end
 	return out
 end
 
---- Whether a reward gives nothing at all (no money, cases, ult spins or Lucky Spins).
+--- Whether a reward gives nothing at all (no money, blocks, ult spins or Lucky Spins).
 function RewardsParts.isEmpty(reward: Reward): boolean
-	return reward.money <= 0 and #reward.cases == 0 and reward.spins <= 0 and reward.lucky <= 0
+	return reward.money <= 0 and #reward.blocks == 0 and reward.spins <= 0 and reward.lucky <= 0
 end
 
 --- Ult spins' words: "1 Ult Spin", "3 Ult Spins" ("" for none).
@@ -153,7 +160,7 @@ function RewardsParts.luckyWords(count: number): string
 	return if count == 1 then W.LuckyOne else W.LuckyMany:format(count)
 end
 
--- A reward's spins and Lucky Spins as parts of its words, after its money and cases.
+-- A reward's spins and Lucky Spins as parts of its words, after its money and blocks.
 local function addSpinParts(parts: { string }, reward: Reward)
 	if reward.spins > 0 then
 		table.insert(parts, RewardsParts.spinWords(reward.spins))
@@ -163,38 +170,38 @@ local function addSpinParts(parts: { string }, reward: Reward)
 	end
 end
 
---- A case's name: "Rare Case".
-function RewardsParts.caseName(id: string): string
-	return CASE_NAMES[id] or id
+--- A lucky block's name: "Rare Lucky Block".
+function RewardsParts.blockName(kind: string): string
+	return BLOCK_NAMES[kind] or kind
 end
 
---- A case entry on its own: "Rare Case", or "2 Standard Cases".
-function RewardsParts.caseWords(entry: CaseCount): string
+--- A block entry on its own: "Rare Lucky Block", or "2 Mystery Lucky Blocks".
+function RewardsParts.blockWords(entry: BlockCount): string
 	if entry.count <= 1 then
-		return RewardsParts.caseName(entry.id)
+		return RewardsParts.blockName(entry.kind)
 	end
-	local many = CASE_MANY[entry.id]
+	local many = BLOCK_MANY[entry.kind]
 	if many then
 		return many:format(entry.count)
 	end
-	return W.CaseManyOther:format(entry.count, RewardsParts.caseName(entry.id))
+	return W.BlockManyOther:format(entry.count, RewardsParts.blockName(entry.kind))
 end
 
---- A case entry inside a sentence: "a Rare Case", or "2 Standard Cases".
-function RewardsParts.caseInSentence(entry: CaseCount): string
+--- A block entry inside a sentence: "a Rare Lucky Block", or "2 Mystery Lucky Blocks".
+function RewardsParts.blockInSentence(entry: BlockCount): string
 	if entry.count <= 1 then
-		return CASE_A[entry.id] or RewardsParts.caseName(entry.id)
+		return BLOCK_A[entry.kind] or RewardsParts.blockName(entry.kind)
 	end
-	return RewardsParts.caseWords(entry)
+	return RewardsParts.blockWords(entry)
 end
 
---- The most valuable case in a reward: the latest in Config.Cases.Order (an unknown id counts
---- as the least), or nil when it has none.
-function RewardsParts.bestCase(reward: Reward): CaseCount?
-	local best: CaseCount? = nil
+--- The most valuable block in a reward: the latest in Config.LuckyBlocks.Order (an unknown
+--- kind counts as the least), or nil when it has none.
+function RewardsParts.bestBlock(reward: Reward): BlockCount?
+	local best: BlockCount? = nil
 	local bestAt = -1
-	for _, entry in reward.cases do
-		local at = table.find(CASE_ORDER, entry.id) or 0
+	for _, entry in reward.blocks do
+		local at = table.find(BLOCK_ORDER, entry.kind) or 0
 		if at > bestAt then
 			best, bestAt = entry, at
 		end
@@ -211,29 +218,29 @@ local function joinPlus(parts: { string }): string
 	return text
 end
 
---- A tile's words: "$250", "Rare Case", "2 Standard Cases", "Epic Case + Legendary Case",
---- "Epic Case + 2 Ult Spins".
+--- A tile's words: "$250", "Rare Lucky Block", "2 Mystery Lucky Blocks", "$500 + Rare Lucky
+--- Block", "Epic Lucky Block + 2 Ult Spins".
 function RewardsParts.words(reward: Reward): string
 	local parts: { string } = {}
 	if reward.money > 0 then
 		table.insert(parts, Format.money(reward.money))
 	end
-	for _, entry in reward.cases do
-		table.insert(parts, RewardsParts.caseWords(entry))
+	for _, entry in reward.blocks do
+		table.insert(parts, RewardsParts.blockWords(entry))
 	end
 	addSpinParts(parts, reward)
 	return joinPlus(parts)
 end
 
---- What a claim gave, as a sentence's end: "+$500 and a Standard Case", "2 Standard Cases",
---- "3 Ult Spins".
+--- What a claim gave, as a sentence's end: "+$500 and a Mystery Lucky Block", "2 Mystery
+--- Lucky Blocks", "3 Ult Spins".
 function RewardsParts.summary(reward: Reward): string
 	local parts: { string } = {}
 	if reward.money > 0 then
 		table.insert(parts, Format.moneyDelta(reward.money))
 	end
-	for _, entry in reward.cases do
-		table.insert(parts, RewardsParts.caseInSentence(entry))
+	for _, entry in reward.blocks do
+		table.insert(parts, RewardsParts.blockInSentence(entry))
 	end
 	addSpinParts(parts, reward)
 	if #parts <= 1 then
@@ -246,33 +253,30 @@ function RewardsParts.summary(reward: Reward): string
 	return W.And:format(text, parts[#parts])
 end
 
---- The four-week bonus's words for the week line: "a Legendary Case" (Config.Daily.WeekBonus).
+--- The four-week bonus's words for the week line: "a Legendary Lucky Block"
+--- (Config.Daily.WeekBonus).
 function RewardsParts.bonusWords(): string
 	local row: any = Config.Daily.WeekBonus
 	local bonus = RewardsParts.reward({
 		money = if type(row) == "table" then row.Money else 0,
-		cases = if type(row) == "table" then row.Cases else nil,
+		blocks = if type(row) == "table" then row.Blocks else nil,
 	})
-	local best = RewardsParts.bestCase(bonus)
+	local best = RewardsParts.bestBlock(bonus)
 	if best then
-		return RewardsParts.caseInSentence(best)
+		return RewardsParts.blockInSentence(best)
 	end
 	return Format.money(bonus.money)
 end
 
---- A reward's pictures: the cash stack for money, then each case's chest, then the ult spin
---- icon ("+2") and the Lucky Spin icon ("+1").
+--- A reward's pictures: the cash stack for money, then each lucky block (key "Block" with its
+--- kind), then the ult spin icon ("+2") and the Lucky Spin icon ("+1").
 function RewardsParts.pictures(reward: Reward): { Picture }
 	local list: { Picture } = {}
 	if reward.money > 0 then
 		table.insert(list, { key = "CashStack", count = 1 })
 	end
-	for _, entry in reward.cases do
-		local key = "Case" .. entry.id
-		if type(ICONS[key]) ~= "string" or ICONS[key] == "" then
-			key = "Case"
-		end
-		table.insert(list, { key = key, count = entry.count })
+	for _, entry in reward.blocks do
+		table.insert(list, { key = "Block", kind = entry.kind, count = entry.count })
 	end
 	if reward.spins > 0 then
 		table.insert(
@@ -293,30 +297,65 @@ end
 -- A reward's pictures, side by side
 --------------------------------------------------------------------------------------------
 
+-- One slot: a kit icon (image) or a lucky block's 3D icon (block, in holder), and its count.
+type Slot = { holder: Frame, image: ImageLabel, block: BlockIcon.Icon?, count: TextLabel }
+
 export type Pictures = {
 	root: Frame, -- place it (AnchorPoint 0.5, 0.5); its size is set by layout
-	slots: { { image: ImageLabel, count: TextLabel } },
+	slots: { Slot },
 	pictures: { Picture },
 	fade: number,
 	z: number,
 }
 
-local function slot(self: Pictures, index: number)
+local function slot(self: Pictures, index: number): Slot
 	local found = self.slots[index]
 	if found then
 		return found
 	end
-	local image = HudParts.icon(self.root, "Case", "Picture" .. index)
-	image.ZIndex = self.z + index -- a later picture sits over the one before
+	local holder = HudParts.frame(self.root, "Picture" .. index)
+	holder.ZIndex = self.z + index -- a later picture sits over the one before
+	local image = HudParts.icon(holder, "CashStack", "Image")
+	image.Size = UDim2.fromScale(1, 1)
+	image.ZIndex = self.z + index
 	local count = HudParts.text(self.root, "Count" .. index, CARD.CountTextPx, "")
 	count.AutoLocalize = false -- "x2"
 	count.TextWrapped = false
 	count.AnchorPoint = Vector2.new(1, 1)
 	count.TextXAlignment = Enum.TextXAlignment.Right
 	count.ZIndex = self.z + 8
-	local made = { image = image, count = count }
+	local made: Slot = { holder = holder, image = image, block = nil, count = count }
 	self.slots[index] = made
 	return made
+end
+
+-- A slot shows a block's 3D icon (still, so a page of tiles costs nothing) or a kit icon.
+local function showPicture(s: Slot, picture: Picture, z: number)
+	if picture.key == "Block" then
+		local kind = picture.kind or ""
+		if s.block and s.block.kind ~= kind then
+			s.block:destroy()
+			s.block = nil
+		end
+		if not s.block then
+			local icon = BlockIcon.new(s.holder, kind, true)
+			icon.root.ZIndex = z
+			icon.viewport.ZIndex = z
+			if icon.fallback then
+				icon.fallback.ZIndex = z
+			end
+			s.block = icon
+		end
+		s.image.Visible = false
+	else
+		if s.block then
+			s.block:destroy()
+			s.block = nil
+		end
+		s.image.Image = ICONS[picture.key] or ""
+		s.image.Visible = true
+	end
+	s.holder.Visible = true
 end
 
 --- Pictures of a reward in `parent` (at ZIndex `z` and up to z + 8).
@@ -332,17 +371,17 @@ function RewardsParts.setPictures(self: Pictures, reward: Reward)
 	self.pictures = RewardsParts.pictures(reward)
 	for index, picture in self.pictures do
 		local s = slot(self, index)
-		s.image.Image = ICONS[picture.key] or ""
-		s.image.Visible = true
+		showPicture(s, picture, self.z + index)
 		local label = picture.label
-			or (if picture.count > 1 then W.CaseCount:format(picture.count) else "")
+			or (if picture.count > 1 then W.BlockCount:format(picture.count) else "")
 		s.count.Text = label
 		s.count.Visible = label ~= ""
 	end
 	for index = #self.pictures + 1, #self.slots do
-		self.slots[index].image.Visible = false
+		self.slots[index].holder.Visible = false
 		self.slots[index].count.Visible = false
 	end
+	RewardsParts.fadePictures(self, self.fade)
 end
 
 --- Fade the pictures (0 solid): a claimed or later tile.
@@ -350,6 +389,13 @@ function RewardsParts.fadePictures(self: Pictures, fade: number)
 	self.fade = fade
 	for _, s in self.slots do
 		s.image.ImageTransparency = fade
+		local block = s.block
+		if block then
+			block.viewport.ImageTransparency = fade
+			if block.fallback then
+				block.fallback.ImageTransparency = fade
+			end
+		end
 		HudParts.setTextTransparency(s.count, fade)
 	end
 end
@@ -371,8 +417,8 @@ function RewardsParts.layoutPictures(
 	self.root.Size = UDim2.fromOffset(width, px)
 	for index, s in self.slots do
 		local x = round((index - 1) * px * (1 - overlap))
-		s.image.Position = UDim2.fromOffset(x, 0)
-		s.image.Size = UDim2.fromOffset(px, px)
+		s.holder.Position = UDim2.fromOffset(x, 0)
+		s.holder.Size = UDim2.fromOffset(px, px)
 		HudParts.setTextSize(s.count, countPx)
 		s.count.Position = UDim2.fromOffset(x + px + 2, px + 2)
 		s.count.Size = UDim2.fromOffset(px, countPx + 4)

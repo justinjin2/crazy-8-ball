@@ -2,11 +2,13 @@
 -- LuckyOpening: a lucky block's reel and result (designer, 2026-10-03). Once the block bursts
 -- (LuckyClient waits for the server's burstAt), the screen darkens with a very see-through
 -- grey-black (no white panel: the world shows through), the block's name sits over a Dark-look
--- reel (CaseOpeningReel { look = "Dark" }: bordered tiles with each cue's name, rarity and
--- chance) that slows onto the cue the server rolled, then the big "YOU GOT <CUE>!" card
--- (LuckyResult) over the undimmed world with rays in the rarity's colour. A tap, click or A skips the reel, then closes
--- the card; the cue is already in the inventory. The rest of the HUD hides while it is up.
--- Tuning in Config.LuckyBlocks.UI; the reel's own in Config.UI.CaseOpening.Reel.
+-- reel (BlockReel { look = "Dark" }: bordered tiles with each cue's name, rarity and chance)
+-- that slows onto the cue the server rolled. A Rare or better cue then plays its pull
+-- cutscene (PullCutscene; moved here from the cases 2026-10-04, to be reworked) with the reel
+-- hidden, and then the big "YOU GOT <CUE>!" card (LuckyResult) over the undimmed world with
+-- rays in the rarity's colour. A tap, click or A skips the reel, then the cutscene (once it has
+-- been seen), then closes the card; the cue is already in the inventory. The rest of the HUD
+-- hides while it is up. Tuning in Config.LuckyBlocks.UI; the reel's own in Config.UI.Reel.
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,15 +18,16 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local LuckyBlocks = require(Shared:WaitForChild("Progression"):WaitForChild("LuckyBlocks"))
-local CaseOpeningFx = require(script.Parent.CaseOpeningFx)
-local CaseOpeningReel = require(script.Parent.CaseOpeningReel)
+local BlockReel = require(script.Parent.BlockReel)
 local HudParts = require(script.Parent.HudParts)
 local LuckyResult = require(script.Parent.LuckyResult)
+local PullCutscene = require(script.Parent.PullCutscene)
+local ReelFx = require(script.Parent.ReelFx)
 
 local U = Config.LuckyBlocks.UI
-local CO = Config.UI.CaseOpening
+local CO = Config.UI.Reel
 local W = Strings.LuckyBlocks
-local SKIP = Strings.CaseOpening
+local SKIP = Strings.Reel
 local NAMES: { [string]: string } = W.Names
 local TAP_ACTION = "8ballLuckyOpeningTap"
 local TAP_PRIORITY = Enum.ContextActionPriority.High.Value + CO.BackPriorityAbove
@@ -36,7 +39,7 @@ function Opening.new(screen: ScreenGui): any
 	local self: any = setmetatable({}, Opening)
 	self.screen = screen
 	self.open = false
-	self.phase = "Closed" -- Closed, Reel, Card
+	self.phase = "Closed" -- Closed, Reel, Scene (the pull cutscene), Card
 	self.reel = nil :: any
 	self.card = nil :: any
 	self.hidden = nil :: { ScreenGui }?
@@ -129,31 +132,31 @@ end
 
 local function hintFor(phase: string): string
 	if phase == "Card" then
-		if CaseOpeningFx.gamepad() then
+		if ReelFx.gamepad() then
 			return W.ContinuePad
-		elseif CaseOpeningFx.touch() then
+		elseif ReelFx.touch() then
 			return W.Continue
 		end
 		return W.ContinueMouse
 	end
-	if CaseOpeningFx.gamepad() then
+	if ReelFx.gamepad() then
 		return SKIP.SkipPad
-	elseif CaseOpeningFx.touch() then
+	elseif ReelFx.touch() then
 		return SKIP.SkipTouch
 	end
 	return SKIP.SkipMouse
 end
 
 --- Play a block's opening: `kind` (its name over the reel) and the server's Open answer
---- ({ cue, rarity, caseId }; `caseId` is the odds the reel shows: the Mystery block's rolled
---- tier's case). `onClosed` runs once it is gone.
+--- ({ cue, rarity, oddsId }; `oddsId` is the odds row the reel shows: the Mystery block's
+--- rolled tier's). `onClosed` runs once it is gone.
 function Opening.play(
 	self: any,
 	kind: string,
 	cueId: string,
 	rarity: string,
 	onClosed: (() -> ())?,
-	caseId: string?
+	oddsId: string?
 )
 	if self.open then
 		self:close()
@@ -162,8 +165,8 @@ function Opening.play(
 	if row == nil then
 		return
 	end
-	local reelCase = if type(caseId) == "string" then caseId else row.Case
-	if reelCase == nil then
+	local reelOdds = if type(oddsId) == "string" then oddsId else row.Odds
+	if reelOdds == nil then
 		return
 	end
 	self.open = true
@@ -180,7 +183,7 @@ function Opening.play(
 		)
 		:Play()
 
-	local stage = CaseOpeningFx.stage(self.area, "Stage")
+	local stage = ReelFx.stage(self.area, "Stage")
 	self.stage = stage
 	local title = HudParts.text(stage.frame, "Title", CO.TitlePx, NAMES[kind] or kind)
 	title.AnchorPoint = Vector2.new(0.5, 0)
@@ -193,7 +196,7 @@ function Opening.play(
 	hint.ZIndex = 4
 	self.hint = hint
 
-	local reel = CaseOpeningReel.new(stage.frame, reelCase, { look = "Dark" })
+	local reel = BlockReel.new(stage.frame, reelOdds, { look = "Dark" })
 	reel:setPrize(cueId, rarity)
 	self.reel = reel
 	self.cueId, self.rarity = cueId, rarity
@@ -216,7 +219,7 @@ function Opening.play(
 		Enum.KeyCode.Escape
 	)
 	reel:start(function()
-		self:showCard()
+		self:afterReel()
 	end)
 end
 
@@ -240,7 +243,7 @@ function Opening.layout(self: any)
 		return
 	end
 	local titleH, gap, hintH = CO.TitleHeightPx, CO.GapPx, CO.HintHeightPx
-	local reelH = CaseOpeningReel.height()
+	local reelH = BlockReel.height()
 	local need = Vector2.new(CO.StageMinWidthPx, titleH + gap + reelH + gap + hintH)
 	local natural = stage.fit(need, U.MinScale, U.MaxScale, U.MarginPx)
 	local top = math.floor((natural.Y - need.Y) / 2)
@@ -259,8 +262,38 @@ function Opening.layout(self: any)
 	self.hint.Text = hintFor("Reel")
 end
 
-function Opening.showCard(self: any)
+-- The reel has settled: a Rare or better cue plays its pull cutscene first (the reel's
+-- screens hidden meanwhile), then the card.
+function Opening.afterReel(self: any)
 	if not self.open or self.phase ~= "Reel" then
+		return
+	end
+	if not PullCutscene.has(self.rarity) then
+		self:showCard()
+		return
+	end
+	self.phase = "Scene"
+	self.gui.Enabled = false
+	self.backGui.Enabled = false
+	local ok = pcall(PullCutscene.play, self.rarity, self.cueId, function()
+		local phase: string = self.phase
+		if not self.open or phase ~= "Scene" then
+			return
+		end
+		self.gui.Enabled = true
+		self.backGui.Enabled = true
+		self:showCard()
+	end)
+	if not ok then
+		self.gui.Enabled = true
+		self.backGui.Enabled = true
+		self:showCard()
+	end
+end
+
+function Opening.showCard(self: any)
+	local phase: string = self.phase
+	if not self.open or (phase ~= "Reel" and phase ~= "Scene") then
 		return
 	end
 	self.phase = "Card"
@@ -289,6 +322,8 @@ function Opening.tap(self: any)
 	end
 	if self.phase == "Reel" and self.reel then
 		self.reel:skip(true)
+	elseif self.phase == "Scene" then
+		PullCutscene.trySkip() -- once the kind has been seen; its own done() shows the card
 	elseif self.phase == "Card" and self.card and self.card:canDismiss() then
 		self:close()
 	end
@@ -298,9 +333,13 @@ function Opening.close(self: any)
 	if not self.open then
 		return
 	end
+	local wasScene = self.phase == "Scene"
 	self.open = false
 	self.phase = "Closed"
 	ContextActionService:UnbindAction(TAP_ACTION)
+	if wasScene then
+		PullCutscene.stop()
+	end
 	if self.reel then
 		self.reel:destroy()
 		self.reel = nil

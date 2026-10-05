@@ -455,7 +455,7 @@ return {
 
 	["the unbox news never beats the opener's Mythic reel to its card"] = function()
 		local Config = H.require("Config")
-		local I, Reel = Config.Items, Config.UI.CaseOpening.Reel
+		local I, Reel = Config.Items, Config.UI.Reel.Reel
 		-- A Mythic or Secret reel spins, glides to the middle and holds before its card; the
 		-- banner and chat line come at least a second after that.
 		local reel = Reel.BigSeconds + Reel.CentreSeconds + Reel.BigSettleHoldSeconds

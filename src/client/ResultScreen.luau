@@ -15,18 +15,14 @@
 --   "STREAK +25%", "VIP +50%", from xp.breakdown.boosts); crossing a division the bar flashes
 --   full, the badge pops into the next and the bar carries on. Then the money counts up line
 --   by line (balls, nice shots, the match bonus, the win streak, a rank reward) to the Total,
---   whose chip flies into the money HUD. A winner's free case shows as a chip ("+1 Standard
---   Case" with its chest; RewardChips) whose chest flies into the left column's Inventory tile,
---   and the reminder line ("Come back tomorrow for your Rare Case", Reminders) sits under it.
---   The card grows when all that needs more room; the whole screen scales to fit.
--- - The very first win's Rare Case (summary.firstWin, ECONOMY 7.1) is a step before the
---   buttons: once the counts are done the face-off and the card make way for CaseOpening's
---   reel (deps.caseOpening:reveal) and its card with Equip; when the player is done with it
---   they come back and Continue (or the rematch row) follows.
+--   whose chip flies into the money HUD. A winner's lucky block (summary.block, ECONOMY 7)
+--   shows as a chip ("+1 Mystery Lucky Block" with its 3D icon; RewardChips) whose block flies
+--   into the hotbar (or the left column's Inventory tile while the bar is hidden). The card
+--   grows when all that needs more room; the whole screen scales to fit.
 -- - About 5 to 6 s in all (Config.UI.Progress.Result). A tap or click anywhere, or gamepad A or
 --   B, skips to the end; then Continue (or another tap, or A or B), or it closes by itself.
 --   After it closes, NEW RANK! follows when the match took you to a new division, with the
---   rank rewards (xp.rewards: money, cases, the tier's cue) as its chips.
+--   rank rewards (xp.rewards: money, lucky blocks, the tier's cue) as its chips.
 -- - After a two-sided game (designer, 2026-09-28) the PostMatch row takes Continue's place,
 --   under both columns: Rematch, and Play another and Lobby in an arena (Leave on a lobby
 --   table), with the series score in place of VS. Then the screen stays until the choice is
@@ -55,7 +51,6 @@ local Ranks = require(ProgressionRules:WaitForChild("Ranks"))
 local HudParts = require(script.Parent.HudParts)
 local PostMatch = require(script.Parent.PostMatch)
 local RankBadge = require(script.Parent.RankBadge)
-local Reminders = require(script.Parent.Reminders)
 local RewardChips = require(script.Parent.RewardChips)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -64,7 +59,7 @@ local C = Config.UI.Progress.Result
 local K = Config.UI.Kit
 local P = Strings.Progress
 local RankWords = Strings.Ranks
-local CASE_NAMES: { [string]: string } = Strings.Items.Cases :: any
+local BLOCK_NAMES: { [string]: string } = Strings.LuckyBlocks.Names :: any
 local BOOST_TONES: { [string]: string } = C.BoostTones :: any
 local RAINBOW: { { number } } = Config.UI.Progress.RankHud.ReyesColors :: any -- the house rainbow
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
@@ -219,8 +214,8 @@ end
 --------------------------------------------------------------------------------------------
 
 --- The result screen, built into `screen` (UI.screen()). Its total chip flies with `flyer`
---- into `money`; `newRank` (optional) shows NEW RANK! after it closes. The free case's chest
---- and the first win's reveal need the economy's shared table (setDeps).
+--- into `money`; `newRank` (optional) shows NEW RANK! after it closes. The win's block needs
+--- the economy's shared table (setDeps).
 function ResultScreen.new(screen: ScreenGui, flyer: any, money: any, newRank: any?): ResultScreen
 	local self: any = setmetatable({}, ResultScreen)
 	self.alive = true
@@ -242,8 +237,8 @@ function ResultScreen.new(screen: ScreenGui, flyer: any, money: any, newRank: an
 	return self
 end
 
---- The economy's shared table (Progression): its `column` catches the free case's chest and
---- its `caseOpening` plays the first win's reveal.
+--- The economy's shared table (Progression): its `hotbarCenter` or `column` catches the win's
+--- block.
 function ResultScreen.setDeps(self: any, deps: any)
 	self.deps = deps
 end
@@ -647,30 +642,22 @@ function ResultScreen.build(self: any, view: any)
 	view.totalAmount.AutoLocalize = false
 	view.totalAmount.TextWrapped = false
 	view.totalAmount.TextXAlignment = Enum.TextXAlignment.Right
-	-- The winner's free case (freeCase: already in the inventory): its chip under the Total.
-	view.caseChip = nil
-	local freeCase = summary.freeCase
-	if type(freeCase) == "string" and freeCase ~= "" then
+	-- The winner's lucky block (block = { kind, readyAt }: already in the hotbar): its chip
+	-- under the Total.
+	view.blockChip = nil
+	local block = summary.block
+	local blockKind = if type(block) == "table" and type(block.kind) == "string"
+		then block.kind
+		else nil
+	if blockKind and blockKind ~= "" then
 		local chip = RewardChips.new(content, {
-			kind = "Case",
-			id = freeCase,
-			text = P.FreeCase:format(1, CASE_NAMES[freeCase] or freeCase),
-		}, C.CaseChipHeight, C.CaseChipTextPx)
-		chip.words.AutoLocalize = true -- a case's name from Strings, not a player's
-		view.caseChip = chip
+			kind = "Block",
+			id = blockKind,
+			text = P.WinBlock:format(1, BLOCK_NAMES[blockKind] or blockKind),
+		}, C.BlockChipHeight, C.BlockChipTextPx)
+		chip.words.AutoLocalize = true -- a block's name from Strings, not a player's
+		view.blockChip = chip
 	end
-	-- The reminder of tomorrow's login reward (nothing when Reminders has nothing to say).
-	view.reminder = nil
-	local ok, reminder = pcall(Reminders.line, summary.nextReward)
-	if ok and type(reminder) == "string" and reminder ~= "" then
-		view.reminder = HudParts.note(content, "Reminder", C.ReminderTextPx, reminder)
-		view.reminder.Visible = false
-	end
-	-- The first win's Rare Case, opened on the reel before the buttons.
-	local deps = self.deps
-	view.reveal = type(summary.firstWin) == "table"
-		and type(deps) == "table"
-		and deps.caseOpening ~= nil
 	view.continue = HudParts.candy(content, P.Continue, function()
 		UISound.play("Click")
 		self:close()
@@ -686,12 +673,12 @@ function ResultScreen.build(self: any, view: any)
 	end
 	view.totalAt = t
 	view.chipAt = t + C.TotalSeconds + C.ChipDelaySeconds
-	view.caseAt = view.chipAt + C.CaseAfterSeconds -- the case chip and the reminder
-	view.caseFlyAt = view.caseAt + C.CaseFlySeconds
+	view.blockAt = view.chipAt + C.BlockAfterSeconds -- the block chip
+	view.blockFlyAt = view.blockAt + C.BlockFlySeconds
 	view.continueAt = math.max(
 		view.chipAt + C.ContinueDelaySeconds,
 		view.xpEnd + C.ContinueDelaySeconds,
-		if view.caseChip then view.caseAt + C.ContinueDelaySeconds else 0
+		if view.blockChip then view.blockAt + C.ContinueDelaySeconds else 0
 	)
 end
 
@@ -736,7 +723,7 @@ local function layoutSide(side: any, width: number, size: number, top: number)
 end
 
 -- The rewards card's contents, top to bottom: the XP (or a note) and its boosts, the money
--- lines, Total, the free case, the reminder, and Continue at the bottom. Returns the card's
+-- lines, Total, the win's block, and Continue at the bottom. Returns the card's
 -- height: C.Height, or more when its contents need it.
 function ResultScreen.layoutCard(_self: any, view: any): number
 	local pad = C.PaddingPx
@@ -788,36 +775,21 @@ function ResultScreen.layoutCard(_self: any, view: any): number
 	view.totalAmount.Position = UDim2.fromOffset(inner / 2, 1)
 	view.totalAmount.Size = UDim2.fromOffset(inner / 2 - 10, totalHeight - 2)
 	y += totalHeight
-	local chip = view.caseChip
+	local chip = view.blockChip
 	if chip then
 		-- Centred under the Total (never wider than the card: its words shrink).
 		y += C.BlockGap
 		local width = math.min(
 			RewardChips.width(
 				chip.spec,
-				C.CaseChipHeight,
-				drawnPx(C.CaseChipTextPx, view.textScale or 1)
+				C.BlockChipHeight,
+				drawnPx(C.BlockChipTextPx, view.textScale or 1)
 			),
 			inner
 		)
 		chip.root.Position = UDim2.fromOffset(math.floor((inner - width) / 2), y)
-		chip.root.Size = UDim2.fromOffset(width, C.CaseChipHeight)
-		y += C.CaseChipHeight
-	end
-	local reminder = view.reminder
-	if reminder then
-		-- One line, or more when its words need them. Kit text never shrinks under the kit's
-		-- minimum on screen, so on a small screen (the whole screen scaled down) the words
-		-- keep their size in a narrower card: measured against the card as it is drawn.
-		local shown = view.textScale or 1
-		local wide = drawnWidth(reminder.Text, C.ReminderTextPx, shown)
-		local lines = math.clamp(math.ceil(wide / inner), 1, C.ReminderMaxLines)
-		local height = math.ceil(lines * (drawnPx(C.ReminderTextPx, shown) + 2)) + 2
-		y += C.BlockGap
-		reminder.TextWrapped = true
-		reminder.Position = UDim2.fromOffset(0, y)
-		reminder.Size = UDim2.fromOffset(inner, height)
-		y += height
+		chip.root.Size = UDim2.fromOffset(width, C.BlockChipHeight)
+		y += C.BlockChipHeight
 	end
 	local buttonHeight = C.ButtonHeight
 	if not view.choices then
@@ -872,11 +844,6 @@ function ResultScreen.layout(self: any, settled: boolean?)
 	if view.choices then
 		view.choices.root.Position = UDim2.fromOffset(0, columnsHeight + C.ChoicesGap)
 		view.choices:layout(columnsWidth)
-	end
-	-- The first win's reveal takes the columns' place.
-	if view.host then
-		view.host.Position = UDim2.fromOffset(0, 0)
-		view.host.Size = UDim2.fromOffset(columnsWidth, columnsHeight)
 	end
 	local scale = math.max(0.1, math.min(C.MaxScale, if stacked then stackScale else wideScale))
 	view.fit.Scale = scale
@@ -1031,8 +998,7 @@ function ResultScreen.open(self: any, summary: any, onDone: (() -> ())?)
 	end)
 end
 
--- A and B skip or continue while the screen is up (not during the first win's reveal, whose
--- own buttons take them, nor once the rematch row is up).
+-- A and B skip or continue while the screen is up (not once the rematch row is up).
 function ResultScreen.bind(self: any)
 	ContextActionService:BindActionAtPriority(
 		ACTION,
@@ -1052,7 +1018,7 @@ end
 --- A tap, click, A or B: skip to the end, or once there, continue.
 function ResultScreen.tap(self: any)
 	local view = self.view
-	if not view or view.closing or view.revealing then
+	if not view or view.closing then
 		return
 	end
 	local t = clock(view)
@@ -1262,95 +1228,30 @@ function ResultScreen.sendChip(self: any, view: any)
 	UIAnim.bounce(pill)
 end
 
--- The free case's chest flies into the column's Inventory tile (once); its chip bounces.
-function ResultScreen.flyCase(self: any, view: any)
-	local chip = view.caseChip
-	if not chip or view.caseFlown then
+-- The win's block flies into the hotbar (or the column's Inventory tile) once; its chip
+-- bounces.
+function ResultScreen.flyBlock(self: any, view: any)
+	local chip = view.blockChip
+	if not chip or view.blockFlown then
 		return
 	end
-	view.caseFlown = true
+	view.blockFlown = true
 	chip.root.Visible = true
 	UIAnim.bounce(chip.root)
 	RewardChips.fly(self.screen, chip, self.deps, "Inventory", 0)
 end
 
--- The free case and the reminder at time t: the chip pops, then its chest flies.
-function ResultScreen.stepCase(self: any, view: any, t: number)
-	if t < view.caseAt then
+-- The win's block at time t: the chip pops, then its block flies.
+function ResultScreen.stepBlock(self: any, view: any, t: number)
+	if t < view.blockAt then
 		return
 	end
-	local chip = view.caseChip
-	if chip and not chip.root.Visible and not view.caseFlown then
+	local chip = view.blockChip
+	if chip and not chip.root.Visible and not view.blockFlown then
 		UIAnim.popIn(chip.root)
 	end
-	if view.reminder and not view.reminder.Visible then
-		UIAnim.popIn(view.reminder)
-	end
-	if chip and t >= view.caseFlyAt then
-		self:flyCase(view)
-	end
-end
-
--- The first win's reveal: the face-off and the card pop out, and CaseOpening plays the Rare
--- Case's reel and its card with Equip in their place. A and B are its buttons' meanwhile.
-function ResultScreen.startReveal(self: any, view: any)
-	view.revealing = true
-	ContextActionService:UnbindAction(ACTION)
-	local selected = GuiService.SelectedObject
-	if selected and selected:IsDescendantOf(view.root) then
-		GuiService.SelectedObject = nil
-	end
-	local host = frame(view.stage, "FirstWin")
-	host.ZIndex = 4
-	view.host = host
-	self:layout()
-	UIAnim.popOut(view.face)
-	UIAnim.popOut(view.card)
-	local finished = false
-	local function done()
-		if finished then
-			return
-		end
-		finished = true
-		-- Deferred: CaseOpening may call this from inside reveal().
-		task.defer(function()
-			self:endReveal(view)
-		end)
-	end
-	task.delay(C.RevealSwapSeconds, function()
-		if self.view ~= view or view.closing then
-			return
-		end
-		local deps = self.deps
-		local caseOpening = if type(deps) == "table" then deps.caseOpening else nil
-		local ok, err = pcall(function()
-			caseOpening:reveal(host, view.summary.firstWin, { onDone = done })
-		end)
-		if not ok then
-			warn("[8ball] ResultScreen: the first win's reveal failed: " .. tostring(err))
-			done()
-		end
-	end)
-end
-
--- The reveal is over: the face-off and the card come back, and Continue (or the rematch row
--- and NEW RANK!) follows at once.
-function ResultScreen.endReveal(self: any, view: any)
-	if self.view ~= view or view.closing or view.revealed then
-		return
-	end
-	view.revealed = true
-	view.revealing = false
-	if view.host then
-		view.host:Destroy()
-		view.host = nil
-	end
-	UIAnim.popIn(view.face)
-	UIAnim.popIn(view.card)
-	view.continueAt = clock(view)
-	view.skippedAt = os.clock() -- the tap that finished the reveal must not also close
-	if not view.choices then
-		self:bind()
+	if chip and t >= view.blockFlyAt then
+		self:flyBlock(view)
 	end
 end
 
@@ -1363,15 +1264,8 @@ function ResultScreen.step(self: any, quiet: boolean)
 	stepFace(view, t)
 	stepXp(view, t, quiet)
 	self:stepMoney(view, t, quiet)
-	self:stepCase(view, t)
+	self:stepBlock(view, t)
 	if t >= view.continueAt and not view.continueShown then
-		if view.reveal and not view.revealed then
-			-- The first win's case first; the buttons wait for it (and nothing closes).
-			if not view.revealing then
-				self:startReveal(view)
-			end
-			return
-		end
 		view.continueShown = true
 		if view.choices then
 			-- The row stays until a choice is made; a new rank shows over it now, not after.
@@ -1405,13 +1299,13 @@ function ResultScreen.close(self: any)
 	end
 	view.closing = true
 	ContextActionService:UnbindAction(ACTION)
-	-- Money the HUD is still waiting for lands now (the chip did not get to fly); the free
-	-- case's chest still flies home, from where its chip is as the screen goes.
+	-- Money the HUD is still waiting for lands now (the chip did not get to fly); the win's
+	-- block still flies home, from where its chip is as the screen goes.
 	if view.owed then
 		view.owed = false
 		payBack(self.money, view.newMoney)
 	end
-	self:flyCase(view)
+	self:flyBlock(view)
 	local selected = GuiService.SelectedObject
 	if selected and selected:IsDescendantOf(view.root) then
 		GuiService.SelectedObject = nil
@@ -1481,7 +1375,7 @@ function ResultScreen.showRank(self: any, view: any)
 			reward = clean(xp.rewardTotal),
 			newTier = xp.newTier == true,
 			rewards = xp.rewards,
-			rewardCases = xp.rewardCases,
+			rewardBlocks = xp.rewardBlocks,
 			rewardCues = xp.rewardCues,
 			preview = view.summary.preview == true,
 			paid = true, -- its money already came in with this screen's total chip
@@ -1535,14 +1429,9 @@ function ResultScreen.setChoices(self: any, state: any, now: number)
 	end
 end
 
--- Whether a popup over this screen has the gamepad now (NEW RANK!, the case opening's overlay).
+-- Whether a popup over this screen has the gamepad now (NEW RANK!).
 function ResultScreen.covered(self: any): boolean
-	if self.newRank and self.newRank:isOpen() then
-		return true
-	end
-	local deps = self.deps
-	local caseOpening = if type(deps) == "table" then deps.caseOpening else nil
-	return caseOpening ~= nil and caseOpening:isOpen()
+	return self.newRank ~= nil and self.newRank:isOpen()
 end
 
 --- The choosing is over (a rematch began, the player is on their way): close the screen.

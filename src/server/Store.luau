@@ -1,5 +1,5 @@
 --!strict
--- Store: Robux products and passes, VIP, the timed offers, the Money Party and Fast Open
+-- Store: Robux products and passes, VIP, the timed offers and the Money Party
 -- (ECONOMY section 11; the overnight brief's section 12; docs/ARCHITECTURE.md "The economy").
 -- The pure rules are Progression/Shop (offers, grants, the party queue, the once-only receipt
 -- logic) and Progression/ShopView (the ShopState payload and the Buy check).
@@ -100,13 +100,13 @@ local Store = {}
 
 local passEvent = Instance.new("BindableEvent")
 --- (player) Fires when a player's game pass ownership may have changed: the join check
---- finished, a pass was bought in this server, or /buy, /vip, /fastopen faked one.
+--- finished, a pass was bought in this server, or /buy or /vip faked one.
 Store.PassChanged = passEvent.Event
 
 local started = false
 local shopState: RemoteEvent? = nil
 
--- Game passes: what Roblox said each player owns, the dev overrides (/vip, /fastopen), and
+-- Game passes: what Roblox said each player owns, the dev override (/vip), and
 -- whether the join check finished (the VIP Cue waits for it).
 local passOwned: { [Player]: { [string]: boolean } } = {}
 local passFake: { [Player]: { [string]: boolean } } = {}
@@ -926,7 +926,7 @@ local function onProductPromptFinished(userId: number, productId: number, purcha
 end
 
 ---------------------------------------------------------------------------------------------
--- Dev (the /buy, /vip, /fastopen and /party commands; the Studio QA hook)
+-- Dev (the /buy, /vip and /party commands; the Studio QA hook)
 ---------------------------------------------------------------------------------------------
 
 --- Dev (/buy): grants Config.Products key `key` exactly as a receipt would (the same
@@ -963,7 +963,7 @@ function Store.grant(player: Player, key: string, purchaseId: string?): (boolean
 	return false, why
 end
 
---- Dev (/vip, /fastopen): pretends the player owns (`on`) or does not own game pass `passKey`
+--- Dev (/vip): pretends the player owns (`on`) or does not own game pass `passKey`
 --- ("Vip", "UltSlot2" ...) for this session, whatever Roblox says. True when it is a pass key.
 function Store.setPass(player: Player, passKey: string, on: boolean): boolean
 	local row = LIST[passKey]

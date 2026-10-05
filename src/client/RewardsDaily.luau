@@ -3,13 +3,13 @@
 -- ECONOMY 10), drawn from the RewardState's `days`, `login`, `weeks` and `resetsAt`:
 --   * the week's seven day tiles, Config.UI.Rewards.Columns to a row (days 1-4, then 5, 6
 --     and day 7 spanning the rest of its row as the week's big prize, over faint gold rays),
---     each with "Day 1", the reward's pictures ("x2" for several cases; day 7's ult spins as
---     the spin icon with "+2") and its words ("Epic Case + 2 Ult Spins", on two lines when
+--     each with "Day 1", the reward's pictures ("x2" for several blocks; day 7's ult spins as
+--     the spin icon with "+2") and its words ("Epic Lucky Block + 2 Ult Spins", on two lines when
 --     one is too narrow);
 --   * claimed days faded with a green check, the days still to come a little dimmer, and
 --     today's tile with a gold edge and a soft gold glow, its green Claim button breathing
 --     while it can be claimed;
---   * a line under them: "Week 1 of 4: a Legendary Case on day 28", and once today is claimed
+--   * a line under them: "Week 1 of 4: a Legendary Lucky Block on day 28", and once today is claimed
 --     "Next reward in 5:12:03" (to the next UTC midnight, the server's resetsAt);
 --   * while an Index row's reward waits (the Rewards tile's dot counts it, but only the
 --     Inventory's Index tab claims it), a banner over the tiles: "An Index reward is ready!" and
@@ -127,7 +127,7 @@ function RewardsDaily.tile(self: any, index: number): Tile
 	glow.Visible = false
 	glow.Parent = root
 	local card = RewardsParts.card(root, "Card", 4)
-	local rays = HudParts.icon(root, "Case", "Rays")
+	local rays = HudParts.icon(root, "Rewards", "Rays")
 	rays.Image = K.Art.Rays
 	rays.ImageColor3 = HudParts.tone("Gold")
 	rays.ImageTransparency = R.RaysTransparency

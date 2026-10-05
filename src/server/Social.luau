@@ -10,8 +10,8 @@
 --   Social.claimGroup), which asks Roblox again and gives Config.Social.GroupReward once.
 -- - Invites: the client's SocialService:PromptGameInvite carries Social.launchData(its own
 --   UserId). A brand-new player joining with it is recorded as invited (PlayerData.
---   setInvitedBy); their first win gives them the invite case (PlayerData.recordMatch) and
---   fires PlayerData.InviteWon, and the inviter's case waits in a DataStore key of theirs
+--   setInvitedBy); their first win gives them the invite block (PlayerData.recordMatch) and
+--   fires PlayerData.InviteWon, and the inviter's block waits in a DataStore key of theirs
 --   (InviteStore) until a server they are in takes it: on a MessagingService message
 --   (InviteTopic) or on their next join. The inviter gets at most InvitesPerMonth a month.
 --   Studio without DataStores: the waiting list stays in this server's memory.

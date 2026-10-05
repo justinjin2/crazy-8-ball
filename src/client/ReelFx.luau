@@ -1,33 +1,24 @@
 --!strict
--- CaseOpeningFx: the small pieces the case opening's reel, prize card and Fast Open grid share
--- (CaseOpening; docs/prompts/ECONOMY_UI_PROMPT.md section 11): rarity colours and palettes,
--- the reveal sting by rarity, a soft glow (the kit's 9-slice shadow tinted a rarity's colour,
--- so no new image), the turning rays, the Mythic shimmer and the Secret breath on one clock,
--- the copies-in-existence count, a fitted stage (laid out at a natural size and scaled to its
--- parent with one UIScale), and a cash chip that flies from a button into the money HUD
--- inside the overlay's own ScreenGui (CashFlyer draws in the HUD screen, which sits under it).
--- Tuning in Config.UI.CaseOpening.
-local Players = game:GetService("Players")
+-- ReelFx: the small pieces the lucky block opening's reel, YOU GOT card, hotbar and pull
+-- cutscenes share (BlockReel, LuckyOpening, LuckyResult, LuckyHotbar, PullCutscene): rarity
+-- colours and palettes, the reveal sting by rarity, a soft glow (the kit's 9-slice shadow
+-- tinted a rarity's colour, so no new image), the turning rays, the Mythic shimmer and the
+-- Secret breath on one clock, and a fitted stage (laid out at a natural size and scaled to its
+-- parent with one UIScale). Tuning in Config.UI.Reel.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local TextService = game:GetService("TextService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local ProgressionRules = Shared:WaitForChild("Progression")
 local Catalog = require(ProgressionRules:WaitForChild("Catalog"))
-local Format = require(ProgressionRules:WaitForChild("Format"))
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local MenuFrame = require(script.Parent.MenuFrame)
-local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
-local C = Config.UI.CaseOpening
-local CASH = Config.UI.Progress.Cash
+local C = Config.UI.Reel
 local K = Config.UI.Kit
-local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 local STINGS: { [string]: string } = C.Stings :: any
 local WHITE = Color3.new(1, 1, 1)
 
@@ -36,10 +27,6 @@ local Fx = {}
 --------------------------------------------------------------------------------------------
 -- Small helpers
 --------------------------------------------------------------------------------------------
-
-function Fx.textWidth(text: string, size: number): number
-	return TextService:GetTextSize(text, size, FONT, Vector2.new(4000, 400)).X
-end
 
 function Fx.gamepad(): boolean
 	return string.sub(UserInputService:GetLastInputType().Name, 1, 7) == "Gamepad"
@@ -126,29 +113,12 @@ function Fx.palette(rarity: string): { Color3 }
 	return { Fx.color(rarity), WHITE, HudParts.tone("Gold"), Fx.color(rarity) }
 end
 
---- The reveal sting for a rarity (Config.UI.CaseOpening.Stings -> a Config.Audio.Ui key).
+--- The reveal sting for a rarity (Config.UI.Reel.Stings -> a Config.Audio.Ui key).
 function Fx.sting(rarity: string)
 	UISound.play(STINGS[rarity] or STINGS.Default)
 end
 
---- Copies of a cue in existence (ReplicatedStorage.CueCounts, one attribute per cue id), or
---- nil before the first read.
-function Fx.existCount(cueId: string): number?
-	local counts = ReplicatedStorage:FindFirstChild("CueCounts")
-	local value = if counts then counts:GetAttribute(cueId) else nil
-	if type(value) ~= "number" or value ~= value or value < 0 or value == math.huge then
-		return nil
-	end
-	return math.floor(value)
-end
-
---- Whether the player has Fast Open (the server's FastOpen attribute).
-function Fx.hasFastOpen(): boolean
-	local player = Players.LocalPlayer
-	return player ~= nil and player:GetAttribute("FastOpen") == true
-end
-
---------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
 -- Glows and rays
 --------------------------------------------------------------------------------------------
 
@@ -225,90 +195,6 @@ function Fx.stage(parent: GuiObject, name: string): Stage
 		end,
 	}
 	return stage
-end
-
---------------------------------------------------------------------------------------------
--- A cash chip into the money HUD
---------------------------------------------------------------------------------------------
-
--- A quadratic curve from `from` to `to`, its control point lifted so the chip rises first.
-local function curve(from: Vector2, to: Vector2, t: number): Vector2
-	local lift = math.max(CASH.ArcMinLiftPx, (to - from).Magnitude * CASH.ArcLiftShare)
-	local control = from:Lerp(to, 0.25) - Vector2.new(0, lift)
-	return from:Lerp(control, t):Lerp(control:Lerp(to, t), t)
-end
-
---- A gold "+$600" chip pops at `from` (absolute pixels), hangs, and flies on a curve into the
---- money HUD's cash icon, drawn in `layer` (a full-screen frame of the overlay's ScreenGui,
---- `scale` its stage's scale); the HUD counts up as it lands. The HUD is told at once
---- (money:expect) and always landed, even if the chip cannot be drawn.
-function Fx.flyCash(layer: GuiObject, from: Vector2, amount: number, money: any, scale: number)
-	if type(amount) ~= "number" or amount <= 0 or money == nil then
-		return
-	end
-	money:expect(amount)
-	local landed = false
-	local function land()
-		if not landed then
-			landed = true
-			money:land(amount)
-		end
-	end
-	local ok = pcall(function()
-		local height = math.floor(C.ChipHeightPx * scale)
-		local textSize = math.max(K.Text.Min, math.floor(C.ChipTextPx * scale))
-		local words = Format.moneyDelta(amount)
-		local iconWidth = math.floor(height * CASH.IconWidthShare)
-		local wordsWidth = math.ceil(Fx.textWidth(words, textSize)) + 6
-		local chip = HudParts.frame(layer, "CashChip")
-		chip.AnchorPoint = Vector2.new(0.5, 0.5)
-		chip.Size = UDim2.fromOffset(iconWidth + wordsWidth, height)
-		chip.ZIndex = C.ChipZIndex
-		local icon = HudParts.icon(chip, "CashSingle", "Cash")
-		icon.Size = UDim2.fromOffset(iconWidth, height)
-		icon.ZIndex = C.ChipZIndex
-		local text = HudParts.text(chip, "Amount", textSize, words, HudParts.tone("Gold"))
-		text.AutoLocalize = false -- only a number
-		text.TextWrapped = false
-		text.Position = UDim2.fromOffset(iconWidth, 0)
-		text.Size = UDim2.fromOffset(wordsWidth, height)
-		text.ZIndex = C.ChipZIndex + 1
-		local size = Instance.new("UIScale")
-		size.Scale = CASH.PopFromScale
-		size.Parent = chip
-		local origin = layer.AbsolutePosition
-		local start = from - origin
-		local target: Vector2 = money:iconCenter() - origin
-		chip.Position = UDim2.fromOffset(start.X, start.Y)
-		local began = os.clock()
-		local connection: RBXScriptConnection? = nil
-		connection = RunService.RenderStepped:Connect(function()
-			local t = os.clock() - began
-			local fly = t - CASH.PopSeconds - CASH.HangSeconds
-			if fly >= CASH.FlySeconds or not chip.Parent then
-				if connection then
-					connection:Disconnect()
-				end
-				chip:Destroy()
-				land()
-				return
-			end
-			if fly < 0 then
-				size.Scale = CASH.PopFromScale
-					+ (1 - CASH.PopFromScale) * UIAnim.backOut(t / CASH.PopSeconds)
-				return
-			end
-			local u = UIAnim.quadOut(fly / CASH.FlySeconds)
-			local at = curve(start, target, u)
-			chip.Position = UDim2.fromOffset(at.X, at.Y)
-			size.Scale = 1 + (CASH.EndScale - 1) * u
-		end)
-		-- Never wait forever: whatever happens, the HUD hears about the money.
-		task.delay(CASH.PopSeconds + CASH.HangSeconds + CASH.FlySeconds + 1, land)
-	end)
-	if not ok then
-		land()
-	end
 end
 
 return Fx

@@ -9,8 +9,8 @@
 -- grow it a little; a press squishes and bounces it (UIAnim) with the Click sound, and opens
 -- its menu (onPress).
 --
--- Red dots, top right of a tile: Inventory counts unopened cases (the player's CasesUnopened
--- attribute, "9+" above 9); Rewards shows "!" while RewardReady is true; Shop shows a small
+-- Red dots, top right of a tile: Inventory shows none (the cases' count went with them,
+-- 2026-10-04); Rewards shows "!" while RewardReady is true; Shop shows a small
 -- gold timer pill ("23:59:12", "6d 4h") while the VIP welcome offer or the Starter Pack window
 -- is open (ItemState.offerEndsAt; nothing while unknown); Trade shows nothing; Ults shows "!"
 -- while today's free ult spin is unused (the UltFreeSpin attribute).
@@ -32,8 +32,8 @@
 -- overnight assumption, 2026-09-28: X is the ult button in a match, so X means "ult"
 -- everywhere). The column listens for it itself, only while the D-pad route is live.
 --
--- Hidden until the save loads, in a match, and while the result screen, NEW RANK!, the case
--- opening or the teleport screen is up (Progression.update calls setVisible every frame).
+-- Hidden until the save loads, in a match, and while the result screen, NEW RANK!, a lucky
+-- block's reel or the teleport screen is up (Progression.update calls setVisible every frame).
 --
 -- GUI lane (designer 2026-10-03, C2): the tiles are Shop, Inventory, Abilities and Free Reward
 -- (Config order). Rewards and Trade left the column. Free Reward shows only while the group or
@@ -197,9 +197,6 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	end)
 	local player = Players.LocalPlayer
 	if player then
-		connect(player:GetAttributeChangedSignal("CasesUnopened"), function()
-			self:refreshDots()
-		end)
 		connect(player:GetAttributeChangedSignal("RewardReady"), function()
 			self:refreshDots()
 		end)
@@ -601,18 +598,11 @@ local function setDot(self: any, t: Tile, text: string?)
 	end
 end
 
---- Read the red dots again: unopened cases on Inventory, "!" on Rewards, "!" on Ults while
---- today's free ult spin is unused.
+--- Read the red dots again: "!" on Rewards, "!" on Ults while today's free ult spin is unused
+--- (Inventory shows none).
 function MenuColumn.refreshDots(self: any)
 	local player = Players.LocalPlayer
-	local cases = if player then player:GetAttribute("CasesUnopened") else nil
-	local count = if type(cases) == "number" then cases else ItemState.casesTotal()
-	count = math.max(0, math.floor(count))
-	local casesText = if count <= 0
-		then nil
-		elseif count > C.DotMax then COPY.DotMore:format(C.DotMax)
-		else tostring(count)
-	setDot(self, self.tiles.Inventory, casesText)
+	setDot(self, self.tiles.Inventory, nil)
 	local rewardsTile: Tile? = self.tiles.Rewards
 	if rewardsTile then
 		local ready = if player then player:GetAttribute("RewardReady") == true else false
@@ -740,7 +730,7 @@ function MenuColumn.tile(self: any, name: string): TextButton?
 	return if t then t.button else nil
 end
 
---- A tile's centre in absolute pixels: where a case or cue earned elsewhere flies to (the
+--- A tile's centre in absolute pixels: where a cue (or a block) earned elsewhere flies to (the
 --- Inventory tile), nil for an unknown name.
 function MenuColumn.tileCenter(self: any, name: string): Vector2?
 	local t: Tile? = self.tiles[name]
@@ -750,7 +740,7 @@ function MenuColumn.tileCenter(self: any, name: string): Vector2?
 	return t.button.AbsolutePosition + t.button.AbsoluteSize / 2
 end
 
---- Something landed on a tile (a case flew into Inventory): it bounces.
+--- Something landed on a tile (a cue flew into Inventory): it bounces.
 function MenuColumn.bump(self: any, name: string)
 	local t: Tile? = self.tiles[name]
 	if t and self.showing then

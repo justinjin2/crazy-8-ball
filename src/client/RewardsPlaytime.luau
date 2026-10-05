@@ -1,8 +1,8 @@
 --!strict
 -- RewardsPlaytime: the Rewards menu's Playtime tab (docs/prompts/ECONOMY_UI_PROMPT.md section
--- 11, ECONOMY 10): one row per gift of the RewardState's `playtime` (10 min $100, 30 min a
--- Standard Case, 60 min 2 Standard Cases and the day's last gift's ult spin: "2 Standard Cases
--- + 1 Ult Spin"), each with the prize's pictures and words (on two lines when one is too
+-- 11, ECONOMY 10): one row per gift of the RewardState's `playtime` ($100, lucky blocks and
+-- the day's last gift's ult spin: "2 Mystery Lucky Blocks + 1 Ult Spin"), each with the
+-- prize's pictures and words (on two lines when one is too
 -- narrow), the time played of the time needed ("4:12 / 10:00") over a progress bar, and a
 -- button: the time still to play (a stopwatch), a green Claim that breathes once it is due, or
 -- a grey Claimed.
@@ -288,7 +288,7 @@ local function layoutRow(row: Row, w: number, h: number, t: number, buttonText: 
 	HudParts.setTextSize(row.time, timePx)
 	-- The time takes what its widest value needs ("60:00 / 60:00"); the prize the rest, on a
 	-- second line when one is too narrow for it and the row has the height (the last gift's
-	-- "2 Standard Cases + 1 Ult Spin" on a phone); the time stays level with its last line.
+	-- "2 Mystery Lucky Blocks + 1 Ult Spin" on a phone); the time stays level with its last line.
 	local widest = W.GiftTime:format(clock(row.need), clock(row.need))
 	local timeW = math.min(round(textW / 2), math.ceil(RewardsParts.textWidth(widest, timePx)) + 8)
 	local titleW = math.max(1, textW - timeW - 6)

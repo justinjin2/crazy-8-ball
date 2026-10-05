@@ -1,5 +1,5 @@
 --!strict
--- BottomLift: how far the bottom-centre prompts (OpponentPrompt, Reminders) sit over their usual
+-- BottomLift: how far the bottom-centre prompts (OpponentPrompt, the claim block) sit over their usual
 -- place, so they clear the lucky block hotbar while it shows (LuckyHotbar sets it; 0 when it is
 -- hidden). Read when they lay out.
 local BottomLift = {}

@@ -16,7 +16,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
-local Cases = require(Progression:WaitForChild("Cases"))
+local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
 local Format = require(Progression:WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
 local Menus = require(script.Parent.Menus)
@@ -161,10 +161,10 @@ end
 -- Words
 --------------------------------------------------------------------------------------------
 
---- An odds share as the case Odds panel writes it ("55%", "6.117%", "0.05%"): parts per
+--- An odds share as the block odds strip writes it ("55%", "6.117%", "0.05%"): parts per
 --- million in.
 function Parts.percent(ppm: number): string
-	return Cases.percentText(math.max(0, ppm) / 10000)
+	return BlockOdds.percentText(math.max(0, ppm) / 10000)
 end
 
 --- A Robux price: Roblox's Robux glyph and the number with commas.

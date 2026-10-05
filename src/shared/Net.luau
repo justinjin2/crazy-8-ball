@@ -332,7 +332,7 @@ local REMOTES: { [string]: string } = {
 	-- server -> one player: the spin screen's snapshot (SpinView.state; its fields are written
 	-- in SpinView.Payload), on load and after every change it shows.
 	UltState = "RemoteEvent",
-	-- server -> one player: Auto Spin (Fast Open). Each spin: { kind = "Spin", n, id, rarity,
+	-- server -> one player: Auto Spin (VIP). Each spin: { kind = "Spin", n, id, rarity,
 	-- replaced, wasPity, used, slot, pity, state }; the end: { kind = "Stop", reason, n, id? }
 	-- (reason: SpinView.AutoStops or a SpinView reason; id: the ult it stopped on or before).
 	UltAuto = "RemoteEvent",

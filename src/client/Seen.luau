@@ -1,7 +1,7 @@
 --!strict
 -- Seen: which cutscene kinds this player has seen (GUI lane; designer 2026-10-03: a cutscene can
 -- be skipped once it has been seen once, per kind). PullCutscene asks by rarity ("Legendary"),
--- the magic 8-ball as "MagicBall". Kept in memory until Settings wires the saved flags in
+-- the result cutscene as "Result". Kept in memory until Settings wires the saved flags in
 -- (setStore), so a kind seen in this session is skippable for the rest of it either way.
 local Seen = {}
 

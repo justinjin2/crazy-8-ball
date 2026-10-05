@@ -848,7 +848,7 @@ local function buy(player: Player, args: { string })
 	end
 end
 
--- /vip on|off and /fastopen on|off: fake owning that game pass for this session.
+-- /vip on|off: fake owning that game pass for this session.
 local function pass(key: string): (Player, { string }) -> ()
 	return function(player: Player, args: { string })
 		local on = ({ on = true, off = false } :: { [string]: boolean })[args[1] or ""]

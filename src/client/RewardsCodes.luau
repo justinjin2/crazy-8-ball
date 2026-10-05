@@ -1,7 +1,7 @@
 --!strict
 -- RewardsCodes: the Rewards menu's Codes tab (docs/prompts/ECONOMY_UI_PROMPT.md section 11,
 -- ECONOMY 18): "Got a code?", a text box and a green Redeem, the server's answer under them
--- ("Code redeemed: +$500 and a Standard Case", or "Code redeemed: 3 Ability Spins" for ABILITIES, in
+-- ("Code redeemed: +$500 and a Mystery Lucky Block", or "Code redeemed: 3 Ability Spins" for ABILITIES, in
 -- green, or why not in red: "That code doesn't exist.", "You already used that code.", "That
 -- code has expired."), and a short note. Kept high on the page, so a phone's keyboard never
 -- covers it; the answer sits right under the box (not in the menu's bottom notice, which the

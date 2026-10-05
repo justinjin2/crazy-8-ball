@@ -19,10 +19,11 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local LuckyBlocks = require(Shared:WaitForChild("Progression"):WaitForChild("LuckyBlocks"))
 local BottomLift = require(script.Parent.BottomLift)
-local CaseOpeningFx = require(script.Parent.CaseOpeningFx)
+local ReelFx = require(script.Parent.ReelFx)
 local HudParts = require(script.Parent.HudParts)
 local BlockIcon = require(script.Parent.BlockIcon)
 local Menus = require(script.Parent.Menus)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -141,7 +142,7 @@ local function makeTile(parent: Instance, entry: Entry, number: number?): Tile
 	-- Lobby buttons never take the gamepad's selection (it would take the stick from walking);
 	-- the bag makes them selectable while it is open.
 	button.Selectable = false
-	button.SelectionImageObject = CaseOpeningFx.noBox()
+	button.SelectionImageObject = ReelFx.noBox()
 	button.Parent = parent
 	HudParts.corner(button, U.SlotCornerPx)
 	local edge = Instance.new("UIStroke")
@@ -405,6 +406,11 @@ function Hotbar.rebuild(self: any)
 		self:wire(tile, i)
 		self.slots[i] = tile
 	end
+	-- The tutorial's hand points at a slot ("HotbarSlot1"...).
+	for i = 1, L.HotbarSlots do
+		local tile = self.slots[i]
+		TutorialAnchors.set("HotbarSlot" .. i, if tile then tile.button else nil)
+	end
 	for i, entry in self.entries do
 		local tile = makeTile(self.grid, entry, nil)
 		tile.button.LayoutOrder = i
@@ -595,7 +601,7 @@ function Hotbar.setBag(self: any, open: boolean)
 	self.pickedId = nil
 	self.panel.Visible = open
 	if open then
-		self.bagHint.Text = if CaseOpeningFx.gamepad() then W.BagHintPad else W.BagHint
+		self.bagHint.Text = if ReelFx.gamepad() then W.BagHintPad else W.BagHint
 		self.bagEmpty.Visible = #self.entries == 0
 		UIAnim.popIn(self.panel)
 	end
@@ -622,6 +628,22 @@ end
 
 function Hotbar.isVisible(self: any): boolean
 	return self.visible
+end
+
+--- The bar's middle in absolute pixels while it shows (where a block flies to), else nil.
+function Hotbar.center(self: any): Vector2?
+	if not self.visible then
+		return nil
+	end
+	local bar: Frame = self.bar
+	return bar.AbsolutePosition + bar.AbsoluteSize / 2
+end
+
+--- A block landed in the bar: it bounces.
+function Hotbar.bump(self: any)
+	if self.visible then
+		UIAnim.bounce(self.bar)
+	end
 end
 
 --- How many blocks the bar shows (the slots keys 1-9 reach).

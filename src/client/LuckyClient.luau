@@ -11,7 +11,9 @@
 --   Each keeps its own hold prompt and timer. The Throw animation asks the server at
 --   its Release marker.
 -- - Open it: the prompt over it (LuckyWorld). The server rolls; once the block bursts at the
---   top of its rise, the reel plays.
+--   top of its rise, the reel plays (and a Rare or better cue's pull cutscene, LuckyOpening).
+-- The tutorial (Tutorial.luau) reads which slot holds a kind (slotOf), what is held and what
+-- lies on the floor, and the hotbar registers its slots as anchors.
 -- - The bag: the ` key, the bag button, or L3.
 -- Lobby only: Progression hides it in a match and under the screens and menus (the bag aside).
 local Players = game:GetService("Players")
@@ -28,6 +30,8 @@ local LuckyHotbar = require(script.Parent.LuckyHotbar)
 local LuckyOpening = require(script.Parent.LuckyOpening)
 local LuckyWorld = require(script.Parent.LuckyWorld)
 local Menus = require(script.Parent.Menus)
+local PullCutscene = require(script.Parent.PullCutscene)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 
 local L = Config.LuckyBlocks
 local A = L.Anim
@@ -239,6 +243,10 @@ local function holdBlock(id: number)
 	if entry == nil or liveIds[entry.id] then
 		return
 	end
+	if entry.readyAt > serverNow() then
+		-- A block still on its timer was tapped: the tutorial's RareBlock step counts it seen.
+		TutorialAnchors.setFlag("BlockTapped", true)
+	end
 	heldId = id
 	playHold()
 	refresh()
@@ -301,7 +309,7 @@ local function nextReveal()
 	opening:play(reward.kind, reward.cue, reward.rarity, function()
 		revealing = false
 		task.defer(nextReveal)
-	end, if type(reward.caseId) == "string" then reward.caseId else nil)
+	end, if type(reward.oddsId) == "string" then reward.oddsId else nil)
 end
 
 local function openBlock(id: number)
@@ -474,9 +482,72 @@ function LuckyClient.setVisible(show: boolean)
 	hotbar:setVisible(show)
 end
 
---- Whether the reel or its card is up (Progression treats it as a popup).
+--- Whether the reel, its pull cutscene or its card is up (Progression treats it as a popup).
 function LuckyClient.isOpen(): boolean
-	return started and opening:isOpen()
+	return started and (opening:isOpen() or PullCutscene.isPlaying())
+end
+
+--- Close the reel (and its cutscene) at once: a match is starting, or the result screen
+--- takes the screen.
+function LuckyClient.close()
+	if started then
+		opening:close()
+		PullCutscene.stop()
+	end
+end
+
+--- The hotbar's middle in absolute pixels while the bar shows (where a block earned
+--- elsewhere flies to; RewardChips, RewardsFlyer), else nil.
+function LuckyClient.hotbarCenter(): Vector2?
+	if not started or not visible then
+		return nil
+	end
+	return hotbar:center()
+end
+
+--- A block landed in the hotbar: the bar bounces.
+function LuckyClient.bumpHotbar()
+	if started and visible then
+		hotbar:bump()
+	end
+end
+
+--- The tutorial: the hotbar slot (1-9) showing a block of `kind`, the one not ready first
+--- when `waiting` (the Rare block on its timer), or nil.
+function LuckyClient.slotOf(kind: string, waiting: boolean?): number?
+	if not started then
+		return nil
+	end
+	local fallback: number? = nil
+	for i = 1, hotbar:slotCount() do
+		local entry = hotbar:slotEntry(i)
+		if entry and entry.kind == kind then
+			if not waiting or entry.readyAt > serverNow() then
+				return i
+			end
+			fallback = fallback or i
+		end
+	end
+	return fallback
+end
+
+--- The tutorial: the held block's kind, or nil.
+function LuckyClient.heldKind(): string?
+	local entry = find(heldId)
+	return if entry then entry.kind else nil
+end
+
+--- The tutorial: a block of `kind` of mine lying on the floor (its part), or nil.
+function LuckyClient.livePart(kind: string): BasePart?
+	if not started then
+		return nil
+	end
+	for _, entry in entries do
+		if entry.kind == kind and liveIds[entry.id] then
+			return LuckyWorld.myLivePart(entry.id)
+		end
+	end
+	return nil
 end
 
 return LuckyClient

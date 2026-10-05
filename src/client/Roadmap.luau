@@ -53,7 +53,7 @@ local ChatTags = require(script.Parent.ChatTags)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local RankBadge = require(script.Parent.RankBadge)
-local RewardChips = require(script.Parent.RewardChips)
+local BlockIcon = require(script.Parent.BlockIcon)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -72,11 +72,11 @@ local TIERS: { string } = Config.Ranks.Tiers
 local TOP_TIER = TIERS[#TIERS]
 local PER_TIER: number = Config.Ranks.DivisionsPerTier
 local TIER_COLORS: { [string]: { number } } = Config.Ranks.Colors :: any
--- Each tier's division I reward row (ECONOMY 4.8): Money, Cases ({ [caseId] = count }), Cue.
-type TierReward = { Money: number, Cases: { [string]: number }?, Cue: string? }
+-- Each tier's division I reward row (ECONOMY 4.8): Money, Blocks ({ [kind] = count }), Cue.
+type TierReward = { Money: number, Blocks: { [string]: number }?, Cue: string? }
 local TIER_REWARDS: { [string]: TierReward } = Config.Ranks.Rewards.Tier :: any
-local CASE_ORDER: { string } = Config.Cases.Order
-local CASE_NAMES: { [string]: string } = Strings.Items.Cases :: any
+local BLOCK_ORDER: { string } = Config.LuckyBlocks.Order
+local BLOCK_NAMES: { [string]: string } = Strings.LuckyBlocks.Names :: any
 local ICONS: { [string]: string } = K.Icons :: any
 -- The chat-tag icon (tools/gen_ui_art.py: chat_tag); a stand-in from the set without its id.
 local CHAT_ICON = if ICONS.ChatTag then "ChatTag" else "People"
@@ -109,13 +109,14 @@ type Cell = {
 type Tile = {
 	frame: Frame,
 	corner: UICorner,
-	icon: GuiObject, -- the picture: a glossy icon, or the cue tile's CueThumb
+	icon: GuiObject, -- the picture: a glossy icon, the cue tile's CueThumb or the block's holder
+	block: BlockIcon.Icon?, -- the block tile's 3D icon (remade when the kind changes)
 	value: TextLabel,
 	label: TextLabel?, -- the small word under the value (the cue has none: its name may wrap)
 	check: ImageLabel, -- a reward you already have
 }
 
-type Tiles = { money: Tile, case: Tile, chat: Tile, cue: Tile, spins: Tile }
+type Tiles = { money: Tile, block: Tile, chat: Tile, cue: Tile, spins: Tile }
 
 -- The local player's rank, read from their attributes.
 type State = {
@@ -518,6 +519,7 @@ local function makeTile(
 	fade.Parent = frame
 	local icon: GuiObject = if cue
 		then CueThumb.new(frame, Catalog.Default)
+		elseif iconKey == "Block" then HudParts.frame(frame, "Icon")
 		else HudParts.icon(frame, iconKey, "Icon")
 	icon.Name = "Icon"
 	icon.AnchorPoint = Vector2.new(0.5, 0)
@@ -536,6 +538,7 @@ local function makeTile(
 		frame = frame,
 		corner = corner,
 		icon = icon,
+		block = nil,
 		value = value,
 		label = label,
 		check = check,
@@ -703,7 +706,7 @@ function Roadmap.buildRewards(self: any, card: Frame)
 	self.nudge = nudge
 	local tiles: Tiles = {
 		money = makeTile(holder, "Money", "CashStack", P.RewardMoney, false),
-		case = makeTile(holder, "Case", RewardChips.caseIcon(nil), nil, false),
+		block = makeTile(holder, "Block", "Block", nil, false),
 		chat = makeTile(holder, "ChatTag", CHAT_ICON, P.RewardChatTag, false),
 		cue = makeTile(holder, "Cue", "Cue", nil, true),
 		spins = makeTile(holder, "Spins", "UltSpin", nil, false),
@@ -712,14 +715,14 @@ function Roadmap.buildRewards(self: any, card: Frame)
 	-- The tag exactly as chat shows it (RichText colours; Reyes letter by letter).
 	tiles.chat.value.RichText = true
 	tiles.chat.value.AutoLocalize = false
-	-- The case ("Legendary Case x2"), the cue's name and the spins ("2 Ult Spins") may take
-	-- two lines.
-	tiles.case.value.TextYAlignment = Enum.TextYAlignment.Top
+	-- The block ("Legendary Lucky Block x2"), the cue's name and the spins ("2 Ult Spins") may
+	-- take two lines.
+	tiles.block.value.TextYAlignment = Enum.TextYAlignment.Top
 	tiles.cue.value.TextYAlignment = Enum.TextYAlignment.Top
 	tiles.spins.value.TextYAlignment = Enum.TextYAlignment.Top
 	tiles.spins.value.AutoLocalize = false -- worded from Strings with its number
 	self.tiles = tiles
-	self.tileOrder = { tiles.money, tiles.case, tiles.chat, tiles.cue, tiles.spins }
+	self.tileOrder = { tiles.money, tiles.block, tiles.chat, tiles.cue, tiles.spins }
 end
 
 -- Where a gamepad goes: along the tiers, onto the arrows at the ends, up or down to the close
@@ -1340,27 +1343,46 @@ function Roadmap.drawNext(self: any, line: NextLine, width: number, height: numb
 	end
 end
 
--- A tier's case reward: the first case of its row in the shop's order, and how many.
-local function tierCase(row: TierReward?): (string?, number)
-	local cases = if row then row.Cases else nil
-	if type(cases) ~= "table" then
+-- A tier's block reward: the first kind of its row in the kinds' order, and how many.
+local function tierBlock(row: TierReward?): (string?, number)
+	local blocks = if row then row.Blocks else nil
+	if type(blocks) ~= "table" then
 		return nil, 0
 	end
-	for _, id in CASE_ORDER do
-		local count = cases[id]
+	for _, kind in BLOCK_ORDER do
+		local count = blocks[kind]
 		if type(count) == "number" and count > 0 then
-			return id, count
+			return kind, count
 		end
 	end
-	for id, count in cases do -- a case not in the order (never, but keep it showing)
+	for kind, count in blocks do -- a kind not in the order (never, but keep it showing)
 		if type(count) == "number" and count > 0 then
-			return id, count
+			return kind, count
 		end
 	end
 	return nil, 0
 end
 
--- The chosen tier's rewards: its money, its case, its chat tag, its cue and its ult spins (when
+-- The block tile's 3D icon shows `kind` (nothing for nil), remade only when the kind changes.
+local function setBlockIcon(tile: Tile, kind: string?)
+	local block = tile.block
+	if block and block.kind ~= kind then
+		block:destroy()
+		tile.block = nil
+		block = nil
+	end
+	if kind and not block then
+		local icon = BlockIcon.new(tile.icon, kind, true)
+		icon.root.ZIndex = 2
+		icon.viewport.ZIndex = 2
+		if icon.fallback then
+			icon.fallback.ZIndex = 2
+		end
+		tile.block = icon
+	end
+end
+
+-- The chosen tier's rewards: its money, its block, its chat tag, its cue and its ult spins (when
 -- it adds any), in tiles as wide as their words need (equal when they all fit).
 function Roadmap.drawRewards(self: any)
 	local geo: Geo? = self.geo
@@ -1393,15 +1415,15 @@ function Roadmap.drawRewards(self: any)
 		else Strings.Menus.Rewards.SpinMany:format(spinCount)
 	local money = Format.moneyDelta(if tierRow then tierRow.Money else 0)
 	local plainTag = Strings.Ranks.ChatTag:format(string.upper(name))
-	local caseId, caseCount = tierCase(tierRow)
-	local caseWords = if caseId
-		then P.RewardCaseCount:format(CASE_NAMES[caseId] or caseId, caseCount)
+	local blockKind, blockCount = tierBlock(tierRow)
+	local blockWords = if blockKind
+		then P.RewardBlockCount:format(BLOCK_NAMES[blockKind] or blockKind, blockCount)
 		else ""
 	local cueId = (if tierRow then tierRow.Cue else nil) or Catalog.tierCue(tier)
 	local cue = if cueId then CueThumb.cueName(cueId) else P.TierCue:format(name)
 	tiles.money.value.Text = money
-	tiles.case.value.Text = caseWords
-	HudParts.setIcon(tiles.case.icon :: ImageLabel, RewardChips.caseIcon(caseId))
+	tiles.block.value.Text = blockWords
+	setBlockIcon(tiles.block, blockKind)
 	tiles.chat.value.Text = ChatTags.tagFor(tier) or plainTag
 	tiles.cue.value.Text = cue
 	CueThumb.set(tiles.cue.icon :: Frame, cueId or Catalog.Default)
@@ -1422,7 +1444,7 @@ function Roadmap.drawRewards(self: any)
 		end
 	end
 	add(tiles.money, money, P.RewardMoney, false)
-	add(tiles.case, caseWords, "", true)
+	add(tiles.block, blockWords, "", true)
 	add(tiles.chat, plainTag, P.RewardChatTag, false)
 	add(tiles.cue, cue, "", true)
 	add(tiles.spins, spinWords, "", true)

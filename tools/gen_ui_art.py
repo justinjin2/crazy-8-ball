@@ -19,9 +19,9 @@ Upload the PNGs (Studio MCP upload_image, see docs/STUDIO_NOTES.md) and paste th
 Config.UI.Kit.Icons and Config.UI.Kit.Art.
 
 Run: python3 tools/gen_ui_art.py                 every image (rewrites them all)
-     python3 tools/gen_ui_art.py shop case_rare  only the images named
-     python3 tools/gen_ui_art.py economy         a group (GROUPS): column, cases, packs,
-                                                 shop_icons, cue_layers, or economy for all five;
+     python3 tools/gen_ui_art.py shop pack_4    only the images named
+     python3 tools/gen_ui_art.py economy         a group (GROUPS): column, packs,
+                                                 shop_icons, cue_layers, or economy for all four;
                                                  ults for the ultimates' icons and effect art
 """
 import math
@@ -731,8 +731,8 @@ def icon_cash_stack():
 
 
 # The rank roadmap's chat tag reward tile (designer, 2026-09-27; reference 03). Its gradient
-# lives in the icon itself, with an id of its own, like the cash. (The loot case is the
-# chest further down, 2026-09-28.)
+# lives in the icon itself, with an id of its own, like the cash. (The case chest went with
+# the cases, 2026-10-04.)
 CHAT_DEFS = (
     "<defs>"
     '<linearGradient id="chatBubble" x1="0" y1="0" x2="0.3" y2="1">'
@@ -822,7 +822,7 @@ def icon_level_challenger():
 
 # ---------------------------------------------------------------------------------------
 # The economy (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md section 10): the left column's
-# buttons, the case chests, the money packs, the shop and rewards pictures, and the cue
+# buttons, the money packs, the shop and rewards pictures, and the cue
 # thumbnail layers. Every gradient these draw has an id starting with the icon's own name,
 # since the render page holds every SVG at once and an id must mean one thing on it.
 # ---------------------------------------------------------------------------------------
@@ -892,185 +892,6 @@ def star_points(cx, cy, r, inner=0.48, n=5, turn=-90):
         a = math.radians(turn + i * 180 / n)
         pts.append((cx + rr * math.cos(a), cy + rr * math.sin(a)))
     return pts
-
-
-# The case chest, after reference 07: seen from the front right, a flat lid, lighter corner
-# caps, a round lock plate on the seam. One drawing, five colours. Each: cap (the corner caps
-# and the lock plate), top, front and side faces, the inset panels, all light to dark, and a
-# deep colour for the lines between parts. The Standard case is kept grey so it never reads
-# as Rare's blue.
-CHESTS = {
-    "standard": {
-        "cap": ("#FFFFFF", "#DCE1E9"),
-        "frame": ("#EFF2F6", "#C2C9D4"),
-        "top": ("#DCE2EA", "#B3BCC9"),
-        "front": ("#AAB4C2", "#8893A4"),
-        "side": ("#87919F", "#666F80"),
-        "deep": "#4B5364",
-    },
-    "rare": {
-        "cap": ("#F2F9FF", "#B8DCFF"),
-        "frame": ("#C8E5FF", "#7FBEFF"),
-        "top": ("#8FCAFF", "#58A9FF"),
-        "front": ("#3E95F5", "#2977DB"),
-        "side": ("#2B73D1", "#1C56AB"),
-        "deep": "#134493",
-    },
-    "epic": {
-        "cap": ("#FBF6FF", "#DDC8FF"),
-        "frame": ("#E5D0FF", "#BD92FF"),
-        "top": ("#CBA7FF", "#AD78FF"),
-        "front": ("#985BF3", "#7C3DDF"),
-        "side": ("#783BD6", "#5C2AB2"),
-        "deep": "#46208A",
-    },
-    "legendary": {
-        "cap": ("#FFFEF5", "#FFEDB0"),
-        "frame": ("#FFF4BE", "#FFD55A"),
-        "top": ("#FFE47E", "#FFC933"),
-        "front": ("#F8B51A", "#DE9600"),
-        "side": ("#D48C00", "#AC6B00"),
-        "deep": "#835000",
-    },
-    "event": {
-        "cap": ("#FFF7FC", "#FFD3EB"),
-        "frame": ("#FFD8EF", "#FF9DD2"),
-        "top": ("#FFAADA", "#FF7EC4"),
-        "front": ("#F553AD", "#DA3892"),
-        "side": ("#CF3E90", "#AA2974"),
-        "deep": "#861A58",
-    },
-}
-
-
-def chest(c, gid, shine=False):
-    """The case chest in the colours c (a CHESTS row). gid names its gradients; shine adds
-    twinkles. A box from the front right: recessed panels, a light metal frame along every
-    edge (posts, the lid's rim, the bottom, two straps over the lid), a blocky cap on each
-    corner, and a round lock plate on the seam."""
-    W, LID, H = 152, 44, 116  # the front's width, the lid's height, the whole height
-    DX, DY = 58, -32  # the depth, drawn up and to the right
-    X0, Y0 = 128 - (W + DX) / 2, 128 - (H + DY) / 2 - 2
-    FB, FU = 12, 0.2  # a frame band's width on the front, and in depth shares
-    CW, CH, CU = 32, 30, 0.32  # a corner cap's width, height and depth share
-    deep = c["deep"]
-
-    def pt(x, y, u):  # x across the front, y down from the lid's top, u into the depth
-        return (X0 + x + DX * u, Y0 + y + DY * u)
-
-    def F(x0, y0, x1, y1):  # a quad on the front face
-        return [pt(x0, y0, 0), pt(x1, y0, 0), pt(x1, y1, 0), pt(x0, y1, 0)]
-
-    def S(u0, y0, u1, y1):  # on the right side
-        return [pt(W, y0, u0), pt(W, y0, u1), pt(W, y1, u1), pt(W, y1, u0)]
-
-    def T(x0, u0, x1, u1):  # on the top
-        return [pt(x0, 0, u0), pt(x1, 0, u0), pt(x1, 0, u1), pt(x0, 0, u1)]
-
-    def url(n):
-        return f"url(#{gid}{n})"
-
-    rim = f'stroke="{deep}" stroke-width="2.5" stroke-linejoin="round"'
-    shade = f'fill="{deep}" opacity="0.28"'
-    front, side, top = F(0, 0, W, H), S(0, 0, 1, H), T(0, 0, W, 1)
-    # the whole chest is clipped to its outline with the corners rounded, so it looks soft
-    hull = [pt(0, 0, 0), pt(0, 0, 1), pt(W, 0, 1), pt(W, H, 1), pt(W, H, 0), pt(0, H, 0)]
-    parts = [
-        "<defs>"
-        + f'<clipPath id="{gid}Hull"><path d="{rounded_poly(hull, 13)}"/></clipPath>'
-        + grad(gid + "Cap", *c["cap"], x2=0.4)
-        + grad(gid + "Frame", *c["frame"], x2=0.3)
-        + grad(gid + "Top", *c["top"], x2=0.3)
-        + grad(gid + "Front", *c["front"], x2=0.2)
-        + grad(gid + "Side", *c["side"])
-        + grad(gid + "Spark", "#FFFFFF", "#FFF3B0")
-        + "</defs>",
-        "".join(face(f, deep, rim) for f in (front, side, top)),
-        face(side, url("Side")),
-        face(front, url("Front")),
-        face(top, url("Top")),
-        # the panels' recess: a shade along their top and left edges
-        face(F(FB, LID, FB + 5, H - FB), deep, 'opacity="0.25"'),
-        face(F(FB, LID, W - FB, LID + 6), deep, 'opacity="0.3"'),
-        face(F(FB, 7, W - FB, 12), deep, 'opacity="0.2"'),
-        face(S(FU, LID, 1 - FU, LID + 6), deep, 'opacity="0.3"'),
-        # the top's plain middle catches the light
-        gloss(*pt(W * 0.42, 0, 0.5), 34, 7, angle=-12, opacity=0.6),
-    ]
-    frame = [
-        F(0, 0, FB, H), F(W - FB, 0, W, H), F(0, H - FB, W, H), F(0, LID - FB, W, LID), F(0, 0, W, 7),
-        T(0, 0, FB + 4, 1), T(W - FB - 4, 0, W, 1),
-    ]
-    frame_side = [S(0, 0, FU, H), S(1 - FU, 0, 1, H), S(0, H - FB, 1, H), S(0, LID - FB, 1, LID), S(0, 0, 1, 7)]
-    parts += [face(f, url("Frame")) for f in frame]
-    parts += [face(f, url("Frame")) + face(f, deep, 'opacity="0.2"') for f in frame_side]
-    parts += [
-        # the seam under the lid's rim, the edges between faces
-        line([pt(0, LID, 0), pt(W, LID, 0), pt(W, LID, 1)], INK, 5),
-        line([pt(W, 3, 0), pt(W, H - 3, 0)], deep, 3, 'opacity="0.7"'),
-        line([pt(3, 0, 0), pt(W, 0, 0), pt(W, 0, 1)], deep, 3, 'opacity="0.55"'),
-        line([pt(4, 2.5, 0), pt(W - 4, 2.5, 0)], "#FFFFFF", 3, 'opacity="0.7"'),
-    ]
-
-    def cap(fronts, tops, sides):
-        out = ""
-        for f in fronts:
-            out += face(f, url("Cap"), rim)
-        for f in tops:
-            out += face(f, url("Cap"), rim)
-        for f in sides:
-            out += face(f, url("Cap"), rim) + face(f, deep, 'opacity="0.22"')
-        return out
-
-    parts += [
-        cap([], [T(0, 1 - CU, CW, 1)], []),
-        cap([], [T(W - CW, 1 - CU, W, 1)], [S(1 - CU, 0, 1, CH)]),
-        cap([], [], [S(1 - CU, H - CH, 1, H)]),
-        cap([F(0, 0, CW, CH)], [T(0, 0, CW, CU)], []),
-        cap([F(W - CW, 0, W, CH)], [T(W - CW, 0, W, CU)], [S(0, 0, CU, CH)]),
-        cap([F(0, H - CH, CW, H)], [], []),
-        cap([F(W - CW, H - CH, W, H)], [], [S(0, H - CH, CU, H)]),
-    ]
-    # the caps' lit bevels
-    for x in (0, W - CW):
-        parts.append(line([pt(x + 4, CH - 5, 0), pt(x + 4, 4, 0), pt(x + CW - 5, 4, 0)], "#FFFFFF", 3, 'opacity="0.85"'))
-        parts.append(line([pt(x + 4, H - 6, 0), pt(x + 4, H - CH + 4, 0), pt(x + CW - 5, H - CH + 4, 0)], "#FFFFFF", 3, 'opacity="0.7"'))
-    xm, ym = W / 2, LID
-    px, py = pt(xm, ym, 0)
-    parts += [
-        f'<rect x="{px - 20:.1f}" y="{py - 25:.1f}" width="40" height="50" rx="14" fill="{url("Cap")}" stroke="{INK}" stroke-width="5"/>',
-        f'<circle cx="{px:.1f}" cy="{py + 1:.1f}" r="10.5" fill="{url("Front")}" stroke="{deep}" stroke-width="5"/>',
-        gloss(px - 8, py - 14, 7, 4, angle=-20, opacity=0.95),
-    ]
-    out = parts[0] + f'<g clip-path="url(#{gid}Hull)">' + "".join(parts[1:]) + "</g>"
-    if shine:
-        out += sparkle(40, 42, 21, url("Spark")) + sparkle(232, 30, 12, url("Spark"))
-    return out
-
-
-def icon_case_standard():
-    return chest(CHESTS["standard"], "caseStd")
-
-
-def icon_case_rare():
-    return chest(CHESTS["rare"], "caseRare")
-
-
-def icon_case_epic():
-    return chest(CHESTS["epic"], "caseEpic")
-
-
-def icon_case_legendary():
-    return chest(CHESTS["legendary"], "caseLeg", shine=True)
-
-
-def icon_case_event():
-    return chest(CHESTS["event"], "caseEvent")
-
-
-def icon_case():
-    """The generic case: the Standard chest (the roadmap's reward tile)."""
-    return chest(CHESTS["standard"], "caseGeneric")
 
 
 # The left column's buttons. They sit on a blue candy tile, so none of them is mostly blue
@@ -1152,7 +973,7 @@ def icon_inventory():
 
 
 def gift_box(g, box, x0=40, y0=124, w=128, h=94, lid=34, over=9, dx=46, dy=-32, bow=True):
-    """A gift box from the front right, like the chest: a lid with an overhang, a gold ribbon
+    """A gift box from the front right: a lid with an overhang, a gold ribbon
     both ways and a bow on top. box: the front, side and top colour pairs. g names the
     gradients. Returns the body and the middle of the lid's top (for a bow or a cue)."""
     x1 = x0 + w
@@ -1685,21 +1506,6 @@ def icon_money_party():
         gloss(tip[0] + ax * 0.45 + nx * 14, tip[1] + ay * 0.45 + ny * 14, 22, 5, angle=ang, opacity=0.6),
     ]
     return "".join(parts)
-
-
-def icon_fast_open():
-    """A case chest with a big lightning bolt: open a case at once."""
-    chest_art = chest(CHESTS["standard"], "fastChest")
-    bolt = "M178 18 L118 118 L156 118 L128 232 L220 96 L180 96 L204 18 Z"
-    art = "".join(
-        [
-            f'<g transform="translate(6 30) scale(0.8)">{chest_art}</g>',
-            f'<path d="{bolt}" fill="{INK}" stroke="{INK}" stroke-width="18" stroke-linejoin="round"/>',
-            f'<path d="{bolt}" fill="url(#gold)" stroke="url(#gold)" stroke-width="6" stroke-linejoin="round"/>',
-            line([(184, 28), (140, 104)], "#FFFFFF", 6, 'opacity="0.6"'),
-        ]
-    )
-    return zoom(art, 0.9)
 
 
 def icon_limited():
@@ -2342,7 +2148,6 @@ ICONS = {
     "money": icon_money,
     "cash_single": icon_cash_single,
     "cash_stack": icon_cash_stack,
-    "case": icon_case,
     "chat_tag": icon_chat_tag,
     "level_classic": icon_level_classic,
     "level_difficult": icon_level_difficult,
@@ -2354,11 +2159,6 @@ ICONS = {
     "inventory": icon_inventory,
     "rewards": icon_rewards,
     "trade": icon_trade,
-    "case_standard": icon_case_standard,
-    "case_rare": icon_case_rare,
-    "case_epic": icon_case_epic,
-    "case_legendary": icon_case_legendary,
-    "case_event": icon_case_event,
     "pack_1": icon_pack_1,
     "pack_2": icon_pack_2,
     "pack_3": icon_pack_3,
@@ -2369,7 +2169,6 @@ ICONS = {
     "vip": icon_vip,
     "starter_pack": icon_starter_pack,
     "money_party": icon_money_party,
-    "fast_open": icon_fast_open,
     "limited": icon_limited,
     "calendar": icon_calendar,
     "code": icon_code,
@@ -2388,10 +2187,9 @@ ICONS = {
 # Group names on the command line stand for these icons (python3 tools/gen_ui_art.py economy).
 GROUPS = {
     "column": ["shop", "inventory", "rewards", "trade"],
-    "cases": ["case", "case_standard", "case_rare", "case_epic", "case_legendary", "case_event"],
     "packs": [f"pack_{i}" for i in range(1, 8)],
     "shop_icons": [
-        "vip", "starter_pack", "money_party", "fast_open", "limited", "calendar", "code",
+        "vip", "starter_pack", "money_party", "limited", "calendar", "code",
         "index", "sell", "lock", "odds",
     ],
     "cue_layers": list(CUE_LAYERS),

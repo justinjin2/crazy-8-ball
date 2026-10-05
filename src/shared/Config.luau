@@ -1593,7 +1593,7 @@ Config.Save = {
 	MaxTitleEntries = 200, -- Titles
 	MaxCodeEntries = 500, -- Codes redeemed
 	MaxSmallEntries = 50, -- Index.Rows (rarities) and Daily.PlaytimeClaimed (gift indices)
-	ItemCountCap = 1e6, -- copies of one cue, or unopened cases of one type
+	ItemCountCap = 1e6, -- copies of one cue
 	CopyNumberCap = 1e6, -- a numbered Limited cue's copy number (#412)
 	UnixTimeCap = 1e10, -- Shop.FirstJoin, unix seconds (1e10 is the year 2286)
 	-- A receipt's PurchaseId (Shop.Purchases). Roblox's are about 30-40 characters; a longer
@@ -2270,7 +2270,7 @@ Config.LuckyBlocks = {
 		NoticePx = 22,
 		-- The world countdown; Roblox draws the native open prompt.
 		BillboardTimerPx = 24,
-		-- Lifts for the bottom-centre prompts (OpponentPrompt, claim block, reminders,
+		-- Lifts for the bottom-centre prompts (OpponentPrompt, claim block,
 		-- Collect) while the hotbar shows, so they sit over it.
 		LiftPx = 80,
 		PhoneLiftPx = 62,
@@ -2314,7 +2314,7 @@ Config.LuckyBlocks = {
 -- A bot's equipped cue (src/shared/Progression/BotCues.luau; the Bots lane's Look.cue calls
 -- it): its rarity matches what real players at that rank own (the approved economy plan,
 -- 2026-10-02, section 3). Each row is the chance the cue is that rarity or better; the rest
--- (Common, Uncommon, Rare) is spread by the Case Drop's odds. Mythic+ is a Mythic: a bot
+-- (Common, Uncommon, Rare) is spread by the Mystery block's odds. Mythic+ is a Mythic: a bot
 -- never shows the Secret cue (lane decision, 2026-10-03). (tune)
 ---------------------------------------------------------------------------------------------
 Config.BotCues = {
@@ -2374,7 +2374,7 @@ Config.Items = {
 	RatePerSecond = 3, -- ...refilling this fast
 	MarkSeenMax = 60, -- the most cue ids one MarkSeen may name
 	-- Paid random items (ECONOMY 13): PolicyService is asked on join, this many times this far
-	-- apart; if it never answers, the player is treated as restricted (no cases for money, no
+	-- apart; if it never answers, the player is treated as restricted (no blocks for money, no
 	-- paid item trading) for the session: the cautious answer. Studio is never restricted.
 	PolicyRetries = 3,
 	PolicyRetrySeconds = 2,
@@ -2404,7 +2404,7 @@ Config.Items = {
 	-- that fails is tried this many times, this far apart, before it counts as not first.
 	FirstsStore = "Firsts_v1",
 	FirstsStudioStore = "Firsts_Studio_v1",
-	-- The restock shop's shared stock (the Legendary Case's GlobalStock), one key per restock.
+	-- The restock shop's shared stock (the Legendary slot's GlobalStock), one key per restock.
 	StockStore = "RestockStock_v1",
 	StockStudioStore = "RestockStock_Studio_v1",
 	FirstRetries = 3,
@@ -2419,7 +2419,7 @@ Config.Items = {
 	AnnounceRetrySeconds = 5,
 	AnnounceRetryGrowth = 2,
 	-- A Mythic or Secret unboxed (ECONOMY 7.4) is announced this long after the server rolled
-	-- it, so the banner never spoils the opener's reel: that reel runs Config.UI.CaseOpening
+	-- it, so the banner never spoils the opener's reel: that reel runs Config.UI.Reel
 	-- .Reel's BigSeconds + CentreSeconds + BigSettleHoldSeconds (about 7.7 s) before its card,
 	-- and this is at least a second more (config_test).
 	UnboxAnnounceDelaySeconds = 9,
@@ -2527,7 +2527,7 @@ Config.Daily = {
 ---------------------------------------------------------------------------------------------
 -- Trading (the approved economy plan, 2026-10-02, section 9; designer, 2026-10-03):
 -- src/shared/Progression/Trade.luau, src/server/Trading.luau. Anyone in the server, no gate.
--- Cues and ready cases only, never money; Exclusive cues never except ExclusiveTradable. (tune)
+-- Cues and ready lucky blocks only, never money; Exclusive cues never except ExclusiveTradable. (tune)
 ---------------------------------------------------------------------------------------------
 Config.Trade = {
 	-- Items one side may offer (the history keeps as many: Config.Save.MaxTradeSideItems).
@@ -2703,7 +2703,7 @@ Config.Shop = {
 	ReceiptPassWaitSeconds = 30,
 	-- The Store service's limits (src/server/Store.luau; server limits, not ECONOMY.md
 	-- numbers). One StoreRequest per player this often ("TooFast"). How often the server looks
-	-- for an offer window (11.3, 11.4), a Limited (9), a case sale (9.1) or the Money Party
+	-- for an offer window (11.3, 11.4), a Limited (9) or the Money Party
 	-- (11.5) opening or closing, and re-sends that player's ShopState. Game pass ownership
 	-- (11.2, 11.5) is asked of Roblox on join up to PassCheckTries times, PassRetrySeconds
 	-- apart (the call can fail); a purchase in this server counts at once.
@@ -2731,7 +2731,7 @@ Config.Shop = {
 		}
 	},
 	-- The release sale (designer, 2026-10-03, D5; the GUI lane): money packs 4-7, VIP and 10
-	-- Mystery Cases at Percent off for Seconds, as their own developer products (Config.Products
+	-- Mystery blocks at Percent off for Seconds, as their own developer products (Config.Products
 	-- rows with SaleOf), shown in place of the normal ones only inside the window, so the
 	-- crossed-out normal price is always true. StartsAt 0: it starts with the Limited row of
 	-- With (the Grand Opening Cue), so one date sets both.
@@ -3165,7 +3165,7 @@ Config.Ults = {
 	-- The code box on the spin screen (section 9.3): the designer edits these two in one place.
 	-- The code itself is a row in Config.Daily.Codes (Spins = 3).
 	CodeBanner = { ActiveCode = "RELEASE", NextGoalLikes = 100 },
-	-- Fast Open's Auto Spin (section 9.6): one spin this often, server-checked.
+	-- VIP's Auto Spin (section 9.6): one spin this often, server-checked.
 	AutoSpinSeconds = 0.4,
 	AutoStopChoices = { "Rare", "Epic", "Legendary" },
 	-- The PC opponent (section 4): it activates when its bar is full and it is behind, or when
@@ -4780,7 +4780,7 @@ Config.Effects = {
 				FlashSeconds = 0.35,
 			},
 		},
-		-- One row per rarity (the catalog's case cues name their rarity; rank and special
+		-- One row per rarity (the catalog's block cues name their rarity; rank and special
 		-- cues name the rarity their look matches). Colours from UI_STYLE section 4. (tune)
 		-- Common: the very same plain wisp and gust as Classic (GDD 12).
 		Common = {},
@@ -5371,8 +5371,8 @@ Config.UI = {
 			TotalTextPx = 20,
 			ButtonHeight = 44, -- Continue (a touch target)
 			-- The card grows past Height when its contents need it (boosts, a streak line, the
-			-- free case, the reminder); the whole screen still scales to fit.
-			BlockGap = 6, -- between the card's blocks (the XP, the boosts, the Total, the case)
+			-- win's block); the whole screen still scales to fit.
+			BlockGap = 6, -- between the card's parts (the XP, the boosts, the Total, the block chip)
 			-- The XP boosts (ECONOMY 4.5; brief section 13): a chip each under the XP bar (only
 			-- "STREAK +25%" since 2026-10-02; a boost of +100% or more would read as a
 			-- multiplier, a smaller one as a percent), in rows as wide as the bar.
@@ -5383,20 +5383,12 @@ Config.UI = {
 			-- Each boost's colour: a Kit colour name, or "Rainbow" (the house rainbow).
 			BoostTones = { Streak = "Red" },
 			BoostStagger = 0.08, -- the chips pop one after another with the XP
-			-- The winner's free case (ECONOMY 7.1): "+1 Standard Case" with its chest, under the
-			-- Total; its chest then flies into the left column's Inventory tile.
-			CaseChipHeight = 30,
-			CaseChipTextPx = 16,
-			CaseAfterSeconds = 0.2, -- it pops this long after the total chip flies
-			CaseFlySeconds = 0.45, -- and its chest flies this long after that
-			-- The reminder under it ("Come back tomorrow for your Rare Case", Reminders): small
-			-- ink text, one line, more when the words need them (a phone, a translation).
-			ReminderTextPx = 14,
-			ReminderMaxLines = 3,
-			-- The first win's Rare Case (ECONOMY 7.1): after the counts, the face-off and the
-			-- card make way for CaseOpening's reel and its card with Equip (a step before the
-			-- buttons); once the player is done with it they come back with Continue.
-			RevealSwapSeconds = 0.2, -- the columns pop out this long before the reel starts
+			-- The winner's lucky block (ECONOMY 7): "+1 Mystery Lucky Block" with the block,
+			-- under the Total; the block then flies into the hotbar (or the Inventory tile).
+			BlockChipHeight = 30,
+			BlockChipTextPx = 16,
+			BlockAfterSeconds = 0.2, -- it pops this long after the total chip flies
+			BlockFlySeconds = 0.45, -- and its block flies this long after that
 			-- Timings, seconds from the screen opening (a tap skips to the end).
 			CrownAt = 0.35, -- the crown starts to drop
 			CrownDropSeconds = 0.45,
@@ -5452,7 +5444,7 @@ Config.UI = {
 			RaysTransparency = 0.4, -- the rays at their brightest
 			NameTextPx = 26, -- "Gold IV"
 			NameHeight = 34,
-			-- The reward chips (RewardChips; brief section 9): the money, each case ("x2"), the
+			-- The reward chips (RewardChips; brief section 9): the money, each block ("x2"), the
 			-- tier's cue and its chat tag, in centred rows under the name. A row may reach past
 			-- the popup's sides like the title; more wrap onto a second row.
 			RewardHeight = 32, -- a reward chip
@@ -5461,7 +5453,7 @@ Config.UI = {
 			ChipRowGap = 6, -- between two rows
 			ChipsMaxWidth = 520, -- a row of chips at most
 			ChipStagger = 0.1, -- they pop one after another with the burst
-			ItemFlyAfter = 0.3, -- the first case or cue flies to Inventory this long after the money
+			ItemFlyAfter = 0.3, -- the first block or cue flies to the hotbar or Inventory this long after the money
 			ItemFlyStagger = 0.25, -- then each next one
 			ButtonHeight = 44, -- Continue
 			ButtonWidth = 160,
@@ -5559,8 +5551,8 @@ Config.UI = {
 			NudgeSeconds = 0.25,
 		},
 		-- The reward chips (RewardChips) on the result screen and NEW RANK!: a white pill with
-		-- the picture then the words; and a case or cue flying from its chip into the left
-		-- column's Inventory tile (the column shows meanwhile, even under a popup).
+		-- the picture then the words; and a block or cue flying from its chip to the hotbar or
+		-- the left column's Inventory tile (they show meanwhile, even under a popup).
 		Chips = {
 			PadPx = 6, -- before the picture
 			GapPx = 4, -- between the picture and the words
@@ -5707,7 +5699,6 @@ Config.UI = {
 			Money = "rbxassetid://140297726302884",
 			CashStack = "rbxassetid://140297726302884", -- the money HUD's total
 			CashSingle = "rbxassetid://120556642167836", -- one bundle: the flying "+$10" chip
-			Case = "rbxassetid://119138673224082", -- a case chest (case_standard; was 123526196779472)
 			ChatTag = "rbxassetid://108097317615793", -- a speech bubble (the chat-tag reward tile)
 			-- The economy (2026-09-28; tools/gen_ui_art.py, assets/ui/icons/README.md). An empty id
 			-- draws nothing until the image is uploaded.
@@ -5715,11 +5706,6 @@ Config.UI = {
 			Inventory = "rbxassetid://105879289234800", -- a backpack
 			Rewards = "rbxassetid://92894769753979", -- a gift box with a bow
 			Trade = "rbxassetid://98977101809699", -- two arrows swapping
-			CaseStandard = "rbxassetid://119138673224082", -- the case chest after reference 07, in its case's colour
-			CaseRare = "rbxassetid://121070015585025",
-			CaseEpic = "rbxassetid://86949000248568",
-			CaseLegendary = "rbxassetid://115568776906467",
-			CaseEvent = "rbxassetid://102627378767988",
 			Pack1 = "rbxassetid://104093005133758", -- the money packs, smallest to biggest
 			Pack2 = "rbxassetid://107106986765797",
 			Pack3 = "rbxassetid://78352765658351",
@@ -5730,16 +5716,12 @@ Config.UI = {
 			Vip = "rbxassetid://114618538604206", -- a crown with rainbow gems
 			StarterPack = "rbxassetid://112625803604762", -- a gift box with a cue
 			MoneyParty = "rbxassetid://70489851952209", -- a party popper with cash confetti
-			FastOpen = "rbxassetid://119005216671556", -- a chest with a lightning bolt
 			Limited = "rbxassetid://105313592367901", -- a numbered star ticket
 			-- The GUI lane's icons (2026-10-03; tools/openai_image.py in the kit's sticker style,
 			-- uploaded to the group).
 			ShopBasket = "rbxassetid://130453738066274", -- the Shop: a red basket, silver handle (ref 02)
 			Deals = "rbxassetid://127731721548070", -- a price tag with a star burst (the Deals jump button)
-			CasesJump = "rbxassetid://138027148960139", -- two stacked cases (the Cases jump button)
 			Passes = "rbxassetid://93981799998814", -- a golden ticket (the Passes jump button)
-			MysteryCase = "rbxassetid://108447374917770", -- a purple case with a question mark
-			Restock = "rbxassetid://75423782122752", -- a refresh arrow round a chest
 			RobloxPlus = "rbxassetid://132944105986264", -- a gold badge with a plus
 			Gift = "rbxassetid://120885254928899", -- the Free Reward gift
 			Group = "rbxassetid://98530804278165", -- three busts (join the group)
@@ -5748,10 +5730,6 @@ Config.UI = {
 			Challenge = "rbxassetid://127346327357150", -- the Daily Challenge
 			Gear = "rbxassetid://125677637012120", -- Settings
 			Heart = "rbxassetid://93822415051422", -- the thank-you burst
-			MagicBall = "rbxassetid://137828587348917", -- the Case Drop's magic 8-ball
-			MagicBallWindow = "rbxassetid://98157748117655", -- its answer side
-			MagicTriangle = "rbxassetid://78612448466823", -- the tier die in its window, tinted
-			HandPointer = "rbxassetid://100619983981739",
 			FreeReward = "rbxassetid://120885254928899", -- the column's Free Reward tile (Gift) -- the shake hint's finger
 			Calendar = "rbxassetid://81931904688937", -- the daily streak
 			Code = "rbxassetid://139681599835662", -- promo codes
@@ -6970,7 +6948,7 @@ Config.UI.Menu = {
 		ShortDotPx = 20,
 		DotTextPx = 14,
 		DotInsetPx = 4, -- its centre sits this far inside the tile's top-right corner
-		DotMax = 9, -- more unopened cases than this read "9+"
+		DotMax = 9, -- a count above this reads "9+"
 		TimerPx = 22, -- the Shop's gold timer pill while an offer window is open
 		ShortTimerPx = 20,
 		TimerTextPx = 14,
@@ -7135,13 +7113,13 @@ Config.UI.Menu = {
 	EscapeAfterTypingSeconds = 0.1,
 }
 
--- The Shop (ShopMenu, one scrolling page built by ShopPage and ShopCards, with ShopNeed,
--- ShopOdds and ShopParts; docs/prompts/GUI_PROMPT.md step 3): cards laid out by hand from the
--- page's size. Sizes given as { a, b } run from a on a phone-sized panel to b on a full one
+-- The Shop (ShopMenu with ShopParts; emptied for the GUI overhaul, designer 2026-10-04: the
+-- frame and its jump buttons; the card sizes stay for the ult screen's buy buttons and the
+-- page to come). Sizes given as { a, b } run from a on a phone-sized panel to b on a full one
 -- (MenuFrame's geo.t, as Config.UI.Menu.Frame). Text never goes under Kit.Text.Min. Pixels and
 -- seconds. (tune)
 Config.UI.Shop = {
-	TickSeconds = 0.25, -- the countdowns (sale, offers, Limited, party) are redrawn this often
+	TickSeconds = 0.25, -- the jump buttons' NEW badges are redrawn this often
 	DaysFromSeconds = 86400, -- from a day left a countdown reads "6d 4h", else "2:59:12"
 	ScrollPadPx = 8, -- inside a page's scroller: room for a hovered button's grow and outline
 	ScrollBarPx = 6, -- its bar (always inset, so the cards never jump sideways)
@@ -7160,119 +7138,35 @@ Config.UI.Shop = {
 	PillTextPx = { 14, 16 },
 	PillPadPx = 10, -- room each side of a pill's words
 	CashShare = 1.3, -- the cash bundle beside a price, of the price's text size
-	-- The odds panel over the pages: a heading per rarity, a row per cue in as many columns as
-	-- keep a row RowMinWidthPx wide.
-	Odds = {
-		ZIndex = 50, -- over the pages, under the notices (55) and dialogs (60)
-		HeaderPx = { 44, 52 }, -- the chest, the title and the red X
-		TitleTextPx = { 20, 28 },
-		CloseMaxPx = 44,
-		HeadingTextPx = { 16, 20 }, -- a rarity's name and %, in its colour
-		RowPx = { 36, 44 }, -- a cue's row: its thumbnail, name and %
-		RowTextPx = { 14, 16 },
-		RowMinWidthPx = 210,
-		RowCornerPx = 10,
-		RowStrokePx = 2, -- a row's edge, in its rarity's colour
-	},
-	-- The one scrolling page (GUI lane, designer 2026-10-03; ref 01 Steal an Egg's format): big
-	-- "— VIP —" section headers, wide hero cards (offers, VIP, boosts) and grids of tiles (the
-	-- restock, Mystery Cases, money packs), four jump buttons down the right side. Sizes { a,
-	-- b } run from a phone-sized panel (a) to a full one (b). (tune)
+	-- The one scrolling page (GUI lane, designer 2026-10-03), emptied for the GUI overhaul
+	-- (designer, 2026-10-04): the frame, its background and the four jump buttons down the
+	-- right side are all that is left; the sections come back with the new design. Sizes
+	-- { a, b } run from a phone-sized panel (a) to a full one (b). (tune)
 	Page = {
-		-- The jump buttons, top to bottom: each scrolls to its first section on the page and
-		-- glows while one of its sections is at the top. Icons are Config.UI.Kit.Icons keys.
-		-- (Designer, 2026-10-04: Featured, Blocks, Money, Passes; the Starter Pack and VIP
-		-- band belongs to Passes.)
+		-- The jump buttons, top to bottom (designer, 2026-10-04: Featured, Blocks, Money,
+		-- Passes). Icons are Config.UI.Kit.Icons keys. Each will scroll to its sections once
+		-- the page has them again.
 		Jump = {
 			{ Key = "Featured", Icon = "Deals", Sections = { "GrandOpening", "Limited" } },
-			{ Key = "Blocks", Icon = "CasesJump", Sections = { "Mystery", "Restock" } },
+			{ Key = "Blocks", Icon = "Inventory", Sections = { "Mystery", "Restock" } },
 			{ Key = "Money", Icon = "Pack4", Sections = { "Money" } },
 			{ Key = "Passes", Icon = "Passes", Sections = { "Offer", "Boosts", "RobloxPlus" } },
 		},
-		-- The lucky block cards (designer, 2026-10-04; the ChatGPT mockups in
-		-- 8ball-refs/gui-v3/mockups): the Grand Opening band, the Mystery card, the restock
-		-- slots and the Starter Pack, each with its turning 3D block and its odds always shown.
+		-- The 3D block icon (BlockIcon, used by the hotbar, the reward chips and the trade
+		-- screen; the shop's cards will use it again).
 		Block = {
-			ArtPx = { 96, 150 }, -- a band's block picture (Grand Opening, Mystery)
-			TileArtPx = { 76, 104 }, -- a slot tile's
-			TitlePx = { 22, 34 },
-			SubtitlePx = { 13, 17 }, -- "LUCKY BLOCK · LIMITED · YOU COULD PULL..."
-			LinePx = { 13, 16 }, -- ink detail lines
-			TileTitlePx = { 15, 19 }, -- "Rare Lucky Block" on a slot tile
-			PillPx = { 22, 28 }, -- "Always in stock", "NEW", "VIP ONLY"
-			PillTextPx = { 13, 16 },
-			OddsRowPx = { 18, 23 }, -- one rarity's row of the odds strip
-			OddsTextPx = { 12, 15 },
-			-- The Mystery band's strip (reference 13): pale rows with a small still block per
-			-- row and the kind's name in its colour.
-			OddsIconRowPx = { 30, 38 },
-			OddsIconTextPx = { 14, 18 },
 			IconYawDegrees = 35, -- a still block icon's turn, so three faces show
-			ColumnLabelColor = { 255, 214, 10 }, -- "x1", "x10" over the Mystery columns: gold
-			-- A restock tile's three chase cues under its odds (the rarest three of its pool):
-			-- small pictures rimmed in the cue's colour, the chance under each.
-			ThumbPx = { 52, 76 },
-			ThumbPctPx = { 12, 15 },
-			ThumbGapPx = { 6, 10 },
-			OddsGapPx = { 3, 4 },
-			OddsMaxWidthPx = 320, -- the strip never grows wider than this beside buttons
-			ChasePx = { 96, 150 }, -- a chase card (the Unique cue's picture, name, tags and odds)
-			ChaseNamePx = { 16, 22 },
-			ChaseThumbShare = 0.55, -- the cue's picture takes this share of a chase card's width
-			-- The Grand Opening band after the designer's reference 12: a dark festive fill (navy
-			-- fading deeper, a pale blue edge), the crowned block and its countdown at the left
-			-- under a NEW sticker, the gold title with a star each side, "YOU COULD PULL...", the
-			-- two chase cards, then three buy columns (a green Robux button with the count and the
-			-- crossed old price in its words, a gold money button under, "save 12%").
-			FestiveFill = { 28, 40, 100 },
-			FestiveFade = { 12, 18, 54 },
-			FestiveEdge = { 126, 176, 255 },
-			OpeningArtPx = { 110, 180 }, -- the crowned block
-			OpeningTitlePx = { 24, 40 },
-			StarShare = 0.9, -- the stars by the title, of its text height
-			ColumnLabelPx = { 22, 30 }, -- "x1", "x3", "x10" over a column of buttons
-			NotePx = { 12, 15 }, -- "save 12%", "3 left for you"
-			-- A band this wide puts its odds strip beside the buy columns; narrower stacks them.
-			WideMinPx = 540,
-			LockedColor = { 206, 214, 228 }, -- the VIP slot's grey card for non-VIPs
-			LockPx = { 44, 64 }, -- its padlock
 			-- A kit icon per block kind, shown only if the block's 3D model is missing from the
-			-- place (every kind has one since 2026-10-04). Never a case chest: cases are gone
-			-- (designer, 2026-10-04); a missing model shows the gift box.
+			-- place (every kind has one since 2026-10-04); a missing model shows the gift box.
 			Fallback = {
 				Starter = "StarterPack",
 				Gift = "Gift",
 				Vip = "Vip", -- the VIP band's crown (never a model)
 			},
 			FallbackDefault = "Gift",
-			-- The Starter Pack and VIP bands (the designer's reference, 2026-10-04): two side
-			-- by side on a computer, stacked on a phone. The art at the left, the title, big
-			-- number and line beside it, then the odds pills (Starter) or the perk list (VIP),
-			-- and the timer or sale ribbon at the bottom left with the button at the right.
-			PassArtPx = { 84, 132 },
-			PassMinPx = { 300, 400 }, -- a band at least this wide (one per row otherwise)
-			PassMaxPx = 720, -- and at most this wide
-			PassTitlePx = { 24, 38 },
-			PassBigPx = { 26, 42 }, -- the "$75,000" and "x1 -> x2 MONEY"
-			OddsPillPx = { 36, 46 }, -- a horizontal odds pill: the name over the chance
-			OddsPillGapPx = { 4, 6 },
-			OddsPillMinPx = 62, -- narrower than this: the pills wrap to a second row
-			PerkRowPx = { 24, 32 }, -- a VIP perk row (icon, words)
-			PerkTextPx = { 12, 15 },
-			PerkColumnMinPx = 150, -- two columns of perks when each has this much room
-			CreamFill = { 255, 247, 219 }, -- VIP's card
-			CreamEdge = { 236, 184, 56 },
-			-- The icons by VIP's perk lines (Strings Menus.Shop.VipPerkLines), in order.
-			VipPerkIcons = { "CashStack", "UltSpin", "Restock", "Stopwatch", "Lightning", "Star" },
 		},
-		-- The menu opening: its cards and headers pop in one after another from the top left
-		-- to the bottom right, like blocks being laid (designer, 2026-10-04). Each starts
-		-- after its (x + y) share of the page, times Seconds; one pop takes Kit.Motion.Pop.
-		Build = { Seconds = 0.28, FromScale = 0.25, AcrossShare = 0.35 }, -- AcrossShare: how much the x counts against the y
-		-- Every now and then a card shimmers (one shine band sweeps across it), and a card's
-		-- block pops a little (grows and settles); seconds between, picked between the two.
-		Shimmer = { Every = { 7, 15 } },
-		IconPop = { Every = { 4, 9 }, Scale = 1.12 },
+		-- A block icon's little pop (BlockIcon.pop): it grows to this and settles.
+		IconPop = { Scale = 1.12 },
 		-- These jump buttons keep their red NEW badge all through the Grand Opening window
 		-- (designer, 2026-10-04); every other badge clears once the Shop has been opened.
 		PinnedBadges = { "Featured", "Blocks" },
@@ -7287,164 +7181,31 @@ Config.UI.Shop = {
 		-- Opened on a tab (the HUD's "+", a corner): a layout within this many seconds of
 		-- opening jumps to the tab again, so a late geometry pass cannot leave it elsewhere.
 		JumpSettleSeconds = 0.6,
-		HeaderPx = { 40, 58 }, -- a section's "— VIP —" row
-		HeaderTextPx = { 26, 40 },
-		HeaderColor = { 255, 214, 10 }, -- bright yellow, ink outline (ref 01)
-		HeaderLineTextPx = { 16, 20 }, -- the line under a header ("NEW ITEMS IN 7:12")
-		-- The restock's bar instead of a header word (reference 20): a dark navy pill with
-		-- the stopwatch, "New blocks in 6:12" (the time in gold) and each slot's chances.
-		BarPx = { 36, 48 },
-		BarColor = { 24, 34, 84 },
-		BarIconShare = 0.8, -- the stopwatch, of the bar's height
-		BarPadPx = 12,
-		SectionGapPx = { 14, 24 }, -- above each header
-		-- Hero cards: the art square at the left, title, huge numbers and a line in the middle,
-		-- the price and Buy at the right.
-		HeroPx = { 118, 160 },
-		HeroButtonWidthPx = { 128, 200 },
-		HeroTitlePx = { 22, 32 },
-		HeroBigPx = { 28, 46 }, -- "x1 > x2", "$75,000"
-		HeroLinePx = { 15, 18 },
-		-- Tiles in a grid: as many columns as keep each at least MinWidth wide.
-		TileMinWidthPx = { 128, 168 },
-		TileMaxWidthPx = 250,
-		TilePx = { 214, 262 },
-		TileArtShare = 0.36, -- the art's height, of the tile's
-		TileNamePx = { 17, 22 },
-		TileBigPx = { 22, 30 },
-		TileLinePx = { 14, 16 },
-		StickerPx = { 24, 30 }, -- corner stickers: "BEST VALUE", "x2", "LUCKY!", "30% OFF"
-		StickerTextPx = { 14, 18 },
-		StickerDegrees = 8, -- tilted like a sticker
-		-- A money pack's marks (reference 15): a red "FIRST BUY x2" pill inside the top left
-		-- corner, and a red "-30%" band across the top right corner during the sale.
-		BadgePx = { 22, 28 },
-		BadgeTextPx = { 12, 15 },
-		RibbonBoxPx = { 64, 92 }, -- the corner square the band is clipped to
-		RibbonPx = { 20, 26 }, -- the band's height
-		RibbonTextPx = { 13, 17 },
-		RibbonCentreShare = 0.72, -- the band's middle this far right and (1 - this) far down the box
-		-- The pass tiles (reference 15): wide, the art at the left, the name and its line at
-		-- the right, the button across the bottom; at least WideMinPx wide (fewer per row).
-		WideMinPx = { 240, 250 },
-		WideArtShare = 0.42, -- the art, of a wide tile's width
-		OldPx = { 15, 19 }, -- the crossed-out price above Buy, red
-		ArrowShare = 0.8, -- the before -> after arrow, of the big numbers' size
-		LitStrokePx = 4, -- the pack that covers what you need: a thick gold edge, breathing
-		CardCornerPx = 18,
-		NoteColor = { 255, 246, 214 }, -- the restricted note's card, a pale gold
-	},
-	-- Need money (a buy the money does not cover): a popup over the shop with the smallest
-	-- covering pack made to look like a deal. Never offered while the player lost a match
-	-- this recently; the plain "Need $X more" notice shows instead.
-	Need = {
-		AfterLossSeconds = 60,
-		WidthPx = { 300, 420 },
-		HeightPx = { 250, 320 },
-	},
-	-- Gifting (designer, 2026-10-04): a small gift square left of every Robux button for a
-	-- developer product (never a pass). It opens the Gift Player popup over the Shop: the
-	-- other players in this server, a headshot, name, @username and a Gift button each. The
-	-- gift is the same product purchase, granted to the chosen player (Store "Gift").
-	Gift = {
-		SquareGapPx = 6, -- between the gift square and the Robux button
-		SquareTone = "Blue", -- the square's candy tone
-		WidthPx = { 320, 460 }, -- the popup
-		RowPx = { 54, 70 }, -- a player row
-		RowGapPx = { 4, 6 },
-		MaxRows = 5, -- more scroll
-		NamePx = { 16, 21 },
-		AtPx = { 12, 15 },
-		AtColor = { 120, 128, 142 }, -- the @username, grey
-		ButtonWidthPx = { 84, 110 }, -- the Gift button
-		Headshot = "rbxthumb://type=AvatarHeadShot&id=%d&w=150&h=150",
-	},
-	-- The thank-you burst after a Robux purchase (any prompt that ends bought): confetti, the
-	-- item's icon flying in, a big "THANK YOU!". Seconds on screen.
-	Thanks = {
-		Seconds = 2.6,
-		IconPx = { 110, 170 },
-		TextPx = { 44, 72 },
-		DisplayOrderAbove = 40, -- over the menus and the case opening
-	},
-	-- A kit icon per product key for the thank-you burst (a key missing here shows the
-	-- money stack; a product that gives lucky blocks shows the block itself instead).
-	ProductIcons = {
-		Vip = "Vip",
-		VipOffer = "Vip",
-		VipSale = "Vip",
-		QuickCases = "FastOpen",
-		StarterPack = "StarterPack",
-		MoneyParty = "MoneyParty",
-		Pack1 = "Pack1",
-		Pack2 = "Pack2",
-		Pack3 = "Pack3",
-		Pack4 = "Pack4",
-		Pack5 = "Pack5",
-		Pack6 = "Pack6",
-		Pack7 = "Pack7",
-		Pack4Sale = "Pack4",
-		Pack5Sale = "Pack5",
-		Pack6Sale = "Pack6",
-		Pack7Sale = "Pack7",
 	},
 }
 
--- The case opening (CaseOpening and its CaseOpeningReel, CaseOpeningCard, CaseOpeningGrid and
--- CaseOpeningFx; docs/prompts/ECONOMY_UI_PROMPT.md section 11): a full-screen overlay over the
--- menus with the reel, the prize card and Fast Open's grid, and the same reel inside the result
--- screen for the first win's case. Everything is laid out at the natural sizes below and scaled
--- to fit (phone first: about 1 on a 750 x 361 phone, so its text stays at these sizes). Pixels
--- and seconds. (tune)
-Config.UI.CaseOpening = {
-	DisplayOrderAbove = 14, -- its ScreenGuis sit this far over the HUD's (the menus sit at +10)
-	-- The soft backdrop (UI_STYLE 2 allows no other dim): over the world, and over a menu
-	-- (whose own slight dim is already under it) dark enough that the menu's title and tabs do
-	-- not read through the reel's title (checked on phones, 2026-09-28). 1 = none.
-	BackdropTransparency = 0.5,
-	BackdropOverMenuTransparency = 0.45,
-	BackdropSeconds = 0.2, -- its fade in and out
+-- The lucky block opening's reel (LuckyOpening with BlockReel, LuckyResult and ReelFx; the
+-- pull cutscenes in PullCutscene; docs/prompts/ECONOMY_UI_PROMPT.md section 11): a full-screen
+-- overlay over the menus with the reel and the YOU GOT card. Everything is laid out at the
+-- natural sizes below and scaled to fit (phone first: about 1 on a 750 x 361 phone, so its
+-- text stays at these sizes). Pixels and seconds. (tune)
+Config.UI.Reel = {
 	-- B's priority over ContextActionPriority.High: over the menus' (+20) and the result
 	-- screen's (+10), under a confirm dialog's (+30).
 	BackPriorityAbove = 25,
-	ShortScreenPx = 500, -- shorter than this under Roblox's top bar: the stage uses that row too
-	MarginPx = 6, -- the least room round the stage's contents
-	MinScale = 0.8, -- the overlay's fit never shrinks or grows it past these
-	MaxScale = 1.5,
-	RevealMinScale = 0.45, -- the result screen's reveal (its frame may be small)
-	RevealMaxScale = 1.2,
 	StageMinWidthPx = 600, -- the reel is fitted to at least this width (about five cards)
-	RevealMinWidthPx = 360, -- in the result screen, at least this
-	TitleHeightPx = 40, -- the title row: the case's chest and its name
+	TitleHeightPx = 40, -- the title row: the block's name
 	TitlePx = 30,
-	TitleIconShare = 1.15, -- the chest, of the row's height (it pokes out a little)
-	TitleGapPx = 8, -- between the chest and the name
-	TitleMinWidthPx = 300, -- Fast Open's stage is at least this wide
-	GapPx = 10, -- between the title, the reel (or grid) and the hint
+	GapPx = 10, -- between the title, the reel and the hint
 	HintHeightPx = 30, -- "Tap to skip" (the gamepad's A glyph and "Skip" on a gamepad)
 	HintPx = 24,
-	HintGlyphGapPx = 6,
 	ReelSideMarginPx = 12, -- the reel's room from the stage's sides
 	CardMarginPx = 12, -- the prize card's room in the fit (its glow and shadow)
-	FailCloseSeconds = 2.5, -- an open that did not work: its reason shows this long, then it closes
-	-- While the server answers an open, B, Escape and a tap do nothing for this long (the case
-	-- is being spent, the reel is coming); after it they close, and a prize that arrives later
-	-- shows a line in the menu under it (the cue's NEW tag marks it).
-	WaitCloseSeconds = 3,
-	DialogGraceSeconds = 0.2, -- an Escape just after a confirm dialog took it is ignored
-	-- A cue new to the Index: its finder's money flies from the card's "NEW! +$250" this long
-	-- after the card pops (once the pop has settled, so the pill is where it stays).
-	FoundFlyDelaySeconds = 0.6,
-	CloseBackstopSeconds = 0.3, -- closing: the overlay goes this long after its pop-out at the latest
-	RevealZIndex = 40, -- the reveal's frame over the rest of the result screen's frame
-	-- The moment grows with the rarity (Config.Cases.Rarities names): turning rays behind the
-	-- prize card from RaysFrom, confetti from ConfettiFrom, and from BigFrom the bigger moment
-	-- (the longer build-up, Mythic's shimmer, Secret's red glow).
-	RaysFrom = "Epic",
+	-- The rarity from which the card's effects show (Common ... Secret).
 	ConfettiFrom = "Legendary",
-	BigFrom = "Mythic",
+	BigFrom = "Mythic", -- the long crawl, the building glow, the thicker edge
 	ShimmerCycleSeconds = 2.4, -- Mythic's glow drifts once through its pastels in this long
-	-- The reveal sting by rarity (Config.Audio.Ui keys).
+	-- The reveal sting per rarity (Config.Audio.Ui keys).
 	Stings = {
 		Common = "RevealLow",
 		Uncommon = "RevealLow",
@@ -7455,27 +7216,11 @@ Config.UI.CaseOpening = {
 		Secret = "RevealMythic",
 		Default = "RevealLow",
 	},
-	-- A sale's cash chip ("+$600") flying into the money HUD (timings: Progress.Cash's).
-	ChipHeightPx = 30,
-	ChipTextPx = 24,
-	ChipZIndex = 70, -- over everything in the overlay
-	-- The case in front before it opens (GUI lane, 2026-10-03): big and bobbing, "Click to
-	-- open"; opened, it shakes harder and swells, then bursts in a shine.
-	Intro = {
-		ChestPx = 200,
-		ShakeSeconds = 0.7,
-		ShakeDegrees = 16, -- the shake's swing at its hardest
-		ShakeSpeed = 42, -- radians a second
-		SwellShare = 0.18, -- it grows this much while it shakes
-		BurstReach = 1.6, -- the glow it bursts in
-		ShineSeconds = 0.55, -- the white shine fading
-		AfterBurstSeconds = 0.25, -- the reel shows this long after the burst
-	},
-	-- The reel (CaseOpeningReel).
+	-- The reel.
 	Reel = {
 		Cards = 40, -- cards on the strip
 		PrizeSlot = 34, -- the prize's place: late, with cards after it for the window's right side
-		-- Each cue's weight on the strip is its odds (Cases.cueOdds) to this power: 1 = the true
+		-- Each cue's weight on the strip is its odds (BlockOdds.cueOdds) to this power: 1 = the true
 		-- odds (a Standard strip is mostly grey and green); under 1 shows rarer cues more often.
 		WeightPower = 1,
 		CardWidthPx = 136, -- bigger cards with the cue's name and odds (GUI lane, 2026-10-03)
@@ -7521,85 +7266,10 @@ Config.UI.CaseOpening = {
 		SecretBreathDepth = 0.5, -- and dims this much at its faintest
 		PrizeStrokePx = 5, -- the prize card's edge in its colour once it lands
 	},
-	-- The prize card (CaseOpeningCard). Its height follows what it shows (about 312).
-	Card = {
-		WidthPx = 400,
-		PadPx = 12,
-		PulledPx = 34, -- "YOU PULLED" over the picture (GUI lane, 2026-10-03)
-		GapPx = 6, -- between its rows
-		CornerPx = 18,
-		ArtPx = 140, -- the thumbnail's tile, square
-		ArtCornerPx = 14,
-		ArtStrokePx = 2.5,
-		ThumbShare = 0.9, -- the thumbnail, of the tile
-		NamePx = 26, -- the cue's name
-		NameHeightPx = 30,
-		PillPx = 26, -- the rarity and NEW! / Duplicate pills
-		PillTextPx = 16,
-		PillPadPx = 12, -- room each side of a pill's words
-		PillGapPx = 8,
-		ExistPx = 16, -- "1,284 exist"
-		ExistHeightPx = 20,
-		ButtonsAbovePx = 4, -- extra room over the buttons
-		ButtonPx = 44, -- Equip, Sell, Open next / Done (a 44 px touch target)
-		ButtonTextPx = 18,
-		ButtonGapPx = 8,
-		ClosePx = 36, -- the red X in the top-right corner...
-		CloseInsetPx = 22, -- ...its middle this far in from the corner
-		TouchMinPx = 44, -- ...and its touch area at least this
-		BigStrokePx = 5, -- Mythic and Secret: the card's thicker edge
-		RaysShare = 2.6, -- the rays behind it (Epic and up), of the thumbnail's tile
-		RaysTransparency = 0.35, -- at their brightest
-		RaysDegreesPerSecond = 30,
-		HaloSpreadPx = 18, -- the glow round the card in the prize's colour
-		HaloTransparency = 0.45,
-		BigHaloSpreadPx = 30, -- Mythic and Secret: bigger and brighter
-		BigHaloTransparency = 0.1,
-		GlowInSeconds = 0.5, -- the rays and the glow fade in this long
-		ShimmerDegreesPerSecond = 90, -- Mythic's edge, pill and rays shimmer turning
-		BreathSeconds = 1.6, -- Secret's glow breathes this slowly
-		SecretBreathDepth = 0.5, -- and dims this much at its faintest
-		SecretEdgeDim = 0.6, -- its red edge fades this much at the faintest
-		ConfettiDelaySeconds = 0.15, -- after the card pops
-		ConfettiScale = 1.2, -- Legendary's burst
-		BigConfettiScale = 1.8, -- Mythic's and Secret's
-	},
-	-- Fast Open's grid (CaseOpeningGrid): ten cards in two rows of five.
-	Grid = {
-		Columns = 5,
-		CardWidthPx = 136, -- bigger cards (GUI lane, 2026-10-03)
-		CardHeightPx = 148,
-		LastPauseSeconds = 0.8, -- a Rare or better last card shakes this long before it turns
-		GapPx = 10,
-		CornerPx = 12,
-		StrokePx = 2.5,
-		ChosenStrokePx = 5, -- the chosen card's gold outline
-		PadPx = 6, -- inside a card
-		ThumbPx = 86,
-		NamePx = 16, -- a cue's name, two lines at most
-		NameHeightPx = 36,
-		BackIconShare = 0.62, -- the chest on a face-down card
-		PillPx = 20, -- NEW!
-		PillTextPx = 14,
-		PillPadPx = 8,
-		PillInsetPx = 5, -- NEW! and the equipped check sit this far in from the corners
-		CheckPx = 22,
-		GlowFrom = "Epic", -- cards of this rarity and up glow in their colour
-		HaloSpreadPx = 14,
-		HaloTransparency = 0.3,
-		StartDelaySeconds = 0.25, -- the first card turns after this
-		FlipEverySeconds = 0.15, -- then one after another
-		FlipSeconds = 0.22, -- one card's turn
-		ButtonsAbovePx = 10, -- between the grid and its buttons
-		ButtonPx = 44,
-		ButtonWidthPx = 150,
-		ButtonGapPx = 10,
-		ButtonTextPx = 18,
-	},
 }
 
 -- The Rewards menu (RewardsMenu and its pages RewardsDaily, RewardsPlaytime, RewardsCodes;
--- RewardsFlyer; the reminder toast in Reminders; docs/prompts/ECONOMY_UI_PROMPT.md section 11).
+-- RewardsFlyer; docs/prompts/ECONOMY_UI_PROMPT.md section 11).
 -- Pixels and seconds. Pairs { a, b } run from a on a phone-sized panel to b on a full-size one,
 -- like Config.UI.Menu.Frame's. Buttons drawn smaller than TouchPx keep a TouchPx touch area
 -- (HudParts.setMinHit). The rewards themselves are Config.Daily's. (tune)
@@ -7612,8 +7282,8 @@ Config.UI.Rewards = {
 	TileMaxPx = { 150, 210 }, -- a tile's largest height (a tall page centres the rows)
 	TilePadShare = 0.06, -- inside a tile, of its height
 	DayTextPx = { 16, 20 }, -- "Day 1"
-	WordsTextPx = { 14, 18 }, -- the reward's words ("2 Standard Cases")
-	CountTextPx = { 14, 18 }, -- "x2" on a case's icon
+	WordsTextPx = { 14, 18 }, -- the reward's words ("2 Mystery Lucky Blocks")
+	CountTextPx = { 14, 18 }, -- "x2" on a block's icon
 	ClaimShare = 0.26, -- today's Claim button, of the tile's height...
 	ClaimPx = { 30, 44 }, -- ...kept between these
 	TodayStrokePx = 4, -- today's gold edge (the kit's selection gold)
@@ -7646,7 +7316,7 @@ Config.UI.Rewards = {
 	CodeBoxPx = { 44, 54 }, -- the box's and Redeem's height
 	CodeTextPx = { 18, 22 }, -- the typed text
 	CodeTitlePx = { 18, 24 },
-	CodeAnswerPx = { 16, 20 }, -- "Code redeemed: +$500 and a Standard Case"
+	CodeAnswerPx = { 16, 20 }, -- "Code redeemed: +$500 and a Mystery Lucky Block"
 	CodeNotePx = { 14, 16 },
 	RedeemWidthPx = { 116, 150 },
 	CodeGapPx = { 8, 12 },
@@ -7663,11 +7333,11 @@ Config.UI.Rewards = {
 	IndexBannerTextPx = { 16, 20 }, -- "An Index reward is ready!"
 	IndexBannerStrokePx = 3, -- its gold edge
 	-- Rewards flying out of a claim (RewardsFlyer), over the menus: money into the money HUD
-	-- (the CashFlyer's chips), each case to the left column's Inventory tile.
+	-- (the CashFlyer's chips), each lucky block to the hotbar (or the Inventory tile).
 	Fly = {
 		DisplayOrderAbove = 5, -- its ScreenGui sits this far over a menu's
-		CaseSizePx = 56, -- a case chip's picture (a computer)...
-		ShortCaseSizePx = 44, -- ...and on a phone
+		BlockSizePx = 56, -- a block chip's picture (a computer)...
+		ShortBlockSizePx = 44, -- ...and on a phone
 		CountTextPx = 18, -- "x2" on it
 		PopSeconds = 0.2, -- pops out at the button with a small overshoot
 		PopFromScale = 0.3,
@@ -7676,30 +7346,9 @@ Config.UI.Rewards = {
 		EndScale = 0.45, -- shrinking to this size as it lands
 		ArcLiftShare = 0.3, -- the curve rises this share of the distance...
 		ArcMinLiftPx = 50, -- ...and at least this far
-		StaggerSeconds = 0.15, -- several cases follow each other
-		AfterMoneySeconds = 0.12, -- the cases start this long after the money
+		StaggerSeconds = 0.15, -- several blocks follow each other
+		AfterMoneySeconds = 0.12, -- the blocks start this long after the money
 		ZIndex = 5,
-	},
-	-- The reminder toast (Reminders): "Come back tomorrow for your Rare Case" at the bottom
-	-- middle when Roblox's menu opens or the window loses focus (GDD 14, ECONOMY 10).
-	Toast = {
-		-- The "Your FREE SPIN is ready!" toast when Roblox's menu opens or the window loses
-		-- focus: off for now (designer, 2026-10-03).
-		ShowOnLeave = false,
-		DisplayOrderAbove = 6, -- its ScreenGui sits this far over a menu's
-		HeightPx = 46,
-		ShortHeightPx = 38, -- on a phone
-		TextPx = 20,
-		ShortTextPx = 16,
-		IconShare = 1.35, -- the gift, of the toast's height (it pokes out past the left end)
-		PadPx = 16, -- room each side of the words
-		MaxWidthPx = 600,
-		SideMarginPx = 10, -- never closer to the screen's sides
-		BottomPx = 28, -- above the screen's bottom edge
-		ShortBottomPx = 10,
-		ShowSeconds = 6, -- it shows at least this long...
-		LingerSeconds = 4, -- ...and this long after Roblox's menu closes or the window is back
-		CooldownSeconds = 120, -- at most one toast this often
 	},
 }
 
@@ -7732,29 +7381,6 @@ Config.UI.Trade = {
 	InviteHeightPx = 118,
 	InviteTopPx = 70,
 	DoneSeconds = 2.5, -- "Trade done!" stays this long before the screen closes
-}
-
--- The come-back message (ComeBack; GUI lane, C15): every time Roblox's menu opens or the window
--- loses focus, a big "COME BACK TOMORROW FOR" with tomorrow's login reward in a turning ring,
--- in the middle of the screen. Pixels at a 1080-tall screen (scaled to the screen). (tune)
-Config.UI.ComeBack = {
-	-- The big "COME BACK TOMORROW FOR" when Roblox's menu opens or the window loses focus: off
-	-- for now (designer, 2026-10-03: not needed). The first-time leave gift still comes.
-	ShowOnLeave = false,
-	DisplayOrder = 70, -- over the HUD, menus and popups
-	WidthPx = 620,
-	HeightPx = 520,
-	TitlePx = 52, -- COME BACK TOMORROW FOR
-	RingPx = 300, -- the ring
-	RingStrokePx = 10,
-	RaysShare = 1.7, -- the turning rays behind the ring, of the ring
-	RaysDegreesPerSecond = 30,
-	PicturePx = 130, -- the reward's pictures in the ring
-	LinePx = 34, -- the reward in words under the ring
-	LingerSeconds = 2.5, -- it stays this long after the player is back
-	MinScale = 0.45, -- never smaller than this on a small screen
-	GiftTitlePx = 64, -- the gift's big words
-	GiftLinePx = 30,
 }
 
 -- The ult bar in a match (UltHud and UltBar; docs/prompts/ULTIMATES_PROMPT.md 5 and 7.1,
@@ -7875,7 +7501,7 @@ Config.UI.Ults = {
 	ResultNoUltsHeightPx = 24,
 }
 
--- The Inventory (InventoryMenu and its pages InventoryCues, InventoryCases, InventoryIndex and
+-- The Inventory (InventoryMenu and its pages InventoryCues, InventoryIndex and
 -- the cue card InventoryCard; docs/prompts/ECONOMY_UI_PROMPT.md section 11). Pixels and
 -- seconds. Pairs { a, b } run from a on a phone-sized panel to b on a full-size one, like
 -- Config.UI.Menu.Frame's. Buttons drawn smaller than 44 px keep a 44 px touch area
@@ -7934,32 +7560,9 @@ Config.UI.Inventory = {
 		LockPx = { 18, 22 }, -- the padlock before "Can't be sold"
 		ThumbShare = 0.86, -- the cue's thumbnail, of the picture's box
 	},
-	-- The Cases tab: a row per case type owned.
-	CaseRowPx = { 60, 84 },
-	CaseIconShare = 0.95, -- the chest, of the row's height
-	CaseRowPadShare = 0.1, -- inside a row, of its height
-	CaseNameTextPx = { 18, 22 },
-	CaseCountTextPx = { 14, 18 },
-	CaseButtonPx = { 44, 48 },
-	CaseButtonWidthPx = { 96, 132 }, -- Open and Open 10
-	CaseButtonTextPx = { 14, 18 },
-	HintTextPx = { 14, 16 }, -- the line beside Buy more
-	BuyMoreWidthPx = { 130, 170 },
-	EmptyIconPx = { 64, 110 }, -- the chest over the empty state's line
-	EmptyTextPx = { 16, 20 },
-	EmptyLineMaxPx = 460, -- the empty state's line wraps at this width
-	-- The Items tab (GUI lane, 2026-10-03): a strip of case tiles across the top (ready cases
-	-- with Open, cases on their timers counting down with their skips), the cue grid under it,
-	-- and the chosen cue as a big card over the page (ref 07's size).
+	-- The Cues tab (GUI lane, 2026-10-03; the case strip went with the cases, 2026-10-04): the
+	-- cue grid, and the chosen cue as a big card over the page (ref 07's size).
 	Items = {
-		CaseStripPx = { 104, 124 }, -- the case strip's height (short: the cues keep the room)
-		CaseTileWidthPx = { 220, 260 }, -- wide: the two skip buttons sit side by side
-		CaseIconShare = 0.3, -- the chest (left, full height), at most this share of the width
-		CaseNameTextPx = { 17, 20 },
-		CaseTimerTextPx = { 16, 19 },
-		CaseButtonPx = { 34, 40 }, -- Open, the skips (touch area 44)
-		CaseButtonTextPx = { 16, 18 },
-		HeaderTextPx = { 18, 24 }, -- "CASES", "CUES"
 		BigCardMaxWidthPx = 460, -- the chosen cue's card
 		BigArtShare = 0.42, -- its picture, of the card's height at most
 		BigArtMinPx = 96, -- the picture never smaller (the card scrolls past this)
@@ -8013,7 +7616,7 @@ Config.UI.Inventory = {
 	ClaimWidthPx = { 90, 120 },
 	TitlePillPx = { 28, 32 }, -- an earned title at the top
 	TitleTextPx = { 14, 16 },
-	-- The red dots on the tab buttons: the NEW count on Cues, unopened cases on Cases, "!" on
+	-- The red dots on the tab buttons: the NEW count on Cues, "!" on
 	-- Index while a row can be claimed.
 	TabDotPx = 20,
 	TabDotTextPx = 14,
@@ -9464,7 +9067,7 @@ Config.UI.UltScreen = {
 		PriceTextPx = 16, -- the price over each buy button (and the crossed-out one over it)
 		ToggleWidthPx = 58, -- each half of the R$ / $ toggle
 		ToggleHeightPx = 34,
-		-- Fast Open's Skip and Auto Spin, between BACK TO MENU and SPIN.
+		-- VIP's Skip and Auto Spin, between BACK TO MENU and SPIN.
 		FastWidthPx = 180,
 		FastHeightPx = 40,
 		FastTextPx = 18,
@@ -9679,8 +9282,6 @@ Config.UI.UltScreen = {
 		BoostRate = 3, -- times the tier's rate
 		BoostLight = 3, -- times the tier's light
 	},
-	-- The leave reminder's button (Reminders, while the free spin is unused).
-	Reminder = { ButtonWidthPx = { 84, 110 }, GapPx = 8, ButtonTextPx = { 14, 18 } },
 }
 
 -- The aim-phase pick view (src/client/UltPick.luau; ABILITIES_PROMPT 5.2, 7.5, 7.9): the
@@ -10131,6 +9732,7 @@ Config.Tutorial = {
 		AimOffsetDegrees = 7, -- the aim lesson starts this far off its pot: a small turn fixes it
 		AimTurnedDegrees = 2, -- once the player has turned this much, the line says to shoot
 		DragPx = { 170, -80 }, -- the ball-in-hand demo drags the ghost ball this far (px)
+		BlockPadPx = 28, -- the ring round the thrown block on the floor, past its outline (px)
 	},
 	-- Game 1's rewards (answer 9): Bronze's at-once block is a Standard lucky block, thrown and
 	-- opened in the tutorial (cases retired for blocks 2026-10-04).
@@ -10358,7 +9960,7 @@ Config.Debug = {
 			UltHelp = "/ulthelp",
 		},
 		MaxAmount = 1e9, -- the largest /money, /addmoney or /xp amount accepted
-		MaxGive = 100, -- the most copies one /givecue, or cases one /givecase, gives
+		MaxGive = 100, -- the most copies one /givecue gives
 		DupeKinds = 5, -- /dupes: how many different cues...
 		DupeCopies = 3, -- ...and how many copies of each
 		LineChars = 180, -- /inv packs its lists into chat lines of at most this many characters
@@ -10377,76 +9979,6 @@ Config.Debug = {
 	-- Largest slice of shot time simulated per rendered frame. A hitch must not fast-forward
 	-- the shot, and it caps how much simulation one frame can ever be asked to do.
 	MaxPlaybackStepSeconds = 0.1,
-}
-
----------------------------------------------------------------------------------------------
--- The magic 8-ball Case Drop reveal (MagicBall; GUI lane, designer 2026-10-03, C11b). Natural
--- pixels on a stage fitted to the screen (phone first), seconds. (tune)
-Config.UI.MagicBall = {
-	DisplayOrderAbove = 16, -- its screen over the HUD (over the case opening's +14)
-	BackdropTransparency = 0.45,
-	StageWidthPx = 620,
-	StageHeightPx = 470,
-	MinScale = 0.6,
-	MaxScale = 1.4,
-	TitlePx = 44, -- "SHAKE MAGIC 8 BALL!"
-	HintPx = 22, -- how to shake it on this device
-	BallPx = 250,
-	RaysShare = 2.2, -- the turning rays behind it in the tier's colour, of the ball
-	RaysDegreesPerSecond = 40,
-	GlowTransparency = 0.2,
-	CountPx = 48, -- "x10" on a many-drop ball
-	MeterWidthPx = 300, -- the meter under it
-	MeterPx = 16,
-	FingerPx = 90, -- the see-through finger sweeping to show how
-	FingerTransparency = 0.35,
-	FingerSweepPx = 90,
-	FingerSpeed = 4, -- radians a second
-	Shakes = 6, -- shakes to fill the meter (the climbs land evenly over them)
-	ShakeMinPx = 36, -- a drag turning back after this many pixels is a shake
-	StickThreshold = 0.6, -- the left stick past this, one side then the other
-	AccelThreshold = 1.4, -- a phone's acceleration jump (in g) that counts as a shake
-	JoltPx = 26, -- each shake throws the ball this far sideways...
-	SwayPx = 70, -- ...and a drag moves it at most this far
-	SwayReturnPerSecond = 9, -- it settles back this fast
-	RotatePerPx = 0.25, -- degrees it tilts per pixel of sway
-	FullPauseSeconds = 0.35, -- full: a beat before it turns round
-	FlipSeconds = 0.5,
-	TriangleShare = 0.46, -- the triangle in the window, of the ball
-	TickSeconds = 0.4, -- the first tier name's time in the window...
-	TickSlowdown = 1.3, -- ...each next one longer by this (a slow tick to the last)
-	QuickTickSeconds = 0.12, -- a many-drop row's triangles tick faster (the last one slow)
-	HoldSeconds = 1, -- the final tier held before the case shows
-	RowMax = 5, -- triangles to a row
-	TrianglePx = 110,
-	CasePx = 170, -- the case in front at the end
-	SmallCasePx = 110, -- several tiers side by side
-	ButtonPx = 52,
-	ButtonWidthPx = 200,
-	-- A CaseDrop waits this long before it queues, so the popup of the reward that gave it
-	-- (RewardGiven, sent just after) shows first.
-	QueueDelaySeconds = 0.5,
-	SkipWidthPx = 110, -- the Skip button, bottom right of the stage once seen
-	SkipHeightPx = 40,
-}
-
--- The rewards that pop up (RewardPopups; GUI lane, designer 2026-10-03, C9): the daily login
--- popup after the server claimed today by itself, and a popup per playtime gift reached.
-Config.UI.RewardPopups = {
-	DisplayOrderAbove = 12, -- over the HUD screen, like the offer popup
-	WidthPx = { 360, 560 }, -- { phone, full } by screen height (360..1080 px)
-	HeightPx = { 330, 470 },
-	PlaytimeHeightPx = { 250, 330 },
-	TitlePx = { 22, 32 },
-	PicturePx = { 64, 110 }, -- the reward's pictures
-	AmountPx = { 22, 34 }, -- the big reward words
-	DayPx = { 34, 54 }, -- one of the week's seven day tiles
-	DayTextPx = { 11, 14 },
-	LinePx = { 14, 18 },
-	ButtonPx = { 44, 54 },
-	ButtonWidthPx = 220,
-	TrackBarPx = 14,
-	StateWaitSeconds = 2, -- the daily card waits this long at most for the claimed RewardState
 }
 
 -- The Free Reward page (FreeRewardMenu; GUI lane, D4): join the group, favorite the game.
@@ -10496,16 +10028,7 @@ Config.Settings = {
 	} :: { [string]: boolean },
 	Order = { "Sfx", "LowFx", "ShowFlag" }, -- the rows, top to bottom (the music is gone, 2026-10-03)
 	-- The kinds Seen may mark (anything else is refused).
-	SeenKinds = {
-		"MagicBall",
-		"Rare",
-		"Epic",
-		"Legendary",
-		"Mythic",
-		"Secret",
-		"Result",
-		"LeaveGift",
-	},
+	SeenKinds = { "Rare", "Epic", "Legendary", "Mythic", "Secret", "Result" },
 	RequestBurst = 6, -- SettingsRequest: a burst, then this many a second (not design numbers)
 	RequestPerSecond = 3,
 }
@@ -10598,7 +10121,7 @@ Config.UI.PlayerList = {
 Config.Cutscenes = {
 	From = "Rare", -- pulls of this rarity and up get a cutscene
 	RemoteFrom = "Legendary", -- and from this one up, everyone else in the server a sky tint
-	DisplayOrder = 60, -- its screen over the case opening (whose overlay hides while it plays)
+	DisplayOrder = 60, -- its screen over the lucky block reel (whose overlay hides while it plays)
 	Streaks = {
 		Count = 24, -- the sky streaks flying across (Rare blue, Epic purple)
 		Seconds = 0.45, -- one streak's flight
@@ -10675,8 +10198,6 @@ Config.Cutscenes = {
 	},
 	-- Others' pulls (Legendary and up): the sky tint only, never a camera or screen effect.
 	Remote = { Seconds = 2.2, TintShare = 0.35 },
-	-- Quick Cases' grid: its rarest card (Rare and up) gets a short flash of its colour.
-	Flash = { Seconds = 0.5, TintShare = 0.45 },
 	HintAfterSeconds = 0.6, -- "Tap to skip" shows this late (only once the kind was seen)
 	-- The 1v1 match result (ResultCutscene; GUI lane, C11a, D2): fade to black, then on the
 	-- table the winner stands holding their cue upright with the other arm up, and the loser
@@ -10705,26 +10226,6 @@ Config.Cutscenes = {
 		ScreenShare = 0.6, -- the result screen keeps to this top share of the screen
 		ClearStuds = 20, -- other bodies this near the two are hidden while it plays (walk-ins)
 		ClearEverySeconds = 0.5,
-	},
-	-- The first-leave gift (ComeBack; GUI lane, C15): the case falls out of the sky in front of
-	-- the player, the camera looks up at it and follows it down as it crashes, then big words
-	-- say it is theirs. Studs and seconds.
-	LeaveGift = {
-		LookUpSeconds = 0.9, -- the camera tilts up to the case in the sky
-		FallSeconds = 0.9, -- its fall
-		HoldSeconds = 2.8, -- the words after the crash, then the camera comes back
-		SkyStuds = 70, -- it starts this high
-		AheadStuds = 9, -- it lands this far in front of the player
-		CameraBackStuds = 8, -- the camera, this far behind the player...
-		CameraUpStuds = 5, -- ...this high...
-		CameraSideStuds = 6, -- ...and this far to the side, so the player never hides the case
-		CaseStuds = 6, -- the case picture's size in the world
-		ShockSeconds = 0.6, -- the ring on the floor at the crash
-		ShockStuds = 18, -- its final width
-		ShakeSeconds = 0.45,
-		ShakeStuds = 0.6,
-		DustCount = 40, -- sparkles thrown up at the crash
-		Gold = { 255, 214, 10 },
 	},
 }
 

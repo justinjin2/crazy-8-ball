@@ -1,7 +1,8 @@
 --!strict
--- PullCutscene: the rare-pull cutscenes (GUI lane; designer 2026-10-03, C11d, D16). The case
--- reel lands on a Rare or better cue, then this plays before its card, each rarity bigger than
--- the last:
+-- PullCutscene: the rare-pull cutscenes (GUI lane; designer 2026-10-03, C11d, D16; moved from
+-- the cases to the lucky blocks 2026-10-04, to be reworked). A lucky block's reel lands on a
+-- Rare or better cue, then this plays before its YOU GOT card, each rarity bigger than the
+-- last:
 -- - Rare: blue streaks fly across the sky.
 -- - Epic: purple streaks, then the screen goes black for a beat and bursts white.
 -- - Legendary: the world drains to grey, a golden beam drops from the sky onto the player, the
@@ -18,7 +19,7 @@
 -- been seen; it always ends on the server's prize, which the card then shows.
 -- Others' pulls from Legendary up arrive through the Unbox banner: remote() gives the sky a
 -- short tint in the rarity's colour, nothing else (a player in a match sees only that too).
--- Quick Cases' grid uses flash() for its rarest card. Tuning in Config.Cutscenes.
+-- Tuning in Config.Cutscenes.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Lighting = game:GetService("Lighting")
@@ -31,7 +32,7 @@ local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
-local CaseOpeningFx = require(script.Parent.CaseOpeningFx)
+local ReelFx = require(script.Parent.ReelFx)
 local CueThumb = require(script.Parent.CueThumb)
 local DayCycle = require(script.Parent.DayCycle)
 local HudParts = require(script.Parent.HudParts)
@@ -40,7 +41,7 @@ local Seen = require(script.Parent.Seen)
 local UISound = require(script.Parent.UISound)
 
 local CS = Config.Cutscenes
-local RARITIES: { string } = Config.Cases.Rarities
+local RARITIES: { string } = Config.BlockOdds.Rarities
 local RENDER_NAME = "8ballPullCutscene"
 local SKIP_ACTION = "8ballPullCutsceneSkip"
 local WHITE = Color3.new(1, 1, 1)
@@ -382,7 +383,7 @@ local function stepEpic(s: Scene, t: number)
 		else 1
 	if t >= burst and not s.fired.burst then
 		s.fired.burst = true
-		CaseOpeningFx.sting("Epic")
+		ReelFx.sting("Epic")
 	end
 end
 
@@ -488,7 +489,7 @@ local function stepLegendary(s: Scene, t: number)
 	flash.BackgroundTransparency = 1 - 0.85 * window(t, L.BurstAt, L.Seconds - L.BurstAt, 0.08)
 	if t >= L.BurstAt and not s.fired.burst then
 		s.fired.burst = true
-		CaseOpeningFx.sting("Legendary")
+		ReelFx.sting("Legendary")
 	end
 end
 
@@ -504,7 +505,7 @@ local function makeAurora(s: Scene, feet: Vector3)
 	holder.Size = Vector3.one
 	holder.CFrame = CFrame.new(feet)
 	holder.Parent = s.model
-	local palette = CaseOpeningFx.palette("Mythic")
+	local palette = ReelFx.palette("Mythic")
 	local beams = {}
 	local bands = math.max(2, math.floor(M.AuroraBands * Quality.rate()))
 	for i = 1, bands do
@@ -626,7 +627,7 @@ local function stepMythic(s: Scene, t: number)
 	cue.Position = UDim2.fromScale(0.5, -0.3 + 0.8 * d)
 	if t >= M.DescendAt + M.DescendSeconds and not s.fired.burst then
 		s.fired.burst = true
-		CaseOpeningFx.sting("Mythic")
+		ReelFx.sting("Mythic")
 	end
 end
 
@@ -727,7 +728,7 @@ local function stepSecret(s: Scene, t: number)
 		if not s.fired.shock then
 			s.fired.shock = true
 			UISound.play("Shockwave")
-			CaseOpeningFx.sting("Secret")
+			ReelFx.sting("Secret")
 		end
 		local u = (t - X.ShockAt) / X.ShockSeconds
 		local ring: Frame = s.parts.ring
@@ -824,10 +825,10 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> ())
 	skip.BackgroundTransparency = 1
 	skip.Size = UDim2.fromScale(1, 1)
 	skip.ZIndex = 10
-	skip.SelectionImageObject = CaseOpeningFx.noBox()
+	skip.SelectionImageObject = ReelFx.noBox()
 	skip.Parent = root
 	local skippable = Seen.get(rarity)
-	local W = Strings.CaseOpening
+	local W = Strings.Reel
 	local hintWords = if UserInputService.GamepadEnabled
 			and UserInputService:GetLastInputType().Name:find("Gamepad")
 		then W.SkipPad
@@ -937,7 +938,7 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> ())
 end
 
 --------------------------------------------------------------------------------------------
--- Others' pulls and the grid's flash: a tint of the sky only
+-- Others' pulls: a tint of the sky only
 --------------------------------------------------------------------------------------------
 
 local tints = 0
@@ -966,7 +967,7 @@ local function skyTint(colours: { Color3 }, seconds: number, share: number, flic
 		if flickerHz and #colours > 1 then
 			colour = colours[math.floor(t * flickerHz) % #colours + 1]
 		elseif #colours > 1 then
-			colour = CaseOpeningFx.shimmerAt(t)
+			colour = ReelFx.shimmerAt(t)
 		end
 		cc.TintColor = WHITE:Lerp(colour, strength)
 	end)
@@ -976,11 +977,11 @@ local function coloursOf(rarity: string): { Color3 }
 	if rarity == "Legendary" then
 		return { rgb(CS.Legendary.Gold) }
 	elseif rarity == "Mythic" then
-		return CaseOpeningFx.palette("Mythic")
+		return ReelFx.palette("Mythic")
 	elseif rarity == "Secret" then
 		return { rgb(CS.Secret.Red), WHITE }
 	end
-	return { CaseOpeningFx.color(rarity) }
+	return { ReelFx.color(rarity) }
 end
 
 --- Someone else in the server pulled a Legendary or better: the sky's short tint.
@@ -994,14 +995,6 @@ function PullCutscene.remote(rarity: string)
 		CS.Remote.TintShare,
 		if rarity == "Secret" then CS.Secret.FlickerHz else nil
 	)
-end
-
---- Quick Cases' rarest card (Rare and up): a short flash of its colour.
-function PullCutscene.flash(rarity: string)
-	if not PullCutscene.has(rarity) then
-		return
-	end
-	skyTint(coloursOf(rarity), CS.Flash.Seconds, CS.Flash.TintShare, nil)
 end
 
 return PullCutscene

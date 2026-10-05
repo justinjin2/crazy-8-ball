@@ -9,16 +9,16 @@
 -- - A player who leaves mid-match (disconnects) gets their forfeit loss at once, from
 --   TableService's PlayerRemoving, while their save is still open (PlayerData ends it a frame
 --   later); the settle then skips them, and uses what was noted about them as they left (their
---   rank for the gap, their real matches for the winner's free case).
+--   rank for the gap, their real matches for the winner's lucky block).
 -- - Real matches (GDD section 13): only a match that ran Config.Ranks.RealMatchSeconds of
---   server time from the break pays a bonus, a free case or XP, and counts as a real match.
+--   server time from the break pays a bonus, a lucky block or XP, and counts as a real match.
 --   XP is never lost (ECONOMY 4.1). A surrender, running out of timeouts, leaving, and (under
 --   the mark) an early 8 are forfeits: a loss with no XP and no money bonus. A match that ends
 --   under the mark adds what its pots paid to the day's short-match total (ECONOMY 3.6).
 -- - Everything a player's "before" counts decide (wins, today's wins, the opponents' real
 --   matches, the anti-farm row) is read for every player first, then
 --   each player is paid: one player's pay never changes another's rule.
--- - Solo never changes rank and has no bonus or free case; its summary carries the pots only.
+-- - Solo never changes rank and has no bonus or block; its summary carries the pots only.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -47,7 +47,7 @@ local Ranking = {}
 
 -- What the settle needs about one account at the table, read before any of the match is
 -- paid: its division index (nil: not known) and its real matches (nil: not known, which never
--- lets a winner's free case drop from it).
+-- lets a winner's block drop from it).
 type Facts = { index: number?, realMatches: number? }
 
 -- Set as soon as the server starts shutting down (Ranking.start), in case Roblox removes the
@@ -491,7 +491,7 @@ local function settle(e: any)
 
 	-- Every account's facts first: a leaver's as noted when they left; a Studio fixture seat
 	-- (PoolMatchQA's synthetic players, no Player) stands in for an established account so a
-	-- fixture win can drop a case; in a live server an account nobody knows never allows one.
+	-- fixture win can drop a block; in a live server an account nobody knows never allows one.
 	local facts: { [number]: Facts } = {}
 	for _, s in seats do
 		local p = Players:GetPlayerByUserId(s.userId)

@@ -185,10 +185,13 @@ class Game:
         rs = c["Shop"]["Restock"]
         ct = rs["ChanceTotal"]
         self.slot_minutes = rs["SlotSeconds"] / 60
-        self.lucky = [(self.cases.index(rs[k]["Case"]), rs[k + "Chance"] / ct, rs[k]["Price"]) for k in ("Epic", "Legendary")]
-        self.rare_slot = (self.cases.index(rs["Rare"]["Case"]), rs["RareChance"] / ct, rs["Rare"]["Price"], rs["Rare"]["Stock"])
-        self.unc_slot = (self.cases.index(rs["Uncommon"]["Case"]), rs["Uncommon"]["Price"], rs["Uncommon"]["Stock"])
-        self.vip_slot = (self.cases.index(rs["Vip"]["Case"]), rs["Vip"]["Price"], rs["Vip"]["Stock"])
+        # The restock's slots (Config.Shop.Restock.Kinds and Odds): each slot's kind names its
+        # block; VipOdds is the VIP's 4th slot (Rare at least), modelled as a Rare-priced slot.
+        kinds, odds = rs["Kinds"], rs["Odds"]
+        self.lucky = [(self.cases.index(k), odds[k] / ct, kinds[k]["Price"]) for k in ("Epic", "Legendary")]
+        self.rare_slot = (self.cases.index("Rare"), odds["Rare"] / ct, kinds["Rare"]["Price"], kinds["Rare"]["Stock"])
+        self.unc_slot = (self.cases.index("Uncommon"), kinds["Uncommon"]["Price"], kinds["Uncommon"]["Stock"])
+        self.vip_slot = (self.cases.index("Rare"), kinds["Rare"]["Price"], kinds["Rare"]["Stock"])
         self.cue_count = [c["BlockCues"].get(r, 0) for r in RAR]
         ix = c["Index"]
         self.find_money = [ix["FindMoney"].get(r, 0) for r in RAR]
@@ -606,16 +609,17 @@ def cmd_shop(g, _args):
         print(f"  {pk['Key']:6s} {pk['Robux']:>5} R$  ${pk['Money']:>10,}  ${rate:6.1f} per R$  +{(rate / base - 1) * 100:3.0f}%")
     best = max(pk["Money"] / pk["Robux"] for pk in c["Packs"])
     rs = c["Shop"]["Restock"]
-    items = [("Mystery block", g.mystery), ("Ability spin", g.spin_price), ("Restock Uncommon block", rs["Uncommon"]["Price"]),
-             ("Restock Rare block", rs["Rare"]["Price"]), ("Restock Epic block", rs["Epic"]["Price"]),
-             ("Restock Legendary block", rs["Legendary"]["Price"])]
+    kinds, odds = rs["Kinds"], rs["Odds"]
+    items = [("Mystery block", g.mystery), ("Ability spin", g.spin_price), ("Restock Uncommon block", kinds["Uncommon"]["Price"]),
+             ("Restock Rare block", kinds["Rare"]["Price"]), ("Restock Epic block", kinds["Epic"]["Price"]),
+             ("Restock Legendary block", kinds["Legendary"]["Price"])]
     items += [(f"Limited {row['Cue']}", row["Price"]) for row in c["Shop"].get("Limited", []) if row.get("Price")]
     print("\nWhat things cost: Robux at the best pack rate, and hours of Classic play\n")
     for name, price in items:
         print(f"  {name:24s} ${price:>10,}  ~{price / best:7,.0f} R$  {price / hour_money:7.1f} h")
-    print(f"\nRestock shop every {rs['SlotSeconds'] // 60} min: Rare block in {rs['RareChance'] / rs['ChanceTotal']:.0%} of restocks, "
-          f"Epic {rs['EpicChance'] / rs['ChanceTotal']:.2%}, Legendary {rs['LegendaryChance'] / rs['ChanceTotal']:.2%} "
-          f"(one in {rs['ChanceTotal'] / rs['LegendaryChance'] * rs['SlotSeconds'] / 3600:.0f} h)")
+    print(f"\nRestock shop every {rs['SlotSeconds'] // 60} min: Rare block in {odds['Rare'] / rs['ChanceTotal']:.0%} of restocks, "
+          f"Epic {odds['Epic'] / rs['ChanceTotal']:.2%}, Legendary {odds['Legendary'] / rs['ChanceTotal']:.2%} "
+          f"(one in {rs['ChanceTotal'] / odds['Legendary'] * rs['SlotSeconds'] / 3600:.0f} h)")
 
 
 # ---------------------------------------------------------------- the rank ladder (Config.Ranks)

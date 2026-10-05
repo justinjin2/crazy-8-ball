@@ -195,7 +195,7 @@ local function markGot(save: any, id: string)
 	writeMap(save, "Inventory", "New")[id] = true
 end
 
---- Adds n (default 1) copies of a case or Exclusive cue, marking it in the Index and NEW;
+--- Adds n (default 1) copies of a block or Exclusive cue, marking it in the Index and NEW;
 --- `paid` counts them as paid origin. False (and nothing changes) for an unknown id, Classic, a
 --- Unique cue (addUnique) or a count that is not a whole number of at least 1. The second
 --- answer is true when the cue is new to the Index (never owned before): the caller pays its

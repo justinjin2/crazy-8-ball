@@ -54,7 +54,7 @@ local TOUCH = Config.UI.Menu.Frame.TouchMinPx
 local COPIES_FOLDER = "CueCounts" -- ReplicatedStorage.CueCounts: copies in existence (Counters)
 
 -- The rows, top to bottom (as Progression/Inventory.indexRows).
-local GROUPS: { string } = table.clone(Config.Cases.Rarities)
+local GROUPS: { string } = table.clone(Config.BlockOdds.Rarities)
 table.insert(GROUPS, "Exclusive")
 table.insert(GROUPS, "Unique")
 

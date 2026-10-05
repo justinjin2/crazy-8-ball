@@ -1,11 +1,10 @@
 --!strict
 -- InventoryMenu: the Inventory (docs/prompts/ECONOMY_UI_PROMPT.md section 11; two tabs since
--- the GUI lane, designer 2026-10-03), opened from the left column's Inventory tile (or the
--- D-pad's right in the hub) through Menus. Tabs:
--- - Items: the cases first (InventoryCases: a strip of ready cases with Open, and cases on
---   their timers with their skips), then the cues (InventoryCues: a grid of big cue cards, the
---   chosen cue opening big with Equip and one "Sell duplicates" count chooser). NEW tags clear
---   with MarkSeen when the tab is shown.
+-- the GUI lane, designer 2026-10-03; the cases' strip and tab went with the cases, 2026-10-04:
+-- lucky blocks live in the hotbar and its bag), opened from the left column's Inventory tile
+-- (or the D-pad's right in the hub) through Menus. Tabs:
+-- - Cues (InventoryCues): a grid of big cue cards, the chosen cue opening big with Equip and
+--   one "Sell duplicates" count chooser. NEW tags clear with MarkSeen when the tab is shown.
 -- - Index (InventoryIndex): every cue by rarity, never-owned ones as silhouettes with "?",
 --   "5 / 7" per row with its reward and Claim, titles earned at the top.
 --
@@ -16,8 +15,8 @@
 -- button into the header's cash (the kit's CashFlyer drawn over this menu; the money HUD
 -- under it counts too), notices (a refusal: MenuFrame.reason in red), the confirm dialog, and
 -- the gamepad's selection (a sensible stop when a page opens or a redraw takes the selected
--- button away). Red dots on the tab buttons: new cues on Cues, unopened cases on Cases, "!" on
--- Index while a row can be claimed. The column's own Inventory dot is MenuColumn's.
+-- button away). Red dots on the tab buttons: new cues on Cues, "!" on Index while a row can be
+-- claimed.
 --
 -- The server decides everything: the client sends ids and counts, and only animates the
 -- replies and snapshots. Sizes in Config.UI.Inventory, words in Strings.Menus.Inventory.
@@ -31,7 +30,6 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local CashFlyer = require(script.Parent.CashFlyer)
 local HudParts = require(script.Parent.HudParts)
-local InventoryCases = require(script.Parent.InventoryCases)
 local InventoryCues = require(script.Parent.InventoryCues)
 local InventoryIndex = require(script.Parent.InventoryIndex)
 local ItemState = require(script.Parent.ItemState)
@@ -45,14 +43,12 @@ local K = Config.UI.Kit
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 
 local NAME = "Inventory"
--- Two tabs (GUI lane, designer 2026-10-03): Items (cases on top, then cues) and Index.
-local TABS = { "Items", "Index" }
--- The page modules, in redraw order (Items holds two: its cases strip and its cues).
-local PAGES = { "Cases", "Cues", "Index" }
+-- Two tabs: Cues (opened first) and Index.
+local TABS = { "Cues", "Index" }
+-- The page modules, in redraw order (one per tab).
+local PAGES = { "Cues", "Index" }
 -- Each tab's icon (Config.UI.Kit.Icons; an empty id shows none).
-local TAB_ICONS: { [string]: string } = { Items = "Inventory", Index = "Index" }
--- The tab a page module shows on.
-local TAB_OF: { [string]: string } = { Cases = "Items", Cues = "Items", Index = "Index" }
+local TAB_ICONS: { [string]: string } = { Cues = "Inventory", Index = "Index" }
 
 local InventoryMenu = {}
 
@@ -61,8 +57,8 @@ local function isGamepad(): boolean
 end
 
 --- Build the Inventory (closed) and register it with Menus. `deps` is Progression's shared
---- table: money (MoneyHud), flyer (CashFlyer), column (MenuColumn), caseOpening
---- (CaseOpening), rankHud; a field may be filled after this returns, so read it when used.
+--- table: money (MoneyHud), flyer (CashFlyer), column (MenuColumn), rankHud; a field may be
+--- filled after this returns, so read it when used.
 function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local words: { [string]: string } = Strings.Menus.Tabs.Inventory :: any
 	local tabs: { MenuFrame.Tab } = {}
@@ -222,15 +218,10 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	end
 
 	--- Put a gamepad somewhere sensible when its selection is gone or hidden (a page opened,
-	--- a redraw took the selected button away, the case opening over it closed). Never while a
-	--- dialog or the case opening is up.
+	--- a redraw took the selected button away). Never while a dialog is up.
 	function ctx.ensureSelection()
 		if not frame:isOpen() or #frame.dialogs > 0 or not isGamepad() then
 			return
-		end
-		local opener = deps.caseOpening
-		if opener and opener:isOpen() then
-			return -- its own buttons have the gamepad; this runs again as it closes
 		end
 		local selected = GuiService.SelectedObject
 		if selected ~= nil then
@@ -295,19 +286,14 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	end
 
 	local function refreshDots(items: any)
-		local numbers: { [string]: number } = {}
-		local words: { [string]: string } = {}
-		for key, page in pages do
-			local tab = TAB_OF[key]
+		for _, key in TABS do
+			local page = pages[key]
 			local value = if type(page.dot) == "function" then page:dot(items) else nil
-			if type(value) == "number" then
-				numbers[tab] = (numbers[tab] or 0) + value
-			elseif type(value) == "string" then
-				words[tab] = value
+			if type(value) == "string" then
+				setDot(key, value)
+			else
+				setDot(key, countText(if type(value) == "number" then value else 0))
 			end
-		end
-		for _, tab in TABS do
-			setDot(tab, words[tab] or countText(numbers[tab] or 0))
 		end
 	end
 
@@ -315,44 +301,13 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	-- The pages
 	--------------------------------------------------------------------------------------------
 
-	-- The Items tab: the cases strip on top, the cues under it; the chosen cue's big card
-	-- opens over the whole tab.
-	local itemsPage = frame:page("Items")
-	local casesArea = HudParts.frame(itemsPage, "CasesArea")
-	casesArea.ZIndex = 2
-	local cuesArea = HudParts.frame(itemsPage, "CuesArea")
-	cuesArea.ZIndex = 2
-	pages.Cases = InventoryCases.new(casesArea, ctx)
-	pages.Cues = InventoryCues.new(cuesArea, ctx, itemsPage)
+	-- The Cues tab: the cue grid; the chosen cue's big card opens over the whole tab.
+	local cuesPage = frame:page("Cues")
+	pages.Cues = InventoryCues.new(cuesPage, ctx, cuesPage)
 	pages.Index = InventoryIndex.new(frame:page("Index"), ctx)
-	local lastGeo: MenuFrame.Geo? = nil
-
-	-- Split the Items tab: the strip's height (none without cases), the cues the rest.
-	local function layoutItems()
-		local geo = lastGeo
-		if not geo then
-			return
-		end
-		local stripH = pages.Cases:height()
-		local gap = if stripH > 0 then ctx.span(I.GapPx) else 0
-		casesArea.Position = UDim2.fromOffset(0, 0)
-		casesArea.Size = UDim2.fromOffset(geo.content.X, stripH)
-		casesArea.Visible = stripH > 0
-		local cuesH = math.max(1, geo.content.Y - stripH - gap)
-		cuesArea.Position = UDim2.fromOffset(0, stripH + gap)
-		cuesArea.Size = UDim2.fromOffset(geo.content.X, cuesH)
-		local cuesGeo = table.clone(geo)
-		cuesGeo.content = Vector2.new(geo.content.X, cuesH)
-		pages.Cases:layout(geo)
-		pages.Cues:layout(cuesGeo)
-	end
-	local stripShown = false
 
 	-- The first button of a tab's page.
 	function firstOf(tab: string): GuiObject?
-		if tab == "Items" then
-			return pages.Cases:first() or pages.Cues:first()
-		end
 		return pages[tab]:first()
 	end
 
@@ -378,18 +333,12 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		for _, key in PAGES do
 			pages[key]:redraw(items)
 		end
-		-- The strip came or went: the cues take its room.
-		if pages.Cases:any() ~= stripShown then
-			stripShown = pages.Cases:any()
-			layoutItems()
-		end
 		refreshDots(items)
 		linkTabs()
 	end
 
 	frame.onLayout = function(geo: MenuFrame.Geo)
-		lastGeo = geo
-		layoutItems()
+		pages.Cues:layout(geo)
 		pages.Index:layout(geo)
 	end
 	frame.onOpen = function()
@@ -402,12 +351,12 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	end
 	frame.onTab = function(key: string)
 		for _, name in PAGES do
-			if TAB_OF[name] ~= key and pages[name].hidden then
+			if name ~= key and pages[name].hidden then
 				pages[name]:hidden()
 			end
 		end
 		for _, name in PAGES do
-			if TAB_OF[name] == key and pages[name].shown then
+			if name == key and pages[name].shown then
 				pages[name]:shown()
 			end
 		end

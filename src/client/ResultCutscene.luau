@@ -455,7 +455,7 @@ function ResultCutscene.play(summary: any, onReady: () -> ()): boolean
 	-- The skip hint (only once this kind was seen).
 	local canSkip = Seen.get(SEEN_KIND)
 	if canSkip then
-		local W = Strings.CaseOpening
+		local W = Strings.Reel
 		local text = if UserInputService.GamepadEnabled
 				and string.sub(UserInputService:GetLastInputType().Name, 1, 7) == "Gamepad"
 			then W.SkipPad

@@ -1,6 +1,7 @@
 --!strict
--- UltFast: Fast Open on the ult spin screen (docs/prompts/ULTIMATES_PROMPT.md section 9.6), for
--- owners of the Fast Open pass only (UltState.fastOpen): a Skip switch (spins land at once; a
+-- UltFast: VIP's Skip and Auto Spin on the ult spin screen (docs/prompts/ULTIMATES_PROMPT.md
+-- section 9.6; the Fast Open pass retired 2026-10-04), for VIPs only (UltState.vip): a Skip
+-- switch (spins land at once; a
 -- client setting kept for the session) and AUTO SPIN, which opens a small popup to choose
 -- where it stops (Rare+, Epic+ or Legendary+, Config.Ults.AutoStopChoices) and whether it uses
 -- Lucky Spins. The server spins one at a time (UltRequest AutoStart); while it runs the button
@@ -28,7 +29,7 @@ export type Hooks = {
 local UltFast = {}
 UltFast.__index = UltFast
 
--- Fast Open's Skip, kept while the player stays in the server.
+-- VIP's Skip, kept while the player stays in the server.
 local skipOn = false
 
 --- The Skip switch and AUTO SPIN in `parent`; the Auto Spin popup over `root`.
@@ -40,7 +41,7 @@ function UltFast.new(parent: Instance, root: GuiObject, hooks: Hooks): any
 	self.useLucky = false
 	self.state = nil :: any
 
-	local holder = HudParts.frame(parent, "FastOpen")
+	local holder = HudParts.frame(parent, "VipSkip")
 	holder.ZIndex = 5
 	holder.Visible = false
 	self.holder = holder
@@ -96,10 +97,10 @@ function UltFast.skipping(_self: any): boolean
 	return skipOn
 end
 
---- Draw an UltState: shown to Fast Open owners; STOP (N) while Auto Spin runs.
+--- Draw an UltState: shown to VIPs; STOP (N) while Auto Spin runs.
 function UltFast.draw(self: any, state: any)
 	self.state = state
-	self.holder.Visible = state.fastOpen == true
+	self.holder.Visible = state.vip == true
 	local auto = if type(state.auto) == "table" then state.auto else {}
 	self:setRunning(auto.running == true, if type(auto.count) == "number" then auto.count else 0)
 	local canLucky = state.restricted ~= true

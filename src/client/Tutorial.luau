@@ -21,11 +21,9 @@ local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local TutorialOverlay = require(script.Parent.TutorialOverlay)
 local TutorialHand = require(script.Parent.TutorialHand)
 local TutorialArrow = require(script.Parent.TutorialArrow)
-local TutorialReveal = require(script.Parent.TutorialReveal)
-local TutorialCasePill = require(script.Parent.TutorialCasePill)
 local Progression = require(script.Parent.Progression)
 local Menus = require(script.Parent.Menus)
-local ItemState = require(script.Parent.ItemState)
+local LuckyClient = require(script.Parent.LuckyClient)
 
 local Tutorial = {}
 
@@ -34,8 +32,6 @@ local player = Players.LocalPlayer
 local overlay: TutorialOverlay.Overlay
 local hand: TutorialHand.Hand
 local arrow: TutorialArrow.Arrow
-local reveal: TutorialReveal.Reveal
-local pill: TutorialCasePill.Pill
 
 local ULTS = Config.UI.UltScreen.Column.Name
 
@@ -52,7 +48,7 @@ local ITEMS = { "Shop", "Inventory", "Abilities", "Rank", "FreeReward", "Trade" 
 local HOST_HIDES: { [string]: { string } } = {
 	Request = { "HostMore", "HostLevels", "HostGlobal" },
 	Queue = { "HostMore", "HostLevels", "HostRequest" },
-	Drop = { "Rematch" },
+	Block = { "Rematch" },
 	Equip = { "Rematch" },
 	Game2 = { "Rematch", "Another", "Cancel" },
 	Lobby = { "Rematch", "Another", "Cancel" },
@@ -287,19 +283,6 @@ local function game1Scene(device: string): string
 	return "game1" .. lesson .. device
 end
 
--- The match's Rare Case on its timer (the newest Rare timer, the first win's): when it is
--- ready, or nil.
-local function rareReadyAt(): number?
-	local items = ItemState.items()
-	local latest: number? = nil
-	for _, timer in (items and items.timers) or {} do
-		if timer.id == "Rare" and (latest == nil or timer.readyAt > latest) then
-			latest = timer.readyAt
-		end
-	end
-	return latest
-end
-
 -- Points at a GUI anchor with the dim and the line (at `place`, see TutorialOverlay.say), the
 -- gamepad's selection on it when the scene is new. Nothing while the anchor is not on screen.
 local function pointAt(anchor: string, text: string, device: string, fresh: boolean, place: string?)
@@ -320,7 +303,7 @@ end
 -- The step after game 1 shown last, so a new one can start its own way.
 local lastAfter = ""
 -- The Equip step: whether the Inventory has been opened (closing it again without equipping
--- moves on: a suggestion, never a wall), and when RareDrop first found it still open.
+-- moves on: a suggestion, never a wall), and when RareBlock first found it still open.
 local equipVisited = false
 local inventoryLeftAt: number? = nil
 local INVENTORY = "Inventory"
@@ -359,17 +342,76 @@ local function equipScene(device: string, fresh: boolean): string
 	return key
 end
 
--- After game 1 (step 5): the two cases, then the Abilities screen.
+-- The Block step (designer, 2026-10-04): Bronze's Standard lucky block sits in the hotbar;
+-- the hand points at its slot (hold it), then at the ground (throw it), then at the block on
+-- the floor (its open prompt). The server moves on once it is opened (LuckyBlockService).
+local function blockScene(device: string, fresh: boolean): string
+	local kind: string = Config.Tutorial.BronzeBlockKind
+	local part = LuckyClient.livePart(kind)
+	if part then
+		-- Thrown: the hand on the block and its prompt (read each frame: it rolls).
+		local target = TutorialOverlay.worldTarget(function(): Vector3?
+			local now = LuckyClient.livePart(kind)
+			return if now then now.Position else nil
+		end, Config.Tutorial.Lessons.BlockPadPx)
+		overlay:dim(target)
+		hand:point(target)
+		overlay:say(words(Copy.BlockOpen, device))
+		return "BlockOpen" .. device
+	end
+	if LuckyClient.heldKind() == kind then
+		overlay:dim(nil)
+		if device == "gamepad" then
+			hand:gesture("hold", Enum.KeyCode.ButtonR2)
+		else
+			hand:hide()
+		end
+		overlay:say(words(Copy.BlockThrow, device))
+		return "BlockThrow" .. device
+	end
+	local slot = LuckyClient.slotOf(kind)
+	if slot == nil then
+		lineOnly(nil)
+		return "BlockNone"
+	end
+	local key = "BlockHold" .. slot .. device
+	pointAt("HotbarSlot" .. slot, words(Copy.BlockHold, device), device, fresh or shownKey ~= key)
+	return key
+end
+
+-- The RareBlock step: the win's Rare block counts down in the hotbar; the hand points at its
+-- slot, and a tap on it (LuckyClient sets BlockTapped) tells the server it was seen.
+local function rareBlockScene(device: string, fresh: boolean): string
+	if fresh then
+		TutorialAnchors.setFlag("BlockTapped", false)
+	end
+	if TutorialAnchors.flag("BlockTapped") then
+		if shownKey ~= "RareSeen" then
+			Tutorial.report("RareSeen")
+		end
+		lineOnly(nil)
+		return "RareSeen"
+	end
+	local slot = LuckyClient.slotOf("Rare", true)
+	if slot == nil then
+		lineOnly(nil)
+		return "RareNone"
+	end
+	local key = "RareBlock" .. slot .. device
+	pointAt("HotbarSlot" .. slot, Copy.RareBlock, device, shownKey ~= key)
+	return key
+end
+
+-- After game 1 (step 5): the Standard block, Equip, the Rare block, then the Abilities screen.
 local function afterScene(step: string, device: string): string
 	arrow:show(nil)
 	local fresh = step ~= lastAfter
 	lastAfter = step
 	local ultsOpen = Menus.isOpen(ULTS)
 	if step == "Equip" then
-		reveal:hide()
 		return equipScene(device, fresh)
 	end
-	if step == "RareDrop" and Menus.isOpen(INVENTORY) then
+	if step == "RareBlock" and Menus.isOpen(INVENTORY) then
 		-- Just equipped: the Inventory stays a moment (its "Equipped" notice), then closes.
 		local now = os.clock()
 		local since: number = inventoryLeftAt or now
@@ -377,37 +419,21 @@ local function afterScene(step: string, device: string): string
 		if now - since >= Config.Tutorial.EquipCloseSeconds then
 			Menus.close(INVENTORY)
 		end
-		reveal:hide()
 		lineOnly(nil)
-		return "RareDropInventory"
+		return "RareBlockInventory"
 	end
 	inventoryLeftAt = nil
-	if step == "Drop" or step == "RareDrop" then
-		-- Wait for the result screen, NEW RANK! and the case opening.
+	if step == "Block" or step == "RareBlock" then
+		-- Wait for the result screen, NEW RANK! and the reel.
 		if Progression.isBusy() then
-			reveal:hide()
 			lineOnly(nil)
 			return step .. "busy"
 		end
-		if step == "Drop" then
-			if ItemState.caseCount(Config.Tutorial.BronzeDropTier) <= 0 then
-				reveal:hide()
-				lineOnly(nil)
-				return "dropEmpty"
-			end
-			reveal:show("Drop", Config.Tutorial.BronzeDropTier, nil, function()
-				Progression.openCase(Config.Tutorial.BronzeDropTier)
-			end, nil)
-			pointAt("OpenNow", words(Copy.Drop, device), device, fresh)
-		else
-			reveal:show("Rare", "Rare", rareReadyAt(), nil, function()
-				Tutorial.report("RareSeen")
-			end)
-			pointAt("RevealOk", Copy.RareDrop, device, fresh)
+		if step == "Block" then
+			return blockScene(device, fresh)
 		end
-		return step .. device
+		return rareBlockScene(device, fresh)
 	end
-	reveal:hide()
 	if step == "Abilities" then
 		if ultsOpen then
 			Tutorial.report("OpenedAbilities")
@@ -456,14 +482,12 @@ local NUDGE_MENUS: { [string]: string } = {
 	Inventory = "Inventory",
 	Shop = "Shop",
 	FreeReward = "Rewards",
-	CaseReady = "Inventory",
 }
 local NUDGE_ANCHORS: { [string]: string } = {
 	Rank = "Rank",
 	Inventory = "Inventory",
 	Shop = "Shop",
 	FreeReward = "FreeReward",
-	CaseReady = "Inventory",
 }
 
 -- The nudge the server names (TutorialNudge; "" while the player is at a table): the hand
@@ -473,6 +497,22 @@ local NUDGE_ANCHORS: { [string]: string } = {
 local function nudgeScene(device: string): string
 	arrow:show(nil)
 	local name = player:GetAttribute("TutorialNudge")
+	if name == "BlockReady" then
+		-- The Rare block's timer has ended: the hand on its hotbar slot ("Your block is
+		-- ready!"); opening it ends the tutorial (the server watches the block).
+		if Progression.isBusy() then
+			lineOnly(nil)
+			return "nudgeBusy"
+		end
+		local slot = LuckyClient.slotOf("Rare")
+		if slot == nil then
+			lineOnly(nil)
+			return "nudgeBlockNone"
+		end
+		local key = "nudgeBlockReady" .. slot .. device
+		pointAt("HotbarSlot" .. slot, Copy.Nudge.BlockReady, device, shownKey ~= key)
+		return key
+	end
 	if type(name) ~= "string" or NUDGE_MENUS[name] == nil then
 		lineOnly(nil)
 		return "nudgeNone"
@@ -523,12 +563,11 @@ local function scene(step: string, device: string): string
 		return "Lobby" .. device
 	elseif step == "Game1" then
 		return game1Scene(device)
-	elseif Steps.atLeast(step, "Drop") and not Steps.atLeast(step, "Arrow2") then
+	elseif Steps.atLeast(step, "Block") and not Steps.atLeast(step, "Arrow2") then
 		return afterScene(step, device)
 	elseif step == "Nudges" then
 		return nudgeScene(device)
 	end
-	reveal:hide()
 	lastAfter = ""
 	-- Steps still to come keep the screen clear.
 	arrow:show(nil)
@@ -543,7 +582,7 @@ end
 local lastMenu: string? = nil
 local MENU_FUNNELS: { [string]: string } = { Shop = "ShopOpened", [ULTS] = "AbilitiesOpened" }
 
-local function update(dt: number)
+local function update(_dt: number)
 	local menu = Menus.current()
 	if menu ~= lastMenu then
 		lastMenu = menu
@@ -552,16 +591,9 @@ local function update(dt: number)
 			Tutorial.report(kind)
 		end
 	end
-	reveal:update()
-	-- The Rare Case timer beside Inventory, in the real server, while no menu or popup is up
-	-- (TutorialCaseAt: when it is ready, kept by the server past the timer's end).
-	local caseAt = player:GetAttribute("TutorialCaseAt")
-	local showPill = Tutorial.step() == "Nudges" and not Progression.isBusy()
-	pill:update(if showPill and type(caseAt) == "number" then caseAt else nil, dt)
 	if not Tutorial.active() then
 		shownKey = ""
 		TutorialAnchors.setAimLock(nil)
-		reveal:hide()
 		return
 	end
 	shownKey = scene(Tutorial.step(), Tutorial.device())
@@ -627,8 +659,6 @@ function Tutorial.start()
 	overlay = TutorialOverlay.new()
 	hand = TutorialHand.new(overlay.gui)
 	arrow = TutorialArrow.new()
-	reveal = TutorialReveal.new(overlay.gui)
-	pill = TutorialCasePill.new(overlay.gui)
 	player:GetAttributeChangedSignal("TutorialStep"):Connect(refresh)
 	refresh()
 	RunService.RenderStepped:Connect(update)

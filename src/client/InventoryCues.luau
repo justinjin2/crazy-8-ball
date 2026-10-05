@@ -1,18 +1,18 @@
 --!strict
--- InventoryCues: the cues of the Inventory's Items tab (docs/prompts/ECONOMY_UI_PROMPT.md
+-- InventoryCues: the Inventory's Cues tab (docs/prompts/ECONOMY_UI_PROMPT.md
 -- section 11; reworked by the GUI lane, designer 2026-10-03, C6).
 --
 --   * A strip on top: the sort button ("Sort: Rarest first"; each press moves to the next of
 --     Config.UI.Inventory.SortOrders) and "Sell all duplicates: $1,234" (the total worked out
---     here from Cases.sellValue for show; the server's reply is the truth), which asks first.
+--     here from BlockOdds.sellValue for show; the server's reply is the truth), which asks first.
 --   * A grid of big cue cards (InventoryCard), the whole page wide: the picture, the name,
---     "4.2% chance" (its rarity's share of Case Drops, in the rarity's colour; the copies in
+--     "4.2% chance" (its rarity's share per Mystery block, in the rarity's colour; the copies in
 --     existence left off, designer 2026-10-03), "x3", NEW, Equipped; rarer cards shimmer and
 --     sparkle.
 --   * A card pressed opens the cue big over the page (ref 07's size): the picture on its
 --     dressed card, name, rarity, the odds line, "You own 3", Equip, and one "Sell duplicates"
 --     that opens a count chooser (- 1 +, Max; "Sell 3 for $360"; a confirm from
---     Config.Cases.ConfirmSellFrom up). Exclusive, Unique and Classic cues show a padlock and
+--     Config.BlockOdds.ConfirmSellFrom up). Exclusive, Unique and Classic cues show a padlock and
 --     "Can't be sold". B, Escape, the X or a press beside the card close it.
 --
 -- A gamepad landing on a card only moves the selection; A opens the card. NEW tags clear with
@@ -28,8 +28,8 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
-local CaseDrop = require(Progression:WaitForChild("CaseDrop"))
-local Cases = require(Progression:WaitForChild("Cases"))
+local BlockDrop = require(Progression:WaitForChild("BlockDrop"))
+local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
 local Catalog = require(Progression:WaitForChild("Catalog"))
 local Format = require(Progression:WaitForChild("Format"))
 local CueAssets = require(script.Parent.CueAssets)
@@ -137,9 +137,9 @@ local function countLine(row: any): string
 	return if count > 1 then WORDS.Count:format(Format.commas(count)) else ""
 end
 
--- A rarity's chance per Case Drop as words: "4.2%" (two significant digits under 1%).
+-- A rarity's chance per Mystery block as words: "4.2%" (two significant digits under 1%).
 local function percentWords(rarity: string): string
-	local p = CaseDrop.rarityPercent(rarity)
+	local p = BlockDrop.rarityPercent(rarity)
 	if p <= 0 then
 		return "0%"
 	elseif p >= 10 then
@@ -163,8 +163,8 @@ function InventoryCues.oddsLine(id: string): string?
 	return WORDS.Odds:format(percent)
 end
 
---- The Cues page, built into `page` (the Items tab's cue area). `ctx`: InventoryMenu's;
---- `overlay` is where the chosen cue's big card opens (the whole Items page).
+--- The Cues page, built into `page` (the Cues tab). `ctx`: InventoryMenu's;
+--- `overlay` is where the chosen cue's big card opens (the whole page).
 function InventoryCues.new(page: Frame, ctx: any, overlay: Frame?): any
 	local self: any = setmetatable({}, InventoryCues)
 	self.page = page
@@ -441,7 +441,7 @@ function InventoryCues.refreshDetail(self: any)
 	self.ownedLabel.Text = if type(row.copy) == "number"
 		then WORDS.Copy:format(Format.commas(row.copy))
 		else WORDS.Owned:format(Format.commas(count))
-	local value = Cases.sellValue(id)
+	local value = BlockOdds.sellValue(id)
 	local sellable = value > 0
 	self.lockRow.Visible = not sellable
 
@@ -710,7 +710,7 @@ function InventoryCues.redraw(self: any, items: any)
 	for _, row in rows do
 		local extra = countOf(row) - 1
 		if extra > 0 then
-			total += extra * Cases.sellValue(row.id)
+			total += extra * BlockOdds.sellValue(row.id)
 		end
 	end
 	self.sellAllTotal = total
@@ -755,7 +755,7 @@ function InventoryCues.choose(self: any, id: string, pressed: boolean)
 	end
 end
 
---- Open the chosen cue's big card over the Items page.
+--- Open the chosen cue's big card over the page.
 function InventoryCues.openDetail(self: any)
 	if not self.chosen then
 		return
@@ -902,7 +902,7 @@ function InventoryCues.arrange(self: any)
 	local cell = math.max(1, math.floor((inner - (columns - 1) * cellGap) / columns))
 	self.gridLayout.CellPadding = UDim2.fromOffset(cellGap, cellGap)
 	self.gridLayout.CellSize = UDim2.fromOffset(cell, round(cell * I.CardAspect))
-	-- The big card: ref 07's size, as big as the Items page allows.
+	-- The big card: ref 07's size, as big as the page allows.
 	local parent: Frame = self.overlayParent
 	local scale = MenuFrame.scaleOf(parent)
 	local area = parent.AbsoluteSize / scale
@@ -1042,7 +1042,7 @@ function InventoryCues.doEquip(self: any)
 	end)
 end
 
---- Sell the chooser's count of the chosen cue (asks first from Config.Cases.ConfirmSellFrom).
+--- Sell the chooser's count of the chosen cue (asks first from Config.BlockOdds.ConfirmSellFrom).
 function InventoryCues.askSellCount(self: any)
 	local ctx = self.ctx
 	local id = self.chosen
@@ -1064,7 +1064,7 @@ function InventoryCues.askSellCount(self: any)
 			end
 		end)
 	end
-	if not Cases.needsConfirm(id) then
+	if not BlockOdds.needsConfirm(id) then
 		sell()
 		return
 	end
@@ -1073,7 +1073,7 @@ function InventoryCues.askSellCount(self: any)
 		text = WORDS.ConfirmSellCount:format(
 			Format.commas(count),
 			CueThumb.cueName(id),
-			Format.money(count * Cases.sellValue(id))
+			Format.money(count * BlockOdds.sellValue(id))
 		),
 		yes = WORDS.SellYes,
 		no = WORDS.SellNo,

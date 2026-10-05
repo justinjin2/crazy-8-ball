@@ -1,22 +1,23 @@
 --!strict
 -- RewardChips: the small reward chips on the result screen and NEW RANK!
--- (docs/prompts/ECONOMY_UI_PROMPT.md sections 9 and 13), and the flight of a case or a cue from
--- its chip into the left column's Inventory tile.
+-- (docs/prompts/ECONOMY_UI_PROMPT.md sections 9 and 13), and the flight of a lucky block or
+-- a cue from its chip into the hotbar or the left column's Inventory tile.
 --
 -- A chip is a white kit pill with its picture on the left and its words after it: money (the
--- single cash bundle and "+$300" in green), a case (its own chest and "x2", or "+1 Standard
--- Case"), a cue (its thumbnail and its name), a chat tag (the speech bubble and the tag drawn
--- as chat draws it, ChatTags), or ult spins / Lucky Spins (the gold spin icon or the clover and
--- "2 Ult Spins"; docs/prompts/ULTIMATES_PROMPT.md section 10). Chips only draw: money still
--- flies with CashFlyer, which lands it in the money HUD.
+-- single cash bundle and "+$300" in green), a lucky block (its turning 3D icon, BlockIcon, and
+-- "x2", or "+1 Mystery Lucky Block"), a cue (its thumbnail and its name), a chat tag (the
+-- speech bubble and the tag drawn as chat draws it, ChatTags), or ult spins / Lucky Spins (the
+-- gold spin icon or the clover and "2 Ult Spins"; docs/prompts/ULTIMATES_PROMPT.md section
+-- 10). Chips only draw: money still flies with CashFlyer, which lands it in the money HUD.
 --
--- A case, a cue or spins fly as a copy of the picture: it pops up off the chip, hangs a moment,
--- then arcs into a column tile (MenuColumn.tileCenter, read every frame, so a column still
--- popping in is followed), shrinking, and the tile bounces as it lands: a case or a cue to
--- Inventory, spins to the Ults button, or to Rewards while the column has none
--- (RewardChips.tilesFor). The column hides under the popups, so while anything is on its way
--- (and a moment after) `catching()` is true and Progression shows the column to catch it. With
--- no column the copy just pops away.
+-- A block, a cue or spins fly as a copy of the picture: it pops up off the chip, hangs a
+-- moment, then arcs to its target (read every frame, so a bar still popping in is followed),
+-- shrinking, and the target bounces as it lands: a block to the hotbar (deps.hotbarCenter,
+-- while the bar shows) else the column's Inventory tile; a cue to Inventory; spins to the Ults
+-- button, or to Rewards while the column has none (RewardChips.tilesFor). The column and the
+-- hotbar hide under the popups, so while anything is on its way (and a moment after)
+-- `catching()` is true and Progression shows them to catch it. With nowhere to land the copy
+-- just pops away.
 -- Tuning in Config.UI.Progress.Chips. It also words the XP boosts ("ROOKIE x2") for the
 -- result screen and the rank HUD.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -26,6 +27,7 @@ local TextService = game:GetService("TextService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local BlockIcon = require(script.Parent.BlockIcon)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local RewardsParts = require(script.Parent.RewardsParts)
@@ -34,16 +36,15 @@ local UISound = require(script.Parent.UISound)
 
 local C = Config.UI.Progress.Chips
 local K = Config.UI.Kit
-local ICONS: { [string]: string } = K.Icons :: any
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 
 --- What a chip shows. `text` is its words (RichText when `rich`, measured by `plain`).
 export type Spec = {
-	kind: string, -- "Money", "Case", "Cue", "Tag", "Spins" or "Lucky"
+	kind: string, -- "Money", "Block", "Cue", "Tag", "Spins" or "Lucky"
 	text: string,
 	plain: string?, -- the words without markup (a rich tag), for measuring
 	rich: boolean?,
-	id: string?, -- the case or cue id: its picture
+	id: string?, -- the block's kind or the cue's id: its picture
 	tint: Color3?, -- the words' colour (the kit's white when nil)
 }
 
@@ -60,9 +61,9 @@ type Flight = {
 	kind: string,
 	id: string?,
 	from: GuiObject, -- the picture it copies (its place and size when it pops)
-	deps: any, -- the economy's shared deps: `column`
+	deps: any, -- the economy's shared deps: `column`, `hotbarCenter`, `bumpHotbar`
 	targets: { string }, -- the column tiles it may land on, the first the column has
-	landing: string?, -- the one it is flying to
+	landing: string?, -- the one it is flying to ("Hotbar": the lucky block bar)
 	startAt: number, -- os.clock() when it pops
 	layer: Frame,
 	ghost: GuiObject?,
@@ -79,8 +80,9 @@ local RewardChips = {}
 local TILES_ITEM = { "Inventory" }
 local TILES_SPIN: { string } = RewardsParts.SpinTiles
 
---- The column tiles a chip of `kind` flies to, in order of preference: a case or a cue to
---- Inventory, ult spins and Lucky Spins to Ults (Rewards when the column has no Ults button).
+--- The column tiles a chip of `kind` flies to, in order of preference: a block (when the
+--- hotbar is hidden) or a cue to Inventory, ult spins and Lucky Spins to Ults (Rewards when
+--- the column has no Ults button).
 function RewardChips.tilesFor(kind: string): { string }
 	return if kind == "Spins" or kind == "Lucky" then TILES_SPIN else TILES_ITEM
 end
@@ -117,13 +119,6 @@ function RewardChips.boostWords(kind: string, share: number): string?
 	return if words then words:format(number(share * 100)) else nil
 end
 
---- A case's chest icon key in Config.UI.Kit.Icons ("CaseEpic"), the plain case chest when that
---- case has no icon of its own.
-function RewardChips.caseIcon(caseId: string?): string
-	local key = if caseId then "Case" .. caseId else "Case"
-	return if ICONS[key] and ICONS[key] ~= "" then key else "Case"
-end
-
 --- A chip for `count` ult spins ("2 Ult Spins" by the gold spin icon), or nil for none.
 function RewardChips.spinsSpec(count: number): Spec?
 	if type(count) ~= "number" or count ~= count or count < 1 or count == math.huge then
@@ -140,15 +135,24 @@ local function pictureWidth(kind: string, height: number): number
 	return math.floor(if kind == "Money" then inner * C.CashWidthShare else inner)
 end
 
--- A picture: the cash bundle, a case's chest, the chat bubble, a cue's thumbnail, the ult spin
--- icon or the Lucky Spin clover.
+-- A picture: the cash bundle, a lucky block's 3D icon, the chat bubble, a cue's thumbnail,
+-- the ult spin icon or the Lucky Spin clover.
 local function makePicture(parent: Instance, kind: string, id: string?): GuiObject
 	if kind == "Cue" then
 		return CueThumb.new(parent, id or "")
 	end
+	if kind == "Block" then
+		local holder = HudParts.frame(parent, "Picture")
+		local icon = BlockIcon.new(holder, id or "", false)
+		icon.root.ZIndex = 2
+		icon.viewport.ZIndex = 2
+		if icon.fallback then
+			icon.fallback.ZIndex = 2
+		end
+		return holder
+	end
 	local key = if kind == "Money"
 		then "CashSingle"
-		elseif kind == "Case" then RewardChips.caseIcon(id)
 		elseif kind == "Spins" then "UltSpin"
 		elseif kind == "Lucky" then "Lucky"
 		else "ChatTag"
@@ -267,10 +271,22 @@ local function layerIn(screen: ScreenGui): Frame
 	return layer
 end
 
--- Where a flight lands: the centre now of the first of its tiles the column has (remembered
--- as its landing), or nil (no column, or none of them).
+-- Where a flight lands: a block's the hotbar's middle while the bar shows; else the centre
+-- now of the first of its tiles the column has (remembered as its landing), or nil (no
+-- column, or none of them).
 local function targetOf(flight: Flight): Vector2?
-	local column = if type(flight.deps) == "table" then flight.deps.column else nil
+	local deps = if type(flight.deps) == "table" then flight.deps else nil
+	if not deps then
+		return nil
+	end
+	if flight.kind == "Block" and type(deps.hotbarCenter) == "function" then
+		local ok, point = pcall(deps.hotbarCenter)
+		if ok and typeof(point) == "Vector2" then
+			flight.landing = "Hotbar"
+			return point
+		end
+	end
+	local column = deps.column
 	if not column then
 		return nil
 	end
@@ -296,8 +312,11 @@ local function land(flight: Flight, arrived: boolean)
 	end
 	holdUntil = math.max(holdUntil, os.clock() + C.HoldSeconds)
 	if arrived then
-		local column = if type(flight.deps) == "table" then flight.deps.column else nil
-		if column and flight.landing then
+		local deps = if type(flight.deps) == "table" then flight.deps else nil
+		local column = if deps then deps.column else nil
+		if flight.landing == "Hotbar" and deps and type(deps.bumpHotbar) == "function" then
+			pcall(deps.bumpHotbar)
+		elseif column and flight.landing then
 			pcall(column.bump, column, flight.landing)
 		end
 		UISound.play(C.LandSound, C.LandPitch)
@@ -386,10 +405,11 @@ local function step()
 	end
 end
 
---- Fly a copy of `chip`'s picture (a case, a cue or spins) into the column tile `target`
+--- Fly a copy of `chip`'s picture (a block, a cue or spins) into the column tile `target`
 --- ("Inventory"), or the first of a list of tiles the column has (RewardChips.tilesFor), after
---- `delay` seconds. `screen` is the ScreenGui the copy is drawn in; `deps` the economy's shared
---- table (its `column`, read when the copy flies). The chip itself stays.
+--- `delay` seconds; a block goes to the hotbar first when it shows. `screen` is the ScreenGui
+--- the copy is drawn in; `deps` the economy's shared table (its `column`, `hotbarCenter` and
+--- `bumpHotbar`, read when the copy flies). The chip itself stays.
 function RewardChips.fly(
 	screen: ScreenGui,
 	chip: Chip,
@@ -430,8 +450,8 @@ function RewardChips.fly(
 	end
 end
 
---- Whether something is on its way to the column (or just landed): Progression shows the
---- column meanwhile, even under a popup, so the tile is there to catch it.
+--- Whether something is on its way to the column or the hotbar (or just landed): Progression
+--- shows them meanwhile, even under a popup, so the target is there to catch it.
 function RewardChips.catching(): boolean
 	return #flights > 0 or os.clock() < holdUntil
 end

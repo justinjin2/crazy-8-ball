@@ -1,6 +1,6 @@
 --!strict
 -- CueSkins: the cue skins' data (the cue-skins run, docs/prompts/CUE_SKINS_REPORT.md). Every
--- case, rank and Exclusive cue has a skin: its surface maps on the shared cue mesh, its aura,
+-- block, rank and Exclusive cue has a skin: its surface maps on the shared cue mesh, its aura,
 -- moving material, ball trail, pocket finisher and 3D piece, all as data rows generated from
 -- assets/cue by tools/cue_skins_data.py (Skins/<CatalogId>, Pieces/<piece>, Index). Never edit
 -- those by hand; change the skin file and run the tool. Pure: the client modules that build

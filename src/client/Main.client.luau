@@ -557,8 +557,8 @@ Progression.start(screen, {
 		return nil
 	end,
 })
--- The ult spin screen ("Ults" in Menus): the column's 5th tile, gamepad X in the hub and the
--- leave reminder's button open it.
+-- The ult spin screen ("Ults" in Menus): the column's 5th tile and gamepad X in the hub open
+-- it.
 UltScreen.start(screen)
 -- "<name> needs an opponent...": Join asks the server to stand you on their pad.
 local opponentPrompt = OpponentPrompt.new(screen, function(id: number, epoch: number)

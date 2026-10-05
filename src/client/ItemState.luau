@@ -6,10 +6,10 @@
 -- Snapshots (server -> this player, on load and after every change; the server's copy is the
 -- truth, the client only draws it). Kinds and their remotes:
 --   "Items"   ItemState    the inventory (Progression/Inventory.snapshot):
---             { cues = { { id, count, new, copy? } }, cases = { { id, count } }, equipped,
+--             { cues = { { id, count, new, copy? } }, equipped,
 --               seen = { id... }, rows = { { rarity, have, total, complete, claimed,
 --               reward = { money }? } }, titles = { id... } }
---   "Shop"    ShopState    offers and their end times, VIP and Fast Open, the paid-random-items
+--   "Shop"    ShopState    offers and their end times, VIP, the paid-random-items
 --             restriction, a sale, the Limited shelf, first pack bought, live Robux prices
 --   "Rewards" RewardState  the login streak, playtime gifts, the next streak reward, titles
 -- Every reader here is tolerant: a field that is missing or the wrong type reads as empty.
@@ -205,29 +205,6 @@ function ItemState.cue(id: string): any?
 		end
 	end
 	return nil
-end
-
---- How many unopened cases of a type the player has.
-function ItemState.caseCount(id: string): number
-	local items = latest.Items
-	for _, row in list(items and items.cases) do
-		if type(row) == "table" and row.id == id then
-			return if type(row.count) == "number" then row.count else 0
-		end
-	end
-	return 0
-end
-
---- Every unopened case, of every type.
-function ItemState.casesTotal(): number
-	local total = 0
-	local items = latest.Items
-	for _, row in list(items and items.cases) do
-		if type(row) == "table" and type(row.count) == "number" then
-			total += row.count
-		end
-	end
-	return total
 end
 
 --- The equipped cue's id (the catalog's default before the snapshot arrives).

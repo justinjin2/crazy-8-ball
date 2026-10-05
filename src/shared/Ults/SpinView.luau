@@ -55,7 +55,7 @@ SpinView.Reasons = table.freeze({
 	"LuckyClosed", -- no Uncommon or better ult is in the game yet, so a Lucky Spin has nothing to land
 	"Confirm", -- the spin would replace an Epic or better: the reply adds `current`, `rarity`
 	"AutoRunning", -- Spin or Select while Auto Spin runs (AutoStop first)
-	"NoFastOpen", -- AutoStart needs the Fast Open pass
+	"NoVip", -- AutoStart needs VIP
 	"Restricted", -- paid random items are restricted here: no buying spins or Lucky Spins
 	"NotEnoughMoney", -- BuySpins: the reply adds `need` and `price`
 	"TooMany", -- BuySpins: the spins would pass Config.Ults.Earn.MaxSpins
@@ -298,7 +298,7 @@ function SpinView.spin(ults: any, opts: SpinOptions): (SpinResult?, string?, str
 end
 
 ---------------------------------------------------------------------------------------------
--- Auto Spin (Fast Open, section 9.6)
+-- Auto Spin (VIP, section 9.6)
 ---------------------------------------------------------------------------------------------
 
 --- Whether Auto Spin may make its next spin: nil when it may, else why it stops: Slots.canSpin's
@@ -333,7 +333,7 @@ export type Context = {
 	devAll: boolean?, -- the developer flag for this player
 	live: boolean, -- the screen is open to them (Config.Ults.ScreenLive, Studio, or devAll)
 	restricted: boolean, -- paid random items restricted (or PolicyService not answered yet)
-	fastOpen: boolean, -- owns Fast Open (Skip and Auto Spin)
+	vip: boolean, -- VIP (Skip and Auto Spin)
 	prices: { [string]: number }?, -- product key -> live Robux price (missing: Config's)
 	auto: { stopAt: string, lucky: boolean, count: number }?, -- Auto Spin running
 }
@@ -375,7 +375,7 @@ export type Payload = {
 	live: boolean,
 	devAll: boolean,
 	restricted: boolean, -- hide the R$ and $ buy buttons and Lucky Spins, with the note
-	fastOpen: boolean,
+	vip: boolean,
 	moneyPerSpin: number,
 	moneyPacks: { number },
 	robuxPacks: { string },
@@ -493,7 +493,7 @@ function SpinView.state(ctx: Context): Payload
 		live = ctx.live == true,
 		devAll = ctx.devAll == true,
 		restricted = ctx.restricted == true,
-		fastOpen = ctx.fastOpen == true,
+		vip = ctx.vip == true,
 		moneyPerSpin = E.MoneyPerSpin,
 		moneyPacks = table.clone(E.MoneyPacks),
 		robuxPacks = table.clone(E.RobuxPacks),

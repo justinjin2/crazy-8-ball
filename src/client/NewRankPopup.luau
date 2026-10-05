@@ -6,8 +6,9 @@
 --   of the screen's short side) with gold rays turning behind it, its shine and a burst,
 --   confetti, the rank's name ("Gold IV"), then every reward as a chip (brief section 9;
 --   RewardChips): the money ("+$300" with the cash), which then flies into the money HUD; each
---   case (its own chest and "x2") and the tier's cue (its thumbnail and name), whose pictures
---   fly into the left column's Inventory tile; a new tier's ult spins ("2 Ult Spins" by the
+--   lucky block (its 3D icon and "x2"), which flies to the hotbar (or the left column's
+--   Inventory tile), and the tier's cue (its thumbnail and name), whose picture flies into
+--   the Inventory tile; a new tier's ult spins ("2 Ult Spins" by the
 --   gold spin icon), whose icon flies to the column's Ults button (Rewards without one); and
 --   the tier's chat tag, drawn as chat draws it.
 --   Chips wider than the popup reach past its sides like the title, or wrap onto a second
@@ -20,7 +21,7 @@
 -- Money: a rank-up's reward is already in the save when this shows (the server paid it). For a
 -- /xp rank-up the chip flies into the HUD here (the HUD is told the moment the popup is asked
 -- for); after the result screen (`paid`, it flew with the total chip) and for a /newrank preview
--- (`preview`, nothing was paid) the chip only shows. The cases and the cue are in the inventory
+-- (`preview`, nothing was paid) the chip only shows. The blocks and the cue are in the save
 -- already too; their pictures always fly (purely a picture: the column's red dot comes from the
 -- save), even in a preview, whose rewards are worked out here when the event does not list them.
 -- The spins likewise: already added by the server; their icon only flies.
@@ -47,7 +48,7 @@ local UISound = require(script.Parent.UISound)
 local C = Config.UI.Progress.NewRank
 local K = Config.UI.Kit
 local P = Strings.Progress
-local CASE_ORDER: { string } = Config.Cases.Order
+local BLOCK_ORDER: { string } = Config.LuckyBlocks.Order
 local NewRankPopup = {}
 NewRankPopup.__index = NewRankPopup
 
@@ -94,20 +95,20 @@ local function nameOf(rank: any): string
 	return Ranks.name({ tier = tier, division = division, index = 0, xpInDivision = 0 })
 end
 
--- A preview's cases and cues, worked out from the divisions it passed (the server lists them
+-- A preview's blocks and cues, worked out from the divisions it passed (the server lists them
 -- for a real rank-up: Net RankEvent).
 local function previewItems(event: any): ({ [string]: number }, { string })
-	local cases: { [string]: number } = {}
+	local blocks: { [string]: number } = {}
 	local cues: { string } = {}
 	for _, row in Ranks.rewardsBetween(indexOf(event.before), indexOf(event.after)) do
-		for id, count in row.cases do
-			cases[id] = (cases[id] or 0) + count
+		for kind, count in row.blocks do
+			blocks[kind] = (blocks[kind] or 0) + count
 		end
 		if row.cue then
 			table.insert(cues, row.cue)
 		end
 	end
-	return cases, cues
+	return blocks, cues
 end
 
 -- The ult spins an event's rank-up added: its rewardSpins (RankEvent, the match summary); a
@@ -132,7 +133,7 @@ local function spinsOf(event: any): number
 	return total
 end
 
--- The chips for an event: the money, each case in the shop's order, the ult spins, every
+-- The chips for an event: the money, each lucky block in the kinds' order, the ult spins, every
 -- cue, and the new tier's chat tag.
 local function specsOf(event: any, reward: number): { RewardChips.Spec }
 	local specs: { RewardChips.Spec } = {}
@@ -142,15 +143,18 @@ local function specsOf(event: any, reward: number): { RewardChips.Spec }
 			{ kind = "Money", text = Format.moneyDelta(reward), tint = tone("Green") }
 		)
 	end
-	local cases: any, cues: any = event.rewardCases, event.rewardCues
-	if type(cases) ~= "table" and type(cues) ~= "table" and event.preview == true then
-		cases, cues = previewItems(event)
+	local blocks: any, cues: any = event.rewardBlocks, event.rewardCues
+	if type(blocks) ~= "table" and type(cues) ~= "table" and event.preview == true then
+		blocks, cues = previewItems(event)
 	end
-	if type(cases) == "table" then
-		for _, id in CASE_ORDER do
-			local count = clean(cases[id])
+	if type(blocks) == "table" then
+		for _, kind in BLOCK_ORDER do
+			local count = clean(blocks[kind])
 			if count > 0 then
-				table.insert(specs, { kind = "Case", id = id, text = P.RewardCount:format(count) })
+				table.insert(
+					specs,
+					{ kind = "Block", id = kind, text = P.RewardCount:format(count) }
+				)
 			end
 		end
 	end
@@ -181,7 +185,7 @@ local function specsOf(event: any, reward: number): { RewardChips.Spec }
 end
 
 --- The popups, built into `screen` (UI.screen()). Reward chips fly with `flyer` into `money`;
---- cases and cues fly into the column (setDeps).
+--- blocks and cues fly to the hotbar or the column (setDeps).
 function NewRankPopup.new(screen: ScreenGui, flyer: any, money: any): NewRankPopup
 	local self: any = setmetatable({}, NewRankPopup)
 	self.alive = true
@@ -201,13 +205,14 @@ function NewRankPopup.new(screen: ScreenGui, flyer: any, money: any): NewRankPop
 	return self
 end
 
---- The economy's shared table (Progression): its `column` catches the flying cases and cues.
+--- The economy's shared table (Progression): its `hotbarCenter` and `column` catch the flying
+--- blocks and cues.
 function NewRankPopup.setDeps(self: any, deps: any)
 	self.deps = deps
 end
 
 --- Show a rank-up: `event` = {kind = "Up", before, after (ranks: tier and division, index),
---- reward (money), newTier, rewardCases? ({[caseId] = count}), rewardCues? ({cueId}),
+--- reward (money), newTier, rewardBlocks? ({[kind] = count}), rewardCues? ({cueId}),
 --- rewardSpins? (ult spins; else the `rewards` rows' spins added up), preview?, paid?} (the
 --- server's RankEvent, or the result screen after a match). `onDone` runs once it has closed.
 --- One at a time: a second one waits.
@@ -286,7 +291,7 @@ function NewRankPopup.openUp(self: any, item: any)
 		continueShown = false,
 		badges = {},
 		chips = {},
-		flights = {}, -- the cases and cue still to fly: { chip, at }
+		flights = {}, -- the blocks and cue still to fly: { chip, at }
 	}
 	-- A new tier's old badge spins away first; the burst comes when the new one arrives.
 	view.burstAt = if newTier then C.TierHoldSeconds + C.TierSpinSeconds else C.BurstAt
@@ -437,12 +442,12 @@ function NewRankPopup.openUp(self: any, item: any)
 	end
 	view.width = math.max(C.Width, widest)
 	holder.Size = UDim2.fromOffset(C.Width, view.height)
-	-- The cases and the cue fly to Inventory one after another, after the money; the spins
+	-- The blocks and the cue fly home one after another, after the money; the spins
 	-- to the column's Ults button in their turn.
 	local at = view.rewardAt + C.ItemFlyAfter
 	for _, chip in view.chips do
 		local kind = chip.spec.kind
-		if (kind == "Case" or kind == "Cue" or kind == "Spins") and event.held ~= true then
+		if (kind == "Block" or kind == "Cue" or kind == "Spins") and event.held ~= true then
 			table.insert(view.flights, { chip = chip, at = at })
 			at += C.ItemFlyStagger
 		end
@@ -625,7 +630,7 @@ function NewRankPopup.sendChip(self: any, view: any)
 	end
 end
 
--- A case, the cue or the spins: its picture flies into its column tile (Inventory; the spins
+-- A block, the cue or the spins: its picture flies home (the hotbar, Inventory; the spins
 -- to Ults); its chip bounces.
 function NewRankPopup.flyItem(self: any, _view: any, chip: RewardChips.Chip)
 	chip.root.Visible = true -- a close before its pop still sends it from its place
@@ -653,7 +658,7 @@ function NewRankPopup.close(self: any)
 		TweenInfo.new(K.Motion.OutSeconds, Enum.EasingStyle.Quad),
 		{ BackgroundTransparency = 1 }
 	):Play()
-	-- A reward that did not get to fly lands now, so the HUD is not left waiting; cases and
+	-- A reward that did not get to fly lands now, so the HUD is not left waiting; blocks and
 	-- the cue still waiting set off at once, from where their chips are as the popup goes.
 	local item = view.item
 	if item.owed then

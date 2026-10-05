@@ -6,7 +6,7 @@
 local H = require("./harness")
 
 return {
-	["every case, rank and Exclusive cue and Classic has a skin; the Unique cues do not yet"] = function()
+	["every block, rank and Exclusive cue and Classic has a skin; the Unique cues do not yet"] = function()
 		local Catalog = H.require("Progression.Catalog")
 		local CueSkins = H.require("CueSkins")
 		for _, cue in Catalog.list() do
