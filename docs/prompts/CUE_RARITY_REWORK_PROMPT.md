@@ -267,6 +267,11 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   glowing pearl ferrule between gold rims, a pearl tip. Board
   `assets/cue/concepts/rework/celestial_dragon-board.png` and clip
   `celestial_dragon-clip.mp4`. Waiting at gate 1.
+- 2026-10-04 (gate 1, second look): the dragon lengthened to a whole leg of its lap (9.4 of
+  19.4 studs, 44 spine bones, the chest a little thicker, the head 1.2 studs) so it coils the
+  cue tip to butt all the time; a light-blue hologram aura round the whole cue (two halo
+  sprite rows on the axis drawn behind the stick, the outline `#9FE8FF`, the strip beam
+  lifted; about 96 particles a second). Board and clip re-rendered.
 
 ## Decisions
 
@@ -312,3 +317,7 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 - 2026-10-04 (designer, Eclipse gate 2, fourth look): passes ("yes, move on"). The old trail
   and pocket finisher were fine: they stay as they are, no trail or pocket pass for Eclipse.
   Next: the Celestial Dragon.
+- 2026-10-04 (designer, Dragon gate 1, first look): more flair: a light-blue hologram
+  outline, more spiritual energy (the reference card: a soft light-blue aura round the whole
+  cue), and the dragon longer so it is almost always spiralling round the entire cue from
+  tip to butt. Built as the second look above.

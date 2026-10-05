@@ -11,7 +11,7 @@
   "#C9E6FF"
  ],
  "painter": "mix",
- "note": "Pearl white and gold, wrapped by a see-through starlight dragon: OpenAI panels on the whole cue (pearl white with gold lattice straps crossing round dark sapphire diamonds, a pale maple tip end, a dark navy snakeskin grip), gold collar and rings, a gold cap end with a glowing eight-point star gem. The 3D piece (pieces/celestial_dragon): a pearl dragon head with gold horns and lips, fangs and glowing eyes resting past the butt, a mane of blue energy, and its see-through energy body (two ForceField ribbons with Neon cores) coiling round the cue to the shaft. Reworked 2026-10-04 (designer: it pulsed too fast, the colours were dull and the particles masked the detail): every motion slowed two to three times, the palette lifted to cyan-white spirit energy (#EAFBFF cores, #3FD6FF main) over deep indigo, two Neon spirit filaments spiralling round the body, ten quick spine flames replaced by four slow wisps, the mist and stars cut to a third; themed ends: a gold-scaled collar with a pearl band, a glowing pearl ferrule band, a pearl tip.",
+ "note": "Pearl white and gold, wrapped by a see-through starlight dragon: OpenAI panels on the whole cue (pearl white with gold lattice straps crossing round dark sapphire diamonds, a pale maple tip end, a dark navy snakeskin grip), gold collar and rings, a gold cap end with a glowing eight-point star gem. The 3D piece (pieces/celestial_dragon): a pearl dragon head with gold horns and lips, fangs and glowing eyes resting past the butt, a mane of blue energy, and its see-through energy body (two ForceField ribbons with Neon cores) coiling round the cue to the shaft. Reworked 2026-10-04 (designer: it pulsed too fast, the colours were dull and the particles masked the detail): every motion slowed two to three times, the palette lifted to cyan-white spirit energy (#EAFBFF cores, #3FD6FF main) over deep indigo, two Neon spirit filaments spiralling round the body, ten quick spine flames replaced by four slow wisps, the mist and stars cut to a third; themed ends: a gold-scaled collar with a pearl band, a glowing pearl ferrule band, a pearl tip. Gate 1, second look (designer): a light-blue hologram aura round the whole cue (halo sprites behind the stick, a light-blue outline, the strip beam lifted) and the dragon long enough to coil the cue from tip to butt all the time.",
  "ai": {
   "shaft_tile": {
    "refs": [
@@ -1060,6 +1060,134 @@
      ],
      "LightEmission": 0.6,
      "Brightness": 2
+    },
+    {
+     "Name": "HoloHalo",
+     "Texture": "vfx/_shared/glow_soft.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.1,
+      "ToStuds": 7.1,
+      "Width": 0.08
+     },
+     "LightInfluence": 0,
+     "LockedToPart": true,
+     "Rate": 12,
+     "Lifetime": [
+      1.4,
+      2.0
+     ],
+     "Speed": 0,
+     "Size": [
+      [
+       0,
+       1.0
+      ],
+      [
+       0.5,
+       1.5
+      ],
+      [
+       1,
+       1.2
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.25,
+       0.45
+      ],
+      [
+       0.75,
+       0.5
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#9FE8FF"
+      ],
+      [
+       1,
+       "#4FA8FF"
+      ]
+     ],
+     "LightEmission": 1,
+     "Brightness": 1.7,
+     "ZOffset": -0.75,
+     "Note": "the light-blue hologram aura (designer, 2026-10-04, the reference card): soft glow sprites on the cue axis drawn behind the cue, so the paint stays in front and the glow surrounds the outline"
+    },
+    {
+     "Name": "HoloRim",
+     "Texture": "vfx/_shared/glow_soft.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.1,
+      "ToStuds": 7.1,
+      "Width": 0.06
+     },
+     "LightInfluence": 0,
+     "LockedToPart": true,
+     "Rate": 10,
+     "Lifetime": [
+      1.2,
+      1.8
+     ],
+     "Speed": 0,
+     "Size": [
+      [
+       0,
+       0.55
+      ],
+      [
+       0.5,
+       0.85
+      ],
+      [
+       1,
+       0.7
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.3,
+       0.3
+      ],
+      [
+       0.7,
+       0.35
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#EAFBFF"
+      ],
+      [
+       1,
+       "#9FE8FF"
+      ]
+     ],
+     "LightEmission": 1,
+     "Brightness": 2.6,
+     "ZOffset": -0.5,
+     "Note": "a tighter white-blue rim round the outline, behind the cue too"
     }
    ],
    "Beams": [
@@ -1075,11 +1203,11 @@
      "Color": [
       [
        0,
-       "#3FD6FF"
+       "#9FE8FF"
       ],
       [
        1,
-       "#6A8CFF"
+       "#4FA8FF"
       ]
      ],
      "Transparency": [
@@ -1089,11 +1217,11 @@
       ],
       [
        0.06,
-       0.55
+       0.45
       ],
       [
        0.9,
-       0.45
+       0.4
       ],
       [
        1,
@@ -1107,7 +1235,7 @@
       "Max": 0.9,
       "Period": 7.0
      },
-     "Brightness": 2.2
+     "Brightness": 2.6
     }
    ],
    "Lights": [
@@ -1124,12 +1252,12 @@
     }
    ],
    "Highlight": {
-    "FillColor": "#7FE6FF",
-    "FillTransparency": 0.6,
+    "FillColor": "#9FE8FF",
+    "FillTransparency": 0.55,
     "OutlineColor": "#EAFBFF",
     "OutlineTransparency": 0
    },
-   "Outline": "#3E8BFF"
+   "Outline": "#9FE8FF"
   },
   "Style": {
    "Trail": {
@@ -1574,7 +1702,7 @@
    "KeepRibbons": false
   },
   "Budget": {
-   "ParticlesPerSecond": 74.2,
+   "ParticlesPerSecond": 96.2,
    "Back": 25.0,
    "BallTrail": 28,
    "Beams": 1,

@@ -198,7 +198,9 @@ generic-runtime rule; the catalog rows stay untouched.
   Eclipse's old trail and pocket finisher. On to the Celestial Dragon (board, gate 1).
 - 2026-10-04: the Celestial Dragon reworked in data (beats slowed two to three times,
   cyan-white spirit palette, spirit filaments, four slow wisps for ten flames, the cloud cut
-  to a third, gold-scale and pearl ends); board and clip rendered. Waiting at gate 1.
+  to a third, gold-scale and pearl ends); board and clip rendered. Second look: the dragon
+  lengthened to coil the whole cue, a light-blue hologram aura round the stick. Waiting at
+  gate 1.
 
 ## Decisions
 

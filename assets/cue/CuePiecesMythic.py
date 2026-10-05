@@ -39,7 +39,9 @@ SWIM_TURNS = 3.0          # turns round the cue on each leg
 SWIM_ROUND = 0.96         # how sharply each end turns round (1 a sharp triangle, 0 a sine)
 SWIM_R = (0.40, 0.1)      # the loop's radius round the cue's axis: r0 + dr sin(phase) (0.34 on the 0.2 cue)
 SWIM_PERIOD = 12.0        # seconds for a whole lap, tip to butt and back (10 before the 2026-10-04 rework: calmer)
-SWIM_BODY = 4.5           # the spine's length, studs (the head sits on its front)
+SWIM_BODY = 9.4           # the spine's length, studs (the head sits on its front): a whole leg of the
+                          # 19.4-stud lap, so the dragon coils the cue tip to butt all the time
+                          # (designer, 2026-10-04; 4.5 before)
 SWIM_STEP = 0.02          # the path's sample spacing, studs
 
 
@@ -90,7 +92,7 @@ def _dragon_radius(t):
     grow = min(t / 0.3, 1.0)
     grow = grow * grow * (3 - 2 * grow)
     neck = min(max(t - 0.88, 0.0) / 0.12, 1.0)
-    return 0.012 + 0.078 * grow - 0.012 * neck
+    return 0.012 + 0.088 * grow - 0.012 * neck
 
 
 def _dragon_tube(bm, frames, radius, segs, uv=None, v_per_stud=3.0, flat=0.85):
@@ -218,7 +220,7 @@ def celestial_dragon(k):
     k.joint('Dragon', pivot=(0, 0, 0), aura=True)
 
     # the spine: bones riding the loop, a quick wave on top running from the neck to the tail
-    NB = 30
+    NB = 44                                           # spine bones (30 on the 4.5-stud body)
     centres = [0.02 + 0.96 * b / (NB - 1) for b in range(NB)]
     width = 0.96 / (NB - 1)
     WAVE = 2.2                                        # the body wave's length, studs
@@ -309,7 +311,7 @@ def celestial_dragon(k):
         for i, (t, p, tg, nrm, side) in enumerate(frames):
             if i % 2:
                 continue
-            a = 2 * math.pi * (t * SWIM_BODY / 0.55 + h / 2)
+            a = 2 * math.pi * (t * SWIM_BODY / 0.8 + h / 2)
             rr = _dragon_radius(t) * 1.18 + 0.008
             pts.append(p + (nrm * math.cos(a) + side * math.sin(a)) * rr)
             radii.append(0.006 + 0.004 * min(t / 0.3, 1.0))
@@ -323,7 +325,7 @@ def celestial_dragon(k):
     fwd = tg
     up = nrm
     R = Matrix((tuple(fwd.cross(up) * -1), tuple(-fwd), tuple(up))).transposed()   # columns: X, Y, Z
-    HEAD_L = 1.0                                   # snout to the back of the mane, studs
+    HEAD_L = 1.2                                   # snout to the back of the mane, studs (1.0 before the 2026-10-04 rework)
     OLD_L, OLD_T = 0.78, Vector((0, -6.76, -0.1))  # the head's size and place when it sat on the butt
     scale = HEAD_L / OLD_L
     attach = Vector((0, -0.12, 0.12)) * scale      # where the neck meets the back of the head (local)
