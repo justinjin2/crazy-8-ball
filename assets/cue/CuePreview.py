@@ -432,9 +432,18 @@ def blender_main(args):
 
     aura_spec = V.get('Aura') or {}
 
-    def make_aura(rate_scale=1.0, seed=1):
+    def make_aura(rate_scale=1.0, seed=1, carrier_m=None):
+        """carrier_m() -> the carrying character's root matrix: the Carrier-host rows (the
+        engulfing aura round the player, backs only) are built on it; without it they are left out."""
         ems = []
         for i, spec in enumerate(aura_specs + (moving.get('Emitters') or [])):
+            if (spec.get('Host') or {}).get('Kind') == 'Carrier':
+                if carrier_m is None:
+                    continue
+                em = vfx.Emitter(spec, seed=seed + 31 * i, rate_scale=rate_scale)
+                em.fixed_host = carrier_m
+                ems.append(em)
+                continue
             em = vfx.Emitter(spec, seed=seed + 31 * i, rate_scale=rate_scale)
             jname = (spec.get('Host') or {}).get('Joint')
             if jname and piece_joints:
@@ -717,7 +726,19 @@ def blender_main(args):
             # segment B: on the back
             av = build_avatar()
             back_scale = (V.get('Aura') or {}).get('BackRateScale', 0.5)
-            ems = make_aura(rate_scale=back_scale, seed=7)
+            # the carrier (the engulfing aura round the player, 2026-10-04): a root at the
+            # avatar's hips in the character's frame (kit x right, z up, -y behind), wearing
+            # the skin's carrier piece and the Carrier-host emitters
+            croot = bpy.data.objects.new('CarrierRoot', None)
+            scene.collection.objects.link(croot)
+            croot.parent = av['root']
+            croot.location = (0, 0, 3.0)
+            before_carrier = set(bpy.data.objects)
+            carrier_anim = CuePieces.attach(bpy, skin['carrier'], croot) if skin.get('carrier') else None
+            carrier_objs = [o for o in bpy.data.objects if o not in before_carrier]
+            carrier_m = (lambda: np.array(croot.matrix_world)) if (skin.get('carrier') or any(
+                (e.get('Host') or {}).get('Kind') == 'Carrier' for e in aura_specs)) else None
+            ems = make_aura(rate_scale=back_scale, seed=7, carrier_m=carrier_m)
 
             def back_pose(t):
                 return cue_matrix_on_back(Matrix.Identity(4))
@@ -726,9 +747,12 @@ def blender_main(args):
             t = 0.0
             while t < seg - 1e-9:
                 cue.matrix_world = back_pose(t)
+                if carrier_anim is not None:
+                    carrier_anim(t)
                 a = math.radians(-38 + 30 * t / seg)
-                dist = 13.0
-                set_cam((dist * math.sin(a), -dist * math.cos(a), 5.6), (-0.4, 0, 3.9), lens=40)
+                dist = 13.0 if carrier_m is None else 17.0
+                set_cam((dist * math.sin(a), -dist * math.cos(a), 5.6 if carrier_m is None else 7.0),
+                        (-0.4, 0, 3.9 if carrier_m is None else 4.4), lens=40)
                 set_surface(t)
                 host = cue_m()
                 for em in ems:
@@ -740,6 +764,9 @@ def blender_main(args):
                 t += dt
             clear_prefix('Aura')
             clear_prefix('Beam')
+            for o in carrier_objs:  # the engulfing aura is a back thing: gone for the shot
+                bpy.data.objects.remove(o)
+            bpy.data.objects.remove(croot)
 
             # segment C: the shot, with the ball trail
             tb = build_table()

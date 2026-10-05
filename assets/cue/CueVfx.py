@@ -219,6 +219,13 @@ class Emitter:
             else:
                 pos = np.stack([(rs.random_sample(n) - 0.5) * wdt, -along, (rs.random_sample(n) - 0.5) * wdt], -1)
             pos = pos + np.array([h.get('Side', 0.0), 0.0, h.get('Up', 0.0)])
+        elif kind == 'Carrier':
+            # a box round the carrying character (CueSkinLook's Carrier host): Size [x, y, z]
+            # and Offset in the character's frame (Roblox axes); the host is the character's
+            # root (CuePreview's avatar root in the back segment)
+            off = roblox_to_blender(h.get('Offset', [0, 0, 0]))
+            size = roblox_to_blender(h.get('Size', [4, 4, 4]))
+            pos = off[None] + (rs.random_sample((n, 3)) - 0.5) * np.abs(np.array(size, np.float64))[None]
         else:  # 'Point' in the host's own frame (the pocket): Offset [x, y, z] Roblox axes
             off = roblox_to_blender(h.get('Offset', [0, 0, 0]))
             size = h.get('Size', 0)
@@ -274,6 +281,9 @@ class Emitter:
             self.p[key] = np.concatenate([self.p[key], val])
 
     def step(self, dt, host_m, emitting=True):
+        fixed = getattr(self, 'fixed_host', None)
+        if fixed is not None:
+            host_m = fixed()  # a Carrier host: the character's root, not the cue (CuePreview)
         if self.joint_m is not None:
             host_m = host_m @ self.joint_m()
         p = self.p
@@ -299,6 +309,9 @@ class Emitter:
 
     # --- drawing -------------------------------------------------------------------------------
     def quads(self, host_m, cam_m):
+        fixed = getattr(self, 'fixed_host', None)
+        if fixed is not None:
+            host_m = fixed()
         """Per live particle: 4 world corners, UVs (flipbook), RGBA; sorted back to front."""
         p = self.p
         n = len(p['age'])

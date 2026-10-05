@@ -200,8 +200,9 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 ## Progress
 
 - [x] 0. The plan approved (2026-10-04); the rules go into the GDD at the merge (the integrator, not this lane).
-- [ ] 1. Generic capabilities: themed ends in the painter, the budget check, the carrier
-  host (if yes), mesh variants (if yes).
+- [x] 1. Generic capabilities: themed ends in the painter, the carrier piece and host
+  (2026-10-04). Still to do when first needed: the budget check in the generator, mesh
+  variants.
 - [ ] 2. Eclipse: board, gate 1.
 - [ ] 3. Eclipse: build, gate 2, polish, trail, pocket, sound, cards.
 - [ ] 4. Celestial Dragon: board, gate 1; build, gate 2, polish.
@@ -217,7 +218,10 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 ## Status
 
 - 2026-10-04: the plan written from a survey of the catalog, every skin file, the painter
-  and the docs; the questions in section 6 put to the designer.
+  and the docs; the questions in section 6 put to the designer and answered.
+- 2026-10-04: step 1 built (themed ends, the Carrier piece and host, the preview's carrier);
+  Eclipse rebuilt in data (collar and ends, the piece, the carrier piece, the aura as a star
+  system at about 99 particles a second, placeholder sounds). Board rendering for gate 1.
 
 ## Decisions
 

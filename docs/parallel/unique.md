@@ -51,6 +51,14 @@ Written in the brief's Handoff section when the work is done: the uploaded asset
 the manifest), the two templates and any pieces to build with the builders, and anything made
 by hand in your copy (which is otherwise lost at the merge).
 
+## The second job (2026-10-04): the cue rarity rework
+
+After gate 3 the designer asked for the same bar across the rarer existing cues: the brief is
+[docs/prompts/CUE_RARITY_REWORK_PROMPT.md](../prompts/CUE_RARITY_REWORK_PROMPT.md) (the tier
+rules, the order, the answers). The lane owns, in addition: every skin file, piece module,
+paint recipe, sprite and upload it touches for that job, from Eclipse down, with the same
+generic-runtime rule; the catalog rows stay untouched.
+
 ## Status
 
 (one dated line per finished step)
@@ -158,6 +166,21 @@ by hand in your copy (which is otherwise lost at the merge).
   and `docs/CUE_VFX_TECHNIQUES.md` (the designer asked for it at gate 3). The lane's next
   job, the rarity rework of the existing cues, has its own brief
   (`docs/prompts/CUE_RARITY_REWORK_PROMPT.md`).
+- 2026-10-04 rework, Eclipse (step 1 and the start of step 2): the plan approved; the
+  generic capabilities built: themed ends (an optional `ends` panel the recipe paints for the
+  tip's side and the ferrule; `CuePaint.Kit.ends()`, `CueTextures` takes it over the flat
+  chalk and ivory), the Carrier piece and Carrier emitter host (a stick on a back carries an
+  ObjectValue `Carrier` set by BackCue; `CueSkinLook` builds the skin row's `Carrier` piece on
+  the character's root and welds Carrier-host emitter parts to it; hidden when quiet or off
+  the back), the preview's carrier (the back segment wears it). Eclipse: the collar and ends
+  painted (obsidian with molten cracks, a gold corona ring round a black-sun band), the piece
+  reworked (a mesh corona and flare rings on the black sun, thicker breathing orbit rings
+  with four planets, one ringed, thicker great orbits, twelve asteroids, an eclipse-shadow
+  ring sweeping the cue), the `eclipse_carrier` piece (a black sun with corona over the head,
+  two orbit rings with planets round the body, a third small orbit, an asteroid belt), the
+  aura rewritten as a star system (about 99 particles a second, from 247; carrier rows for
+  the player), sounds as Roblox library placeholders. Lint and the 984 tests green. The board
+  for gate 1 is rendering.
 
 ## Decisions
 
@@ -232,6 +255,30 @@ by hand in your copy (which is otherwise lost at the merge).
   `src/client/CuePiece.luau` `hidden`/`applyHidden` (aura off or Lower effects), a
   Quality.Changed connection released in `destroy`. Why: a per-cue Lower-effects variant as
   data.
+
+- `assets/cue/CuePaint.py`: `Params.panels['ends']` (`ends_panel`), `Kit.ends()`: the optional
+  ends panel (the tip's side and the ferrule) a recipe paints. Why: themed ends from Legendary
+  up (the rarity rework).
+- `assets/cue/CueTextures.py`: `themed_ends`, `ends_params`; `paint_panels` maps the tip and
+  ferrule to the ends panel when the skin lists it; `plain_parts(painted=)` keeps the paint.
+  Why: the same.
+- `assets/cue/CueVfx.py`: Host kind `Carrier` in `spawn_local`; `Emitter.fixed_host` (a
+  callable host matrix) in `step` and `quads`. Why: the engulfing aura round the player in
+  the preview.
+- `assets/cue/CuePreview.py`: `make_aura(carrier_m=)`; the back segment builds a carrier
+  root at the avatar's hips, wears `skin['carrier']` through `CuePieces.attach` and the
+  Carrier-host rows, framed wider. Why: the same.
+- `src/client/CueSkinLook.luau`: `carrierRoot()`, the `Carrier` ObjectValue watched, the row's
+  `Carrier` piece built on the character's root (`carrierPiece`: stepped, hidden when the
+  quiet target is under 1 or the aura is off, destroyed in clear), Host kind `Carrier`
+  (`host` may return nil; `buildEmitter` skips). Why: a Secret's aura engulfs the player.
+- `src/client/BackCue.luau`: `attach` sets the stick's `Carrier` ObjectValue to the character
+  before the paint; `detach` clears it. Why: the same.
+- `tools/cue_skins_data.py`: skin `carrier` -> row `Carrier`, its piece generated. Why: the same.
+- `src/shared/Strings.luau`: the Mythic tier's labels read "Mythical" (item rarity, case,
+  reveal band, unbox line). Why: the designer, 2026-10-04.
+- `assets/cue/CuePiecesMythic.py`: `eclipse` reworked, `eclipse_carrier` added. (Owned by
+  the rework job; listed because the integrator rebuilds both pieces.)
 
 ## Requests
 

@@ -202,6 +202,8 @@ def skin_row(skin):
         row['Pocket'] = resolve(pocket)
     if skin.get('piece'):
         row['Piece'] = skin['piece']
+    if skin.get('carrier'):
+        row['Carrier'] = skin['carrier']  # a piece built on the carrying character (a Secret's engulfing aura)
     row['Thumb'] = asset_id('thumbs/%s.png' % sid)
     row['Look'] = sample_look(sid, skin.get('colours') or {}, skin['catalog_id'])
     return row
@@ -253,6 +255,8 @@ def main():
     for skin in skins:
         if skin.get('piece'):
             used.add(skin['piece'])
+        if skin.get('carrier'):
+            used.add(skin['carrier'])
         pocket = ((skin.get('vfx') or {}).get('Pocket') or {}).get('Piece') or {}
         if pocket.get('Piece'):
             used.add(pocket['Piece'])

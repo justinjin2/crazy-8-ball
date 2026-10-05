@@ -1,0 +1,1387 @@
+{
+  "id": "eclipse_carrier",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 19712,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#050505",
+      "Transparency": 0.0,
+      "Reflectance": 0.25,
+      "Name": "Sun_Void",
+      "File": "pieces/eclipse_carrier/Sun_Void.obj",
+      "Joint": "Sun",
+      "Offset": [
+        0.0,
+        3.6,
+        3.1
+      ],
+      "Size": [
+        1.6,
+        1.6,
+        1.6
+      ],
+      "Triangles": 2208
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FFB300",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "SunCorona_Corona",
+      "File": "pieces/eclipse_carrier/SunCorona_Corona.obj",
+      "Joint": "SunCorona",
+      "Offset": [
+        0.0,
+        3.6,
+        3.1
+      ],
+      "Size": [
+        1.88,
+        1.88,
+        1.88
+      ],
+      "Triangles": 1520
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFC940",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "SunFlare1_Flare",
+      "File": "pieces/eclipse_carrier/SunFlare1_Flare.obj",
+      "Joint": "SunFlare1",
+      "Offset": [
+        0.0,
+        3.6001,
+        3.1001
+      ],
+      "Size": [
+        1.81,
+        0.5038,
+        1.7483
+      ],
+      "Triangles": 1280
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFC940",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "SunFlare2_Flare",
+      "File": "pieces/eclipse_carrier/SunFlare2_Flare.obj",
+      "Joint": "SunFlare2",
+      "Offset": [
+        0.0,
+        3.6,
+        3.1
+      ],
+      "Size": [
+        1.81,
+        1.7483,
+        0.5038
+      ],
+      "Triangles": 1280
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB84A",
+      "Transparency": 0.2,
+      "Reflectance": 0.0,
+      "Name": "Orbit1_OrbitLine",
+      "File": "pieces/eclipse_carrier/Orbit1_OrbitLine.obj",
+      "Joint": "Orbit1",
+      "Offset": [
+        -0.0001,
+        0.9004,
+        3.5004
+      ],
+      "Size": [
+        4.8572,
+        1.5418,
+        4.6227
+      ],
+      "Triangles": 2048
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FFB300",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Orbit1_OrbitGlow",
+      "File": "pieces/eclipse_carrier/Orbit1_OrbitGlow.obj",
+      "Joint": "Orbit1",
+      "Offset": [
+        0.0001,
+        0.9001,
+        3.4999
+      ],
+      "Size": [
+        4.9578,
+        1.6422,
+        4.7197
+      ],
+      "Triangles": 2560
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFE6A0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Planet1_Planet1",
+      "File": "pieces/eclipse_carrier/Planet1_Planet1.obj",
+      "Joint": "Planet1",
+      "Offset": [
+        -1.654,
+        1.4374,
+        5.154
+      ],
+      "Size": [
+        0.28,
+        0.28,
+        0.28
+      ],
+      "Triangles": 528
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FFB300",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Planet1_BeadGlow",
+      "File": "pieces/eclipse_carrier/Planet1_BeadGlow.obj",
+      "Joint": "Planet1",
+      "Offset": [
+        -1.654,
+        1.4374,
+        5.154
+      ],
+      "Size": [
+        0.448,
+        0.448,
+        0.448
+      ],
+      "Triangles": 528
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB84A",
+      "Transparency": 0.2,
+      "Reflectance": 0.0,
+      "Name": "Orbit2_OrbitLine",
+      "File": "pieces/eclipse_carrier/Orbit2_OrbitLine.obj",
+      "Joint": "Orbit2",
+      "Offset": [
+        0.0001,
+        0.2999,
+        3.5006
+      ],
+      "Size": [
+        5.3727,
+        2.4184,
+        5.8419
+      ],
+      "Triangles": 2048
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FFB300",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Orbit2_OrbitGlow",
+      "File": "pieces/eclipse_carrier/Orbit2_OrbitGlow.obj",
+      "Joint": "Orbit2",
+      "Offset": [
+        0.0002,
+        0.3001,
+        3.5001
+      ],
+      "Size": [
+        5.4695,
+        2.5175,
+        5.945
+      ],
+      "Triangles": 2560
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FF7A3A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Planet2_Planet2",
+      "File": "pieces/eclipse_carrier/Planet2_Planet2.obj",
+      "Joint": "Planet2",
+      "Offset": [
+        -1.9265,
+        1.2936,
+        5.4265
+      ],
+      "Size": [
+        0.36,
+        0.36,
+        0.36
+      ],
+      "Triangles": 528
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FFB300",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Planet2_BeadGlow",
+      "File": "pieces/eclipse_carrier/Planet2_BeadGlow.obj",
+      "Joint": "Planet2",
+      "Offset": [
+        -1.9265,
+        1.2936,
+        5.4265
+      ],
+      "Size": [
+        0.576,
+        0.576,
+        0.576
+      ],
+      "Triangles": 528
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB84A",
+      "Transparency": 0.2,
+      "Reflectance": 0.0,
+      "Name": "Planet2_OrbitLine",
+      "File": "pieces/eclipse_carrier/Planet2_OrbitLine.obj",
+      "Joint": "Planet2",
+      "Offset": [
+        -1.9265,
+        1.2934,
+        5.4265
+      ],
+      "Size": [
+        0.7088,
+        0.4176,
+        0.5882
+      ],
+      "Triangles": 576
+    },
+    {
+      "Material": "Neon",
+      "Color": "#9FD8FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Orbit3_Planet3",
+      "File": "pieces/eclipse_carrier/Orbit3_Planet3.obj",
+      "Joint": "Orbit3",
+      "Offset": [
+        -2.0,
+        1.6,
+        3.5
+      ],
+      "Size": [
+        0.26,
+        0.26,
+        0.26
+      ],
+      "Triangles": 360
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FFB300",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Orbit3_BeadGlow",
+      "File": "pieces/eclipse_carrier/Orbit3_BeadGlow.obj",
+      "Joint": "Orbit3",
+      "Offset": [
+        -2.0,
+        1.6,
+        3.5
+      ],
+      "Size": [
+        0.416,
+        0.416,
+        0.416
+      ],
+      "Triangles": 360
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#2B2622",
+      "Transparency": 0.0,
+      "Reflectance": 0.05,
+      "Name": "Asteroid1_Rock",
+      "File": "pieces/eclipse_carrier/Asteroid1_Rock.obj",
+      "Joint": "Asteroid1",
+      "Offset": [
+        -1.6713,
+        0.331,
+        4.9325
+      ],
+      "Size": [
+        0.3658,
+        0.2066,
+        0.3706
+      ],
+      "Triangles": 80
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#2B2622",
+      "Transparency": 0.0,
+      "Reflectance": 0.05,
+      "Name": "Asteroid2_Rock",
+      "File": "pieces/eclipse_carrier/Asteroid2_Rock.obj",
+      "Joint": "Asteroid2",
+      "Offset": [
+        2.3359,
+        0.3518,
+        4.3187
+      ],
+      "Size": [
+        0.3191,
+        0.309,
+        0.3573
+      ],
+      "Triangles": 80
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#2B2622",
+      "Transparency": 0.0,
+      "Reflectance": 0.05,
+      "Name": "Asteroid3_Rock",
+      "File": "pieces/eclipse_carrier/Asteroid3_Rock.obj",
+      "Joint": "Asteroid3",
+      "Offset": [
+        -0.4717,
+        0.6102,
+        5.7488
+      ],
+      "Size": [
+        0.7429,
+        0.4432,
+        0.3963
+      ],
+      "Triangles": 80
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#2B2622",
+      "Transparency": 0.0,
+      "Reflectance": 0.05,
+      "Name": "Asteroid4_Rock",
+      "File": "pieces/eclipse_carrier/Asteroid4_Rock.obj",
+      "Joint": "Asteroid4",
+      "Offset": [
+        1.512,
+        0.0397,
+        1.3561
+      ],
+      "Size": [
+        0.2477,
+        0.1962,
+        0.279
+      ],
+      "Triangles": 80
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#2B2622",
+      "Transparency": 0.0,
+      "Reflectance": 0.05,
+      "Name": "Asteroid5_Rock",
+      "File": "pieces/eclipse_carrier/Asteroid5_Rock.obj",
+      "Joint": "Asteroid5",
+      "Offset": [
+        -1.3008,
+        1.24,
+        1.3231
+      ],
+      "Size": [
+        0.4241,
+        0.3306,
+        0.487
+      ],
+      "Triangles": 80
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#2B2622",
+      "Transparency": 0.0,
+      "Reflectance": 0.05,
+      "Name": "Asteroid6_Rock",
+      "File": "pieces/eclipse_carrier/Asteroid6_Rock.obj",
+      "Joint": "Asteroid6",
+      "Offset": [
+        -2.0289,
+        0.6735,
+        2.4001
+      ],
+      "Size": [
+        0.5246,
+        0.5109,
+        0.5739
+      ],
+      "Triangles": 80
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#2B2622",
+      "Transparency": 0.0,
+      "Reflectance": 0.05,
+      "Name": "Asteroid7_Rock",
+      "File": "pieces/eclipse_carrier/Asteroid7_Rock.obj",
+      "Joint": "Asteroid7",
+      "Offset": [
+        -0.5767,
+        0.6036,
+        1.1511
+      ],
+      "Size": [
+        0.4086,
+        0.293,
+        0.4535
+      ],
+      "Triangles": 80
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#2B2622",
+      "Transparency": 0.0,
+      "Reflectance": 0.05,
+      "Name": "Asteroid8_Rock",
+      "File": "pieces/eclipse_carrier/Asteroid8_Rock.obj",
+      "Joint": "Asteroid8",
+      "Offset": [
+        -0.5908,
+        0.1394,
+        1.1625
+      ],
+      "Size": [
+        0.3554,
+        0.2821,
+        0.3911
+      ],
+      "Triangles": 80
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#2B2622",
+      "Transparency": 0.0,
+      "Reflectance": 0.05,
+      "Name": "Asteroid9_Rock",
+      "File": "pieces/eclipse_carrier/Asteroid9_Rock.obj",
+      "Joint": "Asteroid9",
+      "Offset": [
+        0.0812,
+        0.9069,
+        6.0738
+      ],
+      "Size": [
+        0.2735,
+        0.2839,
+        0.2744
+      ],
+      "Triangles": 80
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#2B2622",
+      "Transparency": 0.0,
+      "Reflectance": 0.05,
+      "Name": "Asteroid10_Rock",
+      "File": "pieces/eclipse_carrier/Asteroid10_Rock.obj",
+      "Joint": "Asteroid10",
+      "Offset": [
+        1.6466,
+        0.0174,
+        2.0522
+      ],
+      "Size": [
+        0.4942,
+        0.3411,
+        0.6434
+      ],
+      "Triangles": 80
+    }
+  ],
+  "Joints": {
+    "Sun": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        -0.4000000059604645,
+        3.5999999046325684
+      ],
+      "PivotRoblox": [
+        -0.0,
+        3.6,
+        3.1
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.08,
+          "Period": 4.2
+        }
+      ],
+      "Aura": true
+    },
+    "SunCorona": {
+      "Parent": "Sun",
+      "Pivot": [
+        0.0,
+        -0.4000000059604645,
+        3.5999999046325684
+      ],
+      "PivotRoblox": [
+        -0.0,
+        3.6,
+        3.1
+      ],
+      "Motion": [],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.1,
+          "Max": 0.7,
+          "Period": 2.8,
+          "Shape": "sine"
+        }
+      ]
+    },
+    "SunFlare1": {
+      "Parent": "Sun",
+      "Pivot": [
+        0.0,
+        -0.4000000059604645,
+        3.5999999046325684
+      ],
+      "PivotRoblox": [
+        -0.0,
+        3.6,
+        3.1
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.2,
+            0.3,
+            1
+          ],
+          "Rate": 22.0
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.6,
+          "Period": 2.8,
+          "Shape": "sine",
+          "Phase": 90
+        }
+      ]
+    },
+    "SunFlare2": {
+      "Parent": "Sun",
+      "Pivot": [
+        0.0,
+        -0.4000000059604645,
+        3.5999999046325684
+      ],
+      "PivotRoblox": [
+        -0.0,
+        3.6,
+        3.1
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.2,
+            0.3,
+            1
+          ],
+          "Rate": -17.0
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.6,
+          "Period": 2.8,
+          "Shape": "sine",
+          "Phase": 180
+        }
+      ]
+    },
+    "Orbit1": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        0.0,
+        0.8999999761581421
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.9,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": 9.0,
+          "Phase": 0
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.5,
+          "Period": 3.6,
+          "Shape": "sine",
+          "Phase": 70
+        }
+      ]
+    },
+    "Planet1": {
+      "Parent": "Orbit1",
+      "Pivot": [
+        0.0,
+        0.0,
+        0.8999999761581421
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.9,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.0,
+            -0.3090168833732605,
+            0.9510565400123596
+          ],
+          "Rate": 30.0
+        }
+      ],
+      "Aura": true
+    },
+    "Orbit2": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        0.0,
+        0.30000001192092896
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.3,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": -7.0,
+          "Phase": 100
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.5,
+          "Period": 4.2,
+          "Shape": "sine",
+          "Phase": 140
+        }
+      ]
+    },
+    "Planet2": {
+      "Parent": "Orbit2",
+      "Pivot": [
+        0.0,
+        0.0,
+        0.30000001192092896
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.3,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            -0.40055739879608154,
+            -0.07062903791666031,
+            0.9135454297065735
+          ],
+          "Rate": -24.0
+        }
+      ],
+      "Aura": true
+    },
+    "Orbit3": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        0.0,
+        1.600000023841858
+      ],
+      "PivotRoblox": [
+        -0.0,
+        1.6,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.15,
+            0,
+            1
+          ],
+          "Rate": 14.0
+        }
+      ],
+      "Aura": true
+    },
+    "Belt1": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.32853977848118815
+      ],
+      "PivotRoblox": [
+        0,
+        0.3285,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": 12.103185640719602
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.25,
+          "Period": 3.7773818664292618,
+          "Phase": 37
+        }
+      ],
+      "Aura": true
+    },
+    "Asteroid1": {
+      "Parent": "Belt1",
+      "Pivot": [
+        1.6784714460372925,
+        1.431706428527832,
+        0.32853978872299194
+      ],
+      "PivotRoblox": [
+        -1.6785,
+        0.3285,
+        4.9317
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            -0.7751128742812254,
+            -0.5363952858520995,
+            1
+          ],
+          "Rate": 60.303699415800466
+        }
+      ],
+      "Aura": true
+    },
+    "Belt2": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.36011213308488116
+      ],
+      "PivotRoblox": [
+        0,
+        0.3601,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": -13.978062149573034
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.25,
+          "Period": 3.6862227785311372,
+          "Phase": 74
+        }
+      ],
+      "Aura": true
+    },
+    "Asteroid2": {
+      "Parent": "Belt2",
+      "Pivot": [
+        -2.336035966873169,
+        0.7956913113594055,
+        0.36011213064193726
+      ],
+      "PivotRoblox": [
+        2.336,
+        0.3601,
+        4.2957
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            -0.9592670832537429,
+            0.8796038312862671,
+            1
+          ],
+          "Rate": 46.11783246443666
+        }
+      ],
+      "Aura": true
+    },
+    "Belt3": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.6358415086594071
+      ],
+      "PivotRoblox": [
+        0,
+        0.6358,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": 11.284288766684515
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.25,
+          "Period": 5.407486126595192,
+          "Phase": 111
+        }
+      ],
+      "Aura": true
+    },
+    "Asteroid3": {
+      "Parent": "Belt3",
+      "Pivot": [
+        0.4755958318710327,
+        2.255570888519287,
+        0.6358414888381958
+      ],
+      "PivotRoblox": [
+        -0.4756,
+        0.6358,
+        5.7556
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.6773656931503154,
+            -0.28899177708118295,
+            1
+          ],
+          "Rate": 38.154312416203325
+        }
+      ],
+      "Aura": true
+    },
+    "Belt4": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.04937447557140123
+      ],
+      "PivotRoblox": [
+        0,
+        0.0494,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": -12.779565636771496
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.25,
+          "Period": 4.959636514894244,
+          "Phase": 148
+        }
+      ],
+      "Aura": true
+    },
+    "Asteroid4": {
+      "Parent": "Belt4",
+      "Pivot": [
+        -1.532882809638977,
+        -2.14223313331604,
+        0.049374476075172424
+      ],
+      "PivotRoblox": [
+        1.5329,
+        0.0494,
+        1.3578
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            -0.61237623794907,
+            0.2817707779828067,
+            1
+          ],
+          "Rate": 38.76732930007404
+        }
+      ],
+      "Aura": true
+    },
+    "Belt5": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        1.2381175901073993
+      ],
+      "PivotRoblox": [
+        0,
+        1.2381,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": 13.858584675904936
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.25,
+          "Period": 5.487012104620139,
+          "Phase": 185
+        }
+      ],
+      "Aura": true
+    },
+    "Asteroid5": {
+      "Parent": "Belt5",
+      "Pivot": [
+        1.3004816770553589,
+        -2.1624531745910645,
+        1.2381175756454468
+      ],
+      "PivotRoblox": [
+        -1.3005,
+        1.2381,
+        1.3375
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.5796951617670245,
+            -0.3873737320835895,
+            1
+          ],
+          "Rate": 37.051924931969076
+        }
+      ],
+      "Aura": true
+    },
+    "Belt6": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.6622232601014539
+      ],
+      "PivotRoblox": [
+        0,
+        0.6622,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": -12.17220482038066
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.25,
+          "Period": 3.6912904034491394,
+          "Phase": 222
+        }
+      ],
+      "Aura": true
+    },
+    "Asteroid6": {
+      "Parent": "Belt6",
+      "Pivot": [
+        2.019375801086426,
+        -1.093414068222046,
+        0.6622232794761658
+      ],
+      "PivotRoblox": [
+        -2.0194,
+        0.6622,
+        2.4066
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            -0.20165545814014552,
+            0.8201865152355681,
+            1
+          ],
+          "Rate": 55.97319985605196
+        }
+      ],
+      "Aura": true
+    },
+    "Belt7": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.5986871804475642
+      ],
+      "PivotRoblox": [
+        0,
+        0.5987,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": 8.70822380189712
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.25,
+          "Period": 3.6977318953440976,
+          "Phase": 259
+        }
+      ],
+      "Aura": true
+    },
+    "Asteroid7": {
+      "Parent": "Belt7",
+      "Pivot": [
+        0.5863935947418213,
+        -2.350290536880493,
+        0.5986871719360352
+      ],
+      "PivotRoblox": [
+        -0.5864,
+        0.5987,
+        1.1497
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.9659915661383554,
+            -0.7613615101460449,
+            1
+          ],
+          "Rate": 37.76428973707742
+        }
+      ],
+      "Aura": true
+    },
+    "Belt8": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.14480248523205863
+      ],
+      "PivotRoblox": [
+        0,
+        0.1448,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": -10.234402640825229
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.25,
+          "Period": 4.7254426552393305,
+          "Phase": 296
+        }
+      ],
+      "Aura": true
+    },
+    "Asteroid8": {
+      "Parent": "Belt8",
+      "Pivot": [
+        0.5857385993003845,
+        -2.377997636795044,
+        0.14480248093605042
+      ],
+      "PivotRoblox": [
+        -0.5857,
+        0.1448,
+        1.122
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.27244951711125664,
+            -0.9238478116012925,
+            1
+          ],
+          "Rate": 34.48079600495773
+        }
+      ],
+      "Aura": true
+    },
+    "Belt9": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.9247989151673206
+      ],
+      "PivotRoblox": [
+        0,
+        0.9248,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": 13.910195684576454
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.25,
+          "Period": 4.197389114460938,
+          "Phase": 333
+        }
+      ],
+      "Aura": true
+    },
+    "Asteroid9": {
+      "Parent": "Belt9",
+      "Pivot": [
+        -0.07716720551252365,
+        2.582617998123169,
+        0.9247989058494568
+      ],
+      "PivotRoblox": [
+        0.0772,
+        0.9248,
+        6.0826
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            -0.9776269332054874,
+            -0.2496195199685154,
+            1
+          ],
+          "Rate": 41.30079848940444
+        }
+      ],
+      "Aura": true
+    },
+    "Belt10": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.030411097871329007
+      ],
+      "PivotRoblox": [
+        0,
+        0.0304,
+        3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": -9.159892184138192
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.25,
+          "Period": 5.14145344296851,
+          "Phase": 370
+        }
+      ],
+      "Aura": true
+    },
+    "Asteroid10": {
+      "Parent": "Belt10",
+      "Pivot": [
+        -1.6786556243896484,
+        -1.4603813886642456,
+        0.030411098152399063
+      ],
+      "PivotRoblox": [
+        1.6787,
+        0.0304,
+        2.0396
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            -0.4025469319625201,
+            -0.6323501981125346,
+            1
+          ],
+          "Rate": 48.19405482963448
+        }
+      ],
+      "Aura": true
+    }
+  }
+}

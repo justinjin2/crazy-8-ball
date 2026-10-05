@@ -209,7 +209,7 @@ def classic(atlas, skin):
     height[m] = 0.00004 * speck
 
     # ferrule: ivory-white, very faint mottling
-    m = atlas.in_region('ferrule')
+    m = atlas.in_region('ferrule') & ~keep
     mott = cc.fbm(X[m] * 200, D[m] * 60, Z[m] * 200, 3, seed=5)
     col[m] = rgb('ferrule') * (0.97 + 0.04 * mott)[:, None]
     rough[m] = 0.3
@@ -295,7 +295,15 @@ def paint_panels(atlas, skin, base_dir):
     extra = {}
     panels = skin.get('panels', {})
     fallback = skin.get('fallback', {})
-    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt', 'cap_end'):
+    themed = themed_ends(skin)
+    if themed:
+        # the "ends" panel (CuePaint.ends_panel): the tip's side and the ferrule, from the tip
+        # face's rim to the shaft
+        p = atlas.panels.get('ends') or ends_params(atlas)
+        m = atlas.in_region('tip', 'ferrule') & (atlas.s >= p['s_from'] - 1e-6)
+        name[m] = 'ends'
+        px[m] = np.clip((atlas.s[m] - p['s_from']) / (p['s_to'] - p['s_from']), 0, 1)
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt', 'cap_end', 'ends'):
         m = name == panel
         if not m.any():
             continue
@@ -329,8 +337,27 @@ def paint_panels(atlas, skin, base_dir):
     colours = skin.get('colours', {})
     for region, key, default in (('tip', 'tip', '#222C4A'), ('ferrule', 'ferrule', '#F2EEE2'),
                                  ('bumper', 'bumper', '#121212')):
-        col[atlas.in_region(region)] = np.array(cc.hex_rgb(colours.get(key, default)), np.float64)
+        m = atlas.in_region(region)
+        if themed and region != 'bumper':
+            m = m & (name != 'ends')  # the tip face keeps the flat colour; the sides are painted
+        col[m] = np.array(cc.hex_rgb(colours.get(key, default)), np.float64)
     return col, name, extra
+
+
+def themed_ends(skin):
+    """True when the skin paints its tip and ferrule from an "ends" panel (themed ends,
+    designer 2026-10-04) instead of the flat colours plus chalk and ivory."""
+    return bool((skin.get('panels') or {}).get('ends'))
+
+
+def ends_params(atlas):
+    """The ends panel's s range when Parameters.json has no row for it (CuePaint.ends_panel
+    derives it the same way from the profile)."""
+    prof = atlas.params['profile']
+    ps = np.array([q['s'] for q in prof])
+    pd = np.array([q['d'] for q in prof])
+    rim = ps[pd <= 1e-6].max() if (pd <= 1e-6).any() else ps[0]
+    return {'s_from': float(rim), 's_to': float(np.interp(0.245, pd, ps))}
 
 
 def key_mask(col, keys):
@@ -345,22 +372,24 @@ def key_mask(col, keys):
     return out
 
 
-def plain_parts(atlas, skin, col, rough, metal, height):
+def plain_parts(atlas, skin, col, rough, metal, height, painted=None):
     """The tip, ferrule and bumper in the skin's colours, with Classic's real-material detail
-    (chalky tip, ivory ferrule, rubber bumper)."""
+    (chalky tip, ivory ferrule, rubber bumper). Pixels in `painted` (a themed ends panel) keep
+    their paint; only the tip face gets the chalk."""
     X, D, Z = atlas.x, atlas.d, atlas.z
     colours = skin.get('colours', {})
+    keep = painted if painted is not None else np.zeros(atlas.n, bool)
 
     def c(key, default):
         return np.array(cc.hex_rgb(colours.get(key, default)), np.float64)
-    m = atlas.in_region('tip')
+    m = atlas.in_region('tip') & ~keep
     speck = cc.fbm(X[m] * 900, D[m] * 900, Z[m] * 900, 3, seed=3)
     dust = np.clip((cc.noise3(X[m] * 2600, D[m] * 2600, Z[m] * 2600, seed=4) - 0.72) * 4, 0, 1)
     tip = c('tip', '#222C4A')
     col[m] = tip * (0.9 + 0.2 * speck)[:, None] + (np.array([150, 170, 210]) - tip) * (0.35 * dust)[:, None]
     rough[m], metal[m] = 0.92, 0.0
     height[m] = 0.00004 * speck
-    m = atlas.in_region('ferrule')
+    m = atlas.in_region('ferrule') & ~keep
     mott = cc.fbm(X[m] * 200, D[m] * 60, Z[m] * 200, 3, seed=5)
     col[m] = c('ferrule', '#F2EEE2') * (0.97 + 0.04 * mott)[:, None]
     rough[m], metal[m] = 0.3, 0.0
@@ -372,7 +401,7 @@ def plain_parts(atlas, skin, col, rough, metal, height):
 
 
 def panel_skin(atlas, skin, base_dir):
-    col, _, extra = paint_panels(atlas, skin, base_dir)
+    col, name, extra = paint_panels(atlas, skin, base_dir)
     rough_by = skin.get('roughness', {})
     rough = np.zeros(atlas.n)
     defaults = {'tip': 0.9, 'ferrule': 0.3, 'shaft': 0.35, 'joint': 0.3, 'forearm': 0.3, 'ring': 0.3,
@@ -394,7 +423,7 @@ def panel_skin(atlas, skin, base_dir):
     if skin.get('wrap_relief', 'linen') == 'linen' and 'butt' not in extra.get('height', {}):
         wh, _, _ = wrap_height(atlas)
         height = height + wh
-    plain_parts(atlas, skin, col, rough, metal, height)
+    plain_parts(atlas, skin, col, rough, metal, height, painted=(name == 'ends') if themed_ends(skin) else None)
     has_glow = bool(skin.get('glow')) or bool(extra.get('glow'))
     alpha = None
     if extra.get('alpha'):

@@ -97,12 +97,30 @@ class Params:
         self.ps = np.array([q['s'] for q in prof])
         self.pd = np.array([q['d'] for q in prof])
         self.pr = np.array([q['r'] for q in prof])
+        # The optional "ends" panel (themed ends, designer 2026-10-04: from Legendary up the
+        # tip and ferrule are painted to the cue's theme, never the standard chalk and ivory):
+        # the tip's side and the ferrule, from the tip face's rim to the shaft, once round.
+        self.panels['ends'] = ends_panel(self)
 
     def d_of_s(self, s):
         return np.interp(s, self.ps, self.pd)
 
     def r_of_s(self, s):
         return np.interp(s, self.ps, self.pr)
+
+
+def ends_panel(P):
+    """The ends panel's parameters: s from the tip face's rim (the largest s at d = 0) to the
+    ferrule's end (ZONES), sized to its real aspect at 512 px round."""
+    d1 = ZONES['ferrule'][1]
+    rim = P.ps[P.pd <= 1e-6].max() if (P.pd <= 1e-6).any() else P.ps[0]
+    s1 = float(np.interp(d1, P.pd, P.ps))
+    r = float(P.r_of_s((rim + s1) / 2))
+    length = s1 - rim
+    h = 512
+    w = int(round(h * length / (2 * math.pi * r)))
+    return {'name': 'ends', 's_from': float(rim), 's_to': s1, 'size_px': [max(w, 64), h], 'd_from': 0.0, 'd_to': d1,
+            'note': 'the tip side and the ferrule (optional, a recipe asks for it with Kit.ends())'}
 
 
 class Canvas:
@@ -794,6 +812,13 @@ class Kit:
         self.frame = 0  # the moving-material frame being painted (skin "frames")
         reps = (skin.get('shaft_tile') or {}).get('repeats') or 1
         self.c = {name: Canvas(self.P, name, reps) for name in PANELS}
+
+    def ends(self):
+        """Add the ends panel (the tip's side and the ferrule) so the recipe paints them; the
+        skin's panels must list "ends": "skins/<id>/ends.png" for CueTextures to use it."""
+        if 'ends' not in self.c:
+            self.c['ends'] = Canvas(self.P, 'ends')
+        return self.c['ends']
 
     def each(self):
         return list(self.c.values())
@@ -3223,11 +3248,13 @@ def eclipse(k):
         c.put(molten > 0.4, None, rough=0.3, metal=0.2)
         c.put(np.ones((c.h, c.w), bool), None, glow=np.clip(molten ** 0.8, 0, 1))
     for c, m in k.zone('joint'):
-        metal(c, m, s['silver'], rough=0.12)
-        c.put(m, None, glow=0.0)
-        for d in (J0 + 0.03, J1 - 0.03):
-            line = band(c, d - 0.01, d + 0.01) * m
+        # the collar: obsidian split by glowing molten cracks between two gold bands, a black
+        # sun disc band in the middle (themed collar, designer 2026-10-04)
+        crack_plates(c, m, 26, '#0B0B0D', '#7A3A00', s['gold'], seed=9, width=0.09, live=0.85, rough=0.14)
+        for d in (J0 + 0.02, J1 - 0.02):
+            line = band(c, d - 0.012, d + 0.012) * m
             metal(c, line > 0.5, s['gold'], rough=0.2)
+            c.put(line > 0.5, None, glow=0.15)
     for c, m in k.zone('wrap'):
         c.put(m, None, rough=0.35, metal=0.0)
     for c, m in k.zone('ring'):
@@ -3238,6 +3265,21 @@ def eclipse(k):
     rubber(c, c.inside | True, '#050505')
     joint_seam(k)
     seam_edges(k, [F1, W0, W1])
+    # Themed ends (designer 2026-10-04): the tip's side is obsidian veined with molten gold, the
+    # ferrule a gold corona ring round a black-sun band: an eclipse at the tip.
+    e = k.ends()
+    tip = e.zone('tip')
+    crack_plates(e, tip, 60, '#0B0B0D', '#7A3A00', s['gold'], seed=5, width=0.08, live=0.8, rough=0.16)
+    fer = e.zone('ferrule')
+    metal(e, fer, s['gold'], rough=0.18)
+    e.put(fer, None, glow=0.2)
+    T0, T1 = ZONES['ferrule']
+    sun = band(e, T0 + 0.035, T1 - 0.035) * fer
+    gloss(e, sun > 0.5, '#050505', rough=0.08)
+    e.put(sun > 0.5, None, glow=0.0, metal=0.0)
+    for d in (T0 + 0.035, T1 - 0.035):
+        rim = band(e, d - 0.006, d + 0.006, soft=0.004) * fer
+        e.put(rim, rgb('#FFE08A'), rough=0.2, metal=0.4, glow=rim)
 
 
 @recipe

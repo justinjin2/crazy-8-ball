@@ -1199,6 +1199,24 @@ def eclipse(k):
         bm = bmesh.new()
         bmesh.ops.create_uvsphere(bm, u_segments=segs, v_segments=segs // 2, radius=r, matrix=_scale_at(C, (1, 1, 1)))
         k.add('Orb', k.mesh_object(name, bm, [mat]))
+    # the corona as real geometry (rarity rework, 2026-10-04: no camera-facing pictures): a
+    # glowing shell round the black sun, breathing, and two flare rings on tilted spins
+    k.material('Corona', 'ForceField', '#FFB300')
+    k.joint('Corona', pivot=tuple(C), parent='Orb',
+            visual=[{'Kind': 'Glow', 'Min': 0.1, 'Max': 0.7, 'Period': 2.8, 'Shape': 'sine'}])
+    bm = bmesh.new()
+    bmesh.ops.create_uvsphere(bm, u_segments=40, v_segments=20, radius=RS + 0.07, matrix=_scale_at(C, (1, 1, 1)))
+    k.add('Corona', k.mesh_object('EclipseCorona', bm, ['Corona']))
+    for n, (tilt, rate) in enumerate(((12, 25.0), (-78, -19.0)), 1):
+        nm = 'Flare%d' % n
+        k.joint(nm, pivot=tuple(C), parent='Orb', motion=[{'Kind': 'Spin', 'Axis': (0.3, 1, 0.2), 'Rate': rate}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.6, 'Period': 2.8, 'Shape': 'sine', 'Phase': 90 * n}])
+        R = Matrix.Rotation(math.radians(tilt), 3, 'X')
+        rr = RS + 0.04
+        bm = bmesh.new()
+        sweep(bm, [C + R @ Vector((rr * math.cos(2 * math.pi * i / 72), rr * math.sin(2 * math.pi * i / 72), 0)) for i in range(73)],
+              [0.012] * 73, segs=8, cap=False)
+        k.add(nm, k.mesh_object('Eclipse' + nm, bm, ['Flare']))
 
     # two thin gold orbit rings, tilted, precessing
     for n, (tilt, rate, rr) in enumerate(((68, 22.0, RS + 0.2), (-58, -30.0, RS + 0.27)), 1):
@@ -1245,6 +1263,10 @@ def eclipse(k):
     k.material('Bead', 'Neon', '#FFE6A0')
     k.material('BeadGlow', 'ForceField', '#FFB300')
     k.material('Rock', 'SmoothPlastic', '#2B2622', Reflectance=0.05)
+    # four planets (rarity rework, 2026-10-04: readable bodies, not beads): gold, ember, ice, violet
+    planets = [('#FFE6A0', 0.06), ('#FF7A3A', 0.078), ('#9FD8FF', 0.056), ('#C58CFF', 0.07)]
+    for n, (col, _) in enumerate(planets, 1):
+        k.material('Planet%d' % n, 'Neon', col)
     orbits = [(1.3, 0.46 + G, 62, 20, 14.0, 150.0), (2.8, 0.62 + G, -55, 110, -11.0, -120.0),
               (4.3, 0.52 + G, 70, 230, 16.0, 135.0), (5.8, 0.7 + G, -64, 320, -9.0, -105.0)]
     for n, (a_, rr, tilt, yaw, prec, run) in enumerate(orbits, 1):
@@ -1256,18 +1278,26 @@ def eclipse(k):
         w = nrm.cross(u)
         ring = [c + (u * math.cos(2 * math.pi * i / 96) + w * math.sin(2 * math.pi * i / 96)) * rr for i in range(97)]
         orb_j, bead_j = 'Orbital%d' % n, 'Planet%d' % n
-        k.joint(orb_j, pivot=tuple(c), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': prec, 'Phase': yaw}])
-        for mat, tube, segs in (('OrbitLine', 0.007, 6), ('OrbitGlow', 0.024, 8)):
+        k.joint(orb_j, pivot=tuple(c), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': prec, 'Phase': yaw}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': 2.6 + 0.5 * n, 'Shape': 'sine', 'Phase': 70 * n}])
+        for mat, tube, segs in (('OrbitLine', 0.015, 8), ('OrbitGlow', 0.042, 10)):
             bm = bmesh.new()
             sweep(bm, ring, [tube] * len(ring), segs=segs, cap=False)
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
             k.add(orb_j, k.mesh_object('Eclipse%s%d' % (mat, n), bm, [mat]))
         k.joint(bead_j, pivot=tuple(c), parent=orb_j, motion=[{'Kind': 'Spin', 'Axis': tuple(nrm), 'Rate': run}])
         p0 = ring[0]
-        for mat, r_ in (('Bead', 0.03), ('BeadGlow', 0.065)):
+        pr = planets[n - 1][1]
+        for mat, r_ in (('Planet%d' % n, pr), ('BeadGlow', pr * 1.7)):
             bm = bmesh.new()
-            bmesh.ops.create_uvsphere(bm, u_segments=16, v_segments=10, radius=r_, matrix=Matrix.Translation(p0))
+            bmesh.ops.create_uvsphere(bm, u_segments=20, v_segments=12, radius=r_, matrix=Matrix.Translation(p0))
             k.add(bead_j, k.mesh_object('Eclipse%s%d' % (mat, n), bm, [mat]))
+        if n == 2:  # the ember planet wears a ring
+            Rr = Matrix.Rotation(math.radians(35), 3, 'X')
+            bm = bmesh.new()
+            sweep(bm, [p0 + Rr @ Vector((pr * 1.9 * math.cos(2 * math.pi * i / 48), pr * 1.9 * math.sin(2 * math.pi * i / 48), 0))
+                       for i in range(49)], [0.007] * 49, segs=6, cap=False)
+            k.add(bead_j, k.mesh_object('EclipsePlanetRing%d' % n, bm, ['OrbitLine']))
     # two huge sweeping loops (designer, 2026-09-30, the concept's long gold orbits round the giant
     # eclipse): ellipses nearly along the cue, the cue running through them, turning slowly round it
     for n, (u0, A, B, tip, roll, prec) in enumerate(((4.2, 3.5, 1.35, 16, 55, 7.0), (4.6, 3.1, 1.1, -12, -65, -5.0)), 1):
@@ -1277,14 +1307,14 @@ def eclipse(k):
         loop = [c + d * A * math.cos(2 * math.pi * i / 128) + m * B * math.sin(2 * math.pi * i / 128) for i in range(129)]
         j = 'GreatOrbit%d' % n
         k.joint(j, pivot=tuple(c), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': prec, 'Phase': 90 * n}])
-        for mat, tube, segs in (('OrbitLine', 0.009, 6), ('OrbitGlow', 0.03, 8)):
+        for mat, tube, segs in (('OrbitLine', 0.014, 8), ('OrbitGlow', 0.05, 10)):
             bm = bmesh.new()
             sweep(bm, loop, [tube] * len(loop), segs=segs, cap=False)
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
             k.add(j, k.mesh_object('EclipseGreat%s%d' % (mat, n), bm, [mat]))
     rnd = random.Random(23)
-    for n in range(1, 11):
-        a_ = 0.9 + 6.0 * (n - 0.5) / 10 + rnd.uniform(-0.25, 0.25)
+    for n in range(1, 13):
+        a_ = 0.9 + 6.0 * (n - 0.5) / 12 + rnd.uniform(-0.25, 0.25)
         rr = rnd.uniform(0.5, 0.9)
         ang = rnd.uniform(0, 360)
         c = Vector((rr * math.sin(math.radians(ang)), -a_, rr * math.cos(math.radians(ang))))
@@ -1296,10 +1326,132 @@ def eclipse(k):
             {'Kind': 'Spin', 'Axis': (rnd.uniform(-1, 1), rnd.uniform(-1, 1), 1), 'Rate': rnd.uniform(40, 90)}])
         bm = bmesh.new()
         geom = bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
-        sz = rnd.uniform(0.045, 0.1)
+        sz = rnd.uniform(0.06, 0.14)
         stretch = Vector((rnd.uniform(0.8, 1.3), rnd.uniform(0.8, 1.4), rnd.uniform(0.6, 1.0)))
         for v in geom['verts']:
             d = v.co.normalized()
             bump = 1 + 0.28 * math.sin(d.x * 5.1 + n) * math.sin(d.y * 4.3 + 2 * n) + 0.12 * math.sin(d.z * 9 + n)
             v.co = c + Vector((d.x * stretch.x, d.y * stretch.y, d.z * stretch.z)) * sz * bump
         k.add(rock, k.mesh_object('EclipseAsteroid%d' % n, bm, ['Rock'], smooth=False))
+    # the eclipse shadow (rarity rework, 2026-10-04): a dark umbra ring with a gold penumbra
+    # rim sweeps the cue tip to butt every five seconds and snaps back, the cue eclipsed
+    k.joint('Shadow', pivot=(0, -3.5, 0),
+            motion=[{'Kind': 'Bob', 'Dir': (0, -1, 0), 'Amp': 3.3, 'Period': 5.0, 'Shape': 'saw'}],
+            visual=[{'Kind': 'Glow', 'Min': 0.2, 'Max': 0.8, 'Period': 5.0, 'Shape': 'saw'}])
+    cs = Vector((0, -3.5, 0))
+    for mat, rr, tube, segs in (('Void', 0.25 + G, 0.04, 10), ('Flare', 0.29 + G, 0.008, 6)):
+        bm = bmesh.new()
+        sweep(bm, [cs + Vector((rr * math.cos(2 * math.pi * i / 64), 0, rr * math.sin(2 * math.pi * i / 64))) for i in range(65)],
+              [tube] * 65, segs=segs, cap=False)
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+        k.add('Shadow', k.mesh_object('EclipseShadow' + mat, bm, [mat]))
+
+
+@piece
+def eclipse_carrier(k):
+    """The Eclipse's engulfing aura round the player carrying it (designer, 2026-10-04: a
+    Secret's aura is noticeably bigger than every other cue's, round the cue and the player).
+    Built on the character's root (CueSkinLook's Carrier piece; the kit frame maps to the
+    character's as kit x -> right, kit z -> up, kit -y -> behind): a black sun with a glowing
+    corona and two flare rings floating over the head, two gold orbit rings round the body at a
+    tilt carrying planets, and an asteroid belt tumbling round the waist. Every joint is aura:
+    hidden while the cue is quiet (a match) or in the hands."""
+    import bmesh
+    import random
+    from mathutils import Vector, Matrix
+    bpy = k.bpy
+    k.material('Void', 'SmoothPlastic', '#050505', Reflectance=0.25)
+    k.material('Corona', 'ForceField', '#FFB300')
+    k.material('Flare', 'Neon', '#FFC940')
+    k.material('OrbitLine', 'Neon', '#FFB84A', Transparency=0.2)
+    k.material('OrbitGlow', 'ForceField', '#FFB300')
+    k.material('BeadGlow', 'ForceField', '#FFB300')
+    k.material('Rock', 'SmoothPlastic', '#2B2622', Reflectance=0.05)
+    planets = [('#FFE6A0', 0.14), ('#FF7A3A', 0.18), ('#9FD8FF', 0.13)]
+    for n, (col, _) in enumerate(planets, 1):
+        k.material('Planet%d' % n, 'Neon', col)
+
+    # the black sun over the head: root at the hips, the head top about 2.3 studs up
+    S = Vector((0, -0.4, 3.6))
+    RS = 0.8
+    k.joint('Sun', pivot=tuple(S), aura=True, motion=[{'Kind': 'Bob', 'Dir': (0, 0, 1), 'Amp': 0.08, 'Period': 4.2}])
+    bm = bmesh.new()
+    bmesh.ops.create_uvsphere(bm, u_segments=48, v_segments=24, radius=RS, matrix=Matrix.Translation(S))
+    k.add('Sun', k.mesh_object('CarrierSun', bm, ['Void']))
+    k.joint('SunCorona', pivot=tuple(S), parent='Sun', aura=True,
+            visual=[{'Kind': 'Glow', 'Min': 0.1, 'Max': 0.7, 'Period': 2.8, 'Shape': 'sine'}])
+    bm = bmesh.new()
+    bmesh.ops.create_uvsphere(bm, u_segments=40, v_segments=20, radius=RS + 0.14, matrix=Matrix.Translation(S))
+    k.add('SunCorona', k.mesh_object('CarrierCorona', bm, ['Corona']))
+    for n, (tilt, rate) in enumerate(((15, 22.0), (-75, -17.0)), 1):
+        nm = 'SunFlare%d' % n
+        k.joint(nm, pivot=tuple(S), parent='Sun', aura=True, motion=[{'Kind': 'Spin', 'Axis': (0.2, 0.3, 1), 'Rate': rate}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.6, 'Period': 2.8, 'Shape': 'sine', 'Phase': 90 * n}])
+        R = Matrix.Rotation(math.radians(tilt), 3, 'X')
+        rr = RS + 0.08
+        bm = bmesh.new()
+        sweep(bm, [S + R @ Vector((rr * math.cos(2 * math.pi * i / 80), rr * math.sin(2 * math.pi * i / 80), 0)) for i in range(81)],
+              [0.025] * 81, segs=8, cap=False)
+        k.add(nm, k.mesh_object('Carrier' + nm, bm, ['Flare']))
+
+    # two orbit rings round the body, tilted, precessing round the up axis, each with a planet
+    orbits = [(2.4, 18, 0, 9.0, 30.0, 0.9), (2.9, -24, 100, -7.0, -24.0, 0.3)]
+    for n, (rr, tilt, yaw, prec, run, z0) in enumerate(orbits, 1):
+        c = Vector((0, 0, z0))
+        nrm = (Matrix.Rotation(math.radians(yaw), 3, 'Z') @ Matrix.Rotation(math.radians(tilt), 3, 'X')
+               @ Vector((0, 0, 1))).normalized()
+        u = nrm.orthogonal().normalized()
+        w = nrm.cross(u)
+        ring = [c + (u * math.cos(2 * math.pi * i / 128) + w * math.sin(2 * math.pi * i / 128)) * rr for i in range(129)]
+        orb_j, bead_j = 'Orbit%d' % n, 'Planet%d' % n
+        k.joint(orb_j, pivot=tuple(c), aura=True, motion=[{'Kind': 'Spin', 'Axis': (0, 0, 1), 'Rate': prec, 'Phase': yaw}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': 3.0 + 0.6 * n, 'Shape': 'sine', 'Phase': 70 * n}])
+        for mat, tube, segs in (('OrbitLine', 0.03, 8), ('OrbitGlow', 0.08, 10)):
+            bm = bmesh.new()
+            sweep(bm, ring, [tube] * len(ring), segs=segs, cap=False)
+            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+            k.add(orb_j, k.mesh_object('Carrier%s%d' % (mat, n), bm, [mat]))
+        k.joint(bead_j, pivot=tuple(c), parent=orb_j, aura=True, motion=[{'Kind': 'Spin', 'Axis': tuple(nrm), 'Rate': run}])
+        p0 = ring[0]
+        pr = planets[n - 1][1]
+        for mat, r_ in (('Planet%d' % n, pr), ('BeadGlow', pr * 1.6)):
+            bm = bmesh.new()
+            bmesh.ops.create_uvsphere(bm, u_segments=24, v_segments=12, radius=r_, matrix=Matrix.Translation(p0))
+            k.add(bead_j, k.mesh_object('Carrier%s%d' % (mat, n), bm, [mat]))
+        if n == 2:
+            Rr = Matrix.Rotation(math.radians(35), 3, 'X')
+            bm = bmesh.new()
+            sweep(bm, [p0 + Rr @ Vector((pr * 1.9 * math.cos(2 * math.pi * i / 48), pr * 1.9 * math.sin(2 * math.pi * i / 48), 0))
+                       for i in range(49)], [0.014] * 49, segs=6, cap=False)
+            k.add(bead_j, k.mesh_object('CarrierPlanetRing%d' % n, bm, ['OrbitLine']))
+    # a third, small ice planet on its own slow orbit
+    c = Vector((0, 0, 1.6))
+    k.joint('Orbit3', pivot=tuple(c), aura=True, motion=[{'Kind': 'Spin', 'Axis': (0.15, 0, 1), 'Rate': 14.0}])
+    p0 = c + Vector((2.0, 0, 0))
+    for mat, r_ in (('Planet3', planets[2][1]), ('BeadGlow', planets[2][1] * 1.6)):
+        bm = bmesh.new()
+        bmesh.ops.create_uvsphere(bm, u_segments=20, v_segments=10, radius=r_, matrix=Matrix.Translation(p0))
+        k.add('Orbit3', k.mesh_object('Carrier%s3' % mat, bm, [mat]))
+
+    # the asteroid belt round the waist
+    rnd = random.Random(31)
+    for n in range(1, 11):
+        rr = rnd.uniform(2.2, 2.7)
+        ang = rnd.uniform(0, 360)
+        z = rnd.uniform(-0.3, 1.3)
+        c = Vector((rr * math.cos(math.radians(ang)), rr * math.sin(math.radians(ang)), z))
+        belt, rock = 'Belt%d' % n, 'Asteroid%d' % n
+        k.joint(belt, pivot=(0, 0, z), aura=True, motion=[
+            {'Kind': 'Spin', 'Axis': (0, 0, 1), 'Rate': rnd.uniform(8, 14) * (1 if n % 2 else -1)},
+            {'Kind': 'Bob', 'Dir': (0, 0, 1), 'Amp': 0.25, 'Period': rnd.uniform(3.5, 5.5), 'Phase': n * 37}])
+        k.joint(rock, pivot=tuple(c), parent=belt, aura=True, motion=[
+            {'Kind': 'Spin', 'Axis': (rnd.uniform(-1, 1), rnd.uniform(-1, 1), 1), 'Rate': rnd.uniform(30, 70)}])
+        bm = bmesh.new()
+        geom = bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
+        sz = rnd.uniform(0.12, 0.26)
+        stretch = Vector((rnd.uniform(0.8, 1.3), rnd.uniform(0.8, 1.4), rnd.uniform(0.6, 1.0)))
+        for v in geom['verts']:
+            d = v.co.normalized()
+            bump = 1 + 0.28 * math.sin(d.x * 5.1 + n) * math.sin(d.y * 4.3 + 2 * n) + 0.12 * math.sin(d.z * 9 + n)
+            v.co = c + Vector((d.x * stretch.x, d.y * stretch.y, d.z * stretch.z)) * sz * bump
+        k.add(rock, k.mesh_object('CarrierAsteroid%d' % n, bm, ['Rock'], smooth=False))

@@ -50,6 +50,12 @@ export type Opts = {
 	back: boolean?, -- worn on a back: BackRateScale and the behind-the-body push
 }
 
+-- The carrier (designer, 2026-10-04: a Secret's aura engulfs the player too): a stick worn on a
+-- back carries an ObjectValue "Carrier" naming the character (BackCue sets it). A skin row's
+-- Carrier piece is built on that character's root, and aura rows with Host.Kind "Carrier" put
+-- their emitter on a part welded to it. Both go when the stick is quiet (a match) or hidden.
+local CARRIER_VALUE = "Carrier"
+
 type DynBeam = {
 	beam: Beam,
 	a0: Attachment,
@@ -93,6 +99,7 @@ export type Look = typeof(setmetatable(
 		lights: { Light },
 		sound: { s: Sound, volume: number }?, -- the aura's sound (Aura.Sound), volume unquieted
 		piece: any?,
+		carrierPiece: any?, -- the skin's Carrier piece on the carrying character (backs only)
 		highlights: { Highlight }, -- the stick's outline and the piece's (nearest cues only)
 		frames: { SurfaceAppearance }, -- frame 0 is the stick's own SurfaceAppearance
 		frame: number,
@@ -163,6 +170,7 @@ function CueSkinLook.attach(stick: Model, opts: Opts): Look
 		lights = {},
 		sound = nil,
 		piece = nil,
+		carrierPiece = nil,
 		highlights = {},
 		frames = {},
 		frame = 0,
@@ -200,6 +208,30 @@ function CueSkinLook.attach(stick: Model, opts: Opts): Look
 			self:refreshSoon()
 		end)
 	)
+	-- The carrier changes (BackCue): rebuild, so the Carrier piece and hosts follow the body.
+	table.insert(
+		self.connections,
+		stick.ChildAdded:Connect(function(child: Instance)
+			if child.Name == CARRIER_VALUE and child:IsA("ObjectValue") then
+				table.insert(
+					self.connections,
+					child.Changed:Connect(function()
+						self:refreshSoon()
+					end)
+				)
+				self:refreshSoon()
+			end
+		end)
+	)
+	local carrier = stick:FindFirstChild(CARRIER_VALUE)
+	if carrier and carrier:IsA("ObjectValue") then
+		table.insert(
+			self.connections,
+			carrier.Changed:Connect(function()
+				self:refreshSoon()
+			end)
+		)
+	end
 	live[self] = true
 	self:refresh()
 	return self
@@ -227,6 +259,10 @@ function CueSkinLook.clear(self: Look)
 	if self.piece then
 		self.piece:destroy()
 		self.piece = nil
+	end
+	if self.carrierPiece then
+		self.carrierPiece:destroy()
+		self.carrierPiece = nil
 	end
 	local mesh = self.mesh
 	local same = mesh ~= nil
@@ -287,6 +323,10 @@ function CueSkinLook.refresh(self: Look)
 	self:buildSurface(row)
 	if row.Piece then
 		self.piece = CuePiece.new(row.Piece, mesh, folder)
+	end
+	local carrierRoot = self:carrierRoot()
+	if row.Carrier and carrierRoot and self.opts.aura then
+		self.carrierPiece = CuePiece.new(row.Carrier, carrierRoot, folder)
 	end
 	local moving = row.Moving or {}
 	for _, b in moving.Beams or {} do
@@ -350,6 +390,9 @@ function CueSkinLook.refresh(self: Look)
 	if self.piece then
 		self.piece:setAura(self.opts.aura)
 	end
+	if self.carrierPiece then
+		self.carrierPiece:setAura(self:quietTarget() >= 1)
+	end
 	self:applyVisible()
 	self:step(0)
 end
@@ -399,13 +442,38 @@ function CueSkinLook.buildSurface(self: Look, row: any)
 	end
 end
 
+--- The carrying character's root part (a stick on a back with its Carrier value set), else nil.
+function CueSkinLook.carrierRoot(self: Look): BasePart?
+	local v = self.stick:FindFirstChild(CARRIER_VALUE)
+	local character = if v and v:IsA("ObjectValue") then v.Value else nil
+	if character == nil or not character:IsA("Model") then
+		return nil
+	end
+	local root = character:FindFirstChild("HumanoidRootPart")
+	return if root and root:IsA("BasePart") then root else nil
+end
+
 -- A host for an emitter row: an Attachment on the cue, or a Part welded to the mesh (or riding
--- a piece joint). Returns the emitter's parent and its frame for EmissionDirection.
-function CueSkinLook.host(self: Look, row: any): (Instance, string)
+-- a piece joint), or a Part welded to the carrying character ("Carrier": Size and Offset in
+-- the character's frame, x right, y up, z back; nil when the stick has no carrier). Returns
+-- the emitter's parent and its frame for EmissionDirection.
+function CueSkinLook.host(self: Look, row: any): (Instance?, string)
 	local h = row.Host or { Kind = "Attachment", AtStuds = 5.5 }
 	local kind = h.Kind or "Attachment"
 	local folder = self.folder :: Model
-	if kind == "Part" then
+	if kind == "Carrier" then
+		local root = self:carrierRoot()
+		if root == nil then
+			return nil, "part"
+		end
+		local size = h.Size or { 4, 4, 4 }
+		local o = h.Offset or { 0, 0, 0 }
+		local part = hostPart(row.Name or "Carrier", Vector3.new(size[1], size[2], size[3]))
+		part.Parent = folder
+		weldTo(part, root, CFrame.new(o[1], o[2], o[3]))
+		table.insert(self.built, part)
+		return part, "part"
+	elseif kind == "Part" then
 		local from, to = h.FromStuds or 3.8, h.ToStuds or 6.9
 		local width = h.Width or 0.3
 		local part =
@@ -498,6 +566,9 @@ end
 
 function CueSkinLook.buildEmitter(self: Look, row: any, aura: boolean)
 	local parent, frame = self:host(row)
+	if parent == nil then
+		return -- a Carrier host with no carrier (the hands, a stand)
+	end
 	local back = self.opts.back == true
 	local rateScale = if back then C.BackRateScale else 1
 	local size = CueVfx.maxOf(row.Size)
@@ -820,6 +891,9 @@ function CueSkinLook.applyVisible(self: Look)
 	if self.piece then
 		self.piece:setModifier(if visible then 0 else 1)
 	end
+	if self.carrierPiece then
+		self.carrierPiece:setModifier(if aura then 0 else 1)
+	end
 end
 
 local function hsv(t: number, period: number, saturation: number): Color3
@@ -952,6 +1026,10 @@ function CueSkinLook.step(self: Look, t: number)
 		if lr.Hue then
 			l.light.Color = hsv(t, lr.Hue.Period or 4, lr.Hue.Saturation or 0.8)
 		end
+	end
+	if self.carrierPiece then
+		self.carrierPiece:setAura(self:quietTarget() >= 1)
+		self.carrierPiece:step(t)
 	end
 	if self.piece then
 		self.piece:step(t)
