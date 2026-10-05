@@ -3179,13 +3179,15 @@ Config.Ults = {
 	Audio = {
 		-- ult_activate (1.67 s): silent until 0.74 s (measured with an AudioAnalyzer, 2026-09-28),
 		-- so it starts at 0.72 and its hit lands with the panel's slam.
-		Activate = { Id = "rbxassetid://97016460180199", Volume = 0.6, StartOffset = 0.72 },
+		Activate = { Id = "rbxassetid://97016460180199", Volume = 0.5, StartOffset = 0.72 },
 		-- ult_ready (8.2 s, a steady jingle from 0.15 s): the bar reaching 100%. It plays for
 		-- MaxSeconds then fades over FadeSeconds so it never talks over the shot (overnight
 		-- assumption; MaxSeconds 0 plays it whole).
+		-- Volume 0.15 (designer, 2026-10-04: far too loud at 0.45, a long power-up swell
+		-- measured louder than YourTurn): about half YourTurn's loudness now, a cue not a fanfare.
 		Ready = {
 			Id = "rbxassetid://140675130154393",
-			Volume = 0.45,
+			Volume = 0.15,
 			StartOffset = 0.12,
 			MaxSeconds = 3,
 			FadeSeconds = 0.8,
@@ -4129,6 +4131,11 @@ Config.Audio = {
 	-- positional, well under the pool sounds. Placeholders from the Creator Store, listed in
 	-- assets/audio/README.md; swap any by changing its id. An empty Id plays nothing.
 	-- Overlap: several may sound at once (a clone per play) instead of restarting.
+	-- Levels (designer, 2026-10-04: normalize): every clip here was measured through an
+	-- AudioAnalyzer (its 90th-percentile RMS; peak for clicks and ticks) and the Volumes set so a
+	-- sting lands near YourTurn's loudness (Volume x RMS about 0.045), the big moments (rank-up,
+	-- new tier, the lucky block's build, the Secret heartbeat) a little over it. Before this the
+	-- Secret heartbeat sat 8x and the rank fanfares 2x louder than everything else.
 	Ui = {
 		-- "CoinTransfer_01" (Roblox, 1.7 s): a chip lands in the money HUD.
 		CashLand = { Id = "rbxassetid://127645268874265", Volume = 0.3, Overlap = true },
@@ -4139,9 +4146,9 @@ Config.Audio = {
 		-- "Roblox_UI_Tonal_Stinger" (Roblox, 1.5 s): the XP bar reaching a division's top.
 		XpFull = { Id = "rbxassetid://15675043410", Volume = 0.3 },
 		-- Rank-up sound picked by the designer, 2026-10-03.
-		RankUp = { Id = "rbxassetid://2789429656", Volume = 0.35 },
+		RankUp = { Id = "rbxassetid://2789429656", Volume = 0.21 },
 		-- "Glamour Fanfare 4" (APM Music via Roblox, 3.7 s): a new tier, the bigger fanfare.
-		NewTier = { Id = "rbxassetid://1844584807", Volume = 0.4 },
+		NewTier = { Id = "rbxassetid://1844584807", Volume = 0.23 },
 		-- "RBLX UI Hover 01 (SFX)" (Roblox, 0.2 s, a soft tone near 900 Hz): the mouse or a
 		-- gamepad on a badge or a roadmap tier (designer, 2026-09-27: short and pleasant; was
 		-- "Roblox_UI_Cute_Pop", 2.7 s with its tail). Its 0.23 peak x 0.22 sits just under Click.
@@ -4151,8 +4158,8 @@ Config.Audio = {
 		-- The case reel (2026-09-28, overnight placeholders; assets/audio/README.md). All from
 		-- Roblox's own library or APM Music via Roblox; each checked loading in this game.
 		-- "Roblox_UI_Small_Click" (0.13 s), pitched up and quiet: one card passing the marker.
-		LuckyPlace = { Id = "rbxassetid://4612375802", Volume = 0.35, Overlap = true },
-		LuckyAnticipation = { Id = "rbxassetid://86828699372798", Volume = 0.4, Overlap = true },
+		LuckyPlace = { Id = "rbxassetid://4612375802", Volume = 0.28, Overlap = true },
+		LuckyAnticipation = { Id = "rbxassetid://86828699372798", Volume = 0.23, Overlap = true },
 		ReelTick = { Id = "rbxassetid://15675032796", Volume = 0.1, Overlap = true, Pitch = 1.7 },
 		-- "Roblox_UI_Sweep" (Roblox, 0.61 s): the reel settling on the prize.
 		ReelSettle = { Id = "rbxassetid://15675046931", Volume = 0.3 },
@@ -4161,18 +4168,18 @@ Config.Audio = {
 		-- Designer-confirmed orchestral stings: 403299 Common/Uncommon, 403300 Rare/Epic,
 		-- 403298 Legendary/Mythic/Secret; assets/audio/luckyblocks/README.md.
 		RevealLow = { Id = "rbxassetid://126239656683349", Volume = 0.3 },
-		RevealRare = { Id = "rbxassetid://101099108525458", Volume = 0.3 },
-		RevealEpic = { Id = "rbxassetid://101099108525458", Volume = 0.32 },
-		RevealLegendary = { Id = "rbxassetid://83442240487773", Volume = 0.35 },
-		RevealMythic = { Id = "rbxassetid://83442240487773", Volume = 0.38 },
+		RevealRare = { Id = "rbxassetid://101099108525458", Volume = 0.28 },
+		RevealEpic = { Id = "rbxassetid://101099108525458", Volume = 0.31 },
+		RevealLegendary = { Id = "rbxassetid://83442240487773", Volume = 0.28 },
+		RevealMythic = { Id = "rbxassetid://83442240487773", Volume = 0.3 },
 		-- The Secret pull's heartbeat and shockwave (GUI lane, 2026-10-03; licensed library
 		-- sounds: APM "Heart Beat", Pro Sound Effects "Thruster Blast 8").
-		Heartbeat = { Id = "rbxassetid://1839088414", Volume = 0.7, Overlap = true },
+		Heartbeat = { Id = "rbxassetid://1839088414", Volume = 0.15, Overlap = true },
 		Shockwave = { Id = "rbxassetid://9120009360", Volume = 0.5 },
 		-- "Roblox_UI_Tonal_Stinger" (1.5 s): a reward claimed (daily, playtime, index, code).
 		Claim = { Id = "rbxassetid://15675043410", Volume = 0.3 },
 		-- "Roblox_UI_Indicator" (3.4 s), quiet: a banner (Money Party, an announcement).
-		Banner = { Id = "rbxassetid://15675085146", Volume = 0.2 },
+		Banner = { Id = "rbxassetid://15675085146", Volume = 0.3 },
 	},
 	XpTickPitch = { From = 0.9, To = 1.5 }, -- the XP tick's pitch across one fill (tune)
 	MoneyTickEvery = 0.06, -- the money count ticks at most this often, seconds
@@ -5935,7 +5942,7 @@ Config.Multiplayer = {
 	-- within this long and the same players play again, the other team breaking, and the
 	-- series score goes on; otherwise the table frees. Long enough to read the result screen. (tune)
 	RematchSeconds = 20,
-	PocketSettleSeconds = 1, -- extra settling after a pocket
+	PocketSettleSeconds = 0.6, -- extra settling after a pocket (designer, 2026-10-04: was 1)
 	VoteSeconds = 10, -- unanimous surrender window
 	VoteCooldownSeconds = 30, -- prevent surrender prompt spam
 	RejoinCooldownSeconds = 2, -- leave/reenter guard after reset
@@ -6037,6 +6044,7 @@ Config.Multiplayer = {
 	FoulSound = "rbxassetid://128802141795458", -- user supplied; preload verified
 	CoinSound = "rbxassetid://7022812395", -- Creator Store coin flip; preload verified
 	UISoundVolume = 0.35, -- quiet underneath physical impact mix
+	FoulSoundVolume = 0.22, -- the foul clip measures 1.6x YourTurn's loudness at the same Volume (2026-10-04)
 	QueueVisual = {
 		-- The queue pad (TableService.buildPad): a see-through rounded rectangle tinted like its
 		-- glowing rim (designer, 2026-09-27: glass, not a white sheet), the table's mode written
@@ -7251,9 +7259,10 @@ Config.UI.Reel = {
 		BigSeconds = 6, -- Mythic and Secret: a longer spin...
 		BigEasePower = 5, -- ...and a longer crawl
 		LandSpread = 0.8, -- it lands anywhere within this share of the prize card's half-width
-		SkipApproachCards = 2, -- first skip starts earlier so the preceding cue visibly crosses the marker
-		SkipApproachSeconds = 1, -- readable roll past the preceding cue, then normal centring/hold
-		SkipApproachPower = 2, -- ease down smoothly onto the winning card
+		-- A skip (once per spin, designer 2026-10-04): the strip races on from where it is and
+		-- brakes onto the prize over SkipSeconds, a blur that shows the roll was skipped. (tune)
+		SkipSeconds = 0.7,
+		SkipEasePower = 4, -- its brake: 1 - (1 - t)^power (higher: faster start, longer crawl)
 		CentreSeconds = 0.4, -- then glides the prize to the marker's middle
 		SettleHoldSeconds = 0.7, -- and holds this long before the prize card
 		BigSettleHoldSeconds = 1.3,

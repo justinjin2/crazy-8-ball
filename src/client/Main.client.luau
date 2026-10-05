@@ -336,7 +336,7 @@ local function refreshAim()
 	guideline:show(trace, invalid, snapshot.settings and snapshot.settings.difficulty)
 	hud:setInvalidTarget(invalid)
 end
-local function sound(key: string, id: string)
+local function sound(key: string, id: string, volume: number?)
 	local existing = uiSounds[key]
 	if existing then
 		existing:Stop()
@@ -344,7 +344,7 @@ local function sound(key: string, id: string)
 		return
 	end
 	local created = Instance.new("Sound")
-	created.Name, created.SoundId, created.Volume = key, id, M.UISoundVolume
+	created.Name, created.SoundId, created.Volume = key, id, volume or M.UISoundVolume
 	created.Parent = SoundService
 	uiSounds[key] = created
 	created:Play()
@@ -807,7 +807,7 @@ local function acquireTable(s: any?)
 		if s.phase == "Intro" and shooter() then
 			sound("YourTurn", M.YourTurnSound)
 		elseif s.phase == "Foul" and s.foul and s.foul.by == player.UserId then
-			sound("Foul", M.FoulSound)
+			sound("Foul", M.FoulSound, M.FoulSoundVolume)
 		elseif s.phase == "CoinFlip" then
 			-- As the coin starts to spin, after its YOU ARE HEADS/TAILS moment.
 			task.delay(M.Style.CoinHoldSeconds, sound, "CoinFlip", M.CoinSound)

@@ -1,5 +1,13 @@
 # Status
 
+**2026-10-04 (latest): designer's tweak list, first batch.**
+- Pocket settle 0.6 s (was 1 s); the ability-ready sound at a third of its volume and silent
+  in solo; the 2D sounds measured and levelled (heartbeat, rank fanfares, foul came down); the
+  lucky-block skip is one tap that races the strip to the prize in 0.7 s. Verified in Studio:
+  a scripted reel skip raced ~2,150 px in 0.7 s, landed, ignored the second tap and went on to
+  the Mythic cutscene; console clean, lint clean, 977 tests pass. Not checked by the tool: the
+  sounds by ear, a solo match's silent ready bar, phone and gamepad taps on the reel.
+
 **2026-10-04 (latest): cases, the Magic 8 Ball and every reward popup are gone; lucky blocks are the only gacha.**
 - On `release` (`a503dd2`, `91769ea`, `92c3aff`): the shared and server code roll a win into
   one **Mystery lucky block** (the first real win: the guaranteed Rare block on its 1 h

@@ -2413,3 +2413,12 @@ timer of a new block stay the designer's call.
   bag. The case icons, the 8-ball art and their art-tool entries are deleted. `docs/ECONOMY.md`
   is the GUI spec; no GUI is built until the designer asks. Kept as they were: the Free
   Reward page and tile, the hub corner buttons, NEW RANK! and the rank-claim card.
+- **2026-10-04 — Quicker turns, levelled sounds, a one-tap reel skip (designer).** The pause
+  after a shot that pocketed a ball is 0.6 s (`Multiplayer.PocketSettleSeconds`, was 1 s). The
+  ability-ready sound is cut to a third (`Ults.Audio.Ready.Volume` 0.15, was 0.45) and never
+  plays in solo, where the bar is simply always full. The 2D sounds (UI, rewards, reel, match
+  cues) were measured through an AudioAnalyzer and levelled to about YourTurn's loudness: the
+  Secret heartbeat (was 8x louder) and the rank fanfares (2x) came down most; the foul clip gets
+  its own `FoulSoundVolume`. The 3D ability effect sounds were left as tuned by ear in the
+  abilities review. The lucky-block reel skip is one tap: the strip races on to the prize in
+  `UI.Reel.SkipSeconds` (0.7 s) instead of jumping, replacing the two-stage skip.

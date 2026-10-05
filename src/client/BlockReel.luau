@@ -14,7 +14,7 @@
 -- - As it settles: ReelSettle, the marker and a glow round the window turn the prize's colour
 --   (Mythic's drifts through its pastels, Secret's breathes red), the prize card bounces with a
 --   thick edge in that colour; after a short hold the reel reports it is done.
--- - skip() jumps straight to the prize (a tap, A or B).
+-- - skip() (a tap, A or B; once per spin) races the strip on to the prize in Reel.SkipSeconds.
 -- - Each card reads the cue's name and its odds in its rarity's colour (GUI lane, 2026-10-03).
 -- - The Dark look (lucky blocks, designer 2026-10-03; Config.LuckyBlocks.UI): no white window or
 --   white ends, the strip floats over the dim with its ends fading out (a CanvasGroup), and each
@@ -445,6 +445,7 @@ function Reel.start(self: any, onSettled: () -> ())
 	self.to = centreOf(R.PrizeSlot) + self.offset
 	self.began = os.clock()
 	self.built = false
+	self.skipped = false
 	self.lastIndex = math.floor(self.pos / pitch())
 	self.loop = RunService.RenderStepped:Connect(function()
 		local ok, err = pcall(self.step, self)
@@ -562,34 +563,24 @@ function Reel.land(self: any, now: number)
 	self.holdUntil = now + R.CentreSeconds + hold
 end
 
---- Lucky blocks keep the final approach on the first skip; a second skip reveals immediately.
---- Other callers retain the immediate skip unless they opt into landFirst.
-function Reel.skip(self: any, landFirst: boolean?)
-	if not self.alive or self.phase == "Done" or self.phase == "Idle" then
+--- One skip per spin (designer, 2026-10-04): the strip does not jump to the prize, it races
+--- on from where it is and brakes onto the same spot within Reel.SkipSeconds, so the blur
+--- shows the roll was skipped. The landing, centring and hold then play as usual; any
+--- further tap (or a tap after it has landed) does nothing.
+function Reel.skip(self: any)
+	if not self.alive or self.phase ~= "Spinning" or self.skipped then
 		return
 	end
+	self.skipped = true
 	local now = os.clock()
-	if landFirst and not self.skipLanding then
-		self.skipLanding = true
-		if self.phase == "Spinning" then
-			-- Advance only: clicking late must never rewind the strip.
-			self.from = math.max(self.pos, self.to - pitch() * R.SkipApproachCards)
-			self.pos = self.from
-			self.began = now
-			self.duration = math.min(R.SkipApproachSeconds, self.duration)
-			self.power = R.SkipApproachPower
-			self.lastIndex = math.floor(self.pos / pitch())
-			self:place()
-		end
-		return
+	local left = self.began + self.duration - now
+	if left <= R.SkipSeconds then
+		return -- already in its last moment: skipping would only slow it down
 	end
-	if not self.landed then
-		self.to = centreOf(R.PrizeSlot)
-		self:land(now)
-	end
-	self.pos = centreOf(R.PrizeSlot)
-	self:place()
-	self:finish()
+	self.from = self.pos
+	self.began = now
+	self.duration = R.SkipSeconds
+	self.power = R.SkipEasePower
 end
 
 -- Settled and held: report once.

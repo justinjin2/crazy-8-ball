@@ -321,7 +321,7 @@ function Opening.tap(self: any)
 		return
 	end
 	if self.phase == "Reel" and self.reel then
-		self.reel:skip(true)
+		self.reel:skip()
 	elseif self.phase == "Scene" then
 		PullCutscene.trySkip() -- once the kind has been seen; its own done() shows the card
 	elseif self.phase == "Card" and self.card and self.card:canDismiss() then

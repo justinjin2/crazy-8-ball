@@ -547,8 +547,10 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
 - Legendary uses 1.8x world/held scale to compensate for its crown and cape in the bounding
   box. Its body aligns with the hands; its inventory preview is framed 1.25x closer.
 
-- Lucky-block reel skip has two stages: first tap/click keeps a one-second, two-card approach so
-  the preceding cue visibly passes the marker before landing on the winner, then reveals after the settle; a second tap/click reveals immediately.
+- Lucky-block reel skip works once per spin (designer, 2026-10-04): the tap/click never jumps to
+  the prize; the strip races on from where it is and brakes onto the winner within
+  `Config.UI.Reel.SkipSeconds` (0.7 s), a blur that shows the roll was skipped, then lands,
+  centres and holds as usual. Any further tap during the spin or the hold does nothing.
 
 ## 15. Shop v3: block cards, pass bands, the build-in and the HUD's "+" (2026-10-04)
 

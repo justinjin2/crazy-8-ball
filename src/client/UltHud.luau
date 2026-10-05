@@ -783,8 +783,10 @@ function UltHud.update(self: any, dt: number, pulling: boolean)
 	if self.bar.value ~= self.shown then
 		self.bar:setValue(self.shown)
 	end
-	-- ult_ready, once per fill, the first time the ready bar is seen.
-	if ready and mode == "bar" and self.slideDone then
+	-- ult_ready, once per fill, the first time the ready bar is seen. Never in solo: its bar
+	-- is simply always full there, so nothing has just become ready (designer, 2026-10-04).
+	local solo = s ~= nil and s.solo ~= nil
+	if ready and mode == "bar" and self.slideDone and not solo then
 		local key = self.gameKey .. ":" .. tostring(self.truth.used)
 		if self.readyKey ~= key then
 			self.readyKey = key
