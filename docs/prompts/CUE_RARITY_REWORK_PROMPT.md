@@ -238,3 +238,8 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 - 2026-10-04 (designer): the tier label reads "Mythical" (the item rarity, the case name,
   the reveal band and the unbox line in `Strings.luau`); ids stay `Mythic`. The ability
   rarity label was left as "Mythic" (not asked).
+- 2026-10-04 (designer, Eclipse gate 1, first look): the gold rings more glowing and neon;
+  the eclipses are not physical black spheres but vanta black, a black hole, at the butt and
+  over the player's head, each with a glowing yellow aura like the pocket finisher's corona;
+  and the clip is re-rendered after every change (the designer judges by the video:
+  `assets/cue/concepts/rework/<id>-clip.mp4` is committed with the board each time).

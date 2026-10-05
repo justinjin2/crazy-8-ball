@@ -45,10 +45,10 @@
       "Triangles": 7024
     },
     {
-      "Material": "SmoothPlastic",
-      "Color": "#050505",
+      "Material": "Neon",
+      "Color": "#000000",
       "Transparency": 0.0,
-      "Reflectance": 0.25,
+      "Reflectance": 0.0,
       "Name": "Orb_Void",
       "File": "pieces/eclipse/Orb_Void.obj",
       "Joint": "Orb",
@@ -66,7 +66,7 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFC940",
+      "Color": "#FFE070",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Flare1_Flare",
@@ -86,27 +86,27 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFC940",
+      "Color": "#FFE070",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Flare1_CoronaSpike",
       "File": "pieces/eclipse/Flare1_CoronaSpike.obj",
       "Joint": "Flare1",
       "Offset": [
-        -0.0198,
-        0.0023,
-        -4.049
+        -0.0183,
+        0.002,
+        -4.0504
       ],
       "Size": [
-        1.0602,
-        0.2214,
-        1.024
+        1.0257,
+        0.2148,
+        0.9929
       ],
       "Triangles": 1320
     },
     {
       "Material": "Neon",
-      "Color": "#FFC940",
+      "Color": "#FFE070",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Flare2_Flare",
@@ -126,27 +126,27 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFC940",
+      "Color": "#FFE070",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Flare2_CoronaSpike",
       "File": "pieces/eclipse/Flare2_CoronaSpike.obj",
       "Joint": "Flare2",
       "Offset": [
-        -0.0132,
-        0.0005,
+        -0.0129,
+        0.0004,
         -4.0601
       ],
       "Size": [
-        1.0049,
-        1.0008,
-        0.216
+        0.9669,
+        0.9626,
+        0.2078
       ],
       "Triangles": 1080
     },
     {
       "Material": "Neon",
-      "Color": "#FFC940",
+      "Color": "#FFE070",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Ring1_Flare",
@@ -166,7 +166,7 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFC940",
+      "Color": "#FFE070",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Ring2_Flare",
@@ -226,8 +226,8 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFB84A",
-      "Transparency": 0.2,
+      "Color": "#FFE070",
+      "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Orbital1_OrbitLine",
       "File": "pieces/eclipse/Orbital1_OrbitLine.obj",
@@ -238,15 +238,15 @@
         2.2001
       ],
       "Size": [
-        1.0492,
-        0.6222,
-        0.9732
+        1.0512,
+        0.6241,
+        0.9752
       ],
       "Triangles": 1536
     },
     {
       "Material": "ForceField",
-      "Color": "#FFB300",
+      "Color": "#FFC830",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Orbital1_OrbitGlow",
@@ -255,12 +255,12 @@
       "Offset": [
         0.0,
         -0.0001,
-        2.1997
+        2.1996
       ],
       "Size": [
-        1.0852,
-        0.6585,
-        1.0087
+        1.0972,
+        0.6705,
+        1.0205
       ],
       "Triangles": 1920
     },
@@ -306,8 +306,8 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFB84A",
-      "Transparency": 0.2,
+      "Color": "#FFE070",
+      "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Orbital2_OrbitLine",
       "File": "pieces/eclipse/Orbital2_OrbitLine.obj",
@@ -318,29 +318,29 @@
         0.6997
       ],
       "Size": [
-        0.9129,
-        1.363,
-        1.1657
+        0.9148,
+        1.3649,
+        1.1676
       ],
       "Triangles": 1536
     },
     {
       "Material": "ForceField",
-      "Color": "#FFB300",
+      "Color": "#FFC830",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Orbital2_OrbitGlow",
       "File": "pieces/eclipse/Orbital2_OrbitGlow.obj",
       "Joint": "Orbital2",
       "Offset": [
-        0.0005,
-        0.0003,
+        0.0006,
+        0.0004,
         0.7
       ],
       "Size": [
-        0.9484,
-        1.3979,
-        1.2021
+        0.9601,
+        1.4096,
+        1.214
       ],
       "Triangles": 1920
     },
@@ -386,8 +386,8 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFB84A",
-      "Transparency": 0.2,
+      "Color": "#FFE070",
+      "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Planet2_OrbitLine",
       "File": "pieces/eclipse/Planet2_OrbitLine.obj",
@@ -406,8 +406,8 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFB84A",
-      "Transparency": 0.2,
+      "Color": "#FFE070",
+      "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Orbital3_OrbitLine",
       "File": "pieces/eclipse/Orbital3_OrbitLine.obj",
@@ -415,32 +415,32 @@
       "Offset": [
         0.0,
         0.0,
-        -0.8
+        -0.8001
       ],
       "Size": [
-        0.8527,
-        0.976,
-        1.146
+        0.8547,
+        0.978,
+        1.1479
       ],
       "Triangles": 1536
     },
     {
       "Material": "ForceField",
-      "Color": "#FFB300",
+      "Color": "#FFC830",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Orbital3_OrbitGlow",
       "File": "pieces/eclipse/Orbital3_OrbitGlow.obj",
       "Joint": "Orbital3",
       "Offset": [
-        0.0005,
+        0.0006,
         0.0,
-        -0.8
+        -0.8001
       ],
       "Size": [
-        0.8877,
-        1.0114,
-        1.1822
+        0.8995,
+        1.0233,
+        1.1941
       ],
       "Triangles": 1920
     },
@@ -486,8 +486,8 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFB84A",
-      "Transparency": 0.2,
+      "Color": "#FFE070",
+      "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Orbital4_OrbitLine",
       "File": "pieces/eclipse/Orbital4_OrbitLine.obj",
@@ -498,15 +498,15 @@
         -2.3001
       ],
       "Size": [
-        1.2928,
-        1.1509,
-        1.4211
+        1.2948,
+        1.1529,
+        1.423
       ],
       "Triangles": 1536
     },
     {
       "Material": "ForceField",
-      "Color": "#FFB300",
+      "Color": "#FFC830",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Orbital4_OrbitGlow",
@@ -514,13 +514,13 @@
       "Joint": "Orbital4",
       "Offset": [
         0.0002,
-        -0.0007,
-        -2.3006
+        -0.0008,
+        -2.3007
       ],
       "Size": [
-        1.3284,
-        1.1855,
-        1.4568
+        1.3402,
+        1.1972,
+        1.4686
       ],
       "Triangles": 1920
     },
@@ -566,8 +566,8 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFB84A",
-      "Transparency": 0.2,
+      "Color": "#FFE070",
+      "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "GreatOrbit1_OrbitLine",
       "File": "pieces/eclipse/GreatOrbit1_OrbitLine.obj",
@@ -578,15 +578,15 @@
         -0.6999
       ],
       "Size": [
-        2.2313,
-        2.4559,
-        6.7614
+        2.2332,
+        2.4578,
+        6.7634
       ],
       "Triangles": 2048
     },
     {
       "Material": "ForceField",
-      "Color": "#FFB300",
+      "Color": "#FFC830",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "GreatOrbit1_OrbitGlow",
@@ -598,16 +598,16 @@
         -0.6999
       ],
       "Size": [
-        2.2756,
-        2.4979,
-        6.8037
+        2.2876,
+        2.5094,
+        6.8153
       ],
       "Triangles": 2560
     },
     {
       "Material": "Neon",
-      "Color": "#FFB84A",
-      "Transparency": 0.2,
+      "Color": "#FFE070",
+      "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "GreatOrbit2_OrbitLine",
       "File": "pieces/eclipse/GreatOrbit2_OrbitLine.obj",
@@ -615,32 +615,32 @@
       "Offset": [
         0.0001,
         0.0002,
-        -1.0997
+        -1.0996
       ],
       "Size": [
-        2.0134,
-        1.5966,
-        6.086
+        2.0153,
+        1.5985,
+        6.0879
       ],
       "Triangles": 2048
     },
     {
       "Material": "ForceField",
-      "Color": "#FFB300",
+      "Color": "#FFC830",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "GreatOrbit2_OrbitGlow",
       "File": "pieces/eclipse/GreatOrbit2_OrbitGlow.obj",
       "Joint": "GreatOrbit2",
       "Offset": [
-        -0.0008,
-        0.0008,
-        -1.1007
+        -0.0009,
+        0.0009,
+        -1.1009
       ],
       "Size": [
-        2.0563,
-        1.6395,
-        6.1291
+        2.068,
+        1.6512,
+        6.1408
       ],
       "Triangles": 2560
     },
@@ -885,10 +885,10 @@
       "Triangles": 80
     },
     {
-      "Material": "SmoothPlastic",
-      "Color": "#050505",
+      "Material": "Neon",
+      "Color": "#000000",
       "Transparency": 0.0,
-      "Reflectance": 0.25,
+      "Reflectance": 0.0,
       "Name": "Shadow_Void",
       "File": "pieces/eclipse/Shadow_Void.obj",
       "Joint": "Shadow",
@@ -906,7 +906,7 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFC940",
+      "Color": "#FFE070",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Shadow_Flare",
@@ -1166,8 +1166,8 @@
       "Visual": [
         {
           "Kind": "Glow",
-          "Min": 0.0,
-          "Max": 0.5,
+          "Min": 0.2,
+          "Max": 0.8,
           "Period": 3.1,
           "Shape": "sine",
           "Phase": 70
@@ -1225,8 +1225,8 @@
       "Visual": [
         {
           "Kind": "Glow",
-          "Min": 0.0,
-          "Max": 0.5,
+          "Min": 0.2,
+          "Max": 0.8,
           "Period": 3.6,
           "Shape": "sine",
           "Phase": 140
@@ -1284,8 +1284,8 @@
       "Visual": [
         {
           "Kind": "Glow",
-          "Min": 0.0,
-          "Max": 0.5,
+          "Min": 0.2,
+          "Max": 0.8,
           "Period": 4.1,
           "Shape": "sine",
           "Phase": 210
@@ -1343,8 +1343,8 @@
       "Visual": [
         {
           "Kind": "Glow",
-          "Min": 0.0,
-          "Max": 0.5,
+          "Min": 0.2,
+          "Max": 0.8,
           "Period": 4.6,
           "Shape": "sine",
           "Phase": 280

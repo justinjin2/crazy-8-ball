@@ -5,10 +5,10 @@
   "Triangles": 20952,
   "Parts": [
     {
-      "Material": "SmoothPlastic",
-      "Color": "#050505",
+      "Material": "Neon",
+      "Color": "#000000",
       "Transparency": 0.0,
-      "Reflectance": 0.25,
+      "Reflectance": 0.0,
       "Name": "Sun_Void",
       "File": "pieces/eclipse_carrier/Sun_Void.obj",
       "Joint": "Sun",
@@ -26,7 +26,7 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFC940",
+      "Color": "#FFE070",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "SunFlare1_Flare",
@@ -46,27 +46,27 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFC940",
+      "Color": "#FFE070",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "SunFlare1_CoronaSpike",
       "File": "pieces/eclipse_carrier/SunFlare1_CoronaSpike.obj",
       "Joint": "SunFlare1",
       "Offset": [
-        -0.0542,
-        3.6132,
-        3.1493
+        -0.0475,
+        3.6111,
+        3.1414
       ],
       "Size": [
-        2.5882,
-        0.6577,
-        2.4279
+        2.4517,
+        0.6261,
+        2.3098
       ],
       "Triangles": 1560
     },
     {
       "Material": "Neon",
-      "Color": "#FFC940",
+      "Color": "#FFE070",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "SunFlare2_Flare",
@@ -86,28 +86,28 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFC940",
+      "Color": "#FFE070",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "SunFlare2_CoronaSpike",
       "File": "pieces/eclipse_carrier/SunFlare2_CoronaSpike.obj",
       "Joint": "SunFlare2",
       "Offset": [
-        0.0065,
-        3.6003,
+        0.0054,
+        3.6002,
         3.0999
       ],
       "Size": [
-        2.4669,
-        2.2777,
-        0.6172
+        2.3491,
+        2.1681,
+        0.5878
       ],
       "Triangles": 1200
     },
     {
       "Material": "Neon",
-      "Color": "#FFB84A",
-      "Transparency": 0.2,
+      "Color": "#FFE070",
+      "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Orbit1_OrbitLine",
       "File": "pieces/eclipse_carrier/Orbit1_OrbitLine.obj",
@@ -118,29 +118,29 @@
         3.5003
       ],
       "Size": [
-        4.8416,
-        1.5261,
-        4.607
+        4.8455,
+        1.53,
+        4.6109
       ],
       "Triangles": 2048
     },
     {
       "Material": "ForceField",
-      "Color": "#FFB300",
+      "Color": "#FFC830",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Orbit1_OrbitGlow",
       "File": "pieces/eclipse_carrier/Orbit1_OrbitGlow.obj",
       "Joint": "Orbit1",
       "Offset": [
-        0.0,
+        0.0001,
         0.9,
         3.4999
       ],
       "Size": [
-        4.9081,
-        1.5924,
-        4.671
+        4.9279,
+        1.6123,
+        4.6905
       ],
       "Triangles": 2560
     },
@@ -186,27 +186,27 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFB84A",
-      "Transparency": 0.2,
+      "Color": "#FFE070",
+      "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Orbit2_OrbitLine",
       "File": "pieces/eclipse_carrier/Orbit2_OrbitLine.obj",
       "Joint": "Orbit2",
       "Offset": [
-        0.0,
+        0.0001,
         0.2999,
-        3.5004
+        3.5005
       ],
       "Size": [
-        5.3568,
-        2.4025,
-        5.8269
+        5.3608,
+        2.4064,
+        5.8306
       ],
       "Triangles": 2048
     },
     {
       "Material": "ForceField",
-      "Color": "#FFB300",
+      "Color": "#FFC830",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Orbit2_OrbitGlow",
@@ -218,9 +218,9 @@
         3.5001
       ],
       "Size": [
-        5.4206,
-        2.4679,
-        5.8951
+        5.4402,
+        2.4877,
+        5.9151
       ],
       "Triangles": 2560
     },
@@ -266,8 +266,8 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFB84A",
-      "Transparency": 0.2,
+      "Color": "#FFE070",
+      "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Planet2_OrbitLine",
       "File": "pieces/eclipse_carrier/Planet2_OrbitLine.obj",
@@ -650,8 +650,8 @@
       "Visual": [
         {
           "Kind": "Glow",
-          "Min": 0.0,
-          "Max": 0.5,
+          "Min": 0.2,
+          "Max": 0.8,
           "Period": 3.6,
           "Shape": "sine",
           "Phase": 70
@@ -711,8 +711,8 @@
       "Visual": [
         {
           "Kind": "Glow",
-          "Min": 0.0,
-          "Max": 0.5,
+          "Min": 0.2,
+          "Max": 0.8,
           "Period": 4.2,
           "Shape": "sine",
           "Phase": 140

@@ -1151,8 +1151,8 @@ def eclipse(k):
     bpy = k.bpy
     k.material('Obsidian', 'SmoothPlastic', '#0B0B0D', Reflectance=0.35)
     k.material('Gold', 'Foil', '#E3A21A')
-    k.material('Void', 'SmoothPlastic', '#050505', Reflectance=0.25)
-    k.material('Flare', 'Neon', '#FFC940')
+    k.material('Void', 'Neon', '#000000')          # unlit flat black: a hole in space, not a ball (designer, 2026-10-04)
+    k.material('Flare', 'Neon', '#FFE070')
     k.material('Moon', 'SmoothPlastic', '#B9BEC6', Reflectance=0.12)
 
     U0 = 7.0
@@ -1204,8 +1204,8 @@ def eclipse(k):
     # two rings of tapered corona spikes (prominences) on tilted, counter-turning spins, each
     # with a thin flare ring at its root, breathing: a corona that reads from every side and
     # leaves the sun black
-    k.material('CoronaSpike', 'Neon', '#FFC940')
-    for n, (tilt, rate, count, length) in enumerate(((12, 25.0, 22, 0.16), (-78, -19.0, 18, 0.12)), 1):
+    k.material('CoronaSpike', 'Neon', '#FFE070')
+    for n, (tilt, rate, count, length) in enumerate(((12, 25.0, 22, 0.14), (-78, -19.0, 18, 0.10)), 1):
         nm = 'Flare%d' % n
         k.joint(nm, pivot=tuple(C), parent='Orb', motion=[{'Kind': 'Spin', 'Axis': (0.3, 1, 0.2), 'Rate': rate}],
                 visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.6, 'Period': 2.8, 'Shape': 'sine', 'Phase': 90 * n}])
@@ -1263,8 +1263,8 @@ def eclipse(k):
     # gold orbital rings round the cue, tilted every way like an atom's orbits, each precessing
     # slowly with a glowing planet-bead running round it; an asteroid belt of dark rocks orbiting
     # the cue and tumbling
-    k.material('OrbitLine', 'Neon', '#FFB84A', Transparency=0.2)
-    k.material('OrbitGlow', 'ForceField', '#FFB300')          # a soft glowing sheath round each ring
+    k.material('OrbitLine', 'Neon', '#FFE070')                # bright neon gold (designer, 2026-10-04: more glowing)
+    k.material('OrbitGlow', 'ForceField', '#FFC830')          # a soft glowing sheath round each ring
     k.material('Bead', 'Neon', '#FFE6A0')
     k.material('BeadGlow', 'ForceField', '#FFB300')
     k.material('Rock', 'SmoothPlastic', '#2B2622', Reflectance=0.05)
@@ -1284,8 +1284,8 @@ def eclipse(k):
         ring = [c + (u * math.cos(2 * math.pi * i / 96) + w * math.sin(2 * math.pi * i / 96)) * rr for i in range(97)]
         orb_j, bead_j = 'Orbital%d' % n, 'Planet%d' % n
         k.joint(orb_j, pivot=tuple(c), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': prec, 'Phase': yaw}],
-                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': 2.6 + 0.5 * n, 'Shape': 'sine', 'Phase': 70 * n}])
-        for mat, tube, segs in (('OrbitLine', 0.010, 8), ('OrbitGlow', 0.028, 10)):
+                visual=[{'Kind': 'Glow', 'Min': 0.2, 'Max': 0.8, 'Period': 2.6 + 0.5 * n, 'Shape': 'sine', 'Phase': 70 * n}])
+        for mat, tube, segs in (('OrbitLine', 0.011, 8), ('OrbitGlow', 0.034, 10)):
             bm = bmesh.new()
             sweep(bm, ring, [tube] * len(ring), segs=segs, cap=False)
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
@@ -1312,7 +1312,7 @@ def eclipse(k):
         loop = [c + d * A * math.cos(2 * math.pi * i / 128) + m * B * math.sin(2 * math.pi * i / 128) for i in range(129)]
         j = 'GreatOrbit%d' % n
         k.joint(j, pivot=tuple(c), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': prec, 'Phase': 90 * n}])
-        for mat, tube, segs in (('OrbitLine', 0.010, 8), ('OrbitGlow', 0.032, 10)):
+        for mat, tube, segs in (('OrbitLine', 0.011, 8), ('OrbitGlow', 0.038, 10)):
             bm = bmesh.new()
             sweep(bm, loop, [tube] * len(loop), segs=segs, cap=False)
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
@@ -1365,11 +1365,10 @@ def eclipse_carrier(k):
     import random
     from mathutils import Vector, Matrix
     bpy = k.bpy
-    k.material('Void', 'SmoothPlastic', '#050505', Reflectance=0.25)
-    k.material('Corona', 'ForceField', '#FFB300')
-    k.material('Flare', 'Neon', '#FFC940')
-    k.material('OrbitLine', 'Neon', '#FFB84A', Transparency=0.2)
-    k.material('OrbitGlow', 'ForceField', '#FFB300')
+    k.material('Void', 'Neon', '#000000')          # unlit flat black: a hole in the sky
+    k.material('Flare', 'Neon', '#FFE070')
+    k.material('OrbitLine', 'Neon', '#FFE070')
+    k.material('OrbitGlow', 'ForceField', '#FFC830')
     k.material('BeadGlow', 'ForceField', '#FFB300')
     k.material('Rock', 'SmoothPlastic', '#2B2622', Reflectance=0.05)
     planets = [('#FFE6A0', 0.14), ('#FF7A3A', 0.18), ('#9FD8FF', 0.13)]
@@ -1383,8 +1382,8 @@ def eclipse_carrier(k):
     bm = bmesh.new()
     bmesh.ops.create_uvsphere(bm, u_segments=48, v_segments=24, radius=RS, matrix=Matrix.Translation(S))
     k.add('Sun', k.mesh_object('CarrierSun', bm, ['Void']))
-    k.material('CoronaSpike', 'Neon', '#FFC940')
-    for n, (tilt, rate, count, length) in enumerate(((15, 22.0, 26, 0.5), (-75, -17.0, 20, 0.36)), 1):
+    k.material('CoronaSpike', 'Neon', '#FFE070')
+    for n, (tilt, rate, count, length) in enumerate(((15, 22.0, 26, 0.42), (-75, -17.0, 20, 0.3)), 1):
         nm = 'SunFlare%d' % n
         k.joint(nm, pivot=tuple(S), parent='Sun', aura=True, motion=[{'Kind': 'Spin', 'Axis': (0.2, 0.3, 1), 'Rate': rate}],
                 visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.6, 'Period': 2.8, 'Shape': 'sine', 'Phase': 90 * n}])
@@ -1413,8 +1412,8 @@ def eclipse_carrier(k):
         ring = [c + (u * math.cos(2 * math.pi * i / 128) + w * math.sin(2 * math.pi * i / 128)) * rr for i in range(129)]
         orb_j, bead_j = 'Orbit%d' % n, 'Planet%d' % n
         k.joint(orb_j, pivot=tuple(c), aura=True, motion=[{'Kind': 'Spin', 'Axis': (0, 0, 1), 'Rate': prec, 'Phase': yaw}],
-                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': 3.0 + 0.6 * n, 'Shape': 'sine', 'Phase': 70 * n}])
-        for mat, tube, segs in (('OrbitLine', 0.022, 8), ('OrbitGlow', 0.055, 10)):
+                visual=[{'Kind': 'Glow', 'Min': 0.2, 'Max': 0.8, 'Period': 3.0 + 0.6 * n, 'Shape': 'sine', 'Phase': 70 * n}])
+        for mat, tube, segs in (('OrbitLine', 0.024, 8), ('OrbitGlow', 0.065, 10)):
             bm = bmesh.new()
             sweep(bm, ring, [tube] * len(ring), segs=segs, cap=False)
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
