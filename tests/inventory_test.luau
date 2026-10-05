@@ -192,6 +192,28 @@ return {
 		)
 	end,
 
+	-- The designer's own copy (2026-10-05): owned, but with no number.
+	["an owner copy of a Unique cue has no number and is one per player"] = function()
+		local Inventory = load()
+		local save = newSave()
+		save.Inventory.OwnerUnique = {}
+		H.expect(Inventory.addOwnerCopy(save, "BetaCue"), "given")
+		H.expect(Inventory.count(save, "BetaCue") == 1 and Inventory.owns(save, "BetaCue"), "owned")
+		H.expect(Inventory.copy(save, "BetaCue") == nil, "no copy number")
+		H.expect(Inventory.isOwnerCopy(save, "BetaCue"), "the owner's copy")
+		H.expect(save.Index.Seen.BetaCue == true, "in the Index")
+		H.expect(not Inventory.addOwnerCopy(save, "BetaCue"), "one per player")
+		H.expect(not Inventory.addUnique(save, "BetaCue", 5), "a numbered one on top: no")
+		H.expect(not Inventory.addOwnerCopy(save, "MidnightCue"), "only Unique cues")
+		Inventory.addUnique(save, "FoundersCue", 9)
+		H.expect(not Inventory.isOwnerCopy(save, "FoundersCue"), "a numbered copy is not one")
+		H.expect(Inventory.removeCue(save, "BetaCue"), "removed")
+		H.expect(
+			not Inventory.owns(save, "BetaCue") and save.Inventory.OwnerUnique.BetaCue == nil,
+			"gone"
+		)
+	end,
+
 	-- The finder's money (designer, 2026-09-28): addCue and addUnique say when a cue is new to
 	-- the Index, once ever; the amount comes from Config.Index.FindMoney by rarity.
 	["a cue's first find is reported once, even after selling it"] = function()

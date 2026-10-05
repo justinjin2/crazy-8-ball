@@ -138,6 +138,9 @@ function SaveSchema.template(): any
 			PaidCues = {},
 			Unique = {}, -- [cueId] = copy number: numbered Limited cues (#412)
 			PaidUnique = {}, -- [cueId] = true: that Unique cue was bought (money or Robux)
+			-- [cueId] = true: the designer's own unnumbered copy of a Unique cue (/givecue):
+			-- never counted among the copies in existence, never traded.
+			OwnerUnique = {},
 			New = {}, -- [cueId] = true: the NEW tag until the player has seen it
 		},
 		Index = {
@@ -1079,6 +1082,7 @@ function SaveSchema.validate(data: any): (any, { string })
 	fixMapAt(inventory, "New", "Inventory.New", cueCap, onlyTrue, fixes)
 	fixMapAt(inventory, "PaidCues", "Inventory.PaidCues", cueCap, counts, fixes, Catalog.Default)
 	fixMapAt(inventory, "PaidUnique", "Inventory.PaidUnique", cueCap, onlyTrue, fixes)
+	fixMapAt(inventory, "OwnerUnique", "Inventory.OwnerUnique", cueCap, onlyTrue, fixes)
 	fixPaid(inventory, fixes)
 
 	fixMapAt(data.Index, "Seen", "Index.Seen", cueCap, onlyTrue, fixes)
@@ -1092,7 +1096,11 @@ function SaveSchema.validate(data: any): (any, { string })
 		local problem: string? = nil
 		if not Catalog.exists(cue) then
 			problem = "not a catalog cue"
-		elseif inventory.Cues[cue] == nil and inventory.Unique[cue] == nil then
+		elseif
+			inventory.Cues[cue] == nil
+			and inventory.Unique[cue] == nil
+			and inventory.OwnerUnique[cue] == nil
+		then
 			problem = "not owned"
 		end
 		if problem ~= nil then

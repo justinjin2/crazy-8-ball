@@ -7,7 +7,10 @@
 -- The part of the save these use (SaveSchema v7):
 --   Inventory = { Cues = { [cueId] = count }, PaidCues = { [cueId] = count of them paid for },
 --                 Unique = { [cueId] = copyNumber }, PaidUnique = { [cueId] = true },
---                 New = { [cueId] = true } }
+--                 OwnerUnique = { [cueId] = true }, New = { [cueId] = true } }
+-- OwnerUnique: the designer's own unnumbered copies of Unique cues (DevCommands' /givecue,
+-- 2026-10-05): owned like any copy, but with no number, never counted among the copies in
+-- existence and never traded.
 -- Paid origin (economy plan section 4): a lucky block bought with money or Robux, and every
 -- cue it gives, is paid; trading paid items may be blocked by region (Roblox's rules). The
 -- blocks themselves live in save.LuckyBlocks (Progression/LuckyBlocks).
@@ -141,7 +144,9 @@ function Inventory.count(save: any, id: any): number
 		return 1
 	end
 	if cue.Group == "Unique" then
-		return if isCount(readMap(save, "Inventory", "Unique")[cue.Id]) then 1 else 0
+		local numbered = isCount(readMap(save, "Inventory", "Unique")[cue.Id])
+		local ownerCopy = readMap(save, "Inventory", "OwnerUnique")[cue.Id] == true
+		return if numbered or ownerCopy then 1 else 0
 	end
 	return storedCount(readMap(save, "Inventory", "Cues"), cue.Id)
 end
@@ -249,6 +254,28 @@ function Inventory.addUnique(save: any, id: any, copy: number, paid: boolean?): 
 	return true, first
 end
 
+--- Gives the owner's unnumbered copy of a Unique cue (the designer's own /givecue): no copy
+--- number, never counted among the copies in existence, never traded. False for anything not
+--- Unique or a Unique cue already owned. The second answer as addUnique's.
+function Inventory.addOwnerCopy(save: any, id: any): (boolean, boolean)
+	local cue = Catalog.get(id)
+	if cue == nil or cue.Group ~= "Unique" or Inventory.owns(save, cue.Id) then
+		return false, false
+	end
+	local first = not everOwned(save, cue.Id)
+	writeMap(save, "Inventory", "OwnerUnique")[cue.Id] = true
+	markGot(save, cue.Id)
+	return true, first
+end
+
+--- True when the save's copy of a Unique cue is the owner's unnumbered one.
+function Inventory.isOwnerCopy(save: any, id: any): boolean
+	local cue = Catalog.get(id)
+	return cue ~= nil
+		and cue.Group == "Unique"
+		and readMap(save, "Inventory", "OwnerUnique")[cue.Id] == true
+end
+
 --- Takes n (default 1) copies away (a Unique cue: n = 1). Paid copies go first (selling back),
 --- or free copies first with `freeFirst` (a trade); Inventory.removedPaid then answers how
 --- many paid copies went. Reasons:
@@ -287,6 +314,10 @@ function Inventory.removeCue(
 	lastRemovedPaid = paidGone
 	if cue.Group == "Unique" then
 		writeMap(save, "Inventory", "Unique")[cue.Id] = nil
+		local ownerUnique = readMap(save, "Inventory", "OwnerUnique")
+		if ownerUnique[cue.Id] ~= nil then
+			ownerUnique[cue.Id] = nil
+		end
 		local paidUnique = readMap(save, "Inventory", "PaidUnique")
 		if paidUnique[cue.Id] ~= nil then
 			paidUnique[cue.Id] = nil

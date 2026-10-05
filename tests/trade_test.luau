@@ -179,6 +179,20 @@ return {
 		H.expect(not no and why == "Owned", "b holds one already")
 	end,
 
+	["the designer's unnumbered owner copy never trades"] = function()
+		local Trade, Inventory = load()
+		local a, b = newSave(), newSave()
+		a.Inventory.OwnerUnique = {}
+		Inventory.addOwnerCopy(a, "GrandOpeningCue")
+		Inventory.addCue(b, "NeonCue")
+		H.expect(Trade.canGive(a, { "GrandOpeningCue" }, true, NOW) == "NotOwned", "can't give")
+		for _, row in Trade.offerable(a, true, NOW) do
+			H.expect(row.item ~= "GrandOpeningCue", "not offered")
+		end
+		local ok = Trade.swap(a, b, { "GrandOpeningCue" }, { "NeonCue" }, true, NOW)
+		H.expect(not ok and Inventory.isOwnerCopy(a, "GrandOpeningCue"), "kept")
+	end,
+
 	["the history and applied ids, capped"] = function()
 		local Trade, _, _, Config = load()
 		local save = newSave()

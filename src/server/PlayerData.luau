@@ -1805,6 +1805,27 @@ function PlayerData.sellDuplicates(
 end
 
 --- Equips an owned cue (Classic always). False when not owned (quietly).
+--- Gives the designer their own unnumbered copy of a Unique cue (Inventory.addOwnerCopy; the
+--- designer's /givecue). Only the accounts in Config.Debug.Commands.UserIds, checked here too.
+--- False when not loaded, not the designer, not a Unique cue or already owned.
+function PlayerData.giveOwnerCopy(player: Player, cueId: string): boolean
+	local op = "giveOwnerCopy"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif table.find(Config.Debug.Commands.UserIds, player.UserId) == nil then
+		return refuse(op, player, "not the designer")
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	if not Inventory.addOwnerCopy(data, cueId) then
+		return false
+	end
+	commit(player, data, op)
+	return true
+end
+
 function PlayerData.equipCue(player: Player, cueId: string): boolean
 	local op = "equipCue"
 	if not isPlayer(player) then
@@ -2568,6 +2589,7 @@ function PlayerData.clearInventory(player: Player): boolean
 	local inventory = data.Inventory
 	inventory.Cues = {}
 	inventory.Unique = {}
+	inventory.OwnerUnique = {}
 	inventory.New = {}
 	data.LuckyBlocks.List = {}
 	data.Equipped.Cue = Catalog.Default

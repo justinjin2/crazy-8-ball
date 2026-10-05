@@ -159,6 +159,9 @@ local function holding(save: any, item: string, now: number): (number, number)
 		end
 		return have, free
 	elseif kind == "Cue" then
+		if Inventory.isOwnerCopy(save, id) then
+			return 0, 0 -- the designer's unnumbered copy never leaves their save
+		end
 		local have = Inventory.count(save, id)
 		return have, have - Inventory.paidCount(save, id)
 	end

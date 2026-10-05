@@ -2449,3 +2449,8 @@ timer of a new block stay the designer's call.
   owing the call for the 8 goes straight to PocketChoice: the 2 s Intro held the pocket rings
   back while the top-down view and the prompt were already up (every return to the table after
   missing the 8).
+- **2026-10-05 — The designer's own Unique cues: unnumbered owner copies.** `/givecue` gives a
+  Unique cue (Beta, Grand Opening, Founder's...) to the designer's own account only, as an owner
+  copy (`Inventory.OwnerUnique`): no copy number, never counted among the copies in existence,
+  never takes a Limited number or stock, never traded or sold. Given to anyone else it is
+  refused. The old "buy it on the Limited shelf" refusal is gone.

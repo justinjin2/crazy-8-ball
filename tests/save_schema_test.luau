@@ -480,7 +480,7 @@ return {
 		H.expect(size(t) == #FIELDS, "exactly the listed fields")
 		H.expect(t.Progress.RealMatches == 0 and t.Progress.Wins == 0, "no progress yet")
 		H.expect(size(t.Progress) == 2, "Progress has two counters")
-		local inventoryKeys = { "Cues", "PaidCues", "Unique", "PaidUnique", "New" }
+		local inventoryKeys = { "Cues", "PaidCues", "Unique", "PaidUnique", "OwnerUnique", "New" }
 		for _, key in inventoryKeys do
 			H.expect(type(t.Inventory[key]) == "table", "Inventory." .. key)
 			H.expect(next(t.Inventory[key]) == nil, "Inventory." .. key .. " starts empty")

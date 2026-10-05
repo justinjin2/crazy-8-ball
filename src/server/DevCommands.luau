@@ -630,16 +630,6 @@ local function giveCues(player: Player, ids: { string }, copies: number): { [str
 	return given
 end
 
--- Why a Unique cue cannot be given, and how to get one: its Robux product, else the shelf.
-local function uniqueHint(id: string): string
-	for _, row in Config.Shop.Limited do
-		if row.Cue == id and row.Product ~= nil then
-			return Dev.UniqueCueBuy:format(cueName(id), D.Buy, string.lower(row.Product))
-		end
-	end
-	return Dev.UniqueCue:format(cueName(id))
-end
-
 -- /givecue <id|name> [count]
 local function giveCue(player: Player, args: { string })
 	local words, countWord = splitCount(args)
@@ -657,7 +647,17 @@ local function giveCue(player: Player, args: { string })
 		tell(player, Dev.ClassicCue)
 		return
 	elseif cue.Group == "Unique" then
-		tell(player, uniqueHint(id))
+		-- The designer's own unnumbered copy (2026-10-05): never someone else's, never numbered,
+		-- counted or traded, so the numbered pool is untouched.
+		if not isDesigner(player.UserId) then
+			tell(player, Dev.UniqueOwnerOnly:format(cueName(id)))
+		elseif PlayerData.giveOwnerCopy(player, id) then
+			tell(player, Dev.GaveOwnerCopy:format(cueName(id)))
+		elseif PlayerData.read(player) == nil then
+			tell(player, Dev.NotLoaded)
+		else
+			tell(player, Dev.UniqueOwned:format(cueName(id)))
+		end
 		return
 	end
 	local given = giveCues(player, { id }, if cue.Group == "Exclusive" then 1 else count)
