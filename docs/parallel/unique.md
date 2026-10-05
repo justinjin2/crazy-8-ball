@@ -187,6 +187,11 @@ generic-runtime rule; the catalog rows stay untouched.
   was exported in the cue frame, 3.5 studs forward) and the engulfing aura gone while a shot
   is in flight at the owner's table, back between shots (`CarrierQuiet`, generic). Lint and
   the 986 tests green; checked in the lab. Waiting at gate 2 again.
+- 2026-10-04: gate 2, third look: the designer dropped the aura on the player altogether;
+  Eclipse's carrier piece and rows removed (the generic Carrier capability stays, now with a
+  head-height lift); the bright glow wraps the cue instead (a ForceField sheath with a Neon
+  core on the piece, sleeve sprites along the stick). Piece re-uploaded, template rebuilt in
+  the lane window, clip re-rendered. Waiting at gate 2.
 
 ## Decisions
 
@@ -297,6 +302,12 @@ generic-runtime rule; the catalog rows stay untouched.
 - `src/client/CueSkinLook.luau`: `carrierShown()` (AuraQuiet or CarrierQuiet hides the
   Carrier piece and the Carrier-host emitters, flagged `carrier` in `emitters`). Why: the same.
 - `tests/aura_quiet_test.luau`: two tests for the carrier rule.
+- `src/client/CuePiece.luau`: `CuePiece.new(id, root, parent, lift?)`: the whole piece raised
+  on its root, applied after each joint's pose. `src/client/CueSkinLook.luau`:
+  `carrierLift()` (the carrying body's head top against `Config.CueSkins.Carrier.HeadTopStuds`)
+  lifts the Carrier piece and Carrier hosts. Why: the designer, 2026-10-04: a piece over the
+  head must follow a tall or short avatar's head. (No cue uses a Carrier piece now; Eclipse's
+  was dropped the same day.)
 
 ## Requests
 

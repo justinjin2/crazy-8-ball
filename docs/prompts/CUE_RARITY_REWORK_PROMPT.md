@@ -238,6 +238,16 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   `CarrierQuiet` attribute, `CueSkinLook.carrierShown` hides the Carrier piece and the
   Carrier-host emitters (tested in Lune, 986 tests; toggled in the lab). Captures
   `eclipse-studio-{back,top,shot-hidden}.jpg`; the clip re-rendered.
+- 2026-10-04 (gate 2, third look): the designer dropped the aura on the player: the
+  carrier piece and its rows are gone from Eclipse (the generic Carrier capability stays
+  for a later cue, now with `Config.CueSkins.Carrier.HeadTopStuds`: a Carrier piece and its
+  hosts lift to the carrying body's own head, so a tall or short avatar wears them at its
+  head). The bright glow wraps the cue instead: a ForceField capsule with a see-through Neon
+  core on the piece (`Sheath`, `SheathCore`, breathing and turning) and three sleeve sprite
+  rows locked along the whole stick (`SunSleeve`, `SunSleeveCore`, `SunSleeveCorona`).
+  Budget about 101 particles a second. Piece re-uploaded, the template rebuilt in the lane
+  window; captures `eclipse-studio-{back,stand,far}.jpg` (the carrier captures removed);
+  the clip re-rendered.
 
 ## Decisions
 
@@ -266,3 +276,10 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   generic rule for every Carrier aura: hidden while the table's phase is a shot in flight
   (`Config.CueSkins.Carrier.ShotPhases`), and while the stick is AuraQuiet (the owner is
   the shooter, or it is your own turn), shown otherwise.
+- 2026-10-04 (designer, Eclipse gate 2, second look): first "get rid of the glowing rings
+  round the player and the rocks, keep only the eclipse over the head", and asked whether
+  the eclipse's height follows the character's head (it was fixed 3.6 studs over the hips;
+  it now lifts to the body's head). Then, minutes later: drop the eclipse over the head too,
+  and move the glowing ring onto the cue so the cue itself has a very bright shining aura
+  that masks and wraps it, not a ring moved down. Built as the sheath and sleeve above. The
+  newer request beats the older: Eclipse no longer has anything on the player.

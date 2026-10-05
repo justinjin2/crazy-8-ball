@@ -4467,6 +4467,11 @@ Config.CueSkins = {
 	-- (It also goes while the stick is AuraQuiet: the owner shooting, or your own turn.)
 	Carrier = {
 		ShotPhases = { "Resolving", "Frozen", "Rewinding" },
+		-- A Carrier piece and its hosts are modelled for the default R15 body, whose head top
+		-- is this far above the HumanoidRootPart; the look lifts them by the difference to the
+		-- carrying body's own head top, so a tall or short avatar wears them at its head
+		-- (designer, 2026-10-04). (measured in Studio)
+		HeadTopStuds = 2.1,
 	},
 	-- Every cue with an aura also wears a thin, faint outline of its colour (a Highlight on
 	-- the stick), so it stands out on the bright lobby (designer, 2026-10-01; made much

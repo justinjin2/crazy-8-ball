@@ -331,7 +331,7 @@ function CueSkinLook.refresh(self: Look)
 	end
 	local carrierRoot = self:carrierRoot()
 	if row.Carrier and carrierRoot and self.opts.aura then
-		self.carrierPiece = CuePiece.new(row.Carrier, carrierRoot, folder)
+		self.carrierPiece = CuePiece.new(row.Carrier, carrierRoot, folder, self:carrierLift())
 	end
 	local moving = row.Moving or {}
 	for _, b in moving.Beams or {} do
@@ -448,6 +448,20 @@ function CueSkinLook.buildSurface(self: Look, row: any)
 	end
 end
 
+--- How far up the carrying body's head top sits from where the Carrier piece and hosts were
+--- modelled (Config.CueSkins.Carrier.HeadTopStuds above the root): a tall avatar wears them
+--- higher, a short one lower. 0 with no carrier or no Head.
+function CueSkinLook.carrierLift(self: Look): number
+	local root = self:carrierRoot()
+	local character = if root then root.Parent else nil
+	local head = if character then character:FindFirstChild("Head") else nil
+	if root == nil or head == nil or not head:IsA("BasePart") then
+		return 0
+	end
+	local top = root.CFrame:PointToObjectSpace(head.Position).Y + head.Size.Y / 2
+	return top - C.Carrier.HeadTopStuds
+end
+
 --- The carrying character's root part (a stick on a back with its Carrier value set), else nil.
 function CueSkinLook.carrierRoot(self: Look): BasePart?
 	local v = self.stick:FindFirstChild(CARRIER_VALUE)
@@ -476,7 +490,7 @@ function CueSkinLook.host(self: Look, row: any): (Instance?, string)
 		local o = h.Offset or { 0, 0, 0 }
 		local part = hostPart(row.Name or "Carrier", Vector3.new(size[1], size[2], size[3]))
 		part.Parent = folder
-		weldTo(part, root, CFrame.new(o[1], o[2], o[3]))
+		weldTo(part, root, CFrame.new(o[1], o[2] + self:carrierLift(), o[3]))
 		table.insert(self.built, part)
 		return part, "part"
 	elseif kind == "Part" then

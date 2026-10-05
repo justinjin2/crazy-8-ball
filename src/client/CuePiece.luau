@@ -80,6 +80,7 @@ export type CuePiece = typeof(setmetatable(
 		low: boolean, -- Lower effects is on
 		qualityConnection: RBXScriptConnection?,
 		scale: number,
+		lift: CFrame, -- the whole piece raised on its root (a Carrier piece to the body's head)
 		fade: number,
 		pose: { [string]: Motion.Xf },
 	},
@@ -216,7 +217,8 @@ end
 
 --- Build piece `id` welded to `root` (its frame: the cue mesh for a cue piece, the pocket
 --- root for a pocket piece), in `parent`. Nil when the row or the template is missing.
-function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
+--- `lift`: studs the whole piece is raised on its root (a Carrier piece lifted to the body's head).
+function CuePiece.new(id: string, root: BasePart, parent: Instance, lift: number?): CuePiece?
 	local row = CueSkins.piece(id)
 	local source = template(id)
 	if row == nil or source == nil then
@@ -325,6 +327,7 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance): CuePiece?
 		low = Quality.isLow(),
 		qualityConnection = nil :: RBXScriptConnection?,
 		scale = 1,
+		lift = CFrame.new(0, lift or 0, 0),
 		fade = 0,
 		pose = {},
 	}, CuePiece)
@@ -367,7 +370,7 @@ function CuePiece.ride(self: CuePiece, part: BasePart, joint: string, rest: CFra
 	weld.Parent = part
 	table.insert(self.riders, { part = part, weld = weld, joint = joint, rest = rest })
 	local x = self.pose[joint]
-	weld.C0 = (if x then cframe(x, self.scale) else CFrame.identity) * rest
+	weld.C0 = self.lift * (if x then cframe(x, self.scale) else CFrame.identity) * rest
 end
 
 --- Whether a joint (or one of its parents) is aura.
@@ -461,7 +464,7 @@ function CuePiece.step(self: CuePiece, t: number)
 		if not self:hidden(r.joint) then
 			local x = pose[r.joint]
 			local offset = if s == 1 then r.offset else CFrame.new(r.offset.Position * s) * FLIP
-			r.weld.C0 = (if x then cframe(x, s) else CFrame.identity) * offset
+			r.weld.C0 = self.lift * (if x then cframe(x, s) else CFrame.identity) * offset
 		end
 		if #r.visuals > 0 then
 			applyVisuals(r, t, self.fade)
@@ -469,7 +472,7 @@ function CuePiece.step(self: CuePiece, t: number)
 	end
 	for _, r in self.riders do
 		local x = pose[r.joint]
-		r.weld.C0 = (if x then cframe(x, s) else CFrame.identity) * r.rest
+		r.weld.C0 = self.lift * (if x then cframe(x, s) else CFrame.identity) * r.rest
 	end
 	for _, ty in self.typers do
 		if not ty.hidden then

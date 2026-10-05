@@ -2,8 +2,48 @@
   "id": "eclipse",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 50888,
+  "Triangles": 51784,
   "Parts": [
+    {
+      "Material": "ForceField",
+      "Color": "#FFC830",
+      "Transparency": 0.25,
+      "Reflectance": 0.0,
+      "Name": "Sheath_Sheath",
+      "File": "pieces/eclipse/Sheath_Sheath.obj",
+      "Joint": "Sheath",
+      "Offset": [
+        0.0,
+        0.0,
+        -0.05
+      ],
+      "Size": [
+        0.92,
+        0.92,
+        7.3
+      ],
+      "Triangles": 448
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFE070",
+      "Transparency": 0.72,
+      "Reflectance": 0.0,
+      "Name": "SheathCore_SheathCore",
+      "File": "pieces/eclipse/SheathCore_SheathCore.obj",
+      "Joint": "SheathCore",
+      "Offset": [
+        0.0,
+        0.0,
+        -0.05
+      ],
+      "Size": [
+        0.6,
+        0.6,
+        7.3
+      ],
+      "Triangles": 448
+    },
     {
       "Material": "SmoothPlastic",
       "Color": "#0B0B0D",
@@ -926,6 +966,74 @@
     }
   ],
   "Joints": {
+    "Sheath": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 18.0
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.15,
+          "Max": 0.55,
+          "Period": 3.4,
+          "Shape": "sine"
+        }
+      ]
+    },
+    "SheathCore": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -26.0
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.55,
+          "Max": 0.85,
+          "Period": 2.6,
+          "Shape": "sine"
+        }
+      ]
+    },
     "Mount": {
       "Parent": null,
       "Pivot": [

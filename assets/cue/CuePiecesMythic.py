@@ -1154,8 +1154,25 @@ def eclipse(k):
     k.material('Void', 'Neon', '#000000')          # unlit flat black: a hole in space, not a ball (designer, 2026-10-04)
     k.material('Flare', 'Neon', '#FFE070')
     k.material('Moon', 'SmoothPlastic', '#B9BEC6', Reflectance=0.12)
+    k.material('Sheath', 'ForceField', '#FFC830', Transparency=0.25)
+    k.material('SheathCore', 'Neon', '#FFE070', Transparency=0.72)
 
     U0 = 7.0
+
+    # The blazing sheath (designer, 2026-10-04, gate 2: the bright glow that sat over the
+    # carrying player's head now wraps the cue itself): a ForceField capsule round the whole
+    # stick, tip to butt, with a see-through Neon core inside it, both breathing and turning so
+    # the shimmer moves; the skin's sleeve sprites ride the same length. Aura joints: gone in
+    # the hands and while quiet.
+    for nm, mat, rr, rate, lo, hi, period in (('Sheath', 'Sheath', 0.46, 18.0, 0.15, 0.55, 3.4),
+                                               ('SheathCore', 'SheathCore', 0.3, -26.0, 0.55, 0.85, 2.6)):
+        k.joint(nm, pivot=(0, -3.5, 0), aura=True,
+                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate}],
+                visual=[{'Kind': 'Glow', 'Min': lo, 'Max': hi, 'Period': period, 'Shape': 'sine'}])
+        prof = [(-0.1, 0.0), (0.0, rr * 0.55), (0.12, rr * 0.85), (0.3, rr), (6.7, rr), (6.95, rr * 0.85), (7.1, rr * 0.55), (7.2, 0.0)]
+        bm = bmesh.new()
+        sweep(bm, [(0, -u, 0) for u, _ in prof], [max(r, 0.004) for _, r in prof], segs=28)
+        k.add(nm, k.mesh_object('Eclipse' + nm, bm, [mat]))
     RS, UC = 0.36, 0.56                         # the sphere's radius and centre past the butt (0.28 until the
                                                 # 2026-09-30 space rework: a bigger, bolder eclipse)
 
@@ -1350,116 +1367,3 @@ def eclipse(k):
               [tube] * 65, segs=segs, cap=False)
         bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
         k.add('Shadow', k.mesh_object('EclipseShadow' + mat, bm, [mat]))
-
-
-@piece
-def eclipse_carrier(k):
-    """The Eclipse's engulfing aura round the player carrying it (designer, 2026-10-04: a
-    Secret's aura is noticeably bigger than every other cue's, round the cue and the player).
-    Built on the character's root (CueSkinLook's Carrier piece; the kit frame maps to the
-    character's as kit x -> right, kit z -> up, kit -y -> behind): a black sun with a glowing
-    corona and two flare rings floating over the head, two gold orbit rings round the body at a
-    tilt carrying planets, and an asteroid belt tumbling round the waist. Every joint is aura:
-    hidden while the cue is quiet (a match) or in the hands."""
-    import bmesh
-    import random
-    from mathutils import Vector, Matrix
-    bpy = k.bpy
-    k.frame = 'carrier'   # on the character's root, not the cue: no 3.5-stud tip shift
-    k.material('Void', 'Neon', '#000000')          # unlit flat black: a hole in the sky
-    k.material('Flare', 'Neon', '#FFF0A0')
-    k.material('OrbitLine', 'Neon', '#FFE070')
-    k.material('OrbitGlow', 'ForceField', '#FFC830')
-    k.material('BeadGlow', 'ForceField', '#FFB300')
-    k.material('Rock', 'SmoothPlastic', '#2B2622', Reflectance=0.05)
-    planets = [('#FFE6A0', 0.14), ('#FF7A3A', 0.18), ('#9FD8FF', 0.13)]
-    for n, (col, _) in enumerate(planets, 1):
-        k.material('Planet%d' % n, 'Neon', col)
-
-    # the black sun over the head: root at the hips, the head top about 2.3 studs up
-    S = Vector((0, -0.4, 3.6))
-    RS = 0.8
-    k.joint('Sun', pivot=tuple(S), aura=True, motion=[{'Kind': 'Bob', 'Dir': (0, 0, 1), 'Amp': 0.08, 'Period': 4.2}])
-    bm = bmesh.new()
-    bmesh.ops.create_uvsphere(bm, u_segments=48, v_segments=24, radius=RS, matrix=Matrix.Translation(S))
-    k.add('Sun', k.mesh_object('CarrierSun', bm, ['Void']))
-    k.material('CoronaSpike', 'Neon', '#FFF0A0')
-    for n, (tilt, rate, count, length) in enumerate(((15, 22.0, 26, 0.42), (-75, -17.0, 20, 0.3)), 1):
-        nm = 'SunFlare%d' % n
-        k.joint(nm, pivot=tuple(S), parent='Sun', aura=True, motion=[{'Kind': 'Spin', 'Axis': (0.2, 0.3, 1), 'Rate': rate}],
-                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.6, 'Period': 2.8, 'Shape': 'sine', 'Phase': 90 * n}])
-        R = Matrix.Rotation(math.radians(tilt), 3, 'X')
-        rr = RS + 0.06
-        bm = bmesh.new()
-        sweep(bm, [S + R @ Vector((rr * math.cos(2 * math.pi * i / 80), rr * math.sin(2 * math.pi * i / 80), 0)) for i in range(81)],
-              [0.02] * 81, segs=8, cap=False)
-        k.add(nm, k.mesh_object('Carrier' + nm, bm, ['Flare']))
-        bm = bmesh.new()
-        for i in range(count):
-            ang = 2 * math.pi * i / count
-            out = R @ Vector((math.cos(ang), math.sin(ang), 0))
-            ln = length * (0.6 + 0.4 * math.sin(3.1 * i + n))
-            sweep(bm, [S + out * (rr + 0.02 + ln * j / 4) for j in range(5)], [0.05, 0.04, 0.028, 0.015, 0.004], segs=6)
-        k.add(nm, k.mesh_object('CarrierSpikes%d' % n, bm, ['CoronaSpike']))
-
-    # two orbit rings round the body, tilted, precessing round the up axis, each with a planet
-    orbits = [(2.4, 18, 0, 9.0, 30.0, 0.9), (2.9, -24, 100, -7.0, -24.0, 0.3)]
-    for n, (rr, tilt, yaw, prec, run, z0) in enumerate(orbits, 1):
-        c = Vector((0, 0, z0))
-        nrm = (Matrix.Rotation(math.radians(yaw), 3, 'Z') @ Matrix.Rotation(math.radians(tilt), 3, 'X')
-               @ Vector((0, 0, 1))).normalized()
-        u = nrm.orthogonal().normalized()
-        w = nrm.cross(u)
-        ring = [c + (u * math.cos(2 * math.pi * i / 128) + w * math.sin(2 * math.pi * i / 128)) * rr for i in range(129)]
-        orb_j, bead_j = 'Orbit%d' % n, 'Planet%d' % n
-        k.joint(orb_j, pivot=tuple(c), aura=True, motion=[{'Kind': 'Spin', 'Axis': (0, 0, 1), 'Rate': prec, 'Phase': yaw}],
-                visual=[{'Kind': 'Glow', 'Min': 0.2, 'Max': 0.8, 'Period': 3.0 + 0.6 * n, 'Shape': 'sine', 'Phase': 70 * n}])
-        for mat, tube, segs in (('OrbitLine', 0.045, 8), ('OrbitGlow', 0.11, 10)):
-            bm = bmesh.new()
-            sweep(bm, ring, [tube] * len(ring), segs=segs, cap=False)
-            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
-            k.add(orb_j, k.mesh_object('Carrier%s%d' % (mat, n), bm, [mat]))
-        k.joint(bead_j, pivot=tuple(c), parent=orb_j, aura=True, motion=[{'Kind': 'Spin', 'Axis': tuple(nrm), 'Rate': run}])
-        p0 = ring[0]
-        pr = planets[n - 1][1]
-        for mat, r_ in (('Planet%d' % n, pr), ('BeadGlow', pr * 1.6)):
-            bm = bmesh.new()
-            bmesh.ops.create_uvsphere(bm, u_segments=24, v_segments=12, radius=r_, matrix=Matrix.Translation(p0))
-            k.add(bead_j, k.mesh_object('Carrier%s%d' % (mat, n), bm, [mat]))
-        if n == 2:
-            Rr = Matrix.Rotation(math.radians(35), 3, 'X')
-            bm = bmesh.new()
-            sweep(bm, [p0 + Rr @ Vector((pr * 1.9 * math.cos(2 * math.pi * i / 48), pr * 1.9 * math.sin(2 * math.pi * i / 48), 0))
-                       for i in range(49)], [0.014] * 49, segs=6, cap=False)
-            k.add(bead_j, k.mesh_object('CarrierPlanetRing%d' % n, bm, ['OrbitLine']))
-    # a third, small ice planet on its own slow orbit
-    c = Vector((0, 0, 1.6))
-    k.joint('Orbit3', pivot=tuple(c), aura=True, motion=[{'Kind': 'Spin', 'Axis': (0.15, 0, 1), 'Rate': 14.0}])
-    p0 = c + Vector((2.0, 0, 0))
-    for mat, r_ in (('Planet3', planets[2][1]), ('BeadGlow', planets[2][1] * 1.6)):
-        bm = bmesh.new()
-        bmesh.ops.create_uvsphere(bm, u_segments=20, v_segments=10, radius=r_, matrix=Matrix.Translation(p0))
-        k.add('Orbit3', k.mesh_object('Carrier%s3' % mat, bm, [mat]))
-
-    # the asteroid belt round the waist
-    rnd = random.Random(31)
-    for n in range(1, 11):
-        rr = rnd.uniform(2.2, 2.7)
-        ang = rnd.uniform(0, 360)
-        z = rnd.uniform(-0.3, 1.3)
-        c = Vector((rr * math.cos(math.radians(ang)), rr * math.sin(math.radians(ang)), z))
-        belt, rock = 'Belt%d' % n, 'Asteroid%d' % n
-        k.joint(belt, pivot=(0, 0, z), aura=True, motion=[
-            {'Kind': 'Spin', 'Axis': (0, 0, 1), 'Rate': rnd.uniform(8, 14) * (1 if n % 2 else -1)},
-            {'Kind': 'Bob', 'Dir': (0, 0, 1), 'Amp': 0.25, 'Period': rnd.uniform(3.5, 5.5), 'Phase': n * 37}])
-        k.joint(rock, pivot=tuple(c), parent=belt, aura=True, motion=[
-            {'Kind': 'Spin', 'Axis': (rnd.uniform(-1, 1), rnd.uniform(-1, 1), 1), 'Rate': rnd.uniform(30, 70)}])
-        bm = bmesh.new()
-        geom = bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
-        sz = rnd.uniform(0.12, 0.26)
-        stretch = Vector((rnd.uniform(0.8, 1.3), rnd.uniform(0.8, 1.4), rnd.uniform(0.6, 1.0)))
-        for v in geom['verts']:
-            d = v.co.normalized()
-            bump = 1 + 0.28 * math.sin(d.x * 5.1 + n) * math.sin(d.y * 4.3 + 2 * n) + 0.12 * math.sin(d.z * 9 + n)
-            v.co = c + Vector((d.x * stretch.x, d.y * stretch.y, d.z * stretch.z)) * sz * bump
-        k.add(rock, k.mesh_object('CarrierAsteroid%d' % n, bm, ['Rock'], smooth=False))

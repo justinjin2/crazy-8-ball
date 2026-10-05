@@ -5,9 +5,29 @@
 return {
 	Id = "eclipse",
 	Frame = "cue",
-	Rigid = "85666814722335",
+	Rigid = "126113204776439",
 	Models = {},
 	Parts = {
+		{
+			Material = "ForceField",
+			Color = "#FFC830",
+			Transparency = 0.25,
+			Reflectance = 0,
+			Name = "Sheath_Sheath",
+			Joint = "Sheath",
+			Offset = { 0, 0, -0.05 },
+			Size = { 0.92, 0.92, 7.3 },
+		},
+		{
+			Material = "Neon",
+			Color = "#FFE070",
+			Transparency = 0.72,
+			Reflectance = 0,
+			Name = "SheathCore_SheathCore",
+			Joint = "SheathCore",
+			Offset = { 0, 0, -0.05 },
+			Size = { 0.6, 0.6, 7.3 },
+		},
 		{
 			Material = "SmoothPlastic",
 			Color = "#0B0B0D",
@@ -470,6 +490,48 @@ return {
 		},
 	},
 	Joints = {
+		Sheath = {
+			Parent = nil,
+			PivotRoblox = { 0, 0, 0 },
+			Motion = {
+				{
+					Kind = "Spin",
+					Axis = { 0, 1, 0 },
+					Rate = 18,
+				},
+			},
+			Aura = true,
+			Visual = {
+				{
+					Kind = "Glow",
+					Min = 0.15,
+					Max = 0.55,
+					Period = 3.4,
+					Shape = "sine",
+				},
+			},
+		},
+		SheathCore = {
+			Parent = nil,
+			PivotRoblox = { 0, 0, 0 },
+			Motion = {
+				{
+					Kind = "Spin",
+					Axis = { 0, 1, 0 },
+					Rate = -26,
+				},
+			},
+			Aura = true,
+			Visual = {
+				{
+					Kind = "Glow",
+					Min = 0.55,
+					Max = 0.85,
+					Period = 2.6,
+					Shape = "sine",
+				},
+			},
+		},
 		Mount = {
 			Parent = nil,
 			PivotRoblox = { 0, 0, -3.5 },
