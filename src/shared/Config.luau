@@ -4165,16 +4165,16 @@ Config.Audio = {
 		ReelSettle = { Id = "rbxassetid://15675046931", Volume = 0.3 },
 		-- "Roblox_UI_Whoosh_03" (Roblox, 1.1 s): the longer build-up before a Mythic or Secret.
 		ReelBuild = { Id = "rbxassetid://15674975792", Volume = 0.35 },
-		-- TRIAL (designer, 2026-10-04): every rarity plays 4612378086 while the designer
-		-- tries it. To go back, restore the orchestral stings: RevealLow 126239656683349
+		-- TRIAL (designer, 2026-10-04): Common to Rare play 4612378086 ("reward_screen_reveal")
+		-- and, from 2026-10-05, Epic and up its bigger twin 4612378364 ("..._day5", 3.2 s). To go back, restore the orchestral stings: RevealLow 126239656683349
 		-- (0.3), RevealRare 101099108525458 (0.28), RevealEpic 101099108525458 (0.31),
 		-- RevealLegendary 83442240487773 (0.28), RevealMythic 83442240487773 (0.3);
 		-- assets/audio/luckyblocks/README.md.
 		RevealLow = { Id = "rbxassetid://4612378086", Volume = 0.3 },
 		RevealRare = { Id = "rbxassetid://4612378086", Volume = 0.3 },
-		RevealEpic = { Id = "rbxassetid://4612378086", Volume = 0.3 },
-		RevealLegendary = { Id = "rbxassetid://4612378086", Volume = 0.3 },
-		RevealMythic = { Id = "rbxassetid://4612378086", Volume = 0.3 },
+		RevealEpic = { Id = "rbxassetid://4612378364", Volume = 0.3 },
+		RevealLegendary = { Id = "rbxassetid://4612378364", Volume = 0.3 },
+		RevealMythic = { Id = "rbxassetid://4612378364", Volume = 0.3 },
 		-- "Riser_104" (the designer's file, trimmed to 1.5 s; peak at 0.45 s): the Rare pull
 		-- cutscene's build into its white flash (Config.Cutscenes.Rare).
 		RiserRare = { Id = "rbxassetid://97579914761531", Volume = 0.5 },
