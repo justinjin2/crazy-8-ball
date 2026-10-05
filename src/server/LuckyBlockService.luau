@@ -136,7 +136,10 @@ local function makeModel(kind: string, edge: number, anchored: boolean): Model?
 			d.CanQuery = false
 			d.Massless = true
 			-- Neutral base under the pack's Overlay colour maps, rather than importer grey.
-			d.Color = Color3.new(1, 1, 1)
+			-- A part-built block (the Lucky 8) keeps its own colours.
+			if d:FindFirstChildOfClass("SurfaceAppearance") then
+				d.Color = Color3.new(1, 1, 1)
+			end
 		elseif d:IsA("SurfaceAppearance") then
 			d.EmissiveStrength = (LuckyBlocks.kind(kind) :: LuckyBlocks.Kind).EmissiveStrength
 				or L.Look.EmissiveStrength

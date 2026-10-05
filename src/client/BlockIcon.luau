@@ -40,7 +40,7 @@ function BlockIcon.fallbackKey(kind: string): string
 	if key and icons[key] and icons[key] ~= "" then
 		return key
 	end
-	return "Case"
+	return B.FallbackDefault
 end
 local fallbackKey = BlockIcon.fallbackKey
 
@@ -119,8 +119,10 @@ function BlockIcon.new(parent: Instance, kind: string, still: boolean?): Icon
 	if source and source:IsA("Model") then
 		local model = source:Clone()
 		for _, d in model:GetDescendants() do
-			if d:IsA("BasePart") then
-				d.Color = Color3.new(1, 1, 1) -- the pack's grey base bleeds through its map
+			if d:IsA("BasePart") and d:FindFirstChildOfClass("SurfaceAppearance") then
+				-- The pack's grey base bleeds through its Overlay colour map (a part-built
+				-- block, the Lucky 8, keeps its own colours).
+				d.Color = Color3.new(1, 1, 1)
 			elseif d:IsA("SurfaceAppearance") then
 				d.EmissiveStrength = if row and row.EmissiveStrength
 					then row.EmissiveStrength
@@ -135,21 +137,26 @@ function BlockIcon.new(parent: Instance, kind: string, still: boolean?): Icon
 				d:Destroy()
 			end
 		end
-		local _, size = model:GetBoundingBox()
+		-- The block's box centred on the origin (the pivot may sit off its middle: wings, a
+		-- crown), the camera a little above, looking at the middle.
+		model:PivotTo(CFrame.identity)
+		local box, size = model:GetBoundingBox()
+		model:PivotTo(CFrame.new(-box.Position))
 		local edge = math.max(size.X, size.Y, size.Z)
-		model:PivotTo(CFrame.new(0, -edge / 2, 0))
 		model.Parent = viewport
 		icon.model = model
 		icon.base = model:GetPivot()
 		local distance = edge * U.IconDistance / (if row then row.IconScale or 1 else 1)
-		camera.CFrame = CFrame.lookAt(Vector3.new(0, edge * 0.55, distance), Vector3.new(0, 0, 0))
+		camera.CFrame =
+			CFrame.lookAt(Vector3.new(0, edge * U.IconAboveShare, distance), Vector3.zero)
+		-- Turns go round the box's middle (the origin), not the pivot.
 		if still then
-			model:PivotTo(icon.base * CFrame.Angles(0, math.rad(B.IconYawDegrees), 0))
+			model:PivotTo(CFrame.Angles(0, math.rad(B.IconYawDegrees), 0) * icon.base)
 		else
 			-- A slow turn (only while on screen).
 			icon.turn = UIAnim.loop(viewport, function(clock)
 				local angle = math.rad(clock * U.IconTurnDegreesPerSecond)
-				model:PivotTo(icon.base * CFrame.Angles(0, angle, 0))
+				model:PivotTo(CFrame.Angles(0, angle, 0) * icon.base)
 			end)
 		end
 	else

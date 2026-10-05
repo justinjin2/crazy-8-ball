@@ -251,7 +251,19 @@ local function step(t: Tracked, now: number)
 				* CFrame.new(0, -half, 0)
 		)
 	elseif phase == "Landed" then
-		model:PivotTo(target)
+		local row = LuckyBlocks.kind(model:GetAttribute("Kind"))
+		if row and row.Bob == true then
+			-- No animation of its own: it hovers and turns by code (Config.LuckyBlocks.Bob).
+			local B = L.Bob
+			local lift = B.HeightStuds * (0.5 + 0.5 * math.sin(elapsed * 2 * math.pi / B.Seconds))
+			model:PivotTo(
+				target
+					* CFrame.new(0, lift, 0)
+					* CFrame.Angles(0, math.rad(elapsed * B.TurnDegreesPerSecond), 0)
+			)
+		else
+			model:PivotTo(target)
+		end
 		playIdle(t)
 		if mine then
 			addPrompt(t)

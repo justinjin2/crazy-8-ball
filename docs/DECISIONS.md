@@ -2381,3 +2381,13 @@ timer of a new block stay the designer's call.
   are wide tiles; Roblox Plus says "+10% money and a tag" with a Get button. A block kind
   without a model shows its kit icon in the Shop, the hotbar and the bag; the Mythic block's
   icons carry a cycling pastel aura.
+- **2026-10-04 — Every block kind has its model; cases leave the player's view (designer).**
+  The Gold Majestic (Legendary), Gold Titan (Mythic, pastel colormap), Diamond Ghost (Sky,
+  baby-blue colormap), Mystery and Starter (the Standard block with their colormaps) and the
+  part-built Lucky 8 cube are in the place (`assets/luckyblocks/Readme.md`). Nothing shows a
+  case chest any more: a missing model shows the gift box, the thank-you burst shows the
+  block itself, and every player-facing "case" word now says lucky block ("Blocks" tabs,
+  "LUCKY BLOCKS" in the inventory, "2 Rare Lucky Blocks" in rewards). The old case reel code
+  stays behind the scenes until it is retired. In Studio the Grand Opening deal opens on
+  server start (`Config.Debug.StudioOpening`) so the Featured section is always there.
+

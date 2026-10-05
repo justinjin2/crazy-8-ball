@@ -563,6 +563,7 @@ local function restockSection(state: any, products: any, shop: any, _now: number
 		if kind == "Epic" or kind == "Legendary" then
 			spec.shine = true
 		end
+		-- (The Fallback map is for kinds whose model is missing; every slot kind has one.)
 		if item.vip == true and state.vip ~= true then
 			spec.locked = true
 			spec.lockLine = COPY.VipSlot

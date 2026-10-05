@@ -4007,6 +4007,11 @@
     "assetType": "Animation",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/GoldMajesticLuckyBlockIdle.rbxm": {
+    "assetId": "80469786057791",
+    "assetType": "Animation",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/LuckyHoldR15.rbxm": {
     "assetId": "97081574599269",
     "assetType": "Animation",
@@ -4027,10 +4032,35 @@
     "assetType": "Animation",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/lucky8_face.png": {
+    "assetId": "105497210308341",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/mystery_colormap.png": {
+    "assetId": "90293759365238",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/mythic_colormap.png": {
+    "assetId": "86015566073682",
+    "assetType": "Decal",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/neutral_mask.png": {
     "assetId": "72694723354109",
     "assetType": "Decal",
     "imageId": "104192408636466",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/sky_colormap.png": {
+    "assetId": "88635262488640",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/starter_colormap.png": {
+    "assetId": "133665179133564",
+    "assetType": "Decal",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/ui/art/aura_flame.png": {

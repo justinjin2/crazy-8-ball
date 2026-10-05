@@ -12,6 +12,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local GuiQA = require(script.Parent.GuiQA)
+local BlockIcon = require(script.Parent.BlockIcon)
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -76,8 +77,25 @@ function ShopThanks.play(key: string, words: string?, lineText: string?)
 	root.Size = UDim2.fromScale(1, 1)
 	local iconSize = span(T.IconPx)
 	local textSize = span(T.TextPx)
-	local iconKey = if key == "RobloxPlus" then "RobloxPlus" else (ICONS[key] or "CashStack")
-	local icon = HudParts.icon(root, iconKey, "Item")
+	-- A product that gives lucky blocks shows the block itself (turning), else its kit icon.
+	local products: { [string]: any } = Config.Products.List :: any
+	local row = products[key]
+	local blockKind: string? = nil
+	if type(row) == "table" then
+		if type(row.Blocks) == "table" and type(row.Blocks.Kind) == "string" then
+			blockKind = row.Blocks.Kind
+		elseif type(row.Restock) == "string" then
+			blockKind = row.Restock
+		end
+	end
+	local icon: GuiObject
+	if blockKind then
+		icon = HudParts.frame(root, "Item")
+		BlockIcon.new(icon, blockKind)
+	else
+		local iconKey = if key == "RobloxPlus" then "RobloxPlus" else (ICONS[key] or "CashStack")
+		icon = HudParts.icon(root, iconKey, "Item")
+	end
 	icon.AnchorPoint = Vector2.new(0.5, 0.5)
 	icon.Position = UDim2.fromScale(0.5, 0.36)
 	icon.Size = UDim2.fromOffset(iconSize, iconSize)

@@ -2114,9 +2114,10 @@ Config.LuckyBlocks = {
 			Case = "Legendary",
 			Timer = 24 * 3600,
 			Model = "GoldMajesticLuckyBlock", -- the winged gold block (designer, 2026-10-04)
+			Idle = "rbxassetid://80469786057791", -- the pack's Luckbox_Idle (uploaded 2026-10-04)
 			SizeMultiplier = 1.6, -- its wings widen the bounding box
 			HoldCenterShare = 0.4,
-			IconScale = 1.2,
+			IconScale = 2.1, -- the wings make the box 13.6 studs wide: close in on the body
 			EmissiveStrength = 0.2,
 			IconAmbient = 0.7,
 			IconLight = 1,
@@ -2125,9 +2126,10 @@ Config.LuckyBlocks = {
 			Case = "Mythic",
 			Timer = 48 * 3600,
 			Model = "GoldTitanLuckyBlock", -- reskinned pastel rainbow
+			Idle = "rbxassetid://80469786057791", -- the same Luckbox_Idle motion as Legendary
 			SizeMultiplier = 1.6,
 			HoldCenterShare = 0.4,
-			IconScale = 1.2,
+			IconScale = 2.4, -- its box is 21.8 studs wide (the wings): close in on the body
 			Rainbow = true, -- the client cycles its aura, light and particles through the rainbow
 			EmissiveStrength = 0.3,
 		},
@@ -2149,11 +2151,23 @@ Config.LuckyBlocks = {
 			IconLight = 1,
 		},
 		Lucky8 = { Case = "Rare", Timer = 0, Model = "Lucky8Block", Bob = true }, -- group + favorite
-		Sky = { Case = "Sky", Timer = 0, Model = "SkyLuckyBlock" }, -- Lucky Rain
+		-- Lucky Rain: Diamond Ghost recoloured baby blue, the same Luckbox_Idle motion.
+		Sky = {
+			Case = "Sky",
+			Timer = 0,
+			Model = "SkyLuckyBlock",
+			Idle = "rbxassetid://80469786057791",
+			SizeMultiplier = 1.4, -- its wings widen the box (12.7 studs)
+			HoldCenterShare = 0.4,
+			IconScale = 2, -- close in on the body
+		},
 		Starter = { Case = "Starter", Timer = 0, Model = "StarterLuckyBlock" }, -- the Starter Pack
 		Gift = { Case = "Rare", Timer = 12 * 3600, Model = "StarterLuckyBlock" }, -- the first leave
 	},
 	ModelFolder = "LuckyBlocks",
+	-- A kind with Bob = true (the part-built Lucky 8 block, which has no animation) hovers and
+	-- turns by code once it has landed: this high, this fast.
+	Bob = { HeightStuds = 0.35, Seconds = 2.4, TurnDegreesPerSecond = 30 },
 	SkipProduct = "LuckyBlockSkip", -- 19 Robux: one durable timer skip
 	PlacementGapStuds = 3.5, -- keep adjacent floor blocks and their prompts apart
 	PlacementAttempts = 24, -- nearby empty spots to try before asking the player to move
@@ -2272,6 +2286,7 @@ Config.LuckyBlocks = {
 		IconLight = 2, -- brighter directional key; retains the original texture colours
 		IconLightDirection = { -1, -2, -1.5 }, -- above and in front of the preview
 		IconDistance = 3.1, -- the icon camera's distance, in block edges
+		IconAboveShare = 0.3, -- the camera this far above the block's middle, in block edges
 		-- The Mythic block's aura on its icons (the shop's cards, the hotbar and the bag; a
 		-- kind with Rainbow = true): a soft glow behind the block cycling through pastels.
 		RainbowAura = {
@@ -7306,17 +7321,15 @@ Config.UI.Shop = {
 			WideMinPx = 540,
 			LockedColor = { 206, 214, 228 }, -- the VIP slot's grey card for non-VIPs
 			LockPx = { 44, 64 }, -- its padlock
-			-- A kit icon per block kind, shown until the block's 3D model is in the place.
+			-- A kit icon per block kind, shown only if the block's 3D model is missing from the
+			-- place (every kind has one since 2026-10-04). Never a case chest: cases are gone
+			-- (designer, 2026-10-04); a missing model shows the gift box.
 			Fallback = {
-				Mystery = "MysteryCase",
-				GrandOpening = "CaseLegendary",
 				Starter = "StarterPack",
 				Gift = "Gift",
-				Sky = "CaseRare",
-				Legendary = "CaseLegendary",
-				Mythic = "CaseLegendary",
 				Vip = "Vip", -- the VIP band's crown (never a model)
 			},
+			FallbackDefault = "Gift",
 			-- The Starter Pack and VIP bands (the designer's reference, 2026-10-04): two side
 			-- by side on a computer, stacked on a phone. The art at the left, the title, big
 			-- number and line beside it, then the odds pills (Starter) or the perk list (VIP),
@@ -7440,7 +7453,7 @@ Config.UI.Shop = {
 		DisplayOrderAbove = 40, -- over the menus and the case opening
 	},
 	-- A kit icon per product key for the thank-you burst (a key missing here shows the
-	-- money stack).
+	-- money stack; a product that gives lucky blocks shows the block itself instead).
 	ProductIcons = {
 		Vip = "Vip",
 		VipOffer = "Vip",
@@ -7448,11 +7461,6 @@ Config.UI.Shop = {
 		QuickCases = "FastOpen",
 		StarterPack = "StarterPack",
 		MoneyParty = "MoneyParty",
-		Mystery1 = "MysteryCase",
-		Mystery10 = "MysteryCase",
-		Mystery10Sale = "MysteryCase",
-		RestockEpic = "CaseEpic",
-		RestockLegendary = "CaseLegendary",
 		Pack1 = "Pack1",
 		Pack2 = "Pack2",
 		Pack3 = "Pack3",

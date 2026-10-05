@@ -23,6 +23,20 @@ here. Add a row for every new upload.
 | `anims/BoxIdle.rbxm` | `Idle_Box_Take 001` (2.46 s) | `rbxassetid://120822945598411` | `Anim.BlockIdle` (Standard, Uncommon, Rare, Epic) |
 | `anims/GoldKingLuckyBlockIdle.rbxm` | Gold King (2.46 s, different bone motion) | `rbxassetid://77259119233155` | Legendary |
 | `anims/LuckyHold/Throw R15/R6` | the arms | see `Config.LuckyBlocks.Anim` | every block |
+| `anims/GoldMajesticLuckyBlockIdle.rbxm` | `Luckbox_Idle` (3.29 s; Gold Majestic, Diamond Ghost and Gold Titan share it) | `rbxassetid://80469786057791` | Legendary, Sky, Mythic |
+
+## Uploaded images (2026-10-04, the shop v3 blocks)
+
+Decal id from the upload, image id resolved in Studio (`InsertService:LoadAsset(decal).Texture`);
+the image id is what `ColorMapContent` and a Decal's `Texture` take.
+
+| File | Decal | Image | Used by |
+| --- | --- | --- | --- |
+| `textures/sky_colormap.png` | 88635262488640 | `rbxassetid://73401949661572` | SkyLuckyBlock (Diamond Ghost recoloured) |
+| `textures/mythic_colormap.png` | 86015566073682 | `rbxassetid://95148605758635` | GoldTitanLuckyBlock (Mythic, pastel rainbow) |
+| `textures/mystery_colormap.png` | 90293759365238 | `rbxassetid://113001088890929` | MysteryLuckyBlock (the Standard block, black with rainbow rims) |
+| `textures/starter_colormap.png` | 133665179133564 | `rbxassetid://76868859886135` | StarterLuckyBlock (the Standard block, red with a gold tie; the Gift block too) |
+| `textures/lucky8_face.png` | 105497210308341 | `rbxassetid://140162075149185` | Lucky8Block's "8" face decals |
 
 The pack has 3 idle styles: 27 blocks use `Idle_Box`, 20 use `Idle_Winged` and 73 use
 `Luckbox_Idle`. Blocks with the same style name can still move differently, so trust the
@@ -123,3 +137,22 @@ Keep existing save kind IDs; names describe the odds tier. Designer-only join se
 include all five. Only Standard disables physical lights; particles stay intact. Preserve
 SurfaceAppearance.Color: Void Lava uses RGB 151/130/255 and Gold King uses 255/170/0.
 Gold King has lower configurable emissive/preview light to retain its gold surface detail.
+
+## The shop v3 blocks in the place (2026-10-04)
+
+`ReplicatedStorage.LuckyBlocks` holds eleven models (Edit-mode content: save the place and
+publish to ship them):
+
+| Model | Kind | How it was made |
+| --- | --- | --- |
+| YellowLuckyBlock, GreenLuckyBlock, BlueLuckyBlock, VoidLavaLuckyBlock, GoldKingLuckyBlock | Standard, Uncommon, Rare, Epic, GrandOpening | the test build's imports |
+| GoldMajesticLuckyBlock | Legendary | `models/GoldMajesticLuckyBlock.rbxm`, the pack's maps, white emissive mask |
+| GoldTitanLuckyBlock | Mythic | `models/GoldTitanLuckyBlock.rbxm` with `textures/mythic_colormap.png` as its ColorMap |
+| SkyLuckyBlock | Sky | `models/DiamondGhostLuckyBlock.rbxm` renamed, with `textures/sky_colormap.png` |
+| MysteryLuckyBlock | Mystery | a clone of YellowLuckyBlock with `textures/mystery_colormap.png` |
+| StarterLuckyBlock | Starter, Gift | a clone of YellowLuckyBlock with `textures/starter_colormap.png` (the Gift block uses it until it gets its own) |
+| Lucky8Block | Lucky8 | part-built: a black 4.66-stud cube, twelve silver rim parts, a white disc with the "8" decal on each face; no animation (`Config.LuckyBlocks.Bob` hovers and turns it by code) |
+
+The three winged pack blocks (Majestic, Titan, Ghost) have wide bounding boxes, so their kinds
+set `IconScale` about 2 to frame the body, and `SizeMultiplier` for the world.
+

@@ -1,6 +1,24 @@
 # Status
 
-**2026-10-04 (latest): shop GUI v3 built to the designer's references, phone-checked.**
+**2026-10-04 (latest): every block kind has its model in the place; cases are gone from view.**
+- `ReplicatedStorage.LuckyBlocks` now holds GoldMajestic (Legendary), GoldTitan (Mythic,
+  pastel map), Sky (baby-blue map), Mystery, Starter and the part-built Lucky 8 cube next to
+  the five originals (ids and sources in `assets/luckyblocks/Readme.md`). Icons frame the
+  model's box centre and keep a winged block's facing through `PivotOffset`; only parts with
+  a SurfaceAppearance are whitened, so the Lucky 8 stays black with its white "8" discs
+  (checked in the bag; the same change in `LuckyBlockService` is not yet seen in the world).
+  The Mythic icon has the rainbow aura; missing models fall back to kit icons. Every
+  player-facing "case" word says lucky block and no chest picture is used anywhere.
+- Seen in Studio on the computer-sized window: the Featured band with the Gold King hero and
+  the Mystery band with the real models in its odds rows; the bag with all nine kinds.
+  Console clean, lint clean, tests pass.
+- **The models are Edit-mode content: the designer saves the place to `place/8ball.rbxl`
+  and publishes.** Nothing else was started, per the designer's "stop there".
+- Next, only when the designer asks: card effects and detailing (slower build-in with the
+  fade, stronger shimmer/pop), the computer and controller passes of the shop, the gift
+  receipt test, developer products, `docs/ECONOMY.md`.
+
+**2026-10-04: shop GUI v3 built to the designer's references, phone-checked.**
 - On `release` (`c862285`, `bf6d4b8` and after): the Grand Opening band (dark festive fill,
   chase cards, "3 blocks · 129" buttons with the old price struck through, gold money
   buttons), the Mystery band (pale odds rows with small block pictures, boxed x1 / x10, the

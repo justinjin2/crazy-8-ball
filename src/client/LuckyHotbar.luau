@@ -94,8 +94,9 @@ local function makeIcon(parent: Instance, kind: string): Icon
 	if source and source:IsA("Model") then
 		local model = source:Clone()
 		for _, d in model:GetDescendants() do
-			if d:IsA("BasePart") then
-				-- The pack's grey base bleeds through its Overlay colour map.
+			if d:IsA("BasePart") and d:FindFirstChildOfClass("SurfaceAppearance") then
+				-- The pack's grey base bleeds through its Overlay colour map (a part-built
+				-- block, the Lucky 8, keeps its own colours).
 				d.Color = Color3.new(1, 1, 1)
 			elseif d:IsA("SurfaceAppearance") then
 				d.EmissiveStrength = if row and row.EmissiveStrength
@@ -111,14 +112,18 @@ local function makeIcon(parent: Instance, kind: string): Icon
 				d:Destroy()
 			end
 		end
-		local _, size = model:GetBoundingBox()
+		-- The block's box centred on the origin (its pivot may sit off the middle), the camera
+		-- a little above, looking at the middle (the same framing as BlockIcon).
+		model:PivotTo(CFrame.identity)
+		local box, size = model:GetBoundingBox()
+		model:PivotTo(CFrame.new(-box.Position))
 		local edge = math.max(size.X, size.Y, size.Z)
-		model:PivotTo(CFrame.new(0, -edge / 2, 0))
 		model.Parent = viewport
 		icon.model = model
 		icon.base = model:GetPivot()
 		local distance = edge * U.IconDistance / (if row then row.IconScale or 1 else 1)
-		camera.CFrame = CFrame.lookAt(Vector3.new(0, edge * 0.55, distance), Vector3.new(0, 0, 0))
+		camera.CFrame =
+			CFrame.lookAt(Vector3.new(0, edge * U.IconAboveShare, distance), Vector3.zero)
 	end
 	return icon
 end

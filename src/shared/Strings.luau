@@ -623,8 +623,8 @@ return {
 		},
 		-- The tabs under (or beside) each title.
 		Tabs = {
-			Shop = { Cases = "Cases", Limited = "Limited", Money = "Money", Vip = "VIP" },
-			Inventory = { Items = "Items", Cues = "Cues", Cases = "Cases", Index = "Index" },
+			Shop = { Cases = "Blocks", Limited = "Limited", Money = "Money", Vip = "VIP" },
+			Inventory = { Items = "Items", Cues = "Cues", Cases = "Blocks", Index = "Index" },
 			Rewards = { Daily = "Daily", Playtime = "Playtime", Codes = "Codes" },
 		},
 		Loading = "Loading...", -- a page whose contents have not arrived
@@ -654,9 +654,9 @@ return {
 			Teleporting = "You're on your way to a match.",
 			Error = "Something went wrong. Try again soon.",
 			NotSold = "That isn't for sale.",
-			Restricted = "Buying cases isn't available where you live.",
+			Restricted = "Buying lucky blocks isn't available where you live.",
 			NotEnoughMoney = "Not enough money.",
-			NoCases = "You don't have that case.",
+			NoCases = "You don't have that lucky block.",
 			NoFastOpen = "Open 10 needs Fast Open.",
 			NotOwned = "You don't own that cue.",
 			CantSell = "This cue can't be sold.",
@@ -669,7 +669,7 @@ return {
 			SoldOut = "Sold out!",
 			Owned = "You already own this.",
 			VipOnly = "This one is for VIPs.",
-			NoTimer = "That case is ready already.",
+			NoTimer = "That lucky block is ready already.",
 			Closed = "This offer isn't open right now.",
 			PartyFull = "The Money Party is already full for the next hour.",
 			ComingSoon = "Coming soon!",
@@ -710,7 +710,7 @@ return {
 			Owned = "x%d", -- on the chest: how many of that case you have
 			SaleOff = "%d%% OFF", -- a case on sale: "20% OFF"
 			SaleEnds = "Sale ends in %s",
-			Restricted = "Buying cases with money isn't available where you live. Cases you earn still open.",
+			Restricted = "Buying lucky blocks with money isn't available where you live. Blocks you earn still open.",
 			Bought = "Bought!", -- the dialog after buying a case
 			BoughtOne = "Your %s is in your hotbar.", -- the block's name
 			BoughtMany = "%s x%d added to your hotbar.", -- the block's name, how many
@@ -752,7 +752,7 @@ return {
 			VipMoney = "%sx money in matches", -- "2x money in matches"
 			VipCue = "The %s", -- "The VIP Cue"
 			VipName = "[VIP] chat tag and a gold name",
-			VipOdds = "Same case odds as everyone", -- VIP never changes case odds
+			VipOdds = "Same block odds as everyone", -- VIP never changes the blocks' odds
 			WelcomeOffer = "Welcome offer: %s", -- half-price VIP, its time left
 			WelcomeBack = "Welcome back offer: %s", -- the one comeback window
 			StarterPack = "Starter Pack",
@@ -844,11 +844,11 @@ return {
 			Lucky = "LUCKY!", -- the restock's lucky slot
 			VipOnly = "VIP ONLY",
 			MysteryCount = "x%d", -- "x10"
-			MysteryLine = "Any case can drop!",
-			MysteryMany = "%d Mystery Cases", -- the restock's lucky item: "3 Mystery Cases"
-			Pity = "Rare Case or better in %d", -- Case Drops until one is guaranteed
+			MysteryLine = "Any block can drop!",
+			MysteryMany = "%d Mystery Lucky Blocks", -- the restock's lucky item
+			Pity = "Rare block or better in %d", -- drops until one is guaranteed
 			NotHere = "Not available where you live",
-			QuickLine = "Case timers x0.5 · open all at once",
+			QuickLine = "Block timers x0.5 · open all at once",
 			PartyLineShort = "%s money for everyone in your server, %d min", -- the boost, the minutes
 			PlusLine = "+%d%% money and a tag", -- Roblox Plus (reference 15)
 			PlusButton = "Get",
@@ -878,11 +878,12 @@ return {
 				QuickCases = "Quick Cases",
 				StarterPack = "Starter Pack",
 				MoneyParty = "Money Party",
-				Mystery1 = "Mystery Case",
-				Mystery10 = "Mystery Cases",
-				Mystery10Sale = "Mystery Cases",
-				RestockEpic = "Epic Case",
-				RestockLegendary = "Legendary Case",
+				Mystery1 = "Mystery Lucky Block",
+				Mystery10 = "10 Mystery Lucky Blocks",
+				Mystery10Sale = "10 Mystery Lucky Blocks",
+				RestockRare = "Rare Lucky Block",
+				RestockEpic = "Epic Lucky Block",
+				RestockLegendary = "Legendary Lucky Block",
 				UltSlot2 = "ability slot",
 				UltSlot3 = "ability slot",
 			},
@@ -914,23 +915,23 @@ return {
 			Redeem = "Redeem",
 			Redeemed = "Code redeemed: %s", -- "Code redeemed: +$500 and a Standard Case"
 			NoCode = "Type a code first.",
-			CodeNote = "Codes give free money, cases and ability spins. Each code works once.",
+			CodeNote = "Codes give free money, lucky blocks and ability spins. Each code works once.",
 			-- A reward's words. A few cases: "2 Standard Cases"; one, in a sentence: "a Rare
 			-- Case" (a case missing here says CaseManyOther / its plain name).
 			CaseMany = {
-				Standard = "%d Standard Cases",
-				Rare = "%d Rare Cases",
-				Epic = "%d Epic Cases",
-				Legendary = "%d Legendary Cases",
-				Event = "%d Event Cases",
+				Standard = "%d Standard Lucky Blocks",
+				Rare = "%d Rare Lucky Blocks",
+				Epic = "%d Epic Lucky Blocks",
+				Legendary = "%d Legendary Lucky Blocks",
+				Event = "%d Event Lucky Blocks",
 			},
 			CaseManyOther = "%d x %s", -- the count, the case's name
 			CaseA = {
-				Standard = "a Standard Case",
-				Rare = "a Rare Case",
-				Epic = "an Epic Case",
-				Legendary = "a Legendary Case",
-				Event = "an Event Case",
+				Standard = "a Standard Lucky Block",
+				Rare = "a Rare Lucky Block",
+				Epic = "an Epic Lucky Block",
+				Legendary = "a Legendary Lucky Block",
+				Event = "an Event Lucky Block",
 			},
 			CaseCount = "x%d", -- on a case's picture: "x2"
 			-- A reward's ability spins (a reward's `spins` and `lucky`): in a sentence or a chip.
@@ -978,7 +979,7 @@ return {
 			SellDuplicates = "Sell duplicates: %s", -- this cue's extra copies
 			SellAll = "Sell all duplicates: %s", -- every cue's extra copies, top of the tab
 			NoDuplicates = "No duplicates",
-			Empty = "No cues yet. Open cases to find some!",
+			Empty = "No cues yet. Open lucky blocks to find some!",
 			-- The confirm dialogs (red sells, blue keeps).
 			SellYes = "Sell",
 			SellNo = "Keep",
@@ -993,11 +994,11 @@ return {
 			NothingToSell = "No duplicates to sell.",
 			EquippedNotice = "%s equipped!", -- the cue's name
 			-- The Cases tab.
-			CasesHint = "Open a case to win a cue!",
+			CasesHint = "Open a lucky block to win a cue!",
 			Open = "Open",
 			OpenMany = "Open %s", -- Fast Open: "Open 10"
 			BuyMore = "Buy more",
-			CasesEmpty = "No cases yet! Win matches or visit the Shop to get some.",
+			CasesEmpty = "No lucky blocks yet! Win matches or visit the Shop to get some.",
 			-- The Index tab.
 			Titles = "Titles",
 			Progress = "%s / %s", -- cues of the row ever owned: "5 / 7"
@@ -1009,7 +1010,7 @@ return {
 			NotFound = "Not found yet",
 			FindReward = "Find it for +%s", -- a cue not found yet: its finder's money ("$250")
 			-- The Items tab (GUI lane, 2026-10-03): cases on top, then cues.
-			CasesHeader = "CASES",
+			CasesHeader = "LUCKY BLOCKS",
 			CuesHeader = "CUES",
 			ReadyIn = "Ready in %s", -- a case on its timer: "Ready in 5:12:03"
 			SkippedReady = "Your %s is ready to open!", -- a money skip went through
@@ -1144,7 +1145,7 @@ return {
 			Legendary = "LEGENDARY",
 			Mythic = "MYTHIC",
 		},
-		ManyCases = "%s cases!", -- the end of a many-drop reveal
+		ManyCases = "%s lucky blocks!", -- the end of a many-drop reveal
 		ReadyIn = "Ready in %s", -- a case on its timer
 		Ready = "Ready to open!",
 		InInventory = "They are in your Inventory.",
@@ -1167,8 +1168,8 @@ return {
 		PlaytimeTitle = "THANKS FOR PLAYING!",
 		PlaytimeLine = "You earned this for playing %s minutes!",
 		Collect = "Collect",
-		Drop = "1 Case Drop",
-		Drops = "%s Case Drops",
+		Drop = "1 Lucky Block",
+		Drops = "%s Lucky Blocks",
 		Plus = "%s + %s", -- two parts of a reward ("$5,000 + 1 Case Drop")
 	},
 	-- The Free Reward page (FreeRewardMenu; GUI lane, D4).
