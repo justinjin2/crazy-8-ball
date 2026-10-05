@@ -6694,15 +6694,23 @@ Config.Lighting = {
 	-- but warm and cosy): at 4 degrees (ClockTime 6.4) it only grazed the roof, the shade's
 	-- light carried the scene and everything read lavender-grey. Its disc still sits in the
 	-- painted glow above the sea (Play capture).
-	-- Into the night the clock runs back from the sunset's 7.4 to 3: the sun sinks under the sea
-	-- and the moon rises over it, left of where the sun set (measured in Studio, 2026-10-05:
-	-- the moon 25 degrees up over the sea at 3).
+	-- Into the night the clock runs back from the sunset's 7.4 to 6.15, the sun just on the
+	-- horizon: Roblox dims the sky with the sun's height, and any lower it went pitch black
+	-- (designer, 2026-10-05: "not pitch black", a purple sky with the city still seen). At 6.15
+	-- the day sky dims to a deep blue with the stars out and the moon low behind the city. On
+	-- the way it dips to 6.0 (the sun on the horizon, both skies near dark) for the swap below,
+	-- then lifts a little into the night's purple.
 	SunPath = {
 		{ Blend = 0, GeographicLatitude = 45, ClockTime = 10 },
 		{ Blend = 0.5, GeographicLatitude = -30, ClockTime = 7.4 },
 		{ Blend = 1, GeographicLatitude = -30, ClockTime = 7.4 },
-		{ Blend = 2, GeographicLatitude = -30, ClockTime = 3 },
+		{ Blend = 1.9, GeographicLatitude = -30, ClockTime = 6 },
+		{ Blend = 2, GeographicLatitude = -30, ClockTime = 6.15 },
 	},
+	-- Between sunset and night the sky's images change from the sunset's to the night's (the
+	-- day's faces) at this blend, where the sun's dip has both skies near dark (at 6.3 the
+	-- bright magenta sunset popped to blue, Play 2026-10-05); SwapHaze hides the rest.
+	NightSkySwap = 1.9,
 	-- Day (Spec section 6): the sun high and front-right. Tuned in Studio (2026-09-26) until
 	-- the floor rendered near the art's measured #F1CDBD: Roblox's default noon light (a white
 	-- sun, a strong blue sky fill) washed every warm colour to grey. Then made brighter and
@@ -6898,11 +6906,12 @@ Config.Lighting = {
 		Islands = { Color = "#6A5088" }, -- violet silhouettes, as the art's (#673E6D)
 	},
 	-- Night (designer, 2026-10-05: a lighting test, so the cues' textures and auras stand out
-	-- against the dark). A moonlit roof: a dim cool moon (Roblox's sun light becomes the moon's
-	-- at night), a deep blue shade, the painted sky dimmed to black by Roblox with stars and a
-	-- moon over the sea. The tables stay easy to see: their lamps brighter than at sunset and
-	-- the warm glow under them stronger; the lanterns, windows and fire lit. Same keys as Day.
-	-- First values tuned by eye in Play (2026-10-05). (tune)
+	-- against the dark; then "not pitch black": a purple sky, the city still seen, its windows
+	-- lit yellow like a real skyline at night). The day's painted sky dimmed by the low sun
+	-- (SunPath) and tinted purple, with stars and the moon; a dim light, a deep blue shade. The
+	-- tables stay easy to see: their lamps brighter than at sunset and the warm glow under them
+	-- stronger; the lanterns, windows and fire lit. Same keys as Day. Tuned by eye in Play
+	-- (2026-10-05). (tune)
 	Night = {
 		Brightness = 0.4, -- the moon
 		ExposureCompensation = -0.3,
@@ -6917,17 +6926,18 @@ Config.Lighting = {
 			Offset = 0.2,
 			Haze = 0,
 			Glare = 0,
-			Color = "#1A2140",
-			Decay = "#0C1028",
+			Color = "#3A2A66", -- a violet night haze
+			Decay = "#20184A",
 		},
-		-- The sunset's faces, so nothing swaps: Roblox dims a skybox to near black at night.
+		-- The day's faces: dimmed by the low sun they read deep blue, the purple tint does the
+		-- rest (the sunset's dimmed to a muddy maroon).
 		Sky = {
-			SkyboxBk = "rbxassetid://110051239637159",
-			SkyboxDn = "rbxassetid://88040117694749",
-			SkyboxFt = "rbxassetid://96378244528009",
-			SkyboxLf = "rbxassetid://94840130578947",
-			SkyboxRt = "rbxassetid://76832687371860",
-			SkyboxUp = "rbxassetid://139224542954081",
+			SkyboxBk = "rbxassetid://136510513323451",
+			SkyboxDn = "rbxassetid://112654746925961",
+			SkyboxFt = "rbxassetid://98738080244894",
+			SkyboxLf = "rbxassetid://116034246180095",
+			SkyboxRt = "rbxassetid://129820624640544",
+			SkyboxUp = "rbxassetid://93123509257023",
 			SunAngularSize = 0,
 			MoonAngularSize = 11,
 			StarCount = 3000,
@@ -6944,7 +6954,7 @@ Config.Lighting = {
 			Brightness = 0,
 			Contrast = 0.15,
 			Saturation = 0.2,
-			TintColor = "#E0E8FF", -- a cool night tint
+			TintColor = "#D4B4FF", -- the purple night
 		},
 		-- Stronger than at sunset, so the auras' glow spreads in the dark; the same threshold, so
 		-- the balls and tables still do not bloom.
@@ -6966,7 +6976,8 @@ Config.Lighting = {
 		TableGlow = { EmissiveStrength = 1.2, EmissiveTint = "#EF9054" },
 		TableLights = { Brightness = 5 }, -- the lamps: the brightest light on the roof
 		Fire = { Intensity = 1 },
-		Windows = { EmissiveStrength = 1.4, EmissiveTint = "#FFD27A", Color = "#5A5A90" },
+		-- The city's lit windows bright yellow, a night skyline (1.4 barely showed at a distance).
+		Windows = { EmissiveStrength = 6, EmissiveTint = "#FFAA30", Color = "#6A6AA0" },
 		Islands = { Color = "#2A2448" }, -- near-black silhouettes
 	},
 }

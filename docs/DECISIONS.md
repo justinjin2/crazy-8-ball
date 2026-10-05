@@ -2530,3 +2530,11 @@ timer of a new block stay the designer's call.
   hidden by day and sunset (`SunAngularSize` 0; it still lights the roof). `/day`, `/sunset`
   and the new `/night` now hold the light there for the whole server (a minute's fade per
   step) instead of letting the cycle run on; the new `/cycle` fades back into the cycle.
+- 2026-10-05: Night is not pitch black (designer: a purple sky, the city still seen, its windows
+  lit yellow like a night skyline). The sun stops at the horizon (ClockTime 6.15) instead of
+  setting, since Roblox dims the sky to black any lower; the night shows the day's painted sky
+  dimmed to deep blue and tinted purple, with stars and the moon behind the city. The city's
+  windows glow at strength 6 in amber (`Config.Lighting.Night.Windows`). The sunset-to-night
+  sky swap happens at blend 1.9 where the sun dips to the horizon and both skies are dark
+  (`NightSkySwap`). Only the windows the emissive masks mark light up (about a third on the
+  mid skyline); every window lit would need a new mask image.

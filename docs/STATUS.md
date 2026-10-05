@@ -3,12 +3,14 @@
 **2026-10-05 (latest): a night in the day cycle and no sun disc (a lighting test, waiting on the
 designer's look).**
 - The cycle runs Day 10 min, Sunset 5 min, Night 5 min and a 30 s dawn, a minute's fade
-  between each (`Config.Lighting.Night`, `LightCycle`). At night the sky goes black with stars
-  and a moon over the sea, the roof is a deep blue, and the table lamps and the glow under the
-  tables are brighter so every game stays easy to see. The sun's disc is hidden for now.
+  between each (`Config.Lighting.Night`, `LightCycle`). At night the sky is a deep purple-blue
+  with stars and the moon behind the city (not pitch black, the designer's correction), the
+  city's windows glow yellow, and the table lamps and the glow under the tables are brighter
+  so every game stays easy to see. The sun's disc is hidden for now.
 - `/day`, `/sunset`, `/night` hold that light for the whole server; `/cycle` lets it run again.
-- Verified in Studio: `/night` faded day to night through the sunset in 2 minutes; the moon,
-  stars and lit tables shown; an equipped cue's aura reads far stronger than by day; `/cycle`
+- Verified in Studio: `/night` faded day to night through the sunset in 2 minutes; the purple
+  sky, the lit skyline, the moon, stars and lit tables shown; the sky swap at 1.9 between two
+  dark skies; an equipped cue's aura reads far stronger than by day; `/cycle`
   eased back; console clean, lint clean, 982 tests pass. Not checked by the tool: phone and
   gamepad (visual only, no new controls), how the night looks in a match close up.
 

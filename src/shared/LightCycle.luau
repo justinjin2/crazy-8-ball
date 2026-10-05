@@ -120,10 +120,12 @@ function LightCycle.sun(blend: number, path: { SunKey }): (number, number)
 	return last.GeographicLatitude, last.ClockTime
 end
 
---- The swap bump: 1 at each of SkySwaps, easing to 0 by Width either side of it.
+--- The swap bump: 1 at each of SkySwaps and at NightSkySwap, easing to 0 by Width either side.
 function LightCycle.swapBump(blend: number, lighting: any): number
 	local bump = 0
-	for _, at in lighting.SkySwaps do
+	local swaps = table.clone(lighting.SkySwaps)
+	table.insert(swaps, lighting.NightSkySwap)
+	for _, at in swaps do
 		local d = math.abs(blend - at) / lighting.SwapHaze.Width
 		if d < 1 then
 			bump = math.max(bump, ease(1 - d))
@@ -182,17 +184,31 @@ local function mix(
 	return out
 end
 
+-- Round a sky swap, thickens the Atmosphere and dims the sky's light on the scene (SwapHaze).
+local function swapHaze(out: { [string]: any }, blend: number, lighting: any)
+	local bump = LightCycle.swapBump(blend, lighting)
+	if bump > 0 then
+		local S = lighting.SwapHaze
+		out.Atmosphere.Density += S.Density * bump
+		out.Atmosphere.Haze += S.Haze * bump
+		out.EnvironmentDiffuseScale *= 1 - S.Environment * bump
+		out.EnvironmentSpecularScale *= 1 - S.Environment * bump
+	end
+end
+
 --- The whole light state at a blend (Config.Lighting's preset keys, plus the sun's
 --- GeographicLatitude and ClockTime from SunPath). From 1 to 2 it is Sunset mixed toward Night
---- (the sky's images and other non-numbers Night's from half way). From 0 to 1: half way,
+--- (the sky's images and other non-numbers Night's from NightSkySwap, in its haze). From 0 to
+--- 1: half way,
 --- DuskWarm warms it. The sky's images are Day's, DuskSky's or Sunset's (skyStage). Round each
 --- swap, where they change in one frame, SwapHaze thickens the Atmosphere and dims the sky's
 --- light on the scene so the change hides in a passing haze.
 function LightCycle.state(blend: number, lighting: any): { [string]: any }
 	if blend > 1 then
 		local w = math.min(blend, 2) - 1
-		local night = mix(lighting.Sunset, lighting.Night, w, w >= 0.5)
+		local night = mix(lighting.Sunset, lighting.Night, w, blend >= lighting.NightSkySwap)
 		night.GeographicLatitude, night.ClockTime = LightCycle.sun(blend, lighting.SunPath)
+		swapHaze(night, blend, lighting)
 		return night
 	end
 	local stage = LightCycle.skyStage(blend, lighting)
@@ -214,14 +230,7 @@ function LightCycle.state(blend: number, lighting: any): { [string]: any }
 			target[name] = LightCycle.mixHex(target[name], colour, w)
 		end
 	end
-	local bump = LightCycle.swapBump(blend, lighting)
-	if bump > 0 then
-		local S = lighting.SwapHaze
-		out.Atmosphere.Density += S.Density * bump
-		out.Atmosphere.Haze += S.Haze * bump
-		out.EnvironmentDiffuseScale *= 1 - S.Environment * bump
-		out.EnvironmentSpecularScale *= 1 - S.Environment * bump
-	end
+	swapHaze(out, blend, lighting)
 	return out
 end
 

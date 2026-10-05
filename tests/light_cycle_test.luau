@@ -160,14 +160,22 @@ return {
 		local s0, s2 = LC.state(0, L), LC.state(2, L)
 		H.near(s0.GeographicLatitude, first.GeographicLatitude, 1e-9, "the day sun")
 		H.near(s2.ClockTime, last.ClockTime, 1e-9, "the night's moon")
-		-- Half way to night: numbers half way, and the sky Night's (the same faces as sunset's).
+		-- Half way to night: numbers half way; the sky the sunset's until the night swap, late
+		-- in the fade, then Night's, the change hidden in the swap haze.
 		local mid = LC.state(1.5, L)
 		H.near(mid.Brightness, (L.Sunset.Brightness + L.Night.Brightness) / 2, 1e-9, "half way")
+		local swap = L.NightSkySwap
+		H.expect(swap > 1.5 and swap <= 2 - L.SwapHaze.Width, "a late swap, clear by the night")
 		for key, id in L.Night.Sky do
 			if key:match("^Skybox") then
-				H.expect(L.Sunset.Sky[key] == id, key .. ": night keeps the sunset's faces")
+				H.expect(
+					LC.state(swap - 1e-6, L).Sky[key] == L.Sunset.Sky[key],
+					key .. ": sunset's"
+				)
+				H.expect(LC.state(swap, L).Sky[key] == id, key .. ": Night's from the swap")
 			end
 		end
+		H.near(LC.swapBump(swap, L), 1, 1e-9, "the night swap's haze")
 	end,
 
 	["colours mix per channel and the sky's images change only at the swap"] = function()
