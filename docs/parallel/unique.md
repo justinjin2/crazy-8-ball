@@ -194,7 +194,8 @@ generic-runtime rule; the catalog rows stay untouched.
   the lane window, clip re-rendered. Waiting at gate 2.
 - 2026-10-04: gate 2, fourth look: the sheath hid the paint; now two thin gold wires spiral
   round the cue and the halo sprites draw behind it. The designer dropped sounds for good
-  (no imports, no placeholders): Eclipse's two removed. Waiting at gate 2.
+  (no imports, no placeholders): Eclipse's two removed. Gate 2 passed; the designer keeps
+  Eclipse's old trail and pocket finisher. On to the Celestial Dragon (board, gate 1).
 
 ## Decisions
 

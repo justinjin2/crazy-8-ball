@@ -203,7 +203,8 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   (2026-10-04). Still to do when first needed: the budget check in the generator, mesh
   variants.
 - [x] 2. Eclipse: board, gate 1 (passed 2026-10-04 at the third look).
-- [ ] 3. Eclipse: build, gate 2, polish, trail, pocket, sound, cards.
+- [x] 3. Eclipse: build, gate 2 (passed 2026-10-04 at the fourth look); the trail and pocket
+  finisher kept as they were (designer: they were fine); no sound; cards unchanged.
 - [ ] 4. Celestial Dragon: board, gate 1; build, gate 2, polish.
 - [ ] 5. Kitsune: board, gate 1; build, gate 2, polish.
 - [ ] 6. Apex: board, gate 1; build, gate 2, polish.
@@ -251,7 +252,8 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   Neon wires spiralling round the stick at 0.4 studs with beads, turning, and the three halo
   rows now sit on the cue axis and draw behind the cue (ZOffset -0.55 to -0.75), so only the
   glow round the edges shows. The two sound placeholders removed. Budget about 98 particles
-  a second. Piece re-uploaded, the template rebuilt, the clip re-rendered.
+  a second. Piece re-uploaded, the template rebuilt, the clip re-rendered. Gate 2 passed.
+- 2026-10-04: step 4 begun: the Celestial Dragon surveyed for its board.
 
 ## Decisions
 
@@ -294,3 +296,6 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 - 2026-10-04 (designer): no sound effects. The Eclipse placeholders are removed, and no cue
   gets a sound from now on: no library imports, no placeholders; the time goes into the
   models and effects. (Replaces the "placeholders now" answer of the same day.)
+- 2026-10-04 (designer, Eclipse gate 2, fourth look): passes ("yes, move on"). The old trail
+  and pocket finisher were fine: they stay as they are, no trail or pocket pass for Eclipse.
+  Next: the Celestial Dragon.
