@@ -2422,3 +2422,12 @@ timer of a new block stay the designer's call.
   its own `FoulSoundVolume`. The 3D ability effect sounds were left as tuned by ear in the
   abilities review. The lucky-block reel skip is one tap: the strip races on to the prize in
   `UI.Reel.SkipSeconds` (0.7 s) instead of jumping, replacing the two-stage skip.
+- **2026-10-05 — Pull cutscenes start black; Rare redone (designer, Sol's RNG style).** Every
+  Rare-or-better pull fades the whole screen to black the moment the reel stops
+  (`Cutscenes.Black.InSeconds` 0.35 s, over the reel's own glide and hold), then plays its
+  scene. Rare: 0.15 s more black, a soft blue glow swells from the middle to a full blue screen
+  (0.45 s) while a riser builds (`Audio.Ui.RiserRare`, the designer's file, peak lined up with
+  the flash), a white flash, and the card is under the white as it fades (0.35 s). The old
+  sky-streak Rare scene is gone; Rare is never skipped. Epic and up keep their old scenes,
+  lifting the black off as they begin, until each is redone. The reveal sting is still the
+  trial 4612378086 for every rarity.

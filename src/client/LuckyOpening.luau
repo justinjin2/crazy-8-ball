@@ -4,10 +4,12 @@
 -- grey-black (no white panel: the world shows through), the block's name sits over a Dark-look
 -- reel (BlockReel { look = "Dark" }: bordered tiles with each cue's name, rarity and chance)
 -- that slows onto the cue the server rolled. A Rare or better cue then plays its pull
--- cutscene (PullCutscene; moved here from the cases 2026-10-04, to be reworked) with the reel
--- hidden, and then the big "YOU GOT <CUE>!" card (LuckyResult) over the undimmed world with
--- rays in the rarity's colour. A tap, click or A skips the reel, then the cutscene (once it has
--- been seen), then closes the card; the cue is already in the inventory. The rest of the HUD
+-- cutscene (PullCutscene; moved here from the cases 2026-10-04, being redone): from the moment
+-- the reel stops (designer, 2026-10-05) everything fades to black over the reel's glide and
+-- hold, the reel's screens go once it is black, and the scene plays; then the big "YOU GOT
+-- <CUE>!" card (LuckyResult) over the dimmed world with rays in the rarity's colour. A tap,
+-- click or A skips the reel, then the cutscene (an old one, once it has been seen; never Rare),
+-- then closes the card; the cue is already in the inventory. The rest of the HUD
 -- hides while it is up. Tuning in Config.LuckyBlocks.UI; the reel's own in Config.UI.Reel.
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
@@ -220,6 +222,8 @@ function Opening.play(
 	)
 	reel:start(function()
 		self:afterReel()
+	end, function()
+		self:landed()
 	end)
 end
 
@@ -262,19 +266,14 @@ function Opening.layout(self: any)
 	self.hint.Text = hintFor("Reel")
 end
 
--- The reel has settled: a Rare or better cue plays its pull cutscene first (the reel's
--- screens hidden meanwhile), then the card.
-function Opening.afterReel(self: any)
-	if not self.open or self.phase ~= "Reel" then
-		return
-	end
-	if not PullCutscene.has(self.rarity) then
-		self:showCard()
+-- The reel has stopped on the prize: a Rare or better cue's pull cutscene starts now, fading
+-- everything to black over the reel's glide and hold (its screens go once it is black), then
+-- the card. Anything else waits for the reel to settle (afterReel).
+function Opening.landed(self: any)
+	if not self.open or self.phase ~= "Reel" or not PullCutscene.has(self.rarity) then
 		return
 	end
 	self.phase = "Scene"
-	self.gui.Enabled = false
-	self.backGui.Enabled = false
 	local ok = pcall(PullCutscene.play, self.rarity, self.cueId, function()
 		local phase: string = self.phase
 		if not self.open or phase ~= "Scene" then
@@ -283,12 +282,23 @@ function Opening.afterReel(self: any)
 		self.gui.Enabled = true
 		self.backGui.Enabled = true
 		self:showCard()
+	end, function()
+		self.gui.Enabled = false
+		self.backGui.Enabled = false
 	end)
 	if not ok then
 		self.gui.Enabled = true
 		self.backGui.Enabled = true
 		self:showCard()
 	end
+end
+
+-- The reel has settled and held: the card (a pull with a cutscene is already in it).
+function Opening.afterReel(self: any)
+	if not self.open or self.phase ~= "Reel" then
+		return
+	end
+	self:showCard()
 end
 
 function Opening.showCard(self: any)

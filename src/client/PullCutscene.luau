@@ -1,9 +1,14 @@
 --!strict
 -- PullCutscene: the rare-pull cutscenes (GUI lane; designer 2026-10-03, C11d, D16; moved from
--- the cases to the lucky blocks 2026-10-04, to be reworked). A lucky block's reel lands on a
--- Rare or better cue, then this plays before its YOU GOT card, each rarity bigger than the
--- last:
--- - Rare: blue streaks fly across the sky.
+-- the cases to the lucky blocks 2026-10-04, being redone one by one from 2026-10-05). A lucky
+-- block's reel lands on a Rare or better cue, then this plays before its YOU GOT card, each
+-- rarity bigger than the last. Every one starts the same way (designer, 2026-10-05, Sol's RNG
+-- style): the moment the reel stops, everything fades to black (the veil, a screen over all
+-- the others), and the rarity's scene plays from there.
+-- - Rare (redone 2026-10-05): a moment of black, a soft blue glow swells from the middle until
+--   the screen is blue while a riser builds, a white flash on its peak, and the card is there
+--   as the white fades. Never skipped: it is short.
+-- The ones below are the old scenes, still to be redone; they lift the black off as they begin.
 -- - Epic: purple streaks, then the screen goes black for a beat and bursts white.
 -- - Legendary: the world drains to grey, a golden beam drops from the sky onto the player, the
 --   camera swoops low round them, and it all lands in a gold burst.
@@ -27,6 +32,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -96,6 +102,11 @@ type Scene = {
 	root: Frame,
 	skip: TextButton,
 	hint: TextLabel,
+	veil: ScreenGui, -- over every other screen: the black, and a redone scene's own layers
+	veilRoot: Frame,
+	black: Frame,
+	white: Frame,
+	onBlack: (() -> ())?, -- runs once the screen is fully black
 	cc: ColorCorrectionEffect,
 	model: Model,
 	release: () -> (),
@@ -266,8 +277,41 @@ local function restore(s: Scene)
 	s.release()
 end
 
+-- The veil goes: at once (`instant`), or it fades off whatever is under it. Over a white flash
+-- only the white fades (the card is already there beneath it), over the scene's own flash
+-- length; otherwise everything still showing fades over Black.OutSeconds.
+local function releaseVeil(s: Scene, instant: boolean)
+	local veil = s.veil
+	if instant then
+		veil:Destroy()
+		return
+	end
+	local seconds = CS.Black.OutSeconds
+	if s.white.BackgroundTransparency <= 0 then
+		for _, child in s.veilRoot:GetChildren() do
+			if child ~= s.white and child:IsA("GuiObject") then
+				child.Visible = false
+			end
+		end
+		local spec = (CS :: any)[s.rarity]
+		seconds = if spec and spec.FlashOutSeconds then spec.FlashOutSeconds else seconds
+	end
+	local info = TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	for _, child in s.veilRoot:GetChildren() do
+		if child:IsA("ImageLabel") and child.Visible then
+			TweenService:Create(child, info, { ImageTransparency = 1 }):Play()
+		elseif child:IsA("Frame") and child.Visible then
+			TweenService:Create(child, info, { BackgroundTransparency = 1 }):Play()
+		end
+	end
+	task.delay(seconds, function()
+		veil:Destroy()
+	end)
+end
+
 -- The scene is over (played out, skipped or stopped): put everything back, then the card.
-local function finish(s: Scene)
+-- `instant` (a stop) drops the veil at once instead of fading it.
+local function finish(s: Scene, instant: boolean?)
 	if s.ended then
 		return
 	end
@@ -281,6 +325,11 @@ local function finish(s: Scene)
 	end)
 	if not ok then
 		warn("[8ball] PullCutscene restore: " .. tostring(err))
+	end
+	ok, err = pcall(releaseVeil, s, instant == true)
+	if not ok then
+		warn("[8ball] PullCutscene veil: " .. tostring(err))
+		s.veil:Destroy()
 	end
 	local done = s.done
 	s.done = nil
@@ -356,13 +405,63 @@ end
 -- Each rarity, as a function of the scene's clock
 --------------------------------------------------------------------------------------------
 
+-- A round soft glow on the veil, centred (the kit's SoftGlow image; a plain circle without it).
+local function makeGlow(s: Scene, name: string, colour: Color3, z: number): GuiObject
+	local art: string = Config.UI.Kit.Art.SoftGlow
+	local glow: GuiObject
+	if art ~= "" then
+		local image = Instance.new("ImageLabel")
+		image.Image = art
+		image.ImageColor3 = colour
+		image.BackgroundTransparency = 1
+		glow = image
+	else
+		local circle = Instance.new("Frame")
+		circle.BackgroundColor3 = colour
+		circle.BorderSizePixel = 0
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0.5, 0)
+		corner.Parent = circle
+		glow = circle
+	end
+	glow.Name = name
+	glow.AnchorPoint = Vector2.new(0.5, 0.5)
+	glow.Position = UDim2.fromScale(0.5, 0.5)
+	glow.Size = UDim2.fromOffset(0, 0)
+	glow.ZIndex = z
+	glow.Visible = false
+	glow.Parent = s.veilRoot
+	return glow
+end
+
+-- Rare: held black, the blue glow swells from the middle (a flat blue filling in behind it)
+-- while the riser builds, then the white flash on its peak; the scene ends there and the card
+-- comes in under the white.
 local function stepRare(s: Scene, t: number)
 	local R = CS.Rare
-	if not s.parts.streaks then
-		makeStreaks(s, rgb(R.Tint))
+	local p = s.parts
+	if not p.glow then
+		p.fill = fullFrame(s.veilRoot, "Fill", rgb(R.Blue), 2)
+		p.glow = makeGlow(s, "Glow", rgb(R.Blue), 3)
+		p.core = makeGlow(s, "Core", rgb(R.Core), 4)
 	end
-	stepStreaks(s, t, 0, R.Seconds)
-	tint(s, rgb(R.Tint), R.TintShare * window(t, 0, R.Seconds, 0.3))
+	local flashAt = R.BlackSeconds + R.GlowSeconds
+	if not s.fired.riser and t >= flashAt - R.RiserPeakSeconds then
+		s.fired.riser = true
+		UISound.play("RiserRare")
+	end
+	local u = math.clamp((t - R.BlackSeconds) / R.GlowSeconds, 0, 1)
+	local screen = s.veilRoot.AbsoluteSize
+	local size = math.max(screen.X, screen.Y) * R.GlowEndScale * u ^ R.GlowEasePower
+	local glow: GuiObject, core: GuiObject = p.glow, p.core
+	glow.Visible = u > 0
+	core.Visible = u > 0
+	glow.Size = UDim2.fromOffset(size, size)
+	core.Size = UDim2.fromOffset(size * R.CoreShare, size * R.CoreShare)
+	local fill: Frame = p.fill
+	fill.BackgroundTransparency = 1
+		- smooth((u - R.FillFrom) / math.max(R.FillTo - R.FillFrom, 1e-3))
+	s.white.BackgroundTransparency = 1 - math.clamp((t - flashAt) / R.FlashInSeconds, 0, 1)
 end
 
 local function stepEpic(s: Scene, t: number)
@@ -752,6 +851,9 @@ local function stepSecret(s: Scene, t: number)
 	flash.BackgroundTransparency = 1 - 0.9 * window(t, X.RestoreAt, X.Seconds - X.RestoreAt, 0.05)
 end
 
+-- The redone scenes draw on the veil themselves; the rest lift the black off as they begin.
+local OWNS_VEIL: { [string]: boolean } = { Rare = true }
+
 local STEPS: { [string]: (Scene, number) -> () } = {
 	Rare = stepRare,
 	Epic = stepEpic,
@@ -789,13 +891,15 @@ end
 function PullCutscene.stop()
 	local s = scene
 	if s then
-		finish(s)
+		finish(s, true)
 	end
 end
 
---- Play the cutscene for a pull of `rarity` (`cueId` the server's prize); `done` runs once
---- when it is over (played out, skipped or stopped). A rarity without one calls `done` now.
-function PullCutscene.play(rarity: string, cueId: string, done: () -> ())
+--- Play the cutscene for a pull of `rarity` (`cueId` the server's prize), from the moment the
+--- reel stops: the fade to black first (`onBlack` runs once it is fully black), then the
+--- rarity's scene; `done` runs once when it is over (played out, skipped or stopped). A rarity
+--- without one calls `done` now.
+function PullCutscene.play(rarity: string, cueId: string, done: () -> (), onBlack: (() -> ())?)
 	local step = STEPS[rarity]
 	if not step or not PullCutscene.has(rarity) then
 		done()
@@ -827,7 +931,24 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> ())
 	skip.ZIndex = 10
 	skip.SelectionImageObject = ReelFx.noBox()
 	skip.Parent = root
-	local skippable = Seen.get(rarity)
+	local veil = Instance.new("ScreenGui")
+	veil.Name = "PullCutsceneVeil"
+	veil.ResetOnSpawn = false
+	veil.IgnoreGuiInset = true
+	veil.ScreenInsets = Enum.ScreenInsets.None
+	veil.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	veil.DisplayOrder = CS.Black.DisplayOrder
+	veil.Parent = playerGui
+	local veilRoot = Instance.new("Frame")
+	veilRoot.Name = "Root"
+	veilRoot.BackgroundTransparency = 1
+	veilRoot.Size = UDim2.fromScale(1, 1)
+	veilRoot.ClipsDescendants = true
+	veilRoot.Parent = veil
+	local black = fullFrame(veilRoot, "Black", BLACK, 1)
+	local white = fullFrame(veilRoot, "White", WHITE, 6)
+	local spec = (CS :: any)[rarity]
+	local skippable = Seen.get(rarity) and not (spec and spec.Skippable == false)
 	local W = Strings.Reel
 	local hintWords = if UserInputService.GamepadEnabled
 			and UserInputService:GetLastInputType().Name:find("Gamepad")
@@ -869,6 +990,11 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> ())
 		root = root,
 		skip = skip,
 		hint = hint,
+		veil = veil,
+		veilRoot = veilRoot,
+		black = black,
+		white = white,
+		onBlack = onBlack,
 		cc = cc,
 		model = model,
 		release = DayCycle.hold(),
@@ -913,6 +1039,8 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> ())
 		Enum.KeyCode.ButtonB
 	)
 	local total = length(rarity)
+	local intro = CS.Black.InSeconds
+	local ownsVeil = OWNS_VEIL[rarity] == true
 	RunService:BindToRenderStep(
 		RENDER_NAME,
 		Enum.RenderPriority.Camera.Value + 3,
@@ -922,15 +1050,28 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> ())
 			end
 			s.clock += dt
 			hint.Visible = s.skippable and s.clock >= CS.HintAfterSeconds
+			if s.clock < intro then
+				black.BackgroundTransparency = 1 - smooth(s.clock / intro)
+				return
+			end
+			local blackened = s.onBlack
+			if blackened then
+				s.onBlack = nil
+				blackened()
+			end
+			local t = s.clock - intro
+			black.BackgroundTransparency = if ownsVeil
+				then 0
+				else smooth(t / math.max(CS.Black.OutSeconds, 1e-3))
 			local ok, err = pcall(function()
-				step(s, s.clock)
+				step(s, t)
 			end)
 			if not ok then
 				warn("[8ball] PullCutscene " .. rarity .. ": " .. tostring(err))
 				finish(s)
 				return
 			end
-			if s.clock >= total then
+			if t >= total then
 				finish(s)
 			end
 		end

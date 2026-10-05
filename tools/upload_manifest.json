@@ -685,6 +685,11 @@
     "assetType": "Audio",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/audio/luckyblocks/RiserRare.wav": {
+    "assetId": "97579914761531",
+    "assetType": "Audio",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/cue/Cue.glb": {
     "assetId": "131217612906495",
     "assetType": "Model",

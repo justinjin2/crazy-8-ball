@@ -12,3 +12,6 @@ attached WAVs; renamed copies avoid Roblox's asset-name length limit.
 
 Existing Roblox sounds: placement 4612375802; rank up 2789429656.
 All six assets loaded successfully in Crazy 8 Ball Studio. Volumes are in Config.Audio.Ui.
+
+RiserRare.wav (the designer's "Riser_104", trimmed to 1.5 s with a short fade; peak at 0.45 s):
+the Rare pull cutscene's build into its white flash, uploaded 2026-10-05 as 97579914761531.

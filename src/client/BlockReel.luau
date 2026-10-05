@@ -13,7 +13,8 @@
 --   (ReelTick, rate-limited) sounds for each card passing the marker.
 -- - As it settles: ReelSettle, the marker and a glow round the window turn the prize's colour
 --   (Mythic's drifts through its pastels, Secret's breathes red), the prize card bounces with a
---   thick edge in that colour; after a short hold the reel reports it is done.
+--   thick edge in that colour; after a short hold the reel reports it is done. It reports the
+--   stop itself too (a Rare or better pull's cutscene starts there, LuckyOpening).
 -- - skip() (a tap, A or B; once per spin) races the strip on to the prize in Reel.SkipSeconds.
 -- - Each card reads the cue's name and its odds in its rarity's colour (GUI lane, 2026-10-03).
 -- - The Dark look (lucky blocks, designer 2026-10-03; Config.LuckyBlocks.UI): no white window or
@@ -238,6 +239,7 @@ function Reel.new(parent: Instance, oddsId: string, opts: { look: string? }?): a
 	self.pos = 0 -- where the marker is along the strip, in the strip's pixels
 	self.loop = nil :: RBXScriptConnection?
 	self.onSettled = nil :: (() -> ())?
+	self.onLanded = nil :: (() -> ())?
 	self.lastTick = -math.huge
 	self.lastIndex = 0
 	self.glowFrom = 0 -- os.clock() when the glow round the window began
@@ -430,12 +432,14 @@ function Reel.setPrize(self: any, cueId: string, rarity: string)
 	dressCard(self.slots[R.PrizeSlot], cueId, rarity)
 end
 
---- Spin onto the prize (setPrize first); `onSettled` runs once, after it has settled and held.
-function Reel.start(self: any, onSettled: () -> ())
+--- Spin onto the prize (setPrize first); `onSettled` runs once, after it has settled and held;
+--- `onLanded` (optional) the moment the spin stops on it, before the glide and the hold.
+function Reel.start(self: any, onSettled: () -> (), onLanded: (() -> ())?)
 	if not self.alive or self.phase ~= "Idle" then
 		return
 	end
 	self.onSettled = onSettled
+	self.onLanded = onLanded
 	self.phase = "Spinning"
 	self.duration = if self.big then R.BigSeconds else R.Seconds
 	self.power = if self.big then R.BigEasePower else R.EasePower
@@ -561,6 +565,11 @@ function Reel.land(self: any, now: number)
 	self.centreFrom = now
 	local hold = if self.big then R.BigSettleHoldSeconds else R.SettleHoldSeconds
 	self.holdUntil = now + R.CentreSeconds + hold
+	local landed = self.onLanded
+	self.onLanded = nil
+	if landed then
+		landed()
+	end
 end
 
 --- One skip per spin (designer, 2026-10-04): the strip does not jump to the prize, it races
@@ -610,6 +619,7 @@ function Reel.destroy(self: any)
 	end
 	self.alive = false
 	self.onSettled = nil
+	self.onLanded = nil
 	if self.loop then
 		self.loop:Disconnect()
 		self.loop = nil

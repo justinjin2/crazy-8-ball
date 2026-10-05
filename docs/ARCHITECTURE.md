@@ -408,7 +408,9 @@ the lucky-block section below is the item flow now.
   `InventoryMenu` (two tabs, `InventoryCues` then `InventoryIndex`; no blocks), `BlockReel` and
   `ReelFx` (the reel and its stage, used by `LuckyOpening` with the Dark look; renamed from
   CaseOpeningReel and CaseOpeningFx 2026-10-04), `PullCutscene` (the Rare-and-up pull, moved
-  from the cases to the lucky blocks, to be reworked), `ShopMenu` (emptied 2026-10-04 to its
+  from the cases to the lucky blocks; being redone one by one: every scene starts on its veil,
+  a black fade from the reel's stop (`BlockReel.start`'s `onLanded`), and Rare draws only on
+  the veil), `ShopMenu` (emptied 2026-10-04 to its
   frame and the four jump buttons for the GUI overhaul; the page, card, odds, need, gift and
   thank-you modules are deleted), `RewardsMenu`, `RewardChips` (a block chip flies to the
   hotbar as its 3D icon, `BlockIcon`), `TradeMenu`, `CueViewport` (the Index's cue turning in 3D: a ViewportFrame holding

@@ -375,7 +375,9 @@ then; the reel's rules hold for the blocks.
   cards drawn from the block's true odds slides under a gold centre marker and eases to a
   stop on the prize, ticking as cards pass; the timings are `Config.UI.Reel`. Then the prize
   pops with its rarity sting: the pull cutscene from Rare, then the "YOU GOT" card over the
-  dimmed world. Tap (or A) skips, in two stages (section 14). Fast Open's grid, the first
+  dimmed world. A Rare or better pull fades everything to black the moment the reel stops;
+  Rare then swells a soft blue glow from the middle to a full blue screen, flashes white on
+  the riser's peak and fades the white off the card (about a second, never skipped). Tap (or A) skips, in two stages (section 14). Fast Open's grid, the first
   win's reel inside the result screen and the "Still opening" wait are gone: a block is
   opened in the world, and the server has already answered when the reel starts.
 - **Prices**: money with the cash bundle; Robux with Roblox's own Robux glyph inside the text

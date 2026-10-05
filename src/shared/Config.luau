@@ -4175,6 +4175,9 @@ Config.Audio = {
 		RevealEpic = { Id = "rbxassetid://4612378086", Volume = 0.3 },
 		RevealLegendary = { Id = "rbxassetid://4612378086", Volume = 0.3 },
 		RevealMythic = { Id = "rbxassetid://4612378086", Volume = 0.3 },
+		-- "Riser_104" (the designer's file, trimmed to 1.5 s; peak at 0.45 s): the Rare pull
+		-- cutscene's build into its white flash (Config.Cutscenes.Rare).
+		RiserRare = { Id = "rbxassetid://97579914761531", Volume = 0.5 },
 		-- The Secret pull's heartbeat and shockwave (GUI lane, 2026-10-03; licensed library
 		-- sounds: APM "Heart Beat", Pro Sound Effects "Thruster Blast 8").
 		Heartbeat = { Id = "rbxassetid://1839088414", Volume = 0.15, Overlap = true },
@@ -10142,7 +10145,34 @@ Config.Cutscenes = {
 		AngleDegrees = -24, -- they fly up and to the right
 		Transparency = 0.15,
 	},
-	Rare = { Seconds = 1.5, Tint = { 160, 205, 255 }, TintShare = 0.5 },
+	-- Every pull cutscene starts the same way (designer, 2026-10-05, Sol's RNG style): the
+	-- moment the reel stops on a Rare or better, everything fades to black (the reel's own
+	-- glide and hold play on under it), then the rarity's scene. The scenes not yet redone
+	-- (Epic and up) lift the black off as they begin.
+	Black = {
+		InSeconds = 0.35, -- the fade to black from the reel's stop
+		OutSeconds = 0.3, -- an old scene lifting it off
+		DisplayOrder = 70, -- its screen: over the scenes (60) and the lucky block's card
+	},
+	-- Rare (designer, 2026-10-05; still common, so it is short): a moment of black, a soft
+	-- blue glow swells from the middle until the screen is blue while the riser builds, a
+	-- white flash on the riser's peak, and the card is underneath as the white fades. No skip.
+	Rare = {
+		BlackSeconds = 0.15, -- held black after the fade (under a second of black in all)
+		GlowSeconds = 0.45, -- the glow's swell from nothing to past the screen's corners
+		GlowEndScale = 2.4, -- its last size, of the screen's longer side
+		GlowEasePower = 2.2, -- its growth: u^power (higher: a slower start, a faster burst)
+		FillFrom = 0.55, -- a flat blue fills in behind it from this share of the swell...
+		FillTo = 0.9, -- ...and covers the screen from this share
+		Blue = { 40, 120, 255 }, -- the glow's edge and the fill
+		Core = { 150, 210, 255 }, -- its bright middle
+		CoreShare = 0.45, -- the bright middle's size, of the glow's
+		FlashInSeconds = 0.06, -- the white flash snaps in on the riser's peak...
+		FlashOutSeconds = 0.35, -- ...and fades off the card
+		RiserPeakSeconds = 0.45, -- the riser's loudest moment, from its start (lined up with the flash)
+		Seconds = 0.66, -- BlackSeconds + GlowSeconds + FlashInSeconds: the card comes in under the white
+		Skippable = false, -- too short to need it
+	},
 	Epic = {
 		Seconds = 2.3,
 		Tint = { 205, 150, 255 },
