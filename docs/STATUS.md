@@ -1,5 +1,40 @@
 # Status
 
+**2026-10-04 (latest): cases, the Magic 8 Ball and every reward popup are gone; lucky blocks are the only gacha.**
+- On `release` (`a503dd2`, `91769ea`, `92c3aff`): the shared and server code roll a win into
+  one **Mystery lucky block** (the first real win: the guaranteed Rare block on its 1 h
+  timer); every reward row (login streak, 28-day track, playtime, codes, rank-up, group,
+  favorite, invite) pays blocks through the one `{ money, blocks, spins, lucky }` shape;
+  ready blocks trade as `Block:<kind>`; saves are version 7 (old cases dropped, nothing
+  converted); daily login and playtime gifts are claimed in the Rewards menu only (no
+  auto-claim, no `RewardGiven`, no popups). Quick Cases, the four timer-skip products, the
+  money skip, the case sale and the first-leave gift are retired. The odds engine is
+  `Progression/BlockOdds` + `BlockDrop`, `Config.BlockOdds`.
+- The client lost `MagicBall`, `CaseOpening*`, `InventoryCases`, `Popups`, `RewardPopups`,
+  `ComeBack`, `Reminders`, the `Shop*` section modules, `TutorialCasePill` and
+  `TutorialReveal`. `BlockReel` + `ReelFx` (ex CaseOpeningReel/Fx) drive the lucky reel;
+  the Rare to Secret **pull cutscenes now play from a lucky block's reel** before its YOU
+  GOT card (to be reworked, still wired; `/cutscene` works). Reward chips, the flyer, NEW
+  RANK!, the rank-claim card, the roadmap, trading and the Rewards pages draw blocks with
+  `BlockIcon` and fly them to the hotbar. **Inventory opens on Cues** (tabs Cues, Index);
+  **the Shop is empty**: frame, background and the Featured/Blocks/Money/Passes buttons
+  (the server-side shop, receipts and restock stay). The tutorial teaches the block: hold,
+  throw, open (forced Uncommon), the Rare block's slot, "Your block is ready!". The case
+  icons, the 8-ball art and their `gen_ui_art.py` entries are deleted.
+- Verified in Studio on the computer window: join with no popup (save "migrated 6 -> 7"),
+  Inventory on Cues with two tabs, the empty Shop with its four buttons and NEW badges, a
+  thrown block's reel -> Rare/Epic cutscene -> YOU GOT card -> tap closes, the Rewards
+  menu's Daily/Playtime pages with block pictures, a code (`ROOFTOP`) flying a Rare block
+  into the bag (+1). Console clean, lint clean, 977 tests pass.
+- **Not checked by the tool:** the phone emulator and a real controller (the MCP cannot
+  switch the emulator in Play mode nor fake a pad), a two-player block trade, a real win's
+  Mystery block on the result screen. The designer does those by hand (see the session's
+  recap). Nothing in the place changed, so no save is needed for this step.
+- Next: `docs/ECONOMY.md` is the GUI spec; the GUI overhaul starts from this clean base.
+  Open assumptions: the free Mystery block keeps the 5-minute timer
+  (`Config.LuckyBlocks.Kinds.Mystery.Timer`); `Config.LuckyBlocks.Test.Refill` tops the
+  designer's hotbar up in Studio and can hide a tutorial test's real blocks.
+
 **2026-10-04 (latest): every block kind has its model in the place; cases are gone from view.**
 - `ReplicatedStorage.LuckyBlocks` now holds GoldMajestic (Legendary), GoldTitan (Mythic,
   pastel map), Sky (baby-blue map), Mystery, Starter and the part-built Lucky 8 cube next to

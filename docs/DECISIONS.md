@@ -2390,4 +2390,26 @@ timer of a new block stay the designer's call.
   "LUCKY BLOCKS" in the inventory, "2 Rare Lucky Blocks" in rewards). The old case reel code
   stays behind the scenes until it is retired. In Studio the Grand Opening deal opens on
   server start (`Config.Debug.StudioOpening`) so the Featured section is always there.
-
+- **2026-10-04 — Cases, the Magic 8 Ball and the reward popups are retired (designer, to
+  the CLI session).** Lucky blocks replace cases everywhere, in code, icons and words. A
+  **win gives one Mystery lucky block** (it rolls its tier when opened; the very first real
+  win keeps the guaranteed Rare block on its 1 h timer, which the tutorial waits on). Every
+  reward row that paid cases pays blocks (`Drops = n` -> `Blocks = { Mystery = n }`,
+  `Cases = { Rare = 1 }` -> `Blocks = { Rare = 1 }`); one reward shape everywhere:
+  `{ money, blocks, spins, lucky }`. **Ready blocks are tradable** (a block on its timer is
+  not). **The tutorial teaches the block**: Bronze's at-once reward is a Standard block the
+  player throws and opens (forced to an Uncommon cue), the Rare step points at the Rare block
+  counting down in the hotbar, the last nudge is "Your block is ready!". **Old saves drop
+  their cases** (save version 7, nothing converted). **Daily login and playtime gifts are
+  claimed in the Rewards menu** (no auto-claim, no `RewardGiven`); there is no reward popup
+  of any kind any more ("they moved to the rewards icon"): the Magic 8 Ball shake, the
+  playtime and login popups, the come-back screen and the first-leave gift are gone. **The
+  Rare to Secret pull cutscenes move to the lucky blocks**: they play after the lucky reel
+  settles, before the YOU GOT card, and will be reworked later. Quick Cases, the four case
+  timer-skip products, the money skip and the case sale are retired (Quick Cases folded into
+  VIP; `UltState.fastOpen` is `vip`). **The Shop is emptied** to its frame, background and
+  the Featured, Blocks, Money and Passes buttons for the GUI overhaul (the server-side shop
+  stays). **Inventory opens on Cues** with Cues and Index only; blocks live in the hotbar and
+  bag. The case icons, the 8-ball art and their art-tool entries are deleted. `docs/ECONOMY.md`
+  is the GUI spec; no GUI is built until the designer asks. Kept as they were: the Free
+  Reward page and tile, the hub corner buttons, NEW RANK! and the rank-claim card.

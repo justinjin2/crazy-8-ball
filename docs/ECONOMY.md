@@ -1,23 +1,24 @@
-# Economy: money, ranks, cases, the Limited shelf and Robux
+# Economy: money, ranks, lucky blocks, the shop and Robux
 
 The one place that says how the game's economy works and every number in it. Rewritten
 2026-10-03 from the economy plan the designer approved on 2026-10-02
 (`~/Desktop/8ball-refs/economy/00-economy-plan.md`, built from research and a 60-day population
 simulation), the designer's interview answers (2026-10-03) and what the Economy lane built
-(steps 1-8, `docs/parallel/economy.md`). GDD sections 11 and 12 point here. Every number is a
-starting value *(tune)*: it lives in `src/shared/Config.luau` and changes after playtests.
+(steps 1-8, `docs/parallel/economy.md`). Cases were replaced by **lucky blocks** on 2026-10-04
+(designer): every "case" in the plan is a lucky block here. GDD sections 11 and 12 point here.
+Every number is a starting value *(tune)*: it lives in `src/shared/Config.luau` and changes after playtests.
 Change a number here, in the model and in Config together, then re-run the model.
 
 ```bash
 python3 tools/economy_model.py --help   # the model's commands: day-30 targets, ranks, money
 ```
 
-**Built for a small launch, ready to grow.** Nothing assumes the game blows up. The ranks, cases
+**Built for a small launch, ready to grow.** Nothing assumes the game blows up. The ranks, blocks
 and rewards work the same with 200 players online as with 20,000; the few things that should
 change as the game grows are listed with their triggers in section 14.
 
-**Odds are percentages everywhere** (plan, 2026-10-02): Case Drops, every case, every cue,
-ability spins. Never "1 in X". Tiny values keep enough decimals to stay above zero (0.0004%),
+**Odds are percentages everywhere** (plan, 2026-10-02): the Mystery block's tier roll, every
+block, every cue, ability spins. Never "1 in X". Tiny values keep enough decimals to stay above zero (0.0004%),
 and every list adds up to exactly 100%.
 
 ---
@@ -29,20 +30,25 @@ and every list adds up to exactly 100%.
 - **Money is x10 of the old numbers** (plan, 2026-10-02): $100 a ball, $500 for a win, $150
   for a loss. A Classic match pays the winner about **$1,340** and the loser about **$600**:
   about **$7,300 an hour**. Difficult pays x1.5 and Challenger x2.
-- **Every real win gives a Case Drop**: the server rolls one of six cases, from Standard (68%)
-  to Mythic (0.0004%), shown through a magic 8-ball you shake. Rare and better cases open on a
-  timer (1 h to 48 h). No case is sold for money any more.
-- **Money buys** Mystery Cases (one Case Drop, $4,900), the **restock shop** (new cases every
-  10 minutes, the same in every server), timer skips, ability spins ($17,500) and **Limited
-  cues** ($149,000 and up).
+- **Every real win gives a Mystery lucky block** (designer, 2026-10-04: lucky blocks replaced
+  cases): 5 minutes after the win it can be thrown and opened in the world, and the server
+  rolls its tier then, from Standard (68%) to Mythic (0.0004%). Rare and better blocks open on
+  a timer (1 h to 48 h). No block is sold permanently.
+- **Money buys** Mystery blocks ($4,900), the **restock shop** (new blocks every 10 minutes,
+  the same in every server), the Grand Opening block while its deal runs and ability spins
+  ($17,500). A block's timer is skipped for Robux only (19 R$).
 - **How rare things are** (the plan's simulation, day 30): about **5.4%** of active players own
   an Epic, **1.0%** a Legendary, **0.12%** a Mythic and about **0.01-0.02%** the Secret.
-- **Robux**: 4 game passes (VIP 599 R$, Quick Cases 299, two ability slots) and 24 developer
-  products (money packs 49 to 4,999 R$, Mystery Cases, restock cases, skips, Money Party,
-  spins), plus a Get Roblox Plus button.
-- **Trading** is in: anyone in the server, cues and ready cases, never money, an atomic swap
-  with a ledger (designer, 2026-10-03).
-- **Save version 6 wiped every save** (designer, 2026-10-03: only friends had played).
+- **Robux**: 3 game passes (VIP 499 R$, two ability slots) and 31 developer products (money
+  packs 49 to 4,999 R$, Mystery and Grand Opening blocks, restock blocks, the block timer
+  skip, Money Party, spins, the launch-sale copies), plus a Get Roblox Plus button. Quick
+  Cases and the four case timer skips are retired (designer, 2026-10-04).
+- **Trading** is in: anyone in the server, cues and ready lucky blocks, never money, an atomic
+  swap with a ledger (designer, 2026-10-03).
+- **No reward popups** (designer, 2026-10-04): every reward, day 1 included, is claimed in the
+  Rewards menu; nothing is given by itself on join.
+- **Save version 6 wiped every save** (designer, 2026-10-03: only friends had played). Version
+  7 (2026-10-04) dropped every case, case timer and the Quick Cases flag, nothing converted.
 
 ---
 
@@ -71,17 +77,17 @@ Other targets (still true):
 
 | Target (designer) | How it is met |
 |---|---|
-| Epic and up truly rare and worth a lot (2026-10-02) | Case Drop weights (section 7.1), no case sold permanently, Epic and Legendary cases only from rewards and the restock shop |
-| Lots of duplicates of Commons to Rares | a Case Drop every win, 94.7% of its cues Common or Uncommon |
-| Case cues keep their value | no direct buying; Limited cues instead (section 9) |
+| Epic and up truly rare and worth a lot (2026-10-02) | the Mystery block's tier weights (section 7.1), no block sold permanently, Epic and Legendary blocks only from rewards and the restock shop |
+| Lots of duplicates of Commons to Rares | a Mystery block every win, 94.8% of its cues Common or Uncommon |
+| Block cues keep their value | no direct buying (section 9) |
 | (2026-10-02) 1 win to Bronze I, 2 to Bronze II, 3 to Bronze III... | divisions in wins of 100 XP (section 4.2) |
 | (2026-10-02) No Silver before about 2 hours | Silver I at 21 wins, about 6 hours of play at 50% |
 | (2026-10-02) 3 h a day at 50%: Expert 1 month, Veteran 2, Master 3-4, Grandmaster 6, Reyes 7+ | the ramp from Diamond (section 4.2): about 1.1, 1.9, 3.3, 5.6 and 8.6 months |
 | (2026-10-02) XP strictly from skill | wins only; harder modes, streaks and stronger opponents pay more |
 | Losing is never a punishment (2026-09-28) | a loss gives 0 XP, never negative, and $150 |
 | Only a few hundred ever reach Reyes | fixed Reyes at 307,500 XP (section 4.10) |
-| VIP 2x money, not overpowered | 2x money, never odds, cases or XP |
-| Onboarding feels fast | a Rare Case and Bronze I on the first win (section 2) |
+| VIP 2x money, not overpowered | 2x money and faster block timers, never odds, blocks or XP |
+| Onboarding feels fast | a Rare block and Bronze I on the first win (section 2) |
 
 ---
 
@@ -91,19 +97,19 @@ What a new player gets, in order, at an ordinary 50% win rate:
 
 | When | What happens |
 |---|---|
-| Join | Day 1 of the login loop: **$5,000**, given by itself 3 s after the save loads. 3 starter ability spins. |
-| The first win (the tutorial) | Unranked to **Bronze I**: $2,500, **2 Case Drops**, the Bronze Cue, the [BRONZE] tag, +1 ability spin. The win's own Case Drop is a **guaranteed Rare Case**, shown through the 8-ball, on its normal **1 h timer** (designer, 2026-10-03). |
-| The second tutorial win | its Case Drop is usually the first case the player opens (Standard or Uncommon, 92.9%, both open at once) |
+| Join | 1 starter ability spin (the tutorial, 2026-10-03). Day 1 of the login loop (**$5,000**) waits in the Rewards menu until claimed (designer, 2026-10-04: no popups, nothing given on join). |
+| The first win (the tutorial) | Unranked to **Bronze I**: a **Standard lucky block at once** (the tutorial opens it to an Uncommon cue; `Config.Tutorial.BronzeBlockKind`), then $2,500, a Mystery block, the Bronze Cue, the [BRONZE] tag and +1 ability spin once claimed in Rank. The win's own block is a **guaranteed Rare block** in the hotbar, on its normal **1 h timer** (designer, 2026-10-03). |
+| The second tutorial win | its Mystery block is usually the first one the player opens (5 minutes after the win: Standard or Uncommon, 93%) |
 | 10 minutes | playtime gift: $2,000 |
-| 30 minutes | playtime gift: 1 Case Drop |
+| 30 minutes | playtime gift: 1 Mystery block |
 | The third win | **Bronze II**: $1,000 |
-| 60 minutes | playtime gift: 2 Case Drops + 1 ability spin |
-| About 1 hour after the first win | the Rare Case's timer is done: it opens |
+| 60 minutes | playtime gift: 2 Mystery blocks + 1 ability spin |
+| About 1 hour after the first win | the Rare block's timer is done: it opens |
 
 Every new cue also pays finder's money the first time (section 18: $500 a Common, $1,000 an
 Uncommon). A rough count, not a model run: about $20,000 by the end of the first hour, about
-8 Case Drops opened, and Bronze I or II. Silver comes after about 6 hours of play (21 wins).
-The Starter Pack offer appears after the first case opening (section 11.4).
+8 blocks opened, and Bronze I or II. Silver comes after about 6 hours of play (21 wins).
+The Starter Pack offer appears after the first block opening (section 11.4).
 
 ---
 
@@ -132,12 +138,12 @@ Average match: winner about **$1,340**, loser about **$600**. At 7.5 matches an 
 | Nice shot on top | bank/kick +$150, combo/carom +$200 | same | same | none |
 | Win / loss bonus | $500 / $150 | **$250 / $80** | $500 / $150 | none |
 | Win streak (3rd win in a row on) | +$250 | none | none | none |
-| Daily limit | the same-opponent rules (3.6) | after **$10,000** of PC money in a UTC day, everything pays half | after **20 disguised wins** in a UTC day they pay the PC rows and drop no case (hidden) | as above |
-| Case Drop on a win | every win | the **first 10 PC wins** of a UTC day | every win (until the 20) | never |
+| Daily limit | the same-opponent rules (3.6) | after **$10,000** of PC money in a UTC day, everything pays half | after **20 disguised wins** in a UTC day they pay the PC rows and drop no block (hidden) | as above |
+| Mystery block on a win | every win | the **first 10 PC wins** of a UTC day | every win (until the 20) | never |
 | XP | 100 a win | x0.75, x0.5 from Expert | like a person, stored as a PC win, no streak | none |
 
 - The disguised limit is **hidden** (designer, 2026-10-03): the result screen just shows the
-  smaller numbers and no case, with no message. It stops farming lobby bots in an empty server.
+  smaller numbers and no block, with no message. It stops farming lobby bots in an empty server.
 - A disguised bot that forfeits gives a full disguised win, even under one minute. Both
   tutorial games are real wins, and the tutorial bot's early 8 pays in full.
 - A disguised win counts as a PC win in the stats (never on the most-wins board).
@@ -145,8 +151,8 @@ Average match: winner about **$1,340**, loser about **$600**. At 7.5 matches an 
 ### 3.3 Team matches (2v2, 3v3)
 
 Every ball your team pots pays **each teammate $100**, so an hour of 2v2 or 3v3 earns about the
-same as 1v1. The nice-shot bonus goes only to the shooter. The win and loss bonus, the Case
-Drop (each winner) and XP are per player, by the same rules; XP uses the opposing team's
+same as 1v1. The nice-shot bonus goes only to the shooter. The win and loss bonus, the Mystery
+block (each winner) and XP are per player, by the same rules; XP uses the opposing team's
 average rank for the gap (section 4.4).
 
 ### 3.4 Difficulty
@@ -171,20 +177,22 @@ money = base x difficulty x (1 + VIP 1.0 + Money Party 1.0 + Starter hour 1.0 + 
 - The Starter Pack's hour of 2x adds to VIP's: x3 for that hour (designer, 2026-10-03).
 - The group's +10% is on while the player is a member of the game's group (section 10.4).
 - The most is x4.1 before difficulty, x8.2 in Challenger.
-- No boost ever changes case odds or how many Case Drops a player gets.
+- No boost ever changes block odds or how many blocks a player gets. VIP's halved block
+  timers (11.2) are the one VIP perk outside money.
 
 ### 3.6 Anti-farming (alts and friends)
 
 - **Same opponent, same UTC day:** matches 1-5 pay in full; 6-10 pay half the XP and half the
-  win/loss bonus and drop no case; from the 11th, no XP, a quarter of the bonus, half the ball
-  pay, no case. At most **3 Case Drops a day from beating the same account**.
-- **The loser must have played 5 real matches** for the winner's Case Drop (a fresh alt can't
-  feed cases).
+  win/loss bonus and drop no block; from the 11th, no XP, a quarter of the bonus, half the
+  ball pay, no block. At most **3 blocks a day from beating the same account**
+  (`Config.Economy.DropsPerOpponent`).
+- **The loser must have played 5 real matches** for the winner's block (a fresh alt can't
+  feed blocks; `Config.Economy.DropLoserMinMatches`).
 - **Short matches:** pots are still paid live, but money from matches that end before the
   one-minute mark counts toward a **$2,000 a day** short-match limit; past it, balls before the
   one-minute mark pay **$10** each.
 - Forfeits, leavers and the one-minute mark stay as built (GDD section 13).
-- Private servers, when they come: no XP, no Case Drops, solo-rate money.
+- Private servers, when they come: no XP, no blocks, solo-rate money.
 - With no trade gate (section 12), these rules and the invite cap are the alt protection.
 
 ### 3.7 How money is shown
@@ -300,19 +308,21 @@ Bronze, Silver and Gold; +2 for Platinum and Diamond; +3 from Expert up).
 
 | Tier | Each new division II-V | Reaching the tier (division I) |
 |---|---|---|
-| Bronze | $1,000 | $2,500, **2 Case Drops** |
-| Silver | $2,000 | $5,000, a Rare Case |
-| Gold | $3,500 | $10,000, 2 Rare Cases |
-| Platinum | $6,000 | $20,000, 3 Rare Cases |
-| Diamond | $15,000 | $50,000, an Epic Case |
-| Expert | $30,000 | $100,000, 2 Epic Cases |
-| Veteran | $50,000 | $200,000, 3 Epic Cases |
-| Master | $80,000 | $400,000, a Legendary Case |
-| Grandmaster | $150,000 | $750,000, 2 Legendary Cases |
-| Reyes | - | $2,000,000, a Mythic Case, the rainbow tag |
+| Bronze | $1,000 | $2,500, a Mystery block (plus the Standard block given at once with the first win) |
+| Silver | $2,000 | $5,000, a Rare block |
+| Gold | $3,500 | $10,000, 2 Rare blocks |
+| Platinum | $6,000 | $20,000, 3 Rare blocks |
+| Diamond | $15,000 | $50,000, an Epic block |
+| Expert | $30,000 | $100,000, 2 Epic blocks |
+| Veteran | $50,000 | $200,000, 3 Epic blocks |
+| Master | $80,000 | $400,000, a Legendary block |
+| Grandmaster | $150,000 | $750,000, 2 Legendary blocks |
+| Reyes | - | $2,000,000, a Mythic block, the rainbow tag |
 
-Cases from rank rewards land on their normal timers (section 7.2). Bronze's 2 Case Drops are
-rolled and revealed like any other drop. A Reyes Cue proves Reyes: it can't be traded.
+Blocks from rank rewards (`Config.Ranks.Rewards.Tier[tier].Blocks`) land in the hotbar on their
+normal timers (section 7.2). Only Bronze's Standard block is given at once (the tutorial opens
+it); every other reward waits in Rank until claimed (designer, 2026-10-03). A Reyes Cue proves
+Reyes: it can't be traded.
 
 ### 4.9 How long each tier takes
 
@@ -373,7 +383,7 @@ counts.
 
 **Ranks never reset** (designer, 2026-09-28): your XP is yours forever. Seasons can still give
 a reward for the highest tier reached during that season (a season-coloured tier cue,
-Exclusive, plus cases), without taking anything away. Seasons come after release.
+Exclusive, plus blocks), without taking anything away. Seasons come after release.
 
 ---
 
@@ -392,8 +402,8 @@ The account Level and its EXP are gone (designer, 2026-09-28). What they did mov
 
 | Group | Rarities | Comes from | Trade | Sell back |
 |---|---|---|---|---|
-| Case rarities | Common, Uncommon, Rare, Epic, Legendary, Mythic, Secret | cases (and trades) only | yes | yes |
-| **Unique** | numbered Limited cues (the Grand Opening Cue; Founder's and Beta when scheduled) | the Limited shelf, for a set time | yes | no |
+| Block rarities | Common, Uncommon, Rare, Epic, Legendary, Mythic, Secret | lucky blocks (and trades) only | yes | yes |
+| **Unique** | numbered Limited cues (the Grand Opening Cue and the Beta Cue from the Grand Opening block; Founder's when scheduled) | the Grand Opening block's two Unique rows (9.2), or the Limited shelf for a set time | yes | no |
 | **Exclusive** | the VIP Cue, the Starter Cue, the ten rank cues (Bronze Cue ... Reyes Cue), later season cues | one special way each | **never**, except the Starter Cue (designer: VIP never, 2026-09-28; the Starter Cue trades, 2026-09-29) | no |
 
 What rarity looks like (GDD section 12, UI_STYLE section 4 colours): Common and Uncommon keep
@@ -401,77 +411,74 @@ the plain wisp trail (Uncommon tinted); Rare adds a coloured trail and small poc
 has its own trail and pocket effect; Legendary an animated trail, pocket effect and sound;
 Mythic the celestial shimmer and its own VFX; Secret a one-of-a-kind full set.
 
-**Launch catalog: 46 case cues** (unchanged by the plan): 7 Common, 9 Uncommon, 10 Rare,
+**Launch catalog: 46 block cues** (unchanged by the plan): 7 Common, 9 Uncommon, 10 Rare,
 9 Epic, 7 Legendary, 3 Mythic, 1 Secret. Classic is labelled Common too but is the free
-default: everyone owns it, no case drops it, and it is never traded or sold. Plus 12 Exclusive
+default: everyone owns it, no block drops it, and it is never traded or sold. Plus 12 Exclusive
 (10 rank, VIP, Starter) and 3 Unique (Grand Opening, plus Founder's and Beta, which stay in the
 catalog but are not sold until the designer schedules them). The list and order are
 `Progression/Catalog.luau`; each cue's look is its skin (`src/shared/CueSkins`).
 
-Adding cues later keeps each rarity's % per Case Drop; each cue's own share shrinks.
+Adding cues later keeps each rarity's % per block; each cue's own share shrinks.
 
 ---
 
-## 7. Cases
+## 7. Lucky blocks
 
-### 7.1 The Case Drop
+Cases became **lucky blocks** on 2026-10-04 (designer): a block waits in the hotbar (and its
+bag), is held, thrown into the world and opened there with a hold prompt; the reel plays
+(`BlockReel`, the dark look), a Rare or better cue plays its pull cutscene, then the "YOU GOT"
+card. The odds engine is `Config.BlockOdds` (`Progression/BlockOdds.luau`: one odds row per
+block kind, `Config.LuckyBlocks.Kinds[kind].Odds`) and the Mystery block's tier roll is
+`Config.BlockOdds.Drop` (`Progression/BlockDrop.luau`). The 8-ball reveal, its climb and the
+`CaseDrop` payload are gone.
 
-After **every real win** the server rolls a case tier (plan, 2026-10-02). Weights out of
-1,000,000 (`Config.Cases.Drop.Weights`):
+### 7.1 The win's Mystery block
 
-| Case | Weight | Chance |
+After **every real win** the server gives one **Mystery lucky block** (plan, 2026-10-02; blocks
+2026-10-04). It rolls its tier when it is opened, out of 1,000,000
+(`Config.BlockOdds.Drop.Weights`; trimmed 2026-10-04 so the day-30 targets hold with the new
+block sources):
+
+| Tier | Weight | Chance |
 |---|---|---|
-| Standard | 679,043 | 67.9043% |
+| Standard | 680,000 | 68% |
 | Uncommon | 250,000 | 25% |
-| Rare | 66,667 | 6.6667% |
-| Epic | 4,000 | 0.4% |
-| Legendary | 286 | 0.0286% |
+| Rare | 67,000 | 6.7% |
+| Epic | 2,800 | 0.28% |
+| Legendary | 196 | 0.0196% |
 | Mythic | 4 | 0.0004% |
 
-- **Every win drops one, forever.** The old limits (every win for 50 wins, then 10 a day, then
+- **Every win gives one, forever.** The old limits (every win for 50 wins, then 10 a day, then
   every 2nd) are gone. The anti-farm rules (3.6) and the PC and disguised limits (3.2) still
   apply. Solo never drops.
-- **The first win's drop is a guaranteed Rare Case**, on its normal 1 h timer (designer,
-  2026-10-03).
-- **Pity** (the counters are sent to the screen): the **10th** Case Drop in a row without a
-  Rare-or-better case is a Rare Case; the **150th** without an Epic-or-better case is an Epic
-  Case. Pity never gives a Legendary. It counts every Case Drop: wins, Mystery Cases and reward
-  drops (`Config.Cases.Drop.PityRare`, `PityEpic`).
-- Case Drops also come from Mystery Cases (section 9.1) and from rewards (section 10, Bronze I).
+- **The Mystery block's timer is 5 minutes** when won (`Config.LuckyBlocks.Kinds.Mystery.Timer`
+  *(tune)*); a bought one opens at once. VIP halves it (11.2). When it opens it morphs into
+  the tier's block and that block opens in the same flow.
+- **The first win's block is a guaranteed Rare block**, on its normal 1 h timer (designer,
+  2026-10-03; `Config.BlockOdds.Drop.FirstWin`). The tutorial also gives Bronze's Standard
+  block at once (section 2).
+- **Pity** (the counters are sent to the screen): the **10th** Mystery block in a row that
+  rolls below Rare is Rare; the **150th** below Epic is Epic. Pity never gives a Legendary. It
+  counts every Mystery block: wins, bought and reward ones (`PityRare`, `PityEpic`).
+- Mystery blocks also come from the shop (section 9.1) and from rewards (section 10).
 
-**The reveal** (the Cutscenes lane): a **magic 8-ball you shake** with a finger, mouse or
-gamepad. The triangle shows the case tier and can climb one step per shake (Starr Drop style).
-The server decides the final tier first; the climb only shows it. No fake "almost" moments.
-The same reveal for win drops, Mystery Cases and reward drops. Instant cases end on **Open
-now / Later**; timed cases go to the top of the inventory (designer, 2026-10-03).
+**The payload**: a win's block rides `MatchSummary.block = { kind, readyAt }` (already in the
+hotbar when it arrives; `readyAt` 0 = ready now). The server decides everything before the
+reel starts; the reel only shows it. No fake "almost" moments.
 
-The chance each step climbs (worked out from the weights):
-
-| Step | Chance |
-|---|---|
-| Standard to Uncommon | 32.0957% |
-| Uncommon to Rare | 22.108% |
-| Rare to Epic | 6.046% |
-| Epic to Legendary | 6.760% |
-| Legendary to Mythic | 1.379% |
-
-**The payload** (`CaseDrop` RemoteEvent, a list; a win's comes in `MatchSummary.caseDrop`):
-`{ source, tier, climbs, readyAt, instant, pity = { rare, epic } }`. `climbs` is the steps above
-Standard; `pity` is the drops left until each guarantee (1 = the next). The case is already in
-the save when the payload arrives.
-
-**Per Case Drop overall**, the chance of each cue rarity (`CaseDrop.rarityOdds()`):
+**Per Mystery block overall**, the chance of each cue rarity (`BlockDrop.rarityOdds()`):
 
 | Common | Uncommon | Rare | Epic | Legendary | Mythic | Secret |
 |---|---|---|---|---|---|---|
-| 60.9283% | 33.7847% | 5.1241% | 0.1381% | 0.0217% | 0.0028% | 0.00029% |
+| 61% | 33.83% | 5.0423% | 0.10872% | 0.016644% | 0.0021197% | 0.0002163% |
 
-### 7.2 The six cases
+### 7.2 The blocks
 
-Each case guarantees at least the rarity below its name (the Mythic Case: Legendary or better).
-Odds in percent; each row adds to exactly 100 (in Config, whole parts of 1,000,000).
+Each tier block guarantees at least the rarity below its name (the Mythic block: Legendary or
+better). Odds in percent; each row adds to exactly 100 (in Config, whole parts of 1,000,000).
+Timers are `Config.LuckyBlocks.Kinds[kind].Timer`.
 
-| Case | Common | Uncommon | Rare | Epic | Legendary | Mythic | Secret | Opens in |
+| Block | Common | Uncommon | Rare | Epic | Legendary | Mythic | Secret | Opens in |
 |---|---|---|---|---|---|---|---|---|
 | Standard | 75% | 23% | 1.99% | 0.009% | 0.0009% | 0.0001% | - | at once |
 | Uncommon | 40% | 54% | 5.95% | 0.045% | 0.0045% | 0.0005% | - | at once |
@@ -480,33 +487,47 @@ Odds in percent; each row adds to exactly 100 (in Config, whole parts of 1,000,0
 | Legendary | - | - | - | 75% | 22% | 2.7% | 0.3% | 24 h |
 | Mythic | - | - | - | - | 75% | 22% | 3% | 48 h |
 
-- **No case is sold permanently** (plan, 2026-10-02). The four money cases, Buy-10, case sales
-  and the Event Case are gone. Cases come from Case Drops, rewards and the restock shop.
-  Mythic Cases are never sold.
-- **Timers** start by themselves when the case lands. They all run at once; there are no slots.
-  Opening a case before its timer is done answers "Not ready yet".
-- **Quick Cases** (the game pass, 11.5) halves every timer, including timers already running
-  when it is bought (once).
-- **Skips**: finish a timer with money or Robux (section 9.1).
-- A case can be **traded** only once its timer is done (section 12).
-- Unopened cases sit at the top of the inventory (no separate tab; the GUI lane).
+The other kinds (`Config.BlockOdds.List`, each its own odds row):
+
+| Block | Odds | Opens in | Comes from |
+|---|---|---|---|
+| Mystery | rolls a tier above (7.1) | 5 min when won, at once when bought | wins, the shop, rewards |
+| Grand Opening | Uncommon 56.35%, Rare 37.45%, Epic 2.5%, Legendary 0.35%, Mythic 0.046%, Secret 0.004%, **the Grand Opening Cue 3%, the Beta Cue 0.3%** (the 400th opened guarantees Beta) | at once | the shop's 21-day deal (9.2) |
+| Starter | Rare 97%, Epic 2.5%, Legendary 0.45%, Mythic 0.045%, Secret 0.005% | at once | the Starter Pack (11.4) |
+| Sky | Common 45%, Uncommon 45%, Rare 9.9%, Epic 0.09%, Legendary 0.009%, Mythic 0.001% | at once | Lucky Rain (no source wired yet) |
+| Lucky 8 | the Rare row | at once | none yet (the group and favorite rewards give Mystery blocks today, 10.4) |
+| Gift | the Rare row | 12 h | none yet |
+
+- **No block is sold permanently** (plan, 2026-10-02). The four money cases, Buy-10, case
+  sales and the Event Case are gone. Blocks come from wins, rewards, the shop's Mystery and
+  Grand Opening deals and the restock shop. Mythic blocks are never sold.
+- **Timers** start by themselves when the block lands in the hotbar. They all run at once;
+  there are no slots. Opening a block before its timer is done answers "Not ready yet"; the
+  hotbar slot counts down. A bought block (paid origin) opens at once.
+- **VIP** halves every timer (`Config.LuckyBlocks.VipTimerFactor` 0.5; Quick Cases was
+  retired into VIP, designer 2026-10-04).
+- **Skips**: a timer is finished with Robux only, 19 R$ (section 9.1). No money skip.
+- A block can be **traded** only once its timer is done (section 12).
+- Blocks live in the hotbar and its bag (`Config.LuckyBlocks.MaxBlocks`), never in the
+  Inventory menu.
 
 ### 7.3 Odds screen and per-cue odds
 
-Every cue of a rarity in a case has an equal share: **cue % = rarity % / cues of that rarity in
-the case**. With the launch catalog, each Legendary in the Legendary Case is 22 / 7 = 3.1429%,
-each Mythic 2.7 / 3 = 0.9%, and the one Secret 0.3%. The case screen has a button that says
-**"Odds"** (a word, not just an icon), lists every cue with its %, and totals exactly 100%.
+Every cue of a rarity in a block has an equal share: **cue % = rarity % / cues of that rarity
+in the block**. With the launch catalog, each Legendary in the Legendary block is 22 / 7 =
+3.1429%, each Mythic 2.7 / 3 = 0.9%, and the one Secret 0.3%. The shop's block cards and the
+reel show the odds; an **"Odds"** button (a word, not just an icon) lists every cue with its
+%, and totals exactly 100%.
 
-**Cue cards** show the rarity, **its % per Case Drop and "N exist"**, for example "EPIC ·
-0.138% · 1,284 exist". A cue's own % shows only in the Odds list. "N exist" reads "fewer than
+**Cue cards** show the rarity, **its % per Mystery block and "N exist"**, for example "EPIC ·
+0.109% · 1,284 exist". A cue's own % shows only in the Odds list. "N exist" reads "fewer than
 10" until there are 10 copies.
 
 ### 7.4 Announcements and retiring
 
 - Unboxing a **Mythic or Secret** is announced in every server; a **Legendary** in the opener's
   server (plan, 2026-10-02).
-- A **Legendary Case appearing in the restock shop** is announced in every server.
+- A **Legendary block appearing in the restock shop** is announced in every server.
 - **Retired (vaulted) cues never come back** (plan, 2026-10-02; the old event-case return is
   gone). Odds screens update the moment a cue is retired.
 
@@ -516,7 +537,7 @@ How rare things end up across the whole game is section 1 (the day-30 targets).
 
 ## 8. Selling cues back
 
-Any case-rarity cue can be sold for money, with a confirm step from Epic up and a "Duplicate"
+Any block-rarity cue can be sold for money, with a confirm step from Epic up and a "Duplicate"
 tag on extras. Exclusive and Unique cues can't be sold. A paid-origin copy is sold first.
 
 | Common | Uncommon | Rare | Epic | Legendary | Mythic | Secret |
@@ -529,55 +550,56 @@ Selling also removes cues from the game, which keeps the ones that stay worth mo
 
 ## 9. What money buys, and the Limited shelf
 
-**Case cues are never sold directly** (designer, 2026-09-27). A Common-to-Secret cue comes only
-from a case or a trade. That keeps every case a chance at something money can't simply buy, and
-gives trading its purpose. (Research: items that stay buyable lose their trade value, while
+**Block cues are never sold directly** (designer, 2026-09-27). A Common-to-Secret cue comes
+only from a lucky block or a trade. That keeps every block a chance at something money can't
+simply buy, and gives trading its purpose. (Research: items that stay buyable lose their trade value, while
 items sold for a short time and then retired become the most valuable in the game.)
 
 | Item | Price | Notes |
 |---|---|---|
-| Mystery Case | **$4,900**; 10 for **$44,100** (the price of 9) | one Case Drop: same odds, pity and 8-ball reveal |
-| Restock shop | see 9.1 | new items every 10 minutes |
-| Timer skip | **$25 a minute left** ($1,500 an hour), at least $250 | Robux is cheaper on purpose |
+| Mystery block | **$4,900**; 10 for **$44,100** (the price of 9) | the win's block, bought: same tier roll and pity, opens at once |
+| Grand Opening block | **$49,000**; 3 for $139,000; 10 for $441,000 | only during its 21-day deal (9.2) |
+| Restock shop | see 9.1 | new blocks every 10 minutes |
+| Timer skip | Robux only, **19 R$** | no money skip (designer, 2026-10-04) |
 | Ability spin | **$17,500** each (buy 1, 5, 10 or 50; no bulk discount) | section 11.8 |
-| Limited cues | from **$149,000** | below |
+| Limited cues | none at release | 9.2 |
 
 **When a player has part of the price**, the buy button says "Need $X more" and opens the money
 packs with the smallest pack that covers the gap highlighted. Never right after a lost match.
 
-### 9.1 Mystery Cases, the restock shop and timer skips
+### 9.1 Mystery blocks, the restock shop and the timer skip
 
-**Mystery Cases**: each is one Case Drop (section 7.1), bought with money ($4,900, or 10 for
-$44,100) or Robux (Mystery1, Mystery10). They are paid random items (section 13).
+**Mystery blocks**: the win's block, bought (section 7.1) with money ($4,900, or 10 for
+$44,100; `Config.Shop.Deals.Mystery`) or Robux (Mystery1 25 R$, Mystery10 229 R$). A bought
+block is paid origin and opens at once. They are paid random items (section 13).
 
 **The restock shop** restocks every **10 minutes on the clock** (UTC :00, :10, ...). Every
-server shows the same items (picked from the time slot's number), with a real countdown
-(`Config.Shop.Restock`, `Progression/Restock.luau`).
+server shows the same blocks (picked from the time slot's number), with a real countdown
+(`Config.Shop.Restock`, `Progression/Restock.luau`). **Three slots each roll one block kind**,
+and a fourth, VIP-only slot rolls its own (chances out of 10,000):
 
-| Slot | Item | Shows in | Price | Stock |
+| Block | A normal slot | The VIP slot | Price | Stock per player per restock |
 |---|---|---|---|---|
-| 1 | Uncommon Case | every restock | $14,900 | 3 per player |
-| 2 | Rare Case | 60% of restocks | $34,900 | 2 per player |
-| 3 (lucky) | Epic Case | 4% of restocks | $349,000 or 999 R$ | 1 per player |
-| 3 (lucky) | Legendary Case | 0.15% of restocks | $3,490,000 or 4,999 R$ | 1 per player, **25 worldwide** per appearance; announced in every server |
-| 3 (otherwise) | 3 Mystery Cases | the other 95.85% | $14,700 (no discount) | 1 per player |
-| 4 (VIP only) | an extra Rare Case | every restock | $34,900 | 1 per VIP |
+| Uncommon | 62% | - | $14,900 | 3 |
+| Rare | 36.6% | 96% | $34,900 or 99 R$ (RestockRare) | 1 |
+| Epic | 1.35% | 3.85% | $349,000 or 999 R$ (RestockEpic) | 1 |
+| Legendary | 0.05% | 0.15% | $3,490,000 or 4,999 R$ (RestockLegendary) | 1; announced in every server |
 
-- The restock filler (3 Mystery Cases, $14,700) was confirmed by the designer (2026-10-03).
-- The Legendary's 25 copies are an atomic counter shared by every server. A Robux prompt holds
-  one copy while it is open; a cancel or a leave gives it back. A money buy that fails gives
-  it back too.
-- Cases bought here are paid origin and land on their normal timers.
-- No Robux "restock" at launch. Mythic Cases are never sold.
+- Stock is per slot, one block per press. A slot's shared stock counter (`GlobalStock`, the
+  Legendary's "25 worldwide" from the plan) is in the code but no row sets it today.
+- Blocks bought here are paid origin and open at once.
+- Mythic blocks are never sold.
 
-**Timer skips**: money $25 for every minute left (a part minute counts whole), at least $250;
-or Robux, on the case the player picked: Skip1h 15 R$, Skip6h 49 R$, Skip24h 99 R$, Skip48h
-149 R$ (each finishes a timer with at most that long left). A skip does not change a case's
-origin.
+**The timer skip**: Robux only, **19 R$** (`LuckyBlockSkip`, product 3716368528), on the block
+the player picked, whatever its tier; the money skip and the four Skip products are gone
+(designer, 2026-10-04). A late receipt whose block is already ready keeps a saved skip credit
+for the next timer. It is a paid random item (section 13). A skip does not change a block's
+origin. Only the designer's account may bypass timers without paying (testing); the countdown
+stays visible.
 
 ### 9.2 The Limited shelf
 
-The Limited shelf sells **Unique** cues: exclusive designs that never appear in any case.
+The Limited shelf sells **Unique** cues: exclusive designs that never appear in a tier block.
 - **For a set time only**, with a real countdown that never restarts. When the time is up it
   is **never sold again** and becomes trade-only forever.
 - **Numbered** (#1, #2, ...), **one per player**, optionally **copy-capped** (sold out when
@@ -585,18 +607,20 @@ The Limited shelf sells **Unique** cues: exclusive designs that never appear in 
 - Priced in money, so it is a real saving goal. Some may be sold for Robux; a known item for
   Robux is not a paid random item. Limited cues bought with money or Robux are paid origin.
 
-**At release** (plan, 2026-10-02; designer, 2026-10-03):
+**At release the shelf is empty** (designer, 2026-10-04): the $149,000 Grand Opening Cue shelf
+is gone. The Grand Opening Cue and the Beta Cue come from the **Grand Opening block** only
+(7.2; `Config.Shop.Deals.GrandOpening`): $49,000, 3 for $139,000, 10 for $441,000, or 49 / 129
+/ 349 R$, for **21 days** from a start the designer sets right before the release is published
+(`StartsAt` 0 = off; a "Vaulted" card stays 7 days after the end). The release sale (30% off
+the big money packs, VIP and 10 Mystery blocks) runs on the same window
+(`Config.Shop.ReleaseSale`).
 
-| Cue | Price | Window | Copies |
-|---|---|---|---|
-| **Grand Opening Cue** | $149,000 | 14 days from its start | numbered, one per player, no cap |
-
-- Its start time (`StartsAt`, UTC) is **0 = off** until the designer sets it right before the
-  release is published. While off it is not on the shelf and a buy answers "NotStarted".
-- It has placeholder colours for now (black shaft, gold rings, felt-green wrap; designer,
-  2026-10-03); the real skin comes later.
-- **Founder's Cue and Beta Cue are off** until the designer schedules them (no shelf row; their
-  catalog cues stay). The Founder's Cue Robux product is gone.
+- The shelf code stays (`Config.Shop.Limited`, one row per Limited plus its catalog cue) for
+  a later Limited; while empty nothing shows.
+- The Grand Opening Cue has placeholder colours for now (black shaft, gold rings, felt-green
+  wrap; designer, 2026-10-03); the real skin comes later.
+- **The Founder's Cue is off** until the designer schedules it (its catalog cue stays). The
+  Founder's Cue Robux product is gone.
 - **After launch**: one new Limited about every 2 weeks when art exists, $149,000-$499,000,
   some for Robux. None is scheduled yet (designer, 2026-10-03). A new Limited is one Config row
   plus its catalog cue.
@@ -619,11 +643,11 @@ One claim per UTC day; the seven days repeat (plan, 2026-10-02):
 
 | Day 1 | Day 2 | Day 3 | Day 4 | Day 5 | Day 6 | Day 7 |
 |---|---|---|---|---|---|---|
-| $5,000 | 1 Case Drop | $10,000 | 2 Case Drops | $15,000 | 3 Case Drops | a Rare Case + 2 ability spins |
+| $5,000 | 1 Mystery block | $10,000 | 2 Mystery blocks | $15,000 | 3 Mystery blocks | a Rare block + 2 ability spins |
 
-- **Day 1 is given by itself on join** (3 s after the save loads), whenever it is loop day 1:
-  a new player, or a streak that started over. Other days are claimed in the Rewards menu
-  (lane, 2026-10-03).
+- **Every day is claimed in the Rewards menu**, day 1 included (designer, 2026-10-04: no
+  reward popups; nothing is given by itself on join, and the old `AutoClaim` fields are gone).
+- Every reward row is `{ money, blocks = { [kind] = n }, spins, lucky }` (`Config.Daily`).
 - **One free streak freeze a UTC week** (weeks start Monday): one missed day is covered by
   itself and the streak goes on. Two or more missed days start it over.
 - **VIP adds 1 ability spin** to each day's claim.
@@ -636,53 +660,58 @@ count reaches a step, its reward is added to that day's claim:
 
 | Day 7 | Day 14 | Day 21 | Day 28 |
 |---|---|---|---|
-| a Rare Case | 2 Rare Cases | 2 Rare Cases | an Epic Case |
+| a Rare block | 2 Rare blocks | 2 Rare blocks | an Epic block |
 
 This replaces the old weekly Epic Case and the day-28 Legendary Case.
 
 ### 10.3 Playtime gifts
 
-Minutes played in a UTC day, each claimable once that day:
+Minutes played in a UTC day, each claimable once that day in the Rewards menu (never given by
+itself; designer, 2026-10-04):
 
 | 10 min | 30 min | 60 min | 90 min | 120 min |
 |---|---|---|---|---|
-| $2,000 | 1 Case Drop | 2 Case Drops + 1 ability spin | $10,000 | a Rare Case |
+| $2,000 | 1 Mystery block | 2 Mystery blocks + 1 ability spin | $10,000 | a Rare block |
 
 ### 10.4 Group, likes, invites and codes
 
 - **Group** (designer, 2026-10-03): the game's Roblox group **675425213** ("Lucky 8"). The
-  Rewards card has **Join** (an in-game prompt) then **Claim**: **3 Case Drops**, once per
+  Rewards card has **Join** (an in-game prompt) then **Claim**: **3 Mystery blocks**, once per
   player. While a member, match money gets **+10%** by itself (checked on join and on Claim).
+- **Favorite** (GUI lane, 2026-10-03): favoriting the game through Roblox's prompt gives
+  **$10,000 + 1 Mystery block** once (`Config.Social.FavoriteReward`; Roblox gives the server
+  no way to check a favorite, so the client reports it).
 - **Like codes** (designer, 2026-10-03): six codes, written now and **switched on live** by the
   designer with `/code on <CODE>` (every server at once, no republish) when the game reaches
   each like milestone:
 
 | Code | Likes | Gives |
 |---|---|---|
-| LIKES1K | 1,000 | $10,000 + 1 Case Drop |
-| LIKES5K | 5,000 | $25,000 + 2 Case Drops |
-| LIKES10K | 10,000 | a Rare Case + 3 ability spins |
-| LIKES25K | 25,000 | 2 Rare Cases |
-| LIKES50K | 50,000 | $100,000 + 2 Rare Cases |
-| LIKES100K | 100,000 | 3 Rare Cases + 5 ability spins |
+| LIKES1K | 1,000 | $10,000 + 1 Mystery block |
+| LIKES5K | 5,000 | $25,000 + 2 Mystery blocks |
+| LIKES10K | 10,000 | a Rare block + 3 ability spins |
+| LIKES25K | 25,000 | 2 Rare blocks |
+| LIKES50K | 50,000 | $100,000 + 2 Rare blocks |
+| LIKES100K | 100,000 | 3 Rare blocks + 5 ability spins |
 
   Until switched on, a like code answers as unknown. The spin screen's code banner shows the
   current code.
 - **Invites** (designer, 2026-10-03, light checks): a friend who joins through your in-game
   invite, is brand new to the game, and wins any real match that is not solo (bots count)
-  gives **both of you a Rare Case**. The inviter gets at most **5 a UTC month**; an offline
-  inviter gets theirs on their next join.
+  gives **both of you a Rare block** (`Config.Social.InviteBlock`). The inviter's reward comes
+  once ever (their first invited friend's first win; GUI lane, 2026-10-03, `InviterOnce`),
+  within the **5 a UTC month** cap; an offline inviter gets theirs on their next join. Every
+  invited friend still gets their own block.
 - **Codes** (case-insensitive, once per player, an optional end date):
 
 | Code | Gives |
 |---|---|
-| WELCOME | $5,000 + 1 Case Drop |
+| WELCOME | $5,000 + 1 Mystery block |
 | 8BALL | $2,500 |
-| ROOFTOP | a Rare Case (until 2026-12-31) |
-| ABILITIES | 3 ability spins |
+| ROOFTOP | a Rare block (until 2026-12-31) |
+| RELEASE | 3 ability spins (the tutorial's code; it replaced ABILITIES, 2026-10-03) |
 
-  Codes give only money, Case Drops, cases and spins: never a cue, pass or boost sold for
-  Robux.
+  Codes give only money, lucky blocks and spins: never a cue, pass or boost sold for Robux.
 
 ---
 
@@ -708,16 +737,22 @@ the id into `Config.Products`; until then the shop says "Coming soon".
 **First purchase double**: the first money pack a player ever buys pays double money, once. It
 is true for every player exactly once.
 
-### 11.2 VIP (game pass, 599 R$)
+### 11.2 VIP (game pass, 499 R$)
+
+499 R$ since 2026-10-04 (designer; was 599), when the Quick Cases pass was retired into it.
 
 - **2x money** (+100%, adds with other boosts) on match money only (3.5).
+- **Block timers twice as fast** (`Config.LuckyBlocks.VipTimerFactor`), timers already running
+  included.
+- **Skip and Auto Spin** on the ability spin screen (11.8; without VIP they answer "NoVip").
 - **+1 free ability spin a day** (added to the day's login claim, 10.1).
-- **The VIP restock slot**: an extra Rare Case for $34,900 every restock (9.1).
+- **The VIP restock slot**: a fourth slot every restock, Rare 96% / Epic 3.85% / Legendary
+  0.15% (9.1).
 - **The VIP Cue** (Exclusive, rainbow, never traded), a **[VIP]** chat tag before the rank tag
   ("[VIP] [GOLD] Name") and a rainbow name over the head (designer, 2026-09-28).
-- **No cases, no XP, no discount.** Never better case odds, never more Case Drops.
+- **No blocks, no XP, no discount.** Never better block odds, never more blocks.
 
-### 11.3 VIP welcome offer (developer product, 299 R$)
+### 11.3 VIP welcome offer (developer product, 249 R$)
 
 **VIP at half price for 24 hours from a player's first join**, with a real countdown that never
 restarts. If they don't buy it, **one "welcome back" window of 24 hours** opens 7 days later,
@@ -727,62 +762,67 @@ never "LAST CHANCE". Opt it out of Managed Pricing so "half price" stays true.
 
 ### 11.4 Starter Pack (developer product, 99 R$)
 
-Once per player, in the first 7 days after the first join, shown after the first case opening:
-**the Starter Cue** (Exclusive, the one Exclusive that trades), **$75,000** and **1 hour of 2x
-money** (adds to VIP: x3, designer 2026-10-03). No case inside, which keeps it outside the
-paid-random-item rules.
+Once per player, in the first 7 days after the first join, shown after the first block opening:
+**a Starter lucky block** (Rare or better, 7.2; designer, 2026-10-04, `Config.Shop.StarterBlock`;
+it replaced the Starter Cue in the pack), **$75,000** and **1 hour of 2x money** (adds to VIP:
+x3, designer 2026-10-03). With a block inside it is a paid random item (section 13).
 
 ### 11.5 Everything Robux buys at release
 
-**4 game passes and 24 developer products** (plan, 2026-10-02; `Config.Products`; the names and
-descriptions are in `docs/prompts/ECONOMY_PROMPT.md` step 3).
+**3 game passes and 31 developer products** (plan, 2026-10-02, reworked for lucky blocks
+2026-10-04; `Config.Products`; the names and descriptions are `tools/products_spec.json`). The
+Quick Cases pass (retired into VIP), Skip1h-Skip48h and the money timer skip are gone
+(designer, 2026-10-04).
 
 | # | Key | Kind | Robux | Gives |
 |---|---|---|---|---|
-| 1 | Vip | Game pass | 599 | 11.2 |
-| 2 | QuickCases | Game pass | 299 | case timers halved, open ready cases at once (up to 10 of a kind), skip the reveal; Skip and Auto Spin for ability spins. Replaces Fast Open. |
-| 3 | UltSlot2 | Game pass | 59 | the second ability slot |
-| 4 | UltSlot3 | Game pass | 99 | the third ability slot |
-| 5 | VipOffer | Product, once | 299 | 11.3 |
-| 6 | StarterPack | Product, once | 99 | 11.4 |
-| 7-13 | Pack1-Pack7 | Products | 49 / 99 / 249 / 499 / 999 / 2,499 / 4,999 | 11.1 |
-| 14 | Mystery1 | Product | 25 | 1 Case Drop |
-| 15 | Mystery10 | Product | 229 | 10 Case Drops |
-| 16 | RestockEpic | Product | 999 | the restock Epic Case (only while in stock) |
-| 17 | RestockLegendary | Product | 4,999 | the restock Legendary Case (only while in stock, 25 worldwide) |
-| 18 | Skip1h | Product | 15 | finish a case timer with up to 1 h left |
-| 19 | Skip6h | Product | 49 | up to 6 h left |
-| 20 | Skip24h | Product | 99 | up to 24 h left |
-| 21 | Skip48h | Product | 149 | up to 48 h left |
+| 1 | Vip | Game pass | 499 | 11.2 |
+| 2 | UltSlot2 | Game pass | 59 | the second ability slot |
+| 3 | UltSlot3 | Game pass | 99 | the third ability slot |
+| 4 | VipOffer | Product, once | 249 | 11.3 |
+| 5 | StarterPack | Product, once | 99 | 11.4 |
+| 6-12 | Pack1-Pack7 | Products | 49 / 99 / 249 / 499 / 999 / 2,499 / 4,999 | 11.1 |
+| 13 | Mystery1 | Product | 25 | 1 Mystery block |
+| 14 | Mystery10 | Product | 229 | 10 Mystery blocks |
+| 15-17 | GrandOpening1, GrandOpening3, GrandOpening10 | Products | 49 / 129 (was 147) / 349 (was 490) | Grand Opening blocks, only during the deal (9.2); ids still 0 |
+| 18 | RestockRare | Product | 99 | the restock Rare block (only while in stock); id still 0 |
+| 19 | RestockEpic | Product | 999 | the restock Epic block (only while in stock) |
+| 20 | RestockLegendary | Product | 4,999 | the restock Legendary block (only while in stock) |
+| 21 | LuckyBlockSkip | Product | 19 | finish one block's timer (9.1) |
 | 22 | MoneyParty | Product | 199 | +100% money for everyone in the server for 15 minutes, the buyer's name announced; buying again adds 15 minutes (the shop offers it up to an hour queued) |
 | 23-26 | Spin1, Spin5, Spin10, Spin50 | Products | 15 / 50 / 100 / 449 | ability spins (11.8) |
 | 27-28 | Lucky1, Lucky3 | Products | 49 / 129 | Lucky Spins (11.8) |
+| 29-32 | Pack4Sale-Pack7Sale | Products | 349 / 699 / 1,749 / 3,499 | the release sale's 30%-off copies of Pack4-Pack7 (9.2) |
+| 33 | VipSale | Product | 349 | VIP at 30% off during the release sale |
+| 34 | Mystery10Sale | Product | 160 | 10 Mystery blocks at 30% off during the release sale |
 
 Plus a **Get Roblox Plus** button (`MarketplaceService:PromptRobloxSubscriptionPurchase`, no
 product to create; Roblox pays the game 250 R$ a month for up to 3 months for each subscriber
 signed up in the game).
 
-**The shop is one scrolling page, no tabs** (`Config.Shop.Order`; the GUI lane builds it):
-1 personal offer (Starter Pack or VIP welcome offer, only while open), 2 VIP, 3 restock shop,
-4 Limited, 5 Mystery Cases, 6 money packs, 7 Quick Cases and Money Party, 8 Get Roblox Plus.
-Timer skips appear on the case; spins on the Abilities screen.
+**The shop is one scrolling page, no tabs** (`Config.Shop.Order`): 1 the Grand Opening block
+(while its deal runs), 2 the Mystery block, 3 the restock shop, 4 the Starter Pack and VIP side
+by side, 5 money packs, 6 Money Party, the ability slots and Get Roblox Plus. The timer skip is
+offered on the block itself; spins on the Abilities screen. (The client's shop page was emptied
+for the GUI overhaul on 2026-10-04: the frame and four jump buttons stay, the sections are being
+rebuilt; UI_STYLE section 15 is the reference.)
 
 A Robux receipt that no longer qualifies when it arrives (the VIP offer when already VIP or
 after its window plus 10 minutes, a second Starter Pack) pays plain money instead at Pack1's
-rate, Robux x 9,000 / 49 (VIP offer $54,918, Starter Pack $18,183).
+rate, Robux x 9,000 / 49 (the VIP offer about $45,700, the Starter Pack about $18,200).
 
 ### 11.6 Later (not at release)
 
 In this order (plan, 2026-10-02): a season **Cue Pass** (449 / 1,199 R$), gift versions, the
 **Founder's Cue** (5,000 R$, 50 copies) and **Beta Cue** (1,000 R$, 500 copies), a Robux
 restock refill (49 R$), a $4.99 a month subscription, rewarded ads paying money. Seasons, the
-Cue Pass and event cases all come after release.
+Cue Pass and event blocks all come after release.
 
 ### 11.7 Never sell
 
 **Ruled out** (plan, 2026-10-02): a luck economy (potions, server luck, luck stats), money bets
-on matches, cases from VIP, offline income, money for idle time, always-on Epic or Legendary
-cases, fake near-misses. Also never: anything that protects rank, in-match aids (longer
+on matches, blocks from VIP, offline income, money for idle time, always-on Epic or Legendary
+blocks, fake near-misses. Also never: anything that protects rank, in-match aids (longer
 guidelines, hints, power or spin upgrades), anything that hurts an opponent, and purchase
 prompts right after a loss.
 
@@ -814,8 +854,8 @@ abilities:
 
 **Getting spins:** 3 starter spins; 1 free spin a UTC day (never stacks); VIP +1 a day (10.1);
 rank-ups (+1 for Bronze, Silver, Gold; +2 Platinum and Diamond; +3 from Expert up); +2 on day
-7 of the login loop; +1 with the 60-minute playtime gift; codes (ABILITIES 3; LIKES10K 3,
-LIKES100K 5); Quick Cases adds Skip and Auto Spin.
+7 of the login loop; +1 with the 60-minute playtime gift; codes (RELEASE 3; LIKES10K 3,
+LIKES100K 5); VIP adds Skip and Auto Spin (designer, 2026-10-04: Quick Cases retired).
 
 **Prices:**
 
@@ -871,12 +911,13 @@ Built on the server (2026-10-03; the trade screen is the GUI lane's): `Progressi
 **Who and what**
 - **Anyone in the server, no gate at all** (designer, 2026-10-03: no 25-win gate, no friends or
   nearby rules).
-- **Cues and ready cases** (a case only once its timer is done), **up to 8 items a side**, one
-  entry per copy. **Never money.** No empty side.
-- Case cues, Unique cues and the Starter Cue trade. Classic and every other Exclusive cue
+- **Cues and ready lucky blocks** (a block only once its timer is done, offered as
+  "Block:<kind>"), **up to 8 items a side**, one entry per copy. **Never money.** No empty
+  side.
+- Block cues, Unique cues and the Starter Cue trade. Classic and every other Exclusive cue
   never (rank, season and VIP cues; designer, 2026-09-28).
 - A Unique keeps its number, and a player can hold only one copy of each Unique.
-- **Paid origin**: every case and cue copy carries a free or paid origin. Free copies move
+- **Paid origin**: every block and cue copy carries a free or paid origin. Free copies move
   first; a paid copy keeps its paid origin and moves only where **both** players'
   `IsPaidItemTradingAllowed` is true.
 - **A trade pays no finder's money.**
@@ -886,8 +927,9 @@ Built on the server (2026-10-03; the trade screen is the GUI lane's): `Progressi
   both make offers, both accept, then a **3-second wait that any change restarts** on both
   sides. Either can cancel; leaving closes the trade.
 - A **warning** when the sides are far apart: one side is worth more than 4 times the other,
-  where a cue is worth 1 / its copies in existence (fewer than 10 counts as 10) and a case 1 /
-  a set number per tier (`Config.Trade.CaseExists`).
+  where a cue is worth 1 / its copies in existence (fewer than 10 counts as 10,
+  `Config.Trade.MinExists`) and a block 1 / a set number per kind (`Config.Trade.BlockExists`:
+  Standard 100,000 down to Mythic 30; a Mystery block 70,000).
 - **History**: the last **50 trades** per player (designer, 2026-10-03).
 
 **The atomic swap and the ledger**
@@ -904,7 +946,7 @@ Built on the server (2026-10-03; the trade screen is the GUI lane's): `Progressi
 **Alt farming** is held back by the free-drop rules (3.6: the loser must have played 5 real
 matches, at most 3 drops a day from one account) and the invite cap (10.4).
 
-**Retiring cues ("Vaulted")**: the designer can retire case cues; they stop dropping and never
+**Retiring cues ("Vaulted")**: the designer can retire block cues; they stop dropping and never
 come back (7.4), which keeps old cues worth trading for.
 
 ---
@@ -913,14 +955,14 @@ come back (7.4), which keeps old cues worth trading for.
 
 - **Odds as percentages** before every purchase: every outcome with its %, totals exactly 100,
   an "Odds" button in words, live updates.
-- **Paid random items** are: Mystery Cases (money or Robux), restock cases, timer skips, Quick
-  Cases' timer perk, VIP's daily spin and ability spins (`Random = true` in
-  `Config.Products`). Where **`PolicyService:ArePaidRandomItemsRestricted`** is true (Roblox
+- **Paid random items** are: Mystery and Grand Opening blocks (money or Robux), restock
+  blocks, the Starter Pack (its block), the block timer skip, VIP's halved timers and daily
+  spin, and ability spins (`Random = true` in `Config.Products`). Where **`PolicyService:ArePaidRandomItemsRestricted`** is true (Roblox
   names Australia, Belgium, the Netherlands, the UK and Brazil for under-18s) they are hidden or
   refused ("Restricted"). Free rewards still work there, and so does the Limited shelf (a known
   cue at a fixed price). A player PolicyService never answers for is treated as restricted for
-  the session. Quick Cases' timer perk and VIP's daily spin also wait until PolicyService has
-  answered "not restricted" (2026-10-03).
+  the session. VIP's timer perk and daily spin also wait until PolicyService has answered "not
+  restricted" (2026-10-03).
 - **`IsPaidItemTradingAllowed`** false: paid-origin items can't be traded (section 12).
 - **Discounts must be real**: no fake sales, no restarting countdowns, no "LAST CHANCE, ACT
   NOW" wording.
@@ -938,14 +980,14 @@ come back (7.4), which keeps old cues worth trading for.
 |---|---|---|
 | PC XP | x0.75 to Diamond, x0.5 from Expert | the global queue is live and there are 200+ Master and up: Expert and up x0.1 |
 | Reyes XP | 307,500 | if Reyes gets crowded (a few hundred a year), raise it for everyone not yet there |
-| Case Drop weights and case odds | section 7 | if the day-30 shares drift more than about 20% off the targets (section 1) |
-| Restock Legendary | 25 worldwide, 0.15% of restocks | if Legendaries pile up or never sell out |
+| The Mystery block's tier weights and block odds | section 7 | if the day-30 shares drift more than about 20% off the targets (section 1) |
+| Restock Legendary | 0.05% a slot, no worldwide cap set | if Legendaries pile up or never sell out (set `GlobalStock`) |
 | Limited drops | one about every 2 weeks | faster once the art pipeline allows; add copy caps if values fall |
 | Seasons | ranks never reset | season rewards for the highest tier reached, once seasons start |
 
 **Watch these numbers** (Roblox analytics and our own events): the share of active players
 owning an Epic, Legendary, Mythic and Secret (the targets), players' average saved money
-(rising fast = too much income), how many sell back Epics (high = too many Epics), Mystery Case
+(rising fast = too much income), how many sell back Epics (high = too many Epics), Mystery block
 and restock sales, money-pack conversion, and D1 and D7 retention.
 
 ---
@@ -954,8 +996,8 @@ and restock sales, money-pack conversion, and D1 and D7 retention.
 
 A bot's equipped cue matches what real players at its rank own (plan, 2026-10-02, the Bots
 lane's request; `Config.BotCues`, `BotCues.pick(tier, roll)`). Each column is the chance the cue
-is that rarity or better; Common, Uncommon and Rare are spread by the Case Drop's odds, and the
-cue is then one case cue of that rarity, each equally likely.
+is that rarity or better; Common, Uncommon and Rare are spread by the Mystery block's odds, and
+the cue is then one block cue of that rarity, each equally likely.
 
 | Bot tier | Epic+ | Legendary+ | Mythic+ |
 |---|---|---|---|
@@ -982,7 +1024,8 @@ Every money source and sink is sent to Roblox with **`AnalyticsService:LogEconom
 (`PlayerData.MoneyChanged`: player, amount, reason, balance). Each player's changes are added
 up by reason and sent once every 60 s and when they leave, so a match's many pots make one
 event. Sources: match money, rewards, codes, group, invites, rank-ups, finder's money, Index
-rows, packs, sell-back. Sinks: Mystery Cases, restock, skips, ability spins, Limited cues.
+rows, packs, sell-back. Sinks: Mystery and Grand Opening blocks, restock, ability spins,
+Limited cues.
 
 ---
 
@@ -997,17 +1040,23 @@ rows, packs, sell-back. Sinks: Mystery Cases, restock, skips, ability spins, Lim
 
 - **The menus** (designer, 2026-09-28): four buttons in one column on the left: **Shop**,
   **Inventory**, **Rewards** and **Trade**. The Shop is one scrolling page with no tabs
-  (11.5, plan 2026-10-02). The Inventory has Cues and the Index, with unopened cases at the top
-  (no Cases tab). Rewards holds the login loop, the 28-day track, playtime gifts, codes and the
-  group and invite cards. Trading is in the first release. The GUI lane builds the screens.
-- **How items are saved** (save version 6, 2026-10-03, a full wipe that kept only the receipt
-  ids): a count per cue id for case and Exclusive cues, with how many of them are paid origin;
-  Unique cues keep their copy number (#412) and a paid flag; ready cases as a count per case
-  type (with paid counts); cases on a timer as a list, each with its ready time and origin. The
-  default Classic cue is always owned and never counted, sold or traded. Saves go through the
+  (11.5, plan 2026-10-02; emptied to its frame and jump buttons for the GUI overhaul,
+  2026-10-04). The Inventory has two tabs, **Cues** (first) and **Index**; lucky blocks are
+  not in it: they live in the hotbar and its bag. Rewards holds the login loop, the 28-day
+  track, playtime gifts, codes and the group, favorite and invite cards; everything is claimed
+  there and nothing pops up by itself (designer, 2026-10-04: no reward popups, no reminder
+  toast, no come-back screen, no first-leave gift). Trading is in the first release.
+- **How items are saved** (save version 7, 2026-10-04; version 6 of 2026-10-03 was a full wipe
+  that kept only the receipt ids): a count per cue id for block and Exclusive cues, with how
+  many of them are paid origin; Unique cues keep their copy number (#412) and a paid flag;
+  lucky blocks as a list (`LuckyBlocks.List`, each `{ Id, Kind, ReadyAt, Paid }`) plus the
+  skip credit. Version 7 dropped the old cases, their timers and the Quick Cases flag with no
+  conversion (designer), and renamed `Flags.FirstWinCase` to `FirstWinBlock`. The default
+  Classic cue is always owned and never counted, sold or traded. Saves go through the
   session-locked, versioned save layer.
-- **Opening cases.** Everyone opens one at a time with the reveal; Quick Cases opens up to 10
-  ready cases of one kind at once and skips the reveal. A paid-origin case is opened first.
+- **Opening blocks.** One at a time, in the world: hold the block from its hotbar slot, throw
+  it, hold the prompt; the reel, the pull cutscene (Rare and up) and the "YOU GOT" card follow.
+  No bulk opening (Quick Cases is retired).
 - **Index completion.** A cue never owned is a "?" card; tapping it shows its name and its
   black 3D silhouette turning (designer, 2026-09-28). A cue counts once it has ever been owned
   (selling it later keeps it). Completing a rarity row pays once (`Config.Index.Rows`):
@@ -1027,7 +1076,7 @@ rows, packs, sell-back. Sinks: Mystery Cases, restock, skips, ability spins, Lim
 | $500 | $1,000 | $2,500 | $7,500 | $25,000 | $100,000 | $500,000 | $5,000 | $10,000 |
 
 - **No rank-down screen.** XP is never lost.
-- **Private servers** (when they come): no XP, no Case Drops, solo-rate money. The arena is a
+- **Private servers** (when they come): no XP, no blocks, solo-rate money. The arena is a
   *reserved* server and never counts as private.
 - **Small rules kept from 2026-09-28** (each is a line in DECISIONS.md): match XP rounds half
   to even and money rounds half up; a team's same-opponent count is the most-played
@@ -1035,9 +1084,6 @@ rows, packs, sell-back. Sinks: Mystery Cases, restock, skips, ability spins, Lim
   reused; a Robux price is read once per server; a paid Money Party always adds its full 15
   minutes; the same-opponent table keeps 300 accounts a day, and past that a new account
   counts as the 11th match.
-- Config still holds a few old shop fields (case `Price` 0, `BulkCount`, `Sale`,
-  `Daily.WeekBonus`) only so the current screens run until the GUI lane rebuilds them. Nothing
-  is sold through them.
 
 ---
 
@@ -1046,24 +1092,27 @@ rows, packs, sell-back. Sinks: Mystery Cases, restock, skips, ability spins, Lim
 **Changed on purpose since the plan** (built this way):
 - **Trading has no gate.** The plan said it opens after 25 real wins; the designer opened it to
   anyone in the server (designer, 2026-10-03).
-- **The first win's Rare Case keeps its 1 h timer** (designer, 2026-10-03); the plan only said
+- **The first win's Rare block keeps its 1 h timer** (designer, 2026-10-03); the plan only said
   "a guaranteed Rare Case".
-- **The Grand Opening Cue is off until the designer sets its start** (`StartsAt` 0); the plan
-  said "the first 14 days" (designer, 2026-10-03).
+- **Cases are lucky blocks** (designer, 2026-10-04): opened in the world, no 8-ball, the Mystery
+  block rolls its tier when opened, 5 minutes after the win; no money timer skip; Quick Cases
+  retired into VIP; no reward popups.
+- **The Grand Opening Cue comes from the Grand Opening block, not a $149,000 shelf**, for 21
+  days from a start the designer sets (`StartsAt` 0 = off; designer, 2026-10-03 and
+  2026-10-04).
 - **A bot never shows the Secret cue**: the plan's Mythic+ column is always a Mythic (lane,
   2026-10-03).
 - **VIP's daily spin is added to the day's login claim**, so it comes when the player claims
   (lane, 2026-10-03).
 
-**Not built as the plan says** (open):
-- **Quick Cases opens up to 10 ready cases of one kind at once** (`Config.Cases.FastOpenCount`
-  = 10), not "every ready case at once".
+**Not built as the plan says** (open): nothing at the moment.
 
-### Lucky-block test follow-up (2026-10-03)
+### Lucky-block follow-up (2026-10-03, updated 2026-10-04)
 
 Lucky block timer skip: **19 Robux base price**, developer product **3716368528**; skips one
 owned block of any tier. Existing randomized-item purchase restrictions apply. Receipt grant
 and deduplication use PlayerData/Store's existing save barrier. If its selected timer is gone
 or already ready, retain a saved skip credit for the next timer instead. Only Painicane may
-bypass timers without a purchase; the visible countdown is unchanged. New test blocks use
-existing case odds: Uncommon 60 seconds, Epic 1 hour, Legendary 6 hours.
+bypass timers without a purchase; the visible countdown is unchanged. The test blocks' odds
+became the tier rows of 7.2 (the same odds the cases had), with the tier timers of 7.2; the
+test timers (60 s, 1 h, 6 h) are gone.

@@ -260,18 +260,21 @@ order; that is Open.
     counting up, the total flying into the HUD. Solo: one card and the money.
   - *NEW RANK!*: the big badge over turning rays, confetti, the name and the reward chip; a new
     tier bursts from the old badge with "PLATINUM!". There is no rank-down card: XP is never
-    lost (2026-09-28). The reward chips under the name (2026-09-28): money, each case with its
-    chest, the tier's cue and the [TIER] tag, which fly to the column when it closes.
+    lost (2026-09-28). The reward chips under the name (2026-09-28; blocks 2026-10-04): money,
+    each lucky block drawn as its 3D icon (`BlockIcon`), the tier's cue and the [TIER] tag,
+    which fly to where they live when it closes (a block to the hotbar, a cue to the column).
   - *The roadmap* (redesigned after reference 03, designer 2026-09-27): the ten tiers side by
     side (about five at once, < and > arrows plus swipe), each with its badge, name and five
     division dots; your tier bigger over turning rays with "Current Rank", the next with "Next
     Rank", later ones greyed. Below: your rank card (badge, XP bar, an arrow to the next
-    division and its money) and "Rewards for <tier>" (money, the real cases with their chests,
-    the [TIER] chat tag, the tier's cue on its thumbnail; 2026-09-28); tapping a tier shows its
+    division and its money) and "Rewards for <tier>" (money, the real lucky blocks as their 3D
+    icons, the [TIER] chat tag, the tier's cue on its thumbnail; 2026-09-28; blocks
+    2026-10-04); tapping a tier shows its
     rewards. No line of rules
     under the cards (designer, 2026-09-27). The < and > arrows carry one white chevron image
     each, drawn as a single stroke. Its slight dim is shared since 2026-09-28 by the full
-    menus and the case opening (section 10); NEW RANK! has its own (section 2).
+    menus; the block opening has its own dark one (section 14); NEW RANK! has its own
+    (section 2).
   - *Chat tags*: "[PLATINUM]" in the tier's colour before your name in chat (Reyes in the
     rainbow, letter by letter); none for Unranked. A VIP's rainbow "[VIP]" comes first
     (section 10).
@@ -311,7 +314,15 @@ order; that is Open.
 
 Built on the branch `economy` (docs/prompts/ECONOMY_UI_PROMPT.md). Sizes in
 `Config.UI.Menu`, `Config.UI.Shop`, `Config.UI.Inventory`, `Config.UI.Rewards` and
-`Config.UI.CaseOpening`. Lines marked *(assumption)* are overnight calls, logged in DECISIONS.
+`Config.UI.Reel`. Lines marked *(assumption)* are overnight calls, logged in DECISIONS.
+
+**Cases are gone (designer, 2026-10-04).** Lucky blocks replaced them entirely: the reel lives
+with the lucky blocks now (section 14; `BlockReel` with its Dark look, `ReelFx`, tuned in
+`Config.UI.Reel`, words in `Strings.Reel`), the case opening screens, Fast Open's grid and
+the chest art are gone, and no block is ever in the Inventory (the hotbar and its bag hold
+them). The reward popups, reminder toast and come-back screen are gone too: every reward is
+claimed in the Rewards menu. The lines below that still say "case" describe what was built
+then; the reel's rules hold for the blocks.
 
 - **The left column** (designer; reference 06): top to bottom Shop, Inventory, Rewards,
   Trade, each just its big glossy icon with no box behind it (designer, 2026-09-28: the blue
@@ -320,9 +331,9 @@ Built on the branch `economy` (docs/prompts/ECONOMY_UI_PROMPT.md). Sizes in
   computer, 52 px on a phone (under the rank HUD there; centred on the left edge on a big
   screen), always above the money HUD. Each tile draws over the one below, so a word is never
   under the next tile's red dot.
-  A red dot with a count sits top right (unopened cases on Inventory, "9+" past nine; a dot
-  on Rewards while something can be claimed); the Shop carries a gold timer pill while an
-  offer window is open. Hidden in a match. On a gamepad the tiles are never selected (a
+  A red dot sits top right on Rewards while something can be claimed (the Inventory's count
+  of unopened cases went with the cases, 2026-10-04: blocks show in the hotbar); the Shop
+  carries a gold timer pill while an offer window is open. Hidden in a match. On a gamepad the tiles are never selected (a
   selected button would take the stick from walking): the D-pad opens them in the hub (up
   Shop, right Inventory, down Rewards, left Trade) and each tile shows its D-pad glyph
   *(assumption)*.
@@ -349,33 +360,28 @@ Built on the branch `economy` (docs/prompts/ECONOMY_UI_PROMPT.md). Sizes in
   Most copies, Name A-Z, then round), keeps the chosen card and scrolls the grid to its top.
   It is as wide as its longest words so it never jumps; the order is kept while the player
   stays in the server. By rarity, Exclusive sits between Epic and Legendary.
-- **Finder's money**: a case prize that is new to the Index reads "NEW! +$250" and that money
-  flies from the pill into the money HUD as the card pops (the HUD holds it back during the
-  reel so the reel is never given away); Fast Open flies the total from the grid. Any other
-  find (a rank-up cue, the VIP or Starter Cue, a Limited cue, a gift) is a banner line
-  "New in your Index: VIP Cue! +$500" in the cue's rarity colour.
+- **Finder's money**: a block's prize that is new to the Index reads "NEW! +$250" on the
+  "YOU GOT" card, and the money reaches the HUD with the card, never before (the reel is never
+  given away). Any other find (a rank-up cue, the
+  VIP Cue, a Limited cue, a gift) is a banner line "New in your Index: VIP Cue! +$500" in the
+  cue's rarity colour.
 - **The dim** *(assumption)*: a full menu is the same kind of screen as the roadmap, so it
   reuses its slight dim; a tap on the dim closes it; one menu at a time; all close when a
-  match starts. The case opening's backdrop is the one darker layer (0.5, and 0.45 over a
-  menu so the menu's title never reads through the reel's).
-- **The case colours** (reference 07, `tools/gen_ui_art.py` CHESTS): one chest drawing in five
-  colours, Standard grey (never Rare's blue), Rare blue, Epic purple, Legendary gold with a
-  shine, Event pink. Rarity colours stay UI_STYLE 4's.
-- **The reel** (designer: Rivals / CS style): a strip of cue cards drawn from the case's true
-  odds slides under a gold centre marker and eases to a stop on the prize (4.2 s; 6 s for
-  Mythic and Secret with a build-up from 1.8 s before the stop), ticking as cards pass. Then
-  the prize card pops with its rarity sting: turning rays from Epic, confetti from Legendary,
-  the bigger moment (shimmer, red glow) from Mythic. Tap (or A) skips to the result. The
-  prize card offers Equip, Sell and Open next; X, Done or B close it; a tap outside does
-  nothing *(assumption)*. Fast Open's grid of ten flips the cards one by one with the rarest
-  last and chosen, with no Sell. The first win's reel plays inside the result screen, before
-  its cards. While the server has not answered, the stage waits; after 3 s its hint reads
-  "Still opening... Tap to close" and a close is allowed (the cue then waits in the Inventory
-  with a note). The prize card's buttons share their row by what their words need.
+  match starts. The block opening's backdrop is the dark see-through layer of section 14.
+- **The chest art is gone** (2026-10-04): the five case chests (reference 07, the CHESTS job in
+  `tools/gen_ui_art.py`) and their kit icons were deleted with the cases; a lucky block is
+  drawn as its own 3D model everywhere (section 14). Rarity colours stay UI_STYLE 4's.
+- **The reel** (designer: Rivals / CS style; now `BlockReel`, section 14): a strip of cue
+  cards drawn from the block's true odds slides under a gold centre marker and eases to a
+  stop on the prize, ticking as cards pass; the timings are `Config.UI.Reel`. Then the prize
+  pops with its rarity sting: the pull cutscene from Rare, then the "YOU GOT" card over the
+  dimmed world. Tap (or A) skips, in two stages (section 14). Fast Open's grid, the first
+  win's reel inside the result screen and the "Still opening" wait are gone: a block is
+  opened in the world, and the server has already answered when the reel starts.
 - **Prices**: money with the cash bundle; Robux with Roblox's own Robux glyph inside the text
   *(assumption)*; a product whose id is still 0 keeps its price and adds a small "Soon" tag.
   A real sale shows the struck old price, the new one and its countdown; "Need $X more" on a
-  case the player cannot afford jumps to the Money tab.
+  block the player cannot afford jumps to Money.
 - **Chat and names** (designer, 2026-09-28): in chat a VIP's line reads "[VIP] [GOLD] Name":
   [VIP] first in the house rainbow letter by letter, then the rank tag, and the name in
   Roblox's own colour. Over the head a VIP's name is the house rainbow, its colours drifting
@@ -523,7 +529,7 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
   and the moving rainbow (`UIAnim.rainbow`) only for deals and multipliers ("x2", "BEST
   DEAL").
 - **Crossed-out prices are always true** and used only where they matter most (big money
-  packs, VIP, 10 Mystery Cases, the release sale): the one-at-a-time total or a real sale price.
+  packs, VIP, 10 Mystery blocks, the release sale): the one-at-a-time total or a real sale price.
 - **Anything that looks lacklustre** gets the same treatment: big, clear, moving, animated.
 
 ## 14. Lucky blocks (designer, 2026-10-03)
@@ -549,6 +555,13 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
 The Shop is one scrolling page (section 10's format) rebuilt round the lucky blocks, after the
 designer's pasted references (`~/Desktop/GUI-refs/pasted/`; never the ChatGPT result sheets).
 Sizes in `Config.UI.Shop.Page` and `.Block`; words in `Strings.Menus.Shop`.
+
+**Emptied for the GUI overhaul (designer, 2026-10-04).** The client's shop page is down to its
+frame, background and the four jump buttons (Featured, Blocks, Money, Passes, with their NEW
+badges); the page, card, block card, odds, need, gift and thank-you modules were deleted. The
+server shop is unchanged (products, receipts, restock, gifting, VIP, Money Party, the Starter
+Pack, the Mystery and Grand Opening deals). The designs below are the reference for the
+rebuild, not a description of the current screen.
 
 **Decided**
 - **Four jump buttons** down the right: Featured, Blocks, Money, Passes (outside the panel on
@@ -597,8 +610,9 @@ Sizes in `Config.UI.Shop.Page` and `.Block`; words in `Strings.Menus.Shop`.
   (`Shimmer`, `IconPop`); the blocks turn slowly; the Mythic block's icons carry a cycling
   pastel aura (`Config.LuckyBlocks.UI.RainbowAura`), in the hotbar and bag too.
 - **The HUD's "+"**: a small gold candy right of the money HUD opens the Shop on Money.
-- A block kind whose model is not in the place yet shows its kit icon (the case chests) in the
-  Shop, the hotbar and the bag (`Block.Fallback`), so nothing is ever an empty square.
+- A block kind whose model is not in the place yet shows the gift-box kit icon in the Shop,
+  the hotbar and the bag (`Block.Fallback`; the case chests are gone, 2026-10-04), so nothing
+  is ever an empty square. Every kind has its model today.
 
 **Open**
 - The exact tuning of "each section about one screen tall" on a computer.

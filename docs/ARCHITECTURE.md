@@ -366,17 +366,22 @@ posts a search from a pretend server; the `StudioArena` attribute (a team size) 
 ServerStorage before Play boots an arena with pretend opponents, driven by
 `ServerStorage.ArenaQA`. Every step logs a `[8ball] GQ` line with its timing.
 
-## The economy: items, cases, shop, rewards (2026-09-28)
+## The economy: items, lucky blocks, shop, rewards (2026-09-28; lucky blocks 2026-10-04)
 
 Built to `docs/ECONOMY.md` (every number) on branch `economy`. The server decides everything;
-clients send ids and counts, never an amount, price, rarity or result.
+clients send ids and counts, never an amount, price, rarity or result. Cases were replaced by
+lucky blocks on 2026-10-04 (designer): the case modules, remotes, icons and words are gone, and
+the lucky-block section below is the item flow now.
 
 **Modules.**
 - Pure, Lune-tested (`src/shared/Progression/`): `Catalog` (every cue as a data row: rarity,
-  group, tradable, sellable, which cases drop it, vaulted, its effect style and placeholder
-  look; `Catalog.style` turns a look into CueArt segments), `Cases` (odds as integer thousandths
-  of a percent, `roll(caseId, rng)` with the rng passed in, per-cue odds for the Odds panel,
-  prices with bulk and sale, sell-back, the free-case rule), `Inventory` (functions over the
+  group, tradable, sellable, which blocks drop it, vaulted, its effect style and placeholder
+  look; `Catalog.style` turns a look into CueArt segments), `BlockOdds` (one odds row per
+  block kind, `Config.BlockOdds`, as whole parts of a million; `roll(oddsId, rng)` with the rng
+  passed in, per-cue odds for the Odds panel, sell-back, the announcement rules), `BlockDrop`
+  (the Mystery block's tier roll by `Config.BlockOdds.Drop.Weights`, its pity counters and the
+  first win's Rare block), `LuckyBlocks` (the kinds, timers and the save's block list),
+  `Inventory` (functions over the
   save: counts, duplicates, selling, equipping, the Index rows, the client snapshot), `Daily`
   (login streak with day 28, playtime gifts, codes), `Shop` (offer windows, VIP, product
   grants, Money Party, the Limited shelf, and `processReceipt`, the once-only receipt logic
@@ -390,16 +395,23 @@ clients send ids and counts, never an amount, price, rarity or result.
   reward and purchase), `Items` (the inventory service: `ItemRequest`, rate limits, buying,
   opening, selling, equipping, the Index claims, PolicyService), `Counters` (copies in
   existence, the Limited copy counter, the first Reyes), `Store` (ProcessReceipt, game passes,
-  VIP, the offers, Money Party, Fast Open, `StoreRequest`), `Rewards` (daily streak, playtime,
-  codes, `RewardRequest`), `Announce` (the banner, MessagingService for every-server news),
-  and `Ranking`/`Economy` for match XP, money, free cases and rank-up rewards.
+  VIP, the offers, Money Party, `StoreRequest`), `Rewards` (daily streak, playtime, codes,
+  `RewardRequest`; everything is claimed, nothing is given by itself and there is no
+  `RewardGiven` remote since 2026-10-04), `Announce` (the banner, MessagingService for
+  every-server news), and `Ranking`/`Economy` for match XP, money, the win's Mystery lucky
+  block and rank-up rewards.
 - Client: `Menus` (one full menu at a time, close rules, the slight dim, the gamepad
   selection put back), `MenuFrame` (the header band, tabs, sheet and red X every menu uses),
   `MenuColumn` (the left column: Shop, Inventory, Rewards, Trade with red dots),
   `ItemState` (the client's copy of the ItemState, ShopState and RewardState snapshots and the
   request wrappers), `CueThumb` (a cue's tinted thumbnail from the layer images), `Banner`,
-  `InventoryMenu`, `CaseOpening` (the reel and Fast Open's grid), `ShopMenu`, `RewardsMenu`,
-  `TradeMenu`, `CueViewport` (the Index's cue turning in 3D: a ViewportFrame holding
+  `InventoryMenu` (two tabs, `InventoryCues` then `InventoryIndex`; no blocks), `BlockReel` and
+  `ReelFx` (the reel and its stage, used by `LuckyOpening` with the Dark look; renamed from
+  CaseOpeningReel and CaseOpeningFx 2026-10-04), `PullCutscene` (the Rare-and-up pull, moved
+  from the cases to the lucky blocks, to be reworked), `ShopMenu` (emptied 2026-10-04 to its
+  frame and the four jump buttons for the GUI overhaul; the page, card, odds, need, gift and
+  thank-you modules are deleted), `RewardsMenu`, `RewardChips` (a block chip flies to the
+  hotbar as its 3D icon, `BlockIcon`), `TradeMenu`, `CueViewport` (the Index's cue turning in 3D: a ViewportFrame holding
   `CueStickBuilder.display`, a thickened stick, black for a cue not found yet; it turns on
   RenderStepped only while the Index tab shows).
 
@@ -407,25 +419,27 @@ clients send ids and counts, never an amount, price, rarity or result.
 client asks, the server answers `{ ok, reason?, ... }`), `ItemState`, `ShopState`,
 `RewardState` (a player's snapshots, sent on load and after every change), `Banner` (to
 everyone), `CueFound` (to one player: cues new to their Index and the finder's money each
-paid, for every source but a case reel). The protocol is written next to each remote in
+paid, for every source but a lucky block's reel), `BlockRequest` and `BlockState` (the lucky
+blocks: hold, throw, open, skip; the hotbar's snapshot). The old `CaseDrop` and `RewardGiven`
+remotes are gone (2026-10-04). The protocol is written next to each remote in
 `src/shared/Net.luau`.
 
 **Finder's money** (2026-09-28). `Inventory.addCue` and `addUnique` answer a second value,
 true when the cue was never in the save's Index (`Inventory.found`), and
 `Inventory.findMoney(id)` prices it from `Config.Index.FindMoney`. Every PlayerData path that
-gives a cue (`giveCue`, `giveUnique`, `openCases`) pays it in the same mutation and notes it;
-`commit` then fires `PlayerData.CueFound` unless a reel shows it (`openCases`, and a reward
-with `firstWinCase`), and `Items` sends that on as the `CueFound` remote (the client's
-`Banner` words it). A reel's finds ride its answer instead (`OpenCase` results' `found`,
-`MatchSummary.firstWin.found`): `CaseOpening` holds that much of the money HUD back
-(`MoneyHud.expect`) from the answer until the card pops, then `release`s it and flies it.
+gives a cue (`giveCue`, `giveUnique`, a lucky block's open) pays it in the same mutation and
+notes it; `commit` then fires `PlayerData.CueFound` unless a reel shows it (a block's open),
+and `Items` sends that on as the `CueFound` remote (the client's `Banner` words it). A
+reel's finds ride the block's Open reply instead (`BlockRequest` Open's `found`), shown on the
+"YOU GOT" card (`LuckyResult`). The first win no longer carries a reel: its Rare block waits in
+the hotbar (`MatchSummary.block = { kind, readyAt }`).
 
 **Attributes** (server-set, clients read): on the player `EquippedCue` (everyone's stick and
-trail follow it), `Vip`, `FastOpen`, `CasesUnopened` and `RewardReady` (the column's red
-dots), `PaidRandomRestricted` and `PaidItemTradingAllowed` (PolicyService on join; `Items`); on `ReplicatedStorage.CueCounts`
+trail follow it), `Vip` and `RewardReady` (the Rewards tile's red dot; `FastOpen` and
+`CasesUnopened` went with the cases, 2026-10-04), `PaidRandomRestricted` and `PaidItemTradingAllowed` (PolicyService on join; `Items`); on `ReplicatedStorage.CueCounts`
 one attribute per cue id (copies in existence) and on `ReplicatedStorage.LimitedSold` one per
-Limited cue; on `ReplicatedStorage` `CaseSale`, `CaseSalePercent` and `CaseSaleEndsAt` while a
-case sale runs; on `workspace` `MoneyPartyEndsAt` and `MoneyPartyBuyer`.
+Limited cue; on `workspace` `MoneyPartyEndsAt` and `MoneyPartyBuyer`. The case sale
+attributes are gone (the release sale is `Config.Shop.ReleaseSale`, carried in ShopState).
 
 **Copies in existence** (`Counters`). Each server keeps pending +/- per cue (up when unboxed
 or bought, down when sold) and every `Config.Items.FlushSeconds` (plus jitter, and on
@@ -472,8 +486,9 @@ VIP = owns the pass or bought the welcome offer. Passes are asked with `UserOwns
 on join (retried); a pass bought in game counts at once when the server's
 `PromptGamePassPurchaseFinished` says it was purchased (Roblox's own guide), and the next
 join's check confirms it. The dev
-command `/buy` runs the same grant with a fake purchase id (`Store.grant`); `/vip` and
-`/fastopen` fake pass ownership for the session (`Store.setPass`). `StoreRequest` checks a
+command `/buy` runs the same grant with a fake purchase id (`Store.grant`); `/vip` fakes
+pass ownership for the session (`Store.setPass`; Quick Cases was retired into VIP 2026-10-04,
+so there is no `/fastopen`). `StoreRequest` checks a
 Buy with `ShopView.check` before this server prompts it; ShopState is re-sent at
 `ShopView.nextChange` when an offer, a Limited, the sale or the party opens or closes. The
 Studio hooks `ServerStorage.StoreQA` and `RewardsQA` drive both services from `execute_luau`.
@@ -511,7 +526,8 @@ price, rarity, ult id to grant or a result.
   setters), `Store` (the Spin and Lucky products, the UltSlot2/3 passes). Spins also come
   from rewards: a reward row carries `spins` and `lucky` (`Progression/Daily`: streak day 7,
   the day's last playtime gift, codes; `Progression/Ranks`: rank-up spins), paid in the
-  same PlayerData mutation as its money and cases. `Ranking` passes them on to the popups;
+  same PlayerData mutation as its money and lucky blocks. `Ranking` passes them on to the
+  NEW RANK! chips;
   `Announce` (the Legendary and Mythic banner), `GlobalQueue` (the Ults On and Off pools).
 - Client: `UltHud` and `UltBar` (the bar, its gains, READY and the press prompt, the armed
   pills; solo's bar is always full), `UltCutscene` (the manga panel everyone at the table sees), `MagnetFx`
@@ -672,7 +688,7 @@ over the shooter's next shots too (up to `V.TURN_SHOTS`). The Blender scripts ar
 
 ## Cue skins (2026-10-01)
 
-Every case, rank and Exclusive cue is a skin: data rows plus uploaded assets, never code per
+Every block, rank and Exclusive cue is a skin: data rows plus uploaded assets, never code per
 cue. The skins were authored in `assets/cue/skins/<id>.json` (the cue-skins run, briefs in
 `docs/prompts/CUE_SKINS_*`).
 
@@ -736,7 +752,7 @@ cue. The skins were authored in `assets/cue/skins/<id>.json` (the cue-skins run,
   cue, watched shooters); a stick already wearing a cue never waits for it again. BackCue swaps
   a back's stick in one refresh once the new cue is ready. CueSkinLook shows a look only on the
   cue it was built for, and a rebuilt look prefills its aura (`ShowPrefillShare`). The
-  inventory selection and the case reveal start `preload`, so Equip is usually instant; the
+  inventory selection and the block reel start `preload`, so Equip is usually instant; the
   Index viewport keeps its old cue until the new one is loaded. Shot effects: a pocket
   finisher builds its creature and bursts only when a ball drops, so `CueAssets.holdShots`
   (Main, every `ShotRefreshSeconds`: your cue, then everyone's at your table and the other

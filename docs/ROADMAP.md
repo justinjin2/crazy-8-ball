@@ -30,6 +30,10 @@ Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (be
   on the floor and in inventory. Live equip/unequip/throw checks and 983 tests passed.
 - [x] Two-stage lucky-block skip: first click shows the final landing; second click reveals
   immediately. Studio transition checks, lint and all 983 tests passed.
+- [x] Cases, the Magic 8 Ball and the reward popups retired; lucky blocks are the only gacha
+  (a win = one Mystery block, rewards and trades in blocks, save v7, Rewards-menu claims,
+  pull cutscenes on the lucky reel, Inventory on Cues, the Shop emptied for the GUI
+  overhaul). Studio computer-window checks, lint and 977 tests passed (2026-10-04).
 - [ ] Physical controller hold acceptance; save the updated place and publish its templates.
 
 ---
