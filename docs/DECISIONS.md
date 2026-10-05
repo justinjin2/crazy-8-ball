@@ -2424,10 +2424,11 @@ timer of a new block stay the designer's call.
   `UI.Reel.SkipSeconds` (0.7 s) instead of jumping, replacing the two-stage skip.
 - **2026-10-05 — Pull cutscenes start black; Rare redone (designer, Sol's RNG style).** Every
   Rare-or-better pull fades the whole screen to black the moment the reel stops
-  (`Cutscenes.Black.InSeconds` 0.35 s, over the reel's own glide and hold), then plays its
-  scene. Rare: 0.15 s more black, a soft blue glow swells from the middle to a full blue screen
-  (0.45 s) while a riser builds (`Audio.Ui.RiserRare`, the designer's file, peak lined up with
+  (`Cutscenes.Black.InSeconds` 0.6 s, over the reel's own glide and hold), then plays its
+  scene. Rare: 0.4 s more black, a soft blue glow swells from the middle to a full blue screen
+  (0.52 s) while a riser builds (`Audio.Ui.RiserRare`, the designer's file, peak lined up with
   the flash), a white flash, and the card is under the white as it fades (0.35 s). The old
   sky-streak Rare scene is gone; Rare is never skipped. Epic and up keep their old scenes,
   lifting the black off as they begin, until each is redone. The reveal sting is still the
-  trial 4612378086 for every rarity.
+  trial 4612378086 for every rarity. First timings (0.35 s fade, 0.15 s held, 0.45 s swell) were too fast:
+  the black is 0.5 s longer and the swell 15% slower.

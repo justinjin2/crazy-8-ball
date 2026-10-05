@@ -10150,7 +10150,7 @@ Config.Cutscenes = {
 	-- glide and hold play on under it), then the rarity's scene. The scenes not yet redone
 	-- (Epic and up) lift the black off as they begin.
 	Black = {
-		InSeconds = 0.35, -- the fade to black from the reel's stop
+		InSeconds = 0.6, -- the fade to black from the reel's stop (designer 2026-10-05: was 0.35)
 		OutSeconds = 0.3, -- an old scene lifting it off
 		DisplayOrder = 70, -- its screen: over the scenes (60) and the lucky block's card
 	},
@@ -10158,8 +10158,8 @@ Config.Cutscenes = {
 	-- blue glow swells from the middle until the screen is blue while the riser builds, a
 	-- white flash on the riser's peak, and the card is underneath as the white fades. No skip.
 	Rare = {
-		BlackSeconds = 0.15, -- held black after the fade (under a second of black in all)
-		GlowSeconds = 0.45, -- the glow's swell from nothing to past the screen's corners
+		BlackSeconds = 0.4, -- held black after the fade (designer 2026-10-05: was 0.15)
+		GlowSeconds = 0.52, -- the glow's swell from nothing to past the screen's corners (15% slower than 0.45)
 		GlowEndScale = 2.4, -- its last size, of the screen's longer side
 		GlowEasePower = 2.2, -- its growth: u^power (higher: a slower start, a faster burst)
 		FillFrom = 0.55, -- a flat blue fills in behind it from this share of the swell...
@@ -10170,7 +10170,7 @@ Config.Cutscenes = {
 		FlashInSeconds = 0.06, -- the white flash snaps in on the riser's peak...
 		FlashOutSeconds = 0.35, -- ...and fades off the card
 		RiserPeakSeconds = 0.45, -- the riser's loudest moment, from its start (lined up with the flash)
-		Seconds = 0.66, -- BlackSeconds + GlowSeconds + FlashInSeconds: the card comes in under the white
+		Seconds = 0.98, -- BlackSeconds + GlowSeconds + FlashInSeconds: the card comes in under the white
 		Skippable = false, -- too short to need it
 	},
 	Epic = {
