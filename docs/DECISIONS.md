@@ -2454,7 +2454,9 @@ timer of a new block stay the designer's call.
   black is quicker (0.35 s), and the warp opens as a tiny twinkling star in the middle that
   grows with the rise into the full warp at the flash. Then: the hit's light blinds the
   screen (a white-gold glare in 0.06 s, held 0.1 s) and it goes black in 0.15 s, so the warp
-  starts 0.31 s after the hit. The beam falls in 0.45 s (was 1.3 s)
+  starts 0.31 s after the hit. Trying (designer): the hit fades to white instead (glare in
+  0.12 s, the fade 0.35 s) and the warp plays on white, its palest pieces deep gold
+  (`Backdrop`, `DeepGold`; black is `Backdrop = { 0, 0, 0 }`). The beam falls in 0.45 s (was 1.3 s)
   and lands on the track's final hit (4.03 s); the film follows the track's own playback clock,
   so a late-loading sound cannot put them out of step. The hit's shake is far heavier: a jolt
   down, then a smooth-noise shake with roll dying over 1.2 s, with a rumble as the beam falls.

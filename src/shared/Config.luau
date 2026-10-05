@@ -10370,11 +10370,16 @@ Config.Cutscenes = {
 		ShakeHz = 18, -- how fast it shakes
 		KickStuds = 1.6, -- the jolt down at the hit
 		RumbleStuds = 0.35, -- the falling beam's rumble, growing to the hit
-		-- The hit's light blinds the screen, then it goes black at once (designer 2026-10-05).
+		-- The hit's light blinds the screen, then it fades to the second part's backdrop
+		-- (designer 2026-10-05).
 		Glare = 0.92, -- the white-gold glare the hit floods the screen with (0..1)...
-		GlareInSeconds = 0.06, -- ...this fast
-		ImpactHoldSeconds = 0.1, -- the blinding holds this long, then fades to black...
-		FadeOutSeconds = 0.15, -- ...this fast (designer 2026-10-05: was a cut, then 0.9, 0.6, 0.35)
+		GlareInSeconds = 0.12, -- ...this fast (was 0.06)
+		ImpactHoldSeconds = 0.1, -- the blinding holds this long, then fades to the backdrop...
+		FadeOutSeconds = 0.35, -- ...this fast (designer 2026-10-05: was a cut, then 0.9, 0.6, 0.35, 0.15)
+		-- The second part's background: the designer is trying white (2026-10-05); black was
+		-- { 0, 0, 0 }. On a bright one the warp's palest pieces turn deep gold so they still show.
+		Backdrop = { 255, 255, 255 },
+		DeepGold = { 235, 150, 20 },
 		RiseAfterHitSeconds = 0.3, -- the rise starts this long after the hit (4.13 s in), under the fade and the
 		-- track's last ring (designer 2026-10-05: it came 1.1 s after the hit, then too late)
 		-- Part two, on the screen: the starlight warp.

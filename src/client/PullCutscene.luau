@@ -852,6 +852,9 @@ local function filmLegendary(s: Scene, t: number)
 	-- fades back down, slowly, as the track rings out.
 	local fadeIn = smooth(t / L.FadeInSeconds)
 	local fadeOut = smooth((after - L.ImpactHoldSeconds) / L.FadeOutSeconds)
+	if hit then
+		s.black.BackgroundColor3 = rgb(L.Backdrop) -- the fade after the hit goes to the backdrop
+	end
 	s.black.BackgroundTransparency = fadeIn * (1 - fadeOut)
 	for _, bar: Frame in p.bars do
 		bar.Size = UDim2.fromScale(1, L.BarsShare * smooth(t / L.BarsInSeconds))
@@ -1010,11 +1013,15 @@ end
 local function warpLegendary(s: Scene, t: number, shown: number)
 	local L = CS.Legendary
 	local K = Config.UI.Kit.Art
-	local gold, light = rgb(L.Gold), rgb(L.Light)
+	local gold = rgb(L.Gold)
+	-- On a bright backdrop the palest pieces turn deep gold, or they would vanish into it.
+	local backdrop = rgb(L.Backdrop)
+	local bright = (backdrop.R + backdrop.G + backdrop.B) / 3 > 0.5
+	local light = if bright then rgb(L.DeepGold) else rgb(L.Light)
 	local p = s.parts
 	if not p.warp then
 		p.warp = true
-		p.haze = fullFrame(s.veilRoot, "WarpHaze", gold:Lerp(BLACK, 0.75), 2)
+		p.haze = fullFrame(s.veilRoot, "WarpHaze", gold:Lerp(backdrop, 0.75), 2)
 		local pillars = {}
 		for i = 1, L.Pillars do
 			local pillar = fullFrame(s.veilRoot, "Pillar", gold, 2)
