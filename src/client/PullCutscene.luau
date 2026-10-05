@@ -15,10 +15,9 @@
 -- - Legendary (redone 2026-10-05): two parts. A film behind black bars: the camera close on
 --   the player from their side round to their front, then low looking up past them at a gold
 --   star gathering light, then from high in the sky as a beam of gold light falls from the star
---   and slams into them on the track's impact (sparks, a shockwave, a heavy shake). A slow
---   fade to black as the track rings out, a held silence, then a gold starlight warp while a
---   rising tone builds, the white flash with
---   a cinematic hit, and the card. Then a gold aurora (SkyAurora) for everyone in the server.
+--   and slams into them on the track's impact (sparks, a shockwave, a heavy shake). A fade
+--   to black as the track rings out and a rising tone starts, a gold starlight warp as it
+--   builds, the white flash with a cinematic hit, and the card. Then a gold aurora (SkyAurora) for everyone in the server.
 --   Skippable once seen.
 -- The ones below are the old scenes, still to be redone; they lift the black off as they begin.
 -- - Mythic: the sky turns to deep space with pastel aurora, the camera rises into the stars,
@@ -427,11 +426,7 @@ local function flashAt(rarity: string): number
 		return E.BlackSeconds + E.BuildSeconds + E.ImplodeSeconds
 	elseif rarity == "Legendary" then
 		local L = CS.Legendary
-		return L.ImpactAt
-			+ L.ImpactHoldSeconds
-			+ L.FadeOutSeconds
-			+ L.SilenceSeconds
-			+ L.InterludeSeconds
+		return L.ImpactAt + L.RiseAfterHitSeconds + L.InterludeSeconds
 	end
 	return 0
 end
@@ -970,7 +965,7 @@ local function filmLegendary(s: Scene, t: number)
 	else
 		local O = L.Overhead
 		local k = smooth((t - L.LookUp.To) / (cut - L.LookUp.To))
-		local a = math.rad(150 + O.TurnDegrees * k)
+		local a = math.rad(O.FromDegrees + O.TurnDegrees * k)
 		local dir = facing * math.cos(a) + right * math.sin(a)
 		focus = feet + up * O.LookHeightStuds
 		eye = clampEye(
@@ -1010,13 +1005,12 @@ local function filmLegendary(s: Scene, t: number)
 end
 
 -- Legendary, part two: the starlight warp on the black, from the cut to the flash.
-local function warpLegendary(s: Scene, t: number)
+local function warpLegendary(s: Scene, t: number, shown: number)
 	local L = CS.Legendary
 	local K = Config.UI.Kit.Art
 	local gold, light = rgb(L.Gold), rgb(L.Light)
 	local p = s.parts
 	if not p.warp then
-		UISound.play(L.Rise)
 		p.warp = true
 		p.haze = fullFrame(s.veilRoot, "WarpHaze", gold:Lerp(BLACK, 0.75), 2)
 		local pillars = {}
@@ -1070,7 +1064,7 @@ local function warpLegendary(s: Scene, t: number)
 
 	-- Streaks of light fly out from the middle, faster and longer as it builds.
 	local speed = L.WarpSpeedFrom + (L.WarpSpeedTo - L.WarpSpeedFrom) * u * u
-	local show = smooth(t / 0.4)
+	local show = smooth(shown / 0.4)
 	for _, star in p.stars do
 		star.r += speed * dt * (0.3 + star.r * 2) * star.k
 		if star.r > 0.8 then
@@ -1129,7 +1123,7 @@ local function warpLegendary(s: Scene, t: number)
 end
 
 -- Legendary: the film (the side, the look up at the star, the beam's hit from the sky), a
--- slow fade to black, a held silence, the starlight warp, then the white flash on the rise's
+-- fade to black with the rise starting under it, the starlight warp, then the white flash on the rise's
 -- peak.
 local function stepLegendary(s: Scene, t: number)
 	local L = CS.Legendary
@@ -1145,7 +1139,11 @@ local function stepLegendary(s: Scene, t: number)
 	end
 	t -= s.parts.lag or 0
 	local cut = L.ImpactAt + L.ImpactHoldSeconds + L.FadeOutSeconds
-	local riseAt = cut + L.SilenceSeconds
+	local riseAt = L.ImpactAt + L.RiseAfterHitSeconds
+	if t >= riseAt and not s.fired.rise then
+		s.fired.rise = true
+		UISound.play(L.Rise)
+	end
 	if t < cut then
 		filmLegendary(s, t)
 	else
@@ -1154,9 +1152,7 @@ local function stepLegendary(s: Scene, t: number)
 			s.model.Parent = nil -- the film is over
 		end
 		s.black.BackgroundTransparency = 0
-		if t >= riseAt then
-			warpLegendary(s, t - riseAt)
-		end
+		warpLegendary(s, t - riseAt, t - cut)
 	end
 	local flash = flashAt("Legendary")
 	if t >= flash and not s.fired.finale then

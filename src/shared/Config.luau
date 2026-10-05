@@ -10293,9 +10293,9 @@ Config.Cutscenes = {
 	-- drop. The camera, close in, swings from their side round to their front; then low, looking
 	-- up past them at a gold star gathering light high above; then from high in the sky looking
 	-- down as a beam of gold light falls from the star and slams into them on the track's impact
-	-- (sparks, a shockwave, a ground ring, a heavy shake). A slow fade to black as the track
-	-- rings out, a held silence (designer 2026-10-05: the rise came too early), and the second part: a gold starlight warp on the screen while a rising tone builds, a white flash
-	-- on its peak with a cinematic hit, and the card under the white. Then a gold aurora fills
+	-- (sparks, a shockwave, a ground ring, a heavy shake). A fade to black as the track rings
+	-- out with the rise starting under it, and the second part: a gold starlight warp on the
+	-- screen as the rise builds, a white flash on its peak with a cinematic hit, and the card under the white. Then a gold aurora fills
 	-- the sky for everyone in the server (Config.Cutscenes.Aurora). Skippable once seen.
 	-- Scene seconds (from the end of the fade to black), studs, degrees and 0..1 shares.
 	Legendary = {
@@ -10333,7 +10333,8 @@ Config.Cutscenes = {
 		},
 		Overhead = { -- shot 3: from high in the sky, looking down for the hit (to the cut)
 			HeightStuds = 30,
-			Studs = 20, -- out to one side, so the falling beam is seen coming in
+			Studs = 20, -- out in front of them, so the falling beam is seen coming in
+			FromDegrees = -12, -- round from straight in front of them (designer 2026-10-05: was behind)
 			LookHeightStuds = 6, -- it looks at this height above the player's feet
 			DropStuds = 4, -- it sinks a little toward the hit
 			TurnDegrees = 25, -- and turns slowly
@@ -10372,9 +10373,11 @@ Config.Cutscenes = {
 		Glare = 0.35, -- a gold glare over the screen at the hit (0..1)
 		ImpactHoldSeconds = 0.25, -- the hit holds this long, then fades to black...
 		FadeOutSeconds = 0.6, -- ...this slowly while the track rings out (designer 2026-10-05: was a cut, then 0.9)
-		SilenceSeconds = 0.25, -- black, the track's last ring, then the rise (designer 2026-10-05: was 0.7)
+		RiseAfterHitSeconds = 0.1, -- the rise starts this long after the hit, under the fade and the
+		-- track's last ring (designer 2026-10-05: it came 1.1 s after the hit, then too late)
 		-- Part two, on the screen: the starlight warp.
-		InterludeSeconds = 3.1, -- the rise's start to the flash (its peak lands on the flash)
+		InterludeSeconds = 3.1, -- the rise's start to the flash (its peak lands on the flash); the
+		-- warp shows from the black
 		WarpStars = 70, -- streaks of light flying out from the middle (scaled by quality)
 		WarpStreakShare = 0.2, -- a streak's length at the edge, of the screen's longer side
 		WarpSpeedFrom = 0.35, -- the streaks' speed (screens a second), at the start...
@@ -10385,7 +10388,7 @@ Config.Cutscenes = {
 		FlashOutSeconds = 0.5, -- ...and its fade off the card
 		-- Sounds (Config.Audio.Ui), each from the start of its moment.
 		Logo = "LegendaryCinematic", -- with the scene (its bass drop at once, its impact at ImpactAt)
-		Rise = "LegendaryRise", -- after the black's silence (its peak 3.1 s in: the flash)
+		Rise = "LegendaryRise", -- just after the hit (its peak 3.1 s in: the flash)
 		Finale = "LegendaryHit", -- on the flash, over the card's own reveal sound
 		Skippable = true, -- once it has been seen
 	},

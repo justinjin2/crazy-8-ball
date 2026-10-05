@@ -2447,8 +2447,9 @@ timer of a new block stay the designer's call.
   its `Config.Cutscenes` row).
 - **2026-10-05 — Legendary cutscene tuned (designer).** The cinematic track plays out whole:
   after the hit the picture fades to black (0.6 s; a cut was too sudden, 0.9 s too slow)
-  while it rings out, then a short black silence (0.25 s; 0.7 s held the rise too late)
-  before the rise starts, just as the track ends. The beam falls in 0.45 s (was 1.3 s)
+  while it rings out; the rise starts 0.1 s after the hit, under the fade and the track's
+  last ring (later starts were too late), and the warp shows from the black. The top-down
+  sky shot looks down from in front of the player (it was from behind). The beam falls in 0.45 s (was 1.3 s)
   and lands on the track's final hit (4.03 s); the film follows the track's own playback clock,
   so a late-loading sound cannot put them out of step. The hit's shake is far heavier: a jolt
   down, then a smooth-noise shake with roll dying over 1.2 s, with a rumble as the beam falls.
