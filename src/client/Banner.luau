@@ -57,9 +57,23 @@ type Line = {
 	text: string,
 	color: Color3?, -- the words' colour (white when nil)
 	rainbow: boolean?, -- the words in the house rainbow
+	colours: { { number } }?, -- or across these ({ r, g, b } rows): a Mythic pull's pastels
 	icon: string?, -- an image at the line's left end (an ult roll's icon)
 	at: number, -- when it arrived (os.clock), to drop it once stale
 }
+
+-- A left-to-right gradient through `colours` ({ r, g, b } rows).
+local function sequence(colours: { { number } }): ColorSequence
+	local keys = {}
+	for i, c in colours do
+		local at = if #colours > 1 then (i - 1) / (#colours - 1) else 0
+		table.insert(keys, ColorSequenceKeypoint.new(at, HudParts.color(c)))
+	end
+	if #keys == 1 then
+		table.insert(keys, ColorSequenceKeypoint.new(1, keys[1].Value))
+	end
+	return ColorSequence.new(keys)
+end
 
 export type Options = {
 	-- Things the banner moves below when they would overlap it (the rank HUD's holder).
@@ -127,12 +141,7 @@ function Banner.new(screen: ScreenGui, opts: Options?): any
 	icon.ZIndex = 2
 	self.icon = icon
 	local rainbow = Instance.new("UIGradient")
-	local keys = {}
-	for i, c in RAINBOW do
-		local at = if #RAINBOW > 1 then (i - 1) / (#RAINBOW - 1) else 0
-		table.insert(keys, ColorSequenceKeypoint.new(at, HudParts.color(c)))
-	end
-	rainbow.Color = ColorSequence.new(keys)
+	rainbow.Color = sequence(RAINBOW)
 	rainbow.Enabled = false
 	rainbow.Parent = words
 	self.rainbow = rainbow
@@ -186,12 +195,27 @@ function Banner.onBanner(self: any, payload: any)
 			return
 		end
 		local rarity = name(payload.rarity) or CueThumb.rarityOf(cue)
-		local sentences: { [string]: string } = COPY.Unbox :: any
-		local sentence = sentences[rarity] or sentences.Default
-		local text = sentence:format(who, CueThumb.cueName(cue))
-		local tint = CueThumb.accentColor(rarity)
-		self:push({ text = text, color = tint, at = os.clock() })
-		ChatTags.system(ChatTags.paint(text, tint))
+		local global: { [string]: string } = COPY.Global :: any
+		if global[rarity] then
+			-- A Mythic or Secret pull (every server): "[GLOBAL]: ...", Mythic in a pastel
+			-- rainbow, Secret in red (designer 2026-10-05).
+			local text = global[rarity]:format(who, CueThumb.cueName(cue))
+			if rarity == "Mythic" then
+				self:push({ text = text, colours = B.GlobalMythic, at = os.clock() })
+				ChatTags.system(ChatTags.letters(text, B.GlobalMythic))
+			else
+				local red = HudParts.color(B.GlobalSecret)
+				self:push({ text = text, color = red, at = os.clock() })
+				ChatTags.system(ChatTags.paint(text, red))
+			end
+		else
+			local sentences: { [string]: string } = COPY.Unbox :: any
+			local sentence = sentences[rarity] or sentences.Default
+			local text = sentence:format(who, CueThumb.cueName(cue))
+			local tint = CueThumb.accentColor(rarity)
+			self:push({ text = text, color = tint, at = os.clock() })
+			ChatTags.system(ChatTags.paint(text, tint))
+		end
 		-- Someone else in this server pulled a Legendary or better: the sky's short tint
 		-- (GUI lane, 2026-10-03; never a camera or screen effect, in a match too).
 		local me = Players.LocalPlayer
@@ -260,6 +284,7 @@ function Banner.push(
 		text: string,
 		color: Color3?,
 		rainbow: boolean?,
+		colours: { { number } }?,
 		icon: string?,
 		at: number?,
 	}
@@ -268,6 +293,7 @@ function Banner.push(
 		text = line.text,
 		color = line.color,
 		rainbow = line.rainbow,
+		colours = line.colours,
 		icon = line.icon,
 		at = line.at or os.clock(),
 	}
@@ -325,7 +351,13 @@ function Banner.tick(self: any)
 		end
 	end
 	if current then
-		self:show(current.text, current.color, current.rainbow == true, "line", current.icon)
+		self:show(
+			current.text,
+			current.color,
+			current.colours or (if current.rainbow == true then RAINBOW else nil),
+			"line",
+			current.icon
+		)
 		return
 	end
 	if ends then
@@ -333,7 +365,7 @@ function Banner.tick(self: any)
 		local text = if buyer
 			then COPY.Party:format(partyTimes(), left, buyer)
 			else COPY.PartyAnon:format(partyTimes(), left)
-		self:show(text, HudParts.tone("Green"), false, "party")
+		self:show(text, HudParts.tone("Green"), nil, "party")
 		return
 	end
 	self:hide()
@@ -345,7 +377,7 @@ function Banner.show(
 	self: any,
 	text: string,
 	tint: Color3?,
-	rainbow: boolean,
+	gradient: { { number } }?, -- the words across these colours (the house rainbow, pastels)
 	key: string,
 	icon: string?
 )
@@ -354,8 +386,12 @@ function Banner.show(
 	local changed = words.Text ~= text or self.icon.Image ~= image
 	words.Text = text
 	self.icon.Image = image
-	words.TextColor3 = if rainbow then Color3.new(1, 1, 1) else (tint or Color3.new(1, 1, 1))
-	self.rainbow.Enabled = rainbow
+	words.TextColor3 = if gradient then Color3.new(1, 1, 1) else (tint or Color3.new(1, 1, 1))
+	if gradient and gradient ~= self.gradient then
+		self.rainbow.Color = sequence(gradient)
+	end
+	self.gradient = gradient
+	self.rainbow.Enabled = gradient ~= nil
 	if changed or self.shownKey ~= key then
 		self:layout()
 	end

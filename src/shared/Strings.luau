@@ -987,6 +987,12 @@ return {
 			Secret = "%s unboxed a Secret %s!",
 			Default = "%s unboxed %s!",
 		},
+		-- A Mythic or Secret pull, announced in every server (designer 2026-10-05): the
+		-- username, then the cue's name.
+		Global = {
+			Mythic = "[GLOBAL]: %s pulled a Mythical %s!",
+			Secret = "[GLOBAL]: %s pulled a Secret %s!",
+		},
 		PartyStarted = "%s started a Money Party!", -- the buyer's username
 		PartyStartedAnon = "A Money Party started!",
 		-- The countdown while it runs: the multiplier ("2"), the time left, the buyer.

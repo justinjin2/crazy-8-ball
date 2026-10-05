@@ -40,7 +40,13 @@ end
 --- `text` in the house rainbow (Config.Ranks.ChatRainbow), one colour a letter, as RichText.
 --- Spaces take no colour, so the rainbow runs over the letters only.
 function ChatTags.rainbow(text: string): string
-	local rainbow = Config.Ranks.ChatRainbow
+	return ChatTags.letters(text, Config.Ranks.ChatRainbow)
+end
+
+--- `text` with its letters in turn through `colours` ({ r, g, b } rows), as RichText. Spaces
+--- take no colour.
+function ChatTags.letters(text: string, colours: { { number } }): string
+	local rainbow = colours
 	local parts = {}
 	local i = 0
 	for _, code in utf8.codes(text) do

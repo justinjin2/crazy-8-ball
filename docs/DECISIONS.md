@@ -2470,7 +2470,15 @@ timer of a new block stay the designer's call.
 - **2026-10-05 — No Legendary aurora in the sky (designer).** The gold sky aurora (SkyAurora,
   the server's checked "Reveal" and the Banner "Aurora") is removed; nothing shows in the sky
   for a Legendary, for the opener or anyone else. The card's faint "Aurora" ambience stays
-  (PullCutscene.cardClosed tapers it). The rest of the Legendary scene is good for now. The beam falls in 0.45 s (was 1.3 s)
+  (PullCutscene.cardClosed tapers it). The rest of the Legendary scene is good for now. The
+  Legendary's own announcement ("X unboxed a Legendary <cue>!", this server only) stays.
+- **2026-10-05 — [GLOBAL] lines for Mythic and Secret pulls (designer).** In every server the
+  line reads "[GLOBAL]: <username> pulled a Mythical <cue>!" in a pastel rainbow (a gradient
+  on the banner, letter by letter in chat; `Config.UI.Menu.Banner.GlobalMythic`) or "...
+  pulled a Secret <cue>!" in red (`GlobalSecret`).
+- **2026-10-05 — Note for the Mythic and Secret redo (designer).** Both also get the
+  Legendary's bonus reveal sounds: the "Cinematic Hit" on the flash and the faint angelic
+  "Aurora" ambience under the card, tapering after it closes. The beam falls in 0.45 s (was 1.3 s)
   and lands on the track's final hit (4.03 s); the film follows the track's own playback clock,
   so a late-loading sound cannot put them out of step. The hit's shake is far heavier: a jolt
   down, then a smooth-noise shake with roll dying over 1.2 s, with a rumble as the beam falls.

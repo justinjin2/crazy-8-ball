@@ -7181,6 +7181,17 @@ Config.UI.Menu = {
 	},
 	-- The top-centre banner (Banner): Money Party, unboxings, Reyes.
 	Banner = {
+		-- A Mythic or Secret pull's [GLOBAL] line (every server; designer 2026-10-05): Mythic in a
+		-- pastel rainbow (letter by letter in chat, a gradient on the banner), Secret in red.
+		GlobalMythic = {
+			{ 255, 179, 186 },
+			{ 255, 223, 186 },
+			{ 255, 255, 186 },
+			{ 186, 255, 201 },
+			{ 186, 225, 255 },
+			{ 210, 186, 255 },
+		},
+		GlobalSecret = { 255, 45, 60 },
 		TopPx = 6, -- under Roblox's top bar (the HUD screen starts there)
 		HeightPx = 38,
 		ShortHeightPx = 32,
@@ -10428,6 +10439,9 @@ Config.Cutscenes = {
 		AmbienceFadeSeconds = 1.2, -- ...then tapers away over this long
 		Skippable = true, -- once it has been seen
 	},
+	-- For the Mythic and Secret redo (designer, 2026-10-05): both also get the Legendary's bonus
+	-- reveal sounds, the "Cinematic Hit" on the flash (Audio.Ui.LegendaryHit) and the faint
+	-- angelic "Aurora" ambience under the card (Audio.Ui.LegendaryAurora, PullCutscene.cardClosed).
 	Mythic = {
 		Seconds = 4.6,
 		SpaceInSeconds = 0.6, -- the sky turns to deep space
