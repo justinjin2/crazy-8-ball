@@ -211,7 +211,9 @@ generic-runtime rule; the catalog rows stay untouched.
   (the Beams and sprite orbiters gone), the cloud cut to a third, themed ends. Second look
   2026-10-05 (the designer's reference): a great spirit fox of violet flame along the cue
   (new Meshy head, a waving flame body), wind wisps and flame sprites blowing toward the
-  butt, fox-face orbs, the aura violet; the running fox dropped. Waiting at gate 1.
+  butt, fox-face orbs, the aura violet; dropped by the designer ("terrible"). The first look
+  is the Kitsune: uploaded (parts, textures) and built in the lane window 2026-10-05.
+  Next: Apex (step 6).
 
 ## Decisions
 

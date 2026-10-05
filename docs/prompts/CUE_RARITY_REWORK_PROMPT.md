@@ -207,8 +207,9 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   finisher kept as they were (designer: they were fine); no sound; cards unchanged.
 - [x] 4. Celestial Dragon: board, gate 1 (passed 2026-10-04 at the third look, "good enough");
   build (done 2026-10-04), gate 2 (passed 2026-10-04 at the sixth look, "good enough").
-- [ ] 5. Kitsune: board, gate 1 (first look 2026-10-04; second look 2026-10-05 after the
-  designer's reference: the spirit fox); build, gate 2, polish.
+- [x] 5. Kitsune: board, gate 1 (the first look of 2026-10-04 passes; the spirit-fox second
+  look of 2026-10-05 was dropped by the designer); built and uploaded 2026-10-05, no gate 2
+  (designer: "upload it and move onto the next").
 - [ ] 6. Apex: board, gate 1; build, gate 2, polish.
 - [ ] 7. Reyes, Grandmaster, VIP.
 - [ ] 8. Legendaries (7): board sheet, gate; build; lineup gate.
@@ -386,6 +387,10 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 - 2026-10-05 (designer, Kitsune gate 1, first look): replicate the reference picture: a
   spirit fox like the Celestial Dragon, with particle effects constantly moving like flames
   blown by wind toward the butt. Done as the second look (the running fox dropped for it).
+- 2026-10-05 (designer, Kitsune second look): "it looks terrible, go back to the old version,
+  upload it and move onto the next". The first look (tails and orbs as meshes, the cloud cut,
+  themed ends, the running fox kept) is the Kitsune; built and uploaded; on to Apex. The
+  spirit fox head model stays in assets/cue/models/spirit_fox_head, unused.
 - 2026-10-04 (Kitsune, gate 1, first look): the nine tails are real swept meshes off the
   mask's collar (pink ForceField bodies with white-pink Neon cores, two Sways each, Fade and
   Glow, even tails hidden under Lower effects) in place of the nine Beams; the three sprite

@@ -395,6 +395,11 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/pieces/kitsune/kitsune_parts.glb": {
+    "assetId": "97142204582330",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/sounds/beta_hum.wav": {
     "assetId": "97247198790531",
     "assetType": "Audio",
@@ -528,6 +533,36 @@
     "assetId": "88299922302338",
     "assetType": "Decal",
     "imageId": "104114214024927",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/kitsune_color.png": {
+    "assetId": "84043613420255",
+    "assetType": "Decal",
+    "imageId": "96142399291872",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/kitsune_emissive.png": {
+    "assetId": "128444993506355",
+    "assetType": "Decal",
+    "imageId": "100760388766931",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/kitsune_metalness.png": {
+    "assetId": "85355895673750",
+    "assetType": "Decal",
+    "imageId": "74952876187044",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/kitsune_normal.png": {
+    "assetId": "132305125237831",
+    "assetType": "Decal",
+    "imageId": "121454787723992",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/kitsune_roughness.png": {
+    "assetId": "128591572882211",
+    "assetType": "Decal",
+    "imageId": "103939373782848",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/thumbs/beta.png": {

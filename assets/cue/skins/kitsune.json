@@ -8,10 +8,10 @@
   "#FAF7F2",
   "#C8102E",
   "#D4AF37",
-  "#B040FF"
+  "#C77DFF"
  ],
  "painter": "mix",
- "note": "White porcelain with crimson lacquer and gold: OpenAI panels on the whole cue (a porcelain shaft wound with a crimson ribbon edged in gold and small pink blossoms, a porcelain-and-crimson forearm of flowing swirls with gold filigree and blossoms, a black grip with a crimson crosshatch, a black lacquer sleeve with thin crimson lines), gold collar and rings, a black end. The 3D piece (pieces/kitsune): a porcelain spirit-fox mask on the butt with twitching ears, violet foxfire eyes, crimson markings, a gold-framed gem and a small jaw; nine see-through foxfire tails (real swept meshes) stream from its collar along the handle and sway; three foxfire orbs ride a spiral path round the cue; a small spirit fox runs round the forearm. Reworked 2026-10-04/05 (the Mythic rule, the designer's reference: a great spirit fox of violet flame along the cue, its flames blown toward the butt, fox-face foxfire orbs): themed ends (torii-red collar, a foxfire ferrule), the cloud cut to a third so the fox and mask read.",
+ "note": "White porcelain with crimson lacquer and gold: OpenAI panels on the whole cue (a porcelain shaft wound with a crimson ribbon edged in gold and small pink blossoms, a porcelain-and-crimson forearm of flowing swirls with gold filigree and blossoms, a black grip with a crimson crosshatch, a black lacquer sleeve with thin crimson lines), gold collar and rings, a black end. The 3D piece (pieces/kitsune): a porcelain spirit-fox mask on the butt with twitching ears, violet foxfire eyes, crimson markings, a gold-framed gem and a small jaw; nine see-through foxfire tails (real swept meshes) stream from its collar along the handle and sway; three foxfire orbs ride a spiral path round the cue; a small spirit fox runs round the forearm. Reworked 2026-10-04 (the Mythic rule): themed ends (torii-red collar, a foxfire ferrule), the cloud cut to a third so the fox and mask read.",
  "ai": {
   "shaft_tile": {
    "refs": [
@@ -69,273 +69,27 @@
  "glow": [],
  "piece": "kitsune",
  "surface": {
-  "EmissiveStrength": 2.0,
-  "EmissiveTint": "#E0A8FF",
+  "EmissiveStrength": 1.8,
+  "EmissiveTint": "#FFD8F4",
   "Pulse": {
    "EmissiveStrength": {
-    "Min": 1.6,
-    "Max": 2.4,
+    "Min": 1.4,
+    "Max": 2.2,
     "Period": 4.4
    }
   }
  },
  "vfx": {
   "Piece": {
-   "Note": "pieces/kitsune: FoxMask.glb, the generated mask as a hologram (Mask, EarLeft/Right, Jaw) on the butt. SpiritFoxHead.glb (Meshy, 2026-10-05) and FoxBody.glb: a great spirit fox of violet flame along the cue (FoxSpirit root drifting round the cue, FoxSpine1-14 carrying a wave head to tail, FoxHead nodding), the head above the shaft looking past the tip, its flame body over the forearm with licks raked toward the butt. Wisp1-12: licks of flame riding the Wind path (ferrule to butt above the cue, back inside it) so they only ever blow toward the butt. Tail1-9: the nine foxfire tails streaming out past the mask. Orb1-3: foxfire orbs on the Foxfire path, each wearing a fox-face sprite. Everything but the mask is Aura (hidden on the shooter's turn)."
+   "Note": "pieces/kitsune: FoxMask.glb, the generated mask as a hologram (Mask, EarLeft/Right, Jaw), on the butt; RunningFox.glb, a small generated nine-tailed fox as a violet hologram, on the bones FoxRun (root, a Spin round the forearm: its lap), FoxBody, FoxFront, FoxHind, FoxHead, FoxTails. Tail1-9 (rework 2026-10-04): the nine foxfire tails as swept meshes (pink ForceField with a Neon core) off the mask's collar, each on two Sways with Fade and Glow, even tails hidden under Lower effects. Orb1-3: three foxfire orbs (Neon core, ForceField halo, a flame of light) riding the Foxfire path (a double spiral tip to butt) with Glow and Fade. The fox, tails and orbs are Aura (hidden on the shooter's turn)."
   },
   "Moving": {
    "Kind": "Piece + emissive",
    "Note": "The nine tails and the three orbs are the piece's own moving meshes (rework 2026-10-04; they were Beams and sprite orbiters). The blossoms' emissive breathes 1.4-2.2 over 4.4 s."
   },
   "Aura": {
-   "Note": "Rework 2026-10-05 (the designer's reference): violet flame blown toward the butt: a violet smoke body at 16 a second, flame licks at 22 streaming down the cue (EmissionDirection Bottom, toward the butt), embers at 8 riding the same wind, pink petals at 12, flares at 6, the fox-face sprites on the three orbs. About 70 a second.",
+   "Note": "Rework 2026-10-04 (the Mythic rule, 'readable first'): a soft pink body at 18 a second over a deeper violet, rising pink foxfire at 12, sakura petals at 12, star flares at 8 (slower), gold glints, the fox's running trail; the orbs and tails are meshes now. About 68 a second (was 219).",
    "Emitters": [
-    {
-     "Name": "FoxBody",
-     "Texture": "vfx/v2/smoke_8x8.png",
-     "Host": {
-      "Kind": "Part",
-      "FromStuds": 0.3,
-      "ToStuds": 7.0,
-      "Width": 1.06,
-      "Shape": "Cylinder",
-      "ShapeStyle": "Volume"
-     },
-     "FlipbookLayout": "Grid8x8",
-     "FlipbookMode": "OneShot",
-     "LightInfluence": 0,
-     "LockedToPart": false,
-     "Rate": 16,
-     "Lifetime": [
-      1.2,
-      1.8
-     ],
-     "Speed": [
-      0.21,
-      0.49
-     ],
-     "SpreadAngle": [
-      180,
-      180
-     ],
-     "Drag": 1.2,
-     "Size": [
-      [
-       0,
-       0.9
-      ],
-      [
-       1,
-       2.0
-      ]
-     ],
-     "Transparency": [
-      [
-       0,
-       1
-      ],
-      [
-       0.15,
-       0.25
-      ],
-      [
-       0.7,
-       0.5
-      ],
-      [
-       1,
-       1
-      ]
-     ],
-     "Rotation": [
-      0,
-      360
-     ],
-     "RotSpeed": [
-      -15.0,
-      15.0
-     ],
-     "Color": [
-      [
-       0,
-       "#C070FF"
-      ],
-      [
-       0.5,
-       "#8A40E0"
-      ],
-      [
-       1,
-       "#4A2090"
-      ]
-     ],
-     "LightEmission": 0,
-     "Brightness": 1
-    },
-    {
-     "Name": "WindFlames",
-     "Texture": "vfx/v2/flame_8x8.png",
-     "FlipbookLayout": "Grid8x8",
-     "FlipbookMode": "OneShot",
-     "Host": {
-      "Kind": "Part",
-      "FromStuds": 0.6,
-      "ToStuds": 6.6,
-      "Width": 0.9,
-      "Shape": "Cylinder",
-      "ShapeStyle": "Volume"
-     },
-     "Rate": 22,
-     "Lifetime": [
-      0.9,
-      1.5
-     ],
-     "Speed": [
-      1.2,
-      2.2
-     ],
-     "SpreadAngle": [
-      12,
-      12
-     ],
-     "EmissionDirection": "Bottom",
-     "Drag": 0.3,
-     "Size": [
-      [
-       0,
-       0.2
-      ],
-      [
-       0.4,
-       0.55
-      ],
-      [
-       1,
-       0.15
-      ]
-     ],
-     "Transparency": [
-      [
-       0,
-       0.6
-      ],
-      [
-       0.2,
-       0.15
-      ],
-      [
-       0.8,
-       0.4
-      ],
-      [
-       1,
-       1
-      ]
-     ],
-     "Color": [
-      [
-       0,
-       "#FFF0FF"
-      ],
-      [
-       0.3,
-       "#D080FF"
-      ],
-      [
-       1,
-       "#7A30E0"
-      ]
-     ],
-     "LightEmission": 0.6,
-     "LightInfluence": 0,
-     "Brightness": 2.4,
-     "LockedToPart": false,
-     "Rotation": [
-      -20,
-      20
-     ],
-     "RotSpeed": [
-      -30,
-      30
-     ]
-    },
-    {
-     "Name": "Embers",
-     "Texture": "vfx/v2/glint.png",
-     "Host": {
-      "Kind": "Part",
-      "FromStuds": 0.6,
-      "ToStuds": 6.8,
-      "Width": 1.1,
-      "Shape": "Cylinder",
-      "ShapeStyle": "Volume"
-     },
-     "Rate": 8,
-     "Lifetime": [
-      1.2,
-      2.0
-     ],
-     "Speed": [
-      0.8,
-      1.6
-     ],
-     "SpreadAngle": [
-      20,
-      20
-     ],
-     "EmissionDirection": "Bottom",
-     "Drag": 0.4,
-     "Size": [
-      [
-       0,
-       0
-      ],
-      [
-       0.2,
-       0.16
-      ],
-      [
-       1,
-       0
-      ]
-     ],
-     "Transparency": [
-      [
-       0,
-       1
-      ],
-      [
-       0.2,
-       0
-      ],
-      [
-       0.8,
-       0.2
-      ],
-      [
-       1,
-       1
-      ]
-     ],
-     "Color": [
-      [
-       0,
-       "#FFFFFF"
-      ],
-      [
-       0.5,
-       "#FF8AE8"
-      ],
-      [
-       1,
-       "#B040FF"
-      ]
-     ],
-     "LightEmission": 1,
-     "LightInfluence": 0,
-     "Brightness": 3,
-     "LockedToPart": false
-    },
     {
      "Name": "Petals",
      "Texture": "vfx/kitsune/petal_2x2.png",
@@ -409,11 +163,258 @@
       -40.0,
       40.0
      ],
-     "Color": "#FF9AD8",
+     "Color": "#FFD3EC",
      "LightEmission": 0,
      "LightInfluence": 0,
      "LockedToPart": false,
      "Brightness": 1.2
+    },
+    {
+     "Name": "FoxTrail",
+     "Texture": "vfx/v2/flame_8x8.png",
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "Rate": 12,
+     "Lifetime": [
+      0.4,
+      0.6
+     ],
+     "Speed": [
+      0.014,
+      0.07
+     ],
+     "SpreadAngle": [
+      40,
+      40
+     ],
+     "EmissionDirection": "Top",
+     "Acceleration": [
+      0,
+      0.3,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.3
+      ],
+      [
+       0.4,
+       0.6
+      ],
+      [
+       1,
+       0.2
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.4
+      ],
+      [
+       0.3,
+       0.15
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#FFF0FA"
+      ],
+      [
+       0.4,
+       "#FFB3DE"
+      ],
+      [
+       1,
+       "#E6B8F2"
+      ]
+     ],
+     "Brightness": 2,
+     "LightEmission": 0.4,
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Host": {
+      "Kind": "Segment",
+      "Joint": "FoxRun",
+      "From": [
+       4.3,
+       0.527,
+       0.16
+      ],
+      "To": [
+       4.3,
+       0.5,
+       -0.07
+      ],
+      "Radius": 0.04
+     }
+    },
+    {
+     "Name": "FoxBody",
+     "Texture": "vfx/v2/smoke_8x8.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.3,
+      "ToStuds": 7.0,
+      "Width": 1.06,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Rate": 18,
+     "Lifetime": [
+      1.2,
+      1.8
+     ],
+     "Speed": [
+      0.21,
+      0.49
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 1.2,
+     "Size": [
+      [
+       0,
+       0.9
+      ],
+      [
+       1,
+       2.0
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.15,
+       0.2
+      ],
+      [
+       0.7,
+       0.45
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Rotation": [
+      0,
+      360
+     ],
+     "RotSpeed": [
+      -15.0,
+      15.0
+     ],
+     "Color": [
+      [
+       0,
+       "#F2B4E6"
+      ],
+      [
+       0.5,
+       "#C27AD6"
+      ],
+      [
+       1,
+       "#7E50BE"
+      ]
+     ],
+     "LightEmission": 0,
+     "Brightness": 1
+    },
+    {
+     "Name": "Foxfire",
+     "Texture": "vfx/v2/flame_8x8.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.3,
+      "ToStuds": 7.0,
+      "Width": 0.96,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "FlipbookLayout": "Grid8x8",
+     "FlipbookMode": "OneShot",
+     "LightInfluence": 0,
+     "LockedToPart": false,
+     "Rate": 12,
+     "Lifetime": [
+      1.0,
+      1.6
+     ],
+     "Speed": [
+      0.21,
+      0.56
+     ],
+     "SpreadAngle": [
+      30,
+      30
+     ],
+     "EmissionDirection": "Top",
+     "Acceleration": [
+      0,
+      1.6,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.4
+      ],
+      [
+       0.4,
+       0.9
+      ],
+      [
+       1,
+       0.3
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.7
+      ],
+      [
+       0.2,
+       0.1
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#FFF6FC"
+      ],
+      [
+       0.3,
+       "#FFB3DE"
+      ],
+      [
+       1,
+       "#C890FF"
+      ]
+     ],
+     "LightEmission": 0.25,
+     "Brightness": 2.2
     },
     {
      "Name": "Sparkles",
@@ -428,7 +429,7 @@
      },
      "LightInfluence": 0,
      "LockedToPart": false,
-     "Rate": 6,
+     "Rate": 8,
      "Lifetime": [
       1.0,
       1.8
@@ -489,7 +490,7 @@
       ],
       [
        1,
-       "#E0B0FF"
+       "#FFD3EC"
       ]
      ],
      "LightEmission": 1,
@@ -508,7 +509,7 @@
      },
      "LightInfluence": 0,
      "LockedToPart": true,
-     "Rate": 4,
+     "Rate": 5.6,
      "Lifetime": [
       0.56,
       0.98
@@ -569,204 +570,6 @@
      ],
      "LightEmission": 1,
      "Brightness": 4
-    },
-    {
-     "Name": "Face1",
-     "Texture": "vfx/kitsune/foxface_orb.png",
-     "Host": {
-      "Kind": "Segment",
-      "Joint": "Orb1",
-      "From": [
-       1.0,
-       0.372,
-       0.0
-      ],
-      "To": [
-       1.02,
-       0.372,
-       0.0
-      ],
-      "Radius": 0.02
-     },
-     "Rate": 1,
-     "Lifetime": [
-      1.05,
-      1.05
-     ],
-     "Speed": [
-      0,
-      0
-     ],
-     "SpreadAngle": [
-      0,
-      0
-     ],
-     "LockedToPart": true,
-     "Size": [
-      [
-       0,
-       0.42
-      ],
-      [
-       1,
-       0.42
-      ]
-     ],
-     "Transparency": [
-      [
-       0,
-       0.1
-      ],
-      [
-       1,
-       0.1
-      ]
-     ],
-     "Rotation": [
-      0,
-      0
-     ],
-     "RotSpeed": [
-      -18,
-      -18
-     ],
-     "Color": "#D898FF",
-     "LightEmission": 1,
-     "LightInfluence": 0,
-     "Brightness": 2.0,
-     "ZOffset": 0.02
-    },
-    {
-     "Name": "Face2",
-     "Texture": "vfx/kitsune/foxface_orb.png",
-     "Host": {
-      "Kind": "Segment",
-      "Joint": "Orb2",
-      "From": [
-       5.137,
-       0.1,
-       0.464
-      ],
-      "To": [
-       5.157,
-       0.1,
-       0.464
-      ],
-      "Radius": 0.02
-     },
-     "Rate": 1,
-     "Lifetime": [
-      1.05,
-      1.05
-     ],
-     "Speed": [
-      0,
-      0
-     ],
-     "SpreadAngle": [
-      0,
-      0
-     ],
-     "LockedToPart": true,
-     "Size": [
-      [
-       0,
-       0.42
-      ],
-      [
-       1,
-       0.42
-      ]
-     ],
-     "Transparency": [
-      [
-       0,
-       0.1
-      ],
-      [
-       1,
-       0.1
-      ]
-     ],
-     "Rotation": [
-      0,
-      0
-     ],
-     "RotSpeed": [
-      18,
-      18
-     ],
-     "Color": "#D898FF",
-     "LightEmission": 1,
-     "LightInfluence": 0,
-     "Brightness": 2.0,
-     "ZOffset": 0.02
-    },
-    {
-     "Name": "Face3",
-     "Texture": "vfx/kitsune/foxface_orb.png",
-     "Host": {
-      "Kind": "Segment",
-      "Joint": "Orb3",
-      "From": [
-       4.74,
-       -0.468,
-       -0.011
-      ],
-      "To": [
-       4.76,
-       -0.468,
-       -0.011
-      ],
-      "Radius": 0.02
-     },
-     "Rate": 1,
-     "Lifetime": [
-      1.05,
-      1.05
-     ],
-     "Speed": [
-      0,
-      0
-     ],
-     "SpreadAngle": [
-      0,
-      0
-     ],
-     "LockedToPart": true,
-     "Size": [
-      [
-       0,
-       0.42
-      ],
-      [
-       1,
-       0.42
-      ]
-     ],
-     "Transparency": [
-      [
-       0,
-       0.1
-      ],
-      [
-       1,
-       0.1
-      ]
-     ],
-     "Rotation": [
-      0,
-      0
-     ],
-     "RotSpeed": [
-      -18,
-      -18
-     ],
-     "Color": "#D898FF",
-     "LightEmission": 1,
-     "LightInfluence": 0,
-     "Brightness": 2.0,
-     "ZOffset": 0.02
     }
    ],
    "Beams": [
@@ -819,35 +622,24 @@
    ],
    "Lights": [
     {
-     "AtStuds": 1.5,
-     "Color": "#C070FF",
-     "Brightness": 1.4,
-     "Range": 8,
-     "Flicker": {
-      "Min": 0.8,
-      "Max": 1.15,
-      "Period": 2.2
-     }
-    },
-    {
      "AtStuds": 7.2,
-     "Color": "#FF8AE8",
-     "Brightness": 1.0,
-     "Range": 6,
+     "Color": "#FF9FD6",
+     "Brightness": 1.2,
+     "Range": 7,
      "Flicker": {
       "Min": 0.75,
       "Max": 1.15,
-      "Period": 1.8
+      "Period": 1.6
      }
     }
    ],
    "Highlight": {
-    "FillColor": "#C070FF",
-    "FillTransparency": 0.55,
-    "OutlineColor": "#F0D0FF",
+    "FillColor": "#FFC4E6",
+    "FillTransparency": 0.4,
+    "OutlineColor": "#FFFFFF",
     "OutlineTransparency": 0
    },
-   "Outline": "#C070FF"
+   "Outline": "#FF8FD0"
   },
   "Style": {
    "Trail": {
@@ -858,14 +650,14 @@
       255
      ],
      [
-      200,
-      110,
-      255
+      255,
+      120,
+      220
      ],
      [
-      110,
-      40,
-      220
+      138,
+      60,
+      255
      ]
     ],
     "NearTransparency": 0.0,
@@ -896,8 +688,8 @@
     "Core": {
      "Color": [
       255,
-      225,
-      255
+      220,
+      250
      ],
      "Width": 0.2,
      "NearTransparency": 0.0,
@@ -951,14 +743,14 @@
    "Pocket": {
     "Colors": [
      [
-      200,
-      110,
-      255
+      255,
+      120,
+      220
      ],
      [
-      120,
-      50,
-      230
+      160,
+      80,
+      255
      ]
     ],
     "ColorShare": 1
@@ -1438,11 +1230,11 @@
    "KeepRibbons": false
   },
   "Budget": {
-   "ParticlesPerSecond": 71,
+   "ParticlesPerSecond": 67.6,
    "Back": 29.0,
    "BallTrail": 22,
    "Beams": 0,
-   "Lights": 2,
+   "Lights": 1,
    "Orbiters": 0,
    "PieceTriangles": 39000,
    "PocketPieceTriangles": 27500

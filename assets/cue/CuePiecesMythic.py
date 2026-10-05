@@ -746,8 +746,7 @@ def kitsune(k):
     k.model('Mask', 'FoxMask', 'fox_mask', place, target_tris=14000, emissive=_violet_eyes,
             emissive_tint='#C070FF', emissive_strength=3.0, bones=bones,
             hologram={'Tint': '#D8B8FF', 'Shell': '#C070FF', 'Strength': 1.6})
-    _spirit_fox(k)
-    _wind_wisps(k)
+    _running_fox(k)
     _foxfire_tails(k)
     _foxfire_orbs(k)
 
@@ -763,11 +762,9 @@ def _foxfire_tails(k):
     from mathutils import Vector
     rnd = random.Random(41)
     # see-through like the Dragon's threads (designer 2026-10-04: energy, never solid cloth)
-    # Second look (designer, 2026-10-05, the reference: violet flame, the tails streaming out
-    # past the mask with the wind toward the butt): violet, and aimed past the butt.
-    k.material('TailFire', 'ForceField', '#C080FF', Transparency=0.72)
-    k.material('TailCore', 'Neon', '#FFE0FF', Transparency=0.8)
-    U0, LEN, R0, R1 = 6.9, 1.35, 0.2, 0.62
+    k.material('TailFire', 'ForceField', '#FFD6F2', Transparency=0.74)
+    k.material('TailCore', 'Neon', '#FFF0FA', Transparency=0.8)
+    U0, LEN, R0, R1 = 6.9, 1.3, 0.2, 0.78
     for i in range(9):
         th = math.radians(i * 40.0 + rnd.uniform(-6, 6))
         curl = math.radians(rnd.uniform(18, 30)) * rnd.choice((-1, 1))
@@ -781,7 +778,7 @@ def _foxfire_tails(k):
             rho = R0 + (r1 - R0) * sm + 0.06 * math.sin(2 * math.pi * t)
             phi = th + curl * math.sin(math.pi * t)
             rad = Vector((math.sin(phi), 0, math.cos(phi)))
-            pts.append(Vector((0, -(U0 + length * t), 0)) + rad * rho)
+            pts.append(Vector((0, -(U0 - length * t), 0)) + rad * rho)
             w = 0.03 + 0.085 * math.sin(math.pi * t) ** 0.8 * (1 - 0.25 * t)
             if j == N:
                 w = 0.008
@@ -816,9 +813,9 @@ def _foxfire_orbs(k):
     from mathutils import Vector
     import cue_common as cc
     env = cc.Envelope(cc.load_shape()[0])
-    k.material('OrbCore', 'Neon', '#FFF0FF', Transparency=0.2)
-    k.material('OrbHalo', 'ForceField', '#C070FF', Transparency=0.45)
-    k.material('OrbFlame', 'Neon', '#B050FF', Transparency=0.65)
+    k.material('OrbCore', 'Neon', '#FFF4FB', Transparency=0.1)
+    k.material('OrbHalo', 'ForceField', '#FFB3E6', Transparency=0.4)
+    k.material('OrbFlame', 'Neon', '#F0B8FF', Transparency=0.6)
     U_A, U_B, TURNS, OFF = 1.0, 6.6, 3.0, 0.3
 
     def point(s):
@@ -881,294 +878,7 @@ def _foxfire_orbs(k):
         bm = bmesh.new()
         sweep(bm, pts, radii, segs=8, cap=True)
         k.add(nm, k.mesh_object('Kitsune' + nm + 'Flame', bm, ['OrbFlame'], smooth=True))
-        q = p + tg * 0.0
-        print('CUE orb host %s: From %s To %s' % (
-            nm, [round(-q.y, 3), round(q.z, 3), round(q.x, 3)], [round(-(q.y - 0.02), 3), round(q.z, 3), round(q.x, 3)]))
     print('CUE foxfire orbs: loop %.2f studs, lap %.1f s' % (length, length / SPEED))
-
-
-def _white_eyes(px):
-    """The white-hot eyes of the spirit fox (the mane's highlights are pinker)."""
-    import numpy as np
-    h, s_, v = _hsv(px)
-    return np.clip((v - 0.86) / 0.1, 0, 1) * np.clip((0.22 - s_) / 0.12, 0, 1)
-
-
-def _fox_flame_png(k, name, w=256, h=512):
-    """The spirit fox body's SurfaceAppearance (u round the body from the back, v along it):
-    violet flame streaks running along the body with white-pink hot lines, a bright back line,
-    see-through between the streaks; and its EmissiveMask."""
-    import numpy as np
-    bpy = k.bpy
-    x = (np.arange(w) + 0.5) / w
-    y = (np.arange(h) + 0.5) / h
-    U, V = np.meshgrid(x, y)
-    # flame streaks running along the body: one family of wavy lines (they never cross, so
-    # the body reads as flowing flame, not a net), broken into tongues along its length
-    wob = 0.18 * np.sin(2 * np.pi * (V * 1.6)) + 0.06 * np.sin(2 * np.pi * (V * 5.1 + 0.2))
-    streak = np.zeros_like(U)
-    for sh, wd, f in ((0.0, 0.03, 9), (0.5, 0.018, 9)):
-        ph = (U * f + wob + sh) % 1.0
-        streak += np.exp(-((ph - 0.5) / wd) ** 2)
-    tongue = 0.55 + 0.45 * np.sin(2 * np.pi * (V * 3.0 + 0.35 * np.sin(2 * np.pi * U * 2)))
-    streak = streak * tongue
-    du = np.minimum(U, 1 - U)
-    back = np.exp(-(du / 0.04) ** 2)
-    body = 0.45 + 0.35 * np.sin(np.pi * np.clip(V, 0, 1)) ** 0.5
-    violet = np.array([0.69, 0.30, 1.0])
-    pink = np.array([1.0, 0.55, 0.95])
-    white = np.array([1.0, 0.92, 1.0])
-    col = (violet[None, None] * body[..., None] + pink[None, None] * np.clip(streak, 0, 1)[..., None] * 0.7
-           + white[None, None] * back[..., None])
-    alpha = np.clip(0.1 + 0.5 * np.clip(streak, 0, 1) + 0.6 * back, 0, 0.85)
-    emis = np.clip(0.3 + 0.6 * np.clip(streak, 0, 1) + 0.9 * back, 0, 1)
-    paths = {}
-    for key, arr, has_a in (('spirit', np.concatenate([np.clip(col, 0, 1), alpha[..., None]], -1), True),
-                            ('emissive', np.concatenate([np.repeat(emis[..., None], 3, -1), np.ones((h, w, 1))], -1), False)):
-        img = bpy.data.images.new('%s_%s' % (name, key), w, h, alpha=has_a)
-        img.pixels.foreach_set(arr.astype(np.float32).ravel())
-        rel = 'pieces/%s/%s_%s.png' % (k.pid, name, key)
-        img.filepath_raw = os.path.join(P.HERE, rel)
-        img.file_format = 'PNG'
-        img.save()
-        paths[key] = rel
-    return paths
-
-
-# the spirit fox (designer, 2026-10-05, the reference picture: a great fox of violet flame
-# along the cue, like the Celestial Dragon, its flames blown toward the butt)
-FOX_NECK_U = 1.9          # where the neck meets the body, studs from the tip
-FOX_END_U = 6.3           # where the body's flame dies out
-FOX_HEAD_L = 2.0          # the head, snout to the back of the mane, studs (the reference: the fox dwarfs the cue)
-FOX_WAVE = 1.9            # the body wave's length, studs
-FOX_WAVE_PERIOD = 2.8     # the body wave's beat, seconds
-FOX_LAP = 14.0            # degrees a second the whole fox drifts round the cue (a lap in 26 s)
-
-
-def _spirit_fox(k):
-    """A great spirit fox of violet flame along the cue: the generated head (Meshy,
-    assets/cue/models/spirit_fox_head) above the shaft looking past the tip, a flame body (its own
-    streaked see-through SurfaceAppearance in a ForceField sheath round a Neon core) flowing back
-    over the forearm and dying out before the grip, flame licks raked toward the butt all along
-    it. Fourteen bones carry a wave running head to tail (the wind), the whole fox drifts slowly
-    round the cue so every seat sees it pass, and the head nods and looks round. All aura."""
-    import bmesh
-    import numpy as np
-    from mathutils import Matrix, Vector
-    import cue_common as cc
-    env = cc.Envelope(cc.load_shape()[0])
-    k.material('FoxSheath', 'ForceField', '#D8A8FF', Transparency=0.74)
-    k.material('FoxCore', 'Neon', '#FFE6FF', Transparency=0.78)
-    k.material('FoxLick', 'ForceField', '#C070FF', Transparency=0.7)
-    k.joint('FoxSpirit', pivot=(0, 0, 0), aura=True, motion=[
-        {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': FOX_LAP},
-        {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.12, 'Period': 5.5}])
-
-    def centre(t):
-        u = FOX_NECK_U + (FOX_END_U - FOX_NECK_U) * t
-        h = env(u) + 0.62 - 0.14 * math.sin(math.pi * t) + 0.06 * math.sin(3 * math.pi * t)
-        s_ = 0.18 * math.sin(2 * math.pi * t)
-        return Vector((s_, -u, h))
-
-    N = 96
-    frames = []
-    for i in range(N + 1):
-        t = i / N
-        p = centre(t)
-        tg = (centre(min(t + 1e-3, 1)) - centre(max(t - 1e-3, 0))).normalized()
-        nrm = Vector((0, 0, 1))
-        nrm = (nrm - tg * nrm.dot(tg)).normalized()
-        frames.append((t, p, tg, nrm, tg.cross(nrm)))
-
-    def radius(t):
-        return 0.05 + 0.42 * (1 - t) ** 0.8 * min(1.0, 0.35 + t * 4)
-
-    NB = 14
-    centres = [0.0 + 1.0 * b / (NB - 1) for b in range(NB)]
-    width = 1.0 / (NB - 1)
-    length = FOX_END_U - FOX_NECK_U
-    bone_names = []
-    for b, tc in enumerate(centres):
-        _, p, tg, nrm, side = frames[int(round(tc * N))]
-        amp = 0.03 + 0.05 * tc
-        ph = -360.0 * tc * length / FOX_WAVE
-        nm = 'FoxSpine%d' % (b + 1)
-        k.joint(nm, pivot=tuple(p), parent='FoxSpirit', aura=True, motion=[
-            {'Kind': 'Bob', 'Dir': tuple(nrm), 'Amp': round(amp, 4), 'Period': FOX_WAVE_PERIOD, 'Phase': round(ph, 1)},
-            {'Kind': 'Bob', 'Dir': tuple(side), 'Amp': round(0.6 * amp, 4), 'Period': FOX_WAVE_PERIOD, 'Phase': round(ph + 90, 1)}])
-        bone_names.append((nm, tc))
-    body_t = np.array([f[0] for f in frames])
-    body_p = np.array([tuple(f[1]) for f in frames])
-
-    def t_of(V):
-        d2 = ((V[:, None, :] - body_p[None, :, :]) ** 2).sum(-1)
-        return body_t[np.argmin(d2, 1)]
-
-    def body_abs(idx, tv):
-        tc = np.clip(tv, centres[0], centres[-1])
-        return np.clip(1 - np.abs(tc - centres[idx]) / width, 0, 1)
-
-    def bone_fn(idx):
-        def fn(V):
-            tv = t_of(V)
-            taken = sum(body_abs(j, tv) for j in range(idx)) if idx else np.zeros(len(V))
-            return np.where(taken < 0.999, body_abs(idx, tv) / np.maximum(1 - taken, 1e-3), 0.0)
-        return fn
-
-    bones = {nm: bone_fn(i) for i, (nm, _) in enumerate(bone_names)}
-    paths = _fox_flame_png(k, 'FoxBody')
-    k.material('FoxBody', 'SmoothPlastic', '#FFFFFF', SurfaceAppearance={
-        'ColorMap': paths['spirit'], 'EmissiveMask': paths['emissive'], 'EmissiveTint': '#D090FF',
-        'EmissiveStrength': 2.4, 'AlphaMode': 'Transparency'})
-    bm = bmesh.new()
-    uv = bm.loops.layers.uv.new('UVMap')
-    _dragon_tube(bm, frames[::2], radius, 16, uv=uv, v_per_stud=1.6, flat=0.7)
-    body = k.add('FoxSpirit', k.mesh_object('FoxBody', bm, ['FoxBody']))
-    bm = bmesh.new()
-    _dragon_tube(bm, frames[::4], lambda t: radius(t) * 1.25 + 0.01, 12, flat=0.7)
-    sheath = k.add('FoxSpirit', k.mesh_object('FoxSheath', bm, ['FoxSheath']))
-    bm = bmesh.new()
-    _dragon_tube(bm, frames[::4], lambda t: radius(t) * 0.16, 6)
-    core = k.add('FoxSpirit', k.mesh_object('FoxCore', bm, ['FoxCore']))
-    # flame licks: blades off the body raked toward the butt (the wind), longer toward the tail
-    bm = bmesh.new()
-
-    def blade(base, back, out, length_, w):
-        tip = base + (out * 0.6 - back * 0.8).normalized() * length_
-        a = base + back * w
-        c = base - back * w
-        s_ = back.cross(out).normalized() * w * 0.25
-        vs = [bm.verts.new(v) for v in (a, c, tip, base + s_, base - s_)]
-        for f in ((vs[0], vs[1], vs[2]), (vs[3], vs[0], vs[2]), (vs[1], vs[4], vs[2]), (vs[4], vs[3], vs[2]),
-                  (vs[1], vs[0], vs[3]), (vs[1], vs[3], vs[4])):
-            bm.faces.new(f)
-    rnd = random.Random(9)
-    for i in range(4, N - 4, 5):
-        t, p, tg, nrm, side = frames[i]
-        r = radius(t)
-        for ang in (rnd.uniform(-80, -25), rnd.uniform(25, 80), rnd.uniform(-20, 20), rnd.uniform(-60, 60)):
-            out = (Matrix.Rotation(math.radians(ang), 3, tg) @ nrm).normalized()
-            blade(p + out * r * 0.85, tg, out, 0.25 + 0.7 * t + rnd.uniform(0, 0.2), 0.025 + 0.25 * r)
-    licks = k.add('FoxSpirit', k.mesh_object('FoxLicks', bm, ['FoxLick'], smooth=False))
-    k.skins['FoxBody'] = {'root': 'FoxSpirit', 'bones': bones, 'meshes': [body, sheath, core, licks]}
-
-    # the head on the neck, looking past the tip and a little up; the model's face looks along
-    # -Y with its top +Z (as generated)
-    _, pn, tg0, nrm0, side0 = frames[0]
-    fwd = (Vector((0, 1, 0)) + Vector((0, 0, 0.12))).normalized()
-    up = (Vector((0, 0, 1)) - fwd * fwd.z).normalized()
-    R = Matrix((tuple(fwd.cross(up) * -1), tuple(-fwd), tuple(up))).transposed()
-    C = pn + fwd * 0.05
-
-    def place(ob):
-        V = np.array([v.co[:] for v in ob.data.vertices])
-        lo, hi = V.min(0), V.max(0)
-        s_ = FOX_HEAD_L / (hi[1] - lo[1])
-        # the bust is cut half-way up its neck (cut_below) before it is placed: the neck's cut
-        # bottom sits on the body's front, the face reaches forward from the back of the head
-        return (Matrix.Translation(C) @ R.to_4x4() @ Matrix.Scale(s_, 4)
-                @ Matrix.Translation((-(lo[0] + hi[0]) / 2, -hi[1] + 0.25 * (hi[1] - lo[1]), -lo[2] + 0.06 * (hi[2] - lo[2]))))
-
-    k.joint('FoxHead', pivot=tuple(pn), parent='FoxSpine1', aura=True, motion=[
-        {'Kind': 'Hinge', 'Axis': tuple(side0), 'Base': 3.0, 'Amp': 6.0, 'Period': 4.6},
-        {'Kind': 'Hinge', 'Axis': tuple(up), 'Amp': 12.0, 'Period': 6.4, 'Phase': 40}])
-    k.model('FoxHead', 'SpiritFoxHead', 'spirit_fox_head', place, target_tris=14000, emissive=_white_eyes,
-            emissive_tint='#FFE0FF', emissive_strength=3.0, cut_below=0.5,
-            hologram={'Tint': '#C878FF', 'Shell': '#F0C8FF', 'Strength': 2.6, 'ShellTris': 6000, 'ShellTransparency': 0.45,
-                      'Alpha': (0.22, 0.75)})
-    q = pn
-    print('CUE fox neck host: %s' % [round(-q.y, 3), round(q.z, 3), round(q.x, 3)])
-
-
-def _wind_wisps(k):
-    """Flames blown along the cue toward the butt (designer, 2026-10-05): twelve see-through
-    violet licks of flame riding one loop that runs from the ferrule to the butt a finger above
-    the surface, turning a little round it, and back to the ferrule along the cue's own axis
-    (inside the cue, out of sight), so the flames only ever travel toward the butt. Each fades in
-    and out on its own clock. All aura."""
-    import bmesh
-    import numpy as np
-    from mathutils import Vector
-    import cue_common as cc
-    env = cc.Envelope(cc.load_shape()[0])
-    k.material('Wisp', 'ForceField', '#C878FF', Transparency=0.68)
-    k.material('WispCore', 'Neon', '#FFE8FF', Transparency=0.8)
-    U_A, U_B, TURNS, OFF = 1.0, 7.1, 0.7, 0.1
-
-    def point(s):
-        if s < 0.5:
-            t = s * 2
-            u = U_A + (U_B - U_A) * t
-            a = 2 * math.pi * TURNS * t
-            rho = env(u) + OFF
-            return Vector((rho * math.sin(a), -u, rho * math.cos(a)))
-        t = (s - 0.5) * 2
-        # the hidden leg: back up the cue's axis, dipping in smoothly where the outbound leg
-        # ended and out again where it starts (a continuous loop: the runtime's path
-        # interpolation and Blender's agree only without corners)
-        u = U_B - (U_B - U_A) * t
-        ease = min(t, 1 - t) / 0.06
-        w = max(0.0, 1 - ease)
-        w = w * w * (3 - 2 * w)
-        a = 2 * math.pi * TURNS if t < 0.5 else 0.0
-        rho = (env(u) + OFF) * w
-        return Vector((rho * math.sin(a), -u, rho * math.cos(a)))
-
-    n_fine = 40000
-    Pm = np.array([point(i / n_fine)[:] for i in range(n_fine)])
-    seg = np.linalg.norm(np.roll(Pm, -1, 0) - Pm, axis=1)
-    cum = np.concatenate([[0], np.cumsum(seg)])
-    length = float(cum[-1])
-    step = 0.03
-    n = int(round(length / step))
-    step = length / n
-    mats, frames = [], []
-    for i in range(n):
-        s_ = i * step
-        kk = int(np.searchsorted(cum, s_, side='right') - 1) % n_fine
-        f = (s_ - cum[kk]) / max(seg[kk], 1e-9)
-        sp = (kk + f) / n_fine
-        p = point(sp)
-        tg = (point((sp + 2e-5) % 1.0) - point((sp - 2e-5) % 1.0)).normalized()
-        nrm = Vector((p.x, 0, p.z))
-        if nrm.length < 1e-4:
-            nrm = Vector((0, 0, 1))
-        nrm = (nrm - tg * nrm.dot(tg)).normalized()
-        side = tg.cross(nrm)
-        M = np.eye(4)
-        M[:3, 0], M[:3, 1], M[:3, 2], M[:3, 3] = tuple(side), tuple(tg), tuple(nrm), tuple(p)
-        mats.append(M)
-        frames.append((p, tg, nrm, side))
-    k.path('Wind', mats, step)
-    SPEED = 1.9
-    rnd = random.Random(77)
-    NW = 12
-    for i in range(NW):
-        rest = length * i / NW
-        j = int(round(rest / step)) % n
-        p, tg, nrm, side = frames[j]
-        nm = 'Wisp%d' % (i + 1)
-        k.joint(nm, pivot=tuple(p), aura=True, low='hide' if i % 2 == 1 else None,
-                motion=[{'Kind': 'Path', 'Path': 'Wind', 'Rest': round(rest, 4), 'Speed': SPEED}],
-                visual=[{'Kind': 'Fade', 'Min': 0.1, 'Max': 1.0, 'Period': rnd.uniform(1.8, 3.0), 'Shape': 'sine', 'Phase': i * 61},
-                        {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.3, 'Period': rnd.uniform(2.0, 3.4), 'Shape': 'sine', 'Phase': i * 37}])
-        L_ = rnd.uniform(0.35, 0.65)
-        wmax = rnd.uniform(0.05, 0.09)
-        pts, body, core = [], [], []
-        for q in range(13):
-            t = q / 12
-            lift = 0.08 * math.sin(math.pi * t) ** 1.5 * (1 + 0.4 * math.sin(7 * t + i))
-            pts.append(p - tg * (L_ * t) + nrm * lift + side * 0.03 * math.sin(5 * t + i))
-            w = 0.015 + wmax * math.sin(math.pi * (0.15 + 0.85 * t)) ** 0.9 * (1 - 0.6 * t)
-            body.append((w, w * 0.5))
-            core.append(0.003 + 0.01 * math.sin(math.pi * t))
-        bm = bmesh.new()
-        sweep(bm, pts, body, segs=8, cap=True)
-        k.add(nm, k.mesh_object('Kitsune' + nm, bm, ['Wisp'], smooth=True))
-        bm = bmesh.new()
-        sweep(bm, pts, core, segs=6, cap=True)
-        k.add(nm, k.mesh_object('Kitsune' + nm + 'Core', bm, ['WispCore'], smooth=True))
-    print('CUE wind wisps: loop %.2f studs, lap %.1f s' % (length, length / SPEED))
 
 
 # the spirit fox that runs round the Kitsune cue (designer, 2026-09-30: "a small kitsune model
