@@ -233,14 +233,14 @@
       "File": "pieces/eclipse/Orbital1_OrbitLine.obj",
       "Joint": "Orbital1",
       "Offset": [
-        0.0001,
-        -0.0003,
-        2.2001
+        0.0002,
+        -0.0005,
+        2.2002
       ],
       "Size": [
-        1.0512,
-        0.6241,
-        0.9752
+        1.0631,
+        0.6358,
+        0.987
       ],
       "Triangles": 1536
     },
@@ -253,14 +253,14 @@
       "File": "pieces/eclipse/Orbital1_OrbitGlow.obj",
       "Joint": "Orbital1",
       "Offset": [
-        0.0,
-        -0.0001,
-        2.1996
+        0.0001,
+        -0.0002,
+        2.1994
       ],
       "Size": [
-        1.0972,
-        0.6705,
-        1.0205
+        1.129,
+        0.7024,
+        1.0521
       ],
       "Triangles": 1920
     },
@@ -313,14 +313,14 @@
       "File": "pieces/eclipse/Orbital2_OrbitLine.obj",
       "Joint": "Orbital2",
       "Offset": [
-        0.0002,
-        0.0002,
-        0.6997
+        0.0003,
+        0.0003,
+        0.6995
       ],
       "Size": [
-        0.9148,
-        1.3649,
-        1.1676
+        0.9263,
+        1.3767,
+        1.1792
       ],
       "Triangles": 1536
     },
@@ -333,14 +333,14 @@
       "File": "pieces/eclipse/Orbital2_OrbitGlow.obj",
       "Joint": "Orbital2",
       "Offset": [
+        0.0008,
         0.0006,
-        0.0004,
         0.7
       ],
       "Size": [
-        0.9601,
-        1.4096,
-        1.214
+        0.9914,
+        1.4407,
+        1.2458
       ],
       "Triangles": 1920
     },
@@ -418,9 +418,9 @@
         -0.8001
       ],
       "Size": [
-        0.8547,
-        0.978,
-        1.1479
+        0.8667,
+        0.9898,
+        1.1593
       ],
       "Triangles": 1536
     },
@@ -433,14 +433,14 @@
       "File": "pieces/eclipse/Orbital3_OrbitGlow.obj",
       "Joint": "Orbital3",
       "Offset": [
-        0.0006,
+        0.0009,
         0.0,
         -0.8001
       ],
       "Size": [
-        0.8995,
-        1.0233,
-        1.1941
+        0.9309,
+        1.0548,
+        1.2256
       ],
       "Triangles": 1920
     },
@@ -495,12 +495,12 @@
       "Offset": [
         0.0,
         0.0,
-        -2.3001
+        -2.3002
       ],
       "Size": [
-        1.2948,
-        1.1529,
-        1.423
+        1.3066,
+        1.1649,
+        1.4344
       ],
       "Triangles": 1536
     },
@@ -513,14 +513,14 @@
       "File": "pieces/eclipse/Orbital4_OrbitGlow.obj",
       "Joint": "Orbital4",
       "Offset": [
-        0.0002,
-        -0.0008,
-        -2.3007
+        0.0003,
+        -0.0012,
+        -2.301
       ],
       "Size": [
-        1.3402,
-        1.1972,
-        1.4686
+        1.3717,
+        1.2284,
+        1.4999
       ],
       "Triangles": 1920
     },
@@ -573,14 +573,14 @@
       "File": "pieces/eclipse/GreatOrbit1_OrbitLine.obj",
       "Joint": "GreatOrbit1",
       "Offset": [
-        0.0001,
-        -0.0001,
-        -0.6999
+        0.0002,
+        -0.0002,
+        -0.6998
       ],
       "Size": [
-        2.2332,
-        2.4578,
-        6.7634
+        2.245,
+        2.4694,
+        6.7752
       ],
       "Triangles": 2048
     },
@@ -593,14 +593,14 @@
       "File": "pieces/eclipse/GreatOrbit1_OrbitGlow.obj",
       "Joint": "GreatOrbit1",
       "Offset": [
-        0.0,
-        -0.0002,
+        0.0001,
+        -0.0003,
         -0.6999
       ],
       "Size": [
-        2.2876,
-        2.5094,
-        6.8153
+        2.3216,
+        2.5421,
+        6.8483
       ],
       "Triangles": 2560
     },
@@ -613,14 +613,14 @@
       "File": "pieces/eclipse/GreatOrbit2_OrbitLine.obj",
       "Joint": "GreatOrbit2",
       "Offset": [
-        0.0001,
         0.0002,
-        -1.0996
+        0.0004,
+        -1.0994
       ],
       "Size": [
-        2.0153,
-        1.5985,
-        6.0879
+        2.027,
+        1.6102,
+        6.0995
       ],
       "Triangles": 2048
     },
@@ -633,14 +633,14 @@
       "File": "pieces/eclipse/GreatOrbit2_OrbitGlow.obj",
       "Joint": "GreatOrbit2",
       "Offset": [
-        -0.0009,
-        0.0009,
-        -1.1009
+        -0.0013,
+        0.0013,
+        -1.1012
       ],
       "Size": [
-        2.068,
-        1.6512,
-        6.1408
+        2.1012,
+        1.6844,
+        6.174
       ],
       "Triangles": 2560
     },

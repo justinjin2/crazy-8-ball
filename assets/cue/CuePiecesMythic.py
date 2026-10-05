@@ -1285,7 +1285,7 @@ def eclipse(k):
         orb_j, bead_j = 'Orbital%d' % n, 'Planet%d' % n
         k.joint(orb_j, pivot=tuple(c), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': prec, 'Phase': yaw}],
                 visual=[{'Kind': 'Glow', 'Min': 0.2, 'Max': 0.8, 'Period': 2.6 + 0.5 * n, 'Shape': 'sine', 'Phase': 70 * n}])
-        for mat, tube, segs in (('OrbitLine', 0.011, 8), ('OrbitGlow', 0.034, 10)):
+        for mat, tube, segs in (('OrbitLine', 0.017, 8), ('OrbitGlow', 0.05, 10)):
             bm = bmesh.new()
             sweep(bm, ring, [tube] * len(ring), segs=segs, cap=False)
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
@@ -1312,7 +1312,7 @@ def eclipse(k):
         loop = [c + d * A * math.cos(2 * math.pi * i / 128) + m * B * math.sin(2 * math.pi * i / 128) for i in range(129)]
         j = 'GreatOrbit%d' % n
         k.joint(j, pivot=tuple(c), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': prec, 'Phase': 90 * n}])
-        for mat, tube, segs in (('OrbitLine', 0.011, 8), ('OrbitGlow', 0.038, 10)):
+        for mat, tube, segs in (('OrbitLine', 0.017, 8), ('OrbitGlow', 0.055, 10)):
             bm = bmesh.new()
             sweep(bm, loop, [tube] * len(loop), segs=segs, cap=False)
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
@@ -1413,7 +1413,7 @@ def eclipse_carrier(k):
         orb_j, bead_j = 'Orbit%d' % n, 'Planet%d' % n
         k.joint(orb_j, pivot=tuple(c), aura=True, motion=[{'Kind': 'Spin', 'Axis': (0, 0, 1), 'Rate': prec, 'Phase': yaw}],
                 visual=[{'Kind': 'Glow', 'Min': 0.2, 'Max': 0.8, 'Period': 3.0 + 0.6 * n, 'Shape': 'sine', 'Phase': 70 * n}])
-        for mat, tube, segs in (('OrbitLine', 0.024, 8), ('OrbitGlow', 0.065, 10)):
+        for mat, tube, segs in (('OrbitLine', 0.045, 8), ('OrbitGlow', 0.11, 10)):
             bm = bmesh.new()
             sweep(bm, ring, [tube] * len(ring), segs=segs, cap=False)
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)

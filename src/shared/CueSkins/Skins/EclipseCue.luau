@@ -525,13 +525,13 @@ return {
 				Lifetime = { 1.6, 2.2 },
 				Speed = 0,
 				Size = {
-					{ 0, 4.4 },
-					{ 1, 6.4 },
+					{ 0, 3.6 },
+					{ 1, 5 },
 				},
 				Transparency = {
 					{ 0, 1 },
-					{ 0.3, 0.35 },
-					{ 0.7, 0.45 },
+					{ 0.3, 0.45 },
+					{ 0.7, 0.55 },
 					{ 1, 1 },
 				},
 				Color = {
@@ -539,7 +539,7 @@ return {
 					{ 1, "#FF9A1A" },
 				},
 				LightEmission = 1,
-				Brightness = 4,
+				Brightness = 3,
 				ZOffset = 0.3,
 			},
 			{

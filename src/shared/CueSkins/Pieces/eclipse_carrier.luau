@@ -5,7 +5,7 @@
 return {
 	Id = "eclipse_carrier",
 	Frame = "cue",
-	Rigid = "134506985367466",
+	Rigid = "89768034927410",
 	Models = {},
 	Parts = {
 		{
@@ -65,8 +65,8 @@ return {
 			Reflectance = 0,
 			Name = "Orbit1_OrbitLine",
 			Joint = "Orbit1",
-			Offset = { -0, 0.9003, 3.5003 },
-			Size = { 4.8455, 1.53, 4.6109 },
+			Offset = { -0.0001, 0.9007, 3.5007 },
+			Size = { 4.8865, 1.5712, 4.6521 },
 		},
 		{
 			Material = "ForceField",
@@ -75,8 +75,8 @@ return {
 			Reflectance = 0,
 			Name = "Orbit1_OrbitGlow",
 			Joint = "Orbit1",
-			Offset = { 0.0001, 0.9, 3.4999 },
-			Size = { 4.9279, 1.6123, 4.6905 },
+			Offset = { 0.0001, 0.9001, 3.4998 },
+			Size = { 5.0175, 1.7019, 4.7782 },
 		},
 		{
 			Material = "Neon",
@@ -105,8 +105,8 @@ return {
 			Reflectance = 0,
 			Name = "Orbit2_OrbitLine",
 			Joint = "Orbit2",
-			Offset = { 0.0001, 0.2999, 3.5005 },
-			Size = { 5.3608, 2.4064, 5.8306 },
+			Offset = { 0.0001, 0.2999, 3.5008 },
+			Size = { 5.4026, 2.4483, 5.8702 },
 		},
 		{
 			Material = "ForceField",
@@ -115,8 +115,8 @@ return {
 			Reflectance = 0,
 			Name = "Orbit2_OrbitGlow",
 			Joint = "Orbit2",
-			Offset = { 0.0001, 0.3001, 3.5001 },
-			Size = { 5.4402, 2.4877, 5.9151 },
+			Offset = { 0.0002, 0.3001, 3.5001 },
+			Size = { 5.5283, 2.5771, 6.0049 },
 		},
 		{
 			Material = "Neon",

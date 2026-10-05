@@ -1107,11 +1107,11 @@
      "Size": [
       [
        0,
-       4.4
+       3.6
       ],
       [
        1,
-       6.4
+       5.0
       ]
      ],
      "Transparency": [
@@ -1121,11 +1121,11 @@
       ],
       [
        0.3,
-       0.35
+       0.45
       ],
       [
        0.7,
-       0.45
+       0.55
       ],
       [
        1,
@@ -1143,7 +1143,7 @@
       ]
      ],
      "LightEmission": 1,
-     "Brightness": 4,
+     "Brightness": 3,
      "ZOffset": 0.3,
      "Note": "the soft gold glow round the corona"
     },

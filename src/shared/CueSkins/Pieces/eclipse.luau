@@ -5,7 +5,7 @@
 return {
 	Id = "eclipse",
 	Frame = "cue",
-	Rigid = "88318986521085",
+	Rigid = "85666814722335",
 	Models = {},
 	Parts = {
 		{
@@ -125,8 +125,8 @@ return {
 			Reflectance = 0,
 			Name = "Orbital1_OrbitLine",
 			Joint = "Orbital1",
-			Offset = { 0.0001, -0.0003, 2.2001 },
-			Size = { 1.0512, 0.6241, 0.9752 },
+			Offset = { 0.0002, -0.0005, 2.2002 },
+			Size = { 1.0631, 0.6358, 0.987 },
 		},
 		{
 			Material = "ForceField",
@@ -135,8 +135,8 @@ return {
 			Reflectance = 0,
 			Name = "Orbital1_OrbitGlow",
 			Joint = "Orbital1",
-			Offset = { 0, -0.0001, 2.1996 },
-			Size = { 1.0972, 0.6705, 1.0205 },
+			Offset = { 0.0001, -0.0002, 2.1994 },
+			Size = { 1.129, 0.7024, 1.0521 },
 		},
 		{
 			Material = "Neon",
@@ -165,8 +165,8 @@ return {
 			Reflectance = 0,
 			Name = "Orbital2_OrbitLine",
 			Joint = "Orbital2",
-			Offset = { 0.0002, 0.0002, 0.6997 },
-			Size = { 0.9148, 1.3649, 1.1676 },
+			Offset = { 0.0003, 0.0003, 0.6995 },
+			Size = { 0.9263, 1.3767, 1.1792 },
 		},
 		{
 			Material = "ForceField",
@@ -175,8 +175,8 @@ return {
 			Reflectance = 0,
 			Name = "Orbital2_OrbitGlow",
 			Joint = "Orbital2",
-			Offset = { 0.0006, 0.0004, 0.7 },
-			Size = { 0.9601, 1.4096, 1.214 },
+			Offset = { 0.0008, 0.0006, 0.7 },
+			Size = { 0.9914, 1.4407, 1.2458 },
 		},
 		{
 			Material = "Neon",
@@ -216,7 +216,7 @@ return {
 			Name = "Orbital3_OrbitLine",
 			Joint = "Orbital3",
 			Offset = { 0, 0, -0.8001 },
-			Size = { 0.8547, 0.978, 1.1479 },
+			Size = { 0.8667, 0.9898, 1.1593 },
 		},
 		{
 			Material = "ForceField",
@@ -225,8 +225,8 @@ return {
 			Reflectance = 0,
 			Name = "Orbital3_OrbitGlow",
 			Joint = "Orbital3",
-			Offset = { 0.0006, 0, -0.8001 },
-			Size = { 0.8995, 1.0233, 1.1941 },
+			Offset = { 0.0009, 0, -0.8001 },
+			Size = { 0.9309, 1.0548, 1.2256 },
 		},
 		{
 			Material = "Neon",
@@ -255,8 +255,8 @@ return {
 			Reflectance = 0,
 			Name = "Orbital4_OrbitLine",
 			Joint = "Orbital4",
-			Offset = { 0, 0, -2.3001 },
-			Size = { 1.2948, 1.1529, 1.423 },
+			Offset = { 0, 0, -2.3002 },
+			Size = { 1.3066, 1.1649, 1.4344 },
 		},
 		{
 			Material = "ForceField",
@@ -265,8 +265,8 @@ return {
 			Reflectance = 0,
 			Name = "Orbital4_OrbitGlow",
 			Joint = "Orbital4",
-			Offset = { 0.0002, -0.0008, -2.3007 },
-			Size = { 1.3402, 1.1972, 1.4686 },
+			Offset = { 0.0003, -0.0012, -2.301 },
+			Size = { 1.3717, 1.2284, 1.4999 },
 		},
 		{
 			Material = "Neon",
@@ -295,8 +295,8 @@ return {
 			Reflectance = 0,
 			Name = "GreatOrbit1_OrbitLine",
 			Joint = "GreatOrbit1",
-			Offset = { 0.0001, -0.0001, -0.6999 },
-			Size = { 2.2332, 2.4578, 6.7634 },
+			Offset = { 0.0002, -0.0002, -0.6998 },
+			Size = { 2.245, 2.4694, 6.7752 },
 		},
 		{
 			Material = "ForceField",
@@ -305,8 +305,8 @@ return {
 			Reflectance = 0,
 			Name = "GreatOrbit1_OrbitGlow",
 			Joint = "GreatOrbit1",
-			Offset = { 0, -0.0002, -0.6999 },
-			Size = { 2.2876, 2.5094, 6.8153 },
+			Offset = { 0.0001, -0.0003, -0.6999 },
+			Size = { 2.3216, 2.5421, 6.8483 },
 		},
 		{
 			Material = "Neon",
@@ -315,8 +315,8 @@ return {
 			Reflectance = 0,
 			Name = "GreatOrbit2_OrbitLine",
 			Joint = "GreatOrbit2",
-			Offset = { 0.0001, 0.0002, -1.0996 },
-			Size = { 2.0153, 1.5985, 6.0879 },
+			Offset = { 0.0002, 0.0004, -1.0994 },
+			Size = { 2.027, 1.6102, 6.0995 },
 		},
 		{
 			Material = "ForceField",
@@ -325,8 +325,8 @@ return {
 			Reflectance = 0,
 			Name = "GreatOrbit2_OrbitGlow",
 			Joint = "GreatOrbit2",
-			Offset = { -0.0009, 0.0009, -1.1009 },
-			Size = { 2.068, 1.6512, 6.1408 },
+			Offset = { -0.0013, 0.0013, -1.1012 },
+			Size = { 2.1012, 1.6844, 6.174 },
 		},
 		{
 			Material = "SmoothPlastic",
