@@ -186,8 +186,8 @@ def celestial_dragon(k):
     import bmesh
     from mathutils import Matrix, Vector
     bpy = k.bpy
-    k.material('Sheath', 'ForceField', '#3FD6FF')   # the 2026-10-04 rework: cyan-white spirit energy, every beat slowed
-    k.material('Core', 'Neon', '#EAFBFF', Transparency=0.3)
+    k.material('Sheath', 'ForceField', '#3FD6FF', Transparency=0.45)   # the 2026-10-04 rework: cyan-white spirit energy,
+    k.material('Core', 'Neon', '#EAFBFF', Transparency=0.55)            # every beat slowed; both thinned on the lobby floor
     k.material('Fin', 'Neon', '#7FE6FF', Transparency=0.3)
     k.material('Filament', 'Neon', '#9FF0FF', Transparency=0.1)
 
@@ -360,7 +360,7 @@ def celestial_dragon(k):
                   'Mane': lambda V: (lambda O: ramp(O[:, 1], -7.15, -7.0) * ramp(O[:, 2], 0.12, 0.2))(from_cue(V))}
     k.model('Head', 'DragonHead', 'dragon_head', place, target_tris=15000, emissive=_icy_eyes,
             emissive_tint='#9FF0FF', emissive_strength=3.4, cut_below=0.3, bones=head_bones,
-            hologram={'Tint': '#7FE6FF', 'Shell': '#D8F6FF', 'Strength': 2.2, 'ShellTris': 6000,
+            hologram={'Tint': '#7FE6FF', 'Shell': '#D8F6FF', 'Strength': 2.2, 'ShellTris': 6000, 'ShellTransparency': 0.4,
                       'Alpha': (0.14, 0.55)})     # more solid than the pocket spirits: the face must read small
     # The spirit energy (designer, 2026-10-04, the reference photo: see-through blue energy art
     # flowing round the cue, surrounding the paint without masking it; its own look, not the

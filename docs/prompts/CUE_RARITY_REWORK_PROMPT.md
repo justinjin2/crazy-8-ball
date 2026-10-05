@@ -205,7 +205,8 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
 - [x] 2. Eclipse: board, gate 1 (passed 2026-10-04 at the third look).
 - [x] 3. Eclipse: build, gate 2 (passed 2026-10-04 at the fourth look); the trail and pocket
   finisher kept as they were (designer: they were fine); no sound; cards unchanged.
-- [ ] 4. Celestial Dragon: board (rendered 2026-10-04), gate 1; build, gate 2, polish.
+- [ ] 4. Celestial Dragon: board, gate 1 (passed 2026-10-04 at the third look, "good enough");
+  build (done 2026-10-04), gate 2, polish.
 - [ ] 5. Kitsune: board, gate 1; build, gate 2, polish.
 - [ ] 6. Apex: board, gate 1; build, gate 2, polish.
 - [ ] 7. Reyes, Grandmaster, VIP.
@@ -279,7 +280,16 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   wider ForceField (`#A8E4FF`), each on its own aura joint turning round the cue at its own
   rate and direction, drifting along it and fading in and out on its own clock (Fade
   visuals), so the art is never still and never covers the paint. The strip beam dimmed.
-  Board and clip re-rendered.
+  Board and clip re-rendered. Gate 1 passed ("good enough upload").
+- 2026-10-04: the Dragon built in the lane window: five maps, the body GLB and its spirit
+  map, the head's spirit map and the twelve ribbons' GLB uploaded (the exact-path manifest
+  rows win over the main checkout's), image ids filled, the template and both pieces
+  rebuilt. Tuned on the lobby floor: the halo and rim bloomed white in the sun, dimmed to
+  0.7 and 1.0 and made clearer; the stars, dust and streaks dimmer; the strip beam nearly
+  clear; the dragon's sheath and core thinned (0.45, 0.55) and the head's hologram shell
+  (a new kit key, `ShellTransparency` 0.4) so the scales and filaments show through.
+  Captures `celestial_dragon-studio-{stand,close,back}.jpg`; the motion fixture
+  regenerated for the slower beats; the clip re-rendered. Waiting at gate 2.
 
 ## Decisions
 

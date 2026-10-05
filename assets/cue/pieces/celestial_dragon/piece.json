@@ -69,7 +69,7 @@
     {
       "Material": "ForceField",
       "Color": "#3FD6FF",
-      "Transparency": 0.0,
+      "Transparency": 0.45,
       "Reflectance": 0.0,
       "Name": "DragonSheath",
       "File": "pieces/celestial_dragon/DragonBody.glb",
@@ -124,7 +124,7 @@
     {
       "Material": "Neon",
       "Color": "#EAFBFF",
-      "Transparency": 0.3,
+      "Transparency": 0.55,
       "Reflectance": 0.0,
       "Name": "DragonCore",
       "File": "pieces/celestial_dragon/DragonBody.glb",
@@ -324,7 +324,7 @@
     {
       "Material": "ForceField",
       "Color": "#D8F6FF",
-      "Transparency": 0.0,
+      "Transparency": 0.4,
       "Reflectance": 0.0,
       "Name": "DragonHeadShell",
       "File": "pieces/celestial_dragon/DragonHead.glb",

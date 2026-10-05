@@ -271,7 +271,7 @@ class Kit:
         as a skinned GLB (see export_skin).
 
         hologram (designer, 2026-09-30: spiritual energy, holograms, not solid models): {'Tint',
-        'Strength', 'Shell', 'ShellOffset', 'ShellTris', 'Alpha'}. The SurfaceAppearance becomes a
+        'Strength', 'Shell', 'ShellOffset', 'ShellTris', 'ShellTransparency', 'Alpha'}. The SurfaceAppearance becomes a
         see-through glowing spirit of the model's own texture (ColorMap in the tint, its alpha from
         the brightness, AlphaMode Transparency, glowing all over, the emissive() parts brightest),
         and a ForceField shell (the same mesh pushed out by ShellOffset of its height, reduced to
@@ -436,7 +436,7 @@ class Kit:
         size = max(max(zs) - min(zs), max(ys) - min(ys))
         apply_modifier(bpy, sh, 'DISPLACE', strength=float(holo.get('ShellOffset', 0.012)) * size, mid_level=0.0)
         mname = name + 'Shell'
-        self.material(mname, 'ForceField', holo.get('Shell', holo['Tint']))
+        self.material(mname, 'ForceField', holo.get('Shell', holo['Tint']), Transparency=holo.get('ShellTransparency', 0.0))
         sh.data.materials.clear()
         sh.data.materials.append(self.blender_mat(mname))
         for poly in sh.data.polygons:

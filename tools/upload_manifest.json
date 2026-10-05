@@ -363,6 +363,28 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/pieces/celestial_dragon/DragonBody.glb": {
+    "assetId": "81296478478993",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/pieces/celestial_dragon/DragonBody_spirit.png": {
+    "assetId": "111801396846589",
+    "assetType": "Decal",
+    "imageId": "105041129537608",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/pieces/celestial_dragon/DragonHead_spirit.png": {
+    "assetId": "132544442437558",
+    "assetType": "Decal",
+    "imageId": "132645049661440",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/pieces/celestial_dragon/celestial_dragon_parts.glb": {
+    "assetId": "71580402215604",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/pieces/eclipse/eclipse_parts.glb": {
     "assetId": "89593875944515",
     "assetType": "Model",
@@ -416,6 +438,36 @@
     "assetId": "111315879332510",
     "assetType": "Decal",
     "imageId": "120143279629859",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/celestial_dragon_color.png": {
+    "assetId": "122007764985870",
+    "assetType": "Decal",
+    "imageId": "103937821207067",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/celestial_dragon_emissive.png": {
+    "assetId": "118719757470236",
+    "assetType": "Decal",
+    "imageId": "137521577353672",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/celestial_dragon_metalness.png": {
+    "assetId": "122981566983212",
+    "assetType": "Decal",
+    "imageId": "110933300617721",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/celestial_dragon_normal.png": {
+    "assetId": "84406836112835",
+    "assetType": "Decal",
+    "imageId": "101081106358899",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/celestial_dragon_roughness.png": {
+    "assetId": "81422913556502",
+    "assetType": "Decal",
+    "imageId": "81004554432709",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/eclipse_color.png": {

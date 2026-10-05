@@ -201,7 +201,9 @@ generic-runtime rule; the catalog rows stay untouched.
   to a third, gold-scale and pearl ends); board and clip rendered. Second look: the dragon
   lengthened to coil the whole cue, a light-blue hologram aura round the stick. Third look:
   the long body dropped (it looked broken), twelve see-through blue energy ribbons turning
-  and fading round the cue after the designer's reference. Waiting at gate 1.
+  and fading round the cue after the designer's reference. Gate 1 passed; built in the
+  lane window (uploads, template, pieces), tuned on the floor (halo dimmed, sheath thinned).
+  Waiting at gate 2.
 
 ## Decisions
 
@@ -312,6 +314,9 @@ generic-runtime rule; the catalog rows stay untouched.
 - `src/client/CueSkinLook.luau`: `carrierShown()` (AuraQuiet or CarrierQuiet hides the
   Carrier piece and the Carrier-host emitters, flagged `carrier` in `emitters`). Why: the same.
 - `tests/aura_quiet_test.luau`: two tests for the carrier rule.
+- `assets/cue/CuePieces.py`: `k.model(... hologram={'ShellTransparency': x})`, the hologram
+  shell's Transparency (0 as before). Why: the Dragon's head shell read solid in the sun.
+- `tests/cue_motion_fixture.json`: regenerated (the Dragon's slower motions).
 - `src/client/CuePiece.luau`: `CuePiece.new(id, root, parent, lift?)`: the whole piece raised
   on its root, applied after each joint's pose. `src/client/CueSkinLook.luau`:
   `carrierLift()` (the carrying body's head top against `Config.CueSkins.Carrier.HeadTopStuds`)
