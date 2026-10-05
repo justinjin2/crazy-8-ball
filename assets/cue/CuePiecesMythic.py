@@ -188,11 +188,11 @@ def celestial_dragon(k):
     bpy = k.bpy
     # The 2026-10-04 rework: pale spirit light, one blue for the whole dragon (designer: the
     # head's lighter blue, the body the same), every beat slowed; sheath and core thinned on
-    # the lobby floor.
+    # the lobby floor. (Two Neon filaments spiralling round the body were tried and dropped:
+    # they read as white spirals in the sun, designer 2026-10-04.)
     k.material('Sheath', 'ForceField', '#D8F6FF', Transparency=0.45)
     k.material('Core', 'Neon', '#EAFBFF', Transparency=0.55)
     k.material('Fin', 'Neon', '#C4F0FF', Transparency=0.3)
-    k.material('Filament', 'Neon', '#D8F6FF', Transparency=0.1)
 
     loop, step, length = _swim_loop()
     n = len(loop)
@@ -304,22 +304,7 @@ def celestial_dragon(k):
         out = (Matrix.Rotation(math.radians(ang), 3, tg) @ nrm).normalized()
         blade(p, -tg, out, 0.16, 0.025)
     fins = k.add('Dragon', k.mesh_object('DragonFins', bm, ['Fin'], smooth=False))
-    # two spirit filaments: thin Neon wires spiralling round the body just outside the scales,
-    # the energy that runs through the dragon (skinned with the rest, so they swim with it;
-    # the 2026-10-04 rework)
-    bm = bmesh.new()
-    for h in range(2):
-        pts, radii = [], []
-        for i, (t, p, tg, nrm, side) in enumerate(frames):
-            if i % 2:
-                continue
-            a = 2 * math.pi * (t * SWIM_BODY / 0.55 + h / 2)
-            rr = _dragon_radius(t) * 1.18 + 0.008
-            pts.append(p + (nrm * math.cos(a) + side * math.sin(a)) * rr)
-            radii.append(0.006 + 0.004 * min(t / 0.3, 1.0))
-        sweep(bm, pts, radii, segs=5, cap=True)
-    filaments = k.add('Dragon', k.mesh_object('DragonFilaments', bm, ['Filament']))
-    k.skins['DragonBody'] = {'root': 'Dragon', 'bones': bones, 'meshes': [body, sheath, core, fins, filaments]}
+    k.skins['DragonBody'] = {'root': 'Dragon', 'bones': bones, 'meshes': [body, sheath, core, fins]}
 
     # the head on the neck: the model's face looks along -Y with its top +Z (as generated);
     # turned so it looks along the neck, its top away from the cue

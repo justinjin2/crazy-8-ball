@@ -2,7 +2,7 @@
   "id": "celestial_dragon",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 33538,
+  "Triangles": 31278,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -229,61 +229,6 @@
         1.0115,
         1.0437,
         2.7668
-      ]
-    },
-    {
-      "Material": "Neon",
-      "Color": "#D8F6FF",
-      "Transparency": 0.1,
-      "Reflectance": 0.0,
-      "Name": "DragonFilaments",
-      "File": "pieces/celestial_dragon/DragonBody.glb",
-      "Mesh": "DragonFilamentsSkin",
-      "Joint": "Dragon",
-      "Skinned": true,
-      "Bones": [
-        "Dragon",
-        "Spine1",
-        "Spine2",
-        "Spine3",
-        "Spine4",
-        "Spine5",
-        "Spine6",
-        "Spine7",
-        "Spine8",
-        "Spine9",
-        "Spine10",
-        "Spine11",
-        "Spine12",
-        "Spine13",
-        "Spine14",
-        "Spine15",
-        "Spine16",
-        "Spine17",
-        "Spine18",
-        "Spine19",
-        "Spine20",
-        "Spine21",
-        "Spine22",
-        "Spine23",
-        "Spine24",
-        "Spine25",
-        "Spine26",
-        "Spine27",
-        "Spine28",
-        "Spine29",
-        "Spine30"
-      ],
-      "Triangles": 2260,
-      "Offset": [
-        0.0018,
-        -0.0181,
-        -1.5288
-      ],
-      "Size": [
-        0.8929,
-        0.9139,
-        3.002
       ]
     },
     {

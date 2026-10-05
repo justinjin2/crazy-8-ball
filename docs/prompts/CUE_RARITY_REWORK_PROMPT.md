@@ -294,6 +294,9 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   (`#D8F6FF` sheath and filaments, `#C4F0FF` fins, paler scales, emissive `#9FE8FF`); the
   body's spirit map re-uploaded, the piece rebuilt in the lane window. Captures
   `celestial_dragon-studio-{stand,close,back,head}.jpg`; the clip re-rendered.
+- 2026-10-04 (gate 2, third look): the two Neon spirit filaments round the body dropped
+  (they read as white spirals in the sun); the body GLB re-uploaded, the piece rebuilt in
+  the lane window, the clip re-rendered.
 
 ## Decisions
 
@@ -349,3 +352,5 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   own look, surrounding the texture without masking it. Built as the third look.
 - 2026-10-04 (designer, Dragon gate 2, first look): the head and body must be one colour,
   the head's lighter blue. Done.
+- 2026-10-04 (designer, Dragon gate 2, second look): get rid of the noticeably whiter
+  spirals on the dragon (the filaments). Done.
