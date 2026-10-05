@@ -1032,6 +1032,7 @@ local function warpLegendary(s: Scene, t: number, shown: number)
 		p.warpRays = makeArt(s, "WarpRays", K.Rays, gold, 3)
 		p.warpGlow = makeGlow(s, "WarpGlow", gold, 3)
 		p.warpCore = makeGlow(s, "WarpCore", light, 4)
+		p.warpSpark = makeArt(s, "WarpSpark", K.Spark, light, 5)
 		local stars = {}
 		for _ = 1, math.max(16, math.floor(L.WarpStars * Quality.rate())) do
 			table.insert(stars, {
@@ -1056,15 +1057,18 @@ local function warpLegendary(s: Scene, t: number, shown: number)
 		p.last = t
 	end
 	s.black.BackgroundTransparency = 0
-	local u = math.clamp(t / L.InterludeSeconds, 0, 1)
+	-- It opens as a tiny star in the middle and grows with the rise into the full warp at the
+	-- flash: `grow` runs 0 -> 1 from the black to the flash.
+	local span = math.max(0.1, L.InterludeSeconds - (t - shown))
+	local grow = math.clamp(shown / span, 0, 1) ^ L.WarpGrowPower
 	local screen = s.veilRoot.AbsoluteSize
 	local longer = math.max(screen.X, screen.Y)
 	local dt = math.max(0, t - p.last)
 	p.last = t
 
-	-- Streaks of light fly out from the middle, faster and longer as it builds.
-	local speed = L.WarpSpeedFrom + (L.WarpSpeedTo - L.WarpSpeedFrom) * u * u
-	local show = smooth(shown / 0.4)
+	-- Streaks of light fly out from the middle, inside the growing light, faster and longer.
+	local speed = L.WarpSpeedFrom + (L.WarpSpeedTo - L.WarpSpeedFrom) * grow
+	local show = smooth(shown / 0.4) * math.min(1, grow * 4)
 	for _, star in p.stars do
 		star.r += speed * dt * (0.3 + star.r * 2) * star.k
 		if star.r > 0.8 then
@@ -1072,9 +1076,9 @@ local function warpLegendary(s: Scene, t: number, shown: number)
 			star.angle = s.random:NextNumber(0, math.pi * 2)
 		end
 		local image: ImageLabel = star.image
-		local len = longer * L.WarpStreakShare * star.r * (0.5 + u)
-		local width = math.max(2, longer * 0.004 * (0.5 + star.r * 2))
-		local middle = star.r * longer - len / 2
+		local len = longer * L.WarpStreakShare * star.r * (0.5 + grow) * grow
+		local width = math.max(1, longer * 0.004 * (0.5 + star.r * 2) * (0.4 + 0.6 * grow))
+		local middle = (star.r * longer - len / 2) * grow
 		image.Visible = true
 		image.Position =
 			UDim2.new(0.5, math.cos(star.angle) * middle, 0.5, math.sin(star.angle) * middle)
@@ -1082,37 +1086,43 @@ local function warpLegendary(s: Scene, t: number, shown: number)
 		image.Rotation = math.deg(star.angle) - 90
 		image.ImageTransparency = 1 - math.clamp(star.r * 6, 0, 1) * show
 	end
-	-- Shafts of gold light sweep across behind them.
+	-- Shafts of gold light sweep across behind them once it has grown.
 	for _, pillar in p.pillars do
 		local frame: Frame = pillar.frame
 		local x = (pillar.from + pillar.speed * t) % 1.2 - 0.1
 		frame.Position = UDim2.fromScale(x, 0)
 		frame.Size = UDim2.fromScale(pillar.width, 1)
-		frame.BackgroundTransparency = 1 - 0.35 * smooth(u * 2)
+		frame.BackgroundTransparency = 1 - 0.35 * smooth((grow - 0.35) / 0.4)
 	end
 	local haze: Frame = p.haze
-	haze.BackgroundTransparency = 1 - 0.6 * smooth(u)
-	-- Rays turn ever faster round a gold glow that swells into the flash.
-	p.spin += (20 + 200 * u * u) * dt
+	haze.BackgroundTransparency = 1 - 0.6 * grow
+	-- The star: a twinkling point that swells into the gold glow and turning rays.
+	p.spin += (20 + 200 * grow) * dt
+	local twinkle = 1 + 0.12 * math.sin(t * 14) + 0.08 * math.sin(t * 31)
+	local spark: ImageLabel = p.warpSpark
+	local sparkSize = longer * (L.StarStartShare * 3 + 0.12 * grow) * twinkle
+	spark.Visible = true
+	spark.Size = UDim2.fromOffset(sparkSize, sparkSize)
+	spark.Rotation = p.spin * 0.25
+	spark.ImageTransparency = 0.1 + 0.6 * grow
 	local rays: ImageLabel = p.warpRays
-	local raysSize = longer * (0.6 + 0.9 * u)
+	local raysSize = longer * (L.StarStartShare * 4 + 1.5 * grow)
 	rays.Visible = true
 	rays.Size = UDim2.fromOffset(raysSize, raysSize)
 	rays.Rotation = p.spin
-	rays.ImageTransparency = 0.7 - 0.45 * u
-	local pulse = 1 + 0.06 * math.sin(t * 14)
+	rays.ImageTransparency = 0.7 - 0.45 * grow
 	local glow: GuiObject = p.warpGlow
-	local glowSize = longer * (0.25 + 1.1 * u ^ 2) * pulse
+	local glowSize = longer * (L.StarStartShare * 2 + 1.35 * grow ^ 2) * twinkle
 	glow.Visible = true
 	glow.Size = UDim2.fromOffset(glowSize, glowSize)
 	local core: GuiObject = p.warpCore
-	local coreSize = longer * L.CoreScale * (0.15 + 0.85 * u ^ 2.5) * pulse
+	local coreSize = longer * (L.StarStartShare + L.CoreScale * grow ^ 2.5) * twinkle
 	core.Visible = true
 	core.Size = UDim2.fromOffset(coreSize, coreSize)
 	-- Rings out from the middle as the rise climbs.
-	for index, at in { 0.15, 0.45, 0.7 } do
+	for index, at in { 0.25, 0.55, 0.8 } do
 		local ring: ImageLabel = p.pulses[index]
-		local k = (u - at) / 0.25
+		local k = (grow - at) / 0.2
 		ring.Visible = k >= 0 and k <= 1
 		if ring.Visible then
 			local size = longer * 1.4 * (1 - (1 - k) * (1 - k))

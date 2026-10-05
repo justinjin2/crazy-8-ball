@@ -10347,7 +10347,7 @@ Config.Cutscenes = {
 		StarStuds = 15, -- its glow's size at full (particles)
 		GatherStuds = 32, -- light streams in toward it from a sphere this wide
 		-- The beam: falls from the star and hits the player on the Logo Reveal's impact.
-		ImpactAt = 4.03, -- the impact: the track's final hit, 4.03 s in (the film follows the track's own clock)
+		ImpactAt = 3.83, -- the impact, 3.83 s into the track (designer 2026-10-05: 4.03 was late); the film follows the track's own clock
 		DropSeconds = 0.45, -- the beam's fall from the star to the ground: a slam (designer 2026-10-05: was 1.3)
 		DropPower = 1.5, -- its fall speeds up: u^power
 		CoreStuds = 2.4, -- the bright core's width
@@ -10372,8 +10372,8 @@ Config.Cutscenes = {
 		RumbleStuds = 0.35, -- the falling beam's rumble, growing to the hit
 		Glare = 0.35, -- a gold glare over the screen at the hit (0..1)
 		ImpactHoldSeconds = 0.25, -- the hit holds this long, then fades to black...
-		FadeOutSeconds = 0.6, -- ...this slowly while the track rings out (designer 2026-10-05: was a cut, then 0.9)
-		RiseAfterHitSeconds = 0.1, -- the rise starts this long after the hit, under the fade and the
+		FadeOutSeconds = 0.35, -- ...this fast while the track rings out (designer 2026-10-05: was a cut, then 0.9, 0.6)
+		RiseAfterHitSeconds = 0.3, -- the rise starts this long after the hit (4.13 s in), under the fade and the
 		-- track's last ring (designer 2026-10-05: it came 1.1 s after the hit, then too late)
 		-- Part two, on the screen: the starlight warp.
 		InterludeSeconds = 3.1, -- the rise's start to the flash (its peak lands on the flash); the
@@ -10384,6 +10384,8 @@ Config.Cutscenes = {
 		WarpSpeedTo = 2.2, -- ...and at the end
 		Pillars = 5, -- vertical shafts of gold light sweeping across
 		CoreScale = 0.6, -- the gold glow in the middle at the end, of the longer side
+		StarStartShare = 0.012, -- it opens as a tiny star this big, of the longer side...
+		WarpGrowPower = 1.4, -- ...and grows into the full warp at the flash: share^power
 		FlashInSeconds = 0.08, -- the white flash on the rise's peak...
 		FlashOutSeconds = 0.5, -- ...and its fade off the card
 		-- Sounds (Config.Audio.Ui), each from the start of its moment.
