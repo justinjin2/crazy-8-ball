@@ -413,6 +413,31 @@
     "imageId": "120143279629859",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/eclipse_color.png": {
+    "assetId": "134775260010340",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/eclipse_emissive.png": {
+    "assetId": "92546820369074",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/eclipse_metalness.png": {
+    "assetId": "82138751793395",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/eclipse_normal.png": {
+    "assetId": "114719288832094",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/eclipse_roughness.png": {
+    "assetId": "71333732016203",
+    "assetType": "Decal",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/grand_opening_color.png": {
     "assetId": "127193742351612",
     "assetType": "Decal",
@@ -1960,41 +1985,6 @@
     "assetType": "Decal",
     "imageId": "131021637134443",
     "sha256": "862305d5e7240275d900abe0c35f836af7f4260ef3a340a45aabef036339dea8",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_color.png": {
-    "assetId": "121309073964652",
-    "assetType": "Decal",
-    "imageId": "72014769957884",
-    "sha256": "474cf5d8dadc459b07e882744d5a9c45a1d39f9fd1fe8706771cdef9e3a9e8f9",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_emissive.png": {
-    "assetId": "90577531457549",
-    "assetType": "Decal",
-    "imageId": "104201201933899",
-    "sha256": "097581269b762d8330931778ffc2b7df479d253596928445ebfdcd4a14c42de5",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_metalness.png": {
-    "assetId": "108726744826544",
-    "assetType": "Decal",
-    "imageId": "103336244865524",
-    "sha256": "657e26f962ba60cfd1f80f6cb5d716e846118a2f9bd8ac3a77d0c9b50f470a3b",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_normal.png": {
-    "assetId": "87572772259036",
-    "assetType": "Decal",
-    "imageId": "113138358945965",
-    "sha256": "d0cd42fc409e0f7fea08a0fc929d06270852460d6f50edca74158de05f6bfed4",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/cue/textures/eclipse_roughness.png": {
-    "assetId": "125070894830848",
-    "assetType": "Decal",
-    "imageId": "138652560731505",
-    "sha256": "c3fc52add895ac407b79815067a24b24ae9f09d06d318869e07e08a4b3f01e3c",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/textures/expert_cue_color.png": {

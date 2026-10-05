@@ -221,7 +221,8 @@ Legendary and below the gates are per tier batch (one board sheet and one lineup
   and the docs; the questions in section 6 put to the designer and answered.
 - 2026-10-04: step 1 built (themed ends, the Carrier piece and host, the preview's carrier);
   Eclipse rebuilt in data (collar and ends, the piece, the carrier piece, the aura as a star
-  system at about 99 particles a second, placeholder sounds). Board rendering for gate 1.
+  system at about 99 particles a second, placeholder sounds). The board
+  (`assets/cue/concepts/rework/eclipse-board.png`) at gate 1.
 
 ## Decisions
 
