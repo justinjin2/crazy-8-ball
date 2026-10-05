@@ -2,7 +2,7 @@
 -- DevCommands: developer chat commands, checked here on the server (Config.Debug.Commands).
 -- Only the designer's own account (Config.Debug.Commands.UserIds) may use them; any other
 -- player gets nothing, so no player can change everyone's sky, their own save or the shop.
--- - /day, /sunset and /night fade the light to that state for the whole server and hold it
+-- - /day and /sunset fade the light to that state for the whole server and hold it
 --   there; /cycle fades back into the running cycle (LightCycle.shown): the hold goes on
 --   workspace attributes every client's DayCycle reads.
 -- - The rank and money ones (/rank, /xp, /money, /addmoney, /result, /newrank, /resetdata;
@@ -69,7 +69,7 @@ local OLD_ALIASES: { [string]: string } = D.OldAliases :: any
 
 local DevCommands = {}
 
---- Holds the light at "Day", "Sunset" or "Night", or with "Cycle" lets it run again, fading
+--- Holds the light at "Day" or "Sunset", or with "Cycle" lets it run again, fading
 --- from the light shown now (the commands' work; Studio tests call it too).
 function DevCommands.toward(hold: string)
 	local offset = workspace:GetAttribute(C.OffsetAttribute)
@@ -1088,7 +1088,7 @@ local function econHelp(player: Player)
 end
 
 function DevCommands.start()
-	for _, hold in { "Day", "Sunset", "Night", "Cycle" } do
+	for _, hold in { "Day", "Sunset", "Cycle" } do
 		command(hold, D[hold], function()
 			DevCommands.toward(hold)
 		end)

@@ -1,8 +1,8 @@
 --!strict
--- DayCycle: the map's day, sunset and night cycle on this client (Config.Lighting). The server's clock
+-- DayCycle: the map's day and sunset cycle on this client (Config.Lighting). The server's clock
 -- sets where the cycle is (LightCycle.blend), so every player sees the same light with nothing
--- sent over the network. MapLighting writes the state onto the place: every tick of a fade (at
--- Cycle.Rate), once per hold. Visual only, and it needs no input, so it works the same on phone,
+-- sent over the network. MapLighting writes the state onto the place: every frame of a fade,
+-- once per hold. Visual only, and it needs no input, so it works the same on phone,
 -- PC and gamepad.
 --
 -- The map streams in (StreamingEnabled): a lantern or light arriving mid-sunset would keep the
@@ -48,7 +48,6 @@ export type DayCycle = typeof(setmetatable(
 		last: { [string]: any }?,
 		blend: number?,
 		fire: number, -- the fire pit's intensity in the light now (Config.Lighting's Fire)
-		nextApply: number,
 		nextLook: number,
 		dirty: boolean,
 		watched: Instance?,
@@ -80,7 +79,6 @@ function DayCycle.new(): DayCycle
 		last = nil :: { [string]: any }?,
 		blend = nil :: number?,
 		fire = 0,
-		nextApply = 0,
 		nextLook = 0,
 		dirty = true,
 		watched = nil :: Instance?,
@@ -139,8 +137,8 @@ function DayCycle.update(self: DayCycle, now: number)
 	if self.dirty or handles == nil or (not handles.complete and now >= self.nextLook) then
 		self:look(now)
 	end
-	-- An arena's offset starts its cycle at day (ArenaService); the /day, /sunset, /night and
-	-- /cycle developer commands hold the light for everyone (DevCommands).
+	-- An arena's offset starts its cycle at day (ArenaService); the /day, /sunset and /cycle
+	-- developer commands hold the light for everyone (DevCommands).
 	local offset = workspace:GetAttribute(C.OffsetAttribute)
 	local t = workspace:GetServerTimeNow() * C.Speed
 		+ (if type(offset) == "number" then offset else 0)
@@ -151,10 +149,10 @@ function DayCycle.update(self: DayCycle, now: number)
 		workspace:GetAttribute(A.At)
 	)
 	local blend = LightCycle.shown(t, C, hold)
-	if self.last ~= nil and (blend == self.blend or now < self.nextApply) then
+	-- A fade is written every frame (at 12 a second it stepped visibly, designer 2026-10-05).
+	if self.last ~= nil and blend == self.blend then
 		return
 	end
-	self.nextApply = now + 1 / C.Rate
 	self.blend = blend
 	local found = self.handles
 	assert(found, "looked above")

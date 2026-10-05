@@ -6620,37 +6620,33 @@ Config.Map = {
 }
 
 ---------------------------------------------------------------------------------------------
--- Lighting (the rooftop map): the Day, Sunset and Night states and the cycle between them, the
--- same for everyone on a server (the brief: Day 10 min, a 1 min fade, Sunset 5 min, a 1 min
--- fade; Night added by the designer, 2026-10-05, a lighting test to see if the cues' textures
--- and auras pop more in the dark). LightCycle mixes the states by the server's clock,
+-- Lighting (the rooftop map): the Day and Sunset states and the cycle between them, the same
+-- for everyone on a server (the brief: Day 10 min, Sunset 5 min; no night: one was tried and
+-- dropped by the designer, 2026-10-05). LightCycle mixes the two states by the server's clock,
 -- MapLighting puts a state onto the place (MapLighting.preview in Edit mode, for captures and
--- so the place is saved lit), and DayCycle drives it on each client. Day, Sunset and Night have
--- the same keys (a Lune test checks). Colours are hex strings. The background (the city, the islands, the sea) is kept
+-- so the place is saved lit), and DayCycle drives it on each client. Day and Sunset have the
+-- same keys (a Lune test checks). Colours are hex strings. The background (the city, the islands, the sea) is kept
 -- soft by the haze and the depth of field so the eye goes to the tables (designer,
 -- Checkpoint C).
 ---------------------------------------------------------------------------------------------
 Config.Lighting = {
 	Cycle = {
 		Day = 600, -- seconds of day
-		Fade = 60, -- seconds of each fade, eased
+		-- seconds of each fade, eased (designer, 2026-10-05: 10, the minute's fade was too slow)
+		Fade = 10,
 		Sunset = 300, -- seconds of sunset
-		Night = 300, -- seconds of night (2026-10-05; tune)
-		-- seconds of the dawn between night and day: the sunset's light again, briefly (tune)
-		Dawn = 30,
 		-- Test only: the cycle runs this many times as fast (Checkpoint D's timed run). A Lune
 		-- test keeps it 1, so a test value cannot be committed.
 		Speed = 1,
-		Rate = 12, -- a client applies the fading light this many times a second
 		Look = 2, -- seconds between a client's looks for map parts still streaming in
 		-- workspace's attribute holding the cycle's offset (scaled seconds); an arena sets it so
 		-- its match opens at day (ArenaService). The server's, so all agree.
 		OffsetAttribute = "DayCycleOffset",
-		-- The /day, /sunset, /night and /cycle developer commands (Config.Debug.Commands) hold the
+		-- The /day, /sunset and /cycle developer commands (Config.Debug.Commands) hold the
 		-- light: workspace attributes (LightCycle.readHold) every client reads. Goal is the blend
 		-- held (none: back to the cycle), From the blend shown when typed, At the scaled clock.
 		Hold = { Goal = "LightHoldGoal", From = "LightHoldFrom", At = "LightHoldAt" },
-		Holds = { Day = 0, Sunset = 1, Night = 2 }, -- each command's blend
+		Holds = { Day = 0, Sunset = 1 }, -- each command's blend
 	},
 	-- The sky's images change in one frame at these blends (0 Day, 1 Sunset), both ways: Day's
 	-- sky, then DuskSky, then Sunset's. One swap from the blue day sky to the magenta sunset one
@@ -6694,23 +6690,10 @@ Config.Lighting = {
 	-- but warm and cosy): at 4 degrees (ClockTime 6.4) it only grazed the roof, the shade's
 	-- light carried the scene and everything read lavender-grey. Its disc still sits in the
 	-- painted glow above the sea (Play capture).
-	-- Into the night the clock runs back from the sunset's 7.4 to 6.15, the sun just on the
-	-- horizon: Roblox dims the sky with the sun's height, and any lower it went pitch black
-	-- (designer, 2026-10-05: "not pitch black", a purple sky with the city still seen). At 6.15
-	-- the day sky dims to a deep blue with the stars out and the moon low behind the city. On
-	-- the way it dips to 6.0 (the sun on the horizon, both skies near dark) for the swap below,
-	-- then lifts a little into the night's purple.
 	SunPath = {
 		{ Blend = 0, GeographicLatitude = 45, ClockTime = 10 },
 		{ Blend = 0.5, GeographicLatitude = -30, ClockTime = 7.4 },
-		{ Blend = 1, GeographicLatitude = -30, ClockTime = 7.4 },
-		{ Blend = 1.9, GeographicLatitude = -30, ClockTime = 6 },
-		{ Blend = 2, GeographicLatitude = -30, ClockTime = 6.15 },
 	},
-	-- Between sunset and night the sky's images change from the sunset's to the night's (the
-	-- day's faces) at this blend, where the sun's dip has both skies near dark (at 6.3 the
-	-- bright magenta sunset popped to blue, Play 2026-10-05); SwapHaze hides the rest.
-	NightSkySwap = 1.9,
 	-- Day (Spec section 6): the sun high and front-right. Tuned in Studio (2026-09-26) until
 	-- the floor rendered near the art's measured #F1CDBD: Roblox's default noon light (a white
 	-- sun, a strong blue sky fill) washed every warm colour to grey. Then made brighter and
@@ -6904,81 +6887,6 @@ Config.Lighting = {
 		-- mid skyline's and the near world's buildings alike.
 		Windows = { EmissiveStrength = 0.9, EmissiveTint = "#FFD27A", Color = "#C9A0D2" }, -- 1.6 read all orange
 		Islands = { Color = "#6A5088" }, -- violet silhouettes, as the art's (#673E6D)
-	},
-	-- Night (designer, 2026-10-05: a lighting test, so the cues' textures and auras stand out
-	-- against the dark; then "not pitch black": a purple sky, the city still seen, its windows
-	-- lit yellow like a real skyline at night). The day's painted sky dimmed by the low sun
-	-- (SunPath) and tinted purple, with stars and the moon; a dim light, a deep blue shade. The
-	-- tables stay easy to see: their lamps brighter than at sunset and the warm glow under them
-	-- stronger; the lanterns, windows and fire lit. Same keys as Day. Tuned by eye in Play
-	-- (2026-10-05). (tune)
-	Night = {
-		Brightness = 0.4, -- the moon
-		ExposureCompensation = -0.3,
-		EnvironmentDiffuseScale = 0.2,
-		EnvironmentSpecularScale = 0.4,
-		Ambient = "#000000",
-		OutdoorAmbient = "#1C2238", -- a deep blue shade (dark enough for the auras to read)
-		ColorShift_Top = "#9FB4FF", -- the moon's cool tint on lit faces
-		ColorShift_Bottom = "#000000",
-		Atmosphere = {
-			Density = 0.1,
-			Offset = 0.2,
-			Haze = 0,
-			Glare = 0,
-			Color = "#3A2A66", -- a violet night haze
-			Decay = "#20184A",
-		},
-		-- The day's faces: dimmed by the low sun they read deep blue, the purple tint does the
-		-- rest (the sunset's dimmed to a muddy maroon).
-		Sky = {
-			SkyboxBk = "rbxassetid://136510513323451",
-			SkyboxDn = "rbxassetid://112654746925961",
-			SkyboxFt = "rbxassetid://98738080244894",
-			SkyboxLf = "rbxassetid://116034246180095",
-			SkyboxRt = "rbxassetid://129820624640544",
-			SkyboxUp = "rbxassetid://93123509257023",
-			SunAngularSize = 0,
-			MoonAngularSize = 11,
-			StarCount = 3000,
-			CelestialBodiesShown = true,
-		},
-		Water = {
-			WaterColor = "#14204A", -- a dark night sea
-			WaterTransparency = 0.85,
-			WaterReflectance = 0.3, -- catches the moon and the lit city
-			WaterWaveSize = 0.25,
-			WaterWaveSpeed = 12,
-		},
-		ColorCorrection = {
-			Brightness = 0,
-			Contrast = 0.15,
-			Saturation = 0.2,
-			TintColor = "#D4B4FF", -- the purple night
-		},
-		-- Stronger than at sunset, so the auras' glow spreads in the dark; the same threshold, so
-		-- the balls and tables still do not bloom.
-		Bloom = { Intensity = 1.3, Size = 28, Threshold = 2.6 },
-		SunRays = { Intensity = 0, Spread = 0.5 },
-		DepthOfField = {
-			FarIntensity = 0.5,
-			FocusDistance = 100,
-			InFocusRadius = 160,
-			NearIntensity = 0,
-		},
-		Glow = {
-			Lantern = "#F59038",
-			LanternTall = "#F59038",
-			GlobeLight = "#FFC070",
-			FirePit = "#E06A20",
-		},
-		Lights = { Brightness = 1.2, Range = 14, Color = "#FFC99A" },
-		TableGlow = { EmissiveStrength = 1.2, EmissiveTint = "#EF9054" },
-		TableLights = { Brightness = 5 }, -- the lamps: the brightest light on the roof
-		Fire = { Intensity = 1 },
-		-- The city's lit windows bright yellow, a night skyline (1.4 barely showed at a distance).
-		Windows = { EmissiveStrength = 6, EmissiveTint = "#FFAA30", Color = "#6A6AA0" },
-		Islands = { Color = "#2A2448" }, -- near-black silhouettes
 	},
 }
 
@@ -10074,12 +9982,10 @@ Config.Debug = {
 	-- Anyone else's command does nothing. Their private answers are in
 	-- Strings.Dev. The Studio hook ServerStorage.DevCommandsQA runs any of them from a script.
 	Commands = {
-		-- The light fades to day, sunset or night and holds there for the whole server (a minute
-		-- per step: day to night passes through the sunset); /cycle fades back into the running
-		-- cycle (Config.Lighting.Cycle.Hold).
+		-- The light fades to day or sunset and holds there for the whole server; /cycle fades
+		-- back into the running cycle (Config.Lighting.Cycle.Hold).
 		Day = "/day",
 		Sunset = "/sunset",
-		Night = "/night",
 		Cycle = "/cycle",
 		-- The commands that give things (by name): only the accounts in UserIds may use them,
 		-- and the last word may name a player in the server to give it to instead

@@ -2,7 +2,7 @@
 -- FirePit: the fire pit's fire on this client (Config.Map.FirePit): Roblox's own Fire over the
 -- pit's bed and a flickering warm light, and the pit's static flame mesh hidden. It burns by
 -- the day cycle: Config.Lighting's Fire intensity in DayCycle's light (out by day, lit at
--- sunset and night; designer, 2026-09-26). Visual only and local; it needs no input, so it works the
+-- sunset; designer, 2026-09-26). Visual only and local; it needs no input, so it works the
 -- same on phone, PC and gamepad.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

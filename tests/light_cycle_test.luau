@@ -1,5 +1,5 @@
 --!strict
--- Checks the day, sunset and night cycle (src/shared/LightCycle.luau, Config.Lighting): the
+-- Checks the day and sunset cycle (src/shared/LightCycle.luau, Config.Lighting): the
 -- timing of the cycle, the smooth fades, the developer holds, the mixing of the light states,
 -- the sun's path and the haze that hides the sky's swap.
 
@@ -49,43 +49,28 @@ local function matches(state: { [string]: any }, preset: { [string]: any }, wher
 end
 
 return {
-	["the cycle is a day, a sunset, a night and a dawn with fades, at its real speed"] = function()
+	["the cycle is a day, a fade, a sunset and a fade, and runs at its real speed"] = function()
 		local LC = H.require("LightCycle")
 		local C = H.require("Config").Lighting.Cycle
 		H.expect(C.Speed == 1, "Cycle.Speed is test only: put it back to 1 before committing")
-		H.expect(LC.period(C) == C.Day + C.Sunset + C.Night + C.Dawn + 4 * C.Fade, "the period")
-		H.expect(C.Rate > 0 and C.Look > 0, "a rate and a look interval")
+		H.expect(LC.period(C) == C.Day + 2 * C.Fade + C.Sunset, "the period")
+		H.expect(C.Look > 0, "a look interval")
 	end,
 
-	["the blend holds through the day, sunset, night and dawn and eases between them"] = function()
+	["the blend holds through the day and the sunset and eases between them"] = function()
 		local LC = H.require("LightCycle")
-		local C = {
-			Day = 600,
-			Fade = 60,
-			Sunset = 300,
-			Night = 300,
-			Dawn = 30,
-			Speed = 1,
-			Rate = 12,
-			Look = 2,
-		}
+		local C = { Day = 600, Fade = 60, Sunset = 300, Speed = 1, Look = 2 }
 		local P = LC.period(C)
-		H.expect(P == 1470, "the period")
+		H.expect(P == 1020, "the period")
 		H.near(LC.blend(0, C), 0, 0)
 		H.near(LC.blend(599.9, C), 0, 0)
-		H.near(LC.blend(630, C), 0.5, 1e-9, "half way through the fade to sunset")
+		H.near(LC.blend(630, C), 0.5, 1e-9, "half way through the fade in")
 		H.near(LC.blend(660, C), 1, 0)
 		H.near(LC.blend(959.9, C), 1, 0)
-		H.near(LC.blend(990, C), 1.5, 1e-9, "half way through the fade to night")
-		H.near(LC.blend(1020, C), 2, 0, "night")
-		H.near(LC.blend(1319.9, C), 2, 0, "still night")
-		H.near(LC.blend(1350, C), 1.5, 1e-9, "half way through the fade to dawn")
-		H.near(LC.blend(1380, C), 1, 0, "dawn")
-		H.near(LC.blend(1409.9, C), 1, 0, "still dawn")
-		H.near(LC.blend(1440, C), 0.5, 1e-9, "half way through the fade to day")
-		H.near(LC.blend(1470, C), 0, 0, "the next day")
+		H.near(LC.blend(990, C), 0.5, 1e-9, "half way through the fade out")
+		H.near(LC.blend(1020, C), 0, 0, "the next day")
 		-- The same moment of any cycle, and before time 0, gives the same blend.
-		for _, t in { 0, 37.5, 615, 700, 1000, 1200, 1400 } do
+		for _, t in { 0, 37.5, 615, 700, 1000 } do
 			H.near(LC.blend(t + P * 1200000, C), LC.blend(t, C), 1e-5, "cycle " .. t)
 			H.near(LC.blend(t - P * 3, C), LC.blend(t, C), 1e-9, "before zero " .. t)
 		end
@@ -93,7 +78,7 @@ return {
 		local prev = LC.blend(0, C)
 		for i = 1, P * 4 do
 			local b = LC.blend(i * 0.5, C)
-			H.expect(b >= 0 and b <= 2, "in 0..2")
+			H.expect(b >= 0 and b <= 1, "in 0..1")
 			H.expect(
 				math.abs(b - prev) <= 1.5 * 0.5 / C.Fade + 1e-9,
 				("a jump at %.1f s"):format(i * 0.5)
@@ -111,28 +96,26 @@ return {
 		local P = LC.period(C)
 		for s = 0, P - 1, 13 do
 			local t = 1790460000 + s
-			for _, goal in { 0, 1, 2 } do
+			for _, goal in { 0, 1 } do
 				-- Typed under no hold, and again while a fade runs: never a jump.
 				local before = LC.shown(t, C, nil)
 				local hold = { From = before, At = t, Goal = goal }
 				H.near(LC.shown(t, C, hold), before, 1e-9, ("no jump to %d at %d"):format(goal, s))
-				local seconds = C.Fade * math.max(1, math.abs(goal - before))
-				H.near(LC.shown(t + seconds, C, hold), goal, 1e-9, "there after its fades")
-				H.near(LC.shown(t + seconds + 5000, C, hold), goal, 1e-9, "and held")
-				local mid = LC.shown(t + 10, C, hold)
+				H.near(LC.shown(t + C.Fade, C, hold), goal, 1e-9, "there after a fade")
+				H.near(LC.shown(t + C.Fade + 5000, C, hold), goal, 1e-9, "and held")
+				local mid = LC.shown(t + C.Fade / 6, C, hold)
 				H.expect(
 					math.abs(goal - mid) <= math.abs(goal - before) + 1e-9,
 					"only toward the goal"
 				)
-				local again = { From = mid, At = t + 10, Goal = 2 - goal }
-				H.near(LC.shown(t + 10, C, again), mid, 1e-9, "a second command from mid fade")
-				-- /cycle: from the held light back into the running cycle within two fades (one
-				-- per preset passed, night to day at most two).
+				local again = { From = mid, At = t + C.Fade / 6, Goal = 1 - goal }
+				H.near(LC.shown(t + C.Fade / 6, C, again), mid, 1e-9, "a second command mid fade")
+				-- /cycle: from the held light back into the running cycle within a fade.
 				local back = { From = goal, At = t + 500, Goal = nil }
 				H.near(LC.shown(t + 500, C, back), goal, 1e-9, "no jump back")
 				H.near(
-					LC.shown(t + 500 + 2 * C.Fade, C, back),
-					LC.blend(t + 500 + 2 * C.Fade, C),
+					LC.shown(t + 500 + C.Fade, C, back),
+					LC.blend(t + 500 + C.Fade, C),
 					1e-9,
 					"running again"
 				)
@@ -143,39 +126,21 @@ return {
 		end
 		H.expect(type(C.OffsetAttribute) == "string" and C.OffsetAttribute ~= "", "an attribute")
 		local D = H.require("Config").Debug.Commands
-		for _, name in { "Day", "Sunset", "Night", "Cycle" } do
+		for _, name in { "Day", "Sunset", "Cycle" } do
 			H.expect(D[name]:sub(1, 1) == "/", name .. ": chat commands start with /")
 		end
 	end,
 
-	["Day, Sunset and Night have the same keys, and blends 0, 1 and 2 are the states"] = function()
+	["Day and Sunset have the same keys, and the ends of the blend are the two states"] = function()
 		local LC = H.require("LightCycle")
 		local L = H.require("Config").Lighting
 		sameShape(L.Day, L.Sunset, "Lighting", "Sunset")
-		sameShape(L.Day, L.Night, "Lighting", "Night")
 		matches(LC.state(0, L), L.Day, "blend 0")
 		matches(LC.state(1, L), L.Sunset, "blend 1")
-		matches(LC.state(2, L), L.Night, "blend 2")
 		local first, last = L.SunPath[1], L.SunPath[#L.SunPath]
-		local s0, s2 = LC.state(0, L), LC.state(2, L)
+		local s0, s1 = LC.state(0, L), LC.state(1, L)
 		H.near(s0.GeographicLatitude, first.GeographicLatitude, 1e-9, "the day sun")
-		H.near(s2.ClockTime, last.ClockTime, 1e-9, "the night's moon")
-		-- Half way to night: numbers half way; the sky the sunset's until the night swap, late
-		-- in the fade, then Night's, the change hidden in the swap haze.
-		local mid = LC.state(1.5, L)
-		H.near(mid.Brightness, (L.Sunset.Brightness + L.Night.Brightness) / 2, 1e-9, "half way")
-		local swap = L.NightSkySwap
-		H.expect(swap > 1.5 and swap <= 2 - L.SwapHaze.Width, "a late swap, clear by the night")
-		for key, id in L.Night.Sky do
-			if key:match("^Skybox") then
-				H.expect(
-					LC.state(swap - 1e-6, L).Sky[key] == L.Sunset.Sky[key],
-					key .. ": sunset's"
-				)
-				H.expect(LC.state(swap, L).Sky[key] == id, key .. ": Night's from the swap")
-			end
-		end
-		H.near(LC.swapBump(swap, L), 1, 1e-9, "the night swap's haze")
+		H.near(s1.ClockTime, last.ClockTime, 1e-9, "the sunset sun")
 	end,
 
 	["colours mix per channel and the sky's images change only at the swap"] = function()
@@ -216,12 +181,9 @@ return {
 		for i = 2, #path do
 			H.expect(path[i].Blend > path[i - 1].Blend, "keyframes in order")
 		end
-		H.expect(path[#path].Blend == 2, "the path ends at the night")
-		local swapLat, swapClock = LC.sun(L.SkySwaps[#L.SkySwaps], path)
-		local setLat, setClock = LC.sun(1, path)
 		H.expect(
-			swapLat == setLat and swapClock == setClock,
-			"the sun is at the sunset glow when the sunset sky shows, and holds there"
+			path[#path].Blend <= L.SkySwaps[#L.SkySwaps],
+			"the sun is at the sunset glow when the sunset sky shows"
 		)
 		local lat, clock = LC.sun(0.25, path)
 		local a, b = path[1], path[2]
@@ -288,7 +250,6 @@ return {
 			H.near((t + offset) % LC.period(C), 0, 1e-6, "the day's first second")
 			H.expect(LC.blend(t + offset + C.Day - 1, C) == 0, "a whole day ahead")
 			H.expect(LC.blend(t + offset + C.Day + C.Fade, C) == 1, "then sunset as usual")
-			H.expect(LC.blend(t + offset + C.Day + 2 * C.Fade + C.Sunset, C) == 2, "then night")
 		end
 	end,
 }

@@ -583,11 +583,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   - All 16 tables have the regular lobby's wood frames: green felt 1v1, red 2v2, charcoal 3v3
     (section 16; the black-frame looks stay for the Pro lobby). The tables turn sideways like the art: long sides face the entrance, four across
     and four deep.
-  - Day, Sunset and Night, the same for everyone on a server: about 10 minutes of day, a 1
-    minute fade, 5 minutes of sunset, a fade, 5 minutes of night, a fade, a short dawn and a
-    fade back *(tune)*. Night (designer, 2026-10-05) is a test of whether the cues' textures
-    and auras pop more in the dark; the tables' lamps and glow keep every game easy to see.
-    The sun's disc is hidden for now (the same test).
+  - Day and Sunset only, no night (one was tried and dropped, 2026-10-05), the same for
+    everyone on a server: about 10 minutes of day, a 10 second fade, 5 minutes of sunset, a
+    10 second fade back *(tune)*. The sun's disc is hidden for now (designer, 2026-10-05: to
+    see the map without it); the sun still lights the roof.
   - In: the pergola lounge with couches, a fire pit, a grand piano, planters, palms,
     lanterns, umbrella seating and the glass railing. Out: the art's infinity-pool strip,
     banners and pink light pillar, and (for now) the snack counter.

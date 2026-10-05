@@ -1,18 +1,16 @@
 # Status
 
-**2026-10-05 (latest): a night in the day cycle and no sun disc (a lighting test, waiting on the
-designer's look).**
-- The cycle runs Day 10 min, Sunset 5 min, Night 5 min and a 30 s dawn, a minute's fade
-  between each (`Config.Lighting.Night`, `LightCycle`). At night the sky is a deep purple-blue
-  with stars and the moon behind the city (not pitch black, the designer's correction), the
-  city's windows glow yellow, and the table lamps and the glow under the tables are brighter
-  so every game stays easy to see. The sun's disc is hidden for now.
-- `/day`, `/sunset`, `/night` hold that light for the whole server; `/cycle` lets it run again.
-- Verified in Studio: `/night` faded day to night through the sunset in 2 minutes; the purple
-  sky, the lit skyline, the moon, stars and lit tables shown; the sky swap at 1.9 between two
-  dark skies; an equipped cue's aura reads far stronger than by day; `/cycle`
-  eased back; console clean, lint clean, 982 tests pass. Not checked by the tool: phone and
-  gamepad (visual only, no new controls), how the night looks in a match close up.
+**2026-10-05 (latest): no night after all; no sun disc; a 10 second, every-frame fade.**
+- Night was tried (a dark, then a purple night with a lit skyline) and dropped by the
+  designer. The cycle is Day 10 min and Sunset 5 min again, now with a 10 second fade each
+  way (`Config.Lighting.Cycle.Fade`), written every frame instead of 12 times a second.
+- The sun's disc is hidden by day and sunset (`SunAngularSize` 0); the sun still lights the
+  roof. `/day` and `/sunset` hold the light for the whole server; `/cycle` lets it run again.
+- Verified in Studio: day and sunset captures without the sun; a fade measured frame by frame
+  (the light changed on 459 of the 461 frames mid-fade at 60 fps); console clean, lint clean,
+  982 tests pass. Not checked by the tool: phone and gamepad (visual only, no new controls).
+  The sky's pictures still change in one frame twice during a fade (Roblox cannot blend two
+  skies); hidden by a light haze, but faster fades make them closer together.
 
 **2026-10-05 (latest): the Legendary pull cutscene redone (designer: "good for now").**
 - A film behind letterbox bars (side to front close on the player, low up at a gold star, from

@@ -2538,3 +2538,9 @@ timer of a new block stay the designer's call.
   sky swap happens at blend 1.9 where the sun dips to the horizon and both skies are dark
   (`NightSkySwap`). Only the windows the emissive masks mark light up (about a third on the
   mid skyline); every window lit would need a new mask image.
+- 2026-10-05: Night dropped (designer: "just get rid of night time"); the cycle is Day and
+  Sunset again, and `/night` is gone. Kept from the night work: the sun's disc stays hidden
+  by day and sunset (the designer wants to see the map without it), and `/day` and `/sunset`
+  hold the light with `/cycle` to let it run. The fade between day and sunset is 10 seconds
+  (was 1 minute, too slow) and is written every frame (it was written at most 12 times a
+  second, which looked choppy); `Config.Lighting.Cycle.Rate` is gone.

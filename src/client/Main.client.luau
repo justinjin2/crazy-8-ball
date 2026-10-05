@@ -1001,8 +1001,8 @@ end)
 local zones = workspace:WaitForChild("TableZones")
 local padEffects = PadEffects.new(zones)
 local mapAmbience = MapAmbience.new() -- the map's drifting sailboats
-local dayCycle = DayCycle.new() -- the map's day, sunset and night light (an arena starts at day)
-local firePit = FirePit.new() -- the fire pit's fire, lit at sunset and night
+local dayCycle = DayCycle.new() -- the map's day and sunset light (an arena starts at day)
+local firePit = FirePit.new() -- the fire pit's fire, lit at sunset
 local tableSign = TableSign.new(player:WaitForChild("PlayerGui"))
 -- A table's box stays lit only while it waits for its host.
 local function queueOpen(id: number): boolean

@@ -11,7 +11,7 @@
 --      local S = game.ReplicatedStorage.Shared
 --      local ML, LC = require(S.MapLighting:Clone()), require(S.LightCycle:Clone())
 --      local cfg = require(S.Config:Clone())
---      print(ML.preview(LC.state(1, cfg.Lighting), cfg.Map)) -- 0 Day, 1 Sunset, 2 Night, or between
+--      print(ML.preview(LC.state(1, cfg.Lighting), cfg.Map)) -- 0 Day, 1 Sunset, or between
 --    It makes sure the place has one of each effect, then lights the place for captures, so it
 --    is saved lit.
 --  - DayCycle, on each client. It applies the cycle's state as it changes; that is visual only

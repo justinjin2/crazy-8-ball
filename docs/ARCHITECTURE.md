@@ -131,15 +131,13 @@ Aim, Simulation), `Rules/` (Rules state machine, ShotJudge; pure, to be written)
 stretches or kneels, and where both hands hold the cue), `PoseMath`, `AimStream`; `ShotInput` (validation/seed
 quantization), `Strings` (HUD copy), `Catalog`
 (item data rows, to be written). The hub map: `MapBuilder` (Edit-mode setup of the imported
-map), `MapMotion` (the boats' paths, pure), `LightCycle` (the day/sunset/night cycle:
-server time to a blend, neighbouring light states mixed, the sun's path, the developer holds;
-pure), `MapLighting` (puts a light
+map), `MapMotion` (the boats' paths, pure), `LightCycle` (the day/sunset cycle: server
+time to a blend, the two light states mixed, the sun's path, the developer holds; pure), `MapLighting` (puts a light
 state onto the place; `preview` in Edit mode).
 
 Server (`src/server`): `Bootstrap` (builds the tables, publishes assets), `TableService`
 (per-table state, joins, seats, match loop), `ShotService` (validation, simulation, broadcast),
-`DevCommands` (the developer's chat commands, `/day`, `/sunset`, `/night`, `/cycle` and the
-rest, checked on the server),
+`DevCommands` (the developer's chat commands, `/day`, `/sunset`, `/cycle` and the rest, checked on the server),
 `BotService`, `PlayerData` (session-locked saves), `Economy`, `Ranking`, `Analytics`,
 `FallGuard` (anyone more than `Config.FallGuard.BelowFloorStuds` below the lowest floor is put
 back on the spawn mat at once, the last resort against falling out of the map).
@@ -154,8 +152,9 @@ sees: host, difficulty, abilities, Start; beside the jump button on a phone), `T
 (the one sign over the table the player walks up to, drawn from the snapshots), `HudParts` (the UI kit every screen is built from: cards, pills, kit text, candy
 buttons and tiles, icons, HUD balls; tokens in `Config.UI.Kit`), `UIAnim` (every UI
 animation, including the hover sway every hoverable part calls), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound),
-`MapAmbience` (the drifting boats), `DayCycle` (runs the day/sunset/night cycle from the server's
-clock, no network traffic), `FirePit` (the fire pit's fire, Roblox's own, lit at sunset and night).
+`MapAmbience` (the drifting boats), `DayCycle` (runs the day/sunset cycle from the server's
+clock every frame of a fade, no network traffic), `FirePit` (the fire pit's fire, Roblox's
+own, lit at sunset).
 
 UI art: `tools/gen_ui_art.py` draws the icons and effect images as SVG from one shared style
 (ink outline, drop lip, gloss) and renders them to PNG with headless Chrome into
