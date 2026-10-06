@@ -111,6 +111,8 @@ export type Look = typeof(setmetatable(
 		highlights: { Highlight }, -- the stick's outline and the piece's (nearest cues only)
 		inks: { Beam }, -- the stick's close-range outline (buildInk)
 		inkFade: number?, -- the inks' transparency now (step)
+		palette: { string }?, -- a Legendary-and-above stick's moving outline (CueSkins.Pop.palette)
+		outline: Highlight?, -- the stick's own outline, recoloured as the palette moves
 		frames: { SurfaceAppearance }, -- frame 0 is the stick's own SurfaceAppearance
 		frame: number,
 		t0: number,
@@ -305,6 +307,8 @@ function CueSkinLook.clear(self: Look)
 	self.highlights = {} -- they live in the folder
 	self.inks = {} -- in `built`
 	self.inkFade = nil
+	self.palette = nil
+	self.outline = nil
 	if self.folder then
 		self.folder:Destroy()
 		self.folder = nil
@@ -420,6 +424,8 @@ function CueSkinLook.refresh(self: Look)
 			OutlineColor = color,
 			OutlineTransparency = C.Pop.Outline.Transparency,
 		})
+		self.outline = self.highlights[#self.highlights]
+		self.palette = Pop.palette(row, C.Pop)
 		self:buildInk(color)
 	end
 	if self.piece then
@@ -1146,6 +1152,23 @@ function CueSkinLook.step(self: Look, t: number)
 		self.piece:step(t)
 		if self.visible then
 			self.piece:setModifier(mesh.LocalTransparencyModifier)
+		end
+	end
+	-- A moving gradient outline: the colours flow along the ribbons, the Highlight cycles.
+	local palette = self.palette
+	if palette and #self.inks > 0 then
+		local G = C.Pop.Outline.Gradient
+		local phase = t / G.Period
+		local n = #self.inks
+		for i, ink in self.inks do
+			local r0, g0, b0 = Pop.sample(palette, phase - G.Spread * (i - 1) / n)
+			local r1, g1, b1 = Pop.sample(palette, phase - G.Spread * i / n)
+			ink.Color = ColorSequence.new(Color3.new(r0, g0, b0), Color3.new(r1, g1, b1))
+		end
+		if self.outline then
+			local r, g, b = Pop.sample(palette, phase - G.Spread / 2)
+			self.outline.OutlineColor = Color3.new(r, g, b)
+			self.outline.FillColor = self.outline.OutlineColor
 		end
 	end
 	-- The ink fades out fast as the stick fades for the camera (buildInk).

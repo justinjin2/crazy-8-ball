@@ -4730,6 +4730,28 @@ Config.CueSkins = {
 			-- it (the cue tapers), a rim that grows as the camera nears. Their transparency is
 			-- the stick's camera fade times FadeScale (a see-through cue would show them). (tune)
 			Ink = { LineStuds = 0.012, Pieces = 8, FadeScale = 4 },
+			-- A moving gradient outline for these tiers (designer, 2026-10-05): up close the
+			-- colours flow along the stick (the ribbons), Spread loops of the palette over its
+			-- length; the Highlight (one colour) cycles through them. One loop takes Period
+			-- seconds. Each cue's gradient is its own theme (designer: not one Mythic palette,
+			-- "the blue is too off-putting" on Kitsune): a Palettes row by catalog id, else
+			-- its vivid trail and pocket colours (CueSkins.Pop.palette). (tune)
+			Gradient = {
+				Tiers = { Legendary = true, Mythic = true, Secret = true },
+				Palettes = {
+					-- pink, pastel red, soft pink, a touch of light purple
+					KitsuneCue = { "#FF78DC", "#FF8E9E", "#FF9FD6", "#C08CFF" },
+					-- its cyan, azure and violet
+					CelestialDragonCue = { "#3FD6FF", "#4FA8FF", "#8A5CFF", "#4FA8FF" },
+					-- its gold, amber and warm light gold
+					EclipseCue = { "#FFB300", "#FF9A1A", "#FFD27A", "#FF9A1A" },
+				},
+				Period = 3,
+				Spread = 1,
+				MaxColors = 4,
+				MergeDegrees = 12, -- colours closer than this in hue count once
+				ShineMix = 0.6, -- a one-colour cue shines toward white by this share
+			},
 		},
 		-- The surface's glowing parts (its emissive map) times this. (tune)
 		EmissiveScale = 1.6,

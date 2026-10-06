@@ -2569,3 +2569,7 @@ timer of a new block stay the designer's call.
   cues); a theme colour must be vivid (`MinSaturation` 0.3) or the next source is tried, and
   grey cues get the UI's ink. Close up, camera-facing ribbons draw the outline because
   Roblox thins a Highlight's outline away near the camera. The aura rewrite stays on test.
+- 2026-10-05 (designer): **Legendary, Mythic and Secret outlines are a moving gradient of the
+  cue's own theme** (Phoenix yellow, orange, red), not one shared Mythic palette ("the blue
+  is too off-putting" on Kitsune). Kitsune, Celestial Dragon and Eclipse have hand-picked
+  palettes in `Config.CueSkins.Pop.Outline.Gradient.Palettes`.

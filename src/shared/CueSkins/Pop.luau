@@ -28,7 +28,7 @@ local function rgbOf(c: any): (number, number, number)
 			tonumber(hex:sub(3, 4), 16) or 255,
 			tonumber(hex:sub(5, 6), 16) or 255
 	end
-	return c[1], c[2], c[3]
+	return c[1] :: number, c[2] :: number, c[3] :: number
 end
 
 local function toHsv(r: number, g: number, b: number): (number, number, number)
@@ -208,6 +208,105 @@ function Pop.outline(row: any, spec: any): string
 		return Pop.deepen(theme, O.SaturationAdd, O.Value)
 	end
 	return O.Fallback
+end
+
+--- A Legendary-and-above cue's moving outline colours (spec.Outline.Gradient), deepened like
+--- the outline, or nil for a cue whose tier has none. Its own Palettes row (by catalog id)
+--- when set, else its trail's and pocket burst's colours that are
+--- vivid enough (MinSaturation), the most vivid first, up to MaxColors, colours within
+--- MergeDegrees of hue counted once; with one (or only its theme colour) it shines: it and a
+--- lighter copy, ShineMix of the way to white.
+function Pop.palette(row: any, spec: any): { string }?
+	local O = spec.Outline
+	local G = O.Gradient
+	if not G.Tiers[row.Tier] then
+		return nil
+	end
+	local function finish(colors: { any }): { string }
+		local out = {}
+		for _, c in colors do
+			table.insert(out, Pop.deepen(c, O.SaturationAdd, O.Value))
+		end
+		return out
+	end
+	if G.Palettes[row.CatalogId] then
+		return finish(G.Palettes[row.CatalogId])
+	end
+	local style = type(row.Style) == "table" and row.Style or {}
+	local trail = style.Trail or {}
+	local candidates = {}
+	local function add(list: any)
+		for _, c in (list or {}) :: { any } do
+			table.insert(candidates, c)
+		end
+	end
+	if row.Aura and row.Aura.Outline then
+		add({ row.Aura.Outline })
+	end
+	add(if trail.Color then { trail.Color } else nil)
+	add(trail.Colors)
+	add((style.Pocket or {}).Colors)
+	-- The most vivid first (saturation times brightness; stable on ties, so deterministic).
+	local ranked = {}
+	for i, c in candidates do
+		local _, s, v = toHsv(rgbOf(c))
+		table.insert(ranked, { c = c, s = s, vivid = s * v, i = i })
+	end
+	table.sort(ranked, function(a, b)
+		if a.vivid ~= b.vivid then
+			return a.vivid > b.vivid
+		end
+		return a.i < b.i
+	end)
+	local picked: { any }, hues: { number } = {}, {}
+	for _, item in ranked do
+		if #picked >= G.MaxColors then
+			break
+		end
+		local c = item.c
+		local h = toHsv(rgbOf(c))
+		local fresh = item.s >= O.MinSaturation
+		for _, other in hues do
+			local d = math.abs(h - other) % 1
+			if math.min(d, 1 - d) * 360 < G.MergeDegrees then
+				fresh = false
+			end
+		end
+		if fresh then
+			table.insert(picked, c)
+			table.insert(hues, h)
+		end
+	end
+	if #picked == 0 then
+		local theme = Pop.theme(row, O.MinSaturation)
+		if theme == nil then
+			return nil
+		end
+		picked = { theme }
+	end
+	if #picked == 1 then
+		local r, g, b = rgbOf(picked[1])
+		local m = G.ShineMix
+		local light = {
+			math.floor(r + (255 - r) * m + 0.5),
+			math.floor(g + (255 - g) * m + 0.5),
+			math.floor(b + (255 - b) * m + 0.5),
+		}
+		return { Pop.deepen(picked[1], O.SaturationAdd, O.Value), hexOf(light) :: string }
+	end
+	return finish(picked)
+end
+
+--- The palette's colour at `phase` (any number; it wraps every 1), blended between its
+--- colours in a loop, as r, g, b in 0..1.
+function Pop.sample(palette: { string }, phase: number): (number, number, number)
+	local n = #palette
+	local x = (phase % 1) * n
+	local i = math.floor(x)
+	local f = x - i
+	local r0, g0, b0 = rgbOf(palette[i % n + 1])
+	local r1, g1, b1 = rgbOf(palette[(i + 1) % n + 1])
+	return (r0 + (r1 - r0) * f) / 255, (g0 + (g1 - g0) * f) / 255, (b0 + (b1 - b0) * f) / 255
 end
 
 -- The defaults CueSkinLook builds with when a row leaves them out.

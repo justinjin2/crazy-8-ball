@@ -114,4 +114,48 @@ return {
 			H.expect(type(c) == "string" and #c == 7, id .. ": an outline colour")
 		end
 	end,
+
+	["Legendary and above get a moving palette: the cue's own row, else its colours"] = function()
+		local Pop, Config, CueSkins = load()
+		local spec = Config.CueSkins.Pop
+		local G = spec.Outline.Gradient
+		H.expect(Pop.palette({ Tier = "Rare" }, spec) == nil, "a Rare has none")
+		local kitsune = Pop.palette(CueSkins.get("KitsuneCue"), spec)
+		H.expect(kitsune ~= nil and #kitsune == #G.Palettes.KitsuneCue, "Kitsune: its own row")
+		for id in G.Palettes do
+			H.expect(CueSkins.has(id), "a Palettes row names a skin: " .. id)
+		end
+		local phoenix = Pop.palette(CueSkins.get("PhoenixCue"), spec)
+		H.expect(phoenix ~= nil and #phoenix >= 2, "Phoenix: its own colours")
+		local one = Pop.palette(
+			{ Tier = "Legendary", Style = { Trail = { Color = { 212, 175, 55 } } } },
+			spec
+		)
+		H.expect(one ~= nil and #one == 2, "one colour shines: it and a lighter copy")
+		for _, id in CueSkins.ids() do
+			local row = CueSkins.get(id)
+			if G.Tiers[row.Tier] then
+				local p = Pop.palette(row, spec)
+				H.expect(
+					p ~= nil and #p >= 2 and #p <= math.max(G.MaxColors, 3),
+					id .. ": a palette"
+				)
+			end
+		end
+	end,
+
+	["sample loops through the palette"] = function()
+		local Pop = load()
+		local p = { "#FF0000", "#0000FF" }
+		local r, _, b = Pop.sample(p, 0)
+		H.near(r, 1, 1e-9)
+		H.near(b, 0, 1e-9)
+		r, _, b = Pop.sample(p, 0.25)
+		H.near(r, 0.5, 1e-9, "halfway red to blue")
+		H.near(b, 0.5, 1e-9)
+		r = Pop.sample(p, 1)
+		H.near(r, 1, 1e-9, "a whole loop is back at the start")
+		r = Pop.sample(p, -0.5)
+		H.near(r, 0, 1e-9, "negative phases wrap")
+	end,
 }

@@ -1,6 +1,6 @@
 # Status
 
-**2026-10-05 (latest): every cue wears a solid outline in its own theme colour; a "pop" aura test on six cues.**
+**2026-10-05 (latest): every cue wears a solid outline in its own theme colour (a moving gradient from Legendary up); a "pop" aura test on six cues.**
 - Every cue's stick has a solid outline in its theme colour (`Config.CueSkins.Pop.Outline`,
   `CueSkins/Pop.luau` pure and Lune-tested): its `Aura.Outline` if set, else the first vivid
   colour of its ball trail, pocket burst or stick paint; grey cues (Arctic, Carbon,
@@ -10,10 +10,16 @@
   Gummy's vanish), so each stick also carries 8 camera-facing ribbons along it, 0.012 studs
   wider than the cue each side (`Outline.Ink`): a rim that grows as the camera nears, faded
   with the stick's camera fade.
+- Legendary, Mythic and Secret cues' outlines are a moving gradient of their own theme
+  (`Outline.Gradient`): up close the colours flow along the stick, farther the Highlight
+  cycles through them. Kitsune (pink, pastel red, a touch of purple), Celestial Dragon (cyan,
+  azure, violet) and Eclipse (golds) have hand-picked `Palettes`; the rest use their vivid
+  trail and pocket colours (Phoenix yellow, orange, red); a one-colour cue shines.
 - The aura pass (deepened emitters, a dark backing behind beams and ribbons, emissive 1.6x)
   stays on test for Frostbite, Candy, Flare, Plasma, Gummy and Magma (`Pop.Ids`).
 - Seen in Studio: the six test cues and Phoenix in day light on the back, Gummy's rim in a
-  solo match's aiming view (default and zoomed). Console clean, lint clean, 987 tests pass.
+  solo match's aiming view (default and zoomed), Phoenix's and Kitsune's gradients moving.
+  Console clean, lint clean, 989 tests pass.
   Not checked by the tool: phone and gamepad (visual only, no new controls).
 
 **2026-10-05 (latest): no night after all; no sun disc; a 10 second, every-frame fade.**
