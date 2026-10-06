@@ -2544,3 +2544,8 @@ timer of a new block stay the designer's call.
   hold the light with `/cycle` to let it run. The fade between day and sunset is 10 seconds
   (was 1 minute, too slow) and is written every frame (it was written at most 12 times a
   second, which looked choppy); `Config.Lighting.Cycle.Rate` is gone.
+- 2026-10-05: No sunlight either (designer: "i thought the sun was removed", the sun's
+  shadows and light streaks still showed at sunset). `Brightness` 0 by day and sunset (was 2.6
+  and 3.4); the roof kept bright by the exposure (0.35), a lighter warm day shade (#C0A898)
+  and more of the sky's fill at sunset (0.4). Only the sun's light is off; the lamps, glow and
+  lanterns are unchanged.

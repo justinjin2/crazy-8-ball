@@ -6701,12 +6701,15 @@ Config.Lighting = {
 	-- hazy): a stronger sun, a lighter and cleaner shade, less haze, and colour and contrast
 	-- lifted in ColorCorrection. A stronger sun than 2.6 blew the pale floor out to white. (tune)
 	Day = {
-		Brightness = 2.6,
-		ExposureCompensation = -0.05,
+		-- No sunlight for now (designer, 2026-10-05: no sun, so no sun shadows or light streaks;
+		-- it was 2.6). The shade below is lifted and the exposure raised to keep the roof bright
+		-- and warm without it (tuned in Play; it was -0.05 and #8C8480).
+		Brightness = 0,
+		ExposureCompensation = 0.35,
 		EnvironmentDiffuseScale = 0.45, -- less of the blue sky's fill
 		EnvironmentSpecularScale = 0.6,
 		Ambient = "#000000",
-		OutdoorAmbient = "#8C8480", -- a light warm shade (the brown #7D6C62 greyed it)
+		OutdoorAmbient = "#C0A898", -- a light warm shade (the brown #7D6C62 greyed it)
 		ColorShift_Top = "#FFE4C4", -- the sun's warm tint on lit faces
 		ColorShift_Bottom = "#000000",
 		-- A pale sky-blue haze, so the far distance fades toward the art's pale horizon rather
@@ -6802,9 +6805,11 @@ Config.Lighting = {
 	-- less of the magenta sky's fill, a thinner warm haze, and colour lifted. The sky keeps
 	-- the sunset. Tuned in Play captures. (tune)
 	Sunset = {
-		Brightness = 3.4,
-		ExposureCompensation = 0.1,
-		EnvironmentDiffuseScale = 0.25, -- the magenta sky's fill tinted the whole roof pink
+		-- No sunlight for now, as by day (designer, 2026-10-05; it was 3.4, the exposure 0.1 and
+		-- the sky's fill 0.25: 0.4 lifts the roof back up without the sun).
+		Brightness = 0,
+		ExposureCompensation = 0.35,
+		EnvironmentDiffuseScale = 0.4, -- 0.25 and below: the magenta sky's fill tinted the roof pink
 		EnvironmentSpecularScale = 0.6,
 		Ambient = "#000000",
 		-- The shade: a light warm tan, so the floor reads peach in the golden light, not rose
