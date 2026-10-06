@@ -2619,3 +2619,6 @@ timer of a new block stay the designer's call.
 - **2026-10-06 — STATUS.md is current state only (designer).** The 1,849-line log moved to
   `docs/archive/STATUS_HISTORY.md` (newest first); STATUS.md is rewritten in place, under about
   100 lines, and a finished step's entry moves to the top of the archive. CLAUDE.md says so.
+- **2026-10-06 — Builder Extended tried and dropped (designer).** Tested on the hub corners,
+  rank, money, hotbar, lucky block roll, nameplates and Free Reward page; the designer went
+  back to Fredoka One. `Config.UI.FontTest` is empty again and stays for later font tests.

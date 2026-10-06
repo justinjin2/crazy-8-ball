@@ -10217,8 +10217,6 @@ Config.Debug = {
 -- Medium, SemiBold, Bold, ExtraBold, Heavy; a font without that weight shows its nearest.
 -- Example: Screens = { ShopMenu = { Family = "rbxasset://fonts/families/Nunito.json",
 -- Weight = "Heavy" } }. Rejoin the playtest to see a change. (tune)
-local builderExtended =
-	{ Family = "rbxasset://fonts/families/BuilderExtended.json", Weight = "Bold" }
 Config.UI.FontTest = {
 	-- Every screen at once; nil keeps the kit's Fredoka One.
 	All = nil :: { Family: string, Weight: string }?,
@@ -10230,19 +10228,7 @@ Config.UI.FontTest = {
 	-- ShopMenu, InventoryMenu, UltScreen (the Abilities page), FreeRewardMenu, RewardsMenu,
 	-- SettingsMenu, TradeMenu, TradeInvite, RankClaimBlock, TutorialGui, TableSign,
 	-- Nameplate_<user id>.
-	-- On test: Builder Extended on the hub's corners and pages below (designer, 2026-10-06);
-	-- if it holds, it becomes the game's font.
-	Screens = {
-		FreeRewardMenu = builderExtended, -- the Free Reward page
-		["PoolHud/MenuColumn"] = builderExtended, -- the four buttons on the left
-		["PoolHud/MoneyHud"] = builderExtended, -- the money, bottom left
-		RankHud = builderExtended, -- the rank at the top ("Bronze I")
-		["PoolHud/HubCorners/Challenge"] = builderExtended, -- the Daily Challenge
-		["PoolHud/HubCorners/StarterPack"] = builderExtended, -- the Starter Pack offer
-		LuckyHotbar = builderExtended, -- the lucky block hotbar
-		LuckyOpening = builderExtended, -- the lucky block roll
-		["Nameplate_*"] = builderExtended, -- every player's name over the head
-	} :: { [string]: { Family: string, Weight: string } },
+	Screens = {} :: { [string]: { Family: string, Weight: string } },
 }
 
 -- The Free Reward page (FreeRewardMenu; GUI lane, D4): join the group, favorite the game.
