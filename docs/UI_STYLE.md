@@ -67,14 +67,14 @@ screen, a popup).
 - Outline: about a tenth of the text size, at least 2 px; text under 20 px gets a 1 px outline,
   because Roblox strokes the inside edges of letters too and a thicker one closes the holes of
   o, a, e, 0 and 8 (designer, 2026-09-27: Fredoka One kept). Ink `#1B2033`.
-- **Solid ink holes** (designer, 2026-10-06): every outlined text from 20 px up has its
-  letters' holes (o, a, e, p, 0, 8...) filled with ink, the same way on every screen and in
-  any font, by `HoleFill` (Main watches all of PlayerGui, so new screens get it with no
-  code). Text under 20 px keeps its holes: filling them made small words blobby.
-- **Thick ink lip under letters** (designer, 2026-10-06, on the same texts as the solid
-  holes, after a test on the Free Reward page): an ink
-  copy with the outline, 4.5% of the text size lower, at least 1.5 px
-  (`Config.UI.Kit.HoleFill.Drop`).
+- **Solid ink holes** (designer, 2026-10-06): every outlined text with a 2 px outline or
+  more (from 20 px) has its letters' holes (o, a, e, p, 0, 8...) filled with ink, the same
+  way on every screen and in any font, by `HoleFill` (Main watches all of PlayerGui, so new
+  screens get it with no code). Smaller text keeps its holes: filling them made it blobby.
+- **Thick ink lip under letters** (designer, 2026-10-06): every outlined text, small text
+  too, has an ink copy with its outline a little lower: 0.45 of the outline's thickness, at
+  least 1.5 px (`Config.UI.Kit.HoleFill.Drop`). Both are sized from the outline, never from
+  TextSize, which on a scaled text is only its largest size.
 
 **Decided exceptions** (2026-09-25)
 - Ball numbers may be smaller than 16 px: they are part of the ball graphic.

@@ -5825,32 +5825,21 @@ Config.UI = {
 		-- Builder Sans, Montserrat and Luckiest Guy).
 		TextOutlineThinBelowPx = 20,
 		TextOutlineThinPx = 1,
-		-- Solid ink in outlined letters' holes (HoleFill; designer, 2026-10-05; every outlined
-		-- text since 2026-10-06): two ink copies of the text under it, nudged left and right by
-		-- the outline's own thickness, so they stay inside the outline, but never less than
-		-- HoleRatio of the text size (rounded up): about half the widest hole in Fredoka One
-		-- (O, 0, @); another font may need a new ratio. Text under MinTextPx is left alone
-		-- (designer, 2026-10-06): its 1 px outline needs a 2 px nudge to close an 18 px O, and
-		-- that made card names, Sort and the money pill blobby, the letters touching.
-		-- Drop: the thick ink edge under each letter (designer's reference, 2026-10-06), an
-		-- ink copy with the outline moved down this share of the text size (at least MinPx,
-		-- fractions kept for high-DPI screens); 0.06 and 2 px picked by the designer over 0.1
-		-- and 0.14, then made a little thinner. (tune)
+		-- Solid ink in outlined letters' holes and a thick ink lip under them (HoleFill;
+		-- designer, 2026-10-05 and 2026-10-06, on every outlined text). The fill: two ink
+		-- copies of the text under it, nudged left and right by the outline's own thickness,
+		-- so they stay inside the outline in any font. It shows only on outlines from
+		-- FillMinOutlinePx up: small text's 1 px outline (text under 20 px) leaves its holes
+		-- part open, and a wider nudge made card names, Sort and the money pill blobby.
+		-- Drop: an ink copy with the outline, moved down OutlineShare of the outline's
+		-- thickness (at least MinPx; fractions kept for high-DPI screens). Sized from the
+		-- outline, not TextSize, which on a scaled text is only its largest size (a nameplate's
+		-- 100 for 34 px letters put the copies past the outline). Picked as 6% of the text
+		-- size (2 px) over 10% and 14%, then made a little thinner. (tune)
 		HoleFill = {
 			Everywhere = true, -- every outlined text in PlayerGui (false: only pages that ask)
-			MinTextPx = 20, -- smaller text keeps its holes (the kit's thin-outline size)
-			HoleRatio = 0.08,
-			MinNudgePx = 1,
-			-- On every filled text (designer, 2026-10-06, after its Free Reward test). Was 0.06
-			-- and 2 px: "a tiny bit" less lip.
-			-- SmallText: screen parts (paths under PlayerGui, as in FontTest) whose text under
-			-- MinTextPx gets the lip too, without the hole fill; on test (designer, 2026-10-06).
-			Drop = {
-				Everywhere = true,
-				Ratio = 0.045,
-				MinPx = 1.5,
-				SmallText = { "PoolHud/MenuColumn", "InventoryMenu" },
-			},
+			FillMinOutlinePx = 2,
+			Drop = { Everywhere = true, OutlineShare = 0.45, MinPx = 1.5 },
 		},
 		-- Raised candy buttons: a light top, the colour, then a darker lip along the bottom.
 		Buttons = {

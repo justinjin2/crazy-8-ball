@@ -1010,9 +1010,6 @@ FontTest.watch(player:WaitForChild("PlayerGui")) -- Config.UI.FontTest's fonts, 
 if Config.UI.Kit.HoleFill.Everywhere then
 	-- Solid ink in every outlined letter's holes, and the thick ink lip under them.
 	HoleFill.watch(player:WaitForChild("PlayerGui"), Config.UI.Kit.HoleFill.Drop.Everywhere)
-	for _, path in Config.UI.Kit.HoleFill.Drop.SmallText do
-		HoleFill.watchPath(player:WaitForChild("PlayerGui"), path, true, true)
-	end
 end
 -- A table's box stays lit only while it waits for its host.
 local function queueOpen(id: number): boolean

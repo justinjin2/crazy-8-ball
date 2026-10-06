@@ -2650,3 +2650,9 @@ timer of a new block stay the designer's call.
 - 2026-10-06: **Lip on small text, on test** (designer): text under 20 px in the left column
   and the whole Inventory screen gets the lip (1.5 px) without the hole fill, which made
   small letters touch (`Config.UI.Kit.HoleFill.Drop.SmallText`, paths as in FontTest).
+- 2026-10-06 (designer): **The lip on every outlined text, small text too** (the left column
+  and Inventory test is over). Small text (a 1 px outline) still has no hole fill. Fix: the
+  fill and the lip are sized from the outline's thickness, not TextSize. A scaled text's
+  TextSize is only its largest size: the nameplate's is 100 for 34 px letters, so its copies
+  moved 8 px against a 3 px outline and showed as dark blobs beside the name. The lip is
+  0.45 of the outline (about 4.5% of the text), at least 1.5 px.

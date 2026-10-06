@@ -1,21 +1,23 @@
 --!strict
--- HoleFill: solid ink in the holes of outlined letters (o, a, e, g, d, p, 0, 8, B...), and on
--- test a thicker ink edge under them (the "drop"). Roblox's text outline (UIStroke) reaches
--- only a little way into a letter's hole, so a hole shows the background inside a thin ink
--- ring, and how much depends on the hole's size (checked in Studio, 2026-10-05). Under each
+-- HoleFill: solid ink in the holes of outlined letters (o, a, e, g, d, p, 0, 8, B...), and a
+-- thick ink lip under them (the "drop"). Roblox's text outline (UIStroke) reaches only a
+-- little way into a letter's hole, so a hole shows the background inside a thin ink ring,
+-- and how much depends on the hole's size (checked in Studio, 2026-10-05). Under each
 -- outlined text this lays two ink copies of the same text, nudged left and right by the
 -- outline's thickness, and the text again on top: each hole closes from both sides, and a
 -- copy never reaches past the outline (an outline is the letter grown by its thickness every
--- way), so the letters keep their shape. The nudge is never under HoleRatio of the text size
--- (the half-width of the font's widest hole), so small text's holes close too. The nudge is padding on each copy (left
--- d, right -d), not a position, so a self-sizing label keeps its size.
+-- way), so the letters keep their shape. The nudge is padding on each copy (left d, right
+-- -d), not a position, so a self-sizing label keeps its size.
 -- The drop (designer, 2026-10-06, after a reference): one more ink copy with the label's own
--- outline, moved down a share of the text size, so every letter sits on a thick dark lip.
--- Copies follow the label's text, font, size, colour, outline, fading and gradients; rich
--- text colours are inked in the copies. Every outlined text in PlayerGui from MinTextPx up
--- gets the fill (Main); smaller text keeps its holes, as filling them makes its letters
--- touch (designer, 2026-10-06). The drop goes on the same texts (designer, 2026-10-06,
--- after its Free Reward test). Tuning in Config.UI.Kit.HoleFill.
+-- outline, moved down a share of the outline's thickness, so every letter sits on a dark lip.
+-- Both are sized from the outline, not TextSize: a scaled text's TextSize is only its
+-- largest size (a nameplate's is 100 for 34 px letters, and its copies stuck out past the
+-- outline), while the kit sets the outline from the size the text is drawn at.
+-- Every outlined text in PlayerGui gets the lip (Main); the fill only shows from
+-- FillMinOutlinePx up, as small text's 1 px outline closes too little of a hole to look
+-- even (designer, 2026-10-06). Copies follow the label's text, font, size, colour, outline,
+-- fading and gradients; rich text colours are inked in the copies. Tuning in
+-- Config.UI.Kit.HoleFill.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -55,13 +57,10 @@ type State = {
 	links: { RBXScriptConnection },
 	drop: TextLabel?,
 	dropPad: UIPadding?,
-	smallLip: boolean, -- the drop shows on this text even when it is small (on test)
 	refresh: () -> (),
 }
 
 local states: { [Instance]: State } = setmetatable({}, { __mode = "k" }) :: any
--- Outlined texts too small to fill, each waiting to grow (true: it wants the drop too).
-local waiting: { [Instance]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 -- Our own copies, so the drop's outline is never taken for a text to fill.
 local copies: { [Instance]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 
@@ -74,15 +73,13 @@ local function outlineOf(label: Instance): UIStroke?
 	return nil
 end
 
--- The outline's thickness, or more on small text, whose thin outline leaves too little to
--- close a hole from both sides (there the copies widen the letters a pixel).
-local function nudgePx(size: number, stroke: UIStroke): number
-	return math.max(H.MinNudgePx, math.floor(stroke.Thickness + 0.5), math.ceil(size * H.HoleRatio))
+local function nudgePx(stroke: UIStroke): number
+	return math.max(1, math.floor(stroke.Thickness + 0.5))
 end
 
 -- In pixels, not rounded: a fraction of a pixel shows on a high-DPI screen (a phone, a Mac).
-local function dropPx(size: number): number
-	return math.max(H.Drop.MinPx, size * H.Drop.Ratio)
+local function dropPx(stroke: UIStroke): number
+	return math.max(H.Drop.MinPx, stroke.Thickness * H.Drop.OutlineShare)
 end
 
 -- The label's text for an ink copy: rich text colours become the ink, or the copies would
@@ -203,7 +200,7 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 
 	local state: State
 	local function place()
-		local d = nudgePx((label :: any).TextSize, stroke)
+		local d = nudgePx(stroke)
 		leftPad.PaddingLeft = UDim.new(0, -d)
 		leftPad.PaddingRight = UDim.new(0, d)
 		rightPad.PaddingLeft = UDim.new(0, d)
@@ -211,7 +208,7 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 		local pad = state.dropPad
 		if pad then
 			-- A share of the label's height, as a padding's pixels are whole.
-			local down = dropPx((label :: any).TextSize) / math.max(1, label.AbsoluteSize.Y)
+			local down = dropPx(stroke) / math.max(1, label.AbsoluteSize.Y)
 			pad.PaddingTop = UDim.new(down, 0)
 			pad.PaddingBottom = UDim.new(-down, 0)
 		end
@@ -219,13 +216,12 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 	local function ink()
 		local fade = math.max((label :: any).TextTransparency, stroke.Transparency)
 		local text = inkText(label, stroke)
-		local big = (label :: any).TextSize >= H.MinTextPx
+		local fill = stroke.Thickness >= H.FillMinOutlinePx
 		for _, copy in state.inks do
 			copy.Text = text
 			copy.TextColor3 = stroke.Color
 			copy.TextTransparency = fade
-			local lip = copy == state.drop and state.smallLip
-			copy.Visible = stroke.Enabled and (big or lip)
+			copy.Visible = stroke.Enabled and (fill or copy == state.drop)
 		end
 	end
 	local function refresh()
@@ -240,7 +236,6 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 		inks = { left, right },
 		face = face,
 		links = links,
-		smallLip = false,
 		refresh = refresh,
 	}
 	refresh()
@@ -309,7 +304,7 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 	return state
 end
 
-local function consider(object: Instance, withDrop: boolean, smallLip: boolean)
+local function consider(object: Instance, withDrop: boolean)
 	local label = if object:IsA("UIStroke") then object.Parent else object
 	if label == nil or copies[label] then
 		return
@@ -323,65 +318,23 @@ local function consider(object: Instance, withDrop: boolean, smallLip: boolean)
 		if stroke == nil then
 			return
 		end
-		if (label :: any).TextSize < H.MinTextPx and not smallLip then
-			-- Small text keeps its holes (filling them makes its letters touch): wait for it
-			-- to grow, if it ever does.
-			local first = waiting[label] == nil
-			waiting[label] = waiting[label] or withDrop
-			if first then
-				local link: RBXScriptConnection
-				link = label:GetPropertyChangedSignal("TextSize"):Connect(function()
-					if (label :: any).TextSize >= H.MinTextPx then
-						link:Disconnect()
-						local drop = waiting[label] == true
-						waiting[label] = nil
-						consider(label, drop, false)
-					end
-				end)
-			end
-			return
-		end
 		state = attach(label :: GuiObject, stroke)
 	end
-	if smallLip and not (state :: State).smallLip then
-		local found = state :: State
-		found.smallLip = true
-		addDrop(found)
-		found.refresh()
-	elseif withDrop then
+	if withDrop then
 		addDrop(state :: State)
 	end
 end
 
 --- Fill the letter holes of every outlined text under `root`, now and as texts are added.
---- `withDrop` also gives them the thick ink edge underneath; `smallLip` gives that edge to
---- small text too (without the fill, which makes small letters touch). Watches over the
---- same text (all of PlayerGui, then one part of a screen) share one fill.
-function HoleFill.watch(root: Instance, withDrop: boolean?, smallLip: boolean?)
+--- `withDrop` also gives them the thick ink lip underneath. Watches over the same text share
+--- one fill.
+function HoleFill.watch(root: Instance, withDrop: boolean?)
 	local drop = withDrop == true
-	local small = smallLip == true
 	for _, object in root:GetDescendants() do
-		consider(object, drop, small)
+		consider(object, drop)
 	end
 	root.DescendantAdded:Connect(function(object: Instance)
-		consider(object, drop, small)
-	end)
-end
-
---- The same, on the screen part at `path` under `playerGui` ("PoolHud/MenuColumn"), once it
---- exists.
-function HoleFill.watchPath(
-	playerGui: Instance,
-	path: string,
-	withDrop: boolean?,
-	smallLip: boolean?
-)
-	task.spawn(function()
-		local node = playerGui
-		for _, name in string.split(path, "/") do
-			node = node:WaitForChild(name)
-		end
-		HoleFill.watch(node, withDrop, smallLip)
+		consider(object, drop)
 	end)
 end
 
