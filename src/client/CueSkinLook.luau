@@ -43,6 +43,7 @@ local CueShape = require(Shared:WaitForChild("CueShape"))
 local CueSkins = require(Shared:WaitForChild("CueSkins"))
 local Motion = require(Shared:WaitForChild("CueSkins"):WaitForChild("Motion"))
 local Pop = require(Shared:WaitForChild("CueSkins"):WaitForChild("Pop"))
+local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
 local Textures = require(Shared:WaitForChild("CueSkins"):WaitForChild("Textures"))
 local CuePiece = require(script.Parent.CuePiece)
 local CueVfx = require(script.Parent.CueVfx)
@@ -415,18 +416,22 @@ function CueSkinLook.refresh(self: Look)
 			})
 		end
 	end
-	-- The solid outline in the cue's theme colour, aura or not (CueSkins.Pop).
+	-- The solid outline in the cue's theme colour, aura or not (CueSkins.Pop): thinner and
+	-- fainter on the lower rarities (Outline.ByRarity).
 	if inked and self.opts.aura then
+		local O = C.Pop.Outline
+		local level = Pop.level(Catalog.get(row.CatalogId), row)
+		local tier = O.ByRarity[level] or {}
 		local color = Pop.outline(row, C.Pop)
 		self:addHighlight("CueOutline", self.stick, {
 			FillColor = color,
 			FillTransparency = C.Outline.FillTransparency,
 			OutlineColor = color,
-			OutlineTransparency = C.Pop.Outline.Transparency,
+			OutlineTransparency = tier.Transparency or O.Transparency,
 		})
 		self.outline = self.highlights[#self.highlights]
-		self.palette = Pop.palette(row, C.Pop)
-		self:buildInk(color)
+		self.palette = Pop.palette(row, C.Pop, level)
+		self:buildInk(color, O.Ink.LineStuds * (tier.LineScale or 1))
 	end
 	if self.piece then
 		self.piece:setAura(self.opts.aura)
@@ -456,11 +461,11 @@ end
 
 -- A stick's close-range outline (Config.CueSkins.Pop.Outline.Ink). Roblox thins a
 -- Highlight's outline as the camera nears it, to nothing at the aiming distance, so the stick
--- also carries camera-facing ribbons along its axis, LineStuds wider than the cue each side:
+-- also carries camera-facing ribbons along its axis, `line` studs wider than the cue each side:
 -- the opaque cue hides their middle and a rim of colour shows at its edges, a real 3D line
 -- (thicker near, thinner far). They fade with the stick's camera fade, since a see-through
 -- cue would show their middle.
-function CueSkinLook.buildInk(self: Look, color: string)
+function CueSkinLook.buildInk(self: Look, color: string, line: number)
 	local I = C.Pop.Outline.Ink
 	local mesh = self.mesh :: MeshPart
 	local length = 2 * CueVfx.onCue(0).Z -- the tip sits at Z = length / 2
@@ -468,17 +473,17 @@ function CueSkinLook.buildInk(self: Look, color: string)
 	for i = 1, pieces do
 		local from = length * (i - 1) / pieces
 		local to = length * i / pieces
-		-- The outer pieces run LineStuds past the tip and the butt: their ends are outlined too.
-		local a = if i == 1 then from - I.LineStuds else from
-		local b = if i == pieces then to + I.LineStuds else to
+		-- The outer pieces run `line` past the tip and the butt: their ends are outlined too.
+		local a = if i == 1 then from - line else from
+		local b = if i == pieces then to + line else to
 		local a0 = attachment(mesh, CueVfx.onCue(a), "Ink" .. i .. "A")
 		local a1 = attachment(mesh, CueVfx.onCue(b), "Ink" .. i .. "B")
 		local beam = Instance.new("Beam")
 		beam.Name = "Ink"
 		beam.Attachment0 = a0
 		beam.Attachment1 = a1
-		beam.Width0 = 2 * (CueShape.radiusAt(math.max(from, 0)) + I.LineStuds)
-		beam.Width1 = 2 * (CueShape.radiusAt(math.min(to, length)) + I.LineStuds)
+		beam.Width0 = 2 * (CueShape.radiusAt(math.max(from, 0)) + line)
+		beam.Width1 = 2 * (CueShape.radiusAt(math.min(to, length)) + line)
 		beam.Segments = 1
 		beam.FaceCamera = true
 		beam.Texture = ""

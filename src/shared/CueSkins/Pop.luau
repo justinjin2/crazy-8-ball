@@ -210,16 +210,37 @@ function Pop.outline(row: any, spec: any): string
 	return O.Fallback
 end
 
+-- The rarity ladder: a rank or special cue's catalog Effect names its place on it.
+local LADDER = {
+	Common = true,
+	Uncommon = true,
+	Rare = true,
+	Epic = true,
+	Legendary = true,
+	Mythic = true,
+	Secret = true,
+}
+
+--- A cue's rarity for its outline: its catalog Effect when that is a ladder rarity (a rank
+--- cue's or a special cue's level: Bronze is an Uncommon, VIP a Legendary), else its catalog
+--- Rarity, else its skin row's Tier.
+function Pop.level(cue: any, row: any): string
+	if cue and LADDER[cue.Effect] then
+		return cue.Effect
+	end
+	return (cue and cue.Rarity) or row.Tier
+end
+
 --- A Legendary-and-above cue's moving outline colours (spec.Outline.Gradient), deepened like
---- the outline, or nil for a cue whose tier has none. Its own Palettes row (by catalog id)
+--- the outline, or nil for a cue whose rarity (`level`, Pop.level) has none. Its own Palettes row (by catalog id)
 --- when set, else its trail's and pocket burst's colours that are
 --- vivid enough (MinSaturation), the most vivid first, up to MaxColors, colours within
 --- MergeDegrees of hue counted once; with one (or only its theme colour) it shines: it and a
 --- lighter copy, ShineMix of the way to white.
-function Pop.palette(row: any, spec: any): { string }?
+function Pop.palette(row: any, spec: any, level: string): { string }?
 	local O = spec.Outline
 	local G = O.Gradient
-	if not G.Tiers[row.Tier] then
+	if not G.Tiers[level] then
 		return nil
 	end
 	local function finish(colors: { any }): { string }

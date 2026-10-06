@@ -10,6 +10,9 @@
   Gummy's vanish), so each stick also carries 8 camera-facing ribbons along it, 0.012 studs
   wider than the cue each side (`Outline.Ink`): a rim that grows as the camera nears, faded
   with the stick's camera fade.
+- Less flare on the lower rarities (`Outline.ByRarity`, by `CueSkins.Pop.level`: a rank or
+  special cue counts as its catalog Effect, so Bronze is an Uncommon and VIP a Legendary):
+  Common's outline is 70% see-through with ribbons a third as wide, Uncommon's 45% and 0.6x.
 - Legendary, Mythic and Secret cues' outlines are a moving gradient of their own theme
   (`Outline.Gradient`): up close the colours flow along the stick, farther the Highlight
   cycles through them. Kitsune (pink, pastel red, a touch of purple), Celestial Dragon (cyan,
@@ -19,7 +22,7 @@
   stays on test for Frostbite, Candy, Flare, Plasma, Gummy and Magma (`Pop.Ids`).
 - Seen in Studio: the six test cues and Phoenix in day light on the back, Gummy's rim in a
   solo match's aiming view (default and zoomed), Phoenix's and Kitsune's gradients moving.
-  Console clean, lint clean, 989 tests pass.
+  Classic (Common) and Flare (Uncommon) on the back. Console clean, lint clean, tests pass.
   Not checked by the tool: phone and gamepad (visual only, no new controls).
 
 **2026-10-05 (latest): no night after all; no sun disc; a 10 second, every-frame fade.**

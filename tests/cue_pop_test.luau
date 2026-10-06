@@ -119,23 +119,26 @@ return {
 		local Pop, Config, CueSkins = load()
 		local spec = Config.CueSkins.Pop
 		local G = spec.Outline.Gradient
-		H.expect(Pop.palette({ Tier = "Rare" }, spec) == nil, "a Rare has none")
-		local kitsune = Pop.palette(CueSkins.get("KitsuneCue"), spec)
+		H.expect(Pop.palette({ Tier = "Rare" }, spec, "Rare") == nil, "a Rare has none")
+		local kitsune = Pop.palette(CueSkins.get("KitsuneCue"), spec, "Mythic")
 		H.expect(kitsune ~= nil and #kitsune == #G.Palettes.KitsuneCue, "Kitsune: its own row")
 		for id in G.Palettes do
 			H.expect(CueSkins.has(id), "a Palettes row names a skin: " .. id)
 		end
-		local phoenix = Pop.palette(CueSkins.get("PhoenixCue"), spec)
+		local phoenix = Pop.palette(CueSkins.get("PhoenixCue"), spec, "Legendary")
 		H.expect(phoenix ~= nil and #phoenix >= 2, "Phoenix: its own colours")
 		local one = Pop.palette(
 			{ Tier = "Legendary", Style = { Trail = { Color = { 212, 175, 55 } } } },
-			spec
+			spec,
+			"Legendary"
 		)
 		H.expect(one ~= nil and #one == 2, "one colour shines: it and a lighter copy")
+		local Catalog = H.require("Progression.Catalog")
 		for _, id in CueSkins.ids() do
 			local row = CueSkins.get(id)
-			if G.Tiers[row.Tier] then
-				local p = Pop.palette(row, spec)
+			local level = Pop.level(Catalog.get(row.CatalogId), row)
+			if G.Tiers[level] then
+				local p = Pop.palette(row, spec, level)
 				H.expect(
 					p ~= nil and #p >= 2 and #p <= math.max(G.MaxColors, 3),
 					id .. ": a palette"
@@ -157,5 +160,15 @@ return {
 		H.near(r, 1, 1e-9, "a whole loop is back at the start")
 		r = Pop.sample(p, -0.5)
 		H.near(r, 0, 1e-9, "negative phases wrap")
+	end,
+
+	["a cue's outline rarity is its ladder level: rank and special cues by their Effect"] = function()
+		local Pop = load()
+		local Catalog = H.require("Progression.Catalog")
+		H.expect(Pop.level(Catalog.get("BronzeCue"), {}) == "Uncommon", "Bronze is an Uncommon")
+		H.expect(Pop.level(Catalog.get("VipCue"), {}) == "Legendary", "VIP is a Legendary")
+		H.expect(Pop.level(Catalog.get("Classic"), {}) == "Common", "Classic is a Common")
+		H.expect(Pop.level(Catalog.get("FlareCue"), {}) == "Uncommon", "a block cue: its rarity")
+		H.expect(Pop.level(nil, { Tier = "Rare" }) == "Rare", "no catalog row: the skin's tier")
 	end,
 }

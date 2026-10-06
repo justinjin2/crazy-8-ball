@@ -4730,6 +4730,13 @@ Config.CueSkins = {
 			-- it (the cue tapers), a rim that grows as the camera nears. Their transparency is
 			-- the stick's camera fade times FadeScale (a see-through cue would show them). (tune)
 			Ink = { LineStuds = 0.012, Pieces = 8, FadeScale = 4 },
+			-- Less flare on the lower rarities (designer, 2026-10-05; CueSkins.Pop.level): the
+			-- ribbons' LineStuds times LineScale, and the Highlight this see-through instead of
+			-- Transparency above (Roblox draws its line at one width). Common the least. (tune)
+			ByRarity = {
+				Common = { LineScale = 0.35, Transparency = 0.7 },
+				Uncommon = { LineScale = 0.6, Transparency = 0.45 },
+			},
 			-- A moving gradient outline for these tiers (designer, 2026-10-05): up close the
 			-- colours flow along the stick (the ribbons), Spread loops of the palette over its
 			-- length; the Highlight (one colour) cycles through them. One loop takes Period

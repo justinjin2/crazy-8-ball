@@ -2573,3 +2573,8 @@ timer of a new block stay the designer's call.
   cue's own theme** (Phoenix yellow, orange, red), not one shared Mythic palette ("the blue
   is too off-putting" on Kitsune). Kitsune, Celestial Dragon and Eclipse have hand-picked
   palettes in `Config.CueSkins.Pop.Outline.Gradient.Palettes`.
+- 2026-10-05 (designer): **Common and Uncommon outlines are much smaller**, Common the least
+  (`Config.CueSkins.Pop.Outline.ByRarity`: Roblox's Highlight has one width, so it is fainter;
+  the close-range ribbons are thinner). A cue's rarity for its outline is its catalog Effect
+  when that is on the ladder, so rank and special cues (Grandmaster, VIP, Reyes) also get the
+  Legendary-and-up moving gradient.
