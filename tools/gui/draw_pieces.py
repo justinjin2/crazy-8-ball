@@ -8,12 +8,16 @@ Everything here is drawn from code with a fixed seed, so a rerun gives the same 
                       curve, dimension lines, a reticle), transparent, drawn at 2x then shrunk
   beta_code.png       a strip of made-up glyphs (never English), cyan, transparent
   go_bg.png           the Grand Opening card's background: navy with soft bokeh, no fireworks
+  confetti_1..6.png   `--confetti SHEET`: a generated 3 x 2 sheet of gold ribbons on black,
+                      unscreened (brightness becomes alpha) and split, the halo fading
+                      with distance from the ribbon
   *_mask.png          a white silhouette of a picture (its alpha), for shine sweeps:
                       `--mask IN.png OUT.png` makes one from any piece
 The block's rays reuse assets/ui/lucky-rays.png (white, tinted in game).
 
   tools/gui/.venv/bin/python tools/gui/draw_pieces.py [--out assets/ui/grand_opening]
   tools/gui/.venv/bin/python tools/gui/draw_pieces.py --mask IN.png OUT.png
+  tools/gui/.venv/bin/python tools/gui/draw_pieces.py --confetti SHEET.png
 """
 
 import argparse
@@ -23,6 +27,7 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
+from scipy.ndimage import distance_transform_edt
 
 ROOT = Path(__file__).resolve().parents[2]
 SEED = 8  # every random choice comes from this
@@ -223,6 +228,38 @@ def glyph_code(w=2048, h=96, count=40):
     return _finish(img, glow_px=2)
 
 
+def confetti(sheet, out, cols=3, rows=2, size=256):
+    """A generated sheet of gold ribbons on black -> one sprite per cell. Brightness becomes
+    alpha (the glow turns into a soft halo over any colour), the cores stay solid, and the halo
+    fades to nothing before the sprite's edge, so no box shows where it was cut."""
+    a = np.asarray(Image.open(sheet).convert("RGB")).astype(float)
+    m = a.max(-1)
+    alpha = np.clip((m / 255 - 0.08) / 0.92, 0, 1) ** 1.4
+    alpha = np.maximum(alpha, np.clip((m - 170) / 50, 0, 1))
+    rgb = np.clip(a / np.maximum(m[..., None] / 255, 1e-3), 0, 255)
+    H, W = m.shape
+    n = 0
+    for r in range(rows):
+        for c in range(cols):
+            cell = alpha[r * H // rows:(r + 1) * H // rows, c * W // cols:(c + 1) * W // cols]
+            colour = rgb[r * H // rows:(r + 1) * H // rows, c * W // cols:(c + 1) * W // cols]
+            ys, xs = np.where(cell > 0.5)  # the ribbon itself
+            pad = 40
+            y0, y1 = max(0, ys.min() - pad), min(cell.shape[0], ys.max() + pad)
+            x0, x1 = max(0, xs.min() - pad), min(cell.shape[1], xs.max() + pad)
+            al, co = cell[y0:y1, x0:x1].copy(), colour[y0:y1, x0:x1]
+            # the halo fades with distance from the ribbon, gone well before the crop's edge
+            core = al > 0.5
+            dist = distance_transform_edt(~core)
+            halo = np.clip(1 - dist / (pad * 0.75), 0, 1) ** 1.5 * 0.7
+            al = np.where(core, al, al * halo)
+            img = Image.fromarray(np.dstack([co, al * 255]).round().astype("uint8"), "RGBA")
+            img.thumbnail((size, size), Image.LANCZOS)
+            n += 1
+            img.save(Path(out) / f"confetti_{n}.png", optimize=True)
+            print(f"confetti_{n}", img.size)
+
+
 def silhouette(src, out):
     """A white picture with the source's alpha: the mask a shine sweep is clipped to."""
     a = Image.open(src).convert("RGBA").getchannel("A")
@@ -235,9 +272,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(ROOT / "assets/ui/grand_opening"))
     ap.add_argument("--mask", nargs=2, metavar=("IN", "OUT"))
+    ap.add_argument("--confetti", metavar="SHEET", help="split a generated 3 x 2 ribbon sheet")
     a = ap.parse_args()
     if a.mask:
         silhouette(*a.mask)
+        return
+    if a.confetti:
+        confetti(a.confetti, a.out)
         return
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
