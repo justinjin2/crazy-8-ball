@@ -2684,3 +2684,9 @@ timer of a new block stay the designer's call.
   is real text in the kit font, Fredoka One, letter by letter on an arch with a cyan rim, one
   merged navy outline, an orange depth and a gold gradient face (`ArchTitle`), not the painted
   logo cut from 13b. Words stay translatable; each letter can pop in by itself.
+- 2026-10-06 (designer, gate 2): the Grand Opening subtitle is straight (no arch); the Shop
+  header's 8-ball pattern goes to transparency 0.6 (from 0.7); the block's odds are a sky-blue
+  "i" badge that never hides, opening the full odds pop-up (not an always-visible chip row).
+  The crown and block are completed as whole pieces (no hidden parts), so they can be reused
+  elsewhere. The cues are rendered from the in-game models (tip left, like 13b) rather than
+  cut from 13b.

@@ -6138,14 +6138,14 @@ Config.UI = {
 				TrackingShare = -0.03, -- extra room between letters (the outlines merge)
 				SagShare = 0.05, -- the arch: how much higher the middle is, of the word's width
 			},
-			-- The subtitle under it: white letters, a navy outline, on a shallower arch.
+			-- The subtitle under it: white letters, a navy outline, straight (the designer, gate 2).
 			Subtitle = {
 				FaceColor = { 255, 255, 255 },
 				Outline = { 6, 14, 40 },
 				OutlineShare = 0.16,
 				TrackingShare = 0.0,
-				SagShare = 0.03,
-				ByWord = true, -- whole words on the arch (small letters alone lose their kerning)
+				SagShare = 0, -- 0 = a straight line
+				ByWord = true, -- whole words placed (small letters alone lose their kerning)
 			},
 		},
 	},

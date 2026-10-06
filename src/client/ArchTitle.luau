@@ -156,9 +156,9 @@ function ArchTitle.new(
 		total += widths[i] + (if i < #chars then tracking else 0)
 	end
 
-	-- The arch: a circle through the word's ends, its middle `sag` higher.
-	local sag = math.max(0.5, total * S.SagShare)
-	local radius = (total * total) / (8 * sag) + sag / 2
+	-- The arch: a circle through the word's ends, its middle `sag` higher (0: a straight line).
+	local sag = total * S.SagShare
+	local radius = if sag > 0 then (total * total) / (8 * sag) + sag / 2 else math.huge
 	local pad = math.max(rim, outline) + 2
 	local boxH = size * 1.25
 	local width = math.ceil(total + 2 * pad + size * 0.2)
@@ -202,10 +202,13 @@ function ArchTitle.new(
 		local mid = at + w / 2
 		at += w + tracking
 		if string.match(char, "^ *$") == nil then
-			local angle = mid / radius
 			-- On the circle: the middle letter on top, the others lower toward the ends.
-			local x = width / 2 + radius * math.sin(angle)
-			local y = pad + boxH / 2 + (radius - radius * math.cos(angle))
+			local angle, x, y = 0, width / 2 + mid, pad + boxH / 2
+			if sag > 0 then
+				angle = mid / radius
+				x = width / 2 + radius * math.sin(angle)
+				y = pad + boxH / 2 + (radius - radius * math.cos(angle))
+			end
 			local holders: { Frame } = {}
 			local function holder(name: string): Frame
 				local made = Instance.new("Frame")
