@@ -120,21 +120,39 @@ function HudParts.setTextSize(object: TextLabel, size: number, floor: number?)
 	end
 end
 
+-- Each text's test font and how specific its claim is (useFont): a deeper claim wins.
+local fontClaims: { [Instance]: { depth: number, face: Font } } = setmetatable({}, { __mode = "k" }) :: any
+
 --- Put every text under `root` in another font, now and as texts are added (a font test
---- over a whole page; FontTest). It holds: a screen that sets its own font after building a
---- text gets this one back. `spec`: a font family file and an Enum.FontWeight name.
-function HudParts.useFont(root: Instance, spec: { Family: string, Weight: string })
+--- over a whole page or one part of it; FontTest). It holds: a screen that sets its own font
+--- after building a text gets this one back. `spec`: a font family file and an
+--- Enum.FontWeight name. `depth`: how specific the claim is; a text claimed twice keeps the
+--- deeper one (a part's font over its screen's), whichever ran first.
+function HudParts.useFont(root: Instance, spec: { Family: string, Weight: string }, depth: number?)
 	local face = Font.new(spec.Family, (Enum.FontWeight :: any)[spec.Weight])
+	local mine = depth or 0
 	local function apply(object: Instance)
-		if object:IsA("TextLabel") or object:IsA("TextButton") or object:IsA("TextBox") then
-			local text = object :: any
-			text.FontFace = face
-			object:GetPropertyChangedSignal("FontFace"):Connect(function()
-				if text.FontFace ~= face then
-					text.FontFace = face
-				end
-			end)
+		if not (object:IsA("TextLabel") or object:IsA("TextButton") or object:IsA("TextBox")) then
+			return
 		end
+		local text = object :: any
+		local claim = fontClaims[object]
+		if claim then
+			if mine >= claim.depth then
+				claim.depth = mine
+				claim.face = face
+				text.FontFace = face
+			end
+			return
+		end
+		local held = { depth = mine, face = face }
+		fontClaims[object] = held
+		text.FontFace = face
+		object:GetPropertyChangedSignal("FontFace"):Connect(function()
+			if text.FontFace ~= held.face then
+				text.FontFace = held.face
+			end
+		end)
 	end
 	for _, object in root:GetDescendants() do
 		apply(object)

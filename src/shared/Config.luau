@@ -10210,21 +10210,36 @@ Config.Debug = {
 }
 
 -- Font tests (FontTest; designer, 2026-10-05, while the font is still open): one place to try
--- a font on one screen or on all of them. A font is
+-- a font on one screen, one part of a screen, or all of them. A font is
 --   { Family = "rbxasset://fonts/families/<Name>.json", Weight = "<Enum.FontWeight name>" }
 -- Family names: in Studio, pick any TextLabel and open its FontFace property's list (e.g.
 -- FredokaOne, BuilderSans, BuilderExtended, Montserrat, Nunito, LuckiestGuy). Weights: Regular,
 -- Medium, SemiBold, Bold, ExtraBold, Heavy; a font without that weight shows its nearest.
 -- Example: Screens = { ShopMenu = { Family = "rbxasset://fonts/families/Nunito.json",
 -- Weight = "Heavy" } }. Rejoin the playtest to see a change. (tune)
+local builderExtended =
+	{ Family = "rbxasset://fonts/families/BuilderExtended.json", Weight = "Bold" }
 Config.UI.FontTest = {
 	-- Every screen at once; nil keeps the kit's Fredoka One.
 	All = nil :: { Family: string, Weight: string }?,
-	-- One screen, by its ScreenGui's name; beats All. The screens: PoolHud (the main HUD and the
-	-- left column), RankHud, PlayerList, LuckyHotbar, ShopMenu, InventoryMenu, UltScreen (the
-	-- Abilities page), FreeRewardMenu, RewardsMenu, SettingsMenu, TradeMenu, TradeInvite,
-	-- RankClaimBlock, TutorialGui, TableSign, Nameplate_<user id>.
-	Screens = {} :: { [string]: { Family: string, Weight: string } },
+	-- One screen, by its ScreenGui's name, or one part of it as a path ("PoolHud/MoneyHud");
+	-- the most specific wins (a part over its screen over All). The screens: PoolHud (the main
+	-- HUD; its parts MenuColumn, MoneyHud, HubCorners, HubCorners/Challenge,
+	-- HubCorners/StarterPack, HubCorners/VipOffer...), RankHud, PlayerList, LuckyHotbar,
+	-- ShopMenu, InventoryMenu, UltScreen (the Abilities page), FreeRewardMenu, RewardsMenu,
+	-- SettingsMenu, TradeMenu, TradeInvite, RankClaimBlock, TutorialGui, TableSign,
+	-- Nameplate_<user id>.
+	-- On test: Builder Extended on the hub's corners and pages below (designer, 2026-10-06);
+	-- if it holds, it becomes the game's font.
+	Screens = {
+		FreeRewardMenu = builderExtended, -- the Free Reward page
+		["PoolHud/MenuColumn"] = builderExtended, -- the four buttons on the left
+		["PoolHud/MoneyHud"] = builderExtended, -- the money, bottom left
+		RankHud = builderExtended, -- the rank at the top ("Bronze I")
+		["PoolHud/HubCorners/Challenge"] = builderExtended, -- the Daily Challenge
+		["PoolHud/HubCorners/StarterPack"] = builderExtended, -- the Starter Pack offer
+		LuckyHotbar = builderExtended, -- the lucky block hotbar
+	} :: { [string]: { Family: string, Weight: string } },
 }
 
 -- The Free Reward page (FreeRewardMenu; GUI lane, D4): join the group, favorite the game.
