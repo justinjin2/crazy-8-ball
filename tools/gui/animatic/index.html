@@ -1,0 +1,724 @@
+<meta charset="utf-8">
+<title>Shop Open Animatic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: the game view on top (it is the point), the controls under it in a compact grid,
+   the JSON at the bottom. Dark navy like the card, so the game view reads as the game. */
+:root {
+  --night: #0b1240;
+  --panel: #131d5c;
+  --line: #2a3a8c;
+  --ink: #eef3ff;
+  --muted: #a9b6e6;
+  --gold: #ffc83a;
+  --cyan: #46d7ff;
+  --display: "Fredoka One", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+body { background: var(--night); color: var(--ink); font: 15px/1.5 var(--body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 18px 48px; display: grid; gap: 16px; }
+h1 { font: 28px var(--display); color: var(--gold); margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 72ch; color: var(--muted); }
+#view { width: 100%; height: auto; display: block; border-radius: 12px; background: #7fb8e8; aspect-ratio: 1748 / 804; max-width: 100%; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button, .seg label { font: 700 14px var(--body); color: var(--night); background: var(--cyan); border: 0; border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+button.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--line); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.seg { display: inline-flex; gap: 0; border-radius: 999px; box-shadow: inset 0 0 0 2px var(--line); padding: 2px; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label { background: transparent; color: var(--ink); padding: 5px 12px; }
+.seg input:checked + label { background: var(--gold); color: var(--night); }
+.clock { font: 700 14px var(--body); font-variant-numeric: tabular-nums; color: var(--gold); min-width: 9ch; }
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.ctl { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; min-width: 0; }
+.ctl label { font-weight: 700; }
+.ctl output { font-variant-numeric: tabular-nums; color: var(--gold); }
+.ctl input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--gold); }
+.ctl small { grid-column: 1 / -1; color: var(--muted); font-size: 12px; }
+.toggles { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.toggles label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.toggles input { accent-color: var(--gold); width: 18px; height: 18px; }
+textarea { width: 100%; min-height: 150px; background: #070c2c; color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 10px; font: 12px/1.45 ui-monospace, Menlo, monospace; box-sizing: border-box; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <h1>Shop open: the animatic</h1>
+  <p>The Shop opening as planned for the game, drawn from the real pieces in <code>assets/</code>. Move the sliders, replay, slow it down or step frame by frame. When it feels right, press "Copy values": those numbers go into Config unchanged.</p>
+
+  <canvas id="view" width="1748" height="804" aria-label="The Shop opening, animated"></canvas>
+
+  <div class="bar">
+    <button id="replay">Replay open</button>
+    <button id="play" class="ghost">Pause</button>
+    <button id="back" class="ghost" aria-label="One frame back">◀ frame</button>
+    <button id="fwd" class="ghost" aria-label="One frame forward">frame ▶</button>
+    <button id="closeBtn" class="ghost">Close</button>
+    <button id="tab" class="ghost">Switch tab</button>
+    <span class="seg" role="radiogroup" aria-label="Speed">
+      <input type="radio" name="speed" id="s01" value="0.1"><label for="s01">0.1×</label>
+      <input type="radio" name="speed" id="s025" value="0.25"><label for="s025">0.25×</label>
+      <input type="radio" name="speed" id="s1" value="1" checked><label for="s1">1×</label>
+    </span>
+    <span class="clock" id="clock">0.000 s</span>
+  </div>
+
+  <div class="controls" id="controls"></div>
+
+  <div class="toggles">
+    <label><input type="checkbox" id="streamers" checked> Gold streamers</label>
+    <label><input type="checkbox" id="poppers" checked> Party poppers on open</label>
+    <label><input type="checkbox" id="twinkles" checked> Twinkles</label>
+    <label><input type="checkbox" id="lower"> Lower effects</label>
+    <label><input type="checkbox" id="reduce"> Reduce Motion</label>
+  </div>
+
+  <div class="bar"><button id="copy">Copy values</button><span id="copied" class="clock"></span></div>
+  <textarea id="json" readonly aria-label="The values as JSON"></textarea>
+</div>
+
+<script>
+"use strict";
+// ---------------------------------------------------------------------------------------------
+// Easing: Roblox TweenService's curves (EasingStyle x EasingDirection), written out so the
+// animatic matches the game. `p` runs 0..1.
+const Ease = {
+  Linear: p => p,
+  Sine: p => 1 - Math.cos(p * Math.PI / 2),
+  Quad: p => p * p,
+  Cubic: p => p * p * p,
+  Quart: p => p ** 4,
+  Quint: p => p ** 5,
+  Exponential: p => (p === 0 ? 0 : 2 ** (10 * p - 10)),
+  Circular: p => 1 - Math.sqrt(1 - p * p),
+  Back: p => p * p * (2.70158 * p - 1.70158), // s = 1.70158, as TweenService
+  Elastic: p => (p === 0 || p === 1 ? p : -(2 ** (10 * p - 10)) * Math.sin((p * 10 - 10.75) * (2 * Math.PI / 3))),
+  Bounce: p => 1 - bounceOut(1 - p),
+};
+function bounceOut(p) {
+  const n = 7.5625, d = 2.75;
+  if (p < 1 / d) return n * p * p;
+  if (p < 2 / d) return n * (p -= 1.5 / d) * p + 0.75;
+  if (p < 2.5 / d) return n * (p -= 2.25 / d) * p + 0.9375;
+  return n * (p -= 2.625 / d) * p + 0.984375;
+}
+function ease(style, dir, p) {
+  p = Math.min(1, Math.max(0, p));
+  const f = Ease[style];
+  if (dir === "In") return f(p);
+  if (dir === "Out") return 1 - f(1 - p);
+  return p < 0.5 ? f(p * 2) / 2 : 1 - f((1 - p) * 2) / 2; // InOut
+}
+
+// ---------------------------------------------------------------------------------------------
+// The motion tokens (these are what "Copy values" exports and Config takes).
+const DEFAULTS = {
+  OpenSeconds: 1.4,     // the whole open, first piece to the flair landing
+  Stagger: 0.04,        // between pieces of one group (the tabs, the buttons, a card's insides)
+  PopSeconds: 0.28,     // one piece's pop
+  PopFrom: 0.6,         // a pop starts this big...
+  PopPeak: 1.1,         // ...grows past full size to this...
+  PopPeakAt: 0.6,       // ...at this share of the pop, then settles at 1
+  FadeSeconds: 0.1,     // a piece's fade in (alongside its pop)
+  UnrollSeconds: 0.2,   // the panel opening up and down from a thin bar
+  UnrollOvershoot: 1.04, // the panel's overshoot (of its height)
+  LetterStagger: 0.025, // between the title's letters
+  SlamFrom: 1.6,        // the block slams in from this big
+  CloseSeconds: 0.15,   // the close: everything fades while the panel folds to a line
+  TabSeconds: 0.5,      // a tab switch: the new page's pieces stagger in over this
+};
+const SLIDERS = [
+  ["OpenSeconds", "Open length", 1, 2, 0.05, "s", "the whole open (the designer asked for 1 to 2 s)"],
+  ["Stagger", "Stagger", 0, 0.1, 0.005, "s", "between pieces in a group"],
+  ["PopSeconds", "Pop length", 0.1, 0.5, 0.01, "s", "one piece's pop"],
+  ["PopPeak", "Overshoot", 1, 1.25, 0.01, "×", "how far past full size a pop grows"],
+  ["PopFrom", "Pop starts at", 0.3, 1, 0.05, "×", "a piece's size when it appears"],
+  ["FadeSeconds", "Fade", 0.03, 0.3, 0.01, "s", "a piece's fade in"],
+  ["UnrollSeconds", "Unroll", 0.1, 0.4, 0.01, "s", "the panel opening from a bar"],
+  ["LetterStagger", "Title letters", 0.01, 0.06, 0.005, "s", "between letters"],
+];
+const V = loadValues();
+function loadValues() {
+  try { const s = JSON.parse(localStorage.getItem("animatic.values") || "{}"); return Object.assign({}, DEFAULTS, s); }
+  catch { return Object.assign({}, DEFAULTS); }
+}
+function saveValues() { try { localStorage.setItem("animatic.values", JSON.stringify(V)); } catch {} }
+
+// ---------------------------------------------------------------------------------------------
+// The pieces' curves: what Stage will do in game, per frame, from these numbers.
+function popScale(p) { // 0..1 -> scale: from PopFrom up past PopPeak, settling at 1
+  const k = V.PopPeakAt;
+  if (p <= 0) return V.PopFrom;
+  if (p < k) return V.PopFrom + (V.PopPeak - V.PopFrom) * ease("Quad", "Out", p / k);
+  return V.PopPeak + (1 - V.PopPeak) * ease("Sine", "InOut", (p - k) / (1 - k));
+}
+function unrollShare(p) { // 0..1 -> the panel's height share, with an overshoot
+  if (p <= 0) return 0;
+  const k = 0.7;
+  if (p < k) return V.UnrollOvershoot * ease("Quart", "Out", p / k);
+  return V.UnrollOvershoot + (1 - V.UnrollOvershoot) * ease("Sine", "InOut", (p - k) / (1 - k));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Assets: the real files (the page sits in tools/gui/animatic/; published, beside assets/).
+const BASE = location.pathname.includes("/tools/gui/animatic/") ? "../../../" : ""; // in the repo, or published beside assets/
+const FILES = {
+  pattern: "assets/ui/art/pattern.png", dots: "assets/ui/frame/dots_512.png", rays: "assets/ui/lucky-rays.png",
+  basket: "assets/ui/icons/shop_basket.png", cash: "assets/ui/icons/cash_stack.png", star: "assets/ui/icons/star.png",
+  tabFeatured: "assets/ui/icons/deals.png", tabBlocks: "assets/ui/icons/inventory.png", tabMoney: "assets/ui/icons/pack_4.png", tabPasses: "assets/ui/icons/passes.png",
+  plate: "assets/ui/grand_opening/plate.png", block: "assets/ui/grand_opening/block.png", blockMask: "assets/ui/grand_opening/block_mask.png",
+  crown: "assets/ui/grand_opening/crown.png", glow: "assets/ui/grand_opening/block_glow.png", bokeh: "assets/ui/grand_opening/bokeh_disc.png",
+  ballNear: "assets/ui/grand_opening/ball_near.png", ballMid: "assets/ui/grand_opening/ball_mid.png", ballFar: "assets/ui/grand_opening/ball_far.png",
+  starL: "assets/ui/grand_opening/star_left.png", starR: "assets/ui/grand_opening/star_right.png", flair: "assets/ui/grand_opening/flair_8ball.png",
+  betaBg: "assets/ui/grand_opening/beta_bg.png", betaCode: "assets/ui/grand_opening/beta_code.png", betaRing: "assets/ui/grand_opening/beta_ring.png",
+  betaCallouts: "assets/ui/grand_opening/beta_callouts.png", betaCue: "assets/ui/grand_opening/beta_cue.png", betaMask: "assets/ui/grand_opening/beta_cue_mask.png",
+  mote: "assets/ui/grand_opening/beta_mote.png", goBg: "assets/ui/grand_opening/go_bg.png", goCue: "assets/ui/grand_opening/go_cue.png",
+  goMask: "assets/ui/grand_opening/go_cue_mask.png", rib1: "assets/ui/effects/go_ribbons_1.png", rib2: "assets/ui/effects/go_ribbons_2.png",
+  sparkle: "assets/ui/effects/sparkle.png",
+};
+for (const c of ["gold", "pink", "cyan", "purple", "orange"]) FILES["fw_" + c] = `assets/ui/effects/firework_${c}.png`;
+for (let i = 1; i <= 6; i++) FILES["confetti" + i] = `assets/ui/grand_opening/confetti_${i}.png`;
+for (let i = 1; i <= 10; i++) FILES["panel" + i] = `assets/ui/grand_opening/beta_panel_${i}.png`;
+const IMG = {};
+function loadAll() {
+  return Promise.all(Object.entries(FILES).map(([k, f]) => new Promise(res => {
+    const im = new Image(); im.onload = () => res(); im.onerror = () => { console.warn("missing", f); res(); };
+    im.src = BASE + f; IMG[k] = im;
+  })));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Words and numbers (Strings and Config on the game side; here as read on 2026-10-06).
+const WORDS = {
+  Shop: "Shop", Money: "$1.07M", Featured: "FEATURED", Tabs: ["Featured", "Blocks", "Money", "Passes"], New: "NEW",
+  Title: "GRAND OPENING", Subtitle: ["LUCKY BLOCK • ", "LIMITED", " • YOU COULD PULL..."], EndsIn: "Ends in 20d 23h",
+  Beta: ["BETA", " CUE"], GO: ["GRAND OPENING", " CUE"], Unique: "UNIQUE", Limited: "LIMITED",
+  BetaOdds: "0.3%", GoOdds: "3%", Save: "save %d%%",
+};
+const DEALS = [ // Config.Products.GrandOpening1/3/10 and Config.Shop.Deals.GrandOpening.Money
+  { count: 1, robux: 49, was: null, money: 49000 },
+  { count: 3, robux: 129, was: 147, money: 139000 },
+  { count: 10, robux: 349, was: 490, money: 441000 },
+];
+
+// ---------------------------------------------------------------------------------------------
+// Drawing helpers. The view is the Studio PC capture's size (1748 x 804, the game at 2x).
+const cv = document.getElementById("view"), ctx = cv.getContext("2d");
+const W = cv.width, H = cv.height;
+const INK = "#0a1030";
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function img(im, cx, cy, w, opts = {}) {
+  if (!im || !im.width) return;
+  const h = opts.h || im.height * w / im.width;
+  ctx.save();
+  ctx.globalAlpha *= opts.a ?? 1;
+  if (opts.op) ctx.globalCompositeOperation = opts.op;
+  ctx.translate(cx, cy);
+  if (opts.rot) ctx.rotate(opts.rot);
+  if (opts.s && opts.s !== 1) ctx.scale(opts.s, opts.s);
+  ctx.drawImage(im, -w / 2, -h / 2, w, h);
+  ctx.restore();
+}
+function text(str, x, y, size, opts = {}) {
+  ctx.save();
+  ctx.globalAlpha *= opts.a ?? 1;
+  ctx.translate(x, y);
+  if (opts.rot) ctx.rotate(opts.rot);
+  if (opts.s && opts.s !== 1) ctx.scale(opts.s, opts.s);
+  ctx.font = `${size}px ${opts.font || "'Fredoka One'"}`;
+  ctx.textAlign = opts.align || "center"; ctx.textBaseline = "middle";
+  if (opts.outline !== 0) {
+    ctx.lineJoin = "round"; ctx.strokeStyle = opts.ink || INK; ctx.lineWidth = opts.outline ?? Math.max(4, size * 0.2);
+    ctx.strokeText(str, 0, size * 0.06); ctx.strokeText(str, 0, 0); // the kit's ink lip, then the outline
+  }
+  ctx.fillStyle = opts.color || "#fff"; ctx.fillText(str, 0, 0);
+  ctx.restore();
+}
+function measure(str, size) { ctx.font = `${size}px 'Fredoka One'`; return ctx.measureText(str).width; }
+// A flipbook frame, as an ImageLabel stepping ImageRectOffset.
+function flip(im, frame, cols, rows, cx, cy, w, opts = {}) {
+  if (!im || !im.width) return;
+  const fw = im.width / cols, fh = im.height / rows;
+  const i = Math.max(0, Math.min(cols * rows - 1, Math.floor(frame)));
+  const sx = (i % cols) * fw, sy = Math.floor(i / cols) * fh;
+  const h = w * fh / fw;
+  ctx.save(); ctx.globalAlpha *= opts.a ?? 1; if (opts.op) ctx.globalCompositeOperation = opts.op;
+  ctx.translate(cx, cy); if (opts.rot) ctx.rotate(opts.rot);
+  ctx.drawImage(im, sx, sy, fw, fh, -w / 2, -h / 2, w, h); ctx.restore();
+}
+const tinted = {};
+function tint(key, color) { // ImageColor3: white times a colour
+  const id = key + color; if (tinted[id]) return tinted[id];
+  const im = IMG[key]; if (!im || !im.width) return null;
+  const c = document.createElement("canvas"); c.width = im.width; c.height = im.height;
+  const g = c.getContext("2d"); g.drawImage(im, 0, 0); g.globalCompositeOperation = "multiply";
+  g.fillStyle = color; g.fillRect(0, 0, c.width, c.height); g.globalCompositeOperation = "destination-in"; g.drawImage(im, 0, 0);
+  return (tinted[id] = c);
+}
+
+// ---------------------------------------------------------------------------------------------
+// The layout (game px at 2x; the computer layout; the phone restack comes with the build).
+const L = {
+  panel: { x: 128, y: 44, w: 1492, h: 716, r: 42 },
+  header: 116,
+  sheet: { x: 143, y: 160, w: 1462, h: 585, r: 30 },
+  basket: [586, 108, 72], shop: [688, 106, 52],
+  money: { x: 1318, y: 72, w: 182, h: 72 }, close: { x: 1506, y: 56, w: 102, h: 102 },
+  tabs: { x: 1455, y: 190, w: 142, h: 124, gap: 8 },
+  featured: [802, 204, 30],
+  card: { x: 165, y: 232, w: 1275, h: 498, r: 28 },
+};
+// Card-local places (the card's top-left is 0, 0).
+const C = {
+  block: [182, 262, 300], crown: [192, 122, 170], glow: [182, 262, 560], rays: [182, 262, 620],
+  newTag: [92, 66], endsIn: [182, 466, 30],
+  title: [812, 54, 58], subtitle: [812, 112, 24], starL: [520, 66, 62], starR: [1104, 66, 62],
+  beta: { x: 360, y: 140, w: 432, h: 196 }, go: { x: 808, y: 140, w: 448, h: 196 },
+  rowGreen: 352, rowGold: 412, rowH: 52, btnX: 360, btnW: 288, btnGap: 16, save: 478,
+  balls: [["ballFar", 700, 26, 92, 0.25], ["ballMid", 1232, 468, 112, 0.18], ["ballNear", 318, 470, 92, 0.32]],
+  fireworks: [["fw_gold", 120, 96, 240], ["fw_pink", 28, 260, 170], ["fw_purple", 560, 36, 150], ["fw_orange", 1208, 60, 210]],
+  confetti: [[1, 330, 40, 54, 0.4], [2, 1260, 250, 50, -0.6], [3, 650, 470, 46, 0.9], [4, 40, 420, 52, -0.3], [5, 1000, 20, 50, 1.2], [6, 760, 115, 40, -1.0]],
+};
+
+// ---------------------------------------------------------------------------------------------
+// The timeline: section 4's order, its starts scaled by OpenSeconds (the 1.4 s plan).
+function buildTimeline() {
+  const k = V.OpenSeconds / 1.4, S = V.Stagger, T = [];
+  const add = (id, kind, at, len, extra = {}) => T.push(Object.assign({ id, kind, at: at * k, len }, extra));
+  add("panel", "unroll", 0, V.UnrollSeconds);
+  add("header", "fade", 0.12, 0.15);
+  ["basket", "shop", "money", "close"].forEach((id, i) => add(id, "pop", 0.18 + i * S, V.PopSeconds));
+  WORDS.Tabs.forEach((_, i) => { add("tab" + i, "pop", 0.3 + i * S * 1.25, V.PopSeconds); if (i < 2) add("new" + i, "pop", 0.3 + i * S * 1.25 + 0.08, V.PopSeconds); });
+  add("featured", "pop", 0.4, V.PopSeconds); add("featuredLines", "grow", 0.48, 0.15);
+  add("card", "grow", 0.45, 0.15);
+  add("block", "slam", 0.55, 0.22); add("burstBlock", "burst", 0.55, 2.1);
+  add("crown", "drop", 0.65, 0.25); add("newTag", "pop", 0.72, V.PopSeconds);
+  add("title", "letters", 0.6, V.PopSeconds); add("burstTitle", "burst", 0.62, 2.1);
+  add("subtitle", "fade", 0.6 + WORDS.Title.length * V.LetterStagger / k + 0.05, 0.15);
+  ["beta", "go"].forEach((id, j) => {
+    const at = 0.75 + j * 0.15;
+    add(id, "pop", at, V.PopSeconds); add("burst_" + id, "burst", at, 2.1);
+    ["Name", "Pills", "Odds", "Cue"].forEach((p, i) => add(id + p, "pop", at + 0.05 + i * S, V.PopSeconds));
+  });
+  [0, 1, 2].forEach(i => add("green" + i, "pop", 1.05 + i * S, V.PopSeconds));
+  [0, 1, 2].forEach(i => add("gold" + i, "pop", 1.15 + i * S, V.PopSeconds));
+  add("save", "fade", 1.25, 0.15); add("endsIn", "fade", 1.28, 0.15);
+  add("flair", "drop", 1.3, 0.3);
+  const end = Math.max(...T.map(e => e.at + (e.kind === "burst" ? 0 : e.len)));
+  return { T, end };
+}
+let TL = buildTimeline();
+function state(id, t) { // -> { a, s, p, on }
+  const e = TL.T.find(x => x.id === id); if (!e) return { a: 1, s: 1, p: 1, on: true, landed: 0 };
+  const p = (t - e.at) / e.len;
+  if (reduce()) { const a = Math.min(1, Math.max(0, (t - e.at * 0.5) / 0.2)); return { a, s: 1, p: Math.min(1, Math.max(0, p)), on: a > 0, landed: e.at + e.len }; }
+  if (p <= 0) return { a: 0, s: V.PopFrom, p: 0, on: false, landed: e.at + e.len };
+  const a = Math.min(1, (t - e.at) / V.FadeSeconds);
+  let s = 1;
+  if (e.kind === "pop" || e.kind === "letters") s = popScale(p);
+  const pc = Math.min(1, p);
+  if (e.kind === "slam") s = pc < 0.6 ? V.SlamFrom + (1 - V.SlamFrom) * ease("Quad", "In", pc / 0.6) : 1 + 0.05 * Math.sin((pc - 0.6) / 0.4 * Math.PI) * (1 - (pc - 0.6) / 0.4);
+  if (e.kind === "grow") s = ease("Quart", "Out", p);
+  if (e.kind === "unroll") s = unrollShare(p);
+  return { a: e.kind === "unroll" ? 1 : a, s, p: Math.min(1, p), on: true, landed: e.at + e.len, raw: p };
+}
+
+// ---------------------------------------------------------------------------------------------
+// The player's clock. `t` is seconds since the open started; idle loops use it too.
+let t = 0, playing = true, speed = 1, last = null, mode = "open", modeAt = 0;
+const reduce = () => document.getElementById("reduce").checked;
+const lower = () => document.getElementById("lower").checked;
+function phaseOf(s) { let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) % 997; return h / 997 * Math.PI * 2; }
+
+// ---------------------------------------------------------------------------------------------
+// The frame.
+function drawFrame() {
+  const P = L.panel, st = state("panel", t);
+  if (!st.on) return false;
+  const closing = mode === "close" ? Math.min(1, (t - modeAt) / V.CloseSeconds) : 0;
+  const share = Math.max(0.0, st.s * (1 - ease("Quad", "In", closing)));
+  const h = Math.max(14, P.h * share), y = P.y + (P.h - h) / 2;
+  ctx.save();
+  ctx.globalAlpha = 1 - closing;
+  // shadow, fill, rim (native shapes: crisp at every height)
+  ctx.shadowColor = "rgba(10,30,80,.35)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8;
+  rr(P.x, y, P.w, h, Math.min(P.r, h / 2)); ctx.fillStyle = "#e3f1fe"; ctx.fill();
+  ctx.shadowColor = "transparent";
+  ctx.lineWidth = 6; ctx.strokeStyle = "#a9d4f5"; ctx.stroke();
+  ctx.clip();
+  if (share > 0.98 && closing === 0) {
+    // the header band: its 8-ball pattern scrolls up-left at 45 degrees (a window sliding over
+    // a seamless tile in game), at transparency 0.6
+    const hs = state("header", t);
+    const g = ctx.createLinearGradient(0, P.y, 0, P.y + L.header); g.addColorStop(0, "#deeffe"); g.addColorStop(1, "#d0eafd");
+    ctx.fillStyle = g; ctx.fillRect(P.x, P.y, P.w, L.header);
+    if (hs.on) {
+      const tile = 520, speedPx = tile / 16 * (reduce() ? 0 : 1); // a whole tile in 16 s
+      const o = (t * speedPx) % tile;
+      ctx.save(); rr(P.x, P.y, P.w, L.header + 20, P.r); ctx.clip(); ctx.globalAlpha = 0.4 * hs.a;
+      for (let x = P.x - tile - o; x < P.x + P.w + tile; x += tile) for (let yy = P.y - tile - o; yy < P.y + L.header + tile; yy += tile) ctx.drawImage(IMG.pattern, x, yy, tile, tile);
+      ctx.restore();
+    }
+    // the white sheet with its still dots
+    const S = L.sheet; rr(S.x, S.y, S.w, S.h, S.r);
+    const sg = ctx.createLinearGradient(0, S.y, 0, S.y + S.h); sg.addColorStop(0, "#ffffff"); sg.addColorStop(1, "#f1f7ff");
+    ctx.fillStyle = sg; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = "#a9d4f5"; ctx.stroke();
+    const dots = tint("dots", "#4a7bc0");
+    if (dots) { ctx.save(); rr(S.x, S.y, S.w, S.h, S.r); ctx.clip(); ctx.globalAlpha = 0.08; // the dots at about 8% (transparency 0.92), still
+      for (let x = S.x; x < S.x + S.w; x += 176) for (let yy = S.y; yy < S.y + S.h; yy += 176) ctx.drawImage(dots, x, yy, 176, 176); ctx.restore(); }
+  }
+  ctx.restore();
+  return share > 0.98 && closing === 0;
+}
+function drawChrome() {
+  const b = state("basket", t), s = state("shop", t), m = state("money", t), c = state("close", t);
+  if (b.on) img(IMG.basket, L.basket[0], L.basket[1], L.basket[2], { s: b.s, a: b.a, rot: idleRock("basket", b, 0.06) });
+  if (s.on) text(WORDS.Shop, L.shop[0], L.shop[1], L.shop[2], { s: s.s, a: s.a });
+  if (m.on) { const M = L.money; ctx.save(); ctx.globalAlpha = m.a; ctx.translate(M.x + M.w / 2, M.y + M.h / 2); ctx.scale(m.s, m.s);
+    rr(-M.w / 2, -M.h / 2, M.w, M.h, M.h / 2); ctx.fillStyle = "#fff"; ctx.fill(); ctx.lineWidth = 5; ctx.strokeStyle = INK; ctx.stroke(); ctx.restore();
+    img(IMG.cash, M.x + 14, M.y + M.h / 2, 74, { s: m.s, a: m.a, rot: -0.25 }); text(WORDS.Money, M.x + M.w / 2 + 20, M.y + M.h / 2, 30, { s: m.s, a: m.a }); }
+  if (c.on) { const X = L.close; ctx.save(); ctx.globalAlpha = c.a; ctx.translate(X.x + X.w / 2, X.y + X.h / 2); ctx.scale(c.s, c.s);
+    rr(-X.w / 2, -X.h / 2, X.w, X.h, 18); const g = ctx.createLinearGradient(0, -X.h / 2, 0, X.h / 2); g.addColorStop(0, "#ff5b5b"); g.addColorStop(1, "#e2333b");
+    ctx.fillStyle = g; ctx.fill(); ctx.lineWidth = 6; ctx.strokeStyle = INK; ctx.stroke();
+    ctx.lineCap = "round"; for (const [w, col] of [[22, INK], [12, "#fff"]]) { ctx.lineWidth = w; ctx.strokeStyle = col; ctx.beginPath(); ctx.moveTo(-24, -24); ctx.lineTo(24, 24); ctx.moveTo(24, -24); ctx.lineTo(-24, 24); ctx.stroke(); }
+    ctx.restore(); }
+  // the tabs, top to bottom; the selected tab's icon rocks
+  const T = L.tabs, icons = ["tabFeatured", "tabBlocks", "tabMoney", "tabPasses"];
+  WORDS.Tabs.forEach((name, i) => {
+    const st = state("tab" + i, t); if (!st.on) return;
+    const y = T.y + i * (T.h + T.gap), cx = T.x + T.w / 2, cy = y + T.h / 2, sel = i === selectedTab;
+    ctx.save(); ctx.globalAlpha = st.a; ctx.translate(cx, cy); ctx.scale(st.s, st.s);
+    rr(-T.w / 2, -T.h / 2, T.w, T.h, 22);
+    const g = ctx.createLinearGradient(0, -T.h / 2, 0, T.h / 2);
+    if (sel) { g.addColorStop(0, "#4fa3ff"); g.addColorStop(1, "#1f6fe0"); } else { g.addColorStop(0, "#ffffff"); g.addColorStop(1, "#e7f1fc"); }
+    ctx.fillStyle = g; ctx.fill(); ctx.lineWidth = 6; ctx.strokeStyle = INK; ctx.stroke(); ctx.restore();
+    img(IMG[icons[i]], cx, cy - 20, 62, { s: st.s, a: st.a, rot: sel ? idleRock("tab", st, 0.12) : 0 });
+    text(name, cx, cy + 34, 27, { s: st.s, a: st.a });
+    if (i < 2) { const nb = state("new" + i, t); if (nb.on) {
+      ctx.save(); ctx.globalAlpha = nb.a; ctx.translate(T.x + T.w - 14, y + 16); ctx.scale(nb.s, nb.s);
+      rr(-38, -18, 76, 36, 18); ctx.fillStyle = "#e8333f"; ctx.fill(); ctx.lineWidth = 5; ctx.strokeStyle = INK; ctx.stroke(); ctx.restore();
+      text(WORDS.New, T.x + T.w - 14, y + 16, 22, { s: nb.s, a: nb.a }); } }
+  });
+}
+let selectedTab = 0;
+function idleRock(key, st, amp) { if (reduce() || t < st.landed) return 0; return amp * Math.sin((t - st.landed) * 2.2 + phaseOf(key)); }
+
+// ---------------------------------------------------------------------------------------------
+// The Featured page: "- FEATURED -" and the Grand Opening card.
+function drawFeatured(tabT) {
+  const f = state("featured", tabT), fl = state("featuredLines", tabT);
+  const [fx, fy, fs] = L.featured, half = measure(WORDS.Featured, fs) / 2;
+  if (fl.on) { ctx.save(); ctx.globalAlpha = fl.a; ctx.lineCap = "round";
+    for (const dir of [-1, 1]) { const x0 = fx + dir * (half + 18), x1 = x0 + dir * 150 * fl.s;
+      ctx.strokeStyle = INK; ctx.lineWidth = 10; ctx.beginPath(); ctx.moveTo(x0, fy); ctx.lineTo(x1, fy); ctx.stroke();
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 4; ctx.stroke(); } ctx.restore(); }
+  if (f.on) text(WORDS.Featured, fx, fy, fs, { s: f.s, a: f.a });
+  const cs = state("card", tabT); if (!cs.on) return;
+  const K = L.card;
+  ctx.save();
+  // the card's background opens from its centre
+  const w = K.w * cs.s, h = K.h * cs.s;
+  ctx.translate(K.x + K.w / 2, K.y + K.h / 2);
+  rr(-w / 2, -h / 2, w, h, K.r); ctx.save(); ctx.clip();
+  ctx.translate(-K.w / 2, -K.h / 2);
+  drawCard(tabT);
+  ctx.restore();
+  rr(-w / 2, -h / 2, w, h, K.r); ctx.lineWidth = 6; ctx.strokeStyle = "#bfe3ff"; ctx.stroke();
+  ctx.restore();
+}
+
+// Fireworks that keep bursting on a loop, each at its own pace.
+function loopBurst(key, x, y, w, period, offset) {
+  if (reduce()) return;
+  const local = ((t + offset) % period); const frame = local * 30;
+  if (frame < 64) flip(IMG[key], frame, 8, 8, x, y, w);
+}
+function drawCard(tt) {
+  const K = L.card, lowFx = lower();
+  // the plate (Crop, 2:1 into the card)
+  const pl = IMG.plate; if (pl.width) { const sh = pl.width * K.h / K.w; ctx.drawImage(pl, 0, (pl.height - sh) / 2, pl.width, sh, 0, 0, K.w, K.h); }
+  // bokeh twinkles
+  if (!lowFx) for (let i = 0; i < 14; i++) { const x = (i * 263) % K.w, y = (i * 151) % K.h, a = 0.12 + 0.12 * Math.sin(t * 1.3 + i * 2.1);
+    img(tint("bokeh", ["#5aa0ff", "#46d7ff", "#a070ff"][i % 3]), x, y, 22 + (i % 4) * 10, { a }); }
+  // the 8-balls float at three depths (far: slower, smaller)
+  for (const [k, x, y, w, sp] of C.balls) { const ph = phaseOf(k), r = reduce() ? 0 : 1;
+    img(IMG[k], x + 6 * Math.sin(t * sp + ph) * r, y + 9 * Math.sin(t * sp * 1.3 + ph) * r, w); }
+  // corner fireworks on a loop, plus the reveal bursts
+  for (const [k, x, y, w] of C.fireworks) loopBurst(k, x, y, w, lowFx ? 6 : 3.2, phaseOf(k));
+  // the block: glow pulse, rays turn, breathe, shine sweep, slam
+  const b = state("block", tt);
+  burstAt("burstBlock", tt, "fw_gold", C.block[0], C.block[1], 420);
+  if (b.on) {
+    const pulse = 0.75 + 0.2 * Math.sin(t * 2.4);
+    img(tint("glow", "#ffbe3c"), C.glow[0], C.glow[1], C.glow[2], { a: b.a * pulse });
+    img(tint("rays", "#ffd060"), C.rays[0], C.rays[1], C.rays[2], { a: b.a * 0.35, rot: reduce() ? 0 : t * 0.15 });
+    const breathe = reduce() || t < b.landed ? 1 : 1 + 0.015 * Math.sin((t - b.landed) * 2);
+    img(IMG.block, C.block[0], C.block[1], C.block[2], { s: b.s * breathe, a: b.a });
+    shine(IMG.blockMask, C.block[0], C.block[1], C.block[2] * b.s * breathe, 0, 4.0, "block");
+  }
+  const cr = state("crown", tt);
+  if (cr.on) { const drop = (1 - ease("Bounce", "Out", cr.p)) * -90; img(IMG.crown, C.crown[0], C.crown[1] + drop, C.crown[2], { a: cr.a, rot: -0.12 }); }
+  const nt = state("newTag", tt);
+  if (nt.on) { const wig = reduce() ? 0 : (((t % 3) < 0.4) ? 0.12 * Math.sin((t % 3) * 40) * (1 - (t % 3) / 0.4) : 0);
+    ctx.save(); ctx.globalAlpha = nt.a; ctx.translate(C.newTag[0], C.newTag[1]); ctx.rotate(-0.14 + wig); ctx.scale(nt.s, nt.s);
+    rr(-74, -30, 148, 60, 22); const g = ctx.createLinearGradient(0, -30, 0, 30); g.addColorStop(0, "#ff4e4e"); g.addColorStop(1, "#d8202e");
+    ctx.fillStyle = g; ctx.fill(); ctx.lineWidth = 7; ctx.strokeStyle = INK; ctx.stroke(); ctx.restore();
+    text(WORDS.New, C.newTag[0], C.newTag[1], 40, { s: nt.s, a: nt.a, rot: -0.14 + wig }); }
+  const ei = state("endsIn", tt); if (ei.on) text(WORDS.EndsIn, C.endsIn[0], C.endsIn[1], C.endsIn[2], { a: ei.a, color: "#46d7ff" });
+  // the title, letter by letter, then the subtitle
+  burstAt("burstTitle", tt, "fw_purple", C.title[0], C.title[1], 360);
+  drawTitle(tt);
+  // the two cue cards
+  drawCueCard("beta", tt); drawCueCard("go", tt);
+  // the buttons
+  drawButtons(tt);
+  // confetti drifts down and tumbles; streamers; twinkles
+  if (opt("streamers")) for (const [i, x, y, w, r0] of C.confetti) { if (lowFx && i % 2) continue;
+    const fall = reduce() ? 0 : ((t * 22 + i * 90) % (K.h + 120)) - 60; const yy = reduce() ? y : (y + fall) % (K.h + 80) - 40;
+    img(IMG["confetti" + i], x + 14 * Math.sin(t * 0.9 + i), yy, w, { rot: r0 + (reduce() ? 0 : t * 0.8 * (i % 2 ? 1 : -1)) }); }
+  if (opt("twinkles") && !reduce()) for (let i = 0; i < (lowFx ? 3 : 7); i++) { const period = 2.2 + i * 0.37, local = (t + i * 0.9) % period;
+    if (local * 30 < 64) flip(tint("sparkle", "#fff3c0"), local * 30, 8, 8, (i * 397 + 90) % K.w, (i * 211 + 40) % K.h, 60); }
+}
+function opt(id) { return document.getElementById(id).checked; }
+function burstAt(id, tt, key, x, y, w) {
+  const e = TL.T.find(q => q.id === id); if (!e || reduce()) return;
+  const frame = (tt - e.at) * 30; if (frame >= 0 && frame < 64) flip(IMG[key], frame, 8, 8, x, y, w);
+}
+// A light sweep clipped to a picture's shape (a mask image and a moving gradient band).
+const sweepCanvas = document.createElement("canvas"), sweepCtx = sweepCanvas.getContext("2d");
+function shine(mask, cx, cy, w, rot, period, key) {
+  if (!mask || !mask.width || reduce()) return;
+  const local = (t + phaseOf(key)) % period; if (local > 0.7) return;
+  sweepCanvas.width = mask.width; sweepCanvas.height = mask.height; const g = sweepCtx;
+  g.globalCompositeOperation = "source-over"; g.clearRect(0, 0, mask.width, mask.height); g.drawImage(mask, 0, 0);
+  g.globalCompositeOperation = "source-in";
+  const px = local / 0.7 * (mask.width * 1.6) - mask.width * 0.3;
+  const lg = g.createLinearGradient(px - mask.width * 0.15, 0, px + mask.width * 0.15, mask.height * 0.3);
+  lg.addColorStop(0, "rgba(255,255,255,0)"); lg.addColorStop(0.5, "rgba(255,255,240,.75)"); lg.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = lg; g.fillRect(0, 0, mask.width, mask.height);
+  img(sweepCanvas, cx, cy, w, { rot, op: "lighter" });
+}
+function drawTitle(tt) {
+  const e = TL.T.find(q => q.id === "title"); if (tt < e.at) return;
+  const [cx, cy, size] = C.title, str = WORDS.Title;
+  const total = measure(str, size) * 0.98; let x = cx - total / 2;
+  [...str].forEach((ch, i) => {
+    const w = measure(ch, size) * 0.98, mid = x + w / 2; x += w; if (ch === " ") return;
+    const p = (tt - e.at - i * V.LetterStagger) / V.PopSeconds; if (p <= 0) return;
+    const s = reduce() ? 1 : popScale(Math.min(1, p)), a = Math.min(1, (tt - e.at - i * V.LetterStagger) / V.FadeSeconds);
+    ctx.save(); ctx.globalAlpha = a; ctx.translate(mid, cy); ctx.scale(s, s);
+    ctx.font = `${size}px 'Fredoka One'`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineJoin = "round";
+    ctx.strokeStyle = "#1ec8ff"; ctx.lineWidth = size * 0.36; ctx.strokeText(ch, 0, 3); // rim
+    ctx.strokeStyle = INK; ctx.lineWidth = size * 0.24; ctx.strokeText(ch, 0, 5); ctx.strokeText(ch, 0, 0); // outline
+    ctx.fillStyle = "#d67004"; ctx.fillText(ch, 0, 5); // depth
+    const g = ctx.createLinearGradient(0, -size / 2, 0, size / 2); g.addColorStop(0, "#fff6a8"); g.addColorStop(0.45, "#ffd23a"); g.addColorStop(1, "#ff9a14");
+    ctx.fillStyle = g; ctx.fillText(ch, 0, 0); ctx.restore();
+  });
+  // stars pop with the first and last letters
+  const first = Math.min(1, (tt - e.at) / V.PopSeconds), lastP = Math.min(1, (tt - e.at - str.length * V.LetterStagger) / V.PopSeconds);
+  if (first > 0) img(IMG.starL, C.starL[0], C.starL[1], C.starL[2], { s: popScale(first), rot: reduce() ? 0 : 0.08 * Math.sin(t * 1.7) });
+  if (lastP > 0) img(IMG.starR, C.starR[0], C.starR[1], C.starR[2], { s: popScale(lastP), rot: reduce() ? 0 : -0.08 * Math.sin(t * 1.7 + 1) });
+  const sb = state("subtitle", tt); if (!sb.on) return;
+  const [sx, sy, ss] = C.subtitle; const parts = WORDS.Subtitle, widths = parts.map(p => measure(p, ss));
+  let px = sx - widths.reduce((a, b) => a + b) / 2;
+  parts.forEach((p, i) => { text(p, px + widths[i] / 2, sy, ss, { a: sb.a, color: i === 1 ? "#ffd84a" : "#fff", outline: ss * 0.3 }); px += widths[i]; });
+}
+
+// The two cue cards: a frame with a gradient rim, a background, the cue and its own loops.
+const cardCanvas = {};
+function drawCueCard(id, tt) {
+  const R = C[id], st = state(id, tt); if (!st.on) return;
+  const off = cardCanvas[id] || (cardCanvas[id] = Object.assign(document.createElement("canvas"), { width: R.w * 2, height: R.h * 2 }));
+  const g = off.getContext("2d"); g.clearRect(0, 0, off.width, off.height);
+  if (id === "beta") renderBeta(g, off.width, off.height, tt); else renderGo(g, off.width, off.height, tt);
+  ctx.save(); ctx.globalAlpha = st.a; ctx.translate(R.x + R.w / 2, R.y + R.h / 2); ctx.scale(st.s, st.s);
+  rr(-R.w / 2, -R.h / 2, R.w, R.h, 18); ctx.save(); ctx.clip(); ctx.drawImage(off, -R.w / 2, -R.h / 2, R.w, R.h); ctx.restore();
+  const rim = ctx.createLinearGradient(-R.w / 2, -R.h / 2, R.w / 2, R.h / 2);
+  if (id === "beta") { rim.addColorStop(0, "#46d7ff"); rim.addColorStop(1, "#ff4fc6"); } else { rim.addColorStop(0, "#ff4fc6"); rim.addColorStop(1, "#46d7ff"); }
+  rr(-R.w / 2, -R.h / 2, R.w, R.h, 18); ctx.lineWidth = 6; ctx.strokeStyle = rim; ctx.stroke();
+  ctx.restore();
+  // the name, pills, odds chip (each pops after the card)
+  const nm = state(id + "Name", tt), pl = state(id + "Pills", tt), od = state(id + "Odds", tt);
+  const [a, b] = id === "beta" ? WORDS.Beta : WORDS.GO, nx = R.x + 18, ny = R.y + 26, ns = id === "beta" ? 30 : 26;
+  if (nm.on) { const wa = measure(a, ns); text(a, nx + wa / 2, ny, ns, { a: nm.a, s: nm.s, color: id === "beta" ? "#46d7ff" : "#ffd23a", outline: 6 });
+    text(b, nx + wa + measure(b, ns) / 2, ny, ns, { a: nm.a, s: nm.s, color: id === "beta" ? "#ff6ad5" : "#fff", outline: 6 }); }
+  if (pl.on) [[WORDS.Unique, "#e24fd8", 0], [WORDS.Limited, "#ffc52e", 112]].forEach(([w, col, dx]) => {
+    ctx.save(); ctx.globalAlpha = pl.a; ctx.translate(nx + 52 + dx, ny + 38); ctx.scale(pl.s, pl.s); rr(-52, -15, 104, 30, 15); ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = INK; ctx.stroke(); ctx.restore();
+    text(w, nx + 52 + dx, ny + 38, 17, { a: pl.a, s: pl.s, outline: 4 }); });
+  if (od.on) { const ox = R.x + R.w - 46, oy = R.y + 24; ctx.save(); ctx.globalAlpha = od.a; ctx.translate(ox, oy); ctx.scale(od.s, od.s); rr(-38, -16, 76, 32, 16); ctx.fillStyle = "#46d7ff"; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = INK; ctx.stroke(); ctx.restore();
+    text(id === "beta" ? WORDS.BetaOdds : WORDS.GoOdds, ox, oy, 19, { a: od.a, s: od.s, outline: 4 }); }
+}
+function gimg(g, im, cx, cy, w, o = {}) { if (!im || !im.width) return; const h = im.height * w / im.width; g.save(); g.globalAlpha = o.a ?? 1; if (o.op) g.globalCompositeOperation = o.op; g.translate(cx, cy); if (o.rot) g.rotate(o.rot); if (o.filter) g.filter = o.filter; g.drawImage(im, -w / 2, -h / 2, w, h); g.restore(); }
+const pulseCanvas = document.createElement("canvas"), pulseCtx = pulseCanvas.getContext("2d");
+function cueSweep(g, mask, cx, cy, w, rot, period, len) {
+  if (!mask.width || reduce()) return; const local = t % period; if (local > len) return;
+  pulseCanvas.width = mask.width; pulseCanvas.height = mask.height; const p = pulseCtx;
+  p.globalCompositeOperation = "source-over"; p.clearRect(0, 0, mask.width, mask.height); p.drawImage(mask, 0, 0); p.globalCompositeOperation = "source-in";
+  const px = local / len * (mask.width + 300) - 150, lg = p.createLinearGradient(px - 90, 0, px + 90, 0);
+  lg.addColorStop(0, "rgba(255,255,255,0)"); lg.addColorStop(.5, "rgba(230,250,255,.95)"); lg.addColorStop(1, "rgba(255,255,255,0)");
+  p.fillStyle = lg; p.fillRect(0, 0, mask.width, mask.height); gimg(g, pulseCanvas, cx, cy, w, { rot, op: "lighter", a: 0.9 });
+}
+function renderBeta(g, w, h, tt) {
+  const bg = IMG.betaBg; if (bg.width) g.drawImage(bg, 0, 0, w, h);
+  const cue = state("betaCue", tt), lowFx = lower(), still = reduce();
+  const code = IMG.betaCode, cw = w, chh = code.height * cw / code.width;
+  for (const [y, dir, a] of [[18, -1, .5], [h - 18, 1, .35]]) { const o = still ? 0 : ((t * 24 * dir) % cw + cw) % cw; g.globalAlpha = a; g.drawImage(code, o - cw, y - chh / 2, cw, chh); g.drawImage(code, o, y - chh / 2, cw, chh); }
+  g.globalAlpha = 1;
+  const k = w / 1120; // the panels' places come from the gate 2 Beta card (1120 wide)
+  const panels = [[1,150,170,230,.5,0],[2,880,120,250,.45,1.3],[3,200,520,190,.45,2.1],[5,980,520,170,.5,3.0],[6,560,120,170,.35,.7],[7,720,560,180,.4,4.1],[8,420,590,210,.4,1.9],[9,1010,330,160,.35,2.7],[10,110,350,150,.4,5.0],[4,640,300,200,.25,3.6]];
+  for (const [n, x, y, pw, a, ph] of panels) { if (lowFx && n > 5) continue; gimg(g, IMG["panel" + n], x * k, y * h / 660, pw * k, { a: a * (still ? 1 : 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(t * Math.PI / 2 + ph))) }); }
+  gimg(g, IMG.betaRing, w * 0.53, h / 2, h * 0.9, { a: 0.7, rot: still ? 0 : t * 0.25 });
+  if (!lowFx && !still) for (let i = 0; i < 12; i++) { const x = (i * 157) % w, y = (((i * 97) - t * (14 + i * 2)) % h + h) % h; gimg(g, IMG.mote, x, y, 10 + (i % 3) * 5, { a: 0.7 * Math.min(1, y / 60) }); }
+  if (!still) { const sp = (t % 3) / 1.2; if (sp < 1) { const y = sp * h, lg = g.createLinearGradient(0, y - 30, 0, y + 4); lg.addColorStop(0, "rgba(70,215,255,0)"); lg.addColorStop(1, "rgba(70,215,255,.35)"); g.fillStyle = lg; g.fillRect(0, y - 30, w, 34); } }
+  if (!cue.on) return;
+  const cx = w / 2, cy = h * 0.56, cueW = w * 0.98 * cue.s, rot = -14 * Math.PI / 180;
+  g.save(); g.globalAlpha = cue.a;
+  gimg(g, IMG.betaCue, cx, cy, cueW, { rot, a: 0.35 + 0.25 * Math.sin(t * 2.1), filter: "blur(10px)" });
+  gimg(g, IMG.betaCallouts, cx, cy, cueW, { rot, a: 0.75 + 0.2 * Math.sin(t * 7) });
+  const glitch = !still && (t % 5) < 0.14;
+  if (glitch) { gimg(g, IMG.betaCue, cx - 6, cy, cueW, { rot, op: "lighter", a: .6 }); gimg(g, IMG.betaCue, cx + 6, cy + 2, cueW, { rot, op: "lighter", a: .6, filter: "hue-rotate(90deg)" }); }
+  else gimg(g, IMG.betaCue, cx, cy, cueW, { rot });
+  cueSweep(g, IMG.betaMask, cx, cy, cueW, rot, 1.5, 1.0);
+  g.restore();
+}
+const goBursts = [];
+function renderGo(g, w, h, tt) {
+  const bg = IMG.goBg; if (bg.width) g.drawImage(bg, 0, 0, w, h);
+  const cue = state("goCue", tt), lowFx = lower(), still = reduce();
+  // mini fireworks at random spots every 0.5 to 1 s
+  if (!still) {
+    const every = lowFx ? 1.5 : 0.75, slot = Math.floor(t / every);
+    for (let k = slot - 3; k <= slot; k++) { if (k < 0) continue; const born = k * every, f = (t - born) * 30; if (f >= 64) continue;
+      const r = (k * 7919) % 1000 / 1000, r2 = (k * 104729) % 1000 / 1000, keys = ["fw_gold", "fw_pink", "fw_cyan", "fw_purple", "fw_orange"];
+      const im = IMG[keys[k % 5]], s = 140 + r2 * 120; if (!im.width) continue;
+      const fw = im.width / 8, i = Math.floor(f); g.drawImage(im, (i % 8) * fw, Math.floor(i / 8) * fw, fw, fw, r * w - s / 2, r2 * h - s / 2, s, s); }
+  }
+  if (!cue.on) return;
+  const cx = w / 2, cy = h * 0.58, cueW = w * 0.98 * cue.s, rot = -14 * Math.PI / 180;
+  g.save(); g.globalAlpha = cue.a;
+  gimg(g, IMG.goCue, cx, cy, cueW, { rot, a: 0.3 + 0.2 * Math.sin(t * 1.8), filter: "blur(12px)" });
+  gimg(g, IMG.goCue, cx, cy, cueW, { rot });
+  // the ribbons: 32 frames over two sheets, a turn in 2.4 s, laid over the cue's canvas
+  const fr = still ? 0 : Math.floor(t * 13.333) % 32, sheet = fr < 16 ? IMG.rib1 : IMG.rib2, i = fr % 16;
+  if (sheet.width) {
+    const fw = sheet.width / 2, fh = sheet.height / 8, box = [0.0243, 0.05, 0.9201, 0.9016];
+    const ch = IMG.goCue.height * cueW / IMG.goCue.width;
+    g.save(); g.translate(cx, cy); g.rotate(rot);
+    g.drawImage(sheet, (i % 2) * fw, Math.floor(i / 2) * fh, fw, fh, -cueW / 2 + box[0] * cueW, -ch / 2 + box[1] * ch, (box[2] - box[0]) * cueW, (box[3] - box[1]) * ch);
+    g.restore();
+  }
+  g.restore();
+}
+function drawButtons(tt) {
+  DEALS.forEach((d, i) => {
+    const x = C.btnX + i * (C.btnW + C.btnGap) + C.btnW / 2;
+    for (const [row, y, top, bot, label] of [["green", C.rowGreen, "#5fe38a", "#26b04d", "robux"], ["gold", C.rowGold, "#ffe066", "#f5b40a", "money"]]) {
+      const st = state(row + i, tt); if (!st.on) continue;
+      ctx.save(); ctx.globalAlpha = st.a; ctx.translate(x, y + C.rowH / 2); ctx.scale(st.s, st.s);
+      rr(-C.btnW / 2, -C.rowH / 2, C.btnW, C.rowH, 16); const g = ctx.createLinearGradient(0, -C.rowH / 2, 0, C.rowH / 2); g.addColorStop(0, top); g.addColorStop(1, bot);
+      ctx.fillStyle = g; ctx.fill(); ctx.lineWidth = 5; ctx.strokeStyle = INK; ctx.stroke();
+      // a shine sweeps across every ~3 s, staggered
+      if (!reduce()) { const local = (t + i * 0.35 + (row === "gold" ? 1.4 : 0)) % 3; if (local < 0.5) { ctx.clip(); const sx = -C.btnW / 2 - 60 + local / 0.5 * (C.btnW + 120);
+        const lg = ctx.createLinearGradient(sx - 40, 0, sx + 40, 0); lg.addColorStop(0, "rgba(255,255,255,0)"); lg.addColorStop(.5, "rgba(255,255,255,.55)"); lg.addColorStop(1, "rgba(255,255,255,0)"); ctx.fillStyle = lg; ctx.fillRect(-C.btnW / 2, -C.rowH / 2, C.btnW, C.rowH); } }
+      ctx.restore();
+      if (label === "robux") {
+        const words = `${d.count} block${d.count > 1 ? "s" : ""} • ${d.robux}`, ww = measure(words, 23), wasW = d.was ? measure(String(d.was), 20) + 10 : 0;
+        const left = x - (ww + wasW + 34) / 2;
+        robuxGlyph(left + 12, y + C.rowH / 2, 13, st);
+        text(words, left + 34 + ww / 2, y + C.rowH / 2, 23, { a: st.a, s: st.s, outline: 6 });
+        if (d.was) { const wx = left + 34 + ww + 10 + wasW / 2 - 5; text(String(d.was), wx, y + C.rowH / 2, 20, { a: st.a * 0.95, s: st.s, color: "#ff5a5a", outline: 5 });
+          ctx.save(); ctx.globalAlpha = st.a; ctx.strokeStyle = "#e0242f"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(wx - wasW / 2 + 4, y + C.rowH / 2 + 8); ctx.lineTo(wx + wasW / 2 - 6, y + C.rowH / 2 - 8); ctx.stroke(); ctx.restore(); }
+      } else {
+        const words = "$" + d.money.toLocaleString("en-US"); img(IMG.cash, x - measure(words, 28) / 2 - 30, y + C.rowH / 2, 56, { a: st.a, s: st.s, rot: -0.2 });
+        text(words, x + 14, y + C.rowH / 2, 28, { a: st.a, s: st.s, outline: 6 });
+      }
+    }
+    const sv = state("save", tt);
+    if (sv.on && d.was) { const pct = Math.round((1 - d.robux / d.was) * 100), x0 = x;
+      const rainbow = pct >= 20 && !reduce() ? `hsl(${(t * 120) % 360} 90% 65%)` : "#fff";
+      text(WORDS.Save.replace("%d%%", pct + "%"), x0, C.save, 24, { a: sv.a, color: rainbow, outline: 5 }); }
+  });
+}
+function robuxGlyph(x, y, r, st) {
+  ctx.save(); ctx.globalAlpha = st.a; ctx.translate(x, y); ctx.scale(st.s, st.s); ctx.beginPath();
+  for (let k = 0; k < 6; k++) { const a = Math.PI / 6 + k * Math.PI / 3; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath();
+  ctx.lineWidth = 9; ctx.strokeStyle = INK; ctx.stroke(); ctx.lineWidth = 4.5; ctx.strokeStyle = "#fff"; ctx.stroke();
+  ctx.fillStyle = "#fff"; ctx.fillRect(-r * 0.3, -r * 0.3, r * 0.6, r * 0.6); ctx.restore();
+}
+function drawFlair() {
+  const st = state("flair", t); if (!st.on) return;
+  const y0 = L.panel.y + 4, x0 = L.panel.x + 110; // the top edge near the left corner (the right has the money and X)
+  const drop = (1 - ease("Bounce", "Out", st.p)) * -120;
+  const hop = reduce() || t < st.landed ? 0 : (((t - st.landed) % 5) < 0.4 ? -18 * Math.sin(((t - st.landed) % 5) / 0.4 * Math.PI) : 0);
+  img(IMG.flair, x0, y0 + drop + hop, 96, { a: st.a, rot: idleRock("flair", st, 0.1) });
+}
+function drawPoppers() {
+  if (!opt("poppers") || reduce()) return;
+  const e = TL.T.find(q => q.id === "card"); const f = (t - e.at) * 30;
+  if (f >= 0 && f < 64) { flip(IMG.fw_gold, f, 8, 8, L.card.x + 20, L.card.y + L.card.h - 10, 260); flip(IMG.fw_pink, f, 8, 8, L.card.x + L.card.w - 20, L.card.y + L.card.h - 10, 260); }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Each frame.
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  // the world behind (a soft sky, standing in for the game)
+  const sky = ctx.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, "#8cc7f2"); sky.addColorStop(1, "#d9c3a8"); ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(10,20,50,.25)"; ctx.fillRect(0, 0, W, H);
+  const open = drawFrame();
+  if (open) {
+    // a tab switch: only the page's pieces, their reveal squeezed into TabSeconds, no unroll
+    const from = TL.T.find(q => q.id === "featured").at;
+    const tabT = mode === "tab" ? from + (t - modeAt) * (TL.end - from) / V.TabSeconds : t;
+    drawFeatured(tabT); drawPoppers(); drawChrome(); drawFlair();
+  }
+  document.getElementById("clock").textContent = t.toFixed(3) + " s";
+}
+function tick(now) {
+  if (last !== null && playing) { t += (now - last) / 1000 * speed; if (mode === "close" && t - modeAt > V.CloseSeconds + 0.4) replay(); }
+  last = now; render(); requestAnimationFrame(tick);
+}
+function replay() { mode = "open"; t = 0; modeAt = 0; }
+
+// ---------------------------------------------------------------------------------------------
+// Controls.
+function buildControls() {
+  const box = document.getElementById("controls");
+  for (const [key, label, min, max, step, unit, help] of SLIDERS) {
+    const id = "v_" + key, wrap = document.createElement("div"); wrap.className = "ctl";
+    wrap.innerHTML = `<label for="${id}">${label}</label><output id="o_${key}"></output><input type="range" id="${id}" min="${min}" max="${max}" step="${step}"><small>${help}</small>`;
+    box.append(wrap);
+    const input = wrap.querySelector("input"), out = wrap.querySelector("output");
+    input.value = V[key]; out.textContent = (+V[key]).toFixed(3).replace(/0+$/, "").replace(/\.$/, "") + " " + unit;
+    input.addEventListener("input", () => { V[key] = +input.value; out.textContent = (+input.value).toFixed(3).replace(/0+$/, "").replace(/\.$/, "") + " " + unit; TL = buildTimeline(); saveValues(); showJson(); });
+    input.addEventListener("change", replay);
+  }
+  const reset = document.createElement("button"); reset.className = "ghost"; reset.textContent = "Reset to defaults";
+  reset.addEventListener("click", () => { Object.assign(V, DEFAULTS); saveValues(); box.innerHTML = ""; buildControls(); TL = buildTimeline(); showJson(); replay(); });
+  box.append(reset);
+}
+function showJson() {
+  document.getElementById("json").value = JSON.stringify({ Motion: V, Toggles: { Streamers: opt("streamers"), Poppers: opt("poppers"), Twinkles: opt("twinkles") }, OpenEndsAt: +TL.end.toFixed(3) }, null, 2);
+}
+document.getElementById("replay").onclick = replay;
+document.getElementById("play").onclick = e => { playing = !playing; e.target.textContent = playing ? "Pause" : "Play"; };
+document.getElementById("back").onclick = () => { playing = false; document.getElementById("play").textContent = "Play"; t = Math.max(0, t - 1 / 60); };
+document.getElementById("fwd").onclick = () => { playing = false; document.getElementById("play").textContent = "Play"; t += 1 / 60; };
+document.getElementById("closeBtn").onclick = () => { if (mode !== "close") { mode = "close"; modeAt = t; } };
+document.getElementById("tab").onclick = () => { selectedTab = 0; mode = "tab"; modeAt = t; };
+document.querySelectorAll("input[name=speed]").forEach(r => r.addEventListener("change", () => { speed = +r.value; }));
+["streamers", "poppers", "twinkles", "lower", "reduce"].forEach(id => document.getElementById(id).addEventListener("change", () => { showJson(); }));
+document.getElementById("copy").onclick = async () => {
+  showJson(); const ta = document.getElementById("json");
+  try { await navigator.clipboard.writeText(ta.value); document.getElementById("copied").textContent = "Copied"; }
+  catch { ta.select(); document.getElementById("copied").textContent = "Selected: press Copy"; }
+};
+buildControls(); showJson();
+// For checks: ?t=1.2 shows that moment, paused (local runs only; the published page has no query).
+const query = new URLSearchParams(location.search);
+if (query.has("t")) { t = +query.get("t"); playing = false; document.getElementById("play").textContent = "Play"; }
+if (matchMedia("(prefers-reduced-motion: reduce)").matches) document.getElementById("reduce").checked = true;
+Promise.all([loadAll(), document.fonts.load("40px 'Fredoka One'").catch(() => {})]).then(() => requestAnimationFrame(tick));
+</script>
