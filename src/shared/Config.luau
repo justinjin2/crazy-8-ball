@@ -6051,6 +6051,8 @@ Config.UI = {
 				-- ones looked like a choppy sprite; designer, 2026-10-03).
 				Text = { Degrees = 3, Every = 2.6, Seconds = 0.45, Speed = 20 },
 				Wiggle = { Degrees = 6, Every = 1.7, Seconds = 0.6, Speed = 15 },
+				-- The Grand Opening card's tilted NEW tag (the approved animatic, 2026-10-06).
+				NewTag = { Degrees = 7, Every = 3, Seconds = 0.4, Speed = 40 },
 				Jolt = { Degrees = 5, Every = 0, Seconds = 0.45, Speed = 22 }, -- once (a slam)
 				-- A rattle that keeps going (Every = Seconds): the grid's rarest card before it turns.
 				Hard = { Degrees = 6, Every = 0.4, Seconds = 0.4, Speed = 26 },
@@ -7579,7 +7581,10 @@ Config.UI.Shop.Open = {
 		{ Ids = { "EndsIn" }, Kind = "Fade", At = 1.28, Length = 0.15 },
 		{ Ids = { "Flair" }, Kind = "Drop", At = 1.3, Length = 0.3 }, -- the 8-ball lands on the frame
 	},
-	Poppers = true, -- party poppers burst from the card's bottom corners as it opens (designer: on)
+	-- The optional flair, each a switch (all on in the approved animatic, gate 3):
+	Poppers = true, -- party poppers burst from the card's bottom corners as it opens
+	Streamers = true, -- gold confetti streamers drift down the card
+	Twinkles = true, -- sparkles twinkle over the card
 }
 
 -- The lively GUI's effects library (docs/prompts/SHOP_LIVELY_PROMPT.md 7.2): flipbooks any
@@ -7637,6 +7642,7 @@ Config.UI.GrandOpeningCard = {
 		BetaBg = "rbxassetid://79365265074624",
 		BetaCallouts = "rbxassetid://100443049445710",
 		BetaCode = "rbxassetid://84645552488171",
+		BetaCodeTile = "rbxassetid://85815838814214", -- the strip at half width, twice: scrolls (512 period)
 		BetaCue = "rbxassetid://119107559983869",
 		BetaCueMask = "rbxassetid://133658662502990",
 		BetaMote = "rbxassetid://97352339516537",
@@ -7661,6 +7667,15 @@ Config.UI.GrandOpeningCard = {
 		Confetti4 = "rbxassetid://120125257618602",
 		Confetti5 = "rbxassetid://104704902760777",
 		Confetti6 = "rbxassetid://138178384118884",
+		-- The same ribbons centred on clear 256 squares (the drift windows a square picture).
+		ConfettiSquare = {
+			"rbxassetid://73410510313552",
+			"rbxassetid://130296626050021",
+			"rbxassetid://103992410457197",
+			"rbxassetid://137675637490855",
+			"rbxassetid://118321190574872",
+			"rbxassetid://126831229907440",
+		},
 		Crown = "rbxassetid://118495873177958",
 		Flair8ball = "rbxassetid://132422184916082",
 		GoBg = "rbxassetid://99479265638524",
@@ -7678,7 +7693,7 @@ Config.UI.GrandOpeningCard = {
 		BreatheScale = 0.015, -- the block breathes this much...
 		BreatheSeconds = 3.1, -- ...over this
 		BlockShineEvery = 4, -- a shine sweeps across the block (0.7 s)
-		NewWiggleEvery = 3, -- the NEW tag wiggles (UIAnim.shake "Wiggle")
+		-- the NEW tag wiggles every 3 s: Config.UI.Kit.Motion.Shake.NewTag
 		BallFloatPx = { 6, 9 }, -- the 8-balls float this far (x, y), the far ones slower
 		CornerFireworkEvery = 3.2, -- the corner fireworks burst on a loop
 		ConfettiFallPxPerSecond = 22, -- gold confetti drifts down, tumbling
@@ -7695,6 +7710,126 @@ Config.UI.GrandOpeningCard = {
 		GoFireworkEvery = 1.5, -- ...and burst half as often, calm like the ribbons
 		RibbonFps = 13.333, -- the gold ribbons: a turn in 2.4 s (Config.UI.Effects.GoRibbons)
 		SaveRainbowPercent = 20, -- a "save" of this much or more shows in the moving rainbow
+	},
+	-- Where everything sits, in the approved animatic's units (tools/gui/animatic, its card
+	-- 1275 x 498; the card fills the page's width and every number scales with it). Places are
+	-- a piece's centre { x, y } and its width (or { x, y, w, h } boxes from the top-left), card
+	-- local. Text sizes are in the same units, never under MinTextPx on screen.
+	Layout = {
+		Card = { 1275, 498 }, -- the card's size
+		CornerUnits = 28,
+		RimUnits = 6, -- its pale rim
+		Rim = { 191, 227, 255 },
+		Featured = { Units = 56, TextUnits = 30, LineUnits = 150, LineGapUnits = 18 }, -- "- FEATURED -" over the card
+		MinTextPx = 16, -- the new screens' smallest text (Kit.Big.Min)
+		-- Narrower pages (a phone) restack the card taller: the block and title on top, the cue
+		-- cards side by side under them, then the buttons (brief section 6, "Phones").
+		StackBelowPx = 760,
+		Stack = {
+			BlockScale = 0.75, -- the block's group, at the top left
+			TitleScale = 1.3, -- the title's group, beside it
+			RowsScale = 1.38, -- the cue cards and the buttons, full width under them
+			GapUnits = 20,
+		},
+		-- The block's group (box 0..364 x 0..498).
+		Block = { 182, 262, 300 },
+		Glow = { 182, 262, 560 },
+		GlowTint = { 255, 190, 60 },
+		GlowTransparency = { 0.05, 0.45 }, -- pulsing between these
+		Rays = { 182, 262, 620 },
+		RaysTint = { 255, 208, 96 },
+		RaysTransparency = 0.65,
+		Crown = { 192, 122, 170 },
+		CrownDegrees = -7,
+		NewTag = { 92, 66, 148, 60 }, -- centre, width, height
+		NewTagDegrees = -8,
+		NewTextUnits = 40,
+		OddsBadge = { 300, 360, 44 }, -- the sky-blue "i" on the block (centre, size)
+		EndsIn = { 182, 466 },
+		EndsInUnits = 30,
+		EndsInColor = { 70, 215, 255 },
+		-- The title's group (box 470..1155 x 10..130).
+		Title = { 812, 54 },
+		TitleUnits = 58,
+		Subtitle = { 812, 112 },
+		SubtitleUnits = 24,
+		StarLeft = { 520, 66, 62 },
+		StarRight = { 1104, 66, 62 },
+		StarRockDegrees = 4.6,
+		StarRockSeconds = 3.7,
+		-- The two cue cards (box 360..1256 x 140..336).
+		Beta = { 360, 140, 432, 196 },
+		Go = { 808, 140, 448, 196 },
+		CueCardCornerUnits = 18,
+		CueCardRimUnits = 6,
+		BetaRim = { { 70, 215, 255 }, { 255, 79, 198 } }, -- cyan to magenta
+		GoRim = { { 255, 79, 198 }, { 70, 215, 255 } },
+		NameAt = { 18, 26 }, -- the card's name, from its top-left
+		BetaNameUnits = 30,
+		GoNameUnits = 26,
+		BetaColors = { { 70, 215, 255 }, { 255, 106, 213 } }, -- "BETA" cyan, "CUE" pink
+		GoColors = { { 255, 210, 58 }, { 255, 255, 255 } }, -- "GRAND OPENING" gold, "CUE" white
+		PillsAt = { 18, 64 }, -- the UNIQUE and LIMITED pills' top-left
+		PillUnits = { 104, 30 },
+		PillTextUnits = 17,
+		PillGapUnits = 8,
+		UniqueColor = { 226, 79, 216 },
+		LimitedColor = { 255, 197, 46 },
+		OddsChip = { 46, 24, 76, 32 }, -- from the card's top-right: centre in, width, height
+		OddsTextUnits = 19,
+		OddsColor = { 70, 215, 255 }, -- sky blue (Kit.Numbers' odds colour)
+		CueShare = { 0.5, 0.56, 0.98 }, -- the cue's centre (shares of the card) and width
+		GoCueShare = { 0.5, 0.58, 0.98 },
+		CueDegrees = -14,
+		BetaPanels = { -- the blueprint panels: number, centre x, y (of a 1120 x 660 card), width, strength
+			{ 1, 150, 170, 230, 0.5 },
+			{ 2, 880, 120, 250, 0.45 },
+			{ 3, 200, 520, 190, 0.45 },
+			{ 5, 980, 520, 170, 0.5 },
+			{ 6, 560, 120, 170, 0.35 },
+			{ 7, 720, 560, 180, 0.4 },
+			{ 8, 420, 590, 210, 0.4 },
+			{ 9, 1010, 330, 160, 0.35 },
+			{ 10, 110, 350, 150, 0.4 },
+			{ 4, 640, 300, 200, 0.25 },
+		},
+		BetaMotes = 12,
+		BetaRingShare = 0.9, -- of the card's height
+		BetaCodeRows = { { 9, -1, 0.5 }, { -9, 1, 0.35 } }, -- y from the top (or bottom), direction, strength
+		BetaCodeUnits = 20, -- the glyph strip's height
+		-- The buttons (box 360..1256 x 352..492): three green Robux, three gold money.
+		RowGreen = 352,
+		RowGold = 412,
+		RowUnits = 52,
+		ButtonX = 360,
+		ButtonUnits = 288,
+		ButtonGapUnits = 16,
+		ButtonTextUnits = 26,
+		WasTextUnits = 30, -- the crossed-out old price on its white sticker at the button's corner
+		SaveY = 478,
+		SaveTextUnits = 24,
+		-- The background (scaled with the card when it restacks).
+		-- The floating 8-balls: picture, centre, width, sway speed (radians a second; the far ones
+		-- slower), and the picture's smaller side in pixels (the float windows a square).
+		Balls = {
+			{ Picture = "BallFar", At = { 700, 26 }, Units = 92, Speed = 0.25, ImagePx = 212 },
+			{ Picture = "BallMid", At = { 1232, 468 }, Units = 112, Speed = 0.18, ImagePx = 188 },
+			{ Picture = "BallNear", At = { 318, 470 }, Units = 92, Speed = 0.32, ImagePx = 170 },
+		},
+		-- The corner fireworks: colour (Config.UI.Effects.Firework), centre, width.
+		Fireworks = {
+			{ Colour = "Gold", At = { 120, 96 }, Units = 240 },
+			{ Colour = "Pink", At = { 28, 260 }, Units = 170 },
+			{ Colour = "Purple", At = { 560, 36 }, Units = 150 },
+			{ Colour = "Orange", At = { 1208, 60 }, Units = 210 },
+		},
+		Confetti = 6,
+		ConfettiUnits = 50,
+		BokehTints = { { 90, 160, 255 }, { 70, 215, 255 }, { 160, 112, 255 } },
+		Twinkle = { Units = 60, Tint = { 255, 243, 192 } },
+		-- The odds pop-up beside the block.
+		OddsCardPx = 260, -- its width on screen
+		OddsRowPx = 24,
 	},
 }
 

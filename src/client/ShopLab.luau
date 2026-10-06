@@ -19,50 +19,20 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local BlockOdds = require(Shared:WaitForChild("Progression"):WaitForChild("BlockOdds"))
 local ArchTitle = require(script.Parent.ArchTitle)
 local BlockIcon = require(script.Parent.BlockIcon)
+local GrandOpeningCard = require(script.Parent.GrandOpeningCard)
 local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local Stage = require(script.Parent.Stage)
 local UIAnim = require(script.Parent.UIAnim)
 
 local COPY: { [string]: any } = (Strings.Menus.Shop :: any).Featured
-local CUES: { [string]: string } = Strings.Items.Cues :: any
-local RARITIES: { [string]: string } = Strings.Items.Rarities :: any
 local K = Config.UI.Kit
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
 end
 
--- Every outcome of the Grand Opening block, as the pop-up and the chip row list them: the
--- rarities bottom first, then the two Unique cues (rarest last). Words from Strings, numbers
--- from Config through BlockOdds (they add up to 100%).
-local function outcomes(): { { name: string, display: string, percent: number, tint: Color3 } }
-	local list = {}
-	for _, row in BlockOdds.odds("GrandOpening") do
-		table.insert(list, {
-			name = RARITIES[row.rarity] or row.rarity,
-			display = row.display,
-			percent = row.percent,
-			-- Secret's near-black does not read on a white card: its red glow does.
-			tint = if row.rarity == "Secret"
-				then rgb(K.SecretGlow)
-				else rgb((K.Rarity :: any)[row.rarity] or K.Rarity.Default),
-		})
-	end
-	local uniques = BlockOdds.uniqueRows("GrandOpening")
-	table.sort(uniques, function(a, b)
-		return a.weight > b.weight
-	end)
-	for _, row in uniques do
-		table.insert(list, {
-			name = CUES[row.cue] or row.cue,
-			display = row.display,
-			percent = row.percent,
-			tint = rgb(K.Rarity.Unique),
-		})
-	end
-	return list
-end
+local outcomes = GrandOpeningCard.outcomes
 
 local ShopLab = {}
 

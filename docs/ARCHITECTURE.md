@@ -158,7 +158,11 @@ open schedule from Config (`Config.UI.Shop.Open`, tokens in `Config.UI.Motion`) 
 frame on registered pieces: pop, slam, grow and drop, the panel's unroll, the code fader (no
 CanvasGroup), firework bursts, close, tab replay, Reduce Motion; its maths is the pure shared
 `StageMath`, tested in Lune; `MenuFrame` plays it for the menus in
-`Config.UI.Menu.LivelyMenus`, with `HudParts.livelyCard`'s scrolling header and dotted sheet), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound),
+`Config.UI.Menu.LivelyMenus`, with `HudParts.livelyCard`'s scrolling header and dotted sheet),
+`GrandOpeningCard` (the Shop's Featured page: the Grand Opening card built from the animatic,
+laid out in its units from `Config.UI.GrandOpeningCard.Layout` and restacked on narrow pages, its
+pieces on the Shop's Stage, the block's odds pop-up; ShopMenu buys through ItemRequest
+"BuyBlocks" and StoreRequest "Buy"), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound),
 `MapAmbience` (the drifting boats), `DayCycle` (runs the day/sunset cycle from the server's
 clock every frame of a fade, no network traffic), `FirePit` (the fire pit's fire, Roblox's
 own, lit at sunset).

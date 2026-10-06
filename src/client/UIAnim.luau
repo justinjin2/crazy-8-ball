@@ -1136,6 +1136,7 @@ function UIAnim.confettiDrift(
 ): Handle
 	local random = Random.new()
 	local handles: { Handle } = {}
+	local pieces: { ImageLabel } = {}
 	local n = math.max(1, math.floor(count * Quality.rate() + 0.5))
 	for i = 1, n do
 		local piece = Instance.new("ImageLabel")
@@ -1149,6 +1150,7 @@ function UIAnim.confettiDrift(
 		piece.Rotation = random:NextNumber(0, 360)
 		piece.ZIndex = area.ZIndex + 6
 		piece.Parent = area
+		table.insert(pieces, piece)
 		local start = random:NextNumber(0, 1)
 		local swayPhase = random:NextNumber(0, math.pi * 2)
 		local tumble = random:NextNumber(30, 70) * (if i % 2 == 0 then 1 else -1)
@@ -1167,6 +1169,46 @@ function UIAnim.confettiDrift(
 			for _, h in handles do
 				h.stop()
 			end
+			for _, piece in pieces do
+				piece:Destroy()
+			end
+		end,
+	}
+end
+
+--- A flipbook burst that repeats: every `every` seconds (at a random phase; Lower effects half
+--- as often) `label` plays `sheet` once (Config.UI.Effects: Firework with `image`, or Sparkle) at
+--- `fps`, hidden between. The corner fireworks and the twinkles. Not with Reduce Motion.
+function UIAnim.burstLoop(
+	label: ImageLabel,
+	sheet: any,
+	every: number,
+	opts: { image: string?, fps: number?, phase: number? }?
+): Handle
+	local o: { image: string?, fps: number?, phase: number? } = opts or ({} :: any)
+	local fw, fh = frameSize(sheet)
+	label.Image = o.image or sheet.Image
+	label.ImageRectSize = Vector2.new(fw, fh)
+	label.Visible = false
+	local fps = o.fps or sheet.Fps
+	local phase = o.phase or Random.new():NextNumber(0, every)
+	-- The loop follows the label's parent: a hidden label would never run to show itself.
+	local parent = label.Parent
+	local watch: GuiObject = if parent and parent:IsA("GuiObject") then parent else label
+	local handle = UIAnim.loop(watch, function(clock)
+		local period = every / math.max(0.25, Quality.rate())
+		local frame = StageMath.flipFrame((clock + phase) % period, fps, sheet.Frames, false)
+		local on = frame ~= nil and not UIAnim.reduced()
+		label.Visible = on
+		if on then
+			local x, y = StageMath.flipOffset(frame :: number, sheet.Columns, fw, fh)
+			label.ImageRectOffset = Vector2.new(x, y)
+		end
+	end)
+	return {
+		stop = function()
+			handle.stop()
+			label.Visible = false
 		end,
 	}
 end

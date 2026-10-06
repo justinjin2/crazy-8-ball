@@ -89,6 +89,9 @@ end
 --- Register `object` as piece `id` (an id in the schedule's steps). `onLand` runs once its
 --- reveal is over (start its idle loops there). Returns the object.
 function Stage.add<T>(self: Stage, id: string, object: T & GuiObject, onLand: (() -> ())?): T
+	if not self.pieces[id] then
+		table.insert(self.order, id)
+	end
 	self.pieces[id] = {
 		id = id,
 		object = object,
@@ -102,13 +105,18 @@ function Stage.add<T>(self: Stage, id: string, object: T & GuiObject, onLand: ((
 		faded = false,
 		cache = nil,
 	}
-	table.insert(self.order, id)
 	return object
 end
 
 -- The piece's own transparencies, not those inside another registered piece (that piece fades
--- itself, on its own schedule).
-local function buildCache(self: Stage, piece: Piece): { Cached }
+-- itself, on its own schedule). With `old` (the piece is faded part way), what it already knew
+-- keeps its rest; anything new (rebuilt or added since) is at rest now.
+local function buildCache(self: Stage, piece: Piece, old: { Cached }?): { Cached }
+	local known: { [Instance]: { [string]: number } } = {}
+	for _, c in (old or {}) :: { Cached } do
+		known[c.object] = known[c.object] or {}
+		known[c.object][c.prop] = c.rest
+	end
 	local others: { [Instance]: boolean } = {}
 	for id, other in self.pieces do
 		if id ~= piece.id then
@@ -120,7 +128,11 @@ local function buildCache(self: Stage, piece: Piece): { Cached }
 		local list = FADED[object.ClassName]
 		if list then
 			for _, prop in list do
-				table.insert(cache, { object = object, prop = prop, rest = (object :: any)[prop] })
+				local rest = known[object] and known[object][prop]
+				table.insert(
+					cache,
+					{ object = object, prop = prop, rest = rest or (object :: any)[prop] }
+				)
 			end
 		end
 		for _, child in object:GetChildren() do
@@ -154,13 +166,15 @@ end
 
 -- Read the piece's rest (place, size, transparencies) as it is now, unless a run left it part
 -- way (then the rest kept from before is the right one).
-local function settle(piece: Piece)
+local function settle(self: Stage, piece: Piece)
+	local old = piece.cache
 	if not piece.moved then
 		piece.restPosition = piece.object.Position
 		piece.restSize = piece.object.Size
 	end
-	if not piece.faded then
-		piece.cache = nil
+	piece.cache = nil
+	if piece.faded then
+		piece.cache = buildCache(self, piece, old)
 	end
 end
 
@@ -263,7 +277,7 @@ local function run(self: Stage, entries: { StageMath.Entry }, finish: number, do
 	for _, e in entries do
 		local piece = self.pieces[e.id]
 		if piece then
-			settle(piece)
+			settle(self, piece)
 			piece.landed = false
 			piece.burst = false
 			table.insert(live, { piece = piece, entry = e })
@@ -347,7 +361,7 @@ function Stage.close(self: Stage, done: (() -> ())?)
 		end
 	end
 	for _, id in self.order do
-		settle(self.pieces[id])
+		settle(self, self.pieces[id])
 	end
 	local t = 0
 	self.running = "close"

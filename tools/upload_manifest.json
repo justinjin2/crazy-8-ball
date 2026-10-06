@@ -5027,6 +5027,12 @@
     "imageId": "84645552488171",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/beta_code_tile.png": {
+    "assetId": "96155582504289",
+    "assetType": "Decal",
+    "imageId": "85815838814214",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/beta_cue.png": {
     "assetId": "73449966604769",
     "assetType": "Decal",
@@ -5169,6 +5175,42 @@
     "assetId": "76166113918078",
     "assetType": "Decal",
     "imageId": "138178384118884",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/confetti_sq_1.png": {
+    "assetId": "105172162765466",
+    "assetType": "Decal",
+    "imageId": "73410510313552",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/confetti_sq_2.png": {
+    "assetId": "84960646210504",
+    "assetType": "Decal",
+    "imageId": "130296626050021",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/confetti_sq_3.png": {
+    "assetId": "139823845779530",
+    "assetType": "Decal",
+    "imageId": "103992410457197",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/confetti_sq_4.png": {
+    "assetId": "83543631065550",
+    "assetType": "Decal",
+    "imageId": "137675637490855",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/confetti_sq_5.png": {
+    "assetId": "97086062838107",
+    "assetType": "Decal",
+    "imageId": "118321190574872",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/confetti_sq_6.png": {
+    "assetId": "120823709603800",
+    "assetType": "Decal",
+    "imageId": "126831229907440",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/crown.png": {

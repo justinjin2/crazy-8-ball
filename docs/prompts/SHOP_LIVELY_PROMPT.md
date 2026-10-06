@@ -487,7 +487,7 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
 - [x] 6. `Stage`, the idle library and the motion tokens in Config, with Lune tests.
 - [x] 7. The frame: unroll and fold, dots sheet, moving header, tabs and badges, the 8-ball flair,
       the tab-switch stagger, the kit switch (Shop on).
-- [ ] 8. The Grand Opening card: every piece and loop, real text, the odds chips and the block's
+- [x] 8. The Grand Opening card: every piece and loop, real text, the odds chips and the block's
       odds pop-up, the buttons on the existing buy flow, the live timer, the phone layout.
 - [ ] 9. Recordings and contact sheets against the references, performance, Lower effects,
       Reduce Motion, gamepad; **gate 4**.
@@ -548,6 +548,17 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   reopening mid-close and mid-open all end at rest; no console errors. Only the first UIScale
   on an object applies (STUDIO_NOTES), so Stage drives UIAnim's AnimScale. PC and gamepad
   checks with step 9.
+- 2026-10-06: step 8 done. `GrandOpeningCard` builds the Featured page from the animatic: the
+  plate with floating balls, corner fireworks, confetti, bokeh and twinkles; the block (glow,
+  rays, breathe, shine, crown, NEW tag, "i" odds badge, live "Ends in"); the arched title, stars
+  and subtitle; both cue cards with names, pills, odds chips and their loops; the six buttons on
+  the server's buy flow (money: ItemRequest "BuyBlocks"; Robux: StoreRequest "Buy", "Coming
+  soon" while the products have Id 0) and the save labels. Layout numbers in
+  `Config.UI.GrandOpeningCard.Layout`; text never under 16 px; pages under 760 px restack.
+  The odds pop-up lists all eight outcomes (total 100%) and opens by hover, click, tap or A.
+  Checked in Studio (phone emulator, plus the wide layout in a test window): open, tab spam,
+  reopening mid-close all end clean; no console errors. One Grand Opening block was bought with
+  in-game money on the designer's Studio save while testing the money button.
 
 
 ## Decisions

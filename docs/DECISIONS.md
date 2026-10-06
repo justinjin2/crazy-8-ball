@@ -2701,3 +2701,8 @@ timer of a new block stay the designer's call.
   16 s up-left, transparency 0.6) on a new picture with a 200 texel period, so one scroll window
   covers the widest panel. On a phone the 8-ball flair sits on the top edge just right of the
   title (Roblox's buttons own the top-left corner), kept on screen as it hops.
+- 2026-10-06 (lively Shop, step 8): the Grand Opening card keeps every word at 16 px or more on
+  screen, so its pills, odds chips and button words are bigger than in 13b at small sizes. Pages
+  narrower than 760 px (phones) restack it (block and title on top, the cue cards side by side,
+  then the buttons) and scroll. The crossed-out old Robux prices sit on a small white sticker at
+  each button's top-right corner instead of inside the button (they did not fit at 16 px).

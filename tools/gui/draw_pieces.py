@@ -447,12 +447,36 @@ def silhouette(src, out):
     white.save(out)
 
 
+def for_motion(out):
+    """Copies the game's smooth-motion code needs (gate 1): each confetti ribbon centred on a
+    clear 256 square (the drift's glide windows a square picture), and the Beta card's glyph
+    strip shrunk to half width and laid twice across 1024, so a window up to 512 texels wide
+    can scroll along it and wrap (one period = 512)."""
+    out = Path(out)
+    for i in range(1, 7):
+        src = Image.open(out / f"confetti_{i}.png").convert("RGBA")
+        sq = Image.new("RGBA", (256, 256))
+        sq.paste(src, ((256 - src.width) // 2, (256 - src.height) // 2))
+        sq.save(out / f"confetti_sq_{i}.png", optimize=True)
+    strip = Image.open(out / "beta_code.png").convert("RGBA")
+    half = strip.resize((512, strip.height // 2), Image.LANCZOS)
+    tile = Image.new("RGBA", (1024, half.height))
+    tile.paste(half, (0, 0))
+    tile.paste(half, (512, 0))
+    tile.save(out / "beta_code_tile.png", optimize=True)
+    print("confetti_sq_1..6 (256 x 256), beta_code_tile", tile.size)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(ROOT / "assets/ui/grand_opening"))
     ap.add_argument("--mask", nargs=2, metavar=("IN", "OUT"))
     ap.add_argument("--confetti", metavar="SHEET", help="split a generated 3 x 2 ribbon sheet")
+    ap.add_argument("--for-motion", action="store_true", help="the square confetti and code tile")
     a = ap.parse_args()
+    if a.for_motion:
+        for_motion(a.out)
+        return
     if a.mask:
         silhouette(*a.mask)
         return

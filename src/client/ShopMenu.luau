@@ -13,6 +13,10 @@
 -- reads newCount through deps.shopNew. jump / jumpTo only light the chosen button for now
 -- (HubCorners and the money HUD still open the Shop on a tab). Nothing here ever opens the
 -- Shop by itself.
+--
+-- The Featured page is the Grand Opening card (GrandOpeningCard): its buttons buy through the
+-- server (ItemRequest "BuyBlocks" for money, StoreRequest "Buy" for Robux, which shows Roblox's
+-- own dialog); a refusal shows the server's reason as a notice.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -21,6 +25,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local GrandOpeningCard = require(script.Parent.GrandOpeningCard)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
@@ -58,6 +63,7 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	self.current = nil :: string? -- the lit jump button
 	self.seen = {} :: { [string]: any } -- what the badges count as seen (by group)
 	self.rock = nil :: UIAnim.Handle? -- the lit jump button's icon rocking (the lively frame)
+	self.busy = {} :: { [string]: boolean } -- buy requests in flight, by button
 
 	local frame = MenuFrame.new(screen, {
 		name = NAME,
@@ -70,6 +76,14 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	self.placeholder = MenuFrame.placeholder(page)
 	local scroll = ShopParts.scroller(page, "Page")
 	self.scroll = scroll
+	self.featured = GrandOpeningCard.new(scroll, {
+		robux = function(key: string)
+			self:buyProduct(key)
+		end,
+		money = function(count: number)
+			self:buyBlocks("GrandOpening", count)
+		end,
+	})
 
 	-- The jump buttons (in the panel, so a gamepad reaches them).
 	local rail = HudParts.frame(frame.panel, "Jumps")
@@ -103,6 +117,9 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			stage:add("Tab" .. index, jump.button)
 			stage:add("Tab" .. index .. "Badge", jump.badge)
 		end
+		self.featured:register(stage, function(handle)
+			frame:idle(handle)
+		end)
 	end
 
 	frame.onOpen = function()
@@ -162,6 +179,7 @@ function ShopMenu.refresh(self: any)
 	if type(state) == "table" then
 		self:refreshBadges(state)
 	end
+	self.featured:refresh(state)
 end
 
 -- Where the jump buttons go: outside the panel's right edge when the screen has room for
@@ -215,7 +233,8 @@ function ShopMenu.layout(self: any)
 	end
 	local width = self:layoutRail(geo)
 	self.scroll.Size = UDim2.fromOffset(width, geo.content.Y)
-	ShopParts.setCanvas(self.scroll, 0)
+	local height = self.featured:layout(width - self.scroll.ScrollBarThickness)
+	ShopParts.setCanvas(self.scroll, height)
 end
 
 --------------------------------------------------------------------------------------------
@@ -364,6 +383,61 @@ function ShopMenu.markSeen(self: any)
 end
 
 --------------------------------------------------------------------------------------------
+-- Buying
+--------------------------------------------------------------------------------------------
+
+-- Ask the server once at a time per button; `done` gets the reply.
+function ShopMenu.send(self: any, key: string, ask: () -> any, done: (any) -> ())
+	if self.busy[key] then
+		return
+	end
+	self.busy[key] = true
+	task.spawn(function()
+		local reply = ask()
+		self.busy[key] = nil
+		done(reply)
+	end)
+end
+
+--- Buy `count` lucky blocks of deal `dealId` (Config.Shop.Deals) with money; they land in the
+--- hotbar.
+function ShopMenu.buyBlocks(self: any, dealId: string, count: number)
+	self:send("Blocks" .. dealId .. count, function()
+		return ItemState.request("ItemRequest", "BuyBlocks", dealId, count)
+	end, function(reply)
+		if reply.ok then
+			UISound.play("Claim")
+			self.frame:notice(GrandOpeningCard.boughtText(count), "Green")
+		elseif reply.reason == "NotEnoughMoney" and type(reply.need) == "number" then
+			self.frame:notice(ShopParts.need(reply.need), "Red")
+		else
+			self.frame:notice(MenuFrame.reason(reply), "Red")
+		end
+	end)
+end
+
+--- Buy a Robux product (a Config.Products key): the server checks it and shows Roblox's
+--- purchase dialog; a product not made yet says "Coming soon".
+function ShopMenu.buyProduct(self: any, key: string)
+	local state = ItemState.shop()
+	local products = if type(state) == "table" and type(state.products) == "table"
+		then state.products
+		else {}
+	local product = products[key]
+	if type(product) ~= "table" or product.available ~= true then
+		self.frame:notice(COPY.ComingSoon, "Ink")
+		return
+	end
+	self:send("Product" .. key, function()
+		return ItemState.request("StoreRequest", "Buy", key)
+	end, function(reply)
+		if not reply.ok then
+			self.frame:notice(MenuFrame.reason(reply), "Red")
+		end
+	end)
+end
+
+--------------------------------------------------------------------------------------------
 -- Gamepad
 --------------------------------------------------------------------------------------------
 
@@ -442,6 +516,7 @@ end
 
 function ShopMenu.closed(self: any)
 	ContextActionService:UnbindAction("8ballShopJump")
+	self.featured:closed()
 	if self.rock then
 		self.rock.stop()
 		self.rock = nil

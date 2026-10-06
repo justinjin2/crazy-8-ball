@@ -40,10 +40,11 @@ function HudParts.frame(parent: Instance, name: string): Frame
 	return object
 end
 
-function HudParts.corner(parent: Instance, radius: number)
+function HudParts.corner(parent: Instance, radius: number): UICorner
 	local object = Instance.new("UICorner")
 	object.CornerRadius = UDim.new(0, radius)
 	object.Parent = parent
+	return object
 end
 
 local function inkStroke(parent: Instance, thickness: number, mode: Enum.ApplyStrokeMode): UIStroke

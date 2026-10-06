@@ -697,6 +697,17 @@ return {
 				Days = "%dd %dh",
 				Hours = "%dh %dm",
 				Minutes = "%d:%02d",
+				New = "NEW", -- the tilted red tag on the block
+				-- The cue cards' names, each in two colours ("BETA" cyan, "CUE" pink).
+				BetaName = { "BETA", " CUE" },
+				GoName = { "GRAND OPENING", " CUE" },
+				Unique = "UNIQUE",
+				-- The buttons: "3 blocks • (Robux) 129"; the money ones show only the price.
+				Blocks = { One = "%d block", Many = "%d blocks" },
+				BuyRobux = "%s • %s",
+				Save = "save %d%%", -- under a pack that costs less than buying one by one
+				BoughtOne = "Your %s is in your hotbar!",
+				BoughtMany = "%d %s are in your hotbar!",
 			},
 		},
 		-- The Rewards (RewardsMenu and its pages RewardsDaily, RewardsPlaytime, RewardsCodes).
