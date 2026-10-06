@@ -302,6 +302,9 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 	local card = HudParts.menuCard(panel, "Card")
 	card.Size = UDim2.fromScale(1, 1)
 	card.ZIndex = 1
+	if HudParts.paleEdged(opts.name) then
+		HudParts.paleEdge(card)
+	end
 	self.card = card
 
 	-- The header: icon, title, (money), red X.

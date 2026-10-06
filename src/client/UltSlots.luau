@@ -28,6 +28,8 @@ local W = Strings.Ults.Screen
 local INK = HudParts.tone("Ink")
 local GOLD = HudParts.tone("Gold")
 local GREEN = HudParts.tone("Green")
+-- A card at rest: pale blue when the Abilities page is in Config.UI.Menu.PaleEdgeMenus.
+local REST = if HudParts.paleEdged(C.Column.Name) then HudParts.color(K.PaleEdge) else INK
 
 export type Hooks = {
 	select: (slot: number) -> (),
@@ -59,7 +61,8 @@ type Card = {
 local UltSlots = {}
 UltSlots.__index = UltSlots
 
--- The card's outline: gold while hovered or selected by a gamepad, green on the equipped slot.
+-- The card's outline: gold while hovered or selected by a gamepad, green on the equipped slot,
+-- else REST.
 local function paintEdge(card: Card)
 	if card.lit then
 		card.edge.Color = GOLD
@@ -68,7 +71,7 @@ local function paintEdge(card: Card)
 		card.edge.Color = GREEN
 		card.edge.Thickness = K.SelectedStrokePx
 	else
-		card.edge.Color = INK
+		card.edge.Color = REST
 		card.edge.Thickness = K.PanelStrokePx
 	end
 	UIAnim.scaleOf(card.body).Scale = if card.lit then K.SelectedScale else 1

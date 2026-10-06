@@ -7,7 +7,8 @@
 -- While a pad has room (designer, 2026-09-26: the old box did not look like something to step
 -- on):
 --   - rounded outlines pulse outward from its rim, again and again,
---   - a big arrow bobs above it pointing down, unless you are already on a pad or playing.
+--   - a big arrow bobs above it pointing down while you are near it (ArrowNearStuds),
+--     unless you are already on a pad or playing.
 -- Its rim glows blue while empty, green once somebody is on it, gold when it is full or its
 -- game is on. While occupied, light motes drift up from it and its glow flares whenever
 -- someone steps on, with a one-shot power-up sound. Emptying fades it out.
@@ -35,6 +36,8 @@ type Pad = {
 	sound: Sound,
 	rings: { Frame },
 	arrow: BillboardGui,
+	arrowImage: ImageLabel,
+	arrowShown: number, -- 0..1: the arrow's fade
 	level: number, -- 0..1: how lit (occupied) the pad is, eased
 	flare: number,
 }
@@ -177,6 +180,8 @@ local function build(part: BasePart): Pad
 		sound = sound,
 		rings = rings,
 		arrow = arrow,
+		arrowImage = image,
+		arrowShown = 0,
 		level = if part:GetAttribute("Occupied") == true then 1 else 0,
 		flare = 0,
 	}
@@ -210,14 +215,16 @@ end
 --- Step every pad's effects. `queueOpen(tableId)` says whether that table still waits for
 --- its host (its game has not started); `seated` whether the local player is on a pad or
 --- playing, which hides the arrows; `signed` the table whose sign is up (TableSign), whose
---- arrow would sit on it: you are already there, so it hides too. Cheap when a pad is empty and settled: only its rings,
---- arrow and rim are touched.
+--- arrow would sit on it: you are already there, so it hides too; `near` where the local
+--- character stands (nil: none), as only the pads near it show their arrow. Cheap when a pad
+--- is empty and settled: only its rings, arrow and rim are touched.
 function PadEffects.update(
 	self: PadEffects,
 	dt: number,
 	queueOpen: (number) -> boolean,
 	seated: boolean,
-	signed: number?
+	signed: number?,
+	near: Vector3?
 )
 	self.elapsed += dt
 	local ease = 1 - math.exp(-dt / Q.FadeInSeconds)
@@ -229,6 +236,7 @@ function PadEffects.update(
 		end
 	end
 	local bob = math.sin(self.elapsed * math.pi * 2 / Q.ArrowBobSeconds) * Q.ArrowBobStuds
+	local arrowStep = dt / math.max(Q.ArrowFadeSeconds, 1e-3)
 	for _, pad in self.pads do
 		local part = pad.part
 		local occupied = part:GetAttribute("Occupied") == true
@@ -277,8 +285,19 @@ function PadEffects.update(
 					else 1
 			end
 		end
-		pad.arrow.Enabled = open and not seated and (signed == nil or tableId ~= signed)
-		pad.arrow.StudsOffsetWorldSpace = Vector3.new(0, Q.ArrowHeightStuds + bob, 0)
+		local close = false
+		if near then
+			local offset = part.Position - near
+			close = offset.X * offset.X + offset.Z * offset.Z <= Q.ArrowNearStuds * Q.ArrowNearStuds
+		end
+		local wanted = open and close and not seated and (signed == nil or tableId ~= signed)
+		pad.arrowShown =
+			math.clamp(pad.arrowShown + (if wanted then arrowStep else -arrowStep), 0, 1)
+		pad.arrow.Enabled = pad.arrowShown > 0
+		if pad.arrow.Enabled then
+			pad.arrowImage.ImageTransparency = 1 - pad.arrowShown
+			pad.arrow.StudsOffsetWorldSpace = Vector3.new(0, Q.ArrowHeightStuds + bob, 0)
+		end
 
 		pad.level += ((if lit then 1 else 0) - pad.level) * ease
 		if pad.level < 0.01 and not lit then

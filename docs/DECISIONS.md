@@ -2622,3 +2622,11 @@ timer of a new block stay the designer's call.
 - **2026-10-06 — Builder Extended tried and dropped (designer).** Tested on the hub corners,
   rank, money, hotbar, lucky block roll, nameplates and Free Reward page; the designer went
   back to Fredoka One. `Config.UI.FontTest` is empty again and stays for later font tests.
+- **2026-10-06 — Queue arrows only near you (designer).** A pad's bobbing arrow shows only
+  within `QueueVisual.ArrowNearStuds` (35) of your character, fading in and out; at spawn
+  that is the two tables in front.
+- **2026-10-06 — Pale-blue frame borders (designer).** The Shop, Inventory, Abilities and
+  Free Reward frames and cards are outlined in `Kit.PaleEdge` instead of ink, for now only
+  these four (`Config.UI.Menu.PaleEdgeMenus`); buttons keep their ink outlines.
+- **2026-10-06 — The left column's words in capitals (designer).** SHOP, INVENTORY,
+  ABILITIES, FREE REWARD.

@@ -271,6 +271,41 @@ function HudParts.menuCard(parent: Instance, name: string, radius: number?): Fra
 	return root
 end
 
+--- Whether the menu `name` (as Menus.register) outlines its panel and cards in pale blue.
+function HudParts.paleEdged(name: string): boolean
+	return table.find(Config.UI.Menu.PaleEdgeMenus, name) ~= nil
+end
+
+--- A card's (or menu card's) outline in Kit.PaleEdge instead of ink.
+function HudParts.paleEdge(card: Instance)
+	local fill = card:FindFirstChild("Fill")
+	local edge = fill and fill:FindFirstChild("Edge")
+	if edge and edge:IsA("UIStroke") then
+		edge.Color = color(K.PaleEdge)
+	end
+end
+
+--- Every card under `root` still outlined in ink takes Kit.PaleEdge, now and as cards are
+--- added (a whole screen of cards, as the Abilities page). Gold or green outlines stay.
+function HudParts.paleEdgeAll(root: Instance)
+	local pale = color(K.PaleEdge)
+	local function consider(object: Instance)
+		if
+			object.Name == "Edge"
+			and object:IsA("UIStroke")
+			and object.Parent
+			and object.Parent.Name == "Fill"
+			and object.Color == INK
+		then
+			object.Color = pale
+		end
+	end
+	for _, object in root:GetDescendants() do
+		consider(object)
+	end
+	root.DescendantAdded:Connect(consider)
+end
+
 --- Where a menu card's sheet starts, in pixels from the card's top (just under its header);
 --- it runs to the card's bottom, inset by Kit.SheetInsetPx at the sides and bottom.
 function HudParts.setSheetTop(card: Frame, topPx: number)

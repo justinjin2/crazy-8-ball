@@ -5793,6 +5793,9 @@ Config.UI = {
 		SheetBottom = { 236, 244, 253 }, -- ...fading to a pale blue at the bottom
 		SheetEdge = { 176, 216, 250 }, -- its thin edge (light blue, not ink)
 		SheetEdgePx = 2,
+		-- A pale-blue outline in place of the ink one round a menu's panel and its cards
+		-- (designer, 2026-10-06), on the menus in Config.UI.Menu.PaleEdgeMenus. (tune)
+		PaleEdge = { 176, 216, 250 },
 		SheetCornerPx = 22, -- its rounded corners: the header's curve
 		SheetInsetPx = 6, -- in from the panel's outline at the sides and bottom
 		PillCornerPx = 999, -- pills are fully round at the ends
@@ -6289,6 +6292,11 @@ Config.Multiplayer = {
 		ArrowBobStuds = 0.7, -- up and down
 		ArrowBobSeconds = 1.2, -- one bob
 		ArrowMaxDistance = 90, -- studs: hidden further away
+		-- Only the pads near you show the arrow (designer, 2026-10-06: not every table at once);
+		-- at spawn that is the two in front (25 studs; the next row is 52). Measured flat, from
+		-- your character to the pad's middle.
+		ArrowNearStuds = 35,
+		ArrowFadeSeconds = 0.25, -- an arrow fades in or out over this as you come and go
 		JoinSound = "rbxassetid://131677760492710", -- Creator Store "Beacon SFX" power-up; loads in this experience, listening pending
 		JoinSoundVolume = 0.5, -- heard around the pad, not across the room
 		JoinSoundMinDistance = 8, -- studs at full volume
@@ -7120,6 +7128,9 @@ Config.UI.Queue = {
 -- a phone on its side (the HUD screen under Multiplayer.Style.ShortHeight, as the rank and money
 -- HUDs). A menu's slight dim is the roadmap's (Config.UI.Progress.Roadmap.Dim*). (tune)
 Config.UI.Menu = {
+	-- The menus whose panel and cards take Kit.PaleEdge's pale-blue outline instead of ink
+	-- (designer, 2026-10-06: these four for now). Names as Menus.register ("Ults": Abilities).
+	PaleEdgeMenus = { "Shop", "Inventory", "Ults", "FreeReward" },
 	-- The left column (reference 06): one tile each, top to bottom, each just its big icon
 	-- with no box behind it (designer, 2026-09-28). Keys name the menus (Menus.register) and
 	-- their words (Strings.Menus.Column) and icons (Kit.Icons).

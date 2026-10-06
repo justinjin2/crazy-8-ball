@@ -1180,7 +1180,14 @@ local function renderFrame(dt: number)
 		end
 		e:updateTrail(m:findCueBall(), m:isBusy())
 	end
-	padEffects:update(dt, queueOpen, hub.mySeat ~= nil or controlled, tableSign.id)
+	local standing = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	padEffects:update(
+		dt,
+		queueOpen,
+		hub.mySeat ~= nil or controlled,
+		tableSign.id,
+		if standing and standing:IsA("BasePart") then standing.Position else nil
+	)
 	-- The shot clock's last seconds tick once a second for the shooter, until the shot goes.
 	if
 		snapshot

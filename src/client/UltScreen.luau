@@ -280,6 +280,9 @@ function UltScreen.start(screen: ScreenGui): any
 			self:notice(text, toneName)
 		end,
 	})
+	if HudParts.paleEdged(C.Column.Name) then
+		HudParts.paleEdgeAll(gui)
+	end
 	return self
 end
 
