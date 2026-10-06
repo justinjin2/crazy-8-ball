@@ -519,6 +519,10 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   (the ribbons cross it in 13b), the confetti sheet and the 8-ball flair are regenerated; the
   fireworks, glows, rays, sparkles, glyph code and dot tile are drawn or rendered; the gold
   ribbons are a Blender flipbook. All frames, pills, chips and buttons are native.
+- 2026-10-06 (designer): the title is **real text in the kit font (Fredoka One)**, set letter
+  by letter on an arch (`ArchTitle`, style Gold: cyan rim, merged navy outline, orange depth,
+  gold gradient face), picked over Nunito Heavy and Luckiest Guy; no painted logo. The
+  subtitle is arched word by word (style Subtitle).
 
 ## Notes
 

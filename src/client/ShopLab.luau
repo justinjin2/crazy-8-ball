@@ -3,7 +3,9 @@
 -- 7.2), shown through the GuiQA hook so they can be captured in Studio and set beside the
 -- target picture (13b). Nothing here is used by the game.
 --   PlayerScripts.GuiQA:Invoke("lab", "titles", size?)  the real-text GRAND OPENING title and
---                                     its subtitle on the card's navy, in each title font
+--                                     its subtitle on the card's navy
+--   PlayerScripts.GuiQA:Invoke("lab", "odds")           the block's odds badge and pop-up, and
+--                                     the always-visible chip row to compare
 --   PlayerScripts.GuiQA:Invoke("lab")                  close
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -12,12 +14,51 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local BlockOdds = require(Shared:WaitForChild("Progression"):WaitForChild("BlockOdds"))
 local ArchTitle = require(script.Parent.ArchTitle)
+local BlockIcon = require(script.Parent.BlockIcon)
 local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 
 local COPY: { [string]: any } = (Strings.Menus.Shop :: any).Featured
+local CUES: { [string]: string } = Strings.Items.Cues :: any
+local RARITIES: { [string]: string } = Strings.Items.Rarities :: any
 local K = Config.UI.Kit
+
+local function rgb(c: { number }): Color3
+	return Color3.fromRGB(c[1], c[2], c[3])
+end
+
+-- Every outcome of the Grand Opening block, as the pop-up and the chip row list them: the
+-- rarities bottom first, then the two Unique cues (rarest last). Words from Strings, numbers
+-- from Config through BlockOdds (they add up to 100%).
+local function outcomes(): { { name: string, display: string, percent: number, tint: Color3 } }
+	local list = {}
+	for _, row in BlockOdds.odds("GrandOpening") do
+		table.insert(list, {
+			name = RARITIES[row.rarity] or row.rarity,
+			display = row.display,
+			percent = row.percent,
+			-- Secret's near-black does not read on a white card: its red glow does.
+			tint = if row.rarity == "Secret"
+				then rgb(K.SecretGlow)
+				else rgb((K.Rarity :: any)[row.rarity] or K.Rarity.Default),
+		})
+	end
+	local uniques = BlockOdds.uniqueRows("GrandOpening")
+	table.sort(uniques, function(a, b)
+		return a.weight > b.weight
+	end)
+	for _, row in uniques do
+		table.insert(list, {
+			name = CUES[row.cue] or row.cue,
+			display = row.display,
+			percent = row.percent,
+			tint = rgb(K.Rarity.Unique),
+		})
+	end
+	return list
+end
 
 local ShopLab = {}
 
@@ -86,13 +127,88 @@ local function titleRow(root: Frame, style: string, px: number, top: number): nu
 	return subTop + sub.height - top
 end
 
--- The title in each font, stacked (gate 2's A/B against 13b's painted title).
+-- The title (the designer picked the kit font, Fredoka One, 2026-10-06), for the gate 2
+-- comparison with 13b's painted title.
 local function titles(size: number?)
+	titleRow(screen(), "Gold", size or 40, 8)
+end
+
+-- The block's odds: the block with its sky-blue "i" badge, the pop-up beside it, and under
+-- them the always-visible chip row (the designer asked to see it to compare).
+local function odds()
 	local root = screen()
-	local px = size or 40
-	local top = 8
-	for _, style in { "Gold", "GoldNunito", "GoldLuckiest" } do
-		top += titleRow(root, style, px, top) + 4
+	local list = outcomes()
+	local count = rgb(K.Numbers.Count)
+
+	local block = HudParts.frame(root, "Block")
+	block.Position = UDim2.fromOffset(60, 40)
+	block.Size = UDim2.fromOffset(150, 150)
+	BlockIcon.new(block, "GrandOpening")
+	local badge = HudParts.pill(block, "OddsBadge", count)
+	badge.AnchorPoint = Vector2.new(0.5, 0.5)
+	badge.Position = UDim2.fromScale(0.9, 0.88)
+	badge.Size = UDim2.fromOffset(36, 36)
+	badge.ZIndex = 6
+	local i = HudParts.text(badge, "Words", 26, COPY.OddsBadge)
+	i.Size = UDim2.fromScale(1, 1)
+	i.ZIndex = 7
+
+	-- The pop-up: a kit card beside the block, a row per outcome in its colour.
+	local rowH, width = 22, 250
+	local card = HudParts.card(root, "OddsCard")
+	card.Position = UDim2.fromOffset(230, 22)
+	card.Size = UDim2.fromOffset(width, 44 + #list * rowH + 30)
+	local heading = HudParts.text(card, "Title", 22, COPY.OddsTitle)
+	heading.Position = UDim2.fromOffset(12, 8)
+	heading.Size = UDim2.fromOffset(width - 24, 28)
+	heading.ZIndex = 2
+	local total = 0
+	for index, row in list do
+		local y = 40 + (index - 1) * rowH
+		local name = HudParts.text(card, "Name" .. index, 17, row.name, row.tint)
+		name.TextXAlignment = Enum.TextXAlignment.Left
+		name.TextWrapped = false
+		name.Position = UDim2.fromOffset(14, y)
+		name.Size = UDim2.fromOffset(width - 100, rowH)
+		name.ZIndex = 2
+		local value = HudParts.text(card, "Percent" .. index, 17, row.display, count)
+		value.TextXAlignment = Enum.TextXAlignment.Right
+		value.TextWrapped = false
+		value.Position = UDim2.fromOffset(width - 100, y)
+		value.Size = UDim2.fromOffset(86, rowH)
+		value.ZIndex = 2
+		total += row.percent
+	end
+	local sum = HudParts.note(
+		card,
+		"Total",
+		15,
+		string.format(COPY.OddsTotal, BlockOdds.percentText(total))
+	)
+	sum.TextXAlignment = Enum.TextXAlignment.Right
+	sum.Position = UDim2.fromOffset(14, 44 + #list * rowH)
+	sum.Size = UDim2.fromOffset(width - 28, 22)
+	sum.ZIndex = 2
+
+	-- The always-visible chip row: one rarity-coloured chip per outcome, name over percent.
+	local chipW, gap = 82, 6
+	local left = 500
+	for index, row in list do
+		local col = (index - 1) % 2
+		local line = (index - 1) // 2
+		local chip = HudParts.pill(root, "Chip" .. index, row.tint)
+		chip.Position = UDim2.fromOffset(left + col * (chipW + gap) + 40, 24 + line * 50)
+		chip.Size = UDim2.fromOffset(chipW, 44)
+		local corner = chip:FindFirstChildOfClass("UICorner")
+		if corner then
+			corner.CornerRadius = UDim.new(0, 10)
+		end
+		local name = HudParts.text(chip, "Name", 14, row.name)
+		name.Position = UDim2.fromOffset(3, 2)
+		name.Size = UDim2.new(1, -6, 0, 20)
+		local value = HudParts.text(chip, "Percent", 18, row.display)
+		value.Position = UDim2.fromOffset(3, 20)
+		value.Size = UDim2.new(1, -6, 0, 22)
 	end
 end
 
@@ -103,6 +219,10 @@ function ShopLab.start()
 	GuiQA.add("lab", function(kind: string?, ...: any)
 		if kind == "titles" then
 			titles(...)
+			return true
+		end
+		if kind == "odds" then
+			odds()
 			return true
 		end
 		close()

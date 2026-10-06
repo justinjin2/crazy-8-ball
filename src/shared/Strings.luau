@@ -685,6 +685,12 @@ return {
 				Title = "GRAND OPENING",
 				Subtitle = "LUCKY BLOCK • %s • YOU COULD PULL...",
 				Limited = "LIMITED",
+				-- The lucky block's odds: a sky-blue badge on the block ("i") that opens a
+				-- small card listing every outcome (Roblox's paid-random-items rule: all of
+				-- them, adding up to 100%, before buying).
+				OddsBadge = "i",
+				OddsTitle = "Chances",
+				OddsTotal = "Total: %s", -- under the list: "Total: 100%"
 			},
 		},
 		-- The Rewards (RewardsMenu and its pages RewardsDaily, RewardsPlaytime, RewardsCodes).

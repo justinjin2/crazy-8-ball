@@ -7,10 +7,10 @@
     { "id": "plate", "box": [14, 14, 2158, 710], "kind": "image", "source": "cut + masked regen fill", "reveal": "6 with the card", "idle": "none (the layers on it move)", "notes": "navy depth, bokeh, soft light flares; every piece removed and the holes filled; split into 2 images if needed for the 1024 cap" },
     { "id": "bokeh", "box": [14, 14, 2158, 710], "kind": "procedural", "source": "draw", "reveal": "after 6", "idle": "a few soft dots twinkling (glow pulse at random phases)" },
 
-    { "id": "ball_top", "box": [390, 15, 505, 115], "kind": "image", "source": "cut (fallback regen one clean blurred 8-ball, reused)", "reveal": "after 6, pop", "idle": "float, mid depth (smooth technique)" },
-    { "id": "ball_bottom", "box": [490, 600, 605, 705], "kind": "image", "source": "cut", "reveal": "after 6, pop", "idle": "float, mid depth" },
-    { "id": "ball_top_right", "box": [1717, 15, 1842, 135], "kind": "image", "source": "cut", "reveal": "after 6, pop", "idle": "float, near depth" },
-    { "id": "ball_bottom_right", "box": [2032, 545, 2172, 710], "kind": "image", "source": "cut", "reveal": "after 6, pop", "idle": "float, near depth, slowest drift (it is the biggest)" },
+    { "id": "ball_top", "box": [386, 14, 510, 136], "kind": "image", "source": "cut (fallback regen one clean blurred 8-ball, reused)", "reveal": "after 6, pop", "idle": "float, mid depth (smooth technique)" },
+    { "id": "ball_bottom", "box": [482, 592, 628, 710], "kind": "image", "source": "cut", "reveal": "after 6, pop", "idle": "float, mid depth" },
+    { "id": "ball_top_right", "box": [1716, 24, 1860, 168], "kind": "image", "source": "cut", "reveal": "after 6, pop", "idle": "float, near depth" },
+    { "id": "ball_bottom_right", "box": [2026, 550, 2158, 710], "kind": "image", "source": "cut", "reveal": "after 6, pop", "idle": "float, near depth, slowest drift (it is the biggest)" },
 
     { "id": "fw_block", "box": [120, 15, 330, 200], "kind": "flipbook", "source": "draw/render (effects library)", "reveal": "7 burst as the block lands", "idle": "corner firework loop" },
     { "id": "fw_left", "box": [0, 210, 110, 320], "kind": "flipbook", "source": "effects library", "reveal": "11", "idle": "corner firework loop" },
@@ -21,17 +21,17 @@
 
     { "id": "block_glow", "box": [20, 180, 560, 680], "kind": "image", "source": "draw (soft gold glow)", "reveal": "7 with the block", "idle": "pulse" },
     { "id": "block_rays", "box": [0, 120, 580, 720], "kind": "image", "source": "draw (gold rays)", "reveal": "7 with the block", "idle": "turn slowly (rotation is smooth)" },
-    { "id": "block", "box": [50, 220, 520, 630], "kind": "image", "source": "cut + masked regen fill under the crown (fallback regen from 13b + a GoldKingLuckyBlock render)", "reveal": "7 slam with a firework", "idle": "breathe (smooth technique), a shine sweep now and then (masked)", "notes": "the odds badge sits on it; hover, click, tap or gamepad A opens the odds pop-up" },
-    { "id": "block_shine_mask", "box": [50, 220, 520, 630], "kind": "image", "source": "draw from the block's alpha", "reveal": "-", "idle": "the light sweep's clip" },
-    { "id": "crown", "box": [225, 135, 475, 310], "kind": "image", "source": "cut", "reveal": "7 drops on after the block", "idle": "a glint now and then" },
+    { "id": "block", "box": [46, 217, 521, 640], "kind": "image", "source": "cut + masked regen fill under the crown (fallback regen from 13b + a GoldKingLuckyBlock render)", "reveal": "7 slam with a firework", "idle": "breathe (smooth technique), a shine sweep now and then (masked)", "notes": "the odds badge sits on it; hover, click, tap or gamepad A opens the odds pop-up" },
+    { "id": "block_shine_mask", "box": [46, 217, 521, 640], "kind": "image", "source": "draw from the block's alpha", "reveal": "-", "idle": "the light sweep's clip" },
+    { "id": "crown", "box": [227, 124, 483, 310], "kind": "image", "source": "cut", "reveal": "7 drops on after the block", "idle": "a glint now and then" },
     { "id": "block_sparkles", "box": [20, 100, 560, 700], "kind": "procedural", "source": "effects library (sparkle)", "reveal": "7", "idle": "twinkle round the block" },
     { "id": "new_tag", "box": [40, 105, 270, 215], "kind": "native", "source": "native pill + text (Strings)", "reveal": "7 pops in tilted", "idle": "wiggle every few seconds (UIAnim.shake Wiggle)", "notes": "about -8 degrees" },
     { "id": "ends_in", "box": [115, 620, 435, 670], "kind": "text", "source": "text, live", "reveal": "10 last", "idle": "none (text never pulses); the numbers tick", "notes": "cyan (Kit.Numbers.Count); 20d 23h, 23h 59m, 59:59" },
     { "id": "odds_badge", "box": [430, 560, 500, 630], "kind": "native", "source": "native: sky-blue round chip with an i", "reveal": "7 after the block", "idle": "a soft glow pulse", "notes": "new: never hides; the place is decided at gate 2" },
     { "id": "odds_popup", "box": [520, 200, 900, 640], "kind": "native", "source": "native card + text rows from Config", "reveal": "on hover, click, tap, gamepad A", "idle": "none", "notes": "new: eight outcomes in rarity colours, summing to 100%" },
 
-    { "id": "star_left", "box": [575, 70, 660, 150], "kind": "image", "source": "cut (fallback regen)", "reveal": "8 with the title", "idle": "slow rock (rotation) and a twinkle" },
-    { "id": "star_right", "box": [1532, 70, 1617, 150], "kind": "image", "source": "cut (fallback regen)", "reveal": "8 with the title", "idle": "slow rock and a twinkle" },
+    { "id": "star_left", "box": [568, 66, 655, 155], "kind": "image", "source": "cut (fallback regen)", "reveal": "8 with the title", "idle": "slow rock (rotation) and a twinkle" },
+    { "id": "star_right", "box": [1533, 66, 1621, 155], "kind": "image", "source": "cut (fallback regen)", "reveal": "8 with the title", "idle": "slow rock and a twinkle" },
     { "id": "title", "box": [665, 20, 1510, 130], "kind": "text", "source": "real text, one label per letter on an arch, gold gradient, thick navy outline, ink lip, gloss band (fallback: the painted letters cut one by one, the designer's call)", "reveal": "8 letter by letter, left to right, with a firework behind", "idle": "a shine across the letters now and then (UIGradient offset; no scale pulse on text)" },
     { "id": "subtitle", "box": [735, 105, 1450, 170], "kind": "text", "source": "text (LIMITED in yellow, rich text)", "reveal": "8 after the title", "idle": "none" },
 
@@ -43,8 +43,8 @@
     { "id": "beta_name", "box": [618, 195, 865, 245], "kind": "text", "source": "text: BETA in cyan, CUE in magenta (gradient)", "reveal": "9", "idle": "the glitch every 4-6 s (a short offset and colour split, fast)" },
     { "id": "beta_pills", "box": [618, 248, 920, 290], "kind": "native", "source": "native pills + text: UNIQUE (pink), LIMITED (yellow)", "reveal": "9", "idle": "none" },
     { "id": "beta_odds", "box": [1210, 192, 1285, 232], "kind": "native", "source": "native sky-blue chip + text 0.3% from Config", "reveal": "9 last of the card", "idle": "none" },
-    { "id": "beta_cue", "box": [615, 215, 1295, 450], "kind": "image", "source": "cut (the in-game thumb beta.png as fallback or reference)", "reveal": "9 pop", "idle": "a light pulse along the cue every ~1.5 s (sweep clipped by its mask), the magenta rings glow" },
-    { "id": "beta_cue_mask", "box": [615, 215, 1295, 450], "kind": "image", "source": "draw from the cue's alpha", "reveal": "-", "idle": "the sweep's clip" },
+    { "id": "beta_cue", "box": [608, 205, 1269, 446], "kind": "image", "source": "cut (the in-game thumb beta.png as fallback or reference)", "reveal": "9 pop", "idle": "a light pulse along the cue every ~1.5 s (sweep clipped by its mask), the magenta rings glow" },
+    { "id": "beta_cue_mask", "box": [608, 205, 1269, 446], "kind": "image", "source": "draw from the cue's alpha", "reveal": "-", "idle": "the sweep's clip" },
 
     { "id": "go_card", "box": [1312, 178, 2122, 458], "kind": "native", "source": "native frame, magenta to cyan rim", "reveal": "9 pop with a firework", "idle": "gold glow breathing" },
     { "id": "go_bg", "box": [1320, 186, 2114, 450], "kind": "image", "source": "regen: navy with soft bokeh, no fireworks (they are flipbooks)", "reveal": "9 with the card", "idle": "none" },
@@ -52,7 +52,7 @@
     { "id": "go_name", "box": [1340, 195, 1790, 245], "kind": "text", "source": "text: GRAND OPENING gold, CUE white", "reveal": "9", "idle": "none" },
     { "id": "go_pills", "box": [1340, 248, 1650, 290], "kind": "native", "source": "native pills + text", "reveal": "9", "idle": "none" },
     { "id": "go_odds", "box": [2030, 192, 2105, 232], "kind": "native", "source": "native sky-blue chip + text 3% from Config", "reveal": "9 last of the card", "idle": "none" },
-    { "id": "go_cue", "box": [1430, 225, 2085, 425], "kind": "image", "source": "regen a clean cue on transparent from 13b + grand_opening.png (the ribbons cross it in 13b); cut as fallback", "reveal": "9 pop", "idle": "a light sweep now and then" },
+    { "id": "go_cue", "box": [1426, 215, 2094, 439], "kind": "image", "source": "regen a clean cue on transparent from 13b + grand_opening.png (the ribbons cross it in 13b); cut as fallback", "reveal": "9 pop", "idle": "a light sweep now and then" },
     { "id": "go_ribbons", "box": [1430, 225, 2085, 425], "kind": "flipbook", "source": "render: Blender gold sparkle ribbons, transparent film, looping", "reveal": "9 after the cue", "idle": "loop" },
     { "id": "go_stars", "box": [1320, 186, 2114, 450], "kind": "procedural", "source": "effects library (sparkle)", "reveal": "9", "idle": "twinkle" },
 

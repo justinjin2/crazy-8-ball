@@ -10,3 +10,16 @@ Scripts for building animated, layered screens (docs/prompts/SHOP_LIVELY_PROMPT.
   (git-ignored), never into the repo.
 - `grand_opening/pieces.json`: every piece of the Grand Opening card (13b) with its box, its
   source (cut, regenerated, rendered or drawn), its reveal step and its idle loop.
+- The cutting step also needs `torch torchvision transformers timm kornia einops
+  opencv-python-headless scipy pymatting` in the venv (BiRefNet HR, MIT, downloads once from
+  Hugging Face and runs on Apple MPS).
+- `cut_pieces.py`: cuts the Grand Opening card's pieces out of 13b (no image API): layers, their
+  positions (`layers.json`), the plate with holes, the plate-fill mask and each layer's own fill
+  mask, into `~/Desktop/8ball-refs/gui-lively/work/pieces/`.
+- `rebuild_check.py`: stacks the plate and the layers, compares with 13b (side by side and a heat
+  map), shows each layer on black, white and a checkerboard, prints the difference numbers.
+- `frame_art.py`: the white sheet's dot tile, `assets/ui/frame/dots_512.png`, plus a 3 x 3 seam
+  check and a preview against the designer's option A.
+- `bin/` (git-ignored): `realesrgan-ncnn-vulkan` (xinntao/Real-ESRGAN v0.2.5.0 macOS) with the
+  `realesrgan-x4plus-anime` and `realesrgan-x4plus` models: `tools/gui/bin/realesrgan-ncnn-vulkan
+  -i in.png -o out.png -n realesrgan-x4plus-anime -m tools/gui/bin/models` (4x, about 3 s).

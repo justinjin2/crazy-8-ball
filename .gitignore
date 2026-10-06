@@ -57,3 +57,4 @@ place/lane-*.rbxl
 # GUI pipeline: its own Python environment and work files (tools/gui/README.md)
 tools/gui/.venv/
 tools/gui/**/out/
+tools/gui/bin/

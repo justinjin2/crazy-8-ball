@@ -2680,3 +2680,7 @@ timer of a new block stay the designer's call.
   are Rotation. Pops are UIScale with a fade done in code (no CanvasGroup); fast moves (pops,
   bursts, confetti) may use Position. Effects are flipbooks on one ImageLabel and our own
   pooled particles. Measured from 60 fps recordings (STUDIO_NOTES).
+- 2026-10-06 (designer, after three real-text versions in Studio): the Grand Opening title
+  is real text in the kit font, Fredoka One, letter by letter on an arch with a cyan rim, one
+  merged navy outline, an orange depth and a gold gradient face (`ArchTitle`), not the painted
+  logo cut from 13b. Words stay translatable; each letter can pop in by itself.
