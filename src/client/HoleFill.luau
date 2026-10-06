@@ -12,8 +12,10 @@
 -- The drop (designer, 2026-10-06, after a reference): one more ink copy with the label's own
 -- outline, moved down a share of the text size, so every letter sits on a thick dark lip.
 -- Copies follow the label's text, font, size, colour, outline, fading and gradients; rich
--- text colours are inked in the copies. Every outlined text in PlayerGui gets the fill
--- (Main); the drop is on test on the Free Reward page. Tuning in Config.UI.Kit.HoleFill.
+-- text colours are inked in the copies. Every outlined text in PlayerGui from MinTextPx up
+-- gets the fill (Main); smaller text keeps its holes, as filling them makes its letters
+-- touch (designer, 2026-10-06). The drop is on test on the Free Reward page. Tuning in
+-- Config.UI.Kit.HoleFill.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -57,6 +59,8 @@ type State = {
 }
 
 local states: { [Instance]: State } = setmetatable({}, { __mode = "k" }) :: any
+-- Outlined texts too small to fill, each waiting to grow (true: it wants the drop too).
+local waiting: { [Instance]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 -- Our own copies, so the drop's outline is never taken for a text to fill.
 local copies: { [Instance]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 
@@ -216,7 +220,7 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 			copy.Text = text
 			copy.TextColor3 = stroke.Color
 			copy.TextTransparency = fade
-			copy.Visible = stroke.Enabled
+			copy.Visible = stroke.Enabled and (label :: any).TextSize >= H.MinTextPx
 		end
 	end
 	local function refresh()
@@ -249,7 +253,7 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 				if property == "Text" or property == "RichText" then
 					ink()
 				elseif property == "TextSize" then
-					place()
+					refresh()
 				end
 			elseif property == "TextColor3" or property == "TextTransparency" then
 				refresh()
@@ -309,6 +313,24 @@ local function consider(object: Instance, withDrop: boolean)
 	if state == nil then
 		local stroke = outlineOf(label)
 		if stroke == nil then
+			return
+		end
+		if (label :: any).TextSize < H.MinTextPx then
+			-- Small text keeps its holes (filling them makes its letters touch): wait for it
+			-- to grow, if it ever does.
+			local first = waiting[label] == nil
+			waiting[label] = waiting[label] or withDrop
+			if first then
+				local link: RBXScriptConnection
+				link = label:GetPropertyChangedSignal("TextSize"):Connect(function()
+					if (label :: any).TextSize >= H.MinTextPx then
+						link:Disconnect()
+						local drop = waiting[label] == true
+						waiting[label] = nil
+						consider(label, drop)
+					end
+				end)
+			end
 			return
 		end
 		state = attach(label :: GuiObject, stroke)

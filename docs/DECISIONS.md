@@ -2637,3 +2637,6 @@ timer of a new block stay the designer's call.
   (at least 8% of the text size), so big text keeps its shape. Tried on every outlined text
   (`Config.UI.Kit.HoleFill.Everywhere`) and turned off: small text (card names, Sort, the
   money pill) looked blobby, as a 2 px nudge on a 1 px outline makes the letters touch.
+- 2026-10-06 (designer): **Solid holes on every outlined text from 20 px up**
+  (`Config.UI.Kit.HoleFill.MinTextPx`); smaller text keeps its open holes, as filling them
+  needs letters a pixel bolder. A text that grows past 20 px gets the fill then.

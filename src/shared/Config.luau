@@ -5829,12 +5829,14 @@ Config.UI = {
 		-- text since 2026-10-06): two ink copies of the text under it, nudged left and right by
 		-- the outline's own thickness, so they stay inside the outline, but never less than
 		-- HoleRatio of the text size (rounded up): about half the widest hole in Fredoka One
-		-- (O, 0, @). Text under 20 px has a 1 px outline, which closed only part of an 18 px O;
-		-- it gets a 2 px nudge (checked in Studio). Another font may need a new ratio. Drop: the thick ink edge under each letter (designer's reference,
+		-- (O, 0, @); another font may need a new ratio. Text under MinTextPx is left alone
+		-- (designer, 2026-10-06): its 1 px outline needs a 2 px nudge to close an 18 px O, and
+		-- that made card names, Sort and the money pill blobby, the letters touching. Drop: the thick ink edge under each letter (designer's reference,
 		-- 2026-10-06), an ink copy with the outline moved down this share of the text size
 		-- (rounded up, at least MinPx); 0.06 picked by the designer over 0.1 and 0.14. (tune)
 		HoleFill = {
-			Everywhere = false, -- every outlined text in PlayerGui (false: only pages that ask)
+			Everywhere = true, -- every outlined text in PlayerGui (false: only pages that ask)
+			MinTextPx = 20, -- smaller text keeps its holes (the kit's thin-outline size)
 			HoleRatio = 0.08,
 			MinNudgePx = 1,
 			Drop = { Ratio = 0.06, MinPx = 2 },
