@@ -678,6 +678,14 @@ return {
 				Passes = "Passes",
 			},
 			New = "NEW", -- a red badge on a jump button and the Shop tile
+			-- The Featured page (the lively Shop, 2026-10-06): its header and the Grand
+			-- Opening card. The subtitle's middle word (Limited) is set in yellow by the code.
+			Featured = {
+				Header = "FEATURED",
+				Title = "GRAND OPENING",
+				Subtitle = "LUCKY BLOCK • %s • YOU COULD PULL...",
+				Limited = "LIMITED",
+			},
 		},
 		-- The Rewards (RewardsMenu and its pages RewardsDaily, RewardsPlaytime, RewardsCodes).
 		-- Block names come from Strings.LuckyBlocks.Names; money is "$250" (Progression/Format).

@@ -1529,4 +1529,6 @@ end)
 require(script.Parent.GuiQA).start()
 -- The lively Shop's motion spike (Studio only; GuiQA "spike").
 require(script.Parent.MotionSpike).start()
+-- The lively Shop's gate 2 mock-ups (Studio only; GuiQA "lab").
+require(script.Parent.ShopLab).start()
 print("[8ball] multiplayer client ready")

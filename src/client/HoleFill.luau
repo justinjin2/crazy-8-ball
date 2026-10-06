@@ -326,6 +326,10 @@ local function consider(object: Instance, withDrop: boolean)
 	if not (label:IsA("TextLabel") or label:IsA("TextButton")) then
 		return
 	end
+	-- Text that draws its own outline and lip in layers (ArchTitle's letters) opts out.
+	if label:GetAttribute("NoHoleFill") then
+		return
+	end
 	local state = states[label]
 	if state == nil then
 		local stroke = outlineOf(label)

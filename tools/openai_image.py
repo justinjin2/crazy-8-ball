@@ -4,11 +4,16 @@
     python3 tools/openai_image.py --prompt "..." --out assets/cue/skins/<id>/forearm_raw.png \
         [--image layout.png --image concept_crop.png ...] [--size 1536x1024] [--quality high] \
         [--background transparent|opaque|auto] [--model gpt-image-2.5-sunburst] [--tag <skin id>]
+        [--mask mask.png] [--stop 500] [--note-every 50]
 
 With one or more --image it calls the edits endpoint (the first image is the layout, the rest
 are design references); with none it calls generations. Every call is appended to
 assets/cue/concepts/openai_log.jsonl (model, size, quality, the usage returned, an estimated
 cost, the output path) and the running estimate is printed.
+
+--mask (edits only): a PNG the size of the first --image whose clear (alpha 0) pixels are the
+area to repaint. --stop and --note-every override the stop-and-ask point and the spend-note
+step for one run's brief (the lively Shop: $500 and $50); the log keeps every call either way.
 
 The key is read from the macOS Keychain (service OPENAI_API_KEY) and never printed or written.
     --total   print the running estimated spend and exit
@@ -102,7 +107,10 @@ def call(args):
     if args.background:
         fields.append(('background', args.background))
     if args.images:
-        body, ctype = multipart(fields, [('image[]', p) for p in args.images])
+        files = [('image[]', p) for p in args.images]
+        if args.mask:
+            files.append(('mask', args.mask))
+        body, ctype = multipart(fields, files)
         url = API + 'edits'
     else:
         payload = {k: v for k, v in fields}
@@ -141,7 +149,12 @@ def main():
     parser.add_argument('--model', default=DEFAULT_MODEL)
     parser.add_argument('--tag', default='')
     parser.add_argument('--total', action='store_true')
+    parser.add_argument('--mask')
+    parser.add_argument('--stop', type=float, default=SPEND_STOP)
+    parser.add_argument('--note-every', type=float, default=SPEND_NOTE_EVERY)
     args = parser.parse_args()
+    if args.mask and not args.images:
+        sys.exit('openai_image: --mask needs an --image to edit')
     before = total_spend()
     if args.total:
         print('openai_image: estimated spend so far $%.2f' % before)
@@ -151,9 +164,9 @@ def main():
             args.prompt = handle.read()
     if not args.prompt or not args.out:
         sys.exit('openai_image: --prompt (or --prompt-file) and --out are required')
-    if before >= SPEND_STOP - 0.5:
+    if before >= args.stop - 0.5:
         sys.exit('openai_image: STOP - the estimate ($%.2f) is at the $%.0f limit; ask the designer'
-                 % (before, SPEND_STOP))
+                 % (before, args.stop))
     started = time.time()
     data, url = call(args)
     item = data['data'][0]
@@ -166,6 +179,7 @@ def main():
     entry = {'time': time.strftime('%Y-%m-%dT%H:%M:%S'), 'tag': args.tag, 'model': args.model,
              'endpoint': url.rsplit('/', 1)[-1], 'size': args.size, 'quality': args.quality,
              'background': args.background or '', 'inputs': [os.path.relpath(p, ROOT) for p in args.images],
+             'mask': os.path.relpath(args.mask, ROOT) if args.mask else '',
              'usage': usage, 'cost_usd': round(cost, 4), 'seconds': round(time.time() - started, 1),
              'out': os.path.relpath(os.path.abspath(args.out), ROOT)}
     os.makedirs(os.path.dirname(LOG), exist_ok=True)
@@ -173,8 +187,9 @@ def main():
         handle.write(json.dumps(entry) + '\n')
     after = before + cost
     print('openai_image: wrote %s ($%.3f, total $%.2f)' % (entry['out'], cost, after))
-    if int(after // SPEND_NOTE_EVERY) > int(before // SPEND_NOTE_EVERY):
-        print('openai_image: SPEND NOTE - passed $%d' % (int(after // SPEND_NOTE_EVERY) * SPEND_NOTE_EVERY))
+    step = args.note_every
+    if int(after // step) > int(before // step):
+        print('openai_image: SPEND NOTE - passed $%d' % (int(after // step) * step))
 
 
 if __name__ == '__main__':

@@ -6112,6 +6112,49 @@ Config.UI = {
 		},
 		-- Secret's red-white glitch (UI_STYLE 4, designer 2026-10-03): over its near-black.
 		SecretGlitch = { { 255, 40, 60 }, { 255, 255, 255 } },
+		-- Big title words set letter by letter on a gentle arch, each letter its own group of
+		-- layers so it can pop in alone (ArchTitle; the lively Shop's "GRAND OPENING", after
+		-- 13b's painted title). Shares are of the text size; colours sampled off 13b. (tune)
+		ArchTitle = {
+			Gold = {
+				-- The face: pale yellow at the top of the letters, gold, orange at the foot,
+				-- with a soft light band near the top for the gloss. Positions are of the
+				-- letter's box (its glyphs fill about 0.15 to 0.85 of it).
+				Face = {
+					{ At = 0, Color = { 255, 252, 196 } },
+					{ At = 0.3, Color = { 255, 247, 150 } },
+					{ At = 0.36, Color = { 255, 236, 70 } },
+					{ At = 0.6, Color = { 255, 214, 30 } },
+					{ At = 0.85, Color = { 253, 176, 4 } },
+					{ At = 1, Color = { 240, 150, 0 } },
+				},
+				Extrude = { 214, 112, 4 }, -- the letters' depth under the face
+				ExtrudeShare = 0.09, -- how far down the depth reaches
+				Outline = { 6, 14, 40 }, -- the thick navy outline that merges the word
+				OutlineShare = 0.11,
+				Rim = { 30, 200, 255 }, -- the cyan rim outside the outline
+				RimShare = 0.045, -- its width outside the outline
+				RimTransparency = 0.1,
+				TrackingShare = -0.03, -- extra room between letters (the outlines merge)
+				SagShare = 0.05, -- the arch: how much higher the middle is, of the word's width
+			},
+			-- The same in a heavier rounded font, closer to 13b's chunky letters (gate 2 A/B).
+			GoldNunito = { Base = "Gold", Font = { Family = "Nunito", Weight = "Heavy" } },
+			GoldLuckiest = {
+				Base = "Gold",
+				Font = { Family = "LuckiestGuy", Weight = "Regular" },
+				TrackingShare = 0.0,
+			},
+			-- The subtitle under it: white letters, a navy outline, on a shallower arch.
+			Subtitle = {
+				FaceColor = { 255, 255, 255 },
+				Outline = { 6, 14, 40 },
+				OutlineShare = 0.16,
+				TrackingShare = 0.0,
+				SagShare = 0.03,
+				ByWord = true, -- whole words on the arch (small letters alone lose their kerning)
+			},
+		},
 	},
 	-- Lower effects (Settings, designer 2026-10-03): weaker devices get fewer particles and
 	-- auras, never none. Every particle rate and UI loop reads Quality (src/client/Quality).
