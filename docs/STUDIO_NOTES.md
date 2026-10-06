@@ -637,3 +637,14 @@ basics (glb textures, face direction, axes, texture alpha) are under "Uploading 
 - **Sound sheets were not needed**: every ability sound is a public library clip played by id
   (`SoundSheet.library`), trimmed with `StartOffset` and pitched at runtime. The sheet player
   is ready for uploaded sheets (`Config.Ults.Assets.Sheets`).
+
+## Bugs that only happen live: fake the lag (found 2026-10-05)
+
+- Studio has no network delay, so a race between the server and a client can pass every
+  Studio test and still fail live. From a Client `execute_luau`:
+  `settings().Network.IncomingReplicationLag = 0.3` (seconds; set it back to 0 after).
+- Found with it: a root the server lets go while this client still has the limbs anchored
+  (ShooterPoser's aim pose) is pulled to those limbs by its joints, and the client owns the
+  body from then on, so the server's spot is lost. The leaving shooter over the middle of the
+  table went under the floor (y -0.27) and fell to FallGuard. ShooterPoser's guard now puts
+  the root back at the spot it was let go at, after letting the limbs go.

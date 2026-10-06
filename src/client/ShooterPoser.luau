@@ -424,6 +424,11 @@ end
 -- Watch `root`'s Anchored while the poser is out of rest: the moment the server lets the root
 -- go, the limbs go too, in the same replication step, so no client is left holding a body
 -- frozen in the air. Posing picks up again once the root is held again (pose()).
+-- The root then goes back to the spot the server let it go at (its CFrame as the release
+-- arrives: TableService's clear spot beside the table): a root let go while its limbs are still
+-- anchored here is pulled to them by its joints, and the posed limbs of a body stretched over
+-- the table pulled it under the floor, where it fell until FallGuard sent it to the spawn
+-- (designer, 2026-10-05: leaving mid-match from the middle of the table, live, with lag).
 local function watch(self: Poser, root: BasePart?)
 	local want = root ~= nil and self.state ~= "rest"
 	if self.root == root and (self.guard ~= nil) == want then
@@ -438,7 +443,11 @@ local function watch(self: Poser, root: BasePart?)
 	if want and root then
 		self.guard = root:GetPropertyChangedSignal("Anchored"):Connect(function()
 			if self.held and not root.Anchored then
+				local spot = root.CFrame
 				unhold(self)
+				root.CFrame = spot
+				root.AssemblyLinearVelocity = Vector3.zero
+				root.AssemblyAngularVelocity = Vector3.zero
 			end
 		end)
 	end
