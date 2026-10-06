@@ -207,10 +207,18 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 		rightPad.PaddingRight = UDim.new(0, -d)
 		local pad = state.dropPad
 		if pad then
-			-- A share of the label's height, as a padding's pixels are whole.
-			local down = dropPx(stroke) / math.max(1, label.AbsoluteSize.Y)
-			pad.PaddingTop = UDim.new(down, 0)
-			pad.PaddingBottom = UDim.new(-down, 0)
+			-- A share of the label's height, as a padding's pixels are whole. A label not
+			-- laid out yet (in a billboard still switched off) has no height: whole pixels
+			-- until it does, or the share would push the lip a whole line down.
+			local down = dropPx(stroke)
+			local height = label.AbsoluteSize.Y
+			if height >= 1 then
+				pad.PaddingTop = UDim.new(down / height, 0)
+				pad.PaddingBottom = UDim.new(-down / height, 0)
+			else
+				pad.PaddingTop = UDim.new(0, math.floor(down + 0.5))
+				pad.PaddingBottom = UDim.new(0, -math.floor(down + 0.5))
+			end
 		end
 	end
 	local function ink()
@@ -258,12 +266,18 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 				end
 			elseif property == "TextColor3" or property == "TextTransparency" then
 				refresh()
-			elseif property == "AbsoluteSize" and state.dropPad then
-				place()
 			end
 		end)
 	)
 	table.insert(links, stroke.Changed:Connect(refresh))
+	table.insert(
+		links,
+		label:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+			if state.dropPad then
+				place()
+			end
+		end)
+	)
 	local limit = label:FindFirstChildOfClass("UITextSizeConstraint")
 	if limit then
 		table.insert(

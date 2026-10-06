@@ -2656,3 +2656,7 @@ timer of a new block stay the designer's call.
   TextSize is only its largest size: the nameplate's is 100 for 34 px letters, so its copies
   moved 8 px against a 3 px outline and showed as dark blobs beside the name. The lip is
   0.45 of the outline (about 4.5% of the text), at least 1.5 px.
+- 2026-10-06: Fix (designer saw "READY!" twice over a held lucky block, the lower one black):
+  the held block's timer is built while its billboard is off, so its label had no height and
+  the lip, a share of that height, went a whole line down. A label with no height now gets
+  the lip in whole pixels until it is laid out; HoleFill listens to AbsoluteSize directly.
