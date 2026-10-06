@@ -2280,7 +2280,9 @@ Config.LuckyBlocks = {
 		-- The dark reel (LuckyOpening): a very see-through grey-black over everything, so the
 		-- world still shows through (designer, 2026-10-03: no white panel).
 		DimColor = { 12, 14, 22 },
-		DimTransparency = 0.35,
+		-- 1: no dim any more, the world blurs instead (Config.UI.Blur; designer, 2026-10-06).
+		-- Was 0.35. The clear layer still takes the reel's taps.
+		DimTransparency = 1,
 		DimSeconds = 0.25,
 		DisplayOrderAbove = 16, -- over the HUD screen
 		TileFillTransparency = 0.45, -- each reel tile: a dark see-through card...
@@ -5615,7 +5617,8 @@ Config.UI = {
 			-- results): black, fading to this transparency with the popup (0.5: a little dark;
 			-- 1 would be clear again). It is this many screens plus this many pixels big, centred,
 			-- so it spills past Roblox's top bar and a phone's notch and never shows an edge.
-			BackdropTransparency = 0.5,
+			-- 1: clear, the world blurs instead (Config.UI.Blur; designer, 2026-10-06; was 0.5).
+			BackdropTransparency = 1,
 			BackdropOverScale = 2,
 			BackdropOverPx = 400,
 			MarginPx = 10,
@@ -5666,7 +5669,9 @@ Config.UI = {
 		-- full-size one (DesignHeightPx tall); text shrinks with the panel down to MinScale. (tune)
 		Roadmap = {
 			DisplayOrderAbove = 10, -- its own ScreenGui sits this far over the HUD's
-			DimTransparency = 0.45, -- the backdrop behind the panel (a tap on it closes)
+			-- The backdrop behind the panel (a tap on it closes); 1: clear, the world blurs
+			-- instead (Config.UI.Blur; designer, 2026-10-06; was 0.45). Menus share it.
+			DimTransparency = 1,
 			DimSeconds = 0.2, -- the backdrop's fade in and out
 			MaxSizePx = { 1120, 640 }, -- the panel's largest width and height (a computer)
 			MarginPx = 4, -- the least gap between the panel and the screen's edges
@@ -10263,6 +10268,15 @@ Config.UI.FreeReward = {
 	ButtonPx = { 44, 54 },
 	-- After Roblox's favorite prompt says yes, look again this long for GetFavorite to agree.
 	FavoriteCheckSeconds = 3,
+}
+
+-- The blur over the world behind menus, the roadmap, the lucky block reel, the match results
+-- and NEW RANK! (ScreenBlur; designer, 2026-10-06, after a reference: "only blur it", in place
+-- of every dark dim, a very quick fade "almost like a focus effect on a camera"). (tune)
+Config.UI.Blur = {
+	Size = 20, -- the BlurEffect's size at full blur (Roblox's 0 to 56)
+	InSeconds = 0.2, -- the fade in as a screen opens
+	OutSeconds = 0.2, -- and out as the last one closes
 }
 
 -- The hub's small corner buttons (HubCorners; GUI lane, C2): the Daily Challenge on the right

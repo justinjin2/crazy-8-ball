@@ -42,6 +42,7 @@ local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local RankBadge = require(script.Parent.RankBadge)
 local RewardChips = require(script.Parent.RewardChips)
+local ScreenBlur = require(script.Parent.ScreenBlur)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -466,6 +467,7 @@ function NewRankPopup.openUp(self: any, item: any)
 
 	self.root.Visible = true
 	self:layout()
+	ScreenBlur.set(self, true)
 	TweenService:Create(
 		backdrop,
 		TweenInfo.new(K.Motion.PopSeconds, Enum.EasingStyle.Quad),
@@ -658,6 +660,7 @@ function NewRankPopup.close(self: any)
 		TweenInfo.new(K.Motion.OutSeconds, Enum.EasingStyle.Quad),
 		{ BackgroundTransparency = 1 }
 	):Play()
+	ScreenBlur.set(self, false)
 	-- A reward that did not get to fly lands now, so the HUD is not left waiting; blocks and
 	-- the cue still waiting set off at once, from where their chips are as the popup goes.
 	local item = view.item
@@ -697,6 +700,7 @@ function NewRankPopup.finish(self: any, view: any)
 		self.view = nil
 	end
 	self.root.Visible = false
+	ScreenBlur.set(self, false)
 	if not self.alive then
 		return
 	end

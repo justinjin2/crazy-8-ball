@@ -26,6 +26,7 @@ local HudParts = require(script.Parent.HudParts)
 local LuckyResult = require(script.Parent.LuckyResult)
 local PullCutscene = require(script.Parent.PullCutscene)
 local ReelFx = require(script.Parent.ReelFx)
+local ScreenBlur = require(script.Parent.ScreenBlur)
 
 local U = Config.LuckyBlocks.UI
 local CO = Config.UI.Reel
@@ -178,6 +179,7 @@ function Opening.play(
 	self.backGui.Enabled = true
 	self.gui.Enabled = true
 	self.dim.BackgroundTransparency = 1
+	ScreenBlur.set(self, true)
 	TweenService
 		:Create(
 			self.dim,
@@ -365,6 +367,7 @@ function Opening.close(self: any)
 	end
 	self.backGui.Enabled = false
 	self.gui.Enabled = false
+	ScreenBlur.set(self, false)
 	self:showOthers()
 	PullCutscene.cardClosed() -- a Legendary's ambience plays on a moment, then tapers
 	local done = self.onClosed

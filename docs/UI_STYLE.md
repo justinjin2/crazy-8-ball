@@ -36,13 +36,13 @@ screen, a popup).
   header) and a thin light-blue edge, inset a little from the panel's outline. The 8-ball
   pattern shows on both. Built with `HudParts.menuCard` and `HudParts.setSheetTop`; small
   panels and popups stay plain cards.
-- **Popups never darken the screen** (designer, 2026-09-27, said for the dialogs and again for
-  the rank screens): no dim behind a popup, a dialog, the end-of-match screen or NEW RANK!, because
-  the dark layer shows where it stops at the screen's edges on different devices. The
-  exceptions are the Ranked roadmap's slight dim and NEW RANK!'s dim (designer, 2026-09-28: it
-  sat awkwardly over the match results). That dim is black at 0.5 transparency, fades in and out
-  with the popup, and is two screens plus 400 px big, centred, so it spills past the top bar and
-  a phone's notch and never shows an edge.
+- **Blur, never darken** (designer, 2026-10-06, after a reference; replaces the dims of
+  2026-09-27/28): behind every menu, the Ranked roadmap, the lucky block reel, the
+  end-of-match screen and NEW RANK!, the 3D world blurs and the GUI stays sharp. A very quick
+  fade in and out (0.2 s), like a camera pulling focus. No dark layer anywhere (it showed
+  where it stopped at a screen's edges); the clear layers stay only to take taps. Built with
+  `ScreenBlur.set(key, on)`, numbers in `Config.UI.Blur`. Small popups and dialogs inside a
+  menu add nothing. The tutorial's spotlight keeps its own dim, as that is its whole point.
 
 ## 3. Text
 

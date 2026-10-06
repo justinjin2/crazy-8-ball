@@ -40,6 +40,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
 local Menus = require(script.Parent.Menus)
+local ScreenBlur = require(script.Parent.ScreenBlur)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -772,6 +773,7 @@ function MenuFrame.open(self: any, tab: string?)
 		{ BackgroundTransparency = DIM.DimTransparency }
 	)
 	self.dimTween:Play()
+	ScreenBlur.set(self, true)
 	UIAnim.popIn(self.panel)
 	UIAnim.glowBurst(self.panel, nil, 0.15) -- a bigger open (UI_STYLE 13)
 	self:listen()
@@ -809,6 +811,7 @@ function MenuFrame.close(self: any)
 	self.dimTween =
 		TweenService:Create(self.dim, TweenInfo.new(DIM.DimSeconds), { BackgroundTransparency = 1 })
 	self.dimTween:Play()
+	ScreenBlur.set(self, false)
 	UIAnim.popOut(self.panel, function()
 		if not self.opened and self.alive then
 			self.gui.Enabled = false

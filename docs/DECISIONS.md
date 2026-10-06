@@ -2660,3 +2660,8 @@ timer of a new block stay the designer's call.
   the held block's timer is built while its billboard is off, so its label had no height and
   the lip, a share of that height, went a whole line down. A label with no height now gets
   the lip in whole pixels until it is laid out; HoleFill listens to AbsoluteSize directly.
+- 2026-10-06 (designer, after a reference): **Blur instead of every dark dim.** Menus (all
+  MenuFrame screens), the Ranked roadmap, the lucky block reel, the match results and NEW
+  RANK! blur the 3D world (a BlurEffect on the camera, size 20, 0.2 s in and out:
+  `ScreenBlur`, `Config.UI.Blur`); their dark layers are now clear (they still take taps).
+  The tutorial's spotlight dim and the pull cutscenes' black stay.

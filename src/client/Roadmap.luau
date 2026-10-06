@@ -54,6 +54,7 @@ local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local RankBadge = require(script.Parent.RankBadge)
 local BlockIcon = require(script.Parent.BlockIcon)
+local ScreenBlur = require(script.Parent.ScreenBlur)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -2003,6 +2004,7 @@ function Roadmap.open(self: any)
 		{ BackgroundTransparency = R.DimTransparency }
 	)
 	self.dimTween:Play()
+	ScreenBlur.set(self, true)
 	UIAnim.popIn(self.panel)
 	self:startLoops()
 	self:listen()
@@ -2037,6 +2039,7 @@ function Roadmap.close(self: any)
 	self.dimTween =
 		TweenService:Create(self.dim, TweenInfo.new(R.DimSeconds), { BackgroundTransparency = 1 })
 	self.dimTween:Play()
+	ScreenBlur.set(self, false)
 	UIAnim.popOut(self.panel, function()
 		if not self.opened and self.alive then
 			self.gui.Enabled = false
@@ -2054,6 +2057,7 @@ function Roadmap.destroy(self: any)
 	end
 	if self.opened then
 		self.opened = false
+		ScreenBlur.set(self, false)
 		self:stopLoops()
 		self:unlisten()
 		self:releaseSelection()

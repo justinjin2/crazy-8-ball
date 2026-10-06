@@ -52,6 +52,7 @@ local HudParts = require(script.Parent.HudParts)
 local PostMatch = require(script.Parent.PostMatch)
 local RankBadge = require(script.Parent.RankBadge)
 local RewardChips = require(script.Parent.RewardChips)
+local ScreenBlur = require(script.Parent.ScreenBlur)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -982,6 +983,7 @@ function ResultScreen.open(self: any, summary: any, onDone: (() -> ())?)
 		return
 	end
 	self.root.Visible = true
+	ScreenBlur.set(self, true)
 	TweenService:Create(
 		view.backdrop,
 		TweenInfo.new(K.Motion.PopSeconds, Enum.EasingStyle.Quad),
@@ -1315,6 +1317,7 @@ function ResultScreen.close(self: any)
 		TweenInfo.new(K.Motion.OutSeconds, Enum.EasingStyle.Quad),
 		{ BackgroundTransparency = 1 }
 	):Play()
+	ScreenBlur.set(self, false)
 	UIAnim.popOut(view.stage)
 	task.delay(K.Motion.OutSeconds + 0.05, function()
 		self:finish(view)
@@ -1346,6 +1349,7 @@ function ResultScreen.finish(self: any, view: any)
 		self.view = nil
 	end
 	self.root.Visible = false
+	ScreenBlur.set(self, false)
 	if not self.alive then
 		return
 	end
