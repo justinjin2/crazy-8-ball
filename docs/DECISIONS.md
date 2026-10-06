@@ -2552,3 +2552,7 @@ timer of a new block stay the designer's call.
 - 2026-10-05: Sunlight back (designer: "too dark now, go back"): `Brightness` 2.6 by day and
   3.4 at sunset with their old exposure and shade, so the sun's shadows are back. The sun's
   disc stays hidden; the 10 second, every-frame fade stays.
+- 2026-10-05: A test (designer): the left column's four words (Shop, Inventory, Abilities,
+  Free Reward) in Montserrat at its heaviest weight instead of Fredoka One, still white with
+  the ink outline (`Config.UI.Menu.Column.LabelFont`). Everything else keeps Fredoka One
+  (UI_STYLE) until the designer decides.

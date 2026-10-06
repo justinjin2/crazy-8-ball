@@ -89,6 +89,9 @@ do
 	end
 end
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
+-- The tiles' words (Config): drawn in WORD_FONT, measured with WORD_MEASURE.
+local WORD_FONT = Font.new(C.LabelFont.Family, (Enum.FontWeight :: any)[C.LabelFont.Weight])
+local WORD_MEASURE: Enum.Font = (Enum.Font :: any)[C.LabelFont.Measure]
 local FREE = "FreeReward" -- the Free Reward tile (GUI lane)
 
 type Tile = {
@@ -393,6 +396,7 @@ function MenuColumn.buildTile(self: any, parent: Instance, name: string, index: 
 	end)
 	local word = HudParts.text(body, "Word", C.LabelTextPx, WORDS[name] or name)
 	word.TextWrapped = false
+	word.FontFace = WORD_FONT
 	word.AnchorPoint = Vector2.new(0.5, 0.5)
 	word.ZIndex = 4
 	local dot = HudParts.pill(body, "Dot", HudParts.tone("Red"))
@@ -511,8 +515,10 @@ function MenuColumn.layout(self: any)
 	local widest = 0
 	for _, name in tiles do
 		local words = WORDS[name] or name
-		widest =
-			math.max(widest, TextService:GetTextSize(words, textPx, FONT, Vector2.new(2000, 200)).X)
+		widest = math.max(
+			widest,
+			TextService:GetTextSize(words, textPx, WORD_MEASURE, Vector2.new(2000, 200)).X
+		)
 	end
 	local labelW = math.clamp(math.ceil(widest) + 8, tile, round(tile * C.LabelMaxShare))
 	local over = math.max(0, round((labelW - tile) / 2))
