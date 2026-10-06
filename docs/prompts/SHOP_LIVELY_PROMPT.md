@@ -509,6 +509,14 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   view is not possible on this Mac, see Notes). A subagent is cutting 13b's pieces (step 3)
   with free local tools. Gate 1 shown to the designer and **approved** (techniques in
   DECISIONS.md 2026-10-06).
+- 2026-10-06: step 3 built, **gate 2 shown, waiting** (page:
+  https://claude.ai/artifact/VsFSVNxe1VBMgYNxt4oCUA; its source and images in
+  `~/Desktop/8ball-refs/gui-lively/work/gate2/page/`). Pieces in `assets/ui/grand_opening/`
+  (new 2:1 plate, filled block, balls at three blurs, confetti, drawn panels and backgrounds,
+  both cues rendered from the in-game models tip-left), flipbooks in `assets/ui/effects/`
+  (fireworks in five colours, sparkle, the loose gold ribbons). Nothing uploaded yet (step 4).
+  Asked: approve the pieces, header strength (0.7 / 0.6 / 0.5, suggested 0.6), odds badge with
+  pop-up or chip row (suggested badge). Image spend $6.81.
 
 ## Decisions
 
