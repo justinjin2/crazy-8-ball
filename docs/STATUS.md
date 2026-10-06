@@ -7,9 +7,8 @@
   Midnight, Monarch, Silver, Platinum) get the UI's ink. Uncommon and Common cues have one
   now too.
 - Up close Roblox thins a Highlight's outline to nothing (the aiming view: the designer saw
-  Gummy's vanish), so each stick also carries 8 camera-facing ribbons along it, 0.012 studs
-  wider than the cue each side (`Outline.Ink`): a rim that grows as the camera nears, faded
-  each side (`Outline.Ink`): a rim that grows as the camera nears. They narrow to the bare cue
+  Gummy's vanish), so each stick also carries camera-facing ribbons along it, 0.012 studs
+  wider than the cue each side (`Outline.Ink`): a rim that grows as the camera nears. They narrow to the bare cue
   at the tip and butt, and are off while the stick has any camera fade or is seen within 18
   degrees of end-on (both showed as a square end and a cue filled with colour on the back).
 - Less flare on the lower rarities (`Outline.ByRarity`, by `CueSkins.Pop.level`: a rank or
