@@ -377,7 +377,7 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   money with numbered copies ("#1 of 1,000"), the Founder's Cue for Robux (id 0), and "N exist"
   on every cue from a shared counter. Still to do: a live check of the counters across
   servers, and the real timed drops.
-  Progress 2026-10-03 (the Economy lane): the shelf holds one row, the Grand Opening Cue
+  Progress 2026-10-03 (the Economy lane): the shelf holds one row, the Firework Cue
   ($149,000, 14 days, numbered), off until its `StartsAt` is set before publishing; `/limited`
   to test. Founder's and Beta have no row.
 - [ ] **7.5 VIP pass and starter offer.**

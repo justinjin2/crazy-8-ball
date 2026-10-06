@@ -751,7 +751,7 @@ reworked for lucky blocks on 2026-10-04.
   and Mythic, each guaranteeing at least the rarity below its name. Standard and Uncommon open
   at once; Rare, Epic, Legendary and Mythic open after 1 h, 6 h, 24 h and 48 h, all timers
   running at once; VIP halves every timer. Other kinds have their own odds rows: Mystery (the
-  tier roll), Grand Opening (with the Grand Opening Cue 3% and the Beta Cue 0.3%), Starter
+  tier roll), Grand Opening (with the Firework Cue 3% and the Beta Cue 0.3%), Starter
   (the Starter Pack, Rare or better), Sky, Lucky 8 and Gift. **No block is sold permanently**:
   the four money cases, Buy-10, case sales and the Event Case are gone. Blocks come from
   wins, rewards, the shop's Mystery and Grand Opening deals and the restock shop. At release:
@@ -777,7 +777,7 @@ reworked for lucky blocks on 2026-10-04.
   ECONOMY.md section 9.
 - **Rarities** (designer, 2026-09-27): **Common, Uncommon, Rare, Epic, Legendary, Mythic,
   Secret**, from lucky blocks. Two groups sit outside that ladder and never come from a tier
-  block: **Unique** (numbered Limited copies: the Grand Opening Cue and the Beta Cue, from the
+  block: **Unique** (numbered Limited copies: the Firework Cue and the Beta Cue, from the
   Grand Opening block; there is no Founder's Cue, ever) and **Exclusive** (the VIP Cue, the Starter Cue, the rank cues Bronze Cue to Reyes
   Cue, later season cues). "Ultra" is dropped; VIP is an Exclusive cue, not a rarity. Colours
   in `docs/UI_STYLE.md`. Rarer cues have special trail and pocket VFX. Cue cards show the
@@ -797,7 +797,7 @@ reworked for lucky blocks on 2026-10-04.
   replace it with their own trail and their own pocket effect, and that pairing is the main
   reason to want one. Effects are catalog data (a named style), never code per cue.
 - **The Grand Opening at release** (plan, 2026-10-02; designer, 2026-10-03 and 2026-10-04):
-  the **Grand Opening Cue** and the **Beta Cue** come only from the **Grand Opening block**
+  the **Firework Cue** and the **Beta Cue** come only from the **Grand Opening block**
   (3% and 0.3% a block; the 400th opened guarantees Beta), sold for 21 days from a start date
   the designer sets right before release (off until then; placeholder colours for now), with
   the release sale on the same window. The $149,000 shelf is gone. There is no Founder's Cue

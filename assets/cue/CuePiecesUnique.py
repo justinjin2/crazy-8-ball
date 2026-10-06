@@ -1,4 +1,4 @@
-"""The Unique cues' pieces (the Beta Cue and the Grand Opening Cue, 2026-10-04; see CuePieces.py
+"""The Unique cues' pieces (the Beta Cue and the Firework Cue, 2026-10-04; see CuePieces.py
 for the kit and export). Modelled in the cue's Blender frame: X the side, Y from the tip (0)
 toward the butt (-7), Z up; the pocket finisher in the pocket frame (origin at the mouth, Z up).
 
@@ -294,7 +294,7 @@ def beta_pocket(k):
 
 
 # =============================================================================================
-# Grand Opening Cue
+# Firework Cue
 # =============================================================================================
 
 @piece

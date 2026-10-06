@@ -216,21 +216,21 @@
    "kind": "Product",
    "name": "Grand Opening Lucky Block",
    "robux": 49,
-   "description": "One Grand Opening Lucky Block: each rolls Uncommon to Secret, with a chance at the Unique Beta Cue or Grand Opening Cue. Every outcome's odds are shown in the shop before buying."
+   "description": "One Grand Opening Lucky Block: each rolls Uncommon to Secret, with a chance at the Unique Beta Cue or Firework Cue. Every outcome's odds are shown in the shop before buying."
   },
   {
    "key": "GrandOpening3",
    "kind": "Product",
    "name": "3 Grand Opening Lucky Blocks",
    "robux": 129,
-   "description": "3 Grand Opening Lucky Blocks: each rolls Uncommon to Secret, with a chance at the Unique Beta Cue or Grand Opening Cue. Every outcome's odds are shown in the shop before buying."
+   "description": "3 Grand Opening Lucky Blocks: each rolls Uncommon to Secret, with a chance at the Unique Beta Cue or Firework Cue. Every outcome's odds are shown in the shop before buying."
   },
   {
    "key": "GrandOpening10",
    "kind": "Product",
    "name": "10 Grand Opening Lucky Blocks",
    "robux": 349,
-   "description": "10 Grand Opening Lucky Blocks: each rolls Uncommon to Secret, with a chance at the Unique Beta Cue or Grand Opening Cue. Every outcome's odds are shown in the shop before buying."
+   "description": "10 Grand Opening Lucky Blocks: each rolls Uncommon to Secret, with a chance at the Unique Beta Cue or Firework Cue. Every outcome's odds are shown in the shop before buying."
   }
  ]
 }

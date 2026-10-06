@@ -347,7 +347,7 @@ return {
 	},
 	GrandOpeningCue = {
 		Id = "grand_opening",
-		Name = "Grand Opening Cue",
+		Name = "Firework Cue",
 		Tier = "Unique",
 		Thumb = "rbxassetid://114323135519020",
 		Look = {

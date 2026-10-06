@@ -2740,3 +2740,9 @@ timer of a new block stay the designer's call.
   money row. The gift squares are smaller than the Robux row, clear of the cue cards. The
   Grand Opening cue has a pulsing yellow glow round it (go_cue_glow.png,
   `tools/gui/cue_glow.py`) so it stands out of its background.
+- 2026-10-06 (designer): **the Grand Opening Cue is now the Firework Cue**, everywhere a player
+  or a doc sees it from now on (Strings, the shop card's "FIREWORK CUE", the cue skin's name,
+  the GrandOpening1/3/10 descriptions on Roblox, GDD, ECONOMY, ROADMAP). Its id stays
+  `GrandOpeningCue` so saves keep it; the Grand Opening Lucky Block and deal keep their names.
+  Older dated notes keep the old name. Its card's gold ribbons turn at half speed (4.8 s), and
+  the green Robux row is a little shorter, clear of the cue cards.

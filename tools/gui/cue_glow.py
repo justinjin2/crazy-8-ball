@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A soft glow round a Grand Opening card cue (designer, 2026-10-06: the Grand Opening Cue was
+"""A soft glow round a Grand Opening card cue (designer, 2026-10-06: the Firework Cue was
 hard to see on its background; a yellow aura like the in-game one).
 
     python3 tools/gui/cue_glow.py

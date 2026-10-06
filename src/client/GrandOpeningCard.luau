@@ -5,7 +5,7 @@
 -- fireworks, drifting confetti, bokeh and twinkles; the lucky block (glow, rays, breathe, shine,
 -- its crown baked on so it breathes and shines with it, the tilted NEW tag, the sky-blue odds
 -- badge and the live "Ends in" timer); the arched GRAND OPENING title with its stars and
--- subtitle; the Beta and Grand Opening cue cards (their names, UNIQUE pills, odds
+-- subtitle; the Beta and Firework Cue cards (their names, UNIQUE pills, odds
 -- chips and their own loops); a column per pack: the purple gift square (the Gift Player popup)
 -- and the green Robux price, the pack's "3 blocks", then the gold money button.
 -- Pictures, places and loop numbers are in Config.UI.GrandOpeningCard, words in Strings

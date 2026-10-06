@@ -1,4 +1,4 @@
-# Cue VFX techniques (what made the Beta and Grand Opening cues work)
+# Cue VFX techniques (what made the Beta and Firework Cues work)
 
 Written 2026-10-04 at the end of the Unique cues lane (`docs/prompts/UNIQUE_CUES_PROMPT.md`,
 report `docs/prompts/UNIQUE_CUES_REPORT.md`), as the starting point for every rarer cue from

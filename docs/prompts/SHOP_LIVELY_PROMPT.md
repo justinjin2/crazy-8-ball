@@ -592,7 +592,9 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
 - 2026-10-06: no LIMITED pill on the cue cards; a bigger header title and icon, a smaller X,
   and a gold "+" on the header's money pill (jumps to Money).
 - 2026-10-06: no save labels; bigger buttons (Robux row bigger than money); smaller gift
-  squares; a yellow glow round the Grand Opening cue (one upload, $0).
+  squares; a yellow glow round the Firework Cue (one upload, $0).
+- 2026-10-06: **the Grand Opening Cue is renamed the Firework Cue** (designer; DECISIONS.md;
+  the id stays GrandOpeningCue). Its ribbons at half speed; the green row clear of the cards.
 
 
 ## Decisions

@@ -1961,7 +1961,7 @@ Config.BlockOdds = {
 			},
 		},
 		-- The Grand Opening block (plan 2.3): Uncommon or better plus two Unique rows that exist
-		-- nowhere else, named by cue id: the Grand Opening Cue 3% and the Beta Cue 0.3% (the
+		-- nowhere else, named by cue id: the Firework Cue 3% and the Beta Cue 0.3% (the
 		-- 400th block guarantees Beta: Config.LuckyBlocks.Kinds.GrandOpening.Guarantee).
 		GrandOpening = {
 			Odds = {
@@ -2723,7 +2723,7 @@ Config.Shop = {
 	-- until the designer sets it (the Grand Opening's: right before the release is published).
 	-- A new Limited is one row here plus its catalog cue. Beta is off (no row) until
 	-- scheduled; there is no Founder's Cue (designer, 2026-10-05).
-	-- (Designer, 2026-10-04: the $149,000 Grand Opening Cue shelf is gone; the cue comes from
+	-- (Designer, 2026-10-04: the $149,000 Firework Cue shelf is gone; the cue comes from
 	-- the Grand Opening block only. The shelf code stays for a later Limited.)
 	Limited = {} :: {
 		{
@@ -2739,7 +2739,7 @@ Config.Shop = {
 	-- Mystery blocks at Percent off for Seconds, as their own developer products (Config.Products
 	-- rows with SaleOf), shown in place of the normal ones only inside the window, so the
 	-- crossed-out normal price is always true. StartsAt 0: it starts with the Limited row of
-	-- With (the Grand Opening Cue), so one date sets both.
+	-- With (the Firework Cue), so one date sets both.
 	ReleaseSale = {
 		StartsAt = 0,
 		With = "GrandOpening", -- the Config.Shop.Deals key whose window it follows
@@ -7681,7 +7681,7 @@ Config.UI.Effects = {
 		Frames = 64,
 		Fps = 30, -- loops
 	},
-	-- The Grand Opening cue's two gold ribbons, one seamless turn over the card's cue picture
+	-- The Firework Cue's two gold ribbons, one seamless turn over the card's cue picture
 	-- (13b-like loose loops). Frames 1-16 on the first sheet, 17-32 on the second.
 	GoRibbons = {
 		Sheets = { "rbxassetid://126431223631624", "rbxassetid://88772770212728" },
@@ -7749,7 +7749,7 @@ Config.UI.GrandOpeningCard = {
 		},
 		Crown = "rbxassetid://118495873177958",
 		Flair8ball = "rbxassetid://132422184916082",
-		GoCueGlow = "rbxassetid://126476349740073", -- the Grand Opening cue's glow (white, tinted)
+		GoCueGlow = "rbxassetid://126476349740073", -- the Firework Cue's glow (white, tinted)
 		GoBg = "rbxassetid://99479265638524",
 		GoCue = "rbxassetid://130447726546401",
 		GoCueMask = "rbxassetid://113286103070085",
@@ -7780,7 +7780,8 @@ Config.UI.GrandOpeningCard = {
 		BetaCodePxPerSecond = 24, -- the glyph code scrolls
 		GoFireworkFps = 15, -- the Grand Opening card's mini fireworks play at half speed (designer)...
 		GoFireworkEvery = 1.5, -- ...and burst half as often, calm like the ribbons
-		RibbonFps = 13.333, -- the gold ribbons: a turn in 2.4 s (Config.UI.Effects.GoRibbons)
+		-- The gold ribbons: a turn in 4.8 s (half speed: designer, 2026-10-06; Effects.GoRibbons).
+		RibbonFps = 6.667,
 	},
 	-- Where everything sits, in the approved animatic's units (tools/gui/animatic, its card
 	-- 1275 x 498; the card fills the page's width and every number scales with it). Places are
@@ -7851,7 +7852,7 @@ Config.UI.GrandOpeningCard = {
 		OddsColor = { 70, 215, 255 }, -- sky blue (Kit.Numbers' odds colour)
 		CueShare = { 0.5, 0.68, 0.98 }, -- the cue's centre (shares of the card) and width: under the pills
 		GoCueShare = { 0.5, 0.7, 0.98 },
-		-- The Grand Opening cue's yellow glow (designer, 2026-10-06): tint, its transparency
+		-- The Firework Cue's yellow glow (designer, 2026-10-06): tint, its transparency
 		-- pulsing between these, and the pulse's length.
 		GoGlow = { Tint = { 255, 205, 40 }, Transparency = { 0.05, 0.35 }, PulseSeconds = 2.4 },
 		CueDegrees = -14,
@@ -7875,8 +7876,8 @@ Config.UI.GrandOpeningCard = {
 		-- purple gift square and the green Robux price ("129" and the old "147" struck through),
 		-- the pack's "3 blocks" under them, then the gold money button (no "save" line: the
 		-- room went to bigger buttons, the Robux ones a little bigger than the money ones).
-		RowGreen = 310,
-		RowGreenUnits = 78,
+		RowGreen = 318, -- clear of the cue cards above (designer, 2026-10-06)
+		RowGreenUnits = 70,
 		CountY = 409, -- the "1 block" words' centre, between the green and gold rows
 		CountTextUnits = 32,
 		RowGold = 428,
@@ -10608,7 +10609,7 @@ Config.Debug = {
 		BreatheScale = 0.05, -- how much it breathes (5%)
 		BreatheSeconds = 2.4,
 		PopEvery = 1.6, -- a pop test repeats this often
-		Firework = "rbxassetid://137945828795312", -- the Grand Opening cue's 8 x 8 burst (128 px frames)
+		Firework = "rbxassetid://137945828795312", -- the Firework Cue's 8 x 8 burst (128 px frames)
 		FireworkFps = 30,
 		Spark = "rbxassetid://131919576694289", -- Kit.Art.Spark, for the pooled particle burst
 		Particles = 28, -- sparks in one burst

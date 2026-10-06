@@ -403,7 +403,7 @@ The account Level and its EXP are gone (designer, 2026-09-28). What they did mov
 | Group | Rarities | Comes from | Trade | Sell back |
 |---|---|---|---|---|
 | Block rarities | Common, Uncommon, Rare, Epic, Legendary, Mythic, Secret | lucky blocks (and trades) only | yes | yes |
-| **Unique** | numbered Limited cues (only two: the Grand Opening Cue and the Beta Cue, both from the Grand Opening block; there is no Founder's Cue, ever) | the Grand Opening block's two Unique rows (9.2), or the Limited shelf for a set time | yes | no |
+| **Unique** | numbered Limited cues (only two: the Firework Cue and the Beta Cue, both from the Grand Opening block; there is no Founder's Cue, ever) | the Grand Opening block's two Unique rows (9.2), or the Limited shelf for a set time | yes | no |
 | **Exclusive** | the VIP Cue, the Starter Cue, the ten rank cues (Bronze Cue ... Reyes Cue), later season cues | one special way each | **never**, except the Starter Cue (designer: VIP never, 2026-09-28; the Starter Cue trades, 2026-09-29) | no |
 
 What rarity looks like (GDD section 12, UI_STYLE section 4 colours): Common and Uncommon keep
@@ -492,7 +492,7 @@ The other kinds (`Config.BlockOdds.List`, each its own odds row):
 | Block | Odds | Opens in | Comes from |
 |---|---|---|---|
 | Mystery | rolls a tier above (7.1) | 5 min when won, at once when bought | wins, the shop, rewards |
-| Grand Opening | Uncommon 56.35%, Rare 37.45%, Epic 2.5%, Legendary 0.35%, Mythic 0.046%, Secret 0.004%, **the Grand Opening Cue 3%, the Beta Cue 0.3%** (the 400th opened guarantees Beta) | at once | the shop's 21-day deal (9.2) |
+| Grand Opening | Uncommon 56.35%, Rare 37.45%, Epic 2.5%, Legendary 0.35%, Mythic 0.046%, Secret 0.004%, **the Firework Cue 3%, the Beta Cue 0.3%** (the 400th opened guarantees Beta) | at once | the shop's 21-day deal (9.2) |
 | Starter | Rare 97%, Epic 2.5%, Legendary 0.45%, Mythic 0.045%, Secret 0.005% | at once | the Starter Pack (11.4) |
 | Sky | Common 45%, Uncommon 45%, Rare 9.9%, Epic 0.09%, Legendary 0.009%, Mythic 0.001% | at once | Lucky Rain (no source wired yet) |
 | Lucky 8 | the Rare row | at once | none yet (the group and favorite rewards give Mystery blocks today, 10.4) |
@@ -609,8 +609,8 @@ The Limited shelf sells **Unique** cues: exclusive designs that never appear in 
 - Priced in money, so it is a real saving goal. Some may be sold for Robux; a known item for
   Robux is not a paid random item. Limited cues bought with money or Robux are paid origin.
 
-**At release the shelf is empty** (designer, 2026-10-04): the $149,000 Grand Opening Cue shelf
-is gone. The Grand Opening Cue and the Beta Cue come from the **Grand Opening block** only
+**At release the shelf is empty** (designer, 2026-10-04): the $149,000 Firework Cue shelf
+is gone. The Firework Cue and the Beta Cue come from the **Grand Opening block** only
 (7.2; `Config.Shop.Deals.GrandOpening`): $49,000, 3 for $139,000, 10 for $441,000, or 49 / 129
 / 349 R$, for **21 days** from a start the designer sets right before the release is published
 (`StartsAt` 0 = off; a "Vaulted" card stays 7 days after the end). The release sale (30% off
@@ -619,7 +619,7 @@ the big money packs, VIP and 10 Mystery blocks) runs on the same window
 
 - The shelf code stays (`Config.Shop.Limited`, one row per Limited plus its catalog cue) for
   a later Limited; while empty nothing shows.
-- The Grand Opening Cue has placeholder colours for now (black shaft, gold rings, felt-green
+- The Firework Cue has placeholder colours for now (black shaft, gold rings, felt-green
   wrap; designer, 2026-10-03); the real skin comes later.
 - **There is no Founder's Cue**, ever (designer, 2026-10-05): its catalog cue, name and Robux
   product are gone.
@@ -1033,7 +1033,7 @@ Limited cues.
 
 ## 17. Open (the designer's call)
 
-- When the Grand Opening Cue starts (`StartsAt`), set right before the release is published.
+- When the Firework Cue starts (`StartsAt`), set right before the release is published.
 - When to schedule the Beta Cue on its own, and the next Limited.
 
 ---
@@ -1099,7 +1099,7 @@ Limited cues.
 - **Cases are lucky blocks** (designer, 2026-10-04): opened in the world, no 8-ball, the Mystery
   block rolls its tier when opened, 5 minutes after the win; no money timer skip; Quick Cases
   retired into VIP; no reward popups.
-- **The Grand Opening Cue comes from the Grand Opening block, not a $149,000 shelf**, for 21
+- **The Firework Cue comes from the Grand Opening block, not a $149,000 shelf**, for 21
   days from a start the designer sets (`StartsAt` 0 = off; designer, 2026-10-03 and
   2026-10-04).
 - **A bot never shows the Secret cue**: the plan's Mythic+ column is always a Mythic (lane,

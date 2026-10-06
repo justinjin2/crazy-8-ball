@@ -6,7 +6,7 @@ two cues rendered from the real in-game mesh, skins and pieces, on a transparent
         [--frames 32] [--samples 64] [--tip right|left] [--out ~/Desktop/8ball-refs/gui-lively/work/renders]
 
 Writes into --out (never into the repo):
-    go_cue.png, go_cue_mask.png        the Grand Opening Cue alone, and its silhouette (white, alpha)
+    go_cue.png, go_cue_mask.png        the Firework Cue alone, and its silhouette (white, alpha)
     beta_cue.png, beta_cue_mask.png    the Beta Cue hologram alone (no panels), and its silhouette
     go_ribbons/frame_NN.png            the two gold ribbons (RibbonA/B), one full turn, cue held out
     go_ribbons_loose/frame_NN.png      (job "loose") the same ribbons with a longer pitch and wider,

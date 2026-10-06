@@ -3867,7 +3867,7 @@ def main():
 
 
 # ---------------------------------------------------------------------------------------------
-# Unique recipes (the Beta Cue and the Grand Opening Cue, 2026-10-04)
+# Unique recipes (the Beta Cue and the Firework Cue, 2026-10-04)
 # ---------------------------------------------------------------------------------------------
 
 def quilt(c, m, pitch=0.16, depth=0.00035, stitch='#D9A42B', seed=71):
@@ -3962,7 +3962,7 @@ def beta(k):
 
 @recipe
 def grand_opening(k):
-    """The Grand Opening Cue (U2): navy lacquer, gold and fireworks. OpenAI panels on the whole
+    """The Firework Cue (U2): navy lacquer, gold and fireworks. OpenAI panels on the whole
     cue (the board's crops); the gold is read from the painting as metal, the painted firework
     bursts and stars (saturated pink, cyan, white-hot and the brightest gold) as the emissive,
     the wrap is given a diamond-quilt relief with gold stitch points, the collar and ring are
