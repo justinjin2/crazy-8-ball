@@ -7,6 +7,11 @@ Everything here is drawn from code with a fixed seed, so a rerun gives the same 
   beta_panel_1..5.png blueprint panels in cyan line work (circles, a cue section, a grid with a
                       curve, dimension lines, a reticle), transparent, drawn at 2x then shrunk
   beta_code.png       a strip of made-up glyphs (never English), cyan, transparent
+  beta_panel_6..10    more panels: a hex grid, a bar chart, a scope, a circuit, a glyph readout
+  beta_ring.png       the section ring round the cue's middle (ticks, gaps, magenta dashes); spins
+  beta_callouts.png   leader lines, glyph callout boxes and a dimension line drawn on the Beta
+                      cue render's own canvas (cue_layout.json), so it overlays the cue exactly
+  beta_mote.png       a small glowing square (white, tinted) for the drifting data motes
   go_bg.png           the Grand Opening card's background: navy with soft bokeh, no fireworks
   confetti_1..6.png   `--confetti SHEET`: a generated 3 x 2 sheet of gold ribbons on black,
                       unscreened (brightness becomes alpha) and split, the halo fading
@@ -21,6 +26,7 @@ The block's rays reuse assets/ui/lucky-rays.png (white, tinted in game).
 """
 
 import argparse
+import json
 import math
 import random
 from pathlib import Path
@@ -260,6 +266,179 @@ def confetti(sheet, out, cols=3, rows=2, size=256):
             print(f"confetti_{n}", img.size)
 
 
+def _glyph(d, ox, oy, gw, gh, rng, width=4, alpha=235):
+    """One made-up glyph: 2-4 strokes on a 3 x 4 grid of points, sometimes a dot."""
+    pts = [(ox + gw * gx / 2, oy + gh * gy / 3) for gy in range(4) for gx in range(3)]
+    for _ in range(rng.randint(2, 4)):
+        a, b = rng.sample(range(12), 2)
+        d.line([pts[a], pts[b]], fill=CYAN + (alpha,), width=width)
+    if rng.random() < 0.4:
+        p = pts[rng.randrange(12)]
+        d.ellipse([p[0] - width, p[1] - width, p[0] + width, p[1] + width], fill=CYAN + (alpha,))
+
+
+def _glyph_line(d, x, y, count, size, rng, width=3, alpha=210):
+    """A short 'word' of glyphs, for labels in callouts and panels."""
+    for i in range(count):
+        _glyph(d, x + i * size * 0.8, y, size * 0.5, size, rng, width, alpha)
+
+
+def panel_hex(s=(448, 384)):
+    """A hex grid with a few cells lit."""
+    rng = random.Random(SEED + 2)
+    w, h = s
+    img = _line_canvas(s)
+    d = ImageDraw.Draw(img)
+    r = 30
+    for row in range(int(h / (r * 1.5)) + 1):
+        for col in range(int(w / (r * 1.75)) + 1):
+            cx = col * r * 1.732 + (row % 2) * r * 0.866 + r
+            cy = row * r * 1.5 + r
+            hexagon = [(cx + r * math.cos(math.pi / 6 + k * math.pi / 3), cy + r * math.sin(math.pi / 6 + k * math.pi / 3)) for k in range(6)]
+            lit = rng.random() < 0.15
+            d.polygon(hexagon, outline=CYAN + (220 if lit else 90,), fill=CYAN + (60,) if lit else None, width=2)
+    d.rectangle([2, 2, w - 3, h - 3], outline=CYAN + (170,), width=3)
+    return _finish(img)
+
+
+def panel_bars(s=(448, 320)):
+    """A bar chart with a glyph label under each bar and a baseline."""
+    rng = random.Random(SEED + 3)
+    w, h = s
+    img = _line_canvas(s)
+    d = ImageDraw.Draw(img)
+    base = h - 70
+    d.line([(24, base), (w - 24, base)], fill=CYAN + (220,), width=3)
+    d.line([(24, 20), (24, base)], fill=CYAN + (160,), width=2)
+    for i in range(8):
+        x = 46 + i * 48
+        top = base - rng.uniform(0.2, 0.95) * (base - 30)
+        d.rectangle([x, top, x + 28, base], outline=CYAN + (230,), fill=CYAN + (55,), width=2)
+        _glyph(d, x + 6, base + 14, 14, 28, rng, 3, 200)
+    for y in range(int(base) - 40, 20, -40):
+        d.line([(18, y), (30, y)], fill=CYAN + (160,), width=2)
+    return _finish(img)
+
+
+def panel_wave(s=(512, 224)):
+    """Two waveforms on a framed grid, like a scope."""
+    w, h = s
+    img = _line_canvas(s)
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([2, 2, w - 3, h - 3], radius=14, outline=CYAN + (190,), width=3)
+    for x in range(0, w, 32):
+        d.line([(x, 8), (x, h - 8)], fill=CYAN + (40,), width=1)
+    d.line([(8, h / 2), (w - 8, h / 2)], fill=CYAN + (90,), width=1)
+    for amp, freq, phase, a, wd in ((h * 0.32, 3.0, 0.0, 255, 4), (h * 0.18, 7.0, 1.2, 150, 2)):
+        pts = [(x, h / 2 + amp * math.sin(x / w * math.tau * freq + phase) * math.sin(x / w * math.pi)) for x in range(10, w - 9, 4)]
+        d.line(pts, fill=CYAN + (a,), width=wd, joint="curve")
+    return _finish(img)
+
+
+def panel_nodes(s=(448, 384)):
+    """A schematic: nodes joined by right-angle traces, like a circuit."""
+    rng = random.Random(SEED + 4)
+    w, h = s
+    img = _line_canvas(s)
+    d = ImageDraw.Draw(img)
+    nodes = [(rng.uniform(40, w - 40), rng.uniform(40, h - 40)) for _ in range(9)]
+    for i in range(1, len(nodes)):
+        (x0, y0), (x1, y1) = nodes[rng.randrange(i)], nodes[i]
+        d.line([(x0, y0), (x1, y0), (x1, y1)], fill=CYAN + (170,), width=3)
+    for x, y in nodes:
+        r = rng.choice((8, 11, 16))
+        d.ellipse([x - r, y - r, x + r, y + r], outline=CYAN + (240,), fill=(8, 20, 60, 255), width=3)
+        if r > 10:
+            d.ellipse([x - 4, y - 4, x + 4, y + 4], fill=CYAN + (255,))
+    return _finish(img)
+
+
+def panel_readout(s=(384, 288)):
+    """Rows of glyph 'text' with a header bar and a progress bar: a data readout."""
+    rng = random.Random(SEED + 5)
+    w, h = s
+    img = _line_canvas(s)
+    d = ImageDraw.Draw(img)
+    d.rectangle([2, 2, w - 3, h - 3], outline=CYAN + (170,), width=3)
+    d.rectangle([2, 2, w - 3, 40], fill=CYAN + (70,))
+    _glyph_line(d, 16, 8, 6, 26, rng, 3, 255)
+    for row in range(5):
+        y = 56 + row * 36
+        _glyph_line(d, 16, y, rng.randint(3, 7), 22, rng, 3, 190)
+        d.line([(w * 0.62, y + 11), (w - 18, y + 11)], fill=CYAN + (70,), width=2)
+    d.rectangle([16, h - 30, w - 16, h - 16], outline=CYAN + (200,), width=2)
+    d.rectangle([18, h - 28, 18 + (w - 36) * 0.68, h - 18], fill=CYAN + (200,))
+    return _finish(img)
+
+
+def beta_ring(s=640):
+    """The section ring around the cue's middle (13b's big circle): ticks, gaps, an inner
+    dashed ring. Spins slowly in game (Rotation is smooth)."""
+    img = _line_canvas((s, s))
+    d = ImageDraw.Draw(img)
+    c = s / 2
+    for start in (8, 128, 248):
+        d.arc([c - s * 0.46, c - s * 0.46, c + s * 0.46, c + s * 0.46], start, start + 100, fill=CYAN + (230,), width=6)
+    for k in range(72):
+        ang = k * math.tau / 72
+        r0 = 0.40 if k % 6 else 0.37
+        d.line([(c + math.cos(ang) * s * r0, c + math.sin(ang) * s * r0), (c + math.cos(ang) * s * 0.43, c + math.sin(ang) * s * 0.43)], fill=CYAN + (150,), width=2)
+    for k in range(36):
+        a0 = k * 10
+        d.arc([c - s * 0.32, c - s * 0.32, c + s * 0.32, c + s * 0.32], a0, a0 + 5, fill=(255, 90, 220, 200), width=4)
+    for ang in (0, math.pi / 2, math.pi, 3 * math.pi / 2):
+        x, y = c + math.cos(ang) * s * 0.46, c + math.sin(ang) * s * 0.46
+        d.polygon([(x + math.cos(ang) * 14, y + math.sin(ang) * 14), (x - math.sin(ang) * 9, y + math.cos(ang) * 9), (x + math.sin(ang) * 9, y - math.cos(ang) * 9)], fill=CYAN + (255,))
+    return _finish(img)
+
+
+def beta_callouts(layout, s=(2048, 568)):
+    """Leader lines, callout boxes with glyph labels and a dimension line, on the cue render's own
+    canvas (beta_cue.png's size, at 2x), so the overlay sits on the cue exactly and turns with it.
+    `layout` gives the tip and butt pixels and the canvas the cue was rendered on."""
+    rng = random.Random(SEED + 6)
+    w, h = s
+    k = w / layout["canvas"][0]  # canvas px -> this drawing's px
+    tip = layout["tip_px"][0] * k
+    butt = layout["butt_px"][0] * k
+    mid = layout["tip_px"][1] * k
+    img = _line_canvas(s)
+    d = ImageDraw.Draw(img)
+    along = lambda f: tip + (butt - tip) * f  # noqa: E731
+    # (where along the cue, which side, how far the box sits along, glyph count)
+    calls = [(0.03, 1, 0.10, 4), (0.52, -1, 0.40, 5), (0.77, -1, 0.86, 4), (0.95, 1, 0.80, 3)]
+    for f, side, box_f, count in calls:
+        ax, ay = along(f), mid + side * 50
+        bx, by = along(box_f), mid + side * 205
+        d.ellipse([ax - 9, ay - 9, ax + 9, ay + 9], outline=CYAN + (255,), width=4)
+        d.line([(ax, ay), (ax + (bx - ax) * 0.35, by), (bx, by)], fill=CYAN + (220,), width=3)
+        bw = count * 34 + 30
+        left = bx if bx >= ax else bx - bw
+        top = by - 26 if side < 0 else by - 26
+        d.rectangle([left, top, left + bw, top + 52], outline=CYAN + (230,), fill=(8, 20, 60, 170), width=3)
+        _glyph_line(d, left + 14, top + 10, count, 34, rng, 4, 240)
+    # the dimension line under the cue: end ticks, arrows, a tick every tenth
+    y = mid + 120
+    d.line([(tip, y), (butt, y)], fill=CYAN + (200,), width=3)
+    for x, sgn in ((tip, 1), (butt, -1)):
+        d.line([(x, y - 22), (x, y + 22)], fill=CYAN + (220,), width=3)
+        d.polygon([(x, y), (x + sgn * 26, y - 9), (x + sgn * 26, y + 9)], fill=CYAN + (230,))
+    for i in range(1, 10):
+        x = along(i / 10)
+        d.line([(x, y - (14 if i % 5 else 22)), (x, y)], fill=CYAN + (170,), width=2)
+    _glyph_line(d, along(0.5) - 50, y + 18, 3, 34, rng, 4, 220)
+    return _finish(img, glow_px=2)
+
+
+def mote(s=48):
+    """A small glowing square: the data motes drifting up behind the Beta cue (white, tinted)."""
+    img = _line_canvas((s * 2, s * 2))
+    d = ImageDraw.Draw(img)
+    c = s
+    d.rectangle([c - 10, c - 10, c + 10, c + 10], fill=(255, 255, 255, 255))
+    return _finish(img, glow_px=5)
+
+
 def silhouette(src, out):
     """A white picture with the source's alpha: the mask a shine sweep is clipped to."""
     a = Image.open(src).convert("RGBA").getchannel("A")
@@ -293,6 +472,14 @@ def main():
         "beta_panel_4": panel_dimensions(),
         "beta_panel_5": panel_reticle(),
         "beta_code": glyph_code(),
+        "beta_panel_6": panel_hex(),
+        "beta_panel_7": panel_bars(),
+        "beta_panel_8": panel_wave(),
+        "beta_panel_9": panel_nodes(),
+        "beta_panel_10": panel_readout(),
+        "beta_ring": beta_ring(),
+        "beta_callouts": beta_callouts(json.loads((out / "cue_layout.json").read_text())),
+        "beta_mote": mote(),
     }
     for name, img in pieces.items():
         img.save(out / f"{name}.png", optimize=True)
