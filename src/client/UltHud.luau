@@ -315,8 +315,12 @@ function UltHud.fitPill(self: any, p: any, sizes: any)
 	end
 	local height, textPx = sizes.height, sizes.text
 	HudParts.setTextSize(p.words, textPx)
-	local words =
-		TextService:GetTextSize(p.words.Text, textPx, p.words.Font, Vector2.new(2000, 200)).X
+	local words = TextService:GetTextSize(
+		p.words.Text,
+		textPx,
+		HudParts.measureFont(p.words),
+		Vector2.new(2000, 200)
+	).X
 	local pad = math.floor(height * 0.6)
 	local shown = p.icon.Image ~= ""
 	local iconPx = if shown then sizes.icon else 0

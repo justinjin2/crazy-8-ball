@@ -747,7 +747,7 @@ function MatchHUD.layout(self: any)
 	local noUltsWidth = TextService:GetTextSize(
 		self.noUltsText.Text,
 		noUltsText,
-		self.noUltsText.Font,
+		HudParts.measureFont(self.noUltsText),
 		Vector2.new(1000, 100)
 	).X + Config.UI.Ults.NoUltsPadPx * 2
 	self.noUltsPill.AnchorPoint = Vector2.new(0.5, 0)
@@ -757,7 +757,7 @@ function MatchHUD.layout(self: any)
 	local redoWidth = TextService:GetTextSize(
 		self.redoText.Text,
 		noUltsText,
-		self.redoText.Font,
+		HudParts.measureFont(self.redoText),
 		Vector2.new(1000, 100)
 	).X + Config.UI.Ults.NoUltsPadPx * 2
 	HudParts.setTextSize(self.redoText, noUltsText)
@@ -844,7 +844,7 @@ function MatchHUD.fitSetup(self: any)
 	local words = TextService:GetTextSize(
 		self.setupLabel.Text,
 		self.setupTextSize or S.SetupTextSize,
-		self.setupLabel.Font,
+		HudParts.measureFont(self.setupLabel),
 		Vector2.new(10000, 1000)
 	).X
 	-- layoutIconLine's room: the icon and its margins, the right margin, and the outline.

@@ -128,7 +128,7 @@ function ZoomHint.layout(self: ZoomHint)
 	local wordsWidth = TextService:GetTextSize(
 		self.words.Text,
 		textSize,
-		self.words.Font,
+		HudParts.measureFont(self.words),
 		Vector2.new(1000, 100)
 	).X
 	-- The icon at the spin button's left edge, the word beside it; room for the outline.

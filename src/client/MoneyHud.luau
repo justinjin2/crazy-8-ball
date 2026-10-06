@@ -175,7 +175,7 @@ function MoneyHud.layout(self: any)
 	local words = TextService:GetTextSize(
 		self.amount.Text,
 		textSize,
-		self.amount.Font,
+		HudParts.measureFont(self.amount),
 		Vector2.new(10000, 1000)
 	).X
 	local plusSize = if short then C.ShortPlusPx else C.PlusPx

@@ -160,6 +160,17 @@ function HudParts.useFont(root: Instance, spec: { Family: string, Weight: string
 	root.DescendantAdded:Connect(apply)
 end
 
+--- The font to measure `object`'s words with (TextService:GetTextSize takes only an
+--- Enum.Font): its own, or the kit's when its font has none (a test font from FontTest, such
+--- as Builder Extended). Kit texts shrink to fit, so a wider font still fits its box.
+function HudParts.measureFont(object: TextLabel | TextButton): Enum.Font
+	local font = object.Font
+	if font == Enum.Font.Unknown then
+		return (Enum.Font :: any)[K.Font]
+	end
+	return font
+end
+
 --- Fade a kit text with its outline.
 function HudParts.setTextTransparency(object: TextLabel, transparency: number)
 	object.TextTransparency = transparency

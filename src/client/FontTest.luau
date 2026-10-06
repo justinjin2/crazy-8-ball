@@ -2,7 +2,8 @@
 -- FontTest: try a font on one screen, one part of a screen, or every screen at once, from
 -- Config.UI.FontTest alone (designer, 2026-10-05, while the font is still open). Each screen
 -- is a ScreenGui (or a BillboardGui) in PlayerGui; a key in Screens is a screen's name, or a
--- path to one part of it ("PoolHud/MenuColumn"). The most specific key wins: a part over its
+-- path to one part of it ("PoolHud/MenuColumn"); a name ending in * takes every screen it
+-- starts ("Nameplate_*", every player's name over the head). The most specific key wins: a part over its
 -- screen, a screen over All, and with none the kit's Fredoka One stays. Applied to every text
 -- there now and as texts are added (HudParts.useFont). Widths are still measured in the
 -- kit's font, so a much wider font can shrink a word to fit its box. Takes effect on rejoin.
@@ -57,14 +58,19 @@ local function consider(gui: Instance)
 	if T.All then
 		HudParts.useFont(gui, T.All, 0)
 	end
-	local parts = partsByScreen[gui.Name]
-	if parts == nil then
-		return
-	end
-	for _, part in parts do
-		whenFound(gui, part.path, 1, function(root: Instance)
-			HudParts.useFont(root, part.spec, 1 + #part.path)
-		end)
+	for screen, parts in partsByScreen do
+		local matches = screen == gui.Name
+			or (
+				string.sub(screen, -1) == "*"
+				and string.sub(gui.Name, 1, #screen - 1) == string.sub(screen, 1, -2)
+			)
+		if matches then
+			for _, part in parts do
+				whenFound(gui, part.path, 1, function(root: Instance)
+					HudParts.useFont(root, part.spec, 1 + #part.path)
+				end)
+			end
+		end
 	end
 end
 

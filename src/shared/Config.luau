@@ -10223,7 +10223,8 @@ Config.UI.FontTest = {
 	-- Every screen at once; nil keeps the kit's Fredoka One.
 	All = nil :: { Family: string, Weight: string }?,
 	-- One screen, by its ScreenGui's name, or one part of it as a path ("PoolHud/MoneyHud");
-	-- the most specific wins (a part over its screen over All). The screens: PoolHud (the main
+	-- a name ending in * takes every screen it starts ("Nameplate_*"). The most specific wins
+	-- (a part over its screen over All). The screens: PoolHud (the main
 	-- HUD; its parts MenuColumn, MoneyHud, HubCorners, HubCorners/Challenge,
 	-- HubCorners/StarterPack, HubCorners/VipOffer...), RankHud, PlayerList, LuckyHotbar,
 	-- ShopMenu, InventoryMenu, UltScreen (the Abilities page), FreeRewardMenu, RewardsMenu,
@@ -10239,6 +10240,8 @@ Config.UI.FontTest = {
 		["PoolHud/HubCorners/Challenge"] = builderExtended, -- the Daily Challenge
 		["PoolHud/HubCorners/StarterPack"] = builderExtended, -- the Starter Pack offer
 		LuckyHotbar = builderExtended, -- the lucky block hotbar
+		LuckyOpening = builderExtended, -- the lucky block roll
+		["Nameplate_*"] = builderExtended, -- every player's name over the head
 	} :: { [string]: { Family: string, Weight: string } },
 }
 

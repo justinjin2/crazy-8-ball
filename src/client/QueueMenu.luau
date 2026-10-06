@@ -498,7 +498,12 @@ end
 local function fitSize(label: TextLabel, most: number, width: number): number
 	local size = most
 	while size > S.QueueText.NarrowFloor do
-		local w = TextService:GetTextSize(label.Text, size, label.Font, Vector2.new(4000, 400)).X
+		local w = TextService:GetTextSize(
+			label.Text,
+			size,
+			HudParts.measureFont(label),
+			Vector2.new(4000, 400)
+		).X
 		if w <= width then
 			break
 		end
