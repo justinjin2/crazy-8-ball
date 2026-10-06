@@ -2640,3 +2640,7 @@ timer of a new block stay the designer's call.
 - 2026-10-06 (designer): **Solid holes on every outlined text from 20 px up**
   (`Config.UI.Kit.HoleFill.MinTextPx`); smaller text keeps its open holes, as filling them
   needs letters a pixel bolder. A text that grows past 20 px gets the fill then.
+- 2026-10-06 (designer: "a tiny tiny bit" less lip): the text drop is 4.5% of the text size,
+  at least 1.5 px (was 6%, at least 2 px; every Free Reward text was at the 2 px floor). It is
+  set as a share of the label's height, because a padding's pixels are whole and 1 px would
+  have halved it; on a high-DPI screen the half pixel shows.

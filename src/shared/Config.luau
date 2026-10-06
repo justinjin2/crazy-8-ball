@@ -5831,15 +5831,17 @@ Config.UI = {
 		-- HoleRatio of the text size (rounded up): about half the widest hole in Fredoka One
 		-- (O, 0, @); another font may need a new ratio. Text under MinTextPx is left alone
 		-- (designer, 2026-10-06): its 1 px outline needs a 2 px nudge to close an 18 px O, and
-		-- that made card names, Sort and the money pill blobby, the letters touching. Drop: the thick ink edge under each letter (designer's reference,
-		-- 2026-10-06), an ink copy with the outline moved down this share of the text size
-		-- (rounded up, at least MinPx); 0.06 picked by the designer over 0.1 and 0.14. (tune)
+		-- that made card names, Sort and the money pill blobby, the letters touching.
+		-- Drop: the thick ink edge under each letter (designer's reference, 2026-10-06), an
+		-- ink copy with the outline moved down this share of the text size (at least MinPx,
+		-- fractions kept for high-DPI screens); 0.06 and 2 px picked by the designer over 0.1
+		-- and 0.14, then made a little thinner. (tune)
 		HoleFill = {
 			Everywhere = true, -- every outlined text in PlayerGui (false: only pages that ask)
 			MinTextPx = 20, -- smaller text keeps its holes (the kit's thin-outline size)
 			HoleRatio = 0.08,
 			MinNudgePx = 1,
-			Drop = { Ratio = 0.06, MinPx = 2 },
+			Drop = { Ratio = 0.045, MinPx = 1.5 }, -- was 0.06 and 2 px: "a tiny bit" less lip
 		},
 		-- Raised candy buttons: a light top, the colour, then a darker lip along the bottom.
 		Buttons = {

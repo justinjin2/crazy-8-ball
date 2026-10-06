@@ -79,8 +79,9 @@ local function nudgePx(size: number, stroke: UIStroke): number
 	return math.max(H.MinNudgePx, math.floor(stroke.Thickness + 0.5), math.ceil(size * H.HoleRatio))
 end
 
+-- In pixels, not rounded: a fraction of a pixel shows on a high-DPI screen (a phone, a Mac).
 local function dropPx(size: number): number
-	return math.max(H.Drop.MinPx, math.ceil(size * H.Drop.Ratio))
+	return math.max(H.Drop.MinPx, size * H.Drop.Ratio)
 end
 
 -- The label's text for an ink copy: rich text colours become the ink, or the copies would
@@ -208,9 +209,10 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 		rightPad.PaddingRight = UDim.new(0, -d)
 		local pad = state.dropPad
 		if pad then
-			local down = dropPx((label :: any).TextSize)
-			pad.PaddingTop = UDim.new(0, down)
-			pad.PaddingBottom = UDim.new(0, -down)
+			-- A share of the label's height, as a padding's pixels are whole.
+			local down = dropPx((label :: any).TextSize) / math.max(1, label.AbsoluteSize.Y)
+			pad.PaddingTop = UDim.new(down, 0)
+			pad.PaddingBottom = UDim.new(-down, 0)
 		end
 	end
 	local function ink()
@@ -257,6 +259,8 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 				end
 			elseif property == "TextColor3" or property == "TextTransparency" then
 				refresh()
+			elseif property == "AbsoluteSize" and state.dropPad then
+				place()
 			end
 		end)
 	)
