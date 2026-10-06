@@ -7750,7 +7750,7 @@ Config.UI.GrandOpeningCard = {
 		EndsInColor = { 70, 215, 255 },
 		-- The title's group (box 470..1155 x 10..130).
 		Title = { 812, 54 },
-		TitleUnits = 58,
+		TitleUnits = 70, -- bigger than the animatic's 58: 13b's title fills more of the card
 		Subtitle = { 812, 112 },
 		SubtitleUnits = 24,
 		StarLeft = { 520, 66, 62 },
@@ -7805,6 +7805,7 @@ Config.UI.GrandOpeningCard = {
 		ButtonUnits = 288,
 		ButtonGapUnits = 16,
 		ButtonTextUnits = 26,
+		CashIconShare = 1.1, -- the gold buttons' cash bundle, big as in 13b (of the button's height)
 		WasTextUnits = 30, -- the crossed-out old price on its white sticker at the button's corner
 		SaveY = 478,
 		SaveTextUnits = 24,

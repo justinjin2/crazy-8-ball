@@ -9,6 +9,8 @@
 --   PlayerScripts.GuiQA:Invoke("lab", "stage", seconds?) Stage and the idle library on a few
 --                                     real pieces (a step 6 check), the open at `seconds`
 --   PlayerScripts.GuiQA:Invoke("lab")                  close
+--   PlayerScripts.GuiQA:Invoke("quality", true)        Lower effects on (false: off)
+--   PlayerScripts.GuiQA:Invoke("reduced", true)        act as if Reduce Motion were on
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -22,6 +24,7 @@ local BlockIcon = require(script.Parent.BlockIcon)
 local GrandOpeningCard = require(script.Parent.GrandOpeningCard)
 local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
+local Quality = require(script.Parent.Quality)
 local Stage = require(script.Parent.Stage)
 local UIAnim = require(script.Parent.UIAnim)
 
@@ -295,6 +298,15 @@ function ShopLab.start()
 		end
 		close()
 		return true
+	end)
+	-- Lower effects and a stand-in for Reduce Motion, for the step 9 checks.
+	GuiQA.add("quality", function(low: boolean?)
+		Quality.set(low == true)
+		return Quality.isLow()
+	end)
+	GuiQA.add("reduced", function(on: boolean?)
+		UIAnim.testReducedMotion(on == true)
+		return UIAnim.reduced()
 	end)
 end
 

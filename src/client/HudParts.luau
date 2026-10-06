@@ -409,6 +409,7 @@ type Candy = {
 	light: (boolean) -> (),
 	hit: TextButton?,
 	onLit: ((boolean) -> ())?, -- told when the candy lights up or goes out (HudParts.onLit)
+	iconShare: number?, -- its icon's share of the height beside words (HudParts.setIconShare)
 }
 
 -- Held strongly and cleared on Destroying: a weak table keyed on Instances can lose entries.
@@ -468,7 +469,7 @@ local function layoutCandy(button: TextButton, c: Candy)
 	end
 	local hasIcon = c.icon.Visible
 	local hasText = c.label.Text ~= ""
-	local share = if hasText then K.ButtonIconShare else K.ButtonIconOnlyShare
+	local share = if hasText then c.iconShare or K.ButtonIconShare else K.ButtonIconOnlyShare
 	local iconSize = if hasIcon then math.floor(usable * share) else 0
 	if hasIcon and not hasText then
 		c.icon.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -686,6 +687,16 @@ function HudParts.setText(button: TextButton, text: string)
 	end
 end
 
+--- A candy's icon beside its words at `share` of the button's height instead of the kit's
+--- ButtonIconShare (the Grand Opening card's big cash bundles).
+function HudParts.setIconShare(button: TextButton, share: number)
+	local c = candies[button]
+	if c and c.iconShare ~= share then
+		c.iconShare = share
+		layoutCandy(button, c)
+	end
+end
+
 function HudParts.setTone(button: TextButton, tone: string)
 	local c = candies[button]
 	if c and c.tone ~= tone then
@@ -717,7 +728,9 @@ function HudParts.candyWidth(button: TextButton, height: number, textPx: number)
 		)
 	end
 	if c.icon.Visible then
-		local share = if c.label.Text ~= "" then K.ButtonIconShare else K.ButtonIconOnlyShare
+		local share = if c.label.Text ~= ""
+			then c.iconShare or K.ButtonIconShare
+			else K.ButtonIconOnlyShare
 		width += math.floor(usable * share) + math.floor(pad / 2)
 	end
 	return width

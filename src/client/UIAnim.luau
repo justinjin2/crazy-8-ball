@@ -820,9 +820,20 @@ end
 local GuiService = game:GetService("GuiService")
 local StageMath = require(Shared:WaitForChild("StageMath"))
 
+-- A Studio test's stand-in for Roblox's Reduce Motion (GuiQA "reduced"; scripts cannot change
+-- the player's own setting).
+local testReduced = false
+
 --- Reduce Motion is on: no floating, scrolling or spinning; fades and soft glows only.
 function UIAnim.reduced(): boolean
-	return GuiService.ReducedMotionEnabled
+	return GuiService.ReducedMotionEnabled or testReduced
+end
+
+--- Studio tests only (GuiQA): act as if Reduce Motion were on.
+function UIAnim.testReducedMotion(on: boolean)
+	if RunService:IsStudio() then
+		testReduced = on
+	end
 end
 
 export type FlipOptions = {

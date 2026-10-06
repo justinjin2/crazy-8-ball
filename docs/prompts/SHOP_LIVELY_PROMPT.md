@@ -559,6 +559,14 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   Checked in Studio (phone emulator, plus the wide layout in a test window): open, tab spam,
   reopening mid-close all end clean; no console errors. One Grand Opening block was bought with
   in-game money on the designer's Studio save while testing the money button.
+- 2026-10-06: step 9 checks done, **gate 4 shown, waiting** (page:
+  https://claude.ai/artifact/6MinwiDaKQLB8uLoozzu6E; recordings and sheets in
+  `~/Desktop/8ball-refs/gui-lively/work/gate4/`). 60 fps with the Shop open (worst frame 26 ms in
+  the open, 20 ms with Lower effects); 92 pictures shown, 67 with Lower effects; +53 MB texture
+  while open. Reduce Motion (GuiQA "reduced", a Studio stand-in) only fades. Title 70 units and
+  big cash icons after comparing with 13b; poppers, streamers and twinkles are switches in
+  `Config.UI.Shop.Open` (on). Asked: try it, create the GrandOpening1/3/10 products, keep the
+  flair on. Computer emulator size and a real gamepad wait for gate 5.
 
 
 ## Decisions

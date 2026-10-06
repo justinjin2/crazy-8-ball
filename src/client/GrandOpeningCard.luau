@@ -560,6 +560,7 @@ function GrandOpeningCard.buildButtons(self: any)
 			self.actions.money(count)
 		end, "Yellow", "CashSingle")
 		gold.Name = "Money" .. count
+		HudParts.setIconShare(gold, L.CashIconShare)
 		gold.AnchorPoint = Vector2.new(0.5, 0.5)
 		gold.ZIndex = 5
 		self.moneyButtons[index] = gold
