@@ -424,6 +424,10 @@ the start, then begin.
   to the designer's per-milestone save.
 - Scripts are files under `src/` and reach Studio through Rojo (the designer clicks Connect when
   asked); never create or edit scripts through the Studio MCP. You may stop play sessions freely.
+- The Studio MCP (`roblox-studio`, configured for the CLI; every call needs `studio_id` from
+  `list_roblox_studios`) drives Play, screenshots, the console and `GuiQA`. It cannot switch the
+  device emulator or work a real controller: ask the designer for the phone emulator and the
+  gamepad check (`docs/STUDIO_NOTES.md`, Studio MCP).
 - Keep big intermediate files out of git: work in `~/Desktop/8ball-refs/gui-lively/work/` or a
   git-ignored folder; commit only the tools, the final source art that the repo keeps for
   icons, and the code.
