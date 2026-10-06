@@ -2578,3 +2578,6 @@ timer of a new block stay the designer's call.
   the close-range ribbons are thinner). A cue's rarity for its outline is its catalog Effect
   when that is on the ladder, so rank and special cues (Grandmaster, VIP, Reyes) also get the
   Legendary-and-up moving gradient.
+- 2026-10-05: the close-range outline ribbons narrow to the bare cue at the tip and butt and
+  turn off while the stick has any camera fade or is seen near end-on (the designer saw a
+  square end and the whole cue filled with the outline colour on the back).

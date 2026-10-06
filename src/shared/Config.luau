@@ -4727,9 +4727,12 @@ Config.CueSkins = {
 			Transparency = 0,
 			-- Up close Roblox thins a Highlight's outline to nothing (the aiming view), so the
 			-- stick also wears ribbons LineStuds wider than the cue each side, in Pieces along
-			-- it (the cue tapers), a rim that grows as the camera nears. Their transparency is
-			-- the stick's camera fade times FadeScale (a see-through cue would show them). (tune)
-			Ink = { LineStuds = 0.012, Pieces = 8, FadeScale = 4 },
+			-- it (the cue tapers), a rim that grows as the camera nears. EndStuds at each end
+			-- narrow to the bare cue (no square ends). The ribbons are off while the stick has
+			-- any camera fade (they showed over a see-through cue) and when the view is within
+			-- MinViewDegrees of straight down the stick (designer, 2026-10-05: both seen on
+			-- the back). (tune)
+			Ink = { LineStuds = 0.012, Pieces = 8, EndStuds = 0.06, MinViewDegrees = 18 },
 			-- Less flare on the lower rarities (designer, 2026-10-05; CueSkins.Pop.level): the
 			-- ribbons' LineStuds times LineScale, and the Highlight this see-through instead of
 			-- Transparency above (Roblox draws its line at one width). Common the least. (tune)

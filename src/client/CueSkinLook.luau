@@ -111,7 +111,7 @@ export type Look = typeof(setmetatable(
 		carrierOn: boolean, -- the engulfing aura is drawn (see carrierShown)
 		highlights: { Highlight }, -- the stick's outline and the piece's (nearest cues only)
 		inks: { Beam }, -- the stick's close-range outline (buildInk)
-		inkFade: number?, -- the inks' transparency now (step)
+		inkShown: boolean?, -- the inks are drawn now (step)
 		palette: { string }?, -- a Legendary-and-above stick's moving outline (CueSkins.Pop.palette)
 		outline: Highlight?, -- the stick's own outline, recoloured as the palette moves
 		frames: { SurfaceAppearance }, -- frame 0 is the stick's own SurfaceAppearance
@@ -130,6 +130,8 @@ export type Look = typeof(setmetatable(
 ))
 
 local live: { [Look]: boolean } = {}
+-- Seen closer than this to straight down the stick, its ink is off (Outline.Ink).
+local inkEndOnCos = math.cos(math.rad(C.Pop.Outline.Ink.MinViewDegrees))
 -- Popped skin rows (CueSkins.Pop), made once per cue.
 local poppedRows: { [string]: any } = {}
 
@@ -307,7 +309,7 @@ function CueSkinLook.clear(self: Look)
 	self.sound = nil -- its attachment was in `built`
 	self.highlights = {} -- they live in the folder
 	self.inks = {} -- in `built`
-	self.inkFade = nil
+	self.inkShown = nil
 	self.palette = nil
 	self.outline = nil
 	if self.folder then
@@ -463,27 +465,33 @@ end
 -- Highlight's outline as the camera nears it, to nothing at the aiming distance, so the stick
 -- also carries camera-facing ribbons along its axis, `line` studs wider than the cue each side:
 -- the opaque cue hides their middle and a rim of colour shows at its edges, a real 3D line
--- (thicker near, thinner far). They fade with the stick's camera fade, since a see-through
--- cue would show their middle.
+-- (thicker near, thinner far). step turns them off when they cannot work (a faded stick, an
+-- end-on view).
 function CueSkinLook.buildInk(self: Look, color: string, line: number)
 	local I = C.Pop.Outline.Ink
 	local mesh = self.mesh :: MeshPart
 	local length = 2 * CueVfx.onCue(0).Z -- the tip sits at Z = length / 2
-	local pieces = math.max(I.Pieces, 1)
-	for i = 1, pieces do
-		local from = length * (i - 1) / pieces
-		local to = length * i / pieces
-		-- The outer pieces run `line` past the tip and the butt: their ends are outlined too.
-		local a = if i == 1 then from - line else from
-		local b = if i == pieces then to + line else to
-		local a0 = attachment(mesh, CueVfx.onCue(a), "Ink" .. i .. "A")
-		local a1 = attachment(mesh, CueVfx.onCue(b), "Ink" .. i .. "B")
+	-- Where the pieces meet, from the tip: a short end piece at each end that narrows to the
+	-- bare cue (a square end would stick out past the rounded tip and butt), Pieces between.
+	local cuts = { 0 }
+	for k = 0, I.Pieces do
+		table.insert(cuts, I.EndStuds + (length - 2 * I.EndStuds) * k / I.Pieces)
+	end
+	table.insert(cuts, length)
+	local function width(at: number): number
+		local edge = at <= 0 or at >= length
+		return 2 * (CueShape.radiusAt(at) + (if edge then 0 else line))
+	end
+	for i = 1, #cuts - 1 do
+		local from, to = cuts[i], cuts[i + 1]
+		local a0 = attachment(mesh, CueVfx.onCue(from), "Ink" .. i .. "A")
+		local a1 = attachment(mesh, CueVfx.onCue(to), "Ink" .. i .. "B")
 		local beam = Instance.new("Beam")
 		beam.Name = "Ink"
 		beam.Attachment0 = a0
 		beam.Attachment1 = a1
-		beam.Width0 = 2 * (CueShape.radiusAt(math.max(from, 0)) + line)
-		beam.Width1 = 2 * (CueShape.radiusAt(math.min(to, length)) + line)
+		beam.Width0 = width(from)
+		beam.Width1 = width(to)
 		beam.Segments = 1
 		beam.FaceCamera = true
 		beam.Texture = ""
@@ -999,7 +1007,7 @@ function CueSkinLook.applyVisible(self: Look)
 		l.light.Enabled = aura
 	end
 	for _, ink in self.inks do
-		ink.Enabled = visible and (self.inkFade or 0) < 1
+		ink.Enabled = visible and self.inkShown == true
 	end
 	if self.piece then
 		self.piece:setModifier(if visible then 0 else 1)
@@ -1176,15 +1184,19 @@ function CueSkinLook.step(self: Look, t: number)
 			self.outline.FillColor = self.outline.OutlineColor
 		end
 	end
-	-- The ink fades out fast as the stick fades for the camera (buildInk).
+	-- The ink is off while the stick fades for the camera at all (a see-through cue is drawn
+	-- after the ribbons behind it, which then cover it), and seen nearly end-on (a ribbon
+	-- that faces the camera cannot follow a cue pointing at it); the Highlight stays.
 	if #self.inks > 0 then
-		local fade = math.min(1, mesh.LocalTransparencyModifier * C.Pop.Outline.Ink.FadeScale)
-		if fade ~= self.inkFade then
-			self.inkFade = fade
-			local seq = NumberSequence.new(fade)
+		local eye = Workspace.CurrentCamera.CFrame.Position
+		local toward = mesh.Position - eye
+		local endOn = toward.Magnitude > 1e-3
+			and math.abs(mesh.CFrame.LookVector:Dot(toward.Unit)) > inkEndOnCos
+		local shown = self.visible and mesh.LocalTransparencyModifier <= 0 and not endOn
+		if shown ~= self.inkShown then
+			self.inkShown = shown
 			for _, ink in self.inks do
-				ink.Transparency = seq
-				ink.Enabled = self.visible and fade < 1
+				ink.Enabled = shown
 			end
 		end
 	end
