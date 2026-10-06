@@ -5843,7 +5843,14 @@ Config.UI = {
 			MinNudgePx = 1,
 			-- On every filled text (designer, 2026-10-06, after its Free Reward test). Was 0.06
 			-- and 2 px: "a tiny bit" less lip.
-			Drop = { Everywhere = true, Ratio = 0.045, MinPx = 1.5 },
+			-- SmallText: screen parts (paths under PlayerGui, as in FontTest) whose text under
+			-- MinTextPx gets the lip too, without the hole fill; on test (designer, 2026-10-06).
+			Drop = {
+				Everywhere = true,
+				Ratio = 0.045,
+				MinPx = 1.5,
+				SmallText = { "PoolHud/MenuColumn", "InventoryMenu" },
+			},
 		},
 		-- Raised candy buttons: a light top, the colour, then a darker lip along the bottom.
 		Buttons = {

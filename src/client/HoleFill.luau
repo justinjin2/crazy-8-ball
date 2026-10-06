@@ -55,6 +55,7 @@ type State = {
 	links: { RBXScriptConnection },
 	drop: TextLabel?,
 	dropPad: UIPadding?,
+	smallLip: boolean, -- the drop shows on this text even when it is small (on test)
 	refresh: () -> (),
 }
 
@@ -218,11 +219,13 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 	local function ink()
 		local fade = math.max((label :: any).TextTransparency, stroke.Transparency)
 		local text = inkText(label, stroke)
+		local big = (label :: any).TextSize >= H.MinTextPx
 		for _, copy in state.inks do
 			copy.Text = text
 			copy.TextColor3 = stroke.Color
 			copy.TextTransparency = fade
-			copy.Visible = stroke.Enabled and (label :: any).TextSize >= H.MinTextPx
+			local lip = copy == state.drop and state.smallLip
+			copy.Visible = stroke.Enabled and (big or lip)
 		end
 	end
 	local function refresh()
@@ -237,6 +240,7 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 		inks = { left, right },
 		face = face,
 		links = links,
+		smallLip = false,
 		refresh = refresh,
 	}
 	refresh()
@@ -305,7 +309,7 @@ local function attach(label: GuiObject, stroke: UIStroke): State
 	return state
 end
 
-local function consider(object: Instance, withDrop: boolean)
+local function consider(object: Instance, withDrop: boolean, smallLip: boolean)
 	local label = if object:IsA("UIStroke") then object.Parent else object
 	if label == nil or copies[label] then
 		return
@@ -319,7 +323,7 @@ local function consider(object: Instance, withDrop: boolean)
 		if stroke == nil then
 			return
 		end
-		if (label :: any).TextSize < H.MinTextPx then
+		if (label :: any).TextSize < H.MinTextPx and not smallLip then
 			-- Small text keeps its holes (filling them makes its letters touch): wait for it
 			-- to grow, if it ever does.
 			local first = waiting[label] == nil
@@ -331,7 +335,7 @@ local function consider(object: Instance, withDrop: boolean)
 						link:Disconnect()
 						local drop = waiting[label] == true
 						waiting[label] = nil
-						consider(label, drop)
+						consider(label, drop, false)
 					end
 				end)
 			end
@@ -339,21 +343,45 @@ local function consider(object: Instance, withDrop: boolean)
 		end
 		state = attach(label :: GuiObject, stroke)
 	end
-	if withDrop then
+	if smallLip and not (state :: State).smallLip then
+		local found = state :: State
+		found.smallLip = true
+		addDrop(found)
+		found.refresh()
+	elseif withDrop then
 		addDrop(state :: State)
 	end
 end
 
 --- Fill the letter holes of every outlined text under `root`, now and as texts are added.
---- `withDrop` also gives them the thick ink edge underneath. Two watches over the same text
---- (all of PlayerGui, then one page with the drop) share one fill.
-function HoleFill.watch(root: Instance, withDrop: boolean?)
+--- `withDrop` also gives them the thick ink edge underneath; `smallLip` gives that edge to
+--- small text too (without the fill, which makes small letters touch). Watches over the
+--- same text (all of PlayerGui, then one part of a screen) share one fill.
+function HoleFill.watch(root: Instance, withDrop: boolean?, smallLip: boolean?)
 	local drop = withDrop == true
+	local small = smallLip == true
 	for _, object in root:GetDescendants() do
-		consider(object, drop)
+		consider(object, drop, small)
 	end
 	root.DescendantAdded:Connect(function(object: Instance)
-		consider(object, drop)
+		consider(object, drop, small)
+	end)
+end
+
+--- The same, on the screen part at `path` under `playerGui` ("PoolHud/MenuColumn"), once it
+--- exists.
+function HoleFill.watchPath(
+	playerGui: Instance,
+	path: string,
+	withDrop: boolean?,
+	smallLip: boolean?
+)
+	task.spawn(function()
+		local node = playerGui
+		for _, name in string.split(path, "/") do
+			node = node:WaitForChild(name)
+		end
+		HoleFill.watch(node, withDrop, smallLip)
 	end)
 end
 

@@ -26,7 +26,8 @@ Updated 2026-10-06.
 - **The UI font.** Fredoka One stays the kit font. `Config.UI.FontTest` tries a font on one
   screen or all of them; the left column's words have their own `Config.UI.Menu.LabelFont`.
   Outlined text from 20 px up has solid ink holes and a thick ink lip under its letters on
-  every screen (`HoleFill`, `Config.UI.Kit.HoleFill`); smaller text is left as it was.
+  every screen (`HoleFill`, `Config.UI.Kit.HoleFill`). Smaller text: on test, the lip alone
+  (no fill) in the left column and the Inventory (`Drop.SmallText`); elsewhere as it was.
 - **Cue outlines and the "pop" aura.** Every cue has a theme-coloured outline (a moving
   gradient from Legendary up). The deeper aura is on test on Frostbite, Candy, Flare, Plasma,
   Gummy and Magma (`Config.CueSkins.Pop.Ids`).

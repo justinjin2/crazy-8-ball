@@ -2647,3 +2647,6 @@ timer of a new block stay the designer's call.
 - 2026-10-06 (designer: "put the lip everywhere"): the text lip is on every outlined text from
   20 px up, on every screen (`Config.UI.Kit.HoleFill.Drop.Everywhere`); the Free Reward
   page's own switch is gone. Smaller text has neither the lip nor the filled holes.
+- 2026-10-06: **Lip on small text, on test** (designer): text under 20 px in the left column
+  and the whole Inventory screen gets the lip (1.5 px) without the hole fill, which made
+  small letters touch (`Config.UI.Kit.HoleFill.Drop.SmallText`, paths as in FontTest).
