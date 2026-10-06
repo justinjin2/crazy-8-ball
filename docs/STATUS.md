@@ -42,7 +42,7 @@ Updated 2026-10-06.
 
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
-- **The lively Shop is done** on branch `shop-lively` (not merged; the designer's call),
+- **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),
   all five gates approved (`docs/prompts/SHOP_LIVELY_REPORT.md`). Next: the Shop's Blocks,
   Money and Passes pages with the `lively-gui` skill (the money "+" jumps to Money, which has
   no page yet). Other menus switch to the new frame one at a time as each is rebuilt. Save

@@ -123,8 +123,8 @@ detail, the roadmap, Gift Player and the ult screen.
 - **Save and publish once for this milestone**: in Studio, File > Save to File As... over
   `place/8ball.rbxl`, then File > Publish to Roblox. That makes the renamed Firework Cue
   instances (`ReplicatedStorage.CueSkins.FireworkCue`, `CuePieces.firework`) live.
-- `shop-lively` is pushed but not merged; merging it into `release` (and on to `main`) is your
-  call when you want it live.
+- `shop-lively` was merged into `release` on 2026-10-06 (a fast-forward); `main` moves only
+  when the designer ships.
 
 ## What comes next
 
