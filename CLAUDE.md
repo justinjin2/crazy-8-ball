@@ -5,7 +5,7 @@ file; Codex reads AGENTS.md, which is the same file).
 
 ## Read first, every session
 
-1. `docs/STATUS.md`: where the build is and the current milestone.
+1. `docs/STATUS.md`: where the build is and the current milestone (current state only).
 2. The current milestone in `docs/ROADMAP.md` (the first unticked box).
 3. `docs/ARCHITECTURE.md` before touching `src/`.
 4. `docs/GDD.md` for design intent; sections are split into Decided and Open. Never guess an
@@ -14,7 +14,8 @@ file; Codex reads AGENTS.md, which is the same file).
 If you were started as a **lane** of the parallel build, read `docs/parallel/README.md` and your
 lane file first: their rules on Studio windows, ports, owned files and docs come before the
 loop below. Read `docs/STUDIO_NOTES.md` when Studio, Rojo, MCP, Lune or Blender misbehave. Read
-`assets/*/Readme.md` only when importing that package. `docs/DECISIONS.md` is the dated log.
+`assets/*/Readme.md` only when importing that package. `docs/DECISIONS.md` is the dated log;
+`docs/archive/` holds old history, read only when needed.
 
 ## Past decisions are not set in stone
 
@@ -67,8 +68,10 @@ Studio through MCP on phone, PC and gamepad emulation, read the console, screens
 tell the user plainly what was built, what was verified and what to try by hand. Commit as soon
 as a step is verified (the user does not want to be asked for approval), push, tick the box in
 `docs/ROADMAP.md`, rewrite `docs/STATUS.md`, and add a dated line to `docs/DECISIONS.md` for
-any design decision made along the way. Stopping an active Studio play session to verify is
-allowed.
+any design decision made along the way. **STATUS.md is current state only, under about 100
+lines:** update what is true and open now, and move a finished step's dated entry to the top of
+`docs/archive/STATUS_HISTORY.md` instead of letting STATUS grow. Stopping an active Studio play
+session to verify is allowed.
 
 **The place file.** Scripts are Rojo's job and are never saved by hand. Only Edit-mode
 content (imported meshes, textures, MaterialVariants, lighting, anything built in Studio)
