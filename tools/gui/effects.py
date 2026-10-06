@@ -6,6 +6,8 @@ stepping ImageRectOffset (docs/STUDIO_NOTES.md, smooth slow GUI motion). Sparks 
 so a sheet sits on any background. Colours are baked (a white-hot core cools into the colour),
 because ImageColor3 can only darken white, never make it.
 
+Each sheet gets a <name>.json beside it: columns, rows, frame size, frame count, fps, loop.
+
   firework_<colour>.png  a burst: a flash, sparks flying out with trails, gravity, fading tips
   sparkle.png            a four-point twinkle that grows, holds and shrinks (white, tintable)
 
@@ -13,6 +15,7 @@ because ImageColor3 can only darken white, never make it.
 """
 
 import argparse
+import json
 import math
 import random
 from pathlib import Path
@@ -23,6 +26,8 @@ from PIL import Image, ImageDraw, ImageFilter
 ROOT = Path(__file__).resolve().parents[2]
 SEED = 8
 GRID, FRAME = 8, 128  # 8 x 8 frames of 128 px: one 1024 sheet
+FPS = {"firework": 30, "sparkle": 30}  # playback rate the frames were timed for
+LOOP = {"firework": False, "sparkle": True}  # a burst plays once; a twinkle repeats
 SCALE = 2  # drawn at 2x, then shrunk
 COLOURS = {  # 13b's firework colours
     "gold": (255, 196, 70),
@@ -148,6 +153,12 @@ def main():
     sheets["sparkle"] = sparkle()
     for name, sheet in sheets.items():
         sheet.save(out / f"{name}.png", optimize=True)
+        kind = name.split("_")[0]
+        (out / f"{name}.json").write_text(json.dumps({
+            "image": f"{name}.png", "columns": GRID, "rows": GRID, "frame_width": FRAME,
+            "frame_height": FRAME, "frame_count": GRID * GRID, "fps": FPS[kind], "loop": LOOP[kind],
+            "order": "left to right, then top to bottom",
+        }, indent=2) + "\n")
         print(name, sheet.size)
         if a.preview:
             Path(a.preview).mkdir(parents=True, exist_ok=True)
