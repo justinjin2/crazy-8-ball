@@ -2565,3 +2565,7 @@ timer of a new block stay the designer's call.
   (Frostbite light blue, Candy red, Flare orange): its Aura.Outline, else its trail colour,
   else its pocket burst's, else its rarity colour. Popped cues with no aura get it too. On
   test for six cues (`Config.CueSkins.Pop.Ids`).
+- 2026-10-05 (designer): **every cue wears the solid theme-colour outline** (was the six test
+  cues); a theme colour must be vivid (`MinSaturation` 0.3) or the next source is tried, and
+  grey cues get the UI's ink. Close up, camera-facing ribbons draw the outline because
+  Roblox thins a Highlight's outline away near the camera. The aura rewrite stays on test.

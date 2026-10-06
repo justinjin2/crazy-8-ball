@@ -66,38 +66,51 @@ return {
 	["the outline is the cue's theme colour, with fallbacks"] = function()
 		local Pop, Config, CueSkins = load()
 		local spec = Config.CueSkins.Pop
-		local tiers = Config.CueSkins.Outline.Colors
-		local themed = { Outline = { Color = "Theme", SaturationAdd = 0, Value = 1 } }
+		local themed = {
+			Outline = {
+				Color = "Theme",
+				SaturationAdd = 0,
+				Value = 1,
+				MinSaturation = 0.3,
+				Fallback = "#1B2033",
+			},
+		}
+		local function outline(row: any): string
+			return Pop.outline(row, themed)
+		end
 		H.expect(
-			Pop.outline({ Style = { Trail = { Color = { 150, 215, 255 } } } }, themed, tiers)
-				== "#96D7FF",
+			outline({ Style = { Trail = { Color = { 150, 215, 255 } } } }) == "#96D7FF",
 			"a trail colour"
 		)
+		H.expect(outline({
+			Aura = { Outline = "#FFFFFF" },
+			Style = { Trail = { Color = { 255, 0, 0 } } },
+		}) == "#FFFFFF", "the skin's own outline first, whatever it is")
+		H.expect(outline({
+			Style = {
+				Trail = { Colors = { { 255, 240, 240 }, { 0, 200, 0 }, { 250, 250, 255 } } },
+			},
+		}) == "#00C800", "the most vivid of a trail's colours")
+		H.expect(outline({
+			Style = {
+				Trail = { Color = { 255, 255, 255 } },
+				Pocket = { Colors = { { 255, 122, 26 } } },
+			},
+		}) == "#FF7A1A", "a white trail: the pocket burst's colour")
 		H.expect(
-			Pop.outline(
-				{ Aura = { Outline = "#112233" }, Style = { Trail = { Color = { 1, 2, 3 } } } },
-				themed,
-				tiers
-			) == "#112233",
-			"the skin's own outline first"
+			outline({ Look = { Shaft = { 200, 200, 200 }, Cap = { 120, 14, 23 } } }) == "#780E17",
+			"a plain cue's most vivid stick colour"
 		)
 		H.expect(
-			Pop.outline(
-				{ Style = { Trail = { Colors = { { 255, 0, 0 }, { 0, 255, 0 }, { 0, 0, 255 } } } } },
-				themed,
-				tiers
-			) == "#00FF00",
-			"the middle of a trail's colours"
+			outline({ Tier = "Rank", Look = { Shaft = { 200, 200, 200 } } }) == "#1B2033",
+			"grey: the ink"
 		)
-		H.expect(Pop.outline({ Tier = "Rare" }, themed, tiers) == tiers.Rare, "the rarity colour")
-		themed.Outline.Fallback = "#1B2033"
-		H.expect(Pop.outline({ Tier = "Common" }, themed, tiers) == "#1B2033", "the fallback")
 		H.expect(
-			Pop.outline({}, { Outline = { Color = "#ABCDEF" } }, tiers) == "#ABCDEF",
+			Pop.outline({}, { Outline = { Color = "#ABCDEF" } }) == "#ABCDEF",
 			"a fixed colour"
 		)
 		for _, id in CueSkins.ids() do
-			local c = Pop.outline(CueSkins.get(id), spec, tiers)
+			local c = Pop.outline(CueSkins.get(id), spec)
 			H.expect(type(c) == "string" and #c == 7, id .. ": an outline colour")
 		end
 	end,

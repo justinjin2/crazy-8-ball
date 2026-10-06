@@ -4695,7 +4695,8 @@ Config.CueSkins = {
 	-- as light; every aura beam and orbiter ribbon gets a dark, wider twin behind it (the
 	-- backing a glow needs on a bright background); the stick wears a solid ink outline.
 	Pop = {
-		-- On test: only these cues pop. Remove Ids (nil) to pop every cue.
+		-- On test: only these cues' auras pop (the rewrite below). Remove Ids (nil) to pop every
+		-- cue's aura. The outline is Outline.Every's.
 		Ids = { "FrostbiteCue", "CandyCue", "FlareCue", "PlasmaCue", "GummyCue", "MagmaCue" },
 		-- Aura emitters: LightEmission times this (1 unchanged, 0 plain paint), and each colour
 		-- deepened: saturation raised by SaturationAdd, brightness times Value. (tune)
@@ -4706,18 +4707,29 @@ Config.CueSkins = {
 		-- saturated by SaturationAdd and darkened to Value times its brightness, Width times
 		-- its width, Opacity times the layer's opacity, pushed ZOffset behind it. (tune)
 		Backing = { SaturationAdd = 0.5, Value = 0.4, Width = 2, Opacity = 0.8, ZOffset = -1 },
-		-- The stick's outline, solid, on every popped cue (one with no aura too). Color "Theme"
-		-- is the cue's own colour (designer, 2026-10-05: Frostbite light blue, not black):
-		-- its Aura.Outline, else its trail's colour, else its pocket burst's, else its rarity
-		-- colour (Outline.Colors), else Fallback (the UI's ink); a hex colour instead puts
+		-- The stick's outline, solid, aura or not. Color "Theme" is the cue's own colour
+		-- (designer, 2026-10-05: Frostbite light blue, not black): its Aura.Outline, else the
+		-- first colourful one (MinSaturation) of its trail, pocket burst and stick colours,
+		-- else Fallback (the UI's ink, for the grey cues); a hex colour instead puts
 		-- every cue in that colour. The theme colour is saturated by SaturationAdd and its
 		-- brightness times Value (0 and 1: as it is). (tune)
 		Outline = {
+			-- Every cue wears this outline (designer, 2026-10-05), not only the Ids above;
+			-- false: only those. (tune)
+			Every = true,
+			-- A theme colour has to be at least this saturated (0..1): a near-white or grey one
+			-- would vanish on the bright roof, so the next source is tried. (tune)
+			MinSaturation = 0.3,
 			Color = "Theme",
 			Fallback = "#1B2033",
 			SaturationAdd = 0,
 			Value = 1,
 			Transparency = 0,
+			-- Up close Roblox thins a Highlight's outline to nothing (the aiming view), so the
+			-- stick also wears ribbons LineStuds wider than the cue each side, in Pieces along
+			-- it (the cue tapers), a rim that grows as the camera nears. Their transparency is
+			-- the stick's camera fade times FadeScale (a see-through cue would show them). (tune)
+			Ink = { LineStuds = 0.012, Pieces = 8, FadeScale = 4 },
 		},
 		-- The surface's glowing parts (its emissive map) times this. (tune)
 		EmissiveScale = 1.6,

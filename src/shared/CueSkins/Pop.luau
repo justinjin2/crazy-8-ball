@@ -126,7 +126,7 @@ function Pop.thin(t: any, opacity: number): any
 	return out
 end
 
---- Whether a cue pops: spec.Ids lists the cues on test; no Ids, every cue.
+--- Whether a cue's aura pops: spec.Ids lists the cues on test; no Ids, every cue.
 function Pop.applies(catalogId: any, spec: any): boolean
 	if spec == nil then
 		return false
@@ -147,41 +147,67 @@ local function hexOf(c: any): string?
 	return nil
 end
 
---- The cue's own colour: its Aura.Outline, else its ball trail's colour (the middle of a
---- trail's Colors), else its pocket burst's first colour; nil when it has none.
-function Pop.theme(row: any): string?
+-- The stick's painted parts whose colour can stand for a plain cue (not the shared tip and ring).
+local LOOK_PARTS = { "Shaft", "Forearm", "Wrap", "Cap" }
+
+-- The most vivid of `colors` (any colour forms: the largest saturation times brightness, so
+-- a dark shade loses to a bright one), and its saturation.
+local function mostVivid(colors: { any }): (any, number)
+	local best, bestVivid, bestS = nil, -1, 0
+	for _, c in colors do
+		local _, s, v = toHsv(rgbOf(c))
+		if s * v > bestVivid then
+			best, bestVivid, bestS = c, s * v, s
+		end
+	end
+	return best, bestS
+end
+
+--- The cue's own colour: its Aura.Outline as it is, else the first source with a colour at
+--- least `minSaturation` (a near-white or grey would vanish on the bright roof): its ball
+--- trail (Color, or the most vivid of Colors), its pocket burst's Colors, its stick's
+--- painted parts (Look). nil when none is that colourful.
+function Pop.theme(row: any, minSaturation: number): string?
 	local aura = row.Aura
 	if aura and aura.Outline then
 		return hexOf(aura.Outline)
 	end
 	local style = type(row.Style) == "table" and row.Style or {}
 	local trail = style.Trail or {}
-	if trail.Color then
-		return hexOf(trail.Color)
+	local look = row.Look or {}
+	local parts = {}
+	for _, part in LOOK_PARTS do
+		if look[part] then
+			table.insert(parts, look[part])
+		end
 	end
-	local colors = trail.Colors
-	if colors and #colors > 0 then
-		return hexOf(colors[math.ceil(#colors / 2)])
-	end
-	local pocket = style.Pocket or {}
-	if pocket.Colors and #pocket.Colors > 0 then
-		return hexOf(pocket.Colors[1])
+	local sources = {
+		if trail.Color then { trail.Color } else {},
+		trail.Colors or {},
+		(style.Pocket or {}).Colors or {},
+		parts,
+	}
+	for _, colors in sources do
+		local c, s = mostVivid(colors)
+		if c ~= nil and s >= minSaturation then
+			return hexOf(c)
+		end
 	end
 	return nil
 end
 
---- The popped stick's outline colour (spec.Outline): the theme, deepened, or the rarity colour
---- in `tierColors`, or the Fallback; a hex Color puts every cue in it.
-function Pop.outline(row: any, spec: any, tierColors: { [string]: string }): string
+--- The stick's outline colour (spec.Outline): the theme, deepened, else the Fallback (the
+--- UI's ink); a hex Color puts every cue in it.
+function Pop.outline(row: any, spec: any): string
 	local O = spec.Outline
 	if O.Color ~= "Theme" then
 		return O.Color
 	end
-	local theme = Pop.theme(row)
+	local theme = Pop.theme(row, O.MinSaturation)
 	if theme then
 		return Pop.deepen(theme, O.SaturationAdd, O.Value)
 	end
-	return tierColors[row.Tier] or O.Fallback
+	return O.Fallback
 end
 
 -- The defaults CueSkinLook builds with when a row leaves them out.

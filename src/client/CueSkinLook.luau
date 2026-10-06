@@ -14,8 +14,9 @@
 --   * a cue with an aura wears a faint outline of its colour (Config.CueSkins.Outline) and a
 --     skin's Aura.Highlight softly outlines its piece (the dragon, the fox), on the cues
 --     nearest the camera;
---   * a cue that pops (Config.CueSkins.Pop) is built from its row rewritten by CueSkins.Pop
---     to read on the bright roof, and its outline is solid in its theme colour;
+--   * every cue wears a solid outline in its theme colour (Config.CueSkins.Pop.Outline), with
+--     close-range ribbons where Roblox's Highlight outline thins away (buildInk); a cue whose
+--     aura pops (Pop.Ids) is built from its row rewritten by CueSkins.Pop;
 --   * the aura stays on the cue as it moves: emitters are LockedToPart but for tiny specks,
 --     and an orbiter's ribbon shortens while the stick moves (Config.CueSkins.Drift);
 --   * the stick's AuraOff attribute turns the whole aura off at once (the raised hand cue,
@@ -108,6 +109,8 @@ export type Look = typeof(setmetatable(
 		carrierPiece: any?, -- the skin's Carrier piece on the carrying character (backs only)
 		carrierOn: boolean, -- the engulfing aura is drawn (see carrierShown)
 		highlights: { Highlight }, -- the stick's outline and the piece's (nearest cues only)
+		inks: { Beam }, -- the stick's close-range outline (buildInk)
+		inkFade: number?, -- the inks' transparency now (step)
 		frames: { SurfaceAppearance }, -- frame 0 is the stick's own SurfaceAppearance
 		frame: number,
 		t0: number,
@@ -182,6 +185,7 @@ function CueSkinLook.attach(stick: Model, opts: Opts): Look
 		carrierPiece = nil,
 		carrierOn = true,
 		highlights = {},
+		inks = {},
 		frames = {},
 		frame = 0,
 		t0 = os.clock(),
@@ -299,6 +303,8 @@ function CueSkinLook.clear(self: Look)
 	self.lights = {}
 	self.sound = nil -- its attachment was in `built`
 	self.highlights = {} -- they live in the folder
+	self.inks = {} -- in `built`
+	self.inkFade = nil
 	if self.folder then
 		self.folder:Destroy()
 		self.folder = nil
@@ -319,6 +325,8 @@ function CueSkinLook.refresh(self: Look)
 	self.cueId = key
 	local row = if key then CueSkins.get(key) else nil
 	local popped = row ~= nil and Pop.applies(row.CatalogId, C.Pop)
+	-- The solid theme outline: every cue (Config.CueSkins.Pop.Outline.Every), or the popped.
+	local inked = row ~= nil and (C.Pop.Outline.Every or popped)
 	if popped then
 		poppedRows[key :: string] = poppedRows[key :: string] or Pop.pop(row, C.Pop)
 		row = poppedRows[key :: string]
@@ -378,11 +386,11 @@ function CueSkinLook.refresh(self: Look)
 		if aura.Sound then
 			self:buildSound(aura.Sound)
 		end
-		-- The stick's outline in its colour (a popped cue's is built below), and the
-		-- piece's own (Aura.Highlight).
+		-- The stick's faint outline in its colour (the solid theme one is built below), and
+		-- the piece's own (Aura.Highlight).
 		local O = C.Outline
 		local color = aura.Outline or O.Colors[row.Tier]
-		if color and not popped then
+		if color and not inked then
 			self:addHighlight("CueOutline", self.stick, {
 				FillColor = color,
 				FillTransparency = O.FillTransparency,
@@ -403,15 +411,16 @@ function CueSkinLook.refresh(self: Look)
 			})
 		end
 	end
-	-- A popped cue's solid outline in its theme colour, aura or not (CueSkins.Pop).
-	if popped and self.opts.aura then
-		local color = Pop.outline(row, C.Pop, C.Outline.Colors)
+	-- The solid outline in the cue's theme colour, aura or not (CueSkins.Pop).
+	if inked and self.opts.aura then
+		local color = Pop.outline(row, C.Pop)
 		self:addHighlight("CueOutline", self.stick, {
 			FillColor = color,
 			FillTransparency = C.Outline.FillTransparency,
 			OutlineColor = color,
 			OutlineTransparency = C.Pop.Outline.Transparency,
 		})
+		self:buildInk(color)
 	end
 	if self.piece then
 		self.piece:setAura(self.opts.aura)
@@ -437,6 +446,47 @@ function CueSkinLook.addHighlight(self: Look, name: string, adornee: Instance, h
 	h.Adornee = adornee
 	h.Parent = self.folder
 	table.insert(self.highlights, h)
+end
+
+-- A stick's close-range outline (Config.CueSkins.Pop.Outline.Ink). Roblox thins a
+-- Highlight's outline as the camera nears it, to nothing at the aiming distance, so the stick
+-- also carries camera-facing ribbons along its axis, LineStuds wider than the cue each side:
+-- the opaque cue hides their middle and a rim of colour shows at its edges, a real 3D line
+-- (thicker near, thinner far). They fade with the stick's camera fade, since a see-through
+-- cue would show their middle.
+function CueSkinLook.buildInk(self: Look, color: string)
+	local I = C.Pop.Outline.Ink
+	local mesh = self.mesh :: MeshPart
+	local length = 2 * CueVfx.onCue(0).Z -- the tip sits at Z = length / 2
+	local pieces = math.max(I.Pieces, 1)
+	for i = 1, pieces do
+		local from = length * (i - 1) / pieces
+		local to = length * i / pieces
+		-- The outer pieces run LineStuds past the tip and the butt: their ends are outlined too.
+		local a = if i == 1 then from - I.LineStuds else from
+		local b = if i == pieces then to + I.LineStuds else to
+		local a0 = attachment(mesh, CueVfx.onCue(a), "Ink" .. i .. "A")
+		local a1 = attachment(mesh, CueVfx.onCue(b), "Ink" .. i .. "B")
+		local beam = Instance.new("Beam")
+		beam.Name = "Ink"
+		beam.Attachment0 = a0
+		beam.Attachment1 = a1
+		beam.Width0 = 2 * (CueShape.radiusAt(math.max(from, 0)) + I.LineStuds)
+		beam.Width1 = 2 * (CueShape.radiusAt(math.min(to, length)) + I.LineStuds)
+		beam.Segments = 1
+		beam.FaceCamera = true
+		beam.Texture = ""
+		beam.Color = ColorSequence.new(CueVfx.color(color))
+		beam.Transparency = NumberSequence.new(0)
+		beam.LightEmission = 0
+		beam.LightInfluence = 0
+		beam.Enabled = false
+		beam.Parent = mesh
+		table.insert(self.built, a0)
+		table.insert(self.built, a1)
+		table.insert(self.built, beam)
+		table.insert(self.inks, beam)
+	end
 end
 
 -- The surface: the frames a Legendary swaps through (clones of its template's extra
@@ -937,6 +987,9 @@ function CueSkinLook.applyVisible(self: Look)
 	for _, l in self.lights do
 		l.light.Enabled = aura
 	end
+	for _, ink in self.inks do
+		ink.Enabled = visible and (self.inkFade or 0) < 1
+	end
 	if self.piece then
 		self.piece:setModifier(if visible then 0 else 1)
 	end
@@ -1093,6 +1146,18 @@ function CueSkinLook.step(self: Look, t: number)
 		self.piece:step(t)
 		if self.visible then
 			self.piece:setModifier(mesh.LocalTransparencyModifier)
+		end
+	end
+	-- The ink fades out fast as the stick fades for the camera (buildInk).
+	if #self.inks > 0 then
+		local fade = math.min(1, mesh.LocalTransparencyModifier * C.Pop.Outline.Ink.FadeScale)
+		if fade ~= self.inkFade then
+			self.inkFade = fade
+			local seq = NumberSequence.new(fade)
+			for _, ink in self.inks do
+				ink.Transparency = seq
+				ink.Enabled = self.visible and fade < 1
+			end
 		end
 	end
 end

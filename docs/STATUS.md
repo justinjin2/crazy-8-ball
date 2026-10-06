@@ -1,19 +1,20 @@
 # Status
 
-**2026-10-05 (latest): a "pop" test on six cues so cues read on the bright roof.**
-- `Config.CueSkins.Pop` + `CueSkins/Pop.luau` (pure, Lune-tested): for the cues in `Pop.Ids`
-  (Frostbite, Candy, Flare, Plasma, Gummy, Magma) the stick wears a solid outline in the
-  cue's own theme colour (designer: not black; its trail colour, else its pocket burst's,
-  else rarity; built on cues with no aura too, so Uncommons get one), the
-  aura's emitters are deepened and drawn less additively, each aura beam and orbiter ribbon
-  gets a dark, wider twin behind it, and the surface's emissive is 1.6x. Code only: no
-  reimport, no lighting change. Removing `Ids` pops every cue.
-- Why: 416 of the aura layers are additive (`LightEmission` 1), which adds light to what is
-  behind it and vanishes on the cream floor and pale sky.
-- Seen in Studio, held at day, on the back: the theme outline reads strongly on dark cues
-  (Flare, Plasma, Magma: a coloured rim) and softer on pale ones against the sky (Frostbite,
-  Gummy); Candy's ribbons show well with their backing. Console clean, lint clean, tests
-  pass. Waiting on the designer's call: keep, tune, roll out to every cue.
+**2026-10-05 (latest): every cue wears a solid outline in its own theme colour; a "pop" aura test on six cues.**
+- Every cue's stick has a solid outline in its theme colour (`Config.CueSkins.Pop.Outline`,
+  `CueSkins/Pop.luau` pure and Lune-tested): its `Aura.Outline` if set, else the first vivid
+  colour of its ball trail, pocket burst or stick paint; grey cues (Arctic, Carbon,
+  Midnight, Monarch, Silver, Platinum) get the UI's ink. Uncommon and Common cues have one
+  now too.
+- Up close Roblox thins a Highlight's outline to nothing (the aiming view: the designer saw
+  Gummy's vanish), so each stick also carries 8 camera-facing ribbons along it, 0.012 studs
+  wider than the cue each side (`Outline.Ink`): a rim that grows as the camera nears, faded
+  with the stick's camera fade.
+- The aura pass (deepened emitters, a dark backing behind beams and ribbons, emissive 1.6x)
+  stays on test for Frostbite, Candy, Flare, Plasma, Gummy and Magma (`Pop.Ids`).
+- Seen in Studio: the six test cues and Phoenix in day light on the back, Gummy's rim in a
+  solo match's aiming view (default and zoomed). Console clean, lint clean, 987 tests pass.
+  Not checked by the tool: phone and gamepad (visual only, no new controls).
 
 **2026-10-05 (latest): no night after all; no sun disc; a 10 second, every-frame fade.**
 - Night was tried (a dark, then a purple night with a lit skyline) and dropped by the
