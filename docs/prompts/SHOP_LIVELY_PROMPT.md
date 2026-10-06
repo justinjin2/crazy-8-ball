@@ -484,7 +484,7 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
       glyph code, confetti, rays) packed and uploaded.
 - [x] 5. The animatic with sliders and optional flair switches; **gate 3**; the approved values
       in Config.
-- [ ] 6. `Stage`, the idle library and the motion tokens in Config, with Lune tests.
+- [x] 6. `Stage`, the idle library and the motion tokens in Config, with Lune tests.
 - [ ] 7. The frame: unroll and fold, dots sheet, moving header, tabs and badges, the 8-ball flair,
       the tab-switch stagger, the kit switch (Shop on).
 - [ ] 8. The Grand Opening card: every piece and loop, real text, the odds chips and the block's
@@ -530,7 +530,14 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   published at https://claude.ai/artifact/ABF5JjwmsSNMqNXw2SU2tJ).
 - 2026-10-06: **gate 3 approved** with the default timings; the title pops as one piece; the GO
   card's fireworks at half speed. Values in `Config.UI.Motion`, `Config.UI.Shop.Open` and
-  `Config.UI.GrandOpeningCard.Loops`. Next: step 6, `Stage` and the idle library with tests.
+  `Config.UI.GrandOpeningCard.Loops`.
+- 2026-10-06: step 6 done. `src/shared/StageMath.luau` (pure: easing as TweenService, the
+  reveal curves, the schedule, flipbook and smooth-motion windows, the timer text; 9 Lune tests
+  in `tests/stage_math_test.luau`, the whole suite 999 passing), `src/client/Stage.luau` (plays
+  the schedule on registered pieces, code fader, bursts, close, tab replay, finish), the idle
+  library in `UIAnim`. Checked in Studio with `GuiQA:Invoke("lab", "stage", 14)` (a slowed
+  open): unroll, header scroll, grow, slam with its burst, crown drop, float, flipbook; no
+  console errors. Next: step 7, the frame.
 
 ## Decisions
 

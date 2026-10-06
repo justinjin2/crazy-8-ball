@@ -151,7 +151,13 @@ the hints, dialogs, the coin and result cards), `QueueMenu` (the card everyone o
 sees: host, difficulty, abilities, Start; beside the jump button on a phone), `TableSign`
 (the one sign over the table the player walks up to, drawn from the snapshots), `HudParts` (the UI kit every screen is built from: cards, pills, kit text, candy
 buttons and tiles, icons, HUD balls; tokens in `Config.UI.Kit`), `UIAnim` (every UI
-animation, including the hover sway every hoverable part calls), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound),
+animation, including the hover sway every hoverable part calls, and the lively idle library:
+flipbook, scrollTile, glide/float, breathe, glowPulse, maskedSweep, scanLine, glitch, turn,
+confettiDrift, all smooth by the gate 1 techniques), `Stage` (a lively screen's reveal: the
+open schedule from Config (`Config.UI.Shop.Open`, tokens in `Config.UI.Motion`) played per
+frame on registered pieces: pop, slam, grow and drop, the panel's unroll, the code fader (no
+CanvasGroup), firework bursts, close, tab replay, Reduce Motion; its maths is the pure shared
+`StageMath`, tested in Lune), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound),
 `MapAmbience` (the drifting boats), `DayCycle` (runs the day/sunset cycle from the server's
 clock every frame of a fade, no network traffic), `FirePit` (the fire pit's fire, Roblox's
 own, lit at sunset).

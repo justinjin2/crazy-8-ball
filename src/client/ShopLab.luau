@@ -6,6 +6,8 @@
 --                                     its subtitle on the card's navy
 --   PlayerScripts.GuiQA:Invoke("lab", "odds")           the block's odds badge and pop-up, and
 --                                     the always-visible chip row to compare
+--   PlayerScripts.GuiQA:Invoke("lab", "stage", seconds?) Stage and the idle library on a few
+--                                     real pieces (a step 6 check), the open at `seconds`
 --   PlayerScripts.GuiQA:Invoke("lab")                  close
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -19,6 +21,8 @@ local ArchTitle = require(script.Parent.ArchTitle)
 local BlockIcon = require(script.Parent.BlockIcon)
 local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
+local Stage = require(script.Parent.Stage)
+local UIAnim = require(script.Parent.UIAnim)
 
 local COPY: { [string]: any } = (Strings.Menus.Shop :: any).Featured
 local CUES: { [string]: string } = Strings.Items.Cues :: any
@@ -212,6 +216,96 @@ local function odds()
 	end
 end
 
+-- Stage and the idle library on a few real pieces: a panel that unrolls, the block slamming in
+-- with its burst, the crown dropping on, a floating ball, the GO card's fireworks, the header
+-- scroll and the block's masked sweep. `openSeconds` stretches the open (to watch it slowly).
+local function stageCheck(openSeconds: number?)
+	local root = screen()
+	local I = Config.UI.GrandOpeningCard.Images
+	local L = Config.UI.GrandOpeningCard.Loops
+	local function pic(
+		parent: Instance,
+		name: string,
+		image: string,
+		x: number,
+		y: number,
+		w: number,
+		h: number
+	): ImageLabel
+		local label = Instance.new("ImageLabel")
+		label.Name = name
+		label.BackgroundTransparency = 1
+		label.Image = image
+		label.AnchorPoint = Vector2.new(0.5, 0.5)
+		label.Position = UDim2.fromOffset(x, y)
+		label.Size = UDim2.fromOffset(w, h)
+		label.Parent = parent
+		return label
+	end
+	local panel = HudParts.frame(root, "Panel")
+	panel.BackgroundTransparency = 0
+	panel.BackgroundColor3 = Color3.fromRGB(227, 241, 254)
+	panel.AnchorPoint = Vector2.new(0.5, 0.5)
+	panel.Position = UDim2.fromScale(0.5, 0.5)
+	panel.Size = UDim2.fromOffset(620, 300)
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 20)
+	corner.Parent = panel
+	local header = Instance.new("ImageLabel")
+	header.Name = "Header"
+	header.BackgroundTransparency = 1
+	header.Image = Config.Debug.MotionSpike.Pattern2x2
+	header.ImageTransparency = 0.6
+	header.Size = UDim2.new(1, 0, 0, 50)
+	header.Parent = panel
+	local plate = pic(panel, "Card", I.Plate, 310, 175, 600, 240)
+	plate.ScaleType = Enum.ScaleType.Crop
+	local glow = pic(plate, "Glow", I.BlockGlow, 120, 130, 260, 260)
+	glow.ImageColor3 = Color3.fromRGB(255, 190, 60)
+	local block = pic(plate, "Block", I.Block, 120, 135, 150, 148)
+	local mask = pic(block, "Shine", I.BlockMask, 75, 74, 150, 148)
+	local crown = pic(plate, "Crown", I.Crown, 128, 60, 90, 64)
+	local ball = pic(plate, "Ball", I.BallFar, 520, 60, 70, 69)
+	local fw = pic(plate, "Firework", Config.UI.Effects.Firework.Pink, 420, 140, 120, 120)
+	fw.Visible = false
+	local stage = Stage.new({
+		OpenSeconds = 1.4,
+		Steps = {
+			{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
+			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
+			{ Ids = { "Card" }, Kind = "Grow", At = 0.3 },
+			{ Ids = { "Block" }, Kind = "Slam", At = 0.55, Length = 0.22, Burst = "Gold" },
+			{ Ids = { "Crown" }, Kind = "Drop", At = 0.65, Length = 0.25 },
+			{ Ids = { "Ball" }, Kind = "Pop", At = 0.8 },
+		},
+	}, plate)
+	stage:add("Panel", panel)
+	stage:add("Header", header, function()
+		UIAnim.scrollTile(
+			header,
+			Config.Debug.MotionSpike.PatternPeriod,
+			260,
+			32,
+			Vector2.new(-1, -1)
+		)
+	end)
+	stage:add("Card", plate)
+	stage:add("Block", block, function()
+		UIAnim.glowPulse(glow, 0.05, 0.45, L.GlowPulseSeconds)
+		UIAnim.maskedSweep(mask, L.BlockShineEvery, 0.7)
+	end)
+	stage:add("Crown", crown)
+	stage:add("Ball", ball, function()
+		UIAnim.float(ball, 214, Vector2.new(6, 9), 5)
+		UIAnim.flipbook(
+			fw,
+			Config.UI.Effects.Firework,
+			{ image = Config.UI.Effects.Firework.Pink, loop = true, fps = L.GoFireworkFps }
+		)
+	end)
+	stage:play(openSeconds)
+end
+
 function ShopLab.start()
 	if not RunService:IsStudio() then
 		return
@@ -223,6 +317,10 @@ function ShopLab.start()
 		end
 		if kind == "odds" then
 			odds()
+			return true
+		end
+		if kind == "stage" then
+			stageCheck(...)
 			return true
 		end
 		close()

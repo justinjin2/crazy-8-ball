@@ -7496,6 +7496,9 @@ Config.UI.Motion = {
 	TabSeconds = 0.5, -- a tab switch: the new page's pieces stagger in over this, no unroll
 	BurstFps = 30, -- a reveal's firework burst plays its 64 frames at this rate
 	ReducedFadeSeconds = 0.2, -- with Reduce Motion: pieces only fade in, over this
+	DropPx = 45, -- a drop (the crown, the flair) falls from this high (game px at 1x)
+	BurstShare = 1.4, -- a reveal's firework burst, this many times its piece's size
+	BarPx = 7, -- an unrolling panel starts as a bar this tall
 }
 
 -- The Shop's open, in order (docs/prompts/SHOP_LIVELY_PROMPT.md section 4; approved in the

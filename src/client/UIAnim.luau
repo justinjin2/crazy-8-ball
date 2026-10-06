@@ -807,4 +807,365 @@ function UIAnim.sunRays(icon: GuiObject, on: boolean, under: GuiObject?)
 	end
 end
 
+--------------------------------------------------------------------------------------------
+-- The lively idle library (docs/prompts/SHOP_LIVELY_PROMPT.md section 3). Slow motion never
+-- moves a label by Position or Size (Roblox snaps those to whole pixels): the label stays still
+-- and the picture slides or zooms inside it through fractional ImageRectOffset/ImageRectSize, or
+-- it turns by Rotation (smooth); gate 1 measured these (docs/STUDIO_NOTES.md). The maths lives
+-- in StageMath. Every loop runs only while on screen (UIAnim.loop), takes its numbers from its
+-- caller's Config, slows with Lower effects where it says so and keeps still with Roblox's
+-- Reduce Motion (GuiService.ReducedMotionEnabled).
+--------------------------------------------------------------------------------------------
+
+local GuiService = game:GetService("GuiService")
+local StageMath = require(Shared:WaitForChild("StageMath"))
+
+--- Reduce Motion is on: no floating, scrolling or spinning; fades and soft glows only.
+function UIAnim.reduced(): boolean
+	return GuiService.ReducedMotionEnabled
+end
+
+export type FlipOptions = {
+	image: string?,
+	loop: boolean?,
+	fps: number?,
+	phase: number?,
+	done: (() -> ())?,
+}
+
+-- A sheet's frame size in texels (square FramePx, or FrameWidthPx and FrameHeightPx).
+local function frameSize(sheet: any): (number, number)
+	return sheet.FramePx or sheet.FrameWidthPx, sheet.FramePx or sheet.FrameHeightPx
+end
+
+--- Play a flipbook on `label` (one ImageLabel, stepping ImageRectOffset). `sheet` is a
+--- Config.UI.Effects entry: Image (or Sheets, several pictures holding consecutive frames),
+--- Columns, Rows, the frame size, Frames, Fps. `image` picks a colour's picture when the entry
+--- has several (Firework.Gold). One-shot unless `loop`; a one-shot hides the label when done
+--- and calls `done`. `fps` overrides the entry's rate.
+function UIAnim.flipbook(label: ImageLabel, sheet: any, opts: FlipOptions?): Handle
+	local o: FlipOptions = opts or ({} :: any)
+	local pictures: { string } = sheet.Sheets or { o.image or sheet.Image }
+	local perSheet = sheet.Columns * sheet.Rows
+	local fw, fh = frameSize(sheet)
+	local fps = o.fps or sheet.Fps
+	label.ImageRectSize = Vector2.new(fw, fh)
+	label.Visible = true
+	local handle: Handle
+	handle = UIAnim.loop(label, function(clock)
+		local frame = StageMath.flipFrame(clock + (o.phase or 0), fps, sheet.Frames, o.loop == true)
+		if frame == nil then
+			label.Visible = false
+			handle.stop()
+			if o.done then
+				o.done()
+			end
+			return
+		end
+		local picture = pictures[frame // perSheet + 1]
+		if label.Image ~= picture then
+			label.Image = picture
+		end
+		local x, y = StageMath.flipOffset(frame % perSheet, sheet.Columns, fw, fh)
+		label.ImageRectOffset = Vector2.new(x, y)
+	end)
+	return handle
+end
+
+--- Scroll a seamless tile inside `label` (gate 1's favourite): `label.Image` is the tile laid
+--- out 2 x 2 (one period = `period` texels), shown `tilePx` screen pixels per period; the picture
+--- moves `pxPerSecond` along `direction` (screen pixels, e.g. (-1, -1) for up-left at 45
+--- degrees). The label must be at most one tile across (the window never leaves the picture).
+function UIAnim.scrollTile(
+	label: ImageLabel,
+	period: number,
+	tilePx: number,
+	pxPerSecond: number,
+	direction: Vector2
+): Handle
+	local texel = period / tilePx
+	local unit = direction.Unit
+	local function fit()
+		local size = label.AbsoluteSize
+		label.ImageRectSize =
+			Vector2.new(math.min(period, size.X * texel), math.min(period, size.Y * texel))
+	end
+	fit()
+	local resized = label:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+	local handle = UIAnim.loop(label, function(clock)
+		local speed = if UIAnim.reduced() then 0 else pxPerSecond
+		-- The picture moves along `direction`, so the window moves the other way through it.
+		local ox = StageMath.scrollOffset(clock, speed * -unit.X, texel, period)
+		local oy = StageMath.scrollOffset(clock, speed * -unit.Y, texel, period)
+		label.ImageRectOffset = Vector2.new(ox, oy)
+	end)
+	return {
+		stop = function()
+			handle.stop()
+			resized:Disconnect()
+		end,
+	}
+end
+
+--- Glide `label` along `path(clock) -> (dx, dy)` screen pixels from where it stands, smooth
+--- however slow: whole pixels by Position, the fraction left over by moving the picture
+--- inside it. The picture needs a clear border of at least a pixel's worth of texels round its
+--- content (`imagePx` square picture). Used by float and drift.
+function UIAnim.glide(
+	label: ImageLabel,
+	imagePx: number,
+	path: (number) -> (number, number)
+): Handle
+	local rest = label.Position
+	local inner = imagePx - 4 -- a window 2 texels inside each edge, so a sub-pixel shift stays inside
+	label.ImageRectSize = Vector2.new(inner, inner)
+	local handle = UIAnim.loop(label, function(clock)
+		local dx, dy = 0, 0
+		if not UIAnim.reduced() then
+			dx, dy = path(clock)
+		end
+		local wx, fx = StageMath.floatSplit(dx)
+		local wy, fy = StageMath.floatSplit(dy)
+		local texel = inner / math.max(1, label.AbsoluteSize.X)
+		label.Position = rest + UDim2.fromOffset(wx, wy)
+		-- Showing the picture `f` px further along means moving the window back by f texels.
+		label.ImageRectOffset = Vector2.new(2 - fx * texel, 2 - fy * texel)
+	end)
+	return {
+		stop = function()
+			handle.stop()
+			label.Position = rest
+		end,
+	}
+end
+
+--- Float `label` gently: `px` (x, y) pixels on sines of `seconds`, at a random phase; the far
+--- 8-balls float less and slower (the caller scales `px` and `seconds`).
+function UIAnim.float(label: ImageLabel, imagePx: number, px: Vector2, seconds: number): Handle
+	local phase = Random.new():NextNumber(0, math.pi * 2)
+	return UIAnim.glide(label, imagePx, function(clock)
+		local a = 2 * math.pi * clock / seconds + phase
+		return px.X * math.sin(a), px.Y * math.sin(a * 1.3)
+	end)
+end
+
+--- Breathe `label`'s picture by `amount` (0.015 = 1.5% bigger and smaller) over `seconds`,
+--- zooming the window inside a clear `border` (texels) round its content (a square picture of
+--- `imagePx`). The label itself stays still.
+function UIAnim.breathe(
+	label: ImageLabel,
+	imagePx: number,
+	border: number,
+	amount: number,
+	seconds: number
+): Handle
+	local phase = Random.new():NextNumber(0, math.pi * 2)
+	return UIAnim.loop(label, function(clock)
+		local scale = if UIAnim.reduced()
+			then 1
+			else 1 + amount * math.sin(2 * math.pi * clock / seconds + phase)
+		local size, at = StageMath.breatheRect(imagePx, border, scale)
+		label.ImageRectSize = Vector2.new(size, size)
+		label.ImageRectOffset = Vector2.new(at, at)
+	end)
+end
+
+--- Pulse a glow's ImageTransparency between `low` and `high` over `seconds` (kept, softly,
+--- with Reduce Motion: a glow may still breathe).
+function UIAnim.glowPulse(label: ImageLabel, low: number, high: number, seconds: number): Handle
+	local phase = Random.new():NextNumber(0, math.pi * 2)
+	return UIAnim.loop(label, function(clock)
+		local wave = 0.5 + 0.5 * math.sin(2 * math.pi * clock / seconds + phase)
+		label.ImageTransparency = low + (high - low) * wave
+	end)
+end
+
+--- A light sweeping across a picture's shape every `every` seconds, taking `seconds`: `mask`
+--- is an ImageLabel over the piece showing its white silhouette (the *_mask.png pictures); a
+--- UIGradient on it lets only a slanted band through, moved across by its Offset (smooth).
+--- Lower effects sweeps half as often; Reduce Motion never.
+function UIAnim.maskedSweep(
+	mask: ImageLabel,
+	every: number,
+	seconds: number,
+	strength: number?
+): Handle
+	local gradient = Instance.new("UIGradient")
+	gradient.Rotation = 20
+	local clear = 1 - (strength or 0.7)
+	gradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(0.42, 1),
+		NumberSequenceKeypoint.new(0.5, clear),
+		NumberSequenceKeypoint.new(0.58, 1),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	gradient.Offset = Vector2.new(-1, 0)
+	gradient.Parent = mask
+	local phase = Random.new():NextNumber(0, every)
+	local handle = UIAnim.loop(mask, function(clock)
+		local period = every / math.max(0.25, Quality.rate())
+		local local_ = (clock + phase) % period
+		if UIAnim.reduced() or local_ > seconds then
+			gradient.Offset = Vector2.new(-1, 0)
+			return
+		end
+		gradient.Offset = Vector2.new(-1 + 2 * (local_ / seconds), 0)
+	end)
+	return {
+		stop = function()
+			handle.stop()
+			gradient:Destroy()
+		end,
+	}
+end
+
+--- A scan line sweeping down `frame` every `every` seconds, taking `seconds` (a thin bright
+--- bar with a soft trail; fast enough that whole-pixel steps don't show). Not with Reduce Motion.
+function UIAnim.scanLine(frame: GuiObject, tint: Color3, every: number, seconds: number): Handle
+	local bar = Instance.new("Frame")
+	bar.Name = "ScanLine"
+	bar.BorderSizePixel = 0
+	bar.BackgroundColor3 = tint
+	bar.BackgroundTransparency = 0.25
+	bar.Size = UDim2.new(1, 0, 0, 24)
+	bar.AnchorPoint = Vector2.new(0, 1)
+	bar.ZIndex = frame.ZIndex + 5
+	local trail = Instance.new("UIGradient")
+	trail.Rotation = 90
+	trail.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(0.9, 0.6),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	trail.Parent = bar
+	bar.Parent = frame
+	local handle = UIAnim.loop(frame, function(clock)
+		local local_ = clock % every
+		local on = local_ < seconds and not UIAnim.reduced()
+		bar.Visible = on
+		if on then
+			bar.Position = UDim2.fromScale(0, local_ / seconds)
+		end
+	end)
+	return {
+		stop = function()
+			handle.stop()
+			bar:Destroy()
+		end,
+	}
+end
+
+--- A quick glitch every `every` seconds: for `seconds` the object jumps `px` sideways and its
+--- `copies` (tinted twins under it, e.g. cyan and magenta) show offset either side: a colour
+--- split. Not with Reduce Motion.
+function UIAnim.glitch(
+	object: GuiObject,
+	copies: { GuiObject },
+	every: number,
+	seconds: number,
+	px: number
+): Handle
+	local rest = object.Position
+	for _, c in copies do
+		c.Visible = false
+	end
+	local phase = Random.new():NextNumber(0, every)
+	local handle = UIAnim.loop(object, function(clock)
+		local on = (clock + phase) % every < seconds and not UIAnim.reduced()
+		object.Position = if on then rest + UDim2.fromOffset(px, 0) else rest
+		for i, c in copies do
+			c.Visible = on
+			c.Position = rest + UDim2.fromOffset(if i % 2 == 1 then -px else px * 2, 0)
+		end
+	end)
+	return {
+		stop = function()
+			handle.stop()
+			object.Position = rest
+			for _, c in copies do
+				c.Visible = false
+			end
+		end,
+	}
+end
+
+--- Turn `object` slowly by Rotation, `degreesPerSecond` (the block's rays, the Beta ring); a
+--- rock instead when `rockDegrees` is given (swinging that far either way over `seconds`).
+--- Still with Reduce Motion.
+function UIAnim.turn(
+	object: GuiObject,
+	degreesPerSecond: number,
+	rockDegrees: number?,
+	seconds: number?
+): Handle
+	local rest = object.Rotation
+	local phase = Random.new():NextNumber(0, math.pi * 2)
+	local handle = UIAnim.loop(object, function(clock)
+		if UIAnim.reduced() then
+			object.Rotation = rest
+		elseif rockDegrees then
+			object.Rotation = rest
+				+ rockDegrees * math.sin(2 * math.pi * clock / (seconds or 2) + phase)
+		else
+			object.Rotation = rest + (clock * degreesPerSecond) % 360
+		end
+	end)
+	return {
+		stop = function()
+			handle.stop()
+			object.Rotation = rest
+		end,
+	}
+end
+
+--- Gold confetti drifting down `area` and tumbling: `pictures` (image ids), `count` pieces
+--- (halved with Lower effects), falling `fallPxPerSecond` with a sway, turning as they go
+--- (smooth: the glide technique for the slow fall, Rotation for the tumble). Each piece wraps
+--- to the top when it leaves the bottom. Not with Reduce Motion (the pieces stay put).
+function UIAnim.confettiDrift(
+	area: GuiObject,
+	pictures: { string },
+	count: number,
+	sizePx: number,
+	imagePx: number,
+	fallPxPerSecond: number
+): Handle
+	local random = Random.new()
+	local handles: { Handle } = {}
+	local n = math.max(1, math.floor(count * Quality.rate() + 0.5))
+	for i = 1, n do
+		local piece = Instance.new("ImageLabel")
+		piece.Name = "Confetti" .. i
+		piece.BackgroundTransparency = 1
+		piece.Image = pictures[(i - 1) % #pictures + 1]
+		piece.AnchorPoint = Vector2.new(0.5, 0.5)
+		piece.Size = UDim2.fromOffset(sizePx, sizePx)
+		local x0 = random:NextNumber(0.03, 0.97)
+		piece.Position = UDim2.fromScale(x0, 0)
+		piece.Rotation = random:NextNumber(0, 360)
+		piece.ZIndex = area.ZIndex + 6
+		piece.Parent = area
+		local start = random:NextNumber(0, 1)
+		local swayPhase = random:NextNumber(0, math.pi * 2)
+		local tumble = random:NextNumber(30, 70) * (if i % 2 == 0 then 1 else -1)
+		table.insert(
+			handles,
+			UIAnim.glide(piece, imagePx, function(clock)
+				local height = area.AbsoluteSize.Y + sizePx * 2
+				local y = ((start * height + clock * fallPxPerSecond) % height) - sizePx
+				return 10 * math.sin(clock * 0.9 + swayPhase), y
+			end)
+		)
+		table.insert(handles, UIAnim.turn(piece, tumble))
+	end
+	return {
+		stop = function()
+			for _, h in handles do
+				h.stop()
+			end
+		end,
+	}
+end
+
 return UIAnim

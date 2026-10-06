@@ -691,6 +691,12 @@ return {
 				OddsBadge = "i",
 				OddsTitle = "Chances",
 				OddsTotal = "Total: %s", -- under the list: "Total: 100%"
+				-- The live timer under the block: "Ends in 20d 23h", in the last day
+				-- "Ends in 23h 59m", in the last hour "Ends in 59:59".
+				EndsIn = "Ends in %s",
+				Days = "%dd %dh",
+				Hours = "%dh %dm",
+				Minutes = "%d:%02d",
 			},
 		},
 		-- The Rewards (RewardsMenu and its pages RewardsDaily, RewardsPlaytime, RewardsCodes).
