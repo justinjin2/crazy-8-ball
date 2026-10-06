@@ -5854,6 +5854,7 @@ Config.UI = {
 			Yellow = { Top = { 255, 236, 150 }, Mid = { 255, 201, 40 }, Lip = { 214, 145, 0 } },
 			Grey = { Top = { 222, 227, 236 }, Mid = { 186, 194, 208 }, Lip = { 132, 142, 160 } },
 			White = { Top = { 255, 255, 255 }, Mid = { 244, 248, 255 }, Lip = { 190, 206, 230 } },
+			Purple = { Top = { 214, 160, 255 }, Mid = { 168, 85, 247 }, Lip = { 112, 48, 190 } }, -- the gift squares
 		},
 		ButtonLipShare = 0.18, -- the lip is this share of the button's height
 		ButtonStrokePx = 3, -- ink outline
@@ -7475,6 +7476,19 @@ Config.UI.Shop = {
 	-- (designer, 2026-10-04): the frame, its background and the four jump buttons down the
 	-- right side are all that is left; the sections come back with the new design. Sizes
 	-- { a, b } run from a phone-sized panel (a) to a full one (b). (tune)
+	-- The Gift Player popup (ShopGift): the purple gift square beside a Robux button opens it
+	-- with the other players in this server (designer, 2026-10-06, back on the Grand Opening card).
+	Gift = {
+		WidthPx = { 320, 460 },
+		RowPx = { 54, 70 }, -- a player's row: headshot, display name, @username, Gift
+		RowGapPx = { 4, 6 },
+		MaxRows = 5, -- more scroll
+		NamePx = { 16, 21 },
+		AtPx = { 12, 15 }, -- the @username
+		AtColor = { 120, 128, 142 },
+		ButtonWidthPx = { 84, 110 },
+		Headshot = "rbxthumb://type=AvatarHeadShot&id=%d&w=150&h=150",
+	},
 	Page = {
 		-- The jump buttons, top to bottom (designer, 2026-10-04: Featured, Blocks, Money,
 		-- Passes). Icons are Config.UI.Kit.Icons keys. Each will scroll to its sections once
@@ -7544,12 +7558,13 @@ Config.UI.Motion = {
 }
 
 -- The Shop's open, in order (docs/prompts/SHOP_LIVELY_PROMPT.md section 4; approved in the
--- animatic, 2026-10-06). `At` is seconds from the open's start for a 1.4 s open; Stage scales
--- every `At` by OpenSeconds / 1.4. A step lists its pieces in `Ids`, each `Stagger` (x
+-- animatic, 2026-10-06; the card's part twice as fast since gate 4). `At` is seconds from the
+-- open's start; a longer or shorter open (StageMath.schedule) scales every `At`, not the lengths.
+-- A step lists its pieces in `Ids`, each `Stagger` (x
 -- Config.UI.Motion.Stagger) after the one before. `Kind` picks the curve; `Length` overrides the
 -- kind's own length from Config.UI.Motion. `Badge` pops a NEW badge `BadgeAfter` s after its tab.
 Config.UI.Shop.Open = {
-	OpenSeconds = 1.4, -- the whole open, first piece to the flair landing (1 to 2 s; designer)
+	OpenSeconds = 1.07, -- the whole open, first piece to the flair landing (1 to 2 s; faster 2026-10-06)
 	Steps = {
 		{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
 		{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 }, -- its pattern starts scrolling
@@ -7562,24 +7577,28 @@ Config.UI.Shop.Open = {
 			Badge = true,
 			BadgeAfter = 0.08,
 		},
-		{ Ids = { "Featured" }, Kind = "Pop", At = 0.4 }, -- "- FEATURED -"
-		{ Ids = { "FeaturedLines" }, Kind = "Grow", At = 0.48 },
-		{ Ids = { "Card" }, Kind = "Grow", At = 0.45 }, -- the card's background opens from its centre
-		{ Ids = { "Block" }, Kind = "Slam", At = 0.55, Length = 0.22, Burst = "Gold" },
-		{ Ids = { "Crown" }, Kind = "Drop", At = 0.65, Length = 0.25 }, -- falls on (Bounce Out)
-		{ Ids = { "NewTag" }, Kind = "Pop", At = 0.72 },
-		{ Ids = { "CardTitle" }, Kind = "Pop", At = 0.6, Burst = "Purple" }, -- the title pops as one (designer)
-		{ Ids = { "StarLeft", "StarRight" }, Kind = "Pop", At = 0.64 },
-		{ Ids = { "Subtitle" }, Kind = "Fade", At = 0.68, Length = 0.15 },
-		{ Ids = { "Beta" }, Kind = "Pop", At = 0.75, Burst = "Cyan" },
-		{ Ids = { "BetaName", "BetaPills", "BetaOdds", "BetaCue" }, Kind = "Pop", At = 0.8 },
-		{ Ids = { "Go" }, Kind = "Pop", At = 0.9, Burst = "Pink" },
-		{ Ids = { "GoName", "GoPills", "GoOdds", "GoCue" }, Kind = "Pop", At = 0.95 },
-		{ Ids = { "Robux1", "Robux3", "Robux10" }, Kind = "Pop", At = 1.05 },
-		{ Ids = { "Money1", "Money3", "Money10" }, Kind = "Pop", At = 1.15 },
-		{ Ids = { "Save" }, Kind = "Fade", At = 1.25, Length = 0.15 },
-		{ Ids = { "EndsIn" }, Kind = "Fade", At = 1.28, Length = 0.15 },
-		{ Ids = { "Flair" }, Kind = "Drop", At = 1.3, Length = 0.3 }, -- the 8-ball lands on the frame
+		-- From here the Featured card, twice as fast as the animatic (designer, 2026-10-06: "after
+		-- the white background frame appears the featured frame and everything with it needs to be
+		-- faster").
+		{ Ids = { "Featured" }, Kind = "Pop", At = 0.34 }, -- "- FEATURED -"
+		{ Ids = { "FeaturedLines" }, Kind = "Grow", At = 0.38 },
+		{ Ids = { "Card" }, Kind = "Grow", At = 0.36 }, -- the card's background opens from its centre
+		{ Ids = { "Block" }, Kind = "Slam", At = 0.41, Length = 0.16, Burst = "Gold" },
+		{ Ids = { "Crown" }, Kind = "Drop", At = 0.46, Length = 0.18 }, -- falls on (Bounce Out)
+		{ Ids = { "NewTag" }, Kind = "Pop", At = 0.5 },
+		{ Ids = { "CardTitle" }, Kind = "Pop", At = 0.44, Burst = "Purple" }, -- the title pops as one (designer)
+		{ Ids = { "StarLeft", "StarRight" }, Kind = "Pop", At = 0.46 },
+		{ Ids = { "Subtitle" }, Kind = "Fade", At = 0.48, Length = 0.12 },
+		{ Ids = { "Beta" }, Kind = "Pop", At = 0.52, Burst = "Cyan" },
+		{ Ids = { "BetaName", "BetaPills", "BetaOdds", "BetaCue" }, Kind = "Pop", At = 0.55 },
+		{ Ids = { "Go" }, Kind = "Pop", At = 0.59, Burst = "Pink" },
+		{ Ids = { "GoName", "GoPills", "GoOdds", "GoCue" }, Kind = "Pop", At = 0.62 },
+		{ Ids = { "Robux1", "Robux3", "Robux10" }, Kind = "Pop", At = 0.66 }, -- with their gift squares
+		{ Ids = { "Counts" }, Kind = "Fade", At = 0.69, Length = 0.12 }, -- "1 block", "3 blocks", "10 blocks"
+		{ Ids = { "Money1", "Money3", "Money10" }, Kind = "Pop", At = 0.71 },
+		{ Ids = { "Save" }, Kind = "Fade", At = 0.76, Length = 0.12 },
+		{ Ids = { "EndsIn" }, Kind = "Fade", At = 0.78, Length = 0.12 },
+		{ Ids = { "Flair" }, Kind = "Drop", At = 0.82, Length = 0.25 }, -- the 8-ball lands on the frame
 	},
 	-- The optional flair, each a switch (all on in the approved animatic, gate 3):
 	Poppers = true, -- party poppers burst from the card's bottom corners as it opens
@@ -7716,21 +7735,17 @@ Config.UI.GrandOpeningCard = {
 	-- a piece's centre { x, y } and its width (or { x, y, w, h } boxes from the top-left), card
 	-- local. Text sizes are in the same units, never under MinTextPx on screen.
 	Layout = {
-		Card = { 1275, 498 }, -- the card's size
+		-- The card's size. It is scaled to fit the page whole, both ways, so nothing scrolls
+		-- (designer, 2026-10-06: a phone shows the cue cards and every button at once).
+		Card = { 1275, 528 },
+		DesignHeightUnits = 498, -- the animatic's card height: the block's group and the background were placed on it
 		CornerUnits = 28,
 		RimUnits = 6, -- its pale rim
 		Rim = { 191, 227, 255 },
-		Featured = { Units = 56, TextUnits = 30, LineUnits = 150, LineGapUnits = 18 }, -- "- FEATURED -" over the card
-		MinTextPx = 16, -- the new screens' smallest text (Kit.Big.Min)
-		-- Narrower pages (a phone) restack the card taller: the block and title on top, the cue
-		-- cards side by side under them, then the buttons (brief section 6, "Phones").
-		StackBelowPx = 760,
-		Stack = {
-			BlockScale = 0.75, -- the block's group, at the top left
-			TitleScale = 1.3, -- the title's group, beside it
-			RowsScale = 1.38, -- the cue cards and the buttons, full width under them
-			GapUnits = 20,
-		},
+		Featured = { Units = 56, MinPx = 22, TextUnits = 30, LineUnits = 150, LineGapUnits = 18 }, -- "- FEATURED -" over the card
+		-- This card's smallest text: under the kit's 16 so the whole card fits a phone's page
+		-- (designer, 2026-10-06). The small words' units below give about 16 px on a computer.
+		MinTextPx = 11,
 		-- The block's group (box 0..364 x 0..498).
 		Block = { 182, 262, 300 },
 		Glow = { 182, 262, 560 },
@@ -7746,13 +7761,13 @@ Config.UI.GrandOpeningCard = {
 		NewTextUnits = 40,
 		OddsBadge = { 300, 360, 44 }, -- the sky-blue "i" on the block (centre, size)
 		EndsIn = { 182, 466 },
-		EndsInUnits = 30,
+		EndsInUnits = 32,
 		EndsInColor = { 70, 215, 255 },
 		-- The title's group (box 470..1155 x 10..130).
 		Title = { 812, 54 },
 		TitleUnits = 70, -- bigger than the animatic's 58: 13b's title fills more of the card
 		Subtitle = { 812, 112 },
-		SubtitleUnits = 24,
+		SubtitleUnits = 25,
 		StarLeft = { 520, 66, 62 },
 		StarRight = { 1104, 66, 62 },
 		StarRockDegrees = 4.6,
@@ -7771,12 +7786,12 @@ Config.UI.GrandOpeningCard = {
 		GoColors = { { 255, 210, 58 }, { 255, 255, 255 } }, -- "GRAND OPENING" gold, "CUE" white
 		PillsAt = { 18, 64 }, -- the UNIQUE and LIMITED pills' top-left
 		PillUnits = { 104, 30 },
-		PillTextUnits = 17,
+		PillTextUnits = 24,
 		PillGapUnits = 8,
 		UniqueColor = { 226, 79, 216 },
 		LimitedColor = { 255, 197, 46 },
 		OddsChip = { 46, 24, 76, 32 }, -- from the card's top-right: centre in, width, height
-		OddsTextUnits = 19,
+		OddsTextUnits = 24,
 		OddsColor = { 70, 215, 255 }, -- sky blue (Kit.Numbers' odds colour)
 		CueShare = { 0.5, 0.56, 0.98 }, -- the cue's centre (shares of the card) and width
 		GoCueShare = { 0.5, 0.58, 0.98 },
@@ -7797,25 +7812,29 @@ Config.UI.GrandOpeningCard = {
 		BetaRingShare = 0.9, -- of the card's height
 		BetaCodeRows = { { 9, -1, 0.5 }, { -9, 1, 0.35 } }, -- y from the top (or bottom), direction, strength
 		BetaCodeUnits = 20, -- the glyph strip's height
-		-- The buttons (box 360..1256 x 352..492): three green Robux, three gold money.
-		RowGreen = 352,
-		RowGold = 412,
-		RowUnits = 52,
+		-- The buttons (box 360..1256 x 348..528), a column per pack (designer, 2026-10-06): the
+		-- purple gift square and the green Robux price ("129" and the old "147" struck through),
+		-- the pack's "3 blocks" under them, the gold money button, then "save 12%".
+		RowGreen = 348,
+		CountY = 420, -- the "1 block" words' centre, between the green and gold rows
+		CountTextUnits = 28,
+		RowGold = 438,
+		RowUnits = 54,
 		ButtonX = 360,
-		ButtonUnits = 288,
+		ButtonUnits = 288, -- a column's width
 		ButtonGapUnits = 16,
-		ButtonTextUnits = 26,
+		GiftGapUnits = 10, -- between the gift square (RowUnits wide) and the Robux button
+		ButtonTextUnits = 30,
 		CashIconShare = 1.1, -- the gold buttons' cash bundle, big as in 13b (of the button's height)
-		WasTextUnits = 30, -- the crossed-out old price on its white sticker at the button's corner
-		SaveY = 478,
-		SaveTextUnits = 24,
+		SaveY = 510,
+		SaveTextUnits = 25,
 		-- The background (scaled with the card when it restacks).
 		-- The floating 8-balls: picture, centre, width, sway speed (radians a second; the far ones
 		-- slower), and the picture's smaller side in pixels (the float windows a square).
 		Balls = {
 			{ Picture = "BallFar", At = { 700, 26 }, Units = 92, Speed = 0.25, ImagePx = 212 },
 			{ Picture = "BallMid", At = { 1232, 468 }, Units = 112, Speed = 0.18, ImagePx = 188 },
-			{ Picture = "BallNear", At = { 318, 470 }, Units = 92, Speed = 0.32, ImagePx = 170 },
+			{ Picture = "BallNear", At = { 336, 486 }, Units = 92, Speed = 0.32, ImagePx = 170 },
 		},
 		-- The corner fireworks: colour (Config.UI.Effects.Firework), centre, width.
 		Fireworks = {
@@ -7828,9 +7847,10 @@ Config.UI.GrandOpeningCard = {
 		ConfettiUnits = 50,
 		BokehTints = { { 90, 160, 255 }, { 70, 215, 255 }, { 160, 112, 255 } },
 		Twinkle = { Units = 60, Tint = { 255, 243, 192 } },
-		-- The odds pop-up beside the block.
+		-- The odds pop-up beside the block: these on a computer, shrunk to fit a short card.
 		OddsCardPx = 260, -- its width on screen
 		OddsRowPx = 24,
+		OddsTitlePx = 22,
 	},
 }
 

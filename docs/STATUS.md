@@ -46,7 +46,9 @@ Updated 2026-10-06.
   (`docs/prompts/SHOP_LIVELY_PROMPT.md`; its Status and Progress are current). The new frame
   is in (it unrolls, a scrolling header, the dotted sheet, an 8-ball on the edge; a kit switch
   in `Config.UI.Menu.LivelyMenus`, Shop only), and so is the Grand Opening card on the Featured
-  page (`GrandOpeningCard`). Next: recordings, performance and device checks (step 9, gate 4).
+  page (`GrandOpeningCard`; it fits a phone's page whole, gift squares by the Robux buttons).
+  Gate 4's changes are done and shown again; waiting on the designer (products, flair), then
+  gate 5 (computer emulator, a real gamepad).
   The other jump groups have no pages yet; the server-side shop, receipts and restock work.
 - **Decisions still open:** trim Epic ownership (6.7% of active players against a ~5% plan)
   or keep it; whether the VIP cue pays finder's money on the first join; whether the free

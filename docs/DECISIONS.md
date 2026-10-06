@@ -2706,3 +2706,11 @@ timer of a new block stay the designer's call.
   narrower than 760 px (phones) restack it (block and title on top, the cue cards side by side,
   then the buttons) and scroll. The crossed-out old Robux prices sit on a small white sticker at
   each button's top-right corner instead of inside the button (they did not fit at 16 px).
+- 2026-10-06 (designer, lively Shop gate 4): the Featured card's part of the Shop's open plays
+  twice as fast (the whole open 1.07 s). The card no longer restacks or scrolls on a phone: it
+  keeps the cue cards beside the block and scales to fit the page whole, with its smallest
+  text at 11 px (this card only; the kit's 16 px stays elsewhere). Each Robux button is shrunk
+  for a purple gift square on its left (the Gift Player popup, `ShopGift`, back from history),
+  shows only its price with the old price struck through in red inside it (the white sticker
+  is gone), and the pack's "1 block / 3 blocks / 10 blocks" sits between the green and gold
+  rows.

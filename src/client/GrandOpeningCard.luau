@@ -5,15 +5,16 @@
 -- fireworks, drifting confetti, bokeh and twinkles; the lucky block (glow, rays, breathe, shine,
 -- its crown, the tilted NEW tag, the sky-blue odds badge and the live "Ends in" timer); the arched
 -- GRAND OPENING title with its stars and subtitle; the Beta and Grand Opening cue cards (their
--- names, UNIQUE and LIMITED pills, odds chips and their own loops); the three green Robux and three
--- gold money buttons with their "save" labels. Pictures, places and loop numbers are in
+-- names, UNIQUE and LIMITED pills, odds chips and their own loops); a column per pack: the purple
+-- gift square (the Gift Player popup) and the green Robux price, the pack's "3 blocks", the gold
+-- money button and its "save" label. Pictures, places and loop numbers are in
 -- Config.UI.GrandOpeningCard, words in Strings (Menus.Shop.Featured), prices and odds in Config
 -- (Config.Shop.Deals.GrandOpening, Config.Products.GrandOpening1/3/10, the GrandOpening odds).
 --
 -- Every piece is registered with the Shop's Stage (ids in Config.UI.Shop.Open) and starts its
 -- idle loops as it lands; `keep` holds them until the Shop closes. The card is laid out in the
--- animatic's units, scaled to the page's width; a narrow page (a phone) restacks it taller.
--- Text never goes under Layout.MinTextPx. The block opens the odds pop-up (every outcome adding
+-- animatic's units, scaled to fit the page whole, both ways (designer, 2026-10-06: a phone shows
+-- everything without scrolling). Text never goes under Layout.MinTextPx. The block opens the odds pop-up (every outcome adding
 -- up to 100%, before buying): hover, click, tap, or gamepad A; B, a tap away or leaving closes it.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
@@ -187,6 +188,7 @@ end
 export type Actions = {
 	robux: (key: string) -> (), -- a Config.Products key (GrandOpening1/3/10)
 	money: (count: number) -> (), -- buy `count` blocks with money (Config.Shop.Deals.GrandOpening)
+	gift: (key: string) -> (), -- the gift square: gift that Config.Products key to someone here
 }
 
 --- Build the Featured page into `parent` (the Shop's page scroller). `actions` buys.
@@ -194,7 +196,6 @@ function GrandOpeningCard.new(parent: Instance, actions: Actions): any
 	local self: any = setmetatable({}, GrandOpeningCard)
 	self.actions = actions
 	self.k = 1
-	self.stacked = false
 	self.titlePx = 0
 	self.oddsOpen = false
 	self.oddsByHover = false
@@ -515,42 +516,44 @@ end
 function GrandOpeningCard.buildButtons(self: any)
 	local card = self.card
 	self.robuxButtons = {} :: { TextButton }
+	self.giftButtons = {} :: { TextButton }
 	self.moneyButtons = {} :: { TextButton }
-	self.was = {} :: { [number]: Frame }
+	self.countLabels = {} :: { TextLabel }
 	self.saveLabels = {} :: { [number]: TextLabel }
+	local wasHex = rgb(K.Numbers.Old):ToHex() -- a crossed-out price is red (UI_STYLE 13)
 	for index, count in COUNTS do
 		local key = DEAL.Products[count]
 		local product = PRODUCTS[key]
-		local robuxText = string.format(
-			COPY.BuyRobux,
-			blocksText(count),
-			string.format(SHOP_COPY.Robux, Format.commas(product.Robux))
-		)
-		local green = HudParts.candy(card, robuxText, function()
+		local price = string.format(SHOP_COPY.Robux, Format.commas(product.Robux))
+		if product.Was then
+			-- The old price, struck through, beside the new one.
+			price ..= string.format(
+				' <font color="#%s"><s>%s</s></font>',
+				wasHex,
+				Format.commas(product.Was)
+			)
+		end
+		local green = HudParts.candy(card, price, function()
 			self.actions.robux(key)
 		end, "Green")
 		green.Name = "Robux" .. count
 		green.AnchorPoint = Vector2.new(0.5, 0.5)
 		green.ZIndex = 5
+		local parts = HudParts.candyParts(green)
+		if parts then
+			parts.label.RichText = true
+		end
 		self.robuxButtons[index] = green
+		-- The gift square at its left: a child, so it opens and closes with it.
+		local gift = HudParts.candy(green, "", function()
+			self.actions.gift(key)
+		end, "Purple", "Gift")
+		gift.Name = "Gift"
+		gift.AnchorPoint = Vector2.new(1, 0.5)
+		gift.ZIndex = 5
+		self.giftButtons[index] = gift
+		self.countLabels[index] = label(card, "Count" .. count, blocksText(count), nil, 5)
 		if product.Was then
-			-- The old price, crossed out, on a little sticker at the button's corner.
-			local sticker = HudParts.pill(green, "Was", Color3.new(1, 1, 1))
-			sticker.AnchorPoint = Vector2.new(0.5, 0.5)
-			sticker.Rotation = 8
-			sticker.ZIndex = 9
-			local words = label(sticker, "Words", Format.commas(product.Was), rgb(K.Colors.Red), 9)
-			words.Position = UDim2.fromScale(0.5, 0.5)
-			words.Size = UDim2.fromScale(1, 1)
-			local strike = HudParts.frame(sticker, "Strike")
-			strike.BackgroundTransparency = 0
-			strike.BackgroundColor3 = Color3.fromRGB(224, 36, 47)
-			strike.AnchorPoint = Vector2.new(0.5, 0.5)
-			strike.Position = UDim2.fromScale(0.5, 0.5)
-			strike.Size = UDim2.new(0.9, 0, 0, 3)
-			strike.Rotation = -18
-			strike.ZIndex = 10
-			self.was[index] = sticker
 			local save = math.floor((1 - product.Robux / product.Was) * 100 + 0.5)
 			local saveLabel = label(card, "Save" .. count, string.format(COPY.Save, save), nil, 5)
 			saveLabel:SetAttribute("Percent", save)
@@ -565,7 +568,14 @@ function GrandOpeningCard.buildButtons(self: any)
 		gold.ZIndex = 5
 		self.moneyButtons[index] = gold
 	end
-	-- The save labels fade in together.
+	-- The pack sizes fade in together, then the save labels.
+	local counts = HudParts.frame(card, "Counts")
+	counts.Size = UDim2.fromScale(1, 1)
+	counts.ZIndex = 5
+	for _, countLabel in self.countLabels do
+		countLabel.Parent = counts
+	end
+	self.counts = counts
 	local saves = HudParts.frame(card, "Save")
 	saves.Size = UDim2.fromScale(1, 1)
 	saves.ZIndex = 5
@@ -576,34 +586,28 @@ function GrandOpeningCard.buildButtons(self: any)
 end
 
 -- The odds pop-up: a kit card beside the block, a row per outcome in its colour, the total.
+-- Sized in layoutOdds.
 function GrandOpeningCard.buildOdds(self: any)
 	local list = GrandOpeningCard.outcomes()
 	local count = rgb(K.Numbers.Count)
-	local rowH = L.OddsRowPx
-	local width = L.OddsCardPx
 	local card = HudParts.card(self.card, "OddsCard")
-	card.Size = UDim2.fromOffset(width, 44 + #list * rowH + 30)
 	card.ZIndex = 20
 	card.Visible = false
-	local heading = HudParts.text(card, "Title", 22, COPY.OddsTitle)
-	heading.Position = UDim2.fromOffset(12, 8)
-	heading.Size = UDim2.fromOffset(width - 24, 28)
+	local heading = HudParts.text(card, "Title", L.OddsTitlePx, COPY.OddsTitle)
 	heading.ZIndex = 2
+	self.oddsHeading = heading
+	self.oddsRows = {} :: { { name: TextLabel, value: TextLabel } }
 	local total = 0
 	for index, row in list do
-		local y = 40 + (index - 1) * rowH
 		local name = HudParts.text(card, "Name" .. index, L.MinTextPx, row.name, row.tint)
 		name.TextXAlignment = Enum.TextXAlignment.Left
 		name.TextWrapped = false
-		name.Position = UDim2.fromOffset(14, y)
-		name.Size = UDim2.fromOffset(width - 104, rowH)
 		name.ZIndex = 2
 		local value = HudParts.text(card, "Percent" .. index, L.MinTextPx, row.display, count)
 		value.TextXAlignment = Enum.TextXAlignment.Right
 		value.TextWrapped = false
-		value.Position = UDim2.fromOffset(width - 96, y)
-		value.Size = UDim2.fromOffset(82, rowH)
 		value.ZIndex = 2
+		table.insert(self.oddsRows, { name = name, value = value })
 		total += row.percent
 	end
 	local sum = HudParts.note(
@@ -613,10 +617,38 @@ function GrandOpeningCard.buildOdds(self: any)
 		string.format(COPY.OddsTotal, BlockOdds.percentText(total))
 	)
 	sum.TextXAlignment = Enum.TextXAlignment.Right
-	sum.Position = UDim2.fromOffset(14, 44 + #list * rowH)
-	sum.Size = UDim2.fromOffset(width - 28, 24)
 	sum.ZIndex = 2
+	self.oddsSum = sum
 	self.oddsCard = card
+end
+
+-- Size the odds pop-up: Layout.OddsRowPx rows, shrunk to fit `maxH` pixels.
+function GrandOpeningCard.layoutOdds(self: any, maxH: number)
+	local rows = self.oddsRows
+	local rowH = math.min(L.OddsRowPx, math.floor(maxH / (#rows + 3.1)))
+	local f = rowH / L.OddsRowPx
+	local function at(n: number): number
+		return math.floor(n * f + 0.5)
+	end
+	local width = at(L.OddsCardPx)
+	local top = at(40)
+	local textPx = math.max(L.MinTextPx, at(16))
+	self.oddsCard.Size = UDim2.fromOffset(width, at(44) + #rows * rowH + at(30))
+	self.oddsHeading.Position = UDim2.fromOffset(at(12), at(8))
+	self.oddsHeading.Size = UDim2.fromOffset(width - at(24), at(28))
+	HudParts.setTextSize(self.oddsHeading, math.max(L.MinTextPx, at(L.OddsTitlePx)))
+	for index, row in rows do
+		local y = top + (index - 1) * rowH
+		row.name.Position = UDim2.fromOffset(at(14), y)
+		row.name.Size = UDim2.fromOffset(width - at(104), rowH)
+		row.value.Position = UDim2.fromOffset(width - at(96), y)
+		row.value.Size = UDim2.fromOffset(at(82), rowH)
+		HudParts.setTextSize(row.name, textPx)
+		HudParts.setTextSize(row.value, textPx)
+	end
+	self.oddsSum.Position = UDim2.fromOffset(at(14), at(44) + #rows * rowH)
+	self.oddsSum.Size = UDim2.fromOffset(width - at(28), at(24))
+	HudParts.setTextSize(self.oddsSum, textPx)
 end
 
 --------------------------------------------------------------------------------------------
@@ -675,36 +707,28 @@ end
 -- units, `s` its scale, `p` where that origin lands.
 type Group = { ox: number, oy: number, s: number, px: number, py: number }
 
---- Lay the page out `width` pixels wide; returns its height. A page narrower than
---- Layout.StackBelowPx restacks the card taller.
-function GrandOpeningCard.layout(self: any, width: number): number
+--- Lay the page out in `width` pixels (and, given, `height`: the card then shrinks to fit it
+--- whole, so nothing scrolls); returns its height. The card is centred across the page.
+function GrandOpeningCard.layout(self: any, width: number, height: number?): number
 	local W, H = L.Card[1], L.Card[2]
+	local F = L.Featured
 	local k = width / W
-	self.k = k
-	local stacked = width < L.StackBelowPx
-	self.stacked = stacked
-	local S = L.Stack
-	local groups: { [string]: Group }
-	local cardUnitsH = H
-	if stacked then
-		local bs, ts, rs, gap = S.BlockScale, S.TitleScale, S.RowsScale, S.GapUnits
-		local blockW, blockH = 364 * bs, H * bs
-		local rowsW = 896 * rs
-		local rowsX = (W - rowsW) / 2
-		local cardsY = blockH + gap
-		local buttonsY = cardsY + 196 * rs + gap
-		groups = {
-			block = { ox = 0, oy = 0, s = bs, px = 0, py = 0 },
-			title = { ox = 812, oy = 70, s = ts, px = blockW + (W - blockW) / 2, py = blockH / 2 },
-			cards = { ox = 360, oy = 140, s = rs, px = rowsX, py = cardsY },
-			buttons = { ox = 360, oy = 352, s = rs, px = rowsX, py = buttonsY },
-		}
-		cardUnitsH = buttonsY + 150 * rs + gap
-	else
-		local same = { ox = 0, oy = 0, s = 1, px = 0, py = 0 }
-		groups = { block = same, title = same, cards = same, buttons = same }
+	local headerH = math.max(F.MinPx, math.floor(F.Units * k))
+	if height then
+		k = math.max(0.1, math.min(k, (height - 8 - headerH) / H))
+		headerH = math.min(headerH, math.max(F.MinPx, math.floor(F.Units * k)))
 	end
-	local headerH = math.max(28, math.floor(L.Featured.Units * k))
+	self.k = k
+	-- The block's group and the background were placed on the animatic's shorter card.
+	local designH = L.DesignHeightUnits
+	local same = { ox = 0, oy = 0, s = 1, px = 0, py = 0 }
+	local groups: { [string]: Group } = {
+		block = { ox = 0, oy = 0, s = 1, px = 0, py = (H - designH) / 2 },
+		title = same,
+		cards = same,
+		buttons = same,
+	}
+	local cardUnitsH = H
 	local cardW, cardH = math.floor(W * k), math.floor(cardUnitsH * k)
 	local function round(x: number): number
 		return math.floor(x + 0.5)
@@ -724,6 +748,7 @@ function GrandOpeningCard.layout(self: any, width: number): number
 		return math.ceil(ShopParts.textWidth(text, px)) + 4
 	end
 
+	self.root.Position = UDim2.fromOffset(math.floor((width - cardW) / 2), 0)
 	self.root.Size = UDim2.fromOffset(cardW, headerH + cardH + 8)
 
 	-- "- FEATURED -"
@@ -755,7 +780,7 @@ function GrandOpeningCard.layout(self: any, width: number): number
 	self.cardCorner.CornerRadius = UDim.new(0, corner)
 	self.plateCorner.CornerRadius = UDim.new(0, corner)
 	self.cardRim.Thickness = math.max(2, round(L.RimUnits * k))
-	local yScale = cardUnitsH / H -- the background spreads over a taller card
+	local yScale = cardUnitsH / designH -- the background spreads over the taller card
 	local bg: Group = { ox = 0, oy = 0, s = 1, px = 0, py = 0 }
 	local function putBack(object: GuiObject, x: number, y: number, w: number, h: number)
 		put(object, bg, x, y * yScale, w, h)
@@ -908,34 +933,41 @@ function GrandOpeningCard.layout(self: any, width: number): number
 		end
 	end
 
-	-- The buttons.
+	-- The buttons: a column per pack.
 	g = groups.buttons
 	local buttonPx = textPx(L.ButtonTextUnits, g.s)
-	local rowPx = math.max(32, round(L.RowUnits * g.s * k)) -- its touch area is 44 (setMinHit)
+	local rowPx = math.max(24, round(L.RowUnits * g.s * k)) -- its touch area is 44 (setMinHit)
+	local giftGap = round(L.GiftGapUnits * g.s * k)
+	local countPx = textPx(L.CountTextUnits, g.s)
+	local savePx = textPx(L.SaveTextUnits, g.s)
+	local touch = Config.UI.Menu.Frame.TouchMinPx
 	for index in COUNTS do
-		local x = L.ButtonX + (index - 1) * (L.ButtonUnits + L.ButtonGapUnits) + L.ButtonUnits / 2
-		for _, row in
-			{ { self.robuxButtons[index], L.RowGreen }, { self.moneyButtons[index], L.RowGold } }
-		do
-			local button: TextButton = row[1]
-			put(button, g, x, row[2] + L.RowUnits / 2, L.ButtonUnits, L.RowUnits)
-			button.Size = UDim2.fromOffset(button.Size.X.Offset, rowPx)
-			HudParts.setButtonTextSize(button, buttonPx)
-			HudParts.setMinHit(button, Config.UI.Menu.Frame.TouchMinPx)
+		local left = L.ButtonX + (index - 1) * (L.ButtonUnits + L.ButtonGapUnits)
+		local x = left + L.ButtonUnits / 2
+		-- The gift square and the green price share the top row.
+		local green: TextButton = self.robuxButtons[index]
+		local gift: TextButton = self.giftButtons[index]
+		put(green, g, x, L.RowGreen + L.RowUnits / 2, L.ButtonUnits, L.RowUnits)
+		local columnW = green.Size.X.Offset
+		local greenW = columnW - rowPx - giftGap
+		green.Position += UDim2.fromOffset(round((rowPx + giftGap) / 2), 0)
+		green.Size = UDim2.fromOffset(greenW, rowPx)
+		HudParts.setButtonTextSize(green, buttonPx)
+		gift.Position = UDim2.new(0, -giftGap, 0.5, 0)
+		gift.Size = UDim2.fromOffset(rowPx, rowPx)
+		local countLabel = self.countLabels[index]
+		put(countLabel, g, x, L.CountY, L.ButtonUnits, 0)
+		countLabel.Size = UDim2.fromOffset(countLabel.Size.X.Offset, countPx + 6)
+		HudParts.setTextSize(countLabel, countPx)
+		local gold: TextButton = self.moneyButtons[index]
+		put(gold, g, x, L.RowGold + L.RowUnits / 2, L.ButtonUnits, L.RowUnits)
+		gold.Size = UDim2.fromOffset(gold.Size.X.Offset, rowPx)
+		HudParts.setButtonTextSize(gold, buttonPx)
+		for _, button in { green, gift, gold } do
+			HudParts.setMinHit(button, touch)
 		end
-		local sticker = self.was[index]
-		if sticker then
-			local wasPx = textPx(L.WasTextUnits, g.s)
-			local words = sticker:FindFirstChild("Words") :: TextLabel
-			local sw = measure(words.Text, wasPx) + 14
-			local bw = self.robuxButtons[index].Size.X.Offset
-			-- Mostly above the button's top-right corner, clear of its price.
-			sticker.Position = UDim2.fromOffset(bw - round(sw * 0.4), -round((wasPx + 8) * 0.3))
-			sticker.Size = UDim2.fromOffset(sw, wasPx + 8)
-			words.Size = UDim2.new(1, -8, 1, -2)
-			HudParts.setTextSize(words, wasPx)
-			local saveLabel = self.saveLabels[index]
-			local savePx = textPx(L.SaveTextUnits, g.s)
+		local saveLabel = self.saveLabels[index]
+		if saveLabel then
 			put(saveLabel, g, x, L.SaveY, L.ButtonUnits, 0)
 			saveLabel.Size = UDim2.fromOffset(saveLabel.Size.X.Offset, savePx + 6)
 			HudParts.setTextSize(saveLabel, savePx)
@@ -943,9 +975,10 @@ function GrandOpeningCard.layout(self: any, width: number): number
 	end
 
 	-- The odds pop-up: beside the block, inside the card.
+	self:layoutOdds(cardH - 16)
 	local blockRight = (groups.block.px + (364 - groups.block.ox) * groups.block.s) * k
 	self.oddsCard.Position = UDim2.fromOffset(
-		round(math.min(blockRight, cardW - L.OddsCardPx - 8)),
+		round(math.min(blockRight, cardW - self.oddsCard.Size.X.Offset - 8)),
 		round(math.max(8, (cardH - self.oddsCard.Size.Y.Offset) / 2))
 	)
 	return headerH + cardH + 8
@@ -1256,6 +1289,7 @@ function GrandOpeningCard.register(self: any, stage: Stage.Stage, keep: (UIAnim.
 			keep(buttonShine(gold, LOOP.ButtonShineEvery, 1.4 + (index - 1) * 0.35))
 		end)
 	end
+	stage:add("Counts", self.counts)
 	stage:add("Save", self.saves, function()
 		local list: { UIAnim.Handle } = {}
 		for _, saveLabel in self.saveLabels do

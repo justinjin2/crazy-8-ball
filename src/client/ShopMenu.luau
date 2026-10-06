@@ -16,7 +16,8 @@
 --
 -- The Featured page is the Grand Opening card (GrandOpeningCard): its buttons buy through the
 -- server (ItemRequest "BuyBlocks" for money, StoreRequest "Buy" for Robux, which shows Roblox's
--- own dialog); a refusal shows the server's reason as a notice.
+-- own dialog); a refusal shows the server's reason as a notice. The purple gift square beside a
+-- Robux button opens the Gift Player popup (ShopGift; StoreRequest "Gift").
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -30,6 +31,7 @@ local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
+local ShopGift = require(script.Parent.ShopGift)
 local ShopParts = require(script.Parent.ShopParts)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -83,7 +85,13 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		money = function(count: number)
 			self:buyBlocks("GrandOpening", count)
 		end,
+		gift = function(key: string)
+			if self:productReady(key) then
+				self.gift:open(key)
+			end
+		end,
 	})
+	self.gift = ShopGift.new(self, frame)
 
 	-- The jump buttons (in the panel, so a gamepad reaches them).
 	local rail = HudParts.frame(frame.panel, "Jumps")
@@ -233,8 +241,10 @@ function ShopMenu.layout(self: any)
 	end
 	local width = self:layoutRail(geo)
 	self.scroll.Size = UDim2.fromOffset(width, geo.content.Y)
-	local height = self.featured:layout(width - self.scroll.ScrollBarThickness)
+	-- The card fits the page whole (designer, 2026-10-06: no scrolling on a phone).
+	local height = self.featured:layout(width - self.scroll.ScrollBarThickness, geo.content.Y)
 	ShopParts.setCanvas(self.scroll, height)
+	self.gift:layout(geo)
 end
 
 --------------------------------------------------------------------------------------------
@@ -416,9 +426,8 @@ function ShopMenu.buyBlocks(self: any, dealId: string, count: number)
 	end)
 end
 
---- Buy a Robux product (a Config.Products key): the server checks it and shows Roblox's
---- purchase dialog; a product not made yet says "Coming soon".
-function ShopMenu.buyProduct(self: any, key: string)
+--- Whether Robux product `key` is on sale (made on Roblox); if not, says "Coming soon".
+function ShopMenu.productReady(self: any, key: string): boolean
 	local state = ItemState.shop()
 	local products = if type(state) == "table" and type(state.products) == "table"
 		then state.products
@@ -426,6 +435,32 @@ function ShopMenu.buyProduct(self: any, key: string)
 	local product = products[key]
 	if type(product) ~= "table" or product.available ~= true then
 		self.frame:notice(COPY.ComingSoon, "Ink")
+		return false
+	end
+	return true
+end
+
+--- Whether a buy request with this busy key is in flight ("Gift" for gifts).
+function ShopMenu.isBusy(self: any, key: string): boolean
+	return self.busy[key] == true
+end
+
+--- Gift a Robux product (a Config.Products key) to the player `userId` here: the server
+--- checks both players and shows Roblox's purchase dialog; the receipt grants it to them.
+function ShopMenu.sendGift(self: any, key: string, userId: number, _name: string)
+	self:send("Gift", function()
+		return ItemState.request("StoreRequest", "Gift", key, userId)
+	end, function(reply)
+		if not reply.ok then
+			self.frame:notice(MenuFrame.reason(reply), "Red")
+		end
+	end)
+end
+
+--- Buy a Robux product (a Config.Products key): the server checks it and shows Roblox's
+--- purchase dialog; a product not made yet says "Coming soon".
+function ShopMenu.buyProduct(self: any, key: string)
+	if not self:productReady(key) then
 		return
 	end
 	self:send("Product" .. key, function()
@@ -517,6 +552,7 @@ end
 function ShopMenu.closed(self: any)
 	ContextActionService:UnbindAction("8ballShopJump")
 	self.featured:closed()
+	self.gift:close()
 	if self.rock then
 		self.rock.stop()
 		self.rock = nil

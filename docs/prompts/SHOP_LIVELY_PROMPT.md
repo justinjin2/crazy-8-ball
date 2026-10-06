@@ -227,8 +227,9 @@ choice. Additions to 13b: the two cue odds chips and the odds pop-up on the bloc
 **Words**: every word is real text in the game's kit style, read from `Strings`; prices, crossed
 prices and odds are read from Config (`Config.Shop.Deals.GrandOpening.Money`,
 `Config.Products.GrandOpening1/3/10` `Robux` and `Was`, the `GrandOpening` odds row), never typed
-in. 13b has no gift squares beside the Robux buttons: leave them off this card and say so at
-gate 2.
+in. 13b has no gift squares beside the Robux buttons, but the designer added them at gate 4
+(2026-10-06): a purple gift square left of each shrunk green Robux button, the pack's "3 blocks"
+between the green and gold rows, the old price struck through in red inside the green button.
 
 **The title**: the designer wants **real text first**, replicating 13b "as much as possible with
 the curves and colours": letter by letter (so each letter can pop), set on a gentle arch like
@@ -287,10 +288,10 @@ ids go into Config and `tools/products_ids.json`).
 
 **The timer**: live, cyan: "Ends in 20d 23h", in the last day "23h 59m", in the last hour "59:59".
 
-**Phones**: the card restacks taller (the block and title on top, the two cue cards side by side,
-then the six buttons in two rows); the page may scroll a little. Layers make this possible: no
-piece is baked into another. Text never goes under the new screens' minimum (`Kit.Big`, 16 px;
-UI_STYLE 13).
+**Phones** (designer, gate 4, 2026-10-06): no restack and no scrolling. The card keeps the
+computer arrangement (the cue cards beside the block) and is scaled to fit the page whole, so a
+phone shows the cue cards and every button at once. This card's smallest text is 11 px
+(`Layout.MinTextPx`); its small words are about 16 px on a computer.
 
 **The page**: only this card under "- FEATURED -".
 
@@ -567,6 +568,16 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   big cash icons after comparing with 13b; poppers, streamers and twinkles are switches in
   `Config.UI.Shop.Open` (on). Asked: try it, create the GrandOpening1/3/10 products, keep the
   flair on. Computer emulator size and a real gamepad wait for gate 5.
+- 2026-10-06: gate 4 changes from the designer done and **gate 4 shown again, waiting** (same
+  page; new recording and sheet in `~/Desktop/8ball-refs/gui-lively/work/gate4b/`). The card's
+  part of the open is twice as fast (whole open 1.07 s; the card lands about 0.5 s after the
+  panel). The card fits the page whole on a phone (750 x 362 emulator: page 646 x 279, card
+  586 x 276, nothing scrolls) with the cue cards beside the block. Purple gift squares beside
+  shrunk Robux buttons open the restored Gift Player popup (`ShopGift`; checked with GuiQA
+  "gift" stand-ins: a press closes it and the server answers "They left the server"; a gift
+  square says "Coming soon" until the products exist). Pack words between the rows; the old
+  prices struck through in red inside the green buttons. The odds pop-up shrinks to fit the
+  card. Still asked: create the products, keep the flair on.
 
 
 ## Decisions

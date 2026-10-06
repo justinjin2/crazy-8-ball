@@ -702,13 +702,16 @@ return {
 				BetaName = { "BETA", " CUE" },
 				GoName = { "GRAND OPENING", " CUE" },
 				Unique = "UNIQUE",
-				-- The buttons: "3 blocks • (Robux) 129"; the money ones show only the price.
+				-- A pack's size, between its Robux and money buttons (which show only prices).
 				Blocks = { One = "%d block", Many = "%d blocks" },
-				BuyRobux = "%s • %s",
 				Save = "save %d%%", -- under a pack that costs less than buying one by one
 				BoughtOne = "Your %s is in your hotbar!",
 				BoughtMany = "%d %s are in your hotbar!",
 			},
+			-- The Gift Player popup (the purple gift square beside a Robux button).
+			GiftTitle = "Gift Player",
+			GiftButton = "Gift",
+			GiftNobody = "No one else is here to gift right now.",
 		},
 		-- The Rewards (RewardsMenu and its pages RewardsDaily, RewardsPlaytime, RewardsCodes).
 		-- Block names come from Strings.LuckyBlocks.Names; money is "$250" (Progression/Format).

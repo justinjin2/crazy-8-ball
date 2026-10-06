@@ -594,8 +594,9 @@ rebuild, not a description of the current screen.
   no header word: a dark navy bar with the stopwatch, "New blocks in 6:12" (the time in gold)
   and each slot's chances (`BarPx`, `BarColor`).
 - **Money is gold, Robux is green**, everywhere on the page: a gold candy with the cash
-  bundle for a money price, a green candy with the Robux glyph for Robux. A gift square (blue)
-  sits left of every Robux button for a developer product.
+  bundle for a money price, a green candy with the Robux glyph for Robux. A gift square
+  (purple on the Grand Opening card, 2026-10-06) sits left of every Robux button for a
+  developer product; it opens the Gift Player popup.
 - **The Grand Opening band** (reference 12): the only dark card on the page (`FestiveFill`,
   navy fading deeper, a pale blue edge, gold sparkles). The NEW sticker, the crowned block
   and "Ends in 20d 23h" down the left; at the right the gold title "GRAND OPENING LUCKY

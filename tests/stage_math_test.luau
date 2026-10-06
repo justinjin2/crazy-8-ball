@@ -100,13 +100,13 @@ return {
 			H.expect(list[i].at >= list[i - 1].at, "sorted by start")
 		end
 		H.near(finish, byId.Flair.at + byId.Flair.length, 1e-9, "ends when the flair lands")
-		-- A 2 s open moves every start out by 2 / 1.4; lengths stay.
+		-- A 2 s open moves every start out by 2 / OpenSeconds; lengths stay.
 		local slow, slowFinish = S.schedule(open, M, 2)
 		local slowById = {}
 		for _, e in slow do
 			slowById[e.id] = e
 		end
-		H.near(slowById.Block.at, byId.Block.at * 2 / 1.4, 1e-9, "starts scale")
+		H.near(slowById.Block.at, byId.Block.at * 2 / open.OpenSeconds, 1e-9, "starts scale")
 		H.near(slowById.Block.length, byId.Block.length, 1e-9, "lengths do not")
 		H.expect(slowFinish > finish, "a longer open ends later")
 		H.expect(finish >= 1 and finish <= 2, "the open lasts 1 to 2 s (designer)")
