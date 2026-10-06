@@ -167,8 +167,7 @@ return {
 		for _, name in { "Day", "Sunset" } do
 			local state = L[name]
 			check(state, "Lighting." .. name)
-			-- 0 is no sunlight (designer, 2026-10-05: the sun off for now).
-			H.expect(state.Brightness >= 0, name .. ": no negative sun")
+			H.expect(state.Brightness > 0, name .. ": a lit sun")
 			-- The Sky has all six faces (a partial set shows Roblox's default in the gaps).
 			for _, face in { "Bk", "Dn", "Ft", "Lf", "Rt", "Up" } do
 				H.expect(

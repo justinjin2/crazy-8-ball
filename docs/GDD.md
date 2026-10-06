@@ -585,8 +585,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     and four deep.
   - Day and Sunset only, no night (one was tried and dropped, 2026-10-05), the same for
     everyone on a server: about 10 minutes of day, a 10 second fade, 5 minutes of sunset, a
-    10 second fade back *(tune)*. No sun for now (designer, 2026-10-05): no disc in the sky and
-    no sunlight, so no sun shadows; a brighter warm fill light keeps the roof bright.
+    10 second fade back *(tune)*. The sun's disc is hidden for now (designer, 2026-10-05: to
+    see the map without it); the sun still lights the roof.
   - In: the pergola lounge with couches, a fire pit, a grand piano, planters, palms,
     lanterns, umbrella seating and the glass railing. Out: the art's infinity-pool strip,
     banners and pink light pillar, and (for now) the snack counter.

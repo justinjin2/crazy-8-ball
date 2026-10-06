@@ -4,8 +4,8 @@
 - Night was tried (a dark, then a purple night with a lit skyline) and dropped by the
   designer. The cycle is Day 10 min and Sunset 5 min again, now with a 10 second fade each
   way (`Config.Lighting.Cycle.Fade`), written every frame instead of 12 times a second.
-- No sun by day or sunset: no disc (`SunAngularSize` 0) and no sunlight (`Brightness` 0), so
-  no sun shadows or light streaks; a raised exposure and a warmer fill keep the roof bright. `/day` and `/sunset` hold the light for the whole server; `/cycle` lets it run again.
+- The sun's disc is hidden by day and sunset (`SunAngularSize` 0); the sun still lights the
+  roof. `/day` and `/sunset` hold the light for the whole server; `/cycle` lets it run again.
 - Verified in Studio: day and sunset captures without the sun; a fade measured frame by frame
   (the light changed on 459 of the 461 frames mid-fade at 60 fps); console clean, lint clean,
   982 tests pass. Not checked by the tool: phone and gamepad (visual only, no new controls).

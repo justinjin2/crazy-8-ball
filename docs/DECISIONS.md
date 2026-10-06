@@ -2549,3 +2549,6 @@ timer of a new block stay the designer's call.
   and 3.4); the roof kept bright by the exposure (0.35), a lighter warm day shade (#C0A898)
   and more of the sky's fill at sunset (0.4). Only the sun's light is off; the lamps, glow and
   lanterns are unchanged.
+- 2026-10-05: Sunlight back (designer: "too dark now, go back"): `Brightness` 2.6 by day and
+  3.4 at sunset with their old exposure and shade, so the sun's shadows are back. The sun's
+  disc stays hidden; the 10 second, every-frame fade stays.
