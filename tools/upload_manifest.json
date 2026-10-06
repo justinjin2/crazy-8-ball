@@ -4963,6 +4963,18 @@
     "assetType": "Decal",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/ui/spike/float_ball.png": {
+    "assetId": "88189448616219",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "75662875722190"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/spike/pattern_2x2.png": {
+    "assetId": "105537048195737",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "80667987508003"
+  },
   "/Users/justinjin/Downloads/422945-Puzzle-Game-Achievement-02.wav": {
     "assetId": "124844921098629",
     "assetType": "Audio",

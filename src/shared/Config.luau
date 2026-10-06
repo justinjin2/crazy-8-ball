@@ -10111,6 +10111,31 @@ Config.Debug = {
 	-- Main maps it. Keyboard only: it is a tool, not a feature that needs a phone path.
 	ShowStatus = false,
 	StatusKey = "F3",
+	-- The lively Shop's motion spike (MotionSpike, docs/prompts/SHOP_LIVELY_PROMPT.md 7.1):
+	-- a Studio-only test screen opened with PlayerScripts.GuiQA:Invoke("spike"), showing each
+	-- way of moving slowly side by side at one speed, to pick the smooth one from video.
+	-- Images from tools/gui/spike_art.py (uploaded to the group). (test tool)
+	MotionSpike = {
+		Pattern2x2 = "rbxassetid://80667987508003", -- the header tile 2 x 2 (1024 px, period 512)
+		PatternTile = "rbxassetid://132770883034156", -- the same 512 px tile alone (Kit.PatternImage)
+		PatternPeriod = 512, -- texels in one repeat of the tile
+		PatternTilePx = 380, -- one tile shown this big (as Kit.PatternTilePx)
+		PatternTransparency = 0.45, -- stronger than the menus' 0.7, so steps are easy to see
+		ScrollPxPerSecond = 14, -- on each axis (45 degrees up-left); slow, where steps show most
+		Ball = "rbxassetid://75662875722190", -- an 8-ball, 224 px inside 256 with a clear border
+		BallBorder = 16, -- texels of clear border round the ball in its image
+		BallPx = 72, -- the ball's size on screen
+		FloatPx = 6, -- how far it floats up and down
+		FloatSeconds = 3, -- one float, up and back
+		BreatheScale = 0.05, -- how much it breathes (5%)
+		BreatheSeconds = 2.4,
+		PopEvery = 1.6, -- a pop test repeats this often
+		Firework = "rbxassetid://137945828795312", -- the Grand Opening cue's 8 x 8 burst (128 px frames)
+		FireworkFps = 30,
+		Spark = "rbxassetid://131919576694289", -- Kit.Art.Spark, for the pooled particle burst
+		Particles = 28, -- sparks in one burst
+		ParticleEvery = 1.5, -- seconds between bursts
+	},
 	-- Developer chat commands (DevCommands): typed in the Roblox chat, checked on the server. Who
 	-- may use them: only the user ids in UserIds (the designer, Painicane), in Studio and live.
 	-- Anyone else's command does nothing. Their private answers are in

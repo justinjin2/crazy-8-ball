@@ -1527,4 +1527,6 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 -- GUI lane: a Studio-only test hook for the screens (GuiQA; nothing in a live server).
 require(script.Parent.GuiQA).start()
+-- The lively Shop's motion spike (Studio only; GuiQA "spike").
+require(script.Parent.MotionSpike).start()
 print("[8ball] multiplayer client ready")
