@@ -482,7 +482,7 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
       chip-row mock, the 8-ball flair, the dot tile and the header texture; **gate 2**.
 - [x] 4. The effects library (fireworks in five colours, sparkles, glows, sweep masks, ribbons,
       glyph code, confetti, rays) packed and uploaded.
-- [ ] 5. The animatic with sliders and optional flair switches; **gate 3**; the approved values
+- [x] 5. The animatic with sliders and optional flair switches; **gate 3**; the approved values
       in Config.
 - [ ] 6. `Stage`, the idle library and the motion tokens in Config, with Lune tests.
 - [ ] 7. The frame: unroll and fold, dots sheet, moving header, tabs and badges, the 8-ball flair,
@@ -527,8 +527,10 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   card piece, the dot tile). All 48 ids preload with Success in Studio.
 - 2026-10-06: the animatic built (`tools/gui/animatic/index.html`; local copy served with
   `python3 -m http.server 8765` from the repo root, `?t=1.2` freezes a moment for checks;
-  published at https://claude.ai/artifact/ABF5JjwmsSNMqNXw2SU2tJ). **Gate 3 shown, waiting**
-  for the designer's slider values.
+  published at https://claude.ai/artifact/ABF5JjwmsSNMqNXw2SU2tJ).
+- 2026-10-06: **gate 3 approved** with the default timings; the title pops as one piece; the GO
+  card's fireworks at half speed. Values in `Config.UI.Motion`, `Config.UI.Shop.Open` and
+  `Config.UI.GrandOpeningCard.Loops`. Next: step 6, `Stage` and the idle library with tests.
 
 ## Decisions
 

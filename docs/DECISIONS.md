@@ -2690,3 +2690,8 @@ timer of a new block stay the designer's call.
   The crown and block are completed as whole pieces (no hidden parts), so they can be reused
   elsewhere. The cues are rendered from the in-game models (tip left, like 13b) rather than
   cut from 13b.
+- 2026-10-06 (designer, gate 3, the animatic): the Shop open's default timings are approved
+  (1.4 s open, 0.04 s stagger, 0.28 s pops from 60% past 110%, 0.2 s unroll; in
+  `Config.UI.Motion` and `Config.UI.Shop.Open`). The Grand Opening title pops in as one piece,
+  not letter by letter. The Grand Opening card's mini fireworks play at half speed and burst
+  half as often (15 fps, every 1.5 s), calm like the gold ribbons.

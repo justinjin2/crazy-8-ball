@@ -7475,6 +7475,70 @@ Config.UI.Shop = {
 	},
 }
 
+-- Motion tokens for lively screens (docs/prompts/SHOP_LIVELY_PROMPT.md section 3; the designer
+-- approved these in the animatic, tools/gui/animatic, 2026-10-06). Stage plays every reveal from
+-- them in code, per frame (no CanvasGroup; slow motion inside still frames, gate 1). Seconds.
+Config.UI.Motion = {
+	Stagger = 0.04, -- between pieces of one group (the tabs, the buttons, a card's insides)
+	PopSeconds = 0.28, -- one piece's pop
+	PopFrom = 0.6, -- a pop starts this big (UIScale)...
+	PopPeak = 1.1, -- ...grows past full size to this...
+	PopPeakAt = 0.6, -- ...at this share of the pop (Quad Out), then settles at 1 (Sine InOut)
+	FadeSeconds = 0.1, -- a piece's fade in, alongside its pop
+	UnrollSeconds = 0.2, -- a panel opening up and down from a thin bar
+	UnrollOvershoot = 1.04, -- the panel's overshoot, of its height (Quart Out to it, then settle)
+	UnrollPeakAt = 0.7, -- the share of the unroll where it peaks
+	SlamFrom = 1.6, -- a slam (the lucky block) starts this big and drops in (Quad In)
+	SlamBounce = 0.05, -- then bulges this much once as it lands
+	SlamLandAt = 0.6, -- the share of the slam where it lands
+	GrowSeconds = 0.15, -- a background opening from its centre, lines growing out (Quart Out)
+	CloseSeconds = 0.15, -- a close: everything fades while the panel folds to a line, no stagger
+	TabSeconds = 0.5, -- a tab switch: the new page's pieces stagger in over this, no unroll
+	BurstFps = 30, -- a reveal's firework burst plays its 64 frames at this rate
+	ReducedFadeSeconds = 0.2, -- with Reduce Motion: pieces only fade in, over this
+}
+
+-- The Shop's open, in order (docs/prompts/SHOP_LIVELY_PROMPT.md section 4; approved in the
+-- animatic, 2026-10-06). `At` is seconds from the open's start for a 1.4 s open; Stage scales
+-- every `At` by OpenSeconds / 1.4. A step lists its pieces in `Ids`, each `Stagger` (x
+-- Config.UI.Motion.Stagger) after the one before. `Kind` picks the curve; `Length` overrides the
+-- kind's own length from Config.UI.Motion. `Badge` pops a NEW badge `BadgeAfter` s after its tab.
+Config.UI.Shop.Open = {
+	OpenSeconds = 1.4, -- the whole open, first piece to the flair landing (1 to 2 s; designer)
+	Steps = {
+		{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
+		{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 }, -- its pattern starts scrolling
+		{ Ids = { "Basket", "Title", "Money", "Close" }, Kind = "Pop", At = 0.18 },
+		{
+			Ids = { "Tab1", "Tab2", "Tab3", "Tab4" },
+			Kind = "Pop",
+			At = 0.3,
+			Stagger = 1.25,
+			Badge = true,
+			BadgeAfter = 0.08,
+		},
+		{ Ids = { "Featured" }, Kind = "Pop", At = 0.4 }, -- "- FEATURED -"
+		{ Ids = { "FeaturedLines" }, Kind = "Grow", At = 0.48 },
+		{ Ids = { "Card" }, Kind = "Grow", At = 0.45 }, -- the card's background opens from its centre
+		{ Ids = { "Block" }, Kind = "Slam", At = 0.55, Length = 0.22, Burst = "Gold" },
+		{ Ids = { "Crown" }, Kind = "Drop", At = 0.65, Length = 0.25 }, -- falls on (Bounce Out)
+		{ Ids = { "NewTag" }, Kind = "Pop", At = 0.72 },
+		{ Ids = { "CardTitle" }, Kind = "Pop", At = 0.6, Burst = "Purple" }, -- the title pops as one (designer)
+		{ Ids = { "StarLeft", "StarRight" }, Kind = "Pop", At = 0.64 },
+		{ Ids = { "Subtitle" }, Kind = "Fade", At = 0.68, Length = 0.15 },
+		{ Ids = { "Beta" }, Kind = "Pop", At = 0.75, Burst = "Cyan" },
+		{ Ids = { "BetaName", "BetaPills", "BetaOdds", "BetaCue" }, Kind = "Pop", At = 0.8 },
+		{ Ids = { "Go" }, Kind = "Pop", At = 0.9, Burst = "Pink" },
+		{ Ids = { "GoName", "GoPills", "GoOdds", "GoCue" }, Kind = "Pop", At = 0.95 },
+		{ Ids = { "Robux1", "Robux3", "Robux10" }, Kind = "Pop", At = 1.05 },
+		{ Ids = { "Money1", "Money3", "Money10" }, Kind = "Pop", At = 1.15 },
+		{ Ids = { "Save" }, Kind = "Fade", At = 1.25, Length = 0.15 },
+		{ Ids = { "EndsIn" }, Kind = "Fade", At = 1.28, Length = 0.15 },
+		{ Ids = { "Flair" }, Kind = "Drop", At = 1.3, Length = 0.3 }, -- the 8-ball lands on the frame
+	},
+	Poppers = true, -- party poppers burst from the card's bottom corners as it opens (designer: on)
+}
+
 -- The lively GUI's effects library (docs/prompts/SHOP_LIVELY_PROMPT.md 7.2): flipbooks any
 -- screen can play on one ImageLabel by stepping ImageRectOffset (drawn by tools/gui/effects.py,
 -- the ribbons rendered by tools/gui/render_cues.py; each sheet's JSON beside it in
@@ -7562,6 +7626,32 @@ Config.UI.GrandOpeningCard = {
 		Plate = "rbxassetid://93204646083675",
 		StarLeft = "rbxassetid://81445661051193",
 		StarRight = "rbxassetid://133224366351187",
+	},
+	-- The card's idle loops, as approved in the animatic (2026-10-06). Seconds; Lower effects
+	-- halves the counts and rates; Reduce Motion stops floating and scrolling.
+	Loops = {
+		GlowPulseSeconds = 2.6, -- the block's gold glow pulses (transparency 0.05 to 0.45)
+		RaysTurnPerSecond = 8.6, -- degrees: the block's rays turn slowly
+		BreatheScale = 0.015, -- the block breathes this much...
+		BreatheSeconds = 3.1, -- ...over this
+		BlockShineEvery = 4, -- a shine sweeps across the block (0.7 s)
+		NewWiggleEvery = 3, -- the NEW tag wiggles (UIAnim.shake "Wiggle")
+		BallFloatPx = { 6, 9 }, -- the 8-balls float this far (x, y), the far ones slower
+		CornerFireworkEvery = 3.2, -- the corner fireworks burst on a loop
+		ConfettiFallPxPerSecond = 22, -- gold confetti drifts down, tumbling
+		BokehCount = 14,
+		TwinkleCount = 7,
+		ButtonShineEvery = 3, -- a shine across each button, staggered 0.35 s
+		BetaScanEvery = 3, -- the Beta card's scan line (1.2 s down the card)
+		BetaPulseEvery = 1.5, -- the light pulse along the Beta cue (1 s)
+		BetaGlitchEvery = 5, -- a quick glitch (0.14 s)
+		BetaPanelWaveSeconds = 4, -- the blueprint panels dim and brighten in slow waves
+		BetaRingTurnPerSecond = 14, -- degrees
+		BetaCodePxPerSecond = 24, -- the glyph code scrolls
+		GoFireworkFps = 15, -- the Grand Opening card's mini fireworks play at half speed (designer)...
+		GoFireworkEvery = 1.5, -- ...and burst half as often, calm like the ribbons
+		RibbonFps = 13.333, -- the gold ribbons: a turn in 2.4 s (Config.UI.Effects.GoRibbons)
+		SaveRainbowPercent = 20, -- a "save" of this much or more shows in the moving rainbow
 	},
 	DotsTile = "rbxassetid://91688642128658", -- the white sheet's dot tile (512 px), for the frame
 }

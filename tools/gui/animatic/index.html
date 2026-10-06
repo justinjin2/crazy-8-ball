@@ -124,8 +124,9 @@ const DEFAULTS = {
   FadeSeconds: 0.1,     // a piece's fade in (alongside its pop)
   UnrollSeconds: 0.2,   // the panel opening up and down from a thin bar
   UnrollOvershoot: 1.04, // the panel's overshoot (of its height)
-  LetterStagger: 0.025, // between the title's letters
   SlamFrom: 1.6,        // the block slams in from this big
+  GoFireworkFps: 15,    // the Grand Opening card's mini fireworks play at half speed (designer)...
+  GoFireworkEvery: 1.5, // ...and burst half as often, calm like the ribbons
   CloseSeconds: 0.15,   // the close: everything fades while the panel folds to a line
   TabSeconds: 0.5,      // a tab switch: the new page's pieces stagger in over this
 };
@@ -137,11 +138,11 @@ const SLIDERS = [
   ["PopFrom", "Pop starts at", 0.3, 1, 0.05, "×", "a piece's size when it appears"],
   ["FadeSeconds", "Fade", 0.03, 0.3, 0.01, "s", "a piece's fade in"],
   ["UnrollSeconds", "Unroll", 0.1, 0.4, 0.01, "s", "the panel opening from a bar"],
-  ["LetterStagger", "Title letters", 0.01, 0.06, 0.005, "s", "between letters"],
 ];
 const V = loadValues();
 function loadValues() {
-  try { const s = JSON.parse(localStorage.getItem("animatic.values") || "{}"); return Object.assign({}, DEFAULTS, s); }
+  try { const s = JSON.parse(localStorage.getItem("animatic.values") || "{}"), v = Object.assign({}, DEFAULTS);
+    for (const k in DEFAULTS) if (typeof s[k] === "number") v[k] = s[k]; return v; } // only today's keys
   catch { return Object.assign({}, DEFAULTS); }
 }
 function saveValues() { try { localStorage.setItem("animatic.values", JSON.stringify(V)); } catch {} }
@@ -295,8 +296,8 @@ function buildTimeline() {
   add("card", "grow", 0.45, 0.15);
   add("block", "slam", 0.55, 0.22); add("burstBlock", "burst", 0.55, 2.1);
   add("crown", "drop", 0.65, 0.25); add("newTag", "pop", 0.72, V.PopSeconds);
-  add("title", "letters", 0.6, V.PopSeconds); add("burstTitle", "burst", 0.62, 2.1);
-  add("subtitle", "fade", 0.6 + WORDS.Title.length * V.LetterStagger / k + 0.05, 0.15);
+  add("title", "pop", 0.6, V.PopSeconds); add("burstTitle", "burst", 0.62, 2.1);
+  add("subtitle", "fade", 0.68, 0.15);
   ["beta", "go"].forEach((id, j) => {
     const at = 0.75 + j * 0.15;
     add(id, "pop", at, V.PopSeconds); add("burst_" + id, "burst", at, 2.1);
@@ -317,7 +318,7 @@ function state(id, t) { // -> { a, s, p, on }
   if (p <= 0) return { a: 0, s: V.PopFrom, p: 0, on: false, landed: e.at + e.len };
   const a = Math.min(1, (t - e.at) / V.FadeSeconds);
   let s = 1;
-  if (e.kind === "pop" || e.kind === "letters") s = popScale(p);
+  if (e.kind === "pop") s = popScale(p);
   const pc = Math.min(1, p);
   if (e.kind === "slam") s = pc < 0.6 ? V.SlamFrom + (1 - V.SlamFrom) * ease("Quad", "In", pc / 0.6) : 1 + 0.05 * Math.sin((pc - 0.6) / 0.4 * Math.PI) * (1 - (pc - 0.6) / 0.4);
   if (e.kind === "grow") s = ease("Quart", "Out", p);
@@ -501,23 +502,20 @@ function shine(mask, cx, cy, w, rot, period, key) {
   img(sweepCanvas, cx, cy, w, { rot, op: "lighter" });
 }
 function drawTitle(tt) {
-  const e = TL.T.find(q => q.id === "title"); if (tt < e.at) return;
+  // the title pops in as one piece (designer, gate 3), drawn in layers like ArchTitle so no
+  // letter's rim or outline covers its neighbour: every rim, then every outline, depth, face
+  const ts = state("title", tt); if (!ts.on) return;
   const [cx, cy, size] = C.title, str = WORDS.Title;
-  const total = measure(str, size) * 0.98; let x = cx - total / 2;
-  [...str].forEach((ch, i) => {
-    const w = measure(ch, size) * 0.98, mid = x + w / 2; x += w; if (ch === " ") return;
-    const p = (tt - e.at - i * V.LetterStagger) / V.PopSeconds; if (p <= 0) return;
-    const s = reduce() ? 1 : popScale(Math.min(1, p)), a = Math.min(1, (tt - e.at - i * V.LetterStagger) / V.FadeSeconds);
-    ctx.save(); ctx.globalAlpha = a; ctx.translate(mid, cy); ctx.scale(s, s);
-    ctx.font = `${size}px 'Fredoka One'`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineJoin = "round";
-    ctx.strokeStyle = "#1ec8ff"; ctx.lineWidth = size * 0.36; ctx.strokeText(ch, 0, 3); // rim
-    ctx.strokeStyle = INK; ctx.lineWidth = size * 0.24; ctx.strokeText(ch, 0, 5); ctx.strokeText(ch, 0, 0); // outline
-    ctx.fillStyle = "#d67004"; ctx.fillText(ch, 0, 5); // depth
-    const g = ctx.createLinearGradient(0, -size / 2, 0, size / 2); g.addColorStop(0, "#fff6a8"); g.addColorStop(0.45, "#ffd23a"); g.addColorStop(1, "#ff9a14");
-    ctx.fillStyle = g; ctx.fillText(ch, 0, 0); ctx.restore();
-  });
-  // stars pop with the first and last letters
-  const first = Math.min(1, (tt - e.at) / V.PopSeconds), lastP = Math.min(1, (tt - e.at - str.length * V.LetterStagger) / V.PopSeconds);
+  ctx.save(); ctx.globalAlpha = ts.a; ctx.translate(cx, cy); ctx.scale(ts.s, ts.s);
+  ctx.font = `${size}px 'Fredoka One'`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineJoin = "round";
+  ctx.strokeStyle = "#1ec8ff"; ctx.lineWidth = size * 0.36; ctx.strokeText(str, 0, 3); // rim
+  ctx.strokeStyle = INK; ctx.lineWidth = size * 0.24; ctx.strokeText(str, 0, 5); ctx.strokeText(str, 0, 0); // outline
+  ctx.fillStyle = "#d67004"; ctx.fillText(str, 0, 5); // depth
+  const g = ctx.createLinearGradient(0, -size / 2, 0, size / 2); g.addColorStop(0, "#fff6a8"); g.addColorStop(0.45, "#ffd23a"); g.addColorStop(1, "#ff9a14");
+  ctx.fillStyle = g; ctx.fillText(str, 0, 0); ctx.restore();
+  const e = TL.T.find(q => q.id === "title");
+  // the stars pop just after the title, left then right
+  const first = Math.min(1, (tt - e.at - V.Stagger) / V.PopSeconds), lastP = Math.min(1, (tt - e.at - 2 * V.Stagger) / V.PopSeconds);
   if (first > 0) img(IMG.starL, C.starL[0], C.starL[1], C.starL[2], { s: popScale(first), rot: reduce() ? 0 : 0.08 * Math.sin(t * 1.7) });
   if (lastP > 0) img(IMG.starR, C.starR[0], C.starR[1], C.starR[2], { s: popScale(lastP), rot: reduce() ? 0 : -0.08 * Math.sin(t * 1.7 + 1) });
   const sb = state("subtitle", tt); if (!sb.on) return;
@@ -589,8 +587,8 @@ function renderGo(g, w, h, tt) {
   const cue = state("goCue", tt), lowFx = lower(), still = reduce();
   // mini fireworks at random spots every 0.5 to 1 s
   if (!still) {
-    const every = lowFx ? 1.5 : 0.75, slot = Math.floor(t / every);
-    for (let k = slot - 3; k <= slot; k++) { if (k < 0) continue; const born = k * every, f = (t - born) * 30; if (f >= 64) continue;
+    const every = V.GoFireworkEvery * (lowFx ? 2 : 1), slot = Math.floor(t / every);
+    for (let k = slot - 4; k <= slot; k++) { if (k < 0) continue; const born = k * every, f = (t - born) * V.GoFireworkFps; if (f >= 64) continue;
       const r = (k * 7919) % 1000 / 1000, r2 = (k * 104729) % 1000 / 1000, keys = ["fw_gold", "fw_pink", "fw_cyan", "fw_purple", "fw_orange"];
       const im = IMG[keys[k % 5]], s = 140 + r2 * 120; if (!im.width) continue;
       const fw = im.width / 8, i = Math.floor(f); g.drawImage(im, (i % 8) * fw, Math.floor(i / 8) * fw, fw, fw, r * w - s / 2, r2 * h - s / 2, s, s); }
