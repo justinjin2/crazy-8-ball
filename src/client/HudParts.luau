@@ -121,12 +121,19 @@ function HudParts.setTextSize(object: TextLabel, size: number, floor: number?)
 end
 
 --- Put every text under `root` in another font, now and as texts are added (a font test
---- over a whole page). `spec`: a font family file and an Enum.FontWeight name.
+--- over a whole page; FontTest). It holds: a screen that sets its own font after building a
+--- text gets this one back. `spec`: a font family file and an Enum.FontWeight name.
 function HudParts.useFont(root: Instance, spec: { Family: string, Weight: string })
 	local face = Font.new(spec.Family, (Enum.FontWeight :: any)[spec.Weight])
 	local function apply(object: Instance)
 		if object:IsA("TextLabel") or object:IsA("TextButton") or object:IsA("TextBox") then
-			(object :: any).FontFace = face
+			local text = object :: any
+			text.FontFace = face
+			object:GetPropertyChangedSignal("FontFace"):Connect(function()
+				if text.FontFace ~= face then
+					text.FontFace = face
+				end
+			end)
 		end
 	end
 	for _, object in root:GetDescendants() do

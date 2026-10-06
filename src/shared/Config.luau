@@ -6892,8 +6892,9 @@ Config.Lighting = {
 		Ambient = "#000000",
 		-- The shade: a light warm tan, so the floor reads peach in the golden light, not rose
 		-- (a mauve #AC94A4 turned it pink) or lavender-grey (the cool #8E86A4 before).
-		OutdoorAmbient = "#B8A090",
-		ColorShift_Top = "#FFCB88", -- the low sun's gold on lit faces
+		-- Less warm (designer, 2026-10-05: "way too yellow saturated"; it was #B8A090).
+		OutdoorAmbient = "#B4A49C",
+		ColorShift_Top = "#FFDDB8", -- the low sun's soft gold on lit faces (#FFCB88 read yellow)
 		ColorShift_Bottom = "#000000",
 		-- A thin warm tint, no haze: in Play (not in Edit's preview) Haze 0.3 and density 0.1
 		-- fogged the 3D city, islands and sea into one flat magenta (Studio, 2026-09-26).
@@ -6904,7 +6905,7 @@ Config.Lighting = {
 			Offset = 0.2,
 			Haze = 0,
 			Glare = 0,
-			Color = "#F6C2A4",
+			Color = "#F0C8BC", -- a softer peach (#F6C2A4 before, 2026-10-05)
 			Decay = "#8A4C8A",
 		},
 		-- gen_sky.py's sunset faces (textures/sky_sunset_*.png): the day's cloud scene lit by the
@@ -6936,8 +6937,8 @@ Config.Lighting = {
 		ColorCorrection = {
 			Brightness = 0.02,
 			Contrast = 0.1,
-			Saturation = 0.15,
-			TintColor = "#FFF4E6",
+			Saturation = 0.05, -- 0.15 with a #FFF4E6 tint read too yellow (designer, 2026-10-05)
+			TintColor = "#FFF9F4",
 		},
 		-- The lanterns, windows and cue auras bloom; the higher threshold keeps the sun from
 		-- blowing out to a white disc (Intensity 0.3 at Threshold 2.2 before the auras, 2026-10-01).
@@ -10199,6 +10200,24 @@ Config.Debug = {
 	MaxPlaybackStepSeconds = 0.1,
 }
 
+-- Font tests (FontTest; designer, 2026-10-05, while the font is still open): one place to try
+-- a font on one screen or on all of them. A font is
+--   { Family = "rbxasset://fonts/families/<Name>.json", Weight = "<Enum.FontWeight name>" }
+-- Family names: in Studio, pick any TextLabel and open its FontFace property's list (e.g.
+-- FredokaOne, BuilderSans, BuilderExtended, Montserrat, Nunito, LuckiestGuy). Weights: Regular,
+-- Medium, SemiBold, Bold, ExtraBold, Heavy; a font without that weight shows its nearest.
+-- Example: Screens = { ShopMenu = { Family = "rbxasset://fonts/families/Nunito.json",
+-- Weight = "Heavy" } }. Rejoin the playtest to see a change. (tune)
+Config.UI.FontTest = {
+	-- Every screen at once; nil keeps the kit's Fredoka One.
+	All = nil :: { Family: string, Weight: string }?,
+	-- One screen, by its ScreenGui's name; beats All. The screens: PoolHud (the main HUD and the
+	-- left column), RankHud, PlayerList, LuckyHotbar, ShopMenu, InventoryMenu, UltScreen (the
+	-- Abilities page), FreeRewardMenu, RewardsMenu, SettingsMenu, TradeMenu, TradeInvite,
+	-- RankClaimBlock, TutorialGui, TableSign, Nameplate_<user id>.
+	Screens = {} :: { [string]: { Family: string, Weight: string } },
+}
+
 -- The Free Reward page (FreeRewardMenu; GUI lane, D4): join the group, favorite the game.
 Config.UI.FreeReward = {
 	CardMaxWidthPx = 380, -- one card at most this wide (two side by side when they fit)
@@ -10209,10 +10228,6 @@ Config.UI.FreeReward = {
 	ButtonPx = { 44, 54 },
 	-- After Roblox's favorite prompt says yes, look again this long for GetFavorite to agree.
 	FavoriteCheckSeconds = 3,
-	-- A font for every word on the page, its title bar included, instead of the kit's Fredoka
-	-- One: { Family = "rbxasset://fonts/families/<Name>.json", Weight = "<Enum.FontWeight>" }.
-	-- nil is the kit's font (designer, 2026-10-05: back from a Builder Extended look). (tune)
-	Font = nil :: { Family: string, Weight: string }?,
 	-- Fill the holes of the page's outlined letters with ink (HoleFill), on test here first
 	-- (designer, 2026-10-05, while the font is still open). (tune)
 	FillHoles = true,

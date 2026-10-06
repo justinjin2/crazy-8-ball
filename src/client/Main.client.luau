@@ -33,6 +33,7 @@ local Effects = require(script.Parent.Effects)
 local Camera = require(script.Parent.Camera)
 local DayCycle = require(script.Parent.DayCycle)
 local FirePit = require(script.Parent.FirePit)
+local FontTest = require(script.Parent.FontTest)
 local Guideline = require(script.Parent.Guideline)
 local Input = require(script.Parent.Input)
 local MapAmbience = require(script.Parent.MapAmbience)
@@ -1004,6 +1005,7 @@ local mapAmbience = MapAmbience.new() -- the map's drifting sailboats
 local dayCycle = DayCycle.new() -- the map's day and sunset light (an arena starts at day)
 local firePit = FirePit.new() -- the fire pit's fire, lit at sunset
 local tableSign = TableSign.new(player:WaitForChild("PlayerGui"))
+FontTest.watch(player:WaitForChild("PlayerGui")) -- Config.UI.FontTest's fonts, if any
 -- A table's box stays lit only while it waits for its host.
 local function queueOpen(id: number): boolean
 	local s = hub.snapshots[id]

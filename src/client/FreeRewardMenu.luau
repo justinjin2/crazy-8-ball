@@ -348,9 +348,6 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end,
 		root = frame.root,
 	}
-	if F.Font then
-		HudParts.useFont(frame.root, F.Font)
-	end
 	if F.FillHoles then
 		HoleFill.watch(frame.root)
 	end

@@ -2597,3 +2597,10 @@ timer of a new block stay the designer's call.
   it, nudged left and right by 8% of the text size, with the text again on top. On test on the
   Free Reward page only (`Config.UI.FreeReward.FillHoles`) until the font is settled; then it
   can go on every outlined text.
+- 2026-10-05: **Sunset less yellow** (designer: "way too yellow saturated"): the sun's tint on
+  lit faces #FFCB88 to #FFDDB8, the shade #B8A090 to #B4A49C, the haze #F6C2A4 to #F0C8BC,
+  and ColorCorrection saturation 0.15 to 0.05 with a near-white tint. The sky, lanterns and
+  lit windows are unchanged.
+- 2026-10-05: **Font tests from one place** (designer): `Config.UI.FontTest` puts a font on
+  one screen (by its ScreenGui's name) or on every screen at once (`FontTest`); empty keeps
+  Fredoka One. It replaces the Free Reward page's own font switch.
