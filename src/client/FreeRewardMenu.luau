@@ -22,6 +22,7 @@ local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local HoleFill = require(script.Parent.HoleFill)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
@@ -349,6 +350,9 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	}
 	if F.Font then
 		HudParts.useFont(frame.root, F.Font)
+	end
+	if F.FillHoles then
+		HoleFill.watch(frame.root)
 	end
 	Menus.register(NAME, handle)
 	return handle

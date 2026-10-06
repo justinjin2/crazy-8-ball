@@ -2588,3 +2588,12 @@ timer of a new block stay the designer's call.
 - 2026-10-05: A look (designer): the whole Free Reward page, its title bar included, in
   Builder Extended ExtraBold too (`Config.UI.FreeReward.Font`; nil puts it back on Fredoka
   One). Still a test, not a kit change.
+- 2026-10-05: Fonts back on Fredoka One everywhere (designer, after the Montserrat Black and
+  Builder Extended looks; the font is still open). `LabelFont` and `FreeReward.Font` stay as
+  switches for another try.
+- 2026-10-05: **Filled letter holes** (designer: the holes of o, a, g, e... read as a thin
+  outline; they should be solid ink). Roblox's text outline reaches only a little way into a
+  hole, however thick (checked in Studio), so `HoleFill` lays two ink copies of the text under
+  it, nudged left and right by 8% of the text size, with the text again on top. On test on the
+  Free Reward page only (`Config.UI.FreeReward.FillHoles`) until the font is settled; then it
+  can go on every outlined text.

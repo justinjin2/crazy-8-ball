@@ -5813,6 +5813,11 @@ Config.UI = {
 		-- Builder Sans, Montserrat and Luckiest Guy).
 		TextOutlineThinBelowPx = 20,
 		TextOutlineThinPx = 1,
+		-- Solid ink in outlined letters' holes (HoleFill; designer, 2026-10-05): two ink copies
+		-- of the text under it, nudged left and right this share of the text size (rounded up,
+		-- at least MinNudgePx). About a hole's half-width in Fredoka One (0.08 checked in Studio
+		-- from 14 to 32 px); at 20 px and up the nudge stays inside the outline. (tune)
+		HoleFill = { NudgeRatio = 0.08, MinNudgePx = 1 },
 		-- Raised candy buttons: a light top, the colour, then a darker lip along the bottom.
 		Buttons = {
 			Green = { Top = { 140, 240, 160 }, Mid = { 61, 214, 107 }, Lip = { 30, 150, 70 } },
@@ -7127,16 +7132,15 @@ Config.UI.Menu = {
 		IconShare = 1.08, -- the glossy icon's size, of the slot (its own margins are clear)
 		IconCentreShare = 0.46, -- the icon's middle sits this far down the slot
 		LabelTextPx = 18, -- the word across the icon's lower edge (white, ink outline)
-		-- The words' font: a test of Builder Extended for the four words (designer, 2026-10-05,
-		-- after Montserrat Black; the kit's Fredoka One elsewhere). Roblox's font family file and
-		-- an Enum.FontWeight name; ExtraBold is Builder Extended's heaviest (Heavy falls back to a
-		-- lighter cut). Measure is the Enum.Font name the words are measured with
-		-- (TextService:GetTextSize takes no family file; Builder Extended has no Enum.Font, and
-		-- GothamBlack measures each word a little wider, so the box always fits). (tune)
+		-- The words' font: back on the kit's Fredoka One (designer, 2026-10-05, after looks at
+		-- Montserrat Black and Builder Extended ExtraBold). Roblox's font family file and an
+		-- Enum.FontWeight name, kept apart from the kit so a word font can be tried again. Measure
+		-- is the Enum.Font name the words are measured with (TextService:GetTextSize takes no
+		-- family file; pick one at least as wide as the family). (tune)
 		LabelFont = {
-			Family = "rbxasset://fonts/families/BuilderExtended.json",
-			Weight = "ExtraBold", -- Enum.FontWeight: 800, Builder Extended's heaviest
-			Measure = "GothamBlack",
+			Family = "rbxasset://fonts/families/FredokaOne.json",
+			Weight = "Regular", -- Fredoka One has one weight
+			Measure = "FredokaOne",
 		},
 		ShortLabelTextPx = 14, -- never under the kit's minimum
 		LabelCentreShare = 0.86, -- the word's middle sits this far down the tile
@@ -10205,13 +10209,13 @@ Config.UI.FreeReward = {
 	ButtonPx = { 44, 54 },
 	-- After Roblox's favorite prompt says yes, look again this long for GetFavorite to agree.
 	FavoriteCheckSeconds = 3,
-	-- A look (designer, 2026-10-05): every word on the page, its title bar included, in this
-	-- font instead of the kit's Fredoka One, as the left column's words are. A font family file
-	-- and an Enum.FontWeight name; nil puts the page back on Fredoka One. (tune)
-	Font = {
-		Family = "rbxasset://fonts/families/BuilderExtended.json",
-		Weight = "ExtraBold", -- Builder Extended's heaviest
-	},
+	-- A font for every word on the page, its title bar included, instead of the kit's Fredoka
+	-- One: { Family = "rbxasset://fonts/families/<Name>.json", Weight = "<Enum.FontWeight>" }.
+	-- nil is the kit's font (designer, 2026-10-05: back from a Builder Extended look). (tune)
+	Font = nil :: { Family: string, Weight: string }?,
+	-- Fill the holes of the page's outlined letters with ink (HoleFill), on test here first
+	-- (designer, 2026-10-05, while the font is still open). (tune)
+	FillHoles = true,
 }
 
 -- The hub's small corner buttons (HubCorners; GUI lane, C2): the Daily Challenge on the right
