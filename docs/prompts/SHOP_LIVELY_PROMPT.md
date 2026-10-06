@@ -477,7 +477,7 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
 
 - [x] 1. Read section 0, study the references, list every piece of 13b with its planned source
       (cut, regenerated or rendered) and its reveal and idle behaviour; set up `tools/gui/`.
-- [ ] 2. Tech spike in Studio (section 7.1), recordings and contact sheet; **gate 1**.
+- [x] 2. Tech spike in Studio (section 7.1), recordings and contact sheet; **gate 1**.
 - [ ] 3. The card's pieces, the rebuild check, the title A/B, the odds badge and pop-up, the
       chip-row mock, the 8-ball flair, the dot tile and the header texture; **gate 2**.
 - [ ] 4. The effects library (fireworks in five colours, sparkles, glows, sweep masks, ribbons,
@@ -507,7 +507,8 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   and contact sheets in `~/Desktop/8ball-refs/gui-lively/work/spike/gate1/`). Retina 2x and
   the iPhone emulator at Rendering quality 1 (the designer switched the emulator; a true 1x
   view is not possible on this Mac, see Notes). A subagent is cutting 13b's pieces (step 3)
-  with free local tools. Gate 1 shown to the designer.
+  with free local tools. Gate 1 shown to the designer and **approved** (techniques in
+  DECISIONS.md 2026-10-06).
 
 ## Decisions
 

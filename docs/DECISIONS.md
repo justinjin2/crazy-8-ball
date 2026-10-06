@@ -2673,3 +2673,10 @@ timer of a new block stay the designer's call.
   title, the reel's window, each card in view left to right growing from nothing (0.18 s
   each, 0.04 s apart), then the hint; the spin starts after the last card (about 0.45 s in).
   `UIAnim.expandIn`, `Config.UI.Kit.Motion.Stagger`; any screen can use it.
+- 2026-10-06: Smooth slow GUI motion (lively Shop gate 1, approved by the designer): anything
+  slow moves the picture inside a still label, never the label. Scrolls are a window into a
+  2 x 2 seamless tile slid by fractional ImageRectOffset; floats are whole-pixel Position plus
+  the leftover fraction in ImageRectOffset; breathing is ImageRectSize zoom; rocks and spins
+  are Rotation. Pops are UIScale with a fade done in code (no CanvasGroup); fast moves (pops,
+  bursts, confetti) may use Position. Effects are flipbooks on one ImageLabel and our own
+  pooled particles. Measured from 60 fps recordings (STUDIO_NOTES).
