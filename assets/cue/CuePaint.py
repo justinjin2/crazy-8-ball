@@ -3961,7 +3961,7 @@ def beta(k):
 
 
 @recipe
-def grand_opening(k):
+def firework(k):
     """The Firework Cue (U2): navy lacquer, gold and fireworks. OpenAI panels on the whole
     cue (the board's crops); the gold is read from the painting as metal, the painted firework
     bursts and stars (saturated pink, cyan, white-hot and the brightest gold) as the emissive,

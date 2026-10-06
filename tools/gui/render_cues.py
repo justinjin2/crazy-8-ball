@@ -6,20 +6,20 @@ two cues rendered from the real in-game mesh, skins and pieces, on a transparent
         [--frames 32] [--samples 64] [--tip right|left] [--out ~/Desktop/8ball-refs/gui-lively/work/renders]
 
 Writes into --out (never into the repo):
-    go_cue.png, go_cue_mask.png        the Firework Cue alone, and its silhouette (white, alpha)
+    firework_cue.png, firework_cue_mask.png        the Firework Cue alone, and its silhouette (white, alpha)
     beta_cue.png, beta_cue_mask.png    the Beta Cue hologram alone (no panels), and its silhouette
-    go_ribbons/frame_NN.png            the two gold ribbons (RibbonA/B), one full turn, cue held out
-    go_ribbons_loose/frame_NN.png      (job "loose") the same ribbons with a longer pitch and wider,
+    firework_ribbons/frame_NN.png            the two gold ribbons (RibbonA/B), one full turn, cue held out
+    firework_ribbons_loose/frame_NN.png      (job "loose") the same ribbons with a longer pitch and wider,
                                        like 13b's painted loops; not the in-game piece
     layout.json                        canvas size, pixels per stud, tip and butt pixels, camera
 
-Every picture shares one camera and canvas, so the ribbons overlay go_cue.png exactly. The cue
+Every picture shares one camera and canvas, so the ribbons overlay firework_cue.png exactly. The cue
 lies horizontal, tip to the right, seen from its side with the camera raised ELEVATION degrees and
 turned YAW degrees toward the tip (the tip's end face shows), orthographic.
 
 How each is made (all EEVEE, then post in numpy here: a multi-size bloom, a soft highlight
 shoulder, sRGB):
-  * go       lit: the skin's maps (textures/grand_opening_*), a clear lacquer coat, a warm key,
+  * go       lit: the skin's maps (textures/firework_*), a clear lacquer coat, a warm key,
              a gold rim from behind above and a magenta rim from behind below; the emissive
              inlays and bursts pushed to EMISSIVE_GO. The cue is opaque, so its alpha is the
              coverage; the bloom outside it becomes alpha by unmult (glow / max channel).
@@ -258,10 +258,10 @@ def go_material():
     """The in-game SurfaceAppearance preview (CuePreview.cue_material) plus a lacquer coat and a
     stronger emissive."""
     import CuePreview
-    skin = json.load(open(os.path.join(CUE, 'skins', 'grand_opening.json')))
-    maps = {k: os.path.join(CUE, 'textures', 'grand_opening_%s.png' % k)
+    skin = json.load(open(os.path.join(CUE, 'skins', 'firework.json')))
+    maps = {k: os.path.join(CUE, 'textures', 'firework_%s.png' % k)
             for k in ('color', 'normal', 'roughness', 'metalness', 'emissive')}
-    mat, out = CuePreview.cue_material(bpy, maps, skin.get('surface') or {}, 'grand_opening')
+    mat, out = CuePreview.cue_material(bpy, maps, skin.get('surface') or {}, 'firework')
     bsdf = next(n for n in mat.node_tree.nodes if n.type == 'BSDF_PRINCIPLED')
     bsdf.inputs['Coat Weight'].default_value = GO_COAT[0]
     bsdf.inputs['Coat Roughness'].default_value = GO_COAT[1]
@@ -493,8 +493,8 @@ def job_go(out, samples, work):
     setup_go_lights(scene, cue, cam)
     raw = render(scene, work, 'go')
     rgba, cover = finish_opaque(raw, 'go')
-    save_rgba(os.path.join(out, 'go_cue.png'), rgba)
-    save_mask(os.path.join(out, 'go_cue_mask.png'), cover)
+    save_rgba(os.path.join(out, 'firework_cue.png'), rgba)
+    save_mask(os.path.join(out, 'firework_cue_mask.png'), cover)
     return scene, cam, cue, ppx
 
 
@@ -585,7 +585,7 @@ def draw_sparks(img, pts, scene, cam, cue, R, s):
 
 
 def helix_ribbon(name, R, sense, phase, pitch, offset, parent):
-    """CuePiecesUnique.grand_opening's ribbon (0.05 wide, 0.012 thick, d 0.3 to 6.95) with its
+    """CuePiecesUnique.firework's ribbon (0.05 wide, 0.012 thick, d 0.3 to 6.95) with its
     pitch and offset as inputs: for the --loose variant, closer to 13b's painted loops."""
     import bmesh
     bm = bmesh.new()
@@ -633,14 +633,14 @@ def job_ribbons(out, samples, work, frames, loose=False):
             for k, o in objs.items():
                 o.rotation_euler = (0, math.radians(rib[k][2] * t), 0)
     else:
-        animate = CuePieces.attach(bpy, 'grand_opening', cue)
+        animate = CuePieces.attach(bpy, 'firework', cue)
         for o in animate.parts:
             o.data.materials.clear()
             o.data.materials.append(mats['RibbonA' if 'RibbonA' in o.name else 'RibbonB'])
     rng = np.random.default_rng(SPARK_SEED)
     sparks = {k: spark_points(R, s_, ph, rng, pitch, offset) for k, (s_, ph, _) in rib.items()}
     period = 360.0 / 50.0               # one full turn of each ribbon (seconds in game)
-    fdir = os.path.join(out, 'go_ribbons_loose' if loose else 'go_ribbons')
+    fdir = os.path.join(out, 'firework_ribbons_loose' if loose else 'firework_ribbons')
     os.makedirs(fdir, exist_ok=True)
     for i in range(frames):
         t = period * i / frames

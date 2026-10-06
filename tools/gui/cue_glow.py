@@ -4,9 +4,9 @@ hard to see on its background; a yellow aura like the in-game one).
 
     python3 tools/gui/cue_glow.py
 
-Reads assets/ui/grand_opening/go_cue_mask.png (the cue body's white silhouette, 1024 x 284),
-grows it, blurs it and writes go_cue_glow.png on the same canvas: white, so the game tints it
-(Config.UI.GrandOpeningCard.Layout.GoGlow).
+Reads assets/ui/grand_opening/firework_cue_mask.png (the cue body's white silhouette, 1024 x 284),
+grows it, blurs it and writes firework_cue_glow.png on the same canvas: white, so the game tints it
+(Config.UI.GrandOpeningCard.Layout.FireworkGlow).
 """
 from pathlib import Path
 
@@ -20,13 +20,13 @@ GAIN = 2.2  # the blurred edge brightened, so the glow is strong near the cue
 
 
 def main():
-    alpha = Image.open(DIR / "go_cue_mask.png").getchannel("A")
+    alpha = Image.open(DIR / "firework_cue_mask.png").getchannel("A")
     grown = alpha.filter(ImageFilter.MaxFilter(GROW_PX * 2 + 1))
     soft = grown.filter(ImageFilter.GaussianBlur(BLUR_PX))
     a = np.clip(np.asarray(soft, dtype=np.float32) * GAIN, 0, 255).astype(np.uint8)
     out = Image.new("RGBA", alpha.size, (255, 255, 255, 0))
     out.putalpha(Image.fromarray(a))
-    out.save(DIR / "go_cue_glow.png")
+    out.save(DIR / "firework_cue_glow.png")
     print(out.size, out.getchannel("A").getbbox())
 
 

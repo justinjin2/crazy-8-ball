@@ -190,8 +190,8 @@ local function odds()
 end
 
 -- Stage and the idle library on a few real pieces: a panel that unrolls, the block slamming in
--- with its burst, the crown dropping on, a floating ball, the GO card's fireworks, the header
--- scroll and the block's masked sweep. `openSeconds` stretches the open (to watch it slowly).
+-- with its burst, the crown dropping on, a floating ball, the Firework card's fireworks, the
+-- header scroll and the block's masked sweep. `openSeconds` stretches the open (to watch it slowly).
 local function stageCheck(openSeconds: number?)
 	local root = screen()
 	local I = Config.UI.GrandOpeningCard.Images
@@ -273,7 +273,7 @@ local function stageCheck(openSeconds: number?)
 		UIAnim.flipbook(
 			fw,
 			Config.UI.Effects.Firework,
-			{ image = Config.UI.Effects.Firework.Pink, loop = true, fps = L.GoFireworkFps }
+			{ image = Config.UI.Effects.Firework.Pink, loop = true, fps = L.FireworkBurstFps }
 		)
 	end)
 	stage:play(openSeconds)

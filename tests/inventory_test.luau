@@ -164,7 +164,7 @@ return {
 			not Inventory.addCue(save, "Nope") and not Inventory.addCue(save, 7),
 			"unknown ids"
 		)
-		H.expect(not Inventory.addCue(save, "GrandOpeningCue"), "Unique cues go through addUnique")
+		H.expect(not Inventory.addCue(save, "FireworkCue"), "Unique cues go through addUnique")
 		ok, reason = Inventory.removeCue(save, "Nope")
 		H.expect(not ok and reason == "Unknown", "unknown: " .. tostring(reason))
 		ok, reason = Inventory.removeCue(save, "VipCue", 0)
@@ -174,25 +174,20 @@ return {
 	["Unique cues keep their copy number, one per player"] = function()
 		local Inventory = load()
 		local save = newSave()
-		H.expect(Inventory.addUnique(save, "GrandOpeningCue", 12), "add #12")
+		H.expect(Inventory.addUnique(save, "FireworkCue", 12), "add #12")
 		H.expect(
-			Inventory.count(save, "GrandOpeningCue") == 1
-				and Inventory.copy(save, "GrandOpeningCue") == 12,
+			Inventory.count(save, "FireworkCue") == 1 and Inventory.copy(save, "FireworkCue") == 12,
 			"#12"
 		)
-		H.expect(
-			save.Index.Seen.GrandOpeningCue and save.Inventory.New.GrandOpeningCue,
-			"seen and new"
-		)
-		H.expect(not Inventory.addUnique(save, "GrandOpeningCue", 13), "one per player")
-		H.expect(Inventory.copy(save, "GrandOpeningCue") == 12, "still #12")
+		H.expect(save.Index.Seen.FireworkCue and save.Inventory.New.FireworkCue, "seen and new")
+		H.expect(not Inventory.addUnique(save, "FireworkCue", 13), "one per player")
+		H.expect(Inventory.copy(save, "FireworkCue") == 12, "still #12")
 		H.expect(not Inventory.addUnique(save, "MidnightCue", 1), "only Unique cues")
 		H.expect(not Inventory.addUnique(save, "BetaCue", 0), "copy numbers start at 1")
 		H.expect(Inventory.copy(save, "MidnightCue") == nil, "no copy number for block cues")
-		H.expect(Inventory.removeCue(save, "GrandOpeningCue"), "removed (a trade, later)")
+		H.expect(Inventory.removeCue(save, "FireworkCue"), "removed (a trade, later)")
 		H.expect(
-			not Inventory.owns(save, "GrandOpeningCue")
-				and save.Inventory.Unique.GrandOpeningCue == nil,
+			not Inventory.owns(save, "FireworkCue") and save.Inventory.Unique.FireworkCue == nil,
 			"gone"
 		)
 	end,
@@ -210,8 +205,8 @@ return {
 		H.expect(not Inventory.addOwnerCopy(save, "BetaCue"), "one per player")
 		H.expect(not Inventory.addUnique(save, "BetaCue", 5), "a numbered one on top: no")
 		H.expect(not Inventory.addOwnerCopy(save, "MidnightCue"), "only Unique cues")
-		Inventory.addUnique(save, "GrandOpeningCue", 9)
-		H.expect(not Inventory.isOwnerCopy(save, "GrandOpeningCue"), "a numbered copy is not one")
+		Inventory.addUnique(save, "FireworkCue", 9)
+		H.expect(not Inventory.isOwnerCopy(save, "FireworkCue"), "a numbered copy is not one")
 		H.expect(Inventory.removeCue(save, "BetaCue"), "removed")
 		H.expect(
 			not Inventory.owns(save, "BetaCue") and save.Inventory.OwnerUnique.BetaCue == nil,
@@ -285,13 +280,10 @@ return {
 		H.expect(Inventory.removeCue(save, "MidnightCue", 1, true), "the last")
 		H.expect(Inventory.removedPaid() == 1 and save.Inventory.PaidCues.MidnightCue == nil, "")
 		-- A Unique cue: one copy, paid or not.
-		H.expect(Inventory.addUnique(save, "GrandOpeningCue", 7, true), "a bought Unique")
-		H.expect(Inventory.paidCount(save, "GrandOpeningCue") == 1, "paid")
-		H.expect(Inventory.removeCue(save, "GrandOpeningCue"), "gone")
-		H.expect(
-			Inventory.removedPaid() == 1 and save.Inventory.PaidUnique.GrandOpeningCue == nil,
-			""
-		)
+		H.expect(Inventory.addUnique(save, "FireworkCue", 7, true), "a bought Unique")
+		H.expect(Inventory.paidCount(save, "FireworkCue") == 1, "paid")
+		H.expect(Inventory.removeCue(save, "FireworkCue"), "gone")
+		H.expect(Inventory.removedPaid() == 1 and save.Inventory.PaidUnique.FireworkCue == nil, "")
 		H.expect(Inventory.paidCount(save, "Nope") == 0, "unknown")
 	end,
 

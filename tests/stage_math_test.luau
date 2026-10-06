@@ -150,7 +150,7 @@ return {
 		H.expect(x == fw.FramePx and y == fw.FramePx, "frame 9 is row 1, column 1")
 		local lx, ly = S.flipOffset(63, 8, 128, 128)
 		H.expect(lx + 128 <= 1024 and ly + 128 <= 1024, "the last frame stays on a 1024 sheet")
-		local rib = Config.UI.Effects.GoRibbons
+		local rib = Config.UI.Effects.FireworkRibbons
 		H.expect(
 			rib.Columns * rib.Rows * #rib.Sheets == rib.Frames,
 			"the ribbons' frames fill their sheets"

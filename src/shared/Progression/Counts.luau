@@ -110,6 +110,22 @@ function Counts.sum(shards: { any }): { [string]: number }
 	return totals
 end
 
+--- `totals` with each renamed cue's old id added into its new id (Config.Items.RenamedCues:
+--- [old] = new), so copies counted before a rename still count. Changes `totals` and returns it.
+function Counts.renamed(
+	totals: { [string]: number },
+	renames: { [string]: string }
+): { [string]: number }
+	for old, new in renames do
+		local n = totals[old]
+		if n ~= nil then
+			totals[new] = (totals[new] or 0) + n
+			totals[old] = nil
+		end
+	end
+	return totals
+end
+
 -- A stored Limited value (the shape above).
 export type LimitedValue = { n: number, by: { [string]: number } }
 

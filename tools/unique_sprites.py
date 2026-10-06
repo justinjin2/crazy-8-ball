@@ -13,7 +13,7 @@ assets/cue/vfx/beta/
                     section view)
     wire_frag       256: a small wireframe fragment
     column          512: a soft column of light standing on the pocket (both cues)
-assets/cue/vfx/grand_opening/
+assets/cue/vfx/firework/
     burst_8x8       1024, 64 frames: a firework burst (rays from a hot core, spark tips
                     drooping late, fading)
     sparkle_strip   1024x128, tiles in x: a sparkler's streak with star sparkles along it
@@ -282,7 +282,7 @@ def sparkle_strip():
 SPRITES = {
     'beta': {'wire_strip': wire_strip, 'holo_strip': holo_strip, 'glyphs_4x4': glyphs_4x4,
              'section_ring': section_ring, 'wire_frag': wire_frag, 'column': column},
-    'grand_opening': {'burst_8x8': burst_8x8, 'sparkle_strip': sparkle_strip, 'column': column},
+    'firework': {'burst_8x8': burst_8x8, 'sparkle_strip': sparkle_strip, 'column': column},
 }
 
 

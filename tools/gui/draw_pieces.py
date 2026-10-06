@@ -12,7 +12,7 @@ Everything here is drawn from code with a fixed seed, so a rerun gives the same 
   beta_callouts.png   leader lines, glyph callout boxes and a dimension line drawn on the Beta
                       cue render's own canvas (cue_layout.json), so it overlays the cue exactly
   beta_mote.png       a small glowing square (white, tinted) for the drifting data motes
-  go_bg.png           the Grand Opening card's background: navy with soft bokeh, no fireworks
+  firework_bg.png           the Grand Opening card's background: navy with soft bokeh, no fireworks
   confetti_1..6.png   `--confetti SHEET`: a generated 3 x 2 sheet of gold ribbons on black,
                       unscreened (brightness becomes alpha) and split, the halo fading
                       with distance from the ribbon
@@ -86,7 +86,7 @@ def beta_bg(w=1024, h=512):
     return img.convert("RGB")
 
 
-def go_bg(w=1024, h=512):
+def firework_bg(w=1024, h=512):
     """Navy with soft bokeh in blue, cyan and a little purple and gold, no fireworks."""
     rng = random.Random(SEED)
     rgb = vignette(gradient(w, h, (20, 34, 104), NAVY_BOTTOM))
@@ -489,7 +489,7 @@ def main():
         "bokeh_disc": soft_disc(),
         "block_glow": glow(),
         "beta_bg": beta_bg(),
-        "go_bg": go_bg(),
+        "firework_bg": firework_bg(),
         "beta_panel_1": panel_circles(),
         "beta_panel_2": panel_section(),
         "beta_panel_3": panel_curve(),

@@ -555,7 +555,7 @@ return {
 			VipCue = "VIP Cue",
 			StarterCue = "Starter Cue",
 			BetaCue = "Beta Cue",
-			GrandOpeningCue = "Firework Cue",
+			FireworkCue = "Firework Cue",
 		},
 		Rarities = {
 			Common = "Common",
@@ -700,7 +700,7 @@ return {
 				New = "NEW", -- the tilted red tag on the block
 				-- The cue cards' names, each in two colours ("BETA" cyan, "CUE" pink).
 				BetaName = { "BETA", " CUE" },
-				GoName = { "FIREWORK", " CUE" },
+				FireworkName = { "FIREWORK", " CUE" },
 				Unique = "UNIQUE",
 				-- A pack's size, between its Robux and money buttons (which show only prices).
 				Blocks = { One = "%d block", Many = "%d blocks" },

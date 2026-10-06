@@ -7,7 +7,7 @@ toward the butt (-7), Z up; the pocket finisher in the pocket frame (origin at t
                     panels floating well beyond the cue (aura joints: textured panes with Neon
                     frames and a leader line each, orbiting slowly at three radii)
     beta_pocket     a wireframe funnel with glowing rings, rising out of the pocket, turning
-    grand_opening   two flat Neon gold ribbons spiralling round the whole cue in opposite senses,
+    firework   two flat Neon gold ribbons spiralling round the whole cue in opposite senses,
                     turning like a screw so the sparkle streams along the cue
 """
 import math
@@ -298,7 +298,7 @@ def beta_pocket(k):
 # =============================================================================================
 
 @piece
-def grand_opening(k):
+def firework(k):
     """Two flat Neon gold ribbons (0.05 wide, 0.012 thick) spiralling round the whole cue 0.16
     studs off its surface, a turn every 1.6 studs, in opposite senses; each turns about the
     cue's axis (50 and -50 degrees a second) so, as a screw, its sparkle streams along the cue."""

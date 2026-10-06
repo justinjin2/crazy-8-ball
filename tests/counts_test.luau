@@ -102,6 +102,15 @@ return {
 		H.expect(size(empty) == 0, "no shards")
 	end,
 
+	renamed_cues_fold_into_the_new_id = function()
+		local Counts = load()
+		local totals = Counts.renamed({ Old = 3, New = 2, Other = 1 }, { Old = "New" })
+		H.expect(totals.New == 5 and totals.Old == nil and totals.Other == 1, "folded")
+		local only = Counts.renamed({ Old = 4 }, { Old = "New" })
+		H.expect(only.New == 4 and only.Old == nil, "the old id alone")
+		H.expect(Counts.renamed({ X = 1 }, { Old = "New" }).New == nil, "nothing to fold")
+	end,
+
 	limited_take_next = function()
 		local Counts = load()
 		-- takeNext(stored, userId, cap, now, endsAt) -> value to store, copy, reason

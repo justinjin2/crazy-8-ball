@@ -1971,7 +1971,7 @@ Config.BlockOdds = {
 				Legendary = 3500,
 				Mythic = 460,
 				Secret = 40,
-				GrandOpeningCue = 30000,
+				FireworkCue = 30000,
 				BetaCue = 3000,
 			},
 		},
@@ -2378,6 +2378,12 @@ Config.Items = {
 	RateBurst = 6, -- this many at once...
 	RatePerSecond = 3, -- ...refilling this fast
 	MarkSeenMax = 60, -- the most cue ids one MarkSeen may name
+	-- Cue ids renamed after players could own them: [old id] = new id (2026-10-06, the
+	-- designer: the Grand Opening Cue is the Firework Cue, behind the scenes too). Saves move
+	-- over in SaveSchema's migration 7 -> 8; Counters still uses the old id as the Limited
+	-- numbering key (copy numbers carry on) and folds the old id's copies in existence into the
+	-- new one; a trade in flight under the old id is read under the new one (Trade.entries).
+	RenamedCues = { GrandOpeningCue = "FireworkCue" },
 	-- Paid random items (ECONOMY 13): PolicyService is asked on join, this many times this far
 	-- apart; if it never answers, the player is treated as restricted (no blocks for money, no
 	-- paid item trading) for the session: the cautious answer. Studio is never restricted.
@@ -7640,8 +7646,12 @@ Config.UI.Shop.Open = {
 		{ Ids = { "Subtitle" }, Kind = "Fade", At = 0.48, Length = 0.12 },
 		{ Ids = { "Beta" }, Kind = "Pop", At = 0.52, Burst = "Cyan" },
 		{ Ids = { "BetaName", "BetaPills", "BetaOdds", "BetaCue" }, Kind = "Pop", At = 0.55 },
-		{ Ids = { "Go" }, Kind = "Pop", At = 0.59, Burst = "Pink" },
-		{ Ids = { "GoName", "GoPills", "GoOdds", "GoCue" }, Kind = "Pop", At = 0.62 },
+		{ Ids = { "Firework" }, Kind = "Pop", At = 0.59, Burst = "Pink" },
+		{
+			Ids = { "FireworkName", "FireworkPills", "FireworkOdds", "FireworkCue" },
+			Kind = "Pop",
+			At = 0.62,
+		},
 		{ Ids = { "Robux1", "Robux3", "Robux10" }, Kind = "Pop", At = 0.66 }, -- with their gift squares
 		{ Ids = { "Counts" }, Kind = "Fade", At = 0.69, Length = 0.12 }, -- "1 block", "3 blocks", "10 blocks"
 		{ Ids = { "Money1", "Money3", "Money10" }, Kind = "Pop", At = 0.71 },
@@ -7683,7 +7693,7 @@ Config.UI.Effects = {
 	},
 	-- The Firework Cue's two gold ribbons, one seamless turn over the card's cue picture
 	-- (13b-like loose loops). Frames 1-16 on the first sheet, 17-32 on the second.
-	GoRibbons = {
+	FireworkRibbons = {
 		Sheets = { "rbxassetid://126431223631624", "rbxassetid://88772770212728" },
 		Columns = 2,
 		Rows = 8,
@@ -7749,10 +7759,10 @@ Config.UI.GrandOpeningCard = {
 		},
 		Crown = "rbxassetid://118495873177958",
 		Flair8ball = "rbxassetid://132422184916082",
-		GoCueGlow = "rbxassetid://126476349740073", -- the Firework Cue's glow (white, tinted)
-		GoBg = "rbxassetid://99479265638524",
-		GoCue = "rbxassetid://130447726546401",
-		GoCueMask = "rbxassetid://113286103070085",
+		FireworkCueGlow = "rbxassetid://126476349740073", -- the Firework Cue's glow (white, tinted)
+		FireworkBg = "rbxassetid://99479265638524",
+		FireworkCue = "rbxassetid://130447726546401",
+		FireworkCueMask = "rbxassetid://113286103070085",
 		Plate = "rbxassetid://93204646083675",
 		StarLeft = "rbxassetid://81445661051193",
 		StarRight = "rbxassetid://133224366351187",
@@ -7778,9 +7788,9 @@ Config.UI.GrandOpeningCard = {
 		BetaPanelWaveSeconds = 4, -- the blueprint panels dim and brighten in slow waves
 		BetaRingTurnPerSecond = 14, -- degrees
 		BetaCodePxPerSecond = 24, -- the glyph code scrolls
-		GoFireworkFps = 15, -- the Grand Opening card's mini fireworks play at half speed (designer)...
-		GoFireworkEvery = 1.5, -- ...and burst half as often, calm like the ribbons
-		-- The gold ribbons: a turn in 4.8 s (half speed: designer, 2026-10-06; Effects.GoRibbons).
+		FireworkBurstFps = 15, -- the Grand Opening card's mini fireworks play at half speed (designer)...
+		FireworkBurstEvery = 1.5, -- ...and burst half as often, calm like the ribbons
+		-- The gold ribbons: a turn in 4.8 s (half speed: designer, 2026-10-06; Effects.FireworkRibbons).
 		RibbonFps = 6.667,
 	},
 	-- Where everything sits, in the approved animatic's units (tools/gui/animatic, its card
@@ -7829,16 +7839,16 @@ Config.UI.GrandOpeningCard = {
 		StarRockSeconds = 3.7,
 		-- The two cue cards (box 360..1256 x 140..300).
 		Beta = { 360, 140, 432, 160 },
-		Go = { 808, 140, 448, 160 },
+		Firework = { 808, 140, 448, 160 },
 		CueCardCornerUnits = 18,
 		CueCardRimUnits = 6,
 		BetaRim = { { 70, 215, 255 }, { 255, 79, 198 } }, -- cyan to magenta
-		GoRim = { { 255, 79, 198 }, { 70, 215, 255 } },
+		FireworkRim = { { 255, 79, 198 }, { 70, 215, 255 } },
 		NameAt = { 18, 26 }, -- the card's name, from its top-left
 		BetaNameUnits = 30,
-		GoNameUnits = 26,
+		FireworkNameUnits = 26,
 		BetaColors = { { 70, 215, 255 }, { 255, 106, 213 } }, -- "BETA" cyan, "CUE" pink
-		GoColors = { { 255, 210, 58 }, { 255, 255, 255 } }, -- "GRAND OPENING" gold, "CUE" white
+		FireworkColors = { { 255, 210, 58 }, { 255, 255, 255 } }, -- "GRAND OPENING" gold, "CUE" white
 		PillsAt = { 18, 64 }, -- the UNIQUE pill's top-left
 		PillUnits = { 104, 30 },
 		PillTextUnits = 20,
@@ -7851,10 +7861,14 @@ Config.UI.GrandOpeningCard = {
 		OddsTextUnits = 24,
 		OddsColor = { 70, 215, 255 }, -- sky blue (Kit.Numbers' odds colour)
 		CueShare = { 0.5, 0.68, 0.98 }, -- the cue's centre (shares of the card) and width: under the pills
-		GoCueShare = { 0.5, 0.7, 0.98 },
+		FireworkCueShare = { 0.5, 0.7, 0.98 },
 		-- The Firework Cue's yellow glow (designer, 2026-10-06): tint, its transparency
 		-- pulsing between these, and the pulse's length.
-		GoGlow = { Tint = { 255, 205, 40 }, Transparency = { 0.05, 0.35 }, PulseSeconds = 2.4 },
+		FireworkGlow = {
+			Tint = { 255, 205, 40 },
+			Transparency = { 0.05, 0.35 },
+			PulseSeconds = 2.4,
+		},
 		CueDegrees = -14,
 		BetaPanels = { -- the blueprint panels: number, centre x, y (of a 1120 x 660 card), width, strength
 			{ 1, 150, 170, 230, 0.5 },

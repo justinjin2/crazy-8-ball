@@ -50,7 +50,7 @@ local CUES: { [string]: string } = Strings.Items.Cues :: any
 local RARITIES: { [string]: string } = Strings.Items.Rarities :: any
 local BLOCK_NAMES: { [string]: string } = Strings.LuckyBlocks.Names
 local COUNTS = { 1, 3, 10 }
-local BETA, GO = "BetaCue", "GrandOpeningCue"
+local BETA, FIREWORK = "BetaCue", "FireworkCue"
 local B_PRIORITY = Enum.ContextActionPriority.High.Value + 40 -- over the menus' B
 
 local function rgb(c: { number }): Color3
@@ -321,7 +321,7 @@ function GrandOpeningCard.new(parent: Instance, actions: Actions): any
 	self:buildBlock()
 	self:buildTitle()
 	self.beta = self:buildCueCard("Beta")
-	self.go = self:buildCueCard("Go")
+	self.firework = self:buildCueCard("Firework")
 	self:buildButtons()
 	self:buildOdds()
 	return self
@@ -440,7 +440,7 @@ function GrandOpeningCard.titleAt(self: any, px: number, subPx: number)
 	self.subtitleSize = Vector2.new(sub.width, sub.height)
 end
 
--- A cue card ("Beta" or "Go"): its frame with a gradient rim, its clipped background and loops'
+-- A cue card ("Beta" or "Firework"): its frame with a gradient rim, its clipped background and loops'
 -- pieces, the cue, the name, pills and odds chip.
 function GrandOpeningCard.buildCueCard(self: any, which: string): any
 	local beta = which == "Beta"
@@ -450,14 +450,14 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 	frame.BackgroundColor3 = Color3.fromRGB(10, 18, 60)
 	c.frame = frame
 	c.corner = HudParts.corner(frame, 9)
-	local colours = if beta then L.BetaRim else L.GoRim
+	local colours = if beta then L.BetaRim else L.FireworkRim
 	c.rim = rim(frame, colours[1], colours[2])
 	local clip = HudParts.frame(frame, "Clip")
 	clip.Size = UDim2.fromScale(1, 1)
 	clip.ClipsDescendants = true
 	clip.ZIndex = 1
 	c.clip = clip
-	local bg = image(clip, "Background", if beta then IMG.BetaBg else IMG.GoBg, 1)
+	local bg = image(clip, "Background", if beta then IMG.BetaBg else IMG.FireworkBg, 1)
 	bg.AnchorPoint = Vector2.new(0, 0)
 	bg.Size = UDim2.fromScale(1, 1)
 	bg.ScaleType = Enum.ScaleType.Crop
@@ -492,7 +492,7 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 		made.Size = UDim2.fromScale(1, 1)
 		return made
 	end
-	local picture = if beta then IMG.BetaCue else IMG.GoCue
+	local picture = if beta then IMG.BetaCue else IMG.FireworkCue
 	if beta then
 		c.aura = fill("Aura", picture, 1)
 		c.aura.Size = UDim2.fromScale(1.04, 1.12)
@@ -501,9 +501,9 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 	else
 		-- A strong yellow glow round the cue, so it stands out of its busy background (designer,
 		-- 2026-10-06; tools/gui/cue_glow.py).
-		c.aura = fill("Aura", IMG.GoCueGlow, 1)
-		c.aura.ImageColor3 = rgb(L.GoGlow.Tint)
-		c.aura.ImageTransparency = L.GoGlow.Transparency[1]
+		c.aura = fill("Aura", IMG.FireworkCueGlow, 1)
+		c.aura.ImageColor3 = rgb(L.FireworkGlow.Tint)
+		c.aura.ImageTransparency = L.FireworkGlow.Transparency[1]
 	end
 	if beta then
 		c.callouts = fill("Callouts", IMG.BetaCallouts, 2)
@@ -517,23 +517,24 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 		end
 	end
 	c.picture = fill("Picture", picture, 4)
-	c.mask = fill("Pulse", if beta then IMG.BetaCueMask else IMG.GoCueMask, 5)
+	c.mask = fill("Pulse", if beta then IMG.BetaCueMask else IMG.FireworkCueMask, 5)
 	c.mask.Visible = false
 	if not beta then
-		local box_ = (FX.GoRibbons :: any).Box
-		local ribbons = image(cue, "Ribbons", FX.GoRibbons.Sheets[1], 6)
+		local box_ = (FX.FireworkRibbons :: any).Box
+		local ribbons = image(cue, "Ribbons", FX.FireworkRibbons.Sheets[1], 6)
 		ribbons.AnchorPoint = Vector2.new(0, 0)
 		ribbons.Position = UDim2.fromScale(box_[1], box_[2])
 		ribbons.Size = UDim2.fromScale(box_[3] - box_[1], box_[4] - box_[2])
-		ribbons.ImageRectSize = Vector2.new(FX.GoRibbons.FrameWidthPx, FX.GoRibbons.FrameHeightPx)
+		ribbons.ImageRectSize =
+			Vector2.new(FX.FireworkRibbons.FrameWidthPx, FX.FireworkRibbons.FrameHeightPx)
 		c.ribbons = ribbons
 	end
 	-- The name in two colours, the pills, the odds chip.
 	local name = HudParts.frame(frame, which .. "Name")
 	name.ZIndex = 6
 	c.name = name
-	local words = if beta then COPY.BetaName else COPY.GoName
-	local tints = if beta then L.BetaColors else L.GoColors
+	local words = if beta then COPY.BetaName else COPY.FireworkName
+	local tints = if beta then L.BetaColors else L.FireworkColors
 	c.nameParts = {}
 	for index, text in words do
 		local part = label(name, "Part" .. index, text, rgb(tints[index]), 6)
@@ -552,7 +553,7 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 		table.insert(c.pillParts, { pill = made, words = text })
 	end
 	local odds, oddsWords =
-		pill(frame, which .. "Odds", cueOdds(if beta then BETA else GO), rgb(L.OddsColor), 6)
+		pill(frame, which .. "Odds", cueOdds(if beta then BETA else FIREWORK), rgb(L.OddsColor), 6)
 	c.odds, c.oddsWords = odds, oddsWords
 	return c
 end
@@ -883,20 +884,20 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 
 	-- The cue cards.
 	g = groups.cards
-	for _, c in { self.beta, self.go } do
-		local R = if c.which == "Beta" then L.Beta else L.Go
+	for _, c in { self.beta, self.firework } do
+		local R = if c.which == "Beta" then L.Beta else L.Firework
 		put(c.frame, g, R[1] + R[3] / 2, R[2] + R[4] / 2, R[3], R[4])
 		local w, h = R[3] * g.s * k, R[4] * g.s * k
 		local cornerPx = round(L.CueCardCornerUnits * g.s * k)
 		c.corner.CornerRadius = UDim.new(0, cornerPx)
 		c.bgCorner.CornerRadius = UDim.new(0, cornerPx)
 		c.rim.Thickness = math.max(2, round(L.CueCardRimUnits * g.s * k))
-		local share = if c.which == "Beta" then L.CueShare else L.GoCueShare
+		local share = if c.which == "Beta" then L.CueShare else L.FireworkCueShare
 		local cueW = w * share[3]
 		c.cue.Position = UDim2.fromOffset(round(w * share[1]), round(h * share[2]))
 		c.cue.Size = UDim2.fromOffset(round(cueW), round(cueW * 284 / 1024))
 		-- Name, pills, odds chip.
-		local nameUnits = if c.which == "Beta" then L.BetaNameUnits else L.GoNameUnits
+		local nameUnits = if c.which == "Beta" then L.BetaNameUnits else L.FireworkNameUnits
 		local namePx = textPx(nameUnits, g.s)
 		local x = round(L.NameAt[1] * g.s * k)
 		c.name.Position = UDim2.fromOffset(x, round(L.NameAt[2] * g.s * k - namePx / 2 - 2))
@@ -1083,7 +1084,7 @@ local function miniFireworks(clip: Frame, k: number): UIAnim.Handle
 		if clock < next or UIAnim.reduced() then
 			return
 		end
-		next = clock + LOOP.GoFireworkEvery / math.max(0.25, Quality.rate())
+		next = clock + LOOP.FireworkBurstEvery / math.max(0.25, Quality.rate())
 		n += 1
 		local size = math.floor((140 + random:NextNumber(0, 120)) / 2 * k)
 		local burst = image(clip, "Mini", "", 2)
@@ -1091,7 +1092,7 @@ local function miniFireworks(clip: Frame, k: number): UIAnim.Handle
 		burst.Position = UDim2.fromScale(random:NextNumber(0.05, 0.95), random:NextNumber(0.1, 0.9))
 		UIAnim.flipbook(burst, FX.Firework, {
 			image = (FX.Firework :: any)[colours[(n - 1) % #colours + 1]],
-			fps = LOOP.GoFireworkFps,
+			fps = LOOP.FireworkBurstFps,
 			done = function()
 				burst:Destroy()
 			end,
@@ -1225,7 +1226,7 @@ function GrandOpeningCard.register(self: any, stage: Stage.Stage, keep: (UIAnim.
 		keep(UIAnim.turn(self.starRight, 0, -L.StarRockDegrees, L.StarRockSeconds))
 	end)
 	stage:add("Subtitle", self.subtitle)
-	for _, c in { self.beta, self.go } do
+	for _, c in { self.beta, self.firework } do
 		local which = c.which
 		stage:add(which, c.frame, function()
 			local list: { UIAnim.Handle } = {}
@@ -1290,9 +1291,9 @@ function GrandOpeningCard.register(self: any, stage: Stage.Stage, keep: (UIAnim.
 					then UIAnim.glowPulse(c.aura, 0.55, 0.85, 3)
 					else UIAnim.glowPulse(
 						c.aura,
-						L.GoGlow.Transparency[1],
-						L.GoGlow.Transparency[2],
-						L.GoGlow.PulseSeconds
+						L.FireworkGlow.Transparency[1],
+						L.FireworkGlow.Transparency[2],
+						L.FireworkGlow.PulseSeconds
 					),
 				sweep(c.mask, if which == "Beta" then LOOP.BetaPulseEvery else 4, 1, 0.8),
 			}
@@ -1305,7 +1306,11 @@ function GrandOpeningCard.register(self: any, stage: Stage.Stage, keep: (UIAnim.
 			else
 				table.insert(
 					list,
-					UIAnim.flipbook(c.ribbons, FX.GoRibbons, { loop = true, fps = LOOP.RibbonFps })
+					UIAnim.flipbook(
+						c.ribbons,
+						FX.FireworkRibbons,
+						{ loop = true, fps = LOOP.RibbonFps }
+					)
 				)
 			end
 			keep(all(list))

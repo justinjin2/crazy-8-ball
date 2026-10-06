@@ -2746,3 +2746,11 @@ timer of a new block stay the designer's call.
   `GrandOpeningCue` so saves keep it; the Grand Opening Lucky Block and deal keep their names.
   Older dated notes keep the old name. Its card's gold ribbons turn at half speed (4.8 s), and
   the green Robux row is a little shorter, clear of the cue cards.
+- 2026-10-06: **the Firework Cue is renamed behind the scenes too** (designer: "should be
+  renamed firework cue even behind the scenes too"; this replaces the line above that kept
+  the old id). Its catalog id is now `FireworkCue` and its skin, piece and asset ids
+  `firework`, in code, Config, tests, tools, asset files and the place. Owned copies are kept:
+  save version 8 renames the id in every cue map, the equipped cue and the trade history; the
+  copies-in-existence count folds the old id into the new; the Limited numbering keeps the old
+  DataStore key `GrandOpeningCue`, so copy numbers carry on and never repeat
+  (`Config.Items.RenamedCues`). The Grand Opening Lucky Block and its products keep their names.

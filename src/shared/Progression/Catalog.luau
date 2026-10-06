@@ -209,7 +209,7 @@ local CUES: { Cue } = {
 	-- 2026-10-05: there is no Founder's Cue, ever).
 	-- The Grand Opening's Limited (placeholder colours until its skin: black shaft, gold
 	-- rings, felt-green wrap; designer, 2026-10-03).
-	specialCue("GrandOpeningCue", "Unique", "Legendary", {
+	specialCue("FireworkCue", "Unique", "Legendary", {
 		Shaft = { 22, 22, 24 },
 		Forearm = { 34, 34, 38 },
 		Wrap = { 30, 110, 62 },

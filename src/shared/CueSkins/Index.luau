@@ -289,6 +289,21 @@ return {
 			Cap = { 77, 54, 23 },
 		},
 	},
+	FireworkCue = {
+		Id = "firework",
+		Name = "Firework Cue",
+		Tier = "Unique",
+		Thumb = "rbxassetid://114323135519020",
+		Look = {
+			Shaft = { 36, 44, 72 },
+			Forearm = { 47, 52, 78 },
+			Wrap = { 26, 38, 62 },
+			Ring = { 217, 164, 43 },
+			Tip = { 28, 34, 64 },
+			Cap = { 21, 26, 35 },
+		},
+		Piece = "firework",
+	},
 	FlareCue = {
 		Id = "flare",
 		Name = "Flare",
@@ -344,21 +359,6 @@ return {
 			Tip = { 30, 36, 56 },
 			Cap = { 69, 58, 24 },
 		},
-	},
-	GrandOpeningCue = {
-		Id = "grand_opening",
-		Name = "Firework Cue",
-		Tier = "Unique",
-		Thumb = "rbxassetid://114323135519020",
-		Look = {
-			Shaft = { 36, 44, 72 },
-			Forearm = { 47, 52, 78 },
-			Wrap = { 26, 38, 62 },
-			Ring = { 217, 164, 43 },
-			Tip = { 28, 34, 64 },
-			Cap = { 21, 26, 35 },
-		},
-		Piece = "grand_opening",
 	},
 	GrandmasterCue = {
 		Id = "grandmaster_cue",

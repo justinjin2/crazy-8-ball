@@ -1,8 +1,8 @@
 {
-  "id": "grand_opening",
+  "id": "firework",
   "name": "Firework Cue",
   "tier": "Unique",
-  "catalog_id": "GrandOpeningCue",
+  "catalog_id": "FireworkCue",
   "concept": "U2",
   "shape": 3,
   "palette": [
@@ -15,7 +15,7 @@
     "#111111"
   ],
   "painter": "mix",
-  "note": "Navy, gold and fireworks (designer, 2026-10-04): deep navy lacquer with flowing gold inlays, painted firework bursts (pink, cyan, gold) and gold four-point stars that glow, gold collars and rings, a navy quilted leather wrap with gold stitch points, a black butt cap; OpenAI panels from the board's crops, the gold detected as metal, the bursts and stars as the emissive, the quilt as a procedural relief. The 3D piece (pieces/grand_opening): two Neon gold sparkle ribbons spiralling round the whole cue in opposite senses, turning like a screw so the sparkle flows along it.",
+  "note": "Navy, gold and fireworks (designer, 2026-10-04): deep navy lacquer with flowing gold inlays, painted firework bursts (pink, cyan, gold) and gold four-point stars that glow, gold collars and rings, a navy quilted leather wrap with gold stitch points, a black butt cap; OpenAI panels from the board's crops, the gold detected as metal, the bursts and stars as the emissive, the quilt as a procedural relief. The 3D piece (pieces/firework): two Neon gold sparkle ribbons spiralling round the whole cue in opposite senses, turning like a screw so the sparkle flows along it.",
   "ai": {
     "shaft_tile": {
       "refs": [
@@ -52,11 +52,11 @@
     }
   },
   "panels": {
-    "shaft_tile": "skins/grand_opening/shaft_tile.png",
-    "shaft_top": "skins/grand_opening/shaft_top.png",
-    "forearm": "skins/grand_opening/forearm.png",
-    "butt": "skins/grand_opening/butt.png",
-    "cap_end": "skins/grand_opening/cap_end.png"
+    "shaft_tile": "skins/firework/shaft_tile.png",
+    "shaft_top": "skins/firework/shaft_top.png",
+    "forearm": "skins/firework/forearm.png",
+    "butt": "skins/firework/butt.png",
+    "cap_end": "skins/firework/cap_end.png"
   },
   "colours": {
     "tip": "#1C2240",
@@ -77,7 +77,7 @@
   "wrap_relief": "panel",
   "metal": [],
   "glow": [],
-  "piece": "grand_opening",
+  "piece": "firework",
   "surface": {
     "EmissiveStrength": 1.6,
     "EmissiveTint": "#FFFFFF",
@@ -91,7 +91,7 @@
   },
   "vfx": {
     "Piece": {
-      "Note": "pieces/grand_opening: RibbonA and RibbonB, two flat Neon gold helix ribbons round the whole cue (0.16 studs off the surface, a turn every 1.6 studs, opposite senses), each turning about the cue axis (50 and -50 degrees a second) so the sparkle streams along it; the ribbon mesh carries a sparkle texture in its alpha."
+      "Note": "pieces/firework: RibbonA and RibbonB, two flat Neon gold helix ribbons round the whole cue (0.16 studs off the surface, a turn every 1.6 studs, opposite senses), each turning about the cue axis (50 and -50 degrees a second) so the sparkle streams along it; the ribbon mesh carries a sparkle texture in its alpha."
     },
     "Moving": {
       "Kind": "Piece + emitters + emissive",
@@ -458,7 +458,7 @@
         },
         {
           "Name": "PopsPink",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -511,7 +511,7 @@
         },
         {
           "Name": "PopsCyan",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -564,7 +564,7 @@
         },
         {
           "Name": "PopsGold",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -617,7 +617,7 @@
         },
         {
           "Name": "PopsBlue",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -670,7 +670,7 @@
         },
         {
           "Name": "PopsPurple",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -723,7 +723,7 @@
         },
         {
           "Name": "BigBurst",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -882,7 +882,7 @@
               ]
             ],
             "LightEmission": 1,
-            "Texture": "vfx/grand_opening/sparkle_strip.png",
+            "Texture": "vfx/firework/sparkle_strip.png",
             "TextureMode": "Wrap",
             "TextureLength": 0.8
           },
@@ -936,7 +936,7 @@
               ]
             ],
             "LightEmission": 1,
-            "Texture": "vfx/grand_opening/sparkle_strip.png",
+            "Texture": "vfx/firework/sparkle_strip.png",
             "TextureMode": "Wrap",
             "TextureLength": 0.8
           },
@@ -1026,7 +1026,7 @@
       ],
       "Outline": "#FFC040",
       "Sound": {
-        "Asset": "sounds/grand_opening_crackle.wav",
+        "Asset": "sounds/firework_crackle.wav",
         "Volume": 0.14,
         "Looped": true,
         "RollOffMinStuds": 3,
@@ -1053,7 +1053,7 @@
         "Lifetime": 1.3,
         "WidthStuds": 0.5,
         "LightEmission": 0.6,
-        "Texture": "vfx/grand_opening/sparkle_strip.png",
+        "Texture": "vfx/firework/sparkle_strip.png",
         "TextureMode": "Wrap",
         "TextureLength": 1.0,
         "WidthScale": [
@@ -1262,7 +1262,7 @@
         },
         {
           "Name": "StarletsPink",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -1316,7 +1316,7 @@
         },
         {
           "Name": "StarletsCyan",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -1370,7 +1370,7 @@
         },
         {
           "Name": "StarletsPurple",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -1657,7 +1657,7 @@
         },
         {
           "Name": "FountainGlow",
-          "Texture": "vfx/grand_opening/column.png",
+          "Texture": "vfx/firework/column.png",
           "Host": {
             "Kind": "Point",
             "Offset": [
@@ -1719,7 +1719,7 @@
         },
         {
           "Name": "BurstGold",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -1769,7 +1769,7 @@
         },
         {
           "Name": "BurstPink",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -1819,7 +1819,7 @@
         },
         {
           "Name": "BurstCyan",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -1869,7 +1869,7 @@
         },
         {
           "Name": "BurstPurple",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -1919,7 +1919,7 @@
         },
         {
           "Name": "BurstBlue",
-          "Texture": "vfx/grand_opening/burst_8x8.png",
+          "Texture": "vfx/firework/burst_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -2206,7 +2206,7 @@
         "Seconds": 0.5
       },
       "Sound": {
-        "Asset": "sounds/grand_opening_fireworks.wav",
+        "Asset": "sounds/firework_fireworks.wav",
         "Volume": 0.7,
         "RollOffMinStuds": 8,
         "RollOffMaxStuds": 60,

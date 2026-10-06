@@ -1,11 +1,11 @@
 {
-  "image": "go_ribbons_1.png",
+  "image": "firework_ribbons_2.png",
   "columns": 2,
   "rows": 8,
   "frame_width": 471,
   "frame_height": 128,
   "frame_count": 16,
-  "first_frame": 0,
+  "first_frame": 16,
   "total_frames": 32,
   "sheets": 2,
   "fps": 13.333,
@@ -22,7 +22,7 @@
     576
   ],
   "scale_from_canvas": 0.22217,
-  "overlay": "place the frame over go_cue.png at crop_in_canvas (canvas = go_cue.png before it was shrunk to 1024 wide)",
+  "overlay": "place the frame over firework_cue.png at crop_in_canvas (canvas = firework_cue.png before it was shrunk to 1024 wide)",
   "seconds_per_turn": 2.4,
   "game_seconds_per_turn": 7.2
 }

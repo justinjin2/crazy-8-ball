@@ -125,8 +125,8 @@ const DEFAULTS = {
   UnrollSeconds: 0.2,   // the panel opening up and down from a thin bar
   UnrollOvershoot: 1.04, // the panel's overshoot (of its height)
   SlamFrom: 1.6,        // the block slams in from this big
-  GoFireworkFps: 15,    // the Grand Opening card's mini fireworks play at half speed (designer)...
-  GoFireworkEvery: 1.5, // ...and burst half as often, calm like the ribbons
+  FireworkBurstFps: 15,    // the Grand Opening card's mini fireworks play at half speed (designer)...
+  FireworkBurstEvery: 1.5, // ...and burst half as often, calm like the ribbons
   CloseSeconds: 0.15,   // the close: everything fades while the panel folds to a line
   TabSeconds: 0.5,      // a tab switch: the new page's pieces stagger in over this
 };
@@ -175,8 +175,8 @@ const FILES = {
   starL: "assets/ui/grand_opening/star_left.png", starR: "assets/ui/grand_opening/star_right.png", flair: "assets/ui/grand_opening/flair_8ball.png",
   betaBg: "assets/ui/grand_opening/beta_bg.png", betaCode: "assets/ui/grand_opening/beta_code.png", betaRing: "assets/ui/grand_opening/beta_ring.png",
   betaCallouts: "assets/ui/grand_opening/beta_callouts.png", betaCue: "assets/ui/grand_opening/beta_cue.png", betaMask: "assets/ui/grand_opening/beta_cue_mask.png",
-  mote: "assets/ui/grand_opening/beta_mote.png", goBg: "assets/ui/grand_opening/go_bg.png", goCue: "assets/ui/grand_opening/go_cue.png",
-  goMask: "assets/ui/grand_opening/go_cue_mask.png", rib1: "assets/ui/effects/go_ribbons_1.png", rib2: "assets/ui/effects/go_ribbons_2.png",
+  mote: "assets/ui/grand_opening/beta_mote.png", goBg: "assets/ui/grand_opening/firework_bg.png", goCue: "assets/ui/grand_opening/firework_cue.png",
+  goMask: "assets/ui/grand_opening/firework_cue_mask.png", rib1: "assets/ui/effects/firework_ribbons_1.png", rib2: "assets/ui/effects/firework_ribbons_2.png",
   sparkle: "assets/ui/effects/sparkle.png",
 };
 for (const c of ["gold", "pink", "cyan", "purple", "orange"]) FILES["fw_" + c] = `assets/ui/effects/firework_${c}.png`;
@@ -195,8 +195,8 @@ function loadAll() {
 const WORDS = {
   Shop: "Shop", Money: "$1.07M", Featured: "FEATURED", Tabs: ["Featured", "Blocks", "Money", "Passes"], New: "NEW",
   Title: "GRAND OPENING", Subtitle: ["LUCKY BLOCK • ", "LIMITED", " • YOU COULD PULL..."], EndsIn: "Ends in 20d 23h",
-  Beta: ["BETA", " CUE"], GO: ["GRAND OPENING", " CUE"], Unique: "UNIQUE", Limited: "LIMITED",
-  BetaOdds: "0.3%", GoOdds: "3%", Save: "save %d%%",
+  Beta: ["BETA", " CUE"], GO: ["FIREWORK", " CUE"], Unique: "UNIQUE", Limited: "LIMITED",
+  BetaOdds: "0.3%", FireworkOdds: "3%", Save: "save %d%%",
 };
 const DEALS = [ // Config.Products.GrandOpening1/3/10 and Config.Shop.Deals.GrandOpening.Money
   { count: 1, robux: 49, was: null, money: 49000 },
@@ -546,7 +546,7 @@ function drawCueCard(id, tt) {
     ctx.save(); ctx.globalAlpha = pl.a; ctx.translate(nx + 52 + dx, ny + 38); ctx.scale(pl.s, pl.s); rr(-52, -15, 104, 30, 15); ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = INK; ctx.stroke(); ctx.restore();
     text(w, nx + 52 + dx, ny + 38, 17, { a: pl.a, s: pl.s, outline: 4 }); });
   if (od.on) { const ox = R.x + R.w - 46, oy = R.y + 24; ctx.save(); ctx.globalAlpha = od.a; ctx.translate(ox, oy); ctx.scale(od.s, od.s); rr(-38, -16, 76, 32, 16); ctx.fillStyle = "#46d7ff"; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = INK; ctx.stroke(); ctx.restore();
-    text(id === "beta" ? WORDS.BetaOdds : WORDS.GoOdds, ox, oy, 19, { a: od.a, s: od.s, outline: 4 }); }
+    text(id === "beta" ? WORDS.BetaOdds : WORDS.FireworkOdds, ox, oy, 19, { a: od.a, s: od.s, outline: 4 }); }
 }
 function gimg(g, im, cx, cy, w, o = {}) { if (!im || !im.width) return; const h = im.height * w / im.width; g.save(); g.globalAlpha = o.a ?? 1; if (o.op) g.globalCompositeOperation = o.op; g.translate(cx, cy); if (o.rot) g.rotate(o.rot); if (o.filter) g.filter = o.filter; g.drawImage(im, -w / 2, -h / 2, w, h); g.restore(); }
 const pulseCanvas = document.createElement("canvas"), pulseCtx = pulseCanvas.getContext("2d");
@@ -587,8 +587,8 @@ function renderGo(g, w, h, tt) {
   const cue = state("goCue", tt), lowFx = lower(), still = reduce();
   // mini fireworks at random spots every 0.5 to 1 s
   if (!still) {
-    const every = V.GoFireworkEvery * (lowFx ? 2 : 1), slot = Math.floor(t / every);
-    for (let k = slot - 4; k <= slot; k++) { if (k < 0) continue; const born = k * every, f = (t - born) * V.GoFireworkFps; if (f >= 64) continue;
+    const every = V.FireworkBurstEvery * (lowFx ? 2 : 1), slot = Math.floor(t / every);
+    for (let k = slot - 4; k <= slot; k++) { if (k < 0) continue; const born = k * every, f = (t - born) * V.FireworkBurstFps; if (f >= 64) continue;
       const r = (k * 7919) % 1000 / 1000, r2 = (k * 104729) % 1000 / 1000, keys = ["fw_gold", "fw_pink", "fw_cyan", "fw_purple", "fw_orange"];
       const im = IMG[keys[k % 5]], s = 140 + r2 * 120; if (!im.width) continue;
       const fw = im.width / 8, i = Math.floor(f); g.drawImage(im, (i % 8) * fw, Math.floor(i / 8) * fw, fw, fw, r * w - s / 2, r2 * h - s / 2, s, s); }

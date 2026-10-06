@@ -89,7 +89,7 @@ return {
 		end
 		H.expect(Trade.blockItem("Epic") == "Block:Epic", "a block's item")
 		H.expect(Trade.parse({ "Block:Mystery" }) ~= nil, "a Mystery block trades once ready")
-		H.expect(Trade.tradable("NeonCue") and Trade.tradable("GrandOpeningCue"), "block, Unique")
+		H.expect(Trade.tradable("NeonCue") and Trade.tradable("FireworkCue"), "block, Unique")
 		H.expect(Trade.tradable("StarterCue"), "the Starter Cue may")
 		H.expect(not Trade.tradable("VipCue") and not Trade.tradable("GoldCue"), "Exclusive never")
 		H.expect(not Trade.tradable("Classic"), "Classic never")
@@ -165,17 +165,17 @@ return {
 	["a Unique keeps its number; one per player"] = function()
 		local Trade, Inventory = load()
 		local a, b = newSave(), newSave()
-		Inventory.addUnique(a, "GrandOpeningCue", 42, true)
+		Inventory.addUnique(a, "FireworkCue", 42, true)
 		Inventory.addCue(b, "NeonCue")
-		local ok, _, fromA = Trade.swap(a, b, { "GrandOpeningCue" }, { "NeonCue" }, true, NOW)
+		local ok, _, fromA = Trade.swap(a, b, { "FireworkCue" }, { "NeonCue" }, true, NOW)
 		H.expect(ok and fromA ~= nil and fromA[1].copy == 42 and fromA[1].paid == 1, "moved")
-		H.expect(Inventory.copy(b, "GrandOpeningCue") == 42, "#42 kept")
-		H.expect(Inventory.paidCount(b, "GrandOpeningCue") == 1, "paid origin kept")
-		H.expect(not Inventory.owns(a, "GrandOpeningCue"), "gone")
+		H.expect(Inventory.copy(b, "FireworkCue") == 42, "#42 kept")
+		H.expect(Inventory.paidCount(b, "FireworkCue") == 1, "paid origin kept")
+		H.expect(not Inventory.owns(a, "FireworkCue"), "gone")
 		local c = newSave()
-		Inventory.addUnique(c, "GrandOpeningCue", 7)
+		Inventory.addUnique(c, "FireworkCue", 7)
 		Inventory.addCue(b, "NeonCue")
-		local no, why = Trade.swap(c, b, { "GrandOpeningCue" }, { "NeonCue" }, true, NOW)
+		local no, why = Trade.swap(c, b, { "FireworkCue" }, { "NeonCue" }, true, NOW)
 		H.expect(not no and why == "Owned", "b holds one already")
 	end,
 
@@ -183,14 +183,14 @@ return {
 		local Trade, Inventory = load()
 		local a, b = newSave(), newSave()
 		a.Inventory.OwnerUnique = {}
-		Inventory.addOwnerCopy(a, "GrandOpeningCue")
+		Inventory.addOwnerCopy(a, "FireworkCue")
 		Inventory.addCue(b, "NeonCue")
-		H.expect(Trade.canGive(a, { "GrandOpeningCue" }, true, NOW) == "NotOwned", "can't give")
+		H.expect(Trade.canGive(a, { "FireworkCue" }, true, NOW) == "NotOwned", "can't give")
 		for _, row in Trade.offerable(a, true, NOW) do
-			H.expect(row.item ~= "GrandOpeningCue", "not offered")
+			H.expect(row.item ~= "FireworkCue", "not offered")
 		end
-		local ok = Trade.swap(a, b, { "GrandOpeningCue" }, { "NeonCue" }, true, NOW)
-		H.expect(not ok and Inventory.isOwnerCopy(a, "GrandOpeningCue"), "kept")
+		local ok = Trade.swap(a, b, { "FireworkCue" }, { "NeonCue" }, true, NOW)
+		H.expect(not ok and Inventory.isOwnerCopy(a, "FireworkCue"), "kept")
 	end,
 
 	["the history and applied ids, capped"] = function()
@@ -215,35 +215,29 @@ return {
 		local a, b = newSave(), newSave()
 		Inventory.addCue(a, "NeonCue", 2)
 		readyBlock(a, "Rare")
-		Inventory.addUnique(b, "GrandOpeningCue", 3)
+		Inventory.addUnique(b, "FireworkCue", 3)
 		-- The swap ran (here on stand-in saves) and the ledger kept what moved; both real saves
 		-- lost it in a crash, so each replays its side on its next load.
 		local planA, planB = newSave(), newSave()
 		Inventory.addCue(planA, "NeonCue", 2)
 		readyBlock(planA, "Rare")
-		Inventory.addUnique(planB, "GrandOpeningCue", 3)
+		Inventory.addUnique(planB, "FireworkCue", 3)
 		local ok, _, fromA, fromB = Trade.swap(
 			planA,
 			planB,
 			{ "NeonCue", "Block:Rare" },
-			{ "GrandOpeningCue" },
+			{ "FireworkCue" },
 			true,
 			NOW
 		)
 		assert(ok and fromA and fromB, "planned")
 		local entry = { id = "T1", at = 5000, a = 1, b = 2, fromA = fromA, fromB = fromB }
 		H.expect(Trade.replay(a, entry, 1, NOW), "a replays")
-		H.expect(
-			Inventory.count(a, "NeonCue") == 1 and Inventory.copy(a, "GrandOpeningCue") == 3,
-			""
-		)
+		H.expect(Inventory.count(a, "NeonCue") == 1 and Inventory.copy(a, "FireworkCue") == 3, "")
 		H.expect(blocksOf(a, "Rare") == 0, "the block went")
 		H.expect(not Trade.replay(a, entry, 1, NOW), "once")
 		H.expect(Trade.replay(b, entry, 2, NOW), "b replays")
-		H.expect(
-			Inventory.count(b, "NeonCue") == 1 and not Inventory.owns(b, "GrandOpeningCue"),
-			""
-		)
+		H.expect(Inventory.count(b, "NeonCue") == 1 and not Inventory.owns(b, "FireworkCue"), "")
 		H.expect(blocksOf(b, "Rare") == 1 and b.LuckyBlocks.List[1].ReadyAt == NOW, "ready")
 		H.expect(not Trade.replay(newSave(), entry, 3, NOW), "not in it")
 		H.expect(a.Trades.History[1].With == 2 and b.Trades.History[1].With == 1, "partners")
@@ -268,6 +262,21 @@ return {
 		local list = Trade.entries(many)
 		H.expect(#list == Config.Trade.MaxPending and list[1].id == "T3", "the oldest go")
 		H.expect(#Trade.entries({ entries = { 5, { id = 1 } } }) == 0, "junk dropped")
+		-- A trade in flight across a rename lands on the new id (Config.Items.RenamedCues).
+		local across = Trade.entries({
+			entries = {
+				{
+					id = "T9",
+					at = 1,
+					a = 1,
+					b = 2,
+					fromA = { { item = "GrandOpeningCue", count = 1, paid = 0, copy = 4 } },
+					fromB = { { item = "NeonCue", count = 1, paid = 0 } },
+				},
+			},
+		})
+		H.expect(across[1].fromA[1].item == "FireworkCue", "renamed in flight")
+		H.expect(across[1].fromB[1].item == "NeonCue", "others untouched")
 	end,
 
 	["the lopsided warning by N exist"] = function()

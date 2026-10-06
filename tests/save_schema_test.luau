@@ -468,7 +468,7 @@ return {
 	["the template has every field at its starting value"] = function()
 		local _, SaveSchema = setup()
 		local t = SaveSchema.template()
-		H.expect(SaveSchema.Version == 7, "version 7")
+		H.expect(SaveSchema.Version == 8, "version 8")
 		H.expect(SaveSchema.WipeBelow == 6, "everything older than 6 is wiped")
 		H.expect(t.Version == SaveSchema.Version, "template carries the current version")
 		H.expect(t.Money == 0 and t.RankXp == 0 and t.PeakDivision == 0, "starts at zero")
@@ -581,8 +581,8 @@ return {
 		old.Shop.QuickApplied = true
 		old.Flags = { FirstWinCase = true, TutorialCase = true, LeaveGift = true, Other = true }
 		local out, notes = SaveSchema.migrate(old)
-		H.expect(out.Version == SaveSchema.Version, "now version 7")
-		H.expect(#notes == 1 and notes[1] == "migrated 6 -> 7", table.concat(notes, "; "))
+		H.expect(out.Version == SaveSchema.Version, "now the current version")
+		H.expect(notes[1] == "migrated 6 -> 7", table.concat(notes, "; "))
 		H.expect(out.Money == 777 and out.Inventory.Cues.GoldCue == 2, "money and cues kept")
 		H.expect(
 			out.Inventory.Cases == nil
@@ -604,7 +604,55 @@ return {
 		H.expect(SaveSchema.migrate(never).Flags.FirstWinBlock == nil, "no flag from false")
 	end,
 
-	["a migration from version 7 on that errors or is missing stops at the old version"] = function()
+	["version 7 to 8: the Grand Opening Cue's id becomes FireworkCue everywhere"] = function()
+		local Config, SaveSchema = setup()
+		local old = SaveSchema.template()
+		old.Version = 7
+		local inv = old.Inventory
+		inv.Cues.GoldCue = 2
+		inv.Unique = { GrandOpeningCue = 41, BetaCue = 3 }
+		inv.PaidUnique = { GrandOpeningCue = true }
+		inv.New = { GrandOpeningCue = true }
+		old.Index.Seen = { GrandOpeningCue = true, GoldCue = true }
+		old.Shop.Limited = { GrandOpeningCue = 41 }
+		old.Equipped.Cue = "GrandOpeningCue"
+		old.Trades.History = {
+			{ Id = "T1", With = 7, At = 1, Gave = { "GrandOpeningCue" }, Got = { "GoldCue" } },
+			{
+				Id = "T2",
+				With = 8,
+				At = 2,
+				Gave = {},
+				Got = { "Block:Mystery", "GrandOpeningCue" },
+			},
+		}
+		local out, notes = SaveSchema.migrate(old)
+		H.expect(out.Version == 8, "now version 8")
+		H.expect(#notes == 1 and notes[1] == "migrated 7 -> 8", table.concat(notes, "; "))
+		local i = out.Inventory
+		H.expect(i.Unique.FireworkCue == 41 and i.Unique.GrandOpeningCue == nil, "copy #41 kept")
+		H.expect(i.Unique.BetaCue == 3 and i.Cues.GoldCue == 2, "other cues untouched")
+		H.expect(i.PaidUnique.FireworkCue == true and i.New.FireworkCue == true, "paid, NEW")
+		H.expect(out.Index.Seen.FireworkCue and out.Index.Seen.GoldCue, "seen")
+		H.expect(out.Index.Seen.GrandOpeningCue == nil, "old id gone from the Index")
+		H.expect(out.Shop.Limited.FireworkCue == 41, "Limited bought")
+		H.expect(out.Equipped.Cue == "FireworkCue", "still equipped")
+		local h = out.Trades.History
+		H.expect(h[1].Gave[1] == "FireworkCue" and h[1].Got[1] == "GoldCue", "history 1")
+		H.expect(h[2].Got[1] == "Block:Mystery" and h[2].Got[2] == "FireworkCue", "history 2")
+		local _, fixes = SaveSchema.validate(out)
+		H.expect(#fixes == 0, "clean: " .. table.concat(fixes, "; "))
+		assertClean(Config, SaveSchema, out)
+		-- A broken or bare version-7 save never errors.
+		for _, bad in
+			{ { Version = 7 }, { Version = 7, Inventory = 5, Trades = { History = { 1 } } } }
+		do
+			local ok, moved = pcall(SaveSchema.migrate, bad)
+			H.expect(ok and moved.Version == 8, "a broken save still migrates")
+		end
+	end,
+
+	["a migration from the current version that errors or is missing stops at the old version"] = function()
 		local _, SaveSchema = setup()
 		local version = SaveSchema.Version
 		-- Pretend the code knows one more version, so a current save has a step to take.
@@ -643,8 +691,8 @@ return {
 		local inv = save.Inventory
 		inv.Cues = { GoldCue = 2, MidnightCue = 1 }
 		inv.PaidCues = { GoldCue = 5, MidnightCue = 1, CherryCue = 2 } -- 5 > 2; Cherry not held
-		inv.Unique = { GrandOpeningCue = 3 }
-		inv.PaidUnique = { GrandOpeningCue = true, BetaCue = true, GoldCue = "yes" }
+		inv.Unique = { FireworkCue = 3 }
+		inv.PaidUnique = { FireworkCue = true, BetaCue = true, GoldCue = "yes" }
 		save.Daily.PcDrops = -3
 		save.Daily.Disguised = 4.5
 		save.Shop.BoostEnds = INF
@@ -664,7 +712,7 @@ return {
 		local i = out.Inventory
 		H.expect(i.PaidCues.GoldCue == 2 and i.PaidCues.MidnightCue == 1, "clamped to held")
 		H.expect(i.PaidCues.CherryCue == nil, "not held: dropped")
-		H.expect(i.PaidUnique.GrandOpeningCue == true and i.PaidUnique.BetaCue == nil, "unique")
+		H.expect(i.PaidUnique.FireworkCue == true and i.PaidUnique.BetaCue == nil, "unique")
 		H.expect(i.PaidUnique.GoldCue == nil, "not true: dropped")
 		local d = out.Daily
 		H.expect(d.PcDrops == 0 and d.Disguised == 4, "daily counts")
@@ -1069,8 +1117,8 @@ return {
 	["validate repairs copy numbers and sets"] = function()
 		local Config, SaveSchema = setup()
 		local save = SaveSchema.template()
-		save.Inventory.Unique = { BetaCue = 412, GrandOpeningCue = 0, Classic = 1, X = 1.5 }
-		save.Shop.Limited = { BetaCue = 412, GrandOpeningCue = "7", Y = 1e300 }
+		save.Inventory.Unique = { BetaCue = 412, FireworkCue = 0, Classic = 1, X = 1.5 }
+		save.Shop.Limited = { BetaCue = 412, FireworkCue = "7", Y = 1e300 }
 		save.Inventory.New = { A = true, B = false, C = 1, D = "true" }
 		save.Index.Seen = { A = true, B = {}, C = NAN }
 		save.Index.Rows = { Common = true, Rare = 1 }
@@ -1079,10 +1127,10 @@ return {
 		save.Daily.PlaytimeClaimed = { ["1"] = true, ["2"] = 0 }
 		local out = SaveSchema.validate(save)
 		local u = out.Inventory.Unique
-		H.expect(u.BetaCue == 412 and u.X == 1 and u.GrandOpeningCue == nil, "copy numbers")
+		H.expect(u.BetaCue == 412 and u.X == 1 and u.FireworkCue == nil, "copy numbers")
 		H.expect(u.Classic == nil, "Classic never numbered")
 		local l = out.Shop.Limited
-		H.expect(l.BetaCue == 412 and l.GrandOpeningCue == nil, "Limited bought")
+		H.expect(l.BetaCue == 412 and l.FireworkCue == nil, "Limited bought")
 		H.expect(l.Y == Config.Save.CopyNumberCap, "clamped")
 		H.expect(size(out.Inventory.New) == 1 and out.Inventory.New.A, "true only")
 		H.expect(size(out.Index.Seen) == 1 and out.Index.Seen.A, "true only")

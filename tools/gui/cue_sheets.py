@@ -2,11 +2,11 @@
 
     tools/gui/.venv/bin/python tools/gui/cue_sheets.py [--dir ~/Desktop/8ball-refs/gui-lively/work/renders]
 
-Reads <dir>/go_cue.png, beta_cue.png, go_ribbons[_loose]/frame_NN.png, layout.json. Writes into <dir>:
+Reads <dir>/firework_cue.png, beta_cue.png, firework_ribbons[_loose]/frame_NN.png, layout.json. Writes into <dir>:
     sheets/<set>_<variant>_<k>.png + .json   sprite sheets (at most 1024 x 1024) of the ribbon
                                                   loop; the JSON has columns, rows, frame size, frame
                                                   count, fps and where the frame sits on the cue canvas
-    preview/<set>_loop.mp4                        the sheet frames over go_cue.png on navy, looping
+    preview/<set>_loop.mp4                        the sheet frames over firework_cue.png on navy, looping
     preview/<name>_backgrounds.png                each render on navy, black, white and a checkerboard
 
 Frames are cropped to the ribbons' union box over the whole loop (so every frame overlays the cue
@@ -106,7 +106,7 @@ def pack(frames, box, out_dir, set_name, name, width, step, layout):
             'order': 'left to right, then top to bottom; the frame after the last is the first',
             'canvas': layout.get('canvas'), 'crop_in_canvas': [x, y, bw, bh],
             'scale_from_canvas': round(width / bw, 6),
-            'overlay': 'place the frame over go_cue.png at crop_in_canvas (go_cue.png is the whole canvas)',
+            'overlay': 'place the frame over firework_cue.png at crop_in_canvas (firework_cue.png is the whole canvas)',
             'seconds_per_turn': FPS_PER_TURN, 'game_seconds_per_turn': layout.get('ribbons', {}).get('game_period_s'),
         }
         with open(os.path.join(out_dir, base + '.json'), 'w') as fh_:
@@ -161,8 +161,8 @@ def main():
     d = os.path.expanduser(args[args.index('--dir') + 1] if '--dir' in args else
                            '~/Desktop/8ball-refs/gui-lively/work/renders')
     layout = json.load(open(os.path.join(d, 'layout.json')))
-    cue = load(os.path.join(d, 'go_cue.png'))
-    for set_name in ('go_ribbons', 'go_ribbons_loose'):
+    cue = load(os.path.join(d, 'firework_cue.png'))
+    for set_name in ('firework_ribbons', 'firework_ribbons_loose'):
         fdir = os.path.join(d, set_name)
         if not os.path.isdir(fdir):
             continue
@@ -182,8 +182,8 @@ def main():
         rgb = frames[0][..., :3] * a + both[..., :3] * both[..., 3:4] * (1 - a)
         al = a + both[..., 3:4] * (1 - a)
         backgrounds(np.concatenate([np.where(al > 1e-4, rgb / np.maximum(al, 1e-4), 0), al], 2),
-                    os.path.join(d, 'preview', 'go_cue_with_%s_backgrounds.png' % set_name))
-    for name in ('go_cue', 'beta_cue', 'go_cue_mask', 'beta_cue_mask'):
+                    os.path.join(d, 'preview', 'firework_cue_with_%s_backgrounds.png' % set_name))
+    for name in ('firework_cue', 'beta_cue', 'firework_cue_mask', 'beta_cue_mask'):
         backgrounds(load(os.path.join(d, name + '.png')), os.path.join(d, 'preview', name + '_backgrounds.png'))
 
 

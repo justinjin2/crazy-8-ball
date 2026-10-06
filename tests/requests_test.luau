@@ -162,7 +162,7 @@ return {
 	buy_limited_only_money_rows = function()
 		local Requests = load()
 		-- No Limited row is scheduled now (the Grand Opening Cue comes from its block).
-		H.expect(select(2, Requests.parse("BuyLimited", "GrandOpeningCue")) == "BadRequest", "off")
+		H.expect(select(2, Requests.parse("BuyLimited", "FireworkCue")) == "BadRequest", "off")
 		-- Beta has no Limited row either (off until scheduled); there is no Founder's Cue.
 		H.expect(
 			select(2, Requests.parse("BuyLimited", "FoundersCue")) == "BadRequest",
@@ -189,7 +189,7 @@ return {
 		local open = { Cue = "BetaCue", Price = 1, StartsAt = 1000, Seconds = 500 }
 		H.expect(Requests.limitedCheck(open, 1200, 1e6, false) == nil, "no cap, never sold out")
 		-- StartsAt 0: off until the designer sets it, never "Ended".
-		local off = { Cue = "GrandOpeningCue", Price = 149000, StartsAt = 0, Seconds = 1209600 }
+		local off = { Cue = "FireworkCue", Price = 149000, StartsAt = 0, Seconds = 1209600 }
 		H.expect(Requests.limitedCheck(off, 1800000000, 0, false) == "NotStarted", "off")
 	end,
 

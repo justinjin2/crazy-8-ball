@@ -77,8 +77,8 @@ mp4 and png of it, so it can reference from there if needed"):
   or Blender) when you need a sharper or differently posed block than 13b gives.
 - **The two cues**: `assets/cue/concepts/unique/` (`beta-clip.mp4`, `grand-opening-clip.mp4`, the
   concept boards, the `*-studio-*.jpg` in-game shots), the card pictures
-  `assets/cue/thumbs/beta.png` and `grand_opening.png`, their skins and VFX data
-  (`assets/cue/skins/`, `assets/cue/vfx/grand_opening/`), and sections 3 and 4 of
+  `assets/cue/thumbs/beta.png` and `firework.png`, their skins and VFX data
+  (`assets/cue/skins/`, `assets/cue/vfx/firework/`), and sections 3 and 4 of
   `docs/prompts/UNIQUE_CUES_PROMPT.md` (what each cue's effects are). The card animations should
   feel like the cues' real in-game effects.
 
@@ -594,7 +594,13 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
 - 2026-10-06: no save labels; bigger buttons (Robux row bigger than money); smaller gift
   squares; a yellow glow round the Firework Cue (one upload, $0).
 - 2026-10-06: **the Grand Opening Cue is renamed the Firework Cue** (designer; DECISIONS.md;
-  the id stays GrandOpeningCue). Its ribbons at half speed; the green row clear of the cards.
+  first the name only). Its ribbons at half speed; the green row clear of the cards.
+- 2026-10-06: **renamed behind the scenes too**: the cue id is `FireworkCue`, the skin, piece
+  and asset ids `firework` (files under `assets/cue`, `assets/ui/grand_opening/firework_*`,
+  `assets/ui/effects/firework_ribbons_*`). Saves move over in migration 7 -> 8; the Limited
+  numbering keeps the old DataStore key so copy numbers carry on
+  (`Config.Items.RenamedCues`). The place's `CueSkins.FireworkCue` and `CuePieces.firework`
+  were renamed in Studio.
 
 
 ## Decisions
@@ -629,5 +635,5 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   emulator (CanvasGroup's failures are on real phones), so the code fade stays. Our own pooled
   particles on one loop and the 8 x 8 flipbook at 30 fps both run fine; no Spark2D needed.
 - The Grand Opening Cue already has a white, tintable 8 x 8 firework flipbook
-  (`assets/cue/vfx/grand_opening/burst_8x8.png`, 128 px frames): used for gate 1's flipbook
+  (`assets/cue/vfx/firework/burst_8x8.png`, 128 px frames): used for gate 1's flipbook
   test and a starting point for the effects library.

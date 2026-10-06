@@ -31,6 +31,18 @@ local Counts = require(Shared.Progression.Counts)
 local Shop = require(Shared.Progression.Shop)
 
 local I = Config.Items
+
+-- A Limited or Unique cue's numbering key: a renamed cue keeps its old id's key, so its copy
+-- numbers carry on (Config.Items.RenamedCues).
+local OLD_IDS: { [string]: string } = {}
+for old: string, new: string in I.RenamedCues :: { [string]: string } do
+	OLD_IDS[new] = old
+end
+
+local function limitedKey(cueId: string): string
+	return OLD_IDS[cueId] or cueId
+end
+
 local IS_STUDIO = RunService:IsStudio()
 -- Studio without DataStore access keeps the Limited numbers here, so the shelf can be tried.
 local studioLimited: { [string]: any } = {}
@@ -243,7 +255,7 @@ function Counters.refresh(): boolean
 		values[n] = if value == nil then false else value
 	end
 	if ok then
-		base = Counts.sum(values)
+		base = Counts.renamed(Counts.sum(values), I.RenamedCues)
 		Counts.addInto(written, before, -1)
 		haveRead = true
 		publishAllCopies()
@@ -253,7 +265,7 @@ function Counters.refresh(): boolean
 	if limited then
 		for _, row in Shop.limited() do
 			local got, value = pcall(function(): any
-				return limited:GetAsync(row.Cue)
+				return limited:GetAsync(limitedKey(row.Cue))
 			end)
 			if got then
 				setSold(row.Cue, Counts.sold(value))
@@ -338,7 +350,7 @@ function takeCopy(
 	local ok, err = false, "no DataStore"
 	if store ~= nil then
 		ok, err = pcall(function(): any
-			return store:UpdateAsync(cueId, transform)
+			return store:UpdateAsync(limitedKey(cueId), transform)
 		end)
 	end
 	if not ok and IS_STUDIO then

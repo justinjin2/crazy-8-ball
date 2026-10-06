@@ -61,7 +61,7 @@ return {
 		local unique = Catalog.ofRarity("Unique")
 		H.expect(#unique == 2, ("%d Unique, expected 2"):format(#unique))
 		H.expect(
-			Catalog.get("BetaCue") ~= nil and Catalog.get("GrandOpeningCue") ~= nil,
+			Catalog.get("BetaCue") ~= nil and Catalog.get("FireworkCue") ~= nil,
 			"the Beta and Grand Opening cues"
 		)
 		H.expect(Catalog.get("FoundersCue") == nil, "no Founder's Cue, ever")

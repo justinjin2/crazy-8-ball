@@ -390,7 +390,7 @@
     "assetType": "Model",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-unique/assets/cue/pieces/grand_opening/grand_opening_parts.glb": {
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/pieces/firework/firework_parts.glb": {
     "assetId": "139007155198736",
     "assetType": "Model",
     "status": "ok"
@@ -405,12 +405,12 @@
     "assetType": "Audio",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-unique/assets/cue/sounds/grand_opening_crackle.wav": {
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/sounds/firework_crackle.wav": {
     "assetId": "85271661860545",
     "assetType": "Audio",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-unique/assets/cue/sounds/grand_opening_fireworks.wav": {
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/sounds/firework_fireworks.wav": {
     "assetId": "103382603543789",
     "assetType": "Audio",
     "status": "ok"
@@ -505,31 +505,31 @@
     "imageId": "96819958661495",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/grand_opening_color.png": {
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/firework_color.png": {
     "assetId": "127193742351612",
     "assetType": "Decal",
     "imageId": "139806114945599",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/grand_opening_emissive.png": {
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/firework_emissive.png": {
     "assetId": "100080917470405",
     "assetType": "Decal",
     "imageId": "82836901179950",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/grand_opening_metalness.png": {
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/firework_metalness.png": {
     "assetId": "76195320025686",
     "assetType": "Decal",
     "imageId": "79074584488672",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/grand_opening_normal.png": {
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/firework_normal.png": {
     "assetId": "91679720671680",
     "assetType": "Decal",
     "imageId": "86378783160879",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/grand_opening_roughness.png": {
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/textures/firework_roughness.png": {
     "assetId": "88299922302338",
     "assetType": "Decal",
     "imageId": "104114214024927",
@@ -571,7 +571,7 @@
     "imageId": "80408653854335",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-unique/assets/cue/thumbs/grand_opening.png": {
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/thumbs/firework.png": {
     "assetId": "101653481433963",
     "assetType": "Decal",
     "imageId": "114323135519020",
@@ -709,19 +709,19 @@
     "imageId": "122526518721623",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-unique/assets/cue/vfx/grand_opening/burst_8x8.png": {
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/vfx/firework/burst_8x8.png": {
     "assetId": "110767316334796",
     "assetType": "Decal",
     "imageId": "137945828795312",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-unique/assets/cue/vfx/grand_opening/column.png": {
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/vfx/firework/column.png": {
     "assetId": "85093328821391",
     "assetType": "Decal",
     "imageId": "120768186687629",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-unique/assets/cue/vfx/grand_opening/sparkle_strip.png": {
+  "/Users/justinjin/Desktop/8ball-unique/assets/cue/vfx/firework/sparkle_strip.png": {
     "assetId": "113082192164237",
     "assetType": "Decal",
     "imageId": "137525961488251",
@@ -4961,13 +4961,13 @@
     "imageId": "122427114274964",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball/assets/ui/effects/go_ribbons_1.png": {
+  "/Users/justinjin/Desktop/8ball/assets/ui/effects/firework_ribbons_1.png": {
     "assetId": "128049207545780",
     "assetType": "Decal",
     "imageId": "126431223631624",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball/assets/ui/effects/go_ribbons_2.png": {
+  "/Users/justinjin/Desktop/8ball/assets/ui/effects/firework_ribbons_2.png": {
     "assetId": "97622963068284",
     "assetType": "Decal",
     "imageId": "88772770212728",
@@ -5237,25 +5237,25 @@
     "imageId": "132422184916082",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/go_bg.png": {
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/firework_bg.png": {
     "assetId": "133242126899726",
     "assetType": "Decal",
     "imageId": "99479265638524",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/go_cue.png": {
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/firework_cue.png": {
     "assetId": "98179962055392",
     "assetType": "Decal",
     "imageId": "130447726546401",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/go_cue_glow.png": {
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/firework_cue_glow.png": {
     "assetId": "128818570553617",
     "assetType": "Decal",
     "imageId": "126476349740073",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/go_cue_mask.png": {
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/firework_cue_mask.png": {
     "assetId": "111371893471730",
     "assetType": "Decal",
     "imageId": "113286103070085",

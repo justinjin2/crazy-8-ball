@@ -214,8 +214,8 @@ pocket's flash stay, so the identity survives.
   studs away.
 - A glitch window under 0.2 s is invisible; a wire under 0.07 studs is invisible from the
   far rail.
-- The skin row's `Id` is the skin id (`grand_opening`); the look's catalog id is `cueId`
-  (`GrandOpeningCue`). Live-tuning probes that match on the row's `Id` match nothing.
+- The skin row's `Id` is the skin id (`firework`); the look's catalog id is `cueId`
+  (`FireworkCue`). Live-tuning probes that match on the row's `Id` match nothing.
 - `tools/unique_sprites.py` takes sprite names, not skin ids.
 - The generator filters keys: a new row key (`Pocket.Sound`) must be added to its allow-list
   or it silently never reaches the game.

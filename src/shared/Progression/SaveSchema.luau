@@ -22,6 +22,8 @@
 -- Version 7 (2026-10-04, cases retired for lucky blocks): Inventory.Cases, PaidCases and
 -- Timers, Shop.QuickApplied and the TutorialCase and LeaveGift flags are dropped (the
 -- designer: nothing converted), and the first-win flag is renamed FirstWinBlock.
+-- Version 8 (2026-10-06): the cue id GrandOpeningCue is now FireworkCue wherever a save holds
+-- a cue id (Config.Items.RenamedCues).
 local Config = require(script.Parent.Parent.Config)
 local Catalog = require(script.Parent.Catalog)
 local UltCatalog = require(script.Parent.Parent.Ults.Catalog)
@@ -33,7 +35,7 @@ local RanksCfg = Config.Ranks
 
 local SaveSchema = {}
 
-SaveSchema.Version = 7
+SaveSchema.Version = 8
 
 --- Saves older than this start over (a full wipe, version 6).
 SaveSchema.WipeBelow = 6
@@ -316,6 +318,66 @@ SaveSchema.Migrations[6] = function(data: any): any
 		flags.FirstWinCase = nil
 		flags.TutorialCase = nil
 		flags.LeaveGift = nil
+	end
+	return data
+end
+
+-- 7 -> 8 (2026-10-06): the Grand Opening Cue became the Firework Cue, its id too. Every map
+-- keyed by cue id, the equipped cue and both sides of each trade in the history take the new
+-- id. Fixed here (not read from Config) so this step never changes once shipped.
+local RENAMED_8 = { GrandOpeningCue = "FireworkCue" }
+
+local function renameKeys(map: any)
+	if type(map) ~= "table" then
+		return
+	end
+	for old, new in RENAMED_8 do
+		if map[old] ~= nil then
+			if map[new] == nil then
+				map[new] = map[old]
+			end
+			map[old] = nil
+		end
+	end
+end
+
+local function renameItems(list: any)
+	if type(list) ~= "table" then
+		return
+	end
+	for i, item in list do
+		local new = type(item) == "string" and RENAMED_8[item]
+		if new then
+			list[i] = new
+		end
+	end
+end
+
+SaveSchema.Migrations[7] = function(data: any): any
+	local inventory = data.Inventory
+	if type(inventory) == "table" then
+		for _, key in { "Cues", "PaidCues", "Unique", "PaidUnique", "OwnerUnique", "New" } do
+			renameKeys(inventory[key])
+		end
+	end
+	if type(data.Index) == "table" then
+		renameKeys(data.Index.Seen)
+	end
+	if type(data.Shop) == "table" then
+		renameKeys(data.Shop.Limited)
+	end
+	local equipped = data.Equipped
+	if type(equipped) == "table" and type(equipped.Cue) == "string" then
+		equipped.Cue = RENAMED_8[equipped.Cue] or equipped.Cue
+	end
+	local trades = data.Trades
+	if type(trades) == "table" and type(trades.History) == "table" then
+		for _, entry in trades.History do
+			if type(entry) == "table" then
+				renameItems(entry.Gave)
+				renameItems(entry.Got)
+			end
+		end
 	end
 	return data
 end

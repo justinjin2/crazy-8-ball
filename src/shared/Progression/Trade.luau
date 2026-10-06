@@ -494,12 +494,25 @@ local function isEntry(e: any): boolean
 		and type(e.fromB) == "table"
 end
 
+-- A renamed cue's moved items under its new id (Config.Items.RenamedCues), so a trade in flight
+-- across the rename lands on the cue the saves now hold.
+local function renameMoved(moved: Moved)
+	for _, m in moved do
+		local new = type(m) == "table" and Config.Items.RenamedCues[m.item]
+		if new then
+			m.item = new
+		end
+	end
+end
+
 --- The entries in a stored key, oldest first (anything else dropped).
 function Trade.entries(stored: any): { Entry }
 	local out: { Entry } = {}
 	if type(stored) == "table" and type(stored.entries) == "table" then
 		for _, e in stored.entries do
 			if isEntry(e) then
+				renameMoved(e.fromA)
+				renameMoved(e.fromB)
 				table.insert(out, e)
 			end
 		end

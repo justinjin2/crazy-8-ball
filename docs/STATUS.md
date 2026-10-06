@@ -48,7 +48,9 @@ Updated 2026-10-06.
   in `Config.UI.Menu.LivelyMenus`, Shop only), and so is the Grand Opening card on the Featured
   page (`GrandOpeningCard`; the panel is capped to 66% of the screen and as tall as the card).
   Gate 4's changes are done (products made, flair on, a full menu hides the rest of the HUD);
-  next gate 5 (computer emulator, a real gamepad).
+  next gate 5 (computer emulator, a real gamepad). The Grand Opening Cue is now the
+  **Firework Cue** everywhere, id `FireworkCue` (save version 8 moves owned copies;
+  `Config.Items.RenamedCues`).
   The other jump groups have no pages yet; the server-side shop, receipts and restock work.
 - **Decisions still open:** trim Epic ownership (6.7% of active players against a ~5% plan)
   or keep it; whether the VIP cue pays finder's money on the first join; whether the free
