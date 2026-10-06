@@ -704,7 +704,6 @@ return {
 				Unique = "UNIQUE",
 				-- A pack's size, between its Robux and money buttons (which show only prices).
 				Blocks = { One = "%d block", Many = "%d blocks" },
-				Save = "save %d%%", -- under a pack that costs less than buying one by one
 				BoughtOne = "Your %s is in your hotbar!",
 				BoughtMany = "%d %s are in your hotbar!",
 			},

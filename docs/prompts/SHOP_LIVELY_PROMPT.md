@@ -591,6 +591,8 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   in, smaller pills, the odds chip bottom-right on both cue cards.
 - 2026-10-06: no LIMITED pill on the cue cards; a bigger header title and icon, a smaller X,
   and a gold "+" on the header's money pill (jumps to Money).
+- 2026-10-06: no save labels; bigger buttons (Robux row bigger than money); smaller gift
+  squares; a yellow glow round the Grand Opening cue (one upload, $0).
 
 
 ## Decisions

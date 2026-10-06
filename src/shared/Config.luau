@@ -7645,7 +7645,6 @@ Config.UI.Shop.Open = {
 		{ Ids = { "Robux1", "Robux3", "Robux10" }, Kind = "Pop", At = 0.66 }, -- with their gift squares
 		{ Ids = { "Counts" }, Kind = "Fade", At = 0.69, Length = 0.12 }, -- "1 block", "3 blocks", "10 blocks"
 		{ Ids = { "Money1", "Money3", "Money10" }, Kind = "Pop", At = 0.71 },
-		{ Ids = { "Save" }, Kind = "Fade", At = 0.76, Length = 0.12 },
 		{ Ids = { "EndsIn" }, Kind = "Fade", At = 0.78, Length = 0.12 },
 		{ Ids = { "Flair" }, Kind = "Drop", At = 0.82, Length = 0.25 }, -- the 8-ball lands on the frame
 	},
@@ -7750,6 +7749,7 @@ Config.UI.GrandOpeningCard = {
 		},
 		Crown = "rbxassetid://118495873177958",
 		Flair8ball = "rbxassetid://132422184916082",
+		GoCueGlow = "rbxassetid://126476349740073", -- the Grand Opening cue's glow (white, tinted)
 		GoBg = "rbxassetid://99479265638524",
 		GoCue = "rbxassetid://130447726546401",
 		GoCueMask = "rbxassetid://113286103070085",
@@ -7781,7 +7781,6 @@ Config.UI.GrandOpeningCard = {
 		GoFireworkFps = 15, -- the Grand Opening card's mini fireworks play at half speed (designer)...
 		GoFireworkEvery = 1.5, -- ...and burst half as often, calm like the ribbons
 		RibbonFps = 13.333, -- the gold ribbons: a turn in 2.4 s (Config.UI.Effects.GoRibbons)
-		SaveRainbowPercent = 20, -- a "save" of this much or more shows in the moving rainbow
 	},
 	-- Where everything sits, in the approved animatic's units (tools/gui/animatic, its card
 	-- 1275 x 498; the card fills the page's width and every number scales with it). Places are
@@ -7790,7 +7789,7 @@ Config.UI.GrandOpeningCard = {
 	Layout = {
 		-- The card's size. It is scaled to fit the page whole, both ways, so nothing scrolls
 		-- (designer, 2026-10-06: a phone shows the cue cards and every button at once).
-		Card = { 1275, 536 },
+		Card = { 1275, 520 },
 		DesignHeightUnits = 498, -- the animatic's card height: the block's group and the background were placed on it
 		CornerUnits = 28,
 		RimUnits = 6, -- its pale rim
@@ -7852,6 +7851,9 @@ Config.UI.GrandOpeningCard = {
 		OddsColor = { 70, 215, 255 }, -- sky blue (Kit.Numbers' odds colour)
 		CueShare = { 0.5, 0.68, 0.98 }, -- the cue's centre (shares of the card) and width: under the pills
 		GoCueShare = { 0.5, 0.7, 0.98 },
+		-- The Grand Opening cue's yellow glow (designer, 2026-10-06): tint, its transparency
+		-- pulsing between these, and the pulse's length.
+		GoGlow = { Tint = { 255, 205, 40 }, Transparency = { 0.05, 0.35 }, PulseSeconds = 2.4 },
 		CueDegrees = -14,
 		BetaPanels = { -- the blueprint panels: number, centre x, y (of a 1120 x 660 card), width, strength
 			{ 1, 150, 170, 230, 0.5 },
@@ -7869,22 +7871,26 @@ Config.UI.GrandOpeningCard = {
 		BetaRingShare = 0.9, -- of the card's height
 		BetaCodeRows = { { 9, -1, 0.5 }, { -9, 1, 0.35 } }, -- y from the top (or bottom), direction, strength
 		BetaCodeUnits = 20, -- the glyph strip's height
-		-- The buttons (box 360..1256 x 310..530), a column per pack (designer, 2026-10-06): the
+		-- The buttons (box 360..1256 x 310..498), a column per pack (designer, 2026-10-06): the
 		-- purple gift square and the green Robux price ("129" and the old "147" struck through),
-		-- the pack's "3 blocks" under them, the gold money button, then "save 12%".
+		-- the pack's "3 blocks" under them, then the gold money button (no "save" line: the
+		-- room went to bigger buttons, the Robux ones a little bigger than the money ones).
 		RowGreen = 310,
-		CountY = 397, -- the "1 block" words' centre, between the green and gold rows
+		RowGreenUnits = 78,
+		CountY = 409, -- the "1 block" words' centre, between the green and gold rows
 		CountTextUnits = 32,
-		RowGold = 420,
-		RowUnits = 64, -- tall, so the words stay big in a small panel
+		RowGold = 428,
+		RowGoldUnits = 70,
 		ButtonX = 360,
 		ButtonUnits = 288, -- a column's width
 		ButtonGapUnits = 16,
-		GiftGapUnits = 10, -- between the gift square (RowUnits wide) and the Robux button
-		ButtonTextUnits = 36,
+		-- The gift square, smaller than the Robux row: clear of the cue cards and more room for
+		-- the price (designer, 2026-10-06).
+		GiftUnits = 58,
+		GiftGapUnits = 8, -- between the gift square and the Robux button
+		GreenTextUnits = 44,
+		GoldTextUnits = 40,
 		CashIconShare = 1.1, -- the gold buttons' cash bundle, big as in 13b (of the button's height)
-		SaveY = 507,
-		SaveTextUnits = 30,
 		-- The background (scaled with the card when it restacks).
 		-- The floating 8-balls: picture, centre, width, sway speed (radians a second; the far ones
 		-- slower), and the picture's smaller side in pixels (the float windows a square).

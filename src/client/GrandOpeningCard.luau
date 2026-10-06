@@ -7,7 +7,7 @@
 -- badge and the live "Ends in" timer); the arched GRAND OPENING title with its stars and
 -- subtitle; the Beta and Grand Opening cue cards (their names, UNIQUE pills, odds
 -- chips and their own loops); a column per pack: the purple gift square (the Gift Player popup)
--- and the green Robux price, the pack's "3 blocks", the gold money button and its "save" label.
+-- and the green Robux price, the pack's "3 blocks", then the gold money button.
 -- Pictures, places and loop numbers are in Config.UI.GrandOpeningCard, words in Strings
 -- (Menus.Shop.Featured), prices and odds in Config (Config.Shop.Deals.GrandOpening,
 -- Config.Products.GrandOpening1/3/10, the GrandOpening odds).
@@ -493,10 +493,18 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 		return made
 	end
 	local picture = if beta then IMG.BetaCue else IMG.GoCue
-	c.aura = fill("Aura", picture, 1)
-	c.aura.Size = UDim2.fromScale(1.04, 1.12)
-	c.aura.ImageColor3 = if beta then Color3.fromRGB(255, 79, 198) else Color3.fromRGB(255, 200, 60)
-	c.aura.ImageTransparency = 0.7
+	if beta then
+		c.aura = fill("Aura", picture, 1)
+		c.aura.Size = UDim2.fromScale(1.04, 1.12)
+		c.aura.ImageColor3 = Color3.fromRGB(255, 79, 198)
+		c.aura.ImageTransparency = 0.7
+	else
+		-- A strong yellow glow round the cue, so it stands out of its busy background (designer,
+		-- 2026-10-06; tools/gui/cue_glow.py).
+		c.aura = fill("Aura", IMG.GoCueGlow, 1)
+		c.aura.ImageColor3 = rgb(L.GoGlow.Tint)
+		c.aura.ImageTransparency = L.GoGlow.Transparency[1]
+	end
 	if beta then
 		c.callouts = fill("Callouts", IMG.BetaCallouts, 2)
 		c.copies = {}
@@ -561,7 +569,6 @@ function GrandOpeningCard.buildButtons(self: any)
 	self.giftButtons = {} :: { TextButton }
 	self.moneyButtons = {} :: { TextButton }
 	self.countLabels = {} :: { TextLabel }
-	self.saveLabels = {} :: { [number]: TextLabel }
 	local wasHex = rgb(K.Numbers.Old):ToHex() -- a crossed-out price is red (UI_STYLE 13)
 	for index, count in COUNTS do
 		local key = DEAL.Products[count]
@@ -595,12 +602,6 @@ function GrandOpeningCard.buildButtons(self: any)
 		gift.ZIndex = 5
 		self.giftButtons[index] = gift
 		self.countLabels[index] = label(card, "Count" .. count, blocksText(count), nil, 5)
-		if product.Was then
-			local save = math.floor((1 - product.Robux / product.Was) * 100 + 0.5)
-			local saveLabel = label(card, "Save" .. count, string.format(COPY.Save, save), nil, 5)
-			saveLabel:SetAttribute("Percent", save)
-			self.saveLabels[index] = saveLabel
-		end
 		local gold = HudParts.candy(card, Format.money(DEAL.Money[count]), function()
 			self.actions.money(count)
 		end, "Yellow", "CashSingle")
@@ -610,7 +611,7 @@ function GrandOpeningCard.buildButtons(self: any)
 		gold.ZIndex = 5
 		self.moneyButtons[index] = gold
 	end
-	-- The pack sizes fade in together, then the save labels.
+	-- The pack sizes fade in together.
 	local counts = HudParts.frame(card, "Counts")
 	counts.Size = UDim2.fromScale(1, 1)
 	counts.ZIndex = 5
@@ -618,13 +619,6 @@ function GrandOpeningCard.buildButtons(self: any)
 		countLabel.Parent = counts
 	end
 	self.counts = counts
-	local saves = HudParts.frame(card, "Save")
-	saves.Size = UDim2.fromScale(1, 1)
-	saves.ZIndex = 5
-	for _, saveLabel in self.saveLabels do
-		saveLabel.Parent = saves
-	end
-	self.saves = saves
 end
 
 -- The odds pop-up: a kit card beside the block, a row per outcome in its colour, the total.
@@ -963,11 +957,14 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 
 	-- The buttons: a column per pack.
 	g = groups.buttons
-	local buttonPx = textPx(L.ButtonTextUnits, g.s)
-	local rowPx = math.max(24, round(L.RowUnits * g.s * k)) -- its touch area is 44 (setMinHit)
+	-- The Robux row a little bigger than the money row (designer, 2026-10-06).
+	local greenPx = textPx(L.GreenTextUnits, g.s)
+	local goldPx = textPx(L.GoldTextUnits, g.s)
+	local rowPx = math.max(24, round(L.RowGreenUnits * g.s * k)) -- touch areas are 44 (setMinHit)
+	local goldRowPx = math.max(24, round(L.RowGoldUnits * g.s * k))
 	local giftGap = round(L.GiftGapUnits * g.s * k)
+	local giftPx = math.max(20, round(L.GiftUnits * g.s * k))
 	local countPx = textPx(L.CountTextUnits, g.s)
-	local savePx = textPx(L.SaveTextUnits, g.s)
 	local touch = Config.UI.Menu.Frame.TouchMinPx
 	for index in COUNTS do
 		local left = L.ButtonX + (index - 1) * (L.ButtonUnits + L.ButtonGapUnits)
@@ -975,30 +972,24 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 		-- The gift square and the green price share the top row.
 		local green: TextButton = self.robuxButtons[index]
 		local gift: TextButton = self.giftButtons[index]
-		put(green, g, x, L.RowGreen + L.RowUnits / 2, L.ButtonUnits, L.RowUnits)
+		put(green, g, x, L.RowGreen + L.RowGreenUnits / 2, L.ButtonUnits, L.RowGreenUnits)
 		local columnW = green.Size.X.Offset
-		local greenW = columnW - rowPx - giftGap
-		green.Position += UDim2.fromOffset(round((rowPx + giftGap) / 2), 0)
+		local greenW = columnW - giftPx - giftGap
+		green.Position += UDim2.fromOffset(round((giftPx + giftGap) / 2), 0)
 		green.Size = UDim2.fromOffset(greenW, rowPx)
-		HudParts.setButtonTextSize(green, buttonPx)
+		HudParts.setButtonTextSize(green, greenPx)
 		gift.Position = UDim2.new(0, -giftGap, 0.5, 0)
-		gift.Size = UDim2.fromOffset(rowPx, rowPx)
+		gift.Size = UDim2.fromOffset(giftPx, giftPx)
 		local countLabel = self.countLabels[index]
 		put(countLabel, g, x, L.CountY, L.ButtonUnits, 0)
 		countLabel.Size = UDim2.fromOffset(countLabel.Size.X.Offset, countPx + 6)
 		HudParts.setTextSize(countLabel, countPx)
 		local gold: TextButton = self.moneyButtons[index]
-		put(gold, g, x, L.RowGold + L.RowUnits / 2, L.ButtonUnits, L.RowUnits)
-		gold.Size = UDim2.fromOffset(gold.Size.X.Offset, rowPx)
-		HudParts.setButtonTextSize(gold, buttonPx)
+		put(gold, g, x, L.RowGold + L.RowGoldUnits / 2, L.ButtonUnits, L.RowGoldUnits)
+		gold.Size = UDim2.fromOffset(gold.Size.X.Offset, goldRowPx)
+		HudParts.setButtonTextSize(gold, goldPx)
 		for _, button in { green, gift, gold } do
 			HudParts.setMinHit(button, touch)
-		end
-		local saveLabel = self.saveLabels[index]
-		if saveLabel then
-			put(saveLabel, g, x, L.SaveY, L.ButtonUnits, 0)
-			saveLabel.Size = UDim2.fromOffset(saveLabel.Size.X.Offset, savePx + 6)
-			HudParts.setTextSize(saveLabel, savePx)
 		end
 	end
 
@@ -1295,7 +1286,14 @@ function GrandOpeningCard.register(self: any, stage: Stage.Stage, keep: (UIAnim.
 		stage:add(which .. "Odds", c.odds)
 		stage:add(which .. "Cue", c.cue, function()
 			local list: { UIAnim.Handle } = {
-				UIAnim.glowPulse(c.aura, 0.55, 0.85, if which == "Beta" then 3 else 3.5),
+				if which == "Beta"
+					then UIAnim.glowPulse(c.aura, 0.55, 0.85, 3)
+					else UIAnim.glowPulse(
+						c.aura,
+						L.GoGlow.Transparency[1],
+						L.GoGlow.Transparency[2],
+						L.GoGlow.PulseSeconds
+					),
 				sweep(c.mask, if which == "Beta" then LOOP.BetaPulseEvery else 4, 1, 0.8),
 			}
 			if which == "Beta" then
@@ -1323,15 +1321,6 @@ function GrandOpeningCard.register(self: any, stage: Stage.Stage, keep: (UIAnim.
 		end)
 	end
 	stage:add("Counts", self.counts)
-	stage:add("Save", self.saves, function()
-		local list: { UIAnim.Handle } = {}
-		for _, saveLabel in self.saveLabels do
-			if (saveLabel:GetAttribute("Percent") :: number? or 0) >= LOOP.SaveRainbowPercent then
-				table.insert(list, UIAnim.rainbow(saveLabel))
-			end
-		end
-		keep(all(list))
-	end)
 	stage:add("EndsIn", self.endsIn)
 end
 

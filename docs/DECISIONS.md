@@ -2735,3 +2735,8 @@ timer of a new block stay the designer's call.
   still says LIMITED). The lively header: the basket and "Shop" fill the row, the red X is a
   little smaller than the money pill, and the money pill has the money HUD's gold "+", which
   jumps to the Shop's Money group (its money packs, once that section is built).
+- 2026-10-06 (designer): no "save 12% / 29%" under the money buttons; the room went to bigger
+  buttons (bigger Robux glyph, cash bundle and words), the Robux row a little bigger than the
+  money row. The gift squares are smaller than the Robux row, clear of the cue cards. The
+  Grand Opening cue has a pulsing yellow glow round it (go_cue_glow.png,
+  `tools/gui/cue_glow.py`) so it stands out of its background.
