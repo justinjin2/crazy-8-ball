@@ -32,3 +32,8 @@ Scripts for building animated, layered screens (docs/prompts/SHOP_LIVELY_PROMPT.
 - `assets/ui/grand_opening/` holds the card's finished pieces (at most 1024 px). The plate is a
   new 2:1 painting in 13b's mood (13b's own plate is 3:1); the three balls are one clean ball
   at three blurs; the confetti is a regenerated sheet unscreened from black.
+- `render_cues.py` (run inside headless Blender) and `cue_sheets.py`: the two cues rendered from
+  the real in-game mesh, skins and pieces (`--tip left` like 13b), their silhouettes, and the Grand
+  Opening cue's gold ribbon loop (`loose`: 13b-like wide loops), packed into sheets with a JSON
+  beside each. The card uses the tip-left renders and the loose ribbons, played at a 2.4 s turn
+  (13.3 fps; the in-game 7.2 s turn would be 4.4 fps, too choppy).

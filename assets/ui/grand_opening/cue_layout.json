@@ -1,0 +1,31 @@
+{
+  "butt_px": [
+    2175.999389648,
+    319.999275208
+  ],
+  "canvas": [
+    2304,
+    640
+  ],
+  "cue_length_px": 2048,
+  "elevation_deg": 50.0,
+  "px_per_stud": 294.061855141,
+  "ribbons": {
+    "frames": 32,
+    "game_period_s": 7.2,
+    "note": "one full turn of both ribbons (RibbonA +50, RibbonB -50 deg/s in game)"
+  },
+  "ribbons_loose": {
+    "frames": 32,
+    "note": "not the in-game piece: its helix with a longer pitch, wider (13b)",
+    "offset_studs": 0.3,
+    "pitch_studs": 3.4
+  },
+  "thicken": 1.4,
+  "tip": "left",
+  "tip_px": [
+    127.999408722,
+    319.99961853
+  ],
+  "yaw_deg": 9.0
+}
