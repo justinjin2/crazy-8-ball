@@ -2759,3 +2759,11 @@ timer of a new block stay the designer's call.
   dimming and glowing back (a rock like the 8-ball flair was tried and dropped); the cue itself
   stays still with its glow and shine. The lucky block and crown breathe a little faster (3.1 s to 2.3 s).
   **Only the Robux buttons shine**; the money buttons stay still, so the eye goes to Robux.
+- 2026-10-06: **the lively Shop is the template for every GUI** (designer: "every future gui
+  should follow this same workflow and format, with the background frame, animation popup").
+  The method is the project skill `.claude/skills/lively-gui/`. Other menus switch to the new
+  frame each when it is rebuilt with the skill, not all at once. The process scales: big
+  screens go through every gate (target picture, art sheet, animatic, Studio first look,
+  final); small popups and HUD pieces get a Studio first look, then the final check. A target
+  picture comes from the designer when they have one, otherwise Claude mocks two or three to
+  pick from. Next after this run: the Shop's Blocks, Money and Passes pages.

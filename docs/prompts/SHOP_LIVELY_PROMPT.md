@@ -490,7 +490,7 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
       the tab-switch stagger, the kit switch (Shop on).
 - [x] 8. The Grand Opening card: every piece and loop, real text, the odds chips and the block's
       odds pop-up, the buttons on the existing buy flow, the live timer, the phone layout.
-- [ ] 9. Recordings and contact sheets against the references, performance, Lower effects,
+- [x] 9. Recordings and contact sheets against the references, performance, Lower effects,
       Reduce Motion, gamepad; **gate 4**.
 - [ ] 10. Polish from the designer's notes; phone and PC (the designer switches the emulator);
       final recordings; **gate 5**.
@@ -608,6 +608,12 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   cue and ribbons baked together; a rock was tried, then dropped): the ribbons are their own
   still picture over the still cue and pulse, dimming and glowing back, with no movement
   (`Loops.RibbonDimTransparency`, `RibbonPulseSeconds`).
+- 2026-10-06: **gate 4 approved** ("looks perfect now"). The designer asked for the skill now
+  and gate 5 next, and answered: other menus get the new frame each when it is rebuilt with
+  the skill (not all at once); the process scales with the screen (big screens every gate,
+  small popups and HUD pieces a Studio first look then the final check); a new screen's target
+  picture comes from the designer when they have one, otherwise Claude mocks two or three to
+  pick from; after this run, the rest of the Shop (Blocks, Money, Passes) with the skill.
 
 
 ## Decisions
