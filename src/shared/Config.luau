@@ -10205,6 +10205,13 @@ Config.UI.FreeReward = {
 	ButtonPx = { 44, 54 },
 	-- After Roblox's favorite prompt says yes, look again this long for GetFavorite to agree.
 	FavoriteCheckSeconds = 3,
+	-- A look (designer, 2026-10-05): every word on the page, its title bar included, in this
+	-- font instead of the kit's Fredoka One, as the left column's words are. A font family file
+	-- and an Enum.FontWeight name; nil puts the page back on Fredoka One. (tune)
+	Font = {
+		Family = "rbxasset://fonts/families/BuilderExtended.json",
+		Weight = "ExtraBold", -- Builder Extended's heaviest
+	},
 }
 
 -- The hub's small corner buttons (HubCorners; GUI lane, C2): the Daily Challenge on the right

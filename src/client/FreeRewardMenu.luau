@@ -347,6 +347,9 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end,
 		root = frame.root,
 	}
+	if F.Font then
+		HudParts.useFont(frame.root, F.Font)
+	end
 	Menus.register(NAME, handle)
 	return handle
 end

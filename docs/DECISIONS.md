@@ -2585,3 +2585,6 @@ timer of a new block stay the designer's call.
   ExtraBold** (designer; ExtraBold is its heaviest cut in Roblox). Still a test; everything
   else keeps Fredoka One. Roblox has no plain Fredoka (only Fredoka One), and no letter
   spacing or horizontal/vertical text stretch (checked in Studio).
+- 2026-10-05: A look (designer): the whole Free Reward page, its title bar included, in
+  Builder Extended ExtraBold too (`Config.UI.FreeReward.Font`; nil puts it back on Fredoka
+  One). Still a test, not a kit change.

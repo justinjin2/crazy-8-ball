@@ -120,6 +120,21 @@ function HudParts.setTextSize(object: TextLabel, size: number, floor: number?)
 	end
 end
 
+--- Put every text under `root` in another font, now and as texts are added (a font test
+--- over a whole page). `spec`: a font family file and an Enum.FontWeight name.
+function HudParts.useFont(root: Instance, spec: { Family: string, Weight: string })
+	local face = Font.new(spec.Family, (Enum.FontWeight :: any)[spec.Weight])
+	local function apply(object: Instance)
+		if object:IsA("TextLabel") or object:IsA("TextButton") or object:IsA("TextBox") then
+			(object :: any).FontFace = face
+		end
+	end
+	for _, object in root:GetDescendants() do
+		apply(object)
+	end
+	root.DescendantAdded:Connect(apply)
+end
+
 --- Fade a kit text with its outline.
 function HudParts.setTextTransparency(object: TextLabel, transparency: number)
 	object.TextTransparency = transparency
