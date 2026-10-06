@@ -6,9 +6,10 @@
 -- Why a hidden copy: a SurfaceAppearance's maps are fetched by the renderer only when one is
 -- drawn (ContentProvider:PreloadAsync on its template loads just the mesh, and on the map ids
 -- loads them in another form the renderer fetches again). So `warm(id)` draws a copy of the cue
--- Config.CueSkins.Warm.Transparency see-through and shrunk to Warm.Scale (a few pixels) in front
--- of the camera: its surface (and every moving-surface frame), its 3D piece, and one particle
--- and one beam per effect sprite. Never seen: at full size it showed as a faint ghost cue.
+-- Config.CueSkins.Warm.Transparency see-through, shrunk to Warm.Scale (a few pixels), in the
+-- screen's top-left corner under Roblox's menu button (Warm.CornerPx): its surface (and every
+-- moving-surface frame), its 3D piece, and one particle and one beam per effect sprite. Never
+-- seen: full size in the middle of the view, it showed as a faint ghost cue.
 --
 -- The cue is ready when every one of those textures has reported loaded (ContentProvider's
 -- fetch status) for SettleSeconds, the copy has been drawn MinSeconds and MinFrames, and its
@@ -225,9 +226,12 @@ local repair: (w: Warm, failed: { string }) -> ()
 local function step()
 	local now = os.clock()
 	local camera = Workspace.CurrentCamera
-	local at = if camera
-		then camera.CFrame * CFrame.new(0, 0, -W.DistanceStuds)
-		else CFrame.new(0, -1e4, 0)
+	local at = CFrame.new(0, -1e4, 0)
+	if camera then
+		-- In the top-left corner (CornerPx), facing as the camera does.
+		local ray = camera:ViewportPointToRay(W.CornerPx[1], W.CornerPx[2])
+		at = CFrame.new(ray.Origin + ray.Direction * W.DistanceStuds) * camera.CFrame.Rotation
+	end
 	local emit = now - lastEmit >= W.SpriteEmitSeconds
 	if emit then
 		lastEmit = now

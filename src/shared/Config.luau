@@ -4555,7 +4555,11 @@ Config.CueSkins = {
 	-- empty gap, only how soon after Equip the swap happens. (tune)
 	Warm = {
 		Transparency = 0.99, -- the hidden copy: drawn (the renderer loads it), never seen
-		DistanceStuds = 10, -- in front of the camera, so it is always in view
+		DistanceStuds = 10, -- from the camera, so it is always in view
+		-- Where on the screen, in pixels from the top-left corner: under Roblox's own round
+		-- menu button, which covers it and where nobody looks (designer, 2026-10-05; it was
+		-- the middle of the view). The shrunk copy is about 20 px long, so it stays on screen. (tune)
+		CornerPx = { 34, 30 },
 		-- The copy (stick, piece and effect sprites) at this share of its size: at full size it
 		-- showed as a faint ghost cue and a round blur across the view, plainest over a match's
 		-- felt (designer, 2026-10-05, live). A few pixels at 1% is never seen; the renderer

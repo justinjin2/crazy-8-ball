@@ -2611,3 +2611,8 @@ timer of a new block stay the designer's call.
   1% still showed. The copies are now shrunk to 5% (`Config.CueSkins.Warm.Scale`): still
   drawn, so textures still load, but a few pixels at 1% are never seen. Nothing else in the
   game is drawn hidden in view (the effects preload with PreloadAsync).
+- 2026-10-05: The hidden cue-loading copies moved from the middle of the view to the screen's
+  top-left corner, under Roblox's round menu button (designer: "where almost no one would
+  look"; `Config.CueSkins.Warm.CornerPx`, 34 by 30 px). Measured in Studio: the shrunk copies
+  span about x 17-51, y 15-36 px, all on screen (so still drawn and loaded) and inside the
+  button, which is drawn over the world.
