@@ -524,7 +524,11 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
 - 2026-10-06: step 4 done. 47 pictures uploaded to the group (dry-run first), image ids read in
   Studio into `tools/upload_manifest.json`, then into `Config.UI.Effects` (fireworks, sparkle,
   gold ribbons with their frame layout, rays) and `Config.UI.GrandOpeningCard.Images` (every
-  card piece, the dot tile). All 48 ids preload with Success in Studio. Next: the animatic.
+  card piece, the dot tile). All 48 ids preload with Success in Studio.
+- 2026-10-06: the animatic built (`tools/gui/animatic/index.html`; local copy served with
+  `python3 -m http.server 8765` from the repo root, `?t=1.2` freezes a moment for checks;
+  published at https://claude.ai/artifact/ABF5JjwmsSNMqNXw2SU2tJ). **Gate 3 shown, waiting**
+  for the designer's slider values.
 
 ## Decisions
 
