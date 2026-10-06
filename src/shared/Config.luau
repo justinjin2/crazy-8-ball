@@ -6557,6 +6557,21 @@ Config.Multiplayer = {
 		BreakDotSpacingInches = 2, -- dotted break line spacing
 		Green = { 92, 223, 157 }, -- the glow on your own balls on the table (Main)
 		Red = { 242, 104, 112 }, -- the guideline's red X on a wrong target (Guideline)
+		-- The balls pulse to call something out (designer, 2026-10-06; BallCallouts, BallPulse):
+		-- every solid and stripe when the groups are decided, with YOU ARE SOLIDS / STRIPES,
+		-- and a team's last ball once per game as a warning to the other side. Seen by each
+		-- player from their own side: their balls in Own, the other side's in Other. (tune)
+		BallPulse = {
+			Own = { 92, 223, 157 }, -- your balls (the same green as their usual outline)
+			Other = { 242, 104, 112 }, -- the other side's balls
+			-- The reveal lasts as long as the YOU ARE popup (GroupPopupSeconds).
+			LastBallSeconds = 3, -- the last-ball warning
+			FadeInSeconds = 0.2, -- the glow comes up
+			FadeOutSeconds = 0.5, -- and goes down at the end, inside the seconds above
+			Rate = 1.6, -- pulses a second
+			Low = 0.35, -- the glow's strength between pulses (1 at each peak)
+			FillPeak = 0.55, -- how solid the colour wash over the ball is at a peak (0..1)
+		},
 		FadeSeconds = 0.25, -- panel/status motion
 		PulseSeconds = 1.8, -- calm ambient pulse
 	},

@@ -27,6 +27,8 @@ local BackCue = require(script.Parent.BackCue)
 local BotChat = require(script.Parent.BotChat) -- the Bots lane
 local People = require(script.Parent.People) -- the Bots lane: players and bots behind one lookup
 local TutorialAnchors = require(script.Parent.TutorialAnchors) -- the tutorial lane
+local BallCallouts = require(Shared.BallCallouts)
+local BallPulse = require(script.Parent.BallPulse)
 local CueAssets = require(script.Parent.CueAssets)
 local CueSkinLook = require(script.Parent.CueSkinLook)
 local Effects = require(script.Parent.Effects)
@@ -181,6 +183,9 @@ local ownHighlights: { Highlight } = {}
 -- What the highlights were last built for, so an unchanged view does not rebuild them.
 local highlightKey = ""
 local highlightRenderer: any = nil
+-- The balls pulse when the groups are decided and at a team's last ball (BallCallouts).
+local callouts = BallCallouts.new()
+local ballPulse = BallPulse.new()
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
@@ -365,6 +370,7 @@ local function highlightOwn()
 	local renderer = match and match.renderer
 	if not view or not renderer or view.phase == "Result" then
 		clearHighlights()
+		ballPulse:clear()
 		return
 	end
 	local team = 1
@@ -379,14 +385,51 @@ local function highlightOwn()
 		group = "solids"
 	end
 	local downMask = 0
+	local down: { [number]: boolean } = {}
 	local left: { [string]: number } = { solids = 0, stripes = 0 } -- balls still up per group
 	for id = 1, 15 do
 		local ball = Judge.group(id)
 		if view.balls[id * 4 + 4] == 1 then
 			downMask = bit32.bor(downMask, bit32.lshift(1, id))
+			down[id] = true
 		elseif ball then
 			left[ball] += 1
 		end
+	end
+	-- The groups just decided, or a team down to its last ball: pulse them (designer,
+	-- 2026-10-06). Seen from this player's side: their balls in Own, the others in Other.
+	local P = M.Style.BallPulse
+	local gameKey = ("%d:%d"):format(view.id, view.epoch)
+	if gameKey ~= callouts.key then
+		ballPulse:clear() -- another table or a new game: the last one's pulse stops
+	end
+	local calls = BallCallouts.observe(callouts, gameKey, view.groups, down, view.solo ~= nil)
+	if #calls > 0 then
+		local mine = view.groups[team]
+		local items: { BallPulse.Item } = {}
+		local reveal = calls[1].kind == "Reveal"
+		for _, call in calls do
+			for _, b in match.state.balls do
+				local ballGroup = Judge.group(b.id)
+				local part = renderer.parts and renderer.parts[b.id]
+				local wanted = if call.kind == "Reveal"
+					then ballGroup ~= nil
+					else b.id == call.ball and not reveal
+				if wanted and not down[b.id] and part and part:IsA("BasePart") then
+					local own = ballGroup ~= nil and ballGroup == mine
+					table.insert(
+						items,
+						{ part = part, color = rgb(if own then P.Own else P.Other) }
+					)
+				end
+			end
+		end
+		ballPulse:start(items, if reveal then M.Style.GroupPopupSeconds else P.LastBallSeconds)
+	end
+	-- The pulse stands in for the usual outlines while it runs; they come back after it.
+	if ballPulse:active() then
+		clearHighlights()
+		return
 	end
 	-- Solo plays the first group, then the other: read off the balls shown down, so the
 	-- switch (and the 8) comes the moment the replay drops the last of the first group.
@@ -759,6 +802,7 @@ local function acquireTable(s: any?)
 		queueMenu:setSnapshot(nil, player.UserId)
 		hudView, viewVersion = nil, -1
 		clearHighlights()
+		ballPulse:clear()
 		match, placement = nil, nil
 		lastTurnKey, lastPhaseKey = "", ""
 		if oldId and audioByTable[oldId] then
@@ -1321,6 +1365,9 @@ local function renderFrame(dt: number)
 	-- hub:update has dispatched this frame's events; show any ball they dropped.
 	if match.downVersion ~= viewVersion then
 		refreshView()
+	end
+	if ballPulse:step() then
+		highlightOwn()
 	end
 	local now = workspace:GetServerTimeNow()
 	-- A strike in stopped time has no new turn to answer it: its part arriving does (else the

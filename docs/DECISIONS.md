@@ -2771,3 +2771,9 @@ timer of a new block stay the designer's call.
   hover, click, tap or A on the badge). **Every close X that B closes shows the controller's
   back button** (Circle, or B on Xbox) on its corner while a gamepad is the last input, like
   the menu column's D-pad glyphs (`HudParts.padBack`; every menu, and popups with their own X).
+- 2026-10-06: **the balls pulse to call things out** (designer). The groups decided: every
+  solid and stripe glows and pulses for as long as the YOU ARE popup (yours green, theirs red,
+  from each player's side). A team down to its last ball (the 8 not counted): that ball pulses
+  for 3 s as a warning, once per team per game (a miss and a later turn never repeat it; the
+  opponent sinking your ball down to one counts too). Not in solo. `BallCallouts` decides,
+  `BallPulse` draws, `Config.Multiplayer.Style.BallPulse` tunes.

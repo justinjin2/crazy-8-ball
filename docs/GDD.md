@@ -169,6 +169,11 @@ Every feature is checked against these. If it serves none, it waits.
   thins (cos of the cut angle), the cue ball's line does the reverse (sin). See section 7 for the harder difficulties.
 - Balls not in your group are marked with an X and your group gets a slight highlight, drawn on
   each viewer's own screen. A HUD shows which balls you have pocketed.
+- **The balls pulse to call things out (designer, 2026-10-06):** when the groups are decided,
+  every solid and stripe glows and pulses with the YOU ARE popup (yours green, theirs red, from
+  each player's side). When a team is down to its last ball of its group (the 8 not counted),
+  that ball pulses the same way for a few seconds as a warning to the other side: once per team
+  per game, never again after a miss. Not in solo, and never for someone arriving mid-game.
 - **Physics realism choices (2026-09-22, implemented):** keep one power bar, with no
   separate break control, reaching 25 mph (it was 30 until 2026-09-30: pros average about
   24 mph on the break). Rolling friction 0.0125, a medium cloth (0.010 until 2026-09-30,
