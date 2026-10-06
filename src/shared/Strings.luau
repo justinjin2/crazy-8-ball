@@ -577,12 +577,13 @@ return {
 	-- The left column and the full menus (MenuColumn, MenuFrame and the four menus).
 	Menus = {
 		-- Each column tile's word, across its bottom edge (real text, never in the image).
+		-- The left column's words, in capitals (designer, 2026-10-06).
 		Column = {
-			Shop = "Shop",
-			Inventory = "Inventory",
-			Rewards = "Rewards",
-			Trade = "Trade",
-			FreeReward = "Free Reward",
+			Shop = "SHOP",
+			Inventory = "INVENTORY",
+			Rewards = "REWARDS",
+			Trade = "TRADE",
+			FreeReward = "FREE REWARD",
 		},
 		-- Each menu's title in its header band.
 		Titles = {
@@ -1131,7 +1132,7 @@ return {
 		-- Names and Rarities above; money is "$1,750" (Progression/Format); a Robux price is
 		-- Strings.Menus.Shop.Robux.
 		Screen = {
-			Column = "Abilities", -- the left column's tile
+			Column = "ABILITIES", -- the left column's tile, in capitals
 			Current = "CURRENT ABILITY:",
 			DescriptionSoon = "%s (Coming soon)", -- a placeholder ability's description
 			-- The slot cards.
