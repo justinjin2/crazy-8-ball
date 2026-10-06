@@ -2731,3 +2731,7 @@ timer of a new block stay the designer's call.
   odds chip sits at the bottom-right of both cards. The 8-ball sits low on the left edge.
   GrandOpening1/3/10 were created on Roblox (ids in Config; icon: the crowned block); the
   poppers, streamers and twinkles stay on.
+- 2026-10-06 (designer): the cue cards lose their LIMITED pill (UNIQUE only; the subtitle
+  still says LIMITED). The lively header: the basket and "Shop" fill the row, the red X is a
+  little smaller than the money pill, and the money pill has the money HUD's gold "+", which
+  jumps to the Shop's Money group (its money packs, once that section is built).

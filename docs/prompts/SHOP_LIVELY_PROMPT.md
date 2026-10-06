@@ -589,6 +589,8 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   poppers, streamers and twinkles stay on. Third round of changes done: HudFocus (every menu
   hides the rest of the HUD), a smaller lively header, tighter rows, the next section peeking
   in, smaller pills, the odds chip bottom-right on both cue cards.
+- 2026-10-06: no LIMITED pill on the cue cards; a bigger header title and icon, a smaller X,
+  and a gold "+" on the header's money pill (jumps to Money).
 
 
 ## Decisions

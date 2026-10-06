@@ -5,7 +5,7 @@
 -- fireworks, drifting confetti, bokeh and twinkles; the lucky block (glow, rays, breathe, shine,
 -- its crown baked on so it breathes and shines with it, the tilted NEW tag, the sky-blue odds
 -- badge and the live "Ends in" timer); the arched GRAND OPENING title with its stars and
--- subtitle; the Beta and Grand Opening cue cards (their names, UNIQUE and LIMITED pills, odds
+-- subtitle; the Beta and Grand Opening cue cards (their names, UNIQUE pills, odds
 -- chips and their own loops); a column per pack: the purple gift square (the Gift Player popup)
 -- and the green Robux price, the pack's "3 blocks", the gold money button and its "save" label.
 -- Pictures, places and loop numbers are in Config.UI.GrandOpeningCard, words in Strings
@@ -537,7 +537,8 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 	pills.ZIndex = 6
 	c.pills = pills
 	c.pillParts = {}
-	for _, row in { { COPY.Unique, L.UniqueColor }, { COPY.Limited, L.LimitedColor } } do
+	-- Only UNIQUE (designer, 2026-10-06: no LIMITED pill on the cue cards).
+	for _, row in { { COPY.Unique, L.UniqueColor } } do
 		local made, text = pill(pills, "Pill", row[1], rgb(row[2]), 6)
 		made.AnchorPoint = Vector2.new(0, 0)
 		table.insert(c.pillParts, { pill = made, words = text })
@@ -953,9 +954,7 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 				code.ImageTransparency = 1 - row[3]
 			end
 		end
-		for _, stroke in
-			{ strokeOf(c.odds), strokeOf(c.pillParts[1].pill), strokeOf(c.pillParts[2].pill) }
-		do
+		for _, stroke in { strokeOf(c.odds), strokeOf(c.pillParts[1].pill) } do
 			if stroke then
 				stroke.Thickness = math.max(2, round(4 * g.s * k))
 			end

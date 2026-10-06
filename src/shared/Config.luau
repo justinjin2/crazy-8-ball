@@ -7243,9 +7243,11 @@ Config.UI.Menu = {
 		Frame = {
 			HeaderPx = { 32, 44 }, -- the title row
 			TitleScale = 0.75,
+			TitleOfHeader = 0.82, -- the title fills its row, the icon beside it as tall as the row
 			IconShare = 1.3,
-			CloseMaxPx = 34, -- the red X (its touch area stays 44)
-			MoneyPx = { 24, 30 },
+			CloseMaxPx = 34,
+			CloseOfMoney = 0.95, -- the red X a little smaller than the money pill (its touch area stays 44)
+			MoneyPx = { 28, 34 },
 			MoneyTextPx = { 16, 18 },
 			PaddingPx = { 4, 8 },
 			GapPx = { 4, 6 },
@@ -7371,6 +7373,8 @@ Config.UI.Menu = {
 		MoneyPx = { 32, 38 }, -- the header's money pill (menus that show it)
 		MoneyTextPx = { 16, 20 },
 		MoneyIconShare = 1.25, -- its cash bundle, of the pill's height (pokes out)
+		MoneyPlusShare = 1.05, -- the "+" on the pill's end (a menu that has one), of the pill's height
+		MoneyPlusGapPx = 10, -- room between the "+" and the red X (the X's touch area)
 		PlaceholderTextPx = 18, -- the "Loading..." line on an empty page
 	},
 	-- MenuFrame.scroller: a vertical list or grid of cards in a page.
@@ -7835,13 +7839,12 @@ Config.UI.GrandOpeningCard = {
 		GoNameUnits = 26,
 		BetaColors = { { 70, 215, 255 }, { 255, 106, 213 } }, -- "BETA" cyan, "CUE" pink
 		GoColors = { { 255, 210, 58 }, { 255, 255, 255 } }, -- "GRAND OPENING" gold, "CUE" white
-		PillsAt = { 18, 64 }, -- the UNIQUE and LIMITED pills' top-left
+		PillsAt = { 18, 64 }, -- the UNIQUE pill's top-left
 		PillUnits = { 104, 30 },
 		PillTextUnits = 20,
 		PillMinTextPx = 9, -- the pills may go smaller than MinTextPx: they sit over the cue (designer, 2026-10-06)
 		PillGapUnits = 8,
 		UniqueColor = { 226, 79, 216 },
-		LimitedColor = { 255, 197, 46 },
 		-- The odds chip, at the card's bottom-right on both cards (designer, 2026-10-06: the same
 		-- place on each): its width and height.
 		OddsChip = { 76, 32 },

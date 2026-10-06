@@ -72,6 +72,11 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		title = Strings.Menus.Titles.Shop,
 		icon = if K.Icons.ShopBasket ~= "" then "ShopBasket" else "Shop",
 		money = true,
+		-- The money pill's "+" goes to the money packs, as the money HUD's does (designer,
+		-- 2026-10-06; the Money group's page comes with its section).
+		moneyPlus = function()
+			self:jump("Money")
+		end,
 	})
 	self.frame = frame
 	local page = frame:page()

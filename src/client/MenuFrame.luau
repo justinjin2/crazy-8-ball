@@ -76,6 +76,7 @@ export type Options = {
 	icon: string?, -- a Config.UI.Kit.Icons key for the header
 	tabs: { Tab }?, -- none: one page, "Main"
 	money: boolean?, -- show the player's money in the header (the Shop, the Inventory)
+	moneyPlus: (() -> ())?, -- a gold "+" on the money pill's end (the Shop: its money packs)
 }
 
 -- The sizes of the last layout, for the pages (onLayout).
@@ -354,6 +355,23 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 		amount.ZIndex = 2
 		self.moneyPill, self.moneyCash, self.moneyAmount = pill, cash, amount
 		self:refreshMoney()
+		local onPlus = opts.moneyPlus
+		if onPlus then
+			-- The money HUD's "+" (MoneyHud), on the pill's right end.
+			local plus = HudParts.candy(header, "+", function()
+				UISound.play("Click")
+				onPlus()
+			end, "Yellow")
+			plus.Name = "MoneyPlus"
+			plus.AnchorPoint = Vector2.new(1, 0.5)
+			plus.ZIndex = 3
+			local parts = HudParts.candyParts(plus)
+			if parts then
+				parts.label.AutoLocalize = false
+			end
+			HudParts.setMinHit(plus, F.TouchMinPx)
+			self.moneyPlus = plus
+		end
 	end
 
 	-- The tabs.
@@ -580,6 +598,10 @@ function MenuFrame.layout(self: any): boolean
 	local gap = span(FR.GapPx, t)
 	local iw = w - 2 * pad
 	local titleSize = math.max(K.Text.Min, round(K.Text.Title * FR.TitleScale * k))
+	if FR.TitleOfHeader then
+		-- The lively header's title fills its row (designer, 2026-10-06).
+		titleSize = math.max(K.Text.Min, round(span(FR.HeaderPx, t) * FR.TitleOfHeader))
+	end
 	local heading = math.max(K.Text.Min, round(K.Text.Heading * k))
 	local body = math.max(K.Text.Min, round(K.Text.Body * k))
 	local buttonText = math.max(K.Text.Min, round(K.Text.Button * k))
@@ -596,23 +618,37 @@ function MenuFrame.layout(self: any): boolean
 	self.header.Position = UDim2.fromOffset(pad, pad)
 	self.header.Size = UDim2.fromOffset(iw, headerH)
 
-	-- Right to left: the X, then the money pill.
+	-- Right to left: the X, then the money pill (and its "+").
+	local mh = math.min(headerH, span(FR.MoneyPx, t))
 	local closeSize = math.min(headerH, FR.CloseMaxPx)
+	if FR.CloseOfMoney then
+		closeSize = round(mh * FR.CloseOfMoney) -- smaller than the money pill (lively)
+	end
 	local close: TextButton = self.closeButton
 	close.AnchorPoint = Vector2.new(1, 0.5)
 	close.Size = UDim2.fromOffset(closeSize, closeSize)
 	close.Position = UDim2.fromOffset(iw - headRight, round(headerH / 2))
 	local right = iw - headRight - closeSize - gap -- where the left group must end
+	local plus: TextButton? = self.moneyPlus
+	local underPlus = 0 -- the pill's width hidden under the "+"
+	if plus then
+		local plusSize = round(mh * FR.MoneyPlusShare)
+		right -= round(FR.MoneyPlusGapPx)
+		plus.Size = UDim2.fromOffset(plusSize, plusSize)
+		plus.Position = UDim2.fromOffset(right, round(headerH / 2))
+		HudParts.setButtonTextSize(plus, math.max(K.Text.Min, round(plusSize * 0.8)))
+		underPlus = round(plusSize / 2)
+		right -= underPlus -- the pill runs under the "+"'s left half
+	end
 	local pill: Frame? = self.moneyPill
 	if pill then
-		local mh = math.min(headerH, span(FR.MoneyPx, t))
 		local mt = math.max(K.Text.Min, span(FR.MoneyTextPx, t))
 		local cash = round(mh * FR.MoneyIconShare)
 		local over = round(cash * 0.35) -- the bundle pokes out past the pill's left end
 		local amount: TextLabel = self.moneyAmount
 		HudParts.setTextSize(amount, mt)
 		local words = math.ceil(textWidth(amount.Text, mt)) + 6
-		local mw = cash - over + 4 + words + 8
+		local mw = cash - over + 4 + words + 8 + underPlus
 		pill.AnchorPoint = Vector2.new(1, 0.5)
 		pill.Size = UDim2.fromOffset(mw, mh)
 		pill.Position = UDim2.fromOffset(right, round(headerH / 2))
