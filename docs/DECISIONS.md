@@ -2777,3 +2777,7 @@ timer of a new block stay the designer's call.
   for 3 s as a warning, once per team per game (a miss and a later turn never repeat it; the
   opponent sinking your ball down to one counts too). Not in solo. `BallCallouts` decides,
   `BallPulse` draws, `Config.Multiplayer.Style.BallPulse` tunes.
+- 2026-10-06: **ball callouts are green only, slower and brighter** (designer). The other group
+  no longer glows red at the reveal; only your own group pulses. The last-ball warning pulses
+  green for everyone. Each callout is 3 pulses of 2 s (6 s, longer than the YOU ARE popup) and
+  brighter (`Config.Multiplayer.Style.BallPulse`: Color, Pulses, PulseSeconds, FillPeak).

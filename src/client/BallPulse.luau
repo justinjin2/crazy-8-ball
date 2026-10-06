@@ -1,15 +1,14 @@
 --!strict
--- BallPulse: makes a few balls on the table glow and pulse for a moment, each in its own
--- colour (Config.Multiplayer.Style.BallPulse). Main starts one when BallCallouts calls the
--- groups or a team's last ball out, and keeps the usual own-ball outlines off while it runs,
--- so the Highlights never pile up past Roblox's per-client budget (15 at most here).
+-- BallPulse: makes a few balls on the table glow and pulse a few slow times
+-- (Config.Multiplayer.Style.BallPulse). Main starts one when BallCallouts calls the groups or a
+-- team's last ball out, and leaves a pulsing ball's usual outline off while it runs, so a ball
+-- never carries two Highlights (7 at most here, inside Roblox's per-client budget).
 --
 -- A Highlight follows its ball, so a reveal mid-replay glows on balls still rolling; a ball
 -- that sinks takes its glow down with it as it fades.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
-local FxMath = require(Shared:WaitForChild("FxMath"))
 
 local P = Config.Multiplayer.Style.BallPulse
 
@@ -33,6 +32,16 @@ end
 
 function BallPulse.active(self: BallPulse): boolean
 	return #self.glows > 0
+end
+
+--- Whether `part` is pulsing now (its usual outline stays off meanwhile).
+function BallPulse.has(self: BallPulse, part: BasePart): boolean
+	for _, glow in self.glows do
+		if glow.part == part then
+			return true
+		end
+	end
+	return false
 end
 
 function BallPulse.clear(self: BallPulse)
@@ -71,11 +80,10 @@ function BallPulse.step(self: BallPulse): boolean
 		self:clear()
 		return true
 	end
-	local hold = math.max(0, self.seconds - P.FadeInSeconds - P.FadeOutSeconds)
-	local weight = FxMath.envelope(t, P.FadeInSeconds, hold, P.FadeOutSeconds)
-	-- Starts at a peak: 1 at each beat, Low between.
-	local beat = 0.5 + 0.5 * math.cos(2 * math.pi * P.Rate * t)
-	local glow = weight * (P.Low + (1 - P.Low) * beat)
+	-- Each pulse rises from nothing to full and falls back over PulseSeconds, so the last one
+	-- ends dark and the glow never pops off.
+	local beat = 0.5 - 0.5 * math.cos(2 * math.pi * t / P.PulseSeconds)
+	local glow = P.Low + (1 - P.Low) * beat
 	for _, g in self.glows do
 		-- A ball fading out of a pocket takes its glow with it.
 		local strength = glow * (1 - g.part.Transparency)

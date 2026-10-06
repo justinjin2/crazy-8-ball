@@ -396,8 +396,8 @@ local function highlightOwn()
 			left[ball] += 1
 		end
 	end
-	-- The groups just decided, or a team down to its last ball: pulse them (designer,
-	-- 2026-10-06). Seen from this player's side: their balls in Own, the others in Other.
+	-- The groups just decided: this player's group pulses green; a team down to its last ball:
+	-- that ball pulses green for everyone (designer, 2026-10-06).
 	local P = M.Style.BallPulse
 	local gameKey = ("%d:%d"):format(view.id, view.epoch)
 	if gameKey ~= callouts.key then
@@ -407,29 +407,18 @@ local function highlightOwn()
 	if #calls > 0 then
 		local mine = view.groups[team]
 		local items: { BallPulse.Item } = {}
-		local reveal = calls[1].kind == "Reveal"
 		for _, call in calls do
 			for _, b in match.state.balls do
-				local ballGroup = Judge.group(b.id)
 				local part = renderer.parts and renderer.parts[b.id]
 				local wanted = if call.kind == "Reveal"
-					then ballGroup ~= nil
-					else b.id == call.ball and not reveal
+					then mine ~= nil and Judge.group(b.id) == mine
+					else b.id == call.ball
 				if wanted and not down[b.id] and part and part:IsA("BasePart") then
-					local own = ballGroup ~= nil and ballGroup == mine
-					table.insert(
-						items,
-						{ part = part, color = rgb(if own then P.Own else P.Other) }
-					)
+					table.insert(items, { part = part, color = rgb(P.Color) })
 				end
 			end
 		end
-		ballPulse:start(items, if reveal then M.Style.GroupPopupSeconds else P.LastBallSeconds)
-	end
-	-- The pulse stands in for the usual outlines while it runs; they come back after it.
-	if ballPulse:active() then
-		clearHighlights()
-		return
+		ballPulse:start(items, P.Pulses * P.PulseSeconds)
 	end
 	-- Solo plays the first group, then the other: read off the balls shown down, so the
 	-- switch (and the 8) comes the moment the replay drops the last of the first group.
@@ -438,12 +427,13 @@ local function highlightOwn()
 		group = if left[first] > 0 then first else Judge.opposite(first)
 	end
 	local eight = group ~= nil and left[group] == 0
-	local key = ("%d:%d:%s:%s:%d"):format(
+	local key = ("%d:%d:%s:%s:%d:%s"):format(
 		view.id,
 		view.epoch,
 		group or "",
 		tostring(eight),
-		downMask
+		downMask,
+		tostring(ballPulse:active())
 	)
 	if key == highlightKey and renderer == highlightRenderer then
 		return
@@ -464,7 +454,14 @@ local function highlightOwn()
 		local own = ball == group or (b.id == 8 and eight)
 		local other = strong and ball ~= nil and ball ~= group
 		local part = renderer.parts and renderer.parts[b.id]
-		if view.balls[b.id * 4 + 4] ~= 1 and (own or other) and part and part:IsA("BasePart") then
+		-- A pulsing ball has the pulse's glow instead (BallPulse).
+		if
+			view.balls[b.id * 4 + 4] ~= 1
+			and (own or other)
+			and part
+			and part:IsA("BasePart")
+			and not ballPulse:has(part)
+		then
 			local h = Instance.new("Highlight")
 			h.Adornee = part
 			h.DepthMode = Enum.HighlightDepthMode.Occluded
