@@ -5853,6 +5853,12 @@ Config.UI = {
 			Drop = { Everywhere = true, OutlineShare = 0.45, MinPx = 1.5 },
 		},
 		-- Raised candy buttons: a light top, the colour, then a darker lip along the bottom.
+		-- The controller's back button (Circle, or B on Xbox: Roblox's own picture) on a close
+		-- X's bottom-left corner while a gamepad is the last input, like the menu column's D-pad
+		-- glyphs, so a controller player sees how to leave (designer, 2026-10-06;
+		-- HudParts.padBack): an ink disc (Roblox's white pictures vanish on the pale header) its
+		-- size as a share of the X, the picture's share of the disc, its centre in shares of the X.
+		PadBack = { Share = 0.8, GlyphShare = 0.92, At = { 0.02, 0.88 } },
 		Buttons = {
 			Green = { Top = { 140, 240, 160 }, Mid = { 61, 214, 107 }, Lip = { 30, 150, 70 } },
 			Red = { Top = { 255, 150, 150 }, Mid = { 255, 77, 77 }, Lip = { 196, 38, 56 } },

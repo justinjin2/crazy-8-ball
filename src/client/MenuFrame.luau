@@ -342,6 +342,7 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 	end, "Red", "X")
 	close.Name = "Close"
 	HudParts.setMinHit(close, F.TouchMinPx)
+	HudParts.padBack(close) -- B closes every menu
 	self.closeButton = close
 	if self.showMoney then
 		local pill = HudParts.pill(header, "Money", WHITE)

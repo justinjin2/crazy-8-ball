@@ -101,6 +101,8 @@ Each rule came from a note on the Shop; apply it everywhere.
   buttons shine** (the money buttons stay still so the eye goes to Robux). A purple gift
   square sits left of every Robux button for a developer product (the Gift Player popup).
 - **Sibling cards match**: the same chip (odds, price) in the same corner on every card.
+- **Odds open from the "i" badge only**, never from the whole picture it sits on (hover,
+  click, tap or A on the badge; its press area is a 44 px touch target round the small badge).
 - **Labels never cover the art they label**: pills and chips sit clear of the cue, block or
   icon; shrink them first.
 - **A busy picture gets a tinted glow** so it stands out of a busy background (the Firework
@@ -230,7 +232,10 @@ freezes a moment) and publish it so the designer can open it on a phone.
    refusal shows the server's reason as a notice.
 7. **Gamepad**: every control is a Selectable with sensible neighbours; A presses, B closes a
    popup then the menu, LB/RB switch tabs; a hover-only thing (the odds pop-up) also opens by
-   click, tap and A.
+   click, tap and A. **Every X that B closes wears the controller's back button**
+   (`HudParts.padBack(close)`: Roblox's own Circle/B picture on an ink disc on the X's corner,
+   shown only while a gamepad is the last input, like the menu column's D-pad glyphs);
+   `MenuFrame` does it for every menu, a popup's own X calls it too.
 8. **Test hooks**: add Studio-only `GuiQA` actions for anything the checks need (fake data,
    a slowed open, Lower effects, Reduce Motion); never in a live server.
 9. **Tests**: pure maths goes in `src/shared` (`StageMath`) with Lune tests

@@ -563,6 +563,7 @@ function Roadmap.buildHeader(self: any, card: Frame)
 	end, "Red", "X")
 	close.Name = "Close"
 	HudParts.setMinHit(close, R.TouchMinPx)
+	HudParts.padBack(close) -- B closes the roadmap
 	self.closeButton = close
 end
 

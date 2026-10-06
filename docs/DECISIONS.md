@@ -2767,3 +2767,7 @@ timer of a new block stay the designer's call.
   final); small popups and HUD pieces get a Studio first look, then the final check. A target
   picture comes from the designer when they have one, otherwise Claude mocks two or three to
   pick from. Next after this run: the Shop's Blocks, Money and Passes pages.
+- 2026-10-06: **the block's odds open from its "i" badge only**, not the whole block (designer;
+  hover, click, tap or A on the badge). **Every close X that B closes shows the controller's
+  back button** (Circle, or B on Xbox) on its corner while a gamepad is the last input, like
+  the menu column's D-pad glyphs (`HudParts.padBack`; every menu, and popups with their own X).

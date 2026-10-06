@@ -96,6 +96,7 @@ function ShopGift.new(shop: any, frame: any): any
 	close.Name = "Close"
 	close.ZIndex = 4
 	HudParts.setMinHit(close, Config.UI.Menu.Frame.TouchMinPx)
+	HudParts.padBack(close) -- B closes the gift list
 	self.closeButton = close
 	local nobody = HudParts.note(card, "Nobody", K.Big.Body, COPY.GiftNobody)
 	nobody.ZIndex = 3

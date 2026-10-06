@@ -301,6 +301,7 @@ function InventoryCues.buildDetail(self: any, page: Frame)
 	self.closeButton.Name = "Close"
 	self.closeButton.AnchorPoint = Vector2.new(1, 0)
 	self.closeButton.ZIndex = 6
+	HudParts.padBack(self.closeButton) -- B closes the detail
 	HudParts.setMinHit(self.closeButton, TOUCH)
 
 	-- The picture, big, on its dressed card (ref 07).

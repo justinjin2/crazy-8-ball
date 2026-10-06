@@ -622,6 +622,10 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   selected first on a gamepad, A opens and B closes the odds; 60 fps (worst 19.5 ms); 100
   pictures, 69 with Lower effects; Reduce Motion only fades. **Gate 5 waiting** on the
   designer: the computer emulator size and a real gamepad.
+- 2026-10-06: gate 5 notes (designer): the odds open from the "i" badge only, not the whole
+  block (its press area a 44 px touch target round the badge); every X that B closes wears
+  the controller's back button on its corner while a gamepad is in use (`HudParts.padBack`:
+  every menu through MenuFrame, the cue detail, the roadmap, Gift Player, the ult screen).
 
 
 ## Decisions

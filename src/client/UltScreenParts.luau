@@ -311,6 +311,7 @@ function Parts.popup(root: GuiObject, name: string, title: string, onClose: (() 
 	close.Name = "Close"
 	close.ZIndex = 4
 	HudParts.setMinHit(close, C.TouchPx)
+	HudParts.padBack(close) -- B closes the screen
 	close.SelectionImageObject = Parts.noBox()
 
 	self.layer, self.card, self.body, self.title, self.closeButton =

@@ -353,16 +353,22 @@ function GrandOpeningCard.buildBlock(self: any)
 	-- The odds badge: a sky-blue "i" that never hides (Roblox's rule: the odds one press away).
 	local badge, i = pill(block, "OddsBadge", COPY.OddsBadge, rgb(K.Numbers.Count), 6)
 	self.badge, self.badgeText = badge, i
-	-- The whole block opens the odds (hover, click, tap, gamepad A).
+	-- Only the badge opens the odds, not the whole block (designer, 2026-10-06): hover, click,
+	-- tap or gamepad A on it. Its press area is at least a touch target round the small badge.
 	local hit = Instance.new("TextButton")
 	hit.Name = "OddsHit"
 	hit.Text = ""
 	hit.BackgroundTransparency = 1
 	hit.AutoButtonColor = false
 	hit.Selectable = true
+	hit.AnchorPoint = Vector2.new(0.5, 0.5)
+	hit.Position = UDim2.fromScale(0.5, 0.5)
 	hit.Size = UDim2.fromScale(1, 1)
 	hit.ZIndex = 8
-	hit.Parent = block
+	local least = Instance.new("UISizeConstraint")
+	least.MinSize = Vector2.new(Config.UI.Menu.Frame.TouchMinPx, Config.UI.Menu.Frame.TouchMinPx)
+	least.Parent = hit
+	hit.Parent = badge
 	self.oddsHit = hit
 	hit.MouseEnter:Connect(function()
 		if not self.oddsOpen then
@@ -715,7 +721,7 @@ function GrandOpeningCard.showOdds(self: any, on: boolean, byHover: boolean?)
 		end
 		return Enum.ContextActionResult.Sink
 	end, false, B_PRIORITY, Enum.KeyCode.ButtonB)
-	-- A tap or click anywhere off the block and the pop-up closes it.
+	-- A tap or click anywhere off the badge and the pop-up closes it.
 	self.oddsConnection = UserInputService.InputBegan:Connect(function(input)
 		local kind = input.UserInputType
 		if kind ~= Enum.UserInputType.MouseButton1 and kind ~= Enum.UserInputType.Touch then
