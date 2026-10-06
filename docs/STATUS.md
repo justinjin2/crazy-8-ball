@@ -28,8 +28,8 @@ Updated 2026-10-06.
   Every outlined text has a thick ink lip under its letters, and from a 2 px outline up
   (text from 20 px) solid ink holes (`HoleFill`, `Config.UI.Kit.HoleFill`).
 - **Blur instead of dims** (2026-10-06): menus, the roadmap, the lucky block reel, the match
-  results and NEW RANK! blur the world (`ScreenBlur`, `Config.UI.Blur`). Seen in Studio on the
-  menus; the reel, results and NEW RANK! not yet watched live.
+  results and NEW RANK! blur the world (`ScreenBlur`, `Config.UI.Blur`); the reel waits 0.15 s
+  for the blur. Seen in Studio on the menus and the reel; results and NEW RANK! not yet.
 - **Cue outlines and the "pop" aura.** Every cue has a theme-coloured outline (a moving
   gradient from Legendary up). The deeper aura is on test on Frostbite, Candy, Flare, Plasma,
   Gummy and Magma (`Config.CueSkins.Pop.Ids`).

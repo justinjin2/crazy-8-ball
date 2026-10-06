@@ -43,7 +43,7 @@ function Opening.new(screen: ScreenGui): any
 	local self: any = setmetatable({}, Opening)
 	self.screen = screen
 	self.open = false
-	self.phase = "Closed" -- Closed, Reel, Scene (the pull cutscene), Card
+	self.phase = "Closed" -- Closed, Lead (the blur's head start), Reel, Scene (the pull cutscene), Card
 	self.reel = nil :: any
 	self.card = nil :: any
 	self.hidden = nil :: { ScreenGui }?
@@ -187,7 +187,20 @@ function Opening.play(
 			{ BackgroundTransparency = U.DimTransparency }
 		)
 		:Play()
+	-- The world starts to blur a moment before the reel pops up, so the blur is seen to fade
+	-- in (designer, 2026-10-06: at the same moment it looked instant).
+	self.playId = (self.playId or 0) + 1
+	local playId = self.playId
+	self.phase = "Lead"
+	task.delay(Config.UI.Blur.ReelLeadSeconds, function()
+		if self.open and self.playId == playId then
+			self:startReel(kind, cueId, rarity, reelOdds)
+		end
+	end)
+end
 
+-- The reel itself, once the blur has a head start (play).
+function Opening.startReel(self: any, kind: string, cueId: string, rarity: string, reelOdds: string)
 	local stage = ReelFx.stage(self.area, "Stage")
 	self.stage = stage
 	local title = HudParts.text(stage.frame, "Title", CO.TitlePx, NAMES[kind] or kind)

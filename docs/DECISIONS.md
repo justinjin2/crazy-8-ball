@@ -2665,3 +2665,6 @@ timer of a new block stay the designer's call.
   RANK! blur the 3D world (a BlurEffect on the camera, size 20, 0.2 s in and out:
   `ScreenBlur`, `Config.UI.Blur`); their dark layers are now clear (they still take taps).
   The tutorial's spotlight dim and the pull cutscenes' black stay.
+- 2026-10-06 (designer: the reel's blur "doesn't seem to fade in"): the lucky block reel now
+  pops up 0.15 s after the blur starts (`Config.UI.Blur.ReelLeadSeconds`); at the same moment
+  the reel covered the fade.

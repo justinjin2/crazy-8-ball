@@ -10277,6 +10277,9 @@ Config.UI.Blur = {
 	Size = 20, -- the BlurEffect's size at full blur (Roblox's 0 to 56)
 	InSeconds = 0.2, -- the fade in as a screen opens
 	OutSeconds = 0.2, -- and out as the last one closes
+	-- The lucky block reel pops up this long after the blur starts, so its fade shows
+	-- (designer, 2026-10-06: "starts to blur a bit earlier ... tenths of a second").
+	ReelLeadSeconds = 0.15,
 }
 
 -- The hub's small corner buttons (HubCorners; GUI lane, C2): the Daily Challenge on the right
