@@ -578,6 +578,11 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   square says "Coming soon" until the products exist). Pack words between the rows; the old
   prices struck through in red inside the green buttons. The odds pop-up shrinks to fit the
   card. Still asked: create the products, keep the flair on.
+- 2026-10-06: second round of gate 4 changes done (designer): the Shop's panel is capped (66%
+  of the width, under Roblox's bar, as tall as the card, centred; the page scrolls on below),
+  tabs outside on the right, the 8-ball pinned on the left edge, the crown baked into the block
+  (`tools/gui/crowned_block.py`, two uploads, $0) so it breathes and shines with it. Checked in
+  the phone emulator (panel 495 x 296 of 750 x 362); no console errors.
 
 
 ## Decisions

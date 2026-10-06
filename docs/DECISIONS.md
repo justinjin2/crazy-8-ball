@@ -2714,3 +2714,11 @@ timer of a new block stay the designer's call.
   shows only its price with the old price struck through in red inside it (the white sticker
   is gone), and the pack's "1 block / 3 blocks / 10 blocks" sits between the green and gold
   rows.
+- 2026-10-06 (designer, lively Shop gate 4, second round): the Shop covers far less of the
+  screen. The lively panel never enters Roblox's top-bar row (the title no longer sits beside
+  Roblox's buttons on a phone), is at most 66% of the screen's width, and is only as tall as
+  the Grand Opening card; it is centred, and the page scrolls on below the card to the rest of
+  the white sheet ("More deals coming soon!"). The jump buttons stand outside its right edge;
+  the 8-ball flair is pinned on its left edge. The card's buttons are taller (64 units) and its
+  smallest text is 12 px. The crown is baked into the block's picture (block_crowned.png), so
+  it breathes and shines with the block and arrives with it (its own drop is gone).

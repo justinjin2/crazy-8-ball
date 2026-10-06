@@ -708,6 +708,7 @@ return {
 				BoughtOne = "Your %s is in your hotbar!",
 				BoughtMany = "%d %s are in your hotbar!",
 			},
+			MoreBelow = "More deals coming soon!", -- the white sheet below the Grand Opening card
 			-- The Gift Player popup (the purple gift square beside a Robux button).
 			GiftTitle = "Gift Player",
 			GiftButton = "Gift",

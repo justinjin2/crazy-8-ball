@@ -158,7 +158,8 @@ open schedule from Config (`Config.UI.Shop.Open`, tokens in `Config.UI.Motion`) 
 frame on registered pieces: pop, slam, grow and drop, the panel's unroll, the code fader (no
 CanvasGroup), firework bursts, close, tab replay, Reduce Motion; its maths is the pure shared
 `StageMath`, tested in Lune; `MenuFrame` plays it for the menus in
-`Config.UI.Menu.LivelyMenus`, with `HudParts.livelyCard`'s scrolling header and dotted sheet),
+`Config.UI.Menu.LivelyMenus`, with `HudParts.livelyCard`'s scrolling header and dotted sheet;
+a lively panel is capped to a share of the screen and sized to its page's `fitHeight`),
 `GrandOpeningCard` (the Shop's Featured page: the Grand Opening card built from the animatic,
 laid out in its units from `Config.UI.GrandOpeningCard.Layout` and scaled to fit the page whole
 (nothing scrolls), its pieces on the Shop's Stage, the block's odds pop-up; ShopMenu buys through

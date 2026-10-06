@@ -5123,6 +5123,18 @@
     "imageId": "109891094531777",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/block_crowned.png": {
+    "assetId": "73077691054339",
+    "assetType": "Decal",
+    "imageId": "77359537632274",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/block_crowned_mask.png": {
+    "assetId": "136597356608736",
+    "assetType": "Decal",
+    "imageId": "118250533479699",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/block_glow.png": {
     "assetId": "83183438201143",
     "assetType": "Decal",

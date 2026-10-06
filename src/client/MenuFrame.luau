@@ -236,7 +236,7 @@ end
 --- Fields a menu uses: `root` (the full-screen frame everything is in), `panel`, `card`,
 --- `geo` (the last layout's sizes), and the callbacks it may set: `onTab(key)` (a page is
 --- shown: on every tab switch and every open), `onOpen()`, `onClose()`, `onLayout(geo)` (the
---- screen changed size; re-fit the pages).
+--- screen changed size; re-fit the pages), and on a lively frame `fitHeight(width, panelW)`.
 function MenuFrame.new(screen: ScreenGui, opts: Options): any
 	local self: any = setmetatable({}, MenuFrame)
 	self.name = opts.name
@@ -256,6 +256,9 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 	self.onOpen = nil :: (() -> ())?
 	self.onClose = nil :: (() -> ())?
 	self.onLayout = nil :: ((Geo) -> ())?
+	-- The lively frame's height: the page's height it needs for a content width (and the
+	-- panel's width); the panel is sized to it (MenuFrame.layout).
+	self.fitHeight = nil :: ((number, number) -> number)?
 
 	local tabs: { Tab } = opts.tabs or {}
 	self.tabs = tabs
@@ -541,13 +544,22 @@ function MenuFrame.layout(self: any): boolean
 	end
 	local barLeft, barRight, barBottom = self:topbar(size)
 	local margin = F.MarginPx
-	local short = size.Y - barBottom < F.ShortScreenPx
+	local phone = size.Y - barBottom < F.ShortScreenPx
+	-- The lively frame (designer, 2026-10-06) never takes Roblox's top bar row and covers at
+	-- most Lively.MaxWidthShare of the screen's width; it is only as tall as its page asks
+	-- (fitHeight, below).
+	local LV = Config.UI.Menu.Lively
+	local lively = self.stage ~= nil
+	local short = phone and not lively
 	local roomTop = if short then 0 else barBottom
 	-- A computer: centred on the whole screen (not just under the bar), clear of the bar, and
 	-- never closer than BottomGapPx to the bottom edge, shadow included (designer, 2026-10-03).
-	local roomBottom = if short then size.Y else size.Y - F.BottomGapPx
+	local roomBottom = if phone then size.Y else size.Y - F.BottomGapPx
 	local roomHeight = roomBottom - roomTop
 	local w = math.floor(math.min(size.X - 2 * margin, F.MaxSizePx[1]))
+	if lively then
+		w = math.min(w, math.floor(size.X * LV.MaxWidthShare))
+	end
 	local h = math.floor(math.min(roomHeight - 2 * margin, F.MaxSizePx[2]))
 	local left = math.floor((size.X - w) / 2)
 	local top = if short
@@ -624,18 +636,6 @@ function MenuFrame.layout(self: any): boolean
 	self.title.Size = UDim2.fromOffset(titleW, headerH)
 	x += titleW + gap
 
-	-- The lively frame's 8-ball, on the top edge near the left corner; on a phone Roblox's
-	-- buttons own that corner, so just right of the title. Never off the screen's top, hop
-	-- included.
-	if self.flair then
-		local L = Config.UI.Menu.Lively
-		local half = L.FlairPx / 2
-		local fx = if short then pad + x + half else L.FlairFromLeftPx
-		local fy = math.max(L.FlairDownPx, half + L.FlairHopPx - top)
-		self.flairRest = UDim2.fromOffset(fx, fy)
-		self.flair.Position = self.flairRest
-	end
-
 	-- The tabs: beside the title on a phone when they fit there, else a row under it.
 	local sheetTop = pad + headerH + round(gap / 2)
 	local tabRow: Frame = self.tabRow
@@ -679,7 +679,21 @@ function MenuFrame.layout(self: any): boolean
 	local inset = K.SheetInsetPx
 	local cp = span(F.ContentPadPx, t)
 	local cw = math.max(1, w - 2 * (inset + cp))
+	local fit = self.fitHeight
+	if lively and fit then
+		-- As tall as the page's first screen asks (the hero card), up to the room; centred.
+		h = math.min(h, sheetTop + inset + 2 * cp + math.ceil(fit(cw, w)))
+		top = math.floor(roomTop + (roomHeight - h) / 2)
+		self.panel.Size = UDim2.fromOffset(w, h)
+		self.panel.Position = UDim2.fromOffset(left + w / 2, top + h / 2)
+	end
 	local ch = math.max(1, h - sheetTop - inset - 2 * cp)
+
+	-- The lively frame's 8-ball, pinned on the panel's left edge (designer, 2026-10-06).
+	if self.flair then
+		self.flairRest = UDim2.fromOffset(0, round(h * LV.FlairDownShare))
+		self.flair.Position = self.flairRest
+	end
 	self.content.Position = UDim2.fromOffset(inset + cp, sheetTop + cp)
 	self.content.Size = UDim2.fromOffset(cw, ch)
 
@@ -946,7 +960,7 @@ function MenuFrame.stageFrame(self: any)
 	flair.ScaleType = Enum.ScaleType.Fit
 	flair.AnchorPoint = Vector2.new(0.5, 0.5)
 	flair.Size = UDim2.fromOffset(L.FlairPx, L.FlairPx)
-	flair.Position = UDim2.fromOffset(L.FlairFromLeftPx, L.FlairDownPx)
+	flair.Position = UDim2.fromOffset(0, 0) -- placed by layout
 	flair.ZIndex = 5 -- over the card and the jump rail
 	flair.Parent = self.panel
 	self.flair = flair

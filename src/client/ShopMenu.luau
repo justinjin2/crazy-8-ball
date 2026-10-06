@@ -92,6 +92,11 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end,
 	})
 	self.gift = ShopGift.new(self, frame)
+	-- The white sheet below the card, where the other groups' sections will go.
+	local more = HudParts.note(scroll, "MoreBelow", P.MoreBelowTextPx, COPY.MoreBelow)
+	more.AnchorPoint = Vector2.new(0.5, 0.5)
+	more.ZIndex = 3
+	self.more = more
 
 	-- The jump buttons (in the panel, so a gamepad reaches them).
 	local rail = HudParts.frame(frame.panel, "Jumps")
@@ -139,6 +144,12 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	frame.onLayout = function(geo: MenuFrame.Geo)
 		self.geo = geo
 		self:layout()
+	end
+	-- The panel is as tall as the Grand Opening card (designer, 2026-10-06); the page scrolls
+	-- on below it.
+	frame.fitHeight = function(width: number, panelW: number): number
+		local pageW = width - (if self:railOutside(panelW) then 0 else self:railRoom(nil))
+		return GrandOpeningCard.heightFor(pageW - self.scroll.ScrollBarThickness)
 	end
 	ItemState.Changed.Shop:Connect(function()
 		self:refresh()
@@ -190,6 +201,20 @@ function ShopMenu.refresh(self: any)
 	self.featured:refresh(state)
 end
 
+-- Whether the jump buttons fit outside a panel `panelW` wide (else a column in the page).
+function ShopMenu.railOutside(self: any, panelW: number): boolean
+	local geo: MenuFrame.Geo? = self.geo
+	local t = if geo then geo.t else 0
+	local room = (self.frame.root.AbsoluteSize.X - panelW) / 2
+	return room >= span(P.RailWidthPx, t) + 2 * P.RailOutsidePx
+end
+
+-- The page width a column of jump buttons inside the page takes.
+function ShopMenu.railRoom(self: any, geo: MenuFrame.Geo?): number
+	local t = if geo then geo.t elseif self.geo then self.geo.t else 0
+	return span(P.RailWidthPx, t) + span(P.RailGapPx, t)
+end
+
 -- Where the jump buttons go: outside the panel's right edge when the screen has room for
 -- them, else a column at the right of the page. Returns the page width they leave.
 function ShopMenu.layoutRail(self: any, geo: MenuFrame.Geo): number
@@ -203,11 +228,9 @@ function ShopMenu.layoutRail(self: any, geo: MenuFrame.Geo): number
 	local n = #self.jumps
 	local railH = n * buttonH + (n - 1) * gap
 	-- Offsets, not absolute sizes: the panel may be mid pop-in (scaled) when this runs.
-	local screenW = frame.root.AbsoluteSize.X
 	local panelW = panel.Size.X.Offset
 	local panelH = panel.Size.Y.Offset
-	local room = (screenW - panelW) / 2
-	local outside = not geo.short and room >= railW + 2 * P.RailOutsidePx
+	local outside = not geo.short and self:railOutside(panelW)
 	local content: Frame = frame.content
 	local contentTop = content.Position.Y.Offset
 	local width = geo.content.X
@@ -242,8 +265,12 @@ function ShopMenu.layout(self: any)
 	local width = self:layoutRail(geo)
 	self.scroll.Size = UDim2.fromOffset(width, geo.content.Y)
 	-- The card fits the page whole (designer, 2026-10-06: no scrolling on a phone).
-	local height = self.featured:layout(width - self.scroll.ScrollBarThickness, geo.content.Y)
-	ShopParts.setCanvas(self.scroll, height)
+	local height = self.featured:layout(width - self.scroll.ScrollBarThickness)
+	-- Below the card the white sheet goes on (the other groups' sections will be there).
+	local more = math.max(P.MoreBelowPx, geo.content.Y - height)
+	self.more.Position = UDim2.fromOffset(round(width / 2), round(height + more / 2))
+	self.more.Size = UDim2.fromOffset(math.max(1, width - 16), math.max(1, more))
+	ShopParts.setCanvas(self.scroll, height + more)
 	self.gift:layout(geo)
 end
 

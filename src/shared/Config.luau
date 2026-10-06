@@ -7211,14 +7211,18 @@ Config.UI.Menu = {
 		DotsColor = { 74, 123, 192 },
 		DotsTransparency = 0.92, -- about 8%
 		DotsTilePx = 88, -- one 512 px tile shown this big
-		-- The 8-ball flair on the panel's top edge, near its left corner (the money and X are
-		-- right): its middle FromLeftPx in from the panel's left, on the edge. It drops on last
-		-- (the Open schedule's "Flair"), rocks RockDegrees either way over RockSeconds, and every
-		-- HopEvery s hops HopPx for HopSeconds with a sparkle (Config.UI.Effects.Sparkle).
+		-- The lively panel's size (designer, 2026-10-06: menus covered the whole phone screen):
+		-- never in Roblox's top bar row, at most this share of the screen's width, and only as
+		-- tall as its page's first screen (the hero card), up to the room under the bar. The
+		-- jump buttons stand outside its right edge.
+		MaxWidthShare = 0.66,
+		-- The 8-ball flair pinned on the panel's left edge (designer, 2026-10-06), its middle on
+		-- the edge DownShare of the way down. It drops on last (the Open schedule's "Flair"),
+		-- rocks RockDegrees either way over RockSeconds, and every HopEvery s hops HopPx for
+		-- HopSeconds with a sparkle (Config.UI.Effects.Sparkle).
 		FlairImage = "rbxassetid://132422184916082", -- as Config.UI.GrandOpeningCard.Images.Flair8ball
 		FlairPx = 48,
-		FlairFromLeftPx = 55,
-		FlairDownPx = 2, -- its middle sits this far below the edge
+		FlairDownShare = 0.3,
 		FlairRockDegrees = 5.7,
 		FlairRockSeconds = 2.9,
 		FlairHopEvery = 5,
@@ -7517,6 +7521,10 @@ Config.UI.Shop = {
 		-- These jump buttons keep their red NEW badge all through the Grand Opening window
 		-- (designer, 2026-10-04); every other badge clears once the Shop has been opened.
 		PinnedBadges = { "Featured", "Blocks" },
+		-- The white sheet goes on below the Grand Opening card (the page scrolls to it; the
+		-- other groups' sections will be there): at least this tall, with its note.
+		MoreBelowPx = 120,
+		MoreBelowTextPx = 18,
 		RailWidthPx = { 66, 96 }, -- a jump button
 		RailButtonPx = { 60, 86 },
 		RailGapPx = { 6, 12 },
@@ -7584,7 +7592,6 @@ Config.UI.Shop.Open = {
 		{ Ids = { "FeaturedLines" }, Kind = "Grow", At = 0.38 },
 		{ Ids = { "Card" }, Kind = "Grow", At = 0.36 }, -- the card's background opens from its centre
 		{ Ids = { "Block" }, Kind = "Slam", At = 0.41, Length = 0.16, Burst = "Gold" },
-		{ Ids = { "Crown" }, Kind = "Drop", At = 0.46, Length = 0.18 }, -- falls on (Bounce Out)
 		{ Ids = { "NewTag" }, Kind = "Pop", At = 0.5 },
 		{ Ids = { "CardTitle" }, Kind = "Pop", At = 0.44, Burst = "Purple" }, -- the title pops as one (designer)
 		{ Ids = { "StarLeft", "StarRight" }, Kind = "Pop", At = 0.46 },
@@ -7679,6 +7686,10 @@ Config.UI.GrandOpeningCard = {
 		Block = "rbxassetid://109891094531777",
 		BlockGlow = "rbxassetid://81188257491328",
 		BlockMask = "rbxassetid://73238073614819",
+		-- The block with its crown baked on (tools/gui/crowned_block.py; designer, 2026-10-06:
+		-- the crown is part of the block, breathing and shining with it) and its silhouette.
+		BlockCrowned = "rbxassetid://77359537632274",
+		BlockCrownedMask = "rbxassetid://118250533479699",
 		BokehDisc = "rbxassetid://94800187656206",
 		Confetti1 = "rbxassetid://76787298053979",
 		Confetti2 = "rbxassetid://87754386394250",
@@ -7737,15 +7748,15 @@ Config.UI.GrandOpeningCard = {
 	Layout = {
 		-- The card's size. It is scaled to fit the page whole, both ways, so nothing scrolls
 		-- (designer, 2026-10-06: a phone shows the cue cards and every button at once).
-		Card = { 1275, 528 },
+		Card = { 1275, 536 },
 		DesignHeightUnits = 498, -- the animatic's card height: the block's group and the background were placed on it
 		CornerUnits = 28,
 		RimUnits = 6, -- its pale rim
 		Rim = { 191, 227, 255 },
 		Featured = { Units = 56, MinPx = 22, TextUnits = 30, LineUnits = 150, LineGapUnits = 18 }, -- "- FEATURED -" over the card
-		-- This card's smallest text: under the kit's 16 so the whole card fits a phone's page
-		-- (designer, 2026-10-06). The small words' units below give about 16 px on a computer.
-		MinTextPx = 11,
+		-- This card's smallest text: under the kit's 16 so the whole card fits the smaller panel
+		-- on a phone (designer, 2026-10-06). The small words' units give about 16 px on a computer.
+		MinTextPx = 12,
 		-- The block's group (box 0..364 x 0..498).
 		Block = { 182, 262, 300 },
 		Glow = { 182, 262, 560 },
@@ -7754,8 +7765,10 @@ Config.UI.GrandOpeningCard = {
 		Rays = { 182, 262, 620 },
 		RaysTint = { 255, 208, 96 },
 		RaysTransparency = 0.65,
-		Crown = { 192, 122, 170 },
-		CrownDegrees = -7,
+		-- The crowned block's picture (884 x 1024 px with a clear 24 px border, which the breathe
+		-- zooms inside): its centre from the block's, width and height (crowned_block.py prints it).
+		CrownedBlock = { 0.1, -25.2, 317.3, 367.6 },
+		CrownedBlockPx = { 884, 1024, 24 }, -- its width, height and clear border in pixels
 		NewTag = { 92, 66, 148, 60 }, -- centre, width, height
 		NewTagDegrees = -8,
 		NewTextUnits = 40,
@@ -7772,9 +7785,9 @@ Config.UI.GrandOpeningCard = {
 		StarRight = { 1104, 66, 62 },
 		StarRockDegrees = 4.6,
 		StarRockSeconds = 3.7,
-		-- The two cue cards (box 360..1256 x 140..336).
-		Beta = { 360, 140, 432, 196 },
-		Go = { 808, 140, 448, 196 },
+		-- The two cue cards (box 360..1256 x 140..300).
+		Beta = { 360, 140, 432, 160 },
+		Go = { 808, 140, 448, 160 },
 		CueCardCornerUnits = 18,
 		CueCardRimUnits = 6,
 		BetaRim = { { 70, 215, 255 }, { 255, 79, 198 } }, -- cyan to magenta
@@ -7790,11 +7803,13 @@ Config.UI.GrandOpeningCard = {
 		PillGapUnits = 8,
 		UniqueColor = { 226, 79, 216 },
 		LimitedColor = { 255, 197, 46 },
-		OddsChip = { 46, 24, 76, 32 }, -- from the card's top-right: centre in, width, height
+		-- The odds chip from the card's top-right: centre in, width, height (it moves to the
+		-- bottom-right corner when the name needs the room).
+		OddsChip = { 46, 24, 76, 32 },
 		OddsTextUnits = 24,
 		OddsColor = { 70, 215, 255 }, -- sky blue (Kit.Numbers' odds colour)
-		CueShare = { 0.5, 0.56, 0.98 }, -- the cue's centre (shares of the card) and width
-		GoCueShare = { 0.5, 0.58, 0.98 },
+		CueShare = { 0.5, 0.68, 0.98 }, -- the cue's centre (shares of the card) and width: under the pills
+		GoCueShare = { 0.5, 0.7, 0.98 },
 		CueDegrees = -14,
 		BetaPanels = { -- the blueprint panels: number, centre x, y (of a 1120 x 660 card), width, strength
 			{ 1, 150, 170, 230, 0.5 },
@@ -7812,22 +7827,22 @@ Config.UI.GrandOpeningCard = {
 		BetaRingShare = 0.9, -- of the card's height
 		BetaCodeRows = { { 9, -1, 0.5 }, { -9, 1, 0.35 } }, -- y from the top (or bottom), direction, strength
 		BetaCodeUnits = 20, -- the glyph strip's height
-		-- The buttons (box 360..1256 x 348..528), a column per pack (designer, 2026-10-06): the
+		-- The buttons (box 360..1256 x 310..530), a column per pack (designer, 2026-10-06): the
 		-- purple gift square and the green Robux price ("129" and the old "147" struck through),
 		-- the pack's "3 blocks" under them, the gold money button, then "save 12%".
-		RowGreen = 348,
-		CountY = 420, -- the "1 block" words' centre, between the green and gold rows
-		CountTextUnits = 28,
-		RowGold = 438,
-		RowUnits = 54,
+		RowGreen = 310,
+		CountY = 397, -- the "1 block" words' centre, between the green and gold rows
+		CountTextUnits = 32,
+		RowGold = 420,
+		RowUnits = 64, -- tall, so the words stay big in a small panel
 		ButtonX = 360,
 		ButtonUnits = 288, -- a column's width
 		ButtonGapUnits = 16,
 		GiftGapUnits = 10, -- between the gift square (RowUnits wide) and the Robux button
-		ButtonTextUnits = 30,
+		ButtonTextUnits = 36,
 		CashIconShare = 1.1, -- the gold buttons' cash bundle, big as in 13b (of the button's height)
-		SaveY = 510,
-		SaveTextUnits = 25,
+		SaveY = 507,
+		SaveTextUnits = 30,
 		-- The background (scaled with the card when it restacks).
 		-- The floating 8-balls: picture, centre, width, sway speed (radians a second; the far ones
 		-- slower), and the picture's smaller side in pixels (the float windows a square).

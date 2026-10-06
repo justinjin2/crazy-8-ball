@@ -3,19 +3,20 @@
 -- "- FEATURED -" and the Grand Opening card after the designer's target 13b, built from the
 -- approved animatic (tools/gui/animatic): the card's navy plate with floating 8-balls, corner
 -- fireworks, drifting confetti, bokeh and twinkles; the lucky block (glow, rays, breathe, shine,
--- its crown, the tilted NEW tag, the sky-blue odds badge and the live "Ends in" timer); the arched
--- GRAND OPENING title with its stars and subtitle; the Beta and Grand Opening cue cards (their
--- names, UNIQUE and LIMITED pills, odds chips and their own loops); a column per pack: the purple
--- gift square (the Gift Player popup) and the green Robux price, the pack's "3 blocks", the gold
--- money button and its "save" label. Pictures, places and loop numbers are in
--- Config.UI.GrandOpeningCard, words in Strings (Menus.Shop.Featured), prices and odds in Config
--- (Config.Shop.Deals.GrandOpening, Config.Products.GrandOpening1/3/10, the GrandOpening odds).
+-- its crown baked on so it breathes and shines with it, the tilted NEW tag, the sky-blue odds
+-- badge and the live "Ends in" timer); the arched GRAND OPENING title with its stars and
+-- subtitle; the Beta and Grand Opening cue cards (their names, UNIQUE and LIMITED pills, odds
+-- chips and their own loops); a column per pack: the purple gift square (the Gift Player popup)
+-- and the green Robux price, the pack's "3 blocks", the gold money button and its "save" label.
+-- Pictures, places and loop numbers are in Config.UI.GrandOpeningCard, words in Strings
+-- (Menus.Shop.Featured), prices and odds in Config (Config.Shop.Deals.GrandOpening,
+-- Config.Products.GrandOpening1/3/10, the GrandOpening odds).
 --
 -- Every piece is registered with the Shop's Stage (ids in Config.UI.Shop.Open) and starts its
 -- idle loops as it lands; `keep` holds them until the Shop closes. The card is laid out in the
--- animatic's units, scaled to fit the page whole, both ways (designer, 2026-10-06: a phone shows
--- everything without scrolling). Text never goes under Layout.MinTextPx. The block opens the odds pop-up (every outcome adding
--- up to 100%, before buying): hover, click, tap, or gamepad A; B, a tap away or leaving closes it.
+-- animatic's units, scaled to the page's width (and, given a height, to fit it whole). Text
+-- never goes under Layout.MinTextPx. The block opens the odds pop-up (every outcome adding up
+-- to 100%, before buying): hover, click, tap, or gamepad A; B, a tap away or leaving closes it.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -297,13 +298,15 @@ function GrandOpeningCard.buildBlock(self: any)
 	rays.ImageColor3 = rgb(L.RaysTint)
 	rays.ImageTransparency = L.RaysTransparency
 	self.rays = rays
-	local picture = image(block, "Picture", IMG.Block, 3)
-	picture.Position = UDim2.fromScale(0.5, 0.5)
-	picture.Size = UDim2.fromScale(1, 1)
+	-- The block with its crown baked on (Layout.CrownedBlock, in the block's own units).
+	local cb, side = L.CrownedBlock, L.Block[3]
+	local picture = image(block, "Picture", IMG.BlockCrowned, 3)
+	picture.Position = UDim2.fromScale(0.5 + cb[1] / side, 0.5 + cb[2] / side)
+	picture.Size = UDim2.fromScale(cb[3] / side, cb[4] / side)
 	self.blockPicture = picture
-	local mask = image(block, "Shine", IMG.BlockMask, 4)
-	mask.Position = UDim2.fromScale(0.5, 0.5)
-	mask.Size = UDim2.fromScale(1, 1)
+	local mask = image(block, "Shine", IMG.BlockCrownedMask, 4)
+	mask.Position = picture.Position
+	mask.Size = picture.Size
 	mask.Visible = false -- shown only while its sweep runs (sweep below)
 	self.blockMask = mask
 	-- The odds badge: a sky-blue "i" that never hides (Roblox's rule: the odds one press away).
@@ -338,9 +341,6 @@ function GrandOpeningCard.buildBlock(self: any)
 		end
 	end)
 
-	self.crown = image(card, "Crown", IMG.Crown, 5)
-	self.crown.ScaleType = Enum.ScaleType.Fit
-	self.crown.Rotation = L.CrownDegrees
 	local tag = box(card, "NewTag", 6)
 	tag.Rotation = L.NewTagDegrees
 	self.newTag = tag
@@ -707,6 +707,14 @@ end
 -- units, `s` its scale, `p` where that origin lands.
 type Group = { ox: number, oy: number, s: number, px: number, py: number }
 
+--- The page's height at `width` pixels wide (as layout returns, with no height given).
+function GrandOpeningCard.heightFor(width: number): number
+	local k = width / L.Card[1]
+	return math.max(L.Featured.MinPx, math.floor(L.Featured.Units * k))
+		+ math.floor(L.Card[2] * k)
+		+ 8
+end
+
 --- Lay the page out in `width` pixels (and, given, `height`: the card then shrinks to fit it
 --- whole, so nothing scrolls); returns its height. The card is centred across the page.
 function GrandOpeningCard.layout(self: any, width: number, height: number?): number
@@ -815,8 +823,6 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 	)
 	self.badge.Size = UDim2.fromOffset(badgePx, badgePx)
 	HudParts.setTextSize(self.badgeText, math.max(L.MinTextPx, round(badgePx * 0.7)))
-	local crownH = L.Crown[3] * 685 / 963
-	put(self.crown, g, L.Crown[1], L.Crown[2], L.Crown[3], crownH)
 	local tag = L.NewTag
 	local tagPx = textPx(L.NewTextUnits, g.s)
 	local tagW = math.max(tag[3] * g.s * k, measure(COPY.New, tagPx) + 16)
@@ -901,7 +907,12 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 		local oddsPx = textPx(L.OddsTextUnits, g.s)
 		local ow = math.max(round(chip[3] * g.s * k), measure(c.oddsWords.Text, oddsPx) + 16)
 		local oh = math.max(round(chip[4] * g.s * k), oddsPx + 8)
-		c.odds.Position = UDim2.fromOffset(round(w - 6 - ow / 2), round(chip[2] * g.s * k))
+		-- Top right, or bottom right when the name would run under it (a small card).
+		local chipY = round(chip[2] * g.s * k)
+		if x + at + 4 > w - 8 - ow then
+			chipY = round(h - 6 - oh / 2)
+		end
+		c.odds.Position = UDim2.fromOffset(round(w - 6 - ow / 2), chipY)
 		c.odds.Size = UDim2.fromOffset(ow, oh)
 		HudParts.setTextSize(c.oddsWords, oddsPx)
 		if c.panels then
@@ -1007,11 +1018,13 @@ end
 -- Stage and the idle loops
 --------------------------------------------------------------------------------------------
 
--- The block's breathe: its picture's window zooms inside a clear border (gate 1: smooth).
-local function breathe(picture: ImageLabel): UIAnim.Handle
-	local w, h, border = 881, 872, 16
+-- The block's breathe: its pictures' window zooms inside their clear border (gate 1: smooth);
+-- the crowned block and its shine silhouette together, so the crown and shine breathe with it.
+local function breathe(pictures: { ImageLabel }): UIAnim.Handle
+	local px = L.CrownedBlockPx
+	local w, h, border = px[1], px[2], px[3]
 	local phase = Random.new():NextNumber(0, math.pi * 2)
-	local handle = UIAnim.loop(picture, function(clock)
+	local handle = UIAnim.loop(pictures[1], function(clock)
 		local scale = if UIAnim.reduced()
 			then 1
 			else 1 + LOOP.BreatheScale * math.sin(
@@ -1019,14 +1032,18 @@ local function breathe(picture: ImageLabel): UIAnim.Handle
 			)
 		local sw, ow = StageMath.breatheRect(w, border, scale)
 		local sh, oh = StageMath.breatheRect(h, border, scale)
-		picture.ImageRectSize = Vector2.new(sw, sh)
-		picture.ImageRectOffset = Vector2.new(ow, oh)
+		for _, picture in pictures do
+			picture.ImageRectSize = Vector2.new(sw, sh)
+			picture.ImageRectOffset = Vector2.new(ow, oh)
+		end
 	end)
 	return {
 		stop = function()
 			handle.stop()
-			picture.ImageRectSize = Vector2.zero
-			picture.ImageRectOffset = Vector2.zero
+			for _, picture in pictures do
+				picture.ImageRectSize = Vector2.zero
+				picture.ImageRectOffset = Vector2.zero
+			end
 		end,
 	}
 end
@@ -1185,11 +1202,10 @@ function GrandOpeningCard.register(self: any, stage: Stage.Stage, keep: (UIAnim.
 				LOOP.GlowPulseSeconds
 			),
 			UIAnim.turn(self.rays, LOOP.RaysTurnPerSecond),
-			breathe(self.blockPicture),
+			breathe({ self.blockPicture, self.blockMask }),
 			sweep(self.blockMask, LOOP.BlockShineEvery, 0.7, 0.75),
 		}))
 	end)
-	stage:add("Crown", self.crown)
 	stage:add("NewTag", self.newTag, function()
 		keep(UIAnim.shake(self.newWiggle, "NewTag"))
 	end)

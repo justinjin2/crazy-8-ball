@@ -46,7 +46,7 @@ Updated 2026-10-06.
   (`docs/prompts/SHOP_LIVELY_PROMPT.md`; its Status and Progress are current). The new frame
   is in (it unrolls, a scrolling header, the dotted sheet, an 8-ball on the edge; a kit switch
   in `Config.UI.Menu.LivelyMenus`, Shop only), and so is the Grand Opening card on the Featured
-  page (`GrandOpeningCard`; it fits a phone's page whole, gift squares by the Robux buttons).
+  page (`GrandOpeningCard`; the panel is capped to 66% of the screen and as tall as the card).
   Gate 4's changes are done and shown again; waiting on the designer (products, flair), then
   gate 5 (computer emulator, a real gamepad).
   The other jump groups have no pages yet; the server-side shop, receipts and restock work.

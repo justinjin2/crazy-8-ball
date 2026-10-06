@@ -351,7 +351,11 @@ then; the reel's rules hold for the blocks.
   *(assumption)*.
 - **A full menu** (`MenuFrame`): the roadmap's layout. On a phone the panel takes the whole
   screen with its title in Roblox's top-bar row (the tabs share that row when they fit); on
-  a computer a panel up to 920 x 600 is centred under the bar. Title with its icon, tabs as
+  a computer a panel up to 920 x 600 is centred under the bar. **A lively frame (the Shop,
+  designer 2026-10-06) covers far less:** never in Roblox's top-bar row, at most 66% of the
+  screen's width (`Config.UI.Menu.Lively.MaxWidthShare`), only as tall as its hero card, the
+  jump buttons outside its right edge, the 8-ball pinned on its left edge; the page scrolls on
+  below the hero. Title with its icon, tabs as
   candy buttons, a money pill in the Shop's and Inventory's header, the red X. Cards are white
   with a pale blue edge (the roadmap's reward tiles); a cue card wears its rarity: a coloured
   edge inside the ink outline, a strip across the bottom and a soft wash, Mythic's slow pastel
