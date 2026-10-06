@@ -2604,3 +2604,10 @@ timer of a new block stay the designer's call.
 - 2026-10-05: **Font tests from one place** (designer): `Config.UI.FontTest` puts a font on
   one screen (by its ScreenGui's name) or on every screen at once (`FontTest`); empty keeps
   Fredoka One. It replaces the Free Reward page's own font switch.
+- 2026-10-05: **No ghost cue** (designer, seen live: a faint cue and a round blur across the
+  view, plainest over a match's felt). The cause was CueAssets' hidden copies: each cue about
+  to be shown (and the shot effects of the cues being played) is drawn 99% see-through in
+  front of the camera so its textures load before it appears (2026-10-01); at full size that
+  1% still showed. The copies are now shrunk to 5% (`Config.CueSkins.Warm.Scale`): still
+  drawn, so textures still load, but a few pixels at 1% are never seen. Nothing else in the
+  game is drawn hidden in view (the effects preload with PreloadAsync).

@@ -4556,6 +4556,11 @@ Config.CueSkins = {
 	Warm = {
 		Transparency = 0.99, -- the hidden copy: drawn (the renderer loads it), never seen
 		DistanceStuds = 10, -- in front of the camera, so it is always in view
+		-- The copy (stick, piece and effect sprites) at this share of its size: at full size it
+		-- showed as a faint ghost cue and a round blur across the view, plainest over a match's
+		-- felt (designer, 2026-10-05, live). A few pixels at 1% is never seen; the renderer
+		-- still draws it, so its textures still load. (tune)
+		Scale = 0.05,
 		MinSeconds = 0.25, -- drawn at least this long, and MinFrames frames, before it is ready:
 		MinFrames = 8, -- the textures reach the graphics card a few frames after they download
 		SettleSeconds = 0.25, -- every texture reports loaded for this long without a new fetch

@@ -6,8 +6,9 @@
 -- Why a hidden copy: a SurfaceAppearance's maps are fetched by the renderer only when one is
 -- drawn (ContentProvider:PreloadAsync on its template loads just the mesh, and on the map ids
 -- loads them in another form the renderer fetches again). So `warm(id)` draws a copy of the cue
--- Config.CueSkins.Warm.Transparency see-through in front of the camera: its surface (and every
--- moving-surface frame), its 3D piece, and one particle and one beam per effect sprite.
+-- Config.CueSkins.Warm.Transparency see-through and shrunk to Warm.Scale (a few pixels) in front
+-- of the camera: its surface (and every moving-surface frame), its 3D piece, and one particle
+-- and one beam per effect sprite. Never seen: at full size it showed as a faint ghost cue.
 --
 -- The cue is ready when every one of those textures has reported loaded (ContentProvider's
 -- fetch status) for SettleSeconds, the copy has been drawn MinSeconds and MinFrames, and its
@@ -417,6 +418,11 @@ local function dress(w: Warm)
 	end
 	table.insert(w.parts, host)
 	table.insert(w.offsets, CFrame.new())
+	-- Shrunk to a few pixels, so the copy is never seen (Scale); its parts' places shrink alike.
+	model:ScaleTo(W.Scale)
+	for i, offset in w.offsets do
+		w.offsets[i] = offset.Rotation + offset.Position * W.Scale
+	end
 	hide(model)
 	model.Parent = folder()
 end
