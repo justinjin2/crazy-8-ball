@@ -480,7 +480,7 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
 - [x] 2. Tech spike in Studio (section 7.1), recordings and contact sheet; **gate 1**.
 - [x] 3. The card's pieces, the rebuild check, the title A/B, the odds badge and pop-up, the
       chip-row mock, the 8-ball flair, the dot tile and the header texture; **gate 2**.
-- [ ] 4. The effects library (fireworks in five colours, sparkles, glows, sweep masks, ribbons,
+- [x] 4. The effects library (fireworks in five colours, sparkles, glows, sweep masks, ribbons,
       glyph code, confetti, rays) packed and uploaded.
 - [ ] 5. The animatic with sliders and optional flair switches; **gate 3**; the approved values
       in Config.
@@ -520,7 +520,11 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
 - 2026-10-06: **gate 2 approved** after one round of notes: crown and block regenerated whole
   (the crown with four ball-tipped prongs), subtitle straight, header 0.6, odds "i" badge, the
   Beta card denser (ten panels, ring, callouts, motes) and shown moving on the gate page (liked).
-  Image spend $7.00. Next: step 4, upload the effects library and the card's pieces.
+  Image spend $7.00.
+- 2026-10-06: step 4 done. 47 pictures uploaded to the group (dry-run first), image ids read in
+  Studio into `tools/upload_manifest.json`, then into `Config.UI.Effects` (fireworks, sparkle,
+  gold ribbons with their frame layout, rays) and `Config.UI.GrandOpeningCard.Images` (every
+  card piece, the dot tile). All 48 ids preload with Success in Studio. Next: the animatic.
 
 ## Decisions
 

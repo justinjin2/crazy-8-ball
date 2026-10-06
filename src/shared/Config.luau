@@ -7475,6 +7475,97 @@ Config.UI.Shop = {
 	},
 }
 
+-- The lively GUI's effects library (docs/prompts/SHOP_LIVELY_PROMPT.md 7.2): flipbooks any
+-- screen can play on one ImageLabel by stepping ImageRectOffset (drawn by tools/gui/effects.py,
+-- the ribbons rendered by tools/gui/render_cues.py; each sheet's JSON beside it in
+-- assets/ui/effects/). Image ids from tools/upload_manifest.json.
+Config.UI.Effects = {
+	-- A firework burst: a white flash cooling into its colour (baked; a tint cannot make white).
+	Firework = {
+		Gold = "rbxassetid://74896337141026",
+		Pink = "rbxassetid://122426139419809",
+		Cyan = "rbxassetid://140697632199442",
+		Purple = "rbxassetid://122427114274964",
+		Orange = "rbxassetid://90380179097737",
+		Columns = 8,
+		Rows = 8,
+		FramePx = 128, -- square frames
+		Frames = 64,
+		Fps = 30, -- 64 frames: about 2.1 s, played once
+	},
+	-- A four-point twinkle that grows, turns a little and shrinks (white; tint it).
+	Sparkle = {
+		Image = "rbxassetid://101521209518869",
+		Columns = 8,
+		Rows = 8,
+		FramePx = 128,
+		Frames = 64,
+		Fps = 30, -- loops
+	},
+	-- The Grand Opening cue's two gold ribbons, one seamless turn over the card's cue picture
+	-- (13b-like loose loops). Frames 1-16 on the first sheet, 17-32 on the second.
+	GoRibbons = {
+		Sheets = { "rbxassetid://126431223631624", "rbxassetid://88772770212728" },
+		Columns = 2,
+		Rows = 8,
+		FrameWidthPx = 471,
+		FrameHeightPx = 128,
+		Frames = 32,
+		Fps = 13.333, -- a turn in 2.4 s (the in-game 7.2 s would be 4.4 fps, choppy)
+		-- Where a frame sits on the cue picture, as shares of the render canvas
+		-- ({left, top, right, bottom}: crop_in_canvas over canvas 2304 x 640).
+		Box = { 0.0556, 0.0516, 0.9201, 0.9000 },
+	},
+	Rays = "rbxassetid://103944500004159", -- white rays (tint them), turned by Rotation
+}
+
+-- The Shop's Grand Opening card: its pictures (assets/ui/grand_opening, made by tools/gui; each
+-- piece's source in tools/gui/grand_opening/pieces.json). Layout and timing come with the
+-- animatic (gate 3).
+Config.UI.GrandOpeningCard = {
+	Images = {
+		BallFar = "rbxassetid://133917866454159",
+		BallMid = "rbxassetid://131006186802889",
+		BallNear = "rbxassetid://106188181329401",
+		BetaBg = "rbxassetid://79365265074624",
+		BetaCallouts = "rbxassetid://100443049445710",
+		BetaCode = "rbxassetid://84645552488171",
+		BetaCue = "rbxassetid://119107559983869",
+		BetaCueMask = "rbxassetid://133658662502990",
+		BetaMote = "rbxassetid://97352339516537",
+		BetaPanel1 = "rbxassetid://74810348586393",
+		BetaPanel10 = "rbxassetid://134787497363227",
+		BetaPanel2 = "rbxassetid://105979651588502",
+		BetaPanel3 = "rbxassetid://124209830176541",
+		BetaPanel4 = "rbxassetid://94361946702812",
+		BetaPanel5 = "rbxassetid://71517930256519",
+		BetaPanel6 = "rbxassetid://93956731802484",
+		BetaPanel7 = "rbxassetid://90738951762522",
+		BetaPanel8 = "rbxassetid://135281657731283",
+		BetaPanel9 = "rbxassetid://123761250140819",
+		BetaRing = "rbxassetid://105202280309632",
+		Block = "rbxassetid://109891094531777",
+		BlockGlow = "rbxassetid://81188257491328",
+		BlockMask = "rbxassetid://73238073614819",
+		BokehDisc = "rbxassetid://94800187656206",
+		Confetti1 = "rbxassetid://76787298053979",
+		Confetti2 = "rbxassetid://87754386394250",
+		Confetti3 = "rbxassetid://107098604559953",
+		Confetti4 = "rbxassetid://120125257618602",
+		Confetti5 = "rbxassetid://104704902760777",
+		Confetti6 = "rbxassetid://138178384118884",
+		Crown = "rbxassetid://118495873177958",
+		Flair8ball = "rbxassetid://132422184916082",
+		GoBg = "rbxassetid://99479265638524",
+		GoCue = "rbxassetid://130447726546401",
+		GoCueMask = "rbxassetid://113286103070085",
+		Plate = "rbxassetid://93204646083675",
+		StarLeft = "rbxassetid://81445661051193",
+		StarRight = "rbxassetid://133224366351187",
+	},
+	DotsTile = "rbxassetid://91688642128658", -- the white sheet's dot tile (512 px), for the frame
+}
+
 -- The lucky block opening's reel (LuckyOpening with BlockReel, LuckyResult and ReelFx; the
 -- pull cutscenes in PullCutscene; docs/prompts/ECONOMY_UI_PROMPT.md section 11): a full-screen
 -- overlay over the menus with the reel and the YOU GOT card. Everything is laid out at the
