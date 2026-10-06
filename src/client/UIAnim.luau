@@ -74,6 +74,23 @@ function UIAnim.popIn(object: GuiObject)
 	play(scale, TweenInfo.new(M.PopSeconds, Enum.EasingStyle.Back, Enum.EasingDirection.Out), 1)
 end
 
+--- Grow an object from `from` of its size (0: from nothing) to full after `delay` seconds,
+--- with a small overshoot: one step of a quick one-by-one entrance (Config.UI.Kit.Motion.Stagger).
+function UIAnim.expandIn(object: GuiObject, delay: number, from: number?)
+	local scale = UIAnim.scaleOf(object)
+	scale.Scale = from or 0
+	local S = M.Stagger
+	local info = TweenInfo.new(
+		S.PopSeconds,
+		Enum.EasingStyle.Back,
+		Enum.EasingDirection.Out,
+		0,
+		false,
+		delay
+	)
+	play(scale, info, 1)
+end
+
 --- Hide an object: it shrinks quickly, then is hidden. `done` runs once it is gone.
 function UIAnim.popOut(object: GuiObject, done: (() -> ())?)
 	if not object.Visible then

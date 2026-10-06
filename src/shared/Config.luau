@@ -6013,6 +6013,10 @@ Config.UI = {
 		Motion = {
 			PopSeconds = 0.32, -- pop in
 			PopFromScale = 0.6, -- from this size
+			-- A one-by-one entrance (UIAnim.expandIn; designer, 2026-10-06: the lucky block
+			-- reel's cards "should appear like all individually in rapid succession"): each
+			-- piece grows from nothing in PopSeconds, the next GapSeconds after it. (tune)
+			Stagger = { PopSeconds = 0.18, GapSeconds = 0.04 },
 			OutSeconds = 0.14, -- pop out, quicker
 			SlideSeconds = 0.25,
 			SlidePx = 24, -- how far a slide travels

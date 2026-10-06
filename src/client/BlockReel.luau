@@ -425,6 +425,24 @@ function Reel.place(self: any)
 	)
 end
 
+--- The reel's entrance, `delay` seconds from now: the window grows in, then each card in view
+--- grows from nothing, left to right, one quick step apart. Returns when the last card has
+--- started, in seconds from now (the spin can start then). Call after layout.
+function Reel.intro(self: any, delay: number): number
+	local S = K.Motion.Stagger
+	UIAnim.expandIn(self.root, delay, K.Motion.PopFromScale)
+	local half = self.clipWidth / 2
+	local at = delay + S.GapSeconds
+	for index, slot in self.slots do
+		local centre = centreOf(index)
+		if math.abs(centre - self.pos) <= half + R.CardWidthPx / 2 then
+			UIAnim.expandIn(slot.frame, at)
+			at += S.GapSeconds
+		end
+	end
+	return at
+end
+
 --- Put the server's prize at the prize slot (hidden far along the strip until the spin nears it).
 function Reel.setPrize(self: any, cueId: string, rarity: string)
 	self.prizeId = cueId

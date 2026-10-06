@@ -173,6 +173,10 @@ order; that is Open.
   float, spinning rays, confetti, count-up), so all screens move alike. Looping effects stop
   when their screen closes.
 
+- **One by one, quickly** (designer, 2026-10-06): a screen of many pieces (the lucky block
+  reel first) enters a piece at a time, each growing from nothing with a small overshoot, a
+  few hundredths of a second apart, never all at once (`UIAnim.expandIn`,
+  `Config.UI.Kit.Motion.Stagger`).
 - **How lively** (2026-09-25): panels and popups pop in with a small overshoot and pop out
   quickly. Only important things shine, bounce or breathe: your turn (the YOUR TURN popup
   pops in and its cue bounces), the win card (the trophy over turning rays), Start once it can be

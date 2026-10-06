@@ -27,6 +27,7 @@ local LuckyResult = require(script.Parent.LuckyResult)
 local PullCutscene = require(script.Parent.PullCutscene)
 local ReelFx = require(script.Parent.ReelFx)
 local ScreenBlur = require(script.Parent.ScreenBlur)
+local UIAnim = require(script.Parent.UIAnim)
 
 local U = Config.LuckyBlocks.UI
 local CO = Config.UI.Reel
@@ -220,6 +221,13 @@ function Opening.startReel(self: any, kind: string, cueId: string, rarity: strin
 	self.cueId, self.rarity = cueId, rarity
 	self.phase = "Reel"
 	self:layout()
+	-- One by one, quickly: the title, the reel's window and each card, then the hint; the spin
+	-- starts once the last card is on its way (designer, 2026-10-06).
+	local S = Config.UI.Kit.Motion.Stagger
+	UIAnim.expandIn(title, 0)
+	local spinAt = reel:intro(S.GapSeconds)
+	UIAnim.expandIn(hint, spinAt)
+	local playId = self.playId
 	ContextActionService:BindActionAtPriority(
 		TAP_ACTION,
 		function(_, state: Enum.UserInputState)
@@ -236,11 +244,16 @@ function Opening.startReel(self: any, kind: string, cueId: string, rarity: strin
 		Enum.KeyCode.Space,
 		Enum.KeyCode.Escape
 	)
-	reel:start(function()
-		self:afterReel()
-	end, function()
-		self:stopping()
-	end, if PullCutscene.has(rarity) then Config.Cutscenes.Black.LeadSeconds else 0)
+	task.delay(spinAt, function()
+		if not (self.open and self.playId == playId and self.reel == reel) then
+			return
+		end
+		reel:start(function()
+			self:afterReel()
+		end, function()
+			self:stopping()
+		end, if PullCutscene.has(rarity) then Config.Cutscenes.Black.LeadSeconds else 0)
+	end)
 end
 
 function Opening.layout(self: any)

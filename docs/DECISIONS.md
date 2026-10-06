@@ -2668,3 +2668,8 @@ timer of a new block stay the designer's call.
 - 2026-10-06 (designer: the reel's blur "doesn't seem to fade in"): the lucky block reel now
   pops up 0.15 s after the blur starts (`Config.UI.Blur.ReelLeadSeconds`); at the same moment
   the reel covered the fade.
+- 2026-10-06 (designer: the reel's cards "all appear at once"; they should expand in "all
+  individually in rapid succession"): the lucky block reel enters one piece at a time: the
+  title, the reel's window, each card in view left to right growing from nothing (0.18 s
+  each, 0.04 s apart), then the hint; the spin starts after the last card (about 0.45 s in).
+  `UIAnim.expandIn`, `Config.UI.Kit.Motion.Stagger`; any screen can use it.
