@@ -1,13 +1,19 @@
 --!strict
--- HoleFill: solid ink in the holes of outlined letters (o, a, e, g, d, 0, 8, B...). Roblox's
--- text outline (UIStroke) reaches only a little way into a letter's hole, so a hole shows the
--- background inside a thin ink ring however thick the outline is (checked in Studio,
--- 2026-10-05). Under each outlined text this lays two ink copies of the same text, nudged left
--- and right by about a hole's half-width, and the text again on top: the copies' letters cover
--- the holes, and stay inside the outline everywhere else. The nudge is padding on each copy
--- (left d, right -d), not a position, so a self-sizing label keeps its size. Copies follow the
--- label's text, font, size, colour, fading and gradients. Tuning in Config.UI.Kit.HoleFill.
--- On test on the Free Reward page only (designer, 2026-10-05) while the font is still open.
+-- HoleFill: solid ink in the holes of outlined letters (o, a, e, g, d, p, 0, 8, B...), and on
+-- test a thicker ink edge under them (the "drop"). Roblox's text outline (UIStroke) reaches
+-- only a little way into a letter's hole, so a hole shows the background inside a thin ink
+-- ring, and how much depends on the hole's size (checked in Studio, 2026-10-05). Under each
+-- outlined text this lays two ink copies of the same text, nudged left and right by the
+-- outline's thickness, and the text again on top: each hole closes from both sides, and a
+-- copy never reaches past the outline (an outline is the letter grown by its thickness every
+-- way), so the letters keep their shape. The nudge is never under HoleRatio of the text size
+-- (the half-width of the font's widest hole), so small text's holes close too. The nudge is padding on each copy (left
+-- d, right -d), not a position, so a self-sizing label keeps its size.
+-- The drop (designer, 2026-10-06, after a reference): one more ink copy with the label's own
+-- outline, moved down a share of the text size, so every letter sits on a thick dark lip.
+-- Copies follow the label's text, font, size, colour, outline, fading and gradients; rich
+-- text colours are inked in the copies. Every outlined text in PlayerGui gets the fill
+-- (Main); the drop is on test on the Free Reward page. Tuning in Config.UI.Kit.HoleFill.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -39,7 +45,20 @@ for _, name in SHARED do
 	SHARED_SET[name] = true
 end
 
-local attached: { [Instance]: () -> () } = setmetatable({}, { __mode = "k" }) :: any
+type State = {
+	label: GuiObject,
+	stroke: UIStroke,
+	inks: { TextLabel }, -- ink copies (the hole fill, then the drop)
+	face: TextLabel,
+	links: { RBXScriptConnection },
+	drop: TextLabel?,
+	dropPad: UIPadding?,
+	refresh: () -> (),
+}
+
+local states: { [Instance]: State } = setmetatable({}, { __mode = "k" }) :: any
+-- Our own copies, so the drop's outline is never taken for a text to fill.
+local copies: { [Instance]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 
 local function outlineOf(label: Instance): UIStroke?
 	for _, child in label:GetChildren() do
@@ -50,8 +69,27 @@ local function outlineOf(label: Instance): UIStroke?
 	return nil
 end
 
-local function nudgePx(size: number): number
-	return math.max(H.MinNudgePx, math.ceil(size * H.NudgeRatio))
+-- The outline's thickness, or more on small text, whose thin outline leaves too little to
+-- close a hole from both sides (there the copies widen the letters a pixel).
+local function nudgePx(size: number, stroke: UIStroke): number
+	return math.max(H.MinNudgePx, math.floor(stroke.Thickness + 0.5), math.ceil(size * H.HoleRatio))
+end
+
+local function dropPx(size: number): number
+	return math.max(H.Drop.MinPx, math.ceil(size * H.Drop.Ratio))
+end
+
+-- The label's text for an ink copy: rich text colours become the ink, or the copies would
+-- show them round the face's letters.
+local function inkText(label: GuiObject, stroke: UIStroke): string
+	local text = (label :: any).Text :: string
+	if not (label :: any).RichText then
+		return text
+	end
+	local hex = "#" .. stroke.Color:ToHex()
+	text = string.gsub(text, '(<font[^>]-color%s*=%s*)"[^"]*"', '%1"' .. hex .. '"')
+	text = string.gsub(text, "(<font[^>]-color%s*=%s*)'[^']*'", "%1'" .. hex .. "'")
+	return text
 end
 
 local function makeCopy(label: GuiObject, name: string): TextLabel
@@ -69,6 +107,7 @@ local function makeCopy(label: GuiObject, name: string): TextLabel
 	if limit then
 		limit:Clone().Parent = copy
 	end
+	copies[copy] = true
 	return copy
 end
 
@@ -77,9 +116,9 @@ end
 local function mirrorGradients(
 	label: Instance,
 	copy: TextLabel,
-	whole: boolean
-): { RBXScriptConnection }
-	local links = {}
+	whole: boolean,
+	links: { RBXScriptConnection }
+)
 	for _, gradient in label:GetChildren() do
 		if gradient:IsA("UIGradient") then
 			local twin = gradient:Clone()
@@ -102,13 +141,48 @@ local function mirrorGradients(
 			)
 		end
 	end
-	return links
 end
 
-local function attach(label: GuiObject, stroke: UIStroke)
-	if attached[label] then
+-- Put the face back on top of every ink copy (siblings draw in child order).
+local function raiseFace(state: State)
+	state.face.Parent = nil
+	state.face.Parent = state.label
+end
+
+local function addDrop(state: State)
+	if state.drop then
 		return
 	end
+	local label = state.label
+	local drop = makeCopy(label, "DropInk")
+	local pad = Instance.new("UIPadding")
+	pad.Parent = drop
+	local edge = state.stroke:Clone()
+	for _, child in edge:GetChildren() do
+		child:Destroy()
+	end
+	edge.Parent = drop
+	mirrorGradients(label, drop, false, state.links)
+	state.drop = drop
+	state.dropPad = pad
+	table.insert(state.inks, drop)
+	-- The drop's outline follows the label's.
+	table.insert(
+		state.links,
+		state.stroke.Changed:Connect(function(property: string)
+			if property ~= "Parent" and property ~= "Name" then
+				pcall(function()
+					(edge :: any)[property] = (state.stroke :: any)[property]
+				end)
+			end
+		end)
+	)
+	state.refresh()
+	drop.Parent = label
+	raiseFace(state)
+end
+
+local function attach(label: GuiObject, stroke: UIStroke): State
 	local left = makeCopy(label, "HoleInkLeft")
 	local right = makeCopy(label, "HoleInkRight")
 	local face = makeCopy(label, "HoleFace")
@@ -117,38 +191,49 @@ local function attach(label: GuiObject, stroke: UIStroke)
 	local rightPad = Instance.new("UIPadding")
 	rightPad.Parent = right
 	local links: { RBXScriptConnection } = {}
-	for _, link in mirrorGradients(label, left, false) do
-		table.insert(links, link)
-	end
-	for _, link in mirrorGradients(label, right, false) do
-		table.insert(links, link)
-	end
-	for _, link in mirrorGradients(label, face, true) do
-		table.insert(links, link)
-	end
+	mirrorGradients(label, left, false, links)
+	mirrorGradients(label, right, false, links)
+	mirrorGradients(label, face, true, links)
 
-	local function nudge()
-		local d = nudgePx((label :: any).TextSize)
+	local state: State
+	local function place()
+		local d = nudgePx((label :: any).TextSize, stroke)
 		leftPad.PaddingLeft = UDim.new(0, -d)
 		leftPad.PaddingRight = UDim.new(0, d)
 		rightPad.PaddingLeft = UDim.new(0, d)
 		rightPad.PaddingRight = UDim.new(0, -d)
+		local pad = state.dropPad
+		if pad then
+			local down = dropPx((label :: any).TextSize)
+			pad.PaddingTop = UDim.new(0, down)
+			pad.PaddingBottom = UDim.new(0, -down)
+		end
 	end
 	local function ink()
 		local fade = math.max((label :: any).TextTransparency, stroke.Transparency)
-		for _, copy in { left, right } do
+		local text = inkText(label, stroke)
+		for _, copy in state.inks do
+			copy.Text = text
 			copy.TextColor3 = stroke.Color
 			copy.TextTransparency = fade
 			copy.Visible = stroke.Enabled
 		end
 	end
-	local function look()
+	local function refresh()
 		face.TextColor3 = (label :: any).TextColor3
 		face.TextTransparency = (label :: any).TextTransparency
 		ink()
+		place()
 	end
-	nudge()
-	look()
+	state = {
+		label = label,
+		stroke = stroke,
+		inks = { left, right },
+		face = face,
+		links = links,
+		refresh = refresh,
+	}
+	refresh()
 	left.Parent = label
 	right.Parent = label
 	face.Parent = label
@@ -158,24 +243,26 @@ local function attach(label: GuiObject, stroke: UIStroke)
 		label.Changed:Connect(function(property: string)
 			if SHARED_SET[property] then
 				local value = (label :: any)[property]
-				for _, copy in { left, right, face } do
+				for _, copy in { face, table.unpack(state.inks) } do
 					(copy :: any)[property] = value
 				end
-				if property == "TextSize" then
-					nudge()
+				if property == "Text" or property == "RichText" then
+					ink()
+				elseif property == "TextSize" then
+					place()
 				end
 			elseif property == "TextColor3" or property == "TextTransparency" then
-				look()
+				refresh()
 			end
 		end)
 	)
-	table.insert(links, stroke.Changed:Connect(ink))
+	table.insert(links, stroke.Changed:Connect(refresh))
 	local limit = label:FindFirstChildOfClass("UITextSizeConstraint")
 	if limit then
 		table.insert(
 			links,
 			limit.Changed:Connect(function()
-				for _, copy in { left, right, face } do
+				for _, copy in { face, table.unpack(state.inks) } do
 					local twin = copy:FindFirstChildOfClass("UITextSizeConstraint")
 					if twin then
 						twin.MaxTextSize = limit.MaxTextSize
@@ -187,12 +274,13 @@ local function attach(label: GuiObject, stroke: UIStroke)
 	end
 
 	local function detach()
-		attached[label] = nil
+		states[label] = nil
 		for _, link in links do
 			link:Disconnect()
 		end
-		left:Destroy()
-		right:Destroy()
+		for _, copy in state.inks do
+			copy:Destroy()
+		end
 		face:Destroy()
 	end
 	-- An outline taken off (a note's) takes the fill with it.
@@ -205,29 +293,42 @@ local function attach(label: GuiObject, stroke: UIStroke)
 		end)
 	)
 	table.insert(links, label.Destroying:Connect(detach))
-	attached[label] = detach
+	states[label] = state
+	return state
 end
 
-local function consider(object: Instance)
+local function consider(object: Instance, withDrop: boolean)
 	local label = if object:IsA("UIStroke") then object.Parent else object
-	if label == nil or attached[label] then
+	if label == nil or copies[label] then
 		return
 	end
 	if not (label:IsA("TextLabel") or label:IsA("TextButton")) then
 		return
 	end
-	local stroke = outlineOf(label)
-	if stroke then
-		attach(label :: GuiObject, stroke)
+	local state = states[label]
+	if state == nil then
+		local stroke = outlineOf(label)
+		if stroke == nil then
+			return
+		end
+		state = attach(label :: GuiObject, stroke)
+	end
+	if withDrop then
+		addDrop(state :: State)
 	end
 end
 
 --- Fill the letter holes of every outlined text under `root`, now and as texts are added.
-function HoleFill.watch(root: Instance)
+--- `withDrop` also gives them the thick ink edge underneath. Two watches over the same text
+--- (all of PlayerGui, then one page with the drop) share one fill.
+function HoleFill.watch(root: Instance, withDrop: boolean?)
+	local drop = withDrop == true
 	for _, object in root:GetDescendants() do
-		consider(object)
+		consider(object, drop)
 	end
-	root.DescendantAdded:Connect(consider)
+	root.DescendantAdded:Connect(function(object: Instance)
+		consider(object, drop)
+	end)
 end
 
 return HoleFill

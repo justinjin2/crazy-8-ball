@@ -5825,11 +5825,20 @@ Config.UI = {
 		-- Builder Sans, Montserrat and Luckiest Guy).
 		TextOutlineThinBelowPx = 20,
 		TextOutlineThinPx = 1,
-		-- Solid ink in outlined letters' holes (HoleFill; designer, 2026-10-05): two ink copies
-		-- of the text under it, nudged left and right this share of the text size (rounded up,
-		-- at least MinNudgePx). About a hole's half-width in Fredoka One (0.08 checked in Studio
-		-- from 14 to 32 px); at 20 px and up the nudge stays inside the outline. (tune)
-		HoleFill = { NudgeRatio = 0.08, MinNudgePx = 1 },
+		-- Solid ink in outlined letters' holes (HoleFill; designer, 2026-10-05; every outlined
+		-- text since 2026-10-06): two ink copies of the text under it, nudged left and right by
+		-- the outline's own thickness, so they stay inside the outline, but never less than
+		-- HoleRatio of the text size (rounded up): about half the widest hole in Fredoka One
+		-- (O, 0, @). Text under 20 px has a 1 px outline, which closed only part of an 18 px O;
+		-- it gets a 2 px nudge (checked in Studio). Another font may need a new ratio. Drop: the thick ink edge under each letter (designer's reference,
+		-- 2026-10-06), an ink copy with the outline moved down this share of the text size
+		-- (rounded up, at least MinPx); 0.06 picked by the designer over 0.1 and 0.14. (tune)
+		HoleFill = {
+			Everywhere = false, -- every outlined text in PlayerGui (false: only pages that ask)
+			HoleRatio = 0.08,
+			MinNudgePx = 1,
+			Drop = { Ratio = 0.06, MinPx = 2 },
+		},
 		-- Raised candy buttons: a light top, the colour, then a darker lip along the bottom.
 		Buttons = {
 			Green = { Top = { 140, 240, 160 }, Mid = { 61, 214, 107 }, Lip = { 30, 150, 70 } },
@@ -10252,9 +10261,9 @@ Config.UI.FreeReward = {
 	ButtonPx = { 44, 54 },
 	-- After Roblox's favorite prompt says yes, look again this long for GetFavorite to agree.
 	FavoriteCheckSeconds = 3,
-	-- Fill the holes of the page's outlined letters with ink (HoleFill), on test here first
-	-- (designer, 2026-10-05, while the font is still open). (tune)
-	FillHoles = true,
+	-- The thick ink edge under the page's outlined letters (HoleFill's drop), on test here
+	-- first (designer, 2026-10-06); if it stays, it goes on every outlined text. (tune)
+	TextDrop = true,
 }
 
 -- The hub's small corner buttons (HubCorners; GUI lane, C2): the Daily Challenge on the right

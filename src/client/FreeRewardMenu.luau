@@ -351,8 +351,8 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end,
 		root = frame.root,
 	}
-	if F.FillHoles then
-		HoleFill.watch(frame.root)
+	if F.TextDrop then
+		HoleFill.watch(frame.root, true)
 	end
 	Menus.register(NAME, handle)
 	return handle

@@ -2630,3 +2630,10 @@ timer of a new block stay the designer's call.
   these four (`Config.UI.Menu.PaleEdgeMenus`); buttons keep their ink outlines.
 - **2026-10-06 — The left column's words in capitals (designer).** SHOP, INVENTORY,
   ABILITIES, FREE REWARD.
+- 2026-10-06: **Text drop on test** (designer, after a Halloween store reference): under each
+  outlined letter on the Free Reward page an ink copy with the outline, moved down 6% of the
+  text size (at least 2 px), gives a thick dark lip (`Config.UI.FreeReward.TextDrop`; the
+  designer picked 6% over 10% and 14%). The hole fill's nudge is now the outline's thickness
+  (at least 8% of the text size), so big text keeps its shape. Tried on every outlined text
+  (`Config.UI.Kit.HoleFill.Everywhere`) and turned off: small text (card names, Sort, the
+  money pill) looked blobby, as a 2 px nudge on a 1 px outline makes the letters touch.

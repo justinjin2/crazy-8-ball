@@ -34,6 +34,7 @@ local Camera = require(script.Parent.Camera)
 local DayCycle = require(script.Parent.DayCycle)
 local FirePit = require(script.Parent.FirePit)
 local FontTest = require(script.Parent.FontTest)
+local HoleFill = require(script.Parent.HoleFill)
 local Guideline = require(script.Parent.Guideline)
 local Input = require(script.Parent.Input)
 local MapAmbience = require(script.Parent.MapAmbience)
@@ -1006,6 +1007,9 @@ local dayCycle = DayCycle.new() -- the map's day and sunset light (an arena star
 local firePit = FirePit.new() -- the fire pit's fire, lit at sunset
 local tableSign = TableSign.new(player:WaitForChild("PlayerGui"))
 FontTest.watch(player:WaitForChild("PlayerGui")) -- Config.UI.FontTest's fonts, if any
+if Config.UI.Kit.HoleFill.Everywhere then
+	HoleFill.watch(player:WaitForChild("PlayerGui")) -- solid ink in every outlined letter's holes
+end
 -- A table's box stays lit only while it waits for its host.
 local function queueOpen(id: number): boolean
 	local s = hub.snapshots[id]
