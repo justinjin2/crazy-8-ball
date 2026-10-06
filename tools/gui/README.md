@@ -35,5 +35,8 @@ Scripts for building animated, layered screens (docs/prompts/SHOP_LIVELY_PROMPT.
 - `render_cues.py` (run inside headless Blender) and `cue_sheets.py`: the two cues rendered from
   the real in-game mesh, skins and pieces (`--tip left` like 13b), their silhouettes, and the Grand
   Opening cue's gold ribbon loop (`loose`: 13b-like wide loops), packed into sheets with a JSON
-  beside each. The card uses the tip-left renders and the loose ribbons, played at a 2.4 s turn
-  (13.3 fps; the in-game 7.2 s turn would be 4.4 fps, too choppy).
+  beside each. The card first played the loose ribbons as a loop; since 2026-10-06 it shows one
+  still frame instead (designer: the loop looked choppy).
+- `firework_still.py`: the Firework Cue's tip-left render with one loose ribbon frame baked on,
+  its silhouette and its glow, on one canvas with a clear border, for the card's breathe and
+  shine (`Config.UI.GrandOpeningCard.Layout.FireworkStill`).

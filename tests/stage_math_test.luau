@@ -150,15 +150,10 @@ return {
 		H.expect(x == fw.FramePx and y == fw.FramePx, "frame 9 is row 1, column 1")
 		local lx, ly = S.flipOffset(63, 8, 128, 128)
 		H.expect(lx + 128 <= 1024 and ly + 128 <= 1024, "the last frame stays on a 1024 sheet")
-		local rib = Config.UI.Effects.FireworkRibbons
-		H.expect(
-			rib.Columns * rib.Rows * #rib.Sheets == rib.Frames,
-			"the ribbons' frames fill their sheets"
-		)
 	end,
 
 	["the smooth-motion windows stay inside their pictures"] = function()
-		local S = load()
+		local S, Config = load()
 		for t = 0, 30, 0.37 do
 			local o = S.scrollOffset(t, 32, 512 / 380, 512)
 			H.expect(o >= 0 and o < 512, "a scroll window stays within one period")
@@ -175,6 +170,19 @@ return {
 				offset >= 0 and offset + size <= 256,
 				"a breathe window inside the picture at " .. scale
 			)
+		end
+		-- The card's breathing pictures (the crowned block, the Firework still), their border
+		-- shared by length as the card does: inside the picture and keeping its shape.
+		local card = Config.UI.GrandOpeningCard
+		local amount = card.Loops.BreatheScale
+		for _, px in { card.Layout.CrownedBlockPx, card.Layout.FireworkStillPx } do
+			local per = px[3] / math.max(px[1], px[2])
+			for _, scale in { 1 - amount, 1, 1 + amount } do
+				local sw, ow = S.breatheRect(px[1], px[1] * per, scale)
+				local sh, oh = S.breatheRect(px[2], px[2] * per, scale)
+				H.expect(ow >= 0 and oh >= 0 and ow + sw <= px[1] and oh + sh <= px[2], "inside")
+				H.near(sw / sh, px[1] / px[2], 1e-9, "the picture keeps its shape")
+			end
 		end
 	end,
 

@@ -7691,20 +7691,6 @@ Config.UI.Effects = {
 		Frames = 64,
 		Fps = 30, -- loops
 	},
-	-- The Firework Cue's two gold ribbons, one seamless turn over the card's cue picture
-	-- (13b-like loose loops). Frames 1-16 on the first sheet, 17-32 on the second.
-	FireworkRibbons = {
-		Sheets = { "rbxassetid://126431223631624", "rbxassetid://88772770212728" },
-		Columns = 2,
-		Rows = 8,
-		FrameWidthPx = 471,
-		FrameHeightPx = 128,
-		Frames = 32,
-		Fps = 13.333, -- a turn in 2.4 s (the in-game 7.2 s would be 4.4 fps, choppy)
-		-- Where a frame sits on the cue picture, as shares of the render canvas
-		-- ({left, top, right, bottom}: crop_in_canvas over canvas 2304 x 640).
-		Box = { 0.0556, 0.0516, 0.9201, 0.9000 },
-	},
 	Rays = "rbxassetid://103944500004159", -- white rays (tint them), turned by Rotation
 }
 
@@ -7759,10 +7745,13 @@ Config.UI.GrandOpeningCard = {
 		},
 		Crown = "rbxassetid://118495873177958",
 		Flair8ball = "rbxassetid://132422184916082",
-		FireworkCueGlow = "rbxassetid://126476349740073", -- the Firework Cue's glow (white, tinted)
 		FireworkBg = "rbxassetid://99479265638524",
-		FireworkCue = "rbxassetid://130447726546401",
-		FireworkCueMask = "rbxassetid://113286103070085",
+		-- The Firework Cue with its gold ribbons baked on, a still picture (designer, 2026-10-06:
+		-- not the choppy loop), its silhouette and its glow (white, tinted); all 1024 x 344 with
+		-- a clear border the breathe zooms inside (tools/gui/firework_still.py).
+		FireworkStill = "rbxassetid://114150784985377",
+		FireworkStillMask = "rbxassetid://102417582311616",
+		FireworkStillGlow = "rbxassetid://110793324697491",
 		Plate = "rbxassetid://93204646083675",
 		StarLeft = "rbxassetid://81445661051193",
 		StarRight = "rbxassetid://133224366351187",
@@ -7772,8 +7761,10 @@ Config.UI.GrandOpeningCard = {
 	Loops = {
 		GlowPulseSeconds = 2.6, -- the block's gold glow pulses (transparency 0.05 to 0.45)
 		RaysTurnPerSecond = 8.6, -- degrees: the block's rays turn slowly
-		BreatheScale = 0.015, -- the block breathes this much...
-		BreatheSeconds = 3.1, -- ...over this
+		-- The block (and the Firework Cue) breathes this much over this; a little quicker than
+		-- the animatic's 3.1 s (designer, 2026-10-06).
+		BreatheScale = 0.015,
+		BreatheSeconds = 2.3,
 		BlockShineEvery = 4, -- a shine sweeps across the block (0.7 s)
 		-- the NEW tag wiggles every 3 s: Config.UI.Kit.Motion.Shake.NewTag
 		BallFloatPx = { 6, 9 }, -- the 8-balls float this far (x, y), the far ones slower
@@ -7781,7 +7772,9 @@ Config.UI.GrandOpeningCard = {
 		ConfettiFallPxPerSecond = 22, -- gold confetti drifts down, tumbling
 		BokehCount = 14,
 		TwinkleCount = 7,
-		ButtonShineEvery = 3, -- a shine across each button, staggered 0.35 s
+		-- A shine across each Robux button, staggered 0.35 s; the money buttons never shine
+		-- (designer, 2026-10-06: only the Robux options).
+		ButtonShineEvery = 3,
 		BetaScanEvery = 3, -- the Beta card's scan line (1.2 s down the card)
 		BetaPulseEvery = 1.5, -- the light pulse along the Beta cue (1 s)
 		BetaGlitchEvery = 5, -- a quick glitch (0.14 s)
@@ -7790,8 +7783,6 @@ Config.UI.GrandOpeningCard = {
 		BetaCodePxPerSecond = 24, -- the glyph code scrolls
 		FireworkBurstFps = 15, -- the Grand Opening card's mini fireworks play at half speed (designer)...
 		FireworkBurstEvery = 1.5, -- ...and burst half as often, calm like the ribbons
-		-- The gold ribbons: a turn in 4.8 s (half speed: designer, 2026-10-06; Effects.FireworkRibbons).
-		RibbonFps = 6.667,
 	},
 	-- Where everything sits, in the approved animatic's units (tools/gui/animatic, its card
 	-- 1275 x 498; the card fills the page's width and every number scales with it). Places are
@@ -7862,6 +7853,11 @@ Config.UI.GrandOpeningCard = {
 		OddsColor = { 70, 215, 255 }, -- sky blue (Kit.Numbers' odds colour)
 		CueShare = { 0.5, 0.68, 0.98 }, -- the cue's centre (shares of the card) and width: under the pills
 		FireworkCueShare = { 0.5, 0.7, 0.98 },
+		-- The Firework still picture on the cue's box ({left, top, right, bottom} as shares of
+		-- the cue render's canvas, border included) and its width, height and clear border in
+		-- pixels (tools/gui/firework_still.py prints both).
+		FireworkStill = { -0.0217, -0.1407, 1.0434, 1.1485 },
+		FireworkStillPx = { 1024, 344, 48 },
 		-- The Firework Cue's yellow glow (designer, 2026-10-06): tint, its transparency
 		-- pulsing between these, and the pulse's length.
 		FireworkGlow = {

@@ -5231,12 +5231,6 @@
     "imageId": "118495873177958",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/flair_8ball.png": {
-    "assetId": "107866511886033",
-    "assetType": "Decal",
-    "imageId": "132422184916082",
-    "status": "ok"
-  },
   "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/firework_bg.png": {
     "assetId": "133242126899726",
     "assetType": "Decal",
@@ -5259,6 +5253,30 @@
     "assetId": "111371893471730",
     "assetType": "Decal",
     "imageId": "113286103070085",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/firework_still.png": {
+    "assetId": "109989944544938",
+    "assetType": "Decal",
+    "imageId": "114150784985377",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/firework_still_glow.png": {
+    "assetId": "137931126320064",
+    "assetType": "Decal",
+    "imageId": "110793324697491",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/firework_still_mask.png": {
+    "assetId": "111615490286179",
+    "assetType": "Decal",
+    "imageId": "102417582311616",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/flair_8ball.png": {
+    "assetId": "107866511886033",
+    "assetType": "Decal",
+    "imageId": "132422184916082",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/ui/grand_opening/plate.png": {

@@ -2754,3 +2754,7 @@ timer of a new block stay the designer's call.
   copies-in-existence count folds the old id into the new; the Limited numbering keeps the old
   DataStore key `GrandOpeningCue`, so copy numbers carry on and never repeat
   (`Config.Items.RenamedCues`). The Grand Opening Lucky Block and its products keep their names.
+- 2026-10-06: the Shop's Firework Cue card shows its gold ribbons as **a still picture** that
+  breathes, shines and glows like the lucky block, instead of the ribbon loop (designer: the
+  loop looked choppy). The lucky block and crown breathe a little faster (3.1 s to 2.3 s).
+  **Only the Robux buttons shine**; the money buttons stay still, so the eye goes to Robux.

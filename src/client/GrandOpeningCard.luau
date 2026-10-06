@@ -492,7 +492,20 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 		made.Size = UDim2.fromScale(1, 1)
 		return made
 	end
-	local picture = if beta then IMG.BetaCue else IMG.FireworkCue
+	-- The Firework Cue is one still picture with its ribbons baked on (designer, 2026-10-06:
+	-- not the choppy loop), set on the cue's box with a clear border so it breathes like the
+	-- block (tools/gui/firework_still.py).
+	-- The breathe shows the picture less a share of its border (breathe below), so the box is
+	-- that much smaller round its centre and the cue lands where its render put it.
+	local function still(name: string, id: string, z: number): ImageLabel
+		local made = image(cue, name, id, z)
+		local b, px = L.FireworkStill, L.FireworkStillPx
+		local shown = 1 - px[3] / math.max(px[1], px[2])
+		made.Position = UDim2.fromScale((b[1] + b[3]) / 2, (b[2] + b[4]) / 2)
+		made.Size = UDim2.fromScale((b[3] - b[1]) * shown, (b[4] - b[2]) * shown)
+		return made
+	end
+	local picture = if beta then IMG.BetaCue else IMG.FireworkStill
 	if beta then
 		c.aura = fill("Aura", picture, 1)
 		c.aura.Size = UDim2.fromScale(1.04, 1.12)
@@ -501,7 +514,7 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 	else
 		-- A strong yellow glow round the cue, so it stands out of its busy background (designer,
 		-- 2026-10-06; tools/gui/cue_glow.py).
-		c.aura = fill("Aura", IMG.FireworkCueGlow, 1)
+		c.aura = still("Aura", IMG.FireworkStillGlow, 1)
 		c.aura.ImageColor3 = rgb(L.FireworkGlow.Tint)
 		c.aura.ImageTransparency = L.FireworkGlow.Transparency[1]
 	end
@@ -516,19 +529,14 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 			table.insert(c.copies, copy)
 		end
 	end
-	c.picture = fill("Picture", picture, 4)
-	c.mask = fill("Pulse", if beta then IMG.BetaCueMask else IMG.FireworkCueMask, 5)
-	c.mask.Visible = false
-	if not beta then
-		local box_ = (FX.FireworkRibbons :: any).Box
-		local ribbons = image(cue, "Ribbons", FX.FireworkRibbons.Sheets[1], 6)
-		ribbons.AnchorPoint = Vector2.new(0, 0)
-		ribbons.Position = UDim2.fromScale(box_[1], box_[2])
-		ribbons.Size = UDim2.fromScale(box_[3] - box_[1], box_[4] - box_[2])
-		ribbons.ImageRectSize =
-			Vector2.new(FX.FireworkRibbons.FrameWidthPx, FX.FireworkRibbons.FrameHeightPx)
-		c.ribbons = ribbons
+	if beta then
+		c.picture = fill("Picture", picture, 4)
+		c.mask = fill("Pulse", IMG.BetaCueMask, 5)
+	else
+		c.picture = still("Picture", picture, 4)
+		c.mask = still("Pulse", IMG.FireworkStillMask, 5)
 	end
+	c.mask.Visible = false
 	-- The name in two colours, the pills, the odds chip.
 	local name = HudParts.frame(frame, which .. "Name")
 	name.ZIndex = 6
@@ -1027,11 +1035,13 @@ end
 -- Stage and the idle loops
 --------------------------------------------------------------------------------------------
 
--- The block's breathe: its pictures' window zooms inside their clear border (gate 1: smooth);
--- the crowned block and its shine silhouette together, so the crown and shine breathe with it.
-local function breathe(pictures: { ImageLabel }): UIAnim.Handle
-	local px = L.CrownedBlockPx
-	local w, h, border = px[1], px[2], px[3]
+-- The breathe: the pictures' window zooms inside their clear border (gate 1: smooth), all
+-- together: the crowned block and its shine silhouette, or the Firework still, its silhouette
+-- and its glow. `px` is their width, height and border in pixels (Layout.*Px).
+local function breathe(pictures: { ImageLabel }, px: { number }): UIAnim.Handle
+	local w, h = px[1], px[2]
+	-- The border shared by length, so a wide picture keeps its shape.
+	local per = px[3] / math.max(w, h)
 	local phase = Random.new():NextNumber(0, math.pi * 2)
 	local handle = UIAnim.loop(pictures[1], function(clock)
 		local scale = if UIAnim.reduced()
@@ -1039,8 +1049,8 @@ local function breathe(pictures: { ImageLabel }): UIAnim.Handle
 			else 1 + LOOP.BreatheScale * math.sin(
 				2 * math.pi * clock / LOOP.BreatheSeconds + phase
 			)
-		local sw, ow = StageMath.breatheRect(w, border, scale)
-		local sh, oh = StageMath.breatheRect(h, border, scale)
+		local sw, ow = StageMath.breatheRect(w, w * per, scale)
+		local sh, oh = StageMath.breatheRect(h, h * per, scale)
 		for _, picture in pictures do
 			picture.ImageRectSize = Vector2.new(sw, sh)
 			picture.ImageRectOffset = Vector2.new(ow, oh)
@@ -1211,7 +1221,7 @@ function GrandOpeningCard.register(self: any, stage: Stage.Stage, keep: (UIAnim.
 				LOOP.GlowPulseSeconds
 			),
 			UIAnim.turn(self.rays, LOOP.RaysTurnPerSecond),
-			breathe({ self.blockPicture, self.blockMask }),
+			breathe({ self.blockPicture, self.blockMask }, L.CrownedBlockPx),
 			sweep(self.blockMask, LOOP.BlockShineEvery, 0.7, 0.75),
 		}))
 	end)
@@ -1306,11 +1316,7 @@ function GrandOpeningCard.register(self: any, stage: Stage.Stage, keep: (UIAnim.
 			else
 				table.insert(
 					list,
-					UIAnim.flipbook(
-						c.ribbons,
-						FX.FireworkRibbons,
-						{ loop = true, fps = LOOP.RibbonFps }
-					)
+					breathe({ c.aura :: ImageLabel, c.picture, c.mask }, L.FireworkStillPx)
 				)
 			end
 			keep(all(list))
@@ -1321,9 +1327,8 @@ function GrandOpeningCard.register(self: any, stage: Stage.Stage, keep: (UIAnim.
 		stage:add("Robux" .. count, green, function()
 			keep(buttonShine(green, LOOP.ButtonShineEvery, (index - 1) * 0.35))
 		end)
-		stage:add("Money" .. count, gold, function()
-			keep(buttonShine(gold, LOOP.ButtonShineEvery, 1.4 + (index - 1) * 0.35))
-		end)
+		-- The money buttons never shine (designer, 2026-10-06: only the Robux options).
+		stage:add("Money" .. count, gold)
 	end
 	stage:add("Counts", self.counts)
 	stage:add("EndsIn", self.endsIn)
