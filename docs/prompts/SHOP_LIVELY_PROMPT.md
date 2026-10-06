@@ -494,7 +494,7 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
       Reduce Motion, gamepad; **gate 4**.
 - [ ] 10. Polish from the designer's notes; phone and PC (the designer switches the emulator);
       final recordings; **gate 5**.
-- [ ] 11. The skill `.claude/skills/lively-gui/`, the `CLAUDE.md` pointer and the docs
+- [x] 11. The skill `.claude/skills/lively-gui/`, the `CLAUDE.md` pointer and the docs
       (UI_STYLE, DECISIONS, STATUS, STUDIO_NOTES).
 - [ ] 12. `docs/prompts/SHOP_LIVELY_REPORT.md` and the handoff.
 
@@ -614,6 +614,14 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   small popups and HUD pieces a Studio first look then the final check); a new screen's target
   picture comes from the designer when they have one, otherwise Claude mocks two or three to
   pick from; after this run, the rest of the Shop (Blocks, Money, Passes) with the skill.
+- 2026-10-06: step 11 done, ahead of gate 5 at the designer's request: the skill
+  `.claude/skills/lively-gui/` (SKILL.md 273 lines; motion, art-pipeline, verification and
+  pitfalls references), the CLAUDE.md pointer, UI_STYLE 2, 7, 13 and 15, STUDIO_NOTES. A fresh
+  subagent planned the Inventory with it; the gaps it showed (grids, gate names, per-screen
+  brief) were fixed. Gate 5 checks done by Claude: every control selectable (16), the lit tab
+  selected first on a gamepad, A opens and B closes the odds; 60 fps (worst 19.5 ms); 100
+  pictures, 69 with Lower effects; Reduce Motion only fades. **Gate 5 waiting** on the
+  designer: the computer emulator size and a real gamepad.
 
 
 ## Decisions

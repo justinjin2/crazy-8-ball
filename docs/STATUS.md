@@ -47,8 +47,10 @@ Updated 2026-10-06.
   is in (it unrolls, a scrolling header, the dotted sheet, an 8-ball on the edge; a kit switch
   in `Config.UI.Menu.LivelyMenus`, Shop only), and so is the Grand Opening card on the Featured
   page (`GrandOpeningCard`; the panel is capped to 66% of the screen and as tall as the card).
-  Gate 4's changes are done (products made, flair on, a full menu hides the rest of the HUD);
-  next gate 5 (computer emulator, a real gamepad). The Grand Opening Cue is now the
+  Gate 4 is approved. The method is now the project skill `.claude/skills/lively-gui/` for
+  every GUI (other menus switch to the new frame as each is rebuilt). Gate 5 waits on the
+  designer (computer emulator size, a real gamepad); then the report, then the Shop's Blocks,
+  Money and Passes pages. The Grand Opening Cue is now the
   **Firework Cue** everywhere, id `FireworkCue` (save version 8 moves owned copies;
   `Config.Items.RenamedCues`).
   The other jump groups have no pages yet; the server-side shop, receipts and restock work.
