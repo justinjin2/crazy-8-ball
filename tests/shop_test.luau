@@ -352,10 +352,8 @@ return {
 	["every pass and product is made: a real id, each once"] = function()
 		-- Not made in Creator Hub yet (the lucky-block economy, 2026-10-04): the designer
 		-- approves their creation (tools/roblox_products.py), then this list empties.
+		-- (The Grand Opening packs were made 2026-10-06.)
 		local pending = {
-			GrandOpening1 = true,
-			GrandOpening3 = true,
-			GrandOpening10 = true,
 			RestockRare = true,
 		}
 		local seen = {}

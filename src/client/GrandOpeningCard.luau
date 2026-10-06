@@ -186,6 +186,61 @@ end
 -- Build
 --------------------------------------------------------------------------------------------
 
+-- A section's header, "- FEATURED -": the word between two white lines with ink edges.
+export type Header = { word: TextLabel, lines: Frame, parts: { Frame } }
+
+--- A section header in `parent` (the Shop's page uses it for the sections under the card).
+function GrandOpeningCard.header(parent: Instance, text: string): Header
+	local word = label(parent, "HeaderWord", text, nil, 3)
+	local lines = box(parent, "HeaderLines", 2)
+	local parts: { Frame } = {}
+	for _, side in { "Left", "Right" } do
+		local line = HudParts.frame(lines, side)
+		line.BackgroundTransparency = 0
+		line.BackgroundColor3 = Color3.new(1, 1, 1)
+		line.AnchorPoint = Vector2.new(0.5, 0.5)
+		HudParts.corner(line, 99)
+		local edge = Instance.new("UIStroke")
+		edge.Color = INK
+		edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		edge.Parent = line
+		table.insert(parts, line)
+	end
+	return { word = word, lines = lines, parts = parts }
+end
+
+--- Lay a section header out centred on (x, y) at the card's scale `k` (Layout.Featured).
+function GrandOpeningCard.layoutHeader(h: Header, x: number, y: number, k: number)
+	local F = L.Featured
+	local function round(n: number): number
+		return math.floor(n + 0.5)
+	end
+	local px = math.max(L.MinTextPx, round(F.TextUnits * k))
+	local fw = math.ceil(ShopParts.textWidth(h.word.Text, px)) + 4
+	h.word.Position = UDim2.fromOffset(x, y)
+	h.word.Size = UDim2.fromOffset(fw, px + 8)
+	HudParts.setTextSize(h.word, px)
+	local lineLen = round(F.LineUnits * k)
+	local lineGap = round(F.LineGapUnits * k)
+	local thick = math.max(4, round(5 * k))
+	h.lines.Position = h.word.Position
+	h.lines.Size = UDim2.fromOffset(fw + 2 * (lineGap + lineLen), thick + 4)
+	for index, line in h.parts do
+		local side = if index == 1 then -1 else 1
+		line.Position = UDim2.new(0.5, side * (fw / 2 + lineGap + lineLen / 2), 0.5, 0)
+		line.Size = UDim2.fromOffset(lineLen, thick)
+		local edge = line:FindFirstChildOfClass("UIStroke")
+		if edge then
+			edge.Thickness = math.max(2, round(2.5 * k))
+		end
+	end
+end
+
+--- The header row's height at the card's scale `k`.
+function GrandOpeningCard.headerHeight(k: number): number
+	return math.max(L.Featured.MinPx, math.floor(L.Featured.Units * k))
+end
+
 export type Actions = {
 	robux: (key: string) -> (), -- a Config.Products key (GrandOpening1/3/10)
 	money: (count: number) -> (), -- buy `count` blocks with money (Config.Shop.Deals.GrandOpening)
@@ -207,22 +262,8 @@ function GrandOpeningCard.new(parent: Instance, actions: Actions): any
 	self.root = root
 
 	-- "- FEATURED -"
-	self.featured = label(root, "FeaturedWord", COPY.Header, nil, 3)
-	local lines = box(root, "FeaturedLines", 2)
-	self.lines = lines
-	self.lineParts = {} :: { Frame }
-	for _, side in { "Left", "Right" } do
-		local line = HudParts.frame(lines, side)
-		line.BackgroundTransparency = 0
-		line.BackgroundColor3 = Color3.new(1, 1, 1)
-		line.AnchorPoint = Vector2.new(0.5, 0.5)
-		HudParts.corner(line, 99)
-		local edge = Instance.new("UIStroke")
-		edge.Color = INK
-		edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		edge.Parent = line
-		table.insert(self.lineParts, line)
-	end
+	self.head = GrandOpeningCard.header(root, COPY.Header)
+	self.featured, self.lines = self.head.word, self.head.lines
 
 	-- The card: navy, round, a pale rim; its background clipped inside.
 	local card = box(root, "Card", 2)
@@ -760,25 +801,7 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 	self.root.Size = UDim2.fromOffset(cardW, headerH + cardH + 8)
 
 	-- "- FEATURED -"
-	local fpx = textPx(L.Featured.TextUnits)
-	local fw = measure(COPY.Header, fpx)
-	self.featured.Position = UDim2.fromOffset(round(cardW / 2), round(headerH / 2))
-	self.featured.Size = UDim2.fromOffset(fw, fpx + 8)
-	HudParts.setTextSize(self.featured, fpx)
-	local lineLen = round(L.Featured.LineUnits * k)
-	local lineGap = round(L.Featured.LineGapUnits * k)
-	local thick = math.max(4, round(5 * k))
-	self.lines.Position = self.featured.Position
-	self.lines.Size = UDim2.fromOffset(fw + 2 * (lineGap + lineLen), thick + 4)
-	for index, line in self.lineParts do
-		local side = if index == 1 then -1 else 1
-		line.Position = UDim2.new(0.5, side * (fw / 2 + lineGap + lineLen / 2), 0.5, 0)
-		line.Size = UDim2.fromOffset(lineLen, thick)
-		local edge = line:FindFirstChildOfClass("UIStroke")
-		if edge then
-			edge.Thickness = math.max(2, round(2.5 * k))
-		end
-	end
+	GrandOpeningCard.layoutHeader(self.head, round(cardW / 2), round(headerH / 2), k)
 
 	-- The card.
 	local card = self.card
@@ -891,12 +914,12 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 			at += pw - 4
 		end
 		c.name.Size = UDim2.fromOffset(at, namePx + 4)
-		local pillPx = textPx(L.PillTextUnits, g.s)
-		local pillH = math.max(round(L.PillUnits[2] * g.s * k), pillPx + 8)
+		local pillPx = math.max(L.PillMinTextPx, round(L.PillTextUnits * g.s * k))
+		local pillH = math.max(round(L.PillUnits[2] * g.s * k), pillPx + 6)
 		c.pills.Position = UDim2.fromOffset(x, round(L.NameAt[2] * g.s * k + namePx / 2 + 4))
 		local px = 0
 		for _, p in c.pillParts do
-			local pw = math.max(round(L.PillUnits[1] * g.s * k), measure(p.words.Text, pillPx) + 14)
+			local pw = math.max(round(L.PillUnits[1] * g.s * k), measure(p.words.Text, pillPx) + 10)
 			p.pill.Position = UDim2.fromOffset(px, 0)
 			p.pill.Size = UDim2.fromOffset(pw, pillH)
 			HudParts.setTextSize(p.words, pillPx)
@@ -905,14 +928,9 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 		c.pills.Size = UDim2.fromOffset(px, pillH)
 		local chip = L.OddsChip
 		local oddsPx = textPx(L.OddsTextUnits, g.s)
-		local ow = math.max(round(chip[3] * g.s * k), measure(c.oddsWords.Text, oddsPx) + 16)
-		local oh = math.max(round(chip[4] * g.s * k), oddsPx + 8)
-		-- Top right, or bottom right when the name would run under it (a small card).
-		local chipY = round(chip[2] * g.s * k)
-		if x + at + 4 > w - 8 - ow then
-			chipY = round(h - 6 - oh / 2)
-		end
-		c.odds.Position = UDim2.fromOffset(round(w - 6 - ow / 2), chipY)
+		local ow = math.max(round(chip[1] * g.s * k), measure(c.oddsWords.Text, oddsPx) + 16)
+		local oh = math.max(round(chip[2] * g.s * k), oddsPx + 8)
+		c.odds.Position = UDim2.fromOffset(round(w - 6 - ow / 2), round(h - 6 - oh / 2))
 		c.odds.Size = UDim2.fromOffset(ow, oh)
 		HudParts.setTextSize(c.oddsWords, oddsPx)
 		if c.panels then

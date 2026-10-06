@@ -2722,3 +2722,12 @@ timer of a new block stay the designer's call.
   the 8-ball flair is pinned on its left edge. The card's buttons are taller (64 units) and its
   smallest text is 12 px. The crown is baked into the block's picture (block_crowned.png), so
   it breathes and shines with the block and arrives with it (its own drop is gone).
+- 2026-10-06 (designer): **one thing at a time.** While any full menu is open, every other
+  screen of ours disappears (rank bar, settings, left column, money, corners, hotbar, player
+  list, thumbstick) and comes back when it closes (`HudFocus`). The lively Shop's header is
+  smaller (title, money pill, a 34 px red X; tighter padding), the FEATURED row is tighter, and
+  the first screen shows the top of the next section ("- BLOCKS -") so players see there is
+  more and scroll. The cue cards' UNIQUE / LIMITED pills are smaller (down to 9 px) and the
+  odds chip sits at the bottom-right of both cards. The 8-ball sits low on the left edge.
+  GrandOpening1/3/10 were created on Roblox (ids in Config; icon: the crowned block); the
+  poppers, streamers and twinkles stay on.

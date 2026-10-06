@@ -49,6 +49,7 @@ local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local F = Config.UI.Menu.Frame
+local LIVELY_FRAME = setmetatable(table.clone(Config.UI.Menu.Lively.Frame), { __index = F })
 local SC = Config.UI.Menu.Scroll
 local CARD = Config.UI.Menu.Card
 local CONFIRM = Config.UI.Menu.Confirm
@@ -539,12 +540,14 @@ end
 --- no size yet.
 function MenuFrame.layout(self: any): boolean
 	local size: Vector2 = self.root.AbsoluteSize
+	-- A lively frame's own sizes (Config.UI.Menu.Lively.Frame), the rest as every menu's.
+	local FR: any = if self.stage then LIVELY_FRAME else F
 	if size.X < 1 or size.Y < 1 then
 		return false
 	end
 	local barLeft, barRight, barBottom = self:topbar(size)
-	local margin = F.MarginPx
-	local phone = size.Y - barBottom < F.ShortScreenPx
+	local margin = FR.MarginPx
+	local phone = size.Y - barBottom < FR.ShortScreenPx
 	-- The lively frame (designer, 2026-10-06) never takes Roblox's top bar row and covers at
 	-- most Lively.MaxWidthShare of the screen's width; it is only as tall as its page asks
 	-- (fitHeight, below).
@@ -554,13 +557,13 @@ function MenuFrame.layout(self: any): boolean
 	local roomTop = if short then 0 else barBottom
 	-- A computer: centred on the whole screen (not just under the bar), clear of the bar, and
 	-- never closer than BottomGapPx to the bottom edge, shadow included (designer, 2026-10-03).
-	local roomBottom = if phone then size.Y else size.Y - F.BottomGapPx
+	local roomBottom = if phone then size.Y else size.Y - FR.BottomGapPx
 	local roomHeight = roomBottom - roomTop
-	local w = math.floor(math.min(size.X - 2 * margin, F.MaxSizePx[1]))
+	local w = math.floor(math.min(size.X - 2 * margin, FR.MaxSizePx[1]))
 	if lively then
 		w = math.min(w, math.floor(size.X * LV.MaxWidthShare))
 	end
-	local h = math.floor(math.min(roomHeight - 2 * margin, F.MaxSizePx[2]))
+	local h = math.floor(math.min(roomHeight - 2 * margin, FR.MaxSizePx[2]))
 	local left = math.floor((size.X - w) / 2)
 	local top = if short
 		then math.floor(roomTop + (roomHeight - h) / 2)
@@ -571,22 +574,22 @@ function MenuFrame.layout(self: any): boolean
 	self.panel.Position = UDim2.fromOffset(left + w / 2, top + h / 2)
 
 	-- Rows run from their phone size to their full size as the panel grows.
-	local k = math.clamp(h / F.DesignHeightPx, F.MinScale, 1)
-	local t = (k - F.MinScale) / (1 - F.MinScale)
-	local pad = span(F.PaddingPx, t)
-	local gap = span(F.GapPx, t)
+	local k = math.clamp(h / FR.DesignHeightPx, FR.MinScale, 1)
+	local t = (k - FR.MinScale) / (1 - FR.MinScale)
+	local pad = span(FR.PaddingPx, t)
+	local gap = span(FR.GapPx, t)
 	local iw = w - 2 * pad
-	local titleSize = math.max(K.Text.Min, round(K.Text.Title * F.TitleScale * k))
+	local titleSize = math.max(K.Text.Min, round(K.Text.Title * FR.TitleScale * k))
 	local heading = math.max(K.Text.Min, round(K.Text.Heading * k))
 	local body = math.max(K.Text.Min, round(K.Text.Body * k))
 	local buttonText = math.max(K.Text.Min, round(K.Text.Button * k))
-	local tabH = math.max(F.TouchMinPx, span(F.TabPx, t))
-	local tabText = math.max(K.Text.Min, span(F.TabTextPx, t))
+	local tabH = math.max(FR.TouchMinPx, span(FR.TabPx, t))
+	local tabText = math.max(K.Text.Min, span(FR.TabTextPx, t))
 
 	-- The title row; on a phone it is Roblox's top bar row, right of Roblox's buttons.
-	local headerH, headLeft, headRight = span(F.HeaderPx, t), 0, 0
+	local headerH, headLeft, headRight = span(FR.HeaderPx, t), 0, 0
 	if short then
-		headerH = math.max(F.TouchMinPx, barBottom - top - pad)
+		headerH = math.max(FR.TouchMinPx, barBottom - top - pad)
 		headLeft = math.max(0, barLeft - left - pad + gap)
 		headRight = math.max(0, left + w - pad - barRight)
 	end
@@ -594,7 +597,7 @@ function MenuFrame.layout(self: any): boolean
 	self.header.Size = UDim2.fromOffset(iw, headerH)
 
 	-- Right to left: the X, then the money pill.
-	local closeSize = math.min(headerH, F.CloseMaxPx)
+	local closeSize = math.min(headerH, FR.CloseMaxPx)
 	local close: TextButton = self.closeButton
 	close.AnchorPoint = Vector2.new(1, 0.5)
 	close.Size = UDim2.fromOffset(closeSize, closeSize)
@@ -602,9 +605,9 @@ function MenuFrame.layout(self: any): boolean
 	local right = iw - headRight - closeSize - gap -- where the left group must end
 	local pill: Frame? = self.moneyPill
 	if pill then
-		local mh = math.min(headerH, span(F.MoneyPx, t))
-		local mt = math.max(K.Text.Min, span(F.MoneyTextPx, t))
-		local cash = round(mh * F.MoneyIconShare)
+		local mh = math.min(headerH, span(FR.MoneyPx, t))
+		local mt = math.max(K.Text.Min, span(FR.MoneyTextPx, t))
+		local cash = round(mh * FR.MoneyIconShare)
 		local over = round(cash * 0.35) -- the bundle pokes out past the pill's left end
 		local amount: TextLabel = self.moneyAmount
 		HudParts.setTextSize(amount, mt)
@@ -624,7 +627,7 @@ function MenuFrame.layout(self: any): boolean
 	local x = headLeft
 	local icon: ImageLabel = self.icon
 	if icon.Visible then
-		local iconSize = math.min(headerH, round(titleSize * F.IconShare))
+		local iconSize = math.min(headerH, round(titleSize * FR.IconShare))
 		icon.Size = UDim2.fromOffset(iconSize, iconSize)
 		icon.Position = UDim2.fromOffset(x, round((headerH - iconSize) / 2))
 		x += iconSize + gap
@@ -640,10 +643,10 @@ function MenuFrame.layout(self: any): boolean
 	local sheetTop = pad + headerH + round(gap / 2)
 	local tabRow: Frame = self.tabRow
 	if #self.tabs > 0 then
-		local tabGap = span(F.TabGapPx, t)
+		local tabGap = span(FR.TabGapPx, t)
 		local widths, total = self:tabWidths(tabH, tabText)
 		total += tabGap * (#widths - 1)
-		local beside = short and F.TabsBesideTitle and tabH <= headerH and total <= right - x
+		local beside = short and FR.TabsBesideTitle and tabH <= headerH and total <= right - x
 		local rowW, rowX, rowY
 		if beside then
 			rowX, rowY, rowW = pad + x, pad + round((headerH - tabH) / 2), total
@@ -677,7 +680,7 @@ function MenuFrame.layout(self: any): boolean
 
 	-- The pages, on the sheet (inset from the panel's outline), padded inside it.
 	local inset = K.SheetInsetPx
-	local cp = span(F.ContentPadPx, t)
+	local cp = span(FR.ContentPadPx, t)
 	local cw = math.max(1, w - 2 * (inset + cp))
 	local fit = self.fitHeight
 	if lively and fit then

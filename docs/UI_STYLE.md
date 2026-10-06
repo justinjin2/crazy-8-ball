@@ -349,6 +349,12 @@ then; the reel's rules hold for the blocks.
   selected button would take the stick from walking): the D-pad opens them in the hub (up
   Shop, right Inventory, down Rewards, left Trade) and each tile shows its D-pad glyph
   *(assumption)*.
+- **One thing at a time** (designer, 2026-10-06): while any full menu is open (Shop,
+  Inventory, Rewards, Trade, Settings, Free Reward, Abilities, the roadmap, the bag) every
+  other screen of ours is off: the rank bar and settings, the left column, the money, the
+  right corners, the hotbar, the player list, the thumbstick. Closing the menu brings them
+  back. Only popups that must still reach the player stay (`HudFocus`,
+  `Config.UI.Menu.Focus.Keep`).
 - **A full menu** (`MenuFrame`): the roadmap's layout. On a phone the panel takes the whole
   screen with its title in Roblox's top-bar row (the tabs share that row when they fit); on
   a computer a panel up to 920 x 600 is centred under the bar. **A lively frame (the Shop,

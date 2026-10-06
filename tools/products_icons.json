@@ -27,5 +27,8 @@
  "Pack6Sale": "assets/ui/icons/pack_6.png",
  "Pack7Sale": "assets/ui/icons/pack_7.png",
  "VipSale": "assets/ui/icons/vip.png",
- "Mystery10Sale": "assets/ui/icons/mystery_case.png"
+ "Mystery10Sale": "assets/ui/icons/mystery_case.png",
+ "GrandOpening1": "assets/ui/grand_opening/block_crowned.png",
+ "GrandOpening3": "assets/ui/grand_opening/block_crowned.png",
+ "GrandOpening10": "assets/ui/grand_opening/block_crowned.png"
 }

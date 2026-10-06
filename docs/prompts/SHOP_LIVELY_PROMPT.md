@@ -583,6 +583,12 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   tabs outside on the right, the 8-ball pinned on the left edge, the crown baked into the block
   (`tools/gui/crowned_block.py`, two uploads, $0) so it breathes and shines with it. Checked in
   the phone emulator (panel 495 x 296 of 750 x 362); no console errors.
+- 2026-10-06: designer answers: the products are made (GrandOpening1/3/10, dry run first, ids
+  3716907625 / 3716907627 / 3716907629, the crowned block as their icon; Studio's
+  GetProductInfo shows every product of ours at about 0.8x its price, older ones too), and the
+  poppers, streamers and twinkles stay on. Third round of changes done: HudFocus (every menu
+  hides the rest of the HUD), a smaller lively header, tighter rows, the next section peeking
+  in, smaller pills, the odds chip bottom-right on both cue cards.
 
 
 ## Decisions

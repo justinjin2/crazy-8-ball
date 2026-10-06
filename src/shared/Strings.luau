@@ -709,6 +709,7 @@ return {
 				BoughtMany = "%d %s are in your hotbar!",
 			},
 			MoreBelow = "More deals coming soon!", -- the white sheet below the Grand Opening card
+			BlocksHeader = "BLOCKS", -- the next section's header under the card ("- BLOCKS -")
 			-- The Gift Player popup (the purple gift square beside a Robux button).
 			GiftTitle = "Gift Player",
 			GiftButton = "Gift",

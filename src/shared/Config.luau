@@ -2804,7 +2804,7 @@ Config.Products = {
 		},
 		GrandOpening1 = {
 			Kind = "Product",
-			Id = 0,
+			Id = 3716907625,
 			Robux = 49,
 			Blocks = { Kind = "GrandOpening", Count = 1 },
 			Deal = "GrandOpening",
@@ -2812,7 +2812,7 @@ Config.Products = {
 		},
 		GrandOpening3 = {
 			Kind = "Product",
-			Id = 0,
+			Id = 3716907627,
 			Robux = 129,
 			Was = 147,
 			Blocks = { Kind = "GrandOpening", Count = 3 },
@@ -2821,7 +2821,7 @@ Config.Products = {
 		},
 		GrandOpening10 = {
 			Kind = "Product",
-			Id = 0,
+			Id = 3716907629,
 			Robux = 349,
 			Was = 490,
 			Blocks = { Kind = "GrandOpening", Count = 10 },
@@ -7195,6 +7195,28 @@ Config.UI.Menu = {
 	-- 8-balls scroll, the white sheet has the still dots and an 8-ball sits on the top edge.
 	-- Menus not listed keep the kit frame (pop in, still pattern). Names as Menus.register.
 	LivelyMenus = { "Shop" },
+	-- One thing at a time (HudFocus; designer, 2026-10-06): while a full menu is open every
+	-- other screen of ours is off. These ScreenGuis stay on (a "...Menu" screen always does):
+	-- popups that must still reach the player and invisible probes. KeepWith: more per menu.
+	Focus = {
+		Keep = {
+			"MenuTopbar", -- probes (no pictures)
+			"TopbarRoom",
+			"PowerSafeProbe",
+			"UltScreenTopbar",
+			"Freecam",
+			"LuckyOpening", -- the reel and its dim
+			"LuckyOpeningDim",
+			"TeleportScreen",
+			"TutorialGui",
+			"TradeInvite", -- someone asking to trade
+			"RewardsFlyer", -- rewards flying in
+			"RankClaimBlock", -- the roadmap's claim card
+		},
+		KeepWith = {
+			LuckyBag = { "LuckyHotbar" }, -- the bag opens over its hotbar
+		},
+	},
 	Lively = {
 		-- The header band's 8-balls (assets/ui/frame/header_tile.png: pattern.png at a 200 texel
 		-- period repeated across 1024), scrolling up-left at 45 degrees. Numbers from the approved
@@ -7216,13 +7238,26 @@ Config.UI.Menu = {
 		-- tall as its page's first screen (the hero card), up to the room under the bar. The
 		-- jump buttons stand outside its right edge.
 		MaxWidthShare = 0.66,
+		-- Its own smaller header and tighter rows (designer, 2026-10-06: "shrink the header
+		-- more... use up as much room as you can"); anything not here is Config.UI.Menu.Frame's.
+		Frame = {
+			HeaderPx = { 32, 44 }, -- the title row
+			TitleScale = 0.75,
+			IconShare = 1.3,
+			CloseMaxPx = 34, -- the red X (its touch area stays 44)
+			MoneyPx = { 24, 30 },
+			MoneyTextPx = { 16, 18 },
+			PaddingPx = { 4, 8 },
+			GapPx = { 4, 6 },
+			ContentPadPx = { 2, 6 },
+		},
 		-- The 8-ball flair pinned on the panel's left edge (designer, 2026-10-06), its middle on
 		-- the edge DownShare of the way down. It drops on last (the Open schedule's "Flair"),
 		-- rocks RockDegrees either way over RockSeconds, and every HopEvery s hops HopPx for
 		-- HopSeconds with a sparkle (Config.UI.Effects.Sparkle).
 		FlairImage = "rbxassetid://132422184916082", -- as Config.UI.GrandOpeningCard.Images.Flair8ball
 		FlairPx = 48,
-		FlairDownShare = 0.3,
+		FlairDownShare = 0.85, -- low, clear of the NEW tag and the block
 		FlairRockDegrees = 5.7,
 		FlairRockSeconds = 2.9,
 		FlairHopEvery = 5,
@@ -7525,6 +7560,9 @@ Config.UI.Shop = {
 		-- other groups' sections will be there): at least this tall, with its note.
 		MoreBelowPx = 120,
 		MoreBelowTextPx = 18,
+		-- The first screen shows this much of what is under the card (the next section's
+		-- header), so a player sees there is more and scrolls (designer, 2026-10-06).
+		PeekPx = 30,
 		RailWidthPx = { 66, 96 }, -- a jump button
 		RailButtonPx = { 60, 86 },
 		RailGapPx = { 6, 12 },
@@ -7753,7 +7791,7 @@ Config.UI.GrandOpeningCard = {
 		CornerUnits = 28,
 		RimUnits = 6, -- its pale rim
 		Rim = { 191, 227, 255 },
-		Featured = { Units = 56, MinPx = 22, TextUnits = 30, LineUnits = 150, LineGapUnits = 18 }, -- "- FEATURED -" over the card
+		Featured = { Units = 40, MinPx = 18, TextUnits = 30, LineUnits = 150, LineGapUnits = 18 }, -- "- FEATURED -" over the card (tight: designer, 2026-10-06)
 		-- This card's smallest text: under the kit's 16 so the whole card fits the smaller panel
 		-- on a phone (designer, 2026-10-06). The small words' units give about 16 px on a computer.
 		MinTextPx = 12,
@@ -7799,13 +7837,14 @@ Config.UI.GrandOpeningCard = {
 		GoColors = { { 255, 210, 58 }, { 255, 255, 255 } }, -- "GRAND OPENING" gold, "CUE" white
 		PillsAt = { 18, 64 }, -- the UNIQUE and LIMITED pills' top-left
 		PillUnits = { 104, 30 },
-		PillTextUnits = 24,
+		PillTextUnits = 20,
+		PillMinTextPx = 9, -- the pills may go smaller than MinTextPx: they sit over the cue (designer, 2026-10-06)
 		PillGapUnits = 8,
 		UniqueColor = { 226, 79, 216 },
 		LimitedColor = { 255, 197, 46 },
-		-- The odds chip from the card's top-right: centre in, width, height (it moves to the
-		-- bottom-right corner when the name needs the room).
-		OddsChip = { 46, 24, 76, 32 },
+		-- The odds chip, at the card's bottom-right on both cards (designer, 2026-10-06: the same
+		-- place on each): its width and height.
+		OddsChip = { 76, 32 },
 		OddsTextUnits = 24,
 		OddsColor = { 70, 215, 255 }, -- sky blue (Kit.Numbers' odds colour)
 		CueShare = { 0.5, 0.68, 0.98 }, -- the cue's centre (shares of the card) and width: under the pills

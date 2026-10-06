@@ -415,7 +415,8 @@ the lucky-block section below is the item flow now.
   every-server news), and `Ranking`/`Economy` for match XP, money, the win's Mystery lucky
   block and rank-up rewards.
 - Client: `Menus` (one full menu at a time, close rules, the slight dim, the gamepad
-  selection put back), `MenuFrame` (the header band, tabs, sheet and red X every menu uses),
+  selection put back), `HudFocus` (while a menu is open every other ScreenGui of ours is off,
+  `Config.UI.Menu.Focus.Keep` aside), `MenuFrame` (the header band, tabs, sheet and red X every menu uses),
   `MenuColumn` (the left column: Shop, Inventory, Rewards, Trade with red dots),
   `ItemState` (the client's copy of the ItemState, ShopState and RewardState snapshots and the
   request wrappers), `CueThumb` (a cue's tinted thumbnail from the layer images), `Banner`,

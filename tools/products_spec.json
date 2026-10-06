@@ -210,6 +210,27 @@
    "name": "Lucky Block Timer Skip",
    "robux": 19,
    "description": "Finish one lucky block timer instantly. If the selected timer has already finished, keep a skip credit for your next lucky block."
+  },
+  {
+   "key": "GrandOpening1",
+   "kind": "Product",
+   "name": "Grand Opening Lucky Block",
+   "robux": 49,
+   "description": "One Grand Opening Lucky Block: each rolls Uncommon to Secret, with a chance at the Unique Beta Cue or Grand Opening Cue. Every outcome's odds are shown in the shop before buying."
+  },
+  {
+   "key": "GrandOpening3",
+   "kind": "Product",
+   "name": "3 Grand Opening Lucky Blocks",
+   "robux": 129,
+   "description": "3 Grand Opening Lucky Blocks: each rolls Uncommon to Secret, with a chance at the Unique Beta Cue or Grand Opening Cue. Every outcome's odds are shown in the shop before buying."
+  },
+  {
+   "key": "GrandOpening10",
+   "kind": "Product",
+   "name": "10 Grand Opening Lucky Blocks",
+   "robux": 349,
+   "description": "10 Grand Opening Lucky Blocks: each rolls Uncommon to Secret, with a chance at the Unique Beta Cue or Grand Opening Cue. Every outcome's odds are shown in the shop before buying."
   }
  ]
 }

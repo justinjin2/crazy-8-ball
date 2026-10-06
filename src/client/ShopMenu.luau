@@ -92,7 +92,9 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end,
 	})
 	self.gift = ShopGift.new(self, frame)
-	-- The white sheet below the card, where the other groups' sections will go.
+	-- The white sheet below the card, where the other groups' sections will go: the next
+	-- section's header first (it peeks in at the bottom of the first screen).
+	self.blocksHead = GrandOpeningCard.header(scroll, COPY.BlocksHeader)
 	local more = HudParts.note(scroll, "MoreBelow", P.MoreBelowTextPx, COPY.MoreBelow)
 	more.AnchorPoint = Vector2.new(0.5, 0.5)
 	more.ZIndex = 3
@@ -149,7 +151,7 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	-- on below it.
 	frame.fitHeight = function(width: number, panelW: number): number
 		local pageW = width - (if self:railOutside(panelW) then 0 else self:railRoom(nil))
-		return GrandOpeningCard.heightFor(pageW - self.scroll.ScrollBarThickness)
+		return GrandOpeningCard.heightFor(pageW - self.scroll.ScrollBarThickness) + P.PeekPx
 	end
 	ItemState.Changed.Shop:Connect(function()
 		self:refresh()
@@ -267,6 +269,10 @@ function ShopMenu.layout(self: any)
 	-- The card fits the page whole (designer, 2026-10-06: no scrolling on a phone).
 	local height = self.featured:layout(width - self.scroll.ScrollBarThickness)
 	-- Below the card the white sheet goes on (the other groups' sections will be there).
+	local k = self.featured.k
+	local headH = GrandOpeningCard.headerHeight(k)
+	GrandOpeningCard.layoutHeader(self.blocksHead, round(width / 2), round(height + headH / 2), k)
+	height += headH
 	local more = math.max(P.MoreBelowPx, geo.content.Y - height)
 	self.more.Position = UDim2.fromOffset(round(width / 2), round(height + more / 2))
 	self.more.Size = UDim2.fromOffset(math.max(1, width - 16), math.max(1, more))
