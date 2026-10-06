@@ -503,6 +503,11 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   09-12 in `~/Desktop/8ball-refs/gui-lively/work/`); every piece of 13b listed with its box,
   source, reveal and idle in `tools/gui/grand_opening/pieces.json`; `tools/gui/` set up (uv
   venv with Pillow and numpy); ffmpeg installed.
+- 2026-10-06: gate 1 spike built and measured (`MotionSpike`, GuiQA "spike"; recordings, traces
+  and contact sheets in `~/Desktop/8ball-refs/gui-lively/work/spike/gate1/`). Retina 2x and
+  the iPhone emulator at Rendering quality 1 (the designer switched the emulator; a true 1x
+  view is not possible on this Mac, see Notes). A subagent is cutting 13b's pieces (step 3)
+  with free local tools. Gate 1 shown to the designer.
 
 ## Decisions
 
@@ -524,6 +529,13 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   the 44 px touch target) and its subtitle about 10 px. The in-game card keeps 13b's look and
   order but its own proportions (about 880 x 480: taller cue cards, 44-48 px buttons, text at
   `Kit.Big` sizes). The animatic (gate 3) shows it at real size.
+- 2026-10-06, gate 1 numbers (jitter in physical px, 0 = perfect; Retina / phone low):
+  header scroll by ImageRectOffset window 0.24 / 0.15, Tile by Scale 0.93 / 0.95 (still half
+  the frames); float by whole px + fractional ImageRectOffset 0.06 / 0.03, by Offset 0.66 /
+  0.66, by Scale 0.45 / 0.43; breathe by ImageRectSize 0.01 / 0.01, by UIScale 0.21. The
+  crossfade ghosts; the ViewportFrame dips. CanvasGroup and code fade look the same in the
+  emulator (CanvasGroup's failures are on real phones), so the code fade stays. Our own pooled
+  particles on one loop and the 8 x 8 flipbook at 30 fps both run fine; no Spark2D needed.
 - The Grand Opening Cue already has a white, tintable 8 x 8 firework flipbook
   (`assets/cue/vfx/grand_opening/burst_8x8.png`, 128 px frames): used for gate 1's flipbook
   test and a starting point for the effects library.

@@ -16,6 +16,8 @@ whole pixels at under a pixel a frame scores about 0.4 to 0.5 (steps of 0 and 1)
 Run:
   tools/gui/.venv/bin/python tools/gui/motion_measure.py VIDEO REGIONS.json OUT_DIR
 REGIONS.json: [{"name": "a", "kind": "shift", "box": [x, y, w, h]}, ...] in video pixels.
+An optional {"kind": "code", "box": [...]} region is the spike's 16-square time code: frames
+with a repeated code are dropped and steps are timed by the game's clock.
 Writes OUT_DIR/measure.json and OUT_DIR/measure.png (one trace per region).
 """
 
@@ -26,6 +28,9 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw
+
+
+TRIM = 0.5  # seconds skipped at each end
 
 
 def frames(video: str):
@@ -48,13 +53,20 @@ def frames(video: str):
     )
     size = w * h
     index = 0
+    last = None
     while True:
         data = proc.stdout.read(size)
         if len(data) < size:
             break
         t = float(times[index].strip(",")) if index < len(times) else index / 60
-        yield t, np.frombuffer(data, np.uint8).reshape(h, w).astype(np.float32)
         index += 1
+        # A frame identical to the one before is the capture repeating itself while the game
+        # had not drawn a new frame yet (Studio can draw slower than the capture): skip it, so
+        # the next step is timed by the real gap instead of reading as still, then a jump.
+        if data == last:
+            continue
+        last = data
+        yield t, np.frombuffer(data, np.uint8).reshape(h, w).astype(np.float32)
 
 
 def phase_shift(a: np.ndarray, b: np.ndarray):
@@ -97,12 +109,32 @@ def main():
     video, regions_path, out = sys.argv[1], sys.argv[2], Path(sys.argv[3])
     out.mkdir(parents=True, exist_ok=True)
     regions = json.loads(Path(regions_path).read_text())
+    regions_all = regions
+    regions = [r for r in regions_all if r["kind"] != "code"]
     series = {r["name"]: [] for r in regions}
     stamps = {r["name"]: [] for r in regions}
     previous = {}
     previous_t = {}
     times = []
+    code = next((r for r in regions_all if r["kind"] == "code"), None)
+    last_code = None
+    wraps = 0
     for t, frame in frames(video):
+        if code:
+            # The game's own clock, drawn as 16 squares (MotionSpike): a repeated code is a
+            # repeated frame; each step is timed by game time, not by when it was captured.
+            x, y, w, h = code["box"]
+            cell = w / 16
+            value = 0
+            for i in range(16):
+                px = frame[int(y + h / 2), int(x + (i + 0.5) * cell)]
+                value = value * 2 + (1 if px > 128 else 0)
+            if value == last_code:
+                continue
+            if last_code is not None and value < last_code:
+                wraps += 1
+            last_code = value
+            t = (value + wraps * 65536) / 1000
         times.append(t)
         for r in regions:
             x, y, w, h = r["box"]
@@ -144,6 +176,15 @@ def main():
         # Frames do not arrive exactly 1/60 s apart: scale each step to one 60 fps frame.
         gaps = np.where(gaps > 1e-4, gaps, 1 / 60)
         steps = steps / (gaps * 60)
+        # Skip the first and last half second: the window coming to the front and going back
+        # makes frame hiccups that hit every region at once.
+        if r["kind"] == "shift":
+            mid_t = np.cumsum(when)
+        else:
+            mid_t = when[1:] - when[0]
+        total = mid_t[-1] if len(mid_t) else 0
+        keep = (mid_t > TRIM) & (mid_t < total - TRIM)
+        steps = steps[keep]
         steps = steps[np.isfinite(steps)]
         zeros = float(np.mean(np.abs(steps) < 0.05)) if len(steps) else float("nan")
         result["regions"][name] = {

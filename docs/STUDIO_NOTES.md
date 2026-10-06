@@ -271,6 +271,40 @@ MaterialVariant) is projected from world coordinates, not from the part. So a ti
 can be any number of Parts with one MaterialVariant and its grid lines up everywhere; the
 rooftop floor uses that (MapBuilder, Config.Map.Floor) instead of a mesh.
 
+## Smooth slow GUI motion and recording the game view (tested 2026-10-06, lively Shop gate 1)
+
+- **Roblox draws GUI positions and sizes in whole pixels** (whole physical pixels for Scale,
+  whole GUI pixels for Offset), so a slow move by Position, Size or UIScale steps: still,
+  still, jump. Measured from 60 fps recordings (`tools/gui/motion_measure.py`; jitter is how
+  unevenly a thing moves per frame, 0 is perfect) on the Retina Mac and the iPhone emulator at
+  Rendering quality 1: a Tile moved by Scale 0.93-0.95 (still on half the frames), a float by
+  Offset 0.66, by Scale 0.43, a breathe by UIScale 0.21.
+- **Move the picture inside a still label instead**: fractional `ImageRectOffset` and
+  `ImageRectSize` are drawn with sub-texel filtering. A header scroll as a window into a 2 x 2
+  copy of a seamless tile, its offset moved and wrapped at one period: 0.15-0.24. A float as
+  whole-pixel Position plus the leftover fraction in ImageRectOffset (a texture with a clear
+  border): 0.03-0.06. A breathe by ImageRectSize: 0.01. Rotation is smooth too.
+- **A rect past the image's edge is clamped**: a window that grows beyond the texture (a
+  breathe shrinking, an offset past the end) stops moving. Keep every window inside the image
+  (clear borders, a 2 x 2 tile for scrolls; a window at most one period wide).
+- Two Tile labels a pixel apart crossfaded by the fraction move evenly but look doubled and
+  soft on in-between frames; a ViewportFrame Texture scroll is smooth but dips now and then
+  and costs a render target. Neither is used.
+- **The device emulator needs Play stopped to switch** (designer, 2026-10-06). "Actual
+  Resolution" on the Retina Mac still draws 2 screen pixels per GUI pixel (a 340 px band was
+  680 px in the recording), so a true 100%-DPI test needs Studio opened in macOS "Low
+  Resolution" mode or a 1x monitor.
+- `settings().Rendering.QualityLevel = Enum.QualityLevel.Level01` from a Client `execute_luau`
+  sets Studio's graphics low for a test (`UserSettings().GameSettings.SavedQualityLevel` is not
+  writable from there). It resets when Play restarts.
+- **Recording**: `tools/gui/record_studio.sh SECONDS OUT.mov` raises the game's Studio window
+  (by process id, through System Events; there are two Studio processes when the LuckyBlock
+  pack is open), records the whole screen with `screencapture -v` (Retina, up to 120 fps) and
+  gives focus back. The terminal app needs Screen Recording permission. Crop with ffmpeg to the
+  game view. The capture repeats frames when Studio draws slower, so the motion spike draws a
+  16-square time code that `motion_measure.py` reads to drop repeats and time each step by the
+  game's clock; `contact_sheet.py` makes numbered frame sheets and zoomed strips.
+
 ## UI facts (tested 2026-09-25)
 
 - A ScreenGui with `ScreenInsets = TopbarSafeInsets` covers exactly the free part of Roblox's

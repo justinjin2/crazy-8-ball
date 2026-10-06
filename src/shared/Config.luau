@@ -10135,6 +10135,11 @@ Config.Debug = {
 		Spark = "rbxassetid://131919576694289", -- Kit.Art.Spark, for the pooled particle burst
 		Particles = 28, -- sparks in one burst
 		ParticleEvery = 1.5, -- seconds between bursts
+		-- The time code the measuring script reads (16 squares at the top, clear of Roblox's
+		-- buttons on a phone).
+		CodeX = 210,
+		CodeY = 12,
+		CodeCellPx = 8,
 	},
 	-- Developer chat commands (DevCommands): typed in the Roblox chat, checked on the server. Who
 	-- may use them: only the user ids in UserIds (the designer, Painicane), in Studio and live.

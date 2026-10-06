@@ -464,6 +464,25 @@ function MotionSpike.open(): boolean
 	label(root, "pooled particles", x0 + 1060, y2 - 22)
 	particles(root, x0 + 1140, y2 + 60)
 
+	-- A time code for the measuring script (tools/gui/motion_measure.py): the motion clock in
+	-- milliseconds, 16 bits, as squares (white = 1), most significant first. It tells the
+	-- script which recorded frames are repeats and how much game time each step took.
+	local bits: { Frame } = {}
+	for i = 1, 16 do
+		local bit = HudParts.frame(root, "Bit" .. i)
+		bit.BackgroundTransparency = 0
+		bit.Position = UDim2.fromOffset(C.CodeX + (i - 1) * C.CodeCellPx, C.CodeY)
+		bit.Size = UDim2.fromOffset(C.CodeCellPx, C.CodeCellPx)
+		bits[i] = bit
+	end
+	table.insert(steps, function()
+		local ms = math.floor(clock * 1000) % 65536
+		for i = 1, 16 do
+			local on = bit32.extract(ms, 16 - i) == 1
+			bits[i].BackgroundColor3 = if on then Color3.new(1, 1, 1) else Color3.new(0, 0, 0)
+		end
+	end)
+
 	UIAnim.loop(root, function(_, dt)
 		clock += dt * rate
 		for _, step in steps do
@@ -491,6 +510,15 @@ function MotionSpike.start()
 			return MotionSpike.close()
 		end
 		return MotionSpike.open()
+	end)
+	-- Slide the whole test screen up by `px` (a phone's short view shows the lower rows).
+	GuiQA.add("spikeShift", function(px: number)
+		local made = gui
+		local root = made and made:FindFirstChild("Root") :: Frame?
+		if root then
+			root.Position = UDim2.fromOffset(0, -px)
+		end
+		return px
 	end)
 	GuiQA.add("spikeRate", function(value: number)
 		rate = value
