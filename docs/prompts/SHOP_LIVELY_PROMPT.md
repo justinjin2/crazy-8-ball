@@ -475,7 +475,7 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
 
 ## Progress
 
-- [ ] 1. Read section 0, study the references, list every piece of 13b with its planned source
+- [x] 1. Read section 0, study the references, list every piece of 13b with its planned source
       (cut, regenerated or rendered) and its reveal and idle behaviour; set up `tools/gui/`.
 - [ ] 2. Tech spike in Studio (section 7.1), recordings and contact sheet; **gate 1**.
 - [ ] 3. The card's pieces, the rebuild check, the title A/B, the odds badge and pop-up, the
@@ -499,12 +499,31 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
 
 ## Status
 
-(The run writes dated lines here.)
+- 2026-10-06: step 1 done. Section 0 read; references studied (contact sheets of 01-08 and
+  09-12 in `~/Desktop/8ball-refs/gui-lively/work/`); every piece of 13b listed with its box,
+  source, reveal and idle in `tools/gui/grand_opening/pieces.json`; `tools/gui/` set up (uv
+  venv with Pillow and numpy); ffmpeg installed.
 
 ## Decisions
 
 (Small calls made during the run, one dated line each.)
 
+- 2026-10-06: planned sources (pieces.json): the block, crown, stars and 8-balls are cut from
+  13b (masked fill under the crown); the two cue-card backgrounds, the clean Grand Opening Cue
+  (the ribbons cross it in 13b), the confetti sheet and the 8-ball flair are regenerated; the
+  fireworks, glows, rays, sparkles, glyph code and dot tile are drawn or rendered; the gold
+  ribbons are a Blender flipbook. All frames, pills, chips and buttons are native.
+
 ## Notes
 
 (Anything the next step or the skill should know: what worked, what did not, numbers.)
+
+- 2026-10-06: **13b cannot be shown at its own proportions in our panel.** The menu panel is
+  at most 920 x 600 (`Config.UI.Menu.Frame.MaxSizePx`), so the card's content width is about
+  880 px on a computer: 13b's 3:1 card at that width is 293 px tall, its buttons 28 px (under
+  the 44 px touch target) and its subtitle about 10 px. The in-game card keeps 13b's look and
+  order but its own proportions (about 880 x 480: taller cue cards, 44-48 px buttons, text at
+  `Kit.Big` sizes). The animatic (gate 3) shows it at real size.
+- The Grand Opening Cue already has a white, tintable 8 x 8 firework flipbook
+  (`assets/cue/vfx/grand_opening/burst_8x8.png`, 128 px frames): used for gate 1's flipbook
+  test and a starting point for the effects library.

@@ -53,3 +53,7 @@ assets/cue/pieces/*/*_parts.glb
 # The parallel build's lanes (docs/parallel/README.md): each lane's local place copy and logs
 place/lane-*.rbxl
 .lanes/
+
+# GUI pipeline: its own Python environment and work files (tools/gui/README.md)
+tools/gui/.venv/
+tools/gui/**/out/
