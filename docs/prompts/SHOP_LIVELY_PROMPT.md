@@ -478,7 +478,7 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
 - [x] 1. Read section 0, study the references, list every piece of 13b with its planned source
       (cut, regenerated or rendered) and its reveal and idle behaviour; set up `tools/gui/`.
 - [x] 2. Tech spike in Studio (section 7.1), recordings and contact sheet; **gate 1**.
-- [ ] 3. The card's pieces, the rebuild check, the title A/B, the odds badge and pop-up, the
+- [x] 3. The card's pieces, the rebuild check, the title A/B, the odds badge and pop-up, the
       chip-row mock, the 8-ball flair, the dot tile and the header texture; **gate 2**.
 - [ ] 4. The effects library (fireworks in five colours, sparkles, glows, sweep masks, ribbons,
       glyph code, confetti, rays) packed and uploaded.
@@ -517,6 +517,10 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   (fireworks in five colours, sparkle, the loose gold ribbons). Nothing uploaded yet (step 4).
   Asked: approve the pieces, header strength (0.7 / 0.6 / 0.5, suggested 0.6), odds badge with
   pop-up or chip row (suggested badge). Image spend $6.81.
+- 2026-10-06: **gate 2 approved** after one round of notes: crown and block regenerated whole
+  (the crown with four ball-tipped prongs), subtitle straight, header 0.6, odds "i" badge, the
+  Beta card denser (ten panels, ring, callouts, motes) and shown moving on the gate page (liked).
+  Image spend $7.00. Next: step 4, upload the effects library and the card's pieces.
 
 ## Decisions
 
