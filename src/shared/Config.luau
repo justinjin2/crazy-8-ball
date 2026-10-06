@@ -7746,12 +7746,12 @@ Config.UI.GrandOpeningCard = {
 		Crown = "rbxassetid://118495873177958",
 		Flair8ball = "rbxassetid://132422184916082",
 		FireworkBg = "rbxassetid://99479265638524",
-		-- The Firework Cue with its gold ribbons baked on, a still picture (designer, 2026-10-06:
-		-- not the choppy loop), its silhouette and its glow (white, tinted); all 1024 x 344 with
-		-- a clear border the breathe zooms inside (tools/gui/firework_still.py).
-		FireworkStill = "rbxassetid://114150784985377",
-		FireworkStillMask = "rbxassetid://102417582311616",
-		FireworkStillGlow = "rbxassetid://110793324697491",
+		FireworkCue = "rbxassetid://130447726546401",
+		FireworkCueMask = "rbxassetid://113286103070085",
+		FireworkCueGlow = "rbxassetid://126476349740073", -- the Firework Cue's glow (white, tinted)
+		-- Its gold ribbons, one still frame (designer, 2026-10-06: not the choppy loop; they
+		-- pulse on their own: Loops.Ribbon*; tools/gui/firework_still.py).
+		FireworkRibbons = "rbxassetid://103502864734313",
 		Plate = "rbxassetid://93204646083675",
 		StarLeft = "rbxassetid://81445661051193",
 		StarRight = "rbxassetid://133224366351187",
@@ -7761,8 +7761,8 @@ Config.UI.GrandOpeningCard = {
 	Loops = {
 		GlowPulseSeconds = 2.6, -- the block's gold glow pulses (transparency 0.05 to 0.45)
 		RaysTurnPerSecond = 8.6, -- degrees: the block's rays turn slowly
-		-- The block (and the Firework Cue) breathes this much over this; a little quicker than
-		-- the animatic's 3.1 s (designer, 2026-10-06).
+		-- The block breathes this much over this; a little quicker than the animatic's 3.1 s
+		-- (designer, 2026-10-06).
 		BreatheScale = 0.015,
 		BreatheSeconds = 2.3,
 		BlockShineEvery = 4, -- a shine sweeps across the block (0.7 s)
@@ -7775,6 +7775,10 @@ Config.UI.GrandOpeningCard = {
 		-- A shine across each Robux button, staggered 0.35 s; the money buttons never shine
 		-- (designer, 2026-10-06: only the Robux options).
 		ButtonShineEvery = 3,
+		-- The Firework Cue's ribbons never move: they pulse, dimming to this transparency and
+		-- glowing back to full, over this (designer, 2026-10-06).
+		RibbonDimTransparency = 0.6,
+		RibbonPulseSeconds = 2.4,
 		BetaScanEvery = 3, -- the Beta card's scan line (1.2 s down the card)
 		BetaPulseEvery = 1.5, -- the light pulse along the Beta cue (1 s)
 		BetaGlitchEvery = 5, -- a quick glitch (0.14 s)
@@ -7853,11 +7857,9 @@ Config.UI.GrandOpeningCard = {
 		OddsColor = { 70, 215, 255 }, -- sky blue (Kit.Numbers' odds colour)
 		CueShare = { 0.5, 0.68, 0.98 }, -- the cue's centre (shares of the card) and width: under the pills
 		FireworkCueShare = { 0.5, 0.7, 0.98 },
-		-- The Firework still picture on the cue's box ({left, top, right, bottom} as shares of
-		-- the cue render's canvas, border included) and its width, height and clear border in
-		-- pixels (tools/gui/firework_still.py prints both).
-		FireworkStill = { -0.0217, -0.1407, 1.0434, 1.1485 },
-		FireworkStillPx = { 1024, 344, 48 },
+		-- The ribbons' picture on the cue's box ({left, top, right, bottom} as shares of the cue
+		-- render's canvas; tools/gui/firework_still.py prints it).
+		FireworkRibbons = { 0.0573, 0.0328, 0.9822, 0.9750 },
 		-- The Firework Cue's yellow glow (designer, 2026-10-06): tint, its transparency
 		-- pulsing between these, and the pulse's length.
 		FireworkGlow = {

@@ -171,11 +171,11 @@ return {
 				"a breathe window inside the picture at " .. scale
 			)
 		end
-		-- The card's breathing pictures (the crowned block, the Firework still), their border
-		-- shared by length as the card does: inside the picture and keeping its shape.
+		-- The card's breathing picture (the crowned block), its border shared by length as the
+		-- card does: inside the picture and keeping its shape.
 		local card = Config.UI.GrandOpeningCard
 		local amount = card.Loops.BreatheScale
-		for _, px in { card.Layout.CrownedBlockPx, card.Layout.FireworkStillPx } do
+		for _, px in { card.Layout.CrownedBlockPx } do
 			local per = px[3] / math.max(px[1], px[2])
 			for _, scale in { 1 - amount, 1, 1 + amount } do
 				local sw, ow = S.breatheRect(px[1], px[1] * per, scale)

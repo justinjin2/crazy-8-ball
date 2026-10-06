@@ -37,6 +37,6 @@ Scripts for building animated, layered screens (docs/prompts/SHOP_LIVELY_PROMPT.
   Opening cue's gold ribbon loop (`loose`: 13b-like wide loops), packed into sheets with a JSON
   beside each. The card first played the loose ribbons as a loop; since 2026-10-06 it shows one
   still frame instead (designer: the loop looked choppy).
-- `firework_still.py`: the Firework Cue's tip-left render with one loose ribbon frame baked on,
-  its silhouette and its glow, on one canvas with a clear border, for the card's breathe and
-  shine (`Config.UI.GrandOpeningCard.Layout.FireworkStill`).
+- `firework_still.py`: one loose ribbon frame of the Firework Cue cropped to the ribbons
+  (`firework_ribbons.png`) and its box on the cue canvas
+  (`Config.UI.GrandOpeningCard.Layout.FireworkRibbons`); the card pulses it over the still cue.

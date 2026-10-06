@@ -492,20 +492,7 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 		made.Size = UDim2.fromScale(1, 1)
 		return made
 	end
-	-- The Firework Cue is one still picture with its ribbons baked on (designer, 2026-10-06:
-	-- not the choppy loop), set on the cue's box with a clear border so it breathes like the
-	-- block (tools/gui/firework_still.py).
-	-- The breathe shows the picture less a share of its border (breathe below), so the box is
-	-- that much smaller round its centre and the cue lands where its render put it.
-	local function still(name: string, id: string, z: number): ImageLabel
-		local made = image(cue, name, id, z)
-		local b, px = L.FireworkStill, L.FireworkStillPx
-		local shown = 1 - px[3] / math.max(px[1], px[2])
-		made.Position = UDim2.fromScale((b[1] + b[3]) / 2, (b[2] + b[4]) / 2)
-		made.Size = UDim2.fromScale((b[3] - b[1]) * shown, (b[4] - b[2]) * shown)
-		return made
-	end
-	local picture = if beta then IMG.BetaCue else IMG.FireworkStill
+	local picture = if beta then IMG.BetaCue else IMG.FireworkCue
 	if beta then
 		c.aura = fill("Aura", picture, 1)
 		c.aura.Size = UDim2.fromScale(1.04, 1.12)
@@ -514,7 +501,7 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 	else
 		-- A strong yellow glow round the cue, so it stands out of its busy background (designer,
 		-- 2026-10-06; tools/gui/cue_glow.py).
-		c.aura = still("Aura", IMG.FireworkStillGlow, 1)
+		c.aura = fill("Aura", IMG.FireworkCueGlow, 1)
 		c.aura.ImageColor3 = rgb(L.FireworkGlow.Tint)
 		c.aura.ImageTransparency = L.FireworkGlow.Transparency[1]
 	end
@@ -529,14 +516,17 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 			table.insert(c.copies, copy)
 		end
 	end
-	if beta then
-		c.picture = fill("Picture", picture, 4)
-		c.mask = fill("Pulse", IMG.BetaCueMask, 5)
-	else
-		c.picture = still("Picture", picture, 4)
-		c.mask = still("Pulse", IMG.FireworkStillMask, 5)
-	end
+	c.picture = fill("Picture", picture, 4)
+	c.mask = fill("Pulse", if beta then IMG.BetaCueMask else IMG.FireworkCueMask, 5)
 	c.mask.Visible = false
+	if not beta then
+		-- The gold ribbons: one still frame over the cue, where the render put them; they never
+		-- move, only dim and glow (designer, 2026-10-06; tools/gui/firework_still.py).
+		local b = L.FireworkRibbons
+		c.ribbons = image(cue, "Ribbons", IMG.FireworkRibbons, 6)
+		c.ribbons.Position = UDim2.fromScale((b[1] + b[3]) / 2, (b[2] + b[4]) / 2)
+		c.ribbons.Size = UDim2.fromScale(b[3] - b[1], b[4] - b[2])
+	end
 	-- The name in two colours, the pills, the odds chip.
 	local name = HudParts.frame(frame, which .. "Name")
 	name.ZIndex = 6
@@ -1035,9 +1025,9 @@ end
 -- Stage and the idle loops
 --------------------------------------------------------------------------------------------
 
--- The breathe: the pictures' window zooms inside their clear border (gate 1: smooth), all
--- together: the crowned block and its shine silhouette, or the Firework still, its silhouette
--- and its glow. `px` is their width, height and border in pixels (Layout.*Px).
+-- The block's breathe: its pictures' window zooms inside their clear border (gate 1: smooth);
+-- the crowned block and its shine silhouette together, so the crown and shine breathe with it.
+-- `px` is their width, height and border in pixels (Layout.CrownedBlockPx).
 local function breathe(pictures: { ImageLabel }, px: { number }): UIAnim.Handle
 	local w, h = px[1], px[2]
 	-- The border shared by length, so a wide picture keeps its shape.
@@ -1316,7 +1306,12 @@ function GrandOpeningCard.register(self: any, stage: Stage.Stage, keep: (UIAnim.
 			else
 				table.insert(
 					list,
-					breathe({ c.aura :: ImageLabel, c.picture, c.mask }, L.FireworkStillPx)
+					UIAnim.glowPulse(
+						c.ribbons,
+						0,
+						LOOP.RibbonDimTransparency,
+						LOOP.RibbonPulseSeconds
+					)
 				)
 			end
 			keep(all(list))

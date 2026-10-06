@@ -601,10 +601,13 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   numbering keeps the old DataStore key so copy numbers carry on
   (`Config.Items.RenamedCues`). The place's `CueSkins.FireworkCue` and `CuePieces.firework`
   were renamed in Studio.
-- 2026-10-06: the Firework Cue's gold ribbons are **a still picture**, not the loop: the cue and
-  one ribbon frame baked into one image (`tools/gui/firework_still.py`, 3 uploads, $0) that
-  breathes, shines and glows like the lucky block. The block breathes a little faster
+- 2026-10-06: the Firework Cue's gold ribbons are **a still picture**, not the loop
+  (`tools/gui/firework_still.py`; $0 uploads). The block breathes a little faster
   (3.1 s -> 2.3 s); only the Robux buttons shine, the money buttons no longer do.
+- 2026-10-06: **only the ribbons change**, not the cue (the designer: a first try breathed the
+  cue and ribbons baked together; a rock was tried, then dropped): the ribbons are their own
+  still picture over the still cue and pulse, dimming and glowing back, with no movement
+  (`Loops.RibbonDimTransparency`, `RibbonPulseSeconds`).
 
 
 ## Decisions
