@@ -37,6 +37,12 @@ Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (be
   (a win = one Mystery block, rewards and trades in blocks, save v7, Rewards-menu claims,
   pull cutscenes on the lucky reel, Inventory on Cues, the Shop emptied for the GUI
   overhaul). Studio computer-window checks, lint and 977 tests passed (2026-10-04).
+- [x] The lively Shop (branch `shop-lively`, 2026-10-06): the new frame (unroll, scrolling
+  header, dots, tabs outside, the 8-ball flair, HudFocus) and the Featured page's Grand
+  Opening card, five gates approved; the method saved as the `lively-gui` skill; the Firework
+  Cue rename with save v8. Phone, computer and gamepad checked; 1001 tests passed
+  (`docs/prompts/SHOP_LIVELY_REPORT.md`).
+- [ ] The Shop's Blocks, Money and Passes pages with the `lively-gui` skill.
 - [ ] Physical controller hold acceptance; save the updated place and publish its templates.
 
 ---

@@ -492,11 +492,11 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
       odds pop-up, the buttons on the existing buy flow, the live timer, the phone layout.
 - [x] 9. Recordings and contact sheets against the references, performance, Lower effects,
       Reduce Motion, gamepad; **gate 4**.
-- [ ] 10. Polish from the designer's notes; phone and PC (the designer switches the emulator);
+- [x] 10. Polish from the designer's notes; phone and PC (the designer switches the emulator);
       final recordings; **gate 5**.
 - [x] 11. The skill `.claude/skills/lively-gui/`, the `CLAUDE.md` pointer and the docs
       (UI_STYLE, DECISIONS, STATUS, STUDIO_NOTES).
-- [ ] 12. `docs/prompts/SHOP_LIVELY_REPORT.md` and the handoff.
+- [x] 12. `docs/prompts/SHOP_LIVELY_REPORT.md` and the handoff.
 
 ## Status
 
@@ -626,6 +626,8 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   block (its press area a 44 px touch target round the badge); every X that B closes wears
   the controller's back button on its corner while a gamepad is in use (`HudParts.padBack`:
   every menu through MenuFrame, the cue detail, the roadmap, Gift Player, the ult screen).
+- 2026-10-06: **gate 5 approved** ("all works": a computer size and a real gamepad). Step 12
+  done: `docs/prompts/SHOP_LIVELY_REPORT.md`. The run is finished.
 
 
 ## Decisions

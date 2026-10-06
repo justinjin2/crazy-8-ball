@@ -5,6 +5,19 @@ when `docs/STATUS.md` became current state only. Finished work moves here from S
 on top. Read it only to answer "when or why did X change"; it is not part of the read-first list.
 An entry marked "(latest)" was the latest when written.
 
+**2026-10-06 (latest): the lively Shop (branch `shop-lively`), five gates approved.**
+- The new menu frame as a kit switch (Shop only): it unrolls, a scrolling header, the dotted
+  sheet, tabs outside on the right, the 8-ball flair, a compact panel (66% of the width, as
+  tall as its first card, the next section peeking in); HudFocus hides the rest of the HUD
+  while any menu is open.
+- The Featured page's Grand Opening card (`GrandOpeningCard`): the crowned block with odds
+  from its "i" badge, the Beta and Firework cue cards, Robux buttons with gift squares, money
+  buttons, a live timer, every piece revealed by `Stage` and kept alive by the idle library.
+- The Grand Opening Cue became the Firework Cue, ids too (save v8, `Config.Items.RenamedCues`).
+  Products GrandOpening1/3/10 created. The controller's back button on every X that B closes.
+- The method saved as `.claude/skills/lively-gui/`. 1001 tests; 60 fps; $7.00 of images.
+  Report: `docs/prompts/SHOP_LIVELY_REPORT.md`.
+
 **2026-10-05 (latest): every cue wears a solid outline in its own theme colour (a moving gradient from Legendary up); a "pop" aura test on six cues.**
 - Every cue's stick has a solid outline in its theme colour (`Config.CueSkins.Pop.Outline`,
   `CueSkins/Pop.luau` pure and Lune-tested): its `Aura.Outline` if set, else the first vivid

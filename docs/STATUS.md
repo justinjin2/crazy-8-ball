@@ -42,18 +42,11 @@ Updated 2026-10-06.
 
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
-- **The Shop is being rebuilt lively** on branch `shop-lively`
-  (`docs/prompts/SHOP_LIVELY_PROMPT.md`; its Status and Progress are current). The new frame
-  is in (it unrolls, a scrolling header, the dotted sheet, an 8-ball on the edge; a kit switch
-  in `Config.UI.Menu.LivelyMenus`, Shop only), and so is the Grand Opening card on the Featured
-  page (`GrandOpeningCard`; the panel is capped to 66% of the screen and as tall as the card).
-  Gate 4 is approved. The method is now the project skill `.claude/skills/lively-gui/` for
-  every GUI (other menus switch to the new frame as each is rebuilt). Gate 5 waits on the
-  designer (computer emulator size, a real gamepad); then the report, then the Shop's Blocks,
-  Money and Passes pages. The Grand Opening Cue is now the
-  **Firework Cue** everywhere, id `FireworkCue` (save version 8 moves owned copies;
-  `Config.Items.RenamedCues`).
-  The other jump groups have no pages yet; the server-side shop, receipts and restock work.
+- **The lively Shop is done** on branch `shop-lively` (not merged; the designer's call),
+  all five gates approved (`docs/prompts/SHOP_LIVELY_REPORT.md`). Next: the Shop's Blocks,
+  Money and Passes pages with the `lively-gui` skill (the money "+" jumps to Money, which has
+  no page yet). Other menus switch to the new frame one at a time as each is rebuilt. Save
+  `place/8ball.rbxl` and publish once for this milestone (the renamed Firework Cue instances).
 - **Decisions still open:** trim Epic ownership (6.7% of active players against a ~5% plan)
   or keep it; whether the VIP cue pays finder's money on the first join; whether the free
   Mystery block keeps its 5-minute timer (`Config.LuckyBlocks.Kinds.Mystery.Timer`).
