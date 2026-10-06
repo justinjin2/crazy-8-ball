@@ -1,16 +1,19 @@
 # Status
 
-**2026-10-05 (latest): a "pop" test on one cue (Frostbite) so cues read on the bright roof.**
+**2026-10-05 (latest): a "pop" test on six cues so cues read on the bright roof.**
 - `Config.CueSkins.Pop` + `CueSkins/Pop.luau` (pure, Lune-tested): for the cues in `Pop.Ids`
-  (only `FrostbiteCue` now) the stick wears a solid ink outline (`#1B2033`, the UI's ink), the
+  (Frostbite, Candy, Flare, Plasma, Gummy, Magma) the stick wears a solid outline in the
+  cue's own theme colour (designer: not black; its trail colour, else its pocket burst's,
+  else rarity; built on cues with no aura too, so Uncommons get one), the
   aura's emitters are deepened and drawn less additively, each aura beam and orbiter ribbon
   gets a dark, wider twin behind it, and the surface's emissive is 1.6x. Code only: no
   reimport, no lighting change. Removing `Ids` pops every cue.
 - Why: 416 of the aura layers are additive (`LightEmission` 1), which adds light to what is
   behind it and vanishes on the cream floor and pale sky.
-- Seen in Studio (before/after on the back, same pose): the outline is a clear win; the
-  backing helps the ribbons only a little (Frostbite's aura is light by design). Console
-  clean, lint clean, 986 tests pass. Waiting on the designer's call: keep, tune, roll out.
+- Seen in Studio, held at day, on the back: the theme outline reads strongly on dark cues
+  (Flare, Plasma, Magma: a coloured rim) and softer on pale ones against the sky (Frostbite,
+  Gummy); Candy's ribbons show well with their backing. Console clean, lint clean, tests
+  pass. Waiting on the designer's call: keep, tune, roll out to every cue.
 
 **2026-10-05 (latest): no night after all; no sun disc; a 10 second, every-frame fade.**
 - Night was tried (a dark, then a purple night with a lit skyline) and dropped by the

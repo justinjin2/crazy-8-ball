@@ -2561,3 +2561,7 @@ timer of a new block stay the designer's call.
   of 2026-10-01, auras drawn less additively with a dark backing behind beams and ribbons, the
   emissive 1.6x. Code only; no reimport and no lighting change. Rolled out or dropped after
   the designer looks.
+- 2026-10-05 (designer): **the pop outline is the cue's own theme colour, not black**
+  (Frostbite light blue, Candy red, Flare orange): its Aura.Outline, else its trail colour,
+  else its pocket burst's, else its rarity colour. Popped cues with no aura get it too. On
+  test for six cues (`Config.CueSkins.Pop.Ids`).

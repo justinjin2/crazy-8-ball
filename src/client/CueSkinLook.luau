@@ -15,7 +15,7 @@
 --     skin's Aura.Highlight softly outlines its piece (the dragon, the fox), on the cues
 --     nearest the camera;
 --   * a cue that pops (Config.CueSkins.Pop) is built from its row rewritten by CueSkins.Pop
---     to read on the bright roof, and its outline is solid ink;
+--     to read on the bright roof, and its outline is solid in its theme colour;
 --   * the aura stays on the cue as it moves: emitters are LockedToPart but for tiny specks,
 --     and an orbiter's ribbon shortens while the stick moves (Config.CueSkins.Drift);
 --   * the stick's AuraOff attribute turns the whole aura off at once (the raised hand cue,
@@ -378,21 +378,16 @@ function CueSkinLook.refresh(self: Look)
 		if aura.Sound then
 			self:buildSound(aura.Sound)
 		end
-		-- The stick's outline in its colour (solid ink when it pops), and the piece's own
-		-- (Aura.Highlight).
+		-- The stick's outline in its colour (a popped cue's is built below), and the
+		-- piece's own (Aura.Highlight).
 		local O = C.Outline
 		local color = aura.Outline or O.Colors[row.Tier]
-		if popped then
-			color = C.Pop.Outline.Color or color
-		end
-		if color then
+		if color and not popped then
 			self:addHighlight("CueOutline", self.stick, {
 				FillColor = color,
 				FillTransparency = O.FillTransparency,
 				OutlineColor = color,
-				OutlineTransparency = if popped
-					then C.Pop.Outline.Transparency
-					else O.OutlineTransparency,
+				OutlineTransparency = O.OutlineTransparency,
 			})
 		end
 		if aura.Highlight and self.piece then
@@ -407,6 +402,16 @@ function CueSkinLook.refresh(self: Look)
 				),
 			})
 		end
+	end
+	-- A popped cue's solid outline in its theme colour, aura or not (CueSkins.Pop).
+	if popped and self.opts.aura then
+		local color = Pop.outline(row, C.Pop, C.Outline.Colors)
+		self:addHighlight("CueOutline", self.stick, {
+			FillColor = color,
+			FillTransparency = C.Outline.FillTransparency,
+			OutlineColor = color,
+			OutlineTransparency = C.Pop.Outline.Transparency,
+		})
 	end
 	if self.piece then
 		self.piece:setAura(self.opts.aura)

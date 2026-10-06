@@ -137,6 +137,53 @@ function Pop.applies(catalogId: any, spec: any): boolean
 	return table.find(spec.Ids, catalogId) ~= nil
 end
 
+-- A colour in any of the rows' forms as "#RRGGBB", or nil.
+local function hexOf(c: any): string?
+	if type(c) == "string" then
+		return c
+	elseif type(c) == "table" and type(c[1]) == "number" then
+		return string.format("#%02X%02X%02X", c[1], c[2], c[3])
+	end
+	return nil
+end
+
+--- The cue's own colour: its Aura.Outline, else its ball trail's colour (the middle of a
+--- trail's Colors), else its pocket burst's first colour; nil when it has none.
+function Pop.theme(row: any): string?
+	local aura = row.Aura
+	if aura and aura.Outline then
+		return hexOf(aura.Outline)
+	end
+	local style = type(row.Style) == "table" and row.Style or {}
+	local trail = style.Trail or {}
+	if trail.Color then
+		return hexOf(trail.Color)
+	end
+	local colors = trail.Colors
+	if colors and #colors > 0 then
+		return hexOf(colors[math.ceil(#colors / 2)])
+	end
+	local pocket = style.Pocket or {}
+	if pocket.Colors and #pocket.Colors > 0 then
+		return hexOf(pocket.Colors[1])
+	end
+	return nil
+end
+
+--- The popped stick's outline colour (spec.Outline): the theme, deepened, or the rarity colour
+--- in `tierColors`, or the Fallback; a hex Color puts every cue in it.
+function Pop.outline(row: any, spec: any, tierColors: { [string]: string }): string
+	local O = spec.Outline
+	if O.Color ~= "Theme" then
+		return O.Color
+	end
+	local theme = Pop.theme(row)
+	if theme then
+		return Pop.deepen(theme, O.SaturationAdd, O.Value)
+	end
+	return tierColors[row.Tier] or O.Fallback
+end
+
 -- The defaults CueSkinLook builds with when a row leaves them out.
 local BEAM_LIGHT, BEAM_WIDTH = 1, 0.18
 local TRAIL_LIGHT, TRAIL_WIDTH = 0.4, 0.21

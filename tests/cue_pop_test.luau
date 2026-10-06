@@ -62,4 +62,43 @@ return {
 			end
 		end
 	end,
+
+	["the outline is the cue's theme colour, with fallbacks"] = function()
+		local Pop, Config, CueSkins = load()
+		local spec = Config.CueSkins.Pop
+		local tiers = Config.CueSkins.Outline.Colors
+		local themed = { Outline = { Color = "Theme", SaturationAdd = 0, Value = 1 } }
+		H.expect(
+			Pop.outline({ Style = { Trail = { Color = { 150, 215, 255 } } } }, themed, tiers)
+				== "#96D7FF",
+			"a trail colour"
+		)
+		H.expect(
+			Pop.outline(
+				{ Aura = { Outline = "#112233" }, Style = { Trail = { Color = { 1, 2, 3 } } } },
+				themed,
+				tiers
+			) == "#112233",
+			"the skin's own outline first"
+		)
+		H.expect(
+			Pop.outline(
+				{ Style = { Trail = { Colors = { { 255, 0, 0 }, { 0, 255, 0 }, { 0, 0, 255 } } } } },
+				themed,
+				tiers
+			) == "#00FF00",
+			"the middle of a trail's colours"
+		)
+		H.expect(Pop.outline({ Tier = "Rare" }, themed, tiers) == tiers.Rare, "the rarity colour")
+		themed.Outline.Fallback = "#1B2033"
+		H.expect(Pop.outline({ Tier = "Common" }, themed, tiers) == "#1B2033", "the fallback")
+		H.expect(
+			Pop.outline({}, { Outline = { Color = "#ABCDEF" } }, tiers) == "#ABCDEF",
+			"a fixed colour"
+		)
+		for _, id in CueSkins.ids() do
+			local c = Pop.outline(CueSkins.get(id), spec, tiers)
+			H.expect(type(c) == "string" and #c == 7, id .. ": an outline colour")
+		end
+	end,
 }

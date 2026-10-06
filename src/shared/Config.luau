@@ -4696,7 +4696,7 @@ Config.CueSkins = {
 	-- backing a glow needs on a bright background); the stick wears a solid ink outline.
 	Pop = {
 		-- On test: only these cues pop. Remove Ids (nil) to pop every cue.
-		Ids = { "FrostbiteCue" },
+		Ids = { "FrostbiteCue", "CandyCue", "FlareCue", "PlasmaCue", "GummyCue", "MagmaCue" },
 		-- Aura emitters: LightEmission times this (1 unchanged, 0 plain paint), and each colour
 		-- deepened: saturation raised by SaturationAdd, brightness times Value. (tune)
 		Emitters = { LightEmissionScale = 0.4, SaturationAdd = 0.25, Value = 0.85 },
@@ -4706,9 +4706,19 @@ Config.CueSkins = {
 		-- saturated by SaturationAdd and darkened to Value times its brightness, Width times
 		-- its width, Opacity times the layer's opacity, pushed ZOffset behind it. (tune)
 		Backing = { SaturationAdd = 0.5, Value = 0.4, Width = 2, Opacity = 0.8, ZOffset = -1 },
-		-- The stick's outline: solid, in the UI's ink (UI_STYLE). Color nil keeps the rarity
-		-- colour (Outline.Colors) at this transparency. (tune)
-		Outline = { Color = "#1B2033", Transparency = 0 },
+		-- The stick's outline, solid, on every popped cue (one with no aura too). Color "Theme"
+		-- is the cue's own colour (designer, 2026-10-05: Frostbite light blue, not black):
+		-- its Aura.Outline, else its trail's colour, else its pocket burst's, else its rarity
+		-- colour (Outline.Colors), else Fallback (the UI's ink); a hex colour instead puts
+		-- every cue in that colour. The theme colour is saturated by SaturationAdd and its
+		-- brightness times Value (0 and 1: as it is). (tune)
+		Outline = {
+			Color = "Theme",
+			Fallback = "#1B2033",
+			SaturationAdd = 0,
+			Value = 1,
+			Transparency = 0,
+		},
 		-- The surface's glowing parts (its emissive map) times this. (tune)
 		EmissiveScale = 1.6,
 	},
