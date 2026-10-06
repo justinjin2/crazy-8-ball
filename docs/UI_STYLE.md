@@ -36,6 +36,11 @@ screen, a popup).
   header) and a thin light-blue edge, inset a little from the panel's outline. The 8-ball
   pattern shows on both. Built with `HudParts.menuCard` and `HudParts.setSheetTop`; small
   panels and popups stay plain cards.
+- **The lively frame** (designer, 2026-10-06; the Shop first, every menu as it is rebuilt with
+  the `lively-gui` skill, `Config.UI.Menu.LivelyMenus`): the panel unrolls; the header's
+  8-balls scroll slowly up-left; the white sheet has the original tiny pool-ball dots, still;
+  the tabs stand outside the right edge; an 8-ball flair is pinned on the left edge; a compact
+  header (the title fills it, the X smaller than the money pill, a gold + on the money pill).
 - **Blur, never darken** (designer, 2026-10-06, after a reference; replaces the dims of
   2026-09-27/28): behind every menu, the Ranked roadmap, the lucky block reel, the
   end-of-match screen and NEW RANK!, the 3D world blurs and the GUI stays sharp. A very quick
@@ -168,19 +173,35 @@ order; that is Open.
 
 ## 7. Motion
 
-**Decided**
-- Every animation comes from one shared `UIAnim` module (pop in, slide, shine sweep, pulse,
-  float, spinning rays, confetti, count-up), so all screens move alike. Looping effects stop
-  when their screen closes.
+**The method is the `lively-gui` skill** (`.claude/skills/lively-gui/`, from the lively Shop,
+2026-10-06): every new or rebuilt screen follows it, with its motion tokens
+(`Config.UI.Motion`), its reveal player (`Stage`) and its idle library (`UIAnim`). The rules
+below are the summary; the skill has the numbers and code.
 
-- **One by one, quickly** (designer, 2026-10-06): a screen of many pieces (the lucky block
-  reel first) enters a piece at a time, each growing from nothing with a small overshoot, a
-  few hundredths of a second apart, never all at once (`UIAnim.expandIn`,
-  `Config.UI.Kit.Motion.Stagger`).
-- **How lively** (2026-09-25): panels and popups pop in with a small overshoot and pop out
-  quickly. Only important things shine, bounce or breathe: your turn (the YOUR TURN popup
-  pops in and its cue bounces), the win card (the trophy over turning rays), Start once it can be
-  pressed, a ball going down. Later: Rematch, rewards, shop deals.
+**Decided**
+- **Every screen enters as a sequence** (designer, 2026-10-06): a full menu's panel unrolls from
+  a thin bar, then its pieces pop in one by one a few hundredths apart (60% to 110% to 100%,
+  with a fade); popups slam in from big; backgrounds and lines grow from their centre; the hero
+  piece and big cards arrive with a small firework burst; small HUD pieces just pop. The whole
+  open takes 1 to 2 s (the Shop's 1.07 s); a tab switch replays only the new page (0.5 s); a
+  close fades everything while the panel folds (0.15 s). Buttons work the moment they show.
+- **Something always moves, calmly.** Every screen keeps at least one idle loop (glows pulse,
+  rays turn, the hero breathes, a shine sweeps, 8-balls float, the header's pattern scrolls),
+  each starting as its piece lands, at a random phase, only while on screen, fewer with Lower
+  effects and none but soft glows with Reduce Motion.
+- **Smooth, never choppy** (gate 1, measured 2026-10-06; replaces "an icon never moves up and
+  down", 2026-10-03): GUI positions snap to whole pixels, so nothing moves slowly by Position,
+  Size or UIScale. Slow motion moves the picture inside a still label (fractional
+  `ImageRectOffset` / `ImageRectSize`: scroll, float, breathe) or turns it (Rotation); fast moves
+  (pops, slams, drops, confetti) may move the label. A flipbook plays at 30 fps; a slower one
+  looks choppy, so a slow moving part is a still picture that pulses instead (the Firework
+  Cue's ribbons dim and glow).
+- **The small part moves, not the hero**: decorations rock, pulse and sparkle; the hero
+  breathes at most (the crowned block, 1.5% over 2.3 s).
+- **Shine only what should draw the eye** (designer, 2026-10-06): on the Shop only the Robux
+  buttons shine.
+- **No CanvasGroup** for reveals or fades (black or blank on phones, blurry at low graphics, it
+  clips the overshoot): groups fade by code.
 - **Hover sway** (designer, 2026-09-28): anything pressable (candy buttons, menu tiles, cue
   cards, the column's icons, roadmap stops) rocks gently side to side while the mouse is over
   it or a gamepad rests on it, a small dance on top of the hover grow: about 3 degrees (a wide
@@ -535,10 +556,11 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
   rattle now and then (`UIAnim.shake`); special things sparkle (`UIAnim.sparkle`); bars carry
   moving stripes (`UIAnim.stripes`). Loops run only while on screen and calm down with Lower
   effects (`Quality`).
-- **Smooth, never choppy** (designer, 2026-10-03). An icon never moves up and down in a loop:
-  a GUI move snaps to whole pixels and looks like a 2 fps sprite. Idle icons rock gently by
-  turning instead (`UIAnim.bob`, `Kit.Motion.Bob`), and every shake is slow enough that no
-  frame jumps far (`Kit.Motion.Shake`). Glows pulse smoothly, never blink.
+- **Smooth, never choppy** (designer, 2026-10-03; the technique since 2026-10-06 is in
+  section 7 and the `lively-gui` skill). A label never moves slowly by Position: a GUI move
+  snaps to whole pixels and looks like a 2 fps sprite. Slow motion moves the picture inside
+  its label or turns it (`UIAnim.bob`, `Kit.Motion.Bob` for idle icons), and every shake is
+  slow enough that no frame jumps far (`Kit.Motion.Shake`). Glows pulse smoothly, never blink.
 - **Hovering an icon** (the left column, the corner icons) keeps the small hover sway and adds
   soft sun rays fading in behind it, turning slowly, like the Legendary ability's rays
   (`UIAnim.sunRays`, `Kit.Motion.SunRays`). No hard shake on hover (designer, 2026-10-03).
@@ -548,10 +570,16 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
   (`UIAnim.slam`: from huge to its size, a glow and a jolt).
 - **Big menus are centred on the screen.** On a computer the panel is centred on the whole
   screen, clear of Roblox's bar, and never nearer the bottom than `Frame.BottomGapPx` (its
-  shadow included). Phones keep the full-screen panel.
+  shadow included). Phones keep the full-screen panel, except the lively frame (2026-10-06):
+  at most 66% of the width, never in the top bar row, as tall as its first card, on every
+  device (`Config.UI.Menu.Lively.MaxWidthShare`).
+- **One thing at a time** (designer, 2026-10-06): while a full menu is open, every other screen
+  of ours is hidden (`HudFocus`); it comes back when the menu closes.
 - **Big and simple, phone first.** Big text (`Kit.Big`: hero 56, title 40, heading 28, button
-  24, body 19, never under 16 on the new screens), big icons, one big arrow pointing at
-  things (before -> after), lots of white space. Avoid small text and description lines; use
+  24, body 19, never under 16 on the new screens; a lively hero card scaled to fit a phone may
+  go to its own `Layout.MinTextPx`), big icons, one big arrow pointing at things (before ->
+  after). Space between things, but no wasted space (designer, 2026-10-06: tight rows, a
+  compact header, the next section peeking in). Avoid small text and description lines; use
   one only where it is truly needed.
 - **Colours tell what a number is** (`Kit.Numbers`), one meaning each so the screen reads as a
   theme: bright yellow for prices and money, green for what you get, FREE and bonuses, sky
@@ -607,7 +635,10 @@ rebuild, not a description of the current screen.
   bundle for a money price, a green candy with the Robux glyph for Robux. A gift square
   (purple on the Grand Opening card, 2026-10-06) sits left of every Robux button for a
   developer product; it opens the Gift Player popup.
-- **The Grand Opening band** (reference 12): the only dark card on the page (`FestiveFill`,
+- **The Grand Opening band** (reference 12; **built** as the lively Featured card,
+  2026-10-06, after target 13b: see the `lively-gui` skill and `GrandOpeningCard`; it dropped
+  the LIMITED pills, the save labels and the guarantee line, and its Robux buttons are bigger
+  than its money buttons): the only dark card on the page (`FestiveFill`,
   navy fading deeper, a pale blue edge, gold sparkles). The NEW sticker, the crowned block
   and "Ends in 20d 23h" down the left; at the right the gold title "GRAND OPENING LUCKY
   BLOCK" between two stars, "YOU COULD PULL...", two chase cards (ink fill, pink Unique rim,

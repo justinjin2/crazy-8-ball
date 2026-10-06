@@ -120,6 +120,20 @@ print(require(game.ReplicatedStorage.Shared.TableBuilder).prepareImport(require(
   math.pi / 2, power = 0.35, epoch = snap.epoch, turnId = snap.turnId })`. To read what the
   client got, connect the remote in a Client `execute_luau` and store the payload as JSON in
   a LocalPlayer attribute.
+- **A module `require`d from `execute_luau` is a separate copy** (2026-10-06): requiring
+  `PlayerData` from the Server datamodel gave a fresh module with no players loaded. Read live
+  state through the QA hooks above (`PlayerDataQA` `read`) or the console.
+- **A long wait inside `execute_luau`** (a `task.wait(6)` before the game had loaded) moved the
+  call to the background past 120 s and it failed later with "Target is closed" when Play
+  stopped. Keep waits short; poll with several small calls.
+- **Image ids after an upload** (the lively Shop, 2026-10-06): `InsertService:LoadAsset(decalId)`
+  was run in Play's Server datamodel (`tools/manifest_image_ids.py emit` prints the snippet,
+  `apply` stores the `decalId=imageId` lines); the Edit datamodel worked too in 2026-09.
+- **A Play session started before a Rojo change runs the old client**: stop and start Play.
+- GUI checks without a recording: sample a property every half second from a Client
+  `execute_luau` (a rock's Rotation, a pulse's ImageTransparency, an AbsolutePosition), or
+  count a shine by connecting `DescendantAdded` on each button's face for a few seconds. The
+  lively GUI's `GuiQA` hooks are in the `lively-gui` skill (`verification.md`).
 
 ## Uploading assets with Open Cloud (set up 2026-09-28)
 
