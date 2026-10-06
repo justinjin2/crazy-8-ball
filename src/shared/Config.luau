@@ -7127,14 +7127,15 @@ Config.UI.Menu = {
 		IconShare = 1.08, -- the glossy icon's size, of the slot (its own margins are clear)
 		IconCentreShare = 0.46, -- the icon's middle sits this far down the slot
 		LabelTextPx = 18, -- the word across the icon's lower edge (white, ink outline)
-		-- The words' font: a test of Montserrat for the four words (designer, 2026-10-05; the
-		-- kit's Fredoka One elsewhere). Roblox's font family file and an Enum.FontWeight name;
-		-- the heaviest (Heavy, Montserrat Black) is nearest Fredoka's. Measure is the Enum.Font name the
-		-- words are measured with (TextService:GetTextSize takes no family file; Roblox maps the
-		-- old MontserratBlack name onto GothamBlack). (tune)
+		-- The words' font: a test of Builder Extended for the four words (designer, 2026-10-05,
+		-- after Montserrat Black; the kit's Fredoka One elsewhere). Roblox's font family file and
+		-- an Enum.FontWeight name; ExtraBold is Builder Extended's heaviest (Heavy falls back to a
+		-- lighter cut). Measure is the Enum.Font name the words are measured with
+		-- (TextService:GetTextSize takes no family file; Builder Extended has no Enum.Font, and
+		-- GothamBlack measures each word a little wider, so the box always fits). (tune)
 		LabelFont = {
-			Family = "rbxasset://fonts/families/Montserrat.json",
-			Weight = "Heavy", -- Enum.FontWeight: Heavy is 900, Montserrat Black
+			Family = "rbxasset://fonts/families/BuilderExtended.json",
+			Weight = "ExtraBold", -- Enum.FontWeight: 800, Builder Extended's heaviest
 			Measure = "GothamBlack",
 		},
 		ShortLabelTextPx = 14, -- never under the kit's minimum

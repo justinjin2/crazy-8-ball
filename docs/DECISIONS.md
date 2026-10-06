@@ -2581,3 +2581,7 @@ timer of a new block stay the designer's call.
 - 2026-10-05: the close-range outline ribbons narrow to the bare cue at the tip and butt and
   turn off while the stick has any camera fade or is seen near end-on (the designer saw a
   square end and the whole cue filled with the outline colour on the back).
+- 2026-10-05: The left column's word test moves from Montserrat Black to **Builder Extended
+  ExtraBold** (designer; ExtraBold is its heaviest cut in Roblox). Still a test; everything
+  else keeps Fredoka One. Roblox has no plain Fredoka (only Fredoka One), and no letter
+  spacing or horizontal/vertical text stretch (checked in Studio).
