@@ -485,7 +485,7 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
 - [x] 5. The animatic with sliders and optional flair switches; **gate 3**; the approved values
       in Config.
 - [x] 6. `Stage`, the idle library and the motion tokens in Config, with Lune tests.
-- [ ] 7. The frame: unroll and fold, dots sheet, moving header, tabs and badges, the 8-ball flair,
+- [x] 7. The frame: unroll and fold, dots sheet, moving header, tabs and badges, the 8-ball flair,
       the tab-switch stagger, the kit switch (Shop on).
 - [ ] 8. The Grand Opening card: every piece and loop, real text, the odds chips and the block's
       odds pop-up, the buttons on the existing buy flow, the live timer, the phone layout.
@@ -538,6 +538,17 @@ comes next (Blocks, Money and Passes with the skill; the other menus switching t
   library in `UIAnim`. Checked in Studio with `GuiQA:Invoke("lab", "stage", 14)` (a slowed
   open): unroll, header scroll, grow, slam with its burst, crown drop, float, flipbook; no
   console errors. Next: step 7, the frame.
+- 2026-10-06: step 7 done. The frame is a kit switch (`Config.UI.Menu.LivelyMenus`, Shop on):
+  MenuFrame plays `Config.UI.Shop.Open` on Stage (unroll, header fade, basket, title, money, X,
+  the four jump buttons and their NEW badges, the 8-ball flair dropping on last) and folds it shut
+  on close; the header scrolls up-left (`assets/ui/frame/header_tile.png`, uploaded, numbers from
+  the animatic in `Config.UI.Menu.Lively`), the sheet has the still dots, the basket and the lit
+  tab's icon rock, the flair rocks and hops with a sparkle (beside the title on a phone). A tab
+  switch replays the page's pieces (none yet). Checked in Studio's phone emulator: open, close,
+  reopening mid-close and mid-open all end at rest; no console errors. Only the first UIScale
+  on an object applies (STUDIO_NOTES), so Stage drives UIAnim's AnimScale. PC and gamepad
+  checks with step 9.
+
 
 ## Decisions
 

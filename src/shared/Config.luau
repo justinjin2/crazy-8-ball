@@ -7187,6 +7187,46 @@ Config.UI.Menu = {
 	-- The menus whose panel and cards take Kit.PaleEdge's pale-blue outline instead of ink
 	-- (designer, 2026-10-06: these four for now). Names as Menus.register ("Ults": Abilities).
 	PaleEdgeMenus = { "Shop", "Inventory", "Ults", "FreeReward" },
+	-- The lively frame (docs/prompts/SHOP_LIVELY_PROMPT.md section 5), a kit switch per menu:
+	-- the panel unrolls open and folds shut (Stage, with the menu's Open schedule), the header's
+	-- 8-balls scroll, the white sheet has the still dots and an 8-ball sits on the top edge.
+	-- Menus not listed keep the kit frame (pop in, still pattern). Names as Menus.register.
+	LivelyMenus = { "Shop" },
+	Lively = {
+		-- The header band's 8-balls (assets/ui/frame/header_tile.png: pattern.png at a 200 texel
+		-- period repeated across 1024), scrolling up-left at 45 degrees. Numbers from the approved
+		-- animatic (2026-10-06): a period shown 260 px across, a whole period every 16 s.
+		HeaderImage = "rbxassetid://103637839065202",
+		HeaderPeriod = 200, -- texels per repeat in HeaderImage
+		HeaderSheetPx = 1024, -- HeaderImage's size: the scroll window stays inside it
+		HeaderTilePx = 260, -- one repeat shown this big (the kit's still pattern: 380 per 512)
+		HeaderPxPerSecond = 23, -- along the 45 degree line (16.25 px/s on each axis)
+		HeaderTransparency = 0.6, -- a little more visible than the kit's 0.7 (brief, gate 2)
+		-- The white sheet's dots: the original tiny pool balls (option A, designer 2026-10-06),
+		-- assets/ui/frame/dots_512.png, white, tinted and faded here. Still.
+		DotsImage = "rbxassetid://91688642128658",
+		DotsColor = { 74, 123, 192 },
+		DotsTransparency = 0.92, -- about 8%
+		DotsTilePx = 88, -- one 512 px tile shown this big
+		-- The 8-ball flair on the panel's top edge, near its left corner (the money and X are
+		-- right): its middle FromLeftPx in from the panel's left, on the edge. It drops on last
+		-- (the Open schedule's "Flair"), rocks RockDegrees either way over RockSeconds, and every
+		-- HopEvery s hops HopPx for HopSeconds with a sparkle (Config.UI.Effects.Sparkle).
+		FlairImage = "rbxassetid://132422184916082", -- as Config.UI.GrandOpeningCard.Images.Flair8ball
+		FlairPx = 48,
+		FlairFromLeftPx = 55,
+		FlairDownPx = 2, -- its middle sits this far below the edge
+		FlairRockDegrees = 5.7,
+		FlairRockSeconds = 2.9,
+		FlairHopEvery = 5,
+		FlairHopPx = 9,
+		FlairHopSeconds = 0.4,
+		FlairSparklePx = 40,
+		-- Idle rocks once landed: the menu's icon (the basket) and the selected tab's icon.
+		IconRockDegrees = 3.4,
+		TabRockDegrees = 6.9,
+		RockSeconds = 2.9,
+	},
 	-- The left column (reference 06): one tile each, top to bottom, each just its big icon
 	-- with no box behind it (designer, 2026-09-28). Keys name the menus (Menus.register) and
 	-- their words (Strings.Menus.Column) and icons (Kit.Icons).
@@ -7656,7 +7696,6 @@ Config.UI.GrandOpeningCard = {
 		RibbonFps = 13.333, -- the gold ribbons: a turn in 2.4 s (Config.UI.Effects.GoRibbons)
 		SaveRainbowPercent = 20, -- a "save" of this much or more shows in the moving rainbow
 	},
-	DotsTile = "rbxassetid://91688642128658", -- the white sheet's dot tile (512 px), for the frame
 }
 
 -- The lucky block opening's reel (LuckyOpening with BlockReel, LuckyResult and ReelFx; the

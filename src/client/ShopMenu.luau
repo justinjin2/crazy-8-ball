@@ -26,6 +26,7 @@ local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
 local ShopParts = require(script.Parent.ShopParts)
+local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local NAME = "Shop"
@@ -56,6 +57,7 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	self.nextTick = 0
 	self.current = nil :: string? -- the lit jump button
 	self.seen = {} :: { [string]: any } -- what the badges count as seen (by group)
+	self.rock = nil :: UIAnim.Handle? -- the lit jump button's icon rocking (the lively frame)
 
 	local frame = MenuFrame.new(screen, {
 		name = NAME,
@@ -92,6 +94,15 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		badgeText.Size = UDim2.fromScale(1, 1)
 		badgeText.ZIndex = 9
 		table.insert(self.jumps, { key = key, button = button, badge = badge })
+	end
+	-- The lively frame's open: the jump buttons pop in top to bottom, each NEW badge just after
+	-- its button (Config.UI.Shop.Open "Tab1".. and "Tab1Badge"..).
+	local stage = frame.stage
+	if stage then
+		for index, jump in self.jumps :: { Jump } do
+			stage:add("Tab" .. index, jump.button)
+			stage:add("Tab" .. index .. "Badge", jump.badge)
+		end
 	end
 
 	frame.onOpen = function()
@@ -223,15 +234,44 @@ function ShopMenu.jump(self: any, key: string, _instant: boolean?)
 	if not found then
 		return
 	end
+	local changed = self.current ~= key
 	self.current = key
 	for _, jump in self.jumps :: { Jump } do
 		HudParts.setTone(jump.button, if jump.key == key then "Blue" else "White")
+	end
+	self:rockLit()
+	-- A tab switch staggers the page's pieces in again (not during the open: it shows them).
+	local stage = self.frame.stage
+	if changed and stage and self.frame:isOpen() and stage:busy() ~= "play" then
+		local ids = stage:idsUnder(self.scroll)
+		if #ids > 0 then
+			stage:replay(ids)
+		end
 	end
 	if ShopParts.gamepad() then
 		for _, jump in self.jumps :: { Jump } do
 			if jump.key == key then
 				GuiService.SelectedObject = jump.button
 			end
+		end
+	end
+end
+
+-- The lit jump button's icon rocks gently while the Shop is open (the lively frame).
+function ShopMenu.rockLit(self: any)
+	if self.rock then
+		self.rock.stop()
+		self.rock = nil
+	end
+	if not self.frame.stage or not self.frame:isOpen() then
+		return
+	end
+	local L = Config.UI.Menu.Lively
+	for _, jump in self.jumps :: { Jump } do
+		local body = jump.button:FindFirstChild("Body")
+		local icon = body and body:FindFirstChild("Icon")
+		if jump.key == self.current and icon and icon:IsA("GuiObject") then
+			self.rock = UIAnim.turn(icon, 0, L.TabRockDegrees, L.RockSeconds)
 		end
 	end
 end
@@ -372,6 +412,8 @@ function ShopMenu.opened(self: any)
 	self:refresh()
 	if self.current == nil then
 		self:jump(JUMPS[1].Key)
+	else
+		self:rockLit()
 	end
 	self:markSeen()
 	if not self.ticker then
@@ -400,6 +442,10 @@ end
 
 function ShopMenu.closed(self: any)
 	ContextActionService:UnbindAction("8ballShopJump")
+	if self.rock then
+		self.rock.stop()
+		self.rock = nil
+	end
 	if self.ticker then
 		self.ticker:Disconnect()
 		self.ticker = nil

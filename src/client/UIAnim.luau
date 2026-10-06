@@ -872,23 +872,26 @@ function UIAnim.flipbook(label: ImageLabel, sheet: any, opts: FlipOptions?): Han
 	return handle
 end
 
---- Scroll a seamless tile inside `label` (gate 1's favourite): `label.Image` is the tile laid
---- out 2 x 2 (one period = `period` texels), shown `tilePx` screen pixels per period; the picture
---- moves `pxPerSecond` along `direction` (screen pixels, e.g. (-1, -1) for up-left at 45
---- degrees). The label must be at most one tile across (the window never leaves the picture).
+--- Scroll a seamless tile inside `label` (gate 1's favourite): `label.Image` is the tile
+--- repeated across a square picture of `sheetPx` texels (default 2 x 2: twice `period`), shown
+--- `tilePx` screen pixels per period; the picture moves `pxPerSecond` along `direction` (screen
+--- pixels, e.g. (-1, -1) for up-left at 45 degrees). The window never leaves the picture, so the
+--- label must be at most `sheetPx` - `period` texels across.
 function UIAnim.scrollTile(
 	label: ImageLabel,
 	period: number,
 	tilePx: number,
 	pxPerSecond: number,
-	direction: Vector2
+	direction: Vector2,
+	sheetPx: number?
 ): Handle
 	local texel = period / tilePx
+	local room = (sheetPx or period * 2) - period
 	local unit = direction.Unit
 	local function fit()
 		local size = label.AbsoluteSize
 		label.ImageRectSize =
-			Vector2.new(math.min(period, size.X * texel), math.min(period, size.Y * texel))
+			Vector2.new(math.min(room, size.X * texel), math.min(room, size.Y * texel))
 	end
 	fit()
 	local resized = label:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)

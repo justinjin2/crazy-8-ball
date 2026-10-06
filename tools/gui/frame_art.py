@@ -1,4 +1,4 @@
-"""The Shop frame's tiles. For now: the white sheet's dot tile.
+"""The Shop frame's tiles: the white sheet's dot tile and the moving header's tile.
 
 dots_512.png is the original tiny pool-ball pattern (art_pattern() in tools/gen_ui_art.py at git
 commit 106a294: solid and striped balls on an even staggered grid in a 256 px tile, white marks
@@ -12,6 +12,9 @@ too, so the tile is seamless. Writes:
   OUT/dots_tiled_3x3.png                             3 x 3 tiles on navy: seams would show here
   OUT/dots_preview_vs_A.png                          tinted 8% over white at 88 px per period,
                                                      beside option A from 15-sheet-pattern-options
+  assets/ui/frame/header_tile.png                    the header pattern (assets/ui/art/pattern.png)
+                                                     at a 200 texel period, repeated across 1024:
+                                                     a scroll window up to 824 texels wide
 Usage: tools/gui/.venv/bin/python tools/gui/frame_art.py [--out DIR]
 """
 
@@ -72,6 +75,33 @@ def tiled(tile, nx, ny, period):
     return np.tile(a, (ny, nx))
 
 
+HEADER_PERIOD = 200  # texels: Config.UI.Kit.Lively.HeaderPeriod
+
+
+def header_tile(dest):
+    """assets/ui/art/pattern.png shrunk to a 200 texel period and repeated across one 1024
+    picture (gate 1's scroll keeps its window inside the picture, so the widest window is 1024 -
+    200 = 824 texels: 1,071 px at the animatic's 260 px per period, past the 920 px panel). The
+    shrink is done on 3 x 3 copies and the middle cut out, so the small tile wraps seamlessly."""
+    src = Image.open(ROOT / "assets/ui/art/pattern.png").convert("RGBA")
+    a = np.asarray(src, float) / 255
+    rgb = a[..., :3] * a[..., 3:]  # premultiplied, so the clear parts don't bleed dark
+    big = np.concatenate([rgb, a[..., 3:]], -1)
+    big = np.tile(big, (3, 3, 1))
+    n = HEADER_PERIOD
+    chans = [Image.fromarray(big[..., c].astype(np.float32), "F").resize((3 * n, 3 * n), Image.LANCZOS)
+             for c in range(4)]
+    small = np.stack([np.asarray(c) for c in chans], -1)[n:2 * n, n:2 * n].clip(0, 1)
+    sheet = np.tile(small, (1024 // n + 1, 1024 // n + 1, 1))[:1024, :1024]
+    alpha = sheet[..., 3:]
+    colour = np.where(alpha > 1e-4, sheet[..., :3] / np.maximum(alpha, 1e-4), 0)
+    out = np.concatenate([colour, alpha], -1)
+    Image.fromarray((out * 255).round().astype(np.uint8), "RGBA").save(dest / "header_tile.png")
+    edge = np.abs(small[:, 0] - small[:, -1]).mean() + np.abs(small[0] - small[-1]).mean()
+    inner = np.abs(small[:, n // 2] - small[:, n // 2 + 1]).mean() * 2
+    print(f"header_tile: wrap step {edge:.4f} vs an inner step {inner:.4f} (should be alike)")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(REFS / "work/frame"))
@@ -83,6 +113,7 @@ def main():
 
     tile = draw_tile()
     tile.save(dest / "dots_512.png")
+    header_tile(dest)
 
     # 3 x 3 seam check on navy at full size
     a = tiled(tile, 3, 3, TILE)[..., None]

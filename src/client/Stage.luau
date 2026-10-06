@@ -2,8 +2,8 @@
 -- Stage: plays a lively screen's reveal (docs/prompts/SHOP_LIVELY_PROMPT.md sections 3 and 4).
 -- A screen registers its pieces by id, then Stage runs the open schedule from Config (for the
 -- Shop, Config.UI.Shop.Open with the tokens in Config.UI.Motion), every frame, in code:
---   * Pop, Slam, Grow: a UIScale named "StageScale" (kept apart from UIAnim's AnimScale and a
---     candy button's press scale);
+--   * Pop, Slam, Grow: the piece's UIScale, shared with UIAnim (its AnimScale; only the first
+--     UIScale on an object takes effect, tested 2026-10-06);
 --   * Unroll: the panel's chrome opens up and down from a thin bar (its Size, fast);
 --   * Drop: the piece falls into place (its Position, fast, Bounce Out);
 --   * Fade (and every kind's fade in): the code fader, which caches each descendant's
@@ -14,7 +14,9 @@
 -- start as it lands, at their own random phases). `close` fades everything fast while the panel
 -- folds to a line; `replay` staggers a page's pieces in again (a tab switch, no unroll); `finish`
 -- jumps to the end. Opening again mid-close, or spamming a tab, always ends on a clean screen:
--- every call cancels the run before it. Reduce Motion: pieces only fade in. Lower effects: no
+-- every call cancels the run before it. A piece's place, size and transparencies at rest are
+-- read when a run starts (the screen lays itself out on open), unless an earlier run left it
+-- moved or faded part way. Reduce Motion: pieces only fade in. Lower effects: no
 -- bursts. All the maths is StageMath (tested in Lune).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -51,6 +53,8 @@ type Piece = {
 	scale: UIScale?,
 	restPosition: UDim2,
 	restSize: UDim2,
+	moved: boolean, -- a run moved or sized it: restPosition and restSize hold where it belongs
+	faded: boolean, -- a run faded it: its cache holds its transparencies at rest
 	cache: { Cached }?,
 }
 
@@ -64,6 +68,7 @@ export type Stage = typeof(setmetatable(
 		order: { string },
 		burstLayer: GuiObject?,
 		connection: RBXScriptConnection?,
+		running: string?, -- "play", "replay" or "close" while one runs
 	},
 	Stage
 ))
@@ -71,10 +76,14 @@ export type Stage = typeof(setmetatable(
 --- A stage for one screen, playing `open` (a Config schedule such as Config.UI.Shop.Open).
 --- Bursts go into `burstLayer` (default: the piece's parent).
 function Stage.new(open: any, burstLayer: GuiObject?): Stage
-	return setmetatable(
-		{ open = open, pieces = {}, order = {}, burstLayer = burstLayer, connection = nil },
-		Stage
-	)
+	return setmetatable({
+		open = open,
+		pieces = {},
+		order = {},
+		burstLayer = burstLayer,
+		connection = nil,
+		running = nil,
+	}, Stage)
 end
 
 --- Register `object` as piece `id` (an id in the schedule's steps). `onLand` runs once its
@@ -89,6 +98,8 @@ function Stage.add<T>(self: Stage, id: string, object: T & GuiObject, onLand: ((
 		scale = nil,
 		restPosition = object.Position,
 		restSize = object.Size,
+		moved = false,
+		faded = false,
 		cache = nil,
 	}
 	table.insert(self.order, id)
@@ -126,30 +137,43 @@ local function fade(self: Stage, piece: Piece, alpha: number)
 	if not piece.cache then
 		piece.cache = buildCache(self, piece)
 	end
+	piece.faded = alpha < 1
 	for _, c in piece.cache :: { Cached } do
 		(c.object :: any)[c.prop] = 1 - (1 - c.rest) * alpha
 	end
 end
 
 local function scaleOf(piece: Piece): UIScale
-	if piece.scale and piece.scale.Parent then
+	if piece.scale and piece.scale.Parent == piece.object then
 		return piece.scale
 	end
-	local found = piece.object:FindFirstChild("StageScale")
-	local scale: UIScale
-	if found and found:IsA("UIScale") then
-		scale = found
-	else
-		scale = Instance.new("UIScale")
-		scale.Name = "StageScale"
-		scale.Parent = piece.object
-	end
+	local scale = piece.object:FindFirstChildOfClass("UIScale") or UIAnim.scaleOf(piece.object)
 	piece.scale = scale
 	return scale
 end
 
+-- Read the piece's rest (place, size, transparencies) as it is now, unless a run left it part
+-- way (then the rest kept from before is the right one).
+local function settle(piece: Piece)
+	if not piece.moved then
+		piece.restPosition = piece.object.Position
+		piece.restSize = piece.object.Size
+	end
+	if not piece.faded then
+		piece.cache = nil
+	end
+end
+
+-- Put a piece back at rest.
+local function restore(piece: Piece)
+	piece.object.Position = piece.restPosition
+	piece.object.Size = piece.restSize
+	piece.moved = false
+end
+
 -- The panel's chrome at `share` of its height, opening about its middle whatever its anchor.
 local function unroll(piece: Piece, share: number)
+	piece.moved = true
 	local rest = piece.restSize
 	local bar = M.BarPx * (1 - math.min(1, share))
 	local height = UDim.new(rest.Y.Scale * share, rest.Y.Offset * share + bar)
@@ -195,12 +219,16 @@ end
 local function apply(self: Stage, piece: Piece, e: StageMath.Entry, t: number, reduced: boolean)
 	local s = StageMath.pieceState(e, t, M, reduced)
 	if e.kind == "Unroll" and not reduced then
+		if piece.faded then
+			fade(self, piece, 1) -- a Reduce Motion close faded it
+		end
 		unroll(piece, s.scale)
 	else
 		fade(self, piece, s.alpha)
 		if not reduced and (e.kind == "Pop" or e.kind == "Slam" or e.kind == "Grow") then
 			scaleOf(piece).Scale = s.scale
 		elseif e.kind == "Drop" then
+			piece.moved = true
 			piece.object.Position = piece.restPosition + UDim2.fromOffset(0, -M.DropPx * s.drop)
 		end
 	end
@@ -210,6 +238,9 @@ local function apply(self: Stage, piece: Piece, e: StageMath.Entry, t: number, r
 	end
 	if s.landed and not piece.landed then
 		piece.landed = true
+		if piece.moved then
+			restore(piece)
+		end
 		if piece.onLand then
 			task.spawn(piece.onLand)
 		end
@@ -221,6 +252,7 @@ local function stop(self: Stage)
 		self.connection:Disconnect()
 		self.connection = nil
 	end
+	self.running = nil
 end
 
 -- Run `entries` (only the registered pieces) from t = 0; `finish` when the last one lands.
@@ -231,6 +263,7 @@ local function run(self: Stage, entries: { StageMath.Entry }, finish: number, do
 	for _, e in entries do
 		local piece = self.pieces[e.id]
 		if piece then
+			settle(piece)
 			piece.landed = false
 			piece.burst = false
 			table.insert(live, { piece = piece, entry = e })
@@ -257,6 +290,23 @@ end
 function Stage.play(self: Stage, openSeconds: number?, done: (() -> ())?)
 	local entries, finish = StageMath.schedule(self.open, M, openSeconds)
 	run(self, entries, finish, done)
+	self.running = "play"
+end
+
+--- What is running: "play" (the open), "replay" (a tab switch), "close", or nil.
+function Stage.busy(self: Stage): string?
+	return self.running
+end
+
+--- The ids of the registered pieces inside `root` (a page: what a tab switch replays).
+function Stage.idsUnder(self: Stage, root: Instance): { string }
+	local ids: { string } = {}
+	for _, id in self.order do
+		if self.pieces[id].object:IsDescendantOf(root) then
+			table.insert(ids, id)
+		end
+	end
+	return ids
 end
 
 --- Stagger only `ids` in again over Config.UI.Motion.TabSeconds (a tab switch: no unroll).
@@ -284,6 +334,7 @@ function Stage.replay(self: Stage, ids: { string }, done: (() -> ())?)
 		finish = math.max(finish, moved.at + moved.length)
 	end
 	run(self, picked, finish, done)
+	self.running = "replay"
 end
 
 --- Fade everything fast while the panel (the "Unroll" piece) folds back to a line, then `done`.
@@ -295,7 +346,11 @@ function Stage.close(self: Stage, done: (() -> ())?)
 			panel = self.pieces[e.id]
 		end
 	end
+	for _, id in self.order do
+		settle(self.pieces[id])
+	end
 	local t = 0
+	self.running = "close"
 	self.connection = RunService.RenderStepped:Connect(function(dt)
 		t += dt
 		local p = math.min(1, t / M.CloseSeconds)
@@ -314,6 +369,9 @@ function Stage.close(self: Stage, done: (() -> ())?)
 		end
 		if p >= 1 then
 			stop(self)
+			if panel then
+				restore(panel) -- hidden now; the next open unrolls it again from its rest
+			end
 			if done then
 				done()
 			end
@@ -330,8 +388,7 @@ function Stage.finish(self: Stage)
 		if piece.scale then
 			piece.scale.Scale = 1
 		end
-		piece.object.Position = piece.restPosition
-		piece.object.Size = piece.restSize
+		restore(piece)
 		if not piece.landed then
 			piece.landed = true
 			if piece.onLand then

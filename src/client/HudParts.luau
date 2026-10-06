@@ -271,6 +271,42 @@ function HudParts.menuCard(parent: Instance, name: string, radius: number?): Fra
 	return root
 end
 
+--- Whether the menu `name` (as Menus.register) has the lively frame (Config.UI.Menu.LivelyMenus).
+function HudParts.lively(name: string): boolean
+	return table.find(Config.UI.Menu.LivelyMenus, name) ~= nil
+end
+
+--- Turn a menu card (menuCard) into the lively frame (docs/prompts/SHOP_LIVELY_PROMPT.md
+--- section 5): the header band's 8-balls scroll up-left at 45 degrees (a window sliding over a
+--- seamless picture, gate 1: smooth however slow) and the white sheet shows the still dots.
+--- Returns the header's pattern (Stage fades it in as "Header"); setSheetTop sizes it.
+function HudParts.livelyCard(card: Frame): ImageLabel
+	local L = Config.UI.Menu.Lively
+	local fill = card:FindFirstChild("Fill") :: Frame
+	local band = fill:FindFirstChild("Pattern") :: ImageLabel
+	band.Image = L.HeaderImage
+	band.ImageColor3 = Color3.new(1, 1, 1)
+	band.ImageTransparency = L.HeaderTransparency
+	band.ScaleType = Enum.ScaleType.Stretch
+	band.Size = UDim2.new(1, 0, 0, K.SheetCornerPx)
+	UIAnim.scrollTile(
+		band,
+		L.HeaderPeriod,
+		L.HeaderTilePx,
+		L.HeaderPxPerSecond,
+		Vector2.new(-1, -1),
+		L.HeaderSheetPx
+	)
+	local sheet = fill:FindFirstChild("Sheet") :: Frame
+	local dots = sheet:FindFirstChild("Pattern") :: ImageLabel
+	dots.Image = L.DotsImage
+	dots.ImageColor3 = color(L.DotsColor)
+	dots.ImageTransparency = L.DotsTransparency
+	dots.TileSize = UDim2.fromOffset(L.DotsTilePx, L.DotsTilePx)
+	card:SetAttribute("Lively", true)
+	return band
+end
+
 --- Whether the menu `name` (as Menus.register) outlines its panel and cards in pale blue.
 function HudParts.paleEdged(name: string): boolean
 	return table.find(Config.UI.Menu.PaleEdgeMenus, name) ~= nil
@@ -317,6 +353,11 @@ function HudParts.setSheetTop(card: Frame, topPx: number)
 	local inset = K.SheetInsetPx
 	sheet.Position = UDim2.fromOffset(inset, topPx)
 	sheet.Size = UDim2.new(1, -inset * 2, 1, -topPx - inset)
+	if card:GetAttribute("Lively") then
+		-- The scrolling header only needs to reach under the sheet's round top corners.
+		local band = (fill :: Frame):FindFirstChild("Pattern") :: ImageLabel
+		band.Size = UDim2.new(1, 0, 0, topPx + K.SheetCornerPx)
+	end
 end
 
 --- A small rounded tag (a status, a count, the clock): a flat fill with an ink outline.

@@ -2695,3 +2695,9 @@ timer of a new block stay the designer's call.
   `Config.UI.Motion` and `Config.UI.Shop.Open`). The Grand Opening title pops in as one piece,
   not letter by letter. The Grand Opening card's mini fireworks play at half speed and burst
   half as often (15 fps, every 1.5 s), calm like the gold ribbons.
+- 2026-10-06 (lively Shop, step 7): the new menu frame is a kit switch,
+  `Config.UI.Menu.LivelyMenus` (Shop only for now); other menus keep the pop-in frame. The
+  header's 8-balls use the approved animatic's numbers (a repeat 260 px across, one repeat every
+  16 s up-left, transparency 0.6) on a new picture with a 200 texel period, so one scroll window
+  covers the widest panel. On a phone the 8-ball flair sits on the top edge just right of the
+  title (Roblox's buttons own the top-left corner), kept on screen as it hops.

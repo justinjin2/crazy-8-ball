@@ -157,7 +157,8 @@ confettiDrift, all smooth by the gate 1 techniques), `Stage` (a lively screen's 
 open schedule from Config (`Config.UI.Shop.Open`, tokens in `Config.UI.Motion`) played per
 frame on registered pieces: pop, slam, grow and drop, the panel's unroll, the code fader (no
 CanvasGroup), firework bursts, close, tab replay, Reduce Motion; its maths is the pure shared
-`StageMath`, tested in Lune), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound),
+`StageMath`, tested in Lune; `MenuFrame` plays it for the menus in
+`Config.UI.Menu.LivelyMenus`, with `HudParts.livelyCard`'s scrolling header and dotted sheet), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound),
 `MapAmbience` (the drifting boats), `DayCycle` (runs the day/sunset cycle from the server's
 clock every frame of a fade, no network traffic), `FirePit` (the fire pit's fire, Roblox's
 own, lit at sunset).

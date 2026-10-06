@@ -17,7 +17,9 @@
 -- on a computer it is a capped panel centred under the top bar, its rows and text growing from
 -- their phone sizes to their full sizes with the panel (Config.UI.Menu.Frame).
 --
--- It pops in and out with UIAnim, lives in its own ScreenGui just over the HUD's (like the
+-- It pops in and out with UIAnim (a lively menu, Config.UI.Menu.LivelyMenus: unrolls open and
+-- folds shut, its pieces staggering in on Stage, with a scrolling header, the dotted sheet and
+-- an 8-ball on its top edge; docs/prompts/SHOP_LIVELY_PROMPT.md sections 4 and 5), lives in its own ScreenGui just over the HUD's (like the
 -- roadmap), and routes its red X and dim to Menus (which closes it and puts the gamepad's
 -- selection back). Gamepad: the selection opens on the chosen tab, LB and RB switch tabs, B
 -- closes (Menus); the panel is a selection group that stops at its edges.
@@ -40,7 +42,9 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
 local Menus = require(script.Parent.Menus)
+local Quality = require(script.Parent.Quality)
 local ScreenBlur = require(script.Parent.ScreenBlur)
+local Stage = require(script.Parent.Stage)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -307,6 +311,14 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 		HudParts.paleEdge(card)
 	end
 	self.card = card
+	-- The lively frame: Stage plays the menu's Open schedule (Config.UI.<name>.Open).
+	local menuConfig = (Config.UI :: any)[opts.name]
+	self.idles = {} :: { UIAnim.Handle }
+	self.stage = nil :: Stage.Stage?
+	if HudParts.lively(opts.name) and type(menuConfig) == "table" and menuConfig.Open then
+		self.stage = Stage.new(menuConfig.Open)
+		self.band = HudParts.livelyCard(card)
+	end
 
 	-- The header: icon, title, (money), red X.
 	local header = HudParts.frame(card, "Header")
@@ -373,6 +385,9 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 		self.pages[key] = page
 	end
 	self.selected = self.tabKeys[1]
+	if self.stage then
+		self:stageFrame()
+	end
 
 	local function resized()
 		if self.opened then
@@ -609,6 +624,18 @@ function MenuFrame.layout(self: any): boolean
 	self.title.Size = UDim2.fromOffset(titleW, headerH)
 	x += titleW + gap
 
+	-- The lively frame's 8-ball, on the top edge near the left corner; on a phone Roblox's
+	-- buttons own that corner, so just right of the title. Never off the screen's top, hop
+	-- included.
+	if self.flair then
+		local L = Config.UI.Menu.Lively
+		local half = L.FlairPx / 2
+		local fx = if short then pad + x + half else L.FlairFromLeftPx
+		local fy = math.max(L.FlairDownPx, half + L.FlairHopPx - top)
+		self.flairRest = UDim2.fromOffset(fx, fy)
+		self.flair.Position = self.flairRest
+	end
+
 	-- The tabs: beside the title on a phone when they fit there, else a row under it.
 	local sheetTop = pad + headerH + round(gap / 2)
 	local tabRow: Frame = self.tabRow
@@ -774,8 +801,15 @@ function MenuFrame.open(self: any, tab: string?)
 	)
 	self.dimTween:Play()
 	ScreenBlur.set(self, true)
-	UIAnim.popIn(self.panel)
-	UIAnim.glowBurst(self.panel, nil, 0.15) -- a bigger open (UI_STYLE 13)
+	if self.stage then
+		self:stopIdles()
+		self.panel.Visible = true
+		self.content.Visible = false -- until the panel has unrolled
+		self.stage:play()
+	else
+		UIAnim.popIn(self.panel)
+		UIAnim.glowBurst(self.panel, nil, 0.15) -- a bigger open (UI_STYLE 13)
+	end
 	self:listen()
 	if gamepadInUse() then
 		self:focus()
@@ -812,14 +846,128 @@ function MenuFrame.close(self: any)
 		TweenService:Create(self.dim, TweenInfo.new(DIM.DimSeconds), { BackgroundTransparency = 1 })
 	self.dimTween:Play()
 	ScreenBlur.set(self, false)
-	UIAnim.popOut(self.panel, function()
+	local function hidden()
 		if not self.opened and self.alive then
 			self.gui.Enabled = false
 		end
-	end)
+	end
+	if self.stage then
+		self:stopIdles()
+		self.stage:close(hidden)
+	else
+		UIAnim.popOut(self.panel, hidden)
+	end
 	if self.onClose then
 		self.onClose()
 	end
+end
+
+--------------------------------------------------------------------------------------------
+-- The lively frame
+--------------------------------------------------------------------------------------------
+
+-- A sparkle over `object` (the flair's hop): one pass of the effects library's sparkle.
+local function sparkle(object: GuiObject, px: number)
+	if Quality.isLow() or UIAnim.reduced() then
+		return
+	end
+	local label = Instance.new("ImageLabel")
+	label.Name = "Sparkle"
+	label.BackgroundTransparency = 1
+	label.AnchorPoint = Vector2.new(0.5, 0.5)
+	label.Position = object.Position
+	label.Size = UDim2.fromOffset(px, px)
+	label.ZIndex = object.ZIndex + 1
+	label.Parent = object.Parent
+	UIAnim.flipbook(label, Config.UI.Effects.Sparkle, {
+		done = function()
+			label:Destroy()
+		end,
+	})
+end
+
+-- The flair's idle (Config.UI.Menu.Lively): a little rock, and every so often a hop with a
+-- sparkle (the first as it lands). `restOf()` is where it sits (the layout may move it).
+local function flairIdle(flair: ImageLabel, restOf: () -> UDim2): UIAnim.Handle
+	local L = Config.UI.Menu.Lively
+	local phase = Random.new():NextNumber(0, math.pi * 2)
+	local hops = -1
+	local handle = UIAnim.loop(flair, function(clock)
+		local rest = restOf()
+		if UIAnim.reduced() then
+			flair.Rotation = 0
+			flair.Position = rest
+			return
+		end
+		local swing = math.sin(2 * math.pi * clock / L.FlairRockSeconds + phase)
+		flair.Rotation = L.FlairRockDegrees * swing
+		local into = clock % L.FlairHopEvery
+		local hop = 0
+		if into < L.FlairHopSeconds then
+			hop = L.FlairHopPx * math.sin(math.pi * into / L.FlairHopSeconds)
+			local n = clock // L.FlairHopEvery
+			if n ~= hops then
+				hops = n
+				sparkle(flair, L.FlairSparklePx)
+			end
+		end
+		flair.Position = rest - UDim2.fromOffset(0, math.floor(hop + 0.5))
+	end)
+	return {
+		stop = function()
+			handle.stop()
+			flair.Rotation = 0
+			flair.Position = restOf()
+		end,
+	}
+end
+
+-- Register the frame's pieces with Stage (ids as in Config.UI.<name>.Open) and add the flair.
+-- The page's own pieces are the menu's to add (frame.stage).
+function MenuFrame.stageFrame(self: any)
+	local stage = self.stage
+	local L = Config.UI.Menu.Lively
+	stage:add("Panel", self.card, function()
+		self.content.Visible = true
+	end)
+	stage:add("Header", self.band)
+	stage:add("Basket", self.icon, function()
+		self:idle(UIAnim.turn(self.icon, 0, L.IconRockDegrees, L.RockSeconds))
+	end)
+	stage:add("Title", self.title)
+	if self.moneyPill then
+		stage:add("Money", self.moneyPill)
+	end
+	stage:add("Close", self.closeButton)
+	local flair = Instance.new("ImageLabel")
+	flair.Name = "Flair"
+	flair.BackgroundTransparency = 1
+	flair.Image = L.FlairImage
+	flair.ScaleType = Enum.ScaleType.Fit
+	flair.AnchorPoint = Vector2.new(0.5, 0.5)
+	flair.Size = UDim2.fromOffset(L.FlairPx, L.FlairPx)
+	flair.Position = UDim2.fromOffset(L.FlairFromLeftPx, L.FlairDownPx)
+	flair.ZIndex = 5 -- over the card and the jump rail
+	flair.Parent = self.panel
+	self.flair = flair
+	self.flairRest = flair.Position
+	stage:add("Flair", flair, function()
+		self:idle(flairIdle(flair, function(): UDim2
+			return self.flairRest
+		end))
+	end)
+end
+
+--- Keep an idle loop (a piece's, once it has landed) until the menu closes.
+function MenuFrame.idle(self: any, handle: UIAnim.Handle)
+	table.insert(self.idles, handle)
+end
+
+function MenuFrame.stopIdles(self: any)
+	for _, handle in self.idles do
+		handle.stop()
+	end
+	table.clear(self.idles)
 end
 
 function MenuFrame.isOpen(self: any): boolean
@@ -863,6 +1011,9 @@ function MenuFrame.destroy(self: any)
 	end
 	self:close()
 	self.alive = false
+	if self.stage then
+		self.stage:destroy()
+	end
 	for _, connection in self.connections do
 		connection:Disconnect()
 	end

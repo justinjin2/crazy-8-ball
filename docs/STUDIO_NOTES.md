@@ -286,10 +286,14 @@ rooftop floor uses that (MapBuilder, Config.Map.Floor) instead of a mesh.
   border): 0.03-0.06. A breathe by ImageRectSize: 0.01. Rotation is smooth too.
 - **A rect past the image's edge is clamped**: a window that grows beyond the texture (a
   breathe shrinking, an offset past the end) stops moving. Keep every window inside the image
-  (clear borders, a 2 x 2 tile for scrolls; a window at most one period wide).
+  (clear borders; for scrolls the tile repeated across the picture, the window at most the
+  picture less one period: a 2 x 2 allows one period, the header's 1024 px at a 200 period 824).
 - Two Tile labels a pixel apart crossfaded by the fraction move evenly but look doubled and
   soft on in-between frames; a ViewportFrame Texture scroll is smooth but dips now and then
   and costs a render target. Neither is used.
+- **Only the first UIScale on an object takes effect** (tested 2026-10-06: two at 0.5 gave
+  half size, not a quarter; changing the second did nothing). Animate an object's one UIScale
+  (Stage drives UIAnim's AnimScale); a candy button's press scale sits on its inner Body.
 - **The device emulator needs Play stopped to switch** (designer, 2026-10-06). "Actual
   Resolution" on the Retina Mac still draws 2 screen pixels per GUI pixel (a 340 px band was
   680 px in the recording), so a true 100%-DPI test needs Studio opened in macOS "Low

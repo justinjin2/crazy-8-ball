@@ -42,9 +42,11 @@ Updated 2026-10-06.
 
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
-- **The Shop is empty** after the cases were retired (frame, background, the four section
-  buttons; the server-side shop, receipts and restock still work). `docs/ECONOMY.md` is the
-  spec for its overhaul.
+- **The Shop is being rebuilt lively** on branch `shop-lively`
+  (`docs/prompts/SHOP_LIVELY_PROMPT.md`; its Status and Progress are current). The new frame
+  is in (it unrolls, a scrolling header, the dotted sheet, an 8-ball on the edge; a kit switch
+  in `Config.UI.Menu.LivelyMenus`, Shop only); the Grand Opening card is next. The page is
+  otherwise still empty; the server-side shop, receipts and restock still work.
 - **Decisions still open:** trim Epic ownership (6.7% of active players against a ~5% plan)
   or keep it; whether the VIP cue pays finder's money on the first join; whether the free
   Mystery block keeps its 5-minute timer (`Config.LuckyBlocks.Kinds.Mystery.Timer`).
