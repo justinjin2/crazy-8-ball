@@ -2644,3 +2644,6 @@ timer of a new block stay the designer's call.
   at least 1.5 px (was 6%, at least 2 px; every Free Reward text was at the 2 px floor). It is
   set as a share of the label's height, because a padding's pixels are whole and 1 px would
   have halved it; on a high-DPI screen the half pixel shows.
+- 2026-10-06 (designer: "put the lip everywhere"): the text lip is on every outlined text from
+  20 px up, on every screen (`Config.UI.Kit.HoleFill.Drop.Everywhere`); the Free Reward
+  page's own switch is gone. Smaller text has neither the lip nor the filled holes.

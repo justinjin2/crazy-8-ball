@@ -1008,7 +1008,8 @@ local firePit = FirePit.new() -- the fire pit's fire, lit at sunset
 local tableSign = TableSign.new(player:WaitForChild("PlayerGui"))
 FontTest.watch(player:WaitForChild("PlayerGui")) -- Config.UI.FontTest's fonts, if any
 if Config.UI.Kit.HoleFill.Everywhere then
-	HoleFill.watch(player:WaitForChild("PlayerGui")) -- solid ink in every outlined letter's holes
+	-- Solid ink in every outlined letter's holes, and the thick ink lip under them.
+	HoleFill.watch(player:WaitForChild("PlayerGui"), Config.UI.Kit.HoleFill.Drop.Everywhere)
 end
 -- A table's box stays lit only while it waits for its host.
 local function queueOpen(id: number): boolean

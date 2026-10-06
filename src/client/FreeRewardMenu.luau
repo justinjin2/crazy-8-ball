@@ -22,7 +22,6 @@ local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
-local HoleFill = require(script.Parent.HoleFill)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
@@ -351,9 +350,6 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end,
 		root = frame.root,
 	}
-	if F.TextDrop then
-		HoleFill.watch(frame.root, true)
-	end
 	Menus.register(NAME, handle)
 	return handle
 end

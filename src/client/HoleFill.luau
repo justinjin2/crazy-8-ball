@@ -14,8 +14,8 @@
 -- Copies follow the label's text, font, size, colour, outline, fading and gradients; rich
 -- text colours are inked in the copies. Every outlined text in PlayerGui from MinTextPx up
 -- gets the fill (Main); smaller text keeps its holes, as filling them makes its letters
--- touch (designer, 2026-10-06). The drop is on test on the Free Reward page. Tuning in
--- Config.UI.Kit.HoleFill.
+-- touch (designer, 2026-10-06). The drop goes on the same texts (designer, 2026-10-06,
+-- after its Free Reward test). Tuning in Config.UI.Kit.HoleFill.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")

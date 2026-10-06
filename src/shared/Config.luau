@@ -5841,7 +5841,9 @@ Config.UI = {
 			MinTextPx = 20, -- smaller text keeps its holes (the kit's thin-outline size)
 			HoleRatio = 0.08,
 			MinNudgePx = 1,
-			Drop = { Ratio = 0.045, MinPx = 1.5 }, -- was 0.06 and 2 px: "a tiny bit" less lip
+			-- On every filled text (designer, 2026-10-06, after its Free Reward test). Was 0.06
+			-- and 2 px: "a tiny bit" less lip.
+			Drop = { Everywhere = true, Ratio = 0.045, MinPx = 1.5 },
 		},
 		-- Raised candy buttons: a light top, the colour, then a darker lip along the bottom.
 		Buttons = {
@@ -10265,9 +10267,6 @@ Config.UI.FreeReward = {
 	ButtonPx = { 44, 54 },
 	-- After Roblox's favorite prompt says yes, look again this long for GetFavorite to agree.
 	FavoriteCheckSeconds = 3,
-	-- The thick ink edge under the page's outlined letters (HoleFill's drop), on test here
-	-- first (designer, 2026-10-06); if it stays, it goes on every outlined text. (tune)
-	TextDrop = true,
 }
 
 -- The hub's small corner buttons (HubCorners; GUI lane, C2): the Daily Challenge on the right
