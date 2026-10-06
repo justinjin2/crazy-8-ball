@@ -4688,6 +4688,30 @@ Config.CueSkins = {
 		-- draws 31 at once and a match's ball outlines use up to 15. (tune)
 		MaxShown = 14,
 	},
+	-- The pop pass (designer, 2026-10-05: the cues' textures and auras were lost on the bright
+	-- roof). Additive glow (LightEmission 1) adds light to what is behind it, and on the cream
+	-- floor and pale sky there is nothing left to add, so it vanished. CueSkins.Pop rewrites a
+	-- cue's aura rows before they are built: emitters are deepened and drawn more as paint than
+	-- as light; every aura beam and orbiter ribbon gets a dark, wider twin behind it (the
+	-- backing a glow needs on a bright background); the stick wears a solid ink outline.
+	Pop = {
+		-- On test: only these cues pop. Remove Ids (nil) to pop every cue.
+		Ids = { "FrostbiteCue" },
+		-- Aura emitters: LightEmission times this (1 unchanged, 0 plain paint), and each colour
+		-- deepened: saturation raised by SaturationAdd, brightness times Value. (tune)
+		Emitters = { LightEmissionScale = 0.4, SaturationAdd = 0.25, Value = 0.85 },
+		-- Aura beams and orbiter ribbons: LightEmission times this on the bright layer. (tune)
+		GlowLightEmissionScale = 0.6,
+		-- The twin behind each aura beam and ribbon: drawn as paint (LightEmission 0), its colour
+		-- saturated by SaturationAdd and darkened to Value times its brightness, Width times
+		-- its width, Opacity times the layer's opacity, pushed ZOffset behind it. (tune)
+		Backing = { SaturationAdd = 0.5, Value = 0.4, Width = 2, Opacity = 0.8, ZOffset = -1 },
+		-- The stick's outline: solid, in the UI's ink (UI_STYLE). Color nil keeps the rarity
+		-- colour (Outline.Colors) at this transparency. (tune)
+		Outline = { Color = "#1B2033", Transparency = 0 },
+		-- The surface's glowing parts (its emissive map) times this. (tune)
+		EmissiveScale = 1.6,
+	},
 }
 
 Config.Effects = {

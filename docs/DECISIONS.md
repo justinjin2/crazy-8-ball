@@ -2556,3 +2556,8 @@ timer of a new block stay the designer's call.
   Free Reward) in Montserrat at its heaviest weight instead of Fredoka One, still white with
   the ink outline (`Config.UI.Menu.Column.LabelFont`). Everything else keeps Fredoka One
   (UI_STYLE) until the designer decides.
+- 2026-10-05: **Cue pop test** (designer: cues lost on the bright roof). On test for Frostbite
+  only (`Config.CueSkins.Pop.Ids`): a solid ink outline replaces the faint rarity-colour line
+  of 2026-10-01, auras drawn less additively with a dark backing behind beams and ribbons, the
+  emissive 1.6x. Code only; no reimport and no lighting change. Rolled out or dropped after
+  the designer looks.

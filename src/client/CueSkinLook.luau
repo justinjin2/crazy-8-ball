@@ -14,6 +14,8 @@
 --   * a cue with an aura wears a faint outline of its colour (Config.CueSkins.Outline) and a
 --     skin's Aura.Highlight softly outlines its piece (the dragon, the fox), on the cues
 --     nearest the camera;
+--   * a cue that pops (Config.CueSkins.Pop) is built from its row rewritten by CueSkins.Pop
+--     to read on the bright roof, and its outline is solid ink;
 --   * the aura stays on the cue as it moves: emitters are LockedToPart but for tiny specks,
 --     and an orbiter's ribbon shortens while the stick moves (Config.CueSkins.Drift);
 --   * the stick's AuraOff attribute turns the whole aura off at once (the raised hand cue,
@@ -39,6 +41,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local CueShape = require(Shared:WaitForChild("CueShape"))
 local CueSkins = require(Shared:WaitForChild("CueSkins"))
 local Motion = require(Shared:WaitForChild("CueSkins"):WaitForChild("Motion"))
+local Pop = require(Shared:WaitForChild("CueSkins"):WaitForChild("Pop"))
 local Textures = require(Shared:WaitForChild("CueSkins"):WaitForChild("Textures"))
 local CuePiece = require(script.Parent.CuePiece)
 local CueVfx = require(script.Parent.CueVfx)
@@ -121,6 +124,8 @@ export type Look = typeof(setmetatable(
 ))
 
 local live: { [Look]: boolean } = {}
+-- Popped skin rows (CueSkins.Pop), made once per cue.
+local poppedRows: { [string]: any } = {}
 
 local function texture(id: any, role: string): string
 	return if type(id) == "string" and id ~= "" then id else (Textures :: any)[role] or ""
@@ -313,6 +318,11 @@ function CueSkinLook.refresh(self: Look)
 	self:clear()
 	self.cueId = key
 	local row = if key then CueSkins.get(key) else nil
+	local popped = row ~= nil and Pop.applies(row.CatalogId, C.Pop)
+	if popped then
+		poppedRows[key :: string] = poppedRows[key :: string] or Pop.pop(row, C.Pop)
+		row = poppedRows[key :: string]
+	end
 	local mesh = self.stick:FindFirstChild("Mesh")
 	if row == nil or mesh == nil or not mesh:IsA("MeshPart") then
 		return
@@ -325,7 +335,7 @@ function CueSkinLook.refresh(self: Look)
 	folder.Parent = self.stick.Parent
 	self.folder = folder
 	self.t0 = os.clock()
-	self:buildSurface(row)
+	self:buildSurface(row, popped)
 	if row.Piece then
 		self.piece = CuePiece.new(row.Piece, mesh, folder)
 	end
@@ -368,15 +378,21 @@ function CueSkinLook.refresh(self: Look)
 		if aura.Sound then
 			self:buildSound(aura.Sound)
 		end
-		-- The stick's outline in its colour, and the piece's own (Aura.Highlight).
+		-- The stick's outline in its colour (solid ink when it pops), and the piece's own
+		-- (Aura.Highlight).
 		local O = C.Outline
 		local color = aura.Outline or O.Colors[row.Tier]
+		if popped then
+			color = C.Pop.Outline.Color or color
+		end
 		if color then
 			self:addHighlight("CueOutline", self.stick, {
 				FillColor = color,
 				FillTransparency = O.FillTransparency,
 				OutlineColor = color,
-				OutlineTransparency = O.OutlineTransparency,
+				OutlineTransparency = if popped
+					then C.Pop.Outline.Transparency
+					else O.OutlineTransparency,
 			})
 		end
 		if aura.Highlight and self.piece then
@@ -419,8 +435,8 @@ function CueSkinLook.addHighlight(self: Look, name: string, adornee: Instance, h
 end
 
 -- The surface: the frames a Legendary swaps through (clones of its template's extra
--- SurfaceAppearances), and its colour.
-function CueSkinLook.buildSurface(self: Look, row: any)
+-- SurfaceAppearances), and its colour; a popped row's raised emissive (CueSkins.Pop).
+function CueSkinLook.buildSurface(self: Look, row: any, popped: boolean)
 	local mesh = self.mesh :: MeshPart
 	local base = mesh:FindFirstChildOfClass("SurfaceAppearance")
 	if base == nil then
@@ -429,6 +445,9 @@ function CueSkinLook.buildSurface(self: Look, row: any)
 	local surface = row.Surface or {}
 	if surface.Color then
 		base.Color = CueVfx.color(surface.Color)
+	end
+	if popped and surface.EmissiveStrength then
+		base.EmissiveStrength = surface.EmissiveStrength
 	end
 	self.frames = { base }
 	if row.Frames then

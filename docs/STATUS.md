@@ -1,5 +1,17 @@
 # Status
 
+**2026-10-05 (latest): a "pop" test on one cue (Frostbite) so cues read on the bright roof.**
+- `Config.CueSkins.Pop` + `CueSkins/Pop.luau` (pure, Lune-tested): for the cues in `Pop.Ids`
+  (only `FrostbiteCue` now) the stick wears a solid ink outline (`#1B2033`, the UI's ink), the
+  aura's emitters are deepened and drawn less additively, each aura beam and orbiter ribbon
+  gets a dark, wider twin behind it, and the surface's emissive is 1.6x. Code only: no
+  reimport, no lighting change. Removing `Ids` pops every cue.
+- Why: 416 of the aura layers are additive (`LightEmission` 1), which adds light to what is
+  behind it and vanishes on the cream floor and pale sky.
+- Seen in Studio (before/after on the back, same pose): the outline is a clear win; the
+  backing helps the ribbons only a little (Frostbite's aura is light by design). Console
+  clean, lint clean, 986 tests pass. Waiting on the designer's call: keep, tune, roll out.
+
 **2026-10-05 (latest): no night after all; no sun disc; a 10 second, every-frame fade.**
 - Night was tried (a dark, then a purple night with a lit skyline) and dropped by the
   designer. The cycle is Day 10 min and Sunset 5 min again, now with a 10 second fade each
