@@ -5438,9 +5438,12 @@ Config.UI = {
 			BarBottomPx = 6, -- from the track's bottom to the pill's (the pill's outline takes 3)
 			BarStrokePx = 2, -- the track's ink outline
 			NumbersTextPx = 14, -- "520 / 1,000 XP", on the bar
-			-- A computer or tablet (screen at least Style.ShortHeight tall). 1: the HUD sits in
-			-- line with Roblox's buttons on every screen (designer 2026-10-07; was 1.5).
-			ComputerScale = 1,
+			-- A computer or tablet (screen at least Style.ShortHeight tall): the whole HUD this
+			-- much bigger and the badge alone BadgeScale more, about its centre (designer
+			-- 2026-10-07: a phone's HUD sits in line with Roblox's buttons, a bigger screen's is
+			-- bigger, the badge most of all).
+			ComputerScale = 1.3,
+			ComputerBadgeScale = 1.35,
 			RowButtonTopPx = 12, -- Roblox's top-bar buttons (44 px) start this far down the row
 			-- Never closer than this to the top of the screen. The HUD is lowered further when
 			-- needed so the "!" dot stays on screen at its biggest (hover, press bounce, breath).
@@ -10906,8 +10909,11 @@ Config.Settings = {
 		Sfx = true, -- sound effects on
 		LowFx = false, -- Lower effects (Quality: fewer particles, calmer UI loops)
 		ShowFlag = false, -- show my country flag in the player list (off until turned on)
+		ListOpen = false, -- the player list left open (designer 2026-10-07: folded until opened)
 	} :: { [string]: boolean },
 	Order = { "Sfx", "LowFx", "ShowFlag" }, -- the rows, top to bottom (the music is gone, 2026-10-03)
+	-- Saved switches with no row on the Settings screen (the HUD remembers them).
+	Hidden = { "ListOpen" },
 	-- The kinds Seen may mark (anything else is refused).
 	SeenKinds = { "Rare", "Epic", "Legendary", "Mythic", "Secret", "Result" },
 	RequestBurst = 6, -- SettingsRequest: a burst, then this many a second (not design numbers)

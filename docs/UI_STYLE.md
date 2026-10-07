@@ -694,13 +694,13 @@ header opens or folds it (0.15 s). One list, no tabs: a small "Wins" and "Money"
 then the rank badge and username with its flag just after it (the flag is never cut; a long
 name ends in "..."), your row pale blue and your name blue, wins and money right-aligned
 (money from $100,000 up as "$123K", only here); each person in their own white box with a
-thin pale blue edge and a small gap; 360 px wide on a tablet or computer. Folded at first on any touch screen. Not shown on a phone for now (designer, 2026-10-07: too
+thin pale blue edge and a small gap; 360 px wide on a tablet or computer. Folded at first on every screen; left open, it opens again on the next join. Not shown on a phone for now (designer, 2026-10-07: too
 much of the screen); its phone sizes (3.3 rows) stay in Config for when it comes back. It narrows (down to 176 px) before it would touch the
 Settings gear. Pressing a real player opens the Trade / Add friend / View profile card beside
 it.
 
-The rank HUD and the Settings gear sit in line with Roblox's own top-bar buttons on every screen
+On a phone the rank HUD and the Settings gear sit in line with Roblox's own top-bar buttons
 (designer, 2026-10-07): the pill and the gear 44 px tall from 12 px down the row, the badge's box
-58 px (its art shows 44).
+58 px (its art shows 44). On a computer or tablet the HUD is 1.3x and its badge 1.35x more.
 The player list's header lines up with them: "Players (n)" in the rank name's size, the band
 tight round it (30 px) and centred on the same line.

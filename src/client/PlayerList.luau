@@ -5,7 +5,7 @@
 --
 -- The Shop's lively card: the pale blue header band with its 8-balls scrolling ("Players (12)"
 -- and a chevron; pressing it opens and folds the list) over the white sheet with the still
--- dots. It starts open on a computer and folded on any touch screen (phones and tablets). One
+-- dots. It starts folded, and opens again on a join if the player left it open. One
 -- list, no tabs (the global boards are the lobby signs): a "Wins" and "Money" titles row, then
 -- everyone here, you first, then by rank: the rank badge, the username (never translated) with
 -- their country flag if they turned it on (the CountryFlag attribute, Settings), wins vs
@@ -36,6 +36,7 @@ local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local People = require(script.Parent.People)
 local RankBadge = require(script.Parent.RankBadge)
+local SettingsState = require(script.Parent.SettingsState)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -82,8 +83,24 @@ function PlayerList.new(screen: ScreenGui, opts: Options?): any
 	pcall(function()
 		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
 	end)
-	-- Folded at first on any touch screen (phones and tablets), open on a computer.
-	self.open = not UserInputService.TouchEnabled
+	-- Folded at first on every screen (designer 2026-10-07: less on screen); left open, it
+	-- opens again on the next join (the hidden ListOpen setting).
+	self.open = false
+	self.touched = false -- the player opened or folded it this session
+	local function fromSave()
+		if self.touched or not SettingsState.loaded() then
+			return
+		end
+		local saved = SettingsState.get("ListOpen")
+		if saved ~= self.open then
+			self.open = saved
+			self:refresh()
+			self:layout()
+		end
+		self.touched = true -- the save is read once; from now on the player's presses rule
+	end
+	SettingsState.Changed:Connect(fromSave)
+	task.defer(fromSave)
 
 	-- The free part of Roblox's top bar row: the list's header sits in it, at its right end.
 	local gui = Instance.new("ScreenGui")
@@ -128,6 +145,8 @@ function PlayerList.new(screen: ScreenGui, opts: Options?): any
 	header.Activated:Connect(function()
 		UISound.play("Click")
 		self.open = not self.open
+		self.touched = true
+		SettingsState.set("ListOpen", self.open)
 		if not self.open then
 			self.popout.Visible = false
 		end
@@ -668,6 +687,8 @@ function PlayerList.focus(self: any): boolean
 	end
 	if not self.open then
 		self.open = true
+		self.touched = true
+		SettingsState.set("ListOpen", true)
 		self:refresh()
 		self:layout(true)
 	end

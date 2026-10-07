@@ -54,9 +54,11 @@ function Settings.of(player: Player): ({ [string]: boolean }?, { [string]: boole
 		return nil, nil
 	end
 	local out: { [string]: boolean } = {}
-	for _, key in C.Order do
-		local saved = data.Settings[key]
-		out[key] = if type(saved) == "boolean" then saved else C.Defaults[key]
+	for _, keys in { C.Order, C.Hidden } do
+		for _, key in keys do
+			local saved = data.Settings[key]
+			out[key] = if type(saved) == "boolean" then saved else C.Defaults[key]
+		end
 	end
 	local seen: { [string]: boolean } = {}
 	for _, kind in C.SeenKinds do

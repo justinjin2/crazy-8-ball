@@ -48,9 +48,10 @@ Updated 2026-10-07.
   cue (chosen or lifted over a rail) has every effect off; 1v1 tables are blue cloth
   (`BlueWood`, lives in the place: save and publish); no money "+" during a game.
 - **The player list like Roblox's** (2026-10-07): top-right corner in the top bar row, the
-  Shop's lively header, badge + name, Wins, Money, no tabs; folded at first on tablets, open on
-  a computer, **not shown on a phone for now**. The rank HUD and the Settings gear sit in line
-  with Roblox's buttons (44 px from 12 px down) on every screen; the red "!" stays on screen.
+  Shop's lively header, badge + name, Wins, Money, no tabs, each person in a box; folded at
+  first (remembers being left open), **not shown on a phone for now**. On a phone the rank HUD
+  and the gear sit in line with Roblox's buttons; on a computer or tablet the HUD is bigger and
+  its badge bigger still. The red "!" stays on screen.
   A phone's lucky block hotbar shows only slots 1-3 (the rest in the bag). Seen in the Studio
   phone and iPad emulators; a PC size not yet looked at.
 - **Lighting.** Day 10 min, sunset 5 min, a 10 s fade; no night and no sun disc. The sunset

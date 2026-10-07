@@ -20,6 +20,7 @@ local SettingsState = {}
 local current: { [string]: boolean } = table.clone(C.Defaults)
 local seen: { [string]: boolean } = {}
 local started = false
+local loaded = false -- the server's state has arrived at least once
 local changed = Instance.new("BindableEvent")
 
 --- Fires after any switch changes (from the server or a press).
@@ -28,6 +29,11 @@ SettingsState.Changed = changed.Event
 local function apply()
 	SoundGroups.setOn("Sfx", current.Sfx ~= false)
 	Quality.set(current.LowFx == true)
+end
+
+--- Whether the saved switches have arrived (until then `get` answers the defaults).
+function SettingsState.loaded(): boolean
+	return loaded
 end
 
 function SettingsState.get(key: string): boolean
@@ -80,6 +86,7 @@ function SettingsState.start()
 			return
 		end
 		if type(payload.settings) == "table" then
+			loaded = true
 			for key in C.Defaults do
 				local value = payload.settings[key]
 				if type(value) == "boolean" then

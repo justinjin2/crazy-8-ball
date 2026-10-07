@@ -404,10 +404,11 @@ end
 -- just below the screen's top when bigger than the row.
 -- How far the red "!" dot can reach above the HUD's box at its biggest (natural pixels): the
 -- whole HUD grows about the badge's centre on hover and press, and the dot breathes.
-local function dotOverhang(): number
+-- `boost` is the badge's own extra size (ComputerBadgeScale on a bigger screen).
+local function dotOverhang(boost: number): number
 	local B = H.BadgePx
 	local grow = H.HoverScale * math.max(table.unpack(Config.UI.Ranks.PressScales))
-	local reach = (0.5 - H.PendingDotAt[2]) * B + H.PendingDotPx / 2 * K.Motion.PulseScale
+	local reach = (0.5 - H.PendingDotAt[2]) * B * boost + H.PendingDotPx / 2 * K.Motion.PulseScale
 	return math.max(0, reach * grow - B / 2)
 end
 
@@ -419,9 +420,21 @@ function RankHud.layout(self: any)
 	local screenHeight = self.screen.AbsoluteSize.Y
 	local short = screenHeight > 0 and screenHeight < S.ShortHeight
 	local scale = if short then 1 else H.ComputerScale
+	-- The badge alone grows about its centre on a bigger screen; the "!" dot rides its corner,
+	-- and the HUD moves right by what the badge reaches past its left edge.
+	local boost = if short then 1 else H.ComputerBadgeScale
+	local B0 = H.BadgePx
+	local badgePx = B0 * boost
+	local spill = (badgePx - B0) / 2
+	self.badge.root.Size = UDim2.fromOffset(badgePx, badgePx)
+	self.badge.root.Position = UDim2.fromOffset(-spill, -spill)
+	self.pending.Position = UDim2.fromOffset(
+		B0 / 2 + (H.PendingDotAt[1] - 0.5) * badgePx,
+		B0 / 2 + (H.PendingDotAt[2] - 0.5) * badgePx
+	)
 	local room = area.X - S.HeaderGap * 2
 	if room > 0 then
-		scale = math.min(scale, room / self.naturalWidth)
+		scale = math.min(scale, room / (self.naturalWidth + spill))
 	end
 	-- "ONE MORE WIN!": under the pill, or in its name row on a phone.
 	local B, PW, PH = H.BadgePx, H.PillWidthPx, H.PillHeightPx
@@ -441,10 +454,10 @@ function RankHud.layout(self: any)
 	end
 	self.fit.Scale = scale
 	self.holder.Position = UDim2.fromOffset(
-		S.HeaderGap,
+		S.HeaderGap + spill * scale,
 		-- The pill's top in line with Roblox's buttons' tops (the badge's box is taller).
 		math.max(
-			H.TopMinPx + dotOverhang() * scale,
+			H.TopMinPx + dotOverhang(boost) * scale,
 			H.RowButtonTopPx - (self.naturalHeight - H.PillHeightPx) / 2 * scale
 		)
 	)

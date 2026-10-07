@@ -2846,3 +2846,7 @@ timer of a new block stay the designer's call.
 - 2026-10-07 (designer): **Every person in the player list has their own box**: a white
   rounded card with a thin pale blue edge and a 4 px gap (yours pale blue). With money shortened
   the Money column went 82 to 66 px, so a typical 20-letter name fits whole with its flag.
+- 2026-10-07 (designer): **The rank HUD is bigger on a computer or tablet again** (1.3x, and the
+  badge alone 1.35x more, about its centre); a phone's stays small, in line with Roblox's
+  buttons. **The player list starts folded on every screen**; left open, it opens again on the
+  next join (a saved switch with no Settings row, `Config.Settings.Hidden` "ListOpen").
