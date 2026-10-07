@@ -17,6 +17,9 @@ local UNITS = {
 	{ from = 1e6, size = 1e6, suffix = "M" },
 }
 
+-- Thousands are shortened ("$123K") only by moneyShort, from here up.
+local SHORT_K_FROM = 100000
+
 local Format = {}
 
 -- A whole number, cut toward zero; 0 for NaN and the infinities.
@@ -59,6 +62,19 @@ function Format.money(n: number): string
 		end
 	end
 	return MONEY:format(Format.commas(value))
+end
+
+--- Money in a tight column (the player list): as `money`, but from $100,000 up to the millions
+--- in whole thousands, cut: $123,456 -> "$123K", $999,999 -> "$999K"; then "$1.03M" as usual.
+function Format.moneyShort(n: number): string
+	local value = whole(n)
+	if value < 0 then
+		return MINUS .. Format.moneyShort(-value)
+	end
+	if value >= SHORT_K_FROM and value < 1e6 then
+		return MONEY:format(tostring(value // 1000) .. "K")
+	end
+	return Format.money(value)
 end
 
 --- A change in money for the chips: "+$10", "-$150" ("+$0" for nothing).

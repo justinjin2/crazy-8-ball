@@ -11,6 +11,19 @@ local function check(f: (number) -> string, cases: { { any } }, name: string)
 end
 
 return {
+	["moneyShort"] = function()
+		local Format = H.require("Progression.Format")
+		check(Format.moneyShort, {
+			{ 0, "$0" },
+			{ 99999, "$99,999" },
+			{ 100000, "$100K" },
+			{ 123456, "$123K" },
+			{ 999999, "$999K" },
+			{ 1000000, "$1M" },
+			{ 1034567, "$1.03M" },
+			{ -250000, "-$250K" },
+		}, "moneyShort")
+	end,
 	["commas"] = function()
 		local Format = H.require("Progression.Format")
 		check(Format.commas, {

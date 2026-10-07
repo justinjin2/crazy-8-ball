@@ -10965,14 +10965,17 @@ Config.Leaderboards = {
 -- username, then Wins and Money columns. A computer's sizes, then a phone's (Short*: the HUD
 -- screen under Multiplayer.Style.ShortHeight). Pixels.
 Config.UI.PlayerList = {
-	WidthPx = 300, -- a computer
+	WidthPx = 360, -- a computer or tablet (designer 2026-10-07: long names need the room)
 	ShortWidthPx = 230, -- a phone
 	MinWidthPx = 176, -- squeezed this narrow at most to stay clear of the Settings gear
 	AvoidGapPx = 8, -- kept between the gear (and its word) and the list's left edge
 	RightPx = 8, -- in from the top bar row's right end (inside the safe area)
-	HeaderPx = 44, -- the header band: as tall as Roblox's own top-bar buttons
+	-- The header band, tight round "Players (3)" (in the rank name's size) and centred on the
+	-- same line as the rank HUD and Roblox's own top-bar buttons (designer 2026-10-07: the
+	-- pill's 44 left too much space round the words). A phone's (not shown for now) is apart.
+	HeaderPx = 30,
+	TitleLeftPx = 10, -- "Players (3)" in from the header's left end
 	ShortHeaderPx = 38,
-	TitlePx = 20, -- "Players (3)" in the header
 	ShortTitlePx = 17,
 	ChevronPx = 22,
 	ShortChevronPx = 18,
@@ -10986,7 +10989,7 @@ Config.UI.PlayerList = {
 	ShortBadgePx = 24,
 	TextPx = 16,
 	ShortTextPx = 14,
-	WinsColumnPx = 52, -- the Wins column's width (numbers right-aligned)
+	WinsColumnPx = 42, -- the Wins column's width (numbers right-aligned, "1,234" fits)
 	ShortWinsColumnPx = 40,
 	MoneyColumnPx = 82, -- the Money column's width
 	ShortMoneyColumnPx = 64,

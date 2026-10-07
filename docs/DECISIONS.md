@@ -2833,3 +2833,13 @@ timer of a new block stay the designer's call.
 - 2026-10-07 (designer): **A phone's lucky block hotbar shows only slots 1-3** (9 was too
   crowded; `Config.LuckyBlocks.UI.PhoneHotbarSlots`); the rest wait in the bag ("+n"). It also
   uncovers the money HUD's "+" and Invite. Tablets and computers keep 9.
+- 2026-10-07 (designer): **The player list's header matches the rank HUD** on tablets and
+  computers: "Players (n)" in the rank name's size (18), the band tight round it (30 px; the
+  pill's 44 left too much space) and centred on the same line as the pill and Roblox's buttons.
+- 2026-10-07 (designer, after a long-names test): **The player list is 360 px wide** on tablets
+  and computers (was 300; the Wins column 52 to 42) and the **country flag has its own place
+  after the name**, never cut: a long name ends in "..." instead (a typical 20-letter name
+  shows 17).
+- 2026-10-07 (designer): **The player list shortens money from $100,000 up** to whole
+  thousands ("$123K", cut, never rounded up; `Format.moneyShort`), then "$1.03M" as before.
+  Only the list: the money HUD and every other screen keep the full number.

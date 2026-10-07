@@ -22,6 +22,7 @@ local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
+local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -39,6 +40,7 @@ local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local P = Config.UI.PlayerList
+local R = Config.UI.Progress.RankHud -- the header matches the rank HUD's pill
 local K = Config.UI.Kit
 local S = Config.Multiplayer.Style
 local W = Strings.PlayerList
@@ -50,6 +52,7 @@ type RowView = {
 	button: TextButton,
 	badge: ImageLabel,
 	name: TextLabel,
+	flag: TextLabel,
 	wins: TextLabel,
 	money: TextLabel,
 }
@@ -112,7 +115,7 @@ function PlayerList.new(screen: ScreenGui, opts: Options?): any
 	header.ZIndex = 4
 	header.Parent = panel
 	self.header = header
-	local headerText = HudParts.text(header, "Words", P.TitlePx, "")
+	local headerText = HudParts.text(header, "Words", R.NameTextPx, "")
 	headerText.AutoLocalize = false
 	headerText.TextWrapped = false
 	headerText.TextXAlignment = Enum.TextXAlignment.Left
@@ -316,6 +319,15 @@ local function rowView(self: any, index: number): RowView
 	name.TextTruncate = Enum.TextTruncate.AtEnd
 	name.TextWrapped = false
 	name.ZIndex = 4
+	-- The flag right after the name, never cut: a long name is shortened ("...") instead.
+	local flag = Instance.new("TextLabel")
+	flag.Name = "Flag"
+	flag.BackgroundTransparency = 1
+	flag.AutoLocalize = false
+	flag.Font = name.Font
+	flag.TextXAlignment = Enum.TextXAlignment.Left
+	flag.ZIndex = 4
+	flag.Parent = button
 	local wins = HudParts.note(button, "Wins", P.TextPx, "")
 	wins.AutoLocalize = false
 	wins.TextXAlignment = Enum.TextXAlignment.Right
@@ -327,7 +339,7 @@ local function rowView(self: any, index: number): RowView
 	money.TextWrapped = false
 	money.ZIndex = 4
 	local made: RowView =
-		{ button = button, badge = badge, name = name, wins = wins, money = money }
+		{ button = button, badge = badge, name = name, flag = flag, wins = wins, money = money }
 	self.rows[index] = made
 	button.MouseEnter:Connect(function()
 		self:shadeRow(index, true)
@@ -359,20 +371,48 @@ function PlayerList.shadeRow(self: any, index: number, hovered: boolean)
 	end
 end
 
+-- Put a row's name and flag: the name as wide as its words (shortened when the room runs
+-- out), the flag just after it.
+function PlayerList.placeName(self: any, v: RowView)
+	local geo = self.nameGeo
+	if not geo then
+		return
+	end
+	local px = geo.textPx
+	local flagW = if v.flag.Text ~= ""
+		then TextService:GetTextSize(v.flag.Text, px, v.flag.Font, Vector2.new(200, 100)).X + 4
+		else 0
+	local wide = TextService:GetTextSize(v.name.Text, px, v.name.Font, Vector2.new(1000, 100)).X
+	local nameW = math.max(0, math.min(math.ceil(wide) + 2, geo.room - flagW))
+	-- A fixed size (not scaled down to fit), so a long name ends in "..." at the row's size.
+	v.name.TextScaled = false
+	v.name.TextSize = px
+	v.name.Position = UDim2.fromOffset(geo.x, 0)
+	v.name.Size = UDim2.new(0, nameW, 1, 0)
+	v.flag.TextSize = px
+	v.flag.Position = UDim2.fromOffset(geo.x + nameW + 4, 0)
+	v.flag.Size = UDim2.new(0, flagW, 1, 0)
+end
+
 --- Read the list again and redraw the rows.
 function PlayerList.refresh(self: any)
 	local people = everyone()
 	for index = 1, self.fake or 0 do
 		table.insert(people, {
 			id = -index,
-			name = "Player" .. string.rep("x", index % 9) .. index,
+			-- Every other one as long as a username gets (20), in the widest letters or a
+			-- typical mix, flagged.
+			name = if index % 4 == 1
+				then string.sub(string.rep("W", 18) .. index, 1, 20)
+				elseif index % 4 == 3 then "TheRealPoolMaster209"
+				else "Player" .. index,
 			rankIndex = index,
 			wins = index * 37,
 			bot = true,
 			tier = "Gold",
 			division = 1 + index % 3,
 			money = index * 123456,
-			flag = "",
+			flag = if index % 2 == 1 then View.flag("US") else "",
 		})
 	end
 	self.headerText.Text = W.Header:format(#people)
@@ -383,11 +423,12 @@ function PlayerList.refresh(self: any)
 		v.badge.Image = if row.rankIndex > 0
 			then RankBadge.image(row.tier, row.division)
 			else RankBadge.image("Unranked", 0)
-		local flag = if row.flag ~= "" then " " .. row.flag else ""
-		v.name.Text = row.name .. flag
+		v.name.Text = row.name
+		v.flag.Text = row.flag
+		self:placeName(v)
 		v.name.TextColor3 = if row.you then HudParts.tone("Blue") else HudParts.tone("Ink")
 		v.wins.Text = Format.commas(row.wins)
-		v.money.Text = Format.money(row.money)
+		v.money.Text = Format.moneyShort(row.money)
 		self:shadeRow(index, false)
 	end
 	for index = #people + 1, #self.rows do
@@ -433,11 +474,13 @@ function PlayerList.layout(self: any, animate: boolean?)
 	local moneyW = pick(P.MoneyColumnPx, P.ShortMoneyColumnPx)
 	local inset = K.SheetInsetPx
 
-	-- The header in the top row, centred on it like Roblox's buttons, at its right end.
+	-- The header in the top row, centred on Roblox's buttons and the rank HUD, at its right end.
 	local origin = self.gui.AbsolutePosition
 	local right = origin.X + area.X - P.RightPx
 	local width = self:fitWidth(pick(P.WidthPx, P.ShortWidthPx), right)
-	local top = math.max(0, round((area.Y - headerH) / 2))
+	local top = if short
+		then math.max(0, round((area.Y - headerH) / 2))
+		else R.RowButtonTopPx + round((R.PillHeightPx - headerH) / 2)
 	self.panel.Position = UDim2.new(1, -P.RightPx, 0, top)
 
 	self.header.Size = UDim2.new(1, 0, 0, headerH)
@@ -445,9 +488,9 @@ function PlayerList.layout(self: any, animate: boolean?)
 	self.chevron.Size = UDim2.fromOffset(chevronPx, chevronPx)
 	self.chevron.Position = UDim2.new(1, -10, 0.5, 0)
 	self.chevron.Rotation = if self.open then 180 else 0
-	HudParts.setTextSize(self.headerText, pick(P.TitlePx, P.ShortTitlePx))
-	self.headerText.Position = UDim2.fromOffset(12, 0)
-	self.headerText.Size = UDim2.new(1, -(chevronPx + 24), 1, 0)
+	HudParts.setTextSize(self.headerText, pick(R.NameTextPx, P.ShortTitlePx))
+	self.headerText.Position = UDim2.fromOffset(P.TitleLeftPx, 0)
+	self.headerText.Size = UDim2.new(1, -(chevronPx + P.TitleLeftPx * 2 + 4), 1, 0)
 
 	-- The columns: the badge and name, then Wins and Money, right-aligned.
 	local rowW = width - inset * 2 - 4
@@ -483,16 +526,16 @@ function PlayerList.layout(self: any, animate: boolean?)
 	self.footer.Size = UDim2.fromOffset(rowW - 8, math.max(0, footerH - 4))
 	HudParts.setTextSize(self.footer, P.ShortTextPx)
 
+	local b = math.min(badgePx, rowH - 2)
+	-- The name's room: from after the badge to before the Wins column.
+	self.nameGeo = { x = b + 6, room = winsX - b - 10, textPx = textPx }
 	for index, v in self.rows do
 		v.button.Position = UDim2.fromOffset(0, (index - 1) * rowH)
 		v.button.Size = UDim2.fromOffset(rowW, rowH - 2)
-		local b = math.min(badgePx, rowH - 2)
 		v.badge.Size = UDim2.fromOffset(b, b)
 		v.badge.Position = UDim2.fromOffset(2, round((rowH - 2 - b) / 2))
-		local x = b + 6
 		HudParts.setTextSize(v.name, textPx)
-		v.name.Position = UDim2.fromOffset(x, 0)
-		v.name.Size = UDim2.new(0, math.max(0, winsX - x - 4), 1, 0)
+		self:placeName(v)
 		HudParts.setTextSize(v.wins, textPx)
 		v.wins.Position = UDim2.fromOffset(winsX, 0)
 		v.wins.Size = UDim2.new(0, winsW, 1, 0)
