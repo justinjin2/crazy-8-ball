@@ -1349,6 +1349,7 @@ local function renderFrame(dt: number)
 	end
 	Progression.update({
 		inMatch = inMatch,
+		afterMatch = seated ~= nil and seated.phase == "Result",
 		shooting = controlled,
 		matchUserIds = matchIds,
 	})

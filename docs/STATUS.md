@@ -29,8 +29,13 @@ Updated 2026-10-07.
   (text from 20 px) solid ink holes (`HoleFill`, `Config.UI.Kit.HoleFill`).
 - **Blur instead of dims** (2026-10-06): menus, the roadmap, the lucky block reel, the match
   results and NEW RANK! blur the world (`ScreenBlur`, `Config.UI.Blur`); the reel waits 0.15 s
-  for the blur. NEW RANK! also darkens (it stacks on the results). Seen in Studio on the
-  menus, the reel and NEW RANK! alone; NEW RANK! over a real result not yet.
+  for the blur. NEW RANK! also darkens. Seen in Studio on the menus, the reel and NEW RANK!.
+- **NEW RANK! waits** (2026-10-07): never over the results, in a game, a rematch or an arena;
+  once free in a lobby server, one popup per division from the save's `Flags.RankShown` up to
+  the peak, in order (`Progression.showRankUps`, the `RankSeen` remote). On the result screen
+  the XP bar holds full yellow saying NEW RANK! for 1 s at each rank reached. Checked in Studio
+  (a /bot game, /xp mid-game, Leave, two popups in turn; the bar on /result win). Not yet: a
+  real arena trip back to a lobby, phone and gamepad.
 - **The 1v1 result cutscene** (2026-10-07): letterbox bars slide in with the fade to black,
   it fades back in on the sky and the camera tilts down into the player's own camera (only
   its pitch turns, smootherstep), and the centred result screen opens partway down as the

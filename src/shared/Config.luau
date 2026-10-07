@@ -5661,7 +5661,9 @@ Config.UI = {
 			XpAt = 0.8, -- the XP bar starts
 			XpFillSeconds = 1.1, -- the whole change, shared out over the divisions it crosses
 			XpMinSegmentSeconds = 0.25, -- never quicker than this through one division
-			XpFlashSeconds = 0.35, -- a full bar flashes this long before the next division
+			-- A division reached: the bar holds full, solid yellow, saying NEW RANK! this long before
+			-- the next division (designer, 2026-10-07; was a 0.35 s white flash).
+			XpNewRankSeconds = 1,
 			XpTickEvery = 0.07, -- the rising XP tick
 			MoneyAt = 1.1, -- the money list starts (while the bar fills)
 			LineSeconds = 0.32, -- each line pops and counts up in this

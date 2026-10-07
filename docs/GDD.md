@@ -383,8 +383,11 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - "Nice shot" popup with a dopamine sound, shown on about half of good shots *(tune)*.
 - **One end-of-match screen for both players** (designer, 2026-09-27; replaces the separate
   win and lose cards): both sides with VS, the winner's picture gets a shining crown, then
-  your XP bar animates up, down or holds and the match's money is pocketed into your total. A
-  rank-up brings a big NEW RANK! popup. No finisher effect.
+  your XP bar animates up, down or holds and the match's money is pocketed into your total. At
+  each rank reached the bar holds full and yellow saying NEW RANK! for 1 s, then carries on.
+  The big NEW RANK! popup comes only after the results close, once the player is free in a
+  lobby server (never in an arena, a rematch or over the results): one popup per division
+  gained since the last one seen, in order (designer, 2026-10-07). No finisher effect.
 - Emotes during the opponent's turn for players and spectators.
 
 ## 9. Abilities (ults in code)

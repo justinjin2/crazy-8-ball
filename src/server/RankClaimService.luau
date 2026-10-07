@@ -76,9 +76,26 @@ local function onClaim(player: Player)
 	Funnel.onboarding(player, "ClaimedRank")
 end
 
---- Wires the remote and the attributes. Call after PlayerData.start.
+-- NEW RANK! for division `index` was shown (Progression): RankShown moves up to it, never
+-- past the peak and never down, so a client can only skip popups of its own.
+local function onSeen(player: Player, index: any)
+	if type(index) ~= "number" or index ~= math.floor(index) then
+		return
+	end
+	local data = PlayerData.read(player)
+	local shown = PlayerData.flag(player, "RankShown")
+	if data == nil or type(shown) ~= "number" then
+		return
+	end
+	if index > shown and index <= data.PeakDivision then
+		PlayerData.setFlag(player, "RankShown", index)
+	end
+end
+
+--- Wires the remotes and the attributes. Call after PlayerData.start.
 function RankClaimService.start()
 	Net.get("RankClaim").OnServerEvent:Connect(onClaim)
+	Net.get("RankSeen").OnServerEvent:Connect(onSeen)
 	PlayerData.Loaded:Connect(refresh)
 	PlayerData.Changed:Connect(function(player: Player)
 		refresh(player)

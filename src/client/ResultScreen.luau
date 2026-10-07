@@ -12,8 +12,9 @@
 -- - Your rewards, quickly, beside it (under it on a narrow screen): the XP bar of your division
 --   fills with a rising tick ("+250 XP"; XP is never lost, so a loss shows its small gain or
 --   "+0 XP"), with a chip for each boost that was on under it ("ROOKIE x2", "FIRST WIN x2",
---   "STREAK +25%", "VIP +50%", from xp.breakdown.boosts); crossing a division the bar flashes
---   full, the badge pops into the next and the bar carries on. Then the money counts up line
+--   "STREAK +25%", "VIP +50%", from xp.breakdown.boosts); crossing a division the bar holds
+--   full and solid yellow saying NEW RANK! (XpNewRankSeconds), then the badge pops into the
+--   next and the bar carries on. Then the money counts up line
 --   by line (balls, nice shots, the match bonus, the win streak, a rank reward) to the Total,
 --   whose chip flies into the money HUD. A winner's lucky block (summary.block, ECONOMY 7)
 --   shows as a chip ("+1 Mystery Lucky Block" with its 3D icon; RewardChips) whose block flies
@@ -23,12 +24,12 @@
 --   B, skips to the end; then it stays until Continue (or A or B) is pressed (designer,
 --   2026-10-07: it never closes by itself). A winner's Total pops whole on the first hit of
 --   the win sting (UISound "ResultWin"), and the block chip and Continue on its second.
---   After it closes, NEW RANK! follows when the match took you to a new division, with the
---   rank rewards (xp.rewards: money, lucky blocks, the tier's cue) as its chips.
+--   The NEW RANK! popup is not this screen's (designer, 2026-10-07): it waits until the player
+--   is free in a lobby server, one popup per division gained (Progression).
 -- - After a two-sided game (designer, 2026-09-28) the PostMatch row takes Continue's place,
 --   under both columns: Rematch, and Play another and Lobby in an arena (Leave on a lobby
 --   table), with the series score in place of VS. Then the screen stays until the choice is
---   made (Main calls endChoices); NEW RANK! comes over it as the row appears. When the row's
+--   made (Main calls endChoices). When the row's
 --   time runs out or the table moves on without a rematch, Continue takes its place
 --   (dropChoices) and the screen stays until it is pressed.
 --
@@ -176,7 +177,7 @@ end
 type Segment = { t0: number, t1: number, from: number, to: number, crosses: boolean }
 
 -- The XP gain split at every division it crosses, each part timed by its share of the whole
--- (at least XpMinSegmentSeconds), with a flash pause at each crossing. Returns the parts and
+-- (at least XpMinSegmentSeconds), with a NEW RANK! pause at each crossing. Returns the parts and
 -- when the bar is done. XP is never lost: a summary that went down (it cannot) just holds.
 local function planXp(xp: any): ({ Segment }, number)
 	local segments: { Segment } = {}
@@ -207,7 +208,7 @@ local function planXp(xp: any): ({ Segment }, number)
 		table.insert(segments, { t0 = t, t1 = t + seconds, from = x, to = stop, crosses = crosses })
 		t += seconds
 		if crosses then
-			t += C.XpFlashSeconds
+			t += C.XpNewRankSeconds
 		end
 		x = stop
 	end
@@ -219,8 +220,8 @@ end
 --------------------------------------------------------------------------------------------
 
 --- The result screen, built into `screen` (UI.screen()). Its total chip flies with `flyer`
---- into `money`; `newRank` (optional) shows NEW RANK! after it closes. The win's block needs
---- the economy's shared table (setDeps).
+--- into `money`; `newRank` (optional) is NEW RANK!, which this screen makes way for (covered).
+--- The win's block needs the economy's shared table (setDeps).
 function ResultScreen.new(screen: ScreenGui, flyer: any, money: any, newRank: any?): ResultScreen
 	local self: any = setmetatable({}, ResultScreen)
 	self.alive = true
@@ -1187,7 +1188,7 @@ local function stepXp(view: any, t: number, quiet: boolean)
 	-- Before the bar starts: the rank before; once it is done: the rank after (the server's);
 	-- between: the part of the change running now, or the pause after it.
 	local shown: Shown
-	local moving, flashing = false, false
+	local moving, reached = false, false
 	if t < C.XpAt then
 		shown = fromRank(xp.before)
 	elseif t >= view.xpEnd then
@@ -1204,8 +1205,8 @@ local function stepXp(view: any, t: number, quiet: boolean)
 			local nextStart = if segments[i + 1] then segments[i + 1].t0 else view.xpEnd
 			if t < nextStart then
 				shown = shownAt(s.to, rising, xp)
-				flashing = s.crosses
-				if flashing and not view.flashed[i] then
+				reached = s.crosses
+				if reached and not view.flashed[i] then
 					view.flashed[i] = true
 					if not quiet then
 						UISound.play("XpFull")
@@ -1216,9 +1217,11 @@ local function stepXp(view: any, t: number, quiet: boolean)
 		end
 	end
 	local fill = drawBar(view, shown, true)
-	view.barFill.BackgroundColor3 = if flashing and math.floor(t * 12) % 2 == 0
-		then tone("White")
-		else tone("Gold")
+	-- A division reached: the bar holds full, solid yellow, saying NEW RANK! (designer,
+	-- 2026-10-07), then empties into the next division.
+	if reached then
+		view.barText.Text = P.NewRank
+	end
 	if moving and not quiet and os.clock() - view.lastXpTick >= C.XpTickEvery then
 		view.lastXpTick = os.clock()
 		local pitch = Config.Audio.XpTickPitch
@@ -1329,14 +1332,13 @@ function ResultScreen.step(self: any, quiet: boolean)
 	if t >= view.continueAt and not view.continueShown then
 		view.continueShown = true
 		if view.choices then
-			-- The row stays until a choice is made; a new rank shows over it now, not after.
-			-- A and B are Roblox's own again: A presses the selected choice.
+			-- The row stays until a choice is made. A and B are Roblox's own again: A presses
+			-- the selected choice.
 			ContextActionService:UnbindAction(ACTION)
 			local first = view.choices:first()
 			if isGamepad() and first then
 				GuiService.SelectedObject = first
 			end
-			self:showRank(view)
 		else
 			UIAnim.popIn(view.continue)
 			if isGamepad() then
@@ -1380,8 +1382,7 @@ function ResultScreen.close(self: any)
 	end)
 end
 
--- Take the closed screen down, then NEW RANK! (if the match moved your division), then the
--- caller's onDone, then the next summary waiting.
+-- Take the closed screen down, then the caller's onDone, then the next summary waiting.
 function ResultScreen.finish(self: any, view: any)
 	if view.finished then
 		return
@@ -1409,38 +1410,12 @@ function ResultScreen.finish(self: any, view: any)
 	if not self.alive then
 		return
 	end
-	self:showRank(view)
 	if view.onDone then
 		task.spawn(view.onDone)
 	end
 	local nextOne = table.remove(self.queue, 1)
 	if nextOne then
 		self:open(nextOne.summary, nextOne.onDone)
-	end
-end
-
--- NEW RANK! when the match took the player to a new division, once, with its rewards as chips
--- (the money only shows: it came in with this screen's total chip).
-function ResultScreen.showRank(self: any, view: any)
-	local xp = view.xp
-	if view.rankShown or not self.newRank or not xp then
-		return
-	end
-	if xp.promoted == true then
-		view.rankShown = true
-		self.newRank:show({
-			kind = "Up",
-			before = xp.before,
-			after = xp.after,
-			reward = clean(xp.rewardTotal),
-			newTier = xp.newTier == true,
-			rewards = xp.rewards,
-			rewardBlocks = xp.rewardBlocks,
-			rewardCues = xp.rewardCues,
-			preview = view.summary.preview == true,
-			paid = true, -- its money already came in with this screen's total chip
-			held = xp.held == true, -- claimed in Rank (the tutorial lane)
-		})
 	end
 end
 

@@ -106,6 +106,9 @@ local ATTR = {
 	RankTier = "RankTier", -- "Gold", or "Unranked"
 	RankDivision = "RankDivision", -- 1 = I; 0 for Unranked
 	RankIndex = "RankIndex", -- 0 Unranked, 1 Bronze I ... the top division
+	-- The highest division whose NEW RANK! popup was shown (Flags.RankShown): the client shows
+	-- the rest, up to PeakDivision, once it is free in a lobby server (designer, 2026-10-07).
+	RankShown = "RankShown",
 	WinStreak = "WinStreak", -- wins in a row against people (Stats.WinStreak), over the head
 	-- GUI lane: wins against people ever (Stats.Wins), for the player list and the boards.
 	WinsVsPlayers = "WinsVsPlayers",
@@ -704,6 +707,7 @@ local function replicate(player: Player, data: any)
 	setAttribute(player, ATTR.RankXp, data.RankXp)
 	setAttribute(player, ATTR.RatedMatches, data.RatedMatches)
 	setAttribute(player, ATTR.PeakDivision, data.PeakDivision)
+	setAttribute(player, ATTR.RankShown, data.Flags.RankShown)
 	setAttribute(player, ATTR.RankTier, rank.tier)
 	setAttribute(player, ATTR.RankDivision, rank.division)
 	setAttribute(player, ATTR.RankIndex, rank.index)
@@ -894,6 +898,11 @@ local function prepare(player: Player, profile: Profile): string?
 	-- recorded its claimed division had every reward up to its peak paid at the rank-up.
 	if valid.Flags.RankClaimed == nil then
 		valid.Flags.RankClaimed = valid.PeakDivision
+	end
+	-- NEW RANK! waits for a lobby server since 2026-10-07: a save from before it has seen
+	-- every popup up to its peak (no backlog of old rank-ups).
+	if valid.Flags.RankShown == nil then
+		valid.Flags.RankShown = valid.PeakDivision
 	end
 	profile.Data = valid
 	return nil
@@ -3484,6 +3493,7 @@ function PlayerData.reset(player: Player): boolean
 	end
 	data.Shop.FirstJoin = os.time()
 	data.Flags.RankClaimed = 0 -- a new player's: nothing claimed (as a first load sets it)
+	data.Flags.RankShown = 0 -- and no NEW RANK! seen
 	commit(player, data, op)
 	return true
 end

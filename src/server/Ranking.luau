@@ -645,26 +645,10 @@ function Ranking.check(t: any)
 	end
 end
 
--- A RankEvent for a promotion outside a match (Net's RankEvent comment has the shape).
-local function rankEvent(result: Ranks.MatchResult): any
-	return {
-		kind = "Up",
-		before = result.before,
-		after = result.after,
-		reward = result.rewardTotal,
-		newTier = result.newTier,
-		rewards = rewardRows(result.rewards),
-		rewardBlocks = table.clone(result.rewardBlocks),
-		rewardCues = table.clone(result.rewardCues),
-		rewardSpins = result.rewardSpins,
-		held = true, -- claimed in Rank (RankClaim), as xpPart
-		blocksAtOnce = RankClaim.blocksAtOnce(result.peakBefore, result.peakAfter),
-	}
-end
-
 --- The /xp developer command: `delta` XP (a gain; XP is never lost) through the real rules
---- (peak, rank-up rewards with their money, blocks and cues, the Reyes announcement), with the
---- NEW RANK! popup and its reward chips. Not a match. Returns false when the save is not
+--- (peak, rank-up rewards with their money, blocks and cues, the Reyes announcement). Its NEW
+--- RANK! popups come as any rank-up's do: PeakDivision rises past RankShown (Progression).
+--- Not a match. Returns false when the save is not
 --- loaded (or refused the change).
 function Ranking.addXp(player: Player, delta: number): boolean
 	local data = PlayerData.read(player)
@@ -672,13 +656,7 @@ function Ranking.addXp(player: Player, delta: number): boolean
 		return false
 	end
 	local result = Ranks.applyXp(rankSave(data), delta)
-	if not applyRank(player, result) then
-		return false
-	end
-	if result.promoted then
-		Net.get("RankEvent"):FireClient(player, rankEvent(result))
-	end
-	return true
+	return applyRank(player, result)
 end
 
 return Ranking

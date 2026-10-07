@@ -24,6 +24,7 @@ local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
+local Ranks = require(Shared:WaitForChild("Progression"):WaitForChild("Ranks"))
 local Banner = require(script.Parent.Banner)
 local CashFlyer = require(script.Parent.CashFlyer)
 local ChatTags = require(script.Parent.ChatTags)
@@ -60,6 +61,7 @@ export type Hooks = {
 
 export type State = {
 	inMatch: boolean, -- seated at a table whose game is on (the match bar owns the top)
+	afterMatch: boolean, -- seated at a table showing its result (the rematch row may be up)
 	shooting: boolean, -- your shot is being aimed or is rolling: no popups now
 	matchUserIds: { [number]: boolean }, -- everyone at your table, for the nameplates
 }
@@ -91,9 +93,18 @@ local banner: any = nil
 local corners: any = nil
 local playerList: any = nil
 local started = false
--- RankEvents held while you shoot or a result screen is up, shown in order afterwards.
+-- RankEvents (the /newrank preview) held while you shoot or a result screen is up, shown in
+-- order afterwards.
 local heldRanks: { any } = {}
-local lastState: State = { inMatch = false, shooting = false, matchUserIds = {} }
+-- Real rank-ups (designer, 2026-10-07): NEW RANK! never shows in an arena, in a game, after a
+-- game while its result or rematch row is up, or over the result screen. Once the player is
+-- free in a lobby server, one popup per division from the RankShown attribute (the save's
+-- last one seen) up to PeakDivision plays in turn (Bronze I, then Bronze II, ...), and each
+-- tells the server it was seen as it closes (RankSeen). The highest one queued this session:
+local rankQueuedTo = 0
+local IS_ARENA = workspace:GetAttribute(Config.Arena.ModeAttribute) == "Arena"
+local lastState: State =
+	{ inMatch = false, afterMatch = false, shooting = false, matchUserIds = {} }
 local wasInMatch = false
 local NOBODY: { [number]: boolean } = {}
 -- Every teleport screen in PlayerGui (TeleportScreen's own, and the one a teleport brought:
@@ -152,6 +163,62 @@ end
 local function closeScreens()
 	LuckyClient.close()
 	Menus.close()
+end
+
+-- NEW RANK! for reaching division `index` from the one below (its rewards worked out here, as
+-- the server pays them; they wait to be claimed in Rank, and their money is not owed).
+local function rankUp(index: number): any
+	local tierBefore, divisionBefore = Ranks.at(index - 1)
+	local tier, division = Ranks.at(index)
+	local reward = Ranks.rewardFor(index)
+	return {
+		kind = "Up",
+		before = { tier = tierBefore, division = divisionBefore, index = index - 1 },
+		after = { tier = tier, division = division, index = index },
+		reward = reward.money,
+		newTier = tier ~= tierBefore,
+		rewards = {
+			{
+				index = index,
+				money = reward.money,
+				blocks = table.clone(reward.blocks),
+				cue = reward.cue,
+				spins = reward.spins,
+			},
+		},
+		rewardBlocks = table.clone(reward.blocks),
+		rewardCues = if reward.cue then { reward.cue } else {},
+		rewardSpins = reward.spins,
+		held = true,
+		paid = true,
+	}
+end
+
+-- Queue the NEW RANK! popups not seen yet, when the player is free in a lobby server.
+local function showRankUps(state: State)
+	if IS_ARENA or state.inMatch or state.afterMatch or state.shooting then
+		return
+	end
+	if popupUp() or ResultCutscene.isPlaying() or teleportUp() then
+		return
+	end
+	local player = Players.LocalPlayer
+	local peak, shown = player:GetAttribute("PeakDivision"), player:GetAttribute("RankShown")
+	if type(peak) ~= "number" or type(shown) ~= "number" then
+		return
+	end
+	local from = math.max(shown, rankQueuedTo)
+	if peak <= from then
+		return
+	end
+	rankQueuedTo = peak
+	-- The menus draw over the HUD screen, so they make way for the popup.
+	Menus.close()
+	for index = from + 1, peak do
+		newRank:show(rankUp(index), function()
+			Net.get("RankSeen"):FireServer(index)
+		end)
+	end
 end
 
 --- Build every screen and listen to the server. Main calls this once, with the ScreenGui
@@ -426,6 +493,7 @@ function Progression.update(state: State)
 		Menus.close()
 		newRank:show(table.remove(heldRanks, 1))
 	end
+	showRankUps(state)
 end
 
 return Progression

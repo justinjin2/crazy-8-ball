@@ -2911,3 +2911,10 @@ timer of a new block stay the designer's call.
   why under it ("You pocketed the 8 ball early."; "Your team ..." in a team game), like the
   foul popup. Raised above WINNER's line so it clears your rank badge. `/result lose early`
   (or pocket, foul, off) previews it.
+- 2026-10-07 (designer): NEW RANK! no longer shows over the result screen, in a game, during a
+  rematch or in an arena. It waits until the player is free in a lobby server with the results
+  closed (even still standing on the pad), then plays one popup per division gained since the
+  last one seen, in order (Bronze I, then Bronze II, ...). The save remembers the last one seen
+  (`Flags.RankShown`; existing saves start at their peak, no backlog). On the result screen,
+  each rank reached holds the XP bar full and solid yellow saying NEW RANK! for 1 s (was a
+  0.35 s white flash), then the bar carries on.

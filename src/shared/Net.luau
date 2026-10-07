@@ -76,8 +76,9 @@ local REMOTES: { [string]: string } = {
 	-- block, the first win's Rare one; readyAt in unix seconds, 0 = ready now),
 	-- rematch, arena, series? = {wins = {team 1, team 2}, games}}.
 	MatchSummary = "RemoteEvent",
-	-- server -> one player: a promotion outside a match's result screen (/xp, /newrank). XP is
-	-- never lost, so there is no rank-down. {kind = "Up", preview?, before, after, reward
+	-- server -> one player: a NEW RANK! preview (/newrank). Real rank-ups are not sent: the
+	-- client shows one popup per division between the RankShown and PeakDivision attributes
+	-- once it is free in a lobby server (Progression). XP is never lost, so there is no rank-down. {kind = "Up", preview?, before, after, reward
 	-- (money), newTier, rewards? = {{index, money, blocks = {[kind] = count}, cue?}},
 	-- rewardBlocks? = {[kind] = count}, rewardCues? = {cueId}} (the NEW RANK! chips).
 	RankEvent = "RemoteEvent",
@@ -365,6 +366,9 @@ local REMOTES: { [string]: string } = {
 	-- client -> server: claim every held rank reward (RankClaim). server -> that player:
 	-- { ok, money, blocks, cues, spins, rows } for the fly animation, or { ok = false }.
 	RankClaim = "RemoteEvent",
+	-- client -> server: (division index) NEW RANK! for that division was shown; the save's
+	-- Flags.RankShown moves up to it (never past PeakDivision, never down).
+	RankSeen = "RemoteEvent",
 	-- Lucky blocks (2026-10-03; src/server/LuckyBlockService.luau).
 	-- client -> server: (action, a, b), checked by Progression/LuckyBlocks.parse:
 	-- "Hold" (block id, or nil to put it away), "Throw" (the held block's id, sent at the throw
