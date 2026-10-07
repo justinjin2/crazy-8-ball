@@ -52,6 +52,7 @@ export type Context = {
 export type Out = {
 	visible: boolean, -- the cue is drawn (aiming or stroking)
 	tip: CFrame, -- ...at this tip (CueStickBuilder.placeAt)
+	pitch: number, -- ...at this pitch, degrees (raised over a rail or by the player)
 }
 
 -- While the server holds the root (anchored, and in a collision group that touches nothing,
@@ -176,7 +177,7 @@ function Avatar.new(): Avatar
 		poser = nil :: ShooterPoser.Poser?,
 		wanted = false,
 		frame = AvatarPose.newFrame(),
-		out = { visible = false, tip = CFrame.identity },
+		out = { visible = false, tip = CFrame.identity, pitch = Config.Cue.CueElevationDegrees },
 		live = nil :: ShooterPoser.Inputs?,
 		liveValid = false,
 		frozen = nil :: ShooterPoser.Inputs?,
@@ -418,6 +419,7 @@ function Avatar.update(self: Avatar, dt: number, ctx: Context): Out
 		else
 			poser:pose("aim", self.frame, dt)
 			out.visible, out.tip = true, tip
+			out.pitch = inputs.pitch or Config.Cue.CueElevationDegrees
 		end
 	else
 		poser:pose("idle", nil, dt)

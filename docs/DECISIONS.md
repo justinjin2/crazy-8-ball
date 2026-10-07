@@ -2790,3 +2790,17 @@ timer of a new block stay the designer's call.
   (`Config.Cue.MinSpeed`), so a lower minimum would only change the label.
 - 2026-10-06: **ball callouts pulse 4 times, not 3** (designer), both at the reveal and at a
   team's last ball: 8 s at 2 s a pulse (`Config.Multiplayer.Style.BallPulse.Pulses`).
+- 2026-10-06 (designer): **the phone's power bar stays inside the safe area.** A real iPhone
+  cut it off under the notch (it reached 35% into the side safe area, 2026-10-02, to keep it
+  from the aiming thumb); `Config.UI.PowerBarPhoneInsetShare` is 0 now, the bar 8 px in from
+  the safe edge, same size. The touch guard (`TouchPull`) now does the thumb's job.
+- 2026-10-06 (designer): **a raised cue has every effect off, every cue, for everyone**: raised
+  by its player at all, or lifted over a rail or a ball more than 2 degrees
+  (`Config.Cue.RaisedFxOffDegrees`; the lift is +0.75 at 25 in from a rail, +3 at 15 in, +19
+  at 5 in). Off means the aura, the moving material, the outlines and the creature piece; the
+  stick stays. They come back when it comes down or the shot is done. Was: only your own cue,
+  only on your screen, only when chosen, and only the aura.
+- 2026-10-06 (designer): **the 1v1 tables are tournament blue again** on the wood frame (the
+  look `BlueWood`, the arena's cloth tint); green is no longer used in the lobby. Its
+  SurfaceAppearances were copied from `ServerStorage.TableLooks.Green` in Edit mode (same maps).
+- 2026-10-06 (designer): **no money "+" during a game** (`MoneyHud.setPlusShown`).

@@ -412,6 +412,7 @@ function Progression.update(state: State)
 			and (menu == nil or menu == "LuckyBag")
 	)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
+	money:setPlusShown(not state.inMatch) -- no shop trips during a game (designer, 2026-10-06)
 	banner:setInMatch(state.inMatch)
 	if state.inMatch and ResultCutscene.isPlaying() then
 		-- A rematch (or any match) starting ends the result cutscene.

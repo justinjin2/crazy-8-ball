@@ -513,9 +513,16 @@ Config.Cue = {
 	-- them whole. (tune)
 	CameraFadeStuds = 1.5,
 	-- Raised above CueElevationDegrees (a jump shot), the shooter's own cue is this see-through
-	-- on their screen, its aura off, so it never hides the ball and the arc (designer,
-	-- 2026-10-02). Everyone else sees it whole, aura and all. (tune)
+	-- on their screen, so it never hides the ball and the arc (designer, 2026-10-02).
+	-- Everyone else sees it whole. (tune)
 	RaisedCueFade = 0.95,
+	-- Any cue drawn more than this many degrees above CueElevationDegrees (lifted over a rail or
+	-- a ball by CueClearance), or raised by the player at all, has every effect off, for
+	-- everyone, until it comes back down or the shot is done (designer, 2026-10-06; the
+	-- stick's AuraOff, CueSkinLook). The rail lift is small far out (+0.75 at 25 in from a
+	-- rail, none past ~30 in) and steep close in (+3 at 15 in, +6 at 10 in, +19 at 5 in), so
+	-- 2 means "visibly lifted": within about 17 in of a rail. (tune)
+	RaisedFxOffDegrees = 2,
 
 	-- What a cue LOOKS like is catalog data (2026-09-28): each Progression/Catalog row has a
 	-- Look, and Catalog.style turns it into CueArt segments (tip, ferrule, shaft, joint ring,
@@ -736,6 +743,18 @@ Config.TableModel = {
 			LogoPlate = { Maps = "LogoPlate" },
 			Marks = { Maps = "Marks" },
 		},
+		-- The same tournament blue cloth on the regular lobby's cherry wood: the 1v1 tables
+		-- (designer, 2026-10-06: blue as it always was, instead of green).
+		BlueWood = {
+			Cloth = { Maps = "Cloth", Tint = { 1, 169, 247 } },
+			Rails = { Maps = "RailsCherry" },
+			Body = { Maps = "BodyCherry" },
+			Pockets = { Maps = "Parts" },
+			Caps = { Maps = "Parts" },
+			Hardware = { Maps = "Parts" },
+			LogoPlate = { Maps = "LogoPlate" },
+			Marks = { Maps = "Marks" },
+		},
 		-- Yellow-green cloth with red-brown (cherry) wood. The tint aims at an albedo of
 		-- #26A62A over the cloth map's ~0.95 grey. (tune)
 		Green = {
@@ -795,10 +814,11 @@ Config.TableModel = {
 		},
 	} :: { [string]: { [string]: { Maps: string, Tint: { number }? } } },
 	-- The look every table uses unless LookByTable names another.
-	DefaultLook = "Green",
-	-- Table id -> look. The regular lobby has wood frames (green 1v1, red 2v2, charcoal 3v3)
-	-- and the pro lobby black frames (blue 1v1, red 2v2, charcoal 3v3) (designer,
-	-- 2026-09-26). This place is the regular lobby: the 1v1 tables take DefaultLook (green)
+	DefaultLook = "BlueWood",
+	-- Table id -> look. The regular lobby has wood frames (blue 1v1 since 2026-10-06, was
+	-- green; red 2v2, charcoal 3v3) and the pro lobby black frames (blue 1v1, red 2v2,
+	-- charcoal 3v3) (designer, 2026-09-26). This place is the regular lobby: the 1v1 tables
+	-- take DefaultLook (blue)
 	-- and the team tables their mode's wood look; see Hub.Tables for the modes. The
 	-- black-frame looks stay for the pro lobby.
 	LookByTable = {
@@ -5166,12 +5186,12 @@ Config.UI = {
 	PowerBarMinHeightPx = 140,
 	PowerBarMaxHeightPx = 250,
 	PowerBarRightMarginPx = 18,
-	-- On a phone the bar sits further right, away from the aiming thumb (designer,
-	-- 2026-10-02: players launched by accident): this margin, and this share of the screen's
-	-- side safe area (the strip Roblox keeps clear of rounded corners and the notch) taken
-	-- back, short of the notch itself.
+	-- On a phone the bar sits this far in from the right edge of the safe area. It used to
+	-- reach a share of the side safe area (the strip Roblox keeps clear of the rounded corners
+	-- and the notch), away from the aiming thumb (2026-10-02), but a real iPhone cut it off
+	-- there (designer, 2026-10-06); the touch guard (TouchPull) now stops accidental shots.
 	PowerBarPhoneRightMarginPx = 8,
-	PowerBarPhoneInsetShare = 0.35,
+	PowerBarPhoneInsetShare = 0, -- share of the side safe area the bar may reach into
 	-- A computer or tablet (the screen at least Multiplayer.Style.ShortHeight tall) gets a
 	-- bigger bar centred on the right edge (designer, 2026-09-26: it was small and too high).
 	-- Centred, a whole-bar cue travel would leave the screen at full pull, so the cue slides

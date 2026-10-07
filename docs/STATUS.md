@@ -41,6 +41,9 @@ Updated 2026-10-06.
   click-in bump, sideways drags and very short presses never shoot (`Config.Input.TouchPull`).
   Checked in the Studio phone emulator (wobble, sideways, a soft 8% shot); the 0.15 s rule and
   the feel need a real phone.
+- **Quick fixes (2026-10-06):** the phone's power bar stays inside the safe area; any raised
+  cue (chosen or lifted over a rail) has every effect off; 1v1 tables are blue cloth
+  (`BlueWood`, lives in the place: save and publish); no money "+" during a game.
 - **Lighting.** Day 10 min, sunset 5 min, a 10 s fade; no night and no sun disc. The sunset
   was softened and made less yellow on 2026-10-05.
 - **Pull cutscenes.** Rare, Epic and Legendary are redone ("good for now"); Mythic and Secret

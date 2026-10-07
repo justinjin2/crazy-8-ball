@@ -1020,9 +1020,9 @@ step in the save (`Flags.Tutorial`) and owns every rigged part; the client only 
   caps on all six pockets, built as a removable part so the corners also look finished
   without them. Looks are a cloth colour on one of two frames, **satin black wood showing
   faint grain** or **red-brown wood**, chrome on both (changed 2026-09-26):
-  - **Regular lobby, wood frames:** bright yellow-green cloth (the reference photo's hue at
-    real-cloth brightness) on the 1v1 tables, raspberry red on the 2v2, slate charcoal on the
-    3v3.
+  - **Regular lobby, wood frames:** the tournament blue cloth (photo-16 blue, the pro
+    lobby's and the arena's) on the 1v1 tables (designer, 2026-10-06; it was bright
+    yellow-green), raspberry red on the 2v2, slate charcoal on the 3v3.
   - **Pro lobby, black frames:** bright blue cloth (photo-16 blue) on the 1v1 tables, and the
     same raspberry red and slate charcoal on the 2v2 and 3v3.
   - The red and charcoal were picked by colour difference against every ball so none blends

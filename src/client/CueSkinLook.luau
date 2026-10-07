@@ -19,8 +19,9 @@
 --     aura pops (Pop.Ids) is built from its row rewritten by CueSkins.Pop;
 --   * the aura stays on the cue as it moves: emitters are LockedToPart but for tiny specks,
 --     and an orbiter's ribbon shortens while the stick moves (Config.CueSkins.Drift);
---   * the stick's AuraOff attribute turns the whole aura off at once (the raised hand cue,
---     Config.Cue.RaisedCueFade); the stick and its piece stay;
+--   * the stick's AuraOff attribute turns every effect off at once while the cue is drawn
+--     raised (designer, 2026-10-06: chosen or lifted over a rail, every cue): the aura, the
+--     moving material, the outlines and the piece; only the stick itself stays;
 --   * the stick's AuraQuiet attribute (AuraQuiet: in a match, the shooter's cue and, on your
 --     turn, every cue at your table) eases the aura down to its tier's Config.CueSkins.Quiet
 --     share: emitter rates, aura beams and lights;
@@ -951,8 +952,8 @@ function CueSkinLook.applyVisible(self: Look)
 	-- waits a frame, refreshSoon).
 	local current = self.stick:GetAttribute("CueId") == self.cueId
 	local visible = self.stick:GetAttribute("Visible") == true and self.row ~= nil and current
-	-- The aura (emitters, beams, orbiters, arcs, lights) also goes with AuraOff; the stick
-	-- and its piece do not.
+	-- Every effect (emitters, beams, orbiters, arcs, lights, outlines, the piece) also goes
+	-- with AuraOff; the stick does not.
 	local aura = visible and self.stick:GetAttribute("AuraOff") ~= true
 	local appearing = aura and not self.aura
 	self.visible = visible
@@ -1007,10 +1008,10 @@ function CueSkinLook.applyVisible(self: Look)
 		l.light.Enabled = aura
 	end
 	for _, ink in self.inks do
-		ink.Enabled = visible and self.inkShown == true
+		ink.Enabled = aura and self.inkShown == true
 	end
 	if self.piece then
-		self.piece:setModifier(if visible then 0 else 1)
+		self.piece:setModifier(if aura then 0 else 1)
 	end
 	if self.carrierPiece then
 		self.carrierPiece:setModifier(if aura then 0 else 1)
@@ -1163,7 +1164,7 @@ function CueSkinLook.step(self: Look, t: number)
 	end
 	if self.piece then
 		self.piece:step(t)
-		if self.visible then
+		if self.aura then
 			self.piece:setModifier(mesh.LocalTransparencyModifier)
 		end
 	end
@@ -1192,7 +1193,7 @@ function CueSkinLook.step(self: Look, t: number)
 		local toward = mesh.Position - eye
 		local endOn = toward.Magnitude > 1e-3
 			and math.abs(mesh.CFrame.LookVector:Dot(toward.Unit)) > inkEndOnCos
-		local shown = self.visible and mesh.LocalTransparencyModifier <= 0 and not endOn
+		local shown = self.aura and mesh.LocalTransparencyModifier <= 0 and not endOn
 		if shown ~= self.inkShown then
 			self.inkShown = shown
 			for _, ink in self.inks do
@@ -1270,7 +1271,7 @@ RunService.RenderStepped:Connect(function(dt: number)
 		if #look.highlights > 0 then
 			if
 				mesh
-				and look.visible
+				and look.aura
 				and near <= C.HighlightDistanceStuds
 				and mesh.LocalTransparencyModifier < 0.5
 			then

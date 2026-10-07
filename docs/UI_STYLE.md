@@ -673,7 +673,8 @@ rebuild, not a description of the current screen.
   bottom right like blocks (`Build`); now and then a card shimmers and its block pops
   (`Shimmer`, `IconPop`); the blocks turn slowly; the Mythic block's icons carry a cycling
   pastel aura (`Config.LuckyBlocks.UI.RainbowAura`), in the hotbar and bag too.
-- **The HUD's "+"**: a small gold candy right of the money HUD opens the Shop on Money.
+- **The HUD's "+"**: a small gold candy right of the money HUD opens the Shop on Money. It is
+  hidden during a game, and the pill closes up without it (designer, 2026-10-06).
 - A block kind whose model is not in the place yet shows the gift-box kit icon in the Shop,
   the hotbar and the bag (`Block.Fallback`; the case chests are gone, 2026-10-04), so nothing
   is ever an empty square. Every kind has its model today.

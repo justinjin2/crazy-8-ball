@@ -279,7 +279,7 @@ return {
 		local rows = Config.Hub.Tables
 		H.expect(#rows == 16 and Placement.tableCount() == 16, "sixteen tables, all built")
 		local byMode: { [number]: number } = {}
-		local lookOfMode = { [1] = "Green", [2] = "RedWood", [3] = "CharcoalWood" }
+		local lookOfMode = { [1] = "BlueWood", [2] = "RedWood", [3] = "CharcoalWood" }
 		for i, row in rows do
 			H.expect(row.id == i, ("table ids run 1 to 16 (row %d)"):format(i))
 			H.expect(Placement.teamSizeOf(row.id) == row.teamSize, "teamSizeOf reads the row")

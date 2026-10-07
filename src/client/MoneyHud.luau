@@ -159,6 +159,16 @@ function MoneyHud.setShown(self: any, value: number)
 	end
 end
 
+--- Show or hide the "+" (hidden during a game: no shop trips mid-match, designer 2026-10-06);
+--- the pill closes up without it.
+function MoneyHud.setPlusShown(self: any, shown: boolean)
+	if self.plus.Visible == shown then
+		return
+	end
+	self.plus.Visible = shown
+	self:layout()
+end
+
 function MoneyHud.layout(self: any)
 	local size = self.screen.AbsoluteSize
 	if size.Y <= 0 then
@@ -178,11 +188,15 @@ function MoneyHud.layout(self: any)
 		HudParts.measureFont(self.amount),
 		Vector2.new(10000, 1000)
 	).X
+	local plusOn = self.plus.Visible
 	local plusSize = if short then C.ShortPlusPx else C.PlusPx
-	local plusOver = math.floor(plusSize * C.PlusOverPill)
+	local plusOver = if plusOn then math.floor(plusSize * C.PlusOverPill) else 0
 	local pillWidth = over + 4 + words + C.TextPadPx + plusOver
 	self.root.Position = UDim2.new(0, margin, 1, -margin)
-	self.root.Size = UDim2.fromOffset(pillLeft + pillWidth + (plusSize - plusOver), iconSize)
+	self.root.Size = UDim2.fromOffset(
+		pillLeft + pillWidth + (if plusOn then plusSize - plusOver else 0),
+		iconSize
+	)
 	self.pill.Position = UDim2.fromOffset(pillLeft, math.floor((iconSize - pillHeight) / 2))
 	self.pill.Size = UDim2.fromOffset(pillWidth, pillHeight)
 	self.amount.Position = UDim2.fromOffset(over + 4, 1)

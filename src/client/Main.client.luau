@@ -1500,11 +1500,14 @@ local function renderFrame(dt: number)
 			ctx.cameraPos = Camera.position()
 			local out = avatar:update(dt, ctx)
 			CueStickBuilder.setVisible(cueStick, out.visible)
-			-- Raised for a jump shot: on this screen only, nearly see-through and no aura, so
-			-- it never hides the ball or the arc (Config.Cue.RaisedCueFade).
+			-- Raised for a jump shot: on this screen only, nearly see-through, so it never
+			-- hides the ball or the arc (Config.Cue.RaisedCueFade).
 			local raised = ctx.elevation > Config.Cue.CueElevationDegrees
-			if cueStick:GetAttribute("AuraOff") ~= raised then
-				cueStick:SetAttribute("AuraOff", raised)
+			-- Raised by the player, or lifted visibly over a rail: every effect off.
+			local fxOff = raised
+				or out.pitch > Config.Cue.CueElevationDegrees + Config.Cue.RaisedFxOffDegrees
+			if cueStick:GetAttribute("AuraOff") ~= fxOff then
+				cueStick:SetAttribute("AuraOff", fxOff)
 			end
 			if out.visible then
 				CueStickBuilder.placeAt(cueStick, out.tip)

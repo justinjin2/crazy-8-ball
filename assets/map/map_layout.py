@@ -53,7 +53,7 @@ MODES = [
     [2, 2, 1, 1],
     [2, 2, 3, 3],
 ]
-LOOK_BY_MODE = {1: 'Green', 2: 'RedWood', 3: 'CharcoalWood'}
+LOOK_BY_MODE = {1: 'BlueWood', 2: 'RedWood', 3: 'CharcoalWood'}
 
 # ---------------------------------------------------------------------------------------------
 # The plan's choices (studs). Spacing is on the table's scale (the art's layout); anything a
