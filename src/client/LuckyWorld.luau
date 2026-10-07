@@ -7,10 +7,13 @@
 -- - Landed: the pack's own bounce (Config.LuckyBlocks.Anim.BlockIdle) on its AnimationController.
 -- - Rising: up HeightStuds, spinning faster and faster with a growing shiver, its glow and
 --   particles swelling. Burst: it swells and fades out with a puff of its particles.
+-- - A moving rainbow: every Texture tagged Look.Scroll.Tag on a block (the Mystery block's
+--   frame, tools/luckyblock_template.luau) slides along at Look.Scroll.StudsPerSecond.
 -- - Over a block held in someone's hands that is still on its timer: the countdown.
 -- - For the owner of a landed block only: the open prompt (Roblox's native ProximityPrompt:
 --   hold E, the gamepad's X, or touch and hold it for Open.HoldSeconds), which calls onOpen.
 -- Tuning in Config.LuckyBlocks.
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -445,8 +448,27 @@ function World.start(opts: Options)
 			watchHeld(d)
 		end
 	end)
+	local scroll = L.Look.Scroll
+	local scrolling: { [Texture]: true } = {}
+	local function addScroll(object: Instance)
+		if object:IsA("Texture") then
+			object.StudsPerTileU = scroll.StudsPerTile
+			scrolling[object] = true
+		end
+	end
+	for _, object in CollectionService:GetTagged(scroll.Tag) do
+		addScroll(object)
+	end
+	CollectionService:GetInstanceAddedSignal(scroll.Tag):Connect(addScroll)
+	CollectionService:GetInstanceRemovedSignal(scroll.Tag):Connect(function(object)
+		scrolling[object :: Texture] = nil
+	end)
 	RunService.RenderStepped:Connect(function()
 		local now = serverNow()
+		local slide = (os.clock() * scroll.StudsPerSecond) % scroll.StudsPerTile
+		for texture in scrolling do
+			texture.OffsetStudsU = slide
+		end
 		for _, t in tracked do
 			local ok, err = pcall(function(): any
 				step(t, now)

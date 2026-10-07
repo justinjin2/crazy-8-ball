@@ -27,9 +27,10 @@ SIZE = 512
 # Sheen adds the concept icons' soft glossy light from the upper left.
 KINDS = {
     "standard": {
-        "Frame": {"Top": (255, 196, 40), "Bottom": (240, 128, 10), "Sheen": 0.35},
-        "Core": {"Top": (255, 236, 60), "Bottom": (250, 196, 20), "Sheen": 0.45},
-        "Glyph": {"Top": (255, 252, 238), "Bottom": (246, 230, 196), "Sheen": 0.2},
+        # Bright yellow rims, beige-brown faces (designer, 2026-10-07: "more yellow than gold").
+        "Frame": {"Top": (255, 230, 50), "Bottom": (250, 196, 18), "Sheen": 0.35},
+        "Core": {"Top": (222, 184, 128), "Bottom": (176, 128, 76), "Sheen": 0.3},
+        "Glyph": {"Top": (255, 252, 240), "Bottom": (244, 232, 206), "Sheen": 0.2},
     },
     "mystery": {
         "Frame": {"Rainbow": True, "Sheen": 0.3},
@@ -69,11 +70,20 @@ def paint(spec):
     else:
         img = gradient(spec["Top"], spec["Bottom"])
     img = sheen(img, spec.get("Sheen", 0))
-    return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8), "RGB")
+    return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
+
+
+def rainbow_strip(path):
+    """A seamless rainbow (red back to red) the game scrolls along a block's frame."""
+    hues = np.linspace(0, 1, 512, endpoint=False)
+    row = np.array([colorsys.hsv_to_rgb(h, 0.8, 1.0) for h in hues]) * 255
+    img = np.broadcast_to(row[None, :, :], (64, 512, 3))
+    Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).save(path)
 
 
 def main():
     kinds = sys.argv[1:] or list(KINDS)
+    rainbow_strip(os.path.join(ROOT, "assets", "luckyblocks", "textures", "rainbow_scroll.png"))
     for kind in kinds:
         folder = os.path.join(OUT, kind)
         os.makedirs(folder, exist_ok=True)

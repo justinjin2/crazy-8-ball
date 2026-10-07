@@ -31,7 +31,7 @@ H = L / 2
 # Frame and face proportions, in block edges (L). Measured off the approved concept icons.
 FRAME = {
     "B": {"Inset": 0.05, "Bar": 0.14, "Corner": 0.25, "Bevel": 0.016},  # corner cubes bulge out
-    "C": {"Inset": 0.0, "Bar": 0.15, "Corner": None, "Bevel": 0.014},  # bars meet flush
+    "C": {"Inset": 0.0, "Bar": 0.115, "Corner": None, "Bevel": 0.012},  # flush, thinner (designer)
 }
 CORE_INSET = 0.085  # the face panel sits this far inside the block's outer edge
 GLYPH_CELL = 0.064  # one pixel of the "?"
@@ -115,11 +115,12 @@ def apply_all(obj):
 
 
 def merge_coplanar(obj):
-    """Clean the boolean's cuts so the bevel only rounds real edges."""
+    """Weld the boolean's seams. Its flat cuts are left alone (the bevel's angle limit skips
+    them): dissolving them turned each face's ring of bars into one face with a hole, which the
+    glb export filled with a triangle across the panel."""
     bm = bmesh.new()
     bm.from_mesh(obj.data)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-4)
-    bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(1), verts=bm.verts, edges=bm.edges)
     bm.to_mesh(obj.data)
     bm.free()
 

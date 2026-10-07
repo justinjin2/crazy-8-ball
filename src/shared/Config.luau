@@ -2183,6 +2183,9 @@ Config.LuckyBlocks = {
 		LightBrightness = 2, -- non-standard blocks cast a small coloured pool of light
 		LightRangeStuds = 7,
 		ParticleLightInfluence = 0, -- sparkles keep their authored colours under warm lobby light
+		-- The Mystery block's moving rainbow rims (designer, 2026-10-07): textures tagged Tag
+		-- on a block's frame slide sideways, one rainbow every StudsPerTile studs.
+		Scroll = { Tag = "LuckyScroll", StudsPerTile = 6, StudsPerSecond = 1.2 }, -- slower (designer)
 	},
 	MaxBlocks = 200, -- the save holds at most this many blocks
 	-- A block that rolls a Unique cue the player already owns (one per player) is rolled again,

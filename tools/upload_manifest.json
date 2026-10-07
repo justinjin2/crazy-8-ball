@@ -4882,8 +4882,28 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/mystery/MysteryBlock_v2.glb": {
+    "assetId": "98280875530105",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/mystery/MysteryBlock_v3.glb": {
+    "assetId": "131944205075030",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/standard/StandardBlock.glb": {
     "assetId": "132245263388441",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/standard/StandardBlock_v2.glb": {
+    "assetId": "89980502642894",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/standard/StandardBlock_v3.glb": {
+    "assetId": "137008354368931",
     "assetType": "Model",
     "status": "ok"
   },
@@ -4906,6 +4926,11 @@
     "assetId": "72694723354109",
     "assetType": "Decal",
     "imageId": "104192408636466",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/rainbow_scroll.png": {
+    "assetId": "121880113191370",
+    "assetType": "Decal",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/rough_022.png": {

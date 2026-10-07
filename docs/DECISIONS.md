@@ -2960,3 +2960,8 @@ timer of a new block stay the designer's call.
   squash, so a copy in studs matches it exactly (measured in Studio). The pack's glow particles
   and light are copied onto each block. The designer allowed uploads for this job without asking
   each time (dry-run first).
+- 2026-10-07 (designer): **Standard** is lemon-yellow rims with beige-brown faces ("more yellow
+  than gold"). **Mystery** has thinner flush rims, a rainbow that keeps moving around the frame
+  (slowed to 1.2 studs/s, `Config.LuckyBlocks.Look.Scroll`) and a few rainbow twinkles. Checked
+  in Studio through the real hotbar: keys equip with the hold pose, a click throws, switching and
+  putting away leave no hold loop behind, both land with their idle, opening works, console clean.

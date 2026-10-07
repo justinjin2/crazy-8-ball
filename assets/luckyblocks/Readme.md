@@ -179,8 +179,14 @@ Mystery). One master block, three pieces (Frame, Core, Glyph), each kind a set o
 
 | Model | Kind | Model asset |
 | --- | --- | --- |
-| StandardBlock | Standard | 132245263388441 |
-| MysteryBlock | Mystery | 72158769287664 |
+| StandardBlock | Standard | 137008354368931 (v3: yellow rims, beige faces) |
+| MysteryBlock | Mystery | 131944205075030 (v3: thinner flush rims; moving rainbow, twinkles) |
+
+The Mystery frame's moving rainbow is six `Texture`s (`textures/rainbow_scroll.png`, image
+`rbxassetid://107891048379160`) tagged `LuckyScroll`; LuckyWorld slides them
+(`Config.LuckyBlocks.Look.Scroll`). A SurfaceAppearance map cannot move, a Texture can. Never
+dissolve the frame's flat faces in the builder: a face's ring of bars became one face with a hole
+and the glb export filled it with a triangle across the panel.
 
 **LuckyBoxIdle** (`anims/LuckyBoxIdle.rbxm`, `rbxassetid://126596744037463`) is the pack's Box
 Idle on our rig, written by `lune run tools/luckyblock_anims.luau`: the hover from 1 to 1.9 studs
