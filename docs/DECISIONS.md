@@ -2934,6 +2934,9 @@ timer of a new block stay the designer's call.
   kind is a texture, an optional topper on the top bone and a recoloured pack VFX set. The pack
   blocks are replaced over time. Legendary, Mythic and Sky keep wings (the pack's winged rig and
   idle). Every kind gets a glossy 2D icon in the Grand Opening art style (the block only, not
-  the card), used in the Shop, the hotbar and the bag (the hotbar's 3D viewport goes). The
-  Starter block *is* the gift block: a red lucky block wrapped in a gold ribbon with a bow.
-  First batch: 8 Ball, Starter, Mythic, Sky, Mystery. Order: concept sheet, 2D icons, then 3D.
+  the card), used in the Shop, the hotbar and the bag (every 3D-viewport block icon goes). The
+  Starter block is a red lucky block gift-wrapped in a gold ribbon and bow; the **Gift block**
+  stays its own kind (white, gold ribbon and bow, a gold clock face): it is given when a player
+  leaves, to open when they come back the next day (the delivery rules are still open). First
+  batch: 8 Ball, Starter, Gift, Mythic, Sky, Mystery; once their concepts are approved, the same
+  for Standard, Uncommon, Rare, Epic and Legendary. Order: concept sheet, 2D icons, then 3D.
