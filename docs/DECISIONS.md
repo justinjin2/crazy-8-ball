@@ -2804,3 +2804,8 @@ timer of a new block stay the designer's call.
   look `BlueWood`, the arena's cloth tint); green is no longer used in the lobby. Its
   SurfaceAppearances were copied from `ServerStorage.TableLooks.Green` in Edit mode (same maps).
 - 2026-10-06 (designer): **no money "+" during a game** (`MoneyHud.setPlusShown`).
+- 2026-10-06 (designer): **the game's logo is on every table's logo plate** (the 9 x 3 in plate
+  on the foot rail), 5.5 x 2.2 in inside the pinstripe, as a first look (`assets/table/
+  LogoPlate.py`, `assets/ui/logo/Crazy8Logo.png`, `Config.TableModel.Maps.LogoPlate`). The
+  stored looks in `ServerStorage.TableLooks` were updated in Edit mode: save and publish.
+  Bigger spots (printed on the cloth, the cabinet side) are offered, not built.

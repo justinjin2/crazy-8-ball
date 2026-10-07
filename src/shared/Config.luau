@@ -722,7 +722,9 @@ Config.TableModel = {
 			Roughness = "rbxassetid://98528895126663",
 			Metalness = "rbxassetid://126325716540474",
 		},
-		LogoPlate = { Color = "rbxassetid://96049906872831", Roughness = "" },
+		-- The plate with the game's logo (assets/table/LogoPlate.py; designer, 2026-10-06; the
+		-- plain plate was rbxassetid://96049906872831).
+		LogoPlate = { Color = "rbxassetid://132668892562034", Roughness = "" },
 		-- RGBA overlay: sticker, rack patch, break streak, chalk, cushion and rim shading.
 		Marks = { Color = "rbxassetid://76511654024840" },
 	} :: {

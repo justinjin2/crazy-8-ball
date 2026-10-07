@@ -34,6 +34,7 @@ tools/test.sh   # table_geometry_test, table_looks_test, table_model_test
 | `TableModel.blend` | The .blend (scripts embedded). |
 | `Parameters.json` | Measurements, UV layout and validation results. |
 | `TableTextures.py` | The texture builder. |
+| `LogoPlate.py` | The logo plate with the game's logo, after `TableTextures.py`. |
 | `textures/*.png` | The 1024 upload maps. |
 | `Textures.json` | Texture recipe, seeds and hashes. |
 | `sources/Sources.json` | The CC0 sources. The downloads themselves and the 4096 masters are git-ignored. |
@@ -59,7 +60,8 @@ since 2026-09-24, so every table shows clean cloth). The total is
 
 ## Changing a look or textures
 
-1. Re-run `TableTextures.py`.
+1. Re-run `TableTextures.py`. If the plate changed or `TableTextures.py` ran, re-run
+   `LogoPlate.py` too: it puts the game's logo (`assets/ui/logo/Crazy8Logo.png`) on the plate.
 2. Upload the changed PNGs through the Studio MCP `upload_image`, from a local
    `python3 -m http.server`, 4 per batch. Uploads render at 1024.
 3. Put the ids in `Config.TableModel.Maps`.
