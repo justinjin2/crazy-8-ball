@@ -70,8 +70,9 @@ A full menu uses the **lively frame**, a kit switch per menu: add the menu's nam
 | Small HUD pieces | just pop | `Pop` (or `UIAnim.popIn`) |
 | The hero piece and big cards | arrive with a small firework burst behind them | `Burst = "<colour>"` |
 
-The open lasts about 1 to 2 s in all (the Shop's is 1.07 s: the frame first, then the page's
-pieces twice as fast). A tab switch replays only the new page's pieces (0.5 s, no unroll). A
+The open lasts about 1 to 2 s in all (the Shop's is 0.91 s: the frame first, then the page's
+pieces twice as fast). The hero card starts the moment the frame has unrolled, with no pause
+between them. A tab switch replays only the new page's pieces (0.5 s, no unroll). A
 button works the moment it is visible: no skip, no waiting. Reopening mid-close or spamming a
 tab must always end on a clean screen.
 

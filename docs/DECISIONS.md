@@ -2925,3 +2925,6 @@ timer of a new block stay the designer's call.
 - 2026-10-07: The result screen puts DEFEAT in red over the losing side, on WINNER's line, in
   every game with a winner (was LOSE, only over your side when an 8-ball rule lost it). The
   reason line stays under it for your own loss to an 8-ball rule.
+- 2026-10-07: The Shop's Featured (hero) card starts as the panel finishes unrolling (0.2 s,
+  was 0.36 s), everything on it 0.16 s sooner; the whole open is 0.91 s (was 1.07 s). Designer:
+  too long a pause between the frame opening and the hero card.

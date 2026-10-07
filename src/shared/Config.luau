@@ -7726,7 +7726,7 @@ Config.UI.Motion = {
 -- Config.UI.Motion.Stagger) after the one before. `Kind` picks the curve; `Length` overrides the
 -- kind's own length from Config.UI.Motion. `Badge` pops a NEW badge `BadgeAfter` s after its tab.
 Config.UI.Shop.Open = {
-	OpenSeconds = 1.07, -- the whole open, first piece to the flair landing (1 to 2 s; faster 2026-10-06)
+	OpenSeconds = 0.91, -- the whole open, first piece to the flair landing (faster 2026-10-06, 2026-10-07)
 	Steps = {
 		{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
 		{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 }, -- its pattern starts scrolling
@@ -7741,28 +7741,29 @@ Config.UI.Shop.Open = {
 		},
 		-- From here the Featured card, twice as fast as the animatic (designer, 2026-10-06: "after
 		-- the white background frame appears the featured frame and everything with it needs to be
-		-- faster").
-		{ Ids = { "Featured" }, Kind = "Pop", At = 0.34 }, -- "- FEATURED -"
-		{ Ids = { "FeaturedLines" }, Kind = "Grow", At = 0.38 },
-		{ Ids = { "Card" }, Kind = "Grow", At = 0.36 }, -- the card's background opens from its centre
-		{ Ids = { "Block" }, Kind = "Slam", At = 0.41, Length = 0.16, Burst = "Gold" },
-		{ Ids = { "NewTag" }, Kind = "Pop", At = 0.5 },
-		{ Ids = { "CardTitle" }, Kind = "Pop", At = 0.44, Burst = "Purple" }, -- the title pops as one (designer)
-		{ Ids = { "StarLeft", "StarRight" }, Kind = "Pop", At = 0.46 },
-		{ Ids = { "Subtitle" }, Kind = "Fade", At = 0.48, Length = 0.12 },
-		{ Ids = { "Beta" }, Kind = "Pop", At = 0.52, Burst = "Cyan" },
-		{ Ids = { "BetaName", "BetaPills", "BetaOdds", "BetaCue" }, Kind = "Pop", At = 0.55 },
-		{ Ids = { "Firework" }, Kind = "Pop", At = 0.59, Burst = "Pink" },
+		-- faster"). It starts as the panel finishes unrolling, 0.16 s sooner than before (designer,
+		-- 2026-10-07: too long a pause between the shop's frame opening and the hero card).
+		{ Ids = { "Featured" }, Kind = "Pop", At = 0.18 }, -- "- FEATURED -"
+		{ Ids = { "FeaturedLines" }, Kind = "Grow", At = 0.22 },
+		{ Ids = { "Card" }, Kind = "Grow", At = 0.20 }, -- the card's background opens from its centre
+		{ Ids = { "Block" }, Kind = "Slam", At = 0.25, Length = 0.16, Burst = "Gold" },
+		{ Ids = { "NewTag" }, Kind = "Pop", At = 0.34 },
+		{ Ids = { "CardTitle" }, Kind = "Pop", At = 0.28, Burst = "Purple" }, -- the title pops as one (designer)
+		{ Ids = { "StarLeft", "StarRight" }, Kind = "Pop", At = 0.30 },
+		{ Ids = { "Subtitle" }, Kind = "Fade", At = 0.32, Length = 0.12 },
+		{ Ids = { "Beta" }, Kind = "Pop", At = 0.36, Burst = "Cyan" },
+		{ Ids = { "BetaName", "BetaPills", "BetaOdds", "BetaCue" }, Kind = "Pop", At = 0.39 },
+		{ Ids = { "Firework" }, Kind = "Pop", At = 0.43, Burst = "Pink" },
 		{
 			Ids = { "FireworkName", "FireworkPills", "FireworkOdds", "FireworkCue" },
 			Kind = "Pop",
-			At = 0.62,
+			At = 0.46,
 		},
-		{ Ids = { "Robux1", "Robux3", "Robux10" }, Kind = "Pop", At = 0.66 }, -- with their gift squares
-		{ Ids = { "Counts" }, Kind = "Fade", At = 0.69, Length = 0.12 }, -- "1 block", "3 blocks", "10 blocks"
-		{ Ids = { "Money1", "Money3", "Money10" }, Kind = "Pop", At = 0.71 },
-		{ Ids = { "EndsIn" }, Kind = "Fade", At = 0.78, Length = 0.12 },
-		{ Ids = { "Flair" }, Kind = "Drop", At = 0.82, Length = 0.25 }, -- the 8-ball lands on the frame
+		{ Ids = { "Robux1", "Robux3", "Robux10" }, Kind = "Pop", At = 0.50 }, -- with their gift squares
+		{ Ids = { "Counts" }, Kind = "Fade", At = 0.53, Length = 0.12 }, -- "1 block", "3 blocks", "10 blocks"
+		{ Ids = { "Money1", "Money3", "Money10" }, Kind = "Pop", At = 0.55 },
+		{ Ids = { "EndsIn" }, Kind = "Fade", At = 0.62, Length = 0.12 },
+		{ Ids = { "Flair" }, Kind = "Drop", At = 0.66, Length = 0.25 }, -- the 8-ball lands on the frame
 	},
 	-- The optional flair, each a switch (all on in the approved animatic, gate 3):
 	Poppers = true, -- party poppers burst from the card's bottom corners as it opens

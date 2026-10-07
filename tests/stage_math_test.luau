@@ -109,7 +109,10 @@ return {
 		H.near(slowById.Block.at, byId.Block.at * 2 / open.OpenSeconds, 1e-9, "starts scale")
 		H.near(slowById.Block.length, byId.Block.length, 1e-9, "lengths do not")
 		H.expect(slowFinish > finish, "a longer open ends later")
-		H.expect(finish >= 1 and finish <= 2, "the open lasts 1 to 2 s (designer)")
+		H.expect(
+			finish >= 0.8 and finish <= 2,
+			"the open lasts about 1 to 2 s (designer; 0.91 s since 2026-10-07)"
+		)
 	end,
 
 	["a piece's state: hidden before, landed after, fades only with Reduce Motion"] = function()

@@ -47,7 +47,7 @@ ribbons dimming to 0.6 transparency over 2.4 s).
 
 ```lua
 Config.UI.Shop.Open = {
-	OpenSeconds = 1.07, -- the whole open; a longer or shorter open scales every At, not the lengths
+	OpenSeconds = 0.91, -- the whole open; a longer or shorter open scales every At, not the lengths
 	Steps = {
 		{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
 		{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },

@@ -186,7 +186,7 @@ below are the summary; the skill has the numbers and code.
   a thin bar, then its pieces pop in one by one a few hundredths apart (60% to 110% to 100%,
   with a fade); popups slam in from big; backgrounds and lines grow from their centre; the hero
   piece and big cards arrive with a small firework burst; small HUD pieces just pop. The whole
-  open takes 1 to 2 s (the Shop's 1.07 s); a tab switch replays only the new page (0.5 s); a
+  open takes about 1 to 2 s (the Shop's 0.91 s); a tab switch replays only the new page (0.5 s); a
   close fades everything while the panel folds (0.15 s). Buttons work the moment they show.
 - **Something always moves, calmly.** Every screen keeps at least one idle loop (glows pulse,
   rays turn, the hero breathes, a shine sweeps, 8-balls float, the header's pattern scrolls),
