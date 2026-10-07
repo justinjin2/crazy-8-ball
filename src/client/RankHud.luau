@@ -255,7 +255,7 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	-- the badge's top right until they are claimed in Rank.
 	local pending = HudParts.pill(body, "PendingDot", HudParts.tone("Red"))
 	pending.AnchorPoint = Vector2.new(0.5, 0.5)
-	pending.Position = UDim2.fromOffset(B * 0.86, B * 0.14)
+	pending.Position = UDim2.fromOffset(B * H.PendingDotAt[1], B * H.PendingDotAt[2])
 	pending.Size = UDim2.fromOffset(H.PendingDotPx, H.PendingDotPx)
 	pending.ZIndex = 6
 	pending.Visible = false
@@ -402,6 +402,15 @@ end
 -- Fit the HUD into the free part of the top row: its natural size (a phone), bigger on a
 -- computer, smaller if the row is short of room; centred in the row's height, or hanging
 -- just below the screen's top when bigger than the row.
+-- How far the red "!" dot can reach above the HUD's box at its biggest (natural pixels): the
+-- whole HUD grows about the badge's centre on hover and press, and the dot breathes.
+local function dotOverhang(): number
+	local B = H.BadgePx
+	local grow = H.HoverScale * math.max(table.unpack(Config.UI.Ranks.PressScales))
+	local reach = (0.5 - H.PendingDotAt[2]) * B + H.PendingDotPx / 2 * K.Motion.PulseScale
+	return math.max(0, reach * grow - B / 2)
+end
+
 function RankHud.layout(self: any)
 	local area = self.gui.AbsoluteSize
 	if area.X <= 0 then
@@ -434,7 +443,7 @@ function RankHud.layout(self: any)
 	self.fit.Scale = scale
 	self.holder.Position = UDim2.fromOffset(
 		S.HeaderGap,
-		math.max(H.TopMinPx, (rowHeight - self.naturalHeight * scale) / 2)
+		math.max(H.TopMinPx + dotOverhang() * scale, (rowHeight - self.naturalHeight * scale) / 2)
 	)
 end
 

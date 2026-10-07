@@ -1070,6 +1070,9 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 
 ## 18. Parked ideas (not scheduled)
 
+- **Global boards in a new home** (parked 2026-10-07, one of the last things before release):
+  the Top Wins and Top Rank boards left the player list (it is now like Roblox's own list);
+  the lobby signs still show them. Where they go next (a menu page, say) is open.
 - **Money sound as a coin burst** (tried and reverted 2026-10-02): a chip landing would play
   one coin for $1-$5 and a rapid burst for more (about 6 for $10, 40 for $100, 70 for $1,000).
   Slicing CashLand sounded ugly; of five Creator Store coins the designer liked "coin2"

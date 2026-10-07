@@ -5417,6 +5417,9 @@ Config.UI = {
 		RankHud = {
 			BadgePx = 70, -- the badge, square: bigger than the pill, as in reference 02 (its art has margins)
 			PendingDotPx = 24, -- the red "!" on the badge while rank rewards wait in Rank (RankPending)
+			-- Its centre, as shares of the badge's box from the top left (designer 2026-10-07:
+			-- was 0.14 down, which poked above the screen's top edge on a phone).
+			PendingDotAt = { 0.84, 0.22 },
 			PendingDotTextPx = 18,
 			HoverScale = 1.06, -- the whole HUD grows this much under the mouse or a gamepad selection
 			HoverSeconds = 0.18, -- that fast, with a small overshoot
@@ -5432,7 +5435,9 @@ Config.UI = {
 			-- A computer or tablet (screen at least Style.ShortHeight tall): bigger, an easier
 			-- mouse target (designer, 2026-09-27; was 1.15). It hangs below Roblox's top row.
 			ComputerScale = 1.5,
-			TopMinPx = 1, -- never closer than this to the top of the screen
+			-- Never closer than this to the top of the screen. The HUD is lowered further when
+			-- needed so the "!" dot stays on screen at its biggest (hover, press bounce, breath).
+			TopMinPx = 2,
 			FallbackRowPx = 58, -- the top row's height when Roblox does not report it
 			TrackColor = { 214, 222, 235 }, -- the empty bar
 			FillColor = { 255, 201, 40 }, -- the XP, gold
@@ -10949,22 +10954,49 @@ Config.Leaderboards = {
 	SignPadPx = 30, -- the rows' side margins
 }
 
--- The player list, top right (PlayerList; GUI lane, C7, D10, D11).
+-- The player list, flush in the top-right corner of Roblox's top bar row like Roblox's own list
+-- (PlayerList; designer 2026-10-07): the Shop's lively header band, the rank badge and the
+-- username, then Wins and Money columns. A computer's sizes, then a phone's (Short*: the HUD
+-- screen under Multiplayer.Style.ShortHeight). Pixels.
 Config.UI.PlayerList = {
-	WidthPx = 300, -- a computer; a phone's is ShortWidthPx
-	ShortWidthPx = 250,
-	RowPx = 40,
-	ShortRowPx = 34,
-	HeaderPx = 40,
-	TopGapPx = 6, -- under Roblox's top bar row
-	RightPx = 10,
-	MaxHeightShare = 0.36, -- of the screen's height, open (it scrolls past that)
-	ShortMaxHeightShare = 0.3, -- on a phone, so it ends above the Daily Challenge target
+	WidthPx = 300, -- a computer
+	ShortWidthPx = 230, -- a phone
+	MinWidthPx = 176, -- squeezed this narrow at most to stay clear of the Settings gear
+	AvoidGapPx = 8, -- kept between the gear (and its word) and the list's left edge
+	RightPx = 8, -- in from the top bar row's right end (inside the safe area)
+	HeaderPx = 44, -- the header band: as tall as Roblox's own top-bar buttons
+	ShortHeaderPx = 38,
+	TitlePx = 20, -- "Players (3)" in the header
+	ShortTitlePx = 17,
+	ChevronPx = 22,
+	ShortChevronPx = 18,
+	ColumnsPx = 18, -- the "Wins" and "Money" titles row at the top of the sheet
+	ShortColumnsPx = 15,
+	ColumnsTextPx = 13,
+	ShortColumnsTextPx = 12,
+	RowPx = 34,
+	ShortRowPx = 27,
 	BadgePx = 30,
+	ShortBadgePx = 24,
 	TextPx = 16,
 	ShortTextPx = 14,
+	WinsColumnPx = 52, -- the Wins column's width (numbers right-aligned)
+	ShortWinsColumnPx = 40,
+	MoneyColumnPx = 82, -- the Money column's width
+	ShortMoneyColumnPx = 64,
+	CornerPx = 14, -- the card's rounded corners
+	SheetCornerPx = 10, -- the white sheet's (the Shop's 22 is for a big panel)
+	-- Open, it shows at most this many rows and scrolls past them (a part row peeks in so it
+	-- reads as a scroller); a phone's list is smaller and ends above the Daily Challenge.
+	MaxRows = 8.5,
+	ShortMaxRows = 3.3,
+	MaxHeightShare = 0.5, -- and never taller than this share of the screen's height
+	YouTransparency = 0.55, -- your own row's pale blue highlight
+	ToggleSeconds = 0.15, -- the list opening or folding up to its header
 	PopoutWidthPx = 220,
 	PopoutButtonPx = 44,
+	PopoutGapPx = 8, -- between the popout and the list
+	FooterSeconds = 3, -- a trade invite's answer shows this long under the rows
 	-- Disguised and tutorial bots show a fixed, believable "wins vs players" for their tier
 	-- (D10): somewhere in { low, high }, picked from the bot's id so it never changes.
 	BotWins = {

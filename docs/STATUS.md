@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-06.
+Updated 2026-10-07.
 
 ## Where the build is
 
@@ -47,6 +47,10 @@ Updated 2026-10-06.
 - **Quick fixes (2026-10-06):** the phone's power bar stays inside the safe area; any raised
   cue (chosen or lifted over a rail) has every effect off; 1v1 tables are blue cloth
   (`BlueWood`, lives in the place: save and publish); no money "+" during a game.
+- **The player list like Roblox's** (2026-10-07): top-right corner in the top bar row, the
+  Shop's lively header, badge + name, Wins, Money, no tabs; folded at first on touch screens;
+  the rank HUD's red "!" no longer pokes off the top. Seen in the Studio phone emulator
+  (folded, open with fake rows, fold animation); a PC and a tablet size not yet looked at.
 - **Lighting.** Day 10 min, sunset 5 min, a 10 s fade; no night and no sun disc. The sunset
   was softened and made less yellow on 2026-10-05.
 - **Pull cutscenes.** Rare, Epic and Legendary are redone ("good for now"); Mythic and Secret

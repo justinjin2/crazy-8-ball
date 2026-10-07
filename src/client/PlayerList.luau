@@ -1,31 +1,35 @@
 --!strict
--- PlayerList: our player list, top right (GUI lane, designer 2026-10-03, C7, D9, D10, D11).
--- Roblox's own list is switched off. A header ("Players (12)") opens and closes it (open on a
--- computer, closed on a phone at first). Three tabs:
--- - Players: everyone here, you first, then by rank: the rank badge, the username (never
---   translated) with their country flag if they turned it on (the CountryFlag attribute,
---   Settings), wins vs players and money. Disguised and tutorial bots are listed like people
---   (their rank and money, a fixed believable wins count for their tier, never a flag);
---   pressing one does nothing. PC robots are not listed. Pressing a real player opens a small
---   card beside the list: Trade (a trade invite, TradeRequest "Invite"), Add friend and View
---   profile (Roblox's own prompts).
--- - Top Wins and Top Rank: the global boards (Leaderboards remote), top 50, and your place
---   (or "Not on the board yet").
+-- PlayerList: our player list, flush in the top-right corner of Roblox's top bar row, where
+-- Roblox's own list sits (GUI lane, designer 2026-10-03, C7, D9, D10, D11; restyled
+-- 2026-10-07). Roblox's own list is switched off.
+--
+-- The Shop's lively card: the pale blue header band with its 8-balls scrolling ("Players (12)"
+-- and a chevron; pressing it opens and folds the list) over the white sheet with the still
+-- dots. It starts open on a computer and folded on any touch screen (phones and tablets). One
+-- list, no tabs (the global boards are the lobby signs): a "Wins" and "Money" titles row, then
+-- everyone here, you first, then by rank: the rank badge, the username (never translated) with
+-- their country flag if they turned it on (the CountryFlag attribute, Settings), wins vs
+-- players and money. Disguised and tutorial bots are listed like people (their rank and money,
+-- a fixed believable wins count for their tier, never a flag); pressing one does nothing. PC
+-- robots are not listed. Pressing a real player opens a small card beside the list: Trade (a
+-- trade invite, TradeRequest "Invite"), Add friend and View profile (Roblox's own prompts).
+--
+-- It stays clear of the Settings gear (`avoid`): on a narrow phone it gets narrower first.
 -- Hidden in a match and under the popups (Progression). Gamepad: the D-pad's left in the hub
 -- focuses the list (Progression.padRoute); B leaves it. Sizes in Config.UI.PlayerList.
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
-local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
-local Ranks = require(Shared:WaitForChild("Progression"):WaitForChild("Ranks"))
 local View = require(Shared:WaitForChild("Progression"):WaitForChild("PlayerListView"))
+local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local People = require(script.Parent.People)
@@ -37,7 +41,6 @@ local P = Config.UI.PlayerList
 local K = Config.UI.Kit
 local S = Config.Multiplayer.Style
 local W = Strings.PlayerList
-local TABS = { "Players", "Wins", "Rank" }
 
 local PlayerList = {}
 PlayerList.__index = PlayerList
@@ -46,8 +49,13 @@ type RowView = {
 	button: TextButton,
 	badge: ImageLabel,
 	name: TextLabel,
-	sub: TextLabel,
+	wins: TextLabel,
 	money: TextLabel,
+}
+
+export type Options = {
+	-- HUD pieces in the top row the list keeps clear of (the Settings gear and its word).
+	avoid: { GuiObject }?,
 }
 
 local function round(n: number): number
@@ -59,34 +67,42 @@ local function num(x: any): number
 end
 
 --- Build the list into the player's GUI (hidden until setVisible).
-function PlayerList.new(screen: ScreenGui): any
+function PlayerList.new(screen: ScreenGui, opts: Options?): any
 	local self: any = setmetatable({}, PlayerList)
 	self.screen = screen
-	self.tab = "Players"
-	self.wanted = false
+	self.avoid = if opts and opts.avoid then opts.avoid else {}
 	self.showing = false
 	self.rows = {} :: { RowView }
-	self.boards = {} :: { [string]: any }
 	self.data = {} :: { any }
+	self.sizeTween = nil :: Tween?
 	pcall(function()
 		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
 	end)
+	-- Folded at first on any touch screen (phones and tablets), open on a computer.
+	self.open = not UserInputService.TouchEnabled
 
+	-- The free part of Roblox's top bar row: the list's header sits in it, at its right end.
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "PlayerList"
 	gui.ResetOnSpawn = false
+	gui.ScreenInsets = Enum.ScreenInsets.TopbarSafeInsets
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.DisplayOrder = screen.DisplayOrder + 1
 	gui.Enabled = false
 	gui.Parent = screen.Parent
 	self.gui = gui
-	local short = screen.AbsoluteSize.Y > 0 and screen.AbsoluteSize.Y < S.ShortHeight
-	self.open = not short
 
-	local panel = HudParts.card(gui, "Panel", 14)
+	local panel = HudParts.menuCard(gui, "Panel", P.CornerPx)
 	panel.AnchorPoint = Vector2.new(1, 0)
-	panel.ClipsDescendants = true
 	self.panel = panel
+	self.band = HudParts.livelyCard(panel)
+	local sheet = (panel:FindFirstChild("Fill") :: Frame):FindFirstChild("Sheet") :: Frame
+	local sheetCorner = sheet:FindFirstChildOfClass("UICorner")
+	if sheetCorner then
+		sheetCorner.CornerRadius = UDim.new(0, P.SheetCornerPx)
+	end
+	self.sheet = sheet
+
 	local header = Instance.new("TextButton")
 	header.Name = "Header"
 	header.Text = ""
@@ -95,53 +111,61 @@ function PlayerList.new(screen: ScreenGui): any
 	header.ZIndex = 4
 	header.Parent = panel
 	self.header = header
-	local headerText = HudParts.text(header, "Words", P.TextPx + 2, "")
+	local headerText = HudParts.text(header, "Words", P.TitlePx, "")
 	headerText.AutoLocalize = false
+	headerText.TextWrapped = false
 	headerText.TextXAlignment = Enum.TextXAlignment.Left
-	headerText.Position = UDim2.fromOffset(12, 0)
-	headerText.Size = UDim2.new(1, -44, 1, 0)
 	headerText.ZIndex = 5
 	self.headerText = headerText
 	local chevron = HudParts.icon(header, "ChevronDown", "Chevron")
 	chevron.AnchorPoint = Vector2.new(1, 0.5)
-	chevron.Position = UDim2.new(1, -10, 0.5, 0)
-	chevron.Size = UDim2.fromOffset(22, 22)
 	chevron.ZIndex = 5
 	self.chevron = chevron
 	header.Activated:Connect(function()
 		UISound.play("Click")
 		self.open = not self.open
-		self:layout()
+		if not self.open then
+			self.popout.Visible = false
+		end
+		self:refresh()
+		self:layout(true)
 	end)
 
-	-- The tabs.
-	local tabs = HudParts.frame(panel, "Tabs")
-	tabs.ZIndex = 4
-	self.tabsFrame = tabs
-	self.tabButtons = {}
-	for index, key in TABS do
-		local button = HudParts.candy(tabs, W.Tabs[key], function()
-			self.tab = key
-			self:refresh()
-			self:layout()
-		end, "White")
-		button.Name = key
-		button.LayoutOrder = index
-		self.tabButtons[key] = button
-	end
+	-- Under the header: the titles and the rows, clipped while the list opens or folds (the
+	-- card itself is not clipped, so its ink outline and shadow stay whole).
+	local body = HudParts.frame(panel, "Body")
+	body.ClipsDescendants = true
+	body.ZIndex = 3
+	self.body = body
+	-- The column titles, on the sheet's top.
+	local columns = HudParts.frame(body, "Columns")
+	columns.ZIndex = 4
+	self.columns = columns
+	local winsTitle = HudParts.note(columns, "Wins", P.ColumnsTextPx, W.WinsColumn)
+	winsTitle.TextXAlignment = Enum.TextXAlignment.Right
+	winsTitle.TextColor3 = HudParts.color(K.Numbers.Count)
+	winsTitle.ZIndex = 4
+	self.winsTitle = winsTitle
+	local moneyTitle = HudParts.note(columns, "Money", P.ColumnsTextPx, W.MoneyColumn)
+	moneyTitle.TextXAlignment = Enum.TextXAlignment.Right
+	moneyTitle.TextColor3 = HudParts.color(K.Numbers.Count)
+	moneyTitle.ZIndex = 4
+	self.moneyTitle = moneyTitle
 
 	local scroll = Instance.new("ScrollingFrame")
 	scroll.Name = "Rows"
 	scroll.BackgroundTransparency = 1
 	scroll.BorderSizePixel = 0
-	scroll.ScrollBarThickness = 6
+	scroll.ScrollBarThickness = 4
 	scroll.ScrollingDirection = Enum.ScrollingDirection.Y
 	scroll.CanvasSize = UDim2.new()
 	scroll.ZIndex = 3
-	scroll.Parent = panel
+	scroll.Parent = body
 	self.scroll = scroll
-	local footer = HudParts.note(panel, "Footer", P.ShortTextPx, "")
+	-- A trade invite's answer, under the rows for a moment.
+	local footer = HudParts.note(body, "Footer", P.ShortTextPx, "")
 	footer.ZIndex = 4
+	footer.Visible = false
 	self.footer = footer
 
 	-- The popout card beside the list (a real player's buttons).
@@ -173,7 +197,7 @@ function PlayerList.new(screen: ScreenGui): any
 	end
 	pop.Size = UDim2.fromOffset(P.PopoutWidthPx, P.TextPx + 22 + 3 * (P.PopoutButtonPx + 6))
 
-	-- Data in: players, bots, attributes, the boards.
+	-- Data in: players and bots.
 	local function soon()
 		self:queueRefresh()
 	end
@@ -181,30 +205,37 @@ function PlayerList.new(screen: ScreenGui): any
 	Players.PlayerRemoving:Connect(soon)
 	People.botAdded:Connect(soon)
 	People.botRemoved:Connect(soon)
-	task.spawn(function()
-		local ok, remote = pcall(Net.get, "Leaderboards")
-		if ok and remote then
-			(remote :: RemoteEvent).OnClientEvent:Connect(function(payload: any)
-				if type(payload) == "table" and type(payload.boards) == "table" then
-					self.boards = payload.boards
-					if self.tab ~= "Players" then
-						self:queueRefresh()
-					end
-				end
-			end)
-		end
-	end)
 	-- Ranks, money and wins change often: a quiet refresh every second while open.
 	task.spawn(function()
 		while true do
 			task.wait(1)
-			if self.showing and self.open and self.tab == "Players" then
+			if self.showing and self.open then
 				self:refresh()
 			end
 		end
 	end)
-	screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+	local function relayout()
 		self:layout()
+	end
+	screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(relayout)
+	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(relayout)
+	for _, object in self.avoid do
+		object:GetPropertyChangedSignal("AbsolutePosition"):Connect(relayout)
+		object:GetPropertyChangedSignal("AbsoluteSize"):Connect(relayout)
+	end
+	-- Studio checks: open or fold it ("playerList", true/false) and pad it with `count` fake
+	-- people ("playerListFake", count) to see a long list.
+	GuiQA.add("playerList", function(open: boolean)
+		self.open = open
+		self:refresh()
+		self:layout(true)
+		return self.open
+	end)
+	GuiQA.add("playerListFake", function(count: number)
+		self.fake = count
+		self:refresh()
+		self:layout()
+		return #self.data
 	end)
 	self:refresh()
 	self:layout()
@@ -271,7 +302,7 @@ local function rowView(self: any, index: number): RowView
 	button.BorderSizePixel = 0
 	button.ZIndex = 3
 	button.Parent = self.scroll
-	HudParts.corner(button, 8)
+	HudParts.corner(button, 6)
 	local badge = Instance.new("ImageLabel")
 	badge.Name = "Badge"
 	badge.BackgroundTransparency = 1
@@ -284,23 +315,24 @@ local function rowView(self: any, index: number): RowView
 	name.TextTruncate = Enum.TextTruncate.AtEnd
 	name.TextWrapped = false
 	name.ZIndex = 4
-	local sub = HudParts.note(button, "Sub", P.ShortTextPx - 2, "")
-	sub.AutoLocalize = false
-	sub.TextXAlignment = Enum.TextXAlignment.Left
-	sub.TextColor3 = HudParts.color(K.Numbers.Count)
-	sub.ZIndex = 4
-	local money = HudParts.text(button, "Money", P.ShortTextPx, "", HudParts.color(K.Numbers.Money))
+	local wins = HudParts.note(button, "Wins", P.TextPx, "")
+	wins.AutoLocalize = false
+	wins.TextXAlignment = Enum.TextXAlignment.Right
+	wins.TextWrapped = false
+	wins.ZIndex = 4
+	local money = HudParts.text(button, "Money", P.TextPx, "", HudParts.color(K.Numbers.Money))
 	money.AutoLocalize = false
 	money.TextXAlignment = Enum.TextXAlignment.Right
 	money.TextWrapped = false
 	money.ZIndex = 4
-	local made: RowView = { button = button, badge = badge, name = name, sub = sub, money = money }
+	local made: RowView =
+		{ button = button, badge = badge, name = name, wins = wins, money = money }
 	self.rows[index] = made
 	button.MouseEnter:Connect(function()
-		button.BackgroundTransparency = 0.6
+		self:shadeRow(index, true)
 	end)
 	button.MouseLeave:Connect(function()
-		button.BackgroundTransparency = 1
+		self:shadeRow(index, false)
 	end)
 	button.Activated:Connect(function()
 		self:pressRow(index)
@@ -308,139 +340,203 @@ local function rowView(self: any, index: number): RowView
 	return made
 end
 
---- Read the list (or the board) again and redraw the rows.
-function PlayerList.refresh(self: any)
-	local me = Players.LocalPlayer
-	local people = everyone()
-	self.headerText.Text = W.Header:format(#people)
-	local data: { any } = {}
-	local footer = ""
-	if self.tab == "Players" then
-		data = people
-	else
-		local board = self.boards[self.tab]
-		local place: number? = nil
-		for i, entry in (if type(board) == "table" then board else {}) do
-			if type(entry) == "table" then
-				local value = num(entry.value)
-				local isMe = me ~= nil and entry.userId == me.UserId
-				if isMe then
-					place = i
-				end
-				table.insert(data, {
-					place = i,
-					name = tostring(entry.name),
-					value = value,
-					you = isMe,
-				})
-			end
-		end
-		footer = if type(board) ~= "table"
-			then W.Loading
-			elseif place then W.YourPlace:format(place)
-			else W.NotPlaced
+-- A row's background: pale blue for your own row, white under the mouse.
+function PlayerList.shadeRow(self: any, index: number, hovered: boolean)
+	local v = self.rows[index]
+	local row = self.data[index]
+	if not v then
+		return
 	end
-	self.data = data
-	self.footer.Text = footer
-	for index, row in data do
+	if row and row.you then
+		v.button.BackgroundColor3 = HudParts.tone("Blue")
+		v.button.BackgroundTransparency = if hovered
+			then P.YouTransparency - 0.1
+			else P.YouTransparency
+	else
+		v.button.BackgroundColor3 = HudParts.tone("White")
+		v.button.BackgroundTransparency = if hovered then 0.4 else 1
+	end
+end
+
+--- Read the list again and redraw the rows.
+function PlayerList.refresh(self: any)
+	local people = everyone()
+	for index = 1, self.fake or 0 do
+		table.insert(people, {
+			id = -index,
+			name = "Player" .. string.rep("x", index % 9) .. index,
+			rankIndex = index,
+			wins = index * 37,
+			bot = true,
+			tier = "Gold",
+			division = 1 + index % 3,
+			money = index * 123456,
+			flag = "",
+		})
+	end
+	self.headerText.Text = W.Header:format(#people)
+	self.data = people
+	for index, row in people do
 		local v = rowView(self, index)
 		v.button.Visible = true
-		if self.tab == "Players" then
-			v.badge.Visible = true
-			v.badge.Image = if row.rankIndex > 0
-				then RankBadge.image(row.tier, row.division)
-				else RankBadge.image("Unranked", 0)
-			local flag = if row.flag ~= "" then " " .. row.flag else ""
-			v.name.Text = (if row.you then W.You .. ": " else "") .. row.name .. flag
-			v.sub.Text = W.Wins:format(Format.commas(row.wins))
-			v.money.Text = Format.money(row.money)
-		else
-			v.badge.Visible = false
-			v.name.Text = ("#%d  %s"):format(row.place, row.name)
-			v.sub.Text = if self.tab == "Rank"
-				then Ranks.name(Ranks.fromXp(row.value, true))
-				else W.Wins:format(Format.commas(row.value))
-			v.money.Text = ""
-		end
+		v.badge.Image = if row.rankIndex > 0
+			then RankBadge.image(row.tier, row.division)
+			else RankBadge.image("Unranked", 0)
+		local flag = if row.flag ~= "" then " " .. row.flag else ""
+		v.name.Text = row.name .. flag
 		v.name.TextColor3 = if row.you then HudParts.tone("Blue") else HudParts.tone("Ink")
+		v.wins.Text = Format.commas(row.wins)
+		v.money.Text = Format.money(row.money)
+		self:shadeRow(index, false)
 	end
-	for index = #data + 1, #self.rows do
+	for index = #people + 1, #self.rows do
 		self.rows[index].button.Visible = false
 	end
 end
 
-function PlayerList.layout(self: any)
+-- The list's width: its full width, or narrower to keep clear of the gear on a narrow phone.
+function PlayerList.fitWidth(self: any, full: number, right: number): number
+	local limit = -math.huge
+	for _, object in self.avoid do
+		if object.AbsoluteSize.X > 0 then
+			limit = math.max(limit, object.AbsolutePosition.X + object.AbsoluteSize.X)
+		end
+	end
+	if limit == -math.huge then
+		return full
+	end
+	return math.clamp(right - (limit + P.AvoidGapPx), P.MinWidthPx, full)
+end
+
+--- Place everything. `animate` tweens the panel open or folded (the header was pressed).
+function PlayerList.layout(self: any, animate: boolean?)
 	local size = self.screen.AbsoluteSize
-	if size.X <= 0 then
+	local area = self.gui.AbsoluteSize
+	if size.X <= 0 or area.X <= 0 then
 		return
 	end
 	local short = size.Y < S.ShortHeight
-	local width = if short then P.ShortWidthPx else P.WidthPx
-	local rowH = if short then P.ShortRowPx else P.RowPx
-	local headerH = P.HeaderPx
-	self.panel.Position = UDim2.new(1, -P.RightPx, 0, P.TopGapPx)
-	self.header.Size = UDim2.new(1, 0, 0, headerH)
-	self.chevron.Rotation = if self.open then 180 else 0
-	local tabsH = if self.open then 34 else 0
-	self.tabsFrame.Visible = self.open
-	self.tabsFrame.Position = UDim2.fromOffset(6, headerH)
-	self.tabsFrame.Size = UDim2.new(1, -12, 0, tabsH)
-	local tabW = math.floor((width - 12 - 2 * 4) / #TABS)
-	for index, key in TABS do
-		local b = self.tabButtons[key]
-		b.Size = UDim2.fromOffset(tabW, tabsH - 4)
-		b.Position = UDim2.fromOffset((index - 1) * (tabW + 4), 2)
-		HudParts.setButtonTextSize(b, if short then 11 else 13)
-		HudParts.setTone(b, if key == self.tab then "Blue" else "White")
+	local function pick(computer: number, phone: number): number
+		return if short then phone else computer
 	end
+	local headerH = pick(P.HeaderPx, P.ShortHeaderPx)
+	local rowH = pick(P.RowPx, P.ShortRowPx)
+	local columnsH = pick(P.ColumnsPx, P.ShortColumnsPx)
+	local textPx = pick(P.TextPx, P.ShortTextPx)
+	local badgePx = pick(P.BadgePx, P.ShortBadgePx)
+	local winsW = pick(P.WinsColumnPx, P.ShortWinsColumnPx)
+	local moneyW = pick(P.MoneyColumnPx, P.ShortMoneyColumnPx)
+	local inset = K.SheetInsetPx
+
+	-- The header in the top row, centred on it like Roblox's buttons, at its right end.
+	local origin = self.gui.AbsolutePosition
+	local right = origin.X + area.X - P.RightPx
+	local width = self:fitWidth(pick(P.WidthPx, P.ShortWidthPx), right)
+	local top = math.max(0, round((area.Y - headerH) / 2))
+	self.panel.Position = UDim2.new(1, -P.RightPx, 0, top)
+
+	self.header.Size = UDim2.new(1, 0, 0, headerH)
+	local chevronPx = pick(P.ChevronPx, P.ShortChevronPx)
+	self.chevron.Size = UDim2.fromOffset(chevronPx, chevronPx)
+	self.chevron.Position = UDim2.new(1, -10, 0.5, 0)
+	self.chevron.Rotation = if self.open then 180 else 0
+	HudParts.setTextSize(self.headerText, pick(P.TitlePx, P.ShortTitlePx))
+	self.headerText.Position = UDim2.fromOffset(12, 0)
+	self.headerText.Size = UDim2.new(1, -(chevronPx + 24), 1, 0)
+
+	-- The columns: the badge and name, then Wins and Money, right-aligned.
+	local rowW = width - inset * 2 - 4
+	local moneyX = rowW - moneyW - 6
+	local winsX = moneyX - winsW - 4
+	self.body.Position = UDim2.fromOffset(0, headerH)
+	self.body.Size = UDim2.new(1, 0, 1, -headerH)
+	self.columns.Position = UDim2.fromOffset(inset + 2, 1)
+	self.columns.Size = UDim2.fromOffset(rowW, columnsH)
+	local columnsText = pick(P.ColumnsTextPx, P.ShortColumnsTextPx)
+	HudParts.setTextSize(self.winsTitle, columnsText, columnsText)
+	self.winsTitle.Position = UDim2.fromOffset(winsX, 0)
+	self.winsTitle.Size = UDim2.fromOffset(winsW, columnsH)
+	HudParts.setTextSize(self.moneyTitle, columnsText, columnsText)
+	self.moneyTitle.Position = UDim2.fromOffset(moneyX, 0)
+	self.moneyTitle.Size = UDim2.fromOffset(moneyW, columnsH)
+
 	local count = #self.data
-	local footerH = if self.open and self.tab ~= "Players" then P.ShortTextPx + 10 else 0
+	local footerH = if self.footer.Visible then P.ShortTextPx + 8 else 0
+	local listTop = headerH + 1 + columnsH
 	local maxList = math.max(
 		rowH * 2,
-		math.floor(size.Y * (if short then P.ShortMaxHeightShare else P.MaxHeightShare))
-			- headerH
-			- tabsH
-			- footerH
+		math.min(
+			round(rowH * pick(P.MaxRows, P.ShortMaxRows)),
+			math.floor(size.Y * P.MaxHeightShare) - listTop - footerH
+		)
 	)
-	local listH = if self.open then math.min(maxList, count * rowH + 4) else 0
-	self.scroll.Visible = self.open
-	self.scroll.Position = UDim2.fromOffset(4, headerH + tabsH)
-	self.scroll.Size = UDim2.new(1, -8, 0, listH)
-	self.scroll.CanvasSize = UDim2.fromOffset(0, count * rowH + 4)
-	self.footer.Visible = footerH > 0
-	self.footer.Position = UDim2.fromOffset(8, headerH + tabsH + listH + 2)
-	self.footer.Size = UDim2.new(1, -16, 0, footerH - 4)
+	local listH = math.min(maxList, count * rowH + 2)
+	self.scroll.Position = UDim2.fromOffset(inset + 2, listTop - headerH)
+	self.scroll.Size = UDim2.fromOffset(rowW + 4, listH)
+	self.scroll.CanvasSize = UDim2.fromOffset(0, count * rowH + 2)
+	self.footer.Position = UDim2.fromOffset(inset + 6, listTop - headerH + listH + 2)
+	self.footer.Size = UDim2.fromOffset(rowW - 8, math.max(0, footerH - 4))
 	HudParts.setTextSize(self.footer, P.ShortTextPx)
-	self.panel.Size = UDim2.fromOffset(width, headerH + tabsH + listH + footerH + 4)
-	local textPx = if short then P.ShortTextPx else P.TextPx
-	local badgePx = math.min(P.BadgePx, rowH - 6)
+
 	for index, v in self.rows do
-		local y = (index - 1) * rowH
-		v.button.Position = UDim2.fromOffset(0, y)
-		v.button.Size = UDim2.new(1, -8, 0, rowH - 2)
-		v.badge.Size = UDim2.fromOffset(badgePx, badgePx)
-		v.badge.Position = UDim2.fromOffset(4, round((rowH - 2 - badgePx) / 2))
-		local x = if v.badge.Visible then badgePx + 10 else 8
+		v.button.Position = UDim2.fromOffset(0, (index - 1) * rowH)
+		v.button.Size = UDim2.fromOffset(rowW, rowH - 2)
+		local b = math.min(badgePx, rowH - 2)
+		v.badge.Size = UDim2.fromOffset(b, b)
+		v.badge.Position = UDim2.fromOffset(2, round((rowH - 2 - b) / 2))
+		local x = b + 6
 		HudParts.setTextSize(v.name, textPx)
-		v.name.Position = UDim2.fromOffset(x, 1)
-		v.name.Size = UDim2.new(0.66, -x, 0, textPx + 4)
-		HudParts.setTextSize(v.sub, textPx - 3)
-		v.sub.Position = UDim2.fromOffset(x, textPx + 3)
-		v.sub.Size = UDim2.new(0.66, -x, 0, textPx)
+		v.name.Position = UDim2.fromOffset(x, 0)
+		v.name.Size = UDim2.new(0, math.max(0, winsX - x - 4), 1, 0)
+		HudParts.setTextSize(v.wins, textPx)
+		v.wins.Position = UDim2.fromOffset(winsX, 0)
+		v.wins.Size = UDim2.new(0, winsW, 1, 0)
 		HudParts.setTextSize(v.money, textPx)
-		v.money.Position = UDim2.fromScale(0.66, 0)
-		v.money.Size = UDim2.new(0.34, -6, 1, 0)
+		v.money.Position = UDim2.fromOffset(moneyX, 0)
+		v.money.Size = UDim2.new(0, moneyW, 1, 0)
+	end
+
+	-- Open: the header, the titles and the rows on the sheet; folded: the header band alone.
+	local openH = listTop + listH + footerH + inset
+	local height = if self.open then openH else headerH
+	HudParts.setSheetTop(self.panel, headerH)
+	-- The header's 8-balls fill the whole card (its own round corners clip them), so the folded
+	-- header is the band alone; the sheet covers the rest when open.
+	self.band.Size = UDim2.fromScale(1, 1)
+	local target = UDim2.fromOffset(width, height)
+	if self.sizeTween then
+		self.sizeTween:Cancel()
+		self.sizeTween = nil
+	end
+	local function settle()
+		self.sheet.Visible = self.open
+		self.body.Visible = self.open
+	end
+	if animate and self.panel.Size ~= target and not UIAnim.reduced() then
+		self.sheet.Visible, self.body.Visible = true, true
+		local tween = TweenService:Create(
+			self.panel,
+			TweenInfo.new(P.ToggleSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ Size = target }
+		)
+		self.sizeTween = tween
+		tween.Completed:Connect(function(state)
+			if state == Enum.PlaybackState.Completed then
+				settle()
+			end
+		end)
+		tween:Play()
+	else
+		self.panel.Size = target
+		settle()
 	end
 	if self.popout.Visible then
-		self.popout.Position = UDim2.new(1, -P.RightPx - width - 8, 0, P.TopGapPx)
+		self.popout.Position = UDim2.new(1, -P.RightPx - width - P.PopoutGapPx, 0, top)
 	end
 end
 
 -- A row was pressed: a real player (not you) opens the popout; a bot or you, nothing.
 function PlayerList.pressRow(self: any, index: number)
-	if self.tab ~= "Players" then
-		return
-	end
 	local row = self.data[index]
 	if not row or row.bot or row.you or not row.player then
 		self.popout.Visible = false
@@ -467,8 +563,17 @@ function PlayerList.popAction(self: any, key: string)
 		task.spawn(function()
 			local reply = ItemState.request("TradeRequest", "Invite", player.UserId)
 			local ok = type(reply) == "table" and reply.ok == true
-			self.footer.Visible = true
 			self.footer.Text = if ok then W.TradeSent else tostring(reply and reply.reason or "")
+			self.footer.Visible = true
+			self:layout()
+			local token = {}
+			self.footerToken = token
+			task.delay(P.FooterSeconds, function()
+				if self.footerToken == token then
+					self.footer.Visible = false
+					self:layout()
+				end
+			end)
 		end)
 	elseif key == "AddFriend" then
 		pcall(function()
@@ -504,7 +609,7 @@ function PlayerList.focus(self: any)
 	if not self.open then
 		self.open = true
 		self:refresh()
-		self:layout()
+		self:layout(true)
 	end
 	local first = self.rows[1]
 	GuiService.SelectedObject = if first and first.button.Visible then first.button else self.header

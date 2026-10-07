@@ -933,13 +933,11 @@ return {
 	},
 	-- The player list and the global boards (PlayerList, Leaderboards; GUI lane, C7).
 	PlayerList = {
-		Tabs = { Players = "Players", Wins = "Top Wins", Rank = "Top Rank" },
 		Header = "Players (%s)", -- people here
-		Wins = "%s wins", -- vs players
+		WinsColumn = "Wins", -- vs players
+		MoneyColumn = "Money",
+		Wins = "%s wins", -- vs players (the lobby signs)
 		You = "You",
-		YourPlace = "Your place: #%s",
-		NotPlaced = "Not on the board yet",
-		Loading = "Loading...",
 		Trade = "Trade",
 		AddFriend = "Add friend",
 		Profile = "View profile",

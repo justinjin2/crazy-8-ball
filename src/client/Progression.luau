@@ -229,7 +229,9 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	deps.column = column
 	corners = HubCorners.new(screen, deps)
 	deps.corners = corners
-	playerList = PlayerList.new(screen)
+	-- The list keeps clear of the Settings gear and its word in the top row.
+	playerList =
+		PlayerList.new(screen, { avoid = { corners.gearTile.button, corners.gearTile.word } })
 	banner = Banner.new(screen, { avoid = { rankHud.holder } })
 	Menus.setBlocker(function(): boolean
 		return lastState.inMatch or popupUp()

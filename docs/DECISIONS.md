@@ -2815,3 +2815,12 @@ timer of a new block stay the designer's call.
 - 2026-10-06 (designer): **NEW RANK! darkens the screen again** (50% black, with the blur): it
   is the one popup that stacks on another screen (the match results), so the dim sets it
   apart. Every other screen still only blurs.
+- 2026-10-07 (designer): **The player list is like Roblox's own.** Flush in the top-right corner
+  of Roblox's top bar row, the Shop's lively header band (scrolling 8-balls) over the white
+  sheet; one list, no tabs: the rank badge and username, then Wins and Money columns. It starts
+  folded on every touch screen (phones and tablets) and is smaller on a phone (3.3 rows), and
+  narrows to stay clear of the Settings gear. The global Top Wins / Top Rank boards leave the
+  HUD (the lobby signs keep them); a new home for them is parked until just before release.
+- 2026-10-07: **Nothing on the rank HUD pokes off the top of the screen.** The red "!" moved
+  in onto the badge (`PendingDotAt`) and the HUD sits low enough that the dot stays on screen
+  at its biggest (hover, press bounce, breath) on a phone, a tablet and a computer.

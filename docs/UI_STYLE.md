@@ -684,3 +684,15 @@ rebuild, not a description of the current screen.
 
 **Open**
 - The exact tuning of "each section about one screen tall" on a computer.
+
+## 16. The player list (designer, 2026-10-07)
+
+Like Roblox's own list, flush in the top-right corner of Roblox's top bar row (`PlayerList`,
+`Config.UI.PlayerList`). The Shop's lively card: the pale blue header band with its 8-balls
+scrolling ("Players (n)" and a chevron) over the white sheet with the still dots; pressing the
+header opens or folds it (0.15 s). One list, no tabs: a small "Wins" and "Money" titles row,
+then the rank badge and username (your row pale blue, your name blue), wins and money
+right-aligned. Folded at first on any touch screen; on a phone it is smaller and shows 3.3
+rows, ending above the Daily Challenge. It narrows (down to 176 px) before it would touch the
+Settings gear. Pressing a real player opens the Trade / Add friend / View profile card beside
+it.
