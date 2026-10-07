@@ -4234,8 +4234,8 @@ Config.Audio = {
 		RevealLegendary = { Id = "rbxassetid://4612378364", Volume = 0.3 },
 		RevealMythic = { Id = "rbxassetid://4612378364", Volume = 0.3 },
 		-- The win (designer, 2026-10-07): the old Rare reveal's orchestral sting (403300
-		-- "Fast Orchestral WIN Celebration", assets/audio/luckyblocks/README.md), as a winner's
-		-- result screen reaches its total and Continue (ResultScreen).
+		-- "Fast Orchestral WIN Celebration", assets/audio/luckyblocks/README.md), timed so its
+		-- two hits land on a winner's Total and Continue (ResultScreen; Result.WinSting).
 		ResultWin = { Id = "rbxassetid://101099108525458", Volume = 0.28 },
 		-- "Riser_104" (the designer's file, trimmed to 1.5 s; peak at 0.45 s): the Rare pull
 		-- cutscene's build into its white flash (Config.Cutscenes.Rare).
@@ -5653,6 +5653,12 @@ Config.UI = {
 			TotalSeconds = 0.45, -- then the Total
 			ChipDelaySeconds = 0.15, -- then the total chip flies to the money HUD
 			ContinueDelaySeconds = 0.4, -- then Continue (it stays until pressed; designer 2026-10-07)
+			-- A win instead plays to the sting (Config.Audio.Ui.ResultWin, designer 2026-10-07):
+			-- its two hits, seconds into the clip (read off the file's low end).
+			WinSting = {
+				FirstHitSeconds = 0.05, -- the Total pops, its whole amount at once
+				SecondHitSeconds = 0.19, -- the block chip and Continue pop
+			},
 			SkipGuardSeconds = 0.35, -- a tap this soon after a skip does not also close
 			-- After a two-sided game a row under both columns replaces Continue (PostMatch,
 			-- designer 2026-09-28): the series score, Rematch, Play another and Lobby (an arena)

@@ -21,8 +21,8 @@
 --   grows when all that needs more room; the whole screen scales to fit.
 -- - About 5 to 6 s in all (Config.UI.Progress.Result). A tap or click anywhere, or gamepad A or
 --   B, skips to the end; then it stays until Continue (or A or B) is pressed (designer,
---   2026-10-07: it never closes by itself). As Continue (or the row) shows, a winner hears
---   the win sting (UISound "ResultWin").
+--   2026-10-07: it never closes by itself). A winner's Total pops whole on the first hit of
+--   the win sting (UISound "ResultWin"), and the block chip and Continue on its second.
 --   After it closes, NEW RANK! follows when the match took you to a new division, with the
 --   rank rewards (xp.rewards: money, lucky blocks, the tier's cue) as its chips.
 -- - After a two-sided game (designer, 2026-09-28) the PostMatch row takes Continue's place,
@@ -339,7 +339,7 @@ local function makeLine(parent: Instance, label: string, value: number): any
 	words.TextXAlignment = Enum.TextXAlignment.Left
 	words.TextWrapped = false
 	words.Size = UDim2.fromScale(0.68, 1)
-	local amount = HudParts.text(root, "Amount", C.LineTextPx + 2, Format.money(0))
+	local amount = HudParts.text(root, "Amount", C.LineTextPx + 2, Format.moneyDelta(0))
 	amount.AutoLocalize = false -- only a number
 	amount.TextWrapped = false
 	amount.TextXAlignment = Enum.TextXAlignment.Right
@@ -685,6 +685,17 @@ function ResultScreen.build(self: any, view: any)
 		view.xpEnd + C.ContinueDelaySeconds,
 		if view.blockChip then view.blockAt + C.ContinueDelaySeconds else 0
 	)
+	-- A win plays to the sting (designer, 2026-10-07): its first hit lands as the Total pops
+	-- with the whole amount, its second as the block chip and Continue pop.
+	view.sting = type(summary.you) == "table" and summary.you.outcome == "Win"
+	view.stingPlayed = false
+	if view.sting then
+		local W = C.WinSting
+		view.stingAt = view.totalAt - W.FirstHitSeconds
+		view.blockAt = view.totalAt + W.SecondHitSeconds - W.FirstHitSeconds
+		view.blockFlyAt = math.max(view.chipAt, view.blockAt) + C.BlockFlySeconds
+		view.continueAt = math.max(view.blockAt, view.xpEnd + C.ContinueDelaySeconds)
+	end
 end
 
 --------------------------------------------------------------------------------------------
@@ -1197,7 +1208,7 @@ function ResultScreen.stepMoney(self: any, view: any, t: number, quiet: boolean)
 			if value ~= line.last then
 				ticked = ticked or value > line.last
 				line.last = value
-				line.amount.Text = Format.money(value)
+				line.amount.Text = Format.moneyDelta(value) -- "+$800" (designer, 2026-10-07)
 			end
 		end
 	end
@@ -1205,7 +1216,9 @@ function ResultScreen.stepMoney(self: any, view: any, t: number, quiet: boolean)
 		if not view.totalPill.Visible then
 			UIAnim.popIn(view.totalPill)
 		end
-		local k = UIAnim.quadOut((t - view.totalAt) / (C.TotalSeconds * 0.85))
+		local k = if view.sting
+			then 1
+			else UIAnim.quadOut((t - view.totalAt) / (C.TotalSeconds * 0.85))
 		local value = math.floor(view.total * k + 0.5)
 		local words = Format.money(value)
 		if view.totalAmount.Text ~= words then
@@ -1272,15 +1285,16 @@ function ResultScreen.step(self: any, quiet: boolean)
 		return
 	end
 	local t = clock(view)
+	if view.sting and not view.stingPlayed and t >= view.stingAt then
+		view.stingPlayed = true
+		UISound.play("ResultWin")
+	end
 	stepFace(view, t)
 	stepXp(view, t, quiet)
 	self:stepMoney(view, t, quiet)
 	self:stepBlock(view, t)
 	if t >= view.continueAt and not view.continueShown then
 		view.continueShown = true
-		if type(view.summary.you) == "table" and view.summary.you.outcome == "Win" then
-			UISound.play("ResultWin")
-		end
 		if view.choices then
 			-- The row stays until a choice is made; a new rank shows over it now, not after.
 			-- A and B are Roblox's own again: A presses the selected choice.
