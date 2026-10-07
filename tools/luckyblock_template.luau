@@ -13,7 +13,7 @@ local BLOCKS = {
 	-- { Asset = <model id>, Name = <template name>, Tint = Color3? (the pack particles; nil keeps
 	--   white), Scroll = <image>? (a moving texture on every face of the frame, tagged for
 	--   LuckyWorld), Extra = { <emitter> }? (more particles on the VFX attachment) },
-	{ Asset = 137008354368931, Name = "StandardBlock" }, -- v3: yellow rims, beige faces
+	{ Asset = 81565701370753, Name = "StandardBlock" }, -- v4: golden-beige rims, brown faces
 	{
 		Asset = 131944205075030, -- v3: thinner flush rims
 		Name = "MysteryBlock",

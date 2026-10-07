@@ -3627,416 +3627,369 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/apex.png": {
-    "assetId": "125303192851787",
+    "assetId": "137508627020383",
     "assetType": "Decal",
-    "imageId": "92204406124041",
-    "sha256": "fedeee3c46e8464613f5a33444a15ec8436715a66851c1ff7df3589c8618a47e",
+    "imageId": "118398483448128",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/arctic.png": {
-    "assetId": "79119102635986",
+    "assetId": "131846513000611",
     "assetType": "Decal",
-    "imageId": "119567242258169",
-    "sha256": "627544c92ac258e6dbda4f31e8d4bc08a5db1cf93079dba5945e8d0cd484a876",
+    "imageId": "129846937662387",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/aurora.png": {
-    "assetId": "124716374706532",
+    "assetId": "73490907744127",
     "assetType": "Decal",
-    "imageId": "113206357880545",
-    "sha256": "c15de1747aebe7e9fb8e5f65927c6a3ed9447accca2a38a4ca66aefda8a0aa92",
+    "imageId": "110054020277663",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/beta.png": {
+    "assetId": "75696728089673",
+    "assetType": "Decal",
+    "imageId": "99200011808288",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/blaze.png": {
-    "assetId": "121423255825546",
+    "assetId": "99874925601058",
     "assetType": "Decal",
-    "imageId": "130293098628945",
-    "sha256": "43ed2f2973656e5e352b2613bd0d3c329463e7482d56d824a6833c1a000ad931",
+    "imageId": "101212830924751",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/blood_moon.png": {
-    "assetId": "118455311480129",
+    "assetId": "81321511995849",
     "assetType": "Decal",
-    "imageId": "71547276008743",
-    "sha256": "eabcefde2c431442aafcdf0ea3d04fb9e5660a6f1d6827adb9a7abcac865bd42",
+    "imageId": "121109492717390",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/bronze_cue.png": {
-    "assetId": "131054477444647",
+    "assetId": "129230756952392",
     "assetType": "Decal",
-    "imageId": "74613545498960",
-    "sha256": "105203f871aeb4cfe6bbc9e022fc817a48f67eff796221f37f4a0c866e3d3142",
+    "imageId": "94797498234238",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/candy.png": {
-    "assetId": "90795883321547",
+    "assetId": "88992632685209",
     "assetType": "Decal",
-    "imageId": "101565604548293",
-    "sha256": "e0fd84915435cc7950d272993060fabe62b3883ad8874f234978c021b01c7bd5",
+    "imageId": "78502865315249",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/carbon.png": {
-    "assetId": "89949858460550",
+    "assetId": "105444160165338",
     "assetType": "Decal",
-    "imageId": "108734780221545",
-    "sha256": "5382675bc3250ab604588b4afb2cfd402890676b699d1b33541cadfd46e2a3cb",
+    "imageId": "107650100094791",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/celestial_dragon.png": {
-    "assetId": "79258674045352",
+    "assetId": "108907134543991",
     "assetType": "Decal",
-    "imageId": "104094356265283",
-    "sha256": "047969ac515d62f23a88251176071dcd22a9a47bc2fc9206fbfd249b58c3b4a3",
+    "imageId": "115144710370596",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/cherry.png": {
-    "assetId": "77775021033766",
+    "assetId": "101773955073138",
     "assetType": "Decal",
-    "imageId": "91185651788570",
-    "sha256": "abbfbbab2bfe1064b487027c5be0de47ae3752a03eea2a1a9f2286e81de50852",
+    "imageId": "81017676540685",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/chroma.png": {
-    "assetId": "110643876085885",
+    "assetId": "113581120717176",
     "assetType": "Decal",
-    "imageId": "114599309792025",
-    "sha256": "5a688177dca97b70a2b55783117bf82fd5b74839868bc6221941675385eef177",
+    "imageId": "128569594835545",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/classic.png": {
-    "assetId": "118602553989338",
+    "assetId": "71805635087227",
     "assetType": "Decal",
-    "imageId": "120596619533278",
-    "sha256": "08536cc09a2518b9cf09176d2c3b983c3a1a591c514d8b04eb00bc56e811e3d9",
+    "imageId": "138557023320779",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/clockwork.png": {
-    "assetId": "99272615980405",
+    "assetId": "121408095813428",
     "assetType": "Decal",
-    "imageId": "76283134816112",
-    "sha256": "598a541f6c61ebadbe2b3fe923dd31dee13fea17070b944704aab92ff11537f6",
+    "imageId": "85872809808011",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/cobalt.png": {
-    "assetId": "79482861787695",
+    "assetId": "76496735655690",
     "assetType": "Decal",
-    "imageId": "95170664056312",
-    "sha256": "94970602fd1221510f65a93d6d52abb09594b1d9f6386b86ed22c0f3aa9b8e40",
+    "imageId": "116586464576106",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/cosmo.png": {
-    "assetId": "107454361112200",
+    "assetId": "93022248169656",
     "assetType": "Decal",
-    "imageId": "114877481217472",
-    "sha256": "7e106dd00a2131c457e52794027482dec372b212ab06f665427339f2cd2c1b56",
+    "imageId": "70971662604691",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/diamond_cue.png": {
-    "assetId": "96864429657574",
+    "assetId": "107819846737460",
     "assetType": "Decal",
-    "imageId": "76829560946181",
-    "sha256": "998513138e3b510fbfdc8cdb5fa213db376bfeb0cdd64426745f18abc251bdaf",
+    "imageId": "111797590554871",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/disco.png": {
-    "assetId": "118616525830490",
+    "assetId": "103339771069882",
     "assetType": "Decal",
-    "imageId": "106401138474282",
-    "sha256": "8a13442cc4b0ac8bc5a73ec68fa7450b2573dd466bd97b20066aab8299f35a34",
+    "imageId": "99383386367640",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/eclipse.png": {
-    "assetId": "139679126814437",
+    "assetId": "88807137760196",
     "assetType": "Decal",
-    "imageId": "72441911905972",
-    "sha256": "aabd5f2fdc7c5a27d785a4e3fe840b539f330bc177ded17ce24b55b0b6214856",
+    "imageId": "121234407234043",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/expert_cue.png": {
-    "assetId": "117153029212075",
+    "assetId": "91839464971702",
     "assetType": "Decal",
-    "imageId": "134277712513267",
-    "sha256": "2d4cedabdddb662a8665fad1da99f6d0655be60e117741a80d6a2103b7f951b3",
+    "imageId": "110490804347424",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/firework.png": {
+    "assetId": "91379982872380",
+    "assetType": "Decal",
+    "imageId": "74861136074442",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/flare.png": {
-    "assetId": "86342257777981",
+    "assetId": "87060025351183",
     "assetType": "Decal",
-    "imageId": "76178721696675",
-    "sha256": "8b587fdb2e58c31006e63b8df59f259a40423569cda384238b829e3ef13ea1b1",
+    "imageId": "84966475079294",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/frostbite.png": {
-    "assetId": "110721242435899",
+    "assetId": "77371318599478",
     "assetType": "Decal",
-    "imageId": "108453526001548",
-    "sha256": "7fe6b05f4c786f823fe86a1e4f5262c0929d887d68563bb20c3e9ef817300c03",
+    "imageId": "93390823730747",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/gilded.png": {
-    "assetId": "99731870863541",
+    "assetId": "113604623337096",
     "assetType": "Decal",
-    "imageId": "133588678082844",
-    "sha256": "a5d2cd45c67ca3a2336806bd4248aa982490e500dc906c09924776098bb1d51f",
+    "imageId": "91565783690702",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/gold_cue.png": {
-    "assetId": "71640972411065",
+    "assetId": "104454468387983",
     "assetType": "Decal",
-    "imageId": "102962326985082",
-    "sha256": "433ae60330b7d2fd80baf0cef7959cbfae8ced50ec857cd197cf9a96515a843f",
+    "imageId": "134945328469839",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/grandmaster_cue.png": {
-    "assetId": "88281239263027",
+    "assetId": "95367570849051",
     "assetType": "Decal",
-    "imageId": "91341628098592",
-    "sha256": "05a9d5964a3e0130d429f83e3dcb8d83a9b70164e01b8288ebe90cdf9d5b26a9",
+    "imageId": "114723552048905",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/gummy.png": {
-    "assetId": "140376413344654",
+    "assetId": "73665030588873",
     "assetType": "Decal",
-    "imageId": "97615142228750",
-    "sha256": "ef104d39cf2e1bc71dc375fcbeba4e84e65b263300ec43e9e1afe46f4a96c274",
+    "imageId": "75728007443708",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/hacked.png": {
-    "assetId": "90484584710820",
+    "assetId": "98444934202615",
     "assetType": "Decal",
-    "imageId": "133975824744500",
-    "sha256": "991ac09022e1b1755ddb42e6d2e5e54bdc97275140aedcffbb4d73de4d936f70",
+    "imageId": "100610456554618",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/heritage.png": {
-    "assetId": "112078554912961",
+    "assetId": "88905005160336",
     "assetType": "Decal",
-    "imageId": "100020230458583",
-    "sha256": "d29912fd6af0cf3b717483f0f839845e4fb99dcd4eccb71edfbd944704ab55c7",
+    "imageId": "127574476618619",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/honeycomb.png": {
-    "assetId": "104210416797257",
+    "assetId": "96015613277996",
     "assetType": "Decal",
-    "imageId": "123824526999231",
-    "sha256": "82b71721954e27a3526b8cea29b97529a4f4cc286f8fb6f853c9e28c7ad9e0ab",
+    "imageId": "133891334327700",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/hornet.png": {
-    "assetId": "113171253754117",
+    "assetId": "110357216790876",
     "assetType": "Decal",
-    "imageId": "112054919368927",
-    "sha256": "8573d362a41e040cec7e843d0540bb752bc82f7537703f3fd42e7d577003a02d",
+    "imageId": "82615231370332",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/infernal.png": {
-    "assetId": "79008498020535",
+    "assetId": "84419008995163",
     "assetType": "Decal",
-    "imageId": "82299689245181",
-    "sha256": "8bac81000d48de48fdcbcd713ea8c456eb165ae532e63417c54ef2ba06b27c52",
+    "imageId": "110337573767339",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/kitsune.png": {
-    "assetId": "83142104648666",
+    "assetId": "95830985928532",
     "assetType": "Decal",
-    "imageId": "106116395846867",
-    "sha256": "15fda9a81135e863480b9009901797ecb9ea48ab157cff199dc59c134340ddfd",
+    "imageId": "82271195530908",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/kraken.png": {
-    "assetId": "138284690770278",
+    "assetId": "94911134748385",
     "assetType": "Decal",
-    "imageId": "129729646490235",
-    "sha256": "2413d5df65e6a82925a8a73c90e95cb2b3b7d5016b36cbdc9ec5c7562c449b4d",
+    "imageId": "108883568022806",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/lagoon.png": {
-    "assetId": "95168916581305",
+    "assetId": "129288961812030",
     "assetType": "Decal",
-    "imageId": "116568901134298",
-    "sha256": "56456af3dffa03135886149b6e2ddab508988deb40d190b3b368bb71baebc096",
+    "imageId": "129445811513568",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/magma.png": {
-    "assetId": "96498040087082",
+    "assetId": "81225930334237",
     "assetType": "Decal",
-    "imageId": "100433877040969",
-    "sha256": "bfa77046d9fa28fe4d7e4e11355945312a2d1934134f3f6edc393db681582423",
+    "imageId": "121293042798351",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/master_cue.png": {
-    "assetId": "71648897879214",
+    "assetId": "120023141447200",
     "assetType": "Decal",
-    "imageId": "124991772486728",
-    "sha256": "a6cefe8249bef3d706fd40e5c49e1419f17c98d7d08e796ed7c527af60cf2cdf",
+    "imageId": "139192278580166",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/midnight.png": {
-    "assetId": "139025192871906",
+    "assetId": "77433063497466",
     "assetType": "Decal",
-    "imageId": "81547172739184",
-    "sha256": "4e929e910cc1a3615d6eba8761851c841928260610a4f8d64db1fcfe7178356c",
+    "imageId": "119712880301564",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/monarch.png": {
-    "assetId": "101464214182909",
+    "assetId": "102022599204247",
     "assetType": "Decal",
-    "imageId": "117984068366303",
-    "sha256": "afb47757c7c4c5464236cc2107df3cb6bc01edf83e9639fb508dbf78d39eeecf",
+    "imageId": "100001062520140",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/nature.png": {
-    "assetId": "96889465243349",
+    "assetId": "118708868069611",
     "assetType": "Decal",
-    "imageId": "91956426073691",
-    "sha256": "51bc3f8273d168d7ecc09aea12771a858e73fb7ae5df0af51de60d033e5183de",
+    "imageId": "78003208554350",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/neon.png": {
-    "assetId": "101724562313510",
+    "assetId": "99909508478657",
     "assetType": "Decal",
-    "imageId": "71567693950723",
-    "sha256": "da0d7baefe967047195d1e23e32d993be631311f7001be193a2336aa0a5ffe5c",
+    "imageId": "128782263005573",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/phantom.png": {
-    "assetId": "86938875415618",
+    "assetId": "97476004758373",
     "assetType": "Decal",
-    "imageId": "140035367169460",
-    "sha256": "4576a68c044b66a5f7a92a7f259202719b28ba5e9776f9d97af47afea3ea4753",
+    "imageId": "109326376631356",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/phoenix.png": {
-    "assetId": "115819384449089",
+    "assetId": "81932293549012",
     "assetType": "Decal",
-    "imageId": "117935485029249",
-    "sha256": "b6ba4684e5dbed40c49ed80ee1b576e2eec35d3735a5afa1951c803afb10503d",
+    "imageId": "124785604877060",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/pixel.png": {
-    "assetId": "80335937242951",
+    "assetId": "124019614967349",
     "assetType": "Decal",
-    "imageId": "118379386570158",
-    "sha256": "e665eed47ec45c776b0af82b4ab1ba32cf260dc899e545ca809869e6809ab37c",
+    "imageId": "80358040578772",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/plasma.png": {
-    "assetId": "129253103520752",
+    "assetId": "112782900298002",
     "assetType": "Decal",
-    "imageId": "139466764010079",
-    "sha256": "4d59a928473805055841dbac4bd596ba48a01d5b89d90ba30820d5538f4c6cb4",
+    "imageId": "111015052716902",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/platinum_cue.png": {
-    "assetId": "114822165146797",
+    "assetId": "92746290161990",
     "assetType": "Decal",
-    "imageId": "91330404855486",
-    "sha256": "a5656cf33d1733a68e75a3e1fb8262eeb3ec6c50ef15fd1e276e749996f2ca9d",
+    "imageId": "130356263798489",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/prism.png": {
-    "assetId": "73155442416819",
+    "assetId": "100116647504666",
     "assetType": "Decal",
-    "imageId": "116642697307067",
-    "sha256": "b4a8a8cb52e9faaff533e111563a44db2cf63441c2fea9d9f6d0269b8131c391",
+    "imageId": "110643345805498",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/reyes_cue.png": {
-    "assetId": "92325810047078",
+    "assetId": "133261994644000",
     "assetType": "Decal",
-    "imageId": "112281080696176",
-    "sha256": "53680b78e71d98fd0ce5a56551d2aa327965a1ef3265efe80aab54c43ddc658a",
+    "imageId": "136742646720285",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/sakura.png": {
-    "assetId": "129607923429025",
+    "assetId": "76203592830439",
     "assetType": "Decal",
-    "imageId": "115833703102707",
-    "sha256": "acb8cfccf3d7465aac482c90316f63b558ffe3130da11efd0d9cdaf7a299aea0",
+    "imageId": "73860951128782",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/seraph.png": {
-    "assetId": "96329405288063",
+    "assetId": "106069901735149",
     "assetType": "Decal",
-    "imageId": "115415424616347",
-    "sha256": "582d2477f596cacb477662e523831e6c2e9eaa92740af4a75c5128de8548fa11",
+    "imageId": "78566451904118",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/shooting_star.png": {
-    "assetId": "79327039770326",
+    "assetId": "93325839032601",
     "assetType": "Decal",
-    "imageId": "105895942414307",
-    "sha256": "c6c5f60ef0436be51faa2a1ae8fbfa4ac9b0b1a029d7f85e830bb29804409d4b",
+    "imageId": "125547495747504",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/silver_cue.png": {
-    "assetId": "137640728667514",
+    "assetId": "81028015798711",
     "assetType": "Decal",
-    "imageId": "108228560009879",
-    "sha256": "c96091a8a93ee60db14a4d3bcb5d5cd424af63f0e4fe97ba7fd3845ded5a7f1f",
+    "imageId": "126463538605760",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/splice.png": {
-    "assetId": "75147929775059",
+    "assetId": "99535584203027",
     "assetType": "Decal",
-    "imageId": "110575920417125",
-    "sha256": "41618f58b00635b5528612ccfb34b31157d24d5ddb06d8ecdb22ce0e816f57d9",
+    "imageId": "113710629892554",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/starter_cue.png": {
-    "assetId": "104433982724895",
+    "assetId": "120898924303487",
     "assetType": "Decal",
-    "imageId": "82947422763484",
-    "sha256": "c80e0a6b4bece464425ff2e8aad0b224ca044253573c314fb838b25154c9a5f3",
+    "imageId": "80550345035955",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/thunderstrike.png": {
-    "assetId": "127191251007831",
+    "assetId": "136725050209487",
     "assetType": "Decal",
-    "imageId": "83409056512282",
-    "sha256": "18c5c791a5bab15281e444013bc52b0b296d45d148e41961bf552ba9c40f73da",
+    "imageId": "79731855523153",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/tidal.png": {
-    "assetId": "101272523838155",
+    "assetId": "117938387889839",
     "assetType": "Decal",
-    "imageId": "95659198655585",
-    "sha256": "be771ecbaad51fbcf1426078bb44a2e28df5641d8978ea13ed073bed96d3712b",
+    "imageId": "78224633109998",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/toxic.png": {
-    "assetId": "107514865191327",
+    "assetId": "73170502773185",
     "assetType": "Decal",
-    "imageId": "115314271380442",
-    "sha256": "f796f3059550fd7cc174a48605b8f192fead7e22a8c00acf2e965d2c7966a90f",
+    "imageId": "86981411799528",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/venom.png": {
-    "assetId": "110643673058691",
+    "assetId": "77805562395423",
     "assetType": "Decal",
-    "imageId": "77875308056689",
-    "sha256": "dd3b5184499179b7d401bd46e6f31f7175953e4efa00e0777f5c51e3719ea68f",
+    "imageId": "76591533358905",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/veteran_cue.png": {
-    "assetId": "140699472396381",
+    "assetId": "85662391303224",
     "assetType": "Decal",
-    "imageId": "105949485086008",
-    "sha256": "203b23288d4af72a790123d2702b9dd210c53258303e430c989b8fe54696e3b3",
+    "imageId": "105507683816107",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/vip_cue.png": {
-    "assetId": "82699350694103",
+    "assetId": "74370622033066",
     "assetType": "Decal",
-    "imageId": "118440380858482",
-    "sha256": "9cc26ac40839aa2369acf20ad3a349acdb239d1e950b8b656a34c0427c1bca1f",
+    "imageId": "138697824932922",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/void.png": {
-    "assetId": "135595260218571",
+    "assetId": "135716267193821",
     "assetType": "Decal",
-    "imageId": "86999401977529",
-    "sha256": "f90fa85f23babc1321c119b3a35597ed6c83fd4b27e233045a54db4a4ff34bc5",
+    "imageId": "122653389670114",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/cue/vfx/_shared/bolt_strip.png": {
@@ -4904,6 +4857,11 @@
   },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/standard/StandardBlock_v3.glb": {
     "assetId": "137008354368931",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/standard/StandardBlock_v4.glb": {
+    "assetId": "81565701370753",
     "assetType": "Model",
     "status": "ok"
   },

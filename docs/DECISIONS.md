@@ -2965,3 +2965,5 @@ timer of a new block stay the designer's call.
   (slowed to 1.2 studs/s, `Config.LuckyBlocks.Look.Scroll`) and a few rainbow twinkles. Checked
   in Studio through the real hotbar: keys equip with the hold pose, a click throws, switching and
   putting away leave no hold loop behind, both land with their idle, opening works, console clean.
+- 2026-10-07 (designer): Standard moves back toward the pack's original: golden-beige rims and
+  brown faces that darken toward the bottom, white "?" (replaces the lemon-yellow/beige try).

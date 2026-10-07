@@ -179,7 +179,7 @@ Mystery). One master block, three pieces (Frame, Core, Glyph), each kind a set o
 
 | Model | Kind | Model asset |
 | --- | --- | --- |
-| StandardBlock | Standard | 137008354368931 (v3: yellow rims, beige faces) |
+| StandardBlock | Standard | 81565701370753 (v4: golden-beige rims, brown faces, like the pack) |
 | MysteryBlock | Mystery | 131944205075030 (v3: thinner flush rims; moving rainbow, twinkles) |
 
 The Mystery frame's moving rainbow is six `Texture`s (`textures/rainbow_scroll.png`, image

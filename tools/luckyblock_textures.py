@@ -27,9 +27,10 @@ SIZE = 512
 # Sheen adds the concept icons' soft glossy light from the upper left.
 KINDS = {
     "standard": {
-        # Bright yellow rims, beige-brown faces (designer, 2026-10-07: "more yellow than gold").
-        "Frame": {"Top": (255, 230, 50), "Bottom": (250, 196, 18), "Sheen": 0.35},
-        "Core": {"Top": (222, 184, 128), "Bottom": (176, 128, 76), "Sheen": 0.3},
+        # Close to the pack's original (designer, 2026-10-07): golden-beige rims, brown faces
+        # that darken toward the bottom, white "?".
+        "Frame": {"Top": (244, 210, 112), "Bottom": (206, 158, 66), "Sheen": 0.3},
+        "Core": {"Top": (156, 100, 48), "Bottom": (72, 40, 16), "Sheen": 0.22},
         "Glyph": {"Top": (255, 252, 240), "Bottom": (244, 232, 206), "Sheen": 0.2},
     },
     "mystery": {
