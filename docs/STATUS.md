@@ -65,6 +65,8 @@ Updated 2026-10-07.
   Checked in the phone emulator (GuiQA "matchbar"): every state, the auto-request cooldown,
   both searches to the bot, both Xs, a pad cancelling a spawn search, the tutorial games.
   Not yet: a PC size, a real gamepad, a real friend or second player, a live private server.
+  Parked by the designer (2026-10-07) to come back to; open questions: is the spawn pill's
+  20 s right, is Play Global's X big enough on a phone.
 - **Lighting.** Day 10 min, sunset 5 min, a 10 s fade; no night and no sun disc. The sunset
   was softened and made less yellow on 2026-10-05.
 - **Pull cutscenes.** Rare, Epic and Legendary are redone ("good for now"); Mythic and Secret
