@@ -5603,14 +5603,14 @@ Config.UI = {
 			StackedFaceHeight = 250, -- stacked (a narrow screen): the face-off's height
 			TitleHeight = 40, -- WINNER, DRAW or SOLO GAME over the cards
 			TitleTextPx = 32,
-			-- LOSE (TitleTextPx, red) over your side when an 8-ball rule lost the game, with the
-			-- reason under it at up to LossReasonTextPx (it shrinks to fit LossReasonHeightPx).
-			-- LOSE sits LossTitleLiftPx above WINNER's line so the reason clears the rank badge
-			-- (designer, 2026-10-07: it overlapped the player's icon).
+			-- DEFEAT (TitleTextPx, red) over the losing side on WINNER's line (designer,
+			-- 2026-10-07). When an 8-ball rule lost it for you, the reason goes under it at up to
+			-- LossReasonTextPx (it shrinks to fit LossReasonHeightPx) and DEFEAT sits
+			-- LossTitleLiftPx higher so the reason clears the rank badge.
 			LossTitleLiftPx = 22,
 			LossReasonTextPx = 18,
 			LossReasonHeightPx = 40, -- two lines
-			LossReasonTuckPx = 8, -- the reason starts this far up into LOSE's row
+			LossReasonTuckPx = 8, -- the reason starts this far up into DEFEAT's row
 			LossReasonSpillPx = 12, -- the reason may run this far past each side of your side
 			VsWidth = 70, -- the VS column between the sides
 			VsTextPx = 44,

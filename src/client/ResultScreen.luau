@@ -515,23 +515,27 @@ function ResultScreen.build(self: any, view: any)
 	view.title.TextWrapped = false
 	view.title.ZIndex = 3
 	view.title.Visible = false
-	-- LOSE over your side, and why, when an 8-ball rule lost it (designer, 2026-10-07: like the
-	-- foul popup, e.g. "You pocketed the 8 ball early."). summary.reason is ShotJudge's.
-	view.lossTitle, view.lossReason = nil, nil
-	if not solo and winner ~= nil and winner ~= mine then
-		local together = type(teams[mine]) == "table" and #teams[mine] > 1
-		local reasons: { [string]: string } = (
-			if together then P.LossReasonsTeam else P.LossReasons
-		) :: any
-		local words = reasons[tostring(summary.reason)]
-		if words then
-			view.lossTitle = HudParts.text(face, "LossTitle", C.TitleTextPx, P.Loss, tone("Red"))
-			view.lossTitle.TextWrapped = false
-			view.lossTitle.ZIndex = 3
-			view.lossTitle.Visible = false
-			view.lossReason = HudParts.text(face, "LossReason", C.LossReasonTextPx, words)
-			view.lossReason.ZIndex = 3
-			view.lossReason.Visible = false
+	-- DEFEAT in red over the losing side, like WINNER over the winner's (designer, 2026-10-07),
+	-- and why under it when an 8-ball rule lost it for you (like the foul popup, e.g. "You
+	-- pocketed the 8 ball early."). summary.reason is ShotJudge's.
+	view.lossTitle, view.lossReason, view.lossSide = nil, nil, nil
+	if not solo and winner ~= nil then
+		view.lossSide = if winner == mine then 2 else 1 -- your side is the left one
+		view.lossTitle = HudParts.text(face, "LossTitle", C.TitleTextPx, P.Loss, tone("Red"))
+		view.lossTitle.TextWrapped = false
+		view.lossTitle.ZIndex = 3
+		view.lossTitle.Visible = false
+		if winner ~= mine then
+			local together = type(teams[mine]) == "table" and #teams[mine] > 1
+			local reasons: { [string]: string } = (
+				if together then P.LossReasonsTeam else P.LossReasons
+			) :: any
+			local words = reasons[tostring(summary.reason)]
+			if words then
+				view.lossReason = HudParts.text(face, "LossReason", C.LossReasonTextPx, words)
+				view.lossReason.ZIndex = 3
+				view.lossReason.Visible = false
+			end
 		end
 	end
 	view.vs = nil
@@ -937,15 +941,21 @@ function ResultScreen.layout(self: any, settled: boolean?)
 	end
 	view.title.Position = UDim2.fromOffset(titleLeft, top)
 	view.title.Size = UDim2.fromOffset(titleWidth, C.TitleHeight)
-	if view.lossTitle and view.lossReason then
-		-- Your side is the left one: LOSE a little above WINNER's line, the reason under it.
-		local lossTop = top - C.LossTitleLiftPx
-		view.lossTitle.Position = UDim2.fromOffset(0, lossTop)
+	if view.lossTitle then
+		-- DEFEAT on WINNER's line over the losing side; with a reason, a little above it so the
+		-- reason under it clears the rank badge.
+		local lossLeft = if view.lossSide == 1 then 0 else sideWidth + C.VsWidth
+		local lossTop = if view.lossReason then top - C.LossTitleLiftPx else top
+		view.lossTitle.Position = UDim2.fromOffset(lossLeft, lossTop)
 		view.lossTitle.Size = UDim2.fromOffset(sideWidth, C.TitleHeight)
-		view.lossReason.Position =
-			UDim2.fromOffset(-C.LossReasonSpillPx, lossTop + C.TitleHeight - C.LossReasonTuckPx)
-		view.lossReason.Size =
-			UDim2.fromOffset(sideWidth + C.LossReasonSpillPx * 2, C.LossReasonHeightPx)
+		if view.lossReason then
+			view.lossReason.Position = UDim2.fromOffset(
+				lossLeft - C.LossReasonSpillPx,
+				lossTop + C.TitleHeight - C.LossReasonTuckPx
+			)
+			view.lossReason.Size =
+				UDim2.fromOffset(sideWidth + C.LossReasonSpillPx * 2, C.LossReasonHeightPx)
+		end
 	end
 	if view.vs then
 		view.vs.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -1103,8 +1113,10 @@ end
 local function stepFace(view: any, t: number)
 	if not view.title.Visible and t >= C.CrownAt * 0.5 then
 		UIAnim.popIn(view.title)
-		if view.lossTitle and view.lossReason then
+		if view.lossTitle then
 			UIAnim.popIn(view.lossTitle)
+		end
+		if view.lossReason then
 			UIAnim.popIn(view.lossReason)
 		end
 	end

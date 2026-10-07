@@ -448,9 +448,9 @@ return {
 		Winner = "WINNER",
 		Vs = "VS",
 		Draw = "DRAW",
-		-- Over your side when an 8-ball rule lost the game, with why (keyed by ShotJudge's
-		-- reason); a team game says "Your team".
-		Loss = "LOSE",
+		-- Over the losing side (red, like WINNER); with why under it when an 8-ball rule lost
+		-- it for you (keyed by ShotJudge's reason); a team game says "Your team".
+		Loss = "DEFEAT",
 		LossReasons = {
 			EarlyEight = "You pocketed the 8 ball early.",
 			WrongPocket = "You pocketed the 8 ball in the wrong pocket.",

@@ -2922,3 +2922,6 @@ timer of a new block stay the designer's call.
   one lively panel was reverted the same day); only the rewards card's faint 8-balls now
   scroll up-left like the lively Shop's header (`Config.UI.Progress.Result.PatternPxPerSecond`).
   "The new moving 8-ball frame" on an existing screen means this: same screen, moving 8-balls.
+- 2026-10-07: The result screen puts DEFEAT in red over the losing side, on WINNER's line, in
+  every game with a winner (was LOSE, only over your side when an 8-ball rule lost it). The
+  reason line stays under it for your own loss to an 8-ball rule.
