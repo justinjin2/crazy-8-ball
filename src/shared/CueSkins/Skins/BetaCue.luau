@@ -1061,7 +1061,7 @@ return {
 		},
 	},
 	Piece = "beta",
-	Thumb = "rbxassetid://99200011808288",
+	Thumb = "rbxassetid://113122898865899",
 	Look = {
 		Shaft = { 47, 90, 152 },
 		Forearm = { 32, 73, 140 },

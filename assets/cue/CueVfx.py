@@ -35,6 +35,10 @@ sys.dont_write_bytecode = True
 import numpy as np  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# VelocityPerpendicular quads (rings round the cue) turned this many degrees toward the camera.
+# 0 in game and the review clips; the card pictures (CuePreview --thumb) look at the cue side-on,
+# where an untilted ring is seen edge-on and vanishes (Apex's HUD rings, 2026-10-07).
+RING_TILT_DEG = 0.0
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
@@ -341,6 +345,12 @@ class Emitter:
             # the quad lies across the direction of travel, facing along it (a ring round the
             # cue when it moves along the cue); Rotation turns it about the velocity
             v = vel / np.maximum(np.linalg.norm(vel, axis=1, keepdims=True), 1e-6)
+            if RING_TILT_DEG:
+                # turned RING_TILT_DEG toward the camera (a ring seen edge-on shows as an ellipse)
+                w = view - v * (v * view).sum(1, keepdims=True)
+                w /= np.maximum(np.linalg.norm(w, axis=1, keepdims=True), 1e-6)
+                a = math.radians(RING_TILT_DEG)
+                v = v * math.cos(a) + w * math.sin(a)
             ref = np.where(np.abs(v[:, 2:3]) < 0.9, np.array([[0.0, 0.0, 1.0]]), np.array([[1.0, 0.0, 0.0]]))
             right = np.cross(ref, v)
             right /= np.maximum(np.linalg.norm(right, axis=1, keepdims=True), 1e-6)

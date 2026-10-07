@@ -55,6 +55,7 @@ THUMB_INK = (0x1B, 0x20, 0x33)  # the UI's ink (Config.CueSkins.Pop.Outline.Fall
 THUMB_SATURATION = 1.18  # the cue and its aura: saturation times this
 THUMB_CONTRAST = 0.22  # an S-curve on the cue's brightness, 0 none
 THUMB_GLOW_GAMMA = 0.65  # the aura's alpha raised to this (below 1: faint glow reads stronger on a pale card)
+THUMB_RING_TILT = 50.0  # degrees a ring round the cue (VelocityPerpendicular) is turned toward the camera: seen side-on it vanishes
 THUMB_AURA_RATE = 2.0  # the aura's emitters at this many times their rate: one frozen moment looks sparser than the moving aura
 
 PREVIEW = {
@@ -461,7 +462,9 @@ def blender_main(args):
                 em.fixed_host = carrier_m
                 ems.append(em)
                 continue
-            em = vfx.Emitter(spec, seed=seed + 31 * i, rate_scale=rate_scale)
+            # rings round the cue (VelocityPerpendicular) are big: never more than their own rate
+            ring = spec.get('Orientation') == 'VelocityPerpendicular'
+            em = vfx.Emitter(spec, seed=seed + 31 * i, rate_scale=min(rate_scale, 1.0) if ring else rate_scale)
             jname = (spec.get('Host') or {}).get('Joint')
             if jname and piece_joints:
                 em.joint_m = (lambda j: lambda: CuePieces.joint_matrix(piece_joints, j, clock[0]))(jname)
@@ -649,6 +652,7 @@ def blender_main(args):
         loc = (3.5 + reach / 2) * Vector((s, 0, s))
         n = THUMB_SIZE * THUMB_SUPER
         still_size['thumb'] = (n, n)
+        vfx.RING_TILT_DEG = THUMB_RING_TILT
         span = (7.0 + reach) * s + THUMB_MARGIN
         e = math.radians(THUMB_ELEVATION)
         eye = 20 * (Vector((0, -math.cos(e), 0)) + math.sin(e) * zw)

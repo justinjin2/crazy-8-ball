@@ -7,7 +7,7 @@ return {
 		Id = "apex",
 		Name = "Apex",
 		Tier = "Mythic",
-		Thumb = "rbxassetid://118398483448128",
+		Thumb = "rbxassetid://125091279686491",
 		Look = {
 			Shaft = { 99, 94, 89 },
 			Forearm = { 89, 67, 50 },
@@ -50,7 +50,7 @@ return {
 		Id = "beta",
 		Name = "Beta Cue",
 		Tier = "Unique",
-		Thumb = "rbxassetid://99200011808288",
+		Thumb = "rbxassetid://113122898865899",
 		Look = {
 			Shaft = { 47, 90, 152 },
 			Forearm = { 32, 73, 140 },
@@ -264,7 +264,7 @@ return {
 		Id = "eclipse",
 		Name = "Eclipse",
 		Tier = "Secret",
-		Thumb = "rbxassetid://121234407234043",
+		Thumb = "rbxassetid://78222637300181",
 		Look = {
 			Shaft = { 57, 53, 45 },
 			Forearm = { 92, 79, 53 },
