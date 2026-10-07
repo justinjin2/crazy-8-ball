@@ -7,7 +7,8 @@
 --     own camera (Roblox's, which keeps running underneath, so the hand-back is seamless);
 --   * partway down, the result screen opens (centred) and the bars slide away off the
 --     screen's edges. When the result screen closes, it all goes back (stop).
--- Not for 2v2, 3v3 or Solo, a draw, or when a player left or forfeited (the plain result
+-- Also when a player left the server, walked out or surrendered (designer, 2026-10-07), for
+-- the winner and the forfeiter alike. Not for 2v2, 3v3 or Solo, or a draw (the plain result
 -- screen). Once seen (Seen "Result"), a tap, click or A skips the pan. A match starting stops
 -- it (Progression). Numbers in Config.Cutscenes.Result.
 local Players = game:GetService("Players")
@@ -27,13 +28,6 @@ local R = Config.Cutscenes.Result
 local RENDER_BEFORE = "ResultCutsceneRestore"
 local RENDER_AFTER = "ResultCutscene"
 local SEEN_KIND = "Result"
--- Results that end a match without a real finish at the table: the plain screen.
-local NO_SCENE: { [string]: boolean } = {
-	Surrender = true,
-	EmptyTeam = true,
-	surrender = true,
-	empty_team = true,
-}
 
 local ResultCutscene = {}
 
@@ -92,19 +86,13 @@ local function restore(s: Scene)
 	end
 end
 
---- Whether this summary gets the cutscene: a 1v1 that ended at the table with a winner, and
---- the player's own body here. /result's preview gets it too.
+--- Whether this summary gets the cutscene: a 1v1 with a winner (however it ended: a leave or
+--- a surrender too), and the player's own body here. /result's preview gets it too.
 function ResultCutscene.wants(summary: any): boolean
 	if type(summary) ~= "table" or summary.solo == true then
 		return false
 	end
 	if summary.winner ~= 1 and summary.winner ~= 2 then
-		return false
-	end
-	if NO_SCENE[tostring(summary.reason)] then
-		return false
-	end
-	if type(summary.you) == "table" and summary.you.forfeited == true then
 		return false
 	end
 	local teams = summary.teams
@@ -116,7 +104,7 @@ function ResultCutscene.wants(summary: any): boolean
 	end
 	for _, team in teams do
 		local seat = team[1]
-		if type(seat) ~= "table" or seat.left == true or type(seat.userId) ~= "number" then
+		if type(seat) ~= "table" then
 			return false
 		end
 	end

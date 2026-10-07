@@ -35,8 +35,10 @@ Updated 2026-10-07.
   the camera comes down from 22 studs above into the player's own camera, and the centred
   result screen opens partway down as the bars slide out. The result screen never closes by
   itself (Continue, A or B); when the rematch row's time runs out, Continue takes its place.
-  A winner hears the old Rare reveal sting as Continue shows. `/result win|lose` plays it all.
-  Not yet seen in a real 1v1 (the rematch row's swap to Continue especially).
+  A win plays to the old Rare reveal sting: the Total pops on its first hit, the block chip
+  and Continue on its second; every money line reads "+$". It plays after a leave or a
+  surrender too (both sides). `/result win|lose` plays it all. Not yet seen in a real 1v1
+  (the rematch row's swap to Continue especially).
 - **Cue outlines and the "pop" aura.** Every cue has a theme-coloured outline (a moving
   gradient from Legendary up). The deeper aura is on test on Frostbite, Candy, Flare, Plasma,
   Gummy and Magma (`Config.CueSkins.Pop.Ids`).

@@ -2887,3 +2887,7 @@ timer of a new block stay the designer's call.
   result screen never closes by itself (only Continue, or a rematch), and a lobby rematch row
   that runs out turns into Continue. A winner hears 403300 (the old Rare reveal sting,
   101099108525458) as Continue shows.
+- 2026-10-07 (designer): **Result screen polish**: every money line reads "+$800"; a win's
+  Total pops whole on the sting's first hit and the block chip and Continue on its second
+  (`Result.WinSting`). The result cutscene also plays when a 1v1 ends by a player leaving the
+  server, walking out or surrendering, for both sides.
