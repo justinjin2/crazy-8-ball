@@ -33,8 +33,8 @@ Updated 2026-10-07.
   menus, the reel and NEW RANK! alone; NEW RANK! over a real result not yet.
 - **The 1v1 result cutscene** (2026-10-07): letterbox bars slide in with the fade to black,
   it fades back in on the sky and the camera tilts down into the player's own camera (only
-  its pitch turns, smootherstep), and the centred
-  result screen opens partway down as the bars slide out. The result screen never closes by
+  its pitch turns, smootherstep), and the centred result screen opens partway down as the
+  bars slide out. The result screen never closes by
   itself (Continue, A or B); when the rematch row's time runs out, Continue takes its place.
   A win plays to the old Rare reveal sting: the Total pops on its first hit, the block chip
   and Continue on its second; every money line reads "+$". It plays after a leave or a
