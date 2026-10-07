@@ -177,7 +177,7 @@ Every feature is checked against these. If it serves none, it waits.
   your own group glows bright green and pulses with the YOU ARE popup (the other group does not
   glow). When a team is down to its last ball of its group (the 8 not counted), that ball
   pulses green for everyone as a warning to the other side: once per team per game, never again
-  after a miss. Each callout is three slow pulses of about 2 s. Not in solo, and never for
+  after a miss. Each callout is four slow pulses of about 2 s (8 s). Not in solo, and never for
   someone arriving mid-game.
 - **Physics realism choices (2026-09-22, implemented):** keep one power bar, with no
   separate break control, reaching 25 mph (it was 30 until 2026-09-30: pros average about

@@ -2788,3 +2788,5 @@ timer of a new block stay the designer's call.
   mostly sideways drag never shoots; a press under 0.15 s never shoots. A mouse is unchanged. The
   4% minimum stays (the server checks it): 1% and 4% both hit at the 15 in/s speed floor
   (`Config.Cue.MinSpeed`), so a lower minimum would only change the label.
+- 2026-10-06: **ball callouts pulse 4 times, not 3** (designer), both at the reveal and at a
+  team's last ball: 8 s at 2 s a pulse (`Config.Multiplayer.Style.BallPulse.Pulses`).

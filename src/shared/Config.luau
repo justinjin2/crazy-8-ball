@@ -6575,10 +6575,10 @@ Config.Multiplayer = {
 		-- The balls pulse to call something out (designer, 2026-10-06; BallCallouts, BallPulse):
 		-- your own group when the groups are decided (with YOU ARE SOLIDS / STRIPES; the other
 		-- group does not glow), and a team's last ball once per game as a warning, seen by
-		-- everyone. Green only, three slow bright pulses (designer, 2026-10-06). (tune)
+		-- everyone. Green only, four slow bright pulses (designer, 2026-10-06). (tune)
 		BallPulse = {
 			Color = { 70, 255, 130 }, -- a vivid green (the strong style's own-ball outline)
-			Pulses = 3, -- each callout pulses this many times
+			Pulses = 4, -- each callout pulses this many times (designer, 2026-10-06: one more)
 			PulseSeconds = 2, -- one pulse: up from nothing to full and back down
 			Low = 0, -- the glow's strength between pulses (1 at each peak)
 			FillPeak = 0.8, -- how solid the colour wash over the ball is at a peak (0..1)

@@ -34,7 +34,7 @@ Updated 2026-10-06.
   gradient from Legendary up). The deeper aura is on test on Frostbite, Candy, Flare, Plasma,
   Gummy and Magma (`Config.CueSkins.Pop.Ids`).
 - **Ball callouts** (2026-10-06): your own group pulses bright green with YOU ARE SOLIDS /
-  STRIPES, and a team's last ball pulses green once per game as a warning; 3 pulses of 2 s
+  STRIPES, and a team's last ball pulses green once per game as a warning; 4 pulses of 2 s
   each (`Config.Multiplayer.Style.BallPulse`). Seen in Studio from the QA hook; not yet in a real
   game played out by hand.
 - **No fat-fingered shots on a phone** (2026-10-06): a dead zone at the top of the pull, a
