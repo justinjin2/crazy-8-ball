@@ -571,9 +571,25 @@ function ResultScreen.build(self: any, view: any)
 		end)
 	end
 
-	-- The rewards card.
+	-- The rewards card. Its faint 8-balls scroll (designer, 2026-10-07): the lively header's
+	-- seamless picture of the same pattern, in the kit pattern's size and colour.
 	local card = HudParts.card(stage, "Rewards")
 	view.card = card
+	local fill = card:FindFirstChild("Fill")
+	local tiles = fill and fill:FindFirstChild("Pattern")
+	if tiles and tiles:IsA("ImageLabel") then
+		local L = Config.UI.Menu.Lively
+		tiles.Image = L.HeaderImage
+		tiles.ScaleType = Enum.ScaleType.Stretch
+		view.scroll = UIAnim.scrollTile(
+			tiles,
+			L.HeaderPeriod,
+			K.PatternTilePx,
+			C.PatternPxPerSecond,
+			Vector2.new(-1, -1),
+			L.HeaderSheetPx
+		)
+	end
 	local content = frame(card, "Content")
 	view.content = content
 	local xp = if not solo and type(summary.xp) == "table" then summary.xp else nil
@@ -1390,6 +1406,9 @@ function ResultScreen.finish(self: any, view: any)
 	view.finished = true
 	if view.loop then
 		view.loop:Disconnect()
+	end
+	if view.scroll then
+		view.scroll.stop()
 	end
 	for _, side in view.sides or {} do
 		for _, p in side.players do

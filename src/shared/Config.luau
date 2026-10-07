@@ -5596,6 +5596,10 @@ Config.UI = {
 			RewardsWidth = 290, -- the rewards card
 			ColumnGap = 20,
 			Height = 300,
+			-- The rewards card's faint 8-balls scroll up-left at 45 degrees like the lively Shop's
+			-- header (designer, 2026-10-07: the same look, only moving), this fast along the line;
+			-- each repeat shown Kit.PatternTilePx big, as the still pattern was.
+			PatternPxPerSecond = 23,
 			StackedFaceHeight = 250, -- stacked (a narrow screen): the face-off's height
 			TitleHeight = 40, -- WINNER, DRAW or SOLO GAME over the cards
 			TitleTextPx = 32,

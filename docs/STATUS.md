@@ -45,6 +45,8 @@ Updated 2026-10-07.
   and Continue on its second; every money line reads "+$". It plays after a leave or a
   surrender too (both sides). `/result win|lose` plays it all. Not yet seen in a real 1v1
   (the rematch row's swap to Continue especially).
+- **The result screen's 8-balls move** (2026-10-07): the rewards card's faint 8-balls scroll
+  up-left like the Shop's header; the layout is unchanged. Seen in Studio on /result win.
 - **Cue outlines and the "pop" aura.** Every cue has a theme-coloured outline (a moving
   gradient from Legendary up). The deeper aura is on test on Frostbite, Candy, Flare, Plasma,
   Gummy and Magma (`Config.CueSkins.Pop.Ids`).

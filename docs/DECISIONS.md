@@ -2918,3 +2918,7 @@ timer of a new block stay the designer's call.
   (`Flags.RankShown`; existing saves start at their peak, no backlog). On the result screen,
   each rank reached holds the XP bar full and solid yellow saying NEW RANK! for 1 s (was a
   0.35 s white flash), then the bar carries on.
+- 2026-10-07: The match result screen keeps its old layout exactly (designer: a rebuild into
+  one lively panel was reverted the same day); only the rewards card's faint 8-balls now
+  scroll up-left like the lively Shop's header (`Config.UI.Progress.Result.PatternPxPerSecond`).
+  "The new moving 8-ball frame" on an existing screen means this: same screen, moving 8-balls.
