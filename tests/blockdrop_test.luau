@@ -244,4 +244,86 @@ return {
 		H.expect(not (BlockDrop.dropFor(ctx({ pcLimited = true, pcDropsToday = cap }))), "the 11th")
 		H.expect(BlockDrop.dropFor(ctx({ pcLimited = false, pcDropsToday = 99 })), "people: no cap")
 	end,
+
+	["upgrade path: four presses, never down, one step at most, ending on the roll"] = function()
+		local BlockDrop, Config = load()
+		local order = Config.BlockOdds.Order
+		local clicks = Config.BlockOdds.Drop.Upgrade.Clicks
+		H.expect(clicks == 4, "the designer's four presses")
+		local rng = seeded(4242)
+		for _, final in order do
+			for _ = 1, 300 do
+				local path = BlockDrop.path(final, rng)
+				H.expect(#path == clicks, "four tiers")
+				H.expect(path[#path] == final, "ends on the roll")
+				for i = 2, #path do
+					local step = BlockDrop.rank(path[i]) - BlockDrop.rank(path[i - 1])
+					H.expect(step == 0 or step == 1, "stays or goes up one")
+				end
+			end
+		end
+	end,
+
+	["upgrade path: the first press's odds make the chain land on the weights"] = function()
+		local BlockDrop, Config = load()
+		local C = Config.BlockOdds
+		local first = BlockDrop.firstOdds()
+		local sum = 0
+		for _, tier in C.Order do
+			H.expect(first[tier] >= 0, tier .. " is not negative")
+			sum += first[tier]
+		end
+		H.expect(math.abs(sum - 1) < 1e-9, "the first press's odds add to 1")
+		-- Most first presses show Standard (the designer: "most of the time that will be
+		-- standard"); about 84.5% with today's chances.
+		H.expect(first.Standard > 0.8 and first.Standard < 0.9, "mostly Standard")
+		-- Run the chain itself: start by `first`, then each later press raises by Chances.
+		local chances = C.Drop.Upgrade.Chances
+		local ends: { [string]: number } = {}
+		for _, tier in C.Order do
+			ends[tier] = 0
+		end
+		local function walk(tier: string, presses: number, weight: number)
+			if presses == 0 then
+				ends[tier] += weight
+				return
+			end
+			local rank = BlockDrop.rank(tier)
+			local up = if rank < #C.Order then (chances[tier] or 0) / C.OddsTotal else 0
+			walk(tier, presses - 1, weight * (1 - up))
+			if up > 0 then
+				walk(C.Order[rank + 1], presses - 1, weight * up)
+			end
+		end
+		for _, tier in C.Order do
+			walk(tier, C.Drop.Upgrade.Clicks - 1, first[tier])
+		end
+		for _, tier in C.Order do
+			local want = C.Drop.Weights[tier] / C.OddsTotal
+			H.expect(math.abs(ends[tier] - want) < 1e-9, tier .. " lands on its weight")
+		end
+	end,
+
+	["upgrade path: a Rare sometimes climbs, a Standard never moves"] = function()
+		local BlockDrop = load()
+		local rng = seeded(99)
+		local upgraded, startsLow = 0, 0
+		local n = 20000
+		for _ = 1, n do
+			local path = BlockDrop.path("Rare", rng)
+			if path[1] ~= "Rare" then
+				upgraded += 1
+			end
+			if path[1] == "Standard" then
+				startsLow += 1
+			end
+		end
+		-- A Rare often starts lower and climbs (that is the fun), and sometimes from Standard.
+		-- Today's chances: about 28% of Rares climb from a lower tier.
+		H.expect(upgraded > n * 0.2 and upgraded < n * 0.4, "a Rare sometimes climbs: " .. upgraded)
+		H.expect(startsLow > 0, "sometimes all the way from Standard")
+		-- A Standard can only ever stay Standard.
+		local path = BlockDrop.path("Standard", rng)
+		H.expect(table.concat(path, ",") == "Standard,Standard,Standard,Standard", "Standard")
+	end,
 }

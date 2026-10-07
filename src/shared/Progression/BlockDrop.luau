@@ -171,6 +171,122 @@ function BlockDrop.roll(pity: Pity, rng: (number) -> number, forced: string?): (
 	return tier, after
 end
 
+---------------------------------------------------------------------------------------------
+-- The upgrade screen's path (Config.BlockOdds.Drop.Upgrade, designer 2026-10-07)
+---------------------------------------------------------------------------------------------
+
+local UP = D.Upgrade
+local CHANCE: { [string]: number } = UP.Chances :: any
+
+-- A press's chance to raise `tier` one step (0 at the top of the ladder).
+local function upChance(tier: string): number
+	if RANK[tier] >= #C.Order then
+		return 0
+	end
+	return (CHANCE[tier] or 0) / C.OddsTotal
+end
+
+-- Every way Clicks presses can go: { tiers, weight } where weight is the chance of the
+-- starting tier (from `first`) times each later press's stay-or-raise chance.
+local function allPaths(first: { [string]: number }): { { tiers: { string }, weight: number } }
+	local paths = {}
+	local function walk(tiers: { string }, weight: number)
+		if weight <= 0 then
+			return
+		end
+		if #tiers == UP.Clicks then
+			table.insert(paths, { tiers = table.clone(tiers), weight = weight })
+			return
+		end
+		local at = tiers[#tiers]
+		local up = upChance(at)
+		table.insert(tiers, at)
+		walk(tiers, weight * (1 - up))
+		table.remove(tiers)
+		if up > 0 then
+			table.insert(tiers, C.Order[RANK[at] + 1])
+			walk(tiers, weight * up)
+			table.remove(tiers)
+		end
+	end
+	for _, tier in C.Order do
+		walk({ tier }, first[tier] or 0)
+	end
+	return paths
+end
+
+local firstCache: { [string]: number }? = nil
+
+--- The first press's chance of each tier (0..1), the one that makes the chain's final tier
+--- match Drop.Weights exactly (solved from the top of the ladder down; a tier the chain can
+--- only reach by upgrading gets 0).
+function BlockDrop.firstOdds(): { [string]: number }
+	if firstCache then
+		return firstCache
+	end
+	-- reach[i][j]: the chance a block that starts at tier i ends at tier j after the presses.
+	local n = #C.Order
+	local steps = UP.Clicks - 1
+	local reach: { { number } } = {}
+	for i = 1, n do
+		local row = table.create(n, 0)
+		row[i] = 1
+		for _ = 1, steps do
+			local nextRow = table.create(n, 0)
+			for j = 1, n do
+				if row[j] > 0 then
+					local up = upChance(C.Order[j])
+					nextRow[j] += row[j] * (1 - up)
+					if up > 0 then
+						nextRow[j + 1] += row[j] * up
+					end
+				end
+			end
+			row = nextRow
+		end
+		reach[i] = row
+	end
+	local first: { [string]: number } = {}
+	for j = 1, n do
+		local want = (WEIGHTS[C.Order[j]] or 0) / C.OddsTotal
+		for i = 1, j - 1 do
+			want -= (first[C.Order[i]] or 0) * reach[i][j]
+		end
+		first[C.Order[j]] = math.max(0, want / reach[j][j])
+	end
+	firstCache = first
+	return first
+end
+
+--- The tiers a Mystery block shows press by press on the upgrade screen, ending on `final`
+--- (the tier BlockDrop.roll gave): Clicks tiers, never going down, at most one step a press.
+--- Picked among every path the chain could take to `final`, by how likely each is, so the
+--- presses look exactly like the chain while the final odds stay Drop.Weights with pity.
+--- `rng(n)` returns 1..n.
+function BlockDrop.path(final: string, rng: (number) -> number): { string }
+	assert(RANK[final] ~= nil, "BlockDrop.path: unknown tier " .. tostring(final))
+	local ending = {}
+	local total = 0
+	for _, p in allPaths(BlockDrop.firstOdds()) do
+		if p.tiers[#p.tiers] == final then
+			table.insert(ending, p)
+			total += p.weight
+		end
+	end
+	if total <= 0 then
+		-- No path weighs anything (a tier the chain cannot reach): it simply starts there.
+		return table.create(UP.Clicks, final)
+	end
+	local pick = (rng(C.OddsTotal) - 0.5) / C.OddsTotal * total
+	for _, p in ending do
+		pick -= p.weight
+		if pick <= 0 then
+			return p.tiers
+		end
+	end
+	return ending[#ending].tiers
+end
+
 --- Everything wrong with Config.BlockOdds.Drop, sorted (empty when all is well): weights that
 --- are not whole numbers, a tier that is not a ladder row, weights that do not add to
 --- OddsTotal, pity limits below 1, or a FirstWin that is not a ladder row.
@@ -195,6 +311,27 @@ function BlockDrop.validate(): { string }
 	end
 	if RANK[D.FirstWin] == nil then
 		table.insert(problems, ("Drop.FirstWin %s is not a tier"):format(tostring(D.FirstWin)))
+	end
+	if type(UP.Clicks) ~= "number" or UP.Clicks < 1 or UP.Clicks ~= math.floor(UP.Clicks) then
+		table.insert(problems, "Drop.Upgrade.Clicks must be a whole number of at least 1")
+	end
+	for tier, chance in CHANCE do
+		if RANK[tier] == nil or RANK[tier] >= #C.Order then
+			table.insert(
+				problems,
+				("Drop.Upgrade.Chances has %s, not a tier below the top"):format(tostring(tier))
+			)
+		elseif
+			type(chance) ~= "number"
+			or chance < 0
+			or chance >= C.OddsTotal
+			or chance ~= math.floor(chance)
+		then
+			table.insert(
+				problems,
+				("Drop.Upgrade.Chances.%s is not a whole part under OddsTotal"):format(tier)
+			)
+		end
 	end
 	table.sort(problems)
 	return problems

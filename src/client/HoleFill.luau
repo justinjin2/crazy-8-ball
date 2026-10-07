@@ -122,28 +122,47 @@ local function mirrorGradients(
 	whole: boolean,
 	links: { RBXScriptConnection }
 )
+	-- One twin per gradient: it follows the gradient's changes and goes when it goes.
+	local function mirror(gradient: UIGradient)
+		local twin = gradient:Clone()
+		if not whole then
+			twin.Color = ColorSequence.new(Color3.new(1, 1, 1))
+		end
+		twin.Parent = copy
+		local link: RBXScriptConnection
+		link = gradient.Changed:Connect(function(property: string)
+			if property == "Parent" then
+				if gradient.Parent ~= label then
+					twin:Destroy()
+					link:Disconnect()
+				end
+				return
+			end
+			if property == "Color" and not whole then
+				return
+			end
+			if property ~= "Name" then
+				pcall(function()
+					(twin :: any)[property] = (gradient :: any)[property]
+				end)
+			end
+		end)
+		table.insert(links, link)
+	end
 	for _, gradient in label:GetChildren() do
 		if gradient:IsA("UIGradient") then
-			local twin = gradient:Clone()
-			if not whole then
-				twin.Color = ColorSequence.new(Color3.new(1, 1, 1))
-			end
-			twin.Parent = copy
-			table.insert(
-				links,
-				gradient.Changed:Connect(function(property: string)
-					if property == "Color" and not whole then
-						return
-					end
-					if property ~= "Parent" and property ~= "Name" then
-						pcall(function()
-							(twin :: any)[property] = (gradient :: any)[property]
-						end)
-					end
-				end)
-			)
+			mirror(gradient)
 		end
 	end
+	-- A gradient added later (a rainbow switched on) is mirrored too.
+	table.insert(
+		links,
+		label.ChildAdded:Connect(function(child: Instance)
+			if child:IsA("UIGradient") then
+				mirror(child)
+			end
+		end)
+	)
 end
 
 -- Put the face back on top of every ink copy (siblings draw in child order).

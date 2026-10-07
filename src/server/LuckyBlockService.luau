@@ -267,6 +267,8 @@ function HANDLERS.Hold(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local block = LuckyBlocks.find(data.LuckyBlocks, id)
 	if block == nil then
 		return refuse("NotOwned")
+	elseif (LuckyBlocks.kind(block.Kind) :: LuckyBlocks.Kind).Roll then
+		return refuse("Reveal") -- a Mystery block opens on its upgrade screen (Reveal)
 	end
 	local l = live[player]
 	if l and l[id] then
@@ -567,6 +569,42 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		found = opened.found,
 		count = opened.count,
 		burstAt = burstAt,
+	}
+end
+
+-- The Mystery block's upgrade screen (designer, 2026-10-07): the server rolls the tier and the
+-- path of its presses and turns the block into that tier's block at once (PlayerData
+-- .revealMystery), so leaving mid-screen loses nothing; the client only plays the path.
+function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, _data: any): Reply
+	local id = r.id :: number
+	local h = held[player]
+	if h and h.id == id then
+		dropHeld(player)
+	end
+	local l = live[player]
+	if l and l[id] then
+		return refuse("Busy")
+	end
+	local ok, result = PlayerData.revealMystery(player, id)
+	if not ok then
+		return refuse(
+			if result == "NotReady"
+					or result == "NotOwned"
+					or result == "NotLoaded"
+					or result == "NotMystery"
+				then result
+				else "Error"
+		)
+	end
+	if L.Test.Refill and isTester(player) then
+		PlayerData.giveLuckyBlocks(player, "Mystery", 1)
+	end
+	return {
+		ok = true,
+		id = id,
+		tiers = result.tiers,
+		kind = result.kind,
+		readyAt = result.readyAt,
 	}
 end
 

@@ -44,7 +44,7 @@ export type State = {
 -- One checked BlockRequest. Only the fields its action uses are set.
 export type Request = {
 	action: string,
-	id: number?, -- Hold (nil: put it away), Throw, Open, Move
+	id: number?, -- Hold (nil: put it away), Throw, Open, Move, Reveal
 	to: number?, -- Move: the place in the list, 1..MaxBlocks
 }
 
@@ -54,7 +54,7 @@ local RENAMED: { [string]: string } = L.Renamed or {}
 local LuckyBlocks = {}
 
 --- Every action a BlockRequest may name (Net "BlockRequest").
-LuckyBlocks.Actions = table.freeze({ "Hold", "Throw", "Open", "Move" })
+LuckyBlocks.Actions = table.freeze({ "Hold", "Throw", "Open", "Move", "Reveal" })
 
 --- Every reason a refused BlockRequest may answer (Strings.LuckyBlocks.Reasons words them).
 LuckyBlocks.Reasons = table.freeze({
@@ -68,6 +68,8 @@ LuckyBlocks.Reasons = table.freeze({
 	"NoBody", -- the character is missing, dead or seated
 	"TooFar", -- Open: too far from the block
 	"NotLanded", -- Open: it is still flying
+	"Reveal", -- Hold: a Mystery block is opened on its upgrade screen, never held
+	"NotMystery", -- Reveal: that block has no tier roll
 	"Error", -- anything else (logged on the server)
 })
 
@@ -230,6 +232,28 @@ function LuckyBlocks.add(
 	return block
 end
 
+--- The upgrade screen turned the Mystery block `id` into a `tier` block (designer, 2026-10-07):
+--- it keeps its id, its place and its origin, and lands at `now` on the tier's timer (a `paid`
+--- one is ready at once, `vip` takes the VIP timer, none). The open is counted for its old kind.
+--- Returns the block, or nil when there is no such block. Errors on an unknown tier.
+function LuckyBlocks.reveal(
+	state: State,
+	id: number,
+	tier: string,
+	now: number,
+	vip: boolean?
+): Block?
+	assert(LuckyBlocks.kind(tier) ~= nil, "LuckyBlocks.reveal: unknown kind " .. tostring(tier))
+	local block = LuckyBlocks.find(state, id)
+	if block == nil then
+		return nil
+	end
+	LuckyBlocks.noteOpened(state, block.Kind)
+	block.Kind = LuckyBlocks.current(tier)
+	block.ReadyAt = if block.Paid then now else now + LuckyBlocks.timer(block.Kind, vip)
+	return block
+end
+
 --- Removes the block with `id`: returns it and the place it had, or nil.
 function LuckyBlocks.remove(state: State, id: number): (Block?, number?)
 	local block, i = LuckyBlocks.find(state, id)
@@ -385,7 +409,7 @@ function LuckyBlocks.parse(action: any, a: any, b: any): (Request?, string?)
 		elseif wholeIn(a, 1, ID_CAP) then
 			return { action = "Hold", id = a }, nil
 		end
-	elseif action == "Throw" or action == "Open" then
+	elseif action == "Throw" or action == "Open" or action == "Reveal" then
 		if wholeIn(a, 1, ID_CAP) then
 			return { action = action :: string, id = a }, nil
 		end

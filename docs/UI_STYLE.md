@@ -623,6 +623,26 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
   `Config.UI.Reel.SkipSeconds` (0.7 s), a blur that shows the roll was skipped, then lands,
   centres and holds as usual. Any further tap during the spin or the hold does nothing.
 
+- **The Mystery block's upgrade screen** (designer, 2026-10-07, like Star Drop but our own;
+  `MysteryReveal`, `Config.LuckyBlocks.Reveal`). A ready Mystery block's hotbar slot says
+  **OPEN!** in pulsing gold along its bottom; a tap, a click, its number key, or LB/RB to pick
+  it then R2 opens the screen (a Mystery block is never held). Its 2D icon jumps out of the
+  slot on an arc, growing past its size and settling, while the world blurs (a faint wash of the
+  tier's colour, no dark dim). Every other screen hides. Over the block: the tier's name, big,
+  tilted 4 degrees, in its colour (MYSTERY and MYTHIC in a moving rainbow); behind it a soft
+  glow and slowly turning rays in the tier's colour; below "UPGRADE CHANCES" and 4 dots (empty
+  ink; the next one a pulsing "?" over a rainbow; a used one filled in the colour that press
+  showed, with a ball's gloss); under them "Tap!" / "Click!" / "Press A". The block floats up
+  and down with a slight rock, each tier with its own particles (Standard warm motes, Uncommon
+  green sparkles, Rare blue stars and an orbit, Epic purple streaks, Legendary a gold fountain,
+  Mythic rainbow). A press squashes it; a press that keeps the tier gives a small hop and a
+  rattle; one that raises it bounces it (a rattle growing), then the **impact**: a white flash
+  over the screen and on the block, a screen shake, a ring and a burst of sparks, the new
+  block landing a little big as its name slams in (designer: no spin). After the last press,
+  "Tap to collect" (or 4 s): the words and dots pop away and the block arcs back into its slot,
+  which bounces with a glow. Taps during an animation wait their turn. Reduce Motion: no float,
+  hops, shake or arcs; the twinkles stay. Lower effects: fewer particles.
+
 ## 15. Shop v3: block cards, pass bands, the build-in and the HUD's "+" (2026-10-04)
 
 The Shop is one scrolling page (section 10's format) rebuilt round the lucky blocks, after the
@@ -660,8 +680,7 @@ rebuild, not a description of the current screen.
   button, "save 12%" under (by the Robux prices). The guarantee line under all. On a narrow
   card the block stacks over the rest.
 - **The Mystery band** (reference 13): the block at the left under "Always in stock", the
-  title and "Opens into one of the six blocks below · 5 min timer when won, instant when
-  bought"; pale odds rows with a small still block and the kind's name in its colour ("Icons"
+  title and "Opens into one of the six blocks below" (no timer since 2026-10-07); pale odds rows with a small still block and the kind's name in its colour ("Icons"
   odds style); "Epic cue or better: 0.13%"; x1 and x10 in pale boxes with gold labels, the
   gold money button over the green Robux button, "-30% SALE" stuck on the x10 column during
   the release sale (no crossed-out price there).

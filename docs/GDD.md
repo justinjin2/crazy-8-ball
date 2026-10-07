@@ -770,15 +770,22 @@ reworked for lucky blocks on 2026-10-04.
   cutscene, then the "YOU GOT" card. The magic 8-ball reveal is gone.
 - **The win's block** (plan, 2026-10-02; blocks 2026-10-04): **every real win** gives a
   **Mystery lucky block**, forever (solo never; the anti-farm rules and the PC and
-  disguised-bot limits still apply). It can be opened **5 minutes** after the win *(tune)* and
-  rolls its tier then: **Standard 68%, Uncommon 25%, Rare 6.7%, Epic 0.28%, Legendary
-  0.0196%, Mythic 0.0004%**, with pity (a Rare block by the 10th without one, an Epic block by
-  the 150th; never a Legendary). The server decides before the reel starts. The first win's
-  block is a guaranteed Rare block on its normal 1 h timer (designer, 2026-10-03). ECONOMY.md
-  section 7.
+  disguised-bot limits still apply). It has no timer (designer, 2026-10-07): its hotbar slot
+  says **OPEN!** and a tap opens its **upgrade screen** (like Star Drop, our own look). The
+  block jumps out of the slot at the screen over a blur and floats with its tier's particles;
+  **4 presses** open it, a dot filling for each. The first press shows its starting tier and
+  each later one may raise it one tier, never down: a bounce, then a white flash, a screen
+  shake and a burst as it becomes the next block (designer: no spin). After the last, "Tap to
+  collect" and it jumps back into its slot as that tier's block, on that tier's timer. The
+  final tier is rolled as always: **Standard 68%, Uncommon 25%, Rare 6.7%, Epic 0.28%,
+  Legendary 0.0196%, Mythic 0.0004%**, with pity (a Rare block by the 10th without one, an Epic
+  block by the 150th; never a Legendary); the server decides it and the presses' path before
+  the screen shows anything. The first win's block is a guaranteed Rare block on its normal
+  timer (designer, 2026-10-03). ECONOMY.md section 7.
 - **The blocks** (plan, 2026-10-02): six tier blocks, Standard, Uncommon, Rare, Epic, Legendary
-  and Mythic, each guaranteeing at least the rarity below its name. Standard and Uncommon open
-  at once; Rare, Epic, Legendary and Mythic open after 1 h, 6 h, 24 h and 48 h, all timers
+  and Mythic, each guaranteeing at least the rarity below its name. Standard opens at once;
+  Uncommon, Rare, Epic, Legendary and Mythic after 1 min, 5 min, 1 h, 6 h and 12 h (designer,
+  2026-10-07; the Gift keeps 12 h, every other kind none), all timers
   running at once; VIP has no timers at all (designer, 2026-10-07). Other kinds have their own odds rows: Mystery (the
   tier roll), Grand Opening (with the Firework Cue 3% and the Beta Cue 0.3%), Starter
   (the Starter Pack, Rare or better), Sky, Lucky 8 and Gift. **No block is sold permanently**:
@@ -985,7 +992,7 @@ step in the save (`Flags.Tutorial`) and owns every rigged part; the client only 
   Uncommon cue (forced) -> **Equip**: Inventory appears and the hand leads to it, the new cue's
   card and Equip ("Equip your new cue!"; closing the Inventory without equipping moves on;
   designer 2026-10-03) -> **RareBlock**: the hand rests on the match's Rare block in its hotbar
-  slot, counting down its 1 h timer (a tap reports it seen) -> **Abilities**: the icon appears,
+  slot, counting down its 5-minute timer (a tap reports it seen) -> **Abilities**: the icon appears,
   the hand on it -> **Spin**: the one starter spin lands on Magnet -> **Code**: "Type RELEASE
   for 3 more spins!" -> **Back**: "Click Back".
 - **Game 2:** the arrow to a pad; the host card shows only Join Global Queue; the search turns

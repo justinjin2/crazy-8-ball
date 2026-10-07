@@ -2059,6 +2059,56 @@ function PlayerData.planLuckyOpen(
 		nil
 end
 
+--- The upgrade screen (designer, 2026-10-07): the ready Mystery block `id` rolls its tier
+--- (Config.BlockOdds.Drop.Weights, with pity for a free block, counted), and the path its
+--- presses show (BlockDrop.path), and becomes that tier's block in one change: same id, same
+--- place, its origin kept, on the tier's timer (none for a paid block or a VIP). Answers (true,
+--- { tiers, kind, readyAt }) or (false, reason): "NotOwned", "NotReady", "NotLoaded",
+--- "NotMystery", "Invalid".
+function PlayerData.revealMystery(player: Player, id: number): (boolean, any)
+	local op = "revealMystery"
+	if not isPlayer(player) then
+		return refuseInvalid(op, player, "not a player")
+	elseif not intIn(id, 1, S.StatCap) then
+		return refuseInvalid(op, player, ("bad block %s"):format(tostring(id)))
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false, "NotLoaded"
+	end
+	local block = LuckyBlocks.find(data.LuckyBlocks, id)
+	if block == nil then
+		return false, "NotOwned"
+	end
+	local kind = LuckyBlocks.kind(block.Kind) :: LuckyBlocks.Kind
+	if not kind.Roll then
+		return false, "NotMystery"
+	elseif not LuckyBlocks.canOpen(block, os.time(), player.UserId) then
+		return false, "NotReady"
+	end
+	-- A paid block rolls the natural odds (no pity counted or used), as before.
+	local tier: string
+	if block.Paid then
+		tier = BlockDrop.roll(BlockDrop.readPity(nil), dropRoll, nil)
+	else
+		local pity
+		tier, pity = BlockDrop.roll(BlockDrop.readPity(data.Drops), dropRoll, nil)
+		data.Drops.SinceRare = math.min(pity.SinceRare, S.StatCap)
+		data.Drops.SinceEpic = math.min(pity.SinceEpic, S.StatCap)
+		data.Drops.Total = math.min(pity.Total, S.StatCap)
+	end
+	local tiers = BlockDrop.path(tier, dropRoll)
+	local revealed = LuckyBlocks.reveal(
+		data.LuckyBlocks,
+		id,
+		tier,
+		os.time(),
+		vipOfSave[data] == true
+	) :: LuckyBlocks.Block
+	commit(player, data, op)
+	return true, { tiers = tiers, kind = revealed.Kind, readyAt = revealed.ReadyAt }
+end
+
 --- Opens the ready block `id` as `plan` says (PlayerData.planLuckyOpen; `copy`: the Unique
 --- cue's copy number, taken by the caller) in one change: the block goes, the open is counted
 --- (the Guarantee), a free Mystery block's tier counts for pity, the cue is added (the block's

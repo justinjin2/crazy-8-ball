@@ -2996,3 +2996,15 @@ timer of a new block stay the designer's call.
 - 2026-10-07: Lobby bots are off by default in every server (designer: "only real people").
   Config.Bots.Lobby.OnByDefault = false; the designer's /lobbybots still turns them on in one
   server. The global queue's fallback bot, Play against PC and the tutorial's bots are unchanged.
+- 2026-10-07: The Mystery block opens on its own upgrade screen, like Star Drop (designer). Its
+  hotbar slot says OPEN!; 4 presses, the first shows the starting tier, each later one may
+  raise it one tier, never down (Config.BlockOdds.Drop.Upgrade: 7% / 4% / 1% / 2% / 1% a press
+  from Standard up). The designer chose to keep today's final odds and pity exactly: the server
+  rolls the final tier first and picks the path the chain would take to it. The block becomes
+  that tier's block in its slot, on that tier's timer. An upgrade is a bounce then an impact
+  (white flash, screen shake, burst); the designer dropped the spin. After the last press,
+  "Tap to collect" (or 4 s). The background is the blur plus the tier's glow, not a full
+  backdrop.
+- 2026-10-07: New lucky block timers (designer): Standard none, Uncommon 1 min, Rare 5 min, Epic
+  1 h, Legendary 6 h, Mythic 12 h, the Gift still 12 h, every other kind none (the Mystery
+  block's 5 minutes are gone). Blocks already counting down keep the time they had.

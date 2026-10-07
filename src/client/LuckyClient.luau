@@ -12,6 +12,9 @@
 --   its Release marker.
 -- - Open it: the prompt over it (LuckyWorld). The server rolls; once the block bursts at the
 --   top of its rise, the reel plays (and a Rare or better cue's pull cutscene, LuckyOpening).
+-- - A Mystery block is never held: its slot says OPEN! and a tap, a click or its key opens its
+--   upgrade screen (MysteryReveal), where it becomes a tier's block and jumps back into its
+--   slot. On a gamepad LB / RB pick its slot and R2 opens it.
 -- The tutorial (Tutorial.luau) reads which slot holds a kind (slotOf), what is held and what
 -- lies on the floor, and the hotbar registers its slots as anchors.
 -- - The bag: the ` key, the bag button, or L3.
@@ -31,8 +34,10 @@ local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
 local LuckyBlocks = require(Progression:WaitForChild("LuckyBlocks"))
 local LuckyHotbar = require(script.Parent.LuckyHotbar)
 local LuckyOpening = require(script.Parent.LuckyOpening)
+local MysteryReveal = require(script.Parent.MysteryReveal)
 local LuckyWorld = require(script.Parent.LuckyWorld)
 local GiftDrop = require(script.Parent.GiftDrop)
+local GuiQA = require(script.Parent.GuiQA)
 local Menus = require(script.Parent.Menus)
 local PullCutscene = require(script.Parent.PullCutscene)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
@@ -59,6 +64,8 @@ local LuckyClient = {}
 
 local hotbar: any = nil
 local opening: any = nil
+local reveal: any = nil
+local aimedId: number? = nil -- a Mystery block the gamepad's LB / RB picked (R2 opens it)
 local entries: { Entry } = {}
 local heldId: number? = nil
 local liveIds: { [number]: boolean } = {}
@@ -83,8 +90,11 @@ local function find(id: number?): Entry?
 end
 
 local function refresh()
+	if aimedId ~= nil and find(aimedId) == nil then
+		aimedId = nil
+	end
 	if hotbar then
-		hotbar:set(entries, heldId, liveIds)
+		hotbar:set(entries, heldId or aimedId, liveIds)
 		hotbar:setVisible(visible)
 	end
 end
@@ -235,10 +245,53 @@ local function putAway()
 	task.spawn(request, "Hold", nil)
 end
 
-local function holdBlock(id: number)
-	if throwing or opening:isOpen() then
+local function isMystery(entry: Entry?): boolean
+	local row = if entry then LuckyBlocks.kind(entry.kind) else nil
+	return row ~= nil and row.Roll == true
+end
+
+-- A timer skip for a block still counting down (a 19 R$ prompt), or a line saying why not.
+local function offerSkip(id: number)
+	local ok, skip = pcall(function()
+		return (Net.get("StoreRequest") :: RemoteFunction):InvokeServer("LuckySkip", id)
+	end)
+	if not ok or type(skip) ~= "table" or not skip.ok then
+		hotbar:say(W.SkipUnavailable)
+	end
+end
+
+-- A Mystery block's upgrade screen: its icon jumps out of its slot (MysteryReveal asks the
+-- server, which turns it into its tier's block before anything is shown).
+local function revealBlock(id: number)
+	if not visible or throwing or opening:isOpen() or reveal:isBusy() then
 		return
 	end
+	local entry = find(id)
+	if entry == nil or not isMystery(entry) or liveIds[id] then
+		return
+	end
+	aimedId = nil
+	if entry.readyAt > serverNow() then
+		hotbar:shake(id, REASONS.NotReady)
+		task.spawn(offerSkip, id)
+		refresh()
+		return
+	end
+	putAway()
+	local from, px = hotbar:slotOf(id)
+	reveal:play(id, from, px)
+	refresh()
+end
+
+local function holdBlock(id: number)
+	if throwing or opening:isOpen() or reveal:isBusy() then
+		return
+	end
+	if isMystery(find(id)) then
+		revealBlock(id)
+		return
+	end
+	aimedId = nil
 	if heldId == id then
 		putAway()
 		return
@@ -276,7 +329,11 @@ end
 
 local function throw()
 	local id = heldId
-	if id == nil or throwing or not visible or opening:isOpen() then
+	if aimedId ~= nil and id == nil then
+		revealBlock(aimedId)
+		return
+	end
+	if id == nil or throwing or not visible or opening:isOpen() or reveal:isBusy() then
 		return
 	end
 	local entry = find(id)
@@ -344,12 +401,7 @@ local function openBlock(id: number)
 		if not reply.ok then
 			hotbar:say(reasonText(reply))
 			if reply.reason == "NotReady" then
-				local ok, skip = pcall(function()
-					return (Net.get("StoreRequest") :: RemoteFunction):InvokeServer("LuckySkip", id)
-				end)
-				if not ok or type(skip) ~= "table" or not skip.ok then
-					hotbar:say(W.SkipUnavailable)
-				end
+				offerSkip(id)
 			end
 			LuckyWorld.allowPrompt(id)
 			return
@@ -372,7 +424,7 @@ end
 
 -- The slots' keys and the gamepad's buttons (in the lobby, with no menu up but the bag).
 local function onInput(input: InputObject, processed: boolean)
-	if processed or not visible or opening:isOpen() then
+	if processed or not visible or opening:isOpen() or reveal:isBusy() then
 		return
 	end
 	local key = input.KeyCode
@@ -396,16 +448,22 @@ local function onInput(input: InputObject, processed: boolean)
 			return
 		end
 		local at = 0
+		local current = heldId or aimedId
 		for i = 1, n do
 			local entry = hotbar:slotEntry(i)
-			if entry and entry.id == heldId then
+			if entry and entry.id == current then
 				at = i
 			end
 		end
 		local step = if key == Enum.KeyCode.ButtonR1 then 1 else -1
 		local nextIndex = if at == 0 then (if step > 0 then 1 else n) else (at - 1 + step) % n + 1
 		local entry = hotbar:slotEntry(nextIndex)
-		if entry then
+		if entry and isMystery(entry) then
+			-- Picked, not held: R2 opens its upgrade screen.
+			putAway()
+			aimedId = entry.id
+			refresh()
+		elseif entry then
 			holdBlock(entry.id)
 		end
 	elseif
@@ -428,9 +486,52 @@ function LuckyClient.start(screen: ScreenGui)
 	pcall(function()
 		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
 	end)
-	hotbar = LuckyHotbar.new(screen, { select = holdBlock, move = move })
+	hotbar = LuckyHotbar.new(screen, { select = holdBlock, reveal = revealBlock, move = move })
 	opening = LuckyOpening.new(screen)
+	reveal = MysteryReveal.new(screen.Parent :: Instance, {
+		request = function(id: number): any
+			return request("Reveal", id)
+		end,
+		slotOf = function(id: number): (Vector2?, number?)
+			return hotbar:slotOf(id)
+		end,
+		mask = function(id: number, on: boolean)
+			hotbar:mask(id, on)
+		end,
+		landed = function(id: number, kind: string)
+			local tier = Config.LuckyBlocks.Reveal.Tiers[kind]
+			local tint = if tier
+				then Color3.fromRGB(tier.Glow[1], tier.Glow[2], tier.Glow[3])
+				else nil
+			hotbar:landed(id, tint)
+		end,
+		refused = function(reply: any)
+			hotbar:say(reasonText(reply))
+			if type(reply) == "table" and reply.reason == "NotReady" and reveal.id then
+				task.spawn(offerSkip, reveal.id)
+			end
+		end,
+	})
 	LuckyWorld.start({ onOpen = openBlock })
+	-- Studio tests of the upgrade screen with a made-up path ("Standard,Uncommon,Uncommon,Rare"),
+	-- nothing asked of the server or changed in the save.
+	GuiQA.add("mystery", function(path: string?)
+		local tiers = string.split(path or "Standard,Standard,Uncommon,Rare", ",")
+		local from, px = hotbar:slotOf(-1)
+		reveal:play(-1, from, px, { ok = true, tiers = tiers, kind = tiers[#tiers] })
+		return true
+	end)
+	GuiQA.add("mysteryTap", function()
+		reveal:tap()
+		return reveal.phase
+	end)
+	GuiQA.add("mysterySpeed", function(k: number?)
+		reveal.timeScale = k or 1
+		return reveal.timeScale
+	end)
+	GuiQA.add("mysteryState", function()
+		return reveal.phase, reveal.presses
+	end)
 	GiftDrop.start() -- the Gift's fall from the sky, the first time back after leaving
 	Net.get("BlockState").OnClientEvent:Connect(function(payload: any)
 		if type(payload) ~= "table" or type(payload.blocks) ~= "table" then
@@ -521,13 +622,14 @@ function LuckyClient.setVisible(show: boolean)
 	visible = show
 	if not show then
 		putAway()
+		aimedId = nil
 	end
 	hotbar:setVisible(show)
 end
 
 --- Whether the reel, its pull cutscene or its card is up (Progression treats it as a popup).
 function LuckyClient.isOpen(): boolean
-	return started and (opening:isOpen() or PullCutscene.isPlaying())
+	return started and (opening:isOpen() or PullCutscene.isPlaying() or reveal:isOpen())
 end
 
 --- Close the reel (and its cutscene) at once: a match is starting, or the result screen
@@ -536,6 +638,7 @@ function LuckyClient.close()
 	if started then
 		opening:close()
 		PullCutscene.stop()
+		reveal:close()
 	end
 end
 

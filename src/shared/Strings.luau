@@ -912,8 +912,31 @@ return {
 			NoBody = "You can't throw that right now.",
 			TooFar = "Get closer to the block.",
 			NotLanded = "Wait for it to land.",
+			Reveal = "Tap the Mystery block's slot to open it!",
+			NotMystery = "That block opens in the world.",
 			Error = "Something went wrong. Try again.",
 		} :: { [string]: string },
+		-- A ready Mystery block's hotbar slot (designer, 2026-10-07: like Star Drop).
+		OpenSlot = "OPEN!",
+		-- The Mystery block's upgrade screen (MysteryReveal).
+		Reveal = {
+			Title = "MYSTERY", -- over the block before the first press
+			Tiers = {
+				Standard = "STANDARD",
+				Uncommon = "UNCOMMON",
+				Rare = "RARE",
+				Epic = "EPIC",
+				Legendary = "LEGENDARY",
+				Mythic = "MYTHIC",
+			} :: { [string]: string },
+			Chances = "UPGRADE CHANCES", -- over the dots
+			Tap = "Tap!", -- under the block while presses are left
+			TapMouse = "Click!",
+			TapPad = "Press A",
+			Collect = "Tap to collect", -- after the last press
+			CollectMouse = "Click to collect",
+			CollectPad = "Press A to collect",
+		},
 	},
 	-- The lucky block reel's skip hint (LuckyOpening, UltSpinAnim, PullCutscene, ResultCutscene).
 	Reel = {
@@ -1478,7 +1501,7 @@ return {
 			Touch = "Tap Equip!",
 			Gamepad = "Press A to equip it!",
 		},
-		RareBlock = "Your Rare Lucky Block opens in 1 hour! Tap it to see.", -- its hotbar slot
+		RareBlock = "Your Rare Lucky Block opens in 5 minutes! Tap it to see.", -- its hotbar slot
 		Abilities = {
 			Mouse = "Click Abilities!",
 			Touch = "Tap Abilities!",

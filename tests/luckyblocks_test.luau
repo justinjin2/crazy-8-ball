@@ -16,11 +16,13 @@ return {
 		local L, Config = load()
 		for _, row in
 			{
-				{ "Uncommon", "Uncommon", 0 },
-				{ "Rare", "Rare", 3600 },
-				{ "Epic", "Epic", 21600 },
-				{ "Legendary", "Legendary", 86400 },
-				{ "Mythic", "Mythic", 172800 },
+				-- The designer's timers (2026-10-07).
+				{ "Standard", "Standard", 0 },
+				{ "Uncommon", "Uncommon", 60 },
+				{ "Rare", "Rare", 300 },
+				{ "Epic", "Epic", 3600 },
+				{ "Legendary", "Legendary", 21600 },
+				{ "Mythic", "Mythic", 43200 },
 				{ "Gift", "Rare", 43200 },
 			}
 		do
@@ -30,7 +32,11 @@ return {
 		-- Mystery block rolls a tier first (no odds row of its own).
 		H.expect(Config.LuckyBlocks.VipTimerFactor == 0, "no VIP timers")
 		H.expect(L.timer("Rare", true) == 0 and L.timer("Standard", true) == 0, "VIP: none")
-		H.expect(L.timer("Mythic", true) == 0 and L.timer("Mythic") == 172800, "48 h, or none")
+		H.expect(L.timer("Mythic", true) == 0 and L.timer("Mythic") == 43200, "12 h, or none")
+		-- Everything else has no timer, the Mystery block too.
+		for _, kind in { "Mystery", "GrandOpening", "Starter", "Sky", "Lucky8" } do
+			H.expect(L.timer(kind) == 0, kind .. " opens at once")
+		end
 		-- Timers already running when VIP arrives finish at once.
 		local state = L.fresh()
 		L.add(state, "Mythic", 100)
@@ -71,7 +77,7 @@ return {
 		local b = L.add(L.fresh(), "Legendary", 1000)
 		H.expect(not L.canOpen(b, 1001, 1234), "another account cannot bypass")
 		H.expect(L.canOpen(b, 1001, 544959133), "designer can open")
-		H.expect(b.ReadyAt == 87400, "bypass does not erase the timer")
+		H.expect(b.ReadyAt == 22600, "bypass does not erase the timer")
 	end,
 	["late skip receipt preserves value and saved target across reconnect"] = function()
 		local L = load()
@@ -104,8 +110,8 @@ return {
 		-- Floor instances are transient; the serialized save keeps both unopened ids and times.
 		local restored = Schema.validate(save)
 		H.expect(#restored.LuckyBlocks.List == 2, "both returned in inventory")
-		H.expect(L.find(restored.LuckyBlocks, a.Id).ReadyAt == 4600, "countdown unchanged")
-		H.expect(L.find(restored.LuckyBlocks, b.Id).ReadyAt == 87400, "long timer unchanged")
+		H.expect(L.find(restored.LuckyBlocks, a.Id).ReadyAt == 1300, "countdown unchanged")
+		H.expect(L.find(restored.LuckyBlocks, b.Id).ReadyAt == 22600, "long timer unchanged")
 	end,
 
 	["every kind rolls a real odds row and the test kinds match the designer's"] = function()
@@ -132,7 +138,7 @@ return {
 		)
 		H.expect(LuckyBlocks.timer("Standard") == 0, "Standard opens at once")
 		H.expect(LuckyBlocks.kind("Rare").Odds == "Rare", "Rare rolls the Rare odds")
-		H.expect(LuckyBlocks.timer("Rare") == 3600, "Rare waits an hour")
+		H.expect(LuckyBlocks.timer("Rare") == 300, "Rare waits 5 minutes")
 		H.expect(LuckyBlocks.kind("Purple") == nil and LuckyBlocks.kind(5) == nil, "unknown: nil")
 		-- The extra tables roll the whole core pool; the Grand Opening block's Unique rows.
 		H.expect(LuckyBlocks.kind("Sky").Odds == "Sky" and BlockOdds.get("Sky") ~= nil, "Sky")
@@ -147,9 +153,9 @@ return {
 		local standard = LuckyBlocks.add(state, "Standard", 1000)
 		local rare = LuckyBlocks.add(state, "Rare", 1000)
 		H.expect(LuckyBlocks.isReady(standard, 1000), "Standard is ready at once")
-		H.expect(not LuckyBlocks.isReady(rare, 4599), "Rare is not ready a second early")
-		H.expect(LuckyBlocks.isReady(rare, 4600), "Rare is ready after an hour")
-		H.expect(LuckyBlocks.secondsLeft(rare, 1017.5) == 3583, "seconds left round up")
+		H.expect(not LuckyBlocks.isReady(rare, 1299), "Rare is not ready a second early")
+		H.expect(LuckyBlocks.isReady(rare, 1300), "Rare is ready after 5 minutes")
+		H.expect(LuckyBlocks.secondsLeft(rare, 1017.5) == 283, "seconds left round up")
 		H.expect(LuckyBlocks.secondsLeft(rare, 5000) == 0, "never below 0")
 	end,
 
@@ -196,7 +202,7 @@ return {
 		local copy = LuckyBlocks.snapshot(state)
 		H.expect(#copy == 2, "both")
 		H.expect(copy[1].kind == "Standard" and copy[1].id == 2, "Standard first")
-		H.expect(copy[2].kind == "Rare" and copy[2].readyAt == 3610, "Rare with its ready time")
+		H.expect(copy[2].kind == "Rare" and copy[2].readyAt == 310, "Rare with its ready time")
 	end,
 
 	["the countdown reads m:ss, or h:mm:ss past an hour"] = function()
@@ -255,5 +261,39 @@ return {
 		LuckyBlocks.noteLeave(vipFlags, 0)
 		local fast = LuckyBlocks.landGift(state, vipFlags, true)
 		H.expect(fast ~= nil and fast.ReadyAt == 0, "VIP: no timer, like every block")
+	end,
+
+	["reveal: a Mystery block becomes its tier in place, on the tier's timer"] = function()
+		local L = load()
+		local state = L.fresh()
+		L.add(state, "Standard", 100)
+		local mystery = L.add(state, "Mystery", 100)
+		L.add(state, "Rare", 100)
+		H.expect(mystery.ReadyAt == 100, "the Mystery block has no timer")
+		local block = L.reveal(state, mystery.Id, "Rare", 200)
+		H.expect(block ~= nil and block.Id == mystery.Id, "same id")
+		H.expect(state.List[2] == block and block.Kind == "Rare", "same place, now Rare")
+		H.expect(block.ReadyAt == 200 + L.timer("Rare"), "on the Rare timer from the reveal")
+		H.expect(L.opened(state, "Mystery") == 1, "the open is counted for the Mystery block")
+		-- A VIP's: no timer. A paid one: ready at once and still paid.
+		local vip = L.add(state, "Mystery", 100)
+		H.expect((L.reveal(state, vip.Id, "Epic", 300, true) :: any).ReadyAt == 300, "VIP")
+		local paid = L.add(state, "Mystery", 100, nil, true)
+		local after = L.reveal(state, paid.Id, "Mythic", 400) :: any
+		H.expect(after.ReadyAt == 400 and after.Paid == true, "paid: at once, paid origin")
+		H.expect(L.reveal(state, 999, "Rare", 400) == nil, "no such block")
+		local ok = pcall(L.reveal, state, mystery.Id, "Purple", 400)
+		H.expect(not ok, "an unknown tier errors")
+	end,
+
+	["reveal: parse takes a Reveal of a whole id"] = function()
+		local L = load()
+		local r = L.parse("Reveal", 7)
+		H.expect(r ~= nil and r.action == "Reveal" and r.id == 7, "Reveal 7")
+		H.expect(select(2, L.parse("Reveal", nil)) == "BadRequest", "no id")
+		H.expect(select(2, L.parse("Reveal", 1.5)) == "BadRequest", "not whole")
+		H.expect(table.find(L.Actions, "Reveal") ~= nil, "an action")
+		H.expect(table.find(L.Reasons, "Reveal") ~= nil, "Hold's refusal")
+		H.expect(table.find(L.Reasons, "NotMystery") ~= nil, "Reveal's refusal")
 	end,
 }

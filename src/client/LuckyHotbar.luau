@@ -3,7 +3,8 @@
 -- the kit's look. Along the bottom: one slot per block (the first Config.LuckyBlocks
 -- .HotbarSlots of the list; a phone only the first UI.PhoneHotbarSlots), each the block's 2D icon (its Icon; else a slowly turning 3D model) with its number and, on
 -- a timer, its countdown; the held block's slot has a thick gold outline. Keys 1-9, a tap or a
--- click hold a block (LuckyClient). The bag button at the end ("+12": blocks waiting) and the `
+-- click hold a block (LuckyClient); a ready Mystery block's slot says OPEN! and opens its
+-- upgrade screen instead (MysteryReveal). The bag button at the end ("+12": blocks waiting) and the `
 -- key open the bag: a grid of every block. Drag a block onto a hotbar slot to put it there (mouse
 -- and touch), or pick it and then pick the slot (any device, the gamepad's way).
 --
@@ -38,6 +39,7 @@ local BAG = "LuckyBag" -- its name in Menus
 export type Entry = { id: number, kind: string, readyAt: number }
 export type Handlers = {
 	select: (id: number) -> (), -- hold (or put away) this block
+	reveal: (id: number) -> (), -- open this Mystery block's upgrade screen (MysteryReveal)
 	move: (id: number, to: number) -> (), -- put this block at this place in the list
 }
 
@@ -51,6 +53,7 @@ type Tile = {
 	edge: UIStroke,
 	number: TextLabel?,
 	timer: TextLabel,
+	open: TextLabel?, -- a Mystery block's OPEN! (designer, 2026-10-07)
 }
 
 local Hotbar = {}
@@ -195,6 +198,21 @@ local function makeTile(parent: Instance, entry: Entry, number: number?): Tile
 	timer.TextWrapped = false
 	timer.Visible = false
 	timer.ZIndex = 4
+	-- A Mystery block says OPEN! along its bottom once it is ready, and pulses: a tap opens
+	-- its upgrade screen.
+	local openLabel: TextLabel? = nil
+	local row = LuckyBlocks.kind(entry.kind)
+	if row and row.Roll then
+		local label = HudParts.text(button, "Open", U.OpenPx, W.OpenSlot, GOLD)
+		label.AnchorPoint = Vector2.new(0.5, 1)
+		label.Position = UDim2.new(0.5, 0, 1, 2)
+		label.Size = UDim2.new(1, 6, 0, U.OpenPx + 4)
+		label.TextWrapped = false
+		label.Visible = false
+		label.ZIndex = 5
+		UIAnim.pulse(label)
+		openLabel = label
+	end
 	return {
 		entry = entry,
 		button = button,
@@ -202,6 +220,7 @@ local function makeTile(parent: Instance, entry: Entry, number: number?): Tile
 		edge = edge,
 		number = numberLabel,
 		timer = timer,
+		open = openLabel,
 	}
 end
 
@@ -211,6 +230,7 @@ function Hotbar.new(screen: ScreenGui, handlers: Handlers): any
 	self.entries = {} :: { Entry }
 	self.heldId = nil :: number?
 	self.hiddenIds = {} :: { [number]: boolean } -- a thrown block on the floor: not in the bar meanwhile
+	self.masked = {} :: { [number]: boolean } -- a Mystery block out on its upgrade screen
 	self.visible = false
 	self.slots = {} :: { Tile }
 	self.tiles = {} :: { Tile } -- the bag's
@@ -500,6 +520,12 @@ function Hotbar.pressed(self: any, id: number, slot: number?)
 		self:refreshSelection()
 		return
 	end
+	local entry = self:find(id)
+	local row = if entry then LuckyBlocks.kind(entry.kind) else nil
+	if row and row.Roll then
+		self.handlers.reveal(id)
+		return
+	end
 	self.handlers.select(id)
 end
 
@@ -669,6 +695,40 @@ function Hotbar.center(self: any): Vector2?
 	return bar.AbsolutePosition + bar.AbsoluteSize / 2
 end
 
+--- Where block `id` sits while the bar shows: its slot's middle (absolute pixels) and size,
+--- or the bag button's for a block in the bag; nil while the bar is hidden.
+function Hotbar.slotOf(self: any, id: number): (Vector2?, number?)
+	if not self.visible then
+		return nil, nil
+	end
+	for _, tile in self.slots do
+		if tile.entry.id == id then
+			local b: GuiObject = tile.button
+			return b.AbsolutePosition + b.AbsoluteSize / 2, b.AbsoluteSize.X
+		end
+	end
+	local bag: GuiObject = self.bagButton
+	return bag.AbsolutePosition + bag.AbsoluteSize / 2, bag.AbsoluteSize.X
+end
+
+--- Block `id`'s slot shows nothing while its block is out on the upgrade screen (true), or
+--- its block again (false).
+function Hotbar.mask(self: any, id: number, on: boolean)
+	self.masked[id] = if on then true else nil
+end
+
+--- Block `id` landed back in its slot: the slot bounces with a glow in `tint`.
+function Hotbar.landed(self: any, id: number, tint: Color3?)
+	for _, tile in self.slots do
+		if tile.entry.id == id then
+			UIAnim.bounce(tile.button)
+			UIAnim.glowBurst(tile.button, tint)
+			return
+		end
+	end
+	UIAnim.bounce(self.bagButton)
+end
+
 --- A block landed in the bar: it bounces.
 function Hotbar.bump(self: any)
 	if self.visible then
@@ -720,12 +780,23 @@ function Hotbar.step(self: any)
 		if icon.model then
 			icon.model:PivotTo(CFrame.Angles(0, turn, 0) * icon.base)
 		end
+		if self.masked[tile.entry.id] then
+			icon.picture.ImageTransparency = 1
+			tile.timer.Visible = false
+			if tile.open then
+				tile.open.Visible = false
+			end
+			return
+		end
 		local left = tile.entry.readyAt - t
+		if tile.open then
+			tile.open.Visible = left <= 0
+		end
 		if left > 0 then
 			tile.timer.Visible = true
 			tile.timer.Text = LuckyBlocks.clockText(left)
 			icon.picture.ImageTransparency = 0.35
-		elseif tile.timer.Visible then
+		else
 			tile.timer.Visible = false
 			icon.picture.ImageTransparency = 0
 		end

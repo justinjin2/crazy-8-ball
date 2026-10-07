@@ -2037,6 +2037,23 @@ Config.BlockOdds = {
 		PityRare = 10,
 		PityEpic = 150,
 		FirstWin = "Rare",
+		-- The upgrade screen (designer, 2026-10-07, like Star Drop): a Mystery block is opened
+		-- by Clicks presses. The first shows its starting tier; every later press may raise it
+		-- one tier (never down) by Chances[tier] (out of OddsTotal). The final tier is still
+		-- rolled by Weights with pity, so the overall odds above never change: the server then
+		-- picks the path this chain would take to that tier (BlockDrop.path). With these
+		-- chances the first press shows about Standard 84.5%, Uncommon 10.3%, Rare 5%, Epic
+		-- 0.13%, and about 1 block in 6 upgrades at least once.
+		Upgrade = {
+			Clicks = 4,
+			Chances = {
+				Standard = 70000, -- 7% a press, Standard -> Uncommon
+				Uncommon = 40000, -- 4%, Uncommon -> Rare
+				Rare = 10000, -- 1%, Rare -> Epic
+				Epic = 20000, -- 2%, Epic -> Legendary
+				Legendary = 10000, -- 1%, Legendary -> Mythic
+			},
+		},
 	},
 	-- Selling a block cue back (section 8), by rarity. Exclusive and Unique never sell.
 	SellBack = {
@@ -2119,29 +2136,29 @@ Config.LuckyBlocks = {
 		},
 		Uncommon = {
 			Odds = "Uncommon",
-			Timer = 0,
+			Timer = 60, -- 1 minute (designer, 2026-10-07)
 			Model = "UncommonBlock",
 			Idle = BOX_IDLE,
 			Icon = "rbxassetid://119408380665005",
 		},
 		Rare = {
 			Odds = "Rare",
-			Timer = 3600,
+			Timer = 300,
 			Model = "RareBlock",
 			Idle = BOX_IDLE,
 			Icon = "rbxassetid://114285593441963",
-		}, -- 1 hour
+		}, -- 5 minutes (designer, 2026-10-07; was 1 hour)
 		Epic = {
 			Odds = "Epic",
-			Timer = 6 * 3600,
+			Timer = 3600,
 			Model = "EpicBlock",
 			Idle = BOX_IDLE,
 			Icon = "rbxassetid://90574468724799",
-		}, -- 6 hours
+		}, -- 1 hour (designer, 2026-10-07; was 6 hours)
 		Legendary = {
 			Icon = "rbxassetid://128589483213137",
 			Odds = "Legendary",
-			Timer = 24 * 3600,
+			Timer = 6 * 3600, -- 6 hours (designer, 2026-10-07; was 24)
 			Model = "LegendaryBlock", -- gold, with wings
 			Idle = WING_IDLE,
 			SizeMultiplier = 2.7, -- 12.6 studs wide (the wings)
@@ -2151,7 +2168,7 @@ Config.LuckyBlocks = {
 		Mythic = {
 			Icon = "rbxassetid://125009619556113",
 			Odds = "Mythic",
-			Timer = 48 * 3600,
+			Timer = 12 * 3600, -- 12 hours (designer, 2026-10-07; was 48)
 			Model = "MythicBlock", -- pastel rainbow, halo and wings
 			Idle = WING_IDLE,
 			SizeMultiplier = 2.7, -- 12.6 studs wide (the wings)
@@ -2159,12 +2176,14 @@ Config.LuckyBlocks = {
 			IconScale = 2.2,
 			Rainbow = true, -- the client cycles its icon's aura through the rainbow
 		},
-		-- The tier roll's block (plan 2, 4.2): 5 minutes when won (none when bought); on
-		-- opening it morphs into the tier's block and that block opens in the same flow.
+		-- The tier roll's block (plan 2, 4.2): no timer (designer, 2026-10-07; was 5 minutes).
+		-- Its hotbar slot says OPEN!; a tap opens the upgrade screen (MysteryReveal), where it
+		-- becomes the tier's block (Config.BlockOdds.Drop.Upgrade), which lands back in its
+		-- slot on that tier's own timer.
 		Mystery = {
 			Icon = "rbxassetid://76412774878315",
 			Roll = true,
-			Timer = 300,
+			Timer = 0,
 			Model = "MysteryBlock", -- frame C (flush rims), the moving rainbow
 			Idle = BOX_IDLE,
 		},
@@ -2379,6 +2398,329 @@ Config.LuckyBlocks = {
 	ReturnSeconds = 60,
 	ReturnStuds = 60,
 	CheckSeconds = 1, -- how often the server looks for blocks to return
+	-- The Mystery block's upgrade screen (MysteryReveal; designer, 2026-10-07, like Star Drop
+	-- but our own): a tap on its OPEN! slot jumps the block's 2D icon out of the hotbar at the
+	-- screen over a blur, where it floats with its tier's particles. Each of the
+	-- Config.BlockOdds.Drop.Upgrade.Clicks presses squashes it; a press that changes the tier
+	-- bounces it, then it turns into the next block with an impact: a white flash, a screen
+	-- shake and a burst (designer, 2026-10-07: no spin). A dot fills per press. After the last,
+	-- "Tap to collect" (or AutoCollect seconds) shrinks the screen and the block jumps back
+	-- into its hotbar slot. Sizes are shares of the block's side, which is BlockShare of the
+	-- screen's short side (capped by BlockMaxShareOfWidth of its width).
+	Reveal = {
+		DisplayOrder = 40, -- over the hotbar and the HUD
+		BlockShare = 0.4, -- of the screen's height
+		BlockMaxShareOfWidth = 0.62, -- a tall phone: the block no wider than this
+		BlockY = 0.47, -- the block's middle, of the screen's height
+		TitleY = 0.17, -- the tier's name, of the screen's height
+		TitleHeightShare = 0.36, -- of the block's side
+		TitleWidthShare = 1.9, -- of the block's side, at most (long names shrink)
+		TitleTurnDegrees = -4, -- a slight tilt, like a sticker
+		LabelY = 0.79, -- "UPGRADE CHANCES"
+		LabelHeightShare = 0.12,
+		DotsY = 0.865,
+		DotShare = 0.17, -- one dot's size, of the block's side
+		DotGapShare = 0.06,
+		DotOutlinePx = 3,
+		HintY = 0.945, -- "Tap!" / "Tap to collect"
+		HintHeightShare = 0.1,
+		GlowShare = 2.3, -- the soft glow behind the block, of its side
+		GlowTransparency = 0.25,
+		RaysShare = 3.2, -- the turning rays behind it
+		RaysTransparency = 0.55,
+		RaysDegreesPerSecond = 14,
+		BackTransparency = 0.82, -- the tier's colour, faintly, over the blurred world
+		-- The jump out of the hotbar: an arc from the slot to the middle, growing past its size
+		-- and settling (backOut), turning upright. The blur starts with it.
+		Arrive = {
+			Seconds = 0.55,
+			ArcShare = 0.35, -- how high above the straight line the arc rises, of the screen
+			FromTurn = -25, -- degrees at the start
+			TitleAt = 0.35, -- the name slams in this long after the start
+			DotsAt = 0.45, -- the label and dots pop in, one after another
+			DotStagger = 0.05,
+			HintAt = 0.7,
+		},
+		-- Floating while it waits: up and down, a slight rock.
+		Float = { Seconds = 2.2, HeightShare = 0.04, Degrees = 3 },
+		-- A press: a quick squash and a rattle.
+		Press = { SquashSeconds = 0.07, Squash = 0.84, ShakeDegrees = 9, ShakeSeconds = 0.25 },
+		-- A press that changes the tier: it bounces HopCount times (each lower, a rattle
+		-- building), then the impact: the picture becomes the new block under a white flash
+		-- while the screen shakes and a burst goes off; it lands a little big and settles.
+		Upgrade = {
+			Seconds = 0.5, -- the bounces before the impact
+			HopCount = 2,
+			FirstHopCount = 3, -- the Mystery block's first change bounces once more
+			FirstSeconds = 0.7,
+			HopShare = 0.16, -- the first bounce's height, of the block's side; each one lower
+			RattleDegrees = 7, -- the rattle as it bounces, growing toward the impact
+			LandScale = 1.22, -- the new block lands this big and settles
+			LandSeconds = 0.35,
+		},
+		-- The impact's flash: a white sheet over the whole screen and a white glow on the block.
+		Flash = { Transparency = 0.45, InSeconds = 0.04, OutSeconds = 0.3, GlowShare = 1.9 },
+		-- The impact's screen shake: everything on the screen jolts, fading out.
+		Shake = { Seconds = 0.32, Share = 0.035, Speed = 55 }, -- Share: of the block's side
+		-- A press that keeps the tier: one small hop and a puff.
+		Keep = { Seconds = 0.4, HopShare = 0.1 },
+		Burst = {
+			Sparks = 26,
+			SpeedShare = { 1.4, 2.6 },
+			Life = { 0.45, 0.9 },
+			RingShare = 2.6,
+			RingSeconds = 0.55,
+		},
+		-- The dots: empty (ink), the next one ("?" over a rainbow), or filled in the colour of
+		-- the tier that press showed (Config.UI.Kit.Art.BallGloss over it).
+		DotPulse = { Seconds = 0.9, Scale = 0.12 },
+		DoneHintDelay = 0.55, -- after the last press settles, "Tap to collect" shows
+		AutoCollect = 4, -- seconds after the last press: it collects by itself
+		-- The jump back: everything else shrinks and fades, the block arcs into its slot.
+		Leave = { Seconds = 0.6, ArcShare = 0.2, FadeSeconds = 0.25, ToTurn = 20 },
+		-- Pictures (Config.UI.Kit.Art and Config.UI.Effects): the particles' shapes.
+		Images = {
+			Spark = "rbxassetid://131919576694289", -- a 4-point sparkle (Kit.Art.Spark)
+			Glow = "rbxassetid://121163827465552", -- a round soft glow (Kit.Art.SoftGlow)
+			Ring = "rbxassetid://121133273572178", -- a soft ring (Kit.Art.RingGlow)
+			Star = "rbxassetid://84051192712402", -- an eight-spike star (StarFlare)
+			Streak = "rbxassetid://114536414580559", -- one soft streak (LightStreak)
+			Rays = "rbxassetid://103944500004159", -- white rays (Config.UI.Effects.Rays)
+			Gloss = "rbxassetid://109282983367810", -- a ball's shine (Kit.Art.BallGloss)
+		},
+		-- Each tier's look: its name's colour (Rainbow: cycles), the glow and rays behind it,
+		-- the wash over the world and its particles. An emitter: Image (above), Colors (picked
+		-- at random; Rainbow: cycles), Rate a second (times Lower effects' rate), Life seconds,
+		-- Size (shares of the block's side), Speed (shares a second), Mode: Rise (from below,
+		-- drifting up), Twinkle (pop in round the block and fade), Orbit (circle it), Fountain
+		-- (up and out from behind, falling back). Spin: degrees a second.
+		Tiers = {
+			Mystery = {
+				Color = { 255, 255, 255 },
+				Rainbow = true,
+				Glow = { 255, 255, 255 },
+				Particles = {
+					{
+						Image = "Spark",
+						Rainbow = true,
+						Rate = 6,
+						Life = { 0.8, 1.4 },
+						Size = { 0.08, 0.15 },
+						Mode = "Twinkle",
+						Spin = 90,
+						Speed = { 0, 0 },
+					},
+					{
+						Image = "Glow",
+						Rainbow = true,
+						Rate = 5,
+						Life = { 1.6, 2.4 },
+						Size = { 0.04, 0.08 },
+						Speed = { 0.15, 0.3 },
+						Mode = "Rise",
+						Spin = 0,
+					},
+				},
+			},
+			Standard = {
+				Color = { 255, 186, 92 },
+				Glow = { 255, 170, 80 },
+				Particles = {
+					{
+						Image = "Glow",
+						Colors = { { 255, 214, 140 }, { 255, 180, 90 } },
+						Rate = 6,
+						Life = { 1.6, 2.6 },
+						Size = { 0.04, 0.07 },
+						Speed = { 0.12, 0.25 },
+						Mode = "Rise",
+						Spin = 0,
+					},
+					{
+						Image = "Spark",
+						Colors = { { 255, 230, 170 } },
+						Rate = 2,
+						Life = { 0.7, 1.1 },
+						Size = { 0.07, 0.11 },
+						Mode = "Twinkle",
+						Spin = 60,
+						Speed = { 0, 0 },
+					},
+				},
+			},
+			Uncommon = {
+				Color = { 61, 214, 107 },
+				Glow = { 80, 230, 120 },
+				Particles = {
+					{
+						Image = "Spark",
+						Colors = { { 120, 255, 150 }, { 210, 255, 160 } },
+						Rate = 6,
+						Life = { 0.7, 1.2 },
+						Size = { 0.08, 0.14 },
+						Mode = "Twinkle",
+						Spin = 90,
+						Speed = { 0, 0 },
+					},
+					{
+						Image = "Glow",
+						Colors = { { 90, 240, 130 } },
+						Rate = 6,
+						Life = { 1.4, 2.2 },
+						Size = { 0.04, 0.07 },
+						Speed = { 0.18, 0.32 },
+						Mode = "Rise",
+						Spin = 0,
+					},
+				},
+			},
+			Rare = {
+				Color = { 59, 155, 255 },
+				Glow = { 70, 160, 255 },
+				Particles = {
+					{
+						Image = "Star",
+						Colors = { { 140, 200, 255 }, { 255, 255, 255 } },
+						Rate = 5,
+						Life = { 0.8, 1.3 },
+						Size = { 0.1, 0.18 },
+						Mode = "Twinkle",
+						Spin = 45,
+						Speed = { 0, 0 },
+					},
+					{
+						Image = "Spark",
+						Colors = { { 110, 180, 255 } },
+						Rate = 4,
+						Life = { 2.2, 3 },
+						Size = { 0.06, 0.1 },
+						Speed = { 0.5, 0.7 },
+						Mode = "Orbit",
+						Spin = 120,
+					},
+					{
+						Image = "Glow",
+						Colors = { { 100, 170, 255 } },
+						Rate = 6,
+						Life = { 1.4, 2.2 },
+						Size = { 0.04, 0.07 },
+						Speed = { 0.2, 0.35 },
+						Mode = "Rise",
+						Spin = 0,
+					},
+				},
+			},
+			Epic = {
+				Color = { 168, 92, 255 },
+				Glow = { 160, 80, 255 },
+				Particles = {
+					{
+						Image = "Streak",
+						Colors = { { 200, 140, 255 }, { 255, 255, 255 } },
+						Rate = 7,
+						Life = { 0.35, 0.6 },
+						Size = { 0.25, 0.4 },
+						Speed = { 1.2, 1.8 },
+						Mode = "Burst",
+						Spin = 0,
+					},
+					{
+						Image = "Spark",
+						Colors = { { 190, 120, 255 }, { 255, 170, 255 } },
+						Rate = 7,
+						Life = { 0.6, 1 },
+						Size = { 0.08, 0.14 },
+						Mode = "Twinkle",
+						Spin = 120,
+						Speed = { 0, 0 },
+					},
+					{
+						Image = "Glow",
+						Colors = { { 170, 90, 255 } },
+						Rate = 8,
+						Life = { 1.2, 2 },
+						Size = { 0.04, 0.08 },
+						Speed = { 0.25, 0.45 },
+						Mode = "Rise",
+						Spin = 0,
+					},
+				},
+			},
+			Legendary = {
+				Color = { 255, 200, 30 },
+				Glow = { 255, 190, 40 },
+				Particles = {
+					{
+						Image = "Spark",
+						Colors = { { 255, 230, 120 }, { 255, 255, 255 } },
+						Rate = 14,
+						Life = { 0.9, 1.4 },
+						Size = { 0.05, 0.1 },
+						Speed = { 0.9, 1.4 },
+						Mode = "Fountain",
+						Spin = 180,
+					},
+					{
+						Image = "Star",
+						Colors = { { 255, 220, 90 } },
+						Rate = 4,
+						Life = { 0.8, 1.2 },
+						Size = { 0.14, 0.24 },
+						Mode = "Twinkle",
+						Spin = 30,
+						Speed = { 0, 0 },
+					},
+					{
+						Image = "Glow",
+						Colors = { { 255, 200, 60 } },
+						Rate = 8,
+						Life = { 1.4, 2.2 },
+						Size = { 0.04, 0.08 },
+						Speed = { 0.25, 0.4 },
+						Mode = "Rise",
+						Spin = 0,
+					},
+				},
+			},
+			Mythic = {
+				Color = { 255, 150, 225 },
+				Rainbow = true,
+				Glow = { 255, 200, 240 },
+				Particles = {
+					{
+						Image = "Spark",
+						Rainbow = true,
+						Rate = 14,
+						Life = { 0.9, 1.4 },
+						Size = { 0.05, 0.1 },
+						Speed = { 0.9, 1.4 },
+						Mode = "Fountain",
+						Spin = 180,
+					},
+					{
+						Image = "Star",
+						Rainbow = true,
+						Rate = 6,
+						Life = { 0.8, 1.3 },
+						Size = { 0.12, 0.22 },
+						Mode = "Twinkle",
+						Spin = 40,
+						Speed = { 0, 0 },
+					},
+					{
+						Image = "Spark",
+						Rainbow = true,
+						Rate = 5,
+						Life = { 2.2, 3 },
+						Size = { 0.06, 0.1 },
+						Speed = { 0.55, 0.75 },
+						Mode = "Orbit",
+						Spin = 120,
+					},
+				},
+			},
+		},
+	},
 	-- The screens (LuckyHotbar, LuckyWorld, LuckyOpening).
 	UI = {
 		SlotPx = 64, -- a hotbar slot, square (phone: PhoneSlotPx)
@@ -2395,6 +2737,7 @@ Config.LuckyBlocks = {
 		BottomPx = 10, -- the hotbar's gap from the bottom of the screen
 		NumberPx = 14, -- the slot's number, top-left
 		TimerPx = 14, -- the countdown along the slot's bottom
+		OpenPx = 16, -- a ready Mystery block's OPEN! along the slot's bottom (gold, pulsing)
 		IconTurnDegreesPerSecond = 30, -- the 3D icon turns slowly
 		IconImageShare = 0.9, -- a slot's 2D icon (the kind's Icon), of the slot's side
 		IconFieldOfView = 30,

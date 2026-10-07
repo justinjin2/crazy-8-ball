@@ -104,6 +104,14 @@ Updated 2026-10-07.
   `/giftdrop` replays it. Checked in Studio: the drop on a real rejoin and from `/giftdrop`, the
   pick up (the Gift first in the hotbar, its timer from the leave); not yet on a phone or gamepad.
   A test Gift is waiting in the designer's Studio save, so the next Play shows the cutscene.
+- **The Mystery block's upgrade screen** (2026-10-07, like Star Drop; `MysteryReveal`,
+  `Config.LuckyBlocks.Reveal`, odds `Config.BlockOdds.Drop.Upgrade`): OPEN! on its slot, the
+  jump out, 4 presses (bounce, then a flash, shake and burst on an upgrade), dots, "Tap to
+  collect", the jump back into its slot as the tier's block. Final odds and pity unchanged.
+  New block timers the same day (Uncommon 1 min to Mythic 12 h; Mystery none). Checked in
+  Studio: the real server reveal from a click on the slot, every tier's look (GuiQA
+  `mystery "Rare,Epic,Legendary,Mythic"`), the landing on the slot, A / Space / RB then R2,
+  Reduce Motion. Not yet: a phone and a real controller by hand, the designer's look.
 - **The pull bar's cue** (2026-10-07): the redrawn cue pictures are longer, so the cue poked out
   over the bar's top; it is drawn a little shorter now (`Config.UI.PowerCueArtLength` 1.24).
   Not yet seen in a match.
@@ -118,8 +126,7 @@ Updated 2026-10-07.
   no page yet). Other menus switch to the new frame one at a time as each is rebuilt. Save
   `place/8ball.rbxl` and publish once for this milestone (the renamed Firework Cue instances).
 - **Decisions still open:** trim Epic ownership (6.7% of active players against a ~5% plan)
-  or keep it; whether the VIP cue pays finder's money on the first join; whether the free
-  Mystery block keeps its 5-minute timer (`Config.LuckyBlocks.Kinds.Mystery.Timer`).
+  or keep it; whether the VIP cue pays finder's money on the first join.
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.
 - **The place file:** save `place/8ball.rbxl` and publish once this milestone is done (lucky

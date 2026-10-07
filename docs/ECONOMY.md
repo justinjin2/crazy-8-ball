@@ -31,9 +31,10 @@ and every list adds up to exactly 100%.
   for a loss. A Classic match pays the winner about **$1,340** and the loser about **$600**:
   about **$7,300 an hour**. Difficult pays x1.5 and Challenger x2.
 - **Every real win gives a Mystery lucky block** (designer, 2026-10-04: lucky blocks replaced
-  cases): 5 minutes after the win it can be thrown and opened in the world, and the server
-  rolls its tier then, from Standard (68%) to Mythic (0.0004%). Rare and better blocks open on
-  a timer (1 h to 48 h). No block is sold permanently.
+  cases): it opens at once on its upgrade screen (designer, 2026-10-07, like Star Drop), where
+  the server's tier roll, from Standard (68%) to Mythic (0.0004%), plays out over 4 presses and
+  it becomes that tier's block. Tier blocks open on a timer (Uncommon 1 min up to Mythic 12 h).
+  No block is sold permanently.
 - **Money buys** Mystery blocks ($4,900), the **restock shop** (new blocks every 10 minutes,
   the same in every server), the Grand Opening block while its deal runs and ability spins
   ($17,500). A block's timer is skipped for Robux only (19 R$).
@@ -98,13 +99,13 @@ What a new player gets, in order, at an ordinary 50% win rate:
 | When | What happens |
 |---|---|
 | Join | 1 starter ability spin (the tutorial, 2026-10-03). Day 1 of the login loop (**$5,000**) waits in the Rewards menu until claimed (designer, 2026-10-04: no popups, nothing given on join). |
-| The first win (the tutorial) | Unranked to **Bronze I**: a **Standard lucky block at once** (the tutorial opens it to an Uncommon cue; `Config.Tutorial.BronzeBlockKind`), then $2,500, a Mystery block, the Bronze Cue, the [BRONZE] tag and +1 ability spin once claimed in Rank. The win's own block is a **guaranteed Rare block** in the hotbar, on its normal **1 h timer** (designer, 2026-10-03). |
-| The second tutorial win | its Mystery block is usually the first one the player opens (5 minutes after the win: Standard or Uncommon, 93%) |
+| The first win (the tutorial) | Unranked to **Bronze I**: a **Standard lucky block at once** (the tutorial opens it to an Uncommon cue; `Config.Tutorial.BronzeBlockKind`), then $2,500, a Mystery block, the Bronze Cue, the [BRONZE] tag and +1 ability spin once claimed in Rank. The win's own block is a **guaranteed Rare block** in the hotbar, on its normal timer (**5 minutes** since 2026-10-07; designer, 2026-10-03). |
+| The second tutorial win | its Mystery block is usually the first one the player opens (at once, on its upgrade screen: Standard or Uncommon, 93%) |
 | 10 minutes | playtime gift: $2,000 |
 | 30 minutes | playtime gift: 1 Mystery block |
 | The third win | **Bronze II**: $1,000 |
 | 60 minutes | playtime gift: 2 Mystery blocks + 1 ability spin |
-| About 1 hour after the first win | the Rare block's timer is done: it opens |
+| About 5 minutes after the first win | the Rare block's timer is done: it opens |
 
 Every new cue also pays finder's money the first time (section 18: $500 a Common, $1,000 an
 Uncommon). A rough count, not a model run: about $20,000 by the end of the first hour, about
@@ -451,10 +452,24 @@ block sources):
 - **Every win gives one, forever.** The old limits (every win for 50 wins, then 10 a day, then
   every 2nd) are gone. The anti-farm rules (3.6) and the PC and disguised limits (3.2) still
   apply. Solo never drops.
-- **The Mystery block's timer is 5 minutes** when won (`Config.LuckyBlocks.Kinds.Mystery.Timer`
-  *(tune)*); a bought one opens at once, and so does a VIP's (11.2). When it opens it morphs into
-  the tier's block and that block opens in the same flow.
-- **The first win's block is a guaranteed Rare block**, on its normal 1 h timer (designer,
+- **The Mystery block has no timer** (designer, 2026-10-07; it was 5 minutes when won). Its
+  hotbar slot says **OPEN!**; a tap opens its **upgrade screen** (like Star Drop, our own
+  look): the block floats over a blur and is opened by **4 presses**
+  (`Config.BlockOdds.Drop.Upgrade`). The first press shows its starting tier, and each later
+  press may raise it one tier (never down), by these chances a press:
+
+  | From | Standard -> Uncommon | Uncommon -> Rare | Rare -> Epic | Epic -> Legendary | Legendary -> Mythic |
+  |---|---|---|---|---|---|
+  | Chance a press | 7% | 4% | 1% | 2% | 1% |
+
+  The first press shows about **Standard 84.5%, Uncommon 10.3%, Rare 5%, Epic 0.13%, Legendary
+  0.01%** (`BlockDrop.firstOdds`, solved so the chain ends exactly on the weights above), and
+  about 1 block in 6 upgrades at least once. **The final odds never change**: the server rolls
+  the final tier by the weights with pity first, then picks the path of presses the chain would
+  take to it (`BlockDrop.path`), and the block becomes that tier's block in the save at once
+  (same slot, its origin kept). It lands back in its slot on **that tier's own timer** (a bought
+  one and a VIP's at once).
+- **The first win's block is a guaranteed Rare block**, on its normal timer (designer,
   2026-10-03; `Config.BlockOdds.Drop.FirstWin`). The tutorial also gives Bronze's Standard
   block at once (section 2).
 - **Pity** (the counters are sent to the screen): the **10th** Mystery block in a row that
@@ -476,22 +491,24 @@ reel starts; the reel only shows it. No fake "almost" moments.
 
 Each tier block guarantees at least the rarity below its name (the Mythic block: Legendary or
 better). Odds in percent; each row adds to exactly 100 (in Config, whole parts of 1,000,000).
-Timers are `Config.LuckyBlocks.Kinds[kind].Timer`.
+Timers are `Config.LuckyBlocks.Kinds[kind].Timer` (designer, 2026-10-07: Standard none,
+Uncommon 1 min, Rare 5 min, Epic 1 h, Legendary 6 h, Mythic 12 h, the Gift 12 h, every other
+kind none).
 
 | Block | Common | Uncommon | Rare | Epic | Legendary | Mythic | Secret | Opens in |
 |---|---|---|---|---|---|---|---|---|
 | Standard | 75% | 23% | 1.99% | 0.009% | 0.0009% | 0.0001% | - | at once |
-| Uncommon | 40% | 54% | 5.95% | 0.045% | 0.0045% | 0.0005% | - | at once |
-| Rare | - | 70% | 29.6% | 0.35% | 0.045% | 0.0045% | 0.0005% | 1 h |
-| Epic | - | - | 78% | 19% | 2.6% | 0.36% | 0.04% | 6 h |
-| Legendary | - | - | - | 75% | 22% | 2.7% | 0.3% | 24 h |
-| Mythic | - | - | - | - | 75% | 22% | 3% | 48 h |
+| Uncommon | 40% | 54% | 5.95% | 0.045% | 0.0045% | 0.0005% | - | 1 min |
+| Rare | - | 70% | 29.6% | 0.35% | 0.045% | 0.0045% | 0.0005% | 5 min |
+| Epic | - | - | 78% | 19% | 2.6% | 0.36% | 0.04% | 1 h |
+| Legendary | - | - | - | 75% | 22% | 2.7% | 0.3% | 6 h |
+| Mythic | - | - | - | - | 75% | 22% | 3% | 12 h |
 
 The other kinds (`Config.BlockOdds.List`, each its own odds row):
 
 | Block | Odds | Opens in | Comes from |
 |---|---|---|---|
-| Mystery | rolls a tier above (7.1) | 5 min when won, at once when bought | wins, the shop, rewards |
+| Mystery | rolls a tier above (7.1), on its upgrade screen | at once | wins, the shop, rewards |
 | Grand Opening | Uncommon 56.35%, Rare 37.45%, Epic 2.5%, Legendary 0.35%, Mythic 0.046%, Secret 0.004%, **the Firework Cue 3%, the Beta Cue 0.3%** (the 400th opened guarantees Beta) | at once | the shop's 21-day deal (9.2) |
 | Starter | Rare 97%, Epic 2.5%, Legendary 0.45%, Mythic 0.045%, Secret 0.005% | at once | the Starter Pack (11.4) |
 | Sky | Common 45%, Uncommon 45%, Rare 9.9%, Epic 0.09%, Legendary 0.009%, Mythic 0.001% | at once | Lucky Rain (no source wired yet) |
