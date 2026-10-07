@@ -20,13 +20,17 @@
 --   into the hotbar (or the left column's Inventory tile while the bar is hidden). The card
 --   grows when all that needs more room; the whole screen scales to fit.
 -- - About 5 to 6 s in all (Config.UI.Progress.Result). A tap or click anywhere, or gamepad A or
---   B, skips to the end; then Continue (or another tap, or A or B), or it closes by itself.
+--   B, skips to the end; then it stays until Continue (or A or B) is pressed (designer,
+--   2026-10-07: it never closes by itself). As Continue (or the row) shows, a winner hears
+--   the win sting (UISound "ResultWin").
 --   After it closes, NEW RANK! follows when the match took you to a new division, with the
 --   rank rewards (xp.rewards: money, lucky blocks, the tier's cue) as its chips.
 -- - After a two-sided game (designer, 2026-09-28) the PostMatch row takes Continue's place,
 --   under both columns: Rematch, and Play another and Lobby in an arena (Leave on a lobby
 --   table), with the series score in place of VS. Then the screen stays until the choice is
---   made (Main calls endChoices); NEW RANK! comes over it as the row appears.
+--   made (Main calls endChoices); NEW RANK! comes over it as the row appears. When the row's
+--   time runs out or the table moves on without a rematch, Continue takes its place
+--   (dropChoices) and the screen stays until it is pressed.
 --
 -- Money: the pots' money already flew into the HUD during play, so only the match bonus, the
 -- streak bonus and the rank reward are new here. They are told to the HUD the moment the screen
@@ -423,7 +427,7 @@ function ResultScreen.build(self: any, view: any)
 	local root = frame(self.root, "Match")
 	root.Size = UDim2.fromScale(1, 1)
 	view.root = root
-	-- The dim over the game; a tap or click on it skips or continues.
+	-- The dim over the game; a tap or click on it skips to the end (only Continue closes).
 	local backdrop = Instance.new("TextButton")
 	backdrop.Name = "Backdrop"
 	backdrop.Text = ""
@@ -813,15 +817,9 @@ function ResultScreen.layout(self: any, settled: boolean?)
 	local cardHeight = self:layoutCard(view)
 	local gap = C.ColumnGap
 	local availableX = screenSize.X - C.MarginPx * 2
-	-- Lifted (the 1v1 result cutscene, GUI lane): the top part only, so both bodies show below.
-	local lifted = self.lifted == true
-	local availableY = (
-		if lifted then screenSize.Y * Config.Cutscenes.Result.ScreenShare else screenSize.Y
-	) - C.MarginPx * 2
-	view.holder.AnchorPoint = Vector2.new(0.5, if lifted then 0 else 0.5)
-	view.holder.Position = if lifted
-		then UDim2.new(0.5, 0, 0, C.MarginPx)
-		else UDim2.fromScale(0.5, 0.5)
+	local availableY = screenSize.Y - C.MarginPx * 2
+	view.holder.AnchorPoint = Vector2.new(0.5, 0.5)
+	view.holder.Position = UDim2.fromScale(0.5, 0.5)
 	-- Side by side, or the rewards under the face-off: whichever lets it be bigger.
 	local wideWidth = C.FaceWidth + gap + C.RewardsWidth
 	local stackWidth = math.max(C.FaceWidth, C.RewardsWidth)
@@ -1006,7 +1004,7 @@ function ResultScreen.bind(self: any)
 		ACTION,
 		function(_name: string, state: Enum.UserInputState, _input: InputObject)
 			if state == Enum.UserInputState.Begin then
-				self:tap()
+				self:pad()
 			end
 			return Enum.ContextActionResult.Sink
 		end,
@@ -1017,7 +1015,7 @@ function ResultScreen.bind(self: any)
 	)
 end
 
---- A tap, click, A or B: skip to the end, or once there, continue.
+--- A tap or click anywhere: skip to the end (only Continue, A or B closes the screen).
 function ResultScreen.tap(self: any)
 	local view = self.view
 	if not view or view.closing then
@@ -1028,6 +1026,17 @@ function ResultScreen.tap(self: any)
 		view.offset += view.continueAt - t
 		view.skippedAt = os.clock()
 		self:step(true)
+	end
+end
+
+--- Gamepad A or B once the screen is at its end: Continue.
+function ResultScreen.pad(self: any)
+	local view = self.view
+	if not view or view.closing then
+		return
+	end
+	if clock(view) < view.continueAt then
+		self:tap()
 	elseif not view.choices and os.clock() - view.skippedAt >= C.SkipGuardSeconds then
 		self:close()
 	end
@@ -1269,6 +1278,9 @@ function ResultScreen.step(self: any, quiet: boolean)
 	self:stepBlock(view, t)
 	if t >= view.continueAt and not view.continueShown then
 		view.continueShown = true
+		if type(view.summary.you) == "table" and view.summary.you.outcome == "Win" then
+			UISound.play("ResultWin")
+		end
 		if view.choices then
 			-- The row stays until a choice is made; a new rank shows over it now, not after.
 			-- A and B are Roblox's own again: A presses the selected choice.
@@ -1284,9 +1296,6 @@ function ResultScreen.step(self: any, quiet: boolean)
 				GuiService.SelectedObject = view.continue
 			end
 		end
-	end
-	if not view.choices and t >= view.continueAt + C.AutoCloseSeconds then
-		self:close()
 	end
 end
 
@@ -1389,15 +1398,6 @@ function ResultScreen.showRank(self: any, view: any)
 end
 
 --- Who presses the choices row's buttons: `fn(kind, summary)` (Main, through Progression).
---- Keep the next screens in the top part of the screen (true while the 1v1 result cutscene
---- shows the two players below it; GUI lane).
-function ResultScreen.setLifted(self: any, lifted: boolean)
-	self.lifted = lifted
-	if self.view then
-		self:layout()
-	end
-end
-
 function ResultScreen.setChoiceHandler(self: any, fn: ((string, any) -> ())?)
 	self.onChoice = fn
 end
@@ -1442,6 +1442,25 @@ end
 function ResultScreen.endChoices(self: any)
 	if self.view and self.view.choices then
 		self:close()
+	end
+end
+
+--- The row's time ran out or the table moved on without a rematch: Continue takes the row's
+--- place and the screen stays until it is pressed.
+function ResultScreen.dropChoices(self: any)
+	local view = self.view
+	if not view or not view.choices or view.closing then
+		return
+	end
+	view.choices.root:Destroy()
+	view.choices = nil
+	self:bind()
+	self:layout()
+	if view.continueShown then
+		UIAnim.popIn(view.continue)
+		if isGamepad() and not self:covered() then
+			GuiService.SelectedObject = view.continue
+		end
 	end
 end
 

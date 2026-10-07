@@ -254,15 +254,15 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 				deps.lostAt = os.clock()
 			end
 			closeScreens() -- the result screen takes the screen from them
-			-- A 1v1 first plays its cutscene (GUI lane, C11a); the result screen then sits in
-			-- the top part, and closing it puts the scene back.
-			local played = ResultCutscene.play(summary, function()
-				result:setLifted(true)
-				result:show(summary, function()
-					result:setLifted(false)
-					ResultCutscene.stop()
+			-- A 1v1 first plays its cutscene (GUI lane, C11a); the result screen opens partway
+			-- through, and closing it puts the scene back. One still waiting on Continue keeps
+			-- the screen: this one waits its turn, with no cutscene.
+			local played = not result:isOpen()
+				and ResultCutscene.play(summary, function()
+					result:show(summary, function()
+						ResultCutscene.stop()
+					end)
 				end)
-			end)
 			if not played then
 				result:show(summary)
 			end
@@ -309,6 +309,13 @@ end
 function Progression.endChoices()
 	if started then
 		result:endChoices()
+	end
+end
+
+--- The rematch row's time ran out (no rematch): Continue takes its place.
+function Progression.dropChoices()
+	if started then
+		result:dropChoices()
 	end
 end
 
@@ -405,7 +412,6 @@ function Progression.update(state: State)
 	if state.inMatch and ResultCutscene.isPlaying() then
 		-- A rematch (or any match) starting ends the result cutscene.
 		ResultCutscene.stop()
-		result:setLifted(false)
 	end
 	if state.inMatch and not wasInMatch then
 		-- A full menu or the reel would cover the table (and the overlay would keep the
@@ -413,9 +419,7 @@ function Progression.update(state: State)
 		closeScreens()
 	end
 	wasInMatch = state.inMatch
-	plates:setHidden(
-		if state.inMatch then state.matchUserIds else ResultCutscene.hiddenIds() or NOBODY
-	)
+	plates:setHidden(if state.inMatch then state.matchUserIds else NOBODY)
 	-- Held rank popups also wait for the reel to close.
 	if #heldRanks > 0 and not state.shooting and not popupUp() then
 		-- The menus draw over the HUD screen, so they make way for the popup.

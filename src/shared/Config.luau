@@ -4233,6 +4233,10 @@ Config.Audio = {
 		RevealEpic = { Id = "rbxassetid://4612378364", Volume = 0.3 },
 		RevealLegendary = { Id = "rbxassetid://4612378364", Volume = 0.3 },
 		RevealMythic = { Id = "rbxassetid://4612378364", Volume = 0.3 },
+		-- The win (designer, 2026-10-07): the old Rare reveal's orchestral sting (403300
+		-- "Fast Orchestral WIN Celebration", assets/audio/luckyblocks/README.md), as a winner's
+		-- result screen reaches its total and Continue (ResultScreen).
+		ResultWin = { Id = "rbxassetid://101099108525458", Volume = 0.28 },
 		-- "Riser_104" (the designer's file, trimmed to 1.5 s; peak at 0.45 s): the Rare pull
 		-- cutscene's build into its white flash (Config.Cutscenes.Rare).
 		RiserRare = { Id = "rbxassetid://97579914761531", Volume = 0.5 },
@@ -5648,8 +5652,7 @@ Config.UI = {
 			LineSeconds = 0.32, -- each line pops and counts up in this
 			TotalSeconds = 0.45, -- then the Total
 			ChipDelaySeconds = 0.15, -- then the total chip flies to the money HUD
-			ContinueDelaySeconds = 0.4, -- then Continue
-			AutoCloseSeconds = 2.5, -- and the screen closes by itself this long after
+			ContinueDelaySeconds = 0.4, -- then Continue (it stays until pressed; designer 2026-10-07)
 			SkipGuardSeconds = 0.35, -- a tap this soon after a skip does not also close
 			-- After a two-sided game a row under both columns replaces Continue (PostMatch,
 			-- designer 2026-09-28): the series score, Rematch, Play another and Lobby (an arena)
@@ -11308,36 +11311,19 @@ Config.Cutscenes = {
 		StarFlare = "rbxassetid://84051192712402", -- a pointed eight-spike star (the Legendary warp)
 	},
 	HintAfterSeconds = 0.6, -- "Tap to skip" shows this late (only once the kind was seen)
-	-- The 1v1 match result (ResultCutscene; GUI lane, C11a, D2): fade to black, then the
-	-- camera comes down onto the table and the result screen opens in the top part of the
-	-- screen. With Posed, the winner also stands with their cue up and the loser lies face
-	-- down beside the table (local copies of both bodies; off since 2026-10-06).
-	-- Studs and seconds.
+	-- The 1v1 match result (ResultCutscene; GUI lane, C11a, D2; redone by the designer
+	-- 2026-10-07): black letterbox bars slide in as the screen fades to black, then the camera
+	-- comes down from high above into the player's own camera. Partway down the result screen
+	-- opens (centred; designer 2026-10-07) and the bars slide away. Studs and seconds.
 	Result = {
-		-- The posed winner and loser (designer, 2026-10-06: gone). Off, the cutscene is the
-		-- fade to black and the camera's pan down onto the table, with nobody copied or hidden.
-		Posed = false,
-		FadeInSeconds = 0.35, -- to black
-		HoldSeconds = 0.15, -- black, while the scene is set
+		FadeInSeconds = 0.35, -- to black (the bars slide in meanwhile)
+		HoldSeconds = 0.15, -- black
 		FadeOutSeconds = 0.45,
-		PanSeconds = 2.4, -- the camera comes down onto them, then the result screen opens
-		SideStuds = 1.2, -- the two stand this far out from the table's long side
-		GapStuds = 5, -- between the winner and the loser, along the table
-		LieHeightStuds = 0.6, -- the lying body's root above the floor
-		CueSideStuds = 1.3, -- the dropped cue, this far from the lying body
-		CueAngleDegrees = 18, -- turned this much off the body's line
-		CueLiftStuds = 0.12, -- above the floor
-		WaveDegrees = 150, -- the winner's free arm, raised
-		HoldDegrees = 40, -- the arm on the cue, forward
-		DiveDegrees = 165, -- the loser's arms, past the head
-		CameraOutStuds = 17, -- the final view: this far out from the two...
-		CameraUpStuds = 6, -- ...this high...
-		LookUpStuds = 7, -- ...looking this far above the floor between them (they sit low)
-		StartUpStuds = 22, -- the pan starts this much higher...
-		StartInStuds = 6, -- ...and this much nearer the table
-		ScreenShare = 0.6, -- the result screen keeps to this top share of the screen
-		ClearStuds = 20, -- other bodies this near the two are hidden while it plays (walk-ins)
-		ClearEverySeconds = 0.5,
+		PanSeconds = 2, -- from high above down into the player's own camera
+		RiseStuds = 22, -- the pan starts this far above the player's camera, looking at them
+		ResultsAtShare = 0.45, -- the result screen opens this far through the pan
+		BarsShare = 0.12, -- each letterbox bar, of the screen's height (as the Legendary's)
+		BarsOutSeconds = 0.4, -- the bars slide away as the result screen opens
 	},
 }
 

@@ -2881,3 +2881,9 @@ timer of a new block stay the designer's call.
   private one, never before the tutorial is over) gets "Don't want to wait?" and Play Global
   on spawn. It goes after 20 s, on its X, on a pad or when a real player joins; pressed, it
   searches with no pad (`SoloSearch`), and stepping on a pad cancels that search.
+- 2026-10-07 (designer): **The result cutscene redone**: no pose, so the camera comes down
+  from high above into the player's own camera; Legendary-style letterbox bars slide in with
+  the fade and slide out as the result screen opens, partway down the pan and centred. The
+  result screen never closes by itself (only Continue, or a rematch), and a lobby rematch row
+  that runs out turns into Continue. A winner hears 403300 (the old Rare reveal sting,
+  101099108525458) as Continue shows.

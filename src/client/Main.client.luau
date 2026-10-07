@@ -665,11 +665,11 @@ end)
 -- What the rematch row shows now, for the summary whose row is up; nil once the choosing
 -- is over (a rematch began, or a lobby table freed).
 local lobbyGoneAt: number? = nil
-local function postMatchState(summary: any, now: number): any?
+local function postMatchState(summary: any, now: number): (any?, boolean)
 	local me = player.UserId
 	local s = hub.snapshots[summary.tableId]
 	if s and s.epoch > summary.epoch and s.phase ~= "Waiting" and hub.mySeat == summary.tableId then
-		return nil -- the rematch has begun
+		return nil, true -- the rematch has begun
 	end
 	local state: any = { arena = summary.arena == true, rematch = "gone", votes = 0, total = 0 }
 	if s and s.epoch == summary.epoch and s.phase == "Result" and s.rematch then
@@ -716,19 +716,19 @@ local function postMatchState(summary: any, now: number): any?
 		state.leaving = mine == "Lobby"
 			or teleportScreen:isShown()
 			or (leftChoiceAt ~= nil and os.clock() - leftChoiceAt < M.ActionRetrySeconds)
-		return state
+		return state, false
 	end
 	-- A lobby table that has moved on: say so a moment, then the row goes.
 	if state.rematch == "gone" then
 		local since = lobbyGoneAt or now
 		lobbyGoneAt = since
 		if now - since > Config.UI.Queue.NoticeSeconds / 2 then
-			return nil
+			return nil, false
 		end
 	else
 		lobbyGoneAt = nil
 	end
-	return state
+	return state, false
 end
 
 -- The status card's standing line: an arena's arrivals, or a teammate's search.
@@ -1278,11 +1278,14 @@ local function renderFrame(dt: number)
 		local serverNow = workspace:GetServerTimeNow()
 		local summary = Progression.choosing()
 		if summary then
-			local state = postMatchState(summary, serverNow)
+			local state, rematch = postMatchState(summary, serverNow)
 			if state then
 				Progression.setChoices(state, serverNow)
-			else
+			elseif rematch then
 				Progression.endChoices()
+			else
+				-- No rematch: the result screen stays, with Continue in the row's place.
+				Progression.dropChoices()
 			end
 		else
 			lobbyGoneAt = nil

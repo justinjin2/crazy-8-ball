@@ -31,8 +31,12 @@ Updated 2026-10-07.
   results and NEW RANK! blur the world (`ScreenBlur`, `Config.UI.Blur`); the reel waits 0.15 s
   for the blur. NEW RANK! also darkens (it stacks on the results). Seen in Studio on the
   menus, the reel and NEW RANK! alone; NEW RANK! over a real result not yet.
-- **The 1v1 result cutscene** is the fade to black and the pan down onto the table only; the
-  posed winner and loser are off (`Config.Cutscenes.Result.Posed`, 2026-10-06).
+- **The 1v1 result cutscene** (2026-10-07): letterbox bars slide in with the fade to black,
+  the camera comes down from 22 studs above into the player's own camera, and the centred
+  result screen opens partway down as the bars slide out. The result screen never closes by
+  itself (Continue, A or B); when the rematch row's time runs out, Continue takes its place.
+  A winner hears the old Rare reveal sting as Continue shows. `/result win|lose` plays it all.
+  Not yet seen in a real 1v1 (the rematch row's swap to Continue especially).
 - **Cue outlines and the "pop" aura.** Every cue has a theme-coloured outline (a moving
   gradient from Legendary up). The deeper aura is on test on Frostbite, Candy, Flare, Plasma,
   Gummy and Magma (`Config.CueSkins.Pop.Ids`).
