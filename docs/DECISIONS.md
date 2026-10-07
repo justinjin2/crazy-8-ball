@@ -2843,3 +2843,6 @@ timer of a new block stay the designer's call.
 - 2026-10-07 (designer): **The player list shortens money from $100,000 up** to whole
   thousands ("$123K", cut, never rounded up; `Format.moneyShort`), then "$1.03M" as before.
   Only the list: the money HUD and every other screen keep the full number.
+- 2026-10-07 (designer): **Every person in the player list has their own box**: a white
+  rounded card with a thin pale blue edge and a 4 px gap (yours pale blue). With money shortened
+  the Money column went 82 to 66 px, so a typical 20-letter name fits whole with its flag.

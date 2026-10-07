@@ -10991,7 +10991,7 @@ Config.UI.PlayerList = {
 	ShortTextPx = 14,
 	WinsColumnPx = 42, -- the Wins column's width (numbers right-aligned, "1,234" fits)
 	ShortWinsColumnPx = 40,
-	MoneyColumnPx = 82, -- the Money column's width
+	MoneyColumnPx = 66, -- the Money column's width ("$999.99M", the widest with $123K, fits)
 	ShortMoneyColumnPx = 64,
 	CornerPx = 14, -- the card's rounded corners
 	SheetCornerPx = 10, -- the white sheet's (the Shop's 22 is for a big panel)
@@ -11001,6 +11001,13 @@ Config.UI.PlayerList = {
 	ShortMaxRows = 3.3,
 	MaxHeightShare = 0.5, -- and never taller than this share of the screen's height
 	YouTransparency = 0.55, -- your own row's pale blue highlight
+	-- Every person in their own box (designer 2026-10-07): a white rounded card with a thin
+	-- pale blue edge, a small gap between them.
+	RowGapPx = 4,
+	RowCornerPx = 8,
+	RowStrokePx = 1.5,
+	RowEdge = { 176, 216, 250 }, -- the edge (Kit.SheetEdge's light blue)
+	RowHover = { 228, 241, 255 }, -- a box under the mouse
 	ToggleSeconds = 0.15, -- the list opening or folding up to its header
 	PopoutWidthPx = 220,
 	PopoutButtonPx = 44,

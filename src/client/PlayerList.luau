@@ -306,7 +306,13 @@ local function rowView(self: any, index: number): RowView
 	button.BorderSizePixel = 0
 	button.ZIndex = 3
 	button.Parent = self.scroll
-	HudParts.corner(button, 6)
+	HudParts.corner(button, P.RowCornerPx)
+	local edge = Instance.new("UIStroke")
+	edge.Name = "Edge"
+	edge.Color = HudParts.color(P.RowEdge)
+	edge.Thickness = P.RowStrokePx
+	edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	edge.Parent = button
 	local badge = Instance.new("ImageLabel")
 	badge.Name = "Badge"
 	badge.BackgroundTransparency = 1
@@ -353,7 +359,7 @@ local function rowView(self: any, index: number): RowView
 	return made
 end
 
--- A row's background: pale blue for your own row, white under the mouse.
+-- A row's box: white with a pale edge, pale blue for your own row, tinted under the mouse.
 function PlayerList.shadeRow(self: any, index: number, hovered: boolean)
 	local v = self.rows[index]
 	local row = self.data[index]
@@ -366,8 +372,10 @@ function PlayerList.shadeRow(self: any, index: number, hovered: boolean)
 			then P.YouTransparency - 0.1
 			else P.YouTransparency
 	else
-		v.button.BackgroundColor3 = HudParts.tone("White")
-		v.button.BackgroundTransparency = if hovered then 0.4 else 1
+		v.button.BackgroundColor3 = if hovered
+			then HudParts.color(P.RowHover)
+			else HudParts.tone("White")
+		v.button.BackgroundTransparency = 0
 	end
 end
 
@@ -494,7 +502,8 @@ function PlayerList.layout(self: any, animate: boolean?)
 
 	-- The columns: the badge and name, then Wins and Money, right-aligned.
 	local rowW = width - inset * 2 - 4
-	local moneyX = rowW - moneyW - 6
+	-- In a box's own pixels (each box is 2 px in from the scroller and 4 px narrower).
+	local moneyX = rowW - 4 - moneyW - 8
 	local winsX = moneyX - winsW - 4
 	self.body.Position = UDim2.fromOffset(0, headerH)
 	self.body.Size = UDim2.new(1, 0, 1, -headerH)
@@ -502,10 +511,10 @@ function PlayerList.layout(self: any, animate: boolean?)
 	self.columns.Size = UDim2.fromOffset(rowW, columnsH)
 	local columnsText = pick(P.ColumnsTextPx, P.ShortColumnsTextPx)
 	HudParts.setTextSize(self.winsTitle, columnsText, columnsText)
-	self.winsTitle.Position = UDim2.fromOffset(winsX, 0)
+	self.winsTitle.Position = UDim2.fromOffset(winsX + 2, 0)
 	self.winsTitle.Size = UDim2.fromOffset(winsW, columnsH)
 	HudParts.setTextSize(self.moneyTitle, columnsText, columnsText)
-	self.moneyTitle.Position = UDim2.fromOffset(moneyX, 0)
+	self.moneyTitle.Position = UDim2.fromOffset(moneyX + 2, 0)
 	self.moneyTitle.Size = UDim2.fromOffset(moneyW, columnsH)
 
 	local count = #self.data
@@ -518,22 +527,24 @@ function PlayerList.layout(self: any, animate: boolean?)
 			math.floor(size.Y * P.MaxHeightShare) - listTop - footerH
 		)
 	)
-	local listH = math.min(maxList, count * rowH + 2)
+	local listH = math.min(maxList, count * rowH + 4)
 	self.scroll.Position = UDim2.fromOffset(inset + 2, listTop - headerH)
 	self.scroll.Size = UDim2.fromOffset(rowW + 4, listH)
-	self.scroll.CanvasSize = UDim2.fromOffset(0, count * rowH + 2)
+	self.scroll.CanvasSize = UDim2.fromOffset(0, count * rowH + 4)
 	self.footer.Position = UDim2.fromOffset(inset + 6, listTop - headerH + listH + 2)
 	self.footer.Size = UDim2.fromOffset(rowW - 8, math.max(0, footerH - 4))
 	HudParts.setTextSize(self.footer, P.ShortTextPx)
 
-	local b = math.min(badgePx, rowH - 2)
+	local boxH = rowH - P.RowGapPx
+	local b = math.min(badgePx, boxH - 2)
 	-- The name's room: from after the badge to before the Wins column.
-	self.nameGeo = { x = b + 6, room = winsX - b - 10, textPx = textPx }
+	self.nameGeo = { x = b + 10, room = winsX - b - 14, textPx = textPx }
 	for index, v in self.rows do
-		v.button.Position = UDim2.fromOffset(0, (index - 1) * rowH)
-		v.button.Size = UDim2.fromOffset(rowW, rowH - 2)
+		-- Inset a little so each box's edge shows whole inside the scroller.
+		v.button.Position = UDim2.fromOffset(2, 2 + (index - 1) * rowH)
+		v.button.Size = UDim2.fromOffset(rowW - 4, rowH - P.RowGapPx)
 		v.badge.Size = UDim2.fromOffset(b, b)
-		v.badge.Position = UDim2.fromOffset(2, round((rowH - 2 - b) / 2))
+		v.badge.Position = UDim2.fromOffset(5, round((boxH - b) / 2))
 		HudParts.setTextSize(v.name, textPx)
 		self:placeName(v)
 		HudParts.setTextSize(v.wins, textPx)

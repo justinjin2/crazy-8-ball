@@ -693,7 +693,8 @@ scrolling ("Players (n)" and a chevron) over the white sheet with the still dots
 header opens or folds it (0.15 s). One list, no tabs: a small "Wins" and "Money" titles row,
 then the rank badge and username with its flag just after it (the flag is never cut; a long
 name ends in "..."), your row pale blue and your name blue, wins and money right-aligned
-(money from $100,000 up as "$123K", only here); 360 px wide on a tablet or computer. Folded at first on any touch screen. Not shown on a phone for now (designer, 2026-10-07: too
+(money from $100,000 up as "$123K", only here); each person in their own white box with a
+thin pale blue edge and a small gap; 360 px wide on a tablet or computer. Folded at first on any touch screen. Not shown on a phone for now (designer, 2026-10-07: too
 much of the screen); its phone sizes (3.3 rows) stay in Config for when it comes back. It narrows (down to 176 px) before it would touch the
 Settings gear. Pressing a real player opens the Trade / Add friend / View profile card beside
 it.
