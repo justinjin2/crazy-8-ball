@@ -2903,3 +2903,6 @@ timer of a new block stay the designer's call.
   most 0.06 for a big moment, 0.025 for a loop, no peak past 0.6. Ability sounds sat up to 6x
   over and a few peaked 2 to 4x past full scale (Time Stop's tick-tock, Black Hole's pop, the
   portal exit); the lucky block reveals and pull cutscenes up to 3x.
+- 2026-10-07 (designer): temporary developer commands `/solo` (play the 1v1 pad you stand on
+  alone) and `/bot [tier]` (play the computer there, your tier unless named), since the pad
+  lost its solo and PC buttons with the matchmaking bar. The designer's account only.

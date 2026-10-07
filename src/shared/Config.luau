@@ -10818,6 +10818,11 @@ Config.Debug = {
 		-- the real players; a count: that many, like the tutorial's fake lobby). Studio starts
 		-- with them off. Only the accounts in UserIds.
 		LobbyBots = "/lobbybots",
+		-- /solo: play the 1v1 pad you stand on by yourself (practice). /bot [tier]: play the
+		-- computer there, at your tier or the one named. Temporary (designer, 2026-10-07): the pad
+		-- lost its solo and PC buttons with the matchmaking bar. Only the accounts in UserIds.
+		Solo = "/solo",
+		Bot = "/bot",
 		-- /tutorial reset | skip | off | step <name> (the tutorial lane): restart your tutorial
 		-- from the arrow, end it as skipped, end it as done, or jump to a step (Tutorial/Steps
 		-- .Order). Only the accounts in UserIds, Studio and live.

@@ -576,7 +576,7 @@ end
 -- Play against PC (the host card, 1v1): the robot of the player's own tier, at once.
 ---------------------------------------------------------------------------------------------
 
-local function playPc(t: any, p: Player, _payload: any): boolean
+local function playPc(t: any, p: Player, _payload: any, tierOverride: string?): boolean
 	local e = t.engine
 	if
 		e.phase ~= "Waiting"
@@ -587,7 +587,7 @@ local function playPc(t: any, p: Player, _payload: any): boolean
 	then
 		return false
 	end
-	local tier = playerTier(p)
+	local tier = tierOverride or playerTier(p)
 	local bot =
 		BotService.spawn({ kind = "Pc", tier = tier, playerTier = tier, rematch = "Instant" })
 	if not bot then
@@ -606,6 +606,12 @@ local function playPc(t: any, p: Player, _payload: any): boolean
 		return false
 	end
 	return true
+end
+
+--- Play against PC at table `t` for its host `p`, at `tier` (default: theirs, or /botrank's).
+--- The /bot developer command (DevCommands). True when the game started.
+function BotService.playPc(t: any, p: Player, tier: string?): boolean
+	return playPc(t, p, nil, tier)
 end
 
 -- Studio only: ServerStorage.BotsQA lets a test script make and place bots (no chat command

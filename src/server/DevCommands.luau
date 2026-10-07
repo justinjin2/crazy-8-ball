@@ -50,6 +50,7 @@ local UltSpins = require(script.Parent.UltSpins)
 local Tables = require(script.Parent.TableService)
 local BotService = require(script.Parent.Bots.BotService)
 local UltCatalog = require(Shared.Ults.Catalog)
+local Engine = require(Shared.Rules.MatchEngine)
 
 local D = Config.Debug.Commands
 local C = Config.Lighting.Cycle
@@ -1080,6 +1081,64 @@ local function lobbyBots(player: Player, args: { string })
 	end
 end
 
+-- /solo and /bot [tier] (temporary, designer 2026-10-07): the solo game or Play against PC at
+-- the 1v1 pad the caller stands on alone, as the pad's old buttons did.
+local function padGame(player: Player): any?
+	local id = Tables.tableOf(player)
+	local t = if id then Tables.get(id) else nil
+	local e = if t then t.engine else nil
+	if not e or e.phase ~= "Waiting" or e.hostId ~= player.UserId or e.teamSize ~= 1 then
+		tell(player, Dev.PlayNeedPad)
+		return nil
+	end
+	if e.search then
+		tell(player, Dev.PlaySearching)
+		return nil
+	end
+	return t
+end
+
+local function playSolo(player: Player)
+	local t = padGame(player)
+	if not t then
+		return
+	end
+	local e = t.engine
+	local time = workspace:GetServerTimeNow()
+	Tables.advance(t, time)
+	local ok = Engine.action(
+		e,
+		player.UserId,
+		{ kind = "StartSolo", epoch = e.epoch, turnId = e.turnId },
+		time
+	)
+	Tables.broadcast(t)
+	tell(player, if ok then Dev.SoloStarted else Dev.PlayFailed)
+end
+
+local function playBot(player: Player, args: { string })
+	local tier: string? = nil
+	local word = args[1]
+	if word then
+		for _, name in Config.Ranks.Tiers do
+			if string.lower(name) == word then
+				tier = name
+			end
+		end
+		if not tier then
+			tell(player, Dev.BotBad:format(word, table.concat(Config.Ranks.Tiers, ", ")))
+			return
+		end
+	end
+	local t = padGame(player)
+	if not t then
+		return
+	end
+	local ok = BotService.playPc(t, player, tier)
+	Tables.broadcast(t)
+	tell(player, if ok then Dev.BotStarted else Dev.PlayFailed)
+end
+
 local function econHelp(player: Player)
 	tell(player, Dev.EconHelp)
 	for _, key in ECON do
@@ -1349,6 +1408,8 @@ function DevCommands.start()
 	command("UltHelp", D.UltHelp, ultHelp)
 	command("BotRank", D.BotRank, botRank)
 	command("LobbyBots", D.LobbyBots, lobbyBots)
+	command("Solo", D.Solo, playSolo)
+	command("Bot", D.Bot, playBot)
 	-- The tutorial lane: /tutorial reset | skip | off | step <name> (TutorialService.dev).
 	command("Tutorial", D.Tutorial, function(player: Player, args: { string })
 		tell(player, require(script.Parent.TutorialService).dev(player, args))

@@ -432,6 +432,13 @@ return {
 		LobbyBotsCount = "Lobby bots on: %d of them.",
 		LobbyBotsOff = "Lobby bots off.",
 		LobbyBotsBad = "Try /lobbybots on, /lobbybots off or /lobbybots <count>.",
+		-- /solo and /bot (temporary, 2026-10-07: the pad has no solo or PC button now).
+		PlayNeedPad = "Stand on a 1v1 pad first (alone, before the game).",
+		PlaySearching = "Cancel the search first (the red X), then try again.",
+		PlayFailed = "Could not start it: the pad needs just you on it, before the game.",
+		SoloStarted = "Solo game started.",
+		BotStarted = "Game against the computer started.",
+		BotBad = 'No tier called "%s". Tiers: %s.',
 		TutorialStep = "Your tutorial is at %s.",
 		TutorialBad = "Try /tutorial reset, skip, off or step <name>. Steps: %s.",
 	},
