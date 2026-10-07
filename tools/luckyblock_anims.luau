@@ -2,6 +2,7 @@
 -- Writes the idle animations for our own lucky block models (designer, 2026-10-07) as
 -- KeyframeSequences in assets/luckyblocks/anims/.
 --
+-- LuckyWingIdle is the same hover with the wings flapping twice a loop (Legendary, Mythic, Sky).
 -- LuckyBoxIdle is the pack's Box Idle (anims/BoxIdle.rbxm) moved onto our rig: the block hovers
 -- between about 1 and 1.9 studs over its rest spot and tilts a few degrees, over 2.46 s. The pack's
 -- poses are in its mesh units; its model plays them at scale 0.02 (measured in Studio), so the
@@ -44,29 +45,67 @@ local function pose(name: string, cf: any, weight: number, parent: any): any
 	return p
 end
 
-local source = roblox.deserializeModel(fs.readFile(DIR .. "BoxIdle.rbxm"))[1]
-local out = Instance.new("KeyframeSequence")
-out.Name = "LuckyBoxIdle"
-out.Loop = source.Loop
-out.Priority = source.Priority
+-- The wings (Legendary, Mythic, Sky): wingL and wingR hang on joint2 at the block's upper sides.
+-- Their rest frames as Roblox loads them (read from the LegendaryBlock template in Studio,
+-- 2026-10-07): the bone's CFrame in joint2's space, rotation part only.
+local WING_REST = {
+	wingL = CFrame.new(0, 0, 0, 0, -1, 0, -4.37113883e-08, 0, 1, -1, 0, -4.37113883e-08),
+	wingR = CFrame.new(0, 0, 0, 0, 1, 0, 4.37113883e-08, 0, 1, 1, 0, -4.37113883e-08),
+}
+local WING_SIDE = { wingL = 1, wingR = -1 } -- wingL sits on the model's +X side
+local FLAP_DEGREES = 20 -- up and down from the rest pose
+local FLAP_LIFT_DEGREES = 6 -- the wings rest a little raised
+local FLAPS_PER_LOOP = 2
 
-local count = 0
-for _, k in source:GetChildren() do
-	if k.ClassName ~= "Keyframe" then
-		continue
-	end
-	local j = find(k, "joint2")
-	assert(j, "a keyframe without joint2")
-	local cf = j.CFrame
-	local scaled = CFrame.new(cf.Position * PACK_SCALE) * cf.Rotation
-	local key = Instance.new("Keyframe")
-	key.Time = k.Time
-	local root = pose("RootPart", CFrame.new(), 0, key)
-	local j1 = pose("joint1", CFrame.new(), 1, root)
-	pose("joint2", FLIP:Inverse() * scaled * FLIP, 1, j1)
-	key.Parent = out
-	count += 1
+-- A wing turned `degrees` about the model's front-back axis (Z) at its hinge, tips up for +.
+local function wingPose(bone: string, degrees: number): any
+	local rest = WING_REST[bone]
+	local turn = CFrame.Angles(0, 0, math.rad(degrees * WING_SIDE[bone]))
+	-- Into joint2's frame (turned half a turn about Y), then into the bone's own.
+	local inJoint2 = FLIP:Inverse() * turn * FLIP
+	return rest:Inverse() * inJoint2 * rest
 end
 
-fs.writeFile(DIR .. "LuckyBoxIdle.rbxm", roblox.serializeModel({ out }))
-print(("luckyblock_anims: LuckyBoxIdle, %d keyframes"):format(count))
+local source = roblox.deserializeModel(fs.readFile(DIR .. "BoxIdle.rbxm"))[1]
+local length = 0
+for _, k in source:GetChildren() do
+	if k.ClassName == "Keyframe" then
+		length = math.max(length, k.Time)
+	end
+end
+
+-- The hover (and, with wings, the flap) as a KeyframeSequence named `name`.
+local function make(name: string, wings: boolean)
+	local out = Instance.new("KeyframeSequence")
+	out.Name = name
+	out.Loop = source.Loop
+	out.Priority = source.Priority
+	local count = 0
+	for _, k in source:GetChildren() do
+		if k.ClassName ~= "Keyframe" then
+			continue
+		end
+		local j = find(k, "joint2")
+		assert(j, "a keyframe without joint2")
+		local cf = j.CFrame
+		local scaled = CFrame.new(cf.Position * PACK_SCALE) * cf.Rotation
+		local key = Instance.new("Keyframe")
+		key.Time = k.Time
+		local root = pose("RootPart", CFrame.new(), 0, key)
+		local j1 = pose("joint1", CFrame.new(), 1, root)
+		local j2 = pose("joint2", FLIP:Inverse() * scaled * FLIP, 1, j1)
+		if wings then
+			local phase = k.Time / length * FLAPS_PER_LOOP * 2 * math.pi
+			local degrees = FLAP_LIFT_DEGREES + FLAP_DEGREES * math.sin(phase)
+			pose("wingL", wingPose("wingL", degrees), 1, j2)
+			pose("wingR", wingPose("wingR", degrees), 1, j2)
+		end
+		key.Parent = out
+		count += 1
+	end
+	fs.writeFile(DIR .. name .. ".rbxm", roblox.serializeModel({ out }))
+	print(("luckyblock_anims: %s, %d keyframes"):format(name, count))
+end
+
+make("LuckyBoxIdle", false)
+make("LuckyWingIdle", true)

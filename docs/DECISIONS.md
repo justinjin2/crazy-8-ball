@@ -2975,3 +2975,8 @@ timer of a new block stay the designer's call.
   halo, bigger and deeper particles) was turned down: "the first samples were better".
   All 61 re-rendered (`CuePreview.py --thumb`, outline colours from
   `tools/export_cue_outlines.luau`) and uploaded.
+- 2026-10-07: Every lucky block kind is our own model (the pack's models are unused). Winged
+  blocks (Legendary, Mythic, Sky) idle with a wing flap on top of the pack's hover
+  (LuckyWingIdle, 2 flaps a loop, 20 degrees). A block with wings or a topper is scaled so its
+  cube matches the others' (SizeMultiplier = longest side / cube), and blocks on the floor keep
+  apart by their width, not a fixed gap. The 8 Ball block hovers by animation now (no code bob).

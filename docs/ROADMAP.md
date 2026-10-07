@@ -51,14 +51,17 @@ Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (be
   - [x] Concept sheet: 8 Ball, gift-wrapped Starter, Gift (clock), Mythic, Sky, Mystery,
     with the Grand Opening block as the style key; designer approves. Round A:
     https://claude.ai/artifact/7u35cgsdy9uZt1jPyUSDEL (art in `~/Desktop/8ball-refs/lucky-blocks/`).
-  - [ ] Then the same concepts for Standard, Uncommon, Rare, Epic and Legendary (drawn
-    2026-10-07 in round B style; waiting on the designer). The first batch is round B
-    everywhere, Mystery on round C's flush rims.
+  - [x] Then the same concepts for Standard, Uncommon, Rare, Epic and Legendary (round B; the
+    designer said "do all of them", 2026-10-07; Standard redrawn with beige rims, brown faces).
   - [ ] Final glossy 2D icon for every kind (GPT Image, the Grand Opening block as the
     reference); the Shop, hotbar and bag use the 2D icon (no 3D viewport).
-  - [ ] The 3D master block and its rig in Blender, built to the approved icons.
-  - [ ] The first batch in 3D: 8 Ball, Starter (gift-wrapped), Mythic, Sky, Mystery; then
-    the tier ladder and Grand Opening move to the master over time.
+  - [x] The 3D master block and its rig in headless Blender (`tools/luckyblock_build.py`),
+    built to the approved icons, with the pack's idle on our rig (LuckyBoxIdle) and a wing
+    flap (LuckyWingIdle).
+  - [x] All 12 kinds in 3D (2026-10-07): every kind on our own model with its own particles;
+    held, thrown, landed and idling checked in Studio. Designer to look them over.
+  - [ ] Gift delivery: given the first time a player leaves, 12 h timer, falls from the sky
+    in a cutscene (finalize the design first).
 - [ ] The Shop's Blocks, Money and Passes pages with the `lively-gui` skill.
 - [ ] Physical controller hold acceptance; save the updated place and publish its templates.
 

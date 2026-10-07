@@ -4830,6 +4830,36 @@
     "assetType": "Animation",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/LuckyWingIdle.rbxm": {
+    "assetId": "90314042377562",
+    "assetType": "Animation",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/eightball/EightBallBlock_v1.glb": {
+    "assetId": "89229796360554",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/epic/EpicBlock_v1.glb": {
+    "assetId": "99183682386093",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/gift/GiftBlock_v1.glb": {
+    "assetId": "86403411186613",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/grandopening/GrandOpeningBlock_v1.glb": {
+    "assetId": "126115756520229",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/legendary/LegendaryBlock_v1.glb": {
+    "assetId": "97519713909243",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/mystery/MysteryBlock.glb": {
     "assetId": "72158769287664",
     "assetType": "Model",
@@ -4842,6 +4872,21 @@
   },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/mystery/MysteryBlock_v3.glb": {
     "assetId": "131944205075030",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/mythic/MythicBlock_v1.glb": {
+    "assetId": "78926971295305",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/rare/RareBlock_v1.glb": {
+    "assetId": "108972427994896",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/sky/SkyBlock_v1.glb": {
+    "assetId": "91079315755859",
     "assetType": "Model",
     "status": "ok"
   },
@@ -4863,6 +4908,61 @@
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/standard/StandardBlock_v4.glb": {
     "assetId": "81565701370753",
     "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/standard/StandardBlock_v5.glb": {
+    "assetId": "113193396541681",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/starter/StarterBlock_v1.glb": {
+    "assetId": "74890867189012",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/uncommon/UncommonBlock_v1.glb": {
+    "assetId": "94210612552833",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/particles/ball8.png": {
+    "assetId": "136770111205094",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/particles/bubble.png": {
+    "assetId": "98040628853240",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/particles/confetti.png": {
+    "assetId": "72434031646732",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/particles/ember.png": {
+    "assetId": "89308970595247",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/particles/feather.png": {
+    "assetId": "118123437391708",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/particles/leaf.png": {
+    "assetId": "106788564701128",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/particles/puff.png": {
+    "assetId": "84856478712787",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/particles/spark.png": {
+    "assetId": "98124187334463",
+    "assetType": "Decal",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/lucky8_face.png": {

@@ -319,7 +319,12 @@ end
 
 -- Where a block thrown now lands: in front of the root (short of a wall), on the floor found
 -- under that spot, turned to face the thrower give or take a little.
-local function landing(root: BasePart, humanoid: Humanoid): CFrame?
+-- Half of a kind's width on the floor: a winged block takes more room than a cube.
+local function floorReach(kind: string): number
+	return L.FloorSizeStuds * ((LuckyBlocks.kind(kind) :: LuckyBlocks.Kind).SizeMultiplier or 1) / 2
+end
+
+local function landing(root: BasePart, humanoid: Humanoid, kind: string): CFrame?
 	local flat = root.CFrame.LookVector * Vector3.new(1, 0, 1)
 	local look = if flat.Magnitude > 1e-3 then flat.Unit else Vector3.new(0, 0, -1)
 	local right = Vector3.new(-look.Z, 0, look.X)
@@ -355,7 +360,8 @@ local function landing(root: BasePart, humanoid: Humanoid): CFrame?
 		local occupied = false
 		for _, entries in live do
 			for _, entry in entries do
-				if (entry.to.Position - at).Magnitude < L.PlacementGapStuds then
+				local gap = math.max(L.PlacementGapStuds, floorReach(kind) + floorReach(entry.kind))
+				if (entry.to.Position - at).Magnitude < gap then
 					occupied = true
 					break
 				end
@@ -393,7 +399,7 @@ function HANDLERS.Throw(player: Player, r: LuckyBlocks.Request, data: any): Repl
 	if model == nil then
 		return refuse("Error")
 	end
-	local to = landing(root, humanoid)
+	local to = landing(root, humanoid, block.Kind)
 	if to == nil then
 		model:Destroy()
 		return refuse("Busy")

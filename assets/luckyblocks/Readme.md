@@ -159,28 +159,48 @@ set `IconScale` about 2 to frame the body, and `SizeMultiplier` for the world.
 
 ## Our own blocks (2026-10-07)
 
-The pack blocks are being replaced by our own, built to the approved concept icons
+Every kind is our own model now, built to the approved concept icons
 (`~/Desktop/8ball-refs/lucky-blocks/`: round B corner cubes for every kind, round C flush rims for
-Mystery). One master block, three pieces (Frame, Core, Glyph), each kind a set of painted maps.
+Mystery). One master block in pieces (Frame, Corners, Core, Glyph, and per kind Disc, Ribbon,
+Topper = Bow / Crown / Halo, Base = Cloud, WingL / WingR), each kind a recipe plus painted maps.
 
 1. **Paint** the maps: `python3 tools/luckyblock_textures.py <kind>` writes
-   `build/<kind>/{frame,core,glyph}.png` (the colours are the `KINDS` table).
+   `build/<kind>/<piece>.png` (the colours are its `KINDS` table). Particle sprites:
+   `python3 tools/luckyblock_sprites.py` writes `particles/*.png`.
 2. **Build** in headless Blender:
-   `/Applications/Blender.app/Contents/MacOS/Blender -b -P tools/luckyblock_build.py -- --kind <kind> --glb assets/luckyblocks/build/<kind>/<Name>Block.glb [--preview out.png]`
-   (frame style per kind in `LOOKS`). The rig is joint1 at the bottom and joint2 2.96 studs up,
-   every piece on joint2.
+   `/Applications/Blender.app/Contents/MacOS/Blender -b -P tools/luckyblock_build.py -- --kind <kind> --glb assets/luckyblocks/build/<kind>/<Name>Block_vN.glb [--preview out.png]`
+   (the recipe per kind is its `KINDS`). The rig is joint1 at the bottom and joint2 2.96 studs up,
+   every piece on joint2 except the wings, each on its own bone (wingL, wingR) under joint2.
+   A new version gets a new file name: the upload manifest is keyed by path.
 3. **Upload** the glb (dry-run first) with `tools/roblox_upload.py --list ... --group-id 675425213`.
-4. **Template**: put the model id and name in `BLOCKS` of `tools/luckyblock_template.luau` and run
-   it through the Studio MCP `execute_luau` (Edit). It moves each part's texture into a
+4. **Template**: put the model id in `BLOCKS` of `tools/luckyblock_template.luau` (with its
+   `Tint`, `Extra` particles and `Scroll`) and run it through the Studio MCP `execute_luau`
+   (Edit; `ONLY` limits it to some blocks). It moves each part's texture into a
    SurfaceAppearance with a roughness map and the white emissive mask, adds the Animator, puts
-   the pivot at the bottom centre and copies the pack's glow particles and light (tinted by
-   `Tint`). Save the place and publish.
-5. **Config**: the kind's `Model = "<Name>Block"` and `Idle = "rbxassetid://126596744037463"`.
+   the pivot at the bottom centre of the block (of the cloud for Sky), copies the pack's glow
+   particles and light (tinted by `Tint`) and adds our own particles (`EMITTERS`). Save the
+   place and publish.
+5. **Config**: the kind's `Model`, `Idle` (LuckyBoxIdle, or LuckyWingIdle with wings) and, for a
+   model wider or taller than the cube, `SizeMultiplier` / `HoldCenterShare` (see the comment
+   on `Config.LuckyBlocks.Kinds`).
 
 | Model | Kind | Model asset |
 | --- | --- | --- |
-| StandardBlock | Standard | 81565701370753 (v4: golden-beige rims, brown faces, like the pack) |
+| StandardBlock | Standard | 113193396541681 (v5: beige rims, brown faces) |
+| UncommonBlock | Uncommon | 94210612552833 |
+| RareBlock | Rare | 108972427994896 |
+| EpicBlock | Epic | 99183682386093 (cracks) |
+| LegendaryBlock | Legendary | 97519713909243 (wings) |
+| MythicBlock | Mythic | 78926971295305 (pastel, halo, wings) |
 | MysteryBlock | Mystery | 131944205075030 (v3: thinner flush rims; moving rainbow, twinkles) |
+| GrandOpeningBlock | GrandOpening | 126115756520229 (crown) |
+| EightBallBlock | Lucky8 | 89229796360554 |
+| SkyBlock | Sky | 91079315755859 (cloud, small wings) |
+| StarterBlock | Starter | 74890867189012 (red, gift-wrapped) |
+| GiftBlock | Gift | 86403411186613 (white, gold ribbon, clock) |
+
+The pack models (`GreenLuckyBlock`, `GoldKingLuckyBlock` and the rest) are no longer used by
+any kind; their templates can stay in the place until the designer has signed off ours.
 
 The Mystery frame's moving rainbow is six `Texture`s (`textures/rainbow_scroll.png`, image
 `rbxassetid://107891048379160`) tagged `LuckyScroll`; LuckyWorld slides them
@@ -193,3 +213,6 @@ Idle on our rig, written by `lune run tools/luckyblock_anims.luau`: the hover fr
 with a few degrees of tilt, measured in Studio against the pack block (the pack plays its poses at
 model scale 0.02). Roughness maps: `textures/rough_022.png` (glossy, `rbxassetid://98760410664616`)
 and `textures/rough_045.png` (satin, `rbxassetid://120409166438752`).
+
+**LuckyWingIdle** (`anims/LuckyWingIdle.rbxm`, `rbxassetid://90314042377562`, same tool) is the
+same hover with both wings flapping twice a loop, 20 degrees up and down from a 6-degree lift.

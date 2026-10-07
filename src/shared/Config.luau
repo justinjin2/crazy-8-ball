@@ -2060,9 +2060,11 @@ Config.BlockOdds = {
 -- and open it with a 0.5 s hold. Blocks come from wins, rewards, the shop and trades (cases
 -- retired 2026-10-04). Pure rules: src/shared/Progression/LuckyBlocks.luau;
 -- server: src/server/LuckyBlockService.luau; client: LuckyClient, LuckyHotbar, LuckyWorld,
--- LuckyOpening. The models are Edit-mode content in ReplicatedStorage.LuckyBlocks (from the
--- bought pack, assets/luckyblocks/).
+-- LuckyOpening. The models are Edit-mode content in ReplicatedStorage.LuckyBlocks (our own,
+-- built by tools/luckyblock_build.py and tools/luckyblock_template.luau; assets/luckyblocks/).
 ---------------------------------------------------------------------------------------------
+local BOX_IDLE = "rbxassetid://126596744037463" -- LuckyBoxIdle (2026-10-07)
+local WING_IDLE = "rbxassetid://90314042377562" -- LuckyWingIdle (2026-10-07)
 Config.LuckyBlocks = {
 	-- Every kind, in this order (the Lune tests, the dev command's list and the icon sheet walk
 	-- it; the 12 kinds of the lucky-block economy, designer 2026-10-04).
@@ -2097,81 +2099,90 @@ Config.LuckyBlocks = {
 	-- template's name in ReplicatedStorage[ModelFolder]. Idle (optional): the block's own idle
 	-- animation, uploaded to the group; without one it plays Anim.BlockIdle. Guarantee: the
 	-- At-th block of this kind a player opens is this cue if they have none (a paid pity, shown
-	-- live). Adding a pack block: the recipe in assets/luckyblocks/Readme.md.
+	-- live). Adding a block: the recipe in assets/luckyblocks/Readme.md.
 	Kinds = {
-		-- Our own models (designer, 2026-10-07): built by tools/luckyblock_build.py, idle
-		-- LuckyBoxIdle (the pack's Box Idle on our rig, tools/luckyblock_anims.luau).
-		Standard = {
-			Odds = "Standard",
-			Timer = 0,
-			Model = "StandardBlock",
-			Idle = "rbxassetid://126596744037463",
-		},
-		Uncommon = { Odds = "Uncommon", Timer = 0, Model = "GreenLuckyBlock" },
-		Rare = { Odds = "Rare", Timer = 3600, Model = "BlueLuckyBlock" }, -- 1 hour
-		Epic = { Odds = "Epic", Timer = 6 * 3600, Model = "VoidLavaLuckyBlock" }, -- 6 hours
+		-- Our own models (designer, 2026-10-07): built by tools/luckyblock_build.py, pivot at
+		-- the bottom of the block. Idle: LuckyBoxIdle (the pack's Box Idle on our rig) or
+		-- LuckyWingIdle (the same hover, wings flapping), tools/luckyblock_anims.luau. A model
+		-- wider or taller than the 4.66-stud cube (wings, toppers, a cloud) is scaled by its
+		-- longest side, so SizeMultiplier = longest / 4.66 keeps its block as big as the
+		-- others', and HoldCenterShare = the block's centre height / longest puts the block,
+		-- not the wings, in the hands.
+		Standard = { Odds = "Standard", Timer = 0, Model = "StandardBlock", Idle = BOX_IDLE },
+		Uncommon = { Odds = "Uncommon", Timer = 0, Model = "UncommonBlock", Idle = BOX_IDLE },
+		Rare = { Odds = "Rare", Timer = 3600, Model = "RareBlock", Idle = BOX_IDLE }, -- 1 hour
+		Epic = { Odds = "Epic", Timer = 6 * 3600, Model = "EpicBlock", Idle = BOX_IDLE }, -- 6 hours
 		Legendary = {
 			Odds = "Legendary",
 			Timer = 24 * 3600,
-			Model = "GoldMajesticLuckyBlock", -- the winged gold block (designer, 2026-10-04)
-			Idle = "rbxassetid://80469786057791", -- the pack's Luckbox_Idle (uploaded 2026-10-04)
-			SizeMultiplier = 1.6, -- its wings widen the bounding box
-			HoldCenterShare = 0.4,
-			IconScale = 2.1, -- the wings make the box 13.6 studs wide: close in on the body
-			EmissiveStrength = 0.2,
-			IconAmbient = 0.7,
-			IconLight = 1,
+			Model = "LegendaryBlock", -- gold, with wings
+			Idle = WING_IDLE,
+			SizeMultiplier = 2.7, -- 12.6 studs wide (the wings)
+			HoldCenterShare = 0.185,
+			IconScale = 2.2, -- close in on the block
 		},
 		Mythic = {
 			Odds = "Mythic",
 			Timer = 48 * 3600,
-			Model = "GoldTitanLuckyBlock", -- reskinned pastel rainbow
-			Idle = "rbxassetid://80469786057791", -- the same Luckbox_Idle motion as Legendary
-			SizeMultiplier = 1.6,
-			HoldCenterShare = 0.4,
-			IconScale = 2.4, -- its box is 21.8 studs wide (the wings): close in on the body
-			Rainbow = true, -- the client cycles its aura, light and particles through the rainbow
-			EmissiveStrength = 0.3,
+			Model = "MythicBlock", -- pastel rainbow, halo and wings
+			Idle = WING_IDLE,
+			SizeMultiplier = 2.7, -- 12.6 studs wide (the wings)
+			HoldCenterShare = 0.185,
+			IconScale = 2.2,
+			Rainbow = true, -- the client cycles its icon's aura through the rainbow
 		},
 		-- The tier roll's block (plan 2, 4.2): 5 minutes when won (none when bought); on
 		-- opening it morphs into the tier's block and that block opens in the same flow.
 		Mystery = {
 			Roll = true,
 			Timer = 300,
-			Model = "MysteryBlock", -- our own model, frame C (flush rims)
-			Idle = "rbxassetid://126596744037463", -- LuckyBoxIdle
+			Model = "MysteryBlock", -- frame C (flush rims), the moving rainbow
+			Idle = BOX_IDLE,
 		},
 		-- The shop's hero for 21 days (Config.Shop.Deals.GrandOpening), then retired.
 		GrandOpening = {
 			Odds = "GrandOpening",
 			Timer = 0,
-			Model = "GoldKingLuckyBlock",
+			Model = "GrandOpeningBlock", -- gold, with a crown
+			Idle = BOX_IDLE,
 			Guarantee = { Cue = "BetaCue", At = 400 },
-			SizeMultiplier = 1.8, -- crown/cape no longer shrink the central box below other tiers
-			HoldCenterShare = 0.3, -- align the box body, below the crown, with the hands
-			IconScale = 1.25, -- larger preview while leaving room around the crown
-			Idle = "rbxassetid://77259119233155",
-			EmissiveStrength = 0.15, -- its bright gold albedo needs less fill to retain detail
-			IconAmbient = 0.7,
-			IconLight = 1,
+			SizeMultiplier = 1.4, -- 6.5 studs tall (the crown)
+			HoldCenterShare = 0.36,
+			IconScale = 1.2,
 		},
-		Lucky8 = { Odds = "Rare", Timer = 0, Model = "Lucky8Block", Bob = true }, -- group + favorite
-		-- Lucky Rain: Diamond Ghost recoloured baby blue, the same Luckbox_Idle motion.
+		Lucky8 = { Odds = "Rare", Timer = 0, Model = "EightBallBlock", Idle = BOX_IDLE }, -- group + favorite
+		-- Lucky Rain: a baby-blue block on a cloud, small wings.
 		Sky = {
 			Odds = "Sky",
 			Timer = 0,
-			Model = "SkyLuckyBlock",
-			Idle = "rbxassetid://80469786057791",
-			SizeMultiplier = 1.4, -- its wings widen the box (12.7 studs)
-			HoldCenterShare = 0.4,
-			IconScale = 2, -- close in on the body
+			Model = "SkyBlock",
+			Idle = WING_IDLE,
+			SizeMultiplier = 2, -- 9.2 studs wide (the cloud and wings)
+			HoldCenterShare = 0.35, -- the block sits 0.9 studs up on its cloud
+			IconScale = 1.6,
 		},
-		Starter = { Odds = "Starter", Timer = 0, Model = "StarterLuckyBlock" }, -- the Starter Pack
-		Gift = { Odds = "Rare", Timer = 12 * 3600, Model = "StarterLuckyBlock" }, -- no source yet
+		Starter = { -- the Starter Pack: red, gift-wrapped
+			Odds = "Starter",
+			Timer = 0,
+			Model = "StarterBlock",
+			Idle = BOX_IDLE,
+			SizeMultiplier = 1.28, -- 6 studs tall (the bow)
+			HoldCenterShare = 0.39,
+			IconScale = 1.1,
+		},
+		Gift = { -- given the first time a player leaves (GDD); white, gold ribbon and clock
+			Odds = "Rare",
+			Timer = 12 * 3600,
+			Model = "GiftBlock",
+			Idle = BOX_IDLE,
+			SizeMultiplier = 1.28, -- 6 studs tall (the bow)
+			HoldCenterShare = 0.39,
+			IconScale = 1.1,
+		},
 	},
 	ModelFolder = "LuckyBlocks",
-	-- A kind with Bob = true (the part-built Lucky 8 block, which has no animation) hovers and
-	-- turns by code once it has landed: this high, this fast.
+	-- A kind with Bob = true (a model without an animation; none now) hovers and turns by
+	-- code once it has landed: this high, this fast.
 	Bob = { HeightStuds = 0.35, Seconds = 2.4, TurnDegreesPerSecond = 30 },
 	SkipProduct = "LuckyBlockSkip", -- 19 Robux: one durable timer skip
 	VipTimerFactor = 0.5, -- VIP multiplies every block timer by this: twice as fast

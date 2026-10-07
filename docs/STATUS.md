@@ -91,13 +91,15 @@ Updated 2026-10-07.
 - **Pull cutscenes.** Rare, Epic and Legendary are redone ("good for now"); Mythic and Secret
   still wait for their redo (DECISIONS.md 2026-10-05 has the notes for them).
 
-- **Our own lucky blocks** (2026-10-07, roadmap "Lucky block look"): concepts approved (round B
-  corner cubes, Mystery on round C flush rims; the tier ladder drawn, waiting on the designer).
-  **Standard and Mystery are our own models in the game**, built in headless Blender
-  (`assets/luckyblocks/Readme.md`, "Our own blocks"), with the pack's idle copied onto our rig
-  (LuckyBoxIdle) and its glow particles. Checked in Studio: held, thrown, hovering, opened, console
-  clean. Next: the other kinds (toppers, wings, faces, their own particles) and the 2D icons in
-  the Shop, hotbar and bag. The templates live in the place (save and publish once at the end).
+- **Our own lucky blocks** (2026-10-07, roadmap "Lucky block look"): **all 12 kinds are our
+  own models in the game**, built in headless Blender (`assets/luckyblocks/Readme.md`, "Our own
+  blocks"): round B corner cubes (Mystery on round C flush rims with a moving rainbow), toppers
+  (bow, crown, halo), Sky's cloud, wings on Legendary, Mythic and Sky (flapping, LuckyWingIdle),
+  and our own particles per kind. Wide and tall blocks are sized by their block, not their
+  wings, and land apart by their real width. Checked in Studio: every kind held (hold animation
+  plays), thrown, landed and idling; console clean. Next: the designer's look-over, the 2D icons
+  in the Shop, hotbar and bag, and the Gift's delivery. The templates live in the place (save and
+  publish once at the end).
 
 ## Open, waiting on the designer
 
