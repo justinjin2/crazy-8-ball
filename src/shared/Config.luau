@@ -7239,7 +7239,7 @@ Config.UI.MatchBar = {
 	GlobalWidth = 190,
 	GlobalTextPx = 26,
 	GlobalOverlapPx = 14, -- tucked this far under the pill's rounded right end
-	AskTextPx = 17, -- "Don't want to wait?" just above the button
+	AskTextPx = 18, -- "Don't want to wait?" just above the button (designer, 2026-10-07: 1 px bigger)
 	AskGapPx = 2,
 	GrowSeconds = 0.2, -- the pill making room for Play Global
 	-- Play Global's idle: a gentle breath (designer, 2026-10-07: gentler than the house pulse,

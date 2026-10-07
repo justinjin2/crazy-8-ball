@@ -2873,3 +2873,5 @@ timer of a new block stay the designer's call.
 - 2026-10-07 (designer, gate D notes): **The matchmaking bar's Play Global breathes more
   gently** (1.015 over 1.6 s instead of the house 1.03 over 0.9 s) and **its mode icon is the
   old pad card's Classic picture** again, not the new cue-on-green square.
+- 2026-10-07 (designer, gate D approved): "Don't want to wait?" 1 px bigger (17 to 18); 2v2
+  and 3v3 show nothing different on the bar (the same Classic icon and count chip).

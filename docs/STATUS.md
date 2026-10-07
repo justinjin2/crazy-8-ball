@@ -54,8 +54,9 @@ Updated 2026-10-07.
   its badge bigger still. The red "!" stays on screen.
   A phone's lucky block hotbar shows only slots 1-3 (the rest in the bag). Seen in the Studio
   phone and iPad emulators; a PC size not yet looked at.
-- **The matchmaking bar** (2026-10-07, look A; a small piece under the lively-gui skill, at
-  **gate D, Studio first look**): one slim bar above the hotbar replaces the pad card. The
+- **The matchmaking bar** (2026-10-07, look A; a small piece under the lively-gui skill;
+  **gate D approved** with three notes done: a gentler pulse, the old Classic icon, the
+  question 1 px bigger; gate E waits on the designer's PC-size and controller check): one slim bar above the hotbar replaces the pad card. The
   server sends "<name> needs an opponent!" on step-on when no Roblox friend is in the server;
   Play Global shows after 3 s (5 s with a friend), searching shows the time and a red X, and a
   1v1 meets a bot at 5 s. Lobby tables play Classic; solo, vs PC and Fill with PC are off the
