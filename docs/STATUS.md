@@ -45,12 +45,6 @@ Updated 2026-10-07.
   and Continue on its second; every money line reads "+$". It plays after a leave or a
   surrender too (both sides). `/result win|lose` plays it all. Not yet seen in a real 1v1
   (the rematch row's swap to Continue especially).
-- **The result screen on the lively frame** (2026-10-07, gate D: Studio first look): one
-  lively panel (scrolling 8-ball header with VICTORY!/DEFEAT/DRAW/SOLO GAME, dotted sheet,
-  8-ball flair), face-off left, rewards right, no X; unrolls open, folds shut on Continue.
-  Seen in Studio on a win, a loss with its reason and a draw, the close, and at a phone's size
-  (scale 0.74, all readable). Not yet: the rematch row in a real 1v1, a real gamepad, the
-  designer's look (gate E).
 - **Cue outlines and the "pop" aura.** Every cue has a theme-coloured outline (a moving
   gradient from Legendary up). The deeper aura is on test on Frostbite, Candy, Flare, Plasma,
   Gummy and Magma (`Config.CueSkins.Pop.Ids`).

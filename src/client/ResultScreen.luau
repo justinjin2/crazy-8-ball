@@ -3,11 +3,6 @@
 -- and YOU LOSE; reference assets/ui/reference/05-match-result-vs.webp, in our light house style).
 -- Built from the server's MatchSummary (Ranking); the client only animates its numbers.
 --
--- The lively frame (designer, 2026-10-07; .claude/skills/lively-gui): one panel with the
--- scrolling 8-ball header (VICTORY!, DEFEAT, DRAW or SOLO GAME with its icon), the dotted
--- sheet and the 8-ball flair on its left edge holds everything. It unrolls open, its pieces pop
--- in on Stage (Config.UI.Progress.Result.Open) and it folds shut on Continue. No red X.
---
 -- - The face-off: your side on the left, theirs on the right, VS between. A white card per
 --   player (team-mates side by side, smaller) with the avatar headshot, the name (never
 --   translated; "..." when long) and the rank badge on the portrait's outer top corner. The
@@ -43,8 +38,7 @@
 -- opens (expect) and land with the total chip, so the HUD neither jumps early nor counts
 -- anything twice.
 --
--- Laid out once at a natural size and scaled to the screen (a UIScale), like the match bar:
--- always side by side, a phone shows the computer's arrangement smaller.
+-- Laid out once at a natural size and scaled to the screen (a UIScale), like the match bar.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
@@ -60,19 +54,15 @@ local ProgressionRules = Shared:WaitForChild("Progression")
 local Format = require(ProgressionRules:WaitForChild("Format"))
 local Ranks = require(ProgressionRules:WaitForChild("Ranks"))
 local HudParts = require(script.Parent.HudParts)
-local MenuFrame = require(script.Parent.MenuFrame)
 local PostMatch = require(script.Parent.PostMatch)
 local RankBadge = require(script.Parent.RankBadge)
 local RewardChips = require(script.Parent.RewardChips)
 local ScreenBlur = require(script.Parent.ScreenBlur)
-local Stage = require(script.Parent.Stage)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local C = Config.UI.Progress.Result
 local K = Config.UI.Kit
-local LV = Config.UI.Menu.Lively
-local LF = LV.Frame -- the lively header row's sizes, { phone, full }: the full ones here
 local P = Strings.Progress
 local RankWords = Strings.Ranks
 local BLOCK_NAMES: { [string]: string } = Strings.LuckyBlocks.Names :: any
@@ -456,8 +446,8 @@ function ResultScreen.build(self: any, view: any)
 		self:tap()
 	end)
 	view.backdrop = backdrop
-	-- The holder is the natural size, scaled to fit the screen (its UIScale); the lively panel
-	-- fills it (Stage unrolls its card and pops the pieces in).
+	-- The holder is the natural size, scaled to fit the screen; the stage inside it pops in and
+	-- out (one UIScale each: an object takes only one).
 	local holder = frame(root, "Holder")
 	holder.AnchorPoint = Vector2.new(0.5, 0.5)
 	holder.Position = UDim2.fromScale(0.5, 0.5)
@@ -466,53 +456,19 @@ function ResultScreen.build(self: any, view: any)
 	view.fit = Instance.new("UIScale")
 	view.fit.Name = "Fit"
 	view.fit.Parent = holder
-	local panel = frame(holder, "Panel")
-	panel.Size = UDim2.fromScale(1, 1)
-	view.panel = panel
-	local reveal = Stage.new(C.Open)
-	view.reveal = reveal
-	view.idles = {} :: { UIAnim.Handle }
-	local panelCard = HudParts.menuCard(panel, "Card")
-	panelCard.AnchorPoint = Vector2.new(0.5, 0.5)
-	panelCard.Position = UDim2.fromScale(0.5, 0.5)
-	panelCard.Size = UDim2.fromScale(1, 1)
-	panelCard.ZIndex = 1
-	HudParts.paleEdge(panelCard)
-	view.panelCard = panelCard
-	local band = HudParts.livelyCard(panelCard)
+	local stage = frame(holder, "Stage")
+	stage.AnchorPoint = Vector2.new(0.5, 0.5)
+	stage.Position = UDim2.fromScale(0.5, 0.5)
+	stage.Size = UDim2.fromScale(1, 1)
+	stage.Visible = false
+	view.stage = stage
 
-	-- The outcome, for the header.
+	-- The face-off.
 	local mine = if type(summary.you) == "table" and summary.you.team == 2 then 2 else 1
 	local teams = if type(summary.teams) == "table" then summary.teams else {}
 	local winner = summary.winner
 	local solo = summary.solo == true
-	local outcome = if solo
-		then "Solo"
-		elseif winner == nil then "Draw"
-		elseif winner == mine then "Win"
-		else "Loss"
-
-	-- The header: the outcome's icon and words.
-	local header = frame(panelCard, "Header")
-	header.ZIndex = 2
-	view.header = header
-	local headerIcon = HudParts.icon(header, C.HeaderIcons[outcome], "Icon")
-	view.headerIcon = headerIcon
-	view.headerTitle = HudParts.text(
-		header,
-		"Title",
-		K.Text.Title,
-		(P.Header :: any)[outcome],
-		tone(C.HeaderTones[outcome])
-	)
-	view.headerTitle.TextWrapped = false
-	view.headerTitle.TextXAlignment = Enum.TextXAlignment.Left
-	local body = frame(panelCard, "Content")
-	body.ZIndex = 2
-	view.body = body
-
-	-- The face-off.
-	local face = frame(body, "FaceOff")
+	local face = frame(stage, "FaceOff")
 	view.face = face
 	view.sides = {}
 	local sideTeams: { number } = if solo then { mine } else { mine, 3 - mine }
@@ -521,7 +477,6 @@ function ResultScreen.build(self: any, view: any)
 		local won = not solo and winner == team
 		local side = frame(face, if i == 1 then "YourSide" else "TheirSide")
 		side.ZIndex = 1
-		reveal:add(side.Name, side)
 		local rays = nil
 		if won then
 			rays = Instance.new("ImageLabel")
@@ -548,14 +503,18 @@ function ResultScreen.build(self: any, view: any)
 			outer = if i == 1 then -1 else 1, -- the badge corner: left side left, right side right
 		})
 	end
-	-- WINNER over the winner's side (a draw or a solo game: the header says it).
-	view.title = nil
-	if not solo and winner ~= nil then
-		view.title = HudParts.text(face, "Title", C.TitleTextPx, P.Winner, tone("Gold"))
-		view.title.TextWrapped = false
-		view.title.ZIndex = 3
-		view.title.Visible = false
-	end
+	-- WINNER over the winner's side; DRAW or SOLO GAME over the whole face-off.
+	local titleText = if solo then P.SoloGame elseif winner == nil then P.Draw else P.Winner
+	view.title = HudParts.text(
+		face,
+		"Title",
+		C.TitleTextPx,
+		titleText,
+		tone(if solo or winner == nil then "White" else "Gold")
+	)
+	view.title.TextWrapped = false
+	view.title.ZIndex = 3
+	view.title.Visible = false
 	-- LOSE over your side, and why, when an 8-ball rule lost it (designer, 2026-10-07: like the
 	-- foul popup, e.g. "You pocketed the 8 ball early."). summary.reason is ShotJudge's.
 	view.lossTitle, view.lossReason = nil, nil
@@ -587,7 +546,6 @@ function ResultScreen.build(self: any, view: any)
 		view.vs.TextWrapped = false
 		view.vs.AutoLocalize = wins == false
 		view.vs.ZIndex = 3
-		reveal:add("Vs", view.vs)
 	end
 	-- A No ults queue match (the server's summary.noUlts): a small grey NO ULTS pill under VS.
 	view.noUlts = nil
@@ -602,23 +560,19 @@ function ResultScreen.build(self: any, view: any)
 		words.Position = UDim2.fromOffset(U.NoUltsPadPx / 2, 1)
 		words.ZIndex = 4
 		view.noUlts = pill
-		reveal:add("NoUlts", pill)
 	end
 	-- The choices after a two-sided game, in Continue's place.
 	view.choices = nil
 	if not solo and (summary.rematch == true or summary.arena == true) then
-		view.choices = PostMatch.new(body, function(kind: string)
+		view.choices = PostMatch.new(stage, function(kind: string)
 			if self.onChoice and self.view == view and not view.closing then
 				self.onChoice(kind, summary)
 			end
 		end)
-		reveal:add("Choices", view.choices.root)
 	end
 
 	-- The rewards card.
-	local card = HudParts.card(body, "Rewards")
-	HudParts.paleEdge(card)
-	reveal:add("Rewards", card)
+	local card = HudParts.card(stage, "Rewards")
 	view.card = card
 	local content = frame(card, "Content")
 	view.content = content
@@ -637,7 +591,6 @@ function ResultScreen.build(self: any, view: any)
 			name = "Rank",
 			zIndex = 3,
 		})
-		reveal:add("Xp", block)
 		view.rankName = HudParts.text(block, "RankName", C.XpNameTextPx, "")
 		view.rankName.TextWrapped = false
 		view.rankName.TextXAlignment = Enum.TextXAlignment.Left
@@ -676,7 +629,6 @@ function ResultScreen.build(self: any, view: any)
 		view.barText.ZIndex = 2
 	elseif solo or summary.short == true then
 		view.note = HudParts.note(content, "Note", K.Text.Body, if solo then P.SoloNoXp else P.NoXp)
-		reveal:add("Xp", view.note)
 	end
 	view.segments, view.xpEnd = planXp(xp)
 	view.shown = nil -- the division the bar shows (Shown), once drawn
@@ -684,6 +636,7 @@ function ResultScreen.build(self: any, view: any)
 	-- The money list: balls, nice shots, the match bonus, the win streak and a rank reward,
 	-- then the Total.
 	local m = if type(summary.money) == "table" then summary.money else {}
+	local outcome = if type(summary.you) == "table" then summary.you.outcome else nil
 	view.lines = {}
 	local function add(label: string, value: number)
 		table.insert(view.lines, makeLine(content, label, value))
@@ -693,8 +646,7 @@ function ResultScreen.build(self: any, view: any)
 		add(P.NiceLine:format(clean(m.nice)), clean(m.niceMoney))
 	end
 	if clean(m.bonus) > 0 then
-		local won = type(summary.you) == "table" and summary.you.outcome == "Win"
-		add(if won then P.WinBonus else P.LossBonus, clean(m.bonus))
+		add(if outcome == "Win" then P.WinBonus else P.LossBonus, clean(m.bonus))
 	end
 	if clean(m.streak) > 0 then
 		add(P.StreakLine, clean(m.streak))
@@ -737,29 +689,6 @@ function ResultScreen.build(self: any, view: any)
 	end, "Green")
 	view.continue.Name = "Continue"
 	view.continue.Visible = false
-
-	-- The frame's pieces: the panel's chrome unrolls, the header fades in, its icon and words
-	-- pop (the icon then rocks), the 8-ball flair drops on last. "Content" has no step: it is
-	-- registered so the close fades what the clock showed (the lines, the Total, Continue).
-	reveal:add("Panel", panelCard)
-	reveal:add("Header", band)
-	-- An idle loop is kept until the close stops it (one starting after the close stops at once).
-	local function keep(handle: UIAnim.Handle)
-		if view.closing then
-			handle.stop()
-		else
-			table.insert(view.idles, handle)
-		end
-	end
-	reveal:add("Icon", headerIcon, function()
-		keep(UIAnim.turn(headerIcon, 0, LV.IconRockDegrees, LV.RockSeconds))
-	end)
-	reveal:add("Title", view.headerTitle)
-	reveal:add("Content", body)
-	view.flairRest = UDim2.fromOffset(0, 0) -- placed by layout
-	view.flair = MenuFrame.flair(panel, reveal, keep, function(): UDim2
-		return view.flairRest
-	end)
 
 	-- The timeline, seconds from opening.
 	local t = C.MoneyAt
@@ -840,9 +769,7 @@ function ResultScreen.layoutCard(_self: any, view: any): number
 		local badge = C.XpBadgePx
 		local textLeft = badge + 8
 		local deltaWidth = C.XpDeltaWidth
-		-- Pieces Stage pops are anchored on their centres, so they grow evenly.
-		view.xpBlock.AnchorPoint = Vector2.new(0.5, 0.5)
-		view.xpBlock.Position = UDim2.fromOffset(inner / 2, C.XpHeight / 2)
+		view.xpBlock.Position = UDim2.fromOffset(0, 0)
 		view.xpBlock.Size = UDim2.fromOffset(inner, C.XpHeight)
 		view.xpBadge.root.Position = UDim2.fromOffset(0, (C.XpHeight - badge) / 2)
 		view.xpBadge:setSize(badge)
@@ -863,8 +790,7 @@ function ResultScreen.layoutCard(_self: any, view: any): number
 		end
 		y += 10
 	elseif view.note then
-		view.note.AnchorPoint = Vector2.new(0.5, 0.5)
-		view.note.Position = UDim2.fromOffset(inner / 2, (K.Text.Body + 10) / 2)
+		view.note.Position = UDim2.fromOffset(0, 0)
 		view.note.Size = UDim2.fromOffset(inner, K.Text.Body + 10)
 		y = K.Text.Body + 18
 	end
@@ -921,56 +847,35 @@ function ResultScreen.layout(self: any, settled: boolean?)
 	end
 	local cardHeight = self:layoutCard(view)
 	local gap = C.ColumnGap
-
-	-- The panel at its natural size: the header row (Lively.Frame's full sizes), then the sheet
-	-- with the face-off and the rewards card side by side, and the choices row under both.
-	local pad, rowGap, headerH = LF.PaddingPx[2], LF.GapPx[2], LF.HeaderPx[2]
-	local sheetTop = pad + headerH + math.floor(rowGap / 2 + 0.5)
-	local edge = K.SheetInsetPx + C.SheetPadPx -- the panel's side to the columns
-	local columnsWidth = C.FaceWidth + gap + C.RewardsWidth
-	local extra = if view.choices then C.ChoicesGap + PostMatch.height() else 0
-	local bodyHeight = cardHeight + extra
-	local panelW = columnsWidth + edge * 2
-	local panelH = sheetTop + C.SheetPadPx + bodyHeight + edge
-	view.holder.Size = UDim2.fromOffset(panelW, panelH)
-	HudParts.setSheetTop(view.panelCard, sheetTop)
-
-	-- The header: the icon as tall as the row, the outcome's words filling it.
-	local titleSize = math.max(K.Text.Min, math.floor(headerH * LF.TitleOfHeader + 0.5))
-	local iconSize = math.min(headerH, math.floor(titleSize * LF.IconShare + 0.5))
-	local innerW = panelW - pad * 2
-	view.header.Position = UDim2.fromOffset(pad, pad)
-	view.header.Size = UDim2.fromOffset(innerW, headerH)
-	view.headerIcon.Size = UDim2.fromOffset(iconSize, iconSize)
-	view.headerIcon.Position = UDim2.fromOffset(rowGap, (headerH - iconSize) / 2)
-	local headLeft = rowGap + iconSize + rowGap
-	HudParts.setTextSize(view.headerTitle, titleSize)
-	view.headerTitle.Position = UDim2.fromOffset(headLeft, 0)
-	view.headerTitle.Size = UDim2.fromOffset(innerW - headLeft, headerH)
-
-	view.body.Position = UDim2.fromOffset(edge, sheetTop + C.SheetPadPx)
-	view.body.Size = UDim2.fromOffset(columnsWidth, bodyHeight)
-	-- The pieces Stage pops or grows are anchored on their centres, so they grow evenly.
-	view.face.Position = UDim2.fromOffset(0, 0)
-	view.card.AnchorPoint = Vector2.new(0.5, 0.5)
-	view.card.Position = UDim2.fromOffset(C.FaceWidth + gap + C.RewardsWidth / 2, cardHeight / 2)
-	if view.choices then
-		view.choices.root.AnchorPoint = Vector2.new(0.5, 0.5)
-		view.choices.root.Position =
-			UDim2.fromOffset(columnsWidth / 2, cardHeight + C.ChoicesGap + PostMatch.height() / 2)
-		view.choices:layout(columnsWidth)
-	end
-	-- The 8-ball flair on the panel's left edge (as every lively frame).
-	view.flairRest = UDim2.fromOffset(0, math.floor(panelH * LV.FlairDownShare + 0.5))
-	if not view.reveal:busy() then
-		view.flair.Position = view.flairRest
-	end
-
-	-- Scaled to fit the screen. Not capped at Lively.MaxWidthShare like a menu: the result is
-	-- the only thing on screen, and on a phone the cap made its words too small.
 	local availableX = screenSize.X - C.MarginPx * 2
 	local availableY = screenSize.Y - C.MarginPx * 2
-	local scale = math.max(0.1, math.min(C.MaxScale, availableX / panelW, availableY / panelH))
+	view.holder.AnchorPoint = Vector2.new(0.5, 0.5)
+	view.holder.Position = UDim2.fromScale(0.5, 0.5)
+	-- Side by side, or the rewards under the face-off: whichever lets it be bigger.
+	local wideWidth = C.FaceWidth + gap + C.RewardsWidth
+	local stackWidth = math.max(C.FaceWidth, C.RewardsWidth)
+	local stackHeight = C.StackedFaceHeight + gap + cardHeight
+	-- The choices row, when there is one, goes under everything.
+	local extra = if view.choices then C.ChoicesGap + PostMatch.height() else 0
+	local wideScale = math.min(availableX / wideWidth, availableY / (cardHeight + extra))
+	local stackScale = math.min(availableX / stackWidth, availableY / (stackHeight + extra))
+	local stacked = stackScale > wideScale
+	local faceHeight = if stacked then C.StackedFaceHeight else cardHeight
+	local columnsWidth = if stacked then stackWidth else wideWidth
+	local columnsHeight = if stacked then stackHeight else cardHeight
+	view.holder.Size = UDim2.fromOffset(columnsWidth, columnsHeight + extra)
+	if stacked then
+		view.face.Position = UDim2.fromOffset((stackWidth - C.FaceWidth) / 2, 0)
+		view.card.Position = UDim2.fromOffset((stackWidth - C.RewardsWidth) / 2, faceHeight + gap)
+	else
+		view.face.Position = UDim2.fromOffset(0, 0)
+		view.card.Position = UDim2.fromOffset(C.FaceWidth + gap, 0)
+	end
+	if view.choices then
+		view.choices.root.Position = UDim2.fromOffset(0, columnsHeight + C.ChoicesGap)
+		view.choices:layout(columnsWidth)
+	end
+	local scale = math.max(0.1, math.min(C.MaxScale, if stacked then stackScale else wideScale))
 	view.fit.Scale = scale
 	-- Small words are measured as drawn at this scale (drawnPx): once more with it (at most
 	-- once).
@@ -980,7 +885,6 @@ function ResultScreen.layout(self: any, settled: boolean?)
 		self:layout(true)
 		return
 	end
-	local faceHeight = cardHeight
 	view.face.Size = UDim2.fromOffset(C.FaceWidth, faceHeight)
 	view.card.Size = UDim2.fromOffset(C.RewardsWidth, cardHeight)
 
@@ -1003,12 +907,11 @@ function ResultScreen.layout(self: any, settled: boolean?)
 	local portraitTop = top + C.TitleHeight + crownRoom
 	for i, side in view.sides do
 		local x = if solo then 0 elseif i == 1 then 0 else sideWidth + C.VsWidth
-		side.root.AnchorPoint = Vector2.new(0.5, 0.5)
-		side.root.Position = UDim2.fromOffset(x + sideWidth / 2, faceHeight / 2)
+		side.root.Position = UDim2.fromOffset(x, 0)
 		side.root.Size = UDim2.fromOffset(sideWidth, faceHeight)
 		layoutSide(side, sideWidth, size, portraitTop)
 	end
-	-- WINNER over the winner's side.
+	-- WINNER over the winner's side, or DRAW / SOLO GAME over everything.
 	local titleLeft, titleWidth = 0, C.FaceWidth
 	for i, side in view.sides do
 		if side.won then
@@ -1016,10 +919,8 @@ function ResultScreen.layout(self: any, settled: boolean?)
 			titleWidth = sideWidth
 		end
 	end
-	if view.title then
-		view.title.Position = UDim2.fromOffset(titleLeft, top)
-		view.title.Size = UDim2.fromOffset(titleWidth, C.TitleHeight)
-	end
+	view.title.Position = UDim2.fromOffset(titleLeft, top)
+	view.title.Size = UDim2.fromOffset(titleWidth, C.TitleHeight)
 	if view.lossTitle and view.lossReason then
 		-- Your side is the left one: LOSE a little above WINNER's line, the reason under it.
 		local lossTop = top - C.LossTitleLiftPx
@@ -1127,7 +1028,7 @@ function ResultScreen.open(self: any, summary: any, onDone: (() -> ())?)
 		TweenInfo.new(K.Motion.PopSeconds, Enum.EasingStyle.Quad),
 		{ BackgroundTransparency = C.BackdropTransparency }
 	):Play()
-	view.reveal:play()
+	UIAnim.popIn(view.stage)
 	self:bind()
 	view.loop = RunService.RenderStepped:Connect(function()
 		local ok, err = pcall(self.step, self, false)
@@ -1165,9 +1066,6 @@ function ResultScreen.tap(self: any)
 	if t < view.continueAt then
 		view.offset += view.continueAt - t
 		view.skippedAt = os.clock()
-		if view.reveal:busy() then
-			view.reveal:finish() -- the panel's open jumps to its end too
-		end
 		self:step(true)
 	end
 end
@@ -1187,11 +1085,8 @@ end
 
 -- The face-off at time t: the title, the crowns dropping and rocking, the rays turning.
 local function stepFace(view: any, t: number)
-	if t >= C.TitleAt and not view.titleShown then
-		view.titleShown = true
-		if view.title then
-			UIAnim.popIn(view.title)
-		end
+	if not view.title.Visible and t >= C.CrownAt * 0.5 then
+		UIAnim.popIn(view.title)
 		if view.lossTitle and view.lossReason then
 			UIAnim.popIn(view.lossTitle)
 			UIAnim.popIn(view.lossReason)
@@ -1481,12 +1376,8 @@ function ResultScreen.close(self: any)
 		{ BackgroundTransparency = 1 }
 	):Play()
 	ScreenBlur.set(self, false)
-	-- The lively close: everything fades while the panel folds back to a line.
-	for _, handle in view.idles do
-		handle.stop()
-	end
-	table.clear(view.idles)
-	view.reveal:close(function()
+	UIAnim.popOut(view.stage)
+	task.delay(K.Motion.OutSeconds + 0.05, function()
 		self:finish(view)
 	end)
 end
@@ -1499,12 +1390,6 @@ function ResultScreen.finish(self: any, view: any)
 	view.finished = true
 	if view.loop then
 		view.loop:Disconnect()
-	end
-	for _, handle in view.idles or {} do
-		handle.stop()
-	end
-	if view.reveal then
-		view.reveal:destroy()
 	end
 	for _, side in view.sides or {} do
 		for _, p in side.players do

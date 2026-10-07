@@ -2918,10 +2918,3 @@ timer of a new block stay the designer's call.
   (`Flags.RankShown`; existing saves start at their peak, no backlog). On the result screen,
   each rank reached holds the XP bar full and solid yellow saying NEW RANK! for 1 s (was a
   0.35 s white flash), then the bar carries on.
-- 2026-10-07: The match result screen moves onto the lively frame (designer): one panel with
-  the scrolling 8-ball header, the dotted sheet and the 8-ball flair holds the face-off and the
-  rewards; the header says VICTORY!, DEFEAT, DRAW or SOLO GAME; no red X (Continue only); the
-  panel unrolls open and folds shut (`Config.UI.Progress.Result.Open`). Always side by side
-  (the narrow-screen stack is gone) and not capped at `Lively.MaxWidthShare`. And from now on
-  any new or redone GUI takes the lively frame and its animations by default, without being
-  asked; only the specifics are questions.
