@@ -2850,3 +2850,23 @@ timer of a new block stay the designer's call.
   badge alone 1.35x more, about its centre); a phone's stays small, in line with Roblox's
   buttons. **The player list starts folded on every screen**; left open, it opens again on the
   next join (a saved switch with no Settings row, `Config.Settings.Hidden` "ListOpen").
+- 2026-10-07 (designer): **Matchmaking is one option: the matchmaking bar** (look A of three
+  mocks). The pad card (difficulty, Request opponent, Join Global Queue, Play against PC, Play
+  solo, Fill with PC) is gone; everyone on a waiting pad sees one slim bar above the hotbar
+  (mode icon, n/2 chip, "Waiting for opponent..."), on every table. The host gets "Don't want
+  to wait?" and a big green **Play Global** after 3 s, or 5 s with a Roblox friend in the
+  server; searching shows the time and a small red X. Reason: "simplify the whole matchmaking
+  and not overwhelm them".
+- 2026-10-07 (designer): **"<name> needs an opponent!" is sent by the server on step-on** when
+  the host has no Roblox friend in the server (any friend counts, even in a match), once per
+  step-on with a 15 s cooldown; with a friend here nobody is asked (friends come over).
+  Lobby bots no longer answer it: Play Global is the way to a bot.
+- 2026-10-07 (designer): **The global queue's 1v1 bot fallback went 10 s to 5 s.** A lobby
+  search now meets its bot before the rank window widens to anyone (10 s), so a real player
+  far from the rank is skipped.
+- 2026-10-07 (designer): **Lobby tables play Classic for now**; Play solo, Play against PC,
+  Fill with PC and the difficulty choice move somewhere else later (server handlers kept;
+  the server refuses a client's Request, Cancel or difficulty).
+- 2026-10-07 (designer): **The tutorial only teaches stepping on the pad**: game 1's bot comes
+  by itself on the pad, and game 2's search starts by itself (no Request or Join Global Queue
+  hand).

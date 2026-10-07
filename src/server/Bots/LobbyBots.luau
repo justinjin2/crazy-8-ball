@@ -2,8 +2,8 @@
 -- Lobby bots (the Bots lane; the designer, 2026-10-02): disguised bots that make a lobby
 -- server look like Config.Bots.Lobby.People people. They "join" (appear at the entrance) and
 -- "leave" (vanish) as real players come and go, stroll the aisles, sit on the map's seats,
--- wait on 1v1 pads and play each other there, and answer a real Request opponent that nobody
--- real took. Public lobby servers only (never a private server or an arena); in Studio only
+-- wait on 1v1 pads and play each other there. They no longer answer a real player's "needs
+-- an opponent!" (designer, 2026-10-07: Play Global is the way to a bot). Public lobby servers only (never a private server or an arena); in Studio only
 -- after the designer's /lobbybots. The tutorial's fake lobby is `start({ count, tiers })`.
 local PathfindingService = game:GetService("PathfindingService")
 local Players = game:GetService("Players")
@@ -13,7 +13,6 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Engine = require(Shared.Rules.MatchEngine)
-local Ranks = require(Shared.Progression.Ranks)
 local Rng = require(Shared.Bots.Rng)
 local Tables = require(script.Parent.Parent.TableService)
 -- BotService, handed over by its start (it requires this module).
@@ -517,53 +516,6 @@ local function freed(bot: any)
 	BotService.remove(bot, "Vanish")
 end
 
--- A real Request opponent nobody real answered in AnswerAfter seconds: the idle lobby bot
--- nearest the host's rank appears on the pad.
-local function answer(t: any, host: Player)
-	if not wanted() or t.engine.teamSize ~= 1 or t.reservedFor then
-		return
-	end
-	local e = t.engine
-	local epoch, asked = e.epoch, e.requestedAt
-	task.wait(L.AnswerAfter)
-	if
-		e.epoch ~= epoch
-		or e.phase ~= "Waiting"
-		or e.requestedAt ~= asked
-		or Engine.count(e) ~= 1
-		or not Engine.seat(e, host.UserId)
-	then
-		return
-	end
-	local hostTier = host:GetAttribute("RankTier")
-	local want = Ranks.tierIndex(if type(hostTier) == "string" then hostTier else "Bronze") or 1
-	local best, bestGap = nil, math.huge
-	for _, entry in entries do
-		if not entry.bot.t and entry.activity ~= "Walking" then
-			local gap = math.abs((Ranks.tierIndex(entry.bot.tier) or 1) - want)
-			if gap < bestGap then
-				best, bestGap = entry, gap
-			end
-		end
-	end
-	if not best then
-		return
-	end
-	local entry = best :: Entry
-	entry.job += 1
-	local hum = humanoidOf(entry)
-	if hum and hum.Sit then
-		hum.Sit = false
-	end
-	entry.activity = "Play"
-	entry.t = t
-	BotService.joinTable(entry.bot, t, { delay = 0, breakFor = host.UserId }, function(ok)
-		if not ok then
-			idle(entry)
-		end
-	end)
-end
-
 --- Turns the lobby bots on (`opts`: { count? (a fixed number: the tutorial's fake lobby),
 --- tiers? (their badges, e.g. { "Bronze", "Silver", "Gold" }) }) or off (nil). Without a count
 --- they keep the server at Config.Bots.Lobby.People people, in public lobby servers only.
@@ -588,7 +540,6 @@ function LobbyBots.start(bots: any)
 	BotService = bots
 	buildSpots()
 	BotService.onFreed = freed
-	Tables.onRequest(answer)
 	if not RunService:IsStudio() then
 		options = {}
 	end

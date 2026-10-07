@@ -54,6 +54,15 @@ Updated 2026-10-07.
   its badge bigger still. The red "!" stays on screen.
   A phone's lucky block hotbar shows only slots 1-3 (the rest in the bag). Seen in the Studio
   phone and iPad emulators; a PC size not yet looked at.
+- **The matchmaking bar** (2026-10-07, look A; a small piece under the lively-gui skill, at
+  **gate D, Studio first look**): one slim bar above the hotbar replaces the pad card. The
+  server sends "<name> needs an opponent!" on step-on when no Roblox friend is in the server;
+  Play Global shows after 3 s (5 s with a friend), searching shows the time and a red X, and a
+  1v1 meets a bot at 5 s. Lobby tables play Classic; solo, vs PC and Fill with PC are off the
+  pad for now; lobby bots no longer answer requests; the tutorial needs no button press.
+  Checked in the Studio phone emulator: every state (GuiQA "matchbar"), the auto-request and
+  its 15 s cooldown, 3 s vs 5 s, Play Global to the bot match, the X, Y focus, tutorial games 1
+  and 2. Not yet: a PC size, a real gamepad's A and B, a real friend in a live server.
 - **Lighting.** Day 10 min, sunset 5 min, a 10 s fade; no night and no sun disc. The sunset
   was softened and made less yellow on 2026-10-05.
 - **Pull cutscenes.** Rare, Epic and Legendary are redone ("good for now"); Mythic and Secret

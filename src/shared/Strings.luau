@@ -29,39 +29,29 @@ return {
 		PadPlaying = "PLAYING", -- on the pad and the sign while the table's game is on
 		Waiting = "WAITING",
 		Starting = "STARTING %d", -- the sign's pill while a full pad counts down to its game
-		-- The popup everyone free in the server gets when a host requests players
-		-- (OpponentPrompt).
+		-- The popup everyone free in the server gets when a host with no friend in the server
+		-- steps onto a pad (OpponentPrompt; TableService.askForOpponent).
 		Request = {
-			NeedsOpponent = "%s needs an opponent...", -- a 1v1 table
-			NeedsPlayers = "%s needs players...", -- a 2v2 or 3v3 table
+			NeedsOpponent = "%s needs an opponent!", -- a 1v1 table
+			NeedsPlayers = "%s needs players!", -- a 2v2 or 3v3 table
 			Join = "Join",
 			Dismiss = "Dismiss",
 			GamepadHint = "Y · Join",
 		},
-		-- The host's card (QueueMenu); everyone else sees the sign over the pad (TableSign).
+		-- The matchmaking bar above the hotbar (MatchBar; designer, 2026-10-07), for everyone
+		-- on a waiting pad. TableSign also reads PlayerCount and Levels.
 		Queue = {
-			GameTitle = "%s %s", -- the game on the host's card: difficulty, then mode ("Classic 1v1")
-			PlayerCount = "%d/%d", -- in the people pill: how many are on the pad, of how many it holds
+			PlayerCount = "%d/%d", -- in the people chip: how many are on the pad, of how many it holds
 			Levels = { Classic = "Classic", Difficult = "Difficult", Challenger = "Challenger" },
-			LevelLocked = "Requires %s+", -- under a level your rank can't host yet ("Gold I")
-			LevelXp = "%sx XP", -- under a level that pays more rank XP ("1.25")
-			PlaySolo = "Play solo",
-			PlayPC = "Play against PC",
-			-- The host's card adds three dots that light up one by one (QueueMenu.dots).
+			-- The bar adds three dots that light up one by one (MatchBar.dots).
 			WaitingForOpponent = "Waiting for opponent", -- a 1v1 pad with room
 			WaitingForPlayers = "Waiting for players", -- a 2v2 or 3v3 pad with room
-			RequestOpponent = "Request opponent",
-			RequestPlayers = "Request players", -- on the team tables
-			Requested = "Requested!", -- on the button while the host waits to ask again
-			CancelRequest = "Cancel", -- under Requested!: takes the request back
 			StartingIn = "Starting in %d", -- the pad is full: the game starts by itself
-			GamepadHint = "Y · Menu",
-			-- The global queue (designer, 2026-09-28): the host's 4th choice, and the card while
-			-- it searches every server for a side of similar rank.
-			GlobalQueue = "Join Global Queue",
-			GlobalNeeds = "Needs %d on the pad", -- under the greyed button on 2v2 and 3v3
-			SearchingWorld = "Searching worldwide", -- the status line, with the dots
-			SearchTime = "Searching %d:%02d", -- on the greyed button: minutes and seconds
+			-- The host's one choice, a few seconds after stepping on.
+			NoWait = "Don't want to wait?",
+			NoWaitPad = "Don't want to wait? Y", -- the same, while a gamepad is in use
+			PlayGlobal = "Play Global",
+			Searching = "Searching... %s", -- the search's time, "0:07"
 			MatchFound = "Match found!",
 		},
 		OpenTable = "OPEN TABLE",
@@ -1388,12 +1378,6 @@ return {
 		SkipNo = "No",
 		JoinTable = "Join a table!",
 		WaitTable = "Waiting for a free table...",
-		Request = {
-			Mouse = "Click Request opponent!",
-			Touch = "Tap Request opponent!",
-			Gamepad = "Press A to request an opponent!",
-			GamepadFocus = "Press Y, then A to request an opponent!",
-		},
 		Finding = "Finding you an opponent...",
 		-- Game 1's lessons (the TutorialLesson attribute), per device.
 		Break = {
@@ -1496,13 +1480,7 @@ return {
 			Touch = "SELECT WHICH POCKET!",
 			Gamepad = "SELECT WHICH POCKET! D-pad to choose, A to select.",
 		},
-		-- Game 2 (step 6): the global queue, then back to the lobby.
-		Queue = {
-			Mouse = "Click Join Global Queue!",
-			Touch = "Tap Join Global Queue!",
-			Gamepad = "Press A to join the global queue!",
-			GamepadFocus = "Press Y, then A to join the global queue!",
-		},
+		-- Game 2 (step 6): back to the lobby after the global queue's game.
 		Lobby = {
 			Mouse = "Click Lobby!",
 			Touch = "Tap Lobby!",

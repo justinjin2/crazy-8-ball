@@ -5944,6 +5944,7 @@ Config.UI = {
 			Whistle = "rbxassetid://123711745342070", -- a foul
 			Crown = "rbxassetid://88932863469480", -- the host
 			People = "rbxassetid://126967121282359", -- how many are in
+			Globe = "rbxassetid://102000229917965", -- Play Global (the matchmaking bar)
 			Person = "rbxassetid://134579193841579", -- a person (blue)
 			-- Play solo: grey, so it stands out on the blue button (designer, 2026-10-02)
 			PersonGrey = "rbxassetid://102357114365453",
@@ -6300,6 +6301,11 @@ Config.Multiplayer = {
 		-- it (the Cancel button, designer 2026-09-27), so Request and Cancel cannot flood
 		-- everyone with popups. (tune)
 		RerequestSeconds = 3,
+		-- The matchmaking bar (designer, 2026-10-07): a host who steps onto a pad with no Roblox
+		-- friend in the server sends "<name> needs an opponent!" to everyone by themselves,
+		-- once per step-on; stepping off and on again sends it no sooner than this after the
+		-- last one, so nobody is flooded with popups. (tune)
+		AutoRequestCooldownSeconds = 15,
 	},
 	Barrier = { -- invisible wall around each table: nobody can touch or jump onto it
 		-- Beyond the rails. 5.5 in rails + 0.6 and 7 in rails + 0.36 put the wall in the same
@@ -6519,59 +6525,6 @@ Config.Multiplayer = {
 		ShortOpenBallSize = 15, -- the same on the two-row (narrow) layout
 		OpenBallMinSize = 12, -- never shrink them below this to fit
 		OpenLabelShare = 0.36, -- share of the ball-row width the OPEN TABLE label keeps
-		-- The host's card (src/client/QueueMenu.luau), top right while their table waits.
-		QueueMenuWidth = 290, -- pixels, before shrinking to fit (was 260: the level words need room)
-		QueueMenuPadding = 10, -- inside the card
-		QueueMenuLineGap = 4, -- a text row is its font size plus this
-		QueueRowGap = 6, -- between the card's rows
-		QueueMenuMinScale = 0.6, -- never shrink the card further than this
-		QueueTitleHeight = 36, -- the difficulty's picture and "Classic 1v1"
-		-- The card's buttons (designer, 2026-10-02: taller, filling the room the Abilities
-		-- toggle left; the kit's ButtonHeight is 44).
-		QueueButtonHeight = 54,
-		-- The card's text, bigger than the kit's (Config.UI.Kit.Text: Heading 22, Button 20,
-		-- Body 16, Min 14) to fill it (designer, 2026-10-02). Words still shrink to fit.
-		QueueText = {
-			Title = 26, -- "Classic 1v1"
-			Count = 18, -- the 1/2 pill
-			Button = 24, -- Request opponent, Join Global Queue, Play solo...
-			Level = 22, -- Classic, Difficult, Challenger (the narrow ones shrink to fit)
-			Status = 18, -- Waiting for opponent...
-			Small = 15, -- the gamepad hint, "Needs 2 on the pad"
-			Xp = 20, -- "1.25x XP" under a level button (20 gets the full outline)
-			Lock = 20, -- "Requires Gold I+" on the banner across the locked levels
-			-- The level words and "Requires Gold I+" are measured and shrunk to fit their button
-			-- (a one-line kit text does not shrink by itself: STUDIO_NOTES), never below this;
-			-- on a phone they had overflowed and overlapped (designer, 2026-10-02).
-			NarrowFloor = 7,
-		},
-		-- Where the card goes (designer, 2026-09-27: keep it out of the way). A screen at least
-		-- this tall, in GUI pixels, is big (PC, console, tablet): the card sits on the right,
-		-- halfway down, at full size. Shorter (a phone) tucks it into the top right corner at
-		-- QueueCornerScale. (tune)
-		QueueWideMinHeight = 500,
-		QueueWideScale = 1.3, -- the card on a big screen (designer, 2026-09-27: bigger on PC; was 1)
-		QueueCornerScale = 0.85,
-		QueueDotSeconds = 0.4, -- "Waiting for opponent...": each dot lights this long after the last
-		QueueFoldSeconds = 0.3, -- the card folding to "Requested!" and back, about this long
-		QueueFoldEdgePx = 6, -- room above and below a folding part's buttons for their outlines (and a hovered one's grow)
-		QueueFoldSidePx = 10, -- and beside them: the part reaches this far past the card's column
-		QueueCountWidth = 72, -- the people n/6 pill
-		-- The difficulty picker's three buttons under the title, this tall (each still takes a
-		-- 44 px touch), the picked one in this tone.
-		QueueLevelHeight = 40,
-		QueueLevelPickedTone = "Yellow",
-		-- "1.25x XP" under a level, in outlined text: a bright sky blue (designer, 2026-10-02:
-		-- brighter than the kit's Blue 59, 155, 255).
-		QueueXpColor = { 70, 205, 255 },
-		-- Locked levels sharing an unlock rank get one "Requires Gold I+" banner across them,
-		-- this tall, reaching this far up onto their buttons' lower edge (under their words),
-		-- this far in from the row's sides (designer, 2026-10-02: one line under each button
-		-- was too small to read).
-		QueueLockHeight = 28,
-		QueueLockOverlapPx = 10,
-		QueueLockInsetPx = 4,
-		QueuePillHeight = 26, -- the count and team-split pills
 		-- The "needs an opponent" popup (src/client/OpponentPrompt.luau), bottom centre, kept
 		-- small and low so it clears the player's legs (designer, 2026-09-27: was 330 x 96).
 		PromptWidth = 250, -- pixels, before shrinking to fit a narrow screen
@@ -7254,6 +7207,46 @@ Config.UI.Queue = {
 	-- this long, then fades out in FadeSeconds.
 	ArrivalHoldSeconds = 15,
 	FadeSeconds = 0.4,
+}
+
+-- The matchmaking bar (MatchBar; designer, 2026-10-07, look A): one slim pill above the lucky
+-- block hotbar for everyone on a waiting pad, the mode icon, a count chip and "Waiting for
+-- opponent...". The host alone gets "Don't want to wait?" and a big green Play Global joined
+-- to its right end after a short wait, then the search's time and a small red X. Pixels are
+-- a computer's; a phone draws the same bar at PhoneScale. Seconds as named.
+Config.UI.MatchBar = {
+	-- When Play Global shows: this long after stepping on with no Roblox friend in the server
+	-- (the popup has gone to everyone), longer with one (a friend may be on their way). (tune)
+	PromptAloneSeconds = 3,
+	PromptFriendsSeconds = 5,
+	BottomPx = 10, -- from the screen's bottom, plus the hotbar's lift (BottomLift) when it shows
+	PhoneScale = 0.8, -- the whole bar on a phone (screen narrower than LuckyBlocks.UI.PhoneWidthPx)
+	ZIndex = 26, -- over the world's HUD, under the status card and the result screen
+	PillHeight = 44,
+	PillPadPx = 6, -- inside the pill, round its row
+	GapPx = 8, -- between the pieces in the row
+	IconPx = 32, -- the mode icon's green square
+	IconInsetPx = 4, -- the cue picture inside it
+	IconTone = "Green",
+	ChipHeight = 30, -- the "1/2" chip
+	ChipWidth = 68,
+	ChipTextPx = 20,
+	LineTextPx = 21, -- "Waiting for opponent..."
+	-- The line's fixed width (its longest words), so the bar never jumps as the dots light.
+	LineWidthPx = 250,
+	DotSeconds = 0.4, -- the waiting line's dots light one by one, this long each
+	-- Play Global: joined to the pill's right end, slightly taller so it reads as the hero.
+	GlobalHeight = 52,
+	GlobalWidth = 190,
+	GlobalTextPx = 26,
+	GlobalOverlapPx = 14, -- tucked this far under the pill's rounded right end
+	AskTextPx = 17, -- "Don't want to wait?" just above the button
+	AskGapPx = 2,
+	GrowSeconds = 0.2, -- the pill making room for Play Global
+	-- Play Global's idle: a soft pulse, its first this long after it lands.
+	PulseDelaySeconds = 0.6,
+	-- The red X while the search runs.
+	CancelPx = 38,
 }
 
 -- The economy's menus (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md sections 5 and 5.1): the
@@ -10383,9 +10376,11 @@ Config.Bots = {
 	-- The global queue's safety net (the designer, 2026-10-02): real players first; a 1v1
 	-- search with no real opponent after SoloSeconds gets a disguised bot of the player's own
 	-- tier in an arena (its list names the bot), with no rematch. A team search waits
-	-- TeamSeconds for an all-bot team (step 8).
+	-- TeamSeconds for an all-bot team (step 8). SoloSeconds went 10 -> 5 with the matchmaking
+	-- bar's Play Global (designer, 2026-10-07): a lobby 1v1 search now meets its bot before
+	-- Config.GlobalQueue.Window widens to anyone, so a real player far from the rank is skipped.
 	Fallback = {
-		SoloSeconds = 10,
+		SoloSeconds = 5,
 		TeamSeconds = 25,
 		WalkInStuds = 18, -- the arena bot walks this far in to its spot
 		WalkInSeconds = 4, -- at most this long, then it is put there
@@ -10394,9 +10389,9 @@ Config.Bots = {
 	-- or an arena): the server looks like People people, so there are People minus the real
 	-- players of them (none at People real players). They stroll, sit, wait on 1v1 pads and
 	-- play each other there (one game, then they walk off), never at 2v2/3v3 tables. A real
-	-- player can step onto a waiting bot's pad to play it (at its badge's level); a real
-	-- Request opponent that nobody real answered in AnswerAfter seconds gets the idle bot
-	-- nearest in rank, which appears on the pad. When a real player joins, a bot leaves:
+	-- player can step onto a waiting bot's pad to play it (at its badge's level). They do not
+	-- answer a real "needs an opponent!" (designer, 2026-10-07: Play Global is the way to a
+	-- bot). When a real player joins, a bot leaves:
 	-- idle ones first, then bot-vs-bot players, and one playing a real player only once the
 	-- server holds People real players (its forfeit pays in full). In Studio they are off
 	-- unless the designer's /lobbybots turns them on.
@@ -10427,7 +10422,6 @@ Config.Bots = {
 		SitSeconds = { 15, 45 },
 		StrollPauseSeconds = { 4, 12 }, -- standing about between walks
 		StrollSteps = { 1, 3 }, -- spots a stroll visits
-		AnswerAfter = 10, -- a real request nobody real answered gets a lobby bot after this
 		WalkTimeoutSeconds = 12, -- a walk that has not arrived by now is cut short
 	},
 	-- A bot's money for the player list (its Money attribute): a random amount in this range
@@ -10513,6 +10507,7 @@ Config.Tutorial = {
 		-- Game 2: the global queue's search turns into the bot match after this long (a beat
 		-- of "Finding you an opponent..."), not Config.Bots.Fallback.SoloSeconds.
 		Game2BotAfterSeconds = 1,
+		SearchRetrySeconds = 3, -- game 2's search starts by itself on the pad; a failed start retries after this
 	},
 	-- The real server's nudges (step 7, Steps.nudge): the server looks this often.
 	Nudges = {

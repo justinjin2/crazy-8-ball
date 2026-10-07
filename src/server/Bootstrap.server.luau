@@ -62,6 +62,7 @@ LuckyBlockService.start() -- lucky blocks: hold, throw, open (the test build)
 EconomyLog.start() -- AnalyticsService economy events for every money source and sink
 Trading.start() -- player-to-player trades (TradeRequest, TradeState) and the trade ledger
 Settings.start() -- each player's switches and seen moments (SettingsState, SettingsRequest)
+require(script.Parent:WaitForChild("Friends")).start() -- FriendHere: a Roblox friend in the server
 Leaderboards.start() -- the global boards and their lobby signs
 
 -- Then the imported meshes the clients need (a MeshId is plugin-only, so they live in the

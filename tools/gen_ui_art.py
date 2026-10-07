@@ -502,6 +502,31 @@ def icon_lightning():
     )
 
 
+def icon_globe():
+    # Play Global (the matchmaking bar, 2026-10-07): a blue sea with green land, glossy.
+    land = [
+        "M58 92 C70 66 102 58 118 70 C130 80 120 96 108 100 C96 104 100 120 88 128 "
+        "C76 136 62 128 58 116 C55 108 54 100 58 92 Z",
+        "M140 52 C160 46 186 60 196 80 C188 92 170 88 160 98 C150 106 136 98 134 84 "
+        "C132 70 128 58 140 52 Z",
+        "M120 140 C136 128 162 134 176 150 C186 162 178 182 160 196 C146 206 128 204 "
+        "122 188 C116 172 108 150 120 140 Z",
+        "M44 150 C54 146 66 156 64 168 C62 178 50 180 44 172 C40 164 38 154 44 150 Z",
+    ]
+    return "".join(
+        [
+            '<clipPath id="globe"><circle cx="128" cy="128" r="98"/></clipPath>',
+            '<circle cx="128" cy="128" r="98" fill="url(#blue)"/>',
+            '<g clip-path="url(#globe)">',
+            *[f'<path d="{d}" fill="url(#green)" stroke="#1E9E47" stroke-width="4"/>' for d in land],
+            "</g>",
+            '<circle cx="128" cy="128" r="98" fill="none" stroke="#1F6BD0" stroke-width="5"/>',
+            gloss(86, 74, 34, 16),
+            gloss(170, 182, 12, 6, opacity=0.45),
+        ]
+    )
+
+
 def icon_check():
     pts = [(50, 132), (104, 186), (206, 72)]
     return line(pts, "url(#green)", 44) + line(
@@ -2137,6 +2162,7 @@ ICONS = {
     "target": icon_target,
     "rolling": icon_rolling,
     "lightning": icon_lightning,
+    "globe": icon_globe,
     "check": icon_check,
     "x": icon_x,
     "arrow": icon_arrow,

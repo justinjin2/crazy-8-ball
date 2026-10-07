@@ -41,13 +41,13 @@ local L = Config.Tutorial.Lessons
 -- The HUD items the tutorial brings in one by one.
 local ITEMS = { "Shop", "Inventory", "Abilities", "Rank", "FreeReward", "Trade" }
 
--- The host card's parts hidden at a step, so it shows only the button the step teaches
--- (QueueMenu reads them: HostMore is vs PC, solo and fill with PC; HostLevels the PC levels),
--- game 1's post-match row with Leave only (the bot has jumped off: no rematch), and game 2's
--- with Lobby only (PostMatch: no rematch, no Play another).
+-- What is hidden at a step: the matchmaking bar's Play Global on the pads (MatchBar; the
+-- server brings game 1's bot and starts game 2's search by itself), game 1's post-match row
+-- with Leave only (the bot has jumped off: no rematch), and game 2's with Lobby only
+-- (PostMatch: no rematch, no Play another).
 local HOST_HIDES: { [string]: { string } } = {
-	Request = { "HostMore", "HostLevels", "HostGlobal" },
-	Queue = { "HostMore", "HostLevels", "HostRequest" },
+	Request = { "HostGlobal" },
+	Queue = { "HostGlobal" },
 	Block = { "Rematch" },
 	Equip = { "Rematch" },
 	Game2 = { "Rematch", "Another", "Cancel" },
@@ -141,38 +141,15 @@ local function arrowScene(): string
 	return "arrow" .. tostring(id)
 end
 
--- The pad steps: light the one host-card button the step teaches, the hand tapping it.
-local function padScene(anchor: string, set: { [string]: string }, device: string): string
+-- The pad steps (designer, 2026-10-07: the tutorial only teaches stepping on the pad): the
+-- server calls the tutorial bot (game 1) or starts the search (game 2) by itself, so there is
+-- nothing to point at, only the wait.
+local function padScene(): string
 	arrow:show(nil)
-	if player:GetAttribute("TutorialCalling") == true then
-		overlay:dim(nil)
-		hand:hide()
-		overlay:say(Copy.Finding)
-		return "calling"
-	end
-	if not TutorialAnchors.showing(anchor) then
-		overlay:dim(nil)
-		hand:hide()
-		overlay:say(nil)
-		return "wait" .. anchor
-	end
-	local target = TutorialOverlay.guiTarget(anchor)
-	overlay:dim(target)
-	hand:point(target)
-	local text = words(set, device)
-	if device == "gamepad" then
-		-- Put the gamepad on the button so A presses it; once moved off, Y comes back to it.
-		local button = TutorialAnchors.get(anchor)
-		if shownKey:sub(1, #anchor) ~= anchor and button then
-			GuiService.SelectedObject = button
-		end
-		local selected = GuiService.SelectedObject
-		if selected == nil or selected ~= button then
-			text = set.GamepadFocus or text
-		end
-	end
-	overlay:say(text)
-	return anchor .. device .. text
+	overlay:dim(nil)
+	hand:hide()
+	overlay:say(Copy.Finding)
+	return "calling"
 end
 
 -- The lesson shown last (game 1), so a new one can start its own way (the aim suggestion).
@@ -553,9 +530,9 @@ local function scene(step: string, device: string): string
 	if step == "Arrow1" or step == "Arrow2" then
 		return arrowScene()
 	elseif step == "Request" then
-		return padScene("Request", Copy.Request, device)
+		return padScene()
 	elseif step == "Queue" then
-		return padScene("GlobalQueue", Copy.Queue, device)
+		return padScene()
 	elseif step == "Lobby" then
 		arrow:show(nil)
 		local fresh = shownKey:sub(1, 5) ~= "Lobby"

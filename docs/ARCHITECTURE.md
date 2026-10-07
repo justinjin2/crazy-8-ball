@@ -147,8 +147,9 @@ Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`,
 shooter), `ShooterPoser` (one character's aim/stroke/idle states), `WatchedShooters` (other
 shooters), `BackCue` (everyone's equipped cue on their back), `UI` (the shared ScreenGui), `Audio`, `Effects`, `Hub` (one Match per table,
 seats), `MatchHUD` (the top bar, beside Roblox's own buttons when it fits, the foul popup,
-the hints, dialogs, the coin and result cards), `QueueMenu` (the card everyone on a queue pad
-sees: host, difficulty, abilities, Start; beside the jump button on a phone), `TableSign`
+the hints, dialogs, the coin and result cards), `MatchBar` (the matchmaking bar above
+the hotbar for everyone on a waiting pad: the count, the waiting line, the host's Play
+Global; what it says is the pure `Matchmaking/PadBar`), `TableSign`
 (the one sign over the table the player walks up to, drawn from the snapshots), `HudParts` (the UI kit every screen is built from: cards, pills, kit text, candy
 buttons and tiles, icons, HUD balls; tokens in `Config.UI.Kit`), `UIAnim` (every UI
 animation, including the hover sway every hoverable part calls, and the lively idle library:
@@ -244,7 +245,7 @@ eligibility are decided from pre-shot state and server events.
 
 `Hub` keeps one client Match per table. Snapshots include full ball state for late
 listeners, placement and table reuse. `Main` derives private controls from the replicated
-phase. `MatchHUD`, `MatchTargets`, `QueueMenu` and `TableSign` build from `HudParts` and share
+phase. `MatchHUD`, `MatchTargets`, `MatchBar` and `TableSign` build from `HudParts` and share
 Config styles and Strings copy; the server only keeps the queue pad's words and attributes
 (`TableService`), and each client draws the table sign and the pad's rings and arrow
 (`PadEffects`), and pops the queue menu the frame you step on (`Main`, predicted from the
@@ -341,7 +342,10 @@ the series score.
   (detect, start the day, read the player list, stand arrivals at the table and seat them,
   start, Play another and Lobby, the choosing time). `TableService` runs the pad's search (`startSearch`,
   `stopSearch`, `watchSearch`, `searchFound`) and an arena mode (no pad, `seatArena`).
-- Client: `QueueMenu` (the 4th button and the searching fold), `PostMatch` (the row, hosted
+  On step-on it sends "<name> needs an opponent!" by itself (`askForOpponent`, gated by the
+  pure `PadBar.autoRequest`) unless `Friends` (the `FriendHere` attribute, from
+  `Player:IsFriendsWithAsync`) finds a Roblox friend in the server.
+- Client: `MatchBar` (Play Global, the search's time and X), `PostMatch` (the row, hosted
   by `ResultScreen` in Continue's place), `QueueStatus` (the small top card), `TeleportScreen`
   (set with `SetTeleportGui`), `src/first/Arrival` (ReplicatedFirst: keeps the teleport
   screen until the arena is ready), `MatchHUD` (the Series pill).

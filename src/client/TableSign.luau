@@ -5,9 +5,9 @@
 -- stepping on is the way in. No abilities: they are not in the release (designer, 2026-09-27).
 --
 -- Only one shows: over the table you walk right up to (Config.UI.Sign, measured by
--- Placement.nearestArea), or over your own while you wait on its pad as a guest. Never while
--- you host (your own card, QueueMenu, says it all) or play. It pops in when you arrive and
--- pops out when you walk away (designer, 2026-09-25: it used to hang over all sixteen tables
+-- Placement.nearestArea). Never while you are on a pad (the matchmaking bar, MatchBar, says
+-- it all, host or guest; 2026-10-07) or play. It pops in when you arrive and pops out when
+-- you walk away (designer, 2026-09-25: it used to hang over all sixteen tables
 -- all the time).
 --
 -- It is drawn from the table snapshot every client already has, so everyone near a table

@@ -975,7 +975,7 @@ end
 
 function MatchHUD.openLeave(self: any)
 	local snapshot = self.snapshot
-	-- The queue is left from its own menu (QueueMenu), or by walking out of the box.
+	-- The queue is left from its own menu (the matchmaking bar), or by walking out of the box.
 	if
 		not snapshot
 		or snapshot.phase == "Waiting"
@@ -1017,7 +1017,7 @@ function MatchHUD.setInvalidTarget(self: any, invalid: boolean)
 end
 
 function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
-	-- Waiting for the host is the queue menu's (QueueMenu): nobody has a team yet.
+	-- Waiting for the host is the matchmaking bar's (MatchBar): nobody has a team yet.
 	if snapshot and snapshot.phase == "Waiting" then
 		snapshot = nil
 	end

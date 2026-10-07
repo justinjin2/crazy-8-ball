@@ -653,7 +653,7 @@ end
 
 --- Whether a rank may host a table of `difficulty` (ECONOMY 4.7): a difficulty with no row in
 --- Config.Ranks.Unlocks (Classic) always; the others from their tier's division I. An unknown
---- difficulty never. The host card and the server both use it (QueueMenu, TableService).
+--- difficulty never. The host card and the server both use it (TableService; the pad card that showed it is gone, 2026-10-07).
 function Ranks.canHost(rank: Rank, difficulty: string): boolean
 	if type(difficulty) ~= "string" or DIFFICULTIES[difficulty] == nil then
 		return false

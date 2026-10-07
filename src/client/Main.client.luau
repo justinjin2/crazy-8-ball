@@ -54,7 +54,7 @@ local UI = require(script.Parent.UI)
 local MatchHUD = require(script.Parent.MatchHUD)
 local MatchTargets = require(script.Parent.MatchTargets)
 local PadEffects = require(script.Parent.PadEffects)
-local QueueMenu = require(script.Parent.QueueMenu)
+local MatchBar = require(script.Parent.MatchBar)
 local TableSign = require(script.Parent.TableSign)
 local OpponentPrompt = require(script.Parent.OpponentPrompt)
 local Progression = require(script.Parent.Progression)
@@ -153,7 +153,7 @@ local match: any = nil
 local placement: any = nil
 local guideline: any = nil
 local hud: any = nil
-local queueMenu: any = nil
+local matchBar: any = nil
 local targets: any = nil
 local awaitingAt: number? = nil
 -- Time Stop: how many strikes the server had taken when this player sent one in stopped time
@@ -573,7 +573,7 @@ local function action(kind: string, value: any?)
 end
 hud = MatchHUD.new(screen, action)
 padGuide:attachLeave(hud.leave) -- the Circle beside Leave
-queueMenu = QueueMenu.new(screen, action)
+matchBar = MatchBar.new(screen, action)
 -- Ranks and money: the HUDs, nameplates, flying cash, result screen, NEW RANK! and roadmap.
 Progression.start(screen, {
 	-- Where a table's pocket is on screen, in this ScreenGui's pixels (it keeps clear of
@@ -732,7 +732,7 @@ local function postMatchState(summary: any, now: number): any?
 end
 
 -- The status card's standing line: an arena's arrivals, or a teammate's search.
-local function statusLine(now: number): string?
+local function statusLine(): string?
 	if isArena then
 		local a = arenaState
 		if not a or a.begun then
@@ -744,17 +744,7 @@ local function statusLine(now: number): string?
 		local total = #(a.teams and a.teams[1] or {}) + #(a.teams and a.teams[2] or {})
 		return Strings.Arena.WaitingFor:format(#(a.arrived or {}), math.max(total, 2))
 	end
-	local s = hub.mySeat and hub.snapshots[hub.mySeat]
-	if s and s.phase == "Waiting" and s.search and s.hostId ~= player.UserId then
-		if not table.find(s.search.users, player.UserId) then
-			return nil
-		end
-		if s.search.found then
-			return Strings.Match.Queue.MatchFound
-		end
-		local waited = math.max(0, math.floor(now - s.search.at))
-		return Strings.Match.Queue.SearchTime:format(waited // 60, waited % 60)
-	end
+	-- A teammate's search on the pad shows on the matchmaking bar (MatchBar).
 	return nil
 end
 
@@ -796,7 +786,7 @@ local function acquireTable(s: any?)
 		hud:setSnapshot(nil, player.UserId)
 		ultHud:setSnapshot(nil, player.UserId)
 		ultPick:setSnapshot(nil, nil, nil, player.UserId)
-		queueMenu:setSnapshot(nil, player.UserId)
+		matchBar:setSnapshot(nil, player.UserId)
 		hudView, viewVersion = nil, -1
 		clearHighlights()
 		ballPulse:clear()
@@ -842,7 +832,7 @@ local function acquireTable(s: any?)
 	ultHud:setSnapshot(s, player.UserId)
 	ultPick:setSnapshot(s, match, placement, player.UserId)
 	-- An arena's table has no host card: its players were matched by the global queue.
-	queueMenu:setSnapshot(if isArena then nil else s, player.UserId)
+	matchBar:setSnapshot(if isArena then nil else s, player.UserId)
 	targets:setSnapshot(s, placement, match.state.geometry, player.UserId)
 	local key = turnKey .. ":" .. s.phase
 	if key ~= lastPhaseKey then
@@ -1032,7 +1022,7 @@ UserInputService.InputBegan:Connect(function(key, processed)
 		and snapshot.phase == "Waiting"
 		and not Progression.isBusy()
 	then
-		queueMenu:focus()
+		matchBar:focus()
 	elseif key.KeyCode == Enum.KeyCode.ButtonY and not snapshot and opponentPrompt:isOpen() then
 		opponentPrompt:focus()
 	elseif key.KeyCode == Enum.KeyCode.ButtonY and not snapshot then
@@ -1101,7 +1091,7 @@ local function freeStickFromMenu()
 	local G = Config.Input.Gamepad
 	local selected = GuiService.SelectedObject
 	local inMenu = selected ~= nil
-		and (queueMenu:focused() or selected:IsDescendantOf(opponentPrompt.root))
+		and (matchBar:focused() or selected:IsDescendantOf(opponentPrompt.root))
 	local push = 0
 	if inMenu then
 		for _, state in UserInputService:GetGamepadState(Enum.UserInputType.Gamepad1) do
@@ -1255,25 +1245,21 @@ local function renderFrame(dt: number)
 	mapAmbience:update(os.clock())
 	dayCycle:update(os.clock())
 	firePit:update(os.clock(), dayCycle.fire)
-	-- The sign over the table you walk up to, or over your own while you wait on its pad as a
-	-- guest; none while you host (your own card stands there) or play. Stepping onto an
-	-- empty pad makes you its host before the server says so (predictedPad, below).
+	-- The sign over the table you walk up to; none while you are on a pad (the matchmaking
+	-- bar says it all, host or guest) or play. Stepping onto a pad shows the bar before the
+	-- server has seated you (predictedPad, below).
 	local character = player.Character
 	local rootPart = character and character:FindFirstChild("HumanoidRootPart")
 	local seated = hub.mySeat and hub.snapshots[hub.mySeat]
 	local waiting = seated ~= nil and seated.phase == "Waiting"
-	local predictedHost = predictedPad ~= nil
-		and hub.snapshots[predictedPad] ~= nil
-		and hub.snapshots[predictedPad].hostId == nil
-	local hosting = (waiting and seated.hostId == player.UserId) or predictedHost
-	-- Stepped off your pad: the host's card goes at once (designer, 2026-09-27: it lingered),
+	-- Stepped off your pad: the bar goes at once (designer, 2026-09-27: the card lingered),
 	-- not when the server lets you go after its exit grace; back on in time, it comes back.
 	local root = if rootPart and rootPart:IsA("BasePart") then rootPart else nil
-	queueMenu:setAway(waiting and root ~= nil and padUnder(root, 0) ~= hub.mySeat)
+	matchBar:setAway(waiting and root ~= nil and padUnder(root, 0) ~= hub.mySeat)
 	tableSign:update(
 		if rootPart and rootPart:IsA("BasePart") then rootPart.Position else nil,
-		controlled or hosting or (hub.mySeat ~= nil and not waiting),
-		if waiting and not hosting then hub.mySeat else nil,
+		controlled or hub.mySeat ~= nil or predictedPad ~= nil,
+		nil,
 		zones,
 		function(id: number)
 			return hub.snapshots[id]
@@ -1301,7 +1287,7 @@ local function renderFrame(dt: number)
 		else
 			lobbyGoneAt = nil
 		end
-		queueStatus:setLine(statusLine(serverNow))
+		queueStatus:setLine(statusLine())
 		queueStatus:update()
 		teleportScreen:update()
 	end
@@ -1326,12 +1312,12 @@ local function renderFrame(dt: number)
 				connected = true,
 			})
 			predicted.hostId = s.hostId or player.UserId
-			queueMenu:setSnapshot(predicted, player.UserId)
-			queueMenu:update(workspace:GetServerTimeNow())
+			matchBar:setSnapshot(predicted, player.UserId)
+			matchBar:update(workspace:GetServerTimeNow())
 			predictedPad = on
 		elseif predictedPad then
 			predictedPad = nil
-			queueMenu:setSnapshot(nil, player.UserId)
+			matchBar:setSnapshot(nil, player.UserId)
 		end
 	elseif predictedPad then
 		predictedPad = nil -- the server has seated you; the real snapshot drives the menu
@@ -1349,7 +1335,6 @@ local function renderFrame(dt: number)
 		inMatch = inMatch,
 		shooting = controlled,
 		matchUserIds = matchIds,
-		queueOpen = queueMenu ~= nil and queueMenu.open == true, -- GUI lane (step 13)
 	})
 	-- The ult bar: it fades while the cue is pulled back, the bottom lines sit above it, and the
 	-- controller guide lists "Ult" while it offers its press.
@@ -1380,7 +1365,7 @@ local function renderFrame(dt: number)
 		Net.get("SnapshotRequest"):FireServer()
 	end
 	hud:update(now)
-	queueMenu:update(now)
+	matchBar:update(now)
 	powerCue:place(hud:reservedHeight()) -- under the top bar on a phone, centred on a big screen
 	powerCue:setSkin(ownArmedUlt()) -- a Legendary or Mythic ability dresses the bar
 	local modal = hud:isModal()

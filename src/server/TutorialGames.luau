@@ -408,6 +408,36 @@ local function game2Over(player: Player)
 	service.setStep(player, "Lobby")
 end
 
+-- Game 1: a tutorial player standing on their reserved pad gets the tutorial bot by itself
+-- (designer, 2026-10-07: the tutorial only teaches stepping on the pad; there is no Request
+-- button). The funnel keeps its old event name.
+local function callOpponent(t: any, host: Player)
+	calling[host] = true
+	host:SetAttribute("TutorialCalling", true)
+	rig(t, host)
+	Funnel.onboarding(host, "PressedRequest")
+	log(
+		("%s stepped on the pad at table %d: the tutorial bot comes"):format(host.Name, t.engine.id)
+	)
+	if not Opponent.join(t) then
+		calling[host] = nil
+		host:SetAttribute("TutorialCalling", false)
+		warn("[8ball] Tutorial: no tutorial bot came for " .. host.Name)
+	end
+end
+
+-- Game 2: the search starts by itself on the pad (its bot match comes at once, see start);
+-- one that could not start is tried again after SearchRetrySeconds.
+local searchTriedAt: { [Player]: number } = {}
+local function startSearch(t: any, host: Player)
+	local now = os.clock()
+	if now - (searchTriedAt[host] or -math.huge) < G.SearchRetrySeconds then
+		return
+	end
+	searchTriedAt[host] = now
+	task.spawn(Tables.startSearch, t, host)
+end
+
 -- The steps that keep the player's table reserved (the arrow, the pad, the game on it).
 local KEEPS: { [string]: boolean } =
 	{ Arrow1 = true, Request = true, Game1 = true, Arrow2 = true, Queue = true }
@@ -462,14 +492,24 @@ local function watch(player: Player)
 			service.cancel(player, "Friend")
 			return
 		end
+		if step == "Request" and t.engine.phase == "Waiting" and not calling[player] then
+			callOpponent(t, player)
+		elseif
+			step == "Queue"
+			and t.engine.phase == "Waiting"
+			and t.engine.search == nil
+			and t.engine.hostId == player.UserId
+		then
+			startSearch(t, player)
+		end
 		if step == "Request" and t.engine.phase ~= "Waiting" then
 			calling[player] = nil
 			player:SetAttribute("TutorialCalling", false)
 			Funnel.onboarding(player, "Game1Started")
 			service.setStep(player, "Game1")
 		elseif step == "Queue" then
-			-- Join Global Queue pressed: the search runs (its bot match comes at once, see
-			-- start) until the teleport; a search that ended shows the button again.
+			-- The search runs (its bot match comes at once, see start) until the teleport; one
+			-- that ended starts again (startSearch above).
 			local searching = t.engine.search ~= nil
 			if searching and not calling[player] then
 				Funnel.onboarding(player, "JoinedGlobalQueue")
@@ -491,23 +531,6 @@ local function watch(player: Player)
 	end
 end
 
--- A Request opponent pressed by a tutorial player at their table brings the tutorial bot.
-local function onRequest(t: any, host: Player)
-	if service.step(host) ~= "Request" or reserved[host] ~= t.engine.id or calling[host] then
-		return
-	end
-	calling[host] = true
-	host:SetAttribute("TutorialCalling", true)
-	rig(t, host)
-	Funnel.onboarding(host, "PressedRequest")
-	log(("%s pressed Request opponent at table %d"):format(host.Name, t.engine.id))
-	if not Opponent.join(t) then
-		calling[host] = nil
-		host:SetAttribute("TutorialCalling", false)
-		warn("[8ball] Tutorial: no tutorial bot came for " .. host.Name)
-	end
-end
-
 --- Whether the player is on a table's pad or seat (the real server's nudges wait meanwhile).
 function TutorialGames.seated(player: Player): boolean
 	return Tables.tableOf(player) ~= nil
@@ -521,7 +544,6 @@ function TutorialGames.start(tutorial: any)
 	Tables.setRequestFilter(function(host: Player, player: Player): boolean
 		return not service.firstServer(host) and not service.firstServer(player)
 	end)
-	Tables.onRequest(onRequest)
 	-- Game 2's search meets the Bots lane's disguised bot (the player's tier, no rematch) at
 	-- once instead of after the usual wait.
 	BotService.setFallbackWait(function(player: Player): number?
@@ -548,6 +570,7 @@ function TutorialGames.start(tutorial: any)
 		release(player)
 		calling[player] = nil
 		games[player] = nil
+		searchTriedAt[player] = nil
 	end)
 end
 

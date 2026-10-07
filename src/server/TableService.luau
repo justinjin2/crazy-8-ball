@@ -20,6 +20,8 @@ local Simulation = require(Shared.Physics.Simulation)
 local Engine = require(Shared.Rules.MatchEngine)
 local Ranking = require(script.Parent.Ranking)
 local GlobalQueue = require(script.Parent.GlobalQueue)
+local Friends = require(script.Parent.Friends)
+local PadBar = require(Shared.Matchmaking.PadBar)
 local Ranks = require(Shared.Progression.Ranks)
 local M = Config.Multiplayer
 local Q = M.QueueVisual
@@ -807,6 +809,9 @@ local function outsideArea(t: any, root: BasePart, extra: number): boolean
 	return math.abs(x - fcx) > fx + extra or math.abs(y - fcy) > fy + extra
 end
 
+-- Set below sendRequest: a host who just stepped on asks everyone free for an opponent.
+local askForOpponent: (t: any, host: Player, time: number) -> ()
+
 local function poll(t: any, time: number)
 	local e = t.engine
 	local Queue = M.Queue
@@ -865,6 +870,7 @@ local function poll(t: any, time: number)
 			if time - t.dwell[p.UserId] >= Queue.DwellSeconds then
 				if Engine.join(e, p.UserId, p.Name, p.DisplayName, time) then
 					seatOf[p.UserId] = e.id
+					askForOpponent(t, p, time)
 				end
 			end
 		else
@@ -914,6 +920,36 @@ local function sendRequest(t: any, host: Player)
 		then
 			Net.get("OpponentRequest"):FireClient(p, ask)
 		end
+	end
+end
+
+-- When each player's last "needs an opponent!" went out by itself (askForOpponent), so
+-- stepping off and on again does not send another within AutoRequestCooldownSeconds.
+local autoAskedAt: { [number]: number } = {}
+
+-- The matchmaking bar (designer, 2026-10-07): a host who steps onto a pad with no Roblox
+-- friend in the server asks everyone free for an opponent at once, no button to press; with
+-- a friend here nobody is asked (friends come over by themselves).
+askForOpponent = function(t: any, host: Player, time: number)
+	local e = t.engine
+	if
+		e.phase ~= "Waiting"
+		or not PadBar.autoRequest({
+			isHost = e.hostId == host.UserId,
+			count = Engine.count(e),
+			capacity = Engine.capacity(e),
+			friendHere = Friends.here(host),
+			searching = e.search ~= nil,
+			lastAt = autoAskedAt[host.UserId],
+			now = time,
+		})
+	then
+		return
+	end
+	local payload = { kind = "RequestOpponent", epoch = e.epoch, turnId = e.turnId }
+	if Engine.action(e, host.UserId, payload, time) then
+		autoAskedAt[host.UserId] = time
+		sendRequest(t, host)
 	end
 end
 
@@ -1226,7 +1262,6 @@ end
 -- BotService drives it through these, as the remotes drive a person.
 ---------------------------------------------------------------------------------------------
 local actionHooks: { [string]: (t: any, p: Player, payload: any) -> boolean } = {}
-local requestHooks: { (t: any, host: Player) -> () } = {}
 
 --- Adds a host-card action the engine does not know (Play against PC, Fill with PC):
 --- `hook(t, player, payload)` runs instead of Engine.action and says whether it was taken.
@@ -1234,9 +1269,12 @@ function Service.onAction(kind: string, hook: (t: any, p: Player, payload: any) 
 	actionHooks[kind] = hook
 end
 
---- Adds `hook(t, host)` for every Request opponent the server sends out.
-function Service.onRequest(hook: (t: any, host: Player) -> ())
-	table.insert(requestHooks, hook)
+--- Starts table `t`'s global search for its host `host`, as their Play Global would (the
+--- tutorial's game 2 starts it for them). Yields; true when the search went in.
+function Service.startSearch(t: any, host: Player): boolean
+	local ok = startSearch(t, host)
+	Service.broadcast(t)
+	return ok
 end
 
 --- Every table (BotService's poll).
@@ -1475,11 +1513,15 @@ function Service.start(parent: Instance, mode: string?)
 		end
 		local t = tables[id]
 		-- The global queue's Ults: On / Off is gone (designer, 2026-10-02): every search plays
-		-- with ults on. A difficulty above the host's rank is refused (Ranks.canHost).
+		-- with ults on. The matchmaking bar (designer, 2026-10-07) has one choice, Play Global:
+		-- the server sends the request itself (askForOpponent) and lobby tables play Classic,
+		-- so a client's Request, Cancel or difficulty is refused.
 		if
 			payload.kind == "SetQueueUlts"
 			or payload.kind == "SearchWithUlts"
-			or (payload.kind == "SetDifficulty" and not mayHost(p.UserId, payload.value))
+			or payload.kind == "RequestOpponent"
+			or payload.kind == "CancelRequest"
+			or payload.kind == "SetDifficulty"
 		then
 			Net.get("ShotRejected"):FireClient(p, "ActionRejected")
 			return
@@ -1517,12 +1559,6 @@ function Service.start(parent: Instance, mode: string?)
 		-- The coin for a host's Start is the server's, like the rack seed.
 		local accepted = Engine.action(t.engine, p.UserId, payload, now(), rng:NextInteger(1, 2))
 		releaseMissing(t)
-		if accepted and payload.kind == "RequestOpponent" then
-			sendRequest(t, p)
-			for _, hook in requestHooks do
-				task.spawn(hook, t, p)
-			end
-		end
 		if accepted or t.engine.revision ~= t.sentRevision then
 			Service.broadcast(t) -- one snapshot per accepted Place (a drag release)
 		elseif not isPlace then
@@ -1632,6 +1668,7 @@ function Service.start(parent: Instance, mode: string?)
 		added(p)
 	end
 	Players.PlayerRemoving:Connect(function(p)
+		autoAskedAt[p.UserId] = nil
 		local id = seatOf[p.UserId]
 		if id then
 			-- A leaver's forfeit loss, while their save is still open (Ranking.departed).

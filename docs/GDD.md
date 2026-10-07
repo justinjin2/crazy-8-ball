@@ -216,35 +216,39 @@ Every feature is checked against these. If it serves none, it waits.
   walk about a little but never reach another table (designer, 2026-09-26). The small sign
   over a table's pad (the mode big, the host, count and difficulty, and a WAITING, STARTING 3,
   FULL or PLAYING pill; an empty pad's sign has no pill and no "join" words, since stepping on
-  is the way in; no abilities; designer, 2026-09-27) shows when you walk right up to it, and
-  to guests while they wait on the pad. That pad's bobbing arrow hides while its sign shows.
-- **No settings and no Start: just play** (designer, 2026-09-27). The first person on is the
-  **host** and gets a small card: the game ("Classic 1v1"), how many are on the pad, and
-  "Waiting for opponent..." ("Waiting for players..." on 2v2 and 3v3). It keeps out of the
-  way (designer, 2026-09-27): in the very top right corner (beside Roblox's top bar), at 85%,
-  on a phone-sized screen, shrinking only to end above the jump button; on the right, halfway
-  down and a bit bigger (1.3x), on a big one (PC, console, tablet), kept above a tablet's jump
-  button. The waiting line's three dots light up one by one
-  so the wait looks alive. Public tables play
-  Classic with ults on (designer, 2026-09-28; the global queue alone offers No ults, section 9). If the host leaves, the next to arrive becomes host.
+  is the way in; no abilities; designer, 2026-09-27) shows when you walk right up to it, never
+  while you stand on a pad (the matchmaking bar says it all). That pad's bobbing arrow hides
+  while its sign shows.
+- **No settings and no Start: just play, one option only** (designer, 2026-09-27; the
+  matchmaking bar, 2026-10-07: "simplify the whole matchmaking ... essentially 1 option
+  only"). Everyone on a waiting pad gets one slim **matchmaking bar** just above the lucky
+  block hotbar: the mode icon, a small "1/2" count chip and "Waiting for opponent..."
+  ("Waiting for players..." on 2v2 and 3v3), its three dots lighting up one by one, or
+  "Starting in 3" once the pad is full. The first person on is the **host**. Lobby tables
+  play Classic with ults on (no difficulty choice for now, below). If the host leaves, the
+  next to arrive becomes host.
+- **The host's one choice, Play Global** (designer, 2026-10-07): **3 s** *(tune)* after
+  stepping on (**5 s** with a Roblox friend in the server), "Don't want to wait?" and a big
+  green **Play Global** grow out of the bar's right end. Pressed, the bar shows "Searching...
+  0:07" and a small red X (stepping off cancels too); see Global queue below. On 2v2 and 3v3
+  it shows only once a whole side stands on the pad.
 - **A full pad starts by itself**, **3 s** *(tune)* after the last one stepped on ("Starting in
   3"), so someone who walked on by accident can step off. Then straight to the coin flip,
   about 3 s and a few words at a time: "YOU ARE HEADS" (or TAILS), the flip, then "YOU BREAK"
   or "<NAME> BREAKS" for over a second (designer, 2026-09-27). **Teams go by arrival**: the
   first on (the host) is team A, the next team B, and so on alternately.
-- While the pad has room the host's card offers **Request opponent** (**Request players** on
-  2v2 and 3v3) and **Join Global Queue** (below). Alone on a **1v1 table** it also offers
-  **Play against PC** (does nothing until bots exist) and **Play solo** (starts immediately);
-  the 2v2 and 3v3 tables have no solo. There is no automatic start against PC.
-- **Request opponent / players** (designer, 2026-09-27): everyone in the server who is not at
-  a table gets a small popup at the bottom of the screen, the host's face and "<name> needs an
-  opponent..." (or "needs players...") with **Join** (stands them on the host's pad) and
-  **Dismiss**, small and low so it never covers the player's legs. It goes by itself after 15 s *(tune)* or as soon as the pad fills or the host
-  leaves. While a request stands the host's card folds up (animated) to the game and a greyed
-  "Requested!"; if nobody came it unfolds again after the same 15 s, with the full choices and
-  Request ready to press again. Under "Requested!" a red **Cancel** (designer, 2026-09-27)
-  takes the request back: everyone's popup goes at once and the card unfolds to the full
-  choices; Request can be pressed again 3 s *(tune)* after the last request.
+- **Play solo, Play against PC and Fill with PC are off the pad** (designer, 2026-10-07):
+  they move somewhere else later (their server handlers stay). There is no automatic start
+  against PC in the lobby.
+- **"<name> needs an opponent!"** (designer, 2026-09-27; automatic 2026-10-07): a host who
+  steps onto a pad with **no Roblox friend in the server** sends it by themselves, nothing to
+  press, once per step-on (stepping off and on again sends it no sooner than **15 s**
+  *(tune)* after the last). With a friend in the server (even one in a match) nobody is
+  asked: friends are assumed to come over. Everyone in the server who is not at a table gets
+  a small popup at the bottom of the screen, the host's face and "<name> needs an opponent!"
+  (or "needs players!") with **Join** (stands them on the host's pad) and **Dismiss**, small
+  and low so it never covers the player's legs. It goes by itself after 15 s *(tune)* or as
+  soon as the pad fills or the host leaves. Lobby bots no longer answer it.
 - Every match is played on the one standard table model, in one of its looks (section 16).
   Collectible table skins are parked until after release (section 18).
 - **Modes at release: Solo, 1v1, 2v2, 3v3.** Lobby 2v2/3v3 tables: bots never join by
@@ -271,14 +275,14 @@ Every feature is checked against these. If it serves none, it waits.
   lobby table), or the time running out, frees the table and ends the series. Rematches are
   unlimited. Solo keeps its short hold; PC matches get an instant Play again when bots exist.
 - One **Find another server** button, hidden during a match.
-- **Global queue** (designer, 2026-09-28; it had been planned for after release): the host's
-  4th choice, **Join Global Queue**, looks in every server for a side of similar rank and
-  teleports both into an **arena**.
+- **Global queue** (designer, 2026-09-28; it had been planned for after release): the bar's
+  **Play Global** (2026-10-07; it was the card's 4th choice, Join Global Queue) looks in every
+  server for a side of similar rank and teleports both into an **arena**.
   - 1v1 alone; **2v2 needs 2 on the pad and 3v3 needs 3** (a whole side). The first whole
-    side by arrival goes; anyone extra stays and hosts the pad. Greyed with "Needs 2 on the
-    pad" until then.
-  - **Stay on the pad while searching**: the card folds to "Searching worldwide..." with the
-    time and a red Cancel; stepping off cancels. Anyone in the server may still step on: a
+    side by arrival goes; anyone extra stays and hosts the pad. Play Global shows only then.
+  - **Stay on the pad while searching**: the bar shows "Searching... 0:07" and a small red
+    X; stepping off cancels. A 1v1 with no real opponent after **5 s** *(tune)* meets a
+    disguised bot of its rank in an arena (section 13). Anyone in the server may still step on: a
     full pad plays locally and the search stops.
   - **Rank**: the closest rank first, widening every few seconds, **anyone after 10 s**
     *(tune)* ("as quick as possible", designer). A new game after an arena match avoids the
@@ -340,8 +344,10 @@ Every feature is checked against these. If it serves none, it waits.
 - **Forfeit** button, costs rating, behind a confirmation that warns "you will lose rating".
   Leaving or disconnecting mid-match is an immediate forfeit: the opponent gets the win and
   reward (subject to the real-match rules in section 13), the table frees, no PC takes over.
-- **Three difficulty levels, chosen by the host for the whole table** (both players see the
-  same guideline):
+- **Lobby tables play Classic for now** (designer, 2026-10-07: the matchmaking bar has no
+  difficulty choice; Difficult and Challenger stay in the code to come back somewhere else).
+  The three levels as built (2026-09-25 to 10-02), **chosen by the host for the whole table**
+  (both players see the same guideline):
   - **Classic** (default, recommended): full guideline as in section 5.
   - **Difficult**: the aim line only (the corridor to first contact and its ring), no
     object-ball line, no deflection or bounce line, no jump landings.
@@ -676,7 +682,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   Bronze 90%, Silver 80, Gold 65, Platinum 57, Diamond 50, Expert 50, Veteran 45, Master 40,
   Grandmaster 35, Reyes 30. **Play against PC** is a robot named "<Tier> Bot" at the player's
   own tier (Unranked: Bronze), whatever the table's difficulty; the real player always breaks.
-  **Disguised bots** (the global queue's fallback after 10 s for 1v1 and 25 s for teams, the
+  **Disguised bots** (the global queue's fallback after 5 s for 1v1 (10 s until 2026-10-07)
+  and 25 s for teams, the
   lobby bots that keep an empty server alive, the tutorial) wear real Roblox avatars of random
   accounts with made-up names (designer's call, 2026-10-02); their wins pay like a real match
   with no win streak and are stored as PC wins (never on the most-wins board). After 20

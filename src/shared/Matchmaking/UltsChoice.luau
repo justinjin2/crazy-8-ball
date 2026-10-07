@@ -6,8 +6,8 @@
 -- pool, keeping its search time. Lobby tables and vs PC always play with ults on.
 --
 -- Pure: the checks the server makes before it takes either press (TableService), which the
--- host's card also uses to show them (QueueMenu). `t` is a table's engine state or its
--- snapshot: both carry phase, fixed, hostId and search ({ at, found }).
+-- host's card used to show them (QueueMenu, gone 2026-10-07). `t` is a table's engine
+-- state or its snapshot: both carry phase, fixed, hostId and search ({ at, found }).
 local Config = require(script.Parent.Parent.Config)
 
 local G = Config.GlobalQueue
