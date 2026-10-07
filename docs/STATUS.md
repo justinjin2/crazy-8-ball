@@ -111,7 +111,9 @@ Updated 2026-10-07.
   New block timers the same day (Uncommon 1 min to Mythic 12 h; Mystery none). Checked in
   Studio: the real server reveal from a click on the slot, every tier's look (GuiQA
   `mystery "Rare,Epic,Legendary,Mythic"`), the landing on the slot, A / Space / RB then R2,
-  Reduce Motion. Not yet: a phone and a real controller by hand, the designer's look.
+  Reduce Motion; the smooth shake and faster bounce (measured), a bag click that holds a block
+  or opens a Mystery block, ` opening the bag. Not yet: a phone and a real controller by hand,
+  the designer's look at full frame rate.
 - **The pull bar's cue** (2026-10-07): the redrawn cue pictures are longer, so the cue poked out
   over the bar's top; it is drawn a little shorter now (`Config.UI.PowerCueArtLength` 1.24).
   Not yet seen in a match.

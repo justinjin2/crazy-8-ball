@@ -17,7 +17,8 @@
 --   slot. On a gamepad LB / RB pick its slot and R2 opens it.
 -- The tutorial (Tutorial.luau) reads which slot holds a kind (slotOf), what is held and what
 -- lies on the floor, and the hotbar registers its slots as anchors.
--- - The bag: the ` key, the bag button, or L3.
+-- - The bag: the ` (or ~) key, the bag button, or L3. A click on a block in it holds it
+--   (a Mystery block opens).
 -- Lobby only: Progression hides it in a match and under the screens and menus (the bag aside).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -424,15 +425,26 @@ end
 
 -- The slots' keys and the gamepad's buttons (in the lobby, with no menu up but the bag).
 local function onInput(input: InputObject, processed: boolean)
-	if processed or not visible or opening:isOpen() or reveal:isBusy() then
+	if not visible or opening:isOpen() or reveal:isBusy() then
 		return
 	end
 	local key = input.KeyCode
-	local current = Menus.current()
-	if key == Enum.KeyCode.Backquote or key == Enum.KeyCode.ButtonL3 then
-		hotbar:toggleBag()
+	-- The bag, like Roblox's own inventory key: ` (or ~), or L3. It answers even when Roblox
+	-- marked the key as used (its own backpack key), but never while typing in a text box.
+	if
+		key == Enum.KeyCode.Backquote
+		or key == Enum.KeyCode.Tilde
+		or key == Enum.KeyCode.ButtonL3
+	then
+		if UserInputService:GetFocusedTextBox() == nil then
+			hotbar:toggleBag()
+		end
 		return
 	end
+	if processed then
+		return
+	end
+	local current = Menus.current()
 	if current ~= nil then
 		return
 	end

@@ -5,8 +5,8 @@
 -- a timer, its countdown; the held block's slot has a thick gold outline. Keys 1-9, a tap or a
 -- click hold a block (LuckyClient); a ready Mystery block's slot says OPEN! and opens its
 -- upgrade screen instead (MysteryReveal). The bag button at the end ("+12": blocks waiting) and the `
--- key open the bag: a grid of every block. Drag a block onto a hotbar slot to put it there (mouse
--- and touch), or pick it and then pick the slot (any device, the gamepad's way).
+-- key open the bag: a grid of every block. A click on a block there holds it (a Mystery block
+-- opens) and closes the bag; drag a block onto a hotbar slot to put it there (mouse and touch).
 --
 -- Its own ScreenGui inside Roblox's top bar inset, so a pointer's position and the slots'
 -- positions share one space. It sets BottomLift while it shows. Tuning in
@@ -508,9 +508,18 @@ end
 function Hotbar.pressed(self: any, id: number, slot: number?)
 	UISound.play("Click")
 	if slot == nil then
-		-- A bag tile: pick it (again: unpick), then a hotbar slot puts it there.
-		self.pickedId = if self.pickedId == id then nil else id
-		self:refreshSelection()
+		-- A bag tile (designer, 2026-10-07): a click holds it (a Mystery block opens), like a
+		-- hotbar slot, and the bag closes so the block can be thrown. Dragging still moves it.
+		local entry = self:find(id)
+		local row = if entry then LuckyBlocks.kind(entry.kind) else nil
+		if row and row.Roll then
+			self.handlers.reveal(id)
+		else
+			self.handlers.select(id)
+		end
+		if self.bagOpen then
+			Menus.close(BAG)
+		end
 		return
 	end
 	if self.pickedId then
@@ -705,6 +714,14 @@ function Hotbar.slotOf(self: any, id: number): (Vector2?, number?)
 		if tile.entry.id == id then
 			local b: GuiObject = tile.button
 			return b.AbsolutePosition + b.AbsoluteSize / 2, b.AbsoluteSize.X
+		end
+	end
+	if self.bagOpen then
+		for _, tile in self.tiles do
+			if tile.entry.id == id then
+				local b: GuiObject = tile.button
+				return b.AbsolutePosition + b.AbsoluteSize / 2, b.AbsoluteSize.X
+			end
 		end
 	end
 	local bag: GuiObject = self.bagButton

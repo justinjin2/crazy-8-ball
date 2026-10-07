@@ -35,6 +35,7 @@ local TIERS: { [string]: any } = R.Tiers :: any
 local W = Strings.LuckyBlocks.Reveal
 local CLICKS: number = Config.BlockOdds.Drop.Upgrade.Clicks
 local ACTION = "MysteryRevealPress"
+local SHAKE = "MysteryRevealShake"
 local MAX_PARTICLES = 140
 
 local function rgb(c: { number }): Color3
@@ -92,6 +93,17 @@ local function hint(done: boolean): string
 	return if done then W.CollectMouse else W.TapMouse
 end
 
+-- The screen shake's offset at `since` seconds after the impact: smooth noise on each axis,
+-- fading out (1 at full strength, 0 when done), or nil once it is over.
+local function shakeNoise(since: number, axis: number): number?
+	local S = R.Shake
+	if since >= S.Seconds then
+		return nil
+	end
+	local fade = (1 - since / S.Seconds) ^ 2
+	return fade * math.clamp(math.noise(since * S.Frequency, axis * 7.3, 0.5) * 2, -1, 1)
+end
+
 type Particle = {
 	object: ImageLabel,
 	mode: string,
@@ -112,7 +124,14 @@ type Particle = {
 	gravity: number,
 }
 
-type Dot = { frame: Frame, fill: Frame, gloss: ImageLabel, mark: TextLabel, scale: UIScale }
+type Dot = {
+	frame: Frame,
+	fill: Frame,
+	gloss: ImageLabel,
+	mark: TextLabel,
+	scale: UIScale,
+	halo: ImageLabel,
+}
 
 export type Deps = {
 	-- Asks the server to reveal block `id` (BlockRequest "Reveal"): { ok, tiers, kind } or a
@@ -225,15 +244,15 @@ function Reveal.build(self: any)
 	front.ZIndex = 9
 	self.front = front
 
+	-- Placed and sized by whole pixels every frame (step); the fractions move the picture
+	-- inside it, so it never steps.
 	local holder = HudParts.frame(root, "Block")
-	holder.AnchorPoint = Vector2.new(0.5, 0.5)
 	holder.ZIndex = 7
 	self.holder = holder
-	self.holderScale = UIAnim.scaleOf(holder)
 	local pic = Instance.new("ImageLabel")
 	pic.Name = "Picture"
 	pic.BackgroundTransparency = 1
-	pic.ScaleType = Enum.ScaleType.Fit
+	pic.ScaleType = Enum.ScaleType.Stretch
 	-- A window inside the picture's clear border, moved by the leftover fraction of a pixel.
 	pic.ImageRectSize = Vector2.new(R.IconPx - 2 * R.IconBorder, R.IconPx - 2 * R.IconBorder)
 	pic.ImageRectOffset = Vector2.new(R.IconBorder, R.IconBorder)
@@ -279,6 +298,17 @@ function Reveal.build(self: any)
 		edge.Color = HudParts.tone("Ink")
 		edge.Thickness = R.DotOutlinePx
 		edge.Parent = frame
+		-- A soft glow behind the next dot, pulsing (a glow pulses smoothly; a size would step).
+		local halo = Instance.new("ImageLabel")
+		halo.Name = "Halo"
+		halo.BackgroundTransparency = 1
+		halo.Image = IMAGES.Glow
+		halo.AnchorPoint = Vector2.new(0.5, 0.5)
+		halo.Position = UDim2.fromScale(0.5, 0.5)
+		halo.Size = UDim2.fromScale(R.DotPulse.HaloShare, R.DotPulse.HaloShare)
+		halo.ImageTransparency = 1
+		halo.ZIndex = 10
+		halo.Parent = frame
 		local fill = HudParts.frame(frame, "Fill")
 		fill.AnchorPoint = Vector2.new(0.5, 0.5)
 		fill.Position = UDim2.fromScale(0.5, 0.5)
@@ -309,6 +339,7 @@ function Reveal.build(self: any)
 			gloss = gloss,
 			mark = mark,
 			scale = UIAnim.scaleOf(frame),
+			halo = halo,
 		})
 	end
 
@@ -651,16 +682,15 @@ function Reveal.markNext(self: any, i: number)
 		self.dotPulse.stop()
 	end
 	local P = R.DotPulse
-	local scale = d.scale
+	local halo = d.halo
 	local handle = UIAnim.loop(d.frame, function(clock)
-		if not UIAnim.reduced() then
-			scale.Scale = 1 + P.Scale * (0.5 + 0.5 * math.sin(2 * math.pi * clock / P.Seconds))
-		end
+		local wave = 0.5 + 0.5 * math.sin(2 * math.pi * clock / P.Seconds)
+		halo.ImageTransparency = lerp(P.Transparency[2], P.Transparency[1], wave)
 	end)
 	self.dotPulse = {
 		stop = function()
 			handle.stop()
-			scale.Scale = 1
+			halo.ImageTransparency = 1
 		end,
 	}
 end
@@ -743,6 +773,17 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 	)
 	self.connection = RunService.RenderStepped:Connect(function(dt: number)
 		self:step(dt)
+	end)
+	-- The 3D world behind the blur shakes with the impact too (a small move of the camera
+	-- after Roblox's camera has placed it; a move, never a turn, so the camera never drifts).
+	RunService:BindToRenderStep(SHAKE, Enum.RenderPriority.Camera.Value + 1, function()
+		local camera = workspace.CurrentCamera
+		local since = if self.shakeAt then self.clock - self.shakeAt else math.huge
+		local nx, ny = shakeNoise(since, 4), shakeNoise(since, 5)
+		if camera and nx and ny then
+			local k = R.Shake.CameraStuds
+			camera.CFrame = camera.CFrame * CFrame.new(nx * k, ny * k, 0)
+		end
 	end)
 	task.spawn(function()
 		local reply = if fake ~= nil then fake else self.deps.request(id)
@@ -936,7 +977,7 @@ function Reveal.press(self: any)
 	if before == after then
 		-- Kept: a squash, a small hop and a rattle.
 		local K = R.Keep
-		local total, step = hop(K.Seconds, K.HopShare, K.RattleDegrees, 2, 0)
+		local total, step = hop(K.Seconds, K.HopShare, K.RattleDegrees, K.RattleTurns, 0)
 		self.anim = {
 			seconds = total,
 			step = step,
@@ -1036,7 +1077,7 @@ function Reveal.done(self: any)
 			self.hint.Text = hint(true)
 			self.hint.Visible = true
 			UIAnim.popIn(self.hint)
-			self.hintPulse = UIAnim.pulse(self.hint)
+			self.hintPulse = UIAnim.bob(self.hint) -- a rock turns smoothly (a size pulse steps)
 		end
 	end)
 	task.delay(R.AutoCollect, function()
@@ -1124,6 +1165,7 @@ function Reveal.finish(self: any, id: number, kind: string)
 	self.open = false
 	self.phase = "Closed"
 	ContextActionService:UnbindAction(ACTION)
+	RunService:UnbindFromRenderStep(SHAKE)
 	if self.connection then
 		self.connection:Disconnect()
 		self.connection = nil
@@ -1185,33 +1227,42 @@ function Reveal.step(self: any, dt: number)
 	end
 	self.floatY, self.floatTurn = floatY, floatTurn
 	local side = self.side
-	local s = pose.scale
-	-- Whole pixels by Position, the leftover fraction by moving the picture inside its label
-	-- (GUI positions snap to whole pixels; a slow move would step).
-	local x, y = pose.at.X, pose.at.Y - pose.lift + floatY
-	local wx, wy = math.floor(x + 0.5), math.floor(y + 0.5)
-	self.holder.Position = UDim2.fromOffset(wx, wy)
-	local border = R.IconBorder
-	local texel = (R.IconPx - 2 * border) / math.max(1, side * math.max(0.01, pose.scale))
-	self.pic.ImageRectOffset = Vector2.new(border - (x - wx) * texel, border - (y - wy) * texel)
-	self.holder.Size = UDim2.fromOffset(side, side)
-	self.holderScale.Scale = math.max(0.01, s)
-	self.holder.Rotation = pose.turn + floatTurn
 	if not reduced then
 		self.rays.Rotation = (self.rays.Rotation + R.RaysDegreesPerSecond * dt) % 360
 	end
-	-- The impact's screen shake: the whole screen jolts, fading out.
+	-- The impact's screen shake: the screen tilts a little (a turn is drawn smoothly) and the
+	-- block jolts, on smooth noise fading out.
 	local S = R.Shake
 	local since = if self.shakeAt then self.clock - self.shakeAt else math.huge
-	if since < S.Seconds then
-		local fade = 1 - since / S.Seconds
-		local px = side * S.Share * fade
-		self.root.Position =
-			UDim2.fromOffset(px * math.sin(since * S.Speed), px * math.cos(since * S.Speed * 1.3))
+	local sx, sy, sr = shakeNoise(since, 1), shakeNoise(since, 2), shakeNoise(since, 3)
+	local jx, jy = 0, 0
+	if sx and sy and sr then
+		self.root.Rotation = S.Degrees * sr
+		jx, jy = sx * side * S.BlockShare, sy * side * S.BlockShare
 	elseif self.shakeAt then
 		self.shakeAt = nil
-		self.root.Position = UDim2.new()
+		self.root.Rotation = 0
 	end
+	-- The block by whole pixels (its place and its size), and the leftover fractions by the
+	-- window into its picture: GUI positions and sizes snap to whole pixels, so a slow move,
+	-- squash or settle would step (the lively-gui smooth technique).
+	local d = math.max(1, side * pose.scale)
+	local x, y = pose.at.X + jx, pose.at.Y - pose.lift + floatY + jy
+	local whole = math.max(1, math.floor(d + 0.5))
+	local left = math.floor(x - whole / 2 + 0.5)
+	local top = math.floor(y - whole / 2 + 0.5)
+	self.holder.Position = UDim2.fromOffset(left, top)
+	self.holder.Size = UDim2.fromOffset(whole, whole)
+	self.holder.Rotation = pose.turn + floatTurn
+	local border = R.IconBorder
+	local texels = (R.IconPx - 2 * border) / d -- picture texels per screen pixel
+	local window = whole * texels
+	local room = math.max(0, R.IconPx - window)
+	self.pic.ImageRectSize = Vector2.new(window, window)
+	self.pic.ImageRectOffset = Vector2.new(
+		math.clamp(border + (left - (x - d / 2)) * texels, 0, room),
+		math.clamp(border + (top - (y - d / 2)) * texels, 0, room)
+	)
 	self:stepParticles(dt, self.clock)
 end
 

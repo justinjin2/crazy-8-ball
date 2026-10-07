@@ -2449,23 +2449,35 @@ Config.LuckyBlocks = {
 		-- A press that changes the tier: one quick hop with a rattle (an arc, up slowing and
 		-- down speeding up), then the impact as it lands: the picture becomes the new block
 		-- under a white flash while the screen shakes and a burst goes off; it lands a little
-		-- big and settles. About 0.6 s in all (0.7 s for the Mystery block's first change).
+		-- big and settles. About 0.5 s in all (0.57 s for the Mystery block's first change;
+		-- designer, 2026-10-07: faster).
 		Upgrade = {
-			HopSeconds = 0.3,
-			FirstHopSeconds = 0.4,
+			HopSeconds = 0.22,
+			FirstHopSeconds = 0.3,
 			HopShare = 0.14, -- the hop's height, of the block's side
 			Stretch = 0.06, -- it grows this share at the top of the hop
-			RattleDegrees = 8, -- the rattle as it hops
-			RattleTurns = 4, -- rattles a hop
+			-- A smooth wobble as it hops (a fast rattle read as choppy): this many degrees, this
+			-- many swings a hop.
+			RattleDegrees = 9,
+			RattleTurns = 1.5,
 			LandScale = 1.18, -- the new block lands this big and settles
-			LandSeconds = 0.25,
+			LandSeconds = 0.22,
 		},
 		-- The impact's flash: a white sheet over the whole screen and a white glow on the block.
 		Flash = { Transparency = 0.45, InSeconds = 0.04, OutSeconds = 0.25, GlowShare = 1.9 },
-		-- The impact's screen shake: everything on the screen jolts, fading out.
-		Shake = { Seconds = 0.28, Share = 0.035, Speed = 55 }, -- Share: of the block's side
+		-- The impact's screen shake, on smooth noise fading out (designer: smooth, not choppy):
+		-- the screen tilts up to Degrees (a turn is drawn smoothly), the block jolts up to
+		-- BlockShare of its side (smoothed by its picture window) and the camera behind the blur
+		-- moves up to CameraStuds. Frequency: how fast the noise wanders.
+		Shake = {
+			Seconds = 0.35,
+			Degrees = 1.4,
+			BlockShare = 0.03,
+			CameraStuds = 0.35,
+			Frequency = 14,
+		},
 		-- A press that keeps the tier: a small hop and a rattle.
-		Keep = { Seconds = 0.3, HopShare = 0.07, RattleDegrees = 7 },
+		Keep = { Seconds = 0.24, HopShare = 0.07, RattleDegrees = 7, RattleTurns = 1 },
 		-- Smooth motion (the lively-gui technique): GUI positions snap to whole pixels, so the
 		-- block moves by whole pixels and the leftover fraction moves the picture inside its
 		-- label (ImageRectOffset). Every icon is IconPx square with at least this much clear
@@ -2481,7 +2493,8 @@ Config.LuckyBlocks = {
 		},
 		-- The dots: empty (ink), the next one ("?" over a rainbow), or filled in the colour of
 		-- the tier that press showed (Config.UI.Kit.Art.BallGloss over it).
-		DotPulse = { Seconds = 0.9, Scale = 0.12 },
+		-- The next dot's soft glow pulsing (Transparency brightest, faintest; HaloShare of the dot).
+		DotPulse = { Seconds = 0.9, Transparency = { 0.15, 0.85 }, HaloShare = 1.9 },
 		DoneHintDelay = 0.55, -- after the last press settles, "Tap to collect" shows
 		AutoCollect = 4, -- seconds after the last press: it collects by itself
 		-- The jump back: everything else shrinks and fades, the block arcs into its slot.

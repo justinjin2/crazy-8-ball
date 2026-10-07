@@ -3012,3 +3012,9 @@ timer of a new block stay the designer's call.
   1 second or less"): an upgrade is one quick hop and the impact, about 0.6 s (0.7 s for the
   first), a kept tier 0.35 s; the block moves with sub-pixel smoothing and its float never stops
   under a press.
+- 2026-10-07: The Mystery screen's shake is smooth (designer: "choppy"): smooth noise with a
+  fade-out on the whole screen, the block and the camera, and the block's size moves sub-pixel
+  too; the bounce is faster (an upgrade about 0.55 s, a kept tier 0.25 s).
+- 2026-10-07: A click or tap on a block in the hotbar's bag uses it at once (held, or a Mystery
+  block's upgrade screen opens) and closes the bag; dragging into the hotbar still works. The
+  ` / ~ key opens the bag on PC like Roblox's backpack.

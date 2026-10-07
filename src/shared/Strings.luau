@@ -891,8 +891,8 @@ return {
 		ReadyIn = "Ready in %s", -- a block still on its timer: "Ready in 1:42"
 		Bag = "Bag", -- the hotbar's bag button and the panel's title
 		BagCount = "+%d", -- blocks waiting in the bag
-		BagHint = "Drag a block onto a hotbar slot", -- under the bag's grid (mouse and touch)
-		BagHintPad = "Pick a block, then a hotbar slot", -- the same on a gamepad
+		BagHint = "Click a block to use it, or drag it to the hotbar", -- under the bag's grid
+		BagHintPad = "Press A on a block to use it", -- the same on a gamepad
 		BagEmpty = "No lucky blocks yet",
 		SkipUnavailable = "Timer skips are unavailable right now. You can still wait for the timer.",
 		Open = "Open", -- the prompt over a thrown block

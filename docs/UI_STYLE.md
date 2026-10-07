@@ -614,6 +614,10 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
   transparent 1024px rays fade toward the edges rather than enlarging the old pixelated kit image.
 - Hotbar/bag models leave padding around each icon. Gold King uses lower preview illumination
   so the bright gold albedo keeps its details.
+- **The bag** (designer, 2026-10-07): a click or tap on a block in the bag uses it at once,
+  the same as its hotbar slot (a block is held, a Mystery block opens its upgrade screen), and
+  the bag closes; dragging a block into the hotbar still works. On PC the **` / ~ key** opens
+  and closes the bag like Roblox's own backpack (not while typing in a box); a gamepad's L3.
 
 - Legendary uses 1.8x world/held scale to compensate for its crown and cape in the bounding
   box. Its body aligns with the hands; its inventory preview is framed 1.25x closer.
@@ -641,8 +645,11 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
   block landing a little big as its name slams in (designer: no spin). After the last press,
   "Tap to collect" (or 4 s): the words and dots pop away and the block arcs back into its slot,
   which bounces with a glow. Every press is done in under a second (designer, 2026-10-07: an
-  upgrade about 0.6 s, a kept tier 0.35 s). Smooth: the block moves by whole pixels and the
-  fraction moves the picture inside its label, and the float runs under the presses. Taps during an animation wait their turn. Reduce Motion: no float,
+  upgrade about 0.55 s, a kept tier 0.25 s). Smooth: the block's place and size move by whole
+  pixels and the fraction moves the picture inside its label, and the float runs under the
+  presses. The shake is smooth noise that fades out (never random jumps a frame): the whole
+  screen turns a degree or so and the block jolts, while the camera slides (never turns) a third
+  of a stud, applied after the camera script so it never drifts. Taps during an animation wait their turn. Reduce Motion: no float,
   hops, shake or arcs; the twinkles stay. Lower effects: fewer particles.
 
 ## 15. Shop v3: block cards, pass bands, the build-in and the HUD's "+" (2026-10-04)
