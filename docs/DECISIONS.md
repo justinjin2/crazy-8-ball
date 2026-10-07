@@ -2928,3 +2928,12 @@ timer of a new block stay the designer's call.
 - 2026-10-07: The Shop's Featured (hero) card starts as the panel finishes unrolling (0.2 s,
   was 0.36 s), everything on it 0.16 s sooner; the whole open is 0.91 s (was 1.07 s). Designer:
   too long a pause between the frame opening and the hero card.
+- 2026-10-07 (designer interview): **Lucky blocks move to our own models.** The 3D blocks match
+  the shop art (the Grand Opening crowned block): one master cube built in Blender with the
+  pack's `joint1`/`joint2` bones, so the uploaded Box Idle animation plays on it unchanged; each
+  kind is a texture, an optional topper on the top bone and a recoloured pack VFX set. The pack
+  blocks are replaced over time. Legendary, Mythic and Sky keep wings (the pack's winged rig and
+  idle). Every kind gets a glossy 2D icon in the Grand Opening art style (the block only, not
+  the card), used in the Shop, the hotbar and the bag (the hotbar's 3D viewport goes). The
+  Starter block *is* the gift block: a red lucky block wrapped in a gold ribbon with a bow.
+  First batch: 8 Ball, Starter, Mythic, Sky, Mystery. Order: concept sheet, 2D icons, then 3D.

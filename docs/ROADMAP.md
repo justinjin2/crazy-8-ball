@@ -42,6 +42,19 @@ Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (be
   Opening card, five gates approved; the method saved as the `lively-gui` skill; the Firework
   Cue rename with save v8. Phone, computer and gamepad checked; 1001 tests passed
   (`docs/prompts/SHOP_LIVELY_REPORT.md`).
+- [ ] **Lucky block look, our own blocks (designer, 2026-10-07).** One master block built in
+  Blender (glossy bevelled cube, raised "?" faces, corner studs, like the Grand Opening shop
+  art), rigged with the pack's `joint1`/`joint2` bones so the uploaded Box Idle plays on it;
+  every kind is the master plus a texture, an optional topper on the top bone and a recoloured
+  pack VFX set, as Config data. Wings (the pack's winged rig and idle) on Legendary, Mythic
+  and Sky. In order:
+  - [ ] Concept sheet: 8 Ball, Gift-wrapped Starter, Mythic, Sky, Mystery, with the Grand
+    Opening block as the style key; designer approves.
+  - [ ] Final glossy 2D icon for every kind (GPT Image, the Grand Opening block as the
+    reference); the Shop, hotbar and bag use the 2D icon (no 3D viewport).
+  - [ ] The 3D master block and its rig in Blender, built to the approved icons.
+  - [ ] The first batch in 3D: 8 Ball, Starter (gift-wrapped), Mythic, Sky, Mystery; then
+    the tier ladder and Grand Opening move to the master over time.
 - [ ] The Shop's Blocks, Money and Passes pages with the `lively-gui` skill.
 - [ ] Physical controller hold acceptance; save the updated place and publish its templates.
 
