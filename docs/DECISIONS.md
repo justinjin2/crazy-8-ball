@@ -2830,3 +2830,6 @@ timer of a new block stay the designer's call.
   top-bar buttons** on every screen: the pill and the gear are 44 px tall like them, from 12 px
   down the row; the badge's box shrank 70 to 58 (its art shows 44 px) and the computer's 1.5x
   enlargement is gone.
+- 2026-10-07 (designer): **A phone's lucky block hotbar shows only slots 1-3** (9 was too
+  crowded; `Config.LuckyBlocks.UI.PhoneHotbarSlots`); the rest wait in the bag ("+n"). It also
+  uncovers the money HUD's "+" and Invite. Tablets and computers keep 9.

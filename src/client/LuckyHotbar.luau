@@ -1,7 +1,7 @@
 --!strict
 -- LuckyHotbar: the lucky block hotbar and its bag (designer, 2026-10-03), Roblox-style and in
 -- the kit's look. Along the bottom: one slot per block (the first Config.LuckyBlocks
--- .HotbarSlots of the list), each a slowly turning 3D icon of the block with its number and, on
+-- .HotbarSlots of the list; a phone only the first UI.PhoneHotbarSlots), each a slowly turning 3D icon of the block with its number and, on
 -- a timer, its countdown; the held block's slot has a thick gold outline. Keys 1-9, a tap or a
 -- click hold a block (LuckyClient). The bag button at the end ("+12": blocks waiting) and the `
 -- key open the bag: a grid of every block. Drag a block onto a hotbar slot to put it there (mouse
@@ -53,6 +53,11 @@ type Tile = {
 
 local Hotbar = {}
 Hotbar.__index = Hotbar
+
+-- A phone's screen (narrower than UI.PhoneWidthPx): smaller slots, fewer of them.
+local function phone(gui: ScreenGui): boolean
+	return gui.AbsoluteSize.X < U.PhoneWidthPx
+end
 
 local function now(): number
 	return workspace:GetServerTimeNow()
@@ -263,7 +268,12 @@ function Hotbar.new(screen: ScreenGui, handlers: Handlers): any
 	})
 
 	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-		self:layout()
+		-- A phone shows fewer slots: rebuild when the screen crosses the line.
+		if phone(gui) ~= self.wasPhone then
+			self:rebuild()
+		else
+			self:layout()
+		end
 	end)
 	UserInputService.InputChanged:Connect(function(input: InputObject)
 		self:dragMoved(input)
@@ -329,15 +339,12 @@ function Hotbar.buildBag(self: any)
 	self.bagEmpty = empty
 end
 
-local function phone(gui: ScreenGui): boolean
-	return gui.AbsoluteSize.X < U.PhoneWidthPx
-end
-
 function Hotbar.slotPx(self: any): number
 	return if phone(self.gui) then U.PhoneSlotPx else U.SlotPx
 end
 
--- The blocks the bar shows: the list without the one on the floor, first HotbarSlots.
+-- The blocks the bar shows: the list without the one on the floor, first HotbarSlots (a
+-- phone's fewer).
 function Hotbar.shown(self: any): ({ Entry }, number)
 	local list = {}
 	for _, entry in self.entries do
@@ -345,8 +352,10 @@ function Hotbar.shown(self: any): ({ Entry }, number)
 			table.insert(list, entry)
 		end
 	end
-	local inBar = math.min(#list, L.HotbarSlots)
-	return list, inBar
+	local slots = if phone(self.gui)
+		then math.min(L.HotbarSlots, U.PhoneHotbarSlots)
+		else L.HotbarSlots
+	return list, math.min(#list, slots)
 end
 
 --- The player's blocks (BlockState's list), the held block's id and the thrown one's (hidden
@@ -399,6 +408,7 @@ function Hotbar.rebuild(self: any)
 		tile.button:Destroy()
 	end
 	self.slots, self.tiles = {}, {}
+	self.wasPhone = phone(self.gui)
 	local list, inBar = self:shown()
 	for i = 1, inBar do
 		local entry = list[i]

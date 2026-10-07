@@ -2266,6 +2266,9 @@ Config.LuckyBlocks = {
 		SlotPx = 64, -- a hotbar slot, square (phone: PhoneSlotPx)
 		PhoneSlotPx = 48,
 		PhoneWidthPx = 900, -- a screen narrower than this uses the phone sizes
+		-- A phone's hotbar shows only the first blocks (designer 2026-10-07: 9 was too crowded);
+		-- the rest wait in the bag ("+n").
+		PhoneHotbarSlots = 3,
 		SlotGapPx = 6,
 		SlotCornerPx = 12,
 		SlotStrokePx = 2.5,
