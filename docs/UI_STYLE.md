@@ -327,13 +327,14 @@ below are the summary; the skill has the numbers and code.
   and stay centred.
 - **The matchmaking bar** (designer, 2026-10-07, look A of three mocks; `MatchBar`,
   `Config.UI.MatchBar`): replaces the host card. One slim white pill with the ink outline,
-  bottom centre just above the lucky block hotbar (0.8x on a phone): the cue on a small green
-  rounded square, a pale-blue "1/2" chip with the people icon, then the line in ink ("Waiting
+  bottom centre just above the lucky block hotbar (0.8x on a phone): the old pad card's
+  Classic icon (designer, 2026-10-07), a pale-blue "1/2" chip with the people icon, then the line in ink ("Waiting
   for opponent..." with the lit dots, "Starting in 3", "Searching... 0:07", "Match found!").
   The host's **Play Global** is a big green candy with a glossy globe icon, joined to the
   pill's right end and a little taller than it, "Don't want to wait?" in outlined white just
-  above it; it pops in as the bar widens round its centre (0.2 s), then breathes softly
-  (`UIAnim.pulse`, none with Reduce Motion). While searching a small red X candy takes its
+  above it; it pops in as the bar widens round its centre (0.2 s), then breathes gently
+  (`UIAnim.pulse` at 1.015 over 1.6 s, gentler than the house 1.03 over 0.9 s, by the
+  designer's note; none with Reduce Motion). While searching a small red X candy takes its
   place. The whole bar pops in and out (the house entrance for a HUD piece).
 - **The teleport screen**: a dark full screen (no card: it stands in for Roblox's loading
   screen) with MATCH FOUND in bright green and one breathing line ("Joining the

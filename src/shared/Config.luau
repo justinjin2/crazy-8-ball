@@ -7225,9 +7225,8 @@ Config.UI.MatchBar = {
 	PillHeight = 44,
 	PillPadPx = 6, -- inside the pill, round its row
 	GapPx = 8, -- between the pieces in the row
-	IconPx = 32, -- the mode icon's green square
-	IconInsetPx = 4, -- the cue picture inside it
-	IconTone = "Green",
+	Icon = "Classic", -- the mode icon: the old pad card's Classic picture (Config.UI.Kit.Icons)
+	IconPx = 32,
 	ChipHeight = 30, -- the "1/2" chip
 	ChipWidth = 68,
 	ChipTextPx = 20,
@@ -7243,8 +7242,11 @@ Config.UI.MatchBar = {
 	AskTextPx = 17, -- "Don't want to wait?" just above the button
 	AskGapPx = 2,
 	GrowSeconds = 0.2, -- the pill making room for Play Global
-	-- Play Global's idle: a soft pulse, its first this long after it lands.
+	-- Play Global's idle: a gentle breath (designer, 2026-10-07: gentler than the house pulse,
+	-- 1.03 over 0.9 s), its first this long after it lands.
 	PulseDelaySeconds = 0.6,
+	PulseScale = 1.015,
+	PulseSeconds = 1.6,
 	-- The red X while the search runs.
 	CancelPx = 38,
 }

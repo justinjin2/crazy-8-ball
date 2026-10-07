@@ -123,14 +123,21 @@ function UIAnim.bounce(object: GuiObject)
 	play(scale, TweenInfo.new(M.PopSeconds, Enum.EasingStyle.Back, Enum.EasingDirection.Out), 1)
 end
 
---- Breathe in and out until stopped: a button that is ready to press.
-function UIAnim.pulse(object: GuiObject): Handle
+--- Breathe in and out until stopped: a button that is ready to press. `size` and `seconds`
+--- make it gentler or livelier than the house pulse (Config.UI.Motion PulseScale, PulseSeconds).
+function UIAnim.pulse(object: GuiObject, size: number?, seconds: number?): Handle
 	local scale = UIAnim.scaleOf(object)
 	scale.Scale = 1
 	local tween = play(
 		scale,
-		TweenInfo.new(M.PulseSeconds, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-		M.PulseScale
+		TweenInfo.new(
+			seconds or M.PulseSeconds,
+			Enum.EasingStyle.Sine,
+			Enum.EasingDirection.InOut,
+			-1,
+			true
+		),
+		size or M.PulseScale
 	)
 	return {
 		stop = function()

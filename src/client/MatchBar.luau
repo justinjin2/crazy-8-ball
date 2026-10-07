@@ -88,18 +88,11 @@ function MatchBar.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	pill.Size = UDim2.fromOffset(PILL_WIDTH, B.PillHeight)
 	pill.ZIndex = 2
 	self.pill = pill
-	-- The mode icon: the cue on a small green square.
-	local mode = HudParts.pill(pill, "Mode", HudParts.tone(B.IconTone))
-	local corner = mode:FindFirstChildOfClass("UICorner")
-	if corner then
-		corner.CornerRadius = UDim.new(0, math.floor(B.IconPx / 4))
-	end
+	-- The mode icon: the old card's Classic picture (designer, 2026-10-07).
+	local mode = HudParts.icon(pill, B.Icon, "Mode")
 	mode.AnchorPoint = Vector2.new(0, 0.5)
 	mode.Position = UDim2.new(0, B.PillPadPx, 0.5, 0)
 	mode.Size = UDim2.fromOffset(B.IconPx, B.IconPx)
-	local cue = HudParts.icon(mode, "Cue", "Icon")
-	cue.Position = UDim2.fromOffset(B.IconInsetPx, B.IconInsetPx)
-	cue.Size = UDim2.new(1, -2 * B.IconInsetPx, 1, -2 * B.IconInsetPx)
 	-- The count chip: the people icon and "1/2".
 	local chip = HudParts.pill(pill, "Count", HudParts.color(Config.UI.Kit.HeaderTop))
 	chip.AnchorPoint = Vector2.new(0, 0.5)
@@ -339,7 +332,7 @@ function MatchBar.showGlobal(self: any, show: boolean)
 	local token = self.pulseToken
 	task.delay(B.PulseDelaySeconds, function()
 		if token == self.pulseToken and self.global.Visible and not UIAnim.reduced() then
-			self.pulse = UIAnim.pulse(self.global)
+			self.pulse = UIAnim.pulse(self.global, B.PulseScale, B.PulseSeconds)
 		end
 	end)
 end
