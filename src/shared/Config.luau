@@ -5660,8 +5660,10 @@ Config.UI = {
 			-- results): black, fading to this transparency with the popup (0.5: a little dark;
 			-- 1 would be clear again). It is this many screens plus this many pixels big, centred,
 			-- so it spills past Roblox's top bar and a phone's notch and never shows an edge.
-			-- 1: clear, the world blurs instead (Config.UI.Blur; designer, 2026-10-06; was 0.5).
-			BackdropTransparency = 1,
+			-- The one popup that still darkens (designer, 2026-10-06): it stacks on the match
+			-- results, so the dim sets it apart from the screen under it; the world blurs too
+			-- (Config.UI.Blur). Everything else blurs only.
+			BackdropTransparency = 0.5,
 			BackdropOverScale = 2,
 			BackdropOverPx = 400,
 			MarginPx = 10,
@@ -11244,12 +11246,15 @@ Config.Cutscenes = {
 		StarFlare = "rbxassetid://84051192712402", -- a pointed eight-spike star (the Legendary warp)
 	},
 	HintAfterSeconds = 0.6, -- "Tap to skip" shows this late (only once the kind was seen)
-	-- The 1v1 match result (ResultCutscene; GUI lane, C11a, D2): fade to black, then on the
-	-- table the winner stands holding their cue upright with the other arm up, and the loser
-	-- lies face down with their cue dropped beside them (local copies of both bodies); the
-	-- camera comes down onto them and the result screen opens in the top part of the screen.
+	-- The 1v1 match result (ResultCutscene; GUI lane, C11a, D2): fade to black, then the
+	-- camera comes down onto the table and the result screen opens in the top part of the
+	-- screen. With Posed, the winner also stands with their cue up and the loser lies face
+	-- down beside the table (local copies of both bodies; off since 2026-10-06).
 	-- Studs and seconds.
 	Result = {
+		-- The posed winner and loser (designer, 2026-10-06: gone). Off, the cutscene is the
+		-- fade to black and the camera's pan down onto the table, with nobody copied or hidden.
+		Posed = false,
 		FadeInSeconds = 0.35, -- to black
 		HoldSeconds = 0.15, -- black, while the scene is set
 		FadeOutSeconds = 0.45,

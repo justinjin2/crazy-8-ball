@@ -48,6 +48,9 @@ screen, a popup).
   where it stopped at a screen's edges); the clear layers stay only to take taps. Built with
   `ScreenBlur.set(key, on)`, numbers in `Config.UI.Blur`. Small popups and dialogs inside a
   menu add nothing. The tutorial's spotlight keeps its own dim, as that is its whole point.
+  **NEW RANK! is the one exception** (designer, 2026-10-06): it stacks on the match results,
+  so it also darkens the screen behind it (50% black, `Config.UI.Progress.NewRank`'s
+  `BackdropTransparency`) on top of the blur.
 
 ## 3. Text
 

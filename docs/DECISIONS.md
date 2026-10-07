@@ -2809,3 +2809,9 @@ timer of a new block stay the designer's call.
   LogoPlate.py`, `assets/ui/logo/Crazy8Logo.png`, `Config.TableModel.Maps.LogoPlate`). The
   stored looks in `ServerStorage.TableLooks` were updated in Edit mode: save and publish.
   Bigger spots (printed on the cloth, the cabinet side) are offered, not built.
+- 2026-10-06 (designer): **the 1v1 result cutscene drops the posed players**: the fade to
+  black and the camera's pan down onto the table stay, nobody is copied or hidden
+  (`Config.Cutscenes.Result.Posed = false`; the posing code stays behind the switch).
+- 2026-10-06 (designer): **NEW RANK! darkens the screen again** (50% black, with the blur): it
+  is the one popup that stacks on another screen (the match results), so the dim sets it
+  apart. Every other screen still only blurs.

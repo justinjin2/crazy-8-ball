@@ -3,7 +3,8 @@
 -- ~/Desktop/8ball-refs/gui/11-match-result-winner-loser.webp). For a 1v1 (a person, a
 -- disguised bot or a PC robot, at a lobby table or in an arena), before the result screen:
 --   * the screen fades to black;
---   * beside the table, the winner stands holding their cue upright with the other arm up, and
+--   * (only with Config.Cutscenes.Result.Posed, off since 2026-10-06 by the designer)
+--     beside the table, the winner stands holding their cue upright with the other arm up, and
 --     the loser lies face down with their cue dropped beside them. Both are local copies of the
 --     real bodies (the real ones and their back cues are hidden meanwhile), so nobody else
 --     sees anything and nothing moves on the server;
@@ -378,6 +379,19 @@ function ResultCutscene.play(summary: any, onReady: () -> ()): boolean
 	s.from = CFrame.lookAt(startAt, base)
 
 	local function setScene(): boolean
+		if not R.Posed then
+			-- Just the pan: the lobby signs by the front tables stay out of the view.
+			if signs then
+				for _, d in signs:GetDescendants() do
+					if d:IsA("BasePart") then
+						hide(s, d, "LocalTransparencyModifier", 1)
+					elseif d:IsA("SurfaceGui") then
+						hide(s, d, "Enabled", false)
+					end
+				end
+			end
+			return true
+		end
 		local winner, winnerRoot = copyBody(winnerBody, folder)
 		local loser, loserRoot = copyBody(loserBody, folder)
 		if not winner or not winnerRoot or not loser or not loserRoot then
@@ -555,7 +569,7 @@ end
 
 --- The seats in the scene (their nameplates stay hidden), or nil.
 function ResultCutscene.hiddenIds(): { [number]: boolean }?
-	return if scene then scene.ids else nil
+	return if scene and R.Posed then scene.ids else nil
 end
 
 --- Put everything back (the result screen closed, a match started). Safe to call twice.

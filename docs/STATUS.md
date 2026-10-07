@@ -29,7 +29,10 @@ Updated 2026-10-06.
   (text from 20 px) solid ink holes (`HoleFill`, `Config.UI.Kit.HoleFill`).
 - **Blur instead of dims** (2026-10-06): menus, the roadmap, the lucky block reel, the match
   results and NEW RANK! blur the world (`ScreenBlur`, `Config.UI.Blur`); the reel waits 0.15 s
-  for the blur. Seen in Studio on the menus and the reel; results and NEW RANK! not yet.
+  for the blur. NEW RANK! also darkens (it stacks on the results). Seen in Studio on the
+  menus, the reel and NEW RANK! alone; NEW RANK! over a real result not yet.
+- **The 1v1 result cutscene** is the fade to black and the pan down onto the table only; the
+  posed winner and loser are off (`Config.Cutscenes.Result.Posed`, 2026-10-06).
 - **Cue outlines and the "pop" aura.** Every cue has a theme-coloured outline (a moving
   gradient from Legendary up). The deeper aura is on test on Frostbite, Candy, Flare, Plasma,
   Gummy and Magma (`Config.CueSkins.Pop.Ids`).
