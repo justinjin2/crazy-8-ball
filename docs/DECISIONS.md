@@ -3015,6 +3015,7 @@ timer of a new block stay the designer's call.
 - 2026-10-07: The Mystery screen's shake is smooth (designer: "choppy"): smooth noise with a
   fade-out on the whole screen, the block and the camera, and the block's size moves sub-pixel
   too; the bounce is faster (an upgrade about 0.55 s, a kept tier 0.25 s).
-- 2026-10-07: A click or tap on a block in the hotbar's bag uses it at once (held, or a Mystery
-  block's upgrade screen opens) and closes the bag; dragging into the hotbar still works. The
-  ` / ~ key opens the bag on PC like Roblox's backpack.
+- 2026-10-07: The hotbar's bag works like Roblox's backpack (designer): a click or tap on a
+  block equips it with the bag still open (again unequips; a world click throws); a Mystery
+  block opens its upgrade screen; dragging into the hotbar still works. The ` / ~ key opens the
+  bag on PC.

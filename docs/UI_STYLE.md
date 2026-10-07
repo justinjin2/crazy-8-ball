@@ -614,9 +614,11 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
   transparent 1024px rays fade toward the edges rather than enlarging the old pixelated kit image.
 - Hotbar/bag models leave padding around each icon. Gold King uses lower preview illumination
   so the bright gold albedo keeps its details.
-- **The bag** (designer, 2026-10-07): a click or tap on a block in the bag uses it at once,
-  the same as its hotbar slot (a block is held, a Mystery block opens its upgrade screen), and
-  the bag closes; dragging a block into the hotbar still works. On PC the **` / ~ key** opens
+- **The bag** (designer, 2026-10-07) works like Roblox's backpack: a click or tap on a block
+  equips it (held out, its tile and slot edged in gold; again puts it away) and the bag stays
+  open, so the number keys and a click on the world (throw) still work; a Mystery block closes
+  the bag and opens its upgrade screen. A thrown block leaves the bag while it is on the floor.
+  Dragging a block into the hotbar still works. On PC the **` / ~ key** opens
   and closes the bag like Roblox's own backpack (not while typing in a box); a gamepad's L3.
 
 - Legendary uses 1.8x world/held scale to compensate for its crown and cape in the bounding

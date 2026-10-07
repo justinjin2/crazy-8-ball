@@ -17,8 +17,8 @@
 --   slot. On a gamepad LB / RB pick its slot and R2 opens it.
 -- The tutorial (Tutorial.luau) reads which slot holds a kind (slotOf), what is held and what
 -- lies on the floor, and the hotbar registers its slots as anchors.
--- - The bag: the ` (or ~) key, the bag button, or L3. A click on a block in it holds it
---   (a Mystery block opens).
+-- - The bag: the ` (or ~) key, the bag button, or L3. A click on a block in it equips it with
+--   the bag still open, like Roblox's backpack (a Mystery block opens).
 -- Lobby only: Progression hides it in a match and under the screens and menus (the bag aside).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -444,8 +444,8 @@ local function onInput(input: InputObject, processed: boolean)
 	if processed then
 		return
 	end
-	local current = Menus.current()
-	if current ~= nil then
+	-- The bag open is like Roblox's backpack: the keys still work and a click throws.
+	if Menus.current() ~= nil and not hotbar:isBagOpen() then
 		return
 	end
 	local index = NUMBER_KEYS[key]

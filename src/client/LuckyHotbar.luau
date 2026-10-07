@@ -5,8 +5,9 @@
 -- a timer, its countdown; the held block's slot has a thick gold outline. Keys 1-9, a tap or a
 -- click hold a block (LuckyClient); a ready Mystery block's slot says OPEN! and opens its
 -- upgrade screen instead (MysteryReveal). The bag button at the end ("+12": blocks waiting) and the `
--- key open the bag: a grid of every block. A click on a block there holds it (a Mystery block
--- opens) and closes the bag; drag a block onto a hotbar slot to put it there (mouse and touch).
+-- key open the bag: a grid of every block. A click on a block there equips it like Roblox's
+-- backpack (the bag stays open; a Mystery block opens instead); drag a block onto a hotbar slot
+-- to put it there (mouse and touch).
 --
 -- Its own ScreenGui inside Roblox's top bar inset, so a pointer's position and the slots'
 -- positions share one space. It sets BottomLift while it shows. Tuning in
@@ -461,7 +462,8 @@ function Hotbar.rebuild(self: any)
 		local tile = self.slots[i]
 		TutorialAnchors.set("HotbarSlot" .. i, if tile then tile.button else nil)
 	end
-	for i, entry in self.entries do
+	-- The bag lists every block but the thrown ones (it can stay open while one is thrown).
+	for i, entry in list do
 		local tile = makeTile(self.grid, entry, nil)
 		tile.button.LayoutOrder = i
 		self:wire(tile, nil)
@@ -508,17 +510,18 @@ end
 function Hotbar.pressed(self: any, id: number, slot: number?)
 	UISound.play("Click")
 	if slot == nil then
-		-- A bag tile (designer, 2026-10-07): a click holds it (a Mystery block opens), like a
-		-- hotbar slot, and the bag closes so the block can be thrown. Dragging still moves it.
+		-- A bag tile (designer, 2026-10-07), like Roblox's backpack: a click equips it (held
+		-- out; again puts it away) and the bag stays open; a Mystery block closes the bag and
+		-- opens its upgrade screen. Dragging still moves a block into the hotbar.
 		local entry = self:find(id)
 		local row = if entry then LuckyBlocks.kind(entry.kind) else nil
 		if row and row.Roll then
+			if self.bagOpen then
+				Menus.close(BAG)
+			end
 			self.handlers.reveal(id)
 		else
 			self.handlers.select(id)
-		end
-		if self.bagOpen then
-			Menus.close(BAG)
 		end
 		return
 	end
@@ -608,9 +611,9 @@ function Hotbar.refreshSelection(self: any)
 		tile.button.Selectable = self.bagOpen
 	end
 	for _, tile in self.tiles do
-		local picked = tile.entry.id == self.pickedId
-		tile.edge.Color = if picked then GOLD else WHITE
-		tile.edge.Thickness = if picked then U.SelectedStrokePx else U.SlotStrokePx
+		local marked = tile.entry.id == self.heldId or tile.entry.id == self.pickedId
+		tile.edge.Color = if marked then GOLD else WHITE
+		tile.edge.Thickness = if marked then U.SelectedStrokePx else U.SlotStrokePx
 		tile.button.Selectable = self.bagOpen
 	end
 	local list, inBar = self:shown()
@@ -778,6 +781,10 @@ function Hotbar.say(self: any, text: string)
 	self.notice.Text = text
 	self.notice.Visible = self.visible
 	self.noticeUntil = os.clock() + U.ShakeWords
+end
+
+function Hotbar.isBagOpen(self: any): boolean
+	return self.bagOpen
 end
 
 function Hotbar.toggleBag(self: any)
