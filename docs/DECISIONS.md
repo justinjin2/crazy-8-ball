@@ -2894,3 +2894,5 @@ timer of a new block stay the designer's call.
 - 2026-10-07 (designer): **The result cutscene's camera is a sky tilt-down**: it fades in aimed
   50 degrees up from just above and behind the player's camera, then only the pitch turns
   (the horizon stays level) as it eases down and forward into that camera over 2.2 s.
+- 2026-10-07 (designer): the result tilt starts lower (20 degrees up, the map's skyline and
+  tables already in view) and runs 30% quicker (1.55 s).
