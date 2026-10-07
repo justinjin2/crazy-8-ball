@@ -2824,3 +2824,9 @@ timer of a new block stay the designer's call.
 - 2026-10-07: **Nothing on the rank HUD pokes off the top of the screen.** The red "!" moved
   in onto the badge (`PendingDotAt`) and the HUD sits low enough that the dot stays on screen
   at its biggest (hover, press bounce, breath) on a phone, a tablet and a computer.
+- 2026-10-07 (designer): **No player list on a phone for now** (the HUD screen under
+  `Multiplayer.Style.ShortHeight`): it took too much of the screen. Tablets and computers keep it.
+- 2026-10-07 (designer): **The rank HUD and the Settings gear sit in line with Roblox's own
+  top-bar buttons** on every screen: the pill and the gear are 44 px tall like them, from 12 px
+  down the row; the badge's box shrank 70 to 58 (its art shows 44 px) and the computer's 1.5x
+  enlargement is gone.

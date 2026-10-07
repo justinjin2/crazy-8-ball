@@ -348,8 +348,7 @@ function Progression.padRoute(key: Enum.KeyCode): boolean
 		if lastState.queueOpen == true then
 			return false
 		end
-		playerList:focus()
-		return true
+		return playerList:focus()
 	end
 	-- Down is Free Reward while it is up, else the Daily Challenge.
 	if name == "FreeReward" and not column:freeShown() then

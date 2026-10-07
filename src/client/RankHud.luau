@@ -439,11 +439,14 @@ function RankHud.layout(self: any)
 		oneMore.Position = UDim2.fromOffset(B / 2 + H.PadPx, (B + PH) / 2 + H.OneMoreGapPx)
 		oneMore.Size = UDim2.fromOffset(PW, H.OneMoreTextPx + 4)
 	end
-	local rowHeight = if area.Y > 0 then area.Y else H.FallbackRowPx
 	self.fit.Scale = scale
 	self.holder.Position = UDim2.fromOffset(
 		S.HeaderGap,
-		math.max(H.TopMinPx + dotOverhang() * scale, (rowHeight - self.naturalHeight * scale) / 2)
+		-- The pill's top in line with Roblox's buttons' tops (the badge's box is taller).
+		math.max(
+			H.TopMinPx + dotOverhang() * scale,
+			H.RowButtonTopPx - (self.naturalHeight - H.PillHeightPx) / 2 * scale
+		)
 	)
 end
 

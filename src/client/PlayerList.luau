@@ -14,7 +14,8 @@
 -- robots are not listed. Pressing a real player opens a small card beside the list: Trade (a
 -- trade invite, TradeRequest "Invite"), Add friend and View profile (Roblox's own prompts).
 --
--- It stays clear of the Settings gear (`avoid`): on a narrow phone it gets narrower first.
+-- It stays clear of the Settings gear (`avoid`). Not shown on a phone for now (the HUD screen
+-- under Multiplayer.Style.ShortHeight; designer 2026-10-07: it took too much of the screen).
 -- Hidden in a match and under the popups (Progression). Gamepad: the D-pad's left in the hub
 -- focuses the list (Progression.padRoute); B leaves it. Sizes in Config.UI.PlayerList.
 local GuiService = game:GetService("GuiService")
@@ -411,6 +412,10 @@ end
 --- Place everything. `animate` tweens the panel open or folded (the header was pressed).
 function PlayerList.layout(self: any, animate: boolean?)
 	local size = self.screen.AbsoluteSize
+	if size.Y > 0 then
+		self.phone = size.Y < S.ShortHeight
+		self.gui.Enabled = self.showing and not self.phone
+	end
 	local area = self.gui.AbsoluteSize
 	if size.X <= 0 or area.X <= 0 then
 		return
@@ -592,7 +597,7 @@ function PlayerList.setVisible(self: any, visible: boolean)
 		return
 	end
 	self.showing = visible
-	self.gui.Enabled = visible
+	self.gui.Enabled = visible and not self.phone
 	if not visible then
 		self.popout.Visible = false
 	else
@@ -601,10 +606,11 @@ function PlayerList.setVisible(self: any, visible: boolean)
 	end
 end
 
---- The D-pad's left: open the list and put the selection on its first row.
-function PlayerList.focus(self: any)
-	if not self.showing then
-		return
+--- The D-pad's left: open the list and put the selection on its first row. False when the
+--- list is not on screen (a phone).
+function PlayerList.focus(self: any): boolean
+	if not self.showing or self.phone then
+		return false
 	end
 	if not self.open then
 		self.open = true
@@ -613,6 +619,7 @@ function PlayerList.focus(self: any)
 	end
 	local first = self.rows[1]
 	GuiService.SelectedObject = if first and first.button.Visible then first.button else self.header
+	return true
 end
 
 return PlayerList

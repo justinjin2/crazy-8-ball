@@ -692,7 +692,11 @@ Like Roblox's own list, flush in the top-right corner of Roblox's top bar row (`
 scrolling ("Players (n)" and a chevron) over the white sheet with the still dots; pressing the
 header opens or folds it (0.15 s). One list, no tabs: a small "Wins" and "Money" titles row,
 then the rank badge and username (your row pale blue, your name blue), wins and money
-right-aligned. Folded at first on any touch screen; on a phone it is smaller and shows 3.3
-rows, ending above the Daily Challenge. It narrows (down to 176 px) before it would touch the
+right-aligned. Folded at first on any touch screen. Not shown on a phone for now (designer, 2026-10-07: too
+much of the screen); its phone sizes (3.3 rows) stay in Config for when it comes back. It narrows (down to 176 px) before it would touch the
 Settings gear. Pressing a real player opens the Trade / Add friend / View profile card beside
 it.
+
+The rank HUD and the Settings gear sit in line with Roblox's own top-bar buttons on every screen
+(designer, 2026-10-07): the pill and the gear 44 px tall from 12 px down the row, the badge's box
+58 px (its art shows 44).

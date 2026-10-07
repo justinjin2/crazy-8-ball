@@ -5415,11 +5415,14 @@ Config.UI = {
 		-- the XP bar. Laid out at these sizes (a phone, where it fits Roblox's 58 px top row),
 		-- then scaled by ComputerScale on a computer or tablet, and down if the room is short.
 		RankHud = {
-			BadgePx = 70, -- the badge, square: bigger than the pill, as in reference 02 (its art has margins)
+			-- The badge's box, square. Its art fills the middle 76% (margins), so 58 shows a 44 px
+			-- badge: as tall as the pill and Roblox's own top-bar buttons, in line with them
+			-- (designer 2026-10-07: was 70, hanging below the row).
+			BadgePx = 58,
 			PendingDotPx = 24, -- the red "!" on the badge while rank rewards wait in Rank (RankPending)
 			-- Its centre, as shares of the badge's box from the top left (designer 2026-10-07:
 			-- was 0.14 down, which poked above the screen's top edge on a phone).
-			PendingDotAt = { 0.84, 0.22 },
+			PendingDotAt = { 0.84, 0.24 },
 			PendingDotTextPx = 18,
 			HoverScale = 1.06, -- the whole HUD grows this much under the mouse or a gamepad selection
 			HoverSeconds = 0.18, -- that fast, with a small overshoot
@@ -5432,13 +5435,13 @@ Config.UI = {
 			BarBottomPx = 6, -- from the track's bottom to the pill's (the pill's outline takes 3)
 			BarStrokePx = 2, -- the track's ink outline
 			NumbersTextPx = 14, -- "520 / 1,000 XP", on the bar
-			-- A computer or tablet (screen at least Style.ShortHeight tall): bigger, an easier
-			-- mouse target (designer, 2026-09-27; was 1.15). It hangs below Roblox's top row.
-			ComputerScale = 1.5,
+			-- A computer or tablet (screen at least Style.ShortHeight tall). 1: the HUD sits in
+			-- line with Roblox's buttons on every screen (designer 2026-10-07; was 1.5).
+			ComputerScale = 1,
+			RowButtonTopPx = 12, -- Roblox's top-bar buttons (44 px) start this far down the row
 			-- Never closer than this to the top of the screen. The HUD is lowered further when
 			-- needed so the "!" dot stays on screen at its biggest (hover, press bounce, breath).
 			TopMinPx = 2,
-			FallbackRowPx = 58, -- the top row's height when Roblox does not report it
 			TrackColor = { 214, 222, 235 }, -- the empty bar
 			FillColor = { 255, 201, 40 }, -- the XP, gold
 			FillShade = { 214, 150, 20 }, -- the fill darkens to this along its bottom
@@ -10911,7 +10914,7 @@ Config.Settings = {
 -- The Settings screen (SettingsMenu) and its gear beside the rank HUD (GUI lane, C10).
 Config.UI.Settings = {
 	GearPx = 44, -- the gear (a computer); a phone's is ShortGearPx
-	ShortGearPx = 36,
+	ShortGearPx = 44, -- as big as Roblox's top-bar buttons, in line with them (designer 2026-10-07)
 	GearGapPx = 8, -- right of the rank HUD
 	RowPx = { 54, 70 }, -- a switch row ({ phone, full })
 	RowTextPx = { 17, 22 },

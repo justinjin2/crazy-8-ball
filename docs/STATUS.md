@@ -48,9 +48,10 @@ Updated 2026-10-07.
   cue (chosen or lifted over a rail) has every effect off; 1v1 tables are blue cloth
   (`BlueWood`, lives in the place: save and publish); no money "+" during a game.
 - **The player list like Roblox's** (2026-10-07): top-right corner in the top bar row, the
-  Shop's lively header, badge + name, Wins, Money, no tabs; folded at first on touch screens;
-  the rank HUD's red "!" no longer pokes off the top. Seen in the Studio phone emulator
-  (folded, open with fake rows, fold animation); a PC and a tablet size not yet looked at.
+  Shop's lively header, badge + name, Wins, Money, no tabs; folded at first on tablets, open on
+  a computer, **not shown on a phone for now**. The rank HUD and the Settings gear sit in line
+  with Roblox's buttons (44 px from 12 px down) on every screen; the red "!" stays on screen.
+  Seen in the Studio phone emulator; a PC and a tablet size not yet looked at.
 - **Lighting.** Day 10 min, sunset 5 min, a 10 s fade; no night and no sun disc. The sunset
   was softened and made less yellow on 2026-10-05.
 - **Pull cutscenes.** Rare, Epic and Legendary are redone ("good for now"); Mythic and Secret
