@@ -1500,6 +1500,21 @@ Config.Input = {
 	-- power that still shoots (anything less on release cancels).
 	PowerPullBarFraction = 0.9,
 	MinPowerToShoot = 0.04,
+	-- A finger on the power bar (PullGesture; designer, 2026-10-06: no more fat-fingered
+	-- shots). Touch only; a mouse pulls as before. (tune)
+	TouchPull = {
+		-- The first this many pixels down do nothing and letting go there cancels; past it the
+		-- bar clicks in at the softest shot (MinPowerToShoot). About a fingertip.
+		DeadZonePx = 24,
+		-- Once the finger has moved this far, the drag is decided: a pull, or sideways (aiming
+		-- across the bar), which never shoots.
+		LockPx = 12,
+		SidewaysRatio = 1, -- sideways when across travel is more than this times the down travel
+		MinHoldSeconds = 0.15, -- a press shorter than this never shoots
+	},
+	-- The bar's little bump when a finger pull clicks in past the dead zone (PowerCue).
+	PullClickScale = 1.06,
+	PullClickSeconds = 0.18,
 	-- An aim tick fires every this many degrees of rotation. Fine enough that the smallest
 	-- deliberate movement a player can make still clicks: a nudge tap is NudgeDegrees (0.2),
 	-- which used to be a tenth of a tick and made careful aiming silent. What actually

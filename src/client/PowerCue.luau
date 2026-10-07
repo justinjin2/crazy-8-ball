@@ -29,6 +29,7 @@
 local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -38,6 +39,7 @@ local CueArt = require(Shared:WaitForChild("CueArt"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
 local CueSkins = require(Shared:WaitForChild("CueSkins"))
+local PullGesture = require(Shared:WaitForChild("PullGesture"))
 local HudParts = require(script.Parent.HudParts)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local K = Config.UI.Kit
@@ -515,11 +517,36 @@ function PowerCue.setVisible(self: PowerCue, visible: boolean)
 	end
 end
 
+-- The bar bumps once when a finger pull clicks in past the dead zone (PullGesture).
+local function clickIn(bar: GuiObject)
+	local scale = bar:FindFirstChild("ClickScale") :: UIScale?
+	if scale == nil then
+		local made = Instance.new("UIScale")
+		made.Name = "ClickScale"
+		made.Parent = bar
+		scale = made
+	end
+	local s = scale :: UIScale
+	s.Scale = Config.Input.PullClickScale
+	TweenService:Create(
+		s,
+		TweenInfo.new(
+			Config.Input.PullClickSeconds,
+			Enum.EasingStyle.Back,
+			Enum.EasingDirection.Out
+		),
+		{ Scale = 1 }
+	):Play()
+end
+
 --- Press the bar and drag down to pull back. `onPull` fires with 0..1 while dragging,
---- `onRelease` when the finger lifts.
+--- `onRelease` when the finger lifts. A finger goes through PullGesture: a dead zone first,
+--- sideways drags and very short presses never shoot (they end at a pull of 0, so Input
+--- cancels).
 function PowerCue.onDrag(self: PowerCue, onPull: (number) -> (), onRelease: () -> ())
 	local active: InputObject? = nil
-	local startY = 0
+	local startX, startY = 0, 0
+	local gesture: PullGesture.State? = nil
 
 	self.root.InputBegan:Connect(function(input: InputObject)
 		if active then
@@ -530,7 +557,8 @@ function PowerCue.onDrag(self: PowerCue, onPull: (number) -> (), onRelease: () -
 			or input.UserInputType == Enum.UserInputType.Touch
 		then
 			active = input
-			startY = input.Position.Y
+			startX, startY = input.Position.X, input.Position.Y
+			gesture = PullGesture.new(input.UserInputType == Enum.UserInputType.Touch, os.clock())
 			onPull(0)
 		end
 	end)
@@ -547,9 +575,16 @@ function PowerCue.onDrag(self: PowerCue, onPull: (number) -> (), onRelease: () -
 				a.UserInputType == Enum.UserInputType.MouseButton1
 				and input.UserInputType == Enum.UserInputType.MouseMovement
 			)
-		if same then
+		local g = gesture
+		if same and g then
 			local travel = self.root.AbsoluteSize.Y * Config.Input.PowerPullBarFraction
-			onPull(math.clamp((input.Position.Y - startY) / math.max(travel, 1), 0, 1))
+			local before = g.pull
+			local pull =
+				PullGesture.move(g, input.Position.X - startX, input.Position.Y - startY, travel)
+			if g.touch and before <= 0 and pull > 0 then
+				clickIn(self.root)
+			end
+			onPull(pull)
 		end
 	end)
 
@@ -566,6 +601,11 @@ function PowerCue.onDrag(self: PowerCue, onPull: (number) -> (), onRelease: () -
 			)
 		then
 			active = nil
+			local g = gesture
+			gesture = nil
+			if g and not PullGesture.mayShoot(g, os.clock()) then
+				onPull(0) -- too short or sideways: letting go cancels
+			end
 			onRelease()
 		end
 	end)

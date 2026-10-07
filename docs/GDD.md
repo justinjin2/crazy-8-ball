@@ -78,7 +78,11 @@ Every feature is checked against these. If it serves none, it waits.
 - PC: hold click and drag left or right to aim, scroll wheel to zoom, pull the power bar on the
   right down and release to shoot, click the cue-ball icon to set spin.
 - Mobile: swipe left or right to aim, pinch to zoom, pull the power bar with a thumb, tap the
-  cue-ball icon for spin.
+  cue-ball icon for spin. **No fat-fingered shots (designer, 2026-10-06):** on a finger the
+  bar's first ~24 px down are a dead zone (letting go there cancels); past it the bar clicks in
+  with a small bump at the softest shot, and full power is where it always was. A drag that
+  goes mostly sideways is aiming and never shoots, and a press under 0.15 s never shoots
+  (`Config.Input.TouchPull`). A mouse pulls as before.
 - A small zoom guide sits over the spin button during your turn: a mouse-wheel icon (computer)
   or a pinching hand (touch) and "Zoom In/Out", greyed out like a control guide (designer,
   2026-09-26; the tutorial explains more). Gamepad guidance comes later. The first zoom hides

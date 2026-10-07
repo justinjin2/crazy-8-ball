@@ -2781,3 +2781,10 @@ timer of a new block stay the designer's call.
   no longer glows red at the reveal; only your own group pulses. The last-ball warning pulses
   green for everyone. Each callout is 3 pulses of 2 s (6 s, longer than the YOU ARE popup) and
   brighter (`Config.Multiplayer.Style.BallPulse`: Color, Pulses, PulseSeconds, FillPeak).
+- 2026-10-06: **no fat-fingered shots on a phone** (designer). A thumb that landed on the power
+  bar while swiping, wobbled and lifted used to shoot at the lowest power. On a finger now
+  (`PullGesture`, `Config.Input.TouchPull`): a 24 px dead zone where letting go cancels; past it
+  the bar bumps ("clicks in") at the softest shot (4%) and full power stays at the same spot; a
+  mostly sideways drag never shoots; a press under 0.15 s never shoots. A mouse is unchanged. The
+  4% minimum stays (the server checks it): 1% and 4% both hit at the 15 in/s speed floor
+  (`Config.Cue.MinSpeed`), so a lower minimum would only change the label.

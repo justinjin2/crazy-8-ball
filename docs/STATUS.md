@@ -12,7 +12,7 @@ Updated 2026-10-06.
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
 - **Lint and tests (2026-10-06):** lint OK with four old LocalShadow warnings (TableService,
-  PadGuide, MatchHUD, Main.client); all 1010 Lune tests pass.
+  PadGuide, MatchHUD, Main.client); all 1016 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; saves at version 7;
@@ -37,6 +37,10 @@ Updated 2026-10-06.
   STRIPES, and a team's last ball pulses green once per game as a warning; 3 pulses of 2 s
   each (`Config.Multiplayer.Style.BallPulse`). Seen in Studio from the QA hook; not yet in a real
   game played out by hand.
+- **No fat-fingered shots on a phone** (2026-10-06): a dead zone at the top of the pull, a
+  click-in bump, sideways drags and very short presses never shoot (`Config.Input.TouchPull`).
+  Checked in the Studio phone emulator (wobble, sideways, a soft 8% shot); the 0.15 s rule and
+  the feel need a real phone.
 - **Lighting.** Day 10 min, sunset 5 min, a 10 s fade; no night and no sun disc. The sunset
   was softened and made less yellow on 2026-10-05.
 - **Pull cutscenes.** Rare, Epic and Legendary are redone ("good for now"); Mythic and Secret
