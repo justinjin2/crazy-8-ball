@@ -2896,3 +2896,10 @@ timer of a new block stay the designer's call.
   (the horizon stays level) as it eases down and forward into that camera over 2.2 s.
 - 2026-10-07 (designer): the result tilt starts lower (20 degrees up, the map's skyline and
   tables already in view) and runs 30% quicker (1.55 s).
+- 2026-10-07 (designer): the ability bar reaching 100% plays the Smash Bros. Smash Ball sound and
+  an ability going off plays the Smash Bros. Final Smash activation, both trimmed of silence and
+  normalized to -16 LUFS (assets/audio/abilities). Every game sound was measured through an
+  AudioAnalyzer and only turned down: Volume x 90th-percentile RMS about 0.045 for a sting, at
+  most 0.06 for a big moment, 0.025 for a loop, no peak past 0.6. Ability sounds sat up to 6x
+  over and a few peaked 2 to 4x past full scale (Time Stop's tick-tock, Black Hole's pop, the
+  portal exit); the lucky block reveals and pull cutscenes up to 3x.

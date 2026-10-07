@@ -1180,7 +1180,7 @@ return {
 		},
 		Sound = {
 			Asset = "rbxassetid://103382603543789",
-			Volume = 0.7,
+			Volume = 0.33, -- Volume x RMS 0.06, a big moment (2026-10-07 normalize; was 0.7)
 			RollOffMinStuds = 8,
 			RollOffMaxStuds = 60,
 		},

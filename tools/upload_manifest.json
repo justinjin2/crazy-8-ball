@@ -1044,6 +1044,16 @@
     "assetType": "Audio",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/audio/abilities/AbilityActivate.wav": {
+    "assetId": "115276502447131",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/abilities/AbilityReady.wav": {
+    "assetId": "119991075881327",
+    "assetType": "Audio",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/audio/cutscenes/LegendaryAurora.wav": {
     "assetId": "138935380522596",
     "assetType": "Audio",

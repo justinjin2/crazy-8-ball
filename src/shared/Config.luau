@@ -3225,47 +3225,51 @@ Config.Ults = {
 	-- The spin service's request limits (not design numbers).
 	RequestCooldownSeconds = 0.25,
 	RequestBurst = 6,
-	-- Sounds (section 7). The designer's two, uploaded to the group; ult_activate starts after
-	-- its silent lead (StartOffset, measured in Studio).
+	-- Sounds (section 7). The designer's two, uploaded to the group (assets/audio/abilities).
+	-- Levels (designer, 2026-10-07: normalize, nothing should hurt): every clip in this table was
+	-- measured through an AudioAnalyzer and its Volume set from Volume x 90th-percentile RMS
+	-- (Config.Audio.Ui uses the same scale): about 0.045 for a sting (YourTurn's loudness), up to
+	-- 0.06 for a big moment (an ability going off), 0.025 or under for a loop, and no transient
+	-- peaking past 0.6 (a hard cue strike). Volumes were only ever turned DOWN to get there.
 	Audio = {
-		-- ult_activate (1.67 s): silent until 0.74 s (measured with an AudioAnalyzer, 2026-09-28),
-		-- so it starts at 0.72 and its hit lands with the panel's slam.
-		Activate = { Id = "rbxassetid://97016460180199", Volume = 0.5, StartOffset = 0.72 },
-		-- ult_ready (8.2 s, a steady jingle from 0.15 s): the bar reaching 100%. It plays for
-		-- MaxSeconds then fades over FadeSeconds so it never talks over the shot (overnight
-		-- assumption; MaxSeconds 0 plays it whole).
-		-- Volume 0.15 (designer, 2026-10-04: far too loud at 0.45, a long power-up swell
-		-- measured louder than YourTurn): about half YourTurn's loudness now, a cue not a fanfare.
+		-- The Smash Bros. "Final Smash activation" (designer, 2026-10-07): trimmed to its 1.63 s
+		-- (no silent lead, so the hit lands with the panel's slam from 0) and normalized to -16
+		-- LUFS; Volume x RMS 0.057, a big moment.
+		Activate = { Id = "rbxassetid://115276502447131", Volume = 0.4, StartOffset = 0 },
+		-- The Smash Bros. Smash Ball sound (designer, 2026-10-07): the bar reaching 100%. Trimmed
+		-- to its 1.11 s and normalized to -16 LUFS; played whole (MaxSeconds 0; above 0 it plays
+		-- that long, then fades over FadeSeconds). Volume x RMS 0.028, about half YourTurn: a cue,
+		-- not a fanfare (designer, 2026-10-04).
 		Ready = {
-			Id = "rbxassetid://140675130154393",
-			Volume = 0.15,
-			StartOffset = 0.12,
-			MaxSeconds = 3,
+			Id = "rbxassetid://119991075881327",
+			Volume = 0.2,
+			StartOffset = 0,
+			MaxSeconds = 0,
 			FadeSeconds = 0.8,
 		},
 		-- Magnet (public library audio, each checked loading in this game, 2026-09-28):
 		-- "Force Field Sci Fi Constant Deep Pulsing Hum" (Pro Sound Effects, 27 s): the low
 		-- magnetic hum looping at the armed cue ball (3D, quiet); it rises in pitch while a
 		-- ball is pulled.
-		MagnetHum = { Id = "rbxassetid://9125566994", Volume = 0.35, Pitch = 0.9, PullPitch = 1.35 },
+		MagnetHum = { Id = "rbxassetid://9125566994", Volume = 0.23, Pitch = 0.9, PullPitch = 1.35 },
 		-- "Electric Zapping loop" (FastFoxVita, 0.98 s loop, loud): crackle while a ball is in
 		-- a capture zone, at the ball.
 		MagnetPull = { Id = "rbxassetid://427262367", Volume = 0.12 },
 		-- The drop: "Metal Impact Heavy Clunking Hits 4" (Pro Sound Effects, 0.87 s) with
 		-- "Electric Zaps 12" (Pro Sound Effects, 0.97 s) on top: the clunk-zap at the pocket.
-		MagnetClunk = { Id = "rbxassetid://9116673944", Volume = 0.3 },
+		MagnetClunk = { Id = "rbxassetid://9116673944", Volume = 0.075 },
 		MagnetZap = { Id = "rbxassetid://9114277757", Volume = 0.55 },
 		-- Arming: "Electric Zaps 6" (Pro Sound Effects, 2.1 s, starts at 0.16 s) as the rings
 		-- snap onto the cue ball.
 		MagnetArm = { Id = "rbxassetid://9114277402", Volume = 0.45, StartOffset = 0.14 },
 		-- Eagle's Eye arming: "Eagle Screech 1" (public library audio, 1.8 s, checked loading in
 		-- this game), 3D at the cue ball, at the Magnet arm's level. (tune by ear)
-		EagleScreech = { Id = "rbxassetid://133423182233493", Volume = 0.45 },
+		EagleScreech = { Id = "rbxassetid://133423182233493", Volume = 0.19 },
 		-- Super Bounce (public library audio, each checked loading in this game, 2026-09-29):
 		-- arming, "Cartoon Spring Bounce Sound" (MysteryMilo, 1.3 s, a long boing-oing, peak
 		-- 0.54); every bounce, "SS_rubberduck_variety_spring_02" (Roblox, 1.3 s but a quick
 		-- 0.3 s spring, peak 0.48), pitched up per bounce (Config.UI.SuperBounceFx).
-		BounceArm = { Id = "rbxassetid://6075441854", Volume = 0.55 },
+		BounceArm = { Id = "rbxassetid://6075441854", Volume = 0.31 },
 		BounceHit = { Id = "rbxassetid://111237552536869", Volume = 0.45 },
 		-- Ghost (public library audio, each checked loading in this game, 2026-09-29): arming,
 		-- "Dream Weirdness Constant 6" (Pro Sound Effects, Ghosts, 3.3 s of reverberant wails,
@@ -3277,7 +3281,7 @@ Config.Ults = {
 		-- Heat Seeker (public library audio, checked loading in this game, 2026-09-29): each
 		-- lock-on beep, "shortbeep" (maybealian, 0.13 s, loud: peak 284 at volume 0.5); the lock,
 		-- "1000 hz sine tone" (BuilderBillbert, 1 s, peak 64), cut to the look's LockToneSeconds.
-		SeekerBeep = { Id = "rbxassetid://124455167265111", Volume = 0.2 },
+		SeekerBeep = { Id = "rbxassetid://124455167265111", Volume = 0.16 },
 		SeekerLock = { Id = "rbxassetid://126305525792122", Volume = 0.35 },
 		-- Rewind (public library audio, each checked loading in this game and measured with an
 		-- AudioAnalyzer, 2026-09-29): arming, "Eject Cassette SFX" (zImBored, from Pixabay,
@@ -3287,8 +3291,8 @@ Config.Ults = {
 		-- "Cassette Play SFX" (WaddelsG, 0.65 s, a sharp clunk, peak 41, with a low tail);
 		-- a try that drops one of yours (the ability spent, no rewind), "cassette click"
 		-- (zKevin, 0.17 s). (tune by ear)
-		RewindArm = { Id = "rbxassetid://124843841489877", Volume = 0.7 },
-		RewindWhirr = { Id = "rbxassetid://7361292522", Volume = 0.9 },
+		RewindArm = { Id = "rbxassetid://124843841489877", Volume = 0.64 },
+		RewindWhirr = { Id = "rbxassetid://7361292522", Volume = 0.48 },
 		RewindClunk = { Id = "rbxassetid://4511695221", Volume = 0.6 },
 		RewindSpent = { Id = "rbxassetid://830440268", Volume = 0.5 },
 		-- Time Stop (public library audio, each checked loading in this game and measured with
@@ -3300,34 +3304,34 @@ Config.Ults = {
 		-- the resume, "Reversed Whoosh Backwards Hissing Burst 2" (Pro Sound Effects, 1.3 s,
 		-- peak 21 at 0.3 s) into "Clock Tick Tock - ULTRAKILL" (ImJustDou, 0.5 s, quiet), which
 		-- also plays as it arms. (tune by ear)
-		TimeSwell = { Id = "rbxassetid://119247066943033", Volume = 0.7 },
+		TimeSwell = { Id = "rbxassetid://119247066943033", Volume = 0.25 },
 		-- The freeze: the designer's own clip (2026-09-30, 3.1 s, a hit at the start fading
 		-- out, peak 0.74 at volume 1; was "Boom Impact Deep Distant Thumping Hits 1").
-		TimeBoom = { Id = "rbxassetid://119468975319371", Volume = 0.9 },
+		TimeBoom = { Id = "rbxassetid://119468975319371", Volume = 0.27 },
 		TimeTick = { Id = "rbxassetid://8140501675", Volume = 1.2, StartOffset = 0.22 },
 		TimeResume = { Id = "rbxassetid://9118158113", Volume = 0.7 },
-		TimeTickTock = { Id = "rbxassetid://98448773080489", Volume = 2 },
+		TimeTickTock = { Id = "rbxassetid://98448773080489", Volume = 0.28 },
 		-- Chain Lightning (public library audio, each checked loading in this game and measured
 		-- with an AudioAnalyzer, 2026-09-29): the charge, "thunder crack" (DundeiEh, 3.5 s, a crack
 		-- at 0.2 s then a rolling tail); each jump, "Quick Electric Zap" (ConeExpierence, 0.9 s,
 		-- loud from the start); while balls glow and while armed, "energy buzz" (mastermilosz,
 		-- 7.4 s, a steady quiet hum, looped); arming, "Electric Zaps 6 (SFX)" (Pro Sound
 		-- Effects, a zap at 0.2-0.35 s). (tune by ear)
-		ChainThunder = { Id = "rbxassetid://72827145254925", Volume = 1.4, StartOffset = 0.12 },
-		ChainZap = { Id = "rbxassetid://97096310054904", Volume = 0.5 },
-		ChainHum = { Id = "rbxassetid://124666497875357", Volume = 1.6 },
-		ChainArm = { Id = "rbxassetid://9114277402", Volume = 1.2, StartOffset = 0.15 },
+		ChainThunder = { Id = "rbxassetid://72827145254925", Volume = 0.38, StartOffset = 0.12 },
+		ChainZap = { Id = "rbxassetid://97096310054904", Volume = 0.08 },
+		ChainHum = { Id = "rbxassetid://124666497875357", Volume = 0.6 },
+		ChainArm = { Id = "rbxassetid://9114277402", Volume = 0.87, StartOffset = 0.15 },
 		-- Portals (public library audio, each checked loading in this game and measured with an
 		-- AudioAnalyzer, 2026-09-29): while open, "Metallic Glow Constant Deep Ticking Bassy Hum"
 		-- (Pro Sound Effects, 18.5 s, a steady surging hum, looped); a ball going in, "swish
 		-- teleport tp flashstep sfx" (Axellatic, 1.9 s, peak at 0.2 s), pitched down; coming out,
 		-- "Pop Sound Effect" (Siegegeddon, 0.2 s); opening, "teleport" (Joshua00924, 1 s);
 		-- closing, the swish pitched further down. (tune by ear)
-		PortalHum = { Id = "rbxassetid://9125674114", Volume = 1.6 },
-		PortalEnter = { Id = "rbxassetid://108156925383225", Volume = 0.9, Pitch = 0.8 },
-		PortalExit = { Id = "rbxassetid://140323850218372", Volume = 2.5 },
-		PortalOpen = { Id = "rbxassetid://135640489101126", Volume = 0.7, Pitch = 1.1 },
-		PortalClose = { Id = "rbxassetid://108156925383225", Volume = 0.6, Pitch = 0.6 },
+		PortalHum = { Id = "rbxassetid://9125674114", Volume = 0.22 },
+		PortalEnter = { Id = "rbxassetid://108156925383225", Volume = 0.15, Pitch = 0.8 },
+		PortalExit = { Id = "rbxassetid://140323850218372", Volume = 0.75 },
+		PortalOpen = { Id = "rbxassetid://135640489101126", Volume = 0.16, Pitch = 1.1 },
+		PortalClose = { Id = "rbxassetid://108156925383225", Volume = 0.15, Pitch = 0.6 },
 		-- Steel Ball (public library audio, each checked loading in this game): the "nyo-ho"
 		-- stand-in is a playful two-note whistle call (the brief's fallback; a recorded call is
 		-- the designer's), a spinning-top loop for the whirr, a heavy metal hit for each
@@ -3335,17 +3339,17 @@ Config.Ults = {
 		-- The activation and the cue ball's first hit: the designer's own clip (2026-09-30,
 		-- 3.8 s, loud throughout, peak 1.0 at volume 1; was a two-note whistle call). Later
 		-- contacts keep the short clank.
-		SteelCall = { Id = "rbxassetid://88567420275306", Volume = 0.8 },
-		SteelWhirr = { Id = "rbxassetid://122309511753634", Volume = 0.8, Pitch = 1.2 },
-		SteelClank = { Id = "rbxassetid://117478490073055", Volume = 0.9 },
-		SteelPot = { Id = "rbxassetid://135385970610304", Volume = 0.7 },
+		SteelCall = { Id = "rbxassetid://88567420275306", Volume = 0.25 },
+		SteelWhirr = { Id = "rbxassetid://122309511753634", Volume = 0.53, Pitch = 1.2 },
+		SteelClank = { Id = "rbxassetid://117478490073055", Volume = 0.42 },
+		SteelPot = { Id = "rbxassetid://135385970610304", Volume = 0.49 },
 		-- Black Flash: the cue ball's first hit plays the designer's own clip (2026-09-30; was a
 		-- boom, a glass shatter and a crackle tail). The file holds three hits (about 0.4 s,
 		-- 2.8 s and 6.5 s in, peak 0.66 at volume 1): only the first plays. An electric
 		-- crackle (public library audio) loops quietly while armed.
 		FlashHit = {
 			Id = "rbxassetid://78697555368113",
-			Volume = 1.6,
+			Volume = 0.35,
 			StartOffset = 0.2,
 			Length = 2.35,
 		},
@@ -3355,17 +3359,17 @@ Config.Ults = {
 		-- opening, "Tutti Suck" (APM, 2.9 s, an orchestral swell to a suck-out); each ball
 		-- caught, Time Stop's reversed whoosh (a rising whoosh); the collapse, Portals' pop
 		-- pitched far down (hollow). (tune by ear)
-		HoleDrone = { Id = "rbxassetid://9112795463", Volume = 1.2 },
-		HoleOpen = { Id = "rbxassetid://9039693523", Volume = 0.8 },
+		HoleDrone = { Id = "rbxassetid://9112795463", Volume = 0.31 },
+		HoleOpen = { Id = "rbxassetid://9039693523", Volume = 0.18 },
 		HolePull = { Id = "rbxassetid://9118158113", Volume = 0.6, Pitch = 1.1 },
-		HolePop = { Id = "rbxassetid://140323850218372", Volume = 3, Pitch = 0.45 },
+		HolePop = { Id = "rbxassetid://140323850218372", Volume = 0.75, Pitch = 0.45 },
 		-- Guangdong Tiger (public library audio, each checked loading in this game, 2026-09-29):
 		-- the leap, "Tiger Roars 9" (Pro Sound Effects, 1.6 s); the swipe, "Red Mist Vertical
 		-- Split" played three times a beat apart, each a little higher; the landing, "Body
 		-- Impact 2" (Pro Sound Effects, a hard thump) pitched down. (tune by ear)
-		TigerRoar = { Id = "rbxassetid://9120047974", Volume = 1.3 },
-		TigerSlash = { Id = "rbxassetid://122411746821632", Volume = 0.9 },
-		TigerThump = { Id = "rbxassetid://9113524237", Volume = 1.4, Pitch = 0.6 },
+		TigerRoar = { Id = "rbxassetid://9120047974", Volume = 0.52 },
+		TigerSlash = { Id = "rbxassetid://122411746821632", Volume = 0.1 },
+		TigerThump = { Id = "rbxassetid://9113524237", Volume = 0.74, Pitch = 0.6 },
 	},
 }
 
@@ -4193,7 +4197,9 @@ Config.Audio = {
 	-- AudioAnalyzer (its 90th-percentile RMS; peak for clicks and ticks) and the Volumes set so a
 	-- sting lands near YourTurn's loudness (Volume x RMS about 0.045), the big moments (rank-up,
 	-- new tier, the lucky block's build, the Secret heartbeat) a little over it. Before this the
-	-- Secret heartbeat sat 8x and the rank fanfares 2x louder than everything else.
+	-- Secret heartbeat sat 8x and the rank fanfares 2x louder than everything else. Re-measured
+	-- 2026-10-07 (designer: nothing should hurt): the reveals and the pull cutscenes' risers and
+	-- hits, added since, sat 1.5 to 3x over and now cap at 0.06, a big moment.
 	Ui = {
 		-- "CoinTransfer_01" (Roblox, 1.7 s): a chip lands in the money HUD.
 		CashLand = { Id = "rbxassetid://127645268874265", Volume = 0.3, Overlap = true },
@@ -4217,7 +4223,7 @@ Config.Audio = {
 		-- Roblox's own library or APM Music via Roblox; each checked loading in this game.
 		-- "Roblox_UI_Small_Click" (0.13 s), pitched up and quiet: one card passing the marker.
 		LuckyPlace = { Id = "rbxassetid://4612375802", Volume = 0.28, Overlap = true },
-		LuckyAnticipation = { Id = "rbxassetid://86828699372798", Volume = 0.23, Overlap = true },
+		LuckyAnticipation = { Id = "rbxassetid://86828699372798", Volume = 0.2, Overlap = true },
 		ReelTick = { Id = "rbxassetid://15675032796", Volume = 0.1, Overlap = true, Pitch = 1.7 },
 		-- "Roblox_UI_Sweep" (Roblox, 0.61 s): the reel settling on the prize.
 		ReelSettle = { Id = "rbxassetid://15675046931", Volume = 0.3 },
@@ -4228,11 +4234,11 @@ Config.Audio = {
 		-- (0.3), RevealRare 101099108525458 (0.28), RevealEpic 101099108525458 (0.31),
 		-- RevealLegendary 83442240487773 (0.28), RevealMythic 83442240487773 (0.3);
 		-- assets/audio/luckyblocks/README.md.
-		RevealLow = { Id = "rbxassetid://4612378086", Volume = 0.3 },
-		RevealRare = { Id = "rbxassetid://4612378086", Volume = 0.3 },
-		RevealEpic = { Id = "rbxassetid://4612378364", Volume = 0.3 },
-		RevealLegendary = { Id = "rbxassetid://4612378364", Volume = 0.3 },
-		RevealMythic = { Id = "rbxassetid://4612378364", Volume = 0.3 },
+		RevealLow = { Id = "rbxassetid://4612378086", Volume = 0.2 },
+		RevealRare = { Id = "rbxassetid://4612378086", Volume = 0.2 },
+		RevealEpic = { Id = "rbxassetid://4612378364", Volume = 0.18 },
+		RevealLegendary = { Id = "rbxassetid://4612378364", Volume = 0.18 },
+		RevealMythic = { Id = "rbxassetid://4612378364", Volume = 0.18 },
 		-- The win (designer, 2026-10-07): the old Rare reveal's orchestral sting (403300
 		-- "Fast Orchestral WIN Celebration", assets/audio/luckyblocks/README.md), timed so its
 		-- two hits land on a winner's Total and Continue (ResultScreen; Result.WinSting).
@@ -4243,22 +4249,22 @@ Config.Audio = {
 		-- "Riser_080" (the designer's file, trimmed to 2.7 s; peak at 1.98 s) and a pulsing bass
 		-- hit ("InnerCircle01", 1.75 s, loud: kept low): the Epic pull cutscene, both from the
 		-- fade to black (Config.Cutscenes.Epic).
-		RiserEpic = { Id = "rbxassetid://96196182552147", Volume = 0.5 },
-		ImpactEpic = { Id = "rbxassetid://124125612588605", Volume = 0.35 },
+		RiserEpic = { Id = "rbxassetid://96196182552147", Volume = 0.37 },
+		ImpactEpic = { Id = "rbxassetid://124125612588605", Volume = 0.13 },
 		-- The Legendary pull cutscene (Config.Cutscenes.Legendary), the designer's files trimmed
 		-- (assets/audio/cutscenes): "Logo_Reveal_Sequence_01" (5 s: a bass drop at once, its
 		-- impact at 4.0 s; loud, kept low), "Chaos-Rise" (from 1.8 s, 3.4 s: peak at 3.1 s) and
 		-- "Cinematic-Hit-016" (from its onset, 4.5 s).
-		LegendaryCinematic = { Id = "rbxassetid://111448999523683", Volume = 0.35 },
-		LegendaryRise = { Id = "rbxassetid://119943211186448", Volume = 0.6 },
-		LegendaryHit = { Id = "rbxassetid://98145599201576", Volume = 0.45 },
+		LegendaryCinematic = { Id = "rbxassetid://111448999523683", Volume = 0.15 },
+		LegendaryRise = { Id = "rbxassetid://119943211186448", Volume = 0.41 },
+		LegendaryHit = { Id = "rbxassetid://98145599201576", Volume = 0.27 },
 		-- "Aurora" (the designer's 214981, its first 40 s, 1 s fade in, 3 s fade out; quiet
 		-- already): looped VERY faintly under the Legendary card (Config.Cutscenes.Legendary
 		-- .Ambience).
 		LegendaryAurora = { Id = "rbxassetid://138935380522596", Volume = 0.3, Looped = true },
 		-- The Secret pull's heartbeat and shockwave (GUI lane, 2026-10-03; licensed library
 		-- sounds: APM "Heart Beat", Pro Sound Effects "Thruster Blast 8").
-		Heartbeat = { Id = "rbxassetid://1839088414", Volume = 0.15, Overlap = true },
+		Heartbeat = { Id = "rbxassetid://1839088414", Volume = 0.12, Overlap = true },
 		Shockwave = { Id = "rbxassetid://9120009360", Volume = 0.5 },
 		-- "Roblox_UI_Tonal_Stinger" (1.5 s): a reward claimed (daily, playtime, index, code).
 		Claim = { Id = "rbxassetid://15675043410", Volume = 0.3 },
