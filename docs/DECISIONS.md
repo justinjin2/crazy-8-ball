@@ -2946,3 +2946,10 @@ timer of a new block stay the designer's call.
   shop art may be redrawn on the same frame. **The Gift block** is given once, the first time a
   player leaves the game, on a 12-hour timer, and falls from the sky in its own cutscene (may
   change later; the design is finalized first). Its build waits on the concepts.
+- 2026-10-07 (designer, concepts final): **round B for every block** (thick edge bars with a
+  chunky cube bulging out at each corner), **except Mystery, which uses round C** (the same bars
+  meeting flush, nothing sticking out). The redrawn Grand Opening block (B) replaces the Shop's
+  art. The tier ladder is drawn in the same style: Standard yellow, Uncommon green, Rare blue,
+  Epic dark purple with violet energy cracks, Legendary orange-gold with golden wings. The
+  approved art lives in `~/Desktop/8ball-refs/lucky-blocks/` (`concepts_b/`, `concepts_c/mystery_c.png`,
+  `tiers/`). Building starts: the master block in Blender on the pack's own C_01 skeleton.

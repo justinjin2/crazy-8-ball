@@ -48,10 +48,11 @@ Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (be
   every kind is the master plus a texture, an optional topper on the top bone and a recoloured
   pack VFX set, as Config data. Wings (the pack's winged rig and idle) on Legendary, Mythic
   and Sky. In order:
-  - [ ] Concept sheet: 8 Ball, gift-wrapped Starter, Gift (clock), Mythic, Sky, Mystery,
+  - [x] Concept sheet: 8 Ball, gift-wrapped Starter, Gift (clock), Mythic, Sky, Mystery,
     with the Grand Opening block as the style key; designer approves. Round A:
     https://claude.ai/artifact/7u35cgsdy9uZt1jPyUSDEL (art in `~/Desktop/8ball-refs/lucky-blocks/`).
-  - [ ] Then the same concepts for Standard, Uncommon, Rare, Epic and Legendary.
+  - [x] Then the same concepts for Standard, Uncommon, Rare, Epic and Legendary (approved
+    2026-10-07: round B everywhere, Mystery on round C's flush rims).
   - [ ] Final glossy 2D icon for every kind (GPT Image, the Grand Opening block as the
     reference); the Shop, hotbar and bag use the 2D icon (no 3D viewport).
   - [ ] The 3D master block and its rig in Blender, built to the approved icons.
