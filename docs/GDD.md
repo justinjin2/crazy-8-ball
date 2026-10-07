@@ -779,7 +779,7 @@ reworked for lucky blocks on 2026-10-04.
 - **The blocks** (plan, 2026-10-02): six tier blocks, Standard, Uncommon, Rare, Epic, Legendary
   and Mythic, each guaranteeing at least the rarity below its name. Standard and Uncommon open
   at once; Rare, Epic, Legendary and Mythic open after 1 h, 6 h, 24 h and 48 h, all timers
-  running at once; VIP halves every timer. Other kinds have their own odds rows: Mystery (the
+  running at once; VIP has no timers at all (designer, 2026-10-07). Other kinds have their own odds rows: Mystery (the
   tier roll), Grand Opening (with the Firework Cue 3% and the Beta Cue 0.3%), Starter
   (the Starter Pack, Rare or better), Sky, Lucky 8 and Gift. **No block is sold permanently**:
   the four money cases, Buy-10, case sales and the Event Case are gone. Blocks come from
@@ -858,7 +858,7 @@ reworked for lucky blocks on 2026-10-04.
   Common; Portals is flagged for a re-measure. Ults are kept in 3 slots; a spin replaces the
   selected slot's ult. ECONOMY.md section 11.8.
 - **VIP** (one-time pass, 499 R$ *(tune)*; designer, 2026-10-04: was 599, the Quick Cases pass
-  retired into it): 2x money, block timers twice as fast, Skip and Auto Spin on the spin
+  retired into it): 2x money, **no block timers** (every block opens at once; designer, 2026-10-07), Skip and Auto Spin on the spin
   screen, +1 free ability spin a day, the VIP slot in the restock shop (a fourth block every
   restock), the VIP Cue, a [VIP] chat tag before the rank tag ("[VIP] [GOLD] Name"; the name
   in chat keeps Roblox's colour) and a rainbow name over the head whose colours drift slowly

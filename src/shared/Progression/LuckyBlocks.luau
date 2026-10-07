@@ -95,7 +95,7 @@ function LuckyBlocks.fresh(): State
 end
 
 --- Seconds after landing until a block of `kind` can be thrown (0 for an unknown kind). VIP
---- shortens every timer (Config.LuckyBlocks.VipTimerFactor, rounded up to whole seconds).
+--- multiplies every timer by Config.LuckyBlocks.VipTimerFactor (0: VIP has no timers).
 function LuckyBlocks.timer(kind: string, vip: boolean?): number
 	local row = LuckyBlocks.kind(kind)
 	if row == nil or row.Timer <= 0 then
@@ -145,6 +145,19 @@ function LuckyBlocks.canOpen(block: Block, now: number, userId: number): boolean
 		or (L.Test.BypassTimer and table.find(Config.Debug.Commands.UserIds, userId) ~= nil)
 end
 
+--- VIP has no timers (designer, 2026-10-07): every block still on its timer is ready at `now`
+--- (its origin unchanged). Returns how many were finished.
+function LuckyBlocks.finishTimers(state: State, now: number): number
+	local n = 0
+	for _, block in state.List do
+		if block.ReadyAt > now then
+			block.ReadyAt = now
+			n += 1
+		end
+	end
+	return n
+end
+
 --- Spend one previously purchased credit on precisely this still-running timer.
 function LuckyBlocks.useSkip(state: State, id: number, now: number): boolean
 	local block = LuckyBlocks.find(state, id)
@@ -191,7 +204,7 @@ function LuckyBlocks.find(state: State, id: number): (Block?, number?)
 end
 
 --- Adds a block of `kind` landing at `now` (its timer starts; a `paid` one is ready at once
---- and keeps its paid origin; `vip` halves the timer), at place `at` (1..#List + 1; nil: the
+--- and keeps its paid origin; `vip` takes the VIP timer, none), at place `at` (1..#List + 1; nil: the
 --- end). Returns the new block. Errors on an unknown kind: never a broken block.
 function LuckyBlocks.add(
 	state: State,

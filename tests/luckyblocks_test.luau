@@ -26,11 +26,17 @@ return {
 		do
 			H.expect(L.kind(row[1]).Odds == row[2] and L.timer(row[1]) == row[3], row[1])
 		end
-		-- VIP halves every timer (Config.LuckyBlocks.VipTimerFactor); the Mystery block rolls a
-		-- tier first (no odds row of its own).
-		H.expect(Config.LuckyBlocks.VipTimerFactor == 0.5, "twice as fast")
-		H.expect(L.timer("Rare", true) == 1800 and L.timer("Standard", true) == 0, "VIP halves")
-		H.expect(L.timer("Mythic", true) == 86400, "48 h becomes 24 h")
+		-- VIP has no timers (Config.LuckyBlocks.VipTimerFactor 0, designer 2026-10-07); the
+		-- Mystery block rolls a tier first (no odds row of its own).
+		H.expect(Config.LuckyBlocks.VipTimerFactor == 0, "no VIP timers")
+		H.expect(L.timer("Rare", true) == 0 and L.timer("Standard", true) == 0, "VIP: none")
+		H.expect(L.timer("Mythic", true) == 0 and L.timer("Mythic") == 172800, "48 h, or none")
+		-- Timers already running when VIP arrives finish at once.
+		local state = L.fresh()
+		L.add(state, "Mythic", 100)
+		L.add(state, "Standard", 100)
+		H.expect(L.finishTimers(state, 200) == 1, "only the one still waiting")
+		H.expect(L.isReady(state.List[1], 200) and state.List[1].Paid == nil, "ready, not paid")
 		H.expect(L.kind("Mystery").Roll == true and L.kind("Mystery").Odds == nil, "Mystery")
 		-- The old saved ids map to the new kinds (Config.LuckyBlocks.Renamed).
 		H.expect(L.current("Yellow") == "Standard" and L.current("GoldKing") == "Legendary", "")
@@ -248,6 +254,6 @@ return {
 		local vipFlags: { [string]: any } = {}
 		LuckyBlocks.noteLeave(vipFlags, 0)
 		local fast = LuckyBlocks.landGift(state, vipFlags, true)
-		H.expect(fast ~= nil and fast.ReadyAt == 6 * 3600, "VIP halves it like every timer")
+		H.expect(fast ~= nil and fast.ReadyAt == 0, "VIP: no timer, like every block")
 	end,
 }

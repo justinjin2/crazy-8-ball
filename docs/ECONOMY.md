@@ -86,7 +86,7 @@ Other targets (still true):
 | (2026-10-02) XP strictly from skill | wins only; harder modes, streaks and stronger opponents pay more |
 | Losing is never a punishment (2026-09-28) | a loss gives 0 XP, never negative, and $150 |
 | Only a few hundred ever reach Reyes | fixed Reyes at 307,500 XP (section 4.10) |
-| VIP 2x money, not overpowered | 2x money and faster block timers, never odds, blocks or XP |
+| VIP 2x money, not overpowered | 2x money and no block timers, never odds, blocks or XP |
 | Onboarding feels fast | a Rare block and Bronze I on the first win (section 2) |
 
 ---
@@ -177,8 +177,8 @@ money = base x difficulty x (1 + VIP 1.0 + Money Party 1.0 + Starter hour 1.0 + 
 - The Starter Pack's hour of 2x adds to VIP's: x3 for that hour (designer, 2026-10-03).
 - The group's +10% is on while the player is a member of the game's group (section 10.4).
 - The most is x4.1 before difficulty, x8.2 in Challenger.
-- No boost ever changes block odds or how many blocks a player gets. VIP's halved block
-  timers (11.2) are the one VIP perk outside money.
+- No boost ever changes block odds or how many blocks a player gets. VIP's
+  block timers (none, 11.2) are the one VIP perk outside money.
 
 ### 3.6 Anti-farming (alts and friends)
 
@@ -452,7 +452,7 @@ block sources):
   every 2nd) are gone. The anti-farm rules (3.6) and the PC and disguised limits (3.2) still
   apply. Solo never drops.
 - **The Mystery block's timer is 5 minutes** when won (`Config.LuckyBlocks.Kinds.Mystery.Timer`
-  *(tune)*); a bought one opens at once. VIP halves it (11.2). When it opens it morphs into
+  *(tune)*); a bought one opens at once, and so does a VIP's (11.2). When it opens it morphs into
   the tier's block and that block opens in the same flow.
 - **The first win's block is a guaranteed Rare block**, on its normal 1 h timer (designer,
   2026-10-03; `Config.BlockOdds.Drop.FirstWin`). The tutorial also gives Bronze's Standard
@@ -504,8 +504,8 @@ The other kinds (`Config.BlockOdds.List`, each its own odds row):
 - **Timers** start by themselves when the block lands in the hotbar. They all run at once;
   there are no slots. Opening a block before its timer is done answers "Not ready yet"; the
   hotbar slot counts down. A bought block (paid origin) opens at once.
-- **VIP** halves every timer (`Config.LuckyBlocks.VipTimerFactor` 0.5; Quick Cases was
-  retired into VIP, designer 2026-10-04).
+- **VIP has no timers**: every block opens at once (`Config.LuckyBlocks.VipTimerFactor` 0,
+  designer 2026-10-07; it halved them before; Quick Cases was retired into VIP 2026-10-04).
 - **Skips**: a timer is finished with Robux only, 19 R$ (section 9.1). No money skip.
 - A block can be **traded** only once its timer is done (section 12).
 - Blocks live in the hotbar and its bag (`Config.LuckyBlocks.MaxBlocks`), never in the
@@ -744,8 +744,8 @@ is true for every player exactly once.
 499 R$ since 2026-10-04 (designer; was 599), when the Quick Cases pass was retired into it.
 
 - **2x money** (+100%, adds with other boosts) on match money only (3.5).
-- **Block timers twice as fast** (`Config.LuckyBlocks.VipTimerFactor`), timers already running
-  included.
+- **No block timers** (designer, 2026-10-07; was twice as fast): every block opens at once
+  (`Config.LuckyBlocks.VipTimerFactor` 0), and timers already running when VIP arrives finish.
 - **Skip and Auto Spin** on the ability spin screen (11.8; without VIP they answer "NoVip").
 - **+1 free ability spin a day** (added to the day's login claim, 10.1).
 - **The VIP restock slot**: a fourth slot every restock, Rare 96% / Epic 3.85% / Legendary
@@ -958,7 +958,7 @@ come back (7.4), which keeps old cues worth trading for.
 - **Odds as percentages** before every purchase: every outcome with its %, totals exactly 100,
   an "Odds" button in words, live updates.
 - **Paid random items** are: Mystery and Grand Opening blocks (money or Robux), restock
-  blocks, the Starter Pack (its block), the block timer skip, VIP's halved timers and daily
+  blocks, the Starter Pack (its block), the block timer skip, VIP's timer perk (no timers) and daily
   spin, and ability spins (`Random = true` in `Config.Products`). Where **`PolicyService:ArePaidRandomItemsRestricted`** is true (Roblox
   names Australia, Belgium, the Netherlands, the UK and Brazil for under-18s) they are hidden or
   refused ("Restricted"). Free rewards still work there, and so does the Limited shelf (a known

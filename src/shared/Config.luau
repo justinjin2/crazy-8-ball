@@ -2094,8 +2094,8 @@ Config.LuckyBlocks = {
 	-- Odds: the Config.BlockOdds row whose odds and cue pool it rolls (Roll = true instead:
 	-- the Mystery block rolls a tier by Config.BlockOdds.Drop.Weights first and opens as that
 	-- tier's block). Timer: seconds after it lands in the inventory until it can be opened (0:
-	-- at once); a bought block (Paid) opens at once and VIP multiplies every timer by
-	-- VipTimerFactor. Model: its
+	-- at once); a bought block (Paid) opens at once, and so does every block of a VIP
+	-- (VipTimerFactor 0). Model: its
 	-- template's name in ReplicatedStorage[ModelFolder]. Idle (optional): the block's own idle
 	-- animation, uploaded to the group; without one it plays Anim.BlockIdle. Guarantee: the
 	-- At-th block of this kind a player opens is this cue if they have none (a paid pity, shown
@@ -2224,7 +2224,9 @@ Config.LuckyBlocks = {
 	-- code once it has landed: this high, this fast.
 	Bob = { HeightStuds = 0.35, Seconds = 2.4, TurnDegreesPerSecond = 30 },
 	SkipProduct = "LuckyBlockSkip", -- 19 Robux: one durable timer skip
-	VipTimerFactor = 0.5, -- VIP multiplies every block timer by this: twice as fast
+	-- VIP multiplies every block timer by this: 0, no timers at all (designer, 2026-10-07; was
+	-- 0.5). Timers already running when VIP arrives finish at once (PlayerData).
+	VipTimerFactor = 0,
 	PlacementGapStuds = 3.5, -- keep adjacent floor blocks and their prompts apart
 	PlacementAttempts = 24, -- nearby empty spots to try before asking the player to move
 	LiveFolder = "LuckyBlocksLive", -- Workspace folder for thrown blocks (server-made)
@@ -2931,7 +2933,7 @@ Config.Products = {
 	BestValue = "Pack6",
 	List = {
 		-- Game passes.
-		-- VIP (499 R$, designer 2026-10-04: was 599; halved block timers, fast reveals and
+		-- VIP (499 R$, designer 2026-10-04: was 599; no block timers (2026-10-07), fast reveals and
 		-- Auto Spin). The live price is read from Roblox; change the pass's price in Creator
 		-- Hub to match. The Quick Cases pass (id 2006144658) was retired into VIP 2026-10-04.
 		Vip = { Kind = "Pass", Id = 2005370712, Robux = 499 },

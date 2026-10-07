@@ -2990,3 +2990,6 @@ timer of a new block stay the designer's call.
   up, it falls again next visit.
 - 2026-10-07: The cue in the pull bar is drawn shorter (PowerCueArtLength 1.12 to 1.24): the
   redrawn cue pictures poked out over the bar (designer).
+- 2026-10-07: VIP has no lucky block timers at all (designer: "to make it even more appealing";
+  it halved them before). Every block a VIP gets opens at once (VipTimerFactor 0), and timers
+  already running finish when the save loads with VIP or VIP is bought.

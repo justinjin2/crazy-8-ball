@@ -202,8 +202,8 @@ local inviteEvent = Instance.new("BindableEvent")
 --- invite block (Config.Social.InviteBlock); src/server/Social.luau then queues the inviter's.
 PlayerData.InviteWon = inviteEvent.Event
 
--- The Store's VIP attribute on the player (VIP shortens every lucky block timer:
--- Config.LuckyBlocks.VipTimerFactor). Read when a mutation fetched the save (vipOfSave), so
+-- The Store's VIP attribute on the player (VIP has no lucky block timers:
+-- Config.LuckyBlocks.VipTimerFactor 0). Read when a mutation fetched the save (vipOfSave), so
 -- every block given in that change gets the right timer.
 local VIP_ATTR = "Vip"
 local vipOfSave: { [any]: boolean } = setmetatable({}, { __mode = "k" }) :: any
@@ -418,7 +418,7 @@ local function vipOf(player: Player): boolean
 end
 
 -- Adds `count` lucky blocks of `kind` to the save, landing now (`paid`: bought, ready at
--- once, paid origin; `vip` shortens a free one's timer). A purchase is Robux already paid
+-- once, paid origin; `vip`: a free one has the VIP timer, none). A purchase is Robux already paid
 -- and is never cut (the shop refuses the prompt when the hotbar is full, ShopView "Full"); a
 -- free block past Config.LuckyBlocks.MaxBlocks is dropped rather than growing the list
 -- without limit (a count nobody reaches). Free blocks are noted for commit (BlocksGiven).
@@ -911,6 +911,17 @@ end
 -- Opens, updates and repairs a player's save, then replicates it and fires Loaded. Runs in
 -- its own thread per player (it yields while the DataStore answers). Every way out ends in a
 -- loaded save or a kick; an opened session is never left behind with nobody holding it.
+-- A VIP's blocks still on their timers are ready now (LuckyBlocks.finishTimers).
+local function finishVipTimers(player: Player)
+	if not vipOf(player) then
+		return
+	end
+	local data = peek(player)
+	if data ~= nil and LuckyBlocks.finishTimers(data.LuckyBlocks, os.time()) > 0 then
+		commit(player, data, "finishVipTimers")
+	end
+end
+
 local function load(player: Player)
 	if loading[player] or profiles[player] then
 		return
@@ -963,6 +974,11 @@ local function load(player: Player)
 	show(player, profile.Data)
 	setAttribute(player, ATTR.Loaded, true)
 	loadedEvent:Fire(player)
+	-- VIP has no timers: running ones finish when the save loads with VIP or VIP arrives.
+	finishVipTimers(player)
+	player:GetAttributeChangedSignal(VIP_ATTR):Connect(function()
+		finishVipTimers(player)
+	end)
 end
 
 -- Players whose save was let go early for a teleport (PlayerData.handOff), so their
@@ -1862,7 +1878,7 @@ end
 ---------------------------------------------------------------------------------------------
 
 --- Gives `count` (1..Config.LuckyBlocks.MaxBlocks) blocks of `kind`, landing now (their timers
---- start, shortened for a VIP; `paid`: ready at once, paid origin), at place `at` in the list
+--- start, none for a VIP; `paid`: ready at once, paid origin), at place `at` in the list
 --- (nil: the end). False when the save is not loaded, the arguments are bad (logged) or they
 --- would pass the cap (logged).
 function PlayerData.giveLuckyBlocks(

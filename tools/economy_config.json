@@ -385,91 +385,109 @@
   "LuckyBlocks": {
     "Kinds": {
       "Epic": {
-        "Model": "VoidLavaLuckyBlock",
+        "Icon": "rbxassetid://90574468724799",
+        "Idle": "rbxassetid://126596744037463",
+        "Model": "EpicBlock",
         "Odds": "Epic",
         "Timer": 21600
       },
       "Gift": {
-        "Model": "StarterLuckyBlock",
+        "HoldCenterShare": 0.39,
+        "Icon": "rbxassetid://78700846306745",
+        "IconScale": 1.1,
+        "Idle": "rbxassetid://126596744037463",
+        "Model": "GiftBlock",
         "Odds": "Rare",
+        "SizeMultiplier": 1.28,
         "Timer": 43200
       },
       "GrandOpening": {
-        "EmissiveStrength": 0.15,
         "Guarantee": {
           "At": 400,
           "Cue": "BetaCue"
         },
-        "HoldCenterShare": 0.3,
-        "IconAmbient": 0.7,
-        "IconLight": 1,
-        "IconScale": 1.25,
-        "Idle": "rbxassetid://77259119233155",
-        "Model": "GoldKingLuckyBlock",
+        "HoldCenterShare": 0.36,
+        "Icon": "rbxassetid://72796006793771",
+        "IconScale": 1.2,
+        "Idle": "rbxassetid://126596744037463",
+        "Model": "GrandOpeningBlock",
         "Odds": "GrandOpening",
-        "SizeMultiplier": 1.8,
+        "SizeMultiplier": 1.4,
         "Timer": 0
       },
       "Legendary": {
-        "EmissiveStrength": 0.2,
-        "HoldCenterShare": 0.4,
-        "IconAmbient": 0.7,
-        "IconLight": 1,
-        "IconScale": 2.1,
-        "Idle": "rbxassetid://80469786057791",
-        "Model": "GoldMajesticLuckyBlock",
+        "HoldCenterShare": 0.185,
+        "Icon": "rbxassetid://128589483213137",
+        "IconScale": 2.2,
+        "Idle": "rbxassetid://90314042377562",
+        "Model": "LegendaryBlock",
         "Odds": "Legendary",
-        "SizeMultiplier": 1.6,
+        "SizeMultiplier": 2.7,
         "Timer": 86400
       },
       "Lucky8": {
-        "Bob": true,
-        "Model": "Lucky8Block",
+        "Icon": "rbxassetid://118551627638397",
+        "Idle": "rbxassetid://126596744037463",
+        "Model": "EightBallBlock",
         "Odds": "Rare",
         "Timer": 0
       },
       "Mystery": {
-        "Model": "MysteryLuckyBlock",
+        "Icon": "rbxassetid://76412774878315",
+        "Idle": "rbxassetid://126596744037463",
+        "Model": "MysteryBlock",
         "Roll": true,
         "Timer": 300
       },
       "Mythic": {
-        "EmissiveStrength": 0.3,
-        "HoldCenterShare": 0.4,
-        "IconScale": 2.4,
-        "Idle": "rbxassetid://80469786057791",
-        "Model": "GoldTitanLuckyBlock",
+        "HoldCenterShare": 0.185,
+        "Icon": "rbxassetid://125009619556113",
+        "IconScale": 2.2,
+        "Idle": "rbxassetid://90314042377562",
+        "Model": "MythicBlock",
         "Odds": "Mythic",
         "Rainbow": true,
-        "SizeMultiplier": 1.6,
+        "SizeMultiplier": 2.7,
         "Timer": 172800
       },
       "Rare": {
-        "Model": "BlueLuckyBlock",
+        "Icon": "rbxassetid://114285593441963",
+        "Idle": "rbxassetid://126596744037463",
+        "Model": "RareBlock",
         "Odds": "Rare",
         "Timer": 3600
       },
       "Sky": {
-        "HoldCenterShare": 0.4,
-        "IconScale": 2,
-        "Idle": "rbxassetid://80469786057791",
-        "Model": "SkyLuckyBlock",
+        "HoldCenterShare": 0.35,
+        "Icon": "rbxassetid://75262912311625",
+        "IconScale": 1.6,
+        "Idle": "rbxassetid://90314042377562",
+        "Model": "SkyBlock",
         "Odds": "Sky",
-        "SizeMultiplier": 1.4,
+        "SizeMultiplier": 2,
         "Timer": 0
       },
       "Standard": {
-        "Model": "YellowLuckyBlock",
+        "Icon": "rbxassetid://125706639188399",
+        "Idle": "rbxassetid://126596744037463",
+        "Model": "StandardBlock",
         "Odds": "Standard",
         "Timer": 0
       },
       "Starter": {
-        "Model": "StarterLuckyBlock",
+        "HoldCenterShare": 0.39,
+        "Icon": "rbxassetid://136835865759096",
+        "IconScale": 1.1,
+        "Idle": "rbxassetid://126596744037463",
+        "Model": "StarterBlock",
         "Odds": "Starter",
+        "SizeMultiplier": 1.28,
         "Timer": 0
       },
       "Uncommon": {
-        "Model": "GreenLuckyBlock",
+        "Icon": "rbxassetid://119408380665005",
+        "Idle": "rbxassetid://126596744037463",
+        "Model": "UncommonBlock",
         "Odds": "Uncommon",
         "Timer": 0
       }
@@ -488,7 +506,7 @@
       "Starter",
       "Gift"
     ],
-    "VipTimerFactor": 0.5
+    "VipTimerFactor": 0
   },
   "Packs": [
     {
