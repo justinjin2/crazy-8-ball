@@ -61,14 +61,17 @@ function PadBar.promptAfter(friendHere: boolean): number
 	return if friendHere then B.PromptFriendsSeconds else B.PromptAloneSeconds
 end
 
---- The bar for `userId` on `snapshot` (a Waiting table), `since` being when they stepped on.
+--- The bar for `userId` on `snapshot` (a Waiting table), `since` being when they stepped on;
+--- `dismissed`: the host pressed Play Global's X on this step-on (designer, 2026-10-07: for
+--- those who would rather keep waiting), so it stays hidden until they step on again.
 function PadBar.view(
 	snapshot: any,
 	userId: number,
 	now: number,
 	since: number,
 	friendHere: boolean,
-	press: Press
+	press: Press,
+	dismissed: boolean?
 ): View
 	local count = PadBar.count(snapshot)
 	local teamSize = snapshot.teamSize
@@ -105,8 +108,36 @@ function PadBar.view(
 	end
 	-- A team table searches as a whole side (MatchEngine.canSearch).
 	view.needsSide = count < teamSize
-	view.showGlobal = not view.needsSide and now - since >= PadBar.promptAfter(friendHere)
+	view.showGlobal = not view.needsSide
+		and not dismissed
+		and now - since >= PadBar.promptAfter(friendHere)
 	return view
+end
+
+--- Whether the spawn pill shows (designer, 2026-10-07): "Don't want to wait?" and Play Global
+--- for a player alone in a public lobby server, from the moment they spawn, with no pad. Never
+--- in a private server (people there play with their friends) or during the tutorial. It goes
+--- when they press its X, after Config.UI.MatchBar.SpawnPillSeconds, when they step on a pad
+--- (the pad's bar takes over) or when a real player joins; a search it started keeps it up.
+function PadBar.spawnPill(
+	args: {
+		alone: boolean,
+		publicLobby: boolean,
+		tutorial: boolean,
+		onPad: boolean,
+		dismissed: boolean,
+		since: number?, -- when it first showed this session (nil: not yet)
+		now: number,
+		searching: boolean,
+	}
+): boolean
+	if args.searching then
+		return true
+	end
+	if not args.alone or not args.publicLobby or args.tutorial or args.onPad or args.dismissed then
+		return false
+	end
+	return args.since == nil or args.now - args.since < B.SpawnPillSeconds
 end
 
 --- "0:07": the search's time.

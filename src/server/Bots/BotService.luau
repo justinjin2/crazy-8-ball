@@ -32,6 +32,7 @@ local Look = require(Shared.Bots.Look)
 local Rng = require(Shared.Bots.Rng)
 local Tables = require(script.Parent.Parent.TableService)
 local GlobalQueue = require(script.Parent.Parent.GlobalQueue)
+local SoloSearch = require(script.Parent.Parent.SoloSearch)
 local UltService = require(script.Parent.Parent.UltService)
 local Body = require(script.Parent.Body)
 local Identity = require(script.Parent.Identity)
@@ -690,7 +691,9 @@ function BotService.setFallbackWait(fn: ((Player) -> number?)?)
 	fallbackWait = fn
 end
 
-local function soloFallback(t: any, player: Player)
+-- `deliver(match)` hands the bot match to the search (a pad's or a solo one) and says whether
+-- it was taken (false: a real opponent came first).
+local function soloFallback(player: Player, deliver: (any) -> boolean)
 	local tier = playerTier(player)
 	local record = {
 		mode = 1,
@@ -703,7 +706,7 @@ local function soloFallback(t: any, player: Player)
 		},
 	}
 	local match = GlobalQueue.botMatch(record, 1)
-	if match and not Tables.searchToMatch(t, match) then
+	if match and not deliver(match) then
 		print(("[8ball] GQ bot match %s not used: a real opponent came first"):format(match.id))
 	end
 end
@@ -769,7 +772,9 @@ local function watchSearches()
 			task.spawn(function()
 				local ok, err = pcall(function(): any
 					if size == 1 then
-						soloFallback(t, group[1])
+						soloFallback(group[1], function(match: any): boolean
+							return Tables.searchToMatch(t, match)
+						end)
 					else
 						teamFallback(t, group)
 					end
@@ -779,6 +784,25 @@ local function watchSearches()
 					warn("[8ball] GQ bot fallback failed: " .. tostring(err))
 				end
 				fallbackBusy[t] = nil
+			end)
+		end
+	end
+	-- Play Global with no pad (SoloSearch, the spawn pill): the same 1v1 safety net.
+	for _, w in SoloSearch.waiting() do
+		local player = w.player
+		if not fallbackBusy[player] and now() - w.at >= F.SoloSeconds then
+			fallbackBusy[player] = true
+			task.spawn(function()
+				local ok, err = pcall(function(): any
+					soloFallback(player, function(match: any): boolean
+						return SoloSearch.toMatch(player, match)
+					end)
+					return nil
+				end)
+				if not ok then
+					warn("[8ball] GQ solo bot fallback failed: " .. tostring(err))
+				end
+				fallbackBusy[player] = nil
 			end)
 		end
 	end

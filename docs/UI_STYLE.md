@@ -335,7 +335,13 @@ below are the summary; the skill has the numbers and code.
   above it; it pops in as the bar widens round its centre (0.2 s), then breathes gently
   (`UIAnim.pulse` at 1.015 over 1.6 s, gentler than the house 1.03 over 0.9 s, by the
   designer's note; none with Reduce Motion). While searching a small red X candy takes its
-  place. The whole bar pops in and out (the house entrance for a HUD piece).
+  place. The whole bar pops in and out (the house entrance for a HUD piece). A small round
+  red X candy (`DismissPx` 24) sits on Play Global's top-right corner and dismisses it
+  (designer, 2026-10-07); a gamepad reaches it right of Play Global.
+- **The spawn pill** (designer, 2026-10-07): the same "Don't want to wait?" and Play Global
+  with its X, alone in the bar's spot with no waiting pill, for a player alone in a public
+  server. Searching from it shows the pill with the Classic icon and "Searching... 0:03" (no
+  count chip) and the red X.
 - **The teleport screen**: a dark full screen (no card: it stands in for Roblox's loading
   screen) with MATCH FOUND in bright green and one breathing line ("Joining the
   arena...", or "Back to the lobby..."). It stays through the load and fades out once the

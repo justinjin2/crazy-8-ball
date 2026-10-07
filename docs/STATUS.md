@@ -54,16 +54,17 @@ Updated 2026-10-07.
   its badge bigger still. The red "!" stays on screen.
   A phone's lucky block hotbar shows only slots 1-3 (the rest in the bag). Seen in the Studio
   phone and iPad emulators; a PC size not yet looked at.
-- **The matchmaking bar** (2026-10-07, look A; a small piece under the lively-gui skill;
-  **gate D approved** with three notes done: a gentler pulse, the old Classic icon, the
-  question 1 px bigger; gate E waits on the designer's PC-size and controller check): one slim bar above the hotbar replaces the pad card. The
-  server sends "<name> needs an opponent!" on step-on when no Roblox friend is in the server;
-  Play Global shows after 3 s (5 s with a friend), searching shows the time and a red X, and a
-  1v1 meets a bot at 5 s. Lobby tables play Classic; solo, vs PC and Fill with PC are off the
-  pad for now; lobby bots no longer answer requests; the tutorial needs no button press.
-  Checked in the Studio phone emulator: every state (GuiQA "matchbar"), the auto-request and
-  its 15 s cooldown, 3 s vs 5 s, Play Global to the bot match, the X, Y focus, tutorial games 1
-  and 2. Not yet: a PC size, a real gamepad's A and B, a real friend in a live server.
+- **The matchmaking bar** (2026-10-07, look A, lively-gui small piece; gate D approved, gate E
+  waits on the designer's PC-size and controller check): one slim bar above the hotbar
+  replaces the pad card. "<name> needs an opponent!" is sent on step-on with no friend in the
+  server; Play Global after 3 s (5 s with a friend), with an X to dismiss it until the next
+  step-on; searching shows the time and a red X; a 1v1 meets a bot at 5 s. The **spawn pill**
+  gives Play Global on spawn to a player alone in a public server (not private, not in the
+  tutorial; gone after 20 s, on its X, on a pad or when someone joins) and searches with no
+  pad (`SoloSearch`). Lobby tables play Classic; solo, vs PC and Fill with PC are off the pad.
+  Checked in the phone emulator (GuiQA "matchbar"): every state, the auto-request cooldown,
+  both searches to the bot, both Xs, a pad cancelling a spawn search, the tutorial games.
+  Not yet: a PC size, a real gamepad, a real friend or second player, a live private server.
 - **Lighting.** Day 10 min, sunset 5 min, a 10 s fade; no night and no sun disc. The sunset
   was softened and made less yellow on 2026-10-05.
 - **Pull cutscenes.** Rare, Epic and Legendary are redone ("good for now"); Mythic and Secret

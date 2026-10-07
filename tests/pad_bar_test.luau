@@ -120,4 +120,44 @@ function tests.the_server_asks_for_an_opponent_only_alone_and_not_too_often()
 	expect(with({ lastAt = 100 - cooldown }), "after the cooldown")
 end
 
+function tests.the_pads_x_hides_play_global_until_the_next_step_on()
+	local s = pad(1, { 1 })
+	expect(not PadBar.view(s, 1, 200, 100, false, NONE, true).showGlobal, "dismissed")
+	expect(PadBar.view(s, 1, 200, 100, false, NONE, false).showGlobal, "a new step-on")
+end
+
+function tests.the_spawn_pill_shows_alone_in_a_public_lobby_only()
+	local base = {
+		alone = true,
+		publicLobby = true,
+		tutorial = false,
+		onPad = false,
+		dismissed = false,
+		since = nil,
+		now = 100,
+		searching = false,
+	}
+	local function with(change: { [string]: any }): boolean
+		local args = table.clone(base)
+		for k, v in change do
+			args[k] = v
+		end
+		return PadBar.spawnPill(args :: any)
+	end
+	expect(with({}), "alone on spawn")
+	expect(not with({ publicLobby = false }), "a private server: never")
+	expect(not with({ tutorial = true }), "the tutorial first")
+	expect(not with({ alone = false }), "a real player joined")
+	expect(not with({ onPad = true }), "on a pad the bar takes over")
+	expect(not with({ dismissed = true }), "its X")
+	local seconds = Config.UI.MatchBar.SpawnPillSeconds
+	expect(seconds == 20, "the designer's 20 s")
+	expect(with({ since = 100 - seconds + 0.5 }), "still up")
+	expect(not with({ since = 100 - seconds }), "gone after 20 s")
+	expect(
+		with({ since = 0, alone = false, onPad = true, searching = true }),
+		"a search it started keeps it up"
+	)
+end
+
 return tests

@@ -149,6 +149,7 @@ end
 -- The queue pads and the seat state behind them, then the shot authority: the client sends
 -- inputs, this decides what actually happened.
 TableService.start(workspace, if isArena then "Arena" else "Hub")
+require(script.Parent:WaitForChild("SoloSearch")).start() -- Play Global with no pad (the spawn pill)
 FallGuard.start() -- anyone who drops below the floor goes back to the spawn at once
 ShotService.start()
 UltService.start() -- ults in a match: activation, the bar gains, the Studio UltQA hook

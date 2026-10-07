@@ -15,6 +15,14 @@
 -- whole side on the pad. The server sends "<name> needs an opponent!" by itself on step-on
 -- (TableService.askForOpponent); there is nothing to press for it.
 --
+-- The spawn pill (designer, 2026-10-07): a player alone in a public lobby server gets
+-- "Don't want to wait?" and Play Global the moment they spawn, with no pad; pressed, the
+-- search runs from where they stand (SoloSearch on the server; the SoloSearchAt and
+-- SoloSearchFound attributes say how it goes) and the bar shows its time and the red X. It
+-- goes when they press its X, after SpawnPillSeconds, on a pad or when a real player joins;
+-- never in a private server or during the tutorial. Play Global wears a small red X on its
+-- corner everywhere: on a pad it hides Play Global until the next step-on.
+--
 -- What it says is PadBar's (pure, Lune-tested); this module only draws it. Every press is a
 -- request the server checks. Gamepad: Y puts the selection on Play Global (or the X) and B
 -- lets go (Main); the stick is never taken while the player can walk.
@@ -27,6 +35,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local PadBar = require(Shared:WaitForChild("Matchmaking"):WaitForChild("PadBar"))
+local Net = require(Shared:WaitForChild("Net"))
 local BottomLift = require(script.Parent.BottomLift)
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
@@ -44,6 +53,8 @@ local PILL_WIDTH = 2 * B.PillPadPx + B.IconPx + B.GapPx + B.ChipWidth + B.GapPx 
 -- the pill and is centred on it.
 local HEIGHT = B.AskTextPx + B.AskGapPx + B.GlobalHeight
 local PILL_MID = HEIGHT - B.GlobalHeight / 2
+-- The pill while a spawn-pill search runs: no count chip.
+local SOLO_WIDTH = 2 * B.PillPadPx + B.IconPx + B.GapPx + B.LineWidthPx
 
 local function phoneSized(screen: any): boolean
 	return screen ~= nil and screen.AbsoluteSize.X < Config.LuckyBlocks.UI.PhoneWidthPx
@@ -60,11 +71,20 @@ function MatchBar.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.now = 0
 	self.open = false
 	self.away = false -- stepped off the pad; the server lets them go shortly
-	self.extra = 0 -- how far the bar reaches past the pill now (Play Global or the X)
-	self.extraKey = ""
+	self.baseWidth = PILL_WIDTH -- the pill's width for what shows (MatchBar.arrange)
+	self.extraKey = "" -- how far the bar reaches past it (Play Global or the X)
 	self.friendOverride = nil :: boolean? -- GuiQA: act as if a friend were (or were not) here
 	self.pulse = nil :: any?
 	self.pulseToken = 0
+	self.kind = nil :: string? -- what shows: "pad", "offer" (the spawn pill) or "solo" (its search)
+	self.arranged = nil :: string?
+	self.dismissed = false -- Play Global's X on this step-on
+	-- Main's, each frame: alone, a public lobby, the tutorial running, seated or on a pad.
+	self.spawn = { alone = false, publicLobby = false, tutorial = true, seated = false }
+	self.spawnSince = nil :: number? -- when the spawn pill first showed this session
+	self.spawnDismissed = false -- its X: gone for this session
+	self.soloPress = { searchAt = -math.huge, cancelledAt = -math.huge }
+	self.soloFake = nil :: number? -- GuiQA: a made-up solo search's start
 
 	-- The holder: bottom centre, above the hotbar, scaled down on a phone.
 	local root = HudParts.frame(screen, "MatchBar")
@@ -114,6 +134,7 @@ function MatchBar.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.line.AnchorPoint = Vector2.new(0, 0.5)
 	self.line.Position = UDim2.new(0, lineLeft, 0.5, 0)
 	self.line.Size = UDim2.fromOffset(B.LineWidthPx, B.PillHeight - 2 * B.PillPadPx)
+	self.chip = chip
 
 	-- Play Global: joined to the pill's right end, tucked under its rounded edge.
 	self.global = HudParts.candy(bar, Copy.PlayGlobal, function()
@@ -128,6 +149,18 @@ function MatchBar.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	HudParts.setButtonTextSize(self.global, B.GlobalTextPx)
 	HudParts.setMinHit(self.global, Config.Multiplayer.Style.TouchTargetPx)
 	TutorialAnchors.set("GlobalQueue", self.global)
+	-- Its small red X on the top-right corner: "I'd rather keep waiting".
+	self.dismiss = HudParts.candy(self.global, "", function()
+		self:dismissGlobal()
+	end, "Red", "X")
+	self.dismiss.Name = "Dismiss"
+	self.dismiss.AnchorPoint = Vector2.new(0.5, 0.5)
+	self.dismiss.Position = UDim2.new(1, -B.DismissInsetPx, 0, B.DismissInsetPx)
+	self.dismiss.Size = UDim2.fromOffset(B.DismissPx, B.DismissPx)
+	self.dismiss.ZIndex = 12
+	HudParts.setMinHit(self.dismiss, Config.Multiplayer.Style.TouchTargetPx)
+	self.global.NextSelectionRight = self.dismiss
+	self.dismiss.NextSelectionLeft = self.global
 	self.ask = HudParts.text(bar, "Ask", B.AskTextPx, Copy.NoWait)
 	self.ask.AnchorPoint = Vector2.new(0.5, 1)
 	self.ask.Position = UDim2.fromOffset(
@@ -153,7 +186,8 @@ end
 
 -- Studio only (GuiQA): show the bar in one of its states on a made-up pad, with no second
 -- player: "waiting", "prompt" (Play Global up), "searching", "found", "starting", "guest",
--- "side" (a 2v2 host before a whole side is on), "team" (a 2v2 side ready) or "off".
+-- "side" (a 2v2 host before a whole side is on), "team" (a 2v2 side ready), "spawn" (the
+-- spawn pill afresh), "spawnSearching" (its search, 3 s in) or "off".
 -- "matchbarFriend" acts as if a Roblox friend were here (true), not (false), or asks the
 -- server's attribute again (nil).
 function MatchBar.addTestHooks(self: any)
@@ -164,8 +198,17 @@ function MatchBar.addTestHooks(self: any)
 			qa = nil
 		end
 		self:setSnapshot(nil, self.localUserId)
+		self.soloFake = nil
 		if state == "off" then
 			return "off"
+		end
+		if state == "spawn" or state == "spawnSearching" then
+			-- The spawn pill afresh (Studio Play is always alone in a public server).
+			self.spawnSince, self.spawnDismissed = nil, false
+			if state == "spawnSearching" then
+				self.soloFake = workspace:GetServerTimeNow() - 3
+			end
+			return state
 		end
 		local me = self.localUserId
 		local now = workspace:GetServerTimeNow()
@@ -213,13 +256,38 @@ function MatchBar.addTestHooks(self: any)
 end
 
 function MatchBar.search(self: any)
-	self.press.searchAt = self.now
-	self.onAction("GlobalSearch")
+	if self.kind == "pad" then
+		self.press.searchAt = self.now
+		self.onAction("GlobalSearch")
+	else
+		self.soloPress.searchAt = self.now
+		Net.get("SoloSearch"):FireServer("Start")
+	end
 end
 
 function MatchBar.stopSearch(self: any)
-	self.press.cancelledAt = self.now
-	self.onAction("CancelSearch")
+	if self.kind == "pad" then
+		self.press.cancelledAt = self.now
+		self.onAction("CancelSearch")
+	else
+		self.soloPress.cancelledAt = self.now
+		self.soloFake = nil
+		Net.get("SoloSearch"):FireServer("Cancel")
+	end
+end
+
+-- Play Global's X: on a pad, hidden until the next step-on; the spawn pill, gone.
+function MatchBar.dismissGlobal(self: any)
+	if self.kind == "pad" then
+		self.dismissed = true
+	else
+		self.spawnDismissed = true
+	end
+end
+
+--- What the spawn pill needs from Main each frame: { alone, publicLobby, tutorial, seated }.
+function MatchBar.setSpawn(self: any, state: any)
+	self.spawn = state
 end
 
 -- Show or hide the whole bar, popping it in or out (the house entrance for a HUD piece).
@@ -255,10 +323,12 @@ function MatchBar.setSnapshot(self: any, snapshot: any?, userId: number)
 		-- A new pad (or a new game on it): the wait for Play Global starts now.
 		self.press = { searchAt = -math.huge, cancelledAt = -math.huge }
 		self.since = workspace:GetServerTimeNow()
+		self.dismissed = false
 	end
-	if not snapshot then
+	if not snapshot and self.kind == "pad" then
 		self:blur()
 		self:setOpen(false)
+		self.kind = nil
 	end
 end
 
@@ -269,9 +339,10 @@ function MatchBar.setAway(self: any, away: boolean)
 		return
 	end
 	self.away = away
-	if away then
+	if away and self.kind == "pad" then
 		self:blur()
 		self:setOpen(false)
+		self.kind = nil
 	end
 end
 
@@ -297,6 +368,9 @@ end
 
 --- Put the gamepad on the bar's button (Play Global or the X), if one shows.
 function MatchBar.focus(self: any)
+	if not self.open then
+		return
+	end
 	for _, object in { self.global, self.cancel } do
 		if self.root.Visible and object.Visible then
 			GuiService.SelectedObject = object
@@ -337,6 +411,32 @@ function MatchBar.showGlobal(self: any, show: boolean)
 	end)
 end
 
+-- Place the pieces for what shows: the pad's pill with its count chip, the spawn pill's
+-- search (no chip), or the spawn pill's offer (Play Global alone, no pill).
+function MatchBar.arrange(self: any, kind: string)
+	if kind == self.arranged then
+		return
+	end
+	self.arranged = kind
+	local offer = kind == "offer"
+	local pillWidth = if kind == "solo" then SOLO_WIDTH else PILL_WIDTH
+	self.pill.Visible = not offer
+	self.pill.Size = UDim2.fromOffset(pillWidth, B.PillHeight)
+	self.chip.Visible = kind == "pad"
+	local lineLeft = B.PillPadPx + B.IconPx + B.GapPx
+	if kind == "pad" then
+		lineLeft += B.ChipWidth + B.GapPx
+	end
+	self.line.Position = UDim2.new(0, lineLeft, 0.5, 0)
+	local buttonLeft = if offer then 0 else pillWidth - B.GlobalOverlapPx
+	self.global.Position = UDim2.fromOffset(buttonLeft, PILL_MID)
+	self.cancel.Position = UDim2.fromOffset(buttonLeft, PILL_MID)
+	self.ask.Position =
+		UDim2.fromOffset(buttonLeft + B.GlobalWidth / 2, HEIGHT - B.GlobalHeight - B.AskGapPx)
+	self.baseWidth = if offer then 0 else pillWidth
+	self.extraKey = ""
+end
+
 -- Ease how far the bar reaches past the pill, so the bar grows smoothly round its centre.
 function MatchBar.reach(self: any, extra: number)
 	local key = tostring(extra)
@@ -345,7 +445,8 @@ function MatchBar.reach(self: any, extra: number)
 	end
 	self.extraKey = key
 	local info = TweenInfo.new(B.GrowSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-	TweenService:Create(self.root, info, { Size = UDim2.fromOffset(PILL_WIDTH + extra, HEIGHT) })
+	TweenService
+		:Create(self.root, info, { Size = UDim2.fromOffset(self.baseWidth + extra, HEIGHT) })
 		:Play()
 end
 
@@ -359,36 +460,106 @@ local function dots(now: number): string
 		.. "</font>"
 end
 
---- Redraw from the snapshot. Called every frame while on a pad; only what changed is
---- written, and nothing here is expensive.
+-- The spawn pill's search: whether it runs (the server's attributes, or a press on its way),
+-- whether it found its match, and when it began.
+function MatchBar.solo(self: any, now: number): (boolean, boolean, number)
+	local player = Players.LocalPlayer
+	local at = self.soloFake or (player and player:GetAttribute("SoloSearchAt"))
+	local found = self.soloFake == nil
+		and player ~= nil
+		and player:GetAttribute("SoloSearchFound") == true
+	local stand = { search = if type(at) == "number" then { at = at, found = found } else nil }
+	local searching = PadBar.searching(stand, self.soloPress, now)
+	return searching,
+		found and stand.search ~= nil,
+		if stand.search then at else self.soloPress.searchAt
+end
+
+-- What shows now: the pad's bar, the spawn pill's offer or its search, or nothing.
+function MatchBar.pick(self: any, now: number): (string?, boolean, boolean, number)
+	if self.snapshot then
+		return if self.away then nil else "pad", false, false, 0
+	end
+	local spawn = self.spawn
+	if spawn.publicLobby and not spawn.tutorial and self.spawnSince == nil then
+		self.spawnSince = now -- the pill's 20 s count from the first moment it may show
+	end
+	local searching, found, at = self:solo(now)
+	local show = PadBar.spawnPill({
+		alone = spawn.alone,
+		publicLobby = spawn.publicLobby,
+		tutorial = spawn.tutorial,
+		onPad = spawn.seated,
+		dismissed = self.spawnDismissed,
+		since = self.spawnSince,
+		now = now,
+		searching = searching,
+	})
+	if not show then
+		return nil, false, false, 0
+	end
+	return if searching then "solo" else "offer", searching, found, at
+end
+
+--- Redraw. Called every frame (Main); only what changed is written, and nothing here is
+--- expensive.
 function MatchBar.update(self: any, now: number)
 	self.now = now
-	local snapshot = self.snapshot
-	self:setOpen(snapshot ~= nil and not self.away)
-	if not self.open or not snapshot then
+	local kind, _, soloFound, soloAt = self:pick(now)
+	if kind ~= self.kind then
+		self.kind = kind
+		if kind then
+			self:arrange(kind)
+		end
+	end
+	self:setOpen(kind ~= nil)
+	if not kind then
 		return
 	end
-	local view =
-		PadBar.view(snapshot, self.localUserId, now, self.since, self:friendHere(), self.press)
-	self.count.Text = Copy.PlayerCount:format(view.count, view.capacity)
-	local text = if view.line == "Starting"
-		then Copy.StartingIn:format(view.startsIn or 1)
-		elseif view.line == "Found" then Copy.MatchFound
-		elseif view.line == "Searching" then Copy.Searching:format(
-			PadBar.clock(view.waited or 0)
+	local global, cancel = false, false
+	if kind == "pad" then
+		local view = PadBar.view(
+			self.snapshot,
+			self.localUserId,
+			now,
+			self.since,
+			self:friendHere(),
+			self.press,
+			self.dismissed
 		)
-		elseif view.line == "WaitingPlayers" then Copy.WaitingForPlayers .. dots(now)
-		else Copy.WaitingForOpponent .. dots(now)
-	if self.line.Text ~= text then
-		self.line.Text = text
+		self.count.Text = Copy.PlayerCount:format(view.count, view.capacity)
+		local text = if view.line == "Starting"
+			then Copy.StartingIn:format(view.startsIn or 1)
+			elseif view.line == "Found" then Copy.MatchFound
+			elseif view.line == "Searching" then Copy.Searching:format(
+				PadBar.clock(view.waited or 0)
+			)
+			elseif view.line == "WaitingPlayers" then Copy.WaitingForPlayers .. dots(now)
+			else Copy.WaitingForOpponent .. dots(now)
+		if self.line.Text ~= text then
+			self.line.Text = text
+		end
+		global = view.showGlobal and not TutorialAnchors.hidden("HostGlobal")
+		cancel = view.showCancel
+	elseif kind == "solo" then
+		local waited = math.max(0, math.floor(now - soloAt))
+		local text = if soloFound
+			then Copy.MatchFound
+			else Copy.Searching:format(PadBar.clock(waited))
+		if self.line.Text ~= text then
+			self.line.Text = text
+		end
+		cancel = not soloFound
+	else
+		global = true
 	end
-	local global = view.showGlobal and not TutorialAnchors.hidden("HostGlobal")
 	self:showGlobal(global)
-	self.cancel.Visible = view.showCancel
+	self.cancel.Visible = cancel
 	self:reach(
-		if global
-			then B.GlobalWidth - B.GlobalOverlapPx
-			elseif view.showCancel then B.CancelPx - B.GlobalOverlapPx
+		if kind == "offer"
+			then B.GlobalWidth
+			elseif global then B.GlobalWidth - B.GlobalOverlapPx
+			elseif cancel then B.CancelPx - B.GlobalOverlapPx
 			else 0
 	)
 	-- The gamepad's way in, asked on the question line itself.

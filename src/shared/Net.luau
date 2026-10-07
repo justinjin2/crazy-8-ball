@@ -88,6 +88,9 @@ local REMOTES: { [string]: string } = {
 	-- "Searching" | "Stopped", mode, at?, reason?}. Found shows the teleport screen;
 	-- Failed says why the players are still here (Strings.Queue.Failed[reason]).
 	QueueNotice = "RemoteEvent",
+	-- client -> server: "Start" or "Cancel" Play Global with no pad, from the spawn pill of a
+	-- player alone in a public lobby (SoloSearch; designer, 2026-10-07).
+	SoloSearch = "RemoteEvent",
 	-- client -> server (arena only): the post-game choice that is not the table's own vote:
 	-- "Another" (a new opponent), "CancelAnother", "Lobby" (back to the lobby server).
 	ArenaAction = "RemoteEvent",

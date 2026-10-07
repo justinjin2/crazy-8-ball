@@ -344,7 +344,13 @@ the series score.
   `stopSearch`, `watchSearch`, `searchFound`) and an arena mode (no pad, `seatArena`).
   On step-on it sends "<name> needs an opponent!" by itself (`askForOpponent`, gated by the
   pure `PadBar.autoRequest`) unless `Friends` (the `FriendHere` attribute, from
-  `Player:IsFriendsWithAsync`) finds a Roblox friend in the server.
+  `Player:IsFriendsWithAsync`) finds a Roblox friend in the server. `SoloSearch` is Play
+  Global with no pad (the spawn pill): the `SoloSearch` remote ("Start"/"Cancel"), checks for
+  a public lobby, not seated, the save open and the tutorial over, then a 1v1 `GlobalQueue`
+  search with no table; its state is on the player (`SoloSearchAt`, `SoloSearchFound`) and
+  being seated or leaving cancels it. It sets the workspace attribute `PublicLobby` (a client
+  cannot read `PrivateServerId`). `BotService` gives its searches the same bot fallback
+  (`SoloSearch.waiting`, `SoloSearch.toMatch`).
 - Client: `MatchBar` (Play Global, the search's time and X), `PostMatch` (the row, hosted
   by `ResultScreen` in Continue's place), `QueueStatus` (the small top card), `TeleportScreen`
   (set with `SetTeleportGui`), `src/first/Arrival` (ReplicatedFirst: keeps the teleport

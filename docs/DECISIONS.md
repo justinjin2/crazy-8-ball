@@ -2875,3 +2875,9 @@ timer of a new block stay the designer's call.
   old pad card's Classic picture** again, not the new cue-on-green square.
 - 2026-10-07 (designer, gate D approved): "Don't want to wait?" 1 px bigger (17 to 18); 2v2
   and 3v3 show nothing different on the bar (the same Classic icon and count chip).
+- 2026-10-07 (designer): **A red X on Play Global dismisses it** for someone who would rather
+  keep waiting; on a pad it stays hidden until the next step-on.
+- 2026-10-07 (designer): **The spawn pill**: a player alone in a public server (never a
+  private one, never before the tutorial is over) gets "Don't want to wait?" and Play Global
+  on spawn. It goes after 20 s, on its X, on a pad or when a real player joins; pressed, it
+  searches with no pad (`SoloSearch`), and stepping on a pad cancels that search.

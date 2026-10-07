@@ -1313,7 +1313,6 @@ local function renderFrame(dt: number)
 			})
 			predicted.hostId = s.hostId or player.UserId
 			matchBar:setSnapshot(predicted, player.UserId)
-			matchBar:update(workspace:GetServerTimeNow())
 			predictedPad = on
 		elseif predictedPad then
 			predictedPad = nil
@@ -1321,6 +1320,20 @@ local function renderFrame(dt: number)
 		end
 	elseif predictedPad then
 		predictedPad = nil -- the server has seated you; the real snapshot drives the menu
+	end
+	-- The matchmaking bar, every frame: a pad's, or the spawn pill of a player alone in a
+	-- public lobby server (designer, 2026-10-07: never in a private server, not during the
+	-- tutorial; a step it has not published yet counts as the tutorial).
+	do
+		local step = player:GetAttribute("TutorialStep")
+		matchBar:setSpawn({
+			alone = #Players:GetPlayers() == 1,
+			publicLobby = workspace:GetAttribute(Config.UI.MatchBar.PublicLobbyAttribute) == true
+				and not isArena,
+			tutorial = type(step) ~= "string" or step ~= "",
+			seated = hub.mySeat ~= nil or controlled or predictedPad ~= nil,
+		})
+		matchBar:update(workspace:GetServerTimeNow())
 	end
 	-- Ranks and money: the rank HUD hides while you play, your match's nameplates too, and a
 	-- rank-up popup waits until your shot is over.
@@ -1365,7 +1378,6 @@ local function renderFrame(dt: number)
 		Net.get("SnapshotRequest"):FireServer()
 	end
 	hud:update(now)
-	matchBar:update(now)
 	powerCue:place(hud:reservedHeight()) -- under the top bar on a phone, centred on a big screen
 	powerCue:setSkin(ownArmedUlt()) -- a Legendary or Mythic ability dresses the bar
 	local modal = hud:isModal()

@@ -231,7 +231,16 @@ Every feature is checked against these. If it serves none, it waits.
   stepping on (**5 s** with a Roblox friend in the server), "Don't want to wait?" and a big
   green **Play Global** grow out of the bar's right end. Pressed, the bar shows "Searching...
   0:07" and a small red X (stepping off cancels too); see Global queue below. On 2v2 and 3v3
-  it shows only once a whole side stands on the pad.
+  it shows only once a whole side stands on the pad. A small red **X on Play Global's
+  corner** dismisses it for someone who would rather keep waiting; it comes back on the next
+  step-on (designer, 2026-10-07).
+- **The spawn pill** (designer, 2026-10-07): a player **alone in a public server** gets "Don't
+  want to wait?" and Play Global the moment they spawn, with no pad. Never in a private server
+  (people there want to play with their friends) and not before the tutorial is done or
+  skipped. It goes when they press its X, after **20 s** *(tune)*, when they step on a pad
+  (the pad's bar takes over) or when a real player joins. Pressed, the search runs from where
+  they stand (1v1, ults on): "Searching... 0:03" with the red X, a bot of their level at 5 s,
+  then the arena, like a pad search. Stepping onto a pad mid-search cancels it.
 - **A full pad starts by itself**, **3 s** *(tune)* after the last one stepped on ("Starting in
   3"), so someone who walked on by accident can step off. Then straight to the coin flip,
   about 3 s and a few words at a time: "YOU ARE HEADS" (or TAILS), the flip, then "YOU BREAK"

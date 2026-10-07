@@ -7249,6 +7249,17 @@ Config.UI.MatchBar = {
 	PulseSeconds = 1.6,
 	-- The red X while the search runs.
 	CancelPx = 38,
+	-- The small red X on Play Global's top-right corner (designer, 2026-10-07): dismisses it
+	-- for those who would rather keep waiting (still a 44 px touch).
+	DismissPx = 24,
+	DismissInsetPx = 6, -- how far its centre sits in from the button's corner
+	-- The spawn pill (designer, 2026-10-07): a player alone in a public lobby server gets
+	-- "Don't want to wait?" and Play Global the moment they spawn; it goes by itself after
+	-- this long if they ignore it (a search it started keeps it up). (tune)
+	SpawnPillSeconds = 20,
+	-- The workspace attribute the server sets true in a public lobby server (no private server,
+	-- no arena): a client cannot read game.PrivateServerId.
+	PublicLobbyAttribute = "PublicLobby",
 }
 
 -- The economy's menus (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md sections 5 and 5.1): the
