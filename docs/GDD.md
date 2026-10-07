@@ -843,8 +843,11 @@ reworked for lucky blocks on 2026-10-04.
   brand-new friend's first real win gives both a Rare block; the inviter's once ever, at most
   5 a month); **codes** (WELCOME, 8BALL, ROOFTOP, RELEASE). Codes give only money, lucky blocks
   and spins. **Everything is claimed in the Rewards menu**: nothing is given by itself on join
-  or at a playtime mark, and there are no reward popups, reminder toasts, come-back screens or
-  first-leave gifts (designer, 2026-10-04). ECONOMY.md section 10.
+  or at a playtime mark, and there are no reward popups, reminder toasts or come-back screens
+  (designer, 2026-10-04). The one exception is the **Gift lucky block** (designer, 2026-10-07):
+  given once, the first time a player leaves the game, on a 12-hour timer, and it falls from the
+  sky in its own cutscene (the design is being finalized first; the delivery may change).
+  ECONOMY.md section 10.
 - **Ult spins** ("Ability Spins" to players; designer, 2026-09-28, section 9): the spin
   screen gives ults; spins come from play (starter, daily, VIP's extra daily spin, rank-ups,
   login day 7, playtime, codes), Robux packs and money ($17,500 a spin), with true odds shown as
@@ -1012,7 +1015,8 @@ step in the save (`Flags.Tutorial`) and owns every rigged part; the client only 
 - **Daily streak and playtime gifts:** in the Rewards menu, claimed there and never given by
   themselves; numbers in ECONOMY.md section 10.
 - **No reminders** (designer, 2026-10-04): the leave-menu and focus-loss reminder toast, the
-  come-back screen and the first-leave gift are gone; the Rewards dot is the only nudge.
+  come-back screen are gone; the Rewards dot is the only nudge. The first-leave gift came back
+  as the Gift lucky block (designer, 2026-10-07; section 12).
 
 **Open**
 - Whether the VIP Cue's finder's money should pay a VIP player on their very first join (it

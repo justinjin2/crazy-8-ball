@@ -2940,3 +2940,9 @@ timer of a new block stay the designer's call.
   leaves, to open when they come back the next day (the delivery rules are still open). First
   batch: 8 Ball, Starter, Gift, Mythic, Sky, Mystery; once their concepts are approved, the same
   for Standard, Uncommon, Rare, Epic and Legendary. Order: concept sheet, 2D icons, then 3D.
+- 2026-10-07 (designer, lucky block concepts round B): **every block keeps the in-game frame**:
+  thick edge bars with a chunky corner cube bulging out at each of the 8 corners, and clean face
+  panels (round A's flat squares on the faces were the image model's mistake). The Grand Opening
+  shop art may be redrawn on the same frame. **The Gift block** is given once, the first time a
+  player leaves the game, on a 12-hour timer, and falls from the sky in its own cutscene (may
+  change later; the design is finalized first). Its build waits on the concepts.
