@@ -2891,3 +2891,6 @@ timer of a new block stay the designer's call.
   Total pops whole on the sting's first hit and the block chip and Continue on its second
   (`Result.WinSting`). The result cutscene also plays when a 1v1 ends by a player leaving the
   server, walking out or surrendering, for both sides.
+- 2026-10-07 (designer): **The result cutscene's camera is a sky tilt-down**: it fades in aimed
+  50 degrees up from just above and behind the player's camera, then only the pitch turns
+  (the horizon stays level) as it eases down and forward into that camera over 2.2 s.

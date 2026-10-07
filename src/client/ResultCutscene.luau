@@ -3,8 +3,9 @@
 -- designer 2026-10-07). For a 1v1 (a person, a disguised bot or a PC robot, at a lobby table
 -- or in an arena), before the result screen:
 --   * black letterbox bars slide in (like the Legendary pull's) as the screen fades to black;
---   * the screen fades back in and the camera comes down from high above into the player's
---     own camera (Roblox's, which keeps running underneath, so the hand-back is seamless);
+--   * the screen fades back in on the sky: the camera, aimed up from just above and behind the
+--     player's own camera, tilts down and eases forward into it (Roblox's camera, which keeps
+--     running underneath, so the hand-back is seamless; designer 2026-10-07);
 --   * partway down, the result screen opens (centred) and the bars slide away off the
 --     screen's edges. When the result screen closes, it all goes back (stop).
 -- Also when a player left the server, walked out or surrendered (designer, 2026-10-07), for
@@ -45,9 +46,11 @@ type Scene = {
 
 local scene: Scene? = nil
 
-local function smooth(t: number): number
+-- Smootherstep: no speed and no acceleration at either end, so the tilt starts and settles
+-- without a jolt.
+local function smoother(t: number): number
 	local x = math.clamp(t, 0, 1)
-	return x * x * (3 - 2 * x)
+	return x * x * x * (x * (x * 6 - 15) + 10)
 end
 
 -- The local player's humanoid and the point the pan looks at (their head).
@@ -222,8 +225,7 @@ function ResultCutscene.play(summary: any, onReady: () -> ()): boolean
 	end)
 	RunService:BindToRenderStep(RENDER_AFTER, Enum.RenderPriority.Camera.Value + 10, function()
 		local started = s.started
-		local _, focus = myBody()
-		if started == nil or focus == nil then
+		if started == nil then
 			return
 		end
 		local cam = workspace.CurrentCamera
@@ -239,8 +241,18 @@ function ResultCutscene.play(summary: any, onReady: () -> ()): boolean
 			stopPan()
 			return
 		end
-		local from = CFrame.lookAt(own.Position + Vector3.yAxis * R.RiseStuds, focus)
-		cam.CFrame = from:Lerp(own, smooth(t))
+		-- The sky shot: from the player's own camera, a little up and back, tilted up to
+		-- SkyLookDegrees above the horizon. Easing out of it only the pitch turns (about the
+		-- camera's level right axis), so the horizon stays level and the view never swings
+		-- sideways; the lift and the step back ease out with it.
+		local rest = 1 - smoother(t)
+		local look = own.LookVector
+		local pitch = math.asin(math.clamp(look.Y, -1, 1))
+		local tilt = (math.rad(R.SkyLookDegrees) - pitch) * rest
+		local flat = Vector3.new(look.X, 0, look.Z)
+		local back = if flat.Magnitude > 1e-3 then flat.Unit else Vector3.zero
+		local at = own.Position + (Vector3.yAxis * R.LiftStuds - back * R.BackStuds) * rest
+		cam.CFrame = CFrame.new(at) * own.Rotation * CFrame.Angles(tilt, 0, 0)
 	end)
 
 	task.spawn(function()

@@ -11318,15 +11318,17 @@ Config.Cutscenes = {
 	},
 	HintAfterSeconds = 0.6, -- "Tap to skip" shows this late (only once the kind was seen)
 	-- The 1v1 match result (ResultCutscene; GUI lane, C11a, D2; redone by the designer
-	-- 2026-10-07): black letterbox bars slide in as the screen fades to black, then the camera
-	-- comes down from high above into the player's own camera. Partway down the result screen
-	-- opens (centred; designer 2026-10-07) and the bars slide away. Studs and seconds.
+	-- 2026-10-07): black letterbox bars slide in as the screen fades to black, then it fades
+	-- back in on the sky and the camera tilts down into the player's own camera. Partway down
+	-- the result screen opens (centred) and the bars slide away. Studs, degrees and seconds.
 	Result = {
 		FadeInSeconds = 0.35, -- to black (the bars slide in meanwhile)
 		HoldSeconds = 0.15, -- black
 		FadeOutSeconds = 0.45,
-		PanSeconds = 2, -- from high above down into the player's own camera
-		RiseStuds = 22, -- the pan starts this far above the player's camera, looking at them
+		PanSeconds = 2.2, -- the tilt from the sky down into the player's own camera
+		SkyLookDegrees = 50, -- it starts aimed this far above the horizon
+		LiftStuds = 3, -- from this far above the player's camera...
+		BackStuds = 3, -- ...and this far behind it, easing in as it tilts down
 		ResultsAtShare = 0.45, -- the result screen opens this far through the pan
 		BarsShare = 0.12, -- each letterbox bar, of the screen's height (as the Legendary's)
 		BarsOutSeconds = 0.4, -- the bars slide away as the result screen opens
