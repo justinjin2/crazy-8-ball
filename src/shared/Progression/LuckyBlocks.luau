@@ -20,6 +20,7 @@ export type Kind = {
 	Timer: number,
 	Model: string,
 	Idle: string?,
+	Icon: string?, -- its 2D picture for GUIs (BlockIcon, the hotbar); nil: a 3D model view
 	Guarantee: { Cue: string, At: number }?, -- the At-th opened is this cue if none is owned
 	Rainbow: boolean?, -- the client cycles its aura through the rainbow (Mythic)
 	Bob: boolean?, -- no bones: the client bobs the model itself (the part-built Lucky 8)
@@ -245,6 +246,38 @@ function LuckyBlocks.count(state: State, kind: string): number
 		end
 	end
 	return n
+end
+
+-- The Gift block's first-leave drop (designer, 2026-10-07): the save's Flags hold when the
+-- player first left the game (GiftLeftAt, unix seconds) and whether the Gift has landed and been
+-- picked up (GiftLanded). Its timer runs from the leave, so a player back the next day finds it
+-- ready (Config.LuckyBlocks.GiftDrop).
+LuckyBlocks.GiftFlags = table.freeze({ LeftAt = "GiftLeftAt", Landed = "GiftLanded" })
+
+--- Notes the player's first leave at `now`: true when this leave is the first (the flag was set).
+function LuckyBlocks.noteLeave(flags: { [string]: any }, now: number): boolean
+	if flags[LuckyBlocks.GiftFlags.LeftAt] ~= nil then
+		return false
+	end
+	flags[LuckyBlocks.GiftFlags.LeftAt] = now
+	return true
+end
+
+--- Whether a Gift is waiting to fall from the sky (left once, not yet picked up).
+function LuckyBlocks.giftPending(flags: { [string]: any }): boolean
+	return type(flags[LuckyBlocks.GiftFlags.LeftAt]) == "number"
+		and flags[LuckyBlocks.GiftFlags.Landed] ~= true
+end
+
+--- The Gift is picked up: it goes first in the list, its timer running from the leave, and the
+--- drop is marked done. Nil (nothing changed) when no Gift is waiting.
+function LuckyBlocks.landGift(state: State, flags: { [string]: any }, vip: boolean?): Block?
+	if not LuckyBlocks.giftPending(flags) then
+		return nil
+	end
+	local block = LuckyBlocks.add(state, "Gift", flags[LuckyBlocks.GiftFlags.LeftAt], 1, nil, vip)
+	flags[LuckyBlocks.GiftFlags.Landed] = true
+	return block
 end
 
 --- The client's copy: { { id, kind, readyAt } } in list order.

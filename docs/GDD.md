@@ -845,8 +845,11 @@ reworked for lucky blocks on 2026-10-04.
   and spins. **Everything is claimed in the Rewards menu**: nothing is given by itself on join
   or at a playtime mark, and there are no reward popups, reminder toasts or come-back screens
   (designer, 2026-10-04). The one exception is the **Gift lucky block** (designer, 2026-10-07):
-  given once, the first time a player leaves the game, on a 12-hour timer, and it falls from the
-  sky in its own cutscene (the design is being finalized first; the delivery may change).
+  given once, the first time a player leaves the game (not a teleport to a match), on a 12-hour
+  timer that runs from that leave. On their next visit to a lobby (after the tutorial) it falls
+  from the sky in a short cutscene: black bars, a glowing gold trail, a crash with a flash,
+  shake, shockwave and particles. It waits on the floor until they pick it up (hold E, X or touch).
+  Not picked up: it falls again next visit.
   ECONOMY.md section 10.
 - **Ult spins** ("Ability Spins" to players; designer, 2026-09-28, section 9): the spin
   screen gives ults; spins come from play (starter, daily, VIP's extra daily spin, rank-ups,

@@ -93,13 +93,20 @@ Updated 2026-10-07.
 
 - **Our own lucky blocks** (2026-10-07, roadmap "Lucky block look"): **all 12 kinds are our
   own models in the game**, built in headless Blender (`assets/luckyblocks/Readme.md`, "Our own
-  blocks"): round B corner cubes (Mystery on round C flush rims with a moving rainbow), toppers
-  (bow, crown, halo), Sky's cloud, wings on Legendary, Mythic and Sky (flapping, LuckyWingIdle),
-  and our own particles per kind. Wide and tall blocks are sized by their block, not their
-  wings, and land apart by their real width. Checked in Studio: every kind held (hold animation
-  plays), thrown, landed and idling; console clean. Next: the designer's look-over, the 2D icons
-  in the Shop, hotbar and bag, and the Gift's delivery. The templates live in the place (save and
-  publish once at the end).
+  blocks"), with wings that flap (LuckyWingIdle) and our own particles per kind. The hotbar,
+  bag and every BlockIcon (rewards, trades, the roadmap) show each kind's **2D icon** (the
+  approved concept art, `Config.LuckyBlocks.Kinds[k].Icon`); seen in the hotbar only so far. The pack's **pulsing glow stays off until a block's timer
+  is done** (floor and hands). Checked in Studio: every kind held, thrown, landed, idling;
+  the icons in the hotbar; the pulse off on a waiting Mythic, on for a ready Standard.
+- **The Gift drop** (2026-10-07): the first leave owes a Gift (12 h from the leave,
+  `GiftDropService`); on the next lobby visit it falls from the sky in a cutscene (bars, a gold
+  trail, a crash with a flash, shake, shockwave, dust and confetti) and waits to be picked up.
+  `/giftdrop` replays it. Checked in Studio: the drop on a real rejoin and from `/giftdrop`, the
+  pick up (the Gift first in the hotbar, its timer from the leave); not yet on a phone or gamepad.
+  A test Gift is waiting in the designer's Studio save, so the next Play shows the cutscene.
+- **The pull bar's cue** (2026-10-07): the redrawn cue pictures are longer, so the cue poked out
+  over the bar's top; it is drawn a little shorter now (`Config.UI.PowerCueArtLength` 1.24).
+  Not yet seen in a match.
 
 ## Open, waiting on the designer
 

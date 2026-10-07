@@ -199,6 +199,12 @@ Topper = Bow / Crown / Halo, Base = Cloud, WingL / WingR), each kind a recipe pl
 | StarterBlock | Starter | 74890867189012 (red, gift-wrapped) |
 | GiftBlock | Gift | 86403411186613 (white, gold ribbon, clock) |
 
+**2D icons** (`icons/<Kind>.png`, 512 px, transparent): the approved concept art from
+`~/Desktop/8ball-refs/lucky-blocks/` (round B; Mystery round C; Standard `standard_b3`), trimmed
+and squared, uploaded to the group; the image ids are each kind's `Icon` in
+`Config.LuckyBlocks.Kinds`. A new kind: draw its icon in the same style, add it here, upload, set
+`Icon`.
+
 The pack models (`GreenLuckyBlock`, `GoldKingLuckyBlock` and the rest) are no longer used by
 any kind; their templates can stay in the place until the designer has signed off ours.
 

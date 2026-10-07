@@ -229,4 +229,25 @@ return {
 			H.expect(request == nil and why == "BadRequest", "refused: " .. tostring(args[1]))
 		end
 	end,
+	["the Gift falls once: the first leave starts its 12 hours, picking it up ends the drop"] = function()
+		local LuckyBlocks = load()
+		local state = LuckyBlocks.fresh()
+		LuckyBlocks.add(state, "Standard", 100)
+		local flags: { [string]: any } = {}
+		H.expect(not LuckyBlocks.giftPending(flags), "nothing before a leave")
+		H.expect(LuckyBlocks.landGift(state, flags) == nil and #state.List == 1, "no gift yet")
+		H.expect(LuckyBlocks.noteLeave(flags, 1000), "the first leave is noted")
+		H.expect(not LuckyBlocks.noteLeave(flags, 5000), "a later leave changes nothing")
+		H.expect(flags.GiftLeftAt == 1000 and LuckyBlocks.giftPending(flags), "waiting")
+		local gift = LuckyBlocks.landGift(state, flags)
+		H.expect(gift ~= nil and gift.Kind == "Gift", "picked up")
+		H.expect(state.List[1] == gift, "first in the hotbar")
+		H.expect((gift :: any).ReadyAt == 1000 + 12 * 3600, "12 h from the leave")
+		H.expect(not LuckyBlocks.giftPending(flags) and flags.GiftLanded == true, "done")
+		H.expect(LuckyBlocks.landGift(state, flags) == nil and #state.List == 2, "only once")
+		local vipFlags: { [string]: any } = {}
+		LuckyBlocks.noteLeave(vipFlags, 0)
+		local fast = LuckyBlocks.landGift(state, vipFlags, true)
+		H.expect(fast ~= nil and fast.ReadyAt == 6 * 3600, "VIP halves it like every timer")
+	end,
 }

@@ -1,7 +1,8 @@
 --!strict
--- BlockIcon: a slowly turning 3D picture of a lucky block for a GUI (the shop's block cards;
--- the hotbar draws its own), in a ViewportFrame lit the way the hotbar lights its icons
--- (Config.LuckyBlocks.UI). A kind whose model is not in the place yet (a pack block still to
+-- BlockIcon: a lucky block's picture for a GUI (the shop's block cards, rewards, trades; the
+-- hotbar draws its own). A kind with an Icon (its glossy 2D art, Config.LuckyBlocks.Kinds)
+-- shows that, bobbing gently; else a slowly turning 3D picture in a ViewportFrame lit the way
+-- the hotbar lit its icons (Config.LuckyBlocks.UI). A kind whose model is not in the place yet (a pack block still to
 -- be imported) shows its kit icon instead (Config.UI.Shop.Page.Block.Fallback), so the shop
 -- never shows an empty square. `pop` makes the block grow a little and settle (an idle pop).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -113,6 +114,24 @@ function BlockIcon.new(parent: Instance, kind: string, still: boolean?): Icon
 	}
 	if row and row.Rainbow == true and not still then
 		icon.aura = BlockIcon.aura(root, 2)
+	end
+	if row and row.Icon and row.Icon ~= "" then
+		viewport.Visible = false
+		local picture = Instance.new("ImageLabel")
+		picture.Name = "Picture"
+		picture.BackgroundTransparency = 1
+		picture.Image = row.Icon
+		picture.AnchorPoint = Vector2.new(0.5, 0.5)
+		picture.Position = UDim2.fromScale(0.5, 0.5)
+		picture.Size = UDim2.fromScale(1, 1)
+		picture.ScaleType = Enum.ScaleType.Fit
+		picture.ZIndex = 3
+		picture.Parent = root
+		icon.fallback = picture
+		if not still then
+			icon.turn = UIAnim.bob(picture)
+		end
+		return icon
 	end
 	local folder = ReplicatedStorage:FindFirstChild(L.ModelFolder)
 	local source = if row and folder then folder:FindFirstChild(row.Model) else nil

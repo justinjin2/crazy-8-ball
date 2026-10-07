@@ -383,6 +383,11 @@ local REMOTES: { [string]: string } = {
 	-- (readyAt in unix seconds, compared with workspace:GetServerTimeNow()). Sent when the save
 	-- loads and after every change, only when it differs from the last one sent.
 	BlockState = "RemoteEvent",
+	-- The Gift's first-leave drop (GiftDropService, client GiftDrop): server -> one player
+	-- { at = CFrame } (where it lands: the client plays the fall and puts the block there);
+	-- client -> server: (no arguments) "picked it up", answered back on the same event with
+	-- { picked = true } or { picked = false, reason }.
+	GiftDrop = "RemoteEvent",
 }
 
 -- Values per table in an AimBroadcast batch.

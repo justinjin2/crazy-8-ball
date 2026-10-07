@@ -2980,3 +2980,13 @@ timer of a new block stay the designer's call.
   (LuckyWingIdle, 2 flaps a loop, 20 degrees). A block with wings or a topper is scaled so its
   cube matches the others' (SizeMultiplier = longest side / cube), and blocks on the floor keep
   apart by their width, not a fixed gap. The 8 Ball block hovers by animation now (no code bob).
+- 2026-10-07: The pack's pulsing glow on a lucky block waits until its timer is done (designer).
+- 2026-10-07: Every GUI shows a lucky block's 2D icon (the approved concept art) instead of a
+  turning 3D view: the hotbar and bag, and through BlockIcon the rewards, trades and roadmap.
+- 2026-10-07: The Gift drop (designer): only the first time a player leaves the game, a Gift
+  block is owed, its 12 h timer counting from that leave; on their next lobby visit, after the
+  tutorial, it falls from the sky in a cutscene with black bars, a glowing trail and a crash
+  with particles, and they pick it up. A teleport to or from a match is not a leave; not picked
+  up, it falls again next visit.
+- 2026-10-07: The cue in the pull bar is drawn shorter (PowerCueArtLength 1.12 to 1.24): the
+  redrawn cue pictures poked out over the bar (designer).

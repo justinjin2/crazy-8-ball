@@ -3426,6 +3426,56 @@ function PlayerData.setFlag(player: Player, key: string, value: any): boolean
 	return true
 end
 
+--- The player is leaving the game (not a teleport): the first time, the save notes it and the
+--- Gift block waits to fall from the sky on their next visit (LuckyBlocks.noteLeave). True
+--- when this was the first leave.
+function PlayerData.noteLeave(player: Player): boolean
+	local data = peek(player)
+	if data == nil or not LuckyBlocks.noteLeave(data.Flags, os.time()) then
+		return false
+	end
+	commit(player, data, "noteLeave")
+	return true
+end
+
+--- Whether the player's Gift is waiting to fall (false when not loaded).
+function PlayerData.giftPending(player: Player): boolean
+	local data = peek(player)
+	return data ~= nil and LuckyBlocks.giftPending(data.Flags)
+end
+
+--- The Gift was picked up: it goes first in the hotbar, its timer running from the leave
+--- (LuckyBlocks.landGift). False when none is waiting, the hotbar is full or not loaded.
+function PlayerData.landGift(player: Player): boolean
+	local op = "landGift"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	elseif #data.LuckyBlocks.List >= Config.LuckyBlocks.MaxBlocks then
+		return refuse(op, player, "holds the most lucky blocks allowed")
+	elseif LuckyBlocks.landGift(data.LuckyBlocks, data.Flags, vipOf(player)) == nil then
+		return refuse(op, player, "no Gift waiting")
+	end
+	commit(player, data, op)
+	return true
+end
+
+--- /giftdrop (the designer's test): forgets the Gift was picked up and notes a leave now.
+function PlayerData.resetGift(player: Player): boolean
+	local data = liveData("resetGift", player)
+	if data == nil then
+		return false
+	end
+	local F = LuckyBlocks.GiftFlags
+	data.Flags[F.LeftAt] = os.time()
+	data.Flags[F.Landed] = nil
+	commit(player, data, "resetGift")
+	return true
+end
+
 --- One entry of the save's Flags map (a plain value, no copy needed), or nil when not set or
 --- not loaded.
 function PlayerData.flag(player: Player, key: string): any

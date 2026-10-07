@@ -32,6 +32,7 @@ local LuckyBlocks = require(Progression:WaitForChild("LuckyBlocks"))
 local LuckyHotbar = require(script.Parent.LuckyHotbar)
 local LuckyOpening = require(script.Parent.LuckyOpening)
 local LuckyWorld = require(script.Parent.LuckyWorld)
+local GiftDrop = require(script.Parent.GiftDrop)
 local Menus = require(script.Parent.Menus)
 local PullCutscene = require(script.Parent.PullCutscene)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
@@ -430,6 +431,7 @@ function LuckyClient.start(screen: ScreenGui)
 	hotbar = LuckyHotbar.new(screen, { select = holdBlock, move = move })
 	opening = LuckyOpening.new(screen)
 	LuckyWorld.start({ onOpen = openBlock })
+	GiftDrop.start() -- the Gift's fall from the sky, the first time back after leaving
 	Net.get("BlockState").OnClientEvent:Connect(function(payload: any)
 		if type(payload) ~= "table" or type(payload.blocks) ~= "table" then
 			return

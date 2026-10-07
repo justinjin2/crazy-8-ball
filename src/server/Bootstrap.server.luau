@@ -157,6 +157,8 @@ require(script.Parent:WaitForChild("Bots"):WaitForChild("BotService")).start() -
 -- The tutorial lane: rank rewards claimed in Rank, then the first-time tutorial itself.
 require(script.Parent:WaitForChild("RankClaimService")).start()
 require(script.Parent:WaitForChild("TutorialService")).start()
+-- The Gift block's first-leave drop: leaves noted everywhere, the fall only in a lobby.
+require(script.Parent:WaitForChild("GiftDropService")).start(not isArena)
 DevCommands.start() -- /day and /sunset, for the developer only
 GlobalQueue.start(not isArena) -- every server takes its turn pairing the global queue
 if isArena then

@@ -1,7 +1,7 @@
 --!strict
 -- LuckyHotbar: the lucky block hotbar and its bag (designer, 2026-10-03), Roblox-style and in
 -- the kit's look. Along the bottom: one slot per block (the first Config.LuckyBlocks
--- .HotbarSlots of the list; a phone only the first UI.PhoneHotbarSlots), each a slowly turning 3D icon of the block with its number and, on
+-- .HotbarSlots of the list; a phone only the first UI.PhoneHotbarSlots), each the block's 2D icon (its Icon; else a slowly turning 3D model) with its number and, on
 -- a timer, its countdown; the held block's slot has a thick gold outline. Keys 1-9, a tap or a
 -- click hold a block (LuckyClient). The bag button at the end ("+12": blocks waiting) and the `
 -- key open the bag: a grid of every block. Drag a block onto a hotbar slot to put it there (mouse
@@ -41,7 +41,9 @@ export type Handlers = {
 	move: (id: number, to: number) -> (), -- put this block at this place in the list
 }
 
-type Icon = { viewport: ViewportFrame, model: Model?, base: CFrame, aura: UIAnim.Handle? }
+-- picture: the kind's 2D icon (an ImageLabel) or its 3D view (a ViewportFrame); both have
+-- ImageTransparency, which the countdown dims.
+type Icon = { picture: any, model: Model?, base: CFrame, aura: UIAnim.Handle? }
 type Tile = {
 	entry: Entry,
 	button: TextButton,
@@ -63,8 +65,27 @@ local function now(): number
 	return workspace:GetServerTimeNow()
 end
 
--- A slowly turning 3D picture of a block (no particles or lights: a ViewportFrame draws parts).
+-- The kind's 2D icon (Config.LuckyBlocks.Kinds[kind].Icon), else a slowly turning 3D picture
+-- of the block (no particles or lights: a ViewportFrame draws parts).
 local function makeIcon(parent: Instance, kind: string): Icon
+	local row = LuckyBlocks.kind(kind)
+	if row and row.Icon and row.Icon ~= "" then
+		local image = Instance.new("ImageLabel")
+		image.Name = "Icon"
+		image.BackgroundTransparency = 1
+		image.Image = row.Icon
+		image.ScaleType = Enum.ScaleType.Fit
+		image.AnchorPoint = Vector2.new(0.5, 0.5)
+		image.Position = UDim2.fromScale(0.5, 0.5)
+		image.Size = UDim2.fromScale(U.IconImageShare, U.IconImageShare)
+		image.ZIndex = 2
+		image.Parent = parent
+		local picture: Icon = { picture = image, model = nil, base = CFrame.identity, aura = nil }
+		if row.Rainbow == true and parent:IsA("GuiObject") then
+			picture.aura = BlockIcon.aura(parent, image.ZIndex - 1)
+		end
+		return picture
+	end
 	local viewport = Instance.new("ViewportFrame")
 	viewport.Name = "Icon"
 	viewport.BackgroundTransparency = 1
@@ -78,14 +99,13 @@ local function makeIcon(parent: Instance, kind: string): Icon
 	camera.FieldOfView = U.IconFieldOfView
 	camera.Parent = viewport
 	viewport.CurrentCamera = camera
-	local row = LuckyBlocks.kind(kind)
 	local ambient = if row and row.IconAmbient then row.IconAmbient else U.IconAmbient
 	local light = if row and row.IconLight then row.IconLight else U.IconLight
 	viewport.Ambient = Color3.new(ambient, ambient, ambient)
 	viewport.LightColor = Color3.new(light, light, light)
 	local folder = ReplicatedStorage:FindFirstChild(L.ModelFolder)
 	local source = if row and folder then folder:FindFirstChild(row.Model) else nil
-	local icon: Icon = { viewport = viewport, model = nil, base = CFrame.identity, aura = nil }
+	local icon: Icon = { picture = viewport, model = nil, base = CFrame.identity, aura = nil }
 	if row and row.Rainbow == true and parent:IsA("GuiObject") then
 		icon.aura = BlockIcon.aura(parent, viewport.ZIndex - 1)
 	end
@@ -506,7 +526,7 @@ function Hotbar.dragMoved(self: any, input: InputObject)
 		ghost.ZIndex = 20
 		HudParts.corner(ghost, U.SlotCornerPx)
 		local icon = makeIcon(ghost, drag.kind)
-		icon.viewport.ZIndex = 21
+		icon.picture.ZIndex = 21
 		drag.ghost = ghost
 	end
 	drag.ghost.Position = UDim2.fromOffset(at.X, at.Y)
@@ -704,10 +724,10 @@ function Hotbar.step(self: any)
 		if left > 0 then
 			tile.timer.Visible = true
 			tile.timer.Text = LuckyBlocks.clockText(left)
-			icon.viewport.ImageTransparency = 0.35
+			icon.picture.ImageTransparency = 0.35
 		elseif tile.timer.Visible then
 			tile.timer.Visible = false
-			icon.viewport.ImageTransparency = 0
+			icon.picture.ImageTransparency = 0
 		end
 	end
 	for _, tile in self.slots do

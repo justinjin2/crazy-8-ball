@@ -4925,6 +4925,78 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/icons/Epic.png": {
+    "assetId": "128373115703545",
+    "assetType": "Decal",
+    "imageId": "90574468724799",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/icons/Gift.png": {
+    "assetId": "108343105708556",
+    "assetType": "Decal",
+    "imageId": "78700846306745",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/icons/GrandOpening.png": {
+    "assetId": "101570242765957",
+    "assetType": "Decal",
+    "imageId": "72796006793771",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/icons/Legendary.png": {
+    "assetId": "136875551723662",
+    "assetType": "Decal",
+    "imageId": "128589483213137",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/icons/Lucky8.png": {
+    "assetId": "73830847441786",
+    "assetType": "Decal",
+    "imageId": "118551627638397",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/icons/Mystery.png": {
+    "assetId": "81719702591284",
+    "assetType": "Decal",
+    "imageId": "76412774878315",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/icons/Mythic.png": {
+    "assetId": "73805036007316",
+    "assetType": "Decal",
+    "imageId": "125009619556113",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/icons/Rare.png": {
+    "assetId": "89655072274248",
+    "assetType": "Decal",
+    "imageId": "114285593441963",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/icons/Sky.png": {
+    "assetId": "85227774450689",
+    "assetType": "Decal",
+    "imageId": "75262912311625",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/icons/Standard.png": {
+    "assetId": "120514000315838",
+    "assetType": "Decal",
+    "imageId": "125706639188399",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/icons/Starter.png": {
+    "assetId": "77739729537216",
+    "assetType": "Decal",
+    "imageId": "136835865759096",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/icons/Uncommon.png": {
+    "assetId": "93095126281579",
+    "assetType": "Decal",
+    "imageId": "119408380665005",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/particles/ball8.png": {
     "assetId": "136770111205094",
     "assetType": "Decal",

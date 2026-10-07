@@ -10,6 +10,8 @@
 -- - A moving rainbow: every Texture tagged Look.Scroll.Tag on a block (the Mystery block's
 --   frame, tools/luckyblock_template.luau) slides along at Look.Scroll.StudsPerSecond.
 -- - Over a block held in someone's hands that is still on its timer: the countdown.
+-- - The pack's pulsing glow (Look.PulseTexture) only once a block's timer is done, on the floor
+--   and in the hands.
 -- - For the owner of a landed block only: the open prompt (Roblox's native ProximityPrompt:
 --   hold E, the gamepad's X, or touch and hold it for Open.HoldSeconds), which calls onOpen.
 -- Tuning in Config.LuckyBlocks.
@@ -41,13 +43,14 @@ type Tracked = {
 	scale: number, -- its scale as made
 	idle: AnimationTrack?,
 	glows: { Glow },
+	pulses: { ParticleEmitter }, -- the pulsing glow, off until the timer is done
 	burstPuffed: boolean,
 	lastPhase: string?,
 	prompt: ProximityPrompt?,
 	promptAnchor: Attachment?,
 	asked: boolean, -- the prompt was held through: no new prompt unless the open is refused
 }
-type Timer = { model: Model, gui: BillboardGui, label: TextLabel }
+type Timer = { model: Model, gui: BillboardGui, label: TextLabel, pulses: { ParticleEmitter } }
 
 local World = {}
 
@@ -73,6 +76,29 @@ end
 
 -- Turns over `turns` of a full rotation per second rising from `s0` to `s1` across `seconds`
 -- (rate s0 + (s1 - s0) u^2): the angle reached at share `u`.
+-- The model's pulsing-glow emitters (Config.LuckyBlocks.Look.PulseTexture).
+local function pulsesOf(model: Model): { ParticleEmitter }
+	local list: { ParticleEmitter } = {}
+	for _, d in model:GetDescendants() do
+		if d:IsA("ParticleEmitter") and d.Texture == L.Look.PulseTexture then
+			table.insert(list, d)
+		end
+	end
+	return list
+end
+
+-- Seconds until the block's timer is done (0 or less: ready).
+local function timeLeft(model: Model, now: number): number
+	local readyAt = model:GetAttribute("ReadyAt")
+	return if type(readyAt) == "number" then readyAt - now else 0
+end
+
+local function setPulse(pulses: { ParticleEmitter }, on: boolean)
+	for _, emitter in pulses do
+		emitter.Enabled = on
+	end
+end
+
 local function rampAngle(u: number, seconds: number, s0: number, s1: number): number
 	return 2 * math.pi * seconds * (s0 * u + (s1 - s0) * u * u * u / 3)
 end
@@ -160,6 +186,7 @@ local function track(model: Model)
 		scale = model:GetScale(),
 		idle = nil,
 		glows = glows,
+		pulses = pulsesOf(model),
 		burstPuffed = false,
 		prompt = nil,
 		promptAnchor = nil,
@@ -240,6 +267,7 @@ local function step(t: Tracked, now: number)
 		t.lastPhase = phase
 	end
 	if phase == "Flying" then
+		setPulse(t.pulses, timeLeft(model, now) <= 0)
 		local T = L.Throw
 		local u = math.clamp(elapsed / T.Seconds, 0, 1)
 		local fromCentre = t.from.Position + Vector3.new(0, half, 0)
@@ -268,11 +296,11 @@ local function step(t: Tracked, now: number)
 			model:PivotTo(target)
 		end
 		playIdle(t)
+		local left = timeLeft(model, now)
+		setPulse(t.pulses, left <= 0)
 		if mine then
 			addPrompt(t)
 			if t.prompt then
-				local readyAt = model:GetAttribute("ReadyAt")
-				local left = if type(readyAt) == "number" then readyAt - now else 0
 				local kind = model:GetAttribute("Kind")
 				local name = if type(kind) == "string" then W.Names[kind] or "" else ""
 				t.prompt.ObjectText = if left > 0
@@ -282,6 +310,7 @@ local function step(t: Tracked, now: number)
 		end
 	elseif phase == "Rising" or phase == "Burst" then
 		dropPrompt(t)
+		setPulse(t.pulses, true)
 		local R = L.Rise
 		local riseFor = if phase == "Burst" then R.Seconds else elapsed
 		local u = math.clamp(riseFor / R.Seconds, 0, 1)
@@ -348,7 +377,7 @@ local function watchHeld(model: Instance)
 	label.Size = UDim2.fromScale(1, 1)
 	label.TextWrapped = false
 	gui.Parent = parentGui
-	timers[model] = { model = model, gui = gui, label = label }
+	timers[model] = { model = model, gui = gui, label = label, pulses = pulsesOf(model) }
 	model.AncestryChanged:Connect(function()
 		if not model:IsDescendantOf(workspace) then
 			local timer = timers[model]
@@ -363,8 +392,8 @@ end
 -- The countdown while the block waits, then "READY!" in green in the same place (designer,
 -- 2026-10-05): a block with no timer at all shows it from the start.
 local function stepTimer(timer: Timer, now: number)
-	local readyAt = timer.model:GetAttribute("ReadyAt")
-	local left = if type(readyAt) == "number" then readyAt - now else 0
+	local left = timeLeft(timer.model, now)
+	setPulse(timer.pulses, left <= 0)
 	if left > 0 then
 		timer.label.Text = LuckyBlocks.clockText(left)
 		timer.label.TextColor3 = HudParts.tone("White")

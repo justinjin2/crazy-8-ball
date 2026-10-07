@@ -285,6 +285,7 @@ return {
 			GiveCue = "%s <id|name> [count] [player]",
 			GiveBlock = "%s <%s> [count] [player]", -- the lucky block kinds
 			Cutscene = "%s <%s>", -- the rarities with a cutscene
+			GiftDrop = "%s",
 			Inv = "%s",
 			ClearInv = "%s",
 			Dupes = "%s",
@@ -317,6 +318,7 @@ return {
 			GiveCue = "copies of a cue, by id or name (not Classic or a Unique cue)",
 			GiveBlock = "lucky blocks into your hotbar",
 			Cutscene = "plays a rare pull's cutscene on its own (nothing is given)",
+			GiftDrop = "the first-leave Gift again: a leave now, then it falls from the sky",
 			Inv = "lists your cues, lucky blocks and equipped cue",
 			ClearInv = "takes every cue but Classic and every lucky block",
 			Dupes = "%d copies each of %d random Common and Uncommon cues (to test selling)",
@@ -357,6 +359,8 @@ return {
 		GaveBlock = "Gave %s x%d.",
 		BadBlock = 'No lucky block called "%s". Blocks: %s.',
 		Cutscene = "Playing the %s cutscene.", -- the rarity
+		GiftDrop = "The Gift is falling (its 12 hours run from now).",
+		GiftDropBusy = "No Gift drop here (an arena, or your save is not loaded).",
 		InvEquipped = "Equipped: %s",
 		InvBlocks = "Lucky blocks: ",
 		InvNoBlocks = "Lucky blocks: none",
@@ -871,6 +875,10 @@ return {
 		} :: { [string]: string },
 		-- Over a held block whose timer is done (designer, 2026-10-05), where its countdown was.
 		Ready = "READY!",
+		-- The Gift's fall from the sky, the first time a player comes back (GiftDrop).
+		GiftTitle = "A GIFT FELL FROM THE SKY!",
+		GiftSub = "Thanks for coming back. Pick it up!",
+		GiftPickUp = "Pick up",
 		-- The kinds' short names (the Mystery block's odds list).
 		Short = {
 			Standard = "Standard",

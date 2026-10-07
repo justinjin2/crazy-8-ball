@@ -496,7 +496,7 @@ The other kinds (`Config.BlockOdds.List`, each its own odds row):
 | Starter | Rare 97%, Epic 2.5%, Legendary 0.45%, Mythic 0.045%, Secret 0.005% | at once | the Starter Pack (11.4) |
 | Sky | Common 45%, Uncommon 45%, Rare 9.9%, Epic 0.09%, Legendary 0.009%, Mythic 0.001% | at once | Lucky Rain (no source wired yet) |
 | Lucky 8 | the Rare row | at once | none yet (the group and favorite rewards give Mystery blocks today, 10.4) |
-| Gift | the Rare row | 12 h | none yet |
+| Gift | the Rare row | 12 h, from the leave | once, the first time a player leaves the game; it falls from the sky on their next visit |
 
 - **No block is sold permanently** (plan, 2026-10-02). The four money cases, Buy-10, case
   sales and the Event Case are gone. Blocks come from wins, rewards, the shop's Mystery and

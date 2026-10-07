@@ -2107,12 +2107,39 @@ Config.LuckyBlocks = {
 		-- wider or taller than the 4.66-stud cube (wings, toppers, a cloud) is scaled by its
 		-- longest side, so SizeMultiplier = longest / 4.66 keeps its block as big as the
 		-- others', and HoldCenterShare = the block's centre height / longest puts the block,
-		-- not the wings, in the hands.
-		Standard = { Odds = "Standard", Timer = 0, Model = "StandardBlock", Idle = BOX_IDLE },
-		Uncommon = { Odds = "Uncommon", Timer = 0, Model = "UncommonBlock", Idle = BOX_IDLE },
-		Rare = { Odds = "Rare", Timer = 3600, Model = "RareBlock", Idle = BOX_IDLE }, -- 1 hour
-		Epic = { Odds = "Epic", Timer = 6 * 3600, Model = "EpicBlock", Idle = BOX_IDLE }, -- 6 hours
+		-- not the wings, in the hands. Icon: its glossy 2D picture (assets/luckyblocks/icons, the
+		-- approved concept art), shown wherever a block is drawn in a GUI (BlockIcon, the hotbar
+		-- and bag) instead of a turning 3D model (designer, 2026-10-07).
+		Standard = {
+			Odds = "Standard",
+			Timer = 0,
+			Model = "StandardBlock",
+			Idle = BOX_IDLE,
+			Icon = "rbxassetid://125706639188399",
+		},
+		Uncommon = {
+			Odds = "Uncommon",
+			Timer = 0,
+			Model = "UncommonBlock",
+			Idle = BOX_IDLE,
+			Icon = "rbxassetid://119408380665005",
+		},
+		Rare = {
+			Odds = "Rare",
+			Timer = 3600,
+			Model = "RareBlock",
+			Idle = BOX_IDLE,
+			Icon = "rbxassetid://114285593441963",
+		}, -- 1 hour
+		Epic = {
+			Odds = "Epic",
+			Timer = 6 * 3600,
+			Model = "EpicBlock",
+			Idle = BOX_IDLE,
+			Icon = "rbxassetid://90574468724799",
+		}, -- 6 hours
 		Legendary = {
+			Icon = "rbxassetid://128589483213137",
 			Odds = "Legendary",
 			Timer = 24 * 3600,
 			Model = "LegendaryBlock", -- gold, with wings
@@ -2122,6 +2149,7 @@ Config.LuckyBlocks = {
 			IconScale = 2.2, -- close in on the block
 		},
 		Mythic = {
+			Icon = "rbxassetid://125009619556113",
 			Odds = "Mythic",
 			Timer = 48 * 3600,
 			Model = "MythicBlock", -- pastel rainbow, halo and wings
@@ -2134,6 +2162,7 @@ Config.LuckyBlocks = {
 		-- The tier roll's block (plan 2, 4.2): 5 minutes when won (none when bought); on
 		-- opening it morphs into the tier's block and that block opens in the same flow.
 		Mystery = {
+			Icon = "rbxassetid://76412774878315",
 			Roll = true,
 			Timer = 300,
 			Model = "MysteryBlock", -- frame C (flush rims), the moving rainbow
@@ -2141,6 +2170,7 @@ Config.LuckyBlocks = {
 		},
 		-- The shop's hero for 21 days (Config.Shop.Deals.GrandOpening), then retired.
 		GrandOpening = {
+			Icon = "rbxassetid://72796006793771",
 			Odds = "GrandOpening",
 			Timer = 0,
 			Model = "GrandOpeningBlock", -- gold, with a crown
@@ -2150,9 +2180,16 @@ Config.LuckyBlocks = {
 			HoldCenterShare = 0.36,
 			IconScale = 1.2,
 		},
-		Lucky8 = { Odds = "Rare", Timer = 0, Model = "EightBallBlock", Idle = BOX_IDLE }, -- group + favorite
+		Lucky8 = {
+			Odds = "Rare",
+			Timer = 0,
+			Model = "EightBallBlock",
+			Idle = BOX_IDLE,
+			Icon = "rbxassetid://118551627638397",
+		}, -- group + favorite
 		-- Lucky Rain: a baby-blue block on a cloud, small wings.
 		Sky = {
+			Icon = "rbxassetid://75262912311625",
 			Odds = "Sky",
 			Timer = 0,
 			Model = "SkyBlock",
@@ -2162,6 +2199,7 @@ Config.LuckyBlocks = {
 			IconScale = 1.6,
 		},
 		Starter = { -- the Starter Pack: red, gift-wrapped
+			Icon = "rbxassetid://136835865759096",
 			Odds = "Starter",
 			Timer = 0,
 			Model = "StarterBlock",
@@ -2171,6 +2209,7 @@ Config.LuckyBlocks = {
 			IconScale = 1.1,
 		},
 		Gift = { -- given the first time a player leaves (GDD); white, gold ribbon and clock
+			Icon = "rbxassetid://78700846306745",
 			Odds = "Rare",
 			Timer = 12 * 3600,
 			Model = "GiftBlock",
@@ -2194,9 +2233,60 @@ Config.LuckyBlocks = {
 		LightBrightness = 2, -- non-standard blocks cast a small coloured pool of light
 		LightRangeStuds = 7,
 		ParticleLightInfluence = 0, -- sparkles keep their authored colours under warm lobby light
+		-- The pack's pulsing glow (a flash that swells every 0.4 s): its emitters (this texture)
+		-- stay off while the block's timer runs and pulse once it is ready (designer,
+		-- 2026-10-07), on the floor and in the hands.
+		PulseTexture = "rbxassetid://7216856402",
 		-- The Mystery block's moving rainbow rims (designer, 2026-10-07): textures tagged Tag
 		-- on a block's frame slide sideways, one rainbow every StudsPerTile studs.
 		Scroll = { Tag = "LuckyScroll", StudsPerTile = 6, StudsPerSecond = 1.2 }, -- slower (designer)
+	},
+	-- The Gift block (designer, 2026-10-07): given once, the first time a player leaves the
+	-- game (not a teleport to a match); its timer (Kinds.Gift.Timer) runs from that leave. The
+	-- next time they are in a lobby (after the tutorial) it falls from the sky in a short
+	-- cutscene (black bars, a glowing trail, a crash with a shockwave and a burst of particles)
+	-- and waits on the floor to be picked up (GiftDropService, client GiftDrop).
+	GiftDrop = {
+		DelaySeconds = 3, -- after the player's character is in, before it falls
+		AheadStuds = 12, -- it lands this far in front of the player
+		PickupStuds = 16, -- the server's check: the player this close to where it landed
+		SizeStuds = 4.5, -- the block's edge on the floor (its bow on top)
+		DropHeightStuds = 160, -- it starts this far over the landing spot
+		DropSideStuds = 70, -- ... and this far off to the side, so it falls on a slant
+		FallSeconds = 2.4, -- the fall (it speeds up: the square of the time)
+		SpinTurns = 1.5, -- turns on the way down
+		BarsShare = 0.11, -- each black bar, of the screen's height
+		BarsSeconds = 0.45,
+		-- The camera: behind the player, looking up at the sky over the landing spot, then
+		-- following the block down; after the crash it holds, then blends back.
+		CameraBackStuds = 9,
+		CameraUpStuds = 5,
+		-- ... and this far to the side, opposite where the block comes from, so it falls across
+		-- the frame and the player never hides the landing (a wall or a tree pulls it closer).
+		CameraSideStuds = 10,
+		HoldSeconds = 1.6, -- on the landed block before the camera goes back
+		BackSeconds = 0.8,
+		ShakeStuds = 1.2, -- the crash's camera shake, fading over ShakeSeconds
+		ShakeSeconds = 0.6,
+		FlashSeconds = 0.35, -- the white flash at the crash
+		RingStuds = 22, -- the shockwave ring's reach
+		RingSeconds = 0.7,
+		TrailSeconds = 0.6, -- how long the trail behind it lasts
+		TrailWidthStuds = 3.5,
+		-- The trail and glow colours (gold to white), the crash's dust and sparkle bursts.
+		TrailColors = { { 255, 214, 92 }, { 255, 255, 255 } },
+		DustBurst = 40,
+		SparkleBurst = 70,
+		PickupSeconds = 0.35, -- the block shrinks away when picked up
+		PromptHoldSeconds = 0.3,
+		-- Its particle sprites (the lucky blocks' own, assets/luckyblocks/particles).
+		Sprites = {
+			Twinkle = "rbxassetid://93784382803534",
+			Ember = "rbxassetid://121486915965496",
+			Puff = "rbxassetid://108727667390410",
+			Confetti = "rbxassetid://97972156068128",
+		},
+		GlowStuds = 14, -- the glint round it as it falls (Config.UI.Kit.Art.SoftGlow)
 	},
 	MaxBlocks = 200, -- the save holds at most this many blocks
 	-- A block that rolls a Unique cue the player already owns (one per player) is rolled again,
@@ -2304,6 +2394,7 @@ Config.LuckyBlocks = {
 		NumberPx = 14, -- the slot's number, top-left
 		TimerPx = 14, -- the countdown along the slot's bottom
 		IconTurnDegreesPerSecond = 30, -- the 3D icon turns slowly
+		IconImageShare = 0.9, -- a slot's 2D icon (the kind's Icon), of the slot's side
 		IconFieldOfView = 30,
 		IconAmbient = 1, -- neutral fill keeps every turning face bright in the bag/hotbar
 		IconLight = 2, -- brighter directional key; retains the original texture colours
@@ -5270,8 +5361,10 @@ Config.UI = {
 	-- many times the picture's side long, leaning this many degrees right of upright (measured
 	-- from the pictures, 2026-10-03: not 45, so turning it 45 left the bar's cue crooked). The
 	-- power bar turns the picture back by the lean and sizes it so the cue keeps
-	-- PowerCueLengthScale. Re-measure if the thumbnail camera changes.
-	PowerCueArtLength = 1.12,
+	-- PowerCueLengthScale. Re-measure if the thumbnail camera changes: the redrawn pictures
+	-- (2026-10-07, thicker, with the outline) measure 1.15-1.19, and at the old 1.12 the tip
+	-- poked out over the bar's top (designer); 1.24 keeps the longest a little inside it.
+	PowerCueArtLength = 1.24,
 	PowerCueArtLeanDegrees = 37.45,
 	PowerCueTravelScale = 1.0, -- of the bar's height, at full pull
 	-- Slices used to draw the taper. A Frame cannot be a trapezoid, so the cue is built
@@ -10808,6 +10901,7 @@ Config.Debug = {
 		-- and a Money Party are this server's, like the real ones).
 		GiveCue = "/givecue", -- /givecue <id|name> [count]: never Classic or a Unique cue
 		GiveBlock = "/giveblock", -- /giveblock <standard|rare|mystery ...> [count]: lucky blocks
+		GiftDrop = "/giftdrop", -- the first-leave Gift again: marks a leave now and drops it
 		Cutscene = "/cutscene", -- /cutscene <rare|epic|legendary|mythic|secret>: the pull cutscene alone (nothing given)
 		Inv = "/inv", -- prints your inventory privately
 		ClearInv = "/clearinv", -- empties your cues (but Classic) and lucky blocks

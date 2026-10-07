@@ -607,6 +607,7 @@ local ECON: { string } = {
 	"GiveCue",
 	"GiveBlock",
 	"Cutscene",
+	"GiftDrop",
 	"Inv",
 	"ClearInv",
 	"Dupes",
@@ -1222,6 +1223,10 @@ function DevCommands.start()
 	command("GiveCue", D.GiveCue, giveCue)
 	command("GiveBlock", D.GiveBlock, giveBlock)
 	command("Cutscene", D.Cutscene, cutscene)
+	command("GiftDrop", D.GiftDrop, function(player: Player)
+		local ok = require(script.Parent.GiftDropService).dev(player)
+		tell(player, if ok then Dev.GiftDrop else Dev.GiftDropBusy)
+	end)
 	command("Inv", D.Inv, showInventory)
 	command("ClearInv", D.ClearInv, clearInventory)
 	command("Dupes", D.Dupes, giveDupes)
