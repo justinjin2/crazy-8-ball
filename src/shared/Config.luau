@@ -2099,7 +2099,14 @@ Config.LuckyBlocks = {
 	-- At-th block of this kind a player opens is this cue if they have none (a paid pity, shown
 	-- live). Adding a pack block: the recipe in assets/luckyblocks/Readme.md.
 	Kinds = {
-		Standard = { Odds = "Standard", Timer = 0, Model = "YellowLuckyBlock" },
+		-- Our own models (designer, 2026-10-07): built by tools/luckyblock_build.py, idle
+		-- LuckyBoxIdle (the pack's Box Idle on our rig, tools/luckyblock_anims.luau).
+		Standard = {
+			Odds = "Standard",
+			Timer = 0,
+			Model = "StandardBlock",
+			Idle = "rbxassetid://126596744037463",
+		},
 		Uncommon = { Odds = "Uncommon", Timer = 0, Model = "GreenLuckyBlock" },
 		Rare = { Odds = "Rare", Timer = 3600, Model = "BlueLuckyBlock" }, -- 1 hour
 		Epic = { Odds = "Epic", Timer = 6 * 3600, Model = "VoidLavaLuckyBlock" }, -- 6 hours
@@ -2128,7 +2135,12 @@ Config.LuckyBlocks = {
 		},
 		-- The tier roll's block (plan 2, 4.2): 5 minutes when won (none when bought); on
 		-- opening it morphs into the tier's block and that block opens in the same flow.
-		Mystery = { Roll = true, Timer = 300, Model = "MysteryLuckyBlock" },
+		Mystery = {
+			Roll = true,
+			Timer = 300,
+			Model = "MysteryBlock", -- our own model, frame C (flush rims)
+			Idle = "rbxassetid://126596744037463", -- LuckyBoxIdle
+		},
 		-- The shop's hero for 21 days (Config.Shop.Deals.GrandOpening), then retired.
 		GrandOpening = {
 			Odds = "GrandOpening",

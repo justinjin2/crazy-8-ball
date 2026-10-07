@@ -4852,6 +4852,11 @@
     "assetType": "Animation",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/LuckyBoxIdle.rbxm": {
+    "assetId": "126596744037463",
+    "assetType": "Animation",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/LuckyHoldR15.rbxm": {
     "assetId": "97081574599269",
     "assetType": "Animation",
@@ -4870,6 +4875,16 @@
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/LuckyThrowR6.rbxm": {
     "assetId": "133046367802407",
     "assetType": "Animation",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/mystery/MysteryBlock.glb": {
+    "assetId": "72158769287664",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/build/standard/StandardBlock.glb": {
+    "assetId": "132245263388441",
+    "assetType": "Model",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/lucky8_face.png": {
@@ -4891,6 +4906,16 @@
     "assetId": "72694723354109",
     "assetType": "Decal",
     "imageId": "104192408636466",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/rough_022.png": {
+    "assetId": "136242066990253",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/rough_045.png": {
+    "assetId": "78530261835264",
+    "assetType": "Decal",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/textures/sky_colormap.png": {

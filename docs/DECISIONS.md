@@ -2953,3 +2953,10 @@ timer of a new block stay the designer's call.
   Epic dark purple with violet energy cracks, Legendary orange-gold with golden wings. The
   approved art lives in `~/Desktop/8ball-refs/lucky-blocks/` (`concepts_b/`, `concepts_c/mystery_c.png`,
   `tiers/`). Building starts: the master block in Blender on the pack's own C_01 skeleton.
+- 2026-10-07: **Our own lucky block models are in the game** (Standard and Mystery first). Built
+  in headless Blender from a script (`tools/luckyblock_build.py`), uploaded as glb, assembled into
+  templates in Edit (`tools/luckyblock_template.luau`). The idle is the pack's Box Idle moved onto
+  our rig (`tools/luckyblock_anims.luau`, LuckyBoxIdle): the pack's motion is a hover, not a
+  squash, so a copy in studs matches it exactly (measured in Studio). The pack's glow particles
+  and light are copied onto each block. The designer allowed uploads for this job without asking
+  each time (dry-run first).
