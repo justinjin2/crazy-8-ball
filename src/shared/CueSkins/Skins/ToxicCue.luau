@@ -345,7 +345,7 @@ return {
 			Brightness = 2,
 		},
 	},
-	Thumb = "rbxassetid://115314271380442",
+	Thumb = "rbxassetid://86981411799528",
 	Look = {
 		Shaft = { 95, 173, 41 },
 		Forearm = { 95, 129, 26 },

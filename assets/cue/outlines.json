@@ -1,0 +1,559 @@
+{
+  "apex": {
+    "catalogId": "ApexCue",
+    "color": "#19E6FF",
+    "level": "Mythic",
+    "lineScale": 1,
+    "palette": [
+      "#19E6FF",
+      "#FF7A1A"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "arctic": {
+    "catalogId": "ArcticCue",
+    "color": "#1B2033",
+    "level": "Common",
+    "lineScale": 0.35,
+    "pop": false,
+    "transparency": 0.7
+  },
+  "aurora": {
+    "catalogId": "AuroraCue",
+    "color": "#27446F",
+    "level": "Epic",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "beta": {
+    "catalogId": "BetaCue",
+    "color": "#3FA9FF",
+    "level": "Epic",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "blaze": {
+    "catalogId": "BlazeCue",
+    "color": "#FF781E",
+    "level": "Rare",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "blood_moon": {
+    "catalogId": "BloodMoonCue",
+    "color": "#E62832",
+    "level": "Epic",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "bronze_cue": {
+    "catalogId": "BronzeCue",
+    "color": "#AE693A",
+    "level": "Uncommon",
+    "lineScale": 0.6,
+    "pop": false,
+    "transparency": 0.45
+  },
+  "candy": {
+    "catalogId": "CandyCue",
+    "color": "#EB2832",
+    "level": "Rare",
+    "lineScale": 1,
+    "pop": true,
+    "transparency": 0
+  },
+  "carbon": {
+    "catalogId": "CarbonCue",
+    "color": "#1B2033",
+    "level": "Common",
+    "lineScale": 0.35,
+    "pop": false,
+    "transparency": 0.7
+  },
+  "celestial_dragon": {
+    "catalogId": "CelestialDragonCue",
+    "color": "#9FE8FF",
+    "level": "Mythic",
+    "lineScale": 1,
+    "palette": [
+      "#3FD6FF",
+      "#4FA8FF",
+      "#8A5CFF",
+      "#4FA8FF"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "cherry": {
+    "catalogId": "CherryCue",
+    "color": "#780E17",
+    "level": "Common",
+    "lineScale": 0.35,
+    "pop": false,
+    "transparency": 0.7
+  },
+  "chroma": {
+    "catalogId": "ChromaCue",
+    "color": "#FF3D3D",
+    "level": "Legendary",
+    "lineScale": 1,
+    "palette": [
+      "#FF3D3D",
+      "#FFD23D",
+      "#3DFF8A",
+      "#3D8AFF"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "classic": {
+    "catalogId": "Classic",
+    "color": "#D3AE7B",
+    "level": "Common",
+    "lineScale": 0.35,
+    "pop": false,
+    "transparency": 0.7
+  },
+  "clockwork": {
+    "catalogId": "ClockworkCue",
+    "color": "#FFC45A",
+    "level": "Legendary",
+    "lineScale": 1,
+    "palette": [
+      "#FFC45A",
+      "#FFE7BD"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "cobalt": {
+    "catalogId": "CobaltCue",
+    "color": "#16335A",
+    "level": "Common",
+    "lineScale": 0.35,
+    "pop": false,
+    "transparency": 0.7
+  },
+  "cosmo": {
+    "catalogId": "CosmoCue",
+    "color": "#A05AFF",
+    "level": "Uncommon",
+    "lineScale": 0.6,
+    "pop": false,
+    "transparency": 0.45
+  },
+  "diamond_cue": {
+    "catalogId": "DiamondCue",
+    "color": "#6EBEFF",
+    "level": "Rare",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "disco": {
+    "catalogId": "DiscoCue",
+    "color": "#FF96DC",
+    "level": "Epic",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "eclipse": {
+    "catalogId": "EclipseCue",
+    "color": "#FFB21E",
+    "level": "Secret",
+    "lineScale": 1,
+    "palette": [
+      "#FFB300",
+      "#FF9A1A",
+      "#FFD27A",
+      "#FF9A1A"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "expert_cue": {
+    "catalogId": "ExpertCue",
+    "color": "#EB281E",
+    "level": "Epic",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "firework": {
+    "catalogId": "FireworkCue",
+    "color": "#FFC040",
+    "level": "Legendary",
+    "lineScale": 1,
+    "palette": [
+      "#FFAA1E",
+      "#FFDDA5"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "flare": {
+    "catalogId": "FlareCue",
+    "color": "#FF6E1E",
+    "level": "Uncommon",
+    "lineScale": 0.6,
+    "pop": true,
+    "transparency": 0.45
+  },
+  "frostbite": {
+    "catalogId": "FrostbiteCue",
+    "color": "#96D7FF",
+    "level": "Rare",
+    "lineScale": 1,
+    "pop": true,
+    "transparency": 0
+  },
+  "gilded": {
+    "catalogId": "GildedCue",
+    "color": "#FFC850",
+    "level": "Uncommon",
+    "lineScale": 0.6,
+    "pop": false,
+    "transparency": 0.45
+  },
+  "gold_cue": {
+    "catalogId": "GoldCue",
+    "color": "#FFC446",
+    "level": "Uncommon",
+    "lineScale": 0.6,
+    "pop": false,
+    "transparency": 0.45
+  },
+  "grandmaster_cue": {
+    "catalogId": "GrandmasterCue",
+    "color": "#FFC83C",
+    "level": "Legendary",
+    "lineScale": 1,
+    "palette": [
+      "#FFC83C",
+      "#FFE9B1"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "gummy": {
+    "catalogId": "GummyCue",
+    "color": "#FF82BE",
+    "level": "Uncommon",
+    "lineScale": 0.6,
+    "pop": true,
+    "transparency": 0.45
+  },
+  "hacked": {
+    "catalogId": "HackedCue",
+    "color": "#2BFF5A",
+    "level": "Epic",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "heritage": {
+    "catalogId": "HeritageCue",
+    "color": "#DEBB81",
+    "level": "Common",
+    "lineScale": 0.35,
+    "pop": false,
+    "transparency": 0.7
+  },
+  "honeycomb": {
+    "catalogId": "HoneycombCue",
+    "color": "#FFBE46",
+    "level": "Rare",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "hornet": {
+    "catalogId": "HornetCue",
+    "color": "#FFD728",
+    "level": "Uncommon",
+    "lineScale": 0.6,
+    "pop": false,
+    "transparency": 0.45
+  },
+  "infernal": {
+    "catalogId": "InfernalCue",
+    "color": "#FFB4A0",
+    "level": "Legendary",
+    "lineScale": 1,
+    "palette": [
+      "#FF8A1F",
+      "#E0201A"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "kitsune": {
+    "catalogId": "KitsuneCue",
+    "color": "#FF8FD0",
+    "level": "Mythic",
+    "lineScale": 1,
+    "palette": [
+      "#FF78DC",
+      "#FF8E9E",
+      "#FF9FD6",
+      "#C08CFF"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "kraken": {
+    "catalogId": "KrakenCue",
+    "color": "#2BF0D0",
+    "level": "Legendary",
+    "lineScale": 1,
+    "palette": [
+      "#2BF0D0",
+      "#8A4AF0"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "lagoon": {
+    "catalogId": "LagoonCue",
+    "color": "#3CE6E6",
+    "level": "Uncommon",
+    "lineScale": 0.6,
+    "pop": false,
+    "transparency": 0.45
+  },
+  "magma": {
+    "catalogId": "MagmaCue",
+    "color": "#FF5A0A",
+    "level": "Epic",
+    "lineScale": 1,
+    "pop": true,
+    "transparency": 0
+  },
+  "master_cue": {
+    "catalogId": "MasterCue",
+    "color": "#AF6EFF",
+    "level": "Epic",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "midnight": {
+    "catalogId": "MidnightCue",
+    "color": "#1B2033",
+    "level": "Common",
+    "lineScale": 0.35,
+    "pop": false,
+    "transparency": 0.7
+  },
+  "monarch": {
+    "catalogId": "MonarchCue",
+    "color": "#1B2033",
+    "level": "Common",
+    "lineScale": 0.35,
+    "pop": false,
+    "transparency": 0.7
+  },
+  "nature": {
+    "catalogId": "NatureCue",
+    "color": "#78DC5A",
+    "level": "Rare",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "neon": {
+    "catalogId": "NeonCue",
+    "color": "#FF3CDC",
+    "level": "Rare",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "phantom": {
+    "catalogId": "PhantomCue",
+    "color": "#6EE6D2",
+    "level": "Rare",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "phoenix": {
+    "catalogId": "PhoenixCue",
+    "color": "#FF9628",
+    "level": "Legendary",
+    "lineScale": 1,
+    "palette": [
+      "#FF7A1A",
+      "#FFD23D",
+      "#C81E14"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "pixel": {
+    "catalogId": "PixelCue",
+    "color": "#28E1FF",
+    "level": "Uncommon",
+    "lineScale": 0.6,
+    "pop": false,
+    "transparency": 0.45
+  },
+  "plasma": {
+    "catalogId": "PlasmaCue",
+    "color": "#AA64FF",
+    "level": "Rare",
+    "lineScale": 1,
+    "pop": true,
+    "transparency": 0
+  },
+  "platinum_cue": {
+    "catalogId": "PlatinumCue",
+    "color": "#1B2033",
+    "level": "Rare",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "prism": {
+    "catalogId": "PrismCue",
+    "color": "#FF9ACD",
+    "level": "Epic",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "reyes_cue": {
+    "catalogId": "ReyesCue",
+    "color": "#FFDC78",
+    "level": "Mythic",
+    "lineScale": 1,
+    "palette": [
+      "#FFDC78",
+      "#FFF1C9"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "sakura": {
+    "catalogId": "SakuraCue",
+    "color": "#FF96C8",
+    "level": "Rare",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "seraph": {
+    "catalogId": "SeraphCue",
+    "color": "#D4AF37",
+    "level": "Legendary",
+    "lineScale": 1,
+    "palette": [
+      "#D4AF37",
+      "#EEDFAF"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "shooting_star": {
+    "catalogId": "ShootingStarCue",
+    "color": "#FFD76A",
+    "level": "Epic",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "silver_cue": {
+    "catalogId": "SilverCue",
+    "color": "#1B2033",
+    "level": "Uncommon",
+    "lineScale": 0.6,
+    "pop": false,
+    "transparency": 0.45
+  },
+  "splice": {
+    "catalogId": "SpliceCue",
+    "color": "#50A0FF",
+    "level": "Uncommon",
+    "lineScale": 0.6,
+    "pop": false,
+    "transparency": 0.45
+  },
+  "starter_cue": {
+    "catalogId": "StarterCue",
+    "color": "#50A0FF",
+    "level": "Uncommon",
+    "lineScale": 0.6,
+    "pop": false,
+    "transparency": 0.45
+  },
+  "thunderstrike": {
+    "catalogId": "ThunderstrikeCue",
+    "color": "#3D7AFF",
+    "level": "Legendary",
+    "lineScale": 1,
+    "palette": [
+      "#3D7AFF",
+      "#3DB8FF"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "tidal": {
+    "catalogId": "TidalCue",
+    "color": "#28B4C8",
+    "level": "Rare",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "toxic": {
+    "catalogId": "ToxicCue",
+    "color": "#7CFF2B",
+    "level": "Epic",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "venom": {
+    "catalogId": "VenomCue",
+    "color": "#5AFF3C",
+    "level": "Uncommon",
+    "lineScale": 0.6,
+    "pop": false,
+    "transparency": 0.45
+  },
+  "veteran_cue": {
+    "catalogId": "VeteranCue",
+    "color": "#5AE678",
+    "level": "Epic",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  },
+  "vip_cue": {
+    "catalogId": "VipCue",
+    "color": "#FFD25A",
+    "level": "Legendary",
+    "lineScale": 1,
+    "palette": [
+      "#FFD25A",
+      "#FFEDBD"
+    ],
+    "pop": false,
+    "transparency": 0
+  },
+  "void": {
+    "catalogId": "VoidCue",
+    "color": "#5B1FA8",
+    "level": "Epic",
+    "lineScale": 1,
+    "pop": false,
+    "transparency": 0
+  }
+}

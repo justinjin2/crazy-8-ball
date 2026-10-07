@@ -31,7 +31,7 @@ tools/test.sh   # cue_shape_test (Shape.json is current), cue_mesh_test (MeshSki
   because a new upload is a new asset id. Do that only when the shape really changes.
 - **When the cue's width changes** (shape 3, 2026-10-04: butt 0.32 -> 0.36, slim front kept), everything built
   on the old shape follows, in this order: Shape.json and the mesh (above); every skin repainted
-  (`python3 tools/cue_skin.py <ids> --paint --maps --thumb --noaura`; Classic with `--maps --thumb`
+  (`python3 tools/cue_skin.py <ids> --paint --maps --thumb`; Classic with `--maps --thumb`
   only, it has no paint recipe); `python3 tools/cue_widen.py` moves each skin's effects out with
   the surface (idempotent, migrates from frozen `shapes/shape2.json`, stamps `"shape": 3`); the pieces on the butt read the new radius
   (`CuePieces.butt_gain`/`butt_growth`) and are rebuilt with `CuePieces.py -- <ids> --no-preview` and
@@ -39,6 +39,17 @@ tools/test.sh   # cue_shape_test (Shape.json is current), cue_mesh_test (MeshSki
   prints; then everything is uploaded again and the templates rebuilt in Studio. The AI-painted
   panels are resized to the new panel shapes, not re-bought: from the side only half the
   circumference shows, so the squeeze barely reads.
+
+- **The card pictures** (`thumbs/<id>.png`, `CuePreview.py --thumb`; designer, 2026-10-07) show
+  the cue as it looks in game: its aura frozen at one moment (twice its particle rate, since
+  one frozen moment looks sparser than the moving aura), its in-game outline (the theme colour,
+  the moving gradient's colours along the stick from Legendary up, Common and Uncommon fainter)
+  with a thin ink line outside it, and a little more saturation and contrast. The outline
+  colours come from the game code: run `lune run tools/export_cue_outlines.luau` (writes
+  `outlines.json`) after changing `Config.CueSkins.Pop` or a skin's colours, then re-render the
+  pictures (`python3 tools/cue_skin.py <ids> --thumb`; `--noaura` leaves the aura out), upload
+  them and run `tools/cue_skins_data.py`. Every number is a `THUMB_*` constant at the top of
+  `CuePreview.py`.
 
 ## Files
 

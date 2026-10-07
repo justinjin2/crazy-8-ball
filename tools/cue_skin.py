@@ -8,8 +8,8 @@
 --stills  CuePreview.py --stills              (renders/skins/<id>/stills/)
 --sheet   CuePreview.py --sheet <id>          (renders/skins/<id>/sheet.png)
 --clip    CuePreview.py --clip                (renders/skins/<id>/clip.mp4)
---thumb   CuePreview.py --thumb               (thumbs/<id>.png, the game's card picture)
---noaura  suppress thumbnail aura (the current game's clean card art)
+--thumb   CuePreview.py --thumb               (thumbs/<id>.png, the game's card picture, aura and outline)
+--noaura  leave the aura out of the card picture
 --all     every step (the default with no step flags). Headless Blender only, one at a time.
 """
 import os

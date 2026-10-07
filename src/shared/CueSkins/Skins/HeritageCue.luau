@@ -13,7 +13,7 @@ return {
 		Roughness = "rbxassetid://121249292654407",
 		Metalness = "rbxassetid://111105003086367",
 	},
-	Thumb = "rbxassetid://100020230458583",
+	Thumb = "rbxassetid://127574476618619",
 	Look = {
 		Shaft = { 222, 187, 129 },
 		Forearm = { 89, 72, 46 },

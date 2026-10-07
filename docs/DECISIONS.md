@@ -2967,3 +2967,11 @@ timer of a new block stay the designer's call.
   putting away leave no hold loop behind, both land with their idle, opening works, console clean.
 - 2026-10-07 (designer): Standard moves back toward the pack's original: golden-beige rims and
   brown faces that darken toward the bottom, white "?" (replaces the lemon-yellow/beige try).
+- 2026-10-07 (designer): **the cue card pictures show the cue as it looks in game** (replaces
+  the 2026-10-03 no-aura snapshot): the aura frozen at one moment at twice its particle rate,
+  the in-game theme outline (the moving gradient's colours from Legendary up, Common and
+  Uncommon fainter) with a thin ink line outside it, the cue 1.45x thicker (was 1.15x) and
+  filling more of the card, a little more saturation and contrast. An exaggerated try (a colour
+  halo, bigger and deeper particles) was turned down: "the first samples were better".
+  All 61 re-rendered (`CuePreview.py --thumb`, outline colours from
+  `tools/export_cue_outlines.luau`) and uploaded.

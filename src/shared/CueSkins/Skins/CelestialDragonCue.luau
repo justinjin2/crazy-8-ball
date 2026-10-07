@@ -812,7 +812,7 @@ return {
 		KeepRibbons = false,
 	},
 	Piece = "celestial_dragon",
-	Thumb = "rbxassetid://104094356265283",
+	Thumb = "rbxassetid://115144710370596",
 	Look = {
 		Shaft = { 236, 232, 216 },
 		Forearm = { 215, 202, 155 },

@@ -620,7 +620,7 @@ return {
 		},
 	},
 	Piece = "chroma",
-	Thumb = "rbxassetid://114599309792025",
+	Thumb = "rbxassetid://128569594835545",
 	Look = {
 		Shaft = { 186, 42, 74 },
 		Forearm = { 115, 117, 134 },

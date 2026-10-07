@@ -35,10 +35,27 @@ TEXTURES = os.path.join(HERE, 'textures')
 CONCEPTS = os.path.join(HERE, 'concepts')
 THUMBS = os.path.join(HERE, 'thumbs')  # --thumb: the game's card pictures (committed, uploaded)
 THUMB_SIZE = 512  # px, square
-THUMB_THICKEN = 1.15  # the cue drawn this many times thicker across, so it reads on a card (1.8 before the cue grew 1.6x, 2026-10-01)
+THUMB_SUPER = 2  # rendered this many times larger, then shrunk (smooth outline edges)
+THUMB_THICKEN = 1.45  # the cue drawn this many times thicker across, so it reads on a card (1.15 until 2026-10-07)
+THUMB_MARGIN = 1.05  # studs of picture past the cue's diagonal (1.3 until 2026-10-07: the cue now fills more)
 THUMB_ELEVATION = 40  # degrees the camera rises from the cue's side toward its top
-THUMB_HAZE = 0.04  # glow fainter than this is dropped from a thumbnail
+THUMB_HAZE = 0.07  # glow fainter than this is dropped from a thumbnail
 THUMB_EDGE_FADE = 0.08  # glow fades out over this share of the picture at each edge
+THUMB_BAND = (0.30, 0.14)  # the aura is kept within a band along the cue's diagonal: full out to the first share
+                          # of the picture from the diagonal, gone over the second (no square of haze on a big aura)
+THUMB_BAND_KEEP = (0.55, 0.85)  # outside the band, aura this opaque (from the first to the second) stays: orbits and ribbons, not fog
+# The in-game look on a card (designer, 2026-10-07: the pictures show the aura and the outline
+# the cue wears in game, with more contrast). The outline is CueSkinLook's CueOutline
+# (outlines.json from tools/export_cue_outlines.luau): its colour, ByRarity's width share and
+# see-through, the moving gradient's palette along the stick from Legendary up; a thin ink line
+# outside it keeps it from melting into the pale card.
+THUMB_OUTLINE_PX = 4.0  # the theme outline's width at full size, px of the final picture
+THUMB_INK_PX = 1.5  # the ink line outside it, px
+THUMB_INK = (0x1B, 0x20, 0x33)  # the UI's ink (Config.CueSkins.Pop.Outline.Fallback)
+THUMB_SATURATION = 1.18  # the cue and its aura: saturation times this
+THUMB_CONTRAST = 0.22  # an S-curve on the cue's brightness, 0 none
+THUMB_GLOW_GAMMA = 0.65  # the aura's alpha raised to this (below 1: faint glow reads stronger on a pale card)
+THUMB_AURA_RATE = 2.0  # the aura's emitters at this many times their rate: one frozen moment looks sparser than the moving aura
 
 PREVIEW = {
     'clip_size': (1280, 720),
@@ -585,7 +602,7 @@ def blender_main(args):
         cue.location = loc
         cue.rotation_euler = rot
 
-    def still(name, cam_args, cue_pose, samples=None, aura_t=None):
+    def still(name, cam_args, cue_pose, samples=None, aura_t=None, aura_rate=1.0):
         w, h = still_size[name]
         scene.render.resolution_x, scene.render.resolution_y = w, h
         scene.render.resolution_percentage = 100
@@ -596,7 +613,7 @@ def blender_main(args):
             ob.data.clear_geometry()
         hide_lights()
         if aura_t is not None:
-            ems = make_aura()
+            ems = make_aura(rate_scale=aura_rate)
             host = cue_m()
             run_aura(ems, 0, aura_t, lambda t: host)
             cm = cam_matrix()
@@ -630,25 +647,40 @@ def blender_main(args):
         xw = yw.cross(zw)  # its side faces the camera, which is raised THUMB_ELEVATION toward the top
         rot = Matrix((xw, yw, zw)).transposed().to_euler()
         loc = (3.5 + reach / 2) * Vector((s, 0, s))
-        still_size['thumb'] = (THUMB_SIZE, THUMB_SIZE)
-        span = (7.0 + reach) * s + 1.3
+        n = THUMB_SIZE * THUMB_SUPER
+        still_size['thumb'] = (n, n)
+        span = (7.0 + reach) * s + THUMB_MARGIN
         e = math.radians(THUMB_ELEVATION)
         eye = 20 * (Vector((0, -math.cos(e), 0)) + math.sin(e) * zw)
-        # --noaura (the GUI lane, 2026-10-03): the picture shows the skin and its 3D piece frozen
-        # in place like a snapshot, with no moving aura or ribbons (the designer's C13).
+        # The aura shows, frozen at one moment (designer, 2026-10-07; --noaura, the GUI lane's
+        # snapshot without it from 2026-10-03, is kept for a clean picture).
         aura_t = PREVIEW['prewarm'] if ((V.get('Aura') or {}).get('Emitters') or beams) and '--noaura' not in args else None
         stills = os.path.join(out_dir, 'stills')
 
-        def shot(name):
-            still('thumb', dict(loc=tuple(eye), target=(0, 0, 0), ortho=span), (tuple(loc), tuple(rot)), aura_t=aura_t)
+        def shot(name, aura=True):
+            still('thumb', dict(loc=tuple(eye), target=(0, 0, 0), ortho=span), (tuple(loc), tuple(rot)),
+                  aura_t=aura_t if aura else None, aura_rate=THUMB_AURA_RATE)
             os.replace(os.path.join(stills, 'thumb.png'), os.path.join(stills, name))
 
         # Glow needs something behind it: a clear render gives the solid shapes' alpha, a render
-        # on black gives the colour with its bloom; the glow's own alpha is its brightness.
+        # on black gives the colour with its bloom; the glow's own alpha is its brightness. A
+        # third render of the bare stick (no piece, no aura) is the outline's shape, as the
+        # in-game Highlight outlines the stick only.
         shot('thumb_solid.png')
         scene.render.film_transparent = False
         bg.inputs[0].default_value = (0, 0, 0, 1)
         shot('thumb_glow.png')
+        scene.render.film_transparent = True
+        others = [o for o in scene.objects if o is not cue and o.type in ('MESH', 'CURVE', 'SURFACE', 'META', 'EMPTY')
+                  and not o.hide_render]
+        for o in others:
+            o.hide_render = True
+        add_bloom_off = scene.compositing_node_group
+        scene.compositing_node_group = None
+        shot('thumb_stick.png', aura=False)
+        scene.compositing_node_group = add_bloom_off
+        for o in others:
+            o.hide_render = False
 
         def pixels(name):
             im = bpy.data.images.load(os.path.join(stills, name))
@@ -657,20 +689,35 @@ def blender_main(args):
             bpy.data.images.remove(im)
             return px
 
-        solid, glow = pixels('thumb_solid.png'), pixels('thumb_glow.png')
+        solid, glow, stick = pixels('thumb_solid.png'), pixels('thumb_glow.png'), pixels('thumb_stick.png')
         # The faintest haze is dropped and glow fades out near the edges, so a big aura
         # (Eclipse, Phoenix) never shows the square's edge.
-        haze = np.clip((glow[..., :3].max(-1) - THUMB_HAZE) / (1 - THUMB_HAZE), 0, 1)
-        n = THUMB_SIZE
+        haze = np.clip((glow[..., :3].max(-1) - THUMB_HAZE) / (1 - THUMB_HAZE), 0, 1) ** THUMB_GLOW_GAMMA
         ramp = np.clip(np.minimum(np.arange(n), np.arange(n)[::-1]) / (THUMB_EDGE_FADE * n), 0, 1)
         haze = haze * np.minimum.outer(ramp, ramp)
         a = np.maximum(solid[..., 3], haze)
         rgb = np.where(a[..., None] > 1e-4, np.clip(glow[..., :3] / np.maximum(a[..., None], 1e-4), 0, 1), 0)
+        off = np.abs(np.subtract.outer(np.arange(n), np.arange(n))) / math.sqrt(2)
+        band = np.clip((THUMB_BAND[0] * n + THUMB_BAND[1] * n - off) / (THUMB_BAND[1] * n), 0, 1)
+        # bright lines (orbits, ribbons) outside the band stay; only the faint fog goes
+        keep = np.clip((a - THUMB_BAND_KEEP[0]) / (THUMB_BAND_KEEP[1] - THUMB_BAND_KEEP[0]), 0, 1)
+        edge = np.minimum.outer(ramp, ramp)
+        a = np.maximum(stick[..., 3], a * np.maximum(band, keep * keep * (3 - 2 * keep)) * edge)
+        rgb = thumb_grade(rgb)
+        outlines = args[args.index('--outlines') + 1] if '--outlines' in args else os.path.join(HERE, 'outlines.json')
+        rgb, a = thumb_outline(rgb, a, stick[..., 3], skin_id, n, outlines)
+        # shrink THUMB_SUPER times (premultiplied box filter; Blender's rows run bottom-up)
+        k = THUMB_SUPER
+        pm = np.concatenate([rgb * a[..., None], a[..., None]], -1)
+        pm = pm.reshape(THUMB_SIZE, k, THUMB_SIZE, k, 4).mean((1, 3))
+        a = pm[..., 3]
+        rgb = np.where(a[..., None] > 1e-4, pm[..., :3] / np.maximum(a[..., None], 1e-4), 0)
         out = bpy.data.images.new('thumb', THUMB_SIZE, THUMB_SIZE, alpha=True)
-        out.pixels[:] = np.concatenate([rgb, a[..., None]], -1).ravel().tolist()
-        out.filepath_raw = os.path.join(THUMBS, skin_id + '.png')
+        out.pixels[:] = np.concatenate([np.clip(rgb, 0, 1), a[..., None]], -1).ravel().tolist()
+        dest = args[args.index('--thumb-out') + 1] if '--thumb-out' in args else THUMBS
+        out.filepath_raw = os.path.join(dest, skin_id + '.png')
         out.file_format = 'PNG'
-        os.makedirs(THUMBS, exist_ok=True)
+        os.makedirs(dest, exist_ok=True)
         out.save()
         print('CUE preview thumb done', skin_id)
 
@@ -1076,6 +1123,72 @@ class PocketBurst:
         if 0 <= t <= self.flash['Seconds']:
             k = 1 - t / self.flash['Seconds']
         self.light.data.energy = 60.0 * self.flash['Brightness'] * k
+
+
+def thumb_grade(rgb):
+    """The card picture's punch: saturation times THUMB_SATURATION and a THUMB_CONTRAST S-curve
+    (straight colour, display values)."""
+    lum = (rgb * np.array([0.299, 0.587, 0.114], dtype=np.float32)).sum(-1, keepdims=True)
+    rgb = np.clip(lum + (rgb - lum) * THUMB_SATURATION, 0, 1)
+    return rgb + THUMB_CONTRAST * (rgb * rgb * (3 - 2 * rgb) - rgb)
+
+
+def thumb_dilate(m, radius):
+    """`m` (alpha, 0..1) grown by `radius` px with a soft disc edge (a max filter)."""
+    R = int(math.ceil(radius + 0.5))
+    p = np.pad(m, R)
+    h, w = m.shape
+    out = m.copy()
+    for dy in range(-R, R + 1):
+        for dx in range(-R, R + 1):
+            wgt = min(1.0, max(0.0, radius + 0.5 - math.hypot(dx, dy)))
+            if wgt > 0 and (dx or dy):
+                np.maximum(out, p[R + dy:R + dy + h, R + dx:R + dx + w] * wgt, out=out)
+    return out
+
+
+def thumb_over(rgb, a, frgb, fa):
+    """Straight-alpha `frgb, fa` laid over `rgb, a`."""
+    oa = fa + a * (1 - fa)
+    num = frgb * fa[..., None] + rgb * (a * (1 - fa))[..., None]
+    return np.where(oa[..., None] > 1e-5, num / np.maximum(oa[..., None], 1e-5), 0), oa
+
+
+def thumb_outline(rgb, a, stick, skin_id, n, path):
+    """The stick's in-game outline (outlines.json, see THUMB_OUTLINE_PX) laid over the picture:
+    the ink line, then the theme colour (the palette along the stick from tip to butt when the
+    cue has a moving gradient). A cue missing from the file gets the ink only."""
+    try:
+        row = json.load(open(path)).get(skin_id) or {}
+    except OSError:
+        print('CUE preview: no %s (run tools/export_cue_outlines.luau); ink only' % path)
+        row = {}
+    scale = row.get('lineScale', 1.0)
+    opaque = 1.0 - row.get('transparency', 0.0)
+    r1 = THUMB_OUTLINE_PX * THUMB_SUPER * scale
+    r2 = r1 + THUMB_INK_PX * THUMB_SUPER * max(scale, 0.5)
+    d1, d2 = thumb_dilate(stick, r1), thumb_dilate(stick, r2)
+    ink = np.clip(d2 - d1, 0, 1) * max(opaque, 0.5)
+    rgb, a = thumb_over(rgb, a, np.broadcast_to(np.array(THUMB_INK, np.float32) / 255, rgb.shape), ink)
+    if not row:
+        return rgb, a
+
+    def hexrgb(h):
+        h = h.lstrip('#')
+        return np.array([int(h[i:i + 2], 16) for i in (0, 2, 4)], np.float32) / 255
+
+    palette = row.get('palette')
+    if palette:
+        # the tip top-right, the butt bottom-left (rows run bottom-up): one loop over the length
+        cols = np.array([hexrgb(c) for c in palette])
+        t = (np.add.outer(np.arange(n), np.arange(n)) / (2.0 * n)) * len(cols)
+        i = np.floor(t).astype(int) % len(cols)
+        f = (t - np.floor(t))[..., None]
+        colour = cols[i] * (1 - f) + cols[(i + 1) % len(cols)] * f
+    else:
+        colour = np.broadcast_to(hexrgb(row['color']), rgb.shape)
+    ring = np.clip(d1 - stick, 0, 1) * opaque
+    return thumb_over(rgb, a, colour, ring)
 
 
 def add_bloom(bpy, scene):

@@ -677,7 +677,7 @@ return {
 		},
 	},
 	Piece = "seraph",
-	Thumb = "rbxassetid://115415424616347",
+	Thumb = "rbxassetid://78566451904118",
 	Look = {
 		Shaft = { 244, 238, 225 },
 		Forearm = { 231, 219, 179 },

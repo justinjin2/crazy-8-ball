@@ -985,7 +985,7 @@ return {
 		},
 	},
 	Piece = "eclipse",
-	Thumb = "rbxassetid://72441911905972",
+	Thumb = "rbxassetid://121234407234043",
 	Look = {
 		Shaft = { 57, 53, 45 },
 		Forearm = { 92, 79, 53 },

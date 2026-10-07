@@ -14,7 +14,7 @@ return {
 		Metalness = "rbxassetid://91355071021507",
 		Emissive = "rbxassetid://127615197469610",
 	},
-	Thumb = "rbxassetid://95170664056312",
+	Thumb = "rbxassetid://116586464576106",
 	Look = {
 		Shaft = { 22, 51, 90 },
 		Forearm = { 34, 60, 97 },

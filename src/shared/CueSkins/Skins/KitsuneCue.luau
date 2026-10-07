@@ -592,7 +592,7 @@ return {
 		KeepRibbons = false,
 	},
 	Piece = "kitsune",
-	Thumb = "rbxassetid://106116395846867",
+	Thumb = "rbxassetid://82271195530908",
 	Look = {
 		Shaft = { 238, 205, 195 },
 		Forearm = { 217, 128, 114 },

@@ -55,7 +55,7 @@ return {
 			},
 		},
 	},
-	Thumb = "rbxassetid://118379386570158",
+	Thumb = "rbxassetid://80358040578772",
 	Look = {
 		Shaft = { 33, 24, 56 },
 		Forearm = { 79, 69, 97 },

@@ -1186,7 +1186,7 @@ return {
 		},
 	},
 	Piece = "firework",
-	Thumb = "rbxassetid://114323135519020",
+	Thumb = "rbxassetid://74861136074442",
 	Look = {
 		Shaft = { 36, 44, 72 },
 		Forearm = { 47, 52, 78 },

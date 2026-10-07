@@ -14,7 +14,7 @@
 -- tinted dark.
 --
 -- A cue with a skin (CueSkins) shows its rendered picture instead (one image, the cue on the
--- same diagonal with its surface, glow and piece; tools/cue_skin.py --thumb), drawn as one
+-- same diagonal with its surface, piece, aura and in-game outline; tools/cue_skin.py --thumb), drawn as one
 -- dark shape for a silhouette; the layers stay for a cue with none (the Unique cues).
 --
 -- The dressing (CueThumb.dress) gives a card its rarity: a rarity-coloured edge inside its own

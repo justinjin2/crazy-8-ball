@@ -52,6 +52,9 @@ Updated 2026-10-07.
 - **Cue outlines and the "pop" aura.** Every cue has a theme-coloured outline (a moving
   gradient from Legendary up). The deeper aura is on test on Frostbite, Candy, Flare, Plasma,
   Gummy and Magma (`Config.CueSkins.Pop.Ids`).
+- **New cue card pictures** (2026-10-07): all 61 show their aura and in-game outline, thicker
+  and with more contrast (`assets/cue/Readme.md`). Uploaded and in the data; not yet seen in a
+  Studio playtest (Studio was busy with the lucky block work).
 - **Ball callouts** (2026-10-06): your own group pulses bright green with YOU ARE SOLIDS /
   STRIPES, and a team's last ball pulses green once per game as a warning; 4 pulses of 2 s
   each (`Config.Multiplayer.Style.BallPulse`). Seen in Studio from the QA hook; not yet in a real

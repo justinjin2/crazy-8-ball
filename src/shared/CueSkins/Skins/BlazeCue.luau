@@ -196,7 +196,7 @@ return {
 			ColorShare = 0.7,
 		},
 	},
-	Thumb = "rbxassetid://130293098628945",
+	Thumb = "rbxassetid://101212830924751",
 	Look = {
 		Shaft = { 58, 37, 25 },
 		Forearm = { 89, 62, 39 },
