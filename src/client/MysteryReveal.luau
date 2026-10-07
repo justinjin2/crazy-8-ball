@@ -234,6 +234,9 @@ function Reveal.build(self: any)
 	pic.Name = "Picture"
 	pic.BackgroundTransparency = 1
 	pic.ScaleType = Enum.ScaleType.Fit
+	-- A window inside the picture's clear border, moved by the leftover fraction of a pixel.
+	pic.ImageRectSize = Vector2.new(R.IconPx - 2 * R.IconBorder, R.IconPx - 2 * R.IconBorder)
+	pic.ImageRectOffset = Vector2.new(R.IconBorder, R.IconBorder)
 	pic.AnchorPoint = Vector2.new(0.5, 0.5)
 	pic.Position = UDim2.fromScale(0.5, 0.5)
 	pic.Size = UDim2.fromScale(1, 1)
@@ -905,25 +908,38 @@ function Reveal.press(self: any)
 			self:afterAnim()
 		end
 	end
+	-- A hop: up slowing, down speeding up (an arc), a rattle on the way, and a squash first.
+	local function hop(
+		seconds: number,
+		height: number,
+		rattle: number,
+		turns: number,
+		stretch: number
+	)
+		local total = P.SquashSeconds + seconds
+		return total,
+			function(t: number)
+				local now = t * total
+				if now < P.SquashSeconds then
+					self.pose.scale = lerp(1, P.Squash, quadOut(now / P.SquashSeconds))
+					return
+				end
+				local q = clamp01((now - P.SquashSeconds) / seconds)
+				local arcUp = math.sin(math.pi * q)
+				self.pose.scale = lerp(P.Squash, 1, quadOut(clamp01(q * 3))) + stretch * arcUp
+				if not reduced then
+					self.pose.lift = side * height * arcUp
+					self.pose.turn = rattle * math.sin(2 * math.pi * turns * q) * arcUp
+				end
+			end
+	end
 	if before == after then
 		-- Kept: a squash, a small hop and a rattle.
 		local K = R.Keep
+		local total, step = hop(K.Seconds, K.HopShare, K.RattleDegrees, 2, 0)
 		self.anim = {
-			seconds = K.Seconds,
-			step = function(t: number)
-				local s = clamp01(t * K.Seconds / P.SquashSeconds)
-				self.pose.scale = if t * K.Seconds < P.SquashSeconds
-					then lerp(1, P.Squash, s)
-					else lerp(
-						P.Squash,
-						1,
-						backOut(clamp01((t * K.Seconds - P.SquashSeconds) / 0.2))
-					)
-				if not reduced then
-					self.pose.lift = side * K.HopShare * math.sin(math.pi * t)
-					self.pose.turn = P.ShakeDegrees * math.sin(t * 38) * (1 - t)
-				end
-			end,
+			seconds = total,
+			step = step,
 			done = function()
 				self.pose.scale, self.pose.lift, self.pose.turn = 1, 0, 0
 				finish()
@@ -931,30 +947,14 @@ function Reveal.press(self: any)
 		}
 		return
 	end
-	-- Changed: squash, bounces with a growing rattle, then the impact (flash, shake, burst)
-	-- as the picture becomes the new block, which lands a little big and settles.
+	-- Changed: squash, one quick hop with a rattle, then the impact as it lands (flash,
+	-- shake, burst) as the picture becomes the new block, which lands a little big and settles.
 	local U = R.Upgrade
-	local first = before == "Mystery"
-	local hops = if first then U.FirstHopCount else U.HopCount
-	local bounce = if first then U.FirstSeconds else U.Seconds
-	local seconds = P.SquashSeconds + bounce
+	local seconds = if before == "Mystery" then U.FirstHopSeconds else U.HopSeconds
+	local total, step = hop(seconds, U.HopShare, U.RattleDegrees, U.RattleTurns, U.Stretch)
 	self.anim = {
-		seconds = seconds,
-		step = function(t: number)
-			local now = t * seconds
-			if now < P.SquashSeconds then
-				self.pose.scale = lerp(1, P.Squash, now / P.SquashSeconds)
-				return
-			end
-			local q = clamp01((now - P.SquashSeconds) / bounce)
-			self.pose.scale = lerp(P.Squash, 1, quadOut(clamp01(q * 4)))
-			if reduced then
-				return
-			end
-			local hop = math.abs(math.sin(math.pi * hops * q))
-			self.pose.lift = side * U.HopShare * hop * (1 - q * 0.5)
-			self.pose.turn = U.RattleDegrees * q * math.sin(q * 70)
-		end,
+		seconds = total,
+		step = step,
 		done = function()
 			self.pose.lift, self.pose.turn = 0, 0
 			self.pic.Image = iconOf(after)
@@ -1084,8 +1084,10 @@ function Reveal.leave(self: any)
 	local target = Vector2.new(size.X / 2, size.Y + side)
 	local endScale = 0.25
 	local aimed = false
-	local from = self.pose.at
+	-- It leaves from where the float had it, so it never jumps.
+	local from = self.pose.at + Vector2.new(0, (self.floatY or 0) - self.pose.lift)
 	local fromScale = self.pose.scale
+	local fromTurn = self.pose.turn + (self.floatTurn or 0)
 	local reduced = UIAnim.reduced()
 	self.anim = {
 		seconds = L.Seconds,
@@ -1105,7 +1107,7 @@ function Reveal.leave(self: any)
 			end
 			self.pose.at = arc(from, target, size.Y * L.ArcShare, e)
 			self.pose.scale = lerp(fromScale, endScale, e)
-			self.pose.turn = L.ToTurn * math.sin(math.pi * t)
+			self.pose.turn = L.ToTurn * math.sin(math.pi * t) + fromTurn * (1 - e)
 			self.pose.lift = 0
 		end,
 		done = function()
@@ -1171,18 +1173,27 @@ function Reveal.step(self: any, dt: number)
 	end
 	local pose = self.pose
 	local reduced = UIAnim.reduced()
-	-- Floating while nothing else moves it (it keeps its clock, so it never jumps).
+	-- Floating from the moment it arrives, under the presses too (switching it off for a press
+	-- would jump the block by the float's height).
 	local floatY, floatTurn = 0, 0
-	if not reduced and (self.phase == "Wait" or self.phase == "Done") then
+	if not reduced and (self.phase == "Wait" or self.phase == "Press" or self.phase == "Done") then
 		self.floatClock += dt
 		local F = R.Float
 		local w = 2 * math.pi * self.floatClock / F.Seconds
 		floatY = math.sin(w) * self.side * F.HeightShare
 		floatTurn = math.sin(w * 0.5) * F.Degrees
 	end
+	self.floatY, self.floatTurn = floatY, floatTurn
 	local side = self.side
 	local s = pose.scale
-	self.holder.Position = UDim2.fromOffset(pose.at.X, pose.at.Y - pose.lift + floatY)
+	-- Whole pixels by Position, the leftover fraction by moving the picture inside its label
+	-- (GUI positions snap to whole pixels; a slow move would step).
+	local x, y = pose.at.X, pose.at.Y - pose.lift + floatY
+	local wx, wy = math.floor(x + 0.5), math.floor(y + 0.5)
+	self.holder.Position = UDim2.fromOffset(wx, wy)
+	local border = R.IconBorder
+	local texel = (R.IconPx - 2 * border) / math.max(1, side * math.max(0.01, pose.scale))
+	self.pic.ImageRectOffset = Vector2.new(border - (x - wx) * texel, border - (y - wy) * texel)
 	self.holder.Size = UDim2.fromOffset(side, side)
 	self.holderScale.Scale = math.max(0.01, s)
 	self.holder.Rotation = pose.turn + floatTurn

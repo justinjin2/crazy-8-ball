@@ -636,11 +636,13 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
   and down with a slight rock, each tier with its own particles (Standard warm motes, Uncommon
   green sparkles, Rare blue stars and an orbit, Epic purple streaks, Legendary a gold fountain,
   Mythic rainbow). A press squashes it; a press that keeps the tier gives a small hop and a
-  rattle; one that raises it bounces it (a rattle growing), then the **impact**: a white flash
+  rattle; one that raises it does one quick hop with a rattle, then the **impact**: a white flash
   over the screen and on the block, a screen shake, a ring and a burst of sparks, the new
   block landing a little big as its name slams in (designer: no spin). After the last press,
   "Tap to collect" (or 4 s): the words and dots pop away and the block arcs back into its slot,
-  which bounces with a glow. Taps during an animation wait their turn. Reduce Motion: no float,
+  which bounces with a glow. Every press is done in under a second (designer, 2026-10-07: an
+  upgrade about 0.6 s, a kept tier 0.35 s). Smooth: the block moves by whole pixels and the
+  fraction moves the picture inside its label, and the float runs under the presses. Taps during an animation wait their turn. Reduce Motion: no float,
   hops, shake or arcs; the twinkles stay. Lower effects: fewer particles.
 
 ## 15. Shop v3: block cards, pass bands, the build-in and the HUD's "+" (2026-10-04)

@@ -3008,3 +3008,7 @@ timer of a new block stay the designer's call.
 - 2026-10-07: New lucky block timers (designer): Standard none, Uncommon 1 min, Rare 5 min, Epic
   1 h, Legendary 6 h, Mythic 12 h, the Gift still 12 h, every other kind none (the Mystery
   block's 5 minutes are gone). Blocks already counting down keep the time they had.
+- 2026-10-07: The Mystery screen's presses are faster and smoother (designer: "each transition
+  1 second or less"): an upgrade is one quick hop and the impact, about 0.6 s (0.7 s for the
+  first), a kept tier 0.35 s; the block moves with sub-pixel smoothing and its float never stops
+  under a press.

@@ -2443,27 +2443,35 @@ Config.LuckyBlocks = {
 		},
 		-- Floating while it waits: up and down, a slight rock.
 		Float = { Seconds = 2.2, HeightShare = 0.04, Degrees = 3 },
-		-- A press: a quick squash and a rattle.
-		Press = { SquashSeconds = 0.07, Squash = 0.84, ShakeDegrees = 9, ShakeSeconds = 0.25 },
-		-- A press that changes the tier: it bounces HopCount times (each lower, a rattle
-		-- building), then the impact: the picture becomes the new block under a white flash
-		-- while the screen shakes and a burst goes off; it lands a little big and settles.
+		-- A press: a quick squash (designer, 2026-10-07: every press done in under a second,
+		-- fast and smooth).
+		Press = { SquashSeconds = 0.05, Squash = 0.86 },
+		-- A press that changes the tier: one quick hop with a rattle (an arc, up slowing and
+		-- down speeding up), then the impact as it lands: the picture becomes the new block
+		-- under a white flash while the screen shakes and a burst goes off; it lands a little
+		-- big and settles. About 0.6 s in all (0.7 s for the Mystery block's first change).
 		Upgrade = {
-			Seconds = 0.5, -- the bounces before the impact
-			HopCount = 2,
-			FirstHopCount = 3, -- the Mystery block's first change bounces once more
-			FirstSeconds = 0.7,
-			HopShare = 0.16, -- the first bounce's height, of the block's side; each one lower
-			RattleDegrees = 7, -- the rattle as it bounces, growing toward the impact
-			LandScale = 1.22, -- the new block lands this big and settles
-			LandSeconds = 0.35,
+			HopSeconds = 0.3,
+			FirstHopSeconds = 0.4,
+			HopShare = 0.14, -- the hop's height, of the block's side
+			Stretch = 0.06, -- it grows this share at the top of the hop
+			RattleDegrees = 8, -- the rattle as it hops
+			RattleTurns = 4, -- rattles a hop
+			LandScale = 1.18, -- the new block lands this big and settles
+			LandSeconds = 0.25,
 		},
 		-- The impact's flash: a white sheet over the whole screen and a white glow on the block.
-		Flash = { Transparency = 0.45, InSeconds = 0.04, OutSeconds = 0.3, GlowShare = 1.9 },
+		Flash = { Transparency = 0.45, InSeconds = 0.04, OutSeconds = 0.25, GlowShare = 1.9 },
 		-- The impact's screen shake: everything on the screen jolts, fading out.
-		Shake = { Seconds = 0.32, Share = 0.035, Speed = 55 }, -- Share: of the block's side
-		-- A press that keeps the tier: one small hop and a puff.
-		Keep = { Seconds = 0.4, HopShare = 0.1 },
+		Shake = { Seconds = 0.28, Share = 0.035, Speed = 55 }, -- Share: of the block's side
+		-- A press that keeps the tier: a small hop and a rattle.
+		Keep = { Seconds = 0.3, HopShare = 0.07, RattleDegrees = 7 },
+		-- Smooth motion (the lively-gui technique): GUI positions snap to whole pixels, so the
+		-- block moves by whole pixels and the leftover fraction moves the picture inside its
+		-- label (ImageRectOffset). Every icon is IconPx square with at least this much clear
+		-- border, in texels.
+		IconPx = 512,
+		IconBorder = 4,
 		Burst = {
 			Sparks = 26,
 			SpeedShare = { 1.4, 2.6 },
