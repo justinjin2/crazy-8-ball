@@ -282,10 +282,35 @@ local STAND_IN = { userId = 1, name = "Opponent", tier = "Gold", division = 3 }
 local RESULTS: { [string]: string } =
 	{ win = "Win", lose = "Loss", loss = "Loss", draw = "Draw", firstwin = "Win" }
 
+-- The table a dev tool acts on (the look check's, /result's cutscene): the one the player is
+-- in the game at, else the one nearest their character (table 1 without a character).
+local function nearTable(player: Player): number
+	local seated = Tables.tableOf(player)
+	if seated then
+		return seated
+	end
+	local character = player.Character
+	local root = if character then character:FindFirstChild("HumanoidRootPart") else nil
+	local best, bestDistance = 1, math.huge
+	if root and root:IsA("BasePart") then
+		for id = 1, Placement.tableCount() do
+			local p = Placement.forTable(id)
+			if p then
+				local distance = (Vector3.new(p.x, p.y, p.z) - root.Position).Magnitude
+				if distance < bestDistance then
+					best, bestDistance = id, distance
+				end
+			end
+		end
+	end
+	return best
+end
+
 -- /result win|lose|draw|firstwin: the result screen with made-up numbers (the caller against a
 -- stand-in opponent), worked out from the caller's real rank but never saved. A sample: every
 -- boost that can apply is on (the streak, on a win) so every chip shows, a win brings the
 -- Mystery block chip, and `firstwin` the first win's Rare block instead (nothing is given).
+-- A win or loss first plays the result cutscene at the table nearest the caller.
 local function previewResult(player: Player, args: { string })
 	local word = args[1] or ""
 	local outcome = RESULTS[word]
@@ -353,10 +378,10 @@ local function previewResult(player: Player, args: { string })
 	local reward = xp.rewardTotal
 	Net.get("MatchSummary"):FireClient(player, {
 		key = "preview",
-		tableId = 0,
 		epoch = 0,
 		preview = true,
 		solo = false,
+		tableId = nearTable(player),
 		winner = if outcome == "Win" then 1 elseif outcome == "Loss" then 2 else nil,
 		reason = if outcome == "Draw" then "EmptyTeam" else "LegalEight",
 		short = false,
@@ -943,30 +968,6 @@ end
 ---------------------------------------------------------------------------------------------
 -- The look check's tools (Studio only; docs/prompts/ABILITIES_PROMPT.md 5.6)
 ---------------------------------------------------------------------------------------------
-
--- The table the look-check tools act on: the one the player is in the game at, else the one
--- nearest their character (table 1 without a character).
-local function nearTable(player: Player): number
-	local seated = Tables.tableOf(player)
-	if seated then
-		return seated
-	end
-	local character = player.Character
-	local root = if character then character:FindFirstChild("HumanoidRootPart") else nil
-	local best, bestDistance = 1, math.huge
-	if root and root:IsA("BasePart") then
-		for id = 1, Placement.tableCount() do
-			local p = Placement.forTable(id)
-			if p then
-				local distance = (Vector3.new(p.x, p.y, p.z) - root.Position).Magnitude
-				if distance < bestDistance then
-					best, bestDistance = id, distance
-				end
-			end
-		end
-	end
-	return best
-end
 
 -- Whether this is Studio; answers the caller when it is not.
 local function inStudio(player: Player, alias: string): boolean

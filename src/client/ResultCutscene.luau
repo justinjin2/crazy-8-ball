@@ -78,9 +78,9 @@ local function bodyOf(userId: number): (Model?, any)
 end
 
 --- Whether this summary gets the cutscene: a 1v1 that ended at the table with a winner,
---- both bodies here and a known table.
+--- a known table and (only when Posed) both bodies here. /result's preview gets it too.
 function ResultCutscene.wants(summary: any): boolean
-	if type(summary) ~= "table" or summary.solo == true or summary.preview == true then
+	if type(summary) ~= "table" or summary.solo == true then
 		return false
 	end
 	if summary.winner ~= 1 and summary.winner ~= 2 then
@@ -104,7 +104,9 @@ function ResultCutscene.wants(summary: any): boolean
 		if type(seat) ~= "table" or seat.left == true or type(seat.userId) ~= "number" then
 			return false
 		end
-		if bodyOf(seat.userId) == nil then
+		-- The posed scene copies both bodies; the plain pan needs neither (so /result's
+		-- stand-in opponent gets it too).
+		if R.Posed and bodyOf(seat.userId) == nil then
 			return false
 		end
 	end
@@ -294,7 +296,7 @@ function ResultCutscene.play(summary: any, onReady: () -> ()): boolean
 	local loserSeat = summary.teams[3 - summary.winner][1]
 	local winnerBody, winnerOwner = bodyOf(winnerSeat.userId)
 	local loserBody, loserOwner = bodyOf(loserSeat.userId)
-	if not winnerBody or not loserBody then
+	if R.Posed and (not winnerBody or not loserBody) then
 		return false
 	end
 
