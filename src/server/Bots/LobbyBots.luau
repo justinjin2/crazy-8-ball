@@ -3,8 +3,9 @@
 -- server look like Config.Bots.Lobby.People people. They "join" (appear at the entrance) and
 -- "leave" (vanish) as real players come and go, stroll the aisles, sit on the map's seats,
 -- wait on 1v1 pads and play each other there. They no longer answer a real player's "needs
--- an opponent!" (designer, 2026-10-07: Play Global is the way to a bot). Public lobby servers only (never a private server or an arena); in Studio only
--- after the designer's /lobbybots. The tutorial's fake lobby is `start({ count, tiers })`.
+-- an opponent!" (designer, 2026-10-07: Play Global is the way to a bot). Public lobby servers only (never a private server or an arena), and
+-- only after the designer's /lobbybots unless Config.Bots.Lobby.OnByDefault (off since
+-- 2026-10-07: only real people in a server). The tutorial's fake lobby is `start({ count, tiers })`.
 local PathfindingService = game:GetService("PathfindingService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -530,7 +531,8 @@ function LobbyBots.isOn(): boolean
 	return wanted()
 end
 
---- Starts the director (BotService.start hands itself over as `bots`). Live public lobbies start with them on; Studio
+--- Starts the director (BotService.start hands itself over as `bots`). Live public lobbies
+--- start with them on only with Config.Bots.Lobby.OnByDefault; otherwise (and in Studio) it
 --- waits for /lobbybots.
 function LobbyBots.start(bots: any)
 	if started then
@@ -540,7 +542,7 @@ function LobbyBots.start(bots: any)
 	BotService = bots
 	buildSpots()
 	BotService.onFreed = freed
-	if not RunService:IsStudio() then
+	if L.OnByDefault and not RunService:IsStudio() then
 		options = {}
 	end
 	task.spawn(function()

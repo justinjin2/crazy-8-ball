@@ -2993,3 +2993,6 @@ timer of a new block stay the designer's call.
 - 2026-10-07: VIP has no lucky block timers at all (designer: "to make it even more appealing";
   it halved them before). Every block a VIP gets opens at once (VipTimerFactor 0), and timers
   already running finish when the save loads with VIP or VIP is bought.
+- 2026-10-07: Lobby bots are off by default in every server (designer: "only real people").
+  Config.Bots.Lobby.OnByDefault = false; the designer's /lobbybots still turns them on in one
+  server. The global queue's fallback bot, Play against PC and the tutorial's bots are unchanged.

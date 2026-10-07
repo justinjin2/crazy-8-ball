@@ -233,7 +233,8 @@ end
 
 --- Lobby bots on (`options`: { count? (a fixed number: the tutorial's fake lobby, e.g. 15),
 --- tiers? (their badges, e.g. { "Bronze", "Silver", "Gold" }) }) or off (nil). Without a
---- count they keep a public lobby at Config.Bots.Lobby.People people (on by themselves live).
+--- count they keep a public lobby at Config.Bots.Lobby.People people (on by themselves live only with
+--- Config.Bots.Lobby.OnByDefault).
 function BotService.startLobby(options: any?)
 	LobbyBots.set(options)
 end

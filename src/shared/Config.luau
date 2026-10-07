@@ -10558,9 +10558,11 @@ Config.Bots = {
 	-- answer a real "needs an opponent!" (designer, 2026-10-07: Play Global is the way to a
 	-- bot). When a real player joins, a bot leaves:
 	-- idle ones first, then bot-vs-bot players, and one playing a real player only once the
-	-- server holds People real players (its forfeit pays in full). In Studio they are off
-	-- unless the designer's /lobbybots turns them on.
+	-- server holds People real players (its forfeit pays in full). Off by default everywhere
+	-- (designer, 2026-10-07: only real people in a server); the designer's /lobbybots turns
+	-- them on in one server.
 	Lobby = {
+		OnByDefault = false, -- true: live public lobbies start with lobby bots on by themselves
 		People = 11,
 		-- Their badges (weights, in this order): mostly Bronze to Gold, a few Platinum and
 		-- Diamond, none above.

@@ -696,7 +696,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   own tier (Unranked: Bronze), whatever the table's difficulty; the real player always breaks.
   **Disguised bots** (the global queue's fallback after 5 s for 1v1 (10 s until 2026-10-07)
   and 25 s for teams, the
-  lobby bots that keep an empty server alive, the tutorial) wear real Roblox avatars of random
+  lobby bots, off by default since 2026-10-07 so a server holds only real people, the tutorial) wear real Roblox avatars of random
   accounts with made-up names (designer's call, 2026-10-02); their wins pay like a real match
   with no win streak and are stored as PC wins (never on the most-wins board). After 20
   disguised wins in a UTC day they pay the PC rows and drop no block, with nothing on screen

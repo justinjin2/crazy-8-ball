@@ -1071,7 +1071,7 @@ local function botRank(player: Player, args: { string })
 end
 
 -- /lobbybots on | off | <count>: the lobby bots in this server (the Bots lane's testing
--- tool; Studio starts with them off).
+-- tool; every server starts with them off since 2026-10-07).
 local function lobbyBots(player: Player, args: { string })
 	local word = string.lower(args[1] or "")
 	local n = tonumber(word)
