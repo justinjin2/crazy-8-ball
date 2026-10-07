@@ -271,7 +271,7 @@ return {
 		BadRank = "Try /rank gold 3, /rank reyes or /rank unranked.",
 		BadAmount = "Give a whole number, like %s 500.",
 		XpNeverLost = "XP is never lost: give a gain, like %s 250.",
-		BadResult = "Try /result win, /result lose, /result draw or /result firstwin.",
+		BadResult = "Try /result win, /result lose, /result draw or /result firstwin; a loss may add early, pocket, foul or off.",
 		NotLoaded = "Your save is not loaded yet.",
 		RankSet = "Rank set to %s.",
 		MoneySet = "Money set to %s.",
@@ -448,6 +448,21 @@ return {
 		Winner = "WINNER",
 		Vs = "VS",
 		Draw = "DRAW",
+		-- Over your side when an 8-ball rule lost the game, with why (keyed by ShotJudge's
+		-- reason); a team game says "Your team".
+		Loss = "LOSE",
+		LossReasons = {
+			EarlyEight = "You pocketed the 8 ball early.",
+			WrongPocket = "You pocketed the 8 ball in the wrong pocket.",
+			FoulEight = "You fouled while pocketing the 8 ball.",
+			EightOffTable = "You knocked the 8 ball off the table.",
+		},
+		LossReasonsTeam = {
+			EarlyEight = "Your team pocketed the 8 ball early.",
+			WrongPocket = "Your team pocketed the 8 ball in the wrong pocket.",
+			FoulEight = "Your team fouled while pocketing the 8 ball.",
+			EightOffTable = "Your team knocked the 8 ball off the table.",
+		},
 		SoloGame = "SOLO GAME",
 		Left = "LEFT", -- on the card of a player who left the match
 		NoXp = "No XP: match under a minute",

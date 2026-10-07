@@ -282,6 +282,9 @@ local STAND_IN = { userId = 1, name = "Opponent", tier = "Gold", division = 3 }
 
 local RESULTS: { [string]: string } =
 	{ win = "Win", lose = "Loss", loss = "Loss", draw = "Draw", firstwin = "Win" }
+-- /result lose <word>: the 8-ball rule that lost it (ShotJudge's reason).
+local LOSS_REASONS: { [string]: string } =
+	{ early = "EarlyEight", pocket = "WrongPocket", foul = "FoulEight", off = "EightOffTable" }
 
 -- The table a dev tool acts on (the look check's, /result's cutscene): the one the player is
 -- in the game at, else the one nearest their character (table 1 without a character).
@@ -314,7 +317,11 @@ end
 -- A win or loss first plays the result cutscene at the table nearest the caller.
 local function previewResult(player: Player, args: { string })
 	local word = args[1] or ""
-	local outcome = RESULTS[word]
+	local outcome: string? = RESULTS[word]
+	local lossReason = if outcome == "Loss" and args[2] then LOSS_REASONS[args[2]] else nil
+	if args[2] and not lossReason then
+		outcome = nil
+	end
 	local data = PlayerData.read(player)
 	local progress = PlayerData.progress(player)
 	if outcome == nil or not data or not progress then
@@ -384,7 +391,7 @@ local function previewResult(player: Player, args: { string })
 		solo = false,
 		tableId = nearTable(player),
 		winner = if outcome == "Win" then 1 elseif outcome == "Loss" then 2 else nil,
-		reason = if outcome == "Draw" then "EmptyTeam" else "LegalEight",
+		reason = if outcome == "Draw" then "EmptyTeam" else lossReason or "LegalEight",
 		short = false,
 		teams = { { you }, { other } },
 		you = { userId = player.UserId, team = 1, outcome = outcome, forfeited = false },

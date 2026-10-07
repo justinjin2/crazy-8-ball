@@ -2906,3 +2906,8 @@ timer of a new block stay the designer's call.
 - 2026-10-07 (designer): temporary developer commands `/solo` (play the 1v1 pad you stand on
   alone) and `/bot [tier]` (play the computer there, your tier unless named), since the pad
   lost its solo and PC buttons with the matchmaking bar. The designer's account only.
+- 2026-10-07 (designer): when an 8-ball rule loses the game (pocketed early, wrong pocket, a
+  foul on the 8, the 8 off the table), the result screen shows a red LOSE over your card with
+  why under it ("You pocketed the 8 ball early."; "Your team ..." in a team game), like the
+  foul popup. Raised above WINNER's line so it clears your rank badge. `/result lose early`
+  (or pocket, foul, off) previews it.
