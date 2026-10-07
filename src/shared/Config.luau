@@ -5591,13 +5591,20 @@ Config.UI = {
 			UseDisplayName = false, -- false: usernames, as over the players' heads
 			MarginPx = 10, -- kept clear round the screen's edge
 			MaxScale = 1.25, -- grows up to this much on a big screen
-			-- Natural sizes, side by side (the stage), in pixels before scaling.
+			-- The lively frame (designer, 2026-10-07; Config.UI.Menu.Lively): one panel with the
+			-- scrolling 8-ball header and the dotted sheet holds everything, the face-off left
+			-- and the rewards card right, always side by side and scaled to fit (no restack).
+			-- Its header row uses Lively.Frame's full sizes; no red X (Continue closes it).
+			SheetPadPx = 12, -- inside the sheet, round the two columns
+			-- The header: the outcome (Strings.Progress.Header) with a Kit icon, in a Kit colour.
+			HeaderIcons = { Win = "Trophy", Loss = "Sad", Draw = "Hand", Solo = "Target" },
+			HeaderTones = { Win = "Gold", Loss = "Red", Draw = "White", Solo = "White" },
+			-- Natural sizes, side by side, in pixels before scaling.
 			FaceWidth = 390, -- the face-off column
 			RewardsWidth = 290, -- the rewards card
 			ColumnGap = 20,
 			Height = 300,
-			StackedFaceHeight = 250, -- stacked (a narrow screen): the face-off's height
-			TitleHeight = 40, -- WINNER, DRAW or SOLO GAME over the cards
+			TitleHeight = 40, -- WINNER over the winner's side (the header says DRAW or SOLO GAME)
 			TitleTextPx = 32,
 			-- LOSE (TitleTextPx, red) over your side when an 8-ball rule lost the game, with the
 			-- reason under it at up to LossReasonTextPx (it shrinks to fit LossReasonHeightPx).
@@ -5618,7 +5625,7 @@ Config.UI = {
 			BadgeShare = 0.42, -- the rank badge on a portrait's outer top corner
 			CrownShare = 0.55, -- the crown's width as a share of the portrait
 			CrownOverlap = 0.35, -- this share of the crown sits over the portrait's top edge
-			RaysShare = 1.9, -- the winner's rays, as a share of the side's width
+			RaysShare = 1.3, -- the winner's rays, as a share of the side's width (1.9 spilled past the lively panel)
 			RaysTransparency = 0.35, -- the rays at their brightest
 			CrownDropShare = 1.6, -- the crown drops from this many crown heights up
 			LeftFade = 0.6, -- a player who left: their picture this see-through
@@ -5654,8 +5661,10 @@ Config.UI = {
 			BlockChipTextPx = 16,
 			BlockAfterSeconds = 0.2, -- it pops this long after the total chip flies
 			BlockFlySeconds = 0.45, -- and its block flies this long after that
-			-- Timings, seconds from the screen opening (a tap skips to the end).
-			CrownAt = 0.35, -- the crown starts to drop
+			-- Timings, seconds from the screen opening (a tap skips to the end), after the panel's
+			-- open (Open, below) has popped the portraits in.
+			TitleAt = 0.4, -- WINNER (and LOSE with why) pop
+			CrownAt = 0.5, -- the crown starts to drop
 			CrownDropSeconds = 0.45,
 			CrownWobbleDegrees = 6, -- then it rocks gently
 			XpAt = 0.8, -- the XP bar starts
@@ -5691,6 +5700,26 @@ Config.UI = {
 			CountdownWidth = 44, -- the seconds left, at the row's right
 			CountdownPx = 24,
 			ChoiceTextPx = 18,
+			-- The open (Stage, the house entrances; ids as ResultScreen registers them): the
+			-- panel unrolls, the header fades in scrolling, the outcome pops, the sides pop one
+			-- after the other, VS with a gold burst, the rewards card opens from its centre,
+			-- the XP block pops, and the 8-ball flair drops on last. The clock-driven parts
+			-- (WINNER, the crown, the XP bar, the money) follow on the timings above.
+			Open = {
+				OpenSeconds = 0.75,
+				Steps = {
+					{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
+					{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
+					{ Ids = { "Icon", "Title" }, Kind = "Pop", At = 0.16 },
+					{ Ids = { "YourSide", "TheirSide" }, Kind = "Pop", At = 0.22, Stagger = 1.5 },
+					{ Ids = { "Vs" }, Kind = "Pop", At = 0.3, Burst = "Gold" },
+					{ Ids = { "NoUlts" }, Kind = "Pop", At = 0.36 },
+					{ Ids = { "Rewards" }, Kind = "Grow", At = 0.26 },
+					{ Ids = { "Xp" }, Kind = "Pop", At = 0.34 },
+					{ Ids = { "Choices" }, Kind = "Pop", At = 0.4 },
+					{ Ids = { "Flair" }, Kind = "Drop", At = 0.5, Length = 0.25 },
+				},
+			},
 		},
 		-- NEW RANK! (NewRankPopup), laid out at the natural size below and scaled to fit, so the
 		-- badge is about 40% of the screen's short side. XP is never lost: no rank-down card.

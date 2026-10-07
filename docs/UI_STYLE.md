@@ -41,6 +41,17 @@ screen, a popup).
   8-balls scroll slowly up-left; the white sheet has the original tiny pool-ball dots, still;
   the tabs stand outside the right edge; an 8-ball flair is pinned on the left edge; a compact
   header (the title fills it, the X smaller than the money pill, a gold + on the money pill).
+  **Any new or redone screen takes the lively frame by default** (designer, 2026-10-07).
+- **The match result screen** (designer, 2026-10-07, the second lively screen): one lively
+  panel holds it all, the face-off on the left of the sheet and the rewards card on the
+  right, the rematch row under both. The header says how it went for you: VICTORY! (gold,
+  trophy), DEFEAT (red, sad face), DRAW or SOLO GAME (white); WINNER stays over the winner's
+  side and LOSE with why over yours. No red X: Continue (or the rematch row) closes it, and
+  the panel folds shut. The open: the panel unrolls, the header fades in scrolling, the sides
+  pop one after the other, VS with a gold burst, the rewards card opens from its centre, the
+  8-ball flair drops on last; then the crown, the XP bar and the money as before. Always side
+  by side, scaled to fit (not capped at 66% of the width like a menu: on a phone that made
+  its words too small).
 - **Blur, never darken** (designer, 2026-10-06, after a reference; replaces the dims of
   2026-09-27/28): behind every menu, the Ranked roadmap, the lucky block reel, the
   end-of-match screen and NEW RANK!, the 3D world blurs and the GUI stays sharp. A very quick

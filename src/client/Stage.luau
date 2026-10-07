@@ -210,8 +210,20 @@ local function burst(self: Stage, piece: Piece, colour: string)
 	if not layer or not layer:IsA("GuiObject") then
 		return
 	end
-	local size = piece.object.AbsoluteSize
-	local centre = piece.object.AbsolutePosition + size / 2 - layer.AbsolutePosition
+	-- Absolute pixels into the layer's own: a UIScale on it or above it (the result screen fits
+	-- itself to the screen with one) scales offsets inside it again.
+	local k = 1
+	local node: Instance? = layer
+	while node and not node:IsA("LayerCollector") do
+		local scale = node:FindFirstChildOfClass("UIScale")
+		if scale then
+			k *= scale.Scale
+		end
+		node = node.Parent
+	end
+	k = if k > 0 then k else 1
+	local size = piece.object.AbsoluteSize / k
+	local centre = (piece.object.AbsolutePosition - layer.AbsolutePosition) / k + size / 2
 	local px = math.max(size.X, size.Y) * M.BurstShare
 	local label = Instance.new("ImageLabel")
 	label.Name = "Burst" .. piece.id

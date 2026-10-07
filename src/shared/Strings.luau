@@ -464,6 +464,8 @@ return {
 			EightOffTable = "Your team knocked the 8 ball off the table.",
 		},
 		SoloGame = "SOLO GAME",
+		-- The result screen's header: how the match went for you.
+		Header = { Win = "VICTORY!", Loss = "DEFEAT", Draw = "DRAW", Solo = "SOLO GAME" },
 		Left = "LEFT", -- on the card of a player who left the match
 		NoXp = "No XP: match under a minute",
 		SoloNoXp = "Solo games give no XP",

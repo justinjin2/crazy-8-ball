@@ -993,6 +993,25 @@ function MenuFrame.stageFrame(self: any)
 		stage:add("Money", self.moneyPill)
 	end
 	stage:add("Close", self.closeButton)
+	self.flairRest = UDim2.fromOffset(0, 0) -- placed by layout
+	self.flair = MenuFrame.flair(self.panel, stage, function(handle: UIAnim.Handle)
+		self:idle(handle)
+	end, function(): UDim2
+		return self.flairRest
+	end)
+end
+
+--- The lively frame's 8-ball flair in `panel` (on its left edge; the caller places it at
+--- `restOf()`), registered on `stage` as "Flair": it drops on, then rocks and now and then hops
+--- with a sparkle. `keep` takes the idle loop's handle (stop it on close). The result screen
+--- (ResultScreen) shares it.
+function MenuFrame.flair(
+	panel: GuiObject,
+	stage: Stage.Stage,
+	keep: (UIAnim.Handle) -> (),
+	restOf: () -> UDim2
+): ImageLabel
+	local L = Config.UI.Menu.Lively
 	local flair = Instance.new("ImageLabel")
 	flair.Name = "Flair"
 	flair.BackgroundTransparency = 1
@@ -1000,16 +1019,13 @@ function MenuFrame.stageFrame(self: any)
 	flair.ScaleType = Enum.ScaleType.Fit
 	flair.AnchorPoint = Vector2.new(0.5, 0.5)
 	flair.Size = UDim2.fromOffset(L.FlairPx, L.FlairPx)
-	flair.Position = UDim2.fromOffset(0, 0) -- placed by layout
+	flair.Position = restOf()
 	flair.ZIndex = 5 -- over the card and the jump rail
-	flair.Parent = self.panel
-	self.flair = flair
-	self.flairRest = flair.Position
+	flair.Parent = panel
 	stage:add("Flair", flair, function()
-		self:idle(flairIdle(flair, function(): UDim2
-			return self.flairRest
-		end))
+		keep(flairIdle(flair, restOf))
 	end)
+	return flair
 end
 
 --- Keep an idle loop (a piece's, once it has landed) until the menu closes.
