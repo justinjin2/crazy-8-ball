@@ -999,10 +999,8 @@ return {
 			Decided = "The result is decided when you open it; the presses reveal it.",
 			Pity = "Rare by %d more · Epic by %d more", -- Mystery blocks left to each pity
 		},
-		-- Under every block's reel (economy v4 plan 4): one showcase tile, labelled with its odds.
-		ReelLine = "The reel shows what this block can drop. Your chances are under Odds.",
-		-- A rare chance as "1 in N" (BlockOdds.oneIn): on the reel's showcase card (its rarity is
-		-- on its bar) and beside the rare rows of the odds screens.
+		-- A rare chance as "1 in N" (BlockOdds.oneIn): on the reel's showcase card's chip (its
+		-- rarity is on its bar) and beside the rare rows of the odds screens.
 		OneIn = "1 in %s",
 		-- The skip (economy v4 plan 8.2 and 18.1 item 8): a press on a block still on its timer
 		-- asks, under the block's name, with the price for the time left right now on the green

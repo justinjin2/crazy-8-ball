@@ -6,18 +6,17 @@
 --
 -- - The strip is drawn from the block's odds row at its real odds (BlockOdds.cueOdds, with its
 --   Unique rows), but for one showcase card (economy v4 plan section 4): a cue from Epic up out
---   of the same pool with its odds printed on it ("1 in 1,000,000") and a glow in its colour,
---   in the strip's first two-thirds and never within 8 cards of the stop (ReelMath;
---   Reel.Showcase turns it off). It is purely visual (a client Random): the prize is put at a
---   fixed late slot (Reel.PrizeSlot) once the server's answer is known.
+--   of the same pool whose chance chip reads "1 in 1,000,000", in the strip's first two-thirds
+--   and never within 8 cards of the stop (ReelMath; Reel.Showcase turns it off). It is purely
+--   visual (a client Random): the prize is put at a fixed late slot (Reel.PrizeSlot) once the
+--   server's answer is known.
 -- - The spin eases out over Reel.Seconds (Mythic and Secret: BigSeconds, a longer crawl, the
 --   ReelBuild sound and a glow round the window that builds in the prize's colour) and lands at
 --   a random offset within the prize card, then glides it to the marker's middle. A soft tick
 --   (ReelTick, rate-limited) sounds for each card passing the marker.
--- - As it settles: ReelSettle, the marker turns the prize's colour and the prize card bounces
---   with a thick edge in it; from Rare up (Config.UI.Reel.EffectsFrom, the plan's "win effects
---   only for Rare or better") a glow round the window too (Mythic's drifts through its
---   pastels, Secret's breathes red); after a short hold the reel reports it is done. It can report a
+-- - As it settles: ReelSettle, the marker and a glow round the window turn the prize's colour
+--   (Mythic's drifts through its pastels, Secret's breathes red), the prize card bounces with a
+--   thick edge in that colour; after a short hold the reel reports it is done. It can report a
 --   set time before the stop too (a Rare or better pull's cutscene starts there, LuckyOpening).
 -- - skip() (a tap, A or B; once per spin) races the strip on to the prize in Reel.SkipSeconds.
 -- - Each card reads the cue's name and its odds in its rarity's colour (GUI lane, 2026-10-03).
@@ -163,31 +162,6 @@ local function buildCueCard(slot: Slot)
 		clear = R.ClearCards,
 	})
 	slot.card = card
-end
-
--- The showcase card's glow in its rarity's colour, under it (it never moves: no card does).
--- The card's place drops under the other cards, so its glow spills under them, not over.
-local function showcaseGlow(slot: Slot)
-	slot.frame.ZIndex = 0
-	local glow = Instance.new("ImageLabel")
-	glow.Name = "ShowcaseGlow"
-	glow.BackgroundTransparency = 1
-	glow.Image = K.Art.SoftGlow
-	glow.ScaleType = Enum.ScaleType.Slice
-	local slice: { number } = R.ShowcaseGlowSlice
-	glow.SliceCenter = Rect.new(slice[1], slice[2], slice[3], slice[4])
-	local g = R.ShowcaseGlowSpreadPx
-	glow.SliceScale = 2 * g / R.ShowcaseGlowCornerPx
-	glow.ImageColor3 = ReelFx.color(slot.rarity)
-	glow.ImageTransparency = R.ShowcaseGlowTransparency
-	glow.ZIndex = 0
-	-- Round the cue card's outline (the Dark look), else the whole card.
-	local box = (slot.edge.Parent :: Frame).Size
-	local w = if slot.cue then box.X.Offset else R.CardWidthPx
-	local h = if slot.cue then box.Y.Offset else R.CardHeightPx
-	glow.Position = UDim2.fromOffset((R.CardWidthPx - w) / 2 - g, (R.CardHeightPx - h) / 2 - g)
-	glow.Size = UDim2.fromOffset(w + 2 * g, h + 2 * g)
-	glow.Parent = slot.frame
 end
 
 -- One card of the strip: a white rounded face dressed in the rarity, the cue's thumbnail on it.
@@ -391,7 +365,6 @@ function Reel.new(
 			if slot.odds then
 				slot.odds.Text = odds
 			end
-			showcaseGlow(slot)
 		end
 		self.slots[index] = slot
 	end
@@ -619,9 +592,7 @@ end
 function Reel.glow(self: any, now: number)
 	local rarity = self.prizeRarity
 	local share = 0
-	if not ReelFx.atLeast(rarity, C.EffectsFrom) then
-		share = 0 -- win effects only from Rare up (economy v4 plan section 4)
-	elseif self.landed then
+	if self.landed then
 		share = 1
 	elseif self.big and self.phase == "Spinning" then
 		local left = self.began + self.duration - now

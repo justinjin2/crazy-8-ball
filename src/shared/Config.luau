@@ -9451,15 +9451,6 @@ Config.UI.Reel = {
 	CardMarginPx = 12, -- the prize card's room in the fit (its glow and shadow)
 	-- The rarity from which the card's effects show (Common ... Secret).
 	ConfettiFrom = "Legendary",
-	-- Win effects only from this rarity up (economy v4 plan section 4, rule 4): the glow round
-	-- the reel as it lands, YOU GOT's rays and its reveal sting. A lower pull lands with the
-	-- reel's settle sound, its edge and the marker in its colour, and YOU GOT's card alone.
-	EffectsFrom = "Rare",
-	PlainSting = "Click", -- YOU GOT's sound under EffectsFrom (a Config.Audio.Ui key)
-	-- The line under the reel (plan section 4, rule 5: "The reel shows what this block can drop.
-	-- Your chances are under Odds."), in the notes' grey; it wraps to two lines on a phone.
-	LineHeightPx = 44,
-	LinePx = 18,
 	BigFrom = "Mythic", -- the long crawl, the building glow, the thicker edge
 	ShimmerCycleSeconds = 2.4, -- Mythic's glow drifts once through its pastels in this long
 	-- The reveal sting per rarity (Config.Audio.Ui keys).
@@ -9488,11 +9479,12 @@ Config.UI.Reel = {
 		-- but one: the showcase (economy v4 plan section 4, designer 2026-10-08: "rare cues
 		-- pass by more often, with safeguards"; it replaced the odds to the power 0.3). Each
 		-- spin gets one showcase card, a cue from ShowcaseFrom up out of the block's own pool
-		-- (each of those rarities as likely, ReelMath.showcaseCue), with its odds printed on it
-		-- ("1 in 1,000,000") and a glow in its colour. It sits in the strip's first
-		-- ShowcaseShare and never within ShowcaseGapCards of the stop, so it is never a near
-		-- miss. Showcase = false turns it off and leaves the real odds (the plan's one switch,
-		-- if Roblox ever rules against it).
+		-- (each of those rarities as likely, ReelMath.showcaseCue), its chance chip reading
+		-- "1 in 1,000,000"; it looks like any other card (designer, 2026-10-08: the reel stays
+		-- as it was but for the odds). It sits in the strip's first ShowcaseShare and never
+		-- within ShowcaseGapCards of the stop, so it is never a near miss. Showcase = false
+		-- turns it off and leaves the real odds (the plan's one switch, if Roblox ever rules
+		-- against it).
 		Showcase = true,
 		ShowcaseFrom = "Epic",
 		ShowcaseShare = 2 / 3, -- the plan's first two-thirds of the strip
@@ -9500,14 +9492,6 @@ Config.UI.Reel = {
 		-- Its earliest slot: past the window's right edge at the start (a 1,100 px window shows
 		-- slots 1 to 9), so it slides in.
 		ShowcaseFirstSlot = 10,
-		-- The glow round the showcase card in its rarity's colour (it never moves: no card
-		-- does): the kit's white soft glow (Kit.Art.SoftGlow, 256 px) stretched round the card
-		-- by its middle, as the cue cards' edge glow (CueCardFx), this far past each side and
-		-- this see-through at its brightest.
-		ShowcaseGlowSpreadPx = 16,
-		ShowcaseGlowTransparency = 0.05,
-		ShowcaseGlowSlice = { 127, 127, 129, 129 }, -- SliceCenter: the glow's middle pixels
-		ShowcaseGlowCornerPx = 128, -- the glow's corner (half its side): SliceScale's base
 		CardWidthPx = 136, -- bigger cards with the cue's name and odds (GUI lane, 2026-10-03)
 		CardHeightPx = 176,
 		GapPx = 8, -- between two cards

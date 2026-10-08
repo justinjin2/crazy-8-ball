@@ -3341,10 +3341,14 @@ timer of a new block stay the designer's call.
   rarities as likely (so a block's rarest cue shows as often as its Epics), with its chance as
   "1 in N" on its chip and a glow in its rarity's colour, between slot 10 and the strip's first
   two-thirds and never within 8 cards of the stop. It replaces the odds to the power 0.3
-  (`WeightPower`, gone). `Config.UI.Reel.Reel.Showcase = false` turns the showcase off. Win
-  effects (the reel's landing glow, YOU GOT's rays and sting) play only from Rare up; the line
-  under the reel is the plan's. "1 in N" is rounded up so it never looks better than true:
-  whole numbers under 1,000, three significant figures above (`BlockOdds.oneIn`).
+  (`WeightPower`, gone). `Config.UI.Reel.Reel.Showcase = false` turns the showcase off. "1 in N"
+  is rounded up so it never looks better than true: whole numbers under 1,000, three
+  significant figures above (`BlockOdds.oneIn`).
+- 2026-10-08 (designer: "for the reel ... dont change it how it already is really except for the
+  odds, do not put the line underneath saying that"): the reel keeps its look and effects; only
+  its odds follow v4 (the real odds and the showcase card's "1 in N" chip). The plan's line
+  under the reel, the showcase card's glow and "win effects only for Rare or better" (the
+  landing glow, YOU GOT's rays and sting for every rarity again) are dropped.
 - 2026-10-08 (economy v4 plan 18.1 item 8, the skip button's price): a press on a block still on
   its timer now asks first, in the kit's confirm dialog (the block's name, "Ready in 4:32. Skip
   the wait?", Wait and a green "Skip · 4" priced for the time left right now), instead of
