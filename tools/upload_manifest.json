@@ -5529,6 +5529,12 @@
     "imageId": "127567035372360",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/effects.png": {
+    "assetId": "112041491875560",
+    "assetType": "Decal",
+    "imageId": "91636481608261",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/ui/icons/globe.png": {
     "assetId": "81087027174901",
     "assetType": "Decal",
@@ -5551,6 +5557,12 @@
     "assetId": "132283973935715",
     "assetType": "Decal",
     "imageId": "94561902255192",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/sound.png": {
+    "assetId": "89269989844718",
+    "assetType": "Decal",
+    "imageId": "139737303178239",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/ui/icons/ult_badge.png": {

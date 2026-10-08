@@ -3327,3 +3327,11 @@ timer of a new block stay the designer's call.
   the result away. The screen lands as STANDARD (economy v4's climb from the bottom tier). The
   Tap! button stays through the presses, as the mock shows it at 4 / 5. The ladder's line and
   arrow take the tier's colour; its passed nodes too (the mock's are white).
+- 2026-10-08 (Settings, built from pick "settings A"): the lively frame with the money pill and
+  its "+", three icon rows with big switches, and the Codes strip always under them (it hid
+  while the spin screen had its own box; the designer's pick shows it, and codes stay in
+  Settings). Kept from today rather than the mock: the purple code icon (codes look the same
+  everywhere; the mock's gold ticket is the Shop's Passes icon) and "Enter code" (the spin
+  screen's word). The server's answer sits beside "Codes", so the strip never grows. The panel
+  is 48% of a computer screen's width (`MenuFrame`'s new `widthShare`), so the rows have no
+  empty margins. The old note under the box ("Codes give free money...") is gone, as the mock.

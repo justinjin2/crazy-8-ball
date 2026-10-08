@@ -6841,6 +6841,9 @@ Config.UI = {
 			Lucky = "rbxassetid://97997677415172", -- a four-leaf clover: LUCKY SPINS
 			UltSpin = "rbxassetid://76372169720993", -- a gold spin arrow round a bolt: SPIN and the spins count
 			Skip = "rbxassetid://94561902255192", -- two blue arrowheads (fast forward): VIP's Skip on the spin screen
+			-- Settings' rows (pick "settings A", 2026-10-08; tools/gen_ui_art.py).
+			Sound = "rbxassetid://139737303178239", -- a white speaker with gold waves: Sound effects
+			Effects = "rbxassetid://91636481608261", -- two gold sparkles: Lower effects
 		},
 		Art = {
 			BallGloss = "rbxassetid://109282983367810", -- shading and shine over a HUD ball
@@ -8183,7 +8186,7 @@ Config.UI.Menu = {
 	-- 8-balls scroll, the white sheet has the still dots and an 8-ball sits on the top edge.
 	-- Menus not listed keep the kit frame (pop in, still pattern). Names as Menus.register.
 	-- "Inventory": the Cues menu (concept 2, 2026-10-08); "Ranked": the roadmap (pick "ranked A").
-	LivelyMenus = { "Shop", "Inventory", "FreeReward", "Ranked" },
+	LivelyMenus = { "Shop", "Inventory", "FreeReward", "Ranked", "Settings" },
 	-- One thing at a time (HudFocus; designer, 2026-10-06): while a full menu is open every
 	-- other screen of ours is off. These ScreenGuis stay on (a "...Menu" screen always does):
 	-- popups that must still reach the player and invisible probes. KeepWith: more per menu.
@@ -9531,16 +9534,7 @@ Config.UI.Reel = {
 -- (HudParts.setMinHit). The rewards themselves are Config.Daily's. (tune)
 Config.UI.Rewards = {
 	TouchPx = 44, -- the smallest touch area (UI_STYLE section 5)
-	-- The codes box (RewardsCodes, in Settings): a title, the box and Redeem, the server's
-	-- answer, a note; kept high on the page so a phone's keyboard never covers it.
-	CodeWidthPx = { 440, 540 }, -- the column's largest width
-	CodeBoxPx = { 44, 54 }, -- the box's and Redeem's height
-	CodeTextPx = { 18, 22 }, -- the typed text
-	CodeTitlePx = { 18, 24 },
-	CodeAnswerPx = { 16, 20 }, -- "Code redeemed: +$500 and a Mystery Lucky Block"
-	CodeNotePx = { 14, 16 },
-	RedeemWidthPx = { 116, 150 },
-	CodeGapPx = { 8, 12 },
+	-- The codes box (RewardsCodes, in Settings' Codes strip, sized by Config.UI.Settings).
 	CodeStrokePx = 3, -- the box's ink outline (gold while selected or typing)
 	-- Rewards flying out of a claim (RewardsFlyer), over the menus: money into the money HUD
 	-- (the CashFlyer's chips), each lucky block to the hotbar (or the Inventory tile).
@@ -13185,17 +13179,55 @@ Config.Settings = {
 	RequestPerSecond = 3,
 }
 
--- The Settings screen (SettingsMenu) and its gear beside the rank HUD (GUI lane, C10).
+-- The Settings screen (SettingsMenu) and its gear beside the rank HUD (GUI lane, C10). In the
+-- lively frame from pick "settings A" (2026-10-08): three white rows (an icon, the name, a grey
+-- line, a big ON / OFF switch) over the pale-blue Codes strip. The page is drawn in units with
+-- one scale for all of it (the sheet's width / Units, smaller when the screen is short, the
+-- rows still as wide as the sheet), so a phone shows the same page whole, nothing to scroll.
 Config.UI.Settings = {
 	GearPx = 44, -- the gear (a computer); a phone's is ShortGearPx
 	ShortGearPx = 44, -- as big as Roblox's top-bar buttons, in line with them (designer 2026-10-07)
 	GearGapPx = 8, -- right of the rank HUD
-	RowPx = { 54, 70 }, -- a switch row ({ phone, full })
-	RowTextPx = { 17, 22 },
-	SwitchPx = { 40, 48 }, -- the on/off switch's height (twice as wide)
-	IconPx = { 30, 40 },
-	CodeBoxPx = { 44, 52 },
-	MaxWidthPx = 640,
+	WidthShare = 0.48, -- the panel, of a computer screen's width (a phone: the frame's own)
+	Units = 880, -- the page's width in units
+	RowUnits = 124, -- a row's height
+	GapUnits = 14, -- between two rows, and over the Codes strip
+	CornerUnits = 18, -- a row's and the strip's rounded corners
+	StrokePx = 2, -- a row's ink outline
+	PadUnits = 24, -- in from a row's ends
+	IconUnits = 84, -- the row's icon, at its left
+	TitleUnits = 36, -- the row's name
+	LineUnits = 21, -- the grey line under it
+	SwitchUnits = { 184, 74 }, -- the ON / OFF switch: width, height
+	SwitchTextShare = 0.42, -- ON / OFF, of the switch's height
+	KnobInsetPx = 3, -- the white knob in from the track's edge
+	Icons = { Sfx = "Sound", LowFx = "Effects", ShowFlag = "Globe" }, -- each row's Kit.Icons key
+	-- The Codes strip: the code icon at its left, "Codes" with the server's answer beside it,
+	-- the box and the green Redeem under them.
+	CodesUnits = 150, -- its height
+	CodeIconUnits = 100,
+	CodeTitleUnits = 34,
+	CodeBoxUnits = 62, -- the box's and Redeem's height
+	RedeemUnits = 230, -- Redeem's width
+	CodeTextUnits = 26, -- what is typed, and the hint
+	AnswerUnits = 22, -- the server's answer
+	MinTextPx = 12, -- no word smaller (a phone's smallest, UI_STYLE)
+	-- The open, on the frame's ids (Panel, Header, Basket, Title, Money, Close, Flair) and the
+	-- page's: the rows top to bottom, their switches, the strip, its pieces. The Shop's timings.
+	Open = {
+		OpenSeconds = 0.91,
+		Steps = {
+			{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
+			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
+			{ Ids = { "Basket", "Title", "Money", "Close" }, Kind = "Pop", At = 0.18 },
+			{ Ids = { "Row1", "Row2", "Row3" }, Kind = "Pop", At = 0.22, Stagger = 1.5 },
+			{ Ids = { "Switch1", "Switch2", "Switch3" }, Kind = "Pop", At = 0.3, Stagger = 1.5 },
+			{ Ids = { "Codes" }, Kind = "Grow", At = 0.34 },
+			{ Ids = { "CodeIcon" }, Kind = "Pop", At = 0.4, Burst = "Gold" },
+			{ Ids = { "CodeTitle", "CodeBox", "Redeem" }, Kind = "Pop", At = 0.42 },
+			{ Ids = { "Flair" }, Kind = "Drop", At = 0.6, Length = 0.25 }, -- the 8-ball lands on the frame
+		},
+	},
 }
 
 -- The global boards (src/server/Leaderboards.luau; GUI lane, designer 2026-10-03, D9): Most

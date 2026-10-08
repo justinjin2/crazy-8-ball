@@ -312,6 +312,47 @@ def icon_skip():
     return "".join(parts)
 
 
+def icon_sound():
+    # A white speaker with two gold sound waves: the Settings screen's Sound effects row (pick
+    # "settings A", 2026-10-08).
+    body = (
+        "M40 106 Q40 96 50 96 L86 96 L138 56 Q150 48 150 62 L150 194 Q150 208 138 200 "
+        "L86 160 L50 160 Q40 160 40 150 Z"
+    )
+    parts = [
+        f'<path d="{body}" fill="url(#white)" stroke="url(#white)" stroke-width="6" stroke-linejoin="round"/>',
+        f'<path d="M86 98 L86 158" stroke="{INK}" stroke-width="5" opacity="0.25"/>',
+        '<path d="M176 100 Q196 128 176 156" fill="none" stroke="url(#gold)" stroke-width="20" stroke-linecap="round"/>',
+        '<path d="M202 74 Q238 128 202 182" fill="none" stroke="url(#gold)" stroke-width="20" stroke-linecap="round"/>',
+        gloss(110, 92, 10, 26, angle=-30),
+    ]
+    return "".join(parts)
+
+
+def sparkle_path(cx, cy, r, k=0.2):
+    """A four-pointed sparkle with curved sides, `r` from its middle to a point."""
+    c = r * k
+    return (
+        f"M{cx} {cy - r} Q{cx + c} {cy - c} {cx + r} {cy} Q{cx + c} {cy + c} {cx} {cy + r} "
+        f"Q{cx - c} {cy + c} {cx - r} {cy} Q{cx - c} {cy - c} {cx} {cy - r} Z"
+    )
+
+
+def icon_effects():
+    # Two gold sparkles, a big one and a small one: the Settings screen's Lower effects row
+    # (pick "settings A", 2026-10-08).
+    big = sparkle_path(108, 112, 88)
+    small = sparkle_path(190, 184, 50)
+    return "".join(
+        [
+            f'<path d="{big}" fill="url(#gold)" stroke="url(#gold)" stroke-width="8" stroke-linejoin="round"/>',
+            f'<path d="{small}" fill="url(#gold)" stroke="url(#gold)" stroke-width="8" stroke-linejoin="round"/>',
+            gloss(96, 92, 9, 24, angle=-20),
+            gloss(184, 172, 6, 14, angle=-20),
+        ]
+    )
+
+
 def icon_door():
     arrow = "M112 116 L176 116 L176 88 L226 132 L176 176 L176 148 L112 148 Z"
     return "".join(
@@ -2285,6 +2326,8 @@ ICONS = {
     "robot": icon_robot,
     "play": icon_play,
     "skip": icon_skip,
+    "sound": icon_sound,
+    "effects": icon_effects,
     "door": icon_door,
     "flag": icon_flag,
     "trophy": icon_trophy,

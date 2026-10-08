@@ -207,6 +207,11 @@ local function pattern(parent: Instance, cornerPx: number)
 	HudParts.corner(tiles, cornerPx) -- clips the tiles to the round corners
 end
 
+--- The faint 8-ball pattern over `parent` (a pale strip of its own), clipped to `cornerPx`.
+function HudParts.pattern(parent: Instance, cornerPx: number)
+	pattern(parent, cornerPx)
+end
+
 function HudParts.card(parent: Instance, name: string, radius: number?): Frame
 	local cornerPx = radius or K.PanelCornerPx
 	local root = HudParts.frame(parent, name)

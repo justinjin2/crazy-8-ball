@@ -201,6 +201,36 @@ return {
 		H.expect(finish >= 0.8 and finish <= 2, "the open lasts about 1 to 2 s")
 	end,
 
+	["the Settings screen's open names every piece it stages and lands its flair last"] = function()
+		local S, Config = load()
+		local M, U = Config.UI.Motion, Config.UI.Settings
+		local list, finish = S.schedule(U.Open, M)
+		local byId = {}
+		for _, e in list do
+			H.expect(byId[e.id] == nil, "one entry per piece: " .. e.id)
+			byId[e.id] = e
+		end
+		local wanted = { "Panel", "Header", "Basket", "Title", "Money", "Close", "Flair" }
+		for _, id in { "Codes", "CodeIcon", "CodeTitle", "CodeBox", "Redeem" } do
+			table.insert(wanted, id)
+		end
+		for index = 1, #Config.Settings.Order do
+			table.insert(wanted, "Row" .. index)
+			table.insert(wanted, "Switch" .. index)
+		end
+		for _, id in wanted do
+			H.expect(byId[id] ~= nil, "the open names " .. id)
+		end
+		H.expect(byId.Row1.at < byId.Row3.at, "the rows pop in top to bottom")
+		H.expect(byId.Row1.at < byId.Switch1.at, "a row lands before its switch")
+		for id, e in byId do
+			if id ~= "Flair" then
+				H.expect(e.at <= byId.Flair.at, "the flair drops on last, after " .. id)
+			end
+		end
+		H.expect(finish >= 0.8 and finish <= 2, "the open lasts about 1 to 2 s")
+	end,
+
 	["the ability spin screen's open names every piece it stages and lands SPIN last"] = function()
 		local S, Config = load()
 		local M, U = Config.UI.Motion, Config.UI.UltScreen

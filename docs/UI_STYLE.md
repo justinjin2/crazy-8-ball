@@ -1028,3 +1028,24 @@ jump out of the hotbar, the float, the presses, the impact, the jump back.
   tiers ahead are a little faded.
 - **Reduce Motion**: no swell, rock or bounce, the line jumps to its tier; Lower effects: fewer
   particles.
+
+## 26. Settings in the lively frame (designer's pick "settings A", 2026-10-08)
+
+`SettingsMenu` (the Codes strip's box is `RewardsCodes`); sizes in units in
+`Config.UI.Settings`, the open in `Config.UI.Settings.Open`. The panel takes 48% of a computer
+screen's width (`WidthShare`), the frame's 66% on a phone.
+
+- **The frame**: the gear and "Settings", the money pill with its "+" (the Shop's money
+  packs), the red X, the 8-ball flair.
+- **Three rows**, one big white button each with a thin ink outline: the icon at the left (a
+  white speaker with gold waves, two gold sparkles, the globe), the name in chunky letters, one
+  grey line under it, and the big switch at the right: green with ON and the knob right, or
+  grey with the knob left and OFF. A press anywhere on the row flips it; the knob slides.
+- **The Codes strip** under them: pale blue with the faint 8-balls, the code icon, "Codes"
+  with the server's answer beside it (green, or red with why not), the box and the green
+  Redeem in one row. It is always there now (it used to hide while the spin screen had its
+  own box).
+- **One scale** for the page (units over the sheet's width, smaller when the screen is
+  short), the rows always as wide as the sheet: a phone shows the whole page, no scrolling.
+- **The open**: the Shop's timings: the rows top to bottom, their switches, the strip
+  growing, its icon with a gold burst, then the box and Redeem.

@@ -1,16 +1,16 @@
 --!strict
--- RewardsCodes: the Rewards menu's Codes tab (docs/prompts/ECONOMY_UI_PROMPT.md section 11,
--- ECONOMY 18): "Got a code?", a text box and a green Redeem, the server's answer under them
--- ("Code redeemed: +$500 and a Mystery Lucky Block", or "Code redeemed: 3 Ability Spins" for ABILITIES, in
--- green, or why not in red: "That code doesn't exist.", "You already used that code.", "That
--- code has expired."), and a short note. Kept high on the page, so a phone's keyboard never
--- covers it; the answer sits right under the box (not in the menu's bottom notice, which the
--- keyboard would hide).
+-- RewardsCodes: the codes box (docs/prompts/ECONOMY_UI_PROMPT.md section 11, ECONOMY 18), now in
+-- Settings' Codes strip (pick "settings A", 2026-10-08; the Rewards menu that first had it is
+-- gone): a text box and a green Redeem in one row, the server's answer on the line over them
+-- ("Code redeemed: +$500 and a Mystery Lucky Block", or "Code redeemed: 3 Ability Spins" for
+-- ABILITIES, in green, or why not in red: "That code doesn't exist.", "You already used that
+-- code.", "That code has expired."). The strip sits on the panel, so a phone's keyboard never
+-- covers the answer (not in the menu's bottom notice, which the keyboard would hide).
 --
--- The box is Selectable: a gamepad lands on it when the tab opens and A starts typing; Enter
--- (or the console keyboard's done) redeems, as Redeem does. The client sends the typed text
--- only; the server trims it, ignores its case and decides. Redeem calls ctx.claim("Redeem",
--- text, "Code", button, onReply) (RewardsMenu), which flies what it gave.
+-- The box is Selectable: a gamepad lands on it and A starts typing; Enter (or the console
+-- keyboard's done) redeems, as Redeem does. The client sends the typed text only; the server
+-- trims it, ignores its case and decides. Redeem calls ctx.claim("Redeem", text, "Code",
+-- button, onReply) (SettingsMenu), which flies what it gave.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -27,14 +27,13 @@ local W = Strings.Menus.Rewards
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 local INK = HudParts.tone("Ink")
 local GOLD = HudParts.tone("Gold")
-local span = RewardsParts.span
 local round = RewardsParts.round
 local MAX_LENGTH: number = Config.Daily.CodeMaxLength
 
 local RewardsCodes = {}
 RewardsCodes.__index = RewardsCodes
 
---- The Codes tab in `page` (a MenuFrame page). `ctx` is RewardsMenu's: claim(action, arg, key,
+--- The codes box in `page` (Settings' Codes strip). `ctx` is SettingsMenu's: claim(action, arg, key,
 --- button, onReply) and busy(key).
 function RewardsCodes.new(page: Frame, ctx: any): any
 	local self: any = setmetatable({}, RewardsCodes)
@@ -42,11 +41,6 @@ function RewardsCodes.new(page: Frame, ctx: any): any
 	self.ctx = ctx
 	self.geo = nil :: any
 	self.lit = false -- the box is selected or typing: its outline is gold
-
-	local title = HudParts.text(page, "Title", R.CodeTitlePx[2], W.CodeTitle)
-	title.TextWrapped = false
-	title.ZIndex = 3
-	self.title = title
 
 	-- The box: a white field with an ink outline, the typed text in ink, a hint while empty.
 	local box = HudParts.frame(page, "CodeBox")
@@ -61,7 +55,7 @@ function RewardsCodes.new(page: Frame, ctx: any): any
 	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	stroke.Parent = box
 	self.box, self.stroke = box, stroke
-	local hint = HudParts.note(box, "Hint", R.CodeTextPx[2], W.CodeHint)
+	local hint = HudParts.note(box, "Hint", K.Text.Min, W.CodeHint)
 	hint.TextTransparency = 0.5
 	hint.TextWrapped = false
 	hint.TextXAlignment = Enum.TextXAlignment.Left
@@ -73,7 +67,7 @@ function RewardsCodes.new(page: Frame, ctx: any): any
 	input.BorderSizePixel = 0
 	input.Font = FONT
 	input.TextColor3 = INK
-	input.TextSize = R.CodeTextPx[2]
+	input.TextSize = K.Text.Min
 	input.TextXAlignment = Enum.TextXAlignment.Left
 	input.ClearTextOnFocus = false
 	input.PlaceholderText = "" -- the hint is a label, so it can be translated
@@ -97,15 +91,14 @@ function RewardsCodes.new(page: Frame, ctx: any): any
 	input.NextSelectionRight = redeem
 	redeem.NextSelectionLeft = input
 
-	local answer = HudParts.text(page, "Answer", R.CodeAnswerPx[2], "")
-	answer.TextWrapped = true
+	local answer = HudParts.text(page, "Answer", K.Text.Min, "")
+	answer.TextWrapped = false
+	answer.TextScaled = false
+	answer.TextXAlignment = Enum.TextXAlignment.Left
+	answer.TextTruncate = Enum.TextTruncate.AtEnd
 	answer.ZIndex = 3
 	answer.Visible = false
 	self.answer = answer
-	local note = HudParts.note(page, "Note", R.CodeNotePx[2], W.CodeNote)
-	note.TextWrapped = true
-	note.ZIndex = 3
-	self.note = note
 
 	local function light()
 		local on = self.lit or input:IsFocused()
@@ -200,47 +193,37 @@ function RewardsCodes.primary(self: any): GuiObject?
 	return self.input
 end
 
---- Size and place everything from the menu's layout (MenuFrame's onLayout geo): one centred
---- column at the top of the page.
-function RewardsCodes.layout(self: any, geo: any)
-	self.geo = geo
-	local width = geo.content.X
-	local t = geo.t
-	local columnW = math.min(width, span(R.CodeWidthPx, t))
-	local x = round((width - columnW) / 2)
-	local gap = span(R.CodeGapPx, t)
-	local y = gap
-	local titlePx = span(R.CodeTitlePx, t)
-	HudParts.setTextSize(self.title, titlePx)
-	self.title.Position = UDim2.fromOffset(x, y)
-	self.title.Size = UDim2.fromOffset(columnW, titlePx + 8)
-	y += titlePx + 8 + gap
-	local boxH = span(R.CodeBoxPx, t)
-	local redeemW = span(R.RedeemWidthPx, t)
-	local boxW = math.max(1, columnW - redeemW - gap)
-	self.box.Position = UDim2.fromOffset(x, y)
-	self.box.Size = UDim2.fromOffset(boxW, boxH)
-	local textPx = span(R.CodeTextPx, t)
-	local inset = math.max(8, round(boxH * 0.25))
-	self.input.TextSize = textPx
+export type Strip = {
+	box: Vector2, -- the box's top left
+	boxW: number,
+	height: number, -- the box's and Redeem's height
+	redeemW: number,
+	gap: number, -- between the box and Redeem
+	textPx: number, -- what is typed, the hint
+	buttonPx: number, -- Redeem's words
+	answer: Vector2, -- the answer's top left
+	answerW: number,
+	answerPx: number,
+}
+
+--- Place the box and Redeem in one row and the answer's line, in pixels (Settings' strip).
+function RewardsCodes.layout(self: any, p: Strip)
+	self.geo = p
+	self.box.Position = UDim2.fromOffset(p.box.X, p.box.Y)
+	self.box.Size = UDim2.fromOffset(p.boxW, p.height)
+	local inset = math.max(8, round(p.height * 0.25))
+	self.input.TextSize = p.textPx
 	self.input.Position = UDim2.fromOffset(inset, 0)
-	self.input.Size = UDim2.fromOffset(math.max(1, boxW - 2 * inset), boxH)
-	HudParts.setTextSize(self.hint, textPx)
+	self.input.Size = UDim2.fromOffset(math.max(1, p.boxW - 2 * inset), p.height)
+	HudParts.setTextSize(self.hint, p.textPx)
 	self.hint.Position = UDim2.fromOffset(inset, 0)
-	self.hint.Size = UDim2.fromOffset(math.max(1, boxW - 2 * inset), boxH)
-	self.redeemButton.Position = UDim2.fromOffset(x + boxW + gap, y)
-	self.redeemButton.Size = UDim2.fromOffset(redeemW, boxH)
-	HudParts.setButtonTextSize(self.redeemButton, math.max(K.Text.Min, geo.button))
-	y += boxH + gap
-	local answerPx = span(R.CodeAnswerPx, t)
-	HudParts.setTextSize(self.answer, answerPx)
-	self.answer.Position = UDim2.fromOffset(x, y)
-	self.answer.Size = UDim2.fromOffset(columnW, 2 * answerPx + 8)
-	y += 2 * answerPx + 8 + gap
-	local notePx = span(R.CodeNotePx, t)
-	HudParts.setTextSize(self.note, notePx)
-	self.note.Position = UDim2.fromOffset(x, y)
-	self.note.Size = UDim2.fromOffset(columnW, 2 * notePx + 8)
+	self.hint.Size = UDim2.fromOffset(math.max(1, p.boxW - 2 * inset), p.height)
+	self.redeemButton.Position = UDim2.fromOffset(p.box.X + p.boxW + p.gap, p.box.Y)
+	self.redeemButton.Size = UDim2.fromOffset(p.redeemW, p.height)
+	HudParts.setButtonTextSize(self.redeemButton, p.buttonPx)
+	HudParts.setTextSize(self.answer, p.answerPx)
+	self.answer.Position = UDim2.fromOffset(p.answer.X, p.answer.Y)
+	self.answer.Size = UDim2.fromOffset(math.max(1, p.answerW), p.answerPx + 6)
 end
 
 return RewardsCodes

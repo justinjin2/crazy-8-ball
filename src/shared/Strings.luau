@@ -806,13 +806,11 @@ return {
 		-- flyer and the ult screen share (the old Rewards menu's, merged 2026-10-08). Block
 		-- names come from Strings.LuckyBlocks.Names; money is "$250" (Progression/Format).
 		Rewards = {
-			-- The Codes tab.
-			CodeTitle = "Got a code?",
+			-- The codes box (Settings' strip, the spin screen's card).
 			CodeHint = "Enter code", -- in the empty box
 			Redeem = "Redeem",
 			Redeemed = "Code redeemed: %s", -- "Code redeemed: +$500 and a Mystery Lucky Block"
 			NoCode = "Type a code first.",
-			CodeNote = "Codes give free money, lucky blocks and ability spins. Each code works once.",
 			-- A reward's lucky blocks in words. Several: "2 Mystery Lucky Blocks"; one, in a
 			-- sentence: "a Rare Lucky Block" (a kind missing here says BlockManyOther / its
 			-- plain name from LuckyBlocks.Names).
@@ -1123,6 +1121,7 @@ return {
 		},
 		On = "ON",
 		Off = "OFF",
+		Codes = "Codes", -- the strip under the rows (the box and Redeem)
 	},
 	-- The player list and the global boards (PlayerList, Leaderboards; GUI lane, C7).
 	PlayerList = {

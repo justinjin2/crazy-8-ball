@@ -26,13 +26,12 @@ Updated 2026-10-08.
 One line each; the long form is the 2026-10-08 entry at the top of
 `docs/archive/STATUS_HISTORY.md`. Each still needs the designer on a real phone, PC and controller.
 
-- **The UI font**: Fredoka One stays (`Config.UI.FontTest`, `Config.UI.Menu.LabelFont`).
-- **Blur instead of dims** (`ScreenBlur`, `Config.UI.Blur`).
+- **The UI font**: Fredoka One stays (`Config.UI.FontTest`). **Blur instead of dims** (`ScreenBlur`).
 - **NEW RANK! waits** for a free lobby, one popup per division; not yet a real arena trip back.
 - **The 1v1 result cutscene** and the result screen's moving 8-balls; not yet in a real 1v1.
 - **Cue outlines and the "pop" aura** (on test on six cues, `Config.CueSkins.Pop.Ids`).
-- **New cue card pictures** (2026-10-07): uploaded, not yet seen in a playtest.
-- **Ball callouts** (YOU ARE SOLIDS / STRIPES, the last-ball pulse): not yet in a real game.
+- **New cue card pictures** (2026-10-07) and **ball callouts** (YOU ARE SOLIDS / STRIPES, the
+  last-ball pulse): not yet seen in a real game.
 - **No fat-fingered shots on a phone** (`Config.Input.TouchPull`): needs a real phone.
 - **The player list like Roblox's**: hidden on a phone for now; a PC size not yet looked at.
 - **The matchmaking bar and spawn pill**: parked by the designer (2026-10-07); open: the spawn
@@ -67,9 +66,10 @@ One line each; the long form is the 2026-10-08 entry at the top of
   (random items: Not Listed with the others); Ranked in the lively frame (A; 96% wide on a
   phone); the ability spin screen in the kit panels (A: the odds panel, the buy panel with one
   money button, "Locked" slots); the Mystery screen (B, the Track: the press pill, the tier
-  ladder, landing as Standard). At publish: `tools/roblox_products.py --sync` (the Starter
-  Pack at 29, the pack texts, Lucky1 and Lucky3 off sale). Next: Settings A. Trade is not
-  built (not in the release).
+  ladder, landing as Standard); Settings (A: icon rows, big switches, the Codes strip). At
+  publish: `tools/roblox_products.py --sync` (the Starter Pack at 29, the pack texts, Lucky1
+  and Lucky3 off sale). Next: the review page with the built screens. Trade is not built (not
+  in the release).
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in
   `gui-v4`): the new cue card, the Cues menu, the CUES icon, the smooth money chip, the reel and
   YOU GOT, checked in Studio. Still open: the see-through reel trial's verdict, a phone and a

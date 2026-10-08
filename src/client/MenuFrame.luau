@@ -81,6 +81,8 @@ export type Options = {
 	-- A lively frame on a phone may take this share of the screen's width instead of
 	-- Lively.MaxWidthShare (the Ranked screen: its tiers and two cards need the room).
 	phoneWidthShare: number?,
+	-- ...and on a computer this share (Settings: a compact panel).
+	widthShare: number?,
 }
 
 -- The sizes of the last layout, for the pages (onLayout).
@@ -250,6 +252,7 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 	self.iconKey = opts.icon
 	self.showMoney = opts.money == true
 	self.phoneWidthShare = opts.phoneWidthShare
+	self.widthShare = opts.widthShare
 	self.opened = false
 	self.alive = true
 	self.selected = nil :: string?
@@ -609,9 +612,9 @@ function MenuFrame.layout(self: any): boolean
 	local roomHeight = roomBottom - roomTop
 	local w = math.floor(math.min(size.X - 2 * margin, FR.MaxSizePx[1]))
 	if lively then
-		local share = if phone and self.phoneWidthShare
-			then self.phoneWidthShare
-			else LV.MaxWidthShare
+		local share = if phone
+			then self.phoneWidthShare or LV.MaxWidthShare
+			else self.widthShare or LV.MaxWidthShare
 		w = math.min(w, math.floor(size.X * share))
 	end
 	local h = math.floor(math.min(roomHeight - 2 * margin, FR.MaxSizePx[2]))
