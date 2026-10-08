@@ -53,6 +53,11 @@ effects growing with the tier (Reyes gets everything and a rainbow edge).
 Questions asked: bar style A (coloured bar) or B (dark bar, coloured word); is Legendary and
 up exciting enough; the chance % off the Cues cards but on the spin's cards.
 
+Round 2 (2026-10-08, designer: "the balls dont look like 8 balls though they need to actually
+show the 8 ball detail"): the flat silhouettes are replaced by a new tile of real 8-balls, each
+with its white disc and a clear 8, bigger on the card (`tools/gui/card_balls.py`,
+`assets/ui/cards/`), in two looks to pick from: tinted to the card's colour, or classic black.
+
 ## Progress
 
 - [x] Abilities and Ranked screens show again (`HudFocus`, `Config.UI.Menu.Focus.KeepWith`).
