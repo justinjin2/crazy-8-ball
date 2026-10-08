@@ -658,7 +658,8 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
   centres and holds as usual. Any further tap during the spin or the hold does nothing.
 
 - **The Mystery block's upgrade screen** (designer, 2026-10-07, like Star Drop but our own;
-  `MysteryReveal`, `Config.LuckyBlocks.Reveal`). A ready Mystery block's hotbar slot says
+  `MysteryReveal`, `Config.LuckyBlocks.Reveal`; its layout restyled 2026-10-08, section 25,
+  which replaces the words and dots described here; the motion stays). A ready Mystery block's hotbar slot says
   **OPEN!** in pulsing gold along its bottom; a tap, a click, its number key, or LB/RB to pick
   it then R2 opens the screen (a Mystery block is never held). Its 2D icon jumps out of the
   slot on an arc, growing past its size and settling, while the world blurs (a faint wash of the
@@ -1004,3 +1005,26 @@ band, restock tiles and pass bands.
 - **On a phone**: the slots a compact column, the Odds and Buy spins buttons at the right
   (Skip and Auto Spin under Odds), the pity pill over Buy spins; the odds and the buy buttons
   open in their popups.
+
+## 25. The Mystery block's upgrade screen, the Track (designer's pick "mystery_reveal B", 2026-10-08)
+
+`MysteryReveal`; sizes in `Config.LuckyBlocks.Reveal` (`Pill`, `Ladder`, the Tap button), as
+shares of the screen's height so a phone shows the same stack. Section 14's motion stays: the
+jump out of the hotbar, the float, the presses, the impact, the jump back.
+
+- **Top**: a white pill counting the presses, "Mystery Lucky Block - 2 / 5"; under it "The
+  result is decided when you open it; the presses reveal it." and the pity counters as they
+  stood before this block ("Rare by 3 more · Epic by 87 more", so they never give the result
+  away); then the tier's name: "STANDARD" when it lands (economy v4: every Mystery block starts
+  at the bottom tier), "EPIC!" when a press lifts it.
+- **The block** in the room between the name and the dots, its glow, rays and particles as
+  before.
+- **Under it**: the five press dots (the next one a pulsing "?"), then the white Tap! button
+  with the tutorial's pointer hand, big ("Click!" with a mouse, "Press A" on a gamepad). It stays
+  through the presses, swelling with each, and pops back as "Tap to collect", rocking gently.
+- **The ladder** along the bottom: the six tiers' blocks with their names, joined by a dark line
+  with round nodes halfway. The line fills in the tier's colour up to the tier on show, growing
+  as a press lifts it; that tier's block is bigger and raised with a chevron over it, and the
+  tiers ahead are a little faded.
+- **Reduce Motion**: no swell, rock or bounce, the line jumps to its tier; Lower effects: fewer
+  particles.

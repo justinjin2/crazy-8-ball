@@ -529,9 +529,12 @@ function LuckyClient.start(screen: ScreenGui)
 	-- Studio tests of the upgrade screen with a made-up path ("Standard,Uncommon,Uncommon,Rare"),
 	-- nothing asked of the server or changed in the save.
 	GuiQA.add("mystery", function(path: string?)
-		local tiers = string.split(path or "Standard,Standard,Uncommon,Rare", ",")
+		-- One tier per press (Config.BlockOdds.Drop.Upgrade.Clicks), climbing from Standard.
+		local tiers = string.split(path or "Standard,Uncommon,Uncommon,Rare,Rare", ",")
 		local from, px = hotbar:slotOf(-1)
-		reveal:play(-1, from, px, { ok = true, tiers = tiers, kind = tiers[#tiers] })
+		local fake =
+			{ ok = true, tiers = tiers, kind = tiers[#tiers], pity = { rare = 3, epic = 87 } }
+		reveal:play(-1, from, px, fake)
 		return true
 	end)
 	-- Studio tests of the reel with a made-up prize (default a Standard block's Cobalt Cue),

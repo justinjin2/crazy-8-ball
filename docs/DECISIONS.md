@@ -3318,3 +3318,12 @@ timer of a new block stay the designer's call.
   "Empty". No gift squares on the spin buttons (the mock has none and four buttons share one
   row). Skip got its own icon (two blue arrowheads, `Kit.Icons.Skip`). The open uses the Shop's
   timings with no animatic (the designer's answer for this hand-off).
+- 2026-10-08 (the Mystery block's upgrade screen, built from pick "mystery_reveal B", the
+  Track): the white pill counting the presses at the top, the tier's name, the block, its five
+  dots, the white Tap! button, and the ladder of the six tiers along the bottom with its line
+  filled up to the tier on show. Kept from today though the mock leaves them out: the line "The
+  result is decided when you open it; the presses reveal it." and the pity counters, shown as
+  they stood before this block (the server's Reveal reply now carries them) so they never give
+  the result away. The screen lands as STANDARD (economy v4's climb from the bottom tier). The
+  Tap! button stays through the presses, as the mock shows it at 4 / 5. The ladder's line and
+  arrow take the tier's colour; its passed nodes too (the mock's are white).

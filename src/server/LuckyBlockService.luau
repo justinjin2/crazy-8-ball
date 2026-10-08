@@ -618,6 +618,7 @@ function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, _data: any): Re
 		tiers = result.tiers,
 		kind = result.kind,
 		readyAt = result.readyAt,
+		pity = result.pity, -- { rare, epic }: Mystery blocks to each pity, as before this one
 	}
 end
 

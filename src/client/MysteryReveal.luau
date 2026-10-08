@@ -1,22 +1,30 @@
 --!strict
 -- MysteryReveal: the Mystery block's upgrade screen (designer, 2026-10-07, like Star Drop but
--- our own; Config.LuckyBlocks.Reveal). A tap on a ready Mystery block's OPEN! slot jumps its 2D
--- icon out of the hotbar at the screen while the world blurs; it floats there with its tier's
--- particles over a glow and turning rays in the tier's colour. Each press (a tap, a click, A,
--- Space or Enter) squashes it; a press that changes the tier bounces it, then it turns into
--- the next block with an impact (a white flash, a screen shake and a burst; designer,
--- 2026-10-07: no spin), its name slamming in over it. A dot fills
--- per press in the colour that press showed. After the last press "Tap to collect" (or a few
--- seconds) shrinks the screen and the block jumps back into its hotbar slot.
+-- our own; restyled to pick "mystery_reveal B", the Track, 2026-10-08; Config.LuckyBlocks
+-- .Reveal). A tap on a ready Mystery block's OPEN! slot jumps its 2D icon out of the hotbar at
+-- the screen while the world blurs; it lands as a Standard block (economy v4: it starts at the
+-- bottom tier) and floats there with its tier's particles over a glow and turning rays in the
+-- tier's colour. At the top a white pill counts the presses ("Mystery Lucky Block - 2 / 5"),
+-- with "The result is decided when you open it; the presses reveal it." and the pity counters
+-- under it; along the bottom the ladder of the six tiers, its line filled up to the tier on
+-- show, that tier's block raised with an arrow over it. Each press (a tap, a click, A, Space or
+-- Enter) squashes the block; a press that lifts the tier bounces it, then it turns into the
+-- next block with an impact (a white flash, a screen shake and a burst; designer, 2026-10-07:
+-- no spin), its name slamming in over it ("EPIC!") as the ladder's line reaches it. A dot
+-- under the block fills per press in the colour that press showed; the white Tap! button under
+-- the dots says what to do. After the last press "Tap to collect" (or a few seconds) shrinks
+-- the screen and the block jumps back into its hotbar slot.
 --
 -- The server decides everything first (BlockRequest "Reveal": the tier, with pity, and the path
--- of the presses, BlockDrop.path) and the block is already that tier's block in the save; this
--- screen only plays the path. Leaving or closing early loses nothing.
+-- of the presses, BlockDrop.path: one entry per press, climbs only, from Standard) and the block
+-- is already that tier's block in the save; this screen only plays the path. Leaving or closing
+-- early loses nothing.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -30,10 +38,15 @@ local ScreenBlur = require(script.Parent.ScreenBlur)
 local UIAnim = require(script.Parent.UIAnim)
 
 local R = Config.LuckyBlocks.Reveal
+local LD = R.Ladder
 local IMAGES: { [string]: string } = R.Images :: any
 local TIERS: { [string]: any } = R.Tiers :: any
+local ORDER: { string } = Config.BlockOdds.Order -- the ladder, Standard to Mythic
 local W = Strings.LuckyBlocks.Reveal
+local SHORT: { [string]: string } = Strings.LuckyBlocks.Short :: any
+local BLOCK_NAME: string = Strings.LuckyBlocks.Names.Mystery
 local CLICKS: number = Config.BlockOdds.Drop.Upgrade.Clicks
+local FONT: Enum.Font = (Enum.Font :: any)[Config.UI.Kit.Font]
 local ACTION = "MysteryRevealPress"
 local SHAKE = "MysteryRevealShake"
 local MAX_PARTICLES = 140
@@ -131,6 +144,43 @@ type Dot = {
 	mark: TextLabel,
 	scale: UIScale,
 	halo: ImageLabel,
+}
+
+-- One tier on the ladder: its block, its name, the node on the line before it (none for the
+-- first).
+type Step = {
+	kind: string,
+	icon: ImageLabel,
+	name: TextLabel,
+	node: Frame?,
+}
+
+-- Where everything goes for a screen this size (Reveal.geometry), in pixels.
+type Geo = {
+	size: Vector2,
+	side: number,
+	centre: Vector2,
+	gap: number,
+	pillY: number,
+	pillH: number,
+	pillText: number,
+	lineText: number,
+	decidedY: number,
+	pityY: number,
+	titleY: number,
+	titleH: number,
+	dot: number,
+	dotsY: number,
+	tapY: number,
+	tapH: number,
+	ladderTop: number,
+	ladderH: number,
+	ladderW: number,
+	block: number,
+	blockCy: number,
+	nameCy: number,
+	nameText: number,
+	arrowH: number,
 }
 
 export type Deps = {
@@ -271,12 +321,32 @@ function Reveal.build(self: any)
 	title.Visible = false
 	self.title = title
 
-	local label = HudParts.text(root, "Chances", 24, W.Chances)
-	label.AnchorPoint = Vector2.new(0.5, 0.5)
-	label.TextWrapped = false
-	label.ZIndex = 10
-	label.Visible = false
-	self.label = label
+	-- The white pill at the top: the block's name and the presses made.
+	local pill = HudParts.pill(root, "Count")
+	pill.AnchorPoint = Vector2.new(0.5, 0.5)
+	pill.ZIndex = 10
+	pill.Visible = false
+	local count = HudParts.note(pill, "Words", 18, "")
+	count.AutoLocalize = false -- Strings' words with numbers
+	count.TextWrapped = false
+	count.Size = UDim2.fromScale(1, 1)
+	count.ZIndex = 11
+	self.pill, self.count = pill, count
+	-- Under it: how the presses work, and the pity counters (once the server has answered).
+	local decided = HudParts.text(root, "Decided", 14, W.Decided)
+	decided.AnchorPoint = Vector2.new(0.5, 0.5)
+	decided.TextWrapped = false
+	decided.ZIndex = 10
+	decided.Visible = false
+	self.decided = decided
+	local pity = HudParts.text(root, "Pity", 14, "")
+	pity.AutoLocalize = false
+	pity.AnchorPoint = Vector2.new(0.5, 0.5)
+	pity.TextWrapped = false
+	pity.ZIndex = 10
+	pity.Visible = false
+	self.pity = pity
+	self:buildLadder(root)
 
 	local row = HudParts.frame(root, "Dots")
 	row.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -343,58 +413,266 @@ function Reveal.build(self: any)
 		})
 	end
 
-	local hintLabel = HudParts.text(root, "Hint", 22, "")
-	hintLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-	hintLabel.TextWrapped = false
-	hintLabel.ZIndex = 10
-	hintLabel.Visible = false
-	self.hint = hintLabel
+	-- The white Tap! button with the pointer hand (a press anywhere counts; it says what to do).
+	local tapButton = HudParts.candy(root, "", function()
+		self:tap()
+	end, "White", "Hand")
+	tapButton.Name = "Hint"
+	tapButton.Selectable = false
+	tapButton.AnchorPoint = Vector2.new(0.5, 0.5)
+	tapButton.ZIndex = 10
+	tapButton.Visible = false
+	local parts = HudParts.candyParts(tapButton)
+	if parts then
+		parts.icon.Image = R.TapIcon
+	end
+	HudParts.setIconShare(tapButton, R.TapIconShare)
+	self.hint = tapButton
 
 	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 		self:layout()
 	end)
 end
 
+-- The screen's size in pixels. Studio QA: a MysteryPreviewSize attribute (Vector2) on the
+-- PlayerGui, set before the block is opened, lays the screen out in a box that size at the top
+-- left, standing in for a phone (as UltScreen's PreviewSize).
+function Reveal.screenSize(self: any): Vector2
+	local preview = if RunService:IsStudio()
+		then self.parent:GetAttribute("MysteryPreviewSize")
+		else nil
+	return if typeof(preview) == "Vector2" then preview else self.gui.AbsoluteSize
+end
+
+-- The ladder along the bottom: the dark line through every tier, the filled line over it up
+-- to the tier on show, each tier's block with its name, a round node halfway between two, and
+-- the arrow over the tier on show.
+function Reveal.buildLadder(self: any, root: Frame)
+	local ladder = HudParts.frame(root, "Ladder")
+	ladder.ZIndex = 10
+	ladder.Visible = false
+	self.ladder = ladder
+	local function bar(name: string, colour: Color3, z: number): Frame
+		local line = HudParts.frame(ladder, name)
+		line.AnchorPoint = Vector2.new(0, 0.5)
+		line.BackgroundTransparency = 0
+		line.BackgroundColor3 = colour
+		line.ZIndex = z
+		HudParts.corner(line, 999)
+		return line
+	end
+	self.lineOff = bar("LineOff", rgb(LD.LineOff), 10)
+	local edge = Instance.new("UIStroke")
+	edge.Color = HudParts.tone("Ink")
+	edge.Thickness = 2
+	edge.Parent = self.lineOff
+	self.lineOn = bar("LineOn", Color3.new(1, 1, 1), 11)
+	self.steps = {} :: { Step }
+	for i, kind in ORDER do
+		local node: Frame? = nil
+		if i > 1 then
+			local made = HudParts.frame(ladder, "Node" .. i)
+			made.AnchorPoint = Vector2.new(0.5, 0.5)
+			made.BackgroundTransparency = 0
+			made.BackgroundColor3 = rgb(LD.NodeOff)
+			made.ZIndex = 12
+			HudParts.corner(made, 999)
+			local ring = Instance.new("UIStroke")
+			ring.Color = HudParts.tone("Ink")
+			ring.Thickness = 2
+			ring.Parent = made
+			node = made
+		end
+		local icon = Instance.new("ImageLabel")
+		icon.Name = "Block" .. i
+		icon.BackgroundTransparency = 1
+		icon.Image = iconOf(kind)
+		icon.ScaleType = Enum.ScaleType.Fit
+		icon.AnchorPoint = Vector2.new(0.5, 0.5)
+		icon.ZIndex = 13
+		icon.Parent = ladder
+		local name = HudParts.text(ladder, "Name" .. i, 14, SHORT[kind] or kind)
+		name.AnchorPoint = Vector2.new(0.5, 0.5)
+		name.TextWrapped = false
+		name.ZIndex = 13
+		table.insert(self.steps, { kind = kind, icon = icon, name = name, node = node })
+	end
+	local arrow = HudParts.icon(ladder, "ChevronUp", "Arrow")
+	arrow.AnchorPoint = Vector2.new(0.5, 0.5)
+	arrow.ZIndex = 14
+	self.arrow = arrow
+	self.lit = 0 -- the ladder's tier on show (0: none yet)
+end
+
+-- Everything's place for the screen's size: the top stack (the pill, the two lines, the name),
+-- the bottom stack (the ladder, the Tap! button, the dots) and the block in the room between.
+function Reveal.geometry(self: any): Geo
+	local size = self:screenSize()
+	local H, Wd = size.Y, size.X
+	local gap = math.max(4, H * R.GapShare)
+	local minText = R.MinTextPx
+	local P = R.Pill
+	local pillH = math.max(minText / P.TextShare, H * P.HeightShare)
+	local pillY = H * P.Y
+	local lineText = math.clamp(H * R.LineTextShare, minText, R.LineMaxTextPx)
+	local decidedY = pillY + pillH / 2 + gap * 0.6 + lineText / 2
+	local pityY = decidedY + lineText + 2
+	-- The ladder from the bottom up: the names, the blocks (the lit one raised), the arrow.
+	local block = H * LD.BlockShare
+	local litSide = block * LD.LitScale
+	local raise = block * LD.RaiseShare
+	local arrowH = block * LD.ArrowShare
+	local nameText = math.clamp(H * LD.NameTextShare, minText, LD.NameMaxTextPx)
+	local blockCy = arrowH + 2 + raise + litSide / 2
+	local nameCy = blockCy + block / 2 + 2 + nameText / 2
+	local ladderH = nameCy + nameText / 2 + 2
+	local ladderTop = H * (1 - LD.BottomShare) - ladderH
+	local ladderW = math.min(H * LD.WidthShare, Wd * LD.MaxWidthShare)
+	-- Over it the Tap! button, then the dots.
+	local planned = math.min(H * R.BlockShare, Wd * R.BlockMaxShareOfWidth)
+	local tapH = math.max(R.TapMinPx, H * R.TapHeightShare)
+	local tapY = ladderTop - gap - tapH / 2
+	local dot = math.max(10, planned * R.DotShare)
+	local dotsY = tapY - tapH / 2 - gap - dot / 2
+	-- The name under the counters, the block in the room between it and the dots (with room
+	-- for its float).
+	local titleH = planned * R.TitleHeightShare
+	local titleTop = pityY + lineText / 2 + gap
+	local blockTop = titleTop + titleH + gap / 2
+	local blockBottom = dotsY - dot / 2 - gap - planned * R.Float.HeightShare
+	local side = math.max(40, math.min(planned, blockBottom - blockTop))
+	return {
+		size = size,
+		side = side,
+		centre = Vector2.new(Wd / 2, (blockTop + blockBottom) / 2),
+		gap = gap,
+		pillY = pillY,
+		pillH = pillH,
+		pillText = math.max(minText, pillH * P.TextShare),
+		lineText = lineText,
+		decidedY = decidedY,
+		pityY = pityY,
+		titleY = titleTop + titleH / 2,
+		titleH = titleH,
+		dot = dot,
+		dotsY = dotsY,
+		tapY = tapY,
+		tapH = tapH,
+		ladderTop = ladderTop,
+		ladderH = ladderH,
+		ladderW = ladderW,
+		block = block,
+		blockCy = blockCy,
+		nameCy = nameCy,
+		nameText = nameText,
+		arrowH = arrowH,
+	}
+end
+
 -- The block's side, its resting middle and the screen's size, in pixels.
 function Reveal.metrics(self: any): (number, Vector2, Vector2)
-	local size = self.gui.AbsoluteSize
-	local side = math.min(size.Y * R.BlockShare, size.X * R.BlockMaxShareOfWidth)
-	return side, Vector2.new(size.X / 2, size.Y * R.BlockY), size
+	local g = self:geometry()
+	return g.side, g.centre, g.size
 end
 
 function Reveal.layout(self: any)
 	if self.gui == nil then
 		return
 	end
-	local side, centre, size = self:metrics()
+	local g = self:geometry()
+	local side, centre, size = g.side, g.centre, g.size
 	self.side, self.centre = side, centre
+	self.root.Size = if size == self.gui.AbsoluteSize
+		then UDim2.fromScale(1, 1)
+		else UDim2.fromOffset(size.X, size.Y)
 	self.holder.Size = UDim2.fromOffset(side, side)
 	self.glow.Size = UDim2.fromOffset(side * R.GlowShare, side * R.GlowShare)
 	self.glow.Position = UDim2.fromOffset(centre.X, centre.Y)
 	self.rays.Size = UDim2.fromOffset(side * R.RaysShare, side * R.RaysShare)
 	self.rays.Position = UDim2.fromOffset(centre.X, centre.Y)
-	local titleH = side * R.TitleHeightShare
-	self.title.Size = UDim2.fromOffset(math.min(size.X * 0.94, side * R.TitleWidthShare), titleH)
-	self.title.Position = UDim2.fromOffset(size.X / 2, size.Y * R.TitleY)
-	HudParts.setTextSize(self.title, titleH)
-	local labelH = side * R.LabelHeightShare
-	self.label.Size = UDim2.fromOffset(math.min(size.X * 0.9, side * 1.6), labelH)
-	self.label.Position = UDim2.fromOffset(size.X / 2, size.Y * R.LabelY)
-	HudParts.setTextSize(self.label, labelH)
-	local dot = side * R.DotShare
-	local gap = side * R.DotGapShare
+	-- The top: the pill, the two lines, the tier's name.
+	HudParts.setTextSize(self.count, g.pillText)
+	local countW =
+		TextService:GetTextSize(self.count.Text, g.pillText, FONT, Vector2.new(4000, 400)).X
+	self.pill.Size =
+		UDim2.fromOffset(math.min(size.X * 0.9, countW + 2 * g.pillH * R.Pill.PadShare), g.pillH)
+	self.pill.Position = UDim2.fromOffset(size.X / 2, g.pillY)
+	for _, line in { self.decided, self.pity } do
+		HudParts.setTextSize(line, g.lineText)
+		line.Size = UDim2.fromOffset(size.X * 0.94, g.lineText + 4)
+	end
+	self.decided.Position = UDim2.fromOffset(size.X / 2, g.decidedY)
+	self.pity.Position = UDim2.fromOffset(size.X / 2, g.pityY)
+	self.title.Size = UDim2.fromOffset(math.min(size.X * 0.94, side * R.TitleWidthShare), g.titleH)
+	self.title.Position = UDim2.fromOffset(size.X / 2, g.titleY)
+	HudParts.setTextSize(self.title, g.titleH)
+	-- Under the block: the dots, the Tap! button.
+	local dot = g.dot
+	local gap = dot * R.DotGapShare / R.DotShare
 	local rowW = CLICKS * dot + (CLICKS - 1) * gap
 	self.row.Size = UDim2.fromOffset(rowW, dot)
-	self.row.Position = UDim2.fromOffset(size.X / 2, size.Y * R.DotsY)
+	self.row.Position = UDim2.fromOffset(size.X / 2, g.dotsY)
 	for i, d in self.dots do
 		d.frame.Size = UDim2.fromOffset(dot, dot)
 		d.frame.Position = UDim2.fromOffset((i - 1) * (dot + gap) + dot / 2, dot / 2)
 		HudParts.setTextSize(d.mark, dot * 0.7)
 	end
-	local hintH = side * R.HintHeightShare
-	self.hint.Size = UDim2.fromOffset(size.X * 0.9, hintH)
-	self.hint.Position = UDim2.fromOffset(size.X / 2, size.Y * R.HintY)
-	HudParts.setTextSize(self.hint, hintH)
+	local hintText = math.max(R.MinTextPx, math.floor(g.tapH * 0.5))
+	HudParts.setButtonTextSize(self.hint, hintText)
+	local hintW = HudParts.candyWidth(self.hint, g.tapH, hintText)
+	self.hint.Size = UDim2.fromOffset(math.ceil(hintW + g.tapH * 0.4), g.tapH)
+	self.hint.Position = UDim2.fromOffset(size.X / 2, g.tapY)
+	self:layoutLadder(g)
+end
+
+-- The ladder `g.ladderW` wide, centred along the bottom: the dark line through every tier, the
+-- filled one up to the tier on show, the nodes halfway, the blocks (the lit one bigger and
+-- raised, the ones ahead a little faded), their names, the arrow over the lit one.
+function Reveal.layoutLadder(self: any, g: Geo)
+	local size = g.size
+	local ladder: Frame = self.ladder
+	ladder.Position = UDim2.fromOffset(0, g.ladderTop)
+	ladder.Size = UDim2.fromOffset(size.X, g.ladderH)
+	local n = #self.steps
+	local left = (size.X - g.ladderW) / 2
+	local spacing = g.ladderW / math.max(1, n - 1)
+	local block = g.block
+	local lineH = math.max(3, block * LD.LineShare)
+	local function xOf(i: number): number
+		return left + (i - 1) * spacing
+	end
+	self.lineOff.Position = UDim2.fromOffset(xOf(1), g.blockCy)
+	self.lineOff.Size = UDim2.fromOffset(g.ladderW, lineH)
+	local lit = math.max(1, self.lit)
+	self.lineOn.Position = UDim2.fromOffset(xOf(1), g.blockCy)
+	self.lineOn.Size = UDim2.fromOffset(math.max(lineH, (lit - 1) * spacing), lineH)
+	self.lineOn.Visible = self.lit > 1
+	local nodePx = math.max(6, block * LD.NodeShare)
+	for i, step: Step in self.steps do
+		local on = i == self.lit
+		local scale = if on then LD.LitScale else 1
+		local raise = if on then block * LD.RaiseShare else 0
+		step.icon.Size = UDim2.fromOffset(block * scale, block * scale)
+		step.icon.Position = UDim2.fromOffset(xOf(i), g.blockCy - raise)
+		step.icon.ImageTransparency = if self.lit > 0 and i > self.lit
+			then LD.FadeTransparency
+			else 0
+		HudParts.setTextSize(step.name, g.nameText)
+		step.name.Size = UDim2.fromOffset(spacing * 0.98, g.nameText + 4)
+		step.name.Position = UDim2.fromOffset(xOf(i), g.nameCy)
+		local node = step.node
+		if node then
+			node.Size = UDim2.fromOffset(nodePx, nodePx)
+			node.Position = UDim2.fromOffset((xOf(i - 1) + xOf(i)) / 2, g.blockCy)
+			node.BackgroundColor3 = if i <= self.lit
+				then self.lineOn.BackgroundColor3
+				else rgb(LD.NodeOff)
+		end
+	end
+	local arrowPx = g.arrowH
+	self.arrow.Size = UDim2.fromOffset(arrowPx, arrowPx)
+	self.arrow.Position = UDim2.fromOffset(xOf(lit), arrowPx / 2)
+	self.arrow.Visible = self.lit > 0
 end
 
 ---------------------------------------------------------------------------------------------
@@ -600,13 +878,15 @@ end
 -- The tier on show
 ---------------------------------------------------------------------------------------------
 
--- The name over the block, its colour (or the rainbow) and the glow, rays and wash behind it.
-function Reveal.showTier(self: any, kind: string, slam: boolean)
+-- The name over the block ("EPIC!" once a press lifted it), its colour (or the rainbow) and the
+-- glow, rays and wash behind it; the ladder lights the tier.
+function Reveal.showTier(self: any, kind: string, slam: boolean, climbed: boolean?)
 	self.shown = kind
 	local tier = look(kind)
 	self.pic.Image = iconOf(kind)
 	local words = if kind == "Mystery" then W.Title else (W.Tiers[kind] or string.upper(kind))
-	self.title.Text = words
+	self.title.Text = if climbed then W.Climbed:format(words) else words
+	self:lightStep(kind)
 	-- A rainbow name is white under its gradient (a colour under it would darken it).
 	self.title.TextColor3 = if tier.Rainbow then Color3.new(1, 1, 1) else rgb(tier.Color)
 	if self.rainbow then
@@ -623,6 +903,50 @@ function Reveal.showTier(self: any, kind: string, slam: boolean)
 	TweenService:Create(self.glow, info, { ImageColor3 = rgb(tier.Glow) }):Play()
 	TweenService:Create(self.rays, info, { ImageColor3 = rgb(tier.Glow) }):Play()
 	TweenService:Create(self.wash, info, { BackgroundColor3 = rgb(tier.Glow) }):Play()
+end
+
+-- The ladder's tier `kind` lit: the filled line grows to it (in its colour), it rises with the
+-- arrow over it, the ones ahead fade a little. Not a ladder tier (the Mystery block in flight):
+-- nothing lit.
+function Reveal.lightStep(self: any, kind: string)
+	local index = table.find(ORDER, kind) or 0
+	local before = self.lit or 0
+	self.lit = index
+	if self.ladder == nil then
+		return
+	end
+	local glow = rgb(look(kind).Glow)
+	self.lineOn.BackgroundColor3 = glow
+	self.arrow.ImageColor3 = glow
+	local g = self:geometry()
+	if index > before and before > 0 and not UIAnim.reduced() then
+		-- The filled line grows from the tier it was on to the new one.
+		local spacing = g.ladderW / math.max(1, #self.steps - 1)
+		local lineH = math.max(3, g.block * LD.LineShare)
+		self:layoutLadder(g)
+		self.lineOn.Size = UDim2.fromOffset(math.max(lineH, (before - 1) * spacing), lineH)
+		self.lineOn.Visible = true
+		TweenService:Create(
+			self.lineOn,
+			TweenInfo.new(LD.GrowSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ Size = UDim2.fromOffset(math.max(lineH, (index - 1) * spacing), lineH) }
+		):Play()
+	else
+		self:layoutLadder(g)
+	end
+	local step: Step? = self.steps[index]
+	if step and self.ladder.Visible and not UIAnim.reduced() then
+		UIAnim.bounce(step.icon)
+		UIAnim.bounce(self.arrow)
+	end
+end
+
+-- The pill's count: the presses made of the five.
+function Reveal.setCount(self: any, presses: number)
+	self.count.Text = W.Count:format(BLOCK_NAME, presses, CLICKS)
+	if self.gui then
+		self:layout()
+	end
 end
 
 -- Dot `i` fills in the colour of the tier its press showed; the next one asks "?".
@@ -654,6 +978,7 @@ function Reveal.fillDot(self: any, i: number, kind: string)
 			{ Scale = 1 }
 		):Play()
 	end
+	self:setCount(i)
 	self:markNext(i + 1)
 end
 
@@ -751,7 +1076,7 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 	self.clock = 0
 	self.floatClock = 0
 	self:build()
-	self:layout()
+	self:setCount(0)
 	self:hideOthers()
 	ScreenBlur.set(self, true)
 	self.deps.mask(id, true)
@@ -810,6 +1135,18 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 			end
 		end
 		self.reply = reply
+		local pity = reply.pity
+		if
+			type(pity) == "table"
+			and type(pity.rare) == "number"
+			and type(pity.epic) == "number"
+		then
+			self.pity.Text = W.Pity:format(math.floor(pity.rare), math.floor(pity.epic))
+			if self.decided.Visible and not self.pity.Visible then
+				self.pity.Visible = true
+				UIAnim.popIn(self.pity)
+			end
+		end
 		if self.waitingReply then
 			self.waitingReply = false
 			self:press()
@@ -866,16 +1203,21 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 	):Play()
 	task.delay(A.TitleAt, function()
 		if self.open and self.phase ~= "Leave" then
-			self.title.Visible = true
-			UIAnim.slam(self.title, Color3.new(1, 1, 1))
+			-- The pill, the decided line and the pity counters (once the server answered).
+			for _, object in { self.pill, self.decided, self.pity } do
+				if object ~= self.pity or object.Text ~= "" then
+					object.Visible = true
+					UIAnim.popIn(object)
+				end
+			end
 		end
 	end)
 	task.delay(A.DotsAt, function()
 		if not self.open or self.phase == "Leave" then
 			return
 		end
-		self.label.Visible = true
-		UIAnim.popIn(self.label)
+		self.ladder.Visible = true
+		UIAnim.popIn(self.ladder)
 		for i, d in self.dots do
 			task.delay((i - 1) * A.DotStagger, function()
 				if self.open and self.phase ~= "Leave" then
@@ -887,15 +1229,27 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 		self:markNext(1)
 	end)
 	task.delay(A.HintAt, function()
-		if self.open and self.phase ~= "Leave" and self.presses == 0 then
-			self.hint.Text = hint(false)
+		if
+			self.open
+			and self.phase ~= "Leave"
+			and self.phase ~= "Done"
+			and not self.hint.Visible
+		then
+			HudParts.setText(self.hint, hint(false))
+			self:layout()
 			self.hint.Visible = true
 			UIAnim.popIn(self.hint)
 		end
 	end)
 end
 
+-- Landed: it is a Standard block now (economy v4: the presses climb from the bottom tier), its
+-- name slamming in over it with a soft white puff; the ladder lights Standard.
 function Reveal.arrived(self: any)
+	self:showTier(ORDER[1], false)
+	self.title.Visible = true
+	UIAnim.slam(self.title, Color3.new(1, 1, 1))
+	self:puff()
 	self.phase = "Wait"
 	self:afterAnim()
 end
@@ -933,12 +1287,14 @@ function Reveal.press(self: any)
 	self.presses += 1
 	local i = self.presses
 	local tiers = self.reply.tiers
-	local before = if i == 1 then "Mystery" else tiers[i - 1]
+	local before = if i == 1 then ORDER[1] else tiers[i - 1]
 	local after = tiers[i]
 	self.phase = "Press"
-	self.hint.Visible = false
 	local side = self.side
 	local reduced = UIAnim.reduced()
+	if self.hint.Visible and not reduced then
+		UIAnim.thump(self.hint) -- the Tap! button stays and swells with each press
+	end
 	local P = R.Press
 	local finish = function()
 		self:fillDot(i, after)
@@ -991,8 +1347,7 @@ function Reveal.press(self: any)
 	-- Changed: squash, one quick hop with a rattle, then the impact as it lands (flash,
 	-- shake, burst) as the picture becomes the new block, which lands a little big and settles.
 	local U = R.Upgrade
-	local seconds = if before == "Mystery" then U.FirstHopSeconds else U.HopSeconds
-	local total, step = hop(seconds, U.HopShare, U.RattleDegrees, U.RattleTurns, U.Stretch)
+	local total, step = hop(U.HopSeconds, U.HopShare, U.RattleDegrees, U.RattleTurns, U.Stretch)
 	self.anim = {
 		seconds = total,
 		step = step,
@@ -1000,7 +1355,7 @@ function Reveal.press(self: any)
 			self.pose.lift, self.pose.turn = 0, 0
 			self.pic.Image = iconOf(after)
 			self:impact()
-			self:showTier(after, true)
+			self:showTier(after, true, true)
 			self:burst(after)
 			self.anim = {
 				seconds = U.LandSeconds,
@@ -1035,7 +1390,15 @@ function Reveal.impact(self: any)
 		):Play()
 	end)
 	flashIn:Play()
-	-- A white glow bursting from the block, then the tier's colour from the burst.
+	self:puff()
+	if not UIAnim.reduced() then
+		self.shakeAt = self.clock
+	end
+end
+
+-- A white glow bursting from the block (the impact, and the landing as a Standard block).
+function Reveal.puff(self: any)
+	local F = R.Flash
 	local centre = self.centre
 	local glow = Instance.new("ImageLabel")
 	glow.Name = "ImpactGlow"
@@ -1058,13 +1421,11 @@ function Reveal.impact(self: any)
 		glow:Destroy()
 	end)
 	grow:Play()
-	if not UIAnim.reduced() then
-		self.shakeAt = self.clock
-	end
 end
 
 function Reveal.done(self: any)
 	self.phase = "Done"
+	self.hint.Visible = false -- it pops back in as "Tap to collect"
 	if self.dotPulse then
 		self.dotPulse.stop()
 		self.dotPulse = nil
@@ -1074,10 +1435,13 @@ function Reveal.done(self: any)
 	local id = self.id
 	task.delay(R.DoneHintDelay, function()
 		if self.open and self.phase == "Done" and self.id == id then
-			self.hint.Text = hint(true)
+			HudParts.setText(self.hint, hint(true))
+			self:layout()
 			self.hint.Visible = true
 			UIAnim.popIn(self.hint)
-			self.hintPulse = UIAnim.bob(self.hint) -- a rock turns smoothly (a size pulse steps)
+			if not UIAnim.reduced() then
+				self.hintPulse = UIAnim.bob(self.hint) -- a rock turns smoothly (a size pulse steps)
+			end
 		end
 	end)
 	task.delay(R.AutoCollect, function()
@@ -1107,7 +1471,7 @@ function Reveal.leave(self: any)
 	ScreenBlur.set(self, false)
 	local L = R.Leave
 	local fade = TweenInfo.new(L.FadeSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-	for _, object in { self.title, self.label, self.hint } do
+	for _, object in { self.title, self.hint, self.pill, self.decided, self.pity, self.ladder } do
 		UIAnim.popOut(object)
 	end
 	for _, d in self.dots do

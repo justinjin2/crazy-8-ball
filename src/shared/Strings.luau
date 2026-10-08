@@ -987,8 +987,11 @@ return {
 				Legendary = "LEGENDARY",
 				Mythic = "MYTHIC",
 			} :: { [string]: string },
-			Chances = "UPGRADE CHANCES", -- over the dots
-			Tap = "Tap!", -- under the block while presses are left
+			Climbed = "%s!", -- the tier's name once a press lifted it: "EPIC!"
+			-- The pill at the top (pick "mystery_reveal B"): the block's name, the presses made
+			-- and how many in all: "Mystery Lucky Block - 2 / 5".
+			Count = "%s - %d / %d",
+			Tap = "Tap!", -- the white button under the block while presses are left
 			TapMouse = "Click!",
 			TapPad = "Press A",
 			Collect = "Tap to collect", -- after the last press

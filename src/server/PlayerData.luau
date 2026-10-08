@@ -2096,8 +2096,9 @@ end
 --- (Config.BlockOdds.Drop.Weights, with pity for every Mystery block, counted), and the path its
 --- presses show (BlockDrop.path), and becomes that tier's block in one change: same id, same
 --- place, its origin kept, on the tier's timer (none for a paid block or a VIP). Answers (true,
---- { tiers, kind, readyAt }) or (false, reason): "NotOwned", "NotReady", "NotLoaded",
---- "NotMystery", "Invalid".
+--- { tiers, kind, readyAt, pity }) or (false, reason): "NotOwned", "NotReady", "NotLoaded",
+--- "NotMystery", "Invalid". `pity` is BlockDrop.pityLeft as it stood before this block (this one
+--- counted in it, so it never gives the result away), for the upgrade screen's counters.
 function PlayerData.revealMystery(player: Player, id: number): (boolean, any)
 	local op = "revealMystery"
 	if not isPlayer(player) then
@@ -2121,6 +2122,7 @@ function PlayerData.revealMystery(player: Player, id: number): (boolean, any)
 	end
 	-- Every Mystery block counts and gets pity, bought ones too (economy v4, 2026-10-08:
 	-- ECONOMY 7.1; a paid block rolled the plain odds before).
+	local before = BlockDrop.pityLeft(BlockDrop.readPity(data.Drops))
 	local tier, pity = BlockDrop.roll(BlockDrop.readPity(data.Drops), dropRoll, nil)
 	data.Drops.SinceRare = math.min(pity.SinceRare, S.StatCap)
 	data.Drops.SinceEpic = math.min(pity.SinceEpic, S.StatCap)
@@ -2134,7 +2136,7 @@ function PlayerData.revealMystery(player: Player, id: number): (boolean, any)
 		vipOfSave[data] == true
 	) :: LuckyBlocks.Block
 	commit(player, data, op)
-	return true, { tiers = tiers, kind = revealed.Kind, readyAt = revealed.ReadyAt }
+	return true, { tiers = tiers, kind = revealed.Kind, readyAt = revealed.ReadyAt, pity = before }
 end
 
 --- Opens the ready block `id` as `plan` says (PlayerData.planLuckyOpen; `copy`: the Unique

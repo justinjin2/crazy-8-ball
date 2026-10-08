@@ -66,9 +66,10 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Rewards menu; codes stay in Settings) with Claim All's six Robux products made on Roblox
   (random items: Not Listed with the others); Ranked in the lively frame (A; 96% wide on a
   phone); the ability spin screen in the kit panels (A: the odds panel, the buy panel with one
-  money button, "Locked" slots). At publish: `tools/roblox_products.py --sync` (the Starter
-  Pack at 29, the pack texts, Lucky1 and Lucky3 off sale). Next: the Mystery screen B,
-  Settings A. Trade is not built (not in the release).
+  money button, "Locked" slots); the Mystery screen (B, the Track: the press pill, the tier
+  ladder, landing as Standard). At publish: `tools/roblox_products.py --sync` (the Starter
+  Pack at 29, the pack texts, Lucky1 and Lucky3 off sale). Next: Settings A. Trade is not
+  built (not in the release).
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in
   `gui-v4`): the new cue card, the Cues menu, the CUES icon, the smooth money chip, the reel and
   YOU GOT, checked in Studio. Still open: the see-through reel trial's verdict, a phone and a
@@ -76,15 +77,13 @@ One line each; the long form is the 2026-10-08 entry at the top of
   yet merged into `release`.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
-- **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),
-  all five gates approved (`docs/prompts/SHOP_LIVELY_REPORT.md`). The Shop's Blocks, Money
-  and Passes pages are built (see the GUI hand-off above). Other menus switch to the new frame one at a time as each is rebuilt. Save
-  `place/8ball.rbxl` and publish once for this milestone (the renamed Firework Cue instances).
+- **The lively Shop is done** and merged into `release` (2026-10-06, all five gates approved,
+  `docs/prompts/SHOP_LIVELY_REPORT.md`); other menus switch to its frame as each is rebuilt.
 - **Decision still open:** whether the VIP cue pays finder's money on the first join.
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.
 - **The place file:** save `place/8ball.rbxl` and publish once this milestone is done (lucky
-  block templates and models, Unique cue templates live in the place).
+  block templates and models, Unique cue templates, the renamed Firework Cue instances).
 
 ## Not yet checked (the Studio tools cannot do these)
 

@@ -2445,21 +2445,51 @@ Config.LuckyBlocks = {
 	-- screen's short side (capped by BlockMaxShareOfWidth of its width).
 	Reveal = {
 		DisplayOrder = 40, -- over the hotbar and the HUD
-		BlockShare = 0.4, -- of the screen's height
+		-- The layout (designer's pick "mystery_reveal B", the Track, 2026-10-08), top to bottom:
+		-- the white pill "Mystery Lucky Block - 2 / 5", the line "The result is decided..." and
+		-- the pity counters under it, the tier's name, the block, its five press dots, the white
+		-- Tap! button; along the bottom the ladder of the six tiers, joined by a line filled up
+		-- to the tier on show. Shares of the screen's height unless named; the block takes the
+		-- room left between the name and the dots, at most BlockShare.
+		BlockShare = 0.32,
 		BlockMaxShareOfWidth = 0.62, -- a tall phone: the block no wider than this
-		BlockY = 0.47, -- the block's middle, of the screen's height
-		TitleY = 0.17, -- the tier's name, of the screen's height
-		TitleHeightShare = 0.36, -- of the block's side
+		GapShare = 0.012, -- between the stacked pieces
+		MinTextPx = 12, -- no word smaller (a phone's smallest, UI_STYLE)
+		-- Y: its middle; TextShare: its words, of its height; PadShare: room each side of them,
+		-- of its height.
+		Pill = { Y = 0.065, HeightShare = 0.055, TextShare = 0.6, PadShare = 0.6 },
+		LineTextShare = 0.024, -- the decided line and the pity counters
+		LineMaxTextPx = 18,
+		TitleHeightShare = 0.3, -- of the block's side
 		TitleWidthShare = 1.9, -- of the block's side, at most (long names shrink)
 		TitleTurnDegrees = -4, -- a slight tilt, like a sticker
-		LabelY = 0.79, -- "UPGRADE CHANCES"
-		LabelHeightShare = 0.12,
-		DotsY = 0.865,
-		DotShare = 0.17, -- one dot's size, of the block's side
-		DotGapShare = 0.06,
+		DotShare = 0.12, -- one dot's size, of the block's side
+		DotGapShare = 0.05,
 		DotOutlinePx = 3,
-		HintY = 0.945, -- "Tap!" / "Tap to collect"
-		HintHeightShare = 0.1,
+		-- The white Tap! button (the whole screen takes the presses; it says what to do): the
+		-- tutorial's pointer hand and the words. It stays through the presses, swelling with
+		-- each (Motion.Thump), and comes back as "Tap to collect" after the last.
+		TapHeightShare = 0.06,
+		TapMinPx = 28,
+		TapIcon = "rbxassetid://71143067788609", -- Config.Tutorial.Art.Hand, index finger up
+		TapIconShare = 1.05, -- the hand, of the button's height (big, poking out, as in the mock)
+		Ladder = {
+			BottomShare = 0.07, -- clear under the tier names
+			WidthShare = 1.1, -- the ladder's width, of the screen's height...
+			MaxWidthShare = 0.92, -- ...at most this share of its width
+			BlockShare = 0.085, -- a tier's block
+			LitScale = 1.18, -- the tier on show, bigger...
+			RaiseShare = 0.22, -- ...and raised this share of its block
+			ArrowShare = 0.5, -- the arrow over it (in the tier's colour), of its block (its image has padding)
+			NameTextShare = 0.028,
+			NameMaxTextPx = 22,
+			LineShare = 0.12, -- the line's thickness, of a block
+			NodeShare = 0.32, -- the round node halfway between two blocks, of a block
+			LineOff = { 40, 46, 66 }, -- the line still ahead: dark
+			NodeOff = { 214, 222, 236 }, -- its nodes
+			FadeTransparency = 0.25, -- a tier ahead's block, a little faded
+			GrowSeconds = 0.3, -- the filled line reaching the next tier
+		},
 		GlowShare = 2.3, -- the soft glow behind the block, of its side
 		GlowTransparency = 0.25,
 		RaysShare = 3.2, -- the turning rays behind it
@@ -2467,13 +2497,14 @@ Config.LuckyBlocks = {
 		RaysDegreesPerSecond = 14,
 		BackTransparency = 0.82, -- the tier's colour, faintly, over the blurred world
 		-- The jump out of the hotbar: an arc from the slot to the middle, growing past its size
-		-- and settling (backOut), turning upright. The blur starts with it.
+		-- and settling (backOut), turning upright. The blur starts with it; it lands as a
+		-- Standard block, its name slamming in.
 		Arrive = {
 			Seconds = 0.55,
 			ArcShare = 0.35, -- how high above the straight line the arc rises, of the screen
 			FromTurn = -25, -- degrees at the start
-			TitleAt = 0.35, -- the name slams in this long after the start
-			DotsAt = 0.45, -- the label and dots pop in, one after another
+			TitleAt = 0.35, -- the pill, the decided line and the pity counters pop in
+			DotsAt = 0.45, -- the ladder and the dots pop in, the dots one after another
 			DotStagger = 0.05,
 			HintAt = 0.7,
 		},
@@ -2485,11 +2516,9 @@ Config.LuckyBlocks = {
 		-- A press that changes the tier: one quick hop with a rattle (an arc, up slowing and
 		-- down speeding up), then the impact as it lands: the picture becomes the new block
 		-- under a white flash while the screen shakes and a burst goes off; it lands a little
-		-- big and settles. About 0.5 s in all (0.57 s for the Mystery block's first change;
-		-- designer, 2026-10-07: faster).
+		-- big and settles. About 0.5 s in all (designer, 2026-10-07: faster).
 		Upgrade = {
 			HopSeconds = 0.22,
-			FirstHopSeconds = 0.3,
 			HopShare = 0.14, -- the hop's height, of the block's side
 			Stretch = 0.06, -- it grows this share at the top of the hop
 			-- A smooth wobble as it hops (a fast rattle read as choppy): this many degrees, this
