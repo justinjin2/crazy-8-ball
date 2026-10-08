@@ -530,4 +530,4 @@ changes then.
 - [x] 12. `tools/economy_model.py` and `economy_config.json`
 - [x] 13. Docs: `ECONOMY.md`, GDD 11-12, `DECISIONS.md`, `ROADMAP.md`
 - [x] 14. Products: `products_spec.json`, `roblox_products.py --dry-run`, then for real (right before the merge)
-- [ ] 15. The merge, `STATUS.md`
+- [x] 15. The merge, `STATUS.md`

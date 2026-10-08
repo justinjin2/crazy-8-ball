@@ -5,6 +5,12 @@ when `docs/STATUS.md` became current state only. Finished work moves here from S
 on top. Read it only to answer "when or why did X change"; it is not part of the read-first list.
 An entry marked "(latest)" was the latest when written.
 
+**2026-10-08: economy v4 merged.** Built in the worktree `~/Desktop/8ball-economy-v4` (branch
+`economy-v4`, steps 1-14 of `docs/prompts/ECONOMY_V4_PROMPT.md`), merged into `shop-lively` as a
+fast-forward. Tests went from 1045 to 1051. The Robux prices were synced through Open Cloud the
+same day. STATUS dropped the open "trim Epic ownership (6.7% against ~5%)" decision: v4's
+approved targets replace it.
+
 **2026-10-08: the long form of STATUS's "Being tried" list, moved here when STATUS was cut
 back under 100 lines (each item still open there as one line).**
 

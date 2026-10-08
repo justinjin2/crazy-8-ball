@@ -11,11 +11,11 @@ Updated 2026-10-08.
 - **Branch `release`** is the integration branch, and every lane of the parallel build is
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
-- **Lint and tests (2026-10-08):** lint OK with three old LocalShadow warnings (PadGuide,
-  MatchHUD, Main.client); all 1045 Lune tests pass.
+- **Lint and tests (2026-10-08, after the economy v4 merge):** lint OK with three old LocalShadow warnings (PadGuide,
+  MatchHUD, Main.client); all 1051 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
-  bots, disguised bots); ranks (XP only from winning) and money; saves at version 7;
+  bots, disguised bots); ranks (XP only from winning) and money; economy v4; saves at version 9;
   13 abilities (Ultimates) with the spin screen; cue skins with VFX and outlines; lucky blocks
   as the only gacha (cases, the Magic 8 Ball and reward popups are gone); Rewards, Cues (My Cues,
   Index; the Inventory renamed), trading, settings, our own player list and boards; the first-time tutorial;
@@ -47,8 +47,16 @@ One line each; the long form is the 2026-10-08 entry at the top of
 
 ## Open, waiting on the designer
 
+- **Economy v4, "the forgiving economy"** (approved and merged into `shop-lively` 2026-10-08;
+  `docs/ECONOMY.md`, roadmap 7.8). The rules, saves (v9), model and docs are in, Lune-tested;
+  the v4 Robux prices are **live on Roblox** (the four new products made, the six sale products
+  off sale). Until the merged place is published, the live game sells at the new prices with
+  the old grants: publish soon. Still to do: the designer's Studio check (shop prices, the
+  Mystery screen, rewards, timers, the skip); set every random-item product to Not Listed in
+  the Creator Hub; the GUI screens of the plan's hand-off (`docs/prompts/ECONOMY_V4_PLAN.md`
+  section 18); Lucky Shot, Golden Shot, Lucky Rain and the stay bonus are planned only.
 - **The GUI redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, branch `shop-lively`),
-  **paused by the designer** for the economy plan (a cheaper, more balanced economy); the
+  paused for the economy plan, which is now merged: next is planning the GUI hand-off; the
   designer continues the other lively GUIs from another session. Built and checked in Studio:
   the new cue card (the rank cues are the Ranked rarity), the Cues menu (My Cues and Index
   tiles, Sort, Sell dupes, the big card, the Equip sound), the striking CUES icon, the money
@@ -64,8 +72,7 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Money and Passes pages with the `lively-gui` skill (the money "+" jumps to Money, which has
   no page yet). Other menus switch to the new frame one at a time as each is rebuilt. Save
   `place/8ball.rbxl` and publish once for this milestone (the renamed Firework Cue instances).
-- **Decisions still open:** trim Epic ownership (6.7% of active players against a ~5% plan)
-  or keep it; whether the VIP cue pays finder's money on the first join.
+- **Decision still open:** whether the VIP cue pays finder's money on the first join.
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.
 - **The place file:** save `place/8ball.rbxl` and publish once this milestone is done (lucky
