@@ -1,7 +1,7 @@
 --!strict
 -- FreeSocial: the Free Reward menu's group and friends section (the designer's pick
 -- "free_other A", 2026-10-08), under "- GROUP -":
--- - The Lucky 8 card: the Lucky 8 Block over its glow (the sky-blue "i" shows its odds), "Free
+-- - The Lucky 8 card: the Lucky 8 Block over its glow (the sky-blue dice opens its odds), "Free
 --   Lucky Blocks" and two rows, each with a tick box, its words and its button:
 --   * Join the group (3 Mystery Lucky Blocks + 10% more match money while a member): Join is
 --     Roblox's own join prompt (GroupService:PromptJoinAsync), then the server asks Roblox
@@ -29,7 +29,6 @@ local HudParts = require(script.Parent.HudParts)
 local InvitePrompt = require(script.Parent.InvitePrompt)
 local RewardsParts = require(script.Parent.RewardsParts)
 local ShopCards = require(script.Parent.ShopCards)
-local ShopOdds = require(script.Parent.ShopOdds)
 local Stage = require(script.Parent.Stage)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -39,8 +38,6 @@ local P = B.Panel
 local F = Config.UI.FreeReward
 local S = F.Social
 local K = Config.UI.Kit
-local KINDS: { [string]: any } = Config.LuckyBlocks.Kinds :: any
-local NAMES: { [string]: string } = Strings.LuckyBlocks.Names :: any
 local LUCKY8 = "Lucky8"
 local W = Strings.FreeReward
 local rgb, round = ShopCards.rgb, ShopCards.round
@@ -94,21 +91,10 @@ function FreeSocial.new(parent: Instance, ctx: any): any
 	local G = S.Group
 	self.art = ShopCards.art(card, "Art", FreeParts.blockImage(LUCKY8), rgb(G.GlowTint), 4)
 	self.odds = ShopCards.oddsBadge(card, "OddsBadge", 8)
-	self.popup = ShopOdds.new(root, function(w: number, h: number): Vector2
-		local margin = B.PopupMarginPx
-		local badge = self.odds.badge
-		local at = badge.AbsolutePosition - root.AbsolutePosition
-		local x = at.X + badge.AbsoluteSize.X + margin
-		if x + w > root.AbsoluteSize.X - margin then
-			x = at.X - w - margin
-		end
-		local y = math.clamp(at.Y, margin, math.max(margin, root.AbsoluteSize.Y - h - margin))
-		return Vector2.new(math.max(margin, x), y)
-	end)
-	self.popup.heading.Text = NAMES[LUCKY8] or LUCKY8
-	self.popup:attach(self.odds.hit, function(): { ShopOdds.Outcome }
-		local row = KINDS[LUCKY8]
-		return if row and row.Odds then ShopOdds.blockOutcomes(row.Odds) else {}
+	-- Its dice: the Lucky 8 Block's Odds & Details (the menu's OddsDetails).
+	self.odds.hit.Activated:Connect(function()
+		UISound.play("Click")
+		ctx.odds(LUCKY8)
 	end)
 	self.title = leftLabel(card, "Title", rgb(K.Numbers.Money), 6)
 	self.title.Text = W.GroupTitle
@@ -511,11 +497,6 @@ function FreeSocial.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handle
 	stage:add("InviteArt", self.inviteArt)
 	stage:add("InviteTitle", self.inviteTitle)
 	stage:add("InviteButton", self.inviteButton)
-end
-
---- The menu closed: the odds pop-up goes.
-function FreeSocial.closed(self: any)
-	self.popup:close()
 end
 
 return FreeSocial

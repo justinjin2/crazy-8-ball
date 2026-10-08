@@ -40,7 +40,7 @@ export type Actions = {
 	robux: (key: string) -> (), -- Mystery1 or Mystery10
 	money: (count: number) -> (), -- 1 or BULK for money (the Mystery deal)
 	gift: (key: string) -> (), -- the gift square: gift that product to someone here
-	odds: () -> (), -- the "i" badge: the "Odds & Details" (ShopMysteryOdds)
+	odds: () -> (), -- the dice badge: the "Odds & Details" (ShopMysteryOdds)
 }
 
 type Row = {

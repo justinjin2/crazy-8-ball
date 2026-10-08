@@ -104,6 +104,89 @@ local function withVaulted(Catalog: any, id: string, body: () -> ())
 end
 
 return {
+	["detail text: exact when it is, else 5 significant digits and marked rounded"] = function()
+		local BlockOdds = load()
+		local cases: { { any } } = {
+			{ 72.5, "72.5%", false },
+			{ 100, "100%", false },
+			{ 0.0001, "0.0001%", false },
+			{ 2.4 / 10, "0.24%", false },
+			{ 0.09 / 9, "0.01%", false },
+			{ 40.5736, "40.5736%", false },
+			{ 72.5 / 7, "10.357%", true },
+			{ 25 / 9, "2.7778%", true },
+			{ 0.009 / 7, "0.0012857%", true },
+			{ 0, "0%", false },
+		}
+		for _, case in cases do
+			local text, rounded = BlockOdds.detailText(case[1])
+			H.expect(
+				text == case[2] and rounded == case[3],
+				("%s: %s (rounded %s)"):format(tostring(case[1]), text, tostring(rounded))
+			)
+		end
+		-- A rounded chance keeps four decimal places under its first digit (Roblox's rule).
+		local percent = 97.3
+		while percent > 1e-7 do
+			local text, rounded = BlockOdds.detailText(percent)
+			local shown = tonumber(text:sub(1, -2)) :: number
+			local step = 10 ^ (math.floor(math.log10(percent)) - 4)
+			H.expect(
+				math.abs(shown - percent) <= step / 2 + percent * 1e-12,
+				("%s%%: %s is too coarse"):format(percent, text)
+			)
+			H.expect(rounded or shown == percent, ("%s%%: %s not marked"):format(percent, text))
+			percent *= 0.731
+		end
+	end,
+
+	["cue groups: every cue once with its share, adding to 100; a closed Unique at 0%"] = function()
+		local BlockOdds = load()
+		for _, row in BlockOdds.list() do
+			local total, seen = 0, {}
+			for _, group in BlockOdds.cueGroups(row.Id) do
+				total += group.percent
+				H.expect(
+					math.abs(group.each * #group.cues - group.percent) < 1e-9,
+					row.Id .. " " .. group.rarity .. ": each is not its share"
+				)
+				for _, cue in group.cues do
+					H.expect(not seen[cue], row.Id .. ": " .. cue .. " twice")
+					seen[cue] = true
+				end
+			end
+			H.expect(math.abs(total - 100) < 1e-9, ("%s adds to %s"):format(row.Id, total))
+			for _, entry in BlockOdds.cueOdds(row.Id, nil, true) do
+				H.expect(seen[entry.id], row.Id .. " misses " .. entry.id)
+			end
+		end
+		-- The Grand Opening for a player who has the Beta Cue: it shows 0%, its share is Rare's.
+		local function byRarity(groups: { any }): { [string]: any }
+			local out = {}
+			for _, group in groups do
+				out[if group.rarity == "Unique" then group.cues[1] else group.rarity] = group
+			end
+			return out
+		end
+		local open = byRarity(BlockOdds.cueGroups("GrandOpening"))
+		local shut = byRarity(BlockOdds.cueGroups("GrandOpening", { BetaCue = true }))
+		H.expect(open.BetaCue and not open.BetaCue.closed and open.BetaCue.percent > 0, "Beta open")
+		H.expect(
+			shut.BetaCue and shut.BetaCue.closed and shut.BetaCue.percent == 0,
+			"Beta shut: 0%"
+		)
+		H.expect(
+			math.abs(shut.Rare.percent - open.Rare.percent - open.BetaCue.percent) < 1e-9,
+			"Beta's share went to Rare"
+		)
+		H.expect(shut.FireworkCue.percent == open.FireworkCue.percent, "Firework unchanged")
+		local total = 0
+		for _, group in BlockOdds.cueGroups("GrandOpening", { BetaCue = true }) do
+			total += group.percent
+		end
+		H.expect(math.abs(total - 100) < 1e-9, "shut still adds to 100")
+	end,
+
 	["1 in N: rounded up so it never looks better than true"] = function()
 		local BlockOdds = load()
 		local cases: { { number } } = {

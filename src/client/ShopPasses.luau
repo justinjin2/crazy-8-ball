@@ -37,6 +37,7 @@ export type Actions = {
 	robux: (key: string) -> (), -- Vip, VipOffer, UltSlot2, UltSlot3 or MoneyParty
 	gift: (key: string) -> (), -- Money Party's gift square
 	plus: () -> (), -- Roblox Plus's Get
+	odds: (kind: string) -> (), -- the VIP card's dice: VIP's daily block's Odds & Details
 }
 
 -- One tile of the grid.
@@ -80,7 +81,7 @@ function ShopPasses.new(parent: Instance, actions: Actions): any
 	self.title = ShopCards.titlePill(root, "PassesTitle", COPY.Title)
 	self.vip = ShopOffers.vipCard(card, "PassesVip", function()
 		self.actions.robux(self.vipKey)
-	end)
+	end, actions.odds)
 
 	local icons: { [string]: string } = K.Icons :: any
 	local tiles: { Tile } = {}
@@ -328,12 +329,6 @@ function ShopPasses.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handle
 				)
 			end
 		end)
-	end
-end
-
-function ShopPasses.closed(self: any)
-	if self.vip.popup then
-		self.vip.popup:close()
 	end
 end
 

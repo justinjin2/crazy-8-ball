@@ -25,7 +25,7 @@
 -- Roblox's own dialog; "Coming soon" until the product is on sale).
 --
 -- Gamepad: opening lands on the first Claim (today's, a gift's, the group's), else on the lit
--- jump button; LB and RB step through the sections; B closes the odds pop-up, then the menu.
+-- jump button; LB and RB step through the sections; B closes the Odds & Details, then the menu.
 -- Sizes in Config.UI.FreeReward, words in Strings.FreeReward.
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -39,13 +39,15 @@ local FreePlaytime = require(script.Parent.FreePlaytime)
 local FreeSocial = require(script.Parent.FreeSocial)
 local FreeTrack = require(script.Parent.FreeTrack)
 local GrandOpeningCard = require(script.Parent.GrandOpeningCard)
+local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local JumpRail = require(script.Parent.JumpRail)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
+local OddsDetails = require(script.Parent.OddsDetails)
 local RewardsFlyer = require(script.Parent.RewardsFlyer)
-local ShopOdds = require(script.Parent.ShopOdds)
+local ShopMysteryOdds = require(script.Parent.ShopMysteryOdds)
 local ShopParts = require(script.Parent.ShopParts)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -94,6 +96,19 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local refresh: () -> ()
 	local keepSelection: () -> ()
 	local ctx: any = {}
+
+	-- A lucky block's dice (a day's, the Lucky 8 card's) opens its Odds & Details over the page
+	-- (a Mystery block's: the Mystery list, as the Shop's).
+	local odds = OddsDetails.new(frame)
+	ShopMysteryOdds.new(odds)
+	function ctx.odds(kind: string)
+		odds:block(kind)
+	end
+	-- Studio only: GuiQA:Invoke("rewardOdds", kind) presses that block's dice (the open menu's).
+	GuiQA.add("rewardOdds", function(kind: string)
+		ctx.odds(kind)
+		return #odds.items
+	end)
 
 	function ctx.busy(key: string): boolean
 		return inFlight[key] == true or claimedAt[key] == version
@@ -298,6 +313,7 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	frame.onLayout = function(g: MenuFrame.Geo)
 		geo = g
 		layout()
+		odds:layout(g)
 	end
 	-- The panel is as tall as the Daily section; the next header peeks in under it.
 	frame.fitHeight = function(width: number, panelW: number): number
@@ -338,8 +354,7 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		rail:closed()
 		daily:setOpen(false)
 		playtime:setOpen(false)
-		social:closed()
-		ShopOdds.closeAll()
+		odds:close()
 		openedOn = nil
 		if ticker then
 			ticker:Disconnect()
@@ -354,10 +369,11 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		refresh()
 		keepSelection()
 	end)
-	-- Claim All's live price.
+	-- Claim All's live price, and the open Odds & Details (the Mystery pity, a Unique closing).
 	ItemState.Changed.Shop:Connect(function()
 		if frame:isOpen() then
 			daily:refresh(state)
+			odds:refresh()
 		end
 	end)
 

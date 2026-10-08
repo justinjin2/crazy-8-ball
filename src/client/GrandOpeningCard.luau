@@ -3,11 +3,11 @@
 -- "- FEATURED -" and the Grand Opening card after the designer's target 13b, built from the
 -- approved animatic (tools/gui/animatic): the card's navy plate with floating 8-balls, corner
 -- fireworks, drifting confetti, bokeh and twinkles; the lucky block (glow, rays, breathe, shine,
--- its crown baked on so it breathes and shines with it, the tilted NEW tag, the sky-blue odds
--- badge and the live "Ends in" timer); the arched GRAND OPENING title with its stars and
--- subtitle; the Beta and Firework Cue cards (their names, UNIQUE pills, odds
--- chips and their own loops); a column per pack: the purple gift square (the Gift Player popup)
--- and the green Robux price, the pack's "3 blocks", then the gold money button.
+-- its crown baked on so it breathes and shines with it, the tilted NEW tag, the sky-blue dice
+-- and the live "Ends in" timer); the arched GRAND OPENING title with its stars and subtitle;
+-- the Beta and Firework Cue cards (their names, UNIQUE pills, copies left, the player's own
+-- chance chips and their own loops); a column per pack: the purple gift square (the Gift
+-- Player popup) and the green Robux price, the pack's "3 blocks", then the gold money button.
 -- Pictures, places and loop numbers are in Config.UI.GrandOpeningCard, words in Strings
 -- (Menus.Shop.Featured), prices and odds in Config (Config.Shop.Deals.GrandOpening,
 -- Config.Products.GrandOpening1/3/10, the GrandOpening odds).
@@ -15,12 +15,10 @@
 -- Every piece is registered with the Shop's Stage (ids in Config.UI.Shop.Open) and starts its
 -- idle loops as it lands; `keep` holds them until the Shop closes. The card is laid out in the
 -- animatic's units, scaled to the page's width (and, given a height, to fit it whole). Text
--- never goes under Layout.MinTextPx. The block opens the odds pop-up (every outcome adding up
--- to 100%, before buying): hover, click, tap, or gamepad A; B, a tap away or leaving closes it.
-local ContextActionService = game:GetService("ContextActionService")
-local GuiService = game:GetService("GuiService")
+-- never goes under Layout.MinTextPx. The block's dice opens its Odds & Details (the Shop's
+-- OddsDetails: every cue with this player's chance, adding up to 100%, before buying): a
+-- click, tap or gamepad A.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -32,9 +30,11 @@ local Format = require(Progression:WaitForChild("Format"))
 local ArchTitle = require(script.Parent.ArchTitle)
 local HudParts = require(script.Parent.HudParts)
 local Quality = require(script.Parent.Quality)
+local ShopCards = require(script.Parent.ShopCards)
 local ShopParts = require(script.Parent.ShopParts)
 local Stage = require(script.Parent.Stage)
 local UIAnim = require(script.Parent.UIAnim)
+local UISound = require(script.Parent.UISound)
 
 local G = Config.UI.GrandOpeningCard
 local IMG = G.Images
@@ -46,12 +46,9 @@ local DEAL = Config.Shop.Deals.GrandOpening
 local PRODUCTS: { [string]: any } = Config.Products.List :: any
 local COPY: { [string]: any } = (Strings.Menus.Shop :: any).Featured
 local SHOP_COPY: { [string]: any } = Strings.Menus.Shop :: any
-local CUES: { [string]: string } = Strings.Items.Cues :: any
-local RARITIES: { [string]: string } = Strings.Items.Rarities :: any
 local BLOCK_NAMES: { [string]: string } = Strings.LuckyBlocks.Names
 local COUNTS = { 1, 3, 10 }
 local BETA, FIREWORK = "BetaCue", "FireworkCue"
-local B_PRIORITY = Enum.ContextActionPriority.High.Value + 40 -- over the menus' B
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
@@ -59,41 +56,8 @@ end
 
 local INK = rgb(K.Colors.Ink)
 
-export type Outcome = { name: string, display: string, percent: number, tint: Color3 }
-
 local GrandOpeningCard = {}
 GrandOpeningCard.__index = GrandOpeningCard
-
---- Every outcome of the Grand Opening block, as the odds pop-up lists them: the rarities bottom
---- first, then the two Unique cues (rarest last). Words from Strings, numbers from Config through
---- BlockOdds (they add up to 100%).
-function GrandOpeningCard.outcomes(): { Outcome }
-	local list: { Outcome } = {}
-	for _, row in BlockOdds.odds("GrandOpening") do
-		table.insert(list, {
-			name = RARITIES[row.rarity] or row.rarity,
-			display = row.display,
-			percent = row.percent,
-			-- Secret's near-black does not read on a white card: its red glow does.
-			tint = if row.rarity == "Secret"
-				then rgb(K.SecretGlow)
-				else rgb((K.Rarity :: any)[row.rarity] or K.Rarity.Default),
-		})
-	end
-	local uniques = BlockOdds.uniqueRows("GrandOpening")
-	table.sort(uniques, function(a, b)
-		return a.weight > b.weight
-	end)
-	for _, row in uniques do
-		table.insert(list, {
-			name = CUES[row.cue] or row.cue,
-			display = row.display,
-			percent = row.percent,
-			tint = rgb(K.Rarity.Unique),
-		})
-	end
-	return list
-end
 
 -- A cue's chance in this block ("0.3%"), for its card's odds chip.
 local function cueOdds(cue: string): string
@@ -245,6 +209,7 @@ export type Actions = {
 	robux: (key: string) -> (), -- a Config.Products key (GrandOpening1/3/10)
 	money: (count: number) -> (), -- buy `count` blocks with money (Config.Shop.Deals.GrandOpening)
 	gift: (key: string) -> (), -- the gift square: gift that Config.Products key to someone here
+	odds: () -> (), -- the block's dice: its Odds & Details (the Shop's OddsDetails)
 }
 
 --- Build the Featured page into `parent` (the Shop's page scroller). `actions` buys.
@@ -253,9 +218,6 @@ function GrandOpeningCard.new(parent: Instance, actions: Actions): any
 	self.actions = actions
 	self.k = 1
 	self.titlePx = 0
-	self.oddsOpen = false
-	self.oddsByHover = false
-	self.oddsConnection = nil :: RBXScriptConnection?
 
 	local root = HudParts.frame(parent, "Featured")
 	root.ZIndex = 2
@@ -323,7 +285,6 @@ function GrandOpeningCard.new(parent: Instance, actions: Actions): any
 	self.beta = self:buildCueCard("Beta")
 	self.firework = self:buildCueCard("Firework")
 	self:buildButtons()
-	self:buildOdds()
 	return self
 end
 
@@ -350,42 +311,15 @@ function GrandOpeningCard.buildBlock(self: any)
 	mask.Size = picture.Size
 	mask.Visible = false -- shown only while its sweep runs (sweep below)
 	self.blockMask = mask
-	-- The odds badge: a sky-blue "i" that never hides (Roblox's rule: the odds one press away).
-	local badge, i = pill(block, "OddsBadge", COPY.OddsBadge, rgb(K.Numbers.Count), 6)
-	self.badge, self.badgeText = badge, i
-	-- Only the badge opens the odds, not the whole block (designer, 2026-10-06): hover, click,
-	-- tap or gamepad A on it. Its press area is at least a touch target round the small badge.
-	local hit = Instance.new("TextButton")
-	hit.Name = "OddsHit"
-	hit.Text = ""
-	hit.BackgroundTransparency = 1
-	hit.AutoButtonColor = false
-	hit.Selectable = true
-	hit.AnchorPoint = Vector2.new(0.5, 0.5)
-	hit.Position = UDim2.fromScale(0.5, 0.5)
-	hit.Size = UDim2.fromScale(1, 1)
-	hit.ZIndex = 8
-	local least = Instance.new("UISizeConstraint")
-	least.MinSize = Vector2.new(Config.UI.Menu.Frame.TouchMinPx, Config.UI.Menu.Frame.TouchMinPx)
-	least.Parent = hit
-	hit.Parent = badge
-	self.oddsHit = hit
-	hit.MouseEnter:Connect(function()
-		if not self.oddsOpen then
-			self:showOdds(true, true)
-		end
-	end)
-	hit.MouseLeave:Connect(function()
-		if self.oddsOpen and self.oddsByHover then
-			self:showOdds(false)
-		end
-	end)
-	hit.Activated:Connect(function()
-		if self.oddsOpen and not self.oddsByHover then
-			self:showOdds(false)
-		else
-			self:showOdds(true, false)
-		end
+	-- The odds badge: the sky-blue dice that never hides (designer, 2026-10-08, for the "i";
+	-- Roblox's rule: the odds one press away). Only it opens them, not the whole block
+	-- (designer, 2026-10-06): a click, tap or gamepad A opens the Shop's Odds & Details.
+	local badge = ShopCards.oddsBadge(block, "OddsBadge", 6)
+	self.badge = badge.badge
+	self.oddsHit = badge.hit
+	badge.hit.Activated:Connect(function()
+		UISound.play("Click")
+		self.actions.odds()
 	end)
 
 	local tag = box(card, "NewTag", 6)
@@ -632,120 +566,6 @@ function GrandOpeningCard.buildButtons(self: any)
 	self.counts = counts
 end
 
--- The odds pop-up: a kit card beside the block, a row per outcome in its colour, the total.
--- Sized in layoutOdds.
-function GrandOpeningCard.buildOdds(self: any)
-	local list = GrandOpeningCard.outcomes()
-	local count = rgb(K.Numbers.Count)
-	local card = HudParts.card(self.card, "OddsCard")
-	card.ZIndex = 20
-	card.Visible = false
-	local heading = HudParts.text(card, "Title", L.OddsTitlePx, COPY.OddsTitle)
-	heading.ZIndex = 2
-	self.oddsHeading = heading
-	self.oddsRows = {} :: { { name: TextLabel, value: TextLabel } }
-	local total = 0
-	for index, row in list do
-		local name = HudParts.text(card, "Name" .. index, L.MinTextPx, row.name, row.tint)
-		name.TextXAlignment = Enum.TextXAlignment.Left
-		name.TextWrapped = false
-		name.ZIndex = 2
-		local value = HudParts.text(card, "Percent" .. index, L.MinTextPx, row.display, count)
-		value.TextXAlignment = Enum.TextXAlignment.Right
-		value.TextWrapped = false
-		value.ZIndex = 2
-		table.insert(self.oddsRows, { name = name, value = value })
-		total += row.percent
-	end
-	local sum = HudParts.note(
-		card,
-		"Total",
-		L.MinTextPx,
-		string.format(COPY.OddsTotal, BlockOdds.percentText(total))
-	)
-	sum.TextXAlignment = Enum.TextXAlignment.Right
-	sum.ZIndex = 2
-	self.oddsSum = sum
-	self.oddsCard = card
-end
-
--- Size the odds pop-up: Layout.OddsRowPx rows, shrunk to fit `maxH` pixels.
-function GrandOpeningCard.layoutOdds(self: any, maxH: number)
-	local rows = self.oddsRows
-	local rowH = math.min(L.OddsRowPx, math.floor(maxH / (#rows + 3.1)))
-	local f = rowH / L.OddsRowPx
-	local function at(n: number): number
-		return math.floor(n * f + 0.5)
-	end
-	local width = at(L.OddsCardPx)
-	local top = at(40)
-	local textPx = math.max(L.MinTextPx, at(16))
-	self.oddsCard.Size = UDim2.fromOffset(width, at(44) + #rows * rowH + at(30))
-	self.oddsHeading.Position = UDim2.fromOffset(at(12), at(8))
-	self.oddsHeading.Size = UDim2.fromOffset(width - at(24), at(28))
-	HudParts.setTextSize(self.oddsHeading, math.max(L.MinTextPx, at(L.OddsTitlePx)))
-	for index, row in rows do
-		local y = top + (index - 1) * rowH
-		row.name.Position = UDim2.fromOffset(at(14), y)
-		row.name.Size = UDim2.fromOffset(width - at(104), rowH)
-		row.value.Position = UDim2.fromOffset(width - at(96), y)
-		row.value.Size = UDim2.fromOffset(at(82), rowH)
-		HudParts.setTextSize(row.name, textPx)
-		HudParts.setTextSize(row.value, textPx)
-	end
-	self.oddsSum.Position = UDim2.fromOffset(at(14), at(44) + #rows * rowH)
-	self.oddsSum.Size = UDim2.fromOffset(width - at(28), at(24))
-	HudParts.setTextSize(self.oddsSum, textPx)
-end
-
---------------------------------------------------------------------------------------------
--- The odds pop-up
---------------------------------------------------------------------------------------------
-
---- Show or hide the odds pop-up. `byHover`: opened by the mouse resting on the block (it
---- closes when the mouse leaves); a click, tap or A keeps it until B, a tap away or a press.
-function GrandOpeningCard.showOdds(self: any, on: boolean, byHover: boolean?)
-	if on == self.oddsOpen and not on then
-		return
-	end
-	self.oddsOpen = on
-	self.oddsByHover = on and byHover == true
-	if self.oddsConnection then
-		self.oddsConnection:Disconnect()
-		self.oddsConnection = nil
-	end
-	ContextActionService:UnbindAction("8ballShopOdds")
-	if not on then
-		UIAnim.popOut(self.oddsCard)
-		return
-	end
-	UIAnim.popIn(self.oddsCard)
-	-- B closes it (before the Shop's own B).
-	ContextActionService:BindActionAtPriority("8ballShopOdds", function(_, state)
-		if state == Enum.UserInputState.Begin then
-			self:showOdds(false)
-		end
-		return Enum.ContextActionResult.Sink
-	end, false, B_PRIORITY, Enum.KeyCode.ButtonB)
-	-- A tap or click anywhere off the badge and the pop-up closes it.
-	self.oddsConnection = UserInputService.InputBegan:Connect(function(input)
-		local kind = input.UserInputType
-		if kind ~= Enum.UserInputType.MouseButton1 and kind ~= Enum.UserInputType.Touch then
-			return
-		end
-		-- The input is below Roblox's top bar; the Shop's ScreenGui ignores that inset.
-		local at = Vector2.new(input.Position.X, input.Position.Y) + GuiService:GetGuiInset()
-		for _, object in { self.oddsCard, self.oddsHit } do
-			local from = object.AbsolutePosition
-			local to = from + object.AbsoluteSize
-			if at.X >= from.X and at.X <= to.X and at.Y >= from.Y and at.Y <= to.Y then
-				return
-			end
-		end
-		self:showOdds(false)
-	end)
-end
-
 --------------------------------------------------------------------------------------------
 -- Layout
 --------------------------------------------------------------------------------------------
@@ -783,6 +603,23 @@ local function layoutPills(c: any)
 		end
 	end
 	c.pills.Size = UDim2.fromOffset(px, sizes.height)
+end
+
+-- A cue card's odds chip sized for its words in the card's lower right (sizes from the last
+-- layout: c.chipSizes), so it can change with the player's chance (GrandOpeningCard.refresh).
+local function layoutChip(c: any)
+	local sizes = c.chipSizes
+	if sizes == nil then
+		return
+	end
+	local words = math.ceil(ShopParts.textWidth(c.oddsWords.Text, sizes.text)) + 4
+	local ow = math.max(sizes.least, words + 16)
+	c.odds.Position = UDim2.fromOffset(
+		math.floor(sizes.w - 6 - ow / 2 + 0.5),
+		math.floor(sizes.h - 6 - sizes.height / 2 + 0.5)
+	)
+	c.odds.Size = UDim2.fromOffset(ow, sizes.height)
+	HudParts.setTextSize(c.oddsWords, sizes.text)
 end
 
 function GrandOpeningCard.layout(self: any, width: number, height: number?): number
@@ -872,7 +709,6 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 		round((L.OddsBadge[2] - L.Block[2] + L.Block[3] / 2) / L.Block[3] * blockPx)
 	)
 	self.badge.Size = UDim2.fromOffset(badgePx, badgePx)
-	HudParts.setTextSize(self.badgeText, math.max(L.MinTextPx, round(badgePx * 0.7)))
 	local tag = L.NewTag
 	local tagPx = textPx(L.NewTextUnits, g.s)
 	local tagW = math.max(tag[3] * g.s * k, measure(COPY.New, tagPx) + 16)
@@ -952,11 +788,14 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 		layoutPills(c)
 		local chip = L.OddsChip
 		local oddsPx = textPx(L.OddsTextUnits, g.s)
-		local ow = math.max(round(chip[1] * g.s * k), measure(c.oddsWords.Text, oddsPx) + 16)
-		local oh = math.max(round(chip[2] * g.s * k), oddsPx + 8)
-		c.odds.Position = UDim2.fromOffset(round(w - 6 - ow / 2), round(h - 6 - oh / 2))
-		c.odds.Size = UDim2.fromOffset(ow, oh)
-		HudParts.setTextSize(c.oddsWords, oddsPx)
+		c.chipSizes = {
+			text = oddsPx,
+			least = round(chip[1] * g.s * k),
+			height = math.max(round(chip[2] * g.s * k), oddsPx + 8),
+			w = w,
+			h = h,
+		}
+		layoutChip(c)
 		if c.panels then
 			for _, p in c.panels do
 				local row = p.row
@@ -1022,13 +861,6 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 		end
 	end
 
-	-- The odds pop-up: beside the block, inside the card.
-	self:layoutOdds(cardH - 16)
-	local blockRight = (groups.block.px + (364 - groups.block.ox) * groups.block.s) * k
-	self.oddsCard.Position = UDim2.fromOffset(
-		round(math.min(blockRight, cardW - self.oddsCard.Size.X.Offset - 8)),
-		round(math.max(8, (cardH - self.oddsCard.Size.Y.Offset) / 2))
-	)
 	return headerH + cardH + 8
 end
 
@@ -1071,6 +903,18 @@ function GrandOpeningCard.refresh(self: any, state: any)
 				string.format(COPY.Left, Format.commas(row.left), Format.commas(row.cap))
 		end
 		layoutPills(c)
+		-- The chip: this player's chance (Roblox's one-instance rule): "Owned" for a Unique
+		-- they have, 0% once every copy is found (its share is Rare's; OddsDetails lists it).
+		local words = cueOdds(cue)
+		if row ~= nil and row.closed == true then
+			words = if type(row.left) == "number" and row.left <= 0
+				then BlockOdds.percentText(0)
+				else COPY.CueOwned
+		end
+		if c.oddsWords.Text ~= words then
+			c.oddsWords.Text = words
+			layoutChip(c)
+		end
 	end
 end
 
@@ -1380,13 +1224,6 @@ function GrandOpeningCard.register(self: any, stage: Stage.Stage, keep: (UIAnim.
 	end
 	stage:add("Counts", self.counts)
 	stage:add("EndsIn", self.endsIn)
-end
-
---- The Shop closed: the odds pop-up goes too.
-function GrandOpeningCard.closed(self: any)
-	if self.oddsOpen then
-		self:showOdds(false)
-	end
 end
 
 --- The bought-blocks notice: "Your Grand Opening Lucky Block is in your hotbar!".

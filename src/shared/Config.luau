@@ -6811,6 +6811,9 @@ Config.UI = {
 			Sell = "rbxassetid://106552564585529", -- a price tag
 			Lock = "rbxassetid://106188433501601", -- a padlock (Exclusive and Unique cues, locked things)
 			Odds = "rbxassetid://116548417104330", -- a pie of rarities (the Odds button)
+			-- The odds badge on every lucky block (designer, 2026-10-08: a dice instead of the
+			-- "i"): a sky-blue die, tools/gen_ui_art.py `dice`, assets/ui/icons/dice.png.
+			Dice = "rbxassetid://123590803950663",
 			-- The CUES button (concept 2b, approved round 5, 2026-10-08; tools/gen_ui_art.py
 			-- `cues*`). The still icon (the Cues menu's header, the switch's My Cues half), then
 			-- the column tile's layers at one scale (CuesStrike): the cue, the ball on a canvas of
@@ -8643,27 +8646,6 @@ Config.UI.Shop = {
 		ButtonWidthPx = { 84, 110 },
 		Headshot = "rbxthumb://type=AvatarHeadShot&id=%d&w=150&h=150",
 	},
-	-- The Mystery block's "Odds & Details" (ShopMysteryOdds; economy v4 plan 3.2 and the GUI
-	-- hand-off item 13): its "i" badge opens it over the Shop as the Gift Player popup: the
-	-- line that the result is decided at the open, the pity counters (and the live odds once a
-	-- guarantee is the next block), the final-tier table, each tier block's odds and each
-	-- rarity's chance per Mystery block, with "1 in N" beside the rare ones. It scrolls.
-	MysteryOdds = {
-		WidthPx = { 360, 540 },
-		RowPx = { 22, 28 }, -- one line: a tier or a rarity, its "1 in N" and its chance
-		TextPx = { 13, 17 }, -- the rows' words
-		HeadPx = { 16, 21 }, -- a section's heading ("Pity", "Final tier", ...)
-		SubPx = { 14, 18 }, -- a tier block's name over its odds
-		NotePx = { 12, 15 }, -- the line under the title and the totals
-		SectionGapPx = { 10, 16 }, -- over each section's heading
-		RowInsetPx = { 6, 10 }, -- the rows' room from the list's left (under their heading)
-		ValueShare = 0.22, -- the chance's column, of the row's width (right)
-		OneInShare = 0.3, -- the "1 in N" column left of it
-		OneInUnderPercent = 5, -- "1 in N" beside every chance under this (the rare ones)
-		OneInColor = { 120, 128, 142 }, -- grey, as the gift list's @username
-		LiveColor = { 230, 160, 0 }, -- the line once a guarantee is the very next block (gold)
-		ScrollBarPx = 6,
-	},
 	Page = {
 		-- The jump buttons, top to bottom (designer, 2026-10-04: Featured, Blocks, Money,
 		-- Passes). Icons are Config.UI.Kit.Icons keys. Sections: what each group shows, so the
@@ -8720,6 +8702,35 @@ Config.UI.Shop = {
 -- Motion tokens for lively screens (docs/prompts/SHOP_LIVELY_PROMPT.md section 3; the designer
 -- approved these in the animatic, tools/gui/animatic, 2026-10-06). Stage plays every reveal from
 -- them in code, per frame (no CanvasGroup; slow motion inside still frames, gate 1). Seconds.
+-- The "Odds & Details" popup behind every lucky block's dice badge (OddsDetails; economy v4
+-- plan 13, Roblox's paid-random-items rules; designer 2026-10-08: a dice for the badge). It
+-- opens over a lively menu's pages (the Shop, Free Reward) as the Gift Player popup and
+-- scrolls: a block's name, each rarity with its "1 in N" and chance, then its cues ("10 cues,
+-- 0.24% each: ..."), the Unique cues, a line when a chance is rounded, and the total. The
+-- Mystery block's adds its pity, the final tier and each tier block's odds (ShopMysteryOdds).
+Config.UI.OddsDetails = {
+	WidthPx = { 360, 540 },
+	RowPx = { 22, 28 }, -- one line: a tier or a rarity, its "1 in N" and its chance
+	TextPx = { 13, 17 }, -- the rows' words
+	HeadPx = { 16, 21 }, -- a section's heading ("Pity", "Final tier", ...)
+	SubPx = { 14, 18 }, -- a tier block's name over its odds
+	NotePx = { 12, 15 }, -- the line under the title, a rarity's cues and the totals
+	SectionGapPx = { 10, 16 }, -- over each section's heading
+	RowInsetPx = { 6, 10 }, -- the rows' room from the list's left (under their heading)
+	NamesInsetPx = { 14, 22 }, -- a rarity's cues, a little further in than its row
+	NamesMaxLines = 8, -- the most lines a rarity's cues wrap to (10 names take 3 or 4)
+	NamesGapPx = 3, -- under a rarity's cues, before the next row
+	ValueShare = 0.22, -- the chance's column, of the row's width (right)
+	OneInShare = 0.3, -- the "1 in N" column left of it
+	OneInUnderPercent = 5, -- "1 in N" beside every chance under this (the rare ones)
+	OneInColor = { 120, 128, 142 }, -- grey, as the gift list's @username (also the cues' line)
+	LiveColor = { 230, 160, 0 }, -- the line once a guarantee is the very next block (gold)
+	ScrollBarPx = 6,
+	-- The dice badge on each block (ShopCards.oddsBadge): the die's share of the badge's box
+	-- (its press area is a touch target round it).
+	DiceShare = 1.15,
+}
+
 Config.UI.Motion = {
 	Stagger = 0.04, -- between pieces of one group (the tabs, the buttons, a card's insides)
 	PopSeconds = 0.28, -- one piece's pop
@@ -9019,7 +9030,7 @@ Config.UI.GrandOpeningCard = {
 		NewTag = { 92, 66, 148, 60 }, -- centre, width, height
 		NewTagDegrees = -8,
 		NewTextUnits = 40,
-		OddsBadge = { 300, 360, 44 }, -- the sky-blue "i" on the block (centre, size)
+		OddsBadge = { 300, 360, 44 }, -- the dice on the block (centre, size)
 		EndsIn = { 182, 466 },
 		EndsInUnits = 32,
 		EndsInColor = { 70, 215, 255 },
@@ -9124,19 +9135,15 @@ Config.UI.GrandOpeningCard = {
 		ConfettiUnits = 50,
 		BokehTints = { { 90, 160, 255 }, { 70, 215, 255 }, { 160, 112, 255 } },
 		Twinkle = { Units = 60, Tint = { 255, 243, 192 } },
-		-- The odds pop-up beside the block: these on a computer, shrunk to fit a short card.
-		OddsCardPx = 260, -- its width on screen
-		OddsRowPx = 24,
-		OddsTitlePx = 22,
 	},
 }
 
 -- The Shop's Blocks group under the Grand Opening card (the designer's picks on the mock page,
 -- 2026-10-08: Mystery A, Restock B, the Starter Pack and VIP A): ShopMystery, ShopRestock and
--- ShopOffers, with ShopCards' shared parts and ShopOdds' pop-up. Every size is in the Grand
--- Opening card's units (the page is 1275 wide) and scaled by its k, so the whole page reads as
--- one; text never goes under Config.UI.GrandOpeningCard.Layout.MinTextPx. Each piece's place
--- in its section is in that section's own units from its top-left. (tune)
+-- ShopOffers, with ShopCards' shared parts (the dice opens OddsDetails). Every size is in the
+-- Grand Opening card's units (the page is 1275 wide) and scaled by its k, so the whole page
+-- reads as one; text never goes under Config.UI.GrandOpeningCard.Layout.MinTextPx. Each
+-- piece's place in its section is in that section's own units from its top-left. (tune)
 Config.UI.ShopBlocks = {
 	GapUnits = 34, -- between two sections (the next one's title pill straddles its top edge)
 	HeaderGapUnits = 10, -- between "- BLOCKS -" and the Mystery block's title pill
@@ -9150,9 +9157,7 @@ Config.UI.ShopBlocks = {
 	MinEdgePx = 1.5, -- no box edge thinner than this
 	MinButtonPx = 24, -- no buy button shorter than this
 	MinGiftPx = 20, -- no gift square smaller than this
-	BadgePadPx = 12, -- the "i" badge is at least its letter's size plus this
-	BadgeTextShare = 0.7, -- the "i" (a share of the badge's size)
-	PopupMarginPx = 8, -- an odds pop-up keeps this far inside its panel
+	BadgePadPx = 12, -- the dice badge is at least the smallest text's size plus this
 	-- The pale panels the Mystery block and the restock sit on, and the white boxes in them.
 	Panel = {
 		Color = { 236, 246, 255 }, -- a very pale blue on the white sheet
@@ -9192,7 +9197,6 @@ Config.UI.ShopBlocks = {
 		TwinkleStaggerSeconds = 0.43, -- each further sparkle's bursts this much further apart
 		TwinkleTint = { 255, 246, 214 },
 	},
-	OddsBadgeColor = { 82, 196, 255 }, -- the sky-blue "i" (Kit.Numbers.Count), as on the hero card
 	ButtonShineEvery = 3, -- a Robux button's shine (money buttons stay still)
 	ShineStaggerSeconds = 0.35, -- the next Robux button's shine starts this much later
 	ShineMinRate = 0.25, -- Lower effects never spaces the shines out more than 4x
@@ -9252,7 +9256,7 @@ Config.UI.ShopBlocks = {
 		PityFill = { 162, 89, 255 }, -- Epic's purple
 		PityTrack = { 222, 228, 240 },
 	},
-	-- The restock (pick B): three slots and the VIP slot, big blocks, odds behind each "i".
+	-- The restock (pick B): three slots and the VIP slot, big blocks, odds behind each dice.
 	Restock = {
 		Units = { 1275, 522 }, -- the panel
 		SlotTop = 50,
@@ -9299,7 +9303,7 @@ Config.UI.ShopBlocks = {
 		Art = { 310, 200, 220 }, -- centre x, centre y, size
 		Glow = 330,
 		Rays = 400,
-		-- The sky-blue "i" (the pack's lucky block's odds): inset from the right, centre y, size.
+		-- The sky-blue dice (the pack's lucky block's odds): inset from the right, centre y, size.
 		OddsBadge = { 46, 46, 50 },
 		RowLeft = 34, -- the content rows' left edge (they run to the card's width minus this)
 		RowIconUnits = 36,
@@ -12917,7 +12921,7 @@ Config.UI.FreeReward = {
 			StatusUnits = 40,
 			StatusTextUnits = 26,
 			SideUnits = 22, -- its room each side
-			OddsBadge = { 30, 30, 40 }, -- the "i": in from the top-right corner (x, y) and its size
+			OddsBadge = { 30, 30, 40 }, -- the dice: in from the top-right corner (x, y) and its size
 			CheckUnits = 92, -- the big check over a claimed day's pictures
 			CornerUnits = 20,
 			EdgeUnits = 4,

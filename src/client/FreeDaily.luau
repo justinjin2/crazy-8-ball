@@ -7,8 +7,8 @@
 -- A claimed day turns grey under a big check; today's wears a thick pale-gold edge and its
 -- green Claim! breathes; until a match is finished today it reads "Play a match"
 -- (Config.Daily.NeedsMatch); once today is claimed the next day reads "Tomorrow". A tile with a
--- lucky block wears the sky-blue "i" with that block's odds (Claim All buys them: a paid random
--- item, Roblox's rule). Under the tiles: the first week's line ("First week: any 7 days within
+-- lucky block wears the sky-blue dice opening that block's Odds & Details (Claim All buys them:
+-- a paid random item, Roblox's rule). Under the tiles: the first week's line ("First week: any 7 days within
 -- 14 · 12 days left"), the later weeks' (the week's free miss) or "Finish one match today", and
 -- Claim All, the green Robux button that claims every day still ahead in this row at once
 -- (RewardState.claimAll; hidden where paid random items are restricted or nothing is left).
@@ -25,16 +25,14 @@ local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local RewardsParts = require(script.Parent.RewardsParts)
 local ShopCards = require(script.Parent.ShopCards)
-local ShopOdds = require(script.Parent.ShopOdds)
 local Stage = require(script.Parent.Stage)
 local UIAnim = require(script.Parent.UIAnim)
+local UISound = require(script.Parent.UISound)
 
 local B = Config.UI.ShopBlocks
 local P = B.Panel
 local F = Config.UI.FreeReward
 local D = F.Daily
-local KINDS: { [string]: any } = Config.LuckyBlocks.Kinds :: any
-local NAMES: { [string]: string } = Strings.LuckyBlocks.Names :: any
 local FIRST_DAYS = #Config.Daily.FirstWeek
 local WINDOW = Config.Daily.FirstWeekWindow
 local W = Strings.FreeReward
@@ -55,7 +53,7 @@ type Day = {
 	check: ImageLabel,
 	status: TextButton,
 	odds: ShopCards.Badge,
-	kind: string?, -- the block its "i" shows
+	kind: string?, -- the block its dice shows
 	mode: string, -- what its status shows now
 	look: string, -- "Day", "Claimed" or "Today": its colours and edge now
 }
@@ -64,6 +62,7 @@ export type Ctx = {
 	claim: (action: string, arg: any, key: string, button: GuiObject) -> (),
 	busy: (key: string) -> boolean,
 	buy: (product: string) -> (),
+	odds: (kind: string) -> (), -- a dice: that lucky block's Odds & Details (OddsDetails)
 }
 
 local FreeDaily = {}
@@ -86,7 +85,6 @@ function FreeDaily.new(parent: Instance, ctx: Ctx): any
 	self.state = nil :: any
 	self.pulse = nil :: UIAnim.Handle?
 	self.pulsing = nil :: TextButton?
-	self.oddsOn = nil :: Day? -- the day whose "i" the pop-up shows
 	self.footerWide = false -- the footer spans the panel (no Claim All beside it)
 	local root = HudParts.frame(parent, "DailySection")
 	root.ZIndex = 2
@@ -96,23 +94,6 @@ function FreeDaily.new(parent: Instance, ctx: Ctx): any
 	local card = panel.frame
 	self.title = ShopCards.titlePill(root, "DailyTitle", W.FirstWeekTitle, true)
 	self.title.sample = D.TimeSample
-
-	-- One odds pop-up for every day's "i", beside the badge that opened it.
-	self.popup = ShopOdds.new(root, function(w: number, h: number): Vector2
-		local margin = B.PopupMarginPx
-		local on: Day? = self.oddsOn
-		if on == nil then
-			return Vector2.new(margin, margin)
-		end
-		local badge = on.odds.badge
-		local at = badge.AbsolutePosition - root.AbsolutePosition
-		local x = at.X + badge.AbsoluteSize.X + margin
-		if x + w > root.AbsoluteSize.X - margin then
-			x = at.X - w - margin
-		end
-		local y = math.clamp(at.Y, margin, math.max(margin, root.AbsoluteSize.Y - h - margin))
-		return Vector2.new(math.max(margin, x), y)
-	end)
 
 	self.days = {} :: { Day }
 	for day = 1, FIRST_DAYS do
@@ -171,14 +152,15 @@ function FreeDaily.new(parent: Instance, ctx: Ctx): any
 				ctx.claim("ClaimDaily", nil, "Daily", made.status)
 			end
 		end)
+		-- The day's dice: its best block's Odds & Details (the menu's OddsDetails).
 		made.odds = ShopCards.oddsBadge(box.frame, "OddsBadge", 10)
 		made.odds.badge.Visible = false
-		self.popup:attach(made.odds.hit, function(): { ShopOdds.Outcome }
-			self.oddsOn = made
-			local kind = made.kind or ""
-			self.popup.heading.Text = NAMES[kind] or kind
-			local row = KINDS[kind]
-			return if row and row.Odds then ShopOdds.blockOutcomes(row.Odds) else {}
+		made.odds.hit.Activated:Connect(function()
+			local kind = made.kind
+			if kind then
+				UISound.play("Click")
+				ctx.odds(kind)
+			end
 		end)
 		table.insert(self.days, made)
 	end
@@ -296,7 +278,7 @@ local function layoutHero(self: any, d: Day, k: number)
 	local lineY = math.min(H.LineY * k, statusY - statusH / 2 - B.TextGapPx - lineH / 2)
 	ShopCards.putPx(line, w / 2 * k, lineY, side, lineH)
 	HudParts.setTextSize(line, linePx)
-	-- The block, its glow and rays shrink together; its "i" keeps to its lower right.
+	-- The block, its glow and rays shrink together; its dice keeps to its lower right.
 	local y, size = FreeParts.fit(k, H.Art[1], H.Art[2], nameEnd + B.TextGapPx, lineY - lineH / 2)
 	local share = size / (H.Art[2] * k)
 	ShopCards.layoutArt(
@@ -455,9 +437,6 @@ function FreeDaily.refresh(self: any, state: any)
 		local showOdds = best ~= nil
 		if odds.badge.Visible ~= showOdds then
 			odds.badge.Visible = showOdds
-			if not showOdds and self.oddsOn == d then
-				self.popup:close()
-			end
 		end
 		d.check.Visible = claimed
 		setLook(d, if claimed then "Claimed" elseif today then "Today" else "Day", k)
@@ -601,12 +580,11 @@ function FreeDaily.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handle)
 	stage:add("DailyFooter", self.footer)
 end
 
---- The menu opened (`open` true) or closed: the breathing Claim! and the odds pop-up.
+--- The menu opened (`open` true) or closed: the breathing Claim!.
 function FreeDaily.setOpen(self: any, open: boolean)
 	self.open = open
 	if not open then
 		self:setPulse(nil)
-		self.popup:close()
 	elseif self.state then
 		self:refresh(self.state)
 	end

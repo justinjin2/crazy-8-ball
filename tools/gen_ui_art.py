@@ -1745,6 +1745,30 @@ def icon_odds():
     return zoom("".join(parts), 0.94, dy=4)
 
 
+def icon_dice():
+    """A chunky sky-blue die seen from above and to the right, white pips: the odds badge
+    (designer, 2026-10-08: a dice instead of the "i"). The sky blue is the kit's odds colour
+    (Config.UI.Kit.Numbers.Count); five pips on the front, one on top, so it reads at 24 px."""
+    light, mid, dark, side = "#C4ECFF", "#52C4FF", "#2A93D9", "#1E78B8"
+    front = rounded_poly([(36, 84), (176, 84), (176, 222), (36, 222)], 24)
+    top = rounded_poly([(36, 84), (176, 84), (218, 42), (78, 42)], 16)
+    right = rounded_poly([(176, 84), (218, 42), (218, 180), (176, 222)], 16)
+    parts = [
+        grad("dicefront", light, mid, dark),
+        f'<path d="{top}" fill="{light}"/>',
+        f'<path d="{right}" fill="{side}"/>',
+        f'<path d="{front}" fill="url(#dicefront)"/>',
+    ]
+    # The front's five pips, a little sunk: a darker ring under each white dot.
+    for x, y in [(68, 116), (144, 116), (106, 153), (68, 190), (144, 190)]:
+        parts.append(f'<circle cx="{x}" cy="{y + 2}" r="15" fill="{side}"/>')
+        parts.append(f'<circle cx="{x}" cy="{y}" r="14" fill="#FFFFFF"/>')
+    # The top's one pip, flattened by the view.
+    parts.append(f'<ellipse cx="127" cy="63" rx="17" ry="9" fill="#FFFFFF" transform="rotate(-8 127 63)"/>')
+    parts.append(gloss(70, 100, 26, 10, angle=-20, opacity=0.6))
+    return zoom("".join(parts), 0.96, dx=-2, dy=2)
+
+
 # ---------------------------------------------------------------------------------------
 # The CUES button (docs/prompts/CUES_LIVELY_PROMPT.md, concept 2b approved round 5,
 # 2026-10-08): the Classic Cue in its own proportions (about half maple shaft, a fifth forearm,
@@ -2377,6 +2401,7 @@ ICONS = {
     "sell": icon_sell,
     "lock": icon_lock,
     "odds": icon_odds,
+    "dice": icon_dice,
     # the CUES button (concept 2b, 2026-10-08)
     "cues": icon_cues,
     "cues_cue": icon_cues_cue,

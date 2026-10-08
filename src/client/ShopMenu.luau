@@ -34,16 +34,17 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local GrandOpeningCard = require(script.Parent.GrandOpeningCard)
+local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local JumpRail = require(script.Parent.JumpRail)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
+local OddsDetails = require(script.Parent.OddsDetails)
 local ShopGift = require(script.Parent.ShopGift)
-local ShopMysteryOdds = require(script.Parent.ShopMysteryOdds)
 local ShopMoney = require(script.Parent.ShopMoney)
 local ShopMystery = require(script.Parent.ShopMystery)
-local ShopOdds = require(script.Parent.ShopOdds)
+local ShopMysteryOdds = require(script.Parent.ShopMysteryOdds)
 local ShopOffers = require(script.Parent.ShopOffers)
 local ShopParts = require(script.Parent.ShopParts)
 local ShopPasses = require(script.Parent.ShopPasses)
@@ -116,9 +117,22 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				self.gift:open(key)
 			end
 		end,
+		odds = function()
+			self.odds:block("GrandOpening")
+		end,
 	})
 	self.gift = ShopGift.new(self, frame)
-	self.mysteryOdds = ShopMysteryOdds.new(self, frame)
+	-- Every lucky block's dice opens one "Odds & Details" popup over the pages.
+	self.odds = OddsDetails.new(frame)
+	self.mysteryOdds = ShopMysteryOdds.new(self.odds, "mysteryOdds")
+	local function odds(kind: string)
+		self.odds:block(kind)
+	end
+	-- Studio only: GuiQA:Invoke("blockOdds", kind) presses that block's dice (the open Shop's).
+	GuiQA.add("blockOdds", function(kind: string)
+		odds(kind)
+		return #self.odds.items
+	end)
 	-- The Blocks group under the card: its header first (it peeks in at the bottom of the first
 	-- screen), then the Mystery block, the restock and the offers.
 	local blocks = HudParts.frame(scroll, "Blocks")
@@ -158,8 +172,9 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				if type(offer) == "table" and offer.open == true then "VipOffer" else "Vip"
 			)
 		end,
+		odds = odds,
 	})
-	self.offers = ShopOffers.new(blocks, { robux = buyProduct, gift = gift })
+	self.offers = ShopOffers.new(blocks, { robux = buyProduct, gift = gift, odds = odds })
 	-- The Money group: its header, then the packs.
 	local moneyGroup = HudParts.frame(scroll, "Money")
 	moneyGroup.ZIndex = 2
@@ -177,6 +192,7 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		plus = function()
 			self:getPlus()
 		end,
+		odds = odds,
 	})
 	local more = HudParts.note(scroll, "MoreBelow", P.MoreBelowTextPx, COPY.MoreBelow)
 	more.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -299,7 +315,7 @@ function ShopMenu.refresh(self: any)
 	end
 	self.featured:refresh(state)
 	self.mystery:refresh(state)
-	self.mysteryOdds:refresh()
+	self.odds:refresh()
 	self.restock:refresh(state)
 	self.money:refresh(state)
 	self.passes:refresh(state)
@@ -361,7 +377,7 @@ function ShopMenu.layout(self: any)
 	self.more.Size = UDim2.fromOffset(math.max(1, width - 16), math.max(1, more))
 	ShopParts.setCanvas(self.scroll, height + more)
 	self.gift:layout(geo)
-	self.mysteryOdds:layout(geo)
+	self.odds:layout(geo)
 	-- Opened on a group: a layout soon after the open (a late geometry pass) jumps there again.
 	local on = self.openedOn
 	if on and os.clock() - self.openedAt <= P.JumpSettleSeconds then
@@ -605,16 +621,11 @@ end
 
 function ShopMenu.closed(self: any)
 	self.jumpRail:closed()
-	self.featured:closed()
 	self.mystery:closed()
-	self.restock:closed()
-	self.offers:closed()
 	self.money:closed()
-	self.passes:closed()
-	ShopOdds.closeAll()
 	self.openedOn = nil
 	self.gift:close()
-	self.mysteryOdds:close()
+	self.odds:close()
 	if self.ticker then
 		self.ticker:Disconnect()
 		self.ticker = nil

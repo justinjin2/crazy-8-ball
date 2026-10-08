@@ -11,6 +11,7 @@
 -- Every list walks Config.BlockOdds.Order or Rarities, never hash order.
 local Config = require(script.Parent.Parent.Config)
 local BlockOdds = require(script.Parent.BlockOdds)
+local Catalog = require(script.Parent.Catalog)
 
 local C = Config.BlockOdds
 local D = C.Drop
@@ -141,6 +142,65 @@ function BlockDrop.rarityOdds(floor: string?): { RarityOdds }
 		end
 	end
 	return list
+end
+
+-- Each cue's chance per Mystery block (summed over the tier blocks that can give it) and each
+-- rarity's cue ids in the catalog's order.
+local function cueChances(floor: string?): ({ [string]: number }, { [string]: { string } })
+	local weights = weightsWith(floor)
+	local chance: { [string]: number } = {}
+	local byRarity: { [string]: { string } } = {}
+	for _, id in C.Order do
+		local share = (weights[id] or 0) / C.OddsTotal
+		if share > 0 then
+			for _, entry in BlockOdds.odds(id) do
+				local pool = Catalog.droppable(id, entry.rarity)
+				for _, cue in pool do
+					if chance[cue.Id] == nil then
+						chance[cue.Id] = 0
+						local ids = byRarity[entry.rarity] or {}
+						byRarity[entry.rarity] = ids
+						table.insert(ids, cue.Id)
+					end
+					chance[cue.Id] += share * entry.percent / #pool
+				end
+			end
+		end
+	end
+	return chance, byRarity
+end
+
+--- Each rarity's chance per Mystery block with its cues (Roblox's rules: every final item
+--- with its chance; the Mystery block is nested, a tier block and then a cue): bottom rarity
+--- first, the cues in the catalog's order. Each cue's chance is summed over the tier blocks
+--- that can give it; `each` is the group's chance over its cues (every tier block splits a
+--- rarity evenly among the same cues, so they are equal: the tests hold that). `floor`: the
+--- live odds while pity guarantees that tier (BlockDrop.floorOf).
+function BlockDrop.cueGroups(floor: string?): { BlockOdds.CueGroup }
+	local chance, byRarity = cueChances(floor)
+	local groups: { BlockOdds.CueGroup } = {}
+	for _, rarity in C.Rarities do
+		local ids = byRarity[rarity]
+		if ids and #ids > 0 then
+			local percent = 0
+			for _, cue in ids do
+				percent += chance[cue]
+			end
+			table.insert(groups, {
+				rarity = rarity,
+				percent = percent,
+				each = percent / #ids,
+				cues = ids,
+				closed = false,
+			})
+		end
+	end
+	return groups
+end
+
+--- Each cue's chance per Mystery block, by id (what BlockDrop.cueGroups sums), for the tests.
+function BlockDrop.cueChances(floor: string?): { [string]: number }
+	return (cueChances(floor))
 end
 
 --- One rarity's chance per Mystery block in percent (0 for a rarity no row drops).

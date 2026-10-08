@@ -1,16 +1,16 @@
 --!strict
--- ShopRestock: the Shop's restock under the Mystery block (the designer's pick B on the mock
--- page, 2026-10-08). On a pale panel whose navy title pill holds the countdown to the next
--- restock ("RESTOCK 6:12"): the three slots and the VIP slot, each a white card with its big
--- block (its rarity's glow, turning rays and twinkles; the sky-blue "i" opens that block's odds),
+-- ShopRestock: the Shop's restock under the Mystery block (the designer's pick B on the mock page,
+-- 2026-10-08). On a pale panel whose navy title pill holds the countdown to the next restock
+-- ("RESTOCK 6:12"): the three slots and the VIP slot, each a white card with its big block (its
+-- rarity's glow, turning rays and twinkles; the sky-blue dice opens that block's Odds & Details),
 -- its name, the stock this player has left ("x2 left", "Sold out"), the green Robux price and the
 -- gold money price; and under them every slot's chances in one line. The VIP slot is gold; for a
--- player without VIP it shows its block, "VIP only" and a Get VIP button. Restock items are
--- never gifts (the server refuses them), so no gift square here. Money buys through
--- ItemRequest "BuyRestock" (the item id), Robux through StoreRequest "Buy" (the slot's
--- RestockRare .. RestockMythic product); the server refuses both where paid random items are
--- restricted. The slots change every restock (Config.Shop.Restock.SlotSeconds, the same in
--- every server). Sizes in Config.UI.ShopBlocks.Restock, words in Strings.Menus.Shop.Blocks.
+-- player without VIP it shows its block, "VIP only" and a Get VIP button. Restock items are never
+-- gifts (the server refuses them), so no gift square here. Money buys through ItemRequest
+-- "BuyRestock" (the item id), Robux through StoreRequest "Buy" (the slot's RestockRare ..
+-- RestockMythic product); the server refuses both where paid random items are restricted. The slots
+-- change every restock (Config.Shop.Restock.SlotSeconds, the same in every server). Sizes in
+-- Config.UI.ShopBlocks.Restock, words in Strings.Menus.Shop.Blocks.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -21,10 +21,10 @@ local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
 local Format = require(Progression:WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
 local ShopCards = require(script.Parent.ShopCards)
-local ShopOdds = require(script.Parent.ShopOdds)
 local ShopParts = require(script.Parent.ShopParts)
 local Stage = require(script.Parent.Stage)
 local UIAnim = require(script.Parent.UIAnim)
+local UISound = require(script.Parent.UISound)
 
 local B = Config.UI.ShopBlocks
 local R = B.Restock
@@ -41,6 +41,7 @@ export type Actions = {
 	robux: (key: string) -> (), -- the slot's Robux product (RestockRare .. RestockMythic)
 	money: (itemId: string, block: string) -> (), -- buy restock item `itemId` with money
 	getVip: () -> (), -- the VIP slot's Get VIP button
+	odds: (kind: string) -> (), -- a slot's dice: its block's Odds & Details (OddsDetails)
 }
 
 type Slot = {
@@ -49,7 +50,6 @@ type Slot = {
 	box: ShopCards.Box,
 	art: ShopCards.Art,
 	badge: ShopCards.Badge,
-	odds: any,
 	crown: ImageLabel?,
 	name: TextLabel,
 	stock: Frame,
@@ -127,23 +127,12 @@ function ShopRestock.new(parent: Instance, actions: Actions): any
 			ShopCards.art(box.frame, "Block", KINDS[start].Icon, ShopCards.rarityColor(start), 4)
 		local badge = ShopCards.oddsBadge(box.frame, "OddsBadge", 8)
 		local slot: Slot
-		local odds = ShopOdds.new(card, function(w: number, _h: number): Vector2
-			-- Beside the card, toward the middle of the panel.
-			local cardAt = box.frame.AbsolutePosition - card.AbsolutePosition
-			local size = box.frame.AbsoluteSize
-			local margin = B.PopupMarginPx
-			local x = if index <= SLOTS / 2
-				then cardAt.X + size.X - margin
-				else cardAt.X - w + margin
-			return Vector2.new(
-				math.clamp(x, margin, math.max(margin, card.AbsoluteSize.X - w - margin)),
-				math.max(margin, cardAt.Y + margin)
-			)
-		end)
-		odds:attach(badge.hit, function(): { ShopOdds.Outcome }
+		badge.hit.Activated:Connect(function()
 			local item = slot.item
-			local row = if item then KINDS[item.block] else nil
-			return if row and row.Odds then ShopOdds.blockOutcomes(row.Odds) else {}
+			if item then
+				UISound.play("Click")
+				actions.odds(tostring(item.block))
+			end
 		end)
 		local crown: ImageLabel? = nil
 		if vip then
@@ -175,7 +164,6 @@ function ShopRestock.new(parent: Instance, actions: Actions): any
 			box = box,
 			art = art,
 			badge = badge,
-			odds = odds,
 			crown = crown,
 			name = name,
 			stock = stock,
@@ -325,9 +313,6 @@ function ShopRestock.refresh(self: any, state: any)
 			slot.shown.block = block
 			ShopCards.setArt(slot.art, if row then row.Icon else "", ShopCards.rarityColor(block))
 			slot.name.Text = nameText(block)
-			if slot.odds.open then
-				slot.odds:close()
-			end
 		end
 		local locked = slot.vip and not vip
 		if slot.locked ~= locked then
@@ -402,13 +387,6 @@ function ShopRestock.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handl
 		end)
 	end
 	stage:add("RestockOdds", self.oddsLine)
-end
-
---- The Shop closed: any odds pop-up goes too.
-function ShopRestock.closed(self: any)
-	for _, slot in self.slots do
-		slot.odds:close()
-	end
 end
 
 return ShopRestock

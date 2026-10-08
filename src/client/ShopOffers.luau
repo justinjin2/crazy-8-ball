@@ -9,9 +9,9 @@
 -- Pack shows until it is bought or its week ends; VIP shows beside it, or alone while its offer
 -- is open, and never to a VIP; with neither there is no section. One card alone sits in the
 -- middle. Both packs hold a random lucky block (the Starter Lucky Block; VIP's Rare block every
--- day), so each card has the sky-blue "i" at its top right with that block's odds (Roblox's
--- paid-random-items rule), hidden where paid random items are restricted (the block is money
--- there). Robux through StoreRequest "Buy" (StarterPack, VipOffer, or the Vip pass). Sizes in
+-- day), so each card has the sky-blue dice at its top right opening that block's Odds &
+-- Details (Roblox's paid-random-items rule; OddsDetails), hidden where paid random items are
+-- restricted (the block is money there). Robux through StoreRequest "Buy" (StarterPack, VipOffer, or the Vip pass). Sizes in
 -- Config.UI.ShopBlocks.Offers, words in Strings.Menus.Shop.Blocks. The Passes tab shows the same
 -- VIP card (ShopOffers.vipCard, layoutCard, refreshVip), there for a VIP too ("Owned").
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -22,10 +22,10 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
 local ShopCards = require(script.Parent.ShopCards)
-local ShopOdds = require(script.Parent.ShopOdds)
 local ShopParts = require(script.Parent.ShopParts)
 local Stage = require(script.Parent.Stage)
 local UIAnim = require(script.Parent.UIAnim)
+local UISound = require(script.Parent.UISound)
 
 local B = Config.UI.ShopBlocks
 local O = B.Offers
@@ -33,12 +33,12 @@ local K = Config.UI.Kit
 local KINDS: { [string]: any } = Config.LuckyBlocks.Kinds :: any
 local LIST: { [string]: any } = Config.Products.List :: any
 local COPY: { [string]: any } = (Strings.Menus.Shop :: any).Blocks
-local BLOCK_NAMES: { [string]: string } = Strings.LuckyBlocks.Names :: any
 local rgb, round = ShopCards.rgb, ShopCards.round
 
 export type Actions = {
 	robux: (key: string) -> (), -- StarterPack, VipOffer or Vip
 	gift: (key: string) -> (), -- the Starter Pack's gift square
+	odds: (kind: string) -> (), -- a card's dice: its lucky block's Odds & Details (OddsDetails)
 }
 
 type Line = ShopCards.Row
@@ -55,8 +55,7 @@ export type Card = {
 	timerWords: TextLabel,
 	green: TextButton,
 	gift: TextButton?,
-	odds: ShopCards.Badge?, -- the sky-blue "i": the card's lucky block's odds
-	popup: any?, -- its ShopOdds pop-up
+	odds: ShopCards.Badge?, -- the sky-blue dice: the card's lucky block's Odds & Details
 	shown: { [string]: any },
 }
 
@@ -68,38 +67,22 @@ local function line(parent: Instance, index: number, image: string, look: any): 
 	return ShopCards.row(parent, "Line" .. index, image, look, 4)
 end
 
--- Give card `c` the sky-blue "i" for the lucky block `kind` it holds: its pop-up, headed by the
--- block's name, opens beside the badge (to its right where it fits, else to its left) in the
--- card's parent.
-local function withOdds(c: Card, kind: string)
+-- Give card `c` the sky-blue dice for the lucky block `kind` it holds: a press opens that
+-- block's Odds & Details (`onOdds`, the Shop's OddsDetails).
+local function withOdds(c: Card, kind: string, onOdds: (string) -> ())
 	local badge = ShopCards.oddsBadge(c.frame, "OddsBadge", 8)
-	local parent = c.frame.Parent :: GuiObject
-	local popup = ShopOdds.new(parent, function(w: number, h: number): Vector2
-		local margin = B.PopupMarginPx
-		local at = badge.badge.AbsolutePosition - parent.AbsolutePosition
-		local x = at.X + badge.badge.AbsoluteSize.X + margin
-		if x + w > parent.AbsoluteSize.X - margin then
-			x = at.X - w - margin
-		end
-		local y = math.clamp(at.Y, margin, math.max(margin, parent.AbsoluteSize.Y - h - margin))
-		return Vector2.new(math.max(margin, x), y)
+	badge.hit.Activated:Connect(function()
+		UISound.play("Click")
+		onOdds(kind)
 	end)
-	popup.heading.Text = BLOCK_NAMES[kind] or kind
-	local oddsId: string? = if KINDS[kind] then KINDS[kind].Odds else nil
-	popup:attach(badge.hit, function(): { ShopOdds.Outcome }
-		return if oddsId then ShopOdds.blockOutcomes(oddsId) else {}
-	end)
-	c.odds, c.popup = badge, popup
+	c.odds = badge
 end
 
--- Show or hide a card's "i" (hidden where its block is money instead), closing its pop-up.
+-- Show or hide a card's dice (hidden where its block is money instead).
 local function showOdds(c: Card, on: boolean)
 	local odds = c.odds
 	if odds and odds.badge.Visible ~= on then
 		odds.badge.Visible = on
-		if not on and c.popup then
-			c.popup:close()
-		end
 	end
 end
 
@@ -115,7 +98,12 @@ end
 
 --- A VIP card (closed) in `parent` named `name`: its title between two crowns, the crown
 --- picture, the six perks, the offer's timer and the green button (`onBuy`).
-function ShopOffers.vipCard(parent: Instance, name: string, onBuy: () -> ()): Card
+function ShopOffers.vipCard(
+	parent: Instance,
+	name: string,
+	onBuy: () -> (),
+	onOdds: (string) -> ()
+): Card
 	local V = O.Vip
 	local box = ShopCards.gradientCard(parent, name, V, 3)
 	local frame = box.frame
@@ -151,10 +139,9 @@ function ShopOffers.vipCard(parent: Instance, name: string, onBuy: () -> ()): Ca
 		green = green,
 		gift = nil,
 		odds = nil,
-		popup = nil,
 		shown = {},
 	}
-	withOdds(c, vipBlock())
+	withOdds(c, vipBlock(), onOdds)
 	return c
 end
 
@@ -206,15 +193,14 @@ function ShopOffers.new(parent: Instance, actions: Actions): any
 		green = green,
 		gift = gift,
 		odds = nil,
-		popup = nil,
 		shown = {},
 	} :: Card
-	withOdds(self.starter, Config.Shop.StarterBlock)
+	withOdds(self.starter, Config.Shop.StarterBlock, actions.odds)
 
 	-- VIP.
 	self.vipCard = ShopOffers.vipCard(root, "OfferVip", function()
 		self.actions.robux(self.vipKey)
-	end)
+	end, actions.odds)
 	return self
 end
 
@@ -445,14 +431,6 @@ function ShopOffers.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handle
 		stage:add("Offer" .. c.which, c.frame, function()
 			keep(ShopOffers.cardLoops(c, (index - 1) * B.ShineStaggerSeconds))
 		end)
-	end
-end
-
-function ShopOffers.closed(self: any)
-	for _, c in { self.starter, self.vipCard } do
-		if c.popup then
-			c.popup:close()
-		end
 	end
 end
 

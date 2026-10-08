@@ -701,12 +701,10 @@ return {
 				Title = "GRAND OPENING",
 				Subtitle = "LUCKY BLOCK • %s • YOU COULD PULL...",
 				Limited = "LIMITED",
-				-- The lucky block's odds: a sky-blue badge on the block ("i") that opens a
-				-- small card listing every outcome (Roblox's paid-random-items rule: all of
-				-- them, adding up to 100%, before buying).
-				OddsBadge = "i",
-				OddsTitle = "Chances",
-				OddsTotal = "Total: %s", -- under the list: "Total: 100%"
+				-- A Unique cue's odds chip once this player can't get it (Roblox's one-instance
+				-- rule: its chance moves to the block's lowest rarity, as the Odds & Details
+				-- list says); one with every copy found shows 0%.
+				CueOwned = "Owned",
 				-- The live timer under the block: "Ends in 20d 23h", in the last day
 				-- "Ends in 23h 59m", in the last hour "Ends in 59:59".
 				EndsIn = "Ends in %s",
@@ -737,23 +735,6 @@ return {
 				Bonus = "%d for %d!", -- the launch bonus ribbon: "13 for 10!"
 				Pity = "%s guaranteed in %d", -- "Epic guaranteed in 87" (the tier's name)
 				PityNext = "Your next one is %s!", -- the guarantee is the very next block
-				-- The Mystery block's "Odds & Details" (its "i" badge; economy v4 plan 3.2):
-				-- every number Roblox's rules ask for before buying.
-				Odds = {
-					Title = "Odds & Details",
-					Pity = "Pity",
-					PityRare = "Rare or better within %d", -- the tier pity guarantees, the count
-					PityEpic = "Epic or better within %d",
-					ToGo = "%d to go", -- Mystery blocks left until it
-					Next = "Next one!", -- the guarantee is the very next block
-					Live = "Your next Mystery block is %s or better!", -- the tier's name
-					Tiers = "Final tier",
-					TiersLive = "Final tier, with pity",
-					Blocks = "Each tier block's odds",
-					Rarities = "Each Mystery block",
-					RaritiesLive = "Your next Mystery block",
-					Total = "Total: %s", -- under the rarities: "Total: 100%"
-				},
 				RestockTitle = "RESTOCK",
 				-- Under the slots: each kind's chance in a slot, each name in its colour.
 				SlotOdds = "Each slot: %s",
@@ -1058,6 +1039,39 @@ return {
 		VipRestrictedNote = "Where Lucky Blocks can't be bought, the daily block is $5,000.",
 		StarterRestricted = "$40,000 + 1 hour of 2x money",
 		RestockOdds = "Each slot: Rare %s · Epic %s · Legendary %s · Mythic %s",
+	},
+	-- The "Odds & Details" popup behind every lucky block's dice badge (OddsDetails; economy v4
+	-- plan 13: every cue a block can give with its chance, before buying). The Mystery block's
+	-- adds its pity, the final tier and each tier block's odds (ShopMysteryOdds).
+	OddsDetails = {
+		Title = "Odds & Details",
+		-- A rarity's cues under its row: how many, each one's chance, their names (every cue of
+		-- a rarity has the same share of it). With "1 in N" for the rare ones.
+		Each = "%d cues, %s each: %s",
+		EachRare = "%d cues, %s each (%s): %s",
+		-- The same without the names (the Mystery list names each rarity's cues once).
+		EachShort = "%d cues, %s each",
+		EachShortRare = "%d cues, %s each (%s)",
+		NameJoin = ", ",
+		Cues = "The cues", -- the Mystery list's section naming each rarity's cues
+		-- A capped Unique cue this player can't get (Roblox's one-instance rule); its chance
+		-- went to the block's lowest rarity, named here.
+		Owned = "You have it, so it can't drop for you: its chance is in %s.",
+		AllFound = "Every copy is found, so it can't drop: its chance is in %s.",
+		Rounded = "Some chances are rounded, so they may not add up to exactly 100%.",
+		Total = "Total: %s", -- under the list: "Total: 100%"
+		-- The Mystery block's (ShopMysteryOdds).
+		Pity = "Pity",
+		PityRare = "Rare or better within %d", -- the tier pity guarantees, the count
+		PityEpic = "Epic or better within %d",
+		ToGo = "%d to go", -- Mystery blocks left until it
+		Next = "Next one!", -- the guarantee is the very next block
+		Live = "Your next Mystery block is %s or better!", -- the tier's name
+		Tiers = "Final tier",
+		TiersLive = "Final tier, with pity",
+		Blocks = "Each tier block's odds",
+		Rarities = "Each Mystery block",
+		RaritiesLive = "Your next Mystery block",
 	},
 	-- The lucky block reel's skip hint (LuckyOpening, UltSpinAnim, PullCutscene, ResultCutscene).
 	Reel = {

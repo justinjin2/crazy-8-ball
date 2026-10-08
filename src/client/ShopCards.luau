@@ -551,13 +551,23 @@ end
 -- The odds badge
 --------------------------------------------------------------------------------------------
 
-export type Badge = { badge: Frame, words: TextLabel, hit: TextButton }
+export type Badge = { badge: Frame, dice: ImageLabel, hit: TextButton }
 
---- The sky-blue "i" (Roblox's rule: the odds one press away). Only it opens the odds, never the
---- picture it sits on; its press area is at least a touch target round the small badge.
+--- The sky-blue dice (designer, 2026-10-08, for the "i"; Roblox's rule: the odds one press away,
+--- OddsDetails). Only it opens the odds, never the picture it sits on; its press area is at
+--- least a touch target round the small badge.
 function ShopCards.oddsBadge(parent: Instance, name: string, z: number): Badge
-	local badge, words =
-		ShopCards.pill(parent, name, FEATURED_COPY.OddsBadge, rgb(B.OddsBadgeColor), z)
+	local badge = Instance.new("Frame")
+	badge.Name = name
+	badge.BackgroundTransparency = 1
+	badge.BorderSizePixel = 0
+	badge.AnchorPoint = Vector2.new(0.5, 0.5)
+	badge.ZIndex = z
+	badge.Parent = parent
+	local dice = ShopCards.image(badge, "Dice", K.Icons.Dice, z + 1)
+	local share = Config.UI.OddsDetails.DiceShare
+	dice.Position = UDim2.fromScale(0.5, 0.5)
+	dice.Size = UDim2.fromScale(share, share)
 	local hit = Instance.new("TextButton")
 	hit.Name = "OddsHit"
 	hit.Text = ""
@@ -572,7 +582,7 @@ function ShopCards.oddsBadge(parent: Instance, name: string, z: number): Badge
 	least.MinSize = Vector2.new(Config.UI.Menu.Frame.TouchMinPx, Config.UI.Menu.Frame.TouchMinPx)
 	least.Parent = hit
 	hit.Parent = badge
-	return { badge = badge, words = words, hit = hit }
+	return { badge = badge, dice = dice, hit = hit }
 end
 
 --- Size the badge `size` units round at (x, y) units.
@@ -581,7 +591,6 @@ function ShopCards.layoutBadge(b: Badge, k: number, x: number, y: number, size: 
 	b.badge.AnchorPoint = Vector2.new(0.5, 0.5)
 	b.badge.Position = UDim2.fromOffset(round(x * k), round(y * k))
 	b.badge.Size = UDim2.fromOffset(px, px)
-	HudParts.setTextSize(b.words, math.max(MIN_TEXT, round(px * B.BadgeTextShare)))
 end
 
 --------------------------------------------------------------------------------------------

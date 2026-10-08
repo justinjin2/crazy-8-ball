@@ -327,6 +327,41 @@ return {
 		H.expect(math.abs(last - n / 5) <= 4 * math.sqrt(n * 0.2 * 0.8), "the last press")
 	end,
 
+	["the Mystery block's cues: each one's chance, equal within a rarity, adding to 100"] = function()
+		local BlockDrop = load()
+		for _, floor in { nil, "Rare", "Epic" } :: { string? } do
+			local label = tostring(floor)
+			local chances = BlockDrop.cueChances(floor)
+			local rarities: { [string]: number } = {}
+			for _, entry in BlockDrop.rarityOdds(floor) do
+				rarities[entry.rarity] = entry.percent
+			end
+			local total, seen = 0, {}
+			for _, group in BlockDrop.cueGroups(floor) do
+				total += group.percent
+				local want = rarities[group.rarity] or -1
+				H.expect(
+					math.abs(group.percent - want) <= want * 1e-9,
+					("%s %s: %s, rarityOdds %s"):format(label, group.rarity, group.percent, want)
+				)
+				for _, cue in group.cues do
+					H.expect(not seen[cue], label .. ": " .. cue .. " twice")
+					seen[cue] = true
+					-- "each" is true of every cue in the group (the list shows one value).
+					local chance = chances[cue] or 0
+					H.expect(
+						math.abs(chance - group.each) <= group.each * 1e-9,
+						("%s %s: %s, not each %s"):format(label, cue, chance, group.each)
+					)
+				end
+			end
+			H.expect(math.abs(total - 100) < 1e-9, ("%s: adds to %s"):format(label, total))
+			for cue in chances do
+				H.expect(seen[cue], label .. ": " .. cue .. " missing")
+			end
+		end
+	end,
+
 	["pity's live floor: the guaranteed tier and the odds the screen shows then"] = function()
 		local BlockDrop, Config = load()
 		local D = Config.BlockOdds.Drop

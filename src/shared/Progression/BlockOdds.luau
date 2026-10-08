@@ -160,6 +160,34 @@ local function percentText(percent: number): string
 end
 BlockOdds.percentText = percentText
 
+-- "10.35000" -> "10.35", "100.0" -> "100".
+local function trimmed(text: string): string
+	if text:find(".", 1, true) then
+		text = text:gsub("0+$", ""):gsub("%.$", "")
+	end
+	return text
+end
+
+--- A chance for a detailed odds list (Roblox's paid-random-items rules: exact, or rounded no
+--- coarser than four decimal places under its first non-zero digit, with a line saying the
+--- shown chances are rounded): the exact value when it has at most 8 decimal places
+--- ("72.5%", "0.0001%"), else 5 significant digits ("10.357%", "0.0012857%"). The second value
+--- is true when it was rounded.
+function BlockOdds.detailText(percent: number): (string, boolean)
+	if type(percent) ~= "number" or percent ~= percent or percent <= 0 then
+		return "0%", false
+	end
+	for decimals = 0, 8 do
+		local text = string.format("%." .. decimals .. "f", percent)
+		local back = tonumber(text)
+		if back and math.abs(back - percent) <= percent * 1e-12 then
+			return trimmed(text) .. "%", false
+		end
+	end
+	local decimals = math.clamp(4 - math.floor(math.log10(percent)), 0, 12)
+	return trimmed(string.format("%." .. decimals .. "f", percent)) .. "%", true
+end
+
 --- The N of "1 in N" for a chance of `percent` (economy v4 plan 18.2: rounded so it never looks
 --- better than true): 100 / percent rounded up, to three significant figures from 1,000 on
 --- (1 in 131,718 -> 132,000; 1 in 1,111.1 -> 1,120), else to a whole number (1 in 238.1 -> 239).
@@ -309,6 +337,53 @@ function BlockOdds.cueOdds(id: string, closed: Closed?, uniques: boolean?): { Cu
 		end
 	end
 	return list
+end
+
+export type CueGroup = {
+	rarity: string, -- a rarity, or "Unique" for one capped Unique cue
+	percent: number, -- the group's chance
+	each: number, -- each of its cues' chance (they split the group's evenly)
+	cues: { string }, -- its cue ids (the catalog's order; one for a Unique)
+	closed: boolean, -- a Unique this player can't get (owned, or every copy found): 0%
+}
+
+--- A block's outcomes as its odds list shows them (Roblox's paid-random-items rules: every
+--- item with its chance): each rarity with a share, bottom first, with its cues, then each
+--- capped Unique cue on its own, rarest last. `closed`: this player's closed Unique rows; their
+--- share is already in the lowest rarity's (BlockOdds.rowFor) and they are listed at 0%.
+function BlockOdds.cueGroups(id: string, closed: Closed?): { CueGroup }
+	local groups: { CueGroup } = {}
+	for _, entry in BlockOdds.odds(id, closed) do
+		local ids: { string } = {}
+		for _, cue in Catalog.droppable(id, entry.rarity) do
+			table.insert(ids, cue.Id)
+		end
+		if #ids > 0 then
+			table.insert(groups, {
+				rarity = entry.rarity,
+				percent = entry.percent,
+				each = entry.percent / #ids,
+				cues = ids,
+				closed = false,
+			})
+		end
+	end
+	local uniques = BlockOdds.uniqueRows(id)
+	table.sort(uniques, function(a, b)
+		return a.weight > b.weight
+	end)
+	for _, unique in uniques do
+		local shut = closed ~= nil and closed[unique.cue] == true
+		local percent = if shut then 0 else unique.percent
+		table.insert(groups, {
+			rarity = "Unique",
+			percent = percent,
+			each = percent,
+			cues = { unique.cue },
+			closed = shut,
+		})
+	end
+	return groups
 end
 
 --- Everything wrong with the odds rows against the catalog, sorted (empty when all is well):
