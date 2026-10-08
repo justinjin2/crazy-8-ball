@@ -437,7 +437,13 @@ type Loop = { object: GuiObject, step: (number, number) -> (), clock: number, al
 local loops: { Loop } = {}
 local loopConnection: RBXScriptConnection? = nil
 
+-- Studio checks (UIAnim.cost): the time the loops take a frame, summed while measuring.
+local measuring = false
+local measured = { frames = 0, seconds = 0, worst = 0, stepped = 0 }
+
 local function stepLoops(dt: number)
+	local started = if measuring then os.clock() else 0
+	local stepped = 0
 	for i = #loops, 1, -1 do
 		local l = loops[i]
 		if not l.alive or l.object.Parent == nil then
@@ -445,12 +451,31 @@ local function stepLoops(dt: number)
 		elseif onScreen(l.object) then
 			l.clock += dt
 			l.step(l.clock, dt)
+			stepped += 1
 		end
+	end
+	if measuring then
+		local took = os.clock() - started
+		measured.frames += 1
+		measured.seconds += took
+		measured.worst = math.max(measured.worst, took)
+		measured.stepped = stepped
 	end
 	if #loops == 0 and loopConnection then
 		loopConnection:Disconnect()
 		loopConnection = nil
 	end
+end
+
+--- Studio checks: measure the idle loops' cost for `seconds`; returns the loops alive, those
+--- stepped in the last frame, and the mean and worst milliseconds a frame.
+function UIAnim.cost(seconds: number): (number, number, number, number)
+	measured = { frames = 0, seconds = 0, worst = 0, stepped = 0 }
+	measuring = true
+	task.wait(seconds)
+	measuring = false
+	local mean = if measured.frames > 0 then measured.seconds / measured.frames else 0
+	return #loops, measured.stepped, mean * 1000, measured.worst * 1000
 end
 
 --- Run `step(clock, dt)` every frame while `object` is on screen (the clock only runs then),

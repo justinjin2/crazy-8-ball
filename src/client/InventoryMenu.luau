@@ -208,7 +208,19 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			end
 		end,
 	}
-	local chips = CashFlyer.new(frame.gui, moneyProxy, function(_tableId: number, _pocket: number)
+	-- The chips fly in their own small ScreenGui just over the menu (as the Rewards menu's,
+	-- RewardsFlyer). Drawn inside the menu's own ScreenGui (thousands of cards' parts) they
+	-- were redrawn only every other frame, so they stepped along at 30 a second while the rest
+	-- moved at 60 (designer, 2026-10-08: "still choppy ... as if it's lagging the entire screen").
+	local flyGui = Instance.new("ScreenGui")
+	flyGui.Name = "CuesCashFlyer" -- kept on by HudFocus (Config.UI.Menu.Focus.Keep)
+	flyGui.ResetOnSpawn = false
+	flyGui.IgnoreGuiInset = true
+	flyGui.ScreenInsets = Enum.ScreenInsets.None
+	flyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	flyGui.DisplayOrder = frame.gui.DisplayOrder + 1
+	flyGui.Parent = frame.gui.Parent
+	local chips = CashFlyer.new(flyGui, moneyProxy, function(_tableId: number, _pocket: number)
 		return nil
 	end)
 

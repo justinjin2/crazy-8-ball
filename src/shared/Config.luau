@@ -7872,6 +7872,7 @@ Config.UI.Menu = {
 			"TutorialGui",
 			"TradeInvite", -- someone asking to trade
 			"RewardsFlyer", -- rewards flying in
+			"CuesCashFlyer", -- the Cues menu's money flying in (its own ScreenGui, 2026-10-08)
 			"RankClaimBlock", -- the roadmap's claim card
 		},
 		KeepWith = {

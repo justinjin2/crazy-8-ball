@@ -3150,3 +3150,11 @@ timer of a new block stay the designer's call.
   rarity's edge, as the old tiles had, in place of the card's colours and 8-balls ("the white
   backgrounds are a little bit too busy"). A switch, `Config.UI.Reel.Reel.ClearCards`, until
   the designer decides; YOU GOT keeps the full card.
+- 2026-10-08 (designer: the money from a sale or a claim "STILL choppy ... as if it's lagging the
+  entire screen", smooth in a match): recorded at 60 fps, the chip inside the Cues menu moved
+  only every other frame (30 a second) while the menu's header pattern moved every frame. The
+  chip was drawn in the menu's own ScreenGui, about 7,850 parts with every card built; in a match
+  it flies in the light HUD ScreenGui. The Cues menu's chips now fly in their own small ScreenGui
+  just over the menu (`CuesCashFlyer`, kept on by HudFocus), as the Rewards menu's
+  (`RewardsFlyer`) always have. Studio check `GuiQA "loopCost"`: the Cues view's idle loops take
+  about 2.3 ms a frame on the Mac (0.07 ms in the lobby).
