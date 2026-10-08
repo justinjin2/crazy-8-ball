@@ -1046,17 +1046,20 @@ Config.Camera = {
 		-- smaller turn from where the shot was aimed, so the camera never turns more than about
 		-- a quarter of the way round, and when the balls stop it swings back the same way.
 		-- "Aim": the older pull-out, the whole table seen along the aim line.
-		-- "FirstPerson" (designer, 2026-10-08, a test): the camera lerps into the shooter's own
-		-- eyes (their Head) and watches the shot from where they stand (Shot.FirstPerson).
-		PullOutView = "FirstPerson",
-		-- The "FirstPerson" pull-out.
-		FirstPerson = {
-			InSeconds = 0.9, -- the lerp from the aim view into the eyes, smoothstep eased (tune)
+		-- "Player" (designer, 2026-10-08, a test): the camera is handed back to the player's own
+		-- Roblox camera, behind their body at the zoom a new spawn gets, and the default camera
+		-- runs (they can turn it, zoom it and walk) until the balls stop (Shot.Player).
+		PullOutView = "Player",
+		-- The "Player" pull-out.
+		Player = {
+			InSeconds = 0.9, -- the lerp from the aim view into the player's camera, smoothstep (tune)
 			OutSeconds = 0.9, -- ...and back to the aiming view once the balls stop (tune)
-			EyeUpStuds = 0.2, -- the eye sits this far above the Head part's centre (tune)
-			-- Where the eyes look: the table centre, pulled this far (0..1) toward the middle of
-			-- the balls still moving, so the gaze follows the shot without whipping. (tune)
-			BallWeight = 0.5,
+			-- Roblox's own starting zoom (its camera's default distance, 12.5 studs), which the
+			-- player's camera is set to every time it is handed over. (tune)
+			ZoomStuds = 12.5,
+			-- How far the handed-over camera looks down at the body, in degrees, facing the way
+			-- the body faces (the shot's line, so across the table). (tune)
+			PitchDegrees = 20,
 		},
 		-- The "Side" swing out takes this long, eased in and out (smoothstep) and not smoothed
 		-- on top, so the camera arrives at exactly this time. The designer chose about 0.9 s:
