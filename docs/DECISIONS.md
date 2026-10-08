@@ -3025,12 +3025,3 @@ timer of a new block stay the designer's call.
   the same for every mode. Blue with room, green with someone on, gold when full or playing.
   Glowing outlines rise from its rim and fade as they climb, with sparkles; the arrow sits a
   little lower with JOIN under it, bobbing with it (`Config.Multiplayer.QueueVisual.Portal`).
-- **2026-10-08, a test: after a shot the camera goes to the player's own Roblox camera.**
-  Where the camera pulled out to the semi-top-down side view, it now glides (0.9 s, field of
-  view 60 to 70) into the default Roblox camera behind the shooter at the zoom a new spawn
-  gets (12.5 studs), which works as it does in the hub while the balls roll (turn, zoom,
-  shift lock, walk; the match no longer resets the mouse while it is lent); when the
-  balls stop it glides back to the aiming view, or stays theirs if the turn passed. (First
-  tried the same day as a first-person view from the shooter's eyes; the designer preferred
-  this.) Same trigger as before (shots under about 35% power keep the aiming view).
-  `Config.Camera.Shot.PullOutView = "Side"` brings the old view back.

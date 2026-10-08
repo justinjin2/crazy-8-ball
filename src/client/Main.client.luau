@@ -196,11 +196,8 @@ end
 -- good. Default is always right: the default camera re-applies shift-lock or first person
 -- itself if they are genuinely on.
 local function releaseMouse()
-	local lent = Camera.isLent() -- already the player's camera, which owns the mouse
 	Camera.unlock()
-	if not lent then
-		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-	end
+	UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 end
 local function cueWorld(): Vector3
 	local b = match and match:findCueBall()
@@ -1522,11 +1519,7 @@ local function renderFrame(dt: number)
 				)
 			end
 		end
-		-- While the shot camera is lent to the player's own camera (Camera.isLent), the mouse
-		-- is that camera's: shift lock and right-drag turning set it every frame.
-		if not Camera.isLent() then
-			UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-		end
+		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 	end
 	targets:update(dt, workspace.CurrentCamera)
 	ultPick:update(dt, workspace.CurrentCamera)
