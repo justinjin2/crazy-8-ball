@@ -482,7 +482,8 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		dropLive(player, id)
 		return refuse("NotOwned")
 	end
-	local plan, why = PlayerData.planLuckyOpen(player, id, roll)
+	-- Copies of a capped Unique cue found so far (the Grand Opening's: Config.BlockOdds caps).
+	local plan, why = PlayerData.planLuckyOpen(player, id, roll, Counters.limitedSold)
 	if plan == nil then
 		return refuse(
 			if why == "NotReady" or why == "NotOwned" or why == "NotLoaded" then why else "Error"
@@ -502,12 +503,24 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local copy: number? = nil
 	if plan.unique then
 		entry.phase = "Opening"
-		local number, reason = Counters.takeUnique(plan.cueId, player.UserId)
+		local cap = BlockOdds.caps(plan.oddsId)[plan.cueId]
+		local number, reason = Counters.takeUnique(plan.cueId, player.UserId, cap)
 		if live[player] == nil or live[player][id] ~= entry then
 			return refuse("NotOwned")
 		end
 		entry.phase = "Landed"
-		if number == nil then
+		if number == nil and reason == "SoldOut" then
+			-- The last copy went in another server since this one last read the count: the
+			-- row's share is its lowest rarity's now (BlockOdds.rowFor), so give one of those.
+			local floor = BlockOdds.minRarity(plan.oddsId)
+			local pool = if floor then Catalog.droppable(plan.oddsId, floor) else {}
+			if #pool > 0 then
+				plan.cueId = pool[roll(#pool)].Id
+				plan.unique = false
+				plan.forced = false
+			end
+		end
+		if plan.unique and number == nil then
 			warn(
 				("[8ball] LuckyBlockService: no copy of %s (%s)"):format(
 					plan.cueId,
@@ -516,7 +529,7 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 			)
 			return refuse("Error")
 		end
-		copy = number
+		copy = if plan.unique then number else nil
 	end
 	local ok, opened, place = PlayerData.openLuckyBlock(player, id, plan, copy)
 	if not ok then

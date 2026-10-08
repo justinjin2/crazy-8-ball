@@ -8,7 +8,9 @@
 -- Limited) cues, the Exclusive cues in Config.Trade.ExclusiveTradable, and READY lucky blocks
 -- (never one on its timer; the caller passes `now`); never money, never Classic, never
 -- another Exclusive cue. A paid-origin copy moves only when both players may trade paid items
--- (PolicyService); free copies always move first. A traded block lands ready at once.
+-- (PolicyService); a paid-origin lucky block (an unopened paid random item) also needs
+-- `blocksOk`: neither player has paid random items restricted (economy v4 plan 13). Free
+-- copies always move first. A traded block lands ready at once.
 --
 -- Trade.swap checks both sides against both saves and then changes them together, or changes
 -- nothing. What moved (`Moved`: each item's count, how many were paid, a Unique's number) is
@@ -18,6 +20,8 @@
 -- Pure: no Instances, no clocks (the caller passes `now`, unix seconds), no randomness; every
 -- loop walks an array. Lune-tested (tests/trade_test.luau).
 local Config = require(script.Parent.Parent.Config)
+local BlockDrop = require(script.Parent.BlockDrop)
+local BlockOdds = require(script.Parent.BlockOdds)
 local Catalog = require(script.Parent.Catalog)
 local Inventory = require(script.Parent.Inventory)
 local LuckyBlocks = require(script.Parent.LuckyBlocks)
@@ -168,14 +172,25 @@ local function holding(save: any, item: string, now: number): (number, number)
 	return 0, 0
 end
 
+-- Whether paid-origin copies of `item` may move: `paidOk` for cues; for a lucky block also
+-- `blocksOk` (nil: as paidOk).
+local function paidMoves(item: string, paidOk: boolean, blocksOk: boolean?): boolean
+	if string.sub(item, 1, #BLOCK_PREFIX) == BLOCK_PREFIX then
+		return paidOk and blocksOk ~= false
+	end
+	return paidOk
+end
+
 --- What this save can put in a trade at `now` (GUI lane, the trade screen and its wish
 --- list): { item, count } for every tradable cue it holds and every READY lucky block, cues
 --- in the Index's order then blocks in Config.LuckyBlocks.Order; `count` is how many may go
---- (free copies only unless `paidOk`). Items with nothing to give are left out.
+--- (free copies only unless `paidOk`, and for a block `blocksOk`). Items with nothing to give
+--- are left out.
 function Trade.offerable(
 	save: any,
 	paidOk: boolean,
-	now: number
+	now: number,
+	blocksOk: boolean?
 ): { { item: string, count: number } }
 	local out: { { item: string, count: number } } = {}
 	for _, cue in Catalog.list() do
@@ -190,7 +205,7 @@ function Trade.offerable(
 	for _, kind in Config.LuckyBlocks.Order do
 		local item = Trade.blockItem(kind)
 		local have, free = holding(save, item, now)
-		local n = if paidOk then have else free
+		local n = if paidMoves(item, paidOk, blocksOk) then have else free
 		if n > 0 then
 			table.insert(out, { item = item, count = n })
 		end
@@ -200,8 +215,14 @@ end
 
 --- Why this save cannot give `items` at `now`, or nil: "NotTradable" (Classic, an Exclusive
 --- cue), "NotOwned" (fewer than offered, or a block still on its timer), "PaidBlocked" (only
---- paid copies would make the count and `paidOk` is false).
-function Trade.canGive(save: any, items: { string }, paidOk: boolean, now: number): string?
+--- paid copies would make the count and `paidOk` is false, or for a block `blocksOk`).
+function Trade.canGive(
+	save: any,
+	items: { string },
+	paidOk: boolean,
+	now: number,
+	blocksOk: boolean?
+): string?
 	for _, entry in counted(items) do
 		local kind, id = parseItem(entry.item)
 		if kind == "Cue" and not Trade.tradable(id :: string) then
@@ -210,7 +231,7 @@ function Trade.canGive(save: any, items: { string }, paidOk: boolean, now: numbe
 		local have, free = holding(save, entry.item, now)
 		if entry.count > have then
 			return "NotOwned"
-		elseif not paidOk and entry.count > free then
+		elseif not paidMoves(entry.item, paidOk, blocksOk) and entry.count > free then
 			return "PaidBlocked"
 		end
 	end
@@ -243,13 +264,14 @@ function Trade.check(
 	itemsA: { string },
 	itemsB: { string },
 	paidOk: boolean,
-	now: number
+	now: number,
+	blocksOk: boolean?
 ): string?
 	if #itemsA == 0 or #itemsB == 0 then
 		return "Empty"
 	end
-	return Trade.canGive(saveA, itemsA, paidOk, now)
-		or Trade.canGive(saveB, itemsB, paidOk, now)
+	return Trade.canGive(saveA, itemsA, paidOk, now, blocksOk)
+		or Trade.canGive(saveB, itemsB, paidOk, now, blocksOk)
 		or Trade.canReceive(saveB, itemsA)
 		or Trade.canReceive(saveA, itemsB)
 end
@@ -338,9 +360,10 @@ function Trade.swap(
 	itemsA: { string },
 	itemsB: { string },
 	paidOk: boolean,
-	now: number
+	now: number,
+	blocksOk: boolean?
 ): (boolean, string?, Moved?, Moved?)
-	local why = Trade.check(saveA, saveB, itemsA, itemsB, paidOk, now)
+	local why = Trade.check(saveA, saveB, itemsA, itemsB, paidOk, now, blocksOk)
 	if why ~= nil then
 		return false, why, nil, nil
 	end
@@ -443,15 +466,81 @@ end
 -- The lopsided warning
 ---------------------------------------------------------------------------------------------
 
+-- One cue's worth from its copies in existence (fewer than MinExists counts as MinExists),
+-- or nil when its count is unknown.
+local function cueWorth(cueId: string, copies: { [string]: number }): number?
+	local n = copies[cueId]
+	if type(n) ~= "number" then
+		return nil
+	end
+	return 1 / math.max(T.MinExists, n)
+end
+
+-- An odds row's expected worth: each rarity's share times the mean worth of its droppable
+-- cues, plus its Unique rows; nil when any of those cues' counts is unknown.
+local function rowWorth(oddsId: string, copies: { [string]: number }): number?
+	local total = 0
+	for _, entry in BlockOdds.odds(oddsId) do
+		local pool = Catalog.droppable(oddsId, entry.rarity)
+		local sum = 0
+		for _, cue in pool do
+			local w = cueWorth(cue.Id, copies)
+			if w == nil then
+				return nil
+			end
+			sum += w
+		end
+		if #pool > 0 then
+			total += entry.percent / 100 * sum / #pool
+		end
+	end
+	for _, unique in BlockOdds.uniqueRows(oddsId) do
+		local w = cueWorth(unique.cue, copies)
+		if w == nil then
+			return nil
+		end
+		total += unique.percent / 100 * w
+	end
+	return total
+end
+
+--- A lucky block's worth worked out live (economy v4 plan section 11): what its odds row gives
+--- on average, each cue worth 1 / its copies in existence; a Mystery block weighs each tier's
+--- row by Config.BlockOdds.Drop.Weights. nil when a needed count is unknown (the caller falls
+--- back to Config.Trade.BlockExists).
+function Trade.blockWorth(kind: string, copies: { [string]: number }): number?
+	local row = LuckyBlocks.kind(kind)
+	if row == nil then
+		return nil
+	end
+	if row.Roll then
+		local total = 0
+		for _, tier in BlockDrop.tiers() do
+			local tierRow = LuckyBlocks.kind(tier.tier)
+			local w = if tierRow and tierRow.Odds then rowWorth(tierRow.Odds, copies) else nil
+			if w == nil then
+				return nil
+			end
+			total += tier.percent / 100 * w
+		end
+		return total
+	end
+	return if row.Odds then rowWorth(row.Odds, copies) else nil
+end
+
 -- An item's worth: 1 / its copies in existence (cues; fewer than MinExists counts as
--- MinExists, unknown as MinExists) or 1 / Config.Trade.BlockExists (lucky blocks).
+-- MinExists, unknown as MinExists) or Trade.blockWorth (lucky blocks; until the counts are
+-- known, 1 / Config.Trade.BlockExists).
 local function worth(item: string, copies: { [string]: number }): number
 	local kind, id = parseItem(item)
 	if kind == "Block" then
+		local live = Trade.blockWorth(id :: string, copies)
+		if live ~= nil and live > 0 then
+			return live
+		end
 		return 1 / math.max(T.MinExists, (T.BlockExists :: any)[id] or T.MinExists)
 	elseif kind == "Cue" then
-		local n = copies[id :: string]
-		return 1 / math.max(T.MinExists, if type(n) == "number" then n else T.MinExists)
+		return cueWorth(id :: string, copies) or 1 / T.MinExists
 	end
 	return 0
 end

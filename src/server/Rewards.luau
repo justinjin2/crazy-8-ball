@@ -85,12 +85,23 @@ end
 -- The state (RewardState)
 ---------------------------------------------------------------------------------------------
 
--- Whether the player gets VIP's daily ability spin now: VIP (the Store's attribute: the pass
--- or the welcome offer) where paid random items are not restricted (PolicyService has
--- answered no; plan section 4).
-local function isVip(player: Player): boolean
-	return player:GetAttribute("Vip") == true
-		and player:GetAttribute("PaidRandomRestricted") == false
+-- Whether the player is VIP (the Store's attribute: the pass or the welcome offer), and
+-- whether paid random items are restricted for them: VIP's daily spin and block need
+-- PolicyService to have answered no (economy v4 plan 6.7: else Config.Daily.VipRestrictedMoney).
+local function vipOf(player: Player): (boolean, boolean)
+	return player:GetAttribute("Vip") == true, player:GetAttribute("PaidRandomRestricted") ~= false
+end
+
+-- What the login rules need besides the save (Daily.LoginExtra; today's match comes from Daily).
+local function loginExtra(player: Player, data: any): Daily.LoginExtra
+	local _, restricted = vipOf(player)
+	local firstJoin = data.Shop.FirstJoin
+	return {
+		joinDay = if type(firstJoin) == "number" and firstJoin > 0
+			then Daily.dayOf(firstJoin)
+			else nil,
+		restricted = restricted,
+	}
 end
 
 -- The RewardState payload for this player now, and today's Daily; nil when not loaded.
@@ -105,10 +116,11 @@ local function build(player: Player): (RewardView.Payload?, any)
 		daily,
 		data.Titles,
 		os.time(),
-		isVip(player),
+		(vipOf(player)),
 		data.Social,
 		Social.isMember(player),
-		data.Flags
+		data.Flags,
+		loginExtra(player, data)
 	),
 		daily
 end
@@ -165,6 +177,8 @@ local REWARD_OPS: { [string]: boolean } = {
 	setInvitedBy = true,
 	giveInviteRewards = true,
 	recordMatch = true, -- an invited player's first win
+	recordRealMatch = true, -- today's first finished match lets the login day be claimed
+	winBlock = true, -- the win track's bar
 }
 
 local function onChanged(player: Player, op: string)
@@ -260,6 +274,7 @@ end
 -- PlayerData's answers as the remote's reason codes.
 local REASONS: { [string]: string } = {
 	Claimed = "AlreadyClaimed",
+	NeedsMatch = "NeedsMatch",
 	NotReady = "NotReady",
 	NotLoaded = "NotLoaded",
 	Used = "Used",
@@ -316,7 +331,8 @@ local function onRewardRequest(player: Player, action: any, a: any): Reply
 		return refused("NotLoaded")
 	end
 	if action == "ClaimDaily" then
-		local ok, result = PlayerData.claimDaily(player, isVip(player))
+		local vip, restricted = vipOf(player)
+		local ok, result = PlayerData.claimDaily(player, vip, restricted)
 		return answer(ok, result, "BadRequest")
 	elseif action == "ClaimGroup" then
 		local ok, result = Social.claimGroup(player)

@@ -517,16 +517,16 @@ also allowed the price update and the merge at the end if `~/Desktop/8ball` has 
 changes then.
 
 - [x] 1. Merge the newest `shop-lively` commit; this brief, the Progress list and the plan in `docs/prompts/`
-- [ ] 2. Config: every table of plan section 17, with Strings
-- [ ] 3. The Mystery block: tier weights, the 5-press path from Standard, pity for bought blocks
-- [ ] 4. The 10-step daily win track and the 08:00 UTC reset for every daily thing
-- [ ] 5. Login: the first week (7 days within 14, the match rule), later weeks, the 28-day track, playtime
-- [ ] 6. VIP's daily Rare block with PolicyService
-- [ ] 7. The restock: Rare-or-better slots, the Mythic block and its announcement
-- [ ] 8. The Grand Opening (caps, guarantee, per-player odds), the launch bonus, the Starter Pack, the first-pack double off
-- [ ] 9. Timers and the skip by time left
-- [ ] 10. Trading: live block worth; no paid blocks to restricted players
-- [ ] 11. Saves and the migration (check the GUI branch's version first)
+- [x] 2. Config: every table of plan section 17, with Strings
+- [x] 3. The Mystery block: tier weights, the 5-press path from Standard, pity for bought blocks
+- [x] 4. The 10-step daily win track and the 08:00 UTC reset for every daily thing
+- [x] 5. Login: the first week (7 days within 14, the match rule), later weeks, the 28-day track, playtime
+- [x] 6. VIP's daily Rare block with PolicyService
+- [x] 7. The restock: Rare-or-better slots, the Mythic block and its announcement
+- [x] 8. The Grand Opening (caps, guarantee, per-player odds), the launch bonus, the Starter Pack, the first-pack double off
+- [x] 9. Timers and the skip by time left
+- [x] 10. Trading: live block worth; no paid blocks to restricted players
+- [x] 11. Saves and the migration (check the GUI branch's version first)
 - [ ] 12. `tools/economy_model.py` and `economy_config.json`
 - [ ] 13. Docs: `ECONOMY.md`, GDD 11-12, `DECISIONS.md`, `ROADMAP.md`
 - [ ] 14. Products: `products_spec.json`, `roblox_products.py --dry-run`, then for real (right before the merge)

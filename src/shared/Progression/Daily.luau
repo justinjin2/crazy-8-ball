@@ -1,8 +1,10 @@
 --!strict
--- Daily rewards (ECONOMY sections 10 and 18): the login streak, the playtime gifts and the
--- promo codes. Pure: no Instances, no Roblox APIs, no clocks (the caller passes the UTC day or
--- the unix time), no randomness, and every loop walks an array (the streak and playtime lists,
--- Config.LuckyBlocks.Order), never a keyed table, so nothing depends on hash order.
+-- Daily rewards (ECONOMY sections 10 and 18): the login days (the first week, then the later
+-- weeks' streak), the playtime gifts and the promo codes. Pure: no Instances, no Roblox APIs,
+-- no clocks (the caller passes the day or the unix time), no randomness, and every loop walks
+-- an array (the day, track and playtime lists, Config.LuckyBlocks.Order), never a keyed table,
+-- so nothing depends on hash order. A "day" starts at Config.Daily.ResetHour UTC (economy v4,
+-- 2026-10-08: 08:00 UTC; Daily.dayOf).
 --
 -- The server (src/server/Rewards.luau) owns the save and calls these inside ONE save mutation
 -- that also grants the reward; the client only shows the states. Who changes what:
@@ -30,18 +32,37 @@ export type Reward = {
 	lucky: number, -- Lucky Spins
 }
 
--- The save's login loop (SaveSchema v6): the last claimed UTC day (0 none), the loop day that
--- claim was (1..7, 0 none), every day ever claimed (the 28-day track) and the UTC week whose
--- streak freeze was used (Daily.weekOf; 0 none).
-export type Login = { LastDay: number, StreakDay: number, Total: number, FreezeWeek: number }
+-- The save's login days: the last claimed day (0 none), the later weeks' loop day that claim
+-- was (1..7; 0 none, or a first-week claim), every day ever claimed (the 28-day track), the
+-- week whose streak freeze was used (Daily.weekOf; 0 none) and the first-week days claimed
+-- (0..#Config.Daily.FirstWeek; economy v4).
+export type Login = {
+	LastDay: number,
+	StreakDay: number,
+	Total: number,
+	FreezeWeek: number,
+	FirstWeek: number?,
+}
+
+-- What the login rules need besides the save (economy v4): the day of the first join (nil:
+-- no first week), whether a match was finished today (Config.Daily.NeedsMatch; nil counts as
+-- yes) and, for a VIP, whether paid random items are restricted for them (no daily block or
+-- spin; Config.Daily.VipRestrictedMoney instead).
+export type LoginExtra = { joinDay: number?, played: boolean?, restricted: boolean? }
 
 export type LoginState = {
 	canClaim: boolean,
 	claimedToday: boolean,
-	day: number, -- the loop day today's claim is (or was, once claimed): 1..7
+	-- The day today's claim is (or was, once claimed): first week 1..#FirstWeek, else the
+	-- later weeks' loop day 1..7.
+	day: number,
+	firstWeek: boolean, -- today's claim is a first-week day
+	firstWeekDays: number, -- first-week days claimed, counting today's claim once made
+	firstWeekLeft: number, -- days left in the first week's window, today included (0: over)
+	needsMatch: boolean, -- not claimed, and no match finished today yet (the claim waits)
 	total: number, -- days claimed counting today's claim (the 28-day track)
 	week: number, -- the track's week today's claim is in: 1..TrackDays / 7
-	reward: Reward, -- what that claim gives: the loop day, the track and VIP's spin
+	reward: Reward, -- what that claim gives: the day, the track and VIP's spin and block
 	bonus: boolean, -- the claim includes a 28-day track reward
 	track: Reward?, -- that track reward
 	frozen: boolean, -- the claim keeps the streak through this week's freeze
@@ -74,6 +95,11 @@ type RewardRow = {
 
 -- Config's rows are table literals of mixed shapes; read them through one row type.
 local STREAK: { RewardRow } = D.Streak :: any
+local FIRST: { RewardRow } = D.FirstWeek :: any
+local FIRST_DAYS = #FIRST
+local FIRST_WINDOW: number = D.FirstWeekWindow
+local VIP_BLOCKS: { [string]: number } = D.VipBlocks :: any
+local DAY_OFFSET: number = D.ResetHour * 3600
 local PLAYTIME: { RewardRow } = D.Playtime :: any
 local TRACK: { RewardRow } = D.Track :: any
 local CODES: { [string]: RewardRow } = D.Codes :: any
@@ -141,9 +167,15 @@ local function merge(a: Reward, b: Reward): Reward
 	return out
 end
 
---- The UTC day number a unix time falls in (the daily rewards reset when it changes).
+--- The day number a unix time falls in: days start at Config.Daily.ResetHour UTC (every
+--- daily thing resets when it changes).
 function Daily.dayOf(unix: number): number
-	return math.floor(unix / SECONDS_PER_DAY)
+	return math.floor((unix - DAY_OFFSET) / SECONDS_PER_DAY)
+end
+
+--- The unix time day `day` starts (Config.Daily.ResetHour UTC that date).
+function Daily.dayStart(day: number): number
+	return day * SECONDS_PER_DAY + DAY_OFFSET
 end
 
 --- A reward's lucky blocks as a list in Config.LuckyBlocks.Order, for showing them.
@@ -167,20 +199,21 @@ function Daily.weekOf(day: number): number
 	return (whole(day) + 3) // 7
 end
 
--- The save's loop, cleaned: (last claimed day, loop day 0..DAYS, total days, freeze week).
--- A loop day out of range means nothing claimed.
-local function readLogin(login: any): (number, number, number, number)
+-- The save's login days, cleaned: (last claimed day, loop day 0..DAYS, total days, freeze
+-- week, first-week days 0..FIRST_DAYS). A loop day out of range means none.
+local function readLogin(login: any): (number, number, number, number, number)
 	if type(login) ~= "table" then
-		return 0, 0, 0, 0
+		return 0, 0, 0, 0, 0
 	end
 	local last = whole(login.LastDay)
 	local day = whole(login.StreakDay)
 	local total = math.max(0, whole(login.Total))
 	local freeze = math.max(0, whole(login.FreezeWeek))
+	local first = math.clamp(whole(login.FirstWeek), 0, FIRST_DAYS)
 	if day < 1 or day > DAYS then
 		day = 0
 	end
-	return last, day, total, freeze
+	return last, day, total, freeze, first
 end
 
 -- The loop day after `day` (day 7 starts the loop over).
@@ -205,26 +238,65 @@ function Daily.trackReward(total: number): Reward?
 	return nil
 end
 
---- What loop day `day` gives (the seven tiles show these), with VIP's daily ability spin
---- (Config.Daily.VipSpins) when `vip`. The second answer is always false (the old week bonus
---- is the track now: Daily.trackReward).
-function Daily.streakReward(day: number, vip: boolean?): (Reward, boolean)
-	local reward = rewardOf(STREAK[day])
-	if vip == true then
-		reward.spins += math.max(0, whole(D.VipSpins))
+-- VIP's part of every day's claim: the extra spin and the daily block, or where paid random
+-- items are restricted for them, Config.Daily.VipRestrictedMoney instead of both (economy v4).
+local function addVip(reward: Reward, vip: boolean?, restricted: boolean?): Reward
+	if vip ~= true then
+		return reward
 	end
-	return reward, false
+	if restricted == true then
+		reward.money += math.max(0, whole(D.VipRestrictedMoney))
+		return reward
+	end
+	reward.spins += math.max(0, whole(D.VipSpins))
+	return merge(reward, rewardOf({ Blocks = VIP_BLOCKS }))
 end
 
--- Today's claim from the cleaned save: (loop day, claimed already, frozen).
-local function todaysDay(login: any, now: number): (number, boolean, boolean)
-	local last, streakDay, _, freeze = readLogin(login)
-	if streakDay > 0 and last >= now and last <= now + 1 then
-		-- Claimed today. A LastDay of tomorrow means another server's clock was a moment ahead
-		-- at midnight; it counts as today, so clock skew never gives a second claim.
-		return streakDay, true, false
+--- What the later weeks' loop day `day` gives (the seven tiles show these), with VIP's daily
+--- spin and block (Config.Daily.VipSpins, VipBlocks) when `vip` (`restricted`: VIP's money
+--- instead). The second answer is always false (the old week bonus is the track now:
+--- Daily.trackReward).
+function Daily.streakReward(day: number, vip: boolean?, restricted: boolean?): (Reward, boolean)
+	return addVip(rewardOf(STREAK[day]), vip, restricted), false
+end
+
+--- What first-week day `day` gives (1..#Config.Daily.FirstWeek), with VIP's part like
+--- Daily.streakReward.
+function Daily.firstWeekReward(day: number, vip: boolean?, restricted: boolean?): Reward
+	return addVip(rewardOf(FIRST[day]), vip, restricted)
+end
+
+-- Whether day `now` is inside the first week's window for a player who joined on `joinDay`
+-- (the join's day is day 1 of FirstWeekWindow), and the days left in it, today included.
+local function firstWindow(joinDay: number?, now: number): (boolean, number)
+	if joinDay == nil then
+		return false, 0
+	end
+	local left = whole(joinDay) + FIRST_WINDOW - now
+	return left >= 1, math.max(0, math.min(left, FIRST_WINDOW))
+end
+
+-- Today's claim from the cleaned save: (day, claimed already, frozen, a first-week day).
+local function todaysDay(
+	login: any,
+	now: number,
+	joinDay: number?
+): (number, boolean, boolean, boolean)
+	local last, streakDay, _, freeze, first = readLogin(login)
+	local claimed = last >= now and last <= now + 1
+	-- A LastDay of tomorrow means another server's clock was a moment ahead at the reset (or
+	-- the reset moved later, economy v4); it counts as today, so clock skew never gives a
+	-- second claim.
+	if claimed and streakDay == 0 and first > 0 then
+		return first, true, false, true
+	elseif claimed and streakDay > 0 then
+		return streakDay, true, false, false
+	end
+	local inWindow = firstWindow(joinDay, now)
+	if inWindow and first < FIRST_DAYS then
+		return first + 1, false, false, true
 	elseif streakDay > 0 and last == now - 1 then
-		return following(streakDay), false, false
+		return following(streakDay), false, false, false
 	elseif
 		streakDay > 0
 		and last == now - 2
@@ -232,30 +304,52 @@ local function todaysDay(login: any, now: number): (number, boolean, boolean)
 		and freeze ~= Daily.weekOf(now)
 	then
 		-- One missed day, covered by this week's freeze.
-		return following(streakDay), false, true
+		return following(streakDay), false, true, false
 	end
-	-- Never claimed, two or more missed days, or a LastDay far in the future (a broken save).
-	return 1, false, false
+	-- Never claimed in the later weeks (the first week's claims leave StreakDay 0), two or more
+	-- missed days, or a LastDay far in the future (a broken save).
+	return 1, false, false, false
 end
 
---- Where a player's loop stands on UTC day `today` (`vip`: today's claim adds VIP's spin).
---- One claim per day; a claim the day after the last one continues the loop, so does one
+--- Where a player's login days stand on day `today` (`vip`: today's claim adds VIP's spin and
+--- block; `extra`: the join day, today's match, VIP's restriction). One claim per day, and
+--- only once a match was finished that day (Config.Daily.NeedsMatch). The first week: the
+--- first #FirstWeek days claimed within FirstWeekWindow days of joining, in a row or not.
+--- Then the later weeks: a claim the day after the last one continues the loop, so does one
 --- two days after it while this week's freeze is unused; anything later starts at day 1.
-function Daily.loginState(login: Login, today: number, vip: boolean?): LoginState
+function Daily.loginState(
+	login: Login,
+	today: number,
+	vip: boolean?,
+	extra: LoginExtra?
+): LoginState
 	local now = whole(today)
-	local _, _, total, freeze = readLogin(login)
-	local day, claimedToday, frozen = todaysDay(login, now)
+	local joinDay = if extra then extra.joinDay else nil
+	local restricted = if extra then extra.restricted else nil
+	local played = not (extra and extra.played == false)
+	local _, _, total, freeze, first = readLogin(login)
+	local day, claimedToday, frozen, isFirst = todaysDay(login, now, joinDay)
 	local count = if claimedToday then math.max(1, total) else total + 1
 	local _, week = trackPlace(count)
-	local reward = Daily.streakReward(day, vip)
+	local reward = if isFirst
+		then Daily.firstWeekReward(day, vip, restricted)
+		else Daily.streakReward(day, vip, restricted)
 	local track = Daily.trackReward(count)
 	if track ~= nil then
 		reward = merge(reward, track)
 	end
+	local inWindow, left = firstWindow(joinDay, now)
+	local needsMatch = not claimedToday and D.NeedsMatch == true and not played
 	return {
-		canClaim = not claimedToday,
+		canClaim = not claimedToday and not needsMatch,
 		claimedToday = claimedToday,
 		day = day,
+		firstWeek = isFirst,
+		firstWeekDays = if isFirst and claimedToday then day else first,
+		firstWeekLeft = if inWindow and (first < FIRST_DAYS or (isFirst and claimedToday))
+			then left
+			else 0,
+		needsMatch = needsMatch,
 		total = count,
 		week = week,
 		reward = reward,
@@ -266,47 +360,90 @@ function Daily.loginState(login: Login, today: number, vip: boolean?): LoginStat
 	}
 end
 
---- Claims today's loop reward. Returns (true, the new Login to store, the reward) or
---- (false, an unchanged copy of the Login, nil) when today is already claimed. Never changes
---- the table it is given.
-function Daily.claimLogin(login: Login, today: number, vip: boolean?): (boolean, Login, Reward?)
+--- Claims today's login reward (`vip` and `extra` as Daily.loginState). Returns (true, the
+--- new Login to store, the reward) or (false, an unchanged copy of the Login, nil) when today
+--- is already claimed or waits for a match. A first-week claim stores StreakDay 0, so the
+--- later weeks start at day 1. Never changes the table it is given.
+function Daily.claimLogin(
+	login: Login,
+	today: number,
+	vip: boolean?,
+	extra: LoginExtra?
+): (boolean, Login, Reward?)
 	local now = whole(today)
-	local last, streakDay, total, freeze = readLogin(login)
-	local state = Daily.loginState(login, now, vip)
+	local last, streakDay, total, freeze, first = readLogin(login)
+	local state = Daily.loginState(login, now, vip, extra)
 	if not state.canClaim then
 		return false,
-			{ LastDay = last, StreakDay = streakDay, Total = total, FreezeWeek = freeze },
+			{
+				LastDay = last,
+				StreakDay = streakDay,
+				Total = total,
+				FreezeWeek = freeze,
+				FirstWeek = first,
+			},
 			nil
 	end
 	return true,
 		{
 			LastDay = now,
-			StreakDay = state.day,
+			StreakDay = if state.firstWeek then 0 else state.day,
 			Total = state.total,
 			FreezeWeek = if state.frozen then Daily.weekOf(now) else freeze,
+			FirstWeek = if state.firstWeek then state.day else first,
 		},
 		state.reward
 end
 
---- The /setday dev command: a new Login whose NEXT claim (today) is loop day `n` (1..7) and,
---- when `week` is given (1..TrackDays / 7), the track's day (week - 1) * 7 + n. Works even
---- when today is already claimed, so the tester can claim day n straight away.
-function Daily.setStreakDay(login: Login, today: number, n: number, week: number?): Login
+--- The /setday dev command: a new Login whose NEXT claim (today) is later-weeks loop day `n`
+--- (1..7; the first week counts as done) and, when `week` is given (1..TrackDays / 7), the
+--- track's day (week - 1) * 7 + n. `firstWeek` = true instead makes it first-week day `n`
+--- (1..#FirstWeek; the player must still be inside the window). Works even when today is
+--- already claimed, so the tester can claim day n straight away.
+function Daily.setStreakDay(
+	login: Login,
+	today: number,
+	n: number,
+	week: number?,
+	firstWeek: boolean?
+): Login
 	local now = whole(today)
-	local day = math.clamp(whole(n), 1, DAYS)
 	local _, _, _, freeze = readLogin(login)
+	if firstWeek == true then
+		local day = math.clamp(whole(n), 1, FIRST_DAYS)
+		return {
+			LastDay = if day > 1 then now - 1 else 0,
+			StreakDay = 0,
+			Total = day - 1,
+			FreezeWeek = freeze,
+			FirstWeek = day - 1,
+		}
+	end
+	local day = math.clamp(whole(n), 1, DAYS)
 	local count = if week ~= nil
 		then (math.clamp(whole(week), 1, TRACK_DAYS // 7) - 1) * 7 + day
 		else Daily.loginState(login, now).total
 	-- Store the claim just before the one wanted, dated yesterday.
 	if day > 1 then
-		return { LastDay = now - 1, StreakDay = day - 1, Total = count - 1, FreezeWeek = freeze }
+		return {
+			LastDay = now - 1,
+			StreakDay = day - 1,
+			Total = count - 1,
+			FreezeWeek = freeze,
+			FirstWeek = FIRST_DAYS,
+		}
 	end
-	return { LastDay = 0, StreakDay = 0, Total = math.max(0, count - 1), FreezeWeek = freeze }
+	return {
+		LastDay = 0,
+		StreakDay = 0,
+		Total = math.max(0, count - 1),
+		FreezeWeek = freeze,
+		FirstWeek = FIRST_DAYS,
+	}
 end
 
 ---------------------------------------------------------------------------------------------
--- Playtime gifts (ECONOMY 10): minutes played in the UTC day, each gift once a day
+-- Playtime gifts (ECONOMY 10): minutes played in the day, each gift once a day
 ---------------------------------------------------------------------------------------------
 
 -- The save's claimed-gift map, keyed "1", "2", "3" (string keys: a save may not hold a

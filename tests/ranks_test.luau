@@ -497,24 +497,24 @@ return {
 		-- { money, block kind, count, cue } (Bronze's block is a Mystery one: the tutorial's
 		-- Standard block in game 1; cases retired for lucky blocks 2026-10-04)
 		local firsts: { [string]: { any } } = {
-			Bronze = { 2500, "Mystery", 1, "BronzeCue" },
-			Silver = { 5000, "Rare", 1, "SilverCue" },
-			Gold = { 10000, "Rare", 2, "GoldCue" },
-			Platinum = { 20000, "Rare", 3, "PlatinumCue" },
-			Diamond = { 50000, "Epic", 1, "DiamondCue" },
-			Expert = { 100000, "Epic", 2, "ExpertCue" },
-			Veteran = { 200000, "Epic", 3, "VeteranCue" },
-			Master = { 400000, "Legendary", 1, "MasterCue" },
-			Grandmaster = { 750000, "Legendary", 2, "GrandmasterCue" },
-			Reyes = { 2000000, "Mythic", 1, "ReyesCue" },
+			-- Economy v4 (2026-10-08, plan section 7): Platinum and up pay better blocks.
+			Bronze = { 2500, { Mystery = 1 }, "BronzeCue" },
+			Silver = { 5000, { Rare = 1 }, "SilverCue" },
+			Gold = { 10000, { Rare = 2 }, "GoldCue" },
+			Platinum = { 20000, { Epic = 1 }, "PlatinumCue" },
+			Diamond = { 50000, { Epic = 2 }, "DiamondCue" },
+			Expert = { 100000, { Legendary = 1 }, "ExpertCue" },
+			Veteran = { 200000, { Legendary = 1, Epic = 1 }, "VeteranCue" },
+			Master = { 400000, { Legendary = 2 }, "MasterCue" },
+			Grandmaster = { 750000, { Mythic = 1 }, "GrandmasterCue" },
+			Reyes = { 2000000, { Mythic = 2 }, "ReyesCue" },
 		}
 		for _, tier in ALL_TIERS do
 			local want = firsts[tier]
 			local first = Ranks.rewardFor(Ranks.indexOf(tier, 1))
 			H.expect(first.money == want[1], tier .. " I money " .. first.money)
-			local blocks = if want[2] then { [want[2]] = want[3] } else {}
-			H.expect(sameValue(first.blocks, blocks), tier .. " I blocks")
-			H.expect(first.cue == want[4], tier .. " I cue " .. tostring(first.cue))
+			H.expect(sameValue(first.blocks, want[2]), tier .. " I blocks")
+			H.expect(first.cue == want[3], tier .. " I cue " .. tostring(first.cue))
 			if tier ~= "Reyes" then
 				for division = 2, 5 do
 					local step = Ranks.rewardFor(Ranks.indexOf(tier, division))
@@ -610,13 +610,13 @@ return {
 
 	["rank rewards are paid once per division, blocks and cues merged"] = function()
 		local Ranks = load()
-		-- Gold V to Platinum I: a tier's money, its 3 Rare blocks and its cue.
+		-- Gold V to Platinum I: a tier's money, its Epic block and its cue.
 		local r1 = Ranks.applyMatch(saveAt(Ranks, "Gold", 5, 1550), ctx("Win"))
 		expectRank(r1.after, "Platinum", 1, 50, "Gold V win")
 		H.expect(#r1.rewards == 1 and r1.rewards[1].index == 16 and r1.rewards[1].money == 20000)
 		H.expect(r1.rewardTotal == 20000 and r1.newTier and r1.promoted)
 		H.expect(
-			sameValue(r1.rewardBlocks, { Rare = 3 }) and sameValue(r1.rewardCues, { "PlatinumCue" })
+			sameValue(r1.rewardBlocks, { Epic = 1 }) and sameValue(r1.rewardCues, { "PlatinumCue" })
 		)
 		-- Gold IV to V is a step: money only.
 		local r2 = Ranks.applyMatch(saveAt(Ranks, "Gold", 4, 1450), ctx("Win"))
@@ -643,12 +643,13 @@ return {
 		-- The whole ladder at once: every tier's blocks.
 		local everything = Ranks.applyXp(unranked(), 307500)
 		H.expect(everything.after.tier == "Reyes" and #everything.rewards == 46)
-		H.expect(
-			sameValue(
-				everything.rewardBlocks,
-				{ Mystery = 1, Rare = 1 + 2 + 3, Epic = 1 + 2 + 3, Legendary = 1 + 2, Mythic = 1 }
-			)
-		)
+		H.expect(sameValue(everything.rewardBlocks, {
+			Mystery = 1,
+			Rare = 1 + 2,
+			Epic = 1 + 2 + 1,
+			Legendary = 1 + 1 + 2,
+			Mythic = 1 + 2,
+		}))
 		H.expect(#everything.rewardCues == 10 and everything.rewardCues[10] == "ReyesCue")
 	end,
 

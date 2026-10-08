@@ -36,7 +36,12 @@ export type Block = { Id: number, Kind: string, ReadyAt: number, Paid: boolean? 
 export type State = {
 	Next: number,
 	List: { Block },
+	-- Paid timer skips not yet used (a receipt whose block had finished): SkipCredits skip any
+	-- timer (the top price, and every skip bought before economy v4); SkipCredits1 and
+	-- SkipCredits2 only a timer with at most Config.LuckyBlocks.Skips[1 or 2].UpTo left.
 	SkipCredits: number?,
+	SkipCredits1: number?,
+	SkipCredits2: number?,
 	SkipTarget: number?,
 	Opened: { [string]: number }?,
 }
@@ -93,7 +98,15 @@ end
 
 --- A new player's blocks: none.
 function LuckyBlocks.fresh(): State
-	return { Next = 0, List = {}, SkipCredits = 0, SkipTarget = 0, Opened = {} }
+	return {
+		Next = 0,
+		List = {},
+		SkipCredits = 0,
+		SkipCredits1 = 0,
+		SkipCredits2 = 0,
+		SkipTarget = 0,
+		Opened = {},
+	}
 end
 
 --- Seconds after landing until a block of `kind` can be thrown (0 for an unknown kind). VIP
@@ -160,22 +173,79 @@ function LuckyBlocks.finishTimers(state: State, now: number): number
 	return n
 end
 
---- Spend one previously purchased credit on precisely this still-running timer.
-function LuckyBlocks.useSkip(state: State, id: number, now: number): boolean
-	local block = LuckyBlocks.find(state, id)
-	if block == nil or LuckyBlocks.isReady(block, now) or (state.SkipCredits or 0) < 1 then
-		return false
-	end
-	state.SkipCredits = (state.SkipCredits or 0) - 1
-	state.SkipTarget = 0
-	block.ReadyAt = now
-	block.Paid = true
-	return true
+---------------------------------------------------------------------------------------------
+-- The skip by time left (Config.LuckyBlocks.Skips; economy v4, designer 2026-10-08)
+---------------------------------------------------------------------------------------------
+
+type SkipRow = { UpTo: number?, Product: string }
+local SKIPS: { SkipRow } = Config.LuckyBlocks.Skips :: any
+
+-- The save field holding credits of skip tier `tier` (the top tier: SkipCredits).
+local function creditField(tier: number): string
+	return if tier >= #SKIPS then "SkipCredits" else "SkipCredits" .. tier
 end
 
---- Receipt grant: never lose a purchase if its target disappeared or finished while offline.
-function LuckyBlocks.grantSkip(state: State, now: number)
-	state.SkipCredits = (state.SkipCredits or 0) + 1
+--- The skip tier a timer with `seconds` left needs (1..#Skips): the first row whose UpTo
+--- covers it, else the last.
+function LuckyBlocks.skipTierFor(seconds: number): number
+	for i, row in SKIPS do
+		if row.UpTo == nil or seconds <= row.UpTo then
+			return i
+		end
+	end
+	return #SKIPS
+end
+
+--- The skip product for `block` at `now` (the price for the time left right now) and its
+--- tier, or nil for a block that is ready.
+function LuckyBlocks.skipProduct(block: Block, now: number): (string?, number?)
+	local left = LuckyBlocks.secondsLeft(block, now)
+	if left <= 0 then
+		return nil, nil
+	end
+	local tier = LuckyBlocks.skipTierFor(left)
+	return SKIPS[tier].Product, tier
+end
+
+--- The skip tier a Config.Products key buys, or nil for any other key.
+function LuckyBlocks.skipTierOf(key: string): number?
+	for i, row in SKIPS do
+		if row.Product == key then
+			return i
+		end
+	end
+	return nil
+end
+
+--- Spend one previously purchased credit on precisely this still-running timer: the cheapest
+--- credit whose tier covers the time left (a credit never skips a longer timer than it was
+--- bought for).
+function LuckyBlocks.useSkip(state: State, id: number, now: number): boolean
+	local block = LuckyBlocks.find(state, id)
+	if block == nil or LuckyBlocks.isReady(block, now) then
+		return false
+	end
+	local s: any = state
+	local need = LuckyBlocks.skipTierFor(LuckyBlocks.secondsLeft(block, now))
+	for tier = need, #SKIPS do
+		local field = creditField(tier)
+		if (s[field] or 0) >= 1 then
+			s[field] -= 1
+			state.SkipTarget = 0
+			block.ReadyAt = now
+			block.Paid = true
+			return true
+		end
+	end
+	return false
+end
+
+--- Receipt grant of a skip of tier `tier` (nil: the top tier): never lose a purchase if its
+--- target disappeared or finished while offline (it stays a credit of that tier).
+function LuckyBlocks.grantSkip(state: State, now: number, tier: number?)
+	local s: any = state
+	local field = creditField(math.clamp(tier or #SKIPS, 1, #SKIPS))
+	s[field] = (s[field] or 0) + 1
 	LuckyBlocks.useSkip(state, state.SkipTarget or 0, now)
 	state.SkipTarget = 0
 end

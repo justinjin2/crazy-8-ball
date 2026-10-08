@@ -1,9 +1,9 @@
 --!strict
 -- Restock: the restock shop (the lucky-block economy, designer 2026-10-04; ECONOMY section
 -- 12). Every Config.Shop.Restock.SlotSeconds on the clock (UTC :00, :10 ...) a new restock:
--- Slots slots that each roll one lucky block kind by Odds (an Uncommon most of the time, a
--- Rare often, an Epic rarely, a Legendary almost never), and a VIP-only slot rolled by
--- VipOdds. The kinds come from the slot number through an integer hash, so every server
+-- Slots slots that each roll one lucky block kind by Odds (economy v4: a Rare most of the
+-- time, an Epic about 1 restock in 3, a Legendary about 4 times a day, a Mythic about every 5
+-- days), and a VIP-only slot rolled by VipOdds. The kinds come from the slot number through an integer hash, so every server
 -- shows the same restock with no messaging.
 --
 -- Stock is per player per restock per slot (the save's Shop.Restock = { Slot, Bought = { [id]
@@ -145,7 +145,7 @@ function Restock.find(slot: number, id: any): Item?
 	return nil
 end
 
---- Whether restock `slot` has block kind `kind` in a non-VIP slot (the Legendary shout).
+--- Whether restock `slot` has block kind `kind` in a non-VIP slot.
 function Restock.has(slot: number, kind: string): boolean
 	for _, it in Restock.items(slot) do
 		if it.block == kind and not it.vip then
@@ -153,6 +153,19 @@ function Restock.has(slot: number, kind: string): boolean
 		end
 	end
 	return false
+end
+
+--- The kind restock `slot` is announced for in every server (Config.Shop.Restock.Announce:
+--- a Legendary or Mythic block in a non-VIP slot; the rarest one when both), or nil.
+function Restock.announced(slot: number): string?
+	local announce: { [string]: boolean } = (R.Announce or {}) :: any
+	for i = #KIND_ORDER, 1, -1 do
+		local kind = KIND_ORDER[i]
+		if announce[kind] == true and Restock.has(slot, kind) then
+			return kind
+		end
+	end
+	return nil
 end
 
 local function whole(x: any): number

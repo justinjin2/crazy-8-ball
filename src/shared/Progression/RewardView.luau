@@ -13,7 +13,8 @@ local Social = require(script.Parent.Social)
 
 local D = Config.Daily
 local DAYS = #D.Streak
-local SECONDS_PER_DAY = 86400
+local FIRST_DAYS = #D.FirstWeek
+local WIN_TRACK: { string } = Config.BlockOdds.Drop.WinTrack :: any
 
 -- A reward as remotes carry it: money, the lucky blocks as a list in
 -- Config.LuckyBlocks.Order, the ability spins and Lucky Spins it adds (0 for none: the client
@@ -28,7 +29,11 @@ export type RewardOut = {
 export type LoginView = {
 	canClaim: boolean,
 	claimedToday: boolean,
-	day: number, -- the loop day today's claim is (or was): 1..7
+	day: number, -- the day today's claim is (or was): the first week's or the loop's, 1..7
+	firstWeek: boolean, -- today's claim is a first-week day (the days are the first week's)
+	firstWeekDays: number, -- first-week days claimed (today's counts once made)
+	firstWeekLeft: number, -- days left in the first week's window, today included (0: over)
+	needsMatch: boolean, -- today's claim waits for a finished match (Config.Daily.NeedsMatch)
 	week: number, -- the 28-day track's week that claim is in: 1..weeks
 	total: number, -- days claimed counting today's claim
 	bonus: boolean, -- today's claim includes a 28-day track reward
@@ -37,10 +42,10 @@ export type LoginView = {
 	reward: RewardOut, -- the loop day, the track and VIP's spin together
 }
 
--- One of the seven day tiles of the loop.
+-- One of the seven day tiles: the first week's while it lasts, else the later weeks' loop.
 export type DayView = {
 	day: number,
-	reward: RewardOut, -- the loop day's own reward (VIP's spin included for a VIP)
+	reward: RewardOut, -- the day's own reward (VIP's spin and block included for a VIP)
 	bonus: boolean, -- always false (the track has its own rows)
 	claimed: boolean, -- claimed in this streak (a check mark)
 	today: boolean, -- today's tile (it glows with Claim while canClaim)
@@ -86,6 +91,12 @@ export type FavoriteView = {
 	reward: RewardOut,
 }
 
+-- The day's win track (economy v4 plan section 5): the bar above the hotbar.
+export type WinsView = {
+	given: number, -- track steps given today, 0..#kinds
+	kinds: { string }, -- each step's block kind (Config.BlockOdds.Drop.WinTrack)
+}
+
 export type Payload = {
 	today: number,
 	resetsAt: number,
@@ -102,6 +113,7 @@ export type Payload = {
 	group: GroupView,
 	invite: InviteView,
 	favorite: FavoriteView,
+	wins: WinsView,
 	ready: boolean,
 }
 
@@ -145,22 +157,28 @@ function RewardView.titles(titles: any): { string }
 	return list
 end
 
---- Which playtime gifts are ready now, as a short key ("100": the first only), so the server
---- re-sends the state when a gift becomes ready and not on every playtime tick.
+--- Which playtime gifts are ready now, as a short key ("100": the first only), then whether a
+--- match was finished today (the login claim waits for one) and the win track's steps, so
+--- the server re-sends the state when any of these change and not on every playtime tick.
 function RewardView.readyKey(daily: any): string
 	local parts = {}
 	for _, gift in Daily.playtimeState(daily) do
 		table.insert(parts, if gift.ready then "1" else "0")
 	end
+	local t = if type(daily) == "table" then daily else {}
+	table.insert(parts, if num(t.Matches) > 0 then "m" else "-")
+	table.insert(parts, tostring(math.floor(num(t.Track))))
 	return table.concat(parts)
 end
 
 --- The RewardState payload for one player at unix time `now` (its shape is written in
 --- Net.luau, RewardState). `login` is the save's Login, `daily` today's Daily (a fresh one on
 --- a new day: PlayerData.dailyState), `titles` the save's Titles, `vip` whether the player
---- is VIP (each day's claim adds Config.Daily.VipSpins), `social` the save's Social and
---- `member` whether the player is in the group (the InGroup attribute), `flags` the save's
---- Flags (the favorite reward's flag, RewardView.FavoriteFlag).
+--- is VIP (each day's claim adds Config.Daily.VipSpins and VipBlocks), `social` the save's
+--- Social and `member` whether the player is in the group (the InGroup attribute), `flags`
+--- the save's Flags (the favorite reward's flag, RewardView.FavoriteFlag) and `extra` what
+--- the login rules need besides the save (Daily.LoginExtra: the join day, VIP's restriction;
+--- today's match is read from `daily`).
 function RewardView.build(
 	login: any,
 	daily: any,
@@ -169,10 +187,18 @@ function RewardView.build(
 	vip: boolean?,
 	social: any,
 	member: boolean?,
-	flags: any?
+	flags: any?,
+	extra: Daily.LoginExtra?
 ): Payload
 	local today = Daily.dayOf(num(now))
-	local state = Daily.loginState(login, today, vip)
+	local matches = if type(daily) == "table" then num(daily.Matches) else 0
+	local loginExtra: Daily.LoginExtra = {
+		joinDay = if extra then extra.joinDay else nil,
+		restricted = if extra then extra.restricted else nil,
+		played = matches > 0,
+	}
+	local restricted = loginExtra.restricted
+	local state = Daily.loginState(login, today, vip, loginExtra)
 
 	-- The track: the days claimed in this round (today's claim counts once made).
 	local claimedTotal = if state.claimedToday then state.total else state.total - 1
@@ -190,8 +216,13 @@ function RewardView.build(
 	end
 
 	local days: { DayView } = {}
-	for day = 1, DAYS do
-		local reward, bonus = Daily.streakReward(day, vip)
+	for day = 1, if state.firstWeek then FIRST_DAYS else DAYS do
+		local reward, bonus
+		if state.firstWeek then
+			reward, bonus = Daily.firstWeekReward(day, vip, restricted), false
+		else
+			reward, bonus = Daily.streakReward(day, vip, restricted)
+		end
 		table.insert(days, {
 			day = day,
 			reward = RewardView.reward(reward),
@@ -223,13 +254,17 @@ function RewardView.build(
 	local inviteBlock: { [string]: number } = { [Config.Social.InviteBlock] = 1 }
 	return {
 		today = today,
-		resetsAt = (today + 1) * SECONDS_PER_DAY,
+		resetsAt = Daily.dayStart(today + 1),
 		sentAt = math.floor(num(now)),
 		weeks = D.WeeksForBonus,
 		login = {
 			canClaim = state.canClaim,
 			claimedToday = state.claimedToday,
 			day = state.day,
+			firstWeek = state.firstWeek,
+			firstWeekDays = state.firstWeekDays,
+			firstWeekLeft = state.firstWeekLeft,
+			needsMatch = state.needsMatch,
 			week = state.week,
 			total = state.total,
 			bonus = state.bonus,
@@ -278,6 +313,14 @@ function RewardView.build(
 				spins = 0,
 				lucky = 0,
 			}),
+		},
+		wins = {
+			given = math.clamp(
+				math.floor(num(if type(daily) == "table" then daily.Track else 0)),
+				0,
+				#WIN_TRACK
+			),
+			kinds = table.clone(WIN_TRACK),
 		},
 		ready = anyReady,
 	}

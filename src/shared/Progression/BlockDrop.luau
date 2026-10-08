@@ -1,10 +1,11 @@
 --!strict
--- BlockDrop: the tier roll behind a win's lucky block (the approved economy plan, 2026-10-02,
--- section 2, moved onto lucky blocks 2026-10-04). Every real win gives a Mystery lucky block
--- (the first win ever a Rare block); when a free Mystery block opens, the server rolls its tier
--- by Config.BlockOdds.Drop.Weights with pity, then rolls that tier's odds row. This module is
--- the tier roll, the pity counters, the per-drop rarity chances the odds panels show, and the
--- rule that says whether a win drops a block at all (the anti-farm rules, ECONOMY 3.6).
+-- BlockDrop: the Mystery block's tier roll and the win's block (economy v4, 2026-10-08, plan
+-- sections 3 and 5). A real win moves the day's win track and gives its step's block (the
+-- first win ever a Rare block); when any Mystery block opens, the server rolls its tier by
+-- Config.BlockOdds.Drop.Weights with pity, then rolls that tier's odds row. This module is the
+-- tier roll, the pity counters, the per-drop rarity chances the odds panels show, the presses'
+-- path, and the rule that says whether a win gives a block at all (the anti-farm rules,
+-- ECONOMY 3.6).
 --
 -- Pure: no Instances, no clocks, no randomness of its own (the caller passes rng(n) -> 1..n).
 -- Every list walks Config.BlockOdds.Order or Rarities, never hash order.
@@ -15,6 +16,7 @@ local C = Config.BlockOdds
 local D = C.Drop
 local E = Config.Economy
 local WEIGHTS: { [string]: number } = D.Weights :: any
+local WIN_TRACK: { string } = D.WinTrack :: any
 
 -- The drop counters the save keeps (save.Drops): drops in a row without a Rare-or-better tier
 -- and without an Epic-or-better tier, and every drop ever.
@@ -39,6 +41,9 @@ export type DropContext = {
 	-- this true until that block actually drops, so a first win blocked by an anti-farm rule
 	-- does not use it up.
 	firstWinEver: boolean,
+	-- The day's win track steps already given (Daily.Track; Config.BlockOdds.Drop.WinTrack).
+	-- nil counts as 0.
+	trackToday: number?,
 }
 
 local BlockDrop = {}
@@ -172,119 +177,51 @@ function BlockDrop.roll(pity: Pity, rng: (number) -> number, forced: string?): (
 end
 
 ---------------------------------------------------------------------------------------------
--- The upgrade screen's path (Config.BlockOdds.Drop.Upgrade, designer 2026-10-07)
+-- The upgrade screen's path (Config.BlockOdds.Drop.Upgrade; economy v4 plan 3.2)
 ---------------------------------------------------------------------------------------------
 
 local UP = D.Upgrade
 local CHANCE: { [string]: number } = UP.Chances :: any
 
--- A press's chance to raise `tier` one step (0 at the top of the ladder).
-local function upChance(tier: string): number
-	if RANK[tier] >= #C.Order then
-		return 0
-	end
-	return (CHANCE[tier] or 0) / C.OddsTotal
-end
-
--- Every way Clicks presses can go: { tiers, weight } where weight is the chance of the
--- starting tier (from `first`) times each later press's stay-or-raise chance.
-local function allPaths(first: { [string]: number }): { { tiers: { string }, weight: number } }
-	local paths = {}
-	local function walk(tiers: { string }, weight: number)
-		if weight <= 0 then
-			return
-		end
-		if #tiers == UP.Clicks then
-			table.insert(paths, { tiers = table.clone(tiers), weight = weight })
-			return
-		end
-		local at = tiers[#tiers]
-		local up = upChance(at)
-		table.insert(tiers, at)
-		walk(tiers, weight * (1 - up))
-		table.remove(tiers)
-		if up > 0 then
-			table.insert(tiers, C.Order[RANK[at] + 1])
-			walk(tiers, weight * up)
-			table.remove(tiers)
-		end
-	end
-	for _, tier in C.Order do
-		walk({ tier }, first[tier] or 0)
-	end
-	return paths
-end
-
-local firstCache: { [string]: number }? = nil
-
---- The first press's chance of each tier (0..1), the one that makes the chain's final tier
---- match Drop.Weights exactly (solved from the top of the ladder down; a tier the chain can
---- only reach by upgrading gets 0).
+--- The first press's chance of each tier (0..1): the block starts as Standard on screen and the
+--- first press lifts it to Uncommon when it is one of the presses that climb. A block that
+--- ends `k` tiers above Standard climbs on `k` of the Clicks presses, each choice equally
+--- likely, so the first press climbs k / Clicks of the time.
 function BlockDrop.firstOdds(): { [string]: number }
-	if firstCache then
-		return firstCache
-	end
-	-- reach[i][j]: the chance a block that starts at tier i ends at tier j after the presses.
-	local n = #C.Order
-	local steps = UP.Clicks - 1
-	local reach: { { number } } = {}
-	for i = 1, n do
-		local row = table.create(n, 0)
-		row[i] = 1
-		for _ = 1, steps do
-			local nextRow = table.create(n, 0)
-			for j = 1, n do
-				if row[j] > 0 then
-					local up = upChance(C.Order[j])
-					nextRow[j] += row[j] * (1 - up)
-					if up > 0 then
-						nextRow[j + 1] += row[j] * up
-					end
-				end
-			end
-			row = nextRow
-		end
-		reach[i] = row
-	end
 	local first: { [string]: number } = {}
-	for j = 1, n do
-		local want = (WEIGHTS[C.Order[j]] or 0) / C.OddsTotal
-		for i = 1, j - 1 do
-			want -= (first[C.Order[i]] or 0) * reach[i][j]
-		end
-		first[C.Order[j]] = math.max(0, want / reach[j][j])
+	for _, tier in C.Order do
+		first[tier] = 0
 	end
-	firstCache = first
+	local up = 0
+	for _, tier in C.Order do
+		up += (WEIGHTS[tier] or 0) / C.OddsTotal * (RANK[tier] - 1) / UP.Clicks
+	end
+	first[C.Order[1]] = 1 - up
+	first[C.Order[2]] = up
 	return first
 end
 
 --- The tiers a Mystery block shows press by press on the upgrade screen, ending on `final`
---- (the tier BlockDrop.roll gave): Clicks tiers, never going down, at most one step a press.
---- Picked among every path the chain could take to `final`, by how likely each is, so the
---- presses look exactly like the chain while the final odds stay Drop.Weights with pity.
---- `rng(n)` returns 1..n.
+--- (the tier BlockDrop.roll gave): Clicks tiers. The block starts as Standard; a block that
+--- ends `k` tiers above it climbs one tier on exactly `k` of the presses, which ones picked
+--- with every choice equally likely. A climb never fizzles or falls back. `rng(n)` returns
+--- 1..n.
 function BlockDrop.path(final: string, rng: (number) -> number): { string }
 	assert(RANK[final] ~= nil, "BlockDrop.path: unknown tier " .. tostring(final))
-	local ending = {}
-	local total = 0
-	for _, p in allPaths(BlockDrop.firstOdds()) do
-		if p.tiers[#p.tiers] == final then
-			table.insert(ending, p)
-			total += p.weight
+	local clicks = UP.Clicks
+	local left = RANK[final] - 1
+	local at = 1
+	local tiers = table.create(clicks, C.Order[1])
+	for press = 1, clicks do
+		-- Selection sampling: climb with chance (climbs left) / (presses left), which picks
+		-- each set of `k` presses equally often.
+		if left > 0 and rng(clicks - press + 1) <= left then
+			at += 1
+			left -= 1
 		end
+		tiers[press] = C.Order[at]
 	end
-	if total <= 0 then
-		-- No path weighs anything (a tier the chain cannot reach): it simply starts there.
-		return table.create(UP.Clicks, final)
-	end
-	local pick = (rng(C.OddsTotal) - 0.5) / C.OddsTotal * total
-	for _, p in ending do
-		pick -= p.weight
-		if pick <= 0 then
-			return p.tiers
-		end
-	end
-	return ending[#ending].tiers
+	return tiers
 end
 
 --- Everything wrong with Config.BlockOdds.Drop, sorted (empty when all is well): weights that
@@ -343,17 +280,41 @@ do
 end
 
 ---------------------------------------------------------------------------------------------
--- The win's block (economy plan sections 1 and 2; ECONOMY 3.6)
+-- The win's block: the daily win track (v4 plan section 5; ECONOMY 3.6)
 ---------------------------------------------------------------------------------------------
 
---- Whether this win drops a lucky block, and the kind it is forced to (the first win's Rare
---- block) or nil for the usual Mystery block. Every real win drops one, except: a loss, solo,
---- a match that was not real, a same-opponent row that forbids it, DropsPerOpponent drops from
---- this account today already, a loser with fewer than DropLoserMinMatches real matches (the
---- anti-farm rules apply to the first win too), or Play against PC past PcDropsPerDay drops
---- today.
+--- How many steps the daily win track has (#Config.BlockOdds.Drop.WinTrack).
+function BlockDrop.trackSteps(): number
+	return #WIN_TRACK
+end
+
+--- The block kind of win track step `step` (1..trackSteps()), or nil past the track.
+function BlockDrop.trackKind(step: number): string?
+	return WIN_TRACK[step]
+end
+
+--- The block kind a win that moves the track gives: the first win ever's FirstWin block,
+--- else the next step's block (`trackToday` steps given today). nil past the track.
+function BlockDrop.winKind(trackToday: number, firstWinEver: boolean): string?
+	local step = whole(trackToday) + 1
+	if step > #WIN_TRACK then
+		return nil
+	end
+	return if firstWinEver then D.FirstWin else WIN_TRACK[step]
+end
+
+--- Whether this win moves the day's win track (and gives its step's block), and that block's
+--- kind (the first win ever's FirstWin block, else the step's). Every real win does, except:
+--- a loss, solo, a match that was not real, the track already done today (trackSteps() steps),
+--- a same-opponent row that forbids it, DropsPerOpponent blocks from this account today
+--- already, a loser with fewer than DropLoserMinMatches real matches (the anti-farm rules apply
+--- to the first win too), or Play against PC past PcDropsPerDay blocks today.
 function BlockDrop.dropFor(ctx: DropContext): (boolean, string?)
 	if not ctx.won or not ctx.real or ctx.solo then
+		return false, nil
+	end
+	local kind = BlockDrop.winKind(ctx.trackToday or 0, ctx.firstWinEver)
+	if kind == nil then
 		return false, nil
 	end
 	if ctx.pcLimited and ctx.pcDropsToday >= E.PcDropsPerDay then
@@ -368,10 +329,7 @@ function BlockDrop.dropFor(ctx: DropContext): (boolean, string?)
 	if ctx.loserRealMatches < E.DropLoserMinMatches then
 		return false, nil
 	end
-	if ctx.firstWinEver then
-		return true, D.FirstWin
-	end
-	return true, nil
+	return true, kind
 end
 
 return BlockDrop

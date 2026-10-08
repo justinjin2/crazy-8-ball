@@ -376,13 +376,13 @@ function Items.restockSlot(now: number): number
 	return Restock.slotOf(now)
 end
 
---- Developer only (/restock): shows the next restock whose items include `itemId` in this
---- server until the real restock ends. Returns that slot, or nil when none is found soon.
-function Items.forceRestock(itemId: string): number?
+--- Developer only (/restock): shows the next restock with a `kind` block in a shared slot in
+--- this server until the real restock ends. Returns that slot, or nil when none is found soon.
+function Items.forceRestock(kind: string): number?
 	local now = os.time()
 	local slot = Restock.slotOf(now)
 	for n = slot, slot + 200000 do
-		if Restock.find(n, itemId) ~= nil then
+		if Restock.has(n, kind) then
 			forcedSlot = n
 			local _, endsAt = Restock.window(slot)
 			forcedUntil = endsAt

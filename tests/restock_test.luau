@@ -22,24 +22,34 @@ return {
 		local Restock, Config = load()
 		local R = Config.Shop.Restock
 		H.expect(R.SlotSeconds == 600 and R.Slots == 3, "every 10 minutes, three slots")
-		H.expect(R.Kinds.Uncommon.Price == 14900 and R.Kinds.Uncommon.Stock == 3, "Uncommon")
-		H.expect(R.Kinds.Rare.Price == 34900 and R.Kinds.Rare.Product == "RestockRare", "Rare")
-		H.expect(R.Kinds.Epic.Price == 349000 and R.Kinds.Epic.Product == "RestockEpic", "Epic")
+		-- Economy v4 (plan 8.4): Rare or better, a Mythic block about every 5 days.
+		H.expect(R.Kinds.Uncommon == nil and R.Odds.Uncommon == nil, "no Uncommon slot")
+		H.expect(R.Kinds.Rare.Price == 19900 and R.Kinds.Rare.Product == "RestockRare", "Rare")
+		H.expect(R.Kinds.Rare.Stock == 2, "two Rare blocks a restock")
+		H.expect(R.Kinds.Epic.Price == 199000 and R.Kinds.Epic.Product == "RestockEpic", "Epic")
 		H.expect(
-			R.Kinds.Legendary.Price == 3490000 and R.Kinds.Legendary.Product == "RestockLegendary",
+			R.Kinds.Legendary.Price == 1490000 and R.Kinds.Legendary.Product == "RestockLegendary",
 			"Legendary"
 		)
-		H.expect(R.Odds.Uncommon == 6200 and R.Odds.Rare == 3660, "Uncommon 62%, Rare 36.6%")
-		H.expect(R.Odds.Epic == 135 and R.Odds.Legendary == 5, "Epic 1.35%, Legendary 0.05%")
-		H.expect(R.VipOdds.Rare == 9600 and R.VipOdds.Legendary == 15, "the VIP slot")
+		H.expect(
+			R.Kinds.Mythic.Price == 4990000
+				and R.Kinds.Mythic.Product == "RestockMythic"
+				and R.Kinds.Mythic.Stock == 1,
+			"Mythic"
+		)
+		H.expect(R.Odds.Rare == 8700 and R.Odds.Epic == 1200, "Rare 87%, Epic 12%")
+		H.expect(R.Odds.Legendary == 95 and R.Odds.Mythic == 5, "Legendary 0.95%, Mythic 0.05%")
+		H.expect(R.VipOdds.Rare == 8000 and R.VipOdds.Epic == 1700, "the VIP slot")
+		H.expect(R.VipOdds.Legendary == 280 and R.VipOdds.Mythic == 20, "the VIP slot's top")
 		H.expect(#Restock.validate() == 0, table.concat(Restock.validate(), "; "))
 		H.expect(table.concat(Restock.ids(), " ") == "Slot1 Slot2 Slot3 Vip", "the item ids")
 		-- A roll lands on the kinds in ladder order.
-		H.expect(Restock.kindOf(0, R.Odds) == "Uncommon", "0: Uncommon")
-		H.expect(Restock.kindOf(6199, R.Odds) == "Uncommon", "the last Uncommon")
-		H.expect(Restock.kindOf(6200, R.Odds) == "Rare", "the first Rare")
-		H.expect(Restock.kindOf(9995, R.Odds) == "Legendary", "the first Legendary")
-		H.expect(Restock.kindOf(9999, R.Odds) == "Legendary", "the last roll")
+		H.expect(Restock.kindOf(0, R.Odds) == "Rare", "0: Rare")
+		H.expect(Restock.kindOf(8699, R.Odds) == "Rare", "the last Rare")
+		H.expect(Restock.kindOf(8700, R.Odds) == "Epic", "the first Epic")
+		H.expect(Restock.kindOf(9900, R.Odds) == "Legendary", "the first Legendary")
+		H.expect(Restock.kindOf(9995, R.Odds) == "Mythic", "the first Mythic")
+		H.expect(Restock.kindOf(9999, R.Odds) == "Mythic", "the last roll")
 		H.expect(Restock.kindOf(0, R.VipOdds) == "Rare", "the VIP slot is Rare or better")
 	end,
 
@@ -47,8 +57,8 @@ return {
 		local Restock, Config = load()
 		local R = Config.Shop.Restock
 		local N = 100000
-		local counts = { Uncommon = 0, Rare = 0, Epic = 0, Legendary = 0 }
-		local vipCounts = { Rare = 0, Epic = 0, Legendary = 0 }
+		local counts = { Rare = 0, Epic = 0, Legendary = 0, Mythic = 0 }
+		local vipCounts = { Rare = 0, Epic = 0, Legendary = 0, Mythic = 0 }
 		local base = 2983000 -- about 2026-09 in slots
 		for slot = base, base + N - 1 do
 			local items = Restock.items(slot)
@@ -93,31 +103,50 @@ return {
 		)
 		local startsAt, endsAt = Restock.window(5)
 		H.expect(startsAt == 3000 and endsAt == 3600, "the window")
-		-- A restock whose first slot is an Uncommon block (3 per player).
+		-- A restock whose first slot is a Rare block (2 per player).
 		local slot = 4000000
-		while Restock.find(slot, "Slot1").block ~= "Uncommon" do
+		while Restock.find(slot, "Slot1").block ~= "Rare" do
 			slot += 1
 		end
 		local save = { Slot = 0, Bought = {} }
 		local first = Restock.find(slot, "Slot1")
-		H.expect(first ~= nil and first.price == R.Kinds.Uncommon.Price, "Slot1")
-		for i = 1, 3 do
+		H.expect(first ~= nil and first.price == R.Kinds.Rare.Price, "Slot1")
+		for i = 1, 2 do
 			H.expect(Restock.check(first, save, slot, false) == nil, "buy " .. i)
 			Restock.record(save, slot, "Slot1")
 		end
-		H.expect(Restock.check(first, save, slot, false) == "SoldOut", "3 per player")
+		H.expect(Restock.check(first, save, slot, false) == "SoldOut", "2 per player")
 		H.expect(Restock.bought(save, slot + 1, "Slot1") == 0, "a new restock starts over")
 		H.expect(Restock.check(first, save, slot + 1, false) == nil, "on sale again")
 		Restock.record(save, slot - 1, "Slot1")
-		H.expect(save.Slot == slot and save.Bought.Slot1 == 3, "an older buy changes nothing")
+		H.expect(save.Slot == slot and save.Bought.Slot1 == 2, "an older buy changes nothing")
 		Restock.record(save, slot + 1, "Slot1")
 		H.expect(save.Slot == slot + 1 and save.Bought.Slot1 == 1, "the record starts over")
 		local vip = Restock.find(slot, "Vip")
 		H.expect(Restock.check(vip, save, slot, false) == "VipOnly", "VIP only")
 		H.expect(Restock.check(vip, save, slot, true) == nil, "a VIP buys it")
 		H.expect(Restock.check(nil, save, slot, true) == "NotSold", "not in this restock")
-		H.expect(Restock.find(slot, "Nope") == nil and Restock.find(slot, "Uncommon") == nil, "")
+		H.expect(Restock.find(slot, "Nope") == nil and Restock.find(slot, "Rare") == nil, "")
 		H.expect(Restock.stockKey(slot) == "Legendary:" .. slot, "the shared stock key")
+	end,
+
+	["a Legendary or Mythic block in a shared slot is announced, the rarest first"] = function()
+		local Restock = load()
+		local slot = 0
+		while not Restock.has(slot, "Mythic") do
+			slot += 1
+		end
+		H.expect(Restock.announced(slot) == "Mythic", "a Mythic block is announced")
+		local legendary = 0
+		while not (Restock.has(legendary, "Legendary") and not Restock.has(legendary, "Mythic")) do
+			legendary += 1
+		end
+		H.expect(Restock.announced(legendary) == "Legendary", "a Legendary block too")
+		local plain = 0
+		while Restock.has(plain, "Legendary") or Restock.has(plain, "Mythic") do
+			plain += 1
+		end
+		H.expect(Restock.announced(plain) == nil, "Rare and Epic restocks are not")
 	end,
 
 	["the view: this player's stock left; a Robux product finds a slot still in stock"] = function()
@@ -137,7 +166,7 @@ return {
 				table.insert(rareIds, it.id)
 			end
 		end
-		local view = Restock.view(slot, { Slot = slot, Bought = { [rareIds[1]] = 1 } }, false, 24)
+		local view = Restock.view(slot, { Slot = slot, Bought = { [rareIds[1]] = 2 } }, false, 24)
 		H.expect(view.slot == slot and view.endsAt == (slot + 1) * 600, "the restock")
 		local byId: { [string]: any } = {}
 		for _, it in view.items do
@@ -153,7 +182,7 @@ return {
 		H.expect(byId[legendaryId].block == "Legendary", "the block kind is in the view")
 		H.expect(not byId.Vip.canBuy and byId.Vip.reason == "VipOnly", "VIP only")
 		-- The Robux product RestockRare buys the first Rare slot still in this player's stock.
-		local bought = { Slot = slot, Bought = { [rareIds[1]] = 1 } }
+		local bought = { Slot = slot, Bought = { [rareIds[1]] = 2 } }
 		local item = Restock.forProduct(slot, "RestockRare", bought, false)
 		if #rareIds > 1 then
 			H.expect(item ~= nil and item.id == rareIds[2], "the next Rare slot")

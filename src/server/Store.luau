@@ -49,6 +49,7 @@ local Shop = require(Shared.Progression.Shop)
 local ShopView = require(Shared.Progression.ShopView)
 local Restock = require(Shared.Progression.Restock)
 local Inventory = require(Shared.Progression.Inventory)
+local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
 local PlayerData = require(script.Parent.PlayerData)
 local Funnel = require(script.Parent.Funnel)
 local Counters = require(script.Parent.Counters)
@@ -228,6 +229,7 @@ local function context(player: Player, now: number): ShopView.Context?
 		ownsCue = function(id: string): boolean
 			return Inventory.owns(data, id)
 		end,
+		found = Counters.limitedSold,
 	}
 end
 
@@ -515,10 +517,16 @@ local function grantProduct(player: Player, key: string, purchaseId: string): (b
 		if why ~= nil then
 			return false, why
 		end
-	elseif key == Config.LuckyBlocks.SkipProduct then
-		grant = { key = key, money = 0, luckySkip = true }
+	elseif LuckyBlocks.skipTierOf(key) ~= nil then
+		grant = { key = key, money = 0, luckySkip = true, skipTier = LuckyBlocks.skipTierOf(key) }
 	else
-		grant, notFor = Shop.grantFor(key, data.Shop, os.time(), owns(player, "Vip"))
+		grant, notFor = Shop.grantFor(
+			key,
+			data.Shop,
+			os.time(),
+			owns(player, "Vip"),
+			player:GetAttribute(ATTR.Restricted) == true
+		)
 	end
 	if grant == nil then
 		return false, "Unknown"
@@ -598,7 +606,7 @@ local function giftable(key: string): boolean
 	return row ~= nil
 		and row.Kind == "Product"
 		and row.Restock == nil
-		and key ~= Config.LuckyBlocks.SkipProduct
+		and LuckyBlocks.skipTierOf(key) == nil
 end
 
 -- The giver's receipt for a gift: the product lands in the receiver's save (their own
@@ -780,7 +788,15 @@ local function promptLuckySkip(player: Player, id: any): Reply
 	if not ready(player) then
 		return reply(false, "NotLoaded")
 	end
-	local product = Config.LuckyBlocks.SkipProduct
+	-- The skip's price follows the time left right now (Config.LuckyBlocks.Skips, economy v4).
+	local data = PlayerData.read(player)
+	local block = if data and type(id) == "number"
+		then LuckyBlocks.find(data.LuckyBlocks, id)
+		else nil
+	local product = if block then LuckyBlocks.skipProduct(block, os.time()) else nil
+	if product == nil then
+		return reply(false, "NoTimer")
+	end
 	local ctx = context(player, os.time())
 	local reason = if ctx then ShopView.check(product, ctx) else "NotLoaded"
 	if reason ~= nil then
@@ -827,6 +843,12 @@ local function onStoreRequest(player: Player, action: any, key: any, extra: any)
 		lastRequest[player] = clock
 		if not giftable(key) then
 			return reply(false, "NoGift")
+		elseif Shop.isRandom(key) and Items.isRestricted(player) ~= false then
+			-- The giver buys a paid random item too (economy v4 plan 13): not where restricted.
+			return reply(
+				false,
+				if Items.isRestricted(player) == nil then "NotLoaded" else "Restricted"
+			)
 		elseif type(extra) ~= "number" or extra ~= extra or extra ~= math.floor(extra) then
 			return reply(false, "BadRequest")
 		elseif extra == player.UserId then
@@ -1140,8 +1162,9 @@ local function watchLimitedSold()
 	end
 end
 
--- Every StateTickSeconds: the party's end, a new restock (a Legendary block in it is
--- announced here: every server picks the same restock), and each player's next change.
+-- Every StateTickSeconds: the party's end, a new restock (a Legendary or Mythic block in it
+-- is announced here: every server picks the same restock, so every server announces it), and
+-- each player's next change.
 local function tick()
 	local now = os.time()
 	local slot = Items.restockSlot(now)
@@ -1149,9 +1172,10 @@ local function tick()
 		local first = restockSlot < 0
 		restockSlot = slot
 		markAll()
-		if not first and Restock.has(slot, "Legendary") then
+		local shout = if first then nil else Restock.announced(slot)
+		if shout ~= nil then
 			local _, endsAt = Restock.window(Restock.slotOf(now))
-			Announce.restock("Legendary", endsAt)
+			Announce.restock(shout, endsAt)
 		end
 	end
 	if partyEndsAt > 0 and now >= partyEndsAt then

@@ -242,13 +242,13 @@ return {
 		for _, pack in E.MoneyPacks do
 			H.expect(SpinView.moneyPrice(pack) == pack * E.MoneyPerSpin, "no bulk discount")
 			local price, why = SpinView.buyCheck(pack, pack * E.MoneyPerSpin, false)
-			H.expect(price == pack * 17500 and why == nil, "exactly enough")
+			H.expect(price == pack * 12500 and why == nil, "exactly enough")
 			local _, short, need = SpinView.buyCheck(pack, pack * E.MoneyPerSpin - 1, false)
 			H.expect(short == "NotEnoughMoney" and need == 1, "one short")
 			H.expect(select(2, SpinView.buyCheck(pack, 1e9, true)) == "Restricted", "restricted")
 			H.expect(select(2, SpinView.buyCheck(pack, 1e9, nil)) == "NotLoaded", "unanswered")
 		end
-		H.expect(SpinView.moneyPrice(1) == 17500, "$17,500 a spin")
+		H.expect(SpinView.moneyPrice(1) == 12500, "$12,500 a spin (economy v4)")
 		for _, bad in { -5, 0, 2, 7, 1.5, "5", 0 / 0, math.huge, true } do
 			H.expect(SpinView.moneyPrice(bad) == 0, "not a pack: " .. tostring(bad))
 			H.expect(select(2, SpinView.buyCheck(bad, 1e9, false)) == "BadRequest", "refused")
@@ -464,7 +464,7 @@ return {
 		H.expect(none.rewardSpins == 0, "no rank-up, no spins")
 	end,
 
-	["loop day 7 and the 60-minute playtime gift add spins (plan section 6)"] = function()
+	["loop day 7 and the 60-minute playtime gift add spins (v4 plan section 6)"] = function()
 		for day = 1, #Config.Daily.Streak do
 			local reward = Daily.streakReward(day)
 			local want = if day == #Config.Daily.Streak then 2 else 0
@@ -476,17 +476,17 @@ return {
 			H.expect(gift.reward.spins == want, "gift " .. i)
 		end
 		local daily: any = { PlaySeconds = 99999, PlaytimeClaimed = {} }
-		local ok, reward = Daily.claimPlaytime(daily, 3)
+		local ok, reward = Daily.claimPlaytime(daily, 5)
 		H.expect(ok and (reward :: any).spins == 1, "claimed with its spin")
 		local payload = RewardView.build(
 			{ LastDay = 0, StreakDay = 0, Total = 0, FreezeWeek = 0 },
 			daily,
 			{},
-			DAY * 86400
+			Daily.dayStart(DAY)
 		)
 		H.expect(payload.days[7].reward.spins == 2, "the day 7 tile's chip")
 		H.expect(payload.days[1].reward.spins == 0, "day 1 has none")
-		H.expect(payload.playtime[3].reward.spins == 1, "the gift row's chip")
+		H.expect(payload.playtime[5].reward.spins == 1, "the gift row's chip")
 	end,
 
 	["the UltState payload"] = noIds(function()
@@ -513,7 +513,7 @@ return {
 			H.near(percent, want / 10000, 1e-9, name .. ": shown as percents adding to 100")
 		end
 		H.expect(p.live and not p.restricted and not p.vip and not p.devAll, "flags")
-		H.expect(p.moneyPerSpin == 17500 and #p.moneyPacks == 4, "money")
+		H.expect(p.moneyPerSpin == 12500 and #p.moneyPacks == 4, "money")
 		H.expect(p.code.active == "RELEASE" and p.code.nextGoalLikes == 100, "the code box")
 		H.expect(not p.auto.running and p.auto.count == 0 and #p.autoStopChoices == 3, "auto")
 		for _, key in SpinView.productKeys() do
@@ -524,9 +524,10 @@ return {
 			)
 		end
 		local s5 = p.products.Spin5
-		H.expect(s5.robux == 50 and s5.was == 75 and s5.spins == 5 and s5.kind == "Product", "")
+		-- Economy v4: was = the same count bought one at a time (5 x 9 R$).
+		H.expect(s5.robux == 39 and s5.was == 45 and s5.spins == 5 and s5.kind == "Product", "")
 		H.expect(p.products.Spin1.was == nil, "no crossed-out price on 1 spin")
-		H.expect(p.products.Lucky3.lucky == 3 and p.products.Lucky3.was == 147, "Lucky3")
+		H.expect(p.products.Lucky3.lucky == 3 and p.products.Lucky3.was == 75, "Lucky3")
 		H.expect(p.products.UltSlot2.kind == "Pass" and p.products.UltSlot2.slot == 2, "")
 		-- Restricted: spin packs refused, slot passes not.
 		local r = SpinView.state(ctx({ restricted = true, prices = { Spin5 = 45 } }))

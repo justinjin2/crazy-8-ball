@@ -20,7 +20,7 @@ return {
 				{ "Standard", "Standard", 0 },
 				{ "Uncommon", "Uncommon", 60 },
 				{ "Rare", "Rare", 300 },
-				{ "Epic", "Epic", 3600 },
+				{ "Epic", "Epic", 1800 }, -- economy v4 (2026-10-08): 30 minutes
 				{ "Legendary", "Legendary", 21600 },
 				{ "Mythic", "Mythic", 43200 },
 				{ "Gift", "Rare", 43200 },
@@ -48,7 +48,7 @@ return {
 		H.expect(L.current("Yellow") == "Standard" and L.current("GoldKing") == "Legendary", "")
 		H.expect(L.kind("Blue").Odds == "Rare" and L.current("Rare") == "Rare", "renamed")
 	end,
-	["the Grand Opening block's guarantee: the 400th open gives the Beta Cue if none"] = function()
+	["the Grand Opening block's guarantee: the 1,000th open gives the Beta Cue if none"] = function()
 		local L = load()
 		local state = L.fresh()
 		local function none(_: string): boolean
@@ -59,13 +59,16 @@ return {
 		end
 		H.expect(L.opened(state, "GrandOpening") == 0, "none opened")
 		H.expect(L.guaranteed(state, "GrandOpening", none) == nil, "the first: a roll")
-		for _ = 1, 398 do
+		for _ = 1, 998 do
 			L.noteOpened(state, "GrandOpening")
 		end
-		H.expect(L.opened(state, "GrandOpening") == 398, "counted")
-		H.expect(L.guaranteed(state, "GrandOpening", none) == nil, "the 399th: a roll")
+		H.expect(L.opened(state, "GrandOpening") == 998, "counted")
+		H.expect(L.guaranteed(state, "GrandOpening", none) == nil, "the 999th: a roll")
 		L.noteOpened(state, "GrandOpening")
-		H.expect(L.guaranteed(state, "GrandOpening", none) == "BetaCue", "the 400th: the Beta Cue")
+		H.expect(
+			L.guaranteed(state, "GrandOpening", none) == "BetaCue",
+			"the 1,000th: the Beta Cue"
+		)
 		H.expect(L.guaranteed(state, "GrandOpening", has) == nil, "owned already: a roll")
 		H.expect(L.guaranteed(state, "Standard", none) == nil, "no guarantee")
 		-- A paid block is ready at once and keeps its paid origin.
@@ -100,6 +103,33 @@ return {
 		H.expect(L.useSkip(restored.LuckyBlocks, nextBlock.Id, 1003), "credit usable on next block")
 		local again = Schema.validate(restored)
 		H.expect(L.find(again.LuckyBlocks, nextBlock.Id).Paid, "paid origin survives save repair")
+	end,
+	["the skip by time left: 4 R$ up to 30 minutes, 9 up to 6 hours, 15 beyond"] = function()
+		local L, Config = load()
+		local skips = Config.LuckyBlocks.Skips
+		H.expect(#skips == 3 and skips[1].UpTo == 1800 and skips[2].UpTo == 6 * 3600, "")
+		local robux = {}
+		for _, row in skips do
+			table.insert(robux, Config.Products.List[row.Product].Robux)
+		end
+		H.expect(table.concat(robux, " ") == "4 9 15", "the designer's 4 / 9 / 15 R$")
+		local state = L.fresh()
+		local epic = L.add(state, "Epic", 1000) -- 30 minutes
+		local mythic = L.add(state, "Mythic", 1000) -- 12 hours
+		H.expect(L.skipProduct(epic, 1000) == "LuckyBlockSkip", "30 min left: 4 R$")
+		H.expect(L.skipProduct(mythic, 1000) == "LuckyBlockSkip15", "12 h left: 15 R$")
+		H.expect(L.skipProduct(mythic, 1000 + 6 * 3600) == "LuckyBlockSkip9", "6 h left: 9 R$")
+		H.expect(L.skipProduct(mythic, 1000 + 12 * 3600 - 1800) == "LuckyBlockSkip", "30 min")
+		H.expect(L.skipProduct(epic, 1000 + 1800) == nil, "ready: no skip")
+		H.expect(L.skipTierOf("LuckyBlockSkip9") == 2 and L.skipTierOf("Pack1") == nil, "")
+		-- A credit never skips a longer timer than it was bought for.
+		L.grantSkip(state, 1000, 1) -- no target: a 4 R$ credit kept
+		H.expect(state.SkipCredits1 == 1, "kept as a short credit")
+		H.expect(not L.useSkip(state, mythic.Id, 1000), "not on 12 hours")
+		H.expect(L.useSkip(state, epic.Id, 1000), "on 30 minutes")
+		L.grantSkip(state, 1000, 3)
+		H.expect(state.SkipCredits == 1 and L.useSkip(state, mythic.Id, 1000), "the top one")
+		H.expect(L.find(state, mythic.Id).Paid and L.isReady(L.find(state, mythic.Id), 1000), "")
 	end,
 	["floor placement does not change the persistent inventory"] = function()
 		local L = load()

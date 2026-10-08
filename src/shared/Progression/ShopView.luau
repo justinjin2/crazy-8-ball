@@ -13,6 +13,7 @@ local Config = require(script.Parent.Parent.Config)
 local Shop = require(script.Parent.Shop)
 local Restock = require(script.Parent.Restock)
 local BlockDrop = require(script.Parent.BlockDrop)
+local BlockOdds = require(script.Parent.BlockOdds)
 local LuckyBlocks = require(script.Parent.LuckyBlocks)
 
 local S = Config.Shop
@@ -24,6 +25,7 @@ local LIST: {
 		Restock: string?,
 		SaleOf: string?,
 		Vip: boolean?,
+		Retired: boolean?,
 		Deal: string?,
 		Blocks: { Kind: string, Count: number }?,
 	},
@@ -51,6 +53,8 @@ export type Context = {
 	restockSlot: number?, -- the restock shown (nil: the one at `now`; /restock forces one)
 	blocks: any?, -- the save's LuckyBlocks (its Opened counts; nil: none opened)
 	ownsCue: ((string) -> boolean)?, -- whether this player owns a cue (the guarantee line)
+	-- Copies of a capped Unique cue found so far, nil unknown (Counters.limitedSold).
+	found: ((string) -> number?)?,
 }
 
 -- The restock shown, timed by the real restock's window (a /restock forced one is shown only
@@ -122,6 +126,16 @@ export type GuaranteeView = {
 	opened: number, -- opened so far
 	left: number, -- opens until it (0: the next one)
 	owned: boolean, -- the player has the cue already (the guarantee is spent)
+	soldOut: boolean, -- every copy is found: no guarantee left to give (economy v4)
+}
+
+-- A capped Unique row of a block's odds (economy v4 plan 8.5: "Beta Cue · 23 of 100 left").
+export type UniqueView = {
+	cue: string,
+	cap: number, -- copies ever
+	found: number?, -- copies found so far (nil before this server has read the count)
+	left: number?, -- cap - found
+	closed: boolean, -- this player owns one or none are left: the row shows as Rare
 }
 
 export type Payload = {
@@ -139,12 +153,14 @@ export type Payload = {
 	restock: any, -- Restock.view: this restock's items, this player's stock left, its end
 	deals: { [string]: DealView }, -- the block deals (Config.Shop.Deals) and their windows
 	guarantees: { [string]: GuaranteeView }, -- by block kind, for kinds with a Guarantee
+	uniques: { [string]: { UniqueView } }, -- by odds row, its capped Unique rows
 	mystery: { price: number, bulkCount: number, bulkPrice: number }, -- the Mystery deal's
 	pity: { rare: number, epic: number }, -- Mystery blocks until a Rare / Epic tier is guaranteed
 	robloxPlus: boolean, -- show the Get Roblox Plus button (StoreRequest "RobloxPlus")
 	bestValue: string, -- the money pack marked "Best value"
 	packs: { string }, -- the money packs in shop order
 	releaseSale: Shop.SaleWindow, -- the release sale: its window and which products it swaps in
+	launchBonus: Shop.BonusWindow, -- the launch bonus: +30% money packs, 13 Mystery for 10
 }
 
 -- The products whose purchase depends on more than their Id (ECONOMY 11.2-11.5).
@@ -235,6 +251,8 @@ function ShopView.check(key: string, ctx: Context): string?
 	local row = LIST[key]
 	if row == nil then
 		return "BadRequest"
+	elseif row.Retired == true then
+		return "Closed" -- the release sale's products (economy v4): never offered again
 	end
 	local vip = ShopView.isVip(ctx)
 	-- A deal product (the Grand Opening block) only inside its deal's window.
@@ -360,7 +378,8 @@ function ShopView.build(ctx: Context): Payload
 		local reason = ShopView.check(key, ctx)
 		local grant: Shop.Grant?, notFor: string? = nil, nil
 		if row.Kind == "Product" then
-			grant, notFor = Shop.grantFor(key, shop, ctx.now, ctx.vipPass == true)
+			grant, notFor =
+				Shop.grantFor(key, shop, ctx.now, ctx.vipPass == true, ctx.restricted == true)
 		end
 		local limited = limitedRow(key)
 		local owned = false
@@ -448,13 +467,40 @@ function ShopView.build(ctx: Context): Payload
 		if g ~= nil then
 			local opened = LuckyBlocks.opened(blocksSave, kind)
 			local owns = ctx.ownsCue
+			local cap = BlockOdds.caps((LuckyBlocks.kind(kind) :: any).Odds)[g.Cue]
+			local found = if ctx.found then ctx.found(g.Cue) else nil
 			guarantees[kind] = {
 				cue = g.Cue,
 				at = g.At,
 				opened = opened,
 				left = math.max(g.At - opened - 1, 0),
 				owned = owns ~= nil and owns(g.Cue) == true,
+				soldOut = cap ~= nil and found ~= nil and found >= cap,
 			}
+		end
+	end
+
+	-- The capped Unique rows, with this player's closed ones (their odds show as Rare).
+	local uniques: { [string]: { UniqueView } } = {}
+	for _, row in BlockOdds.list() do
+		local caps = BlockOdds.caps(row.Id)
+		local closed = BlockOdds.closedFor(row.Id, ctx.ownsCue, ctx.found)
+		local list: { UniqueView } = {}
+		for _, unique in BlockOdds.uniqueRows(row.Id) do
+			local cap = caps[unique.cue]
+			if cap ~= nil then
+				local found = if ctx.found then ctx.found(unique.cue) else nil
+				table.insert(list, {
+					cue = unique.cue,
+					cap = cap,
+					found = found,
+					left = if found ~= nil then math.max(cap - found, 0) else nil,
+					closed = closed[unique.cue] == true,
+				})
+			end
+		end
+		if #list > 0 then
+			uniques[row.Id] = list
 		end
 	end
 
@@ -480,6 +526,7 @@ function ShopView.build(ctx: Context): Payload
 		restock = restockView(ctx, vip),
 		deals = deals,
 		guarantees = guarantees,
+		uniques = uniques,
 		mystery = {
 			price = S.Mystery.Price,
 			bulkCount = S.Mystery.BulkCount,
@@ -488,6 +535,7 @@ function ShopView.build(ctx: Context): Payload
 		pity = BlockDrop.pityLeft(BlockDrop.readPity(ctx.drops)),
 		robloxPlus = S.RobloxPlus == true,
 		releaseSale = Shop.releaseSale(ctx.now),
+		launchBonus = Shop.launchBonus(ctx.now),
 		bestValue = Config.Products.BestValue,
 		packs = table.clone(Config.Products.PackOrder),
 	}
@@ -526,6 +574,9 @@ function ShopView.nextChange(ctx: Context): number?
 	local release = Shop.releaseSale(now)
 	consider(release.startsAt)
 	consider(release.endsAt)
+	local bonus = Shop.launchBonus(now)
+	consider(bonus.startsAt)
+	consider(bonus.endsAt)
 	for _, key in Shop.dealKeys() do
 		local window = Shop.deal(key, now)
 		if window.timed then

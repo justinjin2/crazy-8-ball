@@ -35,6 +35,7 @@ export type DropFacts = {
 	pcLimited: boolean?, -- paid the PC rows (Play against PC): PcDropsPerDay drops a day
 	pcDropsToday: number?, -- today's Daily.PcDrops before this match
 	firstWinDue: boolean, -- the first win's Rare block was never given (Progress.FirstWinDue)
+	trackToday: number?, -- the day's win track steps already given (Daily.Track)
 	farmAllows: boolean, -- the anti-farm row's Drop (Money.farmRow)
 	losers: { Loser }, -- the other side's accounts (empty against PC)
 }
@@ -279,6 +280,7 @@ function Settle.dropContext(f: DropFacts): BlockDrop.DropContext
 		dropsFromOpponentToday = dropsToday,
 		loserRealMatches = loserMatches,
 		firstWinEver = f.firstWinDue == true,
+		trackToday = whole(f.trackToday),
 	}
 end
 

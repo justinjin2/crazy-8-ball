@@ -15,8 +15,9 @@ local Catalog = require(script.Parent.Catalog)
 
 local C = Config.BlockOdds
 
--- Config's literal tables, typed as the maps they are (indexed by a runtime id).
-type RowConfig = { Odds: { [string]: number } }
+-- Config's literal tables, typed as the maps they are (indexed by a runtime id). Caps: a
+-- Unique row's copies ever (the Grand Opening's Firework and Beta Cues, economy v4).
+type RowConfig = { Odds: { [string]: number }, Caps: { [string]: number }? }
 local LIST: { [string]: RowConfig } = C.List :: any
 -- The odds tables outside the ladder (Config.BlockOdds.Extra: Sky, GrandOpening, Starter).
 local EXTRA: { string } = C.Extra or {}
@@ -28,6 +29,11 @@ export type Row = {
 	Id: string,
 	Odds: { [string]: number }, -- rarity -> parts of OddsTotal (the Config row itself)
 }
+
+-- The Unique rows closed for one player (economy v4 plan 8.5): { [cueId] = true } for a cue
+-- they own (Roblox's one-instance rule) or whose copies are all found (its cap). A closed
+-- row's share goes to the row's lowest rarity, so the odds still add to 100.
+export type Closed = { [string]: boolean }
 
 export type RarityOdds = {
 	rarity: string,
@@ -66,6 +72,59 @@ function BlockOdds.get(id: any): Row?
 	return { Id = id, Odds = row.Odds }
 end
 
+--- The row with the Unique rows in `closed` moved to its lowest rarity (a fresh Odds table;
+--- the row itself when nothing is closed). nil for an unknown id.
+function BlockOdds.rowFor(id: any, closed: Closed?): Row?
+	local row = BlockOdds.get(id)
+	if row == nil or closed == nil or next(closed) == nil then
+		return row
+	end
+	local odds = table.clone(row.Odds)
+	local floor: string? = nil
+	for _, rarity in C.Rarities do
+		if (odds[rarity] or 0) > 0 then
+			floor = rarity
+			break
+		end
+	end
+	if floor == nil then
+		return row
+	end
+	for cue, on in closed do
+		local weight = odds[cue]
+		if on == true and not RARITY_KNOWN[cue] and weight ~= nil and weight > 0 then
+			odds[floor] += weight
+			odds[cue] = nil
+		end
+	end
+	return { Id = row.Id, Odds = odds }
+end
+
+--- A row's caps on its Unique rows ({ [cueId] = copies ever }; empty for most rows).
+function BlockOdds.caps(id: any): { [string]: number }
+	local row = if BlockOdds.get(id) then LIST[id] else nil
+	return if row ~= nil and row.Caps ~= nil then table.clone(row.Caps) else {}
+end
+
+--- Which of a row's Unique rows are closed for one player: `owns(cueId)` (they have one) or
+--- `found(cueId)` (copies handed out so far, nil unknown) at the row's cap.
+function BlockOdds.closedFor(
+	id: any,
+	owns: ((string) -> boolean)?,
+	found: ((string) -> number?)?
+): Closed
+	local closed: Closed = {}
+	local caps = BlockOdds.caps(id)
+	for _, unique in BlockOdds.uniqueRows(id) do
+		local cap = caps[unique.cue]
+		local n = if found then found(unique.cue) else nil
+		if (owns ~= nil and owns(unique.cue)) or (cap ~= nil and n ~= nil and n >= cap) then
+			closed[unique.cue] = true
+		end
+	end
+	return closed
+end
+
 --- The ladder's rows in order (Config.BlockOdds.Order), then the Extra rows.
 function BlockOdds.list(): { Row }
 	local list = {}
@@ -102,9 +161,9 @@ end
 BlockOdds.percentText = percentText
 
 --- The row's rarities with a share, bottom rarity first: { rarity, weight, percent, display }.
---- Empty for an unknown row.
-function BlockOdds.odds(id: string): { RarityOdds }
-	local row = BlockOdds.get(id)
+--- Empty for an unknown row. `closed`: this player's closed Unique rows (BlockOdds.rowFor).
+function BlockOdds.odds(id: string, closed: Closed?): { RarityOdds }
+	local row = BlockOdds.rowFor(id, closed)
 	local list = {}
 	if row == nil then
 		return list
@@ -129,8 +188,9 @@ end
 export type UniqueOdds = { cue: string, weight: number, percent: number, display: string }
 
 --- The row's Unique rows (cue ids with a share), in sorted id order. Empty for most rows.
-function BlockOdds.uniqueRows(id: string): { UniqueOdds }
-	local row = BlockOdds.get(id)
+--- `closed`: this player's closed rows are left out (BlockOdds.rowFor).
+function BlockOdds.uniqueRows(id: string, closed: Closed?): { UniqueOdds }
+	local row = BlockOdds.rowFor(id, closed)
 	local list: { UniqueOdds } = {}
 	if row == nil then
 		return list
@@ -205,9 +265,9 @@ end
 --- Every cue the row can drop with its percent (ECONOMY 7.3: the rarity's percent split
 --- evenly among that rarity's droppable cues), grouped by rarity bottom first, catalog order
 --- inside a rarity. The percents add to 100 (within float rounding). Vaulted cues are left out.
-function BlockOdds.cueOdds(id: string): { CueOdds }
+function BlockOdds.cueOdds(id: string, closed: Closed?): { CueOdds }
 	local list = {}
-	for _, entry in BlockOdds.odds(id) do
+	for _, entry in BlockOdds.odds(id, closed) do
 		local pool = Catalog.droppable(id, entry.rarity)
 		for _, cue in pool do
 			local percent = entry.percent / #pool
@@ -312,8 +372,9 @@ end
 --- 1..n. Returns the cue id and its rarity. Errors on an unknown row or an empty pool (the
 --- server checks the id first; BlockOdds.validate catches an empty pool): a failed roll must
 --- never quietly hand out something, and the server rolls before it takes the block.
-function BlockOdds.roll(id: string, rng: (number) -> number): (string, string)
-	local row = BlockOdds.get(id)
+--- `closed`: this player's closed Unique rows roll as the row's lowest rarity instead.
+function BlockOdds.roll(id: string, rng: (number) -> number, closed: Closed?): (string, string)
+	local row = BlockOdds.rowFor(id, closed)
 	assert(row ~= nil, "BlockOdds.roll: unknown odds row " .. tostring(id))
 	local pick = rng(C.OddsTotal)
 	assert(
@@ -335,7 +396,7 @@ function BlockOdds.roll(id: string, rng: (number) -> number): (string, string)
 		end
 	end
 	-- The Unique rows (the Grand Opening block's two cues), after the rarities.
-	for _, unique in BlockOdds.uniqueRows(id) do
+	for _, unique in BlockOdds.uniqueRows(id, closed) do
 		reached += unique.weight
 		if pick <= reached then
 			return unique.cue, "Unique"

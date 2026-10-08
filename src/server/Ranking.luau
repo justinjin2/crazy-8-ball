@@ -442,8 +442,9 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 		PlayerData.countDaily(p, "Disguised")
 	end
 
-	-- The winner's lucky block (economy plan section 2; ECONOMY 3.6), from the counts before this
-	-- match: every real win, the anti-farm rules, and Play against PC only for its first
+	-- The winner's lucky block: the day's win track (economy v4 plan section 5; ECONOMY 3.6),
+	-- from the counts before this match: the first Config.BlockOdds.Drop.WinTrack real wins of
+	-- the day that pass the anti-farm rules, and Play against PC only for its first
 	-- Config.Economy.PcDropsPerDay wins a day. None from a disguised bot past the day's limit.
 	if won and not (disguised and pc) then
 		local ctx = Settle.dropContext({
@@ -454,12 +455,13 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 			pcLimited = pc,
 			pcDropsToday = daily.PcDrops,
 			firstWinDue = progress.FirstWinDue,
+			trackToday = daily.Track,
 			farmAllows = farm.Drop,
 			losers = entry.losers,
 		})
-		local drops, forced = BlockDrop.dropFor(ctx)
+		local drops = BlockDrop.dropFor(ctx)
 		if drops then
-			local block = giveBlock(p, forced ~= nil, entry.opponents)
+			local block = giveBlock(p, ctx.firstWinEver, entry.opponents)
 			if block then
 				paid.block = block
 				if pc then

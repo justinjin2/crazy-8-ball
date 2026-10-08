@@ -682,10 +682,22 @@ local function leaderstats(player: Player): (StringValue, IntValue)
 	return rank :: StringValue, money :: IntValue
 end
 
--- Whether anything can be claimed on UTC day `day`: the login streak, a playtime gift, or a
+-- What the login rules need from a save besides Login on `day` (Daily.LoginExtra): the first
+-- join's day (the first week's window), whether a match was finished that day, and, for a
+-- VIP, whether paid random items are restricted for them.
+local function loginExtra(data: any, day: number, restricted: boolean?): Daily.LoginExtra
+	local firstJoin = data.Shop.FirstJoin
+	return {
+		joinDay = if firstJoin > 0 then Daily.dayOf(firstJoin) else nil,
+		played = dailyOf(data, day).Matches > 0,
+		restricted = restricted,
+	}
+end
+
+-- Whether anything can be claimed on day `day`: the login day, a playtime gift, or a
 -- complete Index row whose reward is unclaimed.
 local function rewardReady(data: any, day: number): boolean
-	if Daily.loginState(data.Login, day).canClaim then
+	if Daily.loginState(data.Login, day, nil, loginExtra(data, day)).canClaim then
 		return true
 	end
 	for _, gift in Daily.playtimeState(dailyOf(data, day)) do
@@ -1169,12 +1181,14 @@ function PlayerData.dailyMoney(player: Player, kind: string): number
 	return dailyOf(data, today())[field]
 end
 
--- Today's counters (Daily) that dailyCount reads and countDaily adds to.
-local DAILY_COUNTS: { [string]: boolean } = { Wins = true, PcDrops = true, Disguised = true }
+-- Today's counters (Daily) that dailyCount reads (countDaily adds to PcDrops and Disguised).
+local DAILY_COUNTS: { [string]: boolean } =
+	{ Wins = true, PcDrops = true, Disguised = true, Track = true, Matches = true }
 
 --- Today's count of one kind (0 when another day's or not loaded): "Wins" (real wins),
---- "PcDrops" (PC wins that dropped a block, Config.Economy.PcDropsPerDay) or "Disguised"
---- (disguised-bot wins, Config.Economy.DisguisedDailyWins).
+--- "PcDrops" (PC wins that dropped a block, Config.Economy.PcDropsPerDay), "Disguised"
+--- (disguised-bot wins, Config.Economy.DisguisedDailyWins), "Track" (the win track's steps
+--- given) or "Matches" (real matches finished).
 function PlayerData.dailyCount(player: Player, field: string): number
 	if not DAILY_COUNTS[field] then
 		refuse("dailyCount", player, ("%s is not a daily count"):format(tostring(field)))
@@ -1396,11 +1410,13 @@ function PlayerData.grantReward(player: Player, reward: Reward, reason: string):
 	return true
 end
 
---- The win's lucky block (ECONOMY 7.1; BlockDrop.dropFor said this win drops): a Mystery
---- block landing in the hotbar on its timer, free origin, in one change. `firstWin` asks for
---- the first win's block (Config.BlockOdds.Drop.FirstWin: a Rare block) and marks it given;
---- once given before, the win gives the Mystery block as usual. Returns { kind, readyAt }
---- (readyAt unix, 0 = ready now), or nil when the save is not loaded or the hotbar is full.
+--- The win's lucky block (economy v4 plan section 5; BlockDrop.dropFor said this win moves
+--- the day's win track): the next track step's block (Config.BlockOdds.Drop.WinTrack) landing
+--- in the hotbar on its timer, free origin, and the step counted (Daily.Track), in one change.
+--- `firstWin` asks for the first win's block (Config.BlockOdds.Drop.FirstWin: a Rare block)
+--- and marks it given; once given before, the win gives the step's block as usual. Returns
+--- { kind, readyAt } (readyAt unix, 0 = ready now), or nil when the save is not loaded, the
+--- day's track is done or the hotbar is full (the step is then not used up).
 function PlayerData.winBlock(player: Player, firstWin: boolean?): WinBlock?
 	local op = "winBlock"
 	if not isPlayer(player) then
@@ -1411,16 +1427,21 @@ function PlayerData.winBlock(player: Player, firstWin: boolean?): WinBlock?
 	if data == nil then
 		return nil
 	end
-	local kind = "Mystery"
-	if firstWin == true and data.Flags[FIRST_WIN_FLAG] ~= true then
-		data.Flags[FIRST_WIN_FLAG] = true
-		kind = Config.BlockOdds.Drop.FirstWin
+	rollover(data)
+	local due = firstWin == true and data.Flags[FIRST_WIN_FLAG] ~= true
+	local kind = BlockDrop.winKind(data.Daily.Track, due)
+	if kind == nil then
+		return nil
 	end
 	local readyAt = giveBlocksTo(data, kind, 1, false, vipOfSave[data] == true)
-	commit(player, data, op)
 	if readyAt == nil then
 		return nil
 	end
+	if due then
+		data.Flags[FIRST_WIN_FLAG] = true
+	end
+	data.Daily.Track = math.min(data.Daily.Track + 1, S.StatCap)
+	commit(player, data, op)
 	return { kind = kind, readyAt = readyAt }
 end
 
@@ -1697,6 +1718,8 @@ function PlayerData.recordRealMatch(
 	rollover(data)
 	local progress, daily = data.Progress, data.Daily
 	progress.RealMatches = math.min(progress.RealMatches + 1, S.StatCap)
+	-- A finished match today: the login day can be claimed (Config.Daily.NeedsMatch).
+	daily.Matches = math.min(daily.Matches + 1, S.StatCap)
 	if won then
 		progress.Wins = math.min(progress.Wins + 1, S.StatCap)
 		daily.Wins = math.min(daily.Wins + 1, S.StatCap)
@@ -1986,15 +2009,18 @@ end
 
 --- Plans the open of the ready block `id` without changing the save: the odds row (a Roll
 --- kind, the Mystery block, rolls its tier first by Config.BlockOdds.Drop.Weights, with this
---- player's pity for a free block), then the cue (`rng(n)` gives 1..n): a Guarantee due is
---- forced (the Grand Opening block's Beta Cue), a Unique cue this player already owns is
---- rolled again (Config.LuckyBlocks.UniqueRerolls times, then the row's top rarity's first
---- cue).
+--- player's pity), then the cue (`rng(n)` gives 1..n): a Guarantee due is forced (the Grand
+--- Opening block's Beta Cue, while any are left), and the row's Unique rows this player owns
+--- or whose copies are all found (`found(cueId)`: copies handed out, nil unknown; the row's
+--- Caps) roll as its lowest rarity instead (BlockOdds.closedFor, economy v4). A Unique cue
+--- this player owns that still comes up is rolled again (Config.LuckyBlocks.UniqueRerolls
+--- times, then the row's top rarity's first cue).
 --- Answers (plan) or (nil, reason): "NotOwned", "NotReady", "NotLoaded", "Invalid".
 function PlayerData.planLuckyOpen(
 	player: Player,
 	id: number,
-	rng: (number) -> number
+	rng: (number) -> number,
+	found: ((string) -> number?)?
 ): (OpenPlan?, string?)
 	local op = "planLuckyOpen"
 	if not isPlayer(player) then
@@ -2016,9 +2042,8 @@ function PlayerData.planLuckyOpen(
 	local tier: string? = nil
 	local oddsId = kind.Odds
 	if kind.Roll then
-		-- A paid block rolls the natural odds (no pity counted or used).
-		local pity = if block.Paid then BlockDrop.readPity(nil) else BlockDrop.readPity(data.Drops)
-		tier = BlockDrop.roll(pity, rng, nil)
+		-- Every Mystery block uses pity, bought ones too (economy v4).
+		tier = BlockDrop.roll(BlockDrop.readPity(data.Drops), rng, nil)
 		oddsId = oddsOfTier(tier)
 	end
 	if oddsId == nil or BlockOdds.get(oddsId) == nil then
@@ -2027,12 +2052,16 @@ function PlayerData.planLuckyOpen(
 	local function owns(cueId: string): boolean
 		return Inventory.owns(data, cueId)
 	end
+	local closed = BlockOdds.closedFor(oddsId, owns, found)
 	local forced = LuckyBlocks.guaranteed(data.LuckyBlocks, block.Kind, owns)
+	if forced ~= nil and closed[forced] then
+		forced = nil -- every copy is found: no guarantee left to give
+	end
 	local cueId: string
 	if forced ~= nil then
 		cueId = forced
 	else
-		cueId = BlockOdds.roll(oddsId, rng)
+		cueId = BlockOdds.roll(oddsId, rng, closed)
 		local tries = 0
 		while (Catalog.get(cueId) :: Catalog.Cue).Group == "Unique" and owns(cueId) do
 			tries += 1
@@ -2045,7 +2074,7 @@ function PlayerData.planLuckyOpen(
 				cueId = pool[1].Id
 				break
 			end
-			cueId = BlockOdds.roll(oddsId, rng)
+			cueId = BlockOdds.roll(oddsId, rng, closed)
 		end
 	end
 	local cue = Catalog.get(cueId) :: Catalog.Cue
@@ -2060,7 +2089,7 @@ function PlayerData.planLuckyOpen(
 end
 
 --- The upgrade screen (designer, 2026-10-07): the ready Mystery block `id` rolls its tier
---- (Config.BlockOdds.Drop.Weights, with pity for a free block, counted), and the path its
+--- (Config.BlockOdds.Drop.Weights, with pity for every Mystery block, counted), and the path its
 --- presses show (BlockDrop.path), and becomes that tier's block in one change: same id, same
 --- place, its origin kept, on the tier's timer (none for a paid block or a VIP). Answers (true,
 --- { tiers, kind, readyAt }) or (false, reason): "NotOwned", "NotReady", "NotLoaded",
@@ -2086,17 +2115,12 @@ function PlayerData.revealMystery(player: Player, id: number): (boolean, any)
 	elseif not LuckyBlocks.canOpen(block, os.time(), player.UserId) then
 		return false, "NotReady"
 	end
-	-- A paid block rolls the natural odds (no pity counted or used), as before.
-	local tier: string
-	if block.Paid then
-		tier = BlockDrop.roll(BlockDrop.readPity(nil), dropRoll, nil)
-	else
-		local pity
-		tier, pity = BlockDrop.roll(BlockDrop.readPity(data.Drops), dropRoll, nil)
-		data.Drops.SinceRare = math.min(pity.SinceRare, S.StatCap)
-		data.Drops.SinceEpic = math.min(pity.SinceEpic, S.StatCap)
-		data.Drops.Total = math.min(pity.Total, S.StatCap)
-	end
+	-- Every Mystery block counts and gets pity, bought ones too (economy v4, 2026-10-08:
+	-- ECONOMY 7.1; a paid block rolled the plain odds before).
+	local tier, pity = BlockDrop.roll(BlockDrop.readPity(data.Drops), dropRoll, nil)
+	data.Drops.SinceRare = math.min(pity.SinceRare, S.StatCap)
+	data.Drops.SinceEpic = math.min(pity.SinceEpic, S.StatCap)
+	data.Drops.Total = math.min(pity.Total, S.StatCap)
 	local tiers = BlockDrop.path(tier, dropRoll)
 	local revealed = LuckyBlocks.reveal(
 		data.LuckyBlocks,
@@ -2178,8 +2202,8 @@ function PlayerData.openLuckyBlock(
 	local new = data.Index.Seen[cueId] ~= true and not Inventory.owns(data, cueId)
 	local _, place = LuckyBlocks.remove(data.LuckyBlocks, id)
 	LuckyBlocks.noteOpened(data.LuckyBlocks, block.Kind)
-	-- A free Mystery block's tier counts for pity (Config.BlockOdds.Drop pity).
-	if kind.Roll and not block.Paid and plan.tier ~= nil then
+	-- A Mystery block's tier counts for pity, bought ones too (Config.BlockOdds.Drop pity).
+	if kind.Roll and plan.tier ~= nil then
 		local _, pity = BlockDrop.roll(BlockDrop.readPity(data.Drops), dropRoll, plan.tier)
 		data.Drops.SinceRare = math.min(pity.SinceRare, S.StatCap)
 		data.Drops.SinceEpic = math.min(pity.SinceEpic, S.StatCap)
@@ -2678,10 +2702,15 @@ end
 -- Mutations: daily streak, playtime, codes (the Rewards service)
 ---------------------------------------------------------------------------------------------
 
---- Claims today's login loop reward (Daily.claimLogin at today's UTC day: the loop day, the
---- 28-day track and, when `vip`, VIP's daily spin) and gives it, in one change. Answers
---- (true, Daily.Reward) or (false, "Claimed" | "NotLoaded").
-function PlayerData.claimDaily(player: Player, vip: boolean?): (boolean, Daily.Reward | string)
+--- Claims today's login reward (Daily.claimLogin on today: the first week's day or the later
+--- weeks' loop day, the 28-day track and, when `vip`, VIP's daily spin and block, or VIP's
+--- money where `restricted`) and gives it, in one change. Answers (true, Daily.Reward) or
+--- (false, "Claimed" | "NeedsMatch" | "NotLoaded").
+function PlayerData.claimDaily(
+	player: Player,
+	vip: boolean?,
+	restricted: boolean?
+): (boolean, Daily.Reward | string)
 	local op = "claimDaily"
 	if not isPlayer(player) then
 		return refuseInvalid(op, player, "not a player")
@@ -2690,9 +2719,12 @@ function PlayerData.claimDaily(player: Player, vip: boolean?): (boolean, Daily.R
 	if data == nil then
 		return false, "NotLoaded"
 	end
-	local ok, login, reward = Daily.claimLogin(data.Login, today(), vip == true)
+	local day = today()
+	local extra = loginExtra(data, day, restricted == true)
+	local ok, login, reward = Daily.claimLogin(data.Login, day, vip == true, extra)
 	if not ok or reward == nil then
-		return false, "Claimed"
+		local state = Daily.loginState(data.Login, day, vip == true, extra)
+		return false, if state.needsMatch then "NeedsMatch" else "Claimed"
 	end
 	data.Login = login
 	giveReward(data, reward, "Daily")
@@ -2865,18 +2897,20 @@ end
 
 --- Plans a trade on copies of both live saves (nothing changes): Trade.swap's answer, (true,
 --- nil, from A, from B) or (false, reason). "NotLoaded" when either save is not loaded.
+--- `blocksOk`: paid lucky blocks may move (neither player has paid random items restricted).
 function PlayerData.tradePlan(
 	a: Player,
 	b: Player,
 	itemsA: { string },
 	itemsB: { string },
-	paidOk: boolean
+	paidOk: boolean,
+	blocksOk: boolean?
 ): (boolean, string?, Trade.Moved?, Trade.Moved?)
 	local copyA, copyB = planCopy(a), planCopy(b)
 	if copyA == nil or copyB == nil then
 		return false, "NotLoaded", nil, nil
 	end
-	return Trade.swap(copyA, copyB, itemsA, itemsB, paidOk, os.time())
+	return Trade.swap(copyA, copyB, itemsA, itemsB, paidOk, os.time(), blocksOk)
 end
 
 --- Swaps a trade the ledger already holds (`entry`) in both live saves, together: planned
@@ -2889,13 +2923,14 @@ function PlayerData.applyTrade(
 	entry: Trade.Entry,
 	itemsA: { string },
 	itemsB: { string },
-	paidOk: boolean
+	paidOk: boolean,
+	blocksOk: boolean?
 ): (boolean, string?)
 	local op = "applyTrade"
 	if not isPlayer(a) or not isPlayer(b) or a == b then
 		return refuseInvalid(op, a, "not two players")
 	end
-	local ok, why, planA, planB = PlayerData.tradePlan(a, b, itemsA, itemsB, paidOk)
+	local ok, why, planA, planB = PlayerData.tradePlan(a, b, itemsA, itemsB, paidOk, blocksOk)
 	if not ok then
 		return false, why
 	elseif
@@ -2907,7 +2942,8 @@ function PlayerData.applyTrade(
 	if dataA == nil or dataB == nil then
 		return false, "NotLoaded"
 	end
-	local done, reason, fromA, fromB = Trade.swap(dataA, dataB, itemsA, itemsB, paidOk, os.time())
+	local done, reason, fromA, fromB =
+		Trade.swap(dataA, dataB, itemsA, itemsB, paidOk, os.time(), blocksOk)
 	if not done or fromA == nil or fromB == nil then
 		-- Nothing changed (swap checks before it changes anything); the plan just said yes.
 		return false, reason or "Changed"
@@ -2941,10 +2977,11 @@ end
 --- count }; empty when not loaded. GUI lane (the trade screen).
 function PlayerData.tradeOfferable(
 	player: Player,
-	paidOk: boolean
+	paidOk: boolean,
+	blocksOk: boolean?
 ): { { item: string, count: number } }
 	local copy = planCopy(player)
-	return if copy ~= nil then Trade.offerable(copy, paidOk, os.time()) else {}
+	return if copy ~= nil then Trade.offerable(copy, paidOk, os.time(), blocksOk) else {}
 end
 
 --- Whether the player's save holds trade `id` already (Trade.applied).
@@ -3142,6 +3179,7 @@ local GRANT_FIELDS: { [any]: boolean } = {
 	boostEnds = true,
 	restock = true,
 	luckySkip = true,
+	skipTier = true,
 }
 local GRANT_FLAGS = { "vip", "vipCue", "party", "firstPack", "starterBought", "luckySkip" }
 
@@ -3168,6 +3206,9 @@ local function badGrant(grant: any, copy: any): string?
 		if grant[flag] ~= nil and type(grant[flag]) ~= "boolean" then
 			return ("grant.%s is not true or false"):format(flag)
 		end
+	end
+	if grant.skipTier ~= nil and not intIn(grant.skipTier, 1, #Config.LuckyBlocks.Skips) then
+		return "grant.skipTier is not a skip tier"
 	end
 	local spinsWhy = badSpinCount(grant.spins, "grant.spins")
 		or badSpinCount(grant.lucky, "grant.lucky")
@@ -3283,7 +3324,7 @@ function PlayerData.applyPurchase(
 		giveBlocksTo(data, restock.block, 1, true, vipOf(player))
 	end
 	if grant.luckySkip then
-		LuckyBlocks.grantSkip(data.LuckyBlocks, os.time())
+		LuckyBlocks.grantSkip(data.LuckyBlocks, os.time(), grant.skipTier)
 	end
 	Shop.markGrant(shop, grant)
 	commit(player, data, op)

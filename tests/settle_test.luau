@@ -31,9 +31,10 @@ end
 
 -- The drop rule's answer as one word: nil (no block), "Drop" (the usual Mystery block) or the
 -- kind it is forced to.
+-- "Drop" for a win track step's block, the first win's kind for the first win, nil for none.
 local function dropOf(BlockDrop: any, ctx: any): string?
-	local drops, forced = BlockDrop.dropFor(ctx)
-	return if not drops then nil else forced or "Drop"
+	local drops, kind = BlockDrop.dropFor(ctx)
+	return if not drops then nil elseif ctx.firstWinEver then kind else "Drop"
 end
 
 return {
@@ -175,9 +176,12 @@ return {
 	["dropContext: every win against an established account drops one"] = function()
 		local Settle, BlockDrop = load()
 		H.expect(dropOf(BlockDrop, Settle.dropContext(facts())) == "Drop", "a normal roll")
-		-- No daily count any more: the 30th win of the day drops too.
-		local late = Settle.dropContext(facts({ winsTodayBefore = 30, winsBefore = 900 }))
-		H.expect(dropOf(BlockDrop, late) == "Drop", "the 30th win today")
+		-- The day's win track (economy v4): the 10th track win gives one, the 11th none.
+		local tenth = Settle.dropContext(facts({ trackToday = 9 }))
+		H.expect(tenth.trackToday == 9 and dropOf(BlockDrop, tenth) == "Drop", "the 10th")
+		local late = Settle.dropContext(facts({ trackToday = 10, winsBefore = 900 }))
+		H.expect(dropOf(BlockDrop, late) == nil, "the 11th track win today: money and XP only")
+		H.expect(Settle.dropContext(facts({ trackToday = 0 / 0 })).trackToday == 0, "bad: 0")
 	end,
 
 	["dropContext: the first win ever is the Rare block, under the same anti-farm rules"] = function()

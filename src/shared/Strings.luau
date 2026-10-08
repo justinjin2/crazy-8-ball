@@ -297,7 +297,7 @@ return {
 			Vip = "%s on|off",
 			Party = "%s",
 			Policy = "%s restricted|normal",
-			Restock = "%s uncommon|rare|epic|legendary|mystery",
+			Restock = "%s rare|epic|legendary|mythic",
 			Code = "%s on|off <CODE>, or %s list",
 			Limited = "%s start [minutes] | end | off",
 			UltBar = "%s <0-%d>",
@@ -662,6 +662,7 @@ return {
 			PartyFull = "The Money Party is already full for the next hour.",
 			ComingSoon = "Coming soon!",
 			AlreadyClaimed = "Already claimed today. Come back tomorrow!",
+			NeedsMatch = "Finish one match today, then claim your login reward!",
 			NotReady = "Not ready yet. Keep playing!",
 			Unknown = "That code doesn't exist.",
 			Used = "You already used that code.",
@@ -940,7 +941,46 @@ return {
 			Collect = "Tap to collect", -- after the last press
 			CollectMouse = "Click to collect",
 			CollectPad = "Press A to collect",
+			-- Economy v4 (plan 3.2): the presses only reveal a result decided at the start.
+			Decided = "The result is decided when you open it; the presses reveal it.",
+			Pity = "Rare by %d more · Epic by %d more", -- Mystery blocks left to each pity
 		},
+		-- Under every block's reel (economy v4 plan 4): one showcase tile, labelled with its odds.
+		ReelLine = "The reel shows what this block can drop. Your chances are under Odds.",
+		Showcase = "%s · 1 in %s", -- "SECRET · 1 in 1,000,000"
+		-- The skip button: the price for the time left right now (economy v4 plan 8.2).
+		Skip = "Skip · %d R$",
+	},
+	-- The daily win track's bar above the hotbar (economy v4 plan section 5).
+	WinTrack = {
+		Count = "Lucky Blocks today %d/%d",
+		Next = "Next win: %s", -- the next step's block name
+		Done = "%d/%d · wins pay money and XP today",
+		ResetsIn = "New day in %s",
+	},
+	-- The login days (economy v4 plan 6.1): the first week, then the later weeks.
+	Login = {
+		FirstWeek = "Day %d: %s · log in on any 7 days within 14",
+		FirstWeekLeft = "%d days left to finish your first week",
+		LaterWeeks = "Day %d of 7",
+		NeedsMatch = "Finish one match to claim today's reward",
+		VipBlock = "VIP: a Rare Lucky Block every day",
+		VipRestricted = "VIP: $5,000 every day", -- where paid random items are restricted
+	},
+	-- The shop's v4 lines (economy v4 plan sections 8.2-8.5).
+	ShopV4 = {
+		LaunchBonus = "Launch bonus +%d%% · ends %s",
+		MysteryBonus = "%d for %d", -- "13 for 10" during the launch bonus
+		OneByOne = "%s R$ one by one", -- a bundle's saving, never a crossed-out price
+		BestValue = "Best value",
+		UniqueLeft = "%s · %s of %s left", -- "Beta Cue · 23 of 100 left"
+		CopyOf = "#%d of %d", -- a capped Unique's copy: "#4 of 100"
+		OnlyEver = "only %s ever", -- "only 100 ever"
+		VipPerks = "2x money · no timers · a Rare Lucky Block every day · +1 spin a day · "
+			.. "Skip and Auto Spin · the VIP restock slot · the VIP Cue",
+		VipRestrictedNote = "Where Lucky Blocks can't be bought, the daily block is $5,000.",
+		StarterRestricted = "$40,000 + 1 hour of 2x money",
+		RestockOdds = "Each slot: Rare %s · Epic %s · Legendary %s · Mythic %s",
 	},
 	-- The lucky block reel's skip hint (LuckyOpening, UltSpinAnim, PullCutscene, ResultCutscene).
 	Reel = {
@@ -1074,6 +1114,12 @@ return {
 		Global = {
 			Mythic = "[GLOBAL]: %s pulled a Mythical Cue!",
 			Secret = "[GLOBAL]: %s pulled a Secret Cue!",
+		},
+		-- A Legendary or Mythic block in the restock, in every server (economy v4 plan 8.4): the
+		-- time left in the restock ("9:41").
+		Restock = {
+			Legendary = "A LEGENDARY block is in the restock for %s!",
+			Mythic = "A MYTHIC block is in the restock for %s!",
 		},
 		PartyStarted = "%s started a Money Party!", -- the buyer's username
 		PartyStartedAnon = "A Money Party started!",

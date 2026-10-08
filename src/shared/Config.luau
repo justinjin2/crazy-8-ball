@@ -1777,17 +1777,19 @@ Config.Ranks = {
 		-- Blocks: lucky blocks by kind (a Mystery block rolls its tier with pity when opened).
 		-- Bronze's block is given at once with the first win (the tutorial's Standard block);
 		-- everything else waits until the player claims it in Rank (designer, 2026-10-03).
+		-- Economy v4 (2026-10-08, plan section 7): Platinum and up pay better blocks, the first
+		-- Legendary block at Expert (was Master).
 		Tier = {
 			Bronze = { Money = 2500, Blocks = { Mystery = 1 }, Cue = "BronzeCue" },
 			Silver = { Money = 5000, Blocks = { Rare = 1 }, Cue = "SilverCue" },
 			Gold = { Money = 10000, Blocks = { Rare = 2 }, Cue = "GoldCue" },
-			Platinum = { Money = 20000, Blocks = { Rare = 3 }, Cue = "PlatinumCue" },
-			Diamond = { Money = 50000, Blocks = { Epic = 1 }, Cue = "DiamondCue" },
-			Expert = { Money = 100000, Blocks = { Epic = 2 }, Cue = "ExpertCue" },
-			Veteran = { Money = 200000, Blocks = { Epic = 3 }, Cue = "VeteranCue" },
-			Master = { Money = 400000, Blocks = { Legendary = 1 }, Cue = "MasterCue" },
-			Grandmaster = { Money = 750000, Blocks = { Legendary = 2 }, Cue = "GrandmasterCue" },
-			Reyes = { Money = 2000000, Blocks = { Mythic = 1 }, Cue = "ReyesCue" },
+			Platinum = { Money = 20000, Blocks = { Epic = 1 }, Cue = "PlatinumCue" },
+			Diamond = { Money = 50000, Blocks = { Epic = 2 }, Cue = "DiamondCue" },
+			Expert = { Money = 100000, Blocks = { Legendary = 1 }, Cue = "ExpertCue" },
+			Veteran = { Money = 200000, Blocks = { Legendary = 1, Epic = 1 }, Cue = "VeteranCue" },
+			Master = { Money = 400000, Blocks = { Legendary = 2 }, Cue = "MasterCue" },
+			Grandmaster = { Money = 750000, Blocks = { Mythic = 1 }, Cue = "GrandmasterCue" },
+			Reyes = { Money = 2000000, Blocks = { Mythic = 2 }, Cue = "ReyesCue" },
 		},
 	},
 	-- The [TIER] tag before a player's name in chat (src/client/ChatTags.luau; designer,
@@ -1946,106 +1948,130 @@ Config.BlockOdds = {
 	-- Odds are whole parts of OddsTotal (a million, so 0.0001% is 1), and each row adds to
 	-- exactly OddsTotal (a load-time assert and tests/blockodds_test check it).
 	OddsTotal = 1000000,
+	-- Economy v4 (2026-10-08, plan section 4): each tier block keeps its floor (never below
+	-- the rarity in its name) and every row can reach the Secret.
 	List = {
 		Standard = {
 			Odds = {
-				Common = 750000,
-				Uncommon = 230000,
-				Rare = 19900,
-				Epic = 90,
-				Legendary = 9,
-				Mythic = 1,
+				Common = 725000,
+				Uncommon = 250000,
+				Rare = 24000,
+				Epic = 900, -- 1 in 1,111
+				Legendary = 90, -- 1 in 11,111
+				Mythic = 9, -- 1 in 111,111
+				Secret = 1, -- 1 in 1,000,000
 			},
 		},
 		Uncommon = {
 			Odds = {
 				Common = 400000,
 				Uncommon = 540000,
-				Rare = 59500,
-				Epic = 450,
-				Legendary = 45,
-				Mythic = 5,
+				Rare = 58000,
+				Epic = 1800,
+				Legendary = 180,
+				Mythic = 18,
+				Secret = 2,
 			},
 		},
 		Rare = {
 			Odds = {
-				Uncommon = 700000,
-				Rare = 296000,
-				Epic = 3500,
+				Uncommon = 680000,
+				Rare = 310000,
+				Epic = 9000,
+				Legendary = 900,
+				Mythic = 90,
+				Secret = 10,
+			},
+		},
+		Epic = {
+			Odds = { Rare = 773000, Epic = 210000, Legendary = 15000, Mythic = 1800, Secret = 200 },
+		},
+		Legendary = {
+			Odds = { Epic = 720000, Legendary = 250000, Mythic = 27000, Secret = 3000 },
+		},
+		Mythic = {
+			Odds = { Legendary = 720000, Mythic = 250000, Secret = 30000 },
+		},
+		-- Lucky Rain's Sky block (plan section 7): follows the Uncommon block.
+		Sky = {
+			Odds = {
+				Common = 450000,
+				Uncommon = 450000,
+				Rare = 95000,
+				Epic = 4500,
 				Legendary = 450,
 				Mythic = 45,
 				Secret = 5,
 			},
 		},
-		Epic = {
-			Odds = { Rare = 780000, Epic = 190000, Legendary = 26000, Mythic = 3600, Secret = 400 },
-		},
-		Legendary = {
-			Odds = { Epic = 750000, Legendary = 220000, Mythic = 27000, Secret = 3000 },
-		},
-		Mythic = {
-			Odds = { Legendary = 750000, Mythic = 220000, Secret = 30000 },
-		},
-		-- Lucky Rain's Sky block (plan section 7): between Standard and Uncommon.
-		Sky = {
-			Odds = {
-				Common = 450000,
-				Uncommon = 450000,
-				Rare = 99000,
-				Epic = 900,
-				Legendary = 90,
-				Mythic = 10,
-			},
-		},
-		-- The Grand Opening block (plan 2.3): Uncommon or better plus two Unique rows that exist
-		-- nowhere else, named by cue id: the Firework Cue 3% and the Beta Cue 0.3% (the
-		-- 400th block guarantees Beta: Config.LuckyBlocks.Kinds.GrandOpening.Guarantee).
+		-- The Grand Opening block (v4 plan 8.5): Rare or better plus two Unique rows that exist
+		-- nowhere else, named by cue id: the Firework Cue 6% and the Beta Cue 0.4%. Caps: copies
+		-- of each Unique ever; once a cue's copies are all found its row's share goes to Rare
+		-- (BlockOdds.rowFor), and a player who owns one sees that row as Rare too (Roblox's
+		-- one-instance rule). The 1,000th block guarantees Beta:
+		-- Config.LuckyBlocks.Kinds.GrandOpening.Guarantee.
 		GrandOpening = {
 			Odds = {
-				Uncommon = 563500,
-				Rare = 374500,
-				Epic = 25000,
-				Legendary = 3500,
-				Mythic = 460,
-				Secret = 40,
-				FireworkCue = 30000,
-				BetaCue = 3000,
+				Rare = 818400,
+				Epic = 100000,
+				Legendary = 16000, -- 1 in 63
+				Mythic = 1500, -- 1 in 667
+				Secret = 100, -- 1 in 10,000
+				FireworkCue = 60000,
+				BetaCue = 4000, -- 1 in 250
 			},
+			Caps = { FireworkCue = 1000, BetaCue = 100 },
 		},
-		-- The Starter Pack's block: Rare or better, guaranteed.
+		-- The Starter Pack's block: Rare or better, guaranteed (v4: a real Epic chance at 19 R$).
 		Starter = {
-			Odds = { Rare = 970000, Epic = 25000, Legendary = 4500, Mythic = 450, Secret = 50 },
+			Odds = { Rare = 900000, Epic = 90000, Legendary = 9000, Mythic = 900, Secret = 100 },
 		},
 	},
-	-- The win's block (plan section 2): every real win gives a Mystery lucky block; when it
-	-- opens the server rolls its tier by Weights (out of OddsTotal), then that tier's row.
-	-- Pity: the PityRare-th drop in a row without a Rare-or-better tier is Rare; the
-	-- PityEpic-th without an Epic-or-better is Epic; pity never gives Legendary. The first
-	-- win ever gives a FirstWin block instead (Progression/BlockDrop).
+	-- The win's block (v4 plan sections 3 and 5): a real win moves the day's win track
+	-- (WinTrack) and gives that step's block. A Mystery block (from the track, rewards or the
+	-- shop) rolls its tier by Weights (out of OddsTotal) when it opens, then that tier's row.
+	-- Pity, for every Mystery block, bought ones too: the PityRare-th in a row without a
+	-- Rare-or-better tier is Rare; the PityEpic-th without an Epic-or-better is Epic; pity
+	-- never gives Legendary. The first win ever gives a FirstWin block (Progression/BlockDrop).
 	Drop = {
-		-- The tier roll (plan 4.2, trimmed 2026-10-04 so the day-30 targets hold with every
-		-- new block source): Standard 68, Uncommon 25, Rare 6.7, Epic 0.28, Legendary 0.0196,
-		-- Mythic 0.0004. A Mystery lucky block ticks through these tiers when it opens.
+		-- The tier roll (v4 plan 3.1): half climb above Standard. Standard 50, Uncommon 40,
+		-- Rare 9.52, Epic 0.42 (1 in 238), Legendary 0.05 (1 in 2,000), Mythic 0.01 (1 in
+		-- 10,000).
 		Weights = {
-			Standard = 680000,
-			Uncommon = 250000,
-			Rare = 67000,
-			Epic = 2800,
-			Legendary = 196,
-			Mythic = 4,
+			Standard = 500000,
+			Uncommon = 400000,
+			Rare = 95200,
+			Epic = 4200,
+			Legendary = 500,
+			Mythic = 100,
 		},
 		PityRare = 10,
-		PityEpic = 150,
+		PityEpic = 100, -- v4 (was 150)
 		FirstWin = "Rare",
-		-- The upgrade screen (designer, 2026-10-07, like Star Drop): a Mystery block is opened
-		-- by Clicks presses. The first shows its starting tier; every later press may raise it
-		-- one tier (never down) by Chances[tier] (out of OddsTotal). The final tier is still
-		-- rolled by Weights with pity, so the overall odds above never change: the server then
-		-- picks the path this chain would take to that tier (BlockDrop.path). With these
-		-- chances the first press shows about Standard 84.5%, Uncommon 10.3%, Rare 5%, Epic
-		-- 0.13%, and about 1 block in 6 upgrades at least once.
+		-- The daily win track (v4 plan section 5): the block for each of the first 10 track
+		-- wins of the day (the day: Config.Daily.ResetHour); later wins pay money and XP only.
+		-- A win moves the track exactly when the anti-farm rules allow a block (BlockDrop.dropFor).
+		-- The first win ever is step 1 of day 1, so it is FirstWin's Rare block either way.
+		WinTrack = {
+			"Rare",
+			"Mystery",
+			"Mystery",
+			"Uncommon",
+			"Mystery",
+			"Mystery",
+			"Rare",
+			"Mystery",
+			"Mystery",
+			"Epic",
+		},
+		-- The upgrade screen (v4 plan 3.2, like Starr Drop): the block starts as Standard on
+		-- screen and is opened by Clicks presses; each press lifts it one tier or doesn't. The
+		-- server rolls the final tier first (Weights, with pity), then picks which presses climb,
+		-- every choice equally likely (BlockDrop.path): a Mythic climbs on all 5, an Uncommon on
+		-- 1. Clicks must be at least the ladder's steps (5). Chances is the old chain's table,
+		-- unused by the server; kept until the GUI's MysteryReveal stops reading it.
 		Upgrade = {
-			Clicks = 4,
+			Clicks = 5,
 			Chances = {
 				Standard = 70000, -- 7% a press, Standard -> Uncommon
 				Uncommon = 40000, -- 4%, Uncommon -> Rare
@@ -2150,11 +2176,11 @@ Config.LuckyBlocks = {
 		}, -- 5 minutes (designer, 2026-10-07; was 1 hour)
 		Epic = {
 			Odds = "Epic",
-			Timer = 3600,
+			Timer = 1800,
 			Model = "EpicBlock",
 			Idle = BOX_IDLE,
 			Icon = "rbxassetid://90574468724799",
-		}, -- 1 hour (designer, 2026-10-07; was 6 hours)
+		}, -- 30 minutes (economy v4, 2026-10-08; was 1 hour)
 		Legendary = {
 			Icon = "rbxassetid://128589483213137",
 			Odds = "Legendary",
@@ -2187,14 +2213,16 @@ Config.LuckyBlocks = {
 			Model = "MysteryBlock", -- frame C (flush rims), the moving rainbow
 			Idle = BOX_IDLE,
 		},
-		-- The shop's hero for 21 days (Config.Shop.Deals.GrandOpening), then retired.
+		-- The shop's hero for its window (Config.Shop.Deals.GrandOpening), then retired. The
+		-- 1,000th block a player opens is the Beta Cue if they have none and any are left (v4
+		-- plan 8.5; was the 400th).
 		GrandOpening = {
 			Icon = "rbxassetid://72796006793771",
 			Odds = "GrandOpening",
 			Timer = 0,
 			Model = "GrandOpeningBlock", -- gold, with a crown
 			Idle = BOX_IDLE,
-			Guarantee = { Cue = "BetaCue", At = 400 },
+			Guarantee = { Cue = "BetaCue", At = 1000 },
 			SizeMultiplier = 1.4, -- 6.5 studs tall (the crown)
 			HoldCenterShare = 0.36,
 			IconScale = 1.2,
@@ -2242,7 +2270,15 @@ Config.LuckyBlocks = {
 	-- A kind with Bob = true (a model without an animation; none now) hovers and turns by
 	-- code once it has landed: this high, this fast.
 	Bob = { HeightStuds = 0.35, Seconds = 2.4, TurnDegreesPerSecond = 30 },
-	SkipProduct = "LuckyBlockSkip", -- 19 Robux: one durable timer skip
+	SkipProduct = "LuckyBlockSkip", -- the cheapest skip (Skips[1]); kept for old readers
+	-- The skip by time left (v4 plan 8.2, designer 2026-10-08): the first row whose UpTo
+	-- (seconds left on the timer) covers the block names the product; the last has no UpTo.
+	-- 30 min or less 4 R$, 6 h or less 9 R$, more 15 R$.
+	Skips = {
+		{ UpTo = 1800, Product = "LuckyBlockSkip" },
+		{ UpTo = 6 * 3600, Product = "LuckyBlockSkip9" },
+		{ Product = "LuckyBlockSkip15" },
+	} :: { { UpTo: number?, Product: string } },
 	-- VIP multiplies every block timer by this: 0, no timers at all (designer, 2026-10-07; was
 	-- 0.5). Timers already running when VIP arrives finish at once (PlayerData).
 	VipTimerFactor = 0,
@@ -2840,16 +2876,18 @@ Config.LuckyBlocks = {
 -- never shows the Secret cue (lane decision, 2026-10-03). (tune)
 ---------------------------------------------------------------------------------------------
 Config.BotCues = {
-	Bronze = { EpicPlus = 0.05, LegendaryPlus = 0.008, MythicPlus = 0.001 },
-	Silver = { EpicPlus = 0.1, LegendaryPlus = 0.015, MythicPlus = 0.002 },
-	Gold = { EpicPlus = 0.2, LegendaryPlus = 0.03, MythicPlus = 0.004 },
-	Platinum = { EpicPlus = 0.34, LegendaryPlus = 0.06, MythicPlus = 0.008 },
-	Diamond = { EpicPlus = 0.5, LegendaryPlus = 0.1, MythicPlus = 0.013 },
-	Expert = { EpicPlus = 0.7, LegendaryPlus = 0.16, MythicPlus = 0.02 },
-	Veteran = { EpicPlus = 0.88, LegendaryPlus = 0.26, MythicPlus = 0.04 },
-	Master = { EpicPlus = 0.97, LegendaryPlus = 0.4, MythicPlus = 0.065 },
-	Grandmaster = { EpicPlus = 0.99, LegendaryPlus = 0.58, MythicPlus = 0.11 },
-	Reyes = { EpicPlus = 0.99, LegendaryPlus = 0.7, MythicPlus = 0.15 },
+	-- Economy v4 (2026-10-08, plan section 11): from the simulation's real players at day 60
+	-- (Master and up extrapolated: almost nobody reaches them in 60 days).
+	Bronze = { EpicPlus = 0.25, LegendaryPlus = 0.045, MythicPlus = 0.005 },
+	Silver = { EpicPlus = 0.8, LegendaryPlus = 0.24, MythicPlus = 0.03 },
+	Gold = { EpicPlus = 0.95, LegendaryPlus = 0.36, MythicPlus = 0.045 },
+	Platinum = { EpicPlus = 0.98, LegendaryPlus = 0.45, MythicPlus = 0.06 },
+	Diamond = { EpicPlus = 0.99, LegendaryPlus = 0.58, MythicPlus = 0.09 },
+	Expert = { EpicPlus = 0.99, LegendaryPlus = 0.75, MythicPlus = 0.15 },
+	Veteran = { EpicPlus = 0.99, LegendaryPlus = 0.85, MythicPlus = 0.25 },
+	Master = { EpicPlus = 0.99, LegendaryPlus = 0.92, MythicPlus = 0.35 },
+	Grandmaster = { EpicPlus = 0.99, LegendaryPlus = 0.96, MythicPlus = 0.5 },
+	Reyes = { EpicPlus = 0.99, LegendaryPlus = 0.98, MythicPlus = 0.65 },
 }
 
 ---------------------------------------------------------------------------------------------
@@ -2959,31 +2997,56 @@ Config.Items = {
 -- src/server/Rewards.luau). Every number from docs/ECONOMY.md section 10. (tune)
 ---------------------------------------------------------------------------------------------
 Config.Daily = {
-	-- The login loop (the approved economy plan, 2026-10-02, section 6): one claim per UTC day,
-	-- seven days that repeat. A missed day starts again at day 1, unless the week's streak
-	-- freeze covers it. Each day: Money, Blocks (lucky blocks, { [kind] = count }) and/or
-	-- Spins (ability spins). Every reward is claimed in the Rewards menu (no popups,
-	-- designer 2026-10-04).
+	-- Every daily thing (the login day, the win track, playtime, VIP's block, the anti-farm
+	-- "same day" limits) starts over at this hour UTC (economy v4, 2026-10-08: 08:00 UTC is
+	-- 3-4 am in New York, so one evening's play never collects two days; was 0).
+	ResetHour = 8,
+	-- The first week (v4 plan 6.1, designer 2026-10-08): a new player's first FirstWeekDays
+	-- login days, in a row or not, within FirstWeekWindow days of joining (the join's day is
+	-- day 1). After FirstWeekDays claims or after the window, the later weeks (Streak) take
+	-- over. Each day: Money, Blocks (lucky blocks, { [kind] = count }) and/or Spins.
+	FirstWeek = {
+		{ Money = 5000, Blocks = { Mystery = 1 } },
+		{ Blocks = { Epic = 1 } },
+		{ Money = 10000 },
+		{ Blocks = { Mystery = 2 } },
+		{ Blocks = { Rare = 1 } },
+		{ Blocks = { Mystery = 3 } },
+		{ Blocks = { Legendary = 1 }, Spins = 2 },
+	} :: { { Money: number?, Blocks: { [string]: number }?, Spins: number? } },
+	FirstWeekWindow = 14,
+	-- A login day counts (can be claimed) only once the player has finished a match that day
+	-- (any mode, PC included), so an alt cannot collect the first week by just joining.
+	NeedsMatch = true,
+	-- The later weeks (the login loop, every day claimed once per day): seven days that repeat.
+	-- A missed day starts again at day 1, unless the week's streak freeze covers it. Every reward
+	-- is claimed in the Rewards menu (no popups, designer 2026-10-04).
 	Streak = {
 		{ Money = 5000 },
-		{ Blocks = { Mystery = 1 } },
+		{ Blocks = { Rare = 1 } },
 		{ Money = 10000 },
 		{ Blocks = { Mystery = 2 } },
 		{ Money = 15000 },
 		{ Blocks = { Mystery = 3 } },
-		{ Blocks = { Rare = 1 }, Spins = 2 },
+		{ Blocks = { Epic = 1 }, Spins = 2 },
 	} :: { { Money: number?, Blocks: { [string]: number }?, Spins: number? } },
-	-- One free streak freeze a UTC week (weeks start Monday): a single missed day is covered
+	-- One free streak freeze a week (weeks start Monday): a single missed day is covered
 	-- by itself, so the streak goes on. Two or more missed days start it over.
 	FreezePerWeek = 1,
 	-- VIP's extra free ability spin a day (plan section 5), added to each day's claim. Everyone's
 	-- one free spin a day is Config.Ults.Earn.DailyFree.
 	VipSpins = 1,
+	-- VIP's daily block (v4 plan 6.7, designer 2026-10-08), added to each day's claim. Where
+	-- PolicyService restricts paid random items it is VipRestrictedMoney instead (VIP is then
+	-- a paid random item: its card shows the block's odds).
+	VipBlocks = { Rare = 1 },
+	VipRestrictedMoney = 5000,
 	-- The 28-day track: total days claimed (never resets), repeating every TrackDays. On the
-	-- day the count reaches one of these it adds its reward to that day's claim.
+	-- day the count reaches one of these it adds its reward to that day's claim (v4: the first
+	-- prize on day 8, since day 7 of the first week is the Legendary block).
 	TrackDays = 28,
 	Track = {
-		{ Day = 7, Blocks = { Rare = 1 } },
+		{ Day = 8, Blocks = { Rare = 1 } },
 		{ Day = 14, Blocks = { Rare = 2 } },
 		{ Day = 21, Blocks = { Rare = 2 } },
 		{ Day = 28, Blocks = { Epic = 1 } },
@@ -2992,13 +3055,14 @@ Config.Daily = {
 	-- weeks ("Week 2 of 4") and its day-28 prize.
 	WeeksForBonus = 4,
 	WeekBonus = { Blocks = { Epic = 1 } },
-	-- Playtime gifts: minutes played in a UTC day, each claimable once that day.
+	-- Playtime gifts: minutes played in a day, across sessions, each claimable once that day
+	-- (v4 plan 6.3: all within the first hour; Roblox ranks playtime up to 60 minutes a day).
 	Playtime = {
-		{ Minutes = 10, Money = 2000 },
+		{ Minutes = 5, Money = 1000 },
+		{ Minutes = 15, Blocks = { Mystery = 1 } },
 		{ Minutes = 30, Blocks = { Mystery = 1 } },
-		{ Minutes = 60, Blocks = { Mystery = 2 }, Spins = 1 },
-		{ Minutes = 90, Money = 10000 },
-		{ Minutes = 120, Blocks = { Rare = 1 } },
+		{ Minutes = 45, Blocks = { Mystery = 1 } },
+		{ Minutes = 60, Blocks = { Rare = 1 }, Spins = 1 },
 	} :: {
 		{
 			Minutes: number,
@@ -3067,23 +3131,24 @@ Config.Trade = {
 	ExclusiveTradable = { StarterCue = true },
 	-- The lopsided warning: one side's worth is more than this many times the other's. A
 	-- cue's worth is 1 / its copies in existence (fewer than MinExists counts as MinExists);
-	-- a lucky block's is 1 / BlockExists (about the copies of a cue as rare as what it usually
-	-- gives). Only READY blocks trade (Progression/Trade).
+	-- a lucky block's is worked out live from its odds row and the live copies of each rarity
+	-- (Trade.blockWorth, v4 plan section 11). BlockExists is the fallback until the counters
+	-- load: 1 / worth from the model at day 30. Only READY blocks trade (Progression/Trade).
 	LopsidedRatio = 4,
 	MinExists = 10,
 	BlockExists = {
-		Standard = 100000,
-		Uncommon = 50000,
-		Rare = 10000,
-		Epic = 1000,
-		Legendary = 200,
-		Mythic = 30,
-		Mystery = 70000, -- the tier roll: mostly Standard
-		GrandOpening = 20000,
-		Lucky8 = 10000, -- the Rare row
-		Sky = 60000,
-		Starter = 10000,
-		Gift = 10000,
+		Standard = 160000,
+		Uncommon = 140000,
+		Rare = 73000,
+		Epic = 11000,
+		Legendary = 1600,
+		Mythic = 400,
+		Mystery = 120000, -- the tier roll: mostly Standard and Uncommon
+		GrandOpening = 15000,
+		Lucky8 = 73000, -- the Rare row
+		Sky = 115000,
+		Starter = 19000,
+		Gift = 73000, -- the Rare row
 	},
 	-- The ledger: each player's trades written before their saves change, replayed on a load
 	-- that missed one (one key per player: the trades not yet confirmed saved).
@@ -3126,9 +3191,50 @@ Config.Social = {
 	InviterOnce = true,
 	-- GUI lane (D4): favoriting the game through Roblox's favorite prompt gives this once.
 	-- Roblox gives a server no way to check a favorite, so the client reports it.
-	FavoriteReward = { Money = 10000, Blocks = { Mystery = 1 } },
+	-- v4: a Lucky 8 block (the designer's choice, 2026-10-08; was a Mystery block).
+	FavoriteReward = { Money = 10000, Blocks = { Lucky8 = 1 } },
 	-- A ClaimGroup request (it asks Roblox for the player's groups) at most this often.
 	ClaimCooldownSeconds = 5,
+}
+
+---------------------------------------------------------------------------------------------
+-- Planned, not built yet (economy v4 plan 6.4 and 6.5, 2026-10-08): the numbers are set now so
+-- the economy model and docs/ECONOMY.md price them; each feature gets its own brief. Nothing
+-- reads this table yet.
+---------------------------------------------------------------------------------------------
+Config.Planned = {
+	-- The Daily Challenge: one shot a day at a ring target. Rewards by the ring hit.
+	LuckyShot = { -- free, once a day
+		Miss = { Money = 500 },
+		Grey = { Money = 1500 },
+		Blue = { Money = 3000 },
+		Red = { Blocks = { Mystery = 1 } },
+		Gold = { Blocks = { Rare = 1 } },
+	},
+	GoldenShot = { -- 15 R$, once a day; its top prize stays 2 Rare blocks, never an Epic block
+		Robux = 15,
+		Miss = { Money = 5000 },
+		Grey = { Money = 7500, Blocks = { Uncommon = 1 } },
+		Blue = { Blocks = { Rare = 1 } },
+		Red = { Money = 10000, Blocks = { Rare = 1 } },
+		Gold = { Money = 25000, Blocks = { Rare = 2 } },
+	},
+	-- Lucky Rain: in a server with MinPlayers or more, a block falls every EverySeconds (each
+	-- match finished there brings it PerMatchSeconds sooner, never under MinSeconds); it is a
+	-- Sky block, or a Rare block 1 time in RareOneIn; everyone who reaches it within
+	-- ReachSeconds gets one, PerDay a day.
+	LuckyRain = {
+		MinPlayers = 4,
+		EverySeconds = 1800,
+		PerMatchSeconds = 60,
+		MinSeconds = 900,
+		RareOneIn = 20,
+		ReachSeconds = 90,
+		PerDay = 3,
+	},
+	-- The stay bonus: +PercentPerStep match money every StepSeconds in the server, up to
+	-- MaxPercent; match money only; pauses when idle, resets on leaving.
+	StayBonus = { PercentPerStep = 1, StepSeconds = 120, MaxPercent = 25 },
 }
 
 ---------------------------------------------------------------------------------------------
@@ -3142,9 +3248,12 @@ Config.Shop = {
 	WelcomeSeconds = 86400,
 	ComebackAfterSeconds = 7 * 86400,
 	ComebackSeconds = 86400,
-	-- The Starter Pack (11.4): for StarterSeconds after the first join, once.
+	-- The Starter Pack (v4 plan 8.6): for StarterSeconds after the first join, once. 19 R$:
+	-- the Starter block, StarterMoney and an hour of 2x money; where PolicyService restricts
+	-- paid random items, no block and StarterRestrictedMoney instead (was $75,000 at 99 R$).
 	StarterSeconds = 7 * 86400,
-	StarterMoney = 75000,
+	StarterMoney = 25000,
+	StarterRestrictedMoney = 40000,
 	-- The Starter Pack's hour of 2x money (Config.Economy.StarterBoost; it adds to VIP's).
 	StarterBoostSeconds = 3600,
 	StarterBlock = "Starter", -- the Starter Lucky Block (Rare or better; designer 2026-10-04)
@@ -3176,10 +3285,13 @@ Config.Shop = {
 		},
 		GrandOpening = {
 			Kind = "GrandOpening",
-			Money = { [1] = 49000, [3] = 139000, [10] = 441000 },
+			-- v4 plan 8.5: $24,900 (3.4 hours of play), 3 for $69,900, 10 for $219,000.
+			Money = { [1] = 24900, [3] = 69900, [10] = 219000 },
 			Products = { [1] = "GrandOpening1", [3] = "GrandOpening3", [10] = "GrandOpening10" },
 			StartsAt = 0,
-			Seconds = 21 * 86400,
+			-- 30 days (the designer, 2026-10-08: start at publish, maybe 30-45 days; the caps in
+			-- Config.BlockOdds.List.GrandOpening keep the Uniques at 1,000 and 100 either way).
+			Seconds = 30 * 86400,
 			VaultedSeconds = 7 * 86400, -- the "Vaulted" card stays this long after the end
 		},
 	},
@@ -3188,26 +3300,33 @@ Config.Shop = {
 	-- The restock shop (plan section 12; Progression/Restock): new blocks every SlotSeconds on
 	-- the clock (UTC :00, :10 ...), the same in every server (picked from the slot number).
 	-- Three slots each roll one block kind by Odds (parts of ChanceTotal), a fourth for VIP by
-	-- VipOdds. Stock is per player per restock, per slot; one block per press. Robux where a
-	-- Product is named.
+	-- VipOdds (a richer table; every block in it has its usual odds). Stock is per player per
+	-- restock, per slot; one block per press; money and Robux share it. Robux where a Product
+	-- is named. v4 plan 8.4: Rare or better (the Uncommon slot is gone), a Mythic block about
+	-- every 5 days (1 in 2,000 slots; VIP's 1 in 500).
 	Restock = {
 		SlotSeconds = 600,
 		ChanceTotal = 10000,
 		Slots = 3,
-		Odds = { Uncommon = 6200, Rare = 3660, Epic = 135, Legendary = 5 },
-		VipOdds = { Rare = 9600, Epic = 385, Legendary = 15 },
+		Odds = { Rare = 8700, Epic = 1200, Legendary = 95, Mythic = 5 },
+		VipOdds = { Rare = 8000, Epic = 1700, Legendary = 280, Mythic = 20 },
 		Kinds = {
-			Uncommon = { Price = 14900, Stock = 3 },
-			Rare = { Price = 34900, Product = "RestockRare", Stock = 1 },
-			Epic = { Price = 349000, Product = "RestockEpic", Stock = 1 },
-			Legendary = { Price = 3490000, Product = "RestockLegendary", Stock = 1 },
+			Rare = { Price = 19900, Product = "RestockRare", Stock = 2 },
+			Epic = { Price = 199000, Product = "RestockEpic", Stock = 1 },
+			Legendary = { Price = 1490000, Product = "RestockLegendary", Stock = 1 },
+			Mythic = { Price = 4990000, Product = "RestockMythic", Stock = 1 },
 		},
+		-- A restock with one of these in any slot (the three shared ones) is announced in every
+		-- server ("A MYTHIC block is in the restock for 9:41!").
+		Announce = { Legendary = true, Mythic = true },
 		-- A Robux restock receipt still counts for its restock this long after the prompt
 		-- opened (the prompt may be confirmed after the slot ended).
 		ReceiptGraceSeconds = 600,
 	},
-	-- The first money pack a player ever buys pays this many times its money (11.1).
-	FirstPackMultiplier = 2,
+	-- The first money pack a player ever buys pays this many times its money (11.1). Off (1)
+	-- since economy v4 (2026-10-08: no top game has one; the 19 R$ Starter Pack wins the first
+	-- purchase). Kept until the shop stops reading it.
+	FirstPackMultiplier = 1,
 	-- Money Party (11.5): +Config.Economy.PartyBoost money for everyone in the server for
 	-- PartySeconds; buying again adds PartySeconds. The shop offers it only while that stays
 	-- within PartyMaxSeconds queued; a paid receipt always adds its full PartySeconds.
@@ -3264,11 +3383,22 @@ Config.Shop = {
 	-- rows with SaleOf), shown in place of the normal ones only inside the window, so the
 	-- crossed-out normal price is always true. StartsAt 0: it starts with the Limited row of
 	-- With (the Firework Cue), so one date sets both.
+	-- Off since economy v4 (Percent 0, 2026-10-08): the launch bonus below replaces it, and the
+	-- sale products are Retired. Kept until the shop stops reading it.
 	ReleaseSale = {
 		StartsAt = 0,
 		With = "GrandOpening", -- the Config.Shop.Deals key whose window it follows
 		Seconds = 21 * 86400,
+		Percent = 0,
+	},
+	-- The launch bonus (v4 plan 8.2, designer 2026-10-08): inside the window of the Deals key
+	-- With (the Grand Opening's), every money pack gives Percent more money and 10 Mystery
+	-- blocks come as MysteryBulkCount. Shown as "Launch bonus +30%" with its real end date; a
+	-- receipt counts inside the window plus Config.Shop.OfferGraceSeconds. No new products.
+	LaunchBonus = {
+		With = "GrandOpening",
 		Percent = 30,
+		MysteryBulkCount = 13,
 	},
 }
 
@@ -3288,48 +3418,53 @@ Config.Products = {
 	-- restricts them (ArePaidRandomItemsRestricted).
 	-- The shop's order of the money packs (plan 5).
 	PackOrder = { "Pack1", "Pack2", "Pack3", "Pack4", "Pack5", "Pack6", "Pack7" },
-	-- The pack marked "Best value".
-	BestValue = "Pack6",
+	-- The pack marked "Best value": the most money per Robux (v4, 2026-10-08; was Pack6).
+	BestValue = "Pack7",
 	List = {
 		-- Game passes.
-		-- VIP (499 R$, designer 2026-10-04: was 599; no block timers (2026-10-07), fast reveals and
-		-- Auto Spin). The live price is read from Roblox; change the pass's price in Creator
-		-- Hub to match. The Quick Cases pass (id 2006144658) was retired into VIP 2026-10-04.
-		Vip = { Kind = "Pass", Id = 2005370712, Robux = 499 },
-		UltSlot2 = { Kind = "Pass", Id = 2006096679, Robux = 59 }, -- the second ability slot
-		UltSlot3 = { Kind = "Pass", Id = 2006012697, Robux = 99 }, -- the third ability slot
+		-- VIP (399 R$, economy v4 2026-10-08: was 499; no block timers, fast reveals, Auto Spin,
+		-- a Rare block a day: Config.Daily.VipBlocks). The live price is read from Roblox;
+		-- tools/roblox_products.py --prices sets it. The Quick Cases pass (id 2006144658) was
+		-- retired into VIP 2026-10-04.
+		Vip = { Kind = "Pass", Id = 2005370712, Robux = 399 },
+		UltSlot2 = { Kind = "Pass", Id = 2006096679, Robux = 49 }, -- the second ability slot
+		UltSlot3 = { Kind = "Pass", Id = 2006012697, Robux = 79 }, -- the third ability slot
 		-- Offers (once).
-		VipOffer = { Kind = "Product", Id = 3716158339, Robux = 249 }, -- VIP at half price, 24 h windows
-		-- The Starter Pack: a Starter Lucky Block (Rare or better), $75,000, 1 h of 2x money.
-		StarterPack = { Kind = "Product", Id = 3716158341, Robux = 99, Random = true },
-		-- Money packs: Money each, Bonus = % more money per Robux than Pack1 (shown).
-		Pack1 = { Kind = "Product", Id = 3716158342, Robux = 49, Money = 9000, Bonus = 0 }, -- Handful
-		Pack2 = { Kind = "Product", Id = 3716158345, Robux = 99, Money = 19500, Bonus = 7 }, -- Stack
-		Pack3 = { Kind = "Product", Id = 3716158347, Robux = 249, Money = 52500, Bonus = 15 }, -- Bundle
-		Pack4 = { Kind = "Product", Id = 3716158349, Robux = 499, Money = 110000, Bonus = 20 }, -- Briefcase
-		Pack5 = { Kind = "Product", Id = 3716158353, Robux = 999, Money = 235000, Bonus = 28 }, -- Vault
-		Pack6 = { Kind = "Product", Id = 3716158356, Robux = 2499, Money = 625000, Bonus = 36 }, -- Bank
-		Pack7 = { Kind = "Product", Id = 3716158358, Robux = 4999, Money = 1300000, Bonus = 42 }, -- Fortune
+		VipOffer = { Kind = "Product", Id = 3716158339, Robux = 199 }, -- VIP at half price, 24 h windows
+		-- The Starter Pack: a Starter Lucky Block (Rare or better), $25,000, 1 h of 2x money.
+		-- Not Random: where paid random items are restricted it is still sold, as $40,000 and
+		-- the hour (Config.Shop.StarterRestrictedMoney); it stays Not Listed on Roblox.
+		StarterPack = { Kind = "Product", Id = 3716158341, Robux = 19 },
+		-- Money packs (v4 plan 8.2, about 1.7x the money per Robux of before): Money each,
+		-- Bonus = % more money per Robux than Pack1 (shown). The tops fit phone Robux packs.
+		Pack1 = { Kind = "Product", Id = 3716158342, Robux = 25, Money = 8000, Bonus = 0 }, -- Handful
+		Pack2 = { Kind = "Product", Id = 3716158345, Robux = 49, Money = 16500, Bonus = 5 }, -- Stack
+		Pack3 = { Kind = "Product", Id = 3716158347, Robux = 99, Money = 35000, Bonus = 10 }, -- Bundle
+		Pack4 = { Kind = "Product", Id = 3716158349, Robux = 199, Money = 75000, Bonus = 18 }, -- Briefcase
+		Pack5 = { Kind = "Product", Id = 3716158353, Robux = 399, Money = 160000, Bonus = 25 }, -- Vault
+		Pack6 = { Kind = "Product", Id = 3716158356, Robux = 799, Money = 335000, Bonus = 31 }, -- Bank
+		Pack7 = { Kind = "Product", Id = 3716158358, Robux = 1699, Money = 760000, Bonus = 40 }, -- Fortune
 		-- Lucky blocks by the count (Config.Shop.Deals): Blocks = { Kind, Count }, paid origin
-		-- (they open at once). The Grand Opening ones sell inside their deal's window only.
+		-- (they open at once). The Grand Opening ones sell inside their deal's window only. Was:
+		-- the same count bought one at a time (a true saving; the shop shows "57 R$ one by one").
 		Mystery1 = {
 			Kind = "Product",
 			Id = 3716158359,
-			Robux = 25,
+			Robux = 5,
 			Blocks = { Kind = "Mystery", Count = 1 },
 			Random = true,
 		},
 		Mystery10 = {
 			Kind = "Product",
 			Id = 3716158365,
-			Robux = 229,
+			Robux = 45,
 			Blocks = { Kind = "Mystery", Count = 10 },
 			Random = true,
 		},
 		GrandOpening1 = {
 			Kind = "Product",
 			Id = 3716907625,
-			Robux = 49,
+			Robux = 19,
 			Blocks = { Kind = "GrandOpening", Count = 1 },
 			Deal = "GrandOpening",
 			Random = true,
@@ -3337,8 +3472,8 @@ Config.Products = {
 		GrandOpening3 = {
 			Kind = "Product",
 			Id = 3716907627,
-			Robux = 129,
-			Was = 147,
+			Robux = 49,
+			Was = 57,
 			Blocks = { Kind = "GrandOpening", Count = 3 },
 			Deal = "GrandOpening",
 			Random = true,
@@ -3346,81 +3481,96 @@ Config.Products = {
 		GrandOpening10 = {
 			Kind = "Product",
 			Id = 3716907629,
-			Robux = 349,
-			Was = 490,
+			Robux = 149,
+			Was = 190,
 			Blocks = { Kind = "GrandOpening", Count = 10 },
 			Deal = "GrandOpening",
 			Random = true,
 		},
 		-- The restock slots' Robux prices (only while that block is in stock).
+		-- The restock slots' Robux prices (only while that block is in stock; v4 plan 8.2).
+		-- RestockRare and RestockMythic are created by tools/roblox_products.py (Id 0 until then:
+		-- the slot sells for money only).
 		RestockRare = {
 			Kind = "Product",
 			Id = 0,
-			Robux = 99,
+			Robux = 15,
 			Restock = "Rare",
 			Random = true,
 		},
 		RestockEpic = {
 			Kind = "Product",
 			Id = 3716158370,
-			Robux = 999,
+			Robux = 99,
 			Restock = "Epic",
 			Random = true,
 		},
 		RestockLegendary = {
 			Kind = "Product",
 			Id = 3716158374,
-			Robux = 4999,
+			Robux = 599,
 			Restock = "Legendary",
 			Random = true,
 		},
-		LuckyBlockSkip = { Kind = "Product", Id = 3716368528, Robux = 19, Random = true },
-		MoneyParty = { Kind = "Product", Id = 3716158385, Robux = 199 }, -- +100% money, 15 min, server
+		RestockMythic = {
+			Kind = "Product",
+			Id = 0,
+			Robux = 1699,
+			Restock = "Mythic",
+			Random = true,
+		},
+		-- The skip by time left (Config.LuckyBlocks.Skips): 30 min or less, 6 h or less, more.
+		LuckyBlockSkip = { Kind = "Product", Id = 3716368528, Robux = 4, Random = true },
+		LuckyBlockSkip9 = { Kind = "Product", Id = 0, Robux = 9, Random = true },
+		LuckyBlockSkip15 = { Kind = "Product", Id = 0, Robux = 15, Random = true },
+		MoneyParty = { Kind = "Product", Id = 3716158385, Robux = 49 }, -- +100% money, 15 min, server
 		-- Ability spins (ECONOMY 11.8; the spin screen's R$ buy row). Spins / Lucky: what one
-		-- purchase adds; Was: the original price shown crossed out (a real bulk saving against
-		-- Spin1 or Lucky1, never an always-on fake sale).
-		Spin1 = { Kind = "Product", Id = 3716158388, Robux = 15, Spins = 1, Random = true },
+		-- purchase adds; Was: the same count bought one at a time today (a true bulk saving
+		-- against Spin1 or Lucky1, never a former price; the shop will show it "one by one").
+		Spin1 = { Kind = "Product", Id = 3716158388, Robux = 9, Spins = 1, Random = true },
 		Spin5 = {
 			Kind = "Product",
 			Id = 3716158389,
-			Robux = 50,
-			Was = 75,
+			Robux = 39,
+			Was = 45,
 			Spins = 5,
 			Random = true,
 		},
 		Spin10 = {
 			Kind = "Product",
 			Id = 3716158392,
-			Robux = 100,
-			Was = 150,
+			Robux = 75,
+			Was = 90,
 			Spins = 10,
 			Random = true,
 		},
 		Spin50 = {
 			Kind = "Product",
 			Id = 3716158395,
-			Robux = 449,
-			Was = 750,
+			Robux = 299,
+			Was = 450,
 			Spins = 50,
 			Random = true,
 		},
-		Lucky1 = { Kind = "Product", Id = 3716158396, Robux = 49, Lucky = 1, Random = true }, -- no Commons
+		Lucky1 = { Kind = "Product", Id = 3716158396, Robux = 25, Lucky = 1, Random = true }, -- no Commons
 		Lucky3 = {
 			Kind = "Product",
 			Id = 3716158399,
-			Robux = 129,
-			Was = 147,
+			Robux = 65,
+			Was = 75,
 			Lucky = 3,
 			Random = true,
 		},
-		-- The release sale (Config.Shop.ReleaseSale): each gives what its SaleOf product gives,
-		-- sold only inside the sale window (created 2026-10-03 by tools/roblox_products.py).
+		-- The release sale (retired with economy v4, 2026-10-08): never offered again, kept so
+		-- an old receipt still pays what its SaleOf product gave (created 2026-10-03; never
+		-- deleted on Roblox). Their money stays the old packs' amounts.
 		Pack4Sale = {
 			Kind = "Product",
 			Id = 3716177484,
 			Robux = 349,
 			Money = 110000,
 			SaleOf = "Pack4",
+			Retired = true,
 		},
 		Pack5Sale = {
 			Kind = "Product",
@@ -3428,6 +3578,7 @@ Config.Products = {
 			Robux = 699,
 			Money = 235000,
 			SaleOf = "Pack5",
+			Retired = true,
 		},
 		Pack6Sale = {
 			Kind = "Product",
@@ -3435,6 +3586,7 @@ Config.Products = {
 			Robux = 1749,
 			Money = 625000,
 			SaleOf = "Pack6",
+			Retired = true,
 		},
 		Pack7Sale = {
 			Kind = "Product",
@@ -3442,8 +3594,16 @@ Config.Products = {
 			Robux = 3499,
 			Money = 1300000,
 			SaleOf = "Pack7",
+			Retired = true,
 		},
-		VipSale = { Kind = "Product", Id = 3716177492, Robux = 349, Vip = true, SaleOf = "Vip" },
+		VipSale = {
+			Kind = "Product",
+			Id = 3716177492,
+			Robux = 349,
+			Vip = true,
+			SaleOf = "Vip",
+			Retired = true,
+		},
 		Mystery10Sale = {
 			Kind = "Product",
 			Id = 3716177494,
@@ -3451,6 +3611,7 @@ Config.Products = {
 			Blocks = { Kind = "Mystery", Count = 10 },
 			Random = true,
 			SaleOf = "Mystery10",
+			Retired = true,
 		},
 	},
 }
@@ -3684,7 +3845,7 @@ Config.Ults = {
 			Reyes = 3,
 		},
 		-- Money spins: this much each, no bulk discount ("way more expensive" than Robux).
-		MoneyPerSpin = 17500,
+		MoneyPerSpin = 12500, -- v4 (2026-10-08; was 17,500)
 		MoneyPacks = { 1, 5, 10, 50 }, -- BUY 1, 5, 10, 50 in $ mode
 		-- Robux packs: the developer products in Config.Products (Spin1..Spin50, Lucky1, Lucky3).
 		RobuxPacks = { "Spin1", "Spin5", "Spin10", "Spin50" },

@@ -24,6 +24,9 @@
 -- designer: nothing converted), and the first-win flag is renamed FirstWinBlock.
 -- Version 8 (2026-10-06): the cue id GrandOpeningCue is now FireworkCue wherever a save holds
 -- a cue id (Config.Items.RenamedCues).
+-- Version 9 (2026-10-08, economy v4): days start at 08:00 UTC and the playtime gifts changed,
+-- so today's Daily starts over; Login.FirstWeek counts the first week's days (a save that
+-- already claimed 7 days has had its first week); Daily.Track and Daily.Matches are new.
 local Config = require(script.Parent.Parent.Config)
 local Catalog = require(script.Parent.Catalog)
 local UltCatalog = require(script.Parent.Parent.Ults.Catalog)
@@ -35,7 +38,7 @@ local RanksCfg = Config.Ranks
 
 local SaveSchema = {}
 
-SaveSchema.Version = 8
+SaveSchema.Version = 9
 
 --- Saves older than this start over (a full wipe, version 6).
 SaveSchema.WipeBelow = 6
@@ -93,6 +96,8 @@ function SaveSchema.freshDaily(day: number): any
 		Wins = 0, -- real wins today
 		PcDrops = 0, -- PC wins today that dropped a lucky block (Config.Economy.PcDropsPerDay)
 		Disguised = 0, -- disguised-bot wins today (Config.Economy.DisguisedDailyWins)
+		Track = 0, -- the win track's steps given today (Config.BlockOdds.Drop.WinTrack)
+		Matches = 0, -- real matches finished today (the login day waits for one)
 		Opponents = {}, -- [userId as a string] = { Matches, Drops } (anti-farm, ECONOMY 3.6)
 		PlaySeconds = 0, -- time played today (the playtime gifts)
 		PlaytimeClaimed = {}, -- [gift index as a string] = true, the gifts claimed today
@@ -108,6 +113,8 @@ local DAILY_KEYS = {
 	"Wins",
 	"PcDrops",
 	"Disguised",
+	"Track",
+	"Matches",
 	"Opponents",
 	"PlaySeconds",
 	"PlaytimeClaimed",
@@ -154,9 +161,12 @@ function SaveSchema.template(): any
 		Daily = SaveSchema.freshDaily(0),
 		Login = {
 			LastDay = 0, -- the UTC day of the last claim; 0 never claimed
-			StreakDay = 0, -- the loop day last claimed, 1..#Config.Daily.Streak; 0 none
+			-- The later weeks' loop day last claimed, 1..#Config.Daily.Streak; 0 none (or the
+			-- last claim was a first-week day).
+			StreakDay = 0,
 			Total = 0, -- every day ever claimed (the 28-day track, Config.Daily.Track)
-			FreezeWeek = 0, -- the UTC week whose streak freeze was used (Daily.weekOf); 0 none
+			FreezeWeek = 0, -- the week whose streak freeze was used (Daily.weekOf); 0 none
+			FirstWeek = 0, -- the first week's days claimed, 0..#Config.Daily.FirstWeek
 		},
 		Shop = {
 			-- Unix seconds of the first join; 0 until PlayerData sets it on load (the migration
@@ -378,6 +388,24 @@ SaveSchema.Migrations[7] = function(data: any): any
 				renameItems(entry.Got)
 			end
 		end
+	end
+	return data
+end
+
+-- 8 -> 9 (2026-10-08, economy v4): days start at 08:00 UTC (Config.Daily.ResetHour) and the
+-- playtime gifts are a new list, so today's per-day counts start over (Day 0: the next read
+-- rolls it to today). Login.FirstWeek is new: a save with 7 or more days claimed has had its
+-- first week. Fixed numbers here (not Config), so this step never changes once shipped.
+SaveSchema.Migrations[8] = function(data: any): any
+	if type(data.Daily) == "table" then
+		data.Daily = SaveSchema.freshDaily(0)
+	end
+	local login = data.Login
+	if type(login) == "table" then
+		local total = login.Total
+		login.FirstWeek = if SaveSchema.isInteger(total) and total > 0
+			then math.min(total, 7)
+			else 0
 	end
 	return data
 end
@@ -1010,6 +1038,8 @@ end
 local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
 	fixInteger(blocks, "Next", "LuckyBlocks.Next", SaveCfg.StatCap, fixes)
 	fixInteger(blocks, "SkipCredits", "LuckyBlocks.SkipCredits", SaveCfg.StatCap, fixes)
+	fixInteger(blocks, "SkipCredits1", "LuckyBlocks.SkipCredits1", SaveCfg.StatCap, fixes)
+	fixInteger(blocks, "SkipCredits2", "LuckyBlocks.SkipCredits2", SaveCfg.StatCap, fixes)
 	fixInteger(blocks, "SkipTarget", "LuckyBlocks.SkipTarget", SaveCfg.StatCap, fixes)
 	local list = ensureTable(blocks, "List", "LuckyBlocks.List", {}, fixes)
 	fixArray(list, "LuckyBlocks.List", fixes)
@@ -1081,6 +1111,8 @@ local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
 			and key ~= "List"
 			and key ~= "Opened"
 			and key ~= "SkipCredits"
+			and key ~= "SkipCredits1"
+			and key ~= "SkipCredits2"
 			and key ~= "SkipTarget"
 		then
 			blocks[key] = nil
@@ -1187,6 +1219,8 @@ function SaveSchema.validate(data: any): (any, { string })
 	fixInteger(daily, "Wins", "Daily.Wins", SaveCfg.StatCap, fixes)
 	fixInteger(daily, "PcDrops", "Daily.PcDrops", SaveCfg.StatCap, fixes)
 	fixInteger(daily, "Disguised", "Daily.Disguised", SaveCfg.StatCap, fixes)
+	fixInteger(daily, "Track", "Daily.Track", SaveCfg.StatCap, fixes)
+	fixInteger(daily, "Matches", "Daily.Matches", SaveCfg.StatCap, fixes)
 	fixMapAt(
 		daily,
 		"Opponents",
@@ -1210,6 +1244,7 @@ function SaveSchema.validate(data: any): (any, { string })
 	fixInteger(login, "StreakDay", "Login.StreakDay", #Config.Daily.Streak, fixes)
 	fixInteger(login, "Total", "Login.Total", SaveCfg.StatCap, fixes)
 	fixInteger(login, "FreezeWeek", "Login.FreezeWeek", SaveCfg.StatCap, fixes)
+	fixInteger(login, "FirstWeek", "Login.FirstWeek", #Config.Daily.FirstWeek, fixes)
 	login.Week = nil -- the old four-week cycle (the track replaced it, plan section 6)
 
 	local shop = data.Shop

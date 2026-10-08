@@ -15,7 +15,9 @@
 -- - Limited copies: Counters.takeLimited hands out the next number with one atomic UpdateAsync
 --   per call, and remembers which player got it (Counts.takeNext), so a player asking again
 --   gets the same number; the sold counts are attributes on ReplicatedStorage.LimitedSold,
---   refreshed after each take and on the read loop (none before the first read).
+--   refreshed after each take and on the read loop (none before the first read). The capped
+--   Unique cues (the Grand Opening's, Config.BlockOdds caps) are read the same way, so every
+--   server knows when their copies are all found ("23 of 100 left").
 -- - Firsts: Counters.claimFirst sets a key once (UpdateAsync, set only if empty).
 -- - Every DataStore call is in pcall and nothing here ever blocks gameplay: the loops run in
 --   their own threads, and a background round waits while the DataStore budget is low
@@ -27,6 +29,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Catalog = require(Shared.Progression.Catalog)
+local BlockOdds = require(Shared.Progression.BlockOdds)
 local Counts = require(Shared.Progression.Counts)
 local Shop = require(Shared.Progression.Shop)
 
@@ -263,12 +266,23 @@ function Counters.refresh(): boolean
 	Counters.readWatchedStock()
 	local limited = storeOf("Limited")
 	if limited then
+		local numbered: { string } = {}
 		for _, row in Shop.limited() do
+			table.insert(numbered, row.Cue)
+		end
+		for _, row in BlockOdds.list() do
+			for _, unique in BlockOdds.uniqueRows(row.Id) do
+				if BlockOdds.caps(row.Id)[unique.cue] ~= nil then
+					table.insert(numbered, unique.cue)
+				end
+			end
+		end
+		for _, cueId in numbered do
 			local got, value = pcall(function(): any
-				return limited:GetAsync(limitedKey(row.Cue))
+				return limited:GetAsync(limitedKey(cueId))
 			end)
 			if got then
-				setSold(row.Cue, Counts.sold(value))
+				setSold(cueId, Counts.sold(value))
 			else
 				complain("reading the Limited counts", value)
 				ok = false
@@ -304,15 +318,17 @@ function Counters.takeLimited(
 end
 
 --- Takes player `userId`'s numbered copy of any Unique cue (the Grand Opening block's two
---- cues): the same atomic counter as a Limited's, with no cap but the save's and no end.
+--- cues): the same atomic counter as a Limited's, capped at `cap` (the odds row's Caps, economy
+--- v4) and the save's, with no end.
 --- Yields. Returns the copy number, or nil and "Error".
-function Counters.takeUnique(cueId: string, userId: number): (number?, string?)
+function Counters.takeUnique(cueId: string, userId: number, cap: number?): (number?, string?)
 	local cue = Catalog.get(cueId)
 	if cue == nil or cue.Group ~= "Unique" then
 		warn(("[8ball] Counters.takeUnique: %s is not a Unique cue"):format(tostring(cueId)))
 		return nil, "Error"
 	end
-	return takeCopy("takeUnique", cueId, userId, Config.Save.CopyNumberCap, math.huge)
+	local most = math.min(Config.Save.CopyNumberCap, cap or math.huge)
+	return takeCopy("takeUnique", cueId, userId, most, math.huge)
 end
 
 function takeCopy(

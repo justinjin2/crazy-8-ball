@@ -64,6 +64,7 @@ export type Grant = {
 	-- item id and the block kind it gives (the Store fills it in: the restock is the server's).
 	restock: { slot: number, id: string, block: string }?,
 	luckySkip: boolean?, -- durable lucky block timer credit, applied by PlayerData
+	skipTier: number?, -- that skip's tier (Config.LuckyBlocks.Skips; nil: the top one)
 	boostEnds: number?, -- the Starter Pack's 2x money hour ends then (sets Shop.BoostEnds)
 }
 
@@ -115,6 +116,7 @@ type ProductRow = {
 	Random: boolean?, -- a paid random item (refused where PolicyService restricts them)
 	SaleOf: string?, -- a release-sale product: gives what this key gives (Shop.releaseSale)
 	Vip: boolean?, -- grants VIP in the save, like the welcome offer (the sale's VIP)
+	Retired: boolean?, -- never offered again; an old receipt still pays (economy v4)
 }
 
 local LIST: { [string]: ProductRow } = P.List :: any
@@ -516,16 +518,21 @@ function Shop.isRandom(key: string): boolean
 end
 
 --- What buying developer product `key` gives this player at unix time `now` (`vipPass`: they
---- own the VIP game pass), and why it is the money fallback instead (receiptCheck's reason), or
---- nil for a pass, an unknown key, or a product that would give nothing (a receipt for it is
---- left NotProcessedYet and logged instead of taking Robux for nothing). A receipt is Robux
---- already paid, so a product that is not for this player now (an offer closed, the Starter
---- Pack or VIP had already) is never refused: it becomes Shop.fallbackGrant.
+--- own the VIP game pass; `restricted`: paid random items are restricted for them, so the
+--- Starter Pack gives StarterRestrictedMoney instead of its block), and why it is the money
+--- fallback instead (receiptCheck's reason), or nil for a pass, an unknown key, or a product
+--- that would give nothing (a receipt for it is left NotProcessedYet and logged instead of
+--- taking Robux for nothing). A receipt is Robux already paid, so a product that is not for
+--- this player now (an offer closed, the Starter Pack or VIP had already) is never refused: it
+--- becomes Shop.fallbackGrant. Inside the launch bonus (Shop.launchBonus, plus
+--- OfferGraceSeconds) a money pack gives its Percent more money and 10 Mystery blocks come as
+--- MysteryBulkCount.
 function Shop.grantFor(
 	key: string,
 	shopSave: ShopSave,
 	now: number,
-	vipPass: boolean
+	vipPass: boolean,
+	restricted: boolean?
 ): (Grant?, string?)
 	local row = LIST[key]
 	if row == nil or row.Kind ~= "Product" then
@@ -536,14 +543,22 @@ function Shop.grantFor(
 		return Shop.fallbackGrant(key), notFor
 	end
 	local grant: Grant = { key = key, money = math.max(0, whole(row.Money)) }
-	-- The first money pack ever pays FirstPackMultiplier times its money, once (11.1).
+	-- The first money pack ever pays FirstPackMultiplier times its money, once (11.1; off
+	-- since economy v4: the multiplier is 1).
 	if
 		grant.money > 0
+		and S.FirstPackMultiplier > 1
 		and table.find(PACK_ORDER, row.SaleOf or key) ~= nil
 		and shopSave.FirstPackBought ~= true
 	then
 		grant.money *= S.FirstPackMultiplier
 		grant.firstPack = true
+	end
+	-- The launch bonus (economy v4): every money pack gives Percent more money.
+	local bonus = Shop.launchBonus(now)
+	local bonusOn = bonus.startsAt > 0 and now >= bonus.startsAt and inGrace(now, bonus.endsAt)
+	if bonusOn and table.find(PACK_ORDER, key) ~= nil then
+		grant.money = grant.money * (100 + bonus.percent) // 100
 	end
 	if key == VIP_OFFER or row.Vip == true then
 		grant.vip = true
@@ -552,8 +567,13 @@ function Shop.grantFor(
 			grant.vipCue = true
 		end
 	elseif key == STARTER_PACK then
-		grant.money += S.StarterMoney
-		grant.blocks = { kind = S.StarterBlock, count = 1 }
+		-- Where paid random items are restricted: more money and no block (v4 plan 8.6).
+		if restricted == true then
+			grant.money += S.StarterRestrictedMoney
+		else
+			grant.money += S.StarterMoney
+			grant.blocks = { kind = S.StarterBlock, count = 1 }
+		end
 		grant.starterBought = true
 		grant.boostEnds = math.max(now, whole(shopSave.BoostEnds)) + S.StarterBoostSeconds
 	elseif key == MONEY_PARTY then
@@ -576,7 +596,12 @@ function Shop.grantFor(
 	-- Lucky blocks bought with Robux (paid origin: ready at once).
 	local blocks = row.Blocks
 	if blocks ~= nil and whole(blocks.Count) > 0 and type(blocks.Kind) == "string" then
-		grant.blocks = { kind = blocks.Kind, count = whole(blocks.Count) }
+		local count = whole(blocks.Count)
+		-- The launch bonus: 10 Mystery blocks come as MysteryBulkCount.
+		if bonusOn and key == S.Deals.Mystery.Products[S.Mystery.BulkCount] then
+			count = math.max(count, bonus.bulkCount)
+		end
+		grant.blocks = { kind = blocks.Kind, count = count }
 	end
 	if
 		grant.money <= 0
@@ -812,7 +837,8 @@ for _, key in KEYS do
 end
 
 --- The release sale at unix time `now`: its window (StartsAt, else the start of the block deal
---- of With, the Grand Opening's) and the products it swaps in. Closed when no start is set.
+--- of With, the Grand Opening's) and the products it swaps in. Closed when no start is set,
+--- and always since economy v4 (Percent 0: the launch bonus replaced it).
 function Shop.releaseSale(now: number): SaleWindow
 	local R = S.ReleaseSale
 	local startsAt = whole(R and R.StartsAt)
@@ -823,12 +849,46 @@ function Shop.releaseSale(now: number): SaleWindow
 		end
 	end
 	local endsAt = if startsAt > 0 then startsAt + whole(R and R.Seconds) else 0
+	local percent = whole(R and R.Percent)
+	return {
+		open = percent > 0 and startsAt > 0 and now >= startsAt and now < endsAt,
+		startsAt = startsAt,
+		endsAt = endsAt,
+		percent = percent,
+		swap = table.clone(SWAP),
+	}
+end
+
+---------------------------------------------------------------------------------------------
+-- The launch bonus (Config.Shop.LaunchBonus; economy v4, designer 2026-10-08)
+---------------------------------------------------------------------------------------------
+
+export type BonusWindow = {
+	open: boolean,
+	startsAt: number, -- 0: not scheduled
+	endsAt: number,
+	percent: number, -- more money on every money pack
+	bulkCount: number, -- 10 Mystery blocks come as this many
+}
+
+--- The launch bonus at unix time `now`: open inside the window of the block deal With (the
+--- Grand Opening's), shown with its real end date. Closed when that deal has no start.
+function Shop.launchBonus(now: number): BonusWindow
+	local L = S.LaunchBonus
+	local startsAt, endsAt = 0, 0
+	if L and type(L.With) == "string" then
+		local deal = effectiveDeal(L.With)
+		if deal ~= nil and whole(deal.StartsAt) > 0 then
+			startsAt = whole(deal.StartsAt)
+			endsAt = startsAt + whole(deal.Seconds)
+		end
+	end
 	return {
 		open = startsAt > 0 and now >= startsAt and now < endsAt,
 		startsAt = startsAt,
 		endsAt = endsAt,
-		percent = whole(R and R.Percent),
-		swap = table.clone(SWAP),
+		percent = whole(L and L.Percent),
+		bulkCount = whole(L and L.MysteryBulkCount),
 	}
 end
 

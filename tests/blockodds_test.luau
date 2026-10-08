@@ -1,6 +1,6 @@
 --!strict
--- BlockOdds (Progression/BlockOdds): the odds rows the lucky blocks roll (the approved economy
--- plan, 2026-10-02, section 3; cases retired for lucky blocks 2026-10-04), per-cue odds, seeded
+-- BlockOdds (Progression/BlockOdds): the odds rows the lucky blocks roll (the economy v4 plan,
+-- 2026-10-08, section 4; cases retired for lucky blocks 2026-10-04), per-cue odds, seeded
 -- rolls, the guarantee, vaulting, sell-back values (ECONOMY 8) and announcements.
 
 local H = require("./harness")
@@ -9,35 +9,47 @@ local function load()
 	return H.require("Progression.BlockOdds"), H.require("Progression.Catalog"), H.require("Config")
 end
 
--- The plan's section 3 table, in percent as it prints them (nil = "-").
+-- The v4 plan's section 4 table, in percent as it prints them (nil = "-").
 local ODDS: { [string]: { [string]: number } } = {
 	Standard = {
-		Common = 75,
-		Uncommon = 23,
-		Rare = 1.99,
-		Epic = 0.009,
-		Legendary = 0.0009,
-		Mythic = 0.0001,
+		Common = 72.5,
+		Uncommon = 25,
+		Rare = 2.4,
+		Epic = 0.09,
+		Legendary = 0.009,
+		Mythic = 0.0009,
+		Secret = 0.0001,
 	},
 	Uncommon = {
 		Common = 40,
 		Uncommon = 54,
-		Rare = 5.95,
-		Epic = 0.045,
-		Legendary = 0.0045,
-		Mythic = 0.0005,
+		Rare = 5.8,
+		Epic = 0.18,
+		Legendary = 0.018,
+		Mythic = 0.0018,
+		Secret = 0.0002,
 	},
 	Rare = {
-		Uncommon = 70,
-		Rare = 29.6,
-		Epic = 0.35,
+		Uncommon = 68,
+		Rare = 31,
+		Epic = 0.9,
+		Legendary = 0.09,
+		Mythic = 0.009,
+		Secret = 0.001,
+	},
+	Epic = { Rare = 77.3, Epic = 21, Legendary = 1.5, Mythic = 0.18, Secret = 0.02 },
+	Legendary = { Epic = 72, Legendary = 25, Mythic = 2.7, Secret = 0.3 },
+	Mythic = { Legendary = 72, Mythic = 25, Secret = 3 },
+	Starter = { Rare = 90, Epic = 9, Legendary = 0.9, Mythic = 0.09, Secret = 0.01 },
+	Sky = {
+		Common = 45,
+		Uncommon = 45,
+		Rare = 9.5,
+		Epic = 0.45,
 		Legendary = 0.045,
 		Mythic = 0.0045,
 		Secret = 0.0005,
 	},
-	Epic = { Rare = 78, Epic = 19, Legendary = 2.6, Mythic = 0.36, Secret = 0.04 },
-	Legendary = { Epic = 75, Legendary = 22, Mythic = 2.7, Secret = 0.3 },
-	Mythic = { Legendary = 75, Mythic = 22, Secret = 3 },
 }
 local MIN_RARITY = {
 	Standard = "Common",
@@ -46,6 +58,8 @@ local MIN_RARITY = {
 	Epic = "Rare",
 	Legendary = "Epic",
 	Mythic = "Legendary",
+	Starter = "Rare",
+	Sky = "Common",
 }
 
 -- ECONOMY 8: sell-back per copy.
@@ -215,11 +229,11 @@ return {
 			end
 			H.near(total, 100, 1e-9, case.Id .. " total")
 		end
-		-- In the Legendary row each of the 7 Legendaries is 22/7%, each of the 3 Mythics 0.9%.
+		-- In the Legendary row each of the 7 Legendaries is 25/7%, each of the 3 Mythics 0.9%.
 		for _, entry in BlockOdds.cueOdds("Legendary") do
 			if entry.rarity == "Legendary" then
-				H.near(entry.percent, 22 / 7, 1e-9, entry.id)
-				H.expect(entry.display == "3.143%", entry.id .. " shows " .. entry.display)
+				H.near(entry.percent, 25 / 7, 1e-9, entry.id)
+				H.expect(entry.display == "3.571%", entry.id .. " shows " .. entry.display)
 			elseif entry.rarity == "Mythic" then
 				H.expect(entry.display == "0.9%", entry.id .. " shows " .. entry.display)
 			elseif entry.rarity == "Secret" then
@@ -229,7 +243,9 @@ return {
 		-- The rarest share anywhere still reads as more than 0.
 		for _, entry in BlockOdds.cueOdds("Standard") do
 			if entry.rarity == "Mythic" then
-				H.expect(entry.display == "0.000033%", "Standard Mythic shows " .. entry.display)
+				H.expect(entry.display == "0.0003%", "Standard Mythic shows " .. entry.display)
+			elseif entry.rarity == "Secret" then
+				H.expect(entry.display == "0.0001%", "Standard Secret shows " .. entry.display)
 			end
 		end
 	end,
@@ -312,11 +328,11 @@ return {
 			return n
 		end)
 		H.expect(highRarity == "Secret" and high == "EclipseCue", "highest roll: " .. high)
-		local mythics = Catalog.droppable("Standard", "Mythic")
+		local secrets = Catalog.droppable("Standard", "Secret")
 		local top, topRarity = BlockOdds.roll("Standard", function(n: number): number
 			return n
 		end)
-		H.expect(topRarity == "Mythic" and top == mythics[#mythics].Id, "Standard's top: " .. top)
+		H.expect(topRarity == "Secret" and top == secrets[#secrets].Id, "Standard's top: " .. top)
 		H.expect(not pcall(BlockOdds.roll, "Nope", seeded(1)), "unknown row")
 		H.expect(not pcall(BlockOdds.roll, "Standard", function(n: number): number
 			return n + 1
@@ -330,7 +346,7 @@ return {
 			for _, entry in BlockOdds.cueOdds("Standard") do
 				H.expect(entry.id ~= "MidnightCue", "MidnightCue still listed")
 				if entry.rarity == "Common" then
-					H.near(entry.percent, 75 / 6, 1e-9, entry.id)
+					H.near(entry.percent, 72.5 / 6, 1e-9, entry.id)
 				end
 			end
 			local total = 0
@@ -385,7 +401,7 @@ return {
 
 	["the top rarity and the Unique rows of the extra tables"] = function()
 		local BlockOdds, Catalog = load()
-		H.expect(BlockOdds.topRarity("Standard") == "Mythic", "Standard tops at Mythic")
+		H.expect(BlockOdds.topRarity("Standard") == "Secret", "every row reaches the Secret (v4)")
 		H.expect(BlockOdds.topRarity("Rare") == "Secret", "Rare reaches Secret")
 		H.expect(BlockOdds.topRarity("Nope") == nil, "unknown")
 		H.expect(#BlockOdds.uniqueRows("GrandOpening") == 2, "two Unique rows")
@@ -395,5 +411,51 @@ return {
 		H.expect(not BlockOdds.canDrop("Standard", "Classic"), "Classic never drops")
 		H.expect(not BlockOdds.canDrop("Nope", "MidnightCue"), "unknown row")
 		H.expect(Catalog.get("MidnightCue").Group == "Block", "a droppable cue is a Block cue")
+	end,
+	["the Grand Opening: 1,000 Firework and 100 Beta Cues ever; owned or all found reads as Rare"] = function()
+		local BlockOdds, _, Config = load()
+		local row = Config.BlockOdds.List.GrandOpening
+		H.expect(row.Odds.FireworkCue == 60000 and row.Odds.BetaCue == 4000, "6% and 0.4%")
+		H.expect(row.Odds.Uncommon == nil and BlockOdds.minRarity("GrandOpening") == "Rare", "")
+		local caps = BlockOdds.caps("GrandOpening")
+		H.expect(caps.FireworkCue == 1000 and caps.BetaCue == 100, "the caps")
+		H.expect(next(BlockOdds.caps("Rare")) == nil, "no caps elsewhere")
+		local G = Config.LuckyBlocks.Kinds.GrandOpening.Guarantee
+		H.expect(G.Cue == "BetaCue" and G.At == 1000, "the 1,000th block's Beta Cue")
+		-- Nobody owns one and copies are left: nothing closed, the row as Config says.
+		local none = BlockOdds.closedFor("GrandOpening", function()
+			return false
+		end, function()
+			return 5
+		end)
+		H.expect(next(none) == nil, "open")
+		H.expect(BlockOdds.rowFor("GrandOpening", none).Odds.Rare == 818400, "unchanged")
+		-- The Beta Cue all found, the Firework Cue owned: both shares go to Rare.
+		local closed = BlockOdds.closedFor("GrandOpening", function(cue)
+			return cue == "FireworkCue"
+		end, function(cue)
+			return if cue == "BetaCue" then 100 else 400
+		end)
+		H.expect(closed.BetaCue and closed.FireworkCue, "both closed")
+		local mine = BlockOdds.rowFor("GrandOpening", closed) :: any
+		H.expect(mine.Odds.Rare == 818400 + 60000 + 4000, "the shares moved to Rare")
+		H.expect(mine.Odds.FireworkCue == nil and mine.Odds.BetaCue == nil, "")
+		H.expect(Config.BlockOdds.List.GrandOpening.Odds.BetaCue == 4000, "Config untouched")
+		H.expect(#BlockOdds.uniqueRows("GrandOpening", closed) == 0, "no Unique rows shown")
+		local total = 0
+		for _, entry in BlockOdds.odds("GrandOpening", closed) do
+			total += entry.percent
+		end
+		H.near(total, 100, 1e-9, "the player's odds still add to 100")
+		local rng = seeded(77)
+		for _ = 1, 5000 do
+			local id, rarity = BlockOdds.roll("GrandOpening", rng, closed)
+			H.expect(rarity ~= "Unique" and id ~= "BetaCue", "never a closed row")
+		end
+		-- An unknown count closes nothing (only the atomic counter refuses past the cap).
+		local unknown = BlockOdds.closedFor("GrandOpening", nil, function()
+			return nil
+		end)
+		H.expect(next(unknown) == nil, "unknown: open")
 	end,
 }

@@ -1261,11 +1261,10 @@ function DevCommands.start()
 	end)
 	command("Restock", D.Restock, function(player, args)
 		local words = {
-			uncommon = "Uncommon",
 			rare = "Rare",
 			epic = "Epic",
 			legendary = "Legendary",
-			mystery = "Mystery",
+			mythic = "Mythic",
 		}
 		local itemId = words[string.lower(args[1] or "")]
 		if itemId == nil then

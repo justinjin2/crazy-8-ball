@@ -386,7 +386,7 @@ local SUB_FIELDS: { [string]: { string } } = {
 		"PlaySeconds",
 		"PlaytimeClaimed",
 	},
-	Login = { "LastDay", "StreakDay", "Total", "FreezeWeek" },
+	Login = { "LastDay", "StreakDay", "Total", "FreezeWeek", "FirstWeek" },
 	Shop = { "FirstJoin", "VipOffer", "Purchases", "Limited", "BoostEnds", "Restock" },
 	Ults = {
 		"Slots",
@@ -468,7 +468,7 @@ return {
 	["the template has every field at its starting value"] = function()
 		local _, SaveSchema = setup()
 		local t = SaveSchema.template()
-		H.expect(SaveSchema.Version == 8, "version 8")
+		H.expect(SaveSchema.Version == 9, "version 9")
 		H.expect(SaveSchema.WipeBelow == 6, "everything older than 6 is wiped")
 		H.expect(t.Version == SaveSchema.Version, "template carries the current version")
 		H.expect(t.Money == 0 and t.RankXp == 0 and t.PeakDivision == 0, "starts at zero")
@@ -494,10 +494,11 @@ return {
 		H.expect(d.Day == 0 and d.SoloMoney == 0 and d.PcMoney == 0 and d.ShortMoney == 0, "d")
 		H.expect(d.Wins == 0 and d.PcDrops == 0 and d.Disguised == 0 and d.PlaySeconds == 0, "")
 		H.expect(next(d.Opponents) == nil and next(d.PlaytimeClaimed) == nil, "daily maps")
-		H.expect(size(d) == 10, "Daily has ten fields")
+		H.expect(d.Track == 0 and d.Matches == 0, "no track wins or matches today")
+		H.expect(size(d) == 12, "Daily has twelve fields")
 		local l = t.Login
 		H.expect(l.LastDay == 0 and l.StreakDay == 0 and l.Total == 0, "login")
-		H.expect(l.FreezeWeek == 0 and size(l) == 4, "no freeze used")
+		H.expect(l.FreezeWeek == 0 and l.FirstWeek == 0 and size(l) == 5, "no freeze used")
 		local s = t.Shop
 		H.expect(s.FirstJoin == 0, "first join not set yet")
 		H.expect(not s.VipOffer and not s.VipCueGiven, "no VIP")
@@ -627,8 +628,8 @@ return {
 			},
 		}
 		local out, notes = SaveSchema.migrate(old)
-		H.expect(out.Version == 8, "now version 8")
-		H.expect(#notes == 1 and notes[1] == "migrated 7 -> 8", table.concat(notes, "; "))
+		H.expect(out.Version == SaveSchema.Version, "now the current version")
+		H.expect(#notes >= 1 and notes[1] == "migrated 7 -> 8", table.concat(notes, "; "))
 		local i = out.Inventory
 		H.expect(i.Unique.FireworkCue == 41 and i.Unique.GrandOpeningCue == nil, "copy #41 kept")
 		H.expect(i.Unique.BetaCue == 3 and i.Cues.GoldCue == 2, "other cues untouched")
@@ -648,7 +649,37 @@ return {
 			{ { Version = 7 }, { Version = 7, Inventory = 5, Trades = { History = { 1 } } } }
 		do
 			local ok, moved = pcall(SaveSchema.migrate, bad)
-			H.expect(ok and moved.Version == 8, "a broken save still migrates")
+			H.expect(ok and moved.Version == SaveSchema.Version, "a broken save still migrates")
+		end
+	end,
+
+	["version 8 to 9: today's Daily starts over; a save with 7 days claimed had its first week"] = function()
+		local Config, SaveSchema = setup()
+		local old = SaveSchema.template()
+		old.Version = 8
+		old.Daily =
+			{ Day = 20724, Wins = 4, PlaySeconds = 5000, PlaytimeClaimed = { ["5"] = true } }
+		old.Login = { LastDay = 20724, StreakDay = 3, Total = 10, FreezeWeek = 0 }
+		old.Login.FirstWeek = nil
+		local out, notes = SaveSchema.migrate(old)
+		H.expect(out.Version == 9, "now version 9")
+		H.expect(#notes == 1 and notes[1] == "migrated 8 -> 9", table.concat(notes, "; "))
+		H.expect(out.Daily.Day == 0 and out.Daily.Wins == 0 and out.Daily.PlaySeconds == 0, "")
+		H.expect(next(out.Daily.PlaytimeClaimed) == nil, "no old gift marks")
+		H.expect(out.Daily.Track == 0 and out.Daily.Matches == 0, "the new counts")
+		H.expect(out.Login.FirstWeek == 7 and out.Login.StreakDay == 3, "first week had")
+		H.expect(out.Login.LastDay == 20724 and out.Login.Total == 10, "the rest kept")
+		local _, fixes = SaveSchema.validate(out)
+		H.expect(#fixes == 0, "clean: " .. table.concat(fixes, "; "))
+		assertClean(Config, SaveSchema, out)
+		-- A newer player keeps the days still to come of their first week.
+		local young = SaveSchema.template()
+		young.Version = 8
+		young.Login = { LastDay = 20724, StreakDay = 2, Total = 2, FreezeWeek = 0 }
+		H.expect(SaveSchema.migrate(young).Login.FirstWeek == 2, "two days had")
+		for _, bad in { { Version = 8 }, { Version = 8, Daily = 5, Login = { Total = "x" } } } do
+			local ok, moved = pcall(SaveSchema.migrate, bad)
+			H.expect(ok and moved.Version == 9, "a broken save still migrates")
 		end
 	end,
 
@@ -1539,7 +1570,8 @@ return {
 			save.Daily.PlaytimeClaimed[tostring(i)] = true
 		end
 		save.Daily.PlaySeconds = 86400
-		save.Login = { LastDay = 20500, StreakDay = 7, Total = 300, FreezeWeek = 2930 }
+		save.Login =
+			{ LastDay = 20500, StreakDay = 7, Total = 300, FreezeWeek = 2930, FirstWeek = 7 }
 		save.Shop.FirstJoin = 1790553600
 		for i = 1, 50 do
 			table.insert(save.Shop.Purchases, ("%08x-4b1c-4d2e-9f3a-%012d"):format(i, i))

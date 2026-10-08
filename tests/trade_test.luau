@@ -156,6 +156,16 @@ return {
 		-- A bought block only moves with paidOk.
 		readyBlock(a, "Epic", true)
 		H.expect(refused({ "Block:Epic" }, { "MidnightCue" }, false) == "PaidBlocked", "paid block")
+		-- An unopened paid block never goes to (or from) a player whose paid random items are
+		-- restricted (economy v4), even where paid items may trade; paid cues still may.
+		local ok, why = Trade.swap(a, b, { "Block:Epic" }, { "MidnightCue" }, true, NOW, false)
+		H.expect(not ok and why == "PaidBlocked", "a paid block to a restricted player")
+		H.expect(blocksOf(a, "Epic") == 1, "the paid block stays")
+		local offer = Trade.offerable(a, true, NOW, false)
+		for _, entry in offer do
+			H.expect(entry.item ~= "Block:Epic", "not offered where restricted")
+		end
+		H.expect(Trade.canGive(b, { "MidnightCue" }, true, NOW, false) == nil, "a paid cue may")
 		-- The Starter Cue may trade, but not to someone who has one.
 		Inventory.addCue(a, "StarterCue")
 		Inventory.addCue(b, "StarterCue")
@@ -293,5 +303,35 @@ return {
 		H.expect(Trade.lopsided({ "Block:Mythic" }, { "Block:Standard" }, copies) == "A", "blocks")
 		H.expect(Trade.lopsided({ "Block:Mystery" }, { "Block:Standard" }, copies) == nil, "near")
 		H.expect(Trade.lopsided({}, { "NeonCue" }, copies) == nil, "an empty side: no warning")
+		-- Until every cue's count is known, a block's worth is 1 / Config.Trade.BlockExists.
+		H.expect(Trade.blockWorth("Rare", copies) == nil, "counts unknown: the fallback")
+	end,
+
+	["a block's worth is worked out live from its odds and the copies of each cue"] = function()
+		local Trade = load()
+		local Catalog = H.require("Progression.Catalog")
+		-- Every cue at 1,000 copies, except the Secret at 10: a block's worth follows its odds.
+		local copies: { [string]: number } = {}
+		for _, cue in Catalog.list() do
+			copies[cue.Id] = if cue.Rarity == "Secret" then 10 else 1000
+		end
+		local rare = Trade.blockWorth("Rare", copies) :: number
+		H.expect(rare ~= nil and rare > 0, "known")
+		-- Rare row: 99.999% of cues at 1 / 1,000 and the Secret's 0.001% at 1 / 10.
+		H.near(rare, 0.99999 / 1000 + 0.00001 / 10, 1e-12, "the Rare row's worth")
+		H.expect(Trade.blockWorth("Lucky8", copies) == rare, "Lucky 8 rolls the Rare row")
+		local mythic = Trade.blockWorth("Mythic", copies) :: number
+		H.expect(mythic > rare, "a Mythic block's 3% Secret is worth more")
+		-- As copies of a rarity grow, blocks that give it are worth less (the v4 plan's reason).
+		local more = table.clone(copies)
+		for _, cue in Catalog.list() do
+			if cue.Rarity == "Secret" then
+				more[cue.Id] = 1000
+			end
+		end
+		H.expect((Trade.blockWorth("Mythic", more) :: number) < mythic, "worth falls with supply")
+		local mystery = Trade.blockWorth("Mystery", copies) :: number
+		H.expect(mystery > 0 and mystery < rare, "a Mystery block: mostly Standard and Uncommon")
+		H.expect(Trade.blockWorth("Nope", copies) == nil, "unknown kind")
 	end,
 }

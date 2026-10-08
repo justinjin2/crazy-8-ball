@@ -29,6 +29,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
+local Catalog = require(Shared.Progression.Catalog)
 local Requests = require(Shared.Progression.Requests)
 local Trade = require(Shared.Progression.Trade)
 local PlayerData = require(script.Parent.PlayerData)
@@ -166,6 +167,12 @@ local function paidOk(session: Session): boolean
 	return Items.tradingAllowed(session.a) == true and Items.tradingAllowed(session.b) == true
 end
 
+-- A paid lucky block (an unopened paid random item) moves only when neither player has paid
+-- random items restricted (economy v4 plan 13; not answered yet counts as restricted).
+local function blocksOk(session: Session): boolean
+	return Items.isRestricted(session.a) == false and Items.isRestricted(session.b) == false
+end
+
 local function fire(player: Player, payload: any)
 	local remote = tradeState
 	if remote ~= nil and player.Parent == Players then
@@ -173,17 +180,31 @@ local function fire(player: Player, payload: any)
 	end
 end
 
--- Each cue's copies in existence on both sides (the lopsided warning).
+-- Each cue's copies in existence on both sides (the lopsided warning); with a lucky block on
+-- either side, every cue's (its worth is worked out live from its odds: Trade.blockWorth).
 local function copiesOf(session: Session): { [string]: number }
 	local copies: { [string]: number } = {}
+	local function note(id: string)
+		if copies[id] == nil then
+			local n = Counters.copies(id)
+			if n ~= nil then
+				copies[id] = n
+			end
+		end
+	end
+	local anyBlock = false
 	for _, side in { session.offers[session.a], session.offers[session.b] } do
 		for _, item in side do
-			if copies[item] == nil then
-				local n = Counters.copies(item)
-				if n ~= nil then
-					copies[item] = n
-				end
+			if string.sub(item, 1, 6) == "Block:" then
+				anyBlock = true
+			else
+				note(item)
 			end
+		end
+	end
+	if anyBlock then
+		for _, cue in Catalog.list() do
+			note(cue.Id)
 		end
 	end
 	return copies
@@ -195,7 +216,8 @@ local function problemOf(session: Session): string?
 	if #mineA == 0 or #mineB == 0 then
 		return nil
 	end
-	local ok, why = PlayerData.tradePlan(session.a, session.b, mineA, mineB, paidOk(session))
+	local ok, why =
+		PlayerData.tradePlan(session.a, session.b, mineA, mineB, paidOk(session), blocksOk(session))
 	return if ok then nil else why
 end
 
@@ -218,9 +240,10 @@ local function send(session: Session)
 			problem = problem,
 			lopsided = if side == "A" then "Mine" elseif side == "B" then "Theirs" else nil,
 			paidOk = paidOk(session),
+			blocksOk = blocksOk(session), -- paid lucky blocks may move (economy v4)
 			-- GUI lane (D12): both sides' offerable items ({ item, count }) and the wish list.
-			myItems = PlayerData.tradeOfferable(me, paidOk(session)),
-			theirItems = PlayerData.tradeOfferable(other, paidOk(session)),
+			myItems = PlayerData.tradeOfferable(me, paidOk(session), blocksOk(session)),
+			theirItems = PlayerData.tradeOfferable(other, paidOk(session), blocksOk(session)),
 			theyWant = table.clone(session.wants[other]),
 			iWant = table.clone(session.wants[me]),
 		})
@@ -281,7 +304,8 @@ local function execute(session: Session, version: number)
 	session.busy = true
 	local a, b = session.a, session.b
 	local itemsA, itemsB = session.offers[a], session.offers[b]
-	local ok, why, fromA, fromB = PlayerData.tradePlan(a, b, itemsA, itemsB, paidOk(session))
+	local ok, why, fromA, fromB =
+		PlayerData.tradePlan(a, b, itemsA, itemsB, paidOk(session), blocksOk(session))
 	if not ok or fromA == nil or fromB == nil then
 		session.busy = false
 		unready(session)
@@ -301,7 +325,8 @@ local function execute(session: Session, version: number)
 	local here = a.Parent == Players and b.Parent == Players and sessions[a] == session
 	local done, reason = false, if wroteA and wroteB then nil else "Error"
 	if wroteA and wroteB and here then
-		done, reason = PlayerData.applyTrade(a, b, entry, itemsA, itemsB, paidOk(session))
+		done, reason =
+			PlayerData.applyTrade(a, b, entry, itemsA, itemsB, paidOk(session), blocksOk(session))
 	end
 	if not done then
 		-- Nothing changed in the saves: the ledger entries go too.
@@ -450,7 +475,7 @@ local function onRequest(player: Player, action: any, arg: any): Reply
 		else
 			local other = otherOf(session, player)
 			local offerable = false
-			for _, entry in PlayerData.tradeOfferable(other, paidOk(session)) do
+			for _, entry in PlayerData.tradeOfferable(other, paidOk(session), blocksOk(session)) do
 				if entry.item == item then
 					offerable = true
 					break
@@ -473,7 +498,8 @@ local function onRequest(player: Player, action: any, arg: any): Reply
 				session.b,
 				session.offers[session.a],
 				session.offers[session.b],
-				paidOk(session)
+				paidOk(session),
+				blocksOk(session)
 			)
 			if not ok then
 				return refused(why or "Error")
