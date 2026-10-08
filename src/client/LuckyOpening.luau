@@ -3,7 +3,9 @@
 -- (LuckyClient waits for the server's burstAt), the screen darkens with a very see-through
 -- grey-black (no white panel: the world shows through), the block's name sits over a Dark-look
 -- reel (BlockReel { look = "Dark" }: the cue cards, standing still, each with its chance)
--- that slows onto the cue the server rolled. A Rare or better cue then plays its pull
+-- that slows onto the cue the server rolled, with the plan's line under it ("The reel shows
+-- what this block can drop. Your chances are under Odds."; economy v4 section 4). A Rare or
+-- better cue then plays its pull
 -- cutscene (PullCutscene; moved here from the cases 2026-10-04, being redone): a second before
 -- the reel stops (designer, 2026-10-05: the suspense of "did I really just pull this")
 -- everything fades to black over the reel's last crawl, the reel's screens go once it is
@@ -23,6 +25,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local LuckyBlocks = require(Shared:WaitForChild("Progression"):WaitForChild("LuckyBlocks"))
 local BlockReel = require(script.Parent.BlockReel)
 local HudParts = require(script.Parent.HudParts)
+local ItemState = require(script.Parent.ItemState)
 local LuckyResult = require(script.Parent.LuckyResult)
 local PullCutscene = require(script.Parent.PullCutscene)
 local ReelFx = require(script.Parent.ReelFx)
@@ -200,6 +203,22 @@ function Opening.play(
 	end)
 end
 
+-- The odds row's Unique rows closed for this player (the Grand Opening's: one they own, or
+-- all copies found), from the shop's view: the reel leaves them off, as the roll does.
+local function closedFor(oddsId: string): { [string]: boolean }
+	local closed = {}
+	local shop = ItemState.shop()
+	local uniques = if type(shop) == "table" and type(shop.uniques) == "table"
+		then shop.uniques[oddsId]
+		else nil
+	for _, row in if type(uniques) == "table" then uniques else {} do
+		if type(row) == "table" and type(row.cue) == "string" and row.closed == true then
+			closed[row.cue] = true
+		end
+	end
+	return closed
+end
+
 -- The reel itself, once the blur has a head start (play).
 function Opening.startReel(self: any, kind: string, cueId: string, rarity: string, reelOdds: string)
 	local stage = ReelFx.stage(self.area, "Stage")
@@ -209,13 +228,18 @@ function Opening.startReel(self: any, kind: string, cueId: string, rarity: strin
 	title.TextWrapped = false
 	title.ZIndex = 4
 	self.title = title
+	local line = HudParts.text(stage.frame, "Line", CO.LinePx, W.ReelLine)
+	line.AnchorPoint = Vector2.new(0.5, 0)
+	line.ZIndex = 4
+	self.line = line
 	local hint = HudParts.text(stage.frame, "Hint", CO.HintPx, hintFor("Reel"))
 	hint.AnchorPoint = Vector2.new(0.5, 0)
 	hint.TextWrapped = false
 	hint.ZIndex = 4
 	self.hint = hint
 
-	local reel = BlockReel.new(stage.frame, reelOdds, { look = "Dark" })
+	local reel =
+		BlockReel.new(stage.frame, reelOdds, { look = "Dark", closed = closedFor(reelOdds) })
 	reel:setPrize(cueId, rarity)
 	self.reel = reel
 	self.cueId, self.rarity = cueId, rarity
@@ -226,7 +250,8 @@ function Opening.startReel(self: any, kind: string, cueId: string, rarity: strin
 	local S = Config.UI.Kit.Motion.Stagger
 	UIAnim.expandIn(title, 0)
 	local spinAt = reel:intro(S.GapSeconds)
-	UIAnim.expandIn(hint, spinAt)
+	UIAnim.expandIn(line, spinAt)
+	UIAnim.expandIn(hint, spinAt + S.GapSeconds)
 	local playId = self.playId
 	ContextActionService:BindActionAtPriority(
 		TAP_ACTION,
@@ -272,12 +297,14 @@ function Opening.layout(self: any)
 		self.card.root.Position =
 			UDim2.fromOffset(math.floor(natural.X / 2), math.floor(natural.Y / 2))
 		self.title.Visible = false
+		self.line.Visible = false
 		self.hint.Visible = false
 		return
 	end
 	local titleH, gap, hintH = CO.TitleHeightPx, CO.GapPx, CO.HintHeightPx
+	local lineH = CO.LineHeightPx
 	local reelH = BlockReel.height()
-	local need = Vector2.new(CO.StageMinWidthPx, titleH + gap + reelH + gap + hintH)
+	local need = Vector2.new(CO.StageMinWidthPx, titleH + gap + reelH + gap + lineH + gap + hintH)
 	local natural = stage.fit(need, U.MinScale, U.MaxScale, U.MarginPx)
 	local top = math.floor((natural.Y - need.Y) / 2)
 	self.title.Position = UDim2.fromOffset(math.floor(natural.X / 2), top)
@@ -290,6 +317,10 @@ function Opening.layout(self: any)
 			UDim2.fromOffset(math.floor(natural.X / 2), y + math.floor(reelH / 2))
 	end
 	y += reelH + gap
+	self.line.Position = UDim2.fromOffset(math.floor(natural.X / 2), y)
+	self.line.Size =
+		UDim2.fromOffset(math.min(natural.X - 2 * CO.ReelSideMarginPx, CO.Reel.MaxWidthPx), lineH)
+	y += lineH + gap
 	self.hint.Position = UDim2.fromOffset(math.floor(natural.X / 2), y)
 	self.hint.Size = UDim2.fromOffset(natural.X, hintH)
 	self.hint.Text = hintFor("Reel")

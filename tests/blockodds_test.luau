@@ -104,6 +104,61 @@ local function withVaulted(Catalog: any, id: string, body: () -> ())
 end
 
 return {
+	["1 in N: rounded up so it never looks better than true"] = function()
+		local BlockOdds = load()
+		local cases: { { number } } = {
+			{ 0.0001, 1000000 }, -- the Standard block's Secret
+			{ 100 / 131718, 132000 }, -- the Secret per Mystery block (plan 18.2)
+			{ 100 / 15077, 15100 }, -- a Mythic per Mystery block
+			{ 0.42, 239 }, -- an Epic tier (1 in 238.1)
+			{ 0.05, 2000 }, -- a Legendary tier
+			{ 0.01, 10000 }, -- a Mythic tier
+			{ 0.09, 1120 }, -- 1 in 1,111.1
+			{ 6, 17 }, -- the Firework Cue
+			{ 3, 34 },
+			{ 50, 2 },
+			{ 100, 1 },
+		}
+		for _, case in cases do
+			local got = BlockOdds.oneIn(case[1])
+			H.expect(got == case[2], ("%s%%: %s, not %d"):format(case[1], tostring(got), case[2]))
+		end
+		H.expect(BlockOdds.oneIn(0) == nil and BlockOdds.oneIn(-1) == nil, "no chance: nil")
+		H.expect(BlockOdds.oneIn(0 / 0) == nil and BlockOdds.oneIn(101) == nil, "broken: nil")
+		-- Never better than true, and never far from it.
+		local percent = 97.3
+		while percent > 1e-7 do
+			local n = BlockOdds.oneIn(percent) :: number
+			local exact = 100 / percent
+			H.expect(n >= exact * (1 - 1e-9), ("%s%%: 1 in %d looks better"):format(percent, n))
+			H.expect(n <= exact * 1.01 + 1, ("%s%%: 1 in %d is too far"):format(percent, n))
+			percent *= 0.731
+		end
+	end,
+
+	["the reel's pool: every cue a row drops, its Unique rows too, adding to 100"] = function()
+		local BlockOdds = load()
+		local function sum(list: { any }): number
+			local total = 0
+			for _, entry in list do
+				total += entry.percent
+			end
+			return total
+		end
+		local plain = BlockOdds.cueOdds("GrandOpening")
+		local full = BlockOdds.cueOdds("GrandOpening", nil, true)
+		H.expect(#full == #plain + 2, "the two Unique rows follow")
+		H.expect(full[#full - 1].id == "BetaCue" and full[#full].id == "FireworkCue", "sorted ids")
+		H.expect(full[#full].rarity == "Unique" and full[#full].display == "6%", "Firework 6%")
+		H.near(sum(full), 100, 1e-9, "the whole pool adds to 100")
+		H.near(sum(plain), 100 - 6.4, 1e-9, "the rarities alone leave the Uniques out")
+		-- A closed row is left out (its share rolls as Rare).
+		local closed = BlockOdds.cueOdds("GrandOpening", { BetaCue = true }, true)
+		H.expect(#closed == #full - 1, "a closed Unique is not shown")
+		H.near(sum(closed), 100, 1e-9, "and the pool still adds to 100")
+		H.expect(#BlockOdds.cueOdds("Standard", nil, true) == #BlockOdds.cueOdds("Standard"), "")
+	end,
+
 	["every odds row adds to exactly 1,000,000 and matches the plan"] = function()
 		local BlockOdds, _, Config = load()
 		H.expect(Config.BlockOdds.OddsTotal == 1000000, "OddsTotal")

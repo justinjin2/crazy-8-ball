@@ -327,6 +327,68 @@ return {
 		H.expect(math.abs(last - n / 5) <= 4 * math.sqrt(n * 0.2 * 0.8), "the last press")
 	end,
 
+	["pity's live floor: the guaranteed tier and the odds the screen shows then"] = function()
+		local BlockDrop, Config = load()
+		local D = Config.BlockOdds.Drop
+		H.expect(BlockDrop.floorOf({ rare = 1, epic = 50 }) == "Rare", "Rare due")
+		H.expect(BlockDrop.floorOf({ rare = 1, epic = 1 }) == "Epic", "both due: Epic")
+		H.expect(BlockDrop.floorOf({ rare = 4, epic = 1 }) == "Epic", "Epic due")
+		H.expect(BlockDrop.floorOf({ rare = 4, epic = 40 }) == nil, "none due")
+		H.expect(BlockDrop.floorOf(nil) == nil and BlockDrop.floorOf("x") == nil, "broken: none")
+		-- The floor agrees with pityLeft and the roll: one drop before each guarantee.
+		local function left(sinceRare: number, sinceEpic: number)
+			return BlockDrop.pityLeft({ SinceRare = sinceRare, SinceEpic = sinceEpic, Total = 0 })
+		end
+		H.expect(BlockDrop.floorOf(left(D.PityRare - 1, 0)) == "Rare", "the 10th is Rare")
+		H.expect(BlockDrop.floorOf(left(D.PityRare - 2, 0)) == nil, "the 9th is not")
+		H.expect(BlockDrop.floorOf(left(0, D.PityEpic - 1)) == "Epic", "the 100th is Epic")
+		local function percents(floor: string?): { [string]: number }
+			local out, total = {}, 0
+			for _, tier in BlockDrop.tiers(floor) do
+				out[tier.tier] = tier.percent
+				total += tier.percent
+			end
+			H.near(total, 100, 1e-9, "adds to 100")
+			return out
+		end
+		local epic = percents("Epic")
+		H.expect(
+			epic.Standard == nil and epic.Uncommon == nil and epic.Rare == nil,
+			"under Epic: gone"
+		)
+		H.near(epic.Epic, 99.94, 1e-9, "Epic takes the tiers under it")
+		H.near(epic.Legendary, 0.05, 1e-9, "Legendary as before")
+		H.near(epic.Mythic, 0.01, 1e-9, "Mythic as before")
+		local rare = percents("Rare")
+		H.near(rare.Rare, 99.52, 1e-9, "Rare takes Standard and Uncommon")
+		H.near(rare.Epic, 0.42, 1e-9, "Epic as before")
+		local plain = percents(nil)
+		H.near(plain.Standard, 50, 1e-9, "no floor: the weights")
+		-- The rolls under each floor land on those odds.
+		local rng = seeded(31)
+		local n = 200000
+		local counts: { [string]: number } = {}
+		for _ = 1, n do
+			local tier =
+				BlockDrop.roll({ SinceRare = 0, SinceEpic = D.PityEpic - 1, Total = 0 }, rng)
+			counts[tier] = (counts[tier] or 0) + 1
+		end
+		for tier, percent in epic do
+			local p = percent / 100
+			H.expect(
+				math.abs((counts[tier] or 0) - n * p) <= 4 * math.sqrt(n * p * (1 - p)) + 1,
+				tier .. " under the Epic floor"
+			)
+		end
+		-- The rarities under a floor still add to 100 and never give a Common.
+		local total = 0
+		for _, row in BlockDrop.rarityOdds("Epic") do
+			H.expect(row.rarity ~= "Common" and row.rarity ~= "Uncommon", "no " .. row.rarity)
+			total += row.percent
+		end
+		H.near(total, 100, 1e-9, "rarities under the Epic floor")
+	end,
+
 	["upgrade path: the first press's odds follow the weights"] = function()
 		local BlockDrop, Config = load()
 		local C = Config.BlockOdds

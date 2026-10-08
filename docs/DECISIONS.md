@@ -3335,3 +3335,13 @@ timer of a new block stay the designer's call.
   screen's word). The server's answer sits beside "Codes", so the strip never grows. The panel
   is 48% of a computer screen's width (`MenuFrame`'s new `widthShare`), so the rows have no
   empty margins. The old note under the box ("Codes give free money...") is gone, as the mock.
+- 2026-10-08 (economy v4 plan section 4, the GUI hand-off item 9): the lucky block reel draws
+  every card at the block's real odds (its Unique rows too, less the player's closed ones) and
+  adds one showcase card per spin: a cue from Epic up out of the block's own pool, each of those
+  rarities as likely (so a block's rarest cue shows as often as its Epics), with its chance as
+  "1 in N" on its chip and a glow in its rarity's colour, between slot 10 and the strip's first
+  two-thirds and never within 8 cards of the stop. It replaces the odds to the power 0.3
+  (`WeightPower`, gone). `Config.UI.Reel.Reel.Showcase = false` turns the showcase off. Win
+  effects (the reel's landing glow, YOU GOT's rays and sting) play only from Rare up; the line
+  under the reel is the plan's. "1 in N" is rounded up so it never looks better than true:
+  whole numbers under 1,000, three significant figures above (`BlockOdds.oneIn`).

@@ -65,11 +65,43 @@ function BlockDrop.rank(tier: any): number
 	return RANK[tier] or 0
 end
 
---- The tiers with their weights and percents, Standard first.
-function BlockDrop.tiers(): { TierOdds }
-	local list = {}
+-- The tier weights with pity's floor (Rare or Epic) applied: every tier below it rolls as it
+-- (BlockDrop.roll), so their weights move into it. No floor: Config's weights.
+local function weightsWith(floor: string?): { [string]: number }
+	local weights: { [string]: number } = {}
+	local floorRank = if floor ~= nil then RANK[floor] else nil
 	for _, id in C.Order do
 		local weight = WEIGHTS[id] or 0
+		if floorRank ~= nil and RANK[id] < floorRank then
+			weights[floor :: string] = (weights[floor :: string] or 0) + weight
+		else
+			weights[id] = (weights[id] or 0) + weight
+		end
+	end
+	return weights
+end
+
+--- The tier pity guarantees for the next Mystery block, from the drops left until each
+--- guarantee (BlockDrop.pityLeft or ShopView's `pity`): "Epic" or "Rare" when the next one is
+--- guaranteed, else nil. The odds screen shows it and the live odds while it is due (Roblox's
+--- rules; economy v4 plan 3.3).
+function BlockDrop.floorOf(left: any): string?
+	local t = if type(left) == "table" then left else {}
+	if type(t.epic) == "number" and t.epic <= 1 then
+		return "Epic"
+	elseif type(t.rare) == "number" and t.rare <= 1 then
+		return "Rare"
+	end
+	return nil
+end
+
+--- The tiers with their weights and percents, Standard first. `floor` (BlockDrop.floorOf):
+--- the live odds while pity guarantees that tier (the tiers under it are left out).
+function BlockDrop.tiers(floor: string?): { TierOdds }
+	local list = {}
+	local weights = weightsWith(floor)
+	for _, id in C.Order do
+		local weight = weights[id] or 0
 		if weight > 0 then
 			local percent = weight * 100 / C.OddsTotal
 			table.insert(list, {
@@ -85,16 +117,18 @@ end
 
 --- Each rarity's chance per Mystery block (pity aside): the tier weights times each row's
 --- odds. Bottom rarity first, only rarities that can drop; the percents add to 100 (within
---- float rounding). The cue cards show these ("EPIC · 0.138%").
-function BlockDrop.rarityOdds(): { RarityOdds }
+--- float rounding). The cue cards show these ("EPIC · 0.327%"). `floor`: the live odds while
+--- pity guarantees that tier (BlockDrop.floorOf).
+function BlockDrop.rarityOdds(floor: string?): { RarityOdds }
 	local list = {}
 	local total = C.OddsTotal
+	local weights = weightsWith(floor)
 	for _, rarity in C.Rarities do
 		local parts = 0
 		for _, id in C.Order do
 			local row = BlockOdds.get(id)
 			if row then
-				parts += (WEIGHTS[id] or 0) * (row.Odds[rarity] or 0)
+				parts += (weights[id] or 0) * (row.Odds[rarity] or 0)
 			end
 		end
 		if parts > 0 then

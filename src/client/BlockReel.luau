@@ -4,16 +4,20 @@
 -- tinted thumbnail on its rarity's dressing, CueThumb) that slides behind a gold marker and slows
 -- onto the prize the server already chose.
 --
--- - The strip is drawn from the block's odds row (BlockOdds.cueOdds, each weight raised to
---   Reel.WeightPower; 1 = the true odds). It is purely visual (a client Random): the prize is
---   put at a fixed late slot (Reel.PrizeSlot) once the server's answer is known.
+-- - The strip is drawn from the block's odds row at its real odds (BlockOdds.cueOdds, with its
+--   Unique rows), but for one showcase card (economy v4 plan section 4): a cue from Epic up out
+--   of the same pool with its odds printed on it ("1 in 1,000,000") and a glow in its colour,
+--   in the strip's first two-thirds and never within 8 cards of the stop (ReelMath;
+--   Reel.Showcase turns it off). It is purely visual (a client Random): the prize is put at a
+--   fixed late slot (Reel.PrizeSlot) once the server's answer is known.
 -- - The spin eases out over Reel.Seconds (Mythic and Secret: BigSeconds, a longer crawl, the
 --   ReelBuild sound and a glow round the window that builds in the prize's colour) and lands at
 --   a random offset within the prize card, then glides it to the marker's middle. A soft tick
 --   (ReelTick, rate-limited) sounds for each card passing the marker.
--- - As it settles: ReelSettle, the marker and a glow round the window turn the prize's colour
---   (Mythic's drifts through its pastels, Secret's breathes red), the prize card bounces with a
---   thick edge in that colour; after a short hold the reel reports it is done. It can report a
+-- - As it settles: ReelSettle, the marker turns the prize's colour and the prize card bounces
+--   with a thick edge in it; from Rare up (Config.UI.Reel.EffectsFrom, the plan's "win effects
+--   only for Rare or better") a glow round the window too (Mythic's drifts through its
+--   pastels, Secret's breathes red); after a short hold the reel reports it is done. It can report a
 --   set time before the stop too (a Rare or better pull's cutscene starts there, LuckyOpening).
 -- - skip() (a tap, A or B; once per spin) races the strip on to the prize in Reel.SkipSeconds.
 -- - Each card reads the cue's name and its odds in its rarity's colour (GUI lane, 2026-10-03).
@@ -29,9 +33,12 @@ local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Strings = require(Shared:WaitForChild("Strings"))
+local ReelMath = require(Shared:WaitForChild("ReelMath"))
 local ProgressionRules = Shared:WaitForChild("Progression")
 local BlockOdds = require(ProgressionRules:WaitForChild("BlockOdds"))
 local Catalog = require(ProgressionRules:WaitForChild("Catalog"))
+local Format = require(ProgressionRules:WaitForChild("Format"))
 local ReelFx = require(script.Parent.ReelFx)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
@@ -58,6 +65,7 @@ type Slot = {
 	odds: TextLabel?,
 	cue: boolean, -- the Dark look: a cue card...
 	card: any?, -- ...(InventoryCard) once built
+	showcase: string?, -- the showcase card's odds ("1 in 1,000,000"); nil on the others
 }
 
 local Reel = {}
@@ -74,28 +82,32 @@ local function centreOf(slot: number): number
 	return (slot - 1) * pitch() + R.CardWidthPx / 2
 end
 
--- The odds row's cues with their draw weights (the odds, flattened by WeightPower).
-local function pool(oddsId: string): ({ { id: string, rarity: string } }, { number }, number)
-	local odds = BlockOdds.cueOdds(oddsId)
+-- The odds row's cues (its Unique rows too, less the player's closed ones) with their draw
+-- weights: their real odds.
+local function pool(oddsId: string, closed: BlockOdds.Closed?): ({ ReelMath.Cue }, number)
+	local odds = BlockOdds.cueOdds(oddsId, closed, true)
 	if #odds == 0 then
 		odds = BlockOdds.cueOdds("Standard")
 	end
-	local cues, weights, total = {}, {}, 0
+	local cues, total = {}, 0
 	for _, entry in odds do
 		ODDS_TEXT[entry.id] = entry.display
-		local weight = math.max(0, entry.percent) ^ R.WeightPower
-		if weight > 0 then
-			table.insert(cues, { id = entry.id, rarity = entry.rarity })
-			table.insert(weights, weight)
-			total += weight
+		if entry.percent > 0 then
+			table.insert(cues, { id = entry.id, rarity = entry.rarity, percent = entry.percent })
+			total += entry.percent
 		end
 	end
 	if #cues == 0 then
-		table.insert(cues, { id = Catalog.Default, rarity = "Common" })
-		table.insert(weights, 1)
-		total = 1
+		table.insert(cues, { id = Catalog.Default, rarity = "Common", percent = 100 })
+		total = 100
 	end
-	return cues, weights, total
+	return cues, total
+end
+
+-- "1 in 1,000,000" for a chance in percent ("" for none).
+local function oneInText(percent: number): string
+	local n = BlockOdds.oneIn(percent)
+	return if n then Strings.LuckyBlocks.OneIn:format(Format.commas(n)) else ""
 end
 
 -- A Dark-look card's place: its frame and the outline in the prize's colour that shows once it
@@ -130,6 +142,7 @@ local function makeCueSlot(parent: Instance, index: number, id: string): Slot
 		odds = nil,
 		cue = true,
 		card = nil,
+		showcase = nil,
 	}
 end
 
@@ -143,11 +156,38 @@ local function buildCueCard(slot: Slot)
 	card.button.AnchorPoint = Vector2.new(0.5, 0.5)
 	card.button.Position = UDim2.fromScale(0.5, 0.5)
 	card.button.Size = (slot.edge.Parent :: Frame).Size
-	InventoryCard.set(
-		card,
-		{ cueId = slot.id, chance = ODDS_TEXT[slot.id], still = true, clear = R.ClearCards }
-	)
+	InventoryCard.set(card, {
+		cueId = slot.id,
+		chance = slot.showcase or ODDS_TEXT[slot.id],
+		still = true,
+		clear = R.ClearCards,
+	})
 	slot.card = card
+end
+
+-- The showcase card's glow in its rarity's colour, under it (it never moves: no card does).
+-- The card's place drops under the other cards, so its glow spills under them, not over.
+local function showcaseGlow(slot: Slot)
+	slot.frame.ZIndex = 0
+	local glow = Instance.new("ImageLabel")
+	glow.Name = "ShowcaseGlow"
+	glow.BackgroundTransparency = 1
+	glow.Image = K.Art.SoftGlow
+	glow.ScaleType = Enum.ScaleType.Slice
+	local slice: { number } = R.ShowcaseGlowSlice
+	glow.SliceCenter = Rect.new(slice[1], slice[2], slice[3], slice[4])
+	local g = R.ShowcaseGlowSpreadPx
+	glow.SliceScale = 2 * g / R.ShowcaseGlowCornerPx
+	glow.ImageColor3 = ReelFx.color(slot.rarity)
+	glow.ImageTransparency = R.ShowcaseGlowTransparency
+	glow.ZIndex = 0
+	-- Round the cue card's outline (the Dark look), else the whole card.
+	local box = (slot.edge.Parent :: Frame).Size
+	local w = if slot.cue then box.X.Offset else R.CardWidthPx
+	local h = if slot.cue then box.Y.Offset else R.CardHeightPx
+	glow.Position = UDim2.fromOffset((R.CardWidthPx - w) / 2 - g, (R.CardHeightPx - h) / 2 - g)
+	glow.Size = UDim2.fromOffset(w + 2 * g, h + 2 * g)
+	glow.Parent = slot.frame
 end
 
 -- One card of the strip: a white rounded face dressed in the rarity, the cue's thumbnail on it.
@@ -201,6 +241,7 @@ local function makeCard(parent: Instance, index: number, id: string, rarity: str
 		odds = odds,
 		cue = false,
 		card = nil,
+		showcase = nil,
 	}
 end
 
@@ -230,9 +271,14 @@ local function dressCard(slot: Slot, id: string, rarity: string)
 end
 
 --- Build the reel for the odds row `oddsId` (Config.BlockOdds.List) in `parent` (a stage), its
---- strip drawn at random from that pool. Size it with layout(width); put the prize in with setPrize, then start(). `opts.look`
---- "Dark" is the lucky blocks' look (see the top).
-function Reel.new(parent: Instance, oddsId: string, opts: { look: string? }?): any
+--- strip drawn at random from that pool. Size it with layout(width); put the prize in with
+--- setPrize, then start(). `opts.look` "Dark" is the lucky blocks' look (see the top);
+--- `opts.closed`: the player's closed Unique rows (BlockOdds.closedFor), left off the strip.
+function Reel.new(
+	parent: Instance,
+	oddsId: string,
+	opts: { look: string?, closed: BlockOdds.Closed? }?
+): any
 	local self: any = setmetatable({}, Reel)
 	local dark = opts ~= nil and opts.look == "Dark"
 	self.dark = dark
@@ -300,21 +346,54 @@ function Reel.new(parent: Instance, oddsId: string, opts: { look: string? }?): a
 	strip.ZIndex = 1
 	self.strip = strip
 
-	local cues, weights, total = pool(oddsId)
+	local cues, total = pool(oddsId, if opts then opts.closed else nil)
+	local function rng(n: number): number
+		return self.random:NextInteger(1, n)
+	end
+	-- The showcase: its cue and its place (none when the pool has nothing from Epic up).
+	local showcase = if R.Showcase
+		then ReelMath.showcaseCue(cues, Catalog.rarityRank, Catalog.rarityRank(R.ShowcaseFrom), rng)
+		else nil
+	local count = math.max(R.Cards, R.PrizeSlot + 1)
+	local showcaseAt = if showcase
+		then ReelMath.showcaseSlot(
+			rng,
+			count,
+			R.PrizeSlot,
+			R.ShowcaseFirstSlot,
+			R.ShowcaseShare,
+			R.ShowcaseGapCards
+		)
+		else nil
+	self.showcaseAt = showcaseAt
 	self.slots = {} :: { Slot }
-	for index = 1, math.max(R.Cards, R.PrizeSlot + 1) do
-		local pick = self.random:NextNumber(0, total)
+	for index = 1, count do
 		local chosen = cues[#cues]
-		for i, weight in weights do
-			pick -= weight
-			if pick <= 0 then
-				chosen = cues[i]
-				break
+		if showcase and index == showcaseAt then
+			chosen = showcase
+		else
+			local pick = self.random:NextNumber(0, total)
+			for _, cue in cues do
+				pick -= cue.percent
+				if pick <= 0 then
+					chosen = cue
+					break
+				end
 			end
 		end
-		self.slots[index] = if dark
+		local slot = if dark
 			then makeCueSlot(strip, index, chosen.id)
 			else makeCard(strip, index, chosen.id, chosen.rarity)
+		slot.rarity = chosen.rarity
+		if showcase and index == showcaseAt then
+			local odds = oneInText(chosen.percent)
+			slot.showcase = odds
+			if slot.odds then
+				slot.odds.Text = odds
+			end
+			showcaseGlow(slot)
+		end
+		self.slots[index] = slot
 	end
 	strip.Size = UDim2.fromOffset(#self.slots * pitch(), R.CardHeightPx)
 	-- Fetch the strip's pictures now (the case is still in front), so no card spins past blank.
@@ -540,7 +619,9 @@ end
 function Reel.glow(self: any, now: number)
 	local rarity = self.prizeRarity
 	local share = 0
-	if self.landed then
+	if not ReelFx.atLeast(rarity, C.EffectsFrom) then
+		share = 0 -- win effects only from Rare up (economy v4 plan section 4)
+	elseif self.landed then
 		share = 1
 	elseif self.big and self.phase == "Spinning" then
 		local left = self.began + self.duration - now
@@ -680,6 +761,21 @@ function Reel.finish(self: any)
 	if done then
 		done()
 	end
+end
+
+--- Studio checks (GuiQA "luckyReelPeek"): stop the spin where it is and slide slot `index`
+--- under the marker. The reel then waits there until it is closed.
+function Reel.hold(self: any, index: number)
+	if not self.alive or self.slots[index] == nil then
+		return
+	end
+	if self.loop then
+		self.loop:Disconnect()
+		self.loop = nil
+	end
+	self.phase = "Holding"
+	self.pos = centreOf(index)
+	self:place()
 end
 
 function Reel.isSpinning(self: any): boolean

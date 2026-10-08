@@ -1001,7 +1001,9 @@ return {
 		},
 		-- Under every block's reel (economy v4 plan 4): one showcase tile, labelled with its odds.
 		ReelLine = "The reel shows what this block can drop. Your chances are under Odds.",
-		Showcase = "%s · 1 in %s", -- "SECRET · 1 in 1,000,000"
+		-- A rare chance as "1 in N" (BlockOdds.oneIn): on the reel's showcase card (its rarity is
+		-- on its bar) and beside the rare rows of the odds screens.
+		OneIn = "1 in %s",
 		-- The skip button: the price for the time left right now (economy v4 plan 8.2).
 		Skip = "Skip · %d R$",
 	},

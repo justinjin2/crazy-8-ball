@@ -545,6 +545,21 @@ function LuckyClient.start(screen: ScreenGui)
 		opening:play(kind or "Standard", id, if row then row.Rarity else "Common")
 		return opening:isOpen()
 	end)
+	-- The open reel's showcase card (economy v4 plan 4): stop the spin with it under the marker
+	-- and say where it is and what it reads; `close` closes the opening instead.
+	GuiQA.add("luckyReelPeek", function(close: boolean?)
+		if close then
+			opening:close()
+			return nil
+		end
+		local reel = opening.reel
+		if reel == nil or reel.showcaseAt == nil then
+			return nil
+		end
+		local slot = reel.slots[reel.showcaseAt]
+		reel:hold(reel.showcaseAt)
+		return reel.showcaseAt, slot.id, slot.rarity, slot.showcase
+	end)
 	GuiQA.add("mysteryTap", function()
 		reveal:tap()
 		return reveal.phase

@@ -160,6 +160,23 @@ local function percentText(percent: number): string
 end
 BlockOdds.percentText = percentText
 
+--- The N of "1 in N" for a chance of `percent` (economy v4 plan 18.2: rounded so it never looks
+--- better than true): 100 / percent rounded up, to three significant figures from 1,000 on
+--- (1 in 131,718 -> 132,000; 1 in 1,111.1 -> 1,120), else to a whole number (1 in 238.1 -> 239).
+--- nil for no chance or a chance over 100%.
+function BlockOdds.oneIn(percent: number): number?
+	if type(percent) ~= "number" or percent ~= percent or percent <= 0 or percent > 100 then
+		return nil
+	end
+	-- A hair under, so float noise never lifts an exact one (100 / 0.0001) to the next step.
+	local n = 100 / percent * (1 - 1e-9)
+	if n < 1000 then
+		return math.max(1, math.ceil(n))
+	end
+	local step = 10 ^ (math.floor(math.log10(n)) - 2)
+	return math.ceil(n / step) * step
+end
+
 --- The row's rarities with a share, bottom rarity first: { rarity, weight, percent, display }.
 --- Empty for an unknown row. `closed`: this player's closed Unique rows (BlockOdds.rowFor).
 function BlockOdds.odds(id: string, closed: Closed?): { RarityOdds }
@@ -264,8 +281,10 @@ end
 
 --- Every cue the row can drop with its percent (ECONOMY 7.3: the rarity's percent split
 --- evenly among that rarity's droppable cues), grouped by rarity bottom first, catalog order
---- inside a rarity. The percents add to 100 (within float rounding). Vaulted cues are left out.
-function BlockOdds.cueOdds(id: string, closed: Closed?): { CueOdds }
+--- inside a rarity. The percents add to 100 (within float rounding) when `uniques` is true:
+--- then the row's Unique rows follow as rarity "Unique" (the Grand Opening's Firework and Beta
+--- Cues; the reel shows them). Vaulted cues are left out.
+function BlockOdds.cueOdds(id: string, closed: Closed?, uniques: boolean?): { CueOdds }
 	local list = {}
 	for _, entry in BlockOdds.odds(id, closed) do
 		local pool = Catalog.droppable(id, entry.rarity)
@@ -276,6 +295,16 @@ function BlockOdds.cueOdds(id: string, closed: Closed?): { CueOdds }
 				rarity = entry.rarity,
 				percent = percent,
 				display = percentText(percent),
+			})
+		end
+	end
+	if uniques == true then
+		for _, unique in BlockOdds.uniqueRows(id, closed) do
+			table.insert(list, {
+				id = unique.cue,
+				rarity = "Unique",
+				percent = unique.percent,
+				display = unique.display,
 			})
 		end
 	end

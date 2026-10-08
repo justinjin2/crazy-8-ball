@@ -454,11 +454,19 @@ then; the reel's rules hold for the blocks.
   dark see-through face and the rarity's edge in place of its colours and 8-balls,
   `Reel.ClearCards`; none of them moves,
   the prize neither, so nothing gives the pull away before the stop; built a few a frame) drawn
-  from the block's odds, rarer cues shown more often (each cue's odds to the power 0.3, purely
-  for show, designer 2026-10-08) slides under a gold centre marker and eases to a
-  stop on the prize, ticking as cards pass; the timings are `Config.UI.Reel`. Then the prize
-  pops with its rarity sting: the pull cutscene from Rare, then the "YOU GOT" card over the
-  dimmed world (the cue's card big in the middle with all its motion, the rays behind it). A Rare or better pull fades everything to black from a second before the reel stops;
+  at the block's real odds, with its Unique rows (economy v4 plan section 4, 2026-10-08), but
+  for **one showcase card** per spin: a cue from Epic up out of the same pool (each of those
+  rarities as likely), its chance chip reading "1 in 77,800" (its rarity is on its bar), its
+  see-through face lit by a glow in its rarity's colour; it sits between slot 10 and the
+  strip's first two-thirds and never within 8 cards of the stop, so it is never a near miss
+  (`Reel.Showcase` turns it off). The strip slides under a gold centre marker and eases to a
+  stop on the prize, ticking as cards pass; the timings are `Config.UI.Reel`. Under the reel:
+  "The reel shows what this block can drop. Your chances are under Odds." Then the prize
+  pops: the pull cutscene from Rare, then the "YOU GOT" card over the dimmed world (the cue's
+  card big in the middle with all its motion). **Win effects only from Rare up**
+  (`Config.UI.Reel.EffectsFrom`): the glow round the reel as it lands, YOU GOT's rays and its
+  sting; a Common or Uncommon pull lands with the settle sound, its edge and the marker in its
+  colour, and its card alone with a plain click. A Rare or better pull fades everything to black from a second before the reel stops;
   Rare then swells a soft blue glow from the middle to a full blue screen, flashes white on
   the riser's peak and fades the white off the card (about 1.6 s, never skipped). Epic is a
   purple vortex: a bass hit and a longer riser with the fade, a ring pulse in the black, purple

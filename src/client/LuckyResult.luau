@@ -5,8 +5,10 @@
 -- colour (Common grey ... Mythic's pastels), "YOU GOT <CUE NAME>!" over it, and "Tap to
 -- continue" under it. There is
 -- no Keep or Sell: the cue is already in the inventory, and a tap, a click or A closes it.
--- Confetti from Config.UI.Reel.ConfettiFrom, the reveal sting by rarity. Built in
--- natural pixels inside LuckyOpening's stage; tuning in Config.LuckyBlocks.UI.
+-- Confetti from Config.UI.Reel.ConfettiFrom; the rays and the reveal sting by rarity only from
+-- Config.UI.Reel.EffectsFrom (Rare) up, the economy v4 plan's "win effects only for Rare or
+-- better" (a lower cue gets its card and a plain sound). Built in natural pixels inside
+-- LuckyOpening's stage; tuning in Config.LuckyBlocks.UI.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -18,6 +20,7 @@ local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local InventoryCard = require(script.Parent.InventoryCard)
 local UIAnim = require(script.Parent.UIAnim)
+local UISound = require(script.Parent.UISound)
 
 local U = Config.LuckyBlocks.UI
 local CO = Config.UI.Reel
@@ -49,6 +52,7 @@ function Result.new(parent: Instance, cueId: string, rarity: string): any
 	local self: any = setmetatable({}, Result)
 	self.alive = true
 	self.rarity = rarity
+	self.effects = ReelFx.atLeast(rarity, CO.EffectsFrom)
 	self.born = os.clock()
 	local colour = ReelFx.color(rarity)
 	local size = Result.size()
@@ -72,6 +76,7 @@ function Result.new(parent: Instance, cueId: string, rarity: string): any
 	rays.Position = UDim2.fromOffset(size.X / 2, artMiddle)
 	rays.ImageColor3 = if rarity == "Mythic" then WHITE else colour
 	rays.ZIndex = 0
+	rays.Visible = self.effects
 	if rarity == "Mythic" then
 		local tint = Instance.new("UIGradient")
 		tint.Color = ReelFx.shimmer()
@@ -124,8 +129,12 @@ function Result.show(self: any, confettiParent: GuiObject?)
 	end
 	self.root.Visible = true
 	UIAnim.popIn(self.root)
-	ReelFx.sting(self.rarity)
-	self.spin = UIAnim.spin(self.rays, U.CardRaysDegreesPerSecond)
+	if self.effects then
+		ReelFx.sting(self.rarity)
+		self.spin = UIAnim.spin(self.rays, U.CardRaysDegreesPerSecond)
+	else
+		UISound.play(CO.PlainSting)
+	end
 	UIAnim.bounce(self.thumb)
 	if confettiParent and ReelFx.atLeast(self.rarity, CO.ConfettiFrom) then
 		local at = self.thumb.AbsolutePosition + self.thumb.AbsoluteSize / 2
