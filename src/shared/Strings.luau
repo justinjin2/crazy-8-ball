@@ -1365,21 +1365,22 @@ return {
 			Column = "ABILITIES", -- the left column's tile, in capitals
 			Current = "CURRENT ABILITY:",
 			DescriptionSoon = "%s (Coming soon)", -- a placeholder ability's description
-			-- The slot cards.
-			None = "NONE", -- an empty slot, or one not bought yet
+			-- The slot cards (pick "abilities A", 2026-10-08: a slot not bought shows a padlock,
+			-- "Locked" and its R$ price on a green button).
+			Empty = "Empty", -- an owned slot with no ability yet
+			Locked = "Locked", -- a slot not bought yet
 			Equipped = "EQUIPPED",
 			Select = "SELECT",
-			Purchase = "PURCHASE %s", -- the R$ price: "PURCHASE \u{E002}59"
 			Soon = "Soon", -- a slot pass or spin pack whose product is not made yet
 			-- The bottom centre.
 			Spin = "SPIN",
 			FreeSpin = "FREE SPIN", -- while today's free spin is unused
 			SlotLocked = "SLOT LOCKED", -- SPIN greyed while the selected slot is locked
-			SpinsLeft = "SPINS LEFT: %s",
+			SpinsLeft = "Spins left: %s",
 			LuckySpins = "LUCKY SPINS: %s",
-			Back = "BACK TO MENU",
+			Back = "Back",
 			-- The odds.
-			Odds = "Odds", -- the phone's button and the popup's title
+			Odds = "Odds", -- the odds panel's title, the phone's button and its popup's title
 			OddsBar = "%s %s", -- a rarity bar: "Common 55%"
 			OddsSoon = "Soon", -- a placeholder ability in a bar's list (it can't be rolled yet)
 			LuckyOdds = "Lucky odds", -- the switch that shows a Lucky Spin's odds
@@ -1387,14 +1388,12 @@ return {
 			-- The code box. %s is the code, or the likes, drawn in gold (keep it when translating).
 			CodeLine = "USE CODE %s FOR FREE SPINS",
 			NextCode = "NEXT CODE AT %s LIKES",
-			-- The bottom right.
-			Pity = "Pity: %s / %s",
+			Pity = "Pity: %s / %s", -- the pill at the foot of the odds (a phone: over Buy spins)
+			-- The buy panel, bottom right: four Robux buttons and one money button.
 			BuySpins = "Buy spins", -- the phone's button and the popup's title
-			Buy = "BUY %d",
-			BuyLucky = "BUY LUCKY %d",
-			Robux = "R$", -- the R$ / $ toggle's halves
-			Money = "$",
-			BoughtOne = "+1 spin!", -- money spins bought (more: Spins.Bought)
+			Buy = "Buy %d", -- over a Robux button's price
+			MoneySpin = "%s - 1 spin", -- the money button: "$12,500 - 1 spin"
+			BoughtOne = "+1 spin!", -- a money spin bought (more: Spins.Bought)
 			Prompted = "Finish the purchase in the Roblox window.",
 			-- Replacing an Epic or better (the title is Spins.Reasons.Confirm: "Replace BLACK FLASH?").
 			ReplaceText = "Your %s will be replaced by a new ability.", -- the ability's name
@@ -1403,8 +1402,8 @@ return {
 			PityHit = "PITY!", -- over the name when the pity spin landed
 			-- VIP's Skip and Auto Spin (section 9.6).
 			Skip = "Skip",
-			AutoSpin = "AUTO SPIN",
-			AutoStop = "STOP (%d)", -- Auto Spin running: spins made so far
+			AutoSpin = "Auto Spin",
+			AutoStop = "Stop (%d)", -- Auto Spin running: spins made so far
 			AutoTitle = "Auto Spin",
 			AutoText = "Spin until you get:",
 			AutoStopAt = "%s+", -- a rarity: "Epic+"

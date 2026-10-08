@@ -238,19 +238,24 @@ export type Switch = {
 	set: (on: boolean) -> (),
 }
 
---- A switch: a candy that turns blue with the kit's check while on (Lucky odds, Skip, Use
---- Lucky Spins). `onChange` runs with the new value after a press.
-function Parts.switch(parent: Instance, text: string, onChange: (boolean) -> ()): Switch
+--- A switch: a candy that turns blue with the kit's check while on (Skip, Use Lucky Spins),
+--- white with `offIcon` (or none) while off. `onChange` runs with the new value after a press.
+function Parts.switch(
+	parent: Instance,
+	text: string,
+	onChange: (boolean) -> (),
+	offIcon: string?
+): Switch
 	local self: any = { on = false }
 	self.button = HudParts.candy(parent, text, function()
 		UISound.play("Click")
 		self.set(not self.on)
 		onChange(self.on)
-	end, "White", nil)
+	end, "White", offIcon)
 	function self.set(on: boolean)
 		self.on = on
 		HudParts.setTone(self.button, if on then "Blue" else "White")
-		HudParts.setButtonIcon(self.button, if on then "Check" else nil)
+		HudParts.setButtonIcon(self.button, if on then "Check" else offIcon)
 	end
 	return self :: Switch
 end

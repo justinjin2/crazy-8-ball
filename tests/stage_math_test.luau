@@ -201,6 +201,47 @@ return {
 		H.expect(finish >= 0.8 and finish <= 2, "the open lasts about 1 to 2 s")
 	end,
 
+	["the ability spin screen's open names every piece it stages and lands SPIN last"] = function()
+		local S, Config = load()
+		local M, U = Config.UI.Motion, Config.UI.UltScreen
+		local list, finish = S.schedule(U.Open, M)
+		local byId = {}
+		for _, e in list do
+			H.expect(byId[e.id] == nil, "one entry per piece: " .. e.id)
+			byId[e.id] = e
+		end
+		local wanted = { "Current", "UltIcon", "UltName", "Description", "OddsPanel", "BuyPanel" }
+		for _, id in { "Code", "Pity", "BuyMoney", "OddsButton", "BuyButton", "Back", "Skip" } do
+			table.insert(wanted, id)
+		end
+		for _, id in { "Auto", "Spin", "SpinsLeft" } do
+			table.insert(wanted, id)
+		end
+		for slot = 1, Config.Ults.Slots do
+			table.insert(wanted, "Slot" .. slot)
+		end
+		for index = 1, #Config.Ults.Rarities do -- one odds bar per rarity
+			table.insert(wanted, "Bar" .. index)
+		end
+		for index = 1, #Config.Ults.Earn.RobuxPacks do
+			table.insert(wanted, "Buy" .. index)
+		end
+		for _, id in wanted do
+			H.expect(byId[id] ~= nil, "the open names " .. id)
+		end
+		H.expect(byId.Spin.burst == "Gold", "SPIN arrives with a gold burst")
+		H.expect(byId.Slot1.at < byId.Slot3.at, "the slot cards pop in top to bottom")
+		H.expect(byId.Bar1.at < byId.Bar6.at, "the odds bars pop in top to bottom")
+		H.expect(byId.Buy1.at < byId.BuyMoney.at, "the Robux buttons come before the money one")
+		H.expect(byId.OddsPanel.at < byId.Bar1.at, "the odds panel opens before its bars")
+		for id, e in byId do
+			if id ~= "Spin" and id ~= "SpinsLeft" then
+				H.expect(e.at <= byId.Spin.at, "SPIN pops in last, after " .. id)
+			end
+		end
+		H.expect(finish >= 0.6 and finish <= 2, "the open lasts under 2 s")
+	end,
+
 	["the Cues menu's open names every piece it stages and lands its flair last"] = function()
 		local S, Config = load()
 		local M, I = Config.UI.Motion, Config.UI.Inventory

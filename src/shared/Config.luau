@@ -6811,6 +6811,7 @@ Config.UI = {
 			UltBadgeGold = "rbxassetid://74974990816876", -- the same badge with a gold flame, for the ready bar
 			Lucky = "rbxassetid://97997677415172", -- a four-leaf clover: LUCKY SPINS
 			UltSpin = "rbxassetid://76372169720993", -- a gold spin arrow round a bolt: SPIN and the spins count
+			Skip = "rbxassetid://94561902255192", -- two blue arrowheads (fast forward): VIP's Skip on the spin screen
 		},
 		Art = {
 			BallGloss = "rbxassetid://109282983367810", -- shading and shine over a HUD ball
@@ -11703,36 +11704,45 @@ Config.UI.UltScreen = {
 		ScaleMax = 1.5,
 		MarginPx = 16, -- from the screen's edges
 		GapPx = 10, -- between things in a group
-		-- Top centre: "CURRENT ULT:", the name huge in its rarity colour, the description.
+		-- Top centre: "CURRENT ABILITY:" in its pale-blue pill, the name huge in its rarity
+		-- colour, the description.
 		TitleTopPx = 6,
 		CurrentTextPx = 20,
+		CurrentPillHeightPx = 32,
+		CurrentPillPadPx = 18, -- the pill's room left and right of its words
 		NameTextPx = 64,
 		NameOutlinePx = 6, -- the name's thick ink outline
 		NameIconPx = 72, -- the ability's icon left of the name, as tall as the name's row
 		DescTextPx = 18,
 		DescWidthPx = 600,
-		-- Left: the three slot cards.
-		SlotWidthPx = 190,
-		SlotHeightPx = 112,
+		-- Left: the three slot cards (pick "abilities A": bigger, the button along the foot).
+		SlotWidthPx = 220,
+		SlotHeightPx = 124,
 		SlotGapPx = 10,
-		SlotNameTextPx = 22,
-		SlotPillHeightPx = 30, -- EQUIPPED, SELECT or PURCHASE
-		SlotPillTextPx = 18,
+		SlotPadPx = 10, -- inside a card, round its contents
+		SlotNameTextPx = 24,
+		SlotPillHeightPx = 38, -- the button along the foot: EQUIPPED, SELECT or the R$ price
+		SlotPillTextPx = 20,
 		SlotStripPx = 6, -- the rarity strip under the name
-		-- The slot's ability icon, top left, the name and the strip to its right (at most down to
-		-- the pill: it shrinks to fit a short card).
-		SlotIconPx = 58,
+		-- The slot's ability icon (a padlock while not bought) at the left of the room over the
+		-- button, the name and the strip to its right (it shrinks to fit a short card).
+		SlotIconPx = 60,
 		LockPx = 30, -- the lock toggle, top right
-		-- Right: the odds (the Lucky odds switch, the rarity bars and their lists) and the code box.
-		OddsWidthPx = 320,
+		-- Right: the odds panel (a pale-blue header, the rarity bars and their lists, the pity
+		-- rule, the code box when it has no room of its own, the pity pill at its foot).
+		OddsWidthPx = 340,
+		OddsHeaderPx = 42, -- the header band holding "Odds"
+		OddsTitleTextPx = 26,
+		OddsPadPx = 8, -- inside the panel's white sheet
+		PityPillHeightPx = 34,
 		SwitchHeightPx = 34,
-		BarHeightPx = 38,
-		BarGapPx = 8,
+		BarHeightPx = 36,
+		BarGapPx = 6,
 		BarTextPx = 20,
 		RowHeightPx = 28, -- one ult in an opened bar's list
 		RowTextPx = 16,
 		RowIconPx = 26, -- its ability icon, left of the name
-		CodeTextPx = 18,
+		CodeTextPx = 16, -- "USE CODE RELEASE FOR FREE SPINS" on one line in the odds panel
 		CodeBoxPx = 40,
 		RedeemWidthPx = 110,
 		CodeNoteTextPx = 16,
@@ -11749,24 +11759,27 @@ Config.UI.UltScreen = {
 		SpinHeightPx = 84,
 		SpinTextPx = 44,
 		SpinsLeftTextPx = 22,
-		-- Bottom left: BACK TO MENU.
-		BackWidthPx = 230,
-		BackHeightPx = 50,
-		BackTextPx = 22,
-		-- Bottom right: Pity, the money, the buy row.
-		PityTextPx = 20,
-		MoneyHeightPx = 34,
-		MoneyTextPx = 22,
-		BuyWidthPx = 88,
-		BuyHeightPx = 46,
-		BuyTextPx = 18,
-		PriceTextPx = 16, -- the price over each buy button (and the crossed-out one over it)
-		ToggleWidthPx = 58, -- each half of the R$ / $ toggle
-		ToggleHeightPx = 34,
-		-- VIP's Skip and Auto Spin, between BACK TO MENU and SPIN.
-		FastWidthPx = 180,
+		-- Bottom left: Back, with its arrow.
+		BackWidthPx = 170,
+		BackHeightPx = 56,
+		BackTextPx = 26,
+		-- Bottom right: the buy panel, four green Robux buttons ("Buy 1" over its price) and the
+		-- gold money button under them.
+		PityTextPx = 20, -- the pity pill's words
+		BuyPadPx = 10, -- inside the panel
+		BuyWidthPx = 88, -- one Robux button
+		BuyHeightPx = 58,
+		BuyTextPx = 22, -- its price
+		BuyTopTextPx = 15, -- its "Buy 1" over the price
+		MoneyButtonHeightPx = 42,
+		MoneyButtonTextPx = 20,
+		PriceTextPx = 16, -- the note where paid random items are restricted
+		-- VIP's Skip and Auto Spin, between Back and SPIN; Auto Spin's switch at its right.
+		FastWidthPx = 200,
 		FastHeightPx = 40,
 		FastTextPx = 18,
+		AutoTrackWidthPx = 38,
+		AutoTrackHeightPx = 22,
 		-- A popup (Auto Spin here; Odds and Buy spins on a phone).
 		PopupWidthPx = 440,
 		PopupTitleTextPx = 22,
@@ -11785,21 +11798,28 @@ Config.UI.UltScreen = {
 		GapPx = 6,
 		TitleTopPx = 4,
 		CurrentTextPx = 14,
+		CurrentPillHeightPx = 22,
+		CurrentPillPadPx = 10,
 		NameTextPx = 32,
 		NameOutlinePx = 3,
 		NameIconPx = 40,
 		DescTextPx = 14,
 		DescWidthPx = 380,
-		SlotWidthPx = 124,
-		SlotHeightPx = 58,
+		SlotWidthPx = 132,
+		SlotHeightPx = 64,
 		SlotGapPx = 6,
+		SlotPadPx = 5,
 		SlotNameTextPx = 16,
-		SlotPillHeightPx = 18,
+		SlotPillHeightPx = 22,
 		SlotPillTextPx = 14,
 		SlotStripPx = 4,
 		SlotIconPx = 30,
 		LockPx = 22,
 		OddsWidthPx = 380,
+		OddsHeaderPx = 30,
+		OddsTitleTextPx = 18,
+		OddsPadPx = 6,
+		PityPillHeightPx = 26,
 		SwitchHeightPx = 30,
 		BarHeightPx = 32,
 		BarGapPx = 6,
@@ -11818,26 +11838,28 @@ Config.UI.UltScreen = {
 		SpinHeightPx = 54,
 		SpinTextPx = 30,
 		SpinsLeftTextPx = 16,
-		BackWidthPx = 150,
+		BackWidthPx = 110,
 		BackHeightPx = 36,
-		BackTextPx = 16,
-		PityTextPx = 16,
-		MoneyHeightPx = 26,
-		MoneyTextPx = 16,
+		BackTextPx = 18,
+		PityTextPx = 14,
+		BuyPadPx = 6,
 		BuyWidthPx = 84,
-		BuyHeightPx = 40,
-		BuyTextPx = 16,
+		BuyHeightPx = 48,
+		BuyTextPx = 18,
+		BuyTopTextPx = 12,
+		MoneyButtonHeightPx = 34,
+		MoneyButtonTextPx = 16,
 		PriceTextPx = 14,
-		ToggleWidthPx = 56,
-		ToggleHeightPx = 32,
-		FastWidthPx = 116,
+		FastWidthPx = 136,
 		FastHeightPx = 34,
 		FastTextPx = 16,
+		AutoTrackWidthPx = 28,
+		AutoTrackHeightPx = 16,
 		PopupWidthPx = 420,
 		PopupTitleTextPx = 18,
 		PopupCloseInsetPx = 18,
 		PopupClosePx = 30,
-		OpenWidthPx = 116,
+		OpenWidthPx = 136, -- as wide as Skip and Auto Spin under the Odds button
 		OpenHeightPx = 36,
 		OpenTextPx = 16,
 	},
@@ -11849,6 +11871,35 @@ Config.UI.UltScreen = {
 	DescColor = { 214, 226, 245 },
 	PlaceholderTransparency = 0.25, -- a placeholder ult's name in a list ("Soon")
 	LockOffTransparency = 0.6, -- the lock toggle while the slot is unlocked
+	MoneyPack = 1, -- the gold money button buys this many spins (Config.Ults.Earn.MoneyPacks has it)
+	MoneyIconShare = 1, -- the money button's cash stack, of its height (the kit's icons: 0.62)
+	BuyShineStaggerSeconds = 0.35, -- the four Robux buttons' shines follow one another this far apart
+	-- The open (pick "abilities A", 2026-10-08; no animatic: the Shop's timings, Studio first
+	-- look): no panel to unroll, the title, the cards and panels, then their buttons stagger in;
+	-- the hero is SPIN, last, with a gold burst. Pieces only on a phone (the Odds and Buy spins
+	-- buttons) or only for a VIP (Skip, Auto) just stay hidden when absent.
+	Open = {
+		OpenSeconds = 0.91,
+		Steps = {
+			{ Ids = { "Current" }, Kind = "Pop", At = 0 },
+			{ Ids = { "UltIcon", "UltName" }, Kind = "Pop", At = 0.04 },
+			{ Ids = { "Description" }, Kind = "Fade", At = 0.14, Length = 0.15 },
+			{ Ids = { "Slot1", "Slot2", "Slot3" }, Kind = "Pop", At = 0.08, Stagger = 1.25 },
+			{ Ids = { "OddsPanel", "BuyPanel", "Code" }, Kind = "Grow", At = 0.08 },
+			{
+				Ids = { "Bar1", "Bar2", "Bar3", "Bar4", "Bar5", "Bar6" },
+				Kind = "Pop",
+				At = 0.16,
+				Stagger = 1,
+			},
+			{ Ids = { "Buy1", "Buy2", "Buy3", "Buy4", "BuyMoney" }, Kind = "Pop", At = 0.2 },
+			{ Ids = { "OddsButton", "BuyButton" }, Kind = "Pop", At = 0.2 },
+			{ Ids = { "Back", "Skip", "Auto" }, Kind = "Pop", At = 0.28 },
+			{ Ids = { "Pity" }, Kind = "Pop", At = 0.38 },
+			{ Ids = { "Spin" }, Kind = "Pop", At = 0.4, Burst = "Gold" },
+			{ Ids = { "SpinsLeft" }, Kind = "Fade", At = 0.48, Length = 0.15 },
+		},
+	},
 	MythicShimmerSeconds = 2.4, -- Mythic's name and bar shimmer drifts once through its pastels
 	-- The spin (section 9.4): the name at the top cycles through ult names, fast then slowing,
 	-- ticking once per name, and lands on the result with its rarity sting.

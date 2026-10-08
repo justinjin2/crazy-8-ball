@@ -1,14 +1,16 @@
 --!strict
 -- UltOdds: the odds and the code box of the ult spin screen (docs/prompts/ULTIMATES_PROMPT.md
--- sections 8 and 9.3; reference 09). A "Lucky odds" switch, then one collapsible bar per rarity
--- in its colour ("Common 55%" and a chevron; Mythic shimmers). Opening a bar lists its ults
--- (each with its icon) with each one's share, or "Soon" for a placeholder that cannot be rolled
--- yet (its name and icon faded). The shares are
--- the true current odds from UltState (built ults only, empty rarities passing theirs down),
--- written as the case Odds panel writes them. Under the bars a line on pity, then the code box
--- ("USE CODE ABILITIES FOR FREE SPINS", "NEXT CODE AT 100 LIKES", a text box and Redeem through the
--- Rewards service's codes). Everything sits in one scroller: on a computer it is the screen's
--- right column over the dark stage; on a phone the screen puts it in its Odds popup.
+-- sections 8 and 9.3; pick "abilities A", 2026-10-08). One collapsible bar per rarity in its
+-- colour ("Common 55%" and a chevron; Mythic shimmers). Opening a bar lists its abilities (each
+-- with its icon) with each one's share, or "Soon" for a placeholder that cannot be rolled yet
+-- (its name and icon faded). The shares are the true current odds from UltState (built
+-- abilities only, empty rarities passing theirs down), written as the case Odds panel writes
+-- them. Under the bars a line on pity, then the code box ("USE CODE RELEASE FOR FREE SPINS",
+-- "NEXT CODE AT 100 LIKES", a text box and Redeem through the Rewards service's codes).
+-- Everything sits in one scroller. On a computer the scroller is inside the odds panel, the
+-- screen's right column: a kit card whose pale-blue header band (its 8-balls drifting, as the
+-- lively menus') holds "Odds", with the pity pill ("Pity: 3 / 100") at its foot. On a phone the
+-- screen puts the scroller in its Odds popup and the pity pill over Buy spins.
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -16,6 +18,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Catalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
+local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
@@ -26,6 +29,7 @@ local C = Config.UI.UltScreen
 local K = Config.UI.Kit
 local W = Strings.Ults.Screen
 local CODES = Strings.Menus.Rewards
+local PALE = HudParts.color(K.HeaderBottom)
 local RARITY_WORDS: { [string]: string } = Strings.Ults.Rarities :: any
 local RARITIES: { string } = Config.Ults.Rarities
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
@@ -59,14 +63,22 @@ type Bar = {
 local UltOdds = {}
 UltOdds.__index = UltOdds
 
---- The odds and the code box in a new scroller in `parent`.
+--- The odds panel in `parent` (the screen's root): its header, the scroller with the odds and
+--- the code box, and the pity pill.
 function UltOdds.new(parent: Instance, hooks: Hooks): any
 	local self: any = setmetatable({}, UltOdds)
 	self.hooks = hooks
-	self.lucky = false
 	self.state = nil :: any
 	self.bars = {} :: { Bar }
-	self.onWhite = false -- drawn on a white card (the phone's popup), not the dark stage
+
+	local panel = HudParts.menuCard(parent, "OddsPanel")
+	panel.ZIndex = 5
+	HudParts.livelyCard(panel)
+	self.panel = panel
+	local title = HudParts.text(panel, "Title", C.Full.OddsTitleTextPx, W.Odds)
+	title.TextWrapped = false
+	title.ZIndex = 3
+	self.title = title
 
 	local scroll = Instance.new("ScrollingFrame")
 	scroll.Name = "Odds"
@@ -77,27 +89,27 @@ function UltOdds.new(parent: Instance, hooks: Hooks): any
 	scroll.ScrollingDirection = Enum.ScrollingDirection.Y
 	scroll.CanvasSize = UDim2.fromOffset(0, 0)
 	scroll.Selectable = false
-	scroll.ZIndex = 5
-	scroll.Parent = parent
+	scroll.ZIndex = 4
+	scroll.Parent = panel
 	self.scroll = scroll
-
-	self.switch = Parts.switch(scroll, W.LuckyOdds, function(on: boolean)
-		self.lucky = on
-		if self.state then
-			self:draw(self.state)
-		end
-	end)
-	self.switch.button.ZIndex = 3
-	-- Lucky Spins are retired (Config.Ults.Earn.LuckySpins): no Lucky odds switch.
-	self.switch.button.Visible = Config.Ults.Earn.LuckySpins ~= false
 
 	for index, rarity in RARITIES do
 		table.insert(self.bars, self:buildBar(scroll, rarity, index))
 	end
 
-	local pity = HudParts.text(scroll, "PityNote", C.Full.CodeNoteTextPx, "")
-	pity.ZIndex = 3
-	self.pityNote = pity
+	local note = HudParts.note(scroll, "PityNote", C.Full.CodeNoteTextPx, "")
+	note.ZIndex = 3
+	self.pityNote = note
+
+	-- The pity pill: pale blue, its words white with the ink outline.
+	local pity = HudParts.pill(panel, "Pity", PALE)
+	pity.ZIndex = 5
+	local pityText = HudParts.text(pity, "Words", C.Full.PityTextPx, "")
+	pityText.AutoLocalize = false -- numbers in Strings' words
+	pityText.TextWrapped = false
+	pityText.Size = UDim2.fromScale(1, 1)
+	pityText.ZIndex = 6
+	self.pity, self.pityText = pity, pityText
 
 	self:buildCode(scroll)
 	return self
@@ -366,7 +378,7 @@ end
 function UltOdds.draw(self: any, state: any)
 	self.state = state
 	local odds = if type(state.odds) == "table" then state.odds else {}
-	local tableOdds = if self.lucky then odds.lucky else odds.normal
+	local tableOdds = odds.normal
 	local rarities: { [string]: number } = {}
 	local ults: { [string]: number } = {}
 	if type(tableOdds) == "table" then
@@ -406,9 +418,10 @@ function UltOdds.draw(self: any, state: any)
 			end
 		end
 	end
-	self.switch.set(self.lucky)
+	local pity = if type(state.pity) == "number" then state.pity else 0
 	local pityAt = if type(state.pityAt) == "number" then state.pityAt else Config.Ults.Roll.PityAt
 	self.pityNote.Text = W.PityNote:format(pityAt)
+	self.pityText.Text = W.Pity:format(Format.commas(pity), Format.commas(pityAt))
 	local code = if type(state.code) == "table" then state.code else {}
 	local active = if type(code.active) == "string"
 		then code.active
@@ -429,10 +442,9 @@ local function wrapHeight(text: string, size: number, width: number, maxLines: n
 	return lines * (size + 4)
 end
 
---- Lay the contents out `width` wide for layout `g` (onWhite: in the phone's white popup);
---- sets the scroller's canvas and returns the contents' height.
-function UltOdds.layout(self: any, g: Parts.Geo, width: number, onWhite: boolean): number
-	self.onWhite = onWhite
+--- Lay the scroller's contents out `width` wide for layout `g`; sets its canvas and returns
+--- the contents' height.
+function UltOdds.layout(self: any, g: Parts.Geo, width: number): number
 	local gap = g.px("BarGapPx")
 	local barH = g.px("BarHeightPx")
 	local barText = g.text("BarTextPx")
@@ -442,16 +454,6 @@ function UltOdds.layout(self: any, g: Parts.Geo, width: number, onWhite: boolean
 	local inner = width - 8 -- room for the scroll bar and the outlines
 	local x = 3
 	local y = 3
-	local switchH = g.px("SwitchHeightPx")
-	local switch = self.switch.button
-	HudParts.setButtonTextSize(switch, g.text("BarTextPx"))
-	local switchW =
-		math.min(inner, HudParts.candyWidth(switch, switchH, g.text("BarTextPx")) + switchH)
-	switch.Position = UDim2.fromOffset(x + inner - switchW, y)
-	switch.Size = UDim2.fromOffset(switchW, switchH)
-	if switch.Visible then
-		y += switchH + gap
-	end
 	for _, bar: Bar in self.bars do
 		bar.button.Position = UDim2.fromOffset(x, y)
 		bar.button.Size = UDim2.fromOffset(inner, barH)
@@ -492,10 +494,9 @@ function UltOdds.layout(self: any, g: Parts.Geo, width: number, onWhite: boolean
 		end
 		y += gap
 	end
-	-- The pity line: soft white on the dark stage, ink on the white popup.
+	-- The pity rule, ink on the white sheet.
 	local noteText = g.text("CodeNoteTextPx")
 	HudParts.setTextSize(self.pityNote, noteText)
-	self.pityNote.TextColor3 = if onWhite then INK else HudParts.tone("Soft")
 	local pityH = wrapHeight(self.pityNote.Text, noteText, inner, 3)
 	self.pityNote.Position = UDim2.fromOffset(x, y)
 	self.pityNote.Size = UDim2.fromOffset(inner, pityH)
@@ -557,12 +558,51 @@ function UltOdds.layoutCode(self: any, g: Parts.Geo, width: number): number
 	return cy
 end
 
---- The gamepad's way in: the Lucky odds switch, or the first bar without it.
-function UltOdds.first(self: any): GuiObject
-	if not self.switch.button.Visible and self.bars[1] then
-		return self.bars[1].button
+--- The pity pill `width` wide for layout `g` (its parent places it); returns its height.
+function UltOdds.layoutPity(self: any, g: Parts.Geo, width: number): number
+	local h = g.px("PityPillHeightPx")
+	HudParts.setTextSize(self.pityText, g.text("PityTextPx"))
+	self.pity.Size = UDim2.fromOffset(width, h)
+	return h
+end
+
+--- The pity pill's width for its words at layout `g` (on its own, over Buy spins).
+function UltOdds.pityWidth(self: any, g: Parts.Geo): number
+	local textPx = g.text("PityTextPx")
+	return math.ceil(Parts.textWidth(self.pityText.Text, textPx)) + 2 * g.px("CurrentPillPadPx")
+end
+
+--- The panel at (x, y), `w` x `h` (a computer): the header with "Odds", the scroller under it,
+--- the pity pill pinned at the foot (unless the screen took it out), all on the white sheet.
+function UltOdds.layoutPanel(self: any, g: Parts.Geo, x: number, y: number, w: number, h: number)
+	local panel: Frame = self.panel
+	panel.Position = UDim2.fromOffset(x, y)
+	panel.Size = UDim2.fromOffset(w, h)
+	local headerH = g.px("OddsHeaderPx")
+	HudParts.setSheetTop(panel, headerH)
+	local titlePx = g.text("OddsTitleTextPx")
+	HudParts.setTextSize(self.title, titlePx)
+	self.title.Position = UDim2.fromOffset(0, math.floor((headerH - titlePx - 6) / 2) + 1)
+	self.title.Size = UDim2.new(1, 0, 0, titlePx + 6)
+	local inset = K.SheetInsetPx
+	local pad = g.px("OddsPadPx")
+	local inner = w - 2 * (inset + pad)
+	local bottom = h - inset - pad
+	if self.pity.Parent == panel then
+		local pityH = self:layoutPity(g, inner)
+		bottom -= pityH
+		self.pity.Position = UDim2.fromOffset(inset + pad, bottom)
+		bottom -= pad
 	end
-	return self.switch.button
+	local top = headerH + pad
+	self.scroll.Position = UDim2.fromOffset(inset + pad - 3, top)
+	self.scroll.Size = UDim2.fromOffset(inner + 6, math.max(40, bottom - top))
+	self:layout(g, inner + 6)
+end
+
+--- The gamepad's way in: the first bar.
+function UltOdds.first(self: any): GuiObject
+	return self.bars[1].button
 end
 
 --- Put a gamepad on the first bar.

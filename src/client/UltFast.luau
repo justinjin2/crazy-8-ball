@@ -1,11 +1,12 @@
 --!strict
 -- UltFast: VIP's Skip and Auto Spin on the ult spin screen (docs/prompts/ULTIMATES_PROMPT.md
--- section 9.6; the Fast Open pass retired 2026-10-04), for VIPs only (UltState.vip): a Skip
--- switch (spins land at once; a
--- client setting kept for the session) and AUTO SPIN, which opens a small popup to choose
--- where it stops (Rare+, Epic+ or Legendary+, Config.Ults.AutoStopChoices) and whether it uses
--- Lucky Spins. The server spins one at a time (UltRequest AutoStart); while it runs the button
--- is a red STOP (N) and each result shows quickly (the screen hears UltAuto). It never spins
+-- section 9.6; the Fast Open pass retired 2026-10-04; pick "abilities A", 2026-10-08), for VIPs
+-- only (UltState.vip): a Skip switch (white with its fast-forward arrows; blue with the check
+-- while on: spins land at once; a client setting kept for the session) and Auto Spin, blue with
+-- a small on/off switch drawn at its right, which opens a small popup to choose where it stops
+-- (Rare+, Epic+ or Legendary+, Config.Ults.AutoStopChoices) and whether it uses Lucky Spins. The
+-- server spins one at a time (UltRequest AutoStart); while it runs the button is a red "Stop (N)"
+-- with its switch on, and each result shows quickly (the screen hears UltAuto). It never spins
 -- into a locked slot and stops before replacing an Epic or better: the server's rules.
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -17,6 +18,7 @@ local HudParts = require(script.Parent.HudParts)
 local UISound = require(script.Parent.UISound)
 local Parts = require(script.Parent.UltScreenParts)
 
+local K = Config.UI.Kit
 local W = Strings.Ults.Screen
 local RARITY_WORDS: { [string]: string } = Strings.Ults.Rarities :: any
 
@@ -47,7 +49,7 @@ function UltFast.new(parent: Instance, root: GuiObject, hooks: Hooks): any
 	self.holder = holder
 	self.skip = Parts.switch(holder, W.Skip, function(on: boolean)
 		skipOn = on
-	end)
+	end, "Skip")
 	self.skip.set(skipOn)
 	self.skip.button.ZIndex = 2
 	local auto = HudParts.candy(holder, W.AutoSpin, function()
@@ -62,6 +64,28 @@ function UltFast.new(parent: Instance, root: GuiObject, hooks: Hooks): any
 	auto.ZIndex = 2
 	HudParts.setMinHit(auto, Config.UI.UltScreen.TouchPx)
 	self.autoButton = auto
+	-- Its switch: a white track with an ink outline and a knob, green with the knob at the right
+	-- while Auto Spin runs.
+	local body = auto:FindFirstChild("Body") :: Frame
+	local track = HudParts.frame(body, "Track")
+	track.AnchorPoint = Vector2.new(1, 0.5)
+	track.BackgroundTransparency = 0
+	track.ZIndex = 3
+	HudParts.corner(track, K.PillCornerPx)
+	local rim = Instance.new("UIStroke")
+	rim.Color = HudParts.tone("Ink")
+	rim.Thickness = K.ButtonStrokePx - 1
+	rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	rim.Parent = track
+	local knob = HudParts.frame(track, "Knob")
+	knob.AnchorPoint = Vector2.new(0.5, 0.5)
+	knob.BackgroundTransparency = 0
+	knob.BackgroundColor3 = Color3.new(1, 1, 1)
+	knob.ZIndex = 4
+	HudParts.corner(knob, K.PillCornerPx)
+	local knobRim = rim:Clone()
+	knobRim.Parent = knob
+	self.track, self.knob = track, knob
 
 	-- The popup: "Spin until you get:", one button per stop rarity, and the Lucky switch.
 	local popup = Parts.popup(root, "AutoPopup", W.AutoTitle)
@@ -121,6 +145,10 @@ function UltFast.setRunning(self: any, running: boolean, count: number)
 	HudParts.setText(self.autoButton, if running then W.AutoStop:format(count) else W.AutoSpin)
 	HudParts.setTone(self.autoButton, if running then "Red" else "Blue")
 	HudParts.setButtonIcon(self.autoButton, if running then nil else "UltSpin")
+	self.track.BackgroundColor3 = if running
+		then HudParts.color(K.Buttons.Green.Mid)
+		else HudParts.color(K.Colors.White)
+	self.knob.Position = UDim2.fromScale(if running then 0.72 else 0.28, 0.5)
 	if running and self.popup.isOpen() then
 		self.popup.close()
 	end
@@ -175,6 +203,15 @@ function UltFast.layout(self: any, g: Parts.Geo, width: number): number
 	HudParts.setButtonTextSize(self.autoButton, textPx)
 	self.autoButton.Position = UDim2.fromOffset(0, h + gap)
 	self.autoButton.Size = UDim2.fromOffset(width, h)
+	-- The switch at the right, centred on the face over the lip; the words keep clear of it.
+	local trackW, trackH = g.px("AutoTrackWidthPx"), g.px("AutoTrackHeightPx")
+	local usable = h - math.floor(h * K.ButtonLipShare + 0.5)
+	local pad = math.max(6, math.floor(usable * 0.18))
+	self.track.Position = UDim2.fromOffset(width - pad, math.floor(usable / 2) + 1)
+	self.track.Size = UDim2.fromOffset(trackW, trackH)
+	local knobPx = math.max(4, trackH - 6)
+	self.knob.Size = UDim2.fromOffset(knobPx, knobPx)
+	HudParts.setRightInset(self.autoButton, trackW + math.floor(pad / 2))
 	self.holder.Size = UDim2.fromOffset(width, 2 * h + gap)
 	if self.popup.isOpen() then
 		self:layoutPopup(g)

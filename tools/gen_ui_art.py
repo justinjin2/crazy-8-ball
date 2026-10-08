@@ -299,6 +299,19 @@ def icon_play():
     )
 
 
+def icon_skip():
+    # Two blue arrowheads, one after the other (fast forward): VIP's Skip on the ability spin
+    # screen (pick "abilities A", 2026-10-08).
+    parts = []
+    for left in (36, 124):
+        tri = f"M{left} 64 L{left + 92} 128 L{left} 192 Z"
+        parts.append(
+            f'<path d="{tri}" fill="url(#blue)" stroke="url(#blue)" stroke-width="26" stroke-linejoin="round"/>'
+        )
+        parts.append(gloss(left + 22, 100, 10, 22, angle=-25))
+    return "".join(parts)
+
+
 def icon_door():
     arrow = "M112 116 L176 116 L176 88 L226 132 L176 176 L176 148 L112 148 Z"
     return "".join(
@@ -2271,6 +2284,7 @@ ICONS = {
     "person_grey": icon_person_grey,
     "robot": icon_robot,
     "play": icon_play,
+    "skip": icon_skip,
     "door": icon_door,
     "flag": icon_flag,
     "trophy": icon_trophy,

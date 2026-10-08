@@ -430,6 +430,7 @@ type Candy = {
 	hit: TextButton?,
 	onLit: ((boolean) -> ())?, -- told when the candy lights up or goes out (HudParts.onLit)
 	iconShare: number?, -- its icon's share of the height beside words (HudParts.setIconShare)
+	rightInset: number?, -- room kept clear at its right, in pixels (HudParts.setRightInset)
 }
 
 -- Held strongly and cleared on Destroying: a weak table keyed on Instances can lose entries.
@@ -500,8 +501,9 @@ local function layoutCandy(button: TextButton, c: Candy)
 	end
 	c.icon.Size = UDim2.fromOffset(iconSize, iconSize)
 	local left = if hasIcon then pad + iconSize + math.floor(pad / 2) else pad
+	local right = pad + (c.rightInset or 0)
 	c.label.Position = UDim2.fromOffset(left, 2)
-	c.label.Size = UDim2.fromOffset(math.max(1, size.X - left - pad), math.max(1, usable - 2))
+	c.label.Size = UDim2.fromOffset(math.max(1, size.X - left - right), math.max(1, usable - 2))
 end
 
 --- A raised candy button: a light top, its colour, a darker lip along the bottom, an ink
@@ -768,6 +770,16 @@ function HudParts.setIconShare(button: TextButton, share: number)
 	end
 end
 
+--- Keep `px` clear at a candy's right for something drawn there (Auto Spin's switch): its words
+--- centre in what is left.
+function HudParts.setRightInset(button: TextButton, px: number)
+	local c = candies[button]
+	if c and c.rightInset ~= px then
+		c.rightInset = px
+		layoutCandy(button, c)
+	end
+end
+
 function HudParts.setTone(button: TextButton, tone: string)
 	local c = candies[button]
 	if c and c.tone ~= tone then
@@ -792,7 +804,7 @@ function HudParts.candyWidth(button: TextButton, height: number, textPx: number)
 		return 0
 	end
 	local usable, pad = candyRoom(height)
-	local width = 2 * pad
+	local width = 2 * pad + (c.rightInset or 0)
 	if c.label.Text ~= "" then
 		width += math.ceil(
 			TextService:GetTextSize(c.label.Text, textPx, FONT, Vector2.new(4000, 400)).X
