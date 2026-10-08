@@ -3299,3 +3299,22 @@ timer of a new block stay the designer's call.
   foot, the pictures shrink into the room left; the Group card's rows grow to hold their two
   lines. The column's Free tile is always shown, its rays turn while something is ready and its
   "!" comes from the reward state; the tutorial's anchor and nudge use the FreeReward name.
+- 2026-10-08 (Ranked, built from pick "ranked A"): the roadmap moved into the lively frame
+  (header with RANKED and the trophy, money pill with its +, X, flair, the house open). The
+  subtitle line under the title is gone: the rank card and the rewards say it. The rewards card
+  takes 48% of the width on a computer (53% on a phone) so its five tiles stay one size with
+  their pictures centred. On a phone the panel takes 96% of the screen's width
+  (`Config.UI.Ranked.PhoneWidthShare`, a new per-menu `phoneWidthShare` in `MenuFrame`), an
+  exception to the frame's 66%: at 66% the tiers, the rank card and the tiles cut their words.
+- 2026-10-08 (the ability spin screen, built from pick "abilities A"): today's layout in the
+  kit's panels, as the mock. Kept from today though the mock leaves them out: the code box (the
+  tutorial's RELEASE step points at it; under the odds bars, or on its own where there is
+  room), the lock toggle on each owned slot, the rarity strip under the slot's name, the pity
+  rule's line, the Auto Spin popup's stop choices. Dropped as the mock: the R$ / $ toggle, the
+  struck-through "was" prices, the money pill and the BUY 5/10/50 for money: one gold money
+  button buys one spin at $12,500 (`Config.UI.UltScreen.MoneyPack`; the server still accepts
+  the other money packs). Words: "Back" (was BACK TO MENU), "Spins left: 16", "Buy 5",
+  "Auto Spin", "Stop (3)", a slot not bought "Locked" with its price, an empty owned slot
+  "Empty". No gift squares on the spin buttons (the mock has none and four buttons share one
+  row). Skip got its own icon (two blue arrowheads, `Kit.Icons.Skip`). The open uses the Shop's
+  timings with no animatic (the designer's answer for this hand-off).

@@ -12,7 +12,7 @@ Updated 2026-10-08.
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
 - **Lint and tests (2026-10-08, branch `gui-v4`):** lint OK with three old LocalShadow
-  warnings (PadGuide, MatchHUD, Main.client); all 1061 Lune tests pass.
+  warnings (PadGuide, MatchHUD, Main.client); all 1064 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; economy v4; saves at version 10;
@@ -64,9 +64,11 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Money tab (B) and Passes tab (B), each on PC and a phone-sized layout; the HUD's win track (A);
   the Free Reward menu (Daily A with Playtime, the track and Group in one menu, replacing the
   Rewards menu; codes stay in Settings) with Claim All's six Robux products made on Roblox
-  (random items: Not Listed with the others). At publish: `tools/roblox_products.py --sync` (the
-  Starter Pack at 29, the pack texts, Lucky1 and Lucky3 off sale). Next: Ranked A, Abilities A,
-  the Mystery screen B, Settings A. Trade is not built (not in the release).
+  (random items: Not Listed with the others); Ranked in the lively frame (A; 96% wide on a
+  phone); the ability spin screen in the kit panels (A: the odds panel, the buy panel with one
+  money button, "Locked" slots). At publish: `tools/roblox_products.py --sync` (the Starter
+  Pack at 29, the pack texts, Lucky1 and Lucky3 off sale). Next: the Mystery screen B,
+  Settings A. Trade is not built (not in the release).
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in
   `gui-v4`): the new cue card, the Cues menu, the CUES icon, the smooth money chip, the reel and
   YOU GOT, checked in Studio. Still open: the see-through reel trial's verdict, a phone and a

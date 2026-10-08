@@ -310,7 +310,7 @@ below are the summary; the skill has the numbers and code.
     under the cards (designer, 2026-09-27). The < and > arrows carry one white chevron image
     each, drawn as a single stroke. Its slight dim is shared since 2026-09-28 by the full
     menus; the block opening has its own dark one (section 14); NEW RANK! has its own
-    (section 2).
+    (section 2). Since 2026-10-08 it sits in the lively frame (section 23).
   - *Chat tags*: "[PLATINUM]" in the tier's colour before your name in chat (Reyes in the
     rainbow, letter by letter); none for Unranked. A VIP's rainbow "[VIP]" comes first
     (section 10).
@@ -529,6 +529,7 @@ players read.
   Pity N / 100, the money and the buy row (BUY 1/5/10/50, an R$ / $ toggle, crossed-out
   original prices in red) bottom right; a red BACK TO MENU bottom left. On a phone the slots
   are a compact column, the odds open from an "Odds" button and the buy row from "Buy spins".
+  Restyled 2026-10-08 in the kit's panels, Lucky Spins gone (section 24).
 - **Auras** (JoJo style, rising flame wisps from a flipbook): Common small and grey,
   Uncommon green, Rare blue, Epic purple with sparks, Legendary gold with rays, Mythic
   red-black with crackling arcs *(assumption: the brief's colours for Mythic's aura, not its
@@ -955,3 +956,51 @@ band, restock tiles and pass bands.
   chip 9 px), so a tile stacks from its edges: its status at the foot, the money just over it,
   the pictures shrinking into the room left under the day's name. The Group rows grow to hold
   their two lines.
+
+## 23. Ranked in the lively frame (designer's pick "ranked A", 2026-10-08)
+
+`Roadmap` in `MenuFrame`'s lively frame (`Config.UI.Menu.LivelyMenus`), its open
+`Config.UI.Ranked.Open`; the roadmap's sizes stay in `Config.Progression.Roadmap`.
+
+- **The frame**: the pale-blue header with RANKED, the trophy, the money pill with its gold +
+  and the X; the 8-ball flair on the left edge. No subtitle line: the cards say it all.
+- **The row** of ten tiers fills the top (a third of the panel's width tall, at most 320 px),
+  < and > at its ends; your tier bigger over its turning rays with "Current Rank".
+- **The cards** along the foot: your rank card at the left, "Rewards for <tier>" at the right
+  (48% of the width on a computer, 53% on a phone), its five tiles one size with one picture
+  size, the pictures centred in their tiles.
+- **The open**: the panel unrolls, the header, the tiers pop in left to right, your badge with
+  a gold burst, the rays fade in, the cards grow, the five rewards pop in, the flair drops.
+- **On a phone** the panel takes 96% of the screen's width (`Config.UI.Ranked.PhoneWidthShare`),
+  not the frame's 66%: at 66% the tiers, the rank card and the reward tiles cut their words.
+
+## 24. The ability spin screen in the kit panels (designer's pick "abilities A", 2026-10-08)
+
+`UltScreen` with `UltSlots`, `UltOdds`, `UltBuy` and `UltFast`; sizes in
+`Config.UI.UltScreen` (`Full`, `Short`), the open in `Config.UI.UltScreen.Open`. Today's layout
+(section 11) over the real character, every panel a kit card with the pale-blue outline.
+
+- **Top**: "CURRENT ABILITY:" in a pale-blue pill, then the icon and the huge name in its
+  rarity colour, the description under them.
+- **Slot cards** (left, bigger than before): the ability's icon, its name (Title case) and a
+  rarity strip as wide as the name, the candy button along the foot: EQUIPPED (green, the
+  card's edge green too), SELECT (blue). An owned slot with nothing in it says "Empty". A slot
+  not bought shows a gold padlock, "Locked" and its R$ price on a green button that shines.
+  The lock toggle stays in the top right corner of an owned slot.
+- **The odds panel** (right): a pale-blue header band with its 8-balls drifting and "Odds",
+  the rarity bars on the white sheet, the pity rule under them, the code box under that when
+  it has no room of its own, and the pity pill ("Pity: 3 / 100") pinned at the foot.
+- **The buy panel** (bottom right, under the odds): four green Robux buttons, "Buy 5" small
+  over the price, shining one after the other; under them the gold money button with its cash
+  stack, "$12,500 - 1 spin". No R$ / $ toggle, no struck-through prices, no money pill. Short
+  of money, the money button opens the Shop's Money tab with what is missing.
+- **Bottom**: red Back with its arrow; VIP's Skip (white, two blue arrowheads; blue with the
+  check while on) and Auto Spin (blue, a small on/off switch at its right; red "Stop (N)" with
+  the switch on while it runs); the big gold FREE SPIN / SPIN, breathing while free, and
+  "Spins left: 16" under it.
+- **The open** (the Shop's timings, no panel to unroll): the title pill, the name, the slot
+  cards and the panels, the bars and buttons staggered, SPIN last with a gold burst; the shines
+  and the breathing start as their pieces land.
+- **On a phone**: the slots a compact column, the Odds and Buy spins buttons at the right
+  (Skip and Auto Spin under Odds), the pity pill over Buy spins; the odds and the buy buttons
+  open in their popups.
