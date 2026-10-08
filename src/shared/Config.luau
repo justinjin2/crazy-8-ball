@@ -6494,6 +6494,12 @@ Config.UI = {
 			TileStrokePx = 2, -- a tile's outline...
 			TileEdgeColor = { 178, 196, 224 }, -- ...pale, so the tiles sit quietly in the inked card
 			TileCheckShare = 0.26, -- the green check on a reward you have (of the tile's height)
+			-- Every reward tile is the same width with the same picture size (designer,
+			-- 2026-10-08); its words shrink to fit, all tiles at one size, never under this.
+			TileTextMinPx = 12,
+			-- The chat tag ("[GRANDMASTER]") is one long word drawn like a tag: it shrinks on
+			-- its own, to this, so it never shrinks every tile's words.
+			TileTagMinPx = 9,
 			NudgeScale = 0.94, -- the tiles pop from this size when another tier is chosen
 			NudgeSeconds = 0.25,
 		},

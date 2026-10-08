@@ -1418,9 +1418,11 @@ function Roadmap.drawRewards(self: any)
 	local money = Format.moneyDelta(if tierRow then tierRow.Money else 0)
 	local plainTag = Strings.Ranks.ChatTag:format(string.upper(name))
 	local blockKind, blockCount = tierBlock(tierRow)
-	local blockWords = if blockKind
-		then P.RewardBlockCount:format(BLOCK_NAMES[blockKind] or blockKind, blockCount)
-		else ""
+	local blockName = if blockKind then BLOCK_NAMES[blockKind] or blockKind else ""
+	-- One block is just its name ("Mythic Lucky Block"); more say how many ("... x2").
+	local blockWords = if blockCount > 1
+		then P.RewardBlockCount:format(blockName, blockCount)
+		else blockName
 	local cueId = (if tierRow then tierRow.Cue else nil) or Catalog.tierCue(tier)
 	local cue = if cueId then CueThumb.cueName(cueId) else P.TierCue:format(name)
 	tiles.money.value.Text = money
@@ -1457,43 +1459,90 @@ function Roadmap.drawRewards(self: any)
 	holder.Size = UDim2.fromOffset(inner + gaps, tilesH)
 	holder.Position = UDim2.fromOffset(p + round((inner + gaps) / 2), tilesY + round(tilesH / 2))
 
-	-- Each tile's least width: its words on one line, but the case, the cue's name and the
-	-- spins may take two (then the longest word sets it).
-	local labelSize = math.max(K.Text.Min, body - 2)
+	-- Every tile the same width, so every picture the same size (designer, 2026-10-08: "some
+	-- of them are bigger and smaller than others"; a tile used to be as wide as its words, so
+	-- "[DIAMOND]" made a big picture and "Epic" a small one). The words fit the tile instead:
+	-- one text size for every tile, the biggest that fits (the money's and the tag's value on
+	-- one line over their small word; the block's, the cue's and the spins' on up to two).
 	local tp = math.max(3, round(tilesH * 0.06))
-	local needs: { number } = {}
-	local total = 0
-	for i, words in values do
-		needs[i] = math.max(textWidth(words, body), textWidth(labels[i], labelSize)) + 2 * tp + 6
-		total += needs[i]
+	local tileW = inner / count
+	local textW = math.max(1, math.floor(tileW) - 2 * tp) -- an equal tile's room for words
+	local minSize = math.min(body, R.TileTextMinPx)
+	local function labelFor(size: number): number
+		return math.max(minSize, size - 2)
 	end
-	if total > inner then
-		for i, wrap in wraps do
-			if wrap then
-				local longest = 0
-				for word in string.gmatch(values[i], "%S+") do
-					longest = math.max(longest, textWidth(word, body))
+	-- The tag's own size: the words' size, or smaller until it fits (not under TileTagMinPx).
+	local function tagFor(size: number): number
+		local tag = size
+		while tag > R.TileTagMinPx and textWidth(plainTag, tag) > textW do
+			tag -= 1
+		end
+		return tag
+	end
+	local function fits(size: number): boolean
+		local labelSize = labelFor(size)
+		for i, words in values do
+			local tag = shown[i] == tiles.chat
+			if tag and textWidth(words, tagFor(size)) > textW then
+				return false
+			elseif tag then
+				if textWidth(labels[i], labelSize) > textW then
+					return false
 				end
-				total -= needs[i]
-				needs[i] = longest + 2 * tp + 6
-				total += needs[i]
+			elseif wraps[i] then
+				local longest = 0
+				for word in string.gmatch(words, "%S+") do
+					longest = math.max(longest, textWidth(word, size))
+				end
+				local wrapped = TextService:GetTextSize(words, size, FONT, Vector2.new(textW, 4000))
+				if longest > textW or wrapped.Y > (size + 4) + (labelSize + 2) then
+					return false
+				end
+			elseif textWidth(words, size) > textW or textWidth(labels[i], labelSize) > textW then
+				return false
 			end
 		end
+		return true
 	end
-	local biggest = 0
-	for _, need in needs do
-		biggest = math.max(biggest, need)
+	local size = body
+	while size > minSize and not fits(size) do
+		size -= 1
 	end
-	local widths: { number } = {}
-	for i, need in needs do
-		widths[i] = if biggest * count <= inner
-			then inner / count
-			elseif total <= inner then need + (inner - total) / count
-			else inner * need / total
+	local labelSize = labelFor(size)
+	local tagSize = tagFor(size)
+	-- Even the smallest words too wide for equal tiles (a long tag on a phone): each tile as
+	-- wide as its words, the rest shared out; the pictures still all one size, the narrowest's.
+	local widths: { number } = table.create(count, tileW)
+	if not fits(size) then
+		local needs: { number } = {}
+		local total = 0
+		for i, words in values do
+			local need = 0
+			if wraps[i] then
+				for word in string.gmatch(words, "%S+") do
+					need = math.max(need, textWidth(word, size))
+				end
+			else
+				local valueSize = if shown[i] == tiles.chat then tagSize else size
+				need = math.max(textWidth(words, valueSize), textWidth(labels[i], labelSize))
+			end
+			needs[i] = need + 2 * tp + 6
+			total += needs[i]
+		end
+		for i, need in needs do
+			widths[i] = if total <= inner
+				then need + (inner - total) / count
+				else inner * need / total
+		end
+	end
+	local narrowest = math.huge
+	for _, width in widths do
+		narrowest = math.min(narrowest, width)
 	end
 
-	local valueH, labelH = body + 4, labelSize + 2
+	local valueH, labelH = size + 4, labelSize + 2
 	local iconSize = math.max(16, tilesH - 2 * tp - valueH - labelH)
+	local icon = math.max(1, math.min(iconSize, math.floor(narrowest) - 2 * tp))
 	local check = round(tilesH * R.TileCheckShare)
 	local corner = UDim.new(0, spanPx(R.TileCornerPx, geo.t))
 	local x = 0
@@ -1504,21 +1553,21 @@ function Roadmap.drawRewards(self: any)
 		tile.frame.Position = UDim2.fromOffset(left, 0)
 		tile.frame.Size = UDim2.fromOffset(width, tilesH)
 		tile.corner.CornerRadius = corner
-		local icon = math.max(1, math.min(iconSize, width - 2 * tp))
 		tile.icon.Size = UDim2.fromOffset(icon, icon)
 		tile.icon.Position = UDim2.fromOffset(round(width / 2), tp + (iconSize - icon))
 		local textY = tp + iconSize
-		local textW = math.max(1, width - 2 * tp)
-		HudParts.setTextSize(tile.value, body)
+		local wordsW = math.max(1, width - 2 * tp)
+		local valueSize = if tile == tiles.chat then tagSize else size
+		HudParts.setTextSize(tile.value, valueSize, valueSize)
 		tile.value.Position = UDim2.fromOffset(tp, textY)
 		local label = tile.label
 		if label then
-			tile.value.Size = UDim2.fromOffset(textW, valueH)
-			HudParts.setTextSize(label, labelSize)
+			tile.value.Size = UDim2.fromOffset(wordsW, valueH)
+			HudParts.setTextSize(label, labelSize, labelSize)
 			label.Position = UDim2.fromOffset(tp, textY + valueH - 1)
-			label.Size = UDim2.fromOffset(textW, labelH)
+			label.Size = UDim2.fromOffset(wordsW, labelH)
 		else
-			tile.value.Size = UDim2.fromOffset(textW, valueH + labelH)
+			tile.value.Size = UDim2.fromOffset(wordsW, valueH + labelH)
 		end
 		tile.check.Size = UDim2.fromOffset(check, check)
 		tile.check.Position = UDim2.fromOffset(width - 2, 2)

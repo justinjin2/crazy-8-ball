@@ -3224,3 +3224,8 @@ timer of a new block stay the designer's call.
   late Lucky receipt or a reward row with LuckySpins pays the same count of plain spins. The
   server's Lucky roll stays, unreachable. The Store no longer reads live prices of Retired
   products.
+- 2026-10-08 (designer: the Ranked rewards "needs consistency with the rewards icons as some of
+  them are bigger and smaller than others"): every reward tile on the Ranked screen is one
+  width with one picture size, and all their words one size (the biggest that fits). A tile
+  used to be as wide as its words, so "[DIAMOND]" made a big picture and "Epic" a small one. The
+  chat tag shrinks on its own (`TileTagMinPx`); one block shows just its name (no "x1").
