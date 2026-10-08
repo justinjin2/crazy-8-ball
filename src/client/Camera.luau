@@ -288,6 +288,12 @@ function Camera.isLocked(): boolean
 	return locked
 end
 
+--- True while the "Player" pull-out has lent the camera to Roblox's default one mid-shot:
+--- the mouse is then Roblox's too (shift lock, right-drag turning), so leave it alone.
+function Camera.isLent(): boolean
+	return handedOver
+end
+
 --- Nudge the camera toward a point: a ball has just dropped there.
 ---
 --- `speed` is how hard it went in, which decides how much of the (already tiny) nudge is
