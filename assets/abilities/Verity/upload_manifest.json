@@ -1,0 +1,27 @@
+{
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/Verity/look_over_there.mp3": {
+    "assetId": "84561965728329",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/Verity/look_over_there_alt.mp3": {
+    "assetId": "107522256357964",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/Verity/verity_ball.png": {
+    "assetId": "108837263159693",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/Verity/verity_line.mp3": {
+    "assetId": "135865093470317",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/Verity/verity_monster.glb": {
+    "assetId": "130065008141591",
+    "assetType": "Model",
+    "status": "ok"
+  }
+}

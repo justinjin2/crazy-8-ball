@@ -1,0 +1,92 @@
+[
+  {
+    "action_id": 509,
+    "name": "Lean Forward Sprint",
+    "file": "anim_509_lean_forward_sprint.glb",
+    "task_id": "01a11bdd-abdc-76a3-8c82-b20a0dd032e3",
+    "status": "SUCCEEDED",
+    "credits": 3,
+    "task_error": null
+  },
+  {
+    "action_id": 16,
+    "name": "Run Fast",
+    "file": "anim_16_run_fast.glb",
+    "task_id": "01a11bdd-d172-75ef-855e-cdc73cacbe5e",
+    "status": "SUCCEEDED",
+    "credits": 3,
+    "task_error": null
+  },
+  {
+    "action_id": 276,
+    "name": "Male Bend Over Pick Up",
+    "file": "anim_276_male_bend_over_pick_up.glb",
+    "task_id": "01a11bdd-f6e9-746d-a1e9-025e355a3ad4",
+    "status": "SUCCEEDED",
+    "credits": 3,
+    "task_error": null
+  },
+  {
+    "action_id": 280,
+    "name": "Female Crouch Pick Throw Forward",
+    "file": "anim_280_female_crouch_pick_throw_forward.glb",
+    "task_id": "01a11bde-1d83-77a0-99ff-a033ce05e8ca",
+    "status": "SUCCEEDED",
+    "credits": 3,
+    "task_error": null
+  },
+  {
+    "action_id": 421,
+    "name": "Over Shoulder Throw",
+    "file": "anim_421_over_shoulder_throw.glb",
+    "task_id": "01a11bde-42e7-70b7-a239-330ca5b2533a",
+    "status": "SUCCEEDED",
+    "credits": 3,
+    "task_error": null
+  },
+  {
+    "action_id": 389,
+    "name": "Grip and Throw Down",
+    "file": "anim_389_grip_and_throw_down.glb",
+    "task_id": "01a11bde-68ca-707b-9942-0b1f387bf6f8",
+    "status": "SUCCEEDED",
+    "credits": 3,
+    "task_error": null
+  },
+  {
+    "action_id": 284,
+    "name": "Collect Object",
+    "file": "anim_284_collect_object.glb",
+    "task_id": "01a11bde-8e6a-761f-b514-513d93f4ea49",
+    "status": "SUCCEEDED",
+    "credits": 3,
+    "task_error": null
+  },
+  {
+    "action_id": 0,
+    "name": "Idle",
+    "file": "anim_0_idle.glb",
+    "task_id": "01a11bde-d4db-7001-979c-e2cebec61c72",
+    "status": "SUCCEEDED",
+    "credits": 3,
+    "task_error": null
+  },
+  {
+    "action_id": 88,
+    "name": "Chest Pound Taunt",
+    "file": "anim_88_chest_pound_taunt.glb",
+    "task_id": "01a11bde-fa2e-712b-821f-4b2848d76866",
+    "status": "SUCCEEDED",
+    "credits": 3,
+    "task_error": null
+  },
+  {
+    "action_id": 59,
+    "name": "Victory Cheer",
+    "file": "anim_59_victory_cheer.glb",
+    "task_id": "01a11bdf-40aa-70ed-b0a3-c6ff6db2cc15",
+    "status": "SUCCEEDED",
+    "credits": 3,
+    "task_error": null
+  }
+]

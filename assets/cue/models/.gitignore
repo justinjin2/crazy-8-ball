@@ -6,3 +6,9 @@
 */roughness.png
 */metallic.png
 */emission.png
+
+# Meshy rig and library clips (tools/meshy_rig.py): ~10 MB each, rebuilt from the task ids in
+# rig/rig_meta.json and anims/anims_meta.json; the committed result is the ability export.
+*/rig/*.glb
+*/rig/*.fbx
+*/anims/*.glb

@@ -1,0 +1,57 @@
+{
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/CatchABall/CatchBeam.png": {
+    "assetId": "92411465206885",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/CatchABall/CatchGlow.png": {
+    "assetId": "126247127851969",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/CatchABall/CatchStar.png": {
+    "assetId": "133183700633587",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/CatchABall/catchball.glb": {
+    "assetId": "93342911188193",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/SteelBall/golden_spiral.png": {
+    "assetId": "109945245461564",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/SteelBall/golden_spiral_only.png": {
+    "assetId": "103684829037298",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/SteelBall/spin_arrows.png": {
+    "assetId": "109720204127941",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/SteelBall/spin_blur.png": {
+    "assetId": "130147846106707",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/CatchABall.png": {
+    "assetId": "81283085243167",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/LookOverThere.png": {
+    "assetId": "85056727532784",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/Verity.png": {
+    "assetId": "129053492763689",
+    "assetType": "Decal",
+    "status": "ok"
+  }
+}

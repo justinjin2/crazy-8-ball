@@ -1,0 +1,12 @@
+# Abilities rework assets (2026-10-08): tools/roblox_upload.py --list this --group-id 675425213 --manifest assets/abilities/rework_upload_manifest.json
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/CatchABall/catchball.glb
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/CatchABall/CatchGlow.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/CatchABall/CatchStar.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/CatchABall/CatchBeam.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/SteelBall/golden_spiral.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/SteelBall/golden_spiral_only.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/SteelBall/spin_blur.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/SteelBall/spin_arrows.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/CatchABall.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/LookOverThere.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/Verity.png
