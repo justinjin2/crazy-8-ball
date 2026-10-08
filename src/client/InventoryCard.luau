@@ -9,7 +9,9 @@
 -- colour with its word inside, upper case; a rank cue's bar says RANKED with its tier's badge
 -- whole over the bar's left end, and the card wears its tier's colours. Top left: the chance
 -- chip (only on cues that drop from a block), then NEW and Equipped under it; top right the
--- count ("x3", "#412") and the padlock on Exclusive and Unique cues. The card is filled in its
+-- count ("x3") and the padlock on Exclusive and Unique cues; a copy number ("#412") is a dark
+-- chip with gold words just above the name, on the right (concept 2). A bare card (the big
+-- card, whose words beside it say all that) shows no pills and no padlock. The card is filled in its
 -- look's colours, rimmed by the rarity edge, with faint 8-balls drifting up-left behind the
 -- cue; the rarer the cue, the more moves (CueCardFx). A never-found cue in the Index wears the
 -- grey Silhouette look: its dark picture only.
@@ -52,7 +54,9 @@ local EDGE = color(CARD.EdgeColor)
 export type Fields = {
 	cueId: string,
 	silhouette: boolean?, -- the Index: never found (the grey card, the dark picture, nothing else)
-	count: string?, -- "x3", "#412", or nil / "" for none
+	count: string?, -- "x3", or nil / "" for none
+	copy: string?, -- a copy number over the name: "#412", or nil / "" for none
+	bare: boolean?, -- no pills and no padlock (the big card); the copy number stays
 	new: boolean?, -- the gold NEW pill
 	equipped: boolean?, -- the green Equipped pill
 	chance: string?, -- the chance chip top left: "4.2%" (nil for a cue no block drops)
@@ -100,11 +104,15 @@ export type Card = {
 	equipText: TextLabel,
 	countPill: Frame,
 	countText: TextLabel,
+	copyPill: Frame,
+	copyText: TextLabel,
 	lock: ImageLabel,
 	ring: Frame,
 	ringRound: UICorner,
 	ringStroke: UIStroke,
 	fx: CueCardFx.Fx?,
+	held: boolean, -- its motion waits (the open's pop is fading it in: hold)
+	laid: Vector2, -- the size it was last laid out at (unscaled, whole pixels)
 	lookKey: string, -- the look showing ("" before the first set)
 	ranked: boolean, -- it wears a tier (badge, RANKED)
 	cueId: string,
@@ -227,6 +235,7 @@ function InventoryCard.layout(card: Card)
 	if w <= 0 or h <= 0 then
 		return
 	end
+	card.laid = Vector2.new(round(w), round(h))
 	local k = w / UNITS[1]
 	local function px(units: number): number
 		return round(units * k)
@@ -332,6 +341,16 @@ function InventoryCard.layout(card: Card)
 		card.countPill.Position = UDim2.fromOffset(right - cw, top)
 		card.countPill.Size = UDim2.fromOffset(cw, pillH)
 		HudParts.setTextSize(card.countText, pillPx, pillPx)
+	end
+	-- The copy number just above the name, on the right.
+	if card.copyPill.Visible then
+		local CU = L.CopyUnits
+		local copyH = math.max(px(CU[2]), pillPx + 2)
+		local cw = math.ceil(textWidth(card.copyText.Text, pillPx)) + 2 * padX
+		local nameTop = card.name.Position.Y.Offset
+		card.copyPill.Position = UDim2.fromOffset(w - px(CU[1]) - cw, nameTop - px(CU[3]) - copyH)
+		card.copyPill.Size = UDim2.fromOffset(cw, copyH)
+		HudParts.setTextSize(card.copyText, pillPx, pillPx)
 	end
 
 	if card.fx then
@@ -494,6 +513,23 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 	countText.AutoLocalize = false -- a number
 	countPill.ZIndex = 5
 	countPill.Visible = false
+	local copyPill = HudParts.frame(body, "Copy")
+	copyPill.BackgroundTransparency = L.CopyTransparency
+	copyPill.BackgroundColor3 = hex(L.CopyColor)
+	copyPill.ZIndex = 5
+	copyPill.Visible = false
+	local copyRound = Instance.new("UICorner")
+	copyRound.CornerRadius = UDim.new(0.5, 0)
+	copyRound.Parent = copyPill
+	local copyText = HudParts.text(copyPill, "Words", L.PillMinTextPx, "", hex(L.CopyTextColor))
+	local copyOutline = copyText:FindFirstChild("Outline")
+	if copyOutline then
+		copyOutline:Destroy() -- gold words on the dark chip, no outline (as the chance chip)
+	end
+	copyText.AutoLocalize = false -- a number
+	copyText.TextWrapped = false
+	copyText.Size = UDim2.fromScale(1, 1)
+	copyText.ZIndex = 2
 	local lock = HudParts.icon(body, "Lock", "Lock")
 	lock.ZIndex = 5
 	lock.Visible = false
@@ -540,6 +576,8 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 		equipText = equipText,
 		countPill = countPill,
 		countText = countText,
+		copyPill = copyPill,
+		copyText = copyText,
 		lock = lock,
 		ring = ring,
 		ringRound = ringRound,
@@ -549,13 +587,21 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 		ranked = false,
 		cueId = "",
 		silhouette = false,
+		held = false,
+		laid = Vector2.zero,
 		lines = opts.lines or 2,
 		lit = false,
 		chosen = false,
 		down = false,
 		tween = nil,
 	}
+	-- A new size lays it out again; a UIScale growing or shrinking it (a pop, a hover, the
+	-- menu's contents showing again) leaves the layout as it is.
 	button:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		local size = button.AbsoluteSize / MenuFrame.scaleOf(button)
+		if size.X > 0 and Vector2.new(round(size.X), round(size.Y)) == card.laid then
+			return
+		end
 		InventoryCard.layout(card)
 	end)
 
@@ -655,6 +701,7 @@ local function dress(card: Card, key: string, ranked: boolean, id: string, silho
 		thumb = card.thumb,
 		name = card.name,
 	}, look, CardMath.seed(id), silhouette)
+	CueCardFx.hold(card.fx :: CueCardFx.Fx, card.held)
 end
 
 --- Show a cue on the card (or its silhouette), with its pills.
@@ -679,15 +726,17 @@ function InventoryCard.set(card: Card, fields: Fields)
 		dress(card, key, ranked, id, silhouette)
 	end
 	card.badge.Visible = ranked and not silhouette
-	local count = if silhouette then "" else fields.count or ""
+	local pills = not silhouette and fields.bare ~= true
+	local count = if pills then fields.count or "" else ""
 	card.countText.Text = count
 	card.countPill.Visible = count ~= ""
-	card.newPill.Visible = fields.new == true and not silhouette
-	card.equipPill.Visible = fields.equipped == true and not silhouette
-	card.lock.Visible = not silhouette
-		and row ~= nil
-		and (row.Group == "Exclusive" or row.Group == "Unique")
-	local chance = if silhouette then "" else fields.chance or ""
+	local copy = if silhouette then "" else fields.copy or ""
+	card.copyText.Text = copy
+	card.copyPill.Visible = copy ~= ""
+	card.newPill.Visible = fields.new == true and pills
+	card.equipPill.Visible = fields.equipped == true and pills
+	card.lock.Visible = pills and row ~= nil and (row.Group == "Exclusive" or row.Group == "Unique")
+	local chance = if pills then fields.chance or "" else ""
 	card.chanceText.Text = chance
 	card.chancePill.Visible = chance ~= ""
 	InventoryCard.layout(card)
@@ -698,6 +747,15 @@ function InventoryCard.setChosen(card: Card, chosen: boolean)
 	if card.chosen ~= chosen then
 		card.chosen = chosen
 		paintRing(card)
+	end
+end
+
+--- Hold the card's motion still (`on`) while a Stage pop fades it in, or let it go again (its
+--- piece's onLand): the motion's glows would show at full strength before the card does.
+function InventoryCard.hold(card: Card, on: boolean)
+	card.held = on
+	if card.fx then
+		CueCardFx.hold(card.fx, on)
 	end
 end
 

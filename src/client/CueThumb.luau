@@ -106,6 +106,17 @@ function CueThumb.new(parent: Instance, cueId: string, opts: { silhouette: boole
 	return thumb
 end
 
+--- A cue's drawn picture (its skin's Thumb), or nil for a cue drawn from the layers.
+function CueThumb.pictureOf(cueId: string): string?
+	local row = Catalog.get(cueId)
+	local skin = if row then CueSkins.index(row.Id) else nil
+	return if skin ~= nil
+			and type(skin.Thumb) == "string"
+			and skin.Thumb ~= ""
+		then skin.Thumb
+		else nil
+end
+
 --- Draw another cue (or the same one as a silhouette) in a thumbnail made by CueThumb.new.
 function CueThumb.set(thumb: Frame, cueId: string, silhouette: boolean?)
 	local row = Catalog.get(cueId) or Catalog.get(Catalog.Default)

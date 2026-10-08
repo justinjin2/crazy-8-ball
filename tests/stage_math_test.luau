@@ -115,6 +115,40 @@ return {
 		)
 	end,
 
+	["the Cues menu's open names every piece it stages and lands its flair last"] = function()
+		local S, Config = load()
+		local M, I = Config.UI.Motion, Config.UI.Inventory
+		local list, finish = S.schedule(I.Open, M)
+		local byId = {}
+		for _, e in list do
+			H.expect(byId[e.id] == nil, "one entry per piece: " .. e.id)
+			byId[e.id] = e
+		end
+		-- A piece staged but missing from the schedule stays faded after a close.
+		local wanted = { "Panel", "Header", "Basket", "Title", "Money", "Close", "Flair" }
+		for _, id in { "Switch", "Sort", "Sell" } do
+			table.insert(wanted, id)
+			table.insert(wanted, id .. "Badge") -- the dots, the hanging pills
+		end
+		for i = 1, I.StagedCards do
+			table.insert(wanted, "Card" .. i)
+		end
+		table.insert(wanted, "IndexDetail")
+		for _, id in wanted do
+			H.expect(byId[id] ~= nil, "the open names " .. id)
+		end
+		H.expect(byId.IndexHead1 ~= nil and byId.IndexCell1 ~= nil, "the Index's first pieces")
+		H.expect(byId["Card" .. (I.StagedCards + 1)] == nil, "only StagedCards cards are staged")
+		H.near(byId.Panel.at, 0, 1e-9, "the panel unrolls first")
+		H.expect(byId.Card1.at < byId.Card2.at, "the cards pop in reading order")
+		for id, e in byId do
+			if id ~= "Flair" then
+				H.expect(e.at <= byId.Flair.at, "the flair drops on last, after " .. id)
+			end
+		end
+		H.expect(finish >= 0.8 and finish <= 2, "the open lasts about 1 to 2 s")
+	end,
+
 	["a piece's state: hidden before, landed after, fades only with Reduce Motion"] = function()
 		local S, Config = load()
 		local M = Config.UI.Motion

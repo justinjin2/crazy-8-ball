@@ -1,34 +1,44 @@
 --!strict
--- InventoryMenu: the Inventory (docs/prompts/ECONOMY_UI_PROMPT.md section 11; two tabs since
--- the GUI lane, designer 2026-10-03; the cases' strip and tab went with the cases, 2026-10-04:
--- lucky blocks live in the hotbar and its bag), opened from the left column's Inventory tile
--- (or the D-pad's right in the hub) through Menus. Tabs:
--- - Cues (InventoryCues): a grid of big cue cards, the chosen cue opening big with Equip and
---   one "Sell duplicates" count chooser. NEW tags clear with MarkSeen when the tab is shown.
--- - Index (InventoryIndex): every cue by rarity, never-owned ones as silhouettes with "?",
---   "5 / 7" per row with its reward and Claim, titles earned at the top.
+-- InventoryMenu: the Cues menu ("Inventory" in code: Menus, the column, the tutorial and the
+-- saves keep that name) (docs/prompts/CUES_LIVELY_PROMPT.md, concept 2, approved round 2,
+-- 2026-10-08), opened from the left column's CUES tile (or the D-pad's right in the hub)
+-- through Menus. It wears the lively frame (MenuFrame: the panel unrolls, the header's
+-- 8-balls, the money pill and its "+", the 8-ball flair) with no tab row: one page holding two
+-- views, flipped by the switch on the tiles outside the panel's right edge (CuesRail) or by
+-- LB / RB:
+-- - My Cues (InventoryCues): the grid, 5 cards a row, the panel as tall as two whole rows with
+--   the third peeking; a card pressed slams in its big card with Equip and Sell duplicates.
+--   NEW tags clear with MarkSeen when the view is shown.
+-- - Index (InventoryIndex): every cue by rarity, never-owned ones as silhouettes, "5 / 7" per
+--   row with its reward and Claim, titles earned at the top, the chosen cue's flat picture.
+-- The title and the header's icon say which view shows. B goes back one step: the big card
+-- closes, then the Index goes back to My Cues, then the menu closes (Escape the same).
 --
--- This module builds the frame (MenuFrame), registers it with Menus and gives the pages what
--- they share (the `ctx` table): the server's snapshot (ItemState "Items"; every page redraws
--- from ItemState.Changed.Items), requests (ItemState.request("ItemRequest", ...), which waits
--- for one already on its way; a button disabled while its own is out), the money flying out of a
--- button into the header's cash (the kit's CashFlyer drawn over this menu; the money HUD
--- under it counts too), notices (a refusal: MenuFrame.reason in red), the confirm dialog, and
--- the gamepad's selection (a sensible stop when a page opens or a redraw takes the selected
--- button away). Red dots on the tab buttons: new cues on Cues, "!" on Index while a row can be
--- claimed.
+-- This module builds the frame, the rail and the views, registers with Menus and gives the
+-- views what they share (the `ctx` table): the server's snapshot (ItemState "Items"; every view
+-- redraws from ItemState.Changed.Items), requests (ItemState.request("ItemRequest", ...), which
+-- waits for one already on its way; a button disabled while its own is out), the money flying
+-- out of a button into the header's cash (the kit's CashFlyer drawn over this menu; the money
+-- HUD under it counts too), notices (a refusal: MenuFrame.reason in red), the confirm dialog,
+-- and the gamepad's selection (a sensible stop when a view opens or a redraw takes the selected
+-- button away). Red dots on the switch: new cues on My Cues, "!" on the Index while a row can
+-- be claimed.
 --
 -- The server decides everything: the client sends ids and counts, and only animates the
 -- replies and snapshots. Sizes in Config.UI.Inventory, words in Strings.Menus.Inventory.
+local ContentProvider = game:GetService("ContentProvider")
+local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TextService = game:GetService("TextService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
 local CashFlyer = require(script.Parent.CashFlyer)
+local CuesRail = require(script.Parent.CuesRail)
+local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local InventoryCues = require(script.Parent.InventoryCues)
 local InventoryIndex = require(script.Parent.InventoryIndex)
@@ -38,17 +48,16 @@ local Menus = require(script.Parent.Menus)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
-local I = Config.UI.Inventory
-local K = Config.UI.Kit
-local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
+local R = Config.UI.Inventory.Rail
+local TITLES = Strings.Menus.Titles
 
 local NAME = "Inventory"
--- Two tabs: Cues (opened first) and Index.
-local TABS = { "Cues", "Index" }
--- The page modules, in redraw order (one per tab).
-local PAGES = { "Cues", "Index" }
--- Each tab's icon (Config.UI.Kit.Icons; an empty id shows none).
-local TAB_ICONS: { [string]: string } = { Cues = "Inventory", Index = "Index" }
+-- The two views, My Cues first; RewardsMenu opens the Index by name.
+local VIEWS = { "Cues", "Index" }
+local VIEW_ACTION = "8ballCuesView" -- LB / RB
+local VIEW_PRIORITY = Enum.ContextActionPriority.High.Value + 20 -- like the menus' LB / RB
+local BACK_ACTION = "8ballCuesBack" -- B in the Index: back to My Cues
+local BACK_PRIORITY = Enum.ContextActionPriority.High.Value + 25 -- under the big card's B (+30)
 
 local InventoryMenu = {}
 
@@ -56,32 +65,32 @@ local function isGamepad(): boolean
 	return string.sub(UserInputService:GetLastInputType().Name, 1, 7) == "Gamepad"
 end
 
---- Build the Inventory (closed) and register it with Menus. `deps` is Progression's shared
+--- Build the Cues menu (closed) and register it with Menus. `deps` is Progression's shared
 --- table: money (MoneyHud), flyer (CashFlyer), column (MenuColumn), rankHud; a field may be
 --- filled after this returns, so read it when used.
 function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
-	local words: { [string]: string } = Strings.Menus.Tabs.Inventory :: any
-	local tabs: { MenuFrame.Tab } = {}
-	for _, key in TABS do
-		table.insert(tabs, { key = key, text = words[key], icon = TAB_ICONS[key] })
-	end
 	local frame = MenuFrame.new(screen, {
 		name = NAME,
-		title = Strings.Menus.Titles.Inventory,
-		icon = "Inventory",
-		tabs = tabs,
+		title = TITLES.Inventory,
+		icon = CuesRail.cuesIcon(),
 		money = true,
+		-- The money pill's "+" goes to the money packs, as the money HUD's does.
+		moneyPlus = function()
+			Menus.open("Shop", "Money")
+		end,
 	})
 
 	--------------------------------------------------------------------------------------------
-	-- What the pages share
+	-- What the views share
 	--------------------------------------------------------------------------------------------
 
-	-- lastItems: the snapshot the pages last drew (nil before the first).
+	-- lastItems: the snapshot the views last drew (nil before the first).
 	local ctx: any = { frame = frame, deps = deps, lastItems = nil }
 	local pages: { [string]: any } = {}
-	local firstOf: (tab: string) -> GuiObject? -- set once the pages exist
 	local held: { [Instance]: boolean } = {}
+	local view = "Cues" -- the view showing
+	local rail: any -- built once the views exist
+	local views: { [string]: Frame } = {}
 
 	--- A { phone, full } pair at the last layout's size, in whole pixels.
 	function ctx.span(pair: { number }): number
@@ -121,7 +130,7 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	end
 
 	--- Run `fn` (which asks the server) with `button` disabled until it returns, then let the
-	--- pages redraw its state; a gamepad that was on it stays on it.
+	--- views redraw its state; a gamepad that was on it stays on it.
 	function ctx.hold(button: TextButton, fn: () -> ())
 		if held[button] then
 			return
@@ -132,7 +141,7 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		local ok, err = pcall(fn :: any)
 		held[button] = nil
 		if not ok then
-			warn("[8ball] Inventory: " .. tostring(err))
+			warn("[8ball] Cues: " .. tostring(err))
 		end
 		ctx.refresh()
 		if
@@ -217,7 +226,7 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 	end
 
-	--- Put a gamepad somewhere sensible when its selection is gone or hidden (a page opened,
+	--- Put a gamepad somewhere sensible when its selection is gone or hidden (a view opened,
 	--- a redraw took the selected button away). Never while a dialog is up.
 	function ctx.ensureSelection()
 		if not frame:isOpen() or #frame.dialogs > 0 or not isGamepad() then
@@ -233,135 +242,173 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				return
 			end
 		end
-		local first = firstOf(frame:currentTab())
-		GuiService.SelectedObject = first or frame:tabButton(frame:currentTab())
+		GuiService.SelectedObject = pages[view]:first() or rail.switch
 	end
 
 	--------------------------------------------------------------------------------------------
-	-- The red dots on the tab buttons
+	-- The views, the rail
 	--------------------------------------------------------------------------------------------
 
-	local dots: { [string]: { dot: Frame, text: TextLabel } } = {}
-	for _, key in TABS do
-		local button = frame:tabButton(key)
-		if button then
-			local dot = HudParts.pill(button, "Dot", HudParts.tone("Red"))
-			dot.AnchorPoint = Vector2.new(0.5, 0.5)
-			dot.Position = UDim2.new(1, -I.TabDotPx / 4, 0, I.TabDotPx / 4)
-			dot.ZIndex = 8
-			dot.Visible = false
-			local text = HudParts.text(dot, "Count", I.TabDotTextPx, "")
-			text.AutoLocalize = false -- a number
-			text.TextWrapped = false
-			text.Size = UDim2.fromScale(1, 1)
-			text.ZIndex = 9
-			dots[key] = { dot = dot, text = text }
-		end
+	local page = frame:page()
+	for _, key in VIEWS do
+		local holder = HudParts.frame(page, key .. "View")
+		holder.Size = UDim2.fromScale(1, 1)
+		holder.ZIndex = 2
+		holder.Visible = key == view
+		views[key] = holder
 	end
+	-- The big card opens over the whole page.
+	pages.Cues = InventoryCues.new(views.Cues, ctx, page)
+	pages.Index = InventoryIndex.new(views.Index, ctx)
 
-	local function setDot(key: string, value: string?)
-		local entry = dots[key]
-		if not entry then
-			return
-		end
-		local show = value ~= nil and value ~= ""
-		if show then
-			local text = value :: string
-			if entry.text.Text ~= text then
-				entry.text.Text = text
-				local width =
-					TextService:GetTextSize(text, I.TabDotTextPx, FONT, Vector2.new(200, 100)).X
-				entry.dot.Size =
-					UDim2.fromOffset(math.max(I.TabDotPx, math.ceil(width) + 10), I.TabDotPx)
-			end
-		end
-		entry.dot.Visible = show
+	local setView: (key: string, instant: boolean?) -> ()
+	rail = CuesRail.new(frame, {
+		flip = function()
+			setView(if view == "Cues" then "Index" else "Cues")
+		end,
+		sort = function()
+			pages.Cues:nextSort()
+		end,
+		sell = function()
+			pages.Cues:askSellAll()
+		end,
+	})
+	ctx.rail = rail
+
+	-- The lively open: the rail's tiles and the views' first pieces (Config.UI.Inventory.Open).
+	local stage = frame.stage
+	if stage then
+		rail:register(stage)
+		pages.Cues:register(stage)
+		pages.Index:register(stage)
 	end
 
 	local function countText(n: number): string?
 		if n <= 0 then
 			return nil
 		end
-		return if n > I.TabDotMax then Strings.Menus.DotMore:format(I.TabDotMax) else tostring(n)
+		return if n > R.DotMax then Strings.Menus.DotMore:format(R.DotMax) else tostring(n)
 	end
 
 	local function refreshDots(items: any)
-		for _, key in TABS do
-			local page = pages[key]
-			local value = if type(page.dot) == "function" then page:dot(items) else nil
-			if type(value) == "string" then
-				setDot(key, value)
-			else
-				setDot(key, countText(if type(value) == "number" then value else 0))
-			end
+		local new = pages.Cues:dot(items)
+		rail:setDots(countText(if type(new) == "number" then new else 0), pages.Index:dot(items))
+	end
+
+	-- Studio only (GuiQA "cuesCopies"): a stand-in copy number on every Rare-or-rarer cue, to
+	-- see the numbered card's chip before copy numbers exist.
+	local fakeCopies = false
+	local function withFakeCopies(items: any): any
+		if not fakeCopies or type(items) ~= "table" or type(items.cues) ~= "table" then
+			return items
 		end
-	end
-
-	--------------------------------------------------------------------------------------------
-	-- The pages
-	--------------------------------------------------------------------------------------------
-
-	-- The Cues tab: the cue grid; the chosen cue's big card opens over the whole tab.
-	local cuesPage = frame:page("Cues")
-	pages.Cues = InventoryCues.new(cuesPage, ctx, cuesPage)
-	pages.Index = InventoryIndex.new(frame:page("Index"), ctx)
-
-	-- The first button of a tab's page.
-	function firstOf(tab: string): GuiObject?
-		return pages[tab]:first()
-	end
-
-	-- The chosen tab's button leads a gamepad down into its page; the others go the usual way.
-	local function linkTabs()
-		local key = frame:currentTab()
-		for _, name in TABS do
-			local button = frame:tabButton(name)
-			if button then
-				button.NextSelectionDown = if name == key then firstOf(name) else nil
+		local fake = table.clone(items)
+		fake.cues = {}
+		for index, row in items.cues do
+			local copy = table.clone(row)
+			local cue = Catalog.get(row.id)
+			if cue and Catalog.rarityRank(cue.Rarity) >= Catalog.rarityRank("Rare") then
+				copy.copy = (index * 37) % 100 + 1
 			end
+			fake.cues[index] = copy
 		end
+		return fake
 	end
 
-	--- Redraw every page from the latest snapshot (the menu must be open; a closed menu
-	--- redraws when it opens).
-	function ctx.refresh()
-		if not frame:isOpen() then
+	--- Redraw both views from the latest snapshot (`always`: even while closed, just before an
+	--- open, so the open shows the cards it staggers in).
+	function ctx.refresh(always: boolean?)
+		if not frame:isOpen() and not always then
 			return
 		end
-		local items = ItemState.items()
+		local items = withFakeCopies(ItemState.items())
 		ctx.lastItems = items
-		for _, key in PAGES do
+		for _, key in VIEWS do
 			pages[key]:redraw(items)
 		end
 		refreshDots(items)
-		linkTabs()
 	end
 
-	frame.onLayout = function(geo: MenuFrame.Geo)
-		pages.Cues:layout(geo)
-		pages.Index:layout(geo)
+	-- B (and Escape) in the Index goes back to My Cues, under the big card's own B.
+	local backBound = false
+	local escape: RBXScriptConnection? = nil
+	local function bindBack(on: boolean)
+		if on == backBound then
+			return
+		end
+		backBound = on
+		if on then
+			ContextActionService:BindActionAtPriority(
+				BACK_ACTION,
+				function(_name: string, state: Enum.UserInputState)
+					if state == Enum.UserInputState.Begin and #frame.dialogs == 0 then
+						setView("Cues")
+						return Enum.ContextActionResult.Sink
+					end
+					return Enum.ContextActionResult.Pass
+				end,
+				false,
+				BACK_PRIORITY,
+				Enum.KeyCode.ButtonB
+			)
+			escape = UserInputService.InputBegan:Connect(function(input: InputObject)
+				if input.KeyCode == Enum.KeyCode.Escape and #frame.dialogs == 0 then
+					Menus.swallowEscape(input)
+					setView("Cues")
+				end
+			end)
+		else
+			ContextActionService:UnbindAction(BACK_ACTION)
+			if escape then
+				escape:Disconnect()
+				escape = nil
+			end
+		end
 	end
-	frame.onOpen = function()
-		for _, key in PAGES do
-			if pages[key].opened then
-				pages[key]:opened()
+
+	-- Run the views' shown / hidden as the old tabs did.
+	local function showViews()
+		for _, key in VIEWS do
+			if key ~= view and pages[key].hidden then
+				pages[key]:hidden()
 			end
 		end
-		ctx.refresh()
+		if pages[view].shown then
+			pages[view]:shown()
+		end
 	end
-	frame.onTab = function(key: string)
-		for _, name in PAGES do
-			if name ~= key and pages[name].hidden then
-				pages[name]:hidden()
+
+	--- Show a view (`instant`: no knob slide or replay, as when opening on it).
+	function setView(key: string, instant: boolean?)
+		if not views[key] then
+			return
+		end
+		local changed = key ~= view
+		view = key
+		for name, holder in views do
+			holder.Visible = name == key
+		end
+		rail:setView(key, instant)
+		HudParts.setIcon(frame.icon, if key == "Index" then "Index" else CuesRail.cuesIcon())
+		frame:setTitle(if key == "Index" then TITLES.Index else TITLES.Inventory) -- lays out
+		if not frame:isOpen() then
+			return
+		end
+		bindBack(key == "Index")
+		if not changed then
+			return
+		end
+		UISound.play("Click")
+		showViews()
+		-- The view's pieces stagger in again (not during the open: it shows them).
+		if stage and not instant and stage:busy() ~= "play" then
+			local ids = stage:idsUnder(views[key])
+			if #ids > 0 then
+				pages[key]:hold()
+				stage:replay(ids)
 			end
 		end
-		for _, name in PAGES do
-			if name == key and pages[name].shown then
-				pages[name]:shown()
-			end
-		end
-		linkTabs()
-		-- A gamepad whose selection was in the page just hidden moves into this one.
+		-- A gamepad whose selection was in the view just hidden moves into this one.
 		local selected = GuiService.SelectedObject
 		if
 			isGamepad()
@@ -369,11 +416,56 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			and selected:IsDescendantOf(frame.root)
 			and not ctx.isShown(selected)
 		then
-			GuiService.SelectedObject = firstOf(key) or frame:tabButton(key)
+			GuiService.SelectedObject = pages[key]:first() or rail.switch
+		end
+	end
+
+	frame.onLayout = function(geo: MenuFrame.Geo)
+		local width = rail:layout(geo)
+		local viewGeo = table.clone(geo)
+		viewGeo.content = Vector2.new(width, geo.content.Y)
+		pages.Cues:layout(viewGeo)
+		pages.Index:layout(viewGeo)
+	end
+	-- The panel is two whole rows of cards tall with the third peeking.
+	frame.fitHeight = function(width: number, panelW: number): number
+		local t = if frame.geo then frame.geo.t else 0
+		local gridW = width - (if rail:outside(panelW, t) then 0 else rail:room(t))
+		return InventoryCues.heightFor(gridW, t)
+	end
+	frame.onOpen = function()
+		for _, key in VIEWS do
+			if pages[key].opened then
+				pages[key]:opened()
+			end
+		end
+		ctx.refresh()
+		bindBack(view == "Index")
+		ContextActionService:BindActionAtPriority(
+			VIEW_ACTION,
+			function(_name: string, state: Enum.UserInputState)
+				if state == Enum.UserInputState.Begin and #frame.dialogs == 0 then
+					setView(if view == "Cues" then "Index" else "Cues")
+				end
+				return Enum.ContextActionResult.Sink
+			end,
+			false,
+			VIEW_PRIORITY,
+			Enum.KeyCode.ButtonL1,
+			Enum.KeyCode.ButtonR1
+		)
+	end
+	-- The frame has one page ("Main"): this runs once on open, for the view showing.
+	frame.onTab = function(_key: string)
+		showViews()
+		if isGamepad() then
+			ctx.ensureSelection()
 		end
 	end
 	frame.onClose = function()
-		for _, key in PAGES do
+		ContextActionService:UnbindAction(VIEW_ACTION)
+		bindBack(false)
+		for _, key in VIEWS do
 			if pages[key].hidden then
 				pages[key]:hidden()
 			end
@@ -381,17 +473,59 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 	end
 
-	ItemState.Changed.Items:Connect(function(_items: any)
+	-- The pictures the views' first screens show load in the background once the first
+	-- snapshot is here (an image loads only when first drawn, so the open's cards and the first
+	-- flip to the Index would pop in empty and fill in a moment later).
+	local preloaded = false
+	local function preload(items: any)
+		if preloaded or type(items) ~= "table" then
+			return
+		end
+		preloaded = true
+		local list: { string } = {}
+		for _, key in VIEWS do
+			for _, picture in pages[key]:pictures(items) do
+				table.insert(list, picture)
+			end
+		end
+		if #list > 0 then
+			task.spawn(function()
+				pcall(function()
+					ContentProvider:PreloadAsync(list :: { any })
+				end)
+			end)
+		end
+	end
+	preload(ItemState.items())
+
+	ItemState.Changed.Items:Connect(function(items: any)
+		preload(items)
 		if frame:isOpen() then
 			ctx.refresh()
 			ctx.ensureSelection()
 		end
 	end)
 
+	--- Open on a view ("Cues" or "Index"; none: My Cues).
+	local function open(tab: string?)
+		local key = if tab and views[tab] then tab else "Cues"
+		if frame:isOpen() then
+			setView(key)
+			return
+		end
+		setView(key, true)
+		-- Drawn before the open plays, so the cards it staggers in are the ones it shows.
+		ctx.refresh(true)
+		if stage then
+			for _, name in VIEWS do
+				pages[name]:hold()
+			end
+		end
+		frame:open()
+	end
+
 	local handle: Menus.Handle = {
-		open = function(tab: string?)
-			frame:open(tab)
-		end,
+		open = open,
 		close = function()
 			frame:close()
 		end,
@@ -403,6 +537,21 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		notice = ctx.notice,
 	}
 	Menus.register(NAME, handle)
+
+	-- Studio-only checks through the MCP (GuiQA): the view, a cue's big card.
+	GuiQA.add("cuesView", function(key: string)
+		Menus.open(NAME, key)
+		return view
+	end)
+	GuiQA.add("cuesDetail", function(cueId: string)
+		Menus.open(NAME, "Cues")
+		return pages.Cues:show(cueId)
+	end)
+	GuiQA.add("cuesCopies", function(on: boolean?)
+		fakeCopies = on ~= false
+		ctx.refresh(true)
+		return fakeCopies
+	end)
 	return handle
 end
 

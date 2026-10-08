@@ -33,7 +33,7 @@
 -- held loaded while they play; Effects skips a creature not loaded yet rather than show it grey.
 --
 -- CueStickBuilder paints a stick's new cue only when ready (setLoader, from Main), BackCue
--- swaps a back's stick only when ready, CueViewport replaces its cue only when ready.
+-- swaps a back's stick only when ready.
 
 local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

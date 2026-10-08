@@ -7824,7 +7824,7 @@ Config.UI.Menu = {
 	-- the panel unrolls open and folds shut (Stage, with the menu's Open schedule), the header's
 	-- 8-balls scroll, the white sheet has the still dots and an 8-ball sits on the top edge.
 	-- Menus not listed keep the kit frame (pop in, still pattern). Names as Menus.register.
-	LivelyMenus = { "Shop" },
+	LivelyMenus = { "Shop", "Inventory" }, -- "Inventory": the Cues menu (concept 2, 2026-10-08)
 	-- One thing at a time (HudFocus; designer, 2026-10-06): while a full menu is open every
 	-- other screen of ours is off. These ScreenGuis stay on (a "...Menu" screen always does):
 	-- popups that must still reach the player and invisible probes. KeepWith: more per menu.
@@ -8882,27 +8882,25 @@ Config.UI.Ults = {
 -- Config.UI.Menu.Frame's. Buttons drawn smaller than 44 px keep a 44 px touch area
 -- (HudParts.setMinHit). (tune)
 Config.UI.Inventory = {
-	-- The Cues tab: a strip (the sort button, Sell all duplicates) over a grid of cue cards,
-	-- and the chosen cue's detail panel on the right.
-	StripPx = { 36, 44 }, -- the strip's height: the sort button and Sell all
-	StripTextPx = { 14, 16 }, -- their words
-	-- The grid's orders, in the sort button's turn (each press moves to the next, round; the
+	-- The Cues menu (docs/prompts/CUES_LIVELY_PROMPT.md, concept 2, approved round 2,
+	-- 2026-10-08): the Inventory renamed Cues, in the lively frame with no tab row. Two views,
+	-- My Cues and the Index, flipped by the switch on the tiles outside the panel's right edge
+	-- (Rail). Sizes { a, b } run from a phone-sized panel (a) to a full one (b). (tune)
+	-- My Cues: the grid, Columns cards a row. The panel is as tall as two whole rows with the
+	-- third peeking PeekPx (frame.fitHeight); a screen too short for that shrinks the cards, and
+	-- the grid stays centred.
+	Columns = 5,
+	PeekPx = { 12, 22 },
+	-- The first cards in reading order pop in with the open (the Open schedule's Card1..); the
+	-- rest just show.
+	StagedCards = 15,
+	-- The grid's orders, in the Sort tile's turn (each press moves to the next, round; the
 	-- first is where it starts). Names in Strings.Menus.Inventory.SortOrders. The rarity
 	-- filter chips were dropped for this (designer, 2026-09-28).
 	SortOrders = { "RarestFirst", "CommonFirst", "MostCopies", "NameAZ" },
-	SortMaxShare = 0.5, -- the sort button takes at most this share of the strip
-	SellAllMaxShare = 0.5, -- Sell all duplicates takes at most this share of the strip
-	GapPx = { 6, 10 }, -- between the strip, the grid and the detail panel
-	DetailShare = 0.34, -- the detail panel's width, of the page's
-	DetailMinPx = 210,
-	DetailMaxPx = 320,
-	-- A page at least this tall stacks the detail (the picture on top) beside both the strip
-	-- and the grid; a shorter one (a phone) puts the picture left of the words and runs the
-	-- strip across the whole page.
-	StackFromPx = 360,
-	CardMinPx = { 118, 150 }, -- a grid card at least this wide (bigger cards, GUI lane)
+	GapPx = { 6, 10 }, -- between the Index's list and its detail panel
 	CardGapPx = { 6, 8 }, -- between two cards (their shape: Config.UI.CueCard.Units)
-	-- The Inventory's plain boxes (InventoryCard.box) and small pills (InventoryCard.pill: the
+	-- The Cues menu's plain boxes (InventoryCard.box) and small pills (InventoryCard.pill: the
 	-- Index's titles). The cue card itself: Config.UI.CueCard.
 	Card = {
 		CornerPx = 12,
@@ -8910,62 +8908,60 @@ Config.UI.Inventory = {
 		PillTextPx = 17,
 		PillPadPx = 6, -- room each side of a pill's word
 	},
-	-- The detail panel (the chosen cue).
+	-- The words beside a cue: the Index's detail panel and the big card.
 	Detail = {
 		PadPx = { 8, 12 },
 		GapPx = { 6, 8 },
-		ArtPx = { 76, 128 }, -- the picture: left of the words on a phone, on top on a computer
 		NameTextPx = { 22, 28 },
 		RarityTextPx = { 18, 22 },
-		LineTextPx = { 17, 20 }, -- "4.2% chance", "You own 3", "Can't be sold"
-		ButtonPx = { 40, 48 }, -- Equip, Sell, Sell duplicates
+		LineTextPx = { 17, 20 }, -- "4.2% chance · 1,284 exist", "You own 3", "Can't be sold"
+		ButtonPx = { 40, 48 }, -- Equip, Sell duplicates
 		ButtonTextPx = { 17, 20 },
 		LockPx = { 18, 22 }, -- the padlock before "Can't be sold"
-		ThumbShare = 0.86, -- the cue's thumbnail, of the picture's box
+		ThumbShare = 0.86, -- the Index's flat picture, of its box
 	},
-	-- The Cues tab (GUI lane, 2026-10-03; the case strip went with the cases, 2026-10-04): the
-	-- cue grid, and the chosen cue as a big card over the page (ref 07's size).
+	-- The chosen cue's big card (concept 2): its card (InventoryCard, no pills: the words beside
+	-- it say them) on the left, the words and buttons beside it, slammed in over the page.
 	Items = {
-		BigCardMaxWidthPx = 460, -- the chosen cue's card
-		BigArtShare = 0.42, -- its picture, of the card's height at most
-		BigArtMinPx = 96, -- the picture never smaller (the card scrolls past this)
-		-- A landscape space (wider than tall by this) lays the card out side by side: the
-		-- picture fills the left, the words and buttons stand beside it (phones, short PCs).
-		BigWideRatio = 1.5,
-		BigWideMaxWidthPx = 760, -- the side-by-side card's width at most
-		BigWideArtMaxPx = 400, -- its picture's side at most
-		BigWideArtShare = 0.5, -- and at most this share of the card's width
+		BigMaxWidthPx = 640, -- the whole popup at most
+		BigCardShare = 0.42, -- the card's width, of the popup's at most
 		ChooserPx = { 40, 48 }, -- the count chooser's row: - 3 + Max
-		ShimmerSeconds = 2.4, -- a rarity card's light sweeping across it
-		ShimmerFromRarity = "Uncommon", -- cards of this rarity and up shimmer
-		SparkleFromRarity = "Epic", -- and from this one also sparkle
 	},
-	-- The Index's turning 3D cue (CueViewport, in the Index's detail panel; designer,
-	-- 2026-09-28): the game's own cue in a ViewportFrame, thicker so it reads small, turning
-	-- round the upright axis. A cue not found yet is one near-black colour.
-	Viewport = {
-		-- The stick's diameter times this (a real cue is too thin to read); 1.6 keeps the look
-		-- it had at 2.6 before the cue grew 1.6x (2026-10-01).
-		Thickness = 1.6,
-		TiltDegrees = 45, -- the stick's lean from level (tip up and to the right)
-		StartDegrees = 25, -- where the turn starts when a cue is shown
-		SpinDegreesPerSecond = 55, -- about one turn in 6.5 s
-		FieldOfView = 30, -- the camera's (narrow: little perspective stretch)
-		FillShare = 0.86, -- the stick's longer half-extent, of the picture's half-size
-		SilhouetteColor = { 22, 24, 34 }, -- a cue not found yet (near-black, lit a little)
-		Ambient = { 150, 150, 160 }, -- the viewport's light
-		LightColor = { 255, 255, 255 },
-		LightDirection = { -1, -1, -1.5 }, -- from the top left, in front
+	-- The tiles outside the panel's right edge (concept 2), top to bottom: the My Cues / Index
+	-- switch (two halves, a blue knob on the place you are in), Sort and Sell all, each with a
+	-- pill hanging under it (the order's name; the money Sell all would pay). Inside the page
+	-- (a column at its right) when the screen has no room beside the panel.
+	Rail = {
+		TilePx = { 60, 80 }, -- Sort and Sell all, square; the switch is as wide
+		HalfShare = 0.82, -- each half of the switch, of a tile's side
+		GapPx = { 14, 18 }, -- between the switch and the tiles (room for the hanging pills)
+		OutsidePx = 10, -- from the panel's right edge
+		TextPx = { 12, 16 }, -- the tiles' and halves' words
+		MinTextPx = 9, -- a long word on a half shrinks to fit, never under this
+		IconShare = 0.5, -- a half's icon, of its height
+		KnobInsetPx = 2, -- the knob inside the switch's track
+		KnobSeconds = 0.22, -- the knob sliding to the other half (Back Out)
+		IdleIconTransparency = 0.45, -- the other half's icon, faded
+		DotPx = { 18, 22 }, -- the red dots: the NEW count on My Cues, "!" on the Index
+		DotTextPx = { 12, 14 },
+		DotMax = 9, -- more than this reads "9+"
+		HangPx = { 16, 20 }, -- the pill hanging under Sort and Sell all
+		HangTextPx = { 10, 13 },
+		HangPadPx = 6, -- room each side of its words
+		SortTone = "Blue", -- the hanging pills' colours (Config.UI.Kit.Buttons tones)
+		SellTone = "Yellow",
 	},
-	-- The Index tab: the titles and the rarity rows (a card per row, its cues as small cells)
-	-- on the left, the chosen cue's detail panel on the right (IndexDetail*).
+	-- The Index: the titles and the rarity rows (a card per row, its cues as small cells) on
+	-- the left, the chosen cue's detail panel on the right.
+	IndexColumns = 4, -- cells a row (concept 2)
 	IndexDetailShare = 0.34, -- the panel's width, of the page's
-	IndexDetailMinPx = 180,
+	IndexDetailMinPx = { 150, 180 },
 	IndexDetailMaxPx = 300,
-	IndexViewShare = 0.5, -- a phone's turning cue at most this share of the page's height
-	-- An Index cell (a cue card, Config.UI.CueCard) at least this wide, as many columns as fit:
-	-- wide enough that its rarity word fits at Layout.MinTextPx (2026-10-08).
-	CellMinPx = { 100, 110 },
+	-- The chosen cue's flat picture (concept 2: no 3D cue): square, at most this share of the
+	-- page's height, swaying SwayDegrees either way over SwaySeconds (still with Reduce Motion).
+	IndexArtShare = 0.5,
+	SwayDegrees = 5,
+	SwaySeconds = 4,
 	CellNameLines = 3, -- a narrow cell's name may wrap to this many lines (at Layout.MinTextPx)
 	CellGapPx = { 6, 8 },
 	SectionPadPx = { 8, 12 }, -- inside a row's card
@@ -8979,12 +8975,75 @@ Config.UI.Inventory = {
 	ClaimWidthPx = { 90, 120 },
 	TitlePillPx = { 28, 32 }, -- an earned title at the top
 	TitleTextPx = { 14, 16 },
-	-- The red dots on the tab buttons: the NEW count on Cues, "!" on
-	-- Index while a row can be claimed.
-	TabDotPx = 20,
-	TabDotTextPx = 14,
-	TabDotMax = 9, -- more than this reads "9+"
 	MarkSeenRetrySeconds = 1.5, -- a MarkSeen turned away (Busy, TooFast) is tried once more after this
+}
+
+-- The Cues menu's open (concept 2; the Shop's schedule, Config.UI.Shop.Open, with the menu's
+-- own pieces). Every id a piece registers must be here: a piece outside the schedule stays
+-- faded after a close. The cards and the Index's cells are staged by their place in reading
+-- order; the view not showing plays its part unseen.
+Config.UI.Inventory.Open = {
+	OpenSeconds = 0.91,
+	Steps = {
+		{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
+		{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
+		{ Ids = { "Basket", "Title", "Money", "Close" }, Kind = "Pop", At = 0.18 },
+		-- The switch, Sort and Sell all; the switch's red dots and the hanging pills just after.
+		{
+			Ids = { "Switch", "Sort", "Sell" },
+			Kind = "Pop",
+			At = 0.3,
+			Stagger = 1.25,
+			Badge = true,
+			BadgeAfter = 0.08,
+		},
+		-- My Cues: the first cards, 0.03 s apart, from the moment the panel has unrolled.
+		{
+			Ids = {
+				"Card1",
+				"Card2",
+				"Card3",
+				"Card4",
+				"Card5",
+				"Card6",
+				"Card7",
+				"Card8",
+				"Card9",
+				"Card10",
+				"Card11",
+				"Card12",
+				"Card13",
+				"Card14",
+				"Card15",
+			},
+			Kind = "Pop",
+			At = 0.2,
+			Stagger = 0.75,
+		},
+		-- The Index: the chosen cue, the first two rows' headers, their first cells.
+		{ Ids = { "IndexDetail" }, Kind = "Grow", At = 0.2 }, -- a big box: no overshoot
+		{ Ids = { "IndexHead1", "IndexHead2" }, Kind = "Pop", At = 0.22, Stagger = 2 },
+		{
+			Ids = {
+				"IndexCell1",
+				"IndexCell2",
+				"IndexCell3",
+				"IndexCell4",
+				"IndexCell5",
+				"IndexCell6",
+				"IndexCell7",
+				"IndexCell8",
+				"IndexCell9",
+				"IndexCell10",
+				"IndexCell11",
+				"IndexCell12",
+			},
+			Kind = "Pop",
+			At = 0.26,
+			Stagger = 0.75,
+		},
+		{ Ids = { "Flair" }, Kind = "Drop", At = 0.66, Length = 0.25 }, -- the 8-ball lands on the frame
+	},
 }
 
 -- The cue card (src/client/InventoryCard.luau; its moving parts src/client/CueCardFx.luau; the
@@ -9034,8 +9093,18 @@ Config.UI.CueCard = {
 		SecondPillTopUnits = 27.6, -- NEW or Equipped under the chance chip: its top
 		LockUnits = { 5.25, 5.7, 18 }, -- the padlock: inset right, top, side
 		LockGapUnits = 2.25, -- between the padlock and the count pill
-		MinTextPx = 12, -- the name and the bar's word are never drawn smaller (UI_STYLE taste rule)
-		PillMinTextPx = 9, -- the pills and the chance chip may go smaller: they sit over the picture
+		-- A copy number ("#412"; concept 2, 2026-10-08: in the top-right corner it covered the
+		-- cue's tip): a dark chip with gold words just above the name, on the right. Right
+		-- inset, height, gap over the name's box.
+		CopyUnits = { 9, 18, 2.66 },
+		CopyColor = "#12172A",
+		CopyTransparency = 0.18,
+		CopyTextColor = "#FFD54A",
+		-- The name and the bar's word are never drawn smaller than MinTextPx, the pills and the
+		-- chips than PillMinTextPx. A phone's small cards keep the card's own scale (concept 2,
+		-- 2026-10-08: they were 12 and 9, so a phone's names wrapped where a computer's do not).
+		MinTextPx = 6,
+		PillMinTextPx = 6,
 		RingPx = 3, -- the gold hover ring and the blue chosen ring round the card
 	},
 	-- The moving parts. Seconds are one loop; "Units" sizes scale with the card; shares are of

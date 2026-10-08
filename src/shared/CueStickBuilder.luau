@@ -384,7 +384,7 @@ function CueStickBuilder.build(parent: Instance, cueId: string?): Model
 	return model
 end
 
---- A stick for a picture (the Index's turning cue, CueViewport): as build(), `thickness` times
+--- A stick for a picture (a cue in a ViewportFrame): as build(), `thickness` times
 --- as thick so it reads at a small size, and never repainted (paint would undo the
 --- thickness). `silhouette` paints every band in that one colour, smooth plastic: the cue's
 --- shape with nothing of its look (always the bands: the same outline).

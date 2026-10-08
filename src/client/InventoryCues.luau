@@ -1,23 +1,25 @@
 --!strict
--- InventoryCues: the Inventory's Cues tab (docs/prompts/ECONOMY_UI_PROMPT.md
--- section 11; reworked by the GUI lane, designer 2026-10-03, C6).
+-- InventoryCues: the Cues menu's My Cues view (docs/prompts/CUES_LIVELY_PROMPT.md, concept 2,
+-- approved round 2, 2026-10-08).
 --
---   * A strip on top: the sort button ("Sort: Rarest first"; each press moves to the next of
---     Config.UI.Inventory.SortOrders) and "Sell all duplicates: $1,234" (the total worked out
---     here from BlockOdds.sellValue for show; the server's reply is the truth), which asks first.
---   * A grid of big cue cards (InventoryCard), the whole page wide: the picture, the name,
---     "4.2% chance" (its rarity's share per Mystery block, in the rarity's colour; the copies in
---     existence left off, designer 2026-10-03), "x3", NEW, Equipped; rarer cards shimmer and
---     sparkle.
---   * A card pressed opens the cue big over the page (ref 07's size): the picture on its
---     dressed card, name, rarity, the odds line, "You own 3", Equip, and one "Sell duplicates"
---     that opens a count chooser (- 1 +, Max; "Sell 3 for $360"; a confirm from
---     Config.BlockOdds.ConfirmSellFrom up). Exclusive, Unique and Classic cues show a padlock and
---     "Can't be sold". B, Escape, the X or a press beside the card close it.
+--   * A grid of cue cards (InventoryCard), Config.UI.Inventory.Columns a row: the picture, the
+--     name, the rarity bar, the chance chip, "x3", NEW, Equipped, a copy number ("#412") over
+--     the name. The menu is as tall as two whole rows with the third peeking (heightFor); a
+--     screen too short for that shrinks the cards and the grid stays centred. The first cards
+--     pop in with the open, by their place in reading order (Stage "Card1".."Card15").
+--   * Sort and Sell all live on the rail beside the panel (CuesRail): Sort turns the order
+--     (Config.UI.Inventory.SortOrders), Sell all sells every duplicate (the total worked out
+--     here from BlockOdds.sellValue for show; the server's reply is the truth) and asks first.
+--   * A card pressed slams in its big card over the page: the same card, bare (no pills: the
+--     words beside it say them), and beside it the name, the rarity, "4.2% chance · 1,284
+--     exist", "You own 3" (or a Unique's "Copy #412"), the padlock's "Can't be sold", Equip
+--     and one "Sell duplicates" that opens a count chooser (- 1 +, Max; "Sell 3 for $360"; a
+--     confirm from Config.BlockOdds.ConfirmSellFrom up). B, Escape, the X or a press beside
+--     the card close it.
 --
 -- A gamepad landing on a card only moves the selection; A opens the card. NEW tags clear with
--- one MarkSeen each time the tab is shown (the new ids, at most Config.Items.MarkSeenMax); the
--- pills stay up until the tab is left, so the player sees what is new.
+-- one MarkSeen each time the view is shown (the new ids, at most Config.Items.MarkSeenMax); the
+-- pills stay up until the view is left, so the player sees what is new.
 local ContextActionService = game:GetService("ContextActionService")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -46,6 +48,7 @@ local I = Config.UI.Inventory
 local D = I.Detail
 local SC = Config.UI.Menu.Scroll
 local K = Config.UI.Kit
+local UNITS = Config.UI.CueCard.Units
 local WORDS = Strings.Menus.Inventory
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 local TOUCH = Config.UI.Menu.Frame.TouchMinPx
@@ -55,7 +58,7 @@ local CLOSE_ACTION = "8ballInventoryCueClose"
 local CLOSE_PRIORITY = Enum.ContextActionPriority.High.Value + 30 -- like a dialog's B
 local OVERLAY_Z = 40
 
--- The sort button's orders, in its turn; the first is where it starts.
+-- The Sort tile's orders, in its turn; the first is where it starts.
 local SORTS: { string } = I.SortOrders
 local SORT_NAMES: { [string]: string } = WORDS.SortOrders :: any
 
@@ -64,6 +67,10 @@ InventoryCues.__index = InventoryCues
 
 local function round(n: number): number
 	return math.floor(n + 0.5)
+end
+
+local function span(pair: { number }, t: number): number
+	return round(pair[1] + (pair[2] - pair[1]) * t)
 end
 
 local function textWidth(text: string, size: number): number
@@ -128,17 +135,20 @@ local function sorted(rows: { any }, sort: string): { any }
 	return out
 end
 
-local function sortWords(sort: string): string
-	return WORDS.Sort:format(SORT_NAMES[sort] or sort)
-end
-
--- A cue's count line: "#412" for a Unique copy, "x3" for copies, else nothing.
+-- A cue's count on its card: "x3" for copies, else nothing.
 local function countLine(row: any): string
 	if type(row.copy) == "number" then
-		return WORDS.CopyShort:format(Format.commas(row.copy))
+		return ""
 	end
 	local count = countOf(row)
 	return if count > 1 then WORDS.Count:format(Format.commas(count)) else ""
+end
+
+-- A numbered copy's number over the card's name: "#412", else nothing.
+local function copyLine(row: any): string
+	return if type(row.copy) == "number"
+		then WORDS.CopyShort:format(Format.commas(row.copy))
+		else ""
 end
 
 -- A rarity's chance per Mystery block as words: "4.2%" (two significant digits under 1%).
@@ -187,45 +197,60 @@ function InventoryCues.oddsLine(id: string): string?
 	return WORDS.Odds:format(percent)
 end
 
---- The Cues page, built into `page` (the Cues tab). `ctx`: InventoryMenu's;
---- `overlay` is where the chosen cue's big card opens (the whole page).
+--- The line under a cue's rarity (the big card, the Index): its odds and how many copies
+--- exist ("4.2% chance · 1,284 exist"), either alone, or nil with neither.
+function InventoryCues.factsLine(id: string, copies: number?): string?
+	local odds = InventoryCues.oddsLine(id)
+	local exist = nil
+	if copies and copies >= 1 then
+		exist = (if copies == 1 then WORDS.ExistOne else WORDS.Exist):format(Format.commas(copies))
+	end
+	if odds and exist then
+		return WORDS.Joined:format(odds, exist)
+	end
+	return odds or exist
+end
+
+-- The grid's card size for a grid `gridW` wide, `t` of the way from a phone to a full panel.
+local function cellFor(gridW: number, t: number): (number, number, number)
+	local gap = span(I.CardGapPx, t)
+	local inner = gridW - 2 * SC.PadPx - SC.BarPx
+	local cell = math.max(1, math.floor((inner - (I.Columns - 1) * gap) / I.Columns))
+	return cell, round(cell * UNITS[2] / UNITS[1]), gap
+end
+
+--- The view's height for a grid `gridW` wide: two whole rows of cards and the third peeking
+--- (the menu's frame.fitHeight).
+function InventoryCues.heightFor(gridW: number, t: number): number
+	local _, cellH, gap = cellFor(gridW, t)
+	return SC.PadPx + 2 * (cellH + gap) + span(I.PeekPx, t)
+end
+
+--- My Cues, built into `page`. `ctx`: InventoryMenu's; `overlay` is where the chosen cue's big
+--- card opens (the whole page).
 function InventoryCues.new(page: Frame, ctx: any, overlay: Frame?): any
 	local self: any = setmetatable({}, InventoryCues)
 	self.page = page
 	self.ctx = ctx
 	self.sort = SORTS[1] -- kept while the player is in the server
 	self.chosen = nil :: string?
-	self.cards = {} :: { [string]: InventoryCard.Card }
-	self.rows = {} :: { [string]: any } -- the snapshot's rows by id, for the details
+	-- The cards by their place in the grid (reading order): a card keeps its place and shows
+	-- whichever cue is there, so the open's Stage ids (Card1..) stay on the same objects.
+	self.slots = {} :: { InventoryCard.Card }
+	self.rows = {} :: { [string]: any } -- the snapshot's rows by id, for the big card
 	self.order = {} :: { string } -- the ids shown now, in order
-	self.sticky = {} :: { [string]: boolean } -- NEW while the tab is up, though already marked
+	self.sticky = {} :: { [string]: boolean } -- NEW while the view is up, though already marked
 	self.showing = false
 	self.wantMark = false
 	self.geo = nil :: MenuFrame.Geo?
-	self.stacked = true
+	self.stage = nil :: any
 	self.sellAllTotal = 0
-
-	-- The strip: the sort button and Sell all duplicates.
-	local strip = HudParts.frame(page, "Strip")
-	strip.ZIndex = 2
-	self.strip = strip
-	self.sortButton = HudParts.candy(strip, sortWords(self.sort), function()
-		self:nextSort()
-	end, "Blue", "Sliders")
-	self.sortButton.Name = "Sort"
-	HudParts.setMinHit(self.sortButton, TOUCH)
-	self.sellAll = HudParts.candy(strip, "", function()
-		self:askSellAll()
-	end, "Yellow", "Sell")
-	self.sellAll.Name = "SellAll"
-	HudParts.setMinHit(self.sellAll, TOUCH)
 
 	-- The grid.
 	local gridHolder = HudParts.frame(page, "GridHolder")
 	gridHolder.ZIndex = 2
 	self.gridHolder = gridHolder
-	-- MenuFrame's scroller (its padding, bar and gamepad scrolling) with a grid sized here, from
-	-- the page's layout, so a computer's cards can be bigger than a phone's.
+	-- MenuFrame's scroller (its padding, bar and gamepad scrolling) with a grid sized here.
 	local grid, stack = MenuFrame.scroller(gridHolder, { name = "Cards" })
 	stack:Destroy()
 	local gridLayout = Instance.new("UIGridLayout")
@@ -248,12 +273,8 @@ function InventoryCues.new(page: Frame, ctx: any, overlay: Frame?): any
 	local function watchCounts(folder: Instance)
 		self.counts = folder
 		folder.AttributeChanged:Connect(function(name: string)
-			if name == self.chosen then
+			if name == self.chosen and self.detailOpen then
 				self:refreshDetail()
-			end
-			local card = self.cards[name]
-			if card and self.ctx.isOpen() then
-				self:redraw(self.ctx.lastItems)
 			end
 		end)
 	end
@@ -265,15 +286,43 @@ function InventoryCues.new(page: Frame, ctx: any, overlay: Frame?): any
 			if child.Name == COPIES_FOLDER then
 				added:Disconnect()
 				watchCounts(child)
-				self:refreshDetail()
+				if self.detailOpen then
+					self:refreshDetail()
+				end
 			end
 		end)
 	end
 	return self
 end
 
+--- The open's pieces: the first cards by their place (added as they are made, in `slot`).
+function InventoryCues.register(self: any, stage: any)
+	self.stage = stage
+	for index, card in self.slots :: { InventoryCard.Card } do
+		self:stageCard(index, card)
+	end
+end
+
+-- Card `index` (among the first StagedCards) is a piece of the open; its motion runs again as
+-- it lands (`hold` stilled it for the pop).
+function InventoryCues.stageCard(self: any, index: number, card: InventoryCard.Card)
+	if self.stage and index <= I.StagedCards then
+		self.stage:add("Card" .. index, card.button, function()
+			InventoryCard.hold(card, false)
+		end)
+	end
+end
+
+--- The staged cards are about to pop in (the open, a flip back to My Cues): their motion
+--- waits until each lands, or its glows would show before the card.
+function InventoryCues.hold(self: any)
+	for index = 1, math.min(#self.slots, I.StagedCards) do
+		InventoryCard.hold(self.slots[index], true)
+	end
+end
+
 --------------------------------------------------------------------------------------------
--- The detail panel
+-- The big card
 --------------------------------------------------------------------------------------------
 
 function InventoryCues.buildDetail(self: any, page: Frame)
@@ -303,12 +352,23 @@ function InventoryCues.buildDetail(self: any, page: Frame)
 	box.SelectionBehaviorLeft = Enum.SelectionBehavior.Stop
 	box.SelectionBehaviorRight = Enum.SelectionBehavior.Stop
 	self.detail = box
-	-- Its contents scroll when a short screen or a long translation needs more room.
+
+	-- The cue's own card, bare, on the left (it does not press or light up).
+	local card = InventoryCard.new(box, {
+		name = "BigCard",
+		onPress = function() end,
+	})
+	card.button.Selectable = false
+	card.button.Interactable = false
+	card.button.ZIndex = 3
+	self.bigCard = card
+
+	-- The words and buttons beside it; they scroll when a short screen or a long translation
+	-- needs more room.
 	local scroll = Instance.new("ScrollingFrame")
 	scroll.Name = "Scroll"
 	scroll.BackgroundTransparency = 1
 	scroll.BorderSizePixel = 0
-	scroll.Size = UDim2.fromScale(1, 1)
 	scroll.ScrollingDirection = Enum.ScrollingDirection.Y
 	scroll.ScrollBarThickness = SC.BarPx
 	scroll.ScrollBarImageColor3 = HudParts.color(SC.BarColor)
@@ -325,22 +385,8 @@ function InventoryCues.buildDetail(self: any, page: Frame)
 	self.closeButton.Name = "Close"
 	self.closeButton.AnchorPoint = Vector2.new(1, 0)
 	self.closeButton.ZIndex = 6
-	HudParts.padBack(self.closeButton) -- B closes the detail
+	HudParts.padBack(self.closeButton) -- B closes the big card
 	HudParts.setMinHit(self.closeButton, TOUCH)
-
-	-- The picture, big, on its dressed card (ref 07).
-	local artBox = InventoryCard.box(scroll, "ArtBox")
-	artBox.ZIndex = 3
-	self.artBox = artBox
-	local thumb = CueThumb.new(artBox, Catalog.Default)
-	thumb.AnchorPoint = Vector2.new(0.5, 0.5)
-	thumb.Position = UDim2.fromScale(0.5, 0.5)
-	thumb.Size = UDim2.fromScale(D.ThumbShare, D.ThumbShare)
-	thumb.ZIndex = 4
-	self.thumb = thumb
-	self.artDressing = nil :: any
-	self.artKey = ""
-	self.artSparkle = nil :: UIAnim.Handle?
 
 	self.nameLabel = HudParts.text(scroll, "Name", D.NameTextPx[2], "")
 	self.nameLabel.ZIndex = 4
@@ -422,7 +468,7 @@ function InventoryCues.copies(self: any, id: string): number?
 	return if type(value) == "number" and value == value then value else nil
 end
 
--- The chosen cue's words, buttons and picture (then lays the card out).
+-- The chosen cue's card, words and buttons (then lays the big card out).
 function InventoryCues.refreshDetail(self: any)
 	local ctx = self.ctx
 	local id: string? = self.chosen
@@ -435,33 +481,13 @@ function InventoryCues.refreshDetail(self: any)
 	if not cue then
 		return
 	end
-	CueThumb.set(self.thumb, id, false)
-	local key = cue.Rarity .. "/" .. (cue.Tier or "")
-	if key ~= self.artKey then
-		if self.artDressing then
-			self.artDressing.destroy()
-		end
-		if self.artSparkle then
-			self.artSparkle.stop()
-			self.artSparkle = nil
-		end
-		local tint = if cue.Tier then CueThumb.cueColor(id) else nil
-		self.artDressing = CueThumb.dress(self.artBox, cue.Rarity, tint)
-		if Catalog.rarityRank(cue.Rarity) >= Catalog.rarityRank(IT.ShimmerFromRarity) then
-			self.artSparkle = UIAnim.sparkle(self.artBox, CueThumb.accentColor(cue.Rarity))
-		end
-		self.artKey = key
-	end
+	InventoryCard.set(self.bigCard, { cueId = id, copy = copyLine(row), bare = true })
 	self.nameLabel.Text = CueThumb.cueName(id)
 	self.rarityLabel.Text = CueThumb.rarityName(cue.Rarity)
 	self.rarityLabel.TextColor3 = CueThumb.cueColor(id)
-	local copies = self:copies(id)
-	local odds = InventoryCues.oddsLine(id)
-	if odds == nil and copies ~= nil and copies >= 1 then
-		odds = (if copies == 1 then WORDS.ExistOne else WORDS.Exist):format(Format.commas(copies))
-	end
-	self.existLabel.Text = odds or ""
-	self.existLabel.Visible = odds ~= nil
+	local facts = InventoryCues.factsLine(id, self:copies(id))
+	self.existLabel.Text = facts or ""
+	self.existLabel.Visible = facts ~= nil
 	local count = countOf(row)
 	self.ownedLabel.Text = if type(row.copy) == "number"
 		then WORDS.Copy:format(Format.commas(row.copy))
@@ -506,34 +532,40 @@ function InventoryCues.refreshDetail(self: any)
 	self:arrangeDetail()
 end
 
--- Lay the big card out: the picture on top, the words centred under it, the buttons full
--- width; on a wide card (a landscape phone, a short PC window) the picture fills the left and
--- the words and buttons stand beside it. Its canvas grows to fit.
+-- Lay the big card out: the cue's card on the left as tall as the popup allows (at most
+-- Items.BigCardShare of its width), the words and buttons beside it, centred up and down,
+-- clear of the X. Its column scrolls when it is taller than the popup.
 function InventoryCues.arrangeDetail(self: any)
 	local ctx = self.ctx
 	local size = self.detailSize :: Vector2?
 	if not size or size.X <= 0 then
 		return
 	end
-	local span = ctx.span
-	local pad, gap = span(D.PadPx), span(D.GapPx)
-	local w = size.X - SC.BarPx
-	local inner = w - 2 * pad
-	local closeSize = math.min(44, span(D.ButtonPx))
+	local span1 = ctx.span
+	local pad, gap = span1(D.PadPx), span1(D.GapPx)
+	local closeSize = math.min(44, span1(D.ButtonPx))
 	self.closeButton.Size = UDim2.fromOffset(closeSize, closeSize)
 	self.closeButton.Position = UDim2.fromOffset(size.X - pad, pad)
-	-- The words and buttons are laid out first from y = 0; the picture takes what is left (up
-	-- to its share), so an open chooser on a short screen shrinks the picture, not the buttons.
-	local wide = self.detailWide == true
-	local maxArt = if wide
-		then math.min(size.Y - 2 * pad, IT.BigWideArtMaxPx, round(w * IT.BigWideArtShare))
-		else math.min(inner - 2 * closeSize, round(size.Y * IT.BigArtShare))
-	-- The words' column: under the picture, or beside it (clear of the X).
-	local x0 = if wide then pad * 2 + maxArt else pad
-	local colW = if wide then w - x0 - pad - closeSize - gap else inner
-	local nameSize =
-		math.max(span(D.NameTextPx), round(K.Big.Heading * (0.8 + 0.2 * (maxArt / 300))))
-	local raritySize, lineSize = span(D.RarityTextPx), span(D.LineTextPx) + 2
+
+	-- The card.
+	local cardH = math.max(1, size.Y - 2 * pad)
+	local cardW = round(cardH * UNITS[1] / UNITS[2])
+	local maxW = round(size.X * IT.BigCardShare)
+	if cardW > maxW then
+		cardW = maxW
+		cardH = round(cardW * UNITS[2] / UNITS[1])
+	end
+	self.bigCard.button.Position = UDim2.fromOffset(pad, round((size.Y - cardH) / 2))
+	self.bigCard.button.Size = UDim2.fromOffset(cardW, cardH)
+
+	-- The column beside it.
+	local x0 = 2 * pad + cardW
+	local colW = math.max(1, size.X - x0 - pad - closeSize - gap)
+	local colH = size.Y
+	self.detailScroll.Position = UDim2.fromOffset(x0, 0)
+	self.detailScroll.Size = UDim2.fromOffset(colW + SC.BarPx, colH)
+	local nameSize = math.max(span1(D.NameTextPx), round(K.Big.Heading * 0.8))
+	local raritySize, lineSize = span1(D.RarityTextPx), span1(D.LineTextPx) + 2
 	HudParts.setTextSize(self.nameLabel, nameSize)
 	HudParts.setTextSize(self.rarityLabel, raritySize)
 	HudParts.setTextSize(self.existLabel, lineSize)
@@ -544,7 +576,7 @@ function InventoryCues.arrangeDetail(self: any)
 	end
 	local y = 0
 	local function place(label: TextLabel, height: number)
-		label.Position = UDim2.fromOffset(x0, y)
+		label.Position = UDim2.fromOffset(0, y)
 		label.Size = UDim2.fromOffset(colW, height)
 		y += height
 	end
@@ -555,10 +587,10 @@ function InventoryCues.arrangeDetail(self: any)
 	end
 	place(self.ownedLabel, lineSize + 4)
 	if self.lockRow.Visible then
-		local lock = span(D.LockPx)
+		local lock = span1(D.LockPx)
 		local words = math.ceil(textWidth(self.lockLabel.Text, lineSize)) + 6
 		local rowW = math.min(colW, lock + 4 + words)
-		self.lockRow.Position = UDim2.fromOffset(x0 + round((colW - rowW) / 2), y + 2)
+		self.lockRow.Position = UDim2.fromOffset(round((colW - rowW) / 2), y + 2)
 		self.lockRow.Size = UDim2.fromOffset(rowW, math.max(lock, lineSize + 4))
 		self.lockIcon.Size = UDim2.fromOffset(lock, lock)
 		self.lockLabel.Position = UDim2.fromOffset(lock + 4, 0)
@@ -568,22 +600,22 @@ function InventoryCues.arrangeDetail(self: any)
 	end
 	y += gap
 
-	-- The buttons, full width; the chooser's row (- 3 + Max) and its Sell under them.
-	local buttonH, buttonText = span(D.ButtonPx), span(D.ButtonTextPx)
+	-- The buttons, the column's width; the chooser's row (- 3 + Max) and its Sell under them.
+	local buttonH, buttonText = span1(D.ButtonPx), span1(D.ButtonTextPx)
 	for _, button in { self.equip, self.sellDupes } do
 		if button.Visible then
-			button.Position = UDim2.fromOffset(x0, y)
+			button.Position = UDim2.fromOffset(0, y)
 			button.Size = UDim2.fromOffset(colW, buttonH)
 			HudParts.setButtonTextSize(button, buttonText)
 			y += buttonH + gap
 		end
 	end
 	if self.chooserRow.Visible then
-		local rowH = span(IT.ChooserPx)
-		self.chooserRow.Position = UDim2.fromOffset(x0, y)
+		local rowH = span1(IT.ChooserPx)
+		self.chooserRow.Position = UDim2.fromOffset(0, y)
 		self.chooserRow.Size = UDim2.fromOffset(colW, rowH)
-		local maxW = math.max(rowH * 2, math.ceil(textWidth(WORDS.Max, buttonText)) + 24)
-		local countW = math.max(rowH, colW - 2 * rowH - maxW - 3 * gap)
+		local maxBtnW = math.max(rowH * 2, math.ceil(textWidth(WORDS.Max, buttonText)) + 24)
+		local countW = math.max(rowH, colW - 2 * rowH - maxBtnW - 3 * gap)
 		self.minus.Position = UDim2.fromOffset(0, 0)
 		self.minus.Size = UDim2.fromOffset(rowH, rowH)
 		HudParts.setTextSize(self.countLabel, rowH - 6)
@@ -591,32 +623,20 @@ function InventoryCues.arrangeDetail(self: any)
 		self.countLabel.Size = UDim2.fromOffset(countW, rowH)
 		self.plus.Position = UDim2.fromOffset(rowH + countW + 2 * gap, 0)
 		self.plus.Size = UDim2.fromOffset(rowH, rowH)
-		self.maxButton.Position = UDim2.fromOffset(colW - maxW, 0)
-		self.maxButton.Size = UDim2.fromOffset(maxW, rowH)
+		self.maxButton.Position = UDim2.fromOffset(colW - maxBtnW, 0)
+		self.maxButton.Size = UDim2.fromOffset(maxBtnW, rowH)
 		HudParts.setButtonTextSize(self.minus, math.max(buttonText, rowH - 12)) -- a big - and +
 		HudParts.setButtonTextSize(self.plus, math.max(buttonText, rowH - 12))
 		HudParts.setButtonTextSize(self.maxButton, buttonText)
 		y += rowH + gap
-		self.sellConfirm.Position = UDim2.fromOffset(x0, y)
+		self.sellConfirm.Position = UDim2.fromOffset(0, y)
 		self.sellConfirm.Size = UDim2.fromOffset(colW, buttonH)
 		HudParts.setButtonTextSize(self.sellConfirm, buttonText)
 		y += buttonH + gap
 	end
-	local below = y - gap
-	local base
-	if wide then
-		self.artBox.Position = UDim2.fromOffset(pad, math.max(pad, round((size.Y - maxArt) / 2)))
-		self.artBox.Size = UDim2.fromOffset(maxArt, maxArt)
-		base = math.max(pad, round((size.Y - below) / 2))
-	else
-		local art = math.max(
-			math.min(maxArt, IT.BigArtMinPx),
-			math.min(maxArt, size.Y - 2 * pad - gap - below)
-		)
-		self.artBox.Position = UDim2.fromOffset(round((w - art) / 2), pad)
-		self.artBox.Size = UDim2.fromOffset(art, art)
-		base = pad + art + gap
-	end
+	-- Centred up and down when it fits; else it scrolls from the top.
+	local used = y - gap
+	local base = math.max(pad, round((colH - used) / 2))
 	for _, object in
 		{
 			self.nameLabel,
@@ -635,15 +655,14 @@ function InventoryCues.arrangeDetail(self: any)
 				UDim2.fromOffset(object.Position.X.Offset, object.Position.Y.Offset + base)
 		end
 	end
-	self.detailScroll.CanvasSize =
-		UDim2.fromOffset(0, math.max(base + below + pad, if wide then maxArt + 2 * pad else 0))
+	self.detailScroll.CanvasSize = UDim2.fromOffset(0, base + used + pad)
 end
 
 --------------------------------------------------------------------------------------------
 -- Drawing from the snapshot
 --------------------------------------------------------------------------------------------
 
---- The tab's red dot: how many owned cues are NEW.
+--- The red dot on the switch's My Cues half: how many owned cues are NEW.
 function InventoryCues.dot(_self: any, items: any): number
 	local n = 0
 	for _, row in ownedRows(items) do
@@ -654,12 +673,46 @@ function InventoryCues.dot(_self: any, items: any): number
 	return n
 end
 
+-- The card in grid place `index`, made (and staged, among the first) when first needed.
+function InventoryCues.slot(self: any, index: number): InventoryCard.Card
+	local card = self.slots[index]
+	if card then
+		return card
+	end
+	local made: InventoryCard.Card
+	made = InventoryCard.new(self.grid, {
+		name = "Card" .. index,
+		order = index,
+		onPress = function()
+			self:choose(made.cueId, true)
+		end,
+		onSelect = function()
+			self:choose(made.cueId, false)
+		end,
+	})
+	self.slots[index] = made
+	self:stageCard(index, made)
+	return made
+end
+
+-- The grid place showing cue `id`, or nil.
+function InventoryCues.cardOf(self: any, id: string?): InventoryCard.Card?
+	if not id then
+		return nil
+	end
+	for index, shown in self.order :: { string } do
+		if shown == id then
+			return self.slots[index]
+		end
+	end
+	return nil
+end
+
 --- Redraw from the snapshot (nil before the first: "Loading...").
 function InventoryCues.redraw(self: any, items: any)
 	local ctx = self.ctx
 	local loaded = type(items) == "table"
 	self.loading.Visible = not loaded
-	self.strip.Visible = loaded
 	self.gridHolder.Visible = loaded
 	if not loaded then
 		self:closeDetail()
@@ -669,52 +722,36 @@ function InventoryCues.redraw(self: any, items: any)
 		self:markSeen()
 	end
 
-	-- The cards, one per owned cue, kept across redraws so a gamepad stays on its card.
+	-- The cards in their places; a place past the last cue goes.
 	local rows = ownedRows(items)
 	local byId: { [string]: any } = {}
 	for _, row in rows do
 		byId[row.id] = row
 	end
 	self.rows = byId
-	for id, card in self.cards do
-		if not byId[id] then
-			InventoryCard.destroy(card)
-			self.cards[id] = nil
-		end
-	end
 	local order = {}
 	for index, row in sorted(rows, self.sort) do
 		local id: string = row.id
-		local card = self.cards[id]
-		if not card then
-			card = InventoryCard.new(self.grid, {
-				name = id,
-				onPress = function()
-					self:choose(id, true)
-				end,
-				onSelect = function()
-					self:choose(id, false)
-				end,
-			})
-			self.cards[id] = card
-		end
-		local made = card :: InventoryCard.Card
-		made.button.LayoutOrder = index
-		InventoryCard.set(made, {
+		InventoryCard.set(self:slot(index), {
 			cueId = id,
 			count = countLine(row),
+			copy = copyLine(row),
 			new = row.new == true or self.sticky[id] == true,
 			equipped = items.equipped == id,
 			chance = InventoryCues.chanceText(id),
 		})
 		table.insert(order, id)
 	end
+	for index = #self.slots, #order + 1, -1 do
+		InventoryCard.destroy(self.slots[index])
+		self.slots[index] = nil
+	end
 	self.order = order
 	-- The tutorial's Equip step points at the first card that is not the equipped cue.
 	local unequipped: GuiObject? = nil
-	for _, id in order do
+	for index, id in order do
 		if id ~= items.equipped then
-			unequipped = self.cards[id].button
+			unequipped = self.slots[index].button
 			break
 		end
 	end
@@ -726,11 +763,11 @@ function InventoryCues.redraw(self: any, items: any)
 	if not self.chosen or not byId[self.chosen] then
 		self.chosen = order[1] or (if rows[1] then rows[1].id else nil)
 	end
-	for id, card in self.cards do
-		InventoryCard.setChosen(card, id == self.chosen)
+	for index, card in self.slots :: { InventoryCard.Card } do
+		InventoryCard.setChosen(card, order[index] == self.chosen)
 	end
 
-	-- Sell all duplicates: the total it would pay now (for show; the server decides).
+	-- Sell all: the total it would pay now (for show; the server decides).
 	local total = 0
 	for _, row in rows do
 		local extra = countOf(row) - 1
@@ -739,20 +776,34 @@ function InventoryCues.redraw(self: any, items: any)
 		end
 	end
 	self.sellAllTotal = total
-	HudParts.setText(
-		self.sellAll,
-		if total > 0 then WORDS.SellAll:format(Format.money(total)) else WORDS.NoDuplicates
-	)
-	HudParts.setEnabled(self.sellAll, total > 0 and not ctx.isHeld(self.sellAll))
-	HudParts.setText(self.sortButton, sortWords(self.sort))
+	local rail = ctx.rail
+	if rail then
+		rail:setSell(Format.money(total), total > 0 and not ctx.isHeld(rail.sell))
+		rail:setSort(SORT_NAMES[self.sort] or self.sort)
+	end
 	if self.detailOpen then
 		self:refreshDetail()
 	end
 	self:arrange()
 end
 
---- The sort button: the next order, round. The chosen card stays chosen; the grid goes back
---- to its top so the new order reads from its start.
+--- The pictures the first screen shows (the staged cards), to load before the menu opens.
+function InventoryCues.pictures(self: any, items: any): { string }
+	local list = {}
+	for index, row in sorted(ownedRows(items), self.sort) do
+		if index > I.StagedCards then
+			break
+		end
+		local picture = CueThumb.pictureOf(row.id)
+		if picture then
+			table.insert(list, picture)
+		end
+	end
+	return list
+end
+
+--- Sort: the next order, round. The chosen card stays chosen; the grid goes back to its top
+--- so the new order reads from its start.
 function InventoryCues.nextSort(self: any)
 	local index = table.find(SORTS, self.sort) or 0
 	self.sort = SORTS[index % #SORTS + 1]
@@ -771,8 +822,8 @@ function InventoryCues.choose(self: any, id: string, pressed: boolean)
 		self.chooser = 0
 		-- Download its look while the details are read, so Equip shows it at once.
 		CueAssets.preload(id)
-		for cardId, card in self.cards do
-			InventoryCard.setChosen(card, cardId == id)
+		for index, card in self.slots :: { InventoryCard.Card } do
+			InventoryCard.setChosen(card, self.order[index] == id)
 		end
 	end
 	if pressed then
@@ -780,7 +831,16 @@ function InventoryCues.choose(self: any, id: string, pressed: boolean)
 	end
 end
 
---- Open the chosen cue's big card over the page.
+--- Open cue `id`'s big card (a Studio check through GuiQA "cuesDetail"); false if not owned.
+function InventoryCues.show(self: any, id: string): boolean
+	if not self.rows[id] then
+		return false
+	end
+	self:choose(id, true)
+	return true
+end
+
+--- Slam the chosen cue's big card in over the page.
 function InventoryCues.openDetail(self: any)
 	if not self.chosen then
 		return
@@ -790,10 +850,7 @@ function InventoryCues.openDetail(self: any)
 	if not self.detailOpen then
 		self.detailOpen = true
 		self.layer.Visible = true
-		self.detail.Visible = false
-		UIAnim.popIn(self.detail)
-		UIAnim.glowBurst(self.detail, HudParts.tone("Gold"), 0.25)
-		self.previous = GuiService.SelectedObject
+		UIAnim.slam(self.detail, HudParts.tone("Gold"))
 		self.dialog = {
 			cancel = function()
 				self:closeDetail()
@@ -855,7 +912,7 @@ function InventoryCues.closeDetail(self: any)
 	table.clear(self.closeConnections)
 	local selected = GuiService.SelectedObject
 	if selected and selected:IsDescendantOf(self.layer) then
-		local card = if self.chosen then self.cards[self.chosen] else nil
+		local card = self:cardOf(self.chosen)
 		GuiService.SelectedObject = if card and card.button.Parent then card.button else nil
 	end
 	UIAnim.popOut(self.detail, function()
@@ -901,80 +958,45 @@ function InventoryCues.layout(self: any, geo: MenuFrame.Geo)
 	self:arrange()
 end
 
--- Place the strip, the grid and the detail panel from the page's size.
+-- Place the grid and size the big card from the view's size (geo.content: the page less the
+-- rail when the rail stands inside it).
 function InventoryCues.arrange(self: any)
 	local geo: MenuFrame.Geo? = self.geo
 	if not geo then
 		return
 	end
-	local span = self.ctx.span
+	local t = geo.t
 	local W, H = geo.content.X, geo.content.Y
-	local gap = span(I.GapPx)
-	local stripH = span(I.StripPx)
-	self.stacked = true
-	local gridW = math.max(1, W)
-	local stripW = W
-	local below = stripH + gap
-	self.strip.Position = UDim2.fromOffset(0, 0)
-	self.strip.Size = UDim2.fromOffset(stripW, stripH)
-	self.gridHolder.Position = UDim2.fromOffset(0, below)
-	self.gridHolder.Size = UDim2.fromOffset(gridW, math.max(1, H - below))
-	-- As many columns as keep each card CardMinPx wide (inside the scroller's padding and bar).
-	local cellGap = span(I.CardGapPx)
-	local inner = gridW - 2 * SC.PadPx - SC.BarPx
-	local minCell = span(I.CardMinPx)
-	local columns = math.max(1, math.floor((inner + cellGap) / (minCell + cellGap)))
-	local cell = math.max(1, math.floor((inner - (columns - 1) * cellGap) / columns))
+	-- Columns cards a row across the view; when two rows and the peek do not fit its height,
+	-- smaller cards, the grid centred.
+	local cell, cellH, cellGap = cellFor(W, t)
+	local peek = span(I.PeekPx, t)
+	local roomH = H - SC.PadPx - 2 * cellGap - peek
+	if 2 * cellH > roomH then
+		cellH = math.max(1, math.floor(roomH / 2))
+		cell = math.max(1, math.floor(cellH * UNITS[1] / UNITS[2]))
+		cellH = round(cell * UNITS[2] / UNITS[1])
+	end
+	local used = I.Columns * cell + (I.Columns - 1) * cellGap + 2 * SC.PadPx + SC.BarPx
+	local gridW = math.min(W, used)
+	self.gridHolder.Position = UDim2.fromOffset(math.max(0, round((W - gridW) / 2)), 0)
+	self.gridHolder.Size = UDim2.fromOffset(gridW, math.max(1, H))
 	self.gridLayout.CellPadding = UDim2.fromOffset(cellGap, cellGap)
-	local units = Config.UI.CueCard.Units
-	self.gridLayout.CellSize = UDim2.fromOffset(cell, round(cell * units[2] / units[1]))
-	-- The big card: ref 07's size, as big as the page allows.
-	local parent: Frame = self.overlayParent
-	local scale = MenuFrame.scaleOf(parent)
-	local area = parent.AbsoluteSize / scale
-	if area.X <= 1 then
-		area = Vector2.new(W, H)
-	end
-	local cardH = math.max(1, area.Y - 2 * gap)
-	local wide = area.X - 2 * gap >= cardH * IT.BigWideRatio
-	self.detailWide = wide
-	local cardW =
-		math.min(if wide then IT.BigWideMaxWidthPx else IT.BigCardMaxWidthPx, area.X - 2 * gap)
-	self.detail.Size = UDim2.fromOffset(cardW, cardH)
-	self.detailSize = Vector2.new(cardW, cardH)
+	self.gridLayout.CellSize = UDim2.fromOffset(cell, cellH)
 
-	-- The strip: the sort button at the left, as wide as its longest words so it keeps still as
-	-- it turns; Sell all at the right, sized to its words (each at most a share of the strip).
-	-- Both are drawn at the strip's height, touch area 44.
-	local textPx = span(I.StripTextPx)
-	local lip = math.floor(stripH * K.ButtonLipShare + 0.5)
-	local usable = stripH - lip
-	local bpad = math.max(6, math.floor(usable * 0.18))
-	local icon = math.floor(usable * K.ButtonIconShare)
-	local sellText = if self.sellAllTotal > 0
-		then WORDS.SellAll:format(Format.money(self.sellAllTotal))
-		else WORDS.NoDuplicates
-	local function buttonWidth(words: string): number
-		return bpad + icon + math.floor(bpad / 2) + math.ceil(textWidth(words, textPx)) + 6 + bpad
-	end
-	local sellW = math.min(buttonWidth(sellText), round(stripW * I.SellAllMaxShare))
-	self.sellAll.AnchorPoint = Vector2.new(1, 0)
-	self.sellAll.Position = UDim2.fromOffset(stripW, 0)
-	self.sellAll.Size = UDim2.fromOffset(sellW, stripH)
-	HudParts.setButtonTextSize(self.sellAll, textPx)
-	local sortW = 0
-	for _, sort in SORTS do
-		sortW = math.max(sortW, buttonWidth(sortWords(sort)))
-	end
-	sortW = math.min(sortW, round(stripW * I.SortMaxShare), math.max(1, stripW - sellW - gap))
-	self.sortButton.Position = UDim2.fromOffset(0, 0)
-	self.sortButton.Size = UDim2.fromOffset(sortW, stripH)
-	HudParts.setButtonTextSize(self.sortButton, textPx)
+	-- The big card: over the view, as big as it allows, a gap all round.
+	local gap = span(I.GapPx, t)
+	local cardW = math.max(1, math.min(IT.BigMaxWidthPx, W - 2 * gap))
+	local cardH = math.max(1, H - 2 * gap)
+	self.detail.Size = UDim2.fromOffset(cardW, cardH)
+	self.detail.Position = UDim2.fromOffset(round(W / 2), round(H / 2))
+	self.detail.AnchorPoint = Vector2.new(0.5, 0.5)
+	self.detailSize = Vector2.new(cardW, cardH)
 	self:arrangeDetail()
 end
 
 --------------------------------------------------------------------------------------------
--- The tab showing, NEW tags
+-- The view showing, NEW tags
 --------------------------------------------------------------------------------------------
 
 function InventoryCues.opened(self: any)
@@ -988,7 +1010,7 @@ function InventoryCues.shown(self: any)
 	end
 	self.showing = true
 	self:markSeen()
-	-- Pills left from the last time the tab showed go, the ones just marked stay.
+	-- Pills left from the last time the view showed go, the ones just marked stay.
 	self:redraw(self.ctx.lastItems)
 end
 
@@ -1006,8 +1028,8 @@ function InventoryCues.closed(self: any)
 	self:closeDetail()
 end
 
--- Clear the NEW tags the tab shows now: one MarkSeen with their ids (at most MarkSeenMax);
--- their pills stay up (sticky) until the tab is left.
+-- Clear the NEW tags the view shows now: one MarkSeen with their ids (at most MarkSeenMax);
+-- their pills stay up (sticky) until the view is left.
 function InventoryCues.markSeen(self: any)
 	local items = self.ctx.lastItems
 	if type(items) ~= "table" then
@@ -1035,17 +1057,14 @@ function InventoryCues.markSeen(self: any)
 	end)
 end
 
---- Where a gamepad starts on this page: the chosen card, else the sort button.
+--- Where a gamepad starts on this view: the chosen card, else the first (nil with none: the
+--- menu puts it on the switch).
 function InventoryCues.first(self: any): GuiObject?
-	local card = if self.chosen then self.cards[self.chosen] else nil
+	local card = self:cardOf(self.chosen) or self.slots[1]
 	if card and card.button.Visible then
 		return card.button
 	end
-	local firstId = self.order[1]
-	if firstId and self.cards[firstId] then
-		return self.cards[firstId].button
-	end
-	return self.sortButton
+	return nil
 end
 
 --------------------------------------------------------------------------------------------
@@ -1110,12 +1129,15 @@ function InventoryCues.askSellCount(self: any)
 	end)
 end
 
+--- Sell all (the rail's tile): every duplicate, after a confirm.
 function InventoryCues.askSellAll(self: any)
 	local ctx = self.ctx
-	if self.sellAllTotal <= 0 then
+	local button: TextButton? = ctx.rail and ctx.rail.sell
+	if self.sellAllTotal <= 0 or not button then
 		ctx.notice(WORDS.NothingToSell)
 		return
 	end
+	UISound.play("Click")
 	ctx.confirm({
 		title = WORDS.ConfirmAllTitle,
 		text = WORDS.ConfirmAll:format(Format.money(self.sellAllTotal)),
@@ -1125,12 +1147,12 @@ function InventoryCues.askSellAll(self: any)
 		if not yes then
 			return
 		end
-		ctx.hold(self.sellAll, function()
+		ctx.hold(button, function()
 			local reply = ctx.request("SellDuplicates")
 			if reply.ok then
 				local money = if type(reply.money) == "number" then reply.money else 0
 				if money > 0 then
-					ctx.flyMoney(money, self.sellAll)
+					ctx.flyMoney(money, button)
 					ctx.notice(WORDS.SoldAll:format(Format.money(money)), "Green")
 				else
 					ctx.notice(WORDS.NothingToSell)

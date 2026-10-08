@@ -55,6 +55,7 @@ export type Fx = {
 	phases: { [string]: number },
 	scroller: ScrollingFrame?,
 	scrollerKnown: boolean,
+	held: boolean, -- still while its card is fading in (InventoryCard.hold)
 	ancestry: RBXScriptConnection?,
 	-- The parts, each nil when the look has none.
 	halo: ImageLabel?,
@@ -214,6 +215,7 @@ function CueCardFx.new(parts: Parts, look: any, seed: number, still: boolean?): 
 		phases = {},
 		scroller = nil,
 		scrollerKnown = false,
+		held = false,
 		ancestry = nil,
 		halo = nil,
 		glow = nil,
@@ -489,6 +491,9 @@ end
 --- One frame of a card's motion at `clock` seconds (UIAnim.loop's clock: it runs only while
 --- the card's screen shows).
 function CueCardFx.step(fx: Fx, clock: number)
+	if fx.held then
+		return
+	end
 	local parts = fx.parts
 	local face = parts.face
 	if not fx.scrollerKnown then
@@ -628,6 +633,11 @@ function CueCardFx.step(fx: Fx, clock: number)
 			copy.Position = UDim2.fromOffset(math.floor(side * k + 0.5), 0)
 		end
 	end
+end
+
+--- Hold the motion still (`on`), or let it run again.
+function CueCardFx.hold(fx: Fx, on: boolean)
+	fx.held = on
 end
 
 --- Stop the loop and take the moving parts away (the card's own parts go back to plain).

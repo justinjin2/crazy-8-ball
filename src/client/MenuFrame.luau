@@ -358,8 +358,9 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 		self:refreshMoney()
 		local onPlus = opts.moneyPlus
 		if onPlus then
-			-- The money HUD's "+" (MoneyHud), on the pill's right end.
-			local plus = HudParts.candy(header, "+", function()
+			-- The money HUD's "+" (MoneyHud), on the pill's right end: inside the pill, so the
+			-- lively open pops it in with the pill.
+			local plus = HudParts.candy(pill, "+", function()
 				UISound.play("Click")
 				onPlus()
 			end, "Yellow")
@@ -636,10 +637,11 @@ function MenuFrame.layout(self: any): boolean
 		local plusSize = round(mh * FR.MoneyPlusShare)
 		right -= round(FR.MoneyPlusGapPx)
 		plus.Size = UDim2.fromOffset(plusSize, plusSize)
-		plus.Position = UDim2.fromOffset(right, round(headerH / 2))
 		HudParts.setButtonTextSize(plus, math.max(K.Text.Min, round(plusSize * 0.8)))
 		underPlus = round(plusSize / 2)
-		right -= underPlus -- the pill runs under the "+"'s left half
+		-- Its right half past the pill's right end (the pill runs under its left half).
+		plus.Position = UDim2.new(1, plusSize - underPlus, 0.5, 0)
+		right -= plusSize - underPlus
 	end
 	local pill: Frame? = self.moneyPill
 	if pill then

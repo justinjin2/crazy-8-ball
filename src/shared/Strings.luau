@@ -598,7 +598,7 @@ return {
 		-- The left column's words, in capitals (designer, 2026-10-06).
 		Column = {
 			Shop = "SHOP",
-			Inventory = "INVENTORY",
+			Inventory = "CUES", -- the Cues menu (renamed from Inventory, concept 2, 2026-10-08)
 			Rewards = "REWARDS",
 			Trade = "TRADE",
 			FreeReward = "FREE REWARD",
@@ -606,14 +606,15 @@ return {
 		-- Each menu's title in its header band.
 		Titles = {
 			Shop = "Shop",
-			Inventory = "Inventory",
+			Inventory = "Cues",
+			Index = "Index", -- the Cues menu's title while its Index shows
 			Rewards = "Rewards",
 			Trade = "Trade",
 			FreeReward = "Free Reward",
 		},
 		-- The tabs under (or beside) each title.
 		Tabs = {
-			Inventory = { Cues = "Cues", Index = "Index" },
+			Inventory = { Cues = "My Cues", Index = "Index" }, -- the Cues menu's switch
 			Rewards = { Daily = "Daily", Playtime = "Playtime", Codes = "Codes" },
 		},
 		Loading = "Loading...", -- a page whose contents have not arrived
@@ -800,12 +801,14 @@ return {
 			Pressed = "Trading is coming soon!", -- pressing a greyed Trade button
 			Empty = "No one else is in this server yet.",
 		},
-		-- The Inventory (InventoryMenu and its pages). Rarity and cue names come from Items.
+		-- The Cues menu (InventoryMenu and its views; "Inventory" in code). Rarity and cue names
+		-- come from Items.
 		Inventory = {
-			-- The Cues tab.
-			-- The sort button over the grid: "Sort: Rarest first"; each press moves to the next
-			-- order (Config.UI.Inventory.SortOrders).
-			Sort = "Sort: %s",
+			-- My Cues. The tiles beside the panel: Sort (the order's name hangs under it; each
+			-- press moves to the next of Config.UI.Inventory.SortOrders) and Sell all (the
+			-- money it would pay hangs under it).
+			SortTile = "Sort",
+			SellAllTile = "Sell all",
 			SortOrders = {
 				RarestFirst = "Rarest first",
 				CommonFirst = "Common first",
@@ -816,7 +819,7 @@ return {
 			Equipped = "Equipped", -- the green pill, and the Equip button once it is
 			Equip = "Equip",
 			Count = "x%s", -- copies owned, on the card: "x3"
-			CopyShort = "#%s", -- a Unique cue's copy number on its card: "#412"
+			CopyShort = "#%s", -- a numbered copy's chip over its card's name: "#412"
 			Copy = "Copy #%s", -- ...and in its details
 			Owned = "You own %s", -- "You own 3"
 			Exist = "%s exist", -- copies in the whole game: "1,284 exist"
@@ -824,8 +827,6 @@ return {
 			CantSell = "Can't be sold", -- Exclusive, Unique and Classic cues
 			Sell = "Sell %s", -- one copy: "Sell $120"
 			SellDuplicates = "Sell duplicates: %s", -- this cue's extra copies
-			SellAll = "Sell all duplicates: %s", -- every cue's extra copies, top of the tab
-			NoDuplicates = "No duplicates",
 			Empty = "No cues yet. Open lucky blocks to find some!",
 			-- The confirm dialogs (red sells, blue keeps).
 			SellYes = "Sell",
@@ -840,7 +841,7 @@ return {
 			SoldAll = "Sold your duplicates for %s!",
 			NothingToSell = "No duplicates to sell.",
 			EquippedNotice = "%s equipped!", -- the cue's name
-			-- The Index tab.
+			-- The Index view.
 			Titles = "Titles",
 			Progress = "%s / %s", -- cues of the row ever owned: "5 / 7"
 			Claim = "Claim",
@@ -852,6 +853,7 @@ return {
 			FindReward = "Find it for +%s", -- a cue not found yet: its finder's money ("$250")
 			-- The chosen cue's big card (GUI lane, 2026-10-03).
 			Odds = "%s chance", -- a cue's rarity per Mystery block: "4.2% chance"
+			Joined = "%s · %s", -- the chance and how many exist: "4.2% chance · 1,284 exist"
 			SellSome = "Sell duplicates", -- opens the count chooser
 			SellCount = "Sell %s for %s", -- the count and the money: "Sell 3 for $360"
 			Max = "Max",
@@ -1487,11 +1489,11 @@ return {
 			Touch = "Walk up and hold the button to open it!",
 			Gamepad = "Walk up and hold X to open it!",
 		},
-		-- The Equip step: the new Uncommon cue, equipped through the Inventory.
+		-- The Equip step: the new Uncommon cue, equipped through the Cues menu.
 		EquipOpen = {
-			Mouse = "Equip your new cue! Click Inventory.",
-			Touch = "Equip your new cue! Tap Inventory.",
-			Gamepad = "Equip your new cue! Open Inventory with A.",
+			Mouse = "Equip your new cue! Click Cues.",
+			Touch = "Equip your new cue! Tap Cues.",
+			Gamepad = "Equip your new cue! Open Cues with A.",
 		},
 		EquipCard = {
 			Mouse = "Click your new cue!",
@@ -1544,7 +1546,7 @@ return {
 		-- The real server's nudges (step 7), one at a time.
 		Nudge = {
 			Rank = "Claim your rank rewards!",
-			Inventory = "Your cues live in the Inventory!",
+			Inventory = "Your cues live in the Cues menu!",
 			Shop = "Check out the Shop!",
 			FreeReward = "Claim your free reward!",
 			BlockReady = "Your block is ready!", -- the Rare block's hotbar slot at 0

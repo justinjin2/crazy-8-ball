@@ -9,8 +9,9 @@
 -- grow it a little; a press squishes and bounces it (UIAnim) with the Click sound, and opens
 -- its menu (onPress).
 --
--- Red dots, top right of a tile: Inventory shows none (the cases' count went with them,
--- 2026-10-04); Rewards shows "!" while RewardReady is true; Shop shows a small
+-- Red dots, top right of a tile: Inventory (the CUES tile) shows how many owned cues are NEW
+-- ("9+" past Config.UI.Menu.Column.DotMax; concept 2, 2026-10-08); Rewards shows "!" while
+-- RewardReady is true; Shop shows a small
 -- gold timer pill ("23:59:12", "6d 4h") while the VIP welcome offer or the Starter Pack window
 -- is open (ItemState.offerEndsAt; nothing while unknown); Trade shows nothing; Ults shows "!"
 -- while today's free ult spin is unused (the UltFreeSpin attribute).
@@ -604,11 +605,32 @@ local function setDot(self: any, t: Tile, text: string?)
 	end
 end
 
---- Read the red dots again: "!" on Rewards, "!" on Ults while today's free ult spin is unused
---- (Inventory shows none).
+-- How many owned cues are NEW in the snapshot (0 before it).
+local function newCues(): number
+	local items = ItemState.items()
+	local rows = if type(items) == "table" and type(items.cues) == "table" then items.cues else {}
+	local n = 0
+	for _, row in rows do
+		if type(row) == "table" and row.new == true then
+			n += 1
+		end
+	end
+	return n
+end
+
+--- Read the red dots again: the NEW cues on CUES, "!" on Rewards, "!" on Ults while today's
+--- free ult spin is unused.
 function MenuColumn.refreshDots(self: any)
 	local player = Players.LocalPlayer
-	setDot(self, self.tiles.Inventory, nil)
+	local fresh = newCues()
+	setDot(
+		self,
+		self.tiles.Inventory,
+		if fresh <= 0
+			then nil
+			elseif fresh > C.DotMax then COPY.DotMore:format(C.DotMax)
+			else tostring(fresh)
+	)
 	local rewardsTile: Tile? = self.tiles.Rewards
 	if rewardsTile then
 		local ready = if player then player:GetAttribute("RewardReady") == true else false

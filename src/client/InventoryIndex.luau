@@ -1,6 +1,6 @@
 --!strict
--- InventoryIndex: the Inventory's Index tab (docs/prompts/ECONOMY_UI_PROMPT.md section 11,
--- ECONOMY section 18).
+-- InventoryIndex: the Cues menu's Index view (docs/prompts/ECONOMY_UI_PROMPT.md section 11,
+-- ECONOMY section 18; concept 2 of docs/prompts/CUES_LIVELY_PROMPT.md, 2026-10-08).
 --
 --   * On top, only for a player who holds one, their titles (gold pills, from the snapshot's
 --     `titles`: the first Reyes'). The rows' "Collector" titles are gone (designer, 2026-09-28).
@@ -8,18 +8,18 @@
 --     header: the rarity's name in its colour, "5 / 7" (cues of it ever owned), the reward
 --     money (Common to Epic only, from the snapshot's `rows`) and Claim
 --     once the row is complete (it breathes while it can be claimed; "Claimed" with a check
---     after). Under it every catalog cue of that rarity as a small card (InventoryCard):
---     ever-owned cues in colour with their names, never-owned ones as a big "?" in the
---     rarity's colour with no name. A cue counts once ever owned (the snapshot's `seen`), sold
---     or not.
---   * On the right, the chosen cue (designer, 2026-09-28; GUI lane 2026-10-03): its still
---     picture at once, replaced by the cue turning in 3D with its frozen piece (CueViewport) once
---     its look has loaded; a black still silhouette until found. Its name (shown even before it
---     is found), rarity, "In your collection" or "Not found yet", "4.2% chance · 1,284 exist",
---     and for a cue
---     not found yet the finder's money it pays ("Find it for +$250", Config.Index.FindMoney).
---     A tap or click on a card chooses it; a gamepad chooses the card it lands on. It turns
---     only while the tab shows.
+--     after). Under it every catalog cue of that rarity as a small card (InventoryCard),
+--     Config.UI.Inventory.IndexColumns a row: ever-owned cues in colour with their names,
+--     never-owned ones as their black silhouette with no name. A cue counts once ever owned
+--     (the snapshot's `seen`), sold or not.
+--   * On the right, the chosen cue: its flat picture (concept 2: no 3D cue), swaying gently
+--     while the view shows (still with Reduce Motion); a black silhouette until found. Its name
+--     (shown even before it is found), rarity, "In your collection" or "Not found yet",
+--     "4.2% chance · 1,284 exist", and for a cue not found yet the finder's money it pays
+--     ("Find it for +$250", Config.Index.FindMoney). A tap or click on a card chooses it; a
+--     gamepad chooses the card it lands on.
+--   * The open (Config.UI.Inventory.Open): the panel, the first rows' headers and the first
+--     cells pop in ("IndexDetail", "IndexHead1".., "IndexCell1"..).
 --
 -- Claim asks the server (ItemRequest "ClaimIndexRow"); its money flies into the header's cash.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -27,14 +27,12 @@ local TextService = game:GetService("TextService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
-local CueSkins = require(Shared:WaitForChild("CueSkins"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
 local Catalog = require(Progression:WaitForChild("Catalog"))
 local Format = require(Progression:WaitForChild("Format"))
 local Inventory = require(Progression:WaitForChild("Inventory"))
 local CueThumb = require(script.Parent.CueThumb)
-local CueViewport = require(script.Parent.CueViewport)
 local HudParts = require(script.Parent.HudParts)
 local InventoryCard = require(script.Parent.InventoryCard)
 local InventoryCues = require(script.Parent.InventoryCues)
@@ -51,7 +49,20 @@ local WORDS = Strings.Menus.Inventory
 local TITLE_NAMES: { [string]: string } = Strings.Items.Titles :: any
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 local TOUCH = Config.UI.Menu.Frame.TouchMinPx
+local UNITS = Config.UI.CueCard.Units
 local COPIES_FOLDER = "CueCounts" -- ReplicatedStorage.CueCounts: copies in existence (Counters)
+
+-- How many headers and cells the open schedule names (Config.UI.Inventory.Open).
+local INDEX_HEADS, INDEX_CELLS = 0, 0
+for _, step in I.Open.Steps do
+	for _, id in step.Ids do
+		if string.match(id, "^IndexHead%d+$") then
+			INDEX_HEADS += 1
+		elseif string.match(id, "^IndexCell%d+$") then
+			INDEX_CELLS += 1
+		end
+	end
+end
 
 -- The rows, top to bottom (as Progression/Inventory.indexRows).
 local GROUPS: { string } = table.clone(Config.BlockOdds.Rarities)
@@ -62,6 +73,7 @@ table.insert(GROUPS, "Unique")
 type Section = {
 	rarity: string,
 	box: Frame,
+	head: Frame, -- the header line (a piece of the open)
 	name: TextLabel,
 	progress: TextLabel,
 	money: Frame,
@@ -82,6 +94,10 @@ InventoryIndex.__index = InventoryIndex
 
 local function round(n: number): number
 	return math.floor(n + 0.5)
+end
+
+local function span(pair: { number }, t: number): number
+	return round(pair[1] + (pair[2] - pair[1]) * t)
 end
 
 local function textWidth(text: string, size: number): number
@@ -109,6 +125,7 @@ function InventoryIndex.new(page: Frame, ctx: any): any
 	self.showing = false
 	self.chosen = nil :: string?
 	self.seen = {} :: { [string]: boolean }
+	self.sway = nil :: UIAnim.Handle?
 	-- The rows scroll on the left; the chosen cue's panel sits on the right.
 	local list = HudParts.frame(page, "List")
 	list.ZIndex = 2
@@ -137,7 +154,7 @@ function InventoryIndex.new(page: Frame, ctx: any): any
 	return self
 end
 
--- The chosen cue's panel: the turning cue in a small card, then its words.
+-- The chosen cue's panel: its flat picture in a small card, then its words.
 function InventoryIndex.buildDetail(self: any, page: Frame)
 	local box = InventoryCard.box(page, "Detail")
 	box.ZIndex = 2
@@ -164,31 +181,18 @@ function InventoryIndex.buildDetail(self: any, page: Frame)
 	self.artBox = artBox
 	self.artDressing = nil :: CueThumb.Dressing?
 	self.artKey = ""
-	-- The still picture shows at once (GUI lane, 2026-10-03); the turning cue takes its place
-	-- once its look has loaded. A cue not found yet stays a black still silhouette, and a cue
-	-- with a 3D piece (wings, the dragon) keeps its still: a ViewportFrame draws no Neon glow
-	-- or ForceField, so the piece barely shows there, while the picture has it in full.
-	local still = CueThumb.new(artBox, Catalog.Default)
+	-- The picture sways in a holder (its rotation carries to the picture's layers); at
+	-- ThumbShare of the box it stays inside it at SwayDegrees.
+	local holder = HudParts.frame(artBox, "Sway")
+	holder.Size = UDim2.fromScale(1, 1)
+	holder.ZIndex = 3
+	self.swayHolder = holder
+	local still = CueThumb.new(holder, Catalog.Default)
 	still.AnchorPoint = Vector2.new(0.5, 0.5)
 	still.Position = UDim2.fromScale(0.5, 0.5)
 	still.Size = UDim2.fromScale(D.ThumbShare, D.ThumbShare)
 	still.ZIndex = 3
 	self.still = still
-	local view = CueViewport.new(artBox, "Cue")
-	view.frame.AnchorPoint = Vector2.new(0.5, 0.5)
-	view.frame.Position = UDim2.fromScale(0.5, 0.5)
-	view.frame.Size = UDim2.fromScale(1, 1)
-	view.frame.ZIndex = 3
-	view.frame.Visible = false
-	view.onBuilt = function(cueId: string, silhouette: boolean)
-		local skin = CueSkins.get(cueId)
-		local piece = skin ~= nil and skin.Piece ~= nil
-		if cueId == self.chosen and not silhouette and not piece and self.seen[cueId] == true then
-			view.frame.Visible = true
-			still.Visible = false
-		end
-	end
-	self.view = view
 
 	self.nameLabel = HudParts.text(scroll, "Name", D.NameTextPx[2], "")
 	self.nameLabel.ZIndex = 3
@@ -219,8 +223,10 @@ function InventoryIndex.buildSection(self: any, rarity: string, order: number): 
 	local box = InventoryCard.box(self.scroll, "Row" .. rarity)
 	box.LayoutOrder = order
 	box.ZIndex = 2
+	local head = HudParts.frame(box, "Head")
+	head.ZIndex = 3
 	local name = HudParts.text(
-		box,
+		head,
 		"Rarity",
 		I.HeaderTextPx[2],
 		CueThumb.rarityName(rarity),
@@ -229,12 +235,12 @@ function InventoryIndex.buildSection(self: any, rarity: string, order: number): 
 	name.TextWrapped = false
 	name.TextXAlignment = Enum.TextXAlignment.Left
 	name.ZIndex = 3
-	local progress = HudParts.note(box, "Progress", I.ProgressTextPx[2], "")
+	local progress = HudParts.note(head, "Progress", I.ProgressTextPx[2], "")
 	progress.TextWrapped = false
 	progress.TextXAlignment = Enum.TextXAlignment.Left
 	progress.ZIndex = 3
 	-- The reward: the money (a white pill, the cash and green words).
-	local money = HudParts.pill(box, "Money", HudParts.tone("White"))
+	local money = HudParts.pill(head, "Money", HudParts.tone("White"))
 	money.ZIndex = 3
 	local moneyIcon = HudParts.icon(money, "CashSingle", "Cash")
 	moneyIcon.ZIndex = 4
@@ -243,13 +249,13 @@ function InventoryIndex.buildSection(self: any, rarity: string, order: number): 
 	moneyText.TextWrapped = false
 	moneyText.ZIndex = 4
 	local section: Section
-	local claim = HudParts.candy(box, WORDS.Claim, function()
+	local claim = HudParts.candy(head, WORDS.Claim, function()
 		self:claim(section)
 	end, "Green")
 	claim.Name = "Claim"
 	claim.ZIndex = 3
 	HudParts.setMinHit(claim, TOUCH)
-	local claimed = HudParts.frame(box, "Claimed")
+	local claimed = HudParts.frame(head, "Claimed")
 	claimed.ZIndex = 3
 	local claimedIcon = HudParts.icon(claimed, "Check", "Check")
 	claimedIcon.ZIndex = 3
@@ -282,6 +288,7 @@ function InventoryIndex.buildSection(self: any, rarity: string, order: number): 
 	section = {
 		rarity = rarity,
 		box = box,
+		head = head,
 		name = name,
 		progress = progress,
 		money = money,
@@ -297,6 +304,39 @@ function InventoryIndex.buildSection(self: any, rarity: string, order: number): 
 		pulse = nil,
 	}
 	return section
+end
+
+--- The open's pieces: the panel, the first rows' headers and the first cells in reading order
+--- (as many as the schedule names).
+function InventoryIndex.register(self: any, stage: any)
+	stage:add("IndexDetail", self.detail)
+	local staged: { InventoryCard.Card } = {}
+	local stagedIds: { string } = {}
+	self.staged, self.stagedIds = staged, stagedIds
+	for index, section in self.sections :: { Section } do
+		if index <= INDEX_HEADS then
+			stage:add("IndexHead" .. index, section.head)
+		end
+		for i, card in section.cells do
+			if #staged >= INDEX_CELLS then
+				return
+			end
+			table.insert(staged, card)
+			table.insert(stagedIds, section.ids[i])
+			-- Its motion runs again as it lands (`hold` stilled it for the pop).
+			stage:add("IndexCell" .. #staged, card.button, function()
+				InventoryCard.hold(card, false)
+			end)
+		end
+	end
+end
+
+--- The staged cells are about to pop in (the open, a flip to the Index): their motion waits
+--- until each lands.
+function InventoryIndex.hold(self: any)
+	for _, card in self.staged or {} do
+		InventoryCard.hold(card, true)
+	end
 end
 
 --------------------------------------------------------------------------------------------
@@ -327,6 +367,19 @@ function InventoryIndex.dot(_self: any, items: any): string?
 		end
 	end
 	return nil
+end
+
+--- The pictures the first screen shows (the staged cells and the first cue's panel), to load
+--- before the view first shows.
+function InventoryIndex.pictures(self: any, _items: any): { string }
+	local list = {}
+	for _, id in self.stagedIds or {} do
+		local picture = CueThumb.pictureOf(id)
+		if picture then
+			table.insert(list, picture)
+		end
+	end
+	return list
 end
 
 --- Redraw from the snapshot (nil before the first: "Loading...").
@@ -448,12 +501,15 @@ function InventoryIndex.arrange(self: any)
 	if not geo then
 		return
 	end
-	local span = self.ctx.span
+	local t = geo.t
+	local function span1(pair: { number }): number
+		return span(pair, t)
+	end
 	-- The list on the left, the chosen cue's panel on the right.
 	local pageW, pageH = geo.content.X, geo.content.Y
-	local pageGap = span(I.GapPx)
+	local pageGap = span1(I.GapPx)
 	local detailW =
-		math.clamp(round(pageW * I.IndexDetailShare), I.IndexDetailMinPx, I.IndexDetailMaxPx)
+		math.clamp(round(pageW * I.IndexDetailShare), span1(I.IndexDetailMinPx), I.IndexDetailMaxPx)
 	detailW = math.min(detailW, math.max(1, round(pageW / 2)))
 	local listW = math.max(1, pageW - detailW - pageGap)
 	self.list.Position = UDim2.fromOffset(0, 0)
@@ -464,23 +520,23 @@ function InventoryIndex.arrange(self: any)
 	self:arrangeDetail()
 
 	local W = math.max(1, listW - 2 * SC.PadPx - SC.BarPx) -- a card's width
-	local pad = span(I.SectionPadPx)
-	local gap = span(I.CellGapPx)
+	local pad = span1(I.SectionPadPx)
+	local gap = span1(I.CellGapPx)
 	local inner = math.max(1, W - 2 * pad)
-	local headerH = span(I.HeaderPx)
-	local headText = span(I.HeaderTextPx)
-	local progText = span(I.ProgressTextPx)
-	local rewardH = span(I.RewardPx)
-	local rewardText = span(I.RewardTextPx)
-	local claimW = span(I.ClaimWidthPx)
+	local headerH = span1(I.HeaderPx)
+	local headText = span1(I.HeaderTextPx)
+	local progText = span1(I.ProgressTextPx)
+	local rewardH = span1(I.RewardPx)
+	local rewardText = span1(I.RewardTextPx)
+	local claimW = span1(I.ClaimWidthPx)
 
 	-- The titles: the heading, then the pills flowing left to right, wrapping.
 	HudParts.setTextSize(self.titlesHeading, headText)
 	self.titlesHeading.Position = UDim2.fromOffset(pad, pad)
 	self.titlesHeading.Size = UDim2.fromOffset(inner, headerH)
 	local y = pad + headerH
-	local pillH = span(I.TitlePillPx)
-	local pillText = span(I.TitleTextPx)
+	local pillH = span1(I.TitlePillPx)
+	local pillText = span1(I.TitleTextPx)
 	do
 		local x = pad
 		for _, entry in self.titlePills do
@@ -501,12 +557,10 @@ function InventoryIndex.arrange(self: any)
 	end
 	self.titles.Size = UDim2.fromOffset(W, y + pad)
 
-	-- The rows.
-	local cellMin = span(I.CellMinPx)
-	local columns = math.max(1, math.floor((inner + gap) / (cellMin + gap)))
+	-- The rows: IndexColumns cells a row.
+	local columns = I.IndexColumns
 	local cellW = math.max(1, math.floor((inner - (columns - 1) * gap) / columns))
-	local units = Config.UI.CueCard.Units
-	local cellH = round(cellW * units[2] / units[1])
+	local cellH = round(cellW * UNITS[2] / UNITS[1])
 	for _, section in self.sections do
 		-- Left: the rarity and "5 / 7".
 		HudParts.setTextSize(section.name, headText)
@@ -581,7 +635,11 @@ function InventoryIndex.arrange(self: any)
 			end
 		end
 
-		-- The cues, in rows of as many cells as fit.
+		-- The header line holds what is above the cells (it pops in as one piece).
+		section.head.Position = UDim2.fromOffset(0, 0)
+		section.head.Size = UDim2.fromOffset(W, top)
+
+		-- The cues, IndexColumns a row.
 		top += gap
 		for i, card in section.cells do
 			local col = (i - 1) % columns
@@ -634,14 +692,6 @@ function InventoryIndex.refreshDetail(self: any)
 	end
 	local found = self.seen[id] == true
 	CueThumb.set(self.still, id, not found)
-	local skin = CueSkins.get(id)
-	local turns = found and not (skin ~= nil and skin.Piece ~= nil) -- a piece keeps its still
-	local built = self.view.cueId == id and self.view.model ~= nil and not self.view.silhouette
-	self.view.frame.Visible = turns and built
-	self.still.Visible = not (turns and built)
-	if turns then
-		self.view:set(id, false)
-	end
 	-- A found cue's picture wears its rarity (as on its card); a cue not found yet stays plain.
 	local key = if found then cue.Rarity .. "/" .. (cue.Tier or "") else ""
 	if key ~= self.artKey then
@@ -659,21 +709,17 @@ function InventoryIndex.refreshDetail(self: any)
 	self.rarityLabel.Text = CueThumb.rarityName(cue.Rarity)
 	self.rarityLabel.TextColor3 = CueThumb.cueColor(id)
 	self.stateLabel.Text = if found then WORDS.Found else WORDS.NotFound
-	local copies = copiesOf(id)
-	local odds = InventoryCues.oddsLine(id)
-	if odds == nil and copies then
-		odds = (if copies == 1 then WORDS.ExistOne else WORDS.Exist):format(Format.commas(copies))
-	end
-	self.existLabel.Text = odds or ""
-	self.existLabel.Visible = odds ~= nil
+	local facts = InventoryCues.factsLine(id, copiesOf(id))
+	self.existLabel.Text = facts or ""
+	self.existLabel.Visible = facts ~= nil
 	local money = if found then 0 else Inventory.findMoney(id)
 	self.findRow.Visible = money > 0
 	self.findLabel.Text = WORDS.FindReward:format(Format.money(money))
 	self:arrangeDetail()
 end
 
--- Lay the panel out, stacked and centred: the turning cue on top (square, at most
--- IndexViewShare of the page's height), then the words. Its canvas grows to fit.
+-- Lay the panel out, stacked and centred: the picture on top (square, at most IndexArtShare
+-- of the page's height), then the words. Its canvas grows to fit.
 function InventoryIndex.arrangeDetail(self: any)
 	local size = self.detailSize :: Vector2?
 	if not size or size.X <= 0 then
@@ -683,7 +729,7 @@ function InventoryIndex.arrangeDetail(self: any)
 	local pad, gap = span(D.PadPx), span(D.GapPx)
 	local w = size.X - SC.BarPx
 	local inner = math.max(1, w - 2 * pad)
-	local art = math.max(1, math.min(inner, round(size.Y * I.IndexViewShare)))
+	local art = math.max(1, math.min(inner, round(size.Y * I.IndexArtShare)))
 	self.artBox.Position = UDim2.fromOffset(round((w - art) / 2), pad)
 	self.artBox.Size = UDim2.fromOffset(art, art)
 	local y = pad + art + gap
@@ -753,22 +799,32 @@ function InventoryIndex.opened(self: any)
 	self.chosen = nil -- every open starts on the first cue
 end
 
+-- The picture sways while the view shows.
+function InventoryIndex.setSwaying(self: any, on: boolean)
+	if on and not self.sway then
+		self.sway = UIAnim.turn(self.swayHolder, 0, I.SwayDegrees, I.SwaySeconds)
+	elseif not on and self.sway then
+		self.sway.stop()
+		self.sway = nil
+	end
+end
+
 function InventoryIndex.shown(self: any)
 	self.showing = true
 	self:refreshPulses()
 	self:refreshDetail() -- the copies in existence may have moved
-	self.view:setSpinning(true)
+	self:setSwaying(true)
 end
 
 function InventoryIndex.hidden(self: any)
 	self.showing = false
 	self:stopPulses()
-	self.view:setSpinning(false)
+	self:setSwaying(false)
 end
 
 function InventoryIndex.closed(self: any)
 	self:stopPulses()
-	self.view:setSpinning(false)
+	self:setSwaying(false)
 end
 
 --- Where a gamepad starts on this page: a Claim that can be pressed, else the first cue.
