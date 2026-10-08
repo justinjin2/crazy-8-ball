@@ -1123,6 +1123,7 @@ return {
 			Legendary = "A LEGENDARY block is in the restock for %s!",
 			Mythic = "A MYTHIC block is in the restock for %s!",
 		},
+		ShopButton = "Shop", -- a restock line's button: opens the Shop's Blocks tab
 		PartyStarted = "%s started a Money Party!", -- the buyer's username
 		PartyStartedAnon = "A Money Party started!",
 		-- The countdown while it runs: the multiplier ("2"), the time left, the buyer.

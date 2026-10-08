@@ -7,7 +7,10 @@
 --   ("Painicane unboxed a Mythic Starfall Cue!"), an ult spin landing a Legendary (this
 --   server) or a Mythic (every server) in the same colours ("Painicane rolled the Legendary ult
 --   Black Flash!", the ult's icon at the line's left end), a Money Party starting, someone
---   reaching Reyes (in the house rainbow).
+--   reaching Reyes (in the house rainbow), a Legendary or Mythic block in the restock (every
+--   server: "A MYTHIC block is in the restock for 9:40!" in the block's colour, its icon at the
+--   left end and a green Shop button at the right end opening the Shop's Blocks tab; up for
+--   Banner.RestockSeconds so there is time to press it).
 --   They queue and show one at a time for Banner.Seconds each, with the Banner sound.
 -- - The Money Party countdown from the workspace attributes MoneyPartyEndsAt (unix seconds, the
 --   server's clock) and MoneyPartyBuyer (a username): "Money Party! 2x money for everyone:
@@ -40,6 +43,7 @@ local UltCatalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
 local ChatTags = require(script.Parent.ChatTags)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
+local Menus = require(script.Parent.Menus)
 local PullCutscene = require(script.Parent.PullCutscene)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -59,6 +63,8 @@ type Line = {
 	rainbow: boolean?, -- the words in the house rainbow
 	colours: { { number } }?, -- or across these ({ r, g, b } rows): a Mythic pull's pastels
 	icon: string?, -- an image at the line's left end (an ult roll's icon)
+	action: string?, -- "Shop": a Shop button at the right end (a restock line)
+	seconds: number?, -- how long it shows (nil: Banner.Seconds)
 	at: number, -- when it arrived (os.clock), to drop it once stale
 }
 
@@ -145,6 +151,19 @@ function Banner.new(screen: ScreenGui, opts: Options?): any
 	rainbow.Enabled = false
 	rainbow.Parent = words
 	self.rainbow = rainbow
+	-- A line's button at the right end: a restock line's Shop (the Shop's Blocks tab).
+	local button = HudParts.candy(card, COPY.ShopButton, function()
+		local line: Line? = self.current
+		if line and line.action == "Shop" then
+			Menus.open("Shop", "Blocks")
+		end
+	end, "Green")
+	button.Name = "Action"
+	button.AnchorPoint = Vector2.new(1, 0.5)
+	button.ZIndex = 3
+	button.Visible = false
+	HudParts.setMinHit(button, Config.UI.Menu.Frame.TouchMinPx)
+	self.button = button
 
 	task.spawn(function()
 		local ok, remote = pcall(Net.get, "Banner")
@@ -259,6 +278,31 @@ function Banner.onBanner(self: any, payload: any)
 		local text = (if kind == "FirstReyes" then COPY.FirstReyes else COPY.Reyes):format(who)
 		self:push({ text = text, rainbow = true, at = os.clock() })
 		ChatTags.system(ChatTags.rainbow(text))
+	elseif kind == "Restock" then
+		-- A Legendary or Mythic block in the restock, in every server (economy v4 plan 8.4):
+		-- the block's icon, the time the restock has left, the block's colour, a Shop button.
+		local block = name(payload.block)
+		local sentences: { [string]: string } = COPY.Restock :: any
+		local ends = payload.endsAt
+		if not block or not sentences[block] or type(ends) ~= "number" then
+			return
+		end
+		local left = ends - workspace:GetServerTimeNow()
+		if left <= 0 then
+			return
+		end
+		local text = sentences[block]:format(clock(left))
+		local tint = CueThumb.accentColor(block)
+		local row: any = (Config.LuckyBlocks.Kinds :: any)[block]
+		self:push({
+			text = text,
+			color = tint,
+			icon = if row and type(row.Icon) == "string" then row.Icon else nil,
+			action = "Shop",
+			seconds = B.RestockSeconds,
+			at = os.clock(),
+		})
+		ChatTags.system(ChatTags.paint(text, tint))
 	end
 end
 
@@ -286,6 +330,8 @@ function Banner.push(
 		rainbow: boolean?,
 		colours: { { number } }?,
 		icon: string?,
+		action: string?,
+		seconds: number?,
 		at: number?,
 	}
 )
@@ -295,6 +341,8 @@ function Banner.push(
 		rainbow = line.rainbow,
 		colours = line.colours,
 		icon = line.icon,
+		action = line.action,
+		seconds = line.seconds,
 		at = line.at or os.clock(),
 	}
 	table.insert(self.queue, queued)
@@ -346,7 +394,7 @@ function Banner.tick(self: any)
 		if clockNow - nextLine.at <= B.MaxAgeSeconds then
 			current = nextLine
 			self.current = nextLine
-			self.currentUntil = clockNow + B.Seconds
+			self.currentUntil = clockNow + (nextLine.seconds or B.Seconds)
 			self.shownKey = nil -- a new line: pop and sound even if the words repeat
 		end
 	end
@@ -356,7 +404,8 @@ function Banner.tick(self: any)
 			current.color,
 			current.colours or (if current.rainbow == true then RAINBOW else nil),
 			"line",
-			current.icon
+			current.icon,
+			current.action
 		)
 		return
 	end
@@ -379,13 +428,18 @@ function Banner.show(
 	tint: Color3?,
 	gradient: { { number } }?, -- the words across these colours (the house rainbow, pastels)
 	key: string,
-	icon: string?
+	icon: string?,
+	action: string? -- "Shop": the button at the right end
 )
 	local words: TextLabel = self.words
 	local image = icon or ""
-	local changed = words.Text ~= text or self.icon.Image ~= image
+	local withButton = action ~= nil
+	local changed = words.Text ~= text
+		or self.icon.Image ~= image
+		or self.button.Visible ~= withButton
 	words.Text = text
 	self.icon.Image = image
+	self.button.Visible = withButton
 	words.TextColor3 = if gradient then Color3.new(1, 1, 1) else (tint or Color3.new(1, 1, 1))
 	if gradient and gradient ~= self.gradient then
 		self.rainbow.Color = sequence(gradient)
@@ -436,12 +490,19 @@ function Banner.layout(self: any)
 	icon.Visible = iconPx > 0
 	icon.Size = UDim2.fromOffset(iconPx, iconPx)
 	icon.Position = UDim2.new(0, B.PadPx, 0.5, 0)
+	-- A button sits PadPx / 2 in from the right end, ButtonGapPx after the words.
+	local button: TextButton = self.button
+	local buttonPx = if short then B.ShortButtonPx else B.ButtonPx
+	local buttonRoom = if button.Visible then buttonPx[1] + B.ButtonGapPx else 0
+	button.Size = UDim2.fromOffset(buttonPx[1], buttonPx[2])
+	button.Position = UDim2.new(1, -B.PadPx / 2, 0.5, 0)
+	HudParts.setButtonTextSize(button, math.min(B.ButtonTextPx, textPx))
 	self.words.Position = UDim2.fromOffset(B.PadPx / 2 + iconRoom, 0)
-	self.words.Size = UDim2.new(1, -B.PadPx - iconRoom, 1, 0)
+	self.words.Size = UDim2.new(1, -B.PadPx - iconRoom - buttonRoom, 1, 0)
 	local width = math.min(
 		B.MaxWidthPx,
 		size.X - 2 * B.SideMarginPx,
-		math.ceil(wordsW) + 2 * B.PadPx + iconRoom
+		math.ceil(wordsW) + 2 * B.PadPx + iconRoom + buttonRoom
 	)
 	local origin = screen.AbsolutePosition
 	local left = (size.X - width) / 2

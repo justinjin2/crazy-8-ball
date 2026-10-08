@@ -8424,7 +8424,7 @@ Config.UI.Menu = {
 		-- The silhouette image missing: every layer tinted this dark instead.
 		SilhouetteColor = { 44, 48, 64 },
 	},
-	-- The top-centre banner (Banner): Money Party, unboxings, Reyes.
+	-- The top-centre banner (Banner): Money Party, unboxings, Reyes, Legendary and Mythic restocks.
 	Banner = {
 		-- A Mythic or Secret pull's [GLOBAL] line (every server; designer 2026-10-05): Mythic in a
 		-- pastel rainbow (letter by letter in chat, a gradient on the banner), Secret in red.
@@ -8448,6 +8448,14 @@ Config.UI.Menu = {
 		IconPx = 30,
 		ShortIconPx = 26,
 		IconGapPx = 6,
+		-- A restock line (a Legendary or Mythic block in the restock, every server; economy v4
+		-- plan 8.4): the block's icon, and a green Shop button at the right end opening the
+		-- Shop's Blocks tab. It stays up longer than other lines, so there is time to press it.
+		ButtonPx = { 70, 28 }, -- the button's width and height (its touch area is TouchMinPx)
+		ShortButtonPx = { 60, 24 }, -- the same on a short screen (a phone held sideways)
+		ButtonGapPx = 8, -- between the words and the button
+		ButtonTextPx = 16, -- the button's word ("Shop")
+		RestockSeconds = 8, -- how long a restock line stays up (Seconds for the other lines)
 		MaxWidthPx = 620,
 		SideMarginPx = 10, -- never closer to the screen's sides
 		BelowPx = 6, -- the gap under anything it moves below (the rank HUD, the status card)
