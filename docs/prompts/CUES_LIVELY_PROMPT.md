@@ -153,7 +153,7 @@ Round 2 (2026-10-08), from the designer's notes on round 1:
 Questions asked: which icon (1 to 4); does the switch feel clear. Answer: "ok" (round 2
 approved; the icon is asked in the build's plan).
 
-## Concept 2b: the CUES button and numbered copies (round 2, waiting)
+## Concept 2b: the CUES button and numbered copies (round 3, waiting)
 
 https://claude.ai/artifact/4Yt2zXLQ2nHTxHichzK8ob (sources in
 `~/Desktop/8ball-refs/gui-lively/work/cues-icon/`; the art from a scratch script on
@@ -181,6 +181,16 @@ nameplate with a dark rim on the butt sleeve, the number cut in ("#12/100", Fred
 brown with a light edge), on the cue in hand (facing up) and on the back in the lobby (facing
 out of the back). Built for every numbered copy with the copy numbers, once approved. Still to
 pick: the cue A or B, the card's mark A or B, and the engraving.
+
+Round 3 notes (2026-10-08): "cue looks way too short, should be look like the classic cue first
+of all, and the icon doesnt have a ball when not hovered over it, but when you hover over it the
+ball appears and it hits it". The cue is now the Classic Cue (its black wrap, brown forearm,
+maple shaft, white ferrule and navy tip; long and slim, tapering) lying across the tile at -33
+degrees, and the icon at rest is the cue alone (also the still icon in the header and the
+switch). On hover the cue draws back, the ball pops in just ahead of the tip once it is clear,
+a short aim, the snap with a spark, the ball shoots off up and away and fades, and the cue
+slides back to rest (0.95 s; a click 0.7 s and harder). The cue A / B pick is gone. Still to
+pick: whether the icon is right now, the card's mark A or B, and the engraving.
 
 ## Progress
 
