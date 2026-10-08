@@ -9,6 +9,13 @@
 -- backpack (the bag stays open; a Mystery block opens instead); drag a block onto a hotbar slot
 -- to put it there (mouse and touch).
 --
+-- A press on a block still on its timer (or its open refused) asks about the skip (economy v4
+-- plan 18.1 item 8) in the kit's dialog over the screen (MenuFrame.ask): the block's name,
+-- "Ready in 4:32. Skip the wait?", Wait and the green "Skip · 4" with the price for the time
+-- left right now (4 / 9 / 15 R$, Config.LuckyBlocks.Skips; the live price from the shop's
+-- view). Skip asks the server, which prompts that same tier's product. Where the shop says the
+-- skip cannot be bought it says why instead.
+--
 -- Its own ScreenGui inside Roblox's top bar inset, so a pointer's position and the slots'
 -- positions share one space. It sets BottomLift while it shows. Tuning in
 -- Config.LuckyBlocks.UI.
@@ -24,7 +31,10 @@ local BottomLift = require(script.Parent.BottomLift)
 local ReelFx = require(script.Parent.ReelFx)
 local HudParts = require(script.Parent.HudParts)
 local BlockIcon = require(script.Parent.BlockIcon)
+local ItemState = require(script.Parent.ItemState)
+local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
+local ShopParts = require(script.Parent.ShopParts)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -36,12 +46,15 @@ local INK = HudParts.tone("Ink")
 local GOLD = HudParts.tone("Gold")
 local WHITE = HudParts.tone("White")
 local BAG = "LuckyBag" -- its name in Menus
+local SKIPS: { { UpTo: number?, Product: string } } = L.Skips :: any
+local NAMES: { [string]: string } = W.Names
 
 export type Entry = { id: number, kind: string, readyAt: number }
 export type Handlers = {
 	select: (id: number) -> (), -- hold (or put away) this block
 	reveal: (id: number) -> (), -- open this Mystery block's upgrade screen (MysteryReveal)
 	move: (id: number, to: number) -> (), -- put this block at this place in the list
+	skip: (id: number) -> (), -- the skip dialog's Skip: ask the server to prompt this block's skip
 }
 
 -- picture: the kind's 2D icon (an ImageLabel) or its 3D view (a ViewportFrame); both have
@@ -293,6 +306,13 @@ function Hotbar.new(screen: ScreenGui, handlers: Handlers): any
 	notice.TextWrapped = false
 	notice.Visible = false
 	self.notice = notice
+
+	-- The skip dialog's room (offerSkip): the whole screen, the dialog in its middle.
+	local layer = HudParts.frame(gui, "Dialogs")
+	layer.Size = UDim2.fromScale(1, 1)
+	layer.ZIndex = 10
+	self.layer = layer
+	self.skipDialog = nil :: MenuFrame.Dialog?
 
 	self:buildBag()
 	Menus.register(BAG, {
@@ -687,6 +707,9 @@ function Hotbar.setVisible(self: any, visible: boolean)
 	self.bar.Visible = visible
 	if not visible then
 		self.notice.Visible = false
+		if self.skipDialog then
+			self.skipDialog.cancel()
+		end
 		if self.bagOpen then
 			Menus.close(BAG)
 		end
@@ -781,6 +804,49 @@ function Hotbar.say(self: any, text: string)
 	self.notice.Text = text
 	self.notice.Visible = self.visible
 	self.noticeUntil = os.clock() + U.ShakeWords
+end
+
+-- The skip product for a timer with `left` seconds to go (Config.LuckyBlocks.Skips) and its
+-- Robux price: the live one from the shop's view, else Config's.
+local function skipFor(left: number): (string, number, any)
+	local key = SKIPS[LuckyBlocks.skipTierFor(left)].Product
+	local shop = ItemState.shop()
+	local products = if type(shop) == "table" and type(shop.products) == "table"
+		then shop.products
+		else {}
+	local product = products[key]
+	return key, ShopParts.robuxOf(product, key), product
+end
+
+--- Ask about the skip for block `id`, still on its timer (economy v4 plan 18.1 item 8): its
+--- name, "Ready in 4:32. Skip the wait?", Wait and "Skip · 4" with the price for the time left
+--- right now. Where the shop says the skip cannot be bought (paid random items restricted) it
+--- says why instead. Nothing for a block that is ready or unknown, or while one is asked.
+function Hotbar.offerSkip(self: any, id: number)
+	local entry = self:find(id)
+	local left = if entry then entry.readyAt - now() else 0
+	if entry == nil or left <= 0 or self.skipDialog ~= nil then
+		return
+	end
+	local _, robux, product = skipFor(left)
+	if type(product) == "table" and product.canBuy == false then
+		self:say(W.SkipUnavailable)
+		return
+	end
+	self.notice.Visible = false
+	self.skipDialog = MenuFrame.ask(self.layer, {
+		title = NAMES[entry.kind] or entry.kind,
+		text = W.SkipAsk:format(LuckyBlocks.clockText(left)),
+		yes = W.Skip:format(ShopParts.robux(robux)),
+		yesTone = "Green",
+		no = W.SkipNo,
+		noTone = "Blue",
+	}, function(yes: boolean)
+		self.skipDialog = nil
+		if yes then
+			self.handlers.skip(id)
+		end
+	end)
 end
 
 function Hotbar.isBagOpen(self: any): boolean

@@ -3345,3 +3345,9 @@ timer of a new block stay the designer's call.
   effects (the reel's landing glow, YOU GOT's rays and sting) play only from Rare up; the line
   under the reel is the plan's. "1 in N" is rounded up so it never looks better than true:
   whole numbers under 1,000, three significant figures above (`BlockOdds.oneIn`).
+- 2026-10-08 (economy v4 plan 18.1 item 8, the skip button's price): a press on a block still on
+  its timer now asks first, in the kit's confirm dialog (the block's name, "Ready in 4:32. Skip
+  the wait?", Wait and a green "Skip · 4" priced for the time left right now), instead of
+  opening Roblox's purchase prompt straight away; Skip asks the server as before, which prompts
+  that tier's product. A row over the hotbar was tried first and covered the bottom-centre
+  prompts (Play Global, the win track) on a phone, so the dialog sits in the screen's middle.

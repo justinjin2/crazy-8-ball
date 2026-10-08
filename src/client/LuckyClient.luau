@@ -252,14 +252,22 @@ local function isMystery(entry: Entry?): boolean
 	return row ~= nil and row.Roll == true
 end
 
--- A timer skip for a block still counting down (a 19 R$ prompt), or a line saying why not.
+-- The skip for a block still counting down (LuckyHotbar.offerSkip asks, with the price for the
+-- time left), and its Skip: the server prompts that tier's product (4 / 9 / 15 R$), or a line
+-- says why not.
 local function offerSkip(id: number)
-	local ok, skip = pcall(function()
-		return (Net.get("StoreRequest") :: RemoteFunction):InvokeServer("LuckySkip", id)
+	hotbar:offerSkip(id)
+end
+
+local function requestSkip(id: number)
+	task.spawn(function()
+		local ok, skip = pcall(function()
+			return (Net.get("StoreRequest") :: RemoteFunction):InvokeServer("LuckySkip", id)
+		end)
+		if not ok or type(skip) ~= "table" or not skip.ok then
+			hotbar:say(W.SkipUnavailable)
+		end
 	end)
-	if not ok or type(skip) ~= "table" or not skip.ok then
-		hotbar:say(W.SkipUnavailable)
-	end
 end
 
 -- A Mystery block's upgrade screen: its icon jumps out of its slot (MysteryReveal asks the
@@ -275,7 +283,7 @@ local function revealBlock(id: number)
 	aimedId = nil
 	if entry.readyAt > serverNow() then
 		hotbar:shake(id, REASONS.NotReady)
-		task.spawn(offerSkip, id)
+		offerSkip(id)
 		refresh()
 		return
 	end
@@ -499,7 +507,10 @@ function LuckyClient.start(screen: ScreenGui)
 	pcall(function()
 		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
 	end)
-	hotbar = LuckyHotbar.new(screen, { select = holdBlock, reveal = revealBlock, move = move })
+	hotbar = LuckyHotbar.new(
+		screen,
+		{ select = holdBlock, reveal = revealBlock, move = move, skip = requestSkip }
+	)
 	opening = LuckyOpening.new(screen)
 	reveal = MysteryReveal.new(screen.Parent :: Instance, {
 		request = function(id: number): any
@@ -521,7 +532,7 @@ function LuckyClient.start(screen: ScreenGui)
 		refused = function(reply: any)
 			hotbar:say(reasonText(reply))
 			if type(reply) == "table" and reply.reason == "NotReady" and reveal.id then
-				task.spawn(offerSkip, reveal.id)
+				offerSkip(reveal.id)
 			end
 		end,
 	})
@@ -559,6 +570,17 @@ function LuckyClient.start(screen: ScreenGui)
 		local slot = reel.slots[reel.showcaseAt]
 		reel:hold(reel.showcaseAt)
 		return reel.showcaseAt, slot.id, slot.rarity, slot.showcase
+	end)
+	-- Studio checks of the skip (economy v4 plan 18.1 item 8): a made-up Epic block with
+	-- `seconds` left (default 25 minutes: the 4 R$ tier) joins the bar until its next refresh
+	-- and the skip is asked; nothing is asked of the server unless Skip is pressed.
+	GuiQA.add("skipOffer", function(seconds: number?)
+		local list = table.clone(entries)
+		table.insert(list, 1, { id = -2, kind = "Epic", readyAt = serverNow() + (seconds or 1500) })
+		hotbar:set(list, heldId or aimedId, liveIds)
+		hotbar:setVisible(true)
+		hotbar:offerSkip(-2)
+		return hotbar.skipDialog ~= nil
 	end)
 	GuiQA.add("mysteryTap", function()
 		reveal:tap()

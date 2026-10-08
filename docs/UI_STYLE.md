@@ -660,6 +660,16 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
 - Legendary uses 1.8x world/held scale to compensate for its crown and cape in the bounding
   box. Its body aligns with the hands; its inventory preview is framed 1.25x closer.
 
+- **The timer skip** (economy v4 plan 18.1 item 8, 2026-10-08): a press on a block still on its
+  timer (its hotbar slot, a Mystery block's slot or bag tile, or the world's open prompt when
+  the server says it is not ready) asks in the kit's dialog over the screen (`MenuFrame.ask`):
+  the block's name, "Ready in 4:32. Skip the wait?", a blue **Wait** and a green **Skip · 4**
+  with the price for the time left right now (4 / 9 / 15 R$ by `Config.LuckyBlocks.Skips`; the
+  live price from the shop's view). Skip asks the server, which prompts that same tier's
+  product; B, Escape or Wait closes it. Where the shop says the skip cannot be bought (paid
+  random items restricted) the hotbar says why instead. It used to open Roblox's prompt
+  straight away.
+
 - Lucky-block reel skip works once per spin (designer, 2026-10-04): the tap/click never jumps to
   the prize; the strip races on from where it is and brakes onto the winner within
   `Config.UI.Reel.SkipSeconds` (0.7 s), a blur that shows the roll was skipped, then lands,

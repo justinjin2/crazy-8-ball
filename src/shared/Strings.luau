@@ -1004,8 +1004,12 @@ return {
 		-- A rare chance as "1 in N" (BlockOdds.oneIn): on the reel's showcase card (its rarity is
 		-- on its bar) and beside the rare rows of the odds screens.
 		OneIn = "1 in %s",
-		-- The skip button: the price for the time left right now (economy v4 plan 8.2).
-		Skip = "Skip · %d R$",
+		-- The skip (economy v4 plan 8.2 and 18.1 item 8): a press on a block still on its timer
+		-- asks, under the block's name, with the price for the time left right now on the green
+		-- button (the Robux glyph and the number: "Skip · 4").
+		SkipAsk = "Ready in %s. Skip the wait?",
+		Skip = "Skip · %s",
+		SkipNo = "Wait",
 	},
 	-- The daily win track's bar above the hotbar (economy v4 plan section 5).
 	WinTrack = {
