@@ -11,11 +11,11 @@ Updated 2026-10-08.
 - **Branch `release`** is the integration branch, and every lane of the parallel build is
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
-- **Lint and tests (2026-10-08, after the economy v4 merge):** lint OK with three old LocalShadow warnings (PadGuide,
-  MatchHUD, Main.client); all 1051 Lune tests pass.
+- **Lint and tests (2026-10-08, branch `gui-v4`):** lint OK with three old LocalShadow
+  warnings (PadGuide, MatchHUD, Main.client); all 1059 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
-  bots, disguised bots); ranks (XP only from winning) and money; economy v4; saves at version 9;
+  bots, disguised bots); ranks (XP only from winning) and money; economy v4; saves at version 10;
   13 abilities (Ultimates) with the spin screen; cue skins with VFX and outlines; lucky blocks
   as the only gacha (cases, the Magic 8 Ball and reward popups are gone); Rewards, Cues (My Cues,
   Index; the Inventory renamed), trading, settings, our own player list and boards; the first-time tutorial;
@@ -55,16 +55,20 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Mystery screen, rewards, timers, the skip); set every random-item product to Not Listed in
   the Creator Hub; the GUI screens of the plan's hand-off (`docs/prompts/ECONOMY_V4_PLAN.md`
   section 18); Lucky Shot, Golden Shot, Lucky Rain and the stay bonus are planned only.
-- **The GUI redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, branch `shop-lively`),
-  paused for the economy plan, which is now merged: next is planning the GUI hand-off; the
-  designer continues the other lively GUIs from another session. Built and checked in Studio:
-  the new cue card (the rank cues are the Ranked rarity), the Cues menu (My Cues and Index
-  tiles, Sort, Sell dupes, the big card, the Equip sound), the striking CUES icon, the money
-  chip flying smoothly into the cash icon (it was drawn only every other frame, fixed), the
-  lucky block reel and YOU GOT with the new card (reel cards still and, on trial, see-through;
-  rarer cues show more often on the reel). Still open: the see-through trial's verdict, a phone
-  and a gamepad, the numbered card's mark A or B, the copy numbers' own plan, then Free
-  Reward, Abilities and Ranked. `shop-lively` is not yet merged into `release`.
+- **The GUI hand-off after economy v4** (2026-10-08, branch `gui-v4` from `shop-lively`): 33
+  target mocks, 2 or 3 versions a screen, wait for the designer's picks on the private page
+  https://claude.ai/artifact/Q79pcvwxeos8AB7o8357Lw (picks save there; prompts and pictures in
+  `~/Desktop/8ball-refs/gui-mocks-v4`). Done and checked in Studio: Abilities films the real
+  character; Lucky Spins retired (save v10); Ranked's reward tiles one size; Claim All's server
+  side (no screen yet). At publish: `tools/roblox_products.py --sync` (Lucky1 and Lucky3 off
+  sale); Claim All's six products are made when the Daily screen ships. Next, after the picks:
+  the Shop's Blocks, Money and Passes pages; the HUD win track and restock banner; Daily with
+  Claim All; Ranked's frame; Abilities' frames; the Mystery screen; Trade and Settings.
+- **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in
+  `gui-v4`): the new cue card, the Cues menu, the CUES icon, the smooth money chip, the reel and
+  YOU GOT, checked in Studio. Still open: the see-through reel trial's verdict, a phone and a
+  gamepad, the numbered card's mark A or B, the copy numbers' own plan. `shop-lively` is not
+  yet merged into `release`.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),
