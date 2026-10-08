@@ -837,6 +837,9 @@ band, restock tiles and pass bands.
   restock items cannot be gifted). The 4th is the VIP slot: cream with a gold edge, a crown
   rocking over its block; without VIP it says "VIP only" in gold and shows one Get VIP button
   between the two button rows. "Each slot: Rare 87% · Epic 12% · ..." under the slots.
+- **The Starter Pack and VIP cards** each have the sky-blue "i" at the top right: the odds of
+  the lucky block in them (the Starter Lucky Block, VIP's daily Rare block), headed by the
+  block's name; hidden where paid random items are restricted.
 - **The Starter Pack and VIP (A)**: two tall cards under the restock while the Starter Pack is
   open or VIP's half-price offer runs (VIP's only for a player without it); one alone sits in
   the middle. The red Starter card: its title, the gift box with the cue, four lines (Starter
@@ -874,3 +877,22 @@ band, restock tiles and pass bands.
 - **Idle**: the Robux buttons shine one after another, the tags shake now and then, the
   hero's glow pulses, its rays turn and it twinkles.
 - **On a phone** all seven packs fit on one screen.
+
+## 20. The Shop's Passes tab (designer's pick B, 2026-10-08)
+
+`ShopPasses`, under "- PASSES -" after the Money tab, sizes in `Config.UI.ShopPasses`, words in
+`Strings.Menus.Shop.Passes`; the panel's pill says "VIP & PERKS".
+
+- **VIP at the left**: the Blocks tab's gold VIP card (crowns, the crown picture, six perks,
+  the "i" with the daily Rare block's odds), shown to everyone here: "Owned" with a tick for a
+  VIP, half price with its timer while the offer runs.
+- **A 2 x 2 grid beside it**, white tiles: Ability Slot 2 and 3 (the Ults icon, an orange "2"
+  or purple "3" badge on it, "Equip a second ability"), Money Party (the party popper, "+100%
+  money for the server", or "Party on! 12:30 left" while one runs here, the gift square) and
+  Roblox Plus (its badge, "+10% money in every match", a blue Get button; "Active" with a tick
+  for a member). Passes and the subscription have no gift square.
+- **Idle**: VIP's card as on the Blocks tab; the Robux buttons shine one after another (never
+  an owned one, never the blue Get).
+- **On a phone** the tiles keep their arrangement; the words stay at 12 px or more, so the
+  picture shrinks into the room above them.
+

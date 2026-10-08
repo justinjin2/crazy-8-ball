@@ -8528,13 +8528,14 @@ Config.UI.Shop = {
 	},
 	Page = {
 		-- The jump buttons, top to bottom (designer, 2026-10-04: Featured, Blocks, Money,
-		-- Passes). Icons are Config.UI.Kit.Icons keys. Each will scroll to its sections once
-		-- the page has them again.
+		-- Passes). Icons are Config.UI.Kit.Icons keys. Sections: what each group shows, so the
+		-- Shop opened on a section (the HUD's offer chips) jumps to its group. "Offer" is the
+		-- Starter Pack and VIP under the restock; "Vip" is the Passes tab's VIP card.
 		Jump = {
 			{ Key = "Featured", Icon = "Deals", Sections = { "GrandOpening", "Limited" } },
-			{ Key = "Blocks", Icon = "Inventory", Sections = { "Mystery", "Restock" } },
+			{ Key = "Blocks", Icon = "Inventory", Sections = { "Mystery", "Restock", "Offer" } },
 			{ Key = "Money", Icon = "Pack4", Sections = { "Money" } },
-			{ Key = "Passes", Icon = "Passes", Sections = { "Offer", "Boosts", "RobloxPlus" } },
+			{ Key = "Passes", Icon = "Passes", Sections = { "Vip", "Boosts", "RobloxPlus" } },
 		},
 		-- The 3D block icon (BlockIcon, used by the hotbar, the reward chips and the trade
 		-- screen; the shop's cards will use it again).
@@ -8698,6 +8699,18 @@ Config.UI.Shop.Open = {
 				"MoneyTile5",
 				"MoneyTile6",
 			},
+			Kind = "Pop",
+			At = 0.33,
+			Stagger = 1.5,
+		},
+		-- The Passes group (ShopPasses, pick B), the same rhythm: seen when jumped to.
+		{ Ids = { "PassesHead" }, Kind = "Pop", At = 0.18 },
+		{ Ids = { "PassesLines" }, Kind = "Grow", At = 0.22 },
+		{ Ids = { "PassesPanel" }, Kind = "Grow", At = 0.20 },
+		{ Ids = { "PassesTitle" }, Kind = "Pop", At = 0.24 },
+		{ Ids = { "PassesVip" }, Kind = "Pop", At = 0.28, Burst = "Gold" },
+		{
+			Ids = { "PassesTile1", "PassesTile2", "PassesTile3", "PassesTile4" },
 			Kind = "Pop",
 			At = 0.33,
 			Stagger = 1.5,
@@ -9145,6 +9158,8 @@ Config.UI.ShopBlocks = {
 		Art = { 310, 200, 220 }, -- centre x, centre y, size
 		Glow = 330,
 		Rays = 400,
+		-- The sky-blue "i" (the pack's lucky block's odds): inset from the right, centre y, size.
+		OddsBadge = { 46, 46, 50 },
 		RowLeft = 34, -- the content rows' left edge (they run to the card's width minus this)
 		RowIconUnits = 36,
 		RowCornerUnits = 18,
@@ -9251,6 +9266,49 @@ Config.UI.ShopMoney = {
 		GiftGapUnits = 6,
 		SideUnits = 14,
 		Bonus = { 40, 22, 92, 36 }, -- "+30%": inset from the right, centre y, width, height
+	},
+}
+
+-- The Shop's passes (ShopPasses; the designer's pick B on the mock page, 2026-10-08), under
+-- "- PASSES -": VIP's card at the left (the Blocks tab's own, Config.UI.ShopBlocks.Offers), then
+-- a 2 x 2 grid of white tiles: Ability Slot 2 and 3, Money Party, Roblox Plus. In the Grand
+-- Opening card's units and k, like Config.UI.ShopBlocks (whose title pill, panel, text and
+-- button sizes it shares).
+Config.UI.ShopPasses = {
+	Units = { 1275, 730 }, -- the panel
+	VipLeft = 22, -- VIP's card from the panel's left (its size: ShopBlocks.Offers.CardUnits)
+	Top = 54, -- the card's and the grid's top in the panel
+	Grid = { Left = 656, Columns = 2, GapUnits = { 14, 14 } }, -- in the panel
+	GlowTransparency = 0.45, -- a tile's glow behind its picture (it stands still)
+	-- Each tile's glow, and an ability slot's number badge (the slot passes' orange and purple
+	-- on the mock).
+	Tiles = {
+		UltSlot2 = { Glow = { 255, 160, 60 }, Badge = { 255, 132, 24 } },
+		UltSlot3 = { Glow = { 186, 110, 255 }, Badge = { 146, 64, 232 } },
+		MoneyParty = { Glow = { 150, 255, 160 } }, -- money's green
+		RobloxPlus = { Glow = { 120, 190, 255 } }, -- the blue of its Get button
+	},
+	Tile = {
+		Units = { 291, 319 },
+		-- The picture: centre y, size (centred across). On a small screen the words under it
+		-- keep the smallest text size, so it shrinks into the room left above them.
+		Art = { 80, 132 },
+		ArtTopUnits = 12, -- the picture's room from the tile's top
+		Glow = 200,
+		NameY = 175, -- "Ability Slot 2"
+		NameUnits = 32,
+		LineY = 228, -- "Equip a second ability", two rows at most
+		LineUnits = 22,
+		LineRows = 2,
+		BuyY = 284, -- the green button (and Money Party's gift square)
+		BuyUnits = 50,
+		BuyTextUnits = 32,
+		GiftUnits = 48,
+		GiftGapUnits = 6,
+		SideUnits = 14, -- the words' and the buy row's room each side
+		-- An ability slot's number on its picture's lower right: its centre from the picture's
+		-- centre (x, y) and its size, as shares of the picture; its words, a share of its size.
+		Slot = { 0.34, 0.3, 0.42, 0.7 },
 	},
 }
 

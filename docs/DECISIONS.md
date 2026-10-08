@@ -3267,3 +3267,14 @@ timer of a new block stay the designer's call.
   Roblox Plus tile as "Active" (its button cannot be pressed) instead of a hidden tile, so the
   2 x 2 grid has no hole. Claim All's six Robux products may be created on Roblox when the
   Daily screen is ready.
+- 2026-10-08 (Shop, the Passes tab, built from pick B): the panel's pill says "VIP & PERKS"
+  (the "- PASSES -" header over it already says PASSES); VIP's card is the Blocks tab's card,
+  shown to a VIP too as "Owned"; the ability slots and Roblox Plus get no gift square (game
+  passes and a subscription cannot be gifted), Money Party does. The ability slots use the
+  Ults icon with an orange "2" or purple "3" badge (no new art). Disabled Robux buttons (owned,
+  sold out) no longer shine. The HUD's offer chips open the Shop where their card is: the
+  Starter Pack on its card under the restock, VIP's offer on the Passes tab (before, both
+  opened on Featured). The Starter Pack and VIP cards each get the sky-blue "i" at their top
+  right with their lucky block's odds (the Starter Lucky Block; VIP's daily Rare block), as the
+  v4 plan's hand-off asks (paid random items: the odds one press away), hidden where paid random
+  items are restricted (the block is money there).

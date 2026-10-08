@@ -683,13 +683,13 @@ function ShopCards.layoutMoney(
 end
 
 --- A shine across a button's face every `every` seconds, starting `delay` in (only Robux
---- buttons shine: designer, 2026-10-06).
+--- buttons shine: designer, 2026-10-06), never while it cannot be pressed (owned, sold out).
 function ShopCards.buttonShine(button: TextButton, every: number, delay: number): UIAnim.Handle
 	local body = button:FindFirstChild("Body")
 	local face = body and body:FindFirstChild("Face") :: GuiObject?
 	local last = -1
 	return UIAnim.loop(button, function(clock)
-		if face == nil or UIAnim.reduced() or clock < delay then
+		if face == nil or UIAnim.reduced() or clock < delay or not button.Active then
 			return
 		end
 		local n = (clock - delay) // (every / math.max(B.ShineMinRate, Quality.rate()))

@@ -779,6 +779,28 @@ return {
 				BonusTag = "+%d%%", -- the tilted tag on every pack then
 				Best = "BEST VALUE",
 			},
+			PassesHeader = "PASSES", -- the Passes group's header ("- PASSES -")
+			-- The passes (ShopPasses; the designer's pick B, 2026-10-08): VIP's card is the
+			-- Blocks tab's (Blocks.VipTitle, VipPerks), then a tile each for the rest.
+			Passes = {
+				Title = "VIP & PERKS", -- the panel's pill (the header over it says PASSES)
+				Names = {
+					UltSlot2 = "Ability Slot 2",
+					UltSlot3 = "Ability Slot 3",
+					MoneyParty = "Money Party",
+					RobloxPlus = "Roblox Plus",
+				},
+				-- What each gives, under its name (two short rows at most on a phone).
+				Lines = {
+					UltSlot2 = "Equip a second ability",
+					UltSlot3 = "Equip a third ability",
+					MoneyParty = "+%d%% money for the server", -- Config.Economy.PartyBoost
+					RobloxPlus = "+%d%% money in every match", -- Config.Economy.PlusBoost
+				},
+				PartyOn = "Party on! %s left", -- while a Money Party runs here: "Party on! 12:30 left"
+				PlusGet = "Get", -- Roblox Plus's button (Roblox's subscription prompt)
+				PlusActive = "Active", -- the same for a member (designer, 2026-10-08)
+			},
 			-- The Gift Player popup (the purple gift square beside a Robux button).
 			GiftTitle = "Gift Player",
 			GiftButton = "Gift",

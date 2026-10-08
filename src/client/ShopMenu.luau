@@ -18,13 +18,15 @@
 -- (GrandOpeningCard), then "- BLOCKS -" with the Mystery Lucky Block (ShopMystery), the restock
 -- (ShopRestock) and, while they are on, the Starter Pack and VIP (ShopOffers): the designer's
 -- picks on the mock page, 2026-10-08; then "- MONEY -" with the money packs (ShopMoney, pick
+-- B) and "- PASSES -" with VIP, the ability slots, Money Party and Roblox Plus (ShopPasses, pick
 -- B). A jump button scrolls to its group's top and staggers that group's pieces in again
--- (Config.UI.Shop.Page.JumpSeconds); scrolling lights the group in view. Passes only lights its
--- button until its section is built. The buttons buy
+-- (Config.UI.Shop.Page.JumpSeconds); scrolling lights the group in view. Opened on a section
+-- (the HUD's offer chips: "Offer", "Vip"), the Shop jumps to the group holding it, and to the
+-- section itself when it has its own place on the page. The buttons buy
 -- through the server (ItemRequest "BuyBlocks" or "BuyRestock" for money, StoreRequest "Buy" for
--- Robux, which shows Roblox's own dialog); a refusal shows the server's reason as a notice. The
--- purple gift square beside a Robux button opens the Gift Player popup (ShopGift; StoreRequest
--- "Gift").
+-- Robux, which shows Roblox's own dialog; "RobloxPlus" for Roblox's subscription prompt); a
+-- refusal shows the server's reason as a notice. The purple gift square beside a Robux button
+-- opens the Gift Player popup (ShopGift; StoreRequest "Gift").
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -45,6 +47,7 @@ local ShopMystery = require(script.Parent.ShopMystery)
 local ShopOdds = require(script.Parent.ShopOdds)
 local ShopOffers = require(script.Parent.ShopOffers)
 local ShopParts = require(script.Parent.ShopParts)
+local ShopPasses = require(script.Parent.ShopPasses)
 local ShopRestock = require(script.Parent.ShopRestock)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -64,6 +67,16 @@ type Jump = { key: string, button: TextButton, badge: Frame }
 local ShopMenu = {}
 ShopMenu.__index = ShopMenu
 
+-- The jump group showing `section`: a group's own key, or one of its Sections.
+local function groupOf(section: string): string?
+	for _, jump in JUMPS do
+		if jump.Key == section or table.find(jump.Sections, section) then
+			return jump.Key
+		end
+	end
+	return nil
+end
+
 --------------------------------------------------------------------------------------------
 -- Build
 --------------------------------------------------------------------------------------------
@@ -80,7 +93,8 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	self.seen = {} :: { [string]: any } -- what the badges count as seen (by group)
 	self.rock = nil :: UIAnim.Handle? -- the lit jump button's icon rocking (the lively frame)
 	self.busy = {} :: { [string]: boolean } -- buy requests in flight, by button
-	self.tops = {} :: { [string]: number } -- each built group's top on the page (pixels)
+	-- Each built group's top on the page (pixels), and a section's with its own place ("Offer").
+	self.tops = {} :: { [string]: number }
 	self.jumpTween = nil :: Tween? -- a jump's scroll while it runs
 	self.openedOn = nil :: string? -- the group the Shop was opened on (a late layout jumps again)
 	self.openedAt = 0
@@ -159,6 +173,18 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	self.moneyGroup = moneyGroup
 	self.moneyHead = GrandOpeningCard.header(moneyGroup, COPY.MoneyHeader)
 	self.money = ShopMoney.new(moneyGroup, { robux = buyProduct, gift = gift })
+	-- The Passes group: its header, then VIP and the passes.
+	local passesGroup = HudParts.frame(scroll, "Passes")
+	passesGroup.ZIndex = 2
+	self.passesGroup = passesGroup
+	self.passesHead = GrandOpeningCard.header(passesGroup, COPY.PassesHeader)
+	self.passes = ShopPasses.new(passesGroup, {
+		robux = buyProduct,
+		gift = gift,
+		plus = function()
+			self:getPlus()
+		end,
+	})
 	local more = HudParts.note(scroll, "MoreBelow", P.MoreBelowTextPx, COPY.MoreBelow)
 	more.AnchorPoint = Vector2.new(0.5, 0.5)
 	more.ZIndex = 3
@@ -208,6 +234,9 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		stage:add("MoneyHead", self.moneyHead.word)
 		stage:add("MoneyLines", self.moneyHead.lines)
 		self.money:register(stage, keep)
+		stage:add("PassesHead", self.passesHead.word)
+		stage:add("PassesLines", self.passesHead.lines)
+		self.passes:register(stage, keep)
 	end
 	-- Scrolling lights the group in view (not while a jump scrolls there itself).
 	scroll:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
@@ -239,9 +268,11 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local handle: Menus.Handle = {
 		open = function(tab: string?)
 			frame:open()
-			if tab then
+			local group = if tab then groupOf(tab) else nil
+			if tab and group then
 				self.openedOn, self.openedAt = tab, os.clock()
-				self:jump(tab, true)
+				self:jump(group, true)
+				self:scrollTo(tab, true)
 			end
 		end,
 		close = function()
@@ -284,6 +315,7 @@ function ShopMenu.refresh(self: any)
 	self.mystery:refresh(state)
 	self.restock:refresh(state)
 	self.money:refresh(state)
+	self.passes:refresh(state)
 	if self.offers:refresh(state) then
 		self:layout() -- a card came or went
 	end
@@ -366,7 +398,9 @@ function ShopMenu.layout(self: any)
 	y += round(SB.GapUnits * k)
 	y += self.restock:layout(pageW, k, y)
 	local offersH = self.offers:layout(pageW, k, y + round(SB.GapUnits * k))
+	self.tops.Offer = nil
 	if offersH > 0 then
+		self.tops.Offer = height + y
 		y += round(SB.GapUnits * k) + offersH
 	end
 	y += round(SB.GapUnits * k)
@@ -382,14 +416,24 @@ function ShopMenu.layout(self: any)
 	self.moneyGroup.Position = UDim2.fromOffset(0, height)
 	self.moneyGroup.Size = UDim2.fromOffset(pageW, y)
 	height += y
+	-- The Passes group: its header, VIP and the passes.
+	self.tops.Passes = height
+	GrandOpeningCard.layoutHeader(self.passesHead, round(pageW / 2), round(headH / 2), k)
+	y = headH + round(SB.HeaderGapUnits * k)
+	y += self.passes:layout(pageW, k, y)
+	y += round(SB.GapUnits * k)
+	self.passesGroup.Position = UDim2.fromOffset(0, height)
+	self.passesGroup.Size = UDim2.fromOffset(pageW, y)
+	height += y
 	local more = math.max(P.MoreBelowPx, geo.content.Y - height)
 	self.more.Position = UDim2.fromOffset(round(width / 2), round(height + more / 2))
 	self.more.Size = UDim2.fromOffset(math.max(1, width - 16), math.max(1, more))
 	ShopParts.setCanvas(self.scroll, height + more)
 	self.gift:layout(geo)
 	-- Opened on a group: a layout soon after the open (a late geometry pass) jumps there again.
-	if self.openedOn and os.clock() - self.openedAt <= P.JumpSettleSeconds then
-		self:scrollTo(self.openedOn, true)
+	local on = self.openedOn
+	if on and os.clock() - self.openedAt <= P.JumpSettleSeconds then
+		self:scrollTo(if self.tops[on] then on else groupOf(on) or on, true)
 	end
 end
 
@@ -457,7 +501,7 @@ function ShopMenu.scrollTo(self: any, key: string, instant: boolean?)
 end
 
 --- Jump to group `key`: light its button, scroll to its section (at once with `instant`) and
---- stagger its pieces in again. Passes only lights its button for now.
+--- stagger its pieces in again.
 function ShopMenu.jump(self: any, key: string, instant: boolean?)
 	local found = false
 	for _, jump in JUMPS do
@@ -480,6 +524,7 @@ function ShopMenu.jump(self: any, key: string, instant: boolean?)
 		then self.featured.root
 		elseif key == "Blocks" then self.blocks
 		elseif key == "Money" then self.moneyGroup
+		elseif key == "Passes" then self.passesGroup
 		else nil
 	if changed and group and stage and self.frame:isOpen() and stage:busy() ~= "play" then
 		local ids = stage:idsUnder(group)
@@ -515,13 +560,11 @@ function ShopMenu.rockLit(self: any)
 	end
 end
 
---- Light one section's group (another section's button: "VIP only" goes to VIP).
+--- Jump to one section's group (another section's button: "VIP only" goes to VIP).
 function ShopMenu.jumpTo(self: any, section: string)
-	for _, jump in JUMPS do
-		if jump.Key == section or table.find(jump.Sections, section) then
-			self:jump(jump.Key)
-			return
-		end
+	local group = groupOf(section)
+	if group then
+		self:jump(group)
 	end
 end
 
@@ -699,6 +742,17 @@ function ShopMenu.buyProduct(self: any, key: string)
 	end)
 end
 
+--- Roblox Plus's Get: the server shows Roblox's subscription prompt.
+function ShopMenu.getPlus(self: any)
+	self:send("Plus", function()
+		return ItemState.request("StoreRequest", "RobloxPlus")
+	end, function(reply)
+		if not reply.ok then
+			self.frame:notice(MenuFrame.reason(reply), "Red")
+		end
+	end)
+end
+
 --------------------------------------------------------------------------------------------
 -- Gamepad
 --------------------------------------------------------------------------------------------
@@ -783,6 +837,7 @@ function ShopMenu.closed(self: any)
 	self.restock:closed()
 	self.offers:closed()
 	self.money:closed()
+	self.passes:closed()
 	ShopOdds.closeAll()
 	self.openedOn = nil
 	if self.jumpTween then
