@@ -13,7 +13,7 @@
 --                                   happens) and Simulation.Ops: remove (a ball leaves play,
 --                                   counted as pocketed), teleport, halt (end this part of the
 --                                   shot: Time Stop), emit (an `ult` event for the look)
---   finish(state, events, ops)      once at rest (Verity puts the cue ball down clear)
+--   finish(state, events, ops)      once at rest (a last tidy-up; none needs it now)
 -- Each is optional. Per-shot scratch lives in `state.fx` (a table, fresh at every strike and
 -- replay start); `state.fx.ghost` (ball id -> true) takes a ball out of every contact.
 --
@@ -29,6 +29,7 @@ export type Effect = {
 local Effects: { [string]: Effect } = {
 	BlackFlash = require(script.BlackFlash) :: any,
 	BlackHole = require(script.BlackHole) :: any,
+	CatchABall = require(script.CatchABall) :: any,
 	ChainLightning = require(script.ChainLightning) :: any,
 	EaglesEye = require(script.EaglesEye) :: any,
 	GuangdongTiger = require(script.GuangdongTiger) :: any,
@@ -37,6 +38,7 @@ local Effects: { [string]: Effect } = {
 	SteelBall = require(script.SteelBall) :: any,
 	SuperBounce = require(script.SuperBounce) :: any,
 	TimeStop = require(script.TimeStop) :: any,
+	Verity = require(script.Verity) :: any,
 }
 
 return Effects

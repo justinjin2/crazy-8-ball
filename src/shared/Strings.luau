@@ -1262,7 +1262,12 @@ return {
 			AutoStopAt = "%s+", -- a rarity: "Epic+"
 			AutoLucky = "Use Lucky Spins",
 		},
-		-- The aim-phase pick view (UltPick): Heat Seeker's ball, Portals' two spots, chosen in
+		-- Catch-a-Ball's popups over the catch ball (CatchABallFx).
+		Catch = {
+			Gotcha = "GOTCHA!",
+			BrokeFree = "IT BROKE FREE!",
+		},
+		-- The aim-phase pick view (UltPick): a lock-on's ball, Portals' two spots, chosen in
 		-- the top-down view before the shot. The title pill follows the last input (touch,
 		-- mouse or gamepad).
 		Pick = {

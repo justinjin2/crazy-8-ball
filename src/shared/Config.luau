@@ -3561,20 +3561,15 @@ Config.Ults = {
 		-- rework (designer, 2026-10-08), beside Magnet.
 		Rewind = { Rarity = "Uncommon", Built = true, Worth = 0.53, Redo = true },
 		-- The rework's three (designer, 2026-10-08). Catch-a-Ball: the first ball the cue ball
-		-- hits is caught (a pot for its owner). Measured by tools/ult_value.luau.
-		CatchABall = { Rarity = "Rare", Built = false, Effect = "CatchABall", Worth = 1 },
+		-- hits is caught (a pot for its owner): +0.75 / +0.75 / +0.83 careful net (12 tables,
+		-- quick), pots 83-100% of uses.
+		CatchABall = { Rarity = "Rare", Built = true, Effect = "CatchABall", Worth = 0.78 },
 		-- Look Over There!: the opponents look away and the shooter drags one of their balls
 		-- into a pocket (the Sneak phase), then shoots as normal.
 		LookOverThere = { Rarity = "Epic", Built = false, Worth = 1, Sneak = true },
 		-- Verity: the first ball hit is thrown off the table (a pot for its owner), then Verity
-		-- sprints on through the pack.
-		Verity = {
-			Rarity = "Legendary",
-			Built = false,
-			Effect = "Verity",
-			Worth = 1.1,
-			Area = true,
-		},
+		-- sprints on through the pack. +0.95 / +1.08 / +1.08 careful net (60 tables).
+		Verity = { Rarity = "Legendary", Built = true, Effect = "Verity", Worth = 1.04 },
 		-- +0.65 / +0.42 / +0.34 (three strikes in stopped time).
 		TimeStop = { Rarity = "Epic", Built = true, Effect = "TimeStop", Worth = 0.47 }, -- Epic since 2026-09-30
 		-- +0.97 / +0.98 / +0.94 (careless +0.78 / +0.72 / +0.76; three jumps).
@@ -3854,6 +3849,33 @@ Config.Ults = {
 		TigerRoar = { Id = "rbxassetid://9120047974", Volume = 0.52 },
 		TigerSlash = { Id = "rbxassetid://122411746821632", Volume = 0.1 },
 		TigerThump = { Id = "rbxassetid://9113524237", Volume = 0.74, Pitch = 0.6 },
+		-- Catch-a-Ball (the rework, 2026-10-08; assets/abilities/SOUNDS_V2.md): the designer
+		-- asked for the real catch sounds, so the open, the wobble and the catch are public fan
+		-- uploads of them (TheTrustyCapricorn, gamer712138); if Roblox mutes one, the licensed
+		-- backups are ProSoundEffects 9120984892 (open), 9125759320 (wobble) and 9126073318
+		-- (the ding). The suck-in under the open is ProSoundEffects' reversed zap. (tune by ear)
+		CatchOpen = { Id = "rbxassetid://94812253885911", Volume = 0.5 },
+		CatchZap = { Id = "rbxassetid://9125807267", Volume = 0.35, Pitch = 1.15 },
+		CatchShake = { Id = "rbxassetid://105930060641663", Volume = 0.5 },
+		CatchCaught = { Id = "rbxassetid://81046688241314", Volume = 0.5 },
+		CatchDing = { Id = "rbxassetid://9126073318", Volume = 0.25 },
+		-- The 8 breaking free: Time Stop's reversed hiss, pitched up (a puff out).
+		CatchBreak = { Id = "rbxassetid://9118158113", Volume = 0.45, Pitch = 1.6 },
+		-- Verity (the rework): the designer's line is a TTS placeholder (assets/abilities/Verity,
+		-- "Hi, I'm Verity! Trust me, I know everything!") until they upload the real clip; a
+		-- creepy giggle (ProSoundEffects) as it unfolds, its footsteps, the throw.
+		VerityLine = { Id = "rbxassetid://135865093470317", Volume = 0.6 },
+		VerityGiggle = { Id = "rbxassetid://9114571613", Volume = 0.5 },
+		VeritySteps = { Id = "rbxassetid://9114080709", Volume = 0.5, Pitch = 1.3 },
+		VerityThrow = { Id = "rbxassetid://9120728815", Volume = 0.5 },
+		-- Look Over There! (the rework): the shout (a TTS placeholder), the Metal Gear "!"
+		-- alert and the vine boom (public fan uploads, the meme's own sounds; backups
+		-- ProSoundEffects 9113652301 and 9125404320), the camera's whoosh, the sneaky sting.
+		LookShout = { Id = "rbxassetid://84561965728329", Volume = 0.6 },
+		LookAlert = { Id = "rbxassetid://7630658014", Volume = 0.45 },
+		LookWhoosh = { Id = "rbxassetid://9126228631", Volume = 0.35 },
+		LookSneaky = { Id = "rbxassetid://1841485452", Volume = 0.35 },
+		LookBoom = { Id = "rbxassetid://140367458608473", Volume = 0.55 },
 	},
 }
 
@@ -4124,6 +4146,38 @@ Config.Ults.Magnet = {
 	MinApproachCos = 0.5,
 }
 
+-- Catch-a-Ball (the rework, designer 2026-10-08; src/shared/Ults/Effects/CatchABall): the
+-- first ball the cue ball hits is caught (a pot for its owner; the 8 only on the legal 8 shot,
+-- else it breaks free). The moment holds while the look plays its catch: the ball opening, the
+-- beam pulling the ball in, the hop, three wobbles and the click (CatchABallFx's timeline).
+Config.Ults.CatchABall = {
+	HoldShotSeconds = 0.02, -- the play the hold is spread over (nothing moves: the catch is still)
+	HoldSeconds = 4, -- wall seconds the shot holds for the catch (CatchABallFx's Timeline)
+}
+
+-- Verity (the rework, designer 2026-10-08; src/shared/Ults/Effects/Verity): the first ball hit
+-- is thrown off the table (a pot for its owner; the early 8 refused), then Verity sprints on
+-- through the pack, kicking balls out of her way: the first MaxAimed of yours into pockets
+-- ("trust me, I know everything"), the rest aside. Inches and seconds of play. (tune)
+Config.Ults.Verity = {
+	GrabShotSeconds = 1.5, -- she unfolds, grabs and throws (VerityFx's timeline) before running
+	ShuffleSpeed = 2.5, -- her creep forward while grabbing (in/s; keeps the shot in motion)
+	RunSpeed = 45, -- the sprint (in/s)
+	RunInches = 75, -- the longest sprint
+	EdgeMarginInches = 1.5, -- she stops this far (beyond a ball's radius) from a cushion or pocket
+	KickRadiusInches = 6, -- a ball whose centre comes this close to her body is kicked
+	KickSpeed = 70, -- a booted ball's speed (in/s), and the most an aimed kick gets
+	KickSide = 1, -- a boot's direction: this much sideways (away from her path)...
+	KickForward = 0.5, -- ...and this much forward
+	-- How many of yours she kicks into pockets (when a clean line exists). Measured with the
+	-- kick reach and run above (tools/ult_value.luau, 60 tables, 2026-10-08): 2 aimed, 3.6 in,
+	-- 60 in: +0.82 / +0.93 / +0.95 careful net at skills 1/2/3; 3 aimed, 6 in, 75 in: +0.95 /
+	-- +1.08 / +1.08 (the Legendary band, beside Steel Ball's +1.09).
+	MaxAimed = 3,
+	AimArriveSpeed = 22, -- an aimed kick reaches its pocket at about this speed (in/s)
+	LandGapInches = 0.05, -- room left round the cue ball where she stops
+}
+
 -- What every ability shares (docs/prompts/ABILITIES_PROMPT.md 5; the framework, step 1).
 Config.Ults.Shared = {
 	-- The skill rule (5.7): the area abilities (Magnet, Chain Lightning, Black Flash's blast,
@@ -4222,6 +4276,15 @@ Config.Ults.Assets = {
 		-- Replaces 86221317508788, 109390616019165 and 93994396609133 (redder, ringed
 		-- stripes, a round-eyed face).
 		GuangdongTiger = 119880658779603,
+		-- tools/blender/abilities/catchball.py (the rework, 2026-10-08): CatchTop (the red lid),
+		-- CatchBottom (the white half), CatchBand (the black band), CatchButton (the square
+		-- button, at -Z: the front), CatchInner (the dark inside, seen when open) and J_Hinge
+		-- (the back hinge, at +Z). Unit radius, centred.
+		CatchABall = 93342911188193,
+		-- tools/blender/abilities/verity.py (the rework): the Verity monster, a skinned mesh
+		-- (Meshy, auto-rigged; 24 bones, Hips the root), 1 stud tall, facing -Z after import;
+		-- its animations are baked data (src/client/VerityAnims.luau), not Animation assets.
+		Verity = 130065008141591,
 	} :: { [string]: number },
 	Images = {
 		-- The pocket-to-ball field lines' Beam tile: a white line and one arrowhead along +U.
@@ -4263,6 +4326,17 @@ Config.Ults.Assets = {
 		-- strokes on gold) with three claw slashes, the reference's flash frame. (Image inside
 		-- Decal 87600337874853; replaces Decals 76952602462039 and 122114074802883.)
 		TigerFur = "rbxassetid://131150432548296",
+		-- The rework (2026-10-08; assets/abilities/REWORK_ASSETS.md; the images inside Decals
+		-- 126247127851969, 133183700633587, 92411465206885, 109945245461564, 103684829037298,
+		-- 130147846106707, 109720204127941 and 108837263159693).
+		CatchGlow = "rbxassetid://95835543473221", -- a soft white radial glow
+		CatchStar = "rbxassetid://92483400833486", -- a 4-point sparkle star
+		CatchBeam = "rbxassetid://123563789160110", -- an energy beam tile along U
+		GoldenSpiral = "rbxassetid://86529095889847", -- the golden rectangles and the spiral
+		GoldenSpiralOnly = "rbxassetid://94383726110432", -- the spiral alone, same frame
+		SpinBlur = "rbxassetid://81867204122965", -- a spinning disc's streak ring
+		SpinArrows = "rbxassetid://132305530028588", -- two curved arrows round a circle
+		VerityBall = "rbxassetid://138553376266593", -- the smiley on the ball mesh's UVs
 	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
@@ -4271,6 +4345,10 @@ Config.Ults.Assets = {
 		EaglesEye = "rbxassetid://81255543534825", -- an eagle's eye and brow line (2026-09-30)
 		SuperBounce = "rbxassetid://95265934894642",
 		Rewind = "rbxassetid://120627614883189",
+		-- The rework's three (tools/blender/abilities/icons_v2.py, 2026-10-08).
+		CatchABall = "rbxassetid://104903571295338",
+		LookOverThere = "rbxassetid://129905785693917",
+		Verity = "rbxassetid://115341703331107",
 		TimeStop = "rbxassetid://88800552854518",
 		ChainLightning = "rbxassetid://124544923626211",
 		Portals = "rbxassetid://117852135071427",
@@ -10375,6 +10453,76 @@ Config.UI.PortalsFx = {
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
 }
 
+-- Catch-a-Ball's look (src/client/CatchABallFx.luau; the rework, 2026-10-08): the catch ball
+-- shell on the cue ball, the catch's timeline (seconds after the contact; the physics holds the
+-- shot Config.Ults.CatchABall.HoldSeconds), the silhouette, beam, stars and GOTCHA!. Sizes in
+-- drawn ball radii unless named. (tune)
+Config.UI.CatchABallFx = {
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	ShellScale = 1.06, -- the shell's radius over the ball's
+	FadeInSeconds = 0.15,
+	FadeOutSeconds = 0.3,
+	FreshSeconds = 0.3, -- an event older than this (a late join) plays no sounds or bursts
+	-- Held (armed, not rolling): the button toward the camera, tipped and swaying, bobbing.
+	IdleTiltDegrees = 0,
+	IdleSwayDegrees = 14,
+	IdleBobBallRadii = 0.12,
+	ArmSparks = 14,
+	-- The catch.
+	FlashBrightness = 6,
+	FlashSeconds = 0.25,
+	OpenSparks = 16,
+	PunchDegrees = 6, -- a small zoom-in punch for the players at the table
+	PunchSeconds = 0.35,
+	LidOpenDegrees = 72,
+	SilhouetteColor = { 90, 190, 255 }, -- the designer's blue silhouette
+	SilhouetteLight = 4,
+	PullArcBallRadii = 1.2, -- how high the silhouette arcs on its way in
+	StretchShare = 1.4, -- how much longer it stretches mid-pull
+	BeamBallRadii = 0.55,
+	CloseSparks = 10,
+	HopBallRadii = 2.4, -- the hop's height
+	BounceShare = 0.18, -- the little bounce after it
+	WobbleDegrees = 24,
+	ButtonGlowColor = { 255, 40, 40 },
+	BlinkHz = 2.2,
+	StarColor = { 255, 236, 120 },
+	StarBallRadii = 1.1,
+	SparkBallRadii = 0.45,
+	CaughtStars = 3,
+	CaughtSparks = 24,
+	-- The timeline, in seconds after the contact.
+	Timeline = {
+		TurnSeconds = 0.12, -- the shell turns its front to the ball it hit
+		OpenSeconds = 0.14, -- the lid swings open
+		BeamFrom = 0.08,
+		PullFrom = 0.18, -- the silhouette shivers, then is pulled in
+		PullTo = 0.75,
+		CloseFrom = 0.78, -- the lid snaps shut
+		CloseSeconds = 0.08,
+		HopFrom = 0.9, -- the hop and the bounce
+		HopTo = 1.4,
+		BounceSeconds = 0.22,
+		Wobbles = { 1.85, 2.45, 3.05 }, -- one, two, three
+		WobbleSeconds = 0.42,
+		ClickAt = 3.55, -- caught: the click, the stars, GOTCHA!
+		FadeFrom = 3.95, -- the shell fades back into the cue ball
+		Done = 4.35,
+	},
+	-- GOTCHA! / IT BROKE FREE! over the ball (a billboard, studs).
+	LabelLiftBallRadii = 3,
+	LabelWidthStuds = 3.2,
+	LabelHeightStuds = 1,
+	LabelPopSeconds = 0.18,
+	LabelHoldSeconds = 1.1,
+	LabelFadeSeconds = 0.4,
+	LabelColor = { 255, 226, 70 },
+	BreakLabelColor = { 255, 120, 120 },
+	-- The 8 breaking free.
+	BreakSeconds = 0.5,
+	BreakSparks = 18,
+}
+
 -- Steel Ball's look (src/client/SteelBallFx.luau). Studs unless named. (tune)
 Config.UI.SteelBallFx = {
 	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
@@ -10749,6 +10897,7 @@ Config.UI.AbilityFx = {
 		EaglesEye = "EaglesEyeFx",
 		SuperBounce = "SuperBounceFx",
 		Rewind = "RewindFx",
+		CatchABall = "CatchABallFx",
 		TimeStop = "TimeStopFx",
 		ChainLightning = "ChainLightningFx",
 		Portals = "PortalsFx",
