@@ -71,6 +71,23 @@ show the 8 ball detail"): the flat silhouettes are replaced by a new tile of rea
 with its white disc and a clear 8, bigger on the card (`tools/gui/card_balls.py`, now `card_art.py`,
 `assets/ui/cards/`), in two looks to pick from: tinted to the card's colour, or classic black.
 
+## Concept 2: the Cues menu (round 1, waiting)
+
+https://claude.ai/artifact/AAsZhs9Dqn1xJkT9gzQ1Xv (sources in
+`~/Desktop/8ball-refs/gui-lively/work/cues-menu-A/`). The Inventory renamed Cues in the Shop's
+lively frame (header 8-balls, money pill with +, the 8-ball flair, the unroll and the card pops),
+no tab row, the panel as tall as two whole rows of cards with the third peeking (computer: cards
+169 x 214 in a 920 x 549 panel; Studio's 750 x 362 phone: 83 x 105, under the 118 px of today's
+phone cards, names at the 12 px floor so long ones take two lines). The Index opens inside the
+menu (title Index, a back arrow top-left; B does the same; Sort and Sell step aside). Tapping a
+card slams in its big card beside "You own 5", the chance, Equip and Sell duplicates (no pills on
+the big card: the right side says them). Three cue icons drawn in the column's sticker style
+(A one golden cue, B two crossed cues, C a cue on a card; scratch drawing, not yet in
+`tools/gen_ui_art.py`).
+Questions asked: where Sort, Index and Sell go (tiles outside the right edge like the Shop's, my
+pick; in the title row, where on a phone Index and Sell become icons; or their own row like today,
+where on a phone the cards shrink to 71 px); which icon; 5 or 6 cards per row.
+
 ## Progress
 
 - [x] Abilities and Ranked screens show again (`HudFocus`, `Config.UI.Menu.Focus.KeepWith`).
@@ -80,7 +97,7 @@ with its white disc and a clear 8, bigger on the card (`tools/gui/card_balls.py`
   Checked in Studio on every look (`GuiQA "cueCards"`), the real Cues grid and the Index's
   Ranked row, Lower effects and Reduce Motion. Waiting: the designer's look on a phone, a PC
   size and a gamepad. The reel's cards come with concept 3.
-- [ ] Concept 2 (Cues menu) approved, then built.
+- [ ] Concept 2 (Cues menu) approved, then built. Round 1 shown 2026-10-08.
 - [ ] Concept 3 (spin and YOU GOT) approved, then built.
 - [ ] Concept 4 (Free Reward) approved, then built.
 - [ ] Concept 5 (Abilities ideas) shown; built if approved.
