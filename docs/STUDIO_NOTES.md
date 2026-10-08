@@ -715,6 +715,14 @@ basics (glb textures, face direction, axes, texture alpha) are under "Uploading 
   a copy of the place (Lune), open it with `open -a RobloxStudio <file>`. A plain `kill` of
   that window leaves it asking to save (and a new one opens beside it): `kill -9` the pid that
   matches `-localPlaceFile <that file>` only, never the team place's window.
+- **Testing a camera look (Camera.setOverride):** seat the player with the QA fixture first
+  and shoot a few seconds later. Fired at once, the shot's moment came while the camera was
+  still flying in from the lobby, not yet locked to the table, and the look skipped its camera
+  (a Black Flash crash zoom that never showed). Fast camera or screen moments are too quick
+  for `screen_capture`: log the camera and the `AbilityGrade` ColorCorrection every
+  RenderStepped from a Client `execute_luau` into a workspace attribute, then read it back.
+  A Client `execute_luau` that requires a client module gets its own copy of it
+  (`Camera.isLocked()` reads false there), so read the instances, not the modules.
 
 ## Bugs that only happen live: fake the lag (found 2026-10-05)
 
