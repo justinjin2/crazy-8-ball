@@ -3487,7 +3487,6 @@ Config.Products = {
 			Deal = "GrandOpening",
 			Random = true,
 		},
-		-- The restock slots' Robux prices (only while that block is in stock).
 		-- The restock slots' Robux prices (only while that block is in stock; v4 plan 8.2).
 		-- RestockRare and RestockMythic are created by tools/roblox_products.py (Id 0 until then:
 		-- the slot sells for money only).

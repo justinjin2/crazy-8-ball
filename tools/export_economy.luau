@@ -33,20 +33,25 @@ local out = {
 	},
 	LuckyBlocks = {
 		Order = Config.LuckyBlocks.Order,
-		Kinds = Config.LuckyBlocks.Kinds, -- each kind's Odds row (or Roll) and Timer
+		Kinds = Config.LuckyBlocks.Kinds, -- each kind's Odds row (or Roll), Timer and Guarantee
 		VipTimerFactor = Config.LuckyBlocks.VipTimerFactor,
+		Skips = Config.LuckyBlocks.Skips, -- the skip product by time left
 	},
 	BlockCues = blockCues,
 	Daily = {
-		Streak = Config.Daily.Streak,
+		FirstWeek = Config.Daily.FirstWeek, -- the first 7 login days within FirstWeekWindow of joining
+		FirstWeekWindow = Config.Daily.FirstWeekWindow,
+		Streak = Config.Daily.Streak, -- later weeks
 		FreezePerWeek = Config.Daily.FreezePerWeek,
 		TrackDays = Config.Daily.TrackDays,
 		Track = Config.Daily.Track,
 		Playtime = Config.Daily.Playtime,
 		Codes = Config.Daily.Codes,
+		VipBlocks = Config.Daily.VipBlocks, -- VIP's daily block
 	},
 	Social = {
 		GroupReward = Config.Social.GroupReward,
+		FavoriteReward = Config.Social.FavoriteReward,
 		InviteBlock = Config.Social.InviteBlock,
 		InvitesPerMonth = Config.Social.InvitesPerMonth,
 	},
@@ -54,8 +59,11 @@ local out = {
 		Mystery = Config.Shop.Mystery,
 		Restock = Config.Shop.Restock,
 		StarterMoney = Config.Shop.StarterMoney,
+		Deals = Config.Shop.Deals, -- the Grand Opening window and money price
+		LaunchBonus = Config.Shop.LaunchBonus,
 	},
 	Packs = {}, -- filled below: the Robux money packs in shop order
+	Products = {}, -- filled below: every product's Robux price (and Money, Retired)
 	Ranks = {
 		Tiers = Config.Ranks.Tiers,
 		DivisionXp = Config.Ranks.DivisionXp,
@@ -69,10 +77,15 @@ local out = {
 	},
 	Index = Config.Index, -- row money and finder's money
 	Ults = { Earn = Config.Ults.Earn }, -- the ability spin's money price
+	Planned = Config.Planned, -- designed, not built yet (the Lucky Shot, Golden Shot, Lucky Rain, stay bonus)
 }
 for _, key in Config.Products.PackOrder do
 	local row = Config.Products.List[key]
 	table.insert(out.Packs, { Key = key, Robux = row.Robux, Money = row.Money })
+end
+
+for key, row in Config.Products.List do
+	out.Products[key] = { Robux = row.Robux, Money = row.Money, Retired = row.Retired }
 end
 
 fs.writeFile("tools/economy_config.json", serde.encode("json", out, true))
