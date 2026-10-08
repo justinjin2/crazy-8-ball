@@ -153,7 +153,7 @@ Round 2 (2026-10-08), from the designer's notes on round 1:
 Questions asked: which icon (1 to 4); does the switch feel clear. Answer: "ok" (round 2
 approved; the icon is asked in the build's plan).
 
-## Concept 2b: the CUES button and numbered copies (round 1, waiting)
+## Concept 2b: the CUES button and numbered copies (round 2, waiting)
 
 https://claude.ai/artifact/4Yt2zXLQ2nHTxHichzK8ob (sources in
 `~/Desktop/8ball-refs/gui-lively/work/cues-icon/`; the art from a scratch script on
@@ -170,6 +170,17 @@ the actual cue skin with some unique indicator ... like #1/100"): its own card w
 plaque "#12/100" above the name, mark A the plaque with a glint, B plus a gold line with a
 running glint inside the card's edge; the big card says "#12/100" and "One of the first 100 in
 the game" over the chance and how many exist, with Equip and Sell this copy.
+
+Round 2 notes (2026-10-08): "no when i mean the cue hitting a ball no table behind it, just the
+cue and white ball thats wrong". The felt is gone: the icon is only the cue and the cue ball,
+redrawn bigger, the cue lined up on the ball at a shallow angle so both sit clear of the
+column's red dot (top right) and the word CUES (bottom). Then: "for cues with serial numbers add
+an engraving somewhere on all the cues, show me an example before implementing on all of
+them". Example shown on the same page, from Studio on the game's own cues: a small gold
+nameplate with a dark rim on the butt sleeve, the number cut in ("#12/100", Fredoka One, dark
+brown with a light edge), on the cue in hand (facing up) and on the back in the lobby (facing
+out of the back). Built for every numbered copy with the copy numbers, once approved. Still to
+pick: the cue A or B, the card's mark A or B, and the engraving.
 
 ## Progress
 

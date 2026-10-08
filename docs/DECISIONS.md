@@ -3081,3 +3081,11 @@ timer of a new block stay the designer's call.
   own card just before that cue's plain stack; and concept 2, the Cues menu, at round 2 (the
   My Cues / Index switch, 5 per row, the Index's flat swaying picture, the copy number above
   the name, card words at the card's scale on a phone). The CUES icon is picked next.
+- 2026-10-08: The CUES icon has nothing behind it (designer: "no table behind it, just the cue
+  and white ball"): the felt option is dropped; one cue lined up on a white cue ball, clear of
+  the column's red dot and its word.
+- 2026-10-08: Numbered copies get an engraving on the cue itself (designer: "for cues with
+  serial numbers add an engraving somewhere on all the cues, show me an example before
+  implementing on all of them"). Example shown, waiting for the OK: a gold nameplate with the
+  number on the butt sleeve, on the cue in hand and on the back in the lobby. It is built with
+  the copy numbers.
