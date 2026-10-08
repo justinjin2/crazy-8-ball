@@ -964,7 +964,7 @@ offered again, kept on Roblox (never deleted) so an old receipt still pays.
 
 ### 11.2 VIP (game pass, 399 R$)
 
-399 R$ since v4 (2026-10-08; Config had 499, and the pass on Roblox still says 599 until `tools/roblox_products.py --sync` runs).
+399 R$ since v4 (2026-10-08; was 499 in Config and 599 on Roblox until that day's `--sync`).
 
 - **2x money** (+100%, adds with other boosts) on match money only (3.5).
 - **No block timers** (designer, 2026-10-07): every block opens at once
@@ -1052,9 +1052,10 @@ rate, Robux x 8,000 / 25 (the VIP offer about $63,700, the Starter Pack about $6
 
 **Setting the prices on Roblox**: `python3 tools/roblox_products.py --sync --dry-run`, then
 `--sync`, brings every made pass and product in line with `products_spec.json` (price, name,
-description, off sale for a retired one); the plain run creates missing ones (RestockRare,
-RestockMythic and the two new skips) and writes their ids to `tools/products_ids.json` for
-`Config.Products`. A price change goes live in every server at once. **By hand, on the Creator
+description, off sale for a retired one); the plain run creates missing ones and writes their
+ids to `tools/products_ids.json` for `Config.Products`. A price change goes live in every server
+at once. Done 2026-10-08: RestockRare, RestockMythic and the two new skips made, every price,
+name and text synced, the six sale products off sale (none deleted). **By hand, on the Creator
 Hub** (the Open Cloud API has no field for it): set every developer product that holds a random
 item to **Not Listed**, so it can't be bought outside the game without its odds (13).
 

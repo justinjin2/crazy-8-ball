@@ -529,5 +529,5 @@ changes then.
 - [x] 11. Saves and the migration (check the GUI branch's version first)
 - [x] 12. `tools/economy_model.py` and `economy_config.json`
 - [x] 13. Docs: `ECONOMY.md`, GDD 11-12, `DECISIONS.md`, `ROADMAP.md`
-- [ ] 14. Products: `products_spec.json`, `roblox_products.py --dry-run`, then for real (right before the merge)
+- [x] 14. Products: `products_spec.json`, `roblox_products.py --dry-run`, then for real (right before the merge)
 - [ ] 15. The merge, `STATUS.md`

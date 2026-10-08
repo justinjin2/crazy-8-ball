@@ -351,15 +351,9 @@ return {
 	end,
 
 	["every pass and product is made: a real id, each once"] = function()
-		-- Not made in Creator Hub yet (the lucky-block economy, 2026-10-04): the designer
-		-- approves their creation (tools/roblox_products.py), then this list empties.
-		-- (The Grand Opening packs were made 2026-10-06.)
-		local pending = {
-			RestockRare = true,
-			RestockMythic = true, -- economy v4 (2026-10-08)
-			LuckyBlockSkip9 = true,
-			LuckyBlockSkip15 = true,
-		}
+		-- Not made in Creator Hub yet (tools/roblox_products.py makes them; empty since economy
+		-- v4's products were made 2026-10-08).
+		local pending: { [string]: boolean } = {}
 		local seen = {}
 		for key, product in Config.Products.List do
 			if pending[key] then

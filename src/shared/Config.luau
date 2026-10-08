@@ -3487,11 +3487,10 @@ Config.Products = {
 			Random = true,
 		},
 		-- The restock slots' Robux prices (only while that block is in stock; v4 plan 8.2).
-		-- RestockRare and RestockMythic are created by tools/roblox_products.py (Id 0 until then:
-		-- the slot sells for money only).
+		-- RestockRare and RestockMythic were made 2026-10-08 (tools/roblox_products.py).
 		RestockRare = {
 			Kind = "Product",
-			Id = 0,
+			Id = 3717253507,
 			Robux = 15,
 			Restock = "Rare",
 			Random = true,
@@ -3512,15 +3511,15 @@ Config.Products = {
 		},
 		RestockMythic = {
 			Kind = "Product",
-			Id = 0,
+			Id = 3717253510,
 			Robux = 1699,
 			Restock = "Mythic",
 			Random = true,
 		},
 		-- The skip by time left (Config.LuckyBlocks.Skips): 30 min or less, 6 h or less, more.
 		LuckyBlockSkip = { Kind = "Product", Id = 3716368528, Robux = 4, Random = true },
-		LuckyBlockSkip9 = { Kind = "Product", Id = 0, Robux = 9, Random = true },
-		LuckyBlockSkip15 = { Kind = "Product", Id = 0, Robux = 15, Random = true },
+		LuckyBlockSkip9 = { Kind = "Product", Id = 3717253512, Robux = 9, Random = true },
+		LuckyBlockSkip15 = { Kind = "Product", Id = 3717253515, Robux = 15, Random = true },
 		MoneyParty = { Kind = "Product", Id = 3716158385, Robux = 49 }, -- +100% money, 15 min, server
 		-- Ability spins (ECONOMY 11.8; the spin screen's R$ buy row). Spins / Lucky: what one
 		-- purchase adds; Was: the same count bought one at a time today (a true bulk saving
