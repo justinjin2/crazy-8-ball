@@ -153,6 +153,24 @@ Round 2 (2026-10-08), from the designer's notes on round 1:
 Questions asked: which icon (1 to 4); does the switch feel clear. Answer: "ok" (round 2
 approved; the icon is asked in the build's plan).
 
+## Concept 2b: the CUES button and numbered copies (round 1, waiting)
+
+https://claude.ai/artifact/4Yt2zXLQ2nHTxHichzK8ob (sources in
+`~/Desktop/8ball-refs/gui-lively/work/cues-icon/`; the art from a scratch script on
+`tools/gen_ui_art.py`'s helpers, to move into it once picked). The designer turned down the
+crossed cues: "maybe instead of 2 just one with a unique animation hovering/ clicking on it hits
+like a white cue ball, and jusst make the cue skin the generate black wood one? show me this
+first". One cue aimed at a white cue ball, in layers (cue, ball, and optionally a round patch of
+table felt with a wooden rim and its sights): on hover the cue draws back, snaps forward and the
+ball shoots off with a spark, then pops back; a click or tap is a harder hit, starting on
+press-down. Picks: the cue A all black (like the Midnight Cue) or B black wood with a maple
+shaft; nothing or the felt behind it (my pick: the felt, as bold as the basket and the 8-ball).
+Also the numbered copy's look (designer: "make sure to add serial number cues are separate from
+the actual cue skin with some unique indicator ... like #1/100"): its own card with a gold
+plaque "#12/100" above the name, mark A the plaque with a glint, B plus a gold line with a
+running glint inside the card's edge; the big card says "#12/100" and "One of the first 100 in
+the game" over the chance and how many exist, with Equip and Sell this copy.
+
 ## Progress
 
 - [x] Abilities and Ranked screens show again (`HudFocus`, `Config.UI.Menu.Focus.KeepWith`).
