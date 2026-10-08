@@ -8825,6 +8825,7 @@ Config.UI.GrandOpeningCard = {
 		PillMinTextPx = 9, -- the pills may go smaller than MinTextPx: they sit over the cue (designer, 2026-10-06)
 		PillGapUnits = 8,
 		UniqueColor = { 226, 79, 216 },
+		LeftColor = { 38, 50, 84 }, -- the copies-left pill ("61 of 100 left"): calm ink blue
 		-- The odds chip, at the card's bottom-right on both cards (designer, 2026-10-06: the same
 		-- place on each): its width and height.
 		OddsChip = { 76, 32 },

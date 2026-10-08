@@ -556,6 +556,12 @@ function GrandOpeningCard.buildCueCard(self: any, which: string): any
 		made.AnchorPoint = Vector2.new(0, 0)
 		table.insert(c.pillParts, { pill = made, words = text })
 	end
+	-- Beside it, the copies still to find ("61 of 100 left", economy v4 plan 8.5), shown once
+	-- the server has read the count (GrandOpeningCard.refresh).
+	c.leftPill, c.leftWords = pill(pills, "Left", "", rgb(L.LeftColor), 6)
+	c.leftPill.AnchorPoint = Vector2.new(0, 0)
+	c.leftPill.Visible = false
+	table.insert(c.pillParts, { pill = c.leftPill, words = c.leftWords })
 	local odds, oddsWords =
 		pill(frame, which .. "Odds", cueOdds(if beta then BETA else FIREWORK), rgb(L.OddsColor), 6)
 	c.odds, c.oddsWords = odds, oddsWords
@@ -758,6 +764,27 @@ end
 
 --- Lay the page out in `width` pixels (and, given, `height`: the card then shrinks to fit it
 --- whole, so nothing scrolls); returns its height. The card is centred across the page.
+-- A cue card's pills in a row under its name, the hidden ones left out (sizes from the last
+-- layout: c.pillSizes).
+local function layoutPills(c: any)
+	local sizes = c.pillSizes
+	if sizes == nil then
+		return
+	end
+	local px = 0
+	for _, p in c.pillParts do
+		if p.pill.Visible then
+			local wordsW = math.ceil(ShopParts.textWidth(p.words.Text, sizes.text)) + 4
+			local pw = math.max(sizes.least, wordsW + 10)
+			p.pill.Position = UDim2.fromOffset(px, 0)
+			p.pill.Size = UDim2.fromOffset(pw, sizes.height)
+			HudParts.setTextSize(p.words, sizes.text)
+			px += pw + sizes.gap
+		end
+	end
+	c.pills.Size = UDim2.fromOffset(px, sizes.height)
+end
+
 function GrandOpeningCard.layout(self: any, width: number, height: number?): number
 	local W, H = L.Card[1], L.Card[2]
 	local F = L.Featured
@@ -915,17 +942,14 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 		end
 		c.name.Size = UDim2.fromOffset(at, namePx + 4)
 		local pillPx = math.max(L.PillMinTextPx, round(L.PillTextUnits * g.s * k))
-		local pillH = math.max(round(L.PillUnits[2] * g.s * k), pillPx + 6)
 		c.pills.Position = UDim2.fromOffset(x, round(L.NameAt[2] * g.s * k + namePx / 2 + 4))
-		local px = 0
-		for _, p in c.pillParts do
-			local pw = math.max(round(L.PillUnits[1] * g.s * k), measure(p.words.Text, pillPx) + 10)
-			p.pill.Position = UDim2.fromOffset(px, 0)
-			p.pill.Size = UDim2.fromOffset(pw, pillH)
-			HudParts.setTextSize(p.words, pillPx)
-			px += pw + round(L.PillGapUnits * g.s * k)
-		end
-		c.pills.Size = UDim2.fromOffset(px, pillH)
+		c.pillSizes = {
+			text = pillPx,
+			height = math.max(round(L.PillUnits[2] * g.s * k), pillPx + 6),
+			least = round(L.PillUnits[1] * g.s * k),
+			gap = round(L.PillGapUnits * g.s * k),
+		}
+		layoutPills(c)
 		local chip = L.OddsChip
 		local oddsPx = textPx(L.OddsTextUnits, g.s)
 		local ow = math.max(round(chip[1] * g.s * k), measure(c.oddsWords.Text, oddsPx) + 16)
@@ -953,7 +977,7 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 				code.ImageTransparency = 1 - row[3]
 			end
 		end
-		for _, stroke in { strokeOf(c.odds), strokeOf(c.pillParts[1].pill) } do
+		for _, stroke in { strokeOf(c.odds), strokeOf(c.pillParts[1].pill), strokeOf(c.leftPill) } do
 			if stroke then
 				stroke.Thickness = math.max(2, round(4 * g.s * k))
 			end
@@ -1024,6 +1048,29 @@ function GrandOpeningCard.refresh(self: any, state: any)
 	if open then
 		self.endsIn.Text =
 			string.format(COPY.EndsIn, StageMath.timeLeft(deal.endsAt - ShopParts.now(), COPY))
+	end
+	-- Each Unique cue's copies left, once the server has read the count.
+	local uniques = if type(state) == "table" and type(state.uniques) == "table"
+		then state.uniques.GrandOpening
+		else nil
+	for _, c in { self.beta, self.firework } do
+		local cue = if c.which == "Beta" then BETA else FIREWORK
+		local row: any = nil
+		if type(uniques) == "table" then
+			for _, entry in uniques do
+				if type(entry) == "table" and entry.cue == cue then
+					row = entry
+					break
+				end
+			end
+		end
+		local shown = row ~= nil and type(row.left) == "number" and type(row.cap) == "number"
+		c.leftPill.Visible = shown
+		if shown then
+			c.leftWords.Text =
+				string.format(COPY.Left, Format.commas(row.left), Format.commas(row.cap))
+		end
+		layoutPills(c)
 	end
 end
 

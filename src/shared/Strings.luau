@@ -722,6 +722,8 @@ return {
 				BetaName = { "BETA", " CUE" },
 				FireworkName = { "FIREWORK", " CUE" },
 				Unique = "UNIQUE",
+				-- Beside UNIQUE: the copies of the cue still to find (economy v4 plan 8.5).
+				Left = "%s of %s left",
 				-- A pack's size, between its Robux and money buttons (which show only prices).
 				Blocks = { One = "%d block", Many = "%d blocks" },
 				BoughtOne = "Your %s is in your hotbar!",
