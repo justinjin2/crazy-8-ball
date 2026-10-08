@@ -143,7 +143,10 @@ local function buildCueCard(slot: Slot)
 	card.button.AnchorPoint = Vector2.new(0.5, 0.5)
 	card.button.Position = UDim2.fromScale(0.5, 0.5)
 	card.button.Size = (slot.edge.Parent :: Frame).Size
-	InventoryCard.set(card, { cueId = slot.id, chance = ODDS_TEXT[slot.id], still = true })
+	InventoryCard.set(
+		card,
+		{ cueId = slot.id, chance = ODDS_TEXT[slot.id], still = true, clear = R.ClearCards }
+	)
 	slot.card = card
 end
 
@@ -207,7 +210,10 @@ local function dressCard(slot: Slot, id: string, rarity: string)
 	slot.rarity = rarity
 	if slot.cue then
 		if slot.card then
-			InventoryCard.set(slot.card, { cueId = id, chance = ODDS_TEXT[id], still = true })
+			InventoryCard.set(
+				slot.card,
+				{ cueId = id, chance = ODDS_TEXT[id], still = true, clear = R.ClearCards }
+			)
 		end
 		return -- else it is built with the prize's id
 	end

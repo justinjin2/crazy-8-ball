@@ -8735,10 +8735,16 @@ Config.UI.Reel = {
 		-- reel's entrance for about 70 ms): this many at once, then this many a frame.
 		EagerCards = 12,
 		CardsPerFrame = 6,
+		-- The strip's cards with a see-through face (Config.UI.CueCard.Clear), on trial
+		-- (designer, 2026-10-08); false: the cards' own colours. YOU GOT keeps its colours.
+		ClearCards = true,
 		PrizeSlot = 34, -- the prize's place: late, with cards after it for the window's right side
 		-- Each cue's weight on the strip is its odds (BlockOdds.cueOdds) to this power: 1 = the true
-		-- odds (a Standard strip is mostly grey and green); under 1 shows rarer cues more often.
-		WeightPower = 1,
+		-- odds (a Standard strip was 30 Commons, 9 Uncommons and a Rare in 40); under 1 shows
+		-- rarer cues more often. Purely for show: the prize and the odds shown never change
+		-- (designer, 2026-10-08: "make rarer cues appear more often"). At 0.3 a Standard strip
+		-- is about 17 Common, 14 Uncommon, 7 Rare, 1.4 Epic, 0.6 Legendary, 0.2 Mythic in 40.
+		WeightPower = 0.3,
 		CardWidthPx = 136, -- bigger cards with the cue's name and odds (GUI lane, 2026-10-03)
 		CardHeightPx = 176,
 		GapPx = 8, -- between two cards
@@ -9249,6 +9255,13 @@ Config.UI.CueCard = {
 	-- it ... slightly greyed out but enough to still see the colors"; it was a grey card with a
 	-- dark silhouette): its whole card, standing still, under a grey veil, with a big padlock
 	-- (Kit.Icons.Lock) over the picture. No pills.
+	-- A see-through face (Fields.clear): the lucky block reel's cards, on trial (designer,
+	-- 2026-10-08: "the white backgrounds are a little bit too busy"): a dark see-through fill in
+	-- place of the look's colours, no 8-balls, the rarity's edge kept (the old reel tiles').
+	Clear = {
+		FillColor = "#1B2033", -- the kit's ink (Kit.Colors.Ink)
+		FillTransparency = 0.45,
+	},
 	Locked = {
 		VeilColor = "#DDE2EA", -- the veil's grey (light, so the card's colours show through)
 		VeilTransparency = 0.6, -- its (0.45 hid too much of a dark card's colours)

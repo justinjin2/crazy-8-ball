@@ -3141,3 +3141,12 @@ timer of a new block stay the designer's call.
   would give the pull away before the stop); YOU GOT shows the cue's card with all its motion
   (the drifting 8-balls and its rarity's effects). The reel's old dark see-through tiles and the
   YOU GOT's separate name and rarity lines are gone.
+- 2026-10-08 (designer: "yes make rarer cues appear more often"): the lucky block reel draws its
+  strip with each cue's odds to the power 0.3 (`Config.UI.Reel.Reel.WeightPower`, was 1, the
+  true odds). Purely for show: the prize and the odds shown never change. A Standard strip goes
+  from about 30 Common, 9 Uncommon and 1 Rare in 40 to about 17, 14, 7, with an Epic most spins
+  and a Legendary about every other spin.
+- 2026-10-08 (designer, to try): the reel's cards get a dark see-through face with their
+  rarity's edge, as the old tiles had, in place of the card's colours and 8-balls ("the white
+  backgrounds are a little bit too busy"). A switch, `Config.UI.Reel.Reel.ClearCards`, until
+  the designer decides; YOU GOT keeps the full card.

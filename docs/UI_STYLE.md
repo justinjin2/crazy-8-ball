@@ -449,9 +449,12 @@ then; the reel's rules hold for the blocks.
   `tools/gen_ui_art.py`) and their kit icons were deleted with the cases; a lucky block is
   drawn as its own 3D model everywhere (section 14). Rarity colours stay UI_STYLE 4's.
 - **The reel** (designer: Rivals / CS style; now `BlockReel`, section 14): a strip of cue
-  cards (the cue card of section 17 with its chance chip, since 2026-10-08; none of them moves,
+  cards (the cue card of section 17 with its chance chip, since 2026-10-08, on trial with a
+  dark see-through face and the rarity's edge in place of its colours and 8-balls,
+  `Reel.ClearCards`; none of them moves,
   the prize neither, so nothing gives the pull away before the stop; built a few a frame) drawn
-  from the block's true odds slides under a gold centre marker and eases to a
+  from the block's odds, rarer cues shown more often (each cue's odds to the power 0.3, purely
+  for show, designer 2026-10-08) slides under a gold centre marker and eases to a
   stop on the prize, ticking as cards pass; the timings are `Config.UI.Reel`. Then the prize
   pops with its rarity sting: the pull cutscene from Rare, then the "YOU GOT" card over the
   dimmed world (the cue's card big in the middle with all its motion, the rays behind it). A Rare or better pull fades everything to black from a second before the reel stops;

@@ -67,6 +67,7 @@ export type Fields = {
 	equipped: boolean?, -- the green Equipped pill
 	chance: string?, -- the chance chip top left: "4.2%" (nil for a cue no block drops)
 	still: boolean?, -- no moving parts (the lucky block reel's cards)
+	clear: boolean?, -- a dark see-through face in place of its colours and 8-balls (CueCard.Clear)
 }
 
 export type Options = {
@@ -755,6 +756,15 @@ function InventoryCard.set(card: Card, fields: Fields)
 	if changed or key ~= card.lookKey then
 		dress(card, key, ranked, id, still)
 	end
+	-- The see-through face (the reel, on trial: designer, 2026-10-08) or the look's own.
+	local clear = fields.clear == true
+	local C = CC.Clear
+	card.fill.BackgroundColor3 = if clear then hex(C.FillColor) else WHITE
+	card.fill.BackgroundTransparency = if clear then C.FillTransparency else 0
+	card.fillGradient.Enabled = not clear
+	card.balls.Visible = not clear
+	card.inner.Visible = not clear
+	card.centre.Visible = not clear and CardMath.look(key).Centre ~= nil
 	card.badge.Visible = ranked
 	card.veil.Visible = locked
 	card.bigLock.Visible = locked

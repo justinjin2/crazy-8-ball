@@ -276,7 +276,10 @@ When copy numbers are built, Sell all skips every numbered copy (already in the 
   chance chip, all standing still (the prize too: a moving one gives the pull away); YOU GOT
   shows the cue's card big with all its motion. Built a few a frame (`Reel.EagerCards`,
   `CardsPerFrame`). Test: `GuiQA "luckyReel" <kind> <cueId>` (nothing asked of the server).
-  Still open from the request: rarer cues showing more often on the reel (purely visual).
+  On trial (designer: "the white backgrounds are a little bit too busy"): the reel's cards
+  with a dark see-through face and their rarity's edge (`Reel.ClearCards`,
+  `Config.UI.CueCard.Clear`); YOU GOT keeps the full card. Rarer cues show more often on the reel (designer: "yes", 2026-10-08; `Reel.WeightPower` 0.3,
+  purely for show).
 - [ ] Concept 4 (Free Reward) approved, then built.
 - [ ] Concept 5 (Abilities ideas) shown; built if approved.
 - [ ] Concept 6 (Ranked ideas) shown; built if approved.
