@@ -6489,31 +6489,21 @@ Config.UI = {
 			AutoCloseSeconds = 5,
 			MinShowSeconds = 0.6, -- a tap on the backdrop closes it only after this
 		},
-		-- The rank roadmap (Roadmap; reference 03, designer 2026-09-27): the header, the ten
-		-- tiers side by side, your rank's card and the chosen tier's rewards card, one line of
-		-- rules. Sizes given as { a, b } run from a on the smallest panel (a phone) to b on a
-		-- full-size one (DesignHeightPx tall); text shrinks with the panel down to MinScale. (tune)
+		-- The rank roadmap (Roadmap; reference 03, designer 2026-09-27; in the lively frame since
+		-- pick "ranked A", 2026-10-08): the ten tiers side by side over your rank's card and the
+		-- chosen tier's rewards card. Sizes given as { a, b } run from a on the smallest panel (a
+		-- phone) to b on a full-size one (MenuFrame's Geo.t). (tune)
 		Roadmap = {
-			DisplayOrderAbove = 10, -- its own ScreenGui sits this far over the HUD's
+			DisplayOrderAbove = 10, -- a menu's ScreenGui sits this far over the HUD's
 			-- The backdrop behind the panel (a tap on it closes); 1: clear, the world blurs
 			-- instead (Config.UI.Blur; designer, 2026-10-06; was 0.45). Menus share it.
 			DimTransparency = 1,
 			DimSeconds = 0.2, -- the backdrop's fade in and out
-			MaxSizePx = { 1120, 640 }, -- the panel's largest width and height (a computer)
-			MarginPx = 4, -- the least gap between the panel and the screen's edges
-			-- A screen shorter than this below Roblox's top bar is a phone: the panel also takes
-			-- the top bar's row, its title right of Roblox's buttons, so the tiers keep their height.
-			ShortScreenPx = 500,
-			TopbarLeftFallbackPx = 212, -- where Roblox's buttons end, when Roblox does not say
 			TouchMinPx = 44, -- the smallest touch target (UI_STYLE section 5)
-			DesignHeightPx = 620, -- rows and text are full size at this panel height
-			MinScale = 0.72, -- and shrink with a shorter panel, never below this share
-			PaddingPx = { 6, 14 }, -- inside the panel
-			GapPx = { 5, 8 }, -- between its rows
-			HeaderPx = { 46, 68 }, -- the title row (on a phone: the top bar row's height)
-			TitleScale = 1.2, -- "Ranked" is this much bigger than the kit's title size
-			SubtitleMinPx = 120, -- a narrower room beside the title drops the subtitle
-			CloseMaxPx = 48, -- the close X's largest size
+			-- The page: the tier row, this share of the sheet's width (at most RowMaxPx), over
+			-- the two cards; the lively panel is as tall as that, up to the screen's room.
+			RowOfWidth = 0.33,
+			RowMaxPx = 320,
 			-- The tier row: the ten tiers side by side between a round < and > button. Yours is
 			-- CurrentScale bigger and CurrentCellScale wider; as many show as fit (VisibleTiers).
 			ArrowPx = { 44, 56 }, -- the round arrow buttons (never under TouchMinPx)
@@ -6550,7 +6540,9 @@ Config.UI = {
 			NextTagColor = { 110, 122, 145 }, -- the Next Rank tag (Current Rank: Kit Blue)
 			-- The cards under the row: your rank (left) and the chosen tier's rewards (right).
 			CardsPx = { 108, 190 }, -- their height
-			RewardsShare = { 0.53, 0.46 }, -- the rewards card's share of the width (the rest: your rank)
+			-- The rewards card's share of the width (the rest: your rank); in the lively frame's
+			-- narrower panel its five tiles need a little more than the old 0.46.
+			RewardsShare = { 0.53, 0.48 },
 			CardPadShare = 0.07, -- inside a card (of its height)
 			RankBadgeShare = 0.94, -- your badge on the rank card (of the card's height)
 			CardTint = 0.3, -- the rank card fades to this much of your tier's colour
@@ -6560,7 +6552,9 @@ Config.UI = {
 			ChipIconShare = 1.2, -- the cash on its money chip (of the chip; pokes out)
 			BarBackColor = { 222, 227, 236 }, -- the XP bar's empty part
 			BarTopColor = { 255, 236, 150 }, -- its fill fades from this to Kit Gold
-			TileGapPx = { 4, 8 }, -- between two reward tiles
+			TileGapPx = { 3, 6 }, -- between two reward tiles
+			TilePadShare = 0.03, -- inside a tile, round its picture and words (of its height)...
+			TilePadMinPx = 3, -- ...at least this
 			TileCornerPx = { 8, 12 },
 			TileStrokePx = 2, -- a tile's outline...
 			TileEdgeColor = { 178, 196, 224 }, -- ...pale, so the tiles sit quietly in the inked card
@@ -8158,7 +8152,8 @@ Config.UI.Menu = {
 	-- the panel unrolls open and folds shut (Stage, with the menu's Open schedule), the header's
 	-- 8-balls scroll, the white sheet has the still dots and an 8-ball sits on the top edge.
 	-- Menus not listed keep the kit frame (pop in, still pattern). Names as Menus.register.
-	LivelyMenus = { "Shop", "Inventory", "FreeReward" }, -- "Inventory": the Cues menu (concept 2, 2026-10-08)
+	-- "Inventory": the Cues menu (concept 2, 2026-10-08); "Ranked": the roadmap (pick "ranked A").
+	LivelyMenus = { "Shop", "Inventory", "FreeReward", "Ranked" },
 	-- One thing at a time (HudFocus; designer, 2026-10-06): while a full menu is open every
 	-- other screen of ours is off. These ScreenGuis stay on (a "...Menu" screen always does):
 	-- popups that must still reach the player and invisible probes. KeepWith: more per menu.
@@ -13006,6 +13001,52 @@ Config.UI.FreeReward.Open = {
 		{ Ids = { "InviteCard" }, Kind = "Grow", At = 0.3 },
 		{ Ids = { "InviteArt", "InviteTitle", "InviteButton" }, Kind = "Pop", At = 0.36 },
 		{ Ids = { "Flair" }, Kind = "Drop", At = 0.66, Length = 0.25 }, -- the 8-ball lands on the frame
+	},
+}
+
+-- The Ranked screen's open (Roadmap, pick "ranked A", 2026-10-08), on the frame's ids (Panel,
+-- Header, Basket, Title, Money, Close, Flair) and the page's: the arrows, each tier
+-- left to right, your shining badge with a gold burst and its rays, the two cards, then the
+-- chosen tier's five reward tiles. The Shop's timings.
+Config.UI.Ranked = {
+	-- On a phone the panel takes this share of the screen's width, not the lively frame's 0.66:
+	-- at 0.66 the ten tiers, the rank card and the five reward tiles cut their words.
+	PhoneWidthShare = 0.96,
+	Open = {
+		OpenSeconds = 0.91,
+		Steps = {
+			{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
+			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
+			{ Ids = { "Basket", "Title", "Money", "Close" }, Kind = "Pop", At = 0.18 },
+			{ Ids = { "Back", "Forward" }, Kind = "Pop", At = 0.22 },
+			{
+				Ids = {
+					"Tier1",
+					"Tier2",
+					"Tier3",
+					"Tier4",
+					"Tier5",
+					"Tier6",
+					"Tier7",
+					"Tier8",
+					"Tier9",
+					"Tier10",
+				},
+				Kind = "Pop",
+				At = 0.22,
+				Stagger = 1,
+			},
+			{ Ids = { "YourBadge" }, Kind = "Pop", At = 0.3, Burst = "Gold" },
+			{ Ids = { "Rays" }, Kind = "Fade", At = 0.34, Length = 0.2 },
+			{ Ids = { "RankCard", "RewardsCard" }, Kind = "Grow", At = 0.3 },
+			{
+				Ids = { "Reward1", "Reward2", "Reward3", "Reward4", "Reward5" },
+				Kind = "Pop",
+				At = 0.4,
+				Stagger = 1.25,
+			},
+			{ Ids = { "Flair" }, Kind = "Drop", At = 0.66 },
+		},
 	},
 }
 

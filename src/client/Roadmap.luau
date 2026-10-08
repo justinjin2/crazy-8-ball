@@ -1,9 +1,12 @@
 --!strict
--- Roadmap: the ranked screen (docs/prompts/RANKS_MONEY_PROMPT.md section 12, reference
--- 03-ranked-roadmap; laid out again by the designer 2026-09-27). Pressing the rank HUD opens
--- it: a big white kit panel over a dim backdrop with the trophy, "Ranked", a short subtitle
--- and a red close X; the ten tiers side by side; your rank's card and the chosen tier's
--- rewards card under them (no line of rules under them: designer, 2026-09-27).
+-- Roadmap: the Ranked screen (docs/prompts/RANKS_MONEY_PROMPT.md section 12, reference
+-- 03-ranked-roadmap; laid out again by the designer 2026-09-27), in the lively frame since the
+-- designer's pick "ranked A" (2026-10-08: today's layout in the lively frame, equal reward
+-- tiles). Pressing the rank HUD opens it (Menus "Ranked"): MenuFrame's panel unrolls with the
+-- trophy, "Ranked", the money pill (its "+" opens the Shop's money packs) and the red X; the
+-- ten tiers side by side over your rank's card and the chosen tier's rewards card, popping in
+-- one after another (Config.UI.Ranked.Open). The page is the tier row (a share of the sheet's
+-- width, RowOfWidth) over the two cards, as tall as the screen allows.
 --
 -- The tier row, Bronze to Reyes: each tier's badge (its division I; yours shows your own
 -- division), its name and a dot per division, gold for those reached. Your tier is bigger and
@@ -26,14 +29,11 @@
 --
 -- States come from the local player's attributes (RankXp, RatedMatches, PeakDivision); any
 -- change redraws the map. Gamepad: left and right move along the tiers and onto the arrows at
--- the ends, A chooses, up or down reaches the close X, B closes. Every size comes from the
--- screen: on a phone the panel takes the whole screen, its title in Roblox's top bar row
--- right of Roblox's buttons; on a computer it is capped. Numbers are in
+-- the ends, A chooses, up or down reaches the close X, B closes (Menus). Sizes run from a
+-- phone-sized panel to a full one (MenuFrame's Geo.t). Numbers are in
 -- Config.UI.Progress.Roadmap, words in Strings.Progress.
 --
--- It lives in its own ScreenGui just over the HUD's (the rank and money HUDs have theirs), so
--- the backdrop covers them. Built on first open and kept; every loop runs only while open.
-local ContextActionService = game:GetService("ContextActionService")
+-- Built on first open and kept; every loop runs only while open.
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -52,9 +52,11 @@ local Ranks = require(Progression:WaitForChild("Ranks"))
 local ChatTags = require(script.Parent.ChatTags)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
+local MenuFrame = require(script.Parent.MenuFrame)
+local Menus = require(script.Parent.Menus)
 local RankBadge = require(script.Parent.RankBadge)
 local BlockIcon = require(script.Parent.BlockIcon)
-local ScreenBlur = require(script.Parent.ScreenBlur)
+local Stage = require(script.Parent.Stage)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -82,7 +84,8 @@ local ICONS: { [string]: string } = K.Icons :: any
 -- The chat-tag icon (tools/gen_ui_art.py: chat_tag); a stand-in from the set without its id.
 local CHAT_ICON = if ICONS.ChatTag then "ChatTag" else "People"
 local QUICK = Config.Multiplayer.Style.QuickMotion
-local CLOSE_ACTION = "8ballRoadmapClose"
+-- Its name in Menus (and its frame's: Config.UI.Ranked.Open, the "RankedMenu" ScreenGui).
+local NAME = "Ranked"
 -- The save's rank as the server replicates it (PlayerData); any change redraws the map.
 local WATCHED = { "RankXp", "RatedMatches", "PeakDivision", "RankIndex" }
 
@@ -225,10 +228,6 @@ local function stroke(parent: Instance, tint: Color3, thickness: number): UIStro
 	return edge
 end
 
-local function isGamepad(kind: Enum.UserInputType): boolean
-	return string.sub(kind.Name, 1, 7) == "Gamepad"
-end
-
 local function readNumber(player: Player?, name: string): number
 	local value = if player then player:GetAttribute(name) else nil
 	return if type(value) == "number" and value == value then value else 0
@@ -274,21 +273,6 @@ end
 -- The tier the rewards card opens on: the next one (Bronze when Unranked; Reyes at the top).
 local function defaultTier(state: State): string
 	return TIERS[math.min(state.order + 1, #TIERS)]
-end
-
--- A clear button that swallows presses: the backdrop (which closes) and the panel's floor
--- (so a press on the panel's empty parts does not reach the backdrop).
-local function catcher(parent: Instance, name: string): TextButton
-	local button = Instance.new("TextButton")
-	button.Name = name
-	button.Text = ""
-	button.AutoButtonColor = false
-	button.Selectable = false
-	button.BorderSizePixel = 0
-	button.BackgroundTransparency = 1
-	button.Size = UDim2.fromScale(1, 1)
-	button.Parent = parent
-	return button
 end
 
 -- An XP bar: a round track with an ink edge and a gold fill.
@@ -369,7 +353,6 @@ function Roadmap.new(screen: ScreenGui): Roadmap
 	self.built = false
 	self.connections = {} -- for the map's life
 	self.openConnections = {} -- only while open
-	self.bound = false
 	self.geo = nil :: Geo?
 	self.row = nil :: Row?
 	self.state = nil :: State?
@@ -385,10 +368,9 @@ function Roadmap.new(screen: ScreenGui): Roadmap
 	self.pulseCell = nil
 	self.spinner = nil
 	self.stepper = nil
-	self.dimTween = nil
 	self.barTween = nil
 	self.nudgeTween = nil
-	self.previousSelection = nil
+	self.opening = false -- the frame is laying the page out for the open
 	return self :: Roadmap
 end
 
@@ -544,27 +526,6 @@ local function makeTile(
 		label = label,
 		check = check,
 	}
-end
-
-function Roadmap.buildHeader(self: any, card: Frame)
-	local header = HudParts.frame(card, "Header")
-	self.header = header
-	self.trophy = HudParts.icon(header, "Trophy", "Trophy")
-	local title = HudParts.text(header, "Title", K.Text.Title, P.RankedTitle)
-	title.TextWrapped = false
-	title.TextXAlignment = Enum.TextXAlignment.Left
-	self.title = title
-	local subtitle = HudParts.note(header, "Subtitle", K.Text.Body, P.RankedSubtitle)
-	subtitle.TextXAlignment = Enum.TextXAlignment.Left
-	self.subtitle = subtitle
-	local close = HudParts.candy(header, "", function()
-		UISound.play("Click")
-		self:close()
-	end, "Red", "X")
-	close.Name = "Close"
-	HudParts.setMinHit(close, R.TouchMinPx)
-	HudParts.padBack(close) -- B closes the roadmap
-	self.closeButton = close
 end
 
 -- A round blue candy arrow at one end of the tier row: each press scrolls one tier.
@@ -761,74 +722,49 @@ end
 
 function Roadmap.build(self: any)
 	self.built = true
-	local parent = self.screen.Parent
-	-- Over the whole screen, Roblox's top bar row included, so the backdrop dims everything
-	-- and a phone's panel can use that row. Coordinates stay shared with every ScreenGui.
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "Roadmap"
-	gui.ResetOnSpawn = false
-	gui.IgnoreGuiInset = true
-	gui.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets -- the top bar row, not a notch
-	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	gui.DisplayOrder = self.screen.DisplayOrder + R.DisplayOrderAbove
-	gui.Enabled = false
-	gui.Parent = parent
-	self.gui = gui
-	-- The free part of Roblox's top bar (right of its buttons), as MatchHUD measures it.
-	local probe = Instance.new("ScreenGui")
-	probe.Name = "RoadmapTopbar"
-	probe.ScreenInsets = Enum.ScreenInsets.TopbarSafeInsets
-	probe.ResetOnSpawn = false
-	probe.Parent = parent
-	self.probe = probe
-	local area = HudParts.frame(probe, "Area")
-	area.Size = UDim2.fromScale(1, 1)
-	self.topbarArea = area
-
-	local root = HudParts.frame(gui, "Root")
-	root.Size = UDim2.fromScale(1, 1)
-	self.root = root
+	local frame = MenuFrame.new(self.screen, {
+		name = NAME,
+		title = P.RankedTitle,
+		icon = "Trophy",
+		money = true,
+		moneyPlus = function()
+			Menus.open("Shop", "Money")
+		end,
+		phoneWidthShare = Config.UI.Ranked.PhoneWidthShare,
+	})
+	self.frame = frame
+	self.panel = frame.panel
+	self.closeButton = frame.closeButton
 	-- An empty selection box: tiers draw their own gold ring, buttons their gold outline.
 	local noBox = Instance.new("Frame")
 	noBox.BackgroundTransparency = 1
 	self.noBox = noBox
-	local dim = catcher(root, "Backdrop")
-	dim.BackgroundColor3 = INK
-	dim.Activated:Connect(function()
-		self:close()
-	end)
-	self.dim = dim
-
-	local panel = HudParts.frame(root, "Panel")
-	panel.AnchorPoint = Vector2.new(0.5, 0.5)
-	panel.ZIndex = 2
-	panel.Visible = false
-	panel.SelectionGroup = true
-	panel.SelectionBehaviorUp = Enum.SelectionBehavior.Stop
-	panel.SelectionBehaviorDown = Enum.SelectionBehavior.Stop
-	panel.SelectionBehaviorLeft = Enum.SelectionBehavior.Stop
-	panel.SelectionBehaviorRight = Enum.SelectionBehavior.Stop
-	self.panel = panel
-	catcher(panel, "Floor").ZIndex = 0
-	local card = HudParts.menuCard(panel, "Card")
-	card.Size = UDim2.fromScale(1, 1)
-	card.ZIndex = 1
-	self.card = card
-	self:buildHeader(card)
-	self:buildRow(card)
-	self:buildRankCard(card)
-	self:buildRewards(card)
+	local page = frame:page()
+	self:buildRow(page)
+	self:buildRankCard(page)
+	self:buildRewards(page)
 	self:link()
-
-	local function resized()
-		if self.opened and self:layout() then
+	-- The frame lays the page out on open and whenever the screen changes size.
+	frame.fitHeight = function(width: number, _panelW: number, t: number): number
+		return Roadmap.fitHeight(width, t)
+	end
+	frame.onLayout = function(geo: MenuFrame.Geo)
+		self:layoutPage(geo)
+		if self.opened then
 			self:draw(false)
-			self:centre(false)
+			self:centre(self.opening)
 		end
 	end
-	table.insert(self.connections, root:GetPropertyChangedSignal("AbsoluteSize"):Connect(resized))
-	for _, property in { "AbsoluteSize", "AbsolutePosition" } do
-		table.insert(self.connections, area:GetPropertyChangedSignal(property):Connect(resized))
+	frame.onOpen = function()
+		self:startLoops()
+		self:listen()
+	end
+	-- A gamepad lands on the chosen tier (the frame's own focus is the X).
+	frame.focus = function(_frame: any)
+		self:focus()
+	end
+	if frame.stage then
+		self:register(frame.stage)
 	end
 	table.insert(
 		self.connections,
@@ -838,139 +774,62 @@ function Roadmap.build(self: any)
 	)
 end
 
---------------------------------------------------------------------------------------------
--- Layout (from the screen's size; on open and when the screen changes)
---------------------------------------------------------------------------------------------
-
--- Roblox's top bar in the root's pixels: its free part's left and right edges and the row's
--- bottom (fallbacks when Roblox does not say).
-function Roadmap.topbar(self: any, size: Vector2): (number, number, number)
-	local area = self.topbarArea
-	local probe = area and area.Parent
-	if area and probe and probe.Parent and area.AbsoluteSize.Y > 0 then
-		local origin = self.root.AbsolutePosition
-		local left = area.AbsolutePosition.X - origin.X
-		-- The root covers the whole screen (IgnoreGuiInset), so the row starts at its top or,
-		-- on a phone whose screen starts lower than the inset says, a little below it.
-		local top = math.max(0, area.AbsolutePosition.Y - origin.Y)
-		return left, left + area.AbsoluteSize.X, top + area.AbsoluteSize.Y
+-- Every piece by its id in Config.UI.Ranked.Open (the frame's own are MenuFrame's): the
+-- arrows, each tier, your shining badge with its burst and rays, the two cards, the rewards.
+function Roadmap.register(self: any, stage: Stage.Stage)
+	stage:add("Back", self.backArrow)
+	stage:add("Forward", self.forwardArrow)
+	for order, cell: Cell in self.cells do
+		stage:add("Tier" .. order, cell.button)
 	end
-	return R.TopbarLeftFallbackPx, size.X, GuiService:GetGuiInset().Y
-end
-
-function Roadmap.layoutHeader(
-	self: any,
-	width: number,
-	height: number,
-	left: number,
-	right: number,
-	gap: number,
-	titleSize: number,
-	body: number,
-	oneRow: boolean
-)
-	local closeSize = math.min(height, R.CloseMaxPx)
-	local close = self.closeButton
-	close.AnchorPoint = Vector2.new(1, 0.5)
-	close.Size = UDim2.fromOffset(closeSize, closeSize)
-	close.Position = UDim2.fromOffset(width - right, round(height / 2))
-	local trophy = math.min(height, round(titleSize * 1.5))
-	self.trophy.Size = UDim2.fromOffset(trophy, trophy)
-	self.trophy.Position = UDim2.fromOffset(left, round((height - trophy) / 2))
-	HudParts.setTextSize(self.title, titleSize)
-	HudParts.setTextSize(self.subtitle, body)
-	local titleX = left + trophy + gap
-	local titleW = math.ceil(textWidth(P.RankedTitle, titleSize)) + 8
-	local room = width - right - closeSize - gap -- where words must end
-	if oneRow then
-		-- A phone: the subtitle beside the title (on two lines if it must).
-		self.title.Position = UDim2.fromOffset(titleX, 0)
-		self.title.Size = UDim2.fromOffset(math.max(1, math.min(titleW, room - titleX)), height)
-		local subX = titleX + titleW + gap
-		self.subtitle.Visible = room - subX >= R.SubtitleMinPx
-		self.subtitle.Position = UDim2.fromOffset(subX, 0)
-		self.subtitle.Size = UDim2.fromOffset(math.max(1, room - subX), height)
-	else
-		local titleH = titleSize + 8
-		local subH = body + 6
-		local y = math.max(0, round((height - titleH - subH) / 2))
-		self.title.Position = UDim2.fromOffset(titleX, y)
-		self.title.Size = UDim2.fromOffset(math.max(1, math.min(titleW, room - titleX)), titleH)
-		self.subtitle.Visible = true
-		self.subtitle.Position = UDim2.fromOffset(titleX, y + titleH)
-		self.subtitle.Size = UDim2.fromOffset(math.max(1, room - titleX), subH)
+	stage:add("YourBadge", self.rowBadge.root)
+	stage:add("Rays", self.glow)
+	stage:add("RankCard", self.rankCard)
+	stage:add("RewardsCard", self.rewardsCard)
+	for index, tile: Tile in self.tileOrder do
+		stage:add("Reward" .. index, tile.frame)
 	end
 end
 
---- Size and place the panel and its rows from the screen's size. A phone-sized screen gets
---- the whole screen, the title in Roblox's top bar row; a bigger one a capped panel below the
---- bar. False while the screen has no size yet.
-function Roadmap.layout(self: any): boolean
-	local size: Vector2 = self.root.AbsoluteSize
-	if size.X < 1 or size.Y < 1 then
-		return false
-	end
-	local barLeft, barRight, barBottom = self:topbar(size)
-	local margin = R.MarginPx
-	local short = size.Y - barBottom < R.ShortScreenPx
-	local roomTop = if short then 0 else barBottom
-	local roomHeight = size.Y - roomTop
-	local w = math.floor(math.min(size.X - 2 * margin, R.MaxSizePx[1]))
-	local h = math.floor(math.min(roomHeight - 2 * margin, R.MaxSizePx[2]))
-	local left = math.floor((size.X - w) / 2)
-	local top = math.floor(roomTop + (roomHeight - h) / 2)
-	self.panel.Size = UDim2.fromOffset(w, h)
-	self.panel.Position = UDim2.fromOffset(left + w / 2, top + h / 2)
+--------------------------------------------------------------------------------------------
+-- Layout (the frame's: on open and when the screen changes)
+--------------------------------------------------------------------------------------------
 
-	-- Rows run from their phone size to their full size as the panel grows.
-	local k = math.clamp(h / R.DesignHeightPx, R.MinScale, 1)
-	local t = (k - R.MinScale) / (1 - R.MinScale)
-	local pad = spanPx(R.PaddingPx, t)
-	local gap = spanPx(R.GapPx, t)
-	local iw = w - 2 * pad
-	local titleSize = round(K.Text.Title * R.TitleScale * k)
-	local heading = math.max(K.Text.Min, round(K.Text.Heading * k))
-	local body = math.max(K.Text.Min, round(K.Text.Body * k))
+--- The page's height for a sheet `width` pixels wide at `t` (0 a phone-sized panel, 1 a full
+--- one): the tier row, a share of the width, over the two cards (the frame's fitHeight).
+function Roadmap.fitHeight(width: number, t: number): number
+	local row = math.clamp(round(width * R.RowOfWidth), R.TouchMinPx * 2, R.RowMaxPx)
+	return row + spanPx(Config.UI.Menu.Lively.Frame.GapPx, t) + spanPx(R.CardsPx, t)
+end
 
-	-- The title row; on a phone it is Roblox's top bar row, right of Roblox's buttons.
-	local headerH, headLeft, headRight = spanPx(R.HeaderPx, t), 0, 0
-	if short then
-		headerH = math.max(R.TouchMinPx, barBottom - top - pad)
-		headLeft = math.max(0, barLeft - left - pad + gap)
-		headRight = math.max(0, left + w - pad - barRight)
-	end
-	self.header.Position = UDim2.fromOffset(pad, pad)
-	self.header.Size = UDim2.fromOffset(iw, headerH)
-	self:layoutHeader(iw, headerH, headLeft, headRight, gap, titleSize, body, short)
-	-- The header band is the title row; everything under it sits on the sheet.
-	HudParts.setSheetTop(self.card, pad + headerH + round(gap / 2))
-
-	-- Bottom up: the two cards, then the tier row takes the rest.
+--- Place the tier row and the two cards on the page (`frameGeo`: the frame's last layout):
+--- the cards along the foot, the row over them taking the rest.
+function Roadmap.layoutPage(self: any, frameGeo: MenuFrame.Geo)
+	local t, gap = frameGeo.t, frameGeo.gap
+	local w, h = frameGeo.content.X, frameGeo.content.Y
 	local cardsH = spanPx(R.CardsPx, t)
-	local cardsY = h - pad - cardsH
-	local rightW = round((iw - gap) * lerp(R.RewardsShare, t))
-	local leftW = iw - gap - rightW
-	self.rankCard.Position = UDim2.fromOffset(pad, cardsY)
+	local rightW = round((w - gap) * lerp(R.RewardsShare, t))
+	local leftW = w - gap - rightW
+	local rowH = math.max(R.TouchMinPx * 2, h - gap - cardsH)
+	local cardsY = rowH + gap
+	self.rowArea.Position = UDim2.fromOffset(0, 0)
+	self.rowArea.Size = UDim2.fromOffset(w, rowH)
+	self.rankCard.Position = UDim2.fromOffset(0, cardsY)
 	self.rankCard.Size = UDim2.fromOffset(leftW, cardsH)
-	self.rewardsCard.Position = UDim2.fromOffset(pad + leftW + gap, cardsY)
+	self.rewardsCard.Position = UDim2.fromOffset(leftW + gap, cardsY)
 	self.rewardsCard.Size = UDim2.fromOffset(rightW, cardsH)
-	local rowY = pad + headerH + gap
-	local rowH = math.max(R.TouchMinPx * 2, cardsY - gap - rowY)
-	self.rowArea.Position = UDim2.fromOffset(pad, rowY)
-	self.rowArea.Size = UDim2.fromOffset(iw, rowH)
 	local geo: Geo = {
 		t = t,
 		gap = gap,
-		heading = heading,
-		body = body,
-		rowW = iw,
+		heading = frameGeo.heading,
+		body = frameGeo.body,
+		rowW = w,
 		rowH = rowH,
 		leftW = leftW,
 		rightW = rightW,
 		cardsH = cardsH,
 	}
 	self.geo = geo
-	return true
 end
 
 -- The tier row: as many tiers as fit side by side, yours bigger and wider; each tier's badge,
@@ -1464,7 +1323,7 @@ function Roadmap.drawRewards(self: any)
 	-- "[DIAMOND]" made a big picture and "Epic" a small one). The words fit the tile instead:
 	-- one text size for every tile, the biggest that fits (the money's and the tag's value on
 	-- one line over their small word; the block's, the cue's and the spins' on up to two).
-	local tp = math.max(3, round(tilesH * 0.06))
+	local tp = math.max(R.TilePadMinPx, round(tilesH * R.TilePadShare))
 	local tileW = inner / count
 	local textW = math.max(1, math.floor(tileW) - 2 * tp) -- an equal tile's room for words
 	local minSize = math.min(body, R.TileTextMinPx)
@@ -1543,6 +1402,8 @@ function Roadmap.drawRewards(self: any)
 	local valueH, labelH = size + 4, labelSize + 2
 	local iconSize = math.max(16, tilesH - 2 * tp - valueH - labelH)
 	local icon = math.max(1, math.min(iconSize, math.floor(narrowest) - 2 * tp))
+	-- A picture held smaller by the tiles' width: the picture and its words sit in the middle.
+	local above = math.floor((iconSize - icon) / 2)
 	local check = round(tilesH * R.TileCheckShare)
 	local corner = UDim.new(0, spanPx(R.TileCornerPx, geo.t))
 	local x = 0
@@ -1554,8 +1415,8 @@ function Roadmap.drawRewards(self: any)
 		tile.frame.Size = UDim2.fromOffset(width, tilesH)
 		tile.corner.CornerRadius = corner
 		tile.icon.Size = UDim2.fromOffset(icon, icon)
-		tile.icon.Position = UDim2.fromOffset(round(width / 2), tp + (iconSize - icon))
-		local textY = tp + iconSize
+		tile.icon.Position = UDim2.fromOffset(round(width / 2), tp + above)
+		local textY = tp + above + icon
 		local wordsW = math.max(1, width - 2 * tp)
 		local valueSize = if tile == tiles.chat then tagSize else size
 		HudParts.setTextSize(tile.value, valueSize, valueSize)
@@ -1834,11 +1695,7 @@ function Roadmap.focus(self: any)
 end
 
 function Roadmap.onInputBegan(self: any, input: InputObject)
-	local code = input.KeyCode
-	if code == Enum.KeyCode.ButtonB or code == Enum.KeyCode.Escape then
-		self:close()
-		return
-	elseif code == Enum.KeyCode.ButtonA then
+	if input.KeyCode == Enum.KeyCode.ButtonA then
 		self.dragMoved = false -- an old mouse drag must not swallow a gamepad press
 	end
 	local kind = input.UserInputType
@@ -1963,15 +1820,6 @@ function Roadmap.listen(self: any)
 			end
 		end)
 	)
-	-- A gamepad picked up while the map is open lands on the chosen tier.
-	table.insert(
-		list,
-		UserInputService.LastInputTypeChanged:Connect(function(kind)
-			if isGamepad(kind) and not self:focused() then
-				self:focus()
-			end
-		end)
-	)
 	local player = self.player
 	if player then
 		for _, name in WATCHED do
@@ -1983,20 +1831,6 @@ function Roadmap.listen(self: any)
 			)
 		end
 	end
-	-- B closes the map before anything else hears it (the table's own B is Leave).
-	ContextActionService:BindActionAtPriority(
-		CLOSE_ACTION,
-		function(_name: string, state: Enum.UserInputState, _input: InputObject)
-			if state == Enum.UserInputState.Begin then
-				self:close()
-			end
-			return Enum.ContextActionResult.Sink
-		end,
-		false,
-		Enum.ContextActionPriority.High.Value + 10,
-		Enum.KeyCode.ButtonB
-	)
-	self.bound = true
 end
 
 function Roadmap.unlisten(self: any)
@@ -2004,29 +1838,13 @@ function Roadmap.unlisten(self: any)
 		connection:Disconnect()
 	end
 	table.clear(self.openConnections)
-	if self.bound then
-		self.bound = false
-		ContextActionService:UnbindAction(CLOSE_ACTION)
-	end
-end
-
--- Give a gamepad back what it had before the map opened.
-function Roadmap.releaseSelection(self: any)
-	local selected = GuiService.SelectedObject
-	if selected and self.root and selected:IsDescendantOf(self.root) then
-		local previous = self.previousSelection
-		GuiService.SelectedObject = if previous and previous:IsDescendantOf(game)
-			then previous
-			else nil
-	end
-	self.previousSelection = nil
 end
 
 --------------------------------------------------------------------------------------------
 -- Public
 --------------------------------------------------------------------------------------------
 
---- Pop the map in, centred on your tier, the rewards card on the next. A gamepad lands on
+--- Unroll the map, centred on your tier, the rewards card on the next. A gamepad lands on
 --- the chosen tier.
 function Roadmap.open(self: any)
 	if self.opened or not self.alive then
@@ -2036,41 +1854,21 @@ function Roadmap.open(self: any)
 		self:build()
 	end
 	self.opened = true
-	self.gui.Enabled = true
-	self.dim.Modal = true -- frees a mouse that shift-lock (or the camera) holds
 	self.state = nil
 	self.selected = nil
 	self.focusCell = nil
-	if self:layout() then
-		self:draw(false)
-		self:centre(true)
-	end
-	if self.dimTween then
-		self.dimTween:Cancel()
-	end
-	self.dimTween = TweenService:Create(
-		self.dim,
-		TweenInfo.new(R.DimSeconds),
-		{ BackgroundTransparency = R.DimTransparency }
-	)
-	self.dimTween:Play()
-	ScreenBlur.set(self, true)
-	UIAnim.popIn(self.panel)
-	self:startLoops()
-	self:listen()
-	self.previousSelection = GuiService.SelectedObject
-	if isGamepad(UserInputService:GetLastInputType()) then
-		self:focus()
-	end
+	-- The frame lays the page out (onLayout draws it) before its open plays.
+	self.opening = true
+	self.frame:open()
+	self.opening = false
 end
 
---- Pop the map out (the X, the backdrop, gamepad B or Escape all come here).
+--- Fold the map away (the X, gamepad B and Escape come here through Menus).
 function Roadmap.close(self: any)
 	if not self.opened then
 		return
 	end
 	self.opened = false
-	self.dim.Modal = false
 	self:stopLoops()
 	self:unlisten()
 	self.drag = nil
@@ -2082,19 +1880,7 @@ function Roadmap.close(self: any)
 			settleCell(cell, nil, QUICK)
 		end
 	end
-	self:releaseSelection()
-	if self.dimTween then
-		self.dimTween:Cancel()
-	end
-	self.dimTween =
-		TweenService:Create(self.dim, TweenInfo.new(R.DimSeconds), { BackgroundTransparency = 1 })
-	self.dimTween:Play()
-	ScreenBlur.set(self, false)
-	UIAnim.popOut(self.panel, function()
-		if not self.opened and self.alive then
-			self.gui.Enabled = false
-		end
-	end)
+	self.frame:close()
 end
 
 function Roadmap.isOpen(self: any): boolean
@@ -2107,10 +1893,8 @@ function Roadmap.destroy(self: any)
 	end
 	if self.opened then
 		self.opened = false
-		ScreenBlur.set(self, false)
 		self:stopLoops()
 		self:unlisten()
-		self:releaseSelection()
 	end
 	self.alive = false
 	for _, connection in self.connections do
@@ -2120,8 +1904,7 @@ function Roadmap.destroy(self: any)
 	if self.built then
 		self.rowBadge:destroy()
 		self.rankBadge:destroy()
-		self.gui:Destroy()
-		self.probe:Destroy()
+		self.frame:destroy()
 	end
 end
 

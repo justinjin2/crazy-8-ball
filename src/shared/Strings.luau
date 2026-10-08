@@ -495,7 +495,6 @@ return {
 		NewRank = "NEW RANK!",
 		NewTier = "%s!", -- the tier's name, huge: "PLATINUM!"
 		RankedTitle = "Ranked",
-		RankedSubtitle = "Win matches, climb the ranks and earn rewards!",
 		EarnXp = "Win matches to earn XP",
 		TopRank = "You are at the top!",
 		CurrentRank = "Current Rank", -- the tag over your tier, and under your rank on its card

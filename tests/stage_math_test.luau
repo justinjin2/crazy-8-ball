@@ -115,6 +115,92 @@ return {
 		)
 	end,
 
+	["the Free Reward menu's open names every piece it stages and lands its flair last"] = function()
+		local S, Config = load()
+		local M, F = Config.UI.Motion, Config.UI.FreeReward
+		local list, finish = S.schedule(F.Open, M)
+		local byId = {}
+		for _, e in list do
+			H.expect(byId[e.id] == nil, "one entry per piece: " .. e.id)
+			byId[e.id] = e
+		end
+		-- A piece staged but missing from the schedule stays faded after a close.
+		local wanted = { "Panel", "Header", "Basket", "Title", "Money", "Close", "Flair" }
+		for index, jump in F.Jump do
+			table.insert(wanted, "Tab" .. index)
+			table.insert(wanted, "Tab" .. index .. "Badge")
+			table.insert(wanted, jump.Key .. "Head")
+			table.insert(wanted, jump.Key .. "Lines")
+		end
+		for _, id in { "DailyPanel", "DailyTitle", "DailyOp", "DailyClaimAll", "DailyFooter" } do
+			table.insert(wanted, id)
+		end
+		for day = 1, #Config.Daily.FirstWeek do
+			table.insert(wanted, "DailyDay" .. day)
+		end
+		table.insert(wanted, "PlaytimePanel")
+		table.insert(wanted, "PlaytimeTitle")
+		for index = 1, #Config.Daily.Playtime do
+			table.insert(wanted, "PlaytimeGift" .. index)
+		end
+		for _, id in { "TrackPanel", "TrackTitle", "TrackBar", "TrackNote" } do
+			table.insert(wanted, id)
+		end
+		for index = 1, #Config.Daily.Track do
+			table.insert(wanted, "TrackNode" .. index)
+		end
+		for _, id in { "GroupCard", "GroupArt", "GroupTitle", "GroupRow1", "GroupRow2" } do
+			table.insert(wanted, id)
+		end
+		for _, id in { "InviteCard", "InviteArt", "InviteTitle", "InviteButton" } do
+			table.insert(wanted, id)
+		end
+		for _, id in wanted do
+			H.expect(byId[id] ~= nil, "the open names " .. id)
+		end
+		H.expect(byId.DailyDay7.burst == "Gold", "day 7 arrives with a gold burst")
+		H.expect(byId.DailyDay1.at < byId.DailyDay2.at, "the days pop in order")
+		for id, e in byId do
+			if id ~= "Flair" then
+				H.expect(e.at <= byId.Flair.at, "the flair drops on last, after " .. id)
+			end
+		end
+		H.expect(finish >= 0.8 and finish <= 2, "the open lasts about 1 to 2 s")
+	end,
+
+	["the Ranked screen's open names every piece it stages and lands its flair last"] = function()
+		local S, Config = load()
+		local M, R = Config.UI.Motion, Config.UI.Ranked
+		local list, finish = S.schedule(R.Open, M)
+		local byId = {}
+		for _, e in list do
+			H.expect(byId[e.id] == nil, "one entry per piece: " .. e.id)
+			byId[e.id] = e
+		end
+		local wanted = { "Panel", "Header", "Basket", "Title", "Money", "Close", "Flair" }
+		for _, id in { "Back", "Forward", "YourBadge", "Rays", "RankCard", "RewardsCard" } do
+			table.insert(wanted, id)
+		end
+		for order = 1, #Config.Ranks.Tiers do
+			table.insert(wanted, "Tier" .. order)
+		end
+		for index = 1, 5 do -- money, block, chat tag, cue, spins
+			table.insert(wanted, "Reward" .. index)
+		end
+		for _, id in wanted do
+			H.expect(byId[id] ~= nil, "the open names " .. id)
+		end
+		H.expect(byId.YourBadge.burst == "Gold", "your badge arrives with a gold burst")
+		H.expect(byId.Tier1.at < byId.Tier2.at, "the tiers pop in left to right")
+		H.expect(byId.Reward1.at < byId.Reward5.at, "the rewards pop in left to right")
+		for id, e in byId do
+			if id ~= "Flair" then
+				H.expect(e.at <= byId.Flair.at, "the flair drops on last, after " .. id)
+			end
+		end
+		H.expect(finish >= 0.8 and finish <= 2, "the open lasts about 1 to 2 s")
+	end,
+
 	["the Cues menu's open names every piece it stages and lands its flair last"] = function()
 		local S, Config = load()
 		local M, I = Config.UI.Motion, Config.UI.Inventory

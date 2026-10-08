@@ -78,6 +78,9 @@ export type Options = {
 	tabs: { Tab }?, -- none: one page, "Main"
 	money: boolean?, -- show the player's money in the header (the Shop, the Inventory)
 	moneyPlus: (() -> ())?, -- a gold "+" on the money pill's end (the Shop: its money packs)
+	-- A lively frame on a phone may take this share of the screen's width instead of
+	-- Lively.MaxWidthShare (the Ranked screen: its tiers and two cards need the room).
+	phoneWidthShare: number?,
 }
 
 -- The sizes of the last layout, for the pages (onLayout).
@@ -239,13 +242,14 @@ end
 --- Fields a menu uses: `root` (the full-screen frame everything is in), `panel`, `card`,
 --- `geo` (the last layout's sizes), and the callbacks it may set: `onTab(key)` (a page is
 --- shown: on every tab switch and every open), `onOpen()`, `onClose()`, `onLayout(geo)` (the
---- screen changed size; re-fit the pages), and on a lively frame `fitHeight(width, panelW)`.
+--- screen changed size; re-fit the pages), and on a lively frame `fitHeight(width, panelW, t)`.
 function MenuFrame.new(screen: ScreenGui, opts: Options): any
 	local self: any = setmetatable({}, MenuFrame)
 	self.name = opts.name
 	self.titleText = opts.title
 	self.iconKey = opts.icon
 	self.showMoney = opts.money == true
+	self.phoneWidthShare = opts.phoneWidthShare
 	self.opened = false
 	self.alive = true
 	self.selected = nil :: string?
@@ -260,8 +264,9 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 	self.onClose = nil :: (() -> ())?
 	self.onLayout = nil :: ((Geo) -> ())?
 	-- The lively frame's height: the page's height it needs for a content width (and the
-	-- panel's width); the panel is sized to it (MenuFrame.layout).
-	self.fitHeight = nil :: ((number, number) -> number)?
+	-- panel's width, and Geo.t: 0 on a phone-sized panel, 1 on a full-size one); the panel is
+	-- sized to it (MenuFrame.layout).
+	self.fitHeight = nil :: ((number, number, number) -> number)?
 
 	local tabs: { Tab } = opts.tabs or {}
 	self.tabs = tabs
@@ -604,7 +609,10 @@ function MenuFrame.layout(self: any): boolean
 	local roomHeight = roomBottom - roomTop
 	local w = math.floor(math.min(size.X - 2 * margin, FR.MaxSizePx[1]))
 	if lively then
-		w = math.min(w, math.floor(size.X * LV.MaxWidthShare))
+		local share = if phone and self.phoneWidthShare
+			then self.phoneWidthShare
+			else LV.MaxWidthShare
+		w = math.min(w, math.floor(size.X * share))
 	end
 	local h = math.floor(math.min(roomHeight - 2 * margin, FR.MaxSizePx[2]))
 	local left = math.floor((size.X - w) / 2)
@@ -745,7 +753,7 @@ function MenuFrame.layout(self: any): boolean
 	local fit = self.fitHeight
 	if lively and fit then
 		-- As tall as the page's first screen asks (the hero card), up to the room; centred.
-		h = math.min(h, sheetTop + inset + 2 * cp + math.ceil(fit(cw, w)))
+		h = math.min(h, sheetTop + inset + 2 * cp + math.ceil(fit(cw, w, t)))
 		top = math.floor(roomTop + (roomHeight - h) / 2)
 		self.panel.Size = UDim2.fromOffset(w, h)
 		self.panel.Position = UDim2.fromOffset(left + w / 2, top + h / 2)
