@@ -198,8 +198,9 @@ pick: the cue A or B, the card's mark A or B, and the engraving.
   card, the Index at 4 cells a row with the flat swaying picture (`CueViewport` deleted), the
   NEW count on the CUES tile. Checked in Studio at a PC size: the open (no stall, glows wait
   for their cards), Sort, the switch spammed, Reduce Motion, stand-in copy numbers
-  (`GuiQA "cuesCopies"`). Waiting: the designer's look on a phone and a real gamepad; the
-  CUES icon and its strike after concept 2b's picks.
+  (`GuiQA "cuesCopies"`). Gate D page: https://claude.ai/artifact/EAskweNWeTsDZUdsDP5Kbk
+  (sources `~/Desktop/8ball-refs/gui-lively/work/cues-build/`). Waiting: the designer's look on
+  a phone and a real gamepad; the CUES icon and its strike after concept 2b's picks.
 - [ ] Copy numbers (approved 2026-10-08: first 100 of every Rare-or-rarer cue, each its own card):
   planned and built after the Cues menu.
 - [ ] Concept 3 (spin and YOU GOT) approved, then built.
