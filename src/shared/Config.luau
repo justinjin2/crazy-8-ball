@@ -7841,6 +7841,9 @@ Config.UI.Menu = {
 		},
 		KeepWith = {
 			LuckyBag = { "LuckyHotbar" }, -- the bag opens over its hotbar
+			-- The rank roadmap draws in its own ScreenGui, made on its first open (2026-10-08:
+			-- without this the focus hid it and the roadmap opened blank).
+			Ranked = { "Roadmap", "RoadmapTopbar" },
 		},
 	},
 	Lively = {

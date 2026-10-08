@@ -34,7 +34,8 @@ local function kept(gui: ScreenGui, menu: string): boolean
 	end
 	local handle = Menus.handle(menu)
 	local root = handle and handle.root
-	return root ~= nil and root:IsDescendantOf(gui)
+	-- A root may be the menu's ScreenGui itself (the Abilities screen's), not only inside it.
+	return root ~= nil and (root == gui or root:IsDescendantOf(gui))
 end
 
 local function hide(gui: Instance, menu: string)
