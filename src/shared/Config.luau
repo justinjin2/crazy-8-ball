@@ -4701,8 +4701,11 @@ Config.Audio = {
 		-- gamepad on a badge or a roadmap tier (designer, 2026-09-27: short and pleasant; was
 		-- "Roblox_UI_Cute_Pop", 2.7 s with its tail). Its 0.23 peak x 0.22 sits just under Click.
 		BadgeHover = { Id = "rbxassetid://10066931761", Volume = 0.22 },
-		-- "Roblox_UI_Small_Click" (Roblox, 0.13 s): a button pressed.
-		Click = { Id = "rbxassetid://15675032796", Volume = 0.25 },
+		-- "UI pop" (a free UI sound on the Creator Store, 0.18 s): a button pressed, a warm little
+		-- boop rising in pitch from about 500 Hz (designer, 2026-10-08: "a little more satisfying
+		-- ... like a little boop button"; it was "Roblox_UI_Small_Click", a thin 0.13 s tick).
+		-- Measured peak 0.48; the Volume puts it near the old click's peak (0.06), with more body.
+		Click = { Id = "rbxassetid://97683569351041", Volume = 0.12 },
 		-- The case reel (2026-09-28, overnight placeholders; assets/audio/README.md). All from
 		-- Roblox's own library or APM Music via Roblox; each checked loading in this game.
 		-- "Roblox_UI_Small_Click" (0.13 s), pitched up and quiet: one card passing the marker.
@@ -5998,6 +6001,7 @@ Config.UI = {
 			PendingTimeoutSeconds = 20, -- chips said to be coming that never land are forgotten
 			LandCountSeconds = 0.35, -- the count-up when a chip lands
 			SettleCountSeconds = 0.6, -- the count to the true value
+			SpendCountSeconds = 0.3, -- money spent counts down at once, this quickly
 			Sparkles = 4, -- little twinkles round the icon when a chip lands
 			SparkleSizePx = 16,
 			SparkleSpreadPx = 30, -- how far from the icon's centre they pop
@@ -6531,6 +6535,14 @@ Config.UI = {
 			Sell = "rbxassetid://106552564585529", -- a price tag
 			Lock = "rbxassetid://106188433501601", -- a padlock (Exclusive and Unique cues, locked things)
 			Odds = "rbxassetid://116548417104330", -- a pie of rarities (the Odds button)
+			-- The CUES button (concept 2b, approved round 5, 2026-10-08; tools/gen_ui_art.py
+			-- `cues*`). The still icon (the Cues menu's header, the switch's My Cues half), then
+			-- the column tile's layers at one scale (CuesStrike): the cue, the ball on a canvas of
+			-- its own centred on it, and one twinkle with its ink edge.
+			Cues = "rbxassetid://76979196206718",
+			CuesCue = "rbxassetid://114253124255539",
+			CuesBall = "rbxassetid://140190565310940",
+			CuesTwinkle = "rbxassetid://127567035372360",
 			-- A cue's thumbnail, drawn from layers that all share one canvas (CueThumb): the
 			-- white layers are tinted with the cue's look colours (ImageColor3).
 			CueOutline = "rbxassetid://79236419588604", -- the ink outline and shadow, untinted, under the rest
@@ -6630,6 +6642,15 @@ Config.UI = {
 				WiggleShare = 0.3,
 				EaseSeconds = 0.15,
 			},
+			-- A cue card (InventoryCard): a slow, small lean with no wiggle (designer,
+			-- 2026-10-08: "less shake" on the cards).
+			CardSway = {
+				Degrees = 1.2,
+				EdgePx = 3,
+				Seconds = 2.4,
+				WiggleShare = 0,
+				EaseSeconds = 0.3,
+			},
 			-- Big words shake now and then (UIAnim.shake): a quick rattle every `Every` seconds.
 			-- "Wiggle" is the louder one (one win from a rank-up, an icon calling for a click).
 			Shake = {
@@ -6640,6 +6661,9 @@ Config.UI = {
 				-- The Grand Opening card's tilted NEW tag (the approved animatic, 2026-10-06).
 				NewTag = { Degrees = 7, Every = 3, Seconds = 0.4, Speed = 40 },
 				Jolt = { Degrees = 5, Every = 0, Seconds = 0.45, Speed = 22 }, -- once (a slam)
+				-- Once, gently: a big popup landing (the Cues menu's big card; designer,
+				-- 2026-10-08: "less shake").
+				Nudge = { Degrees = 1.2, Every = 0, Seconds = 0.3, Speed = 22 },
 				-- A rattle that keeps going (Every = Seconds): the grid's rarest card before it turns.
 				Hard = { Degrees = 6, Every = 0.4, Seconds = 0.4, Speed = 26 },
 			},
@@ -7971,6 +7995,113 @@ Config.UI.Menu = {
 		GlyphInsetPx = 4, -- its centre sits this far inside the corner
 		ZIndex = 6, -- in the HUD screen: over the world, under the popups
 		TimerRefreshSeconds = 0.5, -- the timer pill's text is refreshed this often
+		-- The CUES tile's icon (CuesStrike, StageMath.strikePose; concept 2b, approved round 5,
+		-- 2026-10-08): the Classic Cue (Kit.Icons.CuesCue) where every icon sits, a soft gold
+		-- glow and three twinkles. On hover the ball (Kit.Icons.CuesBall) pops in by the tip, the
+		-- cue draws back and strikes it with a spark, the ball flies off along the cue's line and
+		-- fades, and the cue slides home; a press (or the D-pad route) plays it harder and quicker
+		-- from the touch, so it is seen before the menu opens. Still with Reduce Motion. Places
+		-- and lengths are shares of the icon's side (its 256 canvas, tools/gen_ui_art.py `cues*`).
+		Strike = {
+			Direction = { 0.7144, -0.6998 }, -- along the cue toward its tip, on screen (a unit vector)
+			BallAt = { 0.7031, 0.1314 }, -- the ball's middle where it pops in (its canvas is centred on it)
+			Contact = -0.1211, -- the cue's offset when its tip meets the ball
+			SparkAt = { 0.6278, 0.2052 }, -- the hit's spark (Kit.Art.Spark), at the contact
+			SparkShare = 0.32, -- its size, of the icon
+			SparkColor = "#FFF8D6",
+			-- Every hit's shape (tune):
+			AimSeconds = 0.05, -- the short aim just before the snap
+			ThroughSeconds = 0.04, -- the follow-through past the ball
+			ReturnLead = 0.08, -- the cue starts home this long before the ball is gone
+			PopPeakShare = 0.65, -- the ball's pop peaks this share of the way through it...
+			PopOvershoot = 1.12, -- ...at this scale, then settles at 1
+			FlyShare = 0.86, -- the ball covers this share of its run before it fades...
+			FlyScale = 0.92, -- ...at this scale...
+			EndScale = 0.75, -- ...and ends its run at this one
+			SparkGrowSeconds = 0.05, -- the spark grows and turns this long after the hit...
+			SparkFadeSeconds = 0.11, -- ...then shrinks and fades
+			SparkTurn = 35, -- degrees it turns while growing (as much again while fading)
+			SparkEndScale = 0.3, -- of its full size as it goes
+			-- The motion's curves, each from one key to the next: CSS cubic-bezier(x1, y1, x2, y2)
+			-- control points, the approved concept's own (StageMath.bezier).
+			Curves = {
+				Draw = { 0.2, 0.8, 0.3, 1 }, -- the cue drawing back
+				Aim = { 0.42, 0, 0.58, 1 }, -- its short aim (ease-in-out)
+				Snap = { 0.6, 0, 1, 0.6 }, -- the snap to the ball, speeding up into it
+				Through = { 0.2, 0.9, 0.4, 1 }, -- the follow-through
+				Home = { 0.45, 0, 0.25, 1 }, -- sliding home
+				Pop = { 0, 0, 0.58, 1 }, -- the ball popping in and the spark growing (ease-out)
+				Settle = { 0.42, 0, 0.58, 1 }, -- the ball settling from its pop (ease-in-out)
+				Fly = { 0.12, 0.9, 0.3, 1 }, -- the ball's run: fast off the cue, then slowing
+			},
+			-- The two hits: seconds from the start; offsets along Direction (back is negative).
+			Hover = {
+				Seconds = 0.95,
+				Pulled = 0.14, -- drawn all the way back
+				PopFrom = 0.06, -- the ball pops in (once the tip is clear)...
+				PopTo = 0.19, -- ...and has settled
+				Hit = 0.27, -- the tip meets the ball
+				FadeFrom = 0.43, -- the ball starts to fade...
+				Gone = 0.6, -- ...and is gone
+				Pull = -0.1953, -- how far back
+				Aim = -0.0117, -- a little further back while aiming
+				Through = 0.0273, -- past the contact on the follow-through
+				Travel = 0.2578, -- the ball's run
+				Spark = 1, -- the spark's size, of SparkShare
+			},
+			Press = {
+				Seconds = 0.7,
+				Pulled = 0.09,
+				PopFrom = 0.03,
+				PopTo = 0.12,
+				Hit = 0.16,
+				FadeFrom = 0.3,
+				Gone = 0.42,
+				Pull = -0.2266,
+				Aim = -0.0117,
+				Through = 0.0391,
+				Travel = 0.3281,
+				Spark = 1.4,
+			},
+			-- At rest: the glow (Kit.Art.SoftGlow) breathing behind the cue (Transparency from
+			-- strongest to faintest over Seconds), and three twinkles (Kit.Icons.CuesTwinkle) in
+			-- the box's empty corners, each growing, turning and brightening, then back, over its
+			-- Seconds, from its own Phase (a share of a loop).
+			Glow = {
+				At = { 0.4226, 0.4062 },
+				Share = 0.875, -- its side, of the icon
+				Color = "#FFD84D",
+				Transparency = { 0.5, 0.68 },
+				Seconds = 2.4,
+			},
+			Twinkles = {
+				{
+					At = { 0.2381, 0.2752 },
+					Radius = 0.1172,
+					Seconds = 1.7,
+					Phase = 0,
+					Color = "#FFF6C8",
+				},
+				{
+					At = { 0.75, 0.5848 },
+					Radius = 0.0938,
+					Seconds = 2.2,
+					Phase = 0.36,
+					Color = "#FFFFFF",
+				},
+				{
+					At = { 0.4643, 0.1086 },
+					Radius = 0.0625,
+					Seconds = 1.4,
+					Phase = 0.21,
+					Color = "#FFFFFF",
+				},
+			},
+			TwinkleSpan = 0.922, -- a twinkle's points reach this share of its picture (236 of 256)
+			TwinkleScale = { 0.5, 1.1 }, -- its size, small to full
+			TwinkleTurn = 45, -- degrees it turns as it grows
+			TwinkleTransparency = { 0.7, 0 }, -- faint to bright
+		},
 	},
 	-- Every full menu's frame (MenuFrame), laid out like the roadmap: on a phone the panel takes
 	-- the whole screen with its title in Roblox's top bar row, right of Roblox's buttons; on a
@@ -8918,7 +9049,6 @@ Config.UI.Inventory = {
 		ButtonPx = { 40, 48 }, -- Equip, Sell duplicates
 		ButtonTextPx = { 17, 20 },
 		LockPx = { 18, 22 }, -- the padlock before "Can't be sold"
-		ThumbShare = 0.86, -- the Index's flat picture, of its box
 	},
 	-- The chosen cue's big card (concept 2): its card (InventoryCard, no pills: the words beside
 	-- it say them) on the left, the words and buttons beside it, slammed in over the page.
@@ -8934,7 +9064,11 @@ Config.UI.Inventory = {
 	Rail = {
 		TilePx = { 60, 80 }, -- Sort and Sell all, square; the switch is as wide
 		HalfShare = 0.82, -- each half of the switch, of a tile's side
-		GapPx = { 14, 18 }, -- between the switch and the tiles (room for the hanging pills)
+		-- The clear space between one tile and the next, the same each time (designer,
+		-- 2026-10-08: "separate all of these evenly"): from the switch down to Sort, and from
+		-- Sort's hanging pill down to Sell all (it was measured from Sort's body, so the pill
+		-- halved the second gap).
+		GapPx = { 14, 18 },
 		OutsidePx = 10, -- from the panel's right edge
 		TextPx = { 12, 16 }, -- the tiles' and halves' words
 		MinTextPx = 9, -- a long word on a half shrinks to fit, never under this
@@ -8957,11 +9091,9 @@ Config.UI.Inventory = {
 	IndexDetailShare = 0.34, -- the panel's width, of the page's
 	IndexDetailMinPx = { 150, 180 },
 	IndexDetailMaxPx = 300,
-	-- The chosen cue's flat picture (concept 2: no 3D cue): square, at most this share of the
-	-- page's height, swaying SwayDegrees either way over SwaySeconds (still with Reduce Motion).
-	IndexArtShare = 0.5,
-	SwayDegrees = 5,
-	SwaySeconds = 4,
+	-- The chosen cue's card (InventoryCard, no pills; a never-found cue locked): at most this
+	-- share of the page's height. It stands still (designer, 2026-10-08: it swayed).
+	IndexCardShare = 0.56,
 	CellNameLines = 3, -- a narrow cell's name may wrap to this many lines (at Layout.MinTextPx)
 	CellGapPx = { 6, 8 },
 	SectionPadPx = { 8, 12 }, -- inside a row's card
@@ -9106,6 +9238,16 @@ Config.UI.CueCard = {
 		MinTextPx = 6,
 		PillMinTextPx = 6,
 		RingPx = 3, -- the gold hover ring and the blue chosen ring round the card
+	},
+	-- The Index's never-found cue (designer, 2026-10-08: "show the full card but put a lock on
+	-- it ... slightly greyed out but enough to still see the colors"; it was a grey card with a
+	-- dark silhouette): its whole card, standing still, under a grey veil, with a big padlock
+	-- (Kit.Icons.Lock) over the picture. No pills.
+	Locked = {
+		VeilColor = "#DDE2EA", -- the veil's grey (light, so the card's colours show through)
+		VeilTransparency = 0.6, -- its (0.45 hid too much of a dark card's colours)
+		LockUnits = 54, -- the padlock's side
+		LockAt = { 0.5, 0.4 }, -- its centre, as shares of the card (over the picture)
 	},
 	-- The moving parts. Seconds are one loop; "Units" sizes scale with the card; shares are of
 	-- the card. Each loop starts at its own phase (from the cue's id), so a grid never moves in
@@ -9355,15 +9497,6 @@ Config.UI.CueCard = {
 			Balls = "#78B8FF",
 			Glow = { Color = "#3B9BFF", Strength = 0.45 },
 			Shine = { Seconds = 5, Strength = 0.55 },
-		},
-		-- The Index's never-found cue: grey, its picture dark, no name, bar, pills or motion.
-		Silhouette = {
-			Fill = { "#F4F6F9", "#D9DEE6" },
-			FillAt = { 0, 1 },
-			Edge = "#B7BEC9",
-			Bar = { "#C3C9D2", "#8D96A5" },
-			Chance = "#C9CFD9",
-			Balls = "#B4BBC8",
 		},
 	},
 	-- Ranked cards: each tier's look (the same fields), its badge over the bar's left end

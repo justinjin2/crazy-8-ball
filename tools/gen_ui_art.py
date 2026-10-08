@@ -1692,6 +1692,124 @@ def icon_odds():
 
 
 # ---------------------------------------------------------------------------------------
+# The CUES button (docs/prompts/CUES_LIVELY_PROMPT.md, concept 2b approved round 5,
+# 2026-10-08): the Classic Cue in its own proportions (about half maple shaft, a fifth forearm,
+# a fifth wrap and cap; the tip, ferrule and rings a little longer than real so they read at
+# 84 px), lying in the column icons' box. On hover the ball pops in by the tip and the cue
+# strikes it (CuesStrike, Config.UI.Menu.Column.Strike). Layers on 256 canvases at one scale:
+# cues_cue (the cue), cues_ball (the ball, on a canvas of its own centred on it so it can fly
+# out of the box), cues_twinkle (one twinkle, placed three times) and cues (the still icon with
+# the glow and twinkles baked in: the menu's header and the switch).
+# ---------------------------------------------------------------------------------------
+
+# Where the canvas sits on the column's 78 px computer tile (Config.UI.Menu.Column: IconShare
+# 1.08, IconCentreShare 0.46), so the cue is placed against the tile, its word and its red dot.
+CUES_TILE = 78
+CUES_SIZE = round(CUES_TILE * 1.08)
+CUES_ORIGIN = ((CUES_TILE - CUES_SIZE) / 2, CUES_TILE * 0.46 - CUES_SIZE / 2)
+
+
+def cues_canvas(sx, sy):
+    k = CUES_SIZE / 256
+    return ((sx - CUES_ORIGIN[0]) / k, (sy - CUES_ORIGIN[1]) / k)
+
+
+CUES_BUTT = cues_canvas(8, 52)  # the butt's middle, just above the C of CUES
+CUES_TIP = cues_canvas(57, 4)  # the tip's middle: the box's top, just left of the red dot
+CUES_LENGTH = math.dist(CUES_BUTT, CUES_TIP)
+CUES_U = ((CUES_TIP[0] - CUES_BUTT[0]) / CUES_LENGTH, (CUES_TIP[1] - CUES_BUTT[1]) / CUES_LENGTH)
+CUES_HALF = (20, 8.5)  # half widths at the butt and the tip (the Classic's tip is 0.42 of its butt)
+CUES_BALL_R = 25
+# The twinkles, in the box's empty corners either side of the cue: (x, y, radius).
+CUES_TWINKLES = [(*cues_canvas(17, 17), 30), (*cues_canvas(60, 43), 24), (*cues_canvas(36, 3), 16)]
+# Butt to tip, shares of the length: cap, wrap, ring, forearm, joint ring, shaft, ferrule, tip.
+CUES_BANDS = [
+    (0.0, 0.045, "url(#cuesCap)"),
+    (0.045, 0.19, "url(#cuesWrap)"),
+    (0.19, 0.215, "url(#cuesSilver)"),
+    (0.215, 0.43, "url(#cuesForearm)"),
+    (0.43, 0.45, "url(#cuesSilver)"),
+    (0.45, 0.93, "url(#cuesMaple)"),
+    (0.93, 0.965, "url(#cuesFerrule)"),
+    (0.965, 1.0, "url(#cuesTip)"),
+]
+
+
+def cues_defs():
+    return "<defs>" + "".join([
+        grad("cuesMaple", "#FFF6E0", "#F6D9A4", "#DDAE6A", x2=0.45),
+        grad("cuesForearm", "#9A5A42", "#6A3426", "#3E1B12", x2=0.4),
+        grad("cuesWrap", "#4A4D5A", "#24252C", "#0E0F14", x2=0.4),
+        grad("cuesCap", "#3A3D48", "#18191F", "#08090C", x2=0.4),
+        grad("cuesSilver", "#FFFFFF", "#D5DCE8", "#8E99AE", x2=0.4),
+        grad("cuesFerrule", "#FFFFFF", "#F4F7FB", "#C9D2E0", x2=0.4),
+        grad("cuesTip", "#5A73C8", "#2E448E", "#18245A", x2=0.4),
+        '<radialGradient id="cuesBall" cx="0.36" cy="0.3" r="0.78"><stop offset="0" stop-color="#FFFFFF"/>'
+        '<stop offset="0.55" stop-color="#F3F6FB"/><stop offset="1" stop-color="#B7C3D6"/></radialGradient>',
+    ]) + "</defs>"
+
+
+def cues_cue():
+    x0, y0 = CUES_BUTT
+    ux, uy = CUES_U
+    nx, ny = -uy, ux
+    w0, w1 = CUES_HALF
+
+    def w(t):
+        return w0 + (w1 - w0) * t
+
+    def pt(t, k):
+        return (x0 + ux * CUES_LENGTH * t + nx * k, y0 + uy * CUES_LENGTH * t + ny * k)
+
+    def quad(t0, t1):
+        return [pt(t0, w(t0)), pt(t1, w(t1)), pt(t1, -w(t1)), pt(t0, -w(t0))]
+
+    x1, y1 = CUES_TIP
+    parts = [f'<circle cx="{x0:.1f}" cy="{y0:.1f}" r="{w0}" fill="url(#cuesCap)"/>']
+    parts += [face(quad(t0, t1), fill) for t0, t1, fill in CUES_BANDS]
+    parts += [
+        f'<circle cx="{x1:.1f}" cy="{y1:.1f}" r="{w1}" fill="url(#cuesTip)"/>',
+        line([pt(0.03, w(0.03) * 0.5), pt(0.9, w(0.9) * 0.42)], "#FFFFFF", 3.4, 'opacity="0.55"'),
+    ]
+    return "".join(parts)
+
+
+def icon_cues_cue():
+    """The CUES button's cue layer (it strikes along its own line)."""
+    return cues_defs() + cues_cue()
+
+
+def icon_cues_ball():
+    """The CUES button's cue ball, on its own canvas at the cue's scale, centred."""
+    r = CUES_BALL_R
+    return (
+        cues_defs()
+        + f'<circle cx="128" cy="128" r="{r}" fill="url(#cuesBall)"/>'
+        + gloss(128 - r * 0.3, 128 - r * 0.36, r * 0.36, r * 0.21, angle=-35, opacity=0.95)
+    )
+
+
+def icon_cues_twinkle():
+    """One twinkle with its thin ink edge (the CUES button places three)."""
+    return ("", "", twinkle(128, 128, 118, "#FFFFFF"))
+
+
+def icon_cues():
+    """The still CUES icon: the cue, its soft gold glow and the twinkles (the menu's header and
+    the switch's My Cues half)."""
+    cx, cy = (CUES_BUTT[0] + CUES_TIP[0]) / 2, (CUES_BUTT[1] + CUES_TIP[1]) / 2
+    glow = (
+        '<defs><radialGradient id="cuesGlow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FFD84D" stop-opacity="0.5"/>'
+        '<stop offset="1" stop-color="#FFD84D" stop-opacity="0"/></radialGradient></defs>'
+        f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="112" fill="url(#cuesGlow)"/>'
+    )
+    twinkles = "".join(
+        twinkle(x, y, r, "#FFF6C8" if i == 0 else "#FFFFFF") for i, (x, y, r) in enumerate(CUES_TWINKLES)
+    )
+    return (glow, cues_defs() + cues_cue(), twinkles)
+
+
+# ---------------------------------------------------------------------------------------
 # Cue thumbnail layers. One chunky cue, butt bottom-left and tip top-right, split into layers
 # that share one canvas and line up exactly. The white layers are tinted in Roblox with a
 # cue's look colours (ImageColor3 multiplies, so white becomes the colour); the outline,
@@ -2202,6 +2320,11 @@ ICONS = {
     "sell": icon_sell,
     "lock": icon_lock,
     "odds": icon_odds,
+    # the CUES button (concept 2b, 2026-10-08)
+    "cues": icon_cues,
+    "cues_cue": icon_cues_cue,
+    "cues_ball": icon_cues_ball,
+    "cues_twinkle": icon_cues_twinkle,
     # the ultimates (2026-09-28)
     "ults": icon_ults,
     "ult_badge": icon_ult_badge,

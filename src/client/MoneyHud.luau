@@ -9,7 +9,12 @@
 -- land() on arrival. When the attribute changes the HUD waits: while chips are on their way
 -- their landings raise it; once none are, it counts to the true value after SettleDelaySeconds
 -- (up or down), so it can never drift. A landing never lifts it past the true value (a preview's
--- made-up money only bumps the icon).
+-- made-up money only bumps the icon). Money spent (the total went down with no chip on its way)
+-- counts down at once: no chip brings it, so there is nothing to wait for.
+--
+-- A full menu's money pill (MenuFrame) shows this same number (shownMoney, ShownChanged), so in
+-- a menu too the money counts up as its chip lands instead of jumping before it flies
+-- (designer, 2026-10-08: selling looked laggy).
 --
 -- Small and tight in the corner. The one thing in it that takes input is the gold "+" at the
 -- pill's right end (designer, 2026-10-04): it opens the Shop on its Money tab (Menus; nothing
@@ -29,8 +34,24 @@ local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local C = Config.UI.Progress.MoneyHud
+
+-- The live HUD's shown number, for the menus' money pills.
+local shownChanged = Instance.new("BindableEvent")
+local live: any = nil
+
 local MoneyHud = {}
 MoneyHud.__index = MoneyHud
+
+--- Fires with the shown number (whole) whenever its words change.
+MoneyHud.ShownChanged = shownChanged.Event
+
+--- The number the live HUD shows (mid-count too), or nil before the save is loaded.
+function MoneyHud.shownMoney(): number?
+	if live and live.alive and live.loaded then
+		return math.floor(live.shown + 0.5)
+	end
+	return nil
+end
 
 export type MoneyHud = {
 	iconCenter: (self: MoneyHud) -> Vector2,
@@ -113,7 +134,12 @@ function MoneyHud.new(screen: ScreenGui): MoneyHud
 		table.insert(
 			self.connections,
 			player:GetAttributeChangedSignal("Money"):Connect(function()
-				self:scheduleSettle()
+				local truth = savedMoney()
+				if self.loaded and self.pending == 0 and truth < self.target then
+					self:countTo(truth, C.SpendCountSeconds) -- spent: no chip to wait for
+				else
+					self:scheduleSettle()
+				end
 			end)
 		)
 		table.insert(
@@ -130,6 +156,7 @@ function MoneyHud.new(screen: ScreenGui): MoneyHud
 		self:setShown(0)
 	end
 	self:layout()
+	live = self
 	return self
 end
 
@@ -156,6 +183,7 @@ function MoneyHud.setShown(self: any, value: number)
 			self.textLength = #words
 			self:layout()
 		end
+		shownChanged:Fire(math.floor(value + 0.5))
 	end
 end
 
@@ -384,6 +412,9 @@ function MoneyHud.destroy(self: any)
 		return
 	end
 	self.alive = false
+	if live == self then
+		live = nil
+	end
 	if self.count then
 		self.count:Disconnect()
 		self.count = nil

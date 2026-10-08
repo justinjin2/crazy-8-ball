@@ -309,6 +309,25 @@ function HudParts.livelyCard(card: Frame): ImageLabel
 	return band
 end
 
+--- The lively sheet's still tiny pool-ball dots (Config.UI.Menu.Lively.Dots*) on a card in a
+--- lively menu (designer, 2026-10-08: the Cues menu's big card and the Index's panel, "just like
+--- shop frame"): a kit card's 8-ball pattern becomes them; a plain frame (InventoryCard.box) gets
+--- them as a layer under its contents, its corners rounded by `cornerPx`.
+function HudParts.dots(card: Frame, cornerPx: number?)
+	local L = Config.UI.Menu.Lively
+	local fill = card:FindFirstChild("Fill")
+	local tiles = if fill then fill:FindFirstChild("Pattern") else nil
+	if not tiles then
+		pattern(card, cornerPx or 0)
+		tiles = card:FindFirstChild("Pattern")
+	end
+	local image = tiles :: ImageLabel
+	image.Image = L.DotsImage
+	image.ImageColor3 = color(L.DotsColor)
+	image.ImageTransparency = L.DotsTransparency
+	image.TileSize = UDim2.fromOffset(L.DotsTilePx, L.DotsTilePx)
+end
+
 --- Whether the menu `name` (as Menus.register) outlines its panel and cards in pale blue.
 function HudParts.paleEdged(name: string): boolean
 	return table.find(Config.UI.Menu.PaleEdgeMenus, name) ~= nil

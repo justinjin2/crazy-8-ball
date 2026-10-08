@@ -243,7 +243,8 @@ local function stepSway(dt: number)
 	end
 end
 
---- The hover sway (Config.UI.Kit.Motion.Sway, or BadgeSway for `style` "Badge"): while `on`,
+--- The hover sway (Config.UI.Kit.Motion.Sway, BadgeSway for `style` "Badge", CardSway for
+--- "Card": a cue card's slow, small lean): while `on`,
 --- `object` rocks side to side about its centre with a little wiggle, easing in from still
 --- and back to still once off. It owns `object.Rotation` (keep it 0 otherwise), so sway an
 --- inner frame, not one a layout turns. It stops by itself when `watch` (default `object`)
@@ -267,7 +268,10 @@ function UIAnim.sway(object: GuiObject, on: boolean, style: string?, watch: GuiO
 		on = true,
 		weight = 0,
 		clock = 0,
-		style = if style == "Badge" then M.BadgeSway else M.Sway,
+		style = if style == "Badge"
+			then M.BadgeSway
+			elseif style == "Card" then M.CardSway
+			else M.Sway,
 		watch = watch or object,
 	}
 	if not swayLoop then
@@ -641,8 +645,9 @@ function UIAnim.rainbow(label: GuiObject): Handle
 end
 
 --- A big word or card slamming in: from huge down to its size with a bump, a glow burst and
---- a jolt. For NEW RANK!, YOU PULLED, THANK YOU!
-function UIAnim.slam(object: GuiObject, tint: Color3?)
+--- a jolt. For NEW RANK!, YOU PULLED, THANK YOU! `opts` calms it for a popup opened often:
+--- `burst = false` drops the glow burst, `shake` names a gentler Kit.Motion.Shake ("Nudge").
+function UIAnim.slam(object: GuiObject, tint: Color3?, opts: { burst: boolean?, shake: string? }?)
 	local scale = UIAnim.scaleOf(object)
 	scale.Scale = M.Slam.FromScale
 	object.Visible = true
@@ -653,8 +658,10 @@ function UIAnim.slam(object: GuiObject, tint: Color3?)
 	)
 	tween.Completed:Connect(function(state)
 		if state == Enum.PlaybackState.Completed then
-			UIAnim.glowBurst(object, tint)
-			UIAnim.shake(object, "Jolt")
+			if not (opts and opts.burst == false) then
+				UIAnim.glowBurst(object, tint)
+			end
+			UIAnim.shake(object, opts and opts.shake or "Jolt")
 		end
 	end)
 end

@@ -41,6 +41,10 @@
 -- the favorite reward is left to claim (RewardState), bobbing in front of turning gold rays.
 -- Hovering a tile (or a gamepad resting on it) sways it a little, as every candy does, and sun
 -- rays fade in behind its icon (designer, 2026-10-03: no hard shake).
+--
+-- The CUES tile's icon is alive (CuesStrike, concept 2b, 2026-10-08): the Classic Cue with a
+-- breathing glow and twinkles; a hover strikes a ball with it, a press (from the touch) or the
+-- D-pad route strikes harder.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
@@ -50,6 +54,8 @@ local GuiService = game:GetService("GuiService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local CuesStrike = require(script.Parent.CuesStrike)
+local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local UIAnim = require(script.Parent.UIAnim)
@@ -101,6 +107,7 @@ type Tile = {
 	button: TextButton,
 	body: Frame, -- the candy's body: everything on the tile squishes and grows with it
 	icon: ImageLabel,
+	strike: CuesStrike.Strike?, -- the CUES tile's striking cue
 	word: TextLabel,
 	dot: Frame,
 	dotText: TextLabel,
@@ -261,6 +268,21 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 			end
 		end
 	end)
+	-- Studio only (GuiQA "cuesStrike"): play the CUES tile's strike, `hard` as a press; with
+	-- `at` (seconds) hold it at that moment for a screenshot (a negative `at`: back to rest).
+	GuiQA.add("cuesStrike", function(hard: boolean?, at: number?)
+		local t: Tile? = self.tiles.Inventory
+		local strike: any = if t then t.strike else nil
+		if strike then
+			local kind = if hard then "Press" else "Hover"
+			if at then
+				strike:freeze(if at >= 0 then kind else nil, math.max(0, at))
+			else
+				strike:play(kind)
+			end
+		end
+		return strike ~= nil
+	end)
 	self:refreshUlts()
 	self:refreshFree()
 	self:layout()
@@ -377,6 +399,18 @@ function MenuColumn.buildTile(self: any, parent: Instance, name: string, index: 
 	local icon = HudParts.icon(body, name, "Art")
 	icon.AnchorPoint = Vector2.new(0.5, 0.5)
 	icon.ZIndex = 3
+	local strike: CuesStrike.Strike? = nil
+	if name == "Inventory" and CuesStrike.ready() then
+		local s = CuesStrike.new(icon, body)
+		strike = s
+		-- From the touch (a mouse button or a finger), so it shows before the menu opens.
+		button.InputBegan:Connect(function(input: InputObject)
+			local kind = input.UserInputType
+			if kind == Enum.UserInputType.MouseButton1 or kind == Enum.UserInputType.Touch then
+				s:play("Press")
+			end
+		end)
+	end
 	local rays: ImageLabel? = nil
 	if name == FREE then
 		local r = Instance.new("ImageLabel")
@@ -394,6 +428,9 @@ function MenuColumn.buildTile(self: any, parent: Instance, name: string, index: 
 	-- column so they never cover another tile's dot or words.
 	HudParts.onLit(button, function(lit: boolean)
 		UIAnim.sunRays(icon, lit, self.raysLayer)
+		if lit and strike then
+			strike:play("Hover")
+		end
 	end)
 	local word = HudParts.text(body, "Word", C.LabelTextPx, WORDS[name] or name)
 	word.TextWrapped = false
@@ -436,6 +473,7 @@ function MenuColumn.buildTile(self: any, parent: Instance, name: string, index: 
 		button = button,
 		body = body,
 		icon = icon,
+		strike = strike,
 		word = word,
 		dot = dot,
 		dotText = dotText,
@@ -544,6 +582,10 @@ function MenuColumn.layout(self: any)
 		local iconSize = round(tile * C.IconShare)
 		t.icon.Size = UDim2.fromOffset(iconSize, iconSize)
 		t.icon.Position = UDim2.fromOffset(round(tile / 2), round(tile * C.IconCentreShare))
+		local strike = t.strike
+		if strike then
+			strike:layout(iconSize, Vector2.new(round(tile / 2), round(tile * C.IconCentreShare)))
+		end
 		local rays = t.rays
 		if rays then
 			local raysPx = round(tile * C.FreeRaysShare)
@@ -749,6 +791,10 @@ function MenuColumn.press(self: any, name: string)
 	end
 	UISound.play("Click")
 	UIAnim.bounce(t.button)
+	local strike = t.strike
+	if strike then
+		strike:play("Press") -- the D-pad route's; a press already playing goes on
+	end
 	self.onPress(name)
 end
 

@@ -78,6 +78,132 @@ function StageMath.ease(style: string, direction: string, p: number): number
 	return if p < 0.5 then f(p * 2) / 2 else 1 - f((1 - p) * 2) / 2
 end
 
+--- CSS's cubic-bezier(x1, y1, x2, y2) timing at `p` (0..1): the curve's height where its x is
+--- `p` (the concept pages ease with these; the CUES strike keeps their feel exactly). x1 and x2
+--- are in 0..1, so x rises with the curve and a bisection finds it.
+function StageMath.bezier(x1: number, y1: number, x2: number, y2: number, p: number): number
+	p = clamp01(p)
+	if p == 0 or p == 1 then
+		return p
+	end
+	local function at(a: number, b: number, s: number): number
+		local u = 1 - s
+		return 3 * u * u * s * a + 3 * u * s * s * b + s * s * s
+	end
+	local lo, hi = 0, 1
+	for _ = 1, 32 do
+		local mid = (lo + hi) / 2
+		if at(x1, x2, mid) < p then
+			lo = mid
+		else
+			hi = mid
+		end
+	end
+	return at(y1, y2, (lo + hi) / 2)
+end
+
+-- A value along keys { at (seconds), value, curve (to the next key; nil: a straight line) }
+-- at `t`: the first key's value before it, the last's after it.
+local function track(keys: { { any } }, t: number): number
+	local first = keys[1]
+	if t <= first[1] then
+		return first[2]
+	end
+	for i = 1, #keys - 1 do
+		local a, b = keys[i], keys[i + 1]
+		if t < b[1] then
+			local span = b[1] - a[1]
+			local p = if span > 0 then (t - a[1]) / span else 1
+			local c = a[3]
+			local e = if c then StageMath.bezier(c[1], c[2], c[3], c[4], p) else p
+			return a[2] + (b[2] - a[2]) * e
+		end
+	end
+	return keys[#keys][2]
+end
+
+export type StrikePose = {
+	cue: number, -- the cue's offset along Strike.Direction, a share of the icon's side
+	ball: number, -- the ball's offset along it from BallAt
+	ballScale: number,
+	ballShown: number, -- 0 (hidden) .. 1 (whole)
+	spark: number, -- the spark's scale, of its full size (SparkShare x the hit's Spark)
+	sparkTurn: number, -- degrees
+	sparkShown: number, -- 0 .. 1
+}
+
+--- The CUES tile's strike (Config.UI.Menu.Column.Strike `S`; `hit` its Hover or Press) at `t`
+--- seconds from its start: the ball pops in by the tip while the cue draws back, the cue aims,
+--- snaps to the ball, follows through and slides home; the ball flies along the cue's line,
+--- fading at the end of its run; a spark grows and turns at the hit, then fades. Outside
+--- 0..Seconds only the cue shows, at rest.
+function StageMath.strikePose(S: any, hit: any, t: number): StrikePose
+	local C = S.Curves
+	if t <= 0 or t >= hit.Seconds then
+		return {
+			cue = 0,
+			ball = 0,
+			ballScale = 0,
+			ballShown = 0,
+			spark = 0,
+			sparkTurn = 0,
+			sparkShown = 0,
+		}
+	end
+	local through = S.Contact + hit.Through
+	local cue = track({
+		{ 0, 0, C.Draw },
+		{ hit.Pulled, hit.Pull, C.Aim },
+		{ hit.Hit - S.AimSeconds, hit.Pull + hit.Aim, C.Snap },
+		{ hit.Hit, S.Contact, C.Through },
+		{ hit.Hit + S.ThroughSeconds, through },
+		{ hit.Gone - S.ReturnLead, through, C.Home },
+		{ hit.Seconds, 0 },
+	}, t)
+	local peakAt = hit.PopFrom + (hit.PopTo - hit.PopFrom) * S.PopPeakShare
+	local ballScale = track({
+		{ hit.PopFrom, 0, C.Pop },
+		{ peakAt, S.PopOvershoot, C.Settle },
+		{ hit.PopTo, 1 },
+		{ hit.Hit, 1, C.Fly },
+		{ hit.FadeFrom, S.FlyScale },
+		{ hit.Gone, S.EndScale },
+	}, t)
+	local ballShown = if t >= hit.Gone
+		then 0
+		else track({
+			{ hit.PopFrom, 0, C.Pop },
+			{ peakAt, 1 },
+			{ hit.FadeFrom, 1 },
+			{ hit.Gone, 0 },
+		}, t)
+	local ball = track({
+		{ hit.Hit, 0, C.Fly },
+		{ hit.FadeFrom, hit.Travel * S.FlyShare },
+		{ hit.Gone, hit.Travel },
+	}, t)
+	local grown = hit.Hit + S.SparkGrowSeconds
+	local sparkEnd = grown + S.SparkFadeSeconds
+	local spark, sparkTurn, sparkShown = 0, 0, 0
+	if t > hit.Hit and t < sparkEnd then
+		spark = track({ { hit.Hit, 0, C.Pop }, { grown, 1 }, { sparkEnd, S.SparkEndScale } }, t)
+		sparkTurn = track(
+			{ { hit.Hit, 0, C.Pop }, { grown, S.SparkTurn }, { sparkEnd, 2 * S.SparkTurn } },
+			t
+		)
+		sparkShown = track({ { hit.Hit, 0, C.Pop }, { grown, 1 }, { sparkEnd, 0 } }, t)
+	end
+	return {
+		cue = cue,
+		ball = ball,
+		ballScale = ballScale,
+		ballShown = ballShown,
+		spark = spark,
+		sparkTurn = sparkTurn,
+		sparkShown = sparkShown,
+	}
+end
+
 --- A pop's scale at `p`: from PopFrom up past PopPeak (Quad Out, peaking at PopPeakAt), then
 --- settling at 1 (Sine InOut).
 function StageMath.popScale(p: number, M: any): number

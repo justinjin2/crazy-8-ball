@@ -232,7 +232,7 @@ function InventoryCues.new(page: Frame, ctx: any, overlay: Frame?): any
 	local self: any = setmetatable({}, InventoryCues)
 	self.page = page
 	self.ctx = ctx
-	self.sort = SORTS[1] -- kept while the player is in the server
+	self.sort = SORTS[1] -- every open starts on Rarest first (designer, 2026-10-08)
 	self.chosen = nil :: string?
 	-- The cards by their place in the grid (reading order): a card keeps its place and shows
 	-- whichever cue is there, so the open's Stage ids (Card1..) stay on the same objects.
@@ -343,6 +343,7 @@ function InventoryCues.buildDetail(self: any, page: Frame)
 	end)
 	self.layer = layer
 	local box = HudParts.popupCard(layer, "Detail")
+	HudParts.dots(box) -- the lively sheet's tiny pool balls, not the big 8-balls
 	box.AnchorPoint = Vector2.new(0.5, 0.5)
 	box.Position = UDim2.fromScale(0.5, 0.5)
 	box.ZIndex = 2
@@ -600,22 +601,26 @@ function InventoryCues.arrangeDetail(self: any)
 	end
 	y += gap
 
-	-- The buttons, the column's width; the chooser's row (- 3 + Max) and its Sell under them.
+	-- The buttons, inset from the column's sides so their outline and their hover growth are
+	-- never cut by its edge (designer, 2026-10-08: Equip's end was cut and it looked jammed
+	-- against the card); the chooser's row (- 3 + Max) and its Sell under them.
 	local buttonH, buttonText = span1(D.ButtonPx), span1(D.ButtonTextPx)
+	local inset = math.ceil(K.SelectedStrokePx + colW * (K.SelectedScale - 1) / 2)
+	local buttonW = math.max(1, colW - 2 * inset)
 	for _, button in { self.equip, self.sellDupes } do
 		if button.Visible then
-			button.Position = UDim2.fromOffset(0, y)
-			button.Size = UDim2.fromOffset(colW, buttonH)
+			button.Position = UDim2.fromOffset(inset, y)
+			button.Size = UDim2.fromOffset(buttonW, buttonH)
 			HudParts.setButtonTextSize(button, buttonText)
 			y += buttonH + gap
 		end
 	end
 	if self.chooserRow.Visible then
 		local rowH = span1(IT.ChooserPx)
-		self.chooserRow.Position = UDim2.fromOffset(0, y)
-		self.chooserRow.Size = UDim2.fromOffset(colW, rowH)
+		self.chooserRow.Position = UDim2.fromOffset(inset, y)
+		self.chooserRow.Size = UDim2.fromOffset(buttonW, rowH)
 		local maxBtnW = math.max(rowH * 2, math.ceil(textWidth(WORDS.Max, buttonText)) + 24)
-		local countW = math.max(rowH, colW - 2 * rowH - maxBtnW - 3 * gap)
+		local countW = math.max(rowH, buttonW - 2 * rowH - maxBtnW - 3 * gap)
 		self.minus.Position = UDim2.fromOffset(0, 0)
 		self.minus.Size = UDim2.fromOffset(rowH, rowH)
 		HudParts.setTextSize(self.countLabel, rowH - 6)
@@ -623,14 +628,14 @@ function InventoryCues.arrangeDetail(self: any)
 		self.countLabel.Size = UDim2.fromOffset(countW, rowH)
 		self.plus.Position = UDim2.fromOffset(rowH + countW + 2 * gap, 0)
 		self.plus.Size = UDim2.fromOffset(rowH, rowH)
-		self.maxButton.Position = UDim2.fromOffset(colW - maxBtnW, 0)
+		self.maxButton.Position = UDim2.fromOffset(buttonW - maxBtnW, 0)
 		self.maxButton.Size = UDim2.fromOffset(maxBtnW, rowH)
 		HudParts.setButtonTextSize(self.minus, math.max(buttonText, rowH - 12)) -- a big - and +
 		HudParts.setButtonTextSize(self.plus, math.max(buttonText, rowH - 12))
 		HudParts.setButtonTextSize(self.maxButton, buttonText)
 		y += rowH + gap
-		self.sellConfirm.Position = UDim2.fromOffset(0, y)
-		self.sellConfirm.Size = UDim2.fromOffset(colW, buttonH)
+		self.sellConfirm.Position = UDim2.fromOffset(inset, y)
+		self.sellConfirm.Size = UDim2.fromOffset(buttonW, buttonH)
 		HudParts.setButtonTextSize(self.sellConfirm, buttonText)
 		y += buttonH + gap
 	end
@@ -850,7 +855,9 @@ function InventoryCues.openDetail(self: any)
 	if not self.detailOpen then
 		self.detailOpen = true
 		self.layer.Visible = true
-		UIAnim.slam(self.detail, HudParts.tone("Gold"))
+		-- Calm: no gold burst and a small nudge, as it opens on every card pressed (designer,
+		-- 2026-10-08: "do not make it always shine yellow and less shake").
+		UIAnim.slam(self.detail, nil, { burst = false, shake = "Nudge" })
 		self.dialog = {
 			cancel = function()
 				self:closeDetail()
@@ -1000,8 +1007,10 @@ end
 --------------------------------------------------------------------------------------------
 
 function InventoryCues.opened(self: any)
-	-- Every open starts with the first card chosen (the order stays as the player left it).
+	-- Every open starts with the first card chosen, sorted Rarest first (designer, 2026-10-08:
+	-- "sort by is always default rarest first").
 	self.chosen = nil
+	self.sort = SORTS[1]
 end
 
 function InventoryCues.shown(self: any)
@@ -1026,6 +1035,7 @@ end
 
 function InventoryCues.closed(self: any)
 	self:closeDetail()
+	self.sort = SORTS[1] -- so the next open's first pictures load in that order
 end
 
 -- Clear the NEW tags the view shows now: one MarkSeen with their ids (at most MarkSeenMax);

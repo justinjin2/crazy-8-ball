@@ -5505,6 +5505,30 @@
     "imageId": "133224366351187",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/cues.png": {
+    "assetId": "94026566964067",
+    "assetType": "Decal",
+    "imageId": "76979196206718",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/cues_ball.png": {
+    "assetId": "98016779326130",
+    "assetType": "Decal",
+    "imageId": "140190565310940",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/cues_cue.png": {
+    "assetId": "73985064810672",
+    "assetType": "Decal",
+    "imageId": "114253124255539",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/cues_twinkle.png": {
+    "assetId": "88703313890858",
+    "assetType": "Decal",
+    "imageId": "127567035372360",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/ui/icons/globe.png": {
     "assetId": "81087027174901",
     "assetType": "Decal",

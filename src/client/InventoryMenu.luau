@@ -9,8 +9,8 @@
 -- - My Cues (InventoryCues): the grid, 5 cards a row, the panel as tall as two whole rows with
 --   the third peeking; a card pressed slams in its big card with Equip and Sell duplicates.
 --   NEW tags clear with MarkSeen when the view is shown.
--- - Index (InventoryIndex): every cue by rarity, never-owned ones as silhouettes, "5 / 7" per
---   row with its reward and Claim, titles earned at the top, the chosen cue's flat picture.
+-- - Index (InventoryIndex): every cue by rarity, never-owned ones locked, "5 / 7" per
+--   row with its reward and Claim, titles earned at the top, the chosen cue's card.
 -- The title and the header's icon say which view shows. B goes back one step: the big card
 -- closes, then the Index goes back to My Cues, then the menu closes (Escape the same).
 --
@@ -89,6 +89,7 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local pages: { [string]: any } = {}
 	local held: { [Instance]: boolean } = {}
 	local view = "Cues" -- the view showing
+	local stale: { [string]: boolean } = {} -- views whose snapshot changed while hidden
 	local rail: any -- built once the views exist
 	local views: { [string]: Frame } = {}
 
@@ -315,8 +316,10 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		return fake
 	end
 
-	--- Redraw both views from the latest snapshot (`always`: even while closed, just before an
-	--- open, so the open shows the cards it staggers in).
+	--- Redraw from the latest snapshot (`always`: both views, even while closed, just before an
+	--- open, so the open shows the cards it staggers in). Otherwise only the view showing
+	--- redraws; the other one does as it is shown, so a sale never rebuilds the Index's grid in
+	--- the frames its money chip flies (designer, 2026-10-08: it looked laggy).
 	function ctx.refresh(always: boolean?)
 		if not frame:isOpen() and not always then
 			return
@@ -324,7 +327,12 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		local items = withFakeCopies(ItemState.items())
 		ctx.lastItems = items
 		for _, key in VIEWS do
-			pages[key]:redraw(items)
+			if always or key == view then
+				pages[key]:redraw(items)
+				stale[key] = nil
+			else
+				stale[key] = true
+			end
 		end
 		refreshDots(items)
 	end
@@ -399,6 +407,10 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			return
 		end
 		UISound.play("Click")
+		if stale[key] then
+			stale[key] = nil
+			pages[key]:redraw(ctx.lastItems)
+		end
 		showViews()
 		-- The view's pieces stagger in again (not during the open: it shows them).
 		if stage and not instant and stage:busy() ~= "play" then
@@ -546,6 +558,13 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	GuiQA.add("cuesDetail", function(cueId: string)
 		Menus.open(NAME, "Cues")
 		return pages.Cues:show(cueId)
+	end)
+	-- `amount` money flies out of Sell all into the header's cash, as after a sale (the server
+	-- pays nothing: the count only rises as far as the true total).
+	GuiQA.add("cuesFly", function(amount: number?)
+		Menus.open(NAME, "Cues")
+		ctx.flyMoney(amount or 250, rail.sell)
+		return true
 	end)
 	GuiQA.add("cuesCopies", function(on: boolean?)
 		fakeCopies = on ~= false

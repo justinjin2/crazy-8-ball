@@ -118,7 +118,7 @@ Nobody has listened to them yet: swap any by changing its id in `Config.Audio.Ui
 | RankUp | NEW RANK! | 1844692556 "Game Show" (APM Music) | 2.2 s |
 | NewTier | a new tier (bigger fanfare) | 1844584807 "Glamour Fanfare 4" (APM Music) | 3.7 s |
 | BadgeHover | the rank badge under the mouse | 15675055424 "Roblox_UI_Cute_Pop" | 2.7 s (tail) |
-| Click | a button pressed | 15675032796 "Roblox_UI_Small_Click" | 0.13 s |
+| Click | a button pressed: a warm little boop (designer, 2026-10-08) | 97683569351041 "UI pop" (a free Creator Store upload, not Roblox's own; checked to load) | 0.18 s |
 | ReelTick | the case reel: one card passing the marker (pitched 1.7) | 15675032796 "Roblox_UI_Small_Click" | 0.13 s |
 | ReelSettle | the reel settling on the prize | 15675046931 "Roblox_UI_Sweep" | 0.61 s |
 | ReelBuild | the longer build-up before a Mythic or Secret | 15674975792 "Roblox_UI_Whoosh_03" | 1.1 s |

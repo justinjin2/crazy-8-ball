@@ -42,6 +42,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
 local Menus = require(script.Parent.Menus)
+local MoneyHud = require(script.Parent.MoneyHud)
 local Quality = require(script.Parent.Quality)
 local ScreenBlur = require(script.Parent.ScreenBlur)
 local Stage = require(script.Parent.Stage)
@@ -491,21 +492,43 @@ function MenuFrame.setTitle(self: any, text: string)
 end
 
 -- The money pill's number, from the save's attribute (the server's truth).
+-- The pill shows the money HUD's number (MoneyHud.shownMoney): it counts up as a sale's or a
+-- reward's chip lands here, rather than jumping before the chip flies (designer, 2026-10-08:
+-- selling looked laggy). Before the HUD has the save, the saved total itself.
 function MenuFrame.refreshMoney(self: any)
 	local amount: TextLabel? = self.moneyAmount
 	if not amount then
 		return
 	end
-	local player = Players.LocalPlayer
-	local value = if player then player:GetAttribute("Money") else nil
+	local value: any = MoneyHud.shownMoney()
+	if value == nil then
+		local player = Players.LocalPlayer
+		value = if player then player:GetAttribute("Money") else nil
+	end
 	local words = Format.money(if type(value) == "number" and value == value then value else 0)
 	if amount.Text ~= words then
 		local grew = #amount.Text ~= #words
 		amount.Text = words
 		if grew and self.opened then
-			self:layout()
+			self:sizeMoney()
 		end
 	end
+end
+
+-- Size the money pill to its number, its right end where it is: a count crossing a digit
+-- resizes only the pill (a whole layout then made the flying chip stutter).
+function MenuFrame.sizeMoney(self: any): number
+	local fit = self.moneyFit
+	local pill: Frame? = self.moneyPill
+	if not fit or not pill then
+		return 0
+	end
+	local amount: TextLabel = self.moneyAmount
+	local words = math.ceil(textWidth(amount.Text, fit.text)) + 6
+	local width = fit.cash - fit.over + 4 + words + 8 + fit.underPlus
+	pill.Size = UDim2.fromOffset(width, fit.height)
+	amount.Size = UDim2.fromOffset(words, fit.height)
+	return width
 end
 
 --- Where money chips can land in this menu (the header's cash), in absolute pixels; nil when
@@ -650,15 +673,13 @@ function MenuFrame.layout(self: any): boolean
 		local over = round(cash * 0.35) -- the bundle pokes out past the pill's left end
 		local amount: TextLabel = self.moneyAmount
 		HudParts.setTextSize(amount, mt)
-		local words = math.ceil(textWidth(amount.Text, mt)) + 6
-		local mw = cash - over + 4 + words + 8 + underPlus
+		self.moneyFit = { text = mt, cash = cash, over = over, underPlus = underPlus, height = mh }
+		local mw = self:sizeMoney()
 		pill.AnchorPoint = Vector2.new(1, 0.5)
-		pill.Size = UDim2.fromOffset(mw, mh)
 		pill.Position = UDim2.fromOffset(right, round(headerH / 2))
 		self.moneyCash.Size = UDim2.fromOffset(cash, cash)
 		self.moneyCash.Position = UDim2.new(0, -over, 0.5, 0)
 		amount.Position = UDim2.fromOffset(cash - over + 4, 0)
-		amount.Size = UDim2.fromOffset(words, mh)
 		right -= mw + over + gap
 	end
 
@@ -797,6 +818,12 @@ function MenuFrame.listen(self: any)
 		table.insert(
 			list,
 			player:GetAttributeChangedSignal("Money"):Connect(function()
+				self:refreshMoney()
+			end)
+		)
+		table.insert(
+			list,
+			MoneyHud.ShownChanged:Connect(function()
 				self:refreshMoney()
 			end)
 		)

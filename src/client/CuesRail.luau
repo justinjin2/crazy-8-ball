@@ -56,7 +56,8 @@ local function textWidth(text: string, size: number): number
 	return TextService:GetTextSize(text, size, FONT, Vector2.new(4000, 400)).X
 end
 
---- The icon key the Cues menu shows for My Cues (the backpack until the CUES icon is made).
+--- The icon key the Cues menu shows for My Cues: the CUES icon (concept 2b, 2026-10-08; the
+--- backpack only if its picture were missing).
 function CuesRail.cuesIcon(): string
 	local id = (K.Icons :: any).Cues
 	return if type(id) == "string" and id ~= "" then "Cues" else "Inventory"
@@ -317,7 +318,10 @@ function CuesRail.layout(self: any, geo: MenuFrame.Geo): number
 	local switchH = 2 * half + 2 + 2 * R.KnobInsetPx
 	local gap = span(R.GapPx, t)
 	local hangH = span(R.HangPx, t)
-	local railH = switchH + 2 * (gap + tile) + math.ceil(hangH / 2)
+	-- A hanging pill reaches this far under its tile; the next tile starts a gap below it, so
+	-- every clear space down the rail is the same.
+	local drop = math.ceil(hangH / 2)
+	local railH = switchH + 2 * (gap + tile + drop)
 	-- Offsets, not absolute sizes: the panel may be mid pop-in (scaled) when this runs.
 	local panelW, panelH = panel.Size.X.Offset, panel.Size.Y.Offset
 	local content: Frame = frame.content
@@ -397,7 +401,7 @@ function CuesRail.layout(self: any, geo: MenuFrame.Geo): number
 		pill.Position = UDim2.new(0.5, 0, 1, -1)
 		pill.Size = UDim2.fromOffset(math.max(hangH, pillW), hangH)
 		HudParts.setTextSize(words, hangText, hangText)
-		at += tile + gap
+		at += tile + drop + gap
 	end
 	return width
 end

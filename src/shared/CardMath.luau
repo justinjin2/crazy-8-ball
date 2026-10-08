@@ -23,13 +23,11 @@ CardMath.smooth = smooth
 -- Looks
 --------------------------------------------------------------------------------------------
 
---- The look a card wears: "Silhouette" for a never-found cue, a Ranked cue's tier (it wears
---- its tier's colours), else its rarity; "Common" for a rarity with no look (Default). The
---- second value says whether the key is a tier (the card shows its badge and RANKED).
-function CardMath.lookKey(rarity: string, tier: string?, silhouette: boolean?): (string, boolean)
-	if silhouette then
-		return "Silhouette", false
-	end
+--- The look a card wears: a Ranked cue's tier (it wears its tier's colours), else its rarity;
+--- "Common" for a rarity with no look (Default). The second value says whether the key is a
+--- tier (the card shows its badge and RANKED). A never-found cue wears its own look too, under
+--- a grey veil (InventoryCard's `locked`).
+function CardMath.lookKey(rarity: string, tier: string?): (string, boolean)
 	local tiers: { [string]: any } = CC.Tiers :: any
 	if tier and tiers[tier] then
 		return tier, true

@@ -80,13 +80,12 @@ local function checkLook(name: string, look: any)
 end
 
 return {
-	["every rarity, tier and the silhouette has a whole look"] = function()
+	["every rarity and tier has a whole look, and the locked veil is set"] = function()
 		local _, Config = load()
 		local CC = Config.UI.CueCard
 		local rarities = table.clone(Config.BlockOdds.Rarities)
 		table.insert(rarities, "Unique")
 		table.insert(rarities, "Exclusive")
-		table.insert(rarities, "Silhouette")
 		for _, rarity in rarities do
 			local look = (CC.Looks :: any)[rarity]
 			H.expect(look ~= nil, "no look for " .. rarity)
@@ -103,14 +102,29 @@ return {
 		for _, id in { CC.Images.Balls, CC.Images.ScanLines } do
 			H.expect(string.match(id, "^rbxassetid://%d+$") ~= nil, "an image id")
 		end
+		-- The never-found card: a light veil that leaves the colours showing, the padlock on the
+		-- card.
+		local locked = CC.Locked
+		H.expect(isHex(locked.VeilColor), "Locked: VeilColor")
+		H.expect(
+			locked.VeilTransparency > 0.2 and locked.VeilTransparency < 0.8,
+			"Locked: a see-through veil"
+		)
+		H.expect(
+			locked.LockUnits > 0 and locked.LockUnits < CC.Units[1],
+			"Locked: the padlock fits the card"
+		)
+		for _, v in locked.LockAt do
+			H.expect(v > 0 and v < 1, "Locked: the padlock on the card")
+		end
+		H.expect((CC.Looks :: any).Silhouette == nil, "the silhouette look is gone")
 	end,
 
-	["lookKey: tiers for rank cues, the silhouette, Common for the rest"] = function()
+	["lookKey: tiers for rank cues, Common for the rest"] = function()
 		local C = load()
 		H.expect(select(1, C.lookKey("Ranked", "Gold")) == "Gold", "a rank cue wears its tier")
 		H.expect(select(2, C.lookKey("Ranked", "Reyes")) == true, "and it is a tier")
 		H.expect(C.lookKey("Legendary") == "Legendary", "a rarity")
-		H.expect(C.lookKey("Legendary", nil, true) == "Silhouette", "never found")
 		H.expect(C.lookKey("Default") == "Common", "no look of its own")
 		H.expect(C.lookKey("Ranked") == "Common", "Ranked with no tier")
 		H.expect(C.look("Gold").Edge == "#FFC428", "a tier's look")

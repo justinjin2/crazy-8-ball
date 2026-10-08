@@ -13,16 +13,20 @@
 -- chip with gold words just above the name, on the right (concept 2). A bare card (the big
 -- card, whose words beside it say all that) shows no pills and no padlock. The card is filled in its
 -- look's colours, rimmed by the rarity edge, with faint 8-balls drifting up-left behind the
--- cue; the rarer the cue, the more moves (CueCardFx). A never-found cue in the Index wears the
--- grey Silhouette look: its dark picture only.
+-- cue; the rarer the cue, the more moves (CueCardFx). A never-found cue in the Index (`locked`)
+-- is its whole card, still, under a grey veil that leaves its colours showing, with a big
+-- padlock over the picture (designer, 2026-10-08; it was a grey card with a dark silhouette).
 --
--- It behaves like the kit's buttons: hover and gamepad selection give a gold ring and a small
--- grow, a press squishes it and plays the Click sound. `onSelect` runs when a gamepad lands on
--- it. The card whose details show (setChosen) keeps a blue ring (the house accent for whatever
--- is chosen, UI_STYLE section 4).
+-- It behaves like the kit's buttons: hover and gamepad selection give a gold ring, a small grow
+-- and a slow, small lean (Kit.Motion.CardSway); a press squishes it and plays the Click sound,
+-- and the gold ring goes until the pointer comes back (designer, 2026-10-08: a clicked card
+-- stayed gold). Touch never lights it. `onSelect` runs when a gamepad lands on it. The card
+-- whose details show (setChosen) keeps a blue ring (the house accent for whatever is chosen,
+-- UI_STYLE section 4).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -39,6 +43,7 @@ local UISound = require(script.Parent.UISound)
 local IC = Config.UI.Inventory.Card
 local CC = Config.UI.CueCard
 local L = CC.Layout
+local LOCKED = CC.Locked
 local UNITS = CC.Units
 local CARD = Config.UI.Menu.Card
 local K = Config.UI.Kit
@@ -53,7 +58,7 @@ local EDGE = color(CARD.EdgeColor)
 
 export type Fields = {
 	cueId: string,
-	silhouette: boolean?, -- the Index: never found (the grey card, the dark picture, nothing else)
+	locked: boolean?, -- the Index: never found (the whole card, still, greyed, with a padlock)
 	count: string?, -- "x3", or nil / "" for none
 	copy: string?, -- a copy number over the name: "#412", or nil / "" for none
 	bare: boolean?, -- no pills and no padlock (the big card); the copy number stays
@@ -107,6 +112,9 @@ export type Card = {
 	copyPill: Frame,
 	copyText: TextLabel,
 	lock: ImageLabel,
+	veil: Frame, -- a never-found card's grey veil
+	veilRound: UICorner,
+	bigLock: ImageLabel, -- and its padlock
 	ring: Frame,
 	ringRound: UICorner,
 	ringStroke: UIStroke,
@@ -116,7 +124,7 @@ export type Card = {
 	lookKey: string, -- the look showing ("" before the first set)
 	ranked: boolean, -- it wears a tier (badge, RANKED)
 	cueId: string,
-	silhouette: boolean,
+	locked: boolean,
 	lines: number, -- lines the name may wrap to
 	lit: boolean, -- hovered or selected by a gamepad
 	chosen: boolean, -- its details show
@@ -249,6 +257,10 @@ function InventoryCard.layout(card: Card)
 	card.fillRound.CornerRadius = UDim.new(0, cornerPx)
 	card.ballsRound.CornerRadius = UDim.new(0, cornerPx)
 	card.ringRound.CornerRadius = UDim.new(0, cornerPx)
+	card.veilRound.CornerRadius = UDim.new(0, cornerPx)
+	local lockSide = px(LOCKED.LockUnits)
+	card.bigLock.Position = UDim2.fromScale(LOCKED.LockAt[1], LOCKED.LockAt[2])
+	card.bigLock.Size = UDim2.fromOffset(lockSide, lockSide)
 	card.edge.Position = UDim2.fromOffset(edgePx, edgePx)
 	card.edge.Size = UDim2.new(1, -2 * edgePx, 1, -2 * edgePx)
 	card.edgeRound.CornerRadius = UDim.new(0, math.max(0, cornerPx - edgePx))
@@ -533,6 +545,14 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 	local lock = HudParts.icon(body, "Lock", "Lock")
 	lock.ZIndex = 5
 	lock.Visible = false
+	local veil, veilRound = layer(body, "Veil", 5)
+	veil.BackgroundTransparency = LOCKED.VeilTransparency
+	veil.BackgroundColor3 = hex(LOCKED.VeilColor)
+	veil.Visible = false
+	local bigLock = HudParts.icon(body, "Lock", "BigLock")
+	bigLock.AnchorPoint = Vector2.new(0.5, 0.5)
+	bigLock.ZIndex = 6
+	bigLock.Visible = false
 	local ring, ringRound = layer(body, "Ring", 6)
 	local ringStroke = Instance.new("UIStroke")
 	ringStroke.Name = "Stroke"
@@ -579,6 +599,9 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 		copyPill = copyPill,
 		copyText = copyText,
 		lock = lock,
+		veil = veil,
+		veilRound = veilRound,
+		bigLock = bigLock,
 		ring = ring,
 		ringRound = ringRound,
 		ringStroke = ringStroke,
@@ -586,7 +609,7 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 		lookKey = "",
 		ranked = false,
 		cueId = "",
-		silhouette = false,
+		locked = false,
 		held = false,
 		laid = Vector2.zero,
 		lines = opts.lines or 2,
@@ -605,12 +628,16 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 		InventoryCard.layout(card)
 	end)
 
-	-- Hover, gamepad selection and press, like the kit's candy buttons.
+	-- Hover, gamepad selection and press, like the kit's candy buttons. Touch has no hover: a
+	-- tap that sends MouseEnter never lights the card.
 	local function light(on: boolean)
+		if on and UserInputService:GetLastInputType() == Enum.UserInputType.Touch then
+			on = false
+		end
 		card.lit = on
 		paintRing(card)
 		settle(card)
-		UIAnim.sway(body, on, nil, button)
+		UIAnim.sway(body, on, "Card", button)
 	end
 	button.MouseEnter:Connect(function()
 		light(true)
@@ -644,6 +671,7 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 	end)
 	button.Activated:Connect(function()
 		UISound.play("Click")
+		light(false) -- the gold ring goes until the pointer comes back
 		opts.onPress()
 	end)
 	InventoryCard.layout(card)
@@ -652,7 +680,7 @@ end
 
 -- Dress the card in a look (Config.UI.CueCard.Looks or Tiers): its colours, then its moving
 -- parts (rebuilt, since where its sparkles sit comes from the cue's id).
-local function dress(card: Card, key: string, ranked: boolean, id: string, silhouette: boolean)
+local function dress(card: Card, key: string, ranked: boolean, id: string, still: boolean)
 	if card.fx then
 		CueCardFx.stop(card.fx)
 		card.fx = nil
@@ -700,37 +728,36 @@ local function dress(card: Card, key: string, ranked: boolean, id: string, silho
 		art = card.art,
 		thumb = card.thumb,
 		name = card.name,
-	}, look, CardMath.seed(id), silhouette)
+	}, look, CardMath.seed(id), still)
 	CueCardFx.hold(card.fx :: CueCardFx.Fx, card.held)
 end
 
---- Show a cue on the card (or its silhouette), with its pills.
+--- Show a cue on the card (a never-found one `locked`), with its pills.
 function InventoryCard.set(card: Card, fields: Fields)
 	local id = fields.cueId
-	local silhouette = fields.silhouette == true
-	local changed = id ~= card.cueId or silhouette ~= card.silhouette
-	if changed then
-		-- A never-found cue is its blacked-out silhouette (GUI lane, 2026-10-03).
-		CueThumb.set(card.thumb, id, silhouette)
+	local locked = fields.locked == true
+	local changed = id ~= card.cueId or locked ~= card.locked
+	if id ~= card.cueId then
+		CueThumb.set(card.thumb, id)
 	end
 	local row = Catalog.get(id)
 	local rarity = if row then row.Rarity else "Default"
-	local key, ranked = CardMath.lookKey(rarity, if row then row.Tier else nil, silhouette)
-	card.cueId, card.silhouette = id, silhouette
+	local key, ranked = CardMath.lookKey(rarity, if row then row.Tier else nil)
+	card.cueId, card.locked = id, locked
 	-- The words first: the moving parts note where the name rests.
-	card.name.Text = if silhouette then "" else CueThumb.cueName(id)
-	card.name.Visible = not silhouette
-	card.bar.Visible = not silhouette
+	card.name.Text = CueThumb.cueName(id)
 	card.barWord.Text = string.upper(CueThumb.rarityName(if ranked then "Ranked" else rarity))
 	if changed or key ~= card.lookKey then
-		dress(card, key, ranked, id, silhouette)
+		dress(card, key, ranked, id, locked)
 	end
-	card.badge.Visible = ranked and not silhouette
-	local pills = not silhouette and fields.bare ~= true
+	card.badge.Visible = ranked
+	card.veil.Visible = locked
+	card.bigLock.Visible = locked
+	local pills = not locked and fields.bare ~= true
 	local count = if pills then fields.count or "" else ""
 	card.countText.Text = count
 	card.countPill.Visible = count ~= ""
-	local copy = if silhouette then "" else fields.copy or ""
+	local copy = if locked then "" else fields.copy or ""
 	card.copyText.Text = copy
 	card.copyPill.Visible = copy ~= ""
 	card.newPill.Visible = fields.new == true and pills

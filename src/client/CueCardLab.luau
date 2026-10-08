@@ -21,8 +21,7 @@ local CueCardLab = {}
 local UNITS = Config.UI.CueCard.Units
 
 -- One card each: the cue, and its pills as the Cues grid would show them.
-type Sample =
-	{ id: string, count: string?, new: boolean?, equipped: boolean?, silhouette: boolean? }
+type Sample = { id: string, count: string?, new: boolean?, equipped: boolean?, locked: boolean? }
 
 local RARITIES: { Sample } = {
 	{ id = "ArcticCue", count = "x4" },
@@ -43,7 +42,7 @@ local RARITIES: { Sample } = {
 	{ id = "VipCue" },
 	{ id = "StarterCue" },
 	{ id = "Classic" },
-	{ id = "ApexCue", silhouette = true },
+	{ id = "ApexCue", locked = true },
 }
 
 local TIERS: { Sample } = {
@@ -126,7 +125,7 @@ local function board(width: number, lists: { { Sample } })
 			})
 			InventoryCard.set(card, {
 				cueId = sample.id,
-				silhouette = sample.silhouette,
+				locked = sample.locked,
 				count = sample.count,
 				new = sample.new,
 				equipped = sample.equipped,

@@ -247,4 +247,111 @@ return {
 		end
 		H.near(total, 100, 1e-9, "every outcome")
 	end,
+
+	["bezier: CSS's timing curves, straight, eased and monotonic"] = function()
+		local S = load()
+		for _, p in { 0, 0.1, 0.37, 0.5, 0.9, 1 } do
+			H.near(S.bezier(0, 0, 1, 1, p), p, 1e-6, "cubic-bezier(0,0,1,1) is a straight line")
+		end
+		H.near(S.bezier(0.42, 0, 0.58, 1, 0.5), 0.5, 1e-6, "ease-in-out's middle")
+		H.expect(S.bezier(0, 0, 0.58, 1, 0.5) > 0.5, "ease-out is ahead at the middle")
+		H.expect(S.bezier(0.6, 0, 1, 0.6, 0.5) < 0.5, "the snap is behind, then catches up")
+		local _, Config = load()
+		for name, c in Config.UI.Menu.Column.Strike.Curves do
+			H.expect(c[1] >= 0 and c[1] <= 1 and c[3] >= 0 and c[3] <= 1, name .. ": x in 0..1")
+			local last = 0
+			for i = 0, 100 do
+				local v = S.bezier(c[1], c[2], c[3], c[4], i / 100)
+				H.expect(v >= last - 1e-9, name .. ": never goes back")
+				last = v
+			end
+			H.near(S.bezier(c[1], c[2], c[3], c[4], 1), 1, 1e-9, name .. ": ends at 1")
+		end
+	end,
+
+	["the CUES strike: rest at both ends, the tip on the ball at the hit, the ball in between"] = function()
+		local S, Config = load()
+		local K = Config.UI.Menu.Column.Strike
+		H.near(
+			math.sqrt(K.Direction[1] ^ 2 + K.Direction[2] ^ 2),
+			1,
+			1e-3,
+			"Direction is a unit vector"
+		)
+		for _, name in { "Hover", "Press" } do
+			local hit = K[name]
+			-- The keys in order (a key out of order would jump).
+			local order = {
+				0,
+				hit.PopFrom,
+				hit.PopTo,
+				hit.Hit,
+				hit.FadeFrom,
+				hit.Gone,
+				hit.Seconds,
+			}
+			for i = 2, #order do
+				H.expect(order[i] > order[i - 1], name .. ": its times run in order (" .. i .. ")")
+			end
+			H.expect(hit.Pulled < hit.Hit - K.AimSeconds, name .. ": drawn back before the aim")
+			H.expect(
+				hit.Hit + K.ThroughSeconds < hit.Gone - K.ReturnLead,
+				name .. ": through before it starts home"
+			)
+			H.expect(hit.Pull + hit.Aim < K.Contact, name .. ": drawn back further than the ball")
+			local rest = S.strikePose(K, hit, 0)
+			H.near(rest.cue, 0, 1e-9, name .. ": at rest at the start")
+			H.expect(rest.ballShown == 0 and rest.sparkShown == 0, name .. ": only the cue at rest")
+			local done = S.strikePose(K, hit, hit.Seconds)
+			H.near(done.cue, 0, 1e-9, name .. ": home at the end")
+			H.near(S.strikePose(K, hit, hit.Seconds - 1e-4).cue, 0, 1e-3, name .. ": home smoothly")
+			H.near(
+				S.strikePose(K, hit, hit.Hit).cue,
+				K.Contact,
+				1e-6,
+				name .. ": the tip on the ball"
+			)
+			H.expect(
+				S.strikePose(K, hit, hit.PopFrom * 0.5).ballShown == 0,
+				name .. ": no ball yet"
+			)
+			local at = S.strikePose(K, hit, hit.Hit)
+			H.near(at.ballShown, 1, 1e-9, name .. ": the ball whole when struck")
+			H.near(at.ball, 0, 1e-9, name .. ": and where it popped in")
+			H.near(at.ballScale, 1, 1e-9, name .. ": at its size")
+			H.expect(S.strikePose(K, hit, hit.Gone + 0.01).ballShown == 0, name .. ": gone")
+			H.near(
+				S.strikePose(K, hit, hit.Gone - 1e-4).ball,
+				hit.Travel,
+				1e-3,
+				name .. ": at the end of its run"
+			)
+			local spark = S.strikePose(K, hit, hit.Hit + K.SparkGrowSeconds)
+			H.near(spark.spark, 1, 1e-9, name .. ": the spark full grown")
+			H.near(spark.sparkTurn, K.SparkTurn, 1e-9, name .. ": and turned")
+			H.expect(
+				S.strikePose(K, hit, hit.Hit - 0.001).sparkShown == 0,
+				name .. ": no spark before the hit"
+			)
+			-- The cue never goes further back than its aim nor past its rest, and stays at its
+			-- follow-through while the ball runs.
+			for i = 0, 200 do
+				local t = hit.Seconds * i / 200
+				local pose = S.strikePose(K, hit, t)
+				H.expect(
+					pose.cue >= hit.Pull + hit.Aim - 1e-9,
+					name .. ": no further back than the aim"
+				)
+				H.expect(pose.cue <= 1e-9, name .. ": never past its rest")
+				if t >= hit.Hit and t <= hit.Gone - K.ReturnLead then
+					H.expect(
+						pose.cue <= K.Contact + hit.Through + 1e-9,
+						name .. ": no further than through"
+					)
+				end
+			end
+		end
+		H.expect(K.Press.Seconds < K.Hover.Seconds, "a press is quicker")
+		H.expect(K.Press.Travel > K.Hover.Travel, "and harder")
+	end,
 }
