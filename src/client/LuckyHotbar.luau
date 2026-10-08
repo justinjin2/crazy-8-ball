@@ -14,7 +14,9 @@
 -- "Ready in 4:32. Skip the wait?", Wait and the green "Skip · 4" with the price for the time
 -- left right now (4 / 9 / 15 R$, Config.LuckyBlocks.Skips; the live price from the shop's
 -- view). Skip asks the server, which prompts that same tier's product. Where the shop says the
--- skip cannot be bought it says why instead.
+-- skip cannot be bought it says why instead. The skip is a paid random item (economy v4 plan
+-- 13), so the dialog wears the block's dice: the question steps aside for the block's Odds &
+-- Details (OddsDetails over the screen) and comes back when that closes.
 --
 -- Its own ScreenGui inside Roblox's top bar inset, so a pointer's position and the slots'
 -- positions share one space. It sets BottomLift while it shows. Tuning in
@@ -34,6 +36,8 @@ local BlockIcon = require(script.Parent.BlockIcon)
 local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
+local OddsDetails = require(script.Parent.OddsDetails)
+local ShopCards = require(script.Parent.ShopCards)
 local ShopParts = require(script.Parent.ShopParts)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
@@ -313,6 +317,10 @@ function Hotbar.new(screen: ScreenGui, handlers: Handlers): any
 	layer.ZIndex = 10
 	self.layer = layer
 	self.skipDialog = nil :: MenuFrame.Dialog?
+	-- The skip dialog's dice: a block's Odds & Details over the screen (a menu's host: its
+	-- room, its dialogs and its sizes, set as it opens).
+	self.oddsHost = { content = layer, dialogs = {}, geo = nil :: MenuFrame.Geo? }
+	self.odds = OddsDetails.new(self.oddsHost)
 
 	self:buildBag()
 	Menus.register(BAG, {
@@ -656,6 +664,11 @@ function Hotbar.layout(self: any)
 	self.bagButton.Position = UDim2.fromOffset(n * (size + gap), 0)
 	self.notice.Position = UDim2.new(0.5, 0, 1, -U.BottomPx - size - 8)
 	self.notice.Size = UDim2.fromOffset(math.max(width, 300), U.NoticePx + 6)
+	-- The skip's Odds & Details, over the whole screen.
+	if self.odds:isOpen() then
+		self.oddsHost.geo = MenuFrame.screenGeo(self.layer)
+		self.odds:layout(self.oddsHost.geo)
+	end
 
 	-- The bag: BagColumns tiles across, BagRowsShown rows tall, over the bar.
 	local cols, pad = U.BagColumns, U.BagPadPx
@@ -710,6 +723,7 @@ function Hotbar.setVisible(self: any, visible: boolean)
 		if self.skipDialog then
 			self.skipDialog.cancel()
 		end
+		self.odds:close()
 		if self.bagOpen then
 			Menus.close(BAG)
 		end
@@ -841,12 +855,39 @@ function Hotbar.offerSkip(self: any, id: number)
 		yesTone = "Green",
 		no = W.SkipNo,
 		noTone = "Blue",
+		corner = function(card: Frame): GuiObject
+			local badge = ShopCards.oddsBadge(card, "OddsBadge", 3)
+			badge.hit.Activated:Connect(function()
+				UISound.play("Click")
+				self:skipOdds(id, entry.kind)
+			end)
+			return badge.badge
+		end,
 	}, function(yes: boolean)
 		self.skipDialog = nil
 		if yes then
 			self.handlers.skip(id)
 		end
 	end)
+end
+
+--- The skip dialog's dice: the question steps aside for block `id`'s Odds & Details (its
+--- `kind`'s list) and is asked again when that closes (the price for the time left then).
+function Hotbar.skipOdds(self: any, id: number, kind: string)
+	if self.skipDialog then
+		self.skipDialog.cancel()
+	end
+	local spec = OddsDetails.blockSpec(kind)
+	spec.closed = function()
+		-- After the list has put the gamepad's selection back, so the question takes it.
+		task.defer(function()
+			if self.visible then
+				self:offerSkip(id)
+			end
+		end)
+	end
+	self.oddsHost.geo = MenuFrame.screenGeo(self.layer)
+	self.odds:show(spec)
 end
 
 function Hotbar.isBagOpen(self: any): boolean

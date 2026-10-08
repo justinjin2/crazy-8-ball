@@ -12,7 +12,7 @@ Updated 2026-10-08.
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
 - **Lint and tests (2026-10-08, branch `gui-v4`):** lint OK (three old LocalShadow warnings);
-  all 1070 Lune tests pass.
+  all 1073 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; economy v4; saves at version 10;
@@ -65,11 +65,12 @@ One line each; the long form is the 2026-10-08 entry at the top of
   phone); the ability spin screen in the kit panels (A: the odds panel, the buy panel with one
   money button, "Locked" slots); the Mystery screen (B, the Track: the press pill, the tier
   ladder, landing as Standard); Settings (A: icon rows, big switches, the Codes strip); the
-  plan's items with no mock: the reel's v4 odds (real odds and one showcase card's "1 in N";
-  its look and effects unchanged, designer), the timer skip's dialog priced for the time left,
-  and the Mystery block's "Odds & Details" (pity, live pity odds, tiers, each tier block). At
-  publish: `tools/roblox_products.py --sync` (the Starter Pack at 29, the pack texts, Lucky1
-  and Lucky3 off sale). Trade is not built (not in the release).
+  plan's items with no mock: the reel's v4 odds (look unchanged, designer), the skip's dialog
+  priced for the time left, and every block's "Odds & Details" behind a sky-blue dice, no word
+  (designer): every cue's chance, the Mystery list's pity and tiers, the Grand Opening's
+  per-player odds, the skip's dice. Grand Opening bundles keep their struck prices (designer).
+  At publish: `tools/roblox_products.py --sync` (Starter Pack 29, pack texts, Lucky1 and
+  Lucky3 off sale). Trade is not built (not in the release).
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in
   `gui-v4`): the new cue card, the Cues menu, the CUES icon, the smooth money chip, the reel and
   YOU GOT, checked in Studio. Still open: the see-through reel trial's verdict, a phone and a

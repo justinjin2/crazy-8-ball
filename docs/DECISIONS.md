@@ -3362,3 +3362,33 @@ timer of a new block stay the designer's call.
   "1 in N" beside every chance under 5%. While a guarantee is the very next block it says so in
   gold and shows the odds with pity (Roblox's rule: the guaranteed tier shows while it is
   live). It opens by a click, tap or A only: a scrolling modal on hover would get in the way.
+- 2026-10-08 (designer: "instead of a word can you do a dice icon i think thats way more
+  descriptive than an info pill so they should know what it means", then "no odds word just the
+  dice"): every lucky block's odds badge is a sky-blue dice (`Config.UI.Kit.Icons.Dice`, drawn by
+  `tools/gen_ui_art.py dice`), with no word, instead of the "i". Noted once: Roblox's
+  paid-random-items rules say a standalone symbol such as the (i) icon without a descriptive
+  word is not enough, and the plan (section 13) asked for a button labelled "Odds & Details";
+  the popup it opens is titled "Odds & Details". The designer's call; a word can be added beside
+  the dice later without moving anything.
+- 2026-10-08 (economy v4 plan 13, Roblox's paid-random-items rules: each possible item's odds
+  before buying, every outcome even when a category has many): every block's dice opens one
+  shared "Odds & Details" popup (`OddsDetails`) listing each rarity, then its cues by name with
+  each one's chance ("10 cues, 0.24% each: ..."; equal within a rarity, Roblox's "odds for each
+  item listed below" form), each Unique cue on its own, and "Total: 100%". A chance that is not
+  exact shows 5 significant digits (Roblox: round four places past the first non-zero digit)
+  with the line "Some chances are rounded, so they may not add up to exactly 100%." The Mystery
+  list adds each rarity's cues and each one's chance per Mystery block (the nested box: the
+  final chance a player can work out). The old hover cards (`ShopOdds`, the Grand Opening's own)
+  are gone: a list of every cue does not fit one, so odds open by a click, tap or A only.
+- 2026-10-08 (Roblox's one-instance rule, economy v4 plan 18.1 item 5's per-player odds): a
+  Unique cue a player owns, or whose copies are all found, shows 0% for them, on the Grand
+  Opening's chips ("Owned" or 0%) and in its list with a line saying its chance went to the
+  block's lowest rarity, as the server rolls it (`BlockOdds.rowFor`).
+- 2026-10-08 (designer: "leave the grand opening bundle the way it is. right now its 19 robux for
+  1 and 57 for 3 but its discounted so just leave it as is"): the Grand Opening's bundle buttons
+  keep their struck-through prices; the plan's "57 R$ one by one" line (18.1 item 5) is not
+  built.
+- 2026-10-08 (economy v4 plan 13: the skip is a paid random item): the skip dialog wears the
+  block's dice at its title row's right end; it steps the question aside for that block's Odds
+  & Details over the screen and asks again (the price for the time left then) when that closes,
+  so B and Escape never answer two layers at once.

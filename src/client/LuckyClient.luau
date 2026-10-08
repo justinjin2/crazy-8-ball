@@ -573,13 +573,24 @@ function LuckyClient.start(screen: ScreenGui)
 	end)
 	-- Studio checks of the skip (economy v4 plan 18.1 item 8): a made-up Epic block with
 	-- `seconds` left (default 25 minutes: the 4 R$ tier) joins the bar until its next refresh
-	-- and the skip is asked; nothing is asked of the server unless Skip is pressed.
-	GuiQA.add("skipOffer", function(seconds: number?)
+	-- and the skip is asked; nothing is asked of the server unless Skip is pressed. `step`:
+	-- "odds" then presses its dice (the block's Odds & Details), "back" closes that list again
+	-- (the question comes back).
+	GuiQA.add("skipOffer", function(seconds: number?, step: string?)
+		if step == "back" then
+			hotbar.odds:close()
+			task.wait(0.1)
+			return hotbar.skipDialog ~= nil
+		end
 		local list = table.clone(entries)
 		table.insert(list, 1, { id = -2, kind = "Epic", readyAt = serverNow() + (seconds or 1500) })
 		hotbar:set(list, heldId or aimedId, liveIds)
 		hotbar:setVisible(true)
 		hotbar:offerSkip(-2)
+		if step == "odds" then
+			hotbar:skipOdds(-2, "Epic")
+			return hotbar.odds:isOpen()
+		end
 		return hotbar.skipDialog ~= nil
 	end)
 	GuiQA.add("mysteryTap", function()

@@ -136,6 +136,9 @@ export type ConfirmOptions = {
 	no: string?, -- the button that keeps things as they are ("Keep"); Strings.Menus.No
 	yesTone: string?, -- a Kit.Buttons tone: "Red" (the default) for selling
 	noTone: string?, -- "Blue" (the default) for keeping
+	-- A small square piece made on the card for the title row's right end (the skip's dice);
+	-- the title keeps clear of it.
+	corner: ((card: Frame) -> GuiObject)?,
 }
 
 export type Dialog = {
@@ -190,6 +193,26 @@ function MenuFrame.scaleOf(object: Instance): number
 		node = node.Parent
 	end
 	return if total > 0 then total else 1
+end
+
+--- The sizes a lively menu would give its pages on `parent`'s screen, for a popup shown outside
+--- any menu (the skip dialog's Odds & Details): all of `parent` is its room.
+function MenuFrame.screenGeo(parent: GuiObject): Geo
+	local FR: any = LIVELY_FRAME
+	local size = parent.AbsoluteSize / MenuFrame.scaleOf(parent)
+	local k = math.clamp((size.Y - 2 * FR.MarginPx) / FR.DesignHeightPx, FR.MinScale, 1)
+	local t = (k - FR.MinScale) / (1 - FR.MinScale)
+	return {
+		t = t,
+		short = size.Y < FR.ShortScreenPx,
+		pad = span(FR.PaddingPx, t),
+		gap = span(FR.GapPx, t),
+		title = math.max(K.Text.Min, round(K.Text.Title * FR.TitleScale * k)),
+		heading = math.max(K.Text.Min, round(K.Text.Heading * k)),
+		body = math.max(K.Text.Min, round(K.Text.Body * k)),
+		button = math.max(K.Text.Min, round(K.Text.Button * k)),
+		content = size,
+	}
 end
 
 -- A clear button that swallows presses: the dim (which closes) and the panel's floor (so a
@@ -1454,6 +1477,7 @@ function MenuFrame.ask(parent: GuiObject, opts: ConfirmOptions, callback: (boole
 	end
 	local question = HudParts.note(card, "Question", CONFIRM.TextPx, opts.text)
 	question.ZIndex = 2
+	local corner: GuiObject? = if opts.corner then opts.corner(card) else nil
 
 	local finish: (boolean) -> ()
 	local no = HudParts.candy(card, opts.no or Strings.Menus.No, function()
@@ -1477,10 +1501,20 @@ function MenuFrame.ask(parent: GuiObject, opts: ConfirmOptions, callback: (boole
 	local pad, gap = CONFIRM.PadPx, CONFIRM.GapPx
 	local inner = width - 2 * pad
 	local y = pad
-	if heading then
-		heading.Position = UDim2.fromOffset(pad, y)
-		heading.Size = UDim2.fromOffset(inner, CONFIRM.TitleTextPx + 8)
-		y += CONFIRM.TitleTextPx + 8 + gap / 2
+	local rowH = CONFIRM.TitleTextPx + 8
+	if corner then
+		-- At the title row's right end; the title keeps as far in from both ends.
+		corner.AnchorPoint = Vector2.new(0.5, 0.5)
+		corner.Position = UDim2.fromOffset(pad + inner - rowH / 2, y + rowH / 2)
+		corner.Size = UDim2.fromOffset(rowH, rowH)
+	end
+	if heading or corner then
+		if heading then
+			local side = if corner then rowH + gap else 0
+			heading.Position = UDim2.fromOffset(pad + side, y)
+			heading.Size = UDim2.fromOffset(math.max(1, inner - 2 * side), rowH)
+		end
+		y += rowH + gap / 2
 	end
 	local textH = TextService:GetTextSize(opts.text, CONFIRM.TextPx, FONT, Vector2.new(inner, 2000)).Y
 		+ 4

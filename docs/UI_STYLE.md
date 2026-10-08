@@ -665,7 +665,9 @@ Applies to every screen, new or restyled (`docs/prompts/GUI_PROMPT.md`; numbers 
   live price from the shop's view). Skip asks the server, which prompts that same tier's
   product; B, Escape or Wait closes it. Where the shop says the skip cannot be bought (paid
   random items restricted) the hotbar says why instead. It used to open Roblox's prompt
-  straight away.
+  straight away. The skip is a paid random item (economy v4 plan 13), so the block's dice sits
+  at the title row's right end: the question steps aside for the block's Odds & Details (over
+  the screen) and comes back, with the time left then, when that closes.
 
 - Lucky-block reel skip works once per spin (designer, 2026-10-04): the tap/click never jumps to
   the prize; the strip races on from where it is and brakes onto the winner within
@@ -835,40 +837,37 @@ One card for every cue: the Cues grid, the Index, the lucky block spin and YOU G
 
 Built with the `lively-gui` skill from the designer's picks on the mock page: Mystery A,
 Restock B, the Starter Pack and VIP A under the restock (`ShopMystery`, `ShopRestock`,
-`ShopOffers`, their shared parts `ShopCards`, the odds pop-up `ShopOdds`). Everything is in the
-Grand Opening card's units and scaled by its k, so the page reads as one; sizes in
+`ShopOffers`, their shared parts `ShopCards`, the Odds & Details popup `OddsDetails`). Everything
+is in the Grand Opening card's units and scaled by its k, so the page reads as one; sizes in
 `Config.UI.ShopBlocks`, words in `Strings.Menus.Shop.Blocks`. It replaces section 15's Mystery
 band, restock tiles and pass bands.
 
 - **Each section** sits on a pale blue panel, its navy title pill (gold words, a thin gold
   rim) across the panel's top edge; white boxes inside.
 - **The Mystery block (A)**: the rainbow block with a purple glow, turning rays and twinkles
-  (the picture stays still) and the sky-blue "i" at its corner; the six tiers (the tier's
+  (the picture stays still) and the sky-blue dice at its corner; the six tiers (the tier's
   block, its name in its colour, the chance in sky blue) and "Starts Standard · 5 presses to
   climb"; x1 and x10 columns: the count in gold, the purple gift square and the green Robux
   button, the gold money button under; the red "13 for 10!" ribbon, tilted and shaking, on x10
   while the launch bonus runs; the Epic guarantee strip under everything ("Epic guaranteed in
   53" and a purple bar).
 - **The Mystery block's "Odds & Details"** (economy v4 plan 3.2, hand-off item 13,
-  `ShopMysteryOdds`, `Config.UI.Shop.MysteryOdds`): a click, tap or A on its "i" opens it
-  over the Shop as the Gift Player popup (the block's picture and "Odds & Details" in the
-  header, the red X wearing B; B, Escape or a press outside close it), a list that scrolls:
-  "The result is decided when you open it; the presses reveal it."; **Pity** (Rare or better
-  within 10 and Epic or better within 100, each with "6 to go" or "Next one!" in sky blue);
-  **Final tier** with each tier's block; **Each tier block's odds** (the block's picture and
-  name, then its rarities); **Each Mystery block** (every rarity, "Total: 100%"). Names in
-  their rarity's colour, chances in sky blue, "1 in 2,000" in grey beside every chance under
-  5% (`BlockOdds.oneIn`, rounded up). Once a guarantee is the very next block a gold line says
-  "Your next Mystery block is Epic or better!" and the tier and rarity tables show the odds
-  with pity ("Final tier, with pity", "Your next Mystery block"). No hover card: a modal on
-  hover would get in the way.
+  `ShopMysteryOdds` in the shared popup below): "The result is decided when you open it; the
+  presses reveal it."; **Pity** (Rare or better within 10 and Epic or better within 100, each
+  with "6 to go" or "Next one!" in sky blue); **Final tier** with each tier's block; **Each
+  tier block's odds** (the block's picture and name, then its rarities); **The cues** (each
+  rarity's names once, in grey); **Each Mystery block** (every rarity with "7 cues, 7.4643%
+  each", "Total: 100%"). Once a guarantee is the very next block a gold line says "Your next
+  Mystery block is Epic or better!" and the tier and rarity tables show the odds with pity
+  ("Final tier, with pity", "Your next Mystery block"). A Mystery day's dice in Free Reward
+  opens the same list.
 - **The restock (B)**: "RESTOCK", a stopwatch and the time in its pill; four slot cards, each
-  the block big in its rarity's glow with an "i" at the top right, "**Rare** Lucky Block", a
+  the block big in its rarity's glow with the dice at the top right, "**Rare** Lucky Block", a
   navy "x2 left" pill, the green Robux button over the gold money button (no gift square:
   restock items cannot be gifted). The 4th is the VIP slot: cream with a gold edge, a crown
   rocking over its block; without VIP it says "VIP only" in gold and shows one Get VIP button
   between the two button rows. "Each slot: Rare 87% · Epic 12% · ..." under the slots.
-- **The Starter Pack and VIP cards** each have the sky-blue "i" at the top right: the odds of
+- **The Starter Pack and VIP cards** each have the sky-blue dice at the top right: the odds of
   the lucky block in them (the Starter Lucky Block, VIP's daily Rare block), headed by the
   block's name; hidden where paid random items are restricted.
 - **The Starter Pack and VIP (A)**: two tall cards under the restock while the Starter Pack is
@@ -878,8 +877,21 @@ band, restock tiles and pass bands.
   the gift square and the green button. The gold VIP card: crowns either side of "VIP", the
   crown, six ticked perks, the green button (the full price struck through in red during the
   offer).
-- **Odds open only from an "i"**: hover, or a click, tap or A (it stays until B, a tap away or
-  another press); one pop-up on the page at a time; every outcome, adding up to 100%.
+- **Every lucky block's odds open from its dice** (designer, 2026-10-08: a sky-blue die with
+  five pips, no word, `Config.UI.Kit.Icons.Dice`, `ShopCards.oddsBadge`; at least 24 px, its
+  press area a 44 px touch target round it), never from the picture it sits on: a click, tap
+  or A opens the **Odds & Details** popup (`OddsDetails`; sizes in `Config.UI.OddsDetails`,
+  words in `Strings.OddsDetails`), one per menu, over the pages as the Gift Player popup: the
+  block's picture and "Odds & Details", the red X wearing B (B, Escape, the X or a press
+  outside close it), and a list that scrolls: the block's name; each rarity in its colour with
+  "1 in 2,000" in grey beside every chance under 5% (`BlockOdds.oneIn`, rounded up) and its
+  chance in sky blue; under it, in grey, its cues ("10 cues, 0.24% each: Honeycomb Cue, ...":
+  every cue of a rarity has the same share); each Unique cue on its own row, at 0% with a line
+  once this player can't get it ("You have it, so it can't drop for you: its chance is in
+  Rare." or every copy found: Roblox's one-instance rule); "Some chances are rounded, so they
+  may not add up to exactly 100%." when one is (5 significant digits, `BlockOdds.detailText`);
+  "Total: 100%". No hover card: a list of every cue does not fit one. The Grand Opening's
+  chips show this player's chance too ("Owned", or 0% once every copy is found).
 - **Only Robux buttons shine** (every 3 s, each a little after the last); money buttons stay
   still.
 - **The jump buttons** scroll the page smoothly (0.33 s) to Featured or Blocks, and the lit
@@ -915,7 +927,7 @@ band, restock tiles and pass bands.
 `Strings.Menus.Shop.Passes`; the panel's pill says "VIP & PERKS".
 
 - **VIP at the left**: the Blocks tab's gold VIP card (crowns, the crown picture, six perks,
-  the "i" with the daily Rare block's odds), shown to everyone here: "Owned" with a tick for a
+  the dice with the daily Rare block's odds), shown to everyone here: "Owned" with a tick for a
   VIP, half price with its timer while the offer runs.
 - **A 2 x 2 grid beside it**, white tiles: Ability Slot 2 and 3 (the Ults icon, an orange "2"
   or purple "3" badge on it, "Equip a second ability"), Money Party (the party popper, "+100%
@@ -963,7 +975,8 @@ band, restock tiles and pass bands.
   Claim! (green, breathing), Claimed (grey, a big check over the pictures, no money), Locked,
   Tomorrow or "Play a match". Today wears a thick pale-gold edge. Day 7 stands tall and gold at
   the right: its best block over gold rays, the tilted rainbow "OP!", what comes with it. A
-  day with a lucky block wears the sky-blue "i" with that block's odds. Under the tiles the
+  day with a lucky block wears the sky-blue dice: that block's Odds & Details (a Mystery day's,
+  the Mystery list), Claim All buying them. Under the tiles the
   week's line ("First week: any 7 days within 14 · 12 days left", "First week done!", the
   streak's free miss, or "Finish one match today to claim day 3") and Claim All (green,
   shining, the live price; hidden where paid random items are restricted or no day is left).
@@ -974,7 +987,7 @@ band, restock tiles and pass bands.
   white knob, a node at each reward's day (its blocks over it, "Day 8" under it, gold with a
   check once reached) and "Every day you claim counts, even after a missed day." Nothing here
   is pressed: the track's rewards come with the daily claim.
-- **Group**: the Lucky 8 card (the block over its glow, its "i"), "Free Lucky Blocks" and two
+- **Group**: the Lucky 8 card (the block over its glow, its dice), "Free Lucky Blocks" and two
   rows with a tick box: Join the group (Roblox's join prompt) and Favorite the game (Roblox's
   favorite prompt); a claimed row is ticked and its button goes. Under it the invite card: the
   envelope and a Rare block, "Invite a friend", what both get when the friend wins their first
