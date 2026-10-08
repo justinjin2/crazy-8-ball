@@ -1111,12 +1111,14 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 
 ## 18. Parked ideas (not scheduled)
 
-- **Numbers on the first 1,000 copies of every block cue** (asked 2026-10-08, rules set the same
-  day, planned after the Cues menu): every cue that drops from a block, Common to Secret, from
-  the public release, shown as a chip above the card's name (#57); Unique cues keep numbering
-  every copy; Ranked, VIP, Starter and Classic stay plain. Sell all never sells a numbered copy
-  (one sells only from its own card, after a warning); a sold number is gone for good. How
-  many exist shows on the big card for every cue. Today only Unique cues are numbered and
+- **Copy numbers on early cues** (asked 2026-10-08, planned after the Cues menu; proposal
+  waiting for the designer's OK): the first 100 copies of every Rare, Epic, Legendary, Mythic
+  and Secret cue are numbered #1 to #100 from the public release; Commons and Uncommons never
+  (an earlier answer the same day was the first 1,000 of every block cue). Unique cues keep
+  numbering every copy; Ranked, VIP, Starter and Classic stay plain. A numbered copy is its own
+  card (gold number above the name) before that cue's plain stack. Sell all never sells a
+  numbered copy (one sells only from its own card, after a warning); a sold number is gone for
+  good. How many exist shows on the big card for every cue. Today only Unique cues are numbered and
   other cues are saved as a count, so this changes saves, selling, trading and the copy
   counters (`docs/prompts/CUES_LIVELY_PROMPT.md`).
 - **Global boards in a new home** (parked 2026-10-07, one of the last things before release):

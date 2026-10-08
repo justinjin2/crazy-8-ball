@@ -47,6 +47,10 @@ designer approves or notes -> build -> Studio check (phone, PC size, gamepad by 
 - 2026-10-08: Numbers on the first 1,000 copies of every block cue (Common to Secret; Unique
   cues keep numbering every copy; Ranked, VIP, Starter, Classic plain); Sell all never sells a
   numbered copy; a sold number is gone for good; "N exist" on the big card for every cue.
+  Reopened the same day by the designer (100 or 500 instead? piles of numbered Commons?); my
+  proposal, waiting for the designer's OK: only the **first 100 of every Rare, Epic,
+  Legendary, Mythic and Secret cue**, Commons and Uncommons never numbered, and each numbered
+  copy is **its own card** before that cue's plain stack.
 
 ## Concept 1: the card (round 1, waiting)
 
@@ -122,9 +126,25 @@ Round 2 (2026-10-08), from the designer's notes on round 1:
   keep numbering every copy; Ranked, VIP, Starter and Classic stay plain. Sell all never sells
   a numbered copy (one sells only from its own card, after a warning). A sold number is gone
   for good. "N exist" shows on the big card for every cue, never on the grid's cards.
-  My defaults for the plan: numbering starts at the public release (test numbers wiped); a card
-  shows the lowest number you own; in a trade a numbered copy is its own card and you pick
-  which copy goes. Also found: two players can end up with the same Unique number when one
+  My defaults for the plan: numbering starts at the public release (test numbers wiped); in a
+  trade a numbered copy is its own card and you pick which copy goes.
+  **Reopened the same day** (designer: "maybe instead of 1000 maybe just 100 ... what if someone
+  who plays rolls like multiple first number serial copies ... are they separate cues from the
+  actual, even for common? ... you should research and decide for me a proposal"). **My
+  proposal (round 2b of the page, waiting for the OK):** number only the first 100 copies of
+  every Rare, Epic, Legendary, Mythic and Secret cue (#1 to #100; 30 cues, 3,000 numbered
+  copies in all, 30 of them a #1); Commons and Uncommons never; Unique cues unchanged. A
+  numbered copy is the same cue but its own card (never stacks), its gold number above the
+  name, placed just before that cue's plain stack (Phoenix #12, then Phoenix x4); its big card
+  says "Copy #12, one of the first 100" with Equip and Sell this copy. Why, from
+  `tools/economy_model.py` at the plan's launch size (1,700 new players on day one, about 500
+  peak online in week 1; a scratch copy reporting every rarity): the first 100 per cue are
+  gone on day 1 for Rare, about day 13 Epic, day 29 Legendary, day 49 Mythic, about 3 months
+  Secret; with 1,000 per cue Rare lasts 5 days and Epic 38. Each Common gets about 1,200
+  copies on day one, so 1,000 numbered Commons and Uncommons would give every day-one player
+  about 9 numbered copies Sell all can't clear. Outside games show the same pull (low serials
+  sell far above high ones; Roblox Limited collectors chase #1 and special numbers), and it
+  rests on scarcity. Also found: two players can end up with the same Unique number when one
   trades it away and unboxes that cue again (`Counts.takeNext` remembers the first owner);
   fixed with this work.
 Questions asked: which icon (1 to 4); does the switch feel clear.
@@ -140,8 +160,8 @@ Questions asked: which icon (1 to 4); does the switch feel clear.
   size and a gamepad. The reel's cards come with concept 3.
 - [ ] Concept 2 (Cues menu) approved, then built. Round 1 shown 2026-10-08; round 2 shown
   2026-10-08 (the switch, four icons, 5 per row, copy numbers above the name, phone text).
-- [ ] Copy numbers on the first 1,000 copies of every block cue: rules set 2026-10-08; plan after
-  the Cues menu is built.
+- [ ] Copy numbers: the proposal (first 100 of every Rare-or-rarer cue, each its own card) shown
+  2026-10-08 on the concept page; on the OK, a plan after the Cues menu is built.
 - [ ] Concept 3 (spin and YOU GOT) approved, then built.
 - [ ] Concept 4 (Free Reward) approved, then built.
 - [ ] Concept 5 (Abilities ideas) shown; built if approved.

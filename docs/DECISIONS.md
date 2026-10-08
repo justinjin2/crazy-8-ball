@@ -3069,3 +3069,10 @@ timer of a new block stay the designer's call.
   VIP, Starter and Classic stay plain. Sell all never sells a numbered copy (one is sold only
   from its own card, after a warning); a sold number is gone for good, never handed out again.
   How many exist shows on a cue's big card for every rarity, never on the grid's small cards.
+- 2026-10-08: Copy numbers reopened by the designer the same day ("maybe instead of 1000 maybe
+  just 100"; worried that players get piles of numbered copies, even Commons, beside the plain
+  ones; "research and decide for me a proposal"). Proposed, waiting for the OK: number only the
+  first 100 copies of every Rare, Epic, Legendary, Mythic and Secret cue; Commons and Uncommons
+  never; each numbered copy is its own card just before that cue's plain stack. The economy
+  model at the planned launch size puts the end of each cue's first 100 at day 1 for Rare,
+  about day 13 Epic, 29 Legendary, 49 Mythic and 3 months Secret.
