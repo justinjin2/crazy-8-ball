@@ -3037,3 +3037,7 @@ timer of a new block stay the designer's call.
 - 2026-10-08: The Abilities screen and the Ranked roadmap opened blank: the one-thing-at-a-time
   focus hid their own ScreenGuis. Fixed to show exactly as before (designer: "add back the
   ability gui and rank gui").
+- 2026-10-08: Cue cards show their chance on every card, in Cues and on the lucky block spin
+  (designer), as a chip in the top-left corner; the faint 8-balls behind the cards are real
+  8-balls with their 8 showing, kept very faint so they never distract (designer: "too
+  distracting ... more transparent").

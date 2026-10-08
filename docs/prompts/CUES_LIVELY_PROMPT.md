@@ -35,6 +35,8 @@ designer approves or notes -> build -> Studio check (phone, PC size, gamepad by 
 - 2026-10-08: The Index becomes a book button inside Cues, beside Sort (its red "!" with it).
 - 2026-10-08: Favorite: $10,000 + a Lucky 8 Block (was a Mystery block). Group: 3 Mystery blocks,
   unchanged.
+- 2026-10-08: Every card shows its chance (top-left chip, in the rarity's colour), in Cues and on
+  the spin alike; the moving 8-balls stay very faint (designer: "too distracting").
 - 2026-10-08: Ranked sorts where Exclusive did (between Epic and Legendary), highest tier first
   (concept assumption, open until the card is approved). VIP and Starter stay Exclusive.
 
@@ -52,6 +54,9 @@ lines, red embers and a glitch. Ranked: the tier's colours with its badge beside
 effects growing with the tier (Reyes gets everything and a rainbow edge).
 Questions asked: bar style A (coloured bar) or B (dark bar, coloured word); is Legendary and
 up exciting enough; the chance % off the Cues cards but on the spin's cards.
+
+Round 3 (2026-10-08): the 8-balls about three times fainter (light cards 13%, dark 7%), the
+chance on every card.
 
 Round 2 (2026-10-08, designer: "the balls dont look like 8 balls though they need to actually
 show the 8 ball detail"): the flat silhouettes are replaced by a new tile of real 8-balls, each
