@@ -3207,3 +3207,12 @@ timer of a new block stay the designer's call.
   finishes a longer timer than it was bought for.
 - 2026-10-08: unopened paid blocks trade or gift only between two players whose paid random
   items are allowed; a restricted giver cannot gift a random product.
+- 2026-10-08 (designer: "if a person is actively moving when they click abilities, the cue
+  appears in front of them, or if they jump, it shows the real character is on the ground ...
+  needs to make it look like the character view is the actual character"): the ability spin
+  screen films the player's real character (`Config.UI.UltScreen.Stage.Live`), not a client
+  copy standing on the ground under them. Opening holds it (walk speed and jump at 0, its run
+  cut); a jump or fall goes on with the camera following it down, up to `SettleSeconds`; once
+  down it turns to the camera, is anchored on this client at its standing height and plays its
+  own idle; closing gives everything back. The old copy is what made a running player's hidden
+  character (and its cue) keep going in front of the copy.

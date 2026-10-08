@@ -11377,8 +11377,15 @@ Config.UI.UltScreen = {
 	-- The stage (UltStage, section 9.2): the avatar where the player stands, the real world
 	-- behind it (the designer, 2026-09-28), the camera cut there. Studs unless named.
 	Stage = {
+		-- The real character on the stage (designer, 2026-10-08: "the character view is the
+		-- actual character"), not a client copy: a player who opens the screen running or in a
+		-- jump is stopped, lands, then turns to the camera with its own idle. False: the old copy
+		-- standing on the ground under the player.
+		Live = true,
+		SettleSeconds = 1.5, -- the longest the stage waits for a jump or fall to land
 		-- Every player's character and name plate is hidden while the screen is open (this
-		-- client only), checked again this often for anyone who respawns or joins.
+		-- client only; with Live, the player's own character stays, its plate hidden), checked
+		-- again this often for anyone who respawns or joins.
 		HidePlayers = true,
 		HideRefreshSeconds = 0.5,
 		GroundSearchStuds = 6, -- how far below the feet to look for the ground

@@ -4,14 +4,21 @@
 -- is shown in place, in its idle and its rarity aura, and the camera looks at it from the
 -- clearest side, so the lobby (or wherever they are) is the background.
 --
--- The avatar is a client clone of the player's character (Archivable set for the clone and put
--- back; scripts, sounds and name tags removed; the root anchored, the rest held by its joints)
--- standing on the ground where the character stands, facing the camera and playing the
--- character's own idle (from its Animate script, else Roblox's default R15 or R6 idle). The
--- real character, every other player's character and every name plate over them are hidden
--- on this client only (LocalTransparencyModifier and Enabled, kept up every HideRefreshSeconds
--- for anyone who respawns or joins) and all put back on close. The aura is UltAura, with a
--- soft glow on the ground under it and two small lights on the avatar.
+-- The avatar is the player's real character (Stage.Live; designer, 2026-10-08: "the character
+-- view is the actual character"). Opening stops it (its walk speed and jump at 0, as
+-- PullCutscene holds it, and its run cut), but a jump or a fall goes on:
+-- the camera follows the real character down and the stage waits up to SettleSeconds for it to
+-- land. Then it turns to the camera, its root is anchored on this client so nothing nudges it,
+-- and its own Animate script plays the idle; closing gives everything back. Its cue and
+-- anything it carries are simply there, as in the world. With Live off, the old way: a client
+-- clone (Archivable set for the clone and put back; scripts, sounds and name tags removed; the
+-- root anchored, the rest held by its joints) standing on the ground under the player, playing
+-- the character's idle (from its Animate script, else Roblox's default R15 or R6 idle), with
+-- the real character hidden. Every other player's character and every name plate (the
+-- player's own too) are hidden on this client only (LocalTransparencyModifier and Enabled,
+-- kept up every HideRefreshSeconds for anyone who respawns or joins) and all put back on
+-- close. The aura is UltAura, with a soft glow on the ground under it and two small lights on
+-- the avatar.
 --
 -- The camera's side: where the player's camera already is first (so the background is what
 -- they were looking at), then turning further round each way
@@ -89,6 +96,9 @@ function UltStage.new(): any
 	self.hidden = {} :: { [Instance]: number } -- part or decal: its LocalTransparencyModifier
 	self.hiddenGuis = {} :: { [LayerCollector]: boolean } -- plate: its Enabled
 	self.hideClock = 0
+	self.live = nil :: any -- the live stage's character and what to give back (Stage.Live)
+	self.settled = true
+	self.settleClock = 0
 	return self
 end
 
@@ -171,14 +181,17 @@ local function hideCharacter(self: any, character: Model)
 	end
 end
 
--- Every player's character (the clone stands in for this one) and every plate over them.
+-- Every player's character (the clone stands in for this one; a live stage keeps it) and
+-- every plate over them.
 function UltStage.hidePlayers(self: any)
 	local characters: { Model } = {}
 	for _, player in Players:GetPlayers() do
 		local character = player.Character
 		if character then
 			table.insert(characters, character)
-			hideCharacter(self, character)
+			if not (self.live and character == self.live.character) then
+				hideCharacter(self, character)
+			end
 		end
 	end
 	local playerGui = Players.LocalPlayer and Players.LocalPlayer:FindFirstChildOfClass("PlayerGui")
@@ -231,6 +244,155 @@ local function idleFrom(character: Instance): string?
 		end
 	end
 	return if best then best.AnimationId else nil
+end
+
+-- How far a character's root stands above its feet.
+local function rootAbove(root: BasePart, humanoid: Humanoid?): number
+	local legs = 2
+	if humanoid then
+		if humanoid.RigType == Enum.HumanoidRigType.R6 then
+			local leg = root.Parent and root.Parent:FindFirstChild("Left Leg")
+			legs = if leg and leg:IsA("BasePart") then leg.Size.Y else 2
+		else
+			legs = humanoid.HipHeight
+		end
+	end
+	return root.Size.Y / 2 + legs
+end
+
+-- Where a character's feet are now (in the air too): under its root by its legs.
+local function feetOf(root: BasePart, humanoid: Humanoid?): Vector3
+	return root.Position - Vector3.new(0, rootAbove(root, humanoid), 0)
+end
+
+-- A character's height from its feet to the top of its head.
+local function heightOf(character: Model, feetY: number, fallback: number): number
+	local head = character:FindFirstChild("Head")
+	if head and head:IsA("BasePart") then
+		return math.max(2, head.Position.Y + head.Size.Y / 2 - feetY)
+	end
+	return fallback
+end
+
+-- On the ground: the humanoid stands on something (a seat counts).
+local function landed(humanoid: Humanoid?): boolean
+	if not humanoid then
+		return true
+	end
+	return humanoid.SeatPart ~= nil or humanoid.FloorMaterial ~= Enum.Material.Air
+end
+
+-- The live stage's camera target while the character is still coming down: its feet now.
+function UltStage.followLive(self: any)
+	local live = self.live
+	local root: BasePart = live.root
+	if not root.Parent then
+		return
+	end
+	local feet = feetOf(root, live.humanoid)
+	self:frame(feet, heightOf(live.character, feet.Y, live.height))
+end
+
+-- The live stage once the character is down (or the wait is over): it turns to the camera and
+-- holds still (anchored on this client), and the aura, the glow and the lights go round it.
+function UltStage.settleLive(self: any)
+	self.settled = true
+	local live = self.live
+	local root: BasePart = live.root
+	local humanoid: Humanoid? = live.humanoid
+	if not root.Parent or not self.model then
+		return
+	end
+	local toward: Vector3 = self.facing
+	local seated = humanoid ~= nil and humanoid.SeatPart ~= nil
+	if not seated and landed(humanoid) then
+		if humanoid then
+			humanoid.AutoRotate = false
+		end
+		root.AssemblyLinearVelocity = Vector3.zero
+		root.AssemblyAngularVelocity = Vector3.zero
+		-- Held at its standing height on the ground under it: a landing's dip (the hips sink
+		-- for a moment as it touches down) is not frozen in.
+		local ground = standing(self, root, humanoid)
+		local at =
+			Vector3.new(root.Position.X, ground.Y + rootAbove(root, humanoid), root.Position.Z)
+		root.CFrame = CFrame.lookAt(at, at + toward)
+		root.Anchored = true
+		live.held = true
+	end
+	self.root = root
+	self.rootCFrame = root.CFrame
+	local feet = feetOf(root, humanoid)
+	local height = heightOf(live.character, feet.Y, live.height)
+	self:frame(feet, height)
+	self:dress(self.model, feet, toward)
+	self.aura = UltAura.new(self.model, CFrame.lookAt(feet, feet - toward), height)
+	self.aura:set(self.rarity, false)
+	self:setRarity(self.rarity, false)
+end
+
+-- Open the live stage on the player's real character (Stage.Live).
+function UltStage.openLive(self: any, character: Model, root: BasePart)
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	self.live = {
+		character = character,
+		root = root,
+		humanoid = humanoid,
+		anchored = root.Anchored,
+		-- The humanoid's own values, put back on close (as PullCutscene and GiftDrop hold it).
+		saved = if humanoid
+			then {
+				WalkSpeed = humanoid.WalkSpeed,
+				JumpPower = humanoid.JumpPower,
+				JumpHeight = humanoid.JumpHeight,
+				AutoRotate = humanoid.AutoRotate,
+			}
+			else nil,
+		held = false,
+		height = 5,
+	}
+	if humanoid then
+		humanoid.WalkSpeed = 0
+		humanoid.JumpPower = 0
+		humanoid.JumpHeight = 0
+		humanoid:Move(Vector3.zero)
+	end
+	-- The run stops; a jump or a fall goes on (the camera follows it down).
+	local v = root.AssemblyLinearVelocity
+	root.AssemblyLinearVelocity = Vector3.new(0, v.Y, 0)
+	-- The camera's own side first, so the background is what the player was looking at.
+	local cam = workspace.CurrentCamera
+	local look = cam.CFrame.LookVector
+	local back = Vector3.new(-look.X, 0, -look.Z)
+	local facing = if back.Magnitude > 1e-3 then back.Unit else Vector3.new(0, 0, 1)
+	local feet = feetOf(root, humanoid)
+	local height = heightOf(character, feet.Y, 5)
+	self.live.height = height
+	local want = self:frame(feet, height)
+	local toward, distance = self:pickView(self.focus, facing, want)
+	self.facing = toward
+	self.distance = distance
+	self.settled = false
+	self.settleClock = 0
+end
+
+-- Give the live stage's character back: unanchored, walking, jumping and turning again.
+function UltStage.closeLive(self: any)
+	local live = self.live
+	self.live = nil
+	if not live then
+		return
+	end
+	local root: BasePart = live.root
+	if root.Parent and live.held then
+		root.Anchored = live.anchored
+	end
+	local humanoid: Humanoid? = live.humanoid
+	if humanoid and humanoid.Parent and live.saved then
+		for key, value in live.saved do
+			(humanoid :: any)[key] = value
+		end
+	end
 end
 
 -- A clone of the player's character standing on `ground`, facing `facing` (flat), playing its
@@ -402,10 +564,9 @@ function UltStage.open(self: any, rarity: string?)
 	}
 	self.hidden = {}
 	self.hiddenGuis = {}
-	if ST.HidePlayers then
-		self:hidePlayers()
-	end
-	if character and realRoot and realRoot:IsA("BasePart") then
+	if ST.Live and character and realRoot and realRoot:IsA("BasePart") then
+		self:openLive(character, realRoot)
+	elseif character and realRoot and realRoot:IsA("BasePart") then
 		local ground, facing = standing(self, realRoot, character:FindFirstChildOfClass("Humanoid"))
 		-- The camera's own side first, so the background is what the player was looking at.
 		local look = cam.CFrame.LookVector
@@ -431,6 +592,9 @@ function UltStage.open(self: any, rarity: string?)
 		self.focus = cam.Focus.Position
 		self.facing = -cam.CFrame.LookVector
 		self.distance = (cam.CFrame.Position - self.focus).Magnitude
+	end
+	if ST.HidePlayers then
+		self:hidePlayers()
 	end
 	self:setRarity(rarity or self.rarity, false)
 	cam.CameraType = Enum.CameraType.Scriptable
@@ -460,6 +624,14 @@ function UltStage.step(self: any, dt: number)
 			for d in self.hidden do
 				(d :: any).LocalTransparencyModifier = 1
 			end
+		end
+	end
+	if self.live and not self.settled then
+		self.settleClock += dt
+		if landed(self.live.humanoid) or self.settleClock >= ST.SettleSeconds then
+			self:settleLive()
+		else
+			self:followLive()
 		end
 	end
 	local cam = workspace.CurrentCamera
@@ -503,6 +675,9 @@ function UltStage.bounce(self: any)
 	if not self.opened or not root or not root.Parent then
 		return
 	end
+	if self.live and not self.live.held then
+		return -- a live character not held still (seated, or still falling) keeps its physics
+	end
 	if self.bounceTween then
 		self.bounceTween:Cancel()
 	end
@@ -531,7 +706,11 @@ function UltStage.close(self: any)
 	if self.bounceTween then
 		self.bounceTween:Cancel()
 		self.bounceTween = nil
+		if self.live and self.live.held and self.root and self.rootCFrame then
+			self.root.CFrame = self.rootCFrame
+		end
 	end
+	self:closeLive()
 	local saved = self.saved
 	self.saved = nil
 	local cam = workspace.CurrentCamera
