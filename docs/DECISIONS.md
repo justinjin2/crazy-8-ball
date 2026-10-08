@@ -3025,3 +3025,9 @@ timer of a new block stay the designer's call.
   the same for every mode. Blue with room, green with someone on, gold when full or playing.
   Glowing outlines rise from its rim and fade as they climb, with sparkles; the arrow sits a
   little lower with JOIN under it, bobbing with it (`Config.Multiplayer.QueueVisual.Portal`).
+- **2026-10-08, a test: the shot camera looks out of the shooter's eyes.** Where the camera
+  pulled out to the semi-top-down side view after a shot, it now lerps (0.9 s) into the
+  shooter's own eyes and watches from where they stand, the gaze following the moving balls,
+  the body hidden on their screen; it lerps back when the balls stop. Same trigger as before
+  (shots under about 35% power keep the aiming view). `Config.Camera.Shot.PullOutView =
+  "Side"` brings the old view back.

@@ -1046,7 +1046,18 @@ Config.Camera = {
 		-- smaller turn from where the shot was aimed, so the camera never turns more than about
 		-- a quarter of the way round, and when the balls stop it swings back the same way.
 		-- "Aim": the older pull-out, the whole table seen along the aim line.
-		PullOutView = "Side",
+		-- "FirstPerson" (designer, 2026-10-08, a test): the camera lerps into the shooter's own
+		-- eyes (their Head) and watches the shot from where they stand (Shot.FirstPerson).
+		PullOutView = "FirstPerson",
+		-- The "FirstPerson" pull-out.
+		FirstPerson = {
+			InSeconds = 0.9, -- the lerp from the aim view into the eyes, smoothstep eased (tune)
+			OutSeconds = 0.9, -- ...and back to the aiming view once the balls stop (tune)
+			EyeUpStuds = 0.2, -- the eye sits this far above the Head part's centre (tune)
+			-- Where the eyes look: the table centre, pulled this far (0..1) toward the middle of
+			-- the balls still moving, so the gaze follows the shot without whipping. (tune)
+			BallWeight = 0.5,
+		},
 		-- The "Side" swing out takes this long, eased in and out (smoothstep) and not smoothed
 		-- on top, so the camera arrives at exactly this time. The designer chose about 0.9 s:
 		-- quick enough to catch the balls rolling, gentle enough for a quarter turn. (tune)

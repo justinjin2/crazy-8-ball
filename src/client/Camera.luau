@@ -6,7 +6,8 @@
 -- framing the screen allows. Zooming in closes on the cue ball. While a shot plays it holds
 -- the framing the shot was taken from for a beat, then pulls out so the whole table shows: by
 -- default it swings round to a fixed semi-top-down view from the nearer long side
--- (Config.Camera.Shot.PullOutView), and swings back when the balls stop.
+-- (Config.Camera.Shot.PullOutView), and swings back when the balls stop. The "FirstPerson"
+-- pull-out (a test) lerps into the shooter's own eyes instead and lerps back the same way.
 --
 -- Every turn starts in the HOME VIEW (Config.Camera.View.ZoomDefault, the pre-multiplayer
 -- framing, untouched by the match HUD), and the camera always comes back to it: after every
@@ -14,6 +15,7 @@
 -- ability's aim-phase pick, UltPick), which looks straight down on the whole table (setMode)
 -- so every pocket, ball or spot can be picked.
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -79,6 +81,13 @@ type Orbit = { pivot: Vector3, yaw: number, pitch: number, distance: number }
 -- A swing in flight: from the pose the camera was showing, round the table to a target pose,
 -- over `seconds`. `yawRef` is the target's heading last frame, unwrapped (see swingPose).
 local swing: { from: Orbit, time: number, seconds: number, yawRef: number }? = nil
+-- The "FirstPerson" pull-out (Shot.PullOutView): true while the camera looks out of the
+-- shooter's eyes, and the straight lerp in flight into or out of them (from a fixed pose to
+-- the moving target, smoothstep eased).
+local firstPerson = false
+local blend: { from: CFrame, time: number, seconds: number }? = nil
+-- The body hidden on this screen while the camera is inside its head.
+local hiddenBody: Model? = nil
 
 --- World-space aim direction for a physics angle on the current table. The angle is in
 --- table space, so the table's yaw turns it: at yaw 0 this is (cos, 0, -sin) as before.
@@ -141,6 +150,31 @@ local function takeOver()
 	cam.FieldOfView = Config.Camera.View.FieldOfView
 end
 
+-- The first-person view hides the shooter's own body on this screen (every part and decal,
+-- the head and hair above all, which the eye sits inside), like Roblox's own first person.
+-- Written every frame, so an accessory that loads late is hidden too. The body is at rest
+-- while the balls roll (Main lets it go after the stroke), so showing it again is all zeros.
+local function hideBody(character: Model)
+	hiddenBody = character
+	for _, d in character:GetDescendants() do
+		if d:IsA("BasePart") or d:IsA("Decal") then
+			(d :: any).LocalTransparencyModifier = 1
+		end
+	end
+end
+
+local function showBody()
+	local character = hiddenBody
+	hiddenBody = nil
+	if character then
+		for _, d in character:GetDescendants() do
+			if d:IsA("BasePart") or d:IsA("Decal") then
+				(d :: any).LocalTransparencyModifier = 0
+			end
+		end
+	end
+end
+
 --- Take control of the camera (and keep it even when Roblox's default scripts reset it
 --- on spawn). It eases from wherever the player's own camera was into the home view, or
 --- into the top-down view when the turn opens with a pocket call owed for the 8 (setMode).
@@ -201,6 +235,9 @@ function Camera.unlock()
 	pullOutWanted = true
 	sideAcross = nil
 	swing = nil
+	firstPerson = false
+	blend = nil
+	showBody()
 	local cam = Workspace.CurrentCamera
 	local from = cam.CFrame
 	-- Never hand back a Scriptable camera: that would leave the player with a frozen view.
@@ -682,6 +719,36 @@ local function nearerSide(cf: CFrame): Vector3
 	return if lean >= 0 then across else -across
 end
 
+-- The first-person view: from the local player's eyes (their Head), looking at the table
+-- centre pulled toward the balls still moving (Shot.FirstPerson.BallWeight). Nil without a
+-- head, and the caller falls back to the aim view. Hides the body while it is looked out of.
+local function firstPersonView(moving: { Vector3 }?): CFrame?
+	local character = Players.LocalPlayer.Character
+	local head = character and character:FindFirstChild("Head")
+	if not character or not head or not head:IsA("BasePart") then
+		return nil
+	end
+	hideBody(character)
+	local F = Config.Camera.Shot.FirstPerson
+	local eye = head.Position + Vector3.new(0, F.EyeUpStuds, 0)
+	local look = tableCentre()
+	if moving and #moving > 0 then
+		local sum = Vector3.zero
+		for _, ball in moving do
+			sum += ball
+		end
+		look = look:Lerp(sum / #moving, F.BallWeight)
+	end
+	if (look - eye).Magnitude < 1e-3 then
+		return nil
+	end
+	return CFrame.lookAt(eye, look)
+end
+
+local function startBlend(from: CFrame, seconds: number)
+	blend = { from = from, time = 0, seconds = seconds }
+end
+
 -- A pose as an orbit round the point on the cloth it looks through: that point, the compass
 -- heading and downward pitch of the gaze, and the distance to the point. Blending two orbits
 -- swings the camera ROUND the table; blending the two CFrames directly would cut the chord
@@ -849,6 +916,12 @@ function Camera.update(
 			startSwing(smoothed or cam.CFrame, S.SideReturnSeconds)
 		end
 		sideAcross = nil
+		-- Out of the eyes the way it went in, a straight lerp.
+		if firstPerson then
+			startBlend(smoothed or cam.CFrame, S.FirstPerson.OutSeconds)
+			firstPerson = false
+			showBody()
+		end
 	end
 	wasPlaying = playing
 	if playing then
@@ -870,6 +943,7 @@ function Camera.update(
 	-- Where it pulls out to is Shot.PullOutView: "Side" swings round to the side view, "Aim"
 	-- zooms out to the whole table along the aim.
 	local side = S.PullOutView == "Side"
+	local eyes = S.PullOutView == "FirstPerson"
 	local zoomOverride: number? = nil
 	if playing and S.ZoomOut then
 		if pullOutStart == nil then
@@ -893,20 +967,26 @@ function Camera.update(
 					local from = smoothed or cam.CFrame
 					sideAcross = nearerSide(from)
 					startSwing(from, S.SidePullOutSeconds)
+				elseif eyes then
+					firstPerson = true
+					startBlend(smoothed or cam.CFrame, S.FirstPerson.InSeconds)
 				end
 			end
 		end
-		if pullOutStart and not side then
+		if pullOutStart and not side and not eyes then
 			local t = math.clamp((shotTime - pullOutStart) / math.max(S.PullOutSeconds, 1e-3), 0, 1)
 			local eased = t * t * (3 - 2 * t)
 			zoomOverride = zoom + (Config.Camera.View.ZoomMax - zoom) * eased
 		end
 	end
 	local gaze = if playing and S.FocusWeight > 0 then focus else nil
+	local eyesView = if firstPerson and not topDown then firstPersonView(moving) else nil
 	local target: CFrame
 	if topDown then
 		target = overheadView()
 		swing = nil -- calling a pocket for the 8 eases to the overhead view on its own
+	elseif eyesView then
+		target = eyesView
 	elseif sideAcross then
 		target = sideView(sideAcross)
 	else
@@ -930,6 +1010,15 @@ function Camera.update(
 	end
 	if target.Position.X == target.Position.X then -- never chase a NaN pose
 		local base = swung or (smoothed or cam.CFrame):Lerp(target, alpha)
+		local b = blend
+		if b then
+			b.time += dt
+			local t = math.clamp(b.time / math.max(b.seconds, 1e-3), 0, 1)
+			base = b.from:Lerp(target, t * t * (3 - 2 * t))
+			if t >= 1 then
+				blend = nil
+			end
+		end
 		if transitionFrom then
 			transitionTime += dt
 			local t = math.clamp(transitionTime / Config.Multiplayer.CameraTransitionSeconds, 0, 1)
@@ -960,6 +1049,7 @@ function Camera.snap(cueWorld: Vector3, angle: number)
 	local pose = (viewFor(anchor :: Vector3, anchorDir :: Vector3, nil))
 	smoothed = pose
 	swing = nil
+	blend = nil
 	shakeScale = 0
 	Workspace.CurrentCamera.CFrame = pose
 end
