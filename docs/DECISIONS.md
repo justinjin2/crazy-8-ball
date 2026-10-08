@@ -3258,3 +3258,8 @@ timer of a new block stay the designer's call.
   one Free Reward menu (merged with Rewards; Playtime A), Ranked A, Abilities A, the Mystery
   upgrade screen B, Settings A. Trade is not in the release: not built now. No animatics: each
   screen is shown at its Studio first look, with the Shop's open timings.
+- 2026-10-08 (Shop, the Blocks tab, built from the picks): the locked VIP restock slot shows
+  "VIP only" and one Get VIP button between its two button rows (the mock had a VIP slot
+  label). On a phone the words never go under 12 px, so stacked words (a slot's name and
+  stock, an offer's timer) move up to make room, and the Mystery block's climb note shortens
+  to "5 presses to climb" where the long one does not fit.

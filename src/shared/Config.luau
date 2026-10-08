@@ -8645,6 +8645,44 @@ Config.UI.Shop.Open = {
 		{ Ids = { "Counts" }, Kind = "Fade", At = 0.53, Length = 0.12 }, -- "1 block", "3 blocks", "10 blocks"
 		{ Ids = { "Money1", "Money3", "Money10" }, Kind = "Pop", At = 0.55 },
 		{ Ids = { "EndsIn" }, Kind = "Fade", At = 0.62, Length = 0.12 },
+		-- The Blocks group (ShopMystery, ShopRestock, ShopOffers; the designer's picks,
+		-- 2026-10-08), with the same rhythm. Opened on Featured they play below the first screen,
+		-- unseen; opened on Blocks (the restock banner's Shop button) or jumped to, they are what
+		-- shows (a jump squeezes them into Config.UI.Motion.TabSeconds).
+		{ Ids = { "BlocksHead" }, Kind = "Pop", At = 0.18 },
+		{ Ids = { "BlocksLines" }, Kind = "Grow", At = 0.22 },
+		{ Ids = { "MysteryPanel" }, Kind = "Grow", At = 0.20 },
+		{ Ids = { "MysteryTitle" }, Kind = "Pop", At = 0.24 },
+		{ Ids = { "MysteryBlock" }, Kind = "Slam", At = 0.26, Length = 0.16, Burst = "Purple" },
+		{ Ids = { "MysteryLadder", "MysteryX1", "MysteryX10" }, Kind = "Pop", At = 0.29 },
+		{
+			Ids = {
+				"MysteryRow1",
+				"MysteryRow2",
+				"MysteryRow3",
+				"MysteryRow4",
+				"MysteryRow5",
+				"MysteryRow6",
+			},
+			Kind = "Pop",
+			At = 0.33,
+		},
+		{ Ids = { "MysteryRobux1", "MysteryRobux10" }, Kind = "Pop", At = 0.42 }, -- with their gift squares
+		{ Ids = { "MysteryMoney1", "MysteryMoney10" }, Kind = "Pop", At = 0.47 },
+		{ Ids = { "MysteryClimb" }, Kind = "Fade", At = 0.5, Length = 0.12 },
+		{ Ids = { "MysteryRibbon" }, Kind = "Pop", At = 0.52 }, -- "13 for 10!" (only while it runs)
+		{ Ids = { "MysteryPity" }, Kind = "Fade", At = 0.55, Length = 0.12 },
+		{ Ids = { "RestockPanel" }, Kind = "Grow", At = 0.3 },
+		{ Ids = { "RestockTitle" }, Kind = "Pop", At = 0.34 },
+		{
+			Ids = { "RestockSlot1", "RestockSlot2", "RestockSlot3", "RestockSlot4" },
+			Kind = "Pop",
+			At = 0.38,
+			Stagger = 1.5,
+		},
+		{ Ids = { "RestockOdds" }, Kind = "Fade", At = 0.56, Length = 0.12 },
+		{ Ids = { "OfferStarter" }, Kind = "Pop", At = 0.44, Burst = "Pink" },
+		{ Ids = { "OfferVip" }, Kind = "Pop", At = 0.48, Burst = "Gold" },
 		{ Ids = { "Flair" }, Kind = "Drop", At = 0.66, Length = 0.25 }, -- the 8-ball lands on the frame
 	},
 	-- The optional flair, each a switch (all on in the approved animatic, gate 3):
@@ -8917,6 +8955,214 @@ Config.UI.GrandOpeningCard = {
 		OddsCardPx = 260, -- its width on screen
 		OddsRowPx = 24,
 		OddsTitlePx = 22,
+	},
+}
+
+-- The Shop's Blocks group under the Grand Opening card (the designer's picks on the mock page,
+-- 2026-10-08: Mystery A, Restock B, the Starter Pack and VIP A): ShopMystery, ShopRestock and
+-- ShopOffers, with ShopCards' shared parts and ShopOdds' pop-up. Every size is in the Grand
+-- Opening card's units (the page is 1275 wide) and scaled by its k, so the whole page reads as
+-- one; text never goes under Config.UI.GrandOpeningCard.Layout.MinTextPx. Each piece's place
+-- in its section is in that section's own units from its top-left. (tune)
+Config.UI.ShopBlocks = {
+	GapUnits = 34, -- between two sections (the next one's title pill straddles its top edge)
+	HeaderGapUnits = 10, -- between "- BLOCKS -" and the Mystery block's title pill
+	-- On a small screen the words keep the smallest text size (GrandOpeningCard.Layout
+	-- .MinTextPx) while the boxes shrink with the page, so stacked words and pills make room.
+	TextBoxPx = 8, -- a line's box: its words' size plus this (room for the ink outline)
+	TextGapPx = 2, -- the least room between two stacked lines (pixels)
+	PillPadPx = 2, -- the least room above and below a pill's words (pixels)
+	StrokeUnits = 3, -- a small pill's ink edge (the stock, the ribbon, the timers)
+	MinStrokePx = 2, -- no ink edge or rim thinner than this
+	MinEdgePx = 1.5, -- no box edge thinner than this
+	MinButtonPx = 24, -- no buy button shorter than this
+	MinGiftPx = 20, -- no gift square smaller than this
+	BadgePadPx = 12, -- the "i" badge is at least its letter's size plus this
+	BadgeTextShare = 0.7, -- the "i" (a share of the badge's size)
+	PopupMarginPx = 8, -- an odds pop-up keeps this far inside its panel
+	-- The pale panels the Mystery block and the restock sit on, and the white boxes in them.
+	Panel = {
+		Color = { 236, 246, 255 }, -- a very pale blue on the white sheet
+		Edge = { 176, 216, 250 }, -- Kit.PaleEdge
+		EdgeUnits = 4,
+		CornerUnits = 28,
+		Inner = { 255, 255, 255 }, -- the boxes inside: the ladder, the buy columns, the slots
+		InnerEdge = { 196, 226, 252 },
+		InnerEdgeUnits = 3,
+		InnerCornerUnits = 20,
+	},
+	-- The navy pill on a panel's top edge ("MYSTERY LUCKY BLOCK", "RESTOCK 6:12").
+	TitlePill = {
+		Color = { 22, 36, 96 },
+		Rim = { 255, 214, 92 }, -- a thin gold rim
+		RimUnits = 4,
+		HeightUnits = 64,
+		TextUnits = 36,
+		TextColor = { 255, 214, 10 }, -- Kit.Numbers.Money's yellow
+		PadUnits = 30, -- room each side of the words
+		IconUnits = 40, -- the restock's stopwatch
+		GapUnits = 10, -- between the word, the stopwatch and the time
+		TimeColor = { 255, 255, 255 },
+	},
+	-- A block picture's glow and rays (tinted by its rarity) and twinkles round it.
+	Art = {
+		GlowTransparency = { 0.18, 0.5 }, -- the glow's pulse, brightest and faintest
+		GlowSeconds = 2.4,
+		RaysTransparency = 0.55,
+		RaysTurnPerSecond = 9,
+		Twinkles = 3, -- sparkles round the picture
+		-- Where they sit (shares of the picture's size from its centre) and how big (a share).
+		TwinkleAt = { { -0.42, -0.36 }, { 0.44, -0.18 }, { -0.3, 0.42 } },
+		TwinkleShare = 0.26,
+		TwinkleEvery = 2.6, -- seconds between one sparkle's bursts
+		TwinkleStaggerSeconds = 0.43, -- each further sparkle's bursts this much further apart
+		TwinkleTint = { 255, 246, 214 },
+	},
+	OddsBadgeColor = { 82, 196, 255 }, -- the sky-blue "i" (Kit.Numbers.Count), as on the hero card
+	ButtonShineEvery = 3, -- a Robux button's shine (money buttons stay still)
+	ShineStaggerSeconds = 0.35, -- the next Robux button's shine starts this much later
+	ShineMinRate = 0.25, -- Lower effects never spaces the shines out more than 4x
+	CornerTagDegrees = -6, -- the "13 for 10!" ribbon's tilt
+	-- The Mystery Lucky Block (pick A): the block, its six tiers with their chances, x1 and x10.
+	Mystery = {
+		Units = { 1275, 494 }, -- the panel
+		Block = { 182, 226, 276 }, -- centre x, centre y, size
+		Glow = 410,
+		Rays = 480,
+		OddsBadge = { 286, 338, 50 }, -- centre x, centre y, size
+		GlowTint = { 196, 132, 255 }, -- the Mystery block's purple
+		Ladder = { 344, 44, 452, 374 }, -- left, top, width, height
+		RowTop = 18, -- the first row's top inside the ladder
+		RowUnits = 50, -- a row's step
+		RowHeightUnits = 44,
+		RowInsetUnits = 12, -- the row strips' inset from the ladder's sides
+		RowCornerUnits = 14,
+		RowColor = { 242, 248, 255 },
+		IconUnits = 40,
+		RowIconLeftUnits = 8, -- a row's tier icon from the strip's left
+		RowNameGapUnits = 8, -- between the icon and the tier's name
+		NameUnits = 27,
+		PercentUnits = 27,
+		ValueUnits = 110, -- the percent column, at the strip's right
+		ValueRightUnits = 12, -- its room from the strip's right
+		NoteY = 350, -- "Starts Standard · 5 presses to climb", inside the ladder
+		NoteUnits = 21,
+		NoteSideUnits = 10, -- its room each side (too narrow: the short words, Strings ClimbShort)
+		Columns = { { 812, 44, 218, 374 }, { 1044, 44, 218, 374 } }, -- x1 and x10: left, top, w, h
+		CountY = 72, -- "x1" / "x10"
+		CountUnits = 58,
+		CountSideUnits = 10, -- its room each side in the column
+		RibbonY = 134,
+		RibbonUnits = { 186, 40 },
+		RibbonTextUnits = 24,
+		GreenY = 236, -- the Robux row's centre
+		GreenUnits = 70,
+		GoldY = 320, -- the money row's centre
+		GoldUnits = 64,
+		ButtonInsetUnits = 10, -- the buttons' inset from the column's sides
+		GiftUnits = 58,
+		GiftGapUnits = 8,
+		GreenTextUnits = 40,
+		GoldTextUnits = 34,
+		CashIconShare = 1.05, -- the money buttons' cash bundle (of the button's height)
+		Pity = { 196, 454, 884, 46 }, -- the guarantee strip under the boxes: left, centre y, width, height
+		PityIconUnits = 42,
+		PityIconLeftUnits = 14, -- the Epic icon from the strip's left
+		PityTextUnits = 27,
+		PityTextGapUnits = 10, -- between the icon and the words
+		PityBar = { 470, 22 }, -- the bar at the strip's right end: width, height
+		PityBarGapUnits = 18, -- between the words and the bar
+		PityBarRightUnits = 18, -- the bar's room from the strip's right
+		MinPityBarPx = 8, -- the bar is never thinner than this
+		PityTrackEdgeUnits = 2.5, -- the bar's ink edge
+		PityFill = { 162, 89, 255 }, -- Epic's purple
+		PityTrack = { 222, 228, 240 },
+	},
+	-- The restock (pick B): three slots and the VIP slot, big blocks, odds behind each "i".
+	Restock = {
+		Units = { 1275, 522 }, -- the panel
+		SlotTop = 50,
+		SlotUnits = { 297, 426 }, -- a slot card
+		SlotGapUnits = 14,
+		SlotSideUnits = 22, -- the first slot's inset from the panel's side
+		Block = { 148, 120, 172 }, -- in a slot: centre x, centre y, size
+		Glow = 262,
+		Rays = 300,
+		OddsBadge = { 262, 36, 44 },
+		Crown = { 148, 30, 58 }, -- the VIP slot's crown over its block
+		CrownRock = { 6, 2.4 }, -- it rocks this many degrees each way, over this many seconds
+		NameY = 228,
+		NameUnits = 25,
+		NameSideUnits = 8, -- the name's room each side in its slot
+		StockY = 264,
+		StockUnits = { 150, 32 },
+		StockTextUnits = 20,
+		StockColor = { 38, 50, 84 }, -- "x2 left": the calm ink blue of the copies-left pill
+		VipOnlyColor = { 214, 150, 0 },
+		GreenY = 318, -- the Robux row's centre
+		GreenUnits = 62,
+		GoldY = 386, -- the money row's centre (a gap under the Robux row)
+		GoldUnits = 56,
+		ButtonInsetUnits = 16,
+		GreenTextUnits = 34,
+		GoldTextUnits = 30,
+		VipFill = { 255, 248, 224 }, -- the VIP slot's card
+		VipEdge = { 242, 178, 0 },
+		OddsY = 498, -- "Each slot: Rare 87% ..."
+		OddsUnits = 21,
+		OddsSideUnits = 30, -- its room each side in the panel
+	},
+	-- The Starter Pack and VIP (pick A), side by side under the restock while the Starter Pack
+	-- or VIP's half-price offer is on; one alone sits in the middle; neither: no section.
+	Offers = {
+		CardUnits = { 620, 652 },
+		GapUnits = 35,
+		CornerUnits = 30,
+		EdgeUnits = 5,
+		TitleY = 62,
+		TitleUnits = 54,
+		TitleSideUnits = 60, -- the title's room each side
+		Art = { 310, 200, 220 }, -- centre x, centre y, size
+		Glow = 330,
+		Rays = 400,
+		RowLeft = 34, -- the content rows' left edge (they run to the card's width minus this)
+		RowIconUnits = 36,
+		RowCornerUnits = 18,
+		RowIconLeftUnits = 10, -- a row's icon from the strip's left
+		RowWordsGapUnits = 10, -- between the icon and the words
+		RowWordsRightUnits = 16, -- the words' room from the strip's right
+		RowTextUnits = 24,
+		StarterRows = { 340, 390, 440, 490 }, -- each row's centre
+		StarterRowUnits = 44,
+		VipRows = { 324, 362, 400, 438, 476, 514 },
+		VipRowUnits = 34,
+		TimerY = 552, -- "Ends in 6d 23h" (over the buy row, with a small gap)
+		TimerUnits = { 250, 38 },
+		TimerTextUnits = 23,
+		BuyY = 612,
+		BuyUnits = 64,
+		BuyTextUnits = 42,
+		GiftUnits = 60,
+		GiftGapUnits = 8,
+		Starter = {
+			Top = { 255, 92, 104 }, -- its red, top to bottom
+			Bottom = { 196, 26, 58 },
+			Edge = { 92, 8, 28 },
+			Row = { 255, 255, 255 }, -- the rows: white, mostly see-through
+			RowTransparency = 0.78,
+			TimerColor = { 120, 10, 34 },
+		},
+		Vip = {
+			Top = { 255, 222, 92 },
+			Bottom = { 236, 152, 0 },
+			Edge = { 120, 70, 0 },
+			Row = { 255, 255, 255 },
+			RowTransparency = 0.72,
+			TimerColor = { 140, 70, 0 },
+			CrownUnits = 54, -- the crowns either side of "VIP"
+			CrownGapShare = 0.65, -- a crown's centre this share of its size past the title's end
+			CrownRaiseUnits = 4, -- the crowns sit this much over the title's middle
+		},
 	},
 }
 

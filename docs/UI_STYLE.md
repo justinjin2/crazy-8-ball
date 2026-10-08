@@ -691,7 +691,7 @@ frame, background and the four jump buttons (Featured, Blocks, Money, Passes, wi
 badges); the page, card, block card, odds, need, gift and thank-you modules were deleted. The
 server shop is unchanged (products, receipts, restock, gifting, VIP, Money Party, the Starter
 Pack, the Mystery and Grand Opening deals). The designs below are the reference for the
-rebuild, not a description of the current screen.
+rebuild, not a description of the current screen. The Blocks tab is rebuilt (section 18).
 
 **Decided**
 - **Four jump buttons** down the right: Featured, Blocks, Money, Passes (outside the panel on
@@ -812,3 +812,46 @@ One card for every cue: the Cues grid, the Index, the lucky block spin and YOU G
   the chosen card a blue ring.
 - Only cards in view move (one loop each); Lower effects shows fewer sparkles, embers and
   stars and slows the shines; Reduce Motion stills everything but the glows.
+
+## 18. The Shop's Blocks tab (designer's picks, 2026-10-08)
+
+Built with the `lively-gui` skill from the designer's picks on the mock page: Mystery A,
+Restock B, the Starter Pack and VIP A under the restock (`ShopMystery`, `ShopRestock`,
+`ShopOffers`, their shared parts `ShopCards`, the odds pop-up `ShopOdds`). Everything is in the
+Grand Opening card's units and scaled by its k, so the page reads as one; sizes in
+`Config.UI.ShopBlocks`, words in `Strings.Menus.Shop.Blocks`. It replaces section 15's Mystery
+band, restock tiles and pass bands.
+
+- **Each section** sits on a pale blue panel, its navy title pill (gold words, a thin gold
+  rim) across the panel's top edge; white boxes inside.
+- **The Mystery block (A)**: the rainbow block with a purple glow, turning rays and twinkles
+  (the picture stays still) and the sky-blue "i" at its corner; the six tiers (the tier's
+  block, its name in its colour, the chance in sky blue) and "Starts Standard · 5 presses to
+  climb"; x1 and x10 columns: the count in gold, the purple gift square and the green Robux
+  button, the gold money button under; the red "13 for 10!" ribbon, tilted and shaking, on x10
+  while the launch bonus runs; the Epic guarantee strip under everything ("Epic guaranteed in
+  53" and a purple bar).
+- **The restock (B)**: "RESTOCK", a stopwatch and the time in its pill; four slot cards, each
+  the block big in its rarity's glow with an "i" at the top right, "**Rare** Lucky Block", a
+  navy "x2 left" pill, the green Robux button over the gold money button (no gift square:
+  restock items cannot be gifted). The 4th is the VIP slot: cream with a gold edge, a crown
+  rocking over its block; without VIP it says "VIP only" in gold and shows one Get VIP button
+  between the two button rows. "Each slot: Rare 87% · Epic 12% · ..." under the slots.
+- **The Starter Pack and VIP (A)**: two tall cards under the restock while the Starter Pack is
+  open or VIP's half-price offer runs (VIP's only for a player without it); one alone sits in
+  the middle. The red Starter card: its title, the gift box with the cue, four lines (Starter
+  Cue; Starter Lucky Block · Rare or better; $25,000; 1 hour of 2x money), "Ends in 1d 15h",
+  the gift square and the green button. The gold VIP card: crowns either side of "VIP", the
+  crown, six ticked perks, the green button (the full price struck through in red during the
+  offer).
+- **Odds open only from an "i"**: hover, or a click, tap or A (it stays until B, a tap away or
+  another press); one pop-up on the page at a time; every outcome, adding up to 100%.
+- **Only Robux buttons shine** (every 3 s, each a little after the last); money buttons stay
+  still.
+- **The jump buttons** scroll the page smoothly (0.33 s) to Featured or Blocks, and the lit
+  button follows the scroll.
+- **On a phone** the same arrangement scales to fit the page. Words stay at 12 px or more, so
+  stacked words move up to make room (`ShopCards.above`) and the climb note shortens to "5
+  presses to climb".
+
+**Open**: the Money (B) and Passes (B) pages; a real phone and a real controller.

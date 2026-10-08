@@ -731,6 +731,45 @@ return {
 			},
 			MoreBelow = "More deals coming soon!", -- the white sheet below the Grand Opening card
 			BlocksHeader = "BLOCKS", -- the next section's header under the card ("- BLOCKS -")
+			-- The Blocks group's cards (ShopMystery, ShopRestock, ShopOffers; the designer's picks,
+			-- 2026-10-08). Numbers come from Config and the server's shop state.
+			Blocks = {
+				MysteryTitle = "MYSTERY LUCKY BLOCK",
+				Climb = "Starts Standard · %d presses to climb", -- under its six tiers
+				ClimbShort = "%d presses to climb", -- the same where the long one does not fit
+				Count = "x%d", -- over a buy column: "x1", "x10"
+				Bonus = "%d for %d!", -- the launch bonus ribbon: "13 for 10!"
+				Pity = "%s guaranteed in %d", -- "Epic guaranteed in 87" (the tier's name)
+				PityNext = "Your next one is %s!", -- the guarantee is the very next block
+				RestockTitle = "RESTOCK",
+				-- Under the slots: each kind's chance in a slot, each name in its colour.
+				SlotOdds = "Each slot: %s",
+				OddsPart = "%s %s", -- a kind and its chance: "Rare 87%"
+				OddsJoin = " · ",
+				Left = "x%d left", -- a restock slot's stock: "x2 left"
+				SoldOut = "Sold out",
+				VipOnly = "VIP only",
+				GetVip = "Get VIP", -- the VIP slot's button for a player without VIP
+				VipSlot = "VIP slot",
+				Bought = "Your %s is in your hotbar!", -- a restock block bought with money
+				StarterTitle = "STARTER PACK",
+				StarterCue = "Starter Cue",
+				StarterBlock = "Starter Lucky Block · Rare or better",
+				StarterBoost = "1 hour of 2x money",
+				VipTitle = "VIP",
+				-- VIP's perks, top to bottom (Config.Economy.VipBoost, Config.Daily.VipBlocks and
+				-- VipSpins, the restock's VIP slot, Config.Shop.VipCue).
+				VipPerks = {
+					"2x money",
+					"No lucky block timers",
+					"A Rare Lucky Block every day",
+					"+1 Ability Spin a day",
+					"The VIP restock slot",
+					"The VIP Cue and tag",
+				},
+				VipPerkRestricted = "$5,000 every day", -- the daily block where it can't be given
+				EndsIn = "Ends in %s",
+			},
 			-- The Gift Player popup (the purple gift square beside a Robux button).
 			GiftTitle = "Gift Player",
 			GiftButton = "Gift",

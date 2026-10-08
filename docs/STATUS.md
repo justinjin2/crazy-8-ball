@@ -12,7 +12,7 @@ Updated 2026-10-08.
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
 - **Lint and tests (2026-10-08, branch `gui-v4`):** lint OK with three old LocalShadow
-  warnings (PadGuide, MatchHUD, Main.client); all 1059 Lune tests pass.
+  warnings (PadGuide, MatchHUD, Main.client); all 1060 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; economy v4; saves at version 10;
@@ -55,15 +55,17 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Mystery screen, rewards, timers, the skip); set every random-item product to Not Listed in
   the Creator Hub; the GUI screens of the plan's hand-off (`docs/prompts/ECONOMY_V4_PLAN.md`
   section 18); Lucky Shot, Golden Shot, Lucky Rain and the stay bonus are planned only.
-- **The GUI hand-off after economy v4** (2026-10-08, branch `gui-v4` from `shop-lively`): 33
-  target mocks, 2 or 3 versions a screen, wait for the designer's picks on the private page
-  https://claude.ai/artifact/Q79pcvwxeos8AB7o8357Lw (picks save there; prompts and pictures in
-  `~/Desktop/8ball-refs/gui-mocks-v4`). Done and checked in Studio: Abilities films the real
-  character; Lucky Spins retired (save v10); Ranked's reward tiles one size; Claim All's server
-  side (no screen yet). At publish: `tools/roblox_products.py --sync` (Lucky1 and Lucky3 off
-  sale); Claim All's six products are made when the Daily screen ships. Next, after the picks:
-  the Shop's Blocks, Money and Passes pages; the HUD win track and restock banner; Daily with
-  Claim All; Ranked's frame; Abilities' frames; the Mystery screen; Trade and Settings.
+- **The GUI hand-off after economy v4** (2026-10-08, branch `gui-v4` from `shop-lively`): the
+  designer's picks are in on the private page https://claude.ai/artifact/Q79pcvwxeos8AB7o8357Lw
+  (prompts and pictures in `~/Desktop/8ball-refs/gui-mocks-v4`). Done and checked in Studio:
+  Abilities films the real character; Lucky Spins retired (save v10); Ranked's reward tiles one
+  size; Claim All's server side; the restock banner; bigger money packs and the Starter Pack
+  at 29 R$ with its cue; the Shop's Blocks tab (Mystery A, Restock B, Starter Pack and VIP A;
+  PC and a phone-sized layout). At publish: `tools/roblox_products.py --sync` (the Starter Pack
+  at 29, the pack texts, Lucky1 and Lucky3 off sale); Claim All's six products are made when the
+  Daily screen ships. Next: Money B, Passes B, the HUD win track A, Daily A in one Free Reward
+  menu, Ranked A, Abilities A, the Mystery screen B, Settings A. Trade is not built (not in the
+  release).
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in
   `gui-v4`): the new cue card, the Cues menu, the CUES icon, the smooth money chip, the reel and
   YOU GOT, checked in Studio. Still open: the see-through reel trial's verdict, a phone and a
