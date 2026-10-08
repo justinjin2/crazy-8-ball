@@ -124,6 +124,11 @@ Updated 2026-10-08.
 
 ## Open, waiting on the designer
 
+- **The GUI redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`): one screen at a time,
+  each from an approved concept. The cue card's concept waits on the designer
+  (https://claude.ai/artifact/FLwcXzUbGm4ji4V6YgDsV2); then Cues (the Inventory renamed), the
+  lucky block spin and YOU GOT, Free Reward (a Lucky 8 Block for the favorite), Abilities and
+  Ranked ideas. The Abilities screen and the Ranked roadmap show again (they opened blank).
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),

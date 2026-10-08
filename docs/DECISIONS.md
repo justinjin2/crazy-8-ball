@@ -3025,3 +3025,15 @@ timer of a new block stay the designer's call.
   the same for every mode. Blue with room, green with someone on, gold when full or playing.
   Glowing outlines rise from its rim and fade as they climb, with sparkles; the arrow sits a
   little lower with JOIN under it, bobbing with it (`Config.Multiplayer.QueueVisual.Portal`).
+- 2026-10-08: A GUI redo, one screen at a time, each from an approved concept before it is
+  built (designer): the cue card first, then the Cues menu, the lucky block spin and YOU GOT,
+  Free Reward, then upgrade ideas for Abilities and Ranked (`docs/prompts/CUES_LIVELY_PROMPT.md`).
+  The Inventory becomes **Cues** (a cue icon, no tab row); the Index moves to a book button
+  inside it, beside Sort. The ten rank cues become one rarity, **Ranked**, each card in its
+  tier's colours. The rarity's name goes inside each card's rarity bar.
+- 2026-10-08: Favoriting the game gives $10,000 and a **Lucky 8 Block** (was a Mystery block),
+  shown with its icon on the Free Reward card (designer); the group reward stays 3 Mystery
+  blocks. Roblox cannot check a like, so only the favorite is rewarded.
+- 2026-10-08: The Abilities screen and the Ranked roadmap opened blank: the one-thing-at-a-time
+  focus hid their own ScreenGuis. Fixed to show exactly as before (designer: "add back the
+  ability gui and rank gui").
