@@ -48,9 +48,12 @@ designer approves or notes -> build -> Studio check (phone, PC size, gamepad by 
   cues keep numbering every copy; Ranked, VIP, Starter, Classic plain); Sell all never sells a
   numbered copy; a sold number is gone for good; "N exist" on the big card for every cue.
   Reopened the same day by the designer (100 or 500 instead? piles of numbered Commons?); my
-  proposal, waiting for the designer's OK: only the **first 100 of every Rare, Epic,
+  proposal, **approved** (designer: "ok"): only the **first 100 of every Rare, Epic,
   Legendary, Mythic and Secret cue**, Commons and Uncommons never numbered, and each numbered
   copy is **its own card** before that cue's plain stack.
+- 2026-10-08: Concept 2 approved at round 2 (designer: "ok"): the My Cues / Index switch, 5 per
+  row, the Index's flat swaying picture, the copy number above the name, card words at the
+  card's scale on a phone. The icon (1 to 4) is picked in the build's plan.
 
 ## Concept 1: the card (round 1, waiting)
 
@@ -82,7 +85,7 @@ show the 8 ball detail"): the flat silhouettes are replaced by a new tile of rea
 with its white disc and a clear 8, bigger on the card (`tools/gui/card_balls.py`, now `card_art.py`,
 `assets/ui/cards/`), in two looks to pick from: tinted to the card's colour, or classic black.
 
-## Concept 2: the Cues menu (round 2, waiting)
+## Concept 2: the Cues menu (approved round 2)
 
 https://claude.ai/artifact/AAsZhs9Dqn1xJkT9gzQ1Xv (sources in
 `~/Desktop/8ball-refs/gui-lively/work/cues-menu-A/`). The Inventory renamed Cues in the Shop's
@@ -131,7 +134,7 @@ Round 2 (2026-10-08), from the designer's notes on round 1:
   **Reopened the same day** (designer: "maybe instead of 1000 maybe just 100 ... what if someone
   who plays rolls like multiple first number serial copies ... are they separate cues from the
   actual, even for common? ... you should research and decide for me a proposal"). **My
-  proposal (round 2b of the page, waiting for the OK):** number only the first 100 copies of
+  proposal (round 2b of the page), approved 2026-10-08 (designer: "ok"):** number only the first 100 copies of
   every Rare, Epic, Legendary, Mythic and Secret cue (#1 to #100; 30 cues, 3,000 numbered
   copies in all, 30 of them a #1); Commons and Uncommons never; Unique cues unchanged. A
   numbered copy is the same cue but its own card (never stacks), its gold number above the
@@ -147,7 +150,8 @@ Round 2 (2026-10-08), from the designer's notes on round 1:
   rests on scarcity. Also found: two players can end up with the same Unique number when one
   trades it away and unboxes that cue again (`Counts.takeNext` remembers the first owner);
   fixed with this work.
-Questions asked: which icon (1 to 4); does the switch feel clear.
+Questions asked: which icon (1 to 4); does the switch feel clear. Answer: "ok" (round 2
+approved; the icon is asked in the build's plan).
 
 ## Progress
 
@@ -158,10 +162,10 @@ Questions asked: which icon (1 to 4); does the switch feel clear.
   Checked in Studio on every look (`GuiQA "cueCards"`), the real Cues grid and the Index's
   Ranked row, Lower effects and Reduce Motion. Waiting: the designer's look on a phone, a PC
   size and a gamepad. The reel's cards come with concept 3.
-- [ ] Concept 2 (Cues menu) approved, then built. Round 1 shown 2026-10-08; round 2 shown
-  2026-10-08 (the switch, four icons, 5 per row, copy numbers above the name, phone text).
-- [ ] Copy numbers: the proposal (first 100 of every Rare-or-rarer cue, each its own card) shown
-  2026-10-08 on the concept page; on the OK, a plan after the Cues menu is built.
+- [x] Concept 2 (Cues menu) approved (round 2, 2026-10-08).
+- [ ] The Cues menu built.
+- [ ] Copy numbers (approved 2026-10-08: first 100 of every Rare-or-rarer cue, each its own card):
+  planned and built after the Cues menu.
 - [ ] Concept 3 (spin and YOU GOT) approved, then built.
 - [ ] Concept 4 (Free Reward) approved, then built.
 - [ ] Concept 5 (Abilities ideas) shown; built if approved.

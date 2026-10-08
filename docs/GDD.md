@@ -1111,8 +1111,8 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 
 ## 18. Parked ideas (not scheduled)
 
-- **Copy numbers on early cues** (asked 2026-10-08, planned after the Cues menu; proposal
-  waiting for the designer's OK): the first 100 copies of every Rare, Epic, Legendary, Mythic
+- **Copy numbers on early cues** (asked and approved 2026-10-08, planned after the Cues
+  menu): the first 100 copies of every Rare, Epic, Legendary, Mythic
   and Secret cue are numbered #1 to #100 from the public release; Commons and Uncommons never
   (an earlier answer the same day was the first 1,000 of every block cue). Unique cues keep
   numbering every copy; Ranked, VIP, Starter and Classic stay plain. A numbered copy is its own

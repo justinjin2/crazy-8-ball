@@ -3076,3 +3076,8 @@ timer of a new block stay the designer's call.
   never; each numbered copy is its own card just before that cue's plain stack. The economy
   model at the planned launch size puts the end of each cue's first 100 at day 1 for Rare,
   about day 13 Epic, 29 Legendary, 49 Mythic and 3 months Secret.
+- 2026-10-08: Approved (designer: "ok"): copy numbers on the first 100 copies of every Rare,
+  Epic, Legendary, Mythic and Secret cue, never on Commons or Uncommons, each numbered copy its
+  own card just before that cue's plain stack; and concept 2, the Cues menu, at round 2 (the
+  My Cues / Index switch, 5 per row, the Index's flat swaying picture, the copy number above
+  the name, card words at the card's scale on a phone). The CUES icon is picked next.
