@@ -12,7 +12,7 @@ Updated 2026-10-08.
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
 - **Lint and tests (2026-10-08):** lint OK with three old LocalShadow warnings (PadGuide,
-  MatchHUD, Main.client); all 1043 Lune tests pass.
+  MatchHUD, Main.client); all 1045 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; saves at version 7;
@@ -23,118 +23,40 @@ Updated 2026-10-08.
 
 ## Being tried right now (the designer's look, nothing final)
 
-- **The UI font.** Fredoka One stays the kit font. `Config.UI.FontTest` tries a font on one
-  screen or all of them; the left column's words have their own `Config.UI.Menu.LabelFont`.
-  Every outlined text has a thick ink lip under its letters, and from a 2 px outline up
-  (text from 20 px) solid ink holes (`HoleFill`, `Config.UI.Kit.HoleFill`).
-- **Blur instead of dims** (2026-10-06): menus, the roadmap, the lucky block reel, the match
-  results and NEW RANK! blur the world (`ScreenBlur`, `Config.UI.Blur`); the reel waits 0.15 s
-  for the blur. NEW RANK! also darkens. Seen in Studio on the menus, the reel and NEW RANK!.
-- **NEW RANK! waits** (2026-10-07): never over the results, in a game, a rematch or an arena;
-  once free in a lobby server, one popup per division from the save's `Flags.RankShown` up to
-  the peak, in order (`Progression.showRankUps`, the `RankSeen` remote). On the result screen
-  the XP bar holds full yellow saying NEW RANK! for 1 s at each rank reached. Checked in Studio
-  (a /bot game, /xp mid-game, Leave, two popups in turn; the bar on /result win). Not yet: a
-  real arena trip back to a lobby, phone and gamepad.
-- **The 1v1 result cutscene** (2026-10-07): letterbox bars slide in with the fade to black,
-  it fades back in on the sky and the camera tilts down into the player's own camera (only
-  its pitch turns, smootherstep), and the centred result screen opens partway down as the
-  bars slide out. The result screen never closes by
-  itself (Continue, A or B); when the rematch row's time runs out, Continue takes its place.
-  A win plays to the old Rare reveal sting: the Total pops on its first hit, the block chip
-  and Continue on its second; every money line reads "+$". It plays after a leave or a
-  surrender too (both sides). `/result win|lose` plays it all. Not yet seen in a real 1v1
-  (the rematch row's swap to Continue especially).
-- **The result screen's 8-balls move** (2026-10-07): the rewards card's faint 8-balls scroll
-  up-left like the Shop's header; the layout is unchanged. DEFEAT in red over the losing side
-  like WINNER (the 8-ball rule's reason under it). Seen in Studio on /result win, lose and
-  lose early.
-- **Cue outlines and the "pop" aura.** Every cue has a theme-coloured outline (a moving
-  gradient from Legendary up). The deeper aura is on test on Frostbite, Candy, Flare, Plasma,
-  Gummy and Magma (`Config.CueSkins.Pop.Ids`).
-- **New cue card pictures** (2026-10-07): all 61 show their aura and in-game outline, thicker
-  and with more contrast (`assets/cue/Readme.md`). Uploaded and in the data; not yet seen in a
-  Studio playtest (Studio was busy with the lucky block work).
-- **Ball callouts** (2026-10-06): your own group pulses bright green with YOU ARE SOLIDS /
-  STRIPES, and a team's last ball pulses green once per game as a warning; 4 pulses of 2 s
-  each (`Config.Multiplayer.Style.BallPulse`). Seen in Studio from the QA hook; not yet in a real
-  game played out by hand.
-- **No fat-fingered shots on a phone** (2026-10-06): a dead zone at the top of the pull, a
-  click-in bump, sideways drags and very short presses never shoot (`Config.Input.TouchPull`).
-  Checked in the Studio phone emulator (wobble, sideways, a soft 8% shot); the 0.15 s rule and
-  the feel need a real phone.
-- **Quick fixes (2026-10-06):** the phone's power bar stays inside the safe area; any raised
-  cue (chosen or lifted over a rail) has every effect off; 1v1 tables are blue cloth
-  (`BlueWood`, lives in the place: save and publish); no money "+" during a game.
-- **The player list like Roblox's** (2026-10-07): top-right corner in the top bar row, the
-  Shop's lively header, badge + name, Wins, Money, no tabs, each person in a box; folded at
-  first (remembers being left open), **not shown on a phone for now**. On a phone the rank HUD
-  and the gear sit in line with Roblox's buttons; on a computer or tablet the HUD is bigger and
-  its badge bigger still. The red "!" stays on screen.
-  A phone's lucky block hotbar shows only slots 1-3 (the rest in the bag). Seen in the Studio
-  phone and iPad emulators; a PC size not yet looked at.
-- **The matchmaking bar** (2026-10-07, look A, lively-gui small piece; gate D approved, gate E
-  waits on the designer's PC-size and controller check): one slim bar above the hotbar
-  replaces the pad card. "<name> needs an opponent!" is sent on step-on with no friend in the
-  server; Play Global after 3 s (5 s with a friend), with an X to dismiss it until the next
-  step-on; searching shows the time and a red X; a 1v1 meets a bot at 5 s. The **spawn pill**
-  gives Play Global on spawn to a player alone in a public server (not private, not in the
-  tutorial; gone after 20 s, on its X, on a pad or when someone joins) and searches with no
-  pad (`SoloSearch`). Lobby tables play Classic; solo, vs PC and Fill with PC are off the pad.
-  Checked in the phone emulator (GuiQA "matchbar"): every state, the auto-request cooldown,
-  both searches to the bot, both Xs, a pad cancelling a spawn search, the tutorial games.
-  Not yet: a PC size, a real gamepad, a real friend or second player, a live private server.
-  Parked by the designer (2026-10-07) to come back to; open questions: is the spawn pill's
-  20 s right, is Play Global's X big enough on a phone.
-- **The queue portal** (2026-10-08): every pad is as long as its table and just off its rail,
-  blue with room and green with someone on; glowing outlines rise off its rim and fade, with
-  sparkles; the arrow is lower with JOIN bobbing under it. Seen in Studio on a PC-size screen
-  (empty, stepped on); not yet on a phone, a gamepad or during a real game on the pad side.
-- **Lighting.** Day 10 min, sunset 5 min, a 10 s fade; no night and no sun disc. The sunset
-  was softened and made less yellow on 2026-10-05.
-- **Pull cutscenes.** Rare, Epic and Legendary are redone ("good for now"); Mythic and Secret
-  still wait for their redo (DECISIONS.md 2026-10-05 has the notes for them).
+One line each; the long form is the 2026-10-08 entry at the top of
+`docs/archive/STATUS_HISTORY.md`. Each still needs the designer on a real phone, PC and controller.
 
-- **Our own lucky blocks** (2026-10-07, roadmap "Lucky block look"): **all 12 kinds are our
-  own models in the game**, built in headless Blender (`assets/luckyblocks/Readme.md`, "Our own
-  blocks"), with wings that flap (LuckyWingIdle) and our own particles per kind. The hotbar,
-  bag and every BlockIcon (rewards, trades, the roadmap) show each kind's **2D icon** (the
-  approved concept art, `Config.LuckyBlocks.Kinds[k].Icon`); seen in the hotbar only so far. The pack's **pulsing glow stays off until a block's timer
-  is done** (floor and hands). Checked in Studio: every kind held, thrown, landed, idling;
-  the icons in the hotbar; the pulse off on a waiting Mythic, on for a ready Standard.
-- **The Gift drop** (2026-10-07): the first leave owes a Gift (12 h from the leave,
-  `GiftDropService`); on the next lobby visit it falls from the sky in a cutscene (bars, a gold
-  trail, a crash with a flash, shake, shockwave, dust and confetti) and waits to be picked up.
-  `/giftdrop` replays it. Checked in Studio: the drop on a real rejoin and from `/giftdrop`, the
-  pick up (the Gift first in the hotbar, its timer from the leave); not yet on a phone or gamepad.
-  A test Gift is waiting in the designer's Studio save, so the next Play shows the cutscene.
-- **The Mystery block's upgrade screen** (2026-10-07, like Star Drop; `MysteryReveal`,
-  `Config.LuckyBlocks.Reveal`, odds `Config.BlockOdds.Drop.Upgrade`): OPEN! on its slot, the
-  jump out, 4 presses (bounce, then a flash, shake and burst on an upgrade), dots, "Tap to
-  collect", the jump back into its slot as the tier's block. Final odds and pity unchanged.
-  New block timers the same day (Uncommon 1 min to Mythic 12 h; Mystery none). Checked in
-  Studio: the real server reveal from a click on the slot, every tier's look (GuiQA
-  `mystery "Rare,Epic,Legendary,Mythic"`), the landing on the slot, A / Space / RB then R2,
-  Reduce Motion; the smooth shake and faster bounce (measured), the bag like Roblox's backpack
-  (a click equips with the bag open, a throw from it; a Mystery block opens), ` opening the bag. Not yet: a phone and a real controller by hand,
-  the designer's look at full frame rate.
-- **The pull bar's cue** (2026-10-07): the redrawn cue pictures are longer, so the cue poked out
-  over the bar's top; it is drawn a little shorter now (`Config.UI.PowerCueArtLength` 1.24).
-  Not yet seen in a match.
+- **The UI font**: Fredoka One stays (`Config.UI.FontTest`, `Config.UI.Menu.LabelFont`).
+- **Blur instead of dims** (`ScreenBlur`, `Config.UI.Blur`).
+- **NEW RANK! waits** for a free lobby, one popup per division; not yet a real arena trip back.
+- **The 1v1 result cutscene** and the result screen's moving 8-balls; not yet in a real 1v1.
+- **Cue outlines and the "pop" aura** (on test on six cues, `Config.CueSkins.Pop.Ids`).
+- **New cue card pictures** (2026-10-07): uploaded, not yet seen in a playtest.
+- **Ball callouts** (YOU ARE SOLIDS / STRIPES, the last-ball pulse): not yet in a real game.
+- **No fat-fingered shots on a phone** (`Config.Input.TouchPull`): needs a real phone.
+- **The player list like Roblox's**: hidden on a phone for now; a PC size not yet looked at.
+- **The matchmaking bar and spawn pill**: parked by the designer (2026-10-07); open: the spawn
+  pill's 20 s, Play Global's X on a phone.
+- **The queue portal**: not yet on a phone, a gamepad or during a real game.
+- **Lighting**: day 10 min, sunset 5 min, no night. **Pull cutscenes**: Mythic and Secret wait
+  for their redo.
+- **Our own lucky blocks** (all 12 kinds, 2D icons), **the Gift drop** (`/giftdrop`; a test
+  Gift waits in the designer's Studio save) and **the Mystery block's upgrade screen**: not yet
+  on a phone, a controller or at full frame rate.
+- **The pull bar's cue**, drawn shorter: not yet seen in a match.
 
 ## Open, waiting on the designer
 
 - **The GUI redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, branch `shop-lively`):
-  one screen at a time, each from an approved concept. **The new cue card is built** (the rank
-  cues are now the Ranked rarity). **The Cues menu is built** (concept 2: the Inventory renamed,
-  the lively frame, the My Cues / Index switch with Sort and Sell all outside the right edge,
-  5 cards a row, the big card, the Index's swaying picture): checked in Studio at a PC size
-  (the open at 60 fps, Sort, switch spam, Reduce Motion, stand-in copy numbers with
-  `GuiQA "cuesCopies"`); the designer still to look on a phone and a gamepad. Waiting on the
-  designer: concept 2b (the CUES icon striking a ball: cue A or B; the numbered card's mark A
-  or B; the gold nameplate engraving), then the copy numbers' own plan. After that the lucky
-  block spin and YOU GOT, Free Reward, Abilities and Ranked ideas. The Abilities screen and the
-  Ranked roadmap show again (they opened blank).
+  one screen at a time, each from an approved concept. Built: the new cue card (the rank cues
+  are the Ranked rarity), the Cues menu (concept 2) and the CUES icon (concept 2b round 5: the
+  Classic Cue striking a ball on hover and press; the header and switch icon too). The
+  designer's ten notes on the built menu are done (even rail, Rarest first on open, the Index's
+  still card, locked never-found cards, the dots, Equip clear of the card, calmer clicks, the
+  money counting as it lands, the "boop" click). Checked in Studio at 1365 x 768. Waiting on
+  the designer: a look at the laptop size, then a phone and a gamepad; the numbered card's mark
+  A or B; then the copy numbers' own plan (the engraving near the butt end only). After that
+  the lucky block spin and YOU GOT, Free Reward, Abilities and Ranked ideas.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),
@@ -156,7 +78,7 @@ Updated 2026-10-08.
   gamepad and cannot switch the phone emulator in Play mode.
 - Real multiplayer: a two-player block or cue trade, 2v2 and 4-player matches, the global
   queue in the published game (`docs/MULTIPLAYER_TESTING.md`), real Robux purchases.
-- Sounds by ear (the levels were measured, not listened to).
+- Sounds by ear (the levels were measured, not listened to), the new click "boop" included.
 - The analytics funnels in the Creator Dashboard (roadmap 8.2).
 
 ## Known gaps and test switches to remember

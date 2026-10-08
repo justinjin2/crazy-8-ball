@@ -54,6 +54,11 @@ designer approves or notes -> build -> Studio check (phone, PC size, gamepad by 
 - 2026-10-08: Concept 2 approved at round 2 (designer: "ok"): the My Cues / Index switch, 5 per
   row, the Index's flat swaying picture, the copy number above the name, card words at the
   card's scale on a phone. The icon (1 to 4) is picked in the build's plan.
+- 2026-10-08: The CUES icon approved at round 5: the Classic Cue at the other icons' size,
+  striking a cue ball on hover and harder on press. The Index's chosen cue is its card,
+  standing still (not a swaying picture); a never-found cue is its whole card, slightly greyed,
+  with a padlock (not a silhouette); Sort starts on Rarest first on every open; a numbered
+  copy's engraving sits near the butt end only, never near the tip.
 
 ## Concept 1: the card (round 1, waiting)
 
@@ -153,7 +158,7 @@ Round 2 (2026-10-08), from the designer's notes on round 1:
 Questions asked: which icon (1 to 4); does the switch feel clear. Answer: "ok" (round 2
 approved; the icon is asked in the build's plan).
 
-## Concept 2b: the CUES button and numbered copies (round 5, waiting)
+## Concept 2b: the CUES button and numbered copies (icon approved round 5; built)
 
 https://claude.ai/artifact/4Yt2zXLQ2nHTxHichzK8ob (sources in
 `~/Desktop/8ball-refs/gui-lively/work/cues-icon/`; the art from a scratch script on
@@ -213,6 +218,26 @@ where round 4 had it, just above the C of CUES, the tip at the tile's top just l
 20 and 22 against the basket. The sparkles and the glow stay inside the box; the ball has its own
 canvas at the same scale so it can fly out, over the red dot.
 
+Approved (2026-10-08, "looks good. replace the backpack now"): built as `CuesStrike` on the
+CUES tile, the art in `tools/gen_ui_art.py` (`cues`, `cues_cue`, `cues_ball`, `cues_twinkle`),
+uploaded, and the still icon in the menu's header and the switch. Still to pick for numbered
+copies: the card's mark A or B. The engraving's place is decided: **near the butt end only,
+never near the tip** (designer, pointing at the lineup of three cues with the plate on the
+butt sleeve); it is built with the copy numbers.
+
+The same day's notes on the built menu, all done: the rail's tiles evenly spaced; Sort starts on
+Rarest first on every open; the Index's big card is the new card, standing still; never-found
+cues are their whole card, slightly greyed with a padlock (no more silhouettes); the big card
+and the Index's panel on the Shop sheet's tiny pool-ball dots; Equip clear of the card; a click
+no longer leaves the card gold and the big card no longer bursts gold or shakes hard; the money
+from a sale counts up in the header as its chip lands; the click sound a warm little "boop".
+"Sell all made a mistake and sold the numbered unique copies": no numbered copy exists yet. The
+"#12"-style chips were Studio-only stand-in numbers (`GuiQA "cuesCopies"`, left on during the
+check; every play session starts with them off), drawn on Rare-or-rarer cues that were really
+plain duplicates, so Sell all sold plain copies as it should. The server's Sell all only ever
+sells Block cues' extras and keeps one (`Inventory.duplicates`); Unique cues are never sold.
+When copy numbers are built, Sell all skips every numbered copy (already in the GDD).
+
 ## Progress
 
 - [x] Abilities and Ranked screens show again (`HudFocus`, `Config.UI.Menu.Focus.KeepWith`).
@@ -231,7 +256,12 @@ canvas at the same scale so it can fly out, over the red dot.
   for their cards), Sort, the switch spammed, Reduce Motion, stand-in copy numbers
   (`GuiQA "cuesCopies"`). Gate D page: https://claude.ai/artifact/EAskweNWeTsDZUdsDP5Kbk
   (sources `~/Desktop/8ball-refs/gui-lively/work/cues-build/`). Waiting: the designer's look on
-  a phone and a real gamepad; the CUES icon and its strike after concept 2b's picks.
+  a phone and a real gamepad.
+- [x] Concept 2b's CUES icon approved (round 5) and built (2026-10-08): the striking cue on the
+  CUES tile (`CuesStrike`, `StageMath.strikePose`, `Config.UI.Menu.Column.Strike`), the still
+  icon in the header and the switch; with the designer's ten notes on the built menu (above).
+  Checked in Studio at 1365 x 768: hover and Reduce Motion on the strike, the rail, the big
+  card, the Index's locked cards and still card, a card's hover and click, the money count.
 - [ ] Copy numbers (approved 2026-10-08: first 100 of every Rare-or-rarer cue, each its own card):
   planned and built after the Cues menu.
 - [ ] Concept 3 (spin and YOU GOT) approved, then built.

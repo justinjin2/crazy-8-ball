@@ -3102,3 +3102,26 @@ timer of a new block stay the designer's call.
   and a fifth wrap, as measured on the game's cue. It is the same size and in the same place as
   the other column icons (designer: "same like width and length as all the other icons"); only
   the ball leaves that box when it is hit (concept 2b round 5, waiting for the OK).
+- 2026-10-08 (designer): The CUES icon is approved at round 5 ("looks good. replace the
+  backpack now"): it is the CUES tile, the Cues menu's header icon and the switch's My Cues half.
+- 2026-10-08 (designer): Notes on the built Cues menu. The rail's tiles are evenly spaced (the
+  gap counts from a hanging pill's bottom). Sort starts on Rarest first on every open. The
+  Index's chosen cue is its card, standing still, no longer a swaying picture. A never-found cue
+  is its whole card under a light grey veil with a padlock; it is no longer a silhouette. The
+  big card and the Index's panel sit on the Shop sheet's tiny pool-ball dots. A clicked card no
+  longer stays gold, the big card opens without the gold burst and with a small nudge, and a
+  hovered card leans 1.2 degrees, slowly. The click sound is a warm little "boop" ("UI pop",
+  0.18 s; it was Roblox's thin small click).
+- 2026-10-08: The menus' money pill shows the money HUD's number, so a sale's money counts up
+  as its chip lands instead of jumping before the chip flies (designer: "not smooth and looks
+  laggy"). The pill resizes alone, without laying the whole menu out again. A Cues view hidden
+  during a change redraws when it is shown. Spent money counts down at once, because no chip
+  brings it.
+- 2026-10-08: "Sell all sold the numbered copies": no numbered copy exists yet. The "#12"
+  chips were Studio-only stand-in numbers on plain duplicates (`GuiQA "cuesCopies"`, off in
+  every new session). Sell all only sells Block cues' extras and keeps one. Once copy numbers
+  exist it skips numbered copies (GDD 18).
+- 2026-10-08 (designer): A numbered copy's engraving sits near the cue's butt end only, never
+  near the tip.
+- 2026-10-08 (designer asked which screen size to use first): the laptop size (1366 x 768),
+  then the phone. Menus are designed at a computer's size and scaled down.

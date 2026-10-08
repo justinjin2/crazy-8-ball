@@ -377,6 +377,14 @@ then; the reel's rules hold for the blocks.
   computer, 52 px on a phone (under the rank HUD there; centred on the left edge on a big
   screen), always above the money HUD. Each tile draws over the one below, so a word is never
   under the next tile's red dot.
+  **CUES** (concept 2b, approved 2026-10-08): the Classic Cue where every icon sits, a soft
+  gold glow breathing behind it and three twinkles in the box's empty corners. A hover (or a
+  gamepad resting on it) strikes a cue ball with it: the ball pops in by the tip, the cue draws
+  back and hits it with a white spark, the ball flies off up the cue's line and fades, the cue
+  slides home (0.95 s). A press strikes harder and quicker (0.7 s), from the touch so it shows
+  before the menu opens; the D-pad route too. Still with Reduce Motion (`CuesStrike`,
+  `Config.UI.Menu.Column.Strike`). The same still icon is the Cues menu's header icon and the
+  switch's My Cues half.
   A red dot sits top right on Rewards while something can be claimed, and on CUES (the
   Inventory, renamed 2026-10-08) with how many owned cues are NEW ("9+" past nine); the Shop
   carries a gold timer pill while an offer window is open. Hidden in a match. On a gamepad the tiles are never selected (a
@@ -405,23 +413,28 @@ then; the reel's rules hold for the blocks.
   right edge stand a two-part switch, My Cues over Index, its blue knob on the view you are
   in (the other half's icon faded; a red dot with the NEW count on My Cues, "!" on the Index
   while a row can be claimed), then Sort and Sell all, each a tile with a pill hanging under
-  it (the order's name in blue; the money Sell all would pay in gold, greyed at $0). In the
+  it (the order's name in blue; the money Sell all would pay in gold, greyed at $0). The clear
+  space down the rail is the same each time, counted from a hanging pill's bottom (designer,
+  2026-10-08). In the
   Index Sort and Sell all step aside. The title and its icon say which view shows; LB / RB
   flip the views and B goes back one step (the big card, then the Index to My Cues, then the
   menu). **My Cues**: 5 cards a row, the panel as tall as two whole rows with the third
-  peeking; a short screen shrinks the cards. Sort turns the order (Rarest first, Common first,
-  Most copies, Name A-Z, then round), keeps the chosen card and scrolls the grid to its top;
+  peeking; a short screen shrinks the cards. Every open starts on Rarest first; Sort turns the
+  order (Rarest first, Common first, Most copies, Name A-Z, then round), keeps the chosen card
+  and scrolls the grid to its top;
   by rarity, Ranked and Exclusive sit between Epic and Legendary, the rank cues highest tier
-  first. A pressed card slams in its **big card** over the page: the same card, bare (no
-  pills), and beside it the name, the rarity, "4.2% chance · 1,284 exist", "You own 3" (a
+  first. A pressed card slams in its **big card** over the page, calmly (no gold burst, a
+  small nudge: it opens often), on the lively sheet's tiny pool-ball dots: the same card, bare
+  (no pills), and beside it the name, the rarity, "4.2% chance · 1,284 exist", "You own 3" (a
   numbered copy's "Copy #412"), "Can't be sold" with the padlock, Equip and Sell duplicates
-  (its count chooser: - 3 +, Max, "Sell 3 for $360").
-- **The Index** (designer, 2026-09-28; concept 2): 4 cells a row; a cue never found is a grey
-  card with its dark silhouette (no name, bar or pills; section 17). The chosen cue shows in a
-  panel on the right: its flat picture swaying gently (5 degrees either way over 4 s; still
-  with Reduce Motion; the 3D cue went), a near-black silhouette until found and its real
-  colours after (the picture wears the rarity then), its name even before it is found, the
-  rarity, "In your collection" or "Not found yet", "4.2% chance · 1,284 exist", and for a cue
+  (its count chooser: - 3 +, Max, "Sell 3 for $360"). The buttons sit a little in from their
+  column's sides, so their outline and their hover growth are never cut. Money from a sale
+  flies into the header's pill, which counts up as it lands (it shows the money HUD's number).
+- **The Index** (designer, 2026-09-28; concept 2): 4 cells a row; a cue never found is its
+  whole card, locked (section 17). The chosen cue shows in a panel on the right, on the lively
+  sheet's tiny pool-ball dots: its card, bare and standing still (designer, 2026-10-08: it
+  swayed), locked until found, then the name, the rarity, "In your collection" or "Not found
+  yet", "4.2% chance · 1,284 exist", and for a cue
   not found yet "Find it for +$250" in green with the cash. A tap chooses a card; a controller
   chooses the card it lands on. On a phone the panel is narrower.
 - **Finder's money**: a block's prize that is new to the Index reads "NEW! +$250" on the
@@ -785,7 +798,12 @@ next (`InventoryCard`, its motion `CueCardFx`, `Config.UI.CueCard`; brief
   the card in its tier's colours, more moving higher up (Bronze to Gold a metal shine,
   Platinum and Diamond glints, Expert to Master turning rays, Grandmaster dark with gold rays
   and embers, Reyes everything with a rainbow edge and bar). No chance chip.
-- **A never-found cue** in the Index: a grey card with its dark silhouette, nothing else.
-- Hover and gamepad selection: a gold ring and a small grow; the chosen card a blue ring.
+- **A never-found cue** in the Index (designer, 2026-10-08): its whole card with its name,
+  standing still under a light grey veil that leaves its colours showing, a big padlock over
+  the picture, no pills (`Config.UI.CueCard.Locked`). It was a grey card with a dark
+  silhouette.
+- Hover and gamepad selection: a gold ring, a small grow and a slow, small lean (1.2 degrees);
+  a press puts the gold ring out until the pointer comes back, and touch never lights a card;
+  the chosen card a blue ring.
 - Only cards in view move (one loop each); Lower effects shows fewer sparkles, embers and
   stars and slows the shines; Reduce Motion stills everything but the glows.

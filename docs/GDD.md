@@ -1121,7 +1121,8 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
   good. How many exist shows on the big card for every cue. Today only Unique cues are numbered and
   other cues are saved as a count, so this changes saves, selling, trading and the copy
   counters (`docs/prompts/CUES_LIVELY_PROMPT.md`). A numbered copy also wears its number on the
-  cue itself (asked 2026-10-08; example: a gold nameplate on the butt, waiting for the OK).
+  cue itself (asked 2026-10-08): a gold nameplate near the butt end only, never near the tip
+  (designer, 2026-10-08).
 - **Global boards in a new home** (parked 2026-10-07, one of the last things before release):
   the Top Wins and Top Rank boards left the player list (it is now like Roblox's own list);
   the lobby signs still show them. Where they go next (a menu page, say) is open.
