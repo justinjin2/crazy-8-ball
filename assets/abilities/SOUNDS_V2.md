@@ -53,3 +53,36 @@ First row per slot = recommended. Durations in seconds.
 | **spiralHum** | Magical power hum for the glowing golden spiral | 9116393976 | Magic Glow Short Pulsing Bursts 9 (SFX) | 1.8 | ProSoundEffects (verified) |
 | spiralHum |  | 9113122880 | Angel Sparkle 5 (SFX) | 4.4 | ProSoundEffects (verified) |
 | spiralHum |  | 9125784811 | Power Throb Tonal Hum Slow Pulse Electrical 3 | 4.3 | ProSoundEffects (verified) |
+
+## Verity v2: the evil Verity ball (2026-10-08)
+
+For the designer's second rework round: Verity stays a ball, turns evil at the first contact,
+swells up, eats the ball it hit and rolls on eating your balls and bumping theirs. Found the same
+way (toolbox-service marketplace search, `items/details`, `economy.roblox.com/v2/assets/<id>/details`).
+Every candidate here is a ProSoundEffects clip: verified creator, free, hash approved,
+`IsPublicDomain: true`, licensed by Roblox for every experience. None is a fan upload. Nothing was
+uploaded. **They were not auditioned** (the API gives names and lengths only): play each one in
+Studio before wiring it in. First row per slot = recommended. Lengths are the API's whole
+seconds (0 means under a second).
+
+| Slot | Use | Id | Name | Sec | Creator |
+|---|---|---|---|---|---|
+| **verityChomp** | The chomp: the jaws slam shut on the ball (a big crunchy bite) | 9114574214 | Giant Bug Chomps 2 (SFX) | 1 | ProSoundEffects (verified) |
+| verityChomp | A cartoon run of bites: could be the chew after the chomp | 9117394958 | Piranha Bites 2 (SFX) | 3 | ProSoundEffects (verified) |
+| verityChomp | A short teeth snap: the quick chomps on the run | 9119055058 | Shark Bite Smaller Teeth Snaps 3 (SFX) | 1 | ProSoundEffects (verified) |
+| **verityGulp** | The big cartoon gulp as the ball goes down | 9113859745 | Comic Gulp Swallow Ice Cube 1 (SFX) | 2 | ProSoundEffects (verified) |
+| verityGulp |  | 9113859903 | Comic Gulp Swallow Ice Cube 2 (SFX) | 2 | ProSoundEffects (verified) |
+| verityGulp |  | 9114172109 | Drinking Cu Gulping 6 (SFX) | 1 | ProSoundEffects (verified) |
+| **verityLaugh** | The turn: an evil laugh as the smiley turns evil | 9116239130 | Laugh Evil Male Various Versions 2 (SFX) | 4 | ProSoundEffects (verified) |
+| verityLaugh |  | 9116239118 | Laugh Evil Male Various Versions 1 (SFX) | 4 | ProSoundEffects (verified) |
+| verityLaugh |  | 9114037486 | Demonic Laugh 1 (SFX) | 6 | ProSoundEffects (verified) |
+| verityLaugh | A deep growl instead of a laugh | 9114628818 | Goliath Vocal Deep Growling Voice 22 (SFX) | 2 | ProSoundEffects (verified) |
+| **veritySwell** | The quick swell as it grows | 9116421550 | Magic Transformation 6 (SFX) | 1 | ProSoundEffects (verified) |
+| veritySwell | A darker rise with a roar on top | 9120286427 | Tubular Whoosh Suck Explosive Rise Roar 1 (SFX) | 4 | ProSoundEffects (verified) |
+| veritySwell |  | 9117297453 | Phasey Synth Power Up High Pitched Rise 2 (SFX) | 3 | ProSoundEffects (verified) |
+| **verityBonk** | A soft rubbery boing as it bumps a ball aside | 9113863528 | Comic Tube Bounce 2 (SFX) | 1 | ProSoundEffects (verified) |
+| verityBonk |  | 9113864076 | Comic Tube Doink 1 (SFX) | 2 | ProSoundEffects (verified) |
+| verityBonk |  | 9113496956 | Body Hit Comic 1 (SFX) | 1 | ProSoundEffects (verified) |
+| **verityBurp** | Optional: a burp after the last ball | 9113433856 | Big Burp Yuge 3 (SFX) | 2 | ProSoundEffects (verified) |
+| verityBurp |  | 9113644760 | Burps Belch 1 (SFX) | 2 | ProSoundEffects (verified) |
+| verityBurp |  | 9113414717 | Belch Obnoxious 1 (SFX) | 1 | ProSoundEffects (verified) |

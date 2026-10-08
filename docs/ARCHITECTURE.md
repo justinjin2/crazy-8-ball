@@ -689,9 +689,11 @@ loads (no save version bump); their mentions above are history.
 
 - **New effects** (pure, Lune-tested): `Effects/CatchABall` (the cue ball's first contact
   removes the ball it hit, a pot for its owner, and the cue ball stops dead; the 8 off the legal
-  8 shot breaks free) and `Effects/Verity` (the first contact throws the hit ball off, then her
-  run kicks balls, the shooter's along clean lines and the rest aside, the cue ball ghosted as
-  her body).
+  8 shot breaks free) and `Effects/Verity` (evil since the second round: the first contact eats
+  the hit ball, she chews in place for `EatShotSeconds` shoving out the balls inside her swollen
+  body, then rolls along the shot's line eating up to `MaxEaten` of the shooter's within
+  `EatReachInches` and bumping the rest aside, the cue ball ghosted as her body; her `inside`
+  set lets a ball that left her reach be met again).
 - **The Sneak phase** (Look Over There!, catalog `Sneak = true`; reworked 2026-10-08) is no
   shot. It arms at once (`Match.arm` skips the cutscene pause for a Sneak row) and `MatchEngine`
   opens Sneak (`beginSneak`: `t.sneak` with `dragAt`, `dragEnd` and where the cue ball was).
@@ -713,7 +715,9 @@ loads (no save version bump); their mentions above are history.
   into the pocket nearest it, and Time Stop sends the ball struck in stopped time when time
   resumes (`TimeStop.resume`). Steel Ball checks its lines with `clearInto`.
 - **Looks:** `BoneAnim` plays baked bone animations (`tools/bake_bone_anims.py` writes
-  `VerityAnims` and `TigerAnims`) on uploaded skinned models by setting each Bone's Transform.
+  `TigerAnims`) on uploaded skinned models by setting each Bone's Transform. `VerityFx` hinges
+  the evil Verity ball's pieces itself (the top jaw and the eyes about `J_Hinge`, as
+  `CatchABallFx` does the catch ball's lid) and pushes each viewer's camera in on her face.
   Roblox's upgraded avatar rigs may use AnimationConstraint joints instead of Motor6D, so
   `LookOverThereFx` and `UltCutscene` turn either. Catch-a-Ball's catch eases the shooter's
   camera in (`Camera.setOverride`). Lines that follow a ball (Chain Lightning's rail, Portals'

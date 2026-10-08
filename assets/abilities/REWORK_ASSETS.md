@@ -137,3 +137,57 @@ See `sounds_v2.json` (machine-readable, the first candidate in each slot is the 
 one) and `SOUNDS_V2.md` (the table, and how they were found and checked). All of them are
 public Creator Store clips played by id. Nothing was uploaded. Audition each one in Studio
 before wiring it in.
+
+## E. Verity v2: the evil Verity ball (`assets/abilities/VerityEvil/`)
+
+The designer's second rework round (2026-10-08): the Verity monster model never showed in the
+game, so Verity stays a ball. At the first contact the smiley cue ball turns evil, swells up and
+eats the ball it hit. This is that evil ball: a toothy chomper crossed with an evil smiley, built
+headless from nothing by `tools/blender/abilities/verity_evil.py`:
+
+    /Applications/Blender.app/Contents/MacOS/Blender -b --python tools/blender/abilities/verity_evil.py [-- render names]
+
+It makes `verity_evil.glb` and `verity_evil.blend`, `textures/verity_evil_atlas.png` (embedded in
+the .glb) and the previews in `renders/` (not committed).
+
+**Uploaded:** `VerityEvil/verity_evil.glb`, a Model, asset id **131086829663737** (group
+675425213; in `rework_upload_manifest.json`, queued in `rework_upload_list.txt`). Open Cloud
+reports it `Active` and moderation `Approved`. Check it in Studio with
+`pcall(InsertService.LoadAsset, InsertService, 131086829663737)` and preload its parts'
+`TextureID`. (The old monster, 97902969201000, also reports Active and Approved, so its failure
+in the game was a loading problem, not moderation.)
+
+**Axes** (the same as the catch ball): unit radius (the shell's outer radius is 1.0), front =
+Blender -Y = **Roblox -Z** (the LookVector of an unturned part), up = +Z = Roblox +Y. Every
+object's origin is the hinge pin H, at Blender (0, 1.035, 0): the back, just outside the shell
+(Roblox +Z). About 13,600 triangles in all: VerityTop 6,634, VerityBottom 6,396, VerityEyes 576,
+J_Hinge 12. One material, one 256 x 256 atlas, so each object is one MeshPart.
+
+| Object | What | Intended look in Roblox |
+|---|---|---|
+| `VerityTop` | the upper jaw: the shell, a gum ring at the seam with the upper teeth hanging from its front (11 teeth over about 200 degrees, the front fangs longest, none near the hinge), the two eye sockets (dark rings standing proud) and the thick black brows slanting down to a V | the atlas as is (`TextureID`); glossy yellow outside, so SmoothPlastic or similar |
+| `VerityBottom` | the lower jaw: the shell, a gum ring with the lower teeth (10) standing inside the upper row, half a tooth round, so they interleave, and the tongue lying in the bowl | the atlas as is |
+| `VerityEyes` | the two angry slanted almond eyes, one flat red, sitting recessed in the sockets | `Material = Neon`, `Color` a strong red (about 255, 40, 20), so they glow; turn it with VerityTop |
+| `J_Hinge` | a 0.02 cube at H: the importer may not keep object origins, so read the pivot from this one | `Transparency = 1` (it shows as a speck at the back otherwise) |
+
+Atlas colours: the outside is a yellow gradient by latitude (FFE24D at the top, the smiley's
+FFD21F at the equator, D9900B at the bottom pole), with a thin dark band (4E0B16) along the seam
+on both jaws so a shut mouth still reads. The inside is maroon by depth (8E1C2E at the lip to
+3A0710 at the bottom: never black, it reads as a mouth). The gums are 9C2338, the teeth go from
+a warm ivory at the gum to bright white at the tip, the brows are 120D0C, the sockets 2A0A0D,
+the eye cell FF2A14, and the tongue is pink-red with a darker groove down its middle.
+
+**The jaw** opens by turning `VerityTop` and `VerityEyes` together about the X axis through H,
+the front edge rising (Blender `rotation_euler.x = -angle`; Roblox: about the hinge's X axis).
+These poses were checked in the renders:
+
+- **Shut, 0 degrees** (`shut_front34`, `shut_side`): nothing inside pokes out. The dark seam
+  band shows as a thin mouth line.
+- **Grin, 10 degrees** (`grin_front34`, `grin_high`): the two rows of teeth show interleaved in
+  the gap, a sinister grin. From the high table camera, **12-14 degrees** shows more of the
+  teeth (`grin14_high`).
+- **Gape, 70 degrees** (`gape_front34`, `gape_high`): the maroon mouth, the tongue and both
+  rows of teeth. The eyes ride up with the top jaw.
+
+The face reads at phone size from the high camera (`grin_high_phone`, `gape_high_phone`, 96
+px). Sounds for it: SOUNDS_V2.md, "Verity v2".

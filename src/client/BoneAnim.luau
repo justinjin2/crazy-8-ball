@@ -1,6 +1,6 @@
 --!strict
--- BoneAnim: plays the baked bone animations (tools/bake_bone_anims.py: VerityAnims,
--- TigerAnims) on an uploaded skinned model by setting each Bone's Transform every frame.
+-- BoneAnim: plays the baked bone animations (tools/bake_bone_anims.py: TigerAnims) on an
+-- uploaded skinned model by setting each Bone's Transform every frame.
 --
 -- The data is each bone's skinning delta (posed * rest^-1) in the model's armature space, the
 -- space the importer laid the mesh in (Blender (x, y, z) -> (-x, z, y), the part's own axes).

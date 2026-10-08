@@ -3256,3 +3256,13 @@ timer of a new block stay the designer's call.
   whoosh, the sneaky sting and the shout voice) is gone. It is refused on the break and when the
   shooter already has ball in hand. Bots use it too (they drag the cue ball to their best ball in
   hand spot).
+- 2026-10-08 (designer's second rework round): Verity is no monster any more (its model never
+  showed in the game): at the first contact the smiley ball turns evil, swells to three times a
+  ball's size and eats the ball it hit, then keeps rolling along the shot line, eating up to 2
+  more of your balls and bumping the rest aside ("Eats yours, bumps theirs"), with a quick
+  camera push-in on her face as she bites ("highly clippable"). Two choices made here: she hops
+  over the 8 rather than bumping it (a bump could sink it and lose the game), and balls inside
+  her as she swells are shoved just clear (the 8 only where that cannot drop it). Your balls
+  near her path are slurped in from 5.5 in (centre to centre): with only her body's touch (4.5
+  in) she measured +0.99, below the old Verity's +1.05; 5.5 in gives +0.97 / +1.15 / +1.17
+  (careful net at skills 1/2/3), a Legendary.

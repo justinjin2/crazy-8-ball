@@ -2,8 +2,10 @@
 """Bakes a rigged model's Blender animations (per-frame bone matrices, JSON) into a Luau data
 module the client plays with src/client/BoneAnim.luau. Standard library only.
 
-    python3 tools/bake_bone_anims.py verity   # assets/abilities/Verity/verity_anims.json
     python3 tools/bake_bone_anims.py tiger    # assets/abilities/GuangdongTiger/tiger_v2_anims.json
+
+(The Verity monster's job went with it in the designer's second round, 2026-10-08: Verity is
+an evil ball now, hinged pieces with no bones. Its clips stay in assets/abilities/Verity.)
 
 For every kept action, frame and bone it writes the skinning delta S = P * R^-1 (P the posed
 armature-space matrix, R the rest one), mapped into the uploaded model's space: Roblox's glTF
@@ -25,12 +27,6 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # What each model keeps: the action, its first and last frame (inclusive; None = all).
 JOBS = {
-    "verity": {
-        "source": "assets/abilities/Verity/verity_anims.json",
-        "out": "src/client/VerityAnims.luau",
-        "title": "Verity",
-        "actions": [("PickThrow", 0, 72), ("Sprint", None, None), ("Cheer", 0, 70)],
-    },
     "tiger": {
         "source": "assets/abilities/GuangdongTiger/tiger_v2_anims.json",
         "out": "src/client/TigerAnims.luau",

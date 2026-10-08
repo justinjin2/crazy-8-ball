@@ -3570,10 +3570,10 @@ Config.Ults = {
 		-- hand (the designer's second rework round, 2026-10-08; it dragged one of your balls
 		-- into a pocket before, +0.95 / +1.01 / +1.02 careful net).
 		LookOverThere = { Rarity = "Epic", Built = true, Worth = 0.99, Sneak = true },
-		-- Verity: the first ball hit is thrown off the table (a pot for its owner), then Verity
-		-- sprints on through the pack. +0.91 / +1.10 / +1.13 careful net (120 tables), pots
-		-- 94-98% of uses.
-		Verity = { Rarity = "Legendary", Built = true, Effect = "Verity", Worth = 1.05 },
+		-- Verity: the first ball hit is eaten (a pot for its owner), then she rolls on eating up
+		-- to 2 more of yours (evil since the designer's second round, 2026-10-08). +0.97 / +1.15
+		-- / +1.17 careful net (120 tables), pots 94-98% of uses.
+		Verity = { Rarity = "Legendary", Built = true, Effect = "Verity", Worth = 1.09 },
 		-- The Rare+ buff (2026-10-08): a ball of yours touched in stopped time rolls into a pocket
 		-- as time resumes, and a miss freezes too: +0.82 / +0.85 / +0.93 careful net, pots 91-94%
 		-- (was +0.65 / +0.42 / +0.34 with three strikes, pots 47-78%).
@@ -3880,14 +3880,41 @@ Config.Ults = {
 		-- The 8 breaking free: Time Stop's reversed hiss, pitched up (a puff out).
 		CatchBreak = { Id = "rbxassetid://9118158113", Volume = 0.45, Pitch = 1.6 },
 		-- Verity (the rework): the designer's line is a TTS placeholder (assets/abilities/Verity,
-		-- "Hi, I'm Verity! Trust me, I know everything!") until they upload the real clip; a
-		-- creepy giggle (ProSoundEffects) as it unfolds, its footsteps, the throw.
+		-- "Hi, I'm Verity! Trust me, I know everything!") until they upload the real clip.
 		VerityLine = { Id = "rbxassetid://135865093470317", Volume = 0.6 },
-		VerityGiggle = { Id = "rbxassetid://9114571613", Volume = 0.5 },
-		VeritySteps = { Id = "rbxassetid://9114080709", Volume = 0.5, Pitch = 1.3 },
-		VerityThrow = { Id = "rbxassetid://9120728815", Volume = 0.5 },
-		-- Her kick (ProSoundEffects "Foot Stomp 3").
-		VerityKick = { Id = "rbxassetid://9114523345", Volume = 0.45, Pitch = 1.2 },
+		-- Evil Verity (the designer's second round, 2026-10-08; ProSoundEffects library clips,
+		-- assets/abilities/SOUNDS_V2.md "Verity v2"; StartOffset skips a clip's quiet lead-in,
+		-- measured in Studio): the turn's swell, the first bite's crunch, the quick bites on the
+		-- roll, the gulp, her laugh, a bump's boing and the burp at the end.
+		VeritySwell = { Id = "rbxassetid://9116421550", Volume = 0.55, Pitch = 0.8 },
+		VerityChomp = {
+			Id = "rbxassetid://9114574214",
+			Volume = 0.7,
+			StartOffset = 0.25,
+			Length = 0.9,
+		},
+		VeritySnap = {
+			Id = "rbxassetid://9119055058",
+			Volume = 0.6,
+			StartOffset = 0.05,
+			Length = 0.5,
+		},
+		VerityGulp = { Id = "rbxassetid://9113859745", Volume = 0.6, Length = 0.5 },
+		-- "Laugh Evil Male Various Versions 1" (its louder, quicker take; 9116239130, take 2,
+		-- starts slower).
+		VerityLaugh = {
+			Id = "rbxassetid://9116239118",
+			Volume = 0.5,
+			StartOffset = 0.1,
+			Length = 2.4,
+		},
+		VerityBonk = { Id = "rbxassetid://9113863528", Volume = 0.4 },
+		VerityBurp = {
+			Id = "rbxassetid://9113433856",
+			Volume = 0.6,
+			StartOffset = 0.45,
+			Length = 1.1,
+		},
 		-- Look Over There!: only the vine boom, as the opponents turn back (the designer's
 		-- second rework round, 2026-10-08: the shout, the Metal Gear alert, the whoosh and the
 		-- sneaky sting went). A public fan upload, the meme's own sound; the licensed backup is
@@ -4185,26 +4212,32 @@ Config.Ults.CatchABall = {
 	HoldSeconds = 4, -- wall seconds the shot holds for the catch (CatchABallFx's Timeline)
 }
 
--- Verity (the rework, designer 2026-10-08; src/shared/Ults/Effects/Verity): the first ball hit
--- is thrown off the table (a pot for its owner; the early 8 refused), then Verity sprints on
--- through the pack, kicking balls out of her way: the first MaxAimed of yours into pockets
--- ("trust me, I know everything"), the rest aside. Inches and seconds of play. (tune)
+-- Verity (the rework; evil since the designer's second round, 2026-10-08;
+-- src/shared/Ults/Effects/Verity): the first ball hit is eaten (a pot for its owner; the early
+-- 8 refused), then she rolls on along the shot's line, eating the first MaxEaten of yours she
+-- touches and bumping the rest aside; she hops over the 8. Inches and seconds of play. (tune)
 Config.Ults.Verity = {
-	GrabShotSeconds = 1.5, -- she unfolds, grabs and throws (VerityFx's timeline) before running
-	ShuffleSpeed = 2.5, -- her creep forward while grabbing (in/s; keeps the shot in motion)
-	RunSpeed = 45, -- the sprint (in/s)
-	RunInches = 75, -- the longest sprint
-	EdgeMarginInches = 1.5, -- she stops this far (beyond a ball's radius) from a cushion or pocket
-	KickRadiusInches = 6, -- a ball whose centre comes this close to her body is kicked
-	KickSpeed = 70, -- a booted ball's speed (in/s), and the most an aimed kick gets
-	KickSide = 1, -- a boot's direction: this much sideways (away from her path)...
-	KickForward = 0.5, -- ...and this much forward
-	-- How many of yours she kicks into pockets (when a clean line exists). Measured with the
-	-- kick reach and run above (tools/ult_value.luau, 60 tables, 2026-10-08): 2 aimed, 3.6 in,
-	-- 60 in: +0.82 / +0.93 / +0.95 careful net at skills 1/2/3; 3 aimed, 6 in, 75 in: +0.95 /
-	-- +1.08 / +1.08 (the Legendary band, beside Steel Ball's +1.09).
-	MaxAimed = 3,
-	AimArriveSpeed = 22, -- an aimed kick reaches its pocket at about this speed (in/s)
+	EatShotSeconds = 1.6, -- she swells, gapes, chomps, chews and gulps (VerityFx) before rolling
+	-- Meanwhile she jiggles back and forth this fast (in/s), a 240th of that each step: unseen,
+	-- but it keeps the shot in motion (above Config.Physics.RestSpeed).
+	ChewJiggle = 1,
+	-- Her swollen body (three balls' radius; VerityFx draws her this big): a ball whose centre
+	-- comes within it plus a ball's radius is met.
+	BodyRadiusInches = 3.4,
+	ShoveGapInches = 0.3, -- a ball inside her body as she swells is shoved this far clear of it
+	RollSpeed = 32, -- the roll (in/s)
+	RollInches = 70, -- the longest roll
+	EdgeMarginInches = 0.5, -- her body stops this far from a cushion line or a pocket
+	MaxEaten = 2, -- the shooter's balls she eats on the roll (each a pot), after the first
+	-- One of those is slurped into her mouth once its centre is this close to hers (her body
+	-- touches it at BodyRadiusInches plus a ball's radius, 4.5). Measured (tools/ult_value.luau,
+	-- 120 tables, careful net at skills 1/2/3, 2026-10-08): 4.5 +0.86 / +1.06 / +1.05; 6
+	-- +1.02 / +1.17 / +1.22; 8 +1.13 / +1.31 / +1.33 (a Mythic). 5.5 keeps her a Legendary.
+	EatReachInches = 5.5,
+	BumpSpeed = 18, -- any other ball she touches is bumped at this speed (in/s)...
+	BumpSide = 1, -- ...this much sideways, away from her path...
+	BumpForward = 0.35, -- ...and this much forward
+	LandEdgeInches = 1.5, -- the cue ball lands this far (beyond its radius) from a cushion or pocket
 	LandGapInches = 0.05, -- room left round the cue ball where she stops
 }
 
@@ -4328,10 +4361,12 @@ Config.Ults.Assets = {
 		-- button, at -Z: the front), CatchInner (the dark inside, seen when open) and J_Hinge
 		-- (the back hinge, at +Z). Unit radius, centred.
 		CatchABall = 93342911188193,
-		-- tools/blender/abilities/verity.py (the rework): the Verity monster, a skinned mesh
-		-- (Meshy, auto-rigged; 24 bones, Hips the root), 1 stud tall, facing -Z after import;
-		-- its animations are baked data (src/client/VerityAnims.luau), not Animation assets.
-		Verity = 97902969201000,
+		-- tools/blender/abilities/verity_evil.py (the designer's second round, 2026-10-08): the
+		-- evil Verity ball. VerityTop (the upper jaw, the brows), VerityBottom (the lower jaw,
+		-- the tongue), VerityEyes (made Neon in the look) and J_Hinge (the hinge pin at +Z, the
+		-- back). Unit radius, the front -Z; the top and the eyes turn about the hinge's X axis.
+		-- (Was the Verity monster, 97902969201000, a skinned mesh.)
+		Verity = 131086829663737,
 	} :: { [string]: number },
 	Images = {
 		-- The pocket-to-ball field lines' Beam tile: a white line and one arrowhead along +U.
@@ -10641,10 +10676,6 @@ Config.UI.CatchABallFx = {
 	CamOutSeconds = 0.4,
 }
 
--- Verity's look (src/client/VerityFx.luau; the rework, 2026-10-08): the smiley Verity ball on
--- the cue ball, the monster (Config.Ults.Assets.Models.Verity, a skinned mesh played by
--- src/client/BoneAnim.luau from VerityAnims), the throw, the run and the landing. Sizes in drawn
--- ball radii unless named; frames are the baked clips' (24 a second). (tune)
 -- Look Over There! (src/client/LookOverThereFx.luau; the rework, designer 2026-10-08): the
 -- Sneak phase's show, timed from the phase's start (snapshot.sneak.at) in seconds. The phase's
 -- own lengths are Config.Ults.Shared.Sneak*. (tune)
@@ -10708,70 +10739,119 @@ Config.UI.LookOverThereFx = {
 	FreshSeconds = 0.5, -- a moment heard later than this skips it (a late join)
 }
 
+-- Verity's look (src/client/VerityFx.luau; evil since the designer's second round, 2026-10-08):
+-- the smiley Verity ball on the cue ball until the first contact; then the evil Verity ball
+-- (Config.Ults.Assets.Models.Verity) swells to Config.Ults.Verity.BodyRadiusInches, eats the
+-- ball she hit (each viewer's camera pushing in on her face), chews, gulps and laughs, rolls on
+-- chomping, burps and shrinks back. Wall seconds (slowed with the replay); sizes in drawn ball
+-- radii unless named. (tune)
 Config.UI.VerityFx = {
 	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
 	ShellScale = 1.03, -- the smiley ball's radius over the ball's
 	FadeInSeconds = 0.2,
 	FadeOutSeconds = 0.3,
 	FreshSeconds = 0.3, -- an event older than this (a late join) plays no sounds or bursts
-	-- Held (armed, not rolling): the face toward the camera, swaying, bobbing.
+	-- Held (armed, not rolling): the smiley's face toward the camera, swaying, bobbing.
 	IdleSwayDegrees = 12,
 	IdleBobBallRadii = 0.12,
 	ArmSparks = 12,
-	FaceColor = { 255, 210, 31 }, -- her yellow (the sparks, the flash, the puff)
-	-- How tall she stands (the model is one unit tall).
-	HeightBallRadii = 10,
-	-- The unfolding at the contact (wall seconds): the ball swells and bursts while she grows
-	-- from GrowFrom of her height, overshooting by GrowOvershoot.
-	PopSeconds = 0.14,
-	PopGrow = 2.2,
-	GrowSeconds = 0.26,
-	GrowFrom = 0.2,
-	GrowOvershoot = 0.12,
-	PuffParticles = 22,
-	FlashBrightness = 5,
-	FlashSeconds = 0.35,
-	PunchDegrees = 7, -- a zoom-in punch for the players at the table
-	PunchSeconds = 0.4,
-	-- The grab: PickThrow from GrabFromFrame to GrabToFrame across the physics' grab
-	-- (Config.Ults.Verity.GrabShotSeconds of shot time); the ball slides into her right hand
-	-- over the PickSlideFrames before PickFrame, and leaves it at ReleaseFrame.
-	GrabFromFrame = 10,
-	GrabToFrame = 66,
-	PickFrame = 24,
-	PickSlideFrames = 5,
-	ReleaseFrame = 54,
-	HandBallRadii = 0.6, -- the ball sits this far out of her palm
-	-- The throw: off the table on an arc, spinning, a streak behind; gone after ThrowSeconds.
-	ThrowForwardStuds = 15, -- studs a second along her facing
-	ThrowUpStuds = 13,
-	ThrowGravityStuds = 36,
-	ThrowSpinDegrees = 900, -- a second
-	ThrowSeconds = 1.3,
-	TrailSeconds = 0.25,
-	-- The run: Sprint looped, one cycle carrying her StrideHeights of her height (which sets
-	-- how fast the clip plays against her speed); cross-faded in over BlendSeconds. A footstep
-	-- puff every StepSeconds of shot time.
-	StrideHeights = 1.1,
-	BlendSeconds = 0.15,
-	TurnSeconds = 0.12, -- she turns from the ball she grabbed to the run's heading
-	StepSeconds = 0.14,
-	StepDust = 3,
-	ShakeStuds = 0.06, -- the players' camera rumbles while she runs
-	-- A kick: a burst at the ball; an aimed one (into a pocket) gets a yellow streak.
-	KickSparks = 10,
-	KickTrailSeconds = 0.9,
-	-- The landing: Cheer from CheerFromFrame to CheerToFrame at CheerSpeed (both arms up),
-	-- held CheerHoldSeconds, then she shrinks back into the ball over ShrinkSeconds.
-	CheerFromFrame = 8,
-	CheerToFrame = 40,
-	CheerSpeed = 1.5,
-	CheerHoldSeconds = 0.35,
-	ShrinkSeconds = 0.25,
-	SettleSeconds = 0.12, -- she slides onto the landing spot (the physics may nudge it)
-	-- Speech bubbles over her head (a billboard, studs): TRUST ME! at the grab, NOT THE 8! when
-	-- she refuses the 8.
-	BubbleLiftBallRadii = 2.2, -- above her head (over the ball for the refusal)
+	FaceColor = { 255, 210, 31 }, -- her yellow (the arming sparks)
+	EvilColor = { 255, 40, 20 }, -- her eyes (Neon), their light, the turn's flash
+	EyeLight = 1.5, -- her eyes' light (brightness), blazing to EyeBlaze while she laughs
+	EyeBlaze = 5,
+	EyeLightBallRadii = 6, -- its range
+	-- The turn (the first bite): a red flash and a dark puff; she swells from the cue ball's
+	-- size to her body's over GrowSeconds (overshooting by GrowOvershoot) and turns over
+	-- FaceSeconds to face each viewer's camera (her heading once she rolls). At rest her jaw
+	-- shows the teeth (GrinDegrees).
+	GrowSeconds = 0.28,
+	GrowOvershoot = 0.15,
+	FaceSeconds = 0.15,
+	GrinDegrees = 13,
+	FlashBrightness = 6,
+	FlashSeconds = 0.4,
+	PuffParticles = 26,
+	PuffColor = { 90, 10, 20 },
+	-- The first bite's timeline (seconds from the contact; it fits in Config.Ults.Verity.
+	-- EatShotSeconds): the ball she hit pops up over PopSeconds to hover in front of her face
+	-- (HoverOutBallRadii out from her front, HoverUpShare of her radius up, an arc PopArcBallRadii
+	-- high); her jaws gape to GapeDegrees from GapeAt over GapeSeconds; the ball is sucked in
+	-- from SuckAt and they slam shut at ChompAt over SnapSeconds (a crunch, a ChompShakeStuds
+	-- shake for the players at the table, crumbs). Then Chews chews of ChewSeconds (the jaw to
+	-- ChewDegrees), a gulp at GulpAt (her body bulging GulpGrow over GulpSeconds) and her laugh
+	-- from LaughAt: her body shakes LaughDegrees at LaughHz, the jaw chattering LaughJawDegrees
+	-- over the grin, her eyes blazing.
+	PopSeconds = 0.3,
+	HoverOutBallRadii = 0.8,
+	HoverUpShare = 0.65,
+	PopArcBallRadii = 2,
+	GapeAt = 0.18,
+	GapeSeconds = 0.2,
+	GapeDegrees = 72,
+	SuckAt = 0.42,
+	ChompAt = 0.56,
+	SnapSeconds = 0.06,
+	ChompShakeStuds = 0.06,
+	Crumbs = 14,
+	Chews = 2,
+	ChewSeconds = 0.2,
+	ChewDegrees = 20,
+	GulpAt = 1.06,
+	GulpSeconds = 0.24,
+	GulpGrow = 0.14,
+	LaughAt = 1.22,
+	LaughDegrees = 6,
+	LaughHz = 7,
+	LaughJawDegrees = 9,
+	LaughSeconds = 1.4, -- how long her body shakes with it
+	-- The camera of each player at the table (Camera.setOverride): it snaps in over
+	-- CamInSeconds toward her face (CamDistanceRadii of her radius away, CamPitchDegrees above
+	-- level, aimed CamLookUpShare of her radius over her centre, from the side it looked from),
+	-- holds CamHoldSeconds and eases back over CamOutSeconds: about a second in all. A darker
+	-- grade comes and goes with it.
+	CamInSeconds = 0.14,
+	CamHoldSeconds = 0.6,
+	CamOutSeconds = 0.45,
+	CamDistanceRadii = 4.4,
+	CamPitchDegrees = 18,
+	CamLookUpShare = 0.25,
+	Grade = {
+		Saturation = -0.15,
+		Contrast = 0.25,
+		Brightness = -0.04,
+		TintColor = { 255, 210, 205 },
+	},
+	GradeInSeconds = 0.08,
+	GradeOutSeconds = 0.4,
+	-- The roll: she turns to her heading and leans RollLeanDegrees into it, bouncing
+	-- RollBobBallRadii and chomping (the jaw to RollChompDegrees) RollChompHz times a second,
+	-- dust every RollDustSeconds. A ball she eats on the way is pulled into her mouth over
+	-- BiteSeconds, the jaw opening to BiteDegrees and snapping shut (a zoom-in punch of
+	-- BitePunchDegrees for the players at the table). She hops HopBallRadii high over the 8
+	-- over HopSeconds (and sits that high over an 8 she could not shove while she ate).
+	RollLeanDegrees = 10,
+	RollBobBallRadii = 0.35,
+	RollChompHz = 4,
+	RollChompDegrees = 30,
+	RollDustSeconds = 0.1,
+	BiteSeconds = 0.2,
+	BiteDegrees = 65,
+	BitePunchDegrees = 4,
+	BitePunchSeconds = 0.25,
+	HopSeconds = 0.34,
+	HopBallRadii = 2.4,
+	BumpSparks = 8,
+	-- The end: she skids to a stop (SettleSeconds onto the cue ball's spot), burps BurpAfter
+	-- the landing (the jaw open BurpDegrees for BurpSeconds), and shrinks back into the smiley
+	-- ball from ShrinkAt over ShrinkSeconds.
+	SettleSeconds = 0.12,
+	BurpAfter = 0.25,
+	BurpDegrees = 40,
+	BurpSeconds = 0.45,
+	ShrinkAt = 0.9,
+	ShrinkSeconds = 0.28,
+	-- Speech bubbles over the ball (a billboard, studs): NOT THE 8! when she refuses the 8.
+	BubbleLiftBallRadii = 2.2,
 	BubbleWidthStuds = 2.6,
 	BubbleHeightStuds = 0.9,
 	BubblePopSeconds = 0.16,

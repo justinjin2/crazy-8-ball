@@ -8,11 +8,12 @@ Everything the 13 abilities ship with, and where it came from. Ids live in
 - **The scripted models** (the VFX meshes and the catch ball) were modelled by script in
   Blender 5.2 (`tools/blender/abilities/*.py`) for this game. The sources are the `.blend` and
   `.glb` files in each folder here.
-- **The two creatures of the rework are generated** (the project's own Meshy account, 2026-10-08):
-  Guangdong Tiger's tiger (Meshy image-to-3D from a reference made with `tools/openai_image.py`,
-  then rigged and animated in Blender: `GuangdongTiger/Readme.md`) and the Verity monster (Meshy
-  image-to-3D from the designer's reference, Meshy's auto-rig and library animation clips:
-  `Verity/Readme.md`). No download or library model was used.
+- **The rework's tiger is generated** (the project's own Meshy account, 2026-10-08): Guangdong
+  Tiger's tiger (Meshy image-to-3D from a reference made with `tools/openai_image.py`, then
+  rigged and animated in Blender: `GuangdongTiger/Readme.md`). The Verity monster made the same
+  way (`Verity/Readme.md`) left the game in the designer's second round; the evil Verity ball
+  that replaced it is modelled by script (`tools/blender/abilities/verity_evil.py`). No
+  download or library model was used.
 - **Every image** (the 13 icons, textures, flipbooks, screen overlays, the Verity ball, the
   golden spiral and the catch effects) was rendered or painted by those scripts. No
   third-party art.
@@ -75,10 +76,13 @@ the licensed backups are named beside each in `Config.Ults.Sounds`.
 | Catch-a-Ball | caught | pokeball catch (gamer712138, a fan upload) |
 | Catch-a-Ball | ding | Synth Sparkle Tone High Pitch Bell Tone Ding 1 (Pro Sound Effects) |
 | Catch-a-Ball | the 8 breaks free | Reversed Whoosh Backwards Hissing Burst 2 (Pro Sound Effects) |
-| Verity | giggle | Ghost Giggle Breathy Cu Creepy Possessed 10 (Pro Sound Effects) |
-| Verity | footsteps | Dinosaur Footsteps Boomy Thumps 16 (Pro Sound Effects) |
-| Verity | throw | Whoosh Heavy Punches 1 (Pro Sound Effects) |
-| Verity | kick | Foot Stomp 3 (Pro Sound Effects) |
+| Verity | swell (she turns evil) | Magic Transformation 6 (Pro Sound Effects) |
+| Verity | the first bite | Giant Bug Chomps 2 (Pro Sound Effects) |
+| Verity | a bite on the roll | Shark Bite Smaller Teeth Snaps 3 (Pro Sound Effects) |
+| Verity | gulp | Comic Gulp Swallow Ice Cube 1 (Pro Sound Effects) |
+| Verity | laugh | Laugh Evil Male Various Versions 1 (Pro Sound Effects) |
+| Verity | bump | Comic Tube Bounce 2 (Pro Sound Effects) |
+| Verity | burp | Big Burp Yuge 3 (Pro Sound Effects) |
 | Look Over There! | reveal | vine-boom-sound-effect (Johnrey2ndacc, a meme upload) |
 
 Library clips can be taken down by Roblox; if one stops loading, search the library for a

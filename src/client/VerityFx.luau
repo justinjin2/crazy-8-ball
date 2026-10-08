@@ -1,23 +1,29 @@
 --!strict
--- VerityFx: what Verity looks and sounds like (the abilities rework, designer 2026-10-08;
--- docs/prompts/ABILITIES_REWORK_PLAN.md 3). The throw, the run and the kicks are physics
--- (Ults/Effects/Verity); this only draws them, off the replay's events and its state, so
--- everyone at the table sees the same Verity. Numbers in Config.UI.VerityFx, sounds in
--- Config.Ults.Audio (Verity*), the monster in the uploaded Verity model (a skinned mesh, played
--- by BoneAnim from the baked VerityAnims), the smiley ball's map in Config.Ults.Assets.Images.
+-- VerityFx: what Verity looks and sounds like (the abilities rework; evil since the designer's
+-- second round, 2026-10-08: "should turn big and should see his big face like evil and eating
+-- it as this needs to be highly clippable content"). The eating, the roll and the bumps are
+-- physics (Ults/Effects/Verity); this only draws them, off the replay's events and its state,
+-- so everyone at the table sees the same Verity. Numbers in Config.UI.VerityFx, sounds in
+-- Config.Ults.Audio (Verity*), the evil ball in the uploaded Verity model
+-- (tools/blender/abilities/verity_evil.py: VerityTop and VerityEyes hinge on VerityBottom),
+-- the smiley ball's map in Config.Ults.Assets.Images.
 --
 --   * Armed: the cue ball is the yellow smiley Verity ball, its face turned to the camera,
 --     swaying; her line plays ("Hi, I'm Verity! Trust me, I know everything!").
---   * The contact ("grab"): the ball swells and bursts in a yellow puff and Verity unfolds out
---     of it, overshooting her height. She crouches, snatches the ball she hit into her right
---     hand (TRUST ME!) and hurls it off the table, spinning, a streak behind it.
---   * The run ("run"): she sprints along the shot's line, the cue ball her body, the clip
---     matched to her speed, dust at every step, the camera rumbling for the players. Each ball
---     she reaches is kicked ("kick"): a burst, and a yellow streak on one she sends at a pocket.
---   * The landing ("land"): she throws both arms up, then shrinks back into the cue ball.
---   * The refusal ("refuse", the 8 before it is yours): the ball shakes its head: NOT THE 8!
+--   * The first bite (the first "eat"): a red flash and the smiley turns evil. She swells to
+--     her body's size (Config.Ults.Verity.BodyRadiusInches), her angry face turned to each
+--     viewer's camera, which pushes in on it for about a second under a darker grade. The ball
+--     she hit pops up in front of her face, her jaws gape, suck it in and slam shut (a crunch,
+--     a shake, crumbs); she chews twice, gulps, and laughs, her eyes blazing.
+--   * The roll ("roll"): she turns to her heading and rolls on, bouncing and chomping. Each of
+--     yours she reaches ("eat") is pulled into her mouth with a snap and a gulp; any other ball
+--     she touches is bumped aside with a boing ("bump"); she hops over the 8 ("hop"). The
+--     balls she shoved as she swelled get a puff ("shove").
+--   * The landing ("land"): she skids onto the cue ball's spot, turns to the camera, burps,
+--     and shrinks back into the smiley ball.
+--   * The refusal ("refuse", the 8 before it is yours): the smiley shakes its head: NOT THE 8!
 -- Every table's parts hang off its AbilityFx anchor and go with it (kit.onRelease) or with
--- clear(). Without the model the ball still bursts and the thrown ball still flies.
+-- clear(). Without the model she is the smiley ball swollen up (no jaws); the rest still plays.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ContentProvider = game:GetService("ContentProvider")
@@ -27,8 +33,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Ults = Shared:WaitForChild("Ults")
 local Catalog = require(Ults:WaitForChild("Catalog"))
-local BoneAnim = require(script.Parent:WaitForChild("BoneAnim"))
-local VerityAnims = require(script.Parent:WaitForChild("VerityAnims"))
+local Camera = require(script.Parent:WaitForChild("Camera"))
 
 local F = Config.UI.VerityFx
 local V = Config.Ults.Verity
@@ -38,7 +43,11 @@ local COPY = Strings.Ults.Verity
 
 local EFFECT = "Verity"
 local MODEL = "Verity"
-local FPS = 24 -- the baked clips' frame rate
+local PIECES = { "VerityTop", "VerityBottom", "VerityEyes" }
+-- The pieces that turn with the upper jaw.
+local JAW = { VerityTop = true, VerityEyes = true }
+-- Her swollen body's radius over a ball's.
+local K = V.BodyRadiusInches / Config.Balls.RadiusInches
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
@@ -70,6 +79,11 @@ local function easeIn(u: number): number
 	return u * u
 end
 
+local function smooth(u: number): number
+	u = clamp01(u)
+	return u * u * (3 - 2 * u)
+end
+
 -- 0 -> 1 with an overshoot of `over` (a share) near the end.
 local function easeOutBack(u: number, over: number): number
 	u = clamp01(u)
@@ -87,16 +101,18 @@ local function flat(v: Vector3): Vector3?
 	return f.Unit
 end
 
-type Thrown = {
-	part: BasePart, -- a copy of the ball she grabbed
-	home: Vector3, -- where it sat (its centre)
-	rot: CFrame,
-	stage: string, -- "wait" (on the cloth), "held", "flying"
-	at: Vector3,
-	vel: Vector3,
-	spinAxis: Vector3,
-	flewAt: number, -- fx.clock at the release
-	trail: Trail?,
+-- `from` (flat, unit) turned about the vertical toward `to` by `share` of the angle between
+-- them: a vector lerp would stall when the two point opposite ways.
+local function turnToward(from: Vector3, to: Vector3, share: number): Vector3
+	local angle = math.atan2(from:Cross(to).Y, from:Dot(to))
+	return CFrame.fromAxisAngle(Vector3.yAxis, angle * clamp01(share)):VectorToWorldSpace(from).Unit
+end
+
+type Meshes = {
+	parts: { [string]: MeshPart },
+	offsets: { [string]: CFrame }, -- each piece's place from the ball's centre (unit radius)
+	sizes: { [string]: Vector3 }, -- unit radius
+	hinge: Vector3, -- the hinge pin from the ball's centre (unit radius)
 }
 
 type Bubble = {
@@ -108,23 +124,32 @@ type Bubble = {
 	follow: () -> Vector3?,
 }
 
-type Monster = {
-	model: Model?,
-	anim: BoneAnim.Player?,
-	born: number, -- fx.clock at the grab
-	grabT: number, -- the shot time of the grab
-	runT: number?, -- the shot time the run began
-	landAt: number?, -- fx.clock at the landing
-	target: Vector3, -- where the grabbed ball was (world, its centre)
-	pos: Vector3, -- her feet (world)
-	facing: Vector3, -- her flat facing (world, unit)
-	scale: number, -- the model's ScaleTo now
-	thrown: Thrown?,
-	steps: Sound?,
-	stepHolder: Attachment?,
-	nextStep: number, -- the shot time of the next footstep puff
-	quiet: boolean, -- an old event (a late join): no sounds
-	cheered: boolean,
+type Morsel = {
+	part: BasePart, -- a copy of a ball she eats
+	size: Vector3, -- its size
+	from: Vector3, -- where it sat (world centre)
+	rot: CFrame,
+	at: number, -- fx.clock it started
+	first: boolean, -- the first bite (popped up to her face), else snapped up on the roll
+}
+
+type Act = {
+	born: number, -- fx.clock at the first bite
+	quiet: boolean, -- an old event (a late join): no sounds, flashes or camera
+	body: { [string]: MeshPart }?, -- the evil ball's pieces
+	light: PointLight?, -- her eyes' light
+	pos: Vector3, -- her centre (world) now
+	facing: Vector3, -- her flat front (world, unit)
+	morsels: { Morsel },
+	rollAt: number?, -- fx.clock the roll began
+	landAt: number?, -- fx.clock she stopped
+	biteAt: number?, -- fx.clock of the last bite on the roll
+	hops: { number }, -- fx.clock of each hop
+	hover: boolean, -- an 8 under her while she ate: she sits up over it
+	done: { [string]: boolean }, -- the moments already played
+	nextDust: number, -- fx.clock of the next puff of dust on the roll
+	camFrom: CFrame?, -- this viewer's camera at the bite (it pushes in from there)
+	camClose: CFrame?,
 }
 
 type TableFx = {
@@ -134,7 +159,7 @@ type TableFx = {
 	rot: CFrame, -- the shell's turn while rolling
 	clock: number,
 	shotSeq: number,
-	monster: Monster?,
+	act: Act?,
 	refuseAt: number?, -- fx.clock at a refusal
 	faded: { [BasePart]: boolean },
 	bubbles: { Bubble },
@@ -145,11 +170,71 @@ export type VerityFx = {
 	kit: any,
 	tables: { [number]: TableFx },
 	consumed: { [number]: number },
-	nextModelCheck: number,
+	meshes: Meshes?,
+	meshesFailed: boolean,
+	nextMeshCheck: number,
+	camera: Act?, -- the act this viewer's camera is pushed in on
 }
 
 local VerityFx = {}
 VerityFx.__index = VerityFx
+
+-- The evil ball's pieces from the uploaded model, measured once: each piece's place and size
+-- for a ball of unit radius, and the hinge.
+local function meshesOf(self: VerityFx): Meshes?
+	if self.meshes or self.meshesFailed then
+		return self.meshes
+	end
+	local now = os.clock()
+	if now < self.nextMeshCheck then
+		return nil
+	end
+	self.nextMeshCheck = now + F.ModelCheckSeconds
+	local model = self.kit.models.tryGet(MODEL)
+	if model == nil then
+		return nil
+	end
+	local parts: { [string]: MeshPart } = {}
+	for _, name in PIECES do
+		local part = model:FindFirstChild(name, true)
+		if part == nil or not part:IsA("MeshPart") then
+			self.meshesFailed = true
+			warn(("[8ball] VerityFx: the %s model has no %s"):format(MODEL, name))
+			return nil
+		end
+		local mesh = part :: MeshPart
+		mesh.Anchored = true
+		mesh.CanCollide = false
+		mesh.CanQuery = false
+		mesh.CanTouch = false
+		mesh.Massless = true
+		mesh.CastShadow = name ~= "VerityEyes"
+		parts[name] = mesh
+	end
+	local eyes = parts.VerityEyes
+	eyes.Material = Enum.Material.Neon
+	eyes.TextureID = ""
+	eyes.Color = rgb(F.EvilColor)
+	-- The ball's centre: the middle of the two jaws' outer box.
+	local top, bottom = parts.VerityTop, parts.VerityBottom
+	local yTop = top.Position.Y + top.Size.Y / 2
+	local yBottom = bottom.Position.Y - bottom.Size.Y / 2
+	local radius = math.max((yTop - yBottom) / 2, 1e-3)
+	local centre = CFrame.new(bottom.Position.X, (yTop + yBottom) / 2, bottom.Position.Z)
+	local hingePart = model:FindFirstChild("J_Hinge", true)
+	local hinge = if hingePart and hingePart:IsA("BasePart")
+		then centre:PointToObjectSpace(hingePart.Position)
+		else Vector3.new(0, 0, radius)
+	local offsets: { [string]: CFrame } = {}
+	local sizes: { [string]: Vector3 } = {}
+	for name, part in parts do
+		local rel = centre:ToObjectSpace(part.CFrame)
+		offsets[name] = CFrame.new(rel.Position / radius) * rel.Rotation
+		sizes[name] = part.Size / radius
+	end
+	self.meshes = { parts = parts, offsets = offsets, sizes = sizes, hinge = hinge / radius }
+	return self.meshes
+end
 
 -- Make `part` see-through by `amount` (0 solid) without touching its Transparency, which
 -- BallRenderer owns; remembered so it is put back.
@@ -182,7 +267,7 @@ local function create(self: VerityFx, id: number): TableFx
 		rot = CFrame.identity,
 		clock = 0,
 		shotSeq = -1,
-		monster = nil,
+		act = nil,
 		refuseAt = nil,
 		faded = {},
 		bubbles = {},
@@ -202,7 +287,7 @@ local function playAt(self: VerityFx, id: number, clip: any, at: Vector3, opts: 
 	return sound
 end
 
--- A puff of yellow dust (or sparks) bursting from `at`.
+-- A puff of dust (or sparks, or crumbs) bursting from `at`.
 local function puff(
 	self: VerityFx,
 	id: number,
@@ -232,7 +317,7 @@ local function puff(
 		Lifetime = NumberRange.new(0.35, 0.6),
 		Rotation = NumberRange.new(0, 360),
 		RotSpeed = NumberRange.new(-120, 120),
-		LightEmission = 0.4,
+		LightEmission = 0.2,
 	})
 	e:Emit(count)
 	kit.later(id, 1.5, function()
@@ -339,23 +424,113 @@ local function newShell(fx: TableFx, cuePart: BasePart): BasePart?
 	return shell
 end
 
-local function dropThrown(t: Thrown?)
-	if t then
-		t.part:Destroy()
+-- The evil ball's pieces for one act (clones of the model's), hidden until placed.
+local function newBody(self: VerityFx, fx: TableFx): ({ [string]: MeshPart }?, PointLight?)
+	local meshes = meshesOf(self)
+	if meshes == nil then
+		return nil, nil
+	end
+	local body: { [string]: MeshPart } = {}
+	for _, name in PIECES do
+		local part = meshes.parts[name]:Clone()
+		part.Transparency = 1
+		part.Parent = fx.anchor
+		body[name] = part
+	end
+	local light = self.kit.light(body.VerityEyes, {
+		Color = rgb(F.EvilColor),
+		Brightness = F.EyeLight,
+		Range = ballRadius() * F.EyeLightBallRadii,
+	})
+	return body, light
+end
+
+-- Place the evil ball: its centre frame `frame` (front -Z), `radius` studs, the upper jaw
+-- open by `jaw` radians about the hinge.
+local function placeBody(
+	self: VerityFx,
+	body: { [string]: MeshPart },
+	frame: CFrame,
+	radius: number,
+	jaw: number
+)
+	local meshes = self.meshes
+	if meshes == nil then
+		return
+	end
+	local hinge = meshes.hinge * radius
+	for name, part in body do
+		local offset = meshes.offsets[name]
+		local local_ = CFrame.new(offset.Position * radius) * offset.Rotation
+		if JAW[name] then
+			-- The upper jaw turns about the hinge's X axis: its front rises.
+			local_ = CFrame.new(hinge)
+				* CFrame.Angles(jaw, 0, 0)
+				* CFrame.new(offset.Position * radius - hinge)
+				* offset.Rotation
+		end
+		part.Size = meshes.sizes[name] * radius
+		part.CFrame = frame * local_
+		part.Transparency = 0
 	end
 end
 
-local function dropMonster(mo: Monster?)
-	if mo == nil then
+-- Hand this viewer's camera back (from act `act`, or from whichever act has it).
+local function releaseCamera(self: VerityFx, act: Act?)
+	if self.camera ~= nil and (act == nil or self.camera == act) then
+		self.camera = nil
+		Camera.setOverride(nil)
+	end
+end
+
+-- The close view of her face: `radius` studs, her centre at `at`, from the side `from` looked.
+local function closeView(at: Vector3, radius: number, from: CFrame): CFrame
+	local toward = flat(from.Position - at) or Vector3.zAxis
+	local pitch = math.rad(F.CamPitchDegrees)
+	local focus = at + Vector3.yAxis * radius * F.CamLookUpShare
+	local eye = focus
+		+ (toward * math.cos(pitch) + Vector3.yAxis * math.sin(pitch))
+			* radius
+			* F.CamDistanceRadii
+	return CFrame.lookAt(eye, focus)
+end
+
+-- This viewer's camera, `u` seconds into the first bite: snapped in on her face, held, eased
+-- back.
+local function stepCamera(self: VerityFx, act: Act, u: number)
+	local from, close = act.camFrom, act.camClose
+	if self.camera ~= act or from == nil or close == nil then
 		return
 	end
-	if mo.model then
-		mo.model:Destroy()
+	if not Camera.isLocked() then
+		releaseCamera(self, act) -- the turn moved on
+		return
 	end
-	dropThrown(mo.thrown)
-	if mo.stepHolder then
-		mo.stepHolder:Destroy()
+	local inn = clamp01(u / F.CamInSeconds)
+	local out = clamp01((u - F.CamInSeconds - F.CamHoldSeconds) / F.CamOutSeconds)
+	local w = 1 - smooth(out)
+	if w <= 0 then
+		releaseCamera(self, act)
+		return
 	end
+	Camera.setOverride(from:Lerp(close, 1 - (1 - inn) ^ 3), w)
+end
+
+local function dropAct(self: VerityFx, act: Act?)
+	if act == nil then
+		return
+	end
+	releaseCamera(self, act)
+	if act.body then
+		for _, part in act.body do
+			part:Destroy()
+		end
+		act.body = nil
+	end
+	for _, mo in act.morsels do
+		mo.part:Destroy()
+	end
+	table.clear(act.morsels)
 end
 
 local function destroy(self: VerityFx, id: number)
@@ -365,7 +540,7 @@ local function destroy(self: VerityFx, id: number)
 	end
 	self.tables[id] = nil
 	unfadeAll(fx)
-	dropMonster(fx.monster)
+	dropAct(self, fx.act)
 	for _, b in fx.bubbles do
 		b.holder:Destroy()
 	end
@@ -374,354 +549,355 @@ local function destroy(self: VerityFx, id: number)
 	end
 end
 
--- Size the monster to `height` studs (Model:ScaleTo, the uploaded model one unit tall).
-local function scaleMonster(mo: Monster, height: number)
-	local model, anim = mo.model, mo.anim
-	if model == nil or anim == nil then
+-- A copy of ball `ball` (the replay has taken it off the table) to fly into her mouth.
+local function addMorsel(
+	self: VerityFx,
+	id: number,
+	fx: TableFx,
+	act: Act,
+	ball: number,
+	at: Vector3,
+	first: boolean
+)
+	local part = self.kit.ballPart(id, ball)
+	if part == nil then
 		return
 	end
-	height = math.max(height, 0.01)
-	if math.abs(height - mo.scale) <= mo.scale * 0.004 then
-		return
+	local copy = part:Clone()
+	for _, c in copy:GetChildren() do
+		c:Destroy()
 	end
-	mo.scale = height
-	model:ScaleTo(height)
-	anim:refit()
+	copy.Name = "VerityMorsel"
+	copy.Anchored = true
+	copy.CanCollide = false
+	copy.CanQuery = false
+	copy.CanTouch = false
+	copy.Transparency = 0
+	copy.LocalTransparencyModifier = 0
+	copy.CFrame = CFrame.new(at) * part.CFrame.Rotation
+	copy.Parent = fx.anchor
+	table.insert(act.morsels, {
+		part = copy,
+		size = part.Size,
+		from = at,
+		rot = part.CFrame.Rotation,
+		at = fx.clock,
+		first = first,
+	})
 end
 
--- Where the grabbed ball sits in her right hand now (world), or nil without the model.
-local function handPoint(mo: Monster): Vector3?
-	local anim = mo.anim
-	if anim == nil then
-		return nil
+-- The balls she is eating, `radius` studs her size now: the first pops up to hover in front of
+-- her face and is sucked in; one on the roll is pulled straight in. Each is gone at the snap.
+local function stepMorsels(act: Act, fx: TableFx, radius: number, dt: number)
+	local r = ballRadius()
+	local mouth = act.pos + act.facing * radius * 0.35 + Vector3.yAxis * radius * 0.12
+	local hover = act.pos
+		+ act.facing * (radius + r * F.HoverOutBallRadii)
+		+ Vector3.yAxis * radius * F.HoverUpShare
+	local keep = {}
+	for _, mo in act.morsels do
+		local t = fx.clock - mo.at
+		local pos: Vector3? = nil
+		local shrink = 0
+		if mo.first then
+			if t < F.PopSeconds then
+				local p = easeOut(t / F.PopSeconds)
+				pos = mo.from:Lerp(hover, p)
+					+ Vector3.yAxis * r * F.PopArcBallRadii * math.sin(p * math.pi)
+			elseif t < F.SuckAt then
+				pos = hover + Vector3.yAxis * r * 0.15 * math.sin((t - F.PopSeconds) * 20)
+			elseif t < F.ChompAt then
+				local p = easeIn((t - F.SuckAt) / (F.ChompAt - F.SuckAt))
+				pos = hover:Lerp(mouth, p)
+				shrink = 0.3 * p
+			end
+		else
+			local p = t / (F.BiteSeconds * 0.6)
+			if p < 1 then
+				pos = mo.from:Lerp(mouth, easeIn(p))
+				shrink = 0.3 * p
+			end
+		end
+		if pos == nil then
+			mo.part:Destroy()
+			continue
+		end
+		mo.rot = CFrame.fromAxisAngle(Vector3.new(1, 0.4, 0.2).Unit, 9 * dt) * mo.rot
+		mo.part.Size = mo.size * (1 - shrink)
+		mo.part.CFrame = CFrame.new(pos) * mo.rot
+		table.insert(keep, mo)
 	end
-	local hand = anim:worldOf("RightHand")
-	local arm = anim:worldOf("RightForeArm")
-	if hand == nil or arm == nil then
-		return nil
-	end
-	local along = hand.Position - arm.Position
-	local out = if along.Magnitude > 1e-4 then along.Unit else Vector3.yAxis
-	return hand.Position + out * ballRadius() * F.HandBallRadii
+	act.morsels = keep
 end
 
--- The grab: Verity unfolds out of the ball.
-local function startMonster(self: VerityFx, id: number, fx: TableFx, m: any, ev: any)
+-- The first bite: the smiley turns evil and swells over the ball it hit.
+local function startAct(self: VerityFx, id: number, fx: TableFx, m: any, ev: any)
 	local kit = self.kit
 	local cue = kit.ballOf(m, 0)
 	if cue == nil then
 		return
 	end
-	dropMonster(fx.monster)
+	dropAct(self, fx.act)
 	local r = ballRadius()
-	local centre = kit.ballWorld(m, cue)
-	local feet = centre - Vector3.yAxis * r
-	local target = kit.tableWorld(m, ev.x or cue.x, ev.y or cue.y, Config.Balls.RenderRadiusInches)
 	local quiet = m.state.time - ev.t > F.FreshSeconds
-	local facing = flat(target - feet) or Vector3.new(0, 0, -1)
-	local mo: Monster = {
-		model = nil,
-		anim = nil,
+	local centre = kit.ballWorld(m, cue)
+	local target = kit.tableWorld(m, ev.x or cue.x, ev.y or cue.y, Config.Balls.RenderRadiusInches)
+	local body, light = newBody(self, fx)
+	local act: Act = {
 		born = fx.clock,
-		grabT = ev.t,
-		runT = nil,
-		landAt = nil,
-		target = target,
-		pos = feet,
-		facing = facing,
-		scale = 1,
-		thrown = nil,
-		steps = nil,
-		stepHolder = nil,
-		nextStep = 0,
 		quiet = quiet,
-		cheered = false,
+		body = body,
+		light = light,
+		pos = centre,
+		facing = flat(target - centre) or Vector3.new(0, 0, -1),
+		morsels = {},
+		rollAt = nil,
+		landAt = nil,
+		biteAt = nil,
+		hops = {},
+		hover = false,
+		done = {},
+		nextDust = 0,
+		camFrom = nil,
+		camClose = nil,
 	}
-	local model = kit.models.tryGet(MODEL)
-	if model and model:IsA("Model") then
-		for _, d in model:GetDescendants() do
-			if d:IsA("BasePart") then
-				d.Anchored = true
-				d.CanCollide = false
-				d.CanQuery = false
-				d.CanTouch = false
-				d.CastShadow = true
-			elseif d:IsA("AnimationController") then
-				d:Destroy() -- BoneAnim drives the bones
-			end
-		end
-		model.Parent = fx.anchor
-		local anim = BoneAnim.new(model, VerityAnims :: any)
-		if anim then
-			mo.model = model
-			mo.anim = anim
-		else
-			model:Destroy()
-		end
+	fx.act = act
+	addMorsel(self, id, fx, act, ev.ball, target, true)
+	kit.keep(id, V.EatShotSeconds + 3)
+	if quiet then
+		return
 	end
-	-- The ball she grabbed: a copy where it sat (the replay has taken it off the table).
-	local part = kit.ballPart(id, ev.ball)
-	if part then
-		local copy = part:Clone()
-		for _, c in copy:GetChildren() do
-			c:Destroy()
-		end
-		copy.Name = "VerityThrown"
-		copy.Anchored = true
-		copy.CanCollide = false
-		copy.CanQuery = false
-		copy.CanTouch = false
-		copy.Transparency = 0
-		copy.LocalTransparencyModifier = 0
-		copy.CFrame = CFrame.new(target) * part.CFrame.Rotation
-		copy.Parent = fx.anchor
-		mo.thrown = {
-			part = copy,
-			home = target,
-			rot = part.CFrame.Rotation,
-			stage = "wait",
-			at = target,
-			vel = Vector3.zero,
-			spinAxis = Vector3.xAxis,
-			flewAt = 0,
-			trail = nil,
-		}
+	kit.burstLight(centre, rgb(F.EvilColor), r * 16, F.FlashBrightness, F.FlashSeconds)
+	puff(self, id, centre, F.PuffParticles, 2.4, 12, rgb(F.PuffColor))
+	playAt(self, id, A.VeritySwell, centre)
+	if not kit.screen.involved(self.hub, id) then
+		return
 	end
-	fx.monster = mo
-	kit.keep(id, V.GrabShotSeconds + 4)
-	if not quiet then
-		local yellow = rgb(F.FaceColor)
-		kit.burstLight(centre, yellow, r * 16, F.FlashBrightness, F.FlashSeconds)
-		puff(self, id, centre, F.PuffParticles, 2.2, 14, yellow)
-		playAt(self, id, A.VerityGiggle, centre)
-		if kit.screen.involved(self.hub, id) then
-			kit.screen.fovPunch(id, -F.PunchDegrees, F.PunchSeconds)
-		end
-		bubble(self, id, fx, COPY.TrustMe, function(): Vector3?
-			local live = fx.monster
-			local anim = live and live.anim
-			local head = anim and anim:worldOf("Head")
-			if head then
-				return head.Position + Vector3.yAxis * r * F.BubbleLiftBallRadii
-			end
-			return if live then live.pos + Vector3.yAxis * r * (F.HeightBallRadii + 2) else nil
-		end)
+	kit.screen.grade(
+		id,
+		F.Grade,
+		F.GradeInSeconds,
+		F.CamInSeconds + F.CamHoldSeconds,
+		F.GradeOutSeconds
+	)
+	-- The camera pushes in on her face (where she will stand at full size).
+	local camera = workspace.CurrentCamera
+	if camera and Camera.isLocked() then
+		releaseCamera(self, nil)
+		local geo = m.state.geometry
+		local spanX = math.max(geo.halfLength - V.BodyRadiusInches, 0)
+		local spanY = math.max(geo.halfWidth - V.BodyRadiusInches, 0)
+		local full = kit.tableWorld(
+			m,
+			math.clamp(cue.x, -spanX, spanX),
+			math.clamp(cue.y, -spanY, spanY),
+			Config.Balls.RenderRadiusInches * K
+		)
+		act.camFrom = camera.CFrame
+		act.camClose = closeView(full, r * K, camera.CFrame)
+		self.camera = act
 	end
 end
 
--- The ball she grabbed: on the cloth, into her hand, then hurled away. `frame` is the
--- PickThrow frame now (nil once the grab is over).
-local function stepThrown(
+-- Her whole act for this frame. Returns false once she has shrunk back into the ball.
+local function stepAct(
 	self: VerityFx,
 	id: number,
 	fx: TableFx,
-	mo: Monster,
-	frame: number?,
-	dt: number
-)
-	local t = mo.thrown
-	if t == nil then
-		return
-	end
-	local r = ballRadius()
-	if t.stage ~= "flying" then
-		local f = frame or F.GrabToFrame
-		local hand = handPoint(mo)
-		if f >= F.ReleaseFrame or hand == nil then
-			-- Let go: along her facing and up, spinning.
-			t.stage = "flying"
-			t.flewAt = fx.clock
-			t.at = t.part.Position
-			t.vel = mo.facing * F.ThrowForwardStuds + Vector3.yAxis * F.ThrowUpStuds
-			local side = Vector3.new(0, 1, 0):Cross(mo.facing)
-			t.spinAxis = if side.Magnitude > 1e-4 then side.Unit else Vector3.xAxis
-			local a0 = Instance.new("Attachment")
-			a0.Position = Vector3.new(0, r * 0.7, 0)
-			a0.Parent = t.part
-			local a1 = Instance.new("Attachment")
-			a1.Position = Vector3.new(0, -r * 0.7, 0)
-			a1.Parent = t.part
-			local trail = Instance.new("Trail")
-			trail.Attachment0 = a0
-			trail.Attachment1 = a1
-			trail.Lifetime = F.TrailSeconds
-			trail.LightEmission = 1
-			trail.FaceCamera = true
-			trail.Color = ColorSequence.new(Color3.new(1, 1, 1), rgb(F.FaceColor))
-			trail.Transparency = NumberSequence.new(0.2, 1)
-			trail.WidthScale = NumberSequence.new(1, 0)
-			trail.Parent = t.part
-			t.trail = trail
-			if not mo.quiet then
-				playAt(self, id, A.VerityThrow, t.at)
-			end
-		elseif f >= F.PickFrame then
-			t.stage = "held"
-			t.at = hand
-			t.part.CFrame = CFrame.new(hand) * t.rot
-			return
-		elseif f >= F.PickFrame - F.PickSlideFrames then
-			-- Snatched: it slides up into her palm.
-			local u = (f - (F.PickFrame - F.PickSlideFrames)) / F.PickSlideFrames
-			t.at = t.home:Lerp(hand, easeIn(u))
-			t.part.CFrame = CFrame.new(t.at) * t.rot
-			return
-		else
-			t.part.CFrame = CFrame.new(t.home) * t.rot
-			return
-		end
-	end
-	-- Flying.
-	local age = fx.clock - t.flewAt
-	if age >= F.ThrowSeconds then
-		dropThrown(t)
-		mo.thrown = nil
-		return
-	end
-	t.vel -= Vector3.yAxis * F.ThrowGravityStuds * dt
-	t.at += t.vel * dt
-	t.rot = CFrame.fromAxisAngle(t.spinAxis, math.rad(F.ThrowSpinDegrees) * dt) * t.rot
-	t.part.CFrame = CFrame.new(t.at) * t.rot
-	t.part.Transparency = easeIn(clamp01((age - (F.ThrowSeconds - 0.3)) / 0.3))
-end
-
--- Verity's whole act for this frame. Returns false once she has shrunk back into the ball.
-local function stepMonster(
-	self: VerityFx,
-	id: number,
-	fx: TableFx,
-	mo: Monster,
+	act: Act,
 	m: any,
 	cuePart: BasePart?,
 	dt: number
 ): boolean
 	local kit = self.kit
 	local r = ballRadius()
-	local height = r * F.HeightBallRadii
-	local t = m.state.time -- the shot time now (the replay's)
-	local since = fx.clock - mo.born
-	-- Her size: grown out of the ball (overshooting), shrunk back in at the end.
+	local u = fx.clock - act.born
+	local small = 1 / K
+	local landAt = act.landAt
+	-- Her size: swollen out of the ball (overshooting), a gulp's bulge, shrunk back at the end.
 	local grow = 1
-	if since < F.GrowSeconds then
-		grow = F.GrowFrom + (1 - F.GrowFrom) * easeOutBack(since / F.GrowSeconds, F.GrowOvershoot)
+	if u < F.GrowSeconds then
+		grow = small + (1 - small) * easeOutBack(u / F.GrowSeconds, F.GrowOvershoot)
 	end
-	local cheerSeconds = (F.CheerToFrame - F.CheerFromFrame) / FPS / F.CheerSpeed
-	local shrinkFrom = cheerSeconds + F.CheerHoldSeconds
-	if mo.landAt then
-		local after = fx.clock - mo.landAt
-		if after >= shrinkFrom + F.ShrinkSeconds then
-			if not mo.quiet then
-				puff(
-					self,
-					id,
-					mo.pos + Vector3.yAxis * r,
-					F.PuffParticles // 2,
-					1.6,
-					9,
-					rgb(F.FaceColor)
-				)
+	local gulp = (u - F.GulpAt) / F.GulpSeconds
+	if gulp > 0 and gulp < 1 then
+		grow *= 1 + F.GulpGrow * math.sin(gulp * math.pi)
+	end
+	if landAt then
+		local after = fx.clock - landAt
+		if after >= F.ShrinkAt + F.ShrinkSeconds then
+			if not act.quiet then
+				puff(self, id, act.pos, F.PuffParticles // 2, 1.6, 8, rgb(F.FaceColor))
 			end
 			return false
-		elseif after >= shrinkFrom then
-			grow = 1 - 0.95 * easeIn((after - shrinkFrom) / F.ShrinkSeconds)
+		elseif after >= F.ShrinkAt then
+			grow *= 1 - (1 - small) * easeIn((after - F.ShrinkAt) / F.ShrinkSeconds)
 		end
 	end
-	scaleMonster(mo, height * grow)
+	local radius = r * K * grow
 	fade(fx, cuePart, 1)
-	-- The shell pops: it swells and fades as she comes out.
-	local shell = fx.shell
-	if shell then
-		local u = since / F.PopSeconds
-		if u < 1 and cuePart then
-			shell.Size = cuePart.Size * F.ShellScale * (1 + (F.PopGrow - 1) * easeOut(u))
-			shell.Transparency = easeIn(u)
-			shell.CFrame = CFrame.new(cuePart.Position) * fx.rot
-		else
-			shell.Transparency = 1
+	-- Up off the cloth: over a hop, sitting up over an 8 she could not shove, bouncing on the
+	-- roll (in ball radii).
+	local lift = 0
+	for _, at in act.hops do
+		local h = (fx.clock - at) / F.HopSeconds
+		if h > 0 and h < 1 then
+			lift = math.max(lift, F.HopBallRadii * 4 * h * (1 - h))
 		end
 	end
-	-- Her feet: under the cue ball (her body), slid onto the landing spot.
+	if act.hover then
+		local rollAt = act.rollAt
+		local left = if rollAt then 1 - clamp01((fx.clock - rollAt) / F.HopSeconds) else 1
+		lift = math.max(lift, F.HopBallRadii * left)
+	end
+	local rollAt = act.rollAt
+	if rollAt and landAt == nil then
+		lift += F.RollBobBallRadii * math.abs(
+			math.sin(math.pi * F.RollChompHz * (fx.clock - rollAt))
+		)
+	end
+	-- Where: over the cue ball (her body), her body kept inside the cushions, on the cloth.
 	local cue = kit.ballOf(m, 0)
 	if cue and not cue.pocketed then
-		local want = kit.ballWorld(m, cue) - Vector3.yAxis * r
-		if mo.landAt then
-			mo.pos = mo.pos:Lerp(want, clamp01(dt / F.SettleSeconds))
-		else
-			mo.pos = want
+		local geo = m.state.geometry
+		local spanX = math.max(geo.halfLength - V.BodyRadiusInches * grow, 0)
+		local spanY = math.max(geo.halfWidth - V.BodyRadiusInches * grow, 0)
+		local ri = Config.Balls.RenderRadiusInches
+		local want = kit.tableWorld(
+			m,
+			math.clamp(cue.x, -spanX, spanX),
+			math.clamp(cue.y, -spanY, spanY),
+			ri * K * grow + ri * lift
+		)
+		act.pos = if landAt then act.pos:Lerp(want, clamp01(dt / F.SettleSeconds)) else want
+	end
+	-- Her face: the camera while she eats and at the end, her heading while she rolls.
+	local wantFace: Vector3? = nil
+	if rollAt == nil or landAt then
+		local camera = workspace.CurrentCamera
+		wantFace = if camera then flat(camera.CFrame.Position - act.pos) else nil
+	elseif cue then
+		local run = m.state.fx and m.state.fx.verity
+		if type(run) == "table" then
+			local here = kit.tableWorld(m, cue.x, cue.y, 0)
+			wantFace = flat(kit.tableWorld(m, cue.x + run.hx, cue.y + run.hy, 0) - here)
 		end
 	end
-	-- Her facing: the ball she grabbed, then the run's heading.
-	local wantFacing: Vector3? = nil
-	local run = m.state.fx and m.state.fx.verity
-	if mo.runT and type(run) == "table" and cue then
-		local here = kit.tableWorld(m, cue.x, cue.y, 0)
-		wantFacing = flat(kit.tableWorld(m, cue.x + run.hx, cue.y + run.hy, 0) - here)
-	elseif mo.runT == nil then
-		wantFacing = flat(mo.target - mo.pos)
+	if wantFace then
+		act.facing = turnToward(act.facing, wantFace, dt / F.FaceSeconds)
 	end
-	if wantFacing then
-		local turned = mo.facing:Lerp(wantFacing, clamp01(dt / F.TurnSeconds))
-		mo.facing = if turned.Magnitude > 1e-4 then turned.Unit else wantFacing
-	end
-	local anim = mo.anim
-	if anim then
-		anim:place(CFrame.lookAt(mo.pos, mo.pos + mo.facing))
-	end
-	-- Her pose.
-	local stride = math.max(F.StrideHeights * height, 1e-3)
-	local speed = V.RunSpeed * Config.Table.StudsPerInch -- studs a shot second
-	local sprintLength = if anim then anim:length("Sprint") else 1
-	local function sprintAt(shotT: number): number
-		return math.max(shotT - (mo.runT or shotT), 0) * speed / stride * sprintLength
-	end
-	local frame: number? = nil
-	if mo.landAt then
-		local after = fx.clock - mo.landAt
-		local f = F.CheerFromFrame
-			+ math.min(after * FPS * F.CheerSpeed, F.CheerToFrame - F.CheerFromFrame)
-		if anim then
-			anim:pose("Sprint", sprintAt(t), "Cheer", f / FPS, clamp01(after / F.BlendSeconds))
+	-- Her jaw (degrees).
+	local jaw = F.GrinDegrees
+	if rollAt == nil then
+		local chewFrom = F.ChompAt + F.SnapSeconds
+		if u >= F.GapeAt and u < F.ChompAt then
+			jaw = F.GrinDegrees
+				+ (F.GapeDegrees - F.GrinDegrees) * easeOut((u - F.GapeAt) / F.GapeSeconds)
+		elseif u >= F.ChompAt and u < chewFrom then
+			jaw = F.GapeDegrees * (1 - easeIn((u - F.ChompAt) / F.SnapSeconds))
+		elseif u >= chewFrom and u < F.GulpAt + F.GulpSeconds then
+			local c = (u - chewFrom) / F.ChewSeconds
+			jaw = if c < F.Chews then F.ChewDegrees * math.sin(math.pi * (c % 1)) else 0
+		elseif u >= F.LaughAt then
+			jaw = F.GrinDegrees
+				+ F.LaughJawDegrees
+					* math.abs(math.sin(2 * math.pi * F.LaughHz * (u - F.LaughAt)))
 		end
-	elseif mo.runT then
-		local into = math.max(t - mo.runT, 0)
-		if anim then
-			anim:pose(
-				"PickThrow",
-				F.GrabToFrame / FPS,
-				"Sprint",
-				sprintAt(t),
-				clamp01(into / F.BlendSeconds)
-			)
-		end
-		-- Footsteps: a puff and a rumble every StepSeconds.
-		if t >= mo.nextStep then
-			mo.nextStep = t + F.StepSeconds
-			if not mo.quiet then
-				puff(
-					self,
-					id,
-					mo.pos + Vector3.yAxis * r * 0.3,
-					F.StepDust,
-					1.2,
-					4,
-					Color3.fromRGB(235, 225, 200)
-				)
-				if kit.screen.involved(self.hub, id) then
-					kit.screen.shake(id, F.ShakeStuds, F.StepSeconds * 1.6)
-				end
+	elseif landAt == nil then
+		jaw = F.RollChompDegrees * math.abs(math.sin(math.pi * F.RollChompHz * (fx.clock - rollAt)))
+		local biteAt = act.biteAt
+		if biteAt then
+			local b = (fx.clock - biteAt) / F.BiteSeconds
+			if b >= 0 and b < 1 then
+				jaw = if b < 0.6
+					then F.BiteDegrees * easeOut(b / 0.6)
+					else F.BiteDegrees * (1 - easeIn((b - 0.6) / 0.4))
 			end
 		end
-		if mo.stepHolder then
-			mo.stepHolder.WorldPosition = mo.pos
-		end
 	else
-		local u = clamp01((t - mo.grabT) / V.GrabShotSeconds)
-		frame = F.GrabFromFrame + (F.GrabToFrame - F.GrabFromFrame) * u
-		if anim then
-			anim:pose("PickThrow", (frame :: number) / FPS)
+		local burp = (fx.clock - landAt - F.BurpAfter) / F.BurpSeconds
+		if burp >= 0 and burp < 1 then
+			jaw = F.GrinDegrees + (F.BurpDegrees - F.GrinDegrees) * math.sin(math.pi * burp)
 		end
 	end
-	stepThrown(self, id, fx, mo, frame, dt)
+	-- Her lean into the roll, and the laugh's shake.
+	local tilt = CFrame.identity
+	if rollAt and landAt == nil then
+		local lean = clamp01((fx.clock - rollAt) / F.FaceSeconds)
+		tilt = CFrame.Angles(-math.rad(F.RollLeanDegrees) * lean, 0, 0)
+	end
+	local laugh = (u - F.LaughAt) / F.LaughSeconds
+	local blaze = 0
+	if laugh > 0 and laugh < 1 then
+		local shake = math.sin(2 * math.pi * F.LaughHz * (u - F.LaughAt)) * (1 - laugh)
+		tilt *= CFrame.Angles(0, 0, math.rad(F.LaughDegrees) * shake)
+		blaze = math.sin(math.pi * laugh)
+	end
+	local frame = CFrame.lookAt(act.pos, act.pos + act.facing) * tilt
+	if act.body then
+		placeBody(self, act.body, frame, radius, math.rad(jaw))
+	elseif cuePart then
+		-- No model: the smiley swollen up.
+		fx.shell = fx.shell or newShell(fx, cuePart)
+		local shell = fx.shell
+		if shell then
+			shell.Size = cuePart.Size * F.ShellScale * (radius / r)
+			shell.CFrame = frame
+			shell.Transparency = 0
+		end
+	end
+	if act.light then
+		act.light.Brightness = F.EyeLight + (F.EyeBlaze - F.EyeLight) * blaze
+	end
+	stepMorsels(act, fx, radius, dt)
+	stepCamera(self, act, u)
+	-- The moments' sounds and bursts, each once.
+	local function moment(name: string, at: number): boolean
+		if act.done[name] or u < at then
+			return false
+		end
+		act.done[name] = true
+		return not act.quiet
+	end
+	if moment("chomp", F.ChompAt) then
+		playAt(self, id, A.VerityChomp, act.pos)
+		puff(
+			self,
+			id,
+			act.pos + act.facing * radius * 0.7,
+			F.Crumbs,
+			0.45,
+			9,
+			Color3.fromRGB(250, 245, 230)
+		)
+		if kit.screen.involved(self.hub, id) then
+			kit.screen.shake(id, F.ChompShakeStuds, 0.25)
+		end
+	end
+	if moment("gulp", F.GulpAt) then
+		playAt(self, id, A.VerityGulp, act.pos)
+	end
+	if moment("laugh", F.LaughAt) then
+		playAt(self, id, A.VerityLaugh, act.pos)
+	end
+	if landAt and moment("burp", landAt - act.born + F.BurpAfter) then
+		playAt(self, id, A.VerityBurp, act.pos)
+	end
+	-- Dust off the cloth while she rolls.
+	if rollAt and landAt == nil and fx.clock >= act.nextDust then
+		act.nextDust = fx.clock + F.RollDustSeconds
+		if not act.quiet then
+			puff(
+				self,
+				id,
+				act.pos - Vector3.yAxis * radius * 0.85,
+				2,
+				1.1,
+				3,
+				Color3.fromRGB(235, 225, 200)
+			)
+		end
+	end
 	return true
 end
 
@@ -733,80 +909,53 @@ local function onEvent(self: VerityFx, id: number, fx: TableFx, m: any, ev: any)
 	local kit = self.kit
 	local quiet = m.state.time - ev.t > F.FreshSeconds
 	local r = ballRadius()
-	if ev.kind == "grab" then
-		startMonster(self, id, fx, m, ev)
-	elseif ev.kind == "run" then
-		local mo = fx.monster
-		if mo == nil then
+	local act = fx.act
+	if ev.kind == "eat" then
+		if ev.other == 1 or act == nil then
+			startAct(self, id, fx, m, ev)
 			return
 		end
-		mo.runT = ev.t
-		mo.nextStep = ev.t
-		if not quiet then
-			local holder = kit.attachment(id, "VeritySteps", mo.pos)
-			mo.stepHolder = holder
-			mo.steps = kit.sound.library(A.VeritySteps, holder, { looped = true })
+		local at = kit.tableWorld(m, ev.x or 0, ev.y or 0, Config.Balls.RenderRadiusInches)
+		addMorsel(self, id, fx, act, ev.ball, at, false)
+		act.biteAt = fx.clock
+		if quiet then
+			return
 		end
-	elseif ev.kind == "kick" then
+		playAt(self, id, A.VeritySnap, at)
+		kit.later(id, F.BiteSeconds, function()
+			playAt(self, id, A.VerityGulp, at, { pitch = 1.25, volume = 0.7 })
+		end)
+		if kit.screen.involved(self.hub, id) then
+			kit.screen.fovPunch(id, -F.BitePunchDegrees, F.BitePunchSeconds)
+		end
+	elseif ev.kind == "roll" then
+		if act then
+			act.rollAt = fx.clock
+			act.nextDust = fx.clock
+		end
+	elseif ev.kind == "bump" or ev.kind == "shove" then
 		if quiet then
 			return
 		end
 		local at = kit.tableWorld(m, ev.x or 0, ev.y or 0, Config.Balls.RenderRadiusInches)
-		local aimed = ev.value == 1
-		puff(
-			self,
-			id,
-			at,
-			F.KickSparks,
-			0.9,
-			10,
-			if aimed then rgb(F.FaceColor) else Color3.new(1, 1, 1)
-		)
-		playAt(self, id, A.VerityKick, at)
-		local part = kit.ballPart(id, ev.ball)
-		if aimed and part then
-			local a0 = Instance.new("Attachment")
-			a0.Position = Vector3.new(0, r * 0.6, 0)
-			local a1 = Instance.new("Attachment")
-			a1.Position = Vector3.new(0, -r * 0.6, 0)
-			local trail = Instance.new("Trail")
-			trail.Attachment0 = a0
-			trail.Attachment1 = a1
-			trail.Lifetime = 0.3
-			trail.LightEmission = 1
-			trail.FaceCamera = true
-			trail.Color = ColorSequence.new(rgb(F.FaceColor))
-			trail.Transparency = NumberSequence.new(0.25, 1)
-			trail.WidthScale = NumberSequence.new(1, 0)
-			a0.Parent = part
-			a1.Parent = part
-			trail.Parent = part
-			kit.later(id, F.KickTrailSeconds, function()
-				trail:Destroy()
-				a0:Destroy()
-				a1:Destroy()
-			end)
+		if ev.kind == "bump" then
+			puff(self, id, at, F.BumpSparks, 0.8, 9, Color3.new(1, 1, 1))
+			playAt(self, id, A.VerityBonk, at)
+		else
+			puff(self, id, at, 3, 0.9, 4, Color3.fromRGB(235, 225, 200))
+		end
+	elseif ev.kind == "hop" then
+		if act then
+			if act.rollAt == nil then
+				act.hover = true
+			else
+				table.insert(act.hops, fx.clock)
+			end
 		end
 	elseif ev.kind == "land" then
-		local mo = fx.monster
-		if mo == nil then
-			return
-		end
-		mo.landAt = fx.clock
-		if mo.steps then
-			mo.steps:Destroy()
-			mo.steps = nil
-		end
-		local cheerSeconds = (F.CheerToFrame - F.CheerFromFrame) / FPS / F.CheerSpeed
-		kit.keep(id, cheerSeconds + F.CheerHoldSeconds + F.ShrinkSeconds + 0.5)
-		if not quiet then
-			playAt(
-				self,
-				id,
-				A.VerityGiggle,
-				mo.pos + Vector3.yAxis * r * 4,
-				{ volume = 0.7, pitch = 1.1 }
-			)
+		if act then
+			act.landAt = fx.clock
+			kit.keep(id, F.ShrinkAt + F.ShrinkSeconds + 0.5)
 		end
 	elseif ev.kind == "refuse" then
 		fx.refuseAt = fx.clock
@@ -815,7 +964,7 @@ local function onEvent(self: VerityFx, id: number, fx: TableFx, m: any, ev: any)
 			local at = if cue
 				then kit.ballWorld(m, cue)
 				else kit.tableWorld(m, ev.x or 0, ev.y or 0, 0)
-			playAt(self, id, A.VerityGiggle, at, { volume = 0.6, pitch = 0.75 })
+			playAt(self, id, A.VerityGulp, at, { volume = 0.5, pitch = 0.8 })
 			bubble(self, id, fx, COPY.NotThe8, function(): Vector3?
 				local part = kit.ballPart(id, 0)
 				return if part
@@ -833,12 +982,16 @@ function VerityFx.start(hub: any, _parent: Instance, kit: any): VerityFx
 		kit = kit,
 		tables = {},
 		consumed = {},
-		nextModelCheck = 0,
+		meshes = nil,
+		meshesFailed = false,
+		nextMeshCheck = 0,
+		camera = nil,
 	}, VerityFx) :: any
 	kit.onRelease(function(tableId: number)
 		local fx = self.tables[tableId]
 		if fx then
 			unfadeAll(fx) -- the balls are not under the anchor: put them back
+			releaseCamera(self, fx.act)
 		end
 		self.tables[tableId] = nil -- its parts went with the anchor
 	end)
@@ -854,7 +1007,18 @@ function VerityFx.start(hub: any, _parent: Instance, kit: any): VerityFx
 	end)
 	task.spawn(function()
 		local list: { Instance } = {}
-		for _, clip in { A.VerityLine, A.VerityGiggle, A.VeritySteps, A.VerityThrow, A.VerityKick } do
+		for _, clip in
+			{
+				A.VerityLine,
+				A.VeritySwell,
+				A.VerityChomp,
+				A.VeritySnap,
+				A.VerityGulp,
+				A.VerityLaugh,
+				A.VerityBonk,
+				A.VerityBurp,
+			}
+		do
 			local sound = Instance.new("Sound")
 			sound.SoundId = clip.Id
 			table.insert(list, sound)
@@ -884,12 +1048,11 @@ function VerityFx.arming(self: VerityFx, tableId: number, armed: any)
 		return
 	end
 	local fx = self.tables[tableId] or create(self, tableId)
-	-- Parse her clips now, off the moment she appears.
-	task.defer(BoneAnim.prepare, VerityAnims :: any)
+	meshesOf(self) -- measured now, off the moment she turns
 	local at = self.kit.ballWorld(m, cue)
 	playAt(self, tableId, A.VerityLine, at)
 	puff(self, tableId, at, F.ArmSparks, 0.9, 6, rgb(F.FaceColor))
-	self.kit.burstLight(at, rgb(F.FaceColor), ballRadius() * 10, F.FlashBrightness * 0.6, 0.3)
+	self.kit.burstLight(at, rgb(F.FaceColor), ballRadius() * 10, F.FlashBrightness * 0.5, 0.3)
 	fx.look = 0
 end
 
@@ -925,34 +1088,37 @@ function VerityFx.update(self: VerityFx, dt: number)
 			fx = create(self, id)
 		end
 		local live = fx :: TableFx
+		-- At the developer's /slowmo (m.timeScale); stopped with the replay by their /hold (a
+		-- still to capture).
+		local held = m.holdAt ~= nil and m.state.time >= m.holdAt
 		local scale = if type(m.timeScale) == "number" then m.timeScale else 1
-		local step = dt * scale
+		local step = if held then 0 else dt * scale
 		live.clock += step
 		stepBubbles(live)
 		local part = kit.ballPart(id, 0)
 		if shot and live.shotSeq ~= m.seq then
 			live.shotSeq = m.seq
-			dropMonster(live.monster)
-			live.monster = nil
+			dropAct(self, live.act)
+			live.act = nil
 			live.refuseAt = nil
-		elseif not shot and live.monster and live.monster.landAt == nil then
+		elseif not shot and live.act and live.act.landAt == nil then
 			-- A new shot (or the match moved on) before she finished: gone at once.
-			dropMonster(live.monster)
-			live.monster = nil
+			dropAct(self, live.act)
+			live.act = nil
 		end
-		local mo = live.monster
-		if mo then
+		local act = live.act
+		if act then
 			kit.keep(id, 1) -- held while she plays, however slow the replay runs (/slowmo)
-			if not stepMonster(self, id, live, mo, m, part, step) then
-				dropMonster(mo)
-				live.monster = nil
-				fade(live, part, 0)
-				if live.shell then
+			if stepAct(self, id, live, act, m, part, step) then
+				if act.body and live.shell then
 					live.shell.Transparency = 1
 				end
-				live.look = 0
+				continue
 			end
-			continue
+			-- She has shrunk back: the smiley ball at once, faded as the shot ends.
+			dropAct(self, act)
+			live.act = nil
+			live.look = 1
 		end
 		live.look = approach(
 			live.look,
@@ -975,8 +1141,8 @@ function VerityFx.update(self: VerityFx, dt: number)
 				local along = ahead - here
 				local axis = Vector3.new(0, 1, 0):Cross(along)
 				if axis.Magnitude > 1e-6 then
-					local rate = along.Magnitude * scale / r
-					live.rot = (CFrame.fromAxisAngle(axis.Unit, -rate * dt) * live.rot).Rotation
+					local rate = along.Magnitude / r
+					live.rot = (CFrame.fromAxisAngle(axis.Unit, -rate * step) * live.rot).Rotation
 				end
 				frame = CFrame.new(part.Position) * live.rot
 			else
@@ -1011,7 +1177,7 @@ function VerityFx.update(self: VerityFx, dt: number)
 		elseif shell then
 			shell.Transparency = 1
 		end
-		if not showing and live.look <= 0.001 and live.monster == nil and #live.bubbles == 0 then
+		if not showing and live.look <= 0.001 and live.act == nil and #live.bubbles == 0 then
 			destroy(self, id)
 		end
 	end

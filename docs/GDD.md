@@ -475,7 +475,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   three skills, `tests/ult_value.luau`, 120 tables) is `Config.Ults.Catalog[id].Worth`. The
   rarity means are **0.34, 0.50, 0.66, 0.95, 1.12 and 1.31** (2026-10-08, after the abilities
   rework; Rare and above pot in 83-100% of uses). Caps per use: at most 2 of your balls (Chain
-  Lightning: the charged ball and one jump), 3 (Steel Ball, Verity's aimed kicks) or 4 (Black
+  Lightning: the charged ball and one jump), 3 (Steel Ball, Verity's bites) or 4 (Black
   Flash), and 2 of the opponent's (Black Flash's blast) or 1 (Chain Lightning's jump). Black
   Hole and Guangdong Tiger have no caps (the designer, 2026-10-08: "NO limit"; a hit on a solo
   break takes every ball but the 8): only their reach limits them. Against Magnet at equal skill the model
@@ -555,14 +555,20 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     you mean), never slower than they went in (with no clear line, turned toward the pocket
     ahead by up to 15 degrees). The Rare+ buff (2026-10-08): pots 83-93% of uses, +0.65 / +0.71
     / +0.70 net, the whole turn's later shots counted only as a low bound.
-  - **Verity** (Legendary, 1.05; new in the rework, 2026-10-08): the cue ball becomes a
-    yellow smiley ball and arming plays "Hi, I'm Verity, trust me, I know everything!" (a
-    text-to-speech stand-in for the designer's clip). At the first contact it unfolds into
-    Verity, who grabs the ball it hit and hurls it off the table (a pot for its owner), then
-    sprints on along the shot line, up to 75 in, kicking every ball in her way: the first 3 of
-    yours along clean lines into pockets, the rest aside (it can help or hurt either side). She
-    steps over the 8, and the 8 off your legal 8 shot is never thrown. She shrinks back into the
-    cue ball where she stops. Measured: +0.91 / +1.10 / +1.13 net, pots 94-98% of uses.
+  - **Verity** (Legendary, 1.09; new in the rework, evil since the designer's second round,
+    2026-10-08: the monster model never made it into the game): the cue ball becomes a yellow
+    smiley ball and arming plays "Hi, I'm Verity, trust me, I know everything!" (a
+    text-to-speech stand-in for the designer's clip). At the first contact she turns evil:
+    she swells to three times the ball's size, her face turned to each player at the table,
+    whose camera pushes in on her for about a second, and eats the ball she hit (a pot for its
+    owner; an opponent's goes down for them and is still a foul; the 8 only off your legal 8
+    shot, which wins). Balls inside her as she swells are shoved just clear (the 8 never toward
+    a pocket). She chews, gulps and laughs, then rolls on along the shot line (up to 70 in,
+    stopping before a cushion or pocket), eating up to 2 more of your balls she reaches
+    (slurped in once 5.5 in from her centre, each a pot) and bumping every other ball aside;
+    she hops over the 8. She burps and shrinks back into the cue ball where she stops.
+    Measured: +0.97 / +1.15 / +1.17 net, pots 94-98% of uses. Her two looks (the smiley ball,
+    the evil face) are being redone to the designer's reference images.
   - **Steel Ball** (Legendary, 1.09): the first ball hit, if yours, is guided into the pocket
     it was sent toward; the cue ball then curves on to your next nearest ball and guides it in
     (a clean line within 36 in) or lines it up and stops behind it, 3 balls at most; with your

@@ -10,3 +10,5 @@
 /Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/CatchABall.png
 /Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/LookOverThere.png
 /Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/Verity.png
+# Verity v2, the evil Verity ball (the designer's second rework round, 2026-10-08)
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/VerityEvil/verity_evil.glb

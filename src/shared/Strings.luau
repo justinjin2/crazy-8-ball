@@ -1122,7 +1122,7 @@ return {
 			SuperBounce = "The cue ball turns rainbow and keeps bouncing. The first ball of yours it hits bounces too, and boings off a pocket's jaw straight in.",
 			CatchABall = "Your cue ball becomes a catch ball. The first ball it hits is caught inside, counted as pocketed.",
 			LookOverThere = "Point up and yell! While your opponent looks away, move the cue ball anywhere you like before they turn back. Then take your shot.",
-			Verity = "Hi, I'm Verity! The first ball you hit is grabbed and hurled off the table, counted as pocketed, then Verity sprints through the pack.",
+			Verity = "Hi, I'm Verity! Trust me... The first ball you hit gets eaten (it counts as pocketed), then she rolls on and eats up to 2 more of yours.",
 			Rewind = "Miss, and the table rewinds for another 10 s shot with its full path shown. Up to twice.",
 			TimeStop = "Time freezes a second after contact: you get 8 seconds for one more shot while everything stands still. Hit one of your balls and it rolls into a pocket when time resumes.",
 			ChainLightning = "Lightning strikes the ball of yours you hit and drives it into a pocket, then jumps on to the next ball, pushing it toward a pocket.",
@@ -1269,11 +1269,9 @@ return {
 			Gotcha = "GOTCHA!",
 			BrokeFree = "IT BROKE FREE!",
 		},
-		-- Verity's speech bubbles (src/client/VerityFx.luau).
+		-- Verity's speech bubble (src/client/VerityFx.luau): when she refuses the 8.
 		Verity = {
-			TrustMe = "TRUST ME!",
 			NotThe8 = "NOT THE 8!",
-			KnowEverything = "I KNOW EVERYTHING!",
 		},
 		-- Look Over There! (LookOverThereFx): what the shooter "says" in the chat (a bubble and
 		-- a chat line in their name; the designer's own words, spelling and all), and the
