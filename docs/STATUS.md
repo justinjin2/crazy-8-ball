@@ -11,8 +11,8 @@ Updated 2026-10-08.
 - **Branch `release`** is the integration branch, and every lane of the parallel build is
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
-- **Lint and tests (2026-10-06):** lint OK with four old LocalShadow warnings (TableService,
-  PadGuide, MatchHUD, Main.client); all 1016 Lune tests pass.
+- **Lint and tests (2026-10-08):** lint OK with three old LocalShadow warnings (PadGuide,
+  MatchHUD, Main.client); all 1042 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; saves at version 7;
@@ -125,10 +125,12 @@ Updated 2026-10-08.
 ## Open, waiting on the designer
 
 - **The GUI redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`): one screen at a time,
-  each from an approved concept. The cue card's concept waits on the designer
-  (https://claude.ai/artifact/FLwcXzUbGm4ji4V6YgDsV2); then Cues (the Inventory renamed), the
-  lucky block spin and YOU GOT, Free Reward (a Lucky 8 Block for the favorite), Abilities and
-  Ranked ideas. The Abilities screen and the Ranked roadmap show again (they opened blank).
+  each from an approved concept. **The new cue card is built** (Cues grid and Index; the rank
+  cues are now the Ranked rarity): checked in Studio on every look (`GuiQA "cueCards"`),
+  Lower effects and Reduce Motion; the designer still to look on a phone, a PC size and a
+  gamepad. Next concept: the Cues menu (the Inventory renamed), then the lucky block spin and
+  YOU GOT, Free Reward (a Lucky 8 Block for the favorite), Abilities and Ranked ideas. The
+  Abilities screen and the Ranked roadmap show again (they opened blank).
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),

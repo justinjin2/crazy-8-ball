@@ -38,7 +38,8 @@ designer approves or notes -> build -> Studio check (phone, PC size, gamepad by 
 - 2026-10-08: Every card shows its chance (top-left chip, in the rarity's colour), in Cues and on
   the spin alike; the moving 8-balls stay very faint (designer: "too distracting").
 - 2026-10-08: Ranked sorts where Exclusive did (between Epic and Legendary), highest tier first
-  (concept assumption, open until the card is approved). VIP and Starter stay Exclusive.
+  (lowest first in "Common first"); approved with the card. VIP and Starter stay Exclusive.
+  Ranked pays Exclusive's finder's money ($5,000) and has its own Index row (no reward).
 
 ## Concept 1: the card (round 1, waiting)
 
@@ -67,14 +68,18 @@ chance on every card.
 
 Round 2 (2026-10-08, designer: "the balls dont look like 8 balls though they need to actually
 show the 8 ball detail"): the flat silhouettes are replaced by a new tile of real 8-balls, each
-with its white disc and a clear 8, bigger on the card (`tools/gui/card_balls.py`,
+with its white disc and a clear 8, bigger on the card (`tools/gui/card_balls.py`, now `card_art.py`,
 `assets/ui/cards/`), in two looks to pick from: tinted to the card's colour, or classic black.
 
 ## Progress
 
 - [x] Abilities and Ranked screens show again (`HudFocus`, `Config.UI.Menu.Focus.KeepWith`).
 - [x] Concept 1 (the card) approved (round 4, 2026-10-08).
-- [ ] The card built (`InventoryCard` and the reel's cards share it), Ranked rarity in the data.
+- [x] The card built (2026-10-08): `InventoryCard` (Cues grid, Index), its motion `CueCardFx`,
+  the maths `CardMath`, every number in `Config.UI.CueCard`; the Ranked rarity in the data.
+  Checked in Studio on every look (`GuiQA "cueCards"`), the real Cues grid and the Index's
+  Ranked row, Lower effects and Reduce Motion. Waiting: the designer's look on a phone, a PC
+  size and a gamepad. The reel's cards come with concept 3.
 - [ ] Concept 2 (Cues menu) approved, then built.
 - [ ] Concept 3 (spin and YOU GOT) approved, then built.
 - [ ] Concept 4 (Free Reward) approved, then built.

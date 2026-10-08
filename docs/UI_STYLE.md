@@ -108,6 +108,7 @@ order; that is Open.
 | Unique | pink | `#FF5CB8` |
 | VIP | gold with a crown mark (placeholder, 2026-10-03; was rainbow) | `#FFC400` `#FFEC8C` `#FFAA00` |
 | Secret | near-black with a slow red-white glitch shimmer (designer, 2026-10-03) | `#1E1820`, glitch `#FF283C` `#FFFFFF` |
+| Ranked | the rank cues' rarity (2026-10-08): a medal gold for its Index row; each card wears its tier's colours (section 17) | `#FFB81C` |
 
 - **Mythic and VIP must never look alike.** Mythic is pale and holographic: a slow pastel
   shimmer over a deep-space background with small twinkling stars. VIP is gold for now
@@ -124,10 +125,9 @@ order; that is Open.
 - Reyes' rank badge uses the VIP rainbow (2026-09-26). If VIP items also look rainbow,
   decide whether the two should differ so a rank is never mistaken for a VIP item.
 - The rarity order is decided (2026-09-27, GDD section 12): Common, Uncommon, Rare, Epic,
-  Legendary, Mythic, Secret; Unique (pink) and Exclusive sit outside the ladder, and VIP is an
-  Exclusive cue (it keeps the rainbow). Still open: **Secret's colour** (suggestion: near-black
-  with a slow red-white glitch shimmer, unlike Mythic's pastel one) and how an Exclusive rank
-  cue shows its group (suggestion: its tier's colour with a small crown mark).
+  Legendary, Mythic, Secret; Unique (pink), Ranked (the ten rank cues, 2026-10-08) and
+  Exclusive (VIP, Starter) sit outside the ladder. Secret's card and the Ranked cards' look
+  were decided with the new cue card (section 17, 2026-10-08).
 
 ## 5. Buttons
 
@@ -397,13 +397,11 @@ then; the reel's rules hold for the blocks.
   jump buttons outside its right edge, the 8-ball pinned on its left edge; the page scrolls on
   below the hero. Title with its icon, tabs as
   candy buttons, a money pill in the Shop's and Inventory's header, the red X. Cards are white
-  with a pale blue edge (the roadmap's reward tiles); a cue card wears its rarity: a coloured
-  edge inside the ink outline, a strip across the bottom and a soft wash, Mythic's slow pastel
-  shimmer with stars, Secret's dark fill with a breathing red glow *(assumption: UI_STYLE 4's
-  suggestion)*. The server's answers show as a short line at the bottom of the panel. Confirm
+  with a pale blue edge (the roadmap's reward tiles); a cue card is the cue card of section 17
+  (2026-10-08). The server's answers show as a short line at the bottom of the panel. Confirm
   dialogs are the kit's dialog card with no dim.
-- **The Index** (designer, 2026-09-28): a cue never found is a card with a big "?" in its
-  rarity's colour (no picture, no name). The chosen cue shows in a panel on the right: the
+- **The Index** (designer, 2026-09-28): a cue never found is a grey card with its dark
+  silhouette (no name, bar or pills; section 17). The chosen cue shows in a panel on the right: the
   cue turning slowly in 3D (the game's own stick, thickened to read small, tip up and to the
   right, turning round the upright axis), a near-black silhouette until found and its real
   colours after (the picture wears the rarity then), its name even before it is found, the
@@ -415,7 +413,8 @@ then; the reel's rules hold for the blocks.
   "Sell all duplicates". Each press moves to the next order (Rarest first, Common first,
   Most copies, Name A-Z, then round), keeps the chosen card and scrolls the grid to its top.
   It is as wide as its longest words so it never jumps; the order is kept while the player
-  stays in the server. By rarity, Exclusive sits between Epic and Legendary.
+  stays in the server. By rarity, Ranked and Exclusive sit between Epic and Legendary, the rank
+  cues highest tier first (lowest first in Common first).
 - **Finder's money**: a block's prize that is new to the Index reads "NEW! +$250" on the
   "YOU GOT" card, and the money reaches the HUD with the card, never before (the reel is never
   given away). Any other find (a rank-up cue, the
@@ -744,3 +743,36 @@ On a phone the rank HUD and the Settings gear sit in line with Roblox's own top-
 58 px (its art shows 44). On a computer or tablet the HUD is 1.3x and its badge 1.35x more.
 The player list's header lines up with them: "Players (n)" in the rank name's size, the band
 tight round it (30 px) and centred on the same line.
+
+## 17. The cue card (designer, 2026-10-08)
+
+One card for every cue: the Cues grid and the Index now, the lucky block spin and YOU GOT
+next (`InventoryCard`, its motion `CueCardFx`, `Config.UI.CueCard`; brief
+`docs/prompts/CUES_LIVELY_PROMPT.md`, concept 1 approved in round 4). Card units 150 x 190.
+
+- **No wasted space**: the cue's picture fills the top (a square 94% of the card's width); the
+  name sits over its lower edge in white with the ink outline (one line that shrinks to 12 px,
+  then wraps); the **rarity bar** along the bottom is a pill in the rarity's colour with the
+  rarity's word inside, upper case, white with the ink outline (style A).
+- **Corners**: top left the chance chip (dark, the percent in the rarity's light colour; only
+  on cues that drop from a block, a Unique cue showing its Grand Opening odds), then NEW and
+  Equipped under it; top right the count ("x3", "#412") and the padlock on Exclusive and
+  Unique cues.
+- **The card** is filled in its look's colours and rimmed by the rarity edge with a thin white
+  line inside it. Faint 8-balls in the card's colour drift slowly up-left behind every card
+  (13% on light cards, 7% on dark ones; "very transparent", 30 s a period).
+- **Motion grows with rarity**: Common only the 8-balls; Uncommon a glow and a shine every 7 s;
+  Rare plus sparkles; Epic plus turning rays; Legendary gold rays, a breathing glow, sparkles,
+  rising embers, a strong shine, a light running round its gold edge, a halo and a shine
+  across the bar; Mythic deep space with a hologram sheen, twinkling stars, a rainbow edge and
+  flowing bar colours; Secret near-black with a red glow from the bottom, scan lines, red
+  embers, a glitch and a breathing red edge; Unique pink with a glow, sparkles and a shine;
+  Exclusive blue with a glow and a shine.
+- **Ranked**: the bar says RANKED with the tier's badge whole over its left end (never cut),
+  the card in its tier's colours, more moving higher up (Bronze to Gold a metal shine,
+  Platinum and Diamond glints, Expert to Master turning rays, Grandmaster dark with gold rays
+  and embers, Reyes everything with a rainbow edge and bar). No chance chip.
+- **A never-found cue** in the Index: a grey card with its dark silhouette, nothing else.
+- Hover and gamepad selection: a gold ring and a small grow; the chosen card a blue ring.
+- Only cards in view move (one loop each); Lower effects shows fewer sparkles, embers and
+  stars and slows the shines; Reduce Motion stills everything but the glows.

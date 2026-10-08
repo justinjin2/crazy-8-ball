@@ -3045,3 +3045,9 @@ timer of a new block stay the designer's call.
   rarity's colour with the word in white; the faint 8-balls in each card's colour; the motion
   per rarity as shown on the concept page; a Ranked card's tier badge shown whole over the
   bar's end; a chance chip only on cues that drop from a block (none on Ranked, VIP, Starter).
+- 2026-10-08: The new cue card is built as approved (concept round 4) for the Cues grid and the
+  Index; the reel's cards follow with the spin's concept. The ten rank cues are the **Ranked**
+  rarity in the data (their group stays Exclusive, so they still never trade, sell or double),
+  sorted between Epic and Legendary, highest tier first; they pay Exclusive's finder's money
+  ($5,000) and get their own Index row. An Index cell is at least 100 px wide (110 on a
+  computer) so the rarity's word fits at the 12 px floor.

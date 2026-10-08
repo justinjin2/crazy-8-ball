@@ -64,6 +64,17 @@ Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (be
   - [x] Gift delivery (2026-10-07): the first leave owes it (12 h from the leave), it falls
     from the sky on the next lobby visit and is picked up (`/giftdrop` to test). The pack's
     pulsing glow waits for a block's timer.
+- [ ] **The GUI redo (designer, 2026-10-08)**, one screen at a time, each from an approved
+  concept (`docs/prompts/CUES_LIVELY_PROMPT.md`):
+  - [x] The Abilities screen and the Ranked roadmap show again (they opened blank).
+  - [x] The cue card (concept 1, round 4): built for the Cues grid and the Index; the rank cues
+    are one rarity, Ranked (2026-10-08). Phone, PC size and gamepad by the designer.
+  - [ ] The Cues menu (the Inventory renamed, a cue icon, no tab row, the Index as a book
+    button, two rows of cards on open).
+  - [ ] The lucky block spin and YOU GOT with the same cards; rarer cues shown more often on
+    the reel (looks only).
+  - [ ] Free Reward: the Lucky 8 Block for the favorite.
+  - [ ] Upgrade ideas for Abilities and Ranked (concepts; built only if approved).
 - [ ] The Shop's Blocks, Money and Passes pages with the `lively-gui` skill.
 - [ ] Physical controller hold acceptance; save the updated place and publish its templates.
 

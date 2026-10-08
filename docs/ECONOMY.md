@@ -304,7 +304,7 @@ difficulty sets its money and XP multipliers for everyone at it.
 ### 4.8 Rank rewards (paid once, the first time you reach it)
 
 The plan's table (plan, 2026-10-02, section 6; `Config.Ranks.Rewards`). Reaching a tier also
-gives the tier's cue (Exclusive, never traded or sold), its chat tag and ability spins (+1 for
+gives the tier's cue (the Ranked rarity, never traded or sold), its chat tag and ability spins (+1 for
 Bronze, Silver and Gold; +2 for Platinum and Diamond; +3 from Expert up).
 
 | Tier | Each new division II-V | Reaching the tier (division I) |
@@ -405,7 +405,8 @@ The account Level and its EXP are gone (designer, 2026-09-28). What they did mov
 |---|---|---|---|---|
 | Block rarities | Common, Uncommon, Rare, Epic, Legendary, Mythic, Secret | lucky blocks (and trades) only | yes | yes |
 | **Unique** | numbered Limited cues (only two: the Firework Cue and the Beta Cue, both from the Grand Opening block; there is no Founder's Cue, ever) | the Grand Opening block's two Unique rows (9.2), or the Limited shelf for a set time | yes | no |
-| **Exclusive** | the VIP Cue, the Starter Cue, the ten rank cues (Bronze Cue ... Reyes Cue), later season cues | one special way each | **never**, except the Starter Cue (designer: VIP never, 2026-09-28; the Starter Cue trades, 2026-09-29) | no |
+| **Ranked** | the ten rank cues (Bronze Cue ... Reyes Cue): one rarity since 2026-10-08 (designer), each card in its tier's colours; their group stays Exclusive | reaching each tier, once | **never** | no |
+| **Exclusive** | the VIP Cue, the Starter Cue, later season cues | one special way each | **never**, except the Starter Cue (designer: VIP never, 2026-09-28; the Starter Cue trades, 2026-09-29) | no |
 
 What rarity looks like (GDD section 12, UI_STYLE section 4 colours): Common and Uncommon keep
 the plain wisp trail (Uncommon tinted); Rare adds a coloured trail and small pocket burst; Epic
@@ -414,8 +415,8 @@ Mythic the celestial shimmer and its own VFX; Secret a one-of-a-kind full set.
 
 **Launch catalog: 46 block cues** (unchanged by the plan): 7 Common, 9 Uncommon, 10 Rare,
 9 Epic, 7 Legendary, 3 Mythic, 1 Secret. Classic is labelled Common too but is the free
-default: everyone owns it, no block drops it, and it is never traded or sold. Plus 12 Exclusive
-(10 rank, VIP, Starter) and 2 Unique (Grand Opening and Beta, both from the Grand Opening
+default: everyone owns it, no block drops it, and it is never traded or sold. Plus 10 Ranked
+(the rank cues), 2 Exclusive (VIP, Starter) and 2 Unique (Grand Opening and Beta, both from the Grand Opening
 block; there is no Founder's Cue, ever: designer, 2026-10-05). The list and order are
 `Progression/Catalog.luau`; each cue's look is its skin (`src/shared/CueSkins`).
 
@@ -557,7 +558,7 @@ How rare things end up across the whole game is section 1 (the day-30 targets).
 ## 8. Selling cues back
 
 Any block-rarity cue can be sold for money, with a confirm step from Epic up and a "Duplicate"
-tag on extras. Exclusive and Unique cues can't be sold. A paid-origin copy is sold first.
+tag on extras. Ranked, Exclusive and Unique cues can't be sold. A paid-origin copy is sold first.
 
 | Common | Uncommon | Rare | Epic | Legendary | Mythic | Secret |
 |---|---|---|---|---|---|---|
@@ -933,8 +934,8 @@ Built on the server (2026-10-03; the trade screen is the GUI lane's): `Progressi
 - **Cues and ready lucky blocks** (a block only once its timer is done, offered as
   "Block:<kind>"), **up to 8 items a side**, one entry per copy. **Never money.** No empty
   side.
-- Block cues, Unique cues and the Starter Cue trade. Classic and every other Exclusive cue
-  never (rank, season and VIP cues; designer, 2026-09-28).
+- Block cues, Unique cues and the Starter Cue trade. Classic, the Ranked cues and every other
+  Exclusive cue never (rank, season and VIP cues; designer, 2026-09-28).
 - A Unique keeps its number, and a player can hold only one copy of each Unique.
 - **Paid origin**: every block and cue copy carries a free or paid origin. Free copies move
   first; a paid copy keeps its paid origin and moves only where **both** players'
@@ -1085,14 +1086,14 @@ Limited cues.
 | $10,000 | $25,000 | $75,000 | $250,000 |
 
   Legendary, Mythic and Secret rows have no reward (money there would reward luck more than
-  play), nor do the Exclusive and Unique groups. The one title left is the first Reyes'.
+  play), nor do the Ranked, Exclusive and Unique rows. The one title left is the first Reyes'.
 - **Finder's money**: the first time a cue enters a player's Index it pays once, by rarity
   (`Config.Index.FindMoney`). Selling a cue and finding it again pays nothing, and **a trade
   pays no finder's money**. It is earned money, not boosted by VIP or a party.
 
-| Common | Uncommon | Rare | Epic | Legendary | Mythic | Secret | Exclusive | Unique |
-|---|---|---|---|---|---|---|---|---|
-| $500 | $1,000 | $2,500 | $7,500 | $25,000 | $100,000 | $500,000 | $5,000 | $10,000 |
+| Common | Uncommon | Rare | Epic | Legendary | Mythic | Secret | Ranked | Exclusive | Unique |
+|---|---|---|---|---|---|---|---|---|---|
+| $500 | $1,000 | $2,500 | $7,500 | $25,000 | $100,000 | $500,000 | $5,000 | $5,000 | $10,000 |
 
 - **No rank-down screen.** XP is never lost.
 - **Private servers** (when they come): no XP, no blocks, solo-rate money. The arena is a

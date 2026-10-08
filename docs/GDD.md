@@ -716,7 +716,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Rank-up rewards**, once, the first time you reach them (plan, 2026-10-02): money for each
   new division ($1,000 a Bronze division up to $150,000 a Grandmaster one); for each new tier
   money, lucky blocks (Bronze: a Standard block at once and a Mystery block; Silver a Rare
-  block up to Reyes a Mythic block and $2,000,000), the tier's cue (Exclusive, never
+  block up to Reyes a Mythic block and $2,000,000), the tier's cue (the Ranked rarity, never
   tradable), the chat tag and ability spins. ECONOMY.md section 4.8.
 - **Rank and money show** in the top left rank HUD (badge, name, XP bar), over every head
   (badge then username), under each portrait in the match bar, and as Rank and Money columns
@@ -816,12 +816,15 @@ reworked for lucky blocks on 2026-10-04.
   Robux only (19 R$); there is no money skip and no Limited cue for sale at release.
   ECONOMY.md section 9.
 - **Rarities** (designer, 2026-09-27): **Common, Uncommon, Rare, Epic, Legendary, Mythic,
-  Secret**, from lucky blocks. Two groups sit outside that ladder and never come from a tier
+  Secret**, from lucky blocks. Three sit outside that ladder and never come from a tier
   block: **Unique** (numbered Limited copies: the Firework Cue and the Beta Cue, from the
-  Grand Opening block; there is no Founder's Cue, ever) and **Exclusive** (the VIP Cue, the Starter Cue, the rank cues Bronze Cue to Reyes
-  Cue, later season cues). "Ultra" is dropped; VIP is an Exclusive cue, not a rarity. Colours
-  in `docs/UI_STYLE.md`. Rarer cues have special trail and pocket VFX. Cue cards show the
-  rarity, its % per Mystery block and how many exist ("EPIC · 0.109% · 1,284 exist").
+  Grand Opening block; there is no Founder's Cue, ever), **Ranked** (the ten rank cues Bronze
+  Cue to Reyes Cue, each card in its tier's colours; designer, 2026-10-08; they keep the
+  Exclusive group's rules: never traded or sold, one each) and **Exclusive** (the VIP Cue, the
+  Starter Cue, later season cues). "Ultra" is dropped; VIP is an Exclusive cue, not a rarity.
+  Colours in `docs/UI_STYLE.md`. Rarer cues have special trail and pocket VFX. A cue card shows
+  its rarity in its bar and its chance per Mystery block in a corner chip (UI_STYLE section
+  17).
 - **Duplicates can be sold back** for money (designer, 2026-09-27; no trade-up): Common $150 up
   to Secret $25,000,000 (plan, 2026-10-02).
 - **No direct buying of block cues** (designer, 2026-09-27): Common to Secret cues come only
@@ -891,8 +894,8 @@ reworked for lucky blocks on 2026-10-04.
   type field leaves room for table skins later. A cue is saved as a count per catalog id
   (2026-09-28, ECONOMY.md section 18: small saves, a duplicate is a count above 1); numbered
   Unique cues keep their copy number (#412). Every block and cue copy carries a free or paid
-  origin. Abilities are owned flags. **Block cues and Unique cues can be traded; Exclusive cues
-  never (VIP, rank and season cues; designer, 2026-09-28), except the Starter Cue. Ults are
+  origin. Abilities are owned flags. **Block cues and Unique cues can be traded; Exclusive and
+  Ranked cues never (VIP, rank and season cues; designer, 2026-09-28), except the Starter Cue. Ults are
   account-bound (never traded). Money is never traded.**
 - **Trading is in the first release** (built 2026-10-03, the screen is the GUI lane's): open to
   **anyone in the server, no gate** (designer, 2026-10-03; the plan's 25-win gate was dropped).
@@ -915,10 +918,11 @@ reworked for lucky blocks on 2026-10-04.
   ECONOMY.md section 18.
 - **The Cues tab** (designer, 2026-09-28): no rarity filter chips; one sort button turns
   through Rarest first (the default), Common first, Most copies and Name A-Z. Sorting by
-  rarity puts Exclusive between Epic and Legendary, and Unique on top.
+  rarity puts Ranked and Exclusive between Epic and Legendary (the rank cues highest tier
+  first), and Unique on top.
 - **Finder's money** (designer, 2026-09-28; amounts from the plan, 2026-10-02): the first time
   a player gets a cue it pays extra money by rarity, once per cue ever (Common $500 up to
-  Secret $500,000; Exclusive $5,000, Unique $10,000; *(tune)*); never for a cue got in a trade.
+  Secret $500,000; Ranked and Exclusive $5,000, Unique $10,000; *(tune)*); never for a cue got in a trade.
   ECONOMY.md section 18.
 - **The menus** (designer, 2026-09-28; the shop changed 2026-10-02; blocks 2026-10-04): four
   buttons in one column on the left, Shop (one scrolling page, no tabs; emptied to its frame
