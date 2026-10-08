@@ -367,7 +367,8 @@ with the lucky blocks now (section 14; `BlockReel` with its Dark look, `ReelFx`,
 `Config.UI.Reel`, words in `Strings.Reel`), the case opening screens, Fast Open's grid and
 the chest art are gone, and no block is ever in the Inventory (the hotbar and its bag hold
 them). The reward popups, reminder toast and come-back screen are gone too: every reward is
-claimed in the Rewards menu. The lines below that still say "case" describe what was built
+claimed in the Rewards menu (since 2026-10-08 the Free Reward menu, section 22). The lines
+below that still say "case" describe what was built
 then; the reel's rules hold for the blocks.
 
 - **The left column** (designer; reference 06): top to bottom Shop, Inventory, Rewards,
@@ -915,3 +916,42 @@ band, restock tiles and pass bands.
   as the bar comes back after the result screen, one tick after another.
 - **On a phone** the same bar at 0.66 (words 12 px, the small tags 9 px).
 
+
+## 22. The Free Reward menu (designer's picks "daily A" and "free_other A", 2026-10-08)
+
+`FreeRewardMenu`, one lively menu opened from the column's Free tile, with its sections
+`FreeDaily`, `FreePlaytime`, `FreeTrack` and `FreeSocial` (shared parts in `FreeParts`); sizes in
+`Config.UI.FreeReward`, words in `Strings.FreeReward`. It replaced the Rewards menu.
+
+- **Jump buttons** outside the panel's right edge (the Shop's, `JumpRail`): Daily, Playtime,
+  Track and Group, each with a red "!" while something there can be claimed. The menu opens on
+  the section with something to claim (Daily first) or the one asked for.
+- **Daily**: the navy pill says "FIRST WEEK" or "DAILY STREAK" with the time to the next day.
+  Days 1-6 in a 3 x 2 grid of tiles in their own colours (orange, purple, green, blue, teal,
+  pink): "DAY 1", the reward's pictures (the cash, each lucky block once up to three with "x5"
+  past that, the ability spin with "+2"), the money over the pictures' foot, and the status:
+  Claim! (green, breathing), Claimed (grey, a big check over the pictures, no money), Locked,
+  Tomorrow or "Play a match". Today wears a thick pale-gold edge. Day 7 stands tall and gold at
+  the right: its best block over gold rays, the tilted rainbow "OP!", what comes with it. A
+  day with a lucky block wears the sky-blue "i" with that block's odds. Under the tiles the
+  week's line ("First week: any 7 days within 14 · 12 days left", "First week done!", the
+  streak's free miss, or "Finish one match today to claim day 3") and Claim All (green,
+  shining, the live price; hidden where paid random items are restricted or no day is left).
+- **Playtime**: "TODAY'S GIFTS", five white tiles: "5 min", the pictures, the money and the
+  status (Claim! with a gold glow behind the gift, Claimed, the time left on the next gift
+  with a stopwatch, a padlock on the later ones).
+- **Track**: "DAY 5 OF 28", a bar from day 0 to day 28 filled gold to the days claimed with a
+  white knob, a node at each reward's day (its blocks over it, "Day 8" under it, gold with a
+  check once reached) and "Every day you claim counts, even after a missed day." Nothing here
+  is pressed: the track's rewards come with the daily claim.
+- **Group**: the Lucky 8 card (the block over its glow, its "i"), "Free Lucky Blocks" and two
+  rows with a tick box: Join the group (Roblox's join prompt) and Favorite the game (Roblox's
+  favorite prompt); a claimed row is ticked and its button goes. Under it the invite card: the
+  envelope and a Rare block, "Invite a friend", what both get when the friend wins their first
+  match (only the friend once the inviter's own block was given), "2 friends joined", Invite.
+- **Idle**: today's Claim! breathes, a claimable gift glows, day 7's rays turn and it
+  twinkles, the OP! shakes in rainbow, Claim All shines.
+- **On a phone** the same arrangement at the page's scale; the words keep 12 px (a picture's
+  chip 9 px), so a tile stacks from its edges: its status at the foot, the money just over it,
+  the pictures shrinking into the room left under the day's name. The Group rows grow to hold
+  their two lines.

@@ -3284,3 +3284,18 @@ timer of a new block stay the designer's call.
   hotbar with the matchmaking bar: it hides while that bar (a pad's or the spawn pill) or an
   opponent's ask is up, and during the tutorial. A step given while it is hidden (behind the
   result screen) pops its tick when it comes back.
+- 2026-10-08 (the Free Reward menu, built from picks "daily A" and "free_other A"): one lively
+  menu with jump buttons (Daily, Playtime, Track, Group) replaces the Rewards menu; the codes box
+  stays in Settings. The jump buttons are the Shop's, now shared (`JumpRail`); after a screen
+  resize both menus stay on the section being read. The menu opens on the section with
+  something to claim. Days 1-6 are a 3 x 2 grid, not the mock's 2 x 3, so the Daily section
+  fits a phone's first screen whole with the next header peeking in. A VIP's daily extras show
+  on every day's tile (the server's DayView includes them). Every day with a lucky block wears
+  the "i" with that block's odds (Claim All buys them: paid random items). A claimed day shows
+  its check and not its money (the mock); day 7's extras go one to a line when they do not fit
+  on one. On a phone the words keep 12 px (a picture's "+2"/"x5" chip 9 px, as the shop's
+  pills), so a tile stacks from its edges: the status button keeps to the foot (its words plus
+  3 px, under the buy buttons' 24 px minimum), the money sits just over it on the pictures'
+  foot, the pictures shrink into the room left; the Group card's rows grow to hold their two
+  lines. The column's Free tile is always shown, its rays turn while something is ready and its
+  "!" comes from the reward state; the tutorial's anchor and nudge use the FreeReward name.
