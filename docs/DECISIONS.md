@@ -3232,3 +3232,9 @@ timer of a new block stay the designer's call.
   pots 94-98%. Their catalog worths are now the measured means (Catch-a-Ball 0.63, was 0.78 from
   a 12-table quick run; Look Over There! 0.99; Verity 1.05). The rarity means are 0.34 / 0.50 /
   0.66 / 0.95 / 1.12 / 1.31, Common to Mythic.
+- 2026-10-08: the rework's polish gives the two top looks a camera moment, as the tiger and the
+  catch have. Black Hole: at the open the camera of each player at the table eases in to a low
+  three-quarter view of the hole, drifts round it and closer while it feeds under a darker
+  grade, and eases back from the pop. Black Flash: the hit-stop is 0.3 s (was 0.15), filled
+  with anime impact frames (a blown-out negative, a red manga frame, the negative again) and a
+  crash zoom toward the hit, rolled 7 degrees. Both looks now stop on /hold like the others.

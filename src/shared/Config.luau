@@ -4006,9 +4006,11 @@ Config.Ults.BlackFlash = {
 	BounceInches = 6,
 	PocketClearInches = 1,
 	-- The hit-stop at the flash (the look's frozen frame): every replay crawls through this
-	-- much play (seconds) over HitStopSeconds more of wall time; the server waits for it.
+	-- much play (seconds) over HitStopSeconds more of wall time; the server waits for it. 0.3
+	-- since the rework's polish (2026-10-08, was 0.15): room for the impact frames and the
+	-- crash zoom (Config.UI.BlackFlashFx).
 	HitStopShotSeconds = 0.004,
-	HitStopSeconds = 0.15,
+	HitStopSeconds = 0.3,
 }
 
 -- Black Hole (docs/prompts/ABILITIES_PROMPT.md 7.12; src/shared/Ults/Effects/BlackHole).
@@ -10987,6 +10989,25 @@ Config.UI.BlackFlashFx = {
 	LightSeconds = 0.4,
 	-- Each nudged ball: a spurt of red and black sparks.
 	NudgeSparks = 10,
+	-- The impact frames (the rework's polish, 2026-10-08), for players at the table: the hit
+	-- flickers ImpactFrames times between the blown-out negative (ScreenFx.invert) and the red
+	-- manga frame (ImpactGrade), ImpactFrameSeconds each, before the red flash and grade above.
+	-- And the camera crash-zooms ZoomShare of the way toward the hit over ZoomInSeconds, rolled
+	-- ZoomRollDegrees, holds ZoomHoldSeconds (the hit-stop) and eases back over ZoomOutSeconds.
+	-- Wall seconds, as the hit-stop is.
+	ImpactFrames = 3,
+	ImpactFrameSeconds = 0.05,
+	ImpactGrade = {
+		Saturation = -1,
+		Contrast = 2.2,
+		Brightness = -0.25,
+		TintColor = { 255, 40, 40 },
+	},
+	ZoomShare = 0.45,
+	ZoomInSeconds = 0.06,
+	ZoomHoldSeconds = 0.3,
+	ZoomOutSeconds = 0.45,
+	ZoomRollDegrees = 7,
 	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
 }
@@ -11080,6 +11101,32 @@ Config.UI.BlackHoleFx = {
 	PopGradeIn = 0.02,
 	PopGradeHold = 0.1,
 	PopGradeOut = 0.2,
+	-- The cinematic (the abilities rework's polish, 2026-10-08): at the open the camera of each
+	-- player at the table (ScreenFx.involved, the camera on the table) eases in over
+	-- CamInSeconds to a low three-quarter view of the hole: CamPitchDegrees above the cloth,
+	-- CamDistanceReaches of its reach from the focus (CamFocusLiftShare of the way from the
+	-- cloth up to the horizon's centre), turned CamSideDegrees from the side they looked from.
+	-- While it feeds the view drifts CamOrbitDegrees round it and CamPushShare closer over
+	-- CamDriftSeconds; from the pop it eases back to the table's view over CamOutSeconds. The
+	-- view darkens (CamGrade, ScreenFx.grade's in and out seconds) while the hole is open. On
+	-- the look's clock: it slows with /slowmo and stops on /hold.
+	CamInSeconds = 0.5,
+	CamPitchDegrees = 24,
+	CamDistanceReaches = 2,
+	CamFocusLiftShare = 0.4,
+	CamSideDegrees = 30,
+	CamOrbitDegrees = 14,
+	CamPushShare = 0.12,
+	CamDriftSeconds = 3,
+	CamOutSeconds = 0.7,
+	CamGrade = {
+		Saturation = -0.35,
+		Contrast = 0.25,
+		Brightness = -0.18,
+		TintColor = { 215, 205, 255 },
+	},
+	CamGradeIn = 0.3,
+	CamGradeOut = 0.4,
 	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
 }

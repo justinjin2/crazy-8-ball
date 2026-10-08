@@ -20,6 +20,10 @@
 --   * Each swallowed ball ("swallow"): the photon ring and light flare.
 --   * The close (the last caught ball gone, the hole open long enough; or the replay over):
 --     it collapses to a point and pops with a bright ring, a flash and a hollow pop.
+--   * The cinematic (the rework's polish, 2026-10-08): at the open, the camera of each player at
+--     the table eases in to a low three-quarter view of the hole (Camera.setOverride), drifts
+--     round it and closer while it feeds, under a darker grade, and eases back from the pop.
+-- The look runs on its own clock, the replay's time: it slows with /slowmo, stops on /hold.
 -- Every table's parts hang off its AbilityFx anchor and go with it (kit.onRelease) or with
 -- clear(). Without the model the light, the pulled balls, the ring and the sounds still show.
 
@@ -28,6 +32,7 @@ local ContentProvider = game:GetService("ContentProvider")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Camera = require(script.Parent:WaitForChild("Camera"))
 
 local F = Config.UI.BlackHoleFx
 local A = Config.Ults.Audio
@@ -43,6 +48,12 @@ end
 
 local function ballWidth(): number
 	return Config.Balls.RenderRadiusInches * 2 * Config.Table.StudsPerInch
+end
+
+-- 0 -> 1, eased in and out.
+local function smooth(u: number): number
+	u = math.clamp(u, 0, 1)
+	return u * u * (3 - 2 * u)
 end
 
 -- 0 -> 1 with an overshoot of `over` near the end (a spring-ish pop).
@@ -92,6 +103,17 @@ type Hole = {
 
 type Ring = { part: Part, decal: Decal, born: number }
 
+-- The cinematic camera at one table: from the view at the open to the close view of the hole.
+type Cam = {
+	from: CFrame,
+	focus: Vector3,
+	flat: Vector3, -- unit, along the cloth from the focus toward the eye
+	distance: number,
+	startedAt: number, -- fx clock
+	outAt: number?, -- fx clock of the pop
+	grade: any?, -- the darkening's handle
+}
+
 type TableFx = {
 	anchor: BasePart,
 	armedVortex: MeshPart?,
@@ -102,6 +124,7 @@ type TableFx = {
 	faded: { [BasePart]: boolean },
 	clock: number,
 	shotSeq: number,
+	cam: Cam?,
 }
 
 export type BlackHoleFx = {
@@ -200,6 +223,7 @@ local function create(self: BlackHoleFx, id: number): TableFx
 		faded = {},
 		clock = 0,
 		shotSeq = -1,
+		cam = nil,
 	}
 	self.tables[id] = fx
 	return fx
@@ -257,6 +281,74 @@ local function dropHole(hole: Hole)
 		end
 	end
 	hole.lightPart:Destroy()
+end
+
+-- Hand the camera back and lift the grade (the turn moved on, or the look ended).
+local function releaseCam(fx: TableFx)
+	local cam = fx.cam
+	if cam then
+		fx.cam = nil
+		if cam.grade then
+			cam.grade:release()
+		end
+		Camera.setOverride(nil)
+	end
+end
+
+-- At the open: this player's camera (seated at the table, its camera on the table) starts
+-- easing in on the hole.
+local function startCam(self: BlackHoleFx, id: number, fx: TableFx, hole: Hole)
+	local camera = workspace.CurrentCamera
+	if camera == nil or not Camera.isLocked() then
+		return
+	end
+	releaseCam(fx)
+	local focus = hole.floor:Lerp(hole.centre, F.CamFocusLiftShare)
+	local from = camera.CFrame
+	local flat = Vector3.new(from.Position.X - focus.X, 0, from.Position.Z - focus.Z)
+	if flat.Magnitude < 1e-4 then
+		flat = Vector3.zAxis
+	end
+	flat = CFrame.fromAxisAngle(Vector3.yAxis, math.rad(F.CamSideDegrees))
+		:VectorToWorldSpace(flat.Unit)
+	fx.cam = {
+		from = from,
+		focus = focus,
+		flat = flat,
+		distance = hole.reach * F.CamDistanceReaches,
+		startedAt = fx.clock,
+		outAt = nil,
+		grade = self.kit.screen.grade(id, F.CamGrade, F.CamGradeIn, math.huge, F.CamGradeOut),
+	}
+end
+
+-- The cinematic each frame: eased in, drifting round and closer, eased back from the pop.
+local function stepCam(fx: TableFx)
+	local cam = fx.cam
+	if cam == nil then
+		return
+	end
+	if not Camera.isLocked() then
+		releaseCam(fx) -- the turn moved on
+		return
+	end
+	local w = 1
+	if cam.outAt then
+		w = 1 - smooth((fx.clock - cam.outAt) / F.CamOutSeconds)
+		if w <= 0 then
+			releaseCam(fx)
+			return
+		end
+	end
+	local age = fx.clock - cam.startedAt
+	local drift = smooth(age / F.CamDriftSeconds)
+	local flat = CFrame.fromAxisAngle(Vector3.yAxis, math.rad(F.CamOrbitDegrees) * drift)
+		:VectorToWorldSpace(cam.flat)
+	local pitch = math.rad(F.CamPitchDegrees)
+	local distance = cam.distance * (1 - F.CamPushShare * drift)
+	local eye = cam.focus + (flat * math.cos(pitch) + Vector3.yAxis * math.sin(pitch)) * distance
+	local close = CFrame.lookAt(eye, cam.focus)
+	Camera.setOverride(cam.from:Lerp(close, smooth(age / F.CamInSeconds)), w)
 end
 
 -- The hole opens at (x, y) (table inches).
@@ -330,6 +422,7 @@ local function open(
 	if kit.screen.involved(self.hub, id) then
 		kit.screen.flash(id, F.ScreenFlashColor, F.ScreenFlashSeconds)
 		kit.screen.shake(id, F.OpenShakeStuds, F.OpenShakeSeconds)
+		startCam(self, id, fx, hole)
 	end
 	playAt(self, id, A.HoleOpen, centre)
 	hole.drone = playAt(self, id, A.HoleDrone, centre, { looped = true, volume = 0 })
@@ -549,6 +642,14 @@ local function pop(self: BlackHoleFx, id: number, fx: TableFx, hole: Hole, quiet
 	decal.Texture = IMAGES.HolePop
 	decal.Parent = ring
 	table.insert(fx.rings, { part = ring, decal = decal, born = fx.clock })
+	local cam = fx.cam
+	if cam and cam.outAt == nil then
+		cam.outAt = fx.clock -- the camera eases back from here
+		if cam.grade then
+			cam.grade:release()
+			cam.grade = nil
+		end
+	end
 	kit.burstLight(
 		hole.centre,
 		rgb(F.PopColor),
@@ -641,6 +742,7 @@ function BlackHoleFx.start(hub: any, _parent: Instance, kit: any): BlackHoleFx
 	kit.onRelease(function(tableId: number)
 		local fx = self.tables[tableId]
 		if fx then
+			releaseCam(fx)
 			unfadeAll(fx)
 			if fx.hole then
 				stopDrone(fx.hole)
@@ -691,6 +793,7 @@ local function destroy(self: BlackHoleFx, id: number)
 		return
 	end
 	self.tables[id] = nil
+	releaseCam(fx)
 	for _, p in fx.pulls do
 		dropPull(fx, p)
 	end
@@ -741,22 +844,27 @@ function BlackHoleFx.update(self: BlackHoleFx, dt: number)
 			fx = create(self, id)
 		end
 		local live = fx :: TableFx
+		-- The replay's time: /slowmo slows it, /hold stops it where the replay stops.
 		local scale = if type(m.timeScale) == "number" then m.timeScale else 1
-		live.clock += dt * scale
+		local held = m.holdAt ~= nil and m.state.time >= m.holdAt
+		local step = if held then 0 else dt * scale
+		live.clock += step
 		if shot and live.shotSeq ~= m.seq then
 			live.shotSeq = m.seq
 		end
 		meshesOf(self)
 		stepArmed(self, id, live, wantArmed, dt)
-		stepPulls(live, dt * scale)
-		stepHole(self, id, live, dt * scale, not shot or not m:isBusy())
+		stepPulls(live, step)
+		stepHole(self, id, live, step, not shot or not m:isBusy())
 		stepRings(live)
+		stepCam(live)
 		if
 			not wantArmed
 			and not shot
 			and live.hole == nil
 			and #live.pulls == 0
 			and #live.rings == 0
+			and live.cam == nil
 		then
 			destroy(self, id)
 		end

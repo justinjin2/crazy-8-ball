@@ -577,10 +577,16 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     20 in): measured worth fell to 0.51 / 0.68 / 0.77 net at skills 1/2/3 (was 1.29 / 1.47 /
     1.58), below the Epic mean; with the power-scaled reach 0.48 / 0.63 / 0.72. The shattered
     ball's pieces lie on the cloth about 6 s. Icon: a black lightning bolt with a red outline
-    and the cue ball flying out of it with speed trails.
+    and the cue ball flying out of it with speed trails. The hit freezes 0.3 s (was 0.15) on
+    anime impact frames (2026-10-08): the screen flickers between a blown-out negative and a
+    red manga frame, and the camera of each player at the table crash-zooms toward the hit,
+    rolled a little, then eases back.
   - **Black Hole** (Mythic, 1.32): at the first contact a black hole opens for 2.5 s and
     spirals in the balls within 20 in (the opponent's within 10 in), at most 4 of yours and 1 of
     theirs, each swallowed and counted as pocketed for its owner; the cue ball is pushed away.
+    A cinematic (2026-10-08): the camera of each player at the table eases in to a low
+    three-quarter view of the hole under a darker grade, drifts round it and closer as it
+    feeds, and eases back from the pop.
   - **Guangdong Tiger** (Mythic, 1.30): at the first contact a giant tiger leaps in and cuts
     the balls within 20 in (the opponent's within 10 in) off the table at once, at most 4 of
     yours and 1 of theirs, counted as pocketed for their owners; the moment slows to watch it.
