@@ -7,8 +7,9 @@
 --   anyway). No contact at all: nothing happens.
 -- * The cut: every object ball on the cloth within Config.Ults.GuangdongTiger.RadiusInches
 --   (the shooter's) or RadiusInches x OpponentFactor (the opponent's, 5.7), the closest first,
---   at most MaxOwn of the shooter's and MaxOpp of the opponent's, leaves the table
---   at once (Simulation.Ops.remove: a `removed` event ShotJudge counts as a pot for its owner).
+--   at most MaxOwn of the shooter's and MaxOpp of the opponent's (no caps since 2026-10-08, as
+--   Black Hole), leaves the table at once (Simulation.Ops.remove: a `removed` event ShotJudge
+--   counts as a pot for its owner).
 --   Never the cue ball; the 8 only on the shooter's legal 8 shot (it is in overrides.Targets).
 -- * The moment slows (a `slow` event: SlowShotSeconds of play over SlowSeconds more), then the
 --   shot carries on.

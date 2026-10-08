@@ -476,8 +476,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   rarity means are **0.34, 0.50, 0.66, 0.95, 1.12 and 1.31** (2026-10-08, after the abilities
   rework; Rare and above pot in 83-100% of uses). Caps per use: at most 2 of your balls (Chain
   Lightning: the charged ball and one jump), 3 (Steel Ball, Verity's aimed kicks) or 4 (Black
-  Flash, Black Hole, Guangdong Tiger), and 2 of the opponent's (Black Flash's blast) or 1
-  (Chain Lightning's jump, Black Hole, Guangdong Tiger). Against Magnet at equal skill the model
+  Flash), and 2 of the opponent's (Black Flash's blast) or 1 (Chain Lightning's jump). Black
+  Hole and Guangdong Tiger have no caps (the designer, 2026-10-08: "NO limit"; a hit on a solo
+  break takes every ball but the 8): only their reach limits them. Against Magnet at equal skill the model
   (`tools/ult_model.py`) gives Common to Rare 49-51% wins, Epic 54-55%, Legendary 55-56% and
   Mythic 56-57% (2026-10-08; ECONOMY.md 11.8).
 - **The catalog of 13, all built** (`Config.Ults.Catalog`, names and one-line descriptions
@@ -582,14 +583,13 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     red manga frame, and the camera of each player at the table crash-zooms toward the hit,
     rolled a little, then eases back.
   - **Black Hole** (Mythic, 1.32): at the first contact a black hole opens for 2.5 s and
-    spirals in the balls within 20 in (the opponent's within 10 in), at most 4 of yours and 1 of
-    theirs, each swallowed and counted as pocketed for its owner; the cue ball is pushed away.
-    A cinematic (2026-10-08): the camera of each player at the table eases in to a low
-    three-quarter view of the hole under a darker grade, drifts round it and closer as it
-    feeds, and eases back from the pop.
+    spirals in every ball within 20 in (the opponent's within 10 in; no caps since 2026-10-08,
+    so a hit on a solo break swallows all but the 8), each swallowed and counted as pocketed
+    for its owner; the cue ball is pushed away. The camera stays on the table (a cinematic
+    close view was tried and taken out the same day, designer).
   - **Guangdong Tiger** (Mythic, 1.30): at the first contact a giant tiger leaps in and cuts
-    the balls within 20 in (the opponent's within 10 in) off the table at once, at most 4 of
-    yours and 1 of theirs, counted as pocketed for their owners; the moment slows to watch it.
+    every ball within 20 in (the opponent's within 10 in; no caps since 2026-10-08) off the
+    table at once, counted as pocketed for their owners; the moment slows to watch it.
 - **The power bar in the ability's colours** (2026-09-30): while your own Legendary or Mythic
   ability is armed, the power bar's fill wears it, stronger as you pull (`Config.UI.PowerSkins`,
   art from `tools/gen_power_skins.py`): Black Flash, black and red lightning crackling harder;

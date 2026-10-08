@@ -3241,3 +3241,8 @@ timer of a new block stay the designer's call.
 - 2026-10-08: Chain Lightning's strike reaches the screen of players at the table: lightning's
   double flash, a quick zoom-in punch and a cold storm grade while the bolt drives the ball in
   (the rework's polish; it had only a small shake).
+- 2026-10-08 (designer's second rework round): Black Hole and Guangdong Tiger lose their ball
+  caps (were 4 of yours and 1 of theirs): every ball in reach goes, so a hit on a solo break,
+  where practice allows them, takes all 14 and leaves the 8 to call ("like the Chinese
+  TikToks"; in a match nobody has their ability on the first turn). Black Hole's cinematic
+  camera is taken out again; the hole plays on the table's own view.

@@ -599,4 +599,41 @@ function tests.every_ability_can_be_practised_on_the_solo_break()
 	expect(tried == 13, "all 13 shot abilities tried, got " .. tried)
 end
 
+function tests.black_hole_and_the_tiger_on_a_solo_break_take_every_ball_but_the_8()
+	-- The designer's second rework round (2026-10-08): no caps, so a full-power break that hits
+	-- the rack takes all 14 (every ball but the 8 is yours on the open table); the 8 is left,
+	-- and the shooter calls its pocket next.
+	for _, id in { "BlackHole", "GuangdongTiger" } do
+		local s = E.new(2, 1)
+		expect(E.join(s, 11, "s", "s", 0))
+		expect(E.action(s, 11, { kind = "StartSolo", epoch = s.epoch, turnId = s.turnId }, 0))
+		expect(Match.practice(s, 11, id, s.phaseStartedAt))
+		local at = s.phaseStartedAt + PAUSE
+		E.advance(s, at)
+		local p = payload(s, 0, 1)
+		local cue = Sim.findBall(s.state, 0)
+		p.cueX, p.cueY = cue.x, cue.y
+		local wire, reason = E.acceptShot(s, 11, p, at)
+		expect(wire ~= nil, id .. " break refused: " .. tostring(reason))
+		for _ = 1, 20 do
+			if s.phase ~= "Resolving" then
+				break
+			end
+			E.advance(s, s.deadline)
+		end
+		local left = {}
+		for _, b in s.state.balls do
+			if not b.pocketed then
+				table.insert(left, b.id)
+			end
+		end
+		table.sort(left)
+		expect(
+			#left == 2 and left[1] == 0 and left[2] == 8,
+			id .. " left " .. table.concat(left, ",")
+		)
+		expect(s.phase == "PocketChoice" and s.shooter == 11, id .. ": the call for the 8 next")
+	end
+end
+
 return tests

@@ -3618,22 +3618,22 @@ Config.Ults = {
 			MaxBalls = 4,
 			Area = true,
 		},
-		-- +1.21 / +1.36 / +1.39 (careless +0.93 / +1.08 / +1.15; 4 of yours, 1 of theirs).
+		-- +1.21 / +1.36 / +1.39 (careless +0.93 / +1.08 / +1.15; 4 of yours, 1 of theirs). No
+		-- caps since 2026-10-08 (the designer's second round): every ball in reach.
 		BlackHole = {
 			Rarity = "Mythic",
 			Built = true,
 			Effect = "BlackHole",
 			Worth = 1.32,
-			MaxBalls = 4,
 			Area = true,
 		},
-		-- +1.22 / +1.34 / +1.34 (careless +0.93 / +1.07 / +1.14; 4 of yours, 1 of theirs).
+		-- +1.22 / +1.34 / +1.34 (careless +0.93 / +1.07 / +1.14; 4 of yours, 1 of theirs). No
+		-- caps since 2026-10-08, as Black Hole.
 		GuangdongTiger = {
 			Rarity = "Mythic",
 			Built = true,
 			Effect = "GuangdongTiger",
 			Worth = 1.3,
-			MaxBalls = 4,
 			Area = true,
 		},
 	} :: {
@@ -4016,12 +4016,12 @@ Config.Ults.BlackFlash = {
 -- Black Hole (docs/prompts/ABILITIES_PROMPT.md 7.12; src/shared/Ults/Effects/BlackHole).
 Config.Ults.BlackHole = {
 	-- Caps per use (5.7): at most this many of the shooter's balls and of the opponent's; the
-	-- closest go first. Per ability so the ladder can climb (the step 16 balance pass). (tune)
-	-- The step 16 balance pass (the designer's approved buff, 2026-09-29): 4 of yours and 1 of
-	-- theirs: +1.21 / +1.36 / +1.39 careful net at skills 1/2/3 (3 and 2: +1.02 / +1.15 / +1.20),
-	-- a Mythic above the Legendaries.
-	MaxOwn = 4,
-	MaxOpp = 1,
+	-- closest go first. None since the designer's second rework round (2026-10-08: "NO limit",
+	-- so a hit on a solo break swallows every ball but the 8, the Chinese pool clips); the
+	-- reach below is all that limits it. Was 4 of yours and 1 of theirs (the step 16 balance
+	-- pass: +1.21 / +1.36 / +1.39 careful net at skills 1/2/3).
+	MaxOwn = math.huge,
+	MaxOpp = math.huge,
 	-- It catches the shooter's balls within this of the hole (inches; the opponent's within
 	-- Config.Ults.Shared.OpponentFactor of it), at most MaxReachShare of the table. (tune)
 	RadiusInches = 20,
@@ -4045,12 +4045,11 @@ Config.Ults.BlackHole = {
 -- Guangdong Tiger (docs/prompts/ABILITIES_PROMPT.md 7.13; src/shared/Ults/Effects/GuangdongTiger).
 Config.Ults.GuangdongTiger = {
 	-- Caps per use (5.7): at most this many of the shooter's balls and of the opponent's; the
-	-- closest go first. Per ability so the ladder can climb (the step 16 balance pass). (tune)
-	-- The step 16 balance pass (the designer's approved buff, 2026-09-29): 4 of yours and 1 of
-	-- theirs: +1.22 / +1.34 / +1.34 careful net at skills 1/2/3 (3 and 2: +1.02 / +1.13 / +1.16),
-	-- a Mythic above the Legendaries.
-	MaxOwn = 4,
-	MaxOpp = 1,
+	-- closest go first. None since the designer's second rework round (2026-10-08: "NO limit",
+	-- as Black Hole); the reach below is all that limits it. Was 4 of yours and 1 of theirs
+	-- (the step 16 balance pass: +1.22 / +1.34 / +1.34 careful net at skills 1/2/3).
+	MaxOwn = math.huge,
+	MaxOpp = math.huge,
 	-- The swipe cuts the shooter's balls within this of the first contact (inches; the
 	-- opponent's within Config.Ults.Shared.OpponentFactor of it), at most MaxReachShare of the
 	-- table. (tune)
@@ -11120,32 +11119,6 @@ Config.UI.BlackHoleFx = {
 	PopGradeIn = 0.02,
 	PopGradeHold = 0.1,
 	PopGradeOut = 0.2,
-	-- The cinematic (the abilities rework's polish, 2026-10-08): at the open the camera of each
-	-- player at the table (ScreenFx.involved, the camera on the table) eases in over
-	-- CamInSeconds to a low three-quarter view of the hole: CamPitchDegrees above the cloth,
-	-- CamDistanceReaches of its reach from the focus (CamFocusLiftShare of the way from the
-	-- cloth up to the horizon's centre), turned CamSideDegrees from the side they looked from.
-	-- While it feeds the view drifts CamOrbitDegrees round it and CamPushShare closer over
-	-- CamDriftSeconds; from the pop it eases back to the table's view over CamOutSeconds. The
-	-- view darkens (CamGrade, ScreenFx.grade's in and out seconds) while the hole is open. On
-	-- the look's clock: it slows with /slowmo and stops on /hold.
-	CamInSeconds = 0.5,
-	CamPitchDegrees = 24,
-	CamDistanceReaches = 2,
-	CamFocusLiftShare = 0.4,
-	CamSideDegrees = 30,
-	CamOrbitDegrees = 14,
-	CamPushShare = 0.12,
-	CamDriftSeconds = 3,
-	CamOutSeconds = 0.7,
-	CamGrade = {
-		Saturation = -0.35,
-		Contrast = 0.25,
-		Brightness = -0.18,
-		TintColor = { 215, 205, 255 },
-	},
-	CamGradeIn = 0.3,
-	CamGradeOut = 0.4,
 	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
 }

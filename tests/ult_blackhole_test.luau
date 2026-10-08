@@ -141,8 +141,9 @@ function tests.the_legal_8_is_swallowed_and_wins()
 	)
 end
 
-function tests.the_caps_hold_closest_first()
-	-- Six of yours and four of theirs close round the 1.
+function tests.no_caps_every_ball_in_reach_goes()
+	-- Six of yours and four of theirs close round the 1: all of them go (no caps since the
+	-- designer's second rework round, 2026-10-08).
 	local spots = { { 0, -20, 0 }, { 1, 0, 0 } }
 	local own, opp = { 1 }, {}
 	for k, id in { 2, 3, 4, 5, 6, 7 } do
@@ -164,8 +165,8 @@ function tests.the_caps_hold_closest_first()
 			theirs += 1
 		end
 	end
-	check(mine == Config.Ults.BlackHole.MaxOwn, "yours: " .. mine)
-	check(theirs == Config.Ults.BlackHole.MaxOpp, "theirs: " .. theirs)
+	check(mine == 7, "all 7 of yours: " .. mine)
+	check(theirs == 4, "all 4 of theirs: " .. theirs)
 end
 
 function tests.every_caught_ball_is_swallowed_and_the_cue_ball_never_scratches_for_it()

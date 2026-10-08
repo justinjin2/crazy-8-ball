@@ -8,8 +8,9 @@
 --   contact at all: nothing happens.
 -- * The catch: while it is open, every object ball on the cloth within RadiusInches (the
 --   shooter's) or RadiusInches x OpponentFactor (the opponent's, 5.7), the closest first, at
---   most MaxOwn of the shooter's and MaxOpp of the opponent's. Never the cue ball;
---   the 8 only on the shooter's legal 8 shot (it is in overrides.Targets then).
+--   most MaxOwn of the shooter's and MaxOpp of the opponent's (no caps since the designer's
+--   second rework round, 2026-10-08: a hit on a solo break swallows every ball but the 8).
+--   Never the cue ball; the 8 only on the shooter's legal 8 shot (it is in overrides.Targets).
 -- * The drag: each caught ball is taken out of every contact (state.fx.ghost) and, before each
 --   step, sent straight at the hole at StartSpeed + PullAccel x (time since caught), at most
 --   MaxSpeed and never past the hole, with Swirl of that speed sideways (the spiral), dropped
