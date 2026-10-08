@@ -6,10 +6,16 @@ Create the game's game passes and developer products through Open Cloud.
     POST https://apis.roblox.com/developer-products/v2/universes/{u}/developer-products
 
 The list is tools/products_spec.json (key, kind Pass|Product, name, robux, description; the
-same rows as docs/prompts/ECONOMY_PROMPT.md step 3). Anything whose name already exists in
-the universe is skipped, so a rerun only creates what is missing. Every item is made for sale
+same rows as docs/prompts/ECONOMY_PROMPT.md step 3). Anything already in products_ids.json, or
+whose name already exists in the universe, is skipped, so a rerun only creates what is missing. Every item is made for sale
 with Managed Pricing off (the VIP Welcome Offer's "half price" must stay true). The ids land in
 tools/products_ids.json (key -> id); paste them into Config.Products.
+
+--sync brings the passes and products already in products_ids.json in line with the spec: the
+price, name and description, and isForSale (false for an item marked "retired", which is never
+deleted). It reads each item's live row first and PATCHes only what differs (the same update
+endpoints as --icons, form fields price, name, description, isForSale). Run it with --dry-run
+first: a price change goes live in every server at once.
 
 --icons sets the icon of the passes and products already in products_ids.json instead, from
 tools/products_icons.json (key -> PNG path relative to the repo), through the update endpoints
@@ -28,6 +34,8 @@ Usage
     python3 tools/roblox_products.py --icons --dry-run
     python3 tools/roblox_products.py --icons --only Vip,Pack1
     python3 tools/roblox_products.py --describe --only Vip,VipOffer   (send descriptions again)
+    python3 tools/roblox_products.py --sync --dry-run   (what would change: prices, names, text, sale)
+    python3 tools/roblox_products.py --sync
 """
 
 import argparse
@@ -90,6 +98,23 @@ def existing(kind, universe, key):
         token = data.get("nextPageToken") or ""
         if not token:
             return names
+
+
+def live_rows(kind, universe, key):
+    """Every pass or product in the universe: id -> its row."""
+    rows, token = {}, ""
+    while True:
+        url = BASE[kind].format(universe) + "/creator?pageSize=50"
+        if token:
+            url += "&pageToken=" + token
+        status, data = request("GET", url, key)
+        if status != 200:
+            sys.exit(f"List {kind} failed: HTTP {status} {data}")
+        for row in data.get(LIST_FIELD[kind]) or []:
+            rows[row[ID_FIELD[kind]]] = row
+        token = data.get("nextPageToken") or ""
+        if not token:
+            return rows
 
 
 def multipart(fields, files=None):
@@ -181,11 +206,75 @@ def set_descriptions(spec, args):
         sys.exit(f"{failed} description(s) failed")
 
 
+def sync(spec, args):
+    """PATCH each made pass's and product's price, name, description and isForSale to the spec."""
+    universe = spec["universeId"]
+    ids = json.load(open(IDS))
+    items = [i for i in spec["items"] if i["key"] in ids]
+    if args.only:
+        wanted = set(args.only.split(","))
+        items = [i for i in items if i["key"] in wanted]
+    key = api_key()
+    rows = {kind: live_rows(kind, universe, key) for kind in BASE}
+    failed = changed = 0
+    for item in items:
+        k, kind = item["key"], item["kind"]
+        row = rows[kind].get(ids[k])
+        if row is None:
+            failed += 1
+            print(f"FAILED  {k:<17} {kind:<7} {ids[k]}  not found in the universe")
+            continue
+        price = (row.get("priceInformation") or {}).get("defaultPriceInRobux")
+        want = {
+            "price": item["robux"],
+            "name": item["name"],
+            "description": item["description"],
+            "isForSale": not item.get("retired"),
+        }
+        have = {
+            "price": price,
+            "name": row.get("name"),
+            "description": row.get("description"),
+            "isForSale": row.get("isForSale"),
+        }
+        if item.get("retired"):  # only taken off sale; its other fields stay as they were
+            want = {"isForSale": False}
+        diff = {f: v for f, v in want.items() if have[f] != v}
+        if not diff:
+            print(f"same    {k:<17} {kind:<7} {ids[k]}")
+            continue
+        changed += 1
+        notes = []
+        for f in diff:
+            if f == "description":
+                notes.append("description")
+            else:
+                notes.append(f"{f} {have[f]!r} -> {want[f]!r}")
+        verb = "would" if args.dry_run else "set   "
+        if args.dry_run:
+            print(f"{verb}   {k:<17} {kind:<7} {ids[k]}  " + "; ".join(notes))
+            continue
+        fields = {f: (str(v).lower() if isinstance(v, bool) else v) for f, v in diff.items()}
+        body, content_type = multipart(fields)
+        status, data = request("PATCH", f"{BASE[kind].format(universe)}/{ids[k]}", key, body, content_type)
+        if status in (200, 204):
+            print(f"set     {k:<17} {kind:<7} {ids[k]}  " + "; ".join(notes))
+        else:
+            failed += 1
+            print(f"FAILED  {k:<17} {kind:<7} {ids[k]}  HTTP {status} {data}")
+    print(f"{changed} to change, {failed} failed")
+    if failed:
+        sys.exit(f"{failed} item(s) failed")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--only", help="comma-separated keys")
     parser.add_argument("--icons", action="store_true", help="set icons from products_icons.json")
+    parser.add_argument(
+        "--sync", action="store_true", help="bring prices, names, text and sale state in line with the spec"
+    )
     parser.add_argument(
         "--describe", action="store_true", help="send the descriptions in products_spec.json again"
     )
@@ -197,6 +286,9 @@ def main():
         return
     if args.describe:
         set_descriptions(spec, args)
+        return
+    if args.sync:
+        sync(spec, args)
         return
     universe = spec["universeId"]
     items = spec["items"]
@@ -210,6 +302,11 @@ def main():
 
     for item in items:
         kind, name = item["kind"], item["name"]
+        if item["key"] in ids:  # made already (its name may have changed since: --sync renames it)
+            print(f"exists  {item['key']:<17} {ids[item['key']]}  (in products_ids.json)")
+            continue
+        if item.get("retired"):
+            continue
         if name in have[kind]:
             ids[item["key"]] = have[kind][name]
             print(f"exists  {item['key']:<17} {have[kind][name]}  {name}")

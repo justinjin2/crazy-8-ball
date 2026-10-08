@@ -5,161 +5,175 @@
    "key": "Vip",
    "kind": "Pass",
    "name": "VIP",
-   "robux": 599,
-   "description": "2x money from every match, lucky block timers twice as fast, 1 free Ability Spin every day, a VIP slot in the restock shop, the VIP Cue, a gold [VIP] chat tag and a gold name. Adds Skip and Auto Spin to Ability Spins."
+   "robux": 399,
+   "description": "2x money from every match, no lucky block timers, a Rare Lucky Block every day (where paid random items aren't allowed, $5,000 instead), 1 free Ability Spin every day, a VIP slot in the restock shop, the VIP Cue, a gold [VIP] chat tag and a gold name. Adds Skip and Auto Spin to Ability Spins."
   },
   {
    "key": "UltSlot2",
    "kind": "Pass",
    "name": "Ability Slot 2",
-   "robux": 59,
+   "robux": 49,
    "description": "Unlocks a second ability slot."
   },
   {
    "key": "UltSlot3",
    "kind": "Pass",
    "name": "Ability Slot 3",
-   "robux": 99,
+   "robux": 79,
    "description": "Unlocks a third ability slot."
   },
   {
    "key": "VipOffer",
    "kind": "Product",
    "name": "VIP Welcome Offer",
-   "robux": 299,
-   "description": "VIP at half price for a short time: 2x money, a free daily Ability Spin, the VIP restock slot, the VIP Cue, tag and gold name."
+   "robux": 199,
+   "description": "VIP at half price for a short time: 2x money, no lucky block timers, a Rare Lucky Block every day ($5,000 where paid random items aren't allowed), a free daily Ability Spin, the VIP restock slot, the VIP Cue, tag and gold name."
   },
   {
    "key": "StarterPack",
    "kind": "Product",
    "name": "Starter Pack",
-   "robux": 99,
-   "description": "The Starter Cue, $75,000 and 1 hour of 2x money. Once per player, in your first 7 days."
+   "robux": 19,
+   "description": "The Starter Lucky Block (Rare or better), $25,000 and 1 hour of 2x money. Where paid random items aren't allowed: $40,000 and the hour of 2x money. Once per player, in your first 7 days. Odds are shown in the game."
   },
   {
    "key": "Pack1",
    "kind": "Product",
    "name": "Handful of Cash",
-   "robux": 49,
-   "description": "$9,000. Your first money pack pays double, once."
+   "robux": 25,
+   "description": "$8,000."
   },
   {
    "key": "Pack2",
    "kind": "Product",
    "name": "Stack of Cash",
-   "robux": 99,
-   "description": "$19,500 (+7%)."
+   "robux": 49,
+   "description": "$16,500 (+5%)."
   },
   {
    "key": "Pack3",
    "kind": "Product",
    "name": "Bundle of Cash",
-   "robux": 249,
-   "description": "$52,500 (+15%)."
+   "robux": 99,
+   "description": "$35,000 (+10%)."
   },
   {
    "key": "Pack4",
    "kind": "Product",
    "name": "Briefcase of Cash",
-   "robux": 499,
-   "description": "$110,000 (+20%)."
+   "robux": 199,
+   "description": "$75,000 (+18%)."
   },
   {
    "key": "Pack5",
    "kind": "Product",
    "name": "Vault of Cash",
-   "robux": 999,
-   "description": "$235,000 (+28%)."
+   "robux": 399,
+   "description": "$160,000 (+25%)."
   },
   {
    "key": "Pack6",
    "kind": "Product",
    "name": "Bank of Cash",
-   "robux": 2499,
-   "description": "$625,000 (+36%). Best value."
+   "robux": 799,
+   "description": "$335,000 (+31%)."
   },
   {
    "key": "Pack7",
    "kind": "Product",
    "name": "Fortune",
-   "robux": 4999,
-   "description": "$1,300,000 (+42%)."
+   "robux": 1699,
+   "description": "$760,000 (+40%). Best value."
   },
   {
    "key": "Mystery1",
    "kind": "Product",
    "name": "Mystery Lucky Block",
-   "robux": 25,
-   "description": "One Mystery Lucky Block: it rolls a tier from Standard to Mythic when you open it. Odds are shown in the game."
+   "robux": 5,
+   "description": "One Mystery Lucky Block: it starts as Standard and can climb up to Mythic when you open it. Odds are shown in the game."
   },
   {
    "key": "Mystery10",
    "kind": "Product",
    "name": "10 Mystery Lucky Blocks",
-   "robux": 229,
-   "description": "Ten Mystery Lucky Blocks, each rolling its own tier. Odds are shown in the game."
+   "robux": 45,
+   "description": "Ten Mystery Lucky Blocks, each climbing on its own, with the same odds and pity as a free one. Odds are shown in the game."
+  },
+  {
+   "key": "RestockRare",
+   "kind": "Product",
+   "name": "Restock Rare Lucky Block",
+   "robux": 15,
+   "description": "The Rare Lucky Block in the restock shop, while it is in stock. Odds are shown in the game."
   },
   {
    "key": "RestockEpic",
    "kind": "Product",
    "name": "Restock Epic Lucky Block",
-   "robux": 999,
+   "robux": 99,
    "description": "The Epic Lucky Block in the restock shop, while it is in stock. Odds are shown in the game."
   },
   {
    "key": "RestockLegendary",
    "kind": "Product",
    "name": "Restock Legendary Lucky Block",
-   "robux": 4999,
-   "description": "The Legendary Lucky Block in the restock shop, while it is in stock (25 worldwide each time it appears). Odds are shown in the game."
+   "robux": 599,
+   "description": "The Legendary Lucky Block in the restock shop, while it is in stock. Odds are shown in the game."
+  },
+  {
+   "key": "RestockMythic",
+   "kind": "Product",
+   "name": "Restock Mythic Lucky Block",
+   "robux": 1699,
+   "description": "The Mythic Lucky Block in the restock shop, while it is in stock. Odds are shown in the game."
   },
   {
    "key": "MoneyParty",
    "kind": "Product",
    "name": "Money Party",
-   "robux": 199,
+   "robux": 49,
    "description": "+100% money for everyone in your server for 15 minutes. Your name is announced."
   },
   {
    "key": "Spin1",
    "kind": "Product",
    "name": "1 Ability Spin",
-   "robux": 15,
+   "robux": 9,
    "description": "One Ability Spin. Odds are shown in the game."
   },
   {
    "key": "Spin5",
    "kind": "Product",
    "name": "5 Ability Spins",
-   "robux": 50,
+   "robux": 39,
    "description": "Five Ability Spins. Odds are shown in the game."
   },
   {
    "key": "Spin10",
    "kind": "Product",
    "name": "10 Ability Spins",
-   "robux": 100,
+   "robux": 75,
    "description": "Ten Ability Spins. Odds are shown in the game."
   },
   {
    "key": "Spin50",
    "kind": "Product",
    "name": "50 Ability Spins",
-   "robux": 449,
+   "robux": 299,
    "description": "Fifty Ability Spins. Odds are shown in the game."
   },
   {
    "key": "Lucky1",
    "kind": "Product",
    "name": "1 Lucky Spin",
-   "robux": 49,
+   "robux": 25,
    "description": "One Lucky Spin: no Commons. Odds are shown in the game."
   },
   {
    "key": "Lucky3",
    "kind": "Product",
    "name": "3 Lucky Spins",
-   "robux": 129,
+   "robux": 65,
    "description": "Three Lucky Spins: no Commons. Odds are shown in the game."
   },
   {
@@ -167,70 +181,90 @@
    "kind": "Product",
    "name": "Briefcase of Cash (Launch Sale)",
    "robux": 349,
-   "description": "Launch sale, 30% off: $110,000 money. The first money pack you ever buy pays double."
+   "description": "Launch sale, 30% off: $110,000 money. The first money pack you ever buy pays double.",
+   "retired": true
   },
   {
    "key": "Pack5Sale",
    "kind": "Product",
    "name": "Vault of Cash (Launch Sale)",
    "robux": 699,
-   "description": "Launch sale, 30% off: $235,000 money. The first money pack you ever buy pays double."
+   "description": "Launch sale, 30% off: $235,000 money. The first money pack you ever buy pays double.",
+   "retired": true
   },
   {
    "key": "Pack6Sale",
    "kind": "Product",
    "name": "Bank of Cash (Launch Sale)",
    "robux": 1749,
-   "description": "Launch sale, 30% off: $625,000 money. The first money pack you ever buy pays double."
+   "description": "Launch sale, 30% off: $625,000 money. The first money pack you ever buy pays double.",
+   "retired": true
   },
   {
    "key": "Pack7Sale",
    "kind": "Product",
    "name": "Fortune (Launch Sale)",
    "robux": 3499,
-   "description": "Launch sale, 30% off: $1,300,000 money. The first money pack you ever buy pays double."
+   "description": "Launch sale, 30% off: $1,300,000 money. The first money pack you ever buy pays double.",
+   "retired": true
   },
   {
    "key": "VipSale",
    "kind": "Product",
    "name": "VIP (Launch Sale)",
-   "robux": 419,
-   "description": "Launch sale, 30% off VIP for good: 2x money from every match, 1 free Ability Spin every day, a VIP slot in the restock shop, the VIP Cue and a [VIP] chat tag."
+   "robux": 349,
+   "description": "Launch sale, 30% off VIP for good: 2x money from every match, 1 free Ability Spin every day, a VIP slot in the restock shop, the VIP Cue and a [VIP] chat tag.",
+   "retired": true
   },
   {
    "key": "Mystery10Sale",
    "kind": "Product",
    "name": "10 Mystery Lucky Blocks (Launch Sale)",
    "robux": 160,
-   "description": "Launch sale, 30% off: 10 Mystery Lucky Blocks, each rolling its own tier with the same odds and pity as a free one."
+   "description": "Launch sale, 30% off: 10 Mystery Lucky Blocks, each rolling its own tier with the same odds and pity as a free one.",
+   "retired": true
   },
   {
    "key": "LuckyBlockSkip",
    "kind": "Product",
    "name": "Lucky Block Timer Skip",
-   "robux": 19,
-   "description": "Finish one lucky block timer instantly. If the selected timer has already finished, keep a skip credit for your next lucky block."
+   "robux": 4,
+   "description": "Finish a lucky block timer with 30 minutes or less left. If it has already finished, keep the skip for your next lucky block."
+  },
+  {
+   "key": "LuckyBlockSkip9",
+   "kind": "Product",
+   "name": "Lucky Block Timer Skip (6 h)",
+   "robux": 9,
+   "description": "Finish a lucky block timer with 6 hours or less left. If it has already finished, keep the skip for your next lucky block."
+  },
+  {
+   "key": "LuckyBlockSkip15",
+   "kind": "Product",
+   "name": "Lucky Block Timer Skip (any)",
+   "robux": 15,
+   "description": "Finish any lucky block timer. If it has already finished, keep the skip for your next lucky block."
   },
   {
    "key": "GrandOpening1",
    "kind": "Product",
    "name": "Grand Opening Lucky Block",
-   "robux": 49,
-   "description": "One Grand Opening Lucky Block: each rolls Uncommon to Secret, with a chance at the Unique Beta Cue or Firework Cue. Every outcome's odds are shown in the shop before buying."
+   "robux": 19,
+   "description": "One Grand Opening Lucky Block: each rolls Rare to Secret, with a chance at the numbered Firework Cue (1,000 made) or Beta Cue (100 made). Every outcome's odds are shown in the shop before buying."
   },
   {
    "key": "GrandOpening3",
    "kind": "Product",
    "name": "3 Grand Opening Lucky Blocks",
-   "robux": 129,
-   "description": "3 Grand Opening Lucky Blocks: each rolls Uncommon to Secret, with a chance at the Unique Beta Cue or Firework Cue. Every outcome's odds are shown in the shop before buying."
+   "robux": 49,
+   "description": "3 Grand Opening Lucky Blocks: each rolls Rare to Secret, with a chance at the numbered Firework Cue (1,000 made) or Beta Cue (100 made). Every outcome's odds are shown in the shop before buying."
   },
   {
    "key": "GrandOpening10",
    "kind": "Product",
    "name": "10 Grand Opening Lucky Blocks",
-   "robux": 349,
-   "description": "10 Grand Opening Lucky Blocks: each rolls Uncommon to Secret, with a chance at the Unique Beta Cue or Firework Cue. Every outcome's odds are shown in the shop before buying."
+   "robux": 149,
+   "description": "10 Grand Opening Lucky Blocks: each rolls Rare to Secret, with a chance at the numbered Firework Cue (1,000 made) or Beta Cue (100 made). Every outcome's odds are shown in the shop before buying."
   }
  ]
 }
