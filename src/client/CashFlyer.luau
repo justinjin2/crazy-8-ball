@@ -50,6 +50,7 @@ type Chip = {
 	scale: UIScale?,
 	icon: ImageLabel?,
 	text: TextLabel?,
+	target: Vector2?, -- where it lands, read once as it sets off
 	landed: boolean,
 }
 
@@ -190,6 +191,7 @@ function CashFlyer.launch(
 		scale = nil,
 		icon = nil,
 		text = nil,
+		target = nil,
 		landed = false,
 	}
 	table.insert(self.chips, chip)
@@ -303,7 +305,6 @@ end
 function CashFlyer.step(self: any)
 	local now = os.clock()
 	local origin = self.layer.AbsolutePosition
-	local target = self.money:iconCenter()
 	local popEnd = C.PopSeconds
 	local hangEnd = popEnd + C.HangSeconds
 	local flyEnd = hangEnd + C.FlySeconds
@@ -332,6 +333,11 @@ function CashFlyer.step(self: any)
 					else
 						local t = (elapsed - hangEnd) / C.FlySeconds
 						local eased = flight(t)
+						-- The landing point, read once: asking a big menu where its money pill
+						-- is every frame made it lay itself out again mid-frame, and the chip
+						-- was drawn only every other frame (designer, 2026-10-08: choppy).
+						local target = chip.target or self.money:iconCenter()
+						chip.target = target
 						point = curve(start, target, eased)
 						size = 1 + (C.EndScale - 1) * eased
 						local fadeFrom = 1 - C.FadeShare
@@ -342,6 +348,10 @@ function CashFlyer.step(self: any)
 					frame.Position = UDim2.fromOffset(point.X - origin.X, point.Y - origin.Y)
 					frame.Visible = true
 					scale.Scale = size
+					-- Reading it back makes Roblox place the chip this very frame. Left alone
+					-- with a big menu open, the move was put on screen only every other frame:
+					-- 30 steps a second, the choppy flight (recorded, 2026-10-08).
+					local _placed = frame.AbsolutePosition
 				end
 			end
 		end

@@ -3158,3 +3158,11 @@ timer of a new block stay the designer's call.
   just over the menu (`CuesCashFlyer`, kept on by HudFocus), as the Rewards menu's
   (`RewardsFlyer`) always have. Studio check `GuiQA "loopCost"`: the Cues view's idle loops take
   about 2.3 ms a frame on the Mac (0.07 ms in the lobby).
+- 2026-10-08 (designer: the money chip "still looks very choppy"): the real cause, found by
+  recording a real Index claim and logging the chip each frame: the game moved the chip every
+  frame, but with a big menu open Roblox put the move on screen only every other frame (30 a
+  second), unless something read the chip's position back that frame (a debug log that did so
+  made it smooth, which is how it was found). CashFlyer now reads each chip's AbsolutePosition
+  after moving it, so it is placed every frame (checked: every recorded frame moves, Index view
+  and a real claim). Each chip also reads its landing point once instead of every frame. The
+  own-ScreenGui change above stays; on its own it did not fix it.
