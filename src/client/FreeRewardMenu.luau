@@ -1,346 +1,378 @@
 --!strict
--- FreeRewardMenu: the Free Reward page (GUI lane, designer 2026-10-03, D4), opened from the
--- left column's glowing gift (or the D-pad's down) through Menus. Two big cards side by side
--- (stacked on a narrow screen), each gone once claimed:
--- - Join the group: Join is Roblox's own join prompt (GroupService:PromptJoinAsync); then the
---   server asks Roblox again and gives the group reward (RewardRequest "ClaimGroup"). Once a
---   member, the button reads Claim.
--- - Favorite the game: Favorite is Roblox's own favorite prompt (AvatarEditorService:
---   PromptSetFavorite on the place); when it answers yes (and GetFavorite agrees, when Roblox
---   answers it), the client claims (RewardRequest "ClaimFavorite": $10,000 + a Mystery block,
---   once; a server cannot check a favorite). Under it: "Liking the game helps us too!" with no
---   reward tied to it (Roblox gives games no way to check a like).
--- What a claim gave flies out of its button (RewardsFlyer); its blocks land in the hotbar.
--- With both claimed the page says thank you (and the column's tile goes). Gamepad: opening
--- lands on the first card's button; B closes (Menus). Sizes in Config.UI.FreeReward.
-local AvatarEditorService = game:GetService("AvatarEditorService")
-local GroupService = game:GetService("GroupService")
+-- FreeRewardMenu: the Free Reward menu (the designer's picks "daily A" and "free_other A" on the
+-- mock page, 2026-10-08: every free reward in one menu; the old Rewards menu is merged into
+-- it), opened from the left column's Free Reward tile (or the D-pad's down in the hub) through
+-- Menus. The lively frame (MenuFrame: the panel unrolls, the money pill whose "+" opens the
+-- Shop's money packs, the red X) and one page that scrolls under four jump buttons down the
+-- right side (JumpRail, as the Shop's): Daily, Playtime, Track and Group, each wearing a red
+-- "!" while its section has something to claim. The page, in the Grand Opening card's units
+-- like the Shop's:
+-- - "- DAILY -": the login row's seven days and Claim All (FreeDaily);
+-- - "- PLAYTIME -": the day's five playtime gifts (FreePlaytime);
+-- - "- TRACK -": the 28-day track (FreeTrack);
+-- - "- GROUP -": join the group, favorite the game, invite a friend (FreeSocial).
+-- Opened with no section it jumps to the first one with something to claim. The panel is as
+-- tall as the Daily section, the next header peeking in under it (Config.UI.Shop.Page.PeekPx).
+-- Codes are typed in Settings (and the Abilities screen).
+--
+-- Data: ItemState's "Rewards" snapshot (RewardState, src/shared/Net.luau), redrawn on every
+-- ItemState.Changed.Rewards; claims through ItemState.request("RewardRequest", action, arg)
+-- carrying only the action and a gift's index. What a claim gave flies out of its button
+-- (RewardsFlyer): money into the money HUD, blocks to the hotbar, ability spins to the
+-- Abilities tile. A button is off while its request is on its way, and stays off after a
+-- claim until the next state arrives (so a quick second press never asks twice); a refusal
+-- shows the server's reason as a notice. Claim All is a Robux product (StoreRequest "Buy":
+-- Roblox's own dialog; "Coming soon" until the product is on sale).
+--
+-- Gamepad: opening lands on the first Claim (today's, a gift's, the group's), else on the lit
+-- jump button; LB and RB step through the sections; B closes the odds pop-up, then the menu.
+-- Sizes in Config.UI.FreeReward, words in Strings.FreeReward.
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local FreeDaily = require(script.Parent.FreeDaily)
+local FreePlaytime = require(script.Parent.FreePlaytime)
+local FreeSocial = require(script.Parent.FreeSocial)
+local FreeTrack = require(script.Parent.FreeTrack)
+local GrandOpeningCard = require(script.Parent.GrandOpeningCard)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
+local JumpRail = require(script.Parent.JumpRail)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
 local RewardsFlyer = require(script.Parent.RewardsFlyer)
-local RewardsParts = require(script.Parent.RewardsParts)
+local ShopOdds = require(script.Parent.ShopOdds)
+local ShopParts = require(script.Parent.ShopParts)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local NAME = "FreeReward"
 local F = Config.UI.FreeReward
-local K = Config.UI.Kit
+local P = Config.UI.Shop.Page
+local UNITS = Config.UI.GrandOpeningCard.Layout.Card[1] -- the page's width in units
 local W = Strings.FreeReward
+local JUMPS: { { Key: string, Icon: string } } = F.Jump :: any
+local round = ShopParts.round
 
 local FreeRewardMenu = {}
 
-type Card = {
-	key: string,
-	root: Frame,
-	icon: ImageLabel,
-	title: TextLabel,
-	reward: TextLabel,
-	line: TextLabel,
-	note: TextLabel?,
-	button: TextButton,
-	sparkle: any,
-}
-
-local function round(n: number): number
-	return math.floor(n + 0.5)
-end
-
-local function gamepad(): boolean
-	return string.sub(UserInputService:GetLastInputType().Name, 1, 7) == "Gamepad"
-end
-
---- Build the page (closed) and register it with Menus. `deps`: Progression's shared table.
+--- Build the menu (closed) and register it with Menus. `deps`: Progression's shared table
+--- (money, flyer, column, rankHud); a field may be filled after this returns.
 function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local frame = MenuFrame.new(screen, {
 		name = NAME,
 		title = Strings.Menus.Titles.FreeReward,
 		icon = "FreeReward",
+		money = true,
+		-- The money pill's "+" opens the Shop's money packs, as the money HUD's does.
+		moneyPlus = function()
+			Menus.open("Shop", "Money")
+		end,
 	})
-	local page = frame:page()
 	local flyer = deps.rewardsFlyer or RewardsFlyer.new(screen, deps)
 	deps.rewardsFlyer = flyer
+	local page = frame:page()
+	local placeholder = MenuFrame.placeholder(page)
+	local scroll = ShopParts.scroller(page, "Page")
 	local geo: MenuFrame.Geo? = nil
-	local busy: { [string]: boolean } = {}
-	local cards: { [string]: Card } = {}
+	local state: any = ItemState.rewards()
+	local openedOn: string? = nil -- the section the menu was opened on (a late layout jumps again)
+	local openedAt = 0
+	local ticker: RBXScriptConnection? = nil
+	local nextTick = 0
 
-	local thanks = HudParts.text(page, "Thanks", 24, W.AllDone)
-	thanks.Size = UDim2.fromScale(1, 1)
-	thanks.Visible = false
-	thanks.ZIndex = 3
+	-- Requests on their way, and claims answered but not yet seen in a state, by key ("Daily",
+	-- "Gift1", "Group", "Favorite", "ClaimAll").
+	local inFlight: { [string]: boolean } = {}
+	local claimedAt: { [string]: number } = {}
+	local version = 0 -- counts the RewardStates seen
 
-	local function makeCard(key: string, iconKey: string, titleText: string, press: () -> ()): Card
-		local root = HudParts.card(page, key)
-		root.ZIndex = 3
-		if HudParts.paleEdged(NAME) then
-			HudParts.paleEdge(root)
+	local refresh: () -> ()
+	local keepSelection: () -> ()
+	local ctx: any = {}
+
+	function ctx.busy(key: string): boolean
+		return inFlight[key] == true or claimedAt[key] == version
+	end
+
+	function ctx.notice(text: string, toneName: string?)
+		if frame:isOpen() then
+			frame:notice(text, toneName)
 		end
-		local icon = HudParts.icon(root, iconKey, "Icon")
-		icon.AnchorPoint = Vector2.new(0.5, 0)
-		icon.ZIndex = 4
-		local title = HudParts.text(root, "Title", 24, titleText)
-		title.ZIndex = 4
-		local reward = HudParts.text(root, "Reward", 28, "", HudParts.color(K.Numbers.Money))
-		reward.AutoLocalize = false
-		reward.ZIndex = 4
-		local line = HudParts.note(root, "Line", 15, "")
-		line.ZIndex = 4
-		local button = HudParts.candy(root, "", press, "Green")
-		button.AnchorPoint = Vector2.new(0.5, 1)
-		button.ZIndex = 5
-		local made: Card = {
-			key = key,
-			root = root,
-			icon = icon,
-			title = title,
-			reward = reward,
-			line = line,
-			note = nil,
-			button = button,
-			sparkle = nil,
-		}
-		cards[key] = made
+	end
+
+	--- Ask the server for a claim (`action` and `arg` as Net.luau's RewardRequest), with the
+	--- button that asked (the reward flies from there).
+	function ctx.claim(action: string, arg: any, key: string, button: GuiObject)
+		if inFlight[key] then
+			return
+		end
+		inFlight[key] = true
+		UISound.play("Click")
+		refresh()
+		task.spawn(function()
+			local reply = ItemState.request("RewardRequest", action, arg)
+			inFlight[key] = nil
+			if type(reply) == "table" and reply.ok then
+				claimedAt[key] = version
+				UISound.play("Claim")
+				local from = button.AbsolutePosition + button.AbsoluteSize / 2
+				flyer:reward(reply, from)
+			elseif type(reply) == "table" and reply.reason == "NotMember" then
+				ctx.notice(W.NotMember, "Red")
+			else
+				ctx.notice(MenuFrame.reason(reply), "Red")
+			end
+			refresh()
+			keepSelection()
+		end)
+	end
+
+	--- Buy a Robux product (Claim All): the server checks it and shows Roblox's dialog; a
+	--- product not on sale yet says "Coming soon".
+	function ctx.buy(product: string)
+		local shop = ItemState.shop()
+		local products = if type(shop) == "table" and type(shop.products) == "table"
+			then shop.products
+			else {}
+		local row = products[product]
+		if type(row) ~= "table" or row.available ~= true then
+			ctx.notice(W.ComingSoon, "Ink")
+			return
+		end
+		local key = "ClaimAll"
+		if inFlight[key] then
+			return
+		end
+		inFlight[key] = true
+		UISound.play("Click")
+		refresh()
+		task.spawn(function()
+			local reply = ItemState.request("StoreRequest", "Buy", product)
+			inFlight[key] = nil
+			if not (type(reply) == "table" and reply.ok) then
+				ctx.notice(MenuFrame.reason(reply), "Red")
+			end
+			refresh()
+		end)
+	end
+
+	-- The four sections, each in its group under its header.
+	local groups: { [string]: Frame } = {}
+	local headers: { [string]: any } = {}
+	local function group(key: string): Frame
+		local made = HudParts.frame(scroll, key)
+		made.ZIndex = 2
+		groups[key] = made
+		headers[key] = GrandOpeningCard.header(made, W.Headers[key] or key)
 		return made
 	end
+	local daily = FreeDaily.new(group("Daily"), ctx)
+	local playtime = FreePlaytime.new(group("Playtime"), ctx)
+	local track = FreeTrack.new(group("Track"))
+	local social = FreeSocial.new(group("Group"), ctx)
+	local sections: { [string]: any } =
+		{ Daily = daily, Playtime = playtime, Track = track, Group = social }
 
-	local claim: (key: string, action: string) -> ()
+	local jumps: { JumpRail.Group } = {}
+	for _, jump in JUMPS do
+		table.insert(
+			jumps,
+			{ key = jump.Key, text = W.Jump[jump.Key] or jump.Key, icon = jump.Icon }
+		)
+	end
+	local rail = JumpRail.new({
+		frame = frame,
+		scroll = scroll,
+		groups = jumps,
+		badge = W.Badge,
+		badgeShare = F.BadgeShare,
+		action = "8ballFreeRewardJump",
+		root = function(key: string): GuiObject?
+			return groups[key]
+		end,
+	})
 
-	local group = makeCard("Group", "Group", W.GroupTitle, function()
-		UISound.play("Click")
-		local state = ItemState.rewards()
-		local view = if type(state) == "table" then state.group else nil
-		if type(view) == "table" and view.member == true then
-			claim("Group", "ClaimGroup")
-			return
+	-- The lively frame's open (Config.UI.FreeReward.Open).
+	local stage = frame.stage
+	if stage then
+		local function keep(handle: UIAnim.Handle)
+			frame:idle(handle)
 		end
-		task.spawn(function()
-			pcall(function()
-				GroupService:PromptJoinAsync(Config.Social.GroupId)
-			end)
-			-- Roblox's join prompt has closed: the server asks Roblox again on Claim.
-			claim("Group", "ClaimGroup")
-		end)
-	end)
-	local favorite = makeCard("Favorite", "Star", W.FavoriteTitle, function()
-		UISound.play("Click")
-		task.spawn(function()
-			local result: any = nil
-			local connection = AvatarEditorService.PromptSetFavoriteCompleted:Connect(
-				function(r: any)
-					result = r
-				end
-			)
-			local ok = pcall(function()
-				AvatarEditorService:PromptSetFavorite(game.PlaceId, Enum.AvatarItemType.Asset, true)
-			end)
-			local waited = 0
-			while ok and result == nil and waited < 120 do
-				waited += task.wait(0.2)
-			end
-			connection:Disconnect()
-			if result ~= Enum.AvatarPromptResult.Success then
-				frame:notice(W.NotYet, "Red")
-				return
-			end
-			-- Roblox's own answer, when it gives one (it may say no a moment after the prompt).
-			local seen = false
-			local deadline = os.clock() + F.FavoriteCheckSeconds
-			repeat
-				local okGet, fav = pcall(function(): boolean
-					return AvatarEditorService:GetFavorite(game.PlaceId, Enum.AvatarItemType.Asset)
-				end)
-				seen = not okGet or fav == true -- no answer: trust the prompt
-				if not seen then
-					task.wait(0.5)
-				end
-			until seen or os.clock() > deadline
-			if not seen then
-				frame:notice(W.NotYet, "Red")
-				return
-			end
-			claim("Favorite", "ClaimFavorite")
-		end)
-	end)
-	local note = HudParts.note(favorite.root, "Like", 14, W.LikeToo)
-	note.ZIndex = 4
-	favorite.note = note
-
-	claim = function(key: string, action: string)
-		if busy[key] then
-			return
-		end
-		busy[key] = true
-		local card = cards[key]
-		HudParts.setEnabled(card.button, false)
-		local reply = ItemState.request("RewardRequest", action)
-		busy[key] = false
-		HudParts.setEnabled(card.button, true)
-		if type(reply) == "table" and reply.ok then
-			UISound.play("Claim")
-			local from = card.button.AbsolutePosition + card.button.AbsoluteSize / 2
-			flyer:reward(reply, from)
-			UIAnim.glowBurst(card.root, HudParts.color(K.Numbers.Money), 0.4)
-		elseif type(reply) == "table" and reply.reason == "NotMember" then
-			frame:notice(W.NotMember, "Red")
-		else
-			frame:notice(MenuFrame.reason(reply), "Red")
+		rail:register(stage)
+		for _, jump in JUMPS do
+			local key = jump.Key
+			stage:add(key .. "Head", headers[key].word)
+			stage:add(key .. "Lines", headers[key].lines)
+			sections[key]:register(stage, keep)
 		end
 	end
 
-	local function shown(): { Card }
-		local state = ItemState.rewards()
-		local list: { Card } = {}
-		local g = if type(state) == "table" then state.group else nil
-		local f = if type(state) == "table" then state.favorite else nil
-		if type(g) == "table" and g.claimed ~= true then
-			table.insert(list, group)
-		end
-		if type(f) == "table" and f.claimed ~= true then
-			table.insert(list, favorite)
-		end
-		return list
-	end
-
-	local function paint()
-		local state = ItemState.rewards()
-		local g = if type(state) == "table" then state.group else nil
-		local f = if type(state) == "table" then state.favorite else nil
-		if type(g) == "table" then
-			group.reward.Text = RewardsParts.words(RewardsParts.reward(g.reward))
-			group.line.Text = W.GroupLine:format(round((tonumber(g.boost) or 0) * 100))
-			HudParts.setText(group.button, if g.member == true then W.Claim else W.Join)
-		end
-		if type(f) == "table" then
-			favorite.reward.Text = RewardsParts.words(RewardsParts.reward(f.reward))
-			favorite.line.Text = W.FavoriteLine
-			HudParts.setText(favorite.button, W.Favorite)
-		end
-	end
-
+	-- Lay the page out: each section under its header, one scale k for the whole page.
 	local function layout()
 		local g = geo
-		if not g then
+		if not frame:isOpen() or g == nil then
 			return
 		end
-		paint()
-		local list = shown()
-		group.root.Visible = table.find(list, group) ~= nil
-		favorite.root.Visible = table.find(list, favorite) ~= nil
-		thanks.Visible = #list == 0
-		local size = g.content
-		local t = g.t
-		local function span(pair: { number }): number
-			return round(pair[1] + (pair[2] - pair[1]) * t)
+		local width = rail:layout(g)
+		scroll.Size = UDim2.fromOffset(width, g.content.Y)
+		local pageW = width - scroll.ScrollBarThickness
+		local k = pageW / UNITS
+		local headH = GrandOpeningCard.headerHeight(k)
+		local gap = round(F.GapUnits * k)
+		local y = 0
+		for _, jump in JUMPS do
+			local key = jump.Key
+			rail.tops[key] = y
+			GrandOpeningCard.layoutHeader(headers[key], round(pageW / 2), round(headH / 2), k)
+			local h = headH + round(F.HeaderGapUnits * k)
+			h += sections[key]:layout(pageW, k, h)
+			groups[key].Position = UDim2.fromOffset(0, y)
+			groups[key].Size = UDim2.fromOffset(pageW, h)
+			y += h + gap
 		end
-		local n = math.max(1, #list)
-		local gap = g.gap * 2
-		local side = size.X >= n * 260 + (n - 1) * gap -- side by side when both fit
-		local cw = if side
-			then math.min(F.CardMaxWidthPx, math.floor((size.X - (n - 1) * gap) / n))
-			else math.min(F.CardMaxWidthPx * 1.4, size.X)
-		local ch = if side then size.Y else math.floor((size.Y - (n - 1) * gap) / n)
-		local totalW = if side then n * cw + (n - 1) * gap else cw
-		local x0 = math.floor((size.X - totalW) / 2)
-		local iconPx = math.min(span(F.IconPx), math.floor(ch * 0.32))
-		local titlePx = math.max(K.Text.Min, span(F.TitlePx))
-		local rewardPx = math.max(K.Text.Min, span(F.RewardPx))
-		local linePx = math.max(K.Text.Min, span(F.LinePx))
-		local buttonPx = math.max(44, span(F.ButtonPx))
-		-- A card is as tall as its contents (plus a little air), centred in the page.
-		local need = iconPx + titlePx + rewardPx + 3 * (linePx + 6) + buttonPx + 4 * g.pad + 24
-		local y0 = 0
-		if side and need < ch then
-			y0 = math.floor((ch - need) / 2)
-			ch = need
+		-- Room under the last section so it can scroll up to its header.
+		ShopParts.setCanvas(scroll, math.max(y, rail.tops.Group + g.content.Y))
+		-- Opened on a section: a layout soon after the open jumps there again.
+		local on = openedOn
+		if on and os.clock() - openedAt <= P.JumpSettleSeconds then
+			rail:scrollTo(on, true)
 		end
-		for index, card in list do
-			local x = if side then x0 + (index - 1) * (cw + gap) else x0
-			local y = if side then y0 else (index - 1) * (ch + gap)
-			card.root.Position = UDim2.fromOffset(x, y)
-			card.root.Size = UDim2.fromOffset(cw, ch)
-			local pad = g.pad
-			local inner = cw - 2 * pad
-			local stackY = pad
-			if not side and ch < iconPx + titlePx + rewardPx + linePx + buttonPx + 5 * pad then
-				iconPx = math.max(40, ch - (titlePx + rewardPx + buttonPx + 4 * pad))
+		rail:relaid(pageW)
+	end
+
+	-- Draw everything from the latest state, and the jump buttons' "!".
+	refresh = function()
+		placeholder.Visible = type(state) ~= "table"
+		scroll.Visible = type(state) == "table"
+		for _, section in sections do
+			section:refresh(state)
+		end
+		for _, jump in JUMPS do
+			local section = sections[jump.Key]
+			rail:setBadge(jump.Key, section.claimable ~= nil and section:claimable())
+		end
+	end
+
+	-- The first button a gamepad should land on: a Claim, else nothing.
+	local function primary(): GuiObject?
+		return daily:primary() or playtime:primary() or social:primary()
+	end
+
+	-- A claim button that was just switched off hands a gamepad's selection to the next Claim,
+	-- else to the lit jump button.
+	keepSelection = function()
+		if not frame:isOpen() or not ShopParts.gamepad() or #frame.dialogs > 0 then
+			return
+		end
+		local selected = GuiService.SelectedObject
+		if
+			selected
+			and selected:IsDescendantOf(frame.root)
+			and (not selected.Selectable or not selected.Visible)
+		then
+			local target = primary() or ShopParts.firstSelectable(rail:buttons() :: any)
+			if target then
+				GuiService.SelectedObject = target
+			else
+				frame:focus()
 			end
-			card.icon.Size = UDim2.fromOffset(iconPx, iconPx)
-			card.icon.Position = UDim2.new(0.5, 0, 0, stackY)
-			stackY += iconPx + 4
-			HudParts.setTextSize(card.title, titlePx)
-			card.title.Position = UDim2.fromOffset(pad, stackY)
-			card.title.Size = UDim2.fromOffset(inner, titlePx + 6)
-			stackY += titlePx + 6
-			HudParts.setTextSize(card.reward, rewardPx)
-			card.reward.Position = UDim2.fromOffset(pad, stackY)
-			card.reward.Size = UDim2.fromOffset(inner, rewardPx + 6)
-			stackY += rewardPx + 6
-			HudParts.setTextSize(card.line, linePx)
-			card.line.Position = UDim2.fromOffset(pad, stackY)
-			card.line.Size = UDim2.fromOffset(inner, 2 * (linePx + 4))
-			local cardNote = card.note
-			if cardNote then
-				HudParts.setTextSize(cardNote, linePx)
-				cardNote.Position = UDim2.new(0, pad, 1, -pad - buttonPx - linePx - 10)
-				cardNote.Size = UDim2.fromOffset(inner, linePx + 6)
+		end
+	end
+
+	-- Opened with no section: the first with something to claim, else Daily.
+	local function bestSection(): string
+		for _, jump in JUMPS do
+			local section = sections[jump.Key]
+			if section.claimable ~= nil and section:claimable() then
+				return jump.Key
 			end
-			card.button.Size = UDim2.fromOffset(math.min(inner, 240), buttonPx)
-			card.button.Position = UDim2.new(0.5, 0, 1, -pad)
-			HudParts.setButtonTextSize(card.button, math.max(K.Text.Min, span({ 18, 24 })))
 		end
-		if #list == 2 then
-			list[1].button.NextSelectionRight = list[2].button
-			list[2].button.NextSelectionLeft = list[1].button
-			list[1].button.NextSelectionDown = (if side then nil else list[2].button) :: any
-			list[2].button.NextSelectionUp = (if side then nil else list[1].button) :: any
-		end
+		return JUMPS[1].Key
 	end
 
 	frame.onLayout = function(g: MenuFrame.Geo)
 		geo = g
 		layout()
 	end
+	-- The panel is as tall as the Daily section; the next header peeks in under it.
+	frame.fitHeight = function(width: number, panelW: number): number
+		local pageW = width - (if rail:outside(panelW) then 0 else rail:room(nil))
+		local k = (pageW - scroll.ScrollBarThickness) / UNITS
+		return GrandOpeningCard.headerHeight(k)
+			+ round(F.HeaderGapUnits * k)
+			+ FreeDaily.heightFor(k)
+			+ round(F.GapUnits * k)
+			+ P.PeekPx
+	end
 	frame.onOpen = function()
-		layout()
-		for _, card in cards do
-			if card.sparkle == nil then
-				card.sparkle = UIAnim.sparkle(card.root, HudParts.color(K.Numbers.Money))
-			end
+		daily:setOpen(true)
+		playtime:setOpen(true)
+		refresh()
+		rail:opened()
+		if not ticker then
+			ticker = RunService.Heartbeat:Connect(function()
+				local clock = os.clock()
+				if clock < nextTick then
+					return
+				end
+				nextTick = clock + F.TickSeconds
+				local now = workspace:GetServerTimeNow()
+				daily:tick(now)
+				playtime:tick(now)
+				rail:setBadge("Playtime", playtime:claimable())
+			end)
 		end
-		local list = shown()
-		if gamepad() and list[1] then
-			GuiService.SelectedObject = list[1].button
+		if ShopParts.gamepad() then
+			local target = primary()
+			if target then
+				GuiService.SelectedObject = target
+			end
 		end
 	end
 	frame.onClose = function()
-		for _, card in cards do
-			if card.sparkle then
-				card.sparkle.stop()
-				card.sparkle = nil
-			end
+		rail:closed()
+		daily:setOpen(false)
+		playtime:setOpen(false)
+		social:closed()
+		ShopOdds.closeAll()
+		openedOn = nil
+		if ticker then
+			ticker:Disconnect()
+			ticker = nil
 		end
 	end
-	ItemState.Changed.Rewards:Connect(function()
+
+	-- Drawn even while closed: the open reads every piece's look as it starts.
+	ItemState.Changed.Rewards:Connect(function(payload: any)
+		state = payload
+		version += 1
+		refresh()
+		keepSelection()
+	end)
+	-- Claim All's live price.
+	ItemState.Changed.Shop:Connect(function()
 		if frame:isOpen() then
-			layout()
-			local list = shown()
-			if gamepad() then
-				GuiService.SelectedObject = if list[1] then list[1].button else nil
-			end
+			daily:refresh(state)
 		end
 	end)
 
+	refresh()
+
 	local handle: Menus.Handle = {
-		open = function(_tab: string?)
+		open = function(tab: string?)
+			if not frame:isOpen() then
+				state = ItemState.rewards()
+				refresh()
+			end
 			frame:open()
+			local key = if tab and rail:has(tab) then tab else bestSection()
+			openedOn, openedAt = key, os.clock()
+			rail:jump(key, true)
 		end,
 		close = function()
 			frame:close()
@@ -349,6 +381,9 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			return frame:isOpen()
 		end,
 		root = frame.root,
+		notice = function(text: string, toneName: string?)
+			ctx.notice(text, toneName)
+		end,
 	}
 	Menus.register(NAME, handle)
 	return handle

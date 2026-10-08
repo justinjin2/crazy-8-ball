@@ -8122,7 +8122,7 @@ Config.UI.Menu = {
 	-- the panel unrolls open and folds shut (Stage, with the menu's Open schedule), the header's
 	-- 8-balls scroll, the white sheet has the still dots and an 8-ball sits on the top edge.
 	-- Menus not listed keep the kit frame (pop in, still pattern). Names as Menus.register.
-	LivelyMenus = { "Shop", "Inventory" }, -- "Inventory": the Cues menu (concept 2, 2026-10-08)
+	LivelyMenus = { "Shop", "Inventory", "FreeReward" }, -- "Inventory": the Cues menu (concept 2, 2026-10-08)
 	-- One thing at a time (HudFocus; designer, 2026-10-06): while a full menu is open every
 	-- other screen of ours is off. These ScreenGuis stay on (a "...Menu" screen always does):
 	-- popups that must still reach the player and invisible probes. KeepWith: more per menu.
@@ -8615,10 +8615,13 @@ Config.UI.Shop = {
 		-- The first screen shows this much of what is under the card (the next section's
 		-- header), so a player sees there is more and scrolls (designer, 2026-10-06).
 		PeekPx = 30,
+		-- The jump buttons (JumpRail, shared by every lively menu with jumps: the Shop, the
+		-- Free Reward).
 		RailWidthPx = { 66, 96 }, -- a jump button
 		RailButtonPx = { 60, 86 },
 		RailGapPx = { 6, 12 },
 		RailTextPx = { 14, 18 },
+		BadgeShare = 1.9, -- a NEW badge's width, of its height
 		-- On a computer the buttons stand outside the panel's right edge when the screen has
 		-- this much room there; otherwise (a phone) they take a column inside the page.
 		RailOutsidePx = 14,
@@ -9460,50 +9463,15 @@ Config.UI.Reel = {
 	},
 }
 
--- The Rewards menu (RewardsMenu and its pages RewardsDaily, RewardsPlaytime, RewardsCodes;
--- RewardsFlyer; docs/prompts/ECONOMY_UI_PROMPT.md section 11).
+-- What the old Rewards menu left (merged into the Free Reward menu, 2026-10-08): the codes box
+-- (RewardsCodes, now in Settings) and the flying rewards (RewardsFlyer).
 -- Pixels and seconds. Pairs { a, b } run from a on a phone-sized panel to b on a full-size one,
 -- like Config.UI.Menu.Frame's. Buttons drawn smaller than TouchPx keep a TouchPx touch area
 -- (HudParts.setMinHit). The rewards themselves are Config.Daily's. (tune)
 Config.UI.Rewards = {
 	TouchPx = 44, -- the smallest touch area (UI_STYLE section 5)
-	-- The Daily tab: the week's day tiles, Columns to a row (days 1-4, then 5, 6 and the last
-	-- day spanning the rest of its row as the week's big prize), a line under them.
-	Columns = 4,
-	TileGapPx = { 6, 10 },
-	TileMaxPx = { 150, 210 }, -- a tile's largest height (a tall page centres the rows)
-	TilePadShare = 0.06, -- inside a tile, of its height
-	DayTextPx = { 16, 20 }, -- "Day 1"
-	WordsTextPx = { 14, 18 }, -- the reward's words ("2 Mystery Lucky Blocks")
-	CountTextPx = { 14, 18 }, -- "x2" on a block's icon
-	ClaimShare = 0.26, -- today's Claim button, of the tile's height...
-	ClaimPx = { 30, 44 }, -- ...kept between these
-	TodayStrokePx = 4, -- today's gold edge (the kit's selection gold)
-	GlowSpreadPx = 12, -- the soft gold glow round today's tile reaches this far
-	GlowTransparency = 0.3,
-	ClaimedFade = 0.5, -- a claimed tile's picture and words fade this much (its check stays solid)
-	LaterFade = 0.3, -- the days still to come are a little dimmer
-	CheckShare = 0.3, -- the check on a claimed tile, of the tile's height...
-	CheckMaxPx = 40, -- ...at most this big
-	RaysTransparency = 0.55, -- faint gold rays behind the last day's prize
-	IconOverlapShare = 0.2, -- two pictures in one reward overlap by this share of one
-	FooterTextPx = { 14, 18 }, -- the line under the tiles (and under the gifts)
-	-- The Playtime tab: one row per gift (picture, prize, time, bar, button), a line under them.
-	GiftRowMaxPx = { 84, 112 },
-	GiftGapPx = { 6, 10 },
-	GiftPadPx = { 6, 10 },
-	GiftTitlePx = { 16, 22 }, -- the prize's words
-	GiftTimePx = { 14, 16 }, -- "4:12 / 10:00"
-	BarPx = { 12, 18 }, -- the progress bar's height
-	GiftButtonWidthPx = { 116, 150 },
-	GiftButtonPx = { 44, 50 },
-	-- The bars tick on the client between two RewardState snapshots (from its playSeconds and
-	-- sentAt, the server's count, which lags the real time a little); a gift shows Claim this
-	-- long after the tick says it is due (the server credits the time first, then decides).
-	ReadyMarginSeconds = 2,
-	TickSeconds = 0.25, -- the menu's countdowns and bars redraw this often while it is open
-	-- The Codes tab: a title, the box and Redeem, the server's answer, a note; kept high on the
-	-- page so a phone's keyboard never covers it.
+	-- The codes box (RewardsCodes, in Settings): a title, the box and Redeem, the server's
+	-- answer, a note; kept high on the page so a phone's keyboard never covers it.
 	CodeWidthPx = { 440, 540 }, -- the column's largest width
 	CodeBoxPx = { 44, 54 }, -- the box's and Redeem's height
 	CodeTextPx = { 18, 22 }, -- the typed text
@@ -9513,17 +9481,6 @@ Config.UI.Rewards = {
 	RedeemWidthPx = { 116, 150 },
 	CodeGapPx = { 8, 12 },
 	CodeStrokePx = 3, -- the box's ink outline (gold while selected or typing)
-	-- A tab's red dot while something on it can be claimed.
-	TabDotPx = 18,
-	TabDotTextPx = 14,
-	-- The Index banner at the top of the Daily tab while an Index row can be claimed (the
-	-- Rewards tile's dot counts it, but only the Inventory's Index tab claims it): its line and
-	-- Open Index. On a phone it takes the room of the line under the tiles, so they keep their
-	-- size.
-	IndexBannerPx = { 36, 48 }, -- the row's height
-	IndexBannerPadPx = { 3, 5 }, -- inside the row, round the picture and the button
-	IndexBannerTextPx = { 16, 20 }, -- "An Index reward is ready!"
-	IndexBannerStrokePx = 3, -- its gold edge
 	-- Rewards flying out of a claim (RewardsFlyer), over the menus: money into the money HUD
 	-- (the CashFlyer's chips), each lucky block to the hotbar (or the Inventory tile).
 	Fly = {
@@ -12762,16 +12719,258 @@ Config.UI.FontTest = {
 	Screens = {} :: { [string]: { Family: string, Weight: string } },
 }
 
--- The Free Reward page (FreeRewardMenu; GUI lane, D4): join the group, favorite the game.
+-- The Free Reward menu (FreeRewardMenu and its sections FreeDaily, FreePlaytime, FreeTrack and
+-- FreeSocial; the designer's picks "daily A" and "free_other A" on the mock page, 2026-10-08:
+-- one menu for every free reward, the old Rewards menu merged into it). One scrolling page
+-- like the Shop's: everything placed in the Grand Opening card's units (1275 wide) and scaled
+-- by one factor k, the jump buttons down the right side (JumpRail, Config.UI.Shop.Page.Rail*).
+-- A section is its header ("- DAILY -", GrandOpeningCard.header), then a pale panel (ShopCards)
+-- with its navy title pill on the top edge. (tune)
 Config.UI.FreeReward = {
-	CardMaxWidthPx = 380, -- one card at most this wide (two side by side when they fit)
-	IconPx = { 72, 120 },
-	TitlePx = { 20, 28 },
-	RewardPx = { 22, 34 },
-	LinePx = { 14, 17 },
-	ButtonPx = { 44, 54 },
+	TickSeconds = 0.25, -- the countdowns and the jump buttons' "!" are redrawn this often while open
 	-- After Roblox's favorite prompt says yes, look again this long for GetFavorite to agree.
 	FavoriteCheckSeconds = 3,
+	-- A playtime gift shows Claim this long after the time played reaches it (the server
+	-- credits the seconds since its last tick on a claim, so it is due by then).
+	ReadyMarginSeconds = 2,
+	-- The jump buttons, top to bottom (Config.UI.Kit.Icons keys; words in Strings.FreeReward).
+	Jump = {
+		{ Key = "Daily", Icon = "Calendar" },
+		{ Key = "Playtime", Icon = "Stopwatch" },
+		{ Key = "Track", Icon = "Trophy" },
+		{ Key = "Group", Icon = "Group" },
+	},
+	BadgeShare = 1, -- a jump button's "!" badge is round
+	GapUnits = 34, -- between two sections
+	HeaderGapUnits = 10, -- between a section's header and its title pill
+	-- A reward's pictures side by side (FreeParts): a lucky block shows once per block, up to
+	-- MaxCopies (a bigger count adds "x5"); copies of one block overlap more than two things.
+	Pictures = {
+		MaxCopies = 3,
+		CopyOverlap = 0.45, -- of a picture's size
+		ItemOverlap = 0.12,
+		CountUnits = 26, -- "x5", "+2" on a picture's corner
+		CashShare = 1.1, -- the cash stack a little bigger than a block (its picture has more room)
+	},
+	-- The status button under a tile: Claim! (green, breathing while it can be pressed),
+	-- Claimed (grey with a check), Locked (grey with a padlock), a playtime countdown (white with
+	-- a stopwatch).
+	ClaimPulse = { Size = 1.05, Seconds = 1.1 },
+	-- On a phone the words keep the smallest text size (Layout.MinTextPx) while the units shrink:
+	-- a tile's pieces then stack from its edges instead (its status at the foot, the money just
+	-- over it, the pictures shrinking into the room left under the day's name).
+	StatusPadPx = 3, -- a status button is at least its words plus this above and below
+	TilePadPx = 3, -- the least room inside a tile's top and foot
+	-- A claimed reward's pictures are tinted this grey under their check (a tint, not a fade:
+	-- the open drives every transparency from what it read as it started).
+	ClaimedTint = { 150, 156, 168 },
+	-- The Daily section (pick "daily A"): six day tiles, 3 x 2, then day 7 tall at the right;
+	-- under them the first week's line and Claim All.
+	Daily = {
+		Units = { 1275, 500 }, -- the panel
+		Grid = { Left = 20, Top = 46, Columns = 3, GapUnits = { 12, 12 } },
+		Tile = {
+			Units = { 284, 190 },
+			DayY = 26, -- "DAY 1": its centre from the tile's top
+			DayUnits = 30,
+			Pictures = { 92, 84, 250 }, -- the reward's pictures: centre y, size, widest
+			AmountY = 130, -- "$10,000" over the pictures' foot
+			AmountUnits = 28,
+			StatusY = 164, -- the status button
+			StatusUnits = 40,
+			StatusTextUnits = 26,
+			SideUnits = 22, -- its room each side
+			OddsBadge = { 30, 30, 40 }, -- the "i": in from the top-right corner (x, y) and its size
+			CheckUnits = 92, -- the big check over a claimed day's pictures
+			CornerUnits = 20,
+			EdgeUnits = 4,
+		},
+		-- Day 7: the week's big prize, right of the tiles (left, top, width, height).
+		Hero = {
+			Box = { 910, 46, 345, 392 },
+			DayY = 38,
+			DayUnits = 46,
+			Art = { 160, 170 }, -- the best block: centre y, size
+			Glow = 290,
+			Rays = 340,
+			Op = { 278, 92, 128, 60, 44 }, -- the tilted "OP!": centre x, y, width, height, text
+			OpDegrees = -12,
+			OddsBadge = { 252, 222, 44 }, -- centre x, y, size
+			-- What comes with the block: "+2 Ability Spins", one to a line when they do not fit on
+			-- one (a VIP's extras are longer), clear above the status.
+			LineY = 282,
+			LineUnits = 28,
+			StatusY = 346,
+			StatusUnits = 50,
+			StatusTextUnits = 32,
+			SideUnits = 36,
+			EdgeUnits = 5,
+		},
+		-- Under the tiles: the week's line (left) and Claim All (right, under day 7).
+		Footer = { X = 458, Y = 469, WidthUnits = 860, TextUnits = 24 },
+		ClaimAll = { X = 1082, Y = 469, WidthUnits = 345, HeightUnits = 52, TextUnits = 30 },
+		TimeSample = "88h 88m", -- the title pill's widest time (room kept so it never jumps)
+		-- Each day's colours, top to bottom (day 1 .. 7), as the shop's offer cards.
+		Looks = {
+			{ Top = { 255, 178, 80 }, Bottom = { 242, 118, 30 }, Edge = { 170, 72, 10 } }, -- orange
+			{ Top = { 198, 136, 255 }, Bottom = { 138, 70, 230 }, Edge = { 90, 38, 168 } }, -- purple
+			{ Top = { 122, 226, 122 }, Bottom = { 50, 174, 80 }, Edge = { 24, 118, 48 } }, -- green
+			{ Top = { 106, 186, 255 }, Bottom = { 42, 118, 230 }, Edge = { 22, 72, 168 } }, -- blue
+			{ Top = { 94, 226, 214 }, Bottom = { 28, 164, 170 }, Edge = { 10, 108, 114 } }, -- teal
+			{ Top = { 255, 134, 198 }, Bottom = { 230, 62, 140 }, Edge = { 158, 28, 94 } }, -- pink
+			{ Top = { 255, 226, 98 }, Bottom = { 246, 158, 22 }, Edge = { 172, 102, 0 } }, -- gold
+		},
+		ClaimedLook = {
+			Top = { 216, 222, 232 },
+			Bottom = { 172, 180, 194 },
+			Edge = { 118, 126, 142 },
+		},
+		TodayEdge = { 255, 232, 120 }, -- today's tile wears a thick pale-gold edge
+		TodayEdgeUnits = 8,
+		HeroGlowTint = { 255, 200, 70 },
+	},
+	-- The Playtime section (pick "free_other A"): five white tiles in a row.
+	Playtime = {
+		Units = { 1275, 300 },
+		Grid = { Left = 21, Top = 46, GapUnits = 12 },
+		Tile = {
+			Units = { 237, 236 },
+			TimeY = 30, -- "5 min"
+			TimeUnits = 32,
+			Pictures = { 106, 92, 200 },
+			AmountY = 148,
+			AmountUnits = 26,
+			StatusY = 202,
+			StatusUnits = 46,
+			StatusTextUnits = 28,
+			SideUnits = 18,
+		},
+		GlowTint = { 255, 214, 92 }, -- a gift that can be claimed glows gold
+	},
+	-- The 28-day track (Config.Daily.Track): a bar from day 0 to day 28 with a node at each
+	-- reward's day, its pictures over it and "Day 8" under it, filled to the days claimed.
+	Track = {
+		Units = { 1275, 300 },
+		Bar = { Left = 110, Right = 1150, Y = 186, HeightUnits = 24 },
+		NodeUnits = 46,
+		KnobUnits = 30, -- the white knob at the fill's end
+		Pictures = { 100, 88, 170 },
+		DayY = 234,
+		DayUnits = 26,
+		NoteY = 274,
+		NoteUnits = 22,
+		Fill = { 255, 196, 40 },
+		Empty = { 214, 226, 240 },
+		NodeReached = { 255, 214, 92 },
+	},
+	-- The group and friends section: the Join & Favorite card, then the invite card.
+	Social = {
+		GapUnits = 24, -- between the two cards
+		Group = {
+			Units = { 1275, 280 },
+			Art = { 150, 140, 184 }, -- the Lucky 8 block: centre x, y, size
+			Glow = 300,
+			Rays = 340,
+			GlowTint = { 120, 196, 255 },
+			OddsBadge = { 238, 214, 44 },
+			Title = { 300, 48 }, -- left, centre y
+			TitleUnits = 42,
+			Rows = { Left = 292, Right = 1255, Top = 84, HeightUnits = 82, GapUnits = 12 },
+			CheckUnits = 48, -- the tick box at a row's left
+			NameUnits = 30,
+			LineUnits = 22,
+			LineGapUnits = 10, -- between a row's name and its line
+			-- On a phone a row grows to hold its name over its line at the smallest text size,
+			-- with this much room above and below them (the card grows with it).
+			RowPadPx = 3,
+			LineColor = { 30, 104, 206 }, -- what a row gives, in a deep blue under its ink name
+			Button = { WidthUnits = 230, HeightUnits = 58, TextUnits = 30 },
+		},
+		Invite = {
+			Units = { 1275, 220 },
+			Icon = { 120, 104, 130 }, -- the envelope: centre x, y, size
+			Block = { 196, 142, 96 }, -- the Rare block beside it
+			Title = { 300, 52 },
+			TitleUnits = 42,
+			LineY = 104,
+			LineUnits = 24,
+			Count = { 300, 160, 46, 24 }, -- the "2 friends joined" pill: left, centre y, height, text
+			-- With no friend joined yet (no pill) the title and line move down this much, so
+			-- they sit in the middle of the card.
+			NoCountShiftUnits = 28,
+			Button = { X = 1110, Y = 110, WidthUnits = 260, HeightUnits = 70, TextUnits = 36 },
+		},
+	},
+}
+
+-- The Free Reward menu's open (the Shop's rhythm, Config.UI.Shop.Open; no animatic: designer,
+-- 2026-10-08). The Daily section is the first screen; the others play below it unseen, and
+-- are what shows when jumped to (a jump squeezes their pieces into Config.UI.Motion.TabSeconds).
+Config.UI.FreeReward.Open = {
+	OpenSeconds = 0.91,
+	Steps = {
+		{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
+		{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
+		{ Ids = { "Basket", "Title", "Money", "Close" }, Kind = "Pop", At = 0.18 },
+		{
+			Ids = { "Tab1", "Tab2", "Tab3", "Tab4" },
+			Kind = "Pop",
+			At = 0.3,
+			Stagger = 1.25,
+			Badge = true,
+			BadgeAfter = 0.08,
+		},
+		{ Ids = { "DailyHead" }, Kind = "Pop", At = 0.18 },
+		{ Ids = { "DailyLines" }, Kind = "Grow", At = 0.22 },
+		{ Ids = { "DailyPanel" }, Kind = "Grow", At = 0.20 },
+		{ Ids = { "DailyTitle" }, Kind = "Pop", At = 0.24 },
+		{
+			Ids = { "DailyDay1", "DailyDay2", "DailyDay3", "DailyDay4", "DailyDay5", "DailyDay6" },
+			Kind = "Pop",
+			At = 0.28,
+			Stagger = 1.25,
+		},
+		{ Ids = { "DailyDay7" }, Kind = "Pop", At = 0.36, Burst = "Gold" },
+		{ Ids = { "DailyOp" }, Kind = "Pop", At = 0.46 },
+		{ Ids = { "DailyClaimAll" }, Kind = "Pop", At = 0.44 },
+		{ Ids = { "DailyFooter" }, Kind = "Fade", At = 0.48, Length = 0.12 },
+		{ Ids = { "PlaytimeHead" }, Kind = "Pop", At = 0.18 },
+		{ Ids = { "PlaytimeLines" }, Kind = "Grow", At = 0.22 },
+		{ Ids = { "PlaytimePanel" }, Kind = "Grow", At = 0.20 },
+		{ Ids = { "PlaytimeTitle" }, Kind = "Pop", At = 0.24 },
+		{
+			Ids = {
+				"PlaytimeGift1",
+				"PlaytimeGift2",
+				"PlaytimeGift3",
+				"PlaytimeGift4",
+				"PlaytimeGift5",
+			},
+			Kind = "Pop",
+			At = 0.28,
+			Stagger = 1.25,
+		},
+		{ Ids = { "TrackHead" }, Kind = "Pop", At = 0.18 },
+		{ Ids = { "TrackLines" }, Kind = "Grow", At = 0.22 },
+		{ Ids = { "TrackPanel" }, Kind = "Grow", At = 0.20 },
+		{ Ids = { "TrackTitle" }, Kind = "Pop", At = 0.24 },
+		{ Ids = { "TrackBar" }, Kind = "Grow", At = 0.28 },
+		{
+			Ids = { "TrackNode1", "TrackNode2", "TrackNode3", "TrackNode4" },
+			Kind = "Pop",
+			At = 0.32,
+			Stagger = 1.5,
+		},
+		{ Ids = { "TrackNote" }, Kind = "Fade", At = 0.44, Length = 0.12 },
+		{ Ids = { "GroupHead" }, Kind = "Pop", At = 0.18 },
+		{ Ids = { "GroupLines" }, Kind = "Grow", At = 0.22 },
+		{ Ids = { "GroupCard" }, Kind = "Grow", At = 0.20 },
+		{ Ids = { "GroupArt" }, Kind = "Pop", At = 0.26, Burst = "Cyan" },
+		{ Ids = { "GroupTitle", "GroupRow1", "GroupRow2" }, Kind = "Pop", At = 0.3, Stagger = 1.5 },
+		{ Ids = { "InviteCard" }, Kind = "Grow", At = 0.3 },
+		{ Ids = { "InviteArt", "InviteTitle", "InviteButton" }, Kind = "Pop", At = 0.36 },
+		{ Ids = { "Flair" }, Kind = "Drop", At = 0.66, Length = 0.25 }, -- the 8-ball lands on the frame
+	},
 }
 
 -- The blur over the world behind menus, the roadmap, the lucky block reel, the match results

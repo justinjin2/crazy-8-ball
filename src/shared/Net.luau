@@ -223,13 +223,14 @@ local REMOTES: { [string]: string } = {
 	--     freeze kept the streak), freezeReady, reward (the loop day + track + VIP's spin) },
 	--   days = { { day, reward, bonus (false), claimed, today } } (the loop's seven tiles),
 	--   trackDays (28), trackPlace (days claimed this round, 0..28),
-	--   track = { { day (7, 14, 21, 28), reward, reached } },
+	--   track = { { day (a Config.Daily.Track day: 8, 14, 21, 28), reward, reached } },
 	--   playtime = { { index, minutes, reward, ready, claimed, progress (0..1) } },
 	--   playSeconds (played today at sentAt; it grows while the player stays),
 	--   titles = { titleId } (sorted),
 	--   group = { id, member, claimed, reward, boost (0.1) } (Join: the client's
 	--     GroupService:PromptJoinAsync(id); then Claim),
-	--   invite = { reward, used (this month), perMonth, invited, done } (the client's
+	--   invite = { reward, used (this month), perMonth, invited, done, rewarded (the
+	--     inviter's own block was given: once ever, Config.Social.InviterOnce) } (the client's
 	--     SocialService:PromptGameInvite with ExperienceInviteOptions.LaunchData =
 	--     Progression/Social.launchData(its own UserId)),
 	--   favorite = { claimed, reward } (GUI lane: the Free Reward page's favorite card),

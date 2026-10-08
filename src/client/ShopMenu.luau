@@ -10,9 +10,8 @@
 -- The jump buttons keep their red NEW badges: a group with something new since the Shop was
 -- last open (a new restock, a deal, an offer) shows one, and the pinned groups keep theirs
 -- all through the Grand Opening (Config.UI.Shop.Page.PinnedBadges). The Shop tile's red dot
--- reads newCount through deps.shopNew. jump / jumpTo only light the chosen button for now
--- (HubCorners and the money HUD still open the Shop on a tab). Nothing here ever opens the
--- Shop by itself.
+-- reads newCount through deps.shopNew. The jump buttons themselves are JumpRail's (shared
+-- with the Free Reward menu). Nothing here ever opens the Shop by itself.
 --
 -- One page scrolls under the jump buttons: "- FEATURED -" and the Grand Opening card
 -- (GrandOpeningCard), then "- BLOCKS -" with the Mystery Lucky Block (ShopMystery), the restock
@@ -27,11 +26,9 @@
 -- Robux, which shows Roblox's own dialog; "RobloxPlus" for Roblox's subscription prompt); a
 -- refusal shows the server's reason as a notice. The purple gift square beside a Robux button
 -- opens the Gift Player popup (ShopGift; StoreRequest "Gift").
-local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -39,6 +36,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local GrandOpeningCard = require(script.Parent.GrandOpeningCard)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
+local JumpRail = require(script.Parent.JumpRail)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
 local ShopGift = require(script.Parent.ShopGift)
@@ -49,7 +47,6 @@ local ShopOffers = require(script.Parent.ShopOffers)
 local ShopParts = require(script.Parent.ShopParts)
 local ShopPasses = require(script.Parent.ShopPasses)
 local ShopRestock = require(script.Parent.ShopRestock)
-local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local NAME = "Shop"
@@ -58,11 +55,7 @@ local K = Config.UI.Kit
 local SB = Config.UI.ShopBlocks
 local COPY: { [string]: any } = Strings.Menus.Shop :: any
 local JUMPS: { { Key: string, Icon: string, Sections: { string } } } = P.Jump :: any
-local JUMP_PRIORITY = Enum.ContextActionPriority.High.Value + 20 -- like the menus' LB / RB
-local span = ShopParts.span
 local round = ShopParts.round
-
-type Jump = { key: string, button: TextButton, badge: Frame }
 
 local ShopMenu = {}
 ShopMenu.__index = ShopMenu
@@ -89,13 +82,8 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	self.geo = nil :: MenuFrame.Geo?
 	self.ticker = nil :: RBXScriptConnection?
 	self.nextTick = 0
-	self.current = nil :: string? -- the lit jump button
 	self.seen = {} :: { [string]: any } -- what the badges count as seen (by group)
-	self.rock = nil :: UIAnim.Handle? -- the lit jump button's icon rocking (the lively frame)
 	self.busy = {} :: { [string]: boolean } -- buy requests in flight, by button
-	-- Each built group's top on the page (pixels), and a section's with its own place ("Offer").
-	self.tops = {} :: { [string]: number }
-	self.jumpTween = nil :: Tween? -- a jump's scroll while it runs
 	self.openedOn = nil :: string? -- the group the Shop was opened on (a late layout jumps again)
 	self.openedAt = 0
 
@@ -107,7 +95,7 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		-- The money pill's "+" goes to the money packs, as the money HUD's does (designer,
 		-- 2026-10-06; the Money group's page comes with its section).
 		moneyPlus = function()
-			self:jump("Money")
+			self.jumpRail:jump("Money")
 		end,
 	})
 	self.frame = frame
@@ -191,37 +179,37 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	self.more = more
 
 	-- The jump buttons (in the panel, so a gamepad reaches them).
-	local rail = HudParts.frame(frame.panel, "Jumps")
-	rail.ZIndex = 4
-	self.rail = rail
-	self.jumps = {} :: { Jump }
+	local groups: { JumpRail.Group } = {}
 	local words: { [string]: string } = COPY.Jump
 	for _, jump in JUMPS do
-		local key = jump.Key
-		local icon = if K.Icons[jump.Icon] and K.Icons[jump.Icon] ~= "" then jump.Icon else "Shop"
-		local button = HudParts.tile(rail, words[key] or key, function()
-			UISound.play("Click")
-			self:jump(key)
-		end, "White", icon)
-		button.Name = "Jump" .. key
-		local badge = HudParts.pill(button, "New", HudParts.tone("Red"))
-		badge.AnchorPoint = Vector2.new(0.5, 0.5)
-		badge.ZIndex = 8
-		badge.Visible = false
-		local badgeText = HudParts.text(badge, "Words", K.Text.Min, COPY.New)
-		badgeText.TextWrapped = false
-		badgeText.Size = UDim2.fromScale(1, 1)
-		badgeText.ZIndex = 9
-		table.insert(self.jumps, { key = key, button = button, badge = badge })
+		table.insert(
+			groups,
+			{ key = jump.Key, text = words[jump.Key] or jump.Key, icon = jump.Icon }
+		)
 	end
+	self.jumpRail = JumpRail.new({
+		frame = frame,
+		scroll = scroll,
+		groups = groups,
+		badge = COPY.New,
+		badgeShare = P.BadgeShare,
+		action = "8ballShopJump",
+		root = function(key: string): GuiObject?
+			return if key == "Featured"
+				then self.featured.root
+				elseif key == "Blocks" then self.blocks
+				elseif key == "Money" then self.moneyGroup
+				elseif key == "Passes" then self.passesGroup
+				else nil
+		end,
+	})
+	-- Each built group's top on the page (pixels), and a section's with its own place ("Offer").
+	self.tops = self.jumpRail.tops
 	-- The lively frame's open: the jump buttons pop in top to bottom, each NEW badge just after
 	-- its button (Config.UI.Shop.Open "Tab1".. and "Tab1Badge"..).
 	local stage = frame.stage
 	if stage then
-		for index, jump in self.jumps :: { Jump } do
-			stage:add("Tab" .. index, jump.button)
-			stage:add("Tab" .. index .. "Badge", jump.badge)
-		end
+		self.jumpRail:register(stage)
 		local function keep(handle)
 			frame:idle(handle)
 		end
@@ -238,13 +226,6 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		stage:add("PassesLines", self.passesHead.lines)
 		self.passes:register(stage, keep)
 	end
-	-- Scrolling lights the group in view (not while a jump scrolls there itself).
-	scroll:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
-		if self.jumpTween == nil and frame:isOpen() then
-			self:spy()
-		end
-	end)
-
 	frame.onOpen = function()
 		self:opened()
 	end
@@ -258,7 +239,7 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	-- The panel is as tall as the Grand Opening card (designer, 2026-10-06); the page scrolls
 	-- on below it.
 	frame.fitHeight = function(width: number, panelW: number): number
-		local pageW = width - (if self:railOutside(panelW) then 0 else self:railRoom(nil))
+		local pageW = width - (if self.jumpRail:outside(panelW) then 0 else self.jumpRail:room(nil))
 		return GrandOpeningCard.heightFor(pageW - self.scroll.ScrollBarThickness) + P.PeekPx
 	end
 	ItemState.Changed.Shop:Connect(function()
@@ -271,8 +252,8 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			local group = if tab then groupOf(tab) else nil
 			if tab and group then
 				self.openedOn, self.openedAt = tab, os.clock()
-				self:jump(group, true)
-				self:scrollTo(tab, true)
+				self.jumpRail:jump(group, true)
+				self.jumpRail:scrollTo(tab, true)
 			end
 		end,
 		close = function()
@@ -321,68 +302,12 @@ function ShopMenu.refresh(self: any)
 	end
 end
 
--- Whether the jump buttons fit outside a panel `panelW` wide (else a column in the page).
-function ShopMenu.railOutside(self: any, panelW: number): boolean
-	local geo: MenuFrame.Geo? = self.geo
-	local t = if geo then geo.t else 0
-	local room = (self.frame.root.AbsoluteSize.X - panelW) / 2
-	return room >= span(P.RailWidthPx, t) + 2 * P.RailOutsidePx
-end
-
--- The page width a column of jump buttons inside the page takes.
-function ShopMenu.railRoom(self: any, geo: MenuFrame.Geo?): number
-	local t = if geo then geo.t elseif self.geo then self.geo.t else 0
-	return span(P.RailWidthPx, t) + span(P.RailGapPx, t)
-end
-
--- Where the jump buttons go: outside the panel's right edge when the screen has room for
--- them, else a column at the right of the page. Returns the page width they leave.
-function ShopMenu.layoutRail(self: any, geo: MenuFrame.Geo): number
-	local t = geo.t
-	local frame = self.frame
-	local panel: Frame = frame.panel
-	local railW = span(P.RailWidthPx, t)
-	local buttonH = span(P.RailButtonPx, t)
-	local gap = span(P.RailGapPx, t)
-	local textSize = math.max(K.Text.Min, span(P.RailTextPx, t))
-	local n = #self.jumps
-	local railH = n * buttonH + (n - 1) * gap
-	-- Offsets, not absolute sizes: the panel may be mid pop-in (scaled) when this runs.
-	local panelW = panel.Size.X.Offset
-	local panelH = panel.Size.Y.Offset
-	local outside = not geo.short and self:railOutside(panelW)
-	local content: Frame = frame.content
-	local contentTop = content.Position.Y.Offset
-	local width = geo.content.X
-	if outside then
-		self.rail.Position =
-			UDim2.fromOffset(panelW + P.RailOutsidePx, math.max(0, round((panelH - railH) / 2)))
-	else
-		local contentLeft = content.Position.X.Offset
-		width = math.max(1, geo.content.X - railW - gap)
-		self.rail.Position = UDim2.fromOffset(
-			contentLeft + width + gap,
-			contentTop + math.max(0, round((geo.content.Y - railH) / 2))
-		)
-	end
-	self.rail.Size = UDim2.fromOffset(railW, railH)
-	for index, jump in self.jumps :: { Jump } do
-		jump.button.Position = UDim2.fromOffset(0, (index - 1) * (buttonH + gap))
-		jump.button.Size = UDim2.fromOffset(railW, buttonH)
-		HudParts.setButtonTextSize(jump.button, textSize)
-		local badgeH = math.max(18, round(buttonH * 0.3))
-		jump.badge.Size = UDim2.fromOffset(round(badgeH * 1.9), badgeH)
-		jump.badge.Position = UDim2.fromOffset(railW - 6, 6)
-	end
-	return width
-end
-
 function ShopMenu.layout(self: any)
 	local geo: MenuFrame.Geo? = self.geo
 	if not self.frame:isOpen() or geo == nil then
 		return
 	end
-	local width = self:layoutRail(geo)
+	local width = self.jumpRail:layout(geo)
 	self.scroll.Size = UDim2.fromOffset(width, geo.content.Y)
 	-- The card fits the page whole (designer, 2026-10-06: no scrolling on a phone).
 	local height = self.featured:layout(width - self.scroll.ScrollBarThickness)
@@ -433,139 +358,9 @@ function ShopMenu.layout(self: any)
 	-- Opened on a group: a layout soon after the open (a late geometry pass) jumps there again.
 	local on = self.openedOn
 	if on and os.clock() - self.openedAt <= P.JumpSettleSeconds then
-		self:scrollTo(if self.tops[on] then on else groupOf(on) or on, true)
+		self.jumpRail:scrollTo(if self.tops[on] then on else groupOf(on) or on, true)
 	end
-end
-
---------------------------------------------------------------------------------------------
--- The jump buttons
---------------------------------------------------------------------------------------------
-
--- Light the button of jump group `key` (no scroll, no replay).
-function ShopMenu.light(self: any, key: string)
-	if self.current == key then
-		return
-	end
-	self.current = key
-	for _, jump in self.jumps :: { Jump } do
-		HudParts.setTone(jump.button, if jump.key == key then "Blue" else "White")
-	end
-	self:rockLit()
-end
-
--- The group in view: the last built group whose top is above a third of the way down.
-function ShopMenu.spy(self: any)
-	local scroll: ScrollingFrame = self.scroll
-	local mark = scroll.CanvasPosition.Y + scroll.AbsoluteSize.Y / 3
-	local best, bestTop = nil, -1
-	for _, jump in JUMPS do
-		local top = self.tops[jump.Key]
-		if top ~= nil and top <= mark and top > bestTop then
-			best, bestTop = jump.Key, top
-		end
-	end
-	if best then
-		self:light(best)
-	end
-end
-
--- Scroll to group `key`'s top (a built group only): at once, or over Page.JumpSeconds.
-function ShopMenu.scrollTo(self: any, key: string, instant: boolean?)
-	local top = self.tops[key]
-	if top == nil then
-		return
-	end
-	local scroll: ScrollingFrame = self.scroll
-	local most = math.max(0, scroll.AbsoluteCanvasSize.Y - scroll.AbsoluteSize.Y)
-	local target = Vector2.new(0, math.clamp(top, 0, most))
-	if self.jumpTween then
-		self.jumpTween:Cancel()
-		self.jumpTween = nil
-	end
-	if instant or UIAnim.reduced() then
-		scroll.CanvasPosition = target
-		return
-	end
-	local tween = TweenService:Create(
-		scroll,
-		TweenInfo.new(P.JumpSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-		{ CanvasPosition = target }
-	)
-	self.jumpTween = tween
-	tween.Completed:Connect(function()
-		if self.jumpTween == tween then
-			self.jumpTween = nil
-		end
-	end)
-	tween:Play()
-end
-
---- Jump to group `key`: light its button, scroll to its section (at once with `instant`) and
---- stagger its pieces in again.
-function ShopMenu.jump(self: any, key: string, instant: boolean?)
-	local found = false
-	for _, jump in JUMPS do
-		if jump.Key == key then
-			found = true
-		end
-	end
-	if not found then
-		return
-	end
-	local changed = self.current ~= key
-	self:light(key)
-	self:rockLit()
-	if self.frame:isOpen() then
-		self:scrollTo(key, instant)
-	end
-	-- A jump staggers its group's pieces in again (not during the open: it shows them).
-	local stage = self.frame.stage
-	local group = if key == "Featured"
-		then self.featured.root
-		elseif key == "Blocks" then self.blocks
-		elseif key == "Money" then self.moneyGroup
-		elseif key == "Passes" then self.passesGroup
-		else nil
-	if changed and group and stage and self.frame:isOpen() and stage:busy() ~= "play" then
-		local ids = stage:idsUnder(group)
-		if #ids > 0 then
-			stage:replay(ids)
-		end
-	end
-	if ShopParts.gamepad() then
-		for _, jump in self.jumps :: { Jump } do
-			if jump.key == key then
-				GuiService.SelectedObject = jump.button
-			end
-		end
-	end
-end
-
--- The lit jump button's icon rocks gently while the Shop is open (the lively frame).
-function ShopMenu.rockLit(self: any)
-	if self.rock then
-		self.rock.stop()
-		self.rock = nil
-	end
-	if not self.frame.stage or not self.frame:isOpen() then
-		return
-	end
-	local L = Config.UI.Menu.Lively
-	for _, jump in self.jumps :: { Jump } do
-		local body = jump.button:FindFirstChild("Body")
-		local icon = body and body:FindFirstChild("Icon")
-		if jump.key == self.current and icon and icon:IsA("GuiObject") then
-			self.rock = UIAnim.turn(icon, 0, L.TabRockDegrees, L.RockSeconds)
-		end
-	end
-end
-
---- Jump to one section's group (another section's button: "VIP only" goes to VIP).
-function ShopMenu.jumpTo(self: any, section: string)
-	local group = groupOf(section)
-	if group then
-		self:jump(group)
-	end
+	self.jumpRail:relaid(pageW)
 end
 
 -- What makes a group "new": the restock slot (Blocks), the open Limited rows and offers
@@ -624,10 +419,10 @@ function ShopMenu.refreshBadges(self: any, state: any)
 	local deals = if type(state.deals) == "table" then state.deals else {}
 	local opening = type(deals.GrandOpening) == "table" and deals.GrandOpening.open == true
 	local pinned: { string } = P.PinnedBadges :: any
-	for _, jump in self.jumps :: { Jump } do
-		local mark = marks[jump.key]
-		local keep = opening and table.find(pinned, jump.key) ~= nil
-		jump.badge.Visible = keep or (mark ~= nil and self.seen[jump.key] ~= mark)
+	for _, jump in JUMPS do
+		local mark = marks[jump.Key]
+		local keep = opening and table.find(pinned, jump.Key) ~= nil
+		self.jumpRail:setBadge(jump.Key, keep or (mark ~= nil and self.seen[jump.Key] ~= mark))
 	end
 end
 
@@ -775,8 +570,8 @@ function ShopMenu.ensureSelection(self: any)
 		return
 	end
 	local buttons: { GuiObject? } = {}
-	for _, jump in self.jumps :: { Jump } do
-		table.insert(buttons, jump.button)
+	for _, button in self.jumpRail:buttons() do
+		table.insert(buttons, button)
 	end
 	local target = ShopParts.firstSelectable(buttons)
 	if target then
@@ -786,25 +581,9 @@ function ShopMenu.ensureSelection(self: any)
 	end
 end
 
--- LB / RB: the previous / next jump group.
-function ShopMenu.step(self: any, dir: number)
-	local at = 1
-	for index, jump in JUMPS do
-		if jump.Key == self.current then
-			at = index
-		end
-	end
-	local next = math.clamp(at + dir, 1, #JUMPS)
-	self:jump(JUMPS[next].Key)
-end
-
 function ShopMenu.opened(self: any)
 	self:refresh()
-	if self.current == nil then
-		self:jump(JUMPS[1].Key)
-	else
-		self:rockLit()
-	end
+	self.jumpRail:opened()
 	self:markSeen()
 	if not self.ticker then
 		self.ticker = RunService.Heartbeat:Connect(function()
@@ -815,23 +594,10 @@ function ShopMenu.opened(self: any)
 			end
 		end)
 	end
-	ContextActionService:BindActionAtPriority(
-		"8ballShopJump",
-		function(_name: string, state: Enum.UserInputState, input: InputObject)
-			if state == Enum.UserInputState.Begin and #self.frame.dialogs == 0 then
-				self:step(if input.KeyCode == Enum.KeyCode.ButtonL1 then -1 else 1)
-			end
-			return Enum.ContextActionResult.Sink
-		end,
-		false,
-		JUMP_PRIORITY,
-		Enum.KeyCode.ButtonL1,
-		Enum.KeyCode.ButtonR1
-	)
 end
 
 function ShopMenu.closed(self: any)
-	ContextActionService:UnbindAction("8ballShopJump")
+	self.jumpRail:closed()
 	self.featured:closed()
 	self.mystery:closed()
 	self.restock:closed()
@@ -840,15 +606,7 @@ function ShopMenu.closed(self: any)
 	self.passes:closed()
 	ShopOdds.closeAll()
 	self.openedOn = nil
-	if self.jumpTween then
-		self.jumpTween:Cancel()
-		self.jumpTween = nil
-	end
 	self.gift:close()
-	if self.rock then
-		self.rock.stop()
-		self.rock = nil
-	end
 	if self.ticker then
 		self.ticker:Disconnect()
 		self.ticker = nil

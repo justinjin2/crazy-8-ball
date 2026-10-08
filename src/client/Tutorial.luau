@@ -458,7 +458,7 @@ local NUDGE_MENUS: { [string]: string } = {
 	Rank = "Ranked",
 	Inventory = "Inventory",
 	Shop = "Shop",
-	FreeReward = "Rewards",
+	FreeReward = "FreeReward",
 }
 local NUDGE_ANCHORS: { [string]: string } = {
 	Rank = "Rank",

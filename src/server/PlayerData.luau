@@ -144,7 +144,7 @@ local MONEY_KINDS: { [string]: string } = {
 local FIRST_WIN_FLAG = "FirstWinBlock"
 -- GUI lane (designer 2026-10-03): Flags[INVITER_FLAG] once the inviter's reward was given
 -- (Config.Social.InviterOnce), Flags[FAVORITE_FLAG] once the favorite reward was.
-local INVITER_FLAG = "InviterRewarded"
+local INVITER_FLAG = "InviterRewarded" -- RewardView.InviterFlag
 local FAVORITE_FLAG = "FavoriteReward" -- RewardView.FavoriteFlag
 
 -- The most playtime one UTC day can hold (SaveSchema's cap on Daily.PlaySeconds).

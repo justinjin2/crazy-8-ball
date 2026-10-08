@@ -95,6 +95,7 @@ export type InviteView = {
 	perMonth: number, -- Config.Social.InvitesPerMonth
 	invited: boolean, -- this player came through an invite
 	done: boolean, -- their own invite reward was given
+	rewarded: boolean, -- their reward as an inviter was given (Config.Social.InviterOnce: once ever)
 }
 
 -- The Free Reward page's favorite card (GUI lane, D4): Roblox's favorite prompt, then Claim.
@@ -134,6 +135,8 @@ local RewardView = {}
 
 -- The save's Flags key set once the favorite reward was given (GUI lane, D4).
 RewardView.FavoriteFlag = "FavoriteReward"
+-- The save's Flags key set once the inviter's reward was given (Config.Social.InviterOnce).
+RewardView.InviterFlag = "InviterRewarded"
 
 -- A finite number, else 0.
 local function num(x: any): number
@@ -335,6 +338,7 @@ function RewardView.build(
 			perMonth = Config.Social.InvitesPerMonth,
 			invited = num(soc.InvitedBy) > 0,
 			done = soc.InviteDone == true,
+			rewarded = type(flags) == "table" and flags[RewardView.InviterFlag] == true,
 		},
 		favorite = {
 			claimed = type(flags) == "table" and flags[RewardView.FavoriteFlag] == true,

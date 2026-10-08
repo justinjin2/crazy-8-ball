@@ -1,6 +1,6 @@
 --!strict
 -- MenuColumn: the left column (docs/prompts/ECONOMY_UI_PROMPT.md section 5; reference
--- 06-left-menu-buttons): Shop, Inventory, Rewards, Trade and Ults, top to bottom, one tile
+-- 06-left-menu-buttons): Shop, Inventory, Ults and Free Reward, top to bottom, one tile
 -- each (Ults: docs/prompts/ULTIMATES_PROMPT.md section 9.1, the spin screen UltScreen). A
 -- tile is just its glossy icon, big, with no box behind it (designer, 2026-09-28: the blue
 -- candy square went so the icons could be bigger), and the word (Strings.Menus.Column) in white
@@ -10,8 +10,10 @@
 -- its menu (onPress).
 --
 -- Red dots, top right of a tile: Inventory (the CUES tile) shows how many owned cues are NEW
--- ("9+" past Config.UI.Menu.Column.DotMax; concept 2, 2026-10-08); Rewards shows "!" while
--- RewardReady is true; Shop shows a small
+-- ("9+" past Config.UI.Menu.Column.DotMax; concept 2, 2026-10-08), or "!" while an Index
+-- row's reward waits (the Cues menu's Index claims it); Free Reward shows "!" while the
+-- RewardState says something can be claimed (`ready`: the day, a playtime gift, the group);
+-- Shop shows a small
 -- gold timer pill ("23:59:12", "6d 4h") while the VIP welcome offer or the Starter Pack window
 -- is open (ItemState.offerEndsAt; nothing while unknown); Trade shows nothing; Ults shows "!"
 -- while today's free ult spin is unused (the UltFreeSpin attribute).
@@ -27,7 +29,8 @@
 --
 -- Gamepad (overnight assumption, 2026-09-28): a selected GUI button takes the left stick from
 -- walking, so the tiles are never selectable; in the hub the D-pad opens them instead (up Shop,
--- right Inventory, down Rewards, left Trade: Progression.padRoute), and while a gamepad is the
+-- right Inventory, down Free Reward, left the player list: Progression.padRoute), and while a
+-- gamepad is the
 -- last input each tile shows its D-pad glyph (Roblox's own, so it matches the controller). The
 -- D-pad's four directions are taken, so Ults is gamepad X (Config.UI.UltScreen.Column.PadKey;
 -- overnight assumption, 2026-09-28: X is the ult button in a match, so X means "ult"
@@ -37,8 +40,9 @@
 -- block's reel or the teleport screen is up (Progression.update calls setVisible every frame).
 --
 -- GUI lane (designer 2026-10-03, C2): the tiles are Shop, Inventory, Abilities and Free Reward
--- (Config order). Rewards and Trade left the column. Free Reward shows only while the group or
--- the favorite reward is left to claim (RewardState), bobbing in front of turning gold rays.
+-- (Config order). Rewards and Trade left the column. Free Reward is always there since the
+-- Rewards menu was merged into it (designer's picks, 2026-10-08); turning gold rays stand
+-- behind it while something can be claimed.
 -- Hovering a tile (or a gamepad resting on it) sways it a little, as every candy does, and sun
 -- rays fade in behind its icon (designer, 2026-10-03: no hard shake).
 --
@@ -76,7 +80,7 @@ local ORDER: { string } = table.clone(C.Order)
 local TUTORIAL_ITEMS: { [string]: string } = {
 	Shop = "Shop",
 	Inventory = "Inventory",
-	Rewards = "FreeReward",
+	FreeReward = "FreeReward",
 	Trade = "Trade",
 	[ULTS] = "Abilities",
 }
@@ -208,9 +212,6 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	end)
 	local player = Players.LocalPlayer
 	if player then
-		connect(player:GetAttributeChangedSignal("RewardReady"), function()
-			self:refreshDots()
-		end)
 		connect(player:GetAttributeChangedSignal("UltFreeSpin"), function()
 			self:refreshDots()
 		end)
@@ -329,37 +330,30 @@ function MenuColumn.refreshUlts(self: any)
 	end
 end
 
---- Show the Free Reward tile only while the group or the favorite reward is left to claim
---- (RewardState); it bobs in front of its turning rays while up.
+--- Free Reward's turning rays while the RewardState says something can be claimed.
 function MenuColumn.refreshFree(self: any)
 	local t: Tile? = self.tiles[FREE]
 	if not t then
 		return
 	end
 	local state = ItemState.rewards()
-	local left = false
-	if type(state) == "table" then
-		local group = state.group
-		local favorite = state.favorite
-		left = (type(group) == "table" and group.claimed ~= true)
-			or (type(favorite) == "table" and favorite.claimed ~= true)
+	local ready = type(state) == "table" and state.ready == true
+	local rays = t.rays
+	if rays then
+		rays.Visible = ready
 	end
-	if t.button.Visible ~= left then
-		t.button.Visible = left
-		self:queueLayout()
-	end
-	if left and not self.freeLoop then
-		local icon, rays = t.icon, t.rays
+	if ready and not self.freeLoop then
 		-- Only the rays turn (a turn is smooth; a GUI move steps in whole pixels).
-		self.freeLoop = UIAnim.loop(icon, function(clock: number)
+		self.freeLoop = UIAnim.loop(t.icon, function(clock: number)
 			if rays then
 				rays.Rotation = (clock * K.Motion.RaysDegreesPerSecond) % 360
 			end
 		end)
-	elseif not left and self.freeLoop then
+	elseif not ready and self.freeLoop then
 		self.freeLoop.stop()
 		self.freeLoop = nil
 	end
+	self:refreshDots()
 end
 
 --- Whether the Free Reward tile is up.
@@ -660,23 +654,25 @@ local function newCues(): number
 	return n
 end
 
---- Read the red dots again: the NEW cues on CUES, "!" on Rewards, "!" on Ults while today's
---- free ult spin is unused.
+--- Read the red dots again: the NEW cues on CUES (else "!" while an Index row's reward
+--- waits), "!" on Free Reward while something can be claimed, "!" on Ults while today's free
+--- ult spin is unused.
 function MenuColumn.refreshDots(self: any)
-	local player = Players.LocalPlayer
 	local fresh = newCues()
 	setDot(
 		self,
 		self.tiles.Inventory,
-		if fresh <= 0
-			then nil
-			elseif fresh > C.DotMax then COPY.DotMore:format(C.DotMax)
-			else tostring(fresh)
+		if fresh > C.DotMax
+			then COPY.DotMore:format(C.DotMax)
+			elseif fresh > 0 then tostring(fresh)
+			elseif ItemState.indexReady() then COPY.DotReady
+			else nil
 	)
-	local rewardsTile: Tile? = self.tiles.Rewards
-	if rewardsTile then
-		local ready = if player then player:GetAttribute("RewardReady") == true else false
-		setDot(self, rewardsTile, if ready then COPY.DotReady else nil)
+	local freeTile: Tile? = self.tiles[FREE]
+	if freeTile then
+		local state = ItemState.rewards()
+		local ready = type(state) == "table" and state.ready == true
+		setDot(self, freeTile, if ready then COPY.DotReady else nil)
 	end
 	-- The Shop: how many of its jump groups hold something new (a restock, an offer), while
 	-- its offer timer pill is not up in the same corner.

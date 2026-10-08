@@ -812,6 +812,14 @@ return {
 		H.expect(after.favorite.claimed, "claimed")
 	end,
 
+	["RewardView: the invite card says whether the inviter's own block was given"] = function()
+		local p = RewardView.build(fresh(), nil, nil, NOW)
+		H.expect(p.invite.rewarded == false, "not given yet")
+		local flags = { [RewardView.InviterFlag] = true }
+		local after = RewardView.build(fresh(), nil, nil, NOW, false, nil, false, flags)
+		H.expect(after.invite.rewarded == true, "given (once ever: Config.Social.InviterOnce)")
+	end,
+
 	["RewardView: after the claim, tomorrow's reward is next"] = function()
 		local ok, login = Daily.claimLogin(fresh(), TODAY)
 		H.expect(ok, "claimed")

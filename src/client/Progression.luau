@@ -40,7 +40,6 @@ local RankHud = require(script.Parent.RankHud)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local ResultScreen = require(script.Parent.ResultScreen)
 local RewardChips = require(script.Parent.RewardChips)
-local RewardsMenu = require(script.Parent.RewardsMenu)
 local Roadmap = require(script.Parent.Roadmap)
 local RankClaimBlock = require(script.Parent.RankClaimBlock)
 local ShopMenu = require(script.Parent.ShopMenu)
@@ -279,7 +278,6 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	newRank:setDeps(deps)
 	ShopMenu.new(screen, deps)
 	InventoryMenu.new(screen, deps)
-	RewardsMenu.new(screen, deps)
 	TradeMenu.new(screen, deps)
 	FreeRewardMenu.new(screen, deps)
 	SettingsMenu.new(screen, deps)
@@ -406,8 +404,8 @@ function Progression.toggleRank(): boolean
 end
 
 --- The D-pad in the hub (Main, for a press no GUI took): up, right and down open the Shop,
---- Inventory and Free Reward (the Daily Challenge once that is gone), as the left column's
---- tiles; left focuses the player list (GUI lane, 2026-10-03). Never in a match (the D-pad
+--- Inventory and Free Reward (the Daily Challenge while the tutorial hides it), as the left
+--- column's tiles; left focuses the player list (GUI lane, 2026-10-03). Never in a match (the D-pad
 --- aims there), while a menu is open (the D-pad moves its selection), while a text box has
 --- focus, or while the column is hidden. Returns whether it took the press.
 function Progression.padRoute(key: Enum.KeyCode): boolean
@@ -425,7 +423,8 @@ function Progression.padRoute(key: Enum.KeyCode): boolean
 	if name == "PlayerList" then
 		return playerList:focus()
 	end
-	-- Down is Free Reward while it is up, else the Daily Challenge.
+	-- Down is Free Reward while its tile is up (the tutorial brings it in), else the Daily
+	-- Challenge.
 	if name == "FreeReward" and not column:freeShown() then
 		corners:pressChallenge()
 		return true

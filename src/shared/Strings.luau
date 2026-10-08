@@ -599,7 +599,6 @@ return {
 		Column = {
 			Shop = "SHOP",
 			Inventory = "CUES", -- the Cues menu (renamed from Inventory, concept 2, 2026-10-08)
-			Rewards = "REWARDS",
 			Trade = "TRADE",
 			FreeReward = "FREE REWARD",
 		},
@@ -608,21 +607,19 @@ return {
 			Shop = "Shop",
 			Inventory = "Cues",
 			Index = "Index", -- the Cues menu's title while its Index shows
-			Rewards = "Rewards",
 			Trade = "Trade",
 			FreeReward = "Free Reward",
 		},
 		-- The tabs under (or beside) each title.
 		Tabs = {
 			Inventory = { Cues = "My Cues", Index = "Index" }, -- the Cues menu's switch
-			Rewards = { Daily = "Daily", Playtime = "Playtime", Codes = "Codes" },
 		},
 		Loading = "Loading...", -- a page whose contents have not arrived
 		-- The confirm dialog's default buttons.
 		Yes = "Yes",
 		No = "No",
 		DotMore = "%d+", -- the red dot over too many to count: "9+"
-		DotReady = "!", -- the red dot on Rewards while something can be claimed
+		DotReady = "!", -- a red dot while something can be claimed (Free Reward, Ults, Index)
 		-- Time left: "23:59:12", "14:32", "6d 4h".
 		TimeHours = "%d:%02d:%02d",
 		TimeMinutes = "%d:%02d",
@@ -806,25 +803,10 @@ return {
 			GiftButton = "Gift",
 			GiftNobody = "No one else is here to gift right now.",
 		},
-		-- The Rewards (RewardsMenu and its pages RewardsDaily, RewardsPlaytime, RewardsCodes).
-		-- Block names come from Strings.LuckyBlocks.Names; money is "$250" (Progression/Format).
+		-- The reward words the Free Reward menu, the codes box (RewardsCodes, in Settings), the
+		-- flyer and the ult screen share (the old Rewards menu's, merged 2026-10-08). Block
+		-- names come from Strings.LuckyBlocks.Names; money is "$250" (Progression/Format).
 		Rewards = {
-			-- The Daily tab.
-			Day = "Day %d", -- a tile's heading: "Day 1"
-			Claim = "Claim",
-			Claimed = "Claimed",
-			-- Under the tiles: the week of the four-week cycle and its day-28 prize: "Week 1
-			-- of 4: a Legendary Lucky Block on day 28" (the week, the weeks, the prize, the day).
-			WeekLine = "Week %d of %d: %s on day %d",
-			NextIn = "Next reward in %s", -- once today is claimed: "Next reward in 5:12:03"
-			-- A banner over the tiles while an Index row's reward waits (it is claimed in the
-			-- Inventory's Index tab; the button goes there).
-			IndexReady = "An Index reward is ready!",
-			OpenIndex = "Open Index",
-			-- The Playtime tab.
-			GiftTime = "%s / %s", -- played today, of the gift's time: "4:12 / 10:00"
-			PlayedToday = "Played today: %s", -- "Played today: 24:13"
-			GiftsReset = "New gifts in %s", -- "New gifts in 5:12:03"
 			-- The Codes tab.
 			CodeTitle = "Got a code?",
 			CodeHint = "Enter code", -- in the empty box
@@ -1062,19 +1044,67 @@ return {
 		SkipMouse = "Click to skip",
 		SkipPad = "Skip", -- after the gamepad's A button picture
 	},
-	-- The Free Reward page (FreeRewardMenu; GUI lane, D4).
+	-- The Free Reward menu (FreeRewardMenu and its sections FreeDaily, FreePlaytime, FreeTrack,
+	-- FreeSocial; the designer's picks "daily A" and "free_other A", 2026-10-08). Block names
+	-- come from Strings.LuckyBlocks.Names; money is "$250" (Progression/Format).
 	FreeReward = {
-		GroupTitle = "Join the group",
-		GroupLine = "Plus +%s%% money from every match while you are in it.",
+		-- The jump buttons down the right side, and each section's header ("- DAILY -").
+		Jump = { Daily = "Daily", Playtime = "Playtime", Track = "Track", Group = "Group" },
+		Headers = { Daily = "DAILY", Playtime = "PLAYTIME", Track = "TRACK", Group = "GROUP" },
+		Badge = "!", -- a jump button's red badge while its section has something to claim
+		-- A tile's status button.
+		Claim = "Claim!",
+		Claimed = "Claimed",
+		Locked = "Locked",
+		Tomorrow = "Tomorrow", -- the day after today's, once today's is claimed
+		PlayFirst = "Play a match", -- today's day until a match is finished today
+		-- The Daily section: its pill (and the time to the next day), the tiles, day 7's tag.
+		FirstWeekTitle = "FIRST WEEK",
+		StreakTitle = "DAILY STREAK",
+		Day = "DAY %d",
+		Op = "OP!",
+		-- What comes with day 7's block: "+2 Ability Spins", "+$5,000", "+1 Rare Lucky Block".
+		HeroSpins = "+%d Ability Spins",
+		HeroSpin = "+1 Ability Spin",
+		HeroMoney = "+%s",
+		HeroBlock = "+%d %s",
+		-- Under the tiles. The first week: any 7 login days within 14 days of joining.
+		FirstWeekLine = "First week: any %d days within %d · %d days left",
+		FirstWeekLast = "First week: any %d days within %d · last day!",
+		FirstWeekDone = "First week done! Your daily streak starts tomorrow.",
+		NeedMatch = "Finish one match today to claim day %d", -- win or lose, any mode
+		-- The later weeks: a missed day starts the row again at day 1, unless the week's one
+		-- free miss covers it.
+		StreakLine = "Miss a day and you start again at day 1 (1 free miss a week)",
+		StreakLineUsed = "Miss a day and you start again at day 1",
+		Frozen = "Your free miss kept your streak going!",
+		ClaimAll = "Claim All %s", -- the Robux price (ShopCards.robuxText)
+		ComingSoon = "Coming soon!", -- Claim All before its product is on sale
+		-- The Playtime section.
+		PlaytimeTitle = "TODAY'S GIFTS",
+		Minutes = "%d min", -- a gift's time: "5 min"
+		SpinChip = "+%d", -- on the ability spin's picture
+		CountChip = "x%d", -- on a lucky block's picture past three copies
+		-- The 28-day track (Config.Daily.Track): the days claimed of TrackDays.
+		TrackTitle = "DAY %d OF %d",
+		TrackDay = "Day %d",
+		TrackNote = "Every day you claim counts, even after a missed day.",
+		-- The group and favorite card.
+		GroupTitle = "Free Lucky Blocks",
+		GroupRow = "Join the group",
+		GroupLine = "%s + %d%% match money", -- the reward, the boost while a member
+		FavoriteRow = "Favorite the game",
 		Join = "Join",
-		FavoriteTitle = "Favorite the game",
-		FavoriteLine = "Tap the star, then come back here.",
 		Favorite = "Favorite",
-		Claim = "Claim",
-		LikeToo = "Liking the game helps us too!",
-		AllDone = "All claimed. Thank you!",
 		NotYet = "Not favorited yet. Try again!",
 		NotMember = "Join the group first, then press Claim.",
+		-- The invite card. The inviter's own block comes once ever (Config.Social.InviterOnce).
+		InviteTitle = "Invite a friend",
+		InviteBoth = "When they win their first match, you both get %s!",
+		InviteThem = "When they win their first match, they get %s!",
+		Joined = "%d friends joined",
+		JoinedOne = "1 friend joined",
+		Invite = "Invite",
 	},
 	-- The Settings screen (SettingsMenu; GUI lane, C10).
 	Settings = {

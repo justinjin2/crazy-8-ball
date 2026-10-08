@@ -15,14 +15,13 @@
 -- would take the left stick from walking); the D-pad reaches the challenge.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local SocialService = game:GetService("SocialService")
 local TextService = game:GetService("TextService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
-local SocialRules = require(Shared:WaitForChild("Progression"):WaitForChild("Social"))
 local HudParts = require(script.Parent.HudParts)
+local InvitePrompt = require(script.Parent.InvitePrompt)
 local ItemState = require(script.Parent.ItemState)
 local Menus = require(script.Parent.Menus)
 local ShopParts = require(script.Parent.ShopParts)
@@ -430,26 +429,8 @@ end
 
 --- Roblox's invite prompt, carrying our launch data (the invite rewards).
 function HubCorners.invite(self: any)
-	local player = Players.LocalPlayer
-	if not player then
-		return
-	end
-	task.spawn(function()
-		local okCan, can = pcall(function(): boolean
-			return SocialService:CanSendGameInviteAsync(player)
-		end)
-		if not okCan or not can then
-			self:say(W.InviteFailed, self.inviteTile.button, 1)
-			return
-		end
-		local options = Instance.new("ExperienceInviteOptions")
-		options.LaunchData = SocialRules.launchData(player.UserId)
-		local ok = pcall(function()
-			SocialService:PromptGameInvite(player, options)
-		end)
-		if not ok then
-			self:say(W.InviteFailed, self.inviteTile.button, 1)
-		end
+	InvitePrompt.show(function()
+		self:say(W.InviteFailed, self.inviteTile.button, 1)
 	end)
 end
 
