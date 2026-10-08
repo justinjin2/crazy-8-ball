@@ -6790,12 +6790,15 @@ Config.Multiplayer = {
 		-- One rectangular pad per table (designer, 2026-09-26: a rectangle, not the circle
 		-- tried first): stand anywhere on it to join. It holds both teams, twice the table's
 		-- teamSize. It sits in front of the table, centred on the long side toward the
-		-- entrance, lying along it.
-		-- By team size (1v1, 2v2, 3v3): { length along the table, depth out from it }. (tune)
-		PadSizeStuds = { { 10, 5 }, { 14, 5 }, { 18, 5 } },
+		-- entrance, lying along it. Designer, 2026-10-08: longer, wider and closer to the
+		-- table, stretching to both its ends; the same pad for every mode. (tune)
+		PadLengthStuds = 19, -- along the table: its full length with rails (18.96)
+		-- Across, from the table's centre line: from just off its rail (the barrier is 5.48)
+		-- out to where the old pad ended, so the match fence and the map's spacing stay put.
+		PadNearStuds = 6.5,
+		PadFarStuds = 14.5,
 		-- Which long side: the sign of physics y. -1 is world +Z at yaw 0, toward the entrance.
 		PadSide = -1,
-		PadGapStuds = 1, -- from the walkway's long edge (Fence.HalfWidthStuds) to the pad
 		FenceMarginStuds = 0.5, -- the match fence stands this far beyond the pad
 		-- The server checks who is on each pad this often, rather than using .Touched, which
 		-- misses a player who walks on and stands still. It also paces the match loop.
@@ -6883,14 +6886,17 @@ Config.Multiplayer = {
 		-- glowing rim (designer, 2026-09-27: glass, not a white sheet), the table's mode written
 		-- big on it and JOIN or the count under that. The part is invisible and all of it is
 		-- drawn on its top face, so the corners can round. PadEffects tints the plate with the
-		-- rim: blue with room, green with somebody on, gold when full or playing.
+		-- rim and raises a queue portal over it (Portal below): blue with room, green with
+		-- somebody on, gold when full or playing (designer, 2026-10-08).
 		PadHeight = 0.12, -- thin floor plate, studs
 		FloorOffset = 0.08, -- avoid z-fighting with the floor, studs
-		PadColor = { 59, 155, 255 }, -- the plate before PadEffects tints it: the rim's blue
-		PadTransparency = 0.55, -- the floor shows through (tune)
+		PadColor = { 40, 140, 255 }, -- the plate before PadEffects tints it: the rim's blue
+		PadTransparency = 0.86, -- the floor shows through: the portal over it is the look (tune)
 		PadCornerPx = 36, -- its rounded corners, pixels (at PixelsPerStud)
 		RimPx = 14, -- the glowing rim round it, pixels
-		RimFree = { 59, 155, 255 }, -- house blue while there is room
+		RimBrightness = 2, -- the floor canvas's SurfaceGui.Brightness: lit, under the bloom
+		RimFree = { 40, 140, 255 }, -- neon blue while there is room: saturated, so only blue blooms
+		RimOccupied = { 40, 235, 90 }, -- neon green once somebody is on it
 		RimFull = { 255, 201, 40 }, -- gold once the pad is full or its game is on
 		PixelsPerStud = 40, -- sharp words on the pad without large canvases
 		ModeTextSize = 110, -- "1v1" on the pad, pixels (about 2.75 studs tall)
@@ -6925,16 +6931,39 @@ Config.Multiplayer = {
 		GlowBrightness = 1.4, -- steady glow while occupied
 		GlowBurstBrightness = 5, -- arrival flare
 		GlowBurstSeconds = 0.6, -- flare settling time
-		-- Outlines pulse out from the rim while the pad has room: "step here".
-		RingPeriodSeconds = 1.6, -- one outline every this often
-		RingReachStuds = 2, -- how far past the rim an outline travels before it fades
-		RingStrokePx = 12, -- outline thickness (PixelsPerStud)
-		RingTransparency = 0.25, -- an outline at its brightest
-		-- A big arrow bobs above the pad, pointing down, while it has room and you are not
-		-- seated anywhere.
-		ArrowHeightStuds = 6, -- above the pad
+		-- The queue portal (designer, 2026-10-08: like a glowing queue ring, not a flat 2D
+		-- panel): rounded outlines rise from the pad's rim one after another and fade out as
+		-- they climb, glowing past the bloom, with sparkles drifting up from the rim. Lit while
+		-- the pad has room; gone while it is full or playing (it lies over the shooter's
+		-- walkway).
+		Portal = {
+			RingCount = 4, -- rings climbing at once, evenly spaced in time
+			RiseStuds = 3.2, -- how high a ring climbs before it is gone
+			RiseSeconds = 2.4, -- one ring's climb
+			RiseEase = 0.6, -- the climb's power: under 1, quick off the floor and slowing near the top
+			FadeInShare = 0.1, -- of the climb, fading in off the floor so a ring never pops
+			Transparency = 0.05, -- a ring at its brightest, just off the floor
+			PixelsPerStud = 20, -- the rings' canvases
+			StrokePx = 4, -- a ring's line (at PixelsPerStud)
+			CornerStuds = 0.9, -- rounded like the plate
+			Brightness = 3.5, -- SurfaceGui.Brightness: blue or green past the bloom's threshold (2.6), so it glows
+			FadeSeconds = 0.4, -- lighting up and going out
+			SparkRatePerStud = 0.7, -- sparkles a second per stud of rim
+			SparkSize = 0.35, -- studs, growing in then shrinking to nothing
+			SparkLifetime = { 1, 1.8 }, -- seconds
+			SparkSpeed = { 0.4, 1.4 }, -- studs a second, upward
+			SparkHeightStuds = 1.6, -- the band over the rim they start in
+			SparkSpreadDegrees = 25, -- off straight up
+			SparkBrightness = 3, -- past the bloom too
+		},
+		-- A big arrow bobs above the pad, pointing down, with JOIN under it bobbing along,
+		-- while it has room and you are not seated anywhere (designer, 2026-10-08: lower, and
+		-- the word under it).
+		ArrowHeightStuds = 4.6, -- the arrow and its word's middle, above the pad
 		ArrowSizeStuds = 3.2,
-		ArrowBobStuds = 0.7, -- up and down
+		ArrowWordStuds = 1.2, -- JOIN's height under the arrow
+		ArrowWordOutline = 0.09, -- its ink outline, of its height on screen
+		ArrowBobStuds = 0.6, -- up and down
 		ArrowBobSeconds = 1.2, -- one bob
 		ArrowMaxDistance = 90, -- studs: hidden further away
 		-- Only the pads near you show the arrow (designer, 2026-10-06: not every table at once);

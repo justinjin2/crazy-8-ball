@@ -228,7 +228,8 @@ end
 -- under that. Stand anywhere on it to join. The part is invisible and level (turned only
 -- about the up axis); everything shows on its top face. The
 -- server keeps its attributes and words current (refresh); PadEffects on each client tints
--- the rim, pulses outlines out of it and bobs an arrow over it from those attributes.
+-- the rim, raises the glowing queue portal over it and bobs an arrow over it from those
+-- attributes.
 local function buildPad(t: any, folder: Instance)
 	local id = t.engine.id
 	local teamSize = t.engine.teamSize
@@ -262,6 +263,7 @@ local function buildPad(t: any, folder: Instance)
 	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
 	gui.PixelsPerStud = Q.PixelsPerStud
 	gui.LightInfluence = 0
+	gui.Brightness = Q.RimBrightness
 	gui.Parent = pad
 	-- The plate, inset by the rim so its glowing outline fits on the canvas.
 	local plate = Instance.new("Frame")

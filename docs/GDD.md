@@ -205,11 +205,13 @@ Every feature is checked against these. If it serves none, it waits.
   the two 3v3 in the back-right corner, seen from the spawn (changed 2026-09-26).
 - **Joining: step onto the table's queue pad.** Each table has one glowing rectangular pad in
   front of it, lying along the long side that faces the entrance (changed 2026-09-26 for the
-  rooftop map; a round pad was tried the same day and dropped), longer for bigger modes,
-  holding both teams (2, 4 or 6). It is see-through glass tinted like its rim (blue with room,
-  green with someone on, gold when full or playing; designer, 2026-09-27). Its mode is written
-  big on it with JOIN or the count;
-  outlines pulse out of it and a big arrow bobs over it while it has room. Joining is instant: the host's card pops up the moment you step on. Stepping on plays a
+  rooftop map; a round pad was tried the same day and dropped), as long as the table and just
+  off its rail, the same for every mode (designer, 2026-10-08), holding both teams (2, 4 or 6).
+  It is see-through glass tinted like its rim (blue with room, green with someone on, gold when
+  full or playing; designer, 2026-09-27 and 2026-10-08). Its mode is written big on it with
+  JOIN or the count. While it has room it is a **queue portal** (2026-10-08): glowing outlines
+  rise from its rim one after another and fade as they climb, sparkles drift up, and a big
+  arrow with JOIN under it bobs over it when you are near. Joining is instant: the host's card pops up the moment you step on. Stepping on plays a
   sound and a VFX and the rim turns green so everyone can see someone is queueing. There is no
   accept step; anyone may step onto a waiting pad with room, and walking off leaves at once. Everyone else can stand around and watch. Players in a match stay by their table:
   invisible walls, a few studs beyond its area and its pad, let someone waiting for their turn
@@ -620,7 +622,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     banners and pink light pillar, and (for now) the snack counter.
   - On the map every queue pad sits **in front of its table**, centred on the long side that
     faces the entrance (designer, 2026-09-26). The pad's shape may still change; the table
-    grid is computed from its size, so it re-spaces itself.
+    grid is computed from its size, so it re-spaces itself. Since 2026-10-08 the pad runs
+    over the shooter's walkway on that side and ends where the old one did, so the grid
+    stayed put.
   - The sides follow the day view: the city side has planters, palms and lanterns; the ocean
     side has umbrella sets with loungers and sofa groups along the railing.
   - The grand piano is the lounge's centrepiece, centred at the back under the pergola, the

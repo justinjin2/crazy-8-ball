@@ -165,7 +165,7 @@ a lively panel is capped to a share of the screen and sized to its page's `fitHe
 laid out in its units from `Config.UI.GrandOpeningCard.Layout` and scaled to fit the page whole
 (nothing scrolls), its pieces on the Shop's Stage, the block's odds pop-up; ShopMenu buys through
 ItemRequest "BuyBlocks" and StoreRequest "Buy", and its purple gift squares open `ShopGift`, the
-Gift Player popup, which sends StoreRequest "Gift"), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound),
+Gift Player popup, which sends StoreRequest "Gift"), `PadEffects` (the queue pads' rim, rising portal rings and sparkles, arrow with JOIN, glow, motes and join sound),
 `MapAmbience` (the drifting boats), `DayCycle` (runs the day/sunset cycle from the server's
 clock every frame of a fade, no network traffic), `FirePit` (the fire pit's fire, Roblox's
 own, lit at sunset).
@@ -247,7 +247,7 @@ eligibility are decided from pre-shot state and server events.
 listeners, placement and table reuse. `Main` derives private controls from the replicated
 phase. `MatchHUD`, `MatchTargets`, `MatchBar` and `TableSign` build from `HudParts` and share
 Config styles and Strings copy; the server only keeps the queue pad's words and attributes
-(`TableService`), and each client draws the table sign and the pad's rings and arrow
+(`TableService`), and each client draws the table sign and the pad's portal and arrow
 (`PadEffects`), and pops the queue menu the frame you step on (`Main`, predicted from the
 table's snapshot until the server's seat arrives); existing Camera,
 Input, Avatar, Audio, Effects and renderer modules retain their separate responsibilities.

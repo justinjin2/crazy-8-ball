@@ -36,8 +36,10 @@ GAME = {
     'fence_wall': 1.0,  # Fence.ThicknessStuds, outside the inner face
     # The queue pad (Multiplayer.Queue): a rectangle centred on the table's long side toward
     # the entrance (designer, 2026-09-26), just beyond the walkway.
-    'pad_size': {1: (10.0, 5.0), 2: (14.0, 5.0), 3: (18.0, 5.0)},  # PadSizeStuds: along, out
-    'pad_gap': 1.0,  # PadGapStuds: from the walkway's edge to the pad
+    # Every mode the same (2026-10-08): as long as the table, from just off its rail out.
+    'pad_length': 19.0,  # PadLengthStuds: along the table
+    'pad_near': 6.5,  # PadNearStuds: its near edge, from the table's centre line
+    'pad_far': 14.5,  # PadFarStuds: its far edge
     'fence_margin': 0.5,  # FenceMarginStuds: the match fence stands this far beyond the pad
     'pad_side': -1,  # Queue.PadSide: the sign of physics y the pad sits on (world +Z at yaw 0)
     'player_height': 5.0,
@@ -152,10 +154,9 @@ MIN_WALKWAY = 8.0  # section 4 of the brief: main walkways at least this wide
 def queue_pad_local(team):
     """The pad: centre (cx, cy) and half extents (hx, hy) in table studs (x along the length,
     y physics), as Placement.queuePad."""
-    fy = GAME['fence_half'][1]
-    length, depth = GAME['pad_size'][team]
-    hx, hy = length / 2, depth / 2
-    return 0.0, GAME['pad_side'] * (fy + GAME['pad_gap'] + hy), hx, hy
+    hx = GAME['pad_length'] / 2
+    hy = (GAME['pad_far'] - GAME['pad_near']) / 2
+    return 0.0, GAME['pad_side'] * (GAME['pad_near'] + hy), hx, hy
 
 
 def match_fence_local(team):

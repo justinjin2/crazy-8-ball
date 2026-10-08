@@ -5,38 +5,55 @@
 -- every client watches every pad.
 --
 -- While a pad has room (designer, 2026-09-26: the old box did not look like something to step
--- on):
---   - rounded outlines pulse outward from its rim, again and again,
---   - a big arrow bobs above it pointing down while you are near it (ArrowNearStuds),
---     unless you are already on a pad or playing.
--- Its rim glows blue while empty, green once somebody is on it, gold when it is full or its
--- game is on. While occupied, light motes drift up from it and its glow flares whenever
--- someone steps on, with a one-shot power-up sound. Emptying fades it out.
+-- on; 2026-10-08: a glowing queue portal, not a flat panel):
+--   - rounded outlines rise from its rim one after another and fade out as they climb,
+--     glowing past the bloom, with sparkles drifting up from the rim (QueueVisual.Portal),
+--   - a big arrow bobs above it pointing down, JOIN under it, while you are near it
+--     (ArrowNearStuds), unless you are already on a pad or playing.
+-- It glows blue while empty, green once somebody is on it, and the plate turns gold when it
+-- is full or its game is on, the portal gone. While occupied, light motes drift
+-- up from it and its glow flares whenever someone steps on, with a one-shot power-up sound.
+-- Emptying fades it out.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Strings = require(Shared:WaitForChild("Strings"))
 
 local M = Config.Multiplayer
 local Q = M.QueueVisual
+local P = Q.Portal
 local Kit = Config.UI.Kit
 
 local PadEffects = {}
 PadEffects.__index = PadEffects
 
+-- One of the portal's rising outlines: a level invisible part drawn on its top face.
+type Ring = {
+	part: Part,
+	gui: SurfaceGui,
+	stroke: UIStroke,
+}
+
 type Pad = {
 	part: BasePart,
 	rim: UIStroke?,
 	plate: Frame?, -- the see-through plate the rim goes round, tinted with it
-	host: Part, -- local, level over the pad: holds the motes, glow, sound, rings and arrow
+	host: Part, -- local, level over the pad: holds the motes, glow, sound and arrow
+	top: CFrame, -- the pad's top face, level: the rings rise from it
 	count: number,
 	glow: PointLight,
 	motes: ParticleEmitter,
 	sound: Sound,
-	rings: { Frame },
+	rings: { Ring },
+	sparks: { ParticleEmitter }, -- one along each side of the rim
+	portal: number, -- 0..1: the portal's fade
+	tint: Color3, -- the portal's colour now
 	arrow: BillboardGui,
 	arrowImage: ImageLabel,
+	arrowWord: TextLabel, -- JOIN under the arrow
+	arrowOutline: UIStroke,
 	arrowShown: number, -- 0..1: the arrow's fade
 	level: number, -- 0..1: how lit (occupied) the pad is, eased
 	flare: number,
@@ -75,22 +92,38 @@ local function rimOf(part: BasePart): UIStroke?
 	return if rim and rim:IsA("UIStroke") then rim else nil
 end
 
+-- A local, invisible, untouchable part in the effects folder.
+local function ghostPart(name: string, size: Vector3, cframe: CFrame): Part
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Anchored = true
+	p.CanCollide = false
+	p.CanTouch = false
+	p.CanQuery = false
+	p.CastShadow = false
+	p.Transparency = 1
+	p.Size = size
+	p.CFrame = cframe
+	p.Parent = folderFor()
+	return p
+end
+
+-- Sparkles start a little whiter than the portal and settle into its colour.
+local function sparkColors(color: Color3): ColorSequence
+	return ColorSequence.new(color:Lerp(Color3.new(1, 1, 1), 0.35), color)
+end
+
 local function build(part: BasePart): Pad
 	local green = rgb(Kit.Colors.Green)
-	local reach = Q.RingReachStuds
-	-- A level plate over the pad, turned with it and wider by the rings' reach all round: the
-	-- rings are drawn on its top, the motes rise from it and the arrow hangs over it.
-	local host = Instance.new("Part")
-	host.Name = part.Name .. "_Effects"
-	host.Anchored = true
-	host.CanCollide = false
-	host.CanTouch = false
-	host.CanQuery = false
-	host.CastShadow = false
-	host.Transparency = 1
-	host.Size = Vector3.new(part.Size.X + 2 * reach, 0.05, part.Size.Z + 2 * reach)
-	host.CFrame = part.CFrame * CFrame.new(0, part.Size.Y / 2 + 0.02, 0)
-	host.Parent = folderFor()
+	local free = rgb(Q.RimFree)
+	local top = part.CFrame * CFrame.new(0, part.Size.Y / 2, 0)
+	-- A level plate over the pad, turned with it: the motes rise from it and the arrow hangs
+	-- over it.
+	local host = ghostPart(
+		part.Name .. "_Effects",
+		Vector3.new(part.Size.X, 0.05, part.Size.Z),
+		top * CFrame.new(0, 0.02, 0)
+	)
 
 	local motes = Instance.new("ParticleEmitter")
 	motes.Name = "LightMotes"
@@ -117,36 +150,78 @@ local function build(part: BasePart): Pad
 	glow.Shadows = false
 	glow.Parent = host
 
-	-- Rings pulsing out from the rim, drawn as rounded outlines on the plate's top.
-	local gui = Instance.new("SurfaceGui")
-	gui.Name = "Rings"
-	gui.Face = Enum.NormalId.Top
-	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-	gui.PixelsPerStud = Q.PixelsPerStud
-	gui.LightInfluence = 0
-	gui.Parent = host
+	-- The portal: rounded outlines the size of the rim, each on its own level canvas.
 	local rings = {}
-	for i = 1, 2 do
+	for i = 1, P.RingCount do
+		local ringPart =
+			ghostPart(part.Name .. "_Ring" .. i, Vector3.new(part.Size.X, 0.05, part.Size.Z), top)
+		local gui = Instance.new("SurfaceGui")
+		gui.Name = "Ring"
+		gui.Face = Enum.NormalId.Top
+		gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		gui.PixelsPerStud = P.PixelsPerStud
+		gui.LightInfluence = 0
+		gui.Brightness = P.Brightness
+		gui.Enabled = false
+		gui.Parent = ringPart
 		local ring = Instance.new("Frame")
-		ring.Name = "Ring" .. i
 		ring.AnchorPoint = Vector2.new(0.5, 0.5)
 		ring.Position = UDim2.fromScale(0.5, 0.5)
+		ring.Size = UDim2.new(1, -2 * P.StrokePx, 1, -2 * P.StrokePx)
 		ring.BackgroundTransparency = 1
 		ring.Parent = gui
 		local round = Instance.new("UICorner")
-		round.CornerRadius = UDim.new(0, Q.PadCornerPx)
+		round.CornerRadius = UDim.new(0, P.CornerStuds * P.PixelsPerStud)
 		round.Parent = ring
 		local stroke = Instance.new("UIStroke")
-		stroke.Color = rgb(Q.RimFree)
-		stroke.Thickness = Q.RingStrokePx
+		stroke.Color = free
+		stroke.Thickness = P.StrokePx
+		stroke.Transparency = 1
 		stroke.Parent = ring
-		table.insert(rings, ring)
+		table.insert(rings, { part = ringPart, gui = gui, stroke = stroke })
 	end
 
-	-- The arrow over the pad, pointing down at it.
+	-- Sparkles drifting up from the rim: one emitter along each side, in a thin band.
+	local sparks = {}
+	local band = P.SparkHeightStuds
+	for _, side in { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } } do
+		local alongZ = side[1] ~= 0 -- a side at +-X runs along the part's Z
+		local length = if alongZ then part.Size.Z else part.Size.X
+		local edge = ghostPart(
+			part.Name .. "_Sparks",
+			if alongZ then Vector3.new(0.2, band, length) else Vector3.new(length, band, 0.2),
+			top * CFrame.new(side[1] * part.Size.X / 2, band / 2, side[2] * part.Size.Z / 2)
+		)
+		local spark = Instance.new("ParticleEmitter")
+		spark.Name = "PortalSparks"
+		spark.Texture = Q.MoteTexture
+		spark.Color = sparkColors(free)
+		spark.LightEmission = 1
+		spark.LightInfluence = 0
+		spark.Brightness = P.SparkBrightness
+		spark.Size = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0),
+			NumberSequenceKeypoint.new(0.2, P.SparkSize),
+			NumberSequenceKeypoint.new(1, 0),
+		})
+		spark.Transparency = NumberSequence.new(0, 0.4)
+		spark.Lifetime = NumberRange.new(P.SparkLifetime[1], P.SparkLifetime[2])
+		spark.Speed = NumberRange.new(P.SparkSpeed[1], P.SparkSpeed[2])
+		spark.SpreadAngle = Vector2.new(P.SparkSpreadDegrees, P.SparkSpreadDegrees)
+		spark.EmissionDirection = Enum.NormalId.Top
+		spark.Shape = Enum.ParticleEmitterShape.Box
+		spark.ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume
+		spark.Rate = P.SparkRatePerStud * length
+		spark.Enabled = false
+		spark.Parent = edge
+		table.insert(sparks, spark)
+	end
+
+	-- The arrow over the pad, pointing down at it, with JOIN under it.
+	local a, w = Q.ArrowSizeStuds, Q.ArrowWordStuds
 	local arrow = Instance.new("BillboardGui")
 	arrow.Name = "StepHere"
-	arrow.Size = UDim2.fromScale(Q.ArrowSizeStuds, Q.ArrowSizeStuds)
+	arrow.Size = UDim2.fromScale(a, a + w)
 	arrow.StudsOffsetWorldSpace = Vector3.new(0, Q.ArrowHeightStuds, 0)
 	arrow.MaxDistance = Q.ArrowMaxDistance
 	arrow.LightInfluence = 0
@@ -156,8 +231,23 @@ local function build(part: BasePart): Pad
 	image.BackgroundTransparency = 1
 	image.Image = Kit.Icons.Arrow
 	image.Rotation = 90 -- the icon points right; turned, it points down
-	image.Size = UDim2.fromScale(1, 1)
+	image.Size = UDim2.fromScale(1, a / (a + w))
 	image.Parent = arrow
+	local word = Instance.new("TextLabel")
+	word.Name = "Join"
+	word.BackgroundTransparency = 1
+	word.Position = UDim2.fromScale(0, a / (a + w))
+	word.Size = UDim2.fromScale(1, w / (a + w))
+	word.Font = (Enum.Font :: any)[Kit.Font]
+	word.Text = Strings.Match.PadArrow
+	word.TextColor3 = rgb(Kit.Colors.White)
+	word.TextScaled = true
+	word.Parent = arrow
+	-- White outlined in ink like every word in the game; the line follows its size on screen.
+	local outline = Instance.new("UIStroke")
+	outline.Color = rgb(Kit.Colors.Ink)
+	outline.LineJoinMode = Enum.LineJoinMode.Round
+	outline.Parent = word
 
 	local sound = Instance.new("Sound")
 	sound.Name = "JoinSound"
@@ -174,17 +264,37 @@ local function build(part: BasePart): Pad
 		rim = rimOf(part),
 		plate = plateOf(part),
 		host = host,
+		top = top,
 		count = if type(count) == "number" then count else 0,
 		glow = glow,
 		motes = motes,
 		sound = sound,
 		rings = rings,
+		sparks = sparks,
+		portal = 0,
+		tint = free,
 		arrow = arrow,
 		arrowImage = image,
+		arrowWord = word,
+		arrowOutline = outline,
 		arrowShown = 0,
 		level = if part:GetAttribute("Occupied") == true then 1 else 0,
 		flare = 0,
 	}
+end
+
+-- Everything local a pad made, gone (it streamed out; picked up again when it returns).
+local function destroy(pad: Pad)
+	pad.host:Destroy()
+	for _, ring in pad.rings do
+		ring.part:Destroy()
+	end
+	for _, spark in pad.sparks do
+		local edge = spark.Parent
+		if edge then
+			edge:Destroy()
+		end
+	end
 end
 
 --- Watch every queue pad under `folder` (the server's TableZones folder). Pads replicate in
@@ -217,7 +327,7 @@ end
 --- playing, which hides the arrows; `signed` the table whose sign is up (TableSign), whose
 --- arrow would sit on it: you are already there, so it hides too; `near` where the local
 --- character stands (nil: none), as only the pads near it show their arrow. Cheap when a pad
---- is empty and settled: only its rings, arrow and rim are touched.
+--- is empty and settled: only its portal, arrow and rim are touched.
 function PadEffects.update(
 	self: PadEffects,
 	dt: number,
@@ -231,12 +341,17 @@ function PadEffects.update(
 	for i = #self.pads, 1, -1 do
 		local pad = self.pads[i]
 		if pad.part.Parent == nil then
-			pad.host:Destroy() -- streamed out; picked up again when it returns
+			destroy(pad)
 			table.remove(self.pads, i)
 		end
 	end
 	local bob = math.sin(self.elapsed * math.pi * 2 / Q.ArrowBobSeconds) * Q.ArrowBobStuds
 	local arrowStep = dt / math.max(Q.ArrowFadeSeconds, 1e-3)
+	local portalStep = dt / math.max(P.FadeSeconds, 1e-3)
+	local blend = 1 - math.exp(-dt / M.Style.FadeSeconds)
+	-- The rings that moved this frame, sent in one go.
+	local moved: { BasePart } = {}
+	local spots: { CFrame } = {}
 	for _, pad in self.pads do
 		local part = pad.part
 		local occupied = part:GetAttribute("Occupied") == true
@@ -257,8 +372,7 @@ function PadEffects.update(
 		-- The rim and the glass inside it: blue with room, green with somebody on, gold when
 		-- full or playing.
 		local tint =
-			rgb(if not open then Q.RimFull elseif occupied then Kit.Colors.Green else Q.RimFree)
-		local blend = 1 - math.exp(-dt / M.Style.FadeSeconds)
+			rgb(if not open then Q.RimFull elseif occupied then Q.RimOccupied else Q.RimFree)
 		pad.rim = pad.rim or rimOf(part)
 		if pad.rim then
 			pad.rim.Color = pad.rim.Color:Lerp(tint, blend)
@@ -268,23 +382,36 @@ function PadEffects.update(
 			pad.plate.BackgroundColor3 = pad.plate.BackgroundColor3:Lerp(tint, blend)
 		end
 
-		-- "Step here": rings and the arrow while the pad has room. A ring starts on the rim and
-		-- grows by RingReachStuds all round; the host's canvas runs across it (its Z).
-		for n, ring in pad.rings do
-			local t = ((self.elapsed / Q.RingPeriodSeconds) + (n - 1) / #pad.rings) % 1
-			local grow = 2 * Q.RingReachStuds * t
-			ring.Size = UDim2.fromOffset(
-				(part.Size.Z + grow) * Q.PixelsPerStud,
-				(part.Size.X + grow) * Q.PixelsPerStud
-			)
-			local stroke = ring:FindFirstChildOfClass("UIStroke")
-			if stroke then
-				stroke.Color = tint
-				stroke.Transparency = if open
-					then Q.RingTransparency + (1 - Q.RingTransparency) * t
-					else 1
+		-- The portal while the pad has room: its rings rise one after another, fading in off
+		-- the floor and out as they climb.
+		local before = pad.portal
+		pad.portal = math.clamp(pad.portal + (if open then portalStep else -portalStep), 0, 1)
+		for _, spark in pad.sparks do
+			spark.Enabled = open
+		end
+		if pad.portal > 0 or before > 0 then
+			if pad.tint ~= tint then
+				pad.tint = pad.tint:Lerp(tint, blend)
+				local d = pad.tint.R - tint.R
+				local e = pad.tint.G - tint.G
+				if d * d + e * e < 1e-5 then
+					pad.tint = tint
+				end
+				for _, spark in pad.sparks do
+					spark.Color = sparkColors(pad.tint)
+				end
+			end
+			for n, ring in pad.rings do
+				local t = (self.elapsed / P.RiseSeconds + (n - 1) / #pad.rings) % 1
+				local light = math.min(t / P.FadeInShare, 1) * (1 - t) * pad.portal
+				ring.gui.Enabled = pad.portal > 0
+				ring.stroke.Color = pad.tint
+				ring.stroke.Transparency = 1 - (1 - P.Transparency) * light
+				table.insert(moved, ring.part)
+				table.insert(spots, pad.top * CFrame.new(0, P.RiseStuds * t ^ P.RiseEase, 0))
 			end
 		end
+
 		local close = false
 		if near then
 			local offset = part.Position - near
@@ -295,7 +422,12 @@ function PadEffects.update(
 			math.clamp(pad.arrowShown + (if wanted then arrowStep else -arrowStep), 0, 1)
 		pad.arrow.Enabled = pad.arrowShown > 0
 		if pad.arrow.Enabled then
-			pad.arrowImage.ImageTransparency = 1 - pad.arrowShown
+			local fade = 1 - pad.arrowShown
+			pad.arrowImage.ImageTransparency = fade
+			pad.arrowWord.TextTransparency = fade
+			pad.arrowOutline.Transparency = fade
+			pad.arrowOutline.Thickness =
+				math.max(1, pad.arrowWord.AbsoluteSize.Y * Q.ArrowWordOutline)
 			pad.arrow.StudsOffsetWorldSpace = Vector3.new(0, Q.ArrowHeightStuds + bob, 0)
 		end
 
@@ -315,6 +447,9 @@ function PadEffects.update(
 		pad.glow.Brightness = (
 			Q.GlowBrightness + (Q.GlowBurstBrightness - Q.GlowBrightness) * flare
 		) * pad.level
+	end
+	if #moved > 0 then
+		workspace:BulkMoveTo(moved, spots, Enum.BulkMoveMode.FireCFrameChanged)
 	end
 end
 

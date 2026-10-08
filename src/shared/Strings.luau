@@ -24,6 +24,7 @@ return {
 		-- The queue pad (TableService) and the sign floating over its table (TableSign).
 		SoloTitle = "SOLO",
 		PadJoin = "JOIN", -- on an empty pad, under its mode
+		PadArrow = "JOIN", -- under the arrow bobbing over a pad with room
 		PadCount = "%d/%d", -- on a pad with players on it: how many, of how many it holds
 		PadFull = "FULL",
 		PadPlaying = "PLAYING", -- on the pad and the sign while the table's game is on

@@ -3019,3 +3019,9 @@ timer of a new block stay the designer's call.
   block equips it with the bag still open (again unequips; a world click throws); a Mystery
   block opens its upgrade screen; dragging into the hotbar still works. The ` / ~ key opens the
   bag on PC.
+- 2026-10-08: The queue pad is a queue portal (designer): as long as the table (19 studs) and
+  just off its rail (6.5 to 14.5 studs from the table's centre line, over the shooter's walkway
+  on the entrance side; the far edge did not move, so the fence and the map grid stayed put),
+  the same for every mode. Blue with room, green with someone on, gold when full or playing.
+  Glowing outlines rise from its rim and fade as they climb, with sparkles; the arrow sits a
+  little lower with JOIN under it, bobbing with it (`Config.Multiplayer.QueueVisual.Portal`).

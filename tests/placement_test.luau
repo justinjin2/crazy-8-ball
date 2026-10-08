@@ -382,26 +382,25 @@ return {
 	end,
 
 	-- The queue pad is a rectangle lying along the table's long side (Queue.PadSide), centred
-	-- on it, beyond the walkway the shooter stands in, and the match fence takes in both:
-	-- whoever starts a game standing on the pad is inside it.
-	["the queue pad sits outside the walkway and inside the match fence"] = function()
+	-- on it, as long as the table and just off its rail (designer, 2026-10-08), and the match
+	-- fence takes in it and the walkway: whoever starts a game standing on the pad is inside.
+	["the queue pad runs along the table and inside the match fence"] = function()
 		local Config, Placement = setup()
 		local Q = Config.Multiplayer.Queue
 		local wx, wy, wcx = Placement.fenceHalfExtents()
-		local _, barrierY = Placement.barrierHalfExtents()
+		local barrierX, barrierY = Placement.barrierHalfExtents()
 		H.near(wcx, 0, 1e-9, "the walkway is centred on the table")
 		H.expect(Q.PadSide == 1 or Q.PadSide == -1, "PadSide names a long side")
-		local lastLength = 0
 		for teamSize = 1, 3 do
 			local pcx, pcy, hx, hy = Placement.queuePad(teamSize)
 			local fx, fy, fcx, fcy = Placement.matchFence(teamSize)
-			H.near(2 * hx, Q.PadSizeStuds[teamSize][1], 1e-9, "the length for the mode")
-			H.near(2 * hy, Q.PadSizeStuds[teamSize][2], 1e-9, "the depth for the mode")
+			H.near(2 * hx, Q.PadLengthStuds, 1e-9, "the length")
+			H.near(math.abs(pcy) - hy, Q.PadNearStuds, 1e-9, "the near edge")
+			H.near(math.abs(pcy) + hy, Q.PadFarStuds, 1e-9, "the far edge")
 			H.expect(hx > hy, "it lies along the table")
-			H.expect(hx > lastLength, "a bigger team gets a longer pad")
-			lastLength = hx
+			H.expect(hx >= barrierX, "it reaches both ends of the table")
 			H.expect(pcx == 0 and pcy * Q.PadSide > 0, "centred on the PadSide long side")
-			H.expect(math.abs(pcy) - hy >= wy, "beyond the walkway")
+			H.expect(math.abs(pcy) + hy > wy, "out past the walkway")
 			H.expect(math.abs(pcy) - hy > barrierY, "clear of the table")
 			H.expect(hx <= wx, "no longer than the walkway")
 			local function inside(x0: number, x1: number, y0: number, y1: number): boolean

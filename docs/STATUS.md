@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-07.
+Updated 2026-10-08.
 
 ## Where the build is
 
@@ -86,6 +86,10 @@ Updated 2026-10-07.
   Not yet: a PC size, a real gamepad, a real friend or second player, a live private server.
   Parked by the designer (2026-10-07) to come back to; open questions: is the spawn pill's
   20 s right, is Play Global's X big enough on a phone.
+- **The queue portal** (2026-10-08): every pad is as long as its table and just off its rail,
+  blue with room and green with someone on; glowing outlines rise off its rim and fade, with
+  sparkles; the arrow is lower with JOIN bobbing under it. Seen in Studio on a PC-size screen
+  (empty, stepped on); not yet on a phone, a gamepad or during a real game on the pad side.
 - **Lighting.** Day 10 min, sunset 5 min, a 10 s fade; no night and no sun disc. The sunset
   was softened and made less yellow on 2026-10-05.
 - **Pull cutscenes.** Rare, Epic and Legendary are redone ("good for now"); Mythic and Secret

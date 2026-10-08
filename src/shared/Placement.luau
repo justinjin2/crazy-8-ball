@@ -226,14 +226,13 @@ end
 --- The table's queue pad (Multiplayer.Queue), in studs along the table's own length and
 --- width: its centre (cx, cy) and half extents (hx along the length, hy across). A
 --- rectangle lying along the long side Queue.PadSide (toward the entrance), centred on it,
---- just beyond the walkway, so a queue never stands where a shooter might; a bigger team gets
---- a longer pad.
-function Placement.queuePad(teamSize: number): (number, number, number, number)
+--- as long as the table and running from just off its rail (PadNearStuds) out to
+--- PadFarStuds, over the shooter's walkway on that side (designer, 2026-10-08: closer to the
+--- table). Every mode gets the same pad.
+function Placement.queuePad(_teamSize: number): (number, number, number, number)
 	local Q = Config.Multiplayer.Queue
-	local _, wy = Placement.fenceHalfExtents()
-	local size = Q.PadSizeStuds[math.clamp(teamSize, 1, #Q.PadSizeStuds)]
-	local hx, hy = size[1] / 2, size[2] / 2
-	return 0, Q.PadSide * (wy + Q.PadGapStuds + hy), hx, hy
+	local hx, hy = Q.PadLengthStuds / 2, (Q.PadFarStuds - Q.PadNearStuds) / 2
+	return 0, Q.PadSide * (Q.PadNearStuds + hy), hx, hy
 end
 
 --- The fence round a whole match area, in studs along the table's own length and width:
