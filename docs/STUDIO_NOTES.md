@@ -690,6 +690,32 @@ basics (glb textures, face direction, axes, texture alpha) are under "Uploading 
   (`SoundSheet.library`), trimmed with `StartOffset` and pitched at runtime. The sheet player
   is ready for uploaded sheets (`Config.Ults.Assets.Sheets`).
 
+## Abilities rework: skinned models, baked bone animation, capture quirks (2026-10-08)
+
+- **Skinned glb models upload through Open Cloud** (Verity, the new tiger): a Model with one
+  MeshPart and its Bones under it, 1 Blender unit = 1 stud, Blender (x, y, z) -> (-x, z, y)
+  for the mesh and the bones' places alike. Bones that weigh nothing (a leaf like
+  `headfront`) are dropped.
+- **Weld before you orient faces.** The glTF import splits a mesh at its UV seams; Blender's
+  `recalc_face_normals` then orients every chart on its own and flips the small ones. Roblox
+  culls back faces, so they showed as holes (39% of Verity's faces). `remove_doubles` first
+  (UVs live on the corners, nothing is lost). `MeshPart.DoubleSided` hides it in Edit, but a
+  script cannot set it at runtime: fix the mesh and re-upload.
+- **Bone animation without Animation assets:** `tools/bake_bone_anims.py` bakes Blender's
+  per-frame bone matrices into the skinning delta (posed * rest^-1) per bone, mapped into the
+  model's axes; `src/client/BoneAnim.luau` sets each `Bone.Transform` so the skin moves by
+  it. It never depends on how the importer turned each bone. `Bone.WorldPosition` already
+  holds the parents' Transforms (useless as a rest check); `Bone.TransformedWorldCFrame` is
+  what is drawn; the rest pose is the chain of `Bone.CFrame`s. After `Model:ScaleTo`, call
+  `refit()`.
+- **The MCP screen capture leaves out `AlwaysOnTop` BillboardGuis** (the speech bubbles,
+  GOTCHA!). They draw in the game; to see one in a capture, set `AlwaysOnTop = false` from a
+  Client `execute_luau` while testing.
+- **A second Studio window for a worktree:** build the place with `rojo build`, merge it into
+  a copy of the place (Lune), open it with `open -a RobloxStudio <file>`. A plain `kill` of
+  that window leaves it asking to save (and a new one opens beside it): `kill -9` the pid that
+  matches `-localPlaceFile <that file>` only, never the team place's window.
+
 ## Bugs that only happen live: fake the lag (found 2026-10-05)
 
 - Studio has no network delay, so a race between the server and a client can pass every

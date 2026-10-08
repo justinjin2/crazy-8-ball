@@ -29,7 +29,7 @@ JOBS = {
         "source": "assets/abilities/Verity/verity_anims.json",
         "out": "src/client/VerityAnims.luau",
         "title": "Verity",
-        "actions": [("PickThrow", 0, 72), ("Sprint", None, None), ("Taunt", 0, 70)],
+        "actions": [("PickThrow", 0, 72), ("Sprint", None, None), ("Cheer", 0, 70)],
     },
     "tiger": {
         "source": "assets/abilities/GuangdongTiger/tiger_v2_anims.json",

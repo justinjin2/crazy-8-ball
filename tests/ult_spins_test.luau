@@ -133,9 +133,10 @@ return {
 		local result, why = SpinView.spin(u, opts())
 		H.expect(result ~= nil and why == nil, "spun")
 		local r = result :: any
-		H.expect(r.id == "Magnet" and r.rarity == "Uncommon", "the live pool is Magnet")
+		local rolled = Config.Ults.Catalog[r.id]
+		H.expect(rolled and rolled.Built and rolled.Rarity == r.rarity, "from the live pool")
 		H.expect(r.replaced == "SuperBounce" and r.slot == 1, "replaced slot 1's ult")
-		H.expect(u.Slots[1] == "Magnet", "in the selected slot")
+		H.expect(u.Slots[1] == r.id, "in the selected slot")
 		H.expect(r.used == "Free" and u.Spins == E.Starter, "the free spin first")
 		H.expect(u.FreeSpinDay == DAY and u.SpinsDone == 1 and u.Pity == 1, "counted")
 		local second = SpinView.spin(u, opts()) :: any
@@ -145,7 +146,7 @@ return {
 		Slots.select(u, 2, ALL)
 		local third = SpinView.spin(u, opts({ passes = ALL, devAll = true })) :: any
 		H.expect(third.slot == 2 and u.Slots[2] == third.id and third.replaced == "", "slot 2")
-		H.expect(u.Slots[1] == "Magnet", "slot 1 untouched")
+		H.expect(u.Slots[1] == second.id, "slot 1 untouched")
 		u.Slots[2] = "Magnet" -- whatever it rolled, the Lucky loop below starts without a confirm
 		-- A Lucky Spin never rolls Common.
 		Slots.addLucky(u, 20)
@@ -556,7 +557,7 @@ return {
 			flagged += 1
 			H.expect(row.ppm > 0, row.id)
 		end
-		H.expect(flagged == 13, "all 13 in the pool with the flag")
+		H.expect(flagged == #Config.Ults.Order, "all of them in the pool with the flag")
 		local built = 0
 		for _, id in Config.Ults.Order do
 			if Config.Ults.Catalog[id].Built then

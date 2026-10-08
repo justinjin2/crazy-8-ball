@@ -41,7 +41,6 @@ type Fields = {
 	joints: { Joint },
 	origin: CFrame, -- the armature space's origin in the part's space
 	scale: number, -- studs per armature unit
-	frames: { [string]: { [string]: { CFrame } } }, -- action -> bone -> per-frame delta
 	posed: { CFrame }, -- per joint, this frame's frame in the part's space (scratch)
 	deltas: { [string]: CFrame }, -- this frame's deltas (scratch)
 }
@@ -85,7 +84,6 @@ function BoneAnim.new(model: Instance, data: Data): Player?
 			joints = joints,
 			origin = CFrame.identity,
 			scale = 1,
-			frames = {},
 			posed = table.create(#joints, CFrame.identity),
 			deltas = {},
 		} :: Fields,
@@ -119,19 +117,34 @@ function BoneAnim.refit(self: Player)
 	self.origin = CFrame.new(root.rest.Position - rootRest * self.scale)
 end
 
+--- Move the model so its armature's origin (both rigs: between the feet, on the ground) sits
+--- at `frame`, the front (-Z) along its look.
+function BoneAnim.place(self: Player, frame: CFrame)
+	self.part.CFrame = frame * self.origin:Inverse()
+end
+
 --- How long action `name` runs once, in seconds (0 if unknown).
 function BoneAnim.length(self: Player, name: string): number
 	local a = self.data.Actions[name]
 	return if a then a.Frames / a.Fps else 0
 end
 
--- Action `name`'s deltas as CFrames, per bone per frame (built on first use).
-function BoneAnim.framesOf(self: Player, name: string): { [string]: { CFrame } }?
-	local cached = self.frames[name]
+-- Every data module's parsed actions (data -> action -> bone -> per-frame delta), shared by
+-- every player of it: a clip is parsed once a session.
+local parsed: { [Data]: { [string]: { [string]: { CFrame } } } } = {}
+
+-- Action `name` of `data` as CFrames, per bone per frame (parsed on first use).
+local function framesOf(data: Data, name: string): { [string]: { CFrame } }?
+	local byAction = parsed[data]
+	if byAction == nil then
+		byAction = {}
+		parsed[data] = byAction
+	end
+	local cached = byAction[name]
 	if cached then
 		return cached
 	end
-	local a = self.data.Actions[name]
+	local a = data.Actions[name]
 	if a == nil then
 		return nil
 	end
@@ -156,8 +169,15 @@ function BoneAnim.framesOf(self: Player, name: string): { [string]: { CFrame } }
 		end
 		out[bone] = list
 	end
-	self.frames[name] = out
+	byAction[name] = out
 	return out
+end
+
+--- Parse every action of `data` now (at an arming, say), so the first pose does not hitch.
+function BoneAnim.prepare(data: Data)
+	for name in data.Actions do
+		framesOf(data, name)
+	end
 end
 
 -- The deltas of action `name` at `seconds` into `into`, mixed toward what is already there by
@@ -170,7 +190,7 @@ local function sample(
 	weight: number
 )
 	local a = self.data.Actions[name]
-	local frames = self:framesOf(name)
+	local frames = framesOf(self.data, name)
 	if a == nil or frames == nil then
 		return
 	end

@@ -3868,6 +3868,8 @@ Config.Ults = {
 		VerityGiggle = { Id = "rbxassetid://9114571613", Volume = 0.5 },
 		VeritySteps = { Id = "rbxassetid://9114080709", Volume = 0.5, Pitch = 1.3 },
 		VerityThrow = { Id = "rbxassetid://9120728815", Volume = 0.5 },
+		-- Her kick (ProSoundEffects "Foot Stomp 3").
+		VerityKick = { Id = "rbxassetid://9114523345", Volume = 0.45, Pitch = 1.2 },
 		-- Look Over There! (the rework): the shout (a TTS placeholder), the Metal Gear "!"
 		-- alert and the vine boom (public fan uploads, the meme's own sounds; backups
 		-- ProSoundEffects 9113652301 and 9125404320), the camera's whoosh, the sneaky sting.
@@ -4105,7 +4107,7 @@ Config.Ults.Magnet = {
 	-- How the pull grows toward the mouth: strength = closeness ^ Power, closeness 0 at the
 	-- zone's edge and 1 at the mouth (and past it). Scales both the turn and the speed blend.
 	-- A whole number (it is multiplied out, never pow()). Higher keeps the pull near the
-	-- pocket and makes the curve sharper at the end. 2 (tune)
+	-- pocket and makes the curve sharper at the end. (tune)
 	Power = 2,
 	-- How hard the path can bend at a corner mouth: radians of turn per inch rolled at full
 	-- strength. Per inch rather than per second, so a slow and a firm ball curve alike. (tune)
@@ -10523,6 +10525,85 @@ Config.UI.CatchABallFx = {
 	BreakSparks = 18,
 }
 
+-- Verity's look (src/client/VerityFx.luau; the rework, 2026-10-08): the smiley Verity ball on
+-- the cue ball, the monster (Config.Ults.Assets.Models.Verity, a skinned mesh played by
+-- src/client/BoneAnim.luau from VerityAnims), the throw, the run and the landing. Sizes in drawn
+-- ball radii unless named; frames are the baked clips' (24 a second). (tune)
+Config.UI.VerityFx = {
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	ShellScale = 1.03, -- the smiley ball's radius over the ball's
+	FadeInSeconds = 0.2,
+	FadeOutSeconds = 0.3,
+	FreshSeconds = 0.3, -- an event older than this (a late join) plays no sounds or bursts
+	-- Held (armed, not rolling): the face toward the camera, swaying, bobbing.
+	IdleSwayDegrees = 12,
+	IdleBobBallRadii = 0.12,
+	ArmSparks = 12,
+	FaceColor = { 255, 210, 31 }, -- her yellow (the sparks, the flash, the puff)
+	-- How tall she stands (the model is one unit tall).
+	HeightBallRadii = 10,
+	-- The unfolding at the contact (wall seconds): the ball swells and bursts while she grows
+	-- from GrowFrom of her height, overshooting by GrowOvershoot.
+	PopSeconds = 0.14,
+	PopGrow = 2.2,
+	GrowSeconds = 0.26,
+	GrowFrom = 0.2,
+	GrowOvershoot = 0.12,
+	PuffParticles = 22,
+	FlashBrightness = 5,
+	FlashSeconds = 0.35,
+	PunchDegrees = 7, -- a zoom-in punch for the players at the table
+	PunchSeconds = 0.4,
+	-- The grab: PickThrow from GrabFromFrame to GrabToFrame across the physics' grab
+	-- (Config.Ults.Verity.GrabShotSeconds of shot time); the ball slides into her right hand
+	-- over the PickSlideFrames before PickFrame, and leaves it at ReleaseFrame.
+	GrabFromFrame = 10,
+	GrabToFrame = 66,
+	PickFrame = 24,
+	PickSlideFrames = 5,
+	ReleaseFrame = 54,
+	HandBallRadii = 0.6, -- the ball sits this far out of her palm
+	-- The throw: off the table on an arc, spinning, a streak behind; gone after ThrowSeconds.
+	ThrowForwardStuds = 15, -- studs a second along her facing
+	ThrowUpStuds = 13,
+	ThrowGravityStuds = 36,
+	ThrowSpinDegrees = 900, -- a second
+	ThrowSeconds = 1.3,
+	TrailSeconds = 0.25,
+	-- The run: Sprint looped, one cycle carrying her StrideHeights of her height (which sets
+	-- how fast the clip plays against her speed); cross-faded in over BlendSeconds. A footstep
+	-- puff every StepSeconds of shot time.
+	StrideHeights = 1.1,
+	BlendSeconds = 0.15,
+	TurnSeconds = 0.12, -- she turns from the ball she grabbed to the run's heading
+	StepSeconds = 0.14,
+	StepDust = 3,
+	ShakeStuds = 0.06, -- the players' camera rumbles while she runs
+	-- A kick: a burst at the ball; an aimed one (into a pocket) gets a yellow streak.
+	KickSparks = 10,
+	KickTrailSeconds = 0.9,
+	-- The landing: Cheer from CheerFromFrame to CheerToFrame at CheerSpeed (both arms up),
+	-- held CheerHoldSeconds, then she shrinks back into the ball over ShrinkSeconds.
+	CheerFromFrame = 8,
+	CheerToFrame = 40,
+	CheerSpeed = 1.5,
+	CheerHoldSeconds = 0.35,
+	ShrinkSeconds = 0.25,
+	SettleSeconds = 0.12, -- she slides onto the landing spot (the physics may nudge it)
+	-- Speech bubbles over her head (a billboard, studs): TRUST ME! at the grab, NOT THE 8! when
+	-- she refuses the 8.
+	BubbleLiftBallRadii = 2.2, -- above her head (over the ball for the refusal)
+	BubbleWidthStuds = 2.6,
+	BubbleHeightStuds = 0.9,
+	BubblePopSeconds = 0.16,
+	BubbleHoldSeconds = 1.1,
+	BubbleFadeSeconds = 0.3,
+	-- The refusal (the 8 before it is yours): the ball shakes its head.
+	RefuseSeconds = 0.7,
+	RefuseShakeDegrees = 28,
+	RefuseShakes = 3,
+}
+
 -- Steel Ball's look (src/client/SteelBallFx.luau). Studs unless named. (tune)
 Config.UI.SteelBallFx = {
 	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
@@ -10898,6 +10979,7 @@ Config.UI.AbilityFx = {
 		SuperBounce = "SuperBounceFx",
 		Rewind = "RewindFx",
 		CatchABall = "CatchABallFx",
+		Verity = "VerityFx",
 		TimeStop = "TimeStopFx",
 		ChainLightning = "ChainLightningFx",
 		Portals = "PortalsFx",
@@ -11721,7 +11803,7 @@ Config.Tutorial = {
 		CueX = -25, -- where the cue ball stands for the break
 		CueY = -6,
 		Angle = 0.115429, -- the break's direction (straight at the rack's apex)
-		Power = 2, -- any pull plays the break at this power
+		Power = 1, -- any pull plays the break at this power
 		Solids = 3, -- the break pots exactly this many solids and nothing else
 		-- The aim lesson's pot (Break.lesson): a cut no wider than this, the cue ball no
 		-- farther than LessonMaxInches from the ghost ball; cost per inch of travel.

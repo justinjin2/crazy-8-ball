@@ -1267,6 +1267,12 @@ return {
 			Gotcha = "GOTCHA!",
 			BrokeFree = "IT BROKE FREE!",
 		},
+		-- Verity's speech bubbles (src/client/VerityFx.luau).
+		Verity = {
+			TrustMe = "TRUST ME!",
+			NotThe8 = "NOT THE 8!",
+			KnowEverything = "I KNOW EVERYTHING!",
+		},
 		-- The aim-phase pick view (UltPick): a lock-on's ball, Portals' two spots, chosen in
 		-- the top-down view before the shot. The title pill follows the last input (touch,
 		-- mouse or gamepad).
