@@ -168,17 +168,12 @@ function ShopMystery.new(parent: Instance, actions: Actions): any
 			key = key,
 		}
 	end
-	-- The launch bonus's ribbon on x10 ("13 for 10!").
-	-- A tilted holder, its pill shaking inside (as the hero card's NEW tag).
-	local ribbon = HudParts.frame(self.columns[2].box.frame, "Ribbon")
-	ribbon.AnchorPoint = Vector2.new(0.5, 0.5)
-	ribbon.Rotation = B.CornerTagDegrees
-	ribbon.ZIndex = 6
-	ribbon.Visible = false
-	local pill, ribbonWords = ShopCards.pill(ribbon, "Pill", "", rgb(Config.UI.Kit.Colors.Red), 6)
-	pill.Position = UDim2.fromScale(0.5, 0.5)
-	pill.Size = UDim2.fromScale(1, 1)
-	self.ribbon, self.ribbonPill, self.ribbonWords = ribbon, pill, ribbonWords
+	-- The launch bonus's ribbon on x10 ("13 for 10!"), its pill shaking (as the hero card's NEW
+	-- tag).
+	local ribbon =
+		ShopCards.tag(self.columns[2].box.frame, "Ribbon", "", rgb(Config.UI.Kit.Colors.Red), 6)
+	ribbon.holder.Visible = false
+	self.ribbon = ribbon
 
 	-- The Epic guarantee strip.
 	local pity = ShopCards.inner(card, "MysteryPity", 3)
@@ -315,12 +310,7 @@ function ShopMystery.layout(self: any, width: number, k: number, y: number): num
 		)
 	end
 	local rw, rh = M.RibbonUnits[1], M.RibbonUnits[2]
-	put(self.ribbon, M.Columns[2][3] / 2, M.RibbonY, rw, rh)
-	HudParts.setTextSize(self.ribbonWords, ShopCards.textPx(M.RibbonTextUnits, k))
-	local ribbonStroke = ShopCards.strokeOf(self.ribbonPill)
-	if ribbonStroke then
-		ribbonStroke.Thickness = ShopCards.strokePx(k)
-	end
+	ShopCards.layoutTag(self.ribbon, k, M.Columns[2][3] / 2, M.RibbonY, rw, rh, M.RibbonTextUnits)
 
 	-- The guarantee strip.
 	local px, cy, pw, ph = M.Pity[1], M.Pity[2], M.Pity[3], M.Pity[4]
@@ -401,9 +391,9 @@ function ShopMystery.refresh(self: any, state: any)
 	local bonusOn = bonus.open == true
 		and type(bonus.bulkCount) == "number"
 		and bonus.bulkCount > BULK
-	self.ribbon.Visible = bonusOn
+	self.ribbon.holder.Visible = bonusOn
 	if bonusOn then
-		setText(self.ribbonWords, string.format(COPY.Bonus, bonus.bulkCount, BULK))
+		setText(self.ribbon.words, string.format(COPY.Bonus, bonus.bulkCount, BULK))
 	end
 	-- The Epic guarantee: blocks left until one is Epic (1: the next one is).
 	local pity = if type(state.pity) == "table" then state.pity else {}
@@ -459,8 +449,8 @@ function ShopMystery.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handl
 		-- The money buttons never shine (designer, 2026-10-06: only the Robux options).
 		stage:add("MysteryMoney" .. n, column.gold)
 	end
-	stage:add("MysteryRibbon", self.ribbon, function()
-		keep(UIAnim.shake(self.ribbonPill, "Text"))
+	stage:add("MysteryRibbon", self.ribbon.holder, function()
+		keep(UIAnim.shake(self.ribbon.pill, "Text"))
 	end)
 	stage:add("MysteryPity", self.pity.frame)
 end

@@ -769,6 +769,15 @@ return {
 				},
 				VipPerkRestricted = "$5,000 every day", -- the daily block where it can't be given
 				EndsIn = "Ends in %s",
+				Owned = "Owned", -- the VIP card's button for a VIP (the Passes tab)
+			},
+			MoneyHeader = "MONEY", -- the Money group's header ("- MONEY -")
+			-- The money packs (ShopMoney; the designer's pick B, 2026-10-08).
+			Money = {
+				Title = "MONEY PACKS",
+				BonusTitle = "LAUNCH BONUS +%d%%", -- while the launch bonus runs
+				BonusTag = "+%d%%", -- the tilted tag on every pack then
+				Best = "BEST VALUE",
 			},
 			-- The Gift Player popup (the purple gift square beside a Robux button).
 			GiftTitle = "Gift Player",

@@ -854,4 +854,23 @@ band, restock tiles and pass bands.
   stacked words move up to make room (`ShopCards.above`) and the climb note shortens to "5
   presses to climb".
 
-**Open**: the Money (B) and Passes (B) pages; a real phone and a real controller.
+**Open**: a real phone and a real controller.
+
+## 19. The Shop's Money tab (designer's pick B, 2026-10-08)
+
+`ShopMoney`, under "- MONEY -" after the Blocks tab, sizes in `Config.UI.ShopMoney`, words in
+`Strings.Menus.Shop.Money`, the same panel and title pill as section 18.
+
+- **The title pill** says "MONEY PACKS", or "LAUNCH BONUS +30%" and its stopwatch while the
+  launch bonus runs.
+- **The hero at the left** is the best-value pack (the biggest): a tall gold card with a dark
+  gold edge, the vault of cash in a gold glow with turning rays, the amount big in white, the gift
+  square and the green Robux button; a red "BEST VALUE" tag tilted on its top left, the orange
+  "+30%" tag on its top right while the bonus runs.
+- **The other six** in a 3 x 2 grid of white tiles, smallest first: the cash picture grows with
+  the pack (`assets/ui/shop_money/`, green cash only, never coins), a soft green glow, the
+  amount, the gift square and the Robux button, the "+30%" tag on each tile while the bonus
+  runs. Amounts are the server's (`products[key].money`), the bonus already in.
+- **Idle**: the Robux buttons shine one after another, the tags shake now and then, the
+  hero's glow pulses, its rays turn and it twinkles.
+- **On a phone** all seven packs fit on one screen.

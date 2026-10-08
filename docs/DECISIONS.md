@@ -3263,3 +3263,7 @@ timer of a new block stay the designer's call.
   label). On a phone the words never go under 12 px, so stacked words (a slot's name and
   stock, an offer's timer) move up to make room, and the Mystery block's climb note shortens
   to "5 presses to climb" where the long one does not fit.
+- 2026-10-08 (designer, in chat): on the Passes page (pick B) a Roblox Plus member sees the
+  Roblox Plus tile as "Active" (its button cannot be pressed) instead of a hidden tile, so the
+  2 x 2 grid has no hole. Claim All's six Robux products may be created on Roblox when the
+  Daily screen is ready.

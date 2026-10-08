@@ -8683,6 +8683,25 @@ Config.UI.Shop.Open = {
 		{ Ids = { "RestockOdds" }, Kind = "Fade", At = 0.56, Length = 0.12 },
 		{ Ids = { "OfferStarter" }, Kind = "Pop", At = 0.44, Burst = "Pink" },
 		{ Ids = { "OfferVip" }, Kind = "Pop", At = 0.48, Burst = "Gold" },
+		-- The Money group (ShopMoney, pick B), the same rhythm: seen when jumped to.
+		{ Ids = { "MoneyHead" }, Kind = "Pop", At = 0.18 },
+		{ Ids = { "MoneyLines" }, Kind = "Grow", At = 0.22 },
+		{ Ids = { "MoneyPanel" }, Kind = "Grow", At = 0.20 },
+		{ Ids = { "MoneyTitle" }, Kind = "Pop", At = 0.24 },
+		{ Ids = { "MoneyHero" }, Kind = "Pop", At = 0.28, Burst = "Gold" },
+		{
+			Ids = {
+				"MoneyTile1",
+				"MoneyTile2",
+				"MoneyTile3",
+				"MoneyTile4",
+				"MoneyTile5",
+				"MoneyTile6",
+			},
+			Kind = "Pop",
+			At = 0.33,
+			Stagger = 1.5,
+		},
 		{ Ids = { "Flair" }, Kind = "Drop", At = 0.66, Length = 0.25 }, -- the 8-ball lands on the frame
 	},
 	-- The optional flair, each a switch (all on in the approved animatic, gate 3):
@@ -9003,6 +9022,7 @@ Config.UI.ShopBlocks = {
 		IconUnits = 40, -- the restock's stopwatch
 		GapUnits = 10, -- between the word, the stopwatch and the time
 		TimeColor = { 255, 255, 255 },
+		TimeSample = "88:88", -- the widest time it shows (room kept so it never jumps)
 	},
 	-- A block picture's glow and rays (tinted by its rarity) and twinkles round it.
 	Art = {
@@ -9163,6 +9183,74 @@ Config.UI.ShopBlocks = {
 			CrownGapShare = 0.65, -- a crown's centre this share of its size past the title's end
 			CrownRaiseUnits = 4, -- the crowns sit this much over the title's middle
 		},
+	},
+}
+
+-- The Shop's money packs (ShopMoney; the designer's pick B on the mock page, 2026-10-08), under
+-- "- MONEY -": the best-value pack as a tall gold card at the left, the other six in a 3 x 2
+-- grid of white tiles. In the Grand Opening card's units and k, like Config.UI.ShopBlocks (whose
+-- title pill, panel, text and button sizes it shares).
+Config.UI.ShopMoney = {
+	Units = { 1275, 590 }, -- the panel
+	TimeSample = "88d 88h", -- the title pill's widest time (the launch bonus lasts weeks)
+	-- The packs' pictures, smallest to biggest (assets/ui/shop_money, tools/gui/money_packs.py;
+	-- generated in the cash icon's style, no coins). Empty: the kit's small pack icon.
+	Images = {
+		Pack1 = "rbxassetid://120015826335234", -- two bundles
+		Pack2 = "rbxassetid://103851828700645", -- a stack
+		Pack3 = "rbxassetid://71593160087680", -- a pyramid of bundles
+		Pack4 = "rbxassetid://111234508520131", -- a briefcase full
+		Pack5 = "rbxassetid://124343559165271", -- an open safe
+		Pack6 = "rbxassetid://115258453343156", -- a pallet heap with gold bars
+		Pack7 = "rbxassetid://85539696499857", -- a golden vault spilling cash (the best value)
+	},
+	GlowTint = { 150, 255, 160 }, -- a tile's soft green glow behind its picture
+	TileGlowTransparency = 0.45, -- fainter than a block's (a tile's glow stands still)
+	HeroGlowTint = { 255, 214, 92 }, -- the hero's gold glow and rays
+	-- The hero card's gold, as VIP's (Config.UI.ShopBlocks.Offers.Vip).
+	HeroLook = {
+		Top = { 255, 232, 120 },
+		Bottom = { 244, 170, 20 },
+		Edge = { 120, 70, 0 },
+		Row = { 255, 255, 255 },
+		RowTransparency = 0.72,
+	},
+	HeroEdgeUnits = 5,
+	HeroAmountColor = { 255, 255, 255 }, -- white on gold (a tile's money is Kit.Numbers.Money)
+	BonusColor = { 255, 122, 26 }, -- the launch bonus's "+30%" tags, orange
+	BestColor = { 232, 40, 56 }, -- the BEST VALUE tag, the kit's red
+	TagTextUnits = 22,
+	Best = { 112, 36, 200, 46 }, -- BEST VALUE on the hero: centre x, centre y, width, height
+	Hero = {
+		Box = { 22, 54, 420, 512 }, -- in the panel: left, top, width, height
+		Art = { 210, 320 }, -- the picture: centre y, size (centred across)
+		Glow = 440,
+		Rays = 540,
+		AmountY = 404, -- "$1,950,000"
+		AmountUnits = 60,
+		BuyY = 470, -- the gift square and the green button
+		BuyUnits = 62,
+		BuyTextUnits = 42,
+		GiftUnits = 60,
+		GiftGapUnits = 8,
+		SideUnits = 24, -- the money's and the buy row's room each side
+		Bonus = { 62, 38, 104, 42 }, -- "+30%": inset from the right, centre y, width, height
+	},
+	Grid = { Left = 456, Top = 54, Columns = 3, GapUnits = { 14, 16 } }, -- in the panel
+	Tile = {
+		Units = { 256, 248 },
+		Art = { 86, 142 }, -- the picture: centre y, size (centred across)
+		Glow = 210,
+		Rays = 210, -- (hidden on a tile)
+		AmountY = 178, -- "$47,500"
+		AmountUnits = 36,
+		BuyY = 222,
+		BuyUnits = 46,
+		BuyTextUnits = 30,
+		GiftUnits = 44,
+		GiftGapUnits = 6,
+		SideUnits = 14,
+		Bonus = { 40, 22, 92, 36 }, -- "+30%": inset from the right, centre y, width, height
 	},
 }
 

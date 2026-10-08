@@ -9,7 +9,8 @@
 -- Pack shows until it is bought or its week ends; VIP shows beside it, or alone while its offer
 -- is open, and never to a VIP; with neither there is no section. One card alone sits in the
 -- middle. Robux through StoreRequest "Buy" (StarterPack, VipOffer, or the Vip pass). Sizes in
--- Config.UI.ShopBlocks.Offers, words in Strings.Menus.Shop.Blocks.
+-- Config.UI.ShopBlocks.Offers, words in Strings.Menus.Shop.Blocks. The Passes tab shows the same
+-- VIP card (ShopOffers.vipCard, layoutCard, refreshVip), there for a VIP too ("Owned").
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -35,8 +36,8 @@ export type Actions = {
 	gift: (key: string) -> (), -- the Starter Pack's gift square
 }
 
-type Line = { strip: Frame, corner: UICorner, icon: ImageLabel, words: TextLabel }
-type Card = {
+type Line = ShopCards.Row
+export type Card = {
 	which: string,
 	frame: Frame,
 	corner: UICorner,
@@ -55,39 +56,50 @@ type Card = {
 local ShopOffers = {}
 ShopOffers.__index = ShopOffers
 
--- A card with its colours (Offers.Starter or Offers.Vip) top to bottom and its edge.
-local function buildCard(parent: Instance, which: string, look: any): (Frame, UICorner, UIStroke)
-	local frame = HudParts.frame(parent, "Offer" .. which)
-	frame.BackgroundTransparency = 0
-	frame.BackgroundColor3 = Color3.new(1, 1, 1)
-	frame.AnchorPoint = Vector2.new(0.5, 0.5)
-	frame.ZIndex = 3
-	local corner = HudParts.corner(frame, 0)
-	local gradient = Instance.new("UIGradient")
-	gradient.Rotation = 90
-	gradient.Color = ColorSequence.new(rgb(look.Top), rgb(look.Bottom))
-	gradient.Parent = frame
-	local edge = Instance.new("UIStroke")
-	edge.Name = "Edge"
-	edge.Color = rgb(look.Edge)
-	edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	edge.Parent = frame
-	return frame, corner, edge
+-- One of a card's lines.
+local function line(parent: Instance, index: number, image: string, look: any): Line
+	return ShopCards.row(parent, "Line" .. index, image, look, 4)
 end
 
--- One content row: a see-through white strip with its icon and words.
-local function line(parent: Instance, index: number, image: string, look: any): Line
-	local strip = HudParts.frame(parent, "Line" .. index)
-	strip.BackgroundTransparency = look.RowTransparency
-	strip.BackgroundColor3 = rgb(look.Row)
-	strip.AnchorPoint = Vector2.new(0.5, 0.5)
-	strip.ZIndex = 4
-	local corner = HudParts.corner(strip, 0)
-	local icon = ShopCards.image(strip, "Icon", image, 5)
-	local words = ShopCards.label(strip, "Words", "", nil, 5)
-	words.AnchorPoint = Vector2.new(0, 0.5)
-	words.TextXAlignment = Enum.TextXAlignment.Left
-	return { strip = strip, corner = corner, icon = icon, words = words }
+--- A VIP card (closed) in `parent` named `name`: its title between two crowns, the crown
+--- picture, the six perks, the offer's timer and the green button (`onBuy`).
+function ShopOffers.vipCard(parent: Instance, name: string, onBuy: () -> ()): Card
+	local V = O.Vip
+	local box = ShopCards.gradientCard(parent, name, V, 3)
+	local frame = box.frame
+	local title = ShopCards.label(frame, "Title", COPY.VipTitle, nil, 6)
+	local crowns: { ImageLabel } = {}
+	for _, side in { "Left", "Right" } do
+		local crown = HudParts.icon(frame, "Crown", "Crown" .. side)
+		crown.AnchorPoint = Vector2.new(0.5, 0.5)
+		crown.ZIndex = 6
+		table.insert(crowns, crown)
+	end
+	local art = ShopCards.art(frame, "Art", K.Icons.Vip, Color3.new(1, 1, 1), 4)
+	local lines: { Line } = {}
+	for index, perk in COPY.VipPerks do
+		local made = line(frame, index, K.Icons.Check, V)
+		made.words.Text = perk
+		table.insert(lines, made)
+	end
+	local timer, timerWords = ShopCards.pill(frame, "Timer", "", rgb(V.TimerColor), 6)
+	timerWords.TextColor3 = rgb(K.Numbers.Money)
+	local green = ShopCards.robuxButton(frame, "Robux", onBuy)
+	return {
+		which = "Vip",
+		frame = frame,
+		corner = box.corner,
+		edge = box.edge,
+		title = title,
+		crowns = crowns,
+		art = art,
+		lines = lines,
+		timer = timer,
+		timerWords = timerWords,
+		green = green,
+		gift = nil,
+		shown = {},
+	}
 end
 
 --- Build the offers (closed) into `parent` (the Shop's Blocks group).
@@ -103,7 +115,8 @@ function ShopOffers.new(parent: Instance, actions: Actions): any
 
 	-- The Starter Pack.
 	local S = O.Starter
-	local frame, corner, edge = buildCard(root, "Starter", S)
+	local box = ShopCards.gradientCard(root, "OfferStarter", S, 3)
+	local frame = box.frame
 	local title = ShopCards.label(frame, "Title", COPY.StarterTitle, nil, 6)
 	local art = ShopCards.art(frame, "Art", K.Icons.StarterPack, Color3.new(1, 1, 1), 4)
 	local lines: { Line } = {
@@ -126,8 +139,8 @@ function ShopOffers.new(parent: Instance, actions: Actions): any
 	self.starter = {
 		which = "Starter",
 		frame = frame,
-		corner = corner,
-		edge = edge,
+		corner = box.corner,
+		edge = box.edge,
 		title = title,
 		crowns = {},
 		art = art,
@@ -140,43 +153,9 @@ function ShopOffers.new(parent: Instance, actions: Actions): any
 	} :: Card
 
 	-- VIP.
-	local V = O.Vip
-	frame, corner, edge = buildCard(root, "Vip", V)
-	title = ShopCards.label(frame, "Title", COPY.VipTitle, nil, 6)
-	local crowns: { ImageLabel } = {}
-	for _, side in { "Left", "Right" } do
-		local crown = HudParts.icon(frame, "Crown", "Crown" .. side)
-		crown.AnchorPoint = Vector2.new(0.5, 0.5)
-		crown.ZIndex = 6
-		table.insert(crowns, crown)
-	end
-	art = ShopCards.art(frame, "Art", K.Icons.Vip, Color3.new(1, 1, 1), 4)
-	lines = {}
-	for index, perk in COPY.VipPerks do
-		local made = line(frame, index, K.Icons.Check, V)
-		made.words.Text = perk
-		table.insert(lines, made)
-	end
-	timer, timerWords = ShopCards.pill(frame, "Timer", "", rgb(V.TimerColor), 6)
-	timerWords.TextColor3 = rgb(K.Numbers.Money)
-	green = ShopCards.robuxButton(frame, "Robux", function()
+	self.vipCard = ShopOffers.vipCard(root, "OfferVip", function()
 		self.actions.robux(self.vipKey)
 	end)
-	self.vipCard = {
-		which = "Vip",
-		frame = frame,
-		corner = corner,
-		edge = edge,
-		title = title,
-		crowns = crowns,
-		art = art,
-		lines = lines,
-		timer = timer,
-		timerWords = timerWords,
-		green = green,
-		gift = nil,
-		shown = {},
-	} :: Card
 	return self
 end
 
@@ -194,8 +173,8 @@ function ShopOffers.heightFor(self: any, k: number): number
 	return if self:visible() then round(O.CardUnits[2] * k) else 0
 end
 
--- Lay one card out in its own units.
-local function layoutCard(c: Card, k: number)
+--- Lay one card out in its own units (Offers.CardUnits) at the scale `k`.
+function ShopOffers.layoutCard(c: Card, k: number)
 	local cw = O.CardUnits[1]
 	c.corner.CornerRadius = UDim.new(0, round(O.CornerUnits * k))
 	c.edge.Thickness = math.max(B.MinStrokePx, O.EdgeUnits * k)
@@ -214,21 +193,11 @@ local function layoutCard(c: Card, k: number)
 	local rows = if c.which == "Starter" then O.StarterRows else O.VipRows
 	local rowH = if c.which == "Starter" then O.StarterRowUnits else O.VipRowUnits
 	local rowW = cw - 2 * O.RowLeft
-	local textPx = ShopCards.textPx(O.RowTextUnits, k)
-	local iconU = O.RowIconUnits
-	local wordsLeft = O.RowIconLeftUnits + iconU + O.RowWordsGapUnits
-	local wordsW = rowW - wordsLeft - O.RowWordsRightUnits
 	local at = 0
 	for _, l in c.lines do
 		if l.strip.Visible then
 			at += 1
-			local y = rows[at] or rows[#rows]
-			ShopCards.put(l.strip, k, cw / 2, y, rowW, rowH)
-			l.corner.CornerRadius = UDim.new(0, round(O.RowCornerUnits * k))
-			ShopCards.put(l.icon, k, O.RowIconLeftUnits + iconU / 2, rowH / 2, iconU, iconU)
-			l.words.Position = UDim2.fromOffset(round(wordsLeft * k), round(rowH / 2 * k))
-			l.words.Size = UDim2.fromOffset(round(wordsW * k), textPx + B.TextBoxPx)
-			HudParts.setTextSize(l.words, textPx)
+			ShopCards.layoutRow(l, k, cw / 2, rows[at] or rows[#rows], rowW, rowH, O)
 		end
 	end
 	-- The timer over the buy row: on a small screen its words keep the smallest text size, so
@@ -280,7 +249,7 @@ function ShopOffers.layout(self: any, width: number, k: number, y: number): numb
 	local left = (W - total) / 2
 	for index, c in cards do
 		ShopCards.put(c.frame, k, left + (index - 1) * (cw + O.GapUnits) + cw / 2, ch / 2, cw, ch)
-		layoutCard(c, k)
+		ShopOffers.layoutCard(c, k)
 	end
 	return height
 end
@@ -345,23 +314,45 @@ function ShopOffers.refresh(self: any, state: any): boolean
 		ShopCards.setButtonWords(s.green, starterWords)
 	end
 
-	-- VIP: half price (the full price struck through) while its offer is open.
-	local v = self.vipCard
-	self.vipKey = if offerOn then "VipOffer" else "Vip"
+	self.vipKey = ShopOffers.refreshVip(self.vipCard, state)
+	return changed
+end
+
+--- Draw a VIP card from the shop state: half price (the full price struck through) with the
+--- time left while its offer is open; the daily block's line where paid random items are
+--- restricted; "Owned" for a VIP (the Passes tab). Returns the product its button buys.
+function ShopOffers.refreshVip(v: Card, state: any): string
+	local offers = if type(state.offers) == "table" then state.offers else {}
+	local products = if type(state.products) == "table" then state.products else {}
+	local vipOffer = if type(offers.VipOffer) == "table" then offers.VipOffer else {}
+	local owned = state.vip == true
+	local offerOn = vipOffer.open == true and not owned
+	local restricted = state.restricted == true
 	setText(v.lines[3].words, if restricted then COPY.VipPerkRestricted else COPY.VipPerks[3])
-	local offerEnds = if type(vipOffer.endsAt) == "number" then vipOffer.endsAt - now else 0
+	local offerEnds = if type(vipOffer.endsAt) == "number"
+		then vipOffer.endsAt - ShopParts.now()
+		else 0
 	v.timer.Visible = offerOn and offerEnds > 0
 	if v.timer.Visible then
 		setText(v.timerWords, string.format(COPY.EndsIn, ShopCards.timeLeft(offerEnds)))
 	end
-	local vipWords = if offerOn
-		then ShopCards.robuxText(robuxOf(products, "VipOffer"), robuxOf(products, "Vip"))
+	local words = if owned
+		then COPY.Owned
+		elseif offerOn then ShopCards.robuxText(
+			robuxOf(products, "VipOffer"),
+			robuxOf(products, "Vip")
+		)
 		else ShopCards.robuxText(robuxOf(products, "Vip"))
-	if v.shown.words ~= vipWords then
-		v.shown.words = vipWords
-		ShopCards.setButtonWords(v.green, vipWords)
+	if v.shown.words ~= words then
+		v.shown.words = words
+		ShopCards.setButtonWords(v.green, words)
 	end
-	return changed
+	if v.shown.owned ~= owned then
+		v.shown.owned = owned
+		HudParts.setButtonIcon(v.green, if owned then "Check" else nil)
+		HudParts.setEnabled(v.green, not owned)
+	end
+	return if offerOn then "VipOffer" else "Vip"
 end
 
 --------------------------------------------------------------------------------------------

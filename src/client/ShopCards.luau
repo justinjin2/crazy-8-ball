@@ -237,6 +237,7 @@ export type TitlePill = {
 	word: TextLabel,
 	icon: ImageLabel?,
 	time: TextLabel?,
+	sample: string, -- the widest time it shows, so it never jumps as it counts
 	k: number,
 }
 
@@ -260,7 +261,8 @@ function ShopCards.titlePill(
 	rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	rim.Parent = pill
 	local word = ShopCards.label(pill, "Word", text, rgb(T.TextColor), 7)
-	local t: TitlePill = { pill = pill, word = word, icon = nil, time = nil, k = 1 }
+	local t: TitlePill =
+		{ pill = pill, word = word, icon = nil, time = nil, sample = T.TimeSample, k = 1 }
 	if timer then
 		local icon = HudParts.icon(pill, "Stopwatch", "Stopwatch")
 		icon.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -271,7 +273,17 @@ function ShopCards.titlePill(
 	return t
 end
 
---- Lay the title pill out centred on (x, y) units at the scale `k`, as wide as its words.
+--- Show or hide the title pill's stopwatch and time (the pill lays out again to fit).
+function ShopCards.showTitleTime(t: TitlePill, on: boolean, x: number, y: number)
+	if t.icon and t.time and t.time.Visible ~= on then
+		t.icon.Visible = on
+		t.time.Visible = on
+		ShopCards.layoutTitlePill(t, t.k, x, y)
+	end
+end
+
+--- Lay the title pill out centred on (x, y) units at the scale `k`, as wide as its words (and
+--- its time, while that shows).
 function ShopCards.layoutTitlePill(t: TitlePill, k: number, x: number, y: number)
 	local T = B.TitlePill
 	t.k = k
@@ -282,9 +294,10 @@ function ShopCards.layoutTitlePill(t: TitlePill, k: number, x: number, y: number
 	local width = pad * 2 + wordW
 	local iconPx = round(T.IconUnits * k)
 	local timeW = 0
-	if t.icon and t.time then
-		-- Room for the widest time it shows ("59:59", "9:59"): it never jumps as it counts.
-		timeW = ShopCards.measure("88:88", px)
+	local timed = t.icon ~= nil and t.time ~= nil and t.time.Visible
+	if timed then
+		-- Room for the widest time it shows ("59:59", "20d 23h"): it never jumps as it counts.
+		timeW = ShopCards.measure(t.sample, px)
 		width += gap + iconPx + math.floor(gap / 2) + timeW
 	end
 	t.pill.Position = UDim2.fromOffset(round(x * k), round(y * k))
@@ -296,7 +309,7 @@ function ShopCards.layoutTitlePill(t: TitlePill, k: number, x: number, y: number
 	t.word.Position = UDim2.fromOffset(pad + round(wordW / 2), round(h / 2))
 	t.word.Size = UDim2.fromOffset(wordW, px + B.TextBoxPx)
 	HudParts.setTextSize(t.word, px)
-	if t.icon and t.time then
+	if timed and t.icon and t.time then
 		local at = pad + wordW + gap
 		t.icon.Position = UDim2.fromOffset(at + round(iconPx / 2), round(h / 2))
 		t.icon.Size = UDim2.fromOffset(iconPx, iconPx)
@@ -409,6 +422,129 @@ function ShopCards.artLoops(a: Art): UIAnim.Handle
 		end
 	end
 	return ShopCards.all(list)
+end
+
+--------------------------------------------------------------------------------------------
+-- Tilted tags ("13 for 10!", "+30%", "BEST VALUE")
+--------------------------------------------------------------------------------------------
+
+export type Tag = { holder: Frame, pill: Frame, words: TextLabel }
+
+--- A tilted pill on a card's corner (Config.UI.ShopBlocks.CornerTagDegrees): the holder keeps
+--- the tilt, so the pill inside may shake (UIAnim.shake owns its Rotation).
+function ShopCards.tag(parent: Instance, name: string, text: string, tint: Color3, z: number): Tag
+	local holder = HudParts.frame(parent, name)
+	holder.AnchorPoint = Vector2.new(0.5, 0.5)
+	holder.Rotation = B.CornerTagDegrees
+	holder.ZIndex = z
+	local pill, words = ShopCards.pill(holder, "Pill", text, tint, z)
+	pill.Position = UDim2.fromScale(0.5, 0.5)
+	pill.Size = UDim2.fromScale(1, 1)
+	return { holder = holder, pill = pill, words = words }
+end
+
+--- Place a tag w x h units centred on (x, y) units, its words `textUnits` tall.
+function ShopCards.layoutTag(
+	tag: Tag,
+	k: number,
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	textUnits: number
+)
+	local px = ShopCards.textPx(textUnits, k)
+	-- On a small screen the words keep the smallest text size: the tag grows round them.
+	local width = math.max(round(w * k), ShopCards.measure(tag.words.Text, px) + 4 * B.PillPadPx)
+	local height = math.max(round(h * k), px + 2 * B.PillPadPx)
+	ShopCards.putPx(tag.holder, x * k, y * k, width, height)
+	HudParts.setTextSize(tag.words, px)
+	local stroke = strokeOf(tag.pill)
+	if stroke then
+		stroke.Thickness = ShopCards.strokePx(k)
+	end
+end
+
+--------------------------------------------------------------------------------------------
+-- Gradient cards and their rows (the Starter Pack, VIP, the best-value money pack)
+--------------------------------------------------------------------------------------------
+
+-- A card's colours (Config.UI.ShopBlocks.Offers.Starter / .Vip, Config.UI.ShopMoney.Hero...).
+export type Look = {
+	Top: { number },
+	Bottom: { number },
+	Edge: { number },
+	Row: { number },
+	RowTransparency: number,
+}
+
+--- A card in `look`'s colours, top to bottom, with its edge.
+function ShopCards.gradientCard(parent: Instance, name: string, look: Look, z: number): Box
+	local frame = HudParts.frame(parent, name)
+	frame.BackgroundTransparency = 0
+	frame.BackgroundColor3 = Color3.new(1, 1, 1)
+	frame.AnchorPoint = Vector2.new(0.5, 0.5)
+	frame.ZIndex = z
+	local corner = HudParts.corner(frame, 0)
+	local gradient = Instance.new("UIGradient")
+	gradient.Rotation = 90
+	gradient.Color = ColorSequence.new(rgb(look.Top), rgb(look.Bottom))
+	gradient.Parent = frame
+	local edge = Instance.new("UIStroke")
+	edge.Name = "Edge"
+	edge.Color = rgb(look.Edge)
+	edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	edge.Parent = frame
+	return { frame = frame, corner = corner, edge = edge }
+end
+
+export type Row = { strip: Frame, corner: UICorner, icon: ImageLabel, words: TextLabel }
+
+--- One line on a gradient card: a see-through white strip with its icon and words.
+function ShopCards.row(parent: Instance, name: string, image: string, look: Look, z: number): Row
+	local strip = HudParts.frame(parent, name)
+	strip.BackgroundTransparency = look.RowTransparency
+	strip.BackgroundColor3 = rgb(look.Row)
+	strip.AnchorPoint = Vector2.new(0.5, 0.5)
+	strip.ZIndex = z
+	local corner = HudParts.corner(strip, 0)
+	local icon = ShopCards.image(strip, "Icon", image, z + 1)
+	local words = ShopCards.label(strip, "Words", "", nil, z + 1)
+	words.AnchorPoint = Vector2.new(0, 0.5)
+	words.TextXAlignment = Enum.TextXAlignment.Left
+	return { strip = strip, corner = corner, icon = icon, words = words }
+end
+
+-- A row's sizes (Config.UI.ShopBlocks.Offers has them all).
+export type RowSizes = {
+	RowIconUnits: number,
+	RowIconLeftUnits: number,
+	RowWordsGapUnits: number,
+	RowWordsRightUnits: number,
+	RowTextUnits: number,
+	RowCornerUnits: number,
+}
+
+--- Place a row w x h units centred on (x, y) units, sized by `R`.
+function ShopCards.layoutRow(
+	row: Row,
+	k: number,
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	R: RowSizes
+)
+	local iconU = R.RowIconUnits
+	local wordsLeft = R.RowIconLeftUnits + iconU + R.RowWordsGapUnits
+	local textPx = ShopCards.textPx(R.RowTextUnits, k)
+	ShopCards.put(row.strip, k, x, y, w, h)
+	row.corner.CornerRadius = UDim.new(0, round(R.RowCornerUnits * k))
+	ShopCards.put(row.icon, k, R.RowIconLeftUnits + iconU / 2, h / 2, iconU, iconU)
+	row.words.Position = UDim2.fromOffset(round(wordsLeft * k), round(h / 2 * k))
+	row.words.Size =
+		UDim2.fromOffset(round((w - wordsLeft - R.RowWordsRightUnits) * k), textPx + B.TextBoxPx)
+	HudParts.setTextSize(row.words, textPx)
 end
 
 --------------------------------------------------------------------------------------------

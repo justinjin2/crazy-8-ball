@@ -45,3 +45,8 @@ Scripts for building animated, layered screens (docs/prompts/SHOP_LIVELY_PROMPT.
   a clear 8, shading, a shine; grey, tinted per card by ImageColor3) repeated 2 x 2 for the scroll
   window, with a 3 x 3 seam check; and `scanlines_sheet.png`, a 64 x 1024 strip of thin white
   lines every 8 texels for the Secret card (`Config.UI.CueCard.Images`).
+- `money_packs.py SOURCE_DIR`: the Shop's Money tab pictures (pick B, 2026-10-08), the seven
+  cash packs from `tools/openai_image.py` (prompts in `~/Desktop/8ball-refs/gui-mocks-v4/build/
+  money/gen.sh` and `gen2.sh`): trimmed, set in a square with a 4% clear border, the almost
+  opaque body made opaque, shrunk in premultiplied alpha to 512 px into `assets/ui/shop_money/`
+  (`Config.UI.ShopMoney.Images`).
