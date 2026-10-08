@@ -153,7 +153,7 @@ Round 2 (2026-10-08), from the designer's notes on round 1:
 Questions asked: which icon (1 to 4); does the switch feel clear. Answer: "ok" (round 2
 approved; the icon is asked in the build's plan).
 
-## Concept 2b: the CUES button and numbered copies (round 4, waiting)
+## Concept 2b: the CUES button and numbered copies (round 5, waiting)
 
 https://claude.ai/artifact/4Yt2zXLQ2nHTxHichzK8ob (sources in
 `~/Desktop/8ball-refs/gui-lively/work/cues-icon/`; the art from a scratch script on
@@ -199,6 +199,19 @@ canvas) at -46 degrees in the Classic colours, with a soft gold glow that breath
 twinkling sparkles. In the column it is drawn 1.46 tiles big, placed as sketched: the butt just
 above the word's top left, the cue passing left of the red dot, the tip just under the end of
 SHOP. The ball still shows only on hover.
+
+Round 5 notes (2026-10-08, beside a shot of the real Classic Cue on an avatar's back): "notice how
+small the light beige part is of a cue, it doesnt look like an actual cue, make the dark brown and
+black part shorter like an actual looking cue and its a little long now overextending near the
+shop it should be same like width and length as all the other icons (the white ball overextends
+and doesnt count as total size)". The cue now has the Classic Cue's proportions as measured on
+the game's cue (about 54% maple shaft, 21% forearm, 19% wrap and cap; `Catalog.style` says 48 /
+22 / 22.5), the tip, ferrule and rings drawn a little longer so they read at 84 px. Its canvas is
+the other icons' (`IconShare` 1.08 at `IconCentreShare` 0.46) and the cue fits their box: the butt
+where round 4 had it, just above the C of CUES, the tip at the tile's top just left of the red dot
+(round 4 without the part that stuck out toward SHOP). Half widths 20 to 8.5, picked from 17.5,
+20 and 22 against the basket. The sparkles and the glow stay inside the box; the ball has its own
+canvas at the same scale so it can fly out, over the red dot.
 
 ## Progress
 

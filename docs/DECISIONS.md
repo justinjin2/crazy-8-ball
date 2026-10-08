@@ -3097,3 +3097,8 @@ timer of a new block stay the designer's call.
 - 2026-10-08: The CUES button's icon is the Classic Cue, long and slim (designer: "should be look
   like the classic cue"), with no ball at rest: the ball pops in on hover and the cue hits it
   (concept 2b round 3, waiting for the OK). The black / black wood choice is dropped.
+- 2026-10-08: The CUES icon is drawn like the real Classic Cue (designer: "make the dark brown
+  and black part shorter like an actual looking cue"): about half maple shaft, a fifth forearm
+  and a fifth wrap, as measured on the game's cue. It is the same size and in the same place as
+  the other column icons (designer: "same like width and length as all the other icons"); only
+  the ball leaves that box when it is hit (concept 2b round 5, waiting for the OK).
