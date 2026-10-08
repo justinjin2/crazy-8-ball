@@ -10445,6 +10445,25 @@ Config.UI.ChainLightningFx = {
 	BurstSeconds = 0.45,
 	ShakeStuds = 0.1,
 	ShakeSeconds = 0.25,
+	-- The strike on the screen (the rework's polish, 2026-10-08), for players at the table:
+	-- lightning's double flash (ScreenFlashColor for ScreenFlashSeconds, again SecondFlashDelay
+	-- later), a quick zoom-in punch (FovPunchDegrees, negative narrows, over FovPunchSeconds)
+	-- and a cold storm grade (StormGrade: in, held, out seconds) while the bolt drives the
+	-- ball in. Wall seconds.
+	ScreenFlashColor = { 200, 235, 255 },
+	ScreenFlashSeconds = 0.12,
+	SecondFlashDelay = 0.14,
+	FovPunchDegrees = -5,
+	FovPunchSeconds = 0.3,
+	StormGrade = {
+		Saturation = -0.3,
+		Contrast = 0.25,
+		Brightness = -0.08,
+		TintColor = { 200, 225, 255 },
+	},
+	StormIn = 0.05,
+	StormSeconds = 0.6,
+	StormOut = 0.4,
 	-- A charged or struck ball glows for GlowSeconds (or until it drops): crackling arcs (the
 	-- flipbook, CrackleRate a second, CrackleBallWidths across, each CrackleLife long), a
 	-- flickering blue light, and sparks when it is struck (Sparks of them); the charged ball

@@ -9,7 +9,8 @@
 --
 --   * Armed: the cue ball crackles softly with blue-white arcs and hums; a zap as it arms.
 --   * The charge (event "charge"): a bolt strikes down onto the charged ball with a thunder
---     crack, a blue light flares, a blue glow spreads on the cloth, the view shakes a little;
+--     crack, a blue light flares, a blue glow spreads on the cloth, the view shakes a little,
+--     flashes twice like lightning, punches in and turns a cold storm grey for a moment;
 --     the ball crackles with arcs and a flickering light. Sent down a clear line (the Rare+
 --     buff), a second bolt stutters along that line from the ball into its pocket, sparks and
 --     a flare where it lands, so the ball is seen riding the lightning in.
@@ -503,6 +504,13 @@ local function charge(
 	fx.flash = { part = flat, decal = decal, born = fx.clock }
 	kit.burstLight(at, rgb(F.LightColor), F.BurstRangeStuds, F.BurstBrightness, F.BurstSeconds)
 	kit.screen.shake(id, F.ShakeStuds, F.ShakeSeconds)
+	-- The strike on the screen: lightning's double flash, a zoom-in punch, a storm grade.
+	kit.screen.flash(id, F.ScreenFlashColor, F.ScreenFlashSeconds)
+	kit.later(id, F.SecondFlashDelay, function()
+		kit.screen.flash(id, F.ScreenFlashColor, F.ScreenFlashSeconds)
+	end)
+	kit.screen.fovPunch(id, F.FovPunchDegrees, F.FovPunchSeconds)
+	kit.screen.grade(id, F.StormGrade, F.StormIn, F.StormSeconds, F.StormOut)
 	playTable(self, id, m, A.ChainThunder)
 	sparks(self, id, at, 1)
 	local pocket = if pocketId then kit.pocketOf(m, pocketId) else nil

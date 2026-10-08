@@ -69,7 +69,7 @@ One line each; the long form is the 2026-10-08 entry at the top of
   are measured too (Catch-a-Ball 0.63, Look Over There! 0.99, Verity 1.05; rarity means 0.34 to
   1.31), and the GDD, ARCHITECTURE and the plan's hand-off list for the GUI session are up to
   date. Polish so far: Black Hole's cinematic camera, Black Flash's impact frames and crash
-  zoom. Next: more polish on the other looks.
+  zoom, Chain Lightning's double flash and storm grade. Next: more polish on the other looks.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),

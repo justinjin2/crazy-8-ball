@@ -3238,3 +3238,6 @@ timer of a new block stay the designer's call.
   grade, and eases back from the pop. Black Flash: the hit-stop is 0.3 s (was 0.15), filled
   with anime impact frames (a blown-out negative, a red manga frame, the negative again) and a
   crash zoom toward the hit, rolled 7 degrees. Both looks now stop on /hold like the others.
+- 2026-10-08: Chain Lightning's strike reaches the screen of players at the table: lightning's
+  double flash, a quick zoom-in punch and a cold storm grade while the bolt drives the ball in
+  (the rework's polish; it had only a small shake).
