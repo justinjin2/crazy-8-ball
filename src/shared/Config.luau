@@ -10534,8 +10534,12 @@ Config.UI.CatchABallFx = {
 		FadeFrom = 3.95, -- the shell fades back into the cue ball
 		Done = 4.35,
 	},
-	-- GOTCHA! / IT BROKE FREE! over the ball (a billboard, studs).
+	-- GOTCHA! / IT BROKE FREE! over the ball (a billboard, studs). It pops at LabelViewShare of
+	-- the viewer's screen width (sized from their camera's distance at the pop, so the shooter's
+	-- close-up does not fill the screen with it), never wider than LabelWidthStuds; the height
+	-- keeps the LabelWidthStuds : LabelHeightStuds shape.
 	LabelLiftBallRadii = 3,
+	LabelViewShare = 0.3,
 	LabelWidthStuds = 3.2,
 	LabelHeightStuds = 1,
 	LabelPopSeconds = 0.18,
@@ -10546,6 +10550,18 @@ Config.UI.CatchABallFx = {
 	-- The 8 breaking free.
 	BreakSeconds = 0.5,
 	BreakSparks = 18,
+	-- The shooter's camera eases in beside the catch over CamInSeconds (a cutscene inside the
+	-- shot's hold): CamSideDegrees round from behind the catch ball (side-on at 90: the lid
+	-- opening, the ball pulled in across the view), on the side it looked from, CamPitchDegrees
+	-- down, CamDistanceBallRadii from a point CamTargetShare of the way to the caught ball and
+	-- CamUpBallRadii up; it hands back over the timeline's last CamOutSeconds.
+	CamInSeconds = 0.35,
+	CamSideDegrees = 70,
+	CamPitchDegrees = 20,
+	CamDistanceBallRadii = 9,
+	CamTargetShare = 0.35,
+	CamUpBallRadii = 1.2,
+	CamOutSeconds = 0.4,
 }
 
 -- Verity's look (src/client/VerityFx.luau; the rework, 2026-10-08): the smiley Verity ball on

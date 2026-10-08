@@ -61,10 +61,10 @@ One line each; the long form is the 2026-10-08 entry at the top of
   `docs/prompts/ABILITIES_REWORK_PLAN.md`): the 13-ability ladder. Look Over There! (the Sneak
   phase) is built and waits on the designer's hands-on test and their own voice lines.
   Guangdong Tiger's rework (the rigged tiger, two slams through the ball, the roar cutscene, the
-  halves lying 6.1 s) and Steel Ball's (chrome spinning up, the golden ratio in yellow, the
-  guided balls spinning) are checked in Studio. Next: Catch-a-Ball's retest, buffs for Portals,
-  Time Stop and Chain Lightning, then the other looks. Screens go on a hand-off list for the GUI
-  session.
+  halves lying 6.1 s), Steel Ball's (chrome spinning up, the golden ratio in yellow, the
+  guided balls spinning) and Catch-a-Ball's close-up camera are checked in Studio. Next: buffs
+  for Portals, Time Stop and Chain Lightning, then the other looks. Screens go on a hand-off
+  list for the GUI session.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),

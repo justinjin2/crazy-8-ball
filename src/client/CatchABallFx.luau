@@ -30,6 +30,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Ults = Shared:WaitForChild("Ults")
 local Catalog = require(Ults:WaitForChild("Catalog"))
+local Camera = require(script.Parent:WaitForChild("Camera"))
 
 local F = Config.UI.CatchABallFx
 local A = Config.Ults.Audio
@@ -107,6 +108,8 @@ type Catch = {
 	closed: boolean,
 	quiet: boolean, -- an old event (a late join): no sounds
 	own: boolean,
+	camFrom: CFrame?, -- the shooter's view at the catch (their camera eases in from it)
+	camClose: CFrame?, -- the close view beside the catch
 }
 
 type BreakFree = { at: number, ball: number, target: Vector3, facing: CFrame, quiet: boolean }
@@ -132,6 +135,7 @@ export type CatchABallFx = {
 	meshes: Meshes?,
 	meshesFailed: boolean,
 	nextMeshCheck: number,
+	camera: Catch?, -- the catch the shooter's camera is easing in on
 }
 
 local CatchABallFx = {}
@@ -294,6 +298,19 @@ local function stars(self: CatchABallFx, id: number, at: Vector3, count: number,
 	end)
 end
 
+-- The label's width in studs: LabelViewShare of this viewer's screen at its distance (the
+-- shooter's close-up is a few ball widths away), at most LabelWidthStuds.
+local function labelWidth(at: Vector3): number
+	local camera = workspace.CurrentCamera
+	if camera == nil then
+		return F.LabelWidthStuds
+	end
+	local view = camera.ViewportSize
+	local across = math.tan(math.rad(camera.FieldOfView) / 2) * view.X / math.max(view.Y, 1)
+	local distance = (camera.CFrame.Position - at).Magnitude
+	return math.min(F.LabelWidthStuds, 2 * distance * across * F.LabelViewShare)
+end
+
 -- GOTCHA! (or IT BROKE FREE!) popping over the catch ball.
 local function popLabel(self: CatchABallFx, id: number, at: Vector3, text: string, color: Color3)
 	local kit = self.kit
@@ -301,7 +318,8 @@ local function popLabel(self: CatchABallFx, id: number, at: Vector3, text: strin
 		kit.attachment(id, "CatchLabel", at + Vector3.yAxis * ballRadius() * F.LabelLiftBallRadii)
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "CatchLabel"
-	gui.Size = UDim2.fromScale(F.LabelWidthStuds, F.LabelHeightStuds)
+	local width = labelWidth(holder.WorldPosition)
+	gui.Size = UDim2.fromScale(width, width * F.LabelHeightStuds / F.LabelWidthStuds)
 	gui.AlwaysOnTop = true
 	gui.LightInfluence = 0
 	gui.MaxDistance = 400
@@ -357,6 +375,58 @@ local function dropCatch(c: Catch?)
 	end
 end
 
+-- Hand the shooter's camera back (from catch `c`, or from whichever catch has it).
+local function releaseCamera(self: CatchABallFx, c: Catch?)
+	if self.camera ~= nil and (c == nil or self.camera == c) then
+		self.camera = nil
+		Camera.setOverride(nil)
+	end
+end
+
+-- The shooter's camera, `u` seconds into catch `c`: eased in beside it, held while it plays,
+-- handed back over the last CamOutSeconds.
+local function stepCamera(self: CatchABallFx, c: Catch, u: number)
+	local from, close = c.camFrom, c.camClose
+	if self.camera ~= c or from == nil or close == nil then
+		return
+	end
+	if not Camera.isLocked() then
+		releaseCamera(self, c) -- the turn moved on
+		return
+	end
+	local inn = clamp01(u / F.CamInSeconds)
+	local out = clamp01((u - (F.Timeline.Done - F.CamOutSeconds)) / F.CamOutSeconds)
+	local w = 1 - out * out * (3 - 2 * out)
+	if w <= 0 then
+		releaseCamera(self, c)
+		return
+	end
+	Camera.setOverride(from:Lerp(close, inn * inn * (3 - 2 * inn)), w)
+end
+
+-- The close view of a catch at `rest` of the ball at `target` (world centres), mostly side-on
+-- (the lid opening, the ball pulled in across the view), on the side `from` looked from.
+local function closeView(rest: Vector3, target: Vector3, from: CFrame): CFrame
+	local r = ballRadius()
+	local focus = rest:Lerp(target, F.CamTargetShare) + Vector3.yAxis * r * F.CamUpBallRadii
+	local line = Vector3.new(target.X - rest.X, 0, target.Z - rest.Z)
+	local look = Vector3.new(from.LookVector.X, 0, from.LookVector.Z)
+	if line.Magnitude < 1e-4 then
+		line = if look.Magnitude > 1e-4 then look else Vector3.zAxis
+	end
+	local back = -line.Unit
+	local side = Vector3.new(0, 1, 0):Cross(back)
+	local toFrom = Vector3.new(from.Position.X - focus.X, 0, from.Position.Z - focus.Z)
+	local s = if side:Dot(toFrom) >= 0 then 1 else -1
+	local a, pitch = math.rad(F.CamSideDegrees), math.rad(F.CamPitchDegrees)
+	local flat = back * math.cos(a) + side * s * math.sin(a)
+	local eye = focus
+		+ (flat * math.cos(pitch) + Vector3.yAxis * math.sin(pitch))
+			* r
+			* F.CamDistanceBallRadii
+	return CFrame.lookAt(eye, focus)
+end
+
 local function destroy(self: CatchABallFx, id: number)
 	local fx = self.tables[id]
 	if fx == nil then
@@ -364,6 +434,7 @@ local function destroy(self: CatchABallFx, id: number)
 	end
 	self.tables[id] = nil
 	unfadeAll(fx)
+	releaseCamera(self, fx.catch)
 	dropCatch(fx.catch)
 	if fx.shell then
 		for _, part in fx.shell do
@@ -510,7 +581,18 @@ local function startCatch(self: CatchABallFx, id: number, fx: TableFx, m: any, e
 		closed = false,
 		quiet = quiet,
 		own = ev.value == 1,
+		camFrom = nil,
+		camClose = nil,
 	}
+	-- The shooter's own camera eases in beside the catch (a cutscene inside the shot).
+	local camera = workspace.CurrentCamera
+	if not quiet and camera and Camera.isLocked() and kit.screen.involved(self.hub, id) then
+		releaseCamera(self, nil)
+		local c = fx.catch :: Catch
+		c.camFrom = camera.CFrame
+		c.camClose = closeView(rest, target, camera.CFrame)
+		self.camera = c
+	end
 	kit.keep(id, Config.Ults.CatchABall.HoldSeconds + 1.5)
 	if not quiet then
 		kit.burstLight(rest, Color3.new(1, 1, 1), r * 14, F.FlashBrightness, F.FlashSeconds)
@@ -535,9 +617,11 @@ local function stepCatch(
 	local r = ballRadius()
 	local T = F.Timeline
 	if u >= T.Done then
+		releaseCamera(self, c)
 		dropCatch(c)
 		return false
 	end
+	stepCamera(self, c, u)
 	-- The shell's frame: from the rolling turn to upright facing the target, then the hop, the
 	-- wobbles, all about the rest point.
 	local turnIn = easeOut(u / T.TurnSeconds)
@@ -729,11 +813,13 @@ function CatchABallFx.start(hub: any, _parent: Instance, kit: any): CatchABallFx
 		meshes = nil,
 		meshesFailed = false,
 		nextMeshCheck = 0,
+		camera = nil,
 	}, CatchABallFx) :: any
 	kit.onRelease(function(tableId: number)
 		local fx = self.tables[tableId]
 		if fx then
 			unfadeAll(fx) -- the balls are not under the anchor: put them back
+			releaseCamera(self, fx.catch)
 		end
 		self.tables[tableId] = nil -- its parts went with the anchor
 	end)
@@ -823,9 +909,15 @@ function CatchABallFx.update(self: CatchABallFx, dt: number)
 			fx = create(self, id)
 		end
 		local live = fx :: TableFx
-		live.clock += dt * (if type(m.timeScale) == "number" then m.timeScale else 1)
+		-- At the developer's /slowmo (m.timeScale); stopped with the replay by their /hold (a
+		-- still to capture).
+		local held = m.holdAt ~= nil and m.state.time >= m.holdAt
+		live.clock += if held
+			then 0
+			else dt * (if type(m.timeScale) == "number" then m.timeScale else 1)
 		if shot and live.shotSeq ~= m.seq then
 			live.shotSeq = m.seq
+			releaseCamera(self, live.catch)
 			dropCatch(live.catch)
 			live.catch = nil
 			live.breakFree = nil

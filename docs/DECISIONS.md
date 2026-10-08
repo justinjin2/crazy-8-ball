@@ -3205,3 +3205,9 @@ timer of a new block stay the designer's call.
   contact. Every guided ball spins hard in its own streak ring, with a yellow guide line to its
   pocket. The golden path on the cloth, the spiral pictures and the manga steel shell are
   retired.
+- 2026-10-08: Catch-a-Ball's catch is a small cutscene for the shooter: their camera eases in
+  beside the catch ball (70 degrees round from behind, a little above, about nine ball radii
+  away) so the lid opening, the ball pulled in, the hop, the wobbles and the click fill the
+  screen, and hands back over the last 0.4 s of the 4.35 s look. GOTCHA! now pops at about a
+  third of the viewer's screen width (it was a fixed 3.2 studs, which would have covered the
+  whole close-up). The look also honours `/hold` and `/slowmo` like the others.
