@@ -2,7 +2,7 @@
 -- LuckyOpening: a lucky block's reel and result (designer, 2026-10-03). Once the block bursts
 -- (LuckyClient waits for the server's burstAt), the screen darkens with a very see-through
 -- grey-black (no white panel: the world shows through), the block's name sits over a Dark-look
--- reel (BlockReel { look = "Dark" }: bordered tiles with each cue's name, rarity and chance)
+-- reel (BlockReel { look = "Dark" }: the cue cards, standing still, each with its chance)
 -- that slows onto the cue the server rolled. A Rare or better cue then plays its pull
 -- cutscene (PullCutscene; moved here from the cases 2026-10-04, being redone): a second before
 -- the reel stops (designer, 2026-10-05: the suspense of "did I really just pull this")

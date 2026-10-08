@@ -271,7 +271,12 @@ When copy numbers are built, Sell all skips every numbered copy (already in the 
   (`~/Desktop/8ball-refs/gui-lively/work/cues-money/`).
 - [ ] Copy numbers (approved 2026-10-08: first 100 of every Rare-or-rarer cue, each its own card):
   planned and built after the Cues menu.
-- [ ] Concept 3 (spin and YOU GOT) approved, then built.
+- [ ] Concept 3 (spin and YOU GOT) approved, then built. The cards went in first at the
+  designer's word, no concept (2026-10-08): the reel's cards are the cue cards with their
+  chance chip, all standing still (the prize too: a moving one gives the pull away); YOU GOT
+  shows the cue's card big with all its motion. Built a few a frame (`Reel.EagerCards`,
+  `CardsPerFrame`). Test: `GuiQA "luckyReel" <kind> <cueId>` (nothing asked of the server).
+  Still open from the request: rarer cues showing more often on the reel (purely visual).
 - [ ] Concept 4 (Free Reward) approved, then built.
 - [ ] Concept 5 (Abilities ideas) shown; built if approved.
 - [ ] Concept 6 (Ranked ideas) shown; built if approved.

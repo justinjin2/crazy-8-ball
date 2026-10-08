@@ -49,6 +49,7 @@ type Twinkle = { label: ImageLabel, spot: CardMath.Spot }
 export type Fx = {
 	parts: Parts,
 	look: any,
+	still: boolean, -- nothing moves (the lucky block reel's cards)
 	made: { Instance }, -- everything built here, destroyed on stop
 	loop: UIAnim.Handle?,
 	phases: { [string]: number },
@@ -202,11 +203,13 @@ end
 
 --- Build a card's moving parts for `look` (Config.UI.CueCard.Looks or Tiers) and start their
 --- loop. `seed` (CardMath.seed of the cue's id) places the sparkles and sets every phase, so a
---- cue's card always moves the same way and two cards never move in step.
-function CueCardFx.new(parts: Parts, look: any, seed: number): Fx
+--- cue's card always moves the same way and two cards never move in step. `still`: build
+--- nothing that moves (the reel's cards: a moving prize would give itself away).
+function CueCardFx.new(parts: Parts, look: any, seed: number, still: boolean?): Fx
 	local fx: Fx = {
 		parts = parts,
 		look = look,
+		still = still == true,
 		made = {},
 		loop = nil,
 		phases = {},
@@ -241,6 +244,9 @@ function CueCardFx.new(parts: Parts, look: any, seed: number): Fx
 	end
 	local face = parts.face
 	parts.edgeStroke.Transparency = 0
+	if fx.still then
+		return fx
+	end
 
 	-- Under the cue: Secret's red glow, Mythic's sheen and Secret's scan lines (z 4), the rays
 	-- (5), the glow (6), the stars (7). The picture is z 8.

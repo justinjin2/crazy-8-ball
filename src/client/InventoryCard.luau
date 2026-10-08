@@ -66,6 +66,7 @@ export type Fields = {
 	new: boolean?, -- the gold NEW pill
 	equipped: boolean?, -- the green Equipped pill
 	chance: string?, -- the chance chip top left: "4.2%" (nil for a cue no block drops)
+	still: boolean?, -- no moving parts (the lucky block reel's cards)
 }
 
 export type Options = {
@@ -126,6 +127,7 @@ export type Card = {
 	ranked: boolean, -- it wears a tier (badge, RANKED)
 	cueId: string,
 	locked: boolean,
+	still: boolean, -- built with no moving parts (Fields.still)
 	lines: number, -- lines the name may wrap to
 	lit: boolean, -- hovered or selected by a gamepad
 	chosen: boolean, -- its details show
@@ -611,6 +613,7 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 		ranked = false,
 		cueId = "",
 		locked = false,
+		still = false,
 		held = false,
 		laid = Vector2.zero,
 		lines = opts.lines or 2,
@@ -681,7 +684,7 @@ end
 
 -- Dress the card in a look (Config.UI.CueCard.Looks or Tiers): its colours, then its moving
 -- parts (rebuilt, since where its sparkles sit comes from the cue's id).
-local function dress(card: Card, key: string, ranked: boolean, id: string)
+local function dress(card: Card, key: string, ranked: boolean, id: string, still: boolean)
 	if card.fx then
 		CueCardFx.stop(card.fx)
 		card.fx = nil
@@ -729,7 +732,7 @@ local function dress(card: Card, key: string, ranked: boolean, id: string)
 		art = card.art,
 		thumb = card.thumb,
 		name = card.name,
-	}, look, CardMath.seed(id))
+	}, look, CardMath.seed(id), still)
 	CueCardFx.hold(card.fx :: CueCardFx.Fx, card.held)
 end
 
@@ -737,19 +740,20 @@ end
 function InventoryCard.set(card: Card, fields: Fields)
 	local id = fields.cueId
 	local locked = fields.locked == true
-	local changed = id ~= card.cueId
+	local still = fields.still == true
+	local changed = id ~= card.cueId or still ~= card.still
 	if id ~= card.cueId then
 		CueThumb.set(card.thumb, id)
 	end
 	local row = Catalog.get(id)
 	local rarity = if row then row.Rarity else "Default"
 	local key, ranked = CardMath.lookKey(rarity, if row then row.Tier else nil)
-	card.cueId, card.locked = id, locked
+	card.cueId, card.locked, card.still = id, locked, still
 	-- The words first: the moving parts note where the name rests.
 	card.name.Text = CueThumb.cueName(id)
 	card.barWord.Text = string.upper(CueThumb.rarityName(if ranked then "Ranked" else rarity))
 	if changed or key ~= card.lookKey then
-		dress(card, key, ranked, id)
+		dress(card, key, ranked, id, still)
 	end
 	card.badge.Visible = ranked
 	card.veil.Visible = locked

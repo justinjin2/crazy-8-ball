@@ -3136,3 +3136,8 @@ timer of a new block stay the designer's call.
   speeds into the cash icon and fades into it over the last 30% of its flight, and the cash icon
   swells smoothly (`UIAnim.thump`, `Kit.Motion.Thump`) where the whole pill used to jump to full
   size in one frame. The same applies to the money HUD.
+- 2026-10-08 (designer): The lucky block reel and YOU GOT use the new cue card, built without a
+  concept at the designer's word. No card on the reel moves, the prize neither (a moving prize
+  would give the pull away before the stop); YOU GOT shows the cue's card with all its motion
+  (the drifting 8-balls and its rarity's effects). The reel's old dark see-through tiles and the
+  YOU GOT's separate name and rarity lines are gone.

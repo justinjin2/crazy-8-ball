@@ -2808,23 +2808,17 @@ Config.LuckyBlocks = {
 		DimTransparency = 1,
 		DimSeconds = 0.25,
 		DisplayOrderAbove = 16, -- over the HUD screen
-		TileFillTransparency = 0.45, -- each reel tile: a dark see-through card...
-		TileStrokePx = 2, -- ...with a slight border in its rarity's colour
-		TileStrokeTransparency = 0.25,
-		RarityTextPx = 16, -- "Epic" in its colour, under the name
-		-- A tile's rows, as shares of its height (thumbnail middle, then the tops of the name,
-		-- the rarity and the chance).
-		TileThumbCentreShare = 0.33,
-		TileNameTopShare = 0.58,
-		TileRarityTopShare = 0.7,
-		TileOddsTopShare = 0.82,
+		-- The reel's cards are the cue cards (InventoryCard; 2026-10-08): they were dark
+		-- see-through tiles with a border in the rarity's colour.
 		ReelFadeShare = 0.12, -- the strip fades out over this share of its width at each end
 		-- The result card: "YOU GOT <CUE>!" with turning rays in the rarity's colour.
 		CardWidthPx = 460,
-		CardArtPx = 220,
+		-- The cue's card in the middle (InventoryCard; designer, 2026-10-08: the new card, its
+		-- 8-balls and effects moving): this wide, with this room above and below it. It was
+		-- the cue's picture with its name and rarity under it.
+		CardCuePx = 230,
+		CardCueGapPx = 10,
 		CardTitlePx = 40,
-		CardNamePx = 30,
-		CardRarityPx = 24,
 		CardHintPx = 18,
 		CardRaysImage = "rbxassetid://103944500004159", -- 1024px soft rays, transparent edges
 		CardRaysShare = 1.8, -- the rays' size, of the card's width
@@ -8737,6 +8731,10 @@ Config.UI.Reel = {
 	-- The reel.
 	Reel = {
 		Cards = 40, -- cards on the strip
+		-- The strip's cue cards are built a few at a time (all 40 in one frame stalled the
+		-- reel's entrance for about 70 ms): this many at once, then this many a frame.
+		EagerCards = 12,
+		CardsPerFrame = 6,
 		PrizeSlot = 34, -- the prize's place: late, with cards after it for the window's right side
 		-- Each cue's weight on the strip is its odds (BlockOdds.cueOdds) to this power: 1 = the true
 		-- odds (a Standard strip is mostly grey and green); under 1 shows rarer cues more often.

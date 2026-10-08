@@ -54,10 +54,11 @@ One line each; the long form is the 2026-10-08 entry at the top of
   designer's ten notes on the built menu are done, and the next five: My Cues and Index as two
   tiles with Sort and Sell dupes, all evenly spaced; "Sell dupes"; the Equip sound; locked
   cards still moving under the veil; the money chip fading into a smoothly swelling cash icon.
-  Checked in Studio. Waiting: the designer's last check before the Cues menu wraps up. Waiting on
-  the designer: a look at the laptop size, then a phone and a gamepad; the numbered card's mark
-  A or B; then the copy numbers' own plan (the engraving near the butt end only). After that
-  the lucky block spin and YOU GOT, Free Reward, Abilities and Ranked ideas.
+  Checked in Studio. The lucky block reel and YOU GOT now use the new card too (the reel's
+  cards still, YOU GOT's moving). Waiting on the designer: the last check before Cues wraps
+  up, then a phone and a gamepad; the numbered card's mark A or B; whether rarer cues should
+  show more often on the reel; then the copy numbers' own plan (the engraving near the butt
+  end only). After that Free Reward, Abilities and Ranked ideas.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),

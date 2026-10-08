@@ -19,8 +19,8 @@
 -- - Each card reads the cue's name and its odds in its rarity's colour (GUI lane, 2026-10-03).
 -- - The Dark look (lucky blocks, designer 2026-10-03; Config.LuckyBlocks.UI): no white window or
 --   white ends, the strip floats over the dim with its ends fading out (a CanvasGroup), and each
---   card is a dark see-through tile with a slight border in its rarity's colour reading the
---   cue's name, its rarity in that colour and its chance.
+--   card is the cue card (InventoryCard, as in the Cues menu; designer 2026-10-08) with its
+--   chance in the corner chip. No card moves (the prize would give itself away).
 -- Built in natural pixels inside a ReelFx stage; layout(width) sizes it.
 local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -35,6 +35,7 @@ local Catalog = require(ProgressionRules:WaitForChild("Catalog"))
 local ReelFx = require(script.Parent.ReelFx)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
+local InventoryCard = require(script.Parent.InventoryCard)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -51,11 +52,12 @@ type Slot = {
 	rarity: string,
 	frame: Frame,
 	edge: UIStroke,
-	thumb: Frame,
+	thumb: Frame, -- the thumbnail (the Dark look: the card's place, its pictures inside)
 	dressing: CueThumb.Dressing?, -- the light look's rarity dressing (none in the Dark look)
-	name: TextLabel,
-	odds: TextLabel,
-	rarityText: TextLabel?, -- the Dark look's rarity word
+	name: TextLabel?, -- the light look's words
+	odds: TextLabel?,
+	cue: boolean, -- the Dark look: a cue card...
+	card: any?, -- ...(InventoryCard) once built
 }
 
 local Reel = {}
@@ -96,56 +98,53 @@ local function pool(oddsId: string): ({ { id: string, rarity: string } }, { numb
 	return cues, weights, total
 end
 
--- A Dark-look card: a dark see-through tile with a slight border in its rarity's colour, the
--- thumbnail, then the cue's name, its rarity in that colour and its chance.
-local function makeDarkCard(parent: Instance, index: number, id: string, rarity: string): Slot
+-- A Dark-look card's place: its frame and the outline in the prize's colour that shows once it
+-- lands. The cue card itself (buildCueCard) is built a little later, a few cards a frame.
+local function makeCueSlot(parent: Instance, index: number, id: string): Slot
 	local frame = HudParts.frame(parent, "Card" .. index)
 	frame.Size = UDim2.fromOffset(R.CardWidthPx, R.CardHeightPx)
 	frame.Position = UDim2.fromOffset((index - 1) * pitch(), 0)
-	local fill = HudParts.frame(frame, "Fill")
-	fill.Size = UDim2.fromScale(1, 1)
-	fill.BackgroundTransparency = LU.TileFillTransparency
-	fill.BackgroundColor3 = INK
-	fill.ZIndex = 0
-	HudParts.corner(fill, R.CardCornerPx)
+	local units: { number } = Config.UI.CueCard.Units :: any
+	local height = math.floor(R.CardWidthPx * units[2] / units[1] + 0.5)
+	local outline = HudParts.frame(frame, "Outline")
+	outline.AnchorPoint = Vector2.new(0.5, 0.5)
+	outline.Position = UDim2.fromScale(0.5, 0.5)
+	outline.Size = UDim2.fromOffset(R.CardWidthPx, height)
+	outline.ZIndex = 5
+	local corner = Config.UI.CueCard.Layout.CornerUnits * R.CardWidthPx / units[1]
+	HudParts.corner(outline, math.floor(corner + 0.5))
 	local edge = Instance.new("UIStroke")
 	edge.Name = "Edge"
-	edge.Color = CueThumb.accentColor(rarity)
-	edge.Thickness = LU.TileStrokePx
-	edge.Transparency = LU.TileStrokeTransparency
+	edge.Thickness = R.PrizeStrokePx
+	edge.Transparency = 1
 	edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	edge.Parent = fill
-	local side = math.floor(R.CardWidthPx * R.ThumbShare)
-	local thumb = CueThumb.new(frame, id)
-	thumb.AnchorPoint = Vector2.new(0.5, 0.5)
-	thumb.Position = UDim2.fromScale(0.5, LU.TileThumbCentreShare)
-	thumb.Size = UDim2.fromOffset(side, side)
-	thumb.ZIndex = 2
-	local function row(name: string, size: number, top: number, text: string): TextLabel
-		local label = HudParts.text(frame, name, size, text)
-		label.AnchorPoint = Vector2.new(0.5, 0)
-		label.Position = UDim2.fromScale(0.5, top)
-		label.Size = UDim2.new(1, -8, 0, size + 4)
-		label.TextWrapped = false
-		label.ZIndex = 3
-		return label
-	end
-	local name = row("Name", R.NameTextPx, LU.TileNameTopShare, CueThumb.cueName(id))
-	local rarityText =
-		row("Rarity", LU.RarityTextPx, LU.TileRarityTopShare, CueThumb.rarityName(rarity))
-	rarityText.TextColor3 = CueThumb.accentColor(rarity)
-	local odds = row("Odds", R.OddsTextPx, LU.TileOddsTopShare, ODDS_TEXT[id] or "")
+	edge.Parent = outline
 	return {
 		id = id,
-		rarity = rarity,
+		rarity = "",
 		frame = frame,
 		edge = edge,
-		thumb = thumb,
+		thumb = frame,
 		dressing = nil,
-		name = name,
-		odds = odds,
-		rarityText = rarityText,
+		name = nil,
+		odds = nil,
+		cue = true,
+		card = nil,
 	}
+end
+
+-- A Dark-look card: the cue card (InventoryCard, the Cues menu's, designer 2026-10-08) with the
+-- cue's chance in its corner chip, standing still: no card on the reel moves, the prize neither
+-- (designer, 2026-10-08: a moving prize would give it away before the stop). YOU GOT's card moves.
+local function buildCueCard(slot: Slot)
+	local card = InventoryCard.new(slot.frame, { name = "Cue", onPress = function() end })
+	card.button.Interactable = false -- a tap on the reel skips it (LuckyOpening)
+	card.button.Selectable = false
+	card.button.AnchorPoint = Vector2.new(0.5, 0.5)
+	card.button.Position = UDim2.fromScale(0.5, 0.5)
+	card.button.Size = (slot.edge.Parent :: Frame).Size
+	InventoryCard.set(card, { cueId = slot.id, chance = ODDS_TEXT[slot.id], still = true })
+	slot.card = card
 end
 
 -- One card of the strip: a white rounded face dressed in the rarity, the cue's thumbnail on it.
@@ -197,23 +196,27 @@ local function makeCard(parent: Instance, index: number, id: string, rarity: str
 		dressing = dressing,
 		name = name,
 		odds = odds,
+		cue = false,
+		card = nil,
 	}
 end
 
--- Show another cue on a card (the prize).
+-- Show another cue on a card (the prize: on a cue card, the only one that moves).
 local function dressCard(slot: Slot, id: string, rarity: string)
 	slot.id = id
 	slot.rarity = rarity
+	if slot.cue then
+		if slot.card then
+			InventoryCard.set(slot.card, { cueId = id, chance = ODDS_TEXT[id], still = true })
+		end
+		return -- else it is built with the prize's id
+	end
 	CueThumb.set(slot.thumb, id)
-	slot.name.Text = CueThumb.cueName(id)
-	slot.odds.Text = ODDS_TEXT[id] or ""
-	local rarityText = slot.rarityText
-	if rarityText then
-		rarityText.Text = CueThumb.rarityName(rarity)
-		rarityText.TextColor3 = CueThumb.accentColor(rarity)
-		slot.edge.Color = CueThumb.accentColor(rarity)
-	else
-		slot.odds.TextColor3 = CueThumb.accentColor(rarity)
+	local name, odds = slot.name, slot.odds
+	if name and odds then
+		name.Text = CueThumb.cueName(id)
+		odds.Text = ODDS_TEXT[id] or ""
+		odds.TextColor3 = CueThumb.accentColor(rarity)
 	end
 	if slot.dressing then
 		slot.dressing.set(rarity)
@@ -304,12 +307,12 @@ function Reel.new(parent: Instance, oddsId: string, opts: { look: string? }?): a
 			end
 		end
 		self.slots[index] = if dark
-			then makeDarkCard(strip, index, chosen.id, chosen.rarity)
+			then makeCueSlot(strip, index, chosen.id)
 			else makeCard(strip, index, chosen.id, chosen.rarity)
 	end
 	strip.Size = UDim2.fromOffset(#self.slots * pitch(), R.CardHeightPx)
 	-- Fetch the strip's pictures now (the case is still in front), so no card spins past blank.
-	task.spawn(function()
+	local function preload()
 		local images = {}
 		for _, slot in self.slots do
 			for _, image in slot.thumb:GetDescendants() do
@@ -318,10 +321,44 @@ function Reel.new(parent: Instance, oddsId: string, opts: { look: string? }?): a
 				end
 			end
 		end
-		pcall(function()
-			ContentProvider:PreloadAsync(images)
+		task.spawn(function()
+			pcall(function()
+				ContentProvider:PreloadAsync(images)
+			end)
 		end)
-	end)
+	end
+	-- The cue cards: the first ones at once (the window's start), the rest a few a frame while
+	-- the reel pops in (all 40 in one frame stalled it for a moment), then their pictures load.
+	self.builder = nil :: RBXScriptConnection?
+	if dark then
+		local next = 1
+		local function build(count: number): boolean
+			while count > 0 and next <= #self.slots do
+				buildCueCard(self.slots[next])
+				next += 1
+				count -= 1
+			end
+			return next > #self.slots
+		end
+		if build(R.EagerCards) then
+			preload()
+		else
+			self.builder = RunService.Heartbeat:Connect(function()
+				if not self.alive then
+					return
+				end
+				if build(R.CardsPerFrame) then
+					if self.builder then
+						self.builder:Disconnect()
+						self.builder = nil
+					end
+					preload()
+				end
+			end)
+		end
+	else
+		preload()
+	end
 
 	-- Soft white ends, so cards slide in and out of view (the Dark look fades its clip instead).
 	self.fades = {} :: { Frame }
@@ -579,6 +616,7 @@ function Reel.land(self: any, now: number)
 	local slot: Slot = self.slots[R.PrizeSlot]
 	slot.edge.Color = colour
 	slot.edge.Thickness = R.PrizeStrokePx
+	slot.edge.Transparency = 0
 	UIAnim.bounce(slot.frame)
 	local info = TweenInfo.new(R.MarkerTintSeconds)
 	TweenService:Create(self.bar, info, { BackgroundColor3 = colour }):Play()
@@ -649,6 +687,10 @@ function Reel.destroy(self: any)
 	self.alive = false
 	self.onSettled = nil
 	self.onStopping = nil
+	if self.builder then
+		self.builder:Disconnect()
+		self.builder = nil
+	end
 	if self.loop then
 		self.loop:Disconnect()
 		self.loop = nil

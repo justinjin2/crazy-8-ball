@@ -1,7 +1,9 @@
 --!strict
--- LuckyResult: the card after a lucky block's reel (designer, 2026-10-03): the cue big in the
--- middle with sun rays turning behind it in its rarity's colour (Common grey ... Mythic's
--- pastels), "YOU GOT <CUE NAME>!" over it, its rarity under it, and "Tap to continue". There is
+-- LuckyResult: the card after a lucky block's reel (designer, 2026-10-03): the cue's card big in
+-- the middle (InventoryCard, as in the Cues menu, with all its motion: the drifting 8-balls and
+-- its rarity's effects; designer 2026-10-08) with sun rays turning behind it in its rarity's
+-- colour (Common grey ... Mythic's pastels), "YOU GOT <CUE NAME>!" over it, and "Tap to
+-- continue" under it. There is
 -- no Keep or Sell: the cue is already in the inventory, and a tap, a click or A closes it.
 -- Confetti from Config.UI.Reel.ConfettiFrom, the reveal sting by rarity. Built in
 -- natural pixels inside LuckyOpening's stage; tuning in Config.LuckyBlocks.UI.
@@ -14,6 +16,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local ReelFx = require(script.Parent.ReelFx)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
+local InventoryCard = require(script.Parent.InventoryCard)
 local UIAnim = require(script.Parent.UIAnim)
 
 local U = Config.LuckyBlocks.UI
@@ -24,15 +27,21 @@ local WHITE = Color3.new(1, 1, 1)
 local Result = {}
 Result.__index = Result
 
--- The rows' heights, top to bottom: the title, the art, the name... (natural pixels).
-local function rows(): (number, number, number, number, number)
-	return U.CardTitlePx + 8, U.CardArtPx, U.CardNamePx + 6, U.CardRarityPx + 6, U.CardHintPx + 6
+-- The cue card's size (natural pixels): CardCuePx wide, at the card's own shape.
+local function cueSize(): Vector2
+	local units: { number } = Config.UI.CueCard.Units :: any
+	return Vector2.new(U.CardCuePx, math.floor(U.CardCuePx * units[2] / units[1] + 0.5))
+end
+
+-- The rows' heights, top to bottom: the title, the cue card, the hint (natural pixels).
+local function rows(): (number, number, number)
+	return U.CardTitlePx + 8, cueSize().Y + 2 * U.CardCueGapPx, U.CardHintPx + 6
 end
 
 --- The card's natural size.
 function Result.size(): Vector2
-	local a, b, c, d, e = rows()
-	return Vector2.new(U.CardWidthPx, a + b + c + d + e)
+	local a, b, c = rows()
+	return Vector2.new(U.CardWidthPx, a + b + c)
 end
 
 --- Build the card for `cueId` (of `rarity`) in `parent`, hidden until show().
@@ -51,7 +60,7 @@ function Result.new(parent: Instance, cueId: string, rarity: string): any
 	root.ZIndex = 5
 	self.root = root
 
-	local titleH, artH, nameH, rarityH, hintH = rows()
+	local titleH, artH, hintH = rows()
 	local artMiddle = titleH + artH / 2
 
 	-- The sun rays in the rarity's colour (Mythic: its pastels), turning behind the cue.
@@ -78,27 +87,20 @@ function Result.new(parent: Instance, cueId: string, rarity: string): any
 	title.ZIndex = 4
 	self.title = title
 
-	local thumb = CueThumb.new(root, cueId)
-	thumb.AnchorPoint = Vector2.new(0.5, 0.5)
-	thumb.Position = UDim2.fromOffset(size.X / 2, artMiddle)
-	thumb.Size = UDim2.fromOffset(artH, artH)
-	thumb.ZIndex = 3
-	self.thumb = thumb
+	-- The cue's card: its name and rarity bar on it, moving as in the Cues menu.
+	local card = InventoryCard.new(root, { name = "Cue", onPress = function() end })
+	card.button.Interactable = false -- a tap anywhere closes the screen (LuckyOpening)
+	card.button.Selectable = false
+	card.button.AnchorPoint = Vector2.new(0.5, 0.5)
+	card.button.Position = UDim2.fromOffset(size.X / 2, artMiddle)
+	local cardSize = cueSize()
+	card.button.Size = UDim2.fromOffset(cardSize.X, cardSize.Y)
+	card.button.ZIndex = 3
+	InventoryCard.set(card, { cueId = cueId, bare = true })
+	self.card = card
+	self.thumb = card.button
 
 	local y = titleH + artH
-	local name = HudParts.text(root, "Name", U.CardNamePx, cueName)
-	name.TextWrapped = false
-	name.Position = UDim2.fromOffset(0, y)
-	name.Size = UDim2.fromOffset(size.X, nameH)
-	name.ZIndex = 4
-	y += nameH
-	local rarityLabel =
-		HudParts.text(root, "Rarity", U.CardRarityPx, CueThumb.rarityName(rarity), colour)
-	rarityLabel.TextWrapped = false
-	rarityLabel.Position = UDim2.fromOffset(0, y)
-	rarityLabel.Size = UDim2.fromOffset(size.X, rarityH)
-	rarityLabel.ZIndex = 4
-	y += rarityH
 	local hint = HudParts.text(root, "Hint", U.CardHintPx, "")
 	hint.TextWrapped = false
 	hint.Position = UDim2.fromOffset(0, y)
@@ -161,6 +163,7 @@ function Result.destroy(self: any)
 	if self.spin then
 		self.spin.stop()
 	end
+	InventoryCard.destroy(self.card)
 	self.root:Destroy()
 end
 

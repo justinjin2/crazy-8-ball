@@ -449,10 +449,12 @@ then; the reel's rules hold for the blocks.
   `tools/gen_ui_art.py`) and their kit icons were deleted with the cases; a lucky block is
   drawn as its own 3D model everywhere (section 14). Rarity colours stay UI_STYLE 4's.
 - **The reel** (designer: Rivals / CS style; now `BlockReel`, section 14): a strip of cue
-  cards drawn from the block's true odds slides under a gold centre marker and eases to a
+  cards (the cue card of section 17 with its chance chip, since 2026-10-08; none of them moves,
+  the prize neither, so nothing gives the pull away before the stop; built a few a frame) drawn
+  from the block's true odds slides under a gold centre marker and eases to a
   stop on the prize, ticking as cards pass; the timings are `Config.UI.Reel`. Then the prize
   pops with its rarity sting: the pull cutscene from Rare, then the "YOU GOT" card over the
-  dimmed world. A Rare or better pull fades everything to black from a second before the reel stops;
+  dimmed world (the cue's card big in the middle with all its motion, the rays behind it). A Rare or better pull fades everything to black from a second before the reel stops;
   Rare then swells a soft blue glow from the middle to a full blue screen, flashes white on
   the riser's peak and fades the white off the card (about 1.6 s, never skipped). Epic is a
   purple vortex: a bass hit and a longer riser with the fade, a ring pulse in the black, purple
@@ -768,8 +770,8 @@ tight round it (30 px) and centred on the same line.
 
 ## 17. The cue card (designer, 2026-10-08)
 
-One card for every cue: the Cues grid and the Index now, the lucky block spin and YOU GOT
-next (`InventoryCard`, its motion `CueCardFx`, `Config.UI.CueCard`; brief
+One card for every cue: the Cues grid, the Index, the lucky block spin and YOU GOT
+(`InventoryCard`, its motion `CueCardFx`, `Config.UI.CueCard`; brief
 `docs/prompts/CUES_LIVELY_PROMPT.md`, concept 1 approved in round 4). Card units 150 x 190.
 
 - **No wasted space**: the cue's picture fills the top (a square 94% of the card's width); the

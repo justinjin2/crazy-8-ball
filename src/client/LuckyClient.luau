@@ -32,6 +32,7 @@ local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
 local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
+local Catalog = require(Progression:WaitForChild("Catalog"))
 local LuckyBlocks = require(Progression:WaitForChild("LuckyBlocks"))
 local LuckyHotbar = require(script.Parent.LuckyHotbar)
 local LuckyOpening = require(script.Parent.LuckyOpening)
@@ -532,6 +533,14 @@ function LuckyClient.start(screen: ScreenGui)
 		local from, px = hotbar:slotOf(-1)
 		reveal:play(-1, from, px, { ok = true, tiers = tiers, kind = tiers[#tiers] })
 		return true
+	end)
+	-- Studio tests of the reel with a made-up prize (default a Standard block's Cobalt Cue),
+	-- nothing asked of the server or changed in the save.
+	GuiQA.add("luckyReel", function(kind: string?, cueId: string?)
+		local id = cueId or "CobaltCue"
+		local row = Catalog.get(id)
+		opening:play(kind or "Standard", id, if row then row.Rarity else "Common")
+		return opening:isOpen()
 	end)
 	GuiQA.add("mysteryTap", function()
 		reveal:tap()
