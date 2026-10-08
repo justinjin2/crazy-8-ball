@@ -4284,7 +4284,7 @@ Config.Ults.Assets = {
 		-- tools/blender/abilities/verity.py (the rework): the Verity monster, a skinned mesh
 		-- (Meshy, auto-rigged; 24 bones, Hips the root), 1 stud tall, facing -Z after import;
 		-- its animations are baked data (src/client/VerityAnims.luau), not Animation assets.
-		Verity = 130065008141591,
+		Verity = 97902969201000,
 	} :: { [string]: number },
 	Images = {
 		-- The pocket-to-ball field lines' Beam tile: a white line and one arrowhead along +U.

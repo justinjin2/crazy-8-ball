@@ -25,7 +25,7 @@ tools/blender/abilities/verity.py [-- ball|monster|renders]` (no step = all thre
 
 | File | Type | Asset id |
 | --- | --- | --- |
-| verity_monster.glb | Model | 130065008141591 |
+| verity_monster.glb | Model | 97902969201000 (re-uploaded 2026-10-08 with welded, consistently outward faces; the first upload, 130065008141591, showed holes where seam-split islands had flipped) |
 | verity_ball.png | Decal | 108837263159693 (a Decal id: read the image id via `InsertService:LoadAsset` in Edit before use in `TextureID`) |
 | verity_line.mp3 | Audio | 135865093470317 |
 | look_over_there.mp3 | Audio | 84561965728329 |
@@ -52,7 +52,8 @@ numbered balls may draw mirrored in game; worth a look in Studio.
   `assets/cue/models/verity_monster/` (`rig/`, `anims/`, gitignored, about 10 MB each; task ids in
   `rig/rig_meta.json` and `anims/anims_meta.json`; `tools/meshy_rig.py resume` re-downloads while
   Meshy keeps them).
-- **8,000 triangles**, one mesh `VerityBody`, one material `VerityMonster` (base colour only).
+- **8,000 triangles**, welded at the UV seams before decimating so every face points out (Roblox
+  culls back faces), one mesh `VerityBody`, one material `VerityMonster` (base colour only).
 - **Axes:** Blender Z up, faces **-Y**, feet at Z = 0, centred on X/Y, exactly **1.0 unit tall**
   (scale it in Roblox: 1 unit = 1 stud). Roblox's importer turns it half a turn about Y (see
   STUDIO_NOTES), bones included.

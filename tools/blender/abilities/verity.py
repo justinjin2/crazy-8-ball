@@ -210,8 +210,25 @@ def normalise_rig(arm, mesh):
     return T
 
 
+def weld(me):
+    """Merge the vertices the glTF import split at UV seams (UVs live on the face corners, so
+    nothing is lost). Split, every UV chart is its own island, and recalc_face_normals orients
+    each island on its own: small ones came out flipped (holes in Roblox, which culls back
+    faces)."""
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    before = len(bm.verts)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(me)
+    print("VERITY welded %d -> %d vertices" % (before, len(bm.verts)))
+    bm.free()
+
+
 def decimate(mesh):
     me = mesh.data
+    weld(me)
     me.calc_loop_triangles()
     tris = len(me.loop_triangles)
     mod = mesh.modifiers.new("Decimate", "DECIMATE")
