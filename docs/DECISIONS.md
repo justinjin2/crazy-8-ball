@@ -3166,3 +3166,6 @@ timer of a new block stay the designer's call.
   after moving it, so it is placed every frame (checked: every recorded frame moves, Index view
   and a real claim). Each chip also reads its landing point once instead of every frame. The
   own-ScreenGui change above stays; on its own it did not fix it.
+- 2026-10-08: The GUI redo pauses after the Cues menu and the lucky block reel's cards
+  (designer): the economy plan, a cheaper and more balanced economy, comes first. The designer
+  continues the remaining lively GUIs (Free Reward, Abilities, Ranked) from another session.

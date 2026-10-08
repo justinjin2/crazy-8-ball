@@ -240,6 +240,12 @@ When copy numbers are built, Sell all skips every numbered copy (already in the 
 
 ## Progress
 
+**Paused 2026-10-08 (designer).** This run stops after the Cues menu and the reel's cards: the
+economy plan (a cheaper, more balanced economy) comes first, and the designer continues the
+other lively GUIs (Free Reward, Abilities, Ranked) from another session. Still open from this
+run: the see-through reel trial's verdict, a phone and gamepad check, the numbered card's mark
+A or B and the copy numbers' plan.
+
 - [x] Abilities and Ranked screens show again (`HudFocus`, `Config.UI.Menu.Focus.KeepWith`).
 - [x] Concept 1 (the card) approved (round 4, 2026-10-08).
 - [x] The card built (2026-10-08): `InventoryCard` (Cues grid, Index), its motion `CueCardFx`,
@@ -268,7 +274,9 @@ When copy numbers are built, Sell all skips every numbered copy (already in the 
   locked cards keep their moving background under the veil; the money chip speeds into the
   cash icon and fades into it, and the icon swells smoothly instead of the pill jumping in one
   frame. Checked in Studio at 60 fps with real-speed recordings
-  (`~/Desktop/8ball-refs/gui-lively/work/cues-money/`).
+  (`~/Desktop/8ball-refs/gui-lively/work/cues-money/`). The chip's real choppiness (placed on
+  screen only every other frame with a big menu open) fixed in eb5f4ba: CashFlyer reads each
+  chip's AbsolutePosition back after moving it.
 - [ ] Copy numbers (approved 2026-10-08: first 100 of every Rare-or-rarer cue, each its own card):
   planned and built after the Cues menu.
 - [ ] Concept 3 (spin and YOU GOT) approved, then built. The cards went in first at the

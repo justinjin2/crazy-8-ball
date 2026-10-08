@@ -47,18 +47,16 @@ One line each; the long form is the 2026-10-08 entry at the top of
 
 ## Open, waiting on the designer
 
-- **The GUI redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, branch `shop-lively`):
-  one screen at a time, each from an approved concept. Built: the new cue card (the rank cues
-  are the Ranked rarity), the Cues menu (concept 2) and the CUES icon (concept 2b round 5: the
-  Classic Cue striking a ball on hover and press; the header and My Cues icon too). The
-  designer's ten notes on the built menu are done, and the next five: My Cues and Index as two
-  tiles with Sort and Sell dupes, all evenly spaced; "Sell dupes"; the Equip sound; locked
-  cards still moving under the veil; the money chip fading into a smoothly swelling cash icon.
-  Checked in Studio. The lucky block reel and YOU GOT now use the new card too (the reel's
-  cards still and, on trial, see-through; YOU GOT's moving; rarer cues show more often on the
-  reel). Waiting on the designer: the see-through trial, the last check before Cues wraps
-  up, then a phone and a gamepad; the numbered card's mark A or B; then the copy numbers' own
-  plan (the engraving near the butt end only). After that Free Reward, Abilities and Ranked ideas.
+- **The GUI redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, branch `shop-lively`),
+  **paused by the designer** for the economy plan (a cheaper, more balanced economy); the
+  designer continues the other lively GUIs from another session. Built and checked in Studio:
+  the new cue card (the rank cues are the Ranked rarity), the Cues menu (My Cues and Index
+  tiles, Sort, Sell dupes, the big card, the Equip sound), the striking CUES icon, the money
+  chip flying smoothly into the cash icon (it was drawn only every other frame, fixed), the
+  lucky block reel and YOU GOT with the new card (reel cards still and, on trial, see-through;
+  rarer cues show more often on the reel). Still open: the see-through trial's verdict, a phone
+  and a gamepad, the numbered card's mark A or B, the copy numbers' own plan, then Free
+  Reward, Abilities and Ranked. `shop-lively` is not yet merged into `release`.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),
