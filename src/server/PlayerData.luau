@@ -3167,25 +3167,7 @@ end
 -- Mutations: purchases (the Store service)
 ---------------------------------------------------------------------------------------------
 
-local GRANT_FIELDS: { [any]: boolean } = {
-	key = true,
-	money = true,
-	cue = true,
-	vip = true,
-	vipCue = true,
-	party = true,
-	limited = true,
-	firstPack = true,
-	starterBought = true,
-	spins = true,
-	lucky = true,
-	drops = true,
-	boostEnds = true,
-	restock = true,
-	luckySkip = true,
-	skipTier = true,
-	claimAll = true,
-}
+local GRANT_FIELDS: { [any]: boolean } = Shop.GrantFields
 local GRANT_FLAGS = { "vip", "vipCue", "party", "firstPack", "starterBought", "luckySkip" }
 
 -- Why a Shop.grantFor grant (with the Limited copy number, when it names one) cannot be

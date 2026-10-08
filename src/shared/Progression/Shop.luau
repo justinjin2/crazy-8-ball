@@ -167,6 +167,28 @@ table.sort(KEYS)
 
 local Shop = {}
 
+--- Every field a Grant may hold (the type above): PlayerData refuses a grant with any other, so
+--- a field added to Grant goes here too (tests/shop_test.luau checks every product's grant).
+Shop.GrantFields = {
+	key = true,
+	money = true,
+	cue = true,
+	vip = true,
+	vipCue = true,
+	party = true,
+	limited = true,
+	firstPack = true,
+	starterBought = true,
+	spins = true,
+	lucky = true,
+	blocks = true,
+	restock = true,
+	luckySkip = true,
+	skipTier = true,
+	boostEnds = true,
+	claimAll = true,
+} :: { [string]: boolean }
+
 -- A finite whole number, else 0.
 local function whole(x: any): number
 	if type(x) ~= "number" or x ~= x or x == math.huge or x == -math.huge then

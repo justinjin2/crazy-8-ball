@@ -424,6 +424,49 @@ return {
 		H.expect(Shop.setDeal("GrandOpening", nil, nil), "cleared")
 	end,
 
+	-- PlayerData refuses a grant with a field outside Shop.GrantFields (2026-10-08: "blocks" was
+	-- missing, so every Robux lucky block's receipt was refused).
+	["every product's grant holds only fields the server applies"] = function()
+		withLimiteds(function()
+			local keys: { string } = {}
+			for key, row in Config.Products.List do
+				if row.Kind == "Product" then
+					table.insert(keys, key)
+				end
+			end
+			table.sort(keys)
+			local function check(grant: any, label: string)
+				if grant == nil then
+					return
+				end
+				for field in grant do
+					H.expect(
+						Shop.GrantFields[field] == true,
+						("%s: the grant's field %s is not in Shop.GrantFields"):format(label, field)
+					)
+				end
+			end
+			H.expect(Shop.setDeal("GrandOpening", JOIN, 30 * DAY), "the Grand Opening's window")
+			for _, key in keys do
+				check(Shop.grantFor(key, newShop(), JOIN + HOUR, false), key)
+				check(Shop.grantFor(key, newShop(), JOIN + HOUR, false, true), key .. " restricted")
+				check(Shop.grantFor(key, newShop(), JOIN + 99 * DAY, true), key .. " later, VIP")
+				check(
+					Shop.grantFor(
+						key,
+						newShop({ StarterBought = true, VipOffer = true }),
+						JOIN,
+						false
+					),
+					key .. " had already"
+				)
+			end
+			H.expect(Shop.setDeal("GrandOpening", nil, nil), "cleared")
+			-- The Store adds the restock item to a restock product's grant.
+			H.expect(Shop.GrantFields.restock == true, "restock")
+		end)
+	end,
+
 	["VIP offer, Starter Pack, Money Party and a Robux Limited's grants"] = function()
 		withLimiteds(function()
 			local shop = newShop()
