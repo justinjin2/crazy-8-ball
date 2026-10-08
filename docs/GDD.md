@@ -703,7 +703,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   lobby bots, off by default since 2026-10-07 so a server holds only real people, the tutorial) wear real Roblox avatars of random
   accounts with made-up names (designer's call, 2026-10-02); their wins pay like a real match
   with no win streak and are stored as PC wins (never on the most-wins board). After 20
-  disguised wins in a UTC day they pay the PC rows and drop no block, with nothing on screen
+  disguised wins in a day they pay the PC rows and drop no block, with nothing on screen
   (plan, 2026-10-02; designer, 2026-10-03: hidden). A bot's equipped cue is picked by its tier
   to match what real players at that rank own, and is never the Secret cue (ECONOMY.md
   section 15).
@@ -716,7 +716,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Rank-up rewards**, once, the first time you reach them (plan, 2026-10-02): money for each
   new division ($1,000 a Bronze division up to $150,000 a Grandmaster one); for each new tier
   money, lucky blocks (Bronze: a Standard block at once and a Mystery block; Silver a Rare
-  block up to Reyes a Mythic block and $2,000,000), the tier's cue (the Ranked rarity, never
+  block; from economy v4, 2026-10-08, Platinum an Epic block, Expert the first Legendary block,
+  up to Reyes 2 Mythic blocks and $2,000,000), the tier's cue (the Ranked rarity, never
   tradable), the chat tag and ability spins. ECONOMY.md section 4.8.
 - **Rank and money show** in the top left rank HUD (badge, name, XP bar), over every head
   (badge then username), under each portrait in the match bar, and as Rank and Money columns
@@ -733,20 +734,22 @@ Placed-but-unopened blocks remain saved and return to inventory on reconnect. St
 not cast physical light; every higher tier does, with particles preserved.
 Every kind's odds and timer are ECONOMY.md section 7.2 (designer, 2026-10-04: lucky blocks
 replaced cases entirely; the test timers are gone). Only Painicane may bypass those timers for
-testing, while countdowns stay visible. Early opening offers a 19 Robux timer skip to other
-players. Late receipts retain a saved skip credit if the original target has already finished.
+testing, while countdowns stay visible. Early opening offers a Robux timer skip priced by the
+time left (4 / 9 / 15 R$). Late receipts retain a saved skip credit if the original target has
+already finished.
 
-Every number is in [ECONOMY.md](ECONOMY.md), rewritten 2026-10-03 from the economy plan the
-designer approved on 2026-10-02 and the designer's interview answers of 2026-10-03, and
-reworked for lucky blocks on 2026-10-04.
+Every number is in [ECONOMY.md](ECONOMY.md), rewritten 2026-10-08 for **economy v4, "the
+forgiving economy"** (the plan the designer approved on 2026-10-08,
+`docs/prompts/ECONOMY_V4_PLAN.md`), on top of the first economy plan (2026-10-02) and the lucky
+blocks (2026-10-04).
 
 **Decided**
 - **Money** is earned for every ball pocketed, more for nice shots, wins and win streaks, in
   every mode including Solo and PC; a loss still pays. All numbers are x10 of the old ones
   (plan, 2026-10-02): **$100 a ball**, bank or kick +$150, combo or carom +$200, **win +$500**,
   **loss +$150**, win streak +$250 from the 3rd win in a row against people. About **$7,300 an
-  hour** in Classic. Play against PC pays $250 / $80 match bonuses and half after $10,000 of PC
-  money a UTC day; Solo pays $30 a ball until $3,000 a UTC day, then $10; matches that end
+  hour** in Classic (unchanged by v4). Play against PC pays $250 / $80 match bonuses and half
+  after $10,000 of PC money a day; Solo pays $30 a ball until $3,000 a day, then $10; matches that end
   before the one-minute mark pay $10 a ball past $2,000 a day. Each pot flies a "+$100" from
   the pocket into your total, bottom left. Money farming with macros is not punished.
   ECONOMY.md section 3.
@@ -758,13 +761,16 @@ reworked for lucky blocks on 2026-10-04.
   the Starter hour together are x3).
 - **Money is shown** in full up to $999,999, then $1.2M. Money never trades.
 - **Money packs are sold for Robux.** So Mystery and Grand Opening blocks, restock blocks, the
-  block timer skip and ability spins are paid random items under Roblox policy: odds are shown as percentages that sum to
-  100, and where PolicyService says paid random items are restricted they are refused. Free
-  rewards still work there, and so does the Limited shelf (a known cue at a fixed price).
-  Paid-origin items can't be traded where `IsPaidItemTradingAllowed` is false. ECONOMY.md
-  section 13.
+  block timer skips, VIP (its daily block) and ability spins are paid random items under Roblox
+  policy: odds are shown as percentages that sum to 100, and where PolicyService says paid
+  random items are restricted they are refused (VIP's block becomes $5,000, the Starter Pack
+  $40,000 with no block). Free rewards still work there, and so does the Limited shelf (a known
+  cue at a fixed price). Paid-origin items can't be traded where `IsPaidItemTradingAllowed` is
+  false, and an unopened paid block only moves between two unrestricted players. Random-item
+  developer products are Not Listed on Roblox. ECONOMY.md section 13.
 - **Odds are percentages everywhere** (designer, 2026-10-02): the Mystery block's tier roll,
-  every block, every cue, ability spins. Never "1 in X".
+  every block, every cue, the restock slots, ability spins. Since v4 a tiny chance also shows
+  "1 in N" beside its % (v4 plan section 13, approved 2026-10-08).
 - **First release collectibles are cue skins only (decided 2026-09-23).** There are no table
   skins at release: every table uses the standard model. Table skins are parked in
   section 18 for after release.
@@ -772,35 +778,42 @@ reworked for lucky blocks on 2026-10-04.
   icons or the words. A block waits in the hotbar (and its bag), is held, thrown into the world
   and opened there with a hold prompt; the reel plays, a Rare or better cue plays its pull
   cutscene, then the "YOU GOT" card. The magic 8-ball reveal is gone.
-- **The win's block** (plan, 2026-10-02; blocks 2026-10-04): **every real win** gives a
-  **Mystery lucky block**, forever (solo never; the anti-farm rules and the PC and
-  disguised-bot limits still apply). It has no timer (designer, 2026-10-07): its hotbar slot
-  says **OPEN!** and a tap opens its **upgrade screen** (like Star Drop, our own look). The
-  block jumps out of the slot at the screen over a blur and floats with its tier's particles;
-  **4 presses** open it, a dot filling for each. The first press shows its starting tier and
-  each later one may raise it one tier, never down: a bounce, then a white flash, a screen
-  shake and a burst as it becomes the next block (designer: no spin). After the last, "Tap to
-  collect" and it jumps back into its slot as that tier's block, on that tier's timer. The
-  final tier is rolled as always: **Standard 68%, Uncommon 25%, Rare 6.7%, Epic 0.28%,
-  Legendary 0.0196%, Mythic 0.0004%**, with pity (a Rare block by the 10th without one, an Epic
-  block by the 150th; never a Legendary); the server decides it and the presses' path before
-  the screen shows anything. The first win's block is a guaranteed Rare block on its normal
-  timer (designer, 2026-10-03). ECONOMY.md section 7.
-- **The blocks** (plan, 2026-10-02): six tier blocks, Standard, Uncommon, Rare, Epic, Legendary
-  and Mythic, each guaranteeing at least the rarity below its name. Standard opens at once;
-  Uncommon, Rare, Epic, Legendary and Mythic after 1 min, 5 min, 1 h, 6 h and 12 h (designer,
-  2026-10-07; the Gift keeps 12 h, every other kind none), all timers
-  running at once; VIP has no timers at all (designer, 2026-10-07). Other kinds have their own odds rows: Mystery (the
-  tier roll), Grand Opening (with the Firework Cue 3% and the Beta Cue 0.3%), Starter
-  (the Starter Pack, Rare or better), Sky, Lucky 8 and Gift. **No block is sold permanently**:
-  the four money cases, Buy-10, case sales and the Event Case are gone. Blocks come from
-  wins, rewards, the shop's Mystery and Grand Opening deals and the restock shop. At release:
+- **The daily win track** (economy v4, designer 2026-10-08): the first 10 real wins of each
+  day give lucky blocks in a set order, **Rare, Mystery, Mystery, Uncommon, Mystery, Mystery,
+  Rare, Mystery, Mystery, Epic**; win 11 and later pay money and XP only. A win moves the
+  track exactly when the anti-farm rules allow a block (solo never; the PC and disguised-bot
+  limits still apply); VIP gets no extra steps. The first win ever is always a Rare block.
+  **Every daily thing resets at 08:00 UTC** (the track, the login day, playtime, VIP's block,
+  the anti-farm limits; was midnight UTC). ECONOMY.md section 7.5.
+- **The Mystery block** (v4): it has no timer (designer, 2026-10-07): its hotbar slot says
+  **OPEN!** and a tap opens its **upgrade screen** (like Star Drop, our own look). The block
+  floats over a blur and **starts as Standard**; **5 presses** open it, each lifting it one
+  tier or not, never down. The server rolls the final tier first, **Standard 50%, Uncommon
+  40%, Rare 9.52%, Epic 0.42%, Legendary 0.05%, Mythic 0.01%**, with pity for every Mystery
+  block, bought ones too (a Rare block by the 10th without one, an Epic block by the 100th;
+  never a Legendary), then picks which presses climb, every choice equally likely, so half of
+  all Mystery blocks visibly climb and none fizzles. After the last press it jumps back into
+  its slot as that tier's block, on that tier's timer. ECONOMY.md section 7.1.
+- **The blocks** (plan, 2026-10-02; v4 odds 2026-10-08): six tier blocks, Standard, Uncommon,
+  Rare, Epic, Legendary and Mythic, each guaranteeing at least the rarity below its name, and
+  **every block can reach the Secret** (the Standard block 1 in 1,000,000). Standard opens at
+  once; Uncommon, Rare, Epic, Legendary and Mythic after 1 min, 5 min, 30 min (v4; was 1 h),
+  6 h and 12 h (the Gift keeps 12 h, every other kind none), all timers running at once; VIP
+  has no timers at all (designer, 2026-10-07). Other kinds have their own odds rows: Mystery
+  (the tier roll), Grand Opening (Rare or better, with the Firework Cue 6% and the Beta Cue
+  0.4%), Starter (the Starter Pack, Rare or better), Sky, Lucky 8 and Gift. The four money
+  cases, Buy-10, case sales and the Event Case are gone. Blocks come from the win track,
+  rewards, the shop's Mystery and Grand Opening deals and the restock shop. At release:
   46 block cues (7/9/10/9/7/3/1 from Common to Secret, the cue skins plan, 2026-09-30). Mythic
   and Secret pulls are announced in every server, Legendary pulls in the server only
   ("X unboxed a Legendary Cue!"). The every-server line (designer, 2026-10-05) reads
   **[GLOBAL]: <username> pulled a Mythical Cue!** in a pastel rainbow, or **... a Secret
   Cue!** in red, on the top banner and in chat. No announcement names the cue, only its
-  rarity.
+  rarity. A Legendary or Mythic block in the restock is announced in every server too (v4).
+- **The reel** (designer, 2026-10-08): a block's reel shows only its own pool, every rarity
+  it can drop; one showcase tile (an Epic-to-Secret cue printing its own odds) passes by each
+  spin, never near where it stops; every other tile is at the real odds; no slot-machine looks.
+  ECONOMY.md section 7.2.
 - **Pull cutscene sounds, for later** (designer, 2026-10-05): when the Mythic and Secret
   cutscenes are redone, they also get the Legendary's two bonus reveal sounds: the "Cinematic
   Hit" on the white flash (`Audio.Ui.LegendaryHit`) and the very faint looping angelic
@@ -808,17 +821,19 @@ reworked for lucky blocks on 2026-10-04.
   The Legendary has no sky effect (its gold aurora was dropped, 2026-10-05).
 - **The player stands still through every pull cutscene** (designer, 2026-10-05): no walking
   or jumping, and no turning with the camera, even with shift lock on.
-- **What money buys** (plan, 2026-10-02; blocks 2026-10-04): **Mystery blocks** ($4,900; 10 for
-  $44,100), the **Grand Opening block** while its 21-day deal runs ($49,000; 3 for $139,000;
-  10 for $441,000), the **restock shop** (new blocks every 10 minutes on the clock, the same
-  in every server: three slots that each roll an Uncommon, Rare, Epic or Legendary block, and
-  a VIP-only fourth) and **ability spins** ($17,500 each). A block's timer is skipped for
-  Robux only (19 R$); there is no money skip and no Limited cue for sale at release.
-  ECONOMY.md section 9.
+- **What money buys** (v4 prices, 2026-10-08): **Mystery blocks** ($4,900; 10 for $44,100),
+  the **Grand Opening block** while it runs ($24,900; 3 for $69,900; 10 for $219,000), the
+  **restock shop** (new blocks every 10 minutes on the clock, the same in every server: three
+  slots that each roll a **Rare, Epic, Legendary or Mythic** block, a Mythic about every 5
+  days, and a VIP-only fourth from a richer table; Rare $19,900 up to Mythic $4,990,000) and
+  **ability spins** ($12,500 each). A block's timer is skipped for Robux only, **4 / 9 / 15 R$
+  by time left**; there is no money skip and no Limited cue for sale at release. Buying with
+  money costs about 2-3x the Robux price for everyday blocks and up to about 6x for the rarest
+  known blocks (designer: "about 3x, you set the final ratio"). ECONOMY.md section 9.
 - **Rarities** (designer, 2026-09-27): **Common, Uncommon, Rare, Epic, Legendary, Mythic,
   Secret**, from lucky blocks. Three sit outside that ladder and never come from a tier
-  block: **Unique** (numbered Limited copies: the Firework Cue and the Beta Cue, from the
-  Grand Opening block; there is no Founder's Cue, ever), **Ranked** (the ten rank cues Bronze
+  block: **Unique** (numbered copies: the Firework Cue, 1,000 ever, and the Beta Cue, 100
+  ever, from the Grand Opening block; there is no Founder's Cue, ever), **Ranked** (the ten rank cues Bronze
   Cue to Reyes Cue, each card in its tier's colours; designer, 2026-10-08; they keep the
   Exclusive group's rules: never traded or sold, one each) and **Exclusive** (the VIP Cue, the
   Starter Cue, later season cues). "Ultra" is dropped; VIP is an Exclusive cue, not a rarity.
@@ -839,21 +854,28 @@ reworked for lucky blocks on 2026-10-04.
   minimalist trail: a thin white translucent wisp, like wind off the ball. Rarer cues
   replace it with their own trail and their own pocket effect, and that pairing is the main
   reason to want one. Effects are catalog data (a named style), never code per cue.
-- **The Grand Opening at release** (plan, 2026-10-02; designer, 2026-10-03 and 2026-10-04):
-  the **Firework Cue** and the **Beta Cue** come only from the **Grand Opening block**
-  (3% and 0.3% a block; the 400th opened guarantees Beta), sold for 21 days from a start date
-  the designer sets right before release (off until then; placeholder colours for now), with
-  the release sale on the same window. The $149,000 shelf is gone. There is no Founder's Cue
+- **The Grand Opening at release** (v4, designer 2026-10-08): the **Firework Cue** and the
+  **Beta Cue** come only from the **Grand Opening block** (Rare or better; 6% and 0.4% a
+  block, **capped at 1,000 and 100 copies ever** on a counter every server shares; a player
+  who owns one, or once all are found, sees that row as Rare; a player's 1,000th block
+  guarantees Beta while any are left), sold for **30 days** from a start the designer sets at
+  publish (off until then; placeholder colours for now). The **launch bonus** runs on the same
+  window: every money pack gives +30% money and the 45 R$ Mystery10 gives 13 blocks (it
+  replaced the 30% release sale, whose products are retired). There is no Founder's Cue
   (designer, 2026-10-05). After launch, about one new Limited every 2 weeks when art exists
   ($149,000-$499,000, some for Robux); none is scheduled yet. Seasons, the Cue Pass and event
   blocks come after release.
-- **Free rewards** (plan, 2026-10-02; designer, 2026-10-03; blocks and no popups, 2026-10-04):
-  a **7-day login loop** ($5,000, 1 Mystery block, $10,000, 2 Mystery blocks, $15,000,
-  3 Mystery blocks, a Rare block + 2 ability spins; one free streak freeze a week); a **28-day
-  track** of total days (a Rare block, 2 Rare, 2 Rare, an Epic block); **playtime gifts**
-  (10 min $2,000 up to 120 min a Rare block); the game's **group** (Join and Claim: 3 Mystery
-  blocks once, +10% match money while a member); a **favorite** reward ($10,000 + 1 Mystery
-  block); six **like codes** the designer switches on live at like milestones; **invites** (a
+- **Free rewards** (plan, 2026-10-02; designer, 2026-10-03; blocks and no popups, 2026-10-04;
+  v4, 2026-10-08): **the first week**, a new player's first 7 login days within 14 days of
+  joining, in a row or not ($5,000 + 1 Mystery block, **an Epic block**, $10,000, 2 Mystery
+  blocks, a Rare block, 3 Mystery blocks, **a Legendary block** + 2 ability spins); a day
+  counts only after a finished match that day; then **later weeks** ($5,000, a Rare block,
+  $10,000, 2 Mystery blocks, $15,000, 3 Mystery blocks, an Epic block + 2 ability spins; one
+  free streak freeze a week); a **28-day track** of total days (day 8 a Rare block, 2 Rare,
+  2 Rare, day 28 an Epic block); **playtime gifts**, all within the first hour (5 min $1,000
+  up to 60 min a Rare block + 1 spin); **VIP's Rare block** each day; the game's **group**
+  (Join and Claim: 3 Mystery blocks once, +10% match money while a member); a **favorite**
+  reward ($10,000 + a Lucky 8 block); six **like codes** the designer switches on live at like milestones; **invites** (a
   brand-new friend's first real win gives both a Rare block; the inviter's once ever, at most
   5 a month); **codes** (WELCOME, 8BALL, ROOFTOP, RELEASE). Codes give only money, lucky blocks
   and spins. **Everything is claimed in the Rewards menu**: nothing is given by itself on join
@@ -867,26 +889,34 @@ reworked for lucky blocks on 2026-10-04.
   ECONOMY.md section 10.
 - **Ult spins** ("Ability Spins" to players; designer, 2026-09-28, section 9): the spin
   screen gives ults; spins come from play (starter, daily, VIP's extra daily spin, rank-ups,
-  login day 7, playtime, codes), Robux packs and money ($17,500 a spin), with true odds shown as
+  login day 7, playtime, codes), Robux packs (9 R$ a spin up to 299 R$ for 50) and money
+  ($12,500 a spin), with true odds shown as
   %, pity and Lucky Spins. The plan (2026-10-02) moved Magnet to Uncommon and Heat Seeker to
   Common; Portals is flagged for a re-measure. Ults are kept in 3 slots; a spin replaces the
   selected slot's ult. ECONOMY.md section 11.8.
-- **VIP** (one-time pass, 499 R$ *(tune)*; designer, 2026-10-04: was 599, the Quick Cases pass
-  retired into it): 2x money, **no block timers** (every block opens at once; designer, 2026-10-07), Skip and Auto Spin on the spin
+- **VIP** (one-time pass, **399 R$** *(tune)*; v4, 2026-10-08: was 499, and 599 before the
+  Quick Cases pass retired into it): 2x money, **no block timers** (every block opens at once;
+  designer, 2026-10-07), **a Rare lucky block every day** (designer, 2026-10-08; $5,000 where
+  paid random items are restricted), Skip and Auto Spin on the spin
   screen, +1 free ability spin a day, the VIP slot in the restock shop (a fourth block every
   restock), the VIP Cue, a [VIP] chat tag before the rank tag ("[VIP] [GOLD] Name"; the name
   in chat keeps Roblox's colour) and a rainbow name over the head whose colours drift slowly
-  (designer, 2026-09-28). Never blocks, never better odds, no XP boost, no discount. A
-  **welcome offer** at half price (249 R$) for 24 hours from the first join, plus one 24-hour comeback window 7 days later (designer, 2026-09-27; Roblox's rules
+  (designer, 2026-09-28). Never better odds, no XP boost, no discount, no extra win-track
+  steps. A **welcome offer** at half price (199 R$) for 24 hours from the first join, plus one 24-hour comeback window 7 days later (designer, 2026-09-27; Roblox's rules
   call short pressure windows unfair, so not 15 minutes). ECONOMY.md section 11.
-- **Starter Pack** (99 R$, once, in the first 7 days *(tune)*): a Starter lucky block (Rare or
-  better; designer, 2026-10-04, in place of the Starter Cue), $75,000 and 1 hour of 2x money.
-- **Other Robux products** at release (plan, 2026-10-02; reworked 2026-10-04): 3 game passes
-  (VIP, Ability Slot 2 and 3) and 31 developer products (VIP offer, Starter Pack, 7 money
-  packs 49 to 4,999 R$, Mystery blocks, Grand Opening blocks, the restock Rare, Epic and
-  Legendary blocks, the 19 R$ block timer skip, Money Party, 4 spin packs, 2 Lucky Spin packs
-  and the release sale's copies), plus a Get Roblox Plus button. Quick Cases and the four case
-  timer skips are retired. The shop is one scrolling page with no tabs.
+- **Starter Pack** (**19 R$**, v4; once, in the first 7 days *(tune)*): a Starter lucky block
+  (Rare or better, Epic 9%), $25,000 and 1 hour of 2x money; where paid random items are
+  restricted, $40,000 and the hour, no block.
+- **Other Robux products** at release (v4 prices, 2026-10-08: everything cheaper, the top
+  price **1,699 R$**, one phone Robux pack): 3 game passes (VIP, Ability Slot 2 and 3 at 49 and
+  79 R$) and 34 developer products: VIP offer, Starter Pack, 7 money packs 25 to 1,699 R$
+  (about 1.7x the money per Robux of before; the first-pack double is off; "Best value" is the
+  biggest), Mystery blocks (5 R$, 10 for 45), Grand Opening blocks (19 / 49 / 149 R$), the
+  restock Rare, Epic, Legendary and Mythic blocks (15 / 99 / 599 / 1,699 R$), three timer
+  skips (4 / 9 / 15 R$), Money Party (49 R$), 4 spin packs, 2 Lucky Spin packs, and the six
+  retired release-sale copies (kept, never deleted), plus a Get Roblox Plus button. Bundle
+  savings are always against the one-by-one price. The shop is one scrolling page with no
+  tabs.
   Never anything that protects rank, no luck economy, no money bets, no offline income; the one
   luck purchase is ability spins (odds always shown, pity kept). Later: a Cue Pass, gifts,
   the Beta Cue on its own. ECONOMY.md section 11.
@@ -900,8 +930,10 @@ reworked for lucky blocks on 2026-10-04.
 - **Trading is in the first release** (built 2026-10-03, the screen is the GUI lane's): open to
   **anyone in the server, no gate** (designer, 2026-10-03; the plan's 25-win gate was dropped).
   Cues and ready lucky blocks, up to 8 a side, never money; any change restarts a 3-second confirm on
-  both sides; a warning when the sides are far apart by copies in existence; the last 50 trades
-  in a history. The swap is server-side and atomic with a ledger: both saves change or neither.
+  both sides; a warning when the sides are far apart by copies in existence (a block's worth
+  worked out live from its odds and the copies of each rarity, v4); an unopened paid block
+  only moves between two players whose paid random items are not restricted; the last 50
+  trades in a history. The swap is server-side and atomic with a ledger: both saves change or neither.
   A trade pays no finder's money. ECONOMY.md section 12.
 - **Index** (designer, 2026-09-26): a collection screen of the game's cues.
 - **Cue models:** every cue is its own small mesh plus a named effect style. Hundreds are
@@ -929,10 +961,14 @@ reworked for lucky blocks on 2026-10-04.
   and jump buttons for the GUI overhaul), Inventory (two tabs, Cues then the Index; lucky
   blocks live in the hotbar and its bag, not here), Rewards (login loop, 28-day track,
   playtime, codes, group, favorite, invites) and Trade.
-- **Bots' cues** (plan, 2026-10-02): a bot's cue rarity follows its tier (Bronze 5% Epic or
-  better up to Reyes 99%); a bot never shows the Secret cue. ECONOMY.md section 15.
-- **Targets** (designer, 2026-10-02): at day 30, about 5% of active players own an Epic, 1% a
-  Legendary, 0.5% or less a Mythic, the Secret far rarer. `tools/economy_model.py` checks them.
+- **Bots' cues** (v4, 2026-10-08): a bot's cue rarity follows what real players at its tier
+  own (Bronze 25% Epic or better up to Reyes 99%); a bot never shows the Secret cue.
+  ECONOMY.md section 15.
+- **Targets** (approved with v4, 2026-10-08; replacing the day-30 targets of 2026-10-02): the
+  share of players active in the last 7 days who own one, at day 7 / 30 / 60: Epic 15-22% /
+  25-35% / 35-45%, Legendary 2-3% / 6-9% / 10-14% (week 1 the designer's), Mythic 1% or less /
+  0.7-1.2% / 1.2-2%, the Secret far rarer (0.05-0.15% at day 30). `tools/economy_model.py`
+  checks them against the numbers in Config. ECONOMY.md section 1.
 - **Analytics**: every money source and sink goes to `AnalyticsService:LogEconomyEvent`.
 - **R15 only** (designer, 2026-10-02): Roblox pays more per Robux on purchases by age-checked
   US adults only in games without R6.

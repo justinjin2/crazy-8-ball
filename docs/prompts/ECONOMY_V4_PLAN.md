@@ -963,6 +963,22 @@ and 12, a dated `DECISIONS.md` line per decision, a `ROADMAP.md` box, `STATUS.md
   190; 45, 90 and 450; 75), until the shop shows it as "one by one".
 - `Config.Products.BestValue` stays, set to `Pack7`.
 
+**As built (2026-10-08, branch `economy-v4`): what the screens can read.**
+- `RewardView` (Free Reward): `login.firstWeek`, `login.firstWeekDays`, `login.firstWeekLeft`
+  (days left in the 14-day window), `login.needsMatch` (today's claim waits for a finished
+  match; the claim answers the reason `NeedsMatch`), the tiles show the first week while
+  `firstWeek` is true; `wins = { given, kinds }` for the next-reward bar (steps given today and
+  each step's block kind); `resetsAt` is the next 08:00 UTC.
+- `ShopView` (shop): `launchBonus` (the window: +30% packs, 13 for 10), `uniques[rowId]` (each
+  capped Unique: `cue`, `cap`, `found`, `left`, `closed`), a guarantee's `soldOut`; retired sale
+  products show as "Closed".
+- Trading's payload: `blocksOk` (paid lucky blocks may move in this trade).
+- The skip: the server prompts the product for the selected block's time left
+  (`LuckyBlocks.skipProduct`); the button only needs the price for the same tier
+  (`Config.LuckyBlocks.Skips`).
+- New player-facing text is in `Strings` (`ShopV4`, `WinTrack`, `Login`, `Reveal.Decided`,
+  `Banner.Restock`, `Skip`); the restock announcement is sent through `Announce.restock`.
+
 ### 18.2 For the thumbnail session (every shown odd that changes)
 
 | Label today | What it is | New |

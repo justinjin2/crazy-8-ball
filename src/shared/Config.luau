@@ -1937,7 +1937,7 @@ Config.BlockOdds = {
 	-- block kind names the row it rolls (Config.LuckyBlocks.Kinds[kind].Odds).
 	Order = { "Standard", "Uncommon", "Rare", "Epic", "Legendary", "Mythic" },
 	-- Odds tables outside the ladder (the lucky-block economy, designer 2026-10-04): the Sky
-	-- block (Lucky Rain), the Grand Opening block (21 days) and the Starter block (the Starter
+	-- block (Lucky Rain), the Grand Opening block (30 days) and the Starter block (the Starter
 	-- Pack). They roll the whole core pool (every block cue of a rarity), never the tier roll.
 	Extra = { "Sky", "GrandOpening", "Starter" },
 	-- Rarities, bottom to top (GDD section 12). Exclusive and Unique sit outside the ladder.
@@ -3111,7 +3111,7 @@ Config.Daily = {
 	-- The Rewards service's limits (src/server/Rewards.luau; server limits, not ECONOMY.md
 	-- numbers): one RewardRequest per player this often, one code attempt this often (so codes
 	-- cannot be guessed quickly), and how often the server looks for a new UTC day (section 10:
-	-- the streak and the gifts start over at midnight UTC, and the menu's state is re-sent).
+	-- the streak and the gifts start over at Config.Daily.ResetHour UTC, and the menu's state is re-sent).
 	RequestCooldownSeconds = 0.5,
 	RedeemCooldownSeconds = 2,
 	DayCheckSeconds = 1,
@@ -3409,10 +3409,9 @@ Config.Shop = {
 -- fallback only: the shop shows Roblox's live price once an id exists (11).
 ---------------------------------------------------------------------------------------------
 Config.Products = {
-	-- Everything Robux buys (the approved economy plan, 2026-10-02, section 5): 4 game passes
-	-- and 24 developer products with exactly these names, prices and descriptions
-	-- (docs/prompts/ECONOMY_PROMPT.md step 3), created 2026-10-03 through Open Cloud by
-	-- tools/roblox_products.py (managed pricing off). Id 0 would show "Coming soon" and prompt
+	-- Everything Robux buys (economy v4, 2026-10-08; tools/products_spec.json holds the names,
+	-- prices and descriptions): 3 game passes and 34 developer products (6 retired), made
+	-- through Open Cloud by tools/roblox_products.py (managed pricing off; --sync updates them). Id 0 would show "Coming soon" and prompt
 	-- nothing. Robux is the fallback price; the live price
 	-- is read from Roblox. Random = true: a paid random item, refused where PolicyService
 	-- restricts them (ArePaidRandomItemsRestricted).
@@ -3424,7 +3423,7 @@ Config.Products = {
 		-- Game passes.
 		-- VIP (399 R$, economy v4 2026-10-08: was 499; no block timers, fast reveals, Auto Spin,
 		-- a Rare block a day: Config.Daily.VipBlocks). The live price is read from Roblox;
-		-- tools/roblox_products.py --prices sets it. The Quick Cases pass (id 2006144658) was
+		-- tools/roblox_products.py --sync sets it. The Quick Cases pass (id 2006144658) was
 		-- retired into VIP 2026-10-04.
 		Vip = { Kind = "Pass", Id = 2005370712, Robux = 399 },
 		UltSlot2 = { Kind = "Pass", Id = 2006096679, Robux = 49 }, -- the second ability slot

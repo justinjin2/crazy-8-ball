@@ -437,6 +437,17 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   after it. The save layer changes both players' saves together or not at all, so no cue is
   ever duplicated or lost. Done means: two players swap cues, and a trade broken off at any
   moment (a player leaves, the server shuts down) leaves both inventories as they were.
+- [ ] **7.8 Economy v4, "the forgiving economy".** Approved 2026-10-08 (`docs/prompts/ECONOMY_V4_PLAN.md`;
+  numbers in `docs/ECONOMY.md`). Built on branch `economy-v4` (Lune-tested, 2026-10-08): the
+  Mystery block's 5-press climb from Standard with pity for every Mystery block, a Secret in
+  every odds row, the 10-step daily win track, the 08:00 UTC reset, the first week (7 login
+  days within 14) and later weeks, VIP's daily Rare block, the restock with Mythic blocks and
+  announcements, the Grand Opening's copy caps and guarantee, the launch bonus, the 19 R$
+  Starter Pack, the skip by time left (4 / 9 / 15 R$), live block worth in trading, every
+  Robux price lowered, save version 9. Done means: merged, the prices live on Roblox, and a
+  Studio check of the shop prices, the Mystery screen, the rewards, the timers and the skip.
+  Still to come with the GUI: the screens listed in the plan's hand-off (section 18). Planned,
+  not built: the Lucky Shot, Golden Shot, Lucky Rain and the stay bonus (`Config.Planned`).
 
 ---
 

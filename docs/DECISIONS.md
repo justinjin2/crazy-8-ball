@@ -3169,3 +3169,41 @@ timer of a new block stay the designer's call.
 - 2026-10-08: The GUI redo pauses after the Cues menu and the lucky block reel's cards
   (designer): the economy plan, a cheaper and more balanced economy, comes first. The designer
   continues the remaining lively GUIs (Free Reward, Abilities, Ranked) from another session.
+- 2026-10-08 (designer: "ok approved"): economy v4, "the forgiving economy", replaces the
+  economy's numbers and several rules (`docs/prompts/ECONOMY_V4_PLAN.md`; today's state in
+  `docs/ECONOMY.md`). The targets: about 15-22% of active players own an Epic and 2-3% a
+  Legendary after week 1; 25-35% and 6-9% at day 30. `tools/economy_model.py` meets every
+  target with Config's numbers (day 30: Epic 32%, Legendary 7.8%, Mythic 0.9%, Secret 0.1%).
+- 2026-10-08 (designer): Robux prices drop everywhere (packs from 25 R$, VIP 399, Mystery 5 /
+  45, Grand Opening 19 / 49 / 149, restock 15 / 99 / 599 / 1,699, spins 9 / 39 / 75 / 299, the
+  skip 4 / 9 / 15 by time left). The products are updated through Open Cloud
+  (`tools/roblox_products.py --sync`) right before the merge.
+- 2026-10-08 (designer's call, the recommendation): copy numbers keep #1-100 for every rarity,
+  though v4 hands those out within about the first month; alts are handled by the first-week
+  match rule (a login day counts only after a finished match). No 7-day trade hold for now.
+- 2026-10-08: the Grand Opening runs 30 days (the designer: "start at publish, maybe 30-45
+  days"; the plan modelled 21). The copy caps (Firework 1,000, Beta 100) keep the Uniques the
+  same at any length, so the window can be stretched without making more.
+- 2026-10-08: the launch bonus (+30% on money packs, 10 Mystery blocks come as 13) replaces the
+  30% release sale, during the Grand Opening window plus the receipt grace. The 13-for-10 is on
+  the Robux 10-pack only; the money bulk price is unchanged. The six sale products are retired
+  ("Closed" in the shop, off sale on Roblox, never deleted).
+- 2026-10-08: the Starter Pack is no longer a paid random item in Config (`Random` off): where
+  PolicyService restricts paid random items it gives $40,000 and the hour of 2x money with no
+  block, so it can be sold everywhere.
+- 2026-10-08: "Best value" moves to Pack7 (+40%, the biggest bonus); Pack6 lost it.
+- 2026-10-08: a bulk product's `Was` is the same count bought one at a time (Spin5 45 = 5 x 9),
+  shown as "one by one", never as a former price (Roblox's fake-discount rule).
+- 2026-10-08: no minimum gap between two login claims: the 08:00 UTC reset alone decides the
+  day, so a claim at 07:59 and one at 08:01 are two days.
+- 2026-10-08: the restock's Rare block has Stock 2 per player per restock (one block per
+  press); Epic and up stay at 1.
+- 2026-10-08: VIP's daily Rare block counts a player whose PolicyService answer has not arrived
+  as restricted: they get $5,000 that day. Safer than handing a paid random item early.
+- 2026-10-08: the save migration to version 9 gives the first-week loop as done to a save with
+  7 or more claimed login days (it had its first week under the old loop), and starts today's
+  daily counters over for the new 08:00 UTC day boundary.
+- 2026-10-08: a skip credit remembers its price tier (4 / 9 / 15 R$); a cheap credit never
+  finishes a longer timer than it was bought for.
+- 2026-10-08: unopened paid blocks trade or gift only between two players whose paid random
+  items are allowed; a restricted giver cannot gift a random product.
