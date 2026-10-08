@@ -150,7 +150,7 @@ return {
 			local r = Requests.parse("ClaimIndexRow", rarity)
 			H.expect(r ~= nil and r.rarity == rarity, rarity)
 		end
-		for _, group in { "Exclusive", "Unique" } do
+		for _, group in { "Ranked", "Exclusive", "Unique" } do
 			H.expect(Requests.parse("ClaimIndexRow", group) ~= nil, group .. " (NoReward later)")
 		end
 		for _, bad in JUNK do

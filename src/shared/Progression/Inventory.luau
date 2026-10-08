@@ -63,13 +63,16 @@ local Inventory = {}
 -- removeCue's last count of paid copies taken (Inventory.removedPaid).
 local lastRemovedPaid = 0
 
--- The Index's rows: the rarity ladder, then the two groups outside it.
+-- The Index's rows: the rarity ladder, then the three outside it (the rank cues' Ranked row
+-- since 2026-10-08).
 local INDEX_GROUPS: { string } = table.clone(Config.BlockOdds.Rarities)
+table.insert(INDEX_GROUPS, "Ranked")
 table.insert(INDEX_GROUPS, "Exclusive")
 table.insert(INDEX_GROUPS, "Unique")
 
--- The catalog rarest first (Unique, Secret ... Legendary, Exclusive, Epic ... Common, Classic),
--- catalog order inside a rarity: the snapshot's order.
+-- The catalog rarest first (Unique, Secret ... Legendary, Ranked, Exclusive, Epic ... Common,
+-- Classic), catalog order inside a rarity except the rank cues, highest tier first (designer,
+-- 2026-10-08): the snapshot's order.
 local RAREST_FIRST: { Catalog.Cue } = {}
 do
 	local position: { [string]: number } = {}
@@ -77,10 +80,18 @@ do
 		position[cue.Id] = i
 		table.insert(RAREST_FIRST, cue)
 	end
+	local tierPlace: { [string]: number } = {}
+	for i, tier in Config.Ranks.Tiers do
+		tierPlace[tier] = i
+	end
 	table.sort(RAREST_FIRST, function(a, b)
 		local ra, rb = Catalog.rarityRank(a.Rarity), Catalog.rarityRank(b.Rarity)
 		if ra ~= rb then
 			return ra > rb
+		end
+		local ta, tb = a.Tier and tierPlace[a.Tier], b.Tier and tierPlace[b.Tier]
+		if ta and tb and ta ~= tb then
+			return ta > tb
 		end
 		return position[a.Id] < position[b.Id]
 	end)

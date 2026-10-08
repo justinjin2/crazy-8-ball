@@ -405,13 +405,17 @@ return {
 			H.expect((B :: any)[key] == nil, "Boosts." .. key .. " is gone")
 		end
 		H.expect(B.StreakFrom == Config.Economy.StreakFrom, "one streak for XP and money")
-		-- Rank cues are Exclusive: never traded or sold (ECONOMY 4.8).
+		-- Rank cues are the Ranked rarity in the Exclusive group: never traded or sold
+		-- (ECONOMY 4.8).
 		local ok, Catalog = pcall(H.require, "Progression.Catalog")
 		if ok and type(Catalog) == "table" and Catalog.get then
 			for cue in cues do
 				local row = Catalog.get(cue)
 				H.expect(row ~= nil, "the catalog has " .. cue)
-				H.expect(row.Rarity == "Exclusive", cue .. " is Exclusive")
+				H.expect(
+					row.Rarity == "Ranked" and row.Group == "Exclusive",
+					cue .. " is Ranked in the Exclusive group"
+				)
 				H.expect(row.Tradable ~= true and row.Sellable ~= true, cue .. " stays yours")
 			end
 		end

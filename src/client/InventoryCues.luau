@@ -94,7 +94,8 @@ local function countOf(row: any): number
 end
 
 -- The rows in `sort`'s order. Ties (and "RarestFirst") keep the snapshot's order: rarest
--- first, then catalog order.
+-- first, then catalog order (rank cues highest tier first). "CommonFirst" turns the rank cues
+-- round too, lowest tier first.
 local function sorted(rows: { any }, sort: string): { any }
 	local keyed = {}
 	for index, row in rows do
@@ -103,6 +104,7 @@ local function sorted(rows: { any }, sort: string): { any }
 			row = row,
 			index = index,
 			rank = if cue then Catalog.rarityRank(cue.Rarity) else 0,
+			tier = if cue and cue.Tier then table.find(Config.Ranks.Tiers, cue.Tier) else nil,
 			count = countOf(row),
 			name = string.lower(CueThumb.cueName(row.id)),
 		})
@@ -110,6 +112,8 @@ local function sorted(rows: { any }, sort: string): { any }
 	table.sort(keyed, function(a, b)
 		if sort == "CommonFirst" and a.rank ~= b.rank then
 			return a.rank < b.rank
+		elseif sort == "CommonFirst" and a.tier and b.tier and a.tier ~= b.tier then
+			return a.tier < b.tier
 		elseif sort == "MostCopies" and a.count ~= b.count then
 			return a.count > b.count
 		elseif sort == "NameAZ" and a.name ~= b.name then

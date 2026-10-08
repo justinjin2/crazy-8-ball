@@ -2886,7 +2886,8 @@ Config.Index = {
 		Legendary = 25000,
 		Mythic = 100000,
 		Secret = 500000,
-		Exclusive = 5000, -- rank cues, the VIP and Starter cues
+		Ranked = 5000, -- the ten rank cues (Exclusive's amount before they had their own rarity)
+		Exclusive = 5000, -- the VIP and Starter cues
 		Unique = 10000, -- numbered Limited cues
 	},
 }
@@ -6579,6 +6580,9 @@ Config.UI = {
 			Secret = { 30, 24, 32 },
 			Unique = { 255, 92, 184 },
 			Exclusive = { 59, 155, 255 },
+			-- The rank cues' rarity (2026-10-08): a medal gold for the Index's row and anything
+			-- without a tier; each rank card wears its own tier's colours (Config.UI.CueCard.Tiers).
+			Ranked = { 255, 184, 28 },
 			Default = { 156, 163, 175 },
 		},
 		-- Mythic's shimmer colours over its deep-space background, and Secret's red glow.

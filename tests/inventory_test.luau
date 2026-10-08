@@ -443,7 +443,7 @@ return {
 		end
 		H.expect(
 			table.concat(order, " ")
-				== "Common Uncommon Rare Epic Legendary Mythic Secret Exclusive Unique",
+				== "Common Uncommon Rare Epic Legendary Mythic Secret Ranked Exclusive Unique",
 			"row order: " .. table.concat(order, " ")
 		)
 		for _, row in rows do
@@ -506,6 +506,8 @@ return {
 
 		ok, why = Inventory.claimRow(save, "Exclusive")
 		H.expect(not ok and why == "NoReward", "Exclusive: " .. tostring(why))
+		ok, why = Inventory.claimRow(save, "Ranked")
+		H.expect(not ok and why == "NoReward", "Ranked: " .. tostring(why))
 		ok, why = Inventory.claimRow(save, "Nope")
 		H.expect(not ok and why == "Unknown", "unknown: " .. tostring(why))
 		ok, why = Inventory.claimRow(save, 3)
@@ -528,6 +530,24 @@ return {
 		local old = newSave()
 		old.Inventory.Cues.KitsuneCue = 1
 		H.expect(Inventory.indexRows(old)[6].have == 1, "held but not Seen")
+	end,
+
+	["the rank cues sort together, highest tier first (designer, 2026-10-08)"] = function()
+		local Inventory = load()
+		local save = newSave()
+		Inventory.addCue(save, "SilverCue")
+		Inventory.addCue(save, "VipCue")
+		Inventory.addCue(save, "ReyesCue")
+		Inventory.addCue(save, "PhoenixCue")
+		Inventory.addCue(save, "MagmaCue")
+		Inventory.addCue(save, "BronzeCue")
+		Inventory.addCue(save, "DiamondCue")
+		local snap = Inventory.snapshot(save)
+		H.expect(
+			ids(snap.cues)
+				== "PhoenixCue ReyesCue DiamondCue SilverCue BronzeCue VipCue MagmaCue Classic",
+			"cues: " .. ids(snap.cues)
+		)
 	end,
 
 	["snapshot is plain data in a fixed order"] = function()
@@ -566,7 +586,7 @@ return {
 			table.concat(snap.titles, " ") == "FirstReyes",
 			"titles: " .. table.concat(snap.titles, " ")
 		)
-		H.expect(#snap.rows == 9, "rows")
+		H.expect(#snap.rows == 10, "rows")
 
 		-- Changing the save afterwards never reaches a snapshot already taken.
 		Inventory.addCue(save, "NeonCue")

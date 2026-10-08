@@ -7,7 +7,7 @@
 -- A row:
 --   Id        stable catalog id (saved; never renamed)
 --   Rarity    Common ... Secret for block cues and Classic (a Common, designer 2026-09-30);
---             "Exclusive" or "Unique"
+--             "Ranked" for the ten rank cues (designer, 2026-10-08), "Exclusive" or "Unique"
 --   Group     "Block" (drops from lucky blocks), "Exclusive" (one special way each), "Unique"
 --             (numbered Limited copies) or "Default"
 --   Tradable  may be traded (trading is a later session; the flag is stored now): block and
@@ -85,7 +85,9 @@ end
 local function rankCue(id: string, tier: string, effect: string): Cue
 	return {
 		Id = id,
-		Rarity = "Exclusive",
+		-- One rarity for all ten (designer, 2026-10-08), each card in its tier's colours. The
+		-- group stays Exclusive: trading, selling, the padlock and one copy each read Group.
+		Rarity = "Ranked",
 		Group = "Exclusive",
 		Tradable = false, -- a Reyes Cue proves Reyes (ECONOMY 4.8)
 		Sellable = false,
@@ -191,7 +193,8 @@ local CUES: { Cue } = {
 	blockCue("ApexCue", "Mythic"),
 	-- Secret (1): one of a kind.
 	blockCue("EclipseCue", "Secret"),
-	-- Exclusive: the ten rank cues, in their tier colours (Reyes in the house rainbow).
+	-- Ranked (group Exclusive): the ten rank cues, in their tier colours (Reyes in the house
+	-- rainbow).
 	rankCue("BronzeCue", "Bronze", "Uncommon"),
 	rankCue("SilverCue", "Silver", "Uncommon"),
 	rankCue("GoldCue", "Gold", "Uncommon"),
@@ -242,6 +245,8 @@ RARITY_ORDER.Exclusive = assert(
 	RARITY_ORDER[Config.BlockOdds.ExclusiveRanksAbove],
 	"Catalog: ExclusiveRanksAbove names no rarity"
 ) + 0.5
+-- Ranked (the rank cues) sorts where Exclusive does, ahead of VIP and Starter on the catalog tie.
+RARITY_ORDER.Ranked = RARITY_ORDER.Exclusive
 RARITY_ORDER.Unique = #Config.BlockOdds.Rarities + 1
 RARITY_ORDER.Default = 0
 
@@ -263,13 +268,14 @@ function Catalog.exists(id: any): boolean
 	return Catalog.get(id) ~= nil
 end
 
---- A rarity's (or group's) place for sorting: 1 Common ... 7 Secret, 4.5 Exclusive (between
---- Epic and Legendary), 8 Unique, 0 Default; unknown names 0.
+--- A rarity's (or group's) place for sorting: 1 Common ... 7 Secret, 4.5 Ranked and Exclusive
+--- (between Epic and Legendary), 8 Unique, 0 Default; unknown names 0.
 function Catalog.rarityRank(rarity: string): number
 	return RARITY_ORDER[rarity] or 0
 end
 
---- The cues of one rarity or group, in catalog order ("Common", ..., "Exclusive", "Unique").
+--- The cues of one rarity or group, in catalog order ("Common", ..., "Ranked", "Exclusive",
+--- "Unique").
 function Catalog.ofRarity(rarity: string): { Cue }
 	local list = {}
 	for _, cue in CUES do

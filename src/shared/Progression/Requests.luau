@@ -143,9 +143,9 @@ local function cueIds(list: any, max: number): { string }?
 	return ids
 end
 
--- The Index's rows a claim may name: the rarities, then the two groups outside the ladder
+-- The Index's rows a claim may name: the rarities, then the three rows outside the ladder
 -- (PlayerData answers NoReward for those).
-local INDEX_ROWS: { [string]: boolean } = { Exclusive = true, Unique = true }
+local INDEX_ROWS: { [string]: boolean } = { Ranked = true, Exclusive = true, Unique = true }
 for _, rarity in C.Rarities do
 	INDEX_ROWS[rarity] = true
 end

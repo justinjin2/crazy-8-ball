@@ -55,6 +55,7 @@ local COPIES_FOLDER = "CueCounts" -- ReplicatedStorage.CueCounts: copies in exis
 
 -- The rows, top to bottom (as Progression/Inventory.indexRows).
 local GROUPS: { string } = table.clone(Config.BlockOdds.Rarities)
+table.insert(GROUPS, "Ranked")
 table.insert(GROUPS, "Exclusive")
 table.insert(GROUPS, "Unique")
 

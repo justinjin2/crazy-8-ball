@@ -54,10 +54,12 @@ return {
 		H.expect(total == 46, ("%d block cues, expected 46"):format(total))
 	end,
 
-	["12 Exclusive (the ten rank cues, VIP, Starter), 2 Unique, Classic, nothing else"] = function()
+	["10 Ranked (the rank cues), 2 Exclusive (VIP, Starter), 2 Unique, Classic, nothing else"] = function()
 		local Catalog, Config = load()
 		local exclusive = Catalog.ofRarity("Exclusive")
-		H.expect(#exclusive == 12, ("%d Exclusive, expected 12"):format(#exclusive))
+		H.expect(#exclusive == 2, ("%d Exclusive, expected 2"):format(#exclusive))
+		local ranked = Catalog.ofRarity("Ranked")
+		H.expect(#ranked == 10, ("%d Ranked, expected 10"):format(#ranked))
 		local unique = Catalog.ofRarity("Unique")
 		H.expect(#unique == 2, ("%d Unique, expected 2"):format(#unique))
 		H.expect(
@@ -70,7 +72,8 @@ return {
 			"VIP and Starter cues"
 		)
 
-		-- Every tier's reward cue is an Exclusive rank cue with that Tier, and tierCue finds it.
+		-- Every tier's reward cue is a Ranked rank cue (group Exclusive: never traded, sold or
+		-- doubled) with that Tier, and tierCue finds it.
 		local rankCues = 0
 		for _, tier in Config.Ranks.Tiers do
 			local id = (Config.Ranks.Rewards.Tier :: any)[tier].Cue
@@ -81,8 +84,8 @@ return {
 			)
 			assert(cue, "no cue")
 			H.expect(
-				cue.Rarity == "Exclusive" and cue.Group == "Exclusive",
-				id .. " is not Exclusive"
+				cue.Rarity == "Ranked" and cue.Group == "Exclusive",
+				id .. " is not Ranked in the Exclusive group"
 			)
 			H.expect(
 				cue.Tier == tier,
@@ -164,14 +167,15 @@ return {
 			H.expect(type(Strings.Items.Rarities[rarity]) == "string", "no name for " .. rarity)
 			H.expect(Catalog.rarityRank(rarity) == i, rarity .. " rank")
 		end
-		for _, group in { "Exclusive", "Unique", "Default" } do
+		for _, group in { "Ranked", "Exclusive", "Unique", "Default" } do
 			H.expect(type(Strings.Items.Rarities[group]) == "string", "no name for " .. group)
 		end
 		H.expect(
 			Catalog.rarityRank("Exclusive") > Catalog.rarityRank("Epic")
 				and Catalog.rarityRank("Exclusive") < Catalog.rarityRank("Legendary")
+				and Catalog.rarityRank("Ranked") == Catalog.rarityRank("Exclusive")
 				and Catalog.rarityRank("Unique") > Catalog.rarityRank("Secret"),
-			"Exclusive between Epic and Legendary, Unique on top"
+			"Ranked and Exclusive between Epic and Legendary, Unique on top"
 		)
 		H.expect(
 			Catalog.rarityRank("Default") == 0 and Catalog.rarityRank("Nope") == 0,

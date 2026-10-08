@@ -583,6 +583,7 @@ return {
 			Mythic = "Mythic",
 			Secret = "Secret",
 			Exclusive = "Exclusive",
+			Ranked = "Ranked",
 			Unique = "Unique",
 			Default = "Default",
 		},
