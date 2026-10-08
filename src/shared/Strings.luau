@@ -1025,6 +1025,8 @@ return {
 	},
 	-- The daily win track's bar above the hotbar (economy v4 plan section 5).
 	WinTrack = {
+		Wins = "Wins %d/%d", -- the bar's left pill (the designer's pick A)
+		NextTag = "NEXT", -- the gold tag on the next step's tile
 		Count = "Lucky Blocks today %d/%d",
 		Next = "Next win: %s", -- the next step's block name
 		Done = "%d/%d · wins pay money and XP today",

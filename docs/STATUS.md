@@ -61,9 +61,9 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Abilities films the real character; Lucky Spins retired (save v10); Ranked's reward tiles one
   size; Claim All's server side; the restock banner; bigger money packs and the Starter Pack
   at 29 R$ with its cue; the Shop's Blocks tab (Mystery A, Restock B, Starter Pack and VIP A),
-  Money tab (B) and Passes tab (B), each on PC and a phone-sized layout. At publish: `tools/roblox_products.py --sync` (the Starter Pack
+  Money tab (B) and Passes tab (B), each on PC and a phone-sized layout; the HUD's win track (A). At publish: `tools/roblox_products.py --sync` (the Starter Pack
   at 29, the pack texts, Lucky1 and Lucky3 off sale); Claim All's six products are made when the
-  Daily screen ships. Next: the HUD win track A, Daily A in one Free Reward
+  Daily screen ships. Next: Daily A in one Free Reward
   menu, Ranked A, Abilities A, the Mystery screen B, Settings A. Trade is not built (not in the
   release).
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in

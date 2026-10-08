@@ -1352,6 +1352,8 @@ local function renderFrame(dt: number)
 		afterMatch = seated ~= nil and seated.phase == "Result",
 		shooting = controlled,
 		matchUserIds = matchIds,
+		-- The matchmaking bar or an opponent's ask has the space over the hotbar.
+		overHotbar = matchBar:isOpen() or opponentPrompt:isOpen(),
 	})
 	-- The ult bar: it fades while the cue is pulled back, the bottom lines sit above it, and the
 	-- controller guide lists "Ult" while it offers its press.

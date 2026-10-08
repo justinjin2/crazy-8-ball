@@ -8055,6 +8055,59 @@ Config.UI.MatchBar = {
 	PublicLobbyAttribute = "PublicLobby",
 }
 
+-- The day's win track over the lucky block hotbar (WinTrack; the designer's pick A on the mock
+-- page, 2026-10-08; economy v4 plan section 5): ten tiles in a white bar, one per counted win
+-- of the day, "Wins 3/10" and the time to the reset across its top edge. It takes the
+-- matchmaking bar's place (they never show together). Pixels are a computer's; a phone draws
+-- the same bar at PhoneScale.
+Config.UI.WinTrack = {
+	BottomPx = 10, -- from the screen's bottom, plus the hotbar's lift (BottomLift) when it shows
+	PhoneScale = 0.66, -- the whole bar on a phone (screen narrower than LuckyBlocks.UI.PhoneWidthPx)
+	ZIndex = 25, -- under the matchmaking bar's
+	TilePx = 46, -- a step's tile, square
+	TileGapPx = 6,
+	PadPx = 8, -- the bar's room left, right and under the tiles
+	TopPadPx = 22, -- its room over them: the pills sit across its top edge
+	CornerPx = 14,
+	TileCornerPx = 10,
+	TileEdgePx = 2,
+	TileColor = { 255, 255, 255 },
+	TileEdge = { 176, 214, 245 }, -- the panels' pale blue
+	IconShare = 0.72, -- the step's block, a share of its tile
+	-- A step's number: a navy dot on its tile's top left corner (its centre this far in). On a
+	-- phone its words stay at 9 px or more (a small tag over art, UI_STYLE).
+	NumberPx = 20,
+	NumberInsetPx = 3,
+	NumberTextPx = 14,
+	NumberColor = { 24, 36, 86 }, -- the Shop's title pill navy
+	-- A step given today: its tile greyed, its block faded, a green tick over it.
+	DoneColor = { 214, 222, 234 },
+	DoneTransparency = 0.5,
+	CheckShare = 0.7,
+	TickDelaySeconds = 0.2, -- a new tick pops this long after the bar shows
+	TickStaggerSeconds = 0.1, -- and each further one this much later
+	-- The next step: a thick gold edge and the gold NEXT tag across its tile's bottom edge,
+	-- hopping gently (still with Reduce Motion).
+	NextEdge = { 255, 196, 40 },
+	NextEdgePx = 3,
+	NextColor = { 255, 196, 40 },
+	NextTagPx = { 48, 19 }, -- width, height
+	NextTextPx = 14, -- 9 px on a phone
+	HopPx = 3, -- how high the tag hops
+	HopSeconds = 1.1, -- one hop
+	-- The pills across the bar's top edge: "Wins 3/10" at the left, the clock at the right.
+	PillHeightPx = 28,
+	PillTextPx = 19, -- 12 px on a phone, the smallest words there
+	PillPadPx = 10, -- inside a pill, each side
+	PillInsetPx = 12, -- a pill's end from the bar's end
+	PillColor = { 24, 36, 86 }, -- navy, as the Shop's title pills
+	PillRim = { 255, 196, 40 },
+	PillRimPx = 2,
+	CountColor = { 255, 214, 92 }, -- "Wins 3/10": the Shop's gold
+	ClockIconPx = 18,
+	ClockSample = "88h 88m", -- the widest time it shows, so the pill never jumps
+}
+
 -- The economy's menus (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md sections 5 and 5.1): the
 -- left column (MenuColumn), every full menu's frame (MenuFrame: header band, tabs, sheet, red
 -- X), its confirm dialog, notice line, scrollers and card tiles, the rarity dressing and cue

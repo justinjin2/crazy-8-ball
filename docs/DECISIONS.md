@@ -3278,3 +3278,9 @@ timer of a new block stay the designer's call.
   right with their lucky block's odds (the Starter Lucky Block; VIP's daily Rare block), as the
   v4 plan's hand-off asks (paid random items: the odds one press away), hidden where paid random
   items are restricted (the block is money there).
+- 2026-10-08 (the HUD's win track, built from pick A): the bar says "Wins 3/10" as on the mock
+  (the plan's "Lucky Blocks today 7/10" is kept in Strings), the time to the reset in its own
+  pill, and after the tenth "10/10 · wins pay money and XP today". It shares the space over the
+  hotbar with the matchmaking bar: it hides while that bar (a pad's or the spawn pill) or an
+  opponent's ask is up, and during the tutorial. A step given while it is hidden (behind the
+  result screen) pops its tick when it comes back.

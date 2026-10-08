@@ -290,6 +290,11 @@ function MatchBar.setSpawn(self: any, state: any)
 	self.spawn = state
 end
 
+--- Whether the bar is up (the win track gives it the space over the hotbar).
+function MatchBar.isOpen(self: any): boolean
+	return self.open
+end
+
 -- Show or hide the whole bar, popping it in or out (the house entrance for a HUD piece).
 function MatchBar.setOpen(self: any, open: boolean)
 	if open == self.open then

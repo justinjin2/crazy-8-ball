@@ -8,7 +8,8 @@
 -- - RankEvent (/xp, /newrank): NEW RANK!, never during a shot.
 -- - DevNotice: a private line in the chat window (the developer commands).
 -- - ItemState, ShopState, RewardState: the economy's snapshots (ItemState keeps them).
--- It also starts ChatTags (the [TIER] tag before names in chat).
+-- It also starts ChatTags (the [TIER] tag before names in chat) and the day's win track over
+-- the hotbar (WinTrack).
 --
 -- Every full menu (the roadmap too) opens through Menus, one at a time. The left column hides
 -- in a match and under the popups (the result screen, NEW RANK!, a lucky block's reel, the
@@ -53,6 +54,7 @@ local TeleportScreen = require(script.Parent.TeleportScreen)
 local TradeMenu = require(script.Parent.TradeMenu)
 local UISound = require(script.Parent.UISound)
 local LuckyClient = require(script.Parent.LuckyClient)
+local WinTrack = require(script.Parent.WinTrack)
 
 export type Hooks = {
 	-- A pocket of a table, in the ScreenGui's pixels (may be off screen), or nil.
@@ -64,6 +66,7 @@ export type State = {
 	afterMatch: boolean, -- seated at a table showing its result (the rematch row may be up)
 	shooting: boolean, -- your shot is being aimed or is rolling: no popups now
 	matchUserIds: { [number]: boolean }, -- everyone at your table, for the nameplates
+	overHotbar: boolean?, -- the matchmaking bar or an opponent's ask is over the hotbar
 }
 
 local Progression = {}
@@ -92,6 +95,7 @@ local column: any = nil
 local banner: any = nil
 local corners: any = nil
 local playerList: any = nil
+local winTrack: any = nil
 local started = false
 -- RankEvents (the /newrank preview) held while you shoot or a result screen is up, shown in
 -- order afterwards.
@@ -251,6 +255,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	rankHud = RankHud.new(screen, function()
 		Menus.open(RANKED)
 	end)
+	winTrack = WinTrack.new(screen) -- the day's win track over the hotbar
 	plates = Nameplates.new()
 	ChatTags.start() -- the [TIER] tag before names in chat
 	-- The tutorial lane's hand points at these (TutorialAnchors).
@@ -472,6 +477,17 @@ function Progression.update(state: State)
 			and not reelUp
 			and not teleportUp()
 			and (menu == nil or menu == "LuckyBag")
+	)
+	-- The day's win track over the hotbar: the quiet lobby only (it gives way to the
+	-- matchmaking bar and an opponent's ask).
+	winTrack:setVisible(
+		not state.inMatch
+			and not state.afterMatch
+			and not busy
+			and not reelUp
+			and not teleportUp()
+			and menu == nil
+			and state.overHotbar ~= true
 	)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
 	money:setPlusShown(not state.inMatch) -- no shop trips during a game (designer, 2026-10-06)

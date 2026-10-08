@@ -896,3 +896,22 @@ band, restock tiles and pass bands.
 - **On a phone** the tiles keep their arrangement; the words stay at 12 px or more, so the
   picture shrinks into the room above them.
 
+## 21. The day's win track over the hotbar (designer's pick A, 2026-10-08)
+
+`WinTrack`, sizes in `Config.UI.WinTrack`, words in `Strings.WinTrack`; the steps are
+`Config.BlockOdds.Drop.WinTrack` (economy v4 plan section 5).
+
+- **A white bar of ten tiles** centred over the hotbar, one per counted win of the day: the
+  step's block with its number on a navy dot at the tile's corner. A step given today is greyed
+  under a green tick; the next one has a thick gold edge and a gold NEXT tag across its bottom
+  edge, hopping gently.
+- **Across the top edge**, navy pills with a gold rim: "Wins 3/10" at the left (after the tenth:
+  "10/10 · wins pay money and XP today"), the stopwatch and the time to the 08:00 UTC reset at
+  the right.
+- **When it shows**: the lobby with nothing over it (no menu, match, result screen, reel,
+  teleport), never in the tutorial. It takes the matchmaking bar's place: it hides while that
+  bar (a pad's, or the spawn pill) or an opponent's ask is up.
+- **A new step** pops its tick where the player sees it: at once while the bar shows, else
+  as the bar comes back after the result screen, one tick after another.
+- **On a phone** the same bar at 0.66 (words 12 px, the small tags 9 px).
+
