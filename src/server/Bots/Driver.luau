@@ -130,46 +130,50 @@ local function pickRequests(kind: string, e: any, view: any, d: Brain.Decision):
 	return out
 end
 
--- Look Over There!'s drop (the Sneak phase): the bot sneaks the one of its balls that is
--- hardest to pot (the farthest from its nearest pocket) into that pocket, a beat into the drag
--- window, then waits out the reveal. Returns once the table is back to its run-up.
-local function sneakFor(bot: any, t: any, uid: number, rng: Rng.Rng)
+-- Look Over There!'s sneak (the Sneak phase): sneaky ball in hand. The bot puts the cue ball
+-- where its brain would with ball in hand (Brain.placeCue's spot), dragged there a beat into
+-- the drag window like a person's, then waits out the reveal. Returns once the table is back
+-- to its run-up (the caller thinks again from the new spot).
+local function sneakFor(bot: any, t: any, uid: number, rng: Rng.Rng, team: number, yield: () -> ())
 	local e = t.engine
 	local sneak = e.sneak
 	if e.phase ~= "Sneak" or sneak == nil or sneak.by ~= uid then
 		return
 	end
-	local geometry = e.state.geometry
-	local best, bestPocket, bestD = nil, nil, -1
-	for _, id in Match.sneakable(e) do
-		local b = Finder.findBall(e.state.balls, id)
-		if b == nil then
-			continue
-		end
-		local pid = Finder.nearestPocket(geometry, b.x, b.y)
-		for _, p in geometry.pockets do
-			local d = (p.x - b.x) ^ 2 + (p.y - b.y) ^ 2
-			if p.id == pid and d > bestD then
-				best, bestPocket, bestD = id, pid, d
-			end
-		end
-	end
-	local span = B.SneakDropSeconds
-	local dropAt = sneak.dragAt + Rng.range(rng, span[1], span[2])
+	local ok, d = pcall(decide, bot, viewOf(e, team), rng, true, yield)
+	local toX = if ok then d.cueX else nil
+	local toY = if ok then d.cueY else nil
 	local epoch, turnId = e.epoch, e.turnId
 	local function same(): boolean
 		return bot.t == t and e.epoch == epoch and e.turnId == turnId and e.shooter == uid
 	end
-	while same() and e.phase == "Sneak" and now() < dropAt do
+	local span = B.SneakMoveSeconds
+	local moveAt = sneak.dragAt + Rng.range(rng, span[1], span[2])
+	while same() and e.phase == "Sneak" and now() < moveAt do
 		task.wait(0.05)
 		Tables.advance(t, now())
 	end
-	if same() and e.phase == "Sneak" and best ~= nil then
-		local request = { kind = "Sneak", ball = best, pocket = bestPocket }
-		request.epoch, request.turnId = epoch, turnId
-		Tables.advance(t, now())
-		Engine.action(e, uid, request, now())
-		Tables.broadcast(t)
+	local cue = Finder.findBall(e.state.balls, 0)
+	if same() and e.phase == "Sneak" and cue and toX and toY then
+		local fromX, fromY = cue.x, cue.y
+		local steps = math.max(1, math.floor(B.DragSeconds * B.Aim.AimSendsPerSecond))
+		bot.seq = (bot.seq or 0) + 1
+		for i = 1, steps do
+			if not (same() and e.phase == "Sneak") then
+				break
+			end
+			local f = i / steps
+			local k = f * f * (3 - 2 * f)
+			bot.seq += 1
+			Tables.moveBotCue(t, uid, bot.seq, fromX + (toX - fromX) * k, fromY + (toY - fromY) * k)
+			task.wait(1 / B.Aim.AimSendsPerSecond)
+		end
+		if same() and e.phase == "Sneak" then
+			local request = { kind = "Place", x = toX, y = toY, epoch = epoch, turnId = turnId }
+			Tables.advance(t, now())
+			Engine.action(e, uid, request, now())
+			Tables.broadcast(t)
+		end
 	end
 	while same() and (e.phase == "Sneak" or e.phase == "SneakReveal") do
 		task.wait(0.1)
@@ -286,11 +290,12 @@ function Driver.turn(bot: any, seed: number)
 			task.wait(0.1)
 			Tables.advance(t, now())
 		end
-		-- Look Over There!: no shot but the Sneak phase; then the table has changed, so the
-		-- bot thinks again.
+		-- Look Over There!: no shot but the Sneak phase (sneaky ball in hand); then the cue
+		-- ball has moved, so the bot thinks again from there.
 		Tables.advance(t, now())
-		if e.phase == "Sneak" and e.shooter == uid then
-			sneakFor(bot, t, uid, rng)
+		local sneaked = e.phase == "Sneak" and e.shooter == uid
+		if sneaked then
+			sneakFor(bot, t, uid, rng, seat.team, yield)
 			if not live() then
 				return
 			end
@@ -310,7 +315,9 @@ function Driver.turn(bot: any, seed: number)
 			end
 			Tables.broadcast(t)
 		end
-		seconds += Config.Ults.CutsceneSeconds + Config.Ults.ArmDelaySeconds
+		if not sneaked then
+			seconds += Config.Ults.CutsceneSeconds + Config.Ults.ArmDelaySeconds
+		end
 	end
 
 	-- The 8's pocket, called before anything else (PocketChoice).

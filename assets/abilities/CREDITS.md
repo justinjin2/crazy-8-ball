@@ -16,9 +16,10 @@ Everything the 13 abilities ship with, and where it came from. Ids live in
 - **Every image** (the 13 icons, textures, flipbooks, screen overlays, the Verity ball, the
   golden spiral and the catch effects) was rendered or painted by those scripts. No
   third-party art.
-- **Voices:** Verity's line ("Hi, I'm Verity! Trust me, I know everything!") and the "Look over
-  there!" shout are text-to-speech stand-ins (OpenAI `gpt-4o-mini-tts`), uploaded to the group,
-  until the designer records their own (`Config.Ults.Sounds.VerityLine`, `LookShout`).
+- **Voices:** Verity's line ("Hi, I'm Verity! Trust me, I know everything!") is a
+  text-to-speech stand-in (OpenAI `gpt-4o-mini-tts`), uploaded to the group, until the designer
+  records their own (`Config.Ults.Sounds.VerityLine`). Look Over There!'s line is chat text
+  now, not a voice (2026-10-08).
 - **The reference images** in `reference/` are the designer's mood references (shows and
   games). They were only looked at while building; nothing from them is uploaded or shipped.
 - **The designer's own sounds:** ult_activate and ult_ready (uploaded to the group).
@@ -28,8 +29,8 @@ Everything the 13 abilities ship with, and where it came from. Ids live in
 Every ability sound is a public Roblox library clip, checked loading in this game, played
 with its id (nothing re-uploaded). Names as the library lists them, with the uploader.
 The time stop and the "nyo-ho" are soundalikes. **Exception (the rework, the designer's
-choice):** Catch-a-Ball's open, wobble and catch, Look Over There!'s alert and its vine boom
-are public fan uploads of the game and meme sounds themselves. Roblox may mute such uploads;
+choice):** Catch-a-Ball's open, wobble and catch, and Look Over There!'s vine boom are public
+fan uploads of the game and meme sounds themselves. Roblox may mute such uploads;
 the licensed backups are named beside each in `Config.Ults.Sounds`.
 
 | Ability | Use | Clip (uploader) |
@@ -78,14 +79,10 @@ the licensed backups are named beside each in `Config.Ults.Sounds`.
 | Verity | footsteps | Dinosaur Footsteps Boomy Thumps 16 (Pro Sound Effects) |
 | Verity | throw | Whoosh Heavy Punches 1 (Pro Sound Effects) |
 | Verity | kick | Foot Stomp 3 (Pro Sound Effects) |
-| Look Over There! | alert | Newer Metal Gear Solid Alert Sound (Fizzlestat, a fan upload) |
-| Look Over There! | camera whoosh | Whoosh Back Zoom Swoosh Fast Camera In And Out 2 (Pro Sound Effects) |
-| Look Over There! | sneaky sting | Tiptoes and Eyebrows Sting c (APM) |
 | Look Over There! | reveal | vine-boom-sound-effect (Johnrey2ndacc, a meme upload) |
 
 Library clips can be taken down by Roblox; if one stops loading, search the library for a
 replacement and change its id in `Config.Ults.Sounds`.
 
-**To replace:** the two text-to-speech voices (Verity's line, the "Look over there!" shout),
-once the designer records their own (then change `Config.Ults.Sounds.VerityLine` and
-`LookShout`).
+**To replace:** the text-to-speech voice (Verity's line), once the designer records their own
+(then change `Config.Ults.Sounds.VerityLine`).

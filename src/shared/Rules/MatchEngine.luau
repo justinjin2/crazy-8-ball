@@ -470,102 +470,53 @@ function Engine.awards(t: any, j: any, now: number)
 	end
 end
 
--- Look Over There! (the rework, designer 2026-10-08): the armed Sneak ult opens the Sneak
--- phase instead of a shot. The opponents turn away (Shared.SneakIntroSeconds), then the
--- shooter has SneakDragSeconds (plus SneakGraceSeconds for the network) to drop one of their
--- balls: in a pocket (a pot) or anywhere free on the cloth. The drop, or the window's end with
--- none, spends the ult and opens SneakReveal (the opponents turn back); after it the turn's
--- run-up starts over (`setup`: a fresh clock, ball in hand kept). `t.sneak` = { by, seq (the
--- ult's), at, dragAt, dragEnd } and, once dropped, { ball, pocket?, fromX, fromY, x, y },
--- with revealAt when SneakReveal began.
+-- Look Over There! (the designer's second rework round, 2026-10-08): the armed Sneak ult opens
+-- the Sneak phase instead of a shot. The opponents turn away (Shared.SneakIntroSeconds), then
+-- the shooter has SneakDragSeconds (plus SneakGraceSeconds for the network) to move the cue
+-- ball anywhere on the cloth: ball in hand's own drag and rules (placeCue, Engine.sneakOpen).
+-- The window's end spends the ult and opens SneakReveal (the opponents turn back to see it);
+-- after it the turn's run-up starts over (`setup`: a fresh clock) from wherever the cue ball
+-- was left. `t.sneak` = { by, seq (the ult's), at, dragAt, dragEnd, fromX, fromY (the cue
+-- ball before) } and, at the reveal, { revealAt, x, y (where it was left), moved }.
 local function beginSneak(t: any, now: number)
 	local armed = (t.ults :: any).armed
+	local cue = Simulation.findBall(t.state, 0)
 	t.sneak = {
 		by = t.shooter,
 		seq = armed.seq,
 		at = now,
 		dragAt = now + S.SneakIntroSeconds,
 		dragEnd = now + S.SneakIntroSeconds + S.SneakDragSeconds,
+		fromX = if cue then cue.x else nil,
+		fromY = if cue then cue.y else nil,
 	}
 	phase(t, "Sneak", now, S.SneakIntroSeconds + S.SneakDragSeconds + S.SneakGraceSeconds)
 end
 
 local function revealSneak(t: any, now: number)
 	Ults.clearArmed(t) -- spent: the bar was paid at activation
-	t.sneak.revealAt = now
+	local sneak = t.sneak
+	local cue = Simulation.findBall(t.state, 0)
+	sneak.revealAt = now
+	if cue then
+		sneak.x, sneak.y = cue.x, cue.y
+		local dx, dy = cue.x - (sneak.fromX or cue.x), cue.y - (sneak.fromY or cue.y)
+		sneak.moved = dx * dx + dy * dy > 1e-6
+	end
 	phase(t, "SneakReveal", now, S.SneakRevealSeconds)
 end
 
--- A sneaked pot claims its group while the table is open, as a pot would (designer,
--- 2026-10-08). Solo plays one group, then the other, as resolve has it.
-local function claimGroup(t: any, id: number)
-	local g = Judge.group(id)
-	if g == nil then
-		return
-	end
-	local solo = t.solo
-	if solo then
-		solo.first = solo.first or g
-		local current = Judge.soloGroup(t.state.balls, solo.first)
-		if current then
-			t.groups = {}
-			t.groups[solo.team], t.groups[3 - solo.team] = current, Judge.opposite(current)
-		end
-	elseif t.groups[t.activeTeam] == nil then
-		t.groups = {}
-		t.groups[t.activeTeam], t.groups[3 - t.activeTeam] = g, Judge.opposite(g)
-	end
-end
-
--- The shooter's drop (the Sneak action): { ball, pocket } pots one of their balls (Ults
--- .sneakable: never the 8) in that pocket; { ball, x, y } moves it to a free spot on the
--- cloth (CuePlacement's rules, as for the cue ball). Once, inside the drag window. It pays
--- nothing (it is not a shot; designer, 2026-10-08).
-local function sneakDrop(t: any, request: any, now: number): boolean
-	local sneak = t.sneak
-	if t.phase ~= "Sneak" or sneak == nil or sneak.ball ~= nil then
-		return false
-	end
-	-- The window: from the drag's opening (less the grace, for the clocks' drift) to the
-	-- phase's deadline (the grace after the drag's end).
-	if now < sneak.dragAt - S.SneakGraceSeconds or (t.deadline ~= nil and now >= t.deadline) then
-		return false
-	end
-	local id = request.ball
-	if type(id) ~= "number" or id % 1 ~= 0 or table.find(Ults.sneakable(t), id) == nil then
-		return false
-	end
-	local ball = Simulation.findBall(t.state, id)
-	if ball == nil then
-		return false
-	end
-	local fromX, fromY = ball.x, ball.y
-	if request.pocket ~= nil then
-		local pocket = nil
-		for _, p in t.state.geometry.pockets do
-			if p.id == request.pocket then
-				pocket = p
-			end
-		end
-		if pocket == nil then
-			return false
-		end
-		Ball.stop(ball)
-		ball.x, ball.y, ball.z = pocket.x, pocket.y, 0
-		ball.pocketed, ball.falling, ball.pocket, ball.tip = true, false, pocket.id, nil
-		ball.offTable = false
-		sneak.pocket = pocket.id
-		claimGroup(t, id)
-	elseif
-		not ShotInput.isFinite(request.x)
-		or not ShotInput.isFinite(request.y)
-		or not Placement.set(t.state, id, request.x, request.y)
-	then
-		return false
-	end
-	sneak.ball, sneak.fromX, sneak.fromY, sneak.x, sneak.y = id, fromX, fromY, ball.x, ball.y
-	revealSneak(t, now)
-	return true
+--- Whether Look Over There!'s shooter may move the cue ball at `now`: the Sneak phase's drag
+--- window (`sneak` the table's or the snapshot's), from its opening (less the grace, for the
+--- clocks' drift) to its end plus the grace. A client stops a little sooner, so its last spot
+--- arrives in time.
+function Engine.sneakOpen(phaseName: string, sneak: any, now: number): boolean
+	return phaseName == "Sneak"
+		and type(sneak) == "table"
+		and type(sneak.dragAt) == "number"
+		and type(sneak.dragEnd) == "number"
+		and now >= sneak.dragAt - S.SneakGraceSeconds
+		and now < sneak.dragEnd + S.SneakGraceSeconds
 end
 
 -- Rewind (7.6): the table goes back to exactly before the shot (every ball, ball in hand,
@@ -742,7 +693,7 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 		t.calledPocket = best
 		setup(t, now)
 	elseif t.phase == "Sneak" then
-		-- The window closed with no drop: nothing moved, and the ult is spent.
+		-- The window closed: the cue ball stays where it was left, and the ult is spent.
 		revealSneak(t, now)
 	elseif t.phase == "SneakReveal" then
 		t.sneak = nil
@@ -799,11 +750,15 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 	end
 end
 
--- Move the cue ball for ball in hand. `seq` is the shooter's per-turn counter: unreliable
--- packets can arrive late or out of order, so anything not newer than the last applied move
--- is dropped. A Place without one (older clients, tests) is still judged on its own.
+-- Move the cue ball for ball in hand, or in Look Over There!'s sneak. `seq` is the shooter's
+-- per-turn counter: unreliable packets can arrive late or out of order, so anything not newer
+-- than the last applied move is dropped. A Place without one (older clients, tests) is still
+-- judged on its own.
 local function placeCue(t: any, x: any, y: any, seq: any, now: number): boolean
-	if not Engine.placementOpen(t.phase, t.ballInHand, needsCall(t)) then
+	if
+		not Engine.placementOpen(t.phase, t.ballInHand, needsCall(t))
+		and not Engine.sneakOpen(t.phase, t.sneak, now)
+	then
 		return false
 	end
 	if t.phase == "Placement" and t.deadline and now >= t.deadline then
@@ -1204,9 +1159,6 @@ function Engine.action(
 	elseif kind == "UltPick" then
 		-- The armed ult's aim-phase pick (Heat Seeker's ball, Portals' spots), checked there.
 		return (Ults.pick(t, userId, request))
-	elseif kind == "Sneak" then
-		-- Look Over There!'s drop (sneakDrop moves the phase on).
-		return sneakDrop(t, request, now)
 	else
 		return false
 	end

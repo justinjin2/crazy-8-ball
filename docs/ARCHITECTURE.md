@@ -692,14 +692,20 @@ loads (no save version bump); their mentions above are history.
   8 shot breaks free) and `Effects/Verity` (the first contact throws the hit ball off, then her
   run kicks balls, the shooter's along clean lines and the rest aside, the cue ball ghosted as
   her body).
-- **The Sneak phase** (Look Over There!, catalog `Sneak = true`) is no shot. `MatchEngine`
-  opens Sneak after the arming wait (`beginSneak`: `t.sneak` with `dragAt` and `dragEnd`),
-  takes one `Sneak` table action (`sneakDrop`: a ball of `Match.sneakable`, never the 8, into a
-  pocket as a pot that claims an open table's group, or onto a free spot; it pays nothing),
-  then plays SneakReveal and starts the turn's run-up again. The bot (`Driver.sneakFor`) drops
-  its ball farthest from its nearest pocket. `LookOverThereFx` plays it all from the snapshot:
-  the point and shout, the opponents' cameras turned away, the drag (touch, mouse, gamepad,
-  `Match.holdBall` until the server answers) and the reveal.
+- **The Sneak phase** (Look Over There!, catalog `Sneak = true`; reworked 2026-10-08) is no
+  shot. It arms at once (`Match.arm` skips the cutscene pause for a Sneak row) and `MatchEngine`
+  opens Sneak (`beginSneak`: `t.sneak` with `dragAt`, `dragEnd` and where the cue ball was).
+  Inside the drag window (`Engine.sneakOpen`, with `SneakGraceSeconds` either side) the shooter
+  moves the cue ball anywhere free with ball in hand's own `Place` action and stream
+  (`placeCue`, `moveCue`); the window's end spends the ult (`revealSneak`: SneakReveal records
+  where it ended and whether it moved), then the turn's run-up starts again from there. It is
+  refused on the break and when the shooter already has ball in hand. The bot
+  (`Driver.sneakFor`) decides its shot as if it had ball in hand, drags the cue ball there
+  inside the window, then decides again. `LookOverThereFx` plays it from the snapshot: the
+  shooter points up and "says" the line (`BotChat.say`: a chat bubble and a chat-window line,
+  for bots too), each opponent's own client turns its camera to first person looking away from
+  the table (the humanoid hold freezes their walking), then whips back to the cue ball at the
+  reveal with the vine boom. No activation panel and no armed pill: nobody may be warned.
 - **Lining a ball up** (the Rare+ buffs): `ChainLightning.clearInto` (a ball's run into a pocket
   clear of cushions, jaws and balls), `lineUp(state, ball, hx, hy)` (the clear line nearest a
   heading, or the nearest pocket with no heading) and `send` (rolling, fast enough to arrive at
@@ -714,8 +720,9 @@ loads (no save version bump); their mentions above are history.
   launch line, Time Stop's send line) run on the replay's time, so `/slowmo` and `/hold` slow
   and freeze them with the balls. `kit.beam` puts a beam beside its attachments, not under
   them, so a look destroys both.
-- **Value harness:** `V.sneaked` models the sneak (the bot's drop, assumed to land) followed by
-  the best plain shot on the table after it.
+- **Value harness:** `V.sneakSpots` lists cue ball spots behind each own ball on its pocket
+  lines (the sneak's ball in hand); the careful shooter takes the best pot chance over them, the
+  careless one the best-scored plan.
 
 ## The shared cue mesh and the back cue (2026-09-29)
 

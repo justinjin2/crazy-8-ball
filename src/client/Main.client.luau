@@ -278,6 +278,34 @@ local function aimTurn(): boolean
 	end
 	return snapshot.phase == "Aiming" or snapshot.phase == "Intro" or snapshot.phase == "Placement"
 end
+-- Look Over There!'s sneak on a gamepad (the render step): the left stick, shaped as ball in
+-- hand's (the aim's dead zone, the placement curve), moves the cue ball; let go, it is sent.
+local sneakSticking = false
+local function sneakStick(dt: number)
+	if not UserInputService:GetGamepadConnected(Enum.UserInputType.Gamepad1) then
+		return
+	end
+	local x, y = 0, 0
+	for _, state in UserInputService:GetGamepadState(Enum.UserInputType.Gamepad1) do
+		if state.KeyCode == Enum.KeyCode.Thumbstick1 then
+			x, y = state.Position.X, state.Position.Y
+		end
+	end
+	local G = Config.Input.Gamepad
+	local length = math.sqrt(x * x + y * y)
+	local edge = math.min(length, 1)
+	local shaped = if edge > G.AimDeadZone
+		then ((edge - G.AimDeadZone) / (1 - G.AimDeadZone)) ^ G.PlaceCurve
+		else 0
+	if shaped > 0 then
+		sneakSticking = true
+		targets:stickMove(x / length * shaped, y / length * shaped, dt)
+	elseif sneakSticking then
+		sneakSticking = false
+		targets:finishGesture(true)
+	end
+end
+
 local function canShoot(): boolean
 	if not aimTurn() or (hud and hud:isModal()) then
 		return false
@@ -1439,8 +1467,8 @@ local function renderFrame(dt: number)
 	input:update(dt)
 	if controlled then
 		-- Top-down only while a pocket is being called for the 8, an ability's pick is owed or
-		-- Look Over There!'s sneak is on (its drag: LookOverThereFx); everything else, placing
-		-- the cue ball included, plays in the 3D view.
+		-- Look Over There!'s sneak is on (the cue ball moved with ball in hand's drag:
+		-- MatchTargets); everything else, placing the cue ball included, plays in the 3D view.
 		local overhead = phase == "PocketChoice"
 			or (phase == "Intro" and callPending())
 			or picking
@@ -1529,9 +1557,17 @@ local function renderFrame(dt: number)
 		end
 		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 	end
+	-- Look Over There!'s sneak on a gamepad: the left stick moves the cue ball at once (no LT
+	-- to hold: there is nothing else to do), and letting go sets it down.
+	if phase == "Sneak" and targets:canPlace() then
+		sneakStick(dt)
+	elseif sneakSticking then
+		sneakSticking = false
+	end
 	targets:update(dt, workspace.CurrentCamera)
 	ultPick:update(dt, workspace.CurrentCamera)
-	hud:setPlacing(targets:canPlace(), targets:isBlocked())
+	-- (Look Over There!'s sneak has its own countdown pill, and no shooting "any time".)
+	hud:setPlacing(targets:canPlace() and phase ~= "Sneak", targets:isBlocked())
 	hud:setFrozenAim(frozenTurn())
 	if guideline then
 		guideline:update(dt)

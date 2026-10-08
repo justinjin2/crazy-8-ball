@@ -46,6 +46,7 @@ local Simulation = H.require("Physics.Simulation")
 local TableGeometry = H.require("Physics.Table")
 local ShotInput = H.require("ShotInput")
 local Judge = H.require("Rules.ShotJudge")
+local CuePlacement = H.require("Rules.CuePlacement")
 local Arming = H.require("Ults.Arming")
 local Catalog = H.require("Ults.Catalog")
 local Match = H.require("Ults.Match")
@@ -1202,40 +1203,58 @@ function V.inert(ultId: string): boolean
 	return type(row.Effect) ~= "string" and not raw.Redo and not row.Sneak
 end
 
---- Look Over There! (a Sneak row): the table after the shooter's drop as the bot makes it
---- (Bots/Driver: the ball of theirs farthest from its nearest pocket, never the 8), the drag
---- assumed to land; nil with no ball to drop (on the 8). An open table takes that group.
-function V.sneaked(ts: TableState): TableState?
-	if ts.onEight then
-		return nil
-	end
-	local best, bestD = nil, -1
+-- How many ball-in-hand spots Look Over There!'s shooter weighs (V.sneakSpots).
+V.SNEAK_SPOTS = 8
+
+--- Look Over There! (a Sneak row; the designer's second rework round, 2026-10-08): sneaky
+--- ball in hand, the cue ball moved anywhere before the shot. The spots tried are the bots'
+--- (Bots/Brain.placeCue): behind each of the shooter's balls on its line from each pocket's
+--- mouth, 7 and 14 in back from contact, where the cue ball may legally go (CuePlacement);
+--- the shortest runs to the pocket first, at most V.SNEAK_SPOTS. Returns the table with the
+--- cue ball on each spot (the shooter then weighs every plan from each).
+function V.sneakSpots(ts: TableState): { TableState }
+	local spots: { { x: number, y: number, run: number } } = {}
 	for _, id in V.ownIds(ts) do
-		local b = findBall(ts.balls, id)
-		local d = math.huge
-		for _, p in geometry.pockets do
-			d = math.min(d, (p.x - b.x) ^ 2 + (p.y - b.y) ^ 2)
-		end
-		if d > bestD then
-			best, bestD = b, d
+		local ob = findBall(ts.balls, id)
+		for _, pk in POCKETS do
+			local ox, oy = pk.mx - ob.x, pk.my - ob.y
+			local d = math.sqrt(ox * ox + oy * oy)
+			if d < 1e-6 then
+				continue
+			end
+			for _, back in { 7, 14 } do
+				local x, y = ob.x - ox / d * (D + back), ob.y - oy / d * (D + back)
+				if CuePlacement.valid(ts.balls, geometry, x, y, false) then
+					table.insert(spots, { x = x, y = y, run = d + back * 0.01 })
+				end
+			end
 		end
 	end
-	if best == nil then
-		return nil
+	-- Shortest first; ties keep the order found (an insertion sort: stable).
+	for i = 2, #spots do
+		local item = spots[i]
+		local j = i - 1
+		while j >= 1 and spots[j].run > item.run do
+			spots[j + 1] = spots[j]
+			j -= 1
+		end
+		spots[j + 1] = item
 	end
-	local balls = Ball.cloneList(ts.balls)
-	findBall(balls, best.id).pocketed = true
-	local group = Judge.group(best.id) :: string
-	local after: TableState = {
-		family = ts.family,
-		index = ts.index,
-		balls = balls,
-		groups = if ts.open then { group, Judge.opposite(group :: any) } else ts.groups,
-		open = false,
-		onEight = false,
-	}
-	after.onEight = #V.ownIds(after) == 0
-	return after
+	local out: { TableState } = {}
+	for i = 1, math.min(#spots, V.SNEAK_SPOTS) do
+		local balls = Ball.cloneList(ts.balls)
+		local cue = findBall(balls, 0)
+		cue.x, cue.y = spots[i].x, spots[i].y
+		table.insert(out, {
+			family = ts.family,
+			index = ts.index,
+			balls = balls,
+			groups = ts.groups,
+			open = ts.open,
+			onEight = ts.onEight,
+		})
+	end
+	return out
 end
 
 local function drawer(seed: number): () -> number
@@ -1538,8 +1557,8 @@ function V.measure(ultId: string, options: Options?): Report
 	assert(row, "unknown ult " .. ultId)
 	local inert = V.inert(ultId) and not opts.simulateInert
 	local planner = if row.Pick and row.Built then V.planners[row.Pick] else nil
-	-- Look Over There! has no shot of its own: the drop is a pot (V.sneaked), then the shooter
-	-- plays on, its best plain pot on the table after it (the same noise as without).
+	-- Look Over There! has no shot of its own: sneaky ball in hand (V.sneakSpots), then the
+	-- shooter's plain shot from the spot it likes best (the same noise as without).
 	local sneak = row.Built and row.Sneak == true
 	local wantCareful, wantCareless = false, false
 	for _, s in shooters do
@@ -1589,11 +1608,15 @@ function V.measure(ultId: string, options: Options?): Report
 				cache[base .. tag .. ":plans"] = ultPlans
 			end
 		end
-		local after = if sneak then V.sneaked(ts) else nil
-		local afterPlans: { Plan } = {}
-		if after then
-			afterPlans = cache[base .. ":sneak:plans"] or V.shots(after, topK)
-			cache[base .. ":sneak:plans"] = afterPlans
+		-- Look Over There!: each ball-in-hand spot's table and its plans.
+		local spotPlans: { { ts: TableState, plans: { Plan } } } = {}
+		if sneak then
+			for j, moved in V.sneakSpots(ts) do
+				local key = ("%s:sneak%d:plans"):format(base, j)
+				local list = cache[key] or V.shots(moved, topK)
+				cache[key] = list
+				table.insert(spotPlans, { ts = moved, plans = list })
+			end
 		end
 		for _, s in skills do
 			local zr = V.rng(V.seedOf(seed, i, s, 7))
@@ -1609,18 +1632,27 @@ function V.measure(ultId: string, options: Options?): Report
 			end
 
 			if sneak then
-				-- The careless shooter plays the first shot on the list after the drop, the
-				-- careful one its best pot by its own estimate. With no ball to drop (on the 8)
-				-- the ability cannot be activated (Match's "NoBall"): not a use, not counted.
-				if after == nil then
-					continue
-				end
-				local function dropped(plan: Plan): Result
-					local r = table.clone(
-						V.play(after :: TableState, plan, s, z1, z2, nil, drawer(measuredDraws))
-					)
-					r.own += 1
-					return r
+				-- The careless shooter puts the cue ball where the first shot on the list scores
+				-- best and plays it; the careful one plays its best pot by its own estimate over
+				-- every spot. With no legal spot at all the cue ball stays: a plain shot.
+				local function sneaked(useBest: boolean): Result?
+					local bj, bk, value = nil, nil, -math.huge
+					for j, sp in spotPlans do
+						for k, plan in sp.plans do
+							if not useBest and k > 1 then
+								break
+							end
+							local v = if useBest then V.potChance(plan, s) else plan.score
+							if v > value then
+								bj, bk, value = j, k, v
+							end
+						end
+					end
+					if bj == nil or bk == nil then
+						return nil
+					end
+					local sp = spotPlans[bj]
+					return V.play(sp.ts, sp.plans[bk], s, z1, z2, nil, drawer(measuredDraws))
 				end
 				local function best(list: { Plan }): number
 					local k, value = 1, -math.huge
@@ -1634,12 +1666,12 @@ function V.measure(ultId: string, options: Options?): Report
 				end
 				if wantCareless then
 					local without = plain(plans[1], ("%s:%d:plain1"):format(base, s))
-					add(accs[s].careless, dropped(afterPlans[1]), without)
+					add(accs[s].careless, sneaked(false) or without, without)
 				end
 				if wantCareful then
 					local k = best(plans)
 					local without = plain(plans[k], ("%s:%d:plain%d"):format(base, s, k))
-					add(accs[s].careful, dropped(afterPlans[best(afterPlans)]), without)
+					add(accs[s].careful, sneaked(true) or without, without)
 				end
 				continue
 			end

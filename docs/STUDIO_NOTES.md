@@ -723,6 +723,16 @@ basics (glb textures, face direction, axes, texture alpha) are under "Uploading 
   RenderStepped from a Client `execute_luau` into a workspace attribute, then read it back.
   A Client `execute_luau` that requires a client module gets its own copy of it
   (`Camera.isLocked()` reads false there), so read the instances, not the modules.
+- **Testing an ability against a bot (2026-10-08):** `ServerStorage.BotsQA` (Studio only)
+  takes `"pc"` (`tableId, userId, tier?`: starts Play vs PC for that player, the bot the
+  `Bronze Bot` model with `BotSeat = -1000`) and `"ult"` (`botId, ultId`: the bot's ability).
+  `UltQA:Invoke("arm", { userId, ultId })` arms one for a player and `"full"` fills a bar.
+  Timed steps (arm, wait, act) go in **one** Server `execute_luau`: each MCP call takes seconds,
+  so a second call misses a window of a few seconds.
+- **The game has no PlayerModule** (the default player scripts are replaced), so
+  `PlayerModule:GetControls()` waits forever. To stop a player walking for a moment, hold the
+  Humanoid (WalkSpeed, JumpPower, JumpHeight 0, AutoRotate off, Move(zero)) and put it back
+  after, as `PullCutscene` and `LookOverThereFx` do.
 
 ## Bugs that only happen live: fake the lag (found 2026-10-05)
 

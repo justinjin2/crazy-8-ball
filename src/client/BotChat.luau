@@ -2,6 +2,8 @@
 -- What a bot "says" (the Bots lane: only the tutorial bot's AUGHHHH!, designer 2026-10-02): a
 -- chat bubble over its head and a line in the chat window in its name, drawn like a person's
 -- (its rank tag, its name in Roblox's own name colour), so it reads as a player who rage-quit.
+-- The game's own lines for a player go the same way (Look Over There!'s "OMG LOOKK AT THAT!":
+-- BotChat.say), so they read as typed: a player's tags too ([VIP], the rank tag).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextChatService = game:GetService("TextChatService")
 
@@ -46,7 +48,9 @@ local function nameColor(name: string): Color3
 	return NAME_COLORS[(nameValue(name) % #NAME_COLORS) + 1]
 end
 
-local function say(id: number, text: string)
+--- `text` "said" by player or bot `id` on this screen: a Roblox chat bubble over their head
+--- and a line in the chat window in their name. Changes nothing anywhere else.
+function BotChat.say(id: number, text: string)
 	local bot = People.owner(id)
 	if not bot or type(text) ~= "string" then
 		return
@@ -60,7 +64,10 @@ local function say(id: number, text: string)
 		end)
 	end
 	local parts = {}
-	local tag = ChatTags.tagFor(bot:GetAttribute("RankTier"))
+	if bot:GetAttribute("Vip") == true then
+		table.insert(parts, ChatTags.vipTag())
+	end
+	local tag = ChatTags.tagFor(bot:GetAttribute("RankTag") or bot:GetAttribute("RankTier"))
 	if tag then
 		table.insert(parts, tag)
 	end
@@ -76,7 +83,7 @@ end
 
 --- Listens for BotSay (Main, once).
 function BotChat.start()
-	Net.get("BotSay").OnClientEvent:Connect(say)
+	Net.get("BotSay").OnClientEvent:Connect(BotChat.say)
 end
 
 return BotChat

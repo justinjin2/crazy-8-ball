@@ -409,7 +409,7 @@ return {
 			Moving = "the balls are still moving",
 			Break = "not on the break",
 			Armed = "an ability is already armed",
-			NoBall = "you have no ball to sneak (you are on the 8)",
+			BallInHand = "you already have ball in hand",
 		},
 		SpinsSet = "You hold %d Ability Spins.",
 		LuckySet = "You hold %d Lucky Spins.",
@@ -1121,7 +1121,7 @@ return {
 			EaglesEye = "See the full path of your shot, every bounce included.",
 			SuperBounce = "The cue ball turns rainbow and keeps bouncing. The first ball of yours it hits bounces too, and boings off a pocket's jaw straight in.",
 			CatchABall = "Your cue ball becomes a catch ball. The first ball it hits is caught inside, counted as pocketed.",
-			LookOverThere = "Point and yell! While your opponent looks away, drag one of your balls into a pocket before they turn back. Then take your shot.",
+			LookOverThere = "Point up and yell! While your opponent looks away, move the cue ball anywhere you like before they turn back. Then take your shot.",
 			Verity = "Hi, I'm Verity! The first ball you hit is grabbed and hurled off the table, counted as pocketed, then Verity sprints through the pack.",
 			Rewind = "Miss, and the table rewinds for another 10 s shot with its full path shown. Up to twice.",
 			TimeStop = "Time freezes a second after contact: you get 8 seconds for one more shot while everything stands still. Hit one of your balls and it rolls into a pocket when time resumes.",
@@ -1169,7 +1169,7 @@ return {
 				Armed = "Your ability is already armed",
 				Used = "No more abilities this game",
 				Off = "Abilities are off at this table",
-				NoBall = "Nothing to sneak: you're on the 8!", -- Look Over There!
+				BallInHand = "You already have ball in hand!", -- Look Over There!
 				TooFast = "Slow down a little!",
 				Busy = "One moment...",
 				Default = "You can't use your ability right now",
@@ -1275,18 +1275,14 @@ return {
 			NotThe8 = "NOT THE 8!",
 			KnowEverything = "I KNOW EVERYTHING!",
 		},
-		-- Look Over There! (LookOverThereFx): the shooter's shout, the bubbles over the
-		-- opponents' heads, and the sneak's prompt (by the last input) and countdown.
+		-- Look Over There! (LookOverThereFx): what the shooter "says" in the chat (a bubble and
+		-- a chat line in their name; the designer's own words, spelling and all), and the
+		-- sneak's prompt (by the last input) and countdown on the shooter's screen.
 		LookOverThere = {
-			Shout = "LOOK OVER THERE!",
-			Alert = "!",
-			Huh = "?",
-			Shocked = "!?",
-			Sneaky = "SNEAKY!",
-			DragTouch = "DRAG ONE OF YOUR BALLS INTO A POCKET!",
-			DragMouse = "DRAG ONE OF YOUR BALLS INTO A POCKET!",
-			DragPad = "STICK TO MOVE, A TO GRAB AND DROP!",
-			Watching = "SHHH... THEY'RE NOT LOOKING!", -- the shooter's team, while it drags
+			Shout = "OMG LOOKK AT THAT!",
+			MoveTouch = "QUICK! DRAG THE CUE BALL ANYWHERE!",
+			MoveMouse = "QUICK! DRAG THE CUE BALL ANYWHERE!",
+			MovePad = "QUICK! MOVE THE CUE BALL WITH THE STICK!",
 			Countdown = "%.1f", -- the seconds left: "2.4"
 		},
 		-- The aim-phase pick view (UltPick): a lock-on's ball, Portals' two spots, chosen in

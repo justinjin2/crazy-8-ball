@@ -519,15 +519,16 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     counts as pocketed for its owner (an opponent's goes down for them, and hitting it first is
     still a foul); the cue ball stops dead where it made the contact. The 8 off your legal 8
     shot breaks free. Measured: +0.47 / +0.66 / +0.75 net, pots 91-96% of uses.
-  - **Look Over There!** (Epic, 0.99; new in the rework, 2026-10-08) is not a shot. Armed, it
-    opens the Sneak phase: the shooter points and shouts "LOOK OVER THERE!", the opponents get
-    the alert "!" and turn away (their cameras too: just the room and a "?"), and the shooter
-    has about 3 s to drag one of their balls (never the 8) into a pocket by touch, mouse or
-    gamepad. The pot counts (on an open table it claims the group) but pays no money, and the
-    turn goes on with a fresh clock; a ball dropped on the cloth stays there. At the reveal the
-    opponents turn back, with a vine boom and "!?" if a ball went. Not on the break, nor with
-    only the 8 left. Measured: +0.95 / +1.01 / +1.02 net (the drag assumed to land), a pot
-    every use. The voices are text-to-speech stand-ins until the designer records their own.
+  - **Look Over There!** (Epic for now, 0.99; Rare once Catch-a-Ball takes its place; reworked
+    in the designer's second round, 2026-10-08) is not a shot and has no activation panel or
+    armed label: nobody may be warned. Armed, it opens the Sneak phase: the shooter points up
+    and "says" "OMG LOOKK AT THAT!" (a Roblox chat bubble and a chat-window line, as if typed,
+    for bots too), each opponent is locked in first person looking up and away from the table
+    (walking frozen), and for about 3 s the shooter moves the cue ball anywhere free on the
+    cloth, as with ball in hand (touch or mouse drag, the gamepad's stick). Then the opponents
+    turn back, still in first person, their view on the cue ball's new spot, and a vine boom
+    plays (the only sound). The shooter shoots from there on a fresh clock. Not on the break,
+    nor when the shooter already has ball in hand; fine on the 8.
   - **Time Stop** (Epic since 2026-09-30, was Rare; 0.87): 1 s after the cue ball's first contact time freezes (a
     shot that touches nothing freezes 1.5 s in: the Rare+ buff, 2026-10-08); the shooter gets
     8 s to line up and strike the cue ball once more (untouched, time resumes by itself); the
@@ -615,10 +616,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - Sounds must be original or licensed (section 8): never clip a show's "nyo-ho" or time-stop
   sound. The designer's ult_activate and ult_ready are uploaded to the group; each ability's
   sounds are library or made clips (`Config.Ults.Sounds`, credits in
-  `assets/abilities/CREDITS.md`). Verity's line and the "Look over there!" shout are
-  text-to-speech stand-ins until the designer records their own; Catch-a-Ball's catch sounds,
-  the Metal Gear alert and the vine boom are fan uploads the designer chose (Roblox may mute
-  them; licensed backups are named in `Config.Ults.Sounds`).
+  `assets/abilities/CREDITS.md`). Verity's line is a text-to-speech stand-in until the
+  designer records their own; Catch-a-Ball's catch sounds and the vine boom are fan uploads the
+  designer chose (Roblox may mute them; licensed backups are named in `Config.Ults.Sounds`).
 
 **Open**
 - Playtests: whether any ability needs retuning with real players. Portals measures 0.69 (a

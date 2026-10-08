@@ -3246,3 +3246,13 @@ timer of a new block stay the designer's call.
   where practice allows them, takes all 14 and leaves the 8 to call ("like the Chinese
   TikToks"; in a match nobody has their ability on the first turn). Black Hole's cinematic
   camera is taken out again; the hole plays on the table's own view.
+- 2026-10-08 (designer's second rework round): Look Over There! is reworked into a sneaky ball
+  in hand. No cutscene, no activation panel and no armed label ("the joke is that they're not
+  supposed to know"): the shooter points up and "OMG LOOKK AT THAT!" appears as their chat
+  bubble and a chat-window line (bots too, whatever the chat settings); each opponent is locked
+  in first person looking away from the table for about 3 s while the shooter moves the cue ball
+  anywhere free; then they turn back in first person to the new spot, with only the vine boom.
+  The old version (drag one of your balls into a pocket, the Metal Gear alert, the "?", the
+  whoosh, the sneaky sting and the shout voice) is gone. It is refused on the break and when the
+  shooter already has ball in hand. Bots use it too (they drag the cue ball to their best ball in
+  hand spot).

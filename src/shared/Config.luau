@@ -3565,11 +3565,10 @@ Config.Ults = {
 		-- hits is caught (a pot for its owner): +0.47 / +0.66 / +0.75 careful net (120 tables),
 		-- pots 91-96% of uses.
 		CatchABall = { Rarity = "Rare", Built = true, Effect = "CatchABall", Worth = 0.63 },
-		-- Look Over There!: the opponents look away and the shooter drags one of their balls
-		-- into a pocket (the Sneak phase: Config.Ults.Shared.Sneak*), then shoots as normal.
-		-- Worth: the sneaked ball itself, a sure pot (the shot after is a plain one): +0.95 /
-		-- +1.01 / +1.02 careful net (114 uses of 120 tables, none on the 8; the drag assumed to
-		-- land).
+		-- Look Over There!: the opponents look away and the shooter moves the cue ball anywhere
+		-- (the Sneak phase: Config.Ults.Shared.Sneak*), then shoots as normal: sneaky ball in
+		-- hand (the designer's second rework round, 2026-10-08; it dragged one of your balls
+		-- into a pocket before, +0.95 / +1.01 / +1.02 careful net).
 		LookOverThere = { Rarity = "Epic", Built = true, Worth = 0.99, Sneak = true },
 		-- Verity: the first ball hit is thrown off the table (a pot for its owner), then Verity
 		-- sprints on through the pack. +0.91 / +1.10 / +1.13 careful net (120 tables), pots
@@ -3889,13 +3888,10 @@ Config.Ults = {
 		VerityThrow = { Id = "rbxassetid://9120728815", Volume = 0.5 },
 		-- Her kick (ProSoundEffects "Foot Stomp 3").
 		VerityKick = { Id = "rbxassetid://9114523345", Volume = 0.45, Pitch = 1.2 },
-		-- Look Over There! (the rework): the shout (a TTS placeholder), the Metal Gear "!"
-		-- alert and the vine boom (public fan uploads, the meme's own sounds; backups
-		-- ProSoundEffects 9113652301 and 9125404320), the camera's whoosh, the sneaky sting.
-		LookShout = { Id = "rbxassetid://84561965728329", Volume = 0.6 },
-		LookAlert = { Id = "rbxassetid://7630658014", Volume = 0.45 },
-		LookWhoosh = { Id = "rbxassetid://9126228631", Volume = 0.35 },
-		LookSneaky = { Id = "rbxassetid://1841485452", Volume = 0.35 },
+		-- Look Over There!: only the vine boom, as the opponents turn back (the designer's
+		-- second rework round, 2026-10-08: the shout, the Metal Gear alert, the whoosh and the
+		-- sneaky sting went). A public fan upload, the meme's own sound; the licensed backup is
+		-- ProSoundEffects 9125404320.
 		LookBoom = { Id = "rbxassetid://140367458608473", Volume = 0.55 },
 	},
 }
@@ -4275,20 +4271,18 @@ Config.Ults.Shared = {
 	-- touches in stopped time rolls into the pocket nearest the way the strike pushed it, down
 	-- a clear line, when time resumes, getting there at this speed (in/s). (tune)
 	TimeStopSendArriveSpeed = 30,
-	-- Look Over There! (the rework, designer 2026-10-08): once armed it is not a shot but the
-	-- Sneak phase, with no shot clock. The shooter points and shouts for SneakIntroSeconds
-	-- while the opponents turn away, then has SneakDragSeconds to drag one of their balls
-	-- (never the 8) into a pocket, which pots it, or anywhere free on the cloth; the server
-	-- takes the drop SneakGraceSeconds longer (the network's delay). Then SneakReveal: the
-	-- opponents turn back for SneakRevealSeconds, and the shooter's turn goes on with a fresh
-	-- clock (ball in hand kept). (tune)
-	SneakIntroSeconds = 1.5,
+	-- Look Over There! (the designer's second rework round, 2026-10-08): once armed (at once:
+	-- no activation panel, so nobody is warned) it is not a shot but the Sneak phase, with no
+	-- shot clock. The shooter points up and says "OMG LOOKK AT THAT!" while the opponents turn
+	-- away (SneakIntroSeconds), then has SneakDragSeconds to move the cue ball anywhere on the
+	-- cloth (ball in hand's rules, the same drag); the server takes the last spot
+	-- SneakGraceSeconds longer (the network's delay). Then SneakReveal: the opponents turn back
+	-- to the vine boom for SneakRevealSeconds, and the shooter's turn goes on from the new spot
+	-- with a fresh clock. (tune)
+	SneakIntroSeconds = 1,
 	SneakDragSeconds = 3,
 	SneakGraceSeconds = 0.6,
-	SneakRevealSeconds = 1.8,
-	-- A drop counts as in a pocket when the ball's centre is within the pocket's radius plus
-	-- this many ball radii of its centre (the client snaps a drop there; generous on a phone).
-	SneakPocketBallRadii = 1.2,
+	SneakRevealSeconds = 2.2,
 }
 
 -- Uploaded ability assets (AbilityAssets loads the models once per server, on the server,
@@ -10652,16 +10646,21 @@ Config.UI.CatchABallFx = {
 -- src/client/BoneAnim.luau from VerityAnims), the throw, the run and the landing. Sizes in drawn
 -- ball radii unless named; frames are the baked clips' (24 a second). (tune)
 -- Look Over There! (src/client/LookOverThereFx.luau; the rework, designer 2026-10-08): the
--- Sneak phase's show, timed from the phase's start (snapshot.sneak.at) in seconds, the drag in
--- inches. The phase's own lengths are Config.Ults.Shared.Sneak*. (tune)
+-- Sneak phase's show, timed from the phase's start (snapshot.sneak.at) in seconds. The phase's
+-- own lengths are Config.Ults.Shared.Sneak*. (tune)
 Config.UI.LookOverThereFx = {
-	-- The shooter stands up and points (their idle body, the right arm raised by its joints
-	-- each frame) along their right side, a little back from the table and up; the head and
-	-- chest turn that way too. The arm jabs for JabSeconds at the start, then holds until the
-	-- reveal, and lowers over LowerSeconds.
-	PointRight = 0.85,
+	-- No cutscene (the designer's second rework round, 2026-10-08: the joke is that nobody is
+	-- warned). Seconds from the sneak's start, on the server's clock.
+	-- The shooter stands up and points up at the sky beyond the (first) opponent, away from
+	-- the table: PointBeyondStuds past them and PointUpStuds up (with no opponent's body here,
+	-- along their right, back and up: PointRight / PointBack / PointUp, normalised). The arm is
+	-- raised by its joints each frame over RaiseSeconds, the head and chest turned that way
+	-- too; it jabs for JabSeconds, holds until the reveal, and lowers over LowerSeconds.
+	PointBeyondStuds = 30,
+	PointUpStuds = 28,
+	PointRight = 0.6,
 	PointBack = 0.3,
-	PointUp = 0.45,
+	PointUp = 0.9,
 	RaiseSeconds = 0.22,
 	JabSeconds = 0.6,
 	JabDegrees = 7,
@@ -10669,84 +10668,44 @@ Config.UI.LookOverThereFx = {
 	LowerSeconds = 0.3,
 	ChestTurnShare = 0.35, -- of the turn toward the point, at the waist
 	HeadTurnShare = 0.6, -- ...and at the neck
-	-- The opponents: "!" over their heads at AlertAt (the alert), then at TurnAt they turn
-	-- away (the body at the waist and neck, toward where the shooter points; the camera of an
-	-- opponent on this screen whips round to look away from the table over TurnSeconds, up
-	-- by LookUpDegrees, drifting while it looks). "?" at HuhAt. The reveal turns them back over
-	-- ReturnSeconds; BoomAfter later the vine boom (a sneaked ball), "!?" and the zoom punch;
-	-- the camera is theirs again ReleaseAfter after the reveal.
-	ShoutAt = 0.05,
-	AlertAt = 0.55,
-	TurnAt = 0.95,
-	HuhAt = 1.3,
-	TurnSeconds = 0.35,
+	-- What they "say" (Strings.Ults.LookOverThere.Shout): a Roblox chat bubble and a chat line
+	-- in their name (BotChat.say), at SayAt.
+	SayAt = 0.05,
+	-- The opponents turn round at TurnAt (the whole body about its root joint over
+	-- TwistSeconds, to face straight away from the table, the head tilted up LookUpDegrees),
+	-- and back over ReturnSeconds from the reveal.
+	TurnAt = 0.35,
+	TwistSeconds = 0.35,
 	ReturnSeconds = 0.35,
-	LookUpDegrees = 10,
-	LookAwayShare = 0.7, -- away from the table (the rest toward where the shooter points)
-	DriftDegrees = 5,
-	DriftHz = 0.5,
-	WaistTurnDegrees = 60,
-	NeckTurnDegrees = 45,
-	TwistSeconds = 0.3,
-	HuhDistanceStuds = 14, -- the "?" in the looked-at view, this far ahead
-	HuhSizeStuds = 3,
-	BoomAfter = 0.4,
-	BoomPunchDegrees = -12,
-	BoomPunchSeconds = 0.6,
-	BoomShakeStuds = 0.15,
-	BoomShakeSeconds = 0.35,
-	ReleaseAfter = 1.2,
-	-- The shooter's close-up while they shout: in front of them (from the table side), this far
-	-- out, up and toward the point; eased in and out, ending as the drag opens.
-	CloseUpOutStuds = 9,
-	CloseUpUpStuds = 1.4,
-	CloseUpSideStuds = 3,
-	CloseUpInSeconds = 0.25,
-	CloseUpOutSeconds = 0.3,
-	-- Bubbles over heads (studs): the shout's, and the round "!", "?" and "!?".
-	ShoutWidthStuds = 5.2,
-	ShoutHeightStuds = 1.5,
-	ShoutLiftStuds = 2.4,
-	ShoutHoldSeconds = 1.6,
-	MarkSizeStuds = 1.7,
-	MarkLiftStuds = 2.6,
-	BubblePopSeconds = 0.16,
-	BubbleFadeSeconds = 0.25,
-	AlertColor = { 255, 70, 60 },
-	HuhColor = { 60, 140, 255 },
-	ShockColor = { 255, 70, 60 },
-	ShockHoldSeconds = 1, -- the "!?" after the boom
-	-- The drag (the shooter's screen): rings round the balls they may sneak (the rarity's
-	-- purple, pulsing) and round each pocket (gold; green while the held ball is over it), the
-	-- held ball lifted and wobbling, a gamepad cursor. The countdown pill at the top.
-	BallRingBallWidths = 1.9,
-	PocketRingBallWidths = 2.2,
-	RingPulse = 0.12,
-	RingPulseHz = 2,
-	RingTransparency = 0.15,
-	RingLiftInches = 0.12,
-	PocketColor = { 255, 210, 60 },
-	PocketHotColor = { 80, 235, 120 },
-	LiftInches = 1.4,
-	WobbleDegrees = 10,
-	GrabReachBallWidths = 1.6, -- a press this close to a ball's centre grabs it
-	PadInchesPerSecond = 40, -- the gamepad cursor at a full push
-	SendBeforeEndSeconds = 0.15, -- a ball still held is dropped this long before the end
-	SinkSparks = 16,
-	-- The countdown pill: one row under the match HUD's header (the overhead view keeps the
-	-- table below it), the seconds left at its right end, a bar running down along its bottom.
+	LookUpDegrees = 14,
+	-- An opponent on this screen is locked in first person: their camera goes to their own
+	-- eyes (EyeLiftStuds over the head's centre; their body hidden on their screen, their
+	-- walking held) and whips round over WhipSeconds to look away from the table and
+	-- LookUpDegrees up, drifting DriftDegrees at DriftHz while they look. At the reveal it whips
+	-- back over WhipBackSeconds to the cue ball where it is now, the view narrowed so the
+	-- table's length fills TableFitShare of the screen's width (at most their own field of
+	-- view, at least MinFovDegrees). BoomAfter the reveal the vine boom, the only sound; from
+	-- HandBackAfter it hands back over HandBackSeconds (inside Shared.SneakRevealSeconds).
+	EyeLiftStuds = 0.2,
+	WhipSeconds = 0.4,
+	DriftDegrees = 4,
+	DriftHz = 0.45,
+	WhipBackSeconds = 0.35,
+	TableFitShare = 0.85,
+	MinFovDegrees = 22,
+	BoomAfter = 0.35,
+	HandBackAfter = 1.55,
+	HandBackSeconds = 0.45,
+	-- The countdown pill on the shooter's screen while the cue ball may move: one row under
+	-- the match HUD's header (the overhead view keeps the table below it), the seconds left at
+	-- its right end, a bar running down along its bottom.
 	TopGapPx = 8, -- above and below the pill
 	PillWidthPx = 560, -- at most (a narrow screen's width less 24)
 	PillHeightPx = { 30, 38 }, -- the row: short screens, others
 	PillBarPx = 5, -- the bar's room at the bottom (and as much at the top)
 	PillTextPx = { 16, 22 },
 	CountTextPx = { 24, 32 },
-	-- Sounds: the shout and the alert at their moments, the whoosh with each turn, the sneaky
-	-- music from the drag's opening to the reveal (faded out over MusicFadeSeconds), the boom.
-	MusicFadeSeconds = 0.3,
-	-- Everyone's: a puff where a sneaked ball was (and where it went), at the reveal.
-	PuffParticles = 14,
-	FreshSeconds = 0.5, -- a sneak heard later than this into its phase skips its intro
+	FreshSeconds = 0.5, -- a moment heard later than this skips it (a late join)
 }
 
 Config.UI.VerityFx = {
@@ -12082,9 +12041,10 @@ Config.Bots = {
 	YieldEvery = 4,
 	-- Ball in hand: the cue ball is dragged to its spot over this long.
 	DragSeconds = 1.4,
-	-- Look Over There! (the rework): a bot drops its sneaked ball this long into the drag
-	-- window (a person's grab and drag), between the two at random. Under SneakDragSeconds.
-	SneakDropSeconds = { 0.7, 1.6 },
+	-- Look Over There!: a bot starts moving the cue ball this long into the drag window (a
+	-- person's grab), between the two at random, and drags it over DragSeconds; both well
+	-- inside SneakDragSeconds.
+	SneakMoveSeconds = { 0.3, 0.9 },
 	-- The R15 animations a bot body plays (Roblox's default set).
 	Animations = {
 		Idle = "rbxassetid://507766388",

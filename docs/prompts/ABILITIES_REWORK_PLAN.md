@@ -120,16 +120,17 @@ Filled in as the work goes (2026-10-08). None of these are built on `abilities-r
 - **Abilities screen cards:** the three new abilities (Catch-a-Ball, Look Over There!, Verity)
   and the removed Heat Seeker and Ghost. Icons, names and descriptions are catalog data and
   Strings, so they show up by themselves; check the cards with the new, longer descriptions
-  (Time Stop, Chain Lightning, Portals were rewritten for the Rare+ buffs) on a phone.
+  (Time Stop, Chain Lightning, Portals were rewritten for the Rare+ buffs; Look Over There!
+  was rewritten again in the designer's second round) on a phone.
 - **Spin screen odds panel:** data driven; check it shows the 13-ability ladder (Rewind is
-  Uncommon, Catch-a-Ball and Portals Rare, Look Over There!, Time Stop and Chain Lightning Epic,
-  Verity, Steel Ball and Black Flash Legendary).
+  Uncommon, Look Over There! and Portals Rare, Catch-a-Ball, Time Stop and Chain Lightning Epic,
+  Verity, Steel Ball and Black Flash Legendary; Look Over There! and Catch-a-Ball swapped in the
+  designer's second round).
 - **MatchHUD clock:** hide it during the Sneak and SneakReveal phases (Look Over There!); the
   sneak has its own countdown.
-- **UltHud:** its armed "NEXT SHOT" label flashes during the sneak, where there is no shot;
-  hide it (or show the sneak's own wording) while the phase is Sneak or SneakReveal.
-- **The sneak pill** (LookOverThereFx, one row under the HUD header) works but is a stand-in:
-  restyle it to the lively frame.
+- **The sneak pill** (LookOverThereFx, one row under the HUD header, the shooter's screen only:
+  "QUICK! DRAG THE CUE BALL ANYWHERE!" and its countdown) works but is a stand-in: restyle it
+  to the lively frame. Nothing may show on the opponents' screens (they must not know).
 - **Time Stop's hint** now reads "TIME STOPPED · HIT ONE OF YOUR BALLS" (Strings
   `TimeStopHint`); MatchHUD's fitSetup fits it, but check it on a phone.
 - **Portals pick hint:** a ball of yours comes out of a portal into the pocket nearest the exit,
@@ -138,6 +139,5 @@ Filled in as the work goes (2026-10-08). None of these are built on `abilities-r
 - **Mirrored ball numbers** (not a screen, found during the rework): the numbered ball textures
   draw mirrored in game (a "3" read backwards), the ball mesh's UVs wrapping inside out.
   Whoever owns `assets/balls` should flip the UVs or the textures.
-- **Economy:** a sneaked ball pays no money (it is not a shot; designer, 2026-10-08); the
-  engine already pays nothing, so only the economy docs and any "money per pot" display need to
-  agree.
+- **Economy:** Look Over There! no longer pots a ball by itself (since the second round it
+  moves the cue ball), so the earlier "a sneaked ball pays no money" note is void.
