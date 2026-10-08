@@ -44,8 +44,9 @@ designer approves or notes -> build -> Studio check (phone, PC size, gamepad by 
   Index is reached by a My Cues / Index switch (replaces the book button beside Sort); the
   Index's chosen cue is a flat swaying picture, not 3D; a copy number sits above the name on the
   right; card words scale with the card on every screen (no 12 px floor for names on a phone).
-- 2026-10-08: Requested: numbers on the first 1,000 copies of every cue, every rarity, and how
-  many exist shown for every rarity (rules pending).
+- 2026-10-08: Numbers on the first 1,000 copies of every block cue (Common to Secret; Unique
+  cues keep numbering every copy; Ranked, VIP, Starter, Classic plain); Sell all never sells a
+  numbered copy; a sold number is gone for good; "N exist" on the big card for every cue.
 
 ## Concept 1: the card (round 1, waiting)
 
@@ -115,8 +116,17 @@ Round 2 (2026-10-08), from the designer's notes on round 1:
 - New request: **numbers on the first 1,000 copies of every cue, every rarity** (designer: "so
   early goers feel special to know that they owned like one of the first thousand cues even if
   it was a common cue, this could give these cues even more tradeable value"), and how many
-  exist shown for every rarity. Its rules are asked in the chat; the page's numbers are examples.
-  A server and save change, planned on its own after the Cues menu (GDD 18).
+  exist shown for every rarity. The page's numbers are examples. A server and save change,
+  planned on its own after the Cues menu (GDD 18). **Rules (designer, 2026-10-08):** every cue
+  that drops from a block (Common to Secret) is numbered on its first 1,000 copies; Unique cues
+  keep numbering every copy; Ranked, VIP, Starter and Classic stay plain. Sell all never sells
+  a numbered copy (one sells only from its own card, after a warning). A sold number is gone
+  for good. "N exist" shows on the big card for every cue, never on the grid's cards.
+  My defaults for the plan: numbering starts at the public release (test numbers wiped); a card
+  shows the lowest number you own; in a trade a numbered copy is its own card and you pick
+  which copy goes. Also found: two players can end up with the same Unique number when one
+  trades it away and unboxes that cue again (`Counts.takeNext` remembers the first owner);
+  fixed with this work.
 Questions asked: which icon (1 to 4); does the switch feel clear.
 
 ## Progress
@@ -130,7 +140,8 @@ Questions asked: which icon (1 to 4); does the switch feel clear.
   size and a gamepad. The reel's cards come with concept 3.
 - [ ] Concept 2 (Cues menu) approved, then built. Round 1 shown 2026-10-08; round 2 shown
   2026-10-08 (the switch, four icons, 5 per row, copy numbers above the name, phone text).
-- [ ] Copy numbers on the first 1,000 copies of every cue: rules from the designer, then a plan.
+- [ ] Copy numbers on the first 1,000 copies of every block cue: rules set 2026-10-08; plan after
+  the Cues menu is built.
 - [ ] Concept 3 (spin and YOU GOT) approved, then built.
 - [ ] Concept 4 (Free Reward) approved, then built.
 - [ ] Concept 5 (Abilities ideas) shown; built if approved.

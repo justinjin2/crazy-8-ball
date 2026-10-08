@@ -3064,3 +3064,8 @@ timer of a new block stay the designer's call.
   if it was a common cue", and how many exist shown for every rarity. Its rules (which cues,
   selling, trading) are being asked; it changes saves, selling and trading, so it is planned
   on its own after the Cues menu.
+- 2026-10-08: The copy-number rules (designer): every cue that drops from a block (Common to
+  Secret) is numbered on its first 1,000 copies; Unique cues keep numbering every copy; Ranked,
+  VIP, Starter and Classic stay plain. Sell all never sells a numbered copy (one is sold only
+  from its own card, after a warning); a sold number is gone for good, never handed out again.
+  How many exist shows on a cue's big card for every rarity, never on the grid's small cards.
