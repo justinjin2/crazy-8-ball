@@ -262,6 +262,13 @@ When copy numbers are built, Sell all skips every numbered copy (already in the 
   icon in the header and the switch; with the designer's ten notes on the built menu (above).
   Checked in Studio at 1365 x 768: hover and Reduce Motion on the strike, the rail, the big
   card, the Index's locked cards and still card, a card's hover and click, the money count.
+- [x] The designer's next notes (2026-10-08): the switch split into My Cues and Index tiles,
+  all four tiles evenly spaced (Sort and Sell dupes still step aside in the Index); "Sell
+  all" renamed "Sell dupes"; the Equip sound (117649901456711, after the server says yes);
+  locked cards keep their moving background under the veil; the money chip speeds into the
+  cash icon and fades into it, and the icon swells smoothly instead of the pill jumping in one
+  frame. Checked in Studio at 60 fps with real-speed recordings
+  (`~/Desktop/8ball-refs/gui-lively/work/cues-money/`).
 - [ ] Copy numbers (approved 2026-10-08: first 100 of every Rare-or-rarer cue, each its own card):
   planned and built after the Cues menu.
 - [ ] Concept 3 (spin and YOU GOT) approved, then built.

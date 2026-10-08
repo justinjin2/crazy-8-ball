@@ -384,7 +384,7 @@ then; the reel's rules hold for the blocks.
   slides home (0.95 s). A press strikes harder and quicker (0.7 s), from the touch so it shows
   before the menu opens; the D-pad route too. Still with Reduce Motion (`CuesStrike`,
   `Config.UI.Menu.Column.Strike`). The same still icon is the Cues menu's header icon and the
-  switch's My Cues half.
+  My Cues tile's.
   A red dot sits top right on Rewards while something can be claimed, and on CUES (the
   Inventory, renamed 2026-10-08) with how many owned cues are NEW ("9+" past nine); the Shop
   carries a gold timer pill while an offer window is open. Hidden in a match. On a gamepad the tiles are never selected (a
@@ -410,13 +410,13 @@ then; the reel's rules hold for the blocks.
   dialogs are the kit's dialog card with no dim.
 - **The Cues menu** (the Inventory renamed, concept 2 approved 2026-10-08; brief
   `docs/prompts/CUES_LIVELY_PROMPT.md`): the lively frame with no tab row. Outside the panel's
-  right edge stand a two-part switch, My Cues over Index, its blue knob on the view you are
-  in (the other half's icon faded; a red dot with the NEW count on My Cues, "!" on the Index
-  while a row can be claimed), then Sort and Sell all, each a tile with a pill hanging under
-  it (the order's name in blue; the money Sell all would pay in gold, greyed at $0). The clear
-  space down the rail is the same each time, counted from a hanging pill's bottom (designer,
-  2026-10-08). In the
-  Index Sort and Sell all step aside. The title and its icon say which view shows; LB / RB
+  right edge stand four tiles of one size, evenly spaced: My Cues and Index (two tiles since
+  2026-10-08, it was one switch; the view you are in is blue with its icon rocking, as the
+  Shop's jump buttons; a red dot with the NEW count on My Cues, "!" on the Index while a row
+  can be claimed), then Sort and Sell dupes ("Sell all" until 2026-10-08), each with a pill
+  hanging under it (the order's name in blue; the money Sell dupes would pay in gold, greyed
+  at $0). The clear space down the rail is the same each time, counted from a hanging pill's
+  bottom; a short panel shrinks the tiles. In the Index Sort and Sell dupes step aside. The title and its icon say which view shows; LB / RB
   flip the views and B goes back one step (the big card, then the Index to My Cues, then the
   menu). **My Cues**: 5 cards a row, the panel as tall as two whole rows with the third
   peeking; a short screen shrinks the cards. Every open starts on Rarest first; Sort turns the

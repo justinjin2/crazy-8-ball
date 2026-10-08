@@ -4,8 +4,8 @@
 -- 2026-10-08), opened from the left column's CUES tile (or the D-pad's right in the hub)
 -- through Menus. It wears the lively frame (MenuFrame: the panel unrolls, the header's
 -- 8-balls, the money pill and its "+", the 8-ball flair) with no tab row: one page holding two
--- views, flipped by the switch on the tiles outside the panel's right edge (CuesRail) or by
--- LB / RB:
+-- views, chosen by the My Cues and Index tiles outside the panel's right edge (CuesRail) or
+-- by LB / RB:
 -- - My Cues (InventoryCues): the grid, 5 cards a row, the panel as tall as two whole rows with
 --   the third peeking; a card pressed slams in its big card with Equip and Sell duplicates.
 --   NEW tags clear with MarkSeen when the view is shown.
@@ -21,7 +21,7 @@
 -- out of a button into the header's cash (the kit's CashFlyer drawn over this menu; the money
 -- HUD under it counts too), notices (a refusal: MenuFrame.reason in red), the confirm dialog,
 -- and the gamepad's selection (a sensible stop when a view opens or a redraw takes the selected
--- button away). Red dots on the switch: new cues on My Cues, "!" on the Index while a row can
+-- button away). Red dots on the tiles: new cues on My Cues, "!" on the Index while a row can
 -- be claimed.
 --
 -- The server decides everything: the client sends ids and counts, and only animates the
@@ -200,9 +200,11 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			else
 				UISound.play("CashLand")
 			end
-			local pill: Frame? = frame.moneyPill
-			if pill and frame:isOpen() then
-				UIAnim.bounce(pill)
+			-- The header's cash swells smoothly (the whole pill jumping in one frame looked
+			-- choppy, 2026-10-08).
+			local cash: GuiObject? = frame.moneyCash
+			if cash and frame:isOpen() then
+				UIAnim.thump(cash)
 			end
 		end,
 	}
@@ -243,7 +245,7 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				return
 			end
 		end
-		GuiService.SelectedObject = pages[view]:first() or rail.switch
+		GuiService.SelectedObject = pages[view]:first() or rail:current()
 	end
 
 	--------------------------------------------------------------------------------------------
@@ -264,8 +266,11 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 
 	local setView: (key: string, instant: boolean?) -> ()
 	rail = CuesRail.new(frame, {
-		flip = function()
-			setView(if view == "Cues" then "Index" else "Cues")
+		view = function(key: string)
+			if key == view then
+				UISound.play("Click") -- already there (setView clicks on a change)
+			end
+			setView(key)
 		end,
 		sort = function()
 			pages.Cues:nextSort()
@@ -386,7 +391,7 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 	end
 
-	--- Show a view (`instant`: no knob slide or replay, as when opening on it).
+	--- Show a view (`instant`: no replay, as when opening on it).
 	function setView(key: string, instant: boolean?)
 		if not views[key] then
 			return
@@ -428,7 +433,7 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			and selected:IsDescendantOf(frame.root)
 			and not ctx.isShown(selected)
 		then
-			GuiService.SelectedObject = pages[key]:first() or rail.switch
+			GuiService.SelectedObject = pages[key]:first() or rail:current()
 		end
 	end
 
@@ -559,12 +564,19 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		Menus.open(NAME, "Cues")
 		return pages.Cues:show(cueId)
 	end)
-	-- `amount` money flies out of Sell all into the header's cash, as after a sale (the server
+	-- `amount` money flies out of Sell dupes into the header's cash, as after a sale (the server
 	-- pays nothing: the count only rises as far as the true total).
 	GuiQA.add("cuesFly", function(amount: number?)
 		Menus.open(NAME, "Cues")
 		ctx.flyMoney(amount or 250, rail.sell)
 		return true
+	end)
+	-- How long the showing view's redraw takes, in milliseconds (what a sale or a claim costs
+	-- in the frame its money chip flies).
+	GuiQA.add("cuesRedrawMs", function()
+		local started = os.clock()
+		pages[view]:redraw(ctx.lastItems)
+		return (os.clock() - started) * 1000
 	end)
 	GuiQA.add("cuesCopies", function(on: boolean?)
 		fakeCopies = on ~= false

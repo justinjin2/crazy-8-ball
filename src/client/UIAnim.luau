@@ -64,6 +64,27 @@ local function play(scale: UIScale, info: TweenInfo, target: number): Tween
 	return tween
 end
 
+--- Money landing on a cash icon: a quick smooth swell and a settle (Motion.Thump), from
+--- wherever it is now, so chips landing one after another never make it jump.
+function UIAnim.thump(object: GuiObject)
+	local t = M.Thump
+	local scale = UIAnim.scaleOf(object)
+	local up = play(
+		scale,
+		TweenInfo.new(t.UpSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		t.Scale
+	)
+	up.Completed:Connect(function(state)
+		if state == Enum.PlaybackState.Completed then
+			play(
+				scale,
+				TweenInfo.new(t.DownSeconds, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+				1
+			)
+		end
+	end)
+end
+
 --- Show an object: it grows from a little smaller, overshoots and settles.
 function UIAnim.popIn(object: GuiObject)
 	local scale = UIAnim.scaleOf(object)

@@ -805,10 +805,10 @@ return {
 		-- come from Items.
 		Inventory = {
 			-- My Cues. The tiles beside the panel: Sort (the order's name hangs under it; each
-			-- press moves to the next of Config.UI.Inventory.SortOrders) and Sell all (the
-			-- money it would pay hangs under it).
+			-- press moves to the next of Config.UI.Inventory.SortOrders) and Sell dupes (the
+			-- money it would pay hangs under it; "Sell all" until 2026-10-08).
 			SortTile = "Sort",
-			SellAllTile = "Sell all",
+			SellDupesTile = "Sell dupes",
 			SortOrders = {
 				RarestFirst = "Rarest first",
 				CommonFirst = "Common first",

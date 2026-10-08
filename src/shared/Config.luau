@@ -4706,6 +4706,10 @@ Config.Audio = {
 		-- ... like a little boop button"; it was "Roblox_UI_Small_Click", a thin 0.13 s tick).
 		-- Measured peak 0.48; the Volume puts it near the old click's peak (0.06), with more body.
 		Click = { Id = "rbxassetid://97683569351041", Volume = 0.12 },
+		-- A cue equipped (the Cues menu's Equip, once the server says yes): the designer's pick
+		-- (2026-10-08). 0.55 s, measured peak 0.39 and loudness (RMS) 0.14: this Volume puts it
+		-- about as loud as the click, a touch above it since it marks a choice.
+		Equip = { Id = "rbxassetid://117649901456711", Volume = 0.25 },
 		-- The case reel (2026-09-28, overnight placeholders; assets/audio/README.md). All from
 		-- Roblox's own library or APM Music via Roblox; each checked loading in this game.
 		-- "Roblox_UI_Small_Click" (0.13 s), pitched up and quiet: one card passing the marker.
@@ -6028,8 +6032,13 @@ Config.UI = {
 			PopSeconds = 0.2, -- pops out at the pocket with a small overshoot
 			PopFromScale = 0.3, -- from this size
 			HangSeconds = 0.25, -- then hangs
-			FlySeconds = 0.55, -- then flies into the HUD
-			EndScale = 0.45, -- shrinking to this size as it lands
+			-- Then flies into the HUD: it leaves gently and speeds up into the cash icon (it
+			-- crawled over the money's words when it slowed down at the end), fading out over
+			-- the last FadeShare of the way so it melts into the icon instead of vanishing
+			-- (designer, 2026-10-08: "super choppy when the money goes to the money UI").
+			FlySeconds = 0.55,
+			FadeShare = 0.3,
+			EndScale = 0.4, -- shrinking to this size as it lands
 			ArcLiftShare = 0.3, -- the curve's control point rises this share of the distance
 			ArcMinLiftPx = 50, -- and at least this far above the start
 			StaggerSeconds = 0.18, -- several pots in one shot follow each other by this much
@@ -6622,6 +6631,10 @@ Config.UI = {
 			PulseSeconds = 0.9, -- one breath of a pulsing button
 			PulseScale = 1.03, -- how big it breathes (a full-width Start stays inside its card)
 			BounceScale = 1.2, -- a pocketed ball's pop
+			-- Money landing on a cash icon (UIAnim.thump; designer, 2026-10-08: the landing
+			-- looked choppy when the bounce jumped to full size in one frame): it swells up
+			-- smoothly, then settles back with a small overshoot.
+			Thump = { Scale = 1.25, UpSeconds = 0.08, DownSeconds = 0.3 },
 			RaysDegreesPerSecond = 30, -- the win card's rays
 			-- Hovering anything pressable (or a gamepad resting on it) makes it sway: it rocks
 			-- side to side with a little extra wiggle, a small dance, easing in from still and
@@ -9057,26 +9070,21 @@ Config.UI.Inventory = {
 		BigCardShare = 0.42, -- the card's width, of the popup's at most
 		ChooserPx = { 40, 48 }, -- the count chooser's row: - 3 + Max
 	},
-	-- The tiles outside the panel's right edge (concept 2), top to bottom: the My Cues / Index
-	-- switch (two halves, a blue knob on the place you are in), Sort and Sell all, each with a
-	-- pill hanging under it (the order's name; the money Sell all would pay). Inside the page
-	-- (a column at its right) when the screen has no room beside the panel.
+	-- The tiles outside the panel's right edge (concept 2), top to bottom, all one size: My
+	-- Cues and Index (two tiles since 2026-10-08, the place you are in blue), Sort and Sell
+	-- dupes, each of those two with a pill hanging under it (the order's name; the money Sell
+	-- dupes would pay). Inside the page (a column at its right) when the screen has no room
+	-- beside the panel.
 	Rail = {
-		TilePx = { 60, 80 }, -- Sort and Sell all, square; the switch is as wide
-		HalfShare = 0.82, -- each half of the switch, of a tile's side
+		TilePx = { 60, 80 }, -- every tile, square
+		MinTilePx = 48, -- a short panel shrinks the tiles to fit, never under this
 		-- The clear space between one tile and the next, the same each time (designer,
-		-- 2026-10-08: "separate all of these evenly"): from the switch down to Sort, and from
-		-- Sort's hanging pill down to Sell all (it was measured from Sort's body, so the pill
-		-- halved the second gap).
+		-- 2026-10-08: "separate all of these evenly"); under Sort it is counted from its
+		-- hanging pill.
 		GapPx = { 14, 18 },
 		OutsidePx = 10, -- from the panel's right edge
-		TextPx = { 12, 16 }, -- the tiles' and halves' words
-		MinTextPx = 9, -- a long word on a half shrinks to fit, never under this
-		IconShare = 0.5, -- a half's icon, of its height
-		KnobInsetPx = 2, -- the knob inside the switch's track
-		KnobSeconds = 0.22, -- the knob sliding to the other half (Back Out)
-		IdleIconTransparency = 0.45, -- the other half's icon, faded
-		DotPx = { 18, 22 }, -- the red dots: the NEW count on My Cues, "!" on the Index
+		TextPx = { 12, 16 }, -- the tiles' words
+		DotPx = { 18, 22 }, -- the red dots on My Cues (the NEW count) and Index ("!")
 		DotTextPx = { 12, 14 },
 		DotMax = 9, -- more than this reads "9+"
 		HangPx = { 16, 20 }, -- the pill hanging under Sort and Sell all
@@ -9120,9 +9128,9 @@ Config.UI.Inventory.Open = {
 		{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
 		{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
 		{ Ids = { "Basket", "Title", "Money", "Close" }, Kind = "Pop", At = 0.18 },
-		-- The switch, Sort and Sell all; the switch's red dots and the hanging pills just after.
+		-- My Cues, Index, Sort and Sell dupes; the red dots and the hanging pills just after.
 		{
-			Ids = { "Switch", "Sort", "Sell" },
+			Ids = { "TabCues", "TabIndex", "Sort", "Sell" },
 			Kind = "Pop",
 			At = 0.3,
 			Stagger = 1.25,

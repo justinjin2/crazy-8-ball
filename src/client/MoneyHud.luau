@@ -401,7 +401,7 @@ function MoneyHud.land(self: any, amount: number)
 			self:countTo(to, C.LandCountSeconds)
 		end
 	end
-	UIAnim.bounce(self.icon)
+	UIAnim.thump(self.icon)
 	self:sparkle()
 	UISound.play("CashLand")
 	self:scheduleSettle()

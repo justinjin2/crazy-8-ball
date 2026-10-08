@@ -50,10 +50,11 @@ One line each; the long form is the 2026-10-08 entry at the top of
 - **The GUI redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, branch `shop-lively`):
   one screen at a time, each from an approved concept. Built: the new cue card (the rank cues
   are the Ranked rarity), the Cues menu (concept 2) and the CUES icon (concept 2b round 5: the
-  Classic Cue striking a ball on hover and press; the header and switch icon too). The
-  designer's ten notes on the built menu are done (even rail, Rarest first on open, the Index's
-  still card, locked never-found cards, the dots, Equip clear of the card, calmer clicks, the
-  money counting as it lands, the "boop" click). Checked in Studio at 1365 x 768. Waiting on
+  Classic Cue striking a ball on hover and press; the header and My Cues icon too). The
+  designer's ten notes on the built menu are done, and the next five: My Cues and Index as two
+  tiles with Sort and Sell dupes, all evenly spaced; "Sell dupes"; the Equip sound; locked
+  cards still moving under the veil; the money chip fading into a smoothly swelling cash icon.
+  Checked in Studio. Waiting: the designer's last check before the Cues menu wraps up. Waiting on
   the designer: a look at the laptop size, then a phone and a gamepad; the numbered card's mark
   A or B; then the copy numbers' own plan (the engraving near the butt end only). After that
   the lucky block spin and YOU GOT, Free Reward, Abilities and Ranked ideas.

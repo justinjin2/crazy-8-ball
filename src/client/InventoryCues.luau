@@ -7,8 +7,8 @@
 --     the name. The menu is as tall as two whole rows with the third peeking (heightFor); a
 --     screen too short for that shrinks the cards and the grid stays centred. The first cards
 --     pop in with the open, by their place in reading order (Stage "Card1".."Card15").
---   * Sort and Sell all live on the rail beside the panel (CuesRail): Sort turns the order
---     (Config.UI.Inventory.SortOrders), Sell all sells every duplicate (the total worked out
+--   * Sort and Sell dupes live on the rail beside the panel (CuesRail): Sort turns the order
+--     (Config.UI.Inventory.SortOrders), Sell dupes sells every duplicate (the total worked out
 --     here from BlockOdds.sellValue for show; the server's reply is the truth) and asks first.
 --   * A card pressed slams in its big card over the page: the same card, bare (no pills: the
 --     words beside it say them), and beside it the name, the rarity, "4.2% chance · 1,284
@@ -667,7 +667,7 @@ end
 -- Drawing from the snapshot
 --------------------------------------------------------------------------------------------
 
---- The red dot on the switch's My Cues half: how many owned cues are NEW.
+--- The red dot on the My Cues tile: how many owned cues are NEW.
 function InventoryCues.dot(_self: any, items: any): number
 	local n = 0
 	for _, row in ownedRows(items) do
@@ -772,7 +772,7 @@ function InventoryCues.redraw(self: any, items: any)
 		InventoryCard.setChosen(card, order[index] == self.chosen)
 	end
 
-	-- Sell all: the total it would pay now (for show; the server decides).
+	-- Sell dupes: the total it would pay now (for show; the server decides).
 	local total = 0
 	for _, row in rows do
 		local extra = countOf(row) - 1
@@ -1068,7 +1068,7 @@ function InventoryCues.markSeen(self: any)
 end
 
 --- Where a gamepad starts on this view: the chosen card, else the first (nil with none: the
---- menu puts it on the switch).
+--- menu puts it on the view's tile).
 function InventoryCues.first(self: any): GuiObject?
 	local card = self:cardOf(self.chosen) or self.slots[1]
 	if card and card.button.Visible then
@@ -1090,6 +1090,7 @@ function InventoryCues.doEquip(self: any)
 	ctx.hold(self.equip, function()
 		local reply = ctx.request("EquipCue", id)
 		if reply.ok then
+			UISound.play("Equip")
 			ctx.notice(WORDS.EquippedNotice:format(CueThumb.cueName(id)), "Green")
 		else
 			ctx.refuse(reply)
@@ -1139,7 +1140,7 @@ function InventoryCues.askSellCount(self: any)
 	end)
 end
 
---- Sell all (the rail's tile): every duplicate, after a confirm.
+--- Sell dupes (the rail's tile): every duplicate, after a confirm.
 function InventoryCues.askSellAll(self: any)
 	local ctx = self.ctx
 	local button: TextButton? = ctx.rail and ctx.rail.sell

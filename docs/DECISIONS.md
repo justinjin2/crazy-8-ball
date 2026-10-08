@@ -3125,3 +3125,14 @@ timer of a new block stay the designer's call.
   near the tip.
 - 2026-10-08 (designer asked which screen size to use first): the laptop size (1366 x 768),
   then the phone. Menus are designed at a computer's size and scaled down.
+- 2026-10-08 (designer): The Cues menu's switch splits into two tiles, My Cues and Index (the
+  view you are in blue, as the Shop's jump buttons), so all four rail tiles are one size and
+  evenly spaced; Sort and Sell dupes still step aside in the Index. "Sell all" is now "Sell
+  dupes".
+- 2026-10-08 (designer): Equipping a cue plays sound 117649901456711 (`Config.Audio.Ui.Equip`,
+  levelled near the click). Never-found cards in the Index keep their moving background under
+  the grey veil and padlock.
+- 2026-10-08 (designer: the money flying in was "super choppy"): the chip now leaves gently,
+  speeds into the cash icon and fades into it over the last 30% of its flight, and the cash icon
+  swells smoothly (`UIAnim.thump`, `Kit.Motion.Thump`) where the whole pill used to jump to full
+  size in one frame. The same applies to the money HUD.

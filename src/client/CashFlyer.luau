@@ -2,8 +2,8 @@
 -- CashFlyer: the flying "+$10". For every pot that paid you (the server's MoneyGrant, sent to
 -- the shooter only) a chip, one cash bundle and "+$10" in kit text, pops out at the pocket's
 -- place on screen with a little overshoot, hangs a moment, then flies on a curve into the money
--- HUD's cash icon, shrinking as it goes, about 1 s in all; on arrival the HUD counts up by its
--- amount (MoneyHud.land). A nice shot's chip is gold ("+$15") and follows its ball's chip; the
+-- HUD's cash icon, speeding up, shrinking and fading into it, about 1 s in all; on arrival the
+-- HUD counts up by its amount (MoneyHud.land). A nice shot's chip is gold ("+$15") and follows its ball's chip; the
 -- pots of one shot follow each other by a short stagger, each timed to the moment the replay
 -- drops its ball. The result screen and NEW RANK! launch their chips through fly() too.
 -- Tuning in Config.UI.Progress.Cash.
@@ -48,6 +48,8 @@ type Chip = {
 	startAt: number, -- os.clock() when it pops
 	frame: Frame?,
 	scale: UIScale?,
+	icon: ImageLabel?,
+	text: TextLabel?,
 	landed: boolean,
 }
 
@@ -186,6 +188,8 @@ function CashFlyer.launch(
 		startAt = os.clock() + math.max(0, delay),
 		frame = nil,
 		scale = nil,
+		icon = nil,
+		text = nil,
 		landed = false,
 	}
 	table.insert(self.chips, chip)
@@ -248,6 +252,28 @@ function CashFlyer.build(self: any, chip: Chip)
 	scale.Scale = C.PopFromScale
 	scale.Parent = frame
 	chip.scale = scale
+	chip.icon, chip.text = icon, text
+end
+
+-- How far along its curve a chip is at `t` (0..1) of its flight: it leaves the hang gently and
+-- arrives at full speed (no slow crawl over the money's words).
+local function flight(t: number): number
+	return t * t * (2 - t)
+end
+
+-- Fade a chip (0 shown, 1 gone): the cash, the words and their outline.
+local function fade(chip: Chip, amount: number)
+	if chip.icon then
+		chip.icon.ImageTransparency = amount
+	end
+	local text = chip.text
+	if text then
+		text.TextTransparency = amount
+		local stroke = text:FindFirstChildOfClass("UIStroke")
+		if stroke then
+			stroke.Transparency = amount
+		end
+	end
 end
 
 -- Where a chip is `t` (0..1) of the way along its curve: a quadratic Bezier from the pocket to
@@ -305,9 +331,13 @@ function CashFlyer.step(self: any)
 						point, size = start, 1
 					else
 						local t = (elapsed - hangEnd) / C.FlySeconds
-						local eased = t * t * (3 - 2 * t)
+						local eased = flight(t)
 						point = curve(start, target, eased)
 						size = 1 + (C.EndScale - 1) * eased
+						local fadeFrom = 1 - C.FadeShare
+						if t > fadeFrom then
+							fade(chip, (t - fadeFrom) / C.FadeShare)
+						end
 					end
 					frame.Position = UDim2.fromOffset(point.X - origin.X, point.Y - origin.Y)
 					frame.Visible = true

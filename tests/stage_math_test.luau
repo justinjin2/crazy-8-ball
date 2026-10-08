@@ -126,7 +126,7 @@ return {
 		end
 		-- A piece staged but missing from the schedule stays faded after a close.
 		local wanted = { "Panel", "Header", "Basket", "Title", "Money", "Close", "Flair" }
-		for _, id in { "Switch", "Sort", "Sell" } do
+		for _, id in { "TabCues", "TabIndex", "Sort", "Sell" } do
 			table.insert(wanted, id)
 			table.insert(wanted, id .. "Badge") -- the dots, the hanging pills
 		end

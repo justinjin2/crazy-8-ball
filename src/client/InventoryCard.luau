@@ -14,8 +14,9 @@
 -- card, whose words beside it say all that) shows no pills and no padlock. The card is filled in its
 -- look's colours, rimmed by the rarity edge, with faint 8-balls drifting up-left behind the
 -- cue; the rarer the cue, the more moves (CueCardFx). A never-found cue in the Index (`locked`)
--- is its whole card, still, under a grey veil that leaves its colours showing, with a big
--- padlock over the picture (designer, 2026-10-08; it was a grey card with a dark silhouette).
+-- is its whole card, moving as any card does, under a grey veil that leaves its colours
+-- showing, with a big padlock over the picture (designer, 2026-10-08; it was a grey card with
+-- a dark silhouette, then still under the veil).
 --
 -- It behaves like the kit's buttons: hover and gamepad selection give a gold ring, a small grow
 -- and a slow, small lean (Kit.Motion.CardSway); a press squishes it and plays the Click sound,
@@ -58,7 +59,7 @@ local EDGE = color(CARD.EdgeColor)
 
 export type Fields = {
 	cueId: string,
-	locked: boolean?, -- the Index: never found (the whole card, still, greyed, with a padlock)
+	locked: boolean?, -- the Index: never found (the whole card, greyed, with a padlock)
 	count: string?, -- "x3", or nil / "" for none
 	copy: string?, -- a copy number over the name: "#412", or nil / "" for none
 	bare: boolean?, -- no pills and no padlock (the big card); the copy number stays
@@ -680,7 +681,7 @@ end
 
 -- Dress the card in a look (Config.UI.CueCard.Looks or Tiers): its colours, then its moving
 -- parts (rebuilt, since where its sparkles sit comes from the cue's id).
-local function dress(card: Card, key: string, ranked: boolean, id: string, still: boolean)
+local function dress(card: Card, key: string, ranked: boolean, id: string)
 	if card.fx then
 		CueCardFx.stop(card.fx)
 		card.fx = nil
@@ -728,7 +729,7 @@ local function dress(card: Card, key: string, ranked: boolean, id: string, still
 		art = card.art,
 		thumb = card.thumb,
 		name = card.name,
-	}, look, CardMath.seed(id), still)
+	}, look, CardMath.seed(id))
 	CueCardFx.hold(card.fx :: CueCardFx.Fx, card.held)
 end
 
@@ -736,7 +737,7 @@ end
 function InventoryCard.set(card: Card, fields: Fields)
 	local id = fields.cueId
 	local locked = fields.locked == true
-	local changed = id ~= card.cueId or locked ~= card.locked
+	local changed = id ~= card.cueId
 	if id ~= card.cueId then
 		CueThumb.set(card.thumb, id)
 	end
@@ -748,7 +749,7 @@ function InventoryCard.set(card: Card, fields: Fields)
 	card.name.Text = CueThumb.cueName(id)
 	card.barWord.Text = string.upper(CueThumb.rarityName(if ranked then "Ranked" else rarity))
 	if changed or key ~= card.lookKey then
-		dress(card, key, ranked, id, locked)
+		dress(card, key, ranked, id)
 	end
 	card.badge.Visible = ranked
 	card.veil.Visible = locked

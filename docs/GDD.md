@@ -1116,7 +1116,7 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
   and Secret cue are numbered #1 to #100 from the public release; Commons and Uncommons never
   (an earlier answer the same day was the first 1,000 of every block cue). Unique cues keep
   numbering every copy; Ranked, VIP, Starter and Classic stay plain. A numbered copy is its own
-  card (gold number above the name) before that cue's plain stack. Sell all never sells a
+  card (gold number above the name) before that cue's plain stack. Sell dupes never sells a
   numbered copy (one sells only from its own card, after a warning); a sold number is gone for
   good. How many exist shows on the big card for every cue. Today only Unique cues are numbered and
   other cues are saved as a count, so this changes saves, selling, trading and the copy
