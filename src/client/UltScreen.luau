@@ -57,6 +57,7 @@ local SPINS = Strings.Ults.Spins
 local SHOP = Strings.Menus.Shop
 local CODES = Strings.Menus.Rewards
 local NAME = C.Column.Name -- the Menus name ("Ults")
+local LUCKY_ON = Config.Ults.Earn.LuckySpins ~= false -- Lucky Spins (retired 2026-10-08)
 local FREEZE_ACTION = "8ballUltScreenFreeze"
 -- The keys that walk and jump, held while the screen is open (a text box still types).
 local FREEZE_KEYS = {
@@ -352,8 +353,12 @@ function UltScreen.buildSpin(self: any, parent: Instance)
 	left.ZIndex = 5
 	left.AnchorPoint = Vector2.new(0.5, 0)
 	self.luckyButton, self.spinButton, self.spinsLeft = lucky, spin, left
-	spin.NextSelectionUp = lucky
-	lucky.NextSelectionDown = spin
+	if LUCKY_ON then
+		spin.NextSelectionUp = lucky
+		lucky.NextSelectionDown = spin
+	else
+		lucky.Visible = false
+	end
 end
 
 --------------------------------------------------------------------------------------------
@@ -550,7 +555,7 @@ function UltScreen.draw(self: any, state: any)
 	HudParts.setEnabled(spin, not self.spinning, self.spinning)
 	self.spinsLeft.Text = W.SpinsLeft:format(Format.commas(spins))
 	HudParts.setText(self.luckyButton, W.LuckySpins:format(Format.commas(luckySpins)))
-	self.luckyButton.Visible = state.restricted ~= true
+	self.luckyButton.Visible = LUCKY_ON and state.restricted ~= true
 	HudParts.setEnabled(self.luckyButton, not self.spinning, self.spinning)
 	-- FREE SPIN breathes while it waits.
 	local breathe = free and not locked and not self.spinning

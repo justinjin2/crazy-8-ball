@@ -88,6 +88,8 @@ function UltOdds.new(parent: Instance, hooks: Hooks): any
 		end
 	end)
 	self.switch.button.ZIndex = 3
+	-- Lucky Spins are retired (Config.Ults.Earn.LuckySpins): no Lucky odds switch.
+	self.switch.button.Visible = Config.Ults.Earn.LuckySpins ~= false
 
 	for index, rarity in RARITIES do
 		table.insert(self.bars, self:buildBar(scroll, rarity, index))
@@ -447,7 +449,9 @@ function UltOdds.layout(self: any, g: Parts.Geo, width: number, onWhite: boolean
 		math.min(inner, HudParts.candyWidth(switch, switchH, g.text("BarTextPx")) + switchH)
 	switch.Position = UDim2.fromOffset(x + inner - switchW, y)
 	switch.Size = UDim2.fromOffset(switchW, switchH)
-	y += switchH + gap
+	if switch.Visible then
+		y += switchH + gap
+	end
 	for _, bar: Bar in self.bars do
 		bar.button.Position = UDim2.fromOffset(x, y)
 		bar.button.Size = UDim2.fromOffset(inner, barH)
@@ -553,14 +557,17 @@ function UltOdds.layoutCode(self: any, g: Parts.Geo, width: number): number
 	return cy
 end
 
---- The gamepad's way in: the Lucky odds switch.
+--- The gamepad's way in: the Lucky odds switch, or the first bar without it.
 function UltOdds.first(self: any): GuiObject
+	if not self.switch.button.Visible and self.bars[1] then
+		return self.bars[1].button
+	end
 	return self.switch.button
 end
 
 --- Put a gamepad on the first bar.
 function UltOdds.focus(self: any)
-	GuiService.SelectedObject = self.switch.button
+	GuiService.SelectedObject = self:first()
 end
 
 return UltOdds

@@ -167,14 +167,16 @@
    "kind": "Product",
    "name": "1 Lucky Spin",
    "robux": 25,
-   "description": "One Lucky Spin: no Commons. Odds are shown in the game."
+   "description": "One Lucky Spin: no Commons. Odds are shown in the game.",
+   "retired": true
   },
   {
    "key": "Lucky3",
    "kind": "Product",
    "name": "3 Lucky Spins",
    "robux": 65,
-   "description": "Three Lucky Spins: no Commons. Odds are shown in the game."
+   "description": "Three Lucky Spins: no Commons. Odds are shown in the game.",
+   "retired": true
   },
   {
    "key": "Pack4Sale",

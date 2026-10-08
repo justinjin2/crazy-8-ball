@@ -38,7 +38,7 @@ local RanksCfg = Config.Ranks
 
 local SaveSchema = {}
 
-SaveSchema.Version = 9
+SaveSchema.Version = 10
 
 --- Saves older than this start over (a full wipe, version 6).
 SaveSchema.WipeBelow = 6
@@ -406,6 +406,22 @@ SaveSchema.Migrations[8] = function(data: any): any
 		login.FirstWeek = if SaveSchema.isInteger(total) and total > 0
 			then math.min(total, 7)
 			else 0
+	end
+	return data
+end
+
+-- 9 -> 10 (2026-10-08, Lucky Spins retired: Config.Ults.Earn.LuckySpins): Lucky Spins still
+-- held become plain spins, capped at 100,000 (the save's spin cap). Fixed numbers here (not
+-- Config), so this step never changes once shipped.
+SaveSchema.Migrations[9] = function(data: any): any
+	local ults = data.Ults
+	if type(ults) == "table" then
+		local lucky = if SaveSchema.isInteger(ults.LuckySpins) and ults.LuckySpins > 0
+			then ults.LuckySpins
+			else 0
+		local spins = if SaveSchema.isInteger(ults.Spins) and ults.Spins > 0 then ults.Spins else 0
+		ults.Spins = math.min(spins + lucky, 100000)
+		ults.LuckySpins = 0
 	end
 	return data
 end

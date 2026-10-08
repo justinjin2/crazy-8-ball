@@ -65,6 +65,7 @@ local LIST: {
 		Robux: number,
 		Restock: string?,
 		Vip: boolean?, -- the release sale's VIP (grants VIP like VipOffer)
+		Retired: boolean?, -- never offered again, so its price is never shown
 	},
 } =
 	Config.Products.List :: any
@@ -1117,11 +1118,14 @@ end
 -- Start
 ---------------------------------------------------------------------------------------------
 
--- Reads every live Robux price once (Id 0: Config's fallback price stays).
+-- Reads every live Robux price once (Id 0: Config's fallback price stays). A Retired
+-- product is never shown (and is off sale on Roblox), so its price is not read.
 local function readPrices()
 	local keys: { string } = {}
-	for key in LIST do
-		table.insert(keys, key)
+	for key, row in LIST do
+		if row.Retired ~= true then
+			table.insert(keys, key)
+		end
 	end
 	table.sort(keys)
 	local any = false

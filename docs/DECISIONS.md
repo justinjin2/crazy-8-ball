@@ -3216,3 +3216,11 @@ timer of a new block stay the designer's call.
   down it turns to the camera, is anchored on this client at its standing height and plays its
   own idle; closing gives everything back. The old copy is what made a running player's hidden
   character (and its cue) keep going in front of the copy.
+- 2026-10-08 (designer: "just get rid of lucky spins as it doesnt exist anymore"): Lucky Spins
+  are retired (`Config.Ults.Earn.LuckySpins = false`). The spin screen loses the Lucky bar, the
+  Lucky odds switch and the Buy Lucky row; Lucky1 and Lucky3 are `Retired` (refused in game,
+  marked retired in `tools/products_spec.json`, taken off sale by `--sync` when this ships,
+  never deleted). Save v10 turns Lucky Spins still held into plain spins (capped at 100,000); a
+  late Lucky receipt or a reward row with LuckySpins pays the same count of plain spins. The
+  server's Lucky roll stays, unreachable. The Store no longer reads live prices of Retired
+  products.

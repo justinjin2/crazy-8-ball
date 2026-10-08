@@ -103,7 +103,8 @@ function UltFast.draw(self: any, state: any)
 	self.holder.Visible = state.vip == true
 	local auto = if type(state.auto) == "table" then state.auto else {}
 	self:setRunning(auto.running == true, if type(auto.count) == "number" then auto.count else 0)
-	local canLucky = state.restricted ~= true
+	local canLucky = Config.Ults.Earn.LuckySpins ~= false
+		and state.restricted ~= true
 		and type(state.luckySpins) == "number"
 		and state.luckySpins > 0
 	self.luckySwitch.button.Visible = canLucky

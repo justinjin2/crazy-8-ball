@@ -468,7 +468,7 @@ return {
 	["the template has every field at its starting value"] = function()
 		local _, SaveSchema = setup()
 		local t = SaveSchema.template()
-		H.expect(SaveSchema.Version == 9, "version 9")
+		H.expect(SaveSchema.Version == 10, "version 10")
 		H.expect(SaveSchema.WipeBelow == 6, "everything older than 6 is wiped")
 		H.expect(t.Version == SaveSchema.Version, "template carries the current version")
 		H.expect(t.Money == 0 and t.RankXp == 0 and t.PeakDivision == 0, "starts at zero")
@@ -662,8 +662,8 @@ return {
 		old.Login = { LastDay = 20724, StreakDay = 3, Total = 10, FreezeWeek = 0 }
 		old.Login.FirstWeek = nil
 		local out, notes = SaveSchema.migrate(old)
-		H.expect(out.Version == 9, "now version 9")
-		H.expect(#notes == 1 and notes[1] == "migrated 8 -> 9", table.concat(notes, "; "))
+		H.expect(out.Version == SaveSchema.Version, "now the current version")
+		H.expect(notes[1] == "migrated 8 -> 9", table.concat(notes, "; "))
 		H.expect(out.Daily.Day == 0 and out.Daily.Wins == 0 and out.Daily.PlaySeconds == 0, "")
 		H.expect(next(out.Daily.PlaytimeClaimed) == nil, "no old gift marks")
 		H.expect(out.Daily.Track == 0 and out.Daily.Matches == 0, "the new counts")
@@ -679,7 +679,37 @@ return {
 		H.expect(SaveSchema.migrate(young).Login.FirstWeek == 2, "two days had")
 		for _, bad in { { Version = 8 }, { Version = 8, Daily = 5, Login = { Total = "x" } } } do
 			local ok, moved = pcall(SaveSchema.migrate, bad)
-			H.expect(ok and moved.Version == 9, "a broken save still migrates")
+			H.expect(ok and moved.Version == SaveSchema.Version, "a broken save still migrates")
+		end
+	end,
+
+	["version 9 to 10: Lucky Spins still held become plain spins"] = function()
+		local Config, SaveSchema = setup()
+		local old = SaveSchema.template()
+		old.Version = 9
+		old.Ults.Spins = 7
+		old.Ults.LuckySpins = 3
+		local out, notes = SaveSchema.migrate(old)
+		H.expect(out.Version == 10, "now version 10")
+		H.expect(#notes == 1 and notes[1] == "migrated 9 -> 10", table.concat(notes, "; "))
+		H.expect(out.Ults.Spins == 10 and out.Ults.LuckySpins == 0, "3 Lucky Spins became spins")
+		local _, fixes = SaveSchema.validate(out)
+		H.expect(#fixes == 0, "clean: " .. table.concat(fixes, "; "))
+		assertClean(Config, SaveSchema, out)
+		local full = SaveSchema.template()
+		full.Version = 9
+		full.Ults.Spins = 99999
+		full.Ults.LuckySpins = 5
+		H.expect(SaveSchema.migrate(full).Ults.Spins == 100000, "capped at the save's cap")
+		for _, bad in
+			{
+				{ Version = 9 },
+				{ Version = 9, Ults = 5 },
+				{ Version = 9, Ults = { LuckySpins = "x" } },
+			}
+		do
+			local ok, moved = pcall(SaveSchema.migrate, bad)
+			H.expect(ok and moved.Version == 10, "a broken save still migrates")
 		end
 	end,
 

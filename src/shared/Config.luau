@@ -3549,7 +3549,15 @@ Config.Products = {
 			Spins = 50,
 			Random = true,
 		},
-		Lucky1 = { Kind = "Product", Id = 3716158396, Robux = 25, Lucky = 1, Random = true }, -- no Commons
+		-- Lucky Spins (no Commons), retired 2026-10-08 (Config.Ults.Earn.LuckySpins).
+		Lucky1 = {
+			Kind = "Product",
+			Id = 3716158396,
+			Robux = 25,
+			Lucky = 1,
+			Random = true,
+			Retired = true,
+		},
 		Lucky3 = {
 			Kind = "Product",
 			Id = 3716158399,
@@ -3557,6 +3565,7 @@ Config.Products = {
 			Was = 75,
 			Lucky = 3,
 			Random = true,
+			Retired = true,
 		},
 		-- The release sale (retired with economy v4, 2026-10-08): never offered again, kept so
 		-- an old receipt still pays what its SaleOf product gave (created 2026-10-03; never
@@ -3844,9 +3853,15 @@ Config.Ults = {
 		-- Money spins: this much each, no bulk discount ("way more expensive" than Robux).
 		MoneyPerSpin = 12500, -- v4 (2026-10-08; was 17,500)
 		MoneyPacks = { 1, 5, 10, 50 }, -- BUY 1, 5, 10, 50 in $ mode
-		-- Robux packs: the developer products in Config.Products (Spin1..Spin50, Lucky1, Lucky3).
+		-- Robux packs: the developer products in Config.Products (Spin1..Spin50).
 		RobuxPacks = { "Spin1", "Spin5", "Spin10", "Spin50" },
-		LuckyPacks = { "Lucky1", "Lucky3" },
+		-- Lucky Spins are retired (designer, 2026-10-08: "it doesn't exist anymore"): no Lucky
+		-- Spins bar, Lucky odds switch, Use Lucky Spins switch or Buy Lucky row on the screen;
+		-- Lucky1 and Lucky3 are Retired (a late receipt pays plain spins); SaveSchema's
+		-- migration 9 turns Lucky Spins still held into spins. The server's Lucky roll stays,
+		-- unreachable, until the spin code is cleaned up.
+		LuckySpins = false,
+		LuckyPacks = {} :: { string }, -- was { "Lucky1", "Lucky3" }
 		MaxSpins = 100000, -- the save's cap on held spins (and Lucky Spins)
 	},
 	-- The code box on the spin screen (section 9.3): the designer edits these two in one place.

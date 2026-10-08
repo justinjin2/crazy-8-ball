@@ -340,11 +340,14 @@ return {
 		H.expect(not again and why == "Used", "once per player")
 		local out = RewardView.reward(reward :: any)
 		H.expect(out.spins == 3 and out.lucky == 0 and out.money == 0, "the reply's chip")
-		-- A code row with LuckySpins gives them.
+		-- Lucky Spins are retired: a code row with LuckySpins pays plain spins.
 		Config.Daily.Codes.LUCKYTEST = { LuckySpins = 2 }
 		local okLucky, redeemed, lucky = pcall(Daily.redeem, {}, "luckytest", DAY * 86400)
 		Config.Daily.Codes.LUCKYTEST = nil
-		H.expect(okLucky and redeemed and (lucky :: any).lucky == 2, "Lucky Spins")
+		H.expect(
+			okLucky and redeemed and (lucky :: any).spins == 2 and (lucky :: any).lucky == 0,
+			"Lucky Spins pay plain spins"
+		)
 	end,
 
 	["receipts grant spins once per purchase id"] = function()
@@ -357,8 +360,9 @@ return {
 				key
 			)
 		end
+		-- Lucky Spins are retired: a late Lucky3 receipt pays 3 plain spins.
 		local g3 = Shop.grantFor("Lucky3", { Purchases = {}, Limited = {} } :: any, 0, false)
-		H.expect(g3 and g3.lucky == 3 and g3.spins == nil, "Lucky3: 3 Lucky Spins")
+		H.expect(g3 and g3.spins == 3 and g3.lucky == nil, "Lucky3: 3 plain spins")
 		H.expect(
 			Shop.grantFor("UltSlot2", { Purchases = {}, Limited = {} } :: any, 0, false) == nil,
 			"a pass has no receipt"
@@ -401,7 +405,7 @@ return {
 		H.expect(save.Ults.Spins == E.Starter + 5 and grants == 1, "5 spins once")
 		local lucky = { PlayerId = 1, ProductId = 556, PurchaseId = "p-2" }
 		H.expect(Shop.processReceipt(deps, lucky) == "Granted", "Lucky3")
-		H.expect(save.Ults.LuckySpins == 3, "3 Lucky Spins")
+		H.expect(save.Ults.Spins == E.Starter + 8 and save.Ults.LuckySpins == 0, "3 plain spins")
 	end,
 
 	["the shop refuses spin packs where restricted, and owned slot passes"] = noIds(function()
@@ -422,7 +426,7 @@ return {
 			return c
 		end
 		H.expect(ShopView.check("Spin5", context({ restricted = true })) == "Restricted", "")
-		H.expect(ShopView.check("Lucky1", context({ restricted = true })) == "Restricted", "")
+		H.expect(ShopView.check("Lucky1", context({ restricted = true })) == "Closed", "retired")
 		H.expect(ShopView.check("Spin5", context({})) == "ComingSoon", "id 0: Coming soon")
 		H.expect(
 			ShopView.check("UltSlot2", context({ restricted = true })) == "ComingSoon",
@@ -527,12 +531,11 @@ return {
 		-- Economy v4: was = the same count bought one at a time (5 x 9 R$).
 		H.expect(s5.robux == 39 and s5.was == 45 and s5.spins == 5 and s5.kind == "Product", "")
 		H.expect(p.products.Spin1.was == nil, "no crossed-out price on 1 spin")
-		H.expect(p.products.Lucky3.lucky == 3 and p.products.Lucky3.was == 75, "Lucky3")
+		H.expect(p.products.Lucky3 == nil and #p.luckyPacks == 0, "Lucky Spins are retired")
 		H.expect(p.products.UltSlot2.kind == "Pass" and p.products.UltSlot2.slot == 2, "")
 		-- Restricted: spin packs refused, slot passes not.
 		local r = SpinView.state(ctx({ restricted = true, prices = { Spin5 = 45 } }))
 		H.expect(r.products.Spin5.reason == "Restricted" and not r.products.Spin5.canBuy, "")
-		H.expect(r.products.Lucky1.reason == "Restricted", "Lucky")
 		H.expect(r.products.UltSlot3.reason == "ComingSoon", "a slot pass is not random")
 		H.expect(r.products.Spin5.robux == 45, "the live price")
 		-- Passes, a locked Legendary, the developer flag and a running Auto Spin.

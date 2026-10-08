@@ -340,7 +340,7 @@ function UltBuy.layoutRows(self: any, g: Parts.Geo, width: number): number
 		cell.frame.Position = UDim2.fromOffset((index - 1) * (cellW + gap), y)
 	end
 	y += rowH
-	if robuxMode then
+	if robuxMode and #self.luckyCells > 0 then
 		y += gap
 		local luckyCount = #self.luckyCells
 		local luckyW = math.floor((width - (luckyCount - 1) * gap) / math.max(1, luckyCount))

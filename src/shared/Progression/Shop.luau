@@ -587,6 +587,10 @@ function Shop.grantFor(
 	-- restricted is refused at the prompt; a receipt that arrives anyway is Robux paid, and
 	-- grants.
 	local spins, lucky = whole(row.Spins), whole(row.Lucky)
+	if Config.Ults.Earn.LuckySpins == false then
+		-- Lucky Spins are retired: an old Lucky receipt pays the same count of plain spins.
+		spins, lucky = spins + lucky, 0
+	end
 	if spins > 0 then
 		grant.spins = spins
 	end

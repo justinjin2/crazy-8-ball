@@ -139,6 +139,10 @@ local function rewardOf(row: RewardRow?): Reward
 	reward.money = math.max(0, whole(row.Money))
 	reward.spins = math.max(0, whole(row.Spins))
 	reward.lucky = math.max(0, whole(row.LuckySpins))
+	if Config.Ults.Earn.LuckySpins == false then
+		-- Lucky Spins are retired: a row's LuckySpins pay the same count of plain spins.
+		reward.spins, reward.lucky = reward.spins + reward.lucky, 0
+	end
 	local blocks = row.Blocks
 	if blocks ~= nil then
 		for _, kind in BLOCK_ORDER do
