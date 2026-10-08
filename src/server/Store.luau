@@ -48,6 +48,7 @@ local Net = require(Shared.Net)
 local Shop = require(Shared.Progression.Shop)
 local ShopView = require(Shared.Progression.ShopView)
 local Restock = require(Shared.Progression.Restock)
+local Daily = require(Shared.Progression.Daily)
 local Inventory = require(Shared.Progression.Inventory)
 local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
 local PlayerData = require(script.Parent.PlayerData)
@@ -66,6 +67,7 @@ local LIST: {
 		Restock: string?,
 		Vip: boolean?, -- the release sale's VIP (grants VIP like VipOffer)
 		Retired: boolean?, -- never offered again, so its price is never shown
+		ClaimAll: number?, -- Claim All (Config.Daily.ClaimAll): never a gift
 	},
 } =
 	Config.Products.List :: any
@@ -231,6 +233,12 @@ local function context(player: Player, now: number): ShopView.Context?
 			return Inventory.owns(data, id)
 		end,
 		found = Counters.limitedSold,
+		claimAll = Daily.claimAllOffer(
+			data.Login,
+			Daily.dayOf(now),
+			nil,
+			{ joinDay = Daily.joinDayOf(data.Shop.FirstJoin) }
+		).product,
 	}
 end
 
@@ -607,6 +615,7 @@ local function giftable(key: string): boolean
 	return row ~= nil
 		and row.Kind == "Product"
 		and row.Restock == nil
+		and row.ClaimAll == nil -- priced by the buyer's own login row
 		and LuckyBlocks.skipTierOf(key) == nil
 end
 

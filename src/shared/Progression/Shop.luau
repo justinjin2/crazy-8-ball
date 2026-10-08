@@ -66,6 +66,9 @@ export type Grant = {
 	luckySkip: boolean?, -- durable lucky block timer credit, applied by PlayerData
 	skipTier: number?, -- that skip's tier (Config.LuckyBlocks.Skips; nil: the top one)
 	boostEnds: number?, -- the Starter Pack's 2x money hour ends then (sets Shop.BoostEnds)
+	-- Claim All: the most days of the login row to claim (Config.Daily.ClaimAll). The server
+	-- works the days out from the save as it applies the grant (Daily.claimAll).
+	claimAll: number?,
 }
 
 export type LimitedRow = {
@@ -117,6 +120,7 @@ type ProductRow = {
 	SaleOf: string?, -- a release-sale product: gives what this key gives (Shop.releaseSale)
 	Vip: boolean?, -- grants VIP in the save, like the welcome offer (the sale's VIP)
 	Retired: boolean?, -- never offered again; an old receipt still pays (economy v4)
+	ClaimAll: number?, -- Claim All: the most login days one claims (Config.Daily.ClaimAll)
 }
 
 local LIST: { [string]: ProductRow } = P.List :: any
@@ -607,6 +611,11 @@ function Shop.grantFor(
 		end
 		grant.blocks = { kind = blocks.Kind, count = count }
 	end
+	-- Claim All (Config.Daily.ClaimAll): the rest of this player's 7-day login row.
+	local claimAll = whole(row.ClaimAll)
+	if claimAll > 0 then
+		grant.claimAll = claimAll
+	end
 	if
 		grant.money <= 0
 		and grant.cue == nil
@@ -616,6 +625,7 @@ function Shop.grantFor(
 		and grant.spins == nil
 		and grant.lucky == nil
 		and grant.blocks == nil
+		and grant.claimAll == nil
 	then
 		return nil, nil
 	end

@@ -135,6 +135,48 @@
    "description": "+100% money for everyone in your server for 15 minutes. Your name is announced."
   },
   {
+   "key": "ClaimAllFirst7",
+   "kind": "Product",
+   "name": "Claim All Daily Rewards (First Week, 6-7 days)",
+   "robux": 399,
+   "description": "Claims the rest of your first week's Daily Rewards at once, day 7's Legendary Lucky Block included (when 6 or 7 days are left). Lucky block odds are shown in the game."
+  },
+  {
+   "key": "ClaimAllFirst5",
+   "kind": "Product",
+   "name": "Claim All Daily Rewards (First Week, 3-5 days)",
+   "robux": 349,
+   "description": "Claims the rest of your first week's Daily Rewards at once, day 7's Legendary Lucky Block included (when 3 to 5 days are left). Lucky block odds are shown in the game."
+  },
+  {
+   "key": "ClaimAllFirst2",
+   "kind": "Product",
+   "name": "Claim All Daily Rewards (First Week, 1-2 days)",
+   "robux": 299,
+   "description": "Claims the rest of your first week's Daily Rewards at once, day 7's Legendary Lucky Block included (when 1 or 2 days are left). Lucky block odds are shown in the game."
+  },
+  {
+   "key": "ClaimAllWeek7",
+   "kind": "Product",
+   "name": "Claim All Daily Rewards (6-7 days)",
+   "robux": 129,
+   "description": "Claims the rest of this week's Daily Rewards at once (when 6 or 7 days are left). Lucky block odds are shown in the game."
+  },
+  {
+   "key": "ClaimAllWeek5",
+   "kind": "Product",
+   "name": "Claim All Daily Rewards (3-5 days)",
+   "robux": 99,
+   "description": "Claims the rest of this week's Daily Rewards at once (when 3 to 5 days are left). Lucky block odds are shown in the game."
+  },
+  {
+   "key": "ClaimAllWeek2",
+   "kind": "Product",
+   "name": "Claim All Daily Rewards (1-2 days)",
+   "robux": 59,
+   "description": "Claims the rest of this week's Daily Rewards at once (when 1 or 2 days are left). Lucky block odds are shown in the game."
+  },
+  {
    "key": "Spin1",
    "kind": "Product",
    "name": "1 Ability Spin",

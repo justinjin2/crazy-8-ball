@@ -42,6 +42,18 @@ export type LoginView = {
 	reward: RewardOut, -- the loop day, the track and VIP's spin together
 }
 
+-- Claim All (Config.Daily.ClaimAll): the rest of this 7-day row at once, for Robux.
+export type ClaimAllView = {
+	-- some day of the row is still ahead, and paid random items are not restricted for the
+	-- player (the days give lucky blocks: hidden where restricted)
+	available: boolean,
+	product: string?, -- the Config.Products key to buy (its price: the shop's live one)
+	robux: number, -- Config's price for it (0: none), until the shop's live price arrives
+	from: number, -- the first day it claims (1..7)
+	days: number, -- how many days it claims
+	reward: RewardOut, -- everything it gives
+}
+
 -- One of the seven day tiles: the first week's while it lasts, else the later weeks' loop.
 export type DayView = {
 	day: number,
@@ -103,6 +115,7 @@ export type Payload = {
 	sentAt: number,
 	weeks: number,
 	login: LoginView,
+	claimAll: ClaimAllView,
 	days: { DayView },
 	trackDays: number, -- Config.Daily.TrackDays
 	trackPlace: number, -- days claimed in this round of the track, 0..trackDays
@@ -128,6 +141,20 @@ local function num(x: any): number
 		return 0
 	end
 	return x
+end
+
+--- Claim All's offer (Daily.claimAllOffer) as the remote carries it, with Config's price
+--- (`restricted`: paid random items are restricted for the player, so it is not available).
+function RewardView.claimAll(offer: Daily.ClaimAllOffer, restricted: boolean?): ClaimAllView
+	local row = if offer.product then (Config.Products.List :: any)[offer.product] else nil
+	return {
+		available = offer.available and restricted ~= true,
+		product = offer.product,
+		robux = if row then row.Robux else 0,
+		from = offer.from,
+		days = offer.days,
+		reward = RewardView.reward(offer.reward),
+	}
 end
 
 --- A Daily.Reward as a remote carries it: { money, blocks = { { kind, count } }, spins,
@@ -272,6 +299,10 @@ function RewardView.build(
 			freezeReady = state.freezeReady,
 			reward = RewardView.reward(state.reward),
 		},
+		claimAll = RewardView.claimAll(
+			Daily.claimAllOffer(login, today, vip, loginExtra),
+			restricted
+		),
 		days = days,
 		trackDays = D.TrackDays,
 		trackPlace = place,

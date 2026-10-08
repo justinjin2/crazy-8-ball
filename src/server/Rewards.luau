@@ -179,6 +179,7 @@ local REWARD_OPS: { [string]: boolean } = {
 	recordMatch = true, -- an invited player's first win
 	recordRealMatch = true, -- today's first finished match lets the login day be claimed
 	winBlock = true, -- the win track's bar
+	applyPurchase = true, -- Claim All claims the login row (Config.Daily.ClaimAll)
 }
 
 local function onChanged(player: Player, op: string)

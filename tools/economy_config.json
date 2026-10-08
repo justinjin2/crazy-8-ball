@@ -697,6 +697,24 @@
     }
   },
   "Products": {
+    "ClaimAllFirst2": {
+      "Robux": 299
+    },
+    "ClaimAllFirst5": {
+      "Robux": 349
+    },
+    "ClaimAllFirst7": {
+      "Robux": 399
+    },
+    "ClaimAllWeek2": {
+      "Robux": 59
+    },
+    "ClaimAllWeek5": {
+      "Robux": 99
+    },
+    "ClaimAllWeek7": {
+      "Robux": 129
+    },
     "GrandOpening1": {
       "Robux": 19
     },
@@ -707,9 +725,11 @@
       "Robux": 49
     },
     "Lucky1": {
+      "Retired": true,
       "Robux": 25
     },
     "Lucky3": {
+      "Retired": true,
       "Robux": 65
     },
     "LuckyBlockSkip": {
@@ -1157,10 +1177,8 @@
   "Ults": {
     "Earn": {
       "DailyFree": 1,
-      "LuckyPacks": [
-        "Lucky1",
-        "Lucky3"
-      ],
+      "LuckyPacks": {},
+      "LuckySpins": false,
       "MaxSpins": 100000,
       "MoneyPacks": [
         1,

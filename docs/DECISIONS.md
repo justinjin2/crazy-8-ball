@@ -3229,3 +3229,12 @@ timer of a new block stay the designer's call.
   width with one picture size, and all their words one size (the biggest that fits). A tile
   used to be as wide as its words, so "[DIAMOND]" made a big picture and "Epic" a small one. The
   chat tag shrinks on its own (`TileTagMinPx`); one block shows just its name (no "x1").
+- 2026-10-08 (designer: "a claim all robux option as well (put a fair price ...)"; priced by
+  the days left, the designer's pick): Claim All claims every day still ahead in this 7-day
+  login row at once (`Daily.claimAll`). Today's unclaimed day is claimed whole (its track prize
+  and VIP's part, no match needed: it is bought); the later days give their own reward only
+  (VIP's daily part and the 28-day track stay with real login days). Price by days left
+  (`Config.Daily.ClaimAll`): first week 399 / 349 / 299 R$ for 6-7 / 3-5 / 1-2 days, later weeks
+  129 / 99 / 59 R$, about half the shop value. A paid random item (refused and hidden where
+  restricted), never a gift. A receipt pays at most its product's days; with nothing left it
+  pays the money fallback. The six products are in the spec, made when the Daily screen ships.

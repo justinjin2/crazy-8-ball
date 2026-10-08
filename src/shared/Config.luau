@@ -3015,6 +3015,25 @@ Config.Daily = {
 		{ Blocks = { Legendary = 1 }, Spins = 2 },
 	} :: { { Money: number?, Blocks: { [string]: number }?, Spins: number? } },
 	FirstWeekWindow = 14,
+	-- Claim All (designer, 2026-10-08: "a claim all robux option as well (put a fair price)";
+	-- priced by the days left, the designer's pick): one Robux product claims every day still
+	-- ahead in this 7-day row at once, today's unclaimed day included (Daily.claimAll). The
+	-- product: the first step whose MinDays the days ahead reach. Each is about half the shop
+	-- value of those days (blocks at their shop prices, money at Pack1's): the first week from
+	-- day 1 is worth ~800 R$, most of it day 7's Legendary (599 R$ in the restock); a later week
+	-- ~250 R$. Paid random items (the days give lucky blocks): refused where restricted.
+	ClaimAll = {
+		First = {
+			{ MinDays = 6, Product = "ClaimAllFirst7" }, -- 399 R$
+			{ MinDays = 3, Product = "ClaimAllFirst5" }, -- 349 R$
+			{ MinDays = 1, Product = "ClaimAllFirst2" }, -- 299 R$
+		},
+		Week = {
+			{ MinDays = 6, Product = "ClaimAllWeek7" }, -- 129 R$
+			{ MinDays = 3, Product = "ClaimAllWeek5" }, -- 99 R$
+			{ MinDays = 1, Product = "ClaimAllWeek2" }, -- 59 R$
+		},
+	},
 	-- A login day counts (can be claimed) only once the player has finished a match that day
 	-- (any mode, PC included), so an alt cannot collect the first week by just joining.
 	NeedsMatch = true,
@@ -3410,7 +3429,8 @@ Config.Shop = {
 ---------------------------------------------------------------------------------------------
 Config.Products = {
 	-- Everything Robux buys (economy v4, 2026-10-08; tools/products_spec.json holds the names,
-	-- prices and descriptions): 3 game passes and 34 developer products (6 retired), made
+	-- prices and descriptions): 3 game passes and 40 developer products (8 retired; Claim All's
+	-- 6 not made yet), made
 	-- through Open Cloud by tools/roblox_products.py (managed pricing off; --sync updates them). Id 0 would show "Coming soon" and prompt
 	-- nothing. Robux is the fallback price; the live price
 	-- is read from Roblox. Random = true: a paid random item, refused where PolicyService
@@ -3521,6 +3541,15 @@ Config.Products = {
 		LuckyBlockSkip9 = { Kind = "Product", Id = 3717253512, Robux = 9, Random = true },
 		LuckyBlockSkip15 = { Kind = "Product", Id = 3717253515, Robux = 15, Random = true },
 		MoneyParty = { Kind = "Product", Id = 3716158385, Robux = 49 }, -- +100% money, 15 min, server
+		-- Claim All (Config.Daily.ClaimAll): the rest of this 7-day login row at once. ClaimAll:
+		-- the most days one pays (its step's top: a receipt after the row changed pays the days
+		-- ahead up to this). Made on Roblox when the Daily screen ships (Id 0: Coming soon).
+		ClaimAllFirst7 = { Kind = "Product", Id = 0, Robux = 399, ClaimAll = 7, Random = true },
+		ClaimAllFirst5 = { Kind = "Product", Id = 0, Robux = 349, ClaimAll = 5, Random = true },
+		ClaimAllFirst2 = { Kind = "Product", Id = 0, Robux = 299, ClaimAll = 2, Random = true },
+		ClaimAllWeek7 = { Kind = "Product", Id = 0, Robux = 129, ClaimAll = 7, Random = true },
+		ClaimAllWeek5 = { Kind = "Product", Id = 0, Robux = 99, ClaimAll = 5, Random = true },
+		ClaimAllWeek2 = { Kind = "Product", Id = 0, Robux = 59, ClaimAll = 2, Random = true },
 		-- Ability spins (ECONOMY 11.8; the spin screen's R$ buy row). Spins / Lucky: what one
 		-- purchase adds; Was: the same count bought one at a time today (a true bulk saving
 		-- against Spin1 or Lucky1, never a former price; the shop will show it "one by one").

@@ -351,9 +351,16 @@ return {
 	end,
 
 	["every pass and product is made: a real id, each once"] = function()
-		-- Not made in Creator Hub yet (tools/roblox_products.py makes them; empty since economy
-		-- v4's products were made 2026-10-08).
-		local pending: { [string]: boolean } = {}
+		-- Not made in Creator Hub yet (tools/roblox_products.py makes them): Claim All's ladder
+		-- (2026-10-08), made when the Daily screen ships.
+		local pending: { [string]: boolean } = {
+			ClaimAllFirst7 = true,
+			ClaimAllFirst5 = true,
+			ClaimAllFirst2 = true,
+			ClaimAllWeek7 = true,
+			ClaimAllWeek5 = true,
+			ClaimAllWeek2 = true,
+		}
 		local seen = {}
 		for key, product in Config.Products.List do
 			if pending[key] then
@@ -857,6 +864,32 @@ return {
 		H.expect(not Shop.hasPurchase(old, "x"), "no list yet")
 		Shop.recordPurchase(old, "x")
 		H.expect(Shop.hasPurchase(old, "x"), "list made")
+	end,
+
+	["Claim All: the grant names its most days; only today's step sells"] = function()
+		local now = JOIN + HOUR
+		local grant = Shop.grantFor("ClaimAllFirst7", newShop(), now, false) :: any
+		H.expect(grant ~= nil and grant.claimAll == 7 and grant.money == 0, "7 days at most")
+		local week2 = Shop.grantFor("ClaimAllWeek2", newShop(), now, false) :: any
+		H.expect(week2 ~= nil and week2.claimAll == 2 and week2.blocks == nil, "2 days at most")
+		local function check(key: string, overrides: { [string]: any }): string?
+			return ShopView.check(key, ctxAt(now, overrides))
+		end
+		-- Id 0 until the Daily screen ships: Coming soon even for today's step.
+		H.expect(check("ClaimAllFirst7", { claimAll = "ClaimAllFirst7" }) == "ComingSoon", "")
+		H.expect(check("ClaimAllFirst5", { claimAll = "ClaimAllFirst7" }) == "Closed", "a step")
+		H.expect(check("ClaimAllWeek7", {}) == "Closed", "nothing of the row left")
+		H.expect(
+			check("ClaimAllFirst7", { claimAll = "ClaimAllFirst7", restricted = true })
+				== "Restricted",
+			"lucky blocks: refused where restricted"
+		)
+		local row = (Config.Products.List :: any).ClaimAllFirst7
+		local id = row.Id
+		row.Id = 123
+		local ok, why = pcall(check, "ClaimAllFirst7", { claimAll = "ClaimAllFirst7" })
+		row.Id = id
+		H.expect(ok and why == nil, "with an id, today's step sells: " .. tostring(why))
 	end,
 
 	["ShopView.check: why a Buy may not prompt"] = noIds(function()

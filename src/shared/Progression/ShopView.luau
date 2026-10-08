@@ -28,6 +28,7 @@ local LIST: {
 		Retired: boolean?,
 		Deal: string?,
 		Blocks: { Kind: string, Count: number }?,
+		ClaimAll: number?,
 	},
 } =
 	Config.Products.List :: any
@@ -55,6 +56,9 @@ export type Context = {
 	ownsCue: ((string) -> boolean)?, -- whether this player owns a cue (the guarantee line)
 	-- Copies of a capped Unique cue found so far, nil unknown (Counters.limitedSold).
 	found: ((string) -> number?)?,
+	-- The Claim All product for this player's login row today (Daily.claimAllOffer); nil:
+	-- nothing of the row is left. Every other Claim All product is Closed.
+	claimAll: string?,
 }
 
 -- The restock shown, timed by the real restock's window (a /restock forced one is shown only
@@ -304,6 +308,8 @@ function ShopView.check(key: string, ctx: Context): string?
 			return "Restricted"
 		elseif SPIN_PRODUCTS[key] and ctx.spinsLive == false then
 			return "ComingSoon"
+		elseif row.ClaimAll ~= nil and ctx.claimAll ~= key then
+			return "Closed" -- another step of the price ladder, or nothing of the row left
 		elseif row.Restock ~= nil then
 			-- In this restock, within this player's stock (and a shared stock, if any).
 			local slot = ctx.restockSlot or Restock.slotOf(ctx.now)

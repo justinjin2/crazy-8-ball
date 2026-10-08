@@ -69,6 +69,16 @@ export type LoginState = {
 	freezeReady: boolean, -- this week's freeze is not used yet
 }
 
+-- Claim All's offer on one day (Daily.claimAllOffer): the rest of this 7-day row at once.
+export type ClaimAllOffer = {
+	available: boolean, -- some day of this row is still ahead (today's unclaimed one counts)
+	firstWeek: boolean, -- the row is the first week (else a later week's loop)
+	from: number, -- the first day it claims: today's when not claimed yet, else tomorrow's
+	days: number, -- how many days it claims (0: none left)
+	product: string?, -- the Config.Products key it is bought with (Config.Daily.ClaimAll)
+	reward: Reward, -- everything it gives (today's track prize and VIP's part included)
+}
+
 export type Gift = {
 	index: number,
 	minutes: number,
@@ -105,6 +115,8 @@ local TRACK: { RewardRow } = D.Track :: any
 local CODES: { [string]: RewardRow } = D.Codes :: any
 local DAYS = #STREAK
 local TRACK_DAYS: number = D.TrackDays
+type ClaimAllStep = { MinDays: number, Product: string }
+local CLAIM_ALL: { First: { ClaimAllStep }, Week: { ClaimAllStep } } = D.ClaimAll :: any
 
 -- The longest text normalizeCode looks at. The text comes from a client, and trimming is a
 -- pattern match that gets slow on very long runs of spaces, so anything far longer than a code
@@ -175,6 +187,12 @@ end
 --- daily thing resets when it changes).
 function Daily.dayOf(unix: number): number
 	return math.floor((unix - DAY_OFFSET) / SECONDS_PER_DAY)
+end
+
+--- The day a player first joined (the save's Shop.FirstJoin, a unix time), nil when unknown:
+--- the first week's window counts from it.
+function Daily.joinDayOf(firstJoin: any): number?
+	return if type(firstJoin) == "number" and firstJoin > 0 then Daily.dayOf(firstJoin) else nil
 end
 
 --- The unix time day `day` starts (Config.Daily.ResetHour UTC that date).
@@ -397,6 +415,109 @@ function Daily.claimLogin(
 			FirstWeek = if state.firstWeek then state.day else first,
 		},
 		state.reward
+end
+
+-- The rest of this 7-day row on day `now`: (a first-week row, the first day ahead, whether
+-- that day is today's unclaimed one).
+local function rowAhead(login: any, now: number, joinDay: number?): (boolean, number, boolean)
+	local day, claimedToday, _, isFirst = todaysDay(login, now, joinDay)
+	if claimedToday then
+		return isFirst, day + 1, false
+	end
+	return isFirst, day, true
+end
+
+--- Claim All on day `today` (`vip` and `extra` as Daily.loginState; `maxDays`: the most days
+--- to claim, a receipt's product's ClaimAll; nil: all): every day still ahead in this 7-day
+--- row, at once. Today's day, when not claimed yet, is claimed whole, as Daily.claimLogin
+--- would (its 28-day track prize and VIP's part too, and no wait for a match: the purchase is
+--- the player's); the days after it give their own day's reward only, since VIP's daily part
+--- and the track count real login days. Returns (the days claimed, 0 for none; the new Login
+--- to store; the reward). The row is then done: tomorrow is the later weeks' day 1. Never
+--- changes the table it is given.
+function Daily.claimAll(
+	login: Login,
+	today: number,
+	vip: boolean?,
+	extra: LoginExtra?,
+	maxDays: number?
+): (number, Login, Reward)
+	local now = whole(today)
+	local joinDay = if extra then extra.joinDay else nil
+	local last, streakDay, total, freeze, first = readLogin(login)
+	local out: Login = {
+		LastDay = last,
+		StreakDay = streakDay,
+		Total = total,
+		FreezeWeek = freeze,
+		FirstWeek = first,
+	}
+	local isFirst, from, withToday = rowAhead(login, now, joinDay)
+	local to = if isFirst then FIRST_DAYS else DAYS
+	if maxDays ~= nil then
+		to = math.min(to, from + math.max(0, whole(maxDays)) - 1)
+	end
+	local reward = rewardOf(nil)
+	if from > to then
+		return 0, out, reward
+	end
+	for day = from, to do
+		if day == from and withToday then
+			local played: LoginExtra = {
+				joinDay = joinDay,
+				played = true,
+				restricted = if extra then extra.restricted else nil,
+			}
+			local state = Daily.loginState(login, now, vip, played)
+			reward = merge(reward, state.reward)
+			out.LastDay = now
+			out.Total = state.total
+			out.FreezeWeek = if state.frozen then Daily.weekOf(now) else freeze
+		else
+			reward = merge(reward, rewardOf(if isFirst then FIRST[day] else STREAK[day]))
+		end
+	end
+	if isFirst then
+		out.FirstWeek = to
+		out.StreakDay = 0
+	else
+		out.StreakDay = to
+	end
+	return to - from + 1, out, reward
+end
+
+--- Claim All's offer on day `today` (`vip`, `extra` as Daily.loginState): what the rest of
+--- this 7-day row gives at once and the product it is bought with (Config.Daily.ClaimAll: the
+--- first step whose MinDays the days ahead reach). Not available once the row's last day is
+--- claimed.
+function Daily.claimAllOffer(
+	login: Login,
+	today: number,
+	vip: boolean?,
+	extra: LoginExtra?
+): ClaimAllOffer
+	local now = whole(today)
+	local joinDay = if extra then extra.joinDay else nil
+	local isFirst, from = rowAhead(login, now, joinDay)
+	local days, _, reward = Daily.claimAll(login, now, vip, extra)
+	local product: string? = nil
+	if days > 0 then
+		local steps: { ClaimAllStep } = if isFirst then CLAIM_ALL.First else CLAIM_ALL.Week
+		for _, step in steps do
+			if days >= whole(step.MinDays) then
+				product = step.Product
+				break
+			end
+		end
+	end
+	return {
+		available = product ~= nil,
+		firstWeek = isFirst,
+		from = from,
+		days = days,
+		product = product,
+		reward = reward,
+	}
 end
 
 --- The /setday dev command: a new Login whose NEXT claim (today) is later-weeks loop day `n`

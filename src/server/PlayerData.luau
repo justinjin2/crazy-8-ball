@@ -207,6 +207,9 @@ PlayerData.InviteWon = inviteEvent.Event
 -- every block given in that change gets the right timer.
 local VIP_ATTR = "Vip"
 local vipOfSave: { [any]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+-- The player attribute Items sets from PolicyService: paid random items are restricted (nil
+-- until it has answered, which counts as restricted, as the Rewards service reads it).
+local RESTRICTED_ATTR = "PaidRandomRestricted"
 
 -- The server's own randomness for the Mystery block's tier roll.
 local dropRandom = Random.new()
@@ -595,18 +598,19 @@ end
 
 -- Applies a checked reward (also a Daily.Reward: { money, blocks, spins, lucky }): money
 -- (earned; `reason` names it for the analytics), lucky blocks in Config.LuckyBlocks.Order
--- (free origin, their timers starting), cues in the order given, ult spins.
-local function giveReward(data: any, reward: any, reason: string)
+-- (free origin, their timers starting), cues in the order given, ult spins. `paid`: bought
+-- with Robux (Claim All): the money is not earned and the blocks are paid origin, ready.
+local function giveReward(data: any, reward: any, reason: string, paid: boolean?)
 	local money = reward.money or 0
 	if money > 0 then
-		addMoneyTo(data, money, true, reason)
+		addMoneyTo(data, money, paid ~= true, reason)
 	end
 	local blocks = reward.blocks
 	if blocks ~= nil then
 		for _, kind in Config.LuckyBlocks.Order do
 			local count = blocks[kind]
 			if count ~= nil and count > 0 then
-				giveBlocksTo(data, kind, count, false, vipOfSave[data] == true)
+				giveBlocksTo(data, kind, count, paid == true, vipOfSave[data] == true)
 			end
 		end
 	end
@@ -3180,6 +3184,7 @@ local GRANT_FIELDS: { [any]: boolean } = {
 	restock = true,
 	luckySkip = true,
 	skipTier = true,
+	claimAll = true,
 }
 local GRANT_FLAGS = { "vip", "vipCue", "party", "firstPack", "starterBought", "luckySkip" }
 
@@ -3209,6 +3214,13 @@ local function badGrant(grant: any, copy: any): string?
 	end
 	if grant.skipTier ~= nil and not intIn(grant.skipTier, 1, #Config.LuckyBlocks.Skips) then
 		return "grant.skipTier is not a skip tier"
+	end
+	local rowDays = math.max(#Config.Daily.FirstWeek, #Config.Daily.Streak)
+	if grant.claimAll ~= nil and not intIn(grant.claimAll, 1, rowDays) then
+		return ("grant.claimAll %s is not a whole number in 1..%d"):format(
+			tostring(grant.claimAll),
+			rowDays
+		)
 	end
 	local spinsWhy = badSpinCount(grant.spins, "grant.spins")
 		or badSpinCount(grant.lucky, "grant.lucky")
@@ -3325,6 +3337,22 @@ function PlayerData.applyPurchase(
 	end
 	if grant.luckySkip then
 		LuckyBlocks.grantSkip(data.LuckyBlocks, os.time(), grant.skipTier)
+	end
+	-- Claim All: the rest of this login row (Daily.claimAll), worked out here so the claim and
+	-- the purchase are one change. Nothing left (the row moved on since the prompt) pays the
+	-- product's money fallback instead.
+	if grant.claimAll ~= nil then
+		local day = today()
+		local restricted = player:GetAttribute(RESTRICTED_ATTR) ~= false
+		local extra = loginExtra(data, day, restricted)
+		local days, login, reward =
+			Daily.claimAll(data.Login, day, vipOf(player), extra, grant.claimAll)
+		if days > 0 then
+			data.Login = login
+			giveReward(data, reward, "Purchase:" .. grant.key, true)
+		else
+			addMoneyTo(data, Shop.fallbackMoney(grant.key), false, "Purchase:" .. grant.key)
+		end
 	end
 	Shop.markGrant(shop, grant)
 	commit(player, data, op)
