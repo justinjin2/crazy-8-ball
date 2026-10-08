@@ -3051,3 +3051,16 @@ timer of a new block stay the designer's call.
   sorted between Epic and Legendary, highest tier first; they pay Exclusive's finder's money
   ($5,000) and get their own Index row. An Index cell is at least 100 px wide (110 on a
   computer) so the rarity's word fits at the 12 px floor.
+- 2026-10-08: The Cues menu's layout (designer, concept 2 round 1 notes): Sort, Sell all and the
+  way to the Index stand on tiles outside the panel's right edge, with 5 cards per row; the
+  Index is a two-part My Cues / Index switch that slides back and forth (designer: "its like a
+  toggle where it switches back and forth"), not a book button with a back arrow; the Index
+  shows the chosen cue as a flat picture that sways instead of the 3D turning cue; a copy
+  number sits just above the card's name on the right, clear of the cue's tip; card words keep
+  the same share of the card on a phone as on a computer (designer: "should be similar scale
+  on pc"), replacing the 12 px floor for card names.
+- 2026-10-08: Requested by the designer: numbers on the first 1,000 copies of every cue, every
+  rarity, from the public release, so early players own "one of the first thousand cues even
+  if it was a common cue", and how many exist shown for every rarity. Its rules (which cues,
+  selling, trading) are being asked; it changes saves, selling and trading, so it is planned
+  on its own after the Cues menu.

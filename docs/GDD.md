@@ -1111,6 +1111,11 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 
 ## 18. Parked ideas (not scheduled)
 
+- **Numbers on the first 1,000 copies of every cue** (asked 2026-10-08, rules being asked;
+  planned after the Cues menu): every rarity, Common included, from the public release, shown
+  as a chip above the card's name (#57); how many exist shown for every rarity. Today only
+  Unique cues are numbered and other cues are saved as a count, so this changes saves,
+  selling, trading and the copy counters (`docs/prompts/CUES_LIVELY_PROMPT.md`).
 - **Global boards in a new home** (parked 2026-10-07, one of the last things before release):
   the Top Wins and Top Rank boards left the player list (it is now like Roblox's own list);
   the lobby signs still show them. Where they go next (a menu page, say) is open.

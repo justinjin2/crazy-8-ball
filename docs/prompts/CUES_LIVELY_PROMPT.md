@@ -40,6 +40,12 @@ designer approves or notes -> build -> Studio check (phone, PC size, gamepad by 
 - 2026-10-08: Ranked sorts where Exclusive did (between Epic and Legendary), highest tier first
   (lowest first in "Common first"); approved with the card. VIP and Starter stay Exclusive.
   Ranked pays Exclusive's finder's money ($5,000) and has its own Index row (no reward).
+- 2026-10-08: Cues menu: the tiles stand outside the panel's right edge, 5 cards per row; the
+  Index is reached by a My Cues / Index switch (replaces the book button beside Sort); the
+  Index's chosen cue is a flat swaying picture, not 3D; a copy number sits above the name on the
+  right; card words scale with the card on every screen (no 12 px floor for names on a phone).
+- 2026-10-08: Requested: numbers on the first 1,000 copies of every cue, every rarity, and how
+  many exist shown for every rarity (rules pending).
 
 ## Concept 1: the card (round 1, waiting)
 
@@ -71,7 +77,7 @@ show the 8 ball detail"): the flat silhouettes are replaced by a new tile of rea
 with its white disc and a clear 8, bigger on the card (`tools/gui/card_balls.py`, now `card_art.py`,
 `assets/ui/cards/`), in two looks to pick from: tinted to the card's colour, or classic black.
 
-## Concept 2: the Cues menu (round 1, waiting)
+## Concept 2: the Cues menu (round 2, waiting)
 
 https://claude.ai/artifact/AAsZhs9Dqn1xJkT9gzQ1Xv (sources in
 `~/Desktop/8ball-refs/gui-lively/work/cues-menu-A/`). The Inventory renamed Cues in the Shop's
@@ -88,6 +94,31 @@ Questions asked: where Sort, Index and Sell go (tiles outside the right edge lik
 pick; in the title row, where on a phone Index and Sell become icons; or their own row like today,
 where on a phone the cards shrink to 71 px); which icon; 5 or 6 cards per row.
 
+Round 2 (2026-10-08), from the designer's notes on round 1:
+- Tiles outside the right edge (designer: "ok"), **5 cards per row**.
+- The Index is a **two-part switch** on top of the tiles (designer: "its like a toggle where it
+  switches back and forth from index, and "cues" that you own"): the top half My Cues with the
+  cue icon, the bottom half Index with the book and its red "!"; a blue knob slides to the place
+  you are in, the title changes to match, Sort and Sell step aside in the Index, B goes back to
+  My Cues. No back arrow.
+- The icon: crossed cues, but not the purple design (designer: "something different show me
+  first thats more appealing to click on"). Four new looks: 1 red and blue, 2 with a white cue
+  ball, 3 on a gold burst, 4 gold and black (scratch drawing, not yet in `tools/gen_ui_art.py`).
+- The Index shows the chosen cue as a **flat picture that sways** (turns a few degrees and
+  squeezes sideways); the 3D turning cue goes (designer: "no more 3d rotating version you can
+  even rotate a 2d picture").
+- A copy number (#412) moves from the top-right corner, where it covered the cue's tip, to a
+  chip **just above the name on the right** (designer: "above the name on the bottom right").
+- Card words on a phone are the **same share of the card as on a computer** (designer: "the
+  font looks a little big on phone for the names ... should be similar scale on pc"): this
+  replaces the 12 px floor for card names on a phone (`Config.UI.CueCard.Layout.MinTextPx`).
+- New request: **numbers on the first 1,000 copies of every cue, every rarity** (designer: "so
+  early goers feel special to know that they owned like one of the first thousand cues even if
+  it was a common cue, this could give these cues even more tradeable value"), and how many
+  exist shown for every rarity. Its rules are asked in the chat; the page's numbers are examples.
+  A server and save change, planned on its own after the Cues menu (GDD 18).
+Questions asked: which icon (1 to 4); does the switch feel clear.
+
 ## Progress
 
 - [x] Abilities and Ranked screens show again (`HudFocus`, `Config.UI.Menu.Focus.KeepWith`).
@@ -97,7 +128,9 @@ where on a phone the cards shrink to 71 px); which icon; 5 or 6 cards per row.
   Checked in Studio on every look (`GuiQA "cueCards"`), the real Cues grid and the Index's
   Ranked row, Lower effects and Reduce Motion. Waiting: the designer's look on a phone, a PC
   size and a gamepad. The reel's cards come with concept 3.
-- [ ] Concept 2 (Cues menu) approved, then built. Round 1 shown 2026-10-08.
+- [ ] Concept 2 (Cues menu) approved, then built. Round 1 shown 2026-10-08; round 2 shown
+  2026-10-08 (the switch, four icons, 5 per row, copy numbers above the name, phone text).
+- [ ] Copy numbers on the first 1,000 copies of every cue: rules from the designer, then a plan.
 - [ ] Concept 3 (spin and YOU GOT) approved, then built.
 - [ ] Concept 4 (Free Reward) approved, then built.
 - [ ] Concept 5 (Abilities ideas) shown; built if approved.
