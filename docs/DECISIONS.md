@@ -3186,3 +3186,13 @@ timer of a new block stay the designer's call.
 - 2026-10-08: Roblox's upgraded avatar joints (AnimationConstraint, no Motor6D) are what this
   place's characters use; ability looks that pose a body turn either kind of joint by its
   Transform.
+- 2026-10-08 (designer: a realistic tiger "actually rigged and animated", the cut balls lingering
+  like Black Flash's): Guangdong Tiger is now a skinned tiger (a Meshy mesh on a hand-built
+  24-bone rig, `tools/blender/abilities/tiger_v2.py`; its actions baked data played by
+  BoneAnim). It gallops in diagonally from the far side of the view, pounces, rears and slams
+  its right paw down through the cut, lunging, then its left paw back across it (an X), turns
+  to the camera and roars, and runs off. The shooter's camera eases in for the strike and up at
+  its face for the roar, then hands back. Cut balls split into halves that open and lie face up,
+  white-hot and smoking, cooling to the ball's colour, for 6.1 s. The moment's slow grows from
+  0.6 s to 1 s of wall time for the longer run in. New sounds: a deeper roar, a snarl as it
+  springs, a claw slash per rake.

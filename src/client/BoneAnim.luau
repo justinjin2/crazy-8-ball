@@ -43,6 +43,7 @@ type Fields = {
 	scale: number, -- studs per armature unit
 	posed: { CFrame }, -- per joint, this frame's frame in the part's space (scratch)
 	deltas: { [string]: CFrame }, -- this frame's deltas (scratch)
+	last: { [string]: CFrame }, -- the deltas last applied (for carried)
 }
 
 export type Player = typeof(setmetatable({} :: Fields, BoneAnim))
@@ -239,6 +240,7 @@ end
 --- Set every bone's Transform so the skin moves by `deltas` (bone name -> armature-space
 --- delta); bones without one follow their parent.
 function BoneAnim.apply(self: Player, deltas: { [string]: CFrame })
+	self.last = deltas
 	local origin = self.origin
 	local back = origin:Inverse()
 	local k = self.scale
@@ -263,6 +265,18 @@ function BoneAnim.rest(self: Player)
 	for _, j in self.joints do
 		j.bone.Transform = CFrame.identity
 	end
+end
+
+--- Where point `p` of the data's armature space (at rest, in the data's units) is in the world
+--- now, moved by bone `name`'s delta as last posed: a claw's tip on a paw, say. Nil when that
+--- bone had no delta.
+function BoneAnim.carried(self: Player, name: string, p: Vector3): Vector3?
+	local d: CFrame? = self.last[name]
+	if d == nil then
+		return nil
+	end
+	local k = self.scale
+	return self.part.CFrame * (self.origin * (CFrame.new(d.Position * k) * d.Rotation) * (p * k))
 end
 
 --- Where bone `name` is in the world now (its posed frame), or nil if the model has no such

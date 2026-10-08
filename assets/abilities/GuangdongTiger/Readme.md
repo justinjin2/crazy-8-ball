@@ -96,7 +96,7 @@ positive turn about X pitches a forward-pointing bone nose-down and swings a han
 |---|---|---|---|
 | Run | 16 | yes | A rotary gallop (hind L, hind R, front R, front L). Two flights per stride: stretched out, then gathered. The back flexes, the head stays level, the jaw is open in a snarl and the tail streams. |
 | Pounce | 20 | no | Crouch (0-6), explode up (7-9), front legs reach out past the nose with the hind legs trailing (9-14), front paws strike down (15-17), land (19). |
-| Swipe | 20 | no | Rear onto the haunches (0-5). The right paw cocks by the head (6), then rakes down and across to the left (7-9). The left paw does the mirror (11-14). Drop back to all fours (15-19). |
+| Swipe | 20 | no | Rear onto the haunches (0-6), the right paw cocked by the head (7). The body throws forward and down and the right paw slams through the ball (BALL_AHEAD ahead of the origin; its claws on it at 8) into the cloth past it (9), pressed there while the left paw cocks (11). The left paw slams back across the same spot (on it at 12, pressed at 13). Rise back to all fours (15-19). |
 | Roar | 24 | no | Inhale with the head up (0-5). Thrust forward with the jaw wide open (40 degrees) and a head shake (9-17). Settle (18-23). |
 | Idle | 48 | yes | One slow breath, a head turn, a slight jaw move and a lazy tail sway. |
 

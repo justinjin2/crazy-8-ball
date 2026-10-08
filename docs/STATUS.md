@@ -11,8 +11,8 @@ Updated 2026-10-08.
 - **Branch `release`** is the integration branch, and every lane of the parallel build is
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
-- **Lint and tests (2026-10-08):** lint OK with three old LocalShadow warnings (PadGuide,
-  MatchHUD, Main.client); all 1045 Lune tests pass.
+- **Lint and tests (2026-10-08, `abilities-rework`):** lint OK with three old LocalShadow
+  warnings (PadGuide, MatchHUD, Main.client); all 1061 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; saves at version 7;
@@ -57,6 +57,13 @@ One line each; the long form is the 2026-10-08 entry at the top of
   rarer cues show more often on the reel). Still open: the see-through trial's verdict, a phone
   and a gamepad, the numbered card's mark A or B, the copy numbers' own plan, then Free
   Reward, Abilities and Ranked. `shop-lively` is not yet merged into `release`.
+- **The abilities rework** (branch `abilities-rework`, not merged;
+  `docs/prompts/ABILITIES_REWORK_PLAN.md`): the 13-ability ladder. Look Over There! (the Sneak
+  phase) is built and waits on the designer's hands-on test and their own voice lines.
+  Guangdong Tiger's rework (the rigged tiger, two slams through the ball, the roar cutscene, the
+  halves lying 6.1 s) is checked in Studio. Steel Ball's rework is built, not yet checked. Next:
+  Catch-a-Ball's retest, buffs for Portals, Time Stop and Chain Lightning, then the other looks.
+  Screens go on a hand-off list for the GUI session.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),

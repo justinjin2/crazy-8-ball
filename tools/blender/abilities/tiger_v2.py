@@ -813,45 +813,105 @@ def pose_pounce(po, f):
 
 
 SWIPE_FRAMES = 20
+# The cut ball: BALL_AHEAD ahead of the armature's origin (the game lands the tiger
+# Config.UI.GuangdongTigerFx.ReachUnits short of the swipe's centre, the same number) and
+# BALL_UP high (a drawn ball's radius, 1.215 in, in 48 in tiger lengths).
+BALL_AHEAD = 0.50
+BALL_UP = 0.025
+# Each front paw's middle claw tip at rest (armature space; tiger_v2_anims.json's paw bone
+# tails spread across the paw, as src/client/GuangdongTigerFx.luau's CLAWS).
+CLAW_REST = {"FR": Vector((-0.1084, -0.2384, 0.0207)), "FL": Vector((0.1239, -0.228, 0.0207))}
+# Each rake's frames: the top of the swing, its claws through the ball (the cut), pressed into
+# the cloth past it. Config.UI.GuangdongTigerFx RakeFrames / Rake2Frames are (top, pressed)
+# and the game cuts at their middle: whole frames, as the game plays the baked frames.
+RAKES = {"FR": (7.0, 8.0, 9.0), "FL": (11.0, 12.0, 13.0)}
+
+
+def claw_tip(po, leg):
+    paw = LEGS[leg][2]
+    return po.pb[paw].matrix @ po.rest[paw].inverted() @ CLAW_REST[leg]
 
 
 def pose_swipe(po, f):
-    pitch = track([(0, 0), (3, -26), (5, -38), (8, -33), (11, -38), (14, -33), (16, -22),
-                   (18, -5), (19, 0)], f)
-    po.move("Hips", (0, 0, track([(0, 0), (3, -0.04), (16, -0.04), (19, 0)], f)))
+    """Rears up with both paws high, slams the right paw down through the ball into the cloth
+    (lunging, chest low), keeps it pressed there while the left paw cocks, slams the left back
+    across the same spot (an X), then rises back to standing."""
+    top_r, cut_r, press_r = RAKES["FR"]
+    top_l, cut_l, press_l = RAKES["FL"]
+    pitch = track([(0, 0), (3, -26), (5.5, -38), (top_r, -27), (cut_r, -2), (press_r, 5),
+                   (top_l, 0), (cut_l, 3), (press_l, 7), (16.5, 3), (19, 0)], f)
+    # Weight back while it rears, then the whole body thrown forward and down onto the paws.
+    po.move("Hips", (0, track([(0, 0), (5.5, 0.03), (top_r, 0.02), (cut_r, -0.08),
+                               (press_r, -0.10), (top_l, -0.08), (cut_l, -0.10),
+                               (press_l, -0.11), (16.5, -0.05), (19, 0)], f),
+                     track([(0, 0), (3, -0.04), (top_r, -0.04), (cut_r, -0.02), (press_r, -0.05),
+                            (top_l, -0.03), (press_l, -0.05), (17, -0.02), (19, 0)], f)))
     po.rot("Hips", x=pitch)
-    po.rot("Spine1", x=track([(0, 0), (5, -4), (16, -4), (19, 0)], f))
+    po.rot("Spine1", x=track([(0, 0), (5.5, -4), (cut_r, 2), (press_l, 3), (19, 0)], f))
     # Twist about the spine: + drives the right shoulder forward and down (the right strike).
-    twist = track([(0, 0), (5, -8), (7, 6), (9, 16), (11, -4), (13, -14), (15, -8), (19, 0)], f)
+    twist = track([(0, 0), (5.5, -6), (top_r, -8), (cut_r, 12), (press_r, 16), (top_l, -2),
+                   (cut_l, -14), (press_l, -16), (16.5, -6), (19, 0)], f)
+    chest = track([(0, 0), (5.5, -6), (cut_r, 8), (press_r, 10), (top_l, 4), (cut_l, 8),
+                   (press_l, 10), (16.5, 4), (19, 0)], f)
     po.rot("Spine2", local_twist=twist * 0.5)
-    po.rot("Chest", local_twist=twist * 0.5)
-    po.rot("Jaw", x=track([(0, 2), (4, 22), (9, 26), (14, 26), (19, 6)], f))
-    lash = track([(0, 0), (5, -18), (9, 18), (13, -14), (17, 10), (19, 0)], f)
+    po.rot("Chest", x=chest, local_twist=twist * 0.5)
+    po.rot("Jaw", x=track([(0, 2), (4, 22), (cut_r, 30), (press_l, 28), (19, 6)], f))
+    lash = track([(0, 0), (5, -18), (cut_r, 18), (cut_l, -14), (17, 10), (19, 0)], f)
     tail_pose(po, [track([(0, 0), (5, 28), (16, 28), (19, 5)], f), 0, -6, -12],
               [lash * 0.4, lash * 0.8, lash, lash * 1.2])
     update()
-    head_level(po, pitch=track([(0, 0), (5, 16), (8, 24), (11, 18), (14, 24), (19, 4)], f),
+    # Eyes on the ball, the head following the shoulders' swing a little.
+    head_level(po, pitch=track([(0, 0), (5.5, 14), (top_r, 20), (cut_r, 28), (press_r, 24),
+                                (top_l, 18), (cut_l, 28), (press_l, 24), (17, 8), (19, 4)], f),
                yaw=twist * 0.3)
-    # Paw targets as offsets from each shoulder (armature space): up = +Z, forward = -Y, the
-    # tiger's left = +X. Targets past the leg's reach straighten it along the offset. The right
-    # paw winds up out to its side, then rakes down and across to the left, near the cloth;
-    # then the left paw does the mirror.
-    keys = {
-        "FR": [(2, (-0.02, -0.12, -0.22)), (4, (-0.06, -0.16, -0.06)), (6, (-0.08, -0.18, 0.06)),
-               (7.5, (-0.04, -0.30, -0.14)), (9, (0.10, -0.22, -0.42)), (11, (0.02, -0.12, -0.26)),
-               (13, (-0.02, -0.14, -0.24)), (16, (-0.02, -0.16, -0.30))],
-        "FL": [(2, (0.02, -0.12, -0.22)), (6, (0.03, -0.14, -0.22)), (9, (0.06, -0.16, -0.06)),
-               (11, (0.08, -0.18, 0.06)), (12.5, (0.04, -0.30, -0.14)), (14, (-0.10, -0.22, -0.42)),
-               (16, (-0.02, -0.14, -0.28))],
+    # Before its swing a paw follows its shoulder (offsets: up = +Z, forward = -Y, the tiger's
+    # left = +X): up beside the head, cocked back above the shoulder at the top. From the top
+    # it is pinned to its claw path in the armature (through the ball, pressed into the cloth
+    # past it and dragged a little back across, then home to its rest spot).
+    ball = Vector((0.0, -BALL_AHEAD, BALL_UP))
+    near = BALL_AHEAD - 0.07
+    rel = {
+        "FR": [(1.5, (-0.02, -0.12, -0.22)), (3, (-0.05, -0.16, -0.06)), (5.5, (-0.08, -0.18, 0.06)),
+               (top_r, (-0.07, -0.15, 0.10))],
+        "FL": [(1.5, (0.02, -0.12, -0.22)), (3, (0.04, -0.14, -0.08)), (5.5, (0.05, -0.16, 0.0)),
+               (cut_r, (0.06, -0.17, -0.02)), (press_r, (0.07, -0.16, 0.04)),
+               (top_l, (0.08, -0.14, 0.10))],
     }
-    curls = {"FR": [(0, 0), (5, -40), (7, -10), (9, 45), (12, 10), (19, 0)],
-             "FL": [(0, 0), (9, 0), (11, -40), (12.5, -10), (14, 45), (16, 10), (19, 0)]}
+    path = {
+        "FR": [(top_r, tuple(ball + Vector((-0.06, 0.04, 0.30)))), (cut_r, tuple(ball + Vector((-0.01, 0, 0)))),
+               (press_r, (0.03, -near, 0.0)), (top_l, (0.03, -near + 0.01, 0.0)),
+               (13, (-0.06, -0.34, 0.05)), (15.5, tuple(CLAW_REST["FR"]))],
+        "FL": [(top_l, tuple(ball + Vector((0.06, 0.04, 0.30)))), (cut_l, tuple(ball + Vector((0.01, 0, 0)))),
+               (press_l, (-0.03, -near, 0.0)), (15.5, (-0.03, -near + 0.01, 0.0)),
+               (17, (0.08, -0.31, 0.04)), (19, tuple(CLAW_REST["FL"]))],
+    }
+    pins = {"FR": [(0, 0), (top_r, 0), (cut_r, 1)], "FL": [(0, 0), (top_l, 0), (cut_l, 1)]}
+    airs = {"FR": [(0, 0), (1.5, 1), (top_r, 1), (cut_r, 0.6), (press_r, 0.15), (top_l, 0.1),
+                   (13, 0.6), (15.5, 0)],
+            "FL": [(0, 0), (1.5, 1), (top_l, 1), (cut_l, 0.6), (press_l, 0.15), (15.5, 0.1),
+                   (17, 0.6), (19, 0)]}
+    curls = {"FR": [(0, 0), (3, -30), (top_r, -45), (cut_r, 30), (press_r, 50), (top_l, 40),
+                    (13, 10), (15.5, 0)],
+             "FL": [(0, 0), (3, -30), (top_l, -45), (cut_l, 30), (press_l, 50), (15.5, 40),
+                    (17, 10), (19, 0)]}
     for leg in ("FR", "FL"):
         rest = po.rest_target(leg)
         sh = po.joint(LEGS[leg][0])
-        air = track([(0, 0), (2, 1), (16, 1), (19, 0)], f)
-        tgt = rest.lerp(sh + Vector(track(keys[leg], f)), air)
-        po.leg(leg, tgt, paw_curl=track(curls[leg], f) * air, paw_air=air)
+        lift = track([(0, 0), (1.5, 1)], f)
+        tgt = rest.lerp(sh + Vector(track(rel[leg], f)), lift)
+        air = track(airs[leg], f)
+        curl = track(curls[leg], f) * air
+        po.leg(leg, tgt, paw_curl=curl, paw_air=air)
+        pin = max(0.0, min(1.0, track(pins[leg], f)))
+        if pin <= 0:
+            continue
+        # Pinned: walk the claw tip onto the blend of where the shoulder would carry it and
+        # its path (the paw's turn is fixed this frame, so the IK target moves with it).
+        free = claw_tip(po, leg)
+        want = free.lerp(Vector(track(path[leg], f)), pin)
+        for _ in range(4):
+            tgt = tgt + (want - claw_tip(po, leg))
+            po.leg(leg, tgt, paw_curl=curl, paw_air=air)
     for leg in ("HL", "HR"):
         po.leg(leg, po.rest_target(leg))
 
