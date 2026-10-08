@@ -155,18 +155,6 @@ EXTRAS.SuperBounce = function(_ctx: Context): { [string]: any }
 	}
 end
 
--- Ghost (7.4): the cue ball passes through the opponent's balls and the 8 (unless it is the
--- shooter's legal 8), so it touches only the shooter's balls and the cushions. On an open table
--- that is only the 8.
-EXTRAS.Ghost = function(ctx: Context): { [string]: any }
-	local phase = table.clone(ctx.opp)
-	if not ctx.legalEight then
-		table.insert(phase, 8)
-	end
-	table.sort(phase)
-	return { PhaseCue = phase }
-end
-
 --- The ability's own extra overrides for this shot (none for most).
 function Arming.extras(effect: string, ctx: Context): { [string]: any }
 	local build = EXTRAS[effect]

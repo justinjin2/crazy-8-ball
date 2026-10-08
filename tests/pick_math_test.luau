@@ -48,14 +48,33 @@ local function ults(
 	}
 end
 
--- Runs `fn` with an ult's catalog row marked built (Heat Seeker and Portals are placeholders
--- until their own step), then puts it back.
+-- Runs `fn` with an ult's catalog row marked built, then puts it back.
 local function built(id: string, fn: () -> ())
 	local row = (Config.Ults.Catalog :: any)[id]
 	local was = row.Built
 	row.Built = true
 	local ok, err = pcall(fn)
 	row.Built = was
+	if not ok then
+		error(err, 0)
+	end
+end
+
+-- No ability locks on to a ball since Heat Seeker left (2026-10-08); the "OwnBall" pick stays in
+-- the framework, so these tests lend it to a stand-in row (LOCK) for the run.
+local LOCK = "CatchABall"
+local function lockOn(fn: () -> (), keepUnbuilt: boolean?)
+	local row = (Config.Ults.Catalog :: any)[LOCK]
+	local pick = row.Pick
+	row.Pick = "OwnBall"
+	local ok, err = pcall(function()
+		if keepUnbuilt then
+			fn()
+		else
+			built(LOCK, fn)
+		end
+	end)
+	row.Pick = pick
 	if not ok then
 		error(err, 0)
 	end
@@ -72,18 +91,21 @@ end
 
 function tests.unbuiltAbilitiesOweNoPickLikeTheServer()
 	-- Ults/Match.pickNeeded asks only for a built ult: a placeholder would be refused "NoPick".
-	if (Config.Ults.Catalog :: any).HeatSeeker.Built then
-		return -- built since: covered by the tests below
-	end
-	check(PickMath.kind(ults("HeatSeeker", ME), ME, ME, 0) == nil, "a placeholder owes nothing")
+	local row = (Config.Ults.Catalog :: any)[LOCK]
+	local was = row.Built
+	row.Built = false
+	lockOn(function()
+		check(PickMath.kind(ults(LOCK, ME), ME, ME, 0) == nil, "a placeholder owes nothing")
+	end, true)
+	row.Built = was
 end
 
 function tests.ownBallAndPortalsAreOwedByTheShooterOnly()
-	built("HeatSeeker", function()
-		check(PickMath.kind(ults("HeatSeeker", ME), ME, ME, 0) == "OwnBall", "Heat Seeker")
-		check(PickMath.owed(ults("HeatSeeker", ME), ME, ME, 0) == "OwnBall", "owed")
-		check(PickMath.kind(ults("HeatSeeker", THEM), THEM, ME, 0) == nil, "the opponent's")
-		check(PickMath.kind(ults("HeatSeeker", ME), THEM, ME, 0) == nil, "not the shooter")
+	lockOn(function()
+		check(PickMath.kind(ults(LOCK, ME), ME, ME, 0) == "OwnBall", "a lock-on")
+		check(PickMath.owed(ults(LOCK, ME), ME, ME, 0) == "OwnBall", "owed")
+		check(PickMath.kind(ults(LOCK, THEM), THEM, ME, 0) == nil, "the opponent's")
+		check(PickMath.kind(ults(LOCK, ME), THEM, ME, 0) == nil, "not the shooter")
 	end)
 	built("Portals", function()
 		check(PickMath.owed(ults("Portals", ME), ME, ME, 0) == "Portals", "Portals")
@@ -91,8 +113,8 @@ function tests.ownBallAndPortalsAreOwedByTheShooterOnly()
 end
 
 function tests.aPickMadeIsNoLongerOwed()
-	built("HeatSeeker", function()
-		local u = ults("HeatSeeker", ME, "Armed", { 3 })
+	lockOn(function()
+		local u = ults(LOCK, ME, "Armed", { 3 })
 		check(PickMath.kind(u, ME, ME, 0) == "OwnBall", "still a pick ability")
 		check(PickMath.owed(u, ME, ME, 0) == nil, "already picked")
 	end)

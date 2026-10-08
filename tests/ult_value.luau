@@ -501,7 +501,7 @@ function V.candidates(
 				local cueBlocked = not passed
 					and segmentDistance(b.x, b.y, cx, cy, gx, gy) < D - 1e-6
 				-- Ghost's CarryPhase: the ball hit passes through the same balls.
-				local objPassed = passed and Config.Ults.Ghost.CarryPhase
+				local objPassed = false
 				local objBlocked = not objPassed
 					and segmentDistance(b.x, b.y, ob.x, ob.y, pk.mx, pk.my) < D - 1e-6
 				if cueBlocked or objBlocked then

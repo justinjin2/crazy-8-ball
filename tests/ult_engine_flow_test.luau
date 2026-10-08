@@ -1,7 +1,7 @@
 --!strict
 -- The ability framework in the match engine (docs/prompts/ABILITIES_PROMPT.md 5.2): Rewind's
 -- snapshot and restore, Time Stop's frozen phase with its second strike and server timeout,
--- and the aim-phase picks (Heat Seeker's ball, Portals' spots). The rows are switched to Built
+-- and the aim-phase picks (a lock-on's ball, Portals' spots). The rows are switched to Built
 -- here for the test only (their own steps build them for real).
 local H = require("./harness")
 local E = H.require("Rules.MatchEngine")
@@ -441,10 +441,14 @@ local function pick(m: any, request: any): boolean
 	return E.action(m, 11, request, m.phaseStartedAt)
 end
 
-function tests.heat_seeker_needs_one_of_your_balls_picked_first()
-	built("HeatSeeker", function()
+function tests.a_lock_on_needs_one_of_your_balls_picked_first()
+	-- No ability locks on since Heat Seeker left (2026-10-08): a stand-in row lends the pick.
+	local row = U.Catalog.CatchABall
+	local pickWas = row.Pick
+	row.Pick = "OwnBall"
+	built("CatchABall", function()
 		local m = midGame()
-		armNow(m, "HeatSeeker")
+		armNow(m, "CatchABall")
 		local wire, why = E.acceptShot(m, 11, missShot(m), m.phaseStartedAt)
 		expect(wire == nil and why == "PickRequired", "the shot waits for the pick")
 		expect(not pick(m, { ball = 11 }), "not an opponent's ball")
@@ -464,6 +468,7 @@ function tests.heat_seeker_needs_one_of_your_balls_picked_first()
 		wire = E.acceptShot(m, 11, missShot(m), m.phaseStartedAt)
 		expect(wire and wire.overrides.Pick[1] == 3, "the pick rides in the overrides")
 	end)
+	row.Pick = pickWas
 end
 
 function tests.portals_must_be_clear_of_cushions_pockets_balls_and_each_other()

@@ -810,10 +810,15 @@ local function fixFixedArray(
 	end
 end
 
--- A cleaner for an ult slot: a catalog ult id or "" (empty); anything else becomes "".
+-- A cleaner for an ult slot: a catalog ult id or "" (empty); a retired ult becomes the one
+-- that replaces it (Config.Ults.Retired); anything else becomes "".
 local function ultSlot(value: any): (any, boolean)
 	if value == "" or UltCatalog.exists(value) then
 		return value, false
+	end
+	local replaced = UltCatalog.retired(value)
+	if replaced ~= nil then
+		return replaced, true
 	end
 	return "", true
 end

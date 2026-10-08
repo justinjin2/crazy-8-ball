@@ -253,6 +253,7 @@ type Zone = {
 	pocket: Pocket,
 	closeness: number, -- 0 at the zone's edge, 1 at (or past) the mouth
 	strength: number, -- closeness ^ Power x the owner's factor
+	factor: number, -- the owner's factor alone (1 yours, OpponentFactor theirs)
 	mx: number, -- the mouth middle
 	my: number,
 	ux: number, -- the mouth direction (across the pocket's axis)
@@ -307,6 +308,7 @@ local function zoneOf(geometry: Geometry, b: Ball, eightPocket: number?, factor:
 				pocket = pocket,
 				closeness = closeness,
 				strength = power(closeness, M.Power) * factor,
+				factor = factor,
 				mx = mx,
 				my = my,
 				ux = -ay,
@@ -370,13 +372,18 @@ end
 
 -- The speed this step leaves a ball at: braked toward CaptureSpeed per inch rolled when
 -- faster (so however hard it was hit it is caught over the same stretch), pulled up to it
--- per second when slower.
+-- per second when slower; in the last stretch before the mouth (SnapCloseness) the target is
+-- SnapSpeed, so a held ball is yanked in. The braking acts from the zone's edge (BrakeFloor of
+-- full strength there), so even a ball already going in is seen to be caught and held.
 local function newSpeed(zone: Zone, speed: number, dt: number): number
 	local M = Config.Ults.Magnet
-	local rate = if speed > M.CaptureSpeed
-		then M.BrakePerInch * speed * dt
-		else M.CreepPerSecond * dt
-	return speed + (M.CaptureSpeed - speed) * math.min(1, rate * zone.strength)
+	local target = if zone.closeness >= M.SnapCloseness then M.SnapSpeed else M.CaptureSpeed
+	if speed > target then
+		local weight = zone.factor * M.BrakeFloor + (1 - M.BrakeFloor) * zone.strength
+		return speed + (target - speed) * math.min(1, M.BrakePerInch * speed * dt * weight)
+	end
+	-- A slow ball is pulled up by closeness alone: one dying far out stays about where it was.
+	return speed + (target - speed) * math.min(1, M.CreepPerSecond * dt * zone.strength)
 end
 
 --- Which allowed balls are inside a pull zone and heading toward its pocket right now, how

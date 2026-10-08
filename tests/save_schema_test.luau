@@ -509,10 +509,7 @@ return {
 		H.expect(next(t.Settings) == nil and next(t.Flags) == nil, "empty maps")
 		local Config = H.require("Config")
 		local u = t.Ults
-		H.expect(
-			u.Slots[1] == Config.Ults.Default and u.Slots[1] == "HeatSeeker",
-			"Heat Seeker in slot 1"
-		)
+		H.expect(u.Slots[1] == Config.Ults.Default and u.Slots[1] == "Magnet", "Magnet in slot 1")
 		H.expect(#u.Slots == 3 and u.Slots[2] == "" and u.Slots[3] == "", "slots 2, 3 empty")
 		H.expect(#u.Locked == 3 and not u.Locked[1] and not u.Locked[2] and not u.Locked[3], "")
 		H.expect(u.Selected == 1 and u.Spins == Config.Ults.Earn.Starter, "starter spins")
@@ -1402,7 +1399,8 @@ return {
 		save.Ults.QueueUlts = "on"
 		local out, fixes = SaveSchema.validate(save)
 		local u = out.Ults
-		H.expect(u.Slots[1] == "Ghost" and u.Slots[2] == "" and u.Slots[3] == "", "slots")
+		-- Ghost left the game (2026-10-08): its slot becomes Magnet (Config.Ults.Retired).
+		H.expect(u.Slots[1] == "Magnet" and u.Slots[2] == "" and u.Slots[3] == "", "slots")
 		H.expect(#u.Slots == 3 and u.Slots.x == nil and u.Slots[4] == nil, "exactly 3")
 		H.expect(u.Locked[1] == true and u.Locked[2] == false and u.Locked[3] == false, "locks")
 		H.expect(#u.Locked == 3, "3 locks")

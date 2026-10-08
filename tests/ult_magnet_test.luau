@@ -506,11 +506,13 @@ return {
 		H.expect(rate(b.mid) >= 0.75, ("1-2 width misses drop %.1f%%"):format(100 * rate(b.mid)))
 	end,
 
-	["harness: the smaller zone reaches few 2.5-4 width misses"] = function()
+	-- The rework's buff (designer, 2026-10-08: the starter must show it works): the zone 6.5
+	-- widths with a stronger bend, so most 2.5-4 width misses drop too (86%), never all.
+	["harness: the bigger zone reaches most 2.5-4 width misses, not all"] = function()
 		local b = bands()
 		H.expect(b.wide.of >= 100, "enough wide misses measured")
 		H.expect(
-			rate(b.wide) >= 0.08 and rate(b.wide) <= 0.3,
+			rate(b.wide) >= 0.6 and rate(b.wide) <= 0.95,
 			("2.5-4 width misses drop %.1f%%"):format(100 * rate(b.wide))
 		)
 	end,

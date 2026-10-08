@@ -7,13 +7,13 @@
 --
 -- Simulation.step calls, for the effect named in state.overrides.Effect:
 --   step(state, dt)                 before each fixed step (a velocity change before anything
---                                   moves: Magnet's pull, Heat Seeker's steering)
+--                                   moves: Magnet's pull, Steel Ball's steering)
 --   after(state, dt, events, ops)   after it, with that step's own events (the contacts it
 --                                   just made: the cue ball's first hit is here the step it
 --                                   happens) and Simulation.Ops: remove (a ball leaves play,
 --                                   counted as pocketed), teleport, halt (end this part of the
 --                                   shot: Time Stop), emit (an `ult` event for the look)
---   finish(state, events, ops)      once at rest (Ghost moves the cue ball off a ball)
+--   finish(state, events, ops)      once at rest (Verity puts the cue ball down clear)
 -- Each is optional. Per-shot scratch lives in `state.fx` (a table, fresh at every strike and
 -- replay start); `state.fx.ghost` (ball id -> true) takes a ball out of every contact.
 --
@@ -31,9 +31,7 @@ local Effects: { [string]: Effect } = {
 	BlackHole = require(script.BlackHole) :: any,
 	ChainLightning = require(script.ChainLightning) :: any,
 	EaglesEye = require(script.EaglesEye) :: any,
-	Ghost = require(script.Ghost) :: any,
 	GuangdongTiger = require(script.GuangdongTiger) :: any,
-	HeatSeeker = require(script.HeatSeeker) :: any,
 	Magnet = require(script.Magnet) :: any,
 	Portals = require(script.Portals) :: any,
 	SteelBall = require(script.SteelBall) :: any,
