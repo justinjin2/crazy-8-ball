@@ -37,6 +37,9 @@
 -- * A Turn ult (Portals, 7.9) keeps acting after its shot: while its shooter keeps the table
 --   (a legal pot), each of their next shots is an ult shot again with the same pick (`kept`),
 --   until the turn passes, a foul, or the game ends.
+-- * A Sneak ult (Look Over There!, the rework) is not a shot: once armed, MatchEngine opens its
+--   Sneak phase (Match.sneakDue) and the armed ult is spent at the drop or the window's end.
+--   It needs a ball to sneak (Match.sneakable: "NoBall" otherwise) and never the break.
 local Config = require(script.Parent.Parent.Config)
 local Judge = require(script.Parent.Parent.Rules.ShotJudge)
 local NiceShot = require(script.Parent.Parent.Rules.NiceShot)
@@ -226,6 +229,36 @@ local function expired(t: any, now: number): boolean
 	return t.deadline ~= nil and now >= t.deadline
 end
 
+--- The balls the shooter may sneak with Look Over There!: their own still on the table
+--- (Arming.targets: every ball but the 8 while the table is open), never the 8, in id order.
+function Match.sneakable(t: any): { number }
+	local out: { number } = {}
+	if t.activeTeam ~= 1 and t.activeTeam ~= 2 then
+		return out
+	end
+	local own = Arming.targets(t.groups, t.activeTeam, t.calledPocket, t.state.balls)
+	for _, id in own do
+		if id ~= 8 then
+			table.insert(out, id)
+		end
+	end
+	return out
+end
+
+-- Why a Sneak ult (Look Over There!) cannot be activated now, or nil: it has no place on the
+-- break ("Break", solo's practice included) and needs a ball to sneak ("NoBall").
+local function sneakRefusal(t: any, ultId: string): string?
+	local ult = Catalog.get(if Catalog.exists(ultId) then ultId else U.Default)
+	if ult == nil or not ult.Built or not ult.Sneak then
+		return nil
+	elseif t.breakShot then
+		return "Break"
+	elseif #Match.sneakable(t) == 0 then
+		return "NoBall"
+	end
+	return nil
+end
+
 --- `userId` activates `ultId` (the server picked it from their equipped slot) at `now`.
 --- Returns true, or false and a reason from Match.check. On success the bar is spent
 --- (Fill.spend), the ult is Arming until now + CutsceneSeconds + ArmDelaySeconds, and the shot
@@ -236,6 +269,10 @@ function Match.activate(t: any, userId: number, ultId: string, now: number): (bo
 		return false, reason
 	elseif expired(t, now) then
 		return false, "NotYourTurn"
+	end
+	local refusal = sneakRefusal(t, ultId)
+	if refusal then
+		return false, refusal
 	end
 	Fill.spend(barOf(stateOf(t), userId))
 	arm(t, userId, ultId, now, false)
@@ -255,6 +292,10 @@ function Match.practice(t: any, userId: number, ultId: string, now: number): (bo
 		return false, reason
 	elseif expired(t, now) then
 		return false, "NotYourTurn"
+	end
+	local refusal = sneakRefusal(t, ultId)
+	if refusal then
+		return false, refusal
 	end
 	arm(t, userId, ultId, now, true)
 	return true, nil
@@ -277,6 +318,23 @@ end
 function Match.arming(t: any): boolean
 	local armed = stateOf(t).armed
 	return armed ~= nil and armed.stage == "Arming"
+end
+
+--- Whether the shooter's armed ult is a Sneak ult (Look Over There!) whose cutscene is over,
+--- with the table still before their shot: MatchEngine opens the Sneak phase, and a shot now
+--- is refused.
+function Match.sneakDue(t: any): boolean
+	local armed = stateOf(t).armed
+	if
+		armed == nil
+		or armed.stage ~= "Armed"
+		or armed.by ~= t.shooter
+		or not BEFORE_SHOT[t.phase]
+	then
+		return false
+	end
+	local ult = Catalog.get(armed.id)
+	return ult ~= nil and ult.Built and ult.Sneak == true
 end
 
 -- The armed ult if the table's shooter's next shot is it (armed by them, stage Armed), else

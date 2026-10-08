@@ -133,6 +133,15 @@ export type Match = typeof(setmetatable(
 		-- older spots keep arriving while they drag; this is re-applied over them so the
 		-- ball never snaps back. It lasts for this turn's Intro and Placement only.
 		cueHold: { epoch: number, turnId: number, x: number, y: number }?,
+		-- Look Over There!'s sneaked ball, held the same way through the Sneak phase.
+		ballHold: {
+			epoch: number,
+			turnId: number,
+			id: number,
+			x: number,
+			y: number,
+			pocketed: boolean,
+		}?,
 	},
 	Match
 ))
@@ -173,6 +182,7 @@ function Match.new(
 		downVersion = 0,
 		assign = nil,
 		cueHold = nil,
+		ballHold = nil,
 		timeScale = 1,
 		holdAt = nil,
 	}, Match)
@@ -312,6 +322,25 @@ function Match.releaseCue(self: Match)
 	self.cueHold = nil
 end
 
+--- Look Over There!: the local shooter's sneaked ball shown at (x, y), or down a pocket
+--- (`pocketed`), over any snapshot of the same turn's Sneak phase, until released or the
+--- snapshot that ends the phase installs the server's own.
+function Match.holdBall(
+	self: Match,
+	epoch: number,
+	turnId: number,
+	id: number,
+	x: number,
+	y: number,
+	pocketed: boolean
+)
+	self.ballHold = { epoch = epoch, turnId = turnId, id = id, x = x, y = y, pocketed = pocketed }
+end
+
+function Match.releaseBall(self: Match)
+	self.ballHold = nil
+end
+
 -- Install a complete authoritative state, including on a late join or new rack.
 function Match.applyBalls(self: Match, packed: { number })
 	if #packed ~= #self.state.balls * 4 then
@@ -327,6 +356,11 @@ function Match.applyBalls(self: Match, packed: { number })
 	local cue = Simulation.findBall(self.state, 0)
 	if hold and cue then
 		cue.x, cue.y, cue.z, cue.pocketed = hold.x, hold.y, 0, false
+	end
+	local held = self.ballHold
+	local sneaked = if held then Simulation.findBall(self.state, held.id) else nil
+	if held and sneaked then
+		sneaked.x, sneaked.y, sneaked.z, sneaked.pocketed = held.x, held.y, 0, held.pocketed
 	end
 	self.state.time, self.state.overrides = 0, nil
 	self:renderState()
@@ -391,6 +425,17 @@ function Match.snapshot(self: Match, snapshot: any)
 		)
 	then
 		self.cueHold = nil
+	end
+	local held = self.ballHold
+	if
+		held
+		and not (
+			held.epoch == snapshot.epoch
+			and held.turnId == snapshot.turnId
+			and snapshot.phase == "Sneak"
+		)
+	then
+		self.ballHold = nil
 	end
 	if snapshot.epoch ~= self.epoch then
 		self.epoch, self.seq = snapshot.epoch, 0

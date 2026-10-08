@@ -811,6 +811,18 @@ function Camera.fadeNear(model: Model, studs: number, least: number?)
 	end
 end
 
+-- An ability's own shot over the table's view (Look Over There!'s close-up of its shooter):
+-- the pose shown is the table's pose blended toward it by the weight, after the smoothing, so
+-- the table's framing carries on underneath and the hand-back is seamless.
+local override: CFrame? = nil
+local overrideWeight = 0
+
+--- Show `cf` over the table's view, by `weight` (0 the table's view, 1 all `cf`); nil ends it.
+function Camera.setOverride(cf: CFrame?, weight: number?)
+	override = cf
+	overrideWeight = if cf then math.clamp(weight or 1, 0, 1) else 0
+end
+
 --- Move the camera. `playing` means the shot's replay is running: it freezes the anchor for
 --- the duration of the shot, holds the framing the shot was taken from for
 --- Shot.HoldSeconds, then pulls out to a whole-table view so every ball's path is visible:
@@ -939,7 +951,12 @@ function Camera.update(
 			end
 		end
 		smoothed = base
-		cam.CFrame = base + shakeOffset(dt)
+		local shown = base
+		local over = override
+		if over and overrideWeight > 0 and over.Position.X == over.Position.X then
+			shown = base:Lerp(over, overrideWeight)
+		end
+		cam.CFrame = shown + shakeOffset(dt)
 	end
 end
 

@@ -49,6 +49,7 @@ local UltHud = require(script.Parent.UltHud)
 local UltPick = require(script.Parent.UltPick)
 local UltCutscene = require(script.Parent.UltCutscene)
 local AbilityFx = require(script.Parent.AbilityFx)
+local LookOverThereFx = require(script.Parent.LookOverThereFx)
 local UltScreen = require(script.Parent.UltScreen)
 local UI = require(script.Parent.UI)
 local MatchHUD = require(script.Parent.MatchHUD)
@@ -1437,11 +1438,16 @@ local function renderFrame(dt: number)
 	dropStrayMatchSelection()
 	input:update(dt)
 	if controlled then
-		-- Top-down only while a pocket is being called for the 8 or an ability's pick is owed;
-		-- everything else, placing the cue ball included, plays in the 3D view.
-		local overhead = phase == "PocketChoice" or (phase == "Intro" and callPending()) or picking
+		-- Top-down only while a pocket is being called for the 8, an ability's pick is owed or
+		-- Look Over There!'s sneak is on (its drag: LookOverThereFx); everything else, placing
+		-- the cue ball included, plays in the 3D view.
+		local overhead = phase == "PocketChoice"
+			or (phase == "Intro" and callPending())
+			or picking
+			or phase == "Sneak"
 		local header = if picking
 			then ultPick:reserveTop()
+			elseif phase == "Sneak" then LookOverThereFx.reserveTop(hud:reservedHeight())
 			else hud:reservedHeight() + M.Style.TargetSize / 2
 		Camera.setMode(
 			overhead,
@@ -1499,6 +1505,8 @@ local function renderFrame(dt: number)
 			ctx.showCue = canShoot() and not targets:isDragging()
 			ctx.aimTurn = aimTurn()
 			ctx.cameraPos = Camera.position()
+			-- Look Over There!: the shooter stands up and points in their own close-up.
+			ctx.showBody = phase == "Sneak"
 			local out = avatar:update(dt, ctx)
 			CueStickBuilder.setVisible(cueStick, out.visible)
 			-- Raised for a jump shot: on this screen only, nearly see-through, so it never

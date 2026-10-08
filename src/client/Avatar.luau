@@ -46,6 +46,9 @@ export type Context = {
 	-- body idles where the live stance stands, following a dragged ball.
 	aimTurn: boolean,
 	cameraPos: Vector3?, -- where the camera is, for the body's fade
+	-- The body solid, not see-through (Look Over There!'s shooter, standing up to point in
+	-- its close-up); the near-camera fade still applies.
+	showBody: boolean?,
 }
 
 -- What update() returns (one table, reused): draw the cue from these.
@@ -349,7 +352,10 @@ local function fade(poser: ShooterPoser.Poser, character: Model, ctx: Context)
 		return -- not held yet: the body is as the player left it
 	end
 	local A = Config.Avatar
-	local target = if state == "idle" then A.IdleTransparency else A.AimTransparency
+	local target = if ctx.showBody
+		then 0
+		elseif state == "idle" then A.IdleTransparency
+		else A.AimTransparency
 	local root = character:FindFirstChild("HumanoidRootPart")
 	local cameraPos = ctx.cameraPos
 	if cameraPos and root and root:IsA("BasePart") then

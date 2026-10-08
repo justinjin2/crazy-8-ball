@@ -409,6 +409,7 @@ return {
 			Moving = "the balls are still moving",
 			Break = "not on the break",
 			Armed = "an ability is already armed",
+			NoBall = "you have no ball to sneak (you are on the 8)",
 		},
 		SpinsSet = "You hold %d Ability Spins.",
 		LuckySet = "You hold %d Lucky Spins.",
@@ -1168,6 +1169,7 @@ return {
 				Armed = "Your ability is already armed",
 				Used = "No more abilities this game",
 				Off = "Abilities are off at this table",
+				NoBall = "Nothing to sneak: you're on the 8!", -- Look Over There!
 				TooFast = "Slow down a little!",
 				Busy = "One moment...",
 				Default = "You can't use your ability right now",
@@ -1272,6 +1274,20 @@ return {
 			TrustMe = "TRUST ME!",
 			NotThe8 = "NOT THE 8!",
 			KnowEverything = "I KNOW EVERYTHING!",
+		},
+		-- Look Over There! (LookOverThereFx): the shooter's shout, the bubbles over the
+		-- opponents' heads, and the sneak's prompt (by the last input) and countdown.
+		LookOverThere = {
+			Shout = "LOOK OVER THERE!",
+			Alert = "!",
+			Huh = "?",
+			Shocked = "!?",
+			Sneaky = "SNEAKY!",
+			DragTouch = "DRAG ONE OF YOUR BALLS INTO A POCKET!",
+			DragMouse = "DRAG ONE OF YOUR BALLS INTO A POCKET!",
+			DragPad = "STICK TO MOVE, A TO GRAB AND DROP!",
+			Watching = "SHHH... THEY'RE NOT LOOKING!", -- the shooter's team, while it drags
+			Countdown = "%.1f", -- the seconds left: "2.4"
 		},
 		-- The aim-phase pick view (UltPick): a lock-on's ball, Portals' two spots, chosen in
 		-- the top-down view before the shot. The title pill follows the last input (touch,

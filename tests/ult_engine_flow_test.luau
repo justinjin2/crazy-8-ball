@@ -544,7 +544,8 @@ function tests.every_ability_can_be_practised_on_the_solo_break()
 	local tried = 0
 	for _, id in U.Order do
 		local row = U.Catalog[id]
-		if not row.Built then
+		-- Look Over There! is no shot and has no place on the break (ult_sneak_test).
+		if not row.Built or row.Sneak then
 			continue
 		end
 		local s = E.new(2, 1)
@@ -581,7 +582,7 @@ function tests.every_ability_can_be_practised_on_the_solo_break()
 		expect(s.phase ~= "Resolving", id .. " settled")
 		tried += 1
 	end
-	expect(tried == 13, "all 13 tried, got " .. tried)
+	expect(tried == 13, "all 13 shot abilities tried, got " .. tried)
 end
 
 return tests

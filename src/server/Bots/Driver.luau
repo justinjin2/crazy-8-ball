@@ -130,6 +130,53 @@ local function pickRequests(kind: string, e: any, view: any, d: Brain.Decision):
 	return out
 end
 
+-- Look Over There!'s drop (the Sneak phase): the bot sneaks the one of its balls that is
+-- hardest to pot (the farthest from its nearest pocket) into that pocket, a beat into the drag
+-- window, then waits out the reveal. Returns once the table is back to its run-up.
+local function sneakFor(bot: any, t: any, uid: number, rng: Rng.Rng)
+	local e = t.engine
+	local sneak = e.sneak
+	if e.phase ~= "Sneak" or sneak == nil or sneak.by ~= uid then
+		return
+	end
+	local geometry = e.state.geometry
+	local best, bestPocket, bestD = nil, nil, -1
+	for _, id in Match.sneakable(e) do
+		local b = Finder.findBall(e.state.balls, id)
+		if b == nil then
+			continue
+		end
+		local pid = Finder.nearestPocket(geometry, b.x, b.y)
+		for _, p in geometry.pockets do
+			local d = (p.x - b.x) ^ 2 + (p.y - b.y) ^ 2
+			if p.id == pid and d > bestD then
+				best, bestPocket, bestD = id, pid, d
+			end
+		end
+	end
+	local span = B.SneakDropSeconds
+	local dropAt = sneak.dragAt + Rng.range(rng, span[1], span[2])
+	local epoch, turnId = e.epoch, e.turnId
+	local function same(): boolean
+		return bot.t == t and e.epoch == epoch and e.turnId == turnId and e.shooter == uid
+	end
+	while same() and e.phase == "Sneak" and now() < dropAt do
+		task.wait(0.05)
+		Tables.advance(t, now())
+	end
+	if same() and e.phase == "Sneak" and best ~= nil then
+		local request = { kind = "Sneak", ball = best, pocket = bestPocket }
+		request.epoch, request.turnId = epoch, turnId
+		Tables.advance(t, now())
+		Engine.action(e, uid, request, now())
+		Tables.broadcast(t)
+	end
+	while same() and (e.phase == "Sneak" or e.phase == "SneakReveal") do
+		task.wait(0.1)
+		Tables.advance(t, now())
+	end
+end
+
 -- The angle at a ball of its own (where the cue drifts while it thinks).
 local function roughAngle(view: any): number
 	local cue = Finder.findBall(view.balls, 0)
@@ -238,6 +285,20 @@ function Driver.turn(bot: any, seed: number)
 		while live() and Match.arming(e) and os.clock() < deadline do
 			task.wait(0.1)
 			Tables.advance(t, now())
+		end
+		-- Look Over There!: no shot but the Sneak phase; then the table has changed, so the
+		-- bot thinks again.
+		Tables.advance(t, now())
+		if e.phase == "Sneak" and e.shooter == uid then
+			sneakFor(bot, t, uid, rng)
+			if not live() then
+				return
+			end
+			view = viewOf(e, seat.team)
+			local again, d2 = pcall(decide, bot, view, rng, hand, yield)
+			if again then
+				decision = d2
+			end
 		end
 		local kind = Match.pickNeeded(e)
 		if kind and live() then

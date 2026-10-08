@@ -227,6 +227,7 @@ local function finish(t: any, winner: number?, reason: string, now: number, forf
 	t.vote = nil
 	t.shot = nil
 	t.pending = nil
+	t.sneak = nil
 	Ults.clearArmed(t) -- an ult armed when the game ended is spent
 	Ults.clearKept(t)
 	-- A two-sided game counts in the series and offers a rematch while both sides are still
@@ -269,6 +270,8 @@ function Engine.shooterLocked(phase: string, solo: any): boolean
 		or phase == "Resolving"
 		or phase == "Frozen"
 		or phase == "Rewinding"
+		or phase == "Sneak"
+		or phase == "SneakReveal"
 		or (phase == "Foul" and solo ~= nil and solo ~= false)
 end
 
@@ -330,6 +333,7 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 	t.redoClock = nil
 	t.redosLeft = nil
 	t.redoPractice = nil
+	t.sneak = nil
 	Ults.clearArmed(t) -- an armed ult never outlives its shooter's turn
 	Ults.turnBegan(t, team == before) -- a kept Turn ult (Portals) only while its shooter keeps it
 	if hand then
@@ -350,6 +354,7 @@ local function foul(t: any, reason: string, now: number)
 	-- Any foul ends the turn: its run, and an armed ult is spent (a timeout, a death, a
 	-- departure; a judged foul's shot already spent it).
 	Ults.onTurnLost(t)
+	t.sneak = nil
 	t.foul = { by = t.shooter, team = t.activeTeam, reason = reason }
 	-- Solo has nobody to hand the table to: the fouler takes ball in hand themselves.
 	t.nextTeam = if t.solo then t.activeTeam else 3 - t.activeTeam
@@ -404,6 +409,9 @@ function Engine.remove(t: any, userId: number, now: number): boolean
 			or t.phase == "Aiming"
 			-- Rewind's table is already back: the redo would be theirs.
 			or t.phase == "Rewinding"
+			-- Look Over There!: what they sneaked stays sneaked; the turn passes.
+			or t.phase == "Sneak"
+			or t.phase == "SneakReveal"
 		)
 	then
 		foul(t, "Departure", now)
@@ -420,6 +428,8 @@ function Engine.death(t: any, userId: number, now: number)
 			or t.phase == "PocketChoice"
 			or t.phase == "Aiming"
 			or t.phase == "Rewinding"
+			or t.phase == "Sneak"
+			or t.phase == "SneakReveal"
 		)
 	then
 		foul(t, "Reset", now)
@@ -458,6 +468,104 @@ function Engine.awards(t: any, j: any, now: number)
 			})
 		end
 	end
+end
+
+-- Look Over There! (the rework, designer 2026-10-08): the armed Sneak ult opens the Sneak
+-- phase instead of a shot. The opponents turn away (Shared.SneakIntroSeconds), then the
+-- shooter has SneakDragSeconds (plus SneakGraceSeconds for the network) to drop one of their
+-- balls: in a pocket (a pot) or anywhere free on the cloth. The drop, or the window's end with
+-- none, spends the ult and opens SneakReveal (the opponents turn back); after it the turn's
+-- run-up starts over (`setup`: a fresh clock, ball in hand kept). `t.sneak` = { by, seq (the
+-- ult's), at, dragAt, dragEnd } and, once dropped, { ball, pocket?, fromX, fromY, x, y },
+-- with revealAt when SneakReveal began.
+local function beginSneak(t: any, now: number)
+	local armed = (t.ults :: any).armed
+	t.sneak = {
+		by = t.shooter,
+		seq = armed.seq,
+		at = now,
+		dragAt = now + S.SneakIntroSeconds,
+		dragEnd = now + S.SneakIntroSeconds + S.SneakDragSeconds,
+	}
+	phase(t, "Sneak", now, S.SneakIntroSeconds + S.SneakDragSeconds + S.SneakGraceSeconds)
+end
+
+local function revealSneak(t: any, now: number)
+	Ults.clearArmed(t) -- spent: the bar was paid at activation
+	t.sneak.revealAt = now
+	phase(t, "SneakReveal", now, S.SneakRevealSeconds)
+end
+
+-- A sneaked pot claims its group while the table is open, as a pot would (designer,
+-- 2026-10-08). Solo plays one group, then the other, as resolve has it.
+local function claimGroup(t: any, id: number)
+	local g = Judge.group(id)
+	if g == nil then
+		return
+	end
+	local solo = t.solo
+	if solo then
+		solo.first = solo.first or g
+		local current = Judge.soloGroup(t.state.balls, solo.first)
+		if current then
+			t.groups = {}
+			t.groups[solo.team], t.groups[3 - solo.team] = current, Judge.opposite(current)
+		end
+	elseif t.groups[t.activeTeam] == nil then
+		t.groups = {}
+		t.groups[t.activeTeam], t.groups[3 - t.activeTeam] = g, Judge.opposite(g)
+	end
+end
+
+-- The shooter's drop (the Sneak action): { ball, pocket } pots one of their balls (Ults
+-- .sneakable: never the 8) in that pocket; { ball, x, y } moves it to a free spot on the
+-- cloth (CuePlacement's rules, as for the cue ball). Once, inside the drag window. It pays
+-- nothing (it is not a shot; designer, 2026-10-08).
+local function sneakDrop(t: any, request: any, now: number): boolean
+	local sneak = t.sneak
+	if t.phase ~= "Sneak" or sneak == nil or sneak.ball ~= nil then
+		return false
+	end
+	-- The window: from the drag's opening (less the grace, for the clocks' drift) to the
+	-- phase's deadline (the grace after the drag's end).
+	if now < sneak.dragAt - S.SneakGraceSeconds or (t.deadline ~= nil and now >= t.deadline) then
+		return false
+	end
+	local id = request.ball
+	if type(id) ~= "number" or id % 1 ~= 0 or table.find(Ults.sneakable(t), id) == nil then
+		return false
+	end
+	local ball = Simulation.findBall(t.state, id)
+	if ball == nil then
+		return false
+	end
+	local fromX, fromY = ball.x, ball.y
+	if request.pocket ~= nil then
+		local pocket = nil
+		for _, p in t.state.geometry.pockets do
+			if p.id == request.pocket then
+				pocket = p
+			end
+		end
+		if pocket == nil then
+			return false
+		end
+		Ball.stop(ball)
+		ball.x, ball.y, ball.z = pocket.x, pocket.y, 0
+		ball.pocketed, ball.falling, ball.pocket, ball.tip = true, false, pocket.id, nil
+		ball.offTable = false
+		sneak.pocket = pocket.id
+		claimGroup(t, id)
+	elseif
+		not ShotInput.isFinite(request.x)
+		or not ShotInput.isFinite(request.y)
+		or not Placement.set(t.state, id, request.x, request.y)
+	then
+		return false
+	end
+	sneak.ball, sneak.fromX, sneak.fromY, sneak.x, sneak.y = id, fromX, fromY, ball.x, ball.y
+	revealSneak(t, now)
+	return true
 end
 
 -- Rewind (7.6): the table goes back to exactly before the shot (every ball, ball in hand,
@@ -572,8 +680,12 @@ end
 --- `nextSeed` is the server's randomness (the next game's rack), passed in so this stays
 --- deterministic; tests may omit it.
 function Engine.advance(t: any, now: number, nextSeed: number?)
-	-- An arming ult becomes armed (the shot clock's pause ends).
+	-- An arming ult becomes armed (the shot clock's pause ends); Look Over There!'s opens the
+	-- Sneak phase.
 	Ults.tick(t, now)
+	if Ults.sneakDue(t) then
+		beginSneak(t, now)
+	end
 	if t.vote then
 		local unanimous = true
 		for _, s in t.seats do
@@ -628,6 +740,12 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 			end
 		end
 		t.calledPocket = best
+		setup(t, now)
+	elseif t.phase == "Sneak" then
+		-- The window closed with no drop: nothing moved, and the ult is spent.
+		revealSneak(t, now)
+	elseif t.phase == "SneakReveal" then
+		t.sneak = nil
 		setup(t, now)
 	elseif Engine.isShotClock(t.phase, t.breakShot) then
 		-- The other side's turn-end fill; an armed ult is spent (it was pressed).
@@ -1086,6 +1204,9 @@ function Engine.action(
 	elseif kind == "UltPick" then
 		-- The armed ult's aim-phase pick (Heat Seeker's ball, Portals' spots), checked there.
 		return (Ults.pick(t, userId, request))
+	elseif kind == "Sneak" then
+		-- Look Over There!'s drop (sneakDrop moves the phase on).
+		return sneakDrop(t, request, now)
 	else
 		return false
 	end
@@ -1190,9 +1311,10 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	if t.phase ~= "Intro" and t.phase ~= "Placement" and t.phase ~= "Aiming" then
 		return nil, "WrongPhase"
 	end
-	-- An ult still in its cutscene: the shot waits until it is armed.
+	-- An ult still in its cutscene: the shot waits until it is armed. Look Over There! armed
+	-- is no shot at all: its Sneak phase opens at the next advance.
 	Ults.tick(t, now)
-	if Ults.arming(t) then
+	if Ults.arming(t) or Ults.sneakDue(t) then
 		return nil, "UltArming"
 	end
 	if t.deadline and now >= t.deadline then
@@ -1483,6 +1605,8 @@ function Engine.snapshot(t: any): any
 		rewound = t.rewound,
 		-- This turn's clock is Rewind's short redo clock (the HUD's SECOND CHANCE pill).
 		redoClock = t.redoClock == true,
+		-- Look Over There!'s sneak while it plays (Sneak, SneakReveal): see beginSneak.
+		sneak = if t.sneak then table.clone(t.sneak) else nil,
 	}
 end
 

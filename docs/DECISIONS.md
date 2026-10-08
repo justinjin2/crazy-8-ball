@@ -3169,3 +3169,20 @@ timer of a new block stay the designer's call.
 - 2026-10-08: The GUI redo pauses after the Cues menu and the lucky block reel's cards
   (designer): the economy plan, a cheaper and more balanced economy, comes first. The designer
   continues the remaining lively GUIs (Free Reward, Abilities, Ranked) from another session.
+- 2026-10-08 (designer, abilities rework; plan in docs/prompts/ABILITIES_REWORK_PLAN.md): the
+  ladder is now 13 abilities (Common: Eagle's Eye, Super Bounce; Uncommon: Magnet, everyone's
+  starter, and Rewind; Rare: Catch-a-Ball, Portals; Epic: Look Over There!, Time Stop, Chain
+  Lightning; Legendary: Verity, Steel Ball, Black Flash; Mythic: Black Hole, Guangdong Tiger).
+  Heat Seeker and Ghost leave; a slot holding either becomes Magnet. Rare and above should
+  nearly always pot a ball. Catch-a-Ball and Verity act on whatever the cue ball hits first;
+  only the 8 off a legal 8 shot is spared (it breaks free, or Verity refuses it).
+- 2026-10-08 (designer): Look Over There! is not a shot. Armed, it opens a Sneak phase: the
+  shooter points and shouts, the opponents turn away (their camera too: just the room and a
+  "?"), and the shooter has about 3 s to drag one of their own balls (never the 8) into a
+  pocket. The pot counts and the turn goes on with a fresh clock. A ball dropped on the cloth
+  stays there; a ball still held when time runs out drops where it is, into the pocket if it
+  is over one. On an open table a sneaked ball claims its group, as a pot would. A sneaked ball
+  pays no money. The voices are text-to-speech stand-ins until the designer records their own.
+- 2026-10-08: Roblox's upgraded avatar joints (AnimationConstraint, no Motor6D) are what this
+  place's characters use; ability looks that pose a body turn either kind of joint by its
+  Transform.
