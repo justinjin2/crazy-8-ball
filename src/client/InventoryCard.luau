@@ -1,23 +1,23 @@
 --!strict
--- InventoryCard: a cue's card in the Inventory (docs/prompts/ECONOMY_UI_PROMPT.md section 11),
--- for the Cues tab's grid and the Index's cells, plus the plain pale-edged box the Inventory's
--- panels and rows sit in.
+-- InventoryCard: a cue's card (docs/prompts/CUES_LIVELY_PROMPT.md, concept 1 approved round 4,
+-- 2026-10-08; Config.UI.CueCard), for the Cues grid and the Index's cells now and the lucky
+-- block spin and YOU GOT next, plus the plain pale-edged box the Inventory's panels and rows
+-- sit in.
 --
--- A card is a white rounded card like MenuFrame.tile, dressed in the cue's rarity
--- (CueThumb.dress: a coloured edge, a wash and a strip; Mythic's shimmer, Secret's glow; a rank
--- cue in its tier's colour), with the cue's tinted thumbnail (CueThumb) on top and its name
--- under it on up to two lines (it wraps rather than shrinks, so a longer translation still
--- fits). Pills sit over the top corners: a gold NEW top left; top right a padlock on Exclusive
--- and Unique cues and the count ("x3", or a Unique cue's "#412"); and a green "Equipped" on
--- the picture's bottom, just over the name. A never-owned cue in the Index is a big "?" in its
--- rarity's colour where the picture goes (designer, 2026-09-28: the look stays hidden until
--- the cue is found; the Index's detail panel shows its black 3D shape), no name, no dressing
--- and no pills.
+-- The cue's picture fills the top of the card and its name sits under it (one line that
+-- shrinks to Layout.MinTextPx, then wraps). The rarity bar along the bottom is in the rarity's
+-- colour with its word inside, upper case; a rank cue's bar says RANKED with its tier's badge
+-- whole over the bar's left end, and the card wears its tier's colours. Top left: the chance
+-- chip (only on cues that drop from a block), then NEW and Equipped under it; top right the
+-- count ("x3", "#412") and the padlock on Exclusive and Unique cues. The card is filled in its
+-- look's colours, rimmed by the rarity edge, with faint 8-balls drifting up-left behind the
+-- cue; the rarer the cue, the more moves (CueCardFx). A never-found cue in the Index wears the
+-- grey Silhouette look: its dark picture only.
 --
--- It behaves like the kit's buttons: hover and gamepad selection give the gold outline and a
--- small grow, a press squishes it and plays the Click sound. `onSelect` runs when a gamepad
--- lands on it. The card whose details show (setChosen) keeps a thick blue outline (the house
--- accent for whatever is chosen, UI_STYLE section 4). Sizes in Config.UI.Inventory.Card.
+-- It behaves like the kit's buttons: hover and gamepad selection give a gold ring and a small
+-- grow, a press squishes it and plays the Click sound. `onSelect` runs when a gamepad lands on
+-- it. The card whose details show (setChosen) keeps a blue ring (the house accent for whatever
+-- is chosen, UI_STYLE section 4).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
@@ -26,6 +26,8 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
+local CardMath = require(Shared:WaitForChild("CardMath"))
+local CueCardFx = require(script.Parent.CueCardFx)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local MenuFrame = require(script.Parent.MenuFrame)
@@ -33,11 +35,15 @@ local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local IC = Config.UI.Inventory.Card
+local CC = Config.UI.CueCard
+local L = CC.Layout
+local UNITS = CC.Units
 local CARD = Config.UI.Menu.Card
 local K = Config.UI.Kit
 local WORDS = Strings.Menus.Inventory
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 local QUICK = Config.Multiplayer.Style.QuickMotion
+local BADGES: { [string]: string } = Config.UI.Ranks.Badges :: any
 local color = HudParts.color
 local tone = HudParts.tone
 local WHITE = tone("White")
@@ -45,11 +51,11 @@ local EDGE = color(CARD.EdgeColor)
 
 export type Fields = {
 	cueId: string,
-	silhouette: boolean?, -- the Index: never owned (a big "?", no name)
+	silhouette: boolean?, -- the Index: never found (the grey card, the dark picture, nothing else)
 	count: string?, -- "x3", "#412", or nil / "" for none
 	new: boolean?, -- the gold NEW pill
 	equipped: boolean?, -- the green Equipped pill
-	odds: string?, -- the line under the name: "4.2% chance · 1,284 exist" (rich text)
+	chance: string?, -- the chance chip top left: "4.2%" (nil for a cue no block drops)
 }
 
 export type Options = {
@@ -57,31 +63,50 @@ export type Options = {
 	order: number?, -- LayoutOrder in a grid
 	onPress: () -> (),
 	onSelect: (() -> ())?, -- a gamepad landed on it
-	lines: number?, -- lines the name may wrap to (Card.NameLines by default)
+	lines: number?, -- lines a long name may wrap to (2 by default)
 }
 
 export type Card = {
 	button: TextButton,
 	body: Frame,
+	press: UIScale,
+	face: Frame, -- the card's box (it clips its layers)
 	fill: Frame,
-	edge: UIStroke,
+	fillRound: UICorner,
+	fillGradient: UIGradient,
+	centre: ImageLabel, -- a radial look's light middle
+	balls: ImageLabel,
+	ballsRound: UICorner,
 	art: Frame,
 	thumb: Frame,
 	name: TextLabel,
-	unknown: TextLabel,
+	bar: Frame,
+	barGradient: UIGradient,
+	barRing: UIStroke,
+	barHighlight: Frame,
+	barWord: TextLabel,
+	edge: Frame,
+	edgeRound: UICorner,
+	edgeStroke: UIStroke,
+	inner: Frame,
+	innerRound: UICorner,
+	innerStroke: UIStroke,
+	badge: ImageLabel,
+	chancePill: Frame,
+	chanceText: TextLabel,
 	newPill: Frame,
 	newText: TextLabel,
-	countPill: Frame,
-	countText: TextLabel,
 	equipPill: Frame,
 	equipText: TextLabel,
+	countPill: Frame,
+	countText: TextLabel,
 	lock: ImageLabel,
-	odds: TextLabel,
-	shimmer: Frame?, -- the light sweeping across a rarer card
-	effects: { UIAnim.Handle },
-	effectKey: string, -- the rarity the effects were made for
-	dressing: CueThumb.Dressing?,
-	dressKey: string, -- what the dressing shows now ("" for none)
+	ring: Frame,
+	ringRound: UICorner,
+	ringStroke: UIStroke,
+	fx: CueCardFx.Fx?,
+	lookKey: string, -- the look showing ("" before the first set)
+	ranked: boolean, -- it wears a tier (badge, RANKED)
 	cueId: string,
 	silhouette: boolean,
 	lines: number, -- lines the name may wrap to
@@ -89,7 +114,6 @@ export type Card = {
 	chosen: boolean, -- its details show
 	down: boolean,
 	tween: Tween?,
-	press: UIScale,
 }
 
 local InventoryCard = {}
@@ -100,6 +124,10 @@ end
 
 local function textWidth(text: string, size: number): number
 	return TextService:GetTextSize(text, size, FONT, Vector2.new(4000, 400)).X
+end
+
+local function hex(value: string): Color3
+	return Color3.fromHex(value)
 end
 
 --- The plain box the Inventory's panels and rows sit in: a white rounded card with a pale edge
@@ -146,18 +174,11 @@ function InventoryCard.pillWidth(text: string, height: number, size: number?): n
 	return math.max(height, math.ceil(textWidth(text, size or IC.PillTextPx)) + 2 * IC.PillPadPx)
 end
 
--- The outline: gold while hovered or selected, blue while chosen, else pale.
-local function paintEdge(card: Card)
-	if card.lit then
-		card.edge.Color = tone("Gold")
-		card.edge.Thickness = K.SelectedStrokePx
-	elseif card.chosen then
-		card.edge.Color = tone("Blue")
-		card.edge.Thickness = IC.ChosenStrokePx
-	else
-		card.edge.Color = EDGE
-		card.edge.Thickness = IC.StrokePx
-	end
+-- The ring round the card: gold while hovered or selected, blue while chosen, else none.
+local function paintRing(card: Card)
+	card.ringStroke.Enabled = card.lit or card.chosen
+	card.ringStroke.Color = if card.lit then tone("Gold") else tone("Blue")
+	card.ringStroke.Thickness = L.RingPx
 end
 
 local function settle(card: Card)
@@ -174,52 +195,165 @@ local function settle(card: Card)
 	tween:Play()
 end
 
---- Lay the card's parts out from its size (it does this itself when its size changes).
+-- The name's text size and lines: as big as NameUnits allows on one line, shrinking to
+-- MinTextPx, then wrapping (up to `maxLines`) at MinTextPx.
+local function nameFit(
+	text: string,
+	maxPx: number,
+	boxW: number,
+	maxLines: number
+): (number, number)
+	if text == "" then
+		return maxPx, 1
+	end
+	local width = textWidth(text, maxPx) + 2
+	if width <= boxW then
+		return maxPx, 1
+	end
+	local fit = math.floor(maxPx * boxW / width)
+	if fit >= L.MinTextPx then
+		return fit, 1
+	end
+	local wrapped =
+		TextService:GetTextSize(text, L.MinTextPx, FONT, Vector2.new(math.max(1, boxW - 2), 4000))
+	return L.MinTextPx, math.clamp(round(wrapped.Y / L.MinTextPx), 1, maxLines)
+end
+
+--- Lay the card's parts out from its size (it does this itself when its size changes). All in
+--- card units, scaled by k = its width / Units[1].
 function InventoryCard.layout(card: Card)
 	local size = card.button.AbsoluteSize / MenuFrame.scaleOf(card.button)
 	local w, h = size.X, size.Y
 	if w <= 0 or h <= 0 then
 		return
 	end
-	local pad = math.max(3, round(w * IC.PadShare))
-	local lineH = IC.NameTextPx + 3
-	local oddsH = if card.odds.Visible then Config.UI.Inventory.CardOddsTextPx + 3 else 0
-	local nameH = lineH * card.lines + oddsH
-	local bottom = round(h * IC.BottomShare)
-	local art =
-		math.max(1, math.min(w - 2 * pad, round(h * IC.ArtShare), h - pad - nameH - bottom - 2))
-	card.art.Size = UDim2.fromOffset(art, art)
-	card.art.Position = UDim2.fromOffset(round(w / 2), pad)
-	local nameTop = pad + art + 2
-	local nameBox = math.max(lineH, h - nameTop - bottom - oddsH)
-	card.name.Position = UDim2.fromOffset(pad, nameTop)
-	card.name.Size = UDim2.fromOffset(math.max(1, w - 2 * pad), nameBox)
-	card.odds.Position = UDim2.fromOffset(2, h - bottom - oddsH)
-	card.odds.Size = UDim2.fromOffset(math.max(1, w - 4), math.max(1, oddsH))
-	-- The "?" fills the picture's place (and the name's, which it has none of).
-	local mark = math.max(1, math.min(w - 2 * pad, h - 2 * pad - bottom))
-	card.unknown.Position = UDim2.fromOffset(round(w / 2), round((h - bottom) / 2))
-	card.unknown.Size = UDim2.fromOffset(mark, mark)
-	HudParts.setTextSize(card.unknown, math.max(IC.NameTextPx, round(mark * IC.UnknownShare)))
-
-	-- The pills: NEW top left; the lock and the count top right; Equipped on the picture's
-	-- bottom, a little over the name.
-	local inset = IC.InsetPx
-	local pillH = IC.PillPx
-	card.newPill.Position = UDim2.fromOffset(inset, inset)
-	card.newPill.Size = UDim2.fromOffset(InventoryCard.pillWidth(card.newText.Text, pillH), pillH)
-	local right = w - inset
-	if card.lock.Visible then
-		card.lock.Position = UDim2.fromOffset(right - IC.LockPx, inset)
-		card.lock.Size = UDim2.fromOffset(IC.LockPx, IC.LockPx)
-		right -= IC.LockPx + 2
+	local k = w / UNITS[1]
+	local function px(units: number): number
+		return round(units * k)
 	end
-	local countW = InventoryCard.pillWidth(card.countText.Text, pillH)
-	card.countPill.Position = UDim2.fromOffset(right - countW, inset)
-	card.countPill.Size = UDim2.fromOffset(countW, pillH)
-	local equipW = math.min(w - 2 * inset, InventoryCard.pillWidth(card.equipText.Text, pillH))
-	card.equipPill.Position = UDim2.fromOffset(round(w / 2), nameTop - IC.EquipGapPx)
-	card.equipPill.Size = UDim2.fromOffset(equipW, pillH)
+
+	-- The box, its edge (drawn outward from a frame inset by its thickness, so it lies inside
+	-- the box), the white line inside the edge, and the hover ring outside.
+	local cornerPx = px(L.CornerUnits)
+	local edgePx = math.max(1, px(L.EdgeUnits))
+	local innerPx = math.max(1, px(L.InnerUnits))
+	card.fillRound.CornerRadius = UDim.new(0, cornerPx)
+	card.ballsRound.CornerRadius = UDim.new(0, cornerPx)
+	card.ringRound.CornerRadius = UDim.new(0, cornerPx)
+	card.edge.Position = UDim2.fromOffset(edgePx, edgePx)
+	card.edge.Size = UDim2.new(1, -2 * edgePx, 1, -2 * edgePx)
+	card.edgeRound.CornerRadius = UDim.new(0, math.max(0, cornerPx - edgePx))
+	card.edgeStroke.Thickness = edgePx
+	local innerAt = edgePx + innerPx
+	card.inner.Position = UDim2.fromOffset(innerAt, innerAt)
+	card.inner.Size = UDim2.new(1, -2 * innerAt, 1, -2 * innerAt)
+	card.innerRound.CornerRadius = UDim.new(0, math.max(0, cornerPx - innerAt))
+	card.innerStroke.Thickness = innerPx
+	local centre = CC.Motion.Centre
+	card.centre.Position = UDim2.fromScale(centre.At[1], centre.At[2])
+	card.centre.Size = UDim2.fromOffset(px(centre.Units[1]), px(centre.Units[2]))
+	local sx, sy, offset = CardMath.ballsWindow(0, w, h, 0)
+	card.balls.ImageRectSize = Vector2.new(sx, sy)
+	card.balls.ImageRectOffset = Vector2.new(offset, offset)
+
+	-- The rarity bar along the bottom, its word (right of the badge on a Ranked card).
+	local B = L.BarUnits
+	local barH = math.max(1, px(B[2]))
+	local barTop = h - px(B[3]) - barH
+	card.bar.Position = UDim2.fromOffset(px(B[1]), barTop)
+	card.bar.Size = UDim2.fromOffset(math.max(1, w - 2 * px(B[1])), barH)
+	card.barRing.Thickness = math.max(1, L.BarRingUnits * k)
+	local HL = L.BarHighlight
+	card.barHighlight.Position = UDim2.fromScale(HL[1], HL[2])
+	card.barHighlight.Size = UDim2.fromScale(1 - 2 * HL[1], HL[3])
+	local wordPx = math.max(L.MinTextPx, px(L.BarWordUnits))
+	HudParts.setTextSize(card.barWord, wordPx, wordPx)
+	local pad = if card.ranked then px(L.BarRankedPadUnits) else 0
+	card.barWord.Position = UDim2.fromOffset(pad, 0)
+	card.barWord.Size = UDim2.new(1, -pad, 1, 0)
+	local G = L.BadgeUnits
+	local badgeSide = px(G[3])
+	card.badge.Position = UDim2.fromOffset(px(G[1]), h - px(G[2]) - badgeSide)
+	card.badge.Size = UDim2.fromOffset(badgeSide, badgeSide)
+
+	-- The name just over the bar; the picture above it (smaller on a short card).
+	local sideW = px(L.NameSideUnits)
+	local boxW = math.max(1, w - 2 * sideW)
+	local maxPx = math.max(L.MinTextPx, px(L.NameUnits))
+	local namePx, lines = nameFit(card.name.Text, maxPx, boxW, card.lines)
+	local lineH = math.max(1, round(namePx * L.NameLineShare))
+	local nameBottom = if card.bar.Visible then barTop - px(L.NameGapUnits) else h - px(B[3])
+	card.name.TextWrapped = lines > 1
+	card.name.Position = UDim2.fromOffset(sideW, nameBottom - lineH * lines)
+	card.name.Size = UDim2.fromOffset(boxW, lineH * lines)
+	HudParts.setTextSize(card.name, namePx, namePx)
+	local A = L.ArtUnits
+	local artTop = px(A[2])
+	local art =
+		math.max(1, math.min(px(A[3]), w - 2 * px(A[1]), barTop - px(L.ArtBarGapUnits) - artTop))
+	card.art.Position = UDim2.fromOffset(round((w - art) / 2), artTop)
+	card.art.Size = UDim2.fromOffset(art, art)
+
+	-- The pills: down the left the chance chip, NEW and Equipped; the lock and the count top right.
+	local P = L.PillUnits
+	local pillPx = math.max(L.PillMinTextPx, px(L.PillTextUnits))
+	local chancePx = math.max(L.PillMinTextPx, px(L.ChanceTextUnits))
+	local pillH = math.max(px(P[3]), pillPx + 4)
+	local padX = px(L.PillPadUnits)
+	local left, top = px(P[1]), px(P[2])
+	local stepY = px(L.SecondPillTopUnits - P[2])
+	local row = 0
+	for _, entry in
+		{
+			{ card.chancePill, card.chanceText, chancePx },
+			{ card.newPill, card.newText, pillPx },
+			{ card.equipPill, card.equipText, pillPx },
+		} :: { { any } }
+	do
+		local pill: Frame, words: TextLabel, textPx: number = entry[1], entry[2], entry[3]
+		if pill.Visible then
+			local pw = math.min(w - 2 * left, math.ceil(textWidth(words.Text, textPx)) + 2 * padX)
+			pill.Position = UDim2.fromOffset(left, top + row * stepY)
+			pill.Size = UDim2.fromOffset(pw, pillH)
+			HudParts.setTextSize(words, textPx, textPx)
+			row += 1
+		end
+	end
+	local right = w - px(P[1])
+	if card.lock.Visible then
+		local LK = L.LockUnits
+		local side = px(LK[3])
+		card.lock.Position = UDim2.fromOffset(w - px(LK[1]) - side, px(LK[2]))
+		card.lock.Size = UDim2.fromOffset(side, side)
+		right = w - px(LK[1]) - side - px(L.LockGapUnits)
+	end
+	if card.countPill.Visible then
+		local cw = math.ceil(textWidth(card.countText.Text, pillPx)) + 2 * padX
+		card.countPill.Position = UDim2.fromOffset(right - cw, top)
+		card.countPill.Size = UDim2.fromOffset(cw, pillH)
+		HudParts.setTextSize(card.countText, pillPx, pillPx)
+	end
+
+	if card.fx then
+		CueCardFx.layout(card.fx, k, cornerPx)
+	end
+end
+
+-- A frame filling its parent, rounded (its radius set by layout).
+local function layer(parent: Instance, name: string, z: number): (Frame, UICorner)
+	local frame = HudParts.frame(parent, name)
+	frame.Size = UDim2.fromScale(1, 1)
+	frame.ZIndex = z
+	local roundCorner = Instance.new("UICorner")
+	roundCorner.Parent = frame
+	return frame, roundCorner
+end
+
+local function pillShape(pill: Frame)
+	local roundCorner = pill:FindFirstChildOfClass("UICorner")
+	if roundCorner then
+		roundCorner.CornerRadius = UDim.new(0.5, 0)
+	end
 end
 
 --- A card (empty until set). Size it yourself or put it in a grid.
@@ -232,7 +366,7 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 	button.BorderSizePixel = 0
 	button.LayoutOrder = opts.order or 0
 	button.Selectable = true
-	local noBox = Instance.new("Frame") -- the gold outline shows selection, not Roblox's box
+	local noBox = Instance.new("Frame") -- the gold ring shows selection, not Roblox's box
 	noBox.BackgroundTransparency = 1
 	button.SelectionImageObject = noBox
 	local body = HudParts.frame(button, "Body")
@@ -242,75 +376,184 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 	local press = Instance.new("UIScale")
 	press.Name = "Press"
 	press.Parent = body
-	local fill = InventoryCard.box(body, "Fill")
-	fill.Size = UDim2.fromScale(1, 1)
-	fill.ZIndex = 0
-	local edge = fill:FindFirstChild("Edge") :: UIStroke
-	local art = HudParts.frame(body, "Art")
-	art.AnchorPoint = Vector2.new(0.5, 0)
-	art.ZIndex = 3
+
+	-- The face: the card's box, clipping its layers. Bottom to top: the fill (1), a radial
+	-- look's light middle (2), the 8-balls (3), the moving layers (CueCardFx: 4 to 7), the
+	-- picture (8), embers, sparkles and the shine (9 to 11), the name (12), the bar (13).
+	local face = HudParts.frame(body, "Face")
+	face.Size = UDim2.fromScale(1, 1)
+	face.ClipsDescendants = true
+	face.ZIndex = 2
+	local fill, fillRound = layer(face, "Fill", 1)
+	fill.BackgroundTransparency = 0
+	fill.BackgroundColor3 = WHITE
+	local fillGradient = Instance.new("UIGradient")
+	fillGradient.Rotation = 90
+	fillGradient.Parent = fill
+	local centre = Instance.new("ImageLabel")
+	centre.Name = "Centre"
+	centre.BackgroundTransparency = 1
+	centre.Image = K.Art.SoftGlow
+	centre.AnchorPoint = Vector2.new(0.5, 0.5)
+	centre.ZIndex = 2
+	centre.Visible = false
+	centre.Parent = face
+	local balls = Instance.new("ImageLabel")
+	balls.Name = "Balls"
+	balls.BackgroundTransparency = 1
+	balls.Image = CC.Images.Balls
+	balls.Size = UDim2.fromScale(1, 1)
+	balls.ZIndex = 3
+	local ballsRound = Instance.new("UICorner")
+	ballsRound.Parent = balls
+	balls.Parent = face
+	local art = HudParts.frame(face, "Art")
+	art.ZIndex = 8
 	local thumb = CueThumb.new(art, Catalog.Default)
-	local name = HudParts.text(body, "Name", IC.NameTextPx, "")
-	name.TextWrapped = true
-	name.TextYAlignment = Enum.TextYAlignment.Top
-	name.ZIndex = 4
-	local unknown = HudParts.text(body, "Unknown", IC.NameTextPx, WORDS.Unknown)
-	unknown.TextWrapped = false
-	unknown.AnchorPoint = Vector2.new(0.5, 0.5)
-	unknown.ZIndex = 4
-	unknown.Visible = false
+	thumb.ZIndex = 1
+	local name = HudParts.text(face, "Name", L.MinTextPx, "")
+	name.TextWrapped = false
+	name.ZIndex = 12
+	local bar = HudParts.frame(face, "Bar")
+	bar.BackgroundTransparency = 0
+	bar.BackgroundColor3 = WHITE
+	bar.ZIndex = 13
+	local barRound = Instance.new("UICorner")
+	barRound.CornerRadius = UDim.new(0.5, 0)
+	barRound.Parent = bar
+	local barGradient = Instance.new("UIGradient")
+	barGradient.Rotation = 90
+	barGradient.Parent = bar
+	local barRing = Instance.new("UIStroke")
+	barRing.Name = "Ring"
+	barRing.Color = tone("Ink")
+	barRing.Transparency = L.BarRingTransparency
+	barRing.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	barRing.Parent = bar
+	local barHighlight = HudParts.frame(bar, "Highlight")
+	barHighlight.BackgroundTransparency = L.BarHighlight[4]
+	barHighlight.BackgroundColor3 = WHITE
+	barHighlight.ZIndex = 2
+	local highlightRound = Instance.new("UICorner")
+	highlightRound.CornerRadius = UDim.new(0.5, 0)
+	highlightRound.Parent = barHighlight
+	local barWord = HudParts.text(bar, "Word", L.MinTextPx, "")
+	barWord.TextWrapped = false
+	barWord.ZIndex = 3
+
+	-- Over the face: the edge and its inner line (3), the tier badge (4), the pills and the
+	-- padlock (5), the hover ring (6).
+	local edge, edgeRound = layer(body, "Edge", 3)
+	local edgeStroke = Instance.new("UIStroke")
+	edgeStroke.Name = "Stroke"
+	edgeStroke.LineJoinMode = Enum.LineJoinMode.Round
+	edgeStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	edgeStroke.Parent = edge
+	local inner, innerRound = layer(body, "Inner", 3)
+	local innerStroke = Instance.new("UIStroke")
+	innerStroke.Name = "Stroke"
+	innerStroke.Color = WHITE
+	innerStroke.Transparency = L.InnerTransparency
+	innerStroke.LineJoinMode = Enum.LineJoinMode.Round
+	innerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	innerStroke.Parent = inner
+	local badge = Instance.new("ImageLabel")
+	badge.Name = "Badge"
+	badge.BackgroundTransparency = 1
+	badge.ScaleType = Enum.ScaleType.Fit
+	badge.ZIndex = 4
+	badge.Visible = false
+	badge.Parent = body
+	local chancePill = HudParts.frame(body, "Chance")
+	chancePill.BackgroundTransparency = L.ChanceTransparency
+	chancePill.BackgroundColor3 = hex(L.ChanceColor)
+	chancePill.ZIndex = 5
+	chancePill.Visible = false
+	local chanceRound = Instance.new("UICorner")
+	chanceRound.CornerRadius = UDim.new(0.5, 0)
+	chanceRound.Parent = chancePill
+	local chanceText = HudParts.text(chancePill, "Words", L.PillMinTextPx, "")
+	local chanceOutline = chanceText:FindFirstChild("Outline")
+	if chanceOutline then
+		chanceOutline:Destroy() -- coloured words on the dark chip, no outline (the concept's)
+	end
+	chanceText.AutoLocalize = false -- a number
+	chanceText.TextWrapped = false
+	chanceText.Size = UDim2.fromScale(1, 1)
+	chanceText.ZIndex = 2
 	local newPill, newText = InventoryCard.pill(body, "New", tone("Gold"), WORDS.New)
-	newPill.ZIndex = 6
+	pillShape(newPill)
+	newPill.ZIndex = 5
 	newPill.Visible = false
-	local countPill, countText = InventoryCard.pill(body, "Count", WHITE, "", true)
-	countText.AutoLocalize = false -- a number
-	countPill.ZIndex = 6
-	countPill.Visible = false
 	local equipPill, equipText = InventoryCard.pill(body, "Equipped", tone("Green"), WORDS.Equipped)
-	equipPill.AnchorPoint = Vector2.new(0.5, 1)
-	equipPill.ZIndex = 6
+	pillShape(equipPill)
+	equipPill.ZIndex = 5
 	equipPill.Visible = false
+	local countPill, countText = InventoryCard.pill(body, "Count", WHITE, "", true)
+	pillShape(countPill)
+	countText.AutoLocalize = false -- a number
+	countPill.ZIndex = 5
+	countPill.Visible = false
 	local lock = HudParts.icon(body, "Lock", "Lock")
-	lock.ZIndex = 6
+	lock.ZIndex = 5
 	lock.Visible = false
-	local odds = HudParts.note(body, "Odds", Config.UI.Inventory.CardOddsTextPx, "")
-	odds.AutoLocalize = false
-	odds.RichText = true
-	odds.TextWrapped = false
-	odds.ZIndex = 4
-	odds.Visible = false
+	local ring, ringRound = layer(body, "Ring", 6)
+	local ringStroke = Instance.new("UIStroke")
+	ringStroke.Name = "Stroke"
+	ringStroke.LineJoinMode = Enum.LineJoinMode.Round
+	ringStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	ringStroke.Enabled = false
+	ringStroke.Parent = ring
 	button.Parent = parent
 
 	local card: Card = {
 		button = button,
 		body = body,
+		press = press,
+		face = face,
 		fill = fill,
-		edge = edge,
+		fillRound = fillRound,
+		fillGradient = fillGradient,
+		centre = centre,
+		balls = balls,
+		ballsRound = ballsRound,
 		art = art,
 		thumb = thumb,
 		name = name,
-		unknown = unknown,
+		bar = bar,
+		barGradient = barGradient,
+		barRing = barRing,
+		barHighlight = barHighlight,
+		barWord = barWord,
+		edge = edge,
+		edgeRound = edgeRound,
+		edgeStroke = edgeStroke,
+		inner = inner,
+		innerRound = innerRound,
+		innerStroke = innerStroke,
+		badge = badge,
+		chancePill = chancePill,
+		chanceText = chanceText,
 		newPill = newPill,
 		newText = newText,
-		countPill = countPill,
-		countText = countText,
 		equipPill = equipPill,
 		equipText = equipText,
+		countPill = countPill,
+		countText = countText,
 		lock = lock,
-		odds = odds,
-		shimmer = nil,
-		effects = {},
-		effectKey = "",
-		dressing = nil,
-		dressKey = "",
+		ring = ring,
+		ringRound = ringRound,
+		ringStroke = ringStroke,
+		fx = nil,
+		lookKey = "",
+		ranked = false,
 		cueId = "",
 		silhouette = false,
-		lines = opts.lines or IC.NameLines,
+		lines = opts.lines or 2,
 		lit = false,
 		chosen = false,
 		down = false,
 		tween = nil,
-		press = press,
 	}
 	button:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 		InventoryCard.layout(card)
@@ -319,7 +562,7 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 	-- Hover, gamepad selection and press, like the kit's candy buttons.
 	local function light(on: boolean)
 		card.lit = on
-		paintEdge(card)
+		paintRing(card)
 		settle(card)
 		UIAnim.sway(body, on, nil, button)
 	end
@@ -361,89 +604,81 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 	return card
 end
 
-local ITEMS = Config.UI.Inventory.Items
-
--- The rarer the card, the more it moves (designer, 2026-10-03): from ShimmerFromRarity a light
--- sweeps across it every few seconds; from SparkleFromRarity sparkles twinkle over it too.
--- Both scale down with Lower effects (UIAnim reads Quality) and run only while on screen.
-local function setEffects(card: Card, rarity: string)
-	if card.effectKey == rarity then
-		return
+-- Dress the card in a look (Config.UI.CueCard.Looks or Tiers): its colours, then its moving
+-- parts (rebuilt, since where its sparkles sit comes from the cue's id).
+local function dress(card: Card, key: string, ranked: boolean, id: string, silhouette: boolean)
+	if card.fx then
+		CueCardFx.stop(card.fx)
+		card.fx = nil
 	end
-	card.effectKey = rarity
-	for _, handle in card.effects do
-		handle.stop()
+	local look = CardMath.look(key)
+	card.lookKey = key
+	card.ranked = ranked
+	local keys = {}
+	for i, c in look.Fill do
+		table.insert(keys, ColorSequenceKeypoint.new(look.FillAt[i], hex(c)))
 	end
-	table.clear(card.effects)
-	if card.shimmer then
-		card.shimmer:Destroy()
-		card.shimmer = nil
+	card.fillGradient.Color = ColorSequence.new(keys)
+	card.fillGradient.Rotation = look.FillRotation or 90
+	card.centre.Visible = look.Centre ~= nil
+	if look.Centre then
+		card.centre.ImageColor3 = hex(look.Centre)
 	end
-	local rank = Catalog.rarityRank(rarity)
-	if rarity == "" or rank < Catalog.rarityRank(ITEMS.ShimmerFromRarity) then
-		return
+	local B = CC.Motion.Balls
+	card.balls.ImageColor3 = hex(look.Balls)
+	card.balls.ImageTransparency = if look.Dark then B.DarkTransparency else B.Transparency
+	card.edgeStroke.Color = hex(look.Edge)
+	if look.Flow then
+		local flow = {}
+		for i, c in look.Flow do
+			table.insert(flow, ColorSequenceKeypoint.new((i - 1) / (#look.Flow - 1), hex(c)))
+		end
+		card.barGradient.Color = ColorSequence.new(flow)
+		card.barGradient.Rotation = 0
+	else
+		card.barGradient.Color = ColorSequence.new(hex(look.Bar[1]), hex(look.Bar[2]))
+		card.barGradient.Rotation = 90
 	end
-	local band = HudParts.frame(card.body, "Shimmer")
-	band.Size = UDim2.fromScale(1, 1)
-	band.BackgroundTransparency = 0
-	band.BackgroundColor3 = WHITE
-	band.ZIndex = 2
-	HudParts.corner(band, IC.CornerPx)
-	local gradient = Instance.new("UIGradient")
-	gradient.Rotation = 25
-	gradient.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 1),
-		NumberSequenceKeypoint.new(0.42, 1),
-		NumberSequenceKeypoint.new(0.5, 0.55),
-		NumberSequenceKeypoint.new(0.58, 1),
-		NumberSequenceKeypoint.new(1, 1),
-	})
-	gradient.Parent = band
-	card.shimmer = band
-	local period = ITEMS.ShimmerSeconds
-	-- Each card starts at its own point, so a grid does not flash all at once.
-	local phase = (#card.cueId * 0.37) % 1
-	table.insert(
-		card.effects,
-		UIAnim.loop(band, function(clock)
-			local t = ((clock / period) + phase) % 1.6 -- a sweep, then a rest
-			gradient.Offset = Vector2.new(math.min(t, 1) * 2 - 1, 0)
-		end)
-	)
-	if rank >= Catalog.rarityRank(ITEMS.SparkleFromRarity) then
-		table.insert(card.effects, UIAnim.sparkle(card.body, CueThumb.accentColor(rarity)))
+	card.chanceText.TextColor3 = hex(look.Chance)
+	if ranked then
+		local badgeKey = if key == "Reyes" then "reyes" else string.lower(key) .. "_1"
+		card.badge.Image = BADGES[badgeKey] or ""
 	end
+	card.fx = CueCardFx.new({
+		body = card.body,
+		face = card.face,
+		balls = card.balls,
+		edgeStroke = card.edgeStroke,
+		bar = card.bar,
+		barGradient = card.barGradient,
+		art = card.art,
+		thumb = card.thumb,
+		name = card.name,
+	}, look, CardMath.seed(id), silhouette)
 end
 
 --- Show a cue on the card (or its silhouette), with its pills.
 function InventoryCard.set(card: Card, fields: Fields)
 	local id = fields.cueId
 	local silhouette = fields.silhouette == true
-	if id ~= card.cueId or silhouette ~= card.silhouette then
-		-- A never-owned cue is its blacked-out silhouette (GUI lane, 2026-10-03).
+	local changed = id ~= card.cueId or silhouette ~= card.silhouette
+	if changed then
+		-- A never-found cue is its blacked-out silhouette (GUI lane, 2026-10-03).
 		CueThumb.set(card.thumb, id, silhouette)
-		card.cueId, card.silhouette = id, silhouette
 	end
-	card.thumb.Visible = true
 	local row = Catalog.get(id)
 	local rarity = if row then row.Rarity else "Default"
-	local tier = if row and row.Tier then row.Tier else ""
-	local key = if silhouette then "" else rarity .. "/" .. tier
-	if key ~= card.dressKey then
-		if card.dressing then
-			card.dressing.destroy()
-			card.dressing = nil
-		end
-		if not silhouette then
-			local tint = if tier ~= "" then CueThumb.cueColor(id) else nil
-			card.dressing = CueThumb.dress(card.fill, rarity, tint)
-		end
-		card.dressKey = key
-	end
+	local key, ranked = CardMath.lookKey(rarity, if row then row.Tier else nil, silhouette)
+	card.cueId, card.silhouette = id, silhouette
+	-- The words first: the moving parts note where the name rests.
 	card.name.Text = if silhouette then "" else CueThumb.cueName(id)
 	card.name.Visible = not silhouette
-	card.unknown.Visible = false
-	card.unknown.TextColor3 = CueThumb.accentColor(rarity)
+	card.bar.Visible = not silhouette
+	card.barWord.Text = string.upper(CueThumb.rarityName(if ranked then "Ranked" else rarity))
+	if changed or key ~= card.lookKey then
+		dress(card, key, ranked, id, silhouette)
+	end
+	card.badge.Visible = ranked and not silhouette
 	local count = if silhouette then "" else fields.count or ""
 	card.countText.Text = count
 	card.countPill.Visible = count ~= ""
@@ -452,28 +687,25 @@ function InventoryCard.set(card: Card, fields: Fields)
 	card.lock.Visible = not silhouette
 		and row ~= nil
 		and (row.Group == "Exclusive" or row.Group == "Unique")
-	card.odds.Text = fields.odds or ""
-	card.odds.Visible = fields.odds ~= nil
-	setEffects(card, if silhouette then "" else rarity)
+	local chance = if silhouette then "" else fields.chance or ""
+	card.chanceText.Text = chance
+	card.chancePill.Visible = chance ~= ""
 	InventoryCard.layout(card)
 end
 
---- Mark the card whose details show (a thick blue outline).
+--- Mark the card whose details show (a blue ring).
 function InventoryCard.setChosen(card: Card, chosen: boolean)
 	if card.chosen ~= chosen then
 		card.chosen = chosen
-		paintEdge(card)
+		paintRing(card)
 	end
 end
 
---- Take the card away (its dressing's loop stops with it).
+--- Take the card away (its motion stops with it).
 function InventoryCard.destroy(card: Card)
-	for _, handle in card.effects do
-		handle.stop()
-	end
-	if card.dressing then
-		card.dressing.destroy()
-		card.dressing = nil
+	if card.fx then
+		CueCardFx.stop(card.fx)
+		card.fx = nil
 	end
 	card.button:Destroy()
 end

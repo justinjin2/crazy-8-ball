@@ -8901,26 +8901,14 @@ Config.UI.Inventory = {
 	-- strip across the whole page.
 	StackFromPx = 360,
 	CardMinPx = { 118, 150 }, -- a grid card at least this wide (bigger cards, GUI lane)
-	CardGapPx = { 6, 8 }, -- between two cards
-	CardAspect = 1.42, -- a card's height, of its width (room for the odds line, GUI lane)
-	-- A cue card (InventoryCard, in the grid and the Index): the picture, the name on up to
-	-- two lines under it, pills over its top corners.
+	CardGapPx = { 6, 8 }, -- between two cards (their shape: Config.UI.CueCard.Units)
+	-- The Inventory's plain boxes (InventoryCard.box) and small pills (InventoryCard.pill: the
+	-- Index's titles). The cue card itself: Config.UI.CueCard.
 	Card = {
 		CornerPx = 12,
-		StrokePx = 2, -- its pale outline (Config.UI.Menu.Card.EdgeColor)
-		ChosenStrokePx = 4, -- the card whose details show: a thicker blue outline
-		PadShare = 0.06, -- inside the card, of its width
-		ArtShare = 0.55, -- the picture's size, of the card's height
-		NameTextPx = 18, -- the name (it wraps rather than shrinks; 14 read too small, 2026-10-03)
-		NameLines = 2, -- lines the name may wrap to
-		BottomShare = 0.1, -- room kept at the card's bottom for the rarity strip
-		PillPx = 24, -- NEW, Equipped, x3 and #412: their height
+		StrokePx = 2, -- a box's pale outline (Config.UI.Menu.Card.EdgeColor)
 		PillTextPx = 17,
 		PillPadPx = 6, -- room each side of a pill's word
-		LockPx = 20, -- the padlock on Exclusive and Unique cues
-		InsetPx = 3, -- the pills and the lock sit this far inside the card's corners
-		EquipGapPx = 4, -- the Equipped pill's bottom sits this far above the name
-		UnknownShare = 0.62, -- a never-owned cue's "?" in the Index, of the card's picture room
 	},
 	-- The detail panel (the chosen cue).
 	Detail = {
@@ -8952,7 +8940,6 @@ Config.UI.Inventory = {
 		ShimmerFromRarity = "Uncommon", -- cards of this rarity and up shimmer
 		SparkleFromRarity = "Epic", -- and from this one also sparkle
 	},
-	CardOddsTextPx = 18, -- a cue card's "4.2% chance" line (bigger, and the exist count gone, 2026-10-03)
 	-- The Index's turning 3D cue (CueViewport, in the Index's detail panel; designer,
 	-- 2026-09-28): the game's own cue in a ViewportFrame, thicker so it reads small, turning
 	-- round the upright axis. A cue not found yet is one near-black colour.
@@ -8976,9 +8963,10 @@ Config.UI.Inventory = {
 	IndexDetailMinPx = 180,
 	IndexDetailMaxPx = 300,
 	IndexViewShare = 0.5, -- a phone's turning cue at most this share of the page's height
-	CellMinPx = { 84, 100 }, -- an Index cell at least this wide (as many columns as fit)
-	CellAspect = 1.45, -- its height, of its width
-	CellNameLines = 3, -- a narrow cell's name may wrap to this many lines (never under 14 px)
+	-- An Index cell (a cue card, Config.UI.CueCard) at least this wide, as many columns as fit:
+	-- wide enough that its rarity word fits at Layout.MinTextPx (2026-10-08).
+	CellMinPx = { 100, 110 },
+	CellNameLines = 3, -- a narrow cell's name may wrap to this many lines (at Layout.MinTextPx)
 	CellGapPx = { 6, 8 },
 	SectionPadPx = { 8, 12 }, -- inside a row's card
 	HeaderPx = { 36, 44 }, -- a row's header line: its name, "5 / 7", the reward, Claim
@@ -8997,6 +8985,461 @@ Config.UI.Inventory = {
 	TabDotTextPx = 14,
 	TabDotMax = 9, -- more than this reads "9+"
 	MarkSeenRetrySeconds = 1.5, -- a MarkSeen turned away (Busy, TooFast) is tried once more after this
+}
+
+-- The cue card (src/client/InventoryCard.luau; its moving parts src/client/CueCardFx.luau; the
+-- maths src/shared/CardMath.luau): one card for the Cues grid and the Index now, the lucky
+-- block spin and YOU GOT next (docs/prompts/CUES_LIVELY_PROMPT.md, concept 1, approved round 4,
+-- 2026-10-08). The cue picture fills the top, its name under it, a rarity bar in the rarity's
+-- colour with the word inside, a chance chip top left (only on cues that drop from a block),
+-- faint 8-balls in the card's colour drifting up-left, and more motion the rarer it is. Sizes
+-- are card units: the card scales them by k = its width / Units[1]. Colours are hex. Every
+-- value was copied from the approved concept page. (tune)
+Config.UI.CueCard = {
+	Images = {
+		-- assets/ui/cards/balls_tint_sheet.png (tools/gui/card_art.py): grey 8-balls with
+		-- white discs, a 512 texel tile repeated 2 x 2, tinted to each card's colour.
+		Balls = "rbxassetid://119599342321711",
+		-- assets/ui/cards/scanlines_sheet.png (the same tool): white lines every 8 texels down
+		-- a 64 x 1024 strip, the Secret card's scan lines.
+		ScanLines = "rbxassetid://83922639563901",
+	},
+	Units = { 150, 190 }, -- the card's width and height in units (the concept's 150 px card)
+	Layout = {
+		CornerUnits = 15, -- the card's corner radius
+		EdgeUnits = 3.9, -- the rarity edge's thickness (inside the card's box)
+		InnerUnits = 1.2, -- the white line just inside the edge
+		InnerTransparency = 0.3, -- that line's
+		ArtUnits = { 4.5, 2.85, 141 }, -- the cue picture's square: left, top, side
+		ArtBarGapUnits = 12.7, -- the picture ends at least this far above the bar (a short card shrinks it)
+		NameUnits = 15, -- the name's text size (one line; shrinks to MinTextPx, then wraps)
+		NameSideUnits = 7.5, -- room each side of the name
+		NameGapUnits = 2.4, -- from the name's box down to the rarity bar
+		NameLineShare = 1.1, -- a name line's height, of its text size
+		BarUnits = { 10.5, 24.7, 8.74 }, -- the rarity bar: inset each side, height, gap under it
+		BarWordUnits = 12.75, -- the rarity's word in the bar (upper case)
+		BarRankedPadUnits = 22.5, -- a Ranked bar's word starts this far in (the tier badge's room)
+		-- The bar's highlight: inset each side, top and height as shares of the bar, and its
+		-- transparency.
+		BarHighlight = { 0.08, 0.09, 0.32, 0.62 },
+		BarRingTransparency = 0.55, -- the bar's thin ink ring
+		BarRingUnits = 1.2, -- that ring's thickness
+		BadgeUnits = { 5.25, 5.7, 33.3 }, -- a Ranked card's tier badge: left, gap under it, side
+		PillUnits = { 5.25, 6.1, 20.9 }, -- the corner pills: inset each side, top, height
+		PillTextUnits = 12, -- NEW, Equipped, x3, #412
+		PillPadUnits = 6.75, -- room each side of a pill's words
+		ChanceTextUnits = 10.5, -- the chance chip's words, in the rarity's light colour
+		ChanceColor = "#12172A", -- the chance chip (dark, see-through)
+		ChanceTransparency = 0.22, -- its
+		SecondPillTopUnits = 27.6, -- NEW or Equipped under the chance chip: its top
+		LockUnits = { 5.25, 5.7, 18 }, -- the padlock: inset right, top, side
+		LockGapUnits = 2.25, -- between the padlock and the count pill
+		MinTextPx = 12, -- the name and the bar's word are never drawn smaller (UI_STYLE taste rule)
+		PillMinTextPx = 9, -- the pills and the chance chip may go smaller: they sit over the picture
+		RingPx = 3, -- the gold hover ring and the blue chosen ring round the card
+	},
+	-- The moving parts. Seconds are one loop; "Units" sizes scale with the card; shares are of
+	-- the card. Each loop starts at its own phase (from the cue's id), so a grid never moves in
+	-- step. Lower effects: counts times Quality.rate(), shines and the running edge slower
+	-- (LowerSlower). Reduce Motion: everything still but the glows' breathing.
+	Motion = {
+		LowerSlower = 2, -- Lower effects: the shines, the sheen and the running edge take this much longer
+		Balls = {
+			TileWidths = 1.5, -- one period of the 8-ball tile on screen, in card widths
+			Seconds = 30, -- one period of the drift, up-left at 45 degrees ("slow")
+			Transparency = 0.87, -- on a light card (13% strong: "very transparent", round 3)
+			DarkTransparency = 0.93, -- on a dark card (7%: Mythic, Secret, Grandmaster)
+			PeriodTexels = 512, -- the tile's period in the sheet
+			SheetTexels = 1024, -- the sheet's side (the tile 2 x 2)
+		},
+		Glow = { -- the soft glow behind the cue
+			Units = 120, -- its side (the concept's 1.1 widths fading out by 62%)
+			At = { 0.5, 0.4 }, -- its centre
+			Seconds = 2.6, -- a breath
+			Low = 0.45, -- its strength at the bottom of a breath, of its full strength
+		},
+		Centre = { -- a radial card's light middle (Epic, Legendary, Expert ... Reyes)
+			Units = { 180, 190 }, -- its size (a soft glow fading out inside the card's corners)
+			At = { 0.5, 0.38 }, -- its centre
+		},
+		EdgeGlow = { -- the halo past the card's edge (Legendary, Mythic, Secret, Grandmaster, Reyes)
+			Units = 12, -- how far past the card it reaches
+			Seconds = 2.6, -- a breath
+			Low = 0.45, -- the bottom of a breath, of its full strength
+		},
+		Rays = {
+			-- Their side (the concept's 1.75 card widths). The card's box clips them; their ends
+			-- are faint enough (under 5%) that its round corners never show a square edge.
+			Units = 262,
+			At = { 0.5, 0.4 }, -- their centre
+			Seconds = 32, -- a turn, unless the look sets its own
+		},
+		Shine = { -- a light sweeping across the card now and then
+			Rotation = 20, -- the band's slant (UIGradient degrees)
+			Width = 0.24, -- the band's width, of the card's
+			SweepShare = 0.32, -- it crosses in this share of its period, then rests
+			Travel = 1.4, -- it starts and ends this far off the card's middle (gradient offset)
+			Strength = 0.55, -- unless the look sets its own
+		},
+		Sparks = { -- 4-point twinkles (Kit.Art.Spark)
+			Units = { 10.5, 21 }, -- their size, smallest to biggest
+			Seconds = { 1.6, 2.8 }, -- a twinkle, quickest to slowest
+			Area = { 0.06, 0.04, 0.84, 0.62 }, -- where: left, top, right, bottom
+		},
+		Embers = { -- glowing motes rising from the bottom
+			Units = 7, -- their size (a soft glow)
+			RiseUnits = 127.5, -- how far one rises
+			FromShare = 0.88, -- where they start (down the card)
+			Seconds = { 2.6, 4.2 }, -- a rise, quickest to slowest
+			Area = { 0.12, 0.88 }, -- across: left, right
+			FadeIn = 0.15, -- the share of a rise spent fading in
+		},
+		Stars = { -- Mythic's twinkling stars
+			Units = 6, -- their size (a soft glow)
+			Seconds = { 1.4, 3.2 }, -- a blink, quickest to slowest
+			Low = 0.15, -- their strength between blinks
+			Area = { 0.06, 0.05, 0.94, 0.67 }, -- where: left, top, right, bottom
+		},
+		Edge = {
+			Seconds = 4, -- the running light's turn round the edge, unless the look sets its own
+			PulseSeconds = 2.4, -- Secret's edge breathing
+			PulseLow = 0.45, -- its strength at the bottom of a breath
+		},
+		Sheen = { -- Mythic's hologram sheen
+			Seconds = 6, -- across one way (then back)
+			Rotation = 25, -- its slant
+			Transparency = 0.74, -- at its strongest
+			Travel = 0.6, -- how far it slides each way (gradient offset)
+			-- Its colours across: clear at the ends.
+			Colors = { "#7FE7FF", "#B79CFF", "#FF9CE6", "#FFFFFF" },
+		},
+		Scan = { -- Secret's scan lines drifting down
+			PeriodUnits = 4, -- from one line to the next
+			Seconds = 3, -- they move TravelUnits in this long
+			TravelUnits = 30, -- (0.2 card widths)
+			Color = "#FF465A", -- their tint
+			Transparency = 0.91, -- their
+			StripTexels = { 64, 1024 }, -- the strip's size
+			PeriodTexels = 8, -- its line period
+		},
+		RedGlow = { -- Secret's red glow rising from the bottom
+			Color = "#FF283C",
+			Transparency = 0.45, -- at its strongest
+			HeightShare = 0.62, -- how far up the card it reaches
+			Seconds = 2.4, -- a breath
+			Low = 0.45, -- the bottom of a breath, of its full strength
+		},
+		Glitch = { -- Secret's glitch: the picture and name jump, colour copies either side
+			Seconds = 3.6, -- one glitch every
+			Red = "#FF283C", -- the copies' tints
+			Cyan = "#00E5FF",
+			-- The steps, as shares of the period: from At, the picture moves by Move (units)
+			-- and the red and cyan copies sit Red / Cyan units to the side (0: hidden).
+			Steps = {
+				{ At = 0.91, Move = { 2, -1 }, Red = -3, Cyan = 3 },
+				{ At = 0.93, Move = { -3, 1 }, Red = 3, Cyan = 0 },
+				{ At = 0.95, Move = { 1, 0 }, Red = 0, Cyan = -2 },
+				{ At = 0.97, Move = { 0, 0 }, Red = 0, Cyan = 0 },
+			},
+		},
+		BarFlow = { -- a flowing bar's colours (Mythic, Reyes)
+			Span = 2, -- colour steps across the bar (a third of the concept's repeating gradient)
+			Speed = 3, -- colour steps it moves a second (the concept's 300% in 4 s)
+			Points = 9, -- keypoints across the bar
+			StepsPerSecond = 20, -- how often its gradient is redrawn (smooth enough, cheap)
+		},
+		BarShine = { -- a light across the bar (Legendary, Reyes)
+			Seconds = 3.5,
+			Delay = 0.6, -- after the card's own shine
+			Strength = 0.7,
+		},
+	},
+	-- Each rarity's look. Fill: the card's colours top to bottom, at FillAt (shares), turned by
+	-- FillRotation (UIGradient degrees, 90 = down). Centre: a radial card's light middle. Edge:
+	-- the rarity edge. Bar: the rarity bar's top and bottom colours, or Flow: its colours going
+	-- round. Chance: the chance chip's words. Balls: the 8-balls' tint; Dark: a dark card
+	-- (fainter 8-balls). The motion, each optional: Glow (behind the cue), Rays (Seconds a turn),
+	-- Shine (every Seconds), Sparks, Embers, Stars (a count), Sheen, Scan, RedGlow and Glitch
+	-- (true), EdgeSpin (Colors round the edge, Seconds a turn), EdgePulse (true), EdgeGlow (a
+	-- halo past the edge) and BarShine (true). Strength is how strong at its fullest (0..1).
+	Looks = {
+		Common = {
+			Fill = { "#FFFFFF", "#F1F3F7", "#DCE1E9" },
+			FillAt = { 0, 0.55, 1 },
+			Edge = "#A5ACB8",
+			Bar = { "#C3C9D2", "#8D96A5" },
+			Chance = "#C9CFD9",
+			Balls = "#B4BBC8",
+		},
+		Uncommon = {
+			Fill = { "#FFFFFF", "#EBFBF0", "#C8F2D5" },
+			FillAt = { 0, 0.5, 1 },
+			Edge = "#3DD66B",
+			Bar = { "#6CEB93", "#24AE4F" },
+			Chance = "#57E486",
+			Balls = "#7BE29C",
+			Glow = { Color = "#3DD66B", Strength = 0.45 },
+			Shine = { Seconds = 7, Strength = 0.55 },
+		},
+		Rare = {
+			Fill = { "#FBFDFF", "#E3F0FF", "#BCD9FF" },
+			FillAt = { 0, 0.5, 1 },
+			Edge = "#3B9BFF",
+			Bar = { "#6DB6FF", "#2170D6" },
+			Chance = "#6BB4FF",
+			Balls = "#78B8FF",
+			Glow = { Color = "#3B9BFF", Strength = 0.5 },
+			Shine = { Seconds = 5, Strength = 0.55 },
+			Sparks = { Count = 3, Colors = { "#5FB0FF" } },
+		},
+		Epic = {
+			Fill = { "#DFC9FF", "#EFE3FF", "#C59EFF" },
+			FillAt = { 0, 0.38, 1 },
+			Centre = "#FDFAFF",
+			Edge = "#A259FF",
+			Bar = { "#C08BFF", "#7333DB" },
+			Chance = "#C49BFF",
+			Balls = "#B88CFF",
+			Glow = { Color = "#A259FF", Strength = 0.5 },
+			Rays = { Color = "#A259FF", Strength = 0.32, Seconds = 32 },
+			Shine = { Seconds = 4.5, Strength = 0.55 },
+			Sparks = { Count = 4, Colors = { "#B47CFF" } },
+		},
+		Legendary = {
+			Fill = { "#FECC45", "#FFE392", "#ED9C06" },
+			FillAt = { 0, 0.38, 1 },
+			Centre = "#FFFDF2",
+			Edge = "#F2B200",
+			Bar = { "#FFD84D", "#E39500" },
+			Chance = "#FFC93B",
+			Balls = "#F2B730",
+			Glow = { Color = "#FFEC96", Strength = 0.95 },
+			Rays = { Color = "#FFF4C2", Strength = 0.7, Seconds = 26 },
+			Shine = { Seconds = 3.5, Strength = 0.7 },
+			Sparks = { Count = 6, Colors = { "#FFF2B0" } },
+			Embers = { Count = 4, Color = "#FFB800" },
+			EdgeSpin = {
+				Colors = {
+					"#FFF6C8",
+					"#F2B200",
+					"#C47A00",
+					"#FFE07A",
+					"#FFFFFF",
+					"#F2B200",
+					"#FFF6C8",
+				},
+				Seconds = 4,
+			},
+			EdgeGlow = { Color = "#FFC428", Strength = 0.85 },
+			BarShine = true,
+		},
+		Mythic = {
+			Fill = { "#30277E", "#1E1858", "#110D33" },
+			FillAt = { 0, 0.55, 1 },
+			Edge = "#B79CFF",
+			Flow = { "#7FE7FF", "#B79CFF", "#FF9CE6", "#FFE9A8" },
+			Chance = "#D7C8FF",
+			Balls = "#D2C4FF",
+			Dark = true,
+			Glow = { Color = "#B79CFF", Strength = 0.6 },
+			Sheen = true,
+			Stars = 9,
+			Sparks = { Count = 4, Colors = { "#7FE7FF", "#FF9CE6", "#B79CFF", "#FFF3A8" } },
+			EdgeSpin = {
+				Colors = { "#7FE7FF", "#B79CFF", "#FF9CE6", "#FFF3A8", "#9CFFC8", "#7FE7FF" },
+				Seconds = 6,
+			},
+			EdgeGlow = { Color = "#B79CFF", Strength = 0.8 },
+		},
+		Secret = {
+			Fill = { "#2A1E2C", "#170F18", "#080506" },
+			FillAt = { 0, 0.55, 1 },
+			Edge = "#FF283C",
+			Bar = { "#FF4A5A", "#B3001A" },
+			Chance = "#FF3B4E",
+			Balls = "#FF6B7A",
+			Dark = true,
+			RedGlow = true,
+			Scan = true,
+			Glitch = true,
+			Embers = { Count = 5, Color = "#FF3346" },
+			EdgePulse = true,
+			EdgeGlow = { Color = "#FF283C", Strength = 0.75 },
+		},
+		Unique = {
+			Fill = { "#FFF7FB", "#FFE0EF", "#FFB3DA" },
+			FillAt = { 0, 0.5, 1 },
+			Edge = "#FF5CB8",
+			Bar = { "#FF8BCC", "#E0338F" },
+			Chance = "#FF7EC6",
+			Balls = "#FF8FCD",
+			Glow = { Color = "#FF5CB8", Strength = 0.45 },
+			Shine = { Seconds = 4, Strength = 0.55 },
+			Sparks = { Count = 4, Colors = { "#FF7EC6" } },
+		},
+		Exclusive = { -- VIP and Starter
+			Fill = { "#FBFDFF", "#E6F1FF", "#C4DDFF" },
+			FillAt = { 0, 0.5, 1 },
+			Edge = "#3B9BFF",
+			Bar = { "#6DB6FF", "#2170D6" },
+			Chance = "#6BB4FF",
+			Balls = "#78B8FF",
+			Glow = { Color = "#3B9BFF", Strength = 0.45 },
+			Shine = { Seconds = 5, Strength = 0.55 },
+		},
+		-- The Index's never-found cue: grey, its picture dark, no name, bar, pills or motion.
+		Silhouette = {
+			Fill = { "#F4F6F9", "#D9DEE6" },
+			FillAt = { 0, 1 },
+			Edge = "#B7BEC9",
+			Bar = { "#C3C9D2", "#8D96A5" },
+			Chance = "#C9CFD9",
+			Balls = "#B4BBC8",
+		},
+	},
+	-- Ranked cards: each tier's look (the same fields), its badge over the bar's left end
+	-- (Config.UI.Ranks.Badges, the tier's first division), the bar saying RANKED. Bronze to Gold
+	-- a metal shine; Platinum and Diamond glints too; Expert to Master turning rays;
+	-- Grandmaster dark with gold rays and embers; Reyes everything with a rainbow edge.
+	Tiers = {
+		Bronze = {
+			Fill = { "#FFF3E8", "#F6CFAE", "#E7A877", "#C47B45" },
+			FillAt = { 0, 0.38, 0.62, 1 },
+			FillRotation = 70,
+			Edge = "#CD7F46",
+			Bar = { "#E8A274", "#9C5427" },
+			Chance = "#F0A774",
+			Balls = "#E0A070",
+			Shine = { Seconds = 5, Strength = 0.65 },
+		},
+		Silver = {
+			Fill = { "#FFFFFF", "#E7ECF4", "#C8D2E1", "#9DAABF" },
+			FillAt = { 0, 0.38, 0.64, 1 },
+			FillRotation = 70,
+			Edge = "#AAB6C8",
+			Bar = { "#D3DCE9", "#8794AA" },
+			Chance = "#C9D4E5",
+			Balls = "#B9C4D4",
+			Shine = { Seconds = 5, Strength = 0.75 },
+		},
+		Gold = {
+			Fill = { "#FFFBEA", "#FFE6A0", "#FFCB45", "#E2A300" },
+			FillAt = { 0, 0.38, 0.64, 1 },
+			FillRotation = 70,
+			Edge = "#FFC428",
+			Bar = { "#FFD95A", "#D69A00" },
+			Chance = "#FFD14A",
+			Balls = "#F6C443",
+			Shine = { Seconds = 4.5, Strength = 0.75 },
+			Sparks = { Count = 2, Colors = { "#FFF2B0" } },
+		},
+		Platinum = {
+			Fill = { "#F7FBFF", "#DCEBFB", "#B4D2F2", "#7FADE0" },
+			FillAt = { 0, 0.38, 0.64, 1 },
+			FillRotation = 70,
+			Edge = "#78B0E6",
+			Bar = { "#A4CCF2", "#4C86C6" },
+			Chance = "#9FCBF5",
+			Balls = "#98C4EE",
+			Shine = { Seconds = 4.5, Strength = 0.8 },
+			Sparks = { Count = 3, Colors = { "#FFFFFF" } },
+		},
+		Diamond = {
+			Fill = { "#F2FFFF", "#CBF7FA", "#93E8F0", "#3FC8DA" },
+			FillAt = { 0, 0.38, 0.64, 1 },
+			FillRotation = 70,
+			Edge = "#3CD6E6",
+			Bar = { "#7AE9F3", "#16A3B5" },
+			Chance = "#6FE6F2",
+			Balls = "#5AD8E6",
+			Glow = { Color = "#3CD6E6", Strength = 0.45 },
+			Shine = { Seconds = 4, Strength = 0.8 },
+			Sparks = { Count = 5, Colors = { "#E8FFFF" } },
+		},
+		Expert = {
+			Fill = { "#F79FA3", "#FCCBCD", "#DD4C53" },
+			FillAt = { 0, 0.38, 1 },
+			Centre = "#FFF6F6",
+			Edge = "#E84048",
+			Bar = { "#FF7A80", "#B8202A" },
+			Chance = "#FF757C",
+			Balls = "#F47A80",
+			Rays = { Color = "#E84048", Strength = 0.28, Seconds = 32 },
+			Shine = { Seconds = 4, Strength = 0.55 },
+			Sparks = { Count = 3, Colors = { "#FFD0D2" } },
+		},
+		Veteran = {
+			Fill = { "#9FE4B1", "#C9F2D3", "#43B261" },
+			FillAt = { 0, 0.38, 1 },
+			Centre = "#F4FFF6",
+			Edge = "#40C460",
+			Bar = { "#72DE8E", "#1F8F3D" },
+			Chance = "#6FE08C",
+			Balls = "#6DD486",
+			Rays = { Color = "#40C460", Strength = 0.28, Seconds = 32 },
+			Shine = { Seconds = 4, Strength = 0.55 },
+			Sparks = { Count = 3, Colors = { "#D9FFE2" } },
+		},
+		Master = {
+			Fill = { "#C6A3F5", "#E0CBFA", "#8E57DD" },
+			FillAt = { 0, 0.38, 1 },
+			Centre = "#FBF6FF",
+			Edge = "#9E5CE6",
+			Bar = { "#BF8CF5", "#6B2EC0" },
+			Chance = "#C49BFF",
+			Balls = "#B488EE",
+			Glow = { Color = "#9E5CE6", Strength = 0.4 },
+			Rays = { Color = "#9E5CE6", Strength = 0.3, Seconds = 32 },
+			Shine = { Seconds = 4, Strength = 0.55 },
+			Sparks = { Count = 4, Colors = { "#EBDDFF" } },
+		},
+		Grandmaster = {
+			Fill = { "#35313E", "#454050", "#25222C" },
+			FillAt = { 0, 0.38, 1 },
+			Centre = "#5A5468",
+			Edge = "#F2C04A",
+			Bar = { "#4E4859", "#24212C" },
+			Chance = "#F2C04A",
+			Balls = "#F2C04A",
+			Dark = true,
+			Rays = { Color = "#F2C04A", Strength = 0.3, Seconds = 28 },
+			Shine = { Seconds = 4, Strength = 0.35 },
+			Sparks = { Count = 3, Colors = { "#FFE7A0" } },
+			Embers = { Count = 4, Color = "#F2C04A" },
+			EdgeSpin = {
+				Colors = { "#F2C04A", "#7A5A10", "#FFE7A0", "#3C3846", "#F2C04A" },
+				Seconds = 4,
+			},
+			EdgeGlow = { Color = "#F2C04A", Strength = 0.55 },
+		},
+		Reyes = {
+			Fill = { "#FFBDDF", "#FFDCEE", "#F47CBE" },
+			FillAt = { 0, 0.38, 1 },
+			Centre = "#FFFFFF",
+			Edge = "#FF5CB8",
+			Flow = { "#FF5CB8", "#FFC428", "#3DD66B", "#3B9BFF", "#A259FF" },
+			Chance = "#FF8BCC",
+			Balls = "#FF8FCD",
+			Glow = { Color = "#FFFFFF", Strength = 0.9 },
+			Rays = { Color = "#FFFFFF", Strength = 0.75, Seconds = 24 },
+			Shine = { Seconds = 3.5, Strength = 0.7 },
+			Sparks = { Count = 6, Colors = { "#FFC428", "#3CD6E6", "#FF8BCC", "#A259FF" } },
+			EdgeSpin = {
+				Colors = {
+					"#FF5CB8",
+					"#FFC428",
+					"#3DD66B",
+					"#3CD6E6",
+					"#3B9BFF",
+					"#A259FF",
+					"#FF5CB8",
+				},
+				Seconds = 5,
+			},
+			EdgeGlow = { Color = "#FF5CB8", Strength = 0.7 },
+			BarShine = true,
+		},
+	},
 }
 
 -- The ult cutscene (src/client/UltCutscene.luau; ULTIMATES_PROMPT 7.2, reference 10): a tilted

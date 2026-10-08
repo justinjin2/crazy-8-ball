@@ -155,6 +155,26 @@ local function percentWords(rarity: string): string
 	return (("%." .. digits .. "f"):format(p):gsub("0+$", "")) .. "%"
 end
 
+--- A cue's chance chip on its card (concept 1, 2026-10-08): its rarity's chance per Mystery
+--- block ("4.2%"), a Unique cue's chance in the Grand Opening block, nil for a cue no block
+--- drops (Ranked, Exclusive, Classic).
+function InventoryCues.chanceText(id: string): string?
+	local cue = Catalog.get(id)
+	if not cue then
+		return nil
+	elseif cue.Group == "Unique" then
+		for _, row in BlockOdds.uniqueRows("GrandOpening") do
+			if row.cue == id then
+				return row.display
+			end
+		end
+		return nil
+	elseif cue.Group ~= "Block" then
+		return nil
+	end
+	return percentWords(cue.Rarity)
+end
+
 --- A cue's odds line: "<font color>4.2%</font> chance" (rich text).
 function InventoryCues.oddsLine(id: string): string?
 	local cue = Catalog.get(id)
@@ -685,7 +705,7 @@ function InventoryCues.redraw(self: any, items: any)
 			count = countLine(row),
 			new = row.new == true or self.sticky[id] == true,
 			equipped = items.equipped == id,
-			odds = InventoryCues.oddsLine(id),
+			chance = InventoryCues.chanceText(id),
 		})
 		table.insert(order, id)
 	end
@@ -906,7 +926,8 @@ function InventoryCues.arrange(self: any)
 	local columns = math.max(1, math.floor((inner + cellGap) / (minCell + cellGap)))
 	local cell = math.max(1, math.floor((inner - (columns - 1) * cellGap) / columns))
 	self.gridLayout.CellPadding = UDim2.fromOffset(cellGap, cellGap)
-	self.gridLayout.CellSize = UDim2.fromOffset(cell, round(cell * I.CardAspect))
+	local units = Config.UI.CueCard.Units
+	self.gridLayout.CellSize = UDim2.fromOffset(cell, round(cell * units[2] / units[1]))
 	-- The big card: ref 07's size, as big as the page allows.
 	local parent: Frame = self.overlayParent
 	local scale = MenuFrame.scaleOf(parent)

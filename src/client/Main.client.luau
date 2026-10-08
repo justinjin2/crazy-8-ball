@@ -1581,4 +1581,6 @@ require(script.Parent.HudFocus).start()
 require(script.Parent.MotionSpike).start()
 -- The lively Shop's gate 2 mock-ups (Studio only; GuiQA "lab").
 require(script.Parent.ShopLab).start()
+-- Every cue card look on one board (Studio only; GuiQA "cueCards").
+require(script.Parent.CueCardLab).start()
 print("[8ball] multiplayer client ready")

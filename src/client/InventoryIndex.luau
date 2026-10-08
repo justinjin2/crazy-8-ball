@@ -505,7 +505,8 @@ function InventoryIndex.arrange(self: any)
 	local cellMin = span(I.CellMinPx)
 	local columns = math.max(1, math.floor((inner + gap) / (cellMin + gap)))
 	local cellW = math.max(1, math.floor((inner - (columns - 1) * gap) / columns))
-	local cellH = round(cellW * I.CellAspect)
+	local units = Config.UI.CueCard.Units
+	local cellH = round(cellW * units[2] / units[1])
 	for _, section in self.sections do
 		-- Left: the rarity and "5 / 7".
 		HudParts.setTextSize(section.name, headText)

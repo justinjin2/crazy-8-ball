@@ -5121,6 +5121,18 @@
     "imageId": "121308269711722",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/ui/cards/balls_tint_sheet.png": {
+    "assetId": "80890298652094",
+    "assetType": "Decal",
+    "imageId": "119599342321711",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/cards/scanlines_sheet.png": {
+    "assetId": "121082921004824",
+    "assetType": "Decal",
+    "imageId": "83922639563901",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/ui/effects/firework_cyan.png": {
     "assetId": "97052951259394",
     "assetType": "Decal",

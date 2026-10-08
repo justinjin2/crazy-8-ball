@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
-"""The cue cards' moving 8-balls (docs/prompts/CUES_LIVELY_PROMPT.md, concept 1): a seamless tile
-of real-looking 8-balls, each with its white number disc and a clear 8, a shaded body and a
-shine, big enough on a card that the 8 reads (designer, 2026-10-08: "they need to actually show
-the 8 ball detail"). Two looks:
+"""The cue cards' two pictures (docs/prompts/CUES_LIVELY_PROMPT.md, concept 1, approved round 4):
 
-- tint: grey and white, so the game tints it to each card's colour (ImageColor3 multiplies: the
-  body takes the card's colour, the disc stays lighter, the 8 stays dark);
-- classic: black balls with a white disc and a black 8, never tinted.
+- balls_tint_sheet.png: a seamless tile of real-looking 8-balls, each with its white number disc
+  and a clear 8, a shaded body and a shine, big enough on a card that the 8 reads (designer,
+  2026-10-08: "they need to actually show the 8 ball detail"). Grey and white, so the game tints
+  it to each card's colour (ImageColor3 multiplies: the body takes the card's colour, the disc
+  stays lighter, the 8 stays dark) and shows it very faint. The TILE px tile is repeated 2 x 2
+  into a 1024 sheet, so a scroll window that wraps at one period always stays inside it.
+- scanlines_sheet.png: thin white lines every SCAN_PERIOD texels down a narrow strip
+  (SCAN_W x SCAN_H), seamless, for the Secret card's red scan lines (the game tints and scrolls
+  it; the lines run across, so the strip is stretched sideways).
 
-Writes each look as a TILE px tile and as a 1024 sheet (the tile 2 x 2, so a scroll window that
-wraps at one period always stays inside the picture) into assets/ui/cards/, plus a 3 x 3 seam
-check into OUT (default: the scratch folder). Pure Pillow and numpy, a fixed layout (no
-randomness), drawn 4x and shrunk.
+Writes both into assets/ui/cards/, plus a 3 x 3 seam check of the balls into OUT (default: the
+git-ignored tools/gui/out/card_art). Pure Pillow and numpy, a fixed layout (no randomness), the
+balls drawn 4x and shrunk.
 
-    python3 tools/gui/card_balls.py [--out DIR]
+    python3 tools/gui/card_art.py [--out DIR]
 """
 
 import argparse
@@ -38,22 +40,17 @@ BALLS = [
     (480, 470, 30, 16, (-0.2, -0.24)),
 ]
 
-LOOKS = {
-    "tint": {
-        "body": [(0.0, (226, 230, 238)), (0.55, (166, 174, 190)), (1.0, (118, 127, 146))],
-        "disc": (255, 255, 255),
-        "disc_edge": (205, 211, 222),
-        "eight": (36, 40, 52),
-        "shine": 0.85,
-    },
-    "classic": {
-        "body": [(0.0, (92, 98, 114)), (0.5, (34, 37, 46)), (1.0, (10, 11, 15))],
-        "disc": (255, 255, 255),
-        "disc_edge": (200, 204, 214),
-        "eight": (18, 20, 26),
-        "shine": 0.7,
-    },
+LOOK = {
+    "body": [(0.0, (226, 230, 238)), (0.55, (166, 174, 190)), (1.0, (118, 127, 146))],
+    "disc": (255, 255, 255),
+    "disc_edge": (205, 211, 222),
+    "eight": (36, 40, 52),
+    "shine": 0.85,
 }
+
+SCAN_W, SCAN_H = 64, 1024  # the scan line strip; lines run across, so it is stretched sideways
+SCAN_PERIOD = 8  # texels from one line to the next (the game's scroll period)
+SCAN_LINE = 2.0  # each line's solid thickness in texels, with a one-texel soft edge each side
 
 
 def radial(size, cx, cy, r, stops):
@@ -141,6 +138,19 @@ def tile(look):
     return small
 
 
+def scanlines():
+    """White lines across a clear strip, one every SCAN_PERIOD texels, seamless top to bottom."""
+    y = np.arange(SCAN_H, dtype=np.float32) + 0.5
+    # Distance from the nearest line centre, wrapping at the period.
+    d = np.abs(((y % SCAN_PERIOD) - SCAN_PERIOD / 2))
+    alpha = np.clip(1 - (d - SCAN_LINE / 2), 0, 1)  # solid inside, a one-texel ramp outside
+    a = (alpha * 255 + 0.5).astype(np.uint8)
+    out = np.zeros((SCAN_H, SCAN_W, 4), np.uint8)
+    out[..., :3] = 255
+    out[..., 3] = a[:, None]
+    return Image.fromarray(out)
+
+
 def check_spacing():
     for i, (x1, y1, r1, *_rest) in enumerate(BALLS):
         for j, (x2, y2, r2, *_rest2) in enumerate(BALLS):
@@ -156,28 +166,33 @@ def main():
     here = os.path.dirname(os.path.abspath(__file__))
     root = os.path.dirname(os.path.dirname(here))
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out", default=os.path.join(here, "out", "card_balls"))
+    parser.add_argument("--out", default=os.path.join(here, "out", "card_art"))
     args = parser.parse_args()
     check_spacing()
+    assert SCAN_H % SCAN_PERIOD == 0, "the strip must hold whole periods"
     dest = os.path.join(root, "assets", "ui", "cards")
     os.makedirs(dest, exist_ok=True)
     os.makedirs(args.out, exist_ok=True)
-    for name, look in LOOKS.items():
-        t = tile(look)
-        t.save(os.path.join(dest, f"balls_{name}_tile.png"), optimize=True)
-        sheet = Image.new("RGBA", (TILE * 2, TILE * 2), (0, 0, 0, 0))
-        for ox in (0, TILE):
-            for oy in (0, TILE):
-                sheet.alpha_composite(t, (ox, oy))
-        sheet.save(os.path.join(dest, f"balls_{name}_sheet.png"), optimize=True)
-        # 3 x 3 seam check on a mid background.
-        check = Image.new("RGBA", (TILE * 3, TILE * 3), (120, 140, 180, 255))
-        for ox in range(3):
-            for oy in range(3):
-                check.alpha_composite(t, (ox * TILE, oy * TILE))
-        check.convert("RGB").resize((TILE * 3 // 2, TILE * 3 // 2), Image.LANCZOS).save(os.path.join(args.out, f"seam_{name}.png"))
-    print(f"period {TILE} texels; sheet {TILE * 2} px; balls r {min(b[2] for b in BALLS)}-{max(b[2] for b in BALLS)}")
-    print(f"wrote {dest}/balls_tint_*.png, balls_classic_*.png; seam checks in {args.out}")
+
+    t = tile(LOOK)
+    sheet = Image.new("RGBA", (TILE * 2, TILE * 2), (0, 0, 0, 0))
+    for ox in (0, TILE):
+        for oy in (0, TILE):
+            sheet.alpha_composite(t, (ox, oy))
+    sheet.save(os.path.join(dest, "balls_tint_sheet.png"), optimize=True)
+    # 3 x 3 seam check on a mid background.
+    check = Image.new("RGBA", (TILE * 3, TILE * 3), (120, 140, 180, 255))
+    for ox in range(3):
+        for oy in range(3):
+            check.alpha_composite(t, (ox * TILE, oy * TILE))
+    check.convert("RGB").resize((TILE * 3 // 2, TILE * 3 // 2), Image.LANCZOS).save(
+        os.path.join(args.out, "seam_balls.png")
+    )
+
+    scanlines().save(os.path.join(dest, "scanlines_sheet.png"), optimize=True)
+    print(f"balls: period {TILE} texels, sheet {TILE * 2} px, radius {min(b[2] for b in BALLS)}-{max(b[2] for b in BALLS)}")
+    print(f"scan lines: {SCAN_W} x {SCAN_H}, a line every {SCAN_PERIOD} texels, {SCAN_LINE:g} thick")
+    print(f"wrote {dest}/balls_tint_sheet.png, scanlines_sheet.png; seam check in {args.out}")
 
 
 if __name__ == "__main__":

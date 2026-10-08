@@ -40,7 +40,8 @@ Scripts for building animated, layered screens (docs/prompts/SHOP_LIVELY_PROMPT.
 - `firework_still.py`: one loose ribbon frame of the Firework Cue cropped to the ribbons
   (`firework_ribbons.png`) and its box on the cue canvas
   (`Config.UI.GrandOpeningCard.Layout.FireworkRibbons`); the card pulses it over the still cue.
-- `card_balls.py`: the cue cards' moving 8-balls (docs/prompts/CUES_LIVELY_PROMPT.md): a seamless
-  512 px tile of real 8-balls (white disc, a clear 8, shading, a shine) in two looks, `tint` (grey,
-  tinted per card by ImageColor3) and `classic` (black), each also as a 1024 sheet (2 x 2) for the
-  scroll window, into `assets/ui/cards/`, with 3 x 3 seam checks.
+- `card_art.py`: the cue cards' two pictures (docs/prompts/CUES_LIVELY_PROMPT.md) into
+  `assets/ui/cards/`: `balls_tint_sheet.png`, a seamless 512 px tile of real 8-balls (white disc,
+  a clear 8, shading, a shine; grey, tinted per card by ImageColor3) repeated 2 x 2 for the scroll
+  window, with a 3 x 3 seam check; and `scanlines_sheet.png`, a 64 x 1024 strip of thin white
+  lines every 8 texels for the Secret card (`Config.UI.CueCard.Images`).
