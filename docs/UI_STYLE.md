@@ -849,6 +849,19 @@ band, restock tiles and pass bands.
   button, the gold money button under; the red "13 for 10!" ribbon, tilted and shaking, on x10
   while the launch bonus runs; the Epic guarantee strip under everything ("Epic guaranteed in
   53" and a purple bar).
+- **The Mystery block's "Odds & Details"** (economy v4 plan 3.2, hand-off item 13,
+  `ShopMysteryOdds`, `Config.UI.Shop.MysteryOdds`): a click, tap or A on its "i" opens it
+  over the Shop as the Gift Player popup (the block's picture and "Odds & Details" in the
+  header, the red X wearing B; B, Escape or a press outside close it), a list that scrolls:
+  "The result is decided when you open it; the presses reveal it."; **Pity** (Rare or better
+  within 10 and Epic or better within 100, each with "6 to go" or "Next one!" in sky blue);
+  **Final tier** with each tier's block; **Each tier block's odds** (the block's picture and
+  name, then its rarities); **Each Mystery block** (every rarity, "Total: 100%"). Names in
+  their rarity's colour, chances in sky blue, "1 in 2,000" in grey beside every chance under
+  5% (`BlockOdds.oneIn`, rounded up). Once a guarantee is the very next block a gold line says
+  "Your next Mystery block is Epic or better!" and the tier and rarity tables show the odds
+  with pity ("Final tier, with pity", "Your next Mystery block"). No hover card: a modal on
+  hover would get in the way.
 - **The restock (B)**: "RESTOCK", a stopwatch and the time in its pill; four slot cards, each
   the block big in its rarity's glow with an "i" at the top right, "**Rare** Lucky Block", a
   navy "x2 left" pill, the green Robux button over the gold money button (no gift square:

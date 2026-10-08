@@ -40,6 +40,7 @@ local JumpRail = require(script.Parent.JumpRail)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
 local ShopGift = require(script.Parent.ShopGift)
+local ShopMysteryOdds = require(script.Parent.ShopMysteryOdds)
 local ShopMoney = require(script.Parent.ShopMoney)
 local ShopMystery = require(script.Parent.ShopMystery)
 local ShopOdds = require(script.Parent.ShopOdds)
@@ -117,6 +118,7 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end,
 	})
 	self.gift = ShopGift.new(self, frame)
+	self.mysteryOdds = ShopMysteryOdds.new(self, frame)
 	-- The Blocks group under the card: its header first (it peeks in at the bottom of the first
 	-- screen), then the Mystery block, the restock and the offers.
 	local blocks = HudParts.frame(scroll, "Blocks")
@@ -137,6 +139,9 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			self:buyBlocks("Mystery", count)
 		end,
 		gift = gift,
+		odds = function()
+			self.mysteryOdds:open()
+		end,
 	})
 	self.restock = ShopRestock.new(blocks, {
 		robux = buyProduct,
@@ -294,6 +299,7 @@ function ShopMenu.refresh(self: any)
 	end
 	self.featured:refresh(state)
 	self.mystery:refresh(state)
+	self.mysteryOdds:refresh()
 	self.restock:refresh(state)
 	self.money:refresh(state)
 	self.passes:refresh(state)
@@ -355,6 +361,7 @@ function ShopMenu.layout(self: any)
 	self.more.Size = UDim2.fromOffset(math.max(1, width - 16), math.max(1, more))
 	ShopParts.setCanvas(self.scroll, height + more)
 	self.gift:layout(geo)
+	self.mysteryOdds:layout(geo)
 	-- Opened on a group: a layout soon after the open (a late geometry pass) jumps there again.
 	local on = self.openedOn
 	if on and os.clock() - self.openedAt <= P.JumpSettleSeconds then
@@ -607,6 +614,7 @@ function ShopMenu.closed(self: any)
 	ShopOdds.closeAll()
 	self.openedOn = nil
 	self.gift:close()
+	self.mysteryOdds:close()
 	if self.ticker then
 		self.ticker:Disconnect()
 		self.ticker = nil

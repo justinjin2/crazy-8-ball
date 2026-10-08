@@ -8643,6 +8643,27 @@ Config.UI.Shop = {
 		ButtonWidthPx = { 84, 110 },
 		Headshot = "rbxthumb://type=AvatarHeadShot&id=%d&w=150&h=150",
 	},
+	-- The Mystery block's "Odds & Details" (ShopMysteryOdds; economy v4 plan 3.2 and the GUI
+	-- hand-off item 13): its "i" badge opens it over the Shop as the Gift Player popup: the
+	-- line that the result is decided at the open, the pity counters (and the live odds once a
+	-- guarantee is the next block), the final-tier table, each tier block's odds and each
+	-- rarity's chance per Mystery block, with "1 in N" beside the rare ones. It scrolls.
+	MysteryOdds = {
+		WidthPx = { 360, 540 },
+		RowPx = { 22, 28 }, -- one line: a tier or a rarity, its "1 in N" and its chance
+		TextPx = { 13, 17 }, -- the rows' words
+		HeadPx = { 16, 21 }, -- a section's heading ("Pity", "Final tier", ...)
+		SubPx = { 14, 18 }, -- a tier block's name over its odds
+		NotePx = { 12, 15 }, -- the line under the title and the totals
+		SectionGapPx = { 10, 16 }, -- over each section's heading
+		RowInsetPx = { 6, 10 }, -- the rows' room from the list's left (under their heading)
+		ValueShare = 0.22, -- the chance's column, of the row's width (right)
+		OneInShare = 0.3, -- the "1 in N" column left of it
+		OneInUnderPercent = 5, -- "1 in N" beside every chance under this (the rare ones)
+		OneInColor = { 120, 128, 142 }, -- grey, as the gift list's @username
+		LiveColor = { 230, 160, 0 }, -- the line once a guarantee is the very next block (gold)
+		ScrollBarPx = 6,
+	},
 	Page = {
 		-- The jump buttons, top to bottom (designer, 2026-10-04: Featured, Blocks, Money,
 		-- Passes). Icons are Config.UI.Kit.Icons keys. Sections: what each group shows, so the

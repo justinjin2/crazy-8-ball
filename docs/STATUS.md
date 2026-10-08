@@ -11,8 +11,8 @@ Updated 2026-10-08.
 - **Branch `release`** is the integration branch, and every lane of the parallel build is
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
-- **Lint and tests (2026-10-08, branch `gui-v4`):** lint OK with three old LocalShadow
-  warnings (PadGuide, MatchHUD, Main.client); all 1064 Lune tests pass.
+- **Lint and tests (2026-10-08, branch `gui-v4`):** lint OK (three old LocalShadow warnings);
+  all 1070 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; economy v4; saves at version 10;
@@ -27,16 +27,14 @@ One line each; the long form is the 2026-10-08 entry at the top of
 `docs/archive/STATUS_HISTORY.md`. Each still needs the designer on a real phone, PC and controller.
 
 - **The UI font**: Fredoka One stays (`Config.UI.FontTest`). **Blur instead of dims** (`ScreenBlur`).
-- **NEW RANK! waits** for a free lobby, one popup per division; not yet a real arena trip back.
+  **NEW RANK! waits** for a free lobby, one popup per division; not yet a real arena trip back.
 - **The 1v1 result cutscene** and the result screen's moving 8-balls; not yet in a real 1v1.
-- **Cue outlines and the "pop" aura** (on test on six cues, `Config.CueSkins.Pop.Ids`).
-- **New cue card pictures** (2026-10-07) and **ball callouts** (YOU ARE SOLIDS / STRIPES, the
-  last-ball pulse): not yet seen in a real game.
+- **Cue outlines and the "pop" aura** (six cues, `Config.CueSkins.Pop.Ids`), **new cue card
+  pictures** and **ball callouts** (YOU ARE SOLIDS / STRIPES): not yet seen in a real game.
 - **No fat-fingered shots on a phone** (`Config.Input.TouchPull`): needs a real phone.
 - **The player list like Roblox's**: hidden on a phone for now; a PC size not yet looked at.
 - **The matchmaking bar and spawn pill**: parked by the designer (2026-10-07); open: the spawn
-  pill's 20 s, Play Global's X on a phone.
-- **The queue portal**: not yet on a phone, a gamepad or during a real game.
+  pill's 20 s, Play Global's X on a phone. **The queue portal**: not yet on a phone or gamepad.
 - **Lighting**: day 10 min, sunset 5 min, no night. **Pull cutscenes**: Mythic and Secret wait
   for their redo.
 - **Our own lucky blocks** (all 12 kinds, 2D icons), **the Gift drop** (`/giftdrop`; a test
@@ -66,10 +64,12 @@ One line each; the long form is the 2026-10-08 entry at the top of
   (random items: Not Listed with the others); Ranked in the lively frame (A; 96% wide on a
   phone); the ability spin screen in the kit panels (A: the odds panel, the buy panel with one
   money button, "Locked" slots); the Mystery screen (B, the Track: the press pill, the tier
-  ladder, landing as Standard); Settings (A: icon rows, big switches, the Codes strip). At
+  ladder, landing as Standard); Settings (A: icon rows, big switches, the Codes strip); the
+  plan's items with no mock: the reel's v4 odds (real odds and one showcase card's "1 in N";
+  its look and effects unchanged, designer), the timer skip's dialog priced for the time left,
+  and the Mystery block's "Odds & Details" (pity, live pity odds, tiers, each tier block). At
   publish: `tools/roblox_products.py --sync` (the Starter Pack at 29, the pack texts, Lucky1
-  and Lucky3 off sale). Next: the review page with the built screens. Trade is not built (not
-  in the release).
+  and Lucky3 off sale). Trade is not built (not in the release).
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in
   `gui-v4`): the new cue card, the Cues menu, the CUES icon, the smooth money chip, the reel and
   YOU GOT, checked in Studio. Still open: the see-through reel trial's verdict, a phone and a
@@ -77,8 +77,8 @@ One line each; the long form is the 2026-10-08 entry at the top of
   yet merged into `release`.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
-- **The lively Shop is done** and merged into `release` (2026-10-06, all five gates approved,
-  `docs/prompts/SHOP_LIVELY_REPORT.md`); other menus switch to its frame as each is rebuilt.
+- **The lively Shop is done** and merged into `release` (2026-10-06,
+  `docs/prompts/SHOP_LIVELY_REPORT.md`); other menus take its frame as each is rebuilt.
 - **Decision still open:** whether the VIP cue pays finder's money on the first join.
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.

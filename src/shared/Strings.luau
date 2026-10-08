@@ -737,6 +737,23 @@ return {
 				Bonus = "%d for %d!", -- the launch bonus ribbon: "13 for 10!"
 				Pity = "%s guaranteed in %d", -- "Epic guaranteed in 87" (the tier's name)
 				PityNext = "Your next one is %s!", -- the guarantee is the very next block
+				-- The Mystery block's "Odds & Details" (its "i" badge; economy v4 plan 3.2):
+				-- every number Roblox's rules ask for before buying.
+				Odds = {
+					Title = "Odds & Details",
+					Pity = "Pity",
+					PityRare = "Rare or better within %d", -- the tier pity guarantees, the count
+					PityEpic = "Epic or better within %d",
+					ToGo = "%d to go", -- Mystery blocks left until it
+					Next = "Next one!", -- the guarantee is the very next block
+					Live = "Your next Mystery block is %s or better!", -- the tier's name
+					Tiers = "Final tier",
+					TiersLive = "Final tier, with pity",
+					Blocks = "Each tier block's odds",
+					Rarities = "Each Mystery block",
+					RaritiesLive = "Your next Mystery block",
+					Total = "Total: %s", -- under the rarities: "Total: 100%"
+				},
 				RestockTitle = "RESTOCK",
 				-- Under the slots: each kind's chance in a slot, each name in its colour.
 				SlotOdds = "Each slot: %s",

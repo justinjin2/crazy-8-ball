@@ -3355,3 +3355,10 @@ timer of a new block stay the designer's call.
   opening Roblox's purchase prompt straight away; Skip asks the server as before, which prompts
   that tier's product. A row over the hotbar was tried first and covered the bottom-centre
   prompts (Play Global, the win track) on a phone, so the dialog sits in the screen's middle.
+- 2026-10-08 (economy v4 plan 3.2 and 3.3, the GUI hand-off item 13): the Mystery block's "i" in
+  the Shop opens a full "Odds & Details" popup instead of the small per-rarity card: the line
+  that the result is decided at the open, both pity counters with the blocks to go, the
+  final-tier table, each tier block's odds and each rarity's chance per Mystery block, with
+  "1 in N" beside every chance under 5%. While a guarantee is the very next block it says so in
+  gold and shows the odds with pity (Roblox's rule: the guaranteed tier shows while it is
+  live). It opens by a click, tap or A only: a scrolling modal on hover would get in the way.

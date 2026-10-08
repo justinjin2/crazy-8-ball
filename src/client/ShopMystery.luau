@@ -1,8 +1,9 @@
 --!strict
 -- ShopMystery: the Shop's Mystery Lucky Block card under "- BLOCKS -" (the designer's pick A on
 -- the mock page, 2026-10-08). On a pale panel with its navy title pill: the block (its purple
--- glow, turning rays and twinkles; the sky-blue "i" opens every rarity's chance per Mystery
--- block, adding up to 100%), the ladder of the six tiers it can climb to with their chances
+-- glow, turning rays and twinkles; the sky-blue "i" opens its "Odds & Details",
+-- ShopMysteryOdds: pity, the final tier, each tier block's odds and every rarity's chance per
+-- Mystery block, adding up to 100%), the ladder of the six tiers it can climb to with their chances
 -- (BlockDrop.tiers: it starts Standard and climbs on the upgrade screen's presses), the x1 and x10
 -- columns (the purple gift square and the green Robux price, then the gold money price; the
 -- launch bonus's "13 for 10!" ribbon on x10 while it runs) and the Epic guarantee strip (the
@@ -20,9 +21,9 @@ local BlockDrop = require(Progression:WaitForChild("BlockDrop"))
 local Format = require(Progression:WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
 local ShopCards = require(script.Parent.ShopCards)
-local ShopOdds = require(script.Parent.ShopOdds)
 local Stage = require(script.Parent.Stage)
 local UIAnim = require(script.Parent.UIAnim)
+local UISound = require(script.Parent.UISound)
 
 local B = Config.UI.ShopBlocks
 local M = B.Mystery
@@ -31,7 +32,6 @@ local DEAL = Config.Shop.Deals.Mystery
 local KINDS: { [string]: any } = Config.LuckyBlocks.Kinds :: any
 local COPY: { [string]: any } = (Strings.Menus.Shop :: any).Blocks
 local SHORT: { [string]: string } = Strings.LuckyBlocks.Short
-local RARITIES: { [string]: string } = Strings.Items.Rarities :: any
 local BULK = Config.Shop.Mystery.BulkCount -- the x10 deal
 local COUNTS = { 1, BULK }
 local rgb, round = ShopCards.rgb, ShopCards.round
@@ -40,6 +40,7 @@ export type Actions = {
 	robux: (key: string) -> (), -- Mystery1 or Mystery10
 	money: (count: number) -> (), -- 1 or BULK for money (the Mystery deal)
 	gift: (key: string) -> (), -- the gift square: gift that product to someone here
+	odds: () -> (), -- the "i" badge: the "Odds & Details" (ShopMysteryOdds)
 }
 
 type Row = {
@@ -61,20 +62,6 @@ type Column = {
 local ShopMystery = {}
 ShopMystery.__index = ShopMystery
 
---- Every rarity's chance per Mystery block (the tier roll times each tier's row), bottom first.
-local function outcomes(): { ShopOdds.Outcome }
-	local list: { ShopOdds.Outcome } = {}
-	for _, row in BlockDrop.rarityOdds() do
-		table.insert(list, {
-			name = RARITIES[row.rarity] or row.rarity,
-			display = row.display,
-			percent = row.percent,
-			tint = ShopCards.rarityColor(row.rarity),
-		})
-	end
-	return list
-end
-
 --- Build the card (closed) into `parent` (the Shop's Blocks group).
 function ShopMystery.new(parent: Instance, actions: Actions): any
 	local self: any = setmetatable({}, ShopMystery)
@@ -94,15 +81,12 @@ function ShopMystery.new(parent: Instance, actions: Actions): any
 	local kind = KINDS.Mystery
 	self.art = ShopCards.art(card, "MysteryBlock", kind.Icon, rgb(M.GlowTint), 4)
 	self.badge = ShopCards.oddsBadge(self.art.holder, "OddsBadge", 8)
-	self.odds = ShopOdds.new(card, function(w: number, h: number): Vector2
-		-- Beside the block, inside the panel.
-		local k = self.k
-		local x = round((M.Block[1] + M.Block[3] / 2) * k)
-		local y = round(M.Block[2] * k - h / 2)
-		local margin = B.PopupMarginPx
-		return Vector2.new(math.min(x, card.AbsoluteSize.X - w - margin), math.max(margin, y))
+	-- A click, a tap or A on the badge opens the "Odds & Details" over the Shop (too much for
+	-- a hover card).
+	self.badge.hit.Activated:Connect(function()
+		UISound.play("Click")
+		actions.odds()
 	end)
-	self.odds:attach(self.badge.hit, outcomes)
 
 	-- The ladder of tiers.
 	local ladder = ShopCards.inner(card, "MysteryLadder", 3)
@@ -455,9 +439,7 @@ function ShopMystery.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handl
 	stage:add("MysteryPity", self.pity.frame)
 end
 
---- The Shop closed: the odds pop-up goes too.
-function ShopMystery.closed(self: any)
-	self.odds:close()
-end
+--- The Shop closed (its "Odds & Details" is the Shop's, closed with it).
+function ShopMystery.closed(_self: any) end
 
 return ShopMystery
