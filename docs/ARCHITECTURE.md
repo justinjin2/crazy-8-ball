@@ -681,6 +681,42 @@ the careful and careless shooters into `tools/ult_value_results.json` (`--set Bl
 tries a tune without writing), which `tools/ult_model.py` reads. A `Turn` ability is measured
 over the shooter's next shots too (up to `V.TURN_SHOTS`). The Blender scripts are `tools/blender/abilities/`.
 
+## Abilities rework (2026-10-08)
+
+The 13-ability ladder of `docs/prompts/ABILITIES_REWORK_PLAN.md`. Heat Seeker and Ghost left
+the game: `Config.Ults.Retired` maps a saved slot holding either to Magnet when the profile
+loads (no save version bump); their mentions above are history.
+
+- **New effects** (pure, Lune-tested): `Effects/CatchABall` (the cue ball's first contact
+  removes the ball it hit, a pot for its owner, and the cue ball stops dead; the 8 off the legal
+  8 shot breaks free) and `Effects/Verity` (the first contact throws the hit ball off, then her
+  run kicks balls, the shooter's along clean lines and the rest aside, the cue ball ghosted as
+  her body).
+- **The Sneak phase** (Look Over There!, catalog `Sneak = true`) is no shot. `MatchEngine`
+  opens Sneak after the arming wait (`beginSneak`: `t.sneak` with `dragAt` and `dragEnd`),
+  takes one `Sneak` table action (`sneakDrop`: a ball of `Match.sneakable`, never the 8, into a
+  pocket as a pot that claims an open table's group, or onto a free spot; it pays nothing),
+  then plays SneakReveal and starts the turn's run-up again. The bot (`Driver.sneakFor`) drops
+  its ball farthest from its nearest pocket. `LookOverThereFx` plays it all from the snapshot:
+  the point and shout, the opponents' cameras turned away, the drag (touch, mouse, gamepad,
+  `Match.holdBall` until the server answers) and the reveal.
+- **Lining a ball up** (the Rare+ buffs): `ChainLightning.clearInto` (a ball's run into a pocket
+  clear of cushions, jaws and balls), `lineUp(state, ball, hx, hy)` (the clear line nearest a
+  heading, or the nearest pocket with no heading) and `send` (rolling, fast enough to arrive at
+  a given speed). Chain Lightning drives its charged ball in, Portals send yours from the exit
+  into the pocket nearest it, and Time Stop sends the ball struck in stopped time when time
+  resumes (`TimeStop.resume`). Steel Ball checks its lines with `clearInto`.
+- **Looks:** `BoneAnim` plays baked bone animations (`tools/bake_bone_anims.py` writes
+  `VerityAnims` and `TigerAnims`) on uploaded skinned models by setting each Bone's Transform.
+  Roblox's upgraded avatar rigs may use AnimationConstraint joints instead of Motor6D, so
+  `LookOverThereFx` and `UltCutscene` turn either. Catch-a-Ball's catch eases the shooter's
+  camera in (`Camera.setOverride`). Lines that follow a ball (Chain Lightning's rail, Portals'
+  launch line, Time Stop's send line) run on the replay's time, so `/slowmo` and `/hold` slow
+  and freeze them with the balls. `kit.beam` puts a beam beside its attachments, not under
+  them, so a look destroys both.
+- **Value harness:** `V.sneaked` models the sneak (the bot's drop, assumed to land) followed by
+  the best plain shot on the table after it.
+
 ## The shared cue mesh and the back cue (2026-09-29)
 
 - **One mesh, many skins.** `assets/cue/` builds one lathed cue mesh (3,840 triangles; tip 0.09, butt 0.32 studs since 2026-10-01) from

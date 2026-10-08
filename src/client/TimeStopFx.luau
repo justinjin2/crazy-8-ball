@@ -90,6 +90,7 @@ type TableFx = {
 	contactAt: number?, -- os.clock() of this shot's first contact
 	frozeAt: number?, -- os.clock() of the freeze
 	resumedAt: number?, -- os.clock() of the resume
+	resumedShot: number?, -- the replay's time at the resume (the send lines' hold)
 	burstFrom: number, -- the bubble's size (studs) as it burst
 	centre: Vector3?, -- the frozen cue ball (the clock's middle)
 	nextTick: number,
@@ -201,6 +202,7 @@ local function create(self: TimeStopFx, id: number): TableFx
 		contactAt = nil,
 		frozeAt = nil,
 		resumedAt = nil,
+		resumedShot = nil,
 		burstFrom = 0,
 		centre = nil,
 		nextTick = 0,
@@ -405,6 +407,7 @@ end
 local function resume(self: TimeStopFx, id: number, fx: TableFx, m: any)
 	fx.resumed = true
 	fx.resumedAt = os.clock()
+	fx.resumedShot = m.state.time
 	releaseScreen(fx)
 	dropGhosts(fx)
 	dropTrail(fx)
@@ -469,9 +472,11 @@ local function stepSends(self: TimeStopFx, fx: TableFx, m: any, t: number)
 	for i = #fx.sends, 1, -1 do
 		local s = fx.sends[i]
 		local ball = kit.ballOf(m, s.ball)
+		-- The hold runs on the replay's time, so /slowmo and /hold keep the line with its ball.
+		local since = if fx.resumedShot then m.state.time - fx.resumedShot else nil
 		local gone = ball == nil
 			or ball.pocketed
-			or (fx.resumedAt ~= nil and t - fx.resumedAt > F.SendHoldSeconds)
+			or (since ~= nil and (since < 0 or since > F.SendHoldSeconds))
 		if gone and s.fading == nil then
 			s.fading = t
 		end
@@ -636,6 +641,7 @@ function TimeStopFx.update(self: TimeStopFx, dt: number)
 			-- A new Time Stop shot: a replay that began long ago (a late join) stays quiet.
 			live.shotSeq = m.seq
 			live.contactAt, live.frozeAt, live.resumedAt = nil, nil, nil
+			live.resumedShot = nil
 			live.struck, live.resumed, live.handFrom = 0, false, nil
 			live.finishFrom, live.finishAt = nil, nil
 			live.quiet = m.state.time > F.FreshSeconds

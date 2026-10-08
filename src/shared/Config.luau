@@ -3547,7 +3547,8 @@ Config.Ults = {
 	-- 16 balance pass, 2026-09-29; every number in tools/ult_value_results.json). The GDD's
 	-- rough targets (0.33 / 0.5 / 1 / 1.5 / 2.2 / 2.6) are out of reach inside the reach and
 	-- ball caps (5.3: report the measured value); the ladder holds on each rarity's mean:
-	-- Common 0.37, Uncommon 0.44, Rare 0.50, Epic 0.69, Legendary 1.15, Mythic 1.31.
+	-- Common 0.34, Uncommon 0.50, Rare 0.66, Epic 0.95, Legendary 1.12, Mythic 1.31 (after the
+	-- abilities rework, 2026-10-08).
 	Catalog = {
 		-- +0.38 / +0.54 / +0.44 (careless +0.37 / +0.56 / +0.52).
 		-- Uncommon since the economy plan (2026-10-02, section 8: its measured strength).
@@ -3561,16 +3562,19 @@ Config.Ults = {
 		-- rework (designer, 2026-10-08), beside Magnet.
 		Rewind = { Rarity = "Uncommon", Built = true, Worth = 0.53, Redo = true },
 		-- The rework's three (designer, 2026-10-08). Catch-a-Ball: the first ball the cue ball
-		-- hits is caught (a pot for its owner): +0.75 / +0.75 / +0.83 careful net (12 tables,
-		-- quick), pots 83-100% of uses.
-		CatchABall = { Rarity = "Rare", Built = true, Effect = "CatchABall", Worth = 0.78 },
+		-- hits is caught (a pot for its owner): +0.47 / +0.66 / +0.75 careful net (120 tables),
+		-- pots 91-96% of uses.
+		CatchABall = { Rarity = "Rare", Built = true, Effect = "CatchABall", Worth = 0.63 },
 		-- Look Over There!: the opponents look away and the shooter drags one of their balls
 		-- into a pocket (the Sneak phase: Config.Ults.Shared.Sneak*), then shoots as normal.
-		-- Worth: the sneaked ball itself, a sure pot (the shot after is a plain one).
-		LookOverThere = { Rarity = "Epic", Built = true, Worth = 1, Sneak = true },
+		-- Worth: the sneaked ball itself, a sure pot (the shot after is a plain one): +0.95 /
+		-- +1.01 / +1.02 careful net (114 uses of 120 tables, none on the 8; the drag assumed to
+		-- land).
+		LookOverThere = { Rarity = "Epic", Built = true, Worth = 0.99, Sneak = true },
 		-- Verity: the first ball hit is thrown off the table (a pot for its owner), then Verity
-		-- sprints on through the pack. +0.95 / +1.08 / +1.08 careful net (60 tables).
-		Verity = { Rarity = "Legendary", Built = true, Effect = "Verity", Worth = 1.04 },
+		-- sprints on through the pack. +0.91 / +1.10 / +1.13 careful net (120 tables), pots
+		-- 94-98% of uses.
+		Verity = { Rarity = "Legendary", Built = true, Effect = "Verity", Worth = 1.05 },
 		-- The Rare+ buff (2026-10-08): a ball of yours touched in stopped time rolls into a pocket
 		-- as time resumes, and a miss freezes too: +0.82 / +0.85 / +0.93 careful net, pots 91-94%
 		-- (was +0.65 / +0.42 / +0.34 with three strikes, pots 47-78%).
@@ -10380,9 +10384,10 @@ Config.UI.TimeStopFx = {
 	-- A ball of yours sent in stopped time (the Rare+ buff): a line draws itself from it to its
 	-- pocket over SendDrawSeconds, SendLiftInches over the cloth (a white core SendCoreBallWidths
 	-- wide in a violet glow SendGlowBallWidths wide), with a tick at SendPitch; it follows the
-	-- ball until it drops, at most SendHoldSeconds after the resume, then fades.
+	-- ball until it drops, at most SendHoldSeconds of the replay's time after the resume, then
+	-- fades (the longest send, corner to corner, rolls about 3 s).
 	SendDrawSeconds = 0.3,
-	SendHoldSeconds = 2,
+	SendHoldSeconds = 3.5,
 	SendFadeSeconds = 0.3,
 	SendLiftInches = 0.3,
 	SendCoreBallWidths = 0.12,

@@ -1199,7 +1199,43 @@ function V.inert(ultId: string): boolean
 		return true
 	end
 	local raw = Config.Ults.Catalog[ultId] :: any
-	return type(row.Effect) ~= "string" and not raw.Redo
+	return type(row.Effect) ~= "string" and not raw.Redo and not row.Sneak
+end
+
+--- Look Over There! (a Sneak row): the table after the shooter's drop as the bot makes it
+--- (Bots/Driver: the ball of theirs farthest from its nearest pocket, never the 8), the drag
+--- assumed to land; nil with no ball to drop (on the 8). An open table takes that group.
+function V.sneaked(ts: TableState): TableState?
+	if ts.onEight then
+		return nil
+	end
+	local best, bestD = nil, -1
+	for _, id in V.ownIds(ts) do
+		local b = findBall(ts.balls, id)
+		local d = math.huge
+		for _, p in geometry.pockets do
+			d = math.min(d, (p.x - b.x) ^ 2 + (p.y - b.y) ^ 2)
+		end
+		if d > bestD then
+			best, bestD = b, d
+		end
+	end
+	if best == nil then
+		return nil
+	end
+	local balls = Ball.cloneList(ts.balls)
+	findBall(balls, best.id).pocketed = true
+	local group = Judge.group(best.id) :: string
+	local after: TableState = {
+		family = ts.family,
+		index = ts.index,
+		balls = balls,
+		groups = if ts.open then { group, Judge.opposite(group :: any) } else ts.groups,
+		open = false,
+		onEight = false,
+	}
+	after.onEight = #V.ownIds(after) == 0
+	return after
 end
 
 local function drawer(seed: number): () -> number
@@ -1502,6 +1538,9 @@ function V.measure(ultId: string, options: Options?): Report
 	assert(row, "unknown ult " .. ultId)
 	local inert = V.inert(ultId) and not opts.simulateInert
 	local planner = if row.Pick and row.Built then V.planners[row.Pick] else nil
+	-- Look Over There! has no shot of its own: the drop is a pot (V.sneaked), then the shooter
+	-- plays on, its best plain pot on the table after it (the same noise as without).
+	local sneak = row.Built and row.Sneak == true
 	local wantCareful, wantCareless = false, false
 	for _, s in shooters do
 		wantCareful = wantCareful or s == "careful"
@@ -1550,6 +1589,12 @@ function V.measure(ultId: string, options: Options?): Report
 				cache[base .. tag .. ":plans"] = ultPlans
 			end
 		end
+		local after = if sneak then V.sneaked(ts) else nil
+		local afterPlans: { Plan } = {}
+		if after then
+			afterPlans = cache[base .. ":sneak:plans"] or V.shots(after, topK)
+			cache[base .. ":sneak:plans"] = afterPlans
+		end
 		for _, s in skills do
 			local zr = V.rng(V.seedOf(seed, i, s, 7))
 			local z1, z2 = V.gauss(zr), V.gauss(zr)
@@ -1561,6 +1606,42 @@ function V.measure(ultId: string, options: Options?): Report
 					cache[key] = r
 				end
 				return r
+			end
+
+			if sneak then
+				-- The careless shooter plays the first shot on the list after the drop, the
+				-- careful one its best pot by its own estimate. With no ball to drop (on the 8)
+				-- the ability cannot be activated (Match's "NoBall"): not a use, not counted.
+				if after == nil then
+					continue
+				end
+				local function dropped(plan: Plan): Result
+					local r = table.clone(
+						V.play(after :: TableState, plan, s, z1, z2, nil, drawer(measuredDraws))
+					)
+					r.own += 1
+					return r
+				end
+				local function best(list: { Plan }): number
+					local k, value = 1, -math.huge
+					for j, plan in list do
+						local v = V.potChance(plan, s)
+						if v > value then
+							k, value = j, v
+						end
+					end
+					return k
+				end
+				if wantCareless then
+					local without = plain(plans[1], ("%s:%d:plain1"):format(base, s))
+					add(accs[s].careless, dropped(afterPlans[1]), without)
+				end
+				if wantCareful then
+					local k = best(plans)
+					local without = plain(plans[k], ("%s:%d:plain%d"):format(base, s, k))
+					add(accs[s].careful, dropped(afterPlans[best(afterPlans)]), without)
+				end
+				continue
 			end
 			local function withUlt(plan: Plan, plainResult: Result): Result
 				if inert then

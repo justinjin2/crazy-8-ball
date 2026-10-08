@@ -65,8 +65,10 @@ One line each; the long form is the 2026-10-08 entry at the top of
   guided balls spinning) and Catch-a-Ball's close-up camera are checked in Studio. The Rare+
   buffs are in and their looks checked in Studio (Chain Lightning drives its ball in down a
   bolt, Portals send yours into the pocket nearest the exit along a launch line, Time Stop
-  sends the ball you strike along a line): pots 83-95% a use, measured. Next: polish the other
-  looks. Screens go on a hand-off list for the GUI session.
+  sends the ball you strike along a line): pots 83-95% a use, measured. The three new abilities
+  are measured too (Catch-a-Ball 0.63, Look Over There! 0.99, Verity 1.05; rarity means 0.34 to
+  1.31), and the GDD, ARCHITECTURE and the plan's hand-off list for the GUI session are up to
+  date. Next: polish the other looks.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),

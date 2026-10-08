@@ -115,6 +115,29 @@ and the phone emulator (gamepad by hand), console read, screenshots, commit, pus
 
 ## 5. Hand-off list for the GUI session (screens we do not build)
 
-Filled in as the work goes: the Abilities screen's cards for the three new abilities (icons
-and names are data, so they show up by themselves), the spin screen's odds panel (data driven),
-anything else a screen should show.
+Filled in as the work goes (2026-10-08). None of these are built on `abilities-rework`.
+
+- **Abilities screen cards:** the three new abilities (Catch-a-Ball, Look Over There!, Verity)
+  and the removed Heat Seeker and Ghost. Icons, names and descriptions are catalog data and
+  Strings, so they show up by themselves; check the cards with the new, longer descriptions
+  (Time Stop, Chain Lightning, Portals were rewritten for the Rare+ buffs) on a phone.
+- **Spin screen odds panel:** data driven; check it shows the 13-ability ladder (Rewind is
+  Uncommon, Catch-a-Ball and Portals Rare, Look Over There!, Time Stop and Chain Lightning Epic,
+  Verity, Steel Ball and Black Flash Legendary).
+- **MatchHUD clock:** hide it during the Sneak and SneakReveal phases (Look Over There!); the
+  sneak has its own countdown.
+- **UltHud:** its armed "NEXT SHOT" label flashes during the sneak, where there is no shot;
+  hide it (or show the sneak's own wording) while the phase is Sneak or SneakReveal.
+- **The sneak pill** (LookOverThereFx, one row under the HUD header) works but is a stand-in:
+  restyle it to the lively frame.
+- **Time Stop's hint** now reads "TIME STOPPED · HIT ONE OF YOUR BALLS" (Strings
+  `TimeStopHint`); MatchHUD's fitSetup fits it, but check it on a phone.
+- **Portals pick hint:** a ball of yours comes out of a portal into the pocket nearest the exit,
+  so "PLACE PORTAL B" could teach it: "PLACE PORTAL B BY A POCKET" (Strings `PortalB`), if the
+  pick view's label fits it.
+- **Mirrored ball numbers** (not a screen, found during the rework): the numbered ball textures
+  draw mirrored in game (a "3" read backwards), the ball mesh's UVs wrapping inside out.
+  Whoever owns `assets/balls` should flip the UVs or the textures.
+- **Economy:** a sneaked ball pays no money (it is not a shot; designer, 2026-10-08); the
+  engine already pays nothing, so only the economy docs and any "money per pot" display need to
+  agree.
