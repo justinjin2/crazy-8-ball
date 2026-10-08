@@ -12,7 +12,7 @@ Updated 2026-10-08.
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
 - **Lint and tests (2026-10-08, `abilities-rework`):** lint OK with three old LocalShadow
-  warnings (PadGuide, MatchHUD, Main.client); all 1061 Lune tests pass.
+  warnings (PadGuide, MatchHUD, Main.client); all 1066 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; saves at version 7;
@@ -62,9 +62,11 @@ One line each; the long form is the 2026-10-08 entry at the top of
   phase) is built and waits on the designer's hands-on test and their own voice lines.
   Guangdong Tiger's rework (the rigged tiger, two slams through the ball, the roar cutscene, the
   halves lying 6.1 s), Steel Ball's (chrome spinning up, the golden ratio in yellow, the
-  guided balls spinning) and Catch-a-Ball's close-up camera are checked in Studio. Next: buffs
-  for Portals, Time Stop and Chain Lightning, then the other looks. Screens go on a hand-off
-  list for the GUI session.
+  guided balls spinning) and Catch-a-Ball's close-up camera are checked in Studio. The Rare+
+  buffs are in and their looks checked in Studio (Chain Lightning drives its ball in down a
+  bolt, Portals send yours into the pocket nearest the exit along a launch line, Time Stop
+  sends the ball you strike along a line): pots 83-95% a use, measured. Next: polish the other
+  looks. Screens go on a hand-off list for the GUI session.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),

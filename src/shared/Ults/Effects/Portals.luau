@@ -14,12 +14,14 @@
 --   straight back, and a loop through both slows and ends). A ball resting on a portal at the
 --   strike (the kept portals of a later shot) is treated the same: in only once it has left.
 -- * One of the shooter's balls coming out (overrides.Targets: the 8 only on the legal 8 shot,
---   toward the called pocket; never the cue ball or the opponent's) is turned toward the pocket
---   mouth nearest its heading, ahead of it, by at most Config.Ults.Portals.ExitSteerTan: a
---   portal lines your ball up (the step 16 buff).
+--   toward the called pocket; never the cue ball or the opponent's) is lined up: sent down the
+--   clear line into the pocket nearest the exit, rolling, never slower than it went in and
+--   fast enough to drop (ChainLightning.lineUp and send; the Rare+ buff, 2026-10-08). With no
+--   clear line in it is turned toward the pocket mouth nearest its heading, ahead of it, by at
+--   most Config.Ults.Portals.ExitSteerTan (the step 16 buff).
 -- * `ult` events for the look: "enter" (ball, other = the portal gone into: 1 A, 2 B, at its
---   centre) and "exit" (ball, other = the portal come out of, at its centre), in that order in
---   the same step.
+--   centre) and "exit" (ball, other = the portal come out of, at its centre, value = the
+--   pocket it was lined up with), in that order in the same step.
 --
 -- Only arithmetic and square roots, balls walked in array order, portals A then B: the
 -- server's settle and every client's replay step it to identical bits. Pure Luau: must never
@@ -27,6 +29,7 @@
 
 local Config = require(script.Parent.Parent.Parent.Config)
 local Magnet = require(script.Parent.Magnet)
+local ChainLightning = require(script.Parent.ChainLightning)
 
 local Portals = {}
 
@@ -163,6 +166,27 @@ local function steer(state: any, b: any, x: number, y: number)
 	b.wx, b.wy = c * b.wx - s * b.wy, s * b.wx + c * b.wy
 end
 
+-- One of the shooter's balls about to come out of (x, y): sent down the clear line into the
+-- pocket nearest the exit (where the shooter put it: the pocket they meant), never slower than
+-- it went in (the Rare+ buff); with no clear line, turned by at most ExitSteerTan. Returns the
+-- pocket it was lined up with, if any.
+local function lineUp(state: any, b: any, x: number, y: number): number?
+	local speed = math.sqrt(b.vx * b.vx + b.vy * b.vy)
+	if speed < 1e-9 then
+		return nil
+	end
+	local bx, by = b.x, b.y
+	b.x, b.y = x, y
+	local id, ux, uy, d = ChainLightning.lineUp(state, b, 0, 0)
+	b.x, b.y = bx, by
+	if id == nil then
+		steer(state, b, x, y)
+		return nil
+	end
+	ChainLightning.send(b, ux, uy, d, Config.Ults.Portals.ExitArriveSpeed, speed)
+	return id
+end
+
 function Portals.after(state: any, _dt: number, events: { any }, ops: any)
 	local a, b = Portals.spots(state)
 	if a == nil or b == nil then
@@ -208,11 +232,11 @@ function Portals.after(state: any, _dt: number, events: { any }, ops: any)
 			if passes(x0, y0, ball.x, ball.y, spot[1], spot[2], r) then
 				local other = 3 - k
 				local exit = spots[other]
+				local lined = if isTarget(state, ball.id)
+					then lineUp(state, ball, exit[1], exit[2])
+					else nil
 				ops.emit(state, events, "enter", ball.id, k, spot[1], spot[2])
-				ops.emit(state, events, "exit", ball.id, other, exit[1], exit[2])
-				if isTarget(state, ball.id) then
-					steer(state, ball, exit[1], exit[2])
-				end
+				ops.emit(state, events, "exit", ball.id, other, exit[1], exit[2], lined)
 				ops.teleport(state, events, ball, exit[1], exit[2])
 				locks[ball.id] = { portal = other, at = state.time, out = false }
 				break

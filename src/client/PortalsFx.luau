@@ -16,7 +16,8 @@
 --     once the shot is over.
 --   * A ball going in (event "enter"): a copy of it shrinks and sinks into the portal with a
 --     flash and a deep whoosh, the portal swells. Coming out ("exit"): a burst ring grows off the
---     exit, sparks and a pop.
+--     exit, sparks and a pop; a ball of yours lined up into a pocket (the Rare+ buff) draws a
+--     line in the exit's colour from it to the pocket, which follows it in.
 -- Every table's parts hang off its AbilityFx anchor and go with it (kit.onRelease) or with
 -- clear(). Without the model nothing is drawn but the sounds, bursts and sparks.
 
@@ -369,6 +370,87 @@ local function enter(self: PortalsFx, id: number, fx: TableFx, m: any, ev: any)
 end
 
 -- A ball coming out of portal `k`: the burst ring, sparks, a pop, a swell.
+-- A ball of yours lined up as it comes out (the Rare+ buff; the exit event's value is its
+-- pocket): a line in the exit's colour draws itself from the ball to the pocket, follows the
+-- ball in, and fades once it drops (or LineHoldSeconds on).
+local function launchLine(
+	self: PortalsFx,
+	id: number,
+	m: any,
+	ballId: number,
+	pocketId: number,
+	colour: Color3
+)
+	local kit = self.kit
+	local pocket = kit.pocketOf(m, pocketId)
+	local ball = kit.ballOf(m, ballId)
+	if pocket == nil or ball == nil then
+		return
+	end
+	local target = kit.tableWorld(m, pocket.x, pocket.y, F.LineLiftInches)
+	local start = kit.tableWorld(m, ball.x, ball.y, F.LineLiftInches)
+	local from = kit.attachment(id, "PortalLineFrom", start)
+	local to = kit.attachment(id, "PortalLineTo", start)
+	local bw = ballWidth()
+	local layers: { { width: number, color: Color3, alpha: number } } = {
+		{ width = F.LineGlowBallWidths, color = colour, alpha = F.LineGlowTransparency },
+		{
+			width = F.LineCoreBallWidths,
+			color = Color3.new(1, 1, 1),
+			alpha = F.LineCoreTransparency,
+		},
+	}
+	local beams: { Beam } = {}
+	for _, layer in layers do
+		table.insert(
+			beams,
+			kit.beam(from, to, {
+				Width0 = bw * layer.width,
+				Width1 = bw * layer.width,
+				Color = ColorSequence.new(layer.color),
+				Transparency = NumberSequence.new(layer.alpha),
+			})
+		)
+	end
+	local born = os.clock()
+	local bornAt = m.state.time -- the replay's time: the hold slows with /slowmo, stops on /hold
+	local fading: number? = nil
+	local conn: RBXScriptConnection
+	local function drop()
+		if conn.Connected then
+			conn:Disconnect()
+		end
+		for _, beam in beams do -- beside the attachments (kit.beam), not under them
+			beam:Destroy()
+		end
+		from:Destroy()
+		to:Destroy()
+	end
+	conn = game:GetService("RunService").RenderStepped:Connect(function()
+		local t = os.clock()
+		local now = kit.ballOf(m, ballId)
+		local age = m.state.time - bornAt
+		if fading == nil and (now == nil or now.pocketed or age < 0 or age > F.LineHoldSeconds) then
+			fading = t
+		end
+		local shown = if fading then 1 - (t - fading) / F.LineFadeSeconds else 1
+		if shown <= 0 or from.Parent == nil then
+			drop()
+			return
+		end
+		if now and not now.pocketed then
+			from.WorldPosition = kit.tableWorld(m, now.x, now.y, F.LineLiftInches)
+		end
+		local u = easeOut(math.clamp((t - born) / F.LineDrawSeconds, 0, 1))
+		to.WorldPosition = from.WorldPosition:Lerp(target, u)
+		for k, beam in beams do
+			local base = layers[k].alpha
+			beam.Transparency = NumberSequence.new(base + (1 - base) * (1 - shown))
+		end
+	end)
+	kit.later(id, (F.LineHoldSeconds + F.LineFadeSeconds) * 20, drop) -- a backstop (a 0.05 slowmo)
+end
+
 local function exit(self: PortalsFx, id: number, fx: TableFx, m: any, ev: any)
 	local kit = self.kit
 	local k = ev.other
@@ -426,6 +508,9 @@ local function exit(self: PortalsFx, id: number, fx: TableFx, m: any, ev: any)
 	end)
 	if not fx.quiet then
 		playAt(self, id, A.PortalExit, centre)
+	end
+	if type(ev.value) == "number" then
+		launchLine(self, id, m, ev.ball, ev.value, colour)
 	end
 end
 

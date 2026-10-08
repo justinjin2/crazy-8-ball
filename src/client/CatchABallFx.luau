@@ -368,7 +368,8 @@ local function dropCatch(c: Catch?)
 	if c == nil then
 		return
 	end
-	for _, item in { c.silhouette, c.beamFrom, c.beamTo, c.glow } :: { Instance? } do
+	-- The beam sits beside its attachments (kit.beam), so it goes by name too.
+	for _, item in { c.silhouette, c.beam, c.beamFrom, c.beamTo, c.glow } :: { Instance? } do
 		if item then
 			item:Destroy()
 		end

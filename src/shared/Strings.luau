@@ -196,7 +196,7 @@ return {
 		-- Rewind's redo turn, under the big clock: its shot clock in seconds.
 		SecondChance = "SECOND CHANCE: %ds",
 		-- Time Stop's stopped time, the shooter's instruction line.
-		TimeStopHint = "TIME STOPPED · ONE MORE SHOT",
+		TimeStopHint = "TIME STOPPED · HIT ONE OF YOUR BALLS",
 	},
 	-- Saves (PlayerData): the kick messages when a save cannot be used.
 	-- The global queue's teleports and why one did not happen (GlobalQueue, TeleportScreen).
@@ -1124,9 +1124,9 @@ return {
 			LookOverThere = "Point and yell! While your opponent looks away, drag one of your balls into a pocket before they turn back. Then take your shot.",
 			Verity = "Hi, I'm Verity! The first ball you hit is grabbed and hurled off the table, counted as pocketed, then Verity sprints through the pack.",
 			Rewind = "Miss, and the table rewinds for another 10 s shot with its full path shown. Up to twice.",
-			TimeStop = "Time freezes a second after contact: you get 8 seconds to line up one more shot while everything else stands still.",
-			ChainLightning = "The ball of yours you hit is charged toward a pocket, and lightning jumps on to three more balls, pushing them toward pockets.",
-			Portals = "Place two portals for your whole turn. Balls that enter one fly out of the other, and yours come out lined up on a pocket.",
+			TimeStop = "Time freezes a second after contact: you get 8 seconds for one more shot while everything stands still. Hit one of your balls and it rolls into a pocket when time resumes.",
+			ChainLightning = "Lightning strikes the ball of yours you hit and drives it into a pocket, then jumps on to the next ball, pushing it toward a pocket.",
+			Portals = "Place two portals for your whole turn. Balls that roll over one fly out of the other, and yours fly out into the pocket nearest the exit.",
 			SteelBall = "The ball of yours you hit is guided in, and the cue ball curves on to your next, guiding it in or lining it up.",
 			BlackFlash = "The first ball you hit shatters in a black flash, counted as pocketed, and the blast nudges the balls round it toward pockets.",
 			BlackHole = "A black hole opens at your first hit and swallows the balls near it, counted as pocketed.",

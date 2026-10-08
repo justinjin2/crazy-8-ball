@@ -51,6 +51,7 @@ local Catalog = H.require("Ults.Catalog")
 local Match = H.require("Ults.Match")
 local TimeStop = H.require("Ults.Effects.TimeStop")
 local Magnet = H.require("Ults.Effects.Magnet")
+local ChainLightning = H.require("Ults.Effects.ChainLightning")
 
 local V = {}
 
@@ -823,7 +824,9 @@ end
 
 -- Portals. First the shortcut for the object ball: A a little way ahead of it on its wanted
 -- heading, B the same heading a little way short of its pocket's mouth, so it comes out
--- already lined up and close (its aim error then only counts over the two short stretches).
+-- already lined up and close (its aim error then only counts over the two short stretches),
+-- or B a short way out of any pocket's mouth (the exit lines it up); with no pot, A ahead of
+-- the ball its safe hit sends straight on.
 -- Then the cue ball's shortcut: A on its path to the contact, B on the same line a short way
 -- before the ghost ball (a shorter shot). The careful shooter also tries a pair parked out of
 -- the way.
@@ -837,23 +840,61 @@ V.planners.Portals = function(ts: TableState, plan: Plan, careful: boolean): { P
 			pocket = p
 		end
 	end
-	if object and pocket and not plan.safe then
-		local ux, uy = math.cos(plan.phi), math.sin(plan.phi)
-		local mx, my = Magnet.mouthPoint(geometry, pocket)
-		for _, pair in { { 4.5, 7 }, { 6, 10 }, { 4.5, 12 } } do
-			local request = {
-				ax = object.x + ux * pair[1],
-				ay = object.y + uy * pair[1],
-				bx = mx - ux * pair[2],
-				by = my - uy * pair[2],
-			}
-			local pick = Arming.pick("Portals", request, geometry, ts.groups, 1, ts.balls)
-			if pick then
-				table.insert(out, withPick(plan, pick, request))
-				if #out >= want then
-					return out
+	-- B spots on each pocket's axis a short way out of its mouth: the exit lines a ball of yours
+	-- up (the Rare+ buff of 2026-10-08), so any open line in will do.
+	local axisExits = {}
+	for _, p in geometry.pockets do
+		local px, py = Magnet.mouthPoint(geometry, p)
+		local sy = if p.y > 0 then -1 else 1
+		local ax, ay = 0, sy
+		if p.x ~= 0 then
+			ax, ay = (if p.x > 0 then -1 else 1) * math.sqrt(0.5), sy * math.sqrt(0.5)
+		end
+		table.insert(axisExits, { px + ax * 9, py + ay * 9 })
+	end
+	-- A a short way ahead of the object ball along (ux, uy), B at each of `exits` in turn.
+	local function tryPairs(ux: number, uy: number, exits: { { number } }): boolean
+		for _, ahead in { 3.5, 4.5, 6 } do
+			for _, exit in exits do
+				local request = {
+					ax = (object :: any).x + ux * ahead,
+					ay = (object :: any).y + uy * ahead,
+					bx = exit[1],
+					by = exit[2],
+				}
+				local pick = Arming.pick("Portals", request, geometry, ts.groups, 1, ts.balls)
+				if pick then
+					table.insert(out, withPick(plan, pick, request))
+					if #out >= want then
+						return true
+					end
 				end
 			end
+		end
+		return false
+	end
+	if object and pocket and not plan.safe then
+		-- Its pot: on its wanted heading, B short of the mouth on that heading, then the axes.
+		local ux, uy = math.cos(plan.phi), math.sin(plan.phi)
+		local mx, my = Magnet.mouthPoint(geometry, pocket)
+		local exits = {}
+		for _, before in { 7, 10, 12 } do
+			table.insert(exits, { mx - ux * before, my - uy * before })
+		end
+		for _, e in axisExits do
+			table.insert(exits, e)
+		end
+		if tryPairs(ux, uy, exits) then
+			return out
+		end
+	elseif object and plan.safe then
+		-- No pot: its soft full hit on its own ball sends that ball straight on from the cue
+		-- ball, through A, out of B lined up.
+		local cueBall = findBall(ts.balls, 0)
+		local dx, dy = object.x - cueBall.x, object.y - cueBall.y
+		local d = math.sqrt(dx * dx + dy * dy)
+		if d > 1e-6 and tryPairs(dx / d, dy / d, axisExits) then
+			return out
 		end
 	end
 	local cue = findBall(ts.balls, 0)
@@ -935,9 +976,61 @@ local function fakeTable(ts: TableState, ultId: string, pick: { number }?, calle
 	}
 end
 
---- The pot the model shooter plays in stopped time (Time Stop's second strike), from the
---- frozen table: its best pot from where the cue ball is frozen, with fresh noise; nil when
---- it has none (then time simply resumes).
+-- The surest touch in stopped time (a ball of yours the cue ball touches there rolls into a
+-- pocket when time resumes: the Rare+ buff, 2026-10-08): a soft full hit on the nearest of
+-- your balls with a clear path from the cue ball and a clear line on into some pocket, judged
+-- as the effect judges it at the touch (ChainLightning.lineUp, the cue ball against the ball).
+-- Nil when none has both.
+local function sendPlan(sim: any, ts: TableState, frozen: { any }): Plan?
+	local cue = findBall(frozen, 0)
+	local liveCue = findBall(sim.balls, 0)
+	local best, bestD = nil, math.huge
+	for _, id in V.ownIds(ts, frozen) do
+		local b = findBall(frozen, id)
+		local d = math.sqrt((b.x - cue.x) ^ 2 + (b.y - cue.y) ^ 2)
+		if d >= bestD or d < 1e-6 then
+			continue
+		end
+		local clear = true
+		for _, o in frozen do
+			if
+				not o.pocketed
+				and o.id ~= 0
+				and o.id ~= id
+				and segmentDistance(o.x, o.y, cue.x, cue.y, b.x, b.y) < D
+			then
+				clear = false
+				break
+			end
+		end
+		local live = findBall(sim.balls, id)
+		if clear and live and liveCue then
+			local ux, uy = (b.x - cue.x) / d, (b.y - cue.y) / d
+			local cx, cy = liveCue.x, liveCue.y
+			liveCue.x, liveCue.y = b.x - ux * D, b.y - uy * D
+			local lined = ChainLightning.lineUp(sim, live, ux, uy)
+			liveCue.x, liveCue.y = cx, cy
+			if lined ~= nil then
+				best, bestD = b, d
+			end
+		end
+	end
+	if best == nil then
+		return nil
+	end
+	local plan = V.safePlan(ts, frozen)
+	plan.angle = math.atan2(best.y - cue.y, best.x - cue.x)
+	plan.power = V.powerForSpeed(V.SAFE_SPEED + V.SAFE_SPEED_PER_INCH * bestD)
+	plan.ball = best.id
+	plan.dc = bestD
+	plan.ghostX, plan.ghostY = best.x, best.y
+	return plan
+end
+
+--- The strike the model shooter plays in stopped time (Time Stop's second strike), from the
+--- frozen table, with fresh noise: the surest touch on a ball of its own (sendPlan), else its
+--- best pot from where the cue ball is frozen, else its soft hit on its nearest own ball; nil
+--- when it has none of them (then time simply resumes).
 function V.secondStrike(sim: any, ts: TableState, skill: number, draw: () -> number): Cue.Shot?
 	local cue = findBall(sim.balls, 0)
 	if cue == nil or cue.pocketed then
@@ -947,8 +1040,8 @@ function V.secondStrike(sim: any, ts: TableState, skill: number, draw: () -> num
 	for _, b in frozen do
 		Ball.stop(b)
 	end
-	local plan = V.shots(ts, 1, frozen)[1]
-	if plan.safe then
+	local plan = sendPlan(sim, ts, frozen) or V.shots(ts, 1, frozen)[1]
+	if plan == nil then
 		return nil
 	end
 	return V.noisy(plan, skill, draw(), draw())

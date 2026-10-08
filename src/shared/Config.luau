@@ -3571,23 +3571,29 @@ Config.Ults = {
 		-- Verity: the first ball hit is thrown off the table (a pot for its owner), then Verity
 		-- sprints on through the pack. +0.95 / +1.08 / +1.08 careful net (60 tables).
 		Verity = { Rarity = "Legendary", Built = true, Effect = "Verity", Worth = 1.04 },
-		-- +0.65 / +0.42 / +0.34 (three strikes in stopped time).
-		TimeStop = { Rarity = "Epic", Built = true, Effect = "TimeStop", Worth = 0.47 }, -- Epic since 2026-09-30
-		-- +0.97 / +0.98 / +0.94 (careless +0.78 / +0.72 / +0.76; three jumps).
+		-- The Rare+ buff (2026-10-08): a ball of yours touched in stopped time rolls into a pocket
+		-- as time resumes, and a miss freezes too: +0.82 / +0.85 / +0.93 careful net, pots 91-94%
+		-- (was +0.65 / +0.42 / +0.34 with three strikes, pots 47-78%).
+		TimeStop = { Rarity = "Epic", Built = true, Effect = "TimeStop", Worth = 0.87 }, -- Epic since 2026-09-30
+		-- The Rare+ buff (2026-10-08): the charged ball is driven down a clear line into a pocket,
+		-- one jump on: +0.87 / +1.07 / +1.03 careful net (careless +0.72 / +0.93 / +0.88), pots
+		-- 83-95% (was +0.97 / +0.98 / +0.94 with three jumps, pots 74-88%).
 		ChainLightning = {
 			Rarity = "Epic",
 			Built = true,
 			Effect = "ChainLightning",
-			Worth = 0.96,
+			Worth = 0.99,
 			Area = true,
 		},
-		-- +0.37 / +0.52 / +0.38, whole turn included: a low bound (the model shooter does not
-		-- reuse the kept portals as a player will; the designer keeps it, flagged, 2026-09-29).
+		-- The Rare+ buff (2026-10-08): your ball comes out lined up into the pocket nearest the
+		-- exit, and a ball rolling over the ring goes in: +0.65 / +0.71 / +0.70 careful net, pots
+		-- 83-93% (was +0.37 / +0.52 / +0.38, pots 57-84%), whole turn included: a low bound (the
+		-- model shooter does not reuse the kept portals as a player will).
 		Portals = {
 			Rarity = "Rare", -- Rare since 2026-09-30 (the designer swapped it with Time Stop)
 			Built = true,
 			Effect = "Portals",
-			Worth = 0.42,
+			Worth = 0.69,
 			Pick = "Portals",
 			Turn = true,
 		},
@@ -3901,17 +3907,23 @@ Config.Ults.ChainLightning = {
 	-- closest go first. Per ability so the ladder can climb (the step 16 balance pass). (tune)
 	MaxOwn = 3,
 	MaxOpp = 2,
-	-- The charged ball (the first ball hit, if yours): its heading turns toward its best
-	-- pocket by at most this angle, as its tangent (0.2679 is 15 degrees; 8 measured +0.6,
-	-- 12 +0.94, 18 +1.0), and its speed is multiplied by Boost. (tune)
+	-- The charged ball (the first ball hit, if yours). The Rare+ buff (2026-10-08: Epic and up
+	-- nearly always pot): the bolt drives it down the clear line into the pocket nearest its
+	-- heading, at its speed times Boost, never so slow it gets there under ChargeArriveSpeed
+	-- (in/s). With no clear line its heading turns toward its best pocket by at most SteerTan
+	-- (a tangent: 0.2679 is 15 degrees), its speed times Boost, as before the buff. (tune)
+	ChargeArriveSpeed = 30,
 	SteerTan = 0.2679,
 	Boost = 1.25,
 	-- The chain: up to Links jumps, each to the nearest ball within ReachInches (centre to
 	-- centre) of the last one struck, LinkSeconds apart. The reach is at the cap
 	-- (Config.Ults.Shared.MaxReachShare of the table; 12 in reached a ball on a third of the
-	-- jumps). Four jumps measured +1.08 / +1.08 / +1.12 (careful net, skills 1/2/3), too close
-	-- to the Legendaries; three +0.97 / +0.98 / +0.94 (the step 16 balance pass). (tune)
-	Links = 3,
+	-- jumps). Before the Rare+ buff three jumps measured +0.97 / +0.98 / +0.94 (careful net,
+	-- skills 1/2/3). With the charged ball sent down a clear line (48 tables, 2026-10-08):
+	-- three jumps +1.46 / +1.40 / +1.58 even at a softer push (PushReachShare 1.2), two +1.27 /
+	-- +1.33 / +1.38, one +0.98 / +1.02 / +1.10 (pots 88-96%): one, an Epic below the
+	-- Legendaries. (tune)
+	Links = 1,
 	ReachInches = 20,
 	LinkSeconds = 0.08,
 	-- The push on each struck ball: toward its closest pocket with a clear line in (traced
@@ -4047,15 +4059,20 @@ Config.Ults.GuangdongTiger = {
 -- Portals (docs/prompts/ABILITIES_PROMPT.md 7.9; src/shared/Ults/Effects/Portals). Where they
 -- may be placed is Config.Ults.Shared.Pick.
 Config.Ults.Portals = {
-	-- A ball goes in when its centre passes within this of a portal's centre (the drawn ring is
-	-- a ball width across the middle of it). (tune)
-	InnerRadiusInches = 2, -- 1.2 until the step 16 balance pass (2: +0.05 a use)
+	-- A ball goes in when its centre passes within this of a portal's centre: the drawn ring's
+	-- radius (Config.UI.UltPick.PortalRingBallWidths, 1.3 ball widths), so a ball whose centre
+	-- crosses the ring goes in (the Rare+ buff, 2026-10-08; 1.2 until the step 16 balance pass,
+	-- then 2). (tune)
+	InnerRadiusInches = 2.9,
 	-- After coming out, a ball cannot go into a portal again until it has left the exit's inner
 	-- circle and this long has passed. (tune)
 	CooldownSeconds = 0.3,
-	-- One of the shooter's balls coming out is turned toward the pocket nearest its heading by
-	-- at most this angle's tangent (0.2679: 15 degrees, as Chain Lightning's charge; 0 off).
-	-- The step 16 buff. (tune)
+	-- One of the shooter's balls coming out is lined up (the Rare+ buff, 2026-10-08: Rare and up
+	-- nearly always pot): sent down the clear line into the pocket nearest the exit, never
+	-- slower than it went in and never so slow it gets there under ExitArriveSpeed (in/s).
+	-- With no clear line it is turned toward the pocket nearest its heading by at most
+	-- ExitSteerTan (a tangent: 0.2679 is 15 degrees; the step 16 buff). (tune)
+	ExitArriveSpeed = 30,
 	ExitSteerTan = 0.2679,
 }
 
@@ -4239,6 +4256,9 @@ Config.Ults.Shared = {
 	-- (or drops, or stops). The designer, 2026-09-30: 8 s to line up one strike, resuming 1 s
 	-- after it hits (was 5 s each for three, resuming 0.75 s after). (tune)
 	FreezeAfterSeconds = 1,
+	-- A strike that touches no ball by this long into the shot freezes then anyway (the Rare+
+	-- buff, 2026-10-08: time stops on a miss too, and the stopped-time strike can still pot).
+	TimeStopMissSeconds = 1.5,
 	FrozenSeconds = 8,
 	ResumeAfterStrikeSeconds = 1,
 	-- How many strikes of the cue ball the shooter gets in stopped time (the designer,
@@ -4246,6 +4266,10 @@ Config.Ults.Shared = {
 	-- skills 1/2/3, 2 +0.58 / +0.38 / +0.24). With more than one, each strike's end starts the
 	-- clock again for the next (FrozenSeconds).
 	TimeStopStrikes = 1,
+	-- The Rare+ buff (2026-10-08: Epic and up nearly always pot): a ball of yours the cue ball
+	-- touches in stopped time rolls into the pocket nearest the way the strike pushed it, down
+	-- a clear line, when time resumes, getting there at this speed (in/s). (tune)
+	TimeStopSendArriveSpeed = 30,
 	-- Look Over There! (the rework, designer 2026-10-08): once armed it is not a shot but the
 	-- Sneak phase, with no shot clock. The shooter points and shouts for SneakIntroSeconds
 	-- while the opponents turn away, then has SneakDragSeconds to drag one of their balls
@@ -10353,6 +10377,21 @@ Config.UI.TimeStopFx = {
 	SwellPitch = 1.2,
 	TickSeconds = 1,
 	ResumeTickDelay = 0.3,
+	-- A ball of yours sent in stopped time (the Rare+ buff): a line draws itself from it to its
+	-- pocket over SendDrawSeconds, SendLiftInches over the cloth (a white core SendCoreBallWidths
+	-- wide in a violet glow SendGlowBallWidths wide), with a tick at SendPitch; it follows the
+	-- ball until it drops, at most SendHoldSeconds after the resume, then fades.
+	SendDrawSeconds = 0.3,
+	SendHoldSeconds = 2,
+	SendFadeSeconds = 0.3,
+	SendLiftInches = 0.3,
+	SendCoreBallWidths = 0.12,
+	SendGlowBallWidths = 0.45,
+	SendCoreColor = { 255, 255, 255 },
+	SendGlowColor = { 170, 120, 255 },
+	SendCoreTransparency = 0.05,
+	SendGlowTransparency = 0.45,
+	SendPitch = 1.6,
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no screen
 }
 
@@ -10385,6 +10424,12 @@ Config.UI.ChainLightningFx = {
 	-- spreads on the cloth round the ball (FlashBallWidths across) and fades.
 	StrikeHeightStuds = 4,
 	StrikeSeconds = 0.25,
+	-- Sent down a clear line (the Rare+ buff): a bolt along it from the ball into its pocket
+	-- for RailSeconds (or until the ball drops), shown in pulses as the jumps' are, RailWidth
+	-- as wide as a jump's bolt.
+	RailSeconds = 0.6,
+	RailPulses = { { 0, 0.3 }, { 0.38, 0.62 }, { 0.72, 0.9 } },
+	RailWidth = 0.8,
 	FlashBallWidths = 14,
 	FlashTransparency = 0.35,
 	FlashSeconds = 0.5,
@@ -10476,6 +10521,19 @@ Config.UI.PortalsFx = {
 	-- PortalBlockedColor.
 	HumVolume = 1,
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
+	-- A ball of yours lined up as it comes out (the Rare+ buff): a line from it to its pocket,
+	-- drawn in over LineDrawSeconds, LineLiftInches over the cloth (a white core
+	-- LineCoreBallWidths wide in the exit's colour LineGlowBallWidths wide), following the ball
+	-- until it drops (at most LineHoldSeconds of the replay's time), then fading over
+	-- LineFadeSeconds.
+	LineDrawSeconds = 0.2,
+	LineHoldSeconds = 3,
+	LineFadeSeconds = 0.3,
+	LineLiftInches = 0.3,
+	LineCoreBallWidths = 0.1,
+	LineGlowBallWidths = 0.4,
+	LineCoreTransparency = 0.05,
+	LineGlowTransparency = 0.4,
 }
 
 -- Catch-a-Ball's look (src/client/CatchABallFx.luau; the rework, 2026-10-08): the catch ball

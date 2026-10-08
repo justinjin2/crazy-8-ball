@@ -254,31 +254,70 @@ function tests.the_replay_matches_the_settle()
 	check(used >= 2, "some went through a portal: " .. used)
 end
 
-function tests.your_ball_comes_out_turned_toward_a_pocket()
-	-- The 1 rolls into A heading +x and comes out of B (20, 10) still heading +x; the
-	-- top-right corner is about 27 degrees to the left of that: yours is turned toward it by
-	-- the cap (ExitSteerTan), the opponent's (and a ball of nobody's) not at all.
-	local function exitAngle(targets: { number }, opp: { number }): number
-		local sim = Simulation.newState(geometry, table_({ { 0, -40, -20 }, { 1, -30, 0 } }))
-		Simulation.armEffect(
-			sim,
-			"Portals",
-			targets,
-			nil,
-			{ OppTargets = opp, Pick = { -20, 0, 20, 10 } }
-		)
-		rolling(sim.balls[2], 60, 0)
-		run(sim, function(events)
-			return #ultEvents(events, "exit") > 0
-		end)
-		local b = sim.balls[2]
-		return math.deg(math.atan2(b.vy, b.vx))
+-- The 1 (or the 8) rolls into A at (-20, 0) heading +x and comes out of B (20, 10): its exit
+-- event and its heading just after, in degrees.
+local function exitOf(
+	targets: { number },
+	opp: { number },
+	id: number,
+	extra: { { number } }?,
+	eightPocket: number?
+): (any, number)
+	local spots = { { 0, -40, -20 }, { id, -30, 0 } }
+	for _, e in extra or {} do
+		table.insert(spots, e)
 	end
+	local sim = Simulation.newState(geometry, table_(spots))
+	Simulation.armEffect(
+		sim,
+		"Portals",
+		targets,
+		eightPocket,
+		{ OppTargets = opp, Pick = { -20, 0, 20, 10 } }
+	)
+	rolling(sim.balls[2], 60, 0)
+	local exit = nil
+	run(sim, function(events)
+		local found = ultEvents(events, "exit")
+		exit = found[1]
+		return exit ~= nil
+	end)
+	local b = sim.balls[2]
+	return exit, math.deg(math.atan2(b.vy, b.vx))
+end
+
+function tests.your_ball_comes_out_lined_up_with_the_pocket_nearest_the_exit_and_drops()
+	-- Out of B (20, 10) heading +x, the top side pocket (2) is the clear line nearest the exit
+	-- (the top-right corner, 3, is nearer its heading): yours is sent down it (rolling, at
+	-- least as fast) and drops there; the opponent's (and a ball of nobody's) comes out as it
+	-- went in.
+	local exit, angle = exitOf({ 1 }, {}, 1)
+	check(exit and exit.value == 2, "lined up with pocket 2: " .. tostring(exit and exit.value))
+	local sim = Simulation.newState(geometry, table_({ { 0, -40, -20 }, { 1, -30, 0 } }))
+	Simulation.armEffect(sim, "Portals", { 1 }, nil, { OppTargets = {}, Pick = { -20, 0, 20, 10 } })
+	rolling(sim.balls[2], 60, 0)
+	local events = run(sim)
+	local into = nil
+	for _, ev in events do
+		if ev.type == "pocket" and ev.ball == 1 then
+			into = ev.other
+		end
+	end
+	check(into == 2, "dropped into pocket 2: " .. tostring(into))
+	check(angle > 130 and angle < 148, ("heading for the side pocket: %.2f degrees"):format(angle))
+	local _, theirs = exitOf({}, { 1 }, 1)
+	check(math.abs(theirs) < 1e-9, "the opponent's comes out as it went in")
+	local _, nobody = exitOf({}, {}, 1)
+	check(math.abs(nobody) < 1e-9, "a ball of nobody's too")
+end
+
+function tests.with_no_clear_line_yours_is_turned_by_at_most_the_cap()
+	-- The 8 on the legal 8 shot, toward pocket 4 (bottom right) only, with the 9 on the line
+	-- in from B: no clear line, so it is turned toward pocket 4 by the cap (ExitSteerTan).
+	local exit, angle = exitOf({ 8 }, {}, 8, { { 9, 35.5, -8 } }, 4)
+	check(exit and exit.value == nil, "not lined up")
 	local cap = math.deg(math.atan(P.ExitSteerTan))
-	local mine = exitAngle({ 1 }, {})
-	check(math.abs(mine - cap) < 0.5, ("yours turned %.2f degrees (cap %.2f)"):format(mine, cap))
-	check(math.abs(exitAngle({}, { 1 })) < 1e-9, "the opponent's comes out as it went in")
-	check(math.abs(exitAngle({}, {})) < 1e-9, "a ball of nobody's too")
+	check(math.abs(angle + cap) < 0.5, ("turned %.2f degrees (cap %.2f)"):format(angle, cap))
 end
 
 return tests

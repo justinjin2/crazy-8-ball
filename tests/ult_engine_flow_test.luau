@@ -414,20 +414,34 @@ function tests.time_stop_refuses_a_strike_after_its_stopped_time()
 	end)
 end
 
-function tests.time_stop_with_no_contact_is_a_plain_shot()
-	built("TimeStop", function()
-		local m = midGame()
-		armNow(m, "TimeStop")
-		place(m, 0, -5, 0)
-		for _, b in m.state.balls do
-			if b.id ~= 0 then
-				b.x, b.y = 40, -20 + b.id * 0.001
-				b.pocketed = b.id ~= 3
-			end
+-- A shot that touches no ball: the cue ball alone, from (x, y) at `angle`, the 3 far away.
+local function timeStopMiss(x: number, y: number, angle: number, power: number): (any, any)
+	local m = midGame()
+	armNow(m, "TimeStop")
+	place(m, 0, x, y)
+	for _, b in m.state.balls do
+		if b.id ~= 0 then
+			b.x, b.y = 40, -20 + b.id * 0.001
+			b.pocketed = b.id ~= 3
 		end
-		place(m, 3, 40, 20)
-		local wire = E.acceptShot(m, 11, payload(m, math.pi, 0.2), m.phaseStartedAt)
-		expect(wire and wire.halted == nil and m.phase == "Resolving", "no freeze")
+	end
+	place(m, 3, 40, 20)
+	return m, E.acceptShot(m, 11, payload(m, angle, power), m.phaseStartedAt)
+end
+
+function tests.time_stop_freezes_on_a_miss_too()
+	-- The Rare+ buff (2026-10-08): no contact by Shared.TimeStopMissSeconds, time stops anyway.
+	built("TimeStop", function()
+		local m, wire = timeStopMiss(-5, 0, math.pi, 0.2)
+		expect(wire and wire.halted == true and m.phase == "Frozen", "frozen on the miss")
+	end)
+end
+
+function tests.time_stop_with_the_cue_ball_down_before_the_freeze_is_a_plain_shot()
+	-- Straight into the bottom-left corner from close by, touching nothing.
+	built("TimeStop", function()
+		local m, wire = timeStopMiss(-44, -19, -3 * math.pi / 4, 0.3)
+		expect(wire and wire.halted == nil and m.phase ~= "Frozen", "no freeze")
 	end)
 end
 

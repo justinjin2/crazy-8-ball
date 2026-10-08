@@ -512,24 +512,32 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     included, is undone (the foul erased) and redone on a 10 s clock with Eagle's Eye's full
     path shown; a missed redo rewinds again, two redos a use. Everyone at the table sees the
     VHS rewind.
-  - **Time Stop** (Epic since 2026-09-30, was Rare; 0.47): 1 s after the cue ball's first contact time freezes; the
-    shooter gets 8 s to line up and strike the cue ball once more (untouched, time resumes by
-    itself); the cue ball alone moves until it touches a ball or a cushion, and time resumes 1 s
-    later, every ball's stored motion playing out (the designer, 2026-09-30: was three strikes,
-    5 s each). The clock on the cloth counts the stopped time down: its hand starts at 12 (the
-    top of each player's screen) and goes once round in the 8 s, time resuming as it gets back
-    to 12; after the strike it runs the rest of the way round as time resumes. Measured worth
-    with one strike: 0.24 / 0.31 / 0.18 net at skills 1/2/3 (was 0.65
-    / 0.42 / 0.34 with three), under the Rare mean: flagged. The freeze plays the designer's
-    own clip (2026-09-30).
-  - **Chain Lightning** (Epic, 0.96): the first ball hit, if yours, is charged toward its best
-    pocket (up to 15 degrees, x1.25 speed); then lightning jumps three times, each to the
-    nearest ball within 20 in, pushing each struck ball toward its closest pocket with a clear
-    line in (at most 3 of yours, 2 of theirs at half).
-  - **Portals** (Rare since 2026-09-30, was Epic; 0.42, flagged: see Open): place two portals for your whole turn (they
-    close when the turn passes or the game ends). Any ball whose centre passes within 2 in of
-    one comes out of the other with the same motion; yours come out turned toward the pocket
-    ahead by up to 15 degrees.
+  - **Time Stop** (Epic since 2026-09-30, was Rare; 0.87): 1 s after the cue ball's first contact time freezes (a
+    shot that touches nothing freezes 1.5 s in: the Rare+ buff, 2026-10-08); the shooter gets
+    8 s to line up and strike the cue ball once more (untouched, time resumes by itself); the
+    cue ball alone moves until it touches a ball or a cushion, and time resumes 1 s later,
+    every ball's stored motion playing out (the designer, 2026-09-30: was three strikes, 5 s
+    each). A ball of yours the stopped-time strike touches is sent: a line draws from it to its
+    pocket, and as time resumes it rolls down the clear line in (its stored motion dropped).
+    The clock on the cloth counts the stopped time down: its hand starts at 12 (the top of each
+    player's screen) and goes once round in the 8 s, time resuming as it gets back to 12; after
+    the strike it runs the rest of the way round as time resumes. Measured worth: +0.82 /
+    +0.85 / +0.93 net at skills 1/2/3, pots 91-94% of uses (2026-10-08; was 0.24 / 0.31 /
+    0.18 with one strike before the buff). The freeze plays the designer's own clip
+    (2026-09-30).
+  - **Chain Lightning** (Epic, 0.99): the first ball hit, if yours, is struck by lightning and
+    driven down the clear line into the pocket nearest its heading (x1.25 speed at least; with
+    no clear line, turned toward its best pocket by up to 15 degrees); then the lightning jumps
+    once, to the nearest ball within 20 in, pushing it toward its closest pocket with a clear
+    line in (theirs at half). The Rare+ buff (2026-10-08): pots 83-95% of uses, +0.87 / +1.07 /
+    +1.03 net (three jumps with the driven charge measured +1.4, above the Legendaries).
+  - **Portals** (Rare since 2026-09-30, was Epic; 0.69): place two portals for your whole turn (they
+    close when the turn passes or the game ends). Any ball whose centre crosses a portal's ring
+    (2.9 in from its centre) comes out of the other with the same motion; yours come out lined
+    up: sent down the clear line into the pocket nearest the exit (put the exit by the pocket
+    you mean), never slower than they went in (with no clear line, turned toward the pocket
+    ahead by up to 15 degrees). The Rare+ buff (2026-10-08): pots 83-93% of uses, +0.65 / +0.71
+    / +0.70 net, the whole turn's later shots counted only as a low bound.
   - **Steel Ball** (Legendary, 1.09): the first ball hit, if yours, is guided into the pocket
     it was sent toward; the cue ball then curves on to your next nearest ball and guides it in
     (a clean line within 36 in) or lines it up and stops behind it, 3 balls at most; with your
@@ -582,10 +590,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   designer records their own.
 
 **Open**
-- Playtests: whether any ability needs retuning with real players. Portals measures 0.42 (a
-  low bound: the model shooter never reuses the kept portals), now a Rare itself (2026-09-30); Magnet (0.46)
-  sits over Heat Seeker (0.40). The levers are all in `Config.Ults` (reach, caps, steer
-  angles, strike and redo counts, OpponentFactor, the Legendary and Mythic odds).
+- Playtests: whether any ability needs retuning with real players. Portals measures 0.69 (a
+  low bound: the model shooter never reuses the kept portals; 0.42 before the Rare+ buff of
+  2026-10-08), a Rare itself since 2026-09-30. The levers are all in `Config.Ults` (reach,
+  caps, steer angles, strike and redo counts, OpponentFactor, the Legendary and Mythic odds).
 
 ## 10. The hub and the world
 

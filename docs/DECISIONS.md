@@ -3211,3 +3211,17 @@ timer of a new block stay the designer's call.
   screen, and hands back over the last 0.4 s of the 4.35 s look. GOTCHA! now pops at about a
   third of the viewer's screen width (it was a fixed 3.2 studs, which would have covered the
   whole close-up). The look also honours `/hold` and `/slowmo` like the others.
+- 2026-10-08 (designer: Rare and above should nearly always pot; buff Portals, Time Stop and
+  Chain Lightning): the three are buffed toward a sure pot, each in its own way, and measured
+  (tools/ult_value.luau, 120 tables, careful net at skills 1/2/3 and pots a use).
+  **Chain Lightning**: the lightning drives the charged ball down the clear line into the
+  pocket nearest its heading (a bolt drawn along it), then jumps once, not three times (with
+  the driven charge three jumps measured +1.4, above the Legendaries): +0.87 / +1.07 / +1.03,
+  pots 83-95% (was 74-88%). **Portals**: your ball comes out lined up into the pocket nearest
+  the exit (the player puts the exit by the pocket they mean; nearest its heading measured a
+  little lower and is harder to read from the pick), and a ball goes in when its centre
+  crosses the drawn ring (2.9 in, was 2): +0.65 / +0.71 / +0.70, pots 83-93% (was 57-84%). **Time Stop**: a ball of yours the stopped-time strike touches is sent
+  (a line to its pocket) and rolls in as time resumes, and a shot that touches nothing
+  freezes 1.5 s in too: +0.82 / +0.85 / +0.93, pots 91-94% (was 47-78%). The misses left are
+  mostly the shooter's own (no ball touched, the wrong ball first). The descriptions and the
+  stopped-time hint ("HIT ONE OF YOUR BALLS") say so.
