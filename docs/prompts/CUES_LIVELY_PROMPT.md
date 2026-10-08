@@ -192,7 +192,14 @@ pick: the cue A or B, the card's mark A or B, and the engraving.
   Ranked row, Lower effects and Reduce Motion. Waiting: the designer's look on a phone, a PC
   size and a gamepad. The reel's cards come with concept 3.
 - [x] Concept 2 (Cues menu) approved (round 2, 2026-10-08).
-- [ ] The Cues menu built.
+- [x] The Cues menu built (2026-10-08, f41db44): the lively frame with no tab row, `CuesRail`
+  (the My Cues / Index switch, Sort and Sell all with hanging pills, outside the right edge),
+  5 cards a row with the third row peeking, the copy chip over the name, the slammed-in big
+  card, the Index at 4 cells a row with the flat swaying picture (`CueViewport` deleted), the
+  NEW count on the CUES tile. Checked in Studio at a PC size: the open (no stall, glows wait
+  for their cards), Sort, the switch spammed, Reduce Motion, stand-in copy numbers
+  (`GuiQA "cuesCopies"`). Waiting: the designer's look on a phone and a real gamepad; the
+  CUES icon and its strike after concept 2b's picks.
 - [ ] Copy numbers (approved 2026-10-08: first 100 of every Rare-or-rarer cue, each its own card):
   planned and built after the Cues menu.
 - [ ] Concept 3 (spin and YOU GOT) approved, then built.

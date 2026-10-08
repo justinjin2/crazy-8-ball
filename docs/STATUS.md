@@ -12,13 +12,13 @@ Updated 2026-10-08.
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
 - **Lint and tests (2026-10-08):** lint OK with three old LocalShadow warnings (PadGuide,
-  MatchHUD, Main.client); all 1042 Lune tests pass.
+  MatchHUD, Main.client); all 1043 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; saves at version 7;
   13 abilities (Ultimates) with the spin screen; cue skins with VFX and outlines; lucky blocks
-  as the only gacha (cases, the Magic 8 Ball and reward popups are gone); Rewards, Inventory
-  (Cues, Index), trading, settings, our own player list and boards; the first-time tutorial;
+  as the only gacha (cases, the Magic 8 Ball and reward popups are gone); Rewards, Cues (My Cues,
+  Index; the Inventory renamed), trading, settings, our own player list and boards; the first-time tutorial;
   the rooftop map with a day and sunset cycle; pull cutscenes Rare to Legendary.
 
 ## Being tried right now (the designer's look, nothing final)
@@ -124,13 +124,17 @@ Updated 2026-10-08.
 
 ## Open, waiting on the designer
 
-- **The GUI redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`): one screen at a time,
-  each from an approved concept. **The new cue card is built** (Cues grid and Index; the rank
-  cues are now the Ranked rarity): checked in Studio on every look (`GuiQA "cueCards"`),
-  Lower effects and Reduce Motion; the designer still to look on a phone, a PC size and a
-  gamepad. Next concept: the Cues menu (the Inventory renamed), then the lucky block spin and
-  YOU GOT, Free Reward (a Lucky 8 Block for the favorite), Abilities and Ranked ideas. The
-  Abilities screen and the Ranked roadmap show again (they opened blank).
+- **The GUI redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, branch `shop-lively`):
+  one screen at a time, each from an approved concept. **The new cue card is built** (the rank
+  cues are now the Ranked rarity). **The Cues menu is built** (concept 2: the Inventory renamed,
+  the lively frame, the My Cues / Index switch with Sort and Sell all outside the right edge,
+  5 cards a row, the big card, the Index's swaying picture): checked in Studio at a PC size
+  (the open at 60 fps, Sort, switch spam, Reduce Motion, stand-in copy numbers with
+  `GuiQA "cuesCopies"`); the designer still to look on a phone and a gamepad. Waiting on the
+  designer: concept 2b (the CUES icon striking a ball: cue A or B; the numbered card's mark A
+  or B; the gold nameplate engraving), then the copy numbers' own plan. After that the lucky
+  block spin and YOU GOT, Free Reward, Abilities and Ranked ideas. The Abilities screen and the
+  Ranked roadmap show again (they opened blank).
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),

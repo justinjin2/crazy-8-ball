@@ -377,8 +377,8 @@ then; the reel's rules hold for the blocks.
   computer, 52 px on a phone (under the rank HUD there; centred on the left edge on a big
   screen), always above the money HUD. Each tile draws over the one below, so a word is never
   under the next tile's red dot.
-  A red dot sits top right on Rewards while something can be claimed (the Inventory's count
-  of unopened cases went with the cases, 2026-10-04: blocks show in the hotbar); the Shop
+  A red dot sits top right on Rewards while something can be claimed, and on CUES (the
+  Inventory, renamed 2026-10-08) with how many owned cues are NEW ("9+" past nine); the Shop
   carries a gold timer pill while an offer window is open. Hidden in a match. On a gamepad the tiles are never selected (a
   selected button would take the stick from walking): the D-pad opens them in the hub (up
   Shop, right Inventory, down Rewards, left Trade) and each tile shows its D-pad glyph
@@ -396,25 +396,34 @@ then; the reel's rules hold for the blocks.
   screen's width (`Config.UI.Menu.Lively.MaxWidthShare`), only as tall as its hero card, the
   jump buttons outside its right edge, the 8-ball pinned on its left edge; the page scrolls on
   below the hero. Title with its icon, tabs as
-  candy buttons, a money pill in the Shop's and Inventory's header, the red X. Cards are white
+  candy buttons, a money pill in the Shop's and Cues's header, the red X. Cards are white
   with a pale blue edge (the roadmap's reward tiles); a cue card is the cue card of section 17
   (2026-10-08). The server's answers show as a short line at the bottom of the panel. Confirm
   dialogs are the kit's dialog card with no dim.
-- **The Index** (designer, 2026-09-28): a cue never found is a grey card with its dark
-  silhouette (no name, bar or pills; section 17). The chosen cue shows in a panel on the right: the
-  cue turning slowly in 3D (the game's own stick, thickened to read small, tip up and to the
-  right, turning round the upright axis), a near-black silhouette until found and its real
+- **The Cues menu** (the Inventory renamed, concept 2 approved 2026-10-08; brief
+  `docs/prompts/CUES_LIVELY_PROMPT.md`): the lively frame with no tab row. Outside the panel's
+  right edge stand a two-part switch, My Cues over Index, its blue knob on the view you are
+  in (the other half's icon faded; a red dot with the NEW count on My Cues, "!" on the Index
+  while a row can be claimed), then Sort and Sell all, each a tile with a pill hanging under
+  it (the order's name in blue; the money Sell all would pay in gold, greyed at $0). In the
+  Index Sort and Sell all step aside. The title and its icon say which view shows; LB / RB
+  flip the views and B goes back one step (the big card, then the Index to My Cues, then the
+  menu). **My Cues**: 5 cards a row, the panel as tall as two whole rows with the third
+  peeking; a short screen shrinks the cards. Sort turns the order (Rarest first, Common first,
+  Most copies, Name A-Z, then round), keeps the chosen card and scrolls the grid to its top;
+  by rarity, Ranked and Exclusive sit between Epic and Legendary, the rank cues highest tier
+  first. A pressed card slams in its **big card** over the page: the same card, bare (no
+  pills), and beside it the name, the rarity, "4.2% chance · 1,284 exist", "You own 3" (a
+  numbered copy's "Copy #412"), "Can't be sold" with the padlock, Equip and Sell duplicates
+  (its count chooser: - 3 +, Max, "Sell 3 for $360").
+- **The Index** (designer, 2026-09-28; concept 2): 4 cells a row; a cue never found is a grey
+  card with its dark silhouette (no name, bar or pills; section 17). The chosen cue shows in a
+  panel on the right: its flat picture swaying gently (5 degrees either way over 4 s; still
+  with Reduce Motion; the 3D cue went), a near-black silhouette until found and its real
   colours after (the picture wears the rarity then), its name even before it is found, the
-  rarity, "In your collection" or "Not found yet", "1,284 exist", and for a cue not found
-  yet "Find it for +$250" in green with the cash. A tap chooses a card; a controller chooses
-  the card it lands on. On a phone the panel is narrower and the cue smaller.
-- **The Cues tab's sort button** (designer, 2026-09-28): the rarity filter chips went; a blue
-  candy button with the sliders icon, "Sort: Rarest first", sits where they were, left of
-  "Sell all duplicates". Each press moves to the next order (Rarest first, Common first,
-  Most copies, Name A-Z, then round), keeps the chosen card and scrolls the grid to its top.
-  It is as wide as its longest words so it never jumps; the order is kept while the player
-  stays in the server. By rarity, Ranked and Exclusive sit between Epic and Legendary, the rank
-  cues highest tier first (lowest first in Common first).
+  rarity, "In your collection" or "Not found yet", "4.2% chance · 1,284 exist", and for a cue
+  not found yet "Find it for +$250" in green with the cash. A tap chooses a card; a controller
+  chooses the card it lands on. On a phone the panel is narrower.
 - **Finder's money**: a block's prize that is new to the Index reads "NEW! +$250" on the
   "YOU GOT" card, and the money reaches the HUD with the card, never before (the reel is never
   given away). Any other find (a rank-up cue, the
@@ -751,13 +760,17 @@ next (`InventoryCard`, its motion `CueCardFx`, `Config.UI.CueCard`; brief
 `docs/prompts/CUES_LIVELY_PROMPT.md`, concept 1 approved in round 4). Card units 150 x 190.
 
 - **No wasted space**: the cue's picture fills the top (a square 94% of the card's width); the
-  name sits over its lower edge in white with the ink outline (one line that shrinks to 12 px,
-  then wraps); the **rarity bar** along the bottom is a pill in the rarity's colour with the
+  name sits over its lower edge in white with the ink outline (one line that shrinks, then
+  wraps); the **rarity bar** along the bottom is a pill in the rarity's colour with the
   rarity's word inside, upper case, white with the ink outline (style A).
 - **Corners**: top left the chance chip (dark, the percent in the rarity's light colour; only
   on cues that drop from a block, a Unique cue showing its Grand Opening odds), then NEW and
-  Equipped under it; top right the count ("x3", "#412") and the padlock on Exclusive and
-  Unique cues.
+  Equipped under it; top right the count ("x3") and the padlock on Exclusive and Unique
+  cues. A numbered copy's number ("#412") is a dark chip with gold words just above the name,
+  on the right.
+- **Words keep the card's scale** (concept 2, 2026-10-08): a phone's small card shrinks its
+  words with it, down to 6 px (`Config.UI.CueCard.Layout.MinTextPx`), rather than holding a
+  floor that crowds the card.
 - **The card** is filled in its look's colours and rimmed by the rarity edge with a thin white
   line inside it. Faint 8-balls in the card's colour drift slowly up-left behind every card
   (13% on light cards, 7% on dark ones; "very transparent", 30 s a period).

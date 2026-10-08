@@ -3089,3 +3089,8 @@ timer of a new block stay the designer's call.
   implementing on all of them"). Example shown, waiting for the OK: a gold nameplate with the
   number on the butt sleeve, on the cue in hand and on the back in the lobby. It is built with
   the copy numbers.
+- 2026-10-08: The Cues menu is built from concept 2 (the Inventory renamed; brief
+  `docs/prompts/CUES_LIVELY_PROMPT.md`). Two small calls made while building: the money "+" in
+  every lively header now pops in with its money pill (it showed alone on the empty panel,
+  the Shop too), and the Index's detail panel grows from its centre instead of popping (a big
+  box overshooting poked out of the menu).
