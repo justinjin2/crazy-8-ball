@@ -3549,13 +3549,49 @@ Config.Products = {
 		MoneyParty = { Kind = "Product", Id = 3716158385, Robux = 49 }, -- +100% money, 15 min, server
 		-- Claim All (Config.Daily.ClaimAll): the rest of this 7-day login row at once. ClaimAll:
 		-- the most days one pays (its step's top: a receipt after the row changed pays the days
-		-- ahead up to this). Made on Roblox when the Daily screen ships (Id 0: Coming soon).
-		ClaimAllFirst7 = { Kind = "Product", Id = 0, Robux = 399, ClaimAll = 7, Random = true },
-		ClaimAllFirst5 = { Kind = "Product", Id = 0, Robux = 349, ClaimAll = 5, Random = true },
-		ClaimAllFirst2 = { Kind = "Product", Id = 0, Robux = 299, ClaimAll = 2, Random = true },
-		ClaimAllWeek7 = { Kind = "Product", Id = 0, Robux = 129, ClaimAll = 7, Random = true },
-		ClaimAllWeek5 = { Kind = "Product", Id = 0, Robux = 99, ClaimAll = 5, Random = true },
-		ClaimAllWeek2 = { Kind = "Product", Id = 0, Robux = 59, ClaimAll = 2, Random = true },
+		-- ahead up to this). Made on Roblox 2026-10-08 with the Free Reward menu.
+		ClaimAllFirst7 = {
+			Kind = "Product",
+			Id = 3717289778,
+			Robux = 399,
+			ClaimAll = 7,
+			Random = true,
+		},
+		ClaimAllFirst5 = {
+			Kind = "Product",
+			Id = 3717289783,
+			Robux = 349,
+			ClaimAll = 5,
+			Random = true,
+		},
+		ClaimAllFirst2 = {
+			Kind = "Product",
+			Id = 3717289785,
+			Robux = 299,
+			ClaimAll = 2,
+			Random = true,
+		},
+		ClaimAllWeek7 = {
+			Kind = "Product",
+			Id = 3717289791,
+			Robux = 129,
+			ClaimAll = 7,
+			Random = true,
+		},
+		ClaimAllWeek5 = {
+			Kind = "Product",
+			Id = 3717289793,
+			Robux = 99,
+			ClaimAll = 5,
+			Random = true,
+		},
+		ClaimAllWeek2 = {
+			Kind = "Product",
+			Id = 3717289797,
+			Robux = 59,
+			ClaimAll = 2,
+			Random = true,
+		},
 		-- Ability spins (ECONOMY 11.8; the spin screen's R$ buy row). Spins / Lucky: what one
 		-- purchase adds; Was: the same count bought one at a time today (a true bulk saving
 		-- against Spin1 or Lucky1, never a former price; the shop will show it "one by one").

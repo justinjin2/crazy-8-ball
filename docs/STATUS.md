@@ -63,10 +63,10 @@ One line each; the long form is the 2026-10-08 entry at the top of
   at 29 R$ with its cue; the Shop's Blocks tab (Mystery A, Restock B, Starter Pack and VIP A),
   Money tab (B) and Passes tab (B), each on PC and a phone-sized layout; the HUD's win track (A);
   the Free Reward menu (Daily A with Playtime, the track and Group in one menu, replacing the
-  Rewards menu; codes stay in Settings). At publish: `tools/roblox_products.py --sync` (the
-  Starter Pack at 29, the pack texts, Lucky1 and Lucky3 off sale). Next: Claim All's six
-  products, Ranked A, Abilities A, the Mystery screen B, Settings A. Trade is not built (not in
-  the release).
+  Rewards menu; codes stay in Settings) with Claim All's six Robux products made on Roblox
+  (random items: Not Listed with the others). At publish: `tools/roblox_products.py --sync` (the
+  Starter Pack at 29, the pack texts, Lucky1 and Lucky3 off sale). Next: Ranked A, Abilities A,
+  the Mystery screen B, Settings A. Trade is not built (not in the release).
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in
   `gui-v4`): the new cue card, the Cues menu, the CUES icon, the smooth money chip, the reel and
   YOU GOT, checked in Studio. Still open: the see-through reel trial's verdict, a phone and a

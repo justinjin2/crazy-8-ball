@@ -352,22 +352,8 @@ return {
 	end,
 
 	["every pass and product is made: a real id, each once"] = function()
-		-- Not made in Creator Hub yet (tools/roblox_products.py makes them): Claim All's ladder
-		-- (2026-10-08), made when the Daily screen ships.
-		local pending: { [string]: boolean } = {
-			ClaimAllFirst7 = true,
-			ClaimAllFirst5 = true,
-			ClaimAllFirst2 = true,
-			ClaimAllWeek7 = true,
-			ClaimAllWeek5 = true,
-			ClaimAllWeek2 = true,
-		}
 		local seen = {}
 		for key, product in Config.Products.List do
-			if pending[key] then
-				H.expect(product.Id == 0, key .. " is still pending")
-				continue
-			end
 			H.expect(product.Id > 0, key .. " has its id (tools/roblox_products.py)")
 			H.expect(seen[product.Id] == nil, key .. ": id used once")
 			seen[product.Id] = key
@@ -912,7 +898,7 @@ return {
 		H.expect(Shop.hasPurchase(old, "x"), "list made")
 	end,
 
-	["Claim All: the grant names its most days; only today's step sells"] = function()
+	["Claim All: the grant names its most days; only today's step sells"] = noIds(function()
 		local now = JOIN + HOUR
 		local grant = Shop.grantFor("ClaimAllFirst7", newShop(), now, false) :: any
 		H.expect(grant ~= nil and grant.claimAll == 7 and grant.money == 0, "7 days at most")
@@ -921,7 +907,7 @@ return {
 		local function check(key: string, overrides: { [string]: any }): string?
 			return ShopView.check(key, ctxAt(now, overrides))
 		end
-		-- Id 0 until the Daily screen ships: Coming soon even for today's step.
+		-- Without its id (not made on Roblox): Coming soon even for today's step.
 		H.expect(check("ClaimAllFirst7", { claimAll = "ClaimAllFirst7" }) == "ComingSoon", "")
 		H.expect(check("ClaimAllFirst5", { claimAll = "ClaimAllFirst7" }) == "Closed", "a step")
 		H.expect(check("ClaimAllWeek7", {}) == "Closed", "nothing of the row left")
@@ -936,7 +922,7 @@ return {
 		local ok, why = pcall(check, "ClaimAllFirst7", { claimAll = "ClaimAllFirst7" })
 		row.Id = id
 		H.expect(ok and why == nil, "with an id, today's step sells: " .. tostring(why))
-	end,
+	end),
 
 	["ShopView.check: why a Buy may not prompt"] = noIds(function()
 		withLimiteds(function()
