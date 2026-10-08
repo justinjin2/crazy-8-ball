@@ -49,7 +49,7 @@ export type Pack = { key: string, robux: number, money: number, bonus: number }
 export type Grant = {
 	key: string, -- the Config.Products key bought
 	money: number, -- money to add (0 for none)
-	cue: string?, -- a cue to add: the VIP Cue the first time
+	cue: string?, -- a cue to add: the VIP Cue the first time, the Starter Pack's Starter Cue
 	vip: boolean?, -- VIP from the welcome offer (sets Shop.VipOffer)
 	vipCue: boolean?, -- cue is the VIP Cue (sets Shop.VipCueGiven)
 	party: boolean?, -- start or extend this server's Money Party (Shop.partyEndsAt)
@@ -593,7 +593,9 @@ function Shop.grantFor(
 			grant.vipCue = true
 		end
 	elseif key == STARTER_PACK then
-		-- Where paid random items are restricted: more money and no block (v4 plan 8.6).
+		-- The Starter Cue comes with it everywhere (designer, 2026-10-08); where paid random
+		-- items are restricted: more money and no block (v4 plan 8.6).
+		grant.cue = S.StarterCue
 		if restricted == true then
 			grant.money += S.StarterRestrictedMoney
 		else

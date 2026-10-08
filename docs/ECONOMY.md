@@ -936,22 +936,29 @@ pack (400 R$), and about two-thirds of Robux is bought on phones and consoles.
 
 ### 11.1 Money packs (developer products) and the launch bonus
 
-| Key | Name on Roblox | Robux | Money | Bonus | Before v4 |
-|---|---|---|---|---|---|
-| Pack1 | Handful of Cash | 25 | $8,000 | - | 49 R$, $9,000 |
-| Pack2 | Stack of Cash | 49 | $16,500 | +5% | 99 R$, $19,500 |
-| Pack3 | Bundle of Cash | 99 | $35,000 | +10% | 249 R$, $52,500 |
-| Pack4 | Briefcase of Cash | 199 | $75,000 | +18% | 499 R$, $110,000 |
-| Pack5 | Vault of Cash | 399 | $160,000 | +25% | 999 R$, $235,000 |
-| Pack6 | Bank of Cash | 799 | $335,000 | +31% | 2,499 R$, $625,000 |
-| Pack7 | Fortune | 1,699 | $760,000 | +40%, **Best value** | 4,999 R$, $1,300,000 |
+| Key | Name on Roblox | Robux | Money | Bonus | v4 (2026-10-08 morning) | Before v4 |
+|---|---|---|---|---|---|---|
+| Pack1 | Handful of Cash | 25 | $10,000 | - | $8,000 | 49 R$, $9,000 |
+| Pack2 | Stack of Cash | 49 | $21,000 | +7% | $16,500 | 99 R$, $19,500 |
+| Pack3 | Bundle of Cash | 99 | $47,500 | +20% | $35,000 | 249 R$, $52,500 |
+| Pack4 | Briefcase of Cash | 199 | $110,000 | +38% | $75,000 | 499 R$, $110,000 |
+| Pack5 | Vault of Cash | 399 | $250,000 | +57% | $160,000 | 999 R$, $235,000 |
+| Pack6 | Bank of Cash | 799 | $600,000 | +88% | $335,000 | 2,499 R$, $625,000 |
+| Pack7 | Fortune | 1,699 | $1,500,000 | +121%, **Best value** | $760,000 | 4,999 R$, $1,300,000 |
 
-About 1.7x the money per Robux of before v4. **"Best value" is Pack7** (`Config.Products.BestValue`;
-v4: the pack that really gives the most money per Robux; it was Pack6). An hour of Classic play
-($7,300) is 16-23 R$ of packs.
+**Boosted the same day** (designer, 2026-10-08, on the GUI mock page: "spending 1700 robux for
+760000 and that's still not enough to buy a legendary lucky block ... money definitely needs a
+boost"). The biggest pack now buys one restock Legendary block's money price ($1,490,000), and
+the ladder is steeper, so the big packs are the deal. Every block still costs more through money
+than its own Robux price (at the best pack: Mystery 1.1x, Grand Opening and restock Rare 1.5x,
+Epic 2.3x, Legendary 2.8x, Mythic 3.3x; `python3 tools/economy_model.py value`), and the
+model's rarity targets all still hold (`--built-only`: Epic, Legendary, Mythic and Secret
+owners move by under half a point, because bought money mostly buys Mystery blocks, a small
+share of where cues come from). **"Best value" is Pack7** (`Config.Products.BestValue`). An hour
+of Classic play ($7,300) is 8-18 R$ of packs.
 
 **The first-pack double is off** (v4, 2026-10-08; `Config.Shop.FirstPackMultiplier` 1): no top
-Roblox game has one, it nudged a kid toward the biggest pack first, and the 19 R$ Starter Pack
+Roblox game has one, it nudged a kid toward the biggest pack first, and the 29 R$ Starter Pack
 now wins the first purchase.
 
 **The launch bonus** replaces the 30% release sale (designer, 2026-10-08;
@@ -990,15 +997,17 @@ then never again. It is a developer product that grants VIP in the save (VIP = o
 **or** bought the offer), so only that player sees it. Friendly wording ("Welcome offer"),
 never "LAST CHANCE". Managed Pricing is off so "half price" stays true.
 
-### 11.4 Starter Pack (developer product, 19 R$)
+### 11.4 Starter Pack (developer product, 29 R$)
 
 Once per player, in the first 7 days after the first join, shown after the first block opening
-(v4, 2026-10-08; was 99 R$): **a Starter lucky block** (Rare or better: Epic 9%, Legendary 0.9%;
+(v4, 2026-10-08; 29 R$ since that afternoon, was 19, before v4 99): **the Starter Cue**
+(Exclusive, the one that trades; `Config.Shop.StarterCue`; back in the pack, designer
+2026-10-08), **a Starter lucky block** (Rare or better: Epic 9%, Legendary 0.9%;
 `Config.Shop.StarterBlock`), **$25,000** (was $75,000) and **1 hour of 2x money** (adds to VIP:
 x3, designer 2026-10-03). Worth about 150 R$ (the block alone about 73 R$ on the value ladder).
 
-**Where PolicyService restricts paid random items it is still sold, with no block: $40,000 and
-the hour of 2x money** (`Config.Shop.StarterRestrictedMoney`). So the Starter Pack is no longer
+**Where PolicyService restricts paid random items it is still sold, with no block: the Starter
+Cue, $40,000 and the hour of 2x money** (`Config.Shop.StarterRestrictedMoney`). So the Starter Pack is no longer
 a `Random` product in Config (the restricted version has nothing random); it stays Not Listed
 on Roblox (13).
 
@@ -1014,7 +1023,7 @@ prices and descriptions are `tools/products_spec.json`, sent to Roblox by
 | 2 | UltSlot2 | Game pass | **49** | 59 | the second ability slot |
 | 3 | UltSlot3 | Game pass | **79** | 99 | the third ability slot |
 | 4 | VipOffer | Product, once | **199** | 249 | 11.3 |
-| 5 | StarterPack | Product, once | **19** | 99 | 11.4 |
+| 5 | StarterPack | Product, once | **29** | 99 | 11.4 |
 | 6-12 | Pack1-Pack7 | Products | **25 / 49 / 99 / 199 / 399 / 799 / 1,699** | 49 ... 4,999 | 11.1 |
 | 13 | Mystery1 | Product | **5** | 25 | 1 Mystery block |
 | 14 | Mystery10 | Product | **45** | 229 | 10 Mystery blocks (13 during the launch bonus) |
@@ -1048,7 +1057,7 @@ paid random items are restricted can't gift a random product** (v4).
 
 A Robux receipt that no longer qualifies when it arrives (the VIP offer when already VIP or
 after its window plus 10 minutes, a second Starter Pack) pays plain money instead at Pack1's
-rate, Robux x 8,000 / 25 (the VIP offer about $63,700, the Starter Pack about $6,100).
+rate, Robux x 10,000 / 25 (the VIP offer $79,600, the Starter Pack $11,600).
 
 **Setting the prices on Roblox**: `python3 tools/roblox_products.py --sync --dry-run`, then
 `--sync`, brings every made pass and product in line with `products_spec.json` (price, name,

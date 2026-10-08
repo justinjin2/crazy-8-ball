@@ -3238,3 +3238,23 @@ timer of a new block stay the designer's call.
   129 / 99 / 59 R$, about half the shop value. A paid random item (refused and hidden where
   restricted), never a gift. A receipt pays at most its product's days; with nothing left it
   pays the money fallback. The six products are in the spec, made when the Daily screen ships.
+- 2026-10-08 (designer, on the GUI mock page: "spending 1700 robux for 760000 and thats still
+  not enough to buy like a legendary lucky block ... money definitely needs a boost"): the money
+  packs are boosted to $10,000 / $21,000 / $47,500 / $110,000 / $250,000 / $600,000 /
+  $1,500,000 for 25 / 49 / 99 / 199 / 399 / 799 / 1,699 R$ (bonus 0 / 7 / 20 / 38 / 57 / 88 /
+  121%). The biggest buys a restock Legendary block's money price; every block still costs more
+  through money than its own Robux price; the economy model's rarity targets all still hold.
+- 2026-10-08 (designer, the same page: "theres also a starter cue ... also actually increase
+  starter pack to 29"): the Starter Pack is 29 R$ (was 19) and gives the Starter Cue again,
+  everywhere (the cue is not random), with its block, $25,000 and the hour of 2x money. The
+  shop's Starter Pack and VIP cards list the Starter Cue and the VIP Cue.
+- 2026-10-08: **fixed: every Robux lucky block was refused at the receipt** (Mystery 1/10, the
+  Grand Opening packs, the Starter Pack): PlayerData's list of grant fields still said `drops`
+  (the cases era), not `blocks`, so applyPurchase refused the grant and the receipt was never
+  granted. The list is now `Shop.GrantFields`, beside the Grant type, and a test checks every
+  product's grant against it.
+- 2026-10-08 (designer's picks on the mock page): Mystery A, Restock B, Starter Pack and VIP A
+  (under the Restock, in the Blocks group), Money B, Passes B, the HUD win track A, Daily A in
+  one Free Reward menu (merged with Rewards; Playtime A), Ranked A, Abilities A, the Mystery
+  upgrade screen B, Settings A. Trade is not in the release: not built now. No animatics: each
+  screen is shown at its Studio first look, with the Shop's open timings.

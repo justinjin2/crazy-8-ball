@@ -33,57 +33,57 @@
    "key": "StarterPack",
    "kind": "Product",
    "name": "Starter Pack",
-   "robux": 19,
-   "description": "The Starter Lucky Block (Rare or better), $25,000 and 1 hour of 2x money. Where paid random items aren't allowed: $40,000 and the hour of 2x money. Once per player, in your first 7 days. Odds are shown in the game."
+   "robux": 29,
+   "description": "The Starter Cue, the Starter Lucky Block (Rare or better), $25,000 and 1 hour of 2x money. Where paid random items aren't allowed: the Starter Cue, $40,000 and the hour of 2x money. Once per player, in your first 7 days. Odds are shown in the game."
   },
   {
    "key": "Pack1",
    "kind": "Product",
    "name": "Handful of Cash",
    "robux": 25,
-   "description": "$8,000."
+   "description": "$10,000."
   },
   {
    "key": "Pack2",
    "kind": "Product",
    "name": "Stack of Cash",
    "robux": 49,
-   "description": "$16,500 (+5%)."
+   "description": "$21,000 (+7%)."
   },
   {
    "key": "Pack3",
    "kind": "Product",
    "name": "Bundle of Cash",
    "robux": 99,
-   "description": "$35,000 (+10%)."
+   "description": "$47,500 (+20%)."
   },
   {
    "key": "Pack4",
    "kind": "Product",
    "name": "Briefcase of Cash",
    "robux": 199,
-   "description": "$75,000 (+18%)."
+   "description": "$110,000 (+38%)."
   },
   {
    "key": "Pack5",
    "kind": "Product",
    "name": "Vault of Cash",
    "robux": 399,
-   "description": "$160,000 (+25%)."
+   "description": "$250,000 (+57%)."
   },
   {
    "key": "Pack6",
    "kind": "Product",
    "name": "Bank of Cash",
    "robux": 799,
-   "description": "$335,000 (+31%)."
+   "description": "$600,000 (+88%)."
   },
   {
    "key": "Pack7",
    "kind": "Product",
    "name": "Fortune",
    "robux": 1699,
-   "description": "$760,000 (+40%). Best value."
+   "description": "$1,500,000 (+121%). Best value."
   },
   {
    "key": "Mystery1",

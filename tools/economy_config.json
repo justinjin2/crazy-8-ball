@@ -596,37 +596,37 @@
   "Packs": [
     {
       "Key": "Pack1",
-      "Money": 8000,
+      "Money": 10000,
       "Robux": 25
     },
     {
       "Key": "Pack2",
-      "Money": 16500,
+      "Money": 21000,
       "Robux": 49
     },
     {
       "Key": "Pack3",
-      "Money": 35000,
+      "Money": 47500,
       "Robux": 99
     },
     {
       "Key": "Pack4",
-      "Money": 75000,
+      "Money": 110000,
       "Robux": 199
     },
     {
       "Key": "Pack5",
-      "Money": 160000,
+      "Money": 250000,
       "Robux": 399
     },
     {
       "Key": "Pack6",
-      "Money": 335000,
+      "Money": 600000,
       "Robux": 799
     },
     {
       "Key": "Pack7",
-      "Money": 760000,
+      "Money": 1500000,
       "Robux": 1699
     }
   ],
@@ -755,19 +755,19 @@
       "Robux": 160
     },
     "Pack1": {
-      "Money": 8000,
+      "Money": 10000,
       "Robux": 25
     },
     "Pack2": {
-      "Money": 16500,
+      "Money": 21000,
       "Robux": 49
     },
     "Pack3": {
-      "Money": 35000,
+      "Money": 47500,
       "Robux": 99
     },
     "Pack4": {
-      "Money": 75000,
+      "Money": 110000,
       "Robux": 199
     },
     "Pack4Sale": {
@@ -776,7 +776,7 @@
       "Robux": 349
     },
     "Pack5": {
-      "Money": 160000,
+      "Money": 250000,
       "Robux": 399
     },
     "Pack5Sale": {
@@ -785,7 +785,7 @@
       "Robux": 699
     },
     "Pack6": {
-      "Money": 335000,
+      "Money": 600000,
       "Robux": 799
     },
     "Pack6Sale": {
@@ -794,7 +794,7 @@
       "Robux": 1749
     },
     "Pack7": {
-      "Money": 760000,
+      "Money": 1500000,
       "Robux": 1699
     },
     "Pack7Sale": {
@@ -827,7 +827,7 @@
       "Robux": 299
     },
     "StarterPack": {
-      "Robux": 19
+      "Robux": 29
     },
     "UltSlot2": {
       "Robux": 49

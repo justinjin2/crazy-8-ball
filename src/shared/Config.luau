@@ -3267,15 +3267,17 @@ Config.Shop = {
 	WelcomeSeconds = 86400,
 	ComebackAfterSeconds = 7 * 86400,
 	ComebackSeconds = 86400,
-	-- The Starter Pack (v4 plan 8.6): for StarterSeconds after the first join, once. 19 R$:
-	-- the Starter block, StarterMoney and an hour of 2x money; where PolicyService restricts
-	-- paid random items, no block and StarterRestrictedMoney instead (was $75,000 at 99 R$).
+	-- The Starter Pack (v4 plan 8.6): for StarterSeconds after the first join, once. 29 R$
+	-- (designer, 2026-10-08; was 19): the Starter Cue, the Starter block, StarterMoney and an
+	-- hour of 2x money; where PolicyService restricts paid random items, no block and
+	-- StarterRestrictedMoney instead (was $75,000 at 99 R$).
 	StarterSeconds = 7 * 86400,
 	StarterMoney = 25000,
 	StarterRestrictedMoney = 40000,
 	-- The Starter Pack's hour of 2x money (Config.Economy.StarterBoost; it adds to VIP's).
 	StarterBoostSeconds = 3600,
 	StarterBlock = "Starter", -- the Starter Lucky Block (Rare or better; designer 2026-10-04)
+	StarterCue = "StarterCue", -- the Starter Pack's cue (back in it: designer, 2026-10-08)
 	VipCue = "VipCue", -- given once to every VIP
 	-- The one short shop page, top to bottom (designer, 2026-10-04): the Grand Opening Lucky
 	-- Block hero, the Mystery Lucky Block, the restock slots, the Starter Pack and VIP, money
@@ -3450,19 +3452,23 @@ Config.Products = {
 		UltSlot3 = { Kind = "Pass", Id = 2006012697, Robux = 79 }, -- the third ability slot
 		-- Offers (once).
 		VipOffer = { Kind = "Product", Id = 3716158339, Robux = 199 }, -- VIP at half price, 24 h windows
-		-- The Starter Pack: a Starter Lucky Block (Rare or better), $25,000, 1 h of 2x money.
-		-- Not Random: where paid random items are restricted it is still sold, as $40,000 and
-		-- the hour (Config.Shop.StarterRestrictedMoney); it stays Not Listed on Roblox.
-		StarterPack = { Kind = "Product", Id = 3716158341, Robux = 19 },
-		-- Money packs (v4 plan 8.2, about 1.7x the money per Robux of before): Money each,
-		-- Bonus = % more money per Robux than Pack1 (shown). The tops fit phone Robux packs.
-		Pack1 = { Kind = "Product", Id = 3716158342, Robux = 25, Money = 8000, Bonus = 0 }, -- Handful
-		Pack2 = { Kind = "Product", Id = 3716158345, Robux = 49, Money = 16500, Bonus = 5 }, -- Stack
-		Pack3 = { Kind = "Product", Id = 3716158347, Robux = 99, Money = 35000, Bonus = 10 }, -- Bundle
-		Pack4 = { Kind = "Product", Id = 3716158349, Robux = 199, Money = 75000, Bonus = 18 }, -- Briefcase
-		Pack5 = { Kind = "Product", Id = 3716158353, Robux = 399, Money = 160000, Bonus = 25 }, -- Vault
-		Pack6 = { Kind = "Product", Id = 3716158356, Robux = 799, Money = 335000, Bonus = 31 }, -- Bank
-		Pack7 = { Kind = "Product", Id = 3716158358, Robux = 1699, Money = 760000, Bonus = 40 }, -- Fortune
+		-- The Starter Pack: the Starter Cue, a Starter Lucky Block (Rare or better), $25,000,
+		-- 1 h of 2x money (29 R$: designer, 2026-10-08; was 19). Not Random: where paid random
+		-- items are restricted it is still sold, as the cue, $40,000 and the hour
+		-- (Config.Shop.StarterRestrictedMoney); it stays Not Listed on Roblox.
+		StarterPack = { Kind = "Product", Id = 3716158341, Robux = 29 },
+		-- Money packs: Money each, Bonus = % more money per Robux than Pack1 (shown). The tops
+		-- fit phone Robux packs. Boosted (designer, 2026-10-08: "money definitely needs a
+		-- boost"; was $8,000 .. $760,000): the biggest buys a restock Legendary block's money
+		-- price, the ladder is steeper so big packs are the deal, and every block still costs
+		-- more through money than its own Robux price (tools/economy_model.py value).
+		Pack1 = { Kind = "Product", Id = 3716158342, Robux = 25, Money = 10000, Bonus = 0 }, -- Handful
+		Pack2 = { Kind = "Product", Id = 3716158345, Robux = 49, Money = 21000, Bonus = 7 }, -- Stack
+		Pack3 = { Kind = "Product", Id = 3716158347, Robux = 99, Money = 47500, Bonus = 20 }, -- Bundle
+		Pack4 = { Kind = "Product", Id = 3716158349, Robux = 199, Money = 110000, Bonus = 38 }, -- Briefcase
+		Pack5 = { Kind = "Product", Id = 3716158353, Robux = 399, Money = 250000, Bonus = 57 }, -- Vault
+		Pack6 = { Kind = "Product", Id = 3716158356, Robux = 799, Money = 600000, Bonus = 88 }, -- Bank
+		Pack7 = { Kind = "Product", Id = 3716158358, Robux = 1699, Money = 1500000, Bonus = 121 }, -- Fortune
 		-- Lucky blocks by the count (Config.Shop.Deals): Blocks = { Kind, Count }, paid origin
 		-- (they open at once). The Grand Opening ones sell inside their deal's window only. Was:
 		-- the same count bought one at a time (a true saving; the shop shows "57 R$ one by one").
