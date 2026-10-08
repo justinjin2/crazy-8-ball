@@ -55,6 +55,13 @@ effects growing with the tier (Reyes gets everything and a rainbow edge).
 Questions asked: bar style A (coloured bar) or B (dark bar, coloured word); is Legendary and
 up exciting enough; the chance % off the Cues cards but on the spin's cards.
 
+Round 4 (2026-10-08), **the look to build**: bar A (the rarity's colour, the word in white with
+the ink outline); the 8-balls in each card's colour, very faint (light cards 13%, dark 7%); the
+motion as shown (designer: "just right"); a rank badge whole over the bar's left end, never
+clipped (designer: "make sure the ranks do not get cut off"); a chance chip only on cues that
+drop from a block (Unique cues show their Grand Opening odds), none on Ranked, VIP or Starter
+(designer: "no need to put an extra pill to say x rank").
+
 Round 3 (2026-10-08): the 8-balls about three times fainter (light cards 13%, dark 7%), the
 chance on every card.
 
@@ -66,7 +73,7 @@ with its white disc and a clear 8, bigger on the card (`tools/gui/card_balls.py`
 ## Progress
 
 - [x] Abilities and Ranked screens show again (`HudFocus`, `Config.UI.Menu.Focus.KeepWith`).
-- [ ] Concept 1 (the card) approved.
+- [x] Concept 1 (the card) approved (round 4, 2026-10-08).
 - [ ] The card built (`InventoryCard` and the reel's cards share it), Ranked rarity in the data.
 - [ ] Concept 2 (Cues menu) approved, then built.
 - [ ] Concept 3 (spin and YOU GOT) approved, then built.

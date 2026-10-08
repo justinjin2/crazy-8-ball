@@ -3041,3 +3041,7 @@ timer of a new block stay the designer's call.
   (designer), as a chip in the top-left corner; the faint 8-balls behind the cards are real
   8-balls with their 8 showing, kept very faint so they never distract (designer: "too
   distracting ... more transparent").
+- 2026-10-08: The new cue card's look (designer, concept round 4): the rarity bar in the
+  rarity's colour with the word in white; the faint 8-balls in each card's colour; the motion
+  per rarity as shown on the concept page; a Ranked card's tier badge shown whole over the
+  bar's end; a chance chip only on cues that drop from a block (none on Ranked, VIP, Starter).
