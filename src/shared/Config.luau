@@ -3823,6 +3823,10 @@ Config.Ults = {
 		SteelWhirr = { Id = "rbxassetid://122309511753634", Volume = 0.53, Pitch = 1.2 },
 		SteelClank = { Id = "rbxassetid://117478490073055", Volume = 0.42 },
 		SteelPot = { Id = "rbxassetid://135385970610304", Volume = 0.49 },
+		-- The rework (2026-10-08, assets/abilities/SOUNDS_V2.md): the rising whine as the
+		-- armed ball spins up (2.7 s), and a magic hum as the golden ratio draws itself.
+		SteelSpinUp = { Id = "rbxassetid://9119816546", Volume = 0.35 },
+		SteelSpiral = { Id = "rbxassetid://9116393976", Volume = 0.45 },
 		-- Black Flash: the cue ball's first hit plays the designer's own clip (2026-09-30; was a
 		-- boom, a glass shatter and a crackle tail). The file holds three hits (about 0.4 s,
 		-- 2.8 s and 6.5 s in, peak 0.66 at volume 1): only the first plays. An electric
@@ -4284,9 +4288,6 @@ Config.Ults.Assets = {
 		-- tools/blender/abilities/portals.py: PortalRim (a ragged torus of unit radius, flat),
 		-- PortalCore (the thin inner ring) and PortalDisc (a flat unit disc with the swirl).
 		Portals = 134871963661060,
-		-- tools/blender/abilities/steelball.py: SteelShell (the manga steel ball, unit radius)
-		-- and GoldSpiral (a flat spiral ribbon).
-		SteelBall = 83844850418816,
 		-- tools/blender/abilities/blackflash.py: BFBolt1..4 (thick black radiating bolts, unit
 		-- length along X, flat) and Shard1..12 (the ball shell's pieces, the ball mesh's UVs).
 		BlackFlash = 75008622077798,
@@ -4337,9 +4338,8 @@ Config.Ults.Assets = {
 		PortalSwirl = "rbxassetid://85317008061907",
 		PortalSparkles = "rbxassetid://110779778163475",
 		PortalBurst = "rbxassetid://136798614538270",
-		-- Steel Ball (steelball.py): the golden path on the cloth, the pot's burst ring and the
-		-- sparkle. (Images inside Decals 95892418217107, 74393921524104, 74762707211639.)
-		SteelPath = "rbxassetid://115232544003418",
+		-- Steel Ball (steelball.py): the pot's burst ring and the sparkle. (Images inside Decals
+		-- 74393921524104, 74762707211639; the golden path's, Decal 95892418217107, is retired.)
 		SteelBurst = "rbxassetid://140169441770879",
 		SteelSparkle = "rbxassetid://116655548573479",
 		-- Black Flash (blackflash.py): the shockwave ring. (Image inside Decal 112993995726160.)
@@ -4358,10 +4358,9 @@ Config.Ults.Assets = {
 		CatchGlow = "rbxassetid://95835543473221", -- a soft white radial glow
 		CatchStar = "rbxassetid://92483400833486", -- a 4-point sparkle star
 		CatchBeam = "rbxassetid://123563789160110", -- an energy beam tile along U
-		GoldenSpiral = "rbxassetid://86529095889847", -- the golden rectangles and the spiral
-		GoldenSpiralOnly = "rbxassetid://94383726110432", -- the spiral alone, same frame
-		SpinBlur = "rbxassetid://81867204122965", -- a spinning disc's streak ring
-		SpinArrows = "rbxassetid://132305530028588", -- two curved arrows round a circle
+		-- Steel Ball's streak ring round a spinning ball (three comet streaks; the golden ratio
+		-- is drawn with beams, so its images and the spin arrows are not used).
+		SteelSpinBlur = "rbxassetid://81867204122965",
 		VerityBall = "rbxassetid://138553376266593", -- the smiley on the ball mesh's UVs
 	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
@@ -10726,33 +10725,51 @@ Config.UI.VerityFx = {
 	RefuseShakes = 3,
 }
 
--- Steel Ball's look (src/client/SteelBallFx.luau). Studs unless named. (tune)
+-- Steel Ball's look (src/client/SteelBallFx.luau; the abilities rework, designer 2026-10-08:
+-- chrome that spins up like a fidget spinner, the golden ratio in yellow at the hit, the
+-- guided balls spinning hard). Studs unless named. (tune)
 Config.UI.SteelBallFx = {
-	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
 	FadeInSeconds = 0.2,
 	FadeOutSeconds = 0.5,
-	ShellScale = 1, -- the shell over the drawn cue ball
-	OutlineColor = { 0, 0, 0 }, -- the heavy manga outline (a Highlight round the shell)
-	-- The spin: this slowly (degrees a second) while armed; rolling, SpinBoost times its
-	-- natural roll (it spins hard).
-	IdleSpinDegrees = 90,
-	SpinBoost = 2.5,
-	-- The golden spirals round it: how many, their size (x the modelled one, whose outer end is
-	-- 2.3 ball radii out), their turn (degrees a second, SpiralMovingBoost times more rolling),
-	-- their tilt either way (degrees), and their spring out at the arming.
-	Spirals = 2, -- (art director: 3 thin ones read as atom orbits)
-	SpiralScale = 1.3, -- (look check 1: at 0.75 they were hairlines from the replay camera)
-	SpiralSpinDegrees = 540,
-	SpiralMovingBoost = 1.5,
-	SpiralTiltDegrees = 35,
-	SpiralTransparency = 0.02, -- the ribbon's own alpha shows only below 1 (MeshPart textures)
-	PopSeconds = 0.5,
-	PopOvershoot = 1.8,
+	-- The chrome ball over the drawn cue ball: a mirror (SmoothPlastic at this reflectance) of
+	-- this tint, a touch bigger so the cue ball never shows through.
+	ChromeColor = { 226, 230, 238 },
+	ChromeReflectance = 0.85,
+	ChromeScale = 1.02,
+	-- Its grip dots round the middle (a fidget spinner's weights): how many, how wide (ball
+	-- widths), how thick (their width's share), how dark; at full streaks they smear to this
+	-- see-through.
+	Dots = 3,
+	DotBallWidths = 0.3,
+	DotThickness = 0.12,
+	DotColor = { 46, 50, 58 },
+	DotReflectance = 0.25,
+	DotBlurTransparency = 0.85,
+	-- The spin about the upright, in turns a second: up to ArmedSpinRevs over SpinUpSeconds
+	-- from the look's first armed frame (slow at first, faster and faster: the whine's length),
+	-- held while armed and through the shot while it rolls, easing off over SpinDownSeconds
+	-- once it stops. The ball and its dots are drawn turning at most DotMaxRevs (faster
+	-- strobes); from BlurFromRevs the streak ring fades in, whole at BlurFullRevs, itself drawn
+	-- turning at most BlurMaxRevs.
+	SpinUpSeconds = 2.7,
+	ArmedSpinRevs = 12,
+	SpinDownSeconds = 1.2,
+	DotMaxRevs = 2.2,
+	BlurFromRevs = 1.5,
+	BlurFullRevs = 5,
+	BlurMaxRevs = 3,
+	-- The streak ring round a spinning ball's middle: this wide (ball widths; the image is
+	-- clear inside 0.42 of its half-width), this see-through at its strongest, this tint.
+	BlurBallWidths = 2.5,
+	BlurTransparency = 0.1,
+	BlurColor = { 255, 244, 214 },
+	-- The hum while it spins armed: this share of the rolling whirr's volume at full spin.
+	ArmedHumShare = 0.35,
 	-- Gold: the light, the trail and the flashes.
 	GoldColor = { 255, 190, 60 },
 	TrailColor = { 255, 245, 200 },
-	LightColor = { 255, 200, 90 },
-	LightBrightness = 3,
+	LightColor = { 255, 236, 200 },
+	LightBrightness = 2,
 	LightRangeBallWidths = 4,
 	TrailSeconds = 0.25,
 	TrailBallWidths = 0.6, -- the trail's width at the ball
@@ -10768,15 +10785,48 @@ Config.UI.SteelBallFx = {
 	PotSparks = 20,
 	ShakeStuds = 0.15,
 	ShakeSeconds = 0.25,
-	-- A guided ball's golden path on the cloth: this wide (ball widths), fading in and out over
-	-- these, scrolling toward the pocket, gone after PathMaxSeconds at most.
-	PathBallWidths = 1.3, -- (look check 1: at 0.9 the curls were too small to read)
-	PathLiftInches = 0.06,
-	PathTransparency = 0,
-	PathInSeconds = 0.25,
-	PathOutSeconds = 0.4,
-	PathScrollStuds = 1.5,
-	PathMaxSeconds = 6,
+	-- The golden ratio at the first hit (designer: "in yellow outline"): the golden rectangle,
+	-- its squares and the spiral, drawn on the cloth with the spiral's eye on the contact and
+	-- its tail toward the cue ball; SpiralBallWidths high (the golden ratio times that across),
+	-- SpiralSquares squares. The pen runs the spiral at one speed over SpiralDrawSeconds, each
+	-- square's divider with its arc, the outline over OutlineDrawSeconds; it holds, then fades.
+	SpiralBallWidths = 7,
+	SpiralSquares = 10,
+	SpiralDrawSeconds = 0.6,
+	OutlineDrawSeconds = 0.2,
+	SpiralHoldSeconds = 0.8,
+	SpiralFadeSeconds = 0.5,
+	SpiralLiftInches = 0.08,
+	-- Every drawn line (the golden ratio's and the guide lines) twice: a yellow core over a
+	-- wider dark gold edge (studs wide; the edge this see-through), in this many pieces a
+	-- beam, painted (InkLightEmission 0: glowing yellow added onto the cyan cloth reads white).
+	InkCoreColor = { 255, 226, 40 },
+	InkGlowColor = { 196, 112, 0 },
+	InkGlowTransparency = 0.15,
+	InkLightEmission = 0,
+	InkSegments = 16,
+	SpiralCoreStuds = 0.07,
+	SpiralGlowStuds = 0.11,
+	SquareCoreStuds = 0.045,
+	SquareGlowStuds = 0.075,
+	-- A ball it sends spins hard about the upright (drawn at GuidedSpinRevs turns a second;
+	-- its streak ring, GuidedBlurBallWidths wide, sells the rest), from GuidedSpinInSeconds
+	-- after the send, easing off over GuidedSpinDownSeconds once slower than
+	-- GuidedStillInchesPerSecond.
+	GuidedSpinRevs = 3,
+	GuidedBlurBallWidths = 2.3,
+	GuidedSpinInSeconds = 0.1,
+	GuidedSpinDownSeconds = 0.5,
+	GuidedStillInchesPerSecond = 3,
+	-- Its guide line ahead of it to the pocket (or to where a lined-up ball stops), drawn over
+	-- GuideDrawSeconds, gone over GuideFadeSeconds once it is down or stops (or after
+	-- GuideMaxSeconds).
+	GuideCoreStuds = 0.05,
+	GuideGlowStuds = 0.085,
+	GuideDrawSeconds = 0.18,
+	GuideFadeSeconds = 0.35,
+	GuideMaxSeconds = 6,
+	GuideLiftInches = 0.06,
 	-- A guided pot's burst ring at the pocket: grows to BurstBallWidths across over
 	-- BurstSeconds, fading. (Art director: at the first contact too it stole the pot's moment;
 	-- the contact now only sparkles.)

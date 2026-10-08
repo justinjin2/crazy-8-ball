@@ -3196,3 +3196,12 @@ timer of a new block stay the designer's call.
   white-hot and smoking, cooling to the ball's colour, for 6.1 s. The moment's slow grows from
   0.6 s to 1 s of wall time for the longer run in. New sounds: a deeper roar, a snarl as it
   springs, a claw slash per rake.
+- 2026-10-08 (designer: "actually steel shiny and glossy", spinning up "like a fidget spinner",
+  the golden ratio "in yellow outline" at the hit, the guided balls spinning hard): Steel Ball's
+  look is reworked. Armed, the cue ball turns mirror chrome with three dark grip dots and spins
+  up about the upright over 2.7 s with a rising whine, until the dots smear into a ring of
+  streaks. At the first hit the golden ratio (the golden rectangle, its squares and the spiral)
+  draws itself on the cloth in yellow lines with a dark gold edge, the spiral's eye on the
+  contact. Every guided ball spins hard in its own streak ring, with a yellow guide line to its
+  pocket. The golden path on the cloth, the spiral pictures and the manga steel shell are
+  retired.
