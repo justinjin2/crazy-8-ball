@@ -153,7 +153,7 @@ Round 2 (2026-10-08), from the designer's notes on round 1:
 Questions asked: which icon (1 to 4); does the switch feel clear. Answer: "ok" (round 2
 approved; the icon is asked in the build's plan).
 
-## Concept 2b: the CUES button and numbered copies (round 3, waiting)
+## Concept 2b: the CUES button and numbered copies (round 4, waiting)
 
 https://claude.ai/artifact/4Yt2zXLQ2nHTxHichzK8ob (sources in
 `~/Desktop/8ball-refs/gui-lively/work/cues-icon/`; the art from a scratch script on
@@ -191,6 +191,14 @@ switch). On hover the cue draws back, the ball pops in just ahead of the tip onc
 a short aim, the snap with a spark, the ball shoots off up and away and fades, and the cue
 slides back to rest (0.95 s; a click 0.7 s and harder). The cue A / B pick is gone. Still to
 pick: whether the icon is right now, the card's mark A or B, and the engraving.
+
+Round 4 notes (2026-10-08, a sketch over the column): "still too small look at how i drew it it
+needs to be like what the old double cue was but just one cue instead and add like a sparkle
+effect". The cue is now the crossed-cue icons' chunky cue (half widths 18 to 9.5 on the 256
+canvas) at -46 degrees in the Classic colours, with a soft gold glow that breathes and three
+twinkling sparkles. In the column it is drawn 1.46 tiles big, placed as sketched: the butt just
+above the word's top left, the cue passing left of the red dot, the tip just under the end of
+SHOP. The ball still shows only on hover.
 
 ## Progress
 
