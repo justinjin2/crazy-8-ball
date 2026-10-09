@@ -43,6 +43,7 @@ local GuiQA = require(script.Parent.GuiQA)
 local Menus = require(script.Parent.Menus)
 local PullCutscene = require(script.Parent.PullCutscene)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
+local UISound = require(script.Parent.UISound)
 
 local L = Config.LuckyBlocks
 local A = L.Anim
@@ -260,6 +261,7 @@ local function offerSkip(id: number)
 end
 
 local function requestSkip(id: number)
+	UISound.play("RobuxBuy") -- a Robux press (designer, 2026-10-09)
 	task.spawn(function()
 		local ok, skip = pcall(function()
 			return (Net.get("StoreRequest") :: RemoteFunction):InvokeServer("LuckySkip", id)

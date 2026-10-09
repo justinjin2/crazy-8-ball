@@ -89,7 +89,7 @@ end
 
 function UltBuy.buildCell(self: any, parent: Instance, key: string, pack: number): Cell
 	local button = HudParts.candy(parent, "", function()
-		UISound.play("Click")
+		UISound.play("RobuxBuy")
 		self.hooks.buyProduct(key)
 	end, "Green")
 	button.Name = "Buy" .. pack

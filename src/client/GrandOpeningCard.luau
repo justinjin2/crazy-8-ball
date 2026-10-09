@@ -528,6 +528,7 @@ function GrandOpeningCard.buildButtons(self: any)
 			)
 		end
 		local green = HudParts.candy(card, price, function()
+			UISound.play("RobuxBuy")
 			self.actions.robux(key)
 		end, "Green")
 		green.Name = "Robux" .. count

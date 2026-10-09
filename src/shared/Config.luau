@@ -5104,6 +5104,11 @@ Config.Audio = {
 		-- (2026-10-08). 0.55 s, measured peak 0.39 and loudness (RMS) 0.14: this Volume puts it
 		-- about as loud as the click, a touch above it since it marks a choice.
 		Equip = { Id = "rbxassetid://117649901456711", Volume = 0.25 },
+		-- A Robux button pressed (every Robux buy: the Shop, Claim All, the spin packs, the
+		-- block timer skip): the designer's "Gentle Metallic Bell Splash" (2026-10-09,
+		-- assets/audio/ui/RobuxBuy.wav, 3 s). Measured peak 0.51, loudest half second RMS 0.05:
+		-- this Volume puts it near the Equip sound.
+		RobuxBuy = { Id = "rbxassetid://111614736638239", Volume = 0.5 },
 		-- The case reel (2026-09-28, overnight placeholders; assets/audio/README.md). All from
 		-- Roblox's own library or APM Music via Roblox; each checked loading in this game.
 		-- "Roblox_UI_Small_Click" (0.13 s), pitched up and quiet: one card passing the marker.

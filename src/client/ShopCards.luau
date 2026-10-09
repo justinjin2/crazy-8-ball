@@ -18,6 +18,7 @@ local HudParts = require(script.Parent.HudParts)
 local Quality = require(script.Parent.Quality)
 local ShopParts = require(script.Parent.ShopParts)
 local UIAnim = require(script.Parent.UIAnim)
+local UISound = require(script.Parent.UISound)
 
 local B = Config.UI.ShopBlocks
 local K = Config.UI.Kit
@@ -563,7 +564,11 @@ end
 
 --- The green Robux button (its words may hold a struck-through old price).
 function ShopCards.robuxButton(parent: Instance, name: string, onPress: () -> ()): TextButton
-	local green = HudParts.candy(parent, "", onPress, "Green")
+	-- Every Robux press rings the bell (designer, 2026-10-09).
+	local green = HudParts.candy(parent, "", function()
+		UISound.play("RobuxBuy")
+		onPress()
+	end, "Green")
 	green.Name = name
 	green.AnchorPoint = Vector2.new(0.5, 0.5)
 	green.ZIndex = 5
