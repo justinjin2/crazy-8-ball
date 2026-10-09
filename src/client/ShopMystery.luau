@@ -119,8 +119,6 @@ function ShopMystery.new(parent: Instance, actions: Actions): any
 			{ strip = strip, corner = corner, icon = icon, name = name, value = value }
 		)
 	end
-	-- Its words are chosen as it lays out: the short ones where the long ones do not fit.
-	self.climb = ShopCards.note(ladder.frame, "Climb", "", 5)
 
 	-- The x1 and x10 columns.
 	self.columns = {} :: { Column }
@@ -250,15 +248,6 @@ function ShopMystery.layout(self: any, width: number, k: number, y: number): num
 		row.value.Size = UDim2.fromOffset(round(M.ValueUnits * k), valuePx + B.TextBoxPx)
 		HudParts.setTextSize(row.value, valuePx)
 	end
-	-- The climb note: the short words when a small screen's smallest text is too wide.
-	local notePx = ShopCards.textPx(M.NoteUnits, k)
-	local noteW = lw - 2 * M.NoteSideUnits
-	local clicks = Config.BlockOdds.Drop.Upgrade.Clicks
-	local long = string.format(COPY.Climb, clicks)
-	self.climb.Text = if ShopCards.measure(long, notePx) <= noteW * k
-		then long
-		else string.format(COPY.ClimbShort, clicks)
-	ShopCards.line(self.climb, k, lw / 2, M.NoteY, noteW, notePx)
 
 	-- The columns.
 	local greenPx, goldPx = M.GreenTextUnits, M.GoldTextUnits
@@ -417,7 +406,6 @@ function ShopMystery.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handl
 	for index, row in self.rows do
 		stage:add("MysteryRow" .. index, row.strip)
 	end
-	stage:add("MysteryClimb", self.climb)
 	for index, column in self.columns do
 		local n = COUNTS[index]
 		stage:add("MysteryX" .. n, column.box.frame)

@@ -9097,7 +9097,6 @@ Config.UI.Shop.Open = {
 		},
 		{ Ids = { "MysteryRobux1", "MysteryRobux10" }, Kind = "Pop", At = 0.42 }, -- with their gift squares
 		{ Ids = { "MysteryMoney1", "MysteryMoney10" }, Kind = "Pop", At = 0.47 },
-		{ Ids = { "MysteryClimb" }, Kind = "Fade", At = 0.5, Length = 0.12 },
 		{ Ids = { "MysteryRibbon" }, Kind = "Pop", At = 0.52 }, -- "13 for 10!" (only while it runs)
 		{ Ids = { "MysteryPity" }, Kind = "Fade", At = 0.55, Length = 0.12 },
 		{ Ids = { "RestockPanel" }, Kind = "Grow", At = 0.3 },
@@ -9482,9 +9481,10 @@ Config.UI.ShopBlocks = {
 		OddsBadge = { 286, 338, 50 }, -- centre x, centre y, size
 		GlowTint = { 196, 132, 255 }, -- the Mystery block's purple
 		Ladder = { 344, 44, 452, 374 }, -- left, top, width, height
-		RowTop = 18, -- the first row's top inside the ladder
-		RowUnits = 50, -- a row's step
-		RowHeightUnits = 44,
+		-- The six rows fill the ladder (designer, 2026-10-09: the climb line under them is gone).
+		RowTop = 17, -- the first row's top inside the ladder
+		RowUnits = 58, -- a row's step
+		RowHeightUnits = 50,
 		RowInsetUnits = 12, -- the row strips' inset from the ladder's sides
 		RowCornerUnits = 14,
 		RowColor = { 242, 248, 255 },
@@ -9495,9 +9495,6 @@ Config.UI.ShopBlocks = {
 		PercentUnits = 27,
 		ValueUnits = 110, -- the percent column, at the strip's right
 		ValueRightUnits = 12, -- its room from the strip's right
-		NoteY = 350, -- "Starts Standard · 5 presses to climb", inside the ladder
-		NoteUnits = 21,
-		NoteSideUnits = 10, -- its room each side (too narrow: the short words, Strings ClimbShort)
 		Columns = { { 812, 44, 218, 374 }, { 1044, 44, 218, 374 } }, -- x1 and x10: left, top, w, h
 		CountY = 72, -- "x1" / "x10"
 		CountUnits = 58,

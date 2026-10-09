@@ -730,8 +730,6 @@ return {
 			-- 2026-10-08). Numbers come from Config and the server's shop state.
 			Blocks = {
 				MysteryTitle = "MYSTERY LUCKY BLOCK",
-				Climb = "Starts Standard · %d presses to climb", -- under its six tiers
-				ClimbShort = "%d presses to climb", -- the same where the long one does not fit
 				Count = "x%d", -- over a buy column: "x1", "x10"
 				Bonus = "%d for %d!", -- the launch bonus ribbon: "13 for 10!"
 				Pity = "%s guaranteed in %d", -- "Epic guaranteed in 87" (the tier's name)
@@ -1100,7 +1098,7 @@ return {
 		UniqueGone = "%s · All found",
 		-- The Mystery block's (ShopMysteryOdds): the final tiers first, then pity as two meters
 		-- (designer, 2026-10-08: "pity make it easier to explain and show ... like 99/100").
-		Pity = "Pity: a sure thing",
+		Pity = "Pity", -- the head over the pity meters (designer, 2026-10-09: nothing after it)
 		PityRare = "Guaranteed Rare or better", -- a meter's word
 		PityEpic = "Guaranteed Epic or better",
 		PityCount = "%d/%d", -- the blocks opened since the last one, the count: "3/10"

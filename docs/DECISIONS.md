@@ -3614,3 +3614,6 @@ timer of a new block stay the designer's call.
   many-coloured letters, with a gold flash (green for a money pack). It waits for Roblox's
   purchase box to close and shows over open menus. A money pack plays the slot machine payout;
   other Robux items play the achievement chime.
+- 2026-10-09: The Mystery card loses its "Starts Standard · 5 presses to climb" line (its six
+  tier rows fill the box), and the Odds & Details pity head says just "Pity" (no "a sure
+  thing"), the designer's notes.

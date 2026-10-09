@@ -850,15 +850,15 @@ band, restock tiles and pass bands.
   rim) across the panel's top edge; white boxes inside.
 - **The Mystery block (A)**: the rainbow block with a purple glow, turning rays and twinkles
   (the picture stays still) and the sky-blue dice at its corner; the six tiers (the tier's
-  block, its name in its colour, the chance in sky blue) and "Starts Standard · 5 presses to
-  climb"; x1 and x10 columns: the count in gold, the purple gift square and the green Robux
+  block, its name in its colour, the chance in sky blue) filling the box, no line under them
+  (designer, 2026-10-09); x1 and x10 columns: the count in gold, the purple gift square and the green Robux
   button, the gold money button under; the red "13 for 10!" ribbon, tilted and shaking, on x10
   while the launch bonus runs; the Epic guarantee strip under everything ("Epic guaranteed in
   53" and a purple bar).
 - **The Mystery block's "Odds & Details"** (economy v4 plan 3.2, hand-off item 13,
   `ShopMysteryOdds` in the shared popup below; designer, 2026-10-08: "show the block tiers
   first, then pity"): **Final tier** first, each tier as a rarity bar with its block over the
-  bar's left end and its chance (Standard in Common's grey); then **Pity** as two meters, a
+  bar's left end and its chance (Standard in Common's grey); then **Pity** (the head says just that; designer, 2026-10-09) as two meters, a
   pale track filling with the rarity's bar ("Guaranteed Rare or better" 3/10, "Guaranteed
   Epic or better" 56/100); once a guarantee is the very next block a gold line says "Your next
   Mystery block is Epic or better!" and the lists show the odds with pity; then **Each
@@ -916,8 +916,7 @@ band, restock tiles and pass bands.
 - **The jump buttons** scroll the page smoothly (0.33 s) to Featured or Blocks, and the lit
   button follows the scroll.
 - **On a phone** the same arrangement scales to fit the page. Words stay at 12 px or more, so
-  stacked words move up to make room (`ShopCards.above`) and the climb note shortens to "5
-  presses to climb".
+  stacked words move up to make room (`ShopCards.above`).
 
 **Open**: a real phone and a real controller.
 
