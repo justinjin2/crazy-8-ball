@@ -87,9 +87,22 @@ function Stage.new(open: any, burstLayer: GuiObject?): Stage
 end
 
 --- Register `object` as piece `id` (an id in the schedule's steps). `onLand` runs once its
---- reveal is over (start its idle loops there). Returns the object.
+--- reveal is over (start its idle loops there). Returns the object. An id registered again (a
+--- reordered rail's buttons take each other's ids) first puts the piece it held back at rest:
+--- a close leaves every piece faded, and the next run would read that look as the new rest.
 function Stage.add<T>(self: Stage, id: string, object: T & GuiObject, onLand: (() -> ())?): T
-	if not self.pieces[id] then
+	local old = self.pieces[id]
+	if old then
+		if old.faded and old.cache then
+			for _, c in old.cache :: { Cached } do
+				(c.object :: any)[c.prop] = c.rest
+			end
+		end
+		if old.moved then
+			old.object.Position = old.restPosition
+			old.object.Size = old.restSize
+		end
+	else
 		table.insert(self.order, id)
 	end
 	self.pieces[id] = {
