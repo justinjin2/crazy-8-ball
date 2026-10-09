@@ -54,8 +54,11 @@ type Hero = {
 	cash: ImageLabel,
 	odds: ShopCards.Badge,
 	title: TextLabel,
+	head: TextLabel, -- "Reward:" over the list
 	reward: TextLabel,
+	rewardDot: TextLabel, -- the list's bullets, the words wrapping clear of them
 	line: TextLabel,
+	lineDot: TextLabel,
 	button: TextButton,
 	kind: string, -- the block its picture and dice show
 	count: number, -- how many of it the picture shows
@@ -72,6 +75,9 @@ type Plan = {
 	gap: number,
 	titlePx: number,
 	titleH: number,
+	headPx: number,
+	headH: number,
+	dotW: number, -- a bullet's room before its words
 	rewardPx: number,
 	rewardH: number,
 	linePx: number,
@@ -135,9 +141,16 @@ local function hero(
 	local odds = ShopCards.oddsBadge(frame, "OddsBadge", 8)
 	local title = words(frame, "Title", rgb(K.Numbers.Money))
 	title.Text = if key == "Group" then W.GroupRow else W.FavoriteRow
+	-- "Reward:", then what it gives as a bulleted list, the line in the same words' style and
+	-- size (designer, 2026-10-09).
+	local head = words(frame, "Head", nil)
+	head.Text = W.HeroHead
 	local reward = words(frame, "Reward", nil)
-	-- The line under it in the same words' style and size (designer, 2026-10-09).
+	local rewardDot = words(frame, "RewardDot", nil)
+	rewardDot.Text = W.Bullet
 	local line = words(frame, "Line", nil)
+	local lineDot = words(frame, "LineDot", nil)
+	lineDot.Text = W.Bullet
 	local made: Hero = {
 		key = key,
 		frame = frame,
@@ -149,8 +162,11 @@ local function hero(
 		cash = cash,
 		odds = odds,
 		title = title,
+		head = head,
 		reward = reward,
+		rewardDot = rewardDot,
 		line = line,
+		lineDot = lineDot,
 		button = nil :: any,
 		kind = kind,
 		count = 0,
@@ -201,13 +217,22 @@ local function plan(c: Hero, k: number, cardW: number): Plan
 		titlePx = math.max(MIN_TEXT, math.floor(titlePx * colW / titleW))
 	end
 	local titleH = titlePx + B.TextBoxPx
+	local headPx = ShopCards.textPx(H.HeadUnits, k)
+	local headH = headPx + B.TextBoxPx
 	local rewardPx = ShopCards.textPx(H.RewardUnits, k)
-	local rewardH = ShopParts.wrapHeight(c.reward.Text, rewardPx, colW, H.RewardMaxRows)
+	local dotW = math.ceil(ShopCards.measure(W.Bullet, rewardPx)) + round(H.BulletGapUnits * k)
+	local listW = math.max(1, colW - dotW)
+	local rewardH = ShopParts.wrapHeight(c.reward.Text, rewardPx, listW, H.RewardMaxRows)
 	local linePx = ShopCards.textPx(H.LineUnits, k)
 	local lineH = if c.line.Text ~= ""
-		then ShopParts.wrapHeight(c.line.Text, linePx, colW, H.LineMaxRows)
+		then ShopParts.wrapHeight(c.line.Text, linePx, listW, H.LineMaxRows)
 		else 0
-	local textH = titleH + rowGap + rewardH + (if lineH > 0 then rowGap + lineH else 0)
+	local textH = titleH
+		+ rowGap
+		+ headH
+		+ rowGap
+		+ rewardH
+		+ (if lineH > 0 then rowGap + lineH else 0)
 	local topH = math.max(art, textH)
 	local buttonH = ShopCards.buttonPx(H.ButtonUnits, k)
 	return {
@@ -219,6 +244,9 @@ local function plan(c: Hero, k: number, cardW: number): Plan
 		gap = gap,
 		titlePx = titlePx,
 		titleH = titleH,
+		headPx = headPx,
+		headH = headH,
+		dotW = dotW,
 		rewardPx = rewardPx,
 		rewardH = rewardH,
 		linePx = linePx,
@@ -249,13 +277,26 @@ local function place(c: Hero, p: Plan, k: number, cardW: number, cardH: number)
 	c.title.Size = UDim2.fromOffset(p.colW, p.titleH)
 	HudParts.setTextSize(c.title, p.titlePx)
 	y += p.titleH + p.rowGap
-	c.reward.Position = UDim2.fromOffset(p.colX, round(y))
-	c.reward.Size = UDim2.fromOffset(p.colW, p.rewardH)
+	c.head.Position = UDim2.fromOffset(p.colX, round(y))
+	c.head.Size = UDim2.fromOffset(p.colW, p.headH)
+	HudParts.setTextSize(c.head, p.headPx)
+	y += p.headH + p.rowGap
+	-- Each list row: its bullet, then its words wrapping clear of it.
+	local listX, listW = p.colX + p.dotW, math.max(1, p.colW - p.dotW)
+	c.rewardDot.Position = UDim2.fromOffset(p.colX, round(y))
+	c.rewardDot.Size = UDim2.fromOffset(p.dotW, p.rewardPx + B.TextBoxPx)
+	HudParts.setTextSize(c.rewardDot, p.rewardPx)
+	c.reward.Position = UDim2.fromOffset(listX, round(y))
+	c.reward.Size = UDim2.fromOffset(listW, p.rewardH)
 	HudParts.setTextSize(c.reward, p.rewardPx)
 	y += p.rewardH + p.rowGap
 	c.line.Visible = p.lineH > 0
-	c.line.Position = UDim2.fromOffset(p.colX, round(y))
-	c.line.Size = UDim2.fromOffset(p.colW, math.max(1, p.lineH))
+	c.lineDot.Visible = p.lineH > 0
+	c.lineDot.Position = UDim2.fromOffset(p.colX, round(y))
+	c.lineDot.Size = UDim2.fromOffset(p.dotW, p.linePx + B.TextBoxPx)
+	HudParts.setTextSize(c.lineDot, p.linePx)
+	c.line.Position = UDim2.fromOffset(listX, round(y))
+	c.line.Size = UDim2.fromOffset(listW, math.max(1, p.lineH))
 	HudParts.setTextSize(c.line, p.linePx)
 	-- The button across the card's foot.
 	local button = c.button

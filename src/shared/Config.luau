@@ -14012,6 +14012,8 @@ Config.UI.FreeReward = {
 			OddsBadge = { 12, 12, 50 },
 			TextGapUnits = 18, -- between the picture and the words beside it
 			TitleUnits = 50, -- "Join the group", in the kit's gold (smaller to fit)
+			HeadUnits = 30, -- "Reward:" over the list (designer, 2026-10-09)
+			BulletGapUnits = 8, -- between a list row's bullet and its words
 			RewardUnits = 40, -- "3 Mystery Lucky Blocks" (wraps)
 			RewardMaxRows = 2,
 			-- The line under it ("+10% Permanent Extra Money", "+$10,000"): the reward's own

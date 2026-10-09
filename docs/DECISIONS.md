@@ -3663,3 +3663,6 @@ timer of a new block stay the designer's call.
   "Pity: 3 / 100 · Epic or better" with Epic in its purple. Free Reward's group and favorite
   cards: the line under the reward is in the reward's own style and size, and the group's reads
   "+10% Permanent Extra Money" (designer).
+- 2026-10-09: Free Reward's group and favorite cards list what they give under "Reward:", each
+  thing with a bullet and its words wrapping clear of it (designer: "add like a - or bullet
+  point so its more clear").

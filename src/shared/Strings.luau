@@ -1174,6 +1174,8 @@ return {
 		-- The first-visit heroes (FreeHeroes): their titles are GroupRow and FavoriteRow, the
 		-- reward's blocks the big words, the rest a line under them.
 		HeroBoost = "+%d%% Permanent Extra Money", -- the group's match money (designer, 2026-10-09)
+		HeroHead = "Reward:", -- over the list of what it gives (designer, 2026-10-09)
+		Bullet = "•", -- before each thing it gives
 		NotMember = "Join the group first, then press Claim.",
 		-- The invite card. The inviter's own block comes once ever (Config.Social.InviterOnce).
 		InviteTitle = "Invite a friend",
