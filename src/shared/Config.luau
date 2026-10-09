@@ -12372,7 +12372,9 @@ Config.UI.GuangdongTigerFx = {
 	FurTransparency = 0,
 	-- Each cut ball waits where it was until the cut, then shatters as Black Flash's ball does
 	-- (Config.UI.BallShards; the designer, 2026-10-09) in a burst of CutSparks white sparks,
-	-- each ball CutStaggerSeconds after the one before.
+	-- each ball CutStaggerSeconds after the one before; its shards stay ShardSeconds (the
+	-- designer, 2026-10-09: Black Flash's 6.1 s "linger for too long" here).
+	ShardSeconds = 2.5,
 	CutSparks = 8,
 	CutSparkColor = { 255, 245, 225 },
 	CutStaggerSeconds = 0.025,

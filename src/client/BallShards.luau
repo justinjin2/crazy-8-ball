@@ -26,6 +26,7 @@ export type Shard = {
 	axis: Vector3,
 	spin: number,
 	born: number,
+	seconds: number, -- how long it stays (fading over the last FadeSeconds)
 	floor: number,
 }
 
@@ -97,15 +98,16 @@ local function between(range: { number }): number
 end
 
 --- `ball` (a drawn ball part: its picture, size and turn) shatters at `at` (world), its shards
---- under `anchor`, born at `clock`; returns `list` with them added (unchanged without the
---- model).
+--- under `anchor`, born at `clock`, staying `seconds` (Config.UI.BallShards.Seconds when nil);
+--- returns `list` with them added (unchanged without the model).
 function BallShards.burst(
 	kit: any,
 	anchor: Instance,
 	ball: BasePart,
 	at: Vector3,
 	clock: number,
-	list: { Shard }
+	list: { Shard },
+	seconds: number?
 ): { Shard }
 	local m = BallShards.meshes(kit)
 	if m == nil then
@@ -134,6 +136,7 @@ function BallShards.burst(
 			).Unit,
 			spin = math.rad(F.SpinDegrees) * (0.5 + rng:NextNumber()),
 			born = clock,
+			seconds = seconds or F.Seconds,
 			floor = at.Y - r,
 		})
 	end
@@ -145,7 +148,7 @@ function BallShards.step(list: { Shard }, clock: number, dt: number): { Shard }
 	local keep = {}
 	for _, s in list do
 		local age = clock - s.born
-		if age >= F.Seconds or s.part.Parent == nil then
+		if age >= s.seconds or s.part.Parent == nil then
 			s.part:Destroy()
 			continue
 		end
@@ -165,7 +168,7 @@ function BallShards.step(list: { Shard }, clock: number, dt: number): { Shard }
 		s.part.CFrame = CFrame.new(pos)
 			* CFrame.fromAxisAngle(s.axis, s.spin * dt)
 			* s.part.CFrame.Rotation
-		s.part.Transparency = math.clamp((age - (F.Seconds - F.FadeSeconds)) / F.FadeSeconds, 0, 1)
+		s.part.Transparency = math.clamp((age - (s.seconds - F.FadeSeconds)) / F.FadeSeconds, 0, 1)
 		table.insert(keep, s)
 	end
 	return keep

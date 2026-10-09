@@ -797,9 +797,9 @@ local function shatter(self: GuangdongTigerFx, id: number, fx: TableFx, c: Cut)
 	kit.later(id, 1.5, function()
 		holder:Destroy()
 	end)
-	fx.shards = BallShards.burst(kit, fx.anchor, c.copy, c.at, fx.clock, fx.shards)
+	fx.shards = BallShards.burst(kit, fx.anchor, c.copy, c.at, fx.clock, fx.shards, F.ShardSeconds)
 	c.copy:Destroy()
-	kit.keep(id, Config.UI.BallShards.Seconds + 0.5)
+	kit.keep(id, F.ShardSeconds + 0.5)
 end
 
 -- A rake's moment: its slashes in the air and on the cloth; the first is the cut (the shards,
@@ -1058,7 +1058,7 @@ local function swipe(
 	fx.tiger = t
 	-- Held until the tiger and the shards are gone (the replay may end first), at /slowmo.
 	local rate = if type(m.timeScale) == "number" then m.timeScale else 1
-	kit.keep(id, (times.gone + Config.UI.BallShards.Seconds) / math.max(rate, 0.05) + 0.5)
+	kit.keep(id, (times.gone + F.ShardSeconds) / math.max(rate, 0.05) + 0.5)
 end
 
 -- Ball `ballId` was cut from `at` (table inches): a copy waits there for the cut.
