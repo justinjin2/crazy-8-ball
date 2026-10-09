@@ -509,23 +509,28 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     Its icon is the eagle's eye alone (2026-09-30): a glistening pale-gold iris and big black
     pupil in a yellow ring, a black brow line cutting across its top.
   - **Fire Shot** (Common, 0; **everyone's starter, free forever**, since the designer's third
-    rework round, 2026-10-08, when it replaced Super Bounce: a saved Super Bounce becomes Fire
-    Shot): armed, the cue ball bursts into flames, seen by everyone at the table. While the
+    rework round, 2026-10-08, when it replaced Super Bounce; Super Bounce is back beside it
+    since 2026-10-09): armed, the cue ball bursts into flames, seen by everyone at the table. While the
     shooter aims, the guideline draws every line, and the object ball's line and the cue ball's
     line after the first contact run all the way on until they touch the next cushion, ball or
     pocket (the designer, 2026-10-08: "to the next edge of a table"; not a line bouncing round
-    the cushions). A river of fire flows under each line. It never shows where anything stops,
+    the cushions). The lines are the regular guideline's, orange (designer, 2026-10-09: the
+    rivers of fire under them are gone). It never shows where anything stops,
     and it ignores the table's difficulty, like
     Eagle's Eye. The shot leaves the cue at **twice the speed** (the stroke's speed along the
-    cloth and its spin, not a jump's height), the ball a comet of fire with a flame trail, and
-    it **scorches the cloth** where it rolls: burn marks that glow, cool to char and stay until
-    the shooter's next turn (a run of theirs keeps them; cosmetic only). Measured: -0.08 /
+    cloth and its spin, not a jump's height), the ball a comet of fire with low flames
+    trailing behind it along its path (2026-10-09), and it **scorches the cloth** where it
+    rolls: a faint dark char line that fades away about a second after the ball burnt it
+    (designer, 2026-10-09: it was "way too aggressive"; cosmetic only). Measured: -0.08 /
     -0.03 / +0.03 net (about nothing: double speed alone neither pots nor misses more, and the
     model shooter plays no kicks or banks, where the line helps, nor Difficult or Challenger
     tables, where it shows what the normal lines hide). The tutorial's one starter spin lands
     on it. Icon: the cue ball as a fireball, a cartoon flame of five curling tongues streaming
     back from it.
-  - **Super Bounce** became Fire Shot (above).
+  - **Super Bounce** (Common, 0.33; became Fire Shot on 2026-10-08, back as a third Common on
+    2026-10-09, "just more in the pool"): the cue ball turns rainbow and keeps bouncing off the
+    cushions, and the first ball of yours it hits bounces too and boings off a pocket's jaw
+    straight in. Saves that held it on 2026-10-08 hold Fire Shot.
   - **Ghost** and **Heat Seeker** left the game (designer, 2026-10-08): a slot holding either
     becomes Magnet when the profile loads.
   - **Rewind** (Uncommon since 2026-10-08, was Rare; 0.53): a shot that drops none of your balls, fouls and scratches

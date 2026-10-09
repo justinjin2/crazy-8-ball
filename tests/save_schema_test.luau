@@ -1446,15 +1446,15 @@ return {
 		H.expect(#again == 0, "clean after Reconcile")
 	end,
 
-	["a retired ability in a saved slot becomes its replacement"] = function()
+	["a retired ability in a saved slot becomes its replacement; Super Bounce stays"] = function()
 		local _, SaveSchema = setup()
 		local save = SaveSchema.template()
 		save.Ults.Slots = { "SuperBounce", "Ghost", "HeatSeeker" }
 		local out = SaveSchema.validate(save)
 		local slots = out.Ults.Slots
-		-- The designer, 2026-10-08: Super Bounce is reworked into Fire Shot (the third round);
-		-- Ghost and Heat Seeker left for Magnet (the second).
-		H.expect(slots[1] == "FireShot", "Super Bounce becomes Fire Shot: " .. tostring(slots[1]))
+		-- Ghost and Heat Seeker left for Magnet (the designer's second round); Super Bounce is
+		-- back (2026-10-09) and stays.
+		H.expect(slots[1] == "SuperBounce", "Super Bounce stays: " .. tostring(slots[1]))
 		H.expect(slots[2] == "Magnet" and slots[3] == "Magnet", "Ghost and Heat Seeker, Magnet")
 	end,
 

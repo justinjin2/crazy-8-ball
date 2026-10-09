@@ -3,8 +3,8 @@
 -- starter): the cue ball leaves the cue at Config.Ults.FireShot.LaunchSpeedScale times the
 -- stroke's speed along the cloth (its spin with it, its hop kept), once; nothing else moves
 -- differently; the client's replay matches the settle; the look's "turn" and "down" events mark
--- where the cue ball bends and lands. It is the starter, the tutorial's spin lands on it, a
--- saved Super Bounce becomes it, and the aim draws its full lines (physics_aim_test).
+-- where the cue ball bends and lands. It is the starter, the tutorial's spin lands on it, Super
+-- Bounce is back beside it (2026-10-09), and the aim draws its full lines (physics_aim_test).
 
 local H = require("./harness")
 local V = require("./ult_value")
@@ -193,8 +193,8 @@ function tests.it_is_the_common_starter_and_takes_super_bounces_place()
 	check(Catalog.rarity("FireShot") == "Common", "Common")
 	check(Config.Ults.Default == "FireShot", "the starter")
 	check(Config.Tutorial.SpinUlt == "FireShot", "the tutorial's spin lands on it")
-	check(Catalog.retired("SuperBounce") == "FireShot", "a saved Super Bounce becomes it")
-	check(Catalog.get("SuperBounce") == nil, "Super Bounce is gone")
+	check(Catalog.retired("SuperBounce") == nil, "Super Bounce is back beside it (2026-10-09)")
+	check(Catalog.get("SuperBounce") ~= nil, "Super Bounce is in the catalog")
 	check(Catalog.retired("Ghost") == "Magnet", "Ghost still becomes Magnet")
 end
 

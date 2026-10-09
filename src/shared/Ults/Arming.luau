@@ -13,9 +13,9 @@
 -- * Picks. `Arming.pick` checks a pick from the client against the table: "OwnBall" is one of
 --   your balls (the 8 only on your legal 8 shot); "Portals" is two spots on the cloth clear
 --   of the cushions, the pockets, every ball and each other. Anything else is refused.
--- * Extras. `Arming.extras(id, ctx)` is each ability's own overrides, from Config (Ghost's
---   PhaseCue and Super Bounce's cue material were the ones; both abilities are gone); an
---   ability with none adds nothing.
+-- * Extras. `Arming.extras(id, ctx)` is each ability's own overrides, from Config (Super
+--   Bounce's cue material; Ghost's PhaseCue was the other, and Ghost is gone); an ability with
+--   none adds nothing.
 local Config = require(script.Parent.Parent.Config)
 local Judge = require(script.Parent.Parent.Rules.ShotJudge)
 
@@ -140,9 +140,21 @@ function Arming.pick(
 	return nil, "NoPick"
 end
 
--- Each ability's own overrides, from Config (none since Super Bounce, the one ability with its
--- own cue ball material, became Fire Shot, 2026-10-08).
+-- Each ability's own overrides, from Config (Super Bounce's, back 2026-10-09).
 local EXTRAS: { [string]: (ctx: Context) -> { [string]: any } } = {}
+
+-- Super Bounce (7.3): the cue ball's own bouncy material until the cap.
+EXTRAS.SuperBounce = function(_ctx: Context): { [string]: any }
+	local SB = Config.Ults.SuperBounce
+	return {
+		CueRailRestitution = SB.RailRestitution,
+		CueRailFriction = SB.RailFriction,
+		CueBallRestitution = SB.BallRestitution,
+		CueSlidingFriction = SB.SlidingFriction,
+		CueRollingFriction = SB.RollingFriction,
+		CueUntil = SB.Seconds,
+	}
+end
 
 --- The ability's own extra overrides for this shot (none for most).
 function Arming.extras(effect: string, ctx: Context): { [string]: any }

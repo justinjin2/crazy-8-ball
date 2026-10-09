@@ -596,7 +596,7 @@ function tests.every_ability_can_be_practised_on_the_solo_break()
 		expect(s.phase ~= "Resolving", id .. " settled")
 		tried += 1
 	end
-	expect(tried == 13, "all 13 shot abilities tried, got " .. tried)
+	expect(tried == 14, "all 14 shot abilities tried, got " .. tried)
 end
 
 function tests.black_hole_and_the_tiger_on_a_solo_break_take_every_ball_but_the_8()

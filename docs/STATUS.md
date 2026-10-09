@@ -72,9 +72,10 @@ One line each; the long form is the 2026-10-08 entry at the top of
   gamepad, the numbered card's mark A or B, the copy numbers' own plan. `shop-lively` is not
   yet merged into `release`.
 - **The abilities rework** (in `gui-v4` since 2026-10-08, `docs/prompts/ABILITIES_REWORK_PLAN.md`):
-  Fire Shot is the starter (2x speed, full guideline lines with fire, scorch marks); Verity
+  Fire Shot is the starter (2x speed, full orange guideline lines, a flame trail, scorch
+  marks that fade in about a second); Super Bounce is back as a third Common; Verity
   (Rare) eats then shoves; Catch-a-Ball (Epic) catches two; Look Over There! (Rare) sneaks.
-  Not yet checked: the marks fading as the turn comes back, phone and controller, the sounds by
+  Not yet checked: phone and controller, the sounds by
   ear, the tutorial spin's reveal, the sneak with two players, the designer's voice lines. The
   one-by-one review (since 2026-09-30) goes on; abilities not yet reviewed are provisional.
 - **The lively Shop** is in `release` (2026-10-06); other menus take its frame as rebuilt.

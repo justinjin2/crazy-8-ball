@@ -3,8 +3,8 @@
 -- 2026-10-08: Super Bounce reworked into the starter ability). The physics is the launch and
 -- the corners (src/shared/Ults/Effects/FireShot.luau: twice the speed off the cue, and `ult`
 -- events "turn" where the cue ball meets a cushion or a ball and "down" where it lands from a
--- hop); the white guideline draws the full lines itself (Aim.fullLines). This only draws and
--- plays the rest. Numbers in
+-- hop); the guideline draws the full lines itself (Aim.fullLines), orange while it is armed
+-- (Guideline.show's `full`). This only draws and plays the rest. Numbers in
 -- Config.UI.FireShotFx, the sounds in Config.Ults.Audio (Fire*), the scorch images from
 -- tools/gen_fireshot_art.py.
 --
@@ -13,27 +13,26 @@
 --   * Engulfed (armed until the shot, then until the cue ball stops): flames lick up off the
 --     ball (two flame flipbooks), embers rise, dark smoke curls above it, a warm glow and a
 --     see-through Neon shell breathe with a flickering firelight, and a crackle loops.
---   * The aim (the local shooter only, look:aiming): the white guideline draws every line,
---     and the object ball's and the cue ball's run on until they touch the next cushion, ball
---     or pocket (Guideline.show's `full`; the designer: "to the next edge of a table"). Under
---     each of its three lines a river of fire flows the way it goes (a flat textured Beam,
---     hot orange where the line starts and deeper red where it ends); the two after the
---     first ball go when the guideline draws its red cross instead.
+--   * The aim (the local shooter only): the guideline itself, orange, draws every line, and
+--     the object ball's and the cue ball's run on until they touch the next cushion, ball or
+--     pocket (Guideline.show's `full`; the designer: "to the next edge of a table"; 2026-10-09:
+--     "just make it like the regular aiming lines but orange", the rivers of fire are gone).
 --   * The strike: a burst of fire and sparks off the ball, a big flash, a roar, and for the
 --     table's players a field-of-view punch and a little shake.
 --   * In flight: the flames are streamed along the ball's path every frame (a fast ball
---     leaves an unbroken stream, not clumps), a burning ribbon with a hot core trails it (the
+--     leaves an unbroken stream, not clumps), with low trailing flames that linger behind it
+--     (the flame trail; designer, 2026-10-09), a burning ribbon with a hot core trails it (the
 --     cue skin's own trail hidden meanwhile), and every cushion and ball it hits throws sparks
 --     and a puff of flame with a flash and a sizzle.
 --   * Out (at rest, down a pocket, off the table): the flames die down with a puff of smoke
 --     and a sizzle.
---   * Scorch marks (everyone at the table): a char line burnt into the cloth where the ball
---     rolled (straight pieces, bending exactly at the "turn" events), a splat under the strike
---     and at every hit and landing, glowing hot right behind the ball and cooling down its
---     length. Never drawn while the ball is in the air. They stay until the shooter's next
---     turn (the designer's answer): through the other side's turn, gone when the table comes
---     back to the shooter's side (a run of their own keeps them; in Solo, until their next
---     shot) or at a new game, fading out. The table's anchor is held (kit.anchor) meanwhile.
+--   * Scorch marks (everyone at the table): a faint dark char line burnt into the cloth where
+--     the ball rolled (short straight pieces, bending exactly at the "turn" events), a splat
+--     under the strike and at every hit and landing, a soft warm glow right behind the ball.
+--     Never drawn while the ball is in the air. Each mark fades away about a second after the
+--     ball burnt it (designer, 2026-10-09: "less noticeable ... disappear soon after they
+--     appear like 1 second"; they stayed until the shooter's next turn). The table's anchor is
+--     held (kit.anchor) meanwhile.
 -- Each table's parts hang off its AbilityFx anchor and go with it (kit.onRelease) or clear().
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -43,9 +42,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local Physics = Shared:WaitForChild("Physics")
-local Aim = require(Physics:WaitForChild("Aim"))
 local Ball = require(Physics:WaitForChild("Ball"))
-local Judge = require(Shared:WaitForChild("Rules"):WaitForChild("ShotJudge"))
 local Ults = Shared:WaitForChild("Ults")
 local Catalog = require(Ults:WaitForChild("Catalog"))
 local CueVfx = require(script.Parent:WaitForChild("CueVfx"))
@@ -56,7 +53,6 @@ local A = Config.Ults.Audio
 local ART = Config.UI.Kit.Art
 
 local EFFECT = "FireShot"
-local TAU = 2 * math.pi
 -- Each splat is turned by the golden angle from the last, so no two lie alike.
 local GOLDEN = math.rad(137.5)
 local COS_TURN = math.cos(math.rad(F.ScorchTurnDegrees))
@@ -82,10 +78,6 @@ local function approach(level: number, target: number, dt: number, seconds: numb
 		return math.min(target, level + step)
 	end
 	return math.max(target, level - step)
-end
-
-local function quantise(value: number, step: number): number
-	return math.floor(value / step + 0.5)
 end
 
 local function colorSeq(list: { { number } }): ColorSequence
@@ -180,7 +172,8 @@ local function lay(
 	return true
 end
 
--- The same between two spots (inches) on table `m`'s cloth, `lift` inches up.
+-- The same between two spots (inches) on table `m`'s cloth, `lift` inches up; `extend`
+-- defaults to half the width.
 local function layOn(
 	part: BasePart,
 	m: any,
@@ -190,11 +183,12 @@ local function layOn(
 	by: number,
 	width: number,
 	lift: number,
-	thickness: number
+	thickness: number,
+	extend: number?
 ): boolean
 	local a = TableBuilder.toWorld(m.placement, ax, ay, lift)
 	local b = TableBuilder.toWorld(m.placement, bx, by, lift)
-	return lay(part, a, b, width, thickness, width * 0.5)
+	return lay(part, a, b, width, thickness, extend or width * 0.5)
 end
 
 -- The inward normal (into the table) of the cushion a ball centred at (x, y) just hit: the
@@ -205,34 +199,6 @@ local function railNormal(m: any, x: number, y: number): (number, number)
 		return if x > 0 then -1 else 1, 0
 	end
 	return 0, if y > 0 then -1 else 1
-end
-
--- The team of the player `userId` at the table (the snapshot's seats), or nil.
-local function teamOf(snapshot: any, userId: number): number?
-	local seats = if type(snapshot) == "table" then snapshot.seats else nil
-	if type(seats) ~= "table" then
-		return nil
-	end
-	for _, s in seats do
-		if type(s) == "table" and s.userId == userId and type(s.team) == "number" then
-			return s.team
-		end
-	end
-	return nil
-end
-
--- Whether ball `id` is a fair first target for the shooter now (Main's rule for the
--- guideline's red cross): any ball on the break or in stopped time, else their group's.
-local function fairTarget(snapshot: any, m: any, id: number?): boolean
-	if id == nil or type(snapshot) ~= "table" then
-		return true
-	end
-	if snapshot.breakShot or snapshot.phase == "Frozen" then
-		return true
-	end
-	local groups = snapshot.groups
-	local group = if type(groups) == "table" then groups[snapshot.activeTeam] else nil
-	return Judge.legalTarget(m.state.balls, group, id)
 end
 
 ---------------------------------------------------------------------------------------------
@@ -246,6 +212,7 @@ type Engulf = {
 	licks: ParticleEmitter,
 	embers: ParticleEmitter,
 	smoke: ParticleEmitter,
+	trailFlames: ParticleEmitter, -- the flame trail, streamed behind it (Emit only)
 	burst: ParticleEmitter, -- thrown out by a burst (Emit only)
 	sparks: ParticleEmitter, -- likewise
 	glow: ImageLabel,
@@ -271,6 +238,7 @@ type Piece = {
 	dx: number,
 	dy: number,
 	born: number, -- fx.clock
+	touched: number, -- fx.clock the line last reached its end (its fade counts from then)
 	shown: number, -- the transparency last set
 }
 
@@ -283,9 +251,6 @@ type Ember = { part: Part, born: number, seconds: number, disc: boolean }
 type Burn = {
 	epoch: number,
 	seq: number,
-	team: number?,
-	solo: boolean,
-	sawOther: boolean, -- the other side has had the table since
 	pieces: { Piece },
 	splats: { Splat },
 	open: Piece?, -- the piece still growing
@@ -295,28 +260,11 @@ type Burn = {
 	emberX: number,
 	emberY: number,
 	growing: boolean, -- its shot is still running
-	expireAt: number?, -- fx.clock its fade began
 	made: number, -- pieces and splats, against MaxScorchPieces
 }
 
 -- A "turn" or "down" event waiting for the frame's update (the shot it belongs to).
 type Turn = { kind: "turn" | "down", x: number, y: number, seq: number }
-
--- A river of fire under one of the guideline's lines: a flat Beam between two attachments on
--- the line's holder.
-type River = { a0: Attachment, a1: Attachment, beam: Beam }
-
--- The local shooter's aim at a table: a river under the guideline's aim, one under the object
--- ball's line and one under the cue ball's.
-type Line = {
-	folder: Folder,
-	holder: Part, -- the rivers' attachments (at the origin: their CFrames are world CFrames)
-	aim: River,
-	object: River,
-	cue: River,
-	key: string?,
-	visible: boolean,
-}
 
 type TableFx = {
 	anchor: BasePart,
@@ -335,7 +283,6 @@ type TableFx = {
 	spare: { Part }, -- cooled ember strips to reuse
 	spareDiscs: { Part },
 	hidden: BasePart?, -- the cue ball part whose skin trail is hidden
-	line: Line?,
 }
 
 local FireShotFx = {}
@@ -347,7 +294,6 @@ export type FireShotFx = typeof(setmetatable(
 		kit: any,
 		tables: { [number]: TableFx },
 		consumed: { [number]: number }, -- the armed ult's `at` once its shot ran
-		teams: { [number]: number }, -- the arming shooter's team, while seen
 	},
 	FireShotFx
 ))
@@ -430,6 +376,7 @@ local function newEngulf(self: FireShotFx, id: number, fx: TableFx): Engulf
 		Range = F.LightRangeStuds,
 		Brightness = 0,
 	})
+	local trailFlames = emitter(F.TrailFlames, host)
 	local burst = emitter(F.BurstFlames, host)
 	local sparks = emitter(F.Sparks, host)
 	return {
@@ -438,6 +385,7 @@ local function newEngulf(self: FireShotFx, id: number, fx: TableFx): Engulf
 		licks = emitter(F.Licks, host),
 		embers = emitter(F.Embers, host),
 		smoke = emitter(F.Smoke, host),
+		trailFlames = trailFlames,
 		burst = burst,
 		sparks = sparks,
 		glow = image,
@@ -521,6 +469,7 @@ local function stream(e: Engulf, from: Vector3, to: Vector3)
 	for i = 1, n do
 		e.host.CFrame = CFrame.new(from:Lerp(to, (i - 0.5) / n))
 		e.flames:Emit(1)
+		e.trailFlames:Emit(1)
 		if i % F.StreamLickEvery == 0 then
 			e.licks:Emit(1)
 		end
@@ -624,7 +573,8 @@ local function layPiece(m: any, piece: Piece)
 		piece.by,
 		w,
 		F.ScorchLiftInches,
-		F.ScorchThicknessStuds
+		F.ScorchThicknessStuds,
+		0 -- end to end: an overlap would show darker (the bends are under a splat)
 	)
 end
 
@@ -666,6 +616,7 @@ local function newPiece(
 		dx = dx / len,
 		dy = dy / len,
 		born = fx.clock,
+		touched = fx.clock,
 		shown = 1,
 	}
 	layPiece(m, piece)
@@ -767,8 +718,9 @@ local function breakLine(fx: TableFx, burn: Burn)
 	burn.lastX, burn.lastY = nil, nil
 end
 
--- The burn line reaches (x, y): the open piece grows to it while the heading holds, else a new
--- piece starts from the last point; `corner`: the ball bent here (a cushion or a ball).
+-- The burn line reaches (x, y): the open piece grows to it while the heading holds (and it is
+-- shorter than ScorchPieceInches, so the line fades away behind the ball piece by piece), else
+-- a new piece starts from the last point; `corner`: the ball bent here (a cushion or a ball).
 local function addPoint(
 	self: FireShotFx,
 	id: number,
@@ -792,8 +744,11 @@ local function addPoint(
 	end
 	local ux, uy = dx / len, dy / len
 	local open = burn.open
-	if open and open.dx * ux + open.dy * uy >= COS_TURN then
+	local short = open ~= nil
+		and (open.bx - open.ax) ^ 2 + (open.by - open.ay) ^ 2 < F.ScorchPieceInches ^ 2
+	if open and short and open.dx * ux + open.dy * uy >= COS_TURN then
 		open.bx, open.by = x, y
+		open.touched = fx.clock
 		layPiece(m, open)
 	else
 		cutEmber(fx, burn)
@@ -832,18 +787,11 @@ local function finishBurn(fx: TableFx)
 	end
 end
 
-local function startBurn(self: FireShotFx, id: number, fx: TableFx, m: any, snapshot: any)
+local function startBurn(self: FireShotFx, id: number, fx: TableFx, m: any)
 	finishBurn(fx)
-	local team = self.teams[id]
-	if team == nil and type(snapshot) == "table" and type(snapshot.activeTeam) == "number" then
-		team = snapshot.activeTeam
-	end
 	local burn: Burn = {
 		epoch = m.epoch or 0,
 		seq = m.seq or 0,
-		team = team,
-		solo = type(snapshot) == "table" and snapshot.solo ~= nil,
-		sawOther = false,
 		pieces = {},
 		splats = {},
 		open = nil,
@@ -853,7 +801,6 @@ local function startBurn(self: FireShotFx, id: number, fx: TableFx, m: any, snap
 		emberX = 0,
 		emberY = 0,
 		growing = true,
-		expireAt = nil,
 		made = 0,
 	}
 	table.insert(fx.burns, burn)
@@ -863,18 +810,6 @@ local function startBurn(self: FireShotFx, id: number, fx: TableFx, m: any, snap
 		burn.lastX, burn.lastY = start[1], start[2]
 		burn.emberX, burn.emberY = start[1], start[2]
 		newSplat(self, id, fx, burn, m, start[1], start[2], F.StrikeSplatScale)
-	end
-	-- At most MaxBurns shots' marks: the oldest still down fades now.
-	local kept = 0
-	local t = fx.clock
-	for i = #fx.burns, 1, -1 do
-		local b = fx.burns[i]
-		if b.expireAt == nil then
-			kept += 1
-			if kept > F.MaxBurns then
-				b.expireAt = t
-			end
-		end
 	end
 end
 
@@ -908,60 +843,45 @@ local function stepPath(self: FireShotFx, id: number, fx: TableFx, m: any, cue: 
 	end
 end
 
--- Each burn's lifetime (until the shooter's next turn), its fade in and out, and the embers'
--- cooling. The table's anchor is held while any burn is down.
-local function stepBurns(
-	self: FireShotFx,
-	id: number,
-	fx: TableFx,
-	m: any,
-	snapshot: any,
-	t: number
-)
+-- How much of a mark shows at `t`: in over ScorchAppearSeconds from `born`, held for
+-- ScorchHoldSeconds after `touched` (the ball last burnt it), then out over ScorchFadeSeconds.
+local function markSeen(t: number, born: number, touched: number): number
+	local fadeIn = math.clamp((t - born) / F.ScorchAppearSeconds, 0, 1)
+	local fadeOut = 1 - math.clamp((t - touched - F.ScorchHoldSeconds) / F.ScorchFadeSeconds, 0, 1)
+	return fadeIn * fadeOut
+end
+
+-- The marks' fade in and out (each about a second after the ball burnt it), and the embers'
+-- cooling. A burn goes once its shot is over and every mark has faded (or at a new game). The
+-- table's anchor is held while any mark is down.
+local function stepBurns(self: FireShotFx, id: number, fx: TableFx, snapshot: any, t: number)
+	local gone = t - F.ScorchHoldSeconds - F.ScorchFadeSeconds
 	for i = #fx.burns, 1, -1 do
 		local burn = fx.burns[i]
-		if burn.expireAt == nil and not burn.growing then
-			local gone = type(snapshot) ~= "table"
-				or (snapshot.epoch ~= nil and snapshot.epoch ~= burn.epoch)
-			if not gone then
-				if burn.solo then
-					gone = m.seq ~= burn.seq -- Solo: until their next shot
-				elseif burn.team ~= nil then
-					if snapshot.activeTeam ~= burn.team then
-						burn.sawOther = true
-					elseif burn.sawOther then
-						gone = true -- the table is back on the shooter's side
-					end
-				end
-			end
-			if gone then
-				burn.expireAt = t
-			end
-		end
-		local fade = if burn.expireAt
-			then math.clamp((t - burn.expireAt) / F.ExpireSeconds, 0, 1)
-			else 0
-		if fade >= 1 then
-			dropBurn(burn)
-			table.remove(fx.burns, i)
-			continue
-		end
-		local keep = 1 - fade
+		local newGame = type(snapshot) ~= "table"
+			or (snapshot.epoch ~= nil and snapshot.epoch ~= burn.epoch)
+		local left = burn.growing
 		for _, piece in burn.pieces do
-			local seen = math.clamp((t - piece.born) / F.ScorchAppearSeconds, 0, 1) * keep
-			local transparency = 1 - (1 - F.ScorchTransparency) * seen
+			local transparency = 1
+				- (1 - F.ScorchTransparency) * markSeen(t, piece.born, piece.touched)
 			if math.abs(transparency - piece.shown) > 1e-3 then
 				piece.shown = transparency
 				piece.texture.Transparency = transparency
 			end
+			left = left or piece.touched > gone
 		end
 		for _, splat in burn.splats do
-			local seen = math.clamp((t - splat.born) / F.ScorchAppearSeconds, 0, 1) * keep
-			local transparency = 1 - (1 - F.ScorchTransparency) * seen
+			local transparency = 1
+				- (1 - F.ScorchTransparency) * markSeen(t, splat.born, splat.born)
 			if math.abs(transparency - splat.shown) > 1e-3 then
 				splat.shown = transparency
 				splat.decal.Transparency = transparency
 			end
+			left = left or splat.born > gone
+		end
+		if newGame or not left then
+			dropBurn(burn)
+			table.remove(fx.burns, i)
 		end
 	end
 	local hot, cool = rgb(F.EmberHotColor), rgb(F.EmberCoolColor)
@@ -980,148 +900,6 @@ local function stepBurns(
 	if #fx.burns > 0 or #fx.embers > 0 then
 		self.kit.anchor(id) -- held while marks are down
 	end
-end
-
----------------------------------------------------------------------------------------------
--- The aim line (the local shooter's)
----------------------------------------------------------------------------------------------
-
-local function newRiver(holder: Part, name: string): River
-	local a0 = Instance.new("Attachment")
-	a0.Name = name .. "From"
-	a0.Parent = holder
-	local a1 = Instance.new("Attachment")
-	a1.Name = name .. "To"
-	a1.Parent = holder
-	local beam = Instance.new("Beam")
-	beam.Name = name
-	beam.Attachment0 = a0
-	beam.Attachment1 = a1
-	beam.Texture = F.RiverTexture
-	beam.TextureMode = Enum.TextureMode.Wrap
-	beam.TextureLength = F.RiverTextureLength
-	beam.TextureSpeed = F.RiverTextureSpeed
-	beam.Width0 = F.RiverWidthStuds
-	beam.Width1 = F.RiverWidthStuds
-	beam.FaceCamera = false
-	beam.Segments = 1
-	beam.LightEmission = F.RiverLightEmission
-	beam.LightInfluence = 0
-	beam.Brightness = F.RiverBrightness
-	-- Hot where the line starts, deeper and thinner where it goes.
-	beam.Color = ColorSequence.new(rgb(F.RiverColor), rgb(F.RiverFarColor))
-	beam.Transparency = NumberSequence.new(F.RiverTransparency, F.RiverFarTransparency)
-	beam.Enabled = false
-	beam.Parent = holder
-	return { a0 = a0, a1 = a1, beam = beam }
-end
-
-local function newLine(fx: TableFx): Line
-	local folder = Instance.new("Folder")
-	folder.Name = "FireShotLine"
-	folder.Parent = fx.anchor
-	local holder = flatPart("RiverHolder", folder, Color3.new(1, 1, 1))
-	holder.Size = Vector3.one * 0.1
-	holder.CFrame = CFrame.identity
-	return {
-		folder = folder,
-		holder = holder,
-		aim = newRiver(holder, "AimRiver"),
-		object = newRiver(holder, "ObjectRiver"),
-		cue = newRiver(holder, "CueRiver"),
-		key = nil,
-		visible = false,
-	}
-end
-
--- Lay `river` flat on table `m` from (x0, y0) to (x1, y1) (table inches), flowing that way;
--- hidden when shorter than the guideline's shortest line.
-local function layRiver(river: River, m: any, x0: number, y0: number, x1: number, y1: number)
-	local dx, dy = x1 - x0, y1 - y0
-	local min = Config.Guideline.MinStubInches
-	if dx * dx + dy * dy < min * min then
-		river.beam.Enabled = false
-		return
-	end
-	local a0 = TableBuilder.toWorld(m.placement, x0, y0, F.RiverLiftInches)
-	local a1 = TableBuilder.toWorld(m.placement, x1, y1, F.RiverLiftInches)
-	local across = (a1 - a0).Unit:Cross(Vector3.yAxis)
-	-- A flat beam: its width runs along each attachment's Y, laid level across the line.
-	river.a0.CFrame = CFrame.fromMatrix(a0, Vector3.yAxis, across)
-	river.a1.CFrame = CFrame.fromMatrix(a1, Vector3.yAxis, across)
-	river.beam.Enabled = true
-end
-
-local function hideLine(line: Line)
-	line.key = nil
-	if line.visible then
-		line.visible = false
-		line.aim.beam.Enabled = false
-		line.object.beam.Enabled = false
-		line.cue.beam.Enabled = false
-	end
-end
-
--- The rivers under the guideline's lines for `trace` (Aim.trace) and `full` (Aim.fullLines)
--- on table `m`, where Guideline.show draws them: the aim from the cue ball's front edge (where
--- a jump settles) to the ghost ring's near edge, none for a contact in the air; the object
--- ball's line from its far edge, and the cue ball's from the ring's edge, each on until it
--- touches what it meets. `invalid` (a ball that is not a fair first target): the aim's only,
--- as the guideline then draws its red cross instead of the two lines.
-local function drawLine(line: Line, m: any, trace: Aim.Trace, full: Aim.FullLines, invalid: boolean)
-	local R = Config.Balls.RadiusInches
-	local ringR = Config.Balls.RenderRadiusInches * Config.Guideline.RingScale
-	local gx, gy = trace.ghostX, trace.ghostY
-	local fromX, fromY = trace.startX, trace.startY
-	local hops = trace.hops
-	if #hops > 0 then
-		local last = hops[#hops]
-		fromX, fromY = last.x + last.vx * last.seconds, last.y + last.vy * last.seconds
-	end
-	local dx, dy = gx - fromX, gy - fromY
-	local len = math.sqrt(dx * dx + dy * dy)
-	if trace.contact == "none" or (#hops > 0 and trace.airborne) or len <= R + ringR then
-		line.aim.beam.Enabled = false
-	else
-		local ux, uy = dx / len, dy / len
-		layRiver(line.aim, m, fromX + ux * R, fromY + uy * R, gx - ux * ringR, gy - uy * ringR)
-	end
-	local object = if invalid or trace.contact ~= "ball" then nil else full.object
-	if object then
-		local ux, uy = trace.objectDirX, trace.objectDirY
-		local start, stop = 2 * R + ringR, 2 * R + object + R
-		layRiver(line.object, m, gx + ux * start, gy + uy * start, gx + ux * stop, gy + uy * stop)
-	else
-		line.object.beam.Enabled = false
-	end
-	local cue = if invalid then nil else full.cue
-	if cue then
-		local ux, uy = trace.cueDirX, trace.cueDirY
-		layRiver(
-			line.cue,
-			m,
-			gx + ux * ringR,
-			gy + uy * ringR,
-			gx + ux * (cue + R),
-			gy + uy * (cue + R)
-		)
-	else
-		line.cue.beam.Enabled = false
-	end
-	line.visible = true
-end
-
--- A fingerprint of where the balls stand (and which are down): a moved or potted ball is a
--- new line (Eagle's Eye's).
-local function ballsKey(m: any): number
-	local sum = 0
-	for _, b in m.state.balls do
-		local q = if b.pocketed
-			then -1 - b.id
-			else quantise(b.x, F.BallKeyInches) * 7919 + quantise(b.y, F.BallKeyInches)
-		sum = (sum * 31 + q + b.id) % 1000000007
-	end
-	return sum
 end
 
 ---------------------------------------------------------------------------------------------
@@ -1144,7 +922,6 @@ local function create(self: FireShotFx, id: number): TableFx
 		spare = {},
 		spareDiscs = {},
 		hidden = nil,
-		line = nil,
 	}
 	self.tables[id] = fx
 	return fx
@@ -1180,9 +957,6 @@ local function destroy(self: FireShotFx, id: number)
 	end
 	for _, part in fx.spareDiscs do
 		part:Destroy()
-	end
-	if fx.line then
-		fx.line.folder:Destroy()
 	end
 end
 
@@ -1304,7 +1078,6 @@ function FireShotFx.start(hub: any, _parent: Instance, kit: any): FireShotFx
 		kit = kit,
 		tables = {},
 		consumed = {},
-		teams = {},
 	}, FireShotFx)
 	kit.onRelease(function(tableId: number)
 		local fx = self.tables[tableId]
@@ -1330,7 +1103,6 @@ function FireShotFx.start(hub: any, _parent: Instance, kit: any): FireShotFx
 			{
 				F.ScorchStripTexture,
 				F.ScorchSplatTexture,
-				F.RiverTexture,
 				F.TrailTexture,
 				F.Flames.Texture,
 				F.Licks.Texture,
@@ -1384,56 +1156,6 @@ function FireShotFx.arming(self: FireShotFx, tableId: number, armed: any)
 	sting(self, tableId, A.FireIgnite, at)
 end
 
---- The local shooter's aim at their own table while Fire Shot is armed (AbilityFx's aiming
---- hook): the rivers of fire under the guideline's full lines; `shot` nil hides them.
-function FireShotFx.aiming(self: FireShotFx, tableId: number, armed: any, shot: any?, m: any)
-	local fx: TableFx? = self.tables[tableId]
-	if fx and fx.anchor.Parent == nil then
-		self.tables[tableId] = nil
-		fx = nil
-	end
-	if shot == nil or m == nil or m.renderer == nil or m:isBusy() then
-		if fx and fx.line then
-			hideLine(fx.line)
-		end
-		return
-	end
-	local live = fx or create(self, tableId)
-	self.kit.anchor(tableId) -- kept while aiming
-	local line = live.line or newLine(live)
-	live.line = line
-	-- The guideline's own trace (Main's refreshAim): the pull, at least the shortest stroke.
-	local power = math.max(
-		if type(shot.power) == "number" then shot.power else 0,
-		Config.Input.MinPowerToShoot
-	)
-	local spin = shot.spin or { x = 0, y = 0 }
-	local elevation = shot.elevation or 0
-	local key = ("%d|%d|%d|%d|%d|%d|%d|%d"):format(
-		quantise(shot.angle % TAU, F.AngleStep),
-		quantise(elevation, Config.Cue.ElevationStepDegrees),
-		quantise(power, F.PowerStep),
-		quantise(spin.x, F.SpinStep),
-		quantise(spin.y, F.SpinStep),
-		m.epoch or 0,
-		m.seq or 0,
-		ballsKey(m)
-	)
-	if key == line.key then
-		return
-	end
-	line.key = key
-	local trace = Aim.trace(m.state, {
-		angle = shot.angle,
-		power = power,
-		spin = { x = spin.x, y = spin.y },
-		elevation = shot.elevation,
-	}, Catalog.launchScale(armed and armed.id))
-	local invalid = trace.contact == "ball"
-		and not fairTarget(self.hub.snapshots[tableId], m, trace.objectId)
-	drawLine(line, m, trace, Aim.fullLines(m.state, trace), invalid)
-end
-
 --- Every frame, after the hub has stepped the replays.
 function FireShotFx.update(self: FireShotFx, dt: number)
 	local now = workspace:GetServerTimeNow()
@@ -1453,12 +1175,6 @@ function FireShotFx.update(self: FireShotFx, dt: number)
 		end
 		local snapshot = self.hub.snapshots[id]
 		local armed = kit.armedOf(snapshot, EFFECT)
-		if armed then
-			local team = teamOf(snapshot, armed.by)
-			if team then
-				self.teams[id] = team
-			end
-		end
 		local shot = kit.isShotOf(m, EFFECT)
 		if shot and armed then
 			self.consumed[id] = armed.at -- this shot spends it: the armed look never returns
@@ -1483,7 +1199,7 @@ function FireShotFx.update(self: FireShotFx, dt: number)
 		if shot and live.shotSeq ~= m.seq then
 			live.shotSeq = m.seq
 			live.out = false
-			startBurn(self, id, live, m, snapshot)
+			startBurn(self, id, live, m)
 			strike(self, id, live, m)
 		end
 		if live.burn then
@@ -1529,14 +1245,13 @@ function FireShotFx.update(self: FireShotFx, dt: number)
 			end
 		end
 
-		stepBurns(self, id, live, m, snapshot, live.clock)
+		stepBurns(self, id, live, snapshot, live.clock)
 		if
 			live.engulf == nil
 			and #live.burns == 0
 			and #live.embers == 0
 			and not shot
 			and not wantArmed
-			and not (live.line and live.line.visible)
 		then
 			destroy(self, id)
 		end

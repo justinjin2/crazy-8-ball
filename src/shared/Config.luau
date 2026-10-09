@@ -3775,11 +3775,10 @@ Config.Ults = {
 	Default = "FireShot",
 	-- Abilities taken out of the game, and what a saved slot holding one becomes when the
 	-- profile loads (SaveSchema's slot cleaner). The designer, 2026-10-08: Heat Seeker and Ghost
-	-- make room for better abilities (their owners get Magnet, the starter then); Super Bounce
-	-- is reworked into Fire Shot (the third round).
-	Retired = { HeatSeeker = "Magnet", Ghost = "Magnet", SuperBounce = "FireShot" } :: {
-		[string]: string,
-	},
+	-- make room for better abilities (their owners get Magnet, the starter then). Super Bounce
+	-- was reworked into Fire Shot (the third round) and is back beside it (2026-10-09); the
+	-- saves it left meanwhile hold Fire Shot.
+	Retired = { HeatSeeker = "Magnet", Ghost = "Magnet" } :: { [string]: string },
 	BarMax = 100, -- a full bar
 	MaxPerMatch = 2, -- at most this many ults a match; after the second the bar stays empty
 	-- Solo shows the real bar, always full and ready: a press arms the equipped ult for free,
@@ -3830,6 +3829,7 @@ Config.Ults = {
 	Order = {
 		"EaglesEye",
 		"FireShot",
+		"SuperBounce",
 		"Magnet",
 		"Rewind",
 		"Portals",
@@ -3865,6 +3865,9 @@ Config.Ults = {
 		-- often), and the model shooter plays no kicks or banks, where the line helps, nor a
 		-- Difficult or Challenger table, where it shows what the normal lines hide.
 		FireShot = { Rarity = "Common", Built = true, Effect = "FireShot", Worth = 0 },
+		-- Super Bounce, back as a third Common (designer, 2026-10-09: "just more in the
+		-- pool"), as it was before the third round. +0.27 / +0.39 / +0.32.
+		SuperBounce = { Rarity = "Common", Built = true, Effect = "SuperBounce", Worth = 0.33 },
 		-- +0.36 / +0.58 / +0.65 (two redos, each with the full-path guide). Uncommon since the
 		-- rework (designer, 2026-10-08), beside Magnet.
 		Rewind = { Rarity = "Uncommon", Built = true, Worth = 0.53, Redo = true },
@@ -4086,6 +4089,12 @@ Config.Ults = {
 		-- Eagle's Eye arming: "Eagle Screech 1" (public library audio, 1.8 s, checked loading in
 		-- this game), 3D at the cue ball, at the Magnet arm's level. (tune by ear)
 		EagleScreech = { Id = "rbxassetid://133423182233493", Volume = 0.19 },
+		-- Super Bounce (public library audio, each checked loading in this game, 2026-09-29):
+		-- arming, "Cartoon Spring Bounce Sound" (MysteryMilo, 1.3 s, a long boing-oing, peak
+		-- 0.54); every bounce, "SS_rubberduck_variety_spring_02" (Roblox, 1.3 s but a quick
+		-- 0.3 s spring, peak 0.48), pitched up per bounce (Config.UI.SuperBounceFx).
+		BounceArm = { Id = "rbxassetid://6075441854", Volume = 0.31 },
+		BounceHit = { Id = "rbxassetid://111237552536869", Volume = 0.45 },
 		-- Rewind (public library audio, each checked loading in this game and measured with an
 		-- AudioAnalyzer, 2026-09-29): arming, "Eject Cassette SFX" (zImBored, from Pixabay,
 		-- 1.25 s, two clacks peaking 25 at volume 0.5); the rewind, "Tape Rewind" (AppleBraid,
@@ -4448,6 +4457,37 @@ Config.Ults.FireShot = {
 	FullLines = true,
 }
 
+-- Super Bounce (docs/prompts/ABILITIES_PROMPT.md 7.3; Arming.extras): the cue ball's own
+-- material for the shot's first Seconds, then normal friction returns. Tuned 2026-09-29: a
+-- medium shot (power 0.5) alone touches 6-10 cushions; on real tables (the harness's states)
+-- the median is 4 (a quarter reach 6), the cue ball giving its speed to the balls it hits.
+Config.Ults.SuperBounce = {
+	RailRestitution = 1.0, -- no speed lost off a cushion (normal 0.85) (tune)
+	RailFriction = 0, -- nor along it (normal 0.2) (tune)
+	BallRestitution = 1.0, -- a perfectly springy hit on a ball (normal 0.95) (tune)
+	-- Sliding and rolling losses: after each cushion the ball slides, and normal sliding
+	-- friction would turn much of its speed into roll; tiny values keep it going. (tune)
+	SlidingFriction = 0.005, -- normal 0.20
+	RollingFriction = 0.0004, -- normal 0.010
+	Seconds = 8, -- the cap: shot seconds with the material (tune)
+	-- The first ball of yours the cue ball hits catches the bounce (never the 8; the designer,
+	-- 2026-09-29, after the cue ball alone measured about +0.05 balls a use): this material
+	-- from the hit for Seconds, and a cushion hit within JawReachInches of a pocket's rim
+	-- boings it into that pocket (Effects/SuperBounce). Tuned with the harness (2026-09-29,
+	-- skill 2, net balls a use): the material alone added +0.03 to +0.10 even at 30 s (a ball
+	-- bouncing at random almost never finds a pocket); jaws 2/4/6/8 in +0.10/+0.20/+0.26/+0.28
+	-- with the springier cloth; these cloth losses +0.34 to +0.39. (tune)
+	Caught = {
+		RailRestitution = 1.0, -- normal 0.85
+		RailFriction = 0.03, -- normal 0.2
+		BallRestitution = nil :: number?,
+		SlidingFriction = 0.04, -- normal 0.20
+		RollingFriction = 0.0017, -- normal 0.010
+		Seconds = 8,
+		JawReachInches = 6 :: number?,
+	},
+}
+
 -- Magnet's physics (section 7.3; src/shared/Ults/Effects/Magnet.luau). Each allowed ball that
 -- has been hit (it is moving) and is heading roughly toward a pocket inside that pocket's pull
 -- zone has its heading turned toward an aim point just inside the mouth and its speed blended
@@ -4637,6 +4677,9 @@ Config.Ults.Assets = {
 		-- tools/blender/abilities/magnet.py: FieldArcs, FieldFlares, FieldRing, Chevron and
 		-- PoleCaps, one shared texture (MeshPart.TextureID), unit size (scaled at runtime).
 		MagnetField = 96715013262604,
+		-- tools/blender/abilities/superbounce.py: RainbowShell (a shell a little over the ball,
+		-- its rainbow texture scrolled at runtime) and BoingRing (the hit's star-burst ring).
+		SuperBounce = 75004032615944,
 		-- tools/blender/abilities/rewind.py: RewindDial (a flat counter-clockwise circular arrow
 		-- with clock ticks, unit radius, magenta-white-green across its band).
 		Rewind = 110978850889818,
@@ -4741,6 +4784,7 @@ Config.Ults.Assets = {
 		-- The cue ball as a fireball (tools/blender/abilities/icons_v2.py, 2026-10-08; Decal
 		-- 139546488723905).
 		FireShot = "rbxassetid://116335731498943",
+		SuperBounce = "rbxassetid://95265934894642",
 		Rewind = "rbxassetid://120627614883189",
 		-- The rework's three (tools/blender/abilities/icons_v2.py, 2026-10-08).
 		CatchABall = "rbxassetid://104903571295338",
@@ -4772,6 +4816,9 @@ Config.Ults.Assets = {
 -- Guideline
 ---------------------------------------------------------------------------------------------
 Config.Guideline = {
+	-- The lines while Fire Shot is armed (Guideline.show's `full`): the same lines, orange
+	-- (designer, 2026-10-09).
+	FullColor = { 255, 100, 10 }, -- Neon brightens it: 255, 140, 30 read yellow
 	-- Length of the short lines drawn after first contact at their longest. Off a ball each is
 	-- scaled by the share of speed it carries (Aim.Trace): the object ball's line is full on
 	-- a straight-on hit and shrinks as the cut gets thinner, the cue ball's does the reverse,
@@ -11166,6 +11213,74 @@ Config.UI.EaglesEyeFx = {
 	ScreechSeconds = 2.5,
 }
 
+-- Super Bounce's look (src/client/SuperBounceFx.luau; ABILITIES_PROMPT 7.3): the rainbow shell
+-- on the cue ball, a rainbow ribbon, a boing ring and a squash at every bounce. Studs unless
+-- named; the bounce itself is Config.Ults.SuperBounce. (tune)
+Config.UI.SuperBounceFx = {
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	-- The shell: this many times the drawn cue ball's width, turning this fast (its bands roll
+	-- round the ball), popping on over PopSeconds with a PopOvershoot spring, fading in and out.
+	ShellScale = 1.06,
+	TurnDegreesPerSecond = 220,
+	PopSeconds = 0.35,
+	PopOvershoot = 2.2,
+	FadeInSeconds = 0.12,
+	FadeOutSeconds = 0.5,
+	-- A hit squashes it along the hit by this share (and bulges it half that across), springing
+	-- back over SquashSeconds.
+	SquashShare = 0.3,
+	SquashSeconds = 0.22,
+	-- The boing ring at a hit: this many ball widths across, growing from RingFromScale to
+	-- RingToScale while it fades over RingSeconds, turning RingSpinDegrees.
+	RingBallWidths = 2.6, -- (1.6 was a speck from the replay camera: the look check)
+	RingFromScale = 0.45,
+	RingToScale = 1.3,
+	RingSeconds = 0.35,
+	RingSpinDegrees = 40,
+	-- A hit's ring faces out of the hit tilted this share of the way to straight up, so the
+	-- overhead replay camera sees it face on and not as an edge (0: standing on the cushion).
+	RingTiltShare = 0.55,
+	RingTransparency = 0,
+	FloorRingLiftInches = 0.1, -- the arming ring, flat on the cloth under the cue ball
+	-- A hit's sparkles: SparkCount at full weight (Config.UI.Kit.Art.Spark, the rainbow), thrown
+	-- every way and slowed by SparkDrag.
+	SparkCount = 9,
+	SparkSizeStuds = 0.12,
+	SparkLifetime = { 0.3, 0.55 },
+	SparkSpeed = { 3, 6 },
+	SparkDrag = 4,
+	SparkLightEmission = 0.3,
+	-- A hit's weight (ring opacity, boing volume): its speed over FullSpeed (in/s), at least
+	-- MinWeight.
+	FullSpeed = 60,
+	MinWeight = 0.35,
+	-- The boings: each pitched PitchStep higher than the last of the shot, up to PitchMax; never
+	-- two within BoingGapSeconds; each holder let go after BoingHoldSeconds.
+	PitchStep = 0.05,
+	PitchMax = 1.6,
+	BoingGapSeconds = 0.06,
+	BoingHoldSeconds = 2,
+	JawPitch = 0.3, -- the caught ball's jaw boing, this much higher (a jaw sends it in)
+	FreshSeconds = 0.3, -- a hit the replay only caught up with (a late join) gets nothing
+	-- The ribbon: a camera-facing Trail across the cue ball (TrailBallWidths of it), fading over
+	-- TrailSeconds and narrowing to TrailTailWidth, while the cue ball moves faster than
+	-- TrailMinSpeed (in/s). The house rainbow (superbounce.py's RAINBOW).
+	TrailBallWidths = 1,
+	TrailSeconds = 0.45,
+	TrailTailWidth = 0.3,
+	TrailTransparency = 0,
+	TrailLightEmission = 0, -- any glow washed the rainbow to pale yellow (the look check)
+	TrailMinSpeed = 3,
+	TrailColors = {
+		{ 255, 77, 77 },
+		{ 255, 159, 28 },
+		{ 255, 225, 77 },
+		{ 61, 214, 107 },
+		{ 59, 155, 255 },
+		{ 162, 89, 255 },
+	},
+}
+
 -- Rewind's look (src/client/RewindFx.luau; docs/prompts/ABILITIES_PROMPT.md 7.6, reference 02)
 -- and its playback in src/client/Match.luau. Studs unless named. (tune)
 Config.UI.RewindFx = {
@@ -12461,11 +12576,36 @@ Config.UI.FireShotFx = {
 	StreamMaxPerFrame = 10,
 	StreamLickEvery = 2,
 	StreamMaxGapStuds = 12, -- a longer jump in a frame is a hitch or a move, not flight: no stream
+	-- The flame trail (designer, 2026-10-09: "add a flame trail behind it"): with each streamed
+	-- flame a low one left behind on the path, barely rising, that lingers and burns down, so
+	-- a line of fire follows the ball.
+	TrailFlames = {
+		Name = "TrailFlames",
+		Texture = "rbxassetid://118342487469917", -- energy_flame, as the flames
+		FlipbookLayout = "Grid8x8",
+		FlipbookMode = "OneShot",
+		Lifetime = { 0.55, 0.85 },
+		Speed = { 0, 0.15 },
+		SpreadAngle = { 30, 30 },
+		Acceleration = { 0, 0.9, 0 },
+		Size = { { 0, 0.32 }, { 0.3, 0.38 }, { 1, 0.06 } },
+		Transparency = { { 0, 0.25 }, { 0.2, 0.1 }, { 0.7, 0.45 }, { 1, 1 } },
+		Rotation = { -20, 20 },
+		Color = {
+			{ 0, 255, 236, 170 },
+			{ 0.3, 255, 160, 50 },
+			{ 0.7, 235, 80, 20 },
+			{ 1, 150, 30, 10 },
+		},
+		Brightness = 1.3, -- brighter washed the trail to white (2026-10-09)
+		LightEmission = 0.4,
+		ZOffset = 0.05,
+	},
 	-- And a burning ribbon behind it (Trail; the cue skin's own trail is hidden meanwhile), with
 	-- a hot core inside, laid while it moves faster than TrailMinSpeed (in/s).
 	TrailTexture = "rbxassetid://111322789691032", -- trail_hellfire, the Infernal cue's
 	TrailTextureLength = 1.3,
-	TrailSeconds = 0.3,
+	TrailSeconds = 0.5, -- 0.3 read as a stub behind a fast ball (2026-10-09)
 	TrailBallWidths = 1.6,
 	TrailColors = { { 255, 236, 160 }, { 255, 140, 40 }, { 220, 50, 15 } },
 	TrailTransparency = { { 0, 0.05 }, { 0.6, 0.35 }, { 1, 1 } },
@@ -12490,41 +12630,20 @@ Config.UI.FireShotFx = {
 	OutSmoke = 10,
 	-- How long a one-shot's holder lives (its sound and particles have played out by then).
 	HolderSeconds = 3,
-	-- The aim (the local shooter's only, look:aiming): the white guideline draws every line,
+	-- The aim: the guideline itself draws every line, orange (Config.Guideline.FullColor),
 	-- its object ball's and cue ball's lines running on to the next cushion, ball or pocket
-	-- (Aim.fullLines; the designer, 2026-10-08: "to the next edge of a table"). Under each of
-	-- its three lines (the aim, the object ball's, the cue ball's) a river of fire flows the
-	-- way the line goes: a flat Beam RiverWidthStuds wide with a band of flame scrolling along
-	-- it (assets/abilities/FireShot/fire_river.png, tools/gen_fireshot_art.py: yellow-orange
-	-- down the middle to a dark red rim, in its own colours), tinted from RiverColor and
-	-- RiverTransparency where the line starts to RiverFarColor and RiverFarTransparency where
-	-- it ends (cooler, redder). Alpha-blended and unlit (RiverLightEmission 0): an additive
-	-- glow washes out to pink and white on the bright blue cloth, and the cue trails' smoky
-	-- art reads as soot there (the look checks, 2026-10-08). RiverLiftInches over the cloth:
-	-- under the guideline (Config.Guideline.HeightAboveClothInches), over the scorch marks.
-	RiverTexture = "rbxassetid://103203498120310",
-	RiverTextureLength = 1.6,
-	RiverTextureSpeed = 1.2,
-	RiverWidthStuds = 0.34,
-	RiverLightEmission = 0,
-	RiverBrightness = 1,
-	RiverColor = { 255, 255, 255 },
-	RiverFarColor = { 255, 170, 120 },
-	RiverTransparency = 0,
-	RiverFarTransparency = 0.15,
-	RiverLiftInches = 0.075,
-	-- The aim is re-drawn when it moves this much: the angle (radians), the power (a jump's
-	-- flight), each spin axis, a ball (inches).
-	AngleStep = 0.0002,
-	PowerStep = 0.002,
-	SpinStep = 0.01,
-	BallKeyInches = 0.01,
+	-- (Aim.fullLines; the designer, 2026-10-08: "to the next edge of a table"; 2026-10-09: the
+	-- rivers of fire under them are gone, "just make it like the regular aiming lines but
+	-- orange").
 	-- The scorch marks (everyone at the table): the burn line where the cue ball rolled,
 	-- ScorchWidthInches wide (assets/abilities/FireShot/scorch_strip.png, tileable along its
 	-- length, ScorchTileWidths times as long as wide; tools/gen_fireshot_art.py), a new piece
-	-- wherever its heading turns more than ScorchTurnDegrees, and a splat (scorch_splat.png,
-	-- SplatInches across) under the strike and at every hit. Char coloured, ScorchTransparency,
-	-- fading in over ScorchAppearSeconds. Not while the ball is in the air (higher than
+	-- wherever its heading turns more than ScorchTurnDegrees or it is ScorchPieceInches long,
+	-- and a splat (scorch_splat.png, SplatInches across) under the strike and at every hit.
+	-- Faint dark char (designer, 2026-10-09: "less noticeable and like dark", it was "way too
+	-- aggressive"): ScorchColor at ScorchTransparency, fading in over ScorchAppearSeconds, held
+	-- ScorchHoldSeconds after the ball burnt it, then out over ScorchFadeSeconds ("disappear
+	-- soon after they appear like 1 second"). Not while the ball is in the air (higher than
 	-- AirInches), down a pocket or off the table; at most MaxScorchPieces a shot.
 	ScorchStripTexture = "rbxassetid://81910678846181",
 	ScorchSplatTexture = "rbxassetid://76654317041092",
@@ -12535,9 +12654,12 @@ Config.UI.FireShotFx = {
 	SplatLiftInches = 0.05,
 	EmberLiftInches = 0.07,
 	ScorchThicknessStuds = 0.005,
-	ScorchColor = { 56, 34, 22 },
-	ScorchTransparency = 0.15,
-	ScorchAppearSeconds = 0.25,
+	ScorchColor = { 28, 24, 22 },
+	ScorchTransparency = 0.55,
+	ScorchAppearSeconds = 0.15,
+	ScorchHoldSeconds = 0.7,
+	ScorchFadeSeconds = 0.4,
+	ScorchPieceInches = 4,
 	ScorchTurnDegrees = 4,
 	ScorchMinStepInches = 0.3,
 	SplatInches = 4.2,
@@ -12546,25 +12668,20 @@ Config.UI.FireShotFx = {
 	HitSplatScale = 0.8,
 	DownSplatScale = 0.7,
 	AirInches = 0.25,
-	MaxScorchPieces = 60,
-	-- The fresh burn glows: Neon embers along it every EmberSegmentInches, EmberWidthShare of
-	-- the burn's width, cooling from EmberHotColor to EmberCoolColor and fading out over
-	-- EmberSeconds (a splat's flash, SplatEmberShare of its width, over SplatEmberSeconds), so
-	-- the line is hot right behind the ball and cools down its length.
+	MaxScorchPieces = 260,
+	-- The fresh burn glows softly: Neon embers along it every EmberSegmentInches,
+	-- EmberWidthShare of the burn's width, cooling from EmberHotColor to EmberCoolColor and
+	-- fading out over EmberSeconds (a splat's flash, SplatEmberShare of its width, over
+	-- SplatEmberSeconds), a warm glow just behind the ball (2026-10-09: the long red glow was
+	-- too loud).
 	EmberSegmentInches = 5,
-	EmberWidthShare = 0.4,
-	EmberHotColor = { 255, 205, 95 },
-	EmberCoolColor = { 200, 40, 10 },
-	EmberTransparency = 0.15,
-	EmberSeconds = 1.4,
-	SplatEmberSeconds = 0.8,
-	SplatEmberShare = 0.55,
-	-- The marks stay until the shooter's next turn (the designer, 2026-10-08): through the
-	-- other side's turn, gone when the table comes back to the shooter's side (a run of their
-	-- own keeps them; in Solo, until their next shot), or at a new game. Then they fade out
-	-- over ExpireSeconds. At most MaxBurns shots' marks at a table (the oldest goes first).
-	ExpireSeconds = 1,
-	MaxBurns = 4,
+	EmberWidthShare = 0.3,
+	EmberHotColor = { 255, 170, 80 },
+	EmberCoolColor = { 90, 40, 20 },
+	EmberTransparency = 0.6,
+	EmberSeconds = 0.45,
+	SplatEmberSeconds = 0.35,
+	SplatEmberShare = 0.45,
 }
 
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
@@ -12587,6 +12704,7 @@ Config.UI.AbilityFx = {
 		BlackHole = "BlackHoleFx",
 		GuangdongTiger = "GuangdongTigerFx",
 		FireShot = "FireShotFx",
+		SuperBounce = "SuperBounceFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.

@@ -608,8 +608,8 @@ lets one ball pass through those balls only, a per-pair filter in the contact se
 with `overrides.PhaseCue` for the cue ball; any ball with passes forces pairwise contacts:
 Ghost's hit ball passes the ones the cue ball passed); `state.fx.material[id]` (a
 `BallMaterial`: cushion restitution and friction, ball restitution, cloth frictions, until
-`Until`) gives an object ball its own material (Super Bounce's caught ball had it; none uses it
-since Super Bounce became Fire Shot, nor the cue ball's `Cue*` overrides). An effect may plan once
+`Until`) gives an object ball its own material (Super Bounce's caught ball; its cue ball uses
+the `Cue*` overrides, `Arming.extras`). An effect may plan once
 at its first step and keep the plan in `fx` (Heat Seeker's A* path to the locked ball: nothing
 moves before the first contact), or schedule by shot time in `fx` (Chain Lightning's jumps,
 one every `LinkSeconds` after the charge, each target chosen from the positions at that step).
@@ -698,18 +698,21 @@ over the shooter's next shots too (up to `V.TURN_SHOTS`). The Blender scripts ar
 The 13-ability ladder of `docs/prompts/ABILITIES_REWORK_PLAN.md`. Heat Seeker and Ghost left
 the game: `Config.Ults.Retired` maps a saved slot holding either to Magnet when the profile
 loads (no save version bump); their mentions above are history. Super Bounce became Fire Shot
-in the third round (`Retired.SuperBounce = "FireShot"`), the starter (`Config.Ults.Default`,
+in the third round and came back beside it on 2026-10-09 (no longer in `Retired`; its
+`Effects/SuperBounce`, `SuperBounceFx` and Config rows restored as they were). Fire Shot is the
+starter (`Config.Ults.Default`,
 `Config.Tutorial.SpinUlt`): `Effects/FireShot` is Black Flash's launch alone (the first step
 scales the cue ball's motion along the cloth and its spin by `LaunchSpeedScale`, once). It
 also sends `ult` events: "turn" where the cue ball meets a cushion or a ball, "down" where it
 lands. Its full lines are `Aim.fullLines` (above). `FireShotFx` draws the rest:
   - the flames on the ball;
-  - fire under the guideline's lines (flat Beams);
+  - the flame trail (low flames streamed along the path);
   - the strike;
-  - the scorch marks, which bend at the "turn" events and cool from hot embers. They last
-    until the shooter's next turn: they expire when the snapshot's `activeTeam` has left the
-    shooter's team and come back, at a new `epoch`, or (Solo) at the next shot. The table's
-    anchor is held meanwhile (`kit.anchor`).
+  - the scorch marks, short pieces that bend at the "turn" events, each fading
+    `ScorchHoldSeconds` after the ball last burnt it (or at a new `epoch`). The table's anchor
+    is held meanwhile (`kit.anchor`).
+  The guideline itself turns orange while it is armed (`Guideline.show`'s `full`,
+  `Config.Guideline.FullColor`).
 
 The value harness's careful
 shooter may pull Fire Shot's stroke to its planned speed over the scale (`V.planners.Launch`,

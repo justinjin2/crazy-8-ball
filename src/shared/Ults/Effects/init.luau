@@ -37,6 +37,7 @@ local Effects: { [string]: Effect } = {
 	Magnet = require(script.Magnet) :: any,
 	Portals = require(script.Portals) :: any,
 	SteelBall = require(script.SteelBall) :: any,
+	SuperBounce = require(script.SuperBounce) :: any,
 	TimeStop = require(script.TimeStop) :: any,
 	Verity = require(script.Verity) :: any,
 }

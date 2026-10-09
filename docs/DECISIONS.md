@@ -3697,3 +3697,13 @@ timer of a new block stay the designer's call.
   first: "You will lose it permanently. Are you sure?" The equipped cue keeps one (the server's
   rule), and the Index keeps it as found (designer: "if they just want to delete common cues
   they dont like ... for money").
+- 2026-10-09: Super Bounce is back as a third Common ability beside Eagle's Eye and Fire Shot
+  ("just more in the pool"), restored as it was before the third rework round (its physics,
+  look, sounds, icon and tests); saves that held it on 2026-10-08 keep Fire Shot.
+- 2026-10-09: Fire Shot's look: the aim is the regular guideline in orange (the rivers of fire
+  under the lines are gone); low flames trail the ball along its path (and a longer ribbon);
+  the scorch marks are a faint dark char line, end to end with no darker overlaps, with only a
+  soft warm glow behind the ball, and each mark fades about a second after the ball burnt it
+  (they stayed until the shooter's next turn). The designer: "make the aiming lines ... like
+  the regular aiming lines but orange", "add a flame trail behind it", "make the scortch marks
+  less noticeable ... disappear soon after they appear like 1 second".

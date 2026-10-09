@@ -35,7 +35,10 @@ return {
 		local problems = Catalog.validate()
 		H.expect(#problems == 0, table.concat(problems, "; "))
 		local list = Catalog.list()
-		H.expect(#list == 14 and #list == #Config.Ults.Order, "14 ults (the rework, 2026-10-08)")
+		H.expect(
+			#list == 15 and #list == #Config.Ults.Order,
+			"15 ults (Super Bounce back, 2026-10-09)"
+		)
 		for i, id in list do
 			H.expect(id == Config.Ults.Order[i] and Catalog.exists(id), "in Order")
 		end

@@ -116,8 +116,11 @@ return {
 		end
 		-- The brief's per-ult odds.
 		local normal = Roll.odds("Normal", true)
-		-- (The abilities rework, 2026-10-08: Common is Eagle's Eye and Fire Shot.)
-		H.expect(ultPpm(normal, "EaglesEye") == 275000, "27.5% (Common's share between two)")
+		-- (Common is Eagle's Eye, Fire Shot and, from 2026-10-09, Super Bounce.)
+		H.expect(
+			math.abs((ultPpm(normal, "EaglesEye") :: number) - 550000 / 3) <= 1,
+			"about 18.3% (Common's share between three)"
+		)
 		H.expect(ultPpm(normal, "BlackHole") == 500, "0.05%")
 	end,
 

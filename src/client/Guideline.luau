@@ -53,6 +53,7 @@ export type Guideline = typeof(setmetatable(
 		-- The ghost ball's centre (inches) while a ball or cushion contact is shown, for the
 		-- abilities' reach preview (AbilityFx); nil while hidden.
 		aimContact: { x: number, y: number }?,
+		tint: Color3, -- the lines' colour now (orange while Fire Shot is armed)
 	},
 	Guideline
 ))
@@ -158,8 +159,36 @@ function Guideline.new(parent: Instance, p: Placement.Placement): Guideline
 		arcPhase = 0,
 		scroll = 0,
 		aimContact = nil,
+		tint = lineColor(),
 	}, Guideline)
 	return self
+end
+
+-- Paint every line, ring and dot `color` (the red cross keeps its own).
+local function paint(self: Guideline, color: Color3)
+	self.tint = color
+	local strips = { self.path, self.leftEdge, self.rightEdge, self.objectStub, self.cueStub }
+	for _, shadow in self.shadows do
+		table.insert(strips, shadow)
+	end
+	for _, strip in strips do
+		strip.part.Color = color
+		if strip.texture then
+			strip.texture.Color3 = color
+		end
+	end
+	local rings = table.clone(self.landings)
+	table.insert(rings, self.ring)
+	for _, ring in rings do
+		ring.Color = color
+		local outline = ring:FindFirstChild("Outline")
+		if outline and outline:IsA("Decal") then
+			outline.Color3 = color
+		end
+	end
+	for _, dot in self.dots do
+		dot.Color = color
+	end
 end
 
 local function setRing(ring: Part, transparency: number)
@@ -214,7 +243,8 @@ local FULL_DRAWS = { Corridor = true, Stubs = true, Landings = true, Arc = true 
 
 --- Draw `trace` at difficulty `level` (a Config.Difficulty.Levels key; nil is the default).
 --- `full` (Aim.fullLines, Fire Shot armed): the lines after the first contact run on to the
---- next cushion, ball or pocket, and everything is drawn whatever the difficulty.
+--- next cushion, ball or pocket, everything is drawn whatever the difficulty, and the lines are
+--- orange (Config.Guideline.FullColor).
 function Guideline.show(
 	self: Guideline,
 	trace: Trace,
@@ -239,6 +269,13 @@ function Guideline.show(
 	local D = Config.Difficulty
 	local draws = if full then FULL_DRAWS else D.Levels[level or D.Default] or D.Levels[D.Default]
 	local G = Config.Guideline
+	-- Fire Shot's lines are orange (designer, 2026-10-09), the same lines otherwise.
+	local tint = if full
+		then Color3.fromRGB(G.FullColor[1], G.FullColor[2], G.FullColor[3])
+		else lineColor()
+	if tint ~= self.tint then
+		paint(self, tint)
+	end
 	local R = Config.Balls.RadiusInches
 	local ringR = Config.Balls.RenderRadiusInches * G.RingScale
 	-- The tutorial's game 1 draws the longer line (the tutorial lane).
