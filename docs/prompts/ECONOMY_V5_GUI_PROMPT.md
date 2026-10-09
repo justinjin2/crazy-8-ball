@@ -346,7 +346,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
 
 ## Progress (tick each box when it is verified, committed and pushed)
 
-- [ ] 0. Setup: Rojo on 34872 serving this folder and Studio synced (`script_grep`), lint and
+- [x] 0. Setup: Rojo on 34872 serving this folder and Studio synced (`script_grep`), lint and
   tests green, the trial merge with `tutorial-v2` noted; every screen in section 3
   screenshotted as it is now (phone emulator and PC); any breakage found goes first.
 - [x] 1. The server hook for the tutorial's scripted first block, with tests.
@@ -385,7 +385,9 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   OPEN! (step 2); Studio's `StudioOpening` opens the Grand Opening through `Shop.setDeal`, not
   Config, so the Grand Opening Luck stays off in Studio on both sides (step 5 needs its own
   test switch). Trial merge: the same 5 conflicts as the brief (DECISIONS, Tutorial.luau,
-  TutorialService.luau, Config, Strings).
+  TutorialService.luau, Config, Strings). The phone emulator's (750 x 361) as `phone_*.jpg`
+  beside them (14 screens). On a phone the result card nearly fills the height (step 7's
+  new line needs room) and the climb screen's button says "Click!" in the touch emulator.
 - **Step 1**: `BlockDrop.climbFor` (pure: stay, a scripted tier, or a roll; 5 Lune tests),
   `PlayerData.climbBlock(player, id, stay, forced)`, `setOpenHooks`' fourth hook `script`,
   asked on the climb screen's Reveal too (with `stay`, which Reveal never asked before). A
