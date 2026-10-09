@@ -378,4 +378,25 @@ return {
 		H.expect(mystery > 0 and mystery < rare, "a Mystery block: mostly Standard and Uncommon")
 		H.expect(Trade.blockWorth("Nope", copies) == nil, "unknown kind")
 	end,
+	["until the counts load, the model's day-30 fallback: unclimbed and climbed apart"] = function()
+		local Trade, _, _, Config = load()
+		local T = Config.Trade
+		-- Every block kind that trades has a fallback, and every block tier a climbed one.
+		for _, kind in Config.LuckyBlocks.Order do
+			H.expect((T.BlockExists :: any)[kind] ~= nil, kind .. ": BlockExists")
+		end
+		for _, tier in Config.BlockOdds.Order do
+			H.expect((T.ClimbedExists :: any)[tier] ~= nil, tier .. ": ClimbedExists")
+		end
+		-- A climbed Mythic block (exactly a Mythic cue) is worth more than an unclimbed Rare one,
+		-- and an unclimbed Legendary block less than a climbed one (it may stay Legendary).
+		H.expect(
+			Trade.lopsided({ "Climbed:Mythic" }, { "Block:Rare" }, {}) == "A",
+			"a climbed Mythic far above a Rare start"
+		)
+		H.expect(
+			(T.ClimbedExists :: any).Legendary > (T.BlockExists :: any).Legendary,
+			"an unclimbed Legendary may climb: worth more than a climbed one"
+		)
+	end,
 }

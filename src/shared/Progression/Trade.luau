@@ -583,7 +583,7 @@ end
 
 -- An item's worth: 1 / its copies in existence (cues; fewer than MinExists counts as
 -- MinExists, unknown as MinExists) or Trade.blockWorth (lucky blocks; until the counts are
--- known, 1 / Config.Trade.BlockExists).
+-- known, 1 / Config.Trade.BlockExists, or ClimbedExists for a climbed block).
 local function worth(item: string, copies: { [string]: number }): number
 	local kind, id, climbed = parseItem(item)
 	if kind == "Block" then
@@ -591,7 +591,8 @@ local function worth(item: string, copies: { [string]: number }): number
 		if live ~= nil and live > 0 then
 			return live
 		end
-		return 1 / math.max(T.MinExists, (T.BlockExists :: any)[id] or T.MinExists)
+		local fallback: any = if climbed then T.ClimbedExists else T.BlockExists
+		return 1 / math.max(T.MinExists, fallback[id] or T.MinExists)
 	elseif kind == "Cue" then
 		return cueWorth(id :: string, copies) or 1 / T.MinExists
 	end

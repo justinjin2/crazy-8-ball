@@ -292,7 +292,7 @@ perk text. Don't change any of these products: the designer approves them later.
   (6.1).
 - [x] 9. Quick reveal and "Open all" (3.8).
 - [x] 10. The "1 in N" (3.9).
-- [ ] 11. Trade (3.10).
+- [x] 11. Trade (3.10).
 - [ ] 12. The model v5, `economy_config.json`, the copy-number timeline (3.11).
 - [ ] 13. The docs (3.11) and the hand-off file (section 4).
 - [ ] 14. The Robux proposal file (6.2), with no product changes.
@@ -368,3 +368,6 @@ perk text. Don't change any of these products: the designer approves them later.
 - Step 10: `LuckyBlocks.oneIn(cue, from, luck)`, `Format.oneIn`, `Strings.Banner.OneIn`; the
   Unbox payload carries `oneIn` and `from`; `Banner` appends it. Every open now passes its
   start kind (a never-climbing kind uses its own row).
+- Step 11: `Trade.blockWorth(kind, copies, climbed)` (step 3), `Config.Trade.BlockExists`
+  from `tools/economy_model.py exists` at day 30 (v5), new `ClimbedExists`; the worth fallback
+  reads the climbed table for "Climbed:" items. The model's port is step 12's commit.

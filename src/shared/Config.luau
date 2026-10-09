@@ -3244,23 +3244,34 @@ Config.Trade = {
 	-- The lopsided warning: one side's worth is more than this many times the other's. A
 	-- cue's worth is 1 / its copies in existence (fewer than MinExists counts as MinExists);
 	-- a lucky block's is worked out live from its odds row and the live copies of each rarity
-	-- (Trade.blockWorth, v4 plan section 11). BlockExists is the fallback until the counters
-	-- load: 1 / worth from the model at day 30. Only READY blocks trade (Progression/Trade).
+	-- (Trade.blockWorth, v4 plan section 11; economy v5: an unclimbed block's from its climb
+	-- odds, a climbed block's from its tier). BlockExists (an unclimbed block, or a kind that
+	-- never climbs) and ClimbedExists (a climbed block of each tier) are the fallback until the
+	-- counters load: 1 / worth from the model at day 30 (tools/economy_model.py exists, economy
+	-- v5, 2026-10-09). Only READY blocks trade (Progression/Trade).
 	LopsidedRatio = 4,
 	MinExists = 10,
 	BlockExists = {
-		Standard = 160000,
-		Uncommon = 140000,
-		Rare = 73000,
+		Standard = 61000,
+		Uncommon = 47000,
+		Rare = 31000,
 		Epic = 11000,
-		Legendary = 1600,
-		Mythic = 400,
-		Mystery = 120000, -- the tier roll: mostly Standard and Uncommon
-		GrandOpening = 15000,
-		Lucky8 = 73000, -- the Rare row
-		Sky = 115000,
-		Starter = 19000,
-		Gift = 73000, -- the Rare row
+		Legendary = 2600,
+		Mythic = 1100,
+		Mystery = 61000, -- a Standard start
+		GrandOpening = 7800,
+		Lucky8 = 47000, -- an Uncommon start
+		Sky = 61000, -- a Standard start
+		Starter = 36000,
+		Gift = 47000, -- an Uncommon start
+	},
+	ClimbedExists = {
+		Standard = 86000,
+		Uncommon = 67000,
+		Rare = 49000,
+		Epic = 18000,
+		Legendary = 3400,
+		Mythic = 1400,
 	},
 	-- The ledger: each player's trades written before their saves change, replayed on a load
 	-- that missed one (one key per player: the trades not yet confirmed saved).
