@@ -2408,6 +2408,15 @@ Config.LuckyBlocks = {
 	-- BlockRequest's token bucket: this many at once, refilling this fast.
 	RateBurst = 8,
 	RatePerSecond = 4,
+	-- Economy v5 (plan 3.8): a cue of these rarities opens with the quick reveal (about
+	-- QuickRevealSeconds), the full show from Rare up. The GUI session's screens read it.
+	QuickReveal = { "Common", "Uncommon" },
+	QuickRevealSeconds = 1.5,
+	-- "Open all" (plan 3.8; BlockRequest "OpenAll"): every ready climbed block of these tiers
+	-- opens at once from the hotbar and bag (not one in the hands or thrown), oldest first, at
+	-- most Max a press, with a short summary of what came out. One press per MinGapSeconds
+	-- (on top of the token bucket).
+	OpenAll = { Tiers = { "Standard", "Uncommon" }, Max = 50, MinGapSeconds = 3 },
 	-- Animations, all uploaded to the group (675425213) so they play in the game. BlockIdle:
 	-- the pack's bounce, played on a thrown block whose kind has no Idle of its own. Hold and Throw: the arms (an empty id plays
 	-- nothing), per rig.

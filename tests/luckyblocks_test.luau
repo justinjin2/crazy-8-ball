@@ -378,4 +378,42 @@ return {
 		H.expect(table.find(L.Reasons, "Reveal") ~= nil, "Hold's refusal")
 		H.expect(table.find(L.Reasons, "NotMystery") ~= nil, "Reveal's refusal")
 	end,
+	["Open all: the ready climbed Standard and Uncommon blocks, oldest first"] = function()
+		local L, Config = load()
+		local rule = Config.LuckyBlocks.OpenAll
+		H.expect(table.concat(rule.Tiers, " ") == "Standard Uncommon", "Standard and Uncommon")
+		H.expect(rule.Max >= 1 and rule.MinGapSeconds > 0, "a cap and a gap")
+		local state = L.fresh()
+		local std = climbed(L, state, "Standard", 1000) -- no timer
+		local unc = climbed(L, state, "Uncommon", 1000) -- 1 minute
+		local rare = climbed(L, state, "Rare", 0) -- ready, but a Rare: the full show
+		local raw = L.add(state, "Standard", 0) -- unclimbed: it climbs first
+		local held = climbed(L, state, "Standard", 0)
+		local ids = L.openAllIds(state, 1000, 1)
+		H.expect(table.concat(ids, " ") == ("%d %d"):format(std.Id, held.Id), "the ready ones")
+		ids = L.openAllIds(state, 1060, 1, { [held.Id] = true })
+		H.expect(table.concat(ids, " ") == ("%d %d"):format(std.Id, unc.Id), "after a minute")
+		for _, id in ids do
+			H.expect(id ~= rare.Id and id ~= raw.Id, "never a Rare or an unclimbed block")
+		end
+		-- At most Max.
+		local many = L.fresh()
+		for _ = 1, rule.Max + 5 do
+			climbed(L, many, "Standard", 0)
+		end
+		H.expect(#L.openAllIds(many, 1000, 1) == rule.Max, "at most Max a press")
+		-- The request.
+		local r = L.parse("OpenAll")
+		H.expect(r ~= nil and r.action == "OpenAll" and r.id == nil, "no arguments")
+		H.expect(table.find(L.Actions, "OpenAll") ~= nil, "an action")
+		H.expect(table.find(L.Reasons, "NoneReady") ~= nil, "its refusal")
+	end,
+
+	["the quick reveal: Common and Uncommon; the full show from Rare up"] = function()
+		local L = load()
+		H.expect(L.quickReveal("Common") and L.quickReveal("Uncommon"), "quick")
+		for _, rarity in { "Rare", "Epic", "Legendary", "Mythic", "Secret" } do
+			H.expect(not L.quickReveal(rarity), rarity .. ": the full show")
+		end
+	end,
 }

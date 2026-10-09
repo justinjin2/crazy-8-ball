@@ -290,7 +290,7 @@ perk text. Don't change any of these products: the designer approves them later.
 - [x] 7. The restock (3.6).
 - [x] 8. The Mystery shop (3.7), and the 1 R$ skip with its credit migration and its product
   (6.1).
-- [ ] 9. Quick reveal and "Open all" (3.8).
+- [x] 9. Quick reveal and "Open all" (3.8).
 - [ ] 10. The "1 in N" (3.9).
 - [ ] 11. Trade (3.10).
 - [ ] 12. The model v5, `economy_config.json`, the copy-number timeline (3.11).
@@ -361,3 +361,7 @@ perk text. Don't change any of these products: the designer approves them later.
   `Config.Products` and `tools/products_ids.json`; spec row added to `tools/products_spec.json`.
   The credit migration was step 3's (credits by product). No other product touched. Client
   shim: the Mystery band's Robux button reads "Coming soon" for `Mystery5`.
+- Step 9: `Config.LuckyBlocks.QuickReveal`, `QuickRevealSeconds`, `OpenAll`;
+  `LuckyBlocks.quickReveal`, `openAllIds`, the "OpenAll" action and "NoneReady" reason;
+  `LuckyBlockService` HANDLERS.OpenAll. No client button yet (the GUI session's): Strings
+  `OpenAll`, `OpenAllSummary`, `OpenAllOne` are ready for it.
