@@ -1864,6 +1864,13 @@ Config.Economy = {
 	-- A nice shot pays this on top of its ball (Rules/NiceShot's kinds), to the shooter only.
 	-- Never in solo (3.2).
 	NiceShotPay = { Bank = 150, Kick = 150, Combo = 200, Carom = 200 },
+	-- The ball streak (3.1, Rules/Streak; designer, 2026-10-09): from streak x(BallStreakFrom)
+	-- on, each ball the shooter pots pays BallStreakShare of BallPay for every level from
+	-- BallStreakFrom, on top of its ball: x3 +$25, x4 +$50 ... x8 +$150. Never a multiplier.
+	-- The shooter only, never in solo or at a flat after-cap pay, like a nice shot. About
+	-- +6.6% an hour (tools/streak_model.luau, 1,600 bot-duel games). (tune)
+	BallStreakFrom = 3,
+	BallStreakShare = 0.25,
 	-- The match bonus at the end of a real match (3.1, 3.2), by opponent. The leaver gets
 	-- nothing. The win bonus is multiplied by the opponent-gap factor (Config.Ranks.Gap) but
 	-- never below WinBonusGapFloor of it (4.4); the loss bonus is not.
@@ -8530,6 +8537,200 @@ Config.UI.VipTag = {
 -- thumbnails (CueThumb) and the top banner (Banner). Pixels and seconds. "Short" values are for
 -- a phone on its side (the HUD screen under Multiplayer.Style.ShortHeight, as the rank and money
 -- HUDs). A menu's slight dim is the roadmap's (Config.UI.Progress.Roadmap.Dim*). (tune)
+-- The ball streak (designer, 2026-10-09; src/client/StreakHud.luau, Rules/Streak; the approved
+-- mockup https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T): "STREAK xN" in Press Start 2P under
+-- the match popups for everyone seated at the table. Each level is a new colour and a little
+-- bigger; from x3 the words burn (pixel fire sheets, tools/gui/streak_fire.py). Each step up
+-- plays its spray (Config.Audio.Ui.Streak2..8), two white impact frames, a burst and pixel
+-- shards, and from x3 a small camera shake that grows each level. It sits under the HUD (the
+-- top bar and the popups draw over it) and never takes input. Sizes are px on a PC screen,
+-- times ShortScale on a phone (Multiplayer.Style.ShortHeight). (tune)
+Config.UI.Streak = {
+	Font = "rbxasset://fonts/families/PressStart2P.json", -- built into Roblox
+	TextPx = 26, -- STREAK at x1
+	ShortScale = 0.66, -- on a phone
+	GrowPerLevel = 0.05, -- each level past x1 is 5% bigger: x8 is 1.35x
+	NumberScale = 1.25, -- "xN" is a quarter bigger than STREAK
+	-- Its top: under the popups' row (the foul popup's title and reason) below the top bar.
+	TopGapPx = 6,
+	ZIndex = 1, -- under MatchHUD's root (ZIndex 2) in the same screen
+	Ink = { 27, 32, 51 }, -- the outline (Kit Ink)
+	OutlineShare = 0.1, -- the ink outline's thickness, a share of the text size (UIStroke, Miter)
+	ShadowColor = { 11, 14, 28 }, -- the drop shadow, down and right
+	ShadowShare = { 0.1, 0.16 }, -- its offset, shares of the text size (x, y)
+	HighlightMix = 0.45, -- the fill's top is its colour this far toward white (UIGradient)
+	-- From x6 a cyan and a pink copy sit either side of each letter (a spray-paint look).
+	Ghost = {
+		Colors = { { 56, 232, 255 }, { 255, 79, 216 } },
+		OffsetShare = 0.1,
+		Transparency = 0.45,
+	},
+	-- Each level (x1 to x8; Solo past x8 keeps x8's): its colour (x8 the moving rainbow), its
+	-- fire sheet (Fire, a key of Fire.Sheets; nil: no fire), the idle motion (Wave px up and
+	-- down per glyph, Sway degrees of tilt, Jitter px, Beat = { seconds, extra scale } a quick
+	-- pop on a beat), the step's shards, the camera shake (studs, ScreenFx.shake; 0 none) and
+	-- the ghost letters.
+	Levels = {
+		{
+			Color = { 255, 255, 255 },
+			Wave = 0,
+			Sway = 0,
+			Jitter = 0,
+			Beat = { 1.6, 0.03 },
+			Shards = 0,
+			Shake = 0,
+		},
+		{
+			Color = { 255, 216, 74 },
+			Wave = 1,
+			Sway = 0.8,
+			Jitter = 0,
+			Beat = { 1.3, 0.04 },
+			Shards = 8,
+			Shake = 0,
+		},
+		{
+			Color = { 255, 138, 31 },
+			Fire = 3,
+			Wave = 1.5,
+			Sway = 1.4,
+			Jitter = 0,
+			Beat = { 1.1, 0.05 },
+			Shards = 12,
+			Shake = 0.05,
+		},
+		{
+			Color = { 79, 182, 255 },
+			Fire = 4,
+			Wave = 2.2,
+			Sway = 2,
+			Jitter = 0,
+			Beat = { 0.95, 0.05 },
+			Shards = 14,
+			Shake = 0.08,
+		},
+		{
+			Color = { 182, 124, 255 },
+			Fire = 5,
+			Wave = 2.8,
+			Sway = 2.5,
+			Jitter = 0.4,
+			Beat = { 0.85, 0.06 },
+			Shards = 16,
+			Shake = 0.11,
+		},
+		{
+			Color = { 255, 51, 70 },
+			Fire = 6,
+			Wave = 3.4,
+			Sway = 3,
+			Jitter = 0.8,
+			Beat = { 0.75, 0.06 },
+			Shards = 18,
+			Shake = 0.14,
+			Ghost = true,
+		},
+		{
+			Color = { 255, 240, 160 },
+			Fire = 7,
+			Wave = 4,
+			Sway = 3.5,
+			Jitter = 1.1,
+			Beat = { 0.65, 0.07 },
+			Shards = 22,
+			Shake = 0.18,
+			Ghost = true,
+		},
+		{
+			Color = { 255, 200, 40 },
+			Rainbow = true,
+			Fire = 8,
+			Wave = 4.8,
+			Sway = 4,
+			Jitter = 1.4,
+			Beat = { 0.55, 0.08 },
+			Shards = 28,
+			Shake = 0.24,
+			Ghost = true,
+		},
+	},
+	-- The step up: squash, two white impact frames (the new number already in), then a punch
+	-- out to PunchScale settling back (Back, SettleOvershoot) while the number slams in from
+	-- 1 + NumberSlam tilted NumberTilt degrees. x1 just pops in from InFromScale.
+	Step = {
+		SquashSeconds = 0.05,
+		SquashScale = 0.88,
+		ImpactSeconds = 0.04,
+		ImpactScale = 1.3,
+		PunchScale = 1.45,
+		SettleSeconds = 0.36,
+		SettleOvershoot = 2.4,
+		NumberSlam = 0.7,
+		NumberTilt = -10,
+		InSeconds = 0.28,
+		InFromScale = 0.6,
+		-- Two balls dropping in the same moment still step one after the other, this far apart.
+		MinGapSeconds = 0.12,
+	},
+	ShakeSeconds = 0.28, -- plus ShakeSecondsPerStud x the level's studs
+	ShakeSecondsPerStud = 0.6,
+	-- The end (a miss, a foul, the turn passing): the fire sinks, the letters drop and fade.
+	FadeSeconds = 0.5,
+	FadeDropPx = 6,
+	-- The fire behind the words: one sheet per level (8 x 4 frames of 104 x 48 art pixels, 32
+	-- frames at 30 fps, a seamless loop), drawn pixelated, scaled so its SpanPx art pixels span
+	-- the words, with art row TextTopPx at the words' top. It flares on a step (1 + FlareScale,
+	-- easing out at FlareDecay a second) and grows in over IgniteSeconds at x3.
+	Fire = {
+		Sheets = {
+			[3] = "",
+			[4] = "",
+			[5] = "",
+			[6] = "",
+			[7] = "",
+			[8] = "",
+		},
+		Columns = 8,
+		Rows = 4,
+		FrameWidthPx = 104,
+		FrameHeightPx = 48,
+		Frames = 32,
+		Fps = 30,
+		SpanPx = 76,
+		TextTopPx = 35,
+		Transparency = 0.04,
+		FlareScale = 0.45,
+		FlareDecay = 7,
+		IgniteSeconds = 0.4,
+	},
+	-- The white burst at a step (a ring and rays, tinted the new colour; 8 frames at 30 fps),
+	-- WidthShare of the words' width.
+	Burst = {
+		Image = "",
+		Columns = 8,
+		Rows = 1,
+		FrameWidthPx = 128,
+		FrameHeightPx = 48,
+		Frames = 8,
+		Fps = 30,
+		WidthShare = 1.55,
+	},
+	-- Pixel shards out of the number: px a second, gravity px/s², a share white, the rest the
+	-- level's colour; half as many with Lower effects.
+	Shards = {
+		SpeedMin = 140,
+		SpeedMax = 400,
+		UpPx = 60,
+		Gravity = 520,
+		Drag = 0.985,
+		LifeMin = 0.45,
+		LifeMax = 0.75,
+		WhiteShare = 0.35,
+		PixelShare = 0.15, -- a shard's side, a share of the text size
+		LowShare = 0.5,
+	},
+}
+
 Config.UI.Menu = {
 	-- The menus whose panel and cards take Kit.PaleEdge's pale-blue outline instead of ink
 	-- (designer, 2026-10-06: these four for now). Names as Menus.register ("Ults": Abilities).

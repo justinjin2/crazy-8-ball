@@ -653,8 +653,8 @@ function ResultScreen.build(self: any, view: any)
 	view.segments, view.xpEnd = planXp(xp)
 	view.shown = nil -- the division the bar shows (Shown), once drawn
 
-	-- The money list: balls, nice shots, the match bonus, the win streak and a rank reward,
-	-- then the Total.
+	-- The money list: balls, nice shots, the ball streak's bonus, the match bonus, the win
+	-- streak and a rank reward, then the Total.
 	local m = if type(summary.money) == "table" then summary.money else {}
 	local outcome = if type(summary.you) == "table" then summary.you.outcome else nil
 	view.lines = {}
@@ -664,6 +664,9 @@ function ResultScreen.build(self: any, view: any)
 	add(P.BallsLine:format(clean(m.balls)), clean(m.ballMoney))
 	if clean(m.nice) > 0 then
 		add(P.NiceLine:format(clean(m.nice)), clean(m.niceMoney))
+	end
+	if clean(m.ballStreakMoney) > 0 then
+		add(P.BallStreakLine:format(clean(m.bestStreak)), clean(m.ballStreakMoney))
 	end
 	if clean(m.bonus) > 0 then
 		add(if outcome == "Win" then P.WinBonus else P.LossBonus, clean(m.bonus))

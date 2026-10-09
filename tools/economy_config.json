@@ -21,7 +21,7 @@
           "Standard": 70000,
           "Uncommon": 40000
         },
-        "Clicks": 5
+        "Clicks": 4
       },
       "Weights": {
         "Epic": 4200,
@@ -367,6 +367,8 @@
       "FlushSeconds": 60
     },
     "BallPay": 100,
+    "BallStreakFrom": 3,
+    "BallStreakShare": 0.25,
     "DisguisedDailyWins": 20,
     "DropLoserMinMatches": 5,
     "DropsPerOpponent": 3,

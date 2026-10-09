@@ -489,6 +489,8 @@ return {
 		},
 		BallsLine = "Balls pocketed x%d",
 		NiceLine = "Nice shots x%d",
+		-- The ball streak's bonus (ECONOMY 3.1) and the best streak it paid at.
+		BallStreakLine = "Streak bonus (best x%d)",
 		WinBonus = "Win bonus",
 		LossBonus = "Match bonus",
 		StreakLine = "Win streak", -- the win-streak money (ECONOMY 3.1), from the 3rd win in a row

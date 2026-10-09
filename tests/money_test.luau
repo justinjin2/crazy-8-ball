@@ -535,4 +535,56 @@ return {
 		H.near(loser, 600, 60, "the loser")
 		H.near((winner + loser) / 2 * 7.5, 7300, 250, "about $7,300 an hour at 7.5 matches")
 	end,
+
+	-- The ball streak (ECONOMY 3.1, designer 2026-10-09): from x3 a quarter of the ball pay for
+	-- each level from x3, on top of the ball: x3 +$25 ... x8 +$150. Never a multiplier.
+	ball_streak_pays_from_x3_a_quarter_of_the_ball_a_level = function()
+		local Money, geometry = setup()
+		local events = { drop(1, 1, 1), drop(2, 2, 2), drop(3, 3, 3), drop(4, 4, 4) }
+		local levels = { [1] = 2, [2] = 3, [3] = 5, [4] = 8 }
+		local pay = Money.shotPay(input(geometry, events, { streakLevels = levels }))
+		expectPay(
+			pay,
+			"1:Ball:100 2:Ball:100 2:BallStreak:25 3:Ball:100 3:BallStreak:75 4:Ball:100 4:BallStreak:150",
+			650,
+			"x2 nothing, x3 +25, x5 +75, x8 +150"
+		)
+		H.expect(pay.balls == 4 and pay.nice == 0 and pay.ballStreak == 3)
+		H.expect(
+			pay.grants[3].level == 3 and pay.grants[7].level == 8,
+			"each streak grant carries its level"
+		)
+		-- Solo past x8 keeps growing by the same step.
+		pay = Money.shotPay(input(geometry, { drop(5, 1, 1) }, { streakLevels = { [1] = 9 } }))
+		expectPay(pay, "5:Ball:100 5:BallStreak:175", 275, "x9")
+	end,
+
+	ball_streak_is_boosted_like_any_match_money = function()
+		local Money, geometry = setup()
+		local events = { drop(2, 1, 1) }
+		local pay = Money.shotPay(
+			input(geometry, events, { streakLevels = { [1] = 4 }, boost = 1, vipBoost = 1 })
+		)
+		expectPay(pay, "2:Ball:200 2:BallStreak:100", 300, "VIP doubles it")
+		H.expect(pay.grants[2].plain == 50, "the chip shows $50 before VIP's x2")
+		pay = Money.shotPay(input(geometry, events, { streakLevels = { [1] = 3 }, multiplier = 2 }))
+		expectPay(pay, "2:Ball:200 2:BallStreak:50", 250, "Challenger doubles it")
+	end,
+
+	ball_streak_is_the_shooters_only_and_never_in_solo_or_capped = function()
+		local Money, geometry = setup()
+		local events = { drop(2, 1, 1) }
+		local levels = { [1] = 6 }
+		local mate =
+			Money.shotPay(input(geometry, events, { streakLevels = levels, isShooter = false }))
+		expectPay(mate, "2:Ball:100", 100, "a teammate is paid the ball only")
+		local solo =
+			Money.shotPay(input(geometry, events, { streakLevels = levels, opponent = "Solo" }))
+		expectPay(solo, "2:Ball:30", 30, "solo pays no streak bonus")
+		local short =
+			Money.shotPay(input(geometry, events, { streakLevels = levels, shortCapped = true }))
+		expectPay(short, "2:Ball:10", 10, "a capped short match pays the flat ball only")
+		local foul = Money.shotPay(input(geometry, events, { streakLevels = levels, foul = true }))
+		expectPay(foul, "", 0, "a foul shot pays nothing")
+	end,
 }

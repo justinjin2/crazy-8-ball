@@ -67,6 +67,9 @@ WIN_RATE_MEAN, WIN_RATE_SD, WIN_RATE_RANGE = 0.5, 0.06, (0.3, 0.72)
 MIN_PER_MATCH = 8.0  # minutes per match including the end screen (7.5 matches an hour)
 WINNER_BALLS, LOSER_BALLS = 7.5, 4.0  # balls that pay the winner / loser in a match
 WINNER_NICE, LOSER_NICE = 0.5, 0.3  # nice shots per match, winner / loser
+# The share of paying balls at each ball streak level (x1..x8+): the all-rank average of
+# tools/streak_model.luau (200 bot-duel games a rank, 2026-10-09). Prices the streak bonus.
+BALL_STREAK_LEVELS = {1: 0.520, 2: 0.244, 3: 0.121, 4: 0.062, 5: 0.032, 6: 0.015, 7: 0.006, 8: 0.002}
 MODE_MIX = {"Classic": 0.5, "Difficult": 0.3, "Challenger": 0.2}  # tables played once harder ones unlock
 MODE_RANK_XP = 1.3  # rank XP a win earns on that mix, against Classic (for the rank rewards)
 PAYER_SHARE_STAYERS, PAYER_SHARE_OTHERS = 0.06, 0.012  # pay Robux: lifetime 7+ days / shorter
@@ -163,6 +166,9 @@ def plan_from_config(c, built_only=False):
     daily, social, shop, prod = c["Daily"], c["Social"], c["Shop"], c["Products"]
     e = c["Economy"]
     nice = sum(e["NiceShotPay"].values()) / len(e["NiceShotPay"])
+    # The ball streak's bonus on an average paying ball (Config.Economy.BallStreak*).
+    streak_ball = e["BallPay"] * e["BallStreakShare"] * sum(
+        p * max(n - e["BallStreakFrom"] + 1, 0) for n, p in BALL_STREAK_LEVELS.items())
     dm = c["DifficultyMoney"] if e["UseDifficultyMultiplier"] else {m: 1 for m in MODE_MIX}
     rk = c["Ranks"]
     wins_at = rank_wins(c)
@@ -209,8 +215,8 @@ def plan_from_config(c, built_only=False):
         "launch_bonus": lb["Percent"] / 100 if bonus_on else 0.0,
         "launch_bulk": lb["MysteryBulkCount"] if bonus_on else shop["Mystery"]["BulkCount"],
         # Match money (Config.Economy) and the money sink.
-        "win_pay": WINNER_BALLS * e["BallPay"] + WINNER_NICE * nice + e["WinBonus"],
-        "loss_pay": LOSER_BALLS * e["BallPay"] + LOSER_NICE * nice + e["LossBonus"],
+        "win_pay": WINNER_BALLS * (e["BallPay"] + streak_ball) + WINNER_NICE * nice + e["WinBonus"],
+        "loss_pay": LOSER_BALLS * (e["BallPay"] + streak_ball) + LOSER_NICE * nice + e["LossBonus"],
         "streak_bonus": e["StreakBonus"],
         "boosts": {"vip": e["VipBoost"], "group": e["GroupBoost"], "plus": e.get("PlusBoost", 0)},
         "mode_money": sum(MODE_MIX[m] * dm[m] for m in MODE_MIX), "unlock_wins": wins_at[unlock],

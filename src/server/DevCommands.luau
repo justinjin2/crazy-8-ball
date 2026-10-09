@@ -364,6 +364,14 @@ local function previewResult(player: Player, args: { string })
 	local balls, nice = 4, 1
 	local ballMoney = Money.round(balls * E.BallPay * (1 + boost))
 	local niceMoney = Money.round(E.NiceShotPay.Bank * (1 + boost))
+	-- A sample ball streak to x5: the x3, x4 and x5 bonuses.
+	local bestStreak = 5
+	local ballStreakMoney = 0
+	for level = E.BallStreakFrom, bestStreak do
+		ballStreakMoney += Money.round(
+			E.BallPay * E.BallStreakShare * (level - E.BallStreakFrom + 1) * (1 + boost)
+		)
+	end
 	local bonus = Money.matchBonus({
 		outcome = outcome,
 		opponent = "Player",
@@ -400,11 +408,13 @@ local function previewResult(player: Player, args: { string })
 			ballMoney = ballMoney,
 			nice = nice,
 			niceMoney = niceMoney,
+			ballStreakMoney = ballStreakMoney,
+			bestStreak = bestStreak,
 			bonus = bonus,
 			streak = streak,
 			reward = reward,
 			boost = boost,
-			total = ballMoney + niceMoney + bonus + streak + reward,
+			total = ballMoney + niceMoney + ballStreakMoney + bonus + streak + reward,
 		},
 		block = block,
 		rematch = false,

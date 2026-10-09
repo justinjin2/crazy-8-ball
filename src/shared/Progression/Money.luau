@@ -12,7 +12,9 @@
 -- every object ball counts there. A shot that sinks the 8 early on an open table leaves no
 -- group and so pays nothing, as the match's bonus stings (Rules/MatchEngine `Engine.awards`).
 -- Each counting ball also pays the shooter a nice-shot bonus (Rules/NiceShot), except on the
--- break (the client never shows NICE SHOT! there either) and in solo (ECONOMY 3.2).
+-- break (the client never shows NICE SHOT! there either) and in solo (ECONOMY 3.2). From the
+-- ball streak's BallStreakFrom-th ball in a row (Rules/Streak), each counting ball also pays
+-- the shooter a streak bonus, never in solo or at a flat after-cap pay.
 --
 -- The order every amount is worked out in (ECONOMY 3.5, then the caps of 3.2 and 3.6):
 --   1. base x difficulty x (1 + boost) x anti-farm (boosts add, then multiply);
@@ -37,7 +39,8 @@ export type Grant = {
 	-- What it would have paid without VIP (input.vipBoost): the client shows it, then VIP's
 	-- gold "x2" (designer, 2026-10-08). Equal to amount without VIP or for a flat pay.
 	plain: number,
-	kind: string, -- "Ball", or the nice shot's kind: "Bank", "Kick", "Combo", "Carom"
+	kind: string, -- "Ball", "BallStreak", or the nice shot's kind: "Bank", "Kick", "Combo", "Carom"
+	level: number?, -- a "BallStreak" grant's streak level (the chip takes its colour)
 	t: number, -- the shot time the ball dropped
 }
 
@@ -65,6 +68,9 @@ export type ShotInput = {
 	vipBoost: number?, -- VIP's part of boost (for each grant's `plain`), default 0
 	farmBalls: number?, -- the anti-farm ball-pay multiplier (Money.farmRow().Balls), default 1
 	multiplier: number, -- the table's difficulty (Config.Difficulty.MoneyMultiplier)
+	-- The ball streak's level of each counted ball, by its drop's event index (the engine's
+	-- shot.streaks, Rules/Streak). Nil: no streak bonus.
+	streakLevels: { [number]: number }?,
 }
 
 export type ShotPay = {
@@ -72,6 +78,7 @@ export type ShotPay = {
 	total: number,
 	balls: number, -- how many "Ball" grants
 	nice: number, -- how many nice-shot grants
+	ballStreak: number, -- how many "BallStreak" grants
 	soloEarned: number, -- how much of `total` counts toward the solo daily counter
 	pcEarned: number, -- how much of `total` counts toward the PC daily counter
 }
@@ -178,7 +185,7 @@ end
 --- rules is at the top of this file).
 function Money.shotPay(input: ShotInput): ShotPay
 	local grants: { Grant } = {}
-	local total, balls, nice = 0, 0, 0
+	local total, balls, nice, streaks = 0, 0, 0, 0
 	local solo = input.opponent == "Solo"
 	local pc = input.opponent == "PC"
 	local shooter = input.isShooter ~= false
@@ -242,6 +249,30 @@ function Money.shotPay(input: ShotInput): ShotPay
 				total += bonus
 				nice += 1
 			end
+			-- The ball streak's bonus (ECONOMY 3.1): a share of the ball pay for each level from
+			-- BallStreakFrom, to the shooter only, never in solo or at a flat pay.
+			local level = if input.streakLevels then input.streakLevels[drop.index] else nil
+			if
+				type(level) == "number"
+				and level >= E.BallStreakFrom
+				and shooter
+				and not solo
+				and flat() == nil
+			then
+				local base = E.BallPay * E.BallStreakShare * (level - E.BallStreakFrom + 1)
+				local bonus = amount(base)
+				table.insert(grants, {
+					ball = drop.ball,
+					pocket = pocket,
+					amount = bonus,
+					plain = amount(base, plainScale),
+					kind = "BallStreak",
+					level = level,
+					t = drop.t,
+				})
+				total += bonus
+				streaks += 1
+			end
 		end
 	end
 	return {
@@ -249,6 +280,7 @@ function Money.shotPay(input: ShotInput): ShotPay
 		total = total,
 		balls = balls,
 		nice = nice,
+		ballStreak = streaks,
 		soloEarned = if solo then total else 0,
 		pcEarned = if pc then total else 0,
 	}

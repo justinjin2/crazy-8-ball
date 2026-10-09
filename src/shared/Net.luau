@@ -70,7 +70,8 @@ local REMOTES: { [string]: string } = {
 	--   division the new peak passed, bottom first), rewardTotal, rewardBlocks = {[kind] =
 	--   count}, rewardCues = {cueId}, breakdown = {base, mode, fade, gap, pc, farm, boosts =
 	--   {{kind = "Streak", share}}, boostTotal}},
-	-- money = {balls, ballMoney, nice, niceMoney (the pots, paid live), bonus (win or loss),
+	-- money = {balls, ballMoney, nice, niceMoney, ballStreakMoney and bestStreak (the ball
+	--   streak's bonus and the best level it paid at; the pots, paid live), bonus (win or loss),
 	--   streak (the win-streak bonus), reward (rank-up money), boost (the money boost share
 	--   applied at the end: VIP + Money Party, 0..2), total (all of them added)},
 	-- block? = { kind, readyAt } (the win's lucky block, already in the hotbar: a Mystery

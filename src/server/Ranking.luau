@@ -232,7 +232,7 @@ end
 -- A short match's pots (ECONOMY 3.6): what they paid this player adds to today's short total.
 local function countShort(player: Player, key: string)
 	local tally = Economy.tally(key, player.UserId)
-	local paid = tally.ballMoney + tally.niceMoney
+	local paid = tally.ballMoney + tally.niceMoney + tally.ballStreakMoney
 	if paid > 0 then
 		PlayerData.addDailyMoney(player, "Short", paid)
 	end
@@ -592,11 +592,18 @@ local function settle(e: any)
 				ballMoney = tally.ballMoney,
 				nice = tally.nice,
 				niceMoney = tally.niceMoney,
+				ballStreakMoney = tally.ballStreakMoney,
+				bestStreak = tally.bestStreak,
 				bonus = paid.bonus,
 				streak = paid.streak,
 				reward = reward,
 				boost = paid.boost,
-				total = tally.ballMoney + tally.niceMoney + paid.bonus + paid.streak + reward,
+				total = tally.ballMoney
+					+ tally.niceMoney
+					+ tally.ballStreakMoney
+					+ paid.bonus
+					+ paid.streak
+					+ reward,
 			},
 			-- The win's lucky block ({ kind, readyAt }), already in the hotbar; nil without one.
 			block = paid.block,
