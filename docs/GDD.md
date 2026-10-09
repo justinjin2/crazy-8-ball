@@ -229,18 +229,20 @@ Every feature is checked against these. If it serves none, it waits.
   "Starting in 3" once the pad is full. The first person on is the **host**. Lobby tables
   play Classic with ults on (no difficulty choice for now, below). If the host leaves, the
   next to arrive becomes host.
-- **The host's one choice, Play Global** (designer, 2026-10-07): **3 s** *(tune)* after
-  stepping on (**5 s** with a Roblox friend in the server), "Don't want to wait?" and a big
-  green **Play Global** grow out of the bar's right end. Pressed, the bar shows "Searching...
+- **The host's one choice, Play Global** (designer, 2026-10-07): the moment they step on,
+  friends in the server or not (designer, 2026-10-09; it waited 3 s, 5 s with a friend),
+  "Don't want to wait?" and a big green **Play Global** grow out of the bar's right end. Pressed, the bar shows "Searching...
   0:07" and a small red X (stepping off cancels too); see Global queue below. On 2v2 and 3v3
   it shows only once a whole side stands on the pad. A small red **X on Play Global's
   corner** dismisses it for someone who would rather keep waiting; it comes back on the next
   step-on (designer, 2026-10-07).
-- **The spawn pill** (designer, 2026-10-07): a player **alone in a public server** gets "Don't
-  want to wait?" and Play Global the moment they spawn, with no pad. Never in a private server
+- **The spawn pill** (designer, 2026-10-07): a player in a public server with **nobody else
+  free** (alone, or everyone else busy at a table: in a game, on its result or on a full pad;
+  designer, 2026-10-09) gets "Don't want to wait?" and Play Global the moment they spawn (or
+  the moment nobody is free), with no pad. Someone waiting on a pad with room counts as free. Never in a private server
   (people there want to play with their friends) and not before the tutorial is done or
   skipped. It goes when they press its X, after **20 s** *(tune)*, when they step on a pad
-  (the pad's bar takes over) or when a real player joins. Pressed, the search runs from where
+  (the pad's bar takes over) or when someone is free; it may come back each time nobody is. Pressed, the search runs from where
   they stand (1v1, ults on): "Searching... 0:03" with the red X, a bot of their level at 5 s,
   then the arena, like a pad search. Stepping onto a pad mid-search cancels it.
 - **A full pad starts by itself**, **3 s** *(tune)* after the last one stepped on ("Starting in
@@ -252,10 +254,9 @@ Every feature is checked against these. If it serves none, it waits.
   they move somewhere else later (their server handlers stay). There is no automatic start
   against PC in the lobby.
 - **"<name> needs an opponent!"** (designer, 2026-09-27; automatic 2026-10-07): a host who
-  steps onto a pad with **no Roblox friend in the server** sends it by themselves, nothing to
-  press, once per step-on (stepping off and on again sends it no sooner than **15 s**
-  *(tune)* after the last). With a friend in the server (even one in a match) nobody is
-  asked: friends are assumed to come over. Everyone in the server who is not at a table gets
+  steps onto a pad sends it by themselves, friends in the server or not (designer,
+  2026-10-09), nothing to press, once per step-on (stepping off and on again sends it no
+  sooner than **15 s** *(tune)* after the last). Everyone in the server who is not at a table gets
   a small popup at the bottom of the screen, the host's face and "<name> needs an opponent!"
   (or "needs players!") with **Join** (stands them on the host's pad) and **Dismiss**, small
   and low so it never covers the player's legs. It goes by itself after 15 s *(tune)* or as

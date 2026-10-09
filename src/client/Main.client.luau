@@ -12,6 +12,7 @@ local AimStream = require(Shared.AimStream)
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Placement = require(Shared.Placement)
+local PadBar = require(Shared.Matchmaking.PadBar)
 local AuraQuiet = require(Shared.AuraQuiet)
 local TableBuilder = require(Shared.TableBuilder)
 local CueStickBuilder = require(Shared.CueStickBuilder)
@@ -1359,13 +1360,20 @@ local function renderFrame(dt: number)
 	elseif predictedPad then
 		predictedPad = nil -- the server has seated you; the real snapshot drives the menu
 	end
-	-- The matchmaking bar, every frame: a pad's, or the spawn pill of a player alone in a
-	-- public lobby server (designer, 2026-10-07: never in a private server, not during the
-	-- tutorial; a step it has not published yet counts as the tutorial).
+	-- The matchmaking bar, every frame: a pad's, or the spawn pill of a player in a public
+	-- lobby server with nobody else free (designer, 2026-10-07: never in a private server, not
+	-- during the tutorial; a step it has not published yet counts as the tutorial; 2026-10-09:
+	-- also when everyone else is busy at a table).
 	do
 		local step = player:GetAttribute("TutorialStep")
+		local others = {}
+		for _, p in Players:GetPlayers() do
+			if p ~= player then
+				table.insert(others, p.UserId)
+			end
+		end
 		matchBar:setSpawn({
-			alone = #Players:GetPlayers() == 1,
+			nobodyFree = PadBar.nobodyFree(others, hub.snapshots),
 			publicLobby = workspace:GetAttribute(Config.UI.MatchBar.PublicLobbyAttribute) == true
 				and not isArena,
 			tutorial = type(step) ~= "string" or step ~= "",

@@ -4,12 +4,12 @@
 -- Lune test checks it and the client (MatchBar) only draws it.
 --
 -- Everyone on a waiting pad sees the bar: the mode, how many are on, and "Waiting for
--- opponent..." (or players), "Starting in 3" once full. The host alone gets more: after
--- Config.UI.MatchBar.PromptAloneSeconds on the pad (PromptFriendsSeconds with a Roblox friend
--- in the server) "Don't want to wait?" and Play Global, then the search's time and an X.
+-- opponent..." (or players), "Starting in 3" once full. The host alone gets more: the moment
+-- they step on, friends in the server or not (designer, 2026-10-09; it waited 3 s, 5 s with a
+-- friend), "Don't want to wait?" and Play Global, then the search's time and an X.
 --
 -- The server also asks it whether to send the "<name> needs an opponent!" popup itself when
--- a host steps on (autoRequest): only with no friend in the server, once per step-on.
+-- a host steps on (autoRequest): to everyone free, once per step-on.
 local Config = require(script.Parent.Parent.Config)
 
 local B = Config.UI.MatchBar
@@ -56,20 +56,13 @@ function PadBar.searching(snapshot: any, press: Press, now: number): boolean
 	return press.searchAt > press.cancelledAt and now - press.searchAt < retry
 end
 
---- How long the host waits on the pad before Play Global is offered.
-function PadBar.promptAfter(friendHere: boolean): number
-	return if friendHere then B.PromptFriendsSeconds else B.PromptAloneSeconds
-end
-
---- The bar for `userId` on `snapshot` (a Waiting table), `since` being when they stepped on;
---- `dismissed`: the host pressed Play Global's X on this step-on (designer, 2026-10-07: for
---- those who would rather keep waiting), so it stays hidden until they step on again.
+--- The bar for `userId` on `snapshot` (a Waiting table); `dismissed`: the host pressed Play
+--- Global's X on this step-on (designer, 2026-10-07: for those who would rather keep
+--- waiting), so it stays hidden until they step on again.
 function PadBar.view(
 	snapshot: any,
 	userId: number,
 	now: number,
-	since: number,
-	friendHere: boolean,
 	press: Press,
 	dismissed: boolean?
 ): View
@@ -108,20 +101,57 @@ function PadBar.view(
 	end
 	-- A team table searches as a whole side (MatchEngine.canSearch).
 	view.needsSide = count < teamSize
-	view.showGlobal = not view.needsSide
-		and not dismissed
-		and now - since >= PadBar.promptAfter(friendHere)
+	view.showGlobal = not view.needsSide and not dismissed
 	return view
 end
 
+--- Whether `userId`'s seat on `snapshot` keeps them busy: they are at it (connected) and it is
+--- not a pad still waiting with room (a game, its result, or a full pad about to start). A
+--- player waiting on a pad with room wants an opponent: they are free to play.
+local function busyAt(snapshot: any, userId: number): boolean
+	local seated = false
+	for _, seat in snapshot.seats or {} do
+		if seat.userId == userId and seat.connected ~= false then
+			seated = true
+		end
+	end
+	if not seated then
+		return false
+	end
+	if snapshot.phase ~= "Waiting" or snapshot.startsAt ~= nil then
+		return true
+	end
+	return PadBar.count(snapshot) >= (snapshot.teamSize or 1) * 2
+end
+
+--- Whether nobody else in the server is free to play `me` (designer, 2026-10-09): the server
+--- holds only them, or every other player is busy at a table (busyAt). `others` are the other
+--- players' userIds; `snapshots` every table's latest snapshot by id.
+function PadBar.nobodyFree(others: { number }, snapshots: { [any]: any }): boolean
+	for _, userId in others do
+		local busy = false
+		for _, snapshot in snapshots do
+			if busyAt(snapshot, userId) then
+				busy = true
+				break
+			end
+		end
+		if not busy then
+			return false
+		end
+	end
+	return true
+end
+
 --- Whether the spawn pill shows (designer, 2026-10-07): "Don't want to wait?" and Play Global
---- for a player alone in a public lobby server, from the moment they spawn, with no pad. Never
---- in a private server (people there play with their friends) or during the tutorial. It goes
+--- for a player off the pads in a public lobby server while nobody else is free to play them
+--- (nobodyFree: alone, or everyone else busy at a table; designer, 2026-10-09). Never in a
+--- private server (people there play with their friends) or during the tutorial. It goes
 --- when they press its X, after Config.UI.MatchBar.SpawnPillSeconds, when they step on a pad
---- (the pad's bar takes over) or when a real player joins; a search it started keeps it up.
+--- (the pad's bar takes over) or when someone is free; a search it started keeps it up.
 function PadBar.spawnPill(
 	args: {
-		alone: boolean,
+		nobodyFree: boolean,
 		publicLobby: boolean,
 		tutorial: boolean,
 		onPad: boolean,
@@ -134,7 +164,13 @@ function PadBar.spawnPill(
 	if args.searching then
 		return true
 	end
-	if not args.alone or not args.publicLobby or args.tutorial or args.onPad or args.dismissed then
+	if
+		not args.nobodyFree
+		or not args.publicLobby
+		or args.tutorial
+		or args.onPad
+		or args.dismissed
+	then
 		return false
 	end
 	return args.since == nil or args.now - args.since < B.SpawnPillSeconds
@@ -146,19 +182,18 @@ function PadBar.clock(seconds: number): string
 end
 
 --- Whether the server sends "<name> needs an opponent!" for a host who just stepped on:
---- the pad has room, no friend of theirs is in the server (friends are assumed to come
---- over), no search runs, and their last one is AutoRequestCooldownSeconds old, so stepping
---- off and on again does not flood everyone with popups.
+--- the pad has room, no search runs, and their last one is AutoRequestCooldownSeconds old,
+--- so stepping off and on again does not flood everyone with popups. Friends in the server
+--- or not (designer, 2026-10-09; with a friend here nobody was asked).
 function PadBar.autoRequest(args: {
 	isHost: boolean,
 	count: number,
 	capacity: number,
-	friendHere: boolean,
 	searching: boolean,
 	lastAt: number?,
 	now: number,
 }): boolean
-	if not args.isHost or args.count >= args.capacity or args.friendHere or args.searching then
+	if not args.isHost or args.count >= args.capacity or args.searching then
 		return false
 	end
 	return args.lastAt == nil or args.now - args.lastAt >= M.Queue.AutoRequestCooldownSeconds

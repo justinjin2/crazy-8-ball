@@ -3686,3 +3686,9 @@ timer of a new block stay the designer's call.
 - 2026-10-09: The Shop's Blocks jump shows the Mystery Lucky Block (it was the backpack), and
   the left column's tiles are 12 px apart (was 4) so ABILITIES no longer touches the Free
   Reward gift (designer).
+- 2026-10-09: Play Global on a pad shows the moment the host steps on, friends in the server or
+  not (it waited 3 s, 5 s with a friend), and the "<name> needs an opponent!" request still goes
+  out on step-on to everyone free, now with friends here too. The spawn pill offers Play Global
+  while nobody else is free: alone, or every other player busy at a table (a game, its result,
+  a full pad); someone waiting on a pad with room is free (designer: "also suggest it if
+  everyone in the server is currently busy").

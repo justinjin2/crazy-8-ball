@@ -20,7 +20,6 @@ local Simulation = require(Shared.Physics.Simulation)
 local Engine = require(Shared.Rules.MatchEngine)
 local Ranking = require(script.Parent.Ranking)
 local GlobalQueue = require(script.Parent.GlobalQueue)
-local Friends = require(script.Parent.Friends)
 local PadBar = require(Shared.Matchmaking.PadBar)
 local Ranks = require(Shared.Progression.Ranks)
 local M = Config.Multiplayer
@@ -929,9 +928,8 @@ end
 -- stepping off and on again does not send another within AutoRequestCooldownSeconds.
 local autoAskedAt: { [number]: number } = {}
 
--- The matchmaking bar (designer, 2026-10-07): a host who steps onto a pad with no Roblox
--- friend in the server asks everyone free for an opponent at once, no button to press; with
--- a friend here nobody is asked (friends come over by themselves).
+-- The matchmaking bar (designer, 2026-10-07): a host who steps onto a pad asks everyone free
+-- for an opponent at once, no button to press, friends in the server or not (2026-10-09).
 askForOpponent = function(t: any, host: Player, time: number)
 	local e = t.engine
 	if
@@ -940,7 +938,6 @@ askForOpponent = function(t: any, host: Player, time: number)
 			isHost = e.hostId == host.UserId,
 			count = Engine.count(e),
 			capacity = Engine.capacity(e),
-			friendHere = Friends.here(host),
 			searching = e.search ~= nil,
 			lastAt = autoAskedAt[host.UserId],
 			now = time,

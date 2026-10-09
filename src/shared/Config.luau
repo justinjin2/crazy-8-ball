@@ -8284,10 +8284,6 @@ Config.UI.Queue = {
 -- to its right end after a short wait, then the search's time and a small red X. Pixels are
 -- a computer's; a phone draws the same bar at PhoneScale. Seconds as named.
 Config.UI.MatchBar = {
-	-- When Play Global shows: this long after stepping on with no Roblox friend in the server
-	-- (the popup has gone to everyone), longer with one (a friend may be on their way). (tune)
-	PromptAloneSeconds = 3,
-	PromptFriendsSeconds = 5,
 	BottomPx = 10, -- from the screen's bottom, plus the hotbar's lift (BottomLift) when it shows
 	PhoneScale = 0.8, -- the whole bar on a phone (screen narrower than LuckyBlocks.UI.PhoneWidthPx)
 	ZIndex = 26, -- over the world's HUD, under the status card and the result screen
@@ -8323,8 +8319,9 @@ Config.UI.MatchBar = {
 	DismissPx = 24,
 	DismissInsetPx = 6, -- how far its centre sits in from the button's corner
 	-- The spawn pill (designer, 2026-10-07): a player alone in a public lobby server gets
-	-- "Don't want to wait?" and Play Global the moment they spawn; it goes by itself after
-	-- this long if they ignore it (a search it started keeps it up). (tune)
+	-- "Don't want to wait?" and Play Global the moment they spawn (or the moment nobody else
+	-- is free); it goes by itself after this long if they ignore it (a search it started keeps
+	-- it up). (tune)
 	SpawnPillSeconds = 20,
 	-- The workspace attribute the server sets true in a public lobby server (no private server,
 	-- no arena): a client cannot read game.PrivateServerId.

@@ -6,20 +6,20 @@
 --
 -- Everyone on a waiting pad sees one slim white pill: the mode icon, a "1/2" chip and
 -- "Waiting for opponent..." (players on 2v2 and 3v3), its dots lighting one by one, or
--- "Starting in 3" once the pad is full. The host alone, after Config.UI.MatchBar's
--- PromptAloneSeconds on the pad (PromptFriendsSeconds with a Roblox friend in the server,
--- the server's FriendHere attribute), gets "Don't want to wait?" and a big green Play Global
--- joined to the pill's right end. Pressed, the line shows the search's time and a small red
+-- "Starting in 3" once the pad is full. The host alone, the moment they step on (designer,
+-- 2026-10-09: friends here or not, no wait), gets "Don't want to wait?" and a big green Play
+-- Global joined to the pill's right end. Pressed, the line shows the search's time and a small red
 -- X takes it back (stepping off cancels too); a 1v1 with no real opponent in 5 s meets a bot
 -- of its rank in an arena (Config.Bots.Fallback). On a team table Play Global waits for a
 -- whole side on the pad. The server sends "<name> needs an opponent!" by itself on step-on
 -- (TableService.askForOpponent); there is nothing to press for it.
 --
--- The spawn pill (designer, 2026-10-07): a player alone in a public lobby server gets
--- "Don't want to wait?" and Play Global the moment they spawn, with no pad; pressed, the
+-- The spawn pill (designer, 2026-10-07): a player in a public lobby server with nobody else
+-- free (alone, or everyone else busy at a table; 2026-10-09) gets "Don't want to wait?" and
+-- Play Global the moment they spawn (or nobody is free), with no pad; pressed, the
 -- search runs from where they stand (SoloSearch on the server; the SoloSearchAt and
 -- SoloSearchFound attributes say how it goes) and the bar shows its time and the red X. It
--- goes when they press its X, after SpawnPillSeconds, on a pad or when a real player joins;
+-- goes when they press its X, after SpawnPillSeconds, on a pad or when someone is free;
 -- never in a private server or during the tutorial. Play Global wears a small red X on its
 -- corner everywhere: on a pad it hides Play Global until the next step-on.
 --
@@ -67,20 +67,19 @@ function MatchBar.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	-- No LocalPlayer only in an Edit-mode preview of the screens.
 	self.localUserId = if Players.LocalPlayer then Players.LocalPlayer.UserId else 0
 	self.press = { searchAt = -math.huge, cancelledAt = -math.huge }
-	self.since = 0 -- when this player stepped onto this pad (server clock)
 	self.now = 0
 	self.open = false
 	self.away = false -- stepped off the pad; the server lets them go shortly
 	self.baseWidth = PILL_WIDTH -- the pill's width for what shows (MatchBar.arrange)
 	self.extraKey = "" -- how far the bar reaches past it (Play Global or the X)
-	self.friendOverride = nil :: boolean? -- GuiQA: act as if a friend were (or were not) here
 	self.pulse = nil :: any?
 	self.pulseToken = 0
 	self.kind = nil :: string? -- what shows: "pad", "offer" (the spawn pill) or "solo" (its search)
 	self.arranged = nil :: string?
 	self.dismissed = false -- Play Global's X on this step-on
-	-- Main's, each frame: alone, a public lobby, the tutorial running, seated or on a pad.
-	self.spawn = { alone = false, publicLobby = false, tutorial = true, seated = false }
+	-- Main's, each frame: nobody else free, a public lobby, the tutorial running, seated or on
+	-- a pad.
+	self.spawn = { nobodyFree = false, publicLobby = false, tutorial = true, seated = false }
 	self.spawnSince = nil :: number? -- when the spawn pill first showed this session
 	self.spawnDismissed = false -- its X: gone for this session
 	self.soloPress = { searchAt = -math.huge, cancelledAt = -math.huge }
@@ -188,8 +187,6 @@ end
 -- player: "waiting", "prompt" (Play Global up), "searching", "found", "starting", "guest",
 -- "side" (a 2v2 host before a whole side is on), "team" (a 2v2 side ready), "spawn" (the
 -- spawn pill afresh), "spawnSearching" (its search, 3 s in) or "off".
--- "matchbarFriend" acts as if a Roblox friend were here (true), not (false), or asks the
--- server's attribute again (nil).
 function MatchBar.addTestHooks(self: any)
 	local qa: RBXScriptConnection? = nil
 	GuiQA.add("matchbar", function(state: string): string
@@ -234,9 +231,6 @@ function MatchBar.addTestHooks(self: any)
 			fake.search = { at = now - 7, users = { me }, found = state == "found" }
 		end
 		self:setSnapshot(fake, me)
-		if state ~= "waiting" then
-			self.since = now - 60 -- long enough on the pad for Play Global
-		end
 		qa = RunService.Heartbeat:Connect(function()
 			if self.snapshot ~= fake then
 				if qa then
@@ -248,10 +242,6 @@ function MatchBar.addTestHooks(self: any)
 			self:update(workspace:GetServerTimeNow())
 		end)
 		return state
-	end)
-	GuiQA.add("matchbarFriend", function(here: boolean?): string
-		self:testFriendHere(here)
-		return tostring(here)
 	end)
 end
 
@@ -285,7 +275,8 @@ function MatchBar.dismissGlobal(self: any)
 	end
 end
 
---- What the spawn pill needs from Main each frame: { alone, publicLobby, tutorial, seated }.
+--- What the spawn pill needs from Main each frame: { nobodyFree, publicLobby, tutorial,
+--- seated }.
 function MatchBar.setSpawn(self: any, state: any)
 	self.spawn = state
 end
@@ -325,9 +316,8 @@ function MatchBar.setSnapshot(self: any, snapshot: any?, userId: number)
 	self.snapshot = snapshot
 	self.localUserId = userId
 	if snapshot and (not old or old.epoch ~= snapshot.epoch or old.id ~= snapshot.id) then
-		-- A new pad (or a new game on it): the wait for Play Global starts now.
+		-- A new pad (or a new game on it): Play Global afresh.
 		self.press = { searchAt = -math.huge, cancelledAt = -math.huge }
-		self.since = workspace:GetServerTimeNow()
 		self.dismissed = false
 	end
 	if not snapshot and self.kind == "pad" then
@@ -349,20 +339,6 @@ function MatchBar.setAway(self: any, away: boolean)
 		self:setOpen(false)
 		self.kind = nil
 	end
-end
-
---- Studio tests only (GuiQA): act as if a Roblox friend were here (true), not (false), or
---- read the server's attribute again (nil).
-function MatchBar.testFriendHere(self: any, here: boolean?)
-	self.friendOverride = here
-end
-
-function MatchBar.friendHere(self: any): boolean
-	if self.friendOverride ~= nil then
-		return self.friendOverride
-	end
-	local player = Players.LocalPlayer
-	return player ~= nil and player:GetAttribute("FriendHere") == true
 end
 
 --- Whether a gamepad is on the bar now.
@@ -486,12 +462,16 @@ function MatchBar.pick(self: any, now: number): (string?, boolean, boolean, numb
 		return if self.away then nil else "pad", false, false, 0
 	end
 	local spawn = self.spawn
-	if spawn.publicLobby and not spawn.tutorial and self.spawnSince == nil then
-		self.spawnSince = now -- the pill's 20 s count from the first moment it may show
-	end
 	local searching, found, at = self:solo(now)
+	-- The pill's 20 s count from the moment it may show; again each time nobody is free
+	-- after someone was.
+	if not spawn.nobodyFree and not searching then
+		self.spawnSince = nil
+	elseif spawn.publicLobby and not spawn.tutorial and self.spawnSince == nil then
+		self.spawnSince = now
+	end
 	local show = PadBar.spawnPill({
-		alone = spawn.alone,
+		nobodyFree = spawn.nobodyFree,
 		publicLobby = spawn.publicLobby,
 		tutorial = spawn.tutorial,
 		onPad = spawn.seated,
@@ -523,15 +503,7 @@ function MatchBar.update(self: any, now: number)
 	end
 	local global, cancel = false, false
 	if kind == "pad" then
-		local view = PadBar.view(
-			self.snapshot,
-			self.localUserId,
-			now,
-			self.since,
-			self:friendHere(),
-			self.press,
-			self.dismissed
-		)
+		local view = PadBar.view(self.snapshot, self.localUserId, now, self.press, self.dismissed)
 		self.count.Text = Copy.PlayerCount:format(view.count, view.capacity)
 		local text = if view.line == "Starting"
 			then Copy.StartingIn:format(view.startsIn or 1)
