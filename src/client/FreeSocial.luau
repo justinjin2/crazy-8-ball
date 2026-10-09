@@ -475,14 +475,14 @@ function FreeSocial.refresh(self: any, state: any): boolean
 			setText(
 				row.line,
 				W.GroupLine:format(
-					RewardsParts.words(reward),
+					RewardsParts.gains(reward),
 					round((tonumber(group.boost) or 0) * 100)
 				)
 			)
 			HudParts.setText(row.button, if group.member == true then W.Claim else W.Join)
 			HudParts.setEnabled(row.button, not self.ctx.busy("Group"))
 		else
-			setText(row.line, RewardsParts.words(reward))
+			setText(row.line, RewardsParts.gains(reward))
 			HudParts.setText(row.button, W.Favorite)
 			HudParts.setButtonIcon(row.button, "Star")
 			HudParts.setEnabled(row.button, not self.ctx.busy("Favorite") and not self.favoriting)

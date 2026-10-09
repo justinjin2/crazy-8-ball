@@ -211,6 +211,29 @@ function RewardsParts.words(reward: Reward): string
 	return joinPlus(parts)
 end
 
+--- What a reward adds, each part with its plus: "+$10,000, +1 Lucky 8 Block", "+3 Mystery
+--- Lucky Blocks" (`blocksOnly` leaves the money out).
+function RewardsParts.gains(reward: Reward, blocksOnly: boolean?): string
+	local parts: { string } = {}
+	if reward.money > 0 and not blocksOnly then
+		table.insert(parts, W.Gain:format(Format.money(reward.money)))
+	end
+	for _, entry in reward.blocks do
+		local words = if entry.count <= 1
+			then W.OneBlock:format(RewardsParts.blockName(entry.kind))
+			else RewardsParts.blockWords(entry)
+		table.insert(parts, W.Gain:format(words))
+	end
+	if not blocksOnly then
+		local spins: { string } = {}
+		addSpinParts(spins, reward)
+		for _, part in spins do
+			table.insert(parts, W.Gain:format(part))
+		end
+	end
+	return table.concat(parts, W.GainJoin)
+end
+
 --- What a claim gave, as a sentence's end: "+$500 and a Mystery Lucky Block", "2 Mystery
 --- Lucky Blocks", "3 Ult Spins".
 function RewardsParts.summary(reward: Reward): string

@@ -371,11 +371,9 @@ function FreeHeroes.refresh(
 		-- The big words: the blocks (or the money when it gives none); the line: the money
 		-- beside blocks and the group's match money.
 		local best = RewardsParts.bestBlock(reward)
-		local blocksOnly = table.clone(reward)
-		blocksOnly.money = 0
 		local big = if #reward.blocks > 0
-			then RewardsParts.words(blocksOnly)
-			else Format.money(reward.money)
+			then RewardsParts.gains(reward, true)
+			else W.HeroMoney:format(Format.money(reward.money))
 		local parts: { string } = {}
 		if #reward.blocks > 0 and reward.money > 0 then
 			table.insert(parts, W.HeroMoney:format(Format.money(reward.money)))
