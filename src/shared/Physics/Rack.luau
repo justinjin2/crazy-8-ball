@@ -20,8 +20,11 @@ function Rack.normalizeSeed(seed: number?): number
 	return if value == 0 then 1 else value
 end
 
---- All 16 balls: cue ball on the head spot, the rack on the foot spot.
-function Rack.newGame(geometry: Geometry, seed: number?): { Ball }
+--- All 16 balls: cue ball on the head spot, the rack on the foot spot. `layout` (rows from the
+--- apex, like Config.Rack.Layout) deals the numbers differently on the same spots; the seed's
+--- jitter is drawn in the same order whatever the layout (the tutorial's rack,
+--- Config.Tutorial.Break.Layout).
+function Rack.newGame(geometry: Geometry, seed: number?, layout: { { number } }?): { Ball }
 	local R = Config.Balls.RadiusInches
 	local gap = Config.Rack.GapInches
 	local pitch = 2 * R + gap
@@ -44,7 +47,7 @@ function Rack.newGame(geometry: Geometry, seed: number?): { Ball }
 	table.insert(balls, Ball.new(0, hx, hy))
 
 	local ax, ay = TableGeometry.footSpot(geometry)
-	for rowIndex, row in Config.Rack.Layout do
+	for rowIndex, row in layout or Config.Rack.Layout do
 		local r = rowIndex - 1
 		local x = ax + r * rowPitch
 		for i, id in row do

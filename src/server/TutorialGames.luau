@@ -27,6 +27,7 @@ local PlayerData = require(script.Parent.PlayerData)
 local Simulation = require(Shared.Physics.Simulation)
 local Break = require(Shared.Tutorial.Break)
 local Rig = require(Shared.Tutorial.Rig)
+local Plan = require(Shared.Tutorial.Plan)
 local UltMatch = require(Shared.Ults.Match)
 local Judge = require(Shared.Rules.ShotJudge)
 
@@ -148,9 +149,11 @@ local function rig(t: any, player: Player)
 	if e.phase ~= "Waiting" then
 		return
 	end
-	e.tutorial = { player = player.UserId }
-	e.rackSeed = Break.shot().seed
-	e.state = Simulation.newState(e.state.geometry, Break.rack(e.state.geometry))
+	local shot = Break.shot()
+	e.tutorial = Rig.new(player.UserId)
+	e.rackSeed = shot.seed
+	e.rackLayout = shot.layout
+	e.state = Simulation.newState(e.state.geometry, Break.rack(e.state.geometry, shot))
 	e.revision += 1
 	Tables.broadcast(t)
 end
@@ -158,7 +161,7 @@ end
 -- Takes the rig off table `t` while it still waits (they walked off, or a real person came).
 local function unrig(t: any?)
 	if t and t.engine.tutorial and t.engine.phase == "Waiting" then
-		t.engine.tutorial = nil
+		t.engine.tutorial = nil -- its rack (and rackLayout, its order) stays until the table resets
 	end
 end
 
@@ -168,63 +171,78 @@ function TutorialGames.reservedTable(player: Player): number?
 end
 
 ---------------------------------------------------------------------------------------------
--- Game 1 on path S (the rigged match: Tutorial/Rig does the physics side, this the lessons)
+-- Game 1 on path S (the rigged match: Tutorial/Rig picks each turn's lesson and plays the
+-- physics side; this shows the lesson to the client and logs the funnel)
 ---------------------------------------------------------------------------------------------
 
--- What happened so far in the player's game 1 (per game: `epoch`).
+-- What the server saw of the player's game 1 (per game: `epoch`).
 type Game1 = {
 	epoch: number,
-	shots: number, -- the player's shots taken (1 = the break, 2 = the aim lesson)
-	lastSeq: number,
-	filled: boolean, -- the ability bar was filled after the aim shot
-	usedAbility: boolean,
-	sawHand: boolean, -- the ball-in-hand lesson was shown
+	lastSeq: number, -- the last shot of theirs seen
 }
 local games: { [Player]: Game1 } = {}
 
 local function gameOf(player: Player, e: any): Game1
 	local g = games[player]
 	if g == nil or g.epoch ~= e.epoch then
-		g = {
-			epoch = e.epoch,
-			shots = 0,
-			lastSeq = 0,
-			filled = false,
-			usedAbility = false,
-			sawHand = false,
-		}
+		g = { epoch = e.epoch, lastSeq = 0 }
 		games[player] = g
 	end
 	return g
 end
 
--- The lesson showing now (the player attribute TutorialLesson; the client shows it):
--- Break, Aim, Ability, Pick, BallInHand, Eight, or "" (nothing to teach this moment).
-local function lessonOf(player: Player, e: any, g: Game1): string
+-- The lesson showing now (the player attribute TutorialLesson; the client shows it): Break,
+-- Aim, Combo, Ability, BallInHand, Eight, Pick, Away (their turn after one they let run out),
+-- or "" (nothing to teach this moment).
+local function lessonOf(player: Player, e: any): string
 	if e.shooter ~= player.UserId then
 		return ""
 	end
+	local rig = e.tutorial
 	local phase = e.phase
+	-- Ball in hand lined up for the combination: its pointer after a few seconds.
+	local comboDue = rig.lesson == "Combo"
+		and workspace:GetServerTimeNow() - (e.phaseStartedAt or 0) >= T.Lessons.HandComboSeconds
 	if phase == "PocketChoice" then
 		return "Eight"
 	elseif UltMatch.pickNeeded(e) then
 		return "Pick"
 	elseif phase ~= "Intro" and phase ~= "Aiming" and phase ~= "Placement" then
 		return ""
-	elseif e.breakShot then
+	elseif rig.lesson == "Break" then
 		return "Break"
-	elseif e.ballInHand and (e.placeSeq or 0) == 0 then
-		return "BallInHand" -- until they have moved it once
-	elseif g.shots == 1 then
-		return "Aim"
-	elseif g.filled and not g.usedAbility then
+	elseif
+		e.ballInHand
+		and rig.handTurn
+		and not rig.done.Hand
+		and (e.placeSeq or 0) == 0
+		and not comboDue
+	then
+		-- Until they have moved it once (with the combination lined up: for a few seconds).
+		return "BallInHand"
+	elseif rig.lesson == "Aim" or rig.lesson == "Combo" then
+		return rig.lesson
+	elseif rig.lesson == "Ability" then
 		local view = UltMatch.view(e)
 		local bar = view.bars[tostring(player.UserId)]
-		if bar and bar.ready and view.armed == nil then
-			return "Ability"
-		end
+		return if bar and bar.ready and view.armed == nil then "Ability" else ""
+	end
+	local team = Rig.playerTeam(e)
+	if team and (e.timeouts[team] or 0) >= 1 then
+		return "Away"
 	end
 	return ""
+end
+
+-- Whether ball `id` dropped in the shot being resolved.
+local function dropped(e: any, id: number): boolean
+	local outcome = e.pending and e.pending.outcome
+	for _, b in if outcome then outcome.finalBalls else {} do
+		if b.id == id then
+			return b.pocketed == true
+		end
+	end
+	return false
 end
 
 -- Watches the player's rigged game 1 at their table.
@@ -234,46 +252,50 @@ local function watchRigged(player: Player, t: any)
 	if not Rig.isPlayer(e, uid) then
 		return
 	end
+	local rig = e.tutorial
 	local g = gameOf(player, e)
 	local shot = e.shot
-	if shot and shot.shooter == uid and shot.seq ~= g.lastSeq then
+	if shot and shot.shooter == uid and shot.seq ~= g.lastSeq and e.pending then
+		-- A shot of theirs, being resolved (its turn's lesson is still set).
 		g.lastSeq = shot.seq
-		g.shots += 1
-		local j = e.pending and e.pending.judgement
-		if g.shots == 1 then
+		local j = e.pending.judgement
+		local made = j ~= nil and j.keep and j.foul == nil
+		local plan = rig.plan
+		if rig.lesson == "Break" then
 			Funnel.once(player, "PathS", "Break")
-		elseif g.shots == 2 and j and j.keep then
+		elseif rig.lesson == "Aim" and made then
 			Funnel.once(player, "PathS", "AimPotted")
+		elseif rig.lesson == "Combo" and made and plan and dropped(e, plan.b) then
+			Funnel.once(player, "PathS", "ComboPotted")
 		end
 		if shot.ult and shot.ult.by == uid then
-			g.usedAbility = true
 			Funnel.once(player, "PathS", "AbilityUsed")
-		end
-	end
-	-- The bar fills once the aim shot is over (designer: the ability comes after that shot).
-	if g.shots >= 2 and not g.filled and e.phase ~= "Resolving" then
-		g.filled = true
-		if UltMatch.setBar(e, uid, Config.Ults.BarMax) then
-			Tables.broadcast(t)
+			if made then
+				Funnel.once(player, "PathS", "AbilityPotted")
+			end
 		end
 	end
 	if e.calledPocket and e.shooter == uid then
 		Funnel.once(player, "PathS", "EightCalled")
 	end
-	local lesson = lessonOf(player, e, g)
-	if lesson == "Ability" then
-		-- Its ult armed counts as used (the press, before the shot).
-		local view = UltMatch.view(e)
-		if view.armed and view.armed.by == uid then
-			g.usedAbility = true
-		end
+	-- The lesson's details first, then its name (the client reads them when the name changes).
+	local lesson = lessonOf(player, e)
+	local plan = rig.plan
+	if lesson == "Aim" or lesson == "Combo" or lesson == "Ability" then
+		-- The lesson's pot: the client opens the aim on (or, for Aim, a little off) it, and the
+		-- pocket it goes in glows.
+		player:SetAttribute("TutorialAimAngle", if plan then plan.angle else nil)
+		player:SetAttribute("TutorialAimPocket", if plan then plan.pocket else 0)
+		player:SetAttribute(
+			"TutorialComboBalls",
+			if lesson == "Combo" and plan then ("%d,%d"):format(plan.a, plan.b) else ""
+		)
 	end
-	player:SetAttribute("TutorialLesson", lesson)
-	if lesson == "BallInHand" and not g.sawHand then
-		g.sawHand = true
+	if lesson == "Combo" then
+		Funnel.once(player, "PathS", "ComboShown")
+	elseif lesson == "BallInHand" then
 		Funnel.once(player, "PathS", "BallInHand")
-	end
-	if lesson == "Pick" then
+	elseif lesson == "Pick" then
 		local group = Rig.playerGroup(e)
 		local pick = Break.lesson(e.state.geometry, e.state.balls, group)
 		local ball = if pick then pick.ball else nil
@@ -288,13 +310,10 @@ local function watchRigged(player: Player, t: any)
 	elseif lesson == "Eight" then
 		player:SetAttribute(
 			"TutorialPocket",
-			Break.eightPocket(e.state.geometry, e.state.balls) or 0
+			Plan.eightGlow(e.state.geometry, e.state.balls, e.ballInHand == true) or 0
 		)
-	elseif lesson == "Aim" then
-		-- The aim lesson's pot (the client starts the aim a little off it).
-		local pot = Break.lesson(e.state.geometry, e.state.balls, Rig.playerGroup(e))
-		player:SetAttribute("TutorialAimAngle", if pot then pot.angle else nil)
 	end
+	player:SetAttribute("TutorialLesson", lesson)
 end
 
 -- The player's seat team at table `t` (nil when not seated there).
@@ -442,6 +461,28 @@ local function watch(player: Player)
 	elseif reserved[player] then
 		release(player)
 	end
+end
+
+--- Studio QA (TutorialQA "game1"): game 1's rig at the player's table (Tutorial/Rig: the
+--- lesson, its plan, what is done), or nil.
+function TutorialGames.rigState(player: Player): any?
+	local id = Tables.tableOf(player)
+	local t = if id then Tables.get(id) else nil
+	local rig = t and t.engine.tutorial
+	if rig == nil then
+		return nil
+	end
+	return {
+		table = id,
+		phase = t.engine.phase,
+		shooter = t.engine.shooter,
+		lesson = rig.lesson,
+		plan = rig.plan,
+		done = rig.done,
+		misses = rig.misses,
+		shots = rig.shots,
+		deadline = t.engine.deadline,
+	}
 end
 
 --- Whether the player is on a table's pad or seat.

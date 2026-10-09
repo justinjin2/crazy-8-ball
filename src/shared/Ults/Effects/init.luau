@@ -40,6 +40,9 @@ local Effects: { [string]: Effect } = {
 	SuperBounce = require(script.SuperBounce) :: any,
 	TimeStop = require(script.TimeStop) :: any,
 	Verity = require(script.Verity) :: any,
+	-- Not an ability: game 1's hidden help (Tutorial/Assist; Tutorial/Rig arms it), an armed
+	-- ability running inside it (overrides.Inner).
+	TutorialAssist = require(script.Parent.Parent.Tutorial.Assist) :: any,
 }
 
 return Effects

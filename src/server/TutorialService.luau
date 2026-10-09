@@ -511,6 +511,15 @@ local function onEvent(player: Player, kind: any, data: any)
 		end
 	elseif kind == "Next" then
 		next(player)
+	elseif kind == "Lesson" then
+		-- Game 1's moments only the screen sees (path S): the aim turned, the view zoomed out.
+		if
+			step == "Game1"
+			and TutorialService.path(player) == "S"
+			and (data == "Aimed" or data == "Zoomed")
+		then
+			Funnel.once(player, "PathS", data)
+		end
 	elseif FUNNEL_EVENTS[kind] then
 		local now = clock()
 		local last = lastFunnelEvent[player] or {}
@@ -703,6 +712,8 @@ function TutorialService.start()
 				return TutorialService.funnelLines(player)
 			elseif op == "bot" then
 				return TutorialBot.state(player)
+			elseif op == "game1" then
+				return TutorialGames.rigState(player)
 			elseif op == "fail" then
 				-- The fail-safe on purpose (QA): ends the tutorial as an error would.
 				TutorialService.fail(player, "QA", "a test failure")

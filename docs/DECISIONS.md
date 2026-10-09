@@ -3769,3 +3769,49 @@ timer of a new block stay the designer's call.
   player is encouraged to play the combination (one ball into the other, which drops); it earns
   NICE SHOT!. (Run assumption, until the designer says otherwise: it is the shot right after
   the aim lesson's pot, with a short pointer prompt; "x2!" stays as a match feature.)
+- 2026-10-09: Tutorial v2 game 1's lessons are read from the table at each of the player's turns
+  (Tutorial/Plan; Tutorial/Rig picks them inside the match engine): the break, the aim lesson
+  (turn 2), the combination (when two of their balls are lined up with a corner pocket and the
+  cue ball has a clear line; it waits up to three turns, then is dropped), the ability lesson
+  (it waits up to two turns for a close setup). Their ability bar fills when the ability lesson starts (not
+  after the aim shot), and "use your ability" shows on at most two turns they ignore it. (Run
+  assumptions.)
+- 2026-10-09: Tutorial v2 game 1's clock (run assumption for "the clock pauses while a lesson
+  prompt is on screen"): no clock on a turn with a lesson (the break, the aim lesson, the
+  combination, the ability lesson), on SELECT WHICH POCKET and on the first ball in hand; none on
+  the player's turn after one they let run out (away: two timeouts in a row can never lose game
+  1, and "Your turn!" shows). Every other turn has the usual 20-second clock.
+- 2026-10-09: The tutorial bot never uses its ability in game 1 (a v1 bug: it could arm Fire Shot,
+  which doubles the cue ball's speed and spoils its worked-out shots). The ricochet steer is gone
+  from the hidden help (the combination replaced the ricochet).
+- 2026-10-09: Tutorial v2's rigged break deals its own rack order (`Config.Tutorial.Break.Layout`,
+  used only for game 1 through `Rack.newGame`'s layout): the numbers are chosen after the break's
+  physics (a break's motion changes only a little with which number sits where; each deal is
+  replayed and kept only when it still does the job), so the same invisible break can drop two
+  solids and leave a combination pair. The rack keeps the real rules: the 8 in
+  the middle, one solid and one stripe in the back corners. Every other game keeps the standard
+  order.
+- 2026-10-09: Tutorial v2's glowing pocket (the aim lesson's target, the combination's pocket) is
+  a gold neon disc over the hole plus a gold ring drawn on the tutorial's screen layer at the
+  pocket's spot, at least a fixed size on screen so a far corner still shows; while a pocket
+  glows, the instruction line moves just under it when it would cover it.
+- 2026-10-09: Tutorial v2's hidden help bends the cue ball toward the lesson's ghost point on the
+  aim lesson and the combination (when the shot is within 10 degrees of the lesson's line; the
+  same aim help that used to start only after six misses). A combination is unforgiving: 2
+  degrees off onto the back ball sends it about 30 degrees wide, which no invisible bend on the
+  balls could save; with the cue ball's bend it drops from 6 degrees off either way.
+- 2026-10-09: Tutorial v2's combination has a second way in (run assumption): while it waits
+  (up to three turns after the aim lesson), ball in hand starts lined up straight behind the
+  pair's back ball (after "drag the white ball", the combination's pointer shows), and the bot's
+  later visits prefer to leave the player a line onto the pair. Dragging the ball elsewhere moves
+  the plan with it (or drops the lesson when no line is left).
+- 2026-10-09: Tutorial v2 game 1's 8 gets the aim lesson's hidden help (the brief's "help on the
+  8 toward the called pocket"): on its line into the called pocket the cue ball bends toward its
+  ghost point, and the 8 rolls a little farther on its way in. Without it an easy 8 (a small cut,
+  under 30 inches) dropped only about half the time in the simulations, and each miss costs a bot
+  visit.
+- 2026-10-09: Tutorial v2's bot never parks one of its balls where the 8 must be hit from, and
+  when even ball in hand could not line up any of the player's balls (a simulated game looped
+  forever: their last ball by a corner whose jaws held the 8), its next shot nudges one of their
+  balls into the open with a soft foul (it looks like a bot blunder and hands them ball in hand).
+  The one exception to "the bot never touches the player's balls".

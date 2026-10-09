@@ -635,6 +635,28 @@ Progression.start(screen, {
 		return nil
 	end,
 })
+-- Where a table's pockets and balls are in the world, for the tutorial's pocket glow and its
+-- pointer (game 1's lessons).
+TutorialAnchors.setWorldPoint(function(tableId: number, kind: string, id: number): Vector3?
+	local m = hub:matchFor(tableId)
+	if not m then
+		return nil
+	end
+	if kind == "pocket" then
+		for _, p in m.state.geometry.pockets do
+			if p.id == id then
+				return TableBuilder.toWorld(m.placement, p.x, p.y, 0)
+			end
+		end
+	elseif kind == "ball" then
+		for _, b in m.state.balls do
+			if b.id == id and not b.pocketed then
+				return TableBuilder.toWorld(m.placement, b.x, b.y, Config.Balls.RadiusInches)
+			end
+		end
+	end
+	return nil
+end)
 -- The ult spin screen ("Ults" in Menus): the column's 5th tile and gamepad X in the hub open
 -- it.
 UltScreen.start(screen)

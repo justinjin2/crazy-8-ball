@@ -89,6 +89,45 @@ function TutorialAnchors.takeAim(): number?
 	return angle
 end
 
+-- Where a table's pocket or ball is in the world (Main registers it): the tutorial's pocket
+-- glow and its pointer at the combination's balls.
+local worldPoint: ((tableId: number, kind: string, id: number) -> Vector3?)? = nil
+
+--- Main: how to find a pocket ("pocket", its id) or a ball on the table ("ball", its id;
+--- its centre) of table `tableId` in the world.
+function TutorialAnchors.setWorldPoint(fn: (tableId: number, kind: string, id: number) -> Vector3?)
+	worldPoint = fn
+end
+
+--- Where pocket or ball `id` of table `tableId` is in the world, or nil (not known, or down).
+function TutorialAnchors.worldPoint(tableId: number, kind: string, id: number): Vector3?
+	return if worldPoint then worldPoint(tableId, kind, id) else nil
+end
+
+-- The break's power gate (game 1, the designer: a release under half power does nothing):
+-- Input shoots only at minPower or more; a weaker release springs the bar back and fires
+-- weakRelease (the tutorial shakes its line).
+local minPower: number? = nil
+local weak = Instance.new("BindableEvent")
+
+--- Sets the least power a release must have to shoot (nil: the usual MinPowerToShoot).
+function TutorialAnchors.setMinPower(power: number?)
+	minPower = power
+end
+
+--- The tutorial's least power to shoot, or nil.
+function TutorialAnchors.minPower(): number?
+	return minPower
+end
+
+--- Input: a release under minPower was dropped.
+function TutorialAnchors.noteWeakRelease()
+	weak:Fire()
+end
+
+--- Fires when a release under minPower was dropped.
+TutorialAnchors.weakRelease = weak.Event
+
 -- What the player did that only a screen knows: the aim turned (degrees, from Input), and
 -- flags a screen sets (UltPicked: a ball is chosen in Heat Seeker's pick view, UltPick).
 local turned = 0

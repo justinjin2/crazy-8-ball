@@ -306,6 +306,8 @@ Steps.Funnels = {
 		"Aimed",
 		"Zoomed",
 		"AimPotted",
+		"ComboShown",
+		"ComboPotted",
 		"AbilityUsed",
 		"AbilityPotted",
 		"BallInHand",

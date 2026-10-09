@@ -1,16 +1,15 @@
 --!strict
 -- Tutorial v2's new-player simulation (docs/prompts/TUTORIAL_V2_PROMPT.md 5.2): whole game 1s
--- played on the real MatchEngine (the rigged break, Tutorial/Rig's hooks, the 8 guard), the
--- hidden help (Tutorial/Assist: Magnet, the ricochet's steer, Fire Shot inside it), the bot's
--- script (Bots/Script.pot, then Tutorial/BotPlan.potScratch, then BotPlan.leave) and the
--- new-player model (player.luau). Each game is one JSON line: what each lesson shot did, the
--- misses, ball in hand, the 8's incidents, the turns and the seconds.
+-- played on the real MatchEngine with the production rig (Tutorial/Rig picks each turn's
+-- lesson and arms the hidden help, Tutorial/Assist, Fire Shot inside it), the bot playing as
+-- Bots/Driver does (Tutorial/BotPlan) and the new-player model (player.luau) answering the
+-- lessons. Each game is one JSON line: what each lesson shot did, the misses, ball in hand,
+-- the 8's incidents, the turns and the seconds.
 --
 --   lune run tools/tutorial_v2/sim_game.luau <options.json> <firstSeed> <games> <out.jsonl>
 --
 -- options.json (every field optional; see DEFAULTS): the break (seed, cueX, cueY, angle,
--- power), the turn-2 plan (ball, pocket, second ball and pocket for the ricochet, whether the
--- pocket is off screen at the home view) and the switches being tuned.
+-- power, layout) and the player's habits being tried.
 local fs = require("@lune/fs")
 local serde = require("@lune/serde")
 local process = require("@lune/process")
@@ -22,23 +21,20 @@ local E = H.require("Rules.MatchEngine")
 local Ball = H.require("Physics.Ball")
 local Simulation = H.require("Physics.Simulation")
 local Judge = H.require("Rules.ShotJudge")
-local Placement = H.require("Rules.CuePlacement")
+local NiceShot = H.require("Rules.NiceShot")
 local Break = H.require("Tutorial.Break")
 local Rig = H.require("Tutorial.Rig")
+local Plan = H.require("Tutorial.Plan")
 local Assist = H.require("Tutorial.Assist")
 local BotPlan = H.require("Tutorial.BotPlan")
 local Script = H.require("Bots.Script")
-local Brain = H.require("Bots.Brain")
 local Look = H.require("Bots.Look")
 local Rng = H.require("Bots.Rng")
-local Effects = H.require("Ults.Effects")
-
--- The hidden help's effect, registered here as the build will in Ults/Effects.
-Effects.TutorialAssist = Assist
+local UltMatch = H.require("Ults.Match")
 
 -- How far the help bent things on each of the player's shots (degrees; Assist's own fx
 -- record, read as the shot finishes): the most any ball was pulled, the cue ball's guard, the
--- ricochet's steer and the aim help. The game being played collects them.
+-- combination's steer and the aim help. The game being played collects them.
 local helpShots: { any }? = nil
 do
 	local finish = Assist.finish
@@ -50,11 +46,14 @@ do
 			for _, v in fx.pulled or {} do
 				pull = math.max(pull, v)
 			end
+			local function deg(v: number?): number
+				return math.floor(math.deg(v or 0) * 10 + 0.5) / 10
+			end
 			table.insert(helpShots, {
-				pull = math.floor(math.deg(pull) * 10 + 0.5) / 10,
-				guard = math.floor(math.deg(fx.guarded or 0) * 10 + 0.5) / 10,
-				steer = math.floor(math.deg(fx.steered or 0) * 10 + 0.5) / 10,
-				aim = math.floor(math.deg(fx.aimed or 0) * 10 + 0.5) / 10,
+				pull = deg(pull),
+				guard = deg(fx.guarded),
+				combo = deg(fx.comboTurned),
+				aim = deg(fx.aimed),
 			})
 		end
 	end
@@ -66,20 +65,10 @@ local games = tonumber(process.args[3]) or 10
 local out = process.args[4] or "games.jsonl"
 
 local DEFAULTS = {
-	breakShot = nil, -- { seed, cueX, cueY, angle, power }: nil keeps Config.Tutorial.Break
-	turn2 = nil, -- { ball, pocket, second, secondPocket, hidden }: nil picks the easiest pot
-	aimOffsetDegrees = 3, -- turn 2's aim opens this far off the pot line
-	assist = true, -- the hidden Magnet on the player's shots
-	steer = true, -- turn 2's ricochet steer
-	turn4Assist = true, -- the hidden help on the shot after Fire Shot ("a bit harder")
+	breakShot = nil, -- { seed, cueX, cueY, angle, power, layout }: nil keeps Config.Tutorial.Break
 	fireAimFactor = 0.6, -- Fire Shot's full lines: the aim error times this
-	abilityWithHand = false, -- true: the ability lesson can share a ball-in-hand turn
-	guard = true, -- the cue-ball guard on the player's game-1 shots (Assist's Guard)
-	eightLesson = false, -- true: the shots on the 8 get the lesson shots' pull (Pull.Lesson)
-	botPot = "plan", -- the first visit's pot: "plan" (BotPlan.pot) or "script" (Bots/Script.pot)
-	abilityMaxGhost = 30, -- the ability lesson waits for a ball this close (inches) with a clean pot
-	abilityWaitTurns = 2, -- ... for at most this many turns
-	glow = "shot", -- the 8's glowing pocket: "shot" (pottable from the cue ball) or "near"
+	comboFollow = { careful = 0.9, sloppy = 0.8, wild = 0.6, ignore = 1 }, -- play the combination
+	abilityUse = 0.9, -- "Press G": share who use it
 	maxSeconds = 900, -- a game still going after this is a dead end
 	maxTurns = 60,
 }
@@ -98,11 +87,11 @@ if opts.breakShot then
 	B.CueY = opts.breakShot.cueY
 	B.Angle = opts.breakShot.angle
 	B.Power = opts.breakShot.power
+	B.Layout = opts.breakShot.layout
 end
 
 local PLAYER, BOT = 7, -1000
 local geometry = Sim.geometry
-local D = Sim.D
 
 -- Think times (seconds) by kind for an ordinary turn, and what each lesson adds (reading the
 -- prompt, the gesture it asks for). Guesses, written down for the plan page.
@@ -110,111 +99,15 @@ local THINK = { careful = { 6, 14 }, sloppy = { 4, 9 }, wild = { 2, 5 }, ignore 
 local LESSON = {
 	breakShot = { 4, 8 },
 	aim = { 6, 12 }, -- adjust, zoom out, "you can zoom"
+	combo = { 3, 6 }, -- the pointer at the two balls
 	ability = { 4, 8 }, -- press G, the ignition
 	hand = { 5, 10 }, -- "move the white ball anywhere", the drag
 	eight = { 3, 6 }, -- SELECT WHICH POCKET
 }
 local AWAY = { 20, 60 } -- an AFK player's second away turn (no clock): back after this long
 
----------------------------------------------------------------------------------------------
--- Table reading
----------------------------------------------------------------------------------------------
-
 local function seatTeam(m: any, uid: number): number
 	return (E.seat(m, uid) :: any).team
-end
-
-local function playerGroup(m: any): string
-	return Rig.playerGroup(m)
-end
-
-local choices = Sim.choices
-local firePlan = Sim.firePlan
-
--- The glowing pocket for the 8 (SELECT WHICH POCKET): the easiest pot of the 8 from where
--- the cue ball is (opts.glow == "shot"), else the 8's own pocket (Break.eightPocket). With
--- ball in hand the 8's own pocket (the cue ball can go anywhere).
-local function eightGlow(balls: { any }, hand: boolean): number
-	if opts.glow == "shot" and not hand then
-		local lesson = Break.lesson(geometry, balls, "eight", false, 60)
-		if lesson then
-			return lesson.pocket
-		end
-	end
-	return Break.eightPocket(geometry, balls) :: number
-end
-
--- A good spot for ball in hand: straight behind the easiest of their balls (the 8 into
--- `called` once theirs are gone), a short way back from its ghost ball. Nil when none is free.
-local function handSpot(m: any, balls: { any }, group: string): (number?, number?)
-	local targets = {}
-	for _, b in balls do
-		if not b.pocketed and Judge.group(b.id) == group then
-			table.insert(targets, b)
-		end
-	end
-	local eightOnly = #targets == 0
-	if eightOnly then
-		table.insert(targets, Sim.find(balls, 8))
-	end
-	local probe = Simulation.cloneState(m.state)
-	local best, bx, by = math.huge, nil, nil
-	for _, b in targets do
-		for _, p in geometry.pockets do
-			if eightOnly and m.calledPocket ~= nil and p.id ~= m.calledPocket then
-				continue
-			end
-			local mx, my = Sim.mouth(p)
-			if not Sim.clear(balls, { [0] = true, [b.id] = true }, b.x, b.y, mx, my) then
-				continue
-			end
-			local ux, uy = mx - b.x, my - b.y
-			local len = math.sqrt(ux * ux + uy * uy)
-			if len < D then
-				ux, uy = Break.throat(p) -- in the jaws: straight down the throat
-			else
-				ux, uy = ux / len, uy / len
-			end
-			local gx, gy = b.x - ux * D, b.y - uy * D
-			for _, back in { 10, 16, 24 } do
-				local x, y = gx - ux * back, gy - uy * back
-				if
-					Placement.valid(probe, x, y, false)
-					and Sim.clear(balls, { [0] = true, [b.id] = true }, x, y, gx, gy)
-				then
-					local cost = len * 0.3 + back * 0.3
-					if cost < best then
-						best, bx, by = cost, x, y
-					end
-					break
-				end
-			end
-		end
-	end
-	return bx, by
-end
-
--- The pot into the called pocket with the 8.
-local function eightPot(balls: { any }, pocket: number): any?
-	local cue = Sim.find(balls, 0) :: any
-	local eight = Sim.find(balls, 8) :: any
-	if cue == nil or eight == nil or eight.pocketed then
-		return nil
-	end
-	return Sim.pot(balls, cue.x, cue.y, eight, Sim.pocket(pocket))
-end
-
--- The ghost point for ball `id` into pocket `pocket`: where the cue ball's centre must be when
--- it meets the ball to send it at the pocket's mouth.
-local function ghost(balls: { any }, id: number, pocket: number): any?
-	local b = Sim.find(balls, id)
-	if b == nil or b.pocketed then
-		return nil
-	end
-	local mx, my = Sim.mouth(Sim.pocket(pocket))
-	local ux, uy = mx - b.x, my - b.y
-	local len = math.sqrt(ux * ux + uy * uy)
-	return { x = b.x - ux / len * D, y = b.y - uy / len * D }
 end
 
 local function botView(m: any): any
@@ -230,9 +123,17 @@ local function botView(m: any): any
 	return Script.tutorialView(view :: any)
 end
 
----------------------------------------------------------------------------------------------
--- One game
----------------------------------------------------------------------------------------------
+-- The balls that dropped in an outcome and were on the table before.
+local function freshDown(before: { any }, outcome: any): ({ number }, boolean)
+	local down, scratch = Sim.down(outcome)
+	local fresh = {}
+	for _, id in down do
+		if not (Sim.find(before, id) :: any).pocketed then
+			table.insert(fresh, id)
+		end
+	end
+	return fresh, scratch
+end
 
 local function play(seed: number): any
 	local p = Player.new(seed)
@@ -252,44 +153,26 @@ local function play(seed: number): any
 		eightMovedByBot = 0,
 		playerTurns = 0,
 		shots = 0,
+		timeouts = 0,
 		help = {},
+		lessons = {},
+		log = {},
 	}
 	helpShots = rec.help
 
 	local m = E.new(1, 1)
 	assert(E.join(m, PLAYER, "Real", "Real", 0))
 	assert(E.join(m, BOT, "Bot", "Bot", 0.1))
+	local shot = Break.shot()
 	m.breakFor = PLAYER
-	m.tutorial = { player = PLAYER }
-	m.rackSeed = B.Seed
-	m.state = Simulation.newState(geometry, Break.rack(geometry))
+	m.tutorial = Rig.new(PLAYER)
+	m.rackSeed = shot.seed
+	m.rackLayout = shot.layout
+	m.state = Simulation.newState(geometry, Break.rack(geometry, shot))
 	assert(E.action(m, m.hostId, { kind = "Start", epoch = m.epoch, turnId = m.turnId }, 0, 2))
 	local now = m.deadline or 0
 	E.advance(m, now) -- the coin
 
-	-- The hidden help for this shot, set before each of the player's shots (Rig.assist's
-	-- shape, wrapped as the build will: TutorialAssist with its Inner and Ricochet).
-	local shotHelp: any = nil
-	local baseAssist = Rig.assist;
-	(Rig :: any).assist = function(t: any, userId: number, before: { any }): any?
-		if shotHelp == nil or shotHelp.off then
-			return nil
-		end
-		local base = baseAssist(t, userId, before)
-		if base == nil then
-			return nil
-		end
-		base.Effect = "TutorialAssist"
-		base.extra.Inner = shotHelp.inner
-		base.extra.Ricochet = shotHelp.ricochet
-		base.extra.Guard = if opts.guard then true else nil
-		base.extra.AimAt = shotHelp.aimAt
-		base.extra.Lesson = shotHelp.lesson -- turn 2 and the ability turn (Pull.Lesson)
-		return base
-	end
-
-	local lessonsDone = { aim = false, ability = false, hand = false, eight = false }
-	local playerTurnIndex = 0 -- the player's turns after the break
 	local lastTurnId = -1
 	local botVisit = 0
 	local botShotInVisit = 0
@@ -297,10 +180,7 @@ local function play(seed: number): any
 	local brokeAt = nil
 	local awayDone = false
 	local awayTurn = if p.afk then Rng.int(rng, 3, 6) else -1
-	local wasAway = false
-	local lessonAfterAbility = false
-	local abilityWaited = 0 -- turns the ability lesson waited for a good setup
-	local missStreak = 0 -- the player's misses in a row (BotPlan's StuckMisses)
+	local seenLesson: { [string]: boolean } = {}
 
 	local function think(range: { number }): number
 		return Rng.range(rng, range[1], range[2])
@@ -308,11 +188,10 @@ local function play(seed: number): any
 
 	local function shoot(uid: number, payload: any): (any?, string?)
 		payload.epoch, payload.turnId = m.epoch, m.turnId
-		local shot, why = E.acceptShot(m, uid, payload, now)
-		return shot, why
+		return E.acceptShot(m, uid, payload, now)
 	end
 
-	for _ = 1, 400 do
+	for _ = 1, 600 do
 		if m.phase == "Result" then
 			break
 		end
@@ -322,10 +201,23 @@ local function play(seed: number): any
 		end
 		if rec.playerTurns + rec.botVisits > opts.maxTurns then
 			rec.dead = "turns"
+			-- The jammed table, to look at: id, x, y of each ball still up.
+			rec.table = {}
+			for _, b in m.state.balls do
+				if not b.pocketed then
+					table.insert(rec.table, { b.id, math.floor(b.x * 10) / 10, math.floor(b.y * 10) / 10 })
+				end
+			end
 			break
 		end
 		local phase = m.phase
-		if phase == "Intro" or phase == "Resolving" or phase == "Foul" or phase == "CoinFlip" then
+		if
+			phase == "Intro"
+			or phase == "Resolving"
+			or phase == "Foul"
+			or phase == "CoinFlip"
+			or phase == "Arming"
+		then
 			now = math.max(now, m.deadline or now)
 			E.advance(m, now)
 			continue
@@ -336,46 +228,47 @@ local function play(seed: number): any
 		end
 
 		local uid = m.shooter
+		local rig = m.tutorial
 		if uid == PLAYER then
 			local newTurn = m.turnId ~= lastTurnId
 			if newTurn then
 				lastTurnId = m.turnId
 				if not m.breakShot then
-					playerTurnIndex += 1
 					rec.playerTurns += 1
 				end
 				botShotInVisit = 0
 			end
 			lastShooter = PLAYER
-			local balls = m.state.balls
-			local group = playerGroup(m)
+			local group = Rig.playerGroup(m)
 
-			-- AFK: away on one turn (the clock runs out: a timeout), then away again (the
-			-- clock stops, the prompt pulses) until they come back.
-			if newTurn and playerTurnIndex == awayTurn and not awayDone and not m.breakShot then
+			-- AFK: away for one turn (a timed turn runs out: a timeout; a lesson turn has no
+			-- clock and simply waits), then away again on the next, which has no clock.
+			if newTurn and rec.playerTurns == awayTurn and not awayDone and not m.breakShot then
 				awayDone = true
-				wasAway = true
-				m.deadline = now + Config.Multiplayer.ShotSeconds
-				m.phase = "Aiming"
-				now = m.deadline
-				E.advance(m, now) -- the timeout foul
-				rec.timeouts = (rec.timeouts or 0) + 1
-				continue
-			end
-			if newTurn and wasAway then
-				wasAway = false
+				if m.deadline then
+					now = m.deadline
+					E.advance(m, now) -- the timeout foul
+					rec.timeouts += 1
+					continue
+				end
+				now += think(AWAY)
+			elseif newTurn and (m.timeouts[seatTeam(m, PLAYER)] or 0) >= 1 then
+				if m.deadline then
+					rec.dead = "a clock on the turn after a timeout"
+					break
+				end
 				now += think(AWAY)
 			end
 
 			if phase == "PocketChoice" then
-				-- SELECT WHICH POCKET: the glowing one (the 8's own pocket) most of the time.
-				local glow = eightGlow(balls, m.ballInHand == true)
-				local pick = glow
+				-- SELECT WHICH POCKET: the glowing one most of the time.
+				local glow = Plan.eightGlow(geometry, m.state.balls, m.ballInHand == true)
+				local pick = glow or 1
 				if Rng.chance(rng, 0.1) then
 					pick = Rng.int(rng, 1, 6)
 				end
-				now += think(if lessonsDone.eight then THINK[p.kind] else LESSON.eight)
-				lessonsDone.eight = true
+				now += think(if seenLesson.Eight then THINK[p.kind] else LESSON.eight)
+				seenLesson.Eight = true
 				assert(
 					E.action(
 						m,
@@ -387,135 +280,52 @@ local function play(seed: number): any
 				continue
 			end
 
-			local cueX, cueY = nil, nil
 			if m.ballInHand and not m.breakShot then
 				rec.hand = true
-				now += think(if lessonsDone.hand then { 2, 5 } else LESSON.hand)
-				lessonsDone.hand = true
-				-- Game 1 sets the cue ball down on a good spot (straight behind an easy ball);
-				-- most players move it there themselves anyway, the rest keep it.
-				cueX, cueY = handSpot(m, balls, group)
-				if cueX and cueY then
-					local probe = Simulation.cloneState(m.state)
-					if Placement.valid(probe, cueX, cueY, false) then
-						Placement.set(m.state, 0, cueX, cueY)
-					else
-						cueX, cueY = nil, nil
-					end
-				end
-				balls = m.state.balls
+				-- The cue ball starts on its good spot (Rig.placeHand); they keep it there.
+				now += think(if seenLesson.Hand then { 2, 5 } else LESSON.hand)
+				seenLesson.Hand = true
 			end
-
-			local cue = Sim.find(balls, 0) :: any
-			local shot: any
-			local lesson = nil
+			local balls = m.state.balls
+			local lesson = rig.lesson
+			local plan = rig.plan
+			local payload: any
 			local target: any = nil
-			if m.breakShot then
-				lesson = "break"
+			local used = false
+			if lesson == "Break" then
 				now += think(LESSON.breakShot)
-				-- Any pull of half or more plays the rigged break.
-				shot = { angle = 0, power = 1 }
-				shotHelp = nil
-			elseif m.calledPocket ~= nil and Judge.eligible(balls, group) then
-				-- On the 8: aim at it into the called pocket.
-				local pot = eightPot(balls, m.calledPocket)
+				payload = { angle = 0, power = 1 }
+			elseif m.calledPocket ~= nil and Judge.eligible(balls, group :: any) then
+				local pot = Plan.pots(geometry, balls, "eight", m.calledPocket)[1]
 				now += think(THINK[p.kind])
 				target = pot
 				local want = if pot then pot.angle else 0
-				shot = { angle = Player.aim(p, want, want, true), power = Player.power(p) }
-				shotHelp = if opts.assist then { lesson = opts.eightLesson } else { off = true }
-				lesson = "eight"
-			elseif not lessonsDone.aim then
-				lesson = "aim"
-				lessonsDone.aim = true
-				local plan = opts.turn2
-				local pot = nil
-				if plan then
-					local b = Sim.find(balls, plan.ball)
-					if b and not b.pocketed then
-						pot = Sim.pot(balls, cue.x, cue.y, b, Sim.pocket(plan.pocket))
-					end
-				end
-				pot = pot or choices(balls, group)[1]
-				target = pot
+				payload = { angle = Player.aim(p, want, want, true), power = Player.power(p) }
+			elseif lesson == "Aim" and plan then
+				target = plan
 				now += think(THINK[p.kind]) + think(LESSON.aim)
-				local start = pot.angle + math.rad(opts.aimOffsetDegrees)
-				local seen = if plan and plan.hidden then p.zooms else true
-				shot = { angle = Player.aim(p, pot.angle, start, seen), power = Player.power(p) }
-				if plan and plan.power then
-					shot.power = plan.power -- the lesson plays its planned power (they only aim)
-				end
-				local ricochet = nil
-				if opts.steer and plan and plan.second then
-					ricochet = ghost(balls, plan.second, plan.secondPocket)
-					if ricochet then
-						ricochet.ball = plan.second
-					end
-				end
-				shotHelp = if opts.assist
-					then { ricochet = ricochet, lesson = true }
-					else { off = true }
-				rec.aim =
-					{ ball = pot.ball, pocket = pot.pocket, cut = pot.cut, power = shot.power }
-			elseif
-				not lessonsDone.ability
-				and (opts.abilityWithHand or not m.ballInHand)
-				and cueX == nil
-				and (firePlan(balls, group) or choices(balls, group)[1]) ~= nil
-				and (
-					abilityWaited >= opts.abilityWaitTurns
-					or (function()
-						local fp = firePlan(balls, group)
-						return fp ~= nil and fp.toGhost <= opts.abilityMaxGhost
-					end)()
-				)
-			then
-				lesson = "ability"
-				lessonsDone.ability = true
-				lessonAfterAbility = true
-				local pot = firePlan(balls, group) or choices(balls, group)[1]
-				target = pot
-				if process.env.TUT_DEBUG then
-					print(
-						("ability: target %d -> %d cut %.1f ghost %.1f"):format(
-							pot.ball,
-							pot.pocket,
-							pot.cut,
-							pot.toGhost
-						)
-					)
-					for _, b in balls do
-						if not b.pocketed then
-							print(
-								("  ball %2d  %.2f %.2f  (%.2f from cue)"):format(
-									b.id,
-									b.x,
-									b.y,
-									math.sqrt((b.x - cue.x) ^ 2 + (b.y - cue.y) ^ 2)
-								)
-							)
-						end
-					end
-				end
+				local start = plan.angle + math.rad(Config.Tutorial.Lessons.AimOffsetDegrees)
+				payload = {
+					angle = Player.aim(p, plan.angle, start, p.zooms),
+					power = Player.power(p),
+				}
+			elseif lesson == "Combo" and plan and Rng.chance(rng, opts.comboFollow[p.kind]) then
+				target = plan
+				now += think(THINK[p.kind]) + think(LESSON.combo)
+				payload =
+					{ angle = Player.aim(p, plan.angle, plan.angle, true), power = Player.power(p) }
+			elseif lesson == "Ability" and plan and Rng.chance(rng, opts.abilityUse) then
+				target = plan
 				now += think(THINK[p.kind]) + think(LESSON.ability)
-				-- The aim opens on the pot; Fire Shot's full lines show it all the way in.
+				local ok = UltMatch.devArm(m, PLAYER, Config.Ults.Default, now)
+				used = ok
 				local saved = Player.AimSdDegrees[p.kind]
 				Player.AimSdDegrees[p.kind] = saved * opts.fireAimFactor
-				shot =
-					{ angle = Player.aim(p, pot.angle, pot.angle, true), power = Player.power(p) }
+				payload =
+					{ angle = Player.aim(p, plan.angle, plan.angle, true), power = Player.power(p) }
 				Player.AimSdDegrees[p.kind] = saved
-				shotHelp = if opts.assist
-					then { inner = "FireShot", lesson = true }
-					else { off = true, inner = "FireShot" }
-				rec.ability = {
-					ball = pot.ball,
-					pocket = pot.pocket,
-					cut = pot.cut,
-					toPocket = pot.toPocket,
-					power = shot.power,
-				}
 			else
-				local list = choices(balls, group)
+				local list = Plan.choices(geometry, balls, group)
 				local pick = list[1]
 				if p.kind == "sloppy" and #list > 1 and Rng.chance(rng, 0.5) then
 					pick = list[2]
@@ -524,11 +334,9 @@ local function play(seed: number): any
 				end
 				now += think(THINK[p.kind])
 				target = pick
-				if lessonsDone.aim and not lessonsDone.ability then
-					abilityWaited += 1
-				end
+				local cue = Sim.find(balls, 0) :: any
 				if pick == nil then
-					-- No pot at all (all blocked): a hit at their nearest ball.
+					-- No pot at all: a hit at their nearest ball.
 					local best, bestD = nil, math.huge
 					for _, b in balls do
 						if not b.pocketed and Judge.group(b.id) == group then
@@ -539,75 +347,28 @@ local function play(seed: number): any
 						end
 					end
 					local a = if best then math.atan2(best.y - cue.y, best.x - cue.x) else 0
-					shot = { angle = a, power = Player.power(p) }
+					payload = { angle = a, power = Player.power(p) }
 				else
 					local start = if p.kind == "ignore"
 						then pick.angle + math.rad(Rng.range(rng, -4, 4))
 						else pick.angle
-					shot =
-						{ angle = Player.aim(p, pick.angle, start, true), power = Player.power(p) }
+					payload = {
+						angle = Player.aim(p, pick.angle, start, true),
+						power = Player.power(p),
+					}
 				end
-				local help = opts.assist
-				if lessonAfterAbility then
-					lesson = "after"
-					lessonAfterAbility = false
-					help = help and opts.turn4Assist
-				end
-				shotHelp = if help then {} else { off = true }
 			end
-			-- The escalation: after many misses in a row, the aim help toward this pot.
-			if
-				shotHelp
-				and not shotHelp.off
-				and target
-				and missStreak >= Config.Tutorial.Assist.Aim.AfterMisses
-			then
-				shotHelp.aimAt = { x = target.ghostX, y = target.ghostY }
-				rec.aimHelp = (rec.aimHelp or 0) + 1
-			end
-			if phase == "Placement" and m.breakShot then
-				-- The break's spot is locked: nothing to place.
-				cueX, cueY = nil, nil
+			payload.power = math.clamp(payload.power, 0.05, 1)
+			payload.spin = { x = 0, y = 0 }
+			if m.deadline and now >= m.deadline then
+				-- They took longer than the clock: the turn runs out (a timeout foul).
+				now = m.deadline
+				E.advance(m, now)
+				rec.timeouts += 1
+				rec.slowTimeouts = (rec.slowTimeouts or 0) + 1
+				continue
 			end
 			local before = Ball.cloneList(m.state.balls)
-			local payload = {
-				angle = shot.angle,
-				power = math.clamp(shot.power, 0.05, 1),
-				spin = { x = 0, y = 0 },
-			}
-			if process.env.TUT_JAWS and target and target.toPocket < 3 then
-				local tb = Sim.find(before, target.ball) :: any
-				local pk = Sim.pocket(target.pocket)
-				local c0 = Sim.find(before, 0) :: any
-				local fields = {}
-				for k, v in tb do
-					table.insert(fields, tostring(k) .. "=" .. tostring(v))
-				end
-				table.sort(fields)
-				print("JAWSBALL " .. table.concat(fields, " "))
-				print(
-					("JAWS turn %d ball %d at %.3f %.3f z %s tip %s | pocket %d centre %.2f %.2f | cue %.2f %.2f -> place %s %s | angle %.4f power %.2f"):format(
-						playerTurnIndex,
-						target.ball,
-						tb.x,
-						tb.y,
-						tostring(tb.z),
-						tostring(tb.tip),
-						pk.id,
-						pk.x,
-						pk.y,
-						c0.x,
-						c0.y,
-						tostring(cueX),
-						tostring(cueY),
-						shot.angle,
-						payload.power
-					)
-				)
-			end
-			if cueX then
-				payload.cueX, payload.cueY = cueX, cueY
-			end
 			local accepted, why = shoot(uid, payload)
 			if accepted == nil then
 				rec.dead = "player shot refused: " .. tostring(why)
@@ -617,18 +378,34 @@ local function play(seed: number): any
 			brokeAt = brokeAt or now
 			local j = m.pending.judgement
 			local outcome = m.pending.outcome
-			local down, scr = Sim.down(outcome)
-			local fresh = {}
-			for _, id in down do
-				if not (Sim.find(before, id) :: any).pocketed then
-					table.insert(fresh, id)
+			if process.env.DEBUG_COMBO and lesson == "Combo" and target and target.b then
+				local hits = {}
+				for _, ev in outcome.events do
+					if ev.type == "ballHit" or ev.type == "pocket" then
+						table.insert(hits, ("%s %d-%s"):format(ev.type, ev.ball, tostring(ev.other)))
+					end
 				end
+				local fx = m.state.fx or {}
+				print(
+					("combo %d->%d P%d back %.1f cut %.1f cueCut %.1f dist %.1f | angle err %.2f power %.2f | %s"):format(
+						target.a,
+						target.b,
+						target.pocket,
+						target.back,
+						target.cut,
+						target.cueCut,
+						target.distance,
+						math.deg(payload.angle - target.angle),
+						payload.power,
+						table.concat(hits, ", ")
+					)
+				)
+				local _ = fx
 			end
-			down = fresh
+			local down, scr = freshDown(before, outcome)
 			local mine = 0
 			for _, id in down do
-				local was = Sim.find(before, id) :: any
-				if not was.pocketed and Judge.group(id) == group then
+				if Judge.group(id) == group then
 					mine += 1
 				end
 			end
@@ -639,71 +416,83 @@ local function play(seed: number): any
 				rec.fouls += 1
 			end
 			local missed = (not j.keep or j.foul ~= nil) and j.winner == nil
-			if not m.breakShot then
-				missStreak = if missed then missStreak + 1 else 0
-			end
-			if missed and not m.breakShot then
+			if missed and lesson ~= "Break" then
 				rec.misses += 1
-				rec.firstMissTurn = rec.firstMissTurn or playerTurnIndex
+				rec.firstMissTurn = rec.firstMissTurn or rec.playerTurns
 			end
-			rec.log = rec.log or {}
-			table.insert(rec.log, {
-				turn = playerTurnIndex,
+			local entry: any = {
+				turn = rec.playerTurns,
 				lesson = lesson,
-				ball = target and target.ball,
+				ball = target and (target.ball or target.b),
 				pocket = target and target.pocket,
-				cut = target and math.floor(target.cut + 0.5),
-				toGhost = target and math.floor(target.toGhost + 0.5),
-				toPocket = target and math.floor(target.toPocket + 0.5),
-				err = target and math.floor(math.deg(shot.angle - target.angle) * 100 + 0.5) / 100,
 				power = math.floor(payload.power * 100 + 0.5) / 100,
-				hand = cueX ~= nil,
+				-- How far off the planned line the shot went (degrees), on a planned shot.
+				err = if target and type(target.angle) == "number"
+					then math.floor(
+						math.deg(
+							math.abs((payload.angle - target.angle + math.pi) % (2 * math.pi) - math.pi)
+						) * 10 + 0.5
+					) / 10
+					else nil,
+				-- The planned pot's cut (degrees), cue-to-ghost inches and clear lines.
+				cut = if target and type(target.cut) == "number"
+					then math.floor(target.cut + 0.5)
+					else nil,
+				dist = if target and type(target.toGhost) == "number"
+					then math.floor(target.toGhost + 0.5)
+					else nil,
+				clear = if target then target.clear else nil,
+				hand = rig.handTurn,
 				down = down,
-				first = outcome.firstContact,
 				foul = j.foul,
 				keep = j.keep,
-			})
-			if lesson == "break" then
+				ult = used,
+			}
+			if lesson == "Break" then
 				rec.breakDown = down
-			elseif lesson == "aim" then
-				local target = rec.aim.ball
-				local got = false
-				for _, id in down do
-					if id == target then
-						got = true
-					end
-				end
-				rec.aim.pot = got and j.keep and j.foul == nil
-				rec.aim.mine = mine
-				rec.aim.ricochet = rec.aim.pot and mine >= 2
-				rec.aim.scratch = scr
-				if opts.turn2 and opts.turn2.second then
-					local second = false
-					for _, id in down do
-						if id == opts.turn2.second then
-							second = true
+			elseif lesson == "Aim" then
+				local got = target ~= nil and table.find(down, target.ball) ~= nil
+				rec.aim = {
+					ball = target and target.ball,
+					pocket = target and target.pocket,
+					pot = got and j.keep and j.foul == nil,
+					scratch = scr,
+				}
+			elseif lesson == "Combo" then
+				rec.combo = rec.combo or { shown = true }
+				-- Played: they followed the pointer (a combination plan has a front ball, b); a
+				-- player who shot their own pot instead did not play it.
+				rec.combo.played = target ~= nil and target.b ~= nil
+				if rec.combo.played then
+					local got = table.find(down, target.b) ~= nil
+					local nice = false
+					if got then
+						for i, ev in outcome.events do
+							if ev.type == "pocket" and ev.ball == target.b then
+								nice = NiceShot.kind(outcome.events, target.b, i, geometry.pockets)
+									== "Combo"
+							end
 						end
 					end
-					rec.aim.plannedSecond = second
+					rec.combo.made = got and j.keep and j.foul == nil
+					rec.combo.nice = nice and rec.combo.made
+					rec.combo.scratch = scr
 				end
-			elseif lesson == "ability" then
-				local got = false
-				for _, id in down do
-					if id == rec.ability.ball then
-						got = true
-					end
+			elseif lesson == "Ability" then
+				rec.ability = rec.ability or {}
+				rec.ability.used = used
+				if used then
+					local got = target ~= nil and table.find(down, target.ball) ~= nil
+					rec.ability.pot = got and j.keep and j.foul == nil
+					rec.ability.anyPot = mine > 0 and j.keep and j.foul == nil
+					rec.ability.scratch = scr
 				end
-				rec.ability.pot = got and j.keep and j.foul == nil
-				rec.ability.anyPot = mine > 0 and j.keep and j.foul == nil
-				rec.ability.scratch = scr
-			elseif lesson == "after" then
-				rec.after = { pot = j.keep and j.foul == nil and mine > 0 }
 			end
-			now += 0 -- the shot's roll is the Resolving phase's deadline
+			table.insert(rec.log, entry)
 			continue
 		end
 
-		-- The bot.
+		-- The bot, as Bots/Driver plays it.
 		if uid ~= BOT then
 			rec.dead = "unknown shooter"
 			break
@@ -715,7 +504,6 @@ local function play(seed: number): any
 		end
 		lastShooter = BOT
 		if phase == "PocketChoice" then
-			-- Never on the tutorial table (it never pots its last ball).
 			rec.dead = "bot owes a call"
 			break
 		end
@@ -730,9 +518,7 @@ local function play(seed: number): any
 		local plan = "leave"
 		if botVisit == 1 then
 			if botShotInVisit == 1 then
-				d = if opts.botPot == "plan"
-					then BotPlan.pot(view, botRng, hand)
-					else Script.pot(view, botRng, hand)
+				d = BotPlan.pot(view, botRng, hand)
 				plan = "pot"
 			end
 			if d == nil then
@@ -744,9 +530,10 @@ local function play(seed: number): any
 				end
 			end
 		else
-			-- Every StuckMisses misses in a row (3, 6, ...): ball in hand ends any jam.
-			local stuck = missStreak > 0 and missStreak % Config.Tutorial.BotPlan.StuckMisses == 0
-			d = BotPlan.leave(view, botRng, hand, nil, stuck)
+			local misses = rig.misses or 0
+			local stuck = misses > 0 and misses % Config.Tutorial.BotPlan.StuckMisses == 0
+			local combo = rig.done.Aim == true and not rig.done.Combo
+			d = BotPlan.leave(view, botRng, hand, nil, stuck, combo)
 			if stuck then
 				plan = "stuck"
 			end
@@ -764,23 +551,16 @@ local function play(seed: number): any
 		end
 		local j = m.pending.judgement
 		local outcome = m.pending.outcome
-		local down, scr = Sim.down(outcome)
-		local fresh = {}
-		for _, id in down do
-			if not (Sim.find(before, id) :: any).pocketed then
-				table.insert(fresh, id)
-			end
-		end
-		down = fresh
+		local down, scr = freshDown(before, outcome)
 		local e0 = Sim.find(before, 8) :: any
 		local e1 = Sim.find(outcome.finalBalls, 8) :: any
 		if e1.pocketed or math.sqrt((e1.x - e0.x) ^ 2 + (e1.y - e0.y) ^ 2) > 0.3 then
 			rec.eightMovedByBot += 1
 		end
-		local playerBallsDown = 0
+		local theirs = 0
 		for _, id in down do
-			if Judge.group(id) == playerGroup(m) and not (Sim.find(before, id) :: any).pocketed then
-				playerBallsDown += 1
+			if Judge.group(id) == Rig.playerGroup(m) then
+				theirs += 1
 			end
 		end
 		table.insert(rec.botShots, {
@@ -791,7 +571,7 @@ local function play(seed: number): any
 			scratch = scr,
 			foul = j.foul,
 			winner = j.winner,
-			theirs = playerBallsDown,
+			theirs = theirs,
 		})
 	end
 
@@ -802,8 +582,9 @@ local function play(seed: number): any
 		rec.won = winner == seatTeam(m, PLAYER)
 		rec.lost = winner ~= nil and not rec.won
 	end
-	-- The winning shot's roll.
-	rec.ballInHandSeen = rec.hand
+	for name in m.tutorial and m.tutorial.done or {} do
+		rec.lessons[name] = true
+	end
 	return rec
 end
 

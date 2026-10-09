@@ -13684,16 +13684,30 @@ Config.Tutorial = {
 		PhoneBelowPx = 600,
 		JoinedWaitSeconds = 8, -- the onboarding funnel's Joined waits this long for the device
 	},
-	-- Game 1's rigged rack and break (src/shared/Tutorial/Break.luau), found by
-	-- `lune run tools/tutorial_break.luau` (designer, 2026-10-03: 3 solids down, a 4th left
-	-- near a corner pocket). Inches and radians, table coordinates (+x towards the foot rail).
+	-- Game 1's rigged rack and break (src/shared/Tutorial/Break.luau; tutorial v2 4.4), found by
+	-- tools/tutorial_v2/search_combo.luau: 2 solids down, the second creeping on the lip; the
+	-- 8 by a pocket; the aim lesson's pot; a combination pair by a corner (3 into 5, P3).
+	-- "Invisible": the cue ball at most 1/4 in off the head spot, the aim at most 0.2 degrees
+	-- off straight at the apex. Inches and radians, table coordinates (+x towards the foot rail).
 	Break = {
-		Seed = 153, -- the rack's seed (Rack.newGame)
-		CueX = -25, -- where the cue ball stands for the break
-		CueY = -6,
-		Angle = 0.115429, -- the break's direction (straight at the rack's apex)
-		Power = 1, -- any pull plays the break at this power
-		Solids = 3, -- the break pots exactly this many solids and nothing else
+		Seed = 4430, -- the rack's seed (Rack.newGame: its tiny offsets)
+		CueX = -25, -- where the cue ball stands for the break (the head spot)
+		CueY = -0.125, -- 1/8 in off it
+		Angle = 0.0018455, -- the break's direction (0.04 degrees off straight at the apex)
+		Power = 1, -- any pull of at least Lessons.BreakMinPower plays the break at this power
+		-- The rack's numbers (rows from the apex), chosen after the break's physics: a normal
+		-- rack (the 8 in the middle, a solid and a stripe in the back corners), only for game 1.
+		Layout = {
+			{ 1 },
+			{ 6, 2 },
+			{ 10, 8, 15 },
+			{ 11, 4, 5, 12 },
+			{ 7, 9, 14, 3, 13 },
+		},
+		Solids = 2, -- the break pots exactly this many solids and nothing else
+		-- The last of them creeps: at least this long within 2 in of where it drops (the
+		-- layout guard test, tests/tutorial_game_test.luau; this break: 0.57 s, 6 s in).
+		CreepSeconds = 0.55,
 		-- The aim lesson's pot (Break.lesson): a cut no wider than this, the cue ball no
 		-- farther than LessonMaxInches from the ghost ball; cost per inch of travel.
 		LessonMaxCutDegrees = 20,
@@ -13704,24 +13718,18 @@ Config.Tutorial = {
 		EightNearBonus = 15,
 	},
 	-- Game 1's hidden help (src/shared/Tutorial/Assist.luau, tutorial v2): the pull on the
-	-- player's first ball hit and on any ball of theirs the cue ball touches later, and on
-	-- turn 2 the ricochet's steer: just after its first ball (or a cushion), the cue ball's
-	-- heading bends toward the second ball's ghost point. Radians and inches. (tune)
+	-- player's first ball hit and on any ball of theirs the cue ball touches later, the
+	-- combination's steer, the aim help and the cue-ball guard. Radians and inches. (tune)
 	Assist = {
-		SteerPerInch = 0.2, -- the most it turns per inch rolled (about 11 degrees)
-		MaxTurn = 0.26, -- the most it turns in all (about 15 degrees)
-		SteerMinSpeed = 3, -- in/s: a cue ball slower than this is left to stop
-		-- Only within this many inches of roll after the cue ball meets its first ball or a
-		-- cushion, where a bend hides in the collision's own deflection (0: anywhere).
-		WindowInches = 4,
+		SteerMinSpeed = 3, -- in/s: a ball slower than this is left to stop
 		-- The pull on the player's balls near a pocket: Lesson for the first ball the cue ball
-		-- hits on a lesson shot (turn 2, the ability turn: overrides.Lesson), First for it on
-		-- every other shot, Later for any other ball of theirs it touches after (the
-		-- ricochet's second ball). "Magnet": the Magnet ability's full pull, as the old
-		-- tutorial had (it can curve a ball 20 degrees and more and brakes it into the pocket:
-		-- visible). "Gentle": Magnet's turn only (no braking, no snap), at most MaxTurn radians
-		-- in all per ball and PerInch per inch rolled, so it hides in the throw and drift a
-		-- real ball has. "Off".
+		-- hits on a lesson shot (turn 2, the ability turn: overrides.Lesson) and for the
+		-- combination's front ball, First for the first ball on every other shot, Later for any
+		-- other ball of theirs the cue ball touches after. "Magnet": the Magnet ability's full
+		-- pull, as the old tutorial had (it can curve a ball 20 degrees and more and brakes it
+		-- into the pocket: visible). "Gentle": Magnet's turn only (no braking, no snap), at
+		-- most MaxTurn radians in all per ball and PerInch per inch rolled, so it hides in the
+		-- throw and drift a real ball has. "Off".
 		Pull = {
 			Lesson = "Magnet",
 			First = "Gentle",
@@ -13729,12 +13737,28 @@ Config.Tutorial = {
 			MaxTurn = 0.17, -- about 10 degrees in all
 			PerInch = 0.05, -- about 3 degrees per inch rolled: a curve, not a kink
 		},
-		-- The aim help, only after AfterMisses misses in a row: the cue ball bends toward the
-		-- planned pot's ghost point before it touches anything.
+		-- The combination lesson (overrides.Combo): the back ball's heading bends toward the
+		-- front ball's ghost point, at most PerInch radians per inch rolled and MaxTurn in all,
+		-- until it meets another ball (just after the cue ball's hit, so it hides in the hit).
+		Combo = {
+			PerInch = 0.03, -- about 1.7 degrees per inch rolled
+			MaxTurn = 0.07, -- about 4 degrees in all
+		},
+		-- The aim help: the cue ball bends toward a ghost point before it touches anything, on
+		-- the aim lesson and the combination (their ghost points, when the shot is on their
+		-- line) and after AfterMisses misses in a row (the pot the shot is nearest).
 		Aim = {
 			AfterMisses = 6,
 			PerInch = 0.02, -- about 1.1 degrees per inch rolled
 			MaxTurn = 0.1, -- about 6 degrees in all
+		},
+		-- The carry on the aim lesson and the combination: their pot's ball, rolling at its
+		-- pocket (within the cone whose cosine is ConeCos, within Inches of the mouth), has its
+		-- rolling friction times FrictionShare, so a soft lesson shot that would stop short drops.
+		Carry = {
+			Inches = 50,
+			ConeCos = 0.97, -- about 14 degrees either side
+			FrictionShare = 0.5,
 		},
 		-- The cue-ball guard on the player's game-1 shots: a cue ball within Inches of a
 		-- pocket's mouth middle and heading at it (within the cone whose cosine is ConeCos) is
@@ -13775,6 +13799,9 @@ Config.Tutorial = {
 		-- MaxTrials simulated shots, so a visit's thinking stays light on the server.
 		GoodLeave = 70,
 		MaxTrials = 80,
+		-- While the player's combination lesson waits, a leave with a clear line onto their pair
+		-- (Tutorial/Plan.combo) scores this much more (and the early stop waits for one).
+		ComboLeaveBonus = 40,
 		-- No gentle pot to leave: a cut up to WideCutDegrees still counts, from WideScore
 		-- instead of 100 (a clean scratch only when even that is missing).
 		WideCutDegrees = 45,
@@ -13793,6 +13820,70 @@ Config.Tutorial = {
 		-- and its speed (in/s).
 		WhiffSweeps = 24,
 		WhiffSpeed = 25,
+		-- The jam breaker: when ball in hand could not line up any of the player's balls (Plan
+		-- .handSpot finds no spot), the bot's cue ball nudges one of them into the open (a soft
+		-- foul: its cue ball, set this far off the ball at Spots directions when it has ball in
+		-- hand, at these powers), at most MaxTrials simulated shots.
+		Unjam = {
+			BackInches = { 3, 8 },
+			Spots = 12,
+			Powers = { 0.12, 0.2, 0.3 },
+			MaxTrials = 120,
+		},
+	},
+	-- Game 1's plan, read from the table at each of the player's turns (src/shared/Tutorial/
+	-- Plan.luau; Tutorial/Rig picks the lesson). Inches and degrees. (tune)
+	Plan = {
+		LineMarginInches = 0.25, -- kept clear past a ball's width on a planned line
+		AvoidMarginInches = 1, -- the aim lesson's lines keep this much farther off the pair
+		CostPerInch = 0.3, -- a pot's difficulty: its cut plus this per inch of travel
+		MaxCutDegrees = 65, -- no new player tries a thinner cut than this
+		-- A planned pot's line may sit at most this far off straight down the pocket's throat
+		-- (degrees): a side pocket turns away a ball running along the rail (the bots'
+		-- ShotFinder uses the same limits).
+		CornerApproachDegrees = 60,
+		SideApproachDegrees = 50,
+		AimMaxCutDegrees = 12, -- the aim lesson's pot (turn 2)
+		AimMaxInches = 45,
+		-- The aim help's target (Assist.Aim): the player's pot whose line is nearest the shot's,
+		-- within this.
+		TargetDegrees = 10,
+		EightGlowMaxCutDegrees = 60, -- the 8's glowing pocket: its easiest pot up to this cut
+		-- The combination (designer, 2026-10-09): the front ball this close to a corner pocket's
+		-- mouth, the back ball's centre this close to the front one's ghost point, the pair's own
+		-- cut this small; the cue ball's cut on the back ball and its distance at most these.
+		Pair = {
+			FrontMaxInches = 22,
+			BackMaxInches = 6,
+			MaxCutDegrees = 10,
+			CostPerBackInch = 1.5,
+			CueMaxCutDegrees = 50,
+			CueMaxInches = 60,
+		},
+		-- The ability lesson's pot: a clear cut up to MaxCutDegrees; the ball far from its pocket
+		-- (up to FarInches) and the cue ball near it score best; a setup is good with the cue
+		-- ball within GoodInches of the ghost ball.
+		Fire = {
+			MaxCutDegrees = 35,
+			FarInches = 28,
+			PerFarInch = 0.5,
+			PerNearInch = 0.8,
+			PerCutDegree = 1.2,
+			GoodInches = 30,
+		},
+		-- Ball in hand starts straight behind their easiest ball, the first of these back from
+		-- its ghost ball that is free.
+		Hand = {
+			BackInches = { 10, 16, 24 },
+			CostPerInch = 0.3,
+		},
+		-- The lessons after the aim: the combination waits this many turns for a clear line or a
+		-- ball in hand (then it is dropped); the ability lesson waits this many for a good setup
+		-- (then runs anyway), and "use your ability" shows on at most AbilityPromptTurns turns
+		-- they do not use it.
+		ComboWaitTurns = 3,
+		AbilityWaitTurns = 2,
+		AbilityPromptTurns = 2,
 	},
 	-- The tutorial bot's later visits (Bots/Script.poor): weak, legal shots at its own balls
 	-- that pot nothing and leave the player's balls and the 8 where they are.
@@ -13803,10 +13894,37 @@ Config.Tutorial = {
 	},
 	-- Game 1's lessons on screen (src/client/Tutorial.luau).
 	Lessons = {
-		AimOffsetDegrees = 7, -- the aim lesson starts this far off its pot: a small turn fixes it
+		AimOffsetDegrees = 3, -- the aim lesson starts this far off its pot: a small turn fixes it
+		BreakMinPower = 0.5, -- the break's release under this does nothing (the bar springs back)
 		AimTurnedDegrees = 2, -- once the player has turned this much, the line says to shoot
 		DragPx = { 170, -80 }, -- the ball-in-hand demo drags the ghost ball this far (px)
 		BlockPadPx = 28, -- the ring round the thrown block on the floor, past its outline (px)
+		ZoomedOut = 0.85, -- the zoom lesson is done at this zoom or wider (Camera: 1 is all out)
+		ZoomDoneSeconds = 2.5, -- "You can zoom in and out any time." shows this long
+		ComboShootSeconds = 5, -- the combination's pointer, then the line says to shoot
+		-- Ball in hand lined up for the combination: "drag the white ball" shows this long (or
+		-- until they move it), then the combination's pointer.
+		HandComboSeconds = 5,
+	},
+	-- A glowing pocket (src/client/TutorialGlow.luau: the aim lesson's and the combination's):
+	-- a see-through gold neon disc this wide over the hole at the cloth (lifted LiftInches) with
+	-- a light, and a gold ring round it on the tutorial's screen layer (RingScale times as wide
+	-- as the disc looks, at least RingPx, growing by RingPulse), pulsing every PulseSeconds.
+	Glow = {
+		Color = { 255, 214, 74 }, -- the house gold
+		DiameterInches = 7,
+		ThickInches = 0.2,
+		LiftInches = 0.1,
+		PulseSeconds = 1.1,
+		TransparencyMin = 0.35, -- the disc at the top of a pulse
+		TransparencyMax = 0.75,
+		RingScale = 1.6,
+		RingPx = 70,
+		RingThicknessPx = 5,
+		RingPulse = 0.15,
+		RingTransparency = 0.5, -- the ring's stroke at the bottom of a pulse
+		LightRange = 6, -- studs
+		LightBrightness = 4,
 	},
 	-- The chain's lucky block (tutorial v2 4.5): Bronze's Mystery block, whose upgrade screen
 	-- climbs once (Standard to Uncommon), then opens to TutorialCue (the designer's pick,
@@ -13847,6 +13965,7 @@ Config.Tutorial = {
 		LineTopGapPx = 10, -- under Roblox's top bar
 		LineLowGapPx = 80, -- a low line clears a screen's own title (Heat Seeker's pick pill)
 		LineNearGapPx = 80, -- a "Near" line's gap over the lit hole: clears the hand
+		LineAvoidPx = 40, -- a line kept off a point (a glowing pocket): moved this far under it
 		-- The light dim (designer, 2026-10-03: light): black at this transparency.
 		DimTransparency = 0.65,
 		DimFadeSeconds = 0.25,
@@ -13870,6 +13989,11 @@ Config.Tutorial = {
 		NextPhoneHeightPx = 40,
 		NextWidthRatio = 3.2,
 		NextGapPx = 8,
+		-- The line's shake (the break's release under half power): side to side ShakeHz times a
+		-- second, ShakePx at first, dying away over ShakeSeconds.
+		ShakeSeconds = 0.45,
+		ShakePx = 14,
+		ShakeHz = 9,
 	},
 	-- The hand (src/client/TutorialHand.luau). Pixels unless named.
 	Hand = {

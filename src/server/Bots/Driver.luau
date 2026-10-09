@@ -19,6 +19,7 @@ local Magnet = require(Shared.Ults.Effects.Magnet)
 local Finder = require(Shared.Bots.ShotFinder)
 local Brain = require(Shared.Bots.Brain)
 local BotScript = require(Shared.Bots.Script)
+local BotPlan = require(Shared.Tutorial.BotPlan)
 local Look = require(Shared.Bots.Look)
 local Rng = require(Shared.Bots.Rng)
 local Tables = require(script.Parent.Parent.TableService)
@@ -65,20 +66,28 @@ local function decide(
 	yield: () -> ()
 ): Brain.Decision
 	if bot.script == "Tutorial" and not view.breakShot then
-		-- The tutorial lane: the bot never takes the player's colour, and after its first
-		-- visit only plays weak shots that leave the player's balls and the 8 alone.
+		-- Game 1's bot (Tutorial/BotPlan; the designer's pick A): it never takes the player's
+		-- colour. Its first visit pots one of its balls, then pots another and scratches (ball
+		-- in hand for the player); every later visit misses, leaving the player a makeable
+		-- shot, and after StuckMisses misses of theirs in a row it hands them ball in hand
+		-- (BotPlan's jam breaker).
 		view = BotScript.tutorialView(view)
 		if bot.visit == 1 then
 			if bot.shotInVisit == 1 then
-				local d = BotScript.pot(view, rng, hand, yield)
+				local d = BotPlan.pot(view, rng, hand, yield)
 				if d then
 					return d
 				end
 			end
-			return BotScript.scratch(view, rng, hand, yield)
-		else
-			return BotScript.poor(view, rng, hand, yield)
+			return BotPlan.potScratch(view, rng, hand, yield)
+				or BotPlan.cleanScratch(view, rng, hand, yield)
 		end
+		local rig = bot.t and bot.t.engine.tutorial
+		local misses = if rig then rig.misses or 0 else 0
+		local stuck = misses > 0 and misses % Config.Tutorial.BotPlan.StuckMisses == 0
+		-- The player's combination lesson waits: leave them lined up for it.
+		local combo = rig ~= nil and rig.done.Aim == true and not rig.done.Combo
+		return BotPlan.leave(view, rng, hand, yield, stuck, combo)
 	end
 	return Brain.decide(view, bot.skill, rng, { ballInHand = hand, yield = yield })
 end
@@ -282,8 +291,15 @@ function Driver.turn(bot: any, seed: number)
 	end
 	local aimStartedAt = os.clock() - math.max(0, now() - e.phaseStartedAt)
 
-	-- Its ability: Config.Ults.Pc's rule (bar full and behind, or no easy shot).
-	if not frozen and bot.ult and Match.pcShouldActivate(e, uid, decision.easy) then
+	-- Its ability: Config.Ults.Pc's rule (bar full and behind, or no easy shot). Never in the
+	-- tutorial's game 1 (its planned shots are worked out without one: Tutorial/BotPlan).
+	local scripted = bot.script == "Tutorial" and e.tutorial ~= nil
+	if
+		not frozen
+		and bot.ult
+		and not scripted
+		and Match.pcShouldActivate(e, uid, decision.easy)
+	then
 		UltService.activateFor(t, uid)
 		local deadline = os.clock() + 4
 		while live() and Match.arming(e) and os.clock() < deadline do
@@ -386,7 +402,8 @@ function Driver.turn(bot: any, seed: number)
 		turnId = e.turnId,
 		angle = decision.angle,
 		power = decision.power,
-		spin = { x = 0, y = 0 },
+		-- The planned spin (the tutorial bot's pot-and-scratch follows its ball down).
+		spin = decision.spin or { x = 0, y = 0 },
 	}
 	if e.ballInHand then
 		local c = Finder.findBall(e.state.balls, 0)

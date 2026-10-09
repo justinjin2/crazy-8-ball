@@ -860,7 +860,7 @@ lines). All in the worktree.
   Config switch, B to cancel, `PadGuide` and strings.
 - [x] 7. The bot (4.3): warm load on join, roaming the server (designer: no hiding place), natural walking, at most 2 s
   of waiting, any empty table, waiting if they step off, leaving, cleanup.
-- [ ] 8. Game 1 (4.4):
+- [x] 8. Game 1 (4.4):
   - the break;
   - aim and zoom;
   - the combination for NICE SHOT! (replaces the ricochet, designer 2026-10-09);
@@ -1114,6 +1114,66 @@ lines). All in the worktree.
   → Result → idle through the table's reset → Rank → its line and gone. A player crossing a pad
   no longer starts a game.
 
+### Step 8: game 1 (2026-10-09)
+
+- **The break and its rack** (`Config.Tutorial.Break`): seed 4430, the cue ball 1/8 in off the
+  head spot, 0.1 degrees off straight, full power; the rack dealt in its own number order
+  (`Break.Layout`, through `Rack.newGame`'s new `layout`; the real rules kept: the 8 in the
+  middle, a solid and a stripe in the back corners). 6 and 7 drop, the second about 0.55 s on
+  the lip; the 8 stops by a corner; the aim lesson is 4 into P4 (an 8-degree cut), the
+  combination 3 into 5 into P3. **Search** (`tools/tutorial_v2/search_combo.luau`, `run_combo.sh`,
+  `run_deal.sh`, `run_candidates.sh`; results in `~/Desktop/8ball-refs/tutorial/sim-2026-10-09/
+  combo*/`): collect standard-rack breaks that drop exactly two solids (no scratch, the 8 placed,
+  the creep measured), then deal number orders on them (fewest swaps, then shuffles), replay
+  each deal for real with the production Plan, score what the aim pot leaves, rank, and play
+  160 simulated games per finalist. **Our physics resolves contacts in array order, sorted by
+  id**, so renumbering a rack changes its break about 40% of the time even for one swap: every
+  deal is replayed, never assumed.
+- **The lessons** (Tutorial/Plan reads the table at each of their turns, Tutorial/Rig picks):
+  the break, aim and zoom (turn 2), the combination (right after the aim pot, or ball in hand
+  lined up behind the pair, up to three turns), Fire Shot (waits up to two turns for a close
+  setup), their own shots, the bot's scripted visit and ball in hand, the 8 (SELECT WHICH
+  POCKET: the pocket the 8 sits by glows, the hand on it). Away: after a turn they let run out
+  the next has no clock and says "Your turn! Take your shot."
+- **The look:** `TutorialGlow` (a gold neon disc in the hole plus a gold ring on the tutorial's
+  screen layer, at least 70 px); the instruction line moves under the glowing pocket and the
+  combination's balls; the combination's hand points at the back ball.
+- **The hidden help** (Tutorial/Assist): the Gentle pull and the scratch guard as planned; the
+  aim help (the cue ball bends at most about 6 degrees toward the planned ghost point when the
+  shot is within 10 degrees of the plan) on the aim lesson, the combination and the 8 into the
+  called pocket; the carry (the planned ball rolls with half the rolling friction while it heads
+  into its pocket) on the same three.
+- **The bot** (Tutorial/BotPlan): visit 1 pots one of its balls, then pots another with follow
+  and scratches (`Driver` dropped `decision.spin` before: fixed, so the scratch really happens);
+  later visits never pot, half are near misses, each leaves a makeable pot (checked in our
+  physics), prefers a line onto the combination while it waits, and never parks one of its
+  balls where the 8 must be hit from (`Plan.eightOpen`). **The jam breaker:** after three misses
+  of theirs in a row, or when nothing leaves a pot, ball in hand for them; when even that could
+  not line up any of their balls, a soft foul first nudges one of them (or the 8) into the open
+  (two simulated games had looped forever without it).
+- **Planner fix found in Studio:** ball in hand lined a ball up along the rail into a side
+  pocket, which cannot drop. Every planned pot now enters its pocket within 60 degrees of a
+  corner's throat or 50 of a side's (`Plan.CornerApproachDegrees`, `SideApproachDegrees`; the
+  bots' ShotFinder limits), with a test that the rail line really misses.
+- **Numbers** (2,016 simulated games on the final settings, `games/final_unjam_all.jsonl`):
+  every game won, 0 dead ends; the aim lesson's pot 95%; the combination shown in 94% of games,
+  played on 83% of those, made 92% of the time played: NICE SHOT! in 72% of games; Fire Shot
+  potted 88%; at least one miss 98% and ball in hand 98%; the 8 down on its first turn 65%
+  (29% before its help), a rescue (the 8 put back) in 6% of games; the median game 3:19 from
+  the break to the 8 (P90 5:05; 3:58 before the 8's help). The help bends a ball over 20
+  degrees in 2% of shots (22% of games).
+- **Verified in Studio (PC, my window):** the break (6 and 7 down); the aim lesson with the
+  glow and the line under it; the combination (3 into 5, NICE SHOT!, +$120, `ComboPotted`); the
+  Fire Shot lesson (its line runs all the way into the side pocket; potted); a miss, the bot's
+  pot then pot-and-scratch, the ball-in-hand prompt; Away after a timeout (no clock); a later
+  visit leaving a straight pot; SELECT WHICH POCKET with the hand and the glow; the win and
+  Result; the PathS funnel 1 to 13 (Aimed and Zoomed are the client's gestures, which QA shots
+  skip); no errors. Lint clean (3 old warnings); tests 1136 passed.
+- **Open:** the break's creep by eye (tests: 0.57 s on the lip); phone and controller on every
+  lesson (the designer's batched check); "Block 1 Got" and "Block 2 Ready" logged twice (step 9);
+  `/tutorial reset` during game 1 does not restart the game (step 14); the hand covers part of
+  "PRESS G TO ACTIVATE" on the ability lesson (the brief's ref 04 puts the hand on the bar).
+
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
 - `src/shared/Config.luau`: `Config.Tutorial.Assist` (the hidden help's numbers, Pull modes)
@@ -1135,6 +1195,25 @@ lines). All in the worktree.
   instead of leaving), `tutorialBot(avatar?)` (a fallback look); `Config.Bots.Tutorial.JoinDelay`
   removed (the bot walks over now).
 - `src/server/TableService.luau`: the match fences pass through pathfinding.
+- Step 8 (game 1):
+  - `src/shared/Rules/MatchEngine.luau`: game 1's hooks (Rig.placeHand and turnBegan at each
+    turn, cueMoved on a placement, shotDone, the help with an armed ability inside it), the
+    clock by phase kind, the dealt rack layout (`t.rackLayout`) in the snapshot's rack.
+  - `src/shared/Physics/Rack.luau`: `newGame`'s optional `layout` (the same spots and jitter).
+  - `src/server/Bots/Driver.luau`: game 1's bot plays Tutorial/BotPlan, never arms its ability
+    in game 1, and keeps a decision's spin (it was dropped). `src/shared/Bots/Brain.luau`: the
+    Decision type's optional `spin`.
+  - `src/shared/Ults/Effects/init.luau`: the `TutorialAssist` effect (Tutorial/Assist).
+  - `src/client/AbilityFx.luau`: an ability armed in game 1 runs inside the hidden help and
+    still shows (`Inner`).
+  - `src/client/Input.luau`: the break's release under half power does nothing (the bar springs
+    back).
+  - `src/client/Main.client.luau`: `TutorialAnchors.setWorldPoint` (where a table's pockets and
+    balls are, for the glow and the pointer).
+  - `src/server/TutorialService.luau`: the Lesson report (Aimed, Zoomed for the PathS funnel)
+    and the `game1` QA op.
+  - `src/shared/Config.luau` (`Config.Tutorial`: Break, Glow, Overlay.LineAvoidPx, Lessons,
+    Plan, Assist, BotPlan) and `src/shared/Strings.luau` (Combo, Away).
 
 ---
 

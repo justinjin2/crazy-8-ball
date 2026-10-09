@@ -1,12 +1,15 @@
 --!strict
--- Break: the tutorial's rigged rack and break (docs/prompts/TUTORIAL_PROMPT.md step 4; the
--- designer, 2026-10-03). Game 1 opens on a fixed rack (Config.Tutorial.Break.Seed) and the
--- player's break is always the same shot (cue ball spot, angle, full power), found offline by
--- tools/tutorial_break.luau: it pots exactly 3 solids (no stripe, no 8, no scratch) and leaves a
--- 4th solid with an easy straight shot into a corner pocket, the 8 close to a pocket.
+-- Break: the tutorial's rigged rack and break (docs/prompts/TUTORIAL_V2_PROMPT.md 4.4). Game 1
+-- opens on a fixed rack (Config.Tutorial.Break: its seed and rack order) and the player's
+-- break is always the same shot (the cue ball's spot, angle and power), found offline by
+-- tools/tutorial_v2/search_combo.luau: it pots exactly Solids solids, the last one creeping on
+-- the lip (no stripe, no 8, no scratch), leaves the 8 by a pocket, an easy pot for the aim
+-- lesson and two solids lined up with a corner pocket for the combination (Tutorial/Plan).
+-- It looks like any break: the cue ball within a quarter inch of the head spot and aimed
+-- within 0.2 degrees of the apex.
 --
 -- Pure: our physics only, no Instances, no clocks. The server plays the shot in MatchEngine;
--- this module is shared by the search tool, the test and the lesson that follows (`lesson`).
+-- this module is shared by the search tools, the layout guard test and the lessons.
 
 local Config = require(script.Parent.Parent.Config)
 local Ball = require(script.Parent.Parent.Physics.Ball)
@@ -24,7 +27,14 @@ local D = 2 * Config.Balls.RadiusInches
 
 local Break = {}
 
-export type Shot = { seed: number, cueX: number, cueY: number, angle: number, power: number }
+export type Shot = {
+	seed: number,
+	cueX: number,
+	cueY: number,
+	angle: number,
+	power: number,
+	layout: { { number } }?, -- the rack's order (nil: Config.Rack.Layout)
+}
 
 export type Result = {
 	balls: { Ball },
@@ -43,13 +53,20 @@ export type Lesson = {
 
 --- The configured break (Config.Tutorial.Break).
 function Break.shot(): Shot
-	return { seed = B.Seed, cueX = B.CueX, cueY = B.CueY, angle = B.Angle, power = B.Power }
+	return {
+		seed = B.Seed,
+		cueX = B.CueX,
+		cueY = B.CueY,
+		angle = B.Angle,
+		power = B.Power,
+		layout = B.Layout,
+	}
 end
 
 --- The rack the tutorial's game opens on (its cue ball where the break is played from).
 function Break.rack(geometry: TableGeometry.Geometry, shot: Shot?): { Ball }
 	local s = shot or Break.shot()
-	local balls = Rack.newGame(geometry, s.seed)
+	local balls = Rack.newGame(geometry, s.seed, s.layout)
 	for _, b in balls do
 		if b.id == 0 then
 			b.x, b.y = s.cueX, s.cueY
@@ -61,7 +78,7 @@ end
 --- Plays `shot` on its rack in our physics and judges it as a break, exactly the server's path
 --- (MatchEngine.acceptShot: the shot read by ShotInput, the strike's seed quantised, settled).
 function Break.play(geometry: TableGeometry.Geometry, shot: Shot): Result
-	local sim = Simulation.newState(geometry, Rack.newGame(geometry, shot.seed))
+	local sim = Simulation.newState(geometry, Rack.newGame(geometry, shot.seed, shot.layout))
 	Placement.set(sim, 0, shot.cueX, shot.cueY)
 	local before = Ball.cloneList(sim.balls)
 	local input = ShotInput.validate({

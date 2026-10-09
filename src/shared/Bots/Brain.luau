@@ -47,6 +47,7 @@ export type Decision = {
 	ball: number?, -- the ball it aims at
 	pocket: number?, -- the pocket it means (or pretends) to send it to
 	easy: boolean, -- it had an easy pot (the ability policy's "no easy shot")
+	spin: { x: number, y: number }?, -- the tip offset it plays (the tutorial bot's follow)
 }
 
 export type Options = {

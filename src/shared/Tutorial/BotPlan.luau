@@ -9,10 +9,14 @@
 -- - leave: every later visit. It never pots. About half its shots are near misses (its ball
 --   stops by the pocket or rattles in the jaws); the rest are quiet soft touches. Either way
 --   it leaves the player a makeable shot (Break.lesson finds one) without touching the
---   player's balls or the 8 (unless it nudges the 8 to its spot by a pocket). The best leave
---   is close and good, never a dead-straight hanger: it looks like luck, not a gift.
+--   player's balls or the 8 (unless it nudges the 8 to its spot by a pocket), and never blocks
+--   an open 8 (Plan.eightOpen: none of its balls parked where the 8 must be hit from). The
+--   best leave is close and good, never a dead-straight hanger: it looks like luck, not a
+--   gift. While the player's combination lesson waits, a leave lined up for it scores best.
 -- - cleanScratch: the cue ball down and nothing else (or, when no such shot exists, a soft
 --   shot that touches nothing): ball in hand for the player, none of their balls moved.
+-- - unjam: when even ball in hand could not line up any of their balls, a soft foul that
+--   nudges one of them into the open (the jam breaker's first try).
 --
 -- Pure and seeded (Bots/Rng): no Instances, no clocks.
 
@@ -21,8 +25,10 @@ local Ball = require(script.Parent.Parent.Physics.Ball)
 local Judge = require(script.Parent.Parent.Rules.ShotJudge)
 local Finder = require(script.Parent.Parent.Bots.ShotFinder)
 local Brain = require(script.Parent.Parent.Bots.Brain)
+local Placement = require(script.Parent.Parent.Rules.CuePlacement)
 local Rng = require(script.Parent.Parent.Bots.Rng)
 local Break = require(script.Parent.Break)
+local Plan = require(script.Parent.Plan)
 
 type Ball = Ball.Ball
 type Rng = Rng.Rng
@@ -193,22 +199,36 @@ function BotPlan.leaveScore(geometry: any, balls: { Ball }, playerGroup: string)
 end
 
 --- Every later visit: never a pot; about half near misses; the best leave for the player.
+--- `combo`: the player's combination lesson is waiting, so a leave with a clear line onto
+--- their pair (Plan.combo) scores ComboLeaveBonus more.
 function BotPlan.leave(
 	view: View,
 	rng: Rng,
 	ballInHand: boolean?,
 	yield: (() -> ())?,
-	stuck: boolean?
+	stuck: boolean?,
+	combo: boolean?
 ): Decision
-	-- The player has missed StuckMisses in a row: ball in hand ends any jam.
-	if stuck then
+	local mine, theirs = sides(view)
+	-- Ball in hand ends a jam: a clean scratch, or, when no spot would line up any of their
+	-- balls, a soft foul that nudges one into the open first.
+	local function jamBreaker(): Decision
+		if Plan.handSpot(view.geometry, view.balls, theirs, nil) == nil then
+			local d = BotPlan.unjam(view, ballInHand, yield)
+			if d then
+				return d
+			end
+		end
 		return BotPlan.cleanScratch(view, rng, ballInHand, yield)
+	end
+	-- The player has missed StuckMisses in a row.
+	if stuck then
+		return jamBreaker()
 	end
 	local cueX, cueY = nil, nil
 	if ballInHand then
 		cueX, cueY = Brain.placeCue(view, Brain.tier("Gold"), rng, yield)
 	end
-	local mine, theirs = sides(view)
 	local cue = Finder.findBall(view.balls, 0) :: Ball
 	local cx, cy = cueX or cue.x, cueY or cue.y
 	local watched: { [number]: boolean } = {}
@@ -218,7 +238,10 @@ function BotPlan.leave(
 		end
 	end
 	local placed = Break.eightPlaced(view.geometry, view.balls)
+	local open = Plan.eightOpen(view.geometry, view.balls)
 	local wantNear = Rng.chance(rng, P.NearMissShare)
+	-- The search stops early at a good leave (with the combination waiting: one that sets it up).
+	local good = if combo then P.GoodLeave + P.ComboLeaveBonus else P.GoodLeave
 
 	-- A trial is usable when nothing drops, nobody fouls, the player's balls stay put and the
 	-- 8 stays put (or is nudged to its spot by a pocket); its leave scores it.
@@ -239,7 +262,13 @@ function BotPlan.leave(
 		then
 			return nil
 		end
+		if open and not Plan.eightOpen(view.geometry, trial.balls) then
+			return nil -- one of its balls parked where the 8 must be hit from
+		end
 		local score, lesson = BotPlan.leaveScore(view.geometry, trial.balls, theirs)
+		if score and combo and Plan.combo(view.geometry, trial.balls, theirs) then
+			score += P.ComboLeaveBonus
+		end
 		if score == nil or score <= beat then
 			return nil
 		end
@@ -274,7 +303,7 @@ function BotPlan.leave(
 		for _, plan in Finder.pots(view, P.NearMissPlans, cueX, cueY, yield) do
 			for _, deg in Config.Bots.NearMissDegrees do
 				for _, sign in { 1, -1 } do
-					if bestScore >= P.GoodLeave or trials >= P.MaxTrials then
+					if bestScore >= good or trials >= P.MaxTrials then
 						break
 					end
 					trials += 1
@@ -323,7 +352,7 @@ function BotPlan.leave(
 		tries[i], tries[k] = tries[k], tries[i]
 	end
 	for _, t in tries do
-		if bestScore >= P.GoodLeave or trials >= P.MaxTrials then
+		if bestScore >= good or trials >= P.MaxTrials then
 			break
 		end
 		trials += 1
@@ -339,9 +368,91 @@ function BotPlan.leave(
 	if best then
 		return best
 	end
-	-- Nothing leaves a pot (the player would be stuck): a clean scratch, which hands them ball
-	-- in hand.
-	return BotPlan.cleanScratch(view, rng, ballInHand, yield)
+	-- Nothing leaves a pot (the player would be stuck): ball in hand for them.
+	return jamBreaker()
+end
+
+--- The jam breaker: ball in hand could not line up any of the player's balls (Plan.handSpot
+--- finds no spot: say their last ball sits by a corner the 8 blocks, or the 8 is frozen on a
+--- rail whose pocket one of the bot's balls blocks), so a clean scratch alone would not help.
+--- The bot's cue ball nudges one of their balls (once their group is cleared, the 8) into the
+--- open instead (a soft foul, which hands them ball in hand): nothing drops, the 8 otherwise
+--- stays put, and afterwards a spot lines that ball up. With ball in hand the bot sets its cue
+--- ball right beside the ball. Nil when no such shot is found.
+function BotPlan.unjam(view: View, ballInHand: boolean?, yield: (() -> ())?): Decision?
+	local U = P.Unjam
+	local _, theirs = sides(view)
+	local cue = Finder.findBall(view.balls, 0) :: Ball
+	local placed = Break.eightPlaced(view.geometry, view.balls)
+	-- Once their group is cleared the ball to free is the 8 itself.
+	local onEight = Judge.remaining(view.balls, theirs :: any) == 0
+	local trials = 0
+	for _, b in view.balls do
+		local target = if onEight
+			then b.id == 8
+			else b.id ~= 0 and b.id ~= 8 and Judge.group(b.id) == theirs
+		if b.pocketed or not target then
+			continue
+		end
+		local spots: { { number } } = {}
+		if ballInHand then
+			for _, back in U.BackInches do
+				for k = 0, U.Spots - 1 do
+					local a = 2 * math.pi * k / U.Spots
+					local x, y = b.x + math.cos(a) * (D + back), b.y + math.sin(a) * (D + back)
+					if Placement.valid(view.balls, view.geometry, x, y, false) then
+						table.insert(spots, { x, y })
+					end
+				end
+			end
+		else
+			spots = { { cue.x, cue.y } }
+		end
+		for _, spot in spots do
+			local cueX, cueY =
+				if ballInHand then spot[1] else nil, if ballInHand then spot[2] else nil
+			local angle = math.atan2(b.y - spot[2], b.x - spot[1])
+			for _, power in U.Powers do
+				trials += 1
+				if trials > U.MaxTrials then
+					return nil
+				end
+				local trial =
+					Brain.simulate(view, { angle = angle, power = power }, cueX, cueY, nil)
+				if yield then
+					yield()
+				end
+				if trial.winner ~= nil then
+					continue
+				end
+				local dropped = false
+				for _, id in trial.pockets do
+					if id ~= 0 then
+						dropped = true
+					end
+				end
+				local eight = if onEight then 0 else moved(view.balls, trial.balls, { [8] = true })
+				if
+					dropped
+					or (
+						eight > P.StillInches
+						and (placed or not Break.eightPlaced(view.geometry, trial.balls))
+					)
+				then
+					continue
+				end
+				-- A foul hands them ball in hand: a spot must line a ball up now; otherwise
+				-- they shoot from where the cue ball stopped.
+				local ready = if trial.foul ~= nil
+					then Plan.handSpot(view.geometry, trial.balls, theirs, nil) ~= nil
+					else BotPlan.leaveScore(view.geometry, trial.balls, theirs) ~= nil
+				if ready then
+					return decision("miss", angle, power, cueX, cueY, b.id)
+				end
+			end
+		end
+	end
+	return nil
 end
 
 --- A scratch that pots nothing else: the cue ball into a pocket, none of the player's balls

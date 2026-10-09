@@ -1732,6 +1732,10 @@ return {
 			Touch = "Now drag the power bar to shoot!",
 			Gamepad = "Hold {R2}, let go to shoot!",
 		},
+		-- The combination (designer, 2026-10-09): the hand points at their two lined-up balls.
+		Combo = "Try a combo! Hit this ball into that one!",
+		-- Their turn again after they let the last one run out (no clock now).
+		Away = "Your turn! Take your shot.",
 		Ability = {
 			Mouse = "Press %s to use your ability!", -- the keyboard key (Config.UI.Ults)
 			Touch = "Tap your ability!",

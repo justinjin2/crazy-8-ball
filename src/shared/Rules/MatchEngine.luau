@@ -297,7 +297,11 @@ end
 -- The call for the 8 comes before ball in hand: the pocket is chosen from the top-down view,
 -- then the ball is placed and shot in the 3D one. Solo has no clock: these wait for the player.
 local function setup(t: any, now: number)
-	local timed = t.solo == nil and TutorialRig.timed(t)
+	local kind = if needsCall(t)
+		then "PocketChoice"
+		elseif t.ballInHand then "Placement"
+		else "Aiming"
+	local timed = t.solo == nil and TutorialRig.timed(t, kind)
 	if needsCall(t) then
 		phase(t, "PocketChoice", now, if timed then M.PocketChoiceSeconds else nil)
 	elseif t.ballInHand then
@@ -339,6 +343,14 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 	if hand then
 		local x, y = Placement.fallback(t.state, 0, t.breakShot)
 		Placement.set(t.state, 0, x, y)
+	end
+	if t.tutorial then
+		-- The tutorial's game 1 (Tutorial/Rig): ball in hand starts on a good spot, and the
+		-- turn's lesson is picked from the table.
+		TutorialRig.placeHand(t, function(x: number, y: number): boolean
+			return Placement.set(t.state, 0, x, y)
+		end)
+		TutorialRig.turnBegan(t)
 	end
 	-- A shooter who owes the call for the 8 picks the pocket at once: the introduction would
 	-- only hold the rings back (the top-down view and the prompt are already up; designer,
@@ -774,6 +786,9 @@ local function placeCue(t: any, x: any, y: any, seq: any, now: number): boolean
 	if seq ~= nil then
 		t.placeSeq = seq
 	end
+	if t.tutorial then
+		TutorialRig.cueMoved(t)
+	end
 	return true
 end
 
@@ -1185,6 +1200,7 @@ function finalizeShot(t: any, before: { any }, outcome: any, now: number, from: 
 	)
 	if t.tutorial then
 		j = TutorialRig.judge(t, before, j) -- game 1: no loss on the 8 (Tutorial/Rig)
+		TutorialRig.shotDone(t, t.shot, j)
 	end
 	local shot = t.shot
 	shot.final = Engine.pack(outcome.finalBalls)
@@ -1323,8 +1339,9 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	-- The shooter's armed ult: its effect steps with the physics for this whole shot (a
 	-- placeholder has none), and the replay carries it in overrides.
 	local ult = Ults.shotOverrides(t, before)
-	if ult == nil and t.tutorial then
-		ult = TutorialRig.assist(t, userId, before) -- game 1's hidden pull (Tutorial/Rig)
+	if t.tutorial then
+		-- Game 1's hidden help (Tutorial/Rig), with their armed ability inside it.
+		ult = TutorialRig.assist(t, userId, before, shot, ult)
 	end
 	if ult then
 		Simulation.armEffect(sim, ult.Effect, ult.Targets, ult.EightPocket, ult.extra)
@@ -1506,7 +1523,7 @@ function Engine.snapshot(t: any): any
 		table.insert(seats, table.clone(s))
 	end
 	local rackPositions = {}
-	for _, b in Rack.newGame(t.state.geometry, t.rackSeed) do
+	for _, b in Rack.newGame(t.state.geometry, t.rackSeed, t.rackLayout) do
 		table.insert(rackPositions, b.x)
 		table.insert(rackPositions, b.y)
 	end

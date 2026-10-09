@@ -242,11 +242,11 @@ function BotService.startLobby(options: any?)
 	LobbyBots.set(options)
 end
 
---- The tutorial's first opponent (the Tutorial lane): a Silver-badged bot with a real look and
---- a made-up name, playing the tutorial script. Its first visit pots one of its balls, then
---- scratches; its second knocks the 8 in early (AUGHHHH!, a jump, gone in mid-air). If it
---- wins anyway it asks for a rematch and plays the script again. Yields for its look
---- (`avatar`: a look to wear instead, { userId?, description }).
+--- The tutorial's first opponent (game 1; src/server/TutorialBot.luau walks it over): a
+--- Silver-badged bot with a real look and a made-up name, playing game 1's script (Bots/Driver,
+--- Tutorial/BotPlan: its first visit pots one of its balls, then pots another and scratches;
+--- later visits miss). Yields for its look (`avatar`: a look to wear instead, { userId?,
+--- description }).
 function BotService.tutorialBot(avatar: any?): Bot?
 	return BotService.spawn({
 		kind = "Tutorial",

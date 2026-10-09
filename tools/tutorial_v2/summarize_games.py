@@ -31,6 +31,10 @@ def summarize(path):
     aim_pot = [a for a in aim if a.get("pot")]
     ric = [a for a in aim_pot if a.get("ricochet")]
     planned = [a for a in aim_pot if a.get("plannedSecond")]
+    combo = [r["combo"] for r in rows if r.get("combo")]
+    combo_played = [c for c in combo if c.get("played")]
+    combo_made = [c for c in combo_played if c.get("made")]
+    combo_nice = [c for c in combo_played if c.get("nice")]
     ability = [r["ability"] for r in rows if r.get("ability")]
     ab_pot = [a for a in ability if a.get("pot")]
     ab_any = [a for a in ability if a.get("anyPot")]
@@ -77,6 +81,11 @@ def summarize(path):
         "aimPotPct": pct(len(aim_pot), len(aim)),
         "ricochetPctOfPotters": pct(len(ric), len(aim_pot)),
         "plannedRicochetPct": pct(len(planned), len(aim_pot)),
+        "comboShownPct": pct(len(combo), n),
+        "comboPlayedPctOfShown": pct(len(combo_played), len(combo)),
+        "comboMadePctOfPlayed": pct(len(combo_made), len(combo_played)),
+        "comboNicePctOfPlayed": pct(len(combo_nice), len(combo_played)),
+        "comboNicePctOfGames": pct(len(combo_nice), n),
         "abilityPotPct": pct(len(ab_pot), len(ability)),
         "abilityAnyPotPct": pct(len(ab_any), len(ability)),
         "afterAbilityPotPct": pct(len(after_pot), len(after)),

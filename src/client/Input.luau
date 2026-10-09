@@ -868,6 +868,11 @@ function Input.releasePower(self: Input)
 		return
 	end
 	if power >= Config.Input.MinPowerToShoot then
+		local least = TutorialAnchors.minPower()
+		if least and power < least then
+			TutorialAnchors.noteWeakRelease() -- the tutorial's break: too soft, nothing happens
+			return
+		end
 		for _, l in self.shootListeners do
 			l(power)
 		end

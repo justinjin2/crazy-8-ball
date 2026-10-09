@@ -68,6 +68,8 @@ export type Overlay = typeof(setmetatable(
 		onNext: (() -> ())?,
 		ding: Sound,
 		clock: number,
+		shakeAt: number, -- when the line's shake began (self.clock), or -inf
+		avoid: (() -> { Vector3 })?, -- points in the world the line keeps off (a glowing pocket)
 	},
 	TutorialOverlay
 ))
@@ -201,6 +203,8 @@ function TutorialOverlay.new(): Overlay
 		onNext = nil,
 		ding = ding,
 		clock = 0,
+		shakeAt = -math.huge,
+		avoid = nil,
 	}, TutorialOverlay)
 	self:buildSkip()
 	self:buildRow()
@@ -456,6 +460,11 @@ function TutorialOverlay.nudge(self: Overlay)
 	end
 end
 
+--- The line shakes side to side (the break's release was too soft).
+function TutorialOverlay.shake(self: Overlay)
+	self.shakeAt = self.clock
+end
+
 --- Big text in the middle of the screen (nil hides it).
 function TutorialOverlay.bigText(self: Overlay, text: string?)
 	if text == self.bigShown then
@@ -579,6 +588,40 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 			then above - height
 			else centre.Y + size.Y / 2 + O.LineNearGapPx
 		self.line.Position = UDim2.fromOffset(view.X / 2, y)
+	end
+	-- Points to keep clear (a glowing pocket at the far end, the combination's balls: they sit
+	-- right where the line is): the line moves just below the lowest one it would cover.
+	local spots: { Vector3 } = {}
+	if self.avoid then
+		spots = self.avoid()
+	end
+	local ys = {}
+	for _, spot in spots do
+		local v, onScreen = camera:WorldToViewportPoint(spot)
+		if onScreen then
+			table.insert(ys, v.Y)
+		end
+	end
+	local top = self.line.Position.Y.Offset
+	for _ = 1, #ys do
+		local moved = false
+		for _, y in ys do
+			if y > top - O.LineAvoidPx and y < top + height + O.LineAvoidPx then
+				top = y + O.LineAvoidPx
+				moved = true
+			end
+		end
+		if not moved then
+			break
+		end
+	end
+	self.line.Position = UDim2.fromOffset(view.X / 2, top)
+	-- The shake: a quick side-to-side that dies away.
+	local shook = self.clock - self.shakeAt
+	if shook < O.ShakeSeconds then
+		local fade = 1 - shook / O.ShakeSeconds
+		local dx = math.sin(shook * O.ShakeHz * 2 * math.pi) * O.ShakePx * fade
+		self.line.Position += UDim2.fromOffset(dx, 0)
 	end
 	self.row.Position = self.line.Position
 	self.ringStroke.Transparency = if self.ringOnly and centre then 0 else 1 - self.dimAlpha
