@@ -13,9 +13,11 @@
 --   * A card pressed slams in its big card over the page: the same card, bare (no pills: the
 --     words beside it say them), and beside it the name, the rarity, "4.2% chance · 1,284
 --     exist", "You own 3" (or a Unique's "Copy #412"), the padlock's "Can't be sold", Equip
---     and one "Sell duplicates" that opens a count chooser (- 1 +, Max; "Sell 3 for $360"; a
---     confirm from Config.BlockOdds.ConfirmSellFrom up). B, Escape, the X or a press beside
---     the card close it.
+--     and one "Sell" that opens a count chooser (- 1 +, Max; "Sell 3 for $360"; a confirm from
+--     Config.BlockOdds.ConfirmSellFrom up). Every copy may be sold, the last one too (designer,
+--     2026-10-09: "if they just want to delete common cues they dont like"), after a warning
+--     that it is gone for good; the equipped cue keeps one (the server's rule). B, Escape, the
+--     X or a press beside the card close it.
 --
 -- A gamepad landing on a card only moves the selection; A opens the card. NEW tags clear with
 -- one MarkSeen each time the view is shown (the new ids, at most Config.Items.MarkSeenMax); the
@@ -98,6 +100,14 @@ end
 
 local function countOf(row: any): number
 	return if type(row.count) == "number" then row.count else 1
+end
+
+-- The copies of `row` that may be sold: all of them, but the equipped cue keeps one
+-- (Inventory.canSell's "Equipped").
+local function spareOf(ctx: any, row: any): number
+	local items = ctx.lastItems
+	local equipped = type(items) == "table" and items.equipped == row.id
+	return countOf(row) - (if equipped then 1 else 0)
 end
 
 -- The rows in `sort`'s order. Ties (and "RarestFirst") keep the snapshot's order: rarest
@@ -419,7 +429,7 @@ function InventoryCues.buildDetail(self: any, page: Frame)
 	self.equip.ZIndex = 4
 	TutorialAnchors.set("InventoryEquip", self.equip) -- the tutorial's Equip step
 	HudParts.setMinHit(self.equip, TOUCH)
-	-- One "Sell duplicates": it opens the count chooser under it.
+	-- One "Sell": it opens the count chooser under it.
 	self.sellDupes = HudParts.candy(scroll, WORDS.SellSome, function()
 		self:toggleChooser()
 	end, "Yellow", "Sell")
@@ -505,9 +515,9 @@ function InventoryCues.refreshDetail(self: any)
 	HudParts.setButtonIcon(self.equip, if equipped then "Check" else nil)
 	HudParts.setEnabled(self.equip, not equipped and not ctx.isHeld(self.equip))
 
-	-- Sell duplicates: only with a copy to spare; the chooser keeps its count in range.
+	-- Sell: any copy (the equipped cue keeps one); the chooser keeps its count in range.
 	-- An open chooser takes the button's place (one row less on a short screen).
-	local extra = count - 1
+	local extra = spareOf(ctx, row)
 	local canSell = sellable and extra > 0
 	if not canSell then
 		self.chooser = 0
@@ -764,8 +774,12 @@ function InventoryCues.redraw(self: any, items: any)
 	self.empty.Visible = #order == 0
 	self.empty.Text = WORDS.Empty
 
-	-- The chosen cue stays chosen while it is owned; else the first shown.
+	-- The chosen cue stays chosen while it is owned; else the first shown. Its big card closes
+	-- once it is gone (its last copy sold) rather than turning into another cue's.
 	if not self.chosen or not byId[self.chosen] then
+		if self.chosen and self.detailOpen then
+			self:closeDetail()
+		end
 		self.chosen = order[1] or (if rows[1] then rows[1].id else nil)
 	end
 	for index, card in self.slots :: { InventoryCard.Card } do
@@ -951,7 +965,7 @@ function InventoryCues.setChooser(self: any, n: number)
 		return
 	end
 	UISound.play("Click")
-	local extra = countOf(row) - 1
+	local extra = spareOf(self.ctx, row)
 	self.chooser = math.clamp(if n == math.huge then extra else n, 1, math.max(1, extra))
 	self:refreshDetail()
 end
@@ -1098,7 +1112,8 @@ function InventoryCues.doEquip(self: any)
 	end)
 end
 
---- Sell the chooser's count of the chosen cue (asks first from Config.BlockOdds.ConfirmSellFrom).
+--- Sell the chooser's count of the chosen cue: asks first from Config.BlockOdds.ConfirmSellFrom
+--- up, and always when it is the last copy (gone for good; designer, 2026-10-09).
 function InventoryCues.askSellCount(self: any)
 	local ctx = self.ctx
 	local id = self.chosen
@@ -1120,17 +1135,17 @@ function InventoryCues.askSellCount(self: any)
 			end
 		end)
 	end
-	if not BlockOdds.needsConfirm(id) then
+	local last = count >= countOf(row)
+	if not last and not BlockOdds.needsConfirm(id) then
 		sell()
 		return
 	end
+	local name, money = CueThumb.cueName(id), Format.money(count * BlockOdds.sellValue(id))
 	ctx.confirm({
-		title = WORDS.ConfirmDuplicatesTitle,
-		text = WORDS.ConfirmSellCount:format(
-			Format.commas(count),
-			CueThumb.cueName(id),
-			Format.money(count * BlockOdds.sellValue(id))
-		),
+		title = if last then WORDS.ConfirmLastTitle else WORDS.ConfirmSellTitle,
+		text = if last
+			then WORDS.ConfirmSellLast:format(Format.commas(count), name, money)
+			else WORDS.ConfirmSellCount:format(Format.commas(count), name, money),
 		yes = WORDS.SellYes,
 		no = WORDS.SellNo,
 	}, function(yes: boolean)

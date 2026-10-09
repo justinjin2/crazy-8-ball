@@ -911,7 +911,6 @@ return {
 			SellNo = "Keep",
 			ConfirmSellTitle = "Sell this cue?",
 			ConfirmSell = "Sell one %s for %s?", -- the cue's name, the money
-			ConfirmDuplicatesTitle = "Sell duplicates?",
 			ConfirmDuplicates = "Sell the duplicates of %s for %s? You keep one.",
 			ConfirmAllTitle = "Sell all duplicates?",
 			ConfirmAll = "Sell every duplicate for %s? You keep one of each cue.",
@@ -932,10 +931,13 @@ return {
 			-- The chosen cue's big card (GUI lane, 2026-10-03).
 			Odds = "%s chance", -- a cue's rarity per Mystery block: "4.2% chance"
 			Joined = "%s · %s", -- the chance and how many exist: "4.2% chance · 1,284 exist"
-			SellSome = "Sell duplicates", -- opens the count chooser
+			SellSome = "Sell", -- opens the count chooser (any copy, the last one too)
 			SellCount = "Sell %s for %s", -- the count and the money: "Sell 3 for $360"
 			Max = "Max",
-			ConfirmSellCount = "Sell %s x %s for %s? You keep one.", -- count, cue, money
+			ConfirmSellCount = "Sell %s x %s for %s?", -- count, cue, money
+			-- Selling the last copy (designer, 2026-10-09): count, cue, money.
+			ConfirmLastTitle = "Sell your last one?",
+			ConfirmSellLast = "Sell %s x %s for %s? You will lose it permanently. Are you sure?",
 			Close = "Close",
 		},
 	},

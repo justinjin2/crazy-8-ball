@@ -3692,3 +3692,8 @@ timer of a new block stay the designer's call.
   while nobody else is free: alone, or every other player busy at a table (a game, its result,
   a full pad); someone waiting on a pad with room is free (designer: "also suggest it if
   everyone in the server is currently busy").
+- 2026-10-09: Any copy of a sellable cue can be sold from its big card, the last one too (the
+  button is "Sell"; the chooser goes up to every copy). Selling the last copy always asks
+  first: "You will lose it permanently. Are you sure?" The equipped cue keeps one (the server's
+  rule), and the Index keeps it as found (designer: "if they just want to delete common cues
+  they dont like ... for money").
