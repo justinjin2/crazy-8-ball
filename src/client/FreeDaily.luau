@@ -3,7 +3,9 @@
 -- under "- DAILY -": a pale panel with its navy pill ("FIRST WEEK" or "DAILY STREAK" and the
 -- time to the next day), the row's six day tiles (3 x 2, each in its own colours: "DAY 1", the
 -- reward's pictures, "$10,000", its status button) and day 7 tall at the right as the row's
--- big prize (its best block over gold rays, the tilted rainbow "OP!", what comes with it).
+-- big prize (its best block over gold rays, the tilted rainbow "OP!", what comes with it; the
+-- first week's day 7 shows its cue from day 1 instead: economy v5's Week One Cue, its name and
+-- rarity on the line, as the goal to come back for).
 -- A claimed day turns grey under a big check; today's wears a thick pale-gold edge and its
 -- green Claim! breathes; until a match is finished today it reads "Play a match"
 -- (Config.Daily.NeedsMatch); once today is claimed the next day reads "Tomorrow". A tile with a
@@ -20,6 +22,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
+local CueThumb = require(script.Parent.CueThumb)
 local FreeParts = require(script.Parent.FreeParts)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
@@ -47,6 +50,7 @@ type Day = {
 	label: TextLabel, -- "DAY 1"
 	pictures: FreeParts.Pictures?, -- a tile's pictures
 	art: ShopCards.Art?, -- day 7's block
+	cue: Frame?, -- day 7's cue (CueThumb) in the art's place when it gives one
 	amount: TextLabel?, -- a tile's money, over its pictures' foot
 	line: TextLabel?, -- day 7's extras ("+2 Ability Spins")
 	extras: { string }, -- what its line says, one entry each
@@ -110,6 +114,7 @@ function FreeDaily.new(parent: Instance, ctx: Ctx): any
 			label = label,
 			pictures = nil,
 			art = nil,
+			cue = nil,
 			amount = nil,
 			line = nil,
 			extras = {},
@@ -121,9 +126,19 @@ function FreeDaily.new(parent: Instance, ctx: Ctx): any
 			look = "Day",
 		}
 		if hero then
-			made.art = ShopCards.art(box.frame, "Art", "", rgb(D.HeroGlowTint), 4)
+			local art = ShopCards.art(box.frame, "Art", "", rgb(D.HeroGlowTint), 4)
+			made.art = art
+			-- The cue in the block's place (the same square, over the same glow and rays).
+			local cue = CueThumb.new(art.holder, "") -- drawn when a day gives one
+			cue.AnchorPoint = Vector2.new(0.5, 0.5)
+			cue.Position = UDim2.fromScale(0.5, 0.5)
+			cue.Size = UDim2.fromScale(1, 1)
+			cue.ZIndex = art.picture.ZIndex
+			cue.Visible = false
+			made.cue = cue
 			local line = HudParts.text(box.frame, "Line", ShopCards.textPx(D.Hero.LineUnits, 1), "")
 			line.AnchorPoint = Vector2.new(0.5, 0.5)
+			line.RichText = true -- the cue's rarity in its colour
 			line.ZIndex = 6
 			made.line = line
 			-- The tilted rainbow "OP!": the holder keeps the tilt, the words inside shake.
@@ -429,12 +444,28 @@ function FreeDaily.refresh(self: any, state: any)
 			-- A claimed day shows its check, not its money (the mock).
 			d.amount.Visible = reward.money > 0 and not claimed
 		elseif d.art and d.line then
-			local image = if best then FreeParts.blockImage(best) else Config.UI.Kit.Icons.CashStack
-			ShopCards.setArt(d.art, image or "", rgb(D.HeroGlowTint))
-			d.extras = FreeParts.extras(reward, best)
+			-- A cue (the first week's day 7) shows in the block's place, glowing its colour.
+			local cueId = if reward.cues then reward.cues[1] else nil
+			if d.cue then
+				d.cue.Visible = cueId ~= nil
+				if cueId then
+					CueThumb.set(d.cue, cueId)
+				end
+			end
+			d.art.picture.Visible = cueId == nil
+			if cueId then
+				ShopCards.setArt(d.art, "", CueThumb.cueColor(cueId))
+				d.kind = nil
+			else
+				local image = if best
+					then FreeParts.blockImage(best)
+					else Config.UI.Kit.Icons.CashStack
+				ShopCards.setArt(d.art, image or "", rgb(D.HeroGlowTint))
+			end
+			d.extras = FreeParts.extras(reward, if cueId then nil else best)
 		end
 		local odds = d.odds
-		local showOdds = best ~= nil
+		local showOdds = d.kind ~= nil
 		if odds.badge.Visible ~= showOdds then
 			odds.badge.Visible = showOdds
 		end

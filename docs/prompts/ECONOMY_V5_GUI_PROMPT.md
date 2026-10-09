@@ -357,7 +357,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
 - [x] 6. The shop: the Mystery band, the restock, VIP, the Grand Opening and Starter cards, the
   skip dialog (shims 8 and 9 gone).
 - [x] 7. The win track and the result screen (shim 5 gone).
-- [ ] 8. Free Reward (shim 7 gone).
+- [x] 8. Free Reward (shim 7 gone).
 - [ ] 9. Cues and the Index.
 - [ ] 10. Rank rewards and every other block or reward display.
 - [ ] 11. Every word (the Strings sweep).
@@ -487,4 +487,16 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   `bonus` (shim 5 gone). `/result track` previews a money-step win. Unused `WinTrack.Count` and
   `Next` strings gone. Checked on PC (the open bar at 3/10, the folded pill on a money step, the
   result screen); console clean. Lint OK, 1160 tests. Shots: `step7/`.
+- **Step 8**: the first week's day 7 shows the Week One Cue from day 1: its thumbnail
+  (`CueThumb`, the default cue's look until its art exists) in the block's place over its
+  rarity's glow, then "Week One Cue", "Legendary" in its colour and "+2 Ability Spins" on the
+  line; no dice (it is not random). A claimed cue flies to the CUES tile (`RewardsFlyer`,
+  `RewardsParts.pictures` key "Cue"). `RewardsParts.bestBlock` ranks by a block's floor (its
+  climb start, else the lowest rarity of its own odds), so a Mystery block no longer outranks a
+  Rare or Mythic one. The reward words keep naming the cue (summaries, Purchased), now as a
+  feature, not a stand-in (shim 7 gone). Already v5 and checked: the later weeks (Rare + 2
+  spins on day 7, VIP's Uncommon and spin each day), the group's 2 Mystery, the invite's
+  Uncommon, Claim All's live price; FreePlaytime and FreeTrack unchanged. Checked on PC with a
+  made-up first week (`rewardsPatch`) and the real later week; console clean. Lint OK, 1160
+  tests. `Config.Daily.WeekBonus` is still unread (left for the docs step). Shots: `step8/`.
 
