@@ -277,36 +277,41 @@ end
 local UP = D.Upgrade
 local CHANCE: { [string]: number } = UP.Chances :: any
 
---- The first press's chance of each tier (0..1): the block starts as Standard on screen and the
---- first press lifts it to Uncommon when it is one of the presses that climb. A block that
---- ends `k` tiers above Standard climbs on `k` of the Clicks presses, each choice equally
---- likely, so the first press climbs k / Clicks of the time.
+--- The tier the first press shows for a block that ends on `final`: the block is a Mystery
+--- block on screen until that press, and the later Clicks - 1 presses can each climb one tier,
+--- so it starts as low as it can (Standard for Epic and below; one tier above Standard for each
+--- climb the later presses can't make: Uncommon for a Legendary, Rare for a Mythic).
+function BlockDrop.startOf(final: string): string
+	assert(RANK[final] ~= nil, "BlockDrop.startOf: unknown tier " .. tostring(final))
+	return C.Order[math.max(1, RANK[final] - (UP.Clicks - 1))]
+end
+
+--- The first press's chance of each tier (0..1): each final tier's weight on its start
+--- (BlockDrop.startOf).
 function BlockDrop.firstOdds(): { [string]: number }
 	local first: { [string]: number } = {}
 	for _, tier in C.Order do
 		first[tier] = 0
 	end
-	local up = 0
 	for _, tier in C.Order do
-		up += (WEIGHTS[tier] or 0) / C.OddsTotal * (RANK[tier] - 1) / UP.Clicks
+		local start = BlockDrop.startOf(tier)
+		first[start] += (WEIGHTS[tier] or 0) / C.OddsTotal
 	end
-	first[C.Order[1]] = 1 - up
-	first[C.Order[2]] = up
 	return first
 end
 
 --- The tiers a Mystery block shows press by press on the upgrade screen, ending on `final`
---- (the tier BlockDrop.roll gave): Clicks tiers. The block starts as Standard; a block that
---- ends `k` tiers above it climbs one tier on exactly `k` of the presses, which ones picked
---- with every choice equally likely. A climb never fizzles or falls back. `rng(n)` returns
---- 1..n.
+--- (the tier BlockDrop.roll gave): Clicks tiers. The first press turns the Mystery block into
+--- its start (BlockDrop.startOf); a block that ends `k` tiers above its start climbs one tier on
+--- exactly `k` of the later presses, which ones picked with every choice equally likely. A
+--- climb never fizzles or falls back. `rng(n)` returns 1..n.
 function BlockDrop.path(final: string, rng: (number) -> number): { string }
 	assert(RANK[final] ~= nil, "BlockDrop.path: unknown tier " .. tostring(final))
 	local clicks = UP.Clicks
-	local left = RANK[final] - 1
-	local at = 1
-	local tiers = table.create(clicks, C.Order[1])
-	for press = 1, clicks do
+	local at = RANK[BlockDrop.startOf(final)]
+	local left = RANK[final] - at
+	local tiers = table.create(clicks, C.Order[at])
+	for press = 2, clicks do
 		-- Selection sampling: climb with chance (climbs left) / (presses left), which picks
 		-- each set of `k` presses equally often.
 		if left > 0 and rng(clicks - press + 1) <= left then
@@ -343,8 +348,8 @@ function BlockDrop.validate(): { string }
 	if RANK[D.FirstWin] == nil then
 		table.insert(problems, ("Drop.FirstWin %s is not a tier"):format(tostring(D.FirstWin)))
 	end
-	if type(UP.Clicks) ~= "number" or UP.Clicks < 1 or UP.Clicks ~= math.floor(UP.Clicks) then
-		table.insert(problems, "Drop.Upgrade.Clicks must be a whole number of at least 1")
+	if type(UP.Clicks) ~= "number" or UP.Clicks < 2 or UP.Clicks ~= math.floor(UP.Clicks) then
+		table.insert(problems, "Drop.Upgrade.Clicks must be a whole number of at least 2")
 	end
 	for tier, chance in CHANCE do
 		if RANK[tier] == nil or RANK[tier] >= #C.Order then

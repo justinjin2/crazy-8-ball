@@ -160,6 +160,12 @@ better).
 
 ### 3.2 The presses (designer: "solve how Legendary and Mythic stay reachable")
 
+> **Changed 2026-10-09 (designer: "just 4"):** the block stays a Mystery block on screen until
+> the first of **4 presses** shows its start; the other 3 may each climb one tier. The start is
+> as low as those 3 allow (Standard for Epic and below, Uncommon for a Legendary, Rare for a
+> Mythic; `BlockDrop.startOf`). Final odds and pity are unchanged. The lines below are the
+> plan as written.
+
 - **The block starts as Standard on screen. 5 presses; each press either lifts it one tier or
   doesn't.** The server rolls the final tier first (by the weights above, with pity), then picks
   which presses climb, every choice equally likely. A Mythic climbs on all 5; a Legendary on 4

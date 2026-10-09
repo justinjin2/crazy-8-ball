@@ -1091,14 +1091,15 @@ band, restock tiles and pass bands.
 shares of the screen's height so a phone shows the same stack. Section 14's motion stays: the
 jump out of the hotbar, the float, the presses, the impact, the jump back.
 
-- **Top**: a white pill counting the presses, "Mystery Lucky Block - 2 / 5"; under it "The
+- **Top**: a white pill counting the presses, "Mystery Lucky Block - 2 / 4"; under it "The
   result is decided when you open it; the presses reveal it." and the pity counters as they
   stood before this block ("Rare by 3 more · Epic by 87 more", so they never give the result
-  away); then the tier's name: "STANDARD" when it lands (economy v4: every Mystery block starts
-  at the bottom tier), "EPIC!" when a press lifts it.
+  away); then the tier's name: the rainbow "MYSTERY" when it lands (designer, 2026-10-09: it
+  stays a Mystery block until the first press, and the ladder lights nothing), then the start
+  the first press shows ("STANDARD!", with the impact), "EPIC!" when a later press lifts it.
 - **The block** in the room between the name and the dots, its glow, rays and particles as
   before.
-- **Under it**: the five press dots (the next one a pulsing "?"), then the white Tap! button
+- **Under it**: the four press dots (the next one a pulsing "?"), then the white Tap! button
   with the tutorial's pointer hand, big ("Click!" with a mouse, "Press A" on a gamepad). It stays
   through the presses, swelling with each, and pops back as "Tap to collect", rocking gently.
 - **The ladder** along the bottom: the six tiers' blocks with their names, joined by a dark line

@@ -542,8 +542,8 @@ function LuckyClient.start(screen: ScreenGui)
 	-- Studio tests of the upgrade screen with a made-up path ("Standard,Uncommon,Uncommon,Rare"),
 	-- nothing asked of the server or changed in the save.
 	GuiQA.add("mystery", function(path: string?)
-		-- One tier per press (Config.BlockOdds.Drop.Upgrade.Clicks), climbing from Standard.
-		local tiers = string.split(path or "Standard,Uncommon,Uncommon,Rare,Rare", ",")
+		-- One tier per press (Config.BlockOdds.Drop.Upgrade.Clicks): the start, then climbs.
+		local tiers = string.split(path or "Standard,Uncommon,Uncommon,Rare", ",")
 		local from, px = hotbar:slotOf(-1)
 		local fake =
 			{ ok = true, tiers = tiers, kind = tiers[#tiers], pity = { rare = 3, epic = 87 } }

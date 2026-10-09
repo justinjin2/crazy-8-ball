@@ -867,12 +867,14 @@ blocks (2026-10-04).
   the anti-farm limits; was midnight UTC). ECONOMY.md section 7.5.
 - **The Mystery block** (v4): it has no timer (designer, 2026-10-07): its hotbar slot says
   **OPEN!** and a tap opens its **upgrade screen** (like Star Drop, our own look). The block
-  floats over a blur and **starts as Standard**; **5 presses** open it, each lifting it one
-  tier or not, never down. The server rolls the final tier first, **Standard 50%, Uncommon
-  40%, Rare 9.52%, Epic 0.42%, Legendary 0.05%, Mythic 0.01%**, with pity for every Mystery
-  block, bought ones too (a Rare block by the 10th without one, an Epic block by the 100th;
-  never a Legendary), then picks which presses climb, every choice equally likely, so half of
-  all Mystery blocks visibly climb and none fizzles. After the last press it jumps back into
+  floats over a blur **still a Mystery block**; **4 presses** open it (designer,
+  2026-10-09): the first shows its starting tier, each of the other 3 lifts it one tier or
+  not, never down. The server rolls the final tier first, **Standard 50%, Uncommon 40%, Rare
+  9.52%, Epic 0.42%, Legendary 0.05%, Mythic 0.01%**, with pity for every Mystery block, bought
+  ones too (a Rare block by the 10th without one, an Epic block by the 100th; never a
+  Legendary), starts it as low as the 3 later presses allow (Standard for Epic and below,
+  Uncommon for a Legendary, Rare for a Mythic), then picks which later presses climb, every
+  choice equally likely, so half of all Mystery blocks visibly climb and none fizzles. After the last press it jumps back into
   its slot as that tier's block, on that tier's timer. ECONOMY.md section 7.1.
 - **The blocks** (plan, 2026-10-02; v4 odds 2026-10-08): six tier blocks, Standard, Uncommon,
   Rare, Epic, Legendary and Mythic, each guaranteeing at least the rarity below its name, and

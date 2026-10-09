@@ -3621,3 +3621,10 @@ timer of a new block stay the designer's call.
   whoosh shimmer as it opens, a rising shimmer on a press that lifts the tier (played as the
   press starts, so it rises into the impact), a soft shimmer select on a press that only shakes
   it (Config.Audio.Ui.MysteryOpen / MysteryUpgrade / MysteryKeep).
+- 2026-10-09: The Mystery upgrade screen is 4 presses, not 5, and the block lands still a
+  Mystery block (designer: "before you even click on it its still a mystery block ... just 4").
+  The first press shows its starting tier; each of the other 3 may lift it one tier. Four
+  presses can't climb Standard to Mythic one tier at a time, so the start is as low as the 3
+  later presses allow: Standard for Epic and below, Uncommon for a Legendary, Rare for a Mythic
+  (BlockDrop.startOf). Final odds and pity are unchanged; every block above Standard still
+  visibly climbs.

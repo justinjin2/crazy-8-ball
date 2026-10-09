@@ -2,9 +2,11 @@
 -- MysteryReveal: the Mystery block's upgrade screen (designer, 2026-10-07, like Star Drop but
 -- our own; restyled to pick "mystery_reveal B", the Track, 2026-10-08; Config.LuckyBlocks
 -- .Reveal). A tap on a ready Mystery block's OPEN! slot jumps its 2D icon out of the hotbar at
--- the screen while the world blurs; it lands as a Standard block (economy v4: it starts at the
--- bottom tier) and floats there with its tier's particles over a glow and turning rays in the
--- tier's colour. At the top a white pill counts the presses ("Mystery Lucky Block - 2 / 5"),
+-- the screen while the world blurs; it lands still a Mystery block, "MYSTERY" over it
+-- (designer, 2026-10-09: "before you even click on it its still a mystery block"), and floats
+-- there with its particles over a glow and turning rays. The first press turns it into its
+-- starting tier; each of the other three may lift it one tier. At the top a white pill counts
+-- the presses ("Mystery Lucky Block - 2 / 4"),
 -- with "The result is decided when you open it; the presses reveal it." and the pity counters
 -- under it; along the bottom the ladder of the six tiers, its line filled up to the tier on
 -- show, that tier's block raised with an arrow over it. Each press (a tap, a click, A, Space or
@@ -18,7 +20,7 @@
 -- that only shakes it (Config.Audio.Ui.Mystery*).
 --
 -- The server decides everything first (BlockRequest "Reveal": the tier, with pity, and the path
--- of the presses, BlockDrop.path: one entry per press, climbs only, from Standard) and the block
+-- of the presses, BlockDrop.path: one entry per press, the start then climbs only) and the block
 -- is already that tier's block in the save; this screen only plays the path. Leaving or closing
 -- early loses nothing.
 local ContextActionService = game:GetService("ContextActionService")
@@ -944,7 +946,7 @@ function Reveal.lightStep(self: any, kind: string)
 	end
 end
 
--- The pill's count: the presses made of the five.
+-- The pill's count: the presses made of the four.
 function Reveal.setCount(self: any, presses: number)
 	self.count.Text = W.Count:format(BLOCK_NAME, presses, CLICKS)
 	if self.gui then
@@ -1247,10 +1249,10 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 	end)
 end
 
--- Landed: it is a Standard block now (economy v4: the presses climb from the bottom tier), its
--- name slamming in over it with a soft white puff; the ladder lights Standard.
+-- Landed: still the Mystery block, "MYSTERY" slamming in over it with a soft white puff; the
+-- ladder lights nothing until the first press shows the start.
 function Reveal.arrived(self: any)
-	self:showTier(ORDER[1], false)
+	self:showTier("Mystery", false)
 	self.title.Visible = true
 	UIAnim.slam(self.title, Color3.new(1, 1, 1))
 	self:puff()
@@ -1291,7 +1293,7 @@ function Reveal.press(self: any)
 	self.presses += 1
 	local i = self.presses
 	local tiers = self.reply.tiers
-	local before = if i == 1 then ORDER[1] else tiers[i - 1]
+	local before = if i == 1 then "Mystery" else tiers[i - 1] -- the first press always changes it
 	local after = tiers[i]
 	self.phase = "Press"
 	local side = self.side

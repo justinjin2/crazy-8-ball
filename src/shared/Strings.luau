@@ -1009,7 +1009,7 @@ return {
 			} :: { [string]: string },
 			Climbed = "%s!", -- the tier's name once a press lifted it: "EPIC!"
 			-- The pill at the top (pick "mystery_reveal B"): the block's name, the presses made
-			-- and how many in all: "Mystery Lucky Block - 2 / 5".
+			-- and how many in all: "Mystery Lucky Block - 2 / 4".
 			Count = "%s - %d / %d",
 			Tap = "Tap!", -- the white button under the block while presses are left
 			TapMouse = "Click!",

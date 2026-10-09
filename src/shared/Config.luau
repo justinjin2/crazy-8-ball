@@ -2064,14 +2064,15 @@ Config.BlockOdds = {
 			"Mystery",
 			"Epic",
 		},
-		-- The upgrade screen (v4 plan 3.2, like Starr Drop): the block starts as Standard on
-		-- screen and is opened by Clicks presses; each press lifts it one tier or doesn't. The
-		-- server rolls the final tier first (Weights, with pity), then picks which presses climb,
-		-- every choice equally likely (BlockDrop.path): a Mythic climbs on all 5, an Uncommon on
-		-- 1. Clicks must be at least the ladder's steps (5). Chances is the old chain's table,
-		-- unused by the server; kept until the GUI's MysteryReveal stops reading it.
+		-- The upgrade screen (v4 plan 3.2, like Starr Drop; designer, 2026-10-09: "just 4"): the
+		-- block stays a Mystery block on screen until the first of Clicks presses shows its
+		-- start; each later press lifts it one tier or doesn't. The server rolls the final tier
+		-- first (Weights, with pity), starts it as low as the later presses allow (Standard for
+		-- Epic and below, Uncommon for a Legendary, Rare for a Mythic: BlockDrop.startOf), then
+		-- picks which later presses climb, every choice equally likely (BlockDrop.path). Final
+		-- odds are unchanged. Chances is the old chain's table, unused by the server.
 		Upgrade = {
-			Clicks = 5,
+			Clicks = 4, -- presses in all: the first shows the start, the other 3 may climb
 			Chances = {
 				Standard = 70000, -- 7% a press, Standard -> Uncommon
 				Uncommon = 40000, -- 4%, Uncommon -> Rare
