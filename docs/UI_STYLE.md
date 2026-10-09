@@ -1068,8 +1068,9 @@ band, restock tiles and pass bands.
   not bought shows a gold padlock, "Locked" and its R$ price on a green button that shines.
   The lock toggle stays in the top right corner of an owned slot.
 - **The odds panel** (right): a pale-blue header band with its 8-balls drifting and "Odds",
-  the rarity bars on the white sheet, the pity rule under them, the code box under that when
-  it has no room of its own, and the pity pill ("Pity: 3 / 100") pinned at the foot.
+  the rarity bars on the white sheet, the code box under them when it has no room of its own,
+  and the pity pill ("Pity: 3 / 100 · Epic or better", Epic in its purple) pinned at the foot
+  (designer, 2026-10-09: no rule line under the bars; the pill says it).
 - **The buy panel** (bottom right, under the odds): four green Robux buttons, "Buy 5" small
   over the price, shining one after the other; under them the gold money button with its cash
   stack, "$12,500 - 1 spin". No R$ / $ toggle, no struck-through prices, no money pill. Short

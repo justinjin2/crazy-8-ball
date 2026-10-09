@@ -1173,7 +1173,7 @@ return {
 		NotYet = "Not favorited yet. Try again!",
 		-- The first-visit heroes (FreeHeroes): their titles are GroupRow and FavoriteRow, the
 		-- reward's blocks the big words, the rest a line under them.
-		HeroBoost = "+%d%% match money while you're in the group",
+		HeroBoost = "+%d%% Permanent Extra Money", -- the group's match money (designer, 2026-10-09)
 		NotMember = "Join the group first, then press Claim.",
 		-- The invite card. The inviter's own block comes once ever (Config.Social.InviterOnce).
 		InviteTitle = "Invite a friend",
@@ -1466,11 +1466,13 @@ return {
 			OddsBar = "%s %s", -- a rarity bar: "Common 55%"
 			OddsSoon = "Soon", -- a placeholder ability in a bar's list (it can't be rolled yet)
 			LuckyOdds = "Lucky odds", -- the switch that shows a Lucky Spin's odds
-			PityNote = "Spin %d without an Epic or better is always Epic or better.",
 			-- The code box. %s is the code, or the likes, drawn in gold (keep it when translating).
 			CodeLine = "USE CODE %s FOR FREE SPINS",
 			NextCode = "NEXT CODE AT %s LIKES",
-			Pity = "Pity: %s / %s", -- the pill at the foot of the odds (a phone: over Buy spins)
+			-- The pill at the foot of the odds (a phone: over Buy spins): the count, then what the
+			-- pity spin gives, its rarity in its colour (designer, 2026-10-09: the rule line under
+			-- the bars is gone): "Pity: 3 / 100 · Epic or better".
+			Pity = "Pity: %s / %s · %s or better",
 			-- The buy panel, bottom right: four Robux buttons and one money button.
 			BuySpins = "Buy spins", -- the phone's button and the popup's title
 			Buy = "Buy %d", -- over a Robux button's price

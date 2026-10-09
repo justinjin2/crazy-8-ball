@@ -14014,8 +14014,10 @@ Config.UI.FreeReward = {
 			TitleUnits = 50, -- "Join the group", in the kit's gold (smaller to fit)
 			RewardUnits = 40, -- "3 Mystery Lucky Blocks" (wraps)
 			RewardMaxRows = 2,
-			LineUnits = 26, -- "+10% match money while you're in the group" (wraps)
-			LineMaxRows = 3,
+			-- The line under it ("+10% Permanent Extra Money", "+$10,000"): the reward's own
+			-- style and size (designer, 2026-10-09; it was small ink).
+			LineUnits = 40,
+			LineMaxRows = 2,
 			RowGapUnits = 8, -- between the stacked words
 			SectionGapUnits = 16, -- between the picture's row and the button
 			ButtonUnits = 74,

@@ -5,11 +5,12 @@
 -- with its icon) with each one's share, or "Soon" for a placeholder that cannot be rolled yet
 -- (its name and icon faded). The shares are the true current odds from UltState (built
 -- abilities only, empty rarities passing theirs down), written as the case Odds panel writes
--- them. Under the bars a line on pity, then the code box ("USE CODE RELEASE FOR FREE SPINS",
+-- them. Under the bars the code box ("USE CODE RELEASE FOR FREE SPINS",
 -- "NEXT CODE AT 100 LIKES", a text box and Redeem through the Rewards service's codes).
 -- Everything sits in one scroller. On a computer the scroller is inside the odds panel, the
 -- screen's right column: a kit card whose pale-blue header band (its 8-balls drifting, as the
--- lively menus') holds "Odds", with the pity pill ("Pity: 3 / 100") at its foot. On a phone the
+-- lively menus') holds "Odds", with the pity pill ("Pity: 3 / 100 · Epic or better", Epic in its
+-- purple; designer, 2026-10-09: the rule line under the bars is gone) at its foot. On a phone the
 -- screen puts the scroller in its Odds popup and the pity pill over Buy spins.
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -97,16 +98,13 @@ function UltOdds.new(parent: Instance, hooks: Hooks): any
 		table.insert(self.bars, self:buildBar(scroll, rarity, index))
 	end
 
-	local note = HudParts.note(scroll, "PityNote", C.Full.CodeNoteTextPx, "")
-	note.ZIndex = 3
-	self.pityNote = note
-
 	-- The pity pill: pale blue, its words white with the ink outline.
 	local pity = HudParts.pill(panel, "Pity", PALE)
 	pity.ZIndex = 5
 	local pityText = HudParts.text(pity, "Words", C.Full.PityTextPx, "")
 	pityText.AutoLocalize = false -- numbers in Strings' words
 	pityText.TextWrapped = false
+	pityText.RichText = true -- the pity rarity in its colour
 	pityText.Size = UDim2.fromScale(1, 1)
 	pityText.ZIndex = 6
 	self.pity, self.pityText = pity, pityText
@@ -420,8 +418,14 @@ function UltOdds.draw(self: any, state: any)
 	end
 	local pity = if type(state.pity) == "number" then state.pity else 0
 	local pityAt = if type(state.pityAt) == "number" then state.pityAt else Config.Ults.Roll.PityAt
-	self.pityNote.Text = W.PityNote:format(pityAt)
-	self.pityText.Text = W.Pity:format(Format.commas(pity), Format.commas(pityAt))
+	local tier = Config.Ults.Roll.PityFrom
+	local tierWord = RARITY_WORDS[tier] or tier
+	self.pityPlain = W.Pity:format(Format.commas(pity), Format.commas(pityAt), tierWord)
+	self.pityText.Text = W.Pity:format(
+		Format.commas(pity),
+		Format.commas(pityAt),
+		('<font color="#%s">%s</font>'):format(Parts.rarityColor(tier):ToHex(), tierWord)
+	)
 	local code = if type(state.code) == "table" then state.code else {}
 	local active = if type(code.active) == "string"
 		then code.active
@@ -494,14 +498,6 @@ function UltOdds.layout(self: any, g: Parts.Geo, width: number): number
 		end
 		y += gap
 	end
-	-- The pity rule, ink on the white sheet.
-	local noteText = g.text("CodeNoteTextPx")
-	HudParts.setTextSize(self.pityNote, noteText)
-	local pityH = wrapHeight(self.pityNote.Text, noteText, inner, 3)
-	self.pityNote.Position = UDim2.fromOffset(x, y)
-	self.pityNote.Size = UDim2.fromOffset(inner, pityH)
-	y += pityH + gap
-
 	-- The code box card, unless the screen has taken it out to sit on its own.
 	if self.codeCard.Parent == self.scroll then
 		local cardH = self:layoutCode(g, inner)
@@ -569,7 +565,8 @@ end
 --- The pity pill's width for its words at layout `g` (on its own, over Buy spins).
 function UltOdds.pityWidth(self: any, g: Parts.Geo): number
 	local textPx = g.text("PityTextPx")
-	return math.ceil(Parts.textWidth(self.pityText.Text, textPx)) + 2 * g.px("CurrentPillPadPx")
+	local words = self.pityPlain or self.pityText.Text -- the words, not their colour tags
+	return math.ceil(Parts.textWidth(words, textPx)) + 2 * g.px("CurrentPillPadPx")
 end
 
 --- The panel at (x, y), `w` x `h` (a computer): the header with "Odds", the scroller under it,

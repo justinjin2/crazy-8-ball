@@ -3659,3 +3659,7 @@ timer of a new block stay the designer's call.
   its field of view easing 70 to 34 with it (Config.UI.UltScreen.Stage.FlySeconds, FlyPower;
   Reduce Motion still cuts). The pieces wait hidden 0.3 s (Open.LeadSeconds, a lead StageMath
   now supports for any screen) and pop in one by one as it arrives.
+- 2026-10-09: Abilities: the pity rule line under the odds bars is gone; the pity pill says it,
+  "Pity: 3 / 100 · Epic or better" with Epic in its purple. Free Reward's group and favorite
+  cards: the line under the reward is in the reward's own style and size, and the group's reads
+  "+10% Permanent Extra Money" (designer).

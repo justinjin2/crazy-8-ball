@@ -136,10 +136,8 @@ local function hero(
 	local title = words(frame, "Title", rgb(K.Numbers.Money))
 	title.Text = if key == "Group" then W.GroupRow else W.FavoriteRow
 	local reward = words(frame, "Reward", nil)
-	local line = HudParts.note(frame, "Line", MIN_TEXT, "")
-	line.TextXAlignment = Enum.TextXAlignment.Left
-	line.TextYAlignment = Enum.TextYAlignment.Top
-	line.ZIndex = 6
+	-- The line under it in the same words' style and size (designer, 2026-10-09).
+	local line = words(frame, "Line", nil)
 	local made: Hero = {
 		key = key,
 		frame = frame,
