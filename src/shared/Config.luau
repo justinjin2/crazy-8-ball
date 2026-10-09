@@ -13591,7 +13591,7 @@ Config.Tutorial = {
 		EightNearInches = 20,
 		EightNearBonus = 15,
 	},
-	-- Game 1's hidden help (src/shared/Tutorial/Assist.luau, tutorial v2): Magnet on the
+	-- Game 1's hidden help (src/shared/Tutorial/Assist.luau, tutorial v2): the pull on the
 	-- player's first ball hit and on any ball of theirs the cue ball touches later, and on
 	-- turn 2 the ricochet's steer: just after its first ball (or a cushion), the cue ball's
 	-- heading bends toward the second ball's ghost point. Radians and inches. (tune)
@@ -13602,9 +13602,18 @@ Config.Tutorial = {
 		-- Only within this many inches of roll after the cue ball meets its first ball or a
 		-- cushion, where a bend hides in the collision's own deflection (0: anywhere).
 		WindowInches = 4,
-		-- The cue-ball guard on the player's game-1 shots: a cue ball within Inches of a
-		-- pocket's mouth middle and heading at it (within the cone whose cosine is ConeCos) is
-		-- turned away, at most PerInch radians per inch rolled and MaxTurn in all.
+		-- The pull on the player's balls near a pocket: First for the first ball the cue ball
+		-- hits, Later for any other ball of theirs it touches after (the ricochet's second
+		-- ball). "Magnet": the Magnet ability's full pull, as the old tutorial had (it can
+		-- curve a ball 20 degrees and more and brakes it into the pocket: visible). "Gentle":
+		-- Magnet's turn only (no braking, no snap), at most MaxTurn radians in all per ball and
+		-- PerInch per inch rolled, so it hides in the throw and drift a real ball has. "Off".
+		Pull = {
+			First = "Magnet",
+			Later = "Gentle",
+			MaxTurn = 0.17, -- about 10 degrees in all
+			PerInch = 0.05, -- about 3 degrees per inch rolled: a curve, not a kink
+		},
 		-- The aim help, only after AfterMisses misses in a row: the cue ball bends toward the
 		-- planned pot's ghost point before it touches anything.
 		Aim = {
@@ -13612,6 +13621,9 @@ Config.Tutorial = {
 			PerInch = 0.02, -- about 1.1 degrees per inch rolled
 			MaxTurn = 0.1, -- about 6 degrees in all
 		},
+		-- The cue-ball guard on the player's game-1 shots: a cue ball within Inches of a
+		-- pocket's mouth middle and heading at it (within the cone whose cosine is ConeCos) is
+		-- turned away, at most PerInch radians per inch rolled and MaxTurn in all.
 		Guard = {
 			Inches = 7,
 			ConeCos = 0.8, -- about 37 degrees either side
@@ -13657,6 +13669,14 @@ Config.Tutorial = {
 		StuckMisses = 3,
 		-- The clean scratch's straight lines into a pocket: speeds (in/s) above the distance.
 		ScratchExtraSpeeds = { 40, 70, 110 },
+		-- Each of those lines is also tried turned by these (degrees): a ball near the line
+		-- can still leave a way past it.
+		ScratchFanDegrees = { 0, 1.5, -1.5, 3, -3 },
+		-- The last resort when no clean scratch exists: a soft shot that touches nothing (a
+		-- no-contact foul hands over ball in hand too). Directions tried around the cue ball,
+		-- and its speed (in/s).
+		WhiffSweeps = 24,
+		WhiffSpeed = 25,
 	},
 	-- The tutorial bot's later visits (Bots/Script.poor): weak, legal shots at its own balls
 	-- that pot nothing and leave the player's balls and the 8 where they are.

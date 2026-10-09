@@ -51,6 +51,13 @@ def summarize(path):
     v1_scratch = sum(1 for s in visit1 if s.get("scratch"))
     v1_pot = sum(1 for s in visit1 if s.get("plan") == "pot" and s.get("down", 0) > 0)
     first_visits = sum(1 for r in rows if any(s.get("visit") == 1 for s in r.get("botShots", [])))
+    helped = [h for r in rows for h in r.get("help", [])]
+
+    def over(key, limit):
+        return pct(sum(1 for h in helped if h.get(key, 0) > limit), len(helped))
+
+    help_games = [r for r in rows if "help" in r]
+    big_pull_games = sum(1 for r in help_games if any(h.get("pull", 0) > 20 for h in r["help"]))
     by_kind = {}
     for r in rows:
         k = r.get("kind", "?")
@@ -82,6 +89,15 @@ def summarize(path):
         "eightBackFouls": eight_back,
         "gamesWithEightBack": eight_games,
         "gamesBotMovedEight": eight_bot,
+        "helpedShots": len(helped),
+        "pullOver10Pct": over("pull", 10),
+        "pullOver20Pct": over("pull", 20),
+        "pullOver30Pct": over("pull", 30),
+        "gamesWithPullOver20Pct": pct(big_pull_games, len(help_games)),
+        "guardOver0Pct": over("guard", 0),
+        "guardOver10Pct": over("guard", 10),
+        "steerOver5Pct": over("steer", 5),
+        "aimHelpOver0Pct": over("aim", 0),
         "secondsMedian": statistics.median(secs) if secs else 0,
         "secondsP90": quantile(secs, 0.9),
         "playerTurnsMedian": statistics.median(turns) if turns else 0,

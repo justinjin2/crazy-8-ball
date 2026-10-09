@@ -3,9 +3,11 @@
 -- effect for the physics (Ults/Effects registry name "TutorialAssist"). Nothing here is
 -- drawn: the player must never notice it.
 --
--- - Magnet's pull on the first ball the cue ball hits, if it is the player's (Effects/
---   Magnet, exactly as Tutorial/Rig's assist always did), and also on every other ball of
---   theirs the cue ball itself touches later in the shot (the ricochet's second ball).
+-- - A pull on the first ball the cue ball hits, if it is the player's (Pull.First), and on
+--   every other ball of theirs the cue ball itself touches later in the shot (Pull.Later: the
+--   ricochet's second ball). "Magnet": Effects/Magnet's full pull, as Tutorial/Rig's assist
+--   always did. "Gentle": only the turn Magnet would give it, at most Pull.MaxTurn in all per
+--   ball, its speed untouched, so it hides in the throw and drift a real ball has. "Off".
 -- - The ricochet steer (turn 2 only, overrides.Ricochet): once the cue ball has hit its first
 --   ball (and then a cushion, when Ricochet.afterRail), its heading bends gently toward
 --   Ricochet's ghost point (where its centre must be when it meets ball `ball` to send it at
@@ -58,6 +60,55 @@ local function owned(state: any, id: number): boolean
 		end
 	end
 	return false
+end
+
+-- The gentle pull for one step: the turn Magnet.pull would give `b` (worked out on its
+-- velocity, then put back), at most Pull.PerInch per inch rolled and within what is left of
+-- Pull.MaxTurn for it (fx.pulled), and no change of speed.
+local function gentle(state: any, b: any, eightPocket: number?, dt: number)
+	local vx, vy, wx, wy = b.vx, b.vy, b.wx, b.wy
+	Magnet.pull(state, b, eightPocket, 1, dt)
+	local nx, ny = b.vx, b.vy
+	b.vx, b.vy, b.wx, b.wy = vx, vy, wx, wy
+	local s0 = math.sqrt(vx * vx + vy * vy)
+	local s1 = math.sqrt(nx * nx + ny * ny)
+	if s0 < 1e-9 or s1 < 1e-9 then
+		return
+	end
+	local fx = state.fx
+	fx.pulled = fx.pulled or {}
+	local used = fx.pulled[b.id] or 0
+	local left = math.min(A.Pull.MaxTurn - used, A.Pull.PerInch * s0 * dt)
+	if left <= 0 then
+		return
+	end
+	local s = math.clamp((vx * ny - vy * nx) / (s0 * s1), -left, left)
+	if s == 0 then
+		return
+	end
+	local c = math.sqrt(1 - s * s)
+	b.vx, b.vy = c * vx - s * vy, s * vx + c * vy
+	b.wx, b.wy = c * wx - s * wy, s * wx + c * wy
+	fx.pulled[b.id] = used + math.abs(s)
+end
+
+-- One ball's pull for one step in `mode` (Config.Tutorial.Assist.Pull). Magnet's turns are
+-- summed into fx.pulled too (as sines), so the tools and Studio can see how far the help bent
+-- each ball.
+local function pull(state: any, b: any, eightPocket: number?, dt: number, mode: string)
+	if mode == "Magnet" then
+		local vx, vy = b.vx, b.vy
+		Magnet.pull(state, b, eightPocket, 1, dt)
+		local s0 = math.sqrt(vx * vx + vy * vy)
+		local s1 = math.sqrt(b.vx * b.vx + b.vy * b.vy)
+		if s0 > 1e-9 and s1 > 1e-9 then
+			local fx = state.fx
+			fx.pulled = fx.pulled or {}
+			fx.pulled[b.id] = (fx.pulled[b.id] or 0) + math.abs(vx * b.vy - vy * b.vx) / (s0 * s1)
+		end
+	elseif mode == "Gentle" then
+		gentle(state, b, eightPocket, dt)
+	end
 end
 
 -- The ricochet's steer for one step.
@@ -203,13 +254,17 @@ function Assist.step(state: any, dt: number)
 	if e and e.step then
 		e.step(state, dt)
 	end
-	Magnet.step(state, dt)
+	local eightPocket = state.overrides.EightPocket
+	local first = Magnet.firstHit(state)
+	local b = if first ~= nil and owned(state, first) then findBall(state, first) else nil
+	if b and not b.pocketed then
+		pull(state, b, eightPocket, dt, A.Pull.First)
+	end
 	local hits = fx.assistHits
-	if hits then
-		local _, eightPocket = nil, state.overrides.EightPocket
-		for _, b in state.balls do
-			if hits[b.id] and not b.pocketed then
-				Magnet.pull(state, b, eightPocket, 1, dt)
+	if hits and A.Pull.Later ~= "Off" then
+		for _, other in state.balls do
+			if hits[other.id] and not other.pocketed then
+				pull(state, other, eightPocket, dt, A.Pull.Later)
 			end
 		end
 	end

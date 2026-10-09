@@ -36,6 +36,30 @@ local Effects = H.require("Ults.Effects")
 -- The hidden help's effect, registered here as the build will in Ults/Effects.
 Effects.TutorialAssist = Assist
 
+-- How far the help bent things on each of the player's shots (degrees; Assist's own fx
+-- record, read as the shot finishes): the most any ball was pulled, the cue ball's guard, the
+-- ricochet's steer and the aim help. The game being played collects them.
+local helpShots: { any }? = nil
+do
+	local finish = Assist.finish
+	Assist.finish = function(state: any, events: { any }, ops: any)
+		finish(state, events, ops)
+		local fx = state.fx
+		if helpShots and fx then
+			local pull = 0
+			for _, v in fx.pulled or {} do
+				pull = math.max(pull, v)
+			end
+			table.insert(helpShots, {
+				pull = math.floor(math.deg(pull) * 10 + 0.5) / 10,
+				guard = math.floor(math.deg(fx.guarded or 0) * 10 + 0.5) / 10,
+				steer = math.floor(math.deg(fx.steered or 0) * 10 + 0.5) / 10,
+				aim = math.floor(math.deg(fx.aimed or 0) * 10 + 0.5) / 10,
+			})
+		end
+	end
+end
+
 local optionsFile = process.args[1]
 local firstSeed = tonumber(process.args[2]) or 1
 local games = tonumber(process.args[3]) or 10
@@ -227,7 +251,9 @@ local function play(seed: number): any
 		eightMovedByBot = 0,
 		playerTurns = 0,
 		shots = 0,
+		help = {},
 	}
+	helpShots = rec.help
 
 	local m = E.new(1, 1)
 	assert(E.join(m, PLAYER, "Real", "Real", 0))

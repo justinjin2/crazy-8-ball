@@ -72,14 +72,11 @@ for seed = from, from + count - 1 do
 				local final = {}
 				for _, b in outcome.finalBalls do
 					if not b.pocketed then
-						table.insert(
-							final,
-							{
-								b.id,
-								math.floor(b.x * 1000 + 0.5) / 1000,
-								math.floor(b.y * 1000 + 0.5) / 1000,
-							}
-						)
+						table.insert(final, {
+							b.id,
+							math.floor(b.x * 1000 + 0.5) / 1000,
+							math.floor(b.y * 1000 + 0.5) / 1000,
+						})
 					end
 				end
 				found += 1

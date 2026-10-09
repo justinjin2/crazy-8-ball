@@ -3722,3 +3722,18 @@ timer of a new block stay the designer's call.
 - 2026-10-09: Guangdong Tiger's cut balls shatter exactly as Black Flash's ball does (the designer: "the cut effect for the balls should be exactly like black flash"): the shatter moved into `src/client/BallShards.luau` (Config.UI.BallShards, Black Flash's numbers unchanged), used by both; the tiger's two smoking halves are gone.
 - 2026-10-09: Guangdong Tiger's shards stay 2.5 s (`Config.UI.GuangdongTigerFx.ShardSeconds`; the designer: they "linger for too long"); Black Flash's keep their 6.1 s.
 - 2026-10-09: A lucky block still on its timer cannot be thrown (placed): the server refuses Throw with NotReady (the real timer for everyone; `Test.BypassTimer` stays for opening only), and the client shakes the block and opens the skip popup instead of the throw (the designer: "if they attempt to click it and place it anywhere (without VIP) it will give them to popup to skip timer"). Hotbar and bag tiles say READY! in green once a block is ready (a VIP's at once: VIP has no timers); the skip popup closes itself once its block is ready.
+- 2026-10-09: (run assumption) Tutorial v2: a new save starts with 0 ability spins and its
+  first spin lands on Magnet for every new player, not only on the tutorial's path; the brief
+  asked for it to be logged.
+- 2026-10-09: (run assumption) Tutorial v2: Bronze's Mystery block waits in Rank like every
+  other rank reward (no BlocksAtOnce for it), so claiming is one rule; dropped if it breaks
+  something.
+- 2026-10-09: (run assumption) Tutorial v2: in game 1 the shot clock stops on the player's
+  second away turn, so two timeouts in a row (Config TimeoutLimit) can never lose game 1.
+- 2026-10-09: (run assumption) Tutorial v2: the tutorial's own Uncommon block is ready at once
+  (a block on its timer can't be thrown since today); only that one block.
+- 2026-10-09: (run assumption) Tutorial v2: the tutorial bot walks at the players' speed
+  (Config.Hub.WalkSpeed), not Roblox's default 16, or it arrives late and looks slow.
+- 2026-10-09: (run assumption) Tutorial v2: game 1's hidden help is one physics effect
+  (Tutorial/Assist, "TutorialAssist") registered beside the abilities; on the ability turn the
+  player's armed ability runs inside it.

@@ -3,8 +3,8 @@
 -- rigged break found by search_breaks.luau, the turn-2 shot it leaves (the aim and zoom
 -- lesson): a solid close to a pocket, a small cut, both lines clear, and that pocket hard to
 -- see at the home view (Camera.viewFor's framing, PC 16:9 and a 2.16:1 phone). Each candidate
--- is played on a small grid of new-player shots (aim errors x powers) with the hidden Magnet
--- help, counting the pots, the natural ricochets (a second solid down in the same shot), the
+-- is played on a small grid of new-player shots (aim errors x powers) with the hidden help
+-- (Tutorial/Assist), counting the pots, the natural ricochets (a second solid down in the same shot), the
 -- scratches and the 8's moves. Also scores where the break left the 8.
 --
 --   lune run tools/tutorial_v2/eval_turn2.luau <breaks.jsonl> <part> <parts> <out.jsonl>
@@ -15,6 +15,8 @@ local Sim = require("./sim")
 local Cam = require("./camera")
 local Ball = Sim.H.require("Physics.Ball")
 local Judge = Sim.H.require("Rules.ShotJudge")
+local Effects = Sim.H.require("Ults.Effects")
+Effects.TutorialAssist = Sim.H.require("Tutorial.Assist")
 
 local file = process.args[1]
 local part = tonumber(process.args[2]) or 0
@@ -120,6 +122,7 @@ for line in text:gmatch("[^\n]+") do
 		candidatesTried += 1
 		-- The grid of new-player shots, with the hidden help on.
 		local arm = Sim.magnet(balls, "solids", nil)
+		arm.Effect = "TutorialAssist" -- the hidden help as built (Config.Tutorial.Assist.Pull)
 		local n, potted, twice, scratch, eightMoved, fouls = 0, 0, 0, 0, 0, 0
 		local seconds: { [number]: number } = {}
 		for _, err in AIM_ERRORS do

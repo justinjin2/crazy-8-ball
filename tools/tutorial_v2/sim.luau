@@ -19,14 +19,22 @@ local Sim = {}
 Sim.H = H
 Sim.Config = Config
 
--- The hidden help's tuning from the environment (TUT_STEER, TUT_MAXTURN, TUT_WINDOW), so a
--- sweep can try settings without editing Config.
+-- The hidden help's tuning from the environment, so a sweep can try settings without editing
+-- Config: TUT_STEER, TUT_MAXTURN, TUT_WINDOW (the ricochet's steer), TUT_PULL_FIRST and
+-- TUT_PULL_LATER (the pull's modes), TUT_PULLMAX and TUT_PULLINCH (Gentle's turns),
+-- TUT_GUARDMAX and TUT_GUARDINCH (the cue-ball guard's).
 do
 	local env = require("@lune/process").env
 	local A = Config.Tutorial.Assist
 	A.SteerPerInch = tonumber(env.TUT_STEER) or A.SteerPerInch
 	A.MaxTurn = tonumber(env.TUT_MAXTURN) or A.MaxTurn
 	A.WindowInches = tonumber(env.TUT_WINDOW) or A.WindowInches
+	A.Pull.First = env.TUT_PULL_FIRST or A.Pull.First
+	A.Pull.Later = env.TUT_PULL_LATER or A.Pull.Later
+	A.Pull.MaxTurn = tonumber(env.TUT_PULLMAX) or A.Pull.MaxTurn
+	A.Pull.PerInch = tonumber(env.TUT_PULLINCH) or A.Pull.PerInch
+	A.Guard.MaxTurn = tonumber(env.TUT_GUARDMAX) or A.Guard.MaxTurn
+	A.Guard.PerInch = tonumber(env.TUT_GUARDINCH) or A.Guard.PerInch
 end
 Sim.geometry = TableGeometry.build({ pocketsOpen = true })
 Sim.R = Config.Balls.RadiusInches

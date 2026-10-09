@@ -980,9 +980,36 @@ lines). All in the worktree.
 - **Rule risk:** the like reward is unverifiable (a "verify" bluff) and the favorite reward
   trusts the client. Invites and group joins are fine (pay invites by `ReferredByPlayerId`).
 
+### Step 3: simulations and models (2026-10-09, `~/Desktop/8ball-refs/tutorial/sim-2026-10-09/`)
+
+- **Layout:** rack seed 2497, cue ball (-25, -0.125), angle -0.000118 rad, power 0.95 (games
+  file `games/L2497b.json`): balls 7 (P1, 3.3 s) and 6 (P4, 6.5 s, ~1.1 s on the lip) drop;
+  the 8 stops by the foot rail ~2 ft from P3 and P4. Turn 2: ball 3 into P2 (a 4-degree cut),
+  planned at full power; the Fire Shot turn it leaves: ball 1 into P2. "Invisible" for the
+  break = at most 1/4 inch off centre and 0.2 degrees off straight.
+- **Can't-dos found:** a pocket near the aimed ball stays on screen at every zoom (the camera
+  looks along the aim); an 80% ricochet needs today's Magnet pull, which curves the second
+  ball 30-60 degrees (`tools/tutorial_v2/diag_bend.luau`). Hence decision 1 on the plan page:
+  A today's pull everywhere, B invisible ("Gentle": turn only, at most 10 degrees, 3 per inch),
+  C today's on the first ball and Gentle on later ones (my pick). Config:
+  `Config.Tutorial.Assist.Pull` (First / Later / MaxTurn / PerInch).
+- **Fix found by the 3,240-game run:** `BotPlan.cleanScratch` fell back to Script.scratch's
+  shot, which once potted a player's ball; it now fans its straight lines and, failing that,
+  plays a soft shot that touches nothing (a no-contact foul, still ball in hand).
+- **Agents:** server size 24 (needs the team-table backup); bot arrival Plan A (open roof) or
+  Plan B (a kiosk at (0, 36)); the search's rank windows 2/4/7/12 divisions.
+- **The plan page:** `~/Desktop/8ball-refs/tutorial/tutorial-v2-plan.html` (and `.md`), made by
+  `plan/make_plan.py` from `plan/plan_source.md` and the summaries.
+- **Run assumptions** (also in DECISIONS): new saves 0 spins and the first spin Magnet for
+  everyone; Bronze's Mystery block waits in Rank; game 1's clock stops on the second away turn;
+  the tutorial's Uncommon block ready at once; the bot walks at the players' speed; the help
+  is one effect "TutorialAssist" with the armed ability inside it.
+
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
-- (none yet)
+- `src/shared/Config.luau`: `Config.Tutorial.Assist` (the hidden help's numbers, Pull modes)
+  and `Config.Tutorial.BotPlan` (the bot's game-1 shots), inside `Config.Tutorial`.
+- `tools/upload_manifest.json`: the arrow's two textures (arrow_chevron_up, arrow_head_up).
 
 ---
 

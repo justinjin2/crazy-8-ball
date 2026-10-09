@@ -11,6 +11,8 @@
 --   it leaves the player a makeable shot (Break.lesson finds one) without touching the
 --   player's balls or the 8 (unless it nudges the 8 to its spot by a pocket). The best leave
 --   is close and good, never a dead-straight hanger: it looks like luck, not a gift.
+-- - cleanScratch: the cue ball down and nothing else (or, when no such shot exists, a soft
+--   shot that touches nothing): ball in hand for the player, none of their balls moved.
 --
 -- Pure and seeded (Bots/Rng): no Instances, no clocks.
 
@@ -380,13 +382,29 @@ function BotPlan.cleanScratch(
 		return (a.mx - fromX) ^ 2 + (a.my - fromY) ^ 2 < (b.mx - fromX) ^ 2 + (b.my - fromY) ^ 2
 	end)
 	for _, pk in pockets do
-		local angle = math.atan2(pk.my - fromY, pk.mx - fromX)
+		local straight = math.atan2(pk.my - fromY, pk.mx - fromX)
 		local dist = math.sqrt((pk.mx - fromX) ^ 2 + (pk.my - fromY) ^ 2)
-		for _, extra in P.ScratchExtraSpeeds do
-			local power = Finder.powerForSpeed(dist + extra)
-			if clean(angle, power) then
-				return decision("scratch", angle, power, cueX, cueY, nil)
+		for _, turn in P.ScratchFanDegrees do
+			local angle = straight + math.rad(turn)
+			for _, extra in P.ScratchExtraSpeeds do
+				local power = Finder.powerForSpeed(dist + extra)
+				if clean(angle, power) then
+					return decision("scratch", angle, power, cueX, cueY, nil)
+				end
 			end
+		end
+	end
+	-- No clean scratch: a soft shot that touches nothing (a no-contact foul), so the player
+	-- still gets ball in hand and none of their balls moves.
+	local power = Finder.powerForSpeed(P.WhiffSpeed)
+	for i = 0, P.WhiffSweeps - 1 do
+		local angle = 2 * math.pi * i / P.WhiffSweeps
+		local trial = Brain.simulate(view, { angle = angle, power = power }, cueX, cueY, nil)
+		if yield then
+			yield()
+		end
+		if trial.foul == "NoContact" and trial.winner == nil and #trial.pockets == 0 then
+			return decision("scratch", angle, power, cueX, cueY, nil)
 		end
 	end
 	return first
