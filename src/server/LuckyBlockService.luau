@@ -20,8 +20,9 @@
 --   (UserId), BlockId, Kind, Phase ("Flying", "Landed", "Rising", "Burst") and PhaseAt (server
 --   time), plus To (its landing CFrame). The server moves it to To when the flight ends.
 -- - BlockState (a RemoteEvent): the player's blocks after every save change (deduped).
--- - The tutorial's hooks (setOpenHooks): a forced cue for game 1's Standard block and a call
---   after every open (TutorialService).
+-- - The tutorial's hooks (setOpenHooks): a forced cue for game 1's Standard block, a call
+--   after every open, a block kept from climbing and a scripted climb's final tier
+--   (TutorialService).
 -- - Testing: with Test.SeedOnJoin the accounts in Config.Debug.Commands.UserIds get one of each
 --   Config.LuckyBlocks.Test.Seed kind they lack on join, and with Test.Refill opening one gives a
 --   fresh one of the same kind in the same place (both off now). Nobody else is ever given a
@@ -31,6 +32,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local ServerStorage = game:GetService("ServerStorage")
 local HttpService = game:GetService("HttpService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -75,6 +77,13 @@ local onOpened: ((Player, string, string) -> ())? = nil
 -- The tutorial lane: true keeps a block from climbing (game 1's block stays at its tier,
 -- ready at once, economy v5). Nil: every block climbs.
 local climbStay: ((Player, string) -> boolean)? = nil
+-- The tutorial lane: the final tier a climb ends on (the scripted first Mystery block climbs
+-- Standard to Uncommon and lands ready at once; designer, 2026-10-09). Nil (or a nil answer):
+-- a normal roll.
+local climbScript: ((Player, string) -> string?)? = nil
+-- Studio only (ServerStorage.LuckyBlockQA "script"): every climb ends on this tier, before the
+-- tutorial's hook. Nil: none.
+local qaScript: string? = nil
 local warnedMissing: { [string]: boolean } = {}
 
 local function refuse(reason: string): Reply
@@ -279,6 +288,13 @@ local function climbedSecret(player: Player, result: any)
 	end
 end
 
+-- The tutorial's say on a climb of a `kind` block (setOpenHooks): (stay, the scripted tier).
+local function climbHooks(player: Player, kind: string): (boolean, string?)
+	local stay = if climbStay then climbStay(player, kind) == true else false
+	local forced = qaScript or if climbScript then climbScript(player, kind) else nil
+	return stay, if type(forced) == "string" then forced else nil
+end
+
 -- The Hold and Throw shim (economy v5): an unclimbed block that is not a Mystery block (the
 -- client climbs those on their screen) climbs here first. Returns nil when there was nothing to
 -- climb or it is still on its Gift wait, the climb's answer otherwise (a Secret: the block is
@@ -288,8 +304,8 @@ local function climbFirst(player: Player, block: LuckyBlocks.Block): any?
 	if row.Roll or not LuckyBlocks.unclimbed(block) then
 		return nil
 	end
-	local stay = if climbStay then climbStay(player, block.Kind) else false
-	local ok, result = PlayerData.climbBlock(player, block.Id, stay)
+	local stay, forced = climbHooks(player, block.Kind)
+	local ok, result = PlayerData.climbBlock(player, block.Id, stay, forced)
 	if not ok then
 		return nil
 	end
@@ -525,13 +541,18 @@ end
 --- The tutorial lane's hooks on Open: `force(player, kind)` names the cue the block gives
 --- (only one its odds row can drop; anything else is ignored), `opened(player, kind, cueId)`
 --- runs after an open (`kind`: the block it started as, before its climb), `stay(player,
---- kind)` true keeps an unclimbed block from climbing (it stays at its tier, ready at once).
+--- kind)` true keeps an unclimbed block from climbing (it stays at its tier, ready at once),
+--- and `script(player, kind)` names the tier an unclimbed `kind` block's climb ends on (nil: a
+--- normal roll): the climb screen shows the presses up to it, a Mystery block still counts
+--- pity, and the climbed block lands ready at once (a tier below the block's start is
+--- ignored). `stay` wins over `script`. Every hook is optional; leave one out for none.
 function LuckyBlockService.setOpenHooks(
 	force: ((Player, string) -> string?)?,
 	opened: ((Player, string, string) -> ())?,
-	stay: ((Player, string) -> boolean)?
+	stay: ((Player, string) -> boolean)?,
+	script: ((Player, string) -> string?)?
 )
-	openForce, onOpened, climbStay = force, opened, stay
+	openForce, onOpened, climbStay, climbScript = force, opened, stay, script
 end
 
 function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
@@ -744,11 +765,12 @@ end
 -- server rolls the final tier and the path of its presses and turns the block into that tier's
 -- climbed block at once (PlayerData.climbBlock), so leaving mid-screen loses nothing; the
 -- client only plays the path. Any unclimbed block may climb this way (the client sends it for
--- the Mystery block today). The answer: { id, tiers, path, kind, readyAt, pity, from, luck },
--- and for a Secret climb { secret = true, cue, rarity, new, found, count }. `path` is the true
--- path (the Secret on top of the ladder); `tiers` is the same with the Secret shown as Mythic
--- and `kind` Mythic for a Secret (a shim: today's screen knows six tiers and lands a block).
-function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, _data: any): Reply
+-- the Mystery block today); the tutorial's stay and script hooks apply. The answer: { id,
+-- tiers, path, kind, readyAt, pity, from, luck }, and for a Secret climb { secret = true, cue,
+-- rarity, new, found, count }. `path` is the true path (the Secret on top of the ladder);
+-- `tiers` is the same with the Secret shown as Mythic and `kind` Mythic for a Secret (a shim:
+-- today's screen knows six tiers and lands a block).
+function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local id = r.id :: number
 	local h = held[player]
 	if h and h.id == id then
@@ -758,7 +780,12 @@ function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, _data: any): Re
 	if l and l[id] then
 		return refuse("Busy")
 	end
-	local ok, result = PlayerData.climbBlock(player, id)
+	local block = LuckyBlocks.find(data.LuckyBlocks, id)
+	local stay, forced = false, nil
+	if block then
+		stay, forced = climbHooks(player, block.Kind)
+	end
+	local ok, result = PlayerData.climbBlock(player, id, stay, forced)
 	if not ok then
 		return refuse(
 			if result == "NotReady"
@@ -881,12 +908,37 @@ end
 
 local started = false
 
+-- Studio only: ServerStorage.LuckyBlockQA, a BindableFunction for the MCP's checks (its
+-- execute_luau gets its own copies of modules). Invoke("script", tier?) makes every climb end
+-- on `tier` (nil: back to normal rolls), as the tutorial's script hook does: the climb screen's
+-- Secret, a scripted first block. Nothing is made in a live server.
+local function startQA()
+	if not RunService:IsStudio() then
+		return
+	end
+	local old = ServerStorage:FindFirstChild("LuckyBlockQA")
+	if old then
+		old:Destroy()
+	end
+	local hook = Instance.new("BindableFunction")
+	hook.Name = "LuckyBlockQA"
+	hook.OnInvoke = function(op: string, a: any): any
+		if op == "script" then
+			qaScript = if type(a) == "string" and BlockDrop.rank(a) > 0 then a else nil
+			return qaScript
+		end
+		error("LuckyBlockQA: unknown op " .. tostring(op))
+	end
+	hook.Parent = ServerStorage
+end
+
 function LuckyBlockService.start()
 	if started then
 		return
 	end
 	started = true
 	liveFolder()
+	startQA()
 	local remote = Net.get("BlockRequest") :: RemoteFunction
 	remote.OnServerInvoke = function(player: Player, action: any, a: any, b: any): Reply
 		local ok, reply = pcall(handle, player, action, a, b)

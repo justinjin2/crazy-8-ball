@@ -412,6 +412,42 @@ function BlockDrop.roll(
 	return tier, after
 end
 
+-- How one climb is decided (BlockDrop.climbFor): `pity` a Mystery block's counters (nil: a
+-- kind without pity), `luck` the Grand Opening Luck live at the roll, `stay` true keeps the
+-- block at its start (the tutorial's stay hook), `forced` the final tier a script names (the
+-- tutorial's scripted first block, LuckyBlockService.setOpenHooks; nil: a normal roll).
+export type ClimbPlan = { pity: Pity?, luck: boolean?, stay: boolean?, forced: string? }
+
+--- Decides one climb from `start` (a ladder tier): (the final tier, the pity counters after it
+--- or nil, whether the luck counted, whether the climbed block is ready at once). `stay` keeps
+--- it at `start` (no pity counted, no luck). A `forced` tier at or above `start` is the final
+--- tier (no luck; a Mystery block still counts pity, BlockDrop.roll's `forced`). Either lands
+--- the block ready at once. Anything else rolls: BlockDrop.roll with pity, else
+--- BlockDrop.climbRoll. A `forced` tier below `start` or off the ladder is ignored (a normal
+--- roll). `rng(n)` returns 1..n.
+function BlockDrop.climbFor(
+	start: string,
+	rng: (number) -> number,
+	plan: ClimbPlan
+): (string, Pity?, boolean, boolean)
+	assert(RANK[start] ~= nil, "BlockDrop.climbFor: unknown start " .. tostring(start))
+	if plan.stay == true and BlockDrop.isBlockTier(start) then
+		return start, nil, false, true
+	end
+	local forced = plan.forced
+	if forced ~= nil and (RANK[forced] == nil or RANK[forced] < RANK[start]) then
+		forced = nil
+	end
+	local luck = forced == nil and plan.luck == true
+	if plan.pity ~= nil then
+		local tier, after = BlockDrop.roll(plan.pity, rng, forced, luck)
+		return tier, after, luck, forced ~= nil
+	elseif forced ~= nil then
+		return forced, nil, false, true
+	end
+	return BlockDrop.climbRoll(start, rng, luck), nil, luck, false
+end
+
 ---------------------------------------------------------------------------------------------
 -- The climb screen's path (Config.BlockOdds.Drop.Upgrade; plan 3.5)
 ---------------------------------------------------------------------------------------------

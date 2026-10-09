@@ -675,6 +675,96 @@ return {
 		H.expect(BlockDrop.oneIn(0) == nil and BlockDrop.oneIn(0 / 0) == nil, "no chance")
 		H.expect(BlockDrop.cuePercent("Classic") == 0, "a cue no climb gives")
 	end,
+	["climbFor: no plan rolls like climbRoll, with the luck noted"] = function()
+		local BlockDrop = load()
+		local tier, after, luck, ready = BlockDrop.climbFor("Uncommon", never, {})
+		H.expect(tier == "Uncommon" and after == nil, "never climbs: stays at its start")
+		H.expect(luck == false and ready == false, "no luck, on its timer")
+		tier, after, luck, ready = BlockDrop.climbFor("Rare", always, { luck = true })
+		H.expect(tier == "Secret" and after == nil, "always climbs: the top")
+		H.expect(luck == true and ready == false, "the luck counted")
+		local rng = seeded(7)
+		local same = seeded(7)
+		for _ = 1, 200 do
+			local a = BlockDrop.climbFor("Standard", rng, { luck = true })
+			H.expect(a == BlockDrop.climbRoll("Standard", same, true), "the same roll")
+		end
+		H.expect(not pcall(BlockDrop.climbFor, "Nope", never, {}), "an unknown start")
+	end,
+	["climbFor: a Mystery block's roll counts pity and pity sets it"] = function()
+		local BlockDrop = load()
+		local tier, after, luck, ready = BlockDrop.climbFor(
+			"Standard",
+			never,
+			{ pity = { SinceRare = 9, SinceEpic = 5, Total = 4 } }
+		)
+		H.expect(tier == "Rare" and ready == false and luck == false, "the 10th: Rare by pity")
+		H.expect(after ~= nil and after.SinceRare == 0 and after.SinceEpic == 6, "counted")
+		H.expect((after :: any).Total == 5, "every Mystery block counts")
+	end,
+	["climbFor: stay keeps the block at its start, ready at once, nothing counted"] = function()
+		local BlockDrop = load()
+		local tier, after, luck, ready = BlockDrop.climbFor(
+			"Uncommon",
+			always,
+			{ stay = true, luck = true, pity = fresh(), forced = "Epic" }
+		)
+		H.expect(tier == "Uncommon" and after == nil, "no climb, no pity counted (stay wins)")
+		H.expect(luck == false and ready == true, "ready at once, no luck")
+	end,
+	["climbFor: a scripted tier ends the climb there, ready at once"] = function()
+		local BlockDrop = load()
+		local calls = 0
+		local counted = function(n: number): number
+			calls += 1
+			return n
+		end
+		-- The tutorial's first block: a Mystery block (pity, the head start) scripted to Uncommon.
+		local start = BlockDrop.freshPity()
+		local tier, after, luck, ready = BlockDrop.climbFor(
+			"Standard",
+			counted,
+			{ pity = start, luck = true, forced = "Uncommon" }
+		)
+		H.expect(tier == "Uncommon" and ready == true and luck == false, "Uncommon, ready, no luck")
+		H.expect(calls == 0, "nothing rolled")
+		H.expect(after ~= nil, "a Mystery block still counts pity")
+		local a = after :: any
+		H.expect(
+			a.SinceRare == start.SinceRare + 1 and a.SinceEpic == start.SinceEpic + 1,
+			"counted"
+		)
+		H.expect(a.Total == 1, "the open counted")
+		-- Its presses climb Standard to Uncommon.
+		local path = BlockDrop.path(tier, seeded(3), "Standard")
+		H.expect(path[1] == "Standard" and path[#path] == "Uncommon", "the screen's presses")
+		-- A forced Rare or better resets its pity counters like a rolled one.
+		local _, reset = BlockDrop.climbFor("Standard", never, { pity = start, forced = "Epic" })
+		H.expect(
+			reset ~= nil and (reset :: any).SinceRare == 0 and (reset :: any).SinceEpic == 0,
+			"reset"
+		)
+		-- A kind without pity: the tier alone.
+		tier, after, luck, ready =
+			BlockDrop.climbFor("Rare", always, { forced = "Epic", luck = true })
+		H.expect(
+			tier == "Epic" and after == nil and luck == false and ready == true,
+			"no pity kind"
+		)
+		-- The Secret can be scripted too (it gives its cue at once, no block).
+		tier = BlockDrop.climbFor("Mythic", never, { forced = "Secret" })
+		H.expect(tier == "Secret", "the Secret")
+	end,
+	["climbFor: a scripted tier below the start or off the ladder is ignored"] = function()
+		local BlockDrop = load()
+		local tier, _, _, ready = BlockDrop.climbFor("Rare", never, { forced = "Uncommon" })
+		H.expect(tier == "Rare" and ready == false, "below the start: a normal roll")
+		tier, _, _, ready = BlockDrop.climbFor("Standard", never, { forced = "Nope" })
+		H.expect(tier == "Standard" and ready == false, "not a tier: a normal roll")
+		local _, after, _, ready2 =
+			BlockDrop.climbFor("Standard", never, { pity = fresh(), forced = "Gold" })
+		H.expect(ready2 == false and after ~= nil and (after :: any).Total == 1, "pity as a roll")
+	end,
 	["the climb screen's shim shows the Secret as the top block tier"] = function()
 		local D = load()
 		local shown = D.shown({ "Legendary", "Mythic", "Secret", "Secret" })

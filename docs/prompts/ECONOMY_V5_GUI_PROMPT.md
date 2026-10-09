@@ -349,7 +349,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
 - [ ] 0. Setup: Rojo on 34872 serving this folder and Studio synced (`script_grep`), lint and
   tests green, the trial merge with `tutorial-v2` noted; every screen in section 3
   screenshotted as it is now (phone emulator and PC); any breakage found goes first.
-- [ ] 1. The server hook for the tutorial's scripted first block, with tests.
+- [x] 1. The server hook for the tutorial's scripted first block, with tests.
 - [ ] 2. The climb screen for every block, the mark, the Secret rung (shims 1-3 gone).
 - [ ] 3. The quick reveal and "Open all".
 - [ ] 4. Odds & Details for every block, with the pity bars (shim 4 gone).
@@ -371,3 +371,25 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
 
 ## Notes (yours: the starting commit, each step's trial-merge list, every call, open items)
 
+
+- **Start** (2026-10-09): commit `fef029e` on `gui-v4`; Rojo serving this folder on 34872
+  (the tutorial's on 34877); the main Studio is "Crazy 8 Ball (placeId 107430170196919)".
+  Lint OK (the three old LocalShadow warnings), 1156 tests pass. `script_grep` only sees Edit
+  mode (stop Play to check a sync).
+- **Step 0**: the PC screens as they were, in `~/Desktop/8ball-refs/economy-v5-gui/before/`
+  (HUD, Shop: Grand Opening, Mystery band, restock, Starter Pack, passes; the Mystery odds,
+  the climb screen at its start and end, the skip dialog, the win track, Free Reward's group,
+  daily and playtime/track, the Index and its Legendary row, the result screen, Ranked). No
+  breakage beyond the audit's lines: the Mystery band's 7th row (Secret) is clipped at the
+  card's bottom (step 6); the designer's old unclimbed Epic block says READY! where v5 says
+  OPEN! (step 2); Studio's `StudioOpening` opens the Grand Opening through `Shop.setDeal`, not
+  Config, so the Grand Opening Luck stays off in Studio on both sides (step 5 needs its own
+  test switch). Trial merge: the same 5 conflicts as the brief (DECISIONS, Tutorial.luau,
+  TutorialService.luau, Config, Strings).
+- **Step 1**: `BlockDrop.climbFor` (pure: stay, a scripted tier, or a roll; 5 Lune tests),
+  `PlayerData.climbBlock(player, id, stay, forced)`, `setOpenHooks`' fourth hook `script`,
+  asked on the climb screen's Reveal too (with `stay`, which Reveal never asked before). A
+  Studio-only `ServerStorage.LuckyBlockQA:Invoke("script", tier?)` forces every climb (for
+  the Secret checks). Checked in Studio: a Mystery block scripted to Uncommon climbed
+  Standard, Standard, Uncommon, Uncommon, landed ready at once and counted its pity (5/87/87
+  to 6/88/88); a plain Rare block still rolls. How to use it: the handoff's section 2.

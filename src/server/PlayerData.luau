@@ -2106,8 +2106,16 @@ end
 --- a kind that never climbs), "NotLoaded", "Invalid". `pity` (a Mystery block's) is
 --- BlockDrop.pityLeft as it stood before this block (this one counted in it, so it never gives
 --- the result away), for the climb screen's counters. `stay` (the tutorial's game-1 block):
---- no roll, the block stays at its start tier, climbed and ready at once.
-function PlayerData.climbBlock(player: Player, id: number, stay: boolean?): (boolean, any)
+--- no roll, the block stays at its start tier, climbed and ready at once. `forced` (the
+--- tutorial's scripted first block): that final tier instead of a roll, at or above the
+--- start (a Mystery block still counts pity), the climbed block ready at once; a tier below
+--- the start is ignored (a normal roll, warned). BlockDrop.climbFor decides.
+function PlayerData.climbBlock(
+	player: Player,
+	id: number,
+	stay: boolean?,
+	forced: string?
+): (boolean, any)
 	local op = "climbBlock"
 	if not isPlayer(player) then
 		return refuseInvalid(op, player, "not a player")
@@ -2129,23 +2137,33 @@ function PlayerData.climbBlock(player: Player, id: number, stay: boolean?): (boo
 		return false, "NotReady"
 	end
 	local now = os.time()
-	local luck = BlockDrop.luckLive(now)
 	local from = block.Kind
 	local start = kind.Climb :: string
+	if forced ~= nil and type(forced) ~= "string" then
+		forced = nil
+	end
+	-- Every Mystery block counts and gets pity, bought ones too (economy v4; plan 3.6).
+	local pity = if kind.Pity then BlockDrop.readPity(data.Drops) else nil
+	local tier, after, luck, ready = BlockDrop.climbFor(start, dropRoll, {
+		pity = pity,
+		luck = BlockDrop.luckLive(now),
+		stay = stay,
+		forced = forced,
+	})
+	if forced ~= nil and not ready then
+		warn(
+			("[8ball] PlayerData.climbBlock: the scripted tier %s can't end a climb from %s; rolled instead"):format(
+				tostring(forced),
+				start
+			)
+		)
+	end
 	local before = nil
-	local tier: string
-	if stay == true and BlockDrop.isBlockTier(start) then
-		tier, luck = start, false
-	elseif kind.Pity then
-		-- Every Mystery block counts and gets pity, bought ones too (economy v4; plan 3.6).
-		before = BlockDrop.pityLeft(BlockDrop.readPity(data.Drops))
-		local pity
-		tier, pity = BlockDrop.roll(BlockDrop.readPity(data.Drops), dropRoll, nil, luck)
-		data.Drops.SinceRare = math.min(pity.SinceRare, S.StatCap)
-		data.Drops.SinceEpic = math.min(pity.SinceEpic, S.StatCap)
-		data.Drops.Total = math.min(pity.Total, S.StatCap)
-	else
-		tier = BlockDrop.climbRoll(start, dropRoll, luck)
+	if pity and after then
+		before = BlockDrop.pityLeft(pity)
+		data.Drops.SinceRare = math.min(after.SinceRare, S.StatCap)
+		data.Drops.SinceEpic = math.min(after.SinceEpic, S.StatCap)
+		data.Drops.Total = math.min(after.Total, S.StatCap)
 	end
 	local tiers = BlockDrop.path(tier, dropRoll, start)
 	if BlockDrop.isBlockTier(tier) then
@@ -2157,8 +2175,8 @@ function PlayerData.climbBlock(player: Player, id: number, stay: boolean?): (boo
 			vipOfSave[data] == true,
 			luck
 		) :: LuckyBlocks.Block
-		if stay == true then
-			climbed.ReadyAt = now
+		if ready then
+			climbed.ReadyAt = now -- the tutorial's block (stay or scripted): ready at once
 		end
 		commit(player, data, op)
 		return true,

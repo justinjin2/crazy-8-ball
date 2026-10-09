@@ -305,6 +305,33 @@ What changed on `gui-v4` that touches the tutorial (nothing was changed on `tuto
   climbed block ready at once; the GUI brief's economy step adds it to
   `LuckyBlockService.setOpenHooks` (replacing the `stay` hook) and `PlayerData.climbBlock`.
   Use it after merging; the interim below then goes.
+- **The hook is built (GUI run step 1, 2026-10-09):** `LuckyBlockService.setOpenHooks(force,
+  opened, stay, script)` takes an optional fourth hook, `script(player, kind) -> string?`: the
+  tier the climb of an unclimbed `kind` block ends on, or nil for a normal roll. The server
+  asks it on every climb (the climb screen's `Reveal`, and Hold's shim while it lasts). A
+  scripted climb ends exactly there (`PlayerData.climbBlock`'s new `forced` argument, decided
+  by the pure `BlockDrop.climbFor`): the presses climb from the block's start to that tier, a
+  Mystery block still counts its pity (`BlockDrop.roll`'s `forced`), no launch luck is noted,
+  and the climbed block lands **ready at once**. A tier below the block's start is ignored (a
+  normal roll, warned in the output); `stay` wins over `script`. For the tutorial's first
+  block, after the merge:
+
+  ```lua
+  -- TutorialService.start(): the chain's Mystery block climbs once, Standard to Uncommon.
+  local function scriptedClimb(player: Player, kind: string): string?
+      if kind == T.MysteryKind and TutorialService.step(player) == "Place" then
+          return "Uncommon"
+      end
+      return nil
+  end
+  LuckyBlockService.setOpenHooks(forcedOpen, opened, nil, scriptedClimb)
+  ```
+
+  (Use the step your chain is on while that block climbs; `forcedOpen` then gives
+  `TutorialCue` when the climbed Uncommon block opens: its `kind` is "Uncommon" by then.) The
+  `stay` hook keeps working until the tutorial drops it. Studio test without the tutorial:
+  `game.ServerStorage.LuckyBlockQA:Invoke("script", "Uncommon")` in the Server datamodel
+  makes every climb end there (`nil` turns it off).
 - **Interim on `gui-v4`: Bronze's block is an Uncommon block** (`Config.Tutorial.BronzeBlockKind =
   "Uncommon"`; v5 Standard blocks give Commons only) that **skips its climb**: the server's
   third open hook, `LuckyBlockService.setOpenHooks(forced, opened, stay)`, with
