@@ -53,6 +53,7 @@ local TeleportScreen = require(script.Parent.TeleportScreen)
 local TradeMenu = require(script.Parent.TradeMenu)
 local UISound = require(script.Parent.UISound)
 local LuckyClient = require(script.Parent.LuckyClient)
+local VipTag = require(script.Parent.VipTag)
 local WinTrack = require(script.Parent.WinTrack)
 
 export type Hooks = {
@@ -95,6 +96,7 @@ local banner: any = nil
 local corners: any = nil
 local playerList: any = nil
 local winTrack: any = nil
+local vipTag: any = nil
 local started = false
 -- RankEvents (the /newrank preview) held while you shoot or a result screen is up, shown in
 -- order afterwards.
@@ -235,6 +237,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	ItemState.start() -- early, so the snapshots sent on load are heard
 	SettingsState.start() -- the switches (sound groups, Lower effects) and the seen moments
 	money = MoneyHud.new(screen)
+	vipTag = VipTag.new(money) -- VIP's tag over the money pill (a VIP only)
 	flyer = CashFlyer.new(screen, money, hooks.pocketToScreen)
 	newRank = NewRankPopup.new(screen, flyer, money)
 	result = ResultScreen.new(screen, flyer, money, newRank)
@@ -269,6 +272,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 		money = money,
 		flyer = flyer,
 		rankHud = rankHud,
+		vipTag = vipTag,
 		hotbarCenter = LuckyClient.hotbarCenter,
 		bumpHotbar = LuckyClient.bumpHotbar,
 	}

@@ -203,6 +203,11 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	if moneyRoot then
 		connect(moneyRoot:GetPropertyChangedSignal("AbsoluteSize"), queueLayout)
 		connect(moneyRoot:GetPropertyChangedSignal("AbsolutePosition"), queueLayout)
+		-- The VIP tag over the money pill (VipTag): the column keeps above it too.
+		local vip = moneyRoot:FindFirstChild("VipTag")
+		if vip and vip:IsA("GuiObject") then
+			connect(vip:GetPropertyChangedSignal("Visible"), queueLayout)
+		end
 	end
 	connect(UserInputService.LastInputTypeChanged, function()
 		self:refreshGlyphs()
@@ -513,11 +518,17 @@ function MenuColumn.rankBottom(self: any, origin: Vector2, short: boolean): numb
 	return math.max(0, badge + RANK.TopMinPx - GuiService:GetGuiInset().Y)
 end
 
--- The money HUD's top edge in the screen's pixels: measured, or from its Config size.
+-- The money HUD's top edge in the screen's pixels (the VIP tag's while it shows over it):
+-- measured, or from its Config size.
 function MenuColumn.moneyTop(self: any, origin: Vector2, size: Vector2, short: boolean): number
 	local root = self:moneyRoot()
 	if root and root.AbsoluteSize.Y > 0 then
-		return root.AbsolutePosition.Y - origin.Y
+		local top = root.AbsolutePosition.Y
+		local vip = root:FindFirstChild("VipTag")
+		if vip and vip:IsA("GuiObject") and vip.Visible and vip.AbsoluteSize.Y > 0 then
+			top = math.min(top, vip.AbsolutePosition.Y)
+		end
+		return top - origin.Y
 	end
 	local margin = if short then MONEY.ShortMarginPx else MONEY.MarginPx
 	local icon = if short then MONEY.ShortIconSizePx else MONEY.IconSizePx

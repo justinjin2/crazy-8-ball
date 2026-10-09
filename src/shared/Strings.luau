@@ -1043,6 +1043,11 @@ return {
 		ResetsIn = "New day in %s",
 		ResetsAbove = "Resets in", -- over the clock pill
 	},
+	-- VIP's tag over the money pill (VipTag); its perks are Menus.Shop.Blocks.VipPerks.
+	VipTag = {
+		Word = "VIP",
+		Title = "VIP perks active",
+	},
 	-- The login days (economy v4 plan 6.1): the first week, then the later weeks.
 	Login = {
 		FirstWeek = "Day %d: %s · log in on any 7 days within 14",

@@ -8325,6 +8325,41 @@ Config.UI.WinTrack = {
 	PeekSeconds = 4, -- after a match the bar opens by itself this long, then folds
 }
 
+-- VIP's tag over the money pill, bottom left, for a VIP only (VipTag; designer 2026-10-08): a
+-- navy pill with a gold rim, the crown rocking and "VIP" in the house rainbow; hover (or a press)
+-- shows the perks card over it. Pixels and seconds; "Short" for a phone on its side.
+Config.UI.VipTag = {
+	ZIndex = 12, -- over the money pill
+	HeightPx = 34,
+	ShortHeightPx = 26,
+	TextPx = 22,
+	ShortTextPx = 16,
+	CrownShare = 0.8, -- the crown, a share of the tag's height
+	PadPx = 8, -- inside the tag, each end
+	InnerGapPx = 4, -- between the crown and "VIP"
+	LeftPx = 6, -- from the money HUD's left edge
+	GapPx = 6, -- between the tag and the money pill under it
+	Color = { 24, 36, 86 }, -- navy, as the Shop's title pills
+	Rim = { 255, 196, 40 }, -- gold
+	RimPx = 2,
+	CrownRock = { 8, 2.2 }, -- the crown rocks this many degrees each way, over these seconds
+	PinSeconds = 6, -- a press keeps the perks card open this long
+	PurchaseSeconds = 8, -- after buying VIP the card stays this long
+	RestrictedLine = 3, -- the daily block's line in Strings.Menus.Shop.Blocks.VipPerks
+	-- The perks card over the tag.
+	Card = {
+		CornerPx = 14,
+		PadPx = 12,
+		GapPx = 6, -- between a tick and its words, and under the title
+		TitlePx = 20,
+		TitleColor = { 255, 214, 92 }, -- the Shop's gold
+		TextPx = 16,
+		RowPx = 24,
+		CheckPx = 18,
+		AbovePx = 8, -- its room over the tag
+	},
+}
+
 -- The economy's menus (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md sections 5 and 5.1): the
 -- left column (MenuColumn), every full menu's frame (MenuFrame: header band, tabs, sheet, red
 -- X), its confirm dialog, notice line, scrollers and card tiles, the rarity dressing and cue
