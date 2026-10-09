@@ -115,6 +115,11 @@ local shopState: RemoteEvent? = nil
 local passOwned: { [Player]: { [string]: boolean } } = {}
 local passFake: { [Player]: { [string]: boolean } } = {}
 local passChecked: { [Player]: boolean } = {}
+-- The designer's /vip off (designer, 2026-10-09: "see what its like for a normal player
+-- without VIP"): this session they count as a player without VIP everywhere the game asks
+-- (the Vip attribute every perk reads, the Shop's state), whatever the pass and the save say.
+-- A purchase still checks the real VIP, so nothing already owned can be bought again.
+local actingRegular: { [Player]: boolean } = {}
 -- The last StoreRequest per player (os.clock), for the cooldown.
 local lastRequest: { [Player]: number } = {}
 -- When each player's shop next changes by itself (unix; ShopView.nextChange).
@@ -175,6 +180,17 @@ end
 -- The state (ShopState) and the attributes
 ---------------------------------------------------------------------------------------------
 
+-- The Shop save as the game should see it: without the welcome offer's VIP while acting as a
+-- regular player (a copy; the save itself is never changed).
+local function shopSeen(player: Player, shopSave: any): any
+	if actingRegular[player] and shopSave ~= nil and shopSave.VipOffer == true then
+		local copy = table.clone(shopSave)
+		copy.VipOffer = false
+		return copy
+	end
+	return shopSave
+end
+
 local function owns(player: Player, passKey: string): boolean
 	local fake = passFake[player]
 	if fake ~= nil and fake[passKey] ~= nil then
@@ -215,8 +231,8 @@ local function context(player: Player, now: number): ShopView.Context?
 	return {
 		passes = otherPasses(player),
 		now = now,
-		shop = data.Shop,
-		vipPass = owns(player, "Vip"),
+		shop = shopSeen(player, data.Shop),
+		vipPass = owns(player, "Vip") and not actingRegular[player],
 		restricted = player:GetAttribute(ATTR.Restricted) == true,
 		policyKnown = player:GetAttribute(ATTR.Restricted) ~= nil,
 		-- UltSpins' isLive, read here without requiring it (it requires Store).
@@ -245,7 +261,7 @@ end
 
 -- Sets Vip from the pass and the save (the save may not be loaded yet).
 local function setAttributes(player: Player, shopSave: any?)
-	local vip = Shop.isVip(owns(player, "Vip"), shopSave)
+	local vip = Shop.isVip(owns(player, "Vip"), shopSave) and not actingRegular[player]
 	if player:GetAttribute(ATTR.Vip) ~= vip then
 		player:SetAttribute(ATTR.Vip, vip)
 	end
@@ -1042,19 +1058,39 @@ function Store.grant(player: Player, key: string, purchaseId: string?): (boolean
 end
 
 --- Dev (/vip): pretends the player owns (`on`) or does not own game pass `passKey`
---- ("Vip", "UltSlot2" ...) for this session, whatever Roblox says. True when it is a pass key.
-function Store.setPass(player: Player, passKey: string, on: boolean): boolean
+--- ("Vip", "UltSlot2" ...) for this session, whatever Roblox says; nil drops the pretence.
+--- True when it is a pass key.
+function Store.setPass(player: Player, passKey: string, on: boolean?): boolean
 	local row = LIST[passKey]
 	if row == nil or row.Kind ~= "Pass" or typeof(player) ~= "Instance" then
 		return false
 	end
 	local fake = passFake[player] or {}
 	passFake[player] = fake
-	fake[passKey] = on == true
+	if on == nil then
+		fake[passKey] = nil -- nil: no override, what Roblox says
+	else
+		fake[passKey] = on
+	end
 	passChecked[player] = true
 	mark(player)
 	passEvent:Fire(player)
 	return true
+end
+
+--- The designer's /vip off and on: `regular` true makes this player count as one without VIP
+--- for this session (the Vip attribute and the Shop), false gives back what they really have.
+--- Returns whether they are VIP now, as the game sees it.
+function Store.actAsRegular(player: Player, regular: boolean): boolean
+	if regular then
+		actingRegular[player] = true
+	else
+		actingRegular[player] = nil
+	end
+	local data = PlayerData.read(player)
+	setAttributes(player, if data then data.Shop else nil)
+	mark(player)
+	return player:GetAttribute(ATTR.Vip) == true
 end
 
 --- Whether the player owns game pass `name` (a Config.Products key of Kind "Pass": "Vip",
@@ -1266,6 +1302,7 @@ local function onPlayerRemoving(player: Player)
 	passOwned[player] = nil
 	passFake[player] = nil
 	passChecked[player] = nil
+	actingRegular[player] = nil
 	lastRequest[player] = nil
 	nextChange[player] = nil
 	dirty[player] = nil

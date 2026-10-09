@@ -3641,3 +3641,10 @@ timer of a new block stay the designer's call.
   stays near the curve's, so balls still roll. A trial: /power old|new switches it in Studio.
   The bots invert the same mapping; the physics fixtures run on the curve they were recorded
   with (harness onRecordedCurve).
+- 2026-10-09: /vip off makes the designer a regular player without VIP for the session
+  (designer: "see what its like for a normal player without VIP ... everything"): the Store
+  counts them as not VIP whatever the pass and the welcome offer say, so the Vip attribute every
+  perk reads goes false (block timers on new blocks, no VIP money, the VIP tag gone, chat and
+  name tags, rewards, the restock's VIP slot, Auto Spin) and the Shop sells them VIP. /vip on
+  gives their own VIP back (or fakes the pass when they have none). A purchase still checks
+  their real VIP. Blocks already held keep their timers.

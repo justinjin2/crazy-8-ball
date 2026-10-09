@@ -63,7 +63,6 @@ local ALIAS: { [string]: string } = D :: any
 local USAGE: { [string]: string } = Strings.Dev.Usage :: any
 local WHAT: { [string]: string } = Strings.Dev.What :: any
 local CUE_NAMES: { [string]: string } = Strings.Items.Cues :: any
-local PASS_NAMES: { [string]: string } = Strings.Dev.PassNames :: any
 local ULT_REASONS: { [string]: string } = Strings.Dev.UltReasons :: any
 -- A command's old name that still runs it (the ult commands' names before "abilities").
 local OLD_ALIASES: { [string]: string } = D.OldAliases :: any
@@ -892,21 +891,28 @@ local function buy(player: Player, args: { string })
 	end
 end
 
--- /vip on|off: fake owning that game pass for this session.
-local function pass(key: string): (Player, { string }) -> ()
-	return function(player: Player, args: { string })
-		local on = ({ on = true, off = false } :: { [string]: boolean })[args[1] or ""]
-		if on == nil then
-			try(player, key)
-			return
-		end
-		Store.setPass(player, key, on)
-		local name = PASS_NAMES[key] or key
-		tell(player, (if on then Dev.PassOn else Dev.PassOff):format(name))
-		if not on and key == "Vip" and player:GetAttribute("VipOffer") == true then
-			tell(player, Dev.VipOfferStays)
-		end
+-- /vip off: play as a regular player without VIP for this session (designer, 2026-10-09):
+-- every perk reads the Vip attribute, so timers, money, the Shop, rewards and the VIP tag all
+-- go regular (Store.actAsRegular). /vip on: back to their own VIP; with none of their own,
+-- it fakes owning the pass (the old /vip on).
+local function vip(player: Player, args: { string })
+	local on = ({ on = true, off = false } :: { [string]: boolean })[args[1] or ""]
+	if on == nil then
+		try(player, "Vip")
+		return
 	end
+	if not on then
+		Store.setPass(player, "Vip", nil) -- no faked pass left over: /vip on gives the real one back
+		Store.actAsRegular(player, true)
+		tell(player, Dev.VipOff)
+		return
+	end
+	if not Store.actAsRegular(player, false) then
+		Store.setPass(player, "Vip", true)
+		tell(player, Dev.VipFaked)
+		return
+	end
+	tell(player, Dev.VipOn)
 end
 
 -- The /abilityhelp order.
@@ -1261,7 +1267,7 @@ function DevCommands.start()
 		end
 	end)
 	command("Buy", D.Buy, buy)
-	command("Vip", D.Vip, pass("Vip"))
+	command("Vip", D.Vip, vip)
 	command("Party", D.Party, function(player)
 		local endsAt = Store.startParty(player)
 		tell(player, Dev.Party:format(math.max(0, math.ceil((endsAt - os.time()) / 60))))
