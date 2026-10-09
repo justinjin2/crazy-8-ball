@@ -463,6 +463,18 @@ function RankHud.layout(self: any)
 	)
 end
 
+--- The HUD's right edge (absolute pixels) at its biggest: it grows about the badge's centre on
+--- hover and press (HoverScale, then the press's bounce), so whatever sits right of it keeps
+--- clear of that (the Settings gear; designer, 2026-10-09: they overlapped).
+function RankHud.grownRight(self: any): number
+	local holder: GuiObject = self.holder
+	local grow = H.HoverScale * math.max(table.unpack(Config.UI.Ranks.PressScales))
+	local left = holder.AbsolutePosition.X
+	local right = left + holder.AbsoluteSize.X
+	local centre = left + H.BadgePx / 2 * self.fit.Scale
+	return centre + (right - centre) * grow
+end
+
 -- Put a division's badge, name and bar colours up. `pop` bounces the badge.
 function RankHud.showRank(self: any, rank: Shown, pop: boolean)
 	self.shownIndex = rank.index

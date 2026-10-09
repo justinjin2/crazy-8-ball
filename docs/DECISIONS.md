@@ -3669,3 +3669,6 @@ timer of a new block stay the designer's call.
 - 2026-10-09: Odds & Details: the list reaches EdgePx (4) past its rows on every side, padded
   back in, so a bar's outline (drawn outside the bar) is never clipped at the list's edge
   (designer: "slightly cutoff on the left"). Every odds popup shares it.
+- 2026-10-09: The Settings gear sits 12 px right of the rank HUD at its biggest (it grows about
+  its badge on hover and press, 1.06 x 1.1), so the two never overlap (designer: "move the
+  settings more to the right especially when the rank expands"; RankHud.grownRight).

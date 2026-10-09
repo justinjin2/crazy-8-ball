@@ -300,7 +300,8 @@ function HubCorners.layout(self: any)
 		end
 	end
 
-	-- The gear right of the rank HUD's card, centred on it.
+	-- The gear right of the rank HUD's card at its biggest (it grows on hover and press), centred
+	-- on it.
 	local gearPx = if short then U.ShortGearPx else U.GearPx
 	local gear = self.gearTile
 	gear.button.AnchorPoint = Vector2.new(0, 0.5)
@@ -312,8 +313,12 @@ function HubCorners.layout(self: any)
 		else nil
 	if rankHolder and rankHolder.AbsoluteSize.X > 0 then
 		local o = self.screen.AbsolutePosition
+		local rankHud = self.deps.rankHud
+		local right = if rankHud and rankHud.grownRight
+			then rankHud:grownRight()
+			else rankHolder.AbsolutePosition.X + rankHolder.AbsoluteSize.X
 		gear.button.Position = UDim2.fromOffset(
-			round(rankHolder.AbsolutePosition.X - o.X + rankHolder.AbsoluteSize.X + U.GearGapPx),
+			round(right - o.X + U.GearGapPx),
 			round(rankHolder.AbsolutePosition.Y - o.Y + rankHolder.AbsoluteSize.Y / 2)
 		)
 	else
