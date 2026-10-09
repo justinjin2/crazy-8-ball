@@ -8,8 +8,9 @@
 -- (tools/blender/abilities/catchball.py), the glow, star and beam images in
 -- Config.Ults.Assets.Images (Catch*).
 --
---   * Armed (from the arming moment until the shot): the cue ball is a red and white catch ball
---     (a square button, a hinged lid), its button turned toward the camera, bobbing a little.
+--   * Armed (from the arming moment until the shot): the cue ball is a red and black catch ball
+--     (an 8-ball for a button, a hinged lid), its button turned toward the camera, bobbing a
+--     little.
 --   * The shot: it rolls as the cue ball. At the first contact ("catch"): a white flash, the
 --     lid swings open toward the ball it hit, which turns into a glowing blue silhouette that
 --     stretches and warps along a beam into the opening; the lid snaps shut, the ball hops and

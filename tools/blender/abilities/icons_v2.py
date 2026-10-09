@@ -54,6 +54,18 @@ def catch_a_ball():
     bsdf.inputs["Coat Weight"].default_value = 0.8
     bsdf.inputs["Coat Roughness"].default_value = 0.06
     bsdf.inputs["Roughness"].default_value = 0.25
+    # The ink outline from a plain sphere just inside the shell, not from the shell's parts:
+    # their rims would draw lines across the ball at the seam (the designer, 2026-10-09: no
+    # lines that read as a capture ball).
+    for o in parts:
+        if o.name in ("CatchTop", "CatchBand", "CatchBottom"):
+            o["no_outline"] = True
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.99, segments=64, ring_count=32, location=(0, 0, 0))
+    core = bpy.context.active_object
+    core.name = "CatchOutline"
+    core.data.materials.append(m)
+    bpy.ops.object.shade_smooth()
+    parts.append(core)
     for o in parts:
         if o.name == "CatchInner":
             o["no_outline"] = True

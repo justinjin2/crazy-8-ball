@@ -1,9 +1,10 @@
-"""Catch-a-Ball (ABILITIES_REWORK_PLAN step 3): the red and white catch ball the hit ball is
+"""Catch-a-Ball (ABILITIES_REWORK_PLAN step 3): the red and black catch ball the hit ball is
 caught in, and its effect images.
 
-The ball takes the idea of the famous capture ball (red over white, a black band, a button at
-the front) without copying it: the button is a SQUARE with rounded corners on a square dark
-plate, and the back carries a visible notched hinge (alternating knuckles on a pin).
+Red over black, nothing more at the seam than a hairline, and a small 8-ball for a button (the
+designer, 2026-10-09: "get rid of the iconic like black lines that distinctively make it look
+like a pokeball ... switch from red to black on the half ... for like a button make it an 8
+ball"); the back carries a notched hinge (alternating knuckles on a pin).
 
 Axes: unit radius (the shell's outer radius is 1.0), front = Blender -Y, up = +Z, the hinge
 at the back (+Y). Roblox: Blender +Y arrives as Roblox +Z and +Z (up) as Roblox +Y, so the
@@ -11,15 +12,16 @@ front (-Y) is Roblox -Z, the LookVector of an unturned part (STUDIO_NOTES).
 
 Objects (one shared material and one small atlas texture, so each object is one MeshPart):
 
-  CatchTop     the upper shell (z >= 0), red outside with a thin black lip at its rim, dark
-               inside; carries the two lid knuckles of the hinge. Origin at the hinge pin H.
-  CatchBottom  the lower shell (z <= -LIP), white outside, dark inside. Origin at H.
-  CatchBand    the black band on the bottom half (-LIP <= z <= 0), flush with the shell, plus
-               the hinge's three base knuckles, the pin and a notched (zig-zag) leaf plate at
-               the back. Origin at H.
-  CatchButton  the square button at the front: a dark rounded-square plate curved to the
-               shell with a white rounded-square face and a grey inner ring, centred on the
-               seam. Origin at H.
+  CatchTop     the upper shell (z >= 0), red outside down to a hairline of black at its rim
+               (SEAM), dark inside; carries the two lid knuckles of the hinge. Origin at the
+               hinge pin H.
+  CatchBottom  the lower shell (z <= -LIP), black outside, dark inside. Origin at H.
+  CatchBand    the rest of the lower shell (-LIP <= z <= 0), black like it (no band shows),
+               plus the hinge's three base knuckles, the pin and a notched (zig-zag) leaf plate
+               at the back. Origin at H.
+  CatchButton  the 8-ball at the front, centred on the seam and standing out of the shell:
+               black, its front a white circle with a black 8 (the atlas's bottom-left
+               quarter, projected from the front). Origin at H.
   CatchInner   the dark disc inside the bottom half just under the seam (dark with a faint red
                ring and a small light centre), seen when the lid is open. Origin at H.
   J_Hinge      a tiny cube at H (the importer may not keep object origins: read this one).
@@ -54,7 +56,10 @@ OUT = common.asset_dir("CatchABall")
 
 R_OUT = 1.0
 R_IN = 0.955
-LIP = 0.085  # the band's height below the seam (and the top's black lip above it), in radians
+LIP = 0.085  # the lower shell's top part (CatchBand) below the seam, in radians
+SEAM = 0.014  # the hairline of black at the lid's rim, in radians
+BUTTON_R = 0.16  # the 8-ball button's radius
+BUTTON_Y = -0.94  # its centre (Blender Y; the front is -Y): it stands BUTTON_R + 0.94 - 1 out
 SEGS = 72
 H = Vector((0.0, 1.035, 0.0))  # the hinge pin's axis point (the pivot)
 
@@ -85,6 +90,7 @@ COLOURS = {
     "metal": "3A3C46",
 }
 DISC_BOX = (0.5, 0.0, 0.5, 0.5)  # u0, v0, du, dv (UV space, v up): the bottom-right quarter
+EIGHT_BOX = (0.0, 0.0, 0.5, 0.5)  # the 8-ball's face: the bottom-left quarter
 
 
 def srgb(hexstr):
@@ -112,6 +118,24 @@ def atlas_image():
     col = col * (1 - centre[..., None]) + srgb("5A5C6A") * centre[..., None]
     col *= (1 - 0.35 * np.clip(r, 0, 1) ** 2)[..., None]  # darker toward the wall
     img[n:, n:, 0:3] = col
+    # The 8-ball's face, in the bottom-left quarter: black, a white circle, a black 8 (two
+    # stacked rings, the top one smaller). Up in the image is +Z on the ball.
+    x, y = np.meshgrid(c, -c)
+
+    def inside(dist, edge=0.02):
+        return np.clip(0.5 - dist / edge, 0, 1)
+
+    ball = srgb(COLOURS["black"])
+    face = srgb("F4F4F4")
+    white = inside(np.sqrt(x * x + y * y) - 0.6)
+    eight = np.zeros_like(x)
+    for cy, ro, ri in ((0.2, 0.19, 0.085), (-0.18, 0.23, 0.11)):
+        r = np.sqrt(x * x + (y - cy) ** 2)
+        eight = np.maximum(eight, inside(r - ro) * (1 - inside(r - ri)))
+    col = np.broadcast_to(ball, (n, n, 3)).copy()
+    col = col * (1 - white[..., None]) + face * white[..., None]
+    col = col * (1 - eight[..., None]) + ball * eight[..., None]
+    img[n:, :n, 0:3] = col
     return common.image_from_array("CatchAtlas", img, os.path.join(OUT, "textures", "catch_atlas.png"))
 
 
@@ -148,6 +172,9 @@ def to_object(name, bm, material, smooth=True, recalc=True):
     me.materials.append(material)
     for p in me.polygons:
         p.use_smooth = smooth
+    if smooth:
+        # The flat rims stay sharp, so they never bend the shell's shading into a bright line.
+        me.set_sharp_from_angle(angle=math.radians(40))
     obj = bpy.data.objects.new(name, me)
     obj.location = H
     bpy.context.scene.collection.objects.link(obj)
@@ -240,8 +267,8 @@ KNUCKLES = [(-0.25, -0.15), (-0.15, -0.05), (-0.05, 0.05), (0.05, 0.15), (0.15, 
 def build_top(material):
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new()
-    lats = [0.0] + [LIP + (math.pi / 2 - LIP) * j / 20 for j in range(21)]
-    shell_band(bm, uvl, lats, lambda lat: "black" if lat < LIP else "red", "inside", rim0="black")
+    lats = [0.0, SEAM] + [SEAM + (math.pi / 2 - SEAM) * j / 20 for j in range(1, 21)]
+    shell_band(bm, uvl, lats, lambda lat: "black" if lat < SEAM else "red", "inside", rim0="black")
     # The lid's two knuckles (the 2nd and 4th) with their leaves up into the shell.
     for k in (1, 3):
         x0, x1 = KNUCKLES[k]
@@ -254,7 +281,7 @@ def build_bottom(material):
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new()
     lats = [-math.pi / 2 + (math.pi / 2 - LIP) * j / 22 for j in range(23)]
-    shell_band(bm, uvl, lats, lambda lat: "white", "inside", rim1="inside")
+    shell_band(bm, uvl, lats, lambda lat: "black", "inside", rim1="inside")
     return to_object("CatchBottom", bm, material)
 
 
@@ -276,41 +303,20 @@ def build_band(material):
     return to_object("CatchBand", bm, material)
 
 
-def rounded_square(half, radius, steps=6):
-    pts = []
-    for cx, cz, a0 in ((half - radius, -(half - radius), -90), (half - radius, half - radius, 0),
-                       (-(half - radius), half - radius, 90), (-(half - radius), -(half - radius), 180)):
-        for s in range(steps + 1):
-            a = math.radians(a0 + 90 * s / steps)
-            pts.append((cx + radius * math.cos(a), cz + radius * math.sin(a)))
-    return pts
-
-
-def curved_slab(bm, uvl, outline, back_r, front_r, name, front_name=None):
-    """A slab whose outline (x, z) is projected onto the sphere's front: the back face on the
-    sphere of radius back_r, the front face on radius front_r (so it hugs the ball)."""
-    def on(x, z, r):
-        y = -math.sqrt(max(r * r - x * x - z * z, 1e-6))
-        return Vector((x, y, z))
-    # A fan from the centre for both faces (outline is convex).
-    fc = bm.verts.new(on(0, 0, front_r))
-    bc = bm.verts.new(on(0, 0, back_r))
-    fr = [bm.verts.new(on(x, z, front_r)) for x, z in outline]
-    br = [bm.verts.new(on(x, z, back_r)) for x, z in outline]
-    n = len(outline)
-    for i in range(n):
-        i2 = (i + 1) % n
-        paint(bm, uvl, bm.faces.new((fc, fr[i], fr[i2])), front_name or name)
-        paint(bm, uvl, bm.faces.new((bc, br[i2], br[i])), name)
-        paint(bm, uvl, bm.faces.new((fr[i], br[i], br[i2], fr[i2])), name)
-
-
 def build_button(material):
+    """The 8-ball: a UV sphere at the front, its front half mapped flat from the front onto the
+    atlas's 8-ball face (the back half is inside the shell)."""
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new()
-    curved_slab(bm, uvl, rounded_square(0.25, 0.07), 0.97, 1.035, "plate")
-    curved_slab(bm, uvl, rounded_square(0.165, 0.05), 1.0, 1.06, "ring")
-    curved_slab(bm, uvl, rounded_square(0.135, 0.04), 1.02, 1.075, "face")
+    centre = Vector((0.0, BUTTON_Y, 0.0))
+    bmesh.ops.create_uvsphere(bm, u_segments=32, v_segments=16, radius=BUTTON_R)
+    for v in bm.verts:
+        v.co += centre
+    u0, v0, du, dv = EIGHT_BOX
+    for f in bm.faces:
+        for loop in f.loops:
+            p = loop.vert.co - centre
+            loop[uvl].uv = (u0 + du * (0.5 + 0.5 * p.x / BUTTON_R), v0 + dv * (0.5 + 0.5 * p.z / BUTTON_R))
     return to_object("CatchButton", bm, material)
 
 
