@@ -13,7 +13,9 @@
 -- no spin), its name slamming in over it ("EPIC!") as the ladder's line reaches it. A dot
 -- under the block fills per press in the colour that press showed; the white Tap! button under
 -- the dots says what to do. After the last press "Tap to collect" (or a few seconds) shrinks
--- the screen and the block jumps back into its hotbar slot.
+-- the screen and the block jumps back into its hotbar slot. Sounds (designer, 2026-10-09): a
+-- whoosh as it opens, a rising shimmer on a press that lifts the tier, a soft shimmer on one
+-- that only shakes it (Config.Audio.Ui.Mystery*).
 --
 -- The server decides everything first (BlockRequest "Reveal": the tier, with pity, and the path
 -- of the presses, BlockDrop.path: one entry per press, climbs only, from Standard) and the block
@@ -36,6 +38,7 @@ local Quality = require(script.Parent.Quality)
 local ReelFx = require(script.Parent.ReelFx)
 local ScreenBlur = require(script.Parent.ScreenBlur)
 local UIAnim = require(script.Parent.UIAnim)
+local UISound = require(script.Parent.UISound)
 
 local R = Config.LuckyBlocks.Reveal
 local LD = R.Ladder
@@ -1067,6 +1070,7 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 	self.open = true
 	self.id = id
 	self.reply = nil
+	UISound.play("MysteryOpen")
 	self.presses = 0
 	self.particles = {}
 	self.carry = {}
@@ -1332,6 +1336,7 @@ function Reveal.press(self: any)
 	end
 	if before == after then
 		-- Kept: a squash, a small hop and a rattle.
+		UISound.play("MysteryKeep")
 		local K = R.Keep
 		local total, step = hop(K.Seconds, K.HopShare, K.RattleDegrees, K.RattleTurns, 0)
 		self.anim = {
@@ -1346,6 +1351,7 @@ function Reveal.press(self: any)
 	end
 	-- Changed: squash, one quick hop with a rattle, then the impact as it lands (flash,
 	-- shake, burst) as the picture becomes the new block, which lands a little big and settles.
+	UISound.play("MysteryUpgrade")
 	local U = R.Upgrade
 	local total, step = hop(U.HopSeconds, U.HopShare, U.RattleDegrees, U.RattleTurns, U.Stretch)
 	self.anim = {

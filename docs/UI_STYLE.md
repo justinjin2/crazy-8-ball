@@ -1105,6 +1105,9 @@ jump out of the hotbar, the float, the presses, the impact, the jump back.
   with round nodes halfway. The line fills in the tier's colour up to the tier on show, growing
   as a press lifts it; that tier's block is bigger and raised with a chevron over it, and the
   tiers ahead are a little faded.
+- **Sounds** (designer, 2026-10-09; `Config.Audio.Ui.Mystery*`): a magical whoosh shimmer as
+  the block jumps out, a rising shimmer on a press that lifts the tier (from the press, rising
+  into the impact), a soft shimmer select on a press that only shakes it.
 - **Reduce Motion**: no swell, rock or bounce, the line jumps to its tier; Lower effects: fewer
   particles.
 

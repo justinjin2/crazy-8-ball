@@ -5116,6 +5116,17 @@ Config.Audio = {
 		-- the Equip sound: they celebrate.
 		RobuxThanks = { Id = "rbxassetid://89021084156464", Volume = 0.3 },
 		MoneyPayout = { Id = "rbxassetid://85019514683132", Volume = 0.7 },
+		-- The Mystery block's upgrade screen (designer, 2026-10-09; MysteryReveal). Opening it (the
+		-- click that jumps the block out of the hotbar): their "magical accent whoosh shimmer"
+		-- (assets/audio/ui/MysteryOpen.wav, 3.6 s; peak 0.74, loudest half second RMS 0.14). A
+		-- press that lifts the tier: their "shimmer ascending" (MysteryUpgrade.wav, 1.2 s; peak
+		-- 0.73, RMS 0.14), played as the press starts so it rises through the hop into the
+		-- impact. A press that keeps the tier (the block only shakes): their "shimmer select 06"
+		-- (MysteryKeep.wav, 0.75 s, made 44.1 kHz 16-bit; peak 0.16, RMS 0.016: quiet, so it
+		-- plays loud). Presses can come fast, so the presses' two overlap.
+		MysteryOpen = { Id = "rbxassetid://73289167277611", Volume = 0.35 },
+		MysteryUpgrade = { Id = "rbxassetid://139455468802107", Volume = 0.4, Overlap = true },
+		MysteryKeep = { Id = "rbxassetid://120367863448887", Volume = 0.9, Overlap = true },
 		-- The case reel (2026-09-28, overnight placeholders; assets/audio/README.md). All from
 		-- Roblox's own library or APM Music via Roblox; each checked loading in this game.
 		-- "Roblox_UI_Small_Click" (0.13 s), pitched up and quiet: one card passing the marker.

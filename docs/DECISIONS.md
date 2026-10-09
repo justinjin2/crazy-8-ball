@@ -3617,3 +3617,7 @@ timer of a new block stay the designer's call.
 - 2026-10-09: The Mystery card loses its "Starts Standard · 5 presses to climb" line (its six
   tier rows fill the box), and the Odds & Details pity head says just "Pity" (no "a sure
   thing"), the designer's notes.
+- 2026-10-09: The Mystery upgrade screen gets its sounds, the designer's files: a magical
+  whoosh shimmer as it opens, a rising shimmer on a press that lifts the tier (played as the
+  press starts, so it rises into the impact), a soft shimmer select on a press that only shakes
+  it (Config.Audio.Ui.MysteryOpen / MysteryUpgrade / MysteryKeep).
