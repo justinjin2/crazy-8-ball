@@ -113,10 +113,11 @@ local REMOTES: { [string]: string } = {
 	--   "ClaimIndexRow" (rarity) -> { rarity, money }
 	--   "BuyLimited" (cueId: a money-priced Limited shelf row) -> { cueId, copy, price }
 	--   "BuyBlocks" (dealId: a Config.Shop.Deals key, count: a count it sells) -> { dealId,
-	--     kind, count, price } (the lucky blocks land ready at once, paid origin; "BuyMystery"
-	--     (count) is the old name for the Mystery deal)
-	--   "BuyRestock" (itemId "Slot1" .. "Slot3" | "Vip" of the restock now) -> { itemId,
-	--     price } (its lucky block lands ready at once)
+	--     kind, count, price } (the lucky blocks land paid origin: a climbing kind unclimbed,
+	--     its climbed block then opens at once; "BuyMystery" (count) is the old name for the
+	--     Mystery deal)
+	--   "BuyRestock" (itemId "Slot1" .. "Slot<Config.Shop.Restock.Slots>" | "Vip" of the restock
+	--     now) -> { itemId, price } (its lucky block lands unclimbed, paid origin)
 	-- Reasons (Progression/Requests.Reasons): "BadRequest" (unknown action, wrong type,
 	-- unknown id, count not allowed), "TooFast" (Config.Items.RateBurst / RatePerSecond),
 	-- "Busy" (another request still being answered), "NotLoaded" (the save, or for a block
@@ -256,9 +257,10 @@ local REMOTES: { [string]: string } = {
 	-- code, or a like code not switched on), "Used" (this code already redeemed), "Expired",
 	-- "NotMember" (not in the group yet), "Error".
 	RewardRequest = "RemoteFunction",
-	-- Trading (src/server/Trading.luau; the rules are Progression/Trade). An item is a cue id or
-	-- "Block:<kind>" (a READY lucky block); a side is a list of up to Config.Trade.MaxSideItems
-	-- (one entry a copy).
+	-- Trading (src/server/Trading.luau; the rules are Progression/Trade). An item is a cue id,
+	-- "Block:<kind>" (a READY unclimbed or never-climbing lucky block) or "Climbed:<tier>" (a
+	-- READY climbed block, economy v5; Trade.blockItem / Trade.itemBlock); a side is a list of
+	-- up to Config.Trade.MaxSideItems (one entry a copy).
 	-- client -> server, answered { ok = true, ... } or { ok = false, reason }:
 	--   ("Invite", userId)   ask anyone in the server; they get TradeState { kind = "Invite" }
 	--   ("Accept", userId)   accept that player's invite: the session opens for both
@@ -384,13 +386,18 @@ local REMOTES: { [string]: string } = {
 	-- client -> server: (action, a, b), checked by Progression/LuckyBlocks.parse:
 	-- "Hold" (block id, or nil to put it away), "Throw" (the held block's id, sent at the throw
 	-- animation's release), "Open" (the thrown block's id, after the 1 s hold), "Move" (id,
-	-- place in the list). Answers { ok = true, ... } or { ok = false, reason } (LuckyBlocks
-	-- .Reasons). Open's answer: { ok, cue, rarity, kind, oddsId, tier?, copy?, forced, new,
-	-- found, count, burstAt } (oddsId: the odds row it rolled, a Mystery block's rolled tier's;
-	-- copy: a Unique cue's number; forced: the Guarantee gave it; burstAt: server time the
-	-- block bursts and the reel may show).
+	-- place in the list), "Reveal" (an unclimbed block's id: its climb, economy v5) and
+	-- "OpenAll" (no id: every ready climbed Standard and Uncommon block). Answers { ok = true,
+	-- ... } or { ok = false, reason } (LuckyBlocks.Reasons). Open's answer: { ok, cue, rarity,
+	-- kind, oddsId, tier?, copy?, forced, new, found, count, burstAt } (oddsId: the odds row it
+	-- rolled; copy: a Unique cue's number; forced: the Guarantee gave it; burstAt: server time
+	-- the block bursts and the reel may show). Reveal's answer: { ok, id, tiers (the presses as
+	-- today's screen shows them, a Secret as Mythic: BlockDrop.shown), path (the true presses),
+	-- kind, readyAt, pity = { rare, epic }, from, luck, secret, cue?, rarity?, new?, found?,
+	-- count? } (a Secret climb gives its cue at once). OpenAll's answer: { ok, opened = { { id,
+	-- cue, rarity, kind, new, found, count } } }.
 	BlockRequest = "RemoteFunction",
-	-- server -> one player: their blocks { blocks = { { id, kind, readyAt, paid? } } } in hotbar order
+	-- server -> one player: their blocks { blocks = { { id, kind, readyAt, climbed? } } } in hotbar order
 	-- (readyAt in unix seconds, compared with workspace:GetServerTimeNow()). Sent when the save
 	-- loads and after every change, only when it differs from the last one sent.
 	BlockState = "RemoteEvent",

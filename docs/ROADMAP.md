@@ -451,6 +451,18 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   Studio check of the shop prices, the Mystery screen, the rewards, the timers and the skip.
   Still to come with the GUI: the screens listed in the plan's hand-off (section 18). Planned,
   not built: the Lucky Shot, Golden Shot, Lucky Rain and the stay bonus (`Config.Planned`).
+- [ ] **7.9 Economy v5, "every block climbs".** Approved 2026-10-09
+  (`docs/prompts/ECONOMY_V5_PLAN.md`; numbers in `docs/ECONOMY.md`). Built on `gui-v4`
+  (Lune-tested, 2026-10-09; backup branch `before-economy-v5`): one climb ladder for every
+  block (the name is the floor), the Grand Opening Luck, pity 10 / 40 with a head start,
+  unclimbed and climbed blocks (save version 11), the win track's 4 blocks and $1,000 steps, the
+  Week One Cue on the first week's day 7, the new rewards, the restock's 2 slots (the first
+  Epic or better), the Mystery block at $14,900 (5 for $66,900), the 1 R$ skip (made on
+  Roblox), "Open all", the "1 in N" messages, climbed blocks in trades and the model doing v5.
+  Done means: the GUI session's screens (`docs/prompts/ECONOMY_V5_HANDOFF.md`), the Robux pass
+  approved and synced (`~/Desktop/8ball-refs/economy/05-economy-v5-robux.md`), merged, and a
+  Studio check of a Mystery block and a tier block from a win, the restock, the Mystery band,
+  Free Reward's first week, a trade of a block, the 1 R$ skip and the luck's odds.
 
 ---
 

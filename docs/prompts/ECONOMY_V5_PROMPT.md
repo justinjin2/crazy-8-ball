@@ -294,7 +294,7 @@ perk text. Don't change any of these products: the designer approves them later.
 - [x] 10. The "1 in N" (3.9).
 - [x] 11. Trade (3.10).
 - [x] 12. The model v5, `economy_config.json`, the copy-number timeline (3.11).
-- [ ] 13. The docs (3.11) and the hand-off file (section 4).
+- [x] 13. The docs (3.11) and the hand-off file (section 4).
 - [ ] 14. The Robux proposal file (6.2), with no product changes.
 - [ ] 15. The report (section 7) and `STATUS.md`.
 
@@ -377,3 +377,13 @@ perk text. Don't change any of these products: the designer approves them later.
   of plan 7.1 everywhere; `--sell` matches `economy_v5_sell.txt`. Small known differences from
   the plan's run: the pity head start (now in Config), the Robux Mystery bundle (5 for 45 R$
   in Config, 10 for 45 in the plan's run) and the restock's Robux prices (v4's in Config).
+- Step 13: `docs/ECONOMY.md` rewritten for v5 (the stale 10.2 track fixed; doc drift caught up
+  too: the Claim All products, the retired Lucky Spins, the Starter Pack's 29 R$), GDD 11 and 12
+  (and the tutorial lines in GDD 14 that named the Standard block), 31 dated DECISIONS lines
+  (the designer's 15 answers, the plan's 15 calls, the docs step), ROADMAP box 7.9, stale
+  remote comments in `Net.luau`, and `docs/prompts/ECONOMY_V5_HANDOFF.md` (GUI 1.1-1.13 with
+  the shim table, the tutorial list, the thumbnail labels, the Week One Cue's art). Found: the
+  designer removed the pity counters from the Mystery upgrade screen earlier on 2026-10-09,
+  while answer 14 asks for pity bars: the hand-off asks the GUI session to show concept art
+  first. `tutorial-v2` no longer has `Config.Tutorial.BronzeBlockKind` and calls
+  `setOpenHooks` with two arguments: listed for whichever branch merges second.
