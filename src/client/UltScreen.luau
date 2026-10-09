@@ -596,7 +596,7 @@ end
 --- Show an ult's name at the top, upper case in its rarity colour (Mythic shimmers).
 function UltScreen.showName(self: any, id: string, pop: boolean)
 	local label: TextLabel = self.nameLabel
-	label.Text = string.upper(Catalog.name(id))
+	label.Text = if Catalog.exists(id) then string.upper(Catalog.name(id)) else W.None
 	Parts.paint(label, Catalog.rarity(id))
 	self.nameIcon.Image = Catalog.icon(id)
 	self:placeName()
@@ -630,12 +630,16 @@ function UltScreen.placeName(self: any)
 end
 
 function UltScreen.draw(self: any, state: any)
-	local equipped = if type(state.equipped) == "string" and Catalog.exists(state.equipped)
+	-- An empty slot equipped plays none: NONE, no icon or description (designer, 2026-10-09).
+	local equipped = if type(state.equipped) == "string"
+			and (state.equipped == "" or Catalog.exists(state.equipped))
 		then state.equipped
 		else Config.Ults.Default
 	self:showName(equipped, false)
 	local desc = Catalog.description(equipped)
-	self.descLabel.Text = if Catalog.built(equipped) then desc else W.DescriptionSoon:format(desc)
+	self.descLabel.Text = if equipped == "" or Catalog.built(equipped)
+		then desc
+		else W.DescriptionSoon:format(desc)
 	-- GUI lane (step 13): the result's tier word holds the row for a moment first.
 	self.descLabel.Visible = not self.anim:tierShowing()
 	self.stage:setRarity(Catalog.rarity(equipped), false)

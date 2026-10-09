@@ -3678,3 +3678,11 @@ timer of a new block stay the designer's call.
   "isnt there supposed to be odds shown for each block like a little dice icon for each"; "move
   the dice icon next to the rarity not next to the odds"). Free Reward's Mystery dice shares
   the popup.
+- 2026-10-09: An empty ability slot equipped plays no ability: the Abilities screen says NONE,
+  there is no ability bar in a match, the opponent's portrait shows no ability icon, and the
+  server refuses an activation ("NoUlt"). An unowned or unusable slot still plays as Fire Shot
+  (designer: "when an empty slot is equipped it should be NONE ... should not be fireshot by
+  default on an empty slot"). A fresh save still starts with Fire Shot in slot 1.
+- 2026-10-09: The Shop's Blocks jump shows the Mystery Lucky Block (it was the backpack), and
+  the left column's tiles are 12 px apart (was 4) so ABILITIES no longer touches the Free
+  Reward gift (designer).

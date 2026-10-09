@@ -90,12 +90,17 @@ function Slots.owns(slot: any, passes: Passes?): boolean
 end
 
 --- The ult to play with: the selected slot's ult when that slot is owned and the ult usable
---- (built, or anything with the developer flag), else Config.Ults.Default.
+--- (built, or anything with the developer flag); "" (none: no ability bar in a match) when
+--- the selected slot is empty (designer, 2026-10-09: "should not be fireshot by default on an
+--- empty slot"); else Config.Ults.Default.
 function Slots.equipped(ults: any, passes: Passes?, devAll: boolean?): string
 	if not isUlts(ults) or not Slots.owns(ults.Selected, passes) then
 		return U.Default
 	end
 	local id = ults.Slots[ults.Selected]
+	if id == "" then
+		return ""
+	end
 	if Catalog.usable(id, devAll) then
 		return id
 	end

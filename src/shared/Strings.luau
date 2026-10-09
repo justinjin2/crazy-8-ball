@@ -411,6 +411,7 @@ return {
 			Break = "not on the break",
 			Armed = "an ability is already armed",
 			BallInHand = "you already have ball in hand",
+			NoUlt = "your equipped slot is empty",
 		},
 		SpinsSet = "You hold %d Ability Spins.",
 		LuckySet = "You hold %d Lucky Spins.",
@@ -1398,6 +1399,7 @@ return {
 				Used = "No more abilities this game",
 				Off = "Abilities are off at this table",
 				BallInHand = "You already have ball in hand!", -- Look Over There!
+				NoUlt = "No ability equipped", -- the equipped slot is empty
 				TooFast = "Slow down a little!",
 				Busy = "One moment...",
 				Default = "You can't use your ability right now",
@@ -1450,6 +1452,7 @@ return {
 			-- The slot cards (pick "abilities A", 2026-10-08: a slot not bought shows a padlock,
 			-- "Locked" and its R$ price on a green button).
 			Empty = "Empty", -- an owned slot with no ability yet
+			None = "NONE", -- the current ability while an empty slot is equipped
 			Locked = "Locked", -- a slot not bought yet
 			Equipped = "EQUIPPED",
 			Select = "SELECT",

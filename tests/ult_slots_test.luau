@@ -130,12 +130,12 @@ return {
 		H.expect(not spin and spinWhy == "NotOwned", "spin refused")
 	end,
 
-	["an empty, unowned or unusable slot plays as the default"] = function()
+	["an empty slot plays none; an unowned or unusable one plays as the default"] = function()
 		local Slots, Config = load()
 		local u = Slots.fresh()
-		H.expect(Slots.equipped(u, NONE) == Config.Ults.Default, "a fresh save")
+		H.expect(Slots.equipped(u, NONE) == Config.Ults.Default, "a fresh save: the starter")
 		u.Slots[1] = ""
-		H.expect(Slots.equipped(u, NONE) == Config.Ults.Default, "an empty slot")
+		H.expect(Slots.equipped(u, NONE) == "", "an empty slot: none")
 		asPlaceholder(Config.Ults.Catalog, "GuangdongTiger", function()
 			u.Slots[1] = "GuangdongTiger"
 			H.expect(Slots.equipped(u, NONE) == Config.Ults.Default, "unbuilt without the flag")

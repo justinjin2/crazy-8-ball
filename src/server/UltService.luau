@@ -63,9 +63,9 @@ local function ownsPass(player: Player, name: string): boolean
 	return ok and owned == true
 end
 
---- The ult `player` plays with now: their selected slot's (Ults/Slots.equipped: an empty,
---- unowned or unusable slot plays as Config.Ults.Default), decided here from the save and the
---- passes, never from the client.
+--- The ult `player` plays with now: their selected slot's (Ults/Slots.equipped: "" for an
+--- empty one, an unowned or unusable slot plays as Config.Ults.Default), decided here from the
+--- save and the passes, never from the client.
 function UltService.equipped(player: Player): string
 	local save = PlayerData.read(player)
 	local ults = if type(save) == "table" then save.Ults else nil
@@ -100,6 +100,9 @@ local function activate(t: any, userId: number, ultId: string?): (boolean, strin
 	Tables.advance(t, time)
 	local e = t.engine
 	local id = ultId or ultOf(userId)
+	if id == "" then
+		return false, "NoUlt" -- an empty slot equipped: no ability
+	end
 	local ok, reason
 	if e.solo ~= nil then
 		ok, reason = Match.practice(e, userId, id, time)
@@ -200,6 +203,9 @@ function UltService.arm(player: Player, ultId: string?): (boolean, string?)
 	local time = now()
 	Tables.advance(t, time)
 	local id = ultId or UltService.equipped(player)
+	if id == "" then
+		return false, "NoUlt"
+	end
 	local ok, reason = Match.devArm(t.engine, player.UserId, id, time)
 	Tables.broadcast(t)
 	return ok, reason

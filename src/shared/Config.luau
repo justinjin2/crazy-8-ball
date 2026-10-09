@@ -3767,7 +3767,8 @@ Config.Ults = {
 	-- The developer flag: every ult, built or not, can be rolled and equipped (friend tests).
 	-- `/ultsall on` turns it on for one player for the session.
 	DevAllUlts = false,
-	-- Everyone's starter ult, free forever; an empty or unusable slot plays as it. Fire Shot
+	-- Everyone's starter ult, free forever; an unusable slot plays as it, an empty one plays
+	-- none (no ability bar; designer, 2026-10-09). Fire Shot
 	-- since the designer's third rework round (2026-10-08: "the new default starter"; the
 	-- tutorial's starter spin lands on it too, Config.Tutorial.SpinUlt). Magnet was the starter
 	-- before it (and Heat Seeker from 2026-10-03); a save that holds Magnet keeps it.
@@ -6968,6 +6969,9 @@ Config.UI = {
 			-- draws nothing until the image is uploaded.
 			Shop = "rbxassetid://130453738066274", -- the red basket (GUI lane, ref 02; was 107658760787268)
 			Inventory = "rbxassetid://105879289234800", -- a backpack
+			-- The Mystery Lucky Block (Config.LuckyBlocks.Kinds.Mystery.Icon): the Shop's Blocks
+			-- jump (designer, 2026-10-09: it was the backpack).
+			MysteryBlock = "rbxassetid://76412774878315",
 			Rewards = "rbxassetid://92894769753979", -- a gift box with a bow
 			Trade = "rbxassetid://98977101809699", -- two arrows swapping
 			Pack1 = "rbxassetid://104093005133758", -- the money packs, smallest to biggest
@@ -8580,7 +8584,9 @@ Config.UI.Menu = {
 		Order = { "Shop", "Inventory", "Ults", "FreeReward" },
 		TilePx = 78, -- a tile's square slot, its touch area (a computer or tablet)
 		ShortTilePx = 52, -- on a phone (at least a 44 px touch target)
-		GapPx = 4, -- between two slots (the icons' own margins space them out)
+		-- Between two slots: room for each tile's word over the next tile's icon (designer,
+		-- 2026-10-09: ABILITIES touched the Free Reward gift at 4).
+		GapPx = 12,
 		ShortGapPx = 8, -- a phone's words overhang the small slots: room for the next red dot
 		MarginPx = 12, -- from the screen's left edge (the money HUD's margins)
 		ShortMarginPx = 8,
@@ -8960,7 +8966,7 @@ Config.UI.Shop = {
 			{ Key = "Featured", Icon = "Deals", Sections = { "GrandOpening", "Limited" } },
 			{
 				Key = "Blocks",
-				Icon = "Inventory",
+				Icon = "MysteryBlock",
 				Sections = { "Mystery", "Restock", "Offer", "Vip" },
 			},
 			{ Key = "Money", Icon = "Pack4", Sections = { "Money" } },

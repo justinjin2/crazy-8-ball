@@ -221,15 +221,14 @@ local function makePortrait(parent: Instance): any
 	}
 end
 
--- The icon of the ult `userId` plays with: their UltEquipped attribute (the server keeps it
--- to the ult it would arm), a pretend player's the default; "" when it has none.
-local function ultIconOf(userId: number?): string
+-- The ult `userId` plays with: their UltEquipped attribute (the server keeps it to the ult
+-- it would arm; "" with an empty slot equipped: none), a pretend player's the default.
+local function ultOf(userId: number?): string
 	local who = People.owner(userId) -- a player or a bot (the Bots lane)
 	local equipped = if who then who:GetAttribute("UltEquipped") else nil
-	local id = if type(equipped) == "string" and UltCatalog.exists(equipped)
+	return if type(equipped) == "string" and (equipped == "" or UltCatalog.exists(equipped))
 		then equipped
 		else Config.Ults.Default
-	return UltCatalog.icon(id)
 end
 
 -- Light an opponent's ult icon (ready) or fade it; `shown` false hides it. `icon` is their
@@ -1165,13 +1164,15 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 				and seat.userId == snapshot.shooter
 				and snapshot.phase ~= "Result"
 			-- Their ult: shown on the other side's portraits while ults are on, lit when ready.
+			-- None for a player with an empty slot equipped.
 			local ultBar = seat ~= nil and side == 2 and ultsOn and ults.bars[tostring(seat.userId)]
 				or nil
+			local ultId = if type(ultBar) == "table" then ultOf(seat.userId) else ""
 			paintUlt(
 				portrait,
-				type(ultBar) == "table",
-				type(ultBar) == "table" and ultBar.ready == true,
-				if type(ultBar) == "table" then ultIconOf(seat.userId) else ""
+				ultId ~= "",
+				ultId ~= "" and ultBar.ready == true,
+				UltCatalog.icon(ultId)
 			)
 			-- The border stays ink: the shooter's green is the clock ring over it, so as the
 			-- ring drains the ink shows through (a green border under it hid the draining).

@@ -35,6 +35,7 @@
 -- a click or tap on the bar presses it too. A press sends UltActivate once, then waits for the snapshot to change or a refusal
 -- (UltNotice) before it can be sent again.
 local ContextActionService = game:GetService("ContextActionService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 local TextService = game:GetService("TextService")
@@ -570,6 +571,13 @@ end
 -- Every frame
 --------------------------------------------------------------------------------------------
 
+-- Whether this player has an empty slot equipped: no ability, so no bar (their UltEquipped
+-- attribute is ""; designer, 2026-10-09).
+function UltHud.noneEquipped(): boolean
+	local player = Players.LocalPlayer
+	return player ~= nil and player:GetAttribute("UltEquipped") == ""
+end
+
 -- Which piece shows now, and for whom (see the header).
 function UltHud.wantedMode(self: any, now: number): string
 	local s = self.snapshot
@@ -603,7 +611,7 @@ function UltHud.wantedMode(self: any, now: number): string
 	local shooting = s.shooter == self.userId and TURN_PHASES[s.phase] == true
 	-- Solo has ults "off" on the server (no bars), but shows the full bar for practice.
 	local on = ults.on == true or (s.solo ~= nil and Config.Ults.PracticeInSolo)
-	if not on or not shooting then
+	if not on or not shooting or UltHud.noneEquipped() then
 		return "none"
 	end
 	return "bar"
