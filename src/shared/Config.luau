@@ -12862,6 +12862,10 @@ Config.UI.UltScreen = {
 	-- buttons) or only for a VIP (Skip, Auto) just stay hidden when absent.
 	Open = {
 		OpenSeconds = 0.91,
+		-- The pieces wait this long, hidden, while the camera flies in (Stage.FlySeconds), and
+		-- start popping in as it arrives (designer, 2026-10-09: the camera "lerps smoothly but
+		-- also very fast ... instead of like instantly showing them the UI").
+		LeadSeconds = 0.3,
 		Steps = {
 			{ Ids = { "Current" }, Kind = "Pop", At = 0 },
 			{ Ids = { "UltIcon", "UltName" }, Kind = "Pop", At = 0.04 },
@@ -12933,6 +12937,11 @@ Config.UI.UltScreen = {
 		FillShare = 0.6,
 		LookUpShare = 0.14,
 		SwayStuds = 0.12, -- the camera drifts this much, slowly, so the stage feels alive
+		-- Opening flies the camera from where it was to the stage's view (and its field of view
+		-- to FieldOfView) over FlySeconds, fast off the mark and settling gently: 1 - (1 - t) ^
+		-- FlyPower (designer, 2026-10-09; it used to cut). Reduce Motion still cuts.
+		FlySeconds = 0.45,
+		FlyPower = 3,
 		SwaySeconds = 7,
 		-- Two small lights on the avatar (in its frame: x right, y up, z toward the camera),
 		-- gentle: the world's own light does most of it.

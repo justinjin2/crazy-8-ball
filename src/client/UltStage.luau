@@ -25,7 +25,8 @@
 -- (ViewTries directions), the first whose line from the avatar to the camera is clear of the
 -- world; boxed in on every side, the one with the most room, pulled in to fit.
 --
--- Opening cuts the camera there (Scriptable, driven every frame, with a slow drift) and closing
+-- Opening flies the camera there fast and smoothly (FlySeconds; Reduce Motion cuts), then drives
+-- it every frame (Scriptable, with a slow drift); closing
 -- puts it back exactly as it was (its type, subject, field of view, CFrame and focus), unless
 -- the match camera has taken it meanwhile (Camera.isLocked), which then keeps it. Everything
 -- built is client-side, anchored and non-colliding, and removed on close.
@@ -37,6 +38,7 @@ local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Camera = require(script.Parent.Camera)
+local UIAnim = require(script.Parent.UIAnim)
 local UltAura = require(script.Parent.UltAura)
 
 local ST = Config.UI.UltScreen.Stage
@@ -598,6 +600,10 @@ function UltStage.open(self: any, rarity: string?)
 	end
 	self:setRarity(rarity or self.rarity, false)
 	cam.CameraType = Enum.CameraType.Scriptable
+	-- The fly in starts where the player's camera was.
+	self.fly = if UIAnim.reduced()
+		then nil
+		else { clock = 0, from = self.saved.cframe, fov = self.saved.fov }
 	self.clock = 0
 	self.hideClock = 0
 	RunService:BindToRenderStep(
@@ -645,8 +651,22 @@ function UltStage.step(self: any, dt: number)
 		* ST.SwayStuds
 	local focus: Vector3 = self.focus
 	local eye = focus + toward * self.distance + drift
-	cam.FieldOfView = ST.FieldOfView
-	cam.CFrame = CFrame.lookAt(eye, focus)
+	local view = CFrame.lookAt(eye, focus)
+	local fov = ST.FieldOfView
+	local fly = self.fly
+	if fly then
+		-- Flying in: from the old camera to the view (which may still be moving: a fall).
+		fly.clock += dt
+		local t = math.clamp(fly.clock / ST.FlySeconds, 0, 1)
+		local e = 1 - (1 - t) ^ ST.FlyPower
+		view = (fly.from :: CFrame):Lerp(view, e)
+		fov = fly.fov + (fov - fly.fov) * e
+		if t >= 1 then
+			self.fly = nil
+		end
+	end
+	cam.FieldOfView = fov
+	cam.CFrame = view
 	cam.Focus = CFrame.new(focus)
 end
 

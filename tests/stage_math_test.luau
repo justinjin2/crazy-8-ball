@@ -115,6 +115,28 @@ return {
 		)
 	end,
 
+	["a lead holds every piece back that long, unscaled (the Abilities camera fly)"] = function()
+		local S, Config = load()
+		local M = Config.UI.Motion
+		local U = Config.UI.UltScreen
+		local open = U.Open
+		H.expect(open.LeadSeconds > 0, "the Abilities screen waits for its camera")
+		H.expect(
+			open.LeadSeconds < U.Stage.FlySeconds,
+			"the pieces start popping as the camera arrives, not after it stops"
+		)
+		local list, finish = S.schedule(open, M)
+		local bare = table.clone(open)
+		bare.LeadSeconds = nil
+		local plain, plainFinish = S.schedule(bare, M)
+		for i, e in list do
+			H.near(e.at, plain[i].at + open.LeadSeconds, 1e-9, e.id .. " waits the lead")
+		end
+		H.near(finish, plainFinish + open.LeadSeconds, 1e-9, "and lands that much later")
+		local slow = S.schedule(open, M, 2 * open.OpenSeconds)
+		H.near(slow[1].at, open.LeadSeconds, 1e-9, "the lead does not scale with the open")
+	end,
+
 	["the Free Reward menu's open names every piece it stages and lands its flair last"] = function()
 		local S, Config = load()
 		local M, F = Config.UI.Motion, Config.UI.FreeReward

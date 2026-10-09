@@ -286,16 +286,18 @@ function StageMath.lengthOf(kind: string, M: any): number
 end
 
 --- A screen's open schedule from its steps (Config.UI.Shop.Open): one entry per piece, its
---- start scaled by `openSeconds` / the steps' own OpenSeconds, staggered within its step.
+--- start scaled by `openSeconds` / the steps' own OpenSeconds, staggered within its step, all
+--- after the schedule's LeadSeconds (if any: everything waits hidden that long, unscaled).
 --- Returns the entries sorted by start, and when the last piece lands.
 function StageMath.schedule(open: any, M: any, openSeconds: number?): ({ Entry }, number)
 	local k = (openSeconds or open.OpenSeconds) / open.OpenSeconds
+	local lead = open.LeadSeconds or 0
 	local list: { Entry } = {}
 	for _, step in open.Steps do
 		local length = step.Length or StageMath.lengthOf(step.Kind, M)
 		local gap = M.Stagger * (step.Stagger or 1)
 		for i, id in step.Ids do
-			local at = step.At * k + (i - 1) * gap
+			local at = lead + step.At * k + (i - 1) * gap
 			table.insert(
 				list,
 				{ id = id, kind = step.Kind, at = at, length = length, burst = step.Burst }

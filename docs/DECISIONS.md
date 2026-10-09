@@ -3653,3 +3653,9 @@ timer of a new block stay the designer's call.
   the tile moves into its own ScreenGui (MenuColumnLinger, kept by the focus) at the same spot,
   stays 0.45 s over the blur playing its press (the CUES strike hits at 0.16 s, its ball is gone
   at 0.42 s), pops out and goes home (Config.UI.Menu.Column.LingerSeconds). Every tile does it.
+- 2026-10-09: Opening Abilities flies the camera in instead of cutting (designer: "lerps
+  smoothly but also very fast ... instead of like instantly showing them the UI"): from the
+  player's camera to the stage's view in 0.45 s, 1 - (1 - t)^3 (fast off the mark, settling),
+  its field of view easing 70 to 34 with it (Config.UI.UltScreen.Stage.FlySeconds, FlyPower;
+  Reduce Motion still cuts). The pieces wait hidden 0.3 s (Open.LeadSeconds, a lead StageMath
+  now supports for any screen) and pop in one by one as it arrives.
