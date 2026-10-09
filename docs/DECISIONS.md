@@ -3737,3 +3737,11 @@ timer of a new block stay the designer's call.
 - 2026-10-09: (run assumption) Tutorial v2: game 1's hidden help is one physics effect
   (Tutorial/Assist, "TutorialAssist") registered beside the abilities; on the ability turn the
   player's armed ability runs inside it.
+- 2026-10-09: Tutorial v2 plan approved by the designer with every recommended pick
+  (`~/Desktop/8ball-refs/tutorial/tutorial-v2-plan.html`): game 1's hidden help is today's
+  Magnet pull only on the two lesson shots (turn 2, the ability turn) and an invisible pull
+  (at most 10 degrees, no braking) everywhere else, with a 10-degree scratch guard; turn 2 at
+  the player's own power; the ricochet is honest luck (about 1%); game 1's length target is
+  about 4 minutes (median); the bot waits in a closed kiosk at (0, 36) (Plan B); Max Players
+  24 with the team-table backup; the tutorial block's Uncommon is the Cosmo Cue; arrow look A;
+  the like reward is removed (a polite ask stays); in-server rank windows 2/4/7/12 divisions.
