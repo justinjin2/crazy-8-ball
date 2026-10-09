@@ -72,11 +72,13 @@ function tests.every_level_has_its_look_and_the_assets_are_set()
 				string.match(C.Fire.Sheets[L.Fire], "^rbxassetid://%d+$") ~= nil,
 				"x" .. n .. " fire sheet id"
 			)
-			expect((C.Fire.TipPx[L.Fire] or 0) > 0, "x" .. n .. " flames' height (the duck)")
 		end
 		expect((L.Shake > 0) == (n >= 3), "the shake from x3")
 	end
 	expect(string.match(C.Burst.Image, "^rbxassetid://%d+$") ~= nil, "the burst id")
+	-- The low flames: the words' top row inside the frame, with room above it for the tips.
+	expect(C.Fire.TextTopPx > 0 and C.Fire.TextTopPx < C.Fire.FrameHeightPx, "the words' row")
+	expect(C.HideSeconds > 0 and C.HideSeconds < C.Step.InSeconds, "a quick step aside")
 	local Ui = H.require("Config").Audio.Ui
 	for n = 2, 8 do
 		expect(string.match(Ui["Streak" .. n].Id, "^rbxassetid://%d+$") ~= nil, "spray x" .. n)

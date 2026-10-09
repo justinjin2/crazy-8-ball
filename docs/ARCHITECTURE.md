@@ -285,8 +285,8 @@ separately from real multi-client playtests.
   commands; the giving ones designer-only, aimed at any player in the server by name).
 - Client: `Progression` (builds and routes everything below), `RankBadge` (one badge with its
   shine on a shared clock, used by every screen), `RankHud` (top left), `MoneyHud` (bottom
-  left), `CashFlyer` (the "+$10" chips), `StreakHud` (STREAK x1 to x8 under the match
-  popups; its curves in the shared, Lune-tested `StreakMath`), `Nameplates`, `ResultScreen`, `NewRankPopup`,
+  left), `CashFlyer` (the "+$10" chips), `StreakHud` (STREAK x1 to x8 in the match popups' row,
+  stepping aside for a popup; its curves in the shared, Lune-tested `StreakMath`), `Nameplates`, `ResultScreen`, `NewRankPopup`,
   `Roadmap`, `UISound`, `ChatTags` (the [TIER] tag before names in chat, from each speaker's
   RankTier attribute); MatchHUD shows a small badge under each portrait.
 

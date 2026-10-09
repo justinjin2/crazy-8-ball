@@ -34,8 +34,8 @@ One line each; the long form is the 2026-10-08 entry at the top of
 - **The player list like Roblox's**: hidden on a phone for now; a PC size not yet looked at.
 - **The matchmaking bar and spawn pill**: parked by the designer (2026-10-07); open: the spawn
   pill's 20 s, Play Global's X on a phone. **The queue portal**: not yet on a phone or gamepad.
-- **The ball streak** (2026-10-09; GDD 8, UI_STYLE 28, ECONOMY 3.1): STREAK x1 to x8, checked in
-  Studio with real shots; not yet on a real phone, and the spray over the pocket ding by ear.
+- **The ball streak** (2026-10-09; GDD 8, UI_STYLE 28, ECONOMY 3.1): STREAK x1 to x8 in the popup
+  row, low flames, YOUR TURN only for a new shooter; checked in Studio; not yet on a phone or by ear.
 - **Lighting**: day 10 min, sunset 5 min. **Pull cutscenes**: Mythic and Secret wait a redo.
 - **Our own lucky blocks** (all 12 kinds, 2D icons), **the Gift drop** (`/giftdrop`; a test
   Gift waits in the designer's Studio save) and **the Mystery block's upgrade screen**: not yet

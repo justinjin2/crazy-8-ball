@@ -8550,16 +8550,19 @@ Config.UI.VipTag = {
 -- a phone on its side (the HUD screen under Multiplayer.Style.ShortHeight, as the rank and money
 -- HUDs). A menu's slight dim is the roadmap's (Config.UI.Progress.Roadmap.Dim*). (tune)
 -- The ball streak (designer, 2026-10-09; src/client/StreakHud.luau, Rules/Streak; the approved
--- mockup https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T): "STREAK xN" in Press Start 2P under
--- the match popups for everyone seated at the table. Each level is a new colour and a little
--- bigger; from x3 the words burn (pixel fire sheets, tools/gui/streak_fire.py). Each step up
--- plays its spray (Config.Audio.Ui.Streak2..8), two white impact frames, a burst and pixel
--- shards, and from x3 a small camera shake that grows each level. It sits under the HUD (the
--- top bar and the popups draw over it) and never takes input. Sizes are px on a PC screen,
--- times ShortScale on a phone (Multiplayer.Style.ShortHeight). (tune)
+-- mockup https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T): "STREAK xN" in Press Start 2P in
+-- the match popups' row under the top bar, for everyone seated at the table; it steps aside
+-- while a popup shows there. Each level is a new colour and a little bigger; from x3 the words
+-- burn with low flames (pixel fire sheets, tools/gui/streak_fire.py). Each step up plays its
+-- spray (Config.Audio.Ui.Streak2..8), two white impact frames, a burst and pixel shards, and
+-- from x3 a small camera shake that grows each level. It sits under the HUD (the top bar
+-- draws over it) and never takes input. Sizes are px, times ShortScale on a phone
+-- (Multiplayer.Style.ShortHeight). (tune)
 Config.UI.Streak = {
 	Font = "rbxasset://fonts/families/PressStart2P.json", -- built into Roblox
-	GlyphPx = 26, -- a letter's width at x1 (the mockup's 26 px)
+	-- A letter's width at x1: its capitals about as tall as YOUR TURN's words (designer,
+	-- 2026-10-09: smaller and higher, it covered the far end of the table; it was 26).
+	GlyphPx = 18,
 	-- Press Start 2P's letters in Roblox (measured 2026-10-09 in Studio and from the font's
 	-- metrics): Advance of the TextSize wide, the capitals' top CapTopShare and their baseline
 	-- BaselineShare of the TextSize down from the label's top. A letter GlyphPx wide is
@@ -8567,11 +8570,13 @@ Config.UI.Streak = {
 	Advance = 0.55,
 	CapTopShare = 0.322,
 	BaselineShare = 0.82,
-	ShortScale = 0.66, -- on a phone
+	ShortScale = 1, -- on a phone: the popups keep their size there, and so does the streak
 	GrowPerLevel = 0.05, -- each level past x1 is 5% bigger: x8 is 1.35x
 	NumberScale = 1.25, -- "xN" is a quarter bigger than STREAK
-	-- Its top: under the popups' row (the foul popup's title and reason) below the top bar.
-	TopGapPx = 6,
+	-- Where: centred in the turn popup's row under the top bar (TurnPopupTitleSize + HeaderGap
+	-- tall). While a match popup shows there (YOUR TURN, a foul, YOU ARE SOLIDS) it fades out
+	-- over HideSeconds and pops back in (Step.In*) once the popup is gone (designer, 2026-10-09).
+	HideSeconds = 0.12,
 	ZIndex = 0, -- under every other piece of the match screen (theirs are 1 and up)
 	Ink = { 27, 32, 51 }, -- the outline (Kit Ink)
 	OutlineShare = 0.1, -- the ink outline's thickness, a share of GlyphPx (UIStroke, Miter)
@@ -8696,40 +8701,33 @@ Config.UI.Streak = {
 	-- The end (a miss, a foul, the turn passing): the fire sinks, the letters drop and fade.
 	FadeSeconds = 0.5,
 	FadeDropPx = 6,
-	-- The fire behind the words: one sheet per level (8 x 4 frames of 104 x 48 art pixels, 32
+	-- The fire behind the words: one sheet per level (8 x 4 frames of 104 x 24 art pixels, 32
 	-- frames at 30 fps, a seamless loop), drawn pixelated, scaled so its SpanPx art pixels span
-	-- the words, with art row TextTopPx at the words' top. It flares on a step (1 + FlareScale,
-	-- easing out at FlareDecay a second) and grows in over IgniteSeconds at x3.
+	-- the words, with art row TextTopPx at the words' top. Low flames hugging the words
+	-- (designer, 2026-10-09): x3's tips just peek over the letters, x8's rise about a letter.
+	-- It flares on a step (1 + FlareScale, easing out at FlareDecay a second) and grows in over
+	-- IgniteSeconds at x3.
 	Fire = {
 		Sheets = {
-			[3] = "rbxassetid://72574195944042", -- fire_x3.png
-			[4] = "rbxassetid://84706197548293", -- fire_x4.png
-			[5] = "rbxassetid://73491448189618", -- fire_x5.png
-			[6] = "rbxassetid://112121109510711", -- fire_x6.png
-			[7] = "rbxassetid://90228155596074", -- fire_x7.png
-			[8] = "rbxassetid://133344444134271", -- fire_x8.png
+			[3] = "rbxassetid://121954079483569", -- fire_x3.png
+			[4] = "rbxassetid://104584080293144", -- fire_x4.png
+			[5] = "rbxassetid://124207438998904", -- fire_x5.png
+			[6] = "rbxassetid://125076796510619", -- fire_x6.png
+			[7] = "rbxassetid://79671280496164", -- fire_x7.png
+			[8] = "rbxassetid://133867556750225", -- fire_x8.png
 		},
 		Columns = 8,
 		Rows = 4,
 		FrameWidthPx = 104,
-		FrameHeightPx = 48,
+		FrameHeightPx = 24,
 		Frames = 32,
 		Fps = 30,
 		SpanPx = 76,
-		TextTopPx = 35,
+		TextTopPx = 14,
 		Transparency = 0.04,
 		FlareScale = 0.45,
 		FlareDecay = 7,
 		IgniteSeconds = 0.4,
-		-- While a match popup shows above the words (YOUR TURN after every pot, a foul), the
-		-- flames duck so their tips stay ClearPx under it (fast, at DuckRate a second, as the
-		-- popup pops in at once) and grow back gently at GrowRate when it goes: the popups'
-		-- words never sit on fire. TipPx: how many art rows each sheet's tallest flame (embers
-		-- too) reaches above TextTopPx (measured from the sheets).
-		TipPx = { [3] = 10, [4] = 17, [5] = 20, [6] = 24, [7] = 29, [8] = 33 },
-		ClearPx = 4,
-		DuckRate = 30,
-		GrowRate = 6,
 	},
 	-- The white burst at a step (a ring and rays, tinted the new colour; 8 frames at 30 fps),
 	-- WidthShare of the words' width.

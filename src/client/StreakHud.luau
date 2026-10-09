@@ -4,11 +4,12 @@
 -- (Rules/Streak) and sends them in the shot every client replays (Match.streaks); this plays
 -- each step the moment the replay drops that ball, for a player seated at that table (both
 -- teams: everyone at the table sees and hears it).
--- - "STREAK xN" in Press Start 2P under the match popups, a TextLabel per letter: an ink
+-- - "STREAK xN" in Press Start 2P in the match popups' row under the top bar, stepping aside
+--   (fading out, popping back) while a popup shows there; a TextLabel per letter: an ink
 --   outline (UIStroke, Miter: the square pixel look), a two-tone fill, a drop shadow, and from
 --   x6 a cyan and a pink ghost. Each level a new colour, a little bigger, more movement
 --   (Config.UI.Streak.Levels: a beat pop, a smooth tilt, a wave in whole pixels, jitter).
--- - From x3 the pixel fire behind the words, one looping flipbook sheet per level.
+-- - From x3 low pixel flames behind the words, one looping flipbook sheet per level.
 -- - Each step: its spray (Config.Audio.Ui.Streak2..8; x1 none) over the pocket drop and its
 --   ding, a squash, two white impact frames, a punch out and settle (StreakMath.punch), the
 --   number slamming in, the burst ring, pixel shards, and from x3 a small camera shake
@@ -155,7 +156,8 @@ function StreakHud.new(screen: ScreenGui, hub: any, hud: any): any
 	self.fire = fire
 	self.fireLook = nil -- the level whose sheet plays
 	self.fireHandle = nil
-	self.duck = 1 -- the flames' height under a popup (Fire.DuckRate/GrowRate), 1 when none
+	self.hide = 0 -- 0 shown, 1 stepped aside for a match popup in its row (HideSeconds)
+	self.backT = nil :: number? -- seconds since it popped back in after a popup
 	local burst = image(words, "Burst", 5)
 	burst.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.burst = burst
@@ -383,15 +385,20 @@ function StreakHud.fadeOut(self: any)
 	table.clear(self.queue)
 end
 
-function StreakHud.clear(self: any)
-	self.phase, self.level, self.team = "off", 0, nil
-	table.clear(self.queue)
-	self.root.Visible = false
+function StreakHud.dropShards(self: any)
 	for _, s in self.shards :: { Shard } do
 		s.frame.Parent = nil
 		table.insert(self.pool, s.frame)
 	end
 	table.clear(self.shards)
+end
+
+function StreakHud.clear(self: any)
+	self.phase, self.level, self.team = "off", 0, nil
+	self.hide, self.backT = 0, nil
+	table.clear(self.queue)
+	self.root.Visible = false
+	self:dropShards()
 end
 
 -- Whether the streak shown has ended at table `seat`.
@@ -413,30 +420,26 @@ function StreakHud.ended(self: any, seat: number): boolean
 	return st ~= nil and st.after == 0 and st.seq == m.seq and (m.shot == nil or m.shot.finished)
 end
 
--- The words' top: under the popups' row (the foul popup's title and reason) below the top bar.
-function StreakHud.top(self: any): number
+-- The words' middle: the middle of the turn popup's row under the top bar.
+function StreakHud.middle(self: any): number
 	local hud = self.hud
 	local base = (hud and (hud.popupTop or hud.headerBottom)) or 0
-	return base + S.HeaderGap * 3 + S.FoulTitleSize + S.FoulReasonSize + C.TopGapPx
+	return base + S.HeaderGap + (S.TurnPopupTitleSize + S.HeaderGap) / 2
 end
 
--- The bottom of the match popup showing above the words (the turn or foul popup), in the
--- streak's own coordinates; nil when none shows.
-function StreakHud.popupBottom(self: any): number?
+-- Whether a match popup shows in the words' row (the turn popup, which also says YOU ARE
+-- SOLIDS, or the foul popup).
+function StreakHud.popupShowing(self: any): boolean
 	local hud = self.hud
 	if not hud then
-		return nil
+		return false
 	end
-	local bottom: number? = nil
 	for _, group in { hud.turnGroup, hud.foulGroup } do
 		if group and group.Visible then
-			local edge = group.AbsolutePosition.Y
-				+ group.AbsoluteSize.Y
-				- self.root.AbsolutePosition.Y
-			bottom = math.max(bottom or edge, edge)
+			return true
 		end
 	end
-	return bottom
+	return false
 end
 
 function StreakHud.frame(self: any, dt: number)
@@ -469,11 +472,33 @@ function StreakHud.frame(self: any, dt: number)
 			return
 		end
 	end
+	-- A popup in the row: step aside, then pop back in once it is gone (a step meanwhile still
+	-- plays its sound and shake, and comes back at its new level).
+	if self:popupShowing() then
+		self.hide = math.min(1, self.hide + dt / C.HideSeconds)
+		self.backT = nil
+	elseif self.hide > 0 then
+		self.hide, self.backT = 0, 0
+	end
+	local back = 1
+	if self.backT then
+		self.backT += dt
+		back = StreakMath.popIn(self.backT, STEP)
+		if self.backT >= STEP.InSeconds then
+			self.backT = nil
+		end
+	end
+	if self.hide >= 1 then
+		self.burstPending = nil -- no burst behind the popup
+		self:dropShards()
+		self.root.Visible = false
+		return
+	end
 	self.root.Visible = true
-	self:render(alpha, drop, dt)
+	self:render(alpha * (1 - self.hide), drop, dt, back)
 end
 
-function StreakHud.render(self: any, alpha: number, drop: number, dt: number)
+function StreakHud.render(self: any, alpha: number, drop: number, dt: number, back: number)
 	local level = self.level
 	local look = StreakMath.look(level, LEVELS)
 	local L = C.Levels[look]
@@ -499,7 +524,7 @@ function StreakHud.render(self: any, alpha: number, drop: number, dt: number)
 	local capH = (C.BaselineShare - C.CapTopShare) * T
 	local words: Frame = self.words
 	words.Size = UDim2.fromOffset(width, capH)
-	words.Position = UDim2.fromOffset(screenSize.X / 2, math.floor(self:top() + capH / 2))
+	words.Position = UDim2.fromOffset(screenSize.X / 2, math.floor(self:middle()))
 	-- The step's burst and shards start with this frame's geometry.
 	local numberX = numberLeft + #number * gn / 2
 	if self.burstPending then
@@ -520,7 +545,7 @@ function StreakHud.render(self: any, alpha: number, drop: number, dt: number)
 		else StreakMath.punch(self.tStep, STEP)
 	local clock = self.clock
 	local beat = if p.frozen then 0 else StreakMath.beat(clock, L.Beat[1], L.Beat[2]) * motion
-	self.scale.Scale = p.scale * (1 + beat)
+	self.scale.Scale = p.scale * (1 + beat) * back
 	words.Rotation = if p.frozen then 0 else L.Sway * motion * math.sin(clock * 2.1)
 	-- The fire: scaled so SpanPx art pixels span the words, its base row at their top.
 	local fire: ImageLabel = self.fire
@@ -529,21 +554,8 @@ function StreakHud.render(self: any, alpha: number, drop: number, dt: number)
 		local flare = if self.phase == "in"
 			then 1
 			else StreakMath.flare(self.tStep, self.ignite, FIRE, STEP.SquashSeconds)
-		-- Under a popup the flames duck so their tips stay clear of its words.
-		local ui = self.scale.Scale
-		local popup = self:popupBottom()
-		local target = 1
-		if popup then
-			local wordsTop = self:top() + capH / 2 * (1 - ui)
-			local tip = FIRE.TipPx[L.Fire] * art * flare * ui
-			target = math.clamp((wordsTop - popup - FIRE.ClearPx) / tip, 0, 1)
-		end
-		local rate = if target < self.duck then FIRE.DuckRate else FIRE.GrowRate
-		self.duck += (target - self.duck) * (1 - math.exp(-dt * rate))
-		fire.Size = UDim2.fromOffset(
-			FIRE.FrameWidthPx * art,
-			FIRE.FrameHeightPx * art * flare * self.duck * alpha
-		)
+		fire.Size =
+			UDim2.fromOffset(FIRE.FrameWidthPx * art, FIRE.FrameHeightPx * art * flare * alpha)
 		fire.Position = UDim2.fromOffset(width / 2, 0)
 		fire.ImageTransparency = 1 - (1 - FIRE.Transparency) * alpha
 	end

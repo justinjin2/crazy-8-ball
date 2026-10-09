@@ -174,6 +174,8 @@ local aimShot: AbilityFx.AimShot? = nil
 local controlled = false
 local lastTurnKey = ""
 local lastPhaseKey = ""
+local lastShooterKey = "" -- the table, game and shooter of the last turn
+local newShooter = false -- this turn's shooter differs from the last turn's (YOUR TURN's sound)
 local sinceAim = 0
 local lastAim: number? = nil
 local lastElevation: number? = nil
@@ -609,7 +611,7 @@ local function action(kind: string, value: any?)
 	end
 end
 hud = MatchHUD.new(screen, action)
--- The ball streak under the match popups (Rules/Streak decides it; each step plays as the
+-- The ball streak in the match popups' row (Rules/Streak decides it; each step plays as the
 -- replay drops its ball, from the per-table hook below).
 local streakHud = StreakHud.new(screen, hub, hud)
 padGuide:attachLeave(hud.leave) -- the Circle beside Leave
@@ -831,7 +833,7 @@ local function acquireTable(s: any?)
 		clearHighlights()
 		ballPulse:clear()
 		match, placement = nil, nil
-		lastTurnKey, lastPhaseKey = "", ""
+		lastTurnKey, lastPhaseKey, lastShooterKey = "", "", ""
 		if oldId and audioByTable[oldId] then
 			audioByTable[oldId]:resetStreak()
 		end
@@ -845,11 +847,14 @@ local function acquireTable(s: any?)
 		end
 		guideline = Guideline.new(visuals, placement)
 		Camera.setTable(placement)
-		lastTurnKey, lastPhaseKey = "", ""
+		lastTurnKey, lastPhaseKey, lastShooterKey = "", "", ""
 	end
 	local turnKey = ("%d:%d:%d"):format(s.id, s.epoch, s.turnId)
 	if turnKey ~= lastTurnKey then
 		lastTurnKey = turnKey
+		local shooterKey = ("%d:%d:%s"):format(s.id, s.epoch, tostring(s.shooter))
+		newShooter = shooterKey ~= lastShooterKey
+		lastShooterKey = shooterKey
 		awaitingAt = nil
 		input:resetSpin()
 		input:resetElevation()
@@ -877,7 +882,8 @@ local function acquireTable(s: any?)
 	local key = turnKey .. ":" .. s.phase
 	if key ~= lastPhaseKey then
 		lastPhaseKey = key
-		if s.phase == "Intro" and shooter() then
+		if s.phase == "Intro" and shooter() and newShooter then
+			-- Only when the table comes to you, as the turn popup (MatchHUD), not after each pot.
 			sound("YourTurn", M.YourTurnSound)
 		elseif s.phase == "Foul" and s.foul and s.foul.by == player.UserId then
 			sound("Foul", M.FoulSound, M.FoulSoundVolume)

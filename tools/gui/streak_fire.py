@@ -25,25 +25,29 @@ from PIL import Image
 FRAMES = 32  # one loop, 30 fps: about 1.07 s
 COLS = 8
 FRAME_W = 104  # art pixels: the words' 9.5 glyphs (76 px) and a margin each side
-FRAME_H = 48
-EMIT_Y = 36  # the flames' base line: one row into the words, so they rise out of the letters
-TEXT_TOP, TEXT_BOTTOM = 35, 43  # where the words sit in the frame (the font's 8-px cell)
+FRAME_H = 24
+# Low flames that hug the words (designer, 2026-10-09: the streak moved up into the popups'
+# row under the top bar, so there is little room above it): the base line sits near the
+# letters' bottom, the fire burns behind them and its tips peek over their top.
+EMIT_Y = 17  # the flames' base line: the letters' middle, so the hot core shows between them
+TEXT_TOP, TEXT_BOTTOM = 14, 22  # where the words sit in the frame (the font's 8-px cell)
 SEED = 8
 
-# Each level: reach (art px above the base line), the palette from rim to core, the emitter's
-# half width, turbulence, and how many embers rise. Levels grow hotter and taller.
+# Each level: reach (art px above the base line; the letters' top is 3 above it), the palette
+# from rim to core, the emitter's half width, turbulence, and how many embers rise. Levels
+# grow hotter and taller: x3's tips just peek over the letters, x8's rise about a letter.
 LEVELS = {
-    3: dict(reach=10, half=36, turb=0.55, embers=0,
+    3: dict(reach=6, half=36, turb=0.55, embers=0,
             pal=["#5c1200", "#d23a06", "#ff8a1a", "#ffd23f", "#fff6c8"]),
-    4: dict(reach=13, half=37, turb=0.6, embers=4,
+    4: dict(reach=7, half=37, turb=0.6, embers=4,
             pal=["#0b1a66", "#1d4fe0", "#2fa0ff", "#8fe3ff", "#f2fdff"]),
-    5: dict(reach=15, half=38, turb=0.65, embers=6,
+    5: dict(reach=8, half=38, turb=0.65, embers=6,
             pal=["#2a0a5c", "#6a1fd0", "#a35cff", "#dcb6ff", "#fbf3ff"]),
-    6: dict(reach=18, half=39, turb=0.7, embers=8,
+    6: dict(reach=9, half=39, turb=0.7, embers=8,
             pal=["#0a0004", "#3a0010", "#b00020", "#ff3048", "#ffd6dc"]),
-    7: dict(reach=21, half=40, turb=0.72, embers=10,
+    7: dict(reach=10, half=40, turb=0.72, embers=10,
             pal=["#7a4200", "#e09000", "#ffc61a", "#fff09a", "#ffffff"]),
-    8: dict(reach=24, half=41, turb=0.78, embers=14, rainbow=True,
+    8: dict(reach=11, half=41, turb=0.78, embers=14, rainbow=True,
             pal=["#3a0a5c", "#ff2d6f", "#ffb020", "#7dfcff", "#ffffff"]),
 }
 THRESHOLDS = [0.08, 0.3, 0.52, 0.72, 0.88]  # intensity edges of rim, outer, mid, hot, core
@@ -83,8 +87,8 @@ def fire_frames(level: int) -> list:
     rng = np.random.default_rng(SEED + level)
     # Two layers: big tongues and fine flicker, each scrolling up a whole number of its
     # periods per loop (1 and 2), so frame FRAMES is frame 0 again.
-    big = PeriodicNoise(rng, 20, 4, 5.0, 11.0)
-    fine = PeriodicNoise(rng, 35, 8, 3.0, 4.0)
+    big = PeriodicNoise(rng, 20, 4, 5.0, 6.0)
+    fine = PeriodicNoise(rng, 35, 8, 3.0, 3.0)
     ys, xs = np.mgrid[0:FRAME_H, 0:FRAME_W].astype(float)
     cx = FRAME_W / 2
     pal = [hex_rgb(c) for c in spec["pal"]]
@@ -183,16 +187,18 @@ def preview(frames: list, level: int, frame: int = 0, scale: int = 4) -> Image.I
     (a one-pixel square ink outline), upscaled with no smoothing."""
     from PIL import ImageDraw, ImageFont
 
-    base = Image.new("RGBA", (FRAME_W, FRAME_H), (64, 200, 245, 255))
+    pad = 4  # rows of table under the frame, so the letters' bottom shows
+    base = Image.new("RGBA", (FRAME_W, FRAME_H + pad), (64, 200, 245, 255))
     base.alpha_composite(Image.fromarray(frames[frame], "RGBA"))
-    big = base.resize((FRAME_W * scale, FRAME_H * scale), Image.NEAREST)
+    big = base.resize((FRAME_W * scale, (FRAME_H + pad) * scale), Image.NEAREST)
     words = f"STREAK x{level}"
     size = 64
     font = ImageFont.truetype(FONT, size)
     size = int(size * (FRAME_W - 26) * scale / font.getlength(words))  # the words span the flames
     font = ImageFont.truetype(FONT, size)
     width = font.getlength(words)
-    x0, y0 = (big.width - width) / 2, TEXT_TOP * scale
+    # The capitals' top on TEXT_TOP (PIL places text by its ascent box, not the cap top).
+    x0, y0 = (big.width - width) / 2, TEXT_TOP * scale - font.getbbox(words)[1]
     ink = Image.new("RGBA", big.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(ink)
     o = max(2, scale)

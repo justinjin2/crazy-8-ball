@@ -509,6 +509,7 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.groupEpoch = nil -- the match whose group reveal is being watched
 	self.knownGroup = nil -- our group in that match as last seen (nil: not decided yet)
 	self.turnKey = "" -- the turn the popup is for
+	self.turnShooter = "" -- the table, game and shooter it was for (a kept table pops no new one)
 	self.turnStart = 0 -- when it pops (after a foul popup, if one is up)
 	self.soloShown = nil -- the solo game whose one turn popup has played
 
@@ -1071,16 +1072,29 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 		self.foulReason.Text = Copy.FoulShort[reason] or ""
 	end
 	-- A new turn pops the turn popup: yours, an ally's or the opponent's. It waits for a foul
-	-- popup that is still up. Solo is always your turn, so only its first turn pops.
+	-- popup that is still up. Solo is always your turn, so only its first turn pops. Only when
+	-- the table comes to a new shooter: one who keeps it after a pot gets no popup again
+	-- (designer, 2026-10-09: the ball streak shows in this row meanwhile).
 	local turnKey = ("%d:%d"):format(snapshot.epoch, snapshot.turnId)
+	local shooterKey = ("%s:%d:%s"):format(
+		tostring(snapshot.id),
+		snapshot.epoch,
+		tostring(snapshot.shooter)
+	)
 	local phase = snapshot.phase
 	local shooting = phase == "Intro"
 		or phase == "Placement"
 		or phase == "PocketChoice"
 		or phase == "Aiming"
 	local soloKey = if snapshot.solo then tostring(snapshot.epoch) else nil
-	if shooting and self.turnKey ~= turnKey and (soloKey == nil or self.soloShown ~= soloKey) then
+	if
+		shooting
+		and self.turnKey ~= turnKey
+		and self.turnShooter ~= shooterKey
+		and (soloKey == nil or self.soloShown ~= soloKey)
+	then
 		self.turnKey = turnKey
+		self.turnShooter = shooterKey
 		self.soloShown = soloKey or self.soloShown
 		local now = workspace:GetServerTimeNow()
 		self.turnStart = math.max(now, self.foulUntil)

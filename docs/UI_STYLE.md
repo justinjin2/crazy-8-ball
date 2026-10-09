@@ -246,7 +246,8 @@ below are the summary; the skill has the numbers and code.
   shows while a clock runs. No names under the portraits (a rank badge goes there later).
 - **No status card** (designer, 2026-09-26): whose turn it is shows as a small popup under the
   bar for 2 s when a turn starts ("YOUR TURN" in green with the cue, "OPPONENT'S TURN",
-  "ALLY'S TURN"), like the foul popup but smaller. The same popup says "YOU ARE SOLIDS" or
+  "ALLY'S TURN"), like the foul popup but smaller; only when the table comes to a new shooter,
+  not again after each pot of a shooter who keeps it (designer, 2026-10-09; its sound too). The same popup says "YOU ARE SOLIDS" or
   "YOU ARE STRIPES" in gold, with a solid or striped ball, for 3.5 s when the break's first
   legal ball decides the groups (2026-09-27); during the turn, the shooter's green
   clock ring round the portrait shows it, draining with the clock. With ball in hand a blue
@@ -1166,13 +1167,17 @@ win track are press targets, not yet in the gamepad's route).
 The approved mockup: https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T. `StreakHud`,
 `StreakMath`, `Config.UI.Streak`, `Strings.Streak`; the rules in `Rules/Streak` (GDD section 8).
 
-- **Where**: centred just under the match popups' row (YOUR TURN, the foul popup's title and
-  reason, YOU ARE SOLIDS), over the far rail. It sits under the whole match HUD (ZIndex 0: the
-  top bar and the popups draw over it), never takes input, and hides with the HUD for menus.
+- **Where** (designer, 2026-10-09, after the first Studio build covered the far end of the
+  table): centred in the match popups' row just under the top bar, where YOUR TURN shows.
+  While a popup shows there (a new shooter's turn, a foul, YOU ARE SOLIDS) the streak fades
+  out in 0.12 s and pops back in when it goes; a step meanwhile still plays its sound and
+  shake. It sits under the whole match HUD (ZIndex 0), never takes input, and hides with the
+  HUD for menus.
 - **Words**: "STREAK" and "x2" in **Press Start 2P** (built into Roblox), one label per letter,
   the number a quarter bigger on the same baseline, a square ink outline (UIStroke, Miter), a
-  dark drop shadow and a light-topped fill (UIGradient). 26 px letters at x1 on a PC (two
-  thirds on a phone), 5% bigger each level (x8 is 1.35x).
+  dark drop shadow and a light-topped fill (UIGradient). 18 px letters at x1, the capitals
+  about as tall as YOUR TURN's words (the same on a phone, as the popups are), 5% bigger each
+  level (x8 is 1.35x).
 - **Each level's colour**: x1 white, x2 yellow, x3 orange, x4 blue, x5 purple, x6 red, x7 gold,
   x8 a moving rainbow, one hue per letter. From x6 a cyan and a pink copy sit either side of
   each letter (a spray-paint look). The motion grows each level: the beat, the sway, the
@@ -1181,12 +1186,11 @@ The approved mockup: https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T. `StreakH
   (Back), the number slamming in big and tilted, the burst (white ring and rays tinted the new
   colour) and pixel shards. Each step's spray is its level's (`Config.Audio.Ui.Streak2..8`);
   x1 has none. Two balls in one shot step twice, 0.12 s apart.
-- **Fire from x3**: a pixel flipbook behind the words (`tools/gui/streak_fire.py`: 32 frames at
-  30 fps, a seamless loop, drawn pixelated), its base hidden behind the letters, taller and
-  hotter each level: orange, blue, purple, black-red, gold-white, rainbow. It grows in at x3
-  and flares on every step. **Under a popup the flames duck** so their tips stay 4 px under
-  the popup's words, and grow back when it goes (YOUR TURN shows after every pot). With no
-  popup the tallest flames (x7, x8) reach behind the top bar, which draws over them.
+- **Fire from x3**: low pixel flames hugging the words (`tools/gui/streak_fire.py`: 32 frames
+  at 30 fps, a seamless loop, drawn pixelated; designer, 2026-10-09), burning behind the
+  letters from their middle: x3's tips just peek over them, each level taller and hotter, x8's
+  about a letter high (orange, blue, purple, black-red, gold-white, rainbow). Tips that reach
+  the top bar go behind it. It grows in at x3 and flares on every step.
 - **The shake** from x3: a tiny camera shake on each step, a little stronger each level
   (`ScreenFx.shake`).
 - **The end**: the fire sinks and the letters drop 6 px and fade over 0.5 s.

@@ -380,16 +380,18 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - A small VFX and a rewarding sound on every pocketed ball, bigger and flashier for the 8.
 - **Ball streak** (designer, 2026-10-09; the approved mockup
   https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T): "STREAK x1" up to **x8** in Press Start 2P,
-  just under the match popups (YOUR TURN, fouls, YOU ARE SOLIDS), seen and heard by everyone
-  seated at the table. Each ball the team pots in a row in its turn steps it up one; two balls in
+  about YOUR TURN's size, in the match popups' row under the top bar; while a popup shows there
+  (a new turn, a foul, YOU ARE SOLIDS) it steps aside and comes back after. Seen and heard by
+  everyone seated at the table. Each ball the team pots in a row in its turn steps it up one; two balls in
   one shot step twice. The break is x1 however many drop. A foul (its ball does not raise it), a
   shot that pots none of yours or the table passing ends it: it fades and starts again next turn.
   x1 is white and silent; each step after plays a Jet Set Radio spray over the pocket sounds
   (singles x2 to x7, the four-hit burst at x8), a new colour (white, yellow, orange, blue, purple,
   red, gold, rainbow), a slightly bigger size, white impact frames, a burst and pixel shards, and
-  the words move more each level. From **x3** the words burn with pixel fire (orange, blue,
-  purple, black-red, gold-white, rainbow), bigger each level, and each step gives a tiny camera
-  shake that grows each level. The flames duck under a popup so its words stay clear. Money is a
+  the words move more each level. From **x3** the words burn with low pixel flames hugging them
+  (orange, blue, purple, black-red, gold-white, rainbow), taller each level up to about a letter
+  at x8, and each step gives a tiny camera shake that grows each level. YOUR TURN pops only when
+  the table comes to a new shooter, not after each pot of a run. Money is a
   small bonus on each ball from x3, never a multiplier (section 12, ECONOMY 3.1).
 - **Trickshot bonuses:** extra money and a popup for bank shots (one or more rails before the
   pocket), combos (your ball knocks another in), and multi-ball shots ("Double", "Triple").
