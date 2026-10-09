@@ -69,6 +69,9 @@ export type Bot = {
 	seq: number?,
 	gone: boolean?,
 	lobby: boolean?, -- a lobby bot (LobbyBots): freed from a table, it stays in the lobby
+	-- Its owner's (TutorialBot): it never leaves by itself after a game; freed from its table
+	-- it stands where it is and this is called.
+	freed: ((any) -> ())?,
 }
 
 local bots: { [number]: Bot } = {}
@@ -242,10 +245,12 @@ end
 --- The tutorial's first opponent (the Tutorial lane): a Silver-badged bot with a real look and
 --- a made-up name, playing the tutorial script. Its first visit pots one of its balls, then
 --- scratches; its second knocks the 8 in early (AUGHHHH!, a jump, gone in mid-air). If it
---- wins anyway it asks for a rematch and plays the script again. Yields for its look.
-function BotService.tutorialBot(): Bot?
+--- wins anyway it asks for a rematch and plays the script again. Yields for its look
+--- (`avatar`: a look to wear instead, { userId?, description }).
+function BotService.tutorialBot(avatar: any?): Bot?
 	return BotService.spawn({
 		kind = "Tutorial",
+		avatar = avatar,
 		tier = B.Tutorial.FirstTier,
 		skill = B.Tutorial.Skill,
 		script = "Tutorial",
@@ -418,7 +423,7 @@ local function ended(bot: Bot, e: any)
 		reason = if e.result then e.result.reason else nil,
 		epoch = e.epoch,
 	})
-	if bot.script == "Tutorial" and not won then
+	if bot.script == "Tutorial" and not won and bot.freed == nil then
 		-- The tutorial bot loses: on its own early 8 it storms off (AUGHHHH!, a jump, gone);
 		-- if the player simply ran out, it leaves a moment later.
 		local early = e.result and (e.result.reason ~= "LegalEight")
@@ -504,9 +509,13 @@ local function poll(bot: Bot)
 	local seat = Engine.seat(e, bot.id)
 	if not seat then
 		-- The table moved on without it (the game's result reset the pad): it is done here.
-		-- A lobby bot goes back to the lobby; any other leaves.
+		-- An owned bot stands there for its owner; a lobby bot goes back to the lobby; any
+		-- other leaves.
 		bot.t = nil
-		if bot.lobby and BotService.onFreed then
+		if bot.freed then
+			BotService.unseat(bot)
+			bot.freed(bot)
+		elseif bot.lobby and BotService.onFreed then
 			BotService.unseat(bot)
 			BotService.onFreed(bot)
 		else

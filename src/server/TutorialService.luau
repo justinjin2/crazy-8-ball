@@ -34,6 +34,7 @@ local Rewards = require(script.Parent.Rewards)
 local Funnel = require(script.Parent.Funnel)
 local TutorialHints = require(script.Parent.TutorialHints)
 local TutorialGames = require(script.Parent.TutorialGames)
+local TutorialBot = require(script.Parent.TutorialBot)
 local Items = require(script.Parent.Items)
 local LuckyBlockService = require(script.Parent.LuckyBlockService)
 local UltSpins = require(script.Parent.UltSpins)
@@ -700,6 +701,8 @@ function TutorialService.start()
 				return TutorialService.dev(player, a)
 			elseif op == "funnel" then
 				return TutorialService.funnelLines(player)
+			elseif op == "bot" then
+				return TutorialBot.state(player)
 			elseif op == "fail" then
 				-- The fail-safe on purpose (QA): ends the tutorial as an error would.
 				TutorialService.fail(player, "QA", "a test failure")

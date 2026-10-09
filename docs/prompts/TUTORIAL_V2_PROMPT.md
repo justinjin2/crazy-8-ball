@@ -355,10 +355,11 @@ corner with a clear line). If it gets moved, the bot's misses may nudge it back 
   pocket glows**. Once they have zoomed out: "you can zoom in and out" (a short line).
 - **This shot should go in for almost everyone** (target: 90% or more of simulated new
   players).
-- **The ricochet:** after the pot, the cue ball comes back off a cushion and knocks another of
-  their solids in. It must look coincidental. That gives NICE SHOT! and the new "x2!" (4.11).
-  Target: 80% or more of the players who pot the first ball. The hidden help may bend the cue
-  ball's path slightly after the first pot, invisibly, if the layout alone can't reach that.
+- **The combination (replaces the ricochet; designer, 2026-10-09):** "if pocketing 2 balls in
+  one turn isn't doable", two of their balls sit close together, lined up with a corner pocket,
+  and they are encouraged to play the combination (hit one into the other, which drops). It
+  gives NICE SHOT!. No ricochet off a cushion into a second ball any more. (Run assumption: the
+  shot right after the aim lesson's pot, with a short pointer prompt.)
 
 **Turn 3: the ability:**
 - The next shot opens lined up so it's relatively easy (the aim starts near the nearest solid;
@@ -857,12 +858,12 @@ lines). All in the worktree.
   big text), the hand's gestures per device, Roblox's button images.
 - [x] 6. Controller shooting (4.10): R2/A hold-to-fill by default, versions B and C behind a
   Config switch, B to cancel, `PadGuide` and strings.
-- [ ] 7. The bot (4.3): warm load on join, out-of-sight waiting, natural walking, at most 2 s
+- [x] 7. The bot (4.3): warm load on join, roaming the server (designer: no hiding place), natural walking, at most 2 s
   of waiting, any empty table, waiting if they step off, leaving, cleanup.
 - [ ] 8. Game 1 (4.4):
   - the break;
   - aim and zoom;
-  - the ricochet and "x2!";
+  - the combination for NICE SHOT! (replaces the ricochet, designer 2026-10-09);
   - Fire Shot;
   - their own shots;
   - the bot's scripted visit and ball in hand;
@@ -1079,6 +1080,40 @@ lines). All in the worktree.
   cancels, Depth 0.8 shoots about 0.62. **The real controller is the designer's check** (all
   three versions; switch with `Shoot.Mode`).
 
+### Step 7: the bot (2026-10-09)
+
+- **The designer dropped the kiosk** (the plan's Plan B) mid-step: "he should just be roaming
+  around the server not coming out of a random elevator". The lift was built, then removed.
+- `TutorialBot` (server): one escort per tutorial player. The bot (`BotService.tutorialBot`) is
+  made the moment they reach the arrow, appears at a strolling spot at least 30 studs away and
+  as far off where they face as there is, and strolls round the roof (aisles between tables,
+  the walkway in front) only where it can reach every likely pad in time (`RoamReachStuds`:
+  every open 1v1 pad within 45 studs of the player). Walk speed 20.8 (the players').
+- **Timing** (`Tutorial/BotWalk`, pure, Lune-tested): it heads over once its walk would end 1 s
+  after the player arrives (never while they stand still), takes natural stops while early,
+  skips them while late, never steps on sooner than 0.5 s after them nor while they are still
+  moving (crossing a pad on the way elsewhere joins it for a moment). It stands 4 studs along
+  the pad from them, on its own side, and turns to the table as it arrives.
+- **Natural walking:** a path that sways, short stops, look-rounds (an AlignOrientation turns
+  the body; writing the root's CFrame stopped the walk), one jump on about a third of walks
+  (never near the end), fidgets while waiting. FallingDown and Ragdoll are off for it (a body
+  anchored at a table came back "fallen down" and could not walk for about 3 s).
+- **Switching, stepping off, path R:** a new heading must hold 0.6 s and the player be near
+  that pad, or far enough that it must leave now; a player who steps off finds it stepping off
+  too and waiting by the pad; a real person (or a game begun without it) sends it back to
+  strolling. After game 1 it stays by the table, idle, until the Rank step (NEW RANK!
+  dismissed), then says a line, walks 10-16 studs away and leaves the game; quietly when it
+  never played them or its player leaves. 6 s on the pad without it seats it directly (a last
+  resort, logged). `BotService`: an owned bot (`bot.freed`) never leaves by itself after a game.
+- **Pathfinding fix:** the match fences (PoolFence, only for seated players) blocked every path
+  onto a pad (NoPath), so the arrow and any bot walk went straight through tables. They carry a
+  PassThrough PathfindingModifier now (`TableService.buildFence`).
+- **Verified (Studio, PC; arrival = player on the pad to the bot on it):** table 3 1.13 s,
+  table 2 0.85 s and 1.33 s, a switch from 2 to 3 0.88 s, the back row (table 12) 1.75 s,
+  stepping off and back 0.77 s, path R back to strolling, a skip (leaves quietly), the forfeit
+  → Result → idle through the table's reset → Rank → its line and gone. A player crossing a pad
+  no longer starts a game.
+
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
 - `src/shared/Config.luau`: `Config.Tutorial.Assist` (the hidden help's numbers, Pull modes)
@@ -1096,6 +1131,10 @@ lines). All in the worktree.
 - `src/client/Input.luau`, `src/client/PadGuide.luau`, `docs/STUDIO_NOTES.md`: controller
   shooting for everyone (4.10): R2 or A hold-to-fill, versions B and C, B cancels a pull.
 - `tools/upload_manifest.json`: the arrow's two textures (arrow_chevron_up, arrow_head_up).
+- `src/server/Bots/BotService.luau`: `bot.freed` (an owned bot stands by its table for its owner
+  instead of leaving), `tutorialBot(avatar?)` (a fallback look); `Config.Bots.Tutorial.JoinDelay`
+  removed (the bot walks over now).
+- `src/server/TableService.luau`: the match fences pass through pathfinding.
 
 ---
 

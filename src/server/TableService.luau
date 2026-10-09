@@ -191,7 +191,9 @@ end
 -- participants stay near their table without being teleported: they walk into these like any
 -- wall. In the PoolFence collision group, which
 -- only collides with PoolParticipants, so spectators and people heading for a queue pass
--- straight through. CanQuery off keeps them out of camera occlusion and raycasts.
+-- straight through. CanQuery off keeps them out of camera occlusion and raycasts, and a
+-- PassThrough PathfindingModifier out of every path (the tutorial's bot and arrow walk to a
+-- pad inside them).
 local function buildFence(t: any, folder: Instance)
 	local F = M.Fence
 	local height = M.Barrier.HeightStuds
@@ -217,6 +219,9 @@ local function buildFence(t: any, folder: Instance)
 		part.Size = wall[2]
 		part.CFrame = base * CFrame.new(wall[1])
 		part.CollisionGroup = "PoolFence"
+		local modifier = Instance.new("PathfindingModifier")
+		modifier.PassThrough = true
+		modifier.Parent = part
 		part.Parent = folder
 	end
 end

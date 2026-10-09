@@ -6,7 +6,8 @@
 --   off it; TableService's `reservedFor`) and its id goes to the client (the player attribute
 --   TutorialTable; 0 while every table is taken). Stepping onto any pad moves to Pad: an empty
 --   1v1 table becomes the tutorial table; one where a real person waits is a fair game.
--- - Pad: alone on a 1v1 pad, the table is rigged and the tutorial bot comes (path S). A real
+-- - Pad: alone on a 1v1 pad, the table is rigged and the tutorial bot comes (path S; TutorialBot
+--   walks it over from where it strolls). A real
 --   person on the pad before the game starts makes it a fair game (path R): no rig, no hidden
 --   help. Walking off the pad goes back to the arrow.
 -- - Game1: the game started. Path S is the rigged game (Tutorial/Rig does the physics side,
@@ -20,7 +21,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Tables = require(script.Parent.TableService)
-local BotService = require(script.Parent.Bots.BotService)
+local TutorialBot = require(script.Parent.TutorialBot)
 local Funnel = require(script.Parent.Funnel)
 local PlayerData = require(script.Parent.PlayerData)
 local Simulation = require(Shared.Physics.Simulation)
@@ -44,27 +45,6 @@ local calling: { [Player]: boolean } = {}
 
 local function log(text: string)
 	print("[8ball] Tutorial: " .. text)
-end
-
----------------------------------------------------------------------------------------------
--- The opponent (the Bots lane's tutorial bot, behind one small interface)
----------------------------------------------------------------------------------------------
-
-local Opponent = {}
-
---- Brings game 1's opponent onto table `t`'s pad; the table starts by itself and the player
---- breaks. Yields for the bot's look; tries again a few times if Roblox answers nothing. True
---- when it was sent.
-function Opponent.join(t: any): boolean
-	for _ = 1, G.BotTries do
-		local bot = BotService.tutorialBot()
-		if bot then
-			BotService.joinTable(bot, t, { delay = Config.Bots.Tutorial.JoinDelay })
-			return true
-		end
-		task.wait(G.BotRetrySeconds)
-	end
-	return false
 end
 
 ---------------------------------------------------------------------------------------------
@@ -369,7 +349,8 @@ local function game1Over(player: Player, t: any?): boolean
 	return false
 end
 
--- Path S: a tutorial player alone on their pad gets the tutorial bot by itself.
+-- Path S: a tutorial player alone on their pad gets the tutorial bot (TutorialBot walks it
+-- over and sits it down; the table starts by itself once the pad is full).
 local function callOpponent(t: any, host: Player)
 	calling[host] = true
 	rig(t, host)
@@ -377,9 +358,8 @@ local function callOpponent(t: any, host: Player)
 	log(
 		("%s stepped on the pad at table %d: the tutorial bot comes"):format(host.Name, t.engine.id)
 	)
-	if not Opponent.join(t) then
-		calling[host] = nil
-		warn("[8ball] Tutorial: no tutorial bot came for " .. host.Name)
+	if not TutorialBot.come(host) then
+		warn("[8ball] Tutorial: no tutorial bot is ready for " .. host.Name)
 	end
 end
 
@@ -473,6 +453,7 @@ end
 --- guided, guard).
 function TutorialGames.start(tutorial: any)
 	service = tutorial
+	TutorialBot.start(tutorial, TutorialGames.reservedTable)
 	-- Nobody in the guided part sends or sees a Request opponent popup.
 	Tables.setRequestFilter(function(host: Player, player: Player): boolean
 		return not service.guided(host) and not service.guided(player)

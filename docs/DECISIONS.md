@@ -3759,3 +3759,13 @@ timer of a new block stay the designer's call.
   0.1 s does nothing; B during a pull calls it off (B leaves the table only when nothing is
   pulled). Versions B (trigger depth) and C (freeze, press again) sit behind
   `Config.Input.Gamepad.Shoot.Mode` for the designer to try with a real controller.
+- 2026-10-09: Tutorial v2 game 1's bot (designer): no hiding place and no lift on the roof (the
+  plan's Plan B kiosk is dropped). The bot joins the server when the player does, out of their
+  view, and strolls round the roof near the tables like any player, then walks over and steps
+  onto their pad 0.5-2 s after them. It stays within reach of every table the player is likely
+  to pick (`Config.Tutorial.Bot.RoamReachStuds`).
+- 2026-10-09: Tutorial v2 game 1's second ball (designer): no ricochet. Where two balls in one
+  shot can't be set up, two of the player's balls sit lined up with a corner pocket and the
+  player is encouraged to play the combination (one ball into the other, which drops); it earns
+  NICE SHOT!. (Run assumption, until the designer says otherwise: it is the shot right after
+  the aim lesson's pot, with a short pointer prompt; "x2!" stays as a match feature.)

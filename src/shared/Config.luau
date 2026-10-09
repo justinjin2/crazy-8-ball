@@ -13511,7 +13511,6 @@ Config.Bots = {
 		FirstTier = "Silver",
 		SecondTier = "Bronze",
 		Skill = "Bronze",
-		JoinDelay = 2, -- seconds from Request opponent until it appears on the pad
 	},
 	-- Rematch answers. A PC robot says yes at once once the player has; a disguised lobby bot
 	-- waits for the player, then answers after RematchDelay seconds, yes RematchAccept of the
@@ -13577,6 +13576,74 @@ Config.Tutorial = {
 		WatchSeconds = 0.25, -- how often the server looks at each tutorial player's table
 		BotTries = 3, -- asks for the tutorial bot's look this many times before giving up
 		BotRetrySeconds = 1,
+	},
+	-- Game 1's bot as a person (4.3; src/server/TutorialBot.luau, src/shared/Tutorial/BotWalk.luau,
+	-- the plan's bot-arrival model): it joins when the player does, strolls round the roof, and
+	-- steps onto their pad 0.5-2 s after them, walking like a player. Studs and seconds.
+	Bot = {
+		TickSeconds = 0.1, -- how often the server times each tutorial player's bot
+		-- Strolling round the roof before game 1 (the designer, 2026-10-09: no hiding place, it
+		-- roams the server like a player), among the aisles between the tables and the walkway
+		-- in front of the first row.
+		LikelyStuds = 45, -- the open 1v1 pads this near the player are where they will likely go
+		RoamReachStuds = 28, -- it strolls only where every likely pad is this near (in time for any)
+		RoamJitterStuds = 3, -- each stroll ends up to this far off its spot
+		RoamPauseSeconds = { 1.5, 4.5 }, -- it stands about this long between strolls
+		FrontStuds = 6, -- the walkway spots stand this far beyond the first row's pads
+		SpotNudgeStuds = 6, -- a spot with a planter on it moves this far aside
+		EntryMinStuds = 30, -- it joins at least this far from the player ...
+		EntryOffDegrees = 75, -- ... and this far off where they face (never seen appearing)
+		StraightFactor = 1.3, -- a walk round the tables is about this much longer than straight
+		RootHeight = 3, -- a standing body's root above the floor (Queue.RespawnHeight)
+		WalkSpeed = Config.Hub.WalkSpeed, -- a player's speed: at Roblox's 16 it looks slow and comes late
+		PlayerSpeed = Config.Hub.WalkSpeed, -- the speed it expects the player to walk at
+		Overhead = 1.2, -- its walk takes this much longer than a straight line (stops, curves)
+		LeadSeconds = 1, -- it aims to step on this long after the player
+		EarlySeconds = 0.4, -- more early than this, it takes a natural stop
+		MinAfterSeconds = 0.5, -- never steps on sooner than this after the player
+		SettledSpeed = 6, -- ... nor while they move faster than this (crossing the pad, not on it)
+		HeadingSpeed = 6, -- a player moving at least this fast is heading somewhere
+		HeadingDegrees = 35, -- ... toward a pad within this angle of their walk
+		RetargetSeconds = 0.6, -- a new heading must hold this long before the bot turns for it
+		RetargetEtaSeconds = 2.5, -- ... and the player be this close to that pad (a wander is no switch)
+		StoppedExtraSeconds = 0.5, -- a player standing still is this much further from a pad
+		SideStuds = 4, -- its spot on the pad: this far along from the player, on its own side
+		ClearStuds = 3, -- ... the other side when that is too near the pad's end
+		PadOffsetStuds = 5, -- nobody on the pad: this far along from the middle, at its end
+		PadEndStuds = 1.5, -- never nearer the pad's end than this
+		HoldStuds = 3, -- waits this far from the pad until the player is on it
+		ArriveStuds = 1.5, -- this close to a point of its walk, it heads for the next
+		StepOnStuds = 1.2, -- this close to its spot it steps on
+		StuckSeconds = 1.5, -- moved under StuckStuds in this long: it plans its walk again
+		StuckStuds = 1,
+		GiveUpSeconds = 6, -- the player on the pad this long without it: it is seated (a last resort)
+		AgentRadius = 2, -- its walks keep this far from walls and tables (PathfindingService)
+		AgentHeight = 5,
+		-- Walking like a player (seconds unless noted; pairs are a random range).
+		Natural = {
+			PauseEverySeconds = { 1.2, 2.6 }, -- a short stop this often while walking
+			PauseSeconds = { 0.15, 0.4 },
+			EarlyPauseSeconds = 0.3, -- the stop it takes while early
+			CurveStuds = 0.8, -- its walk sways sideways up to this far (never perfectly straight)
+			CurveWaveStuds = 16, -- ... one sway every this many studs walked
+			LookChancePerSecond = 0.3, -- a look round while walking (the body turns, shift-lock style)
+			LookDegrees = { 30, 65 },
+			LookSeconds = { 0.4, 0.9 },
+			TurnSeconds = 0.25, -- a turn of the body takes this long
+			JumpChance = 0.35, -- one jump on this share of its walks
+			JumpMinStuds = 12, -- only on a walk this long, mid-way
+			JumpClearStuds = 10, -- ... and never this close to its end
+			FaceStuds = 3, -- this close to its spot it turns to face the table
+			FacedDegrees = 20, -- facing the table within this, it steps on without turning
+			FidgetEverySeconds = { 1.8, 4.5 }, -- while it waits: a turn, a step, a look
+			FidgetStepStuds = 1.5,
+			FidgetJumpChance = 0.08,
+		},
+		-- Its look when no real avatar could be had (a plain starter look; RGB).
+		PlainLook = { Skin = { 245, 205, 48 }, Torso = { 13, 105, 172 }, Legs = { 75, 151, 75 } },
+		LineSeconds = 2.5, -- after NEW RANK!: its parting line stays readable this long
+		LeaveStuds = { 10, 16 }, -- then it walks this far away and leaves the game
+		LeaveSeconds = 1.6, -- ... or leaves after this long, wherever it got to
 	},
 	-- Tutorial v2's timing per step (docs/prompts/TUTORIAL_V2_PROMPT.md 7.1, the approved
 	-- plan's step table): a re-prompt (the hand pulses, the line pops again) after
