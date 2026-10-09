@@ -9,71 +9,49 @@
     "Uncommon": 9
   },
   "BlockOdds": {
-    "Climb": {
-      "Luck": {
-        "Seconds": 2592000,
-        "Steps": {
-          "Epic": 150000,
-          "Rare": 270000
-        },
-        "With": "GrandOpening"
-      },
-      "Rarity": {
-        "Epic": "Epic",
-        "Legendary": "Legendary",
-        "Mythic": "Mythic",
-        "Rare": "Rare",
-        "Secret": "Secret",
-        "Standard": "Common",
-        "Uncommon": "Uncommon"
-      },
-      "Steps": {
-        "Epic": 100000,
-        "Legendary": 150000,
-        "Mythic": 25000,
-        "Rare": 180000,
-        "Standard": 500000,
-        "Uncommon": 350000
-      },
-      "Tiers": [
-        "Standard",
-        "Uncommon",
-        "Rare",
-        "Epic",
-        "Legendary",
-        "Mythic",
-        "Secret"
-      ]
-    },
     "Drop": {
       "FirstWin": "Rare",
-      "PityEpic": 40,
+      "PityEpic": 100,
       "PityRare": 10,
-      "PityStart": {
-        "SinceEpic": 10,
-        "SinceRare": 2
-      },
       "Upgrade": {
+        "Chances": {
+          "Epic": 20000,
+          "Legendary": 10000,
+          "Rare": 10000,
+          "Standard": 70000,
+          "Uncommon": 40000
+        },
         "Clicks": 4
       },
+      "Weights": {
+        "Epic": 4200,
+        "Legendary": 500,
+        "Mythic": 100,
+        "Rare": 95200,
+        "Standard": 500000,
+        "Uncommon": 400000
+      },
       "WinTrack": [
+        "Rare",
+        "Mystery",
+        "Mystery",
         "Uncommon",
-        "Money",
-        "Money",
         "Mystery",
-        "Money",
-        "Money",
         "Mystery",
-        "Money",
-        "Money",
+        "Rare",
+        "Mystery",
+        "Mystery",
         "Epic"
-      ],
-      "WinTrackMoney": 1000
+      ]
     },
     "List": {
       "Epic": {
         "Odds": {
-          "Epic": 1000000
+          "Epic": 210000,
+          "Legendary": 15000,
+          "Mythic": 1800,
+          "Rare": 773000,
+          "Secret": 200
         }
       },
       "GrandOpening": {
@@ -93,22 +71,49 @@
       },
       "Legendary": {
         "Odds": {
-          "Legendary": 1000000
+          "Epic": 720000,
+          "Legendary": 250000,
+          "Mythic": 27000,
+          "Secret": 3000
         }
       },
       "Mythic": {
         "Odds": {
-          "Mythic": 1000000
+          "Legendary": 720000,
+          "Mythic": 250000,
+          "Secret": 30000
         }
       },
       "Rare": {
         "Odds": {
-          "Rare": 1000000
+          "Epic": 9000,
+          "Legendary": 900,
+          "Mythic": 90,
+          "Rare": 310000,
+          "Secret": 10,
+          "Uncommon": 680000
+        }
+      },
+      "Sky": {
+        "Odds": {
+          "Common": 450000,
+          "Epic": 4500,
+          "Legendary": 450,
+          "Mythic": 45,
+          "Rare": 95000,
+          "Secret": 5,
+          "Uncommon": 450000
         }
       },
       "Standard": {
         "Odds": {
-          "Common": 1000000
+          "Common": 725000,
+          "Epic": 900,
+          "Legendary": 90,
+          "Mythic": 9,
+          "Rare": 24000,
+          "Secret": 1,
+          "Uncommon": 250000
         }
       },
       "Starter": {
@@ -122,7 +127,13 @@
       },
       "Uncommon": {
         "Odds": {
-          "Uncommon": 1000000
+          "Common": 400000,
+          "Epic": 1800,
+          "Legendary": 180,
+          "Mythic": 18,
+          "Rare": 58000,
+          "Secret": 2,
+          "Uncommon": 540000
         }
       }
     },
@@ -205,7 +216,7 @@
       },
       "ROOFTOP": {
         "Blocks": {
-          "Uncommon": 1
+          "Rare": 1
         },
         "Expires": 1798761600
       },
@@ -225,7 +236,7 @@
       },
       {
         "Blocks": {
-          "Rare": 1
+          "Epic": 1
         }
       },
       {
@@ -237,17 +248,19 @@
         }
       },
       {
-        "Money": 15000
-      },
-      {
         "Blocks": {
-          "Mystery": 2
+          "Rare": 1
         }
       },
       {
-        "Cues": [
-          "WeekOneCue"
-        ],
+        "Blocks": {
+          "Mystery": 3
+        }
+      },
+      {
+        "Blocks": {
+          "Legendary": 1
+        },
         "Spins": 2
       }
     ],
@@ -265,16 +278,22 @@
         "Minutes": 15
       },
       {
-        "Minutes": 30,
-        "Money": 2500
+        "Blocks": {
+          "Mystery": 1
+        },
+        "Minutes": 30
       },
       {
-        "Minutes": 45,
-        "Money": 3500
+        "Blocks": {
+          "Mystery": 1
+        },
+        "Minutes": 45
       },
       {
+        "Blocks": {
+          "Rare": 1
+        },
         "Minutes": 60,
-        "Money": 5000,
         "Spins": 1
       }
     ],
@@ -284,7 +303,7 @@
       },
       {
         "Blocks": {
-          "Mystery": 1
+          "Rare": 1
         }
       },
       {
@@ -292,7 +311,7 @@
       },
       {
         "Blocks": {
-          "Mystery": 1
+          "Mystery": 2
         }
       },
       {
@@ -300,12 +319,12 @@
       },
       {
         "Blocks": {
-          "Mystery": 1
+          "Mystery": 3
         }
       },
       {
         "Blocks": {
-          "Rare": 1
+          "Epic": 1
         },
         "Spins": 2
       }
@@ -317,7 +336,7 @@
       },
       {
         "Blocks": {
-          "Rare": 1
+          "Epic": 1
         },
         "Day": 14
       },
@@ -327,14 +346,14 @@
       },
       {
         "Blocks": {
-          "Epic": 1
+          "Legendary": 1
         },
         "Day": 28
       }
     ],
     "TrackDays": 28,
     "VipBlocks": {
-      "Uncommon": 1
+      "Rare": 1
     }
   },
   "DifficultyMoney": {
@@ -433,19 +452,9 @@
       }
     }
   },
-  "IndexCues": {
-    "Common": 7,
-    "Epic": 9,
-    "Legendary": 8,
-    "Mythic": 3,
-    "Rare": 10,
-    "Secret": 1,
-    "Uncommon": 9
-  },
   "LuckyBlocks": {
     "Kinds": {
       "Epic": {
-        "Climb": "Epic",
         "Icon": "rbxassetid://90574468724799",
         "Idle": "rbxassetid://126596744037463",
         "Model": "EpicBlock",
@@ -453,15 +462,14 @@
         "Timer": 1800
       },
       "Gift": {
-        "Climb": "Uncommon",
         "HoldCenterShare": 0.39,
         "Icon": "rbxassetid://78700846306745",
         "IconScale": 1.1,
         "Idle": "rbxassetid://126596744037463",
         "Model": "GiftBlock",
+        "Odds": "Rare",
         "SizeMultiplier": 1.28,
-        "Timer": 0,
-        "Wait": 43200
+        "Timer": 43200
       },
       "GrandOpening": {
         "Guarantee": {
@@ -478,7 +486,6 @@
         "Timer": 0
       },
       "Legendary": {
-        "Climb": "Legendary",
         "HoldCenterShare": 0.185,
         "Icon": "rbxassetid://128589483213137",
         "IconScale": 2.2,
@@ -489,23 +496,20 @@
         "Timer": 21600
       },
       "Lucky8": {
-        "Climb": "Uncommon",
         "Icon": "rbxassetid://118551627638397",
         "Idle": "rbxassetid://126596744037463",
         "Model": "EightBallBlock",
+        "Odds": "Rare",
         "Timer": 0
       },
       "Mystery": {
-        "Climb": "Standard",
         "Icon": "rbxassetid://76412774878315",
         "Idle": "rbxassetid://126596744037463",
         "Model": "MysteryBlock",
-        "Pity": true,
         "Roll": true,
         "Timer": 0
       },
       "Mythic": {
-        "Climb": "Mythic",
         "HoldCenterShare": 0.185,
         "Icon": "rbxassetid://125009619556113",
         "IconScale": 2.2,
@@ -517,7 +521,6 @@
         "Timer": 43200
       },
       "Rare": {
-        "Climb": "Rare",
         "Icon": "rbxassetid://114285593441963",
         "Idle": "rbxassetid://126596744037463",
         "Model": "RareBlock",
@@ -525,17 +528,16 @@
         "Timer": 300
       },
       "Sky": {
-        "Climb": "Standard",
         "HoldCenterShare": 0.35,
         "Icon": "rbxassetid://75262912311625",
         "IconScale": 1.6,
         "Idle": "rbxassetid://90314042377562",
         "Model": "SkyBlock",
+        "Odds": "Sky",
         "SizeMultiplier": 2,
         "Timer": 0
       },
       "Standard": {
-        "Climb": "Standard",
         "Icon": "rbxassetid://125706639188399",
         "Idle": "rbxassetid://126596744037463",
         "Model": "StandardBlock",
@@ -553,7 +555,6 @@
         "Timer": 0
       },
       "Uncommon": {
-        "Climb": "Uncommon",
         "Icon": "rbxassetid://119408380665005",
         "Idle": "rbxassetid://126596744037463",
         "Model": "UncommonBlock",
@@ -576,10 +577,6 @@
       "Gift"
     ],
     "Skips": [
-      {
-        "Product": "LuckyBlockSkip1",
-        "UpTo": 300
-      },
       {
         "Product": "LuckyBlockSkip",
         "UpTo": 1800
@@ -635,18 +632,18 @@
     "GoldenShot": {
       "Blue": {
         "Blocks": {
-          "Uncommon": 1
+          "Rare": 1
         }
       },
       "Gold": {
         "Blocks": {
-          "Rare": 1
+          "Rare": 2
         },
         "Money": 25000
       },
       "Grey": {
         "Blocks": {
-          "Mystery": 1
+          "Uncommon": 1
         },
         "Money": 7500
       },
@@ -655,7 +652,7 @@
       },
       "Red": {
         "Blocks": {
-          "Uncommon": 1
+          "Rare": 1
         },
         "Money": 10000
       },
@@ -676,7 +673,7 @@
       },
       "Gold": {
         "Blocks": {
-          "Uncommon": 1
+          "Rare": 1
         }
       },
       "Grey": {
@@ -736,9 +733,6 @@
     "LuckyBlockSkip": {
       "Robux": 4
     },
-    "LuckyBlockSkip1": {
-      "Robux": 1
-    },
     "LuckyBlockSkip15": {
       "Robux": 15
     },
@@ -752,15 +746,11 @@
       "Robux": 5
     },
     "Mystery10": {
-      "Retired": true,
       "Robux": 45
     },
     "Mystery10Sale": {
       "Retired": true,
       "Robux": 160
-    },
-    "Mystery5": {
-      "Robux": 45
     },
     "Pack1": {
       "Money": 10000,
@@ -1104,7 +1094,7 @@
       "Mystery": {
         "Kind": "Mystery",
         "Money": [
-          14900
+          4900
         ],
         "Products": [
           "Mystery1"
@@ -1112,14 +1102,14 @@
       }
     },
     "LaunchBonus": {
-      "MysteryBulkCount": 6,
+      "MysteryBulkCount": 13,
       "Percent": 30,
       "With": "GrandOpening"
     },
     "Mystery": {
-      "BulkCount": 5,
-      "BulkPrice": 66900,
-      "Price": 14900
+      "BulkCount": 10,
+      "BulkPrice": 44100,
+      "Price": 4900
     },
     "Restock": {
       "Announce": {
@@ -1129,12 +1119,12 @@
       "ChanceTotal": 10000,
       "Kinds": {
         "Epic": {
-          "Price": 249000,
+          "Price": 199000,
           "Product": "RestockEpic",
           "Stock": 1
         },
         "Legendary": {
-          "Price": 1290000,
+          "Price": 1490000,
           "Product": "RestockLegendary",
           "Stock": 1
         },
@@ -1144,32 +1134,25 @@
           "Stock": 1
         },
         "Rare": {
-          "Price": 49900,
+          "Price": 19900,
           "Product": "RestockRare",
           "Stock": 2
         }
       },
       "Odds": {
-        "Epic": 3400,
-        "Legendary": 950,
-        "Mythic": 150,
-        "Rare": 5500
+        "Epic": 1200,
+        "Legendary": 95,
+        "Mythic": 5,
+        "Rare": 8700
       },
       "ReceiptGraceSeconds": 600,
-      "SlotOdds": [
-        {
-          "Epic": 7556,
-          "Legendary": 2111,
-          "Mythic": 333
-        }
-      ],
       "SlotSeconds": 600,
-      "Slots": 2,
+      "Slots": 3,
       "VipOdds": {
-        "Epic": 4000,
-        "Legendary": 1600,
-        "Mythic": 400,
-        "Rare": 4000
+        "Epic": 1700,
+        "Legendary": 280,
+        "Mythic": 20,
+        "Rare": 8000
       }
     },
     "StarterMoney": 25000
@@ -1183,10 +1166,10 @@
     },
     "GroupReward": {
       "Blocks": {
-        "Mystery": 2
+        "Mystery": 3
       }
     },
-    "InviteBlock": "Uncommon",
+    "InviteBlock": "Rare",
     "InvitesPerMonth": 5
   },
   "Ults": {

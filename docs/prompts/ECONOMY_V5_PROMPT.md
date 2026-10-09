@@ -293,7 +293,7 @@ perk text. Don't change any of these products: the designer approves them later.
 - [x] 9. Quick reveal and "Open all" (3.8).
 - [x] 10. The "1 in N" (3.9).
 - [x] 11. Trade (3.10).
-- [ ] 12. The model v5, `economy_config.json`, the copy-number timeline (3.11).
+- [x] 12. The model v5, `economy_config.json`, the copy-number timeline (3.11).
 - [ ] 13. The docs (3.11) and the hand-off file (section 4).
 - [ ] 14. The Robux proposal file (6.2), with no product changes.
 - [ ] 15. The report (section 7) and `STATUS.md`.
@@ -371,3 +371,9 @@ perk text. Don't change any of these products: the designer approves them later.
 - Step 11: `Trade.blockWorth(kind, copies, climbed)` (step 3), `Config.Trade.BlockExists`
   from `tools/economy_model.py exists` at day 30 (v5), new `ClimbedExists`; the worth fallback
   reads the climbed table for "Climbed:" items. The model's port is step 12's commit.
+- Step 12: the model's runs are in `~/Desktop/8ball-refs/economy/v5-build/` (`model_v5.txt`,
+  `model_compare.txt`, `model_copies.txt`, `model_tables.txt`, `model_value.txt`,
+  `model_sell.txt`, `model_exists.txt`, `model_players.txt`). Default run within about a point
+  of plan 7.1 everywhere; `--sell` matches `economy_v5_sell.txt`. Small known differences from
+  the plan's run: the pity head start (now in Config), the Robux Mystery bundle (5 for 45 R$
+  in Config, 10 for 45 in the plan's run) and the restock's Robux prices (v4's in Config).

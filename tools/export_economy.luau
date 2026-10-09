@@ -11,11 +11,17 @@ local H = require("../tests/harness")
 local Config = H.require("Config")
 local Catalog = H.require("Progression.Catalog")
 
--- Block cues that can drop, by rarity (an Index row is complete once each one is owned).
+-- Block cues that can drop, by rarity (the cues a block of that rarity splits between). A
+-- block cue in no odds row (the Week One Cue, economy v5) drops from nothing: it is counted
+-- apart, in IndexCues (an Index row is complete once each of its cues is owned).
 local blockCues = {}
+local indexCues = {}
 for _, cue in Catalog.list() do
 	if cue.Group == "Block" and not cue.Vaulted then
-		blockCues[cue.Rarity] = (blockCues[cue.Rarity] or 0) + 1
+		indexCues[cue.Rarity] = (indexCues[cue.Rarity] or 0) + 1
+		if #cue.Blocks > 0 then
+			blockCues[cue.Rarity] = (blockCues[cue.Rarity] or 0) + 1
+		end
 	end
 end
 
@@ -27,8 +33,9 @@ local out = {
 		Order = Config.BlockOdds.Order,
 		Rarities = Config.BlockOdds.Rarities,
 		OddsTotal = Config.BlockOdds.OddsTotal,
-		List = Config.BlockOdds.List, -- each odds row's Odds
-		Drop = Config.BlockOdds.Drop, -- the Mystery block's weights, pity, the first win's kind
+		List = Config.BlockOdds.List, -- each odds row's Odds (a block tier's: its climbed block)
+		Climb = Config.BlockOdds.Climb, -- the climb ladder and the Grand Opening Luck (economy v5)
+		Drop = Config.BlockOdds.Drop, -- pity, its head start, the first win's kind, the win track
 		SellBack = Config.BlockOdds.SellBack,
 	},
 	LuckyBlocks = {
@@ -38,6 +45,7 @@ local out = {
 		Skips = Config.LuckyBlocks.Skips, -- the skip product by time left
 	},
 	BlockCues = blockCues,
+	IndexCues = indexCues,
 	Daily = {
 		FirstWeek = Config.Daily.FirstWeek, -- the first 7 login days within FirstWeekWindow of joining
 		FirstWeekWindow = Config.Daily.FirstWeekWindow,
