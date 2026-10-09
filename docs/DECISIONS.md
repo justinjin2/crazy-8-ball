@@ -3707,3 +3707,7 @@ timer of a new block stay the designer's call.
   (they stayed until the shooter's next turn). The designer: "make the aiming lines ... like
   the regular aiming lines but orange", "add a flame trail behind it", "make the scortch marks
   less noticeable ... disappear soon after they appear like 1 second".
+- 2026-10-09: Verity's sounds: pressed, the designer's "Hello, I'm Verity!" (71231208892767, its
+  first 1.95 s, where the words end); the monster's arrival, the designer's 135866700568043
+  (was a swell); the chomp, gulp and bumps stay; her laugh and the burp are gone (designer:
+  "get rid of the like laughing stock sfx ... burping sfx too its gross"). Their animations stay.

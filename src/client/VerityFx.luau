@@ -9,19 +9,21 @@
 -- the smiley ball's map in Config.Ults.Assets.Images.
 --
 --   * Armed: the cue ball is the yellow smiley Verity ball, its face turned to the camera,
---     swaying; her line plays ("Hi, I'm Verity! Trust me, I know everything!").
+--     swaying; her line plays ("Hello, I'm Verity!", the designer's clip, 2026-10-09).
 --   * The first bite (the first "eat"): a red flash and the smiley turns evil. She swells to
 --     her body's size (Config.Ults.Verity.BodyRadiusInches), her creepy face (hollow eyes, a
 --     huge smile of a mouth hanging open) turned to each viewer's camera, which pushes in on it
 --     for about a second under a darker grade. The ball she hit pops up in front of her face,
 --     her jaws gape, suck it in and slam shut (a crunch, a shake, crumbs); she chews twice,
---     gulps, and laughs.
+--     gulps, and shakes with a silent laugh (the laugh's sound went, 2026-10-09). Her arrival
+--     plays the designer's monster clip.
 --   * The roll ("roll"): she turns to her heading and rolls on, bouncing and chomping. Every
 --     ball she touches is bumped aside with a boing ("bump"; she eats nothing more since the
 --     designer's third round, 2026-10-08); she hops over the 8 ("hop"). The balls she shoved
 --     as she swelled get a puff ("shove").
---   * The landing ("land"): she skids onto the cue ball's spot, turns to the camera, burps,
---     and shrinks back into the smiley ball.
+--   * The landing ("land"): she skids onto the cue ball's spot, turns to the camera, gapes in
+--     a silent burp (its sound went, 2026-10-09: "its gross"), and shrinks back into the
+--     smiley ball.
 --   * The refusal ("refuse", the 8 before it is yours): the smiley shakes its head: NOT THE 8!
 -- Every table's parts hang off its AbilityFx anchor and go with it (kit.onRelease) or with
 -- clear(). Without the model she is the smiley ball swollen up (no jaws); the rest still plays.
@@ -863,12 +865,6 @@ local function stepAct(
 	if moment("gulp", F.GulpAt) then
 		playAt(self, id, A.VerityGulp, act.pos)
 	end
-	if moment("laugh", F.LaughAt) then
-		playAt(self, id, A.VerityLaugh, act.pos)
-	end
-	if landAt and moment("burp", landAt - act.born + F.BurpAfter) then
-		playAt(self, id, A.VerityBurp, act.pos)
-	end
 	-- Dust off the cloth while she rolls.
 	if rollAt and landAt == nil and fx.clock >= act.nextDust then
 		act.nextDust = fx.clock + F.RollDustSeconds
@@ -977,17 +973,14 @@ function VerityFx.start(hub: any, _parent: Instance, kit: any): VerityFx
 	end)
 	task.spawn(function()
 		local list: { Instance } = {}
-		for _, clip in
-			{
-				A.VerityLine,
-				A.VeritySwell,
-				A.VerityChomp,
-				A.VerityGulp,
-				A.VerityLaugh,
-				A.VerityBonk,
-				A.VerityBurp,
-			}
-		do
+		local clips: { any } = {
+			A.VerityLine,
+			A.VeritySwell,
+			A.VerityChomp,
+			A.VerityGulp,
+			A.VerityBonk,
+		}
+		for _, clip in clips do
 			local sound = Instance.new("Sound")
 			sound.SoundId = clip.Id
 			table.insert(list, sound)

@@ -4202,14 +4202,17 @@ Config.Ults = {
 		CatchDing = { Id = "rbxassetid://9126073318", Volume = 0.25 },
 		-- The 8 breaking free: Time Stop's reversed hiss, pitched up (a puff out).
 		CatchBreak = { Id = "rbxassetid://9118158113", Volume = 0.45, Pitch = 1.6 },
-		-- Verity (the rework): the designer's line is a TTS placeholder (assets/abilities/Verity,
-		-- "Hi, I'm Verity! Trust me, I know everything!") until they upload the real clip.
-		VerityLine = { Id = "rbxassetid://135865093470317", Volume = 0.6 },
+		-- Verity (the rework): pressed, the designer's clip, its "Hello, I'm Verity!" only
+		-- (2026-10-09: "just the first second"; the words end at 1.9 s, the next line starts at
+		-- 2.1 s; it was a TTS placeholder, 135865093470317). Speech peaks about 0.1 RMS. (tune)
+		VerityLine = { Id = "rbxassetid://71231208892767", Volume = 0.9, Length = 1.95 },
 		-- Evil Verity (the designer's second round, 2026-10-08; ProSoundEffects library clips,
 		-- assets/abilities/SOUNDS_V2.md "Verity v2"; StartOffset skips a clip's quiet lead-in,
-		-- measured in Studio): the turn's swell, the bite's crunch, the gulp, her laugh, a bump's
-		-- boing and the burp at the end.
-		VeritySwell = { Id = "rbxassetid://9116421550", Volume = 0.55, Pitch = 0.8 },
+		-- measured in Studio): the monster's arrival, the bite's crunch, the gulp and a bump's
+		-- boing. The arrival is the designer's clip (2026-10-09; 1.1 s of a 1.7 s file, about 0.25
+		-- RMS; it was ProSoundEffects' swell 9116421550); her laugh and the burp at the end are
+		-- gone ("get rid of ... its gross").
+		VeritySwell = { Id = "rbxassetid://135866700568043", Volume = 0.5 },
 		VerityChomp = {
 			Id = "rbxassetid://9114574214",
 			Volume = 0.7,
@@ -4217,21 +4220,7 @@ Config.Ults = {
 			Length = 0.9,
 		},
 		VerityGulp = { Id = "rbxassetid://9113859745", Volume = 0.6, Length = 0.5 },
-		-- "Laugh Evil Male Various Versions 1" (its louder, quicker take; 9116239130, take 2,
-		-- starts slower).
-		VerityLaugh = {
-			Id = "rbxassetid://9116239118",
-			Volume = 0.5,
-			StartOffset = 0.1,
-			Length = 2.4,
-		},
 		VerityBonk = { Id = "rbxassetid://9113863528", Volume = 0.4 },
-		VerityBurp = {
-			Id = "rbxassetid://9113433856",
-			Volume = 0.6,
-			StartOffset = 0.45,
-			Length = 1.1,
-		},
 		-- Look Over There!: only the vine boom, as the opponents turn back (the designer's
 		-- second rework round, 2026-10-08: the shout, the Metal Gear alert, the whoosh and the
 		-- sneaky sting went). A public fan upload, the meme's own sound; the licensed backup is
