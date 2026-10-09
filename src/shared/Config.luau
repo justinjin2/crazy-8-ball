@@ -2298,11 +2298,14 @@ Config.LuckyBlocks = {
 	-- A kind with Bob = true (a model without an animation; none now) hovers and turns by
 	-- code once it has landed: this high, this fast.
 	Bob = { HeightStuds = 0.35, Seconds = 2.4, TurnDegreesPerSecond = 30 },
-	SkipProduct = "LuckyBlockSkip", -- the cheapest skip (Skips[1]); kept for old readers
+	SkipProduct = "LuckyBlockSkip1", -- the cheapest skip (Skips[1]); kept for old readers
 	-- The skip by time left (v4 plan 8.2, designer 2026-10-08): the first row whose UpTo
 	-- (seconds left on the timer) covers the block names the product; the last has no UpTo.
-	-- 30 min or less 4 R$, 6 h or less 9 R$, more 15 R$.
+	-- 5 min or less 1 R$ (economy v5, designer 2026-10-09: every Uncommon and Rare block),
+	-- 30 min or less 4 R$, 6 h or less 9 R$, more 15 R$. Saved credits are kept per product
+	-- (LuckyBlocks.Credits), so a new row never changes what one buys.
 	Skips = {
+		{ UpTo = 300, Product = "LuckyBlockSkip1" },
 		{ UpTo = 1800, Product = "LuckyBlockSkip" },
 		{ UpTo = 6 * 3600, Product = "LuckyBlockSkip9" },
 		{ Product = "LuckyBlockSkip15" },
@@ -3385,10 +3388,12 @@ Config.Shop = {
 	-- A deal with StartsAt runs StartsAt..StartsAt + Seconds only (0: off until the designer
 	-- sets it, right before the release is published; the release sale follows it).
 	Deals = {
+		-- Economy v5 (plan 6.1): $14,900, 5 for $66,900 (v4: $4,900, 10 for $44,100). The
+		-- Robux 5-pack (Mystery5) shows "Coming soon" until the designer approves its price.
 		Mystery = {
 			Kind = "Mystery",
-			Money = { [1] = 4900, [10] = 44100 },
-			Products = { [1] = "Mystery1", [10] = "Mystery10" },
+			Money = { [1] = 14900, [5] = 66900 },
+			Products = { [1] = "Mystery1", [5] = "Mystery5" },
 		},
 		GrandOpening = {
 			Kind = "GrandOpening",
@@ -3402,8 +3407,10 @@ Config.Shop = {
 			VaultedSeconds = 7 * 86400, -- the "Vaulted" card stays this long after the end
 		},
 	},
-	-- The Mystery block's money price (plan section 4; the shop's Mystery band reads it).
-	Mystery = { Price = 4900, BulkCount = 10, BulkPrice = 44100 },
+	-- The Mystery block's money price (the shop's Mystery band reads it). Economy v5 (plan 6.1):
+	-- each v5 Mystery is 8x as likely to reach Epic or better as v4's, so $14,900 is v4's value
+	-- per dollar; the bundle is 5 (was 10 for $44,100).
+	Mystery = { Price = 14900, BulkCount = 5, BulkPrice = 66900 },
 	-- The restock shop (plan section 12; Progression/Restock): new blocks every SlotSeconds on
 	-- the clock (UTC :00, :10 ...), the same in every server (picked from the slot number).
 	-- Slots shared slots each roll one block kind (parts of ChanceTotal): slot i by SlotOdds[i]
@@ -3504,13 +3511,15 @@ Config.Shop = {
 		Percent = 0,
 	},
 	-- The launch bonus (v4 plan 8.2, designer 2026-10-08): inside the window of the Deals key
-	-- With (the Grand Opening's), every money pack gives Percent more money and 10 Mystery
-	-- blocks come as MysteryBulkCount. Shown as "Launch bonus +30%" with its real end date; a
-	-- receipt counts inside the window plus Config.Shop.OfferGraceSeconds. No new products.
+	-- With (the Grand Opening's), every money pack gives Percent more money and the Robux
+	-- Mystery bundle (Mystery.BulkCount blocks) comes as MysteryBulkCount. Shown as "Launch
+	-- bonus +30%" with its real end date; a receipt counts inside the window plus
+	-- Config.Shop.OfferGraceSeconds. No new products. Economy v5: 5 come as 6 (was 10 as 13;
+	-- the plan's lean, to be confirmed with the Robux prices).
 	LaunchBonus = {
 		With = "GrandOpening",
 		Percent = 30,
-		MysteryBulkCount = 13,
+		MysteryBulkCount = 6,
 	},
 }
 
@@ -3570,11 +3579,23 @@ Config.Products = {
 			Blocks = { Kind = "Mystery", Count = 1 },
 			Random = true,
 		},
+		-- Retired by economy v5 (never deleted): an old receipt still pays its 10 blocks.
 		Mystery10 = {
 			Kind = "Product",
 			Id = 3716158365,
 			Robux = 45,
 			Blocks = { Kind = "Mystery", Count = 10 },
+			Random = true,
+			Retired = true,
+		},
+		-- Economy v5's bundle: 5 Mystery blocks. Id 0 ("Coming soon") until the designer
+		-- approves its price (the Robux proposal, ~/Desktop/8ball-refs/economy/
+		-- 05-economy-v5-robux.md) and it is made; Robux is the proposal's price.
+		Mystery5 = {
+			Kind = "Product",
+			Id = 0,
+			Robux = 45,
+			Blocks = { Kind = "Mystery", Count = 5 },
 			Random = true,
 		},
 		GrandOpening1 = {
@@ -3633,7 +3654,9 @@ Config.Products = {
 			Restock = "Mythic",
 			Random = true,
 		},
-		-- The skip by time left (Config.LuckyBlocks.Skips): 30 min or less, 6 h or less, more.
+		-- The skip by time left (Config.LuckyBlocks.Skips): 5 min or less (economy v5, designer
+		-- 2026-10-09), 30 min or less, 6 h or less, more.
+		LuckyBlockSkip1 = { Kind = "Product", Id = 3717460488, Robux = 1, Random = true },
 		LuckyBlockSkip = { Kind = "Product", Id = 3716368528, Robux = 4, Random = true },
 		LuckyBlockSkip9 = { Kind = "Product", Id = 3717253512, Robux = 9, Random = true },
 		LuckyBlockSkip15 = { Kind = "Product", Id = 3717253515, Robux = 15, Random = true },
@@ -9468,8 +9491,9 @@ Config.UI.Shop.Open = {
 			Kind = "Pop",
 			At = 0.33,
 		},
-		{ Ids = { "MysteryRobux1", "MysteryRobux10" }, Kind = "Pop", At = 0.42 }, -- with their gift squares
-		{ Ids = { "MysteryMoney1", "MysteryMoney10" }, Kind = "Pop", At = 0.47 },
+		-- With their gift squares; one column per Config.Shop.Mystery count (1 and BulkCount: 5).
+		{ Ids = { "MysteryRobux1", "MysteryRobux5" }, Kind = "Pop", At = 0.42 },
+		{ Ids = { "MysteryMoney1", "MysteryMoney5" }, Kind = "Pop", At = 0.47 },
 		{ Ids = { "MysteryRibbon" }, Kind = "Pop", At = 0.52 }, -- "13 for 10!" (only while it runs)
 		{ Ids = { "MysteryPity" }, Kind = "Fade", At = 0.55, Length = 0.12 },
 		{ Ids = { "RestockPanel" }, Kind = "Grow", At = 0.3 },

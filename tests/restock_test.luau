@@ -249,7 +249,9 @@ return {
 	["the Mystery deal's money prices; the case timer skips are gone"] = function()
 		local Shop = H.require("Progression.Shop")
 		H.expect(Shop.skipPrice == nil and Shop.skipProduct == nil, "no case timer skips")
-		H.expect(Shop.mysteryPrice(1) == 4900 and Shop.mysteryPrice(10) == 44100, "Mystery")
+		-- Economy v5 (plan 6.1): $14,900, 5 for $66,900.
+		H.expect(Shop.mysteryPrice(1) == 14900 and Shop.mysteryPrice(5) == 66900, "Mystery")
+		H.expect(Shop.mysteryPrice(10) == nil, "the 10-pack is retired")
 		H.expect(Shop.mysteryPrice(2) == nil and Shop.mysteryPrice("1") == nil, "other counts")
 	end,
 
@@ -258,9 +260,9 @@ return {
 		local r = Requests.parse("BuyMystery", nil)
 		H.expect(r ~= nil and r.action == "BuyBlocks" and r.dealId == "Mystery", "the old name")
 		H.expect(r.count == 1, "one by default")
-		r = Requests.parse("BuyMystery", 10)
-		H.expect(r ~= nil and r.count == 10, "ten")
-		for _, bad in { 2, 0, -1, 1.5, "10", 0 / 0 } do
+		r = Requests.parse("BuyMystery", 5)
+		H.expect(r ~= nil and r.count == 5, "five")
+		for _, bad in { 2, 10, 0, -1, 1.5, "5", 0 / 0 } do
 			local _, why = Requests.parse("BuyMystery", bad)
 			H.expect(why == "BadRequest", "count " .. tostring(bad))
 		end
@@ -268,7 +270,7 @@ return {
 		H.expect(r ~= nil and r.dealId == "GrandOpening" and r.count == 3, "three Grand Opening")
 		r = Requests.parse("BuyBlocks", "Mystery", nil)
 		H.expect(r ~= nil and r.count == 1, "one Mystery by default")
-		for _, args in { { "GrandOpening", 2 }, { "Nope", 1 }, { 3, 1 }, { "Mystery", 5 } } do
+		for _, args in { { "GrandOpening", 2 }, { "Nope", 1 }, { 3, 1 }, { "Mystery", 10 } } do
 			local _, why = Requests.parse("BuyBlocks", args[1], args[2])
 			H.expect(
 				why == "BadRequest",

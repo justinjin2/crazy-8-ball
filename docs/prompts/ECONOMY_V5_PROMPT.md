@@ -288,7 +288,7 @@ perk text. Don't change any of these products: the designer approves them later.
 - [x] 5. Rewards (3.4).
 - [x] 6. The Week One Cue (3.5).
 - [x] 7. The restock (3.6).
-- [ ] 8. The Mystery shop (3.7), and the 1 R$ skip with its credit migration and its product
+- [x] 8. The Mystery shop (3.7), and the 1 R$ skip with its credit migration and its product
   (6.1).
 - [ ] 9. Quick reveal and "Open all" (3.8).
 - [ ] 10. The "1 in N" (3.9).
@@ -356,3 +356,8 @@ perk text. Don't change any of these products: the designer approves them later.
 - Step 7: `Config.Shop.Restock` Slots 2 + `SlotOdds` (slot 1), `Restock.oddsOf`,
   `Restock.chanceOf` (32.8% / 4.8%, 46.2% / 8.6% tested). Client shim: the restock odds line
   names slot 1's floor and slot 2's odds. Studio check: the restock panel with three cards.
+- Step 8: Mystery $14,900 / 5 for $66,900, `Mystery5` Id 0, `Mystery10` retired, launch bonus
+  6 for 5. `LuckyBlockSkip1` made on Roblox (dry run, then the real run): id 3717460488 in
+  `Config.Products` and `tools/products_ids.json`; spec row added to `tools/products_spec.json`.
+  The credit migration was step 3's (credits by product). No other product touched. Client
+  shim: the Mystery band's Robux button reads "Coming soon" for `Mystery5`.

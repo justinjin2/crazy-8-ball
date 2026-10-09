@@ -269,6 +269,13 @@
    "retired": true
   },
   {
+   "key": "LuckyBlockSkip1",
+   "kind": "Product",
+   "name": "Lucky Block Timer Skip (5 min)",
+   "robux": 1,
+   "description": "Finish a lucky block timer with 5 minutes or less left. If it has already finished, keep the skip for your next lucky block."
+  },
+  {
    "key": "LuckyBlockSkip",
    "kind": "Product",
    "name": "Lucky Block Timer Skip",

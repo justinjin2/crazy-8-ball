@@ -9,7 +9,7 @@
 -- columns (the purple gift square and the green Robux price, then the gold money price; the
 -- launch bonus's "13 for 10!" ribbon on x10 while it runs) and the Epic guarantee strip (the
 -- server's pity count). Money buys through ItemRequest "BuyBlocks" (the Mystery deal), Robux
--- through StoreRequest "Buy" (Mystery1, Mystery10); both are refused by the server where paid
+-- through StoreRequest "Buy" (Mystery1, Mystery5); both are refused by the server where paid
 -- random items are restricted, so the buttons are off there. Sizes in
 -- Config.UI.ShopBlocks.Mystery, words in Strings.Menus.Shop.Blocks.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -33,12 +33,12 @@ local DEAL = Config.Shop.Deals.Mystery
 local KINDS: { [string]: any } = Config.LuckyBlocks.Kinds :: any
 local COPY: { [string]: any } = (Strings.Menus.Shop :: any).Blocks
 local SHORT: { [string]: string } = Strings.LuckyBlocks.Short
-local BULK = Config.Shop.Mystery.BulkCount -- the x10 deal
+local BULK = Config.Shop.Mystery.BulkCount -- the bundle (x5 since economy v5)
 local COUNTS = { 1, BULK }
 local rgb, round = ShopCards.rgb, ShopCards.round
 
 export type Actions = {
-	robux: (key: string) -> (), -- Mystery1 or Mystery10
+	robux: (key: string) -> (), -- Mystery1 or Mystery5
 	money: (count: number) -> (), -- 1 or BULK for money (the Mystery deal)
 	gift: (key: string) -> (), -- the gift square: gift that product to someone here
 	odds: () -> (), -- the dice badge: the "Odds & Details" (ShopMysteryOdds)
@@ -352,7 +352,12 @@ function ShopMystery.refresh(self: any, state: any)
 		local robux = if type(product) == "table" and type(product.robux) == "number"
 			then product.robux
 			else (Config.Products.List :: any)[column.key].Robux
-		local words = ShopCards.robuxText(robux)
+		-- A product not made yet (economy v5's 5-pack until its price is approved).
+		local made = (Config.Products.List :: any)[column.key].Id ~= 0
+			and not (type(product) == "table" and product.available == false)
+		local words = if made
+			then ShopCards.robuxText(robux)
+			else (Strings.Menus.Shop :: any).ComingSoon
 		if self.shown["robux" .. n] ~= words then
 			self.shown["robux" .. n] = words
 			ShopCards.setButtonWords(column.green, words)

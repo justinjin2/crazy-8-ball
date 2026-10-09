@@ -353,7 +353,14 @@ return {
 
 	["every pass and product is made: a real id, each once"] = function()
 		local seen = {}
+		-- Not made yet on purpose: the Mystery 5-pack waits for the designer's Robux price
+		-- (economy v5), so it shows "Coming soon".
+		local waiting = { Mystery5 = true }
 		for key, product in Config.Products.List do
+			if waiting[key] then
+				H.expect(product.Id == 0, key .. " waits for its price")
+				continue
+			end
 			H.expect(product.Id > 0, key .. " has its id (tools/roblox_products.py)")
 			H.expect(seen[product.Id] == nil, key .. ": id used once")
 			seen[product.Id] = key
@@ -387,15 +394,18 @@ return {
 		-- The launch bonus follows the Grand Opening deal's window.
 		local L = Config.Shop.LaunchBonus
 		H.expect(L.With == "GrandOpening" and L.Percent == 30, "+30% with the Grand Opening")
-		H.expect(L.MysteryBulkCount == 13, "13 Mystery blocks for 10")
+		H.expect(L.MysteryBulkCount == 6, "6 Mystery blocks for 5 (economy v5)")
 		H.expect(not Shop.launchBonus(JOIN).open, "off until the deal is scheduled")
 		H.expect(Shop.setDeal("GrandOpening", JOIN, 30 * DAY), "scheduled")
 		local bonus = Shop.launchBonus(JOIN + DAY)
 		H.expect(bonus.open and bonus.endsAt == JOIN + 30 * DAY, "open, its real end date")
 		H.expect(Shop.grantFor("Pack1", newShop(), JOIN + DAY, false).money == 13000, "+30%")
 		H.expect(Shop.grantFor("Pack7", newShop(), JOIN + DAY, false).money == 1950000, "+30%")
-		local bulk = Shop.grantFor("Mystery10", newShop(), JOIN + DAY, false)
-		H.expect(bulk.blocks.kind == "Mystery" and bulk.blocks.count == 13, "13 for 10")
+		local bulk = Shop.grantFor("Mystery5", newShop(), JOIN + DAY, false)
+		H.expect(bulk.blocks.kind == "Mystery" and bulk.blocks.count == 6, "6 for 5")
+		-- The retired 10-pack: an old receipt still pays its 10, with no bonus.
+		local old = Shop.grantFor("Mystery10", newShop(), JOIN + DAY, false)
+		H.expect(old.blocks.kind == "Mystery" and old.blocks.count == 10, "an old receipt: 10")
 		local one = Shop.grantFor("Mystery1", newShop(), JOIN + DAY, false)
 		H.expect(one.blocks.count == 1, "one Mystery block stays one")
 		local grace = Config.Shop.OfferGraceSeconds
@@ -1298,13 +1308,14 @@ return {
 	end,
 
 	["paid random items are refused where restricted; the page order and Roblox Plus"] = function()
-		withIds({ Mystery1 = 21, Mystery10 = 22, Pack1 = 23, RestockEpic = 24 }, function()
+		withIds({ Mystery1 = 21, Mystery5 = 22, Pack1 = 23, RestockEpic = 24 }, function()
 			local now = JOIN + HOUR
 			H.expect(ShopView.check("Mystery1", ctxAt(now)) == nil, "on sale")
 			H.expect(
-				ShopView.check("Mystery10", ctxAt(now, { restricted = true })) == "Restricted",
+				ShopView.check("Mystery5", ctxAt(now, { restricted = true })) == "Restricted",
 				"restricted"
 			)
+			H.expect(ShopView.check("Mystery10", ctxAt(now)) == "Closed", "the 10-pack retired")
 			H.expect(
 				ShopView.check("Mystery1", ctxAt(now, { policyKnown = false })) == "NotLoaded",
 				"policy not known yet"
@@ -1342,8 +1353,8 @@ return {
 				"no room in the hotbar"
 			)
 			H.expect(
-				ShopView.check("Mystery10", ctxAt(now, { blocks = { List = full } })) == "Full",
-				"nor for ten Mystery blocks"
+				ShopView.check("Mystery5", ctxAt(now, { blocks = { List = full } })) == "Full",
+				"nor for five Mystery blocks"
 			)
 			local plainSlot = 0
 			while Restock.forProduct(plainSlot, "RestockEpic") ~= nil do
@@ -1360,7 +1371,7 @@ return {
 				p.order[1] == "GrandOpening" and p.order[#p.order] == "RobloxPlus",
 				"top, bottom"
 			)
-			H.expect(p.deals.Mystery.open and p.deals.Mystery.counts[2] == 10, "the deals")
+			H.expect(p.deals.Mystery.open and p.deals.Mystery.counts[2] == 5, "the deals")
 			H.expect(p.deals.GrandOpening.timed and not p.deals.GrandOpening.open, "off")
 			local g = p.guarantees.GrandOpening
 			H.expect(g ~= nil and g.cue == "BetaCue" and g.at == 1000 and g.left == 999, "")

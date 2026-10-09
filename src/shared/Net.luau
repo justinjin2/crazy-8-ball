@@ -184,7 +184,7 @@ local REMOTES: { [string]: string } = {
 	--     (GUI lane, 2026-10-03: the release sale's products Pack4Sale-Pack7Sale, VipSale,
 	--     Mystery10Sale sell only while open; the Legendary restock has no shared stock now) }
 	-- Product keys (Config.Products): passes Vip, UltSlot2, UltSlot3; products VipOffer,
-	-- StarterPack, Pack1-7, Mystery1, Mystery10, GrandOpening1/3/10, RestockRare, RestockEpic,
+	-- StarterPack, Pack1-7, Mystery1, Mystery5, GrandOpening1/3/10, RestockRare, RestockEpic,
 	-- RestockLegendary, LuckyBlockSkip, MoneyParty, Spin1/5/10/50, Lucky1/3. Paid random
 	-- items (blocks, Restock, the block skip, spins)
 	-- answer "Restricted" where PolicyService restricts them; blocks answer "Full" when the

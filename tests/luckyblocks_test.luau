@@ -128,24 +128,37 @@ return {
 		local again = Schema.validate(restored)
 		H.expect(L.find(again.LuckyBlocks, nextBlock.Id).Paid, "paid origin survives save repair")
 	end,
-	["the skip by time left: 4 R$ up to 30 minutes, 9 up to 6 hours, 15 beyond"] = function()
+	["the skip by time left: 1 R$ up to 5 minutes, 4 up to 30, 9 up to 6 hours, 15 beyond"] = function()
 		local L, Config = load()
 		local skips = Config.LuckyBlocks.Skips
-		H.expect(#skips == 3 and skips[1].UpTo == 1800 and skips[2].UpTo == 6 * 3600, "")
+		H.expect(#skips == 4 and skips[1].UpTo == 300 and skips[2].UpTo == 1800, "")
+		H.expect(skips[3].UpTo == 6 * 3600 and skips[4].UpTo == nil, "")
 		local robux = {}
 		for _, row in skips do
 			table.insert(robux, Config.Products.List[row.Product].Robux)
 		end
-		H.expect(table.concat(robux, " ") == "4 9 15", "the designer's 4 / 9 / 15 R$")
+		H.expect(table.concat(robux, " ") == "1 4 9 15", "the designer's 1 / 4 / 9 / 15 R$")
+		H.expect(Config.LuckyBlocks.SkipProduct == "LuckyBlockSkip1", "the cheapest")
 		local state = L.fresh()
+		-- Every climbed Uncommon (1 minute) and Rare (5 minutes) block: the 1 R$ skip.
+		local uncommon = climbed(L, state, "Uncommon", 1000)
+		local rare = climbed(L, state, "Rare", 1000)
+		H.expect(L.skipProduct(uncommon, 1000) == "LuckyBlockSkip1", "1 min left: 1 R$")
+		H.expect(L.skipProduct(rare, 1000) == "LuckyBlockSkip1", "5 min left: 1 R$")
 		local epic = climbed(L, state, "Epic", 1000) -- 30 minutes
 		local mythic = climbed(L, state, "Mythic", 1000) -- 12 hours
 		H.expect(L.skipProduct(epic, 1000) == "LuckyBlockSkip", "30 min left: 4 R$")
+		H.expect(L.skipProduct(epic, 1000 + 1500) == "LuckyBlockSkip1", "5 min left: 1 R$")
 		H.expect(L.skipProduct(mythic, 1000) == "LuckyBlockSkip15", "12 h left: 15 R$")
 		H.expect(L.skipProduct(mythic, 1000 + 6 * 3600) == "LuckyBlockSkip9", "6 h left: 9 R$")
 		H.expect(L.skipProduct(mythic, 1000 + 12 * 3600 - 1800) == "LuckyBlockSkip", "30 min")
 		H.expect(L.skipProduct(epic, 1000 + 1800) == nil, "ready: no skip")
-		H.expect(L.skipTierOf("LuckyBlockSkip9") == 2 and L.skipTierOf("Pack1") == nil, "")
+		H.expect(L.skipTierOf("LuckyBlockSkip9") == 3 and L.skipTierOf("Pack1") == nil, "")
+		-- A 1 R$ credit never skips more than 5 minutes; a 4 R$ one still covers 5 minutes.
+		L.grantSkip(state, 1000, "LuckyBlockSkip1")
+		H.expect(L.credits(state, "LuckyBlockSkip1") == 1, "a 1 R$ credit kept")
+		H.expect(not L.useSkip(state, epic.Id, 1000), "not on 30 minutes")
+		H.expect(L.useSkip(state, rare.Id, 1000), "on 5 minutes")
 		-- A credit never skips a longer timer than it was bought for.
 		L.grantSkip(state, 1000, "LuckyBlockSkip") -- no target: a 4 R$ credit kept
 		H.expect(L.credits(state, "LuckyBlockSkip") == 1, "kept as a short credit")
