@@ -296,7 +296,7 @@ perk text. Don't change any of these products: the designer approves them later.
 - [x] 12. The model v5, `economy_config.json`, the copy-number timeline (3.11).
 - [x] 13. The docs (3.11) and the hand-off file (section 4).
 - [x] 14. The Robux proposal file (6.2), with no product changes.
-- [ ] 15. The report (section 7) and `STATUS.md`.
+- [x] 15. The report (section 7) and `STATUS.md`.
 
 ---
 
@@ -395,3 +395,9 @@ perk text. Don't change any of these products: the designer approves them later.
   (`v5-build/robux_value.txt`, `robux_sim.txt`): every cheapest pull inside the designer's feel
   ranges, ownership unchanged (noise). No product, spec or Config price changed; the paste-ready
   spec rows and the make-it-live steps are in the file.
+- Step 15: `docs/prompts/ECONOMY_V5_REPORT.md` (five things that change what players get at the
+  top: the v4 Robux prices on v5's blocks, Mystery10 still on sale on Roblox, the tutorial's
+  first block at the tutorial-v2 merge, pity bars against the cleaner Mystery screen, the
+  restock's always-Epic slot against ECONOMY 11.7's old line); `docs/STATUS.md` rewritten
+  ("economy v5 built on `gui-v4`; screens next"), the finished v4 entries moved to
+  `docs/archive/STATUS_HISTORY.md`. Nothing BLOCKED. The run is done.

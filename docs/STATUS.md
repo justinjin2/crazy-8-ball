@@ -12,10 +12,11 @@ Updated 2026-10-09.
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
 - **Lint and tests (2026-10-09, branch `gui-v4`):** lint OK (three old LocalShadow warnings);
-  all 1139 Lune tests pass.
+  all 1156 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
-  bots, disguised bots); ranks (XP only from winning) and money; economy v4; saves at version 10;
+  bots, disguised bots); ranks (XP only from winning) and money; economy v5 (on `gui-v4`, its
+  screens next); saves at version 11;
   13 abilities (Ultimates) with the spin screen; cue skins with VFX and outlines; lucky blocks
   as the only gacha (cases, the Magic 8 Ball and reward popups are gone); the Free Reward menu
   (daily, playtime, the 28-day track, group and invites), Cues (My Cues, Index; the Inventory renamed), trading, settings, our own player list and boards; the first-time tutorial;
@@ -47,31 +48,24 @@ One line each; the long form is the 2026-10-08 entry at the top of
 
 ## Open, waiting on the designer
 
-- **Economy v4, "the forgiving economy"** (approved and merged into `shop-lively` 2026-10-08;
-  `docs/ECONOMY.md`, roadmap 7.8). The rules, saves (v9), model and docs are in, Lune-tested;
-  the v4 Robux prices are **live on Roblox** (the four new products made, the six sale products
-  off sale). Until the merged place is published, the live game sells at the new prices with
-  the old grants: publish soon. Still to do: the designer's Studio check (shop prices, the
-  Mystery screen, rewards, timers, the skip); set every random-item product to Not Listed in
-  the Creator Hub; the GUI screens of the plan's hand-off (`docs/prompts/ECONOMY_V4_PLAN.md`
-  section 18); Lucky Shot, Golden Shot, Lucky Rain and the stay bonus are planned only.
-- **The GUI hand-off after economy v4** (2026-10-08, branch `gui-v4` from `shop-lively`): the
-  designer's picks are in on the private page https://claude.ai/artifact/Q79pcvwxeos8AB7o8357Lw
-  (prompts and pictures in `~/Desktop/8ball-refs/gui-mocks-v4`). Done and checked in Studio:
-  Abilities films the real character; Lucky Spins retired (save v10); Ranked's reward tiles one
-  size; Claim All's server side; the restock banner; bigger money packs and the Starter Pack
-  at 29 R$ with its cue; the Shop's Blocks, Money and Passes tabs; the HUD's win track (A);
-  the Free Reward menu (Daily A with Playtime, the track and Group in one menu; codes stay in
-  Settings) with Claim All's six Robux products (Not Listed); Ranked in the lively frame (A);
-  the ability spin screen (A); the Mystery screen (B, the Track); Settings (A); the reel's v4
-  odds (look unchanged), the skip's dialog priced for the time left, every block's "Odds &
-  Details" behind a sky-blue dice. The designer's second and third notes (2026-10-08), done on
-  PC: Starter Pack and VIP side by side (VIP only there now), the Passes row of four, odds
-  rounded and in the lively popup (Mystery: tiers, then pity meters), the folded win track, the
-  rainbow THANK YOU! after a Robux purchase, the VIP tag and VIP's x2 pots; still to see on a
-  phone, a controller and with a real purchase. The restock's rework waits for the economy pass.
-  At publish: `tools/roblox_products.py --sync` (Starter Pack 29, pack texts, Lucky1 and
-  Lucky3 off sale). Trade is not built (not in the release).
+- **Economy v5 built on `gui-v4`; screens next** (2026-10-09, `docs/prompts/ECONOMY_V5_PLAN.md`,
+  roadmap 7.9; the report is `docs/prompts/ECONOMY_V5_REPORT.md`, read its top five first).
+  Every block climbs from its name, the Grand Opening Luck, pity 10 / 40, the Week One Cue, the
+  new rewards and restock, $14,900 Mystery blocks, the 1 R$ skip (made on Roblox), "Open all",
+  the "1 in N", save v11; Lune-tested, never run in Studio. The old screens work through ten
+  shims. Next: the GUI session's screens (`docs/prompts/ECONOMY_V5_HANDOFF.md`, concept art
+  first), the designer's yes on the Robux proposal
+  (`~/Desktop/8ball-refs/economy/05-economy-v5-robux.md`) **before publishing `gui-v4`** (v4's
+  Robux prices undersell v5's blocks), the report's "try in Studio" list. Backup branch:
+  `before-economy-v5`. Still open from v4: random-item products Not Listed in the Creator Hub;
+  Lucky Shot, Golden Shot, Lucky Rain and the stay bonus are planned only.
+- **The GUI hand-off after economy v4** (2026-10-08, branch `gui-v4`; the designer's picks on
+  https://claude.ai/artifact/Q79pcvwxeos8AB7o8357Lw, prompts and pictures in
+  `~/Desktop/8ball-refs/gui-mocks-v4`): its screens are done and checked in Studio on PC (the
+  list moved to `docs/archive/STATUS_HISTORY.md`, 2026-10-09); still to see on a phone, a
+  controller and with a real purchase. The restock's rework (three cards) is in the v5
+  hand-off. At publish: `tools/roblox_products.py --sync` (Starter Pack 29, pack texts, Lucky1
+  and Lucky3 off sale). Trade is not built (not in the release).
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in
   `gui-v4`): the new cue card, the Cues menu, the CUES icon, the smooth money chip, the reel and
   YOU GOT, checked in Studio. Still open: the see-through reel trial's verdict, a phone and a
