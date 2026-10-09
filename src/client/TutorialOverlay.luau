@@ -9,6 +9,8 @@
 --   the hole. The frames never take input: everything under them still works. The tutorial's
 --   dim is a deliberate exception to UI_STYLE's "popups never darken" (designer, 2026-10-03).
 -- - The small Skip tutorial button (top right) and its Yes / No confirm.
+-- - The Next button under the line: a step's fallback when its action did not happen
+--   (tutorial v2 7.1: never stuck).
 --
 -- A target is a function giving its centre and size in this layer's pixels (the whole window:
 -- IgnoreGuiInset), or nil when it is not on screen; TutorialOverlay.guiTarget and worldTarget
@@ -55,6 +57,8 @@ export type Overlay = typeof(setmetatable(
 		skip: TextButton,
 		confirm: Frame,
 		onSkip: (() -> ())?,
+		nextButton: TextButton,
+		onNext: (() -> ())?,
 		ding: Sound,
 		clock: number,
 	},
@@ -182,10 +186,22 @@ function TutorialOverlay.new(): Overlay
 		skip = nil :: any,
 		confirm = nil :: any,
 		onSkip = nil,
+		nextButton = nil :: any,
+		onNext = nil,
 		ding = ding,
 		clock = 0,
 	}, TutorialOverlay)
 	self:buildSkip()
+	local nextButton = HudParts.candy(gui, S.Next, function()
+		if self.onNext then
+			self.onNext()
+		end
+	end, "Green")
+	nextButton.Name = "TutorialNext"
+	nextButton.AnchorPoint = Vector2.new(0.5, 0)
+	nextButton.ZIndex = 6
+	nextButton.Visible = false
+	self.nextButton = nextButton
 	RunService.RenderStepped:Connect(function(dt: number)
 		self:update(dt)
 	end)
@@ -257,6 +273,22 @@ function TutorialOverlay.setSkip(self: Overlay, visible: boolean, onSkip: (() ->
 	self.onSkip = onSkip
 	if not visible then
 		self:askSkip(false)
+	end
+end
+
+--- Shows or hides the Next button (a step's fallback); `onNext` runs when it is pressed. A
+--- gamepad's selection moves onto it when it first shows.
+function TutorialOverlay.setNext(self: Overlay, visible: boolean, onNext: (() -> ())?)
+	local was = self.nextButton.Visible
+	self.nextButton.Visible = visible
+	self.onNext = if visible then onNext else nil
+	if visible and not was then
+		UIAnim.popIn(self.nextButton)
+		if UserInputService.GamepadEnabled and GuiService.SelectedObject == nil then
+			GuiService.SelectedObject = self.nextButton
+		end
+	elseif not visible and GuiService.SelectedObject == self.nextButton then
+		GuiService.SelectedObject = nil
 	end
 end
 
@@ -339,6 +371,10 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 	local skipH = if small then O.SkipPhoneHeightPx else O.SkipHeightPx
 	self.skip.Position = UDim2.fromOffset(view.X - O.SkipEdgePx, inset.Y + O.SkipEdgePx)
 	self.skip.Size = UDim2.fromOffset(skipH * O.SkipWidthRatio, skipH)
+	-- The Next button, centred under the line.
+	local nextH = if small then O.NextPhoneHeightPx else O.NextHeightPx
+	self.nextButton.Position = UDim2.fromOffset(view.X / 2, inset.Y + gap + height + O.NextGapPx)
+	self.nextButton.Size = UDim2.fromOffset(nextH * O.NextWidthRatio, nextH)
 	-- The hole's target this frame; a target that has gone (its button hid) fades the dim out
 	-- round where it was, rather than darkening everything.
 	local centre, size = nil, nil
@@ -374,10 +410,11 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 	self.ringStroke.Transparency = if self.ringOnly and centre then 0 else 1 - self.dimAlpha
 end
 
---- Clears the line, the dim and the hole.
+--- Clears the line, the dim, the hole and the Next button.
 function TutorialOverlay.clear(self: Overlay)
 	self:say(nil)
 	self:dim(nil)
+	self:setNext(false)
 end
 
 return TutorialOverlay

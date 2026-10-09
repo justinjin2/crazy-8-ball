@@ -3745,3 +3745,12 @@ timer of a new block stay the designer's call.
   about 4 minutes (median); the bot waits in a closed kiosk at (0, 36) (Plan B); Max Players
   24 with the team-table backup; the tutorial block's Uncommon is the Cosmo Cue; arrow look A;
   the like reward is removed (a polite ask stays); in-server rank windows 2/4/7/12 divisions.
+- 2026-10-09: (run assumption) Tutorial v2: a fair first game (path R) that is won leads into
+  the same guided chain as the rigged game (Result, Rank, Mystery, Place, Cues, Abilities,
+  Soft), without the bot's line; a lost fair game goes back to the arrow (the rigged game comes
+  the next time they sit alone).
+- 2026-10-09: (run assumption) Tutorial v2: Rank and the money pill come back at the Rank step
+  (the claim's money flies to the pill); the other icons pop in with the soft part.
+- 2026-10-09: (run assumption) Tutorial v2: an error in tutorial code ends the tutorial as
+  Skipped (the first-time hints still come) and logs TutorialError; the soft part ends at the
+  next finished match (game 2), win or lose.

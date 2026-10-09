@@ -1,22 +1,23 @@
 --!strict
 -- Funnel: the one place the game's funnels go to Roblox's analytics (AnalyticsService; the
 -- Creator Dashboard's Funnels and Custom Events pages). Server side only, never trusted from a
--- client without a check by the caller (docs/prompts/TUTORIAL_PROMPT.md step 9).
+-- client without a check by the caller. Tutorial v2's design: docs/TUTORIAL_FUNNELS.md.
 --
--- - The onboarding funnel (LogOnboardingFunnelStepEvent): the 22 steps of Tutorial/Steps
---   .Funnel, each logged once per player ever (a bit in the save's Flags.Funnel), and only for
---   new players: step 1 is logged for a brand-new save (TutorialService), and no later step
---   is logged for a player without it.
--- - One-time funnels (LogFunnelStepEvent with the player's own session id): the tutorial's
---   exit funnel, each step once per player (a bit in its own Flags key).
--- - Repeating funnels (LogFunnelStepEvent with a session id per visit): the shop, a free lucky
---   block's life, the ability spins.
--- - Side events (LogCustomEvent): moments not everyone sees (ball in hand, the bot's scratch,
---   a lost game 2).
+-- - The onboarding funnel (LogOnboardingFunnelStepEvent): Tutorial/Steps.Funnel, each step
+--   once per player ever (a bit in the save's Flags.Funnel), and only for new players: step 1
+--   (Joined) is logged for a brand-new save, and no later step for a player without it. Its
+--   fields (device, path) are read from the first step on the dashboard.
+-- - One-time funnels (LogFunnelStepEvent with the player's id as the session): Steps.Funnels
+--   (PathS, PathR, Game2, Social), each step once per player (a bit in its own Flags key).
+-- - Repeating funnels (a session per visit): the shop, a free lucky block's life, the spins.
+-- - Custom events (LogCustomEvent, up to three fields): Hint, TutorialSkipped, StepTime,
+--   TutorialError and the Game2 result.
 --
--- Every call is wrapped in pcall: analytics never breaks the game. In Studio each one prints
--- when Config.Tutorial.Funnel.Print is on.
+-- Every call is wrapped in pcall: analytics never breaks the game. Studio sends nothing to the
+-- dashboard, so each call prints there (Config.Tutorial.Funnel.Print), and every player's last
+-- calls are kept in this server for the designer's /funnel command.
 local AnalyticsService = game:GetService("AnalyticsService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -29,9 +30,27 @@ local F = Config.Tutorial.Funnel
 
 local Funnel = {}
 
-local function say(text: string)
+-- The devices the field may name (the client reports its own; TutorialService checks it).
+Funnel.Devices = { PC = true, Phone = true, Tablet = true, Console = true }
+
+-- The player attribute holding the checked device ("" until reported).
+Funnel.DeviceAttribute = "TutorialDevice"
+
+-- Each player's last calls (text lines), for /funnel.
+local logs: { [Player]: { string } } = {}
+
+local function keep(player: Player, text: string)
+	local list = logs[player]
+	if list == nil then
+		list = {}
+		logs[player] = list
+	end
+	table.insert(list, text)
+	while #list > F.LogKeep do
+		table.remove(list, 1)
+	end
 	if F.Print and RunService:IsStudio() then
-		print("[8ball] Funnel: " .. text)
+		print(("[8ball] Funnel: %s (%s)"):format(text, player.Name))
 	end
 end
 
@@ -45,7 +64,22 @@ local function call(what: string, fn: () -> ())
 	end
 end
 
--- The mask kept under `key` in the save's Flags (0 when not loaded or not set).
+-- Up to three short field values as AnalyticsService's custom fields (nil ones left out).
+local function fields(a: string?, b: string?, c: string?): { [string]: string }
+	local out: { [string]: string } = {}
+	if a then
+		out[Enum.AnalyticsCustomFieldKeys.CustomField01.Name] = a
+	end
+	if b then
+		out[Enum.AnalyticsCustomFieldKeys.CustomField02.Name] = b
+	end
+	if c then
+		out[Enum.AnalyticsCustomFieldKeys.CustomField03.Name] = c
+	end
+	return out
+end
+
+-- The mask kept under `key` in the save's Flags (nil when not loaded, 0 when not set).
 local function mask(player: Player, key: string): number?
 	local data = PlayerData.read(player)
 	if data == nil then
@@ -55,8 +89,22 @@ local function mask(player: Player, key: string): number?
 	return if type(value) == "number" then value else 0
 end
 
---- Logs onboarding funnel step `name` (a Steps.Funnel name) once per player ever. Steps a
---- player skips are simply never logged. False when already logged or not loaded.
+--- The player's device for a field ("PC", "Phone", "Tablet", "Console"; "Unknown" before
+--- the client said).
+function Funnel.device(player: Player): string
+	local d = player:GetAttribute(Funnel.DeviceAttribute)
+	return if type(d) == "string" and Funnel.Devices[d] then d else "Unknown"
+end
+
+-- The player's game-1 path for a field ("S", "R"; "None" before game 1).
+local function pathOf(player: Player): string
+	local p = PlayerData.flag(player, "TutorialPath")
+	return if type(p) == "string" and Steps.Paths[p] then p else "None"
+end
+
+--- Logs onboarding funnel step `name` (a Steps.Funnel name) once per player ever, with the
+--- device and path as its fields. Steps a player skips are simply never logged. False when
+--- already logged, not a new player's, or not loaded.
 function Funnel.onboarding(player: Player, name: string): boolean
 	local n = Steps.funnelNumber(name)
 	if n == nil then
@@ -65,37 +113,60 @@ function Funnel.onboarding(player: Player, name: string): boolean
 	end
 	local m = mask(player, F.OnboardingFlag)
 	-- Only players whose first step was logged (a brand-new save): nobody joins it halfway.
-	if m == nil or Steps.funnelHas(m, n) or (n > 1 and not Steps.funnelHas(m, 1)) then
+	if m == nil or Steps.has(m, n) or (n > 1 and not Steps.has(m, 1)) then
 		return false
 	end
-	if not PlayerData.setFlag(player, F.OnboardingFlag, Steps.funnelMark(m, n)) then
+	if not PlayerData.setFlag(player, F.OnboardingFlag, Steps.mark(m, n)) then
 		return false
 	end
-	say(("onboarding %d %s (%s)"):format(n, name, player.Name))
+	local device, path = Funnel.device(player), pathOf(player)
+	keep(player, ("onboarding %d %s [%s, %s]"):format(n, name, device, path))
 	call("onboarding " .. name, function()
-		AnalyticsService:LogOnboardingFunnelStepEvent(player, n, name)
+		AnalyticsService:LogOnboardingFunnelStepEvent(player, n, name, fields(device, path))
 	end)
 	return true
 end
 
---- Logs step `step` (1-based) of a one-time funnel `funnel` (a Config.Tutorial.Funnel.Once
---- row), once per player ever. False when already logged or not loaded.
-function Funnel.once(player: Player, funnel: string, step: number, stepName: string): boolean
+--- Whether onboarding step `name` was logged for the player.
+function Funnel.onboarded(player: Player, name: string): boolean
+	local n = Steps.funnelNumber(name)
+	local m = mask(player, F.OnboardingFlag)
+	return n ~= nil and m ~= nil and Steps.has(m, n)
+end
+
+--- Logs step `name` of a one-time funnel (a Steps.Funnels name: PathS, PathR, Game2, Social)
+--- once per player ever, with the device (and `extra`, a second field) as fields. False when
+--- already logged or not loaded.
+function Funnel.once(player: Player, funnel: string, name: string, extra: string?): boolean
 	local key = F.Once[funnel]
-	if key == nil then
-		warn("[8ball] Funnel: unknown one-time funnel " .. tostring(funnel))
+	local step = Steps.funnelStep(funnel, name)
+	if key == nil or step == nil then
+		warn(
+			("[8ball] Funnel: unknown one-time step %s %s"):format(tostring(funnel), tostring(name))
+		)
 		return false
 	end
 	local m = mask(player, key)
-	if m == nil or Steps.funnelHas(m, step) then
+	if m == nil or Steps.has(m, step) then
 		return false
 	end
-	if not PlayerData.setFlag(player, key, Steps.funnelMark(m, step)) then
+	if not PlayerData.setFlag(player, key, Steps.mark(m, step)) then
 		return false
 	end
-	say(("%s %d %s (%s)"):format(funnel, step, stepName, player.Name))
-	call(funnel .. " " .. stepName, function()
-		AnalyticsService:LogFunnelStepEvent(player, funnel, tostring(player.UserId), step, stepName)
+	local device = Funnel.device(player)
+	keep(
+		player,
+		("%s %d %s [%s%s]"):format(funnel, step, name, device, if extra then ", " .. extra else "")
+	)
+	call(funnel .. " " .. name, function()
+		AnalyticsService:LogFunnelStepEvent(
+			player,
+			funnel,
+			tostring(player.UserId),
+			step,
+			name,
+			fields(device, extra)
+		)
 	end)
 	return true
 end
@@ -109,13 +180,14 @@ function Funnel.step(
 	step: number,
 	stepName: string
 )
-	say(("%s %d %s [%s] (%s)"):format(funnel, step, stepName, session, player.Name))
+	keep(player, ("%s %d %s"):format(funnel, step, stepName))
 	call(funnel .. " " .. stepName, function()
 		AnalyticsService:LogFunnelStepEvent(player, funnel, session, step, stepName)
 	end)
 end
 
---- Logs a side event (LogCustomEvent) with an optional value and up to three short fields.
+--- Logs a custom event (LogCustomEvent) with an optional value and up to three short fields
+--- (each from a small fixed set: the dashboard allows few distinct values).
 function Funnel.event(
 	player: Player,
 	name: string,
@@ -124,20 +196,49 @@ function Funnel.event(
 	b: string?,
 	c: string?
 )
-	say(("event %s %s (%s)"):format(name, tostring(value or 1), player.Name))
+	keep(
+		player,
+		("event %s %s [%s]"):format(
+			name,
+			tostring(value or 1),
+			table.concat({ a or "", b or "", c or "" }, ", ")
+		)
+	)
 	call("event " .. name, function()
-		local fields: { [any]: string } = {}
-		if a then
-			fields[Enum.AnalyticsCustomFieldKeys.CustomField01.Name] = a
-		end
-		if b then
-			fields[Enum.AnalyticsCustomFieldKeys.CustomField02.Name] = b
-		end
-		if c then
-			fields[Enum.AnalyticsCustomFieldKeys.CustomField03.Name] = c
-		end
-		AnalyticsService:LogCustomEvent(player, name, value or 1, fields)
+		AnalyticsService:LogCustomEvent(player, name, value or 1, fields(a, b, c))
 	end)
+end
+
+--- A first-time hint's moment (`outcome`: "Shown", "Done" or "Ignored").
+function Funnel.hint(player: Player, name: string, outcome: string)
+	Funnel.event(player, "Hint", 1, name, outcome, Funnel.device(player))
+end
+
+--- The tutorial was skipped at `step`.
+function Funnel.skipped(player: Player, step: string)
+	Funnel.event(player, "TutorialSkipped", 1, step, pathOf(player), Funnel.device(player))
+end
+
+--- The player spent `seconds` on `step` (logged when they leave it).
+function Funnel.stepTime(player: Player, step: string, seconds: number)
+	local value =
+		math.clamp(math.floor(seconds + 0.5), 0, Config.Tutorial.Timing.StepTimeMaxSeconds)
+	Funnel.event(player, "StepTime", value, step, pathOf(player), Funnel.device(player))
+end
+
+--- A guarded failure in tutorial code at `step` (`code`: a short fixed word naming where).
+function Funnel.error(player: Player, step: string, code: string)
+	Funnel.event(player, "TutorialError", 1, step, code)
+end
+
+--- The lines kept for the player (oldest first), for /funnel.
+function Funnel.log(player: Player): { string }
+	return table.clone(logs[player] or {})
+end
+
+--- Forgets what this server logged for the player (a /tutorial reset starts them over).
+function Funnel.clearLog(player: Player)
+	logs[player] = nil
 end
 
 ---------------------------------------------------------------------------------------------
@@ -277,10 +378,11 @@ function Funnel.start()
 			end
 		end
 	end)
-	game:GetService("Players").PlayerRemoving:Connect(function(player: Player)
+	Players.PlayerRemoving:Connect(function(player: Player)
 		shopSession[player] = nil
 		spinSession[player] = nil
 		drops[player] = nil
+		logs[player] = nil
 	end)
 end
 

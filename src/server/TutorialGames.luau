@@ -1,20 +1,18 @@
 --!strict
--- TutorialGames: the tutorial's tables and opponents (docs/prompts/TUTORIAL_PROMPT.md steps 3,
--- 4 and 6). TutorialService owns the steps; this module moves them on from what happens at the
--- tables:
+-- TutorialGames: tutorial v2's tables and game 1 (docs/prompts/TUTORIAL_V2_PROMPT.md 4.2-4.4).
+-- TutorialService owns the steps; this module moves them on from what happens at the tables:
 --
--- - Arrow1 / Arrow2: the nearest empty 1v1 table is reserved for the player (lobby bots get up
---   and stay off it; TableService's `reservedFor`), and its id goes to the client (the player
---   attribute TutorialTable; 0 while every table is taken). Stepping on its pad moves to
---   Request / Queue; stepping on any other table cancels the tutorial ("OtherTable").
--- - Request: the player's Request opponent brings the tutorial bot onto the pad 2 s later
---   (Config.Bots.Tutorial.JoinDelay); its game starting is Game1. A second real player on the
---   pad before then is a friend's game: the tutorial cancels ("Friend").
--- - Queue: Join Global Queue's search turns into the Bots lane's arena bot match after
---   Game2BotAfterSeconds (BotService.setFallbackWait); the arena loads the save as Game2
---   (Steps.resume). Game2: its result moves on to Lobby (the post-match row shows only Lobby).
---
--- The opponent sits behind one small interface (`Opponent`): the Bots lane's tutorial bot.
+-- - Arrow: the nearest empty 1v1 table is reserved for the player (lobby bots get up and stay
+--   off it; TableService's `reservedFor`) and its id goes to the client (the player attribute
+--   TutorialTable; 0 while every table is taken). Stepping onto any pad moves to Pad: an empty
+--   1v1 table becomes the tutorial table; one where a real person waits is a fair game.
+-- - Pad: alone on a 1v1 pad, the table is rigged and the tutorial bot comes (path S). A real
+--   person on the pad before the game starts makes it a fair game (path R): no rig, no hidden
+--   help. Walking off the pad goes back to the arrow.
+-- - Game1: the game started. Path S is the rigged game (Tutorial/Rig does the physics side,
+--   this the lessons: the TutorialLesson attribute); path R a normal game. A won game 1 moves
+--   to Result (the chain); a lost fair game goes back to the arrow (the next time they sit
+--   alone it is the rigged game); a game left halfway goes back to the arrow.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -24,6 +22,7 @@ local Config = require(Shared.Config)
 local Tables = require(script.Parent.TableService)
 local BotService = require(script.Parent.Bots.BotService)
 local Funnel = require(script.Parent.Funnel)
+local PlayerData = require(script.Parent.PlayerData)
 local Simulation = require(Shared.Physics.Simulation)
 local Break = require(Shared.Tutorial.Break)
 local Rig = require(Shared.Tutorial.Rig)
@@ -40,7 +39,7 @@ local service: any = nil
 
 -- The table reserved for each player (its id).
 local reserved: { [Player]: number } = {}
--- A player whose opponent is on its way (no second bot for a second press).
+-- A player whose opponent is on its way (no second bot for a second look).
 local calling: { [Player]: boolean } = {}
 
 local function log(text: string)
@@ -53,9 +52,9 @@ end
 
 local Opponent = {}
 
---- Brings game 1's opponent onto table `t`'s pad (it appears there after JoinDelay); the
---- table starts by itself and the player breaks. Yields for the bot's look; tries again a few
---- times if Roblox answers nothing. True when it was sent.
+--- Brings game 1's opponent onto table `t`'s pad; the table starts by itself and the player
+--- breaks. Yields for the bot's look; tries again a few times if Roblox answers nothing. True
+--- when it was sent.
 function Opponent.join(t: any): boolean
 	for _ = 1, G.BotTries do
 		local bot = BotService.tutorialBot()
@@ -87,8 +86,18 @@ local function realSeated(t: any, except: Player?): boolean
 	return false
 end
 
--- Whether table `t` can be the player's: a waiting 1v1 table with no real player, no search,
--- not reserved for someone else (lobby bots there will get up).
+-- Whether a bot sits at table `t`.
+local function botSeated(t: any): boolean
+	for _, s in t.engine.seats do
+		if s.userId < 0 then
+			return true
+		end
+	end
+	return false
+end
+
+-- Whether table `t` can be the player's rigged table: a waiting 1v1 table with no real player
+-- but them, no search, not reserved for someone else (lobby bots there will get up).
 local function usable(t: any, player: Player): boolean
 	local e = t.engine
 	return e.teamSize == 1
@@ -114,6 +123,17 @@ local function release(player: Player)
 	end
 end
 
+local function hold(player: Player, t: any)
+	if reserved[player] == t.engine.id then
+		return
+	end
+	release(player)
+	t.reservedFor = player.UserId
+	reserved[player] = t.engine.id
+	player:SetAttribute("TutorialTable", t.engine.id)
+	log(("%s: table %d reserved"):format(player.Name, t.engine.id))
+end
+
 -- Keeps a usable table reserved for the player: the one they have, else the nearest.
 local function reserve(player: Player)
 	local id = reserved[player]
@@ -121,7 +141,6 @@ local function reserve(player: Player)
 	if current and usable(current, player) then
 		return
 	end
-	release(player)
 	local root = rootOf(player)
 	if root == nil then
 		return
@@ -136,15 +155,14 @@ local function reserve(player: Player)
 		end
 	end
 	if best then
-		best.reservedFor = player.UserId
-		reserved[player] = best.engine.id
-		player:SetAttribute("TutorialTable", best.engine.id)
-		log(("%s: table %d reserved"):format(player.Name, best.engine.id))
+		hold(player, best)
+	else
+		release(player)
 	end
 end
 
--- Game 1's rig on table `t` for `player` (Tutorial/Rig: the fixed rack and break, no clock,
--- the hidden assist, the 8 guard), set while the table still waits for the bot.
+-- Game 1's rig on table `t` for `player` (Tutorial/Rig: the fixed rack and break, the hidden
+-- help, the 8 guard), set while the table still waits for the bot.
 local function rig(t: any, player: Player)
 	local e = t.engine
 	if e.phase ~= "Waiting" then
@@ -157,10 +175,8 @@ local function rig(t: any, player: Player)
 	Tables.broadcast(t)
 end
 
--- Takes the rig off the player's table while it still waits (they walked off before the bot).
-local function unrig(player: Player)
-	local id = reserved[player]
-	local t = if id then Tables.get(id) else nil
+-- Takes the rig off table `t` while it still waits (they walked off, or a real person came).
+local function unrig(t: any?)
 	if t and t.engine.tutorial and t.engine.phase == "Waiting" then
 		t.engine.tutorial = nil
 	end
@@ -172,11 +188,7 @@ function TutorialGames.reservedTable(player: Player): number?
 end
 
 ---------------------------------------------------------------------------------------------
--- Watching the steps
----------------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------
--- Game 1 (the rigged match: Tutorial/Rig does the physics side, this the lessons)
+-- Game 1 on path S (the rigged match: Tutorial/Rig does the physics side, this the lessons)
 ---------------------------------------------------------------------------------------------
 
 -- What happened so far in the player's game 1 (per game: `epoch`).
@@ -186,15 +198,9 @@ type Game1 = {
 	lastSeq: number,
 	filled: boolean, -- the ability bar was filled after the aim shot
 	usedAbility: boolean,
-	exited: boolean, -- the bot stormed off
-	sawHand: boolean, -- the ball-in-hand lesson was shown (side event, once)
-	botSeq: number, -- the bot's last shot seen (its scratch is a side event)
+	sawHand: boolean, -- the ball-in-hand lesson was shown
 }
 local games: { [Player]: Game1 } = {}
-
-local function now(): number
-	return workspace:GetServerTimeNow()
-end
 
 local function gameOf(player: Player, e: any): Game1
 	local g = games[player]
@@ -205,52 +211,11 @@ local function gameOf(player: Player, e: any): Game1
 			lastSeq = 0,
 			filled = false,
 			usedAbility = false,
-			exited = false,
 			sawHand = false,
-			botSeq = 0,
 		}
 		games[player] = g
 	end
 	return g
-end
-
--- The bot seated at `e`, if any.
-local function botOf(e: any): any?
-	for _, s in e.seats do
-		if s.userId < 0 then
-			return BotService.get(s.userId)
-		end
-	end
-	return nil
-end
-
--- The player's winning 8: the bot storms off just after it drops, and the result waits for it.
-local function exitOn(t: any, e: any, g: Game1)
-	local pending = e.pending
-	local shot = e.shot
-	if g.exited or not (shot and shot.eightWins and pending and pending.outcome) then
-		return
-	end
-	g.exited = true
-	local dropAt = shot.startedAt + shot.duration
-	for _, ev in pending.outcome.events do
-		if ev.type == "pocket" and ev.ball == 8 then
-			dropAt = shot.startedAt + ev.t
-			break
-		end
-	end
-	local exitAt = dropAt + G.ExitAfterDropSeconds
-	if e.deadline and e.deadline < exitAt + G.ExitHoldSeconds then
-		e.deadline = exitAt + G.ExitHoldSeconds
-		e.revision += 1
-		Tables.broadcast(t)
-	end
-	local bot = botOf(e)
-	if bot then
-		task.delay(math.max(0, exitAt - now()), function()
-			BotService.stormOff(bot)
-		end)
-	end
 end
 
 -- The lesson showing now (the player attribute TutorialLesson; the client shows it):
@@ -282,8 +247,8 @@ local function lessonOf(player: Player, e: any, g: Game1): string
 	return ""
 end
 
--- Watches the player's game 1 at their table.
-local function watchGame1(player: Player, t: any)
+-- Watches the player's rigged game 1 at their table.
+local function watchRigged(player: Player, t: any)
 	local e = t.engine
 	local uid = player.UserId
 	if not Rig.isPlayer(e, uid) then
@@ -296,15 +261,14 @@ local function watchGame1(player: Player, t: any)
 		g.shots += 1
 		local j = e.pending and e.pending.judgement
 		if g.shots == 1 then
-			Funnel.onboarding(player, "Broke")
+			Funnel.once(player, "PathS", "Break")
 		elseif g.shots == 2 and j and j.keep then
-			Funnel.onboarding(player, "PottedAimShot")
+			Funnel.once(player, "PathS", "AimPotted")
 		end
 		if shot.ult and shot.ult.by == uid then
 			g.usedAbility = true
-			Funnel.onboarding(player, "UsedAbility")
+			Funnel.once(player, "PathS", "AbilityUsed")
 		end
-		exitOn(t, e, g)
 	end
 	-- The bar fills once the aim shot is over (designer: the ability comes after that shot).
 	if g.shots >= 2 and not g.filled and e.phase ~= "Resolving" then
@@ -313,16 +277,8 @@ local function watchGame1(player: Player, t: any)
 			Tables.broadcast(t)
 		end
 	end
-	-- Side events (the funnel lane of step 9): the bot's scratch, ball in hand shown.
-	if shot and shot.shooter ~= uid and shot.seq ~= g.botSeq then
-		g.botSeq = shot.seq
-		local j = e.pending and e.pending.judgement
-		if j and j.foul == "Scratch" then
-			Funnel.event(player, "TutorialBotScratch")
-		end
-	end
 	if e.calledPocket and e.shooter == uid then
-		Funnel.onboarding(player, "CalledEight")
+		Funnel.once(player, "PathS", "EightCalled")
 	end
 	local lesson = lessonOf(player, e, g)
 	if lesson == "Ability" then
@@ -335,7 +291,7 @@ local function watchGame1(player: Player, t: any)
 	player:SetAttribute("TutorialLesson", lesson)
 	if lesson == "BallInHand" and not g.sawHand then
 		g.sawHand = true
-		Funnel.event(player, "TutorialBallInHand")
+		Funnel.once(player, "PathS", "BallInHand")
 	end
 	if lesson == "Pick" then
 		local group = Rig.playerGroup(e)
@@ -361,193 +317,165 @@ local function watchGame1(player: Player, t: any)
 	end
 end
 
--- The game is over: a win moves on to the rewards (step 5); the player gone from the table
--- (they left mid-game) plays game 1 again from the arrow (designer, 2026-10-03).
-local function game1Over(player: Player, t: any?): boolean
-	local e = if t then t.engine else nil
-	local seat = if e then Rig.playerTeam(e) else nil
-	if e and e.phase == "Result" and e.result and Rig.isPlayer(e, player.UserId) then
-		if seat and e.result.winner == seat then
-			Funnel.onboarding(player, "WonGame1")
-			player:SetAttribute("TutorialLesson", "")
-			service.setStep(player, "Drop")
-			return true
+-- The player's seat team at table `t` (nil when not seated there).
+local function teamOf(t: any, player: Player): number?
+	for _, s in t.engine.seats do
+		if s.userId == player.UserId then
+			return s.team
 		end
 	end
-	if e == nil or not Rig.isPlayer(e, player.UserId) or seat == nil then
+	return nil
+end
+
+-- Game 1 is over: a win moves on to the chain (Result), a loss or a game left halfway back to
+-- the arrow. True when it was over.
+local function game1Over(player: Player, t: any?): boolean
+	local e = if t then t.engine else nil
+	local path = service.path(player)
+	local funnel = if path == "S" then "PathS" else "PathR"
+	if e and e.phase == "Result" and e.result then
+		local team = teamOf(t, player)
+		local won = team ~= nil and e.result.winner == team
 		player:SetAttribute("TutorialLesson", "")
 		games[player] = nil
-		service.setStep(player, "Arrow1")
+		Funnel.onboarding(player, "Game1Ended")
+		if path == "R" then
+			Funnel.once(player, "PathR", "Ended")
+		end
+		if won then
+			Funnel.onboarding(player, "FirstWin")
+			Funnel.once(player, funnel, "Won")
+			service.setStep(player, "Result")
+		else
+			service.setPath(player, nil)
+			service.setStep(player, "Arrow")
+		end
+		return true
+	end
+	if e == nil or teamOf(t, player) == nil or e.phase == "Waiting" then
+		-- Not at a game any more (left it, or the table reset): a win already in the save is
+		-- the first win (the result was missed), anything else plays game 1 again.
+		player:SetAttribute("TutorialLesson", "")
+		games[player] = nil
+		local data = PlayerData.read(player)
+		if data and (data.Progress.Wins or 0) > 0 then
+			service.setStep(player, "Result")
+		else
+			service.setPath(player, nil)
+			service.setStep(player, "Arrow")
+		end
 		return true
 	end
 	return false
 end
 
--- Game 2 (in its arena): once its result shows, the player goes back with Lobby. A win is the
--- funnel's step; a loss is a side event (the bot is a fair Bronze one).
-local function game2Over(player: Player)
-	local t = Tables.arenaTable()
-	local e = if t then t.engine else nil
-	if e == nil or e.phase ~= "Result" or e.result == nil then
-		return
-	end
-	local team = nil
-	for _, s in e.seats do
-		if s.userId == player.UserId then
-			team = s.team
-		end
-	end
-	if team == nil then
-		return
-	end
-	if e.result.winner == team then
-		Funnel.onboarding(player, "WonGame2")
-	else
-		Funnel.event(player, "TutorialLostGame2")
-	end
-	service.setStep(player, "Lobby")
-end
-
--- Game 1: a tutorial player standing on their reserved pad gets the tutorial bot by itself
--- (designer, 2026-10-07: the tutorial only teaches stepping on the pad; there is no Request
--- button). The funnel keeps its old event name.
+-- Path S: a tutorial player alone on their pad gets the tutorial bot by itself.
 local function callOpponent(t: any, host: Player)
 	calling[host] = true
-	host:SetAttribute("TutorialCalling", true)
 	rig(t, host)
-	Funnel.onboarding(host, "PressedRequest")
+	Funnel.once(host, "PathS", "Seated")
 	log(
 		("%s stepped on the pad at table %d: the tutorial bot comes"):format(host.Name, t.engine.id)
 	)
 	if not Opponent.join(t) then
 		calling[host] = nil
-		host:SetAttribute("TutorialCalling", false)
 		warn("[8ball] Tutorial: no tutorial bot came for " .. host.Name)
 	end
 end
 
--- Game 2: the search starts by itself on the pad (its bot match comes at once, see start);
--- one that could not start is tried again after SearchRetrySeconds.
-local searchTriedAt: { [Player]: number } = {}
-local function startSearch(t: any, host: Player)
-	local now = os.clock()
-	if now - (searchTriedAt[host] or -math.huge) < G.SearchRetrySeconds then
+---------------------------------------------------------------------------------------------
+-- Watching the steps
+---------------------------------------------------------------------------------------------
+
+local function atArrow(player: Player)
+	reserve(player)
+	local id = Tables.tableOf(player)
+	local t = if id then Tables.get(id) else nil
+	if t == nil then
 		return
 	end
-	searchTriedAt[host] = now
-	task.spawn(Tables.startSearch, t, host)
+	Funnel.onboarding(player, "OnTable")
+	if usable(t, player) then
+		hold(player, t) -- any empty 1v1 table becomes the tutorial table
+	end
+	service.setStep(player, "Pad")
 end
 
--- The steps that keep the player's table reserved (the arrow, the pad, the game on it).
-local KEEPS: { [string]: boolean } =
-	{ Arrow1 = true, Request = true, Game1 = true, Arrow2 = true, Queue = true }
-
--- The arrow steps and the pad steps they lead to.
-local PAD_STEP: { [string]: string } = { Arrow1 = "Request", Arrow2 = "Queue" }
-local ARROW_STEP: { [string]: string } = { Request = "Arrow1", Queue = "Arrow2" }
+local function atPad(player: Player)
+	local id = Tables.tableOf(player)
+	local t = if id then Tables.get(id) else nil
+	if t == nil then
+		-- Walked off the pad: back to the arrow (the table stays theirs while it is free).
+		calling[player] = nil
+		unrig(if reserved[player] then Tables.get(reserved[player] :: number) else nil)
+		service.setStep(player, "Arrow")
+		return
+	end
+	local e = t.engine
+	if e.phase ~= "Waiting" then
+		-- The game started: rigged against the tutorial bot (S), or fair (R).
+		calling[player] = nil
+		local rigged = Rig.isPlayer(e, player.UserId) and botSeated(t) and not realSeated(t, player)
+		service.setPath(player, if rigged then "S" else "R")
+		Funnel.onboarding(player, "Game1Started")
+		if rigged then
+			Funnel.once(player, "PathS", "BotArrived")
+		else
+			Funnel.once(player, "PathR", "OpponentArrived")
+			Funnel.once(player, "PathR", "Started")
+		end
+		service.setStep(player, "Game1")
+		return
+	end
+	if realSeated(t, player) then
+		-- A real person is here before the game: a fair first game (path R).
+		if e.tutorial then
+			unrig(t)
+		end
+		calling[player] = nil
+		Funnel.once(player, "PathR", "Seated")
+		return
+	end
+	if usable(t, player) then
+		hold(player, t)
+		if not calling[player] and not botSeated(t) then
+			callOpponent(t, player)
+		end
+	end
+end
 
 local function watch(player: Player)
 	local step = service.step(player)
-	if step == nil then
-		return
+	if step == nil or Tables.arenaTable() ~= nil then
+		return -- an arena has no pads: the tutorial's tables are a lobby's
 	end
-	if Tables.arenaTable() ~= nil then
-		-- An arena has no pads to reserve: only game 2's end is watched here.
-		if step == "Game2" then
-			game2Over(player)
-		end
-		return
-	end
-	local seatedAt = Tables.tableOf(player)
-	if PAD_STEP[step] then
-		reserve(player)
-		if seatedAt == nil then
-			return
-		end
-		if seatedAt == reserved[player] then
-			if step == "Arrow1" then
-				Funnel.onboarding(player, "SteppedOnPad")
-			end
-			service.setStep(player, PAD_STEP[step])
-		else
-			service.cancel(player, "OtherTable")
-		end
-	elseif ARROW_STEP[step] then
-		local t = if reserved[player] then Tables.get(reserved[player] :: number) else nil
-		if seatedAt == nil or t == nil or seatedAt ~= reserved[player] then
-			-- Walked off the pad (or onto another): back to the arrow.
-			if seatedAt ~= nil and seatedAt ~= reserved[player] then
-				unrig(player)
-				service.cancel(player, "OtherTable")
-			else
-				calling[player] = nil
-				player:SetAttribute("TutorialCalling", false)
-				unrig(player)
-				service.setStep(player, ARROW_STEP[step])
-			end
-			return
-		end
-		if realSeated(t, player) then
-			unrig(player)
-			service.cancel(player, "Friend")
-			return
-		end
-		if step == "Request" and t.engine.phase == "Waiting" and not calling[player] then
-			callOpponent(t, player)
-		elseif
-			step == "Queue"
-			and t.engine.phase == "Waiting"
-			and t.engine.search == nil
-			and t.engine.hostId == player.UserId
-		then
-			startSearch(t, player)
-		end
-		if step == "Request" and t.engine.phase ~= "Waiting" then
-			calling[player] = nil
-			player:SetAttribute("TutorialCalling", false)
-			Funnel.onboarding(player, "Game1Started")
-			service.setStep(player, "Game1")
-		elseif step == "Queue" then
-			-- The search runs (its bot match comes at once, see start) until the teleport; one
-			-- that ended starts again (startSearch above).
-			local searching = t.engine.search ~= nil
-			if searching and not calling[player] then
-				Funnel.onboarding(player, "JoinedGlobalQueue")
-			end
-			if searching then
-				calling[player] = true
-			else
-				calling[player] = nil
-			end
-			player:SetAttribute("TutorialCalling", searching)
-		end
+	if step == "Arrow" then
+		atArrow(player)
+	elseif step == "Pad" then
+		atPad(player)
 	elseif step == "Game1" then
-		local t = if reserved[player] then Tables.get(reserved[player] :: number) else nil
-		if not game1Over(player, t) and t then
-			watchGame1(player, t)
+		local id = Tables.tableOf(player)
+		local t = if id then Tables.get(id) else nil
+		if not game1Over(player, t) and t and service.path(player) == "S" then
+			watchRigged(player, t)
 		end
-	elseif not KEEPS[step] and reserved[player] then
+	elseif reserved[player] then
 		release(player)
 	end
 end
 
---- Whether the player is on a table's pad or seat (the real server's nudges wait meanwhile).
+--- Whether the player is on a table's pad or seat.
 function TutorialGames.seated(player: Player): boolean
 	return Tables.tableOf(player) ~= nil
 end
 
---- Starts watching the tables. `tutorial` is TutorialService (step, setStep, cancel,
---- firstServer).
+--- Starts watching the tables. `tutorial` is TutorialService (step, setStep, path, setPath,
+--- guided, guard).
 function TutorialGames.start(tutorial: any)
 	service = tutorial
-	-- Nobody in the tutorial's first server sends or sees a Request opponent popup.
+	-- Nobody in the guided part sends or sees a Request opponent popup.
 	Tables.setRequestFilter(function(host: Player, player: Player): boolean
-		return not service.firstServer(host) and not service.firstServer(player)
-	end)
-	-- Game 2's search meets the Bots lane's disguised bot (the player's tier, no rematch) at
-	-- once instead of after the usual wait.
-	BotService.setFallbackWait(function(player: Player): number?
-		return if service.step(player) == "Queue" then G.Game2BotAfterSeconds else nil
+		return not service.guided(host) and not service.guided(player)
 	end)
 	local since = 0
 	RunService.Heartbeat:Connect(function(dt: number)
@@ -557,20 +485,15 @@ function TutorialGames.start(tutorial: any)
 		end
 		since = 0
 		for _, player in Players:GetPlayers() do
-			local ok, err = pcall(function(): any
+			service.guard(player, "Games", function()
 				watch(player)
-				return nil
 			end)
-			if not ok then
-				warn("[8ball] Tutorial: watching " .. player.Name .. " failed: " .. tostring(err))
-			end
 		end
 	end)
 	Players.PlayerRemoving:Connect(function(player: Player)
 		release(player)
 		calling[player] = nil
 		games[player] = nil
-		searchTriedAt[player] = nil
 	end)
 end
 

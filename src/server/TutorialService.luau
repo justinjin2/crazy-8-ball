@@ -1,11 +1,24 @@
 --!strict
--- TutorialService: a new player's first session (docs/prompts/TUTORIAL_PROMPT.md). One step per
--- player (Tutorial/Steps), saved as Flags.Tutorial and shown to the client through two player
--- attributes: TutorialStep (the step's name, or "" once it is over) and TutorialActive (true in
--- the first server: the menus hide and the GUI lane's popups wait).
+-- TutorialService: a new player's first session, tutorial v2 (docs/prompts/TUTORIAL_V2_PROMPT.md).
+-- One step per player (Tutorial/Steps), saved as Flags.Tutorial and shown to the client
+-- through player attributes:
 --
--- The server decides every step; the client only reports what it alone can see (the
--- TutorialEvent remote), and each report is checked against the step it may move.
+--   TutorialStep    the step's name, or "" once it is over (Done, Skipped)
+--   TutorialActive  true in the guided part (Arrow .. Abilities): the menus hide, popups wait
+--   TutorialPath    game 1's path: "S" (rigged, against the tutorial bot), "R" (fair), or ""
+--   TutorialStepAt  the server time (workspace:GetServerTimeNow) the step began: the client
+--                   times its re-prompts and fallbacks from it
+--   TutorialDevice  the device the client reported (Funnel.Devices), for the funnels' fields
+--   TutorialMarks   the moments of the current step the server has seen, comma-separated
+--                   (RankClaimed, Equipped, Redeemed, Spun): the client's next line
+--
+-- plus the hint masks (TutorialHints). The server decides every step; the client only reports
+-- what it alone can see (the TutorialEvent remote), and each report is checked against the
+-- step it may move. TutorialGames moves the steps from what happens at the tables.
+--
+-- The fail-safe: any error in tutorial code (here, TutorialGames, the client's scenes) ends
+-- the tutorial gracefully (everything shows, the game plays on normally) and logs
+-- TutorialError (TutorialService.guard, TutorialService.fail).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -18,70 +31,158 @@ local Strings = require(Shared.Strings)
 local Steps = require(Shared.Tutorial.Steps)
 local PlayerData = require(script.Parent.PlayerData)
 local Rewards = require(script.Parent.Rewards)
-local Ranking = require(script.Parent.Ranking)
-local ArenaService = require(script.Parent.ArenaService)
 local Funnel = require(script.Parent.Funnel)
+local TutorialHints = require(script.Parent.TutorialHints)
 local TutorialGames = require(script.Parent.TutorialGames)
 local Items = require(script.Parent.Items)
 local LuckyBlockService = require(script.Parent.LuckyBlockService)
 local UltSpins = require(script.Parent.UltSpins)
-local CueCatalog = require(Shared.Progression.Catalog)
-local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
 
 local T = Config.Tutorial
+local Timing = T.Timing
 
 local TutorialService = {}
 
 local STEP_FLAG = "Tutorial"
+local PATH_FLAG = "TutorialPath"
 local WHY_FLAG = "TutorialWhy"
--- The real server's nudges: how many of Steps.Nudges are done.
-local NUDGE_FLAG = "TutorialNudge"
-local SECONDS_PER_DAY = 86400
-
-local inArena = false
+-- The matches played when the soft part began: one more is game 2.
+local SOFT_FLAG = "TutorialSoftAt"
 
 -- Listeners for step changes: fn(player, step, previous).
 local stepChanged = Instance.new("BindableEvent")
 TutorialService.StepChanged = stepChanged.Event
 
+-- When each player's current step began (os.clock, this server), for StepTime and fallbacks.
+local enteredAt: { [Player]: number } = {}
+-- A brand-new save whose Joined waits for the device report.
+local joinedWaiting: { [Player]: boolean } = {}
+-- Moments inside a step this server has seen (cleared on every step change): RankClaimed,
+-- Equipped, Spun, Redeemed.
+local marks: { [Player]: { [string]: number } } = {}
+
 local function log(text: string)
 	print("[8ball] Tutorial: " .. text)
 end
 
---- The player's step (a Steps.Order name, or an end state: Done, Skipped, Cancelled), or nil
---- while their save is not loaded.
+local function clock(): number
+	return os.clock()
+end
+
+--- The player's step (a Steps.Order name or an end state), or nil while the save is not
+--- loaded.
 function TutorialService.step(player: Player): string?
 	local step = PlayerData.flag(player, STEP_FLAG)
 	return if type(step) == "string" then step else nil
 end
 
---- Whether the tutorial is still running for the player.
+--- Whether the tutorial is still running for the player (any step but the ends).
 function TutorialService.active(player: Player): boolean
 	return Steps.active(TutorialService.step(player))
 end
 
---- Whether the player is in the tutorial's first server (menus hidden, popups held).
-function TutorialService.firstServer(player: Player): boolean
-	return Steps.firstServer(TutorialService.step(player))
+--- Whether the player is in the guided part (Arrow .. Abilities: menus hidden, popups held).
+function TutorialService.guided(player: Player): boolean
+	return Steps.guided(TutorialService.step(player))
+end
+
+--- Game 1's path for the player ("S", "R"), or nil before game 1.
+function TutorialService.path(player: Player): string?
+	local p = PlayerData.flag(player, PATH_FLAG)
+	return if type(p) == "string" and Steps.Paths[p] then p else nil
+end
+
+--- Sets game 1's path ("S", "R", or nil to clear it).
+function TutorialService.setPath(player: Player, path: string?)
+	if path ~= nil and not Steps.Paths[path] then
+		return
+	end
+	if PlayerData.setFlag(player, PATH_FLAG, path) then
+		player:SetAttribute("TutorialPath", path or "")
+	end
+end
+
+--- Seconds the player has been on their current step (this server).
+function TutorialService.since(player: Player): number
+	local at = enteredAt[player]
+	return if at then clock() - at else 0
+end
+
+-- The fallback time of `step` (Config.Tutorial.Timing).
+local function fallbackOf(step: string): number
+	return Timing.Fallback[step] or Timing.FallbackSeconds
+end
+
+-- Copies the current step's moments onto TutorialMarks.
+local function publishMarks(player: Player)
+	local names = {}
+	local m = marks[player]
+	if m then
+		for name in m do
+			table.insert(names, name)
+		end
+	end
+	table.sort(names)
+	player:SetAttribute("TutorialMarks", table.concat(names, ","))
+end
+
+--- Notes a moment inside the current step (cleared when the step changes); answers when it
+--- was first noted.
+function TutorialService.mark(player: Player, name: string): number
+	local m = marks[player] or {}
+	marks[player] = m
+	if m[name] == nil then
+		m[name] = clock()
+		publishMarks(player)
+	end
+	return m[name]
+end
+
+--- When moment `name` was noted in the current step (os.clock), or nil.
+function TutorialService.marked(player: Player, name: string): number?
+	local m = marks[player]
+	return if m then m[name] else nil
 end
 
 local function publish(player: Player, step: string)
 	player:SetAttribute("TutorialStep", if Steps.active(step) then step else "")
-	player:SetAttribute("TutorialActive", Steps.firstServer(step))
+	player:SetAttribute("TutorialActive", Steps.guided(step))
+	player:SetAttribute("TutorialPath", TutorialService.path(player) or "")
+	player:SetAttribute("TutorialStepAt", workspace:GetServerTimeNow())
+end
+
+-- The onboarding funnel's first two steps, once the device is known (or it waited long
+-- enough): Joined, then ArrowShown for a player at the arrow.
+local function logJoined(player: Player)
+	if not joinedWaiting[player] then
+		return
+	end
+	joinedWaiting[player] = nil
+	Funnel.onboarding(player, "Joined")
+	if TutorialService.step(player) == "Arrow" then
+		Funnel.onboarding(player, "ArrowShown")
+	end
 end
 
 -- What happens once when a step is entered.
 local function entered(player: Player, step: string, _previous: string?)
-	if step == "Arrow1" then
-		Funnel.onboarding(player, "SawArrow")
-	elseif step == "Nudges" and not inArena then
-		Funnel.onboarding(player, "BackInLobby")
+	if step == "Arrow" then
+		Funnel.onboarding(player, "ArrowShown")
+	elseif step == "Soft" then
+		local data = PlayerData.read(player)
+		PlayerData.setFlag(player, SOFT_FLAG, if data then data.Stats.Matches or 0 else 0)
+		TutorialHints.markSeen(player, "Quest")
+		Funnel.onboarding(player, "ChainDone")
 	end
 end
 
 --- Moves the player to `step` (a Steps.Order name or an end state), saved at once. False when
---- the save refused it.
+--- the name is unknown or the save refused it.
 function TutorialService.setStep(player: Player, step: string): boolean
+	if not Steps.known(step) then
+		warn("[8ball] Tutorial: not a step: " .. tostring(step))
+		return false
+	end
 	local previous = TutorialService.step(player)
 	if previous == step then
 		return true
@@ -89,6 +190,12 @@ function TutorialService.setStep(player: Player, step: string): boolean
 	if not PlayerData.setFlag(player, STEP_FLAG, step) then
 		return false
 	end
+	if previous and Steps.active(previous) and enteredAt[player] then
+		Funnel.stepTime(player, previous, clock() - enteredAt[player])
+	end
+	enteredAt[player] = clock()
+	marks[player] = nil
+	publishMarks(player)
 	publish(player, step)
 	log(("%s: %s -> %s"):format(player.Name, tostring(previous), step))
 	entered(player, step, previous)
@@ -105,22 +212,62 @@ function TutorialService.advance(player: Player, from: string): boolean
 	return nextStep ~= nil and TutorialService.setStep(player, nextStep)
 end
 
---- Ends the tutorial early (Steps.Reasons: Skip, OtherTable, Friend). Everything shows at once
---- and the exit funnel notes why.
-function TutorialService.cancel(player: Player, reason: string)
+-- Ends the tutorial early for `reason` (Steps.Reasons): everything shows at once. A skipper
+-- is not taught the pool controls; the other first-time hints still come.
+local function finish(player: Player, reason: string)
 	local step = TutorialService.step(player)
 	if not Steps.active(step) or Steps.Reasons[reason] == nil then
 		return
 	end
 	PlayerData.setFlag(player, WHY_FLAG, reason)
-	TutorialService.setStep(player, if reason == "Skip" then "Skipped" else "Cancelled")
-	Funnel.once(player, "TutorialExit", 1, "Left" .. reason)
-	Funnel.event(player, "TutorialLeft", Steps.index(step), reason, step)
+	TutorialHints.skipPool(player)
+	TutorialService.setStep(player, "Skipped")
 end
 
--- The day a unix time falls on (UTC).
-local function dayOf(t: number): number
-	return math.floor(t / SECONDS_PER_DAY)
+--- The Skip button (Yes): the funnel notes the step they skipped at.
+function TutorialService.skip(player: Player)
+	local step = TutorialService.step(player)
+	if not Steps.active(step) then
+		return
+	end
+	Funnel.skipped(player, step :: string)
+	finish(player, "Skip")
+end
+
+-- Players whose tutorial already failed this session (a failure is handled once).
+local failed: { [Player]: boolean } = {}
+
+--- The fail-safe: an error in tutorial code (`code`: a short fixed word naming where) ends
+--- the player's tutorial gracefully and logs TutorialError. Never errors itself.
+function TutorialService.fail(player: Player, code: string, err: any?)
+	if failed[player] then
+		return
+	end
+	failed[player] = true
+	local step = TutorialService.step(player) or "None"
+	warn(
+		("[8ball] Tutorial: %s failed at %s (%s): %s"):format(
+			player.Name,
+			step,
+			code,
+			tostring(err)
+		)
+	)
+	pcall(Funnel.error, player, step, code)
+	pcall(finish, player, "Error")
+	pcall(function()
+		player:SetAttribute("TutorialLesson", "")
+	end)
+end
+
+--- Runs `fn` for the player under the fail-safe (`code` names the place for TutorialError).
+--- Answers whether it ran without an error.
+function TutorialService.guard(player: Player, code: string, fn: () -> ()): boolean
+	local ok, err = pcall(fn :: any)
+	if not ok then
+		TutorialService.fail(player, code, err)
+	end
+	return ok
 end
 
 local function onLoaded(player: Player)
@@ -129,204 +276,164 @@ local function onLoaded(player: Player)
 		return
 	end
 	local saved = data.Flags[STEP_FLAG]
-	local step: string
-	if type(saved) ~= "string" then
-		step = Steps.initial(data.Stats.Matches, data.Progress.Wins)
-	elseif Steps.active(saved) then
-		step = Steps.resume(saved, inArena)
-	else
-		step = saved
-	end
+	local step = Steps.load(saved, data.Stats.Matches, data.Progress.Wins)
 	-- The onboarding funnel follows new players only: its first step is a brand-new save
-	-- starting the tutorial, and Funnel logs no later step for anyone without it.
-	if type(saved) ~= "string" and step == "Arrow1" then
-		Funnel.onboarding(player, "Joined")
-	end
-	if dayOf(os.time()) > dayOf(data.Shop.FirstJoin) then
-		Funnel.onboarding(player, "CameBackNextDay")
-		if step == "Skipped" or step == "Cancelled" then
-			Funnel.once(player, "TutorialExit", 5, "NextDay")
-		end
+	-- starting the tutorial (logged once the device is known), and no later step is logged
+	-- for anyone without it.
+	if type(saved) ~= "string" and step == "Arrow" then
+		joinedWaiting[player] = true
+		task.delay(T.Device.JoinedWaitSeconds, function()
+			if player.Parent then
+				TutorialService.guard(player, "Joined", function()
+					logJoined(player)
+				end)
+			end
+		end)
 	end
 	if step ~= saved then
 		if not PlayerData.setFlag(player, STEP_FLAG, step) then
 			return
 		end
+		if type(saved) == "string" then
+			log(("%s: saved step %s continues at %s"):format(player.Name, saved, step))
+		end
 	end
+	enteredAt[player] = clock()
+	TutorialHints.publish(player)
 	publish(player, step)
 	log(("%s joins at %s"):format(player.Name, step))
-	entered(player, step, if type(saved) == "string" then saved else nil)
+	if step ~= "Arrow" then
+		entered(player, step, if type(saved) == "string" then saved else nil)
+	end
 	stepChanged:Fire(player, step, saved)
 end
 
--- After any save change: the onboarding funnel's 3rd match, and the exit funnel of a player
--- who skipped or left the tutorial (their first game, first win and second match).
+-- After any save change: the onboarding funnel's third match, and game 2's end (the soft
+-- part's next match ends the tutorial).
 local function onChanged(player: Player)
 	local data = PlayerData.read(player)
 	if data == nil then
 		return
 	end
-	local matches, wins = data.Stats.Matches or 0, data.Progress.Wins or 0
+	local matches = data.Stats.Matches or 0
 	if matches >= T.Funnel.ThirdMatch then
-		Funnel.onboarding(player, "PlayedThirdMatch")
+		Funnel.onboarding(player, "ThirdMatch")
 	end
-	local step = TutorialService.step(player)
-	if step == "Skipped" or step == "Cancelled" then
-		if matches >= 1 then
-			Funnel.once(player, "TutorialExit", 2, "FirstGame")
-		end
-		if wins >= 1 then
-			Funnel.once(player, "TutorialExit", 3, "FirstWin")
-		end
-		if matches >= 2 then
-			Funnel.once(player, "TutorialExit", 4, "SecondMatch")
+	if TutorialService.step(player) == "Soft" then
+		local at = data.Flags[SOFT_FLAG]
+		if type(at) == "number" and matches > at then
+			Funnel.onboarding(player, "Game2Ended")
+			TutorialService.setStep(player, "Done")
 		end
 	end
 end
 
 ---------------------------------------------------------------------------------------------
--- After game 1 (docs/prompts/TUTORIAL_PROMPT.md step 5): Block -> Equip -> RareBlock ->
--- Abilities -> Spin -> Code -> Back -> Arrow2. What the server sees moves a step on itself
--- (the block opened, the spin, the code); what only the screen sees is reported
--- (TutorialEvent).
+-- The chain after game 1 (Result .. Abilities; 4.5). What the server sees moves a step on
+-- itself (a claim, an open, an equip, a spin, the code); what only the screen sees is
+-- reported (TutorialEvent). Every step also has its fallback (Config.Tutorial.Timing).
 ---------------------------------------------------------------------------------------------
 
-local cueRandom = Random.new()
-
--- Bronze's Standard block opens to an Uncommon cue (answer 9): one of its odds row's own.
+-- The chain's block opens to the tutorial's cue (4.5 step 7).
 local function forcedOpen(player: Player, kind: string): string?
-	if TutorialService.step(player) ~= "Block" or kind ~= T.BronzeBlockKind then
+	if TutorialService.step(player) ~= "Place" or kind == "Rare" then
 		return nil
 	end
-	local row = LuckyBlocks.kind(kind)
-	local pool = if row and row.Odds then CueCatalog.droppable(row.Odds, T.BronzeCueRarity) else {}
-	if #pool == 0 then
-		return nil
-	end
-	return pool[cueRandom:NextInteger(1, #pool)].Id
+	return T.TutorialCue
 end
 
 local function opened(player: Player, kind: string, cueId: string)
 	Funnel.blockOpened(player, kind, { cueId })
-	local step = TutorialService.step(player)
-	if step == "Block" and kind == T.BronzeBlockKind then
-		Funnel.onboarding(player, "OpenedStandardBlock")
-		TutorialService.setStep(player, "Equip")
-	elseif kind == "Rare" and (step == "Nudges" or step == "Done") then
-		Funnel.onboarding(player, "OpenedRareBlock")
-		if step == "Nudges" then
-			TutorialService.setStep(player, "Done") -- no "Your block is ready!" after it
-		end
+	Funnel.onboarding(player, "BlockOpened")
+	TutorialHints.done(player, "Block")
+	if TutorialService.step(player) == "Place" then
+		TutorialService.advance(player, "Place")
 	end
 end
 
--- Equipping a cue at the Equip step (the Uncommon one, in the Inventory) moves on.
+-- Equipping a cue at the Cues step moves on once Cues is closed (or after the fallback).
 local function equipped(player: Player, _cueId: string)
-	if TutorialService.step(player) == "Equip" then
-		TutorialService.setStep(player, "RareBlock")
+	Funnel.onboarding(player, "CueEquipped")
+	TutorialHints.done(player, "Cue")
+	if TutorialService.step(player) == "Cues" then
+		TutorialService.mark(player, "Equipped")
 	end
 end
 
--- The one starter spin lands on Config.Tutorial.SpinUlt (Fire Shot, the starter, since the
--- designer's third rework round, 2026-10-08; Magnet before).
+-- A new save's first spin lands on Config.Tutorial.SpinUlt (Magnet) at the Abilities step.
 local function forcedSpin(player: Player): string?
-	return if TutorialService.step(player) == "Spin" then T.SpinUlt else nil
+	return if TutorialService.step(player) == "Abilities" then T.SpinUlt else nil
 end
 
 local function spun(player: Player, _id: string)
 	Funnel.spins(player, "Spun")
-	if TutorialService.step(player) == "Spin" then
-		Funnel.onboarding(player, "SpunAbility")
-		TutorialService.setStep(player, "Code")
+	Funnel.onboarding(player, "AbilitySpun")
+	TutorialHints.done(player, "Abilities")
+	if TutorialService.step(player) == "Abilities" then
+		TutorialService.mark(player, "Spun")
 	end
 end
 
 local function codeRedeemed(player: Player, code: string)
 	local typed = string.upper((string.gsub(code, "%s", "")))
-	if TutorialService.step(player) == "Code" and typed == Config.Ults.CodeBanner.ActiveCode then
-		TutorialService.setStep(player, "Back")
+	if
+		TutorialService.step(player) == "Abilities"
+		and typed == Config.Ults.CodeBanner.ActiveCode
+	then
+		TutorialService.mark(player, "Redeemed")
 	end
 end
 
----------------------------------------------------------------------------------------------
--- The real server (step 7): the nudges, one at a time and only off the tables (Steps.nudge);
--- the player attribute TutorialNudge names the one to show ("" for none). Flags.TutorialNudge
--- counts the four done; the Rare block's ready nudge ends the tutorial (Done).
----------------------------------------------------------------------------------------------
-
--- When the newest Rare lucky block in the save (the first win's) is ready (unix time), or nil
--- when the player holds none (opened, traded, or never given). The live time: a skip or VIP
--- moves it.
-local function rareAt(player: Player): number?
-	local data = PlayerData.read(player)
-	local blocks = data and data.LuckyBlocks
-	local list = if type(blocks) == "table" and type(blocks.List) == "table"
-		then blocks.List
-		else {}
-	local newest: any = nil
-	for _, block in list :: { any } do
-		if type(block) == "table" and block.Kind == "Rare" and type(block.ReadyAt) == "number" then
-			if newest == nil or block.Id > newest.Id then
-				newest = block
+-- Each second, per player: the chain's moves that need no report, and its fallbacks.
+local function watchChain(player: Player)
+	local step = TutorialService.step(player)
+	if not Steps.chain(step) then
+		return
+	end
+	local since = TutorialService.since(player)
+	if step == "Result" then
+		-- The result, the block and NEW RANK! each move on by themselves after their
+		-- fallback; this is the server's backstop if the client never says.
+		if since >= fallbackOf("Result") * 3 + Timing.FallbackSeconds / 2 then
+			TutorialService.advance(player, "Result")
+		end
+	elseif step == "Rank" then
+		if player:GetAttribute("RankPending") ~= true then
+			-- Claimed (or nothing waits): closing Rank moves on, or the fallback after it.
+			local at = TutorialService.mark(player, "RankClaimed")
+			if clock() - at >= fallbackOf("Rank") then
+				TutorialService.advance(player, "Rank")
 			end
 		end
+	elseif step == "Cues" then
+		local at = TutorialService.marked(player, "Equipped")
+		if at and clock() - at >= fallbackOf("Cues") then
+			TutorialService.advance(player, "Cues")
+		end
+	elseif step == "Abilities" then
+		local at = TutorialService.marked(player, "Spun")
+		if at and clock() - at >= fallbackOf("Abilities") then
+			TutorialService.advance(player, "Abilities")
+		end
 	end
-	return if newest then newest.ReadyAt else nil
 end
 
-local function nudgeDone(player: Player): number
-	local done = PlayerData.flag(player, NUDGE_FLAG)
-	return if type(done) == "number" then done else 0
-end
-
--- The nudge for the player now, and its place among the four.
-local function nudgeOf(player: Player): (string?, number?)
-	return Steps.nudge(
-		nudgeDone(player),
-		player:GetAttribute("RankPending") == true,
-		rareAt(player),
-		os.time()
-	)
-end
-
--- Each second for a player at Nudges: what to show, or the end of the tutorial.
-local function watchNudges(player: Player)
-	if TutorialService.step(player) ~= "Nudges" or inArena then
+-- The "Next" button (a chain step's fallback): accepted once the step's fallback time is up.
+local function next(player: Player)
+	local step = TutorialService.step(player)
+	if not Steps.chain(step) then
 		return
 	end
-	local name, index = nudgeOf(player)
-	if name == nil then
-		player:SetAttribute("TutorialNudge", "")
-		TutorialService.setStep(player, "Done")
-		return
-	end
-	-- Rank is done once nothing waits any more (claimed in Rank): the count moves past it.
-	local rank = table.find(Steps.Nudges, "Rank") or 0
-	if (index == nil or index > rank) and nudgeDone(player) < rank then
-		PlayerData.setFlag(player, NUDGE_FLAG, rank)
-	end
-	player:SetAttribute("TutorialNudge", if TutorialGames.seated(player) then "" else name)
-end
-
--- The client opened the menu a nudge points at (Inventory, Shop, FreeReward, BlockReady).
-local function nudged(player: Player, item: any)
-	if TutorialService.step(player) ~= "Nudges" or type(item) ~= "string" then
-		return
-	end
-	local name, index = nudgeOf(player)
-	if item ~= name then
-		return
-	end
-	if name == "BlockReady" then
-		player:SetAttribute("TutorialNudge", "")
-		TutorialService.setStep(player, "Done")
-	elseif index and name ~= "Rank" then
-		PlayerData.setFlag(player, NUDGE_FLAG, index)
-		watchNudges(player)
+	if TutorialService.since(player) + Timing.NextGraceSeconds >= fallbackOf(step :: string) then
+		TutorialService.advance(player, step :: string)
 	end
 end
 
--- The client's reports for the repeating funnels (Funnel), each at most once a moment.
+---------------------------------------------------------------------------------------------
+-- The client's reports (TutorialEvent): each checked against the step it may move
+---------------------------------------------------------------------------------------------
+
+-- The repeating funnels' moments only the screen sees (any player).
 local FUNNEL_EVENTS: { [string]: (Player) -> () } = {
 	ShopOpened = function(player: Player)
 		Funnel.shop(player, "Opened")
@@ -338,60 +445,100 @@ local FUNNEL_EVENTS: { [string]: (Player) -> () } = {
 		Funnel.spins(player, "OpenedAbilities")
 	end,
 }
-local lastFunnelEvent: { [string]: number } = {}
+local lastFunnelEvent: { [Player]: { [string]: number } } = {}
 
--- What the client may report, and the step each report needs:
---   Nudged           (Nudges)    the menu the nudge points at opened (its name)
---   SkippedEquip     (Equip)     the Inventory was opened and closed again without equipping
---   RareSeen         (RareBlock) the Rare block's slot was tapped (its countdown seen)
---   OpenedAbilities  (Abilities) the Abilities screen opened
---   ClosedAbilities  (Spin, Code, Back) it closed: Back moves on to game 2's arrow, closing
---                    before the spin goes back to the Abilities icon, before the code skips it
+-- The client's report of a step's screen being done: the step it moves on from.
+local DONE_REPORTS: { [string]: string } = {
+	ResultDone = "Result", -- NEW RANK! dismissed (or nothing left to show)
+	MysteryDone = "Mystery", -- the upgrade screen finished
+}
+-- Closing a menu at a step moves on once the step's moment happened.
+local CLOSE_REPORTS: { [string]: { step: string, mark: string } } = {
+	RankClosed = { step = "Rank", mark = "RankClaimed" },
+	CuesClosed = { step = "Cues", mark = "Equipped" },
+	AbilitiesClosed = { step = "Abilities", mark = "Spun" },
+}
+
+-- A token bucket per player (Config.Tutorial.Events).
+local buckets: { [Player]: { tokens: number, at: number } } = {}
+local function allow(player: Player): boolean
+	local now = clock()
+	local b = buckets[player]
+	if b == nil then
+		b = { tokens = T.Events.Burst, at = now }
+		buckets[player] = b
+	end
+	b.tokens = math.min(T.Events.Burst, b.tokens + (now - b.at) * T.Events.PerSecond)
+	b.at = now
+	if b.tokens < 1 then
+		return false
+	end
+	b.tokens -= 1
+	return true
+end
+
 local function onEvent(player: Player, kind: any, data: any)
-	if type(kind) ~= "string" then
+	if type(kind) ~= "string" or not allow(player) or not PlayerData.isLoaded(player) then
 		return
 	end
 	local step = TutorialService.step(player)
 	if kind == "Skip" then
-		TutorialService.cancel(player, "Skip")
-	elseif kind == "Nudged" then
-		nudged(player, data)
+		TutorialService.skip(player)
+	elseif kind == "Error" then
+		-- The client's scene failed: the same graceful end (the code stays one fixed word).
+		if Steps.active(step) then
+			TutorialService.fail(player, "Client", data)
+		end
+	elseif kind == "Device" then
+		if type(data) == "string" and Funnel.Devices[data] then
+			player:SetAttribute(Funnel.DeviceAttribute, data)
+			logJoined(player)
+		end
+	elseif kind == "Hint" then
+		if type(data) == "table" and type(data.name) == "string" then
+			if data.outcome == "Shown" then
+				TutorialHints.shown(player, data.name)
+			elseif data.outcome == "Done" then
+				TutorialHints.done(player, data.name, true)
+			elseif data.outcome == "Ignored" then
+				TutorialHints.ignored(player, data.name)
+			end
+		end
+	elseif kind == "Seen" then
+		if type(data) == "string" and Steps.ClientSeen[data] then
+			TutorialHints.markSeen(player, data)
+		end
+	elseif kind == "Next" then
+		next(player)
 	elseif FUNNEL_EVENTS[kind] then
-		-- The repeating funnels' moments only the screen sees (any player).
-		local now = os.clock()
-		local key = kind .. player.UserId
-		if now - (lastFunnelEvent[key] or -math.huge) >= T.Funnel.EventGapSeconds then
-			lastFunnelEvent[key] = now
+		local now = clock()
+		local last = lastFunnelEvent[player] or {}
+		lastFunnelEvent[player] = last
+		if now - (last[kind] or -math.huge) >= T.Funnel.EventGapSeconds then
+			last[kind] = now
 			FUNNEL_EVENTS[kind](player)
 		end
-	elseif kind == "SkippedEquip" and step == "Equip" then
-		TutorialService.setStep(player, "RareBlock")
-	elseif kind == "RareSeen" and step == "RareBlock" then
-		Funnel.onboarding(player, "SawRareBlock")
-		TutorialService.setStep(player, "Abilities")
-	elseif kind == "OpenedAbilities" and step == "Abilities" then
-		Funnel.onboarding(player, "OpenedAbilities")
-		TutorialService.setStep(player, "Spin")
-	elseif kind == "ClosedAbilities" then
-		if step == "Spin" then
-			TutorialService.setStep(player, "Abilities")
-		elseif step == "Code" or step == "Back" then
-			TutorialService.setStep(player, "Arrow2")
+	elseif DONE_REPORTS[kind] then
+		TutorialService.advance(player, DONE_REPORTS[kind])
+	elseif CLOSE_REPORTS[kind] then
+		local rule = CLOSE_REPORTS[kind]
+		if step == rule.step and TutorialService.marked(player, rule.mark) then
+			TutorialService.advance(player, rule.step)
 		end
 	end
 end
 
 ---------------------------------------------------------------------------------------------
--- The /tutorial developer command (DevCommands): reset | skip | off | step <name>
+-- The developer commands (DevCommands): /tutorial and /funnel, the designer's account only
 ---------------------------------------------------------------------------------------------
 
---- Runs the command's words; returns the line to tell the caller.
+-- Everything the tutorial keeps in the save, cleared by /tutorial reset.
+local RESET_FLAGS = { STEP_FLAG, PATH_FLAG, WHY_FLAG, SOFT_FLAG, T.Funnel.OnboardingFlag }
+
+--- /tutorial reset | skip | off | hints | path s|r | step <name>: returns the line to tell.
 function TutorialService.dev(player: Player, args: { string }): string
 	local Dev = Strings.Dev
 	local word = args[1]
-	local function names(): string
-		return table.concat(Steps.Order, ", ")
-	end
 	local function find(name: string?): string?
 		for _, step in Steps.Order do
 			if name and string.lower(step) == name then
@@ -401,71 +548,134 @@ function TutorialService.dev(player: Player, args: { string }): string
 		return nil
 	end
 	if word == "reset" then
-		PlayerData.setFlag(player, WHY_FLAG, nil)
-		TutorialService.setStep(player, "Arrow1")
+		-- A new player's tutorial: the step, the path, the hints and every tutorial funnel.
+		for _, key in RESET_FLAGS do
+			PlayerData.setFlag(player, key, nil)
+		end
+		for _, key in T.Funnel.Once :: { [string]: string } do
+			PlayerData.setFlag(player, key, nil)
+		end
+		TutorialHints.reset(player)
+		Funnel.clearLog(player)
+		failed[player] = nil
+		player:SetAttribute("TutorialPath", "")
+		joinedWaiting[player] = true
+		TutorialService.setStep(player, "Arrow")
+		logJoined(player)
 	elseif word == "skip" then
-		TutorialService.cancel(player, "Skip")
+		TutorialService.skip(player)
 	elseif word == "off" then
 		TutorialService.setStep(player, "Done")
+	elseif word == "hints" then
+		TutorialHints.reset(player)
+		return Dev.TutorialHints
+	elseif word == "path" and (args[2] == "s" or args[2] == "r") then
+		TutorialService.setPath(player, string.upper(args[2]))
 	elseif word == "step" and find(args[2]) then
 		TutorialService.setStep(player, find(args[2]) :: string)
 	else
-		return Dev.TutorialBad:format(names())
+		return Dev.TutorialBad:format(table.concat(Steps.Order, ", "))
 	end
-	return Dev.TutorialStep:format(tostring(TutorialService.step(player)))
+	return Dev.TutorialStep:format(
+		tostring(TutorialService.step(player)),
+		TutorialService.path(player) or "-"
+	)
+end
+
+--- /funnel: the lines the funnels logged for the player in this server (newest last).
+function TutorialService.funnelLines(player: Player): { string }
+	local Dev = Strings.Dev
+	local done = {}
+	for _, name in Steps.Funnel do
+		if Funnel.onboarded(player, name) then
+			table.insert(done, name)
+		end
+	end
+	local lines =
+		{ Dev.FunnelOnboarding:format(if #done > 0 then table.concat(done, ", ") else "-") }
+	local list = Funnel.log(player)
+	if #list == 0 then
+		table.insert(lines, Dev.FunnelNone)
+	else
+		table.insert(lines, Dev.FunnelHead:format(#list))
+		for _, line in list do
+			table.insert(lines, line)
+		end
+	end
+	return lines
 end
 
 ---------------------------------------------------------------------------------------------
 -- Start
 ---------------------------------------------------------------------------------------------
 
+local function forget(player: Player)
+	enteredAt[player] = nil
+	joinedWaiting[player] = nil
+	marks[player] = nil
+	buckets[player] = nil
+	lastFunnelEvent[player] = nil
+	failed[player] = nil
+end
+
 function TutorialService.start()
-	inArena = ArenaService.detect()
-	-- Bronze's at-once block after game 1 is the tutorial's Standard block (answer 9).
-	Ranking.setBlockKind(function(player: Player): string?
-		local step = TutorialService.step(player)
-		if Steps.active(step) and not Steps.atLeast(step, "Block") then
-			return T.BronzeBlockKind
-		end
-		return nil
+	LuckyBlockService.setOpenHooks(forcedOpen, function(player: Player, kind: string, cueId: string)
+		TutorialService.guard(player, "Opened", function()
+			opened(player, kind, cueId)
+		end)
 	end)
-	LuckyBlockService.setOpenHooks(forcedOpen, opened)
-	Items.setEquipHook(equipped)
-	UltSpins.setSpinHooks(forcedSpin, spun)
-	Rewards.onRedeemed(codeRedeemed)
-	Net.get("TutorialEvent").OnServerEvent:Connect(onEvent)
+	Items.setEquipHook(function(player: Player, cueId: string)
+		TutorialService.guard(player, "Equipped", function()
+			equipped(player, cueId)
+		end)
+	end)
+	UltSpins.setSpinHooks(forcedSpin, function(player: Player, id: string)
+		TutorialService.guard(player, "Spun", function()
+			spun(player, id)
+		end)
+	end)
+	Rewards.onRedeemed(function(player: Player, code: string)
+		TutorialService.guard(player, "Redeemed", function()
+			codeRedeemed(player, code)
+		end)
+	end)
+	Net.get("TutorialEvent").OnServerEvent:Connect(function(player: Player, kind: any, data: any)
+		TutorialService.guard(player, "Event", function()
+			onEvent(player, kind, data)
+		end)
+	end)
 	TutorialGames.start(TutorialService)
-	local sinceNudge = 0
+	local sinceWatch = 0
 	RunService.Heartbeat:Connect(function(dt: number)
-		sinceNudge += dt
-		if sinceNudge < T.Nudges.WatchSeconds then
+		sinceWatch += dt
+		if sinceWatch < 1 then
 			return
 		end
-		sinceNudge = 0
+		sinceWatch = 0
 		for _, player in Players:GetPlayers() do
-			local ok, err = pcall(function(): any
-				watchNudges(player)
-				return nil
+			TutorialService.guard(player, "Chain", function()
+				watchChain(player)
 			end)
-			if not ok then
-				warn(
-					"[8ball] Tutorial: the nudges of "
-						.. player.Name
-						.. " failed: "
-						.. tostring(err)
-				)
-			end
 		end
 	end)
-	PlayerData.Loaded:Connect(onLoaded)
-	PlayerData.Changed:Connect(onChanged)
+	PlayerData.Loaded:Connect(function(player: Player)
+		TutorialService.guard(player, "Load", function()
+			onLoaded(player)
+		end)
+	end)
+	PlayerData.Changed:Connect(function(player: Player)
+		TutorialService.guard(player, "Changed", function()
+			onChanged(player)
+		end)
+	end)
+	Players.PlayerRemoving:Connect(forget)
 	Funnel.start()
 	for _, player in Players:GetPlayers() do
 		if PlayerData.isLoaded(player) then
 			task.spawn(onLoaded, player)
 		end
 	end
-	-- Studio QA: read or set a test player's step from a script.
+	-- Studio QA: read or set a test player's tutorial from a script.
 	if RunService:IsStudio() then
 		local hook = Instance.new("BindableFunction")
 		hook.Name = "TutorialQA"
@@ -478,12 +688,22 @@ function TutorialService.start()
 				return TutorialService.step(player)
 			elseif op == "set" then
 				return TutorialService.setStep(player, a)
+			elseif op == "path" then
+				TutorialService.setPath(player, a)
+				return TutorialService.path(player)
 			elseif op == "flag" then
-				-- A tutorial flag (TutorialNudge), to jump inside step 7.
 				return PlayerData.setFlag(player, a, b)
 			elseif op == "block" then
 				-- One lucky block of kind `a`, to replay the block steps without a whole game 1.
 				return PlayerData.giveLuckyBlocks(player, a, 1)
+			elseif op == "dev" then
+				return TutorialService.dev(player, a)
+			elseif op == "funnel" then
+				return TutorialService.funnelLines(player)
+			elseif op == "fail" then
+				-- The fail-safe on purpose (QA): ends the tutorial as an error would.
+				TutorialService.fail(player, "QA", "a test failure")
+				return TutorialService.step(player)
 			end
 			error("TutorialQA: unknown op " .. tostring(op))
 		end

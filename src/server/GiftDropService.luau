@@ -68,7 +68,7 @@ local function drop(player: Player)
 			dropping[player] = nil
 			return
 		end
-		while player.Parent == Players and TutorialService.active(player) do
+		while player.Parent == Players and TutorialService.guided(player) do
 			task.wait(TUTORIAL_POLL_SECONDS)
 		end
 		if player.Parent ~= Players or not PlayerData.giftPending(player) then

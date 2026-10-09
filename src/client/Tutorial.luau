@@ -1,11 +1,13 @@
 --!strict
--- Tutorial: the first-time tutorial on the client (docs/prompts/TUTORIAL_PROMPT.md). The server
--- decides the step (the TutorialStep attribute; Tutorial/Steps); this module shows it: the
--- instruction line, the light dim, the hand, the floor arrow, which menu items hide, and the
--- Skip button. It tells the server only what the client alone sees (TutorialEvent).
+-- Tutorial: tutorial v2 on the client (docs/prompts/TUTORIAL_V2_PROMPT.md). The server decides
+-- the step (the TutorialStep attribute; Tutorial/Steps); this module shows it: the instruction
+-- line, the light dim, the hand, the arrow, which menu items hide, the Skip button, and a Next
+-- button when a step's fallback time is up. It tells the server only what the client alone
+-- sees (TutorialEvent), and the device it plays on (the funnels' field).
 --
--- Every prompt is device-specific (designer, 2026-10-03): the words and the hand's gesture
--- follow the last input used (mouse and keyboard, touch, gamepad).
+-- Every prompt is device-specific: the words and the hand's gesture follow the last input used
+-- (mouse and keyboard, touch, gamepad). The fail-safe: an error in a scene ends the tutorial
+-- gracefully (the server is told; everything shows at once, the game plays on).
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -34,28 +36,26 @@ local hand: TutorialHand.Hand
 local arrow: TutorialArrow.Arrow
 
 local ULTS = Config.UI.UltScreen.Column.Name
+local INVENTORY = "Inventory"
+local RANKED = "Ranked"
 
 local Copy = Strings.Tutorial
 local L = Config.Tutorial.Lessons
+local Timing = Config.Tutorial.Timing
 
--- The HUD items the tutorial brings in one by one.
-local ITEMS = { "Shop", "Inventory", "Abilities", "Rank", "FreeReward", "Trade" }
-
--- What is hidden at a step: the matchmaking bar's Play Global on the pads (MatchBar; the
--- server brings game 1's bot and starts game 2's search by itself), game 1's post-match row
--- with Leave only (the bot has jumped off: no rematch), and game 2's with Lobby only
--- (PostMatch: no rematch, no Play another).
+-- What else is hidden at a step: a pad's Play Global (the bot comes by itself), and the
+-- rematch row of game 1's result (only Continue: the bot does not play again).
 local HOST_HIDES: { [string]: { string } } = {
-	Request = { "HostGlobal" },
-	Queue = { "HostGlobal" },
-	Block = { "Rematch" },
-	Equip = { "Rematch" },
-	Game2 = { "Rematch", "Another", "Cancel" },
-	Lobby = { "Rematch", "Another", "Cancel" },
+	Pad = { "HostGlobal" },
+	Game1 = { "Rematch", "Another" },
+	Result = { "Rematch", "Another" },
 }
 
--- The step whose scene is showing, and the device it was built for.
+-- The scene showing now (its key), and the step it belongs to.
 local shownKey = ""
+local shownStep = ""
+-- The fail-safe tripped: the tutorial shows nothing more this session.
+local broken = false
 -- Studio only (TutorialClientQA "forceDevice"): the device the prompts are built for, to check
 -- the touch and gamepad words and gestures without the emulator.
 local forcedDevice: string? = nil
@@ -80,6 +80,19 @@ function Tutorial.device(): string
 	return "mouse"
 end
 
+--- The device for the funnels' field: "Console", "Phone", "Tablet" or "PC".
+function Tutorial.deviceKind(): string
+	if GuiService:IsTenFootInterface() then
+		return "Console"
+	end
+	if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
+		local camera = workspace.CurrentCamera
+		local short = if camera then math.min(camera.ViewportSize.X, camera.ViewportSize.Y) else 0
+		return if short < Config.Tutorial.Device.PhoneBelowPx then "Phone" else "Tablet"
+	end
+	return "PC"
+end
+
 --- The player's tutorial step ("" when it is over).
 function Tutorial.step(): string
 	local step = player:GetAttribute("TutorialStep")
@@ -88,7 +101,26 @@ end
 
 --- Whether the tutorial runs now (any step).
 function Tutorial.active(): boolean
-	return Tutorial.step() ~= ""
+	return Tutorial.step() ~= "" and not broken
+end
+
+--- Game 1's path ("S", "R" or "").
+function Tutorial.path(): string
+	local p = player:GetAttribute("TutorialPath")
+	return if type(p) == "string" then p else ""
+end
+
+--- Seconds since the current step began (the server's clock).
+function Tutorial.since(): number
+	local at = player:GetAttribute("TutorialStepAt")
+	return if type(at) == "number" then workspace:GetServerTimeNow() - at else 0
+end
+
+--- Whether the server saw moment `name` in the current step (TutorialMarks: RankClaimed,
+--- Equipped, Redeemed, Spun).
+function Tutorial.marked(name: string): boolean
+	local marks = player:GetAttribute("TutorialMarks")
+	return type(marks) == "string" and table.find(string.split(marks, ","), name) ~= nil
 end
 
 --- Tells the server something only the client sees (the server checks it against the step).
@@ -96,11 +128,16 @@ function Tutorial.report(kind: string, data: any?)
 	Net.get("TutorialEvent"):FireServer(kind, data)
 end
 
+-- The fallback time of `step` (Config.Tutorial.Timing).
+local function fallbackOf(step: string): number
+	return Timing.Fallback[step] or Timing.FallbackSeconds
+end
+
 -- The menu items hidden at this step.
 local function refreshHidden()
-	local step = Tutorial.step()
+	local step = if broken then "" else Tutorial.step()
 	local hidden: { [string]: boolean } = {}
-	for _, item in ITEMS do
+	for item in Steps.Reveal do
 		if not Steps.shows(if step == "" then nil else step, item) then
 			hidden[item] = true
 		end
@@ -124,36 +161,20 @@ end
 
 -- The words for this device from a { Mouse, Touch, Gamepad } set.
 local function words(set: { [string]: string }, device: string): string
-	return if device == "gamepad"
+	local text = if device == "gamepad"
 		then set.Gamepad
 		elseif device == "touch" then set.Touch
 		else set.Mouse
+	-- The button names until the overlay draws Roblox's button pictures (tutorial v2 step 5).
+	return (
+		string.gsub(text, "{(%w+)}", function(name: string): string
+			return if name == "LS"
+				then "the left stick"
+				elseif name == "RS" then "the right stick"
+				else name
+		end)
+	)
 end
-
--- The arrow steps: lead to the reserved table's pad.
-local function arrowScene(): string
-	local id = player:GetAttribute("TutorialTable")
-	local goal = if type(id) == "number" and id > 0 then padPoint(id) else nil
-	arrow:show(goal)
-	overlay:dim(nil)
-	hand:hide()
-	overlay:say(if goal then Copy.JoinTable else Copy.WaitTable)
-	return "arrow" .. tostring(id)
-end
-
--- The pad steps (designer, 2026-10-07: the tutorial only teaches stepping on the pad): the
--- server calls the tutorial bot (game 1) or starts the search (game 2) by itself, so there is
--- nothing to point at, only the wait.
-local function padScene(): string
-	arrow:show(nil)
-	overlay:dim(nil)
-	hand:hide()
-	overlay:say(Copy.Finding)
-	return "calling"
-end
-
--- The lesson shown last (game 1), so a new one can start its own way (the aim suggestion).
-local lastLesson = ""
 
 -- Nothing on screen but the line (or nothing at all).
 local function lineOnly(text: string?)
@@ -162,9 +183,54 @@ local function lineOnly(text: string?)
 	overlay:say(text)
 end
 
--- Game 1's lessons (the TutorialLesson attribute, set by the server's TutorialGames).
+-- Points at a GUI anchor with the dim and the line (at `place`, see TutorialOverlay.say), the
+-- gamepad's selection on it when the scene is new. Nothing while the anchor is not on screen.
+local function pointAt(anchor: string, text: string, device: string, fresh: boolean, place: string?)
+	if not TutorialAnchors.showing(anchor) then
+		lineOnly(nil)
+		return
+	end
+	local target = TutorialOverlay.guiTarget(anchor)
+	overlay:dim(target)
+	hand:point(target)
+	overlay:say(text, place)
+	local object = TutorialAnchors.get(anchor)
+	if fresh and device == "gamepad" and object and object.Selectable then
+		GuiService.SelectedObject = object
+	end
+end
+
+---------------------------------------------------------------------------------------------
+-- Joining game 1
+---------------------------------------------------------------------------------------------
+
+-- The arrow: to the reserved table's pad ("Need help?" once its fallback time is up).
+local function arrowScene(): string
+	local id = player:GetAttribute("TutorialTable")
+	local goal = if type(id) == "number" and id > 0 then padPoint(id) else nil
+	arrow:show(goal)
+	overlay:dim(nil)
+	hand:hide()
+	local late = Tutorial.since() >= fallbackOf("Arrow")
+	overlay:say(
+		if goal == nil then Copy.WaitTable elseif late then Copy.ArrowHelp else Copy.JoinTable
+	)
+	return "arrow" .. tostring(id) .. tostring(late)
+end
+
+---------------------------------------------------------------------------------------------
+-- Game 1 (path S: the lessons, the TutorialLesson attribute set by TutorialGames)
+---------------------------------------------------------------------------------------------
+
+-- The lesson shown last, so a new one can start its own way (the aim suggestion).
+local lastLesson = ""
+
 local function game1Scene(device: string): string
 	arrow:show(nil)
+	if Tutorial.path() ~= "S" then
+		lineOnly(nil)
+		return "game1Fair"
+	end
 	local lesson = player:GetAttribute("TutorialLesson")
 	lesson = if type(lesson) == "string" then lesson else ""
 	local fresh = lesson ~= lastLesson
@@ -202,7 +268,7 @@ local function game1Scene(device: string): string
 			else
 				hand:gesture("pull", TutorialOverlay.guiTarget("PowerBar"))
 			end
-			overlay:say(words(Copy.AimShoot, device))
+			overlay:say(words(Copy.Shoot, device))
 		end
 	elseif lesson == "Ability" then
 		local button = TutorialOverlay.guiTarget("UltButton")
@@ -212,20 +278,7 @@ local function game1Scene(device: string): string
 		else
 			hand:point(button)
 		end
-		overlay:say(words(Copy.Ability, device))
-	elseif lesson == "Pick" then
-		if TutorialAnchors.flag("UltPicked") then
-			local confirm = TutorialOverlay.guiTarget("UltConfirm")
-			overlay:dim(confirm)
-			hand:point(confirm)
-			overlay:say(words(Copy.PickConfirm, device), "Low")
-		else
-			local id = player:GetAttribute("TutorialPickBall")
-			local ring = TutorialOverlay.guiTarget("PickBall" .. tostring(id))
-			overlay:dim(ring)
-			hand:point(ring)
-			overlay:say(words(Copy.Pick, device), "Low")
-		end
+		overlay:say(words(Copy.Ability, device):format(Config.UI.Ults.KeyboardKey))
 	elseif lesson == "BallInHand" then
 		overlay:dim(nil)
 		if device == "gamepad" then
@@ -260,297 +313,222 @@ local function game1Scene(device: string): string
 	return "game1" .. lesson .. device
 end
 
--- Points at a GUI anchor with the dim and the line (at `place`, see TutorialOverlay.say), the
--- gamepad's selection on it when the scene is new. Nothing while the anchor is not on screen.
-local function pointAt(anchor: string, text: string, device: string, fresh: boolean, place: string?)
-	if not TutorialAnchors.showing(anchor) then
-		lineOnly(nil)
-		return
+---------------------------------------------------------------------------------------------
+-- The chain after game 1 (Result .. Abilities)
+---------------------------------------------------------------------------------------------
+
+-- Result: the result screen, the first win's block and NEW RANK! play on their own; once
+-- none of them is up, the step is done.
+local resultClearAt: number? = nil
+local function resultScene(): string
+	lineOnly(nil)
+	if Progression.isBusy() or Tutorial.since() < 1 then
+		resultClearAt = nil
+		return "resultBusy"
 	end
-	local target = TutorialOverlay.guiTarget(anchor)
-	overlay:dim(target)
-	hand:point(target)
-	overlay:say(text, place)
-	local object = TutorialAnchors.get(anchor)
-	if fresh and device == "gamepad" and object and object.Selectable then
-		GuiService.SelectedObject = object
+	local now = os.clock()
+	resultClearAt = resultClearAt or now
+	if now - (resultClearAt :: number) >= 1 and shownKey ~= "resultDone" then
+		Tutorial.report("ResultDone")
+		return "resultDone"
 	end
+	return if shownKey == "resultDone" then "resultDone" else "resultWait"
 end
 
--- The step after game 1 shown last, so a new one can start its own way.
-local lastAfter = ""
--- The Equip step: whether the Inventory has been opened (closing it again without equipping
--- moves on: a suggestion, never a wall), and when RareBlock first found it still open.
-local equipVisited = false
-local inventoryLeftAt: number? = nil
-local INVENTORY = "Inventory"
-
--- The Equip step (designer, 2026-10-03): the hand on Inventory, then the new cue's card, then
--- its Equip. The server moves on when a cue is equipped (or SkippedEquip).
-local function equipScene(device: string, fresh: boolean): string
-	if fresh then
-		equipVisited = false
+-- Rank: open it, CLAIM, close it.
+local function rankScene(device: string, fresh: boolean): string
+	local pending = player:GetAttribute("RankPending") == true
+	local open = Menus.isOpen(RANKED)
+	if pending then
+		if open then
+			pointAt("RankClaim", words(Copy.RankClaim, device), device, fresh, "Near")
+			return "rankClaim" .. device
+		end
+		if Progression.isBusy() then
+			lineOnly(nil)
+			return "rankBusy"
+		end
+		pointAt("Rank", words(Copy.Rank, device), device, fresh or shownKey:sub(1, 8) ~= "rankOpen")
+		return "rankOpen" .. device
 	end
+	if open then
+		lineOnly(words(Copy.RankClose, device))
+		return "rankClose" .. device
+	end
+	if shownKey ~= "rankClosed" then
+		Tutorial.report("RankClosed")
+	end
+	lineOnly(nil)
+	return "rankClosed"
+end
+
+-- Mystery: the Mystery block in the hotbar (its upgrade screen is tutorial v2 step 9).
+local function mysteryScene(device: string, fresh: boolean): string
 	if Progression.isBusy() then
 		lineOnly(nil)
-		return "Equipbusy"
+		return "mysteryBusy"
 	end
-	if not Menus.isOpen(INVENTORY) then
-		if equipVisited or shownKey == "EquipSkipped" then
-			if shownKey ~= "EquipSkipped" then
-				Tutorial.report("SkippedEquip")
-			end
-			equipVisited = false
-			lineOnly(nil)
-			return "EquipSkipped"
+	local slot = LuckyClient.slotOf(Config.Tutorial.MysteryKind)
+	if slot == nil then
+		lineOnly(nil)
+		return "mysteryNone"
+	end
+	local key = "mystery" .. slot .. device
+	pointAt("HotbarSlot" .. slot, words(Copy.Mystery, device), device, fresh or shownKey ~= key)
+	return key
+end
+
+-- Place: "Place it!", then open it (the reel lands the tutorial's cue).
+local function placeScene(): string
+	if Progression.isBusy() then
+		lineOnly(nil)
+		return "placeBusy"
+	end
+	lineOnly(Copy.PlaceBig)
+	return "place"
+end
+
+-- Cues: open Cues, the new cue, Equip, close.
+local function cuesScene(device: string): string
+	local open = Menus.isOpen(INVENTORY)
+	if Tutorial.marked("Equipped") then
+		if open then
+			lineOnly(words(Copy.CuesClose, device))
+			return "cuesClose" .. device
 		end
-		local key = "EquipOpen" .. device
-		pointAt("Inventory", words(Copy.EquipOpen, device), device, shownKey ~= key)
+		if shownKey ~= "cuesClosed" then
+			Tutorial.report("CuesClosed")
+		end
+		lineOnly(nil)
+		return "cuesClosed"
+	end
+	if not open then
+		if Progression.isBusy() then
+			lineOnly(nil)
+			return "cuesBusy"
+		end
+		local key = "cuesOpen" .. device
+		pointAt("Inventory", words(Copy.CuesOpen, device), device, shownKey ~= key)
 		return key
 	end
-	equipVisited = true
 	if TutorialAnchors.showing("InventoryEquip") then
-		local key = "EquipButton" .. device
-		pointAt("InventoryEquip", words(Copy.EquipButton, device), device, shownKey ~= key, "Near")
+		local key = "cuesEquip" .. device
+		pointAt("InventoryEquip", words(Copy.CuesEquip, device), device, shownKey ~= key, "Near")
 		return key
 	end
-	local key = "EquipCard" .. device
-	pointAt("InventoryCue", words(Copy.EquipCard, device), device, shownKey ~= key, "Near")
+	local key = "cuesCard" .. device
+	pointAt("InventoryCue", words(Copy.CuesCard, device), device, shownKey ~= key, "Near")
 	return key
 end
 
--- The Block step (designer, 2026-10-04): Bronze's Standard lucky block sits in the hotbar;
--- the hand points at its slot (hold it), then at the ground (throw it), then at the block on
--- the floor (its open prompt). The server moves on once it is opened (LuckyBlockService).
-local function blockScene(device: string, fresh: boolean): string
-	local kind: string = Config.Tutorial.BronzeBlockKind
-	local part = LuckyClient.livePart(kind)
-	if part then
-		-- Thrown: the hand on the block and its prompt (read each frame: it rolls).
-		local target = TutorialOverlay.worldTarget(function(): Vector3?
-			local now = LuckyClient.livePart(kind)
-			return if now then now.Position else nil
-		end, Config.Tutorial.Lessons.BlockPadPx)
-		overlay:dim(target)
-		hand:point(target)
-		overlay:say(words(Copy.BlockOpen, device))
-		return "BlockOpen" .. device
-	end
-	if LuckyClient.heldKind() == kind then
-		overlay:dim(nil)
-		if device == "gamepad" then
-			hand:gesture("hold", Enum.KeyCode.ButtonR2)
-		else
-			hand:hide()
-		end
-		overlay:say(words(Copy.BlockThrow, device))
-		return "BlockThrow" .. device
-	end
-	local slot = LuckyClient.slotOf(kind)
-	if slot == nil then
-		lineOnly(nil)
-		return "BlockNone"
-	end
-	local key = "BlockHold" .. slot .. device
-	pointAt("HotbarSlot" .. slot, words(Copy.BlockHold, device), device, fresh or shownKey ~= key)
-	return key
-end
-
--- The RareBlock step: the win's Rare block counts down in the hotbar; the hand points at its
--- slot, and a tap on it (LuckyClient sets BlockTapped) tells the server it was seen.
-local function rareBlockScene(device: string, fresh: boolean): string
-	if fresh then
-		TutorialAnchors.setFlag("BlockTapped", false)
-	end
-	if TutorialAnchors.flag("BlockTapped") then
-		if shownKey ~= "RareSeen" then
-			Tutorial.report("RareSeen")
+-- Abilities: open it, type the code, Redeem, SPIN, close.
+local function abilitiesScene(device: string, fresh: boolean): string
+	local open = Menus.isOpen(ULTS)
+	local code: string = Config.Ults.CodeBanner.ActiveCode
+	local row = Config.Daily.Codes[code]
+	local spins = if row and row.Spins then row.Spins else 0
+	if Tutorial.marked("Spun") then
+		if open and not TutorialAnchors.flag("UltSpinning") then
+			pointAt("SpinBack", words(Copy.AbilitiesClose, device), device, fresh, "Near")
+			return "abilitiesClose" .. device
+		elseif not open then
+			if shownKey ~= "abilitiesClosed" then
+				Tutorial.report("AbilitiesClosed")
+			end
+			lineOnly(nil)
+			return "abilitiesClosed"
 		end
 		lineOnly(nil)
-		return "RareSeen"
+		return "abilitiesSpinning"
 	end
-	local slot = LuckyClient.slotOf("Rare", true)
-	if slot == nil then
-		lineOnly(nil)
-		return "RareNone"
-	end
-	local key = "RareBlock" .. slot .. device
-	pointAt("HotbarSlot" .. slot, Copy.RareBlock, device, shownKey ~= key)
-	return key
-end
-
--- After game 1 (step 5): the Standard block, Equip, the Rare block, then the Abilities screen.
-local function afterScene(step: string, device: string): string
-	arrow:show(nil)
-	local fresh = step ~= lastAfter
-	lastAfter = step
-	local ultsOpen = Menus.isOpen(ULTS)
-	if step == "Equip" then
-		return equipScene(device, fresh)
-	end
-	if step == "RareBlock" and Menus.isOpen(INVENTORY) then
-		-- Just equipped: the Inventory stays a moment (its "Equipped" notice), then closes.
-		local now = os.clock()
-		local since: number = inventoryLeftAt or now
-		inventoryLeftAt = since
-		if now - since >= Config.Tutorial.EquipCloseSeconds then
-			Menus.close(INVENTORY)
-		end
-		lineOnly(nil)
-		return "RareBlockInventory"
-	end
-	inventoryLeftAt = nil
-	if step == "Block" or step == "RareBlock" then
-		-- Wait for the result screen, NEW RANK! and the reel.
+	if not open then
 		if Progression.isBusy() then
 			lineOnly(nil)
-			return step .. "busy"
+			return "abilitiesBusy"
 		end
-		if step == "Block" then
-			return blockScene(device, fresh)
-		end
-		return rareBlockScene(device, fresh)
+		local key = "abilitiesOpen" .. device
+		pointAt("Abilities", words(Copy.AbilitiesOpen, device), device, shownKey ~= key)
+		return key
 	end
-	if step == "Abilities" then
-		if ultsOpen then
-			Tutorial.report("OpenedAbilities")
-			lineOnly(nil)
-		else
-			pointAt("Abilities", words(Copy.Abilities, device), device, false)
-		end
-	elseif not ultsOpen then
-		-- The Abilities screen closed (Back, or early): the server moves the step on.
-		if fresh or shownKey ~= "closed" .. step then
-			Tutorial.report("ClosedAbilities")
-		end
+	if TutorialAnchors.flag("UltSpinning") then
 		lineOnly(nil)
-		return "closed" .. step
-	elseif step == "Spin" then
+		return "abilitiesSpinning"
+	end
+	if Tutorial.marked("Redeemed") then
 		pointAt("SpinButton", words(Copy.Spin, device), device, fresh, "Near")
-	elseif step == "Code" then
-		if TutorialAnchors.flag("UltSpinning") then
-			lineOnly(nil)
-		elseif TutorialAnchors.flag("CodeFocused") and TutorialAnchors.showing("CodeRedeem") then
-			-- The box was clicked: no dim (it is typed into), the gold ring and the hand on
-			-- Redeem, trusting they type RELEASE (designer, 2026-10-03).
-			local target = TutorialOverlay.guiTarget("CodeRedeem")
-			overlay:dim(target, false, true)
-			hand:point(target)
-			overlay:say(words(Copy.CodeRedeem, device), "Near")
-			return "CodeRedeem" .. device
-		elseif TutorialAnchors.showing("CodeBox") then
-			pointAt("CodeBox", Copy.Code, device, false, "Near")
-		else
-			pointAt("UltOddsButton", words(Copy.CodeOdds, device), device, fresh, "Near")
-		end
-	elseif step == "Back" then
-		if TutorialAnchors.flag("UltSpinning") then
-			lineOnly(nil)
-		else
-			pointAt("SpinBack", words(Copy.Back, device), device, fresh, "Near")
-		end
+		return "abilitiesSpin" .. device
 	end
-	return step .. device
+	if TutorialAnchors.flag("CodeFocused") and TutorialAnchors.showing("CodeRedeem") then
+		-- The box was clicked: no dim (it is typed into), the gold ring and the hand on Redeem.
+		local target = TutorialOverlay.guiTarget("CodeRedeem")
+		overlay:dim(target, false, true)
+		hand:point(target)
+		overlay:say(words(Copy.CodeRedeem, device), "Near")
+		return "abilitiesRedeem" .. device
+	end
+	local text = if device == "gamepad"
+		then words(Copy.Code, device):format(spins)
+		else words(Copy.Code, device):format(code, spins)
+	if TutorialAnchors.showing("CodeBox") then
+		pointAt("CodeBox", text, device, false, "Near")
+	else
+		pointAt("UltOddsButton", text, device, fresh, "Near")
+	end
+	return "abilitiesCode" .. device
 end
 
--- The real server's nudges (step 7): the menu each one opens and the anchor the hand points at.
-local NUDGE_MENUS: { [string]: string } = {
-	Rank = "Ranked",
-	Inventory = "Inventory",
-	Shop = "Shop",
-	FreeReward = "FreeReward",
-}
-local NUDGE_ANCHORS: { [string]: string } = {
-	Rank = "Rank",
-	Inventory = "Inventory",
-	Shop = "Shop",
-	FreeReward = "FreeReward",
-}
+---------------------------------------------------------------------------------------------
+-- The router
+---------------------------------------------------------------------------------------------
 
--- The nudge the server names (TutorialNudge; "" while the player is at a table): the hand
--- and the light dim on its button while nothing else is up; once its menu opens the server
--- is told (Rank's is done by its claim, so the hand moves on to CLAIM). An ignored nudge
--- stays, and comes back after a match, until it is answered (designer, 2026-10-03).
-local function nudgeScene(device: string): string
-	arrow:show(nil)
-	local name = player:GetAttribute("TutorialNudge")
-	if name == "BlockReady" then
-		-- The Rare block's timer has ended: the hand on its hotbar slot ("Your block is
-		-- ready!"); opening it ends the tutorial (the server watches the block).
-		if Progression.isBusy() then
-			lineOnly(nil)
-			return "nudgeBusy"
-		end
-		local slot = LuckyClient.slotOf("Rare")
-		if slot == nil then
-			lineOnly(nil)
-			return "nudgeBlockNone"
-		end
-		local key = "nudgeBlockReady" .. slot .. device
-		pointAt("HotbarSlot" .. slot, Copy.Nudge.BlockReady, device, shownKey ~= key)
-		return key
-	end
-	if type(name) ~= "string" or NUDGE_MENUS[name] == nil then
-		lineOnly(nil)
-		return "nudgeNone"
-	end
-	local menu = NUDGE_MENUS[name]
-	if Menus.isOpen(menu) then
-		if name == "Rank" then
-			-- The claim block says it itself ("Rewards ready!"): the hand alone.
-			local key = "nudgeClaim"
-			pointAt("RankClaim", "", device, shownKey ~= key)
-			return key
-		end
-		if shownKey ~= "nudged" .. name then
-			Tutorial.report("Nudged", name)
-		end
-		lineOnly(nil)
-		return "nudged" .. name
-	end
-	if Progression.isBusy() then
-		lineOnly(nil)
-		return "nudgeBusy"
-	end
-	local key = "nudge" .. name
-	pointAt(NUDGE_ANCHORS[name], Copy.Nudge[name], device, shownKey ~= key)
-	return key
-end
+-- The Next button for a chain step once its fallback time is up (never on a step whose
+-- moves the server watches by itself).
+local NEXT_STEPS: { [string]: boolean } = {
+	Result = true,
+	Rank = true,
+	Mystery = true,
+	Place = true,
+	Cues = true,
+	Abilities = true,
+}
 
 -- Builds the scene for the step now (the line, the dim, the hand, the arrow). Cheap enough
 -- to run every frame: each piece only changes when its input does.
 local function scene(step: string, device: string): string
-	if step ~= "Code" then
-		TutorialAnchors.setFlag("CodeFocused", false)
-	end
+	local fresh = step ~= shownStep
+	shownStep = step
 	if step ~= "Game1" then
 		TutorialAnchors.setAimLock(nil)
 		lastLesson = ""
 	end
-	if step == "Arrow1" or step == "Arrow2" then
-		return arrowScene()
-	elseif step == "Request" then
-		return padScene()
-	elseif step == "Queue" then
-		return padScene()
-	elseif step == "Lobby" then
+	if step ~= "Abilities" then
+		TutorialAnchors.setFlag("CodeFocused", false)
+	end
+	overlay:setNext(NEXT_STEPS[step] == true and Tutorial.since() >= fallbackOf(step), function()
+		Tutorial.report("Next")
+	end)
+	if step ~= "Arrow" then
 		arrow:show(nil)
-		local fresh = shownKey:sub(1, 5) ~= "Lobby"
-		pointAt("Lobby", words(Copy.Lobby, device), device, fresh)
-		return "Lobby" .. device
+	end
+	if step == "Arrow" then
+		return arrowScene()
 	elseif step == "Game1" then
 		return game1Scene(device)
-	elseif Steps.atLeast(step, "Block") and not Steps.atLeast(step, "Arrow2") then
-		return afterScene(step, device)
-	elseif step == "Nudges" then
-		return nudgeScene(device)
+	elseif step == "Result" then
+		return resultScene()
+	elseif step == "Rank" then
+		return rankScene(device, fresh)
+	elseif step == "Mystery" then
+		return mysteryScene(device, fresh)
+	elseif step == "Place" then
+		return placeScene()
+	elseif step == "Cues" then
+		return cuesScene(device)
+	elseif step == "Abilities" then
+		return abilitiesScene(device, fresh)
 	end
-	lastAfter = ""
-	-- Steps still to come keep the screen clear.
-	arrow:show(nil)
-	overlay:dim(nil)
-	hand:hide()
-	overlay:say(nil)
+	-- Pad, Soft: nothing guided on screen.
+	lineOnly(nil)
 	return step
 end
 
@@ -558,6 +536,27 @@ end
 -- server's Funnel; for every player, tutorial or not).
 local lastMenu: string? = nil
 local MENU_FUNNELS: { [string]: string } = { Shop = "ShopOpened", [ULTS] = "AbilitiesOpened" }
+
+-- The device last reported to the server.
+local reportedDevice = ""
+
+-- The fail-safe: the tutorial ends here and now (the server ends it too and logs it).
+local function breakDown(err: any)
+	if broken then
+		return
+	end
+	broken = true
+	warn("[8ball] Tutorial: a scene failed, the tutorial ends: " .. tostring(err))
+	Tutorial.report("Error")
+	pcall(function()
+		overlay:clear()
+		overlay:setSkip(false)
+		hand:hide()
+		arrow:show(nil)
+		TutorialAnchors.setAimLock(nil)
+	end)
+	pcall(refreshHidden)
+end
 
 local function update(_dt: number)
 	local menu = Menus.current()
@@ -568,23 +567,33 @@ local function update(_dt: number)
 			Tutorial.report(kind)
 		end
 	end
+	local kind = Tutorial.deviceKind()
+	if kind ~= reportedDevice then
+		reportedDevice = kind
+		Tutorial.report("Device", kind)
+	end
 	if not Tutorial.active() then
-		shownKey = ""
-		TutorialAnchors.setAimLock(nil)
+		shownKey, shownStep = "", ""
 		return
 	end
-	shownKey = scene(Tutorial.step(), Tutorial.device())
+	local ok, result = pcall(scene, Tutorial.step(), Tutorial.device())
+	if ok then
+		shownKey = result
+	else
+		breakDown(result)
+	end
 end
 
 local function refresh()
 	refreshHidden()
-	overlay:setSkip(Tutorial.active(), function()
+	overlay:setSkip(Tutorial.active() and Steps.guided(Tutorial.step()), function()
 		Tutorial.report("Skip")
 	end)
 	if not Tutorial.active() then
 		overlay:clear()
 		hand:hide()
 		arrow:show(nil)
+		TutorialAnchors.setAimLock(nil)
 	end
 end
 
@@ -625,6 +634,21 @@ local function startQA()
 		elseif op == "forceDevice" then
 			forcedDevice = if a == "mouse" or a == "touch" or a == "gamepad" then a else nil
 			shownKey = ""
+		elseif op == "state" then
+			return {
+				step = Tutorial.step(),
+				key = shownKey,
+				broken = broken,
+				line = overlay.lineText,
+				next = overlay.nextButton.Visible,
+			}
+		elseif op == "next" then
+			if overlay.onNext then
+				overlay.onNext()
+			end
+		elseif op == "break" then
+			-- The fail-safe on purpose (QA): as if a scene had failed.
+			breakDown("a test failure")
 		end
 		return true
 	end

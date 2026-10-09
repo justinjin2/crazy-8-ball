@@ -1444,9 +1444,15 @@ function DevCommands.start()
 	command("LobbyBots", D.LobbyBots, lobbyBots)
 	command("Solo", D.Solo, playSolo)
 	command("Bot", D.Bot, playBot)
-	-- The tutorial lane: /tutorial reset | skip | off | step <name> (TutorialService.dev).
+	-- Tutorial v2: /tutorial reset | skip | off | hints | path s|r | step <name>
+	-- (TutorialService.dev), and /funnel: what the funnels logged for you in this server.
 	command("Tutorial", D.Tutorial, function(player: Player, args: { string })
 		tell(player, require(script.Parent.TutorialService).dev(player, args))
+	end)
+	command("Funnel", D.Funnel, function(player: Player, _args: { string })
+		for _, line in require(script.Parent.TutorialService).funnelLines(player) do
+			tell(player, line)
+		end
 	end)
 
 	-- Studio only: tests type a command through ServerStorage.DevCommandsQA, since a script

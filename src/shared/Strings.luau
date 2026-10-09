@@ -449,8 +449,13 @@ return {
 		SoloStarted = "Solo game started.",
 		BotStarted = "Game against the computer started.",
 		BotBad = 'No tier called "%s". Tiers: %s.',
-		TutorialStep = "Your tutorial is at %s.",
-		TutorialBad = "Try /tutorial reset, skip, off or step <name>. Steps: %s.",
+		TutorialStep = "Your tutorial is at %s (path %s).",
+		TutorialBad = "Try /tutorial reset, skip, off, hints, path s|r or step <name>. Steps: %s.",
+		TutorialHints = "Your first-time hints and click-once glows are back.",
+		-- /funnel: what the funnels logged for you in this server (newest last).
+		FunnelNone = "No funnel events logged for you in this server yet.",
+		FunnelHead = "Funnel events (this server, newest last; %d):",
+		FunnelOnboarding = "Onboarding steps done: %s",
 	},
 	-- The rank and money screens (ResultScreen, NewRankPopup, Roadmap, RankHud).
 	Progress = {
@@ -1689,128 +1694,200 @@ return {
 	-- The first-time tutorial (src/client/Tutorial*.luau; docs/prompts/TUTORIAL_PROMPT.md). The
 	-- big instruction line at the top of the screen; a line with a device in its name has one
 	-- version per device (Mouse, Touch, Gamepad).
+	-- Tutorial v2 (docs/prompts/TUTORIAL_V2_PROMPT.md; client Tutorial*.luau). Most lines come in
+	-- three: Mouse (keyboard and mouse), Touch, Gamepad. A gamepad line names its buttons as
+	-- {R2}, {A}, {B}, {X}, {L2}, {RB}, {LS} (left stick), {RS} (right stick) and {DPad}: the
+	-- overlay shows Roblox's own button picture there (UserInputService:GetImageForKeyCode).
+	-- Numbers and names that can change (spins, codes, block kinds) are %s / %d placeholders.
 	Tutorial = {
 		Skip = "Skip tutorial",
 		SkipAsk = "Skip the tutorial?",
 		SkipYes = "Yes",
 		SkipNo = "No",
+		Next = "Next",
 		JoinTable = "Join a table!",
 		WaitTable = "Waiting for a free table...",
+		ArrowHelp = "Need help? Follow the arrow!",
 		Finding = "Finding you an opponent...",
-		-- Game 1's lessons (the TutorialLesson attribute), per device.
+		-- Game 1's lessons (the TutorialLesson attribute).
 		Break = {
 			Mouse = "Pull the power bar all the way down!",
 			Touch = "Drag the power bar all the way down!",
-			Gamepad = "Hold A to power up, then let go!",
+			Gamepad = "Hold {R2} to fill the bar, let go to shoot!",
 		},
 		Aim = {
-			Mouse = "Drag to aim at a glowing ball!",
-			Touch = "Swipe to aim at a glowing ball!",
-			Gamepad = "Tilt the left stick to aim!",
+			Mouse = "Drag to adjust your aim!",
+			Touch = "Swipe to adjust your aim!",
+			Gamepad = "Tilt {LS} to adjust your aim!",
 		},
-		AimShoot = {
+		Zoom = {
+			Mouse = "Scroll to zoom out and see the angle better!",
+			Touch = "Pinch to zoom out and see the angle better!",
+			Gamepad = "Tilt {RS} to zoom out and see the angle better!",
+		},
+		ZoomDone = "You can zoom in and out any time.",
+		Shoot = {
 			Mouse = "Now pull the power bar to shoot!",
-			Touch = "Now pull the power bar to shoot!",
-			Gamepad = "Now hold A, then let go!",
+			Touch = "Now drag the power bar to shoot!",
+			Gamepad = "Hold {R2}, let go to shoot!",
 		},
 		Ability = {
-			Mouse = "Press G to use your ability!",
+			Mouse = "Press %s to use your ability!", -- the keyboard key (Config.UI.Ults)
 			Touch = "Tap your ability!",
-			Gamepad = "Press X to use your ability!",
-		},
-		Pick = {
-			Mouse = "Click one of your balls!",
-			Touch = "Tap one of your balls!",
-			Gamepad = "Pick one of your balls with A!",
-		},
-		PickConfirm = {
-			Mouse = "Now click Confirm!",
-			Touch = "Now tap Confirm!",
-			Gamepad = "Now press X to confirm!",
+			Gamepad = "Press {X} to use your ability!",
 		},
 		BallInHand = {
 			Mouse = "Ball in hand! Drag the white ball anywhere.",
 			Touch = "Ball in hand! Drag the white ball anywhere.",
-			Gamepad = "Ball in hand! Hold L2 and tilt the left stick to move it.",
-		},
-		-- After game 1 (step 5): the Standard lucky block in the hotbar, held, thrown and
-		-- opened (designer, 2026-10-04).
-		BlockHold = {
-			Mouse = "You won a lucky block! Click it to hold it.",
-			Touch = "You won a lucky block! Tap it to hold it.",
-			Gamepad = "You won a lucky block! Press RB to hold it.",
-		},
-		BlockThrow = {
-			Mouse = "Now click anywhere to throw it!",
-			Touch = "Now tap the ground to throw it!",
-			Gamepad = "Now press R2 to throw it!",
-		},
-		BlockOpen = {
-			Mouse = "Walk up and hold E to open it!",
-			Touch = "Walk up and hold the button to open it!",
-			Gamepad = "Walk up and hold X to open it!",
-		},
-		-- The Equip step: the new Uncommon cue, equipped through the Cues menu.
-		EquipOpen = {
-			Mouse = "Equip your new cue! Click Cues.",
-			Touch = "Equip your new cue! Tap Cues.",
-			Gamepad = "Equip your new cue! Open Cues with A.",
-		},
-		EquipCard = {
-			Mouse = "Click your new cue!",
-			Touch = "Tap your new cue!",
-			Gamepad = "Press A on your new cue!",
-		},
-		EquipButton = {
-			Mouse = "Click Equip!",
-			Touch = "Tap Equip!",
-			Gamepad = "Press A to equip it!",
-		},
-		RareBlock = "Your Rare Lucky Block opens in 5 minutes! Tap it to see.", -- its hotbar slot
-		Abilities = {
-			Mouse = "Click Abilities!",
-			Touch = "Tap Abilities!",
-			Gamepad = "Press X to open Abilities!",
-		},
-		Spin = {
-			Mouse = "Click SPIN for a new ability!",
-			Touch = "Tap SPIN for a new ability!",
-			Gamepad = "Press A to SPIN for a new ability!",
-		},
-		Code = "Type RELEASE for 3 more spins!",
-		CodeRedeem = {
-			Mouse = "Type RELEASE, then click Redeem!",
-			Touch = "Type RELEASE, then tap Redeem!",
-			Gamepad = "Type RELEASE, then press Redeem!",
-		},
-		CodeOdds = {
-			Mouse = "Click Odds, then type RELEASE for 3 more spins!",
-			Touch = "Tap Odds, then type RELEASE for 3 more spins!",
-			Gamepad = "Open Odds, then type RELEASE for 3 more spins!",
-		},
-		Back = {
-			Mouse = "Click Back!",
-			Touch = "Tap Back!",
-			Gamepad = "Press B to go back!",
+			Gamepad = "Ball in hand! Hold {L2} and tilt {LS} to move it.",
 		},
 		Eight = {
 			Mouse = "SELECT WHICH POCKET!",
 			Touch = "SELECT WHICH POCKET!",
-			Gamepad = "SELECT WHICH POCKET! D-pad to choose, A to select.",
+			Gamepad = "SELECT WHICH POCKET! {DPad} to choose, {A} to select.",
 		},
-		-- Game 2 (step 6): back to the lobby after the global queue's game.
-		Lobby = {
-			Mouse = "Click Lobby!",
-			Touch = "Tap Lobby!",
-			Gamepad = "Press A to go to the lobby!",
+		-- After game 1: the result, the first win's block, NEW RANK!.
+		Continue = {
+			Mouse = "Click Continue!",
+			Touch = "Tap Continue!",
+			Gamepad = "Press {A} to continue!",
 		},
-		-- The real server's nudges (step 7), one at a time.
-		Nudge = {
-			Rank = "Claim your rank rewards!",
-			Inventory = "Your cues live in the Cues menu!",
-			Shop = "Check out the Shop!",
-			FreeReward = "Claim your free reward!",
-			BlockReady = "Your block is ready!", -- the Rare block's hotbar slot at 0
+		Dismiss = {
+			Mouse = "Click to continue!",
+			Touch = "Tap to continue!",
+			Gamepad = "Press {A} to continue!",
+		},
+		-- The bot's line as it leaves (one at random; casual, never "AUGHHH!").
+		BotLines = {
+			"bro u cheated",
+			"nah that was lucky lol",
+			"how did u make that",
+			"ok ur actually good",
+			"wait how are u that good",
+			"my aim is cooked today",
+			"gg i guess",
+			"rematch later im getting food",
+			"lucky shots smh",
+		},
+		-- The chain (4.5).
+		Rank = {
+			Mouse = "Open Rank and claim your reward!",
+			Touch = "Tap Rank and claim your reward!",
+			Gamepad = "Select Rank with {A} and claim your reward!",
+		},
+		RankClaim = {
+			Mouse = "Click CLAIM!",
+			Touch = "Tap CLAIM!",
+			Gamepad = "Press {A} on CLAIM!",
+		},
+		RankClose = {
+			Mouse = "Close Rank!",
+			Touch = "Close Rank!",
+			Gamepad = "Press {B} to close Rank!",
+		},
+		Mystery = {
+			Mouse = "Click your lucky block!",
+			Touch = "Tap your lucky block!",
+			Gamepad = "Press {RB} to pick your lucky block!",
+		},
+		MysteryPress = {
+			Mouse = "Click to upgrade it!",
+			Touch = "Tap to upgrade it!",
+			Gamepad = "Press {A} to upgrade it!",
+		},
+		PlaceBig = "Place it!",
+		Place = {
+			Mouse = "Click the ground to place it!",
+			Touch = "Tap the ground to place it!",
+			Gamepad = "Press {R2} to place it!",
+		},
+		Open = {
+			Mouse = "Hold E to open it!",
+			Touch = "Hold the button to open it!",
+			Gamepad = "Hold {X} to open it!",
+		},
+		CuesOpen = {
+			Mouse = "Open Cues!",
+			Touch = "Tap Cues!",
+			Gamepad = "Select Cues with {A}!",
+		},
+		CuesCard = {
+			Mouse = "Click your new cue!",
+			Touch = "Tap your new cue!",
+			Gamepad = "Press {A} on your new cue!",
+		},
+		CuesEquip = {
+			Mouse = "Click Equip!",
+			Touch = "Tap Equip!",
+			Gamepad = "Press {A} to equip it!",
+		},
+		CuesClose = {
+			Mouse = "Close Cues!",
+			Touch = "Close Cues!",
+			Gamepad = "Press {B} to close Cues!",
+		},
+		AbilitiesOpen = {
+			Mouse = "Open Abilities!",
+			Touch = "Tap Abilities!",
+			Gamepad = "Select Abilities with {A}!",
+		},
+		-- The code (Config.Ults.CodeBanner.ActiveCode) and its spins (Config's code row).
+		Code = {
+			Mouse = "Type %s for %d free spins!",
+			Touch = "Type %s for %d free spins!",
+			Gamepad = "Press {A} on Redeem for %d free spins!",
+		},
+		CodeRedeem = {
+			Mouse = "Now click Redeem!",
+			Touch = "Now tap Redeem!",
+			Gamepad = "Press {A} on Redeem!",
+		},
+		Spin = {
+			Mouse = "Click SPIN!",
+			Touch = "Tap SPIN!",
+			Gamepad = "Press {A} to SPIN!",
+		},
+		AbilitiesClose = {
+			Mouse = "Close Abilities!",
+			Touch = "Close Abilities!",
+			Gamepad = "Press {B} to close Abilities!",
+		},
+		-- The soft part (4.5 steps 10-14, 4.6).
+		Quest = "Win a Match %d/%d",
+		QuestDone = "Done!",
+		InviteTitle = "Invite a friend?",
+		InviteBody = "You both get a free %s lucky block!", -- the block kind (Config.Social.InviteBlock)
+		InviteWhen = "You get it when your friend wins their first match.",
+		InviteButton = "Invite",
+		New = "!", -- an icon's click-once badge
+		Ready = "Ready!", -- the Rare block's hotbar slot once its timer is done
+		-- First-time hints, for everyone (4.8).
+		Hint = {
+			Aim = {
+				Mouse = "Drag to aim, then pull the power bar to shoot!",
+				Touch = "Swipe to aim, then drag the power bar to shoot!",
+				Gamepad = "Tilt {LS} to aim, hold {R2} and let go to shoot!",
+			},
+			Zoom = {
+				Mouse = "Scroll to zoom in and out!",
+				Touch = "Pinch to zoom in and out!",
+				Gamepad = "Tilt {RS} to zoom in and out!",
+			},
+			AbilityReady = {
+				Mouse = "Your ability is ready! Press %s to use it.",
+				Touch = "Your ability is ready! Tap it to use it.",
+				Gamepad = "Your ability is ready! Press {X} to use it.",
+			},
+			RankUp = "You ranked up! Claim your reward in Rank.",
+			Block = {
+				Mouse = "You got a lucky block! Click it, place it and open it.",
+				Touch = "You got a lucky block! Tap it, place it and open it.",
+				Gamepad = "You got a lucky block! Press {RB} to pick it, then place it.",
+			},
+			Mystery = "A Mystery block! Open it to upgrade it.",
+			Cue = "A new cue! Equip it in Cues.",
+			AbilitiesCode = "Type %s for %d free spins!",
+			AbilitiesSpin = "Spin for a new ability!",
 		},
 	},
 	-- Rank rewards held until claimed (RankClaim; the roadmap's claim block, NEW RANK!).

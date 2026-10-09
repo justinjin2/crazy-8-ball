@@ -846,7 +846,7 @@ lines). All in the worktree.
 - [x] 2. Short research (5.7).
 - [x] 3. Simulations and models (5.1-5.5), the plan page (section 9). **Stop for
   "approved".**
-- [ ] 4. Foundations:
+- [x] 4. Foundations:
   - the step machine v2 (paths S and R, the chain, first-time hints, resume, the migration
     map, the step-name guard test);
   - `Config.Tutorial` v2, `Strings.Tutorial` v2;
@@ -1015,10 +1015,50 @@ lines). All in the worktree.
   the tutorial's Uncommon block ready at once; the bot walks at the players' speed; the help
   is one effect "TutorialAssist" with the armed ability inside it.
 
+### Step 4: foundations (2026-10-09)
+
+- **Step machine v2** (`Tutorial/Steps`): Arrow, Pad, Game1, Result, Rank, Mystery, Place, Cues,
+  Abilities (the guided part, `TutorialActive`), Soft, Done; Skipped. `Steps.load` resumes and
+  repairs any saved step (v1 names through `Steps.Migrate`; unknown: Done for anyone who has
+  played). Hints (`Steps.Hints`) and one-time moments (`Steps.Seen`) are bits in Flags
+  (`TutorialHints`, `TutorialHintsAgain`, `TutorialSeen`; server `TutorialHints.luau`).
+- **Attributes:** `TutorialStep`, `TutorialActive`, `TutorialPath` (S/R), `TutorialStepAt` (the
+  server time the step began: the client's re-prompt and fallback clock), `TutorialDevice`,
+  `TutorialMarks` (the step's moments the server saw), plus the three masks.
+- **Fail-safe:** every server callback runs in `TutorialService.guard`; the client's scenes in a
+  pcall. A failure ends the tutorial as Skipped (`TutorialWhy` = Error) and logs
+  `TutorialError` (step, a fixed code). Checked in Studio with `TutorialClientQA "break"`.
+- **Never stuck:** every chain step shows Next after its fallback (`Config.Tutorial.Timing`); the
+  server accepts it only once the time is up. Result also moves on by itself after 75 s.
+- **Funnels v2 skeleton** (`Funnel.luau`): onboarding (16 steps, fields device and path),
+  one-time PathS / PathR / Game2 / Social, events Hint, TutorialSkipped, StepTime,
+  TutorialError; each call kept for `/funnel` and printed in Studio.
+- **Dev:** `/tutorial reset | skip | off | hints | path s|r | step <name>`, `/funnel`.
+- **Guard test** (`tests/tutorial_steps_test.luau`): scans every file that reads the tutorial for
+  step names in a step's place (setStep, advance, comparisons, step-keyed tables) and fails on a
+  name that is not a step; a second test proves it catches v1's "Drop".
+- **Verified (Studio, PC):** reset → Arrow → Pad (bot called) → Game1 path S with the Break
+  lesson; a bot forfeit → Result; Next → Rank; every later step's scene runs without an error;
+  skip (pool hints marked done, TutorialSkipped), the client fail-safe, `/tutorial step nope`,
+  `setStep("Drop")` refused. Lint clean (3 old warnings), tests 1122 passed.
+- **Found for later steps:** the bot took about 5.7 s to arrive (step 7); the result screen
+  needs a QA hook to press Continue (step 9); the VIP tile and money pill still show in the
+  guided part (step 10 wires `Steps.Reveal`'s Money, Offer, Challenge, PlayGlobal).
+
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
 - `src/shared/Config.luau`: `Config.Tutorial.Assist` (the hidden help's numbers, Pull modes)
-  and `Config.Tutorial.BotPlan` (the bot's game-1 shots), inside `Config.Tutorial`.
+  and `Config.Tutorial.BotPlan` (the bot's game-1 shots), inside `Config.Tutorial`; step 4:
+  `Timing`, `Hints`, `Events`, `Device`, `Overlay.Next*`, `MysteryKind`, `TutorialCue`,
+  `SpinUlt` Magnet, `Funnel` v2; `Config.Debug.Commands.Funnel` ("/funnel").
+- `src/shared/Strings.luau`: `Strings.Tutorial` v2; `Strings.Dev` tutorial and funnel lines.
+- `src/shared/Net.luau`: TutorialEvent's comment; the unused TutorialCue remote removed.
+- `src/server/DevCommands.luau`: the `/funnel` command (one block beside `/tutorial`).
+- `src/server/RankClaimService.luau`: the onboarding step's new name (RankClaimed).
+- `src/server/GiftDropService.luau`: the Gift waits for the guided part only (`guided`).
+- `src/server/SoloSearch.luau`, `src/client/Main.client.luau`: the spawn pill and the solo
+  search read `TutorialActive` (the guided part) instead of any tutorial step.
+- `tests/ult_fireshot_test.luau`: the tutorial's spin is Magnet now.
 - `tools/upload_manifest.json`: the arrow's two textures (arrow_chevron_up, arrow_head_up).
 
 ---

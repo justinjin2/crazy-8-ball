@@ -192,7 +192,10 @@ function tests.it_is_the_common_starter_and_takes_super_bounces_place()
 	check(row and row.Built and row.Effect == "FireShot", "built, with its effect")
 	check(Catalog.rarity("FireShot") == "Common", "Common")
 	check(Config.Ults.Default == "FireShot", "the starter")
-	check(Config.Tutorial.SpinUlt == "FireShot", "the tutorial's spin lands on it")
+	check(
+		Config.Tutorial.SpinUlt == "Magnet",
+		"a new save's first spin lands on Magnet (tutorial v2)"
+	)
 	check(Catalog.retired("SuperBounce") == nil, "Super Bounce is back beside it (2026-10-09)")
 	check(Catalog.get("SuperBounce") ~= nil, "Super Bounce is in the catalog")
 	check(Catalog.retired("Ghost") == "Magnet", "Ghost still becomes Magnet")

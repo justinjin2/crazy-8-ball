@@ -13559,18 +13559,45 @@ Config.Tutorial = {
 		WatchSeconds = 0.25, -- how often the server looks at each tutorial player's table
 		BotTries = 3, -- asks for the tutorial bot's look this many times before giving up
 		BotRetrySeconds = 1,
-		-- The bot storms off this long after the player's winning 8 drops, and the result
-		-- waits until this long after that (designer: it vanishes before the result screen).
-		ExitAfterDropSeconds = 0.25,
-		ExitHoldSeconds = 1.5,
-		-- Game 2: the global queue's search turns into the bot match after this long (a beat
-		-- of "Finding you an opponent..."), not Config.Bots.Fallback.SoloSeconds.
-		Game2BotAfterSeconds = 1,
-		SearchRetrySeconds = 3, -- game 2's search starts by itself on the pad; a failed start retries after this
 	},
-	-- The real server's nudges (step 7, Steps.nudge): the server looks this often.
-	Nudges = {
-		WatchSeconds = 1,
+	-- Tutorial v2's timing per step (docs/prompts/TUTORIAL_V2_PROMPT.md 7.1, the approved
+	-- plan's step table): a re-prompt (the hand pulses, the line pops again) after
+	-- RepromptSeconds without the expected action, and a fallback after FallbackSeconds (the
+	-- step moves on by itself, does it for them, or shows "Next"). Seconds.
+	Timing = {
+		RepromptSeconds = 6,
+		FallbackSeconds = 30, -- every step not named in Fallback
+		Fallback = {
+			Arrow = 45, -- "Need help? Follow the arrow!" stays (no move on: they must walk)
+			Result = 20, -- the result, the block, NEW RANK!: each moves on by itself
+			Place = 40, -- "Next" (the block stays; its first-time hint comes later)
+			Abilities = 30, -- RELEASE fills in and the hand moves to Redeem
+		},
+		ZoomSkipSeconds = 20, -- game 1's zoom lesson is skipped after this (the pocket still glows)
+		AbilitiesRedeemSeconds = 60, -- the RELEASE code is redeemed for them after this
+		NextGraceSeconds = 1, -- a "Next" may come this much before the server's clock says so
+		StepTimeMaxSeconds = 3600, -- a StepTime longer than this is sent as this (AFK)
+	},
+	-- First-time hints for everyone (4.8; src/server/TutorialHints.luau and the client's
+	-- TutorialHints.luau). A hint counts as ignored when it times out or the player does
+	-- something else; an ignored hint may come back once (AgainAfterSeconds later at the
+	-- soonest), then never.
+	Hints = {
+		IgnoredAfterSeconds = 20,
+		AgainAfterSeconds = 120,
+	},
+	-- The TutorialEvent remote: a player's reports count at most Burst at once, then PerSecond
+	-- (a token bucket; extra reports are dropped).
+	Events = {
+		Burst = 20,
+		PerSecond = 4,
+	},
+	-- The device a player plays on (the funnels' device field): a touch screen whose short
+	-- side is under PhoneBelowPx is a phone, else a tablet; Roblox's ten-foot interface is a
+	-- console; anything else a PC.
+	Device = {
+		PhoneBelowPx = 600,
+		JoinedWaitSeconds = 8, -- the onboarding funnel's Joined waits this long for the device
 	},
 	-- Game 1's rigged rack and break (src/shared/Tutorial/Break.luau), found by
 	-- `lune run tools/tutorial_break.luau` (designer, 2026-10-03: 3 solids down, a 4th left
@@ -13696,14 +13723,18 @@ Config.Tutorial = {
 		DragPx = { 170, -80 }, -- the ball-in-hand demo drags the ghost ball this far (px)
 		BlockPadPx = 28, -- the ring round the thrown block on the floor, past its outline (px)
 	},
-	-- Game 1's rewards (answer 9): Bronze's at-once block is a Standard lucky block, thrown and
-	-- opened in the tutorial (cases retired for blocks 2026-10-04).
-	BronzeBlockKind = "Standard",
-	BronzeCueRarity = "Uncommon", -- that block opens to a cue of this rarity (answer 9)
-	-- The Equip step (designer 2026-10-03): once that cue is equipped, the Inventory stays open
-	-- this long (its "Equipped" notice) before the tutorial closes it for the Rare block.
+	-- The chain's lucky block (tutorial v2 4.5): Bronze's Mystery block, whose upgrade screen
+	-- climbs once (Standard to Uncommon), then opens to TutorialCue (the designer's pick,
+	-- 2026-10-09: Cosmo, clearly nicer than the Bronze Cue). That one block is ready at once
+	-- (a block on its timer cannot be placed).
+	MysteryKind = "Mystery",
+	TutorialCue = "CosmoCue",
+	-- The Cues step: once the cue is equipped, Cues stays open this long (its "Equipped"
+	-- notice) before the line says to close it.
 	EquipCloseSeconds = 1.2,
-	SpinUlt = "FireShot", -- the one starter spin lands on this ability (Magnet until 2026-10-08)
+	-- A new save's first ability spin lands on this ability (tutorial v2 4.11: Magnet, for
+	-- every new player; Fire Shot is everyone's starter).
+	SpinUlt = "Magnet",
 	-- The art (tools/gen_tutorial_art.py; uploaded to the group, tools/upload_manifest_tutorial
 	-- .json): the pointer hand (upright, index finger up; redrawn 2026-10-03 after the designer's
 	-- "tap here" icon) and its tap lines, the mouse, the floor arrow after reference 02's path.
@@ -13744,6 +13775,11 @@ Config.Tutorial = {
 		SkipEdgePx = 12,
 		ConfirmSize = { 300, 150 },
 		ConfirmTextPx = 22,
+		-- The Next button (a step's fallback), centred under the line.
+		NextHeightPx = 50,
+		NextPhoneHeightPx = 40,
+		NextWidthRatio = 3.2,
+		NextGapPx = 8,
 	},
 	-- The hand (src/client/TutorialHand.luau). Pixels unless named.
 	Hand = {
@@ -13788,15 +13824,22 @@ Config.Tutorial = {
 		ReplanSeconds = 3,
 		ReplanMovedStuds = 4,
 	},
-	-- The funnels (src/server/Funnel.luau; step 9). Each mask is a Flags entry, one bit per
-	-- step, so a step is never logged twice.
+	-- The funnels (src/server/Funnel.luau; tutorial v2 section 6, docs/TUTORIAL_FUNNELS.md).
+	-- Each mask is a Flags entry, one bit per step, so a step is never logged twice. The step
+	-- lists: Tutorial/Steps (Funnel, Funnels) and the repeating ones below.
 	Funnel = {
 		Print = true, -- Studio prints each logged step in the output (never live)
 		OnboardingFlag = "Funnel",
-		-- One-time funnels: the funnel's name on the dashboard -> its Flags key.
-		Once = { TutorialExit = "FunnelExit" },
-		ThirdMatch = 3, -- onboarding step 21: this many matches played
+		-- One-time funnels (Steps.Funnels): the funnel's name on the dashboard -> its Flags key.
+		Once = {
+			PathS = "FunnelS",
+			PathR = "FunnelR",
+			Game2 = "FunnelG2",
+			Social = "FunnelSocial",
+		},
+		ThirdMatch = 3, -- the onboarding funnel's ThirdMatch: this many matches played
 		EventGapSeconds = 0.5, -- a client's funnel report of one kind counts at most this often
+		LogKeep = 80, -- /funnel shows a player's last this many logged events (this server)
 		-- The repeating funnels' steps, in order (Funnel.shop, .spins, .blockLanded ...).
 		Shop = { "Opened", "Viewed", "PressedBuy", "Bought" },
 		Block = { "Got", "Ready", "Opened", "Equipped" },
@@ -13950,10 +13993,13 @@ Config.Debug = {
 		-- lost its solo and PC buttons with the matchmaking bar. Only the accounts in UserIds.
 		Solo = "/solo",
 		Bot = "/bot",
-		-- /tutorial reset | skip | off | step <name> (the tutorial lane): restart your tutorial
-		-- from the arrow, end it as skipped, end it as done, or jump to a step (Tutorial/Steps
-		-- .Order). Only the accounts in UserIds, Studio and live.
+		-- /tutorial reset | skip | off | hints | path s|r | step <name> (tutorial v2): restart
+		-- your tutorial from the arrow (a new player's state: hints, glows and funnels too), end
+		-- it as skipped or done, bring the first-time hints back, set game 1's path, or jump to a
+		-- step (Tutorial/Steps.Order). /funnel: what the funnels logged for you in this server.
+		-- Only the accounts in UserIds, Studio and live.
 		Tutorial = "/tutorial",
+		Funnel = "/funnel",
 		-- The ult commands' old names, by command: each still runs its command.
 		OldAliases = {
 			UltBar = "/ultbar",

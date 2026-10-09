@@ -1362,10 +1362,10 @@ local function renderFrame(dt: number)
 	end
 	-- The matchmaking bar, every frame: a pad's, or the spawn pill of a player in a public
 	-- lobby server with nobody else free (designer, 2026-10-07: never in a private server, not
-	-- during the tutorial; a step it has not published yet counts as the tutorial; 2026-10-09:
-	-- also when everyone else is busy at a table).
+	-- during the guided tutorial; a state it has not published yet counts as the tutorial;
+	-- 2026-10-09: also when everyone else is busy at a table).
 	do
-		local step = player:GetAttribute("TutorialStep")
+		local guided = player:GetAttribute("TutorialActive")
 		local others = {}
 		for _, p in Players:GetPlayers() do
 			if p ~= player then
@@ -1376,7 +1376,7 @@ local function renderFrame(dt: number)
 			nobodyFree = PadBar.nobodyFree(others, hub.snapshots),
 			publicLobby = workspace:GetAttribute(Config.UI.MatchBar.PublicLobbyAttribute) == true
 				and not isArena,
-			tutorial = type(step) ~= "string" or step ~= "",
+			tutorial = guided ~= false,
 			seated = hub.mySeat ~= nil or controlled or predictedPad ~= nil,
 		})
 		matchBar:update(workspace:GetServerTimeNow())

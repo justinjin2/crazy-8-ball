@@ -1,42 +1,40 @@
 --!strict
--- Steps: the tutorial's step order, what a rejoin resumes at, what the HUD shows at each step
--- and the onboarding funnel's numbers (docs/prompts/TUTORIAL_PROMPT.md). The server keeps the
--- step in the save (Flags.Tutorial) and sets the TutorialStep attribute; the client reads the
--- same table. Pure: no Instances, no clocks.
+-- Steps: tutorial v2's step machine as data (docs/prompts/TUTORIAL_V2_PROMPT.md 4 and 7): the
+-- step order, where a rejoin resumes, how an older save's step maps onto this one, which HUD
+-- items show at each step, the first-time hints and one-time moments (bits in the save's
+-- Flags), and the funnels' step lists. The server keeps the step in the save (Flags.Tutorial)
+-- and publishes it as the TutorialStep attribute; the client reads the same table. Pure: no
+-- Instances, no clocks.
 --
--- The first server (Arrow1 .. Lobby): game 1, its rewards, the Abilities lesson and game 2.
--- Nudges runs in the real server the player lands in after game 2; Done, Skipped and
--- Cancelled are the end states.
+-- Arrow .. Abilities are the guided part (TutorialActive: the menus hide and come back one by
+-- one in the chain). Soft is the soft part (every menu, the Win a Match quest, game 2); after
+-- game 2 the tutorial is Done. Skipped ends it early (the first-time hints still come).
 
 local Steps = {}
 
 Steps.Order = {
-	"Arrow1", -- the floor arrow to the reserved table, "Join a table!"
-	"Request", -- on the pad: press Request opponent
-	"Game1", -- the rigged match
-	"Block", -- Bronze's Standard lucky block in the hotbar: hold, throw, open (an Uncommon cue)
-	"Equip", -- equip the Uncommon cue it gave: Inventory, its card, Equip (designer 2026-10-03)
-	"RareBlock", -- the win's Rare lucky block in the hotbar (its 1 h timer runs)
-	"Abilities", -- the hand on the Abilities icon
-	"Spin", -- the one starter spin (Config.Tutorial.SpinUlt: Fire Shot)
-	"Code", -- type RELEASE for 3 more spins
-	"Back", -- close the spin screen
-	"Arrow2", -- the arrow to a pad again
-	"Queue", -- press Join Global Queue
-	"Game2", -- the arena game against a disguised Bronze bot
-	"Lobby", -- press Lobby (back to a public server)
-	"Nudges", -- the real server: Rank, Inventory, Shop, Free Reward
+	"Arrow", -- the arrow from their chest to an empty table's pad (any empty table counts)
+	"Pad", -- alone on a pad: the bot walks over (path S), or a real player joins (path R)
+	"Game1", -- the first game: rigged against the bot (path S) or fair (path R)
+	"Result", -- a won game 1: the result, the first win's block, NEW RANK! (the bot leaves)
+	"Rank", -- open Rank, CLAIM, close
+	"Mystery", -- tap the Mystery block: its upgrade screen climbs once
+	"Place", -- place the Uncommon block and open it (the reel lands the tutorial's cue)
+	"Cues", -- the Cues icon: the new cue, Equip, close
+	"Abilities", -- the Abilities icon: RELEASE, a spin (Magnet), close
+	"Soft", -- every icon, Win a Match, the invite, Free Reward, Play Global, game 2
 	"Done",
 }
 
--- The ends: nothing more is shown.
-Steps.Ends = { Done = true, Skipped = true, Cancelled = true }
+-- The ends: nothing more is guided (first-time hints still come).
+Steps.Ends = { Done = true, Skipped = true }
 
--- The real server's nudges, in order (Flags.TutorialNudge counts them done).
-Steps.Nudges = { "Rank", "Inventory", "Shop", "FreeReward" }
+-- Game 1's paths (Flags.TutorialPath): S the rigged game against the tutorial bot, R a fair
+-- first game with a real person (no rigging, no hidden help; the teaching stays).
+Steps.Paths = { S = true, R = true }
 
--- Why a tutorial was cancelled (Flags.TutorialWhy).
-Steps.Reasons = { Skip = true, OtherTable = true, Friend = true }
+-- Why the tutorial ended early (Flags.TutorialWhy): the Skip button, or the fail-safe.
+Steps.Reasons = { Skip = true, Error = true }
 
 local INDEX: { [string]: number } = {}
 for i, name in Steps.Order do
@@ -48,17 +46,29 @@ function Steps.index(step: string?): number
 	return if type(step) == "string" then INDEX[step] or 0 else 0
 end
 
---- Whether `step` is a step of the order (not an end state).
-function Steps.valid(step: any): boolean
+--- Whether `name` is a step of the order or an end state (what a save may hold).
+function Steps.known(name: any): boolean
+	return type(name) == "string" and (INDEX[name] ~= nil or Steps.Ends[name] == true)
+end
+
+--- Whether the tutorial is still running at `step` (any step of the order but Done).
+function Steps.active(step: string?): boolean
 	return type(step) == "string" and INDEX[step] ~= nil and step ~= "Done"
 end
 
---- Whether the tutorial is still running (any step of the order but Done).
-function Steps.active(step: string?): boolean
-	return Steps.valid(step)
+--- Whether `step` is in the guided part (Arrow .. Abilities): the menus hide, popups wait.
+function Steps.guided(step: string?): boolean
+	local i = Steps.index(step)
+	return i > 0 and i < INDEX.Soft
 end
 
---- Whether `step` comes at or after `other` in the order.
+--- Whether `step` is in the guided chain after game 1 (Result .. Abilities).
+function Steps.chain(step: string?): boolean
+	local i = Steps.index(step)
+	return i >= INDEX.Result and i < INDEX.Soft
+end
+
+--- Whether `step` comes at or after `other` in the order (false for an end state).
 function Steps.atLeast(step: string?, other: string): boolean
 	local i = Steps.index(step)
 	return i > 0 and i >= (INDEX[other] or math.huge)
@@ -73,135 +83,259 @@ function Steps.after(step: string): string?
 	return Steps.Order[math.min(i + 1, #Steps.Order)]
 end
 
---- Whether the step belongs to the first server, where the tutorial hides the menus and holds
---- the popups (the player attribute TutorialActive).
-function Steps.firstServer(step: string?): boolean
-	local i = Steps.index(step)
-	return i > 0 and i < INDEX.Nudges
-end
-
 --- Where a player picks up when they join again with `step` saved. A match cannot be saved
---- halfway, so game 1 starts over (designer, 2026-10-03) and game 2 goes back to its arrow;
---- outside an arena, a finished game 2 is the real server. Arriving in an arena from the
---- global queue (Arrow2 or Queue saved in the lobby) is game 2. Anything not a step stays.
-function Steps.resume(step: string, inArena: boolean): string
-	if step == "Request" or step == "Game1" then
-		return "Arrow1"
-	elseif step == "Arrow2" or step == "Queue" then
-		return if inArena then "Game2" else "Arrow2"
-	elseif step == "Game2" then
-		return if inArena then "Game2" else "Arrow2"
-	elseif step == "Lobby" then
-		return if inArena then "Lobby" else "Nudges"
+--- halfway, so game 1 starts over from the arrow; the result screens are gone, so the chain
+--- picks up at Rank; every other step stays.
+function Steps.resume(step: string): string
+	if step == "Pad" or step == "Game1" then
+		return "Arrow"
+	elseif step == "Result" then
+		return "Rank"
 	end
 	return step
 end
 
---- The step a save starts at when it has none: a player who has played before (any match)
---- has nothing to learn; a brand-new one starts at the arrow.
-function Steps.initial(matches: number, wins: number): string
+--- The step a save starts at when it has none: a player who has played before (any match or
+--- win) never enters the tutorial; a brand-new one starts at the arrow.
+function Steps.initial(matches: number?, wins: number?): string
 	if (matches or 0) > 0 or (wins or 0) > 0 then
 		return "Done"
 	end
-	return "Arrow1"
+	return "Arrow"
 end
 
--- The column and HUD items the tutorial hides in the first server; each appears when the
--- tutorial points at it (Abilities from its step) and all of them in the real server.
-local ITEMS = {
-	Shop = true,
-	Inventory = true,
-	Abilities = true,
-	Rank = true,
-	FreeReward = true,
-	Trade = true,
+-- Tutorial v1's step names (docs/prompts/TUTORIAL_PROMPT.md) and the v2 step each continues
+-- at. "Drop" and "RareDrop" were written by a v1 bug (not steps): both come after game 1's win.
+Steps.Migrate = {
+	Arrow1 = "Arrow",
+	Request = "Arrow",
+	Drop = "Rank",
+	RareDrop = "Rank",
+	Block = "Rank",
+	Equip = "Cues",
+	RareBlock = "Abilities",
+	Spin = "Abilities",
+	Code = "Abilities",
+	Back = "Abilities",
+	Arrow2 = "Soft",
+	Queue = "Soft",
+	Game2 = "Soft",
+	Lobby = "Soft",
+	Nudges = "Soft",
+	Cancelled = "Skipped",
 }
 
---- Whether the HUD item `item` (Shop, Inventory, Abilities, Rank, FreeReward) shows at `step`.
---- Anything not hidden by the tutorial shows. In the first server Inventory shows only for the
---- Equip step.
+--- The step to use for a save holding `saved` (anything) with `matches` matches and `wins`
+--- wins: a v2 step resumes (Steps.resume), an end stays, a v1 name maps through Steps.Migrate,
+--- and anything else is repaired from the stats (Steps.initial: a player who has played is
+--- done).
+function Steps.load(saved: any, matches: number?, wins: number?): string
+	if type(saved) ~= "string" then
+		return Steps.initial(matches, wins)
+	elseif Steps.Ends[saved] then
+		return saved
+	elseif INDEX[saved] then
+		return Steps.resume(saved)
+	end
+	local mapped = Steps.Migrate[saved]
+	if mapped then
+		return if Steps.Ends[mapped] then mapped else Steps.resume(mapped)
+	end
+	return if (matches or 0) > 0 or (wins or 0) > 0 then "Done" else "Arrow"
+end
+
+---------------------------------------------------------------------------------------------
+-- The HUD: the items the guided part hides and the step each comes back at
+---------------------------------------------------------------------------------------------
+
+-- Each item the tutorial hides, and the step it shows from (Soft: when every icon pops in).
+-- Rank and the money pill come with the Rank step (the claim's money flies to the pill).
+Steps.Reveal = (
+	{
+		Rank = "Rank",
+		Money = "Rank",
+		Inventory = "Cues", -- the Cues menu's column tile
+		Abilities = "Abilities",
+		Shop = "Soft",
+		FreeReward = "Soft",
+		Trade = "Soft",
+		Challenge = "Soft", -- Daily Challenge (HubCorners)
+		Offer = "Soft", -- the VIP / Starter Pack tile (HubCorners)
+		PlayGlobal = "Soft", -- the spawn pill and a pad's Play Global
+		WinTrack = "Soft", -- the daily win track (the Win a Match quest sits there first)
+	}
+) :: { [string]: string }
+
+--- Whether the HUD item `item` shows at `step` (nil: no tutorial). Anything the tutorial does
+--- not hide always shows; after the guided part (Soft, Done, Skipped) everything shows.
 function Steps.shows(step: string?, item: string): boolean
-	if ITEMS[item] == nil or not Steps.firstServer(step) then
+	local from = Steps.Reveal[item]
+	if from == nil or not Steps.guided(step) then
 		return true
 	end
-	if item == "Abilities" then
-		return Steps.atLeast(step, "Abilities")
-	elseif item == "Inventory" then
-		return step == "Equip"
-	end
-	return false
+	return Steps.atLeast(step, from)
 end
 
---- The real server's nudge now (step Nudges), from how many of Steps.Nudges are done, whether
---- rank rewards wait, and when the newest Rare lucky block's timer ends (nil: none) at unix
---- time `now`. Answers the nudge's name and its place in Steps.Nudges (nil for the block
---- ones): the four in order (Rank only while something waits to be claimed), then
---- "BlockWait" while the Rare block's timer runs and "BlockReady" once it has ended; nil when
---- nothing is left.
-function Steps.nudge(
-	done: number,
-	rankPending: boolean,
-	rareAt: number?,
-	now: number
-): (string?, number?)
-	for i = math.max(0, math.floor(done)) + 1, #Steps.Nudges do
-		local name = Steps.Nudges[i]
-		if name ~= "Rank" or rankPending then
-			return name, i
-		end
-	end
-	if rareAt then
-		return if now >= rareAt then "BlockReady" else "BlockWait", nil
-	end
-	return nil, nil
-end
+---------------------------------------------------------------------------------------------
+-- First-time hints and one-time moments: one bit each in a Flags number. Append only: a bit's
+-- place is saved, so never reorder or remove a name (retire it with a comment instead).
+---------------------------------------------------------------------------------------------
 
--- The onboarding funnel (AnalyticsService:LogOnboardingFunnelStepEvent), in the designer's order.
-Steps.Funnel = {
-	"Joined",
-	"SawArrow",
-	"SteppedOnPad",
-	"PressedRequest",
-	"Game1Started",
-	"Broke",
-	"PottedAimShot",
-	"UsedAbility",
-	"CalledEight",
-	"WonGame1",
-	"OpenedStandardBlock",
-	"SawRareBlock",
-	"OpenedAbilities",
-	"SpunAbility",
-	"JoinedGlobalQueue",
-	"WonGame2",
-	"BackInLobby",
-	"ClaimedDaily",
-	"ClaimedRank",
-	"OpenedRareBlock",
-	"PlayedThirdMatch",
-	"CameBackNextDay",
+-- First-time hints, for everyone (4.8): each shows the first time its moment happens, once,
+-- saved (Flags.TutorialHints: done; Flags.TutorialHintsAgain: ignored once, it may come back
+-- once more). The guided steps mark theirs done as they teach them.
+Steps.Hints = {
+	"Aim", -- a fair first game (path R): drag to aim, then pull the power bar
+	"Zoom", -- a fair first game: zoom out to see the angle
+	"BallInHand", -- the first ball in hand not taught in game 1
+	"Eight", -- the first 8 call not taught in game 1
+	"AbilityReady", -- the ability bar is full: how to use it on this device
+	"RankUp", -- the first rank-up: claim it in Rank
+	"Block", -- the first lucky block in the hotbar: tap it, place it, open it
+	"Mystery", -- the first Mystery block: its upgrade screen
+	"Cue", -- the first cue won: equip it in Cues
+	"Abilities", -- the first visit to Abilities: the RELEASE code, then spin
 }
 
-local FUNNEL: { [string]: number } = {}
-for i, name in Steps.Funnel do
-	FUNNEL[name] = i
+-- The pool controls (4.2): taught in the first game whoever it is against, off for skippers.
+Steps.PoolHints = (
+	{ Aim = true, Zoom = true, BallInHand = true, Eight = true }
+) :: { [string]: boolean }
+
+-- One-time moments (Flags.TutorialSeen): a click-once glow, a popup shown once, the quest.
+Steps.Seen = {
+	"Icons", -- the soft part's icons have popped in
+	"Shop", -- each icon's "!" glow until it is clicked once
+	"FreeReward",
+	"Challenge",
+	"Offer",
+	"Money",
+	"Invite", -- the invite popup, shown once
+	"Group", -- Free Reward's frames, highlighted once
+	"Favorite",
+	"Like",
+	"PlayGlobal", -- Play Global's glow until it is pressed
+	"Quest", -- the Win a Match quest is on
+	"QuestDone", -- ... and won
+	"Game2", -- game 2 was found (the soft part's last step)
+}
+
+-- The moments a client may report itself (TutorialEvent "Seen"); the rest the server sees.
+Steps.ClientSeen = (
+	{
+		Icons = true,
+		Shop = true,
+		FreeReward = true,
+		Challenge = true,
+		Offer = true,
+		Money = true,
+		Invite = true,
+		Group = true,
+		Favorite = true,
+		Like = true,
+		PlayGlobal = true,
+	}
+) :: { [string]: boolean }
+
+local function indexOf(list: { string }): { [string]: number }
+	local map = {}
+	for i, name in list do
+		map[name] = i
+	end
+	return map
 end
+
+local HINT = indexOf(Steps.Hints)
+local SEEN = indexOf(Steps.Seen)
+
+--- A hint's bit number (nil if unknown).
+function Steps.hintBit(name: any): number?
+	return if type(name) == "string" then HINT[name] else nil
+end
+
+--- A one-time moment's bit number (nil if unknown).
+function Steps.seenBit(name: any): number?
+	return if type(name) == "string" then SEEN[name] else nil
+end
+
+local function whole(mask: any): number
+	return if type(mask) == "number" and mask == mask and mask >= 0 then math.floor(mask) else 0
+end
+
+--- Whether bit `n` (1-based) is set in `mask` (a whole number; anything else counts as 0).
+function Steps.has(mask: any, n: number): boolean
+	return bit32.btest(whole(mask), bit32.lshift(1, n - 1))
+end
+
+--- `mask` with bit `n` set.
+function Steps.mark(mask: any, n: number): number
+	return bit32.bor(whole(mask), bit32.lshift(1, n - 1))
+end
+
+---------------------------------------------------------------------------------------------
+-- Funnels (src/server/Funnel.luau, docs/TUTORIAL_FUNNELS.md): each list is one funnel's steps
+-- in order. Append only once live: a step's number is its place.
+---------------------------------------------------------------------------------------------
+
+-- The onboarding funnel (Roblox's own, everyone new): fields device (first step) and path.
+Steps.Funnel = {
+	"Joined",
+	"ArrowShown",
+	"OnTable",
+	"Game1Started",
+	"Game1Ended",
+	"FirstWin",
+	"RankClaimed",
+	"BlockOpened",
+	"CueEquipped",
+	"AbilitySpun",
+	"ChainDone",
+	"Game2Searched",
+	"Game2Started",
+	"Game2Ended",
+	"QuestDone",
+	"ThirdMatch",
+}
+
+-- The one-time funnels, each step once per player (its own Flags mask).
+Steps.Funnels = {
+	PathS = { -- the rigged game 1
+		"Seated",
+		"BotArrived",
+		"Break",
+		"Aimed",
+		"Zoomed",
+		"AimPotted",
+		"AbilityUsed",
+		"AbilityPotted",
+		"BallInHand",
+		"EightCalled",
+		"Won",
+	},
+	PathR = { "Seated", "OpponentArrived", "Started", "Ended", "Won" }, -- a fair first game
+	Game2 = { "Searched", "Found", "Started", "Ended" },
+	Social = {
+		"InviteShown",
+		"Invited",
+		"FreeRewardOpened",
+		"DailyClaimed",
+		"GroupClicked",
+		"FavoriteClicked",
+		"LikeClicked",
+	},
+}
+
+local FUNNEL = indexOf(Steps.Funnel)
 
 --- The onboarding funnel number of a step name (nil if unknown).
 function Steps.funnelNumber(name: string): number?
 	return FUNNEL[name]
 end
 
---- Whether funnel step `n` is marked in `mask` (a whole number, one bit per step).
-function Steps.funnelHas(mask: number?, n: number): boolean
-	local m = if type(mask) == "number" and mask == mask then math.floor(mask) else 0
-	return bit32.btest(m, bit32.lshift(1, n - 1))
-end
-
---- `mask` with funnel step `n` marked.
-function Steps.funnelMark(mask: number?, n: number): number
-	local m = if type(mask) == "number" and mask == mask then math.floor(mask) else 0
-	return bit32.bor(m, bit32.lshift(1, n - 1))
+--- A one-time funnel's step number (nil if the funnel or step is unknown).
+function Steps.funnelStep(funnel: string, name: string): number?
+	local list = Steps.Funnels[funnel]
+	return if list then table.find(list, name) else nil
 end
 
 return Steps

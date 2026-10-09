@@ -75,7 +75,7 @@ function SoloSearch.begin(player: Player): boolean
 		or Tables.tableOf(player) ~= nil
 		or player:GetAttribute("DataLoaded") ~= true
 		or PlayerData.isHandedOff(player)
-		or (player:GetAttribute("TutorialStep") or "") ~= ""
+		or player:GetAttribute("TutorialActive") ~= false -- the guided tutorial (nil: not known yet)
 	then
 		return false
 	end

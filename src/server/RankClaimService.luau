@@ -73,7 +73,7 @@ local function onClaim(player: Player)
 		spins = paid.spins,
 		rows = paid.rows,
 	})
-	Funnel.onboarding(player, "ClaimedRank")
+	Funnel.onboarding(player, "RankClaimed")
 end
 
 -- NEW RANK! for division `index` was shown (Progression): RankShown moves up to it, never
