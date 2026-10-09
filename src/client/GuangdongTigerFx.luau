@@ -11,8 +11,9 @@
 --
 --   * Armed (from the arming moment until the shot): three glowing claw marks pulse under the
 --     cue ball.
---   * The swipe ("swipe"): a tiger gallops in from off the table across the view, springs with a
---     snarl and lands by the first contact (a thump, a shake, a puff of chalk), rears up and
+--   * The swipe ("swipe"), at the contact: the commentator's line (TigerVoice); a tiger gallops
+--     in from off the table across the view, springs with a snarl and lands by the first
+--     contact (a thump, a shake, a puff of chalk), rears up and
 --     slams its right paw down through the ball into the cloth, lunging, its claws trailing
 --     light: the cut. Three claw slashes of light in the air and three scorched into the cloth,
 --     the tiger-stripe fur frame over the screen for a moment, a light burst, a shake, a colour
@@ -1165,6 +1166,9 @@ local function swipe(
 	end
 	local studs = Config.Table.StudsPerInch
 	local centre = kit.tableWorld(m, x, y, 0)
+	if not quiet then
+		playAt(self, id, A.TigerVoice, centre) -- the commentator, as the ball is hit
+	end
 	local up = Vector3.yAxis
 	local camera = workspace.CurrentCamera
 	local camCF = if camera
@@ -1414,7 +1418,9 @@ function GuangdongTigerFx.start(hub: any, _parent: Instance, kit: any): Guangdon
 	end)
 	task.spawn(function()
 		local list: { Instance } = {}
-		for _, clip in { A.TigerRoar, A.TigerSnarl, A.TigerClaw, A.TigerSlash, A.TigerThump } do
+		for _, clip in
+			{ A.TigerRoar, A.TigerSnarl, A.TigerClaw, A.TigerSlash, A.TigerThump, A.TigerVoice }
+		do
 			local sound = Instance.new("Sound")
 			sound.SoundId = clip.Id
 			table.insert(list, sound)

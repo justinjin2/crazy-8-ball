@@ -4194,6 +4194,9 @@ Config.Ults = {
 		TigerClaw = { Id = "rbxassetid://88967797911082", Volume = 0.5 },
 		TigerSlash = { Id = "rbxassetid://122411746821632", Volume = 0.1 },
 		TigerThump = { Id = "rbxassetid://9113524237", Volume = 0.74, Pitch = 0.6 },
+		-- The commentator at the contact (the designer, 2026-10-09: the Tiantian Billiards
+		-- clip's line at 5.78-6.92 s, assets/audio/abilities/TigerVoice.wav). (tune by ear)
+		TigerVoice = { Id = "rbxassetid://71314590570663", Volume = 0.6 },
 		-- Catch-a-Ball (the rework, 2026-10-08; assets/abilities/SOUNDS_V2.md): the designer
 		-- asked for the real catch sounds, so the open, the wobble and the catch are public fan
 		-- uploads of them (TheTrustyCapricorn, gamer712138); if Roblox mutes one, the licensed
