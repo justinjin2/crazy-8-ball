@@ -1169,7 +1169,7 @@ The approved mockup: https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T. `StreakH
 `StreakMath`, `Config.UI.Streak`, `Strings.Streak`; the rules in `Rules/Streak` (GDD section 8).
 
 - **Where** (designer, 2026-10-09, after the first Studio build covered the far end of the
-  table): in the match popups' row just under the top bar, where YOUR TURN shows, 8 px below
+  table): in the match popups' row just under the top bar, where YOUR TURN shows, 6 px below
   its middle so x8 clears the bar. While a new shooter's turn or a foul shows there the streak
   fades out in 0.12 s and pops back in when it goes (a step meanwhile still plays its sound and
   shake). **YOU ARE SOLIDS / STRIPES** it does not hide for: it slides down under it in 0.35 s

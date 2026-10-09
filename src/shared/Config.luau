@@ -8579,7 +8579,7 @@ Config.UI.Streak = {
 	HideSeconds = 0.12,
 	-- A little lower than the row's middle, so x8 and its flames clear the top bar (designer,
 	-- 2026-10-09: "lower it just a tiny tiny tiny bit").
-	LowerPx = 8,
+	LowerPx = 6, -- 8 was a touch low (designer, 2026-10-09)
 	-- YOU ARE SOLIDS / STRIPES is the one popup it does not step aside for (it shows as the
 	-- ball that picks the groups drops, often a run's second ball after the break's): the
 	-- words slide down under it, one popup row (TurnPopupTitleSize + HeaderGap) plus GapPx,
