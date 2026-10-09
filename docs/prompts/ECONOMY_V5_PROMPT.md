@@ -295,7 +295,7 @@ perk text. Don't change any of these products: the designer approves them later.
 - [x] 11. Trade (3.10).
 - [x] 12. The model v5, `economy_config.json`, the copy-number timeline (3.11).
 - [x] 13. The docs (3.11) and the hand-off file (section 4).
-- [ ] 14. The Robux proposal file (6.2), with no product changes.
+- [x] 14. The Robux proposal file (6.2), with no product changes.
 - [ ] 15. The report (section 7) and `STATUS.md`.
 
 ---
@@ -387,3 +387,11 @@ perk text. Don't change any of these products: the designer approves them later.
   while answer 14 asks for pity bars: the hand-off asks the GUI session to show concept art
   first. `tutorial-v2` no longer has `Config.Tutorial.BronzeBlockKind` and calls
   `setOpenHooks` with two arguments: listed for whichever branch merges second.
+- Step 14: `~/Desktop/8ball-refs/economy/05-economy-v5-robux.md`. Proposed: Mystery1 7 R$, the
+  5-pack 29 R$ (6 during the launch bonus), restock 39 / 149 / 599 / 1,699 R$ (the plan's),
+  Claim All first week unchanged 399 / 349 / 299 and later weeks 79 / 69 / 35 (half the shop
+  value, v4's rule), the Golden Shot 15 R$ unchanged, VIP's text "an Uncommon Lucky Block every
+  day". Checked with the game's model at those prices without touching Config
+  (`v5-build/robux_value.txt`, `robux_sim.txt`): every cheapest pull inside the designer's feel
+  ranges, ownership unchanged (noise). No product, spec or Config price changed; the paste-ready
+  spec rows and the make-it-live steps are in the file.
