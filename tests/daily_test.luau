@@ -734,9 +734,9 @@ return {
 			ClaimAllFirst7 = { 399, 7 },
 			ClaimAllFirst5 = { 349, 5 },
 			ClaimAllFirst2 = { 299, 2 },
-			ClaimAllWeek7 = { 129, 7 },
-			ClaimAllWeek5 = { 99, 5 },
-			ClaimAllWeek2 = { 59, 2 },
+			ClaimAllWeek7 = { 79, 7 },
+			ClaimAllWeek5 = { 69, 5 },
+			ClaimAllWeek2 = { 35, 2 },
 		}
 		for key, pair in want do
 			local row = list[key]

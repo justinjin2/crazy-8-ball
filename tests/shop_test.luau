@@ -353,14 +353,7 @@ return {
 
 	["every pass and product is made: a real id, each once"] = function()
 		local seen = {}
-		-- Not made yet on purpose: the Mystery 5-pack waits for the designer's Robux price
-		-- (economy v5), so it shows "Coming soon".
-		local waiting = { Mystery5 = true }
 		for key, product in Config.Products.List do
-			if waiting[key] then
-				H.expect(product.Id == 0, key .. " waits for its price")
-				continue
-			end
 			H.expect(product.Id > 0, key .. " has its id (tools/roblox_products.py)")
 			H.expect(seen[product.Id] == nil, key .. ": id used once")
 			seen[product.Id] = key
@@ -1194,8 +1187,8 @@ return {
 		)
 	end,
 
-	["the Dashboard list: 3 game passes and 24 developer products at the plan's prices"] = function()
-		-- Economy v4 (2026-10-08, plan 8.2).
+	["the Dashboard list: 3 game passes and 30 developer products at the plan's prices"] = function()
+		-- Economy v4 (2026-10-08, plan 8.2); economy v5's Robux prices (2026-10-09).
 		local want = {
 			Vip = 399,
 			UltSlot2 = 49,
@@ -1205,7 +1198,7 @@ return {
 			GrandOpening1 = 19,
 			GrandOpening3 = 49,
 			GrandOpening10 = 149,
-			RestockRare = 15,
+			RestockRare = 39,
 			RestockMythic = 1699,
 			Pack1 = 25,
 			Pack2 = 49,
@@ -1214,10 +1207,12 @@ return {
 			Pack5 = 399,
 			Pack6 = 799,
 			Pack7 = 1699,
-			Mystery1 = 5,
+			Mystery1 = 7,
+			Mystery5 = 29,
 			Mystery10 = 45,
-			RestockEpic = 99,
+			RestockEpic = 149,
 			RestockLegendary = 599,
+			LuckyBlockSkip1 = 1,
 			LuckyBlockSkip = 4,
 			LuckyBlockSkip9 = 9,
 			LuckyBlockSkip15 = 15,
@@ -1240,7 +1235,7 @@ return {
 			end
 		end
 		H.expect(
-			passes == 3 and products == 28,
+			passes == 3 and products == 30,
 			("%d passes, %d products"):format(passes, products)
 		)
 		-- The most expensive item fits one $19.99 phone Robux pack (1,700 R$).
@@ -1255,6 +1250,7 @@ return {
 		H.expect(L.GrandOpening10.Was == 10 * L.GrandOpening1.Robux, "190 one by one")
 		H.expect(L.Spin5.Was == 5 * L.Spin1.Robux and L.Spin50.Was == 50 * L.Spin1.Robux, "")
 		H.expect(L.Lucky3.Was == 3 * L.Lucky1.Robux, "75 one by one")
+		H.expect(L.Mystery5.Was == 5 * L.Mystery1.Robux, "35 one by one")
 		-- Retired with the cases (2026-10-04): Quick Cases, Fast Open and the timer skips.
 		for _, key in { "FastOpen", "QuickCases", "Skip1h", "Skip6h", "Skip24h", "Skip48h" } do
 			H.expect(Shop.product(key) == nil, key .. " is gone")

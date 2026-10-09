@@ -6,25 +6,25 @@ The unattended build of `ECONOMY_V5_PROMPT.md` (the plan: `ECONOMY_V5_PLAN.md`),
 
 ## Read this first: things that change what players get
 
-1. **Robux prices are still v4's.** v5's blocks give far more, so once `gui-v4` is published a
-   5 R$ Mystery block is worth about 4 times its price and the 15 R$ restock Rare block about 7
-   times (v4: 1.35 and 1.07). Approve or change the proposal
-   (`~/Desktop/8ball-refs/economy/05-economy-v5-robux.md`: Mystery 7 R$, a 29 R$ 5-pack,
-   restock 39 / 149 / 599 / 1,699, later weeks' Claim All 79 / 69 / 35) **before publishing
-   this branch**. Until the 5-pack is made its button says "Coming soon".
-2. **The 10-pack is retired in the game but still on sale on Roblox** (`Mystery10`, 45 R$): the
-   game no longer offers it and a receipt still pays 10 blocks. It goes off sale with the Robux
-   pass (`--sync`), never deleted.
-3. **The tutorial's first block.** A v5 Standard block gives only Commons, so on `gui-v4` the
-   lesson's block is an Uncommon block that skips its climb (my call). `tutorial-v2` no longer
-   has that setting and calls the open hooks without the "stay" hook, so whichever branch
-   merges second decides how the lesson's block opens (hand-off section 2).
-4. **Pity bars vs. the cleaner Mystery screen.** Earlier on 2026-10-09 you removed the pity
-   counters from the Mystery screen; your answer 14 asks for pity bars. The hand-off asks the
-   GUI session to show concept art before placing them.
-5. **The restock's first slot is always Epic or better** (your answer 13). ECONOMY 11.7's old
-   "never always-on Epic blocks" line now notes it: a 10-minute rotating slot, one per player, at
-   a guarantee's price. Your newer answer wins; say if you meant otherwise.
+Updated after the designer's answers (2026-10-09, later the same day):
+
+1. **Robux prices: done.** The designer approved the proposal and the prices are live on Roblox:
+   Mystery block 7 R$, the 5-pack 29 R$ (product 3717476154), restock 39 / 149 / 599 / 1,699,
+   later weeks' Claim All 79 / 69 / 35, the new texts. Until `gui-v4` is published, the live
+   game sells these prices with its older grants: publish once the GUI brief's screens are in.
+2. **The 10-pack is off sale on Roblox** (never deleted; an old receipt still pays 10).
+3. **The tutorial's first block: a scripted Mystery block** (the designer's pick, as tutorial
+   v2 already plans): it climbs Standard to Uncommon on screen and is ready at once. The server
+   needs a hook that forces a climb's tier (the GUI brief's economy step); `gui-v4`'s interim
+   Uncommon block goes when the tutorial merges.
+4. **Pity bars only in Odds & Details and on the shop's Mystery card**, never on the climb
+   screen (the designer's pick).
+5. **The restock's first slot is always Epic or better** (answer 13). ECONOMY 11.7's old
+   "never always-on Epic blocks" line now notes it: a 10-minute rotating slot, one per player,
+   at a guarantee's price.
+
+The next step is `docs/prompts/ECONOMY_V5_GUI_PROMPT.md`: every screen for v5, then the Studio
+checks and the release.
 
 ## What changed (today -> v5)
 
@@ -47,9 +47,11 @@ The unattended build of `ECONOMY_V5_PROMPT.md` (the plan: `ECONOMY_V5_PLAN.md`),
 | Lucky 8, Gift, Sky | Rare row, Rare row, own row | **climb from Uncommon, Uncommon, Standard** |
 | Lucky Shot gold; Golden Shot grey / blue / red / gold (planned) | Rare; $7.5k+U / Rare / $10k+Rare / $25k+2 Rare | **Uncommon; $7.5k+M / U / $10k+U / $25k+1 Rare** |
 | Mystery block (money) | $4,900; 10 for $44,100 | **$14,900; 5 for $66,900** |
-| Mystery block (Robux) | 5 R$; 10 for 45 R$ (13 in the launch bonus) | 5 R$ (proposal: 7); **5-pack not made** (proposal: 29, 6 in the launch bonus); 10-pack retired |
+| Mystery block (Robux) | 5 R$; 10 for 45 R$ (13 in the launch bonus) | **7 R$; 5 for 29 R$** (6 in the launch bonus); 10-pack off sale |
 | Restock | 3 slots 87 / 12 / 0.95 / 0.05% + VIP 80 / 17 / 2.8 / 0.2% | **2 slots: slot 1 Epic 75.56 / Legendary 21.11 / Mythic 3.33%, slot 2 55 / 34 / 9.5 / 1.5%; VIP 40 / 40 / 16 / 4%** |
 | Restock money prices | $19,900 / $199,000 / $1,490,000 / $4,990,000 | **$49,900 / $249,000 / $1,290,000 / $4,990,000** |
+| Restock Robux prices | 15 / 99 / 599 / 1,699 R$ | **39 / 149** / 599 / 1,699 R$ |
+| Claim All, later weeks | 129 / 99 / 59 R$ | **79 / 69 / 35 R$** |
 | Timer skip | 4 / 9 / 15 R$ | **1** / 4 / 9 / 15 R$ (1 R$ for 5 minutes or less; made on Roblox, product 3717460488) |
 | Skip credits in the save | numbered by row | **kept per product** |
 | New | | the **Week One Cue** (catalog row, 62 cues), **quick reveal** and **"Open all"** (server), the **"1 in N"** in Legendary-or-better messages |
@@ -114,7 +116,8 @@ Players active in the last 7 days who own one (day 7 / 30 / 60):
 12. The "1 in N" rounds to the nearest 3 significant figures, leaves pity out, and uses a
     never-climbing block's own row.
 13. A separate `Config.Trade.ClimbedExists` table.
-14. In the Robux proposal: every price in section 2 of that file.
+14. In the Robux proposal: every price in section 2 of that file (approved by the designer
+    and live, 2026-10-09).
 
 ## Shims (the old client keeps working until the GUI session's screens)
 
@@ -134,8 +137,8 @@ The table with where each lives and when it goes: `ECONOMY_V5_HANDOFF.md` sectio
 ## Where things are
 
 - **The hand-off** (GUI, tutorial, thumbnail, cue art): `docs/prompts/ECONOMY_V5_HANDOFF.md`.
-- **The Robux proposal:** `~/Desktop/8ball-refs/economy/05-economy-v5-robux.md` (nothing
-  changed on Roblox but the approved 1 R$ skip).
+- **The Robux proposal:** `~/Desktop/8ball-refs/economy/05-economy-v5-robux.md` (approved and
+  live since 2026-10-09).
 - **The numbers:** `docs/ECONOMY.md` (rewritten for v5); GDD 11 and 12; ROADMAP 7.9.
 
 ## Try in Studio (none of this was possible in this run)
@@ -143,7 +146,7 @@ The table with where each lives and when it goes: `ECONOMY_V5_HANDOFF.md` sectio
 1. **A Mystery block and a tier block from a win**: OPEN!, the climb (a Mystery on the climb
    screen; a tier block climbs when held, shim 1), the climbed block's timer, the open and reel.
 2. **The restock**: three cards, slot 1 always Epic or better, the new prices, buying one.
-3. **The shop's Mystery band**: $14,900 and 5 for $66,900; the Robux 5-pack says "Coming soon".
+3. **The shop's Mystery band**: $14,900 and 5 for $66,900; 7 R$ and the 29 R$ 5-pack.
 4. **Free Reward's first week**: day 2 a Rare block, day 7 the Week One Cue (named in words for
    now); equip the Week One Cue (default bands, Legendary effects).
 5. **A trade of a block**: an unclimbed block and a climbed one ("Climbed Rare ...") between two

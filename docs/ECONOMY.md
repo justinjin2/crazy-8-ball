@@ -9,9 +9,9 @@ replaced cases (2026-10-04). GDD sections 11 and 12 point here. Every number is 
 *(tune)*: it lives in `src/shared/Config.luau` and changes after playtests. Change a number here
 and in Config together, then re-run the model.
 
-**Robux prices are still v4's**, except the new 1 R$ timer skip (approved 2026-10-09). The v5
-prices are a proposal waiting for the designer (`~/Desktop/8ball-refs/economy/05-economy-v5-robux.md`;
-section 11).
+**The v5 Robux prices are live** (approved and synced 2026-10-09; section 11): the Mystery block
+7 R$, a 5-pack 29 R$, restock 39 / 149 / 599 / 1,699 R$, the 1 R$ timer skip. The reasoning is
+`~/Desktop/8ball-refs/economy/05-economy-v5-robux.md`.
 
 ```bash
 python3 tools/economy_model.py                 # v5 at day 7, 30 and 60, against the plan
@@ -73,12 +73,12 @@ zero. A tiny chance also shows **"1 in N" beside its %** (0.0001%, 1 in 1,000,00
   every 10 minutes, the first always Epic or better, plus VIP's slot), the Grand Opening block
   while it runs ($24,900) and ability spins ($12,500). Timers are skipped for Robux only, **1 /
   4 / 9 / 15 R$** by time left (1 R$ for 5 minutes or less: every Uncommon and Rare block).
-- **Robux**: the live prices are v4's until the designer approves the v5 proposal (section 11).
-  Today a 5 R$ Mystery block is worth about 4 times its price.
+- **Robux** (v5, live 2026-10-09): Mystery block **7 R$**, 5 for **29 R$**, restock **39 / 149 /
+  599 / 1,699 R$**; the Robux route stays about 2.5 times better value than money (section 11).
 - **VIP** (399 R$): 2x money, no timers and an **Uncommon block every day** ($5,000 where paid
   random items are restricted).
-- **Robux products**: 3 game passes and 41 developer products on Roblox (9 of them retired in
-  Config), plus the Mystery 5-pack waiting for its price, and a Get Roblox Plus button (11.5).
+- **Robux products**: 3 game passes and 42 developer products on Roblox (9 of them retired), and
+  a Get Roblox Plus button (11.5).
 - **Trading**: anyone in the server, cues and ready lucky blocks, never money, an atomic swap
   with a ledger (designer, 2026-10-03). A block trades as unclimbed or climbed; its worth is
   worked out live (section 12).
@@ -706,9 +706,9 @@ The designer's answer 3 (2026-10-09): x1.5 on Rare to Epic and Epic to Legendary
   (`Drop.PityStart`), so the bars show 2/10 and 10/40 on the first day and the first Epic is
   guaranteed by the 30th Mystery block. Old saves keep their counters (the save's
   `Drops.SinceRare` and `SinceEpic`).
-- **Shown as bars with the number** ("Epic guaranteed in 23 blocks") on the Mystery screen and
-  in the odds list (the GUI session's). When pity is due, the odds screen shows the guaranteed
-  tier (as v4).
+- **Shown as bars with the number** ("Epic guaranteed in 23 blocks") **in Odds & Details and on
+  the shop's Mystery card only**, never on the climb screen (designer, 2026-10-09: it stays
+  clean). When pity is due, the odds screen shows the guaranteed tier (as v4).
 - How often it fires (plan 3.6): among players who open that many Mystery blocks, about 4 in 10
   get their first Epic from pity at block 30 (1 in 4 during the launch); after that about 3 in
   10 each time (1 in 7 during the launch). The Rare pity fires for about 1 player in 4 the
@@ -878,11 +878,9 @@ be 3.4). Each v5 Mystery block is 8 times as likely to reach Epic or better as v
 is the same value per dollar as $4,900 was. A 1-hour player buys about 2.3 a day with match
 money.
 
-- **With Robux**: Mystery1 at **5 R$** (today's live price; the v5 price is in the Robux
-  proposal) and a new **Mystery5** 5-pack, not made yet: its button says "Coming soon" until the
-  designer approves its price (Config's 45 R$ is a placeholder). The Robux 10-pack (Mystery10)
-  is retired in Config: the game no longer offers it, an old receipt still pays 10, and it stays
-  on Roblox until the Robux pass. During the launch bonus the 5-pack gives **6** (11.1).
+- **With Robux** (live 2026-10-09): Mystery1 **7 R$** (was 5) and the **Mystery5** 5-pack **29
+  R$** (5.8 a block, "35 R$ one by one"; **6** during the launch bonus, 11.1). The Robux 10-pack
+  (Mystery10) is retired: off sale on Roblox, never deleted; an old receipt still pays 10.
 - A bought block is paid origin and climbs like any other (pity included); its climbed block
   opens at once. They are paid random items (section 13).
 
@@ -898,10 +896,10 @@ slots, the first always Epic or better**, plus a VIP-only slot with its own rich
 | 2 (`Odds`) | 55% | 34% | 9.5% | 1.5% |
 | VIP's slot (`VipOdds`) | 40% | 40% | 16% | 4% |
 
-| Block | Money | Robux (v4's; the proposal in 11) | Stock per player per restock |
+| Block | Money | Robux (v5, live 2026-10-09) | Stock per player per restock |
 |---|---|---|---|
-| Rare | $49,900 | 15 R$ (RestockRare) | **2** |
-| Epic | $249,000 | 99 R$ (RestockEpic) | 1 |
+| Rare | $49,900 | **39 R$** (RestockRare; was 15) | **2** |
+| Epic | $249,000 | **149 R$** (RestockEpic; was 99) | 1 |
 | Legendary | $1,290,000 | 599 R$ (RestockLegendary) | 1; announced in every server |
 | Mythic | $4,990,000 | 1,699 R$ (RestockMythic) | 1; announced in every server |
 
@@ -1014,10 +1012,12 @@ climbs from its name (7.1).
   on. Two or more missed days start the week over.
 - **Claim All** (designer, 2026-10-08): Robux claims every day still ahead in this 7-day row at
   once (`Config.Daily.ClaimAll`; first week 399 / 349 / 299 R$ for 6-7 / 3-5 / 1-2 days left,
-  later weeks 129 / 99 / 59 R$). It still claims day 7, so a player can buy the Week One Cue
-  early (plan 2.10); its cue comes as paid origin, like its blocks. A paid random item, never a
-  gift. Its prices were set for v4's days (day 7's Legendary block) and are redone in the Robux
-  proposal (11).
+  later weeks **79 / 69 / 35 R$** since v5, were 129 / 99 / 59). It still claims day 7, so a
+  player can buy the Week One Cue early (plan 2.10); its cue comes as paid origin, like its
+  blocks. A paid random item, never a gift. Priced at about half the shop value of the days it
+  claims (money at Pack1's rate, blocks at their Robux prices, the Week One Cue like a restock
+  Legendary block). Selling the Week One Cue from ClaimAllFirst2 beats the $250,000 money pack
+  once per player; the designer kept 299 R$ (2026-10-09).
 - **VIP adds 1 ability spin and an Uncommon block** to each day's claim (10.5).
 - Everyone also gets **1 free ability spin a day** on the Abilities screen (11.8).
 - The day starts at 08:00 UTC (7.5).
@@ -1129,7 +1129,8 @@ game reads them yet, and each feature gets its own brief. The model includes the
 | v4's Golden Shot | $5,000 | $7,500 + an Uncommon block | a Rare block | a Rare block + $10,000 | 2 Rare blocks + $25,000 |
 
   The Golden Shot's top prize is one Rare block, never an Epic block: a skilled player can aim
-  for gold every day. It is a paid random item; its 15 R$ is checked in the Robux proposal (11).
+  for gold every day. It is a paid random item; its 15 R$ stays (worth about 35 R$ at an
+  average player's rings; checked in the v5 Robux pass, 11).
 - **Lucky Rain**: in a server with 4+ players, a block falls about every 30 minutes (each match
   finished there brings it 1 minute sooner, never under 15 minutes); a Sky block (a Standard
   start), or a Rare block 1 time in 20; everyone who reaches it within 90 seconds gets one;
@@ -1149,11 +1150,13 @@ pays. A product whose id is 0 shows "Coming soon" and prompts nothing.
 Mythic block and the biggest pack: one $19.99 phone Robux pack), VIP at 399 fits one $4.99
 pack (400 R$), and about two-thirds of Robux is bought on phones and consoles.
 
-**v5's Robux pass is a proposal** (2026-10-09; `~/Desktop/8ball-refs/economy/05-economy-v5-robux.md`):
-v5's blocks give much more, so v4's prices undersell them (11.9). The designer approves the
-prices, then the products change (`--dry-run` first, never a product deleted). The one product
-already changed is the 1 R$ skip (7.6). Items in the proposal: Mystery 1 and the new 5-pack, the
-launch bonus, the restock, the six Claim All products, the Golden Shot and VIP's perk text.
+**v5's Robux pass** (approved and synced 2026-10-09; the reasoning is
+`~/Desktop/8ball-refs/economy/05-economy-v5-robux.md`): v5's blocks give much more, so v4's prices
+undersold them (11.9). Changed: the Mystery block 5 to 7 R$, the new 5-pack 29 R$, the 10-pack
+off sale, the restock Rare 15 to 39 R$ and Epic 99 to 149 R$, the later weeks' Claim All 129 /
+99 / 59 to 79 / 69 / 35 R$, the 1 R$ skip, and the texts (VIP's Uncommon block, Claim All's Week
+One Cue, the Mystery block climbing to the Secret). Kept: the restock Legendary and Mythic
+blocks, the first week's Claim All, the Golden Shot (15 R$, planned), everything else.
 
 ### 11.1 Money packs (developer products) and the launch bonus
 
@@ -1170,9 +1173,9 @@ launch bonus, the restock, the six Claim All products, the Golden Shot and VIP's
 **Boosted on 2026-10-08** (designer, on the GUI mock page: "spending 1700 robux for 760000 and
 that's still not enough to buy a legendary lucky block ... money definitely needs a boost"). The
 biggest pack buys more than a restock Legendary block's money price ($1,290,000 since v5). Unchanged by v5.
-Through money, each block costs more than its own Robux price (at the best pack and today's
-Robux prices: Mystery 3.4x, Grand Opening 1.5x, restock Rare 3.8x, Epic 2.8x, Legendary 2.4x,
-Mythic 3.3x; `python3 tools/economy_model.py value`). Bought money mostly buys Mystery blocks, a
+Through money, each block costs more than its own Robux price (at the best pack: Mystery 2.4x,
+the 5-pack 2.6x, Grand Opening 1.5x, restock Rare 1.4x, Epic 1.9x, Legendary 2.4x, Mythic 3.3x;
+`python3 tools/economy_model.py value`). Bought money mostly buys Mystery blocks, a
 small share of where good cues come from. **"Best value" is Pack7** (`Config.Products.BestValue`).
 An hour of Classic play (about $7,750) is about 9 R$ of the biggest pack.
 
@@ -1182,8 +1185,8 @@ now wins the first purchase.
 
 **The launch bonus** replaces the 30% release sale (designer, 2026-10-08;
 `Config.Shop.LaunchBonus`). During the Grand Opening's window, **every money pack gives +30%
-money**, and **the Robux Mystery 5-pack gives 6 Mystery blocks** instead of 5 (v5,
-`MysteryBulkCount`; v4's 10-pack gave 13; the plan's lean, decided with the Robux prices). It is
+money**, and **the Robux Mystery 5-pack (29 R$) gives 6 Mystery blocks** instead of 5 (v5,
+`MysteryBulkCount`; v4's 10-pack gave 13). It is
 shown as "Launch bonus +30%" with its real end date and ends on that date; a receipt counts
 inside the window plus 10 minutes of grace. A "30% off" a price nobody was ever charged would be
 a fake former price. The six release-sale products are **retired**: never offered again, kept
@@ -1207,9 +1210,8 @@ on Roblox (never deleted) so an old receipt still pays.
 - **No XP, no discount, no extra win-track steps.** Never better block odds.
 
 The pass description on Roblox says the daily block is money where paid random items aren't
-allowed (`tools/products_spec.json`). It still says "a Rare Lucky Block every day": the new text
-("an Uncommon Lucky Block") goes to Roblox with the Robux pass, and the in-game perk lines
-already say Uncommon.
+allowed (`tools/products_spec.json`); since 2026-10-09 it says "an Uncommon Lucky Block every
+day", like the VIP offer's text and the in-game perk lines.
 
 ### 11.3 VIP welcome offer (developer product, 199 R$)
 
@@ -1236,8 +1238,7 @@ on Roblox (13).
 
 ### 11.5 Everything Robux buys
 
-**3 game passes and 41 developer products on Roblox, 9 of them retired in Config**, plus the
-Mystery 5-pack not made yet (`Config.Products`; the names, prices and descriptions are
+**3 game passes and 42 developer products on Roblox, 9 of them retired** (`Config.Products`; the names, prices and descriptions are
 `tools/products_spec.json`, sent to Roblox by `tools/roblox_products.py`):
 
 | # | Key | Kind | Robux | Before v4 | Gives |
@@ -1248,17 +1249,17 @@ Mystery 5-pack not made yet (`Config.Products`; the names, prices and descriptio
 | 4 | VipOffer | Product, once | **199** | 249 | 11.3 |
 | 5 | StarterPack | Product, once | **29** | 99 | 11.4 |
 | 6-12 | Pack1-Pack7 | Products | **25 / 49 / 99 / 199 / 399 / 799 / 1,699** | 49 ... 4,999 | 11.1 |
-| 13 | Mystery1 | Product | **5** (v5 price proposed) | 25 | 1 Mystery block |
-| 14 | Mystery5 | Product, **not made** (Id 0: "Coming soon") | proposed | new (v5) | 5 Mystery blocks (6 during the launch bonus) |
-| 15 | Mystery10 | Product, **retired** in Config (still on sale on Roblox until the Robux pass) | 45 | 229 | 10 Mystery blocks (an old receipt still pays) |
+| 13 | Mystery1 | Product | **7** (v5; v4 5) | 25 | 1 Mystery block |
+| 14 | Mystery5 | Product (3717476154, v5) | **29** (35 one by one) | new | 5 Mystery blocks (6 during the launch bonus) |
+| 15 | Mystery10 | Product, **retired** (off sale, never deleted) | 45 | 229 | 10 Mystery blocks (an old receipt still pays) |
 | 16-18 | GrandOpening1, GrandOpening3, GrandOpening10 | Products | **19 / 49 / 149** (57 / 190 one by one) | 49 / 129 / 349 | Grand Opening blocks, only while it runs (9.2) |
-| 19 | RestockRare | Product | **15** (v5 price proposed) | 99 (never created) | the restock Rare block, while in stock |
-| 20 | RestockEpic | Product | **99** (proposed) | 999 | the restock Epic block, while in stock |
+| 19 | RestockRare | Product | **39** (v5; v4 15) | 99 (never created) | the restock Rare block, while in stock |
+| 20 | RestockEpic | Product | **149** (v5; v4 99) | 999 | the restock Epic block, while in stock |
 | 21 | RestockLegendary | Product | **599** | 4,999 | the restock Legendary block, while in stock |
 | 22 | RestockMythic | Product | **1,699** | new | the restock Mythic block, while in stock |
 | 23-26 | LuckyBlockSkip1, LuckyBlockSkip, LuckyBlockSkip9, LuckyBlockSkip15 | Products | **1 / 4 / 9 / 15** | 19 (one product) | finish a block's timer, by time left (7.6) |
 | 27 | MoneyParty | Product | **49** | 199 | +100% match money for everyone in the server for 15 minutes, the buyer's name announced; buying again adds 15 minutes (the shop offers it up to an hour queued) |
-| 28-33 | ClaimAllFirst7, 5, 2; ClaimAllWeek7, 5, 2 | Products | **399 / 349 / 299; 129 / 99 / 59** (proposed) | new (2026-10-08) | the rest of this 7-day login row at once (10.1) |
+| 28-33 | ClaimAllFirst7, 5, 2; ClaimAllWeek7, 5, 2 | Products | **399 / 349 / 299; 79 / 69 / 35** (v5; v4 later weeks 129 / 99 / 59) | new (2026-10-08) | the rest of this 7-day login row at once (10.1) |
 | 34-37 | Spin1, Spin5, Spin10, Spin50 | Products | **9 / 39 / 75 / 299** | 15 / 50 / 100 / 449 | ability spins (11.8) |
 | 38-39 | Lucky1, Lucky3 | Products | 25 / 65 | 49 / 129 | **retired** with Lucky Spins (designer, 2026-10-08) |
 | 40-45 | Pack4Sale-Pack7Sale, VipSale, Mystery10Sale | Products | - | 349 ... 3,499 | **retired** (the release sale; `Retired = true`, shown as closed, taken off sale on Roblox, never deleted) |
@@ -1290,7 +1291,8 @@ description, off sale for a retired one); the plain run creates missing ones and
 ids to `tools/products_ids.json` for `Config.Products` (`--only <Key>` for one). A price change
 goes live in every server at once. Done 2026-10-08: RestockRare, RestockMythic and the two new
 skips made, every price, name and text synced, the six sale products off sale (none deleted).
-2026-10-09: LuckyBlockSkip1 made (`--only LuckyBlockSkip1`; it has no icon yet). **By hand, on
+2026-10-09: LuckyBlockSkip1 and Mystery5 made (`--only`; neither has an icon yet), then the v5
+prices and texts synced (`--sync --only` the changed keys, Mystery10 off sale). **By hand, on
 the Creator Hub** (the Open Cloud API has no field for it): set every developer product that
 holds a random item to **Not Listed**, so it can't be bought outside the game without its odds
 (13).
@@ -1397,22 +1399,22 @@ dollars at the phone price of Robux, 400 R$ for $4.99):
 | | Common | Uncommon | Rare | Epic | Legendary | Mythic | Secret |
 |---|---|---|---|---|---|---|---|
 | Ladder | 1 R$ | 3 R$ | 30 R$ ($0.37) | 250 R$ ($3) | 1,500 R$ ($19) | 6,000 R$ ($75) | 50,000 R$ ($624) |
-| The designer's feel (2026-10-08) | | | under $1 | "a few dollars" | | "tens of dollars" | "$100 or more" |
-| Cheapest pull with today's Robux prices (that rarity or better) | | | 15 R$ (restock Rare) | 83 R$ (restock Rare) | 599 R$ (restock Legendary) | 1,699 R$ (restock Mythic) | 67,960 R$ (restock Mythic) |
+| The designer's feel (2026-10-08) | | | 8-80 R$, under $1 | 80-400 R$, "a few dollars" | 400-2,400 R$ | 800-8,000 R$, "tens of dollars" | 8,000-80,000 R$, "$100 or more" |
+| Cheapest pull with Robux (that rarity or better, v5 prices) | | | 16 R$ (Grand Opening; 33 R$ from the 5-pack after it) | 127 R$ (Grand Opening; 149 R$ restock Epic after it) | 599 R$ (restock Legendary) | 1,699 R$ (restock Mythic) | 67,960 R$ (restock Mythic) |
 
-**With v5's blocks, v4's Robux prices undersell** (worth of what a product gives on the ladder /
-its price, today): Mystery block 4.05 (the 5-pack at its 45 R$ placeholder 2.25), Grand Opening
-5.9, restock Rare / Epic / Legendary / Mythic 7.15 / 4.64 / 3.91 / 4.18, the Starter Pack's block
-2.5. Under v4 every product sat between 1.07 and 2.4 (the Grand Opening, the launch gift, 5.9).
-The Robux proposal brings them back to v4's rule; until the designer approves it, these are the
-live prices.
+**Every product against the ladder** (worth of what it gives / its price; v5 prices): Mystery
+block 2.89, the 5-pack 3.49 (4.2 during the launch bonus), Grand Opening 5.9 (the launch gift),
+restock Rare / Epic / Legendary / Mythic 2.75 / 3.08 / 3.91 / 4.18, the Starter Pack's block 2.5,
+the Golden Shot about 2.3. At v4's Robux prices v5's blocks were worth 4 to 7 times their price
+(the Mystery 4.05, the restock Rare 7.15); under v4 every product sat between 1.07 and 2.4.
 
 **How many times more the money route costs** than buying directly with Robux (money at the
-biggest pack's rate, today's Robux prices): Mystery block 3.4x, Grand Opening block 1.5x, restock
-Rare 3.8x, restock Epic 2.8x, restock Legendary 2.4x, restock Mythic 3.3x. The rule stays v4's
-(designer: "about 3x, you set the final ratio", 2026-10-08): **the Robux route is about 3 times
-better value than money**, like the top Roblox games, whose Robux prices span about 100x while
-money prices span millions of times.
+biggest pack's rate): Mystery block 2.4x, the 5-pack 2.6x, Grand Opening block 1.5x, restock
+Rare 1.4x, Epic 1.9x, Legendary 2.4x, Mythic 3.3x. The rule stays v4's (designer: "about 3x, you
+set the final ratio", 2026-10-08): **the Robux route is about 2.5-3 times better value than money**
+for the everyday blocks; the restock's Rare and Epic blocks sit lower on purpose, because their
+money prices are the free player's way in. Like the top Roblox games, Robux prices span about
+100x while money prices span millions of times.
 
 ---
 
@@ -1583,10 +1585,6 @@ Limited cues.
 
 ## 17. Open (the designer's call)
 
-- **The Robux pass**: the v5 prices in `~/Desktop/8ball-refs/economy/05-economy-v5-robux.md`
-  (Mystery 1 and the 5-pack, the launch bonus, the restock, the six Claim All products, the
-  Golden Shot, VIP's perk text). Until then Mystery1 stays 5 R$ live and the 5-pack says "Coming
-  soon".
 - **The Week One Cue's look**: a new Legendary look (aura, trail and pocket finisher) and its
   card icon, its own task. Until then it shows the default bands with its own name.
 - When the Grand Opening starts (`StartsAt`), set at publish; the Grand Opening Luck and the
@@ -1681,7 +1679,8 @@ The approved plan is `docs/prompts/ECONOMY_V5_PLAN.md`; the build's report is
 - **The Week One Cue** sits in the Block group with a Legendary effect and Classic's look until
   its art exists, and shows no odds line; Claim All gives it as paid origin like its blocks;
   the server counts its copies on a claim.
-- **The Mystery 5-pack's Robux button says "Coming soon"** until its product exists.
+- **A Robux button says "Coming soon"** for a product not made yet (the 5-pack until it was
+  made, 2026-10-09).
 - **"Open all"** skips a block whose open has a special plan (a forced or unique result), which
   the one-by-one open handles.
 - **The "1 in N"** rounds to the nearest 3 significant figures, leaves pity out, and uses a
@@ -1689,9 +1688,9 @@ The approved plan is `docs/prompts/ECONOMY_V5_PLAN.md`; the build's report is
 - **`Config.Trade.ClimbedExists`** is new beside `BlockExists`, both from the v5 model at day 30.
 - **The restock odds line** names slot 1's floor and slot 2's odds ("Slot 1: Epic or better ·
   Slot 2: ...") until the GUI session's three cards.
-- **The model's small differences from the plan's run**: the pity head start (in Config now),
-  the Robux Mystery bundle (5 for 45 R$ in Config, 10 for 45 in the plan's run) and the
-  restock's Robux prices (v4's).
+- **The model's small differences from the plan's run**: the pity head start (in Config now)
+  and the v5 Robux prices (the plan's run used v4's); the ownership shares move by noise only
+  (`v5-build/robux_sim.txt`).
 
 **Shims** (today's client keeps working until the GUI session's screens land; the hand-off is
 `docs/prompts/ECONOMY_V5_HANDOFF.md`):
@@ -1705,7 +1704,8 @@ The approved plan is `docs/prompts/ECONOMY_V5_PLAN.md`; the build's report is
 6. The trade window names climbed blocks "Climbed ...".
 7. `RewardsParts` names the Week One Cue in reward words.
 8. The restock odds line (above).
-9. The Mystery band's "Coming soon" for the 5-pack.
+9. The Mystery band's "Coming soon" for a product not made yet (the 5-pack exists since
+   2026-10-09, so it shows its price).
 10. The tutorial's `stay` hook (above).
 
 **Kept from v4** (still true): the Grand Opening runs 30 days; the restock Rare block's stock is

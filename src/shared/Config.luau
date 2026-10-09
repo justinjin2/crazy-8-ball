@@ -3112,9 +3112,9 @@ Config.Daily = {
 			{ MinDays = 1, Product = "ClaimAllFirst2" }, -- 299 R$
 		},
 		Week = {
-			{ MinDays = 6, Product = "ClaimAllWeek7" }, -- 129 R$
-			{ MinDays = 3, Product = "ClaimAllWeek5" }, -- 99 R$
-			{ MinDays = 1, Product = "ClaimAllWeek2" }, -- 59 R$
+			{ MinDays = 6, Product = "ClaimAllWeek7" }, -- 79 R$ (economy v5; v4 129)
+			{ MinDays = 3, Product = "ClaimAllWeek5" }, -- 69 R$ (economy v5; v4 99)
+			{ MinDays = 1, Product = "ClaimAllWeek2" }, -- 35 R$ (economy v5; v4 59)
 		},
 	},
 	-- A login day counts (can be claimed) only once the player has finished a match that day
@@ -3592,14 +3592,16 @@ Config.Products = {
 		-- Lucky blocks by the count (Config.Shop.Deals): Blocks = { Kind, Count }, paid origin
 		-- (they open at once). The Grand Opening ones sell inside their deal's window only. Was:
 		-- the same count bought one at a time (a true saving; the shop shows "57 R$ one by one").
+		-- Economy v5 Robux prices (the designer approved the proposal, 2026-10-09): 7 R$ (was 5).
 		Mystery1 = {
 			Kind = "Product",
 			Id = 3716158359,
-			Robux = 5,
+			Robux = 7,
 			Blocks = { Kind = "Mystery", Count = 1 },
 			Random = true,
 		},
-		-- Retired by economy v5 (never deleted): an old receipt still pays its 10 blocks.
+		-- Retired by economy v5 (off sale on Roblox, never deleted): an old receipt still pays its
+		-- 10 blocks.
 		Mystery10 = {
 			Kind = "Product",
 			Id = 3716158365,
@@ -3608,13 +3610,13 @@ Config.Products = {
 			Random = true,
 			Retired = true,
 		},
-		-- Economy v5's bundle: 5 Mystery blocks. Id 0 ("Coming soon") until the designer
-		-- approves its price (the Robux proposal, ~/Desktop/8ball-refs/economy/
-		-- 05-economy-v5-robux.md) and it is made; Robux is the proposal's price.
+		-- Economy v5's bundle: 5 Mystery blocks for 29 R$ (made 2026-10-09; 6 during the launch
+		-- bonus, Config.Shop.LaunchBonus.MysteryBulkCount). Was: five singles today.
 		Mystery5 = {
 			Kind = "Product",
-			Id = 0,
-			Robux = 45,
+			Id = 3717476154,
+			Robux = 29,
+			Was = 35,
 			Blocks = { Kind = "Mystery", Count = 5 },
 			Random = true,
 		},
@@ -3649,14 +3651,14 @@ Config.Products = {
 		RestockRare = {
 			Kind = "Product",
 			Id = 3717253507,
-			Robux = 15,
+			Robux = 39, -- economy v5 (was 15)
 			Restock = "Rare",
 			Random = true,
 		},
 		RestockEpic = {
 			Kind = "Product",
 			Id = 3716158370,
-			Robux = 99,
+			Robux = 149, -- economy v5 (was 99)
 			Restock = "Epic",
 			Random = true,
 		},
@@ -3708,21 +3710,21 @@ Config.Products = {
 		ClaimAllWeek7 = {
 			Kind = "Product",
 			Id = 3717289791,
-			Robux = 129,
+			Robux = 79, -- economy v5 (was 129)
 			ClaimAll = 7,
 			Random = true,
 		},
 		ClaimAllWeek5 = {
 			Kind = "Product",
 			Id = 3717289793,
-			Robux = 99,
+			Robux = 69, -- economy v5 (was 99)
 			ClaimAll = 5,
 			Random = true,
 		},
 		ClaimAllWeek2 = {
 			Kind = "Product",
 			Id = 3717289797,
-			Robux = 59,
+			Robux = 35, -- economy v5 (was 59)
 			ClaimAll = 2,
 			Random = true,
 		},

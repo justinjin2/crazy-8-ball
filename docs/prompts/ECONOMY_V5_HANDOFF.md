@@ -65,11 +65,8 @@ old screen's copy with the Secret shown as Mythic. `kind` and `readyAt` are the 
 **A small mark** tells an unclimbed block from a climbed one of the same tier, in the hotbar,
 the bag and the trade window (both look like the same block today).
 
-**One thing to confirm with the designer.** Earlier on 2026-10-09 the designer removed the pity
-counters and the description line from the Mystery upgrade screen ("get rid of the description
-up top"; DECISIONS.md). The v5 plan's answer 14 asks for pity **bars** with a head start
-(1.4). Build the bars as the plan says, and show the concept art before placing them on the climb
-screen.
+**The climb screen shows no pity** (designer, 2026-10-09): the bars live in Odds & Details and
+on the shop's Mystery card only (1.4).
 
 ### 1.2 A Secret result
 
@@ -107,9 +104,10 @@ can't give).
 
 ### 1.4 Pity bars
 
-**Sees.** Two bars on the Mystery block's climb screen and in its odds list: "Rare guaranteed in
-N blocks" out of 10 and "Epic guaranteed in N blocks" out of 40. A new player's bars start at
-2/10 and 10/40 (the head start). When pity is due the odds list shows the guaranteed tier.
+**Sees.** Two bars **in the Mystery block's Odds & Details and on the shop's Mystery card
+only**, never on the climb screen (designer, 2026-10-09): "Rare guaranteed in N blocks" out of
+10 and "Epic guaranteed in N blocks" out of 40. A new player's bars start at 2/10 and 10/40 (the
+head start). When pity is due the odds list shows the guaranteed tier.
 
 **Reads.** `ShopState.pity` (Mystery blocks left until each guarantee; `ShopView`), the Reveal
 answer's `pity = { rare, epic }` (as before this block), `Config.BlockOdds.Drop.PityRare` (10),
@@ -188,20 +186,20 @@ layout).
 
 ### 1.9 The shop's Mystery band
 
-**Sees.** $14,900 for one, **5 for $66,900**; with Robux the single block and the **5-pack**
-(6 during the launch bonus). Until the designer approves the Robux prices, the 5-pack's button
-says "Coming soon".
+**Sees.** $14,900 for one, **5 for $66,900**; with Robux **7 R$** for one and the **29 R$
+5-pack** ("35 R$ one by one"; 6 blocks during the launch bonus). Both products are live
+(Mystery5 is 3717476154).
 
 **Reads.** `Config.Shop.Mystery` (`Price`, `BulkCount` 5, `BulkPrice`),
 `Config.Shop.Deals.Mystery` (`Money = { [1] = 14900, [5] = 66900 }`, `Products = { [1] =
 "Mystery1", [5] = "Mystery5" }`), `Config.Shop.LaunchBonus.MysteryBulkCount` (6),
-`Config.Products.Mystery5` (`Id` 0 until made), the live price from `ShopState`,
-`Strings.Menus.Shop.ComingSoon`.
+`Config.Products.Mystery5` (`Was` 35), the live price from `ShopState`,
+`Strings.Menus.Shop.ComingSoon` (only for a product with Id 0).
 
 **Calls.** `ItemRequest("BuyBlocks", "Mystery", 1 | 5)` for money; `StoreRequest` for Robux.
 
-**Replaces shims.** Shim 9: `ShopMystery` shows "Coming soon" for a product with Id 0. Keep the
-rule; the band's real layout is yours. `Config.UI` already renamed its stage ids to
+**Replaces shims.** Shim 9: `ShopMystery` shows "Coming soon" for a product with Id 0 (none
+now). Keep the rule; the band's real layout is yours. `Config.UI` already renamed its stage ids to
 `MysteryRobux5` / `MysteryMoney5`.
 
 ### 1.10 The win track bar
@@ -295,7 +293,14 @@ What changed on `gui-v4` that touches the tutorial (nothing was changed on `tuto
   tier's timer (Rare 5 minutes, more if it climbed). The RareBlock, BlockWait and BlockReady
   steps assumed a 5-minute countdown from the start. `TutorialService`'s `rareAt` now counts
   a block whose `Kind` or `From` is "Rare".
-- **Bronze's block is an Uncommon block** on `gui-v4` (`Config.Tutorial.BronzeBlockKind =
+- **The designer's pick (2026-10-09): the first block is a scripted Mystery block**, as
+  `tutorial-v2` already plans (`Config.Tutorial.MysteryKind`, `TutorialCue` there): its climb
+  screen climbs once, Standard to Uncommon, and it lands ready at once, then opens to the
+  tutorial's cue. On v5 the server needs a hook that forces a climb's final tier and makes the
+  climbed block ready at once; the GUI brief's economy step adds it to
+  `LuckyBlockService.setOpenHooks` (replacing the `stay` hook) and `PlayerData.climbBlock`.
+  Use it after merging; the interim below then goes.
+- **Interim on `gui-v4`: Bronze's block is an Uncommon block** (`Config.Tutorial.BronzeBlockKind =
   "Uncommon"`; v5 Standard blocks give Commons only) that **skips its climb**: the server's
   third open hook, `LuckyBlockService.setOpenHooks(forced, opened, stay)`, with
   `TutorialService.stayFor(player, kind)` (true during the "Block" step for that kind). The
