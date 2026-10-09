@@ -231,7 +231,7 @@ local function game1Scene(device: string): string
 	if lesson == "Break" then
 		if device == "gamepad" then
 			overlay:dim(nil)
-			hand:gesture("hold", Enum.KeyCode.ButtonA)
+			hand:gesture("hold", Enum.KeyCode.ButtonR2)
 		else
 			local bar = TutorialOverlay.guiTarget("PowerBar")
 			overlay:dim(bar)
@@ -256,7 +256,7 @@ local function game1Scene(device: string): string
 			overlay:say(words(Copy.Aim, device))
 		else
 			if device == "gamepad" then
-				hand:gesture("hold", Enum.KeyCode.ButtonA)
+				hand:gesture("hold", Enum.KeyCode.ButtonR2)
 			else
 				hand:gesture("pull", TutorialOverlay.guiTarget("PowerBar"))
 			end

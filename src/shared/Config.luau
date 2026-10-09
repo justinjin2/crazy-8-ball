@@ -1590,10 +1590,28 @@ Config.Input = {
 		-- Zoom is applied as exp(stick * rate * dt), so it is smooth and frame-rate
 		-- independent: a full push takes about e^1 = 2.7x per second.
 		ZoomRatePerSecond = 1.0,
-		-- ButtonA (Cross) is the shot: power ramps up while it is held, at this much per
-		-- second, and releasing shoots. (R2 was an analog pull; it did not work well and is
-		-- unbound, designer 2026-09-27.)
-		PowerRampPerSecond = 1.1,
+		-- The shot on a controller (tutorial v2 4.10, src/client/Input.luau): R2 or A. Mode
+		-- picks the version for the designer to try with a real controller:
+		--   "Hold"   (the default): hold to fill, let go to shoot. Any press of the trigger
+		--            counts (its depth is never read: it jumped from 0 to 100%).
+		--   "Depth"  (version B): R2's depth, smoothed and squared; letting go shoots at the
+		--            highest power of the last PeakHoldSeconds. A works as in Hold.
+		--   "Freeze" (version C): hold to fill, let go to freeze, press again to shoot; a
+		--            frozen bar is called off after FrozenCancelSeconds untouched.
+		-- B during a pull calls it off (instead of Leave), as moving the stick, the D-pad and
+		-- L2 do.
+		Shoot = {
+			Mode = "Hold",
+			FillSeconds = 1.4, -- held this long, the bar is full (and stays full)
+			Curve = 2, -- power = (held / FillSeconds) ^ Curve: half the hold gives a quarter
+			TapIgnoreSeconds = 0.1, -- a press shorter than this does nothing (a stray tap)
+			DepthSmoothSeconds = 0.15, -- version B: the depth's smoothing
+			DepthCurve = 2,
+			DepthStartAbove = 0.05, -- the trigger pressed past this starts a pull
+			DepthReleaseBelow = 0.03, -- ... and let go under this shoots
+			PeakHoldSeconds = 0.2,
+			FrozenCancelSeconds = 5, -- version C
+		},
 		-- A pull (A held) is called off when the left stick moves this far (0-1) from
 		-- where it was as the pull began (designer, 2026-09-27: change your mind by aiming).
 		CancelStickPush = 0.3,

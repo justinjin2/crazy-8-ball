@@ -3754,3 +3754,8 @@ timer of a new block stay the designer's call.
 - 2026-10-09: (run assumption) Tutorial v2: an error in tutorial code ends the tutorial as
   Skipped (the first-time hints still come) and logs TutorialError; the soft part ends at the
   next finished match (game 2), win or lose.
+- 2026-10-09: Controller shooting (tutorial v2 4.10, the approved default): hold R2 or A to fill
+  the power bar over 1.4 s with a slow start (power = (time / 1.4 s)^2), held at full; a tap under
+  0.1 s does nothing; B during a pull calls it off (B leaves the table only when nothing is
+  pulled). Versions B (trigger depth) and C (freeze, press again) sit behind
+  `Config.Input.Gamepad.Shoot.Mode` for the designer to try with a real controller.

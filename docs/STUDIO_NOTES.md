@@ -493,9 +493,12 @@ Stop with the **Cleanup** button in the same group, not by closing the windows.
 PlayStation pads without setup. `UserInputService.GamepadEnabled` should read true. Walk into
 a box, press Y to put the selection on the queue menu (B takes it off), start a solo game,
 then check: left stick turns the aim (and keeps turning while held, rather than only
-while it moves), D-pad left/right nudges it a hair, right stick zooms, holding and releasing
-the right trigger shoots with the power it was pulled to, ButtonA does the same on a pad with
-digital triggers, and B leaves the table. The bindings are in `Config.Input.Gamepad`.
+while it moves), D-pad left/right nudges it a hair, right stick zooms, holding R2 (or A) fills
+the power bar (slow at first, full after about 1.4 s, held there) and letting go shoots, a
+quick tap does nothing, B during a pull calls it off and otherwise leaves the table. The
+bindings are in `Config.Input.Gamepad`; `Shoot.Mode` switches to the two other versions the
+designer is trying (2026-10-09: "Depth" = the trigger's depth, "Freeze" = let go to freeze,
+press again to shoot). The trigger's depth is read only in "Depth".
 
 Studio's device emulator has a gamepad mode as a fallback, but a real pad is the honest test.
 

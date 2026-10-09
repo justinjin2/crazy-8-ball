@@ -10,7 +10,8 @@ return {
 		FineAim = "Fine aim", -- the D-pad, left and right
 		Zoom = "Zoom", -- the right stick, up and down
 		SpinAngle = "Spin & angle", -- hold L1
-		Shoot = "Shoot", -- X (Xbox A)
+		Shoot = "Hold to shoot", -- R2 or A: hold to fill the bar, let go (Config.Input.Gamepad.Shoot)
+		ShootFreeze = "Hold, let go, press to shoot", -- Shoot.Mode "Freeze" (version C)
 		-- While L1 holds the spin panel open:
 		Spin = "Spin", -- the left stick
 		Angle = "Angle", -- the right stick, up and down: the cue's angle

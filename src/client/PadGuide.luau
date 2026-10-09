@@ -4,7 +4,7 @@
 -- what the controller does:
 --
 --   (L-stick) <> Turn   (D-pad) <> Fine aim   (R-stick) ^v Zoom
---   (L1) Spin & angle   (X) Shoot   (Square) Ult     <- "Ult" only while the ult bar is ready
+--   (L1) Spin & angle   (R2)(X) Hold to shoot   (Square) Ult  <- "Ult" only while the ult bar is ready
 --
 -- and while L1 holds the spin panel open (designer, 2026-09-27), the spin controls instead:
 --
@@ -71,8 +71,10 @@ local ITEMS: { Item } = {
 	{
 		set = "aim",
 		row = 2,
-		keys = { Enum.KeyCode.ButtonA },
-		words = Copy.Shoot,
+		keys = { Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonA },
+		words = if Config.Input.Gamepad.Shoot.Mode == "Freeze"
+			then Copy.ShootFreeze
+			else Copy.Shoot,
 	},
 	-- The ult (UltHud binds this button only while its bar is ready; Config.UI.Ults.GamepadKey).
 	{

@@ -855,7 +855,7 @@ lines). All in the worktree.
   - the funnel v2 skeleton.
 - [x] 5. The look: the new arrow (body to table, screen-edge pointer), the overlay (light dims,
   big text), the hand's gestures per device, Roblox's button images.
-- [ ] 6. Controller shooting (4.10): R2/A hold-to-fill by default, versions B and C behind a
+- [x] 6. Controller shooting (4.10): R2/A hold-to-fill by default, versions B and C behind a
   Config switch, B to cancel, `PadGuide` and strings.
 - [ ] 7. The bot (4.3): warm load on join, out-of-sight waiting, natural walking, at most 2 s
   of waiting, any empty table, waiting if they step off, leaving, cleanup.
@@ -1064,6 +1064,21 @@ lines). All in the worktree.
   view), the pad glow, the edge arrow, the gamepad break line with the R2 picture. Phone and the
   real controller wait for the designer's batched checks.
 
+### Step 6: controller shooting (2026-10-09)
+
+- `Config.Input.Gamepad.Shoot` (replaces `PowerRampPerSecond`): Mode "Hold" (default: R2 or A,
+  power = (held / 1.4 s)^2, held at full, taps under 0.1 s ignored), "Depth" (version B: R2's
+  depth smoothed over 0.15 s, squared, release shoots at the last 0.2 s peak) and "Freeze"
+  (version C: let go to freeze, press again to shoot, a frozen bar cancels after 5 s). B during
+  a pull cancels it (instead of Leave); the stick, D-pad and L2 still cancel.
+- PadGuide shows (R2)(A) "Hold to shoot" ("Hold, let go, press to shoot" in Freeze). The
+  tutorial's hold gesture shows R2. STUDIO_NOTES' gamepad check rewritten.
+- **Verified (Studio, Edit VM):** a fresh Input fed fake button events and real frame updates:
+  Hold 0.7 s = 25%, 2 s = 100%, a 0.04 s tap no shot, B cancels a pull and leaves otherwise, A
+  pressed during an R2 pull is ignored, Freeze then press shoots the frozen power, Freeze then B
+  cancels, Depth 0.8 shoots about 0.62. **The real controller is the designer's check** (all
+  three versions; switch with `Shoot.Mode`).
+
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
 - `src/shared/Config.luau`: `Config.Tutorial.Assist` (the hidden help's numbers, Pull modes)
@@ -1078,6 +1093,8 @@ lines). All in the worktree.
 - `src/server/SoloSearch.luau`, `src/client/Main.client.luau`: the spawn pill and the solo
   search read `TutorialActive` (the guided part) instead of any tutorial step.
 - `tests/ult_fireshot_test.luau`: the tutorial's spin is Magnet now.
+- `src/client/Input.luau`, `src/client/PadGuide.luau`, `docs/STUDIO_NOTES.md`: controller
+  shooting for everyone (4.10): R2 or A hold-to-fill, versions B and C, B cancels a pull.
 - `tools/upload_manifest.json`: the arrow's two textures (arrow_chevron_up, arrow_head_up).
 
 ---
