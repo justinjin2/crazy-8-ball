@@ -215,8 +215,22 @@ local function unroll(piece: Piece, share: number)
 	)
 end
 
+-- Whether `object` shows: it and every GuiObject above it visible.
+local function shown(object: GuiObject): boolean
+	local at: Instance? = object
+	while at and at:IsA("GuiObject") do
+		if not at.Visible then
+			return false
+		end
+		at = at.Parent
+	end
+	return true
+end
+
 local function burst(self: Stage, piece: Piece, colour: string)
-	if Quality.isLow() or UIAnim.reduced() then
+	-- Not for a hidden piece (the Starter Pack's card once bought, the first visit's heroes
+	-- after both are claimed): its firework would go off over empty space.
+	if Quality.isLow() or UIAnim.reduced() or not shown(piece.object) then
 		return
 	end
 	local layer = self.burstLayer or (piece.object.Parent :: any)
