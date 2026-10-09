@@ -923,6 +923,7 @@ local ULTS: { string } = {
 	"OpUlt",
 	"Slowmo",
 	"Hold",
+	"Power",
 	"AbilitySetup",
 }
 
@@ -1005,6 +1006,21 @@ local function slowmo(player: Player, args: { string })
 		player,
 		if scale == 1 then Dev.SlowmoOff:format(id) else Dev.SlowmoSet:format(id, tostring(scale))
 	)
+end
+
+-- /power old|new: the power bar's shape on this server (Config.Cue.PowerMode; the server
+-- strikes every shot, so its setting is the one that counts). Studio only.
+local function power(player: Player, args: { string })
+	if not inStudio(player, D.Power) then
+		return
+	end
+	local word = string.lower(args[1] or "")
+	if word ~= "old" and word ~= "new" then
+		try(player, "Power")
+		return
+	end
+	Config.Cue.PowerMode = if word == "old" then "Curve" else "Anchors"
+	tell(player, if word == "old" then Dev.PowerOld else Dev.PowerNew)
 end
 
 -- /hold <seconds>: every replay at the caller's table stops at that shot time and stays (a
@@ -1415,6 +1431,7 @@ function DevCommands.start()
 	end)
 	command("Slowmo", D.Slowmo, slowmo)
 	command("Hold", D.Hold, hold)
+	command("Power", D.Power, power)
 	command("AbilitySetup", D.AbilitySetup, abilitySetup)
 	command("UltHelp", D.UltHelp, ultHelp)
 	command("BotRank", D.BotRank, botRank)

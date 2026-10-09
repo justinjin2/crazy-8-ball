@@ -15,6 +15,7 @@
 
 local Config = require(script.Parent.Parent.Config)
 local Ball = require(script.Parent.Parent.Physics.Ball)
+local PowerShare = require(script.Parent.Parent.Physics.PowerShare)
 local Simulation = require(script.Parent.Parent.Physics.Simulation)
 local TableGeometry = require(script.Parent.Parent.Physics.Table)
 local Judge = require(script.Parent.Parent.Rules.ShotJudge)
@@ -161,7 +162,11 @@ local wrap = Finder.wrap
 function Finder.powerForSpeed(speed: number, cap: number?): number
 	local C = Config.Cue
 	local share = math.max(speed - C.MinSpeed, 0) / (C.MaxSpeed - C.MinSpeed)
-	return math.clamp(share ^ (1 / C.PowerCurve), Config.Input.MinPowerToShoot, cap or F.MaxPower)
+	return math.clamp(
+		PowerShare.power(C :: any, share),
+		Config.Input.MinPowerToShoot,
+		cap or F.MaxPower
+	)
 end
 
 --- The bot's group (nil while the table is open) and whether it is on the 8.

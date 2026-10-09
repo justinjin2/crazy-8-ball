@@ -445,8 +445,31 @@ Config.Cue = {
 	-- hard slides 128 inches before it rolls - longer than the 100 inch table. So nothing
 	-- ever rolled. At 2.6 the usable middle of the bar lands on real pool shot speeds: half
 	-- power is 85 in/s (with the 25 mph top), while the top of the bar is still a full break.
-	-- (tune)
+	-- (tune) Used only while PowerMode is "Curve".
 	PowerCurve = 2.6,
+	-- How the bar maps to speed (Physics/PowerShare). "Anchors" (designer, 2026-10-09: "the cue
+	-- pull feels too low at like 30% and lower"): the curve above leaves the bottom fifth of the
+	-- bar nearly dead (4% and 10% both ~0.9 mph) and 30% at 1.9 mph, 8% of full speed. The
+	-- anchors put each part of the bar on one of Dr. Dave's measured shot speeds
+	-- (drdavepoolinfo.com/faq/speed/typical: soft touch <1 mph, slow 1-2, medium 2-4, fast 4-7,
+	-- power 7-10, a powerful break 25-30), so the bar reads like a player's own scale. "Curve":
+	-- the old power ^ PowerCurve. /power old|new switches it in Studio to compare.
+	-- Measured in the game's own physics (a lone cue ball up the table, cushions and all), the
+	-- anchors make each bar level send it about that share of a full hit's travel: 10% goes 9%
+	-- as far, 30% 28%, 50% 46%, 75% 73% (the curve: 3%, 14%, 42%, 80%). Its skid before rolling
+	-- stays near the curve's (32 in at 50% against 23 in; less from 60% up), so balls still roll.
+	PowerMode = "Anchors",
+	-- { power, centre-hit ball speed in/s } in order; between two anchors the speed grows by the
+	-- same ratio for each step of the bar. The ends must be MinSpeed and MaxSpeed. Each speed
+	-- sits in Dr. Dave's range for its shot. (tune)
+	PowerAnchors = {
+		{ 0.04, 15 }, -- the softest shot (MinPowerToShoot, MinSpeed): 0.85 mph, a soft touch
+		{ 0.10, 27 }, -- 1.5 mph, slow: a nudge
+		{ 0.30, 60 }, -- 3.4 mph, medium
+		{ 0.50, 100 }, -- 5.7 mph, fast
+		{ 0.75, 180 }, -- 10.2 mph, a power shot
+		{ 1.00, 440 }, -- 25 mph, a powerful break (MaxSpeed)
+	},
 	-- Spin offsets are given in ball radii (-1..1). Hits beyond this miscue in real life.
 	MaxSpinOffset = 0.5,
 	-- Visual cue stick (placeholder built from parts), in STUDS so it matches the avatar. A
@@ -8381,11 +8404,14 @@ Config.UI.Purchased = {
 	-- One line near the top, "Thank you! +x" (designer, 2026-10-09, their sketch), each letter
 	-- its own colour in the kit's straight title (Kit.ArchTitle[TitleStyle]), shrunk to fit.
 	TitleStyle = "Thanks",
-	ThanksPx = 96,
-	ShortThanksPx = 54, -- a phone on its side
-	MinPx = 24, -- never smaller, however long the item's name
-	CentreShare = 0.2, -- the line's middle, a share of the screen's height from the top
-	WidthShare = 0.92, -- its room across, of the screen's width
+	-- Smaller and higher (designer, 2026-10-09: "a little too big ... and unreadable, smaller
+	-- and higher up"; it was 96 px, 92% of the width, at 20% down).
+	ThanksPx = 58,
+	ShortThanksPx = 34, -- a phone on its side
+	MinPx = 22, -- never smaller, however long the item's name
+	CentreShare = 0.125, -- the line's middle, a share of the screen's height from the top (just
+	-- under the rank badge and Settings)
+	WidthShare = 0.6, -- its room across, of the screen's width
 	-- The letters' colours, one after another (spaces skip): red, orange, yellow, green, sky,
 	-- blue, purple, pink.
 	Letters = {
@@ -13677,6 +13703,9 @@ Config.Debug = {
 		SlowmoMin = 0.05, -- the slowest rate accepted (Match.setTimeScale's floor)
 		SlowmoMax = 4, -- the fastest rate accepted (Match.setTimeScale's ceiling)
 		SlowmoAttribute = "ReplaySlowmo_",
+		-- /power old|new: the power bar's shape on this server (Config.Cue.PowerMode), to feel
+		-- the two side by side (designer, 2026-10-09). Studio only; it resets with the server.
+		Power = "/power",
 		-- /hold <seconds>: every replay at your table stops at that shot time and stays there
 		-- (a still frame of any moment to capture), until /hold alone releases it. It rides on
 		-- the workspace attribute HoldAttribute followed by the table id, like /slowmo.
@@ -14639,8 +14668,8 @@ do
 	Config.Physics.CushionNoseHeightInches = Config.Physics.CushionNoseBallFraction * D
 
 	-- Strike bands: power fractions -> the cue ball speeds SoundMix.pickBanded compares
-	-- against. Same curve as Cue.speedForPower, which cannot be required from here (Cue
-	-- requires Config), so it is spelled out from the numbers Config already owns.
+	-- against. Same curve as Cue.speedForPower (Cue requires Config, so not Cue: PowerShare,
+	-- which requires nothing).
 	local C = Config.Cue
 	local ratio = Config.Balls.MassOunces / C.StickMassOunces
 	local elevation = math.rad(C.CueElevationDegrees)
@@ -14649,8 +14678,9 @@ do
 		/ (1 + ratio) ^ 2
 	local gain = (1 + math.sqrt(1 - (1 - eta) / ratio * k)) / k * math.cos(elevation)
 	C.MinStickSpeed, C.MaxStickSpeed = C.MinSpeed / gain, C.MaxSpeed / gain
+	local PowerShare = require(script.Parent.Physics.PowerShare)
 	local function speedForPower(p: number): number
-		return C.MinSpeed + (C.MaxSpeed - C.MinSpeed) * p ^ C.PowerCurve
+		return C.MinSpeed + (C.MaxSpeed - C.MinSpeed) * PowerShare.share(C :: any, p)
 	end
 	local A = Config.Audio
 	local soft = speedForPower(A.StrikeSoftUpToPower)

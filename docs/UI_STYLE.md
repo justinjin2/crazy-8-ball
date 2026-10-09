@@ -1137,7 +1137,8 @@ screen's width (`WidthShare`), the frame's 66% on a phone.
 
 - **A Robux purchase** (`Purchased`, `Config.UI.Purchased`, `Strings.Purchased`; the server's
   `PurchaseDone`; redone 2026-10-09 to the designer's sketch): the whole screen flashes gold
-  (green for a money pack), then one big line slams in near the top, "Thank you! +10 Mystery
+  (green for a money pack), then one line slams in just under the top HUD (58 px, at most 60%
+  of the width; designer, 2026-10-09: smaller and higher, it was too big to read), "Thank you! +10 Mystery
   Lucky Blocks" ("+VIP", "+$250,000", "+Ability Slot 2"), each letter its own colour round the
   rainbow in the kit's straight title (Fredoka, the navy outline, a little depth), shrunk to
   fit the width. What was bought flies from it to where it lives (money into the money HUD,

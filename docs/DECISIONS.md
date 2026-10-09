@@ -3628,3 +3628,16 @@ timer of a new block stay the designer's call.
   later presses allow: Standard for Epic and below, Uncommon for a Legendary, Rare for a Mythic
   (BlockDrop.startOf). Final odds and pity are unchanged; every block above Standard still
   visibly climbs.
+- 2026-10-09: The purchase thank-you is smaller and higher (designer: "a little too big ... and
+  unreadable, smaller and higher up"): 58 px (34 on a phone on its side), at most 60% of the
+  screen's width, its middle 12.5% down, just under the rank badge (was 96 px, 92%, 20%).
+- 2026-10-09: The power bar maps to speed through named shot speeds, not power^2.6 (designer:
+  "the cue pull feels too low at like 30% and lower"; Config.Cue.PowerMode "Anchors",
+  PowerAnchors, Physics/PowerShare). 10% 1.5 mph, 30% 3.4, 50% 5.7, 75% 10.2, 100% the same
+  25 mph break, each in Dr. Dave's range for its shot (soft touch <1 mph, slow 1-2, medium 2-4,
+  fast 4-7, power 7-10, break 25-30), straight in log speed between them. Measured in the
+  game's physics, each bar level now sends a lone cue ball about that share of a full hit's
+  travel (10% 9%, 30% 28%, 50% 46%, 75% 73%; the curve gave 3%, 14%, 42%, 80%), and its skid
+  stays near the curve's, so balls still roll. A trial: /power old|new switches it in Studio.
+  The bots invert the same mapping; the physics fixtures run on the curve they were recorded
+  with (harness onRecordedCurve).

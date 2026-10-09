@@ -20,7 +20,9 @@ local function runScenario(fixture)
 	for _, initial in fixture.balls do
 		table.insert(balls, Ball.new(initial.id, initial.x, initial.y))
 	end
-	local result = Simulation.runHeadless(Simulation.newState(geometry, balls), fixture.shot)
+	local result = H.onRecordedCurve(function()
+		return Simulation.runHeadless(Simulation.newState(geometry, balls), fixture.shot)
+	end)
 	H.expect(not result.capped, fixture.name .. " must settle without the duration guard")
 	H.expect(result.firstContact == fixture.firstContact, fixture.name .. " first object contact")
 	H.expect(#result.finalBalls == #fixture.expected, "every final ball needs an expectation")

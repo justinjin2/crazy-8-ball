@@ -148,8 +148,9 @@ return {
 	["a raised cue at low power stays down and keeps the level-cue spin"] = function()
 		local Config, Ball, _, _, Cue = setup()
 		local level, raised = Ball.new(0, 0, 0), Ball.new(0, 0, 0)
-		Cue.strike(level, { angle = 0, power = 0.2, spin = { x = 0, y = 0.3 } })
-		Cue.strike(raised, { angle = 0, power = 0.2, spin = { x = 0, y = 0.3 }, elevation = 30 })
+		-- 10% of the bar: 1.5 mph (the anchors; 20% hops a tenth of an inch at 30 degrees).
+		Cue.strike(level, { angle = 0, power = 0.1, spin = { x = 0, y = 0.3 } })
+		Cue.strike(raised, { angle = 0, power = 0.1, spin = { x = 0, y = 0.3 }, elevation = 30 })
 		H.expect(raised.vz == 0, "too soft to jump")
 		H.expect(
 			math.sign(raised.wy) == math.sign(level.wy),

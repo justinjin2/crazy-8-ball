@@ -104,7 +104,10 @@ function tests.the_turns_mark_where_the_cue_ball_bends()
 	-- Round the table off the cushions: each turn is the rail hit's own spot, a ball's radius
 	-- off a cushion.
 	local g = geometry
-	turns, hits = turnsOf({ Ball.new(0, -30, 0) }, { angle = 0.35, power = 0.5 })
+	local pair = H.onRecordedCurve(function()
+		return { turnsOf({ Ball.new(0, -30, 0) }, { angle = 0.35, power = 0.5 }) }
+	end)
+	turns, hits = pair[1], pair[2]
 	check(#turns == #hits and #turns >= 3, ("cushions: %d turns, %d hits"):format(#turns, #hits))
 	local onCushion = 0
 	for i, turn in turns do

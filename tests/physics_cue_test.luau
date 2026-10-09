@@ -13,7 +13,8 @@ end
 
 local function powerForStickSpeed(Config, speed: number): number
 	local C = Config.Cue
-	return ((speed - C.MinStickSpeed) / (C.MaxStickSpeed - C.MinStickSpeed)) ^ (1 / C.PowerCurve)
+	return H.require("Physics.PowerShare")
+		.power(C, (speed - C.MinStickSpeed) / (C.MaxStickSpeed - C.MinStickSpeed))
 end
 
 -- Turn the squirt-and-swerve switch on for one check and always put it back, so later
@@ -260,7 +261,9 @@ return {
 		local R = Config.Balls.RadiusInches
 		local function cut(side: number): number
 			local cue, object = Ball.new(0, -20, 0), Ball.new(1, 0, R)
-			Cue.strike(cue, { angle = 0, power = 0.3, spin = { x = side, y = 0 } })
+			H.onRecordedCurve(function()
+				Cue.strike(cue, { angle = 0, power = 0.3, spin = { x = side, y = 0 } })
+			end)
 			firstEventThen(Simulation.newState(geometry, { cue, object }), "ballHit", 3)
 			return math.deg(math.atan2(object.vy, object.vx))
 		end

@@ -287,4 +287,19 @@ function Harness.matchesJson(actual: any, expected: any, path: string, tolerance
 	end
 end
 
+--- Runs `callback` with the power bar on the old curve (Config.Cue.PowerMode "Curve"), the one
+--- the physics fixtures were recorded with: their shots name bar positions, and the anchors
+--- (2026-10-09) give those positions other speeds. Puts the setting back, even on an error.
+function Harness.onRecordedCurve(callback: () -> any): any
+	local cue = Harness.require("Config").Cue
+	local saved = cue.PowerMode
+	cue.PowerMode = "Curve"
+	local ok, result = pcall(callback)
+	cue.PowerMode = saved
+	if not ok then
+		error(result, 0)
+	end
+	return result
+end
+
 return Harness

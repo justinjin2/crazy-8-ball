@@ -105,7 +105,9 @@ return {
 			for _, row in case.balls do
 				table.insert(balls, Ball.new(row[1], row[2], row[3]))
 			end
-			local result = Simulation.runHeadless(Simulation.newState(geometry, balls), case.shot)
+			local result = H.onRecordedCurve(function()
+				return Simulation.runHeadless(Simulation.newState(geometry, balls), case.shot)
+			end)
 			H.expect(#result.events == case.events, "case " .. index .. " event count")
 			H.expect(result.duration == tonumber(case.duration), "case " .. index .. " duration")
 			for i, b in result.finalBalls do

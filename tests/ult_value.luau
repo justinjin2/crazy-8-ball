@@ -405,7 +405,7 @@ end
 function V.powerForSpeed(speed: number, cap: number?): number
 	local C = Config.Cue
 	local share = math.max(speed - C.MinSpeed, 0) / (C.MaxSpeed - C.MinSpeed)
-	return math.clamp(share ^ (1 / C.PowerCurve), 0.005, cap or V.MAX_POWER)
+	return math.clamp(H.require("Physics.PowerShare").power(C, share), 0.005, cap or V.MAX_POWER)
 end
 
 -- A shot the shooter may play: a pot (ball, pocket) or the safe hit.

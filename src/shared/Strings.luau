@@ -313,6 +313,7 @@ return {
 			-- The look check's tools (Studio only).
 			Slowmo = "%s <%s-%s>, or %s",
 			Hold = "%s <0-%s>, or %s",
+			Power = "%s old|new",
 			AbilitySetup = "%s <id|name> [player]",
 		},
 		What = {
@@ -346,6 +347,7 @@ return {
 			-- The look check's tools (Studio only).
 			Slowmo = "Studio only: every shot replay at your table at that rate, for everyone (1 or nothing: normal)",
 			Hold = "Studio only: every shot replay at your table stops at that many seconds in and stays (nothing: let go)",
+			Power = "Studio only: the power bar's shape on this server, old (the steep curve) or new (shot speeds)",
 			AbilitySetup = "puts that ability in your selected slot, or a named player's (your account only)",
 		},
 		BadCue = 'No cue called "%s". Use an id (ChalkDust) or a name (chalk dust).',
@@ -430,6 +432,8 @@ return {
 		SlowmoOff = "Replays at table %d play at normal speed.",
 		HoldSet = "Replays at table %d stop at %s s.",
 		HoldOff = "Replays at table %d play through again.",
+		PowerNew = "Power bar: new (10% 1.5 mph, 30% 3.4 mph, 50% 5.7 mph, 75% 10 mph, 100% break).",
+		PowerOld = "Power bar: old (10% 0.9 mph, 30% 1.9 mph, 50% 4.8 mph, 75% 12 mph, 100% break).",
 		AbilitySet = "Your ability is now %s.",
 		BotRankSet = "Bots you meet now play at %s.",
 		BotRankOff = "Bots you meet play at your own tier again.",

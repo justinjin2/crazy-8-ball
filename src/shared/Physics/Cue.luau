@@ -5,6 +5,7 @@
 local Config = require(script.Parent.Parent.Config)
 local Ball = require(script.Parent.Ball)
 local Flight = require(script.Parent.Flight)
+local PowerShare = require(script.Parent.PowerShare)
 
 type Ball = Ball.Ball
 
@@ -21,8 +22,7 @@ export type Shot = {
 --- Horizontal centre-hit ball speed at the configured elevation, retained for UI/audio.
 function Cue.speedForPower(power: number): number
 	local C = Config.Cue
-	local p = math.clamp(power, 0, 1)
-	return C.MinSpeed + (C.MaxSpeed - C.MinSpeed) * (p ^ C.PowerCurve)
+	return C.MinSpeed + (C.MaxSpeed - C.MinSpeed) * PowerShare.share(C :: any, power)
 end
 
 --- The power bar controls cue-stick speed; off-centre strikes give less ball speed. A raised
@@ -37,7 +37,7 @@ function Cue.stickSpeedForPower(power: number, elevation: number?): number
 		1
 	)
 	local top = C.MaxStickSpeed + (C.JumpMaxStickSpeed - C.MaxStickSpeed) * raised
-	return C.MinStickSpeed + (top - C.MinStickSpeed) * math.clamp(power, 0, 1) ^ C.PowerCurve
+	return C.MinStickSpeed + (top - C.MinStickSpeed) * PowerShare.share(C :: any, power)
 end
 
 --- Free-path travel bound to rest, including draw/follow and swerve. Angular velocity is in the

@@ -211,7 +211,7 @@ return {
 		-- play, and a contact can never be faster than the ball that struck it - so the cue
 		-- ball's speed at a given power is a hard ceiling on whether it can trigger at all.
 		local function cueSpeed(power: number): number
-			return C.MinSpeed + (C.MaxSpeed - C.MinSpeed) * power ^ C.PowerCurve
+			return H.require("Physics.Cue").speedForPower(power)
 		end
 		H.expect(cueSpeed(0.5) < A.StackSpeed, "half power must not be able to stack")
 		H.expect(cueSpeed(1.0) > A.StackSpeed, "full power must be able to stack")
