@@ -363,7 +363,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
 - [x] 11. Every word (the Strings sweep).
 - [ ] 12. The merge with `tutorial-v2` (the designer's yes), checked in Studio.
 - [ ] 13. The full Studio check on phone, PC and gamepad.
-- [ ] 14. The docs.
+- [x] 14. The docs.
 - [ ] 15. Ready for release: the place saved and committed, the designer's release clicks
   listed, roadmap 7.9.
 
@@ -530,4 +530,20 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
     on your word). In Studio every price shows about 0.8 times the Roblox price (Starter 16,
     VIP 320, Mystery5 24, Grand Opening 16 / 40 / 120): that matches Roblox's regional pricing
     for this account, and the shop shows what Roblox will charge.
+- **Step 12 waits** (the designer: the tutorial terminal is still working; no merge). The trial
+  merge after every step still shows only the 5 known conflicts.
+- **Step 13 on PC** (the phone and gamepad parts wait for the designer): every screen was
+  checked as it was built (steps 2-11, shots per step); then two real win-track steps through
+  `PlayerDataQA winBlock` (step 4 gave a Mystery block, to the bag as the hotbar was full; step 5
+  paid $1,000; the bar showed 5/10 with the money tile next, shot `step13/`). Gamepad by code:
+  the shop's new dice (the Secret row's, the restock's) and buttons are Selectable and take
+  `GuiService.SelectedObject`. Not done: a restock buy with money (the designer's Studio save
+  has $19,918, under the $49,900 Rare), real Robux purchases, the tutorial's first block (it
+  needs the merge).
+- **Step 14**: `docs/ECONOMY.md` 18 and 19 (the quick reveal and Open all as built, the Week One
+  Cue's lines, the greyed off-sale price, the restock's cards, live prices, shims 1-5 and 7-9
+  gone, the GUI list built), `docs/UI_STYLE.md` (18 and 21 updated in place, a new 29 for v5's
+  small pieces), roadmap 7.9's progress line, `docs/STATUS.md` rewritten for what is open, the
+  run's entry at the top of `docs/archive/STATUS_HISTORY.md`, the handoff's "Done" line. The
+  price differences in step 11's note are the known held v4 changes (step 15's sync).
 

@@ -464,6 +464,12 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   (`docs/prompts/ECONOMY_V5_GUI_PROMPT.md`, spec in `docs/prompts/ECONOMY_V5_HANDOFF.md`),
   merged, and a Studio check of a Mystery block and a tier block from a win, the restock, the
   Mystery band, Free Reward's first week, a trade of a block, the 1 R$ skip and the luck's odds.
+  Progress 2026-10-09 (the GUI run): every screen updated on `gui-v4` and checked on PC (the
+  climb screen for every block and the Secret rung, the quick reveal, "Open all", Odds &
+  Details with each cue and the pity bars, the clover, the shop's Mystery card and restock, the
+  win track's money tiles and the result line, the first week's day 7 cue, the Index line).
+  Still to do: the phone and gamepad checks with the designer, the merge with `tutorial-v2`
+  (when the tutorial is done), the place saved and published, the release clicks.
 
 ---
 

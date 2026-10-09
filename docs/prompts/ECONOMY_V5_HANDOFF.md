@@ -6,6 +6,12 @@ tests are built and Lune-tested; **the screens are not**. This file is the plan'
 made concrete: for each screen, what the player sees, what it reads, what it calls and the shim
 it replaces.
 
+**Done (2026-10-09, the GUI run):** section 1 is built on `gui-v4` (1.1-1.11; 1.12's Index line
+too, trades left as they are) and checked on PC in Studio; shims 1-5 and 7-9 are gone (the
+table in 1.13 is history now; 6 and 10 stay). What each step built is in the Notes of
+`ECONOMY_V5_GUI_PROMPT.md`. Still open: the phone and gamepad checks, and the merge with
+`tutorial-v2` (section 2), which waits until the tutorial is done.
+
 Who it is for:
 
 1. **The GUI session** (`~/Desktop/8ball`, branch `gui-v4`): section 1. Its run is

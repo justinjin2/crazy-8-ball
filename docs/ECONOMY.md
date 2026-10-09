@@ -1625,8 +1625,10 @@ Limited cues.
   and never counted, sold or traded. Saves go through the session-locked, versioned save layer.
 - **Opening blocks.** One at a time, in the world: hold the block from its hotbar slot, throw
   it, hold the prompt; the reel, the pull cutscene (Rare and up) and the "YOU GOT" card follow.
-  An unclimbed block climbs first (7.1). **"Open all"** (v5) opens every ready climbed Standard
-  and Uncommon block at once (7.6; the button is the GUI session's).
+  An unclimbed block climbs first on the climb screen (7.1). A Common or Uncommon cue skips the
+  reel: its result card alone, gone by itself after 1.5 s (the quick reveal). **"Open all"**
+  (v5), a green button right of the hotbar's bag button, opens every ready climbed Standard and
+  Uncommon block at once and shows one summary of the cues (7.6).
 - **Index completion.** A cue never owned is a "?" card; tapping it shows its name and its
   black 3D silhouette turning (designer, 2026-09-28). A cue counts once it has ever been owned
   (selling it later keeps it). The Week One Cue sits in the Legendary row. Completing a rarity
@@ -1677,36 +1679,33 @@ The approved plan is `docs/prompts/ECONOMY_V5_PLAN.md`; the build's report is
   Commons, and the tutorial promises an Uncommon cue.
 - **The win track's money steps count like block steps** for the anti-farm rules and PC limits.
 - **The Week One Cue** sits in the Block group with a Legendary effect and Classic's look until
-  its art exists, and shows no odds line; Claim All gives it as paid origin like its blocks;
-  the server counts its copies on a claim.
-- **A Robux button says "Coming soon"** for a product not made yet (the 5-pack until it was
-  made, 2026-10-09).
+  its art exists; in place of a chance it shows "Day 7" on its card and "Day 7 of your first
+  week" in its details and the Index, and the first week's day 7 card shows it from day 1;
+  Claim All gives it as paid origin like its blocks; the server counts its copies on a claim.
+- **A Robux button for a product off sale or not made** shows its price greyed (the 5-pack
+  exists since 2026-10-09).
 - **"Open all"** skips a block whose open has a special plan (a forced or unique result), which
   the one-by-one open handles.
 - **The "1 in N"** rounds to the nearest 3 significant figures, leaves pity out, and uses a
   never-climbing block's own row.
 - **`Config.Trade.ClimbedExists`** is new beside `BlockExists`, both from the v5 model at day 30.
-- **The restock odds line** names slot 1's floor and slot 2's odds ("Slot 1: Epic or better ·
-  Slot 2: ...") until the GUI session's three cards.
+- **The restock** shows three cards across the band, slot 1 with a tilted "Epic or better!" tag,
+  and each slot's own odds under its card (VIP's too).
+- **The shop's Robux prices are the live ones** (what Roblox charges the player), the Grand
+  Opening card's too; a bundle's struck-through or "one by one" price is the live single price
+  times the count.
 - **The model's small differences from the plan's run**: the pity head start (in Config now)
   and the v5 Robux prices (the plan's run used v4's); the ownership shares move by noise only
   (`v5-build/robux_sim.txt`).
 
-**Shims** (today's client keeps working until the GUI session's screens land; the hand-off is
-`docs/prompts/ECONOMY_V5_HANDOFF.md`):
+**Shims**: the GUI run (`docs/prompts/ECONOMY_V5_GUI_PROMPT.md`, 2026-10-09) removed shims 1-5
+and 7-9 as their screens were updated (the climb screen for every block, the Secret rung, Odds
+& Details, the result screen's own "Win track" line, the Week One Cue's card, the restock's
+cards, the greyed off-sale price). Two stay:
 
-1. Holding or throwing an unclimbed non-Mystery block climbs it on the server first
-   (`LuckyBlockService.climbFirst`).
-2. The Reveal answers with the Secret shown as Mythic (`BlockDrop.shown`) plus the true path.
-3. `LuckyClient` plays a Secret's cue reel after the Mystery screen (and after Hold).
-4. `OddsDetails` and `ShopMysteryOdds` show the climb's odds with the live luck.
-5. `Ranking` folds a win-track money step into the result screen's bonus line.
-6. The trade window names climbed blocks "Climbed ...".
-7. `RewardsParts` names the Week One Cue in reward words.
-8. The restock odds line (above).
-9. The Mystery band's "Coming soon" for a product not made yet (the 5-pack exists since
-   2026-10-09, so it shows its price).
-10. The tutorial's `stay` hook (above).
+6. The trade window names climbed blocks "Climbed ..." (trading is not in the release).
+10. The tutorial's `stay` hook (above): the tutorial session's call when `tutorial-v2` is
+    merged.
 
 **Kept from v4** (still true): the Grand Opening runs 30 days; the restock Rare block's stock is
 2 a restock; the Starter Pack is not a `Random` product (where restricted it is $40,000 and the
@@ -1716,7 +1715,8 @@ two claims; an unknown policy counts as restricted for VIP's block; trading has 
 added to the day's login claim (lane, 2026-10-03).
 
 **Not built yet** (planned, 10.6): the Lucky Shot and Golden Shot, Lucky Rain, the stay bonus.
-**The GUI session's** (the hand-off): the climb screen for every block, the unclimbed/climbed
-mark, the Secret's reveal, the quick reveal, the "Open all" button, pity bars, the clover, the
-restock's three cards, the Mystery band's 5-pack, the win track's money tiles, Free Reward's new
-days and the Index's Week One Cue line.
+**Built by the GUI run** (2026-10-09): the climb screen for every block, the unclimbed mark, the
+Secret rung and reveal, the quick reveal, "Open all" and its summary, every block's Odds &
+Details with each cue's "1 in N" and the pity bars, the Grand Opening Luck's clover, the
+Mystery card's 7 rows and pity bars, the restock's three cards, the 5-pack, the win track's
+money tiles, the first week's day 7 cue and the Index's Week One Cue line.

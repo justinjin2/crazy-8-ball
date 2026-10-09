@@ -5,6 +5,17 @@ when `docs/STATUS.md` became current state only. Finished work moves here from S
 on top. Read it only to answer "when or why did X change"; it is not part of the read-first list.
 An entry marked "(latest)" was the latest when written.
 
+**2026-10-09: the economy v5 GUI run** (steps 0-11, 13 on PC and 14). Every screen updated to
+economy v5 in place on `gui-v4` (`docs/prompts/ECONOMY_V5_GUI_PROMPT.md`, its Notes per step):
+the server hook for the tutorial's scripted first block; the climb screen
+for every unclimbed block with its mark and the Secret rung; the quick reveal and "Open all"
+with its summary; every block's Odds & Details with each cue's "1 in N" and the pity bars; the
+Grand Opening Luck's clover; the shop's Mystery card (7 rows, live luck, the pity bars, "35 R$
+one by one"), the restock's three cards with slot 1's "Epic or better!" and per-slot odds, the
+Grand Opening card's live prices; the win track's money tiles and the result screen's "Win
+track" line; the first week's day 7 cue; the Index's Week One Cue line; the Strings sweep.
+Shims 1-5 and 7-9 gone. Checked on PC in Studio, console clean; lint OK, 1160 tests.
+
 **2026-10-09: economy v5 built on `gui-v4`** (the unattended run of
 `docs/prompts/ECONOMY_V5_PROMPT.md`, steps 0-15, commits `f39f815` to step 15; backup branch
 `before-economy-v5` at `f4e17c0`). Every block climbs from its name on one ladder, the Grand

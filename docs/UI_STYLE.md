@@ -854,29 +854,36 @@ band, restock tiles and pass bands.
 - **Each section** sits on a pale blue panel, its navy title pill (gold words, a thin gold
   rim) across the panel's top edge; white boxes inside.
 - **The Mystery block (A)**: the rainbow block with a purple glow, turning rays and twinkles
-  (the picture stays still) and the sky-blue dice at its corner; the six tiers (the tier's
-  block, its name in its colour, the chance in sky blue) filling the box, no line under them
-  (designer, 2026-10-09); x1 and x10 columns: the count in gold, the purple gift square and the green Robux
-  button, the gold money button under; the red "13 for 10!" ribbon, tilted and shaking, on x10
-  while the launch bonus runs; the Epic guarantee strip under everything ("Epic guaranteed in
-  53" and a purple bar).
+  (the picture stays still) and the sky-blue dice at its corner; the seven tiers (economy v5:
+  the tier's block, its name in its colour, the chance in sky blue, live with the Grand
+  Opening Luck; the Secret on top, the Mythic block darkened) filling the box, a small dice
+  after each name (that tier's climbed block's odds; the Secret's lists its cues); x1 and x5
+  columns: the count in gold, "35 R$ one by one" under x5 (the live single price times five),
+  the purple gift square and the green Robux button (the live price; greyed when off sale), the
+  gold money button under; the red "6 for 5!" ribbon, tilted and shaking, on x5 while the
+  launch bonus runs; the pity strip under everything: "Rare guaranteed in 10" and "Epic
+  guaranteed in 40" side by side, each with its tier's block and a bar in its colour filling
+  with the blocks opened ("Your next one is Rare!" once it is the very next).
 - **The Mystery block's "Odds & Details"** (economy v4 plan 3.2, hand-off item 13,
   `ShopMysteryOdds` in the shared popup below; designer, 2026-10-08: "show the block tiers
   first, then pity"): **Final tier** first, each tier as a rarity bar with its block over the
-  bar's left end and its chance (Standard in Common's grey); then **Pity** (the head says just that; designer, 2026-10-09) as two meters, a
-  pale track filling with the rarity's bar ("Guaranteed Rare or better" 3/10, "Guaranteed
-  Epic or better" 56/100); once a guarantee is the very next block a gold line says "Your next
-  Mystery block is Epic or better!" and the lists show the odds with pity; then **Each
-  Mystery block**, a bar per rarity; then the one line. No description line. A Mystery day's
-  dice in Free Reward opens the same list.
-- **The restock (B)**: "RESTOCK", a stopwatch and the time in its pill; four slot cards, each
-  the block big in its rarity's glow with the dice at the top right, "**Rare** Lucky Block", a
-  navy "x2 left" pill, the green Robux button over the gold money button (no gift square:
-  restock items cannot be gifted). The 4th is the VIP slot: cream with a gold edge, a crown
-  rocking over its block; without VIP it says "VIP only" in gold and shows one Get VIP button
-  between the two button rows. "Each slot: Rare 87% · Epic 12% · ..." under the slots.
+  bar's left end and its chance (Standard in Common's grey; the Secret's bar wears the darkened
+  Mythic block); then **Pity** (the head says just that; designer, 2026-10-09) as two meters, a
+  pale track filling with the rarity's bar ("Rare guaranteed" 3/10, "Epic guaranteed" 12/40:
+  v5's pity gives exactly that rarity); once a guarantee is the very next block a gold line
+  says "Your next Mystery block is Epic!" and the lists show the odds with pity; then **Each
+  cue**, every cue on its own line in its rarity's colour with its chance and "1 in N"; then
+  the one line. No description line. A Mystery day's dice in Free Reward opens the same list.
+- **The restock (B)**: "RESTOCK", a stopwatch and the time in its pill; three slot cards
+  across the band (economy v5), each the block big in its rarity's glow with the dice at the top
+  right, "**Rare** Lucky Block", a navy "x2 left" pill, the green Robux button over the gold
+  money button (no gift square: restock items cannot be gifted). Slot 1 wears a tilted tag in
+  its floor's colour at its top left ("Epic or better!"). The 3rd is the VIP slot: cream with a
+  gold edge, a crown rocking over its block; without VIP it says "VIP only" in gold and shows
+  one Get VIP button between the two button rows. Under each card its own odds, each kind in
+  its colour ("Rare 55% · Epic 34% · ...").
 - **The Starter Pack and VIP cards** each have the sky-blue dice on their picture's top left
-  corner: the odds of the lucky block in them (the Starter Lucky Block, VIP's daily Rare
+  corner: the odds of the lucky block in them (the Starter Lucky Block, VIP's daily Uncommon
   block); hidden where paid random items are restricted.
 - **The Starter Pack and VIP** (designer, 2026-10-08, their second reference: "so it can fit
   on one page without scrolling"; `ShopOffers`, `Config.UI.ShopBlocks.Pair`): two wide cards
@@ -966,10 +973,12 @@ band, restock tiles and pass bands.
 ## 21. The day's win track over the hotbar (designer's pick A, 2026-10-08)
 
 `WinTrack`, sizes in `Config.UI.WinTrack`, words in `Strings.WinTrack`; the steps are
-`Config.BlockOdds.Drop.WinTrack` (economy v4 plan section 5).
+RewardState's `wins.kinds` (`Config.BlockOdds.Drop.WinTrack`, economy v5 plan section 4; a new
+player's first win shows its Rare block).
 
 - **A white bar of ten tiles** centred over the hotbar, one per counted win of the day: the
-  step's block with its number on a navy dot at the tile's corner. A step given today is greyed
+  step's block with its number on a navy dot at the tile's corner; a money step is the cash
+  bundle, smaller and higher, over "$1K" in the money green. A step given today is greyed
   under a green tick; the next one has a thick gold edge and a gold NEXT tag across its bottom
   edge, hopping gently.
 - **Across the top edge**, navy pills with a gold rim: "Wins 3/10" at the left (after the tenth:
@@ -981,7 +990,7 @@ band, restock tiles and pass bands.
 - **A new step** pops its tick where the player sees it: at once while the bar shows, else
   as the bar comes back after the result screen, one tick after another.
 - **Folded by default** (designer, 2026-10-08): a navy pill with a gold rim at the bar's foot,
-  "Next ->" and the next step's block, "Wins 3/10" and an up arrow; a press opens the whole
+  "Next ->" and the next step's block (or the cash bundle), "Wins 3/10" and an up arrow; a press opens the whole
   bar, and its fold button (a navy circle with a gold rim and a down arrow on the bar's top
   edge, between the pills; designer, 2026-10-09) folds it. **After a match** it opens by itself as it comes back, for 4 s
   (`PeekSeconds`), then folds (a press meanwhile keeps it as pressed). "Resets in" sits over
@@ -1213,3 +1222,34 @@ The approved mockup: https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T. `StreakH
   halves the shards and drops the ghost copies.
 
 **Open**: a real phone and the sound by ear (the spray over the pocket ding).
+
+## 29. Economy v5's small pieces (the GUI run, 2026-10-09)
+
+Built in their screens' style on the designer's "use your judgment"; screenshots in
+`~/Desktop/8ball-refs/economy-v5-gui/`. Sizes in Config, words in Strings.
+
+- **The climb mark** (`LuckyBlocks.UI.ClimbMark`): an unclimbed block's hotbar and bag slot
+  wears an ink disc with a white ring and a gold up-arrow at its top right; its slot says
+  OPEN!. A tap opens the climb screen from the block's own tier.
+- **The Secret rung** (section 25's ladder): the Mythic block darkened (`Reveal.Secret.Tint`)
+  with a red "?"; a Secret climb slams SECRET! in red, then the pull cutscene and YOU GOT.
+- **The quick reveal** (`LuckyOpening.quick`): a Common or Uncommon cue skips the reel; the
+  result card alone at 0.8 with its rays and sting, gone by itself after 1.5 s (a tap sooner).
+- **"Open all"** (`LuckyHotbar`, `LuckyBlocks.UI.OpenAll`): a green kit button right of the
+  bag button while a ready climbed Standard or Uncommon block waits; its summary is "37 BLOCKS
+  OPENED!" over one cue card per cue ("x7", NEW on a first find), rarest first, in the columns
+  that make the cards biggest; a tap closes it.
+- **The Grand Opening Luck's clover** (`LuckClover`, `UI.LuckClover`): a navy badge with a
+  green rim right of the VIP tag (in its place without VIP), the four-leaf clover rocking,
+  only while the luck runs; hover shows its card ("Extra luck for the release!", each boosted
+  step, the countdown), a tap pins it.
+- **Each cue in Odds & Details** (`OddsDetails.cues`): every cue on its own line in its
+  rarity's colour, its chance and "1 in N" at the right.
+- **The shop's pity bars, the restock's tag and per-slot odds** (section 18).
+- **The win track's money tile** (section 21) and the result screen's "Win track +$1,000" line
+  after the win bonus.
+- **The first week's day 7** (`FreeDaily`): the cue itself in the block's place over its
+  rarity's glow, its name and rarity (in its colour) on the line above the spins; no dice. A
+  claimed cue flies to the CUES button. In Cues and the Index it shows "Day 7" and "Day 7 of
+  your first week" where a block cue shows its chance.
+
