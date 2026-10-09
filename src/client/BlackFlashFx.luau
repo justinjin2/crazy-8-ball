@@ -3,7 +3,8 @@
 -- reference 07). The shattering and the blast are physics (Ults/Effects/BlackFlash); this only
 -- draws them, off the replay's `flash` and `nudge` events, so everyone sees them together.
 -- Numbers in Config.UI.BlackFlashFx, the sounds in Config.Ults.Audio (Flash*), the meshes in the
--- uploaded BlackFlash model (tools/blender/abilities/blackflash.py: BFBolt1..4, Shard1..12), the
+-- uploaded BlackFlash model (tools/blender/abilities/blackflash.py: BFBolt1..4; its Shard1..12
+-- through BallShards, shared with Guangdong Tiger's cut), the
 -- shockwave ring in Config.Ults.Assets.Images (FlashRing).
 --
 --   * Armed (from the arming moment until the shot): the cue ball crackles, small black arcs
@@ -26,6 +27,7 @@ local ContentProvider = game:GetService("ContentProvider")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local BallShards = require(script.Parent:WaitForChild("BallShards"))
 local Camera = require(script.Parent:WaitForChild("Camera"))
 local Rule = require(Shared:WaitForChild("Ults"):WaitForChild("Effects"):WaitForChild("BlackFlash"))
 
@@ -36,7 +38,6 @@ local IMAGES = Config.Ults.Assets.Images :: any
 local EFFECT = "BlackFlash"
 local MODEL = "BlackFlash"
 local BOLTS = { "BFBolt1", "BFBolt2", "BFBolt3", "BFBolt4" }
-local SHARDS = 12
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
@@ -57,9 +58,6 @@ type Zoom = { from: CFrame, to: CFrame, born: number }
 
 type Meshes = {
 	bolts: { MeshPart },
-	shards: { MeshPart },
-	offsets: { Vector3 }, -- each shard's centre from the ball's, for a ball of radius 1
-	radius: number, -- the shell's radius in the loaded model (studs)
 }
 
 type Stroke = { core: MeshPart, glow: MeshPart }
@@ -74,14 +72,6 @@ type Bolt = {
 	swapAt: number,
 }
 
-type Shard = {
-	part: MeshPart,
-	vel: Vector3,
-	axis: Vector3,
-	spin: number,
-	born: number,
-	floor: number,
-}
 type Ring = { part: Part, decal: Decal, born: number, scale: number } -- scale: reach / full
 
 type TableFx = {
@@ -95,7 +85,7 @@ type TableFx = {
 	arcs: { { Stroke } }, -- the armed crackle's arcs: each slot one stroke per variant
 	arcAt: number, -- os.clock of the next re-draw
 	bolts: { Bolt },
-	shards: { Shard },
+	shards: { BallShards.Shard },
 	rings: { Ring },
 	clock: number, -- the replay's time here (slows with /slowmo; runs on through the hit-stop)
 	shotSeq: number,
@@ -150,29 +140,7 @@ local function meshesOf(self: BlackFlashFx): Meshes?
 		prep(part :: MeshPart)
 		table.insert(bolts, part :: MeshPart)
 	end
-	local shards: { MeshPart } = {}
-	local lo, hi = Vector3.one * math.huge, -Vector3.one * math.huge
-	for k = 1, SHARDS do
-		local part = model:FindFirstChild("Shard" .. k, true)
-		if part == nil or not part:IsA("MeshPart") then
-			self.meshesFailed = true
-			warn(("[8ball] BlackFlashFx: the %s model has no Shard%d"):format(MODEL, k))
-			return nil
-		end
-		local mesh = part :: MeshPart
-		prep(mesh)
-		table.insert(shards, mesh)
-		lo = lo:Min(mesh.Position - mesh.Size / 2)
-		hi = hi:Max(mesh.Position + mesh.Size / 2)
-	end
-	-- The shell's centre is the middle of all the shards together (the model may have moved).
-	local centre = (lo + hi) / 2
-	local radius = (hi - lo).X / 2
-	local offsets: { Vector3 } = {}
-	for _, s in shards do
-		table.insert(offsets, (s.Position - centre) / radius)
-	end
-	self.meshes = { bolts = bolts, shards = shards, offsets = offsets, radius = radius }
+	self.meshes = { bolts = bolts }
 	return self.meshes
 end
 
@@ -438,72 +406,11 @@ end
 
 -- The ball `ballId` shatters at `at` (world): its shards fly.
 local function shatter(self: BlackFlashFx, id: number, fx: TableFx, ballId: number, at: Vector3)
-	local meshes = meshesOf(self)
 	local ballPart = self.kit.ballPart(id, ballId)
-	if meshes == nil or ballPart == nil then
+	if ballPart == nil then
 		return
 	end
-	local part = ballPart :: BasePart
-	local texture = if part:IsA("MeshPart") then (part :: MeshPart).TextureID else ""
-	local r = part.Size.X / 2
-	local rot = part.CFrame.Rotation
-	local rng = self.rng
-	for k, template in meshes.shards do
-		local s = template:Clone()
-		s.TextureID = texture
-		s.Material = Enum.Material.SmoothPlastic
-		s.Size = template.Size * (r / meshes.radius) * F.ShardScale
-		local offset = rot * (meshes.offsets[k] * r * F.ShardScale)
-		s.CFrame = CFrame.new(at + offset) * rot
-		s.Transparency = 0
-		s.Parent = fx.anchor
-		local out = if offset.Magnitude > 1e-4 then offset.Unit else Vector3.yAxis
-		local vel = out * between(F.ShardSpeed, rng) + Vector3.yAxis * F.ShardUp
-		table.insert(fx.shards, {
-			part = s,
-			vel = vel,
-			axis = Vector3.new(
-				rng:NextNumber() - 0.5,
-				rng:NextNumber() - 0.5,
-				rng:NextNumber() - 0.5
-			).Unit,
-			spin = math.rad(F.ShardSpinDegrees) * (0.5 + rng:NextNumber()),
-			born = fx.clock,
-			floor = at.Y - r,
-		})
-	end
-end
-
-local function stepShards(fx: TableFx, dt: number)
-	local keep = {}
-	for _, s in fx.shards do
-		local age = fx.clock - s.born
-		if age >= F.ShardSeconds or s.part.Parent == nil then
-			s.part:Destroy()
-			continue
-		end
-		s.vel -= Vector3.yAxis * F.ShardGravity * dt
-		local pos = s.part.Position + s.vel * dt
-		if pos.Y < s.floor then
-			pos = Vector3.new(pos.X, s.floor, pos.Z)
-			s.vel = Vector3.new(s.vel.X * 0.5, -s.vel.Y * 0.3, s.vel.Z * 0.5)
-			s.spin *= F.ShardBounceSpinShare
-		end
-		if pos.Y <= s.floor + 0.01 then
-			-- Lying on the cloth: it slides to a stop.
-			local keepShare = math.max(0, 1 - F.ShardSlideFriction * dt)
-			s.vel = Vector3.new(s.vel.X * keepShare, s.vel.Y, s.vel.Z * keepShare)
-			s.spin *= keepShare
-		end
-		s.part.CFrame = CFrame.new(pos)
-			* CFrame.fromAxisAngle(s.axis, s.spin * dt)
-			* s.part.CFrame.Rotation
-		local fade =
-			math.clamp((age - (F.ShardSeconds - F.ShardFadeSeconds)) / F.ShardFadeSeconds, 0, 1)
-		s.part.Transparency = fade
-		table.insert(keep, s)
-	end
-	fx.shards = keep
+	fx.shards = BallShards.burst(self.kit, fx.anchor, ballPart, at, fx.clock, fx.shards)
 end
 
 local function stepRings(fx: TableFx)
@@ -704,9 +611,7 @@ local function destroy(self: BlackFlashFx, id: number)
 			destroyStroke(s)
 		end
 	end
-	for _, s in fx.shards do
-		s.part:Destroy()
-	end
+	BallShards.drop(fx.shards)
 	for _, r in fx.rings do
 		r.part:Destroy()
 	end
@@ -786,7 +691,7 @@ function BlackFlashFx.update(self: BlackFlashFx, dt: number)
 		end
 		drawArcs(self, live, if crackling then part else nil)
 		stepBolts(self, live)
-		stepShards(live, step)
+		live.shards = BallShards.step(live.shards, live.clock, step)
 		if #live.shards > 0 then
 			kit.anchor(id) -- the shards lie on the table past the shot: keep the anchor for them
 		end

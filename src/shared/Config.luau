@@ -12023,6 +12023,25 @@ Config.UI.SteelBallFx = {
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
 }
 
+-- A ball shattering into shards (src/client/BallShards.luau): Black Flash's shatter and
+-- Guangdong Tiger's cut (the designer, 2026-10-09: "exactly like black flash"). The shards
+-- burst out at Speed (studs a second, a range) plus Up, spinning, falling with Gravity, fading
+-- out over the last FadeSeconds of Seconds. On the cloth each bounce keeps BounceSpinShare of
+-- its spin, and a shard lying there slides to a stop (SlideFriction, a share of its speed lost
+-- a second). (tune)
+Config.UI.BallShards = {
+	ModelCheckSeconds = 1, -- while the BlackFlash model has not arrived, look for it this often
+	Speed = { 3, 7 },
+	Up = 2.5,
+	SpinDegrees = 720,
+	Gravity = 18,
+	Seconds = 6.1, -- the designer (2026-09-30): 5 s longer on the table (was 1.1)
+	Scale = 1.5, -- the shards drawn this much bigger than the ball's own pieces (they read)
+	FadeSeconds = 0.4,
+	BounceSpinShare = 0.4,
+	SlideFriction = 4,
+}
+
 -- Black Flash's look (src/client/BlackFlashFx.luau). Studs unless named. (tune)
 Config.UI.BlackFlashFx = {
 	RedColor = { 255, 24, 40 },
@@ -12059,19 +12078,7 @@ Config.UI.BlackFlashFx = {
 	LiftedRiseDegrees = { 40, 55 }, -- how steeply they rise (a range)
 	SwapSeconds = 0.05,
 	BoltSeconds = 0.7,
-	-- The shards: burst out at ShardSpeed (studs a second, a range) plus ShardUp, spinning,
-	-- falling with ShardGravity, fading out over the last ShardFadeSeconds of ShardSeconds.
-	-- On the cloth each bounce keeps ShardBounceSpinShare of its spin, and a shard lying there
-	-- slides to a stop (ShardSlideFriction, a share of its speed lost a second).
-	ShardSpeed = { 3, 7 },
-	ShardUp = 2.5,
-	ShardSpinDegrees = 720,
-	ShardGravity = 18,
-	ShardSeconds = 6.1, -- the designer (2026-09-30): 5 s longer on the table (was 1.1)
-	ShardScale = 1.5, -- the shards drawn this much bigger than the ball's own pieces (they read)
-	ShardFadeSeconds = 0.4,
-	ShardBounceSpinShare = 0.4,
-	ShardSlideFriction = 4,
+	-- The shattered ball's shards: Config.UI.BallShards (shared with Guangdong Tiger's cut).
 	-- The shockwave ring on the cloth: grows to RingBallWidths (a full-power blast; a softer one
 	-- in proportion to its reach) over RingSeconds, fading.
 	RingBallWidths = 22,
@@ -12363,40 +12370,12 @@ Config.UI.GuangdongTigerFx = {
 	FurHold = 0.1,
 	FurFadeOut = 0.15,
 	FurTransparency = 0,
-	-- Each cut ball waits where it was until the cut, then splits along the slash (a burst of
-	-- CutSparks white sparks) into halves HalfScale times its size, each ball CutStaggerSeconds
-	-- after the one before. The halves spring apart at HalfSpeedInches a second (HalfUpInches a
-	-- second up) under HalfGravityInches, bouncing HalfBounce of their fall, sliding to a stop
-	-- (HalfSlideFriction: a share of the speed lost a second) and turning flat up to
-	-- HalfYawDegrees a second; after HalfOpenDelaySeconds each falls open, rocking on its dome
-	-- (HalfRockHz, damped HalfRockDamping) to rest face up. Each cut face starts white-hot (a
-	-- CutRimColor rim round a CutCoreColor core) and cools through CutEmberColor to the ball's
-	-- own colour over CutCoolSeconds, smoking (CutSmokeRate puffs a second of CutSmokeColor,
-	-- easing off over CutSmokeSeconds), the face under it the ball's own colour
-	-- (Config.Balls.Colors). They lie there HalfSeconds (Black Flash's shards' time), fading
-	-- over the last HalfFadeSeconds.
-	HalfScale = 1.25,
+	-- Each cut ball waits where it was until the cut, then shatters as Black Flash's ball does
+	-- (Config.UI.BallShards; the designer, 2026-10-09) in a burst of CutSparks white sparks,
+	-- each ball CutStaggerSeconds after the one before.
 	CutSparks = 8,
 	CutSparkColor = { 255, 245, 225 },
 	CutStaggerSeconds = 0.025,
-	HalfSpeedInches = 12,
-	HalfUpInches = 28,
-	HalfGravityInches = 200,
-	HalfBounce = 0.3,
-	HalfSlideFriction = 5,
-	HalfYawDegrees = 90,
-	HalfOpenDelaySeconds = 0.05,
-	HalfRockHz = 1.4,
-	HalfRockDamping = 0.22,
-	CutRimColor = { 255, 110, 30 },
-	CutCoreColor = { 255, 236, 205 },
-	CutEmberColor = { 120, 20, 8 },
-	CutCoolSeconds = 2.2,
-	CutSmokeRate = 8,
-	CutSmokeColor = { 70, 66, 62 },
-	CutSmokeSeconds = 2.4,
-	HalfSeconds = 6.1,
-	HalfFadeSeconds = 0.5,
 	ModelCheckSeconds = 1, -- while the pieces' model has not arrived, look for it this often
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join): no sounds
 }

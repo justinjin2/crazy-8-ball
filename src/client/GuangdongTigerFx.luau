@@ -5,8 +5,9 @@
 -- slowed); this only draws it, off the replay's `swipe` and `cut` events, so everyone sees it
 -- together. Numbers in Config.UI.GuangdongTigerFx, the sounds in Config.Ults.Audio (Tiger*), the
 -- tiger in the uploaded GuangdongTigerV2 model (one skinned mesh, tools/blender/abilities/
--- tiger_v2.py) played by BoneAnim from the baked TigerAnims, the slash picture and a ball's
--- halves in the older GuangdongTiger model (tools/blender/abilities/tiger.py), the fur frame and
+-- tiger_v2.py) played by BoneAnim from the baked TigerAnims, the slash picture in the older
+-- GuangdongTiger model (tools/blender/abilities/tiger.py), the cut balls' shards BallShards'
+-- (Black Flash's), the fur frame and
 -- the smoke in Config.Ults.Assets.Images (TigerFur, TigerSmoke).
 --
 --   * Armed (from the arming moment until the shot): three glowing claw marks pulse under the
@@ -22,14 +23,13 @@
 --     holds and eases in on it from the swipe to the roar (Camera.setOverride), then hands back
 --     to the table's view.
 --   * Each cut ball ("cut"): the physics took it at once; a copy of it waits where it was until
---     the cut, then splits along the slash into two halves (the ball's own picture) that spring
---     apart, fall open and rock to rest face up on the cloth, their cut faces white-hot and
---     smoking, cooling to the ball's own colour. They lie there by the claw marks as long as
---     Black Flash's shards (HalfSeconds), then fade.
+--     the cut, then shatters exactly as Black Flash's ball does (the designer, 2026-10-09:
+--     BallShards, its shards wearing the ball's own picture flying, falling and sliding to rest
+--     on the cloth, then fading), in a burst of white sparks.
 -- The tiger runs on its own clock (wall time, and the developer's /slowmo), not the replay's
 -- slowed one: the moment's slow (Config.Ults.GuangdongTiger) is sized to its run in and the
 -- cut. Every table's parts hang off its AbilityFx anchor and go with it (kit.onRelease) or with
--- clear(). Without the tiger model the copies still split at the cut's time, and the slashes,
+-- clear(). Without the tiger model the copies still shatter at the cut's time, and the slashes,
 -- the marks, the fur frame, the light and the sounds still show.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -37,6 +37,7 @@ local ContentProvider = game:GetService("ContentProvider")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local BallShards = require(script.Parent:WaitForChild("BallShards"))
 local BoneAnim = require(script.Parent:WaitForChild("BoneAnim"))
 local Camera = require(script.Parent:WaitForChild("Camera"))
 local TigerAnims = require(script.Parent:WaitForChild("TigerAnims"))
@@ -48,7 +49,7 @@ local ANIMS: any = TigerAnims
 
 local EFFECT = "GuangdongTiger"
 local TIGER = "GuangdongTigerV2" -- the skinned tiger
-local PIECES = "GuangdongTiger" -- the slash picture and a ball's halves
+local PIECES = "GuangdongTiger" -- the slash picture
 
 -- Each front paw's three claw tips in the baked data's armature space (at rest, in tiger
 -- lengths): the paw bone's tail (assets/abilities/GuangdongTiger/tiger_v2_anims.json) spread
@@ -105,8 +106,6 @@ end
 
 type Meshes = {
 	slash: MeshPart,
-	halfA: MeshPart, -- its dome along its +Z, the cut at its -Z face
-	halfB: MeshPart, -- its dome along its -Z
 }
 
 -- An air slash: a crescent of beams turned to the camera (an orange-red edge over a white-hot
@@ -129,36 +128,9 @@ type Slash = {
 type Cut = {
 	ball: number,
 	copy: BasePart,
-	texture: string,
-	color: Color3,
-	radius: number,
 	at: Vector3,
 	order: number,
-	splitAt: number?, -- fx clock it splits (set at the cut)
-}
-
--- Half a cut ball: a hemisphere of radius `r` whose cut face's centre (its sphere's centre) is
--- `at`, turned yaw (flat) * angle (about `axis`, falling open) * base (its turn at the split).
-type Half = {
-	part: BasePart,
-	sign: number, -- 1 HalfA, -1 HalfB: its dome along its own sign * Z
-	r: number,
-	at: Vector3,
-	vel: Vector3,
-	base: CFrame,
-	axis: Vector3,
-	rest: number, -- the angle that turns its face straight up (radians)
-	angle: number,
-	spin: number, -- angle's speed (radians a second)
-	yaw: number,
-	yawSpeed: number,
-	floor: number, -- the cloth's height (world Y)
-	born: number,
-	face: Part, -- the cut face (the mesh's own is not drawn face up): the ball's colour
-	rim: Part, -- and over it while hot, a rim disc and a core disc
-	core: Part,
-	smoke: Attachment,
-	emitter: ParticleEmitter,
+	splitAt: number?, -- fx clock it shatters (set at the cut)
 }
 
 type Claw = { tip: Attachment, back: Attachment, trail: Trail }
@@ -225,7 +197,7 @@ type TableFx = {
 	armedPhase: number,
 	tiger: Tiger?,
 	cuts: { Cut },
-	halves: { Half },
+	shards: { BallShards.Shard },
 	slashes: { Slash },
 	clock: number,
 	shotSeq: number,
@@ -288,7 +260,7 @@ local function meshesOf(self: GuangdongTigerFx): Meshes?
 		return nil
 	end
 	local parts: { [string]: MeshPart } = {}
-	for _, name in { "TigerSlash", "HalfA", "HalfB" } do
+	for _, name in { "TigerSlash" } do
 		local part = findPiece(model, name)
 		if part == nil then
 			self.meshesFailed = true
@@ -298,7 +270,7 @@ local function meshesOf(self: GuangdongTigerFx): Meshes?
 		settle(part)
 		parts[name] = part
 	end
-	local out: Meshes = { slash = parts.TigerSlash, halfA = parts.HalfA, halfB = parts.HalfB }
+	local out: Meshes = { slash = parts.TigerSlash }
 	self.meshes = out
 	return out
 end
@@ -310,7 +282,7 @@ local function create(self: GuangdongTigerFx, id: number): TableFx
 		armedPhase = 0,
 		tiger = nil,
 		cuts = {},
-		halves = {},
+		shards = {},
 		slashes = {},
 		clock = 0,
 		shotSeq = -1,
@@ -812,31 +784,9 @@ local function rakeOf(t: Tiger, second: boolean): (Vector3, Vector3)
 	return dir, normal
 end
 
--- The colour inside ball `id` (a stripe's is its stripe's).
-local function insideOf(id: number): { number }
-	local colours = Config.Balls.Colors
-	return colours[if id > 8 then id - 8 else id] or colours[0]
-end
-
--- A disc on a half's cut face (a cylinder: its axis is its X), glowing (Neon) or not.
-local function disc(fx: TableFx, colour: { number }, across: number, hot: boolean): Part
-	local p = Instance.new("Part")
-	p.Name = "TigerCutFace"
-	p.Shape = Enum.PartType.Cylinder
-	p.Material = if hot then Enum.Material.Neon else Enum.Material.SmoothPlastic
-	p.Color = rgb(colour)
-	settle(p)
-	p.CastShadow = false
-	p.Size = Vector3.new(0.006, across, across)
-	p.Parent = fx.anchor
-	return p
-end
-
--- Split cut ball `c` along the first rake's plane: its halves spring apart and fall open.
-local function split(self: GuangdongTigerFx, id: number, fx: TableFx, t: Tiger, c: Cut)
+-- Cut ball `c` shatters as Black Flash's does (BallShards), in a burst of white sparks.
+local function shatter(self: GuangdongTigerFx, id: number, fx: TableFx, c: Cut)
 	local kit = self.kit
-	local studs = Config.Table.StudsPerInch
-	-- White sparks where the slash crosses the ball.
 	local holder = kit.attachment(id, "TigerCutSparks", c.at)
 	local sparks = kit.particles(holder, {
 		Color = ColorSequence.new(rgb(F.CutSparkColor)),
@@ -847,169 +797,12 @@ local function split(self: GuangdongTigerFx, id: number, fx: TableFx, t: Tiger, 
 	kit.later(id, 1.5, function()
 		holder:Destroy()
 	end)
-	local meshes = meshesOf(self)
+	fx.shards = BallShards.burst(kit, fx.anchor, c.copy, c.at, fx.clock, fx.shards)
 	c.copy:Destroy()
-	if meshes == nil then
-		return -- without the halves the ball just goes, in its sparks
-	end
-	-- The cut's plane holds the slash and its face (seen edge on: the ball parts along the
-	-- slash on the screen); HalfA's dome is the plane's +Z side.
-	local base = CFrame.fromMatrix(Vector3.zero, t.slashDir, t.slashNormal)
-	local r = c.radius * F.HalfScale
-	for k, template in { meshes.halfA, meshes.halfB } do
-		local sign = if k == 1 then 1 else -1
-		local part = template:Clone()
-		part.TextureID = c.texture
-		part.Color = c.color
-		part.Material = Enum.Material.SmoothPlastic
-		part.Size = template.Size * r -- the template is a unit ball's half
-		part.CastShadow = true
-		part.Transparency = 0
-		part.Parent = fx.anchor
-		local dome = base.ZVector * sign
-		local face = -dome
-		-- It falls open about the cut line, its face turning up.
-		local axis = face:Cross(Vector3.yAxis)
-		local rest
-		if axis.Magnitude < 1e-3 then
-			axis = flat(t.slashDir) or Vector3.xAxis
-			rest = if face.Y > 0 then 0 else math.pi
-		else
-			axis = axis.Unit
-			rest = math.acos(math.clamp(face.Y, -1, 1))
-		end
-		local smoke = kit.attachment(id, "TigerCutSmoke", c.at)
-		local emitter = kit.particles(smoke, {
-			Texture = IMAGES.TigerSmoke,
-			Color = ColorSequence.new(rgb(F.CutSmokeColor)),
-			LightEmission = 0,
-			LightInfluence = 1,
-			Size = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, r * 0.35),
-				NumberSequenceKeypoint.new(1, r * 1.5),
-			}),
-			Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 1),
-				NumberSequenceKeypoint.new(0.15, 0.5),
-				NumberSequenceKeypoint.new(1, 1),
-			}),
-			Lifetime = NumberRange.new(0.9, 1.4),
-			Speed = NumberRange.new(r * 1.5, r * 2.5),
-			SpreadAngle = Vector2.new(12, 12),
-			Acceleration = Vector3.new(0, r * 1.5, 0),
-			Drag = 1.5,
-			RotSpeed = NumberRange.new(-40, 40),
-		})
-		local speed = F.HalfSpeedInches * studs
-		table.insert(fx.halves, {
-			part = part :: BasePart,
-			sign = sign,
-			r = r,
-			at = c.at,
-			vel = dome * speed + t.forward * speed * 0.2 + Vector3.yAxis * F.HalfUpInches * studs,
-			base = base,
-			axis = axis,
-			rest = rest,
-			angle = 0,
-			spin = 0,
-			yaw = 0,
-			yawSpeed = math.rad(F.HalfYawDegrees) * (0.4 + 0.6 * self.rng:NextNumber()) * sign,
-			floor = c.at.Y - c.radius,
-			born = fx.clock,
-			face = disc(fx, insideOf(c.ball), 2 * r * 0.995, false),
-			rim = disc(fx, F.CutRimColor, 2 * r * 0.99, true),
-			core = disc(fx, F.CutCoreColor, 2 * r * 0.78, true),
-			smoke = smoke,
-			emitter = emitter,
-		})
-	end
-	kit.keep(id, F.HalfSeconds + 0.5)
+	kit.keep(id, Config.UI.BallShards.Seconds + 0.5)
 end
 
-local function dropHalf(h: Half)
-	h.part:Destroy()
-	h.face:Destroy()
-	h.rim:Destroy()
-	h.core:Destroy()
-	h.smoke:Destroy() -- its smoke with it
-end
-
--- One step of a half: flying, bouncing, falling open and rocking to rest face up on the cloth,
--- sliding to a stop. Returns its turn and its dome's way (world).
-local function moveHalf(h: Half, age: number, dt: number): (CFrame, Vector3)
-	local up = Vector3.yAxis
-	local g = F.HalfGravityInches * Config.Table.StudsPerInch
-	h.vel -= up * g * dt
-	h.at += h.vel * dt
-	if age >= F.HalfOpenDelaySeconds then
-		local w = 2 * math.pi * F.HalfRockHz
-		h.spin += (-w * w * (h.angle - h.rest) - 2 * F.HalfRockDamping * w * h.spin) * dt
-		h.angle += h.spin * dt
-	end
-	h.yaw += h.yawSpeed * dt
-	local yaw = CFrame.fromAxisAngle(up, h.yaw)
-	local turn = yaw * CFrame.fromAxisAngle(h.axis, h.angle) * h.base
-	local dome = turn:VectorToWorldSpace(Vector3.new(0, 0, h.sign))
-	-- Its lowest point: on the dome while that faces down at all, else on the face's rim.
-	local domeDown = dome.Y <= 0
-	local low = if domeDown then h.r else h.r * math.sqrt(math.max(0, 1 - dome.Y * dome.Y))
-	if h.at.Y - low <= h.floor then
-		h.at = Vector3.new(h.at.X, h.floor + low, h.at.Z)
-		if h.vel.Y < 0 then
-			local bounce = -h.vel.Y * F.HalfBounce
-			h.vel = Vector3.new(h.vel.X, if bounce > g * 0.03 then bounce else 0, h.vel.Z)
-			h.yawSpeed *= 0.6
-		end
-		-- On the cloth it slides to a stop, and rocking on its dome rolls it along.
-		local keep = math.max(0, 1 - F.HalfSlideFriction * dt)
-		h.vel = Vector3.new(h.vel.X * keep, h.vel.Y, h.vel.Z * keep)
-		h.yawSpeed *= keep
-		if domeDown then
-			local roll = yaw:VectorToWorldSpace(h.axis) * h.spin
-			h.at += roll:Cross(up * h.r) * dt
-		end
-	end
-	return turn, dome
-end
-
-local function stepHalves(fx: TableFx, dt: number)
-	local keep = {}
-	for _, h in fx.halves do
-		local age = fx.clock - h.born
-		if age >= F.HalfSeconds or h.part.Parent == nil then
-			dropHalf(h)
-			continue
-		end
-		-- Small steps, so a slow frame cannot throw the rocking.
-		local steps = math.clamp(math.ceil(dt * 60), 1, 4)
-		local turn, dome = h.base, h.base.ZVector * h.sign
-		for k = 1, steps do
-			turn, dome = moveHalf(h, age - dt + dt * k / steps, dt / steps)
-		end
-		local seen = 1 - clamp01((age - (F.HalfSeconds - F.HalfFadeSeconds)) / F.HalfFadeSeconds)
-		-- The part is its box's centre: half its radius out along the dome from the cut face.
-		h.part.CFrame = CFrame.new(h.at + dome * (h.r / 2)) * turn
-		h.part.Transparency = 1 - seen
-		-- The cut face: white-hot, cooling through orange to an ember, then the ball's own.
-		local face = (turn * CFrame.Angles(0, math.pi / 2, 0)).Rotation
-		local cool = clamp01(age / F.CutCoolSeconds)
-		h.face.CFrame = CFrame.new(h.at - dome * 0.002) * face
-		h.face.Transparency = 1 - seen
-		h.rim.CFrame = CFrame.new(h.at - dome * 0.005) * face
-		h.rim.Color = rgb(F.CutRimColor):Lerp(rgb(F.CutEmberColor), cool)
-		h.rim.Transparency = math.max(1 - seen, smooth((cool - 0.6) / 0.4))
-		h.core.CFrame = CFrame.new(h.at - dome * 0.009) * face
-		h.core.Color = rgb(F.CutCoreColor):Lerp(rgb(F.CutRimColor), clamp01(cool / 0.5))
-		h.core.Transparency = math.max(1 - seen, smooth((cool - 0.25) / 0.45))
-		h.smoke.WorldPosition = h.at - dome * (h.r * 0.05)
-		local smoking = clamp01(1 - age / F.CutSmokeSeconds)
-		h.emitter.Rate = if age > 0.1 then F.CutSmokeRate * smoking else 0
-		table.insert(keep, h)
-	end
-	fx.halves = keep
-end
-
--- A rake's moment: its slashes in the air and on the cloth; the first is the cut (the halves,
+-- A rake's moment: its slashes in the air and on the cloth; the first is the cut (the shards,
 -- the screen at full), the second crosses it.
 local function strike(self: GuangdongTigerFx, id: number, fx: TableFx, t: Tiger, second: boolean)
 	local kit = self.kit
@@ -1263,9 +1056,9 @@ local function swipe(
 		self.camera = t
 	end
 	fx.tiger = t
-	-- Held until the tiger and the halves are gone (the replay may end first), at /slowmo.
+	-- Held until the tiger and the shards are gone (the replay may end first), at /slowmo.
 	local rate = if type(m.timeScale) == "number" then m.timeScale else 1
-	kit.keep(id, (times.gone + F.HalfSeconds) / math.max(rate, 0.05) + 0.5)
+	kit.keep(id, (times.gone + Config.UI.BallShards.Seconds) / math.max(rate, 0.05) + 0.5)
 end
 
 -- Ball `ballId` was cut from `at` (table inches): a copy waits there for the cut.
@@ -1301,16 +1094,13 @@ local function cut(
 	local entry: Cut = {
 		ball = ballId,
 		copy = copy,
-		texture = if copy:IsA("MeshPart") then (copy :: MeshPart).TextureID else "",
-		color = copy.Color,
-		radius = part.Size.X / 2,
 		at = at,
 		order = order,
 		splitAt = nil,
 	}
 	local t = fx.tiger
 	if t and t.struck then
-		-- Too late for the cut (never, as the physics cuts at the swipe): split now.
+		-- Too late for the cut (never, as the physics cuts at the swipe): shatter now.
 		entry.splitAt = fx.clock
 	end
 	table.insert(fx.cuts, entry)
@@ -1324,7 +1114,7 @@ local function stepCuts(self: GuangdongTigerFx, id: number, fx: TableFx)
 			continue
 		end
 		if c.splitAt and fx.clock >= c.splitAt and t then
-			split(self, id, fx, t, c)
+			shatter(self, id, fx, c)
 			continue
 		end
 		if t == nil then
@@ -1453,9 +1243,7 @@ local function destroy(self: GuangdongTigerFx, id: number)
 	for _, c in fx.cuts do
 		c.copy:Destroy()
 	end
-	for _, h in fx.halves do
-		dropHalf(h)
-	end
+	BallShards.drop(fx.shards)
 	for _, s in fx.slashes do
 		dropSlash(s)
 	end
@@ -1520,13 +1308,13 @@ function GuangdongTigerFx.update(self: GuangdongTigerFx, dt: number)
 		stepTiger(self, id, live)
 		stepCuts(self, id, live)
 		stepSlashes(live)
-		stepHalves(live, step)
+		live.shards = BallShards.step(live.shards, live.clock, step)
 		if
 			not wantArmed
 			and not shot
 			and live.tiger == nil
 			and #live.cuts == 0
-			and #live.halves == 0
+			and #live.shards == 0
 			and #live.slashes == 0
 		then
 			destroy(self, id)
