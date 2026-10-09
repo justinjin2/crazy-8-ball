@@ -281,7 +281,7 @@ perk text. Don't change any of these products: the designer approves them later.
   `python3 ~/Desktop/8ball-refs/economy/economy_v5_sim.py --selftest` and `--only plan` and check
   it matches `economy_v5_plan.txt` (small differences are fine if Config changed since: note
   them); push `gui-v4`.
-- [ ] 1. Read section 2; write the touch list (every file you expect to change) in Notes.
+- [x] 1. Read section 2; write the touch list (every file you expect to change) in Notes.
 - [ ] 2. The ladder (3.1).
 - [ ] 3. Unclimbed and climbed blocks, saves and shims (3.2).
 - [ ] 4. Pity (3.3).
@@ -308,3 +308,27 @@ perk text. Don't change any of these products: the designer approves them later.
   `economy_model.py` baseline saved to `~/Desktop/8ball-refs/economy/v5-build/baseline.txt`
   (v4: every target met); `economy_v5_sim.py --selftest` True; `--only plan` is identical to
   `economy_v5_plan.txt` (no Config change since). No git-ignored tool files were needed.
+- **Touch list (step 1):**
+  - Config: `BlockOdds` (a `Climb` table: the six steps, the Secret on top, the Grand Opening
+    Luck's steps and window; the tier rows become "the climbed block": exactly its rarity;
+    `Drop`: pity 10 / 40 with `PityStart` 2 / 10, the win track with "Money" steps and
+    `WinTrackMoney`; `Upgrade.Chances` and `Weights` go: the ladder computes them),
+    `LuckyBlocks.Kinds` (`Climb` = the start; `Wait` = the Gift's 12 h before its climb;
+    `Reveal.Tiers.Secret` for the Mystery screen), `Skips` (the 1 R$ row), `Daily`, `Social`,
+    `Planned`, `Shop` (`Mystery`, `Deals.Mystery`, `Restock`, `LaunchBonus`), `Trade`
+    (`BlockExists`), `Products` (`Mystery5` Id 0, `LuckyBlockSkip1`, `Mystery10` retired).
+  - Shared: `BlockDrop` (the climb from any start, luck, pity, `startOf` with a floor, `path`,
+    the odds lists for every kind), `BlockOdds`, `LuckyBlocks` (climbed/unclimbed, timers,
+    `Wait`, skip credits by product, Open all), `Catalog` (`WeekOneCue`, block cues with no
+    rows drop from nothing), `SaveSchema` (version 11), `Daily` (cues in rewards),
+    `RewardView` (money steps, the cue), `Restock` (slot 1's table), `Shop`, `ShopView`,
+    `Trade` (climbed items, worth), `Strings`.
+  - Server: `PlayerData` (climb, open, win track money, credits), `LuckyBlockService` (the
+    general climb request, the Hold shim, the Secret, Open all, the 1 in N), `Ranking` (the
+    money step), `Announce` (1 in N), `Store` (skip tiers, Mystery5), `Trading`, `DevCommands`.
+  - Client shims only: `LuckyClient` (a Secret result), `OddsDetails` (climb odds for an
+    unclimbed kind's dice).
+  - Tests: blockdrop, blockodds, luckyblocks, save_schema, daily, restock, shop, trade,
+    catalog, inventory, config. Tools: `economy_model.py`, `export_economy.luau`,
+    `economy_config.json`, `products_spec.json`, `products_ids.json`. Docs: ECONOMY, GDD 11-12,
+    DECISIONS, ROADMAP, STATUS, the hand-off and the report.
