@@ -24,8 +24,8 @@
 -- what this shot paid so far: the ball that crosses a cap pays in full, what comes after it
 -- (its own nice shot too) at the capped rate.
 local Config = require(script.Parent.Parent.Config)
-local Judge = require(script.Parent.Parent.Rules.ShotJudge)
 local NiceShot = require(script.Parent.Parent.Rules.NiceShot)
+local Streak = require(script.Parent.Parent.Rules.Streak)
 
 local E = Config.Economy
 local NICE_PAY: { [string]: number } = E.NiceShotPay :: any
@@ -159,26 +159,19 @@ function Money.farmRow(matchNumberToday: number): FarmRow
 	return table.clone(rows[#rows])
 end
 
--- Whether ball `ball` dropping on this shot counts for the shooter's team.
+-- Whether ball `ball` dropping on this shot counts for the shooter's team: the one rule the
+-- ball streak uses too (Rules/Streak), so the streak and the pay never disagree.
 local function counts(input: ShotInput, ball: number): boolean
-	if input.foul or ball == 0 then
-		return false
-	end
-	if ball == 8 then
-		return input.reason == "LegalEight" and input.winner == input.team
-	end
-	local group = Judge.group(ball)
-	if group == nil then
-		return false
-	end
-	if input.breakShot then
-		return true
-	end
-	local mine = input.groupsAfter[input.team]
-	if mine == nil then
-		return false -- still open after the shot: an early 8, never a legal pot
-	end
-	return input.opponent == "Solo" or input.groupsBefore[input.team] == nil or group == mine
+	return Streak.counts(ball, {
+		foul = input.foul,
+		breakShot = input.breakShot,
+		groupsBefore = input.groupsBefore,
+		groupsAfter = input.groupsAfter,
+		team = input.team,
+		winner = input.winner,
+		reason = input.reason,
+		solo = input.opponent == "Solo",
+	})
 end
 
 --- What one shot pays one player, grant by grant in the order the balls dropped (the order of
