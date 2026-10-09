@@ -58,7 +58,7 @@ return {
 		L.add(state, "Standard", 100)
 		H.expect(L.finishTimers(state, 200) == 1, "only the one still waiting")
 		H.expect(L.isReady(state.List[1], 200) and state.List[1].Paid == nil, "ready, not paid")
-		H.expect(L.kind("Mystery").Roll == true and L.kind("Mystery").Odds == nil, "Mystery")
+		H.expect(L.kind("Mystery").Pity == true and L.kind("Mystery").Odds == nil, "Mystery")
 		-- A new block of a climbing kind arrives unclimbed, with no timer (economy v5).
 		local fresh = L.add(state, "Mythic", 500)
 		H.expect(fresh.ReadyAt == 500 and fresh.Climbed == nil and L.unclimbed(fresh), "unclimbed")

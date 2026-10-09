@@ -765,15 +765,4 @@ return {
 			BlockDrop.climbFor("Standard", never, { pity = fresh(), forced = "Gold" })
 		H.expect(ready2 == false and after ~= nil and (after :: any).Total == 1, "pity as a roll")
 	end,
-	["the climb screen's shim shows the Secret as the top block tier"] = function()
-		local D = load()
-		local shown = D.shown({ "Legendary", "Mythic", "Secret", "Secret" })
-		H.expect(
-			shown[1] == "Legendary" and shown[2] == "Mythic" and shown[3] == "Mythic",
-			"Secret shown as Mythic"
-		)
-		H.expect(shown[4] == "Mythic", "every Secret press")
-		local plain = D.shown({ "Standard", "Uncommon", "Uncommon", "Rare" })
-		H.expect(plain[4] == "Rare" and plain[1] == "Standard", "block tiers unchanged")
-	end,
 }

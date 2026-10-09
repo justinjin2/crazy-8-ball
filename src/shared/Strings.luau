@@ -1007,7 +1007,7 @@ return {
 			NoBody = "You can't throw that right now.",
 			TooFar = "Get closer to the block.",
 			NotLanded = "Wait for it to land.",
-			Reveal = "Tap the Mystery block's slot to open it!",
+			Reveal = "Tap the block's slot to open it!", -- an unclimbed block climbs first
 			NotMystery = "That block opens in the world.",
 			Climb = "Tap the block's slot to climb it first!", -- an unclimbed block (economy v5)
 			NoneReady = "No Standard or Uncommon blocks are ready to open.", -- Open all
@@ -1020,9 +1020,18 @@ return {
 		OpenAll = "Open all",
 		OpenAllSummary = "%d blocks opened!",
 		OpenAllOne = "1 block opened!",
-		-- The Mystery block's upgrade screen (MysteryReveal).
+		-- The climb screen (MysteryReveal; the Mystery block's upgrade screen, every unclimbed
+		-- block's since economy v5).
 		Reveal = {
-			Title = "MYSTERY", -- over the block before the first press
+			Title = "MYSTERY", -- over the Mystery block before the first press
+			-- Over another block that is not a tier block before the first press (a tier block
+			-- shows its tier's name).
+			Kinds = {
+				Lucky8 = "LUCKY 8",
+				Sky = "SKY",
+				Gift = "GIFT",
+			} :: { [string]: string },
+			SecretMark = "?", -- over the Secret's dark silhouette (there is no Secret block)
 			Tiers = {
 				Standard = "STANDARD",
 				Uncommon = "UNCOMMON",

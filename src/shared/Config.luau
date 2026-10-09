@@ -2152,9 +2152,9 @@ Config.LuckyBlocks = {
 	-- of a climbing kind arrives unclimbed, with no timer (Wait: the Gift's comeback wait
 	-- before its climb); its climb (BlockDrop.climbRoll) turns it into the climbed block of
 	-- the tier it reached, which waits on that tier's Timer, then opens to a cue of exactly
-	-- that rarity (its Odds row). Pity: the Mystery block's pity counters apply. Roll: the
-	-- client opens it on the climb screen today (MysteryReveal; the GUI session takes every
-	-- unclimbed block there). Odds: the Config.BlockOdds row a climbed block (or a block that
+	-- that rarity (its Odds row); every unclimbed block climbs on the climb screen
+	-- (MysteryReveal) from its hotbar slot's OPEN!. Pity: the Mystery block's pity counters
+	-- apply. Odds: the Config.BlockOdds row a climbed block (or a block that
 	-- never climbs: the Grand Opening and Starter blocks) rolls. Timer: seconds after a
 	-- climbed (or never-climbing) block lands until it can be opened (0: at once); a bought
 	-- block (Paid) opens at once, and so does every block of a VIP (VipTimerFactor 0). Model:
@@ -2235,7 +2235,6 @@ Config.LuckyBlocks = {
 			Icon = "rbxassetid://76412774878315",
 			Climb = "Standard",
 			Pity = true,
-			Roll = true,
 			Timer = 0,
 			Model = "MysteryBlock", -- frame C (flush rims), the moving rainbow
 			Idle = BOX_IDLE,
@@ -2489,9 +2488,10 @@ Config.LuckyBlocks = {
 	Reveal = {
 		DisplayOrder = 40, -- over the hotbar and the HUD
 		-- The layout (designer's pick "mystery_reveal B", the Track, 2026-10-08), top to bottom:
-		-- the white pill "Mystery Lucky Block - 2 / 4", the tier's name, the block, its press
-		-- dots, the white Tap! button; along the bottom the ladder of the six tiers, joined by a
-		-- line filled up to the tier on show. Shares of the screen's height unless named; the
+		-- the white pill "Mystery Lucky Block - 2 / 4" (every unclimbed block's own name since
+		-- economy v5), the tier's name, the block, its press dots, the white Tap! button; along
+		-- the bottom the climb's ladder of seven tiers (Config.BlockOdds.Climb.Tiers, the Secret
+		-- on top), joined by a line filled up to the tier on show. Shares of the screen's height unless named; the
 		-- block takes the room left between the name and the dots, at most BlockShare
 		-- (designer, 2026-10-09: the two lines under the pill went, the block got their room;
 		-- 0.35 fills a phone's room, was 0.32).
@@ -2545,7 +2545,7 @@ Config.LuckyBlocks = {
 			Seconds = 0.55,
 			ArcShare = 0.35, -- how high above the straight line the arc rises, of the screen
 			FromTurn = -25, -- degrees at the start
-			TitleAt = 0.35, -- the pill, the decided line and the pity counters pop in
+			TitleAt = 0.35, -- the pill pops in (the climb screen shows no pity: designer, 2026-10-09)
 			DotsAt = 0.45, -- the ladder and the dots pop in, the dots one after another
 			DotStagger = 0.05,
 			HintAt = 0.7,
@@ -2604,6 +2604,19 @@ Config.LuckyBlocks = {
 		DotPulse = { Seconds = 0.9, Transparency = { 0.15, 0.85 }, HaloShare = 1.9 },
 		DoneHintDelay = 0.55, -- after the last press settles, "Tap to collect" shows
 		AutoCollect = 4, -- seconds after the last press: it collects by itself
+		-- A climb that reached the Secret (economy v5: no block lands): this long after the
+		-- last press settles, the screen hands over to the Secret's pull cutscene (LuckyOpening
+		-- .pull), with no "Tap to collect".
+		SecretHandOffSeconds = 0.9,
+		-- The Secret's picture (there is no Secret block): the Mythic block's icon drawn as a
+		-- near-black silhouette (Tint; Config.UI.Kit.Rarity.Secret) with a red "?" over it
+		-- (MarkColor, MarkShare of the block's side), on the block and on the ladder's top rung.
+		Secret = {
+			Icon = "rbxassetid://125009619556113", -- Config.LuckyBlocks.Kinds.Mythic.Icon
+			Tint = { 30, 24, 32 },
+			MarkColor = { 255, 48, 72 },
+			MarkShare = 0.42,
+		},
 		-- The jump back: everything else shrinks and fades, the block arcs into its slot.
 		Leave = { Seconds = 0.6, ArcShare = 0.2, FadeSeconds = 0.25, ToTurn = 20 },
 		-- Pictures (Config.UI.Kit.Art and Config.UI.Effects): the particles' shapes.
@@ -2847,6 +2860,44 @@ Config.LuckyBlocks = {
 					},
 				},
 			},
+			-- The Secret (economy v5: the ladder's top; no block): red on near-black, red and
+			-- white sparks bursting and a slow red glow rising.
+			Secret = {
+				Color = { 255, 48, 72 },
+				Glow = { 255, 40, 60 },
+				Particles = {
+					{
+						Image = "Streak",
+						Colors = { { 255, 60, 80 }, { 255, 255, 255 } },
+						Rate = 8,
+						Life = { 0.35, 0.6 },
+						Size = { 0.25, 0.4 },
+						Speed = { 1.2, 1.8 },
+						Mode = "Burst",
+						Spin = 0,
+					},
+					{
+						Image = "Spark",
+						Colors = { { 255, 40, 60 }, { 255, 255, 255 } },
+						Rate = 10,
+						Life = { 0.6, 1 },
+						Size = { 0.08, 0.14 },
+						Mode = "Twinkle",
+						Spin = 160,
+						Speed = { 0, 0 },
+					},
+					{
+						Image = "Glow",
+						Colors = { { 255, 40, 60 } },
+						Rate = 8,
+						Life = { 1.4, 2.2 },
+						Size = { 0.04, 0.08 },
+						Speed = { 0.25, 0.4 },
+						Mode = "Rise",
+						Spin = 0,
+					},
+				},
+			},
 		},
 	},
 	-- The screens (LuckyHotbar, LuckyWorld, LuckyOpening).
@@ -2865,7 +2916,12 @@ Config.LuckyBlocks = {
 		BottomPx = 10, -- the hotbar's gap from the bottom of the screen
 		NumberPx = 14, -- the slot's number, top-left
 		TimerPx = 14, -- the countdown along the slot's bottom
-		OpenPx = 16, -- a ready Mystery block's OPEN! along the slot's bottom (gold, pulsing)
+		OpenPx = 16, -- a ready unclimbed block's OPEN! along the slot's bottom (gold, pulsing)
+		-- An unclimbed block's mark (economy v5: it still climbs; a climbed block has none), in
+		-- the slot's top-right corner: the climb screen's up arrow in gold on a small ink disc
+		-- with a white ring. Share: the disc, of the slot's side (at least MinPx); InsetPx: from
+		-- the corner; ArrowShare: the arrow, of the disc.
+		ClimbMark = { Share = 0.3, MinPx = 16, InsetPx = 3, ArrowShare = 0.86, RingPx = 1.5 },
 		IconTurnDegreesPerSecond = 30, -- the 3D icon turns slowly
 		IconImageShare = 0.9, -- a slot's 2D icon (the kind's Icon), of the slot's side
 		IconFieldOfView = 30,

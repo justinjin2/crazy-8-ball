@@ -11,7 +11,8 @@
 -- <CUE>!" card (LuckyResult) over the dimmed world with rays in the rarity's colour. A tap,
 -- click or A skips the reel, then the cutscene (an old one, once it has been seen; never Rare),
 -- then closes the card; the cue is already in the inventory. The rest of the HUD
--- hides while it is up. Tuning in Config.LuckyBlocks.UI; the reel's own in Config.UI.Reel.
+-- hides while it is up. A climb that reached the Secret skips the reel (`pull`): its pull
+-- cutscene, then the card. Tuning in Config.LuckyBlocks.UI; the reel's own in Config.UI.Reel.
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -199,6 +200,59 @@ function Opening.play(
 			self:startReel(kind, cueId, rarity, reelOdds)
 		end
 	end)
+end
+
+--- A climb that reached the Secret (economy v5 plan 2.7: there is no Secret block): straight to
+--- the cue's pull cutscene with no reel (the climb screen was the show), then the "YOU GOT"
+--- card. The cue is already the player's. `onClosed` runs once it is gone.
+function Opening.pull(self: any, cueId: string, rarity: string, onClosed: (() -> ())?)
+	if self.open then
+		self:close()
+	end
+	self.open = true
+	self.onClosed = onClosed
+	self.playId = (self.playId or 0) + 1
+	self.cueId, self.rarity = cueId, rarity
+	self:hideOthers()
+	ScreenBlur.set(self, true)
+	local stage = ReelFx.stage(self.area, "Stage")
+	self.stage = stage
+	-- The card's layout reads these; nothing shows them here.
+	self.title = HudParts.text(stage.frame, "Title", CO.TitlePx, "")
+	self.title.Visible = false
+	self.hint = HudParts.text(stage.frame, "Hint", CO.HintPx, "")
+	self.hint.Visible = false
+	ContextActionService:BindActionAtPriority(
+		TAP_ACTION,
+		function(_, state: Enum.UserInputState)
+			if state == Enum.UserInputState.Begin then
+				self:tap()
+			end
+			return Enum.ContextActionResult.Sink
+		end,
+		false,
+		TAP_PRIORITY,
+		Enum.KeyCode.ButtonA,
+		Enum.KeyCode.ButtonB,
+		Enum.KeyCode.Return,
+		Enum.KeyCode.Space,
+		Enum.KeyCode.Escape
+	)
+	self.phase = "Scene"
+	local function card()
+		self.gui.Enabled = true
+		self.backGui.Enabled = true
+		self:showCard()
+	end
+	local ok = pcall(PullCutscene.play, rarity, cueId, function()
+		local phase: string = self.phase
+		if self.open and phase == "Scene" then
+			card()
+		end
+	end, function() end)
+	if not ok then
+		card()
+	end
 end
 
 -- The odds row's Unique rows closed for this player (the Grand Opening's: one they own, or

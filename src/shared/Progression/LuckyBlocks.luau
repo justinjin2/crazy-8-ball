@@ -23,7 +23,6 @@ export type Kind = {
 	Odds: string?, -- the Config.BlockOdds row a climbed (or never-climbing) block of it rolls
 	Climb: string?, -- the tier it climbs from (economy v5); nil: it never climbs
 	Pity: boolean?, -- the Mystery block: its climb uses the pity counters
-	Roll: boolean?, -- the client opens it on the climb screen today (the Mystery block)
 	Timer: number,
 	Wait: number?, -- seconds an unclimbed block waits before it can climb (the Gift)
 	Model: string,

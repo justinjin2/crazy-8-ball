@@ -501,19 +501,6 @@ function BlockDrop.path(final: string, rng: (number) -> number, start: string?):
 	return tiers
 end
 
---- A press path as today's climb screen can show it (a shim until the GUI session's screen
---- knows the Secret): every tier that is not a block (the Secret) shown as the top block tier.
-function BlockDrop.shown(tiers: { string }): { string }
-	local top = C.Order[#C.Order]
-	local out = table.clone(tiers)
-	for i, tier in out do
-		if not BlockDrop.isBlockTier(tier) then
-			out[i] = top
-		end
-	end
-	return out
-end
-
 ---------------------------------------------------------------------------------------------
 -- Checks
 ---------------------------------------------------------------------------------------------

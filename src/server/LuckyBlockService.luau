@@ -9,13 +9,9 @@
 --   release) moves it to the floor in front, in Workspace[Config.LuckyBlocks.LiveFolder], one
 --   or more per player; Open (after the owner's native prompt hold) rolls the cue from the
 --   block's odds row with server RNG, opens it through PlayerData.openLuckyBlock and starts
---   the rise; Reveal is the climb (economy v5: any unclimbed block, PlayerData.climbBlock; the
---   client sends it for the Mystery block today); Move reorders the hotbar and bag. Every
---   answer is { ok = true, ... } or { ok = false, reason }.
--- - The v5 shim until the climb screen takes every block (the GUI session): holding (or
---   throwing) an unclimbed block that is not a Mystery block climbs it here first, so it is
---   held as its climbed tier on that tier's timer; a Secret climb gives the cue at once and
---   the Hold answer carries it (`secret`) so the client plays the reel.
+--   the rise; Reveal is the climb (economy v5: every unclimbed block climbs on the climb
+--   screen first, PlayerData.climbBlock; Hold and Throw refuse it with "Reveal"); Move
+--   reorders the hotbar and bag. Every answer is { ok = true, ... } or { ok = false, reason }.
 -- - A thrown block's model carries attributes every client animates from (LuckyWorld): Owner
 --   (UserId), BlockId, Kind, Phase ("Flying", "Landed", "Rising", "Burst") and PhaseAt (server
 --   time), plus To (its landing CFrame). The server moves it to To when the flight ends.
@@ -295,26 +291,6 @@ local function climbHooks(player: Player, kind: string): (boolean, string?)
 	return stay, if type(forced) == "string" then forced else nil
 end
 
--- The Hold and Throw shim (economy v5): an unclimbed block that is not a Mystery block (the
--- client climbs those on their screen) climbs here first. Returns nil when there was nothing to
--- climb or it is still on its Gift wait, the climb's answer otherwise (a Secret: the block is
--- gone and the cue given).
-local function climbFirst(player: Player, block: LuckyBlocks.Block): any?
-	local row = LuckyBlocks.kind(block.Kind) :: LuckyBlocks.Kind
-	if row.Roll or not LuckyBlocks.unclimbed(block) then
-		return nil
-	end
-	local stay, forced = climbHooks(player, block.Kind)
-	local ok, result = PlayerData.climbBlock(player, block.Id, stay, forced)
-	if not ok then
-		return nil
-	end
-	if result.secret then
-		climbedSecret(player, result)
-	end
-	return result
-end
-
 function HANDLERS.Hold(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local id = r.id
 	if id == nil then
@@ -324,26 +300,9 @@ function HANDLERS.Hold(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local block = LuckyBlocks.find(data.LuckyBlocks, id)
 	if block == nil then
 		return refuse("NotOwned")
-	elseif (LuckyBlocks.kind(block.Kind) :: LuckyBlocks.Kind).Roll then
-		return refuse("Reveal") -- a Mystery block opens on its climb screen (Reveal)
+	elseif LuckyBlocks.unclimbed(block) then
+		return refuse("Reveal") -- an unclimbed block climbs on its climb screen first (Reveal)
 	end
-	local climbed = climbFirst(player, block)
-	if climbed and climbed.secret then
-		-- The block is gone: the client plays the reel for the Secret cue.
-		dropHeld(player)
-		return {
-			ok = true,
-			secret = {
-				cue = climbed.cue,
-				rarity = climbed.rarity,
-				kind = climbed.from,
-				new = climbed.new,
-				found = climbed.found,
-				count = climbed.count,
-			},
-		}
-	end
-	block = LuckyBlocks.find(data.LuckyBlocks, id) :: LuckyBlocks.Block
 	local l = live[player]
 	if l and l[id] then
 		return refuse("Busy")
@@ -461,15 +420,8 @@ function HANDLERS.Throw(player: Player, r: LuckyBlocks.Request, data: any): Repl
 	if block == nil then
 		return refuse("NotOwned")
 	end
-	-- A Gift held through its wait climbs now (the v5 shim); a Secret leaves nothing to throw.
-	local climbed = climbFirst(player, block)
-	if climbed and climbed.secret then
-		dropHeld(player)
-		return refuse("NotOwned")
-	end
-	block = LuckyBlocks.find(data.LuckyBlocks, id) :: LuckyBlocks.Block
 	if LuckyBlocks.unclimbed(block) then
-		return refuse("NotReady")
+		return refuse("Reveal") -- it climbs on its climb screen first
 	end
 	-- A block still on its timer stays in the hands (the designer, 2026-10-09: no placing it
 	-- until it is ready; the client offers the skip). The real timer for everyone: the
@@ -764,12 +716,11 @@ end
 -- The climb (economy v5 plan 3.5; the Mystery block's upgrade screen since 2026-10-07): the
 -- server rolls the final tier and the path of its presses and turns the block into that tier's
 -- climbed block at once (PlayerData.climbBlock), so leaving mid-screen loses nothing; the
--- client only plays the path. Any unclimbed block may climb this way (the client sends it for
--- the Mystery block today); the tutorial's stay and script hooks apply. The answer: { id,
--- tiers, path, kind, readyAt, pity, from, luck }, and for a Secret climb { secret = true, cue,
--- rarity, new, found, count }. `path` is the true path (the Secret on top of the ladder);
--- `tiers` is the same with the Secret shown as Mythic and `kind` Mythic for a Secret (a shim:
--- today's screen knows six tiers and lands a block).
+-- client only plays the path. Every unclimbed block climbs this way (the climb screen,
+-- MysteryReveal); the tutorial's stay and script hooks apply. The answer: { id, path, kind,
+-- readyAt, pity, from, luck }, and for a Secret climb { secret = true, cue, rarity, new,
+-- found, count } (no block: no kind, no readyAt). `path` is one tier per press, the Secret on
+-- top of the ladder.
 function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local id = r.id :: number
 	local h = held[player]
@@ -802,13 +753,11 @@ function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, data: any): Rep
 	if L.Test.Refill and isTester(player) then
 		PlayerData.giveLuckyBlocks(player, result.from, 1)
 	end
-	local shown = BlockDrop.shown(result.tiers)
 	return {
 		ok = true,
 		id = id,
-		tiers = shown,
 		path = result.tiers,
-		kind = if result.secret then shown[#shown] else result.kind,
+		kind = result.kind,
 		readyAt = result.readyAt,
 		pity = result.pity, -- { rare, epic }: Mystery blocks to each pity, as before this one
 		from = result.from,
