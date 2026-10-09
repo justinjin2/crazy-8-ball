@@ -460,7 +460,7 @@ the lucky-block section below is the item flow now.
   a black fade from a second before the reel stops (`BlockReel.start`'s `onStopping`), and Rare and Epic draw
   only on the veil; Legendary's film holds the camera, clamped short of anything solid, under
   letterbox bars on the veil), `Letterbox` (every cutscene's black bars and full-screen
-  ScreenGui: a share of the height, never thinner than the HUD's edge rows), `ShopMenu` (emptied 2026-10-04 to its
+  ScreenGui: a share of the height, never thinner than most of the HUD's edge rows), `ShopMenu` (emptied 2026-10-04 to its
   frame and the four jump buttons for the GUI overhaul; the page, card, odds, need, gift and
   thank-you modules are deleted), `RewardsMenu`, `RewardChips` (a block chip flies to the
   hotbar as its 3D icon, `BlockIcon`), `TradeMenu`, `CueViewport` (the Index's cue turning in 3D: a ViewportFrame holding

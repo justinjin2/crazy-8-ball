@@ -1,9 +1,9 @@
 --!strict
 -- Letterbox: the cutscenes' black bars, top and bottom (PullCutscene's Legendary and up,
 -- ResultCutscene, GiftDrop). Each bar is its scene's share of the screen's height, but never
--- thinner than the HUD's rows at the screen's edges: Roblox's top row (a phone's match top bar
--- sits in it) and the hotbar along the bottom keep their size on a phone, so a share alone
--- left them peeking out (designer, 2026-10-09). The cutscene screens draw to the very edge,
+-- thinner than most of the HUD's rows at the screen's edges (CoverShare): Roblox's top row (a
+-- phone's match top bar sits in it) and the hotbar along the bottom keep their size on a
+-- phone, so a share alone left them peeking out (designer, 2026-10-09). The cutscene screens draw to the very edge,
 -- past a phone's safe area (Letterbox.screen). Numbers in Config.Cutscenes.Letterbox.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -69,7 +69,7 @@ function Letterbox.px(share: number): number
 			- area.AbsolutePosition.Y
 			- area.AbsoluteSize.Y
 		local slot = if area.AbsoluteSize.X < U.PhoneWidthPx then U.PhoneSlotPx else U.SlotPx
-		px = math.max(px, top + B.CoverPadPx, under + U.BottomPx + slot + B.CoverPadPx)
+		px = math.max(px, B.CoverShare * math.max(top, under + U.BottomPx + slot))
 	end
 	return math.min(px, height * B.MostShare)
 end

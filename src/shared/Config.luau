@@ -14753,7 +14753,10 @@ Config.Cutscenes = {
 	-- the screen's edges (Roblox's top row, where a phone's match top bar sits, and the hotbar),
 	-- which keep their size on a phone (designer, 2026-10-09: they peeked out).
 	Letterbox = {
-		CoverPadPx = 6, -- past the row's edge
+		-- Of the way over the deeper of those rows (the designer, 2026-10-09: all of it plus
+		-- 6 px, 84 px on the iPhone emulator, was a bit much; 0.9 is 70 px there, still over
+		-- the phone's match top bar, which ends well inside Roblox's row).
+		CoverShare = 0.9,
 		MostShare = 0.3, -- a bar never takes more of the screen's height than this
 	},
 	-- Every pull cutscene starts the same way (designer, 2026-10-05, Sol's RNG style): a second
