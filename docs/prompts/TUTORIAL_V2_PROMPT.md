@@ -843,7 +843,7 @@ lines). All in the worktree.
   - commit this brief and the hook, then `git push -u origin tutorial-v2`.
 - [x] 1. Read and map (section 2). Notes get the map, the touch list (started) and the old
   bugs.
-- [ ] 2. Short research (5.7).
+- [x] 2. Short research (5.7).
 - [ ] 3. Simulations and models (5.1-5.5), the plan page (section 9). **Stop for
   "approved".**
 - [ ] 4. Foundations:
@@ -967,6 +967,18 @@ lines). All in the worktree.
 - **New finding:** since 2026-10-09 a lucky block on its timer cannot be thrown (NotReady, the
   skip popup). The Mystery block upgraded to Uncommon lands on the Uncommon timer (1 min), so
   the chain's "Place it!" needs that one block ready at once (the tutorial's own block only).
+
+### Step 2: research (2026-10-09, `~/Desktop/8ball-refs/tutorial/research-2026-10-09/research.md`)
+
+- Analytics: 10 funnels, 100 steps, 100 custom event names, 3 custom fields, 8,000 combined
+  field values; rate 120 + 20 x CCU a minute shared by every event kind; charts ~24 h late
+  (View Events is near real time); Studio and clients send nothing; funnel filters use the
+  first step only. Assume the onboarding funnel counts toward the 10.
+- Gamepad power: hold-and-release (2K's 3-Click) is the safe pattern; Switch pads have digital
+  triggers (the 0-100% jump). Suggested fill ~1.4 s, ease-in p = t^2, clamp at full, ignore
+  taps under 0.1 s.
+- **Rule risk:** the like reward is unverifiable (a "verify" bluff) and the favorite reward
+  trusts the client. Invites and group joins are fine (pay invites by `ReferredByPlayerId`).
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
