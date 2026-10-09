@@ -8314,6 +8314,15 @@ Config.UI.WinTrack = {
 	CountColor = { 255, 214, 92 }, -- "Wins 3/10": the Shop's gold
 	ClockIconPx = 18,
 	ClockSample = "88h 88m", -- the widest time it shows, so the pill never jumps
+	ResetsTextPx = 14, -- "Resets in" over the clock pill (9 px on a phone)
+	ResetsGapPx = 2, -- between it and the pill
+	-- Folded (the default, designer 2026-10-08): a navy pill at the bar's foot with the next
+	-- step's block, "Wins 3/10" and an up arrow. Its press area is at least a touch target.
+	FoldedHeightPx = 36,
+	FoldedBlockPx = 28,
+	FoldedArrowPx = 16,
+	FoldedGapPx = 6, -- between its pieces
+	PeekSeconds = 4, -- after a match the bar opens by itself this long, then folds
 }
 
 -- The economy's menus (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md sections 5 and 5.1): the

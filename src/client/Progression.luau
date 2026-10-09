@@ -500,6 +500,9 @@ function Progression.update(state: State)
 		-- gamepad's A and B): a player waiting on a pad may have opened either.
 		closeScreens()
 	end
+	if wasInMatch and not state.inMatch then
+		winTrack:peek() -- the bar opens by itself as it comes back, then folds
+	end
 	wasInMatch = state.inMatch
 	plates:setHidden(if state.inMatch then state.matchUserIds else NOBODY)
 	-- Held rank popups also wait for the reel to close.

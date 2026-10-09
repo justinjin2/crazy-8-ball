@@ -7,7 +7,14 @@
 -- NEXT tag that hops gently. Across the bar's top edge: "Wins 3/10" at the left and the time
 -- to the 08:00 UTC reset at the right; after the tenth, "10/10 · wins pay money and XP today".
 -- A step given pops its tick where the player sees it: at once while the bar shows, else as the
--- bar comes back (after the result screen), one tick after another.
+-- bar comes back (after the result screen), one tick after another. "Resets in" sits over the
+-- clock pill.
+--
+-- Folded by default (the designer, 2026-10-08: "by default its collapsed but after a match
+-- itll appear briefly to show then collapse back down again on its own"): a small navy pill
+-- with the next step's block, "Wins 3/10" and an up arrow; a press opens the whole bar, a press
+-- on the bar folds it. After a match the bar opens by itself as it comes back, for PeekSeconds,
+-- then folds again (unless the player pressed it meanwhile).
 --
 -- It shows in the lobby with nothing over it (Progression: no menu, match, result screen,
 -- reel or teleport, not during the tutorial) and takes the matchmaking bar's place: it hides
@@ -28,6 +35,7 @@ local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local ShopParts = require(script.Parent.ShopParts)
 local UIAnim = require(script.Parent.UIAnim)
+local UISound = require(script.Parent.UISound)
 
 local T = Config.UI.WinTrack
 local KINDS: { [string]: any } = Config.LuckyBlocks.Kinds :: any
@@ -89,6 +97,9 @@ function WinTrack.new(screen: ScreenGui): any
 	self.fake = nil :: number? -- GuiQA: a made-up count of steps given
 	self.loops = {} :: { UIAnim.Handle }
 	self.clockText = ""
+	self.open = false -- the whole bar (true) or the folded pill
+	self.peekPending = false -- a match ended: open by itself as the bar comes back
+	self.peekToken = 0 -- the latest peek (a newer one, or a press, cancels the fold)
 
 	local root = HudParts.frame(screen, "WinTrack")
 	root.AnchorPoint = Vector2.new(0.5, 1)
@@ -173,6 +184,65 @@ function WinTrack.new(screen: ScreenGui): any
 	clockIcon.ZIndex = 7
 	self.clockIcon = clockIcon
 
+	-- "Resets in" over the clock pill.
+	local resets = HudParts.text(holder, "ResetsIn", T.ResetsTextPx, COPY.ResetsAbove)
+	resets.TextWrapped = false
+	resets.AnchorPoint = Vector2.new(0.5, 1)
+	resets.ZIndex = 7
+	self.resets = resets
+
+	-- A press anywhere on the open bar folds it.
+	local fold = Instance.new("TextButton")
+	fold.Name = "Fold"
+	fold.Text = ""
+	fold.BackgroundTransparency = 1
+	fold.AutoButtonColor = false
+	fold.Size = UDim2.fromScale(1, 1)
+	fold.ZIndex = 10
+	fold.Parent = holder
+	fold.Activated:Connect(function()
+		self:setOpen(false, true)
+	end)
+
+	-- The folded pill: the next step's block, "Wins 3/10" and an up arrow; a press opens it.
+	local mini = Instance.new("TextButton")
+	mini.Name = "Folded"
+	mini.Text = ""
+	mini.AutoButtonColor = false
+	mini.BorderSizePixel = 0
+	mini.BackgroundColor3 = rgb(T.PillColor)
+	mini.AnchorPoint = Vector2.new(0.5, 1)
+	mini.ZIndex = 6
+	mini.Visible = false
+	mini.Parent = root
+	HudParts.corner(mini, 99)
+	local miniRim = Instance.new("UIStroke")
+	miniRim.Name = "Rim"
+	miniRim.Color = rgb(T.PillRim)
+	miniRim.Thickness = T.PillRimPx
+	miniRim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	miniRim.Parent = mini
+	local miniBlock = Instance.new("ImageLabel")
+	miniBlock.Name = "Block"
+	miniBlock.BackgroundTransparency = 1
+	miniBlock.ScaleType = Enum.ScaleType.Fit
+	miniBlock.AnchorPoint = Vector2.new(0, 0.5)
+	miniBlock.ZIndex = 7
+	miniBlock.Parent = mini
+	local miniWords = HudParts.text(mini, "Words", T.PillTextPx, "")
+	miniWords.TextWrapped = false
+	miniWords.AnchorPoint = Vector2.new(0, 0.5)
+	miniWords.TextColor3 = rgb(T.CountColor)
+	miniWords.ZIndex = 7
+	local miniArrow = HudParts.icon(mini, "ChevronUp", "Arrow")
+	miniArrow.AnchorPoint = Vector2.new(1, 0.5)
+	miniArrow.ZIndex = 7
+	mini.Activated:Connect(function()
+		self:setOpen(true, true)
+	end)
+	self.mini, self.miniBlock, self.miniWords, self.miniArrow =
+		mini, miniBlock, miniWords, miniArrow
+
 	self:layout()
 	screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 		self:layout()
@@ -193,7 +263,8 @@ function WinTrack.layout(self: any)
 	local n = #self.tiles
 	local width = 2 * T.PadPx + n * T.TilePx + (n - 1) * T.TileGapPx
 	local barH = T.TopPadPx + T.TilePx + T.PadPx
-	local over = T.PillHeightPx / 2 -- the pills reach this far over the bar
+	-- The pills reach this far over the bar, and "Resets in" sits over the clock pill.
+	local over = T.PillHeightPx / 2 + T.ResetsTextPx + T.ResetsGapPx
 	self.root.Size = UDim2.fromOffset(width, barH + over)
 	self.bar.Position = UDim2.fromOffset(0, over)
 	self.bar.Size = UDim2.fromOffset(width, barH)
@@ -216,6 +287,25 @@ function WinTrack.layout(self: any)
 	self.clockIcon.Size = UDim2.fromOffset(T.ClockIconPx, T.ClockIconPx)
 	self.clockWords.Position = UDim2.new(0, T.PillPadPx + T.ClockIconPx + 4, 0.5, 0)
 	self.clockWords.Size = UDim2.fromOffset(timeW, T.PillHeightPx)
+	local resetsW = measure(self.resets.Text, T.ResetsTextPx)
+	self.resets.Position = UDim2.fromOffset(
+		width - T.PillInsetPx - clockW / 2,
+		over - T.PillHeightPx / 2 - T.ResetsGapPx
+	)
+	self.resets.Size = UDim2.fromOffset(resetsW, T.ResetsTextPx + 4)
+	-- The folded pill, centred at the bar's foot: the block, the words, the arrow.
+	local miniWordsW = measure(self.miniWords.Text, T.PillTextPx)
+	local block = if self.miniBlock.Image ~= "" then T.FoldedBlockPx + T.FoldedGapPx else 0
+	local miniW = T.PillPadPx + block + miniWordsW + T.FoldedGapPx + T.FoldedArrowPx + T.PillPadPx
+	self.mini.Position = UDim2.fromScale(0.5, 1)
+	self.mini.Size = UDim2.fromOffset(miniW, T.FoldedHeightPx)
+	self.miniBlock.Position = UDim2.new(0, T.PillPadPx, 0.5, 0)
+	self.miniBlock.Size = UDim2.fromOffset(T.FoldedBlockPx, T.FoldedBlockPx)
+	self.miniWords.Position = UDim2.new(0, T.PillPadPx + block, 0.5, 0)
+	self.miniWords.Size = UDim2.fromOffset(miniWordsW, T.FoldedHeightPx)
+	self.miniArrow.Position = UDim2.new(1, -T.PillPadPx, 0.5, 0)
+	self.miniArrow.Size = UDim2.fromOffset(T.FoldedArrowPx, T.FoldedArrowPx)
+	HudParts.setMinHit(self.mini, Config.UI.Menu.Frame.TouchMinPx)
 	local phone = self.screen.AbsoluteSize.X < PHONE_PX
 	self.scale.Scale = if phone then T.PhoneScale else 1
 	self:place()
@@ -276,6 +366,9 @@ function WinTrack.refresh(self: any)
 	self.countWords.Text = if given >= n
 		then string.format(COPY.Done, n, n)
 		else string.format(COPY.Wins, given, n)
+	self.miniWords.Text = string.format(COPY.Wins, given, n)
+	local nextKind = STEPS[given + 1]
+	self.miniBlock.Image = if nextKind and KINDS[nextKind] then KINDS[nextKind].Icon or "" else ""
 	-- The tag under the next step's tile.
 	if given < n then
 		local tile = self.tiles[given + 1]
@@ -355,18 +448,72 @@ function WinTrack.apply(self: any)
 	if show then
 		self:tick()
 		self.root.Visible = true
-		self.holder.Visible = false
-		UIAnim.popIn(self.holder)
+		if self.peekPending then
+			self.peekPending = false
+			self:peekNow()
+		end
+		local piece = if self.open then self.holder else self.mini
+		local other = if self.open then self.mini else self.holder
+		other.Visible = false
+		piece.Visible = false
+		UIAnim.popIn(piece)
 		self:startLoops()
-		self:popNew()
+		if self.open then
+			self:popNew()
+		end
 	else
 		self:stopLoops()
-		UIAnim.popOut(self.holder, function()
+		local piece = if self.open then self.holder else self.mini
+		UIAnim.popOut(piece, function()
 			if not self.shown then
 				self.root.Visible = false
 			end
 		end)
 	end
+end
+
+-- Open or fold the bar (`byPlayer`: a press, which cancels a peek's fold).
+function WinTrack.setOpen(self: any, open: boolean, byPlayer: boolean?)
+	if byPlayer then
+		self.peekToken += 1
+	end
+	if self.open == open then
+		return
+	end
+	self.open = open
+	if not self.shown then
+		return
+	end
+	UISound.play("Click")
+	local piece = if open then self.holder else self.mini
+	local other = if open then self.mini else self.holder
+	other.Visible = false
+	piece.Visible = false
+	UIAnim.popIn(piece)
+	if open then
+		self:popNew()
+	end
+end
+
+-- Open now and fold again after PeekSeconds (unless pressed meanwhile).
+function WinTrack.peekNow(self: any)
+	self.peekToken += 1
+	local token = self.peekToken
+	self.open = true
+	task.delay(T.PeekSeconds, function()
+		if self.peekToken == token and self.open then
+			if self.shown then
+				self:setOpen(false)
+			else
+				self.open = false
+			end
+		end
+	end)
+end
+
+--- A match just ended: the bar opens by itself as it comes back, then folds.
+function WinTrack.peek(self: any)
+	self.peekPending = true
 end
 
 -- The NEXT tag hops, and the clock counts down.
@@ -409,13 +556,26 @@ end
 -- Test hooks (Studio only)
 --------------------------------------------------------------------------------------------
 
---- GuiQA "wintrack": draw `given` steps (0..10), or "real" for the server's count again.
+--- GuiQA "wintrack": draw `given` steps (0..10), or "real" for the server's count again;
+--- "peek" opens it as after a match, "open" and "fold" as a press does.
 function WinTrack.addTestHooks(self: any)
 	GuiQA.add("wintrack", function(given: any): string
-		self.fake = if type(given) == "number"
-			then math.clamp(math.floor(given), 0, #STEPS)
-			else nil
-		self:refresh()
+		if given == "peek" then
+			-- As after a match: open now, fold after PeekSeconds.
+			self:peekNow()
+			if self.shown then
+				self.mini.Visible = false
+				self.holder.Visible = true
+				self:popNew()
+			end
+		elseif given == "open" or given == "fold" then
+			self:setOpen(given == "open", true)
+		else
+			self.fake = if type(given) == "number"
+				then math.clamp(math.floor(given), 0, #STEPS)
+				else nil
+			self:refresh()
+		end
 		return string.format(
 			"given %d, shown %s, want %s",
 			self.given,

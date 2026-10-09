@@ -1041,6 +1041,7 @@ return {
 		Next = "Next win: %s", -- the next step's block name
 		Done = "%d/%d · wins pay money and XP today",
 		ResetsIn = "New day in %s",
+		ResetsAbove = "Resets in", -- over the clock pill
 	},
 	-- The login days (economy v4 plan 6.1): the first week, then the later weeks.
 	Login = {
