@@ -42,8 +42,8 @@ slot passes (economy v4) or screen layouts (GUI session; see the hand-off list a
 2. **Magnet buff.** Bigger zone and stronger bend; a ball in the zone is visibly *caught*:
    braked hard as it enters, then crept in slowly, even when it was already going in.
    Measured with `tools/ult_value.luau`; field lines and pocket glow brighter.
-3. **Catch-a-Ball (Rare).** A red and black catch ball: red over black with only a hairline
-   at the seam, an 8-ball for a button, a zig-zag hinge (the designer, 2026-10-09: no black
+3. **Catch-a-Ball (Rare).** A black and white catch ball: black over white with nothing but
+   their edge at the seam, an 8-ball for a button, a zig-zag hinge (the designer, 2026-10-09: no black
    band or round button that reads as the trademark; the icon to match). Physics: at the first contact
    the hit ball is caught (`Ops.remove`, counted as a pot for its owner), the cue ball stops
    dead, a `slow` event holds the shot for the catch. Look: the ball pops open, a red beam

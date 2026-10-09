@@ -1,10 +1,11 @@
-"""Catch-a-Ball (ABILITIES_REWORK_PLAN step 3): the red and black catch ball the hit ball is
+"""Catch-a-Ball (ABILITIES_REWORK_PLAN step 3): the black and white catch ball the hit ball is
 caught in, and its effect images.
 
-Red over black, nothing more at the seam than a hairline, and a small 8-ball for a button (the
-designer, 2026-10-09: "get rid of the iconic like black lines that distinctively make it look
-like a pokeball ... switch from red to black on the half ... for like a button make it an 8
-ball"); the back carries a notched hinge (alternating knuckles on a pin).
+Black over white, nothing at the seam but the edge between them, and a small 8-ball for a
+button (the designer, 2026-10-09: "get rid of the iconic like black lines that distinctively
+make it look like a pokeball ... the bottom is still white, but the iconic red is now black";
+"for like a button make it an 8 ball"); the back carries a notched hinge (alternating knuckles
+on a pin).
 
 Axes: unit radius (the shell's outer radius is 1.0), front = Blender -Y, up = +Z, the hinge
 at the back (+Y). Roblox: Blender +Y arrives as Roblox +Z and +Z (up) as Roblox +Y, so the
@@ -12,11 +13,10 @@ front (-Y) is Roblox -Z, the LookVector of an unturned part (STUDIO_NOTES).
 
 Objects (one shared material and one small atlas texture, so each object is one MeshPart):
 
-  CatchTop     the upper shell (z >= 0), red outside down to a hairline of black at its rim
-               (SEAM), dark inside; carries the two lid knuckles of the hinge. Origin at the
-               hinge pin H.
-  CatchBottom  the lower shell (z <= -LIP), black outside, dark inside. Origin at H.
-  CatchBand    the rest of the lower shell (-LIP <= z <= 0), black like it (no band shows),
+  CatchTop     the upper shell (z >= 0), black outside, dark inside; carries the two lid
+               knuckles of the hinge. Origin at the hinge pin H.
+  CatchBottom  the lower shell (z <= -LIP), white outside, dark inside. Origin at H.
+  CatchBand    the rest of the lower shell (-LIP <= z <= 0), white like it (no band shows),
                plus the hinge's three base knuckles, the pin and a notched (zig-zag) leaf plate
                at the back. Origin at H.
   CatchButton  the 8-ball at the front, centred on the seam and standing out of the shell:
@@ -57,7 +57,6 @@ OUT = common.asset_dir("CatchABall")
 R_OUT = 1.0
 R_IN = 0.955
 LIP = 0.085  # the lower shell's top part (CatchBand) below the seam, in radians
-SEAM = 0.014  # the hairline of black at the lid's rim, in radians
 BUTTON_R = 0.16  # the 8-ball button's radius
 BUTTON_Y = -0.94  # its centre (Blender Y; the front is -Y): it stands BUTTON_R + 0.94 - 1 out
 SEGS = 72
@@ -267,8 +266,8 @@ KNUCKLES = [(-0.25, -0.15), (-0.15, -0.05), (-0.05, 0.05), (0.05, 0.15), (0.15, 
 def build_top(material):
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new()
-    lats = [0.0, SEAM] + [SEAM + (math.pi / 2 - SEAM) * j / 20 for j in range(1, 21)]
-    shell_band(bm, uvl, lats, lambda lat: "black" if lat < SEAM else "red", "inside", rim0="black")
+    lats = [(math.pi / 2) * j / 20 for j in range(21)]
+    shell_band(bm, uvl, lats, lambda lat: "black", "inside", rim0="black")
     # The lid's two knuckles (the 2nd and 4th) with their leaves up into the shell.
     for k in (1, 3):
         x0, x1 = KNUCKLES[k]
@@ -281,14 +280,14 @@ def build_bottom(material):
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new()
     lats = [-math.pi / 2 + (math.pi / 2 - LIP) * j / 22 for j in range(23)]
-    shell_band(bm, uvl, lats, lambda lat: "black", "inside", rim1="inside")
+    shell_band(bm, uvl, lats, lambda lat: "white", "inside", rim1="inside")
     return to_object("CatchBottom", bm, material)
 
 
 def build_band(material):
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new()
-    shell_band(bm, uvl, [-LIP, -LIP / 2, 0.0], lambda lat: "black", "inside", rim0="black",
+    shell_band(bm, uvl, [-LIP, -LIP / 2, 0.0], lambda lat: "white", "inside", rim0="black",
                rim1="black")
     # The base knuckles (1st, 3rd, 5th) and the pin through all five.
     for k in (0, 2, 4):

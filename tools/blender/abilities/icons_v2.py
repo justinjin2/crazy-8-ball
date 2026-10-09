@@ -82,7 +82,7 @@ def catch_a_ball():
     objs.append(sparkle("Sparkle2", Vector((1.02, -0.3, 0.32)), 0.18, star_m))
     for s in objs[-2:]:
         s["no_frame"] = True
-    objs.append(glow("CatchGlow", (0, 0.3, 0), 1.3, "FF6A6A", strength=0.8, power=1.6))
+    objs.append(glow("CatchGlow", (0, 0.3, 0), 1.3, "FFFFFF", strength=0.8, power=1.6))
     return objs
 
 

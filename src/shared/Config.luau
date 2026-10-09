@@ -4703,13 +4703,13 @@ Config.Ults.Assets = {
 		-- mesh on 24 bones (Root the root), nose to tail base 1 stud, facing -Z after import;
 		-- its actions are baked data (src/client/TigerAnims.luau), not Animation assets.
 		GuangdongTigerV2 = 121333510236552,
-		-- tools/blender/abilities/catchball.py (the rework, 2026-10-08; red over black with an
+		-- tools/blender/abilities/catchball.py (the rework, 2026-10-08; black over white with an
 		-- 8-ball button since 2026-10-09, nothing that reads as a capture ball): CatchTop (the
-		-- red lid), CatchBottom (the black half), CatchBand (the black half's top, the hinge's
+		-- black lid), CatchBottom (the white half), CatchBand (the white half's top, the hinge's
 		-- base), CatchButton (the 8-ball, at -Z: the front), CatchInner (the dark inside, seen
 		-- when open) and J_Hinge (the back hinge, at +Z). Unit radius, centred. (Was
 		-- 93342911188193, red over white with a black band and a square button.)
-		CatchABall = 111100720948229,
+		CatchABall = 74906215963054,
 		-- tools/blender/abilities/verity_creepy.py (the designer's second round, 2026-10-08, to
 		-- their reference image): the creepy evil Verity ball. VerityTop (the upper jaw, the
 		-- eye sockets, the upper lip), VerityBottom (the lower jaw, the lower lip, the tongue),
@@ -4785,7 +4785,7 @@ Config.Ults.Assets = {
 		SuperBounce = "rbxassetid://95265934894642",
 		Rewind = "rbxassetid://120627614883189",
 		-- The rework's three (tools/blender/abilities/icons_v2.py, 2026-10-08).
-		CatchABall = "rbxassetid://131806963277887", -- red over black, the 8-ball (2026-10-09)
+		CatchABall = "rbxassetid://79808360409738", -- black over white, the 8-ball (2026-10-09)
 		LookOverThere = "rbxassetid://129905785693917",
 		Verity = "rbxassetid://115341703331107",
 		TimeStop = "rbxassetid://88800552854518",
