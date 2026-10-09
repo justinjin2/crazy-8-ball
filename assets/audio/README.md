@@ -97,10 +97,12 @@ other formats need `ffmpeg` (`brew install ffmpeg`).
 
 ## Uploading
 
-Roblox audio has to be uploaded from an account or group, so this part cannot be automated.
-Upload to the **group that owns the game**, not a personal account, or the place cannot use
-the asset: Creator Dashboard, or **View → Asset Manager → Audio → right-click → Add Audio**
-(multi-select works). Then paste the ids here and they go into `Config.Audio`.
+Upload to the **group that owns the game** (675425213), not a personal account, or the place
+cannot use the asset. `tools/roblox_upload.py --group-id 675425213` uploads through Open Cloud
+with the key in the macOS Keychain (`ROBLOX_API_KEY`; run it with `--dry-run` first) and
+records each id in `tools/upload_manifest.json`; the ball streak's sprays went up this way
+(2026-10-09). By hand: Creator Dashboard, or **View → Asset Manager → Audio → right-click → Add
+Audio** (multi-select works). Then put the ids in `Config.Audio`.
 
 ## Interface sounds (placeholders, 2026-09-27)
 
@@ -130,6 +132,8 @@ Nobody has listened to them yet: swap any by changing its id in `Config.Audio.Ui
 | RevealMythic | a Mythic or Secret revealed | 1839881844 "Spinning Around (b)" (APM) | 5.4 s |
 | Claim | a reward claimed (daily, playtime, index row, code) | 15675043410 "Roblox_UI_Tonal_Stinger" | 1.5 s |
 | Banner | a top banner (Money Party, an unboxing, Reyes) | 15675085146 "Roblox_UI_Indicator" | 3.4 s |
+| Streak2..Streak7 | the ball streak stepping up to x2..x7 (one single spray each) | the designer's Jet Set Radio spray file, cut to `assets/audio/streak/spray_1..6.wav` and uploaded (2026-10-09; ids in `Config.Audio.Ui`) | 0.4-0.5 s |
+| Streak8 | the ball streak reaching x8 (the four-hit burst) | `assets/audio/streak/spray_8.wav` from the same file (spray_7, the double, is unused) | 1.1 s |
 
 The reel and reveal sounds were added on 2026-09-28 (overnight placeholders, each checked loading
 in this game with `IsLoaded` and `TimeLength`); nobody has listened to them yet.

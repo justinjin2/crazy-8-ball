@@ -41,8 +41,9 @@ decimals to stay above zero. Since v4 a tiny chance also shows **"1 in N" beside
   many players own a Legendary, Mythic or Secret as before v4 (section 1).
 - **One bar: rank XP.** No Levels. XP is never lost and comes only from winning: **100 XP a
   win, 0 a loss** (designer, 2026-10-02). Rank is the main way to show status.
-- **Money**: $100 a ball, $500 for a win, $150 for a loss. A Classic match pays the winner about
-  **$1,340** and the loser about **$600**: about **$7,300 an hour** (unchanged by v4).
+- **Money**: $100 a ball, $500 for a win, $150 for a loss, and from STREAK x3 a small bonus on
+  each ball in a row (section 3.1). A Classic match pays the winner about **$1,420** and the
+  loser about **$650**: about **$7,750 an hour** ($7,300 before the ball streak, 2026-10-09).
   Difficult pays x1.5 and Challenger x2.
 - **The daily win track** (v4): the first 10 wins of each day give lucky blocks in a set order,
   **Rare, Mystery, Mystery, Uncommon, Mystery, Mystery, Rare, Mystery, Mystery, Epic**; win 11
@@ -182,10 +183,23 @@ Unchanged by v4.
 | Nice shot on top | **bank or kick +$150, combo or carom +$200** | to the shooter only |
 | Win | **+$500** | only after a real match (past the one-minute mark, not a quick forfeit) |
 | Loss | **+$150** | money even when you lose; the leaver gets nothing |
+| Ball streak on top | **+$25 a ball at STREAK x3, +$50 at x4, ... +$150 at x8** | to the shooter only; a quarter of the ball pay for each level from x3 (`Config.Economy.BallStreak*`) |
 | Win streak | **+$250** on each win from the 3rd in a row | against people only |
 
-Average match: winner about **$1,340**, loser about **$600**. At 7.5 matches an hour that is
-**about $7,300 an hour** (plan, 2026-10-02; v4 kept it: the money prices moved instead).
+**The ball streak** (designer, 2026-10-09): the balls a team pots in a row in its turn show as
+"STREAK x1" up to x8 (the GDD section 8). It is a bonus on top of the ball pay, never a
+multiplier: from x3 each counted ball pays an extra quarter of the ball pay for each level from
+x3, so x3 +$25, x4 +$50, x5 +$75, x6 +$100, x7 +$125, x8 +$150 (a run-out of all eight balls
+pays $525 on top of its $800). The break counts as x1 however many balls drop; a foul, a shot
+that pots none of yours or the table passing ends it. It is boosted like other match money
+(VIP, difficulty), pays the shooter only, and pays nothing in Solo or at a flat after-cap pay.
+Measured in 1,600 bot-duel games (`tools/streak_model.luau`): about 52% of paying balls are x1,
+24% x2, 12% x3, 6% x4, 3% x5 and under 2% x6 to x8, so an average paying ball earns about $11
+more: **about +6% an hour**.
+
+Average match: winner about **$1,420**, loser about **$650**. At 7.5 matches an hour that is
+**about $7,750 an hour** (the plan's $7,300 of 2026-10-02, kept by v4, plus the ball streak's
+6% since 2026-10-09).
 
 ### 3.2 By opponent
 
@@ -193,6 +207,7 @@ Average match: winner about **$1,340**, loser about **$600**. At 7.5 matches an 
 |---|---|---|---|---|
 | Each ball | $100 | $100 | $100 | **$30** until $3,000 of solo money in a day, then **$10** |
 | Nice shot on top | bank/kick +$150, combo/carom +$200 | same | same | none |
+| Ball streak on top (x3 on) | +$25 to +$150 | same | same | none |
 | Win / loss bonus | $500 / $150 | **$250 / $80** | $500 / $150 | none |
 | Win streak (3rd win in a row on) | +$250 | none | none | none |
 | Daily limit | the same-opponent rules (3.6) | after **$10,000** of PC money in a day, everything pays half | after **20 disguised wins** in a day they pay the PC rows and give no block (hidden) | as above |
@@ -210,7 +225,8 @@ Average match: winner about **$1,340**, loser about **$600**. At 7.5 matches an 
 ### 3.3 Team matches (2v2, 3v3)
 
 Every ball your team pots pays **each teammate $100**, so an hour of 2v2 or 3v3 earns about the
-same as 1v1. The nice-shot bonus goes only to the shooter. The win and loss bonus, the win
+same as 1v1. The nice-shot and ball streak bonuses go only to the shooter (the team carries
+one streak across its rotating shooters). The win and loss bonus, the win
 track's block (each winner) and XP are per player, by the same rules; XP uses the opposing
 team's average rank for the gap (section 4.4).
 
@@ -223,7 +239,7 @@ the rank lock exists from Gold I). It is separate from the XP mode multiplier (1
 |---|---|---|---|
 | Money | x1 | **x1.5** | **x2** |
 | Match length (assumed) | 6.5 min | 7.5 min | 8.5 min |
-| Money an hour | about $7,300 | about $9,700 | about $11,600 |
+| Money an hour | about $7,750 | about $10,300 | about $12,400 |
 
 ### 3.5 Boosts and how they stack
 
@@ -250,7 +266,7 @@ money = base x difficulty x (1 + VIP 1.0 + Money Party 1.0 + Starter hour 1.0 + 
   first week's Epic and Legendary blocks by just joining (section 10.1).
 - **Short matches:** pots are still paid live, but money from matches that end before the
   one-minute mark counts toward a **$2,000 a day** short-match limit; past it, balls before the
-  one-minute mark pay **$10** each.
+  one-minute mark pay **$10** each (and no nice-shot or ball streak bonus).
 - Forfeits, leavers and the one-minute mark stay as built (GDD section 13).
 - Private servers, when they come: no XP, no blocks, solo-rate money.
 - With no trade gate (section 12), these rules and the invite cap are the alt protection. The
@@ -675,7 +691,8 @@ Selling also removes cues from the game, which keeps the ones that stay worth mo
 only from a lucky block or a trade. That keeps every block a chance at something money can't
 simply buy, and gives trading its purpose.
 
-Money prices (v4, 2026-10-08; match money stays about $7,300 an hour of Classic):
+Money prices (v4, 2026-10-08, set against about $7,300 an hour of Classic; the ball streak
+made it about $7,750 on 2026-10-09, so each "hours of play" below is about 6% less):
 
 | Item | Price | Hours of play | Before v4 |
 |---|---|---|---|
@@ -955,7 +972,7 @@ Epic 2.3x, Legendary 2.8x, Mythic 3.3x; `python3 tools/economy_model.py value`),
 model's rarity targets all still hold (`--built-only`: Epic, Legendary, Mythic and Secret
 owners move by under half a point, because bought money mostly buys Mystery blocks, a small
 share of where cues come from). **"Best value" is Pack7** (`Config.Products.BestValue`). An hour
-of Classic play ($7,300) is 8-18 R$ of packs.
+of Classic play (about $7,750) is about 8-19 R$ of packs.
 
 **The first-pack double is off** (v4, 2026-10-08; `Config.Shop.FirstPackMultiplier` 1): no top
 Roblox game has one, it nudged a kid toward the biggest pack first, and the 29 R$ Starter Pack

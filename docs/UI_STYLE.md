@@ -1160,3 +1160,40 @@ screen's width (`WidthShare`), the frame's 66% on a phone.
 
 **Open**: a real purchase on Roblox, a real phone and a controller (the tag and the folded
 win track are press targets, not yet in the gamepad's route).
+
+## 28. The ball streak (designer, 2026-10-09)
+
+The approved mockup: https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T. `StreakHud`,
+`StreakMath`, `Config.UI.Streak`, `Strings.Streak`; the rules in `Rules/Streak` (GDD section 8).
+
+- **Where**: centred just under the match popups' row (YOUR TURN, the foul popup's title and
+  reason, YOU ARE SOLIDS), over the far rail. It sits under the whole match HUD (ZIndex 0: the
+  top bar and the popups draw over it), never takes input, and hides with the HUD for menus.
+- **Words**: "STREAK" and "x2" in **Press Start 2P** (built into Roblox), one label per letter,
+  the number a quarter bigger on the same baseline, a square ink outline (UIStroke, Miter), a
+  dark drop shadow and a light-topped fill (UIGradient). 26 px letters at x1 on a PC (two
+  thirds on a phone), 5% bigger each level (x8 is 1.35x).
+- **Each level's colour**: x1 white, x2 yellow, x3 orange, x4 blue, x5 purple, x6 red, x7 gold,
+  x8 a moving rainbow, one hue per letter. From x6 a cyan and a pink copy sit either side of
+  each letter (a spray-paint look). The motion grows each level: the beat, the sway, the
+  whole-pixel wave and, from x5, a jitter.
+- **The step up**: a squash, two pure white impact frames, a punch out to 1.45x settling back
+  (Back), the number slamming in big and tilted, the burst (white ring and rays tinted the new
+  colour) and pixel shards. Each step's spray is its level's (`Config.Audio.Ui.Streak2..8`);
+  x1 has none. Two balls in one shot step twice, 0.12 s apart.
+- **Fire from x3**: a pixel flipbook behind the words (`tools/gui/streak_fire.py`: 32 frames at
+  30 fps, a seamless loop, drawn pixelated), its base hidden behind the letters, taller and
+  hotter each level: orange, blue, purple, black-red, gold-white, rainbow. It grows in at x3
+  and flares on every step. **Under a popup the flames duck** so their tips stay 4 px under
+  the popup's words, and grow back when it goes (YOUR TURN shows after every pot). With no
+  popup the tallest flames (x7, x8) reach behind the top bar, which draws over them.
+- **The shake** from x3: a tiny camera shake on each step, a little stronger each level
+  (`ScreenFx.shake`).
+- **The end**: the fire sinks and the letters drop 6 px and fade over 0.5 s.
+- **Money chips**: a streak bonus chip ("+$25" at x3) flies in the level's colour (x8 the
+  rainbow) beside the green ball chip; for a VIP it turns gold at the "x2" like every VIP chip.
+  The result screen adds "Streak bonus (best x6)".
+- **Settings**: Reduce Motion drops the shake, the sway, the wave and the jitter; Lower effects
+  halves the shards and drops the ghost copies.
+
+**Open**: a real phone and the sound by ear (the spray over the pocket ding).

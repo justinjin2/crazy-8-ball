@@ -4,22 +4,22 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-08.
+Updated 2026-10-09.
 
 ## Where the build is
 
 - **Branch `release`** is the integration branch, and every lane of the parallel build is
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
-- **Lint and tests (2026-10-08, branch `gui-v4` with the abilities rework merged in):** lint OK
-  (three old LocalShadow warnings); all 1103 Lune tests pass.
+- **Lint and tests (2026-10-09, branch `gui-v4`):** lint OK (three old LocalShadow warnings);
+  all 1138 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; economy v4; saves at version 10;
   13 abilities (Ultimates) with the spin screen; cue skins with VFX and outlines; lucky blocks
   as the only gacha (cases, the Magic 8 Ball and reward popups are gone); the Free Reward menu
   (daily, playtime, the 28-day track, group and invites), Cues (My Cues, Index; the Inventory renamed), trading, settings, our own player list and boards; the first-time tutorial;
-  the rooftop map with a day and sunset cycle; pull cutscenes Rare to Legendary.
+  the rooftop map with a day and sunset cycle; pull cutscenes Rare to Legendary; the ball streak.
 
 ## Being tried right now (the designer's look, nothing final)
 
@@ -34,6 +34,8 @@ One line each; the long form is the 2026-10-08 entry at the top of
 - **The player list like Roblox's**: hidden on a phone for now; a PC size not yet looked at.
 - **The matchmaking bar and spawn pill**: parked by the designer (2026-10-07); open: the spawn
   pill's 20 s, Play Global's X on a phone. **The queue portal**: not yet on a phone or gamepad.
+- **The ball streak** (2026-10-09; GDD 8, UI_STYLE 28, ECONOMY 3.1): STREAK x1 to x8, checked in
+  Studio with real shots; not yet on a real phone, and the spray over the pocket ding by ear.
 - **Lighting**: day 10 min, sunset 5 min. **Pull cutscenes**: Mythic and Secret wait a redo.
 - **Our own lucky blocks** (all 12 kinds, 2D icons), **the Gift drop** (`/giftdrop`; a test
   Gift waits in the designer's Studio save) and **the Mystery block's upgrade screen**: not yet

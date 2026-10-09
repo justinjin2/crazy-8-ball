@@ -5,6 +5,18 @@ when `docs/STATUS.md` became current state only. Finished work moves here from S
 on top. Read it only to answer "when or why did X change"; it is not part of the read-first list.
 An entry marked "(latest)" was the latest when written.
 
+**2026-10-09: the ball streak.** Built on `gui-v4` in five commits (rules and engine, money,
+assets, the HUD, the docs) from the approved mockup
+(https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T). Checked in Studio with real shots through
+`PoolMatchQA` (a hand-laid straight-in lane each shot): x1 to x8 for real, the 8 winning at x8,
+each level's look, the fire lighting at x3, the orange +$30 chip at x3 and the rainbow +$180 at
+x8, the result line "Streak bonus (best x8)", Reduce Motion (no tilt, wave, jitter or shake),
+Lower effects (half the shards, no ghosts), a mid-step frame at a tenth of the speed. The check
+found the flames sitting behind YOUR TURN (it shows after every pot) from x4, so they now duck
+under any popup (measured: 4 px clear after about 0.1 s). A shot clock running out between QA
+shots ended the streak as a Timeout foul should. Not checked: the phone emulator (switching it
+needs desktop clicks in Studio), a real phone, the sound by ear. Tests 1103 to 1138.
+
 **2026-10-08: economy v4 merged.** Built in the worktree `~/Desktop/8ball-economy-v4` (branch
 `economy-v4`, steps 1-14 of `docs/prompts/ECONOMY_V4_PROMPT.md`), merged into `shop-lively` as a
 fast-forward. Tests went from 1045 to 1051. The Robux prices were synced through Open Cloud the

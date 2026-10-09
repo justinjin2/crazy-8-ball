@@ -378,8 +378,19 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - Sounds: cue strike, ball-on-ball clack scaled by speed, soft rail thud, deep pocket drop, aim
   ticks, power-bar stretch, UI clicks. ASMR quality, original or licensed audio only.
 - A small VFX and a rewarding sound on every pocketed ball, bigger and flashier for the 8.
-- **Streak:** the first pocketed ball in a turn starts x1, the next x2 "on fire", x3 blue fire,
-  and so on, with rising sound pitch and a money multiplier.
+- **Ball streak** (designer, 2026-10-09; the approved mockup
+  https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T): "STREAK x1" up to **x8** in Press Start 2P,
+  just under the match popups (YOUR TURN, fouls, YOU ARE SOLIDS), seen and heard by everyone
+  seated at the table. Each ball the team pots in a row in its turn steps it up one; two balls in
+  one shot step twice. The break is x1 however many drop. A foul (its ball does not raise it), a
+  shot that pots none of yours or the table passing ends it: it fades and starts again next turn.
+  x1 is white and silent; each step after plays a Jet Set Radio spray over the pocket sounds
+  (singles x2 to x7, the four-hit burst at x8), a new colour (white, yellow, orange, blue, purple,
+  red, gold, rainbow), a slightly bigger size, white impact frames, a burst and pixel shards, and
+  the words move more each level. From **x3** the words burn with pixel fire (orange, blue,
+  purple, black-red, gold-white, rainbow), bigger each level, and each step gives a tiny camera
+  shake that grows each level. The flames duck under a popup so its words stay clear. Money is a
+  small bonus on each ball from x3, never a multiplier (section 12, ECONOMY 3.1).
 - **Trickshot bonuses:** extra money and a popup for bank shots (one or more rails before the
   pocket), combos (your ball knocks another in), and multi-ball shots ("Double", "Triple").
   Lucky sinks count and get the full celebration.
@@ -833,8 +844,10 @@ blocks (2026-10-04).
 - **Money** is earned for every ball pocketed, more for nice shots, wins and win streaks, in
   every mode including Solo and PC; a loss still pays. All numbers are x10 of the old ones
   (plan, 2026-10-02): **$100 a ball**, bank or kick +$150, combo or carom +$200, **win +$500**,
-  **loss +$150**, win streak +$250 from the 3rd win in a row against people. About **$7,300 an
-  hour** in Classic (unchanged by v4). Play against PC pays $250 / $80 match bonuses and half
+  **loss +$150**, win streak +$250 from the 3rd win in a row against people, and the **ball
+  streak** bonus: from STREAK x3 each ball pays a quarter of the ball pay more for each level
+  from x3 (x3 +$25 up to x8 +$150; to the shooter, not in Solo; designer, 2026-10-09). About
+  **$7,750 an hour** in Classic ($7,300 before the ball streak). Play against PC pays $250 / $80 match bonuses and half
   after $10,000 of PC money a day; Solo pays $30 a ball until $3,000 a day, then $10; matches that end
   before the one-minute mark pay $10 a ball past $2,000 a day. Each pot flies a "+$100" from
   the pocket into your total, bottom left. Money farming with macros is not punished.

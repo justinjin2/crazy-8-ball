@@ -293,6 +293,9 @@ play-solo on PC; the phone, gamepad and two-player checks are open.*
 - [ ] **2.6 Juice, pass two.** Turn streaks (x2 on fire, x3 blue fire), trickshot detection
   (bank, combo, multi-ball) with popups, money per ball win or lose, victory screen, loser
   shown as lost, Rematch and Play again. Done means: a lucky bank shot makes you react out loud.
+  Progress 2026-10-09: the **ball streak** is built (STREAK x1 to x8 under the match popups,
+  sprays, fire from x3, a growing shake, a small money bonus from x3; GDD section 8, UI_STYLE
+  section 28). Open: a real phone and the sound by ear.
 - [ ] **4.2 UI pass.** Clean consistent HUD, popups, host popup, victory and post-match screens;
   thumb-friendly and gamepad-navigable; one strings module.
   Moved here from Phase 4 (2026-09-26): it is part of the pool game's UI.
