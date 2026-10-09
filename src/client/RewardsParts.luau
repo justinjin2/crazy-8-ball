@@ -24,7 +24,13 @@ local BLOCK_MANY: { [string]: string } = W.BlockMany :: any
 local BLOCK_A: { [string]: string } = W.BlockA :: any
 
 export type BlockCount = { kind: string, count: number }
-export type Reward = { money: number, blocks: { BlockCount }, spins: number, lucky: number }
+export type Reward = {
+	money: number,
+	blocks: { BlockCount },
+	spins: number,
+	lucky: number,
+	cues: { string }?, -- cue ids (economy v5: the first week's day 7, the Week One Cue)
+}
 
 -- One picture of a reward: an icon key and how many ("x2" shows above 1), or `label` instead
 -- (an ult spin's "+1", shown at any count). A lucky block is key "Block" with its `kind`.
@@ -140,6 +146,15 @@ function RewardsParts.luckyWords(count: number): string
 end
 
 -- A reward's spins and Lucky Spins as parts of its words, after its money and blocks.
+-- A reward's cues by name, one part each ("Week One Cue"), until the GUI session draws them.
+local function addCueParts(parts: { string }, reward: Reward)
+	local names: { [string]: string } = Strings.Items.Cues :: any
+	local cues: { string } = reward.cues or {}
+	for _, id in cues do
+		table.insert(parts, names[id] or id)
+	end
+end
+
 local function addSpinParts(parts: { string }, reward: Reward)
 	if reward.spins > 0 then
 		table.insert(parts, RewardsParts.spinWords(reward.spins))
@@ -207,6 +222,7 @@ function RewardsParts.words(reward: Reward): string
 	for _, entry in reward.blocks do
 		table.insert(parts, RewardsParts.blockWords(entry))
 	end
+	addCueParts(parts, reward)
 	addSpinParts(parts, reward)
 	return joinPlus(parts)
 end
@@ -223,6 +239,11 @@ function RewardsParts.gains(reward: Reward, blocksOnly: boolean?): string
 			then W.OneBlock:format(RewardsParts.blockName(entry.kind))
 			else RewardsParts.blockWords(entry)
 		table.insert(parts, W.Gain:format(words))
+	end
+	local cues: { string } = {}
+	addCueParts(cues, reward)
+	for _, name in cues do
+		table.insert(parts, W.Gain:format(name))
 	end
 	if not blocksOnly then
 		local spins: { string } = {}
@@ -244,6 +265,7 @@ function RewardsParts.summary(reward: Reward): string
 	for _, entry in reward.blocks do
 		table.insert(parts, RewardsParts.blockInSentence(entry))
 	end
+	addCueParts(parts, reward)
 	addSpinParts(parts, reward)
 	if #parts <= 1 then
 		return parts[1] or ""

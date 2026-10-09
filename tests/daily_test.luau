@@ -37,7 +37,7 @@ local FIRST = {
 	"Mystery x2",
 	"$15000",
 	"Mystery x2",
-	"Legendary x1 Spins x2",
+	"Cue:WeekOneCue Spins x2",
 }
 
 -- A reward as one short line: "$5000", "Rare x1 Mystery x2 Spins x1", "nothing". Blocks
@@ -49,6 +49,9 @@ local function describe(reward: any): string
 	end
 	for _, entry in Daily.blockList(reward) do
 		table.insert(words, ("%s x%d"):format(entry.kind, entry.count))
+	end
+	for _, id in reward.cues or {} do
+		table.insert(words, "Cue:" .. id)
 	end
 	if (reward.spins or 0) > 0 then
 		table.insert(words, ("Spins x%d"):format(reward.spins))
@@ -543,9 +546,13 @@ return {
 			local live = if row.Live then { [code] = true } else nil
 			local ok, reward = Daily.redeem({}, code:lower(), (row.Expires or 1e12) - 1, live)
 			H.expect(ok, code .. " redeems before it expires")
-			for field in reward :: any do
+			for field, value in reward :: any do
 				H.expect(
-					field == "money" or field == "blocks" or field == "spins" or field == "lucky",
+					field == "money"
+						or field == "blocks"
+						or field == "spins"
+						or field == "lucky"
+						or (field == "cues" and #value == 0),
 					code .. " reward has only money, blocks and spins"
 				)
 			end
@@ -614,7 +621,10 @@ return {
 			r.blocks.Mystery == 5
 				and r.blocks.Epic == nil
 				and r.blocks.Rare == 1
-				and r.blocks.Legendary == 1,
+				and r.blocks.Legendary == nil
+				and r.cues
+				and #r.cues == 1
+				and r.cues[1] == "WeekOneCue",
 			describe(r)
 		)
 		local days, login, reward = Daily.claimAll(fresh(), TODAY, nil, extra)
@@ -654,7 +664,10 @@ return {
 		local late = Daily.claimAllOffer(five, TODAY + 4, nil, played)
 		H.expect(late.days == 2 and late.product == "ClaimAllFirst2", tostring(late.product))
 		H.expect(
-			late.reward.blocks.Legendary == 1 and late.reward.blocks.Mystery == 2,
+			late.reward.blocks.Legendary == nil
+				and late.reward.blocks.Mystery == 2
+				and late.reward.cues
+				and late.reward.cues[1] == "WeekOneCue",
 			describe(late.reward)
 		)
 		-- Day 7 claimed today: nothing is left of the row.
@@ -773,7 +786,10 @@ return {
 		H.expect(new.login.firstWeek and new.login.firstWeekLeft == 14, "the first week")
 		H.expect(new.login.needsMatch and not new.login.canClaim, "waits for a match")
 		H.expect(new.days[2].reward.blocks[1].kind == "Rare", "day 2's Rare block")
-		H.expect(new.days[7].reward.blocks[1].kind == "Legendary", "day 7's Legendary block")
+		H.expect(
+			#new.days[7].reward.blocks == 0 and new.days[7].reward.cues[1] == "WeekOneCue",
+			"day 7's Week One Cue"
+		)
 		local played = { Day = TODAY, Matches = 1, Track = 3, PlaySeconds = 0 }
 		local after = RewardView.build(fresh(), played, {}, NOW, false, nil, false, nil, {
 			joinDay = TODAY,
@@ -791,13 +807,10 @@ return {
 		local c = p.claimAll
 		H.expect(c.available and c.product == "ClaimAllFirst7" and c.robux == 399, "399 R$")
 		H.expect(c.from == 1 and c.days == 7, "the whole first week")
-		local legendary = 0
-		for _, entry in c.reward.blocks do
-			if entry.kind == "Legendary" then
-				legendary += entry.count
-			end
-		end
-		H.expect(legendary == 1 and c.reward.money == 30000, "day 7's Legendary in it")
+		H.expect(
+			c.reward.cues[1] == "WeekOneCue" and c.reward.money == 30000,
+			"day 7's Week One Cue in it"
+		)
 		local shut = RewardView.build(fresh(), daily, {}, NOW, false, nil, false, nil, {
 			joinDay = TODAY,
 			restricted = true,
@@ -951,5 +964,23 @@ return {
 		H.expect(out.spins == 0 and out.lucky == 0, "no spins")
 		local bad = RewardView.reward({ money = -5, blocks = {}, spins = -1, lucky = 0 } :: any)
 		H.expect(bad.money == 0 and bad.spins == 0, "never negative")
+	end,
+	["the Week One Cue: day 7's cue, known to the catalog, a copy each claim"] = function()
+		local Catalog = H.require("Progression.Catalog")
+		local Inventory = H.require("Progression.Inventory")
+		local SaveSchema = H.require("Progression.SaveSchema")
+		local cues = Daily.rewardCues()
+		H.expect(#cues == 1 and cues[1] == "WeekOneCue", "the only cue a login gives")
+		for _, id in cues do
+			local cue = Catalog.get(id)
+			H.expect(cue ~= nil and cue.Group ~= "Unique" and cue.Group ~= "Default", id)
+		end
+		local seventh = Daily.firstWeekReward(7)
+		H.expect(describe(seventh) == "Cue:WeekOneCue Spins x2", describe(seventh))
+		-- A player who owns one already (a trade) gets another copy: a block cue stacks.
+		local save = SaveSchema.template()
+		Inventory.addCue(save, "WeekOneCue", 1)
+		Inventory.addCue(save, "WeekOneCue", 1)
+		H.expect(Inventory.count(save, "WeekOneCue") == 2, "two copies")
 	end,
 }

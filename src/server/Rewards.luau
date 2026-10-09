@@ -29,9 +29,11 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Daily = require(Shared.Progression.Daily)
+local Inventory = require(Shared.Progression.Inventory)
 local RewardView = require(Shared.Progression.RewardView)
 local PlayerData = require(script.Parent.PlayerData)
 local LiveCodes = require(script.Parent.LiveCodes)
+local Counters = require(script.Parent.Counters)
 local Social = require(script.Parent.Social)
 
 local D = Config.Daily
@@ -333,7 +335,23 @@ local function onRewardRequest(player: Player, action: any, a: any): Reply
 	end
 	if action == "ClaimDaily" then
 		local vip, restricted = vipOf(player)
+		-- The copies in existence: a cue the claim gives (the Week One Cue) counts once it lands.
+		local cues = Daily.rewardCues()
+		local before = PlayerData.read(player)
+		local had: { number } = {}
+		for i, id in cues do
+			had[i] = if before then Inventory.count(before, id) else 0
+		end
 		local ok, result = PlayerData.claimDaily(player, vip, restricted)
+		local after = if ok then PlayerData.read(player) else nil
+		if after then
+			for i, id in cues do
+				local gained = Inventory.count(after, id) - had[i]
+				if gained > 0 then
+					Counters.add(id, gained)
+				end
+			end
+		end
 		return answer(ok, result, "BadRequest")
 	elseif action == "ClaimGroup" then
 		local ok, result = Social.claimGroup(player)

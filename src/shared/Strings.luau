@@ -564,6 +564,7 @@ return {
 			SeraphCue = "Seraph Cue",
 			InfernalCue = "Infernal Cue",
 			ClockworkCue = "Clockwork Cue",
+			WeekOneCue = "Week One Cue", -- working name (economy v5 plan section 5)
 			CelestialDragonCue = "Celestial Dragon Cue",
 			KitsuneCue = "Kitsune Cue",
 			ApexCue = "Apex Cue",

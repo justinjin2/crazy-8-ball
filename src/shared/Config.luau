@@ -3064,8 +3064,9 @@ Config.Daily = {
 	-- login days, in a row or not, within FirstWeekWindow days of joining (the join's day is
 	-- day 1). After FirstWeekDays claims or after the window, the later weeks (Streak) take
 	-- over. Each day: Money, Blocks (lucky blocks, { [kind] = count }) and/or Spins.
-	-- Economy v5 (plan section 4): a Rare block on day 2, $15,000 on day 5, 2 Mystery on day 6
-	-- (v4: Epic, Rare, 3 Mystery).
+	-- Economy v5 (plan sections 4 and 5): a Rare block on day 2, $15,000 on day 5, 2 Mystery on
+	-- day 6 and the Week One Cue on day 7 (v4: Epic, Rare, 3 Mystery, a Legendary block). Cues:
+	-- cue ids, one copy each (a player who owns one already gets another).
 	FirstWeek = {
 		{ Money = 5000, Blocks = { Mystery = 1 } },
 		{ Blocks = { Rare = 1 } },
@@ -3073,16 +3074,25 @@ Config.Daily = {
 		{ Blocks = { Mystery = 2 } },
 		{ Money = 15000 },
 		{ Blocks = { Mystery = 2 } },
-		{ Blocks = { Legendary = 1 }, Spins = 2 },
-	} :: { { Money: number?, Blocks: { [string]: number }?, Spins: number? } },
+		{ Cues = { "WeekOneCue" }, Spins = 2 },
+	} :: {
+		{
+			Money: number?,
+			Blocks: { [string]: number }?,
+			Cues: { string }?,
+			Spins: number?,
+		}
+	},
 	FirstWeekWindow = 14,
 	-- Claim All (designer, 2026-10-08: "a claim all robux option as well (put a fair price)";
 	-- priced by the days left, the designer's pick): one Robux product claims every day still
 	-- ahead in this 7-day row at once, today's unclaimed day included (Daily.claimAll). The
 	-- product: the first step whose MinDays the days ahead reach. Each is about half the shop
 	-- value of those days (blocks at their shop prices, money at Pack1's): the first week from
-	-- day 1 is worth ~800 R$, most of it day 7's Legendary (599 R$ in the restock); a later week
-	-- ~250 R$. Paid random items (the days give lucky blocks): refused where restricted.
+	-- day 1 was worth ~800 R$ in v4, most of it day 7's Legendary block (599 R$ in the
+	-- restock); a later week ~250 R$. Economy v5 changes the days (day 7 is the Week One Cue);
+	-- the prices stay until the designer's Robux pass. Paid random items (the days give lucky
+	-- blocks): refused where restricted.
 	ClaimAll = {
 		First = {
 			{ MinDays = 6, Product = "ClaimAllFirst7" }, -- 399 R$

@@ -13,7 +13,8 @@
 --   Tradable  may be traded (trading is a later session; the flag is stored now): block and
 --             Unique cues and the Starter Cue yes; the other Exclusive cues and Classic never
 --   Sellable  may be sold back (block cues only)
---   Blocks    the odds rows (Config.BlockOdds) that drop it (block cues only)
+--   Blocks    the odds rows (Config.BlockOdds) that drop it (block cues only; none: it drops
+--             from nothing, the Week One Cue)
 --   Vaulted   true stops it dropping (ECONOMY 12); it stays in the Index and in saves
 --   Tier      the rank tier whose reward it is (rank cues)
 --   Effect    the Config.Effects.Styles tier row for its trail and pocket burst, used where
@@ -187,6 +188,28 @@ local CUES: { Cue } = {
 	blockCue("SeraphCue", "Legendary"),
 	blockCue("InfernalCue", "Legendary"),
 	blockCue("ClockworkCue", "Legendary"),
+	-- The Week One Cue (economy v5 plan section 5): a Legendary in no block (no rows, so no
+	-- pool, reel, restock or odds list has it), given on the first week's day 7 (and by its
+	-- Claim All). Tradable and sold back like any Legendary; counted in the Index's Legendary
+	-- row. The default cue's look until its art exists (hand-off 11.4).
+	{
+		Id = "WeekOneCue",
+		Rarity = "Legendary",
+		Group = "Block",
+		Tradable = true,
+		Sellable = true,
+		Blocks = {},
+		Vaulted = false,
+		Effect = "Legendary",
+		Look = {
+			Shaft = { 214, 176, 124 },
+			Forearm = { 86, 46, 34 },
+			Wrap = { 32, 32, 36 },
+			Ring = { 176, 180, 188 },
+			Tip = { 34, 44, 74 },
+			Cap = { 20, 20, 22 },
+		},
+	},
 	-- Mythic (3): a moving 3D piece and everything at full strength.
 	blockCue("CelestialDragonCue", "Mythic"),
 	blockCue("KitsuneCue", "Mythic"),
@@ -287,17 +310,19 @@ function Catalog.ofRarity(rarity: string): { Cue }
 end
 
 --- The cues an odds row can drop at one rarity, in catalog order: block cues of that rarity
---- that list the row and are not vaulted.
+--- that list the row and are not vaulted. A block cue with no rows (the Week One Cue) drops
+--- from nothing.
 function Catalog.droppable(oddsId: string, rarity: string): { Cue }
 	local list = {}
-	-- The tables outside the ladder (Config.BlockOdds.Extra) roll the whole core pool.
+	-- The tables outside the ladder (Config.BlockOdds.Extra) roll the whole core pool: every
+	-- block cue that drops from some row.
 	local core = table.find(Config.BlockOdds.Extra or {}, oddsId) ~= nil
 	for _, cue in CUES do
 		if
 			cue.Group == "Block"
 			and cue.Rarity == rarity
 			and not cue.Vaulted
-			and (core or table.find(cue.Blocks, oddsId))
+			and ((core and #cue.Blocks > 0) or table.find(cue.Blocks, oddsId) ~= nil)
 		then
 			table.insert(list, cue)
 		end

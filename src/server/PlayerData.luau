@@ -475,7 +475,7 @@ end
 -- finder's money). An Exclusive cue (a rank, the VIP or the Starter Cue) is one per player: it
 -- never sells, so a second copy would be worth nothing, and one already owned is not given
 -- again. Returns whether it was given.
-local function giveCue(data: any, id: string): boolean
+local function giveCue(data: any, id: string, paid: boolean?): boolean
 	local cue = Catalog.get(id)
 	if cue == nil then
 		return false
@@ -484,7 +484,7 @@ local function giveCue(data: any, id: string): boolean
 	if (cue.Group == "Exclusive" and have > 0) or have >= S.ItemCountCap then
 		return false
 	end
-	local given, first = Inventory.addCue(data, id, 1)
+	local given, first = Inventory.addCue(data, id, 1, paid == true)
 	if first then
 		payFind(data, id)
 	end
@@ -618,7 +618,7 @@ local function giveReward(data: any, reward: any, reason: string, paid: boolean?
 	local cues = reward.cues
 	if cues ~= nil then
 		for _, id in cues do
-			giveCue(data, id)
+			giveCue(data, id, paid == true)
 		end
 	end
 	addSpinsTo(data, reward.spins, reward.lucky)

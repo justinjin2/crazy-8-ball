@@ -24,6 +24,7 @@ export type RewardOut = {
 	blocks: { Daily.BlockCount },
 	spins: number,
 	lucky: number,
+	cues: { string }, -- cue ids it gives (economy v5: the first week's day 7)
 }
 
 export type LoginView = {
@@ -161,15 +162,25 @@ function RewardView.claimAll(offer: Daily.ClaimAllOffer, restricted: boolean?): 
 end
 
 --- A Daily.Reward as a remote carries it: { money, blocks = { { kind, count } }, spins,
---- lucky } with the blocks in Config.LuckyBlocks.Order (a list, so the client shows and flies
---- them in a fixed order); spins and lucky are 0 when the reward adds none.
+--- lucky, cues } with the blocks in Config.LuckyBlocks.Order (a list, so the client shows and
+--- flies them in a fixed order); spins and lucky are 0 when the reward adds none; cues the
+--- cue ids it gives, in order (economy v5: the Week One Cue), empty for none.
 function RewardView.reward(reward: Daily.Reward): RewardOut
 	local raw: any = reward
+	local cues: { string } = {}
+	if type(raw.cues) == "table" then
+		for _, id in raw.cues do
+			if type(id) == "string" then
+				table.insert(cues, id)
+			end
+		end
+	end
 	return {
 		money = math.max(0, math.floor(num(raw.money))),
 		blocks = Daily.blockList(reward),
 		spins = math.max(0, math.floor(num(raw.spins))),
 		lucky = math.max(0, math.floor(num(raw.lucky))),
+		cues = cues,
 	}
 end
 

@@ -198,7 +198,12 @@ end
 --- A cue's odds line: "<font color>4.2%</font> chance" (rich text).
 function InventoryCues.oddsLine(id: string): string?
 	local cue = Catalog.get(id)
-	if not cue or cue.Group == "Exclusive" or cue.Group == "Unique" then
+	if
+		not cue
+		or cue.Group == "Exclusive"
+		or cue.Group == "Unique"
+		or (cue.Group == "Block" and #cue.Blocks == 0) -- in no block (the Week One Cue)
+	then
 		return nil
 	end
 	local c = CueThumb.accentColor(cue.Rarity)

@@ -27,7 +27,8 @@ return {
 		for _, rarity in Config.BlockOdds.Rarities do
 			local cues = {}
 			for _, cue in Catalog.ofRarity(rarity) do
-				if cue.Id ~= Catalog.Default then
+				-- The Week One Cue (economy v5) is a Legendary in no block: its own test.
+				if cue.Id ~= Catalog.Default and cue.Id ~= "WeekOneCue" then
 					table.insert(cues, cue)
 				end
 			end
@@ -124,7 +125,41 @@ return {
 		)
 
 		local all = Catalog.list()
-		H.expect(#all == 46 + 12 + 2 + 1, ("%d cues in all, expected 61"):format(#all))
+		H.expect(#all == 46 + 1 + 12 + 2 + 1, ("%d cues in all, expected 62"):format(#all))
+	end,
+
+	["the Week One Cue: a Legendary in no block, tradable and sold back like one"] = function()
+		local Catalog, Config = load()
+		local BlockOdds = H.require("Progression.BlockOdds")
+		local BlockDrop = H.require("Progression.BlockDrop")
+		local cue = Catalog.get("WeekOneCue") :: Catalog.Cue
+		H.expect(cue ~= nil and cue.Rarity == "Legendary" and cue.Group == "Block", "a Legendary")
+		H.expect(cue.Tradable and cue.Sellable and not cue.Vaulted, "trades and sells")
+		H.expect(#cue.Blocks == 0, "no odds row")
+		H.expect(
+			BlockOdds.sellValue("WeekOneCue") == BlockOdds.sellValue("ChromaCue"),
+			"the Legendary sell-back"
+		)
+		-- In no row's pool, the extra rows' (Grand Opening, Starter) whole-pool rule included.
+		local rows = table.clone(Config.BlockOdds.Order)
+		for _, id in Config.BlockOdds.Extra do
+			table.insert(rows, id)
+		end
+		for _, id in rows do
+			for _, other in Catalog.droppable(id, "Legendary") do
+				H.expect(other.Id ~= "WeekOneCue", "not in " .. id .. "'s pool")
+			end
+			H.expect(not BlockOdds.canDrop(id, "WeekOneCue"), id .. " never drops it")
+		end
+		H.expect(BlockDrop.cuePercent("WeekOneCue") == 0, "no climb gives it")
+		for _, start in Config.BlockOdds.Order do
+			H.expect(
+				(BlockDrop.cueChances(nil, { start = start }) :: any).WeekOneCue == nil,
+				"in no climb's list from " .. start
+			)
+		end
+		local legendaries = Catalog.ofRarity("Legendary")
+		H.expect(#legendaries == 8, "counted with the Legendaries (the Index's row)")
 	end,
 
 	["ids are unique and every lookup agrees with the list"] = function()
