@@ -765,3 +765,7 @@ basics (glb textures, face direction, axes, texture alpha) are under "Uploading 
   phase) to be past the one-minute mark.
 - The 8 needs its pocket called: pass `calledPocket` to `phase` (2 is the +y side pocket);
   a `called` on the shot itself is refused with "CallRequired".
+- **The coin flip:** `"fixture"` with `{ phase = "CoinFlip", seconds = 600, coinWinner = 2 }`
+  (1 by default) shows the card again; it fades after `Config.Multiplayer.CoinSeconds` (3 s) of
+  the phase whatever `seconds` says, so screenshot within about 2 s (a `"phase"` call with
+  CoinFlip replays it). Table 9 is a 2v2 for the team wording.

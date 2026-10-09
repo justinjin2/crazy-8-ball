@@ -7640,10 +7640,15 @@ Config.Multiplayer = {
 		ButtonHeight = 44, -- touch target (at least 44)
 		ResultPanelHeight = 170, -- the result card; its icon sits on the top edge
 		ResultIconSize = 90, -- trophy, sad ball or flag
-		CoinPanelHeight = 150, -- the coin flip card: one title line and the coin
-		CoinHoldSeconds = 0.5, -- YOU ARE HEADS/TAILS on the still coin before it flips
+		CoinPanelHeight = 162, -- the coin flip card: one title line and the coin
+		CoinHoldSeconds = 0.5, -- the still coin on your side's token before it flips
 		CoinSpinSeconds = 1.2, -- the flip; who breaks shows for the rest of CoinSeconds
-		CoinSize = 78, -- the coin
+		-- The coin: a player's token each side (designer, 2026-10-09; 78 with H and T), their
+		-- headshot on a white disc this share of the coin, inside its gold rim.
+		CoinSize = 90,
+		CoinFaceShare = 0.78,
+		CoinRimLight = { 255, 229, 138 }, -- the gold rim's top-left light...
+		CoinRimDeep = { 227, 154, 18 }, -- ...and its bottom-right shade (Gold between)
 		DialogIconSize = 52, -- the door or flag over the leave question
 		ModalWidth = 340, -- responsive dialog maximum width
 		-- How much the screen behind a dialog and the coin and result cards darkens: none,

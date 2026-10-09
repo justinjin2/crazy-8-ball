@@ -106,13 +106,13 @@ return {
 		VoteHint = "Every teammate must vote Yes. The match clock keeps running.",
 		Voted = "Your vote is in",
 		VoteCount = "%d/%d agreed · %.0fs",
-		-- The coin flip, a few words at a time (designer, 2026-09-27): your side while it
-		-- spins, then who breaks once it lands. WHO BREAKS? is for someone watching.
-		CoinYouAre = { Heads = "YOU ARE HEADS", Tails = "YOU ARE TAILS" },
+		-- The coin flip (designer, 2026-10-09: a player's token each side, no heads or tails):
+		-- WHO BREAKS? while it flips, then who breaks once it lands. A team match names the
+		-- breaker's team: "PAINICANE'S TEAM BREAKS".
 		CoinTitle = "WHO BREAKS?",
 		CoinYouBreak = "YOU BREAK",
 		CoinBreaks = "%s BREAKS",
-		CoinTeam = "TEAM %s · %s",
+		CoinTeamBreaks = "%s'S TEAM BREAKS",
 		Breaker = "%s breaks",
 		You = "YOU",
 		Active = "SHOOTING",
@@ -181,8 +181,6 @@ return {
 		VoteWaiting = "Your vote is in. Waiting for your teammates.",
 		ClocksContinue = "Match clocks continue",
 		BackToQueue = "Returning to the table area",
-		CoinHeadGlyph = "H",
-		CoinTailGlyph = "T",
 		PlacementHint = "Drag the cue ball anywhere · shoot any time",
 		PlacementHintGamepad = "Hold LT + left stick to move the cue ball · shoot any time",
 		-- The break's hint: short, in capitals (designer, 2026-09-27).

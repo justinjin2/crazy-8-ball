@@ -12,7 +12,7 @@ Updated 2026-10-09.
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
 - **Lint and tests (2026-10-09, branch `gui-v4`):** lint OK (three old LocalShadow warnings);
-  all 1138 Lune tests pass.
+  all 1139 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; economy v4; saves at version 10;
@@ -35,7 +35,11 @@ One line each; the long form is the 2026-10-08 entry at the top of
 - **The matchmaking bar and spawn pill**: parked by the designer (2026-10-07); open: the spawn
   pill's 20 s, Play Global's X on a phone. **The queue portal**: not yet on a phone or gamepad.
 - **The ball streak** (2026-10-09; GDD 8, UI_STYLE 28, ECONOMY 3.1): STREAK x1 to x8 in the popup
-  row, low flames, YOUR TURN only for a new shooter; checked in Studio; not yet on a phone or by ear.
+  row, low flames, YOUR TURN only for a new shooter; on a phone only from a drop to the next
+  turn; checked in Studio and on an iPhone; a tablet check is next.
+- **The coin flip's player tokens** (2026-10-09): a headshot each side, no heads or tails;
+  **phone letterbox bars** cover most of the HUD's edge rows; **the Mystery screen** without
+  its two lines, a bigger block. Checked in Studio's phone emulator; not yet on a real phone.
 - **Lighting**: day 10 min, sunset 5 min. **Pull cutscenes**: Mythic and Secret wait a redo.
 - **Our own lucky blocks** (all 12 kinds, 2D icons), **the Gift drop** (`/giftdrop`; a test
   Gift waits in the designer's Studio save) and **the Mystery block's upgrade screen**: not yet

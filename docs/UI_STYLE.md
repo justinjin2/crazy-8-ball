@@ -227,7 +227,8 @@ below are the summary; the skill has the numbers and code.
 - **The art:** `tools/gen_ui_art.py` renders the icons (`assets/ui/icons`) and the effect
   images (`assets/ui/art`: the pattern tile, ball gloss and band, rays, 9-slice shadow).
 - **Screens:** the match top bar, the turn popup, the foul popup (no panel, 3 s), the hints,
-  the leave and surrender dialog, the coin and result cards, the host menu, the floor box, the
+  the leave and surrender dialog, the coin card (a player's headshot token each side of the
+  coin, in its gold rim; 2026-10-09) and the result card, the host menu, the floor box, the
   table sign (only near its table), the power bar, the spin panel and the pocket targets.
 - **Calling the 8** (designer, 2026-09-27): choosing, every pocket gets a 44 px ring with its
   name. Once called, while you shoot, the chosen pocket keeps a ring sized to sit inside its

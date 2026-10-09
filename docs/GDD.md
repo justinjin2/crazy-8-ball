@@ -247,8 +247,11 @@ Every feature is checked against these. If it serves none, it waits.
   then the arena, like a pad search. Stepping onto a pad mid-search cancels it.
 - **A full pad starts by itself**, **3 s** *(tune)* after the last one stepped on ("Starting in
   3"), so someone who walked on by accident can step off. Then straight to the coin flip,
-  about 3 s and a few words at a time: "YOU ARE HEADS" (or TAILS), the flip, then "YOU BREAK"
-  or "<NAME> BREAKS" for over a second (designer, 2026-09-27). **Teams go by arrival**: the
+  about 3 s and a few words at a time: "WHO BREAKS?" over the flip, then "YOU BREAK", "<NAME>
+  BREAKS" or, in a team match, "<NAME>'S TEAM BREAKS" for over a second (designer, 2026-09-27).
+  Each side of the coin is a player's token, their headshot on a white disc in the gold rim,
+  not heads and tails: the side that breaks shows its breaker, the other its first player; it
+  starts on your side's and lands on the breaker's (designer, 2026-10-09). **Teams go by arrival**: the
   first on (the host) is team A, the next team B, and so on alternately.
 - **Play solo, Play against PC and Fill with PC are off the pad** (designer, 2026-10-07):
   they move somewhere else later (their server handlers stay). There is no automatic start

@@ -46,6 +46,24 @@ local function nameFor(snapshot: any, userId: number?): string
 	return Copy.Opponent
 end
 
+-- The player on a side of the coin (designer, 2026-10-09: a token each side, no heads or tails):
+-- the breaker on the side that breaks, else that side's first player.
+local function coinSeat(snapshot: any, team: number): any
+	local coin = snapshot.coin
+	local first = nil
+	for _, seat in snapshot.seats do
+		if seat.team == team then
+			if team == coin.winnerTeam and seat.userId == coin.breaker then
+				return seat
+			end
+			if first == nil or (seat.slot or 0) < (first.slot or 0) then
+				first = seat
+			end
+		end
+	end
+	return first
+end
+
 local function localTeam(snapshot: any, userId: number): number
 	for _, seat in snapshot.seats do
 		if seat.userId == userId then
@@ -615,14 +633,52 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.resultIcon.ZIndex = 3
 	self.presentationTitle = text(self.presentation, "Heading", K.Text.Title, "")
 	self.presentationText = HudParts.note(self.presentation, "Explanation", K.Text.Body, "")
+	-- The coin: a player's token on each side, their headshot on a white disc inside the gold
+	-- rim (designer, 2026-10-09). One face is drawn; the flip swaps whose it is, and everything
+	-- in it squashes with the coin's width.
 	self.coin = frame(self.presentation, "Coin")
 	self.coin.AnchorPoint = Vector2.new(0.5, 0.5)
-	local coinFace = HudParts.icon(self.coin, "Coin", "Face")
-	coinFace.ScaleType = Enum.ScaleType.Stretch
-	coinFace.Size = UDim2.fromScale(1, 1)
-	self.coinGlyph = text(self.coin, "Glyph", K.Text.Title, Copy.CoinHeadGlyph, tone("Gold"))
-	self.coinGlyph.Size = UDim2.fromScale(1, 1)
-	self.coinGlyph.ZIndex = 2
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0.5, 0)
+	local function circle(name: string, share: number, fill: Color3, z: number): Frame
+		local object = frame(self.coin, name)
+		object.AnchorPoint = Vector2.new(0.5, 0.5)
+		object.Position = UDim2.fromScale(0.5, 0.5)
+		object.Size = UDim2.fromScale(share, share)
+		object.BackgroundTransparency = 0
+		object.BackgroundColor3 = fill
+		object.ZIndex = z
+		round:Clone().Parent = object
+		local edge = Instance.new("UIStroke")
+		edge.Color = tone("Ink")
+		edge.Thickness = K.PanelStrokePx
+		edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		edge.Parent = object
+		return object
+	end
+	-- The rim: gold, lit from the top left.
+	local rim = circle("Rim", 1, Color3.new(1, 1, 1), 1)
+	local shine = Instance.new("UIGradient")
+	shine.Rotation = 45
+	shine.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(table.unpack(S.CoinRimLight))),
+		ColorSequenceKeypoint.new(0.5, tone("Gold")),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(table.unpack(S.CoinRimDeep))),
+	})
+	shine.Parent = rim
+	local disc = circle("Disc", S.CoinFaceShare, tone("White"), 2)
+	local face = Instance.new("ImageLabel")
+	face.Name = "Avatar"
+	face.BackgroundTransparency = 1
+	face.ScaleType = Enum.ScaleType.Stretch
+	face.Size = UDim2.fromScale(1, 1)
+	face.ZIndex = 3
+	face.Parent = disc
+	round:Clone().Parent = face
+	local unknown = text(disc, "Fallback", K.Text.Heading, Copy.AvatarFallback)
+	unknown.Size = UDim2.fromScale(1, 1)
+	unknown.ZIndex = 3
+	self.coinFace = { image = face, fallback = unknown, userId = nil :: number? }
 	table.insert(
 		self.connections,
 		self.root:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
@@ -1200,37 +1256,12 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 					self:watchRank(portrait, seat.userId, seat.bot)
 					portrait.image.Image = ""
 					portrait.fallback.Visible = true
-					-- A bot's portrait (the Bots lane): its avatar's account, or the robot.
-					local id, picture = People.portrait(seat.userId, seat.bot)
-					local cached = if id then self.avatarCache[id] else nil
-					if picture then
-						portrait.image.Image = picture
-						portrait.fallback.Visible = false
-					elseif cached then
-						portrait.image.Image = cached
-						portrait.fallback.Visible = false
-					elseif id and id > 0 then
-						task.spawn(function()
-							local ok, content, isReady = pcall(function()
-								return Players:GetUserThumbnailAsync(
-									id,
-									Enum.ThumbnailType.HeadShot,
-									Enum.ThumbnailSize.Size150x150
-								)
-							end)
-							if
-								self.alive
-								and ok
-								and content
-								and isReady
-								and portrait.userId == seat.userId
-							then
-								self.avatarCache[id] = content
-								portrait.image.Image = content
-								portrait.fallback.Visible = false
-							end
-						end)
-					end
+					self:avatar(seat, function(content: string)
+						if portrait.userId == seat.userId then
+							portrait.image.Image = content
+							portrait.fallback.Visible = false
+						end
+					end)
 				end
 			end
 		end
@@ -1631,33 +1662,84 @@ function MatchHUD.updatePresentation(self: any, now: number)
 	if coinPhase and snapshot.coin then
 		self.rays.Visible = false
 		local coin = snapshot.coin
-		-- A few words at a time (designer, 2026-09-27): your side on the still coin, the same
-		-- while it spins, then who breaks once it lands, for the rest of the card's time.
+		-- Both players' pictures are fetched as the card opens, so the flip never shows "?".
+		if self.coinWarm ~= snapshot.phaseStartedAt then
+			self.coinWarm = snapshot.phaseStartedAt
+			for team = 1, 2 do
+				local seat = coinSeat(snapshot, team)
+				if seat then
+					self:avatar(seat, function() end)
+				end
+			end
+		end
+		-- WHO BREAKS? while it flips, then who breaks once it lands (designer, 2026-10-09). It
+		-- starts on your side's token (a watcher: the host's side) and turns four times, or four
+		-- and a half when the other side breaks, so it lands on the breaker with no jump.
 		local seated = Engine.seat(snapshot, self.localUserId) ~= nil
-		local ourSideHeads = coin.headsTeam == self.ours
+		local first = if seated then self.ours else coin.headsTeam
 		local progressCoin = math.clamp((elapsed - S.CoinHoldSeconds) / S.CoinSpinSeconds, 0, 1)
-		local turn = (1 - (1 - progressCoin) ^ 3) * math.pi * 8
+		local halfTurns = if coin.winnerTeam == first then 8 else 9
+		local turn = (1 - (1 - progressCoin) ^ 3) * math.pi * halfTurns
 		local landed = progressCoin >= 1
-		local heads = if landed
-			then coin.winnerTeam == coin.headsTeam
-			elseif elapsed < S.CoinHoldSeconds and seated then ourSideHeads
-			else math.cos(turn) >= 0
+		self:showCoinFace(snapshot, if math.cos(turn) >= 0 then first else 3 - first)
 		self.coin.Size =
 			UDim2.fromOffset(S.CoinSize * math.max(0.08, math.abs(math.cos(turn))), S.CoinSize)
 		self.coin.Rotation = math.sin(turn / 2) * 12 * (1 - progressCoin)
-		self.coinGlyph.Text = if heads then Copy.CoinHeadGlyph else Copy.CoinTailGlyph
-		self.presentationTitle.Text = if landed
-			then (if coin.breaker == self.localUserId
-				then Copy.CoinYouBreak
-				else string.format(
-					Copy.CoinBreaks,
-					string.upper(nameFor(snapshot, coin.breaker))
-				))
-			elseif seated then (if ourSideHeads
-				then Copy.CoinYouAre.Heads
-				else Copy.CoinYouAre.Tails)
-			else Copy.CoinTitle
+		local breaker = string.upper(nameFor(snapshot, coin.breaker))
+		self.presentationTitle.Text = if not landed
+			then Copy.CoinTitle
+			elseif coin.breaker == self.localUserId then Copy.CoinYouBreak
+			elseif (snapshot.teamSize or 1) > 1 then string.format(
+				Copy.CoinTeamBreaks,
+				breaker
+			)
+			else string.format(Copy.CoinBreaks, breaker)
 		self.presentationTitle.TextColor3 = tone("Gold")
+	end
+end
+
+-- A seat's picture: a bot's robot or its avatar's headshot, else the player's own (cached;
+-- fetched in the background the first time). `show` gets it once it is there.
+function MatchHUD.avatar(self: any, seat: any, show: (string) -> ())
+	local id, picture = People.portrait(seat.userId, seat.bot)
+	local cached = if id then self.avatarCache[id] else nil
+	if picture or cached then
+		show(picture or cached)
+	elseif id and id > 0 then
+		task.spawn(function()
+			local ok, content, isReady = pcall(function()
+				return Players:GetUserThumbnailAsync(
+					id,
+					Enum.ThumbnailType.HeadShot,
+					Enum.ThumbnailSize.Size150x150
+				)
+			end)
+			if self.alive and ok and content and isReady then
+				self.avatarCache[id] = content
+				show(content)
+			end
+		end)
+	end
+end
+
+-- The coin's face: the token of `team`'s player on it (coinSeat).
+function MatchHUD.showCoinFace(self: any, snapshot: any, team: number)
+	local seat = coinSeat(snapshot, team)
+	local userId = if seat then seat.userId else nil
+	local face = self.coinFace
+	if face.userId == userId then
+		return
+	end
+	face.userId = userId
+	face.image.Image = ""
+	face.fallback.Visible = true
+	if seat then
+		self:avatar(seat, function(content: string)
+			if face.userId == userId then
+				face.image.Image = content
+				face.fallback.Visible = false
+			end
+		end)
 	end
 end
 
