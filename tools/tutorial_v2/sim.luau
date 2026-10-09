@@ -20,8 +20,8 @@ Sim.H = H
 Sim.Config = Config
 
 -- The hidden help's tuning from the environment, so a sweep can try settings without editing
--- Config: TUT_STEER, TUT_MAXTURN, TUT_WINDOW (the ricochet's steer), TUT_PULL_FIRST and
--- TUT_PULL_LATER (the pull's modes), TUT_PULLMAX and TUT_PULLINCH (Gentle's turns),
+-- Config: TUT_STEER, TUT_MAXTURN, TUT_WINDOW (the ricochet's steer), TUT_PULL_LESSON,
+-- TUT_PULL_FIRST and TUT_PULL_LATER (the pull's modes), TUT_PULLMAX and TUT_PULLINCH (Gentle's turns),
 -- TUT_GUARDMAX and TUT_GUARDINCH (the cue-ball guard's).
 do
 	local env = require("@lune/process").env
@@ -29,6 +29,7 @@ do
 	A.SteerPerInch = tonumber(env.TUT_STEER) or A.SteerPerInch
 	A.MaxTurn = tonumber(env.TUT_MAXTURN) or A.MaxTurn
 	A.WindowInches = tonumber(env.TUT_WINDOW) or A.WindowInches
+	A.Pull.Lesson = env.TUT_PULL_LESSON or A.Pull.Lesson
 	A.Pull.First = env.TUT_PULL_FIRST or A.Pull.First
 	A.Pull.Later = env.TUT_PULL_LATER or A.Pull.Later
 	A.Pull.MaxTurn = tonumber(env.TUT_PULLMAX) or A.Pull.MaxTurn

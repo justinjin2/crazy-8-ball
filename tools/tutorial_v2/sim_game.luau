@@ -75,6 +75,7 @@ local DEFAULTS = {
 	fireAimFactor = 0.6, -- Fire Shot's full lines: the aim error times this
 	abilityWithHand = false, -- true: the ability lesson can share a ball-in-hand turn
 	guard = true, -- the cue-ball guard on the player's game-1 shots (Assist's Guard)
+	eightLesson = false, -- true: the shots on the 8 get the lesson shots' pull (Pull.Lesson)
 	botPot = "plan", -- the first visit's pot: "plan" (BotPlan.pot) or "script" (Bots/Script.pot)
 	abilityMaxGhost = 30, -- the ability lesson waits for a ball this close (inches) with a clean pot
 	abilityWaitTurns = 2, -- ... for at most this many turns
@@ -283,6 +284,7 @@ local function play(seed: number): any
 		base.extra.Ricochet = shotHelp.ricochet
 		base.extra.Guard = if opts.guard then true else nil
 		base.extra.AimAt = shotHelp.aimAt
+		base.extra.Lesson = shotHelp.lesson -- turn 2 and the ability turn (Pull.Lesson)
 		return base
 	end
 
@@ -421,7 +423,7 @@ local function play(seed: number): any
 				target = pot
 				local want = if pot then pot.angle else 0
 				shot = { angle = Player.aim(p, want, want, true), power = Player.power(p) }
-				shotHelp = if opts.assist then {} else { off = true }
+				shotHelp = if opts.assist then { lesson = opts.eightLesson } else { off = true }
 				lesson = "eight"
 			elseif not lessonsDone.aim then
 				lesson = "aim"
@@ -450,7 +452,9 @@ local function play(seed: number): any
 						ricochet.ball = plan.second
 					end
 				end
-				shotHelp = if opts.assist then { ricochet = ricochet } else { off = true }
+				shotHelp = if opts.assist
+					then { ricochet = ricochet, lesson = true }
+					else { off = true }
 				rec.aim =
 					{ ball = pot.ball, pocket = pot.pocket, cut = pot.cut, power = shot.power }
 			elseif
@@ -501,7 +505,7 @@ local function play(seed: number): any
 					{ angle = Player.aim(p, pot.angle, pot.angle, true), power = Player.power(p) }
 				Player.AimSdDegrees[p.kind] = saved
 				shotHelp = if opts.assist
-					then { inner = "FireShot" }
+					then { inner = "FireShot", lesson = true }
 					else { off = true, inner = "FireShot" }
 				rec.ability = {
 					ball = pot.ball,

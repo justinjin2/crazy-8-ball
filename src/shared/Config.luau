@@ -13602,14 +13602,17 @@ Config.Tutorial = {
 		-- Only within this many inches of roll after the cue ball meets its first ball or a
 		-- cushion, where a bend hides in the collision's own deflection (0: anywhere).
 		WindowInches = 4,
-		-- The pull on the player's balls near a pocket: First for the first ball the cue ball
-		-- hits, Later for any other ball of theirs it touches after (the ricochet's second
-		-- ball). "Magnet": the Magnet ability's full pull, as the old tutorial had (it can
-		-- curve a ball 20 degrees and more and brakes it into the pocket: visible). "Gentle":
-		-- Magnet's turn only (no braking, no snap), at most MaxTurn radians in all per ball and
-		-- PerInch per inch rolled, so it hides in the throw and drift a real ball has. "Off".
+		-- The pull on the player's balls near a pocket: Lesson for the first ball the cue ball
+		-- hits on a lesson shot (turn 2, the ability turn: overrides.Lesson), First for it on
+		-- every other shot, Later for any other ball of theirs it touches after (the
+		-- ricochet's second ball). "Magnet": the Magnet ability's full pull, as the old
+		-- tutorial had (it can curve a ball 20 degrees and more and brakes it into the pocket:
+		-- visible). "Gentle": Magnet's turn only (no braking, no snap), at most MaxTurn radians
+		-- in all per ball and PerInch per inch rolled, so it hides in the throw and drift a
+		-- real ball has. "Off".
 		Pull = {
-			First = "Magnet",
+			Lesson = "Magnet",
+			First = "Gentle",
 			Later = "Gentle",
 			MaxTurn = 0.17, -- about 10 degrees in all
 			PerInch = 0.05, -- about 3 degrees per inch rolled: a curve, not a kink
@@ -13623,12 +13626,13 @@ Config.Tutorial = {
 		},
 		-- The cue-ball guard on the player's game-1 shots: a cue ball within Inches of a
 		-- pocket's mouth middle and heading at it (within the cone whose cosine is ConeCos) is
-		-- turned away, at most PerInch radians per inch rolled and MaxTurn in all.
+		-- turned away, at most PerInch radians per inch rolled and MaxTurn in all (small, like
+		-- the Gentle pull, so it reads as a lip-out; 0.35, about 20 degrees, was visible).
 		Guard = {
 			Inches = 7,
 			ConeCos = 0.8, -- about 37 degrees either side
-			PerInch = 0.2,
-			MaxTurn = 0.35, -- about 20 degrees
+			PerInch = 0.1, -- about 6 degrees per inch rolled
+			MaxTurn = 0.17, -- about 10 degrees
 		},
 	},
 	-- The tutorial bot's game-1 shots (src/shared/Tutorial/BotPlan.luau, tutorial v2; the

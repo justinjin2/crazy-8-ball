@@ -3,9 +3,9 @@
 -- effect for the physics (Ults/Effects registry name "TutorialAssist"). Nothing here is
 -- drawn: the player must never notice it.
 --
--- - A pull on the first ball the cue ball hits, if it is the player's (Pull.First), and on
---   every other ball of theirs the cue ball itself touches later in the shot (Pull.Later: the
---   ricochet's second ball). "Magnet": Effects/Magnet's full pull, as Tutorial/Rig's assist
+-- - A pull on the first ball the cue ball hits, if it is the player's (Pull.Lesson on a
+--   lesson shot, overrides.Lesson; Pull.First otherwise), and on every other ball of theirs
+--   the cue ball itself touches later in the shot (Pull.Later: the ricochet's second ball). "Magnet": Effects/Magnet's full pull, as Tutorial/Rig's assist
 --   always did. "Gentle": only the turn Magnet would give it, at most Pull.MaxTurn in all per
 --   ball, its speed untouched, so it hides in the throw and drift a real ball has. "Off".
 -- - The ricochet steer (turn 2 only, overrides.Ricochet): once the cue ball has hit its first
@@ -258,7 +258,13 @@ function Assist.step(state: any, dt: number)
 	local first = Magnet.firstHit(state)
 	local b = if first ~= nil and owned(state, first) then findBall(state, first) else nil
 	if b and not b.pocketed then
-		pull(state, b, eightPocket, dt, A.Pull.First)
+		pull(
+			state,
+			b,
+			eightPocket,
+			dt,
+			if state.overrides.Lesson then A.Pull.Lesson else A.Pull.First
+		)
 	end
 	local hits = fx.assistHits
 	if hits and A.Pull.Later ~= "Off" then

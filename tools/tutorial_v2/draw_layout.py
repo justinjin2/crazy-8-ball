@@ -55,7 +55,8 @@ def ball(d, out, b, ghost=False, ring=None):
         out.append(f'<rect x="{px - r:.1f}" y="{py - r * 0.38:.1f}" width="{2 * r:.1f}" height="{r * 0.76:.1f}" fill="#f4f1e8" opacity="0.9"/>')
         out.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="{r:.1f}" fill="none" stroke="#000" stroke-width="1.2"/>')
     if bid != 0:
-        out.append(f'<text x="{px:.1f}" y="{py + 4:.1f}" fill="{"#000" if bid in (1, 9) else "#fff"}" font-size="10" font-weight="bold" text-anchor="middle">{bid}</text>')
+        dark = bid == 1 or bid >= 9  # yellow, or a stripe's white band behind the number
+        out.append(f'<text x="{px:.1f}" y="{py + 4:.1f}" fill="{"#000" if dark else "#fff"}" font-size="10" font-weight="bold" text-anchor="middle">{bid}</text>')
     if ring:
         out.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="{r + 5:.1f}" fill="none" stroke="{ring}" stroke-width="3"/>')
 
@@ -101,7 +102,7 @@ def draw_break(d):
 
 def draw_turn2(d):
     t = d["turn2"]
-    out = svg_open(d, "2. Turn 2, played perfectly: ball 3 into the side, ball 5 follows (x2)")
+    out = svg_open(d, "2. Turn 2 with today's pull (option A): ball 5 curves in after ball 3")
     cue = [b for b in t["before"] if b[0] == 0][0]
     line(d, out, (cue[1], cue[2]), (t["pot"]["ghostX"], t["pot"]["ghostY"]), "#ffffff", 2, "6 4")
     for bid, pts in t["paths"].items():

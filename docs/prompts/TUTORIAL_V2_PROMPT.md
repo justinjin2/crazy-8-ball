@@ -844,7 +844,7 @@ lines). All in the worktree.
 - [x] 1. Read and map (section 2). Notes get the map, the touch list (started) and the old
   bugs.
 - [x] 2. Short research (5.7).
-- [ ] 3. Simulations and models (5.1-5.5), the plan page (section 9). **Stop for
+- [x] 3. Simulations and models (5.1-5.5), the plan page (section 9). **Stop for
   "approved".**
 - [ ] 4. Foundations:
   - the step machine v2 (paths S and R, the chain, first-time hints, resume, the migration
@@ -985,14 +985,24 @@ lines). All in the worktree.
 - **Layout:** rack seed 2497, cue ball (-25, -0.125), angle -0.000118 rad, power 0.95 (games
   file `games/L2497b.json`): balls 7 (P1, 3.3 s) and 6 (P4, 6.5 s, ~1.1 s on the lip) drop;
   the 8 stops by the foot rail ~2 ft from P3 and P4. Turn 2: ball 3 into P2 (a 4-degree cut),
-  planned at full power; the Fire Shot turn it leaves: ball 1 into P2. "Invisible" for the
+  at the player's own power (a planned full power only raised the ricochet, 1% to 14%: decision
+  6 on the plan page); the ability lesson waits up to 2 turns for a good setup. "Invisible" for the
   break = at most 1/4 inch off centre and 0.2 degrees off straight.
 - **Can't-dos found:** a pocket near the aimed ball stays on screen at every zoom (the camera
   looks along the aim); an 80% ricochet needs today's Magnet pull, which curves the second
-  ball 30-60 degrees (`tools/tutorial_v2/diag_bend.luau`). Hence decision 1 on the plan page:
-  A today's pull everywhere, B invisible ("Gentle": turn only, at most 10 degrees, 3 per inch),
-  C today's on the first ball and Gentle on later ones (my pick). Config:
-  `Config.Tutorial.Assist.Pull` (First / Later / MaxTurn / PerInch).
+  ball 30-60 degrees (`tools/tutorial_v2/diag_bend.luau`), and today's pull on every shot shows
+  a bend over 20 degrees in most games (sim_game now records the help per shot). Hence decision
+  1 on the plan page: A today's pull everywhere, B invisible ("Gentle": turn only, at most 10
+  degrees, 3 per inch; the scratch guard 10 degrees), C today's pull only on the two lesson
+  shots (turn 2, the ability turn: `overrides.Lesson`, which Rig.assist must set in the build)
+  and Gentle elsewhere (my pick, the Config default). Config: `Config.Tutorial.Assist.Pull`
+  (Lesson / First / Later / MaxTurn / PerInch) and `Assist.Guard`. Runs: `games/opt_*.jsonl`.
+- **Results (2,160 games each, 0 losses and 0 dead ends in every run):** A (today's pull
+  everywhere) aim 99%, ricochet 73%, Fire Shot 88%, median 2:36, a bend over 20 degrees in 91%
+  of games; B (Gentle everywhere) 82% / 0% / 72%, 4:01, never; C (today's on the lesson shots)
+  97% / 14% / 88%, 3:50, 27%; my picks (C, their own power on turn 2) 96% / 1% / 89%, 3:52,
+  21%. A 15-degree Gentle pull or today's pull on the 8 saved only ~15 s each. No help: 59% /
+  3% / 42%, 6:01, 24 dead ends. Proposed: a game-1 target of about 4 minutes.
 - **Fix found by the 3,240-game run:** `BotPlan.cleanScratch` fell back to Script.scratch's
   shot, which once potted a player's ball; it now fans its straight lines and, failing that,
   plays a soft shot that touches nothing (a no-contact foul, still ball in hand).
