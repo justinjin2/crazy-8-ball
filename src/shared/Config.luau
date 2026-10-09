@@ -8559,17 +8559,24 @@ Config.UI.VipTag = {
 -- times ShortScale on a phone (Multiplayer.Style.ShortHeight). (tune)
 Config.UI.Streak = {
 	Font = "rbxasset://fonts/families/PressStart2P.json", -- built into Roblox
-	TextPx = 26, -- STREAK at x1
+	GlyphPx = 26, -- a letter's width at x1 (the mockup's 26 px)
+	-- Press Start 2P's letters in Roblox (measured 2026-10-09 in Studio and from the font's
+	-- metrics): Advance of the TextSize wide, the capitals' top CapTopShare and their baseline
+	-- BaselineShare of the TextSize down from the label's top. A letter GlyphPx wide is
+	-- TextSize GlyphPx / Advance.
+	Advance = 0.55,
+	CapTopShare = 0.322,
+	BaselineShare = 0.82,
 	ShortScale = 0.66, -- on a phone
 	GrowPerLevel = 0.05, -- each level past x1 is 5% bigger: x8 is 1.35x
 	NumberScale = 1.25, -- "xN" is a quarter bigger than STREAK
 	-- Its top: under the popups' row (the foul popup's title and reason) below the top bar.
 	TopGapPx = 6,
-	ZIndex = 1, -- under MatchHUD's root (ZIndex 2) in the same screen
+	ZIndex = 0, -- under every other piece of the match screen (theirs are 1 and up)
 	Ink = { 27, 32, 51 }, -- the outline (Kit Ink)
-	OutlineShare = 0.1, -- the ink outline's thickness, a share of the text size (UIStroke, Miter)
+	OutlineShare = 0.1, -- the ink outline's thickness, a share of GlyphPx (UIStroke, Miter)
 	ShadowColor = { 11, 14, 28 }, -- the drop shadow, down and right
-	ShadowShare = { 0.1, 0.16 }, -- its offset, shares of the text size (x, y)
+	ShadowShare = { 0.1, 0.16 }, -- its offset, shares of GlyphPx (x, y)
 	HighlightMix = 0.45, -- the fill's top is its colour this far toward white (UIGradient)
 	-- From x6 a cyan and a pink copy sit either side of each letter (a spray-paint look).
 	Ghost = {
@@ -8714,6 +8721,15 @@ Config.UI.Streak = {
 		FlareScale = 0.45,
 		FlareDecay = 7,
 		IgniteSeconds = 0.4,
+		-- While a match popup shows above the words (YOUR TURN after every pot, a foul), the
+		-- flames duck so their tips stay ClearPx under it (fast, at DuckRate a second, as the
+		-- popup pops in at once) and grow back gently at GrowRate when it goes: the popups'
+		-- words never sit on fire. TipPx: how many art rows each sheet's tallest flame (embers
+		-- too) reaches above TextTopPx (measured from the sheets).
+		TipPx = { [3] = 10, [4] = 17, [5] = 20, [6] = 24, [7] = 29, [8] = 33 },
+		ClearPx = 4,
+		DuckRate = 30,
+		GrowRate = 6,
 	},
 	-- The white burst at a step (a ring and rays, tinted the new colour; 8 frames at 30 fps),
 	-- WidthShare of the words' width.
@@ -8738,7 +8754,7 @@ Config.UI.Streak = {
 		LifeMin = 0.45,
 		LifeMax = 0.75,
 		WhiteShare = 0.35,
-		PixelShare = 0.15, -- a shard's side, a share of the text size
+		PixelShare = 0.15, -- a shard's side, a share of GlyphPx
 		LowShare = 0.5,
 	},
 }

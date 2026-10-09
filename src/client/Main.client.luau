@@ -55,6 +55,7 @@ local LookOverThereFx = require(script.Parent.LookOverThereFx)
 local UltScreen = require(script.Parent.UltScreen)
 local UI = require(script.Parent.UI)
 local MatchHUD = require(script.Parent.MatchHUD)
+local StreakHud = require(script.Parent.StreakHud)
 local MatchTargets = require(script.Parent.MatchTargets)
 local PadEffects = require(script.Parent.PadEffects)
 local MatchBar = require(script.Parent.MatchBar)
@@ -608,6 +609,9 @@ local function action(kind: string, value: any?)
 	end
 end
 hud = MatchHUD.new(screen, action)
+-- The ball streak under the match popups (Rules/Streak decides it; each step plays as the
+-- replay drops its ball, from the per-table hook below).
+local streakHud = StreakHud.new(screen, hub, hud)
 padGuide:attachLeave(hud.leave) -- the Circle beside Leave
 matchBar = MatchBar.new(screen, action)
 -- Ranks and money: the HUDs, nameplates, flying cash, result screen, NEW RANK! and roadmap.
@@ -975,6 +979,7 @@ for id = 1, Placement.tableCount() do
 	effectsByTable[id] = e
 	m:onEvent(function(ev, index)
 		if ev.type == "pocket" then
+			streakHud:onPocket(id, m, ev, index)
 			-- The gust rises from the pocket's own centre; the ball's spot is the fallback.
 			local at: Vector3? = nil
 			for _, p in m.state.geometry.pockets do

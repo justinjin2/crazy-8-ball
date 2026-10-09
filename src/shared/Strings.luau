@@ -198,6 +198,11 @@ return {
 		-- Time Stop's stopped time, the shooter's instruction line.
 		TimeStopHint = "TIME STOPPED · HIT ONE OF YOUR BALLS",
 	},
+	-- The ball streak under the match popups (StreakHud): STREAK and its level, "x3".
+	Streak = {
+		Word = "STREAK",
+		Number = "x%d",
+	},
 	-- Saves (PlayerData): the kick messages when a save cannot be used.
 	-- The global queue's teleports and why one did not happen (GlobalQueue, TeleportScreen).
 	GlobalQueue = {
