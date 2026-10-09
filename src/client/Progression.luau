@@ -53,6 +53,7 @@ local TeleportScreen = require(script.Parent.TeleportScreen)
 local TradeMenu = require(script.Parent.TradeMenu)
 local UISound = require(script.Parent.UISound)
 local LuckyClient = require(script.Parent.LuckyClient)
+local Purchased = require(script.Parent.Purchased)
 local VipTag = require(script.Parent.VipTag)
 local WinTrack = require(script.Parent.WinTrack)
 
@@ -280,6 +281,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	-- (the win's block and rank rewards fly to the hotbar or deps.column).
 	result:setDeps(deps)
 	newRank:setDeps(deps)
+	deps.purchased = Purchased.new(screen, deps) -- a Robux purchase's thank-you and flow
 	ShopMenu.new(screen, deps)
 	InventoryMenu.new(screen, deps)
 	TradeMenu.new(screen, deps)

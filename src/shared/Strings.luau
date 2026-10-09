@@ -1043,6 +1043,16 @@ return {
 		ResetsIn = "New day in %s",
 		ResetsAbove = "Resets in", -- over the clock pill
 	},
+	-- A Robux purchase's thank-you (Purchased): the big word, then the item under it (else what
+	-- it gave, RewardsParts.gains: "+$250,000", "+10 Mystery Lucky Blocks").
+	Purchased = {
+		Thanks = "THANK YOU!",
+		Vip = "VIP",
+		Party = "Money Party",
+		ClaimAll = "Claim All",
+		Skip = "Block timers skipped",
+		GiftSent = "Gift sent to %s: %s", -- the receiver's name, the item
+	},
 	-- VIP's tag over the money pill (VipTag); its perks are Menus.Shop.Blocks.VipPerks.
 	VipTag = {
 		Word = "VIP",

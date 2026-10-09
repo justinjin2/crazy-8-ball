@@ -138,6 +138,7 @@ local pendingRestock: { [Player]: { key: string, slot: number, at: number, reser
 -- A gift remembered from its prompt until its receipt: the product and who gets it.
 local pendingGift: { [Player]: { key: string, to: number, name: string } } = {}
 local giftEvent: RemoteEvent? = nil
+local purchaseEvent: RemoteEvent? = nil
 -- The restock slot this server last saw (a new one re-sends ShopState and may announce).
 local restockSlot = -1
 -- The Legendary units taken last sent in ShopState (Counters.stockTaken).
@@ -361,6 +362,38 @@ local function checkPasses(player: Player)
 	end
 end
 
+-- Tell `player`'s client what a Robux purchase gave (Net PurchaseDone: the thank-you and the
+-- flow to the HUD). `grant` is what landed (nil: nothing to tell); `extra` adds pass, to, from.
+local function tellPurchase(player: Player, grant: Shop.Grant?, extra: { [string]: any }?)
+	local remote = purchaseEvent
+	if remote == nil or grant == nil or not present(player) then
+		return
+	end
+	local blocks = {}
+	if grant.blocks ~= nil then
+		table.insert(blocks, { kind = grant.blocks.kind, count = grant.blocks.count })
+	elseif grant.restock ~= nil then
+		table.insert(blocks, { kind = grant.restock.block, count = 1 })
+	end
+	local message: { [string]: any } = {
+		key = grant.key,
+		money = grant.money,
+		blocks = blocks,
+		cue = grant.cue or grant.limited,
+		vip = grant.vip == true or grant.key == "Vip",
+		party = grant.party == true,
+		spins = grant.spins,
+		skip = grant.luckySkip == true,
+		claimAll = grant.claimAll ~= nil,
+	}
+	if extra ~= nil then
+		for field, value in extra do
+			message[field] = value
+		end
+	end
+	remote:FireClient(player, message)
+end
+
 -- A pass purchase finished in this server: counted for the session at once. Roblox fires
 -- PromptGamePassPurchaseFinished on the server itself (its own game pass guide grants on it),
 -- while UserOwnsGamePassAsync may answer false from its cache for a while after a purchase;
@@ -378,6 +411,7 @@ local function onPassPurchase(player: Player, passId: number, purchased: boolean
 	owned[key] = true
 	mark(player)
 	Funnel.shop(player, "Bought") -- the shop funnel (the tutorial lane)
+	tellPurchase(player, { key = key, money = 0 }, { pass = true })
 	passEvent:Fire(player)
 end
 
@@ -508,8 +542,13 @@ end
 -- mutation (Shop.processReceipt's `grant`). What it gives is decided now (Shop.grantFor, and
 -- the Limited counter for a Robux Limited); a receipt that cannot give its product pays the
 -- money fallback, logged. True once granted (now, or by a concurrent try of the same
--- receipt); false and a reason otherwise (the receipt stays NotProcessedYet).
-local function grantProduct(player: Player, key: string, purchaseId: string): (boolean, string?)
+-- receipt), with the grant when it landed now; false and a reason otherwise (the receipt
+-- stays NotProcessedYet).
+local function grantProduct(
+	player: Player,
+	key: string,
+	purchaseId: string
+): (boolean, string?, Shop.Grant?)
 	local saleRow = LIST[key]
 	if key == VIP_OFFER or (saleRow ~= nil and saleRow.Vip == true) then
 		waitVipPassCheck(player)
@@ -605,7 +644,7 @@ local function grantProduct(player: Player, key: string, purchaseId: string): (b
 		pendingRestock[player] = nil
 	end
 	Funnel.shop(player, "Bought") -- the shop funnel (the tutorial lane)
-	return true, nil
+	return true, nil, grant
 end
 
 -- Whether Config.Products key `key` may be gifted: a developer product that is not a restock
@@ -632,8 +671,9 @@ local function grantGift(
 	local receiver = Players:GetPlayerByUserId(pend.to)
 	local remote = giftEvent
 	if receiver == nil or not ready(receiver) then
-		local ok, why = grantProduct(buyer, key, purchaseId)
+		local ok, why, grant = grantProduct(buyer, key, purchaseId)
 		if ok then
+			tellPurchase(buyer, grant) -- theirs after all: thanked, and it flows in
 			pendingGift[buyer] = nil
 			log(
 				("gift %s from %d: %d left; granted to the giver"):format(
@@ -648,7 +688,7 @@ local function grantGift(
 		end
 		return ok, why
 	end
-	local ok, why = grantProduct(receiver, key, purchaseId)
+	local ok, why, grant = grantProduct(receiver, key, purchaseId)
 	if not ok then
 		return false, why
 	end
@@ -665,6 +705,8 @@ local function grantGift(
 	if remote ~= nil then
 		remote:FireClient(receiver, { from = buyer.DisplayName, key = key })
 	end
+	tellPurchase(buyer, grant, { to = receiver.DisplayName }) -- the giver is thanked
+	tellPurchase(receiver, grant, { from = buyer.DisplayName }) -- the gift flows in
 	mark(receiver)
 	return true, nil
 end
@@ -715,7 +757,11 @@ local function runReceipt(receipt: Shop.Receipt, key: string?): (Shop.Decision, 
 			if pend ~= nil and pend.key == productKey then
 				ok, reason = grantGift(player, pend, productKey, id)
 			else
-				ok, reason = grantProduct(player, productKey, id)
+				local grant
+				ok, reason, grant = grantProduct(player, productKey, id)
+				if ok then
+					tellPurchase(player, grant)
+				end
 			end
 			why = reason
 			return ok
@@ -1256,6 +1302,7 @@ function Store.start()
 	MarketplaceService.ProcessReceipt = processReceipt
 	shopState = Net.get("ShopState")
 	giftEvent = Net.get("GiftReceived")
+	purchaseEvent = Net.get("PurchaseDone")
 	local request: RemoteFunction = Net.get("StoreRequest")
 	request.OnServerInvoke = function(player: Player, action: any, key: any, extra: any): Reply
 		local ok, result = pcall(onStoreRequest, player, action, key, extra)

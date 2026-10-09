@@ -498,7 +498,8 @@ function ShopMenu.buyBlocks(self: any, dealId: string, count: number)
 		return ItemState.request("ItemRequest", "BuyBlocks", dealId, count)
 	end, function(reply)
 		if reply.ok then
-			UISound.play("Claim")
+			-- No thank-you for money: the blocks fly to the hotbar with the cue-equip sound.
+			self:flow({ blocks = { { kind = reply.kind, count = reply.count } } })
 			self.frame:notice(GrandOpeningCard.boughtText(count), "Green")
 		elseif reply.reason == "NotEnoughMoney" and type(reply.need) == "number" then
 			self.frame:notice(ShopParts.need(reply.need), "Red")
@@ -506,6 +507,16 @@ function ShopMenu.buyBlocks(self: any, dealId: string, count: number)
 			self.frame:notice(MenuFrame.reason(reply), "Red")
 		end
 	end)
+end
+
+-- What money bought flies to where it lives (Purchased.flow: the hotbar, with the sound).
+function ShopMenu.flow(self: any, reward: any)
+	local purchased = self.deps and self.deps.purchased
+	if purchased then
+		purchased:flow(reward)
+	else
+		UISound.play("Equip")
+	end
 end
 
 --- Whether Robux product `key` is on sale (made on Roblox); if not, says "Coming soon".
@@ -545,7 +556,7 @@ function ShopMenu.buyRestock(self: any, itemId: string, block: string)
 		return ItemState.request("ItemRequest", "BuyRestock", itemId)
 	end, function(reply)
 		if reply.ok then
-			UISound.play("Claim")
+			self:flow({ blocks = { { kind = block, count = 1 } } })
 			local names: { [string]: string } = Strings.LuckyBlocks.Names
 			self.frame:notice(string.format(COPY.Blocks.Bought, names[block] or block), "Green")
 		elseif reply.reason == "NotEnoughMoney" and type(reply.need) == "number" then

@@ -8325,6 +8325,25 @@ Config.UI.WinTrack = {
 	PeekSeconds = 4, -- after a match the bar opens by itself this long, then folds
 }
 
+-- A Robux purchase's thank-you (Purchased; designer 2026-10-08): a white impact flash, a big
+-- rainbow "THANK YOU!" in the tutorial's text slamming in, the item under it, then what was
+-- bought flies to its HUD (RewardsFlyer). Pixels and seconds; "Short" for a phone on its side.
+Config.UI.Purchased = {
+	DisplayOrderAbove = 4, -- its ScreenGui over a menu's (the flying items' is +5, over it)
+	ThanksPx = 96, -- "THANK YOU!"
+	ShortThanksPx = 56,
+	ItemPx = 36, -- the item under it
+	ShortItemPx = 24,
+	CentreShare = 0.36, -- the words' middle, a share of the screen's height from the top
+	WidthShare = 0.9, -- their room across, of the screen's width
+	GapPx = 6, -- between THANK YOU! and the item
+	FlashFrom = 0.35, -- the impact flash starts this see-through (white)...
+	FlashSeconds = 0.3, -- ...and is gone in this long (none with Reduce Motion)
+	ItemAfterSeconds = 0.15, -- the item pops in this long after THANK YOU! lands
+	FlowAfterSeconds = 0.45, -- what was bought starts flying then
+	HoldSeconds = 2.2, -- the words stay this long, then pop out
+}
+
 -- VIP's tag over the money pill, bottom left, for a VIP only (VipTag; designer 2026-10-08): a
 -- navy pill with a gold rim, the crown rocking and "VIP" in the house rainbow; hover (or a press)
 -- shows the perks card over it. Pixels and seconds; "Short" for a phone on its side.

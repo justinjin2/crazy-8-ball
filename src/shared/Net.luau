@@ -211,6 +211,13 @@ local REMOTES: { [string]: string } = {
 	-- Config.Products key) }, or to the giver { key, returned = true } when the receiver had
 	-- left and the item went to them instead.
 	GiftReceived = "RemoteEvent",
+	-- server -> one player: a Robux purchase landed (a developer product's receipt granted, or a
+	-- game pass bought in this server), for the thank-you and the flow to the HUD (Purchased).
+	-- { key (the Config.Products key), money (0 for none), blocks = { { kind, count } }, cue?,
+	--   vip?, party?, spins?, skip? (a block timer skip), claimAll?, pass? (a game pass),
+	--   to? (a gift: the receiver's display name, sent to the giver), from? (a gift: the giver's
+	--   display name, sent to the receiver) }. Money spent in the game sends nothing here.
+	PurchaseDone = "RemoteEvent",
 	-- server -> one player: the Rewards menu's state (src/server/Rewards.luau builds it with
 	-- Progression/RewardView.build). Sent on load, after each claim or dev change, when a
 	-- playtime gift becomes ready, when VIP or the group answer changes, and to everyone when
