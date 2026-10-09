@@ -3,7 +3,9 @@
 --
 -- - The instruction line: big white Fredoka with the kit's ink outline at the top of the
 --   screen, no strip behind it (designer, 2026-10-03), popping in with a soft ding on each new
---   line.
+--   line. A gamepad line's {R2}, {A} ... show Roblox's own button pictures in the line
+--   (UserInputService:GetImageForKeyCode; tutorial v2 4.10). A re-prompt pops it again.
+-- - Big text in the middle of the screen for the moments the designer marked ("Place it!").
 -- - The light dim with a lit hole: four dark frames round a target (a button, a pocket, a
 --   ball), built far past the screen's edges so no edge ever shows, and a pulsing ring round
 --   the hole. The frames never take input: everything under them still works. The tutorial's
@@ -16,6 +18,7 @@
 -- IgnoreGuiInset), or nil when it is not on screen; TutorialOverlay.guiTarget and worldTarget
 -- make them.
 local GuiService = game:GetService("GuiService")
+local TextService = game:GetService("TextService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -42,7 +45,11 @@ export type Overlay = typeof(setmetatable(
 	{} :: {
 		gui: ScreenGui,
 		line: TextLabel,
+		row: Frame, -- the line with button pictures (a gamepad line's tokens)
+		rowFit: UIScale,
 		lineText: string?,
+		big: TextLabel,
+		bigShown: string?,
 		linePlace: string, -- "Top", "Low" (under a screen's own title) or "Near" (over the hole)
 		dimFrames: { Frame },
 		ring: Frame,
@@ -171,7 +178,11 @@ function TutorialOverlay.new(): Overlay
 	local self = setmetatable({
 		gui = gui,
 		line = line,
+		row = nil :: any,
+		rowFit = nil :: any,
 		lineText = nil,
+		big = nil :: any,
+		bigShown = nil,
 		linePlace = "Top",
 		dimFrames = frames,
 		ring = ring,
@@ -192,6 +203,12 @@ function TutorialOverlay.new(): Overlay
 		clock = 0,
 	}, TutorialOverlay)
 	self:buildSkip()
+	self:buildRow()
+	local big = HudParts.text(gui, "Big", O.BigTextPx, "")
+	big.AnchorPoint = Vector2.new(0.5, 0.5)
+	big.ZIndex = 5
+	big.Visible = false
+	self.big = big
 	local nextButton = HudParts.candy(gui, S.Next, function()
 		if self.onNext then
 			self.onNext()
@@ -276,6 +293,112 @@ function TutorialOverlay.setSkip(self: Overlay, visible: boolean, onSkip: (() ->
 	end
 end
 
+-- The line with button pictures: a row of words and images, scaled down to fit the width.
+function TutorialOverlay.buildRow(self: Overlay)
+	local row = Instance.new("Frame")
+	row.Name = "LineRow"
+	row.BackgroundTransparency = 1
+	row.AnchorPoint = Vector2.new(0.5, 0)
+	row.ZIndex = 5
+	row.Visible = false
+	row.Parent = self.gui
+	local fit = Instance.new("Frame")
+	fit.Name = "Fit"
+	fit.BackgroundTransparency = 1
+	fit.Size = UDim2.fromScale(1, 1)
+	fit.Parent = row
+	local scale = Instance.new("UIScale")
+	scale.Name = "FitScale"
+	scale.Parent = fit
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Horizontal
+	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	layout.VerticalAlignment = Enum.VerticalAlignment.Center
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, O.RowGapPx)
+	layout.Parent = fit
+	self.row = row
+	self.rowFit = scale
+end
+
+-- The KeyCode each line token names.
+local TOKENS: { [string]: Enum.KeyCode } = {
+	R2 = Enum.KeyCode.ButtonR2,
+	L2 = Enum.KeyCode.ButtonL2,
+	RB = Enum.KeyCode.ButtonR1,
+	LB = Enum.KeyCode.ButtonL1,
+	A = Enum.KeyCode.ButtonA,
+	B = Enum.KeyCode.ButtonB,
+	X = Enum.KeyCode.ButtonX,
+	Y = Enum.KeyCode.ButtonY,
+	LS = Enum.KeyCode.Thumbstick1,
+	RS = Enum.KeyCode.Thumbstick2,
+	DPad = Enum.KeyCode.DPadUp,
+}
+
+--- `text` with each {token} as a plain word (for where no picture can go).
+function TutorialOverlay.plain(text: string): string
+	return (
+		string.gsub(text, "{(%w+)}", function(name: string): string
+			local key = TOKENS[name]
+			return if key then (string.gsub(key.Name, "^Button", "")) else name
+		end)
+	)
+end
+
+-- Fills the row with `text`'s words and pictures (only when the text changes).
+local function fillRow(self: Overlay, text: string, px: number)
+	local fit = self.row:FindFirstChild("Fit") :: Frame
+	for _, child in fit:GetChildren() do
+		if child:IsA("GuiObject") then
+			child:Destroy()
+		end
+	end
+	local order = 0
+	local function word(chunk: string)
+		if chunk == "" then
+			return
+		end
+		order += 1
+		local label = HudParts.text(fit, "Word" .. order, px, chunk)
+		label.TextScaled = false
+		label.TextWrapped = false
+		label.LayoutOrder = order
+		local width = TextService:GetTextSize(chunk, px, label.Font, Vector2.new(4000, px * 2)).X
+		label.Size = UDim2.fromOffset(math.ceil(width) + 4, px * 1.3)
+	end
+	local at = 1
+	while true do
+		local a, b, name = string.find(text, "{(%w+)}", at)
+		if a == nil then
+			word(string.sub(text, at))
+			break
+		end
+		word((string.gsub(string.sub(text, at, a - 1), "%s+$", "")))
+		local key = TOKENS[name :: string]
+		local image = if key then UserInputService:GetImageForKeyCode(key) else ""
+		if image ~= "" then
+			order += 1
+			local icon = Instance.new("ImageLabel")
+			icon.Name = "Key" .. order
+			icon.BackgroundTransparency = 1
+			icon.Image = image
+			icon.ScaleType = Enum.ScaleType.Fit
+			icon.Size = UDim2.fromOffset(px * O.KeyScale, px * O.KeyScale)
+			icon.LayoutOrder = order
+			icon.Parent = fit
+		else
+			word(TutorialOverlay.plain("{" .. (name :: string) .. "}"))
+		end
+		at = (b :: number) + 1
+		-- The words after a picture keep their leading space out (the layout spaces them).
+		local rest = string.match(text, "^%s+", at)
+		if rest then
+			at += #rest
+		end
+	end
+end
+
 --- Shows or hides the Next button (a step's fallback); `onNext` runs when it is pressed. A
 --- gamepad's selection moves onto it when it first shows.
 function TutorialOverlay.setNext(self: Overlay, visible: boolean, onNext: (() -> ())?)
@@ -294,21 +417,58 @@ end
 
 --- Shows `text` as the instruction line (a new line pops in with a ding); nil hides it.
 --- `place`: "Top" (the default, under Roblox's bar), "Low" (under a screen's own title) or
---- "Near" (just over the lit hole, for a full-screen menu whose top is busy).
+--- "Near" (just over the lit hole, for a full-screen menu whose top is busy). A line with
+--- {tokens} shows them as Roblox's button pictures.
 function TutorialOverlay.say(self: Overlay, text: string?, place: string?)
 	self.linePlace = place or "Top"
 	if text == self.lineText then
 		return
 	end
 	self.lineText = text
+	self.line.Visible = false
+	self.row.Visible = false
 	if text == nil or text == "" then
-		self.line.Visible = false
 		return
 	end
-	self.line.Text = text
-	self.line.Visible = true
-	UIAnim.popIn(self.line)
+	if string.find(text, "{%w+}") then
+		local px = if phone() then O.LinePhoneTextPx else O.LineTextPx
+		fillRow(self, text, px)
+		UIAnim.popIn(self.row)
+	else
+		self.line.Text = text
+		UIAnim.popIn(self.line)
+	end
 	self.ding:Play()
+end
+
+--- The re-prompt: the line pops again (no ding).
+function TutorialOverlay.nudge(self: Overlay)
+	if self.row.Visible then
+		self.row.Visible = false
+		UIAnim.popIn(self.row)
+	elseif self.line.Visible then
+		self.line.Visible = false
+		UIAnim.popIn(self.line)
+	end
+	if self.big.Visible then
+		self.big.Visible = false
+		UIAnim.popIn(self.big)
+	end
+end
+
+--- Big text in the middle of the screen (nil hides it).
+function TutorialOverlay.bigText(self: Overlay, text: string?)
+	if text == self.bigShown then
+		return
+	end
+	self.bigShown = text
+	if text == nil or text == "" then
+		self.big.Visible = false
+		return
+	end
+	self.big.Text = text
+	self.big.Visible = false
+	UIAnim.popIn(self.big)
 end
 
 --- Dims the screen round `target` (nil: no dim). The hole follows the target every frame.
@@ -367,6 +527,19 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 	local gap = if self.linePlace == "Low" then O.LineLowGapPx else O.LineTopGapPx
 	self.line.Position = UDim2.fromOffset(view.X / 2, inset.Y + gap)
 	self.line.Size = UDim2.fromOffset(width, height)
+	self.row.Size = UDim2.fromOffset(width, height)
+	if self.row.Visible then
+		local fit = self.row:FindFirstChild("Fit")
+		local layout = if fit then fit:FindFirstChildOfClass("UIListLayout") else nil
+		local content = if layout
+			then layout.AbsoluteContentSize.X / math.max(self.rowFit.Scale, 0.01)
+			else 0
+		self.rowFit.Scale = if content > width then width / content else 1
+	end
+	-- The big text: in the middle, breathing.
+	local bigPx = if small then O.BigPhoneTextPx else O.BigTextPx
+	self.big.Position = UDim2.fromOffset(view.X / 2, view.Y * O.BigYScale)
+	self.big.Size = UDim2.fromOffset(view.X * 0.9, bigPx * 1.3)
 	-- The Skip button, top right under the bar.
 	local skipH = if small then O.SkipPhoneHeightPx else O.SkipHeightPx
 	self.skip.Position = UDim2.fromOffset(view.X - O.SkipEdgePx, inset.Y + O.SkipEdgePx)
@@ -407,12 +580,14 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 			else centre.Y + size.Y / 2 + O.LineNearGapPx
 		self.line.Position = UDim2.fromOffset(view.X / 2, y)
 	end
+	self.row.Position = self.line.Position
 	self.ringStroke.Transparency = if self.ringOnly and centre then 0 else 1 - self.dimAlpha
 end
 
---- Clears the line, the dim, the hole and the Next button.
+--- Clears the line, the big text, the dim, the hole and the Next button.
 function TutorialOverlay.clear(self: Overlay)
 	self:say(nil)
+	self:bigText(nil)
 	self:dim(nil)
 	self:setNext(false)
 end

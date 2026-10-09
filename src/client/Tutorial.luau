@@ -149,31 +149,20 @@ local function refreshHidden()
 	TutorialAnchors.setHidden(hidden)
 end
 
--- The floor point of table `id`'s queue pad, if it is there.
-local function padPoint(id: number): Vector3?
+-- Table `id`'s queue pad, if it is there.
+local function padOf(id: number): BasePart?
 	local zones = workspace:FindFirstChild("TableZones")
 	local pad = zones and zones:FindFirstChild(("QueuePad_%02d"):format(id))
-	if pad and pad:IsA("BasePart") then
-		return pad.Position + Vector3.new(0, pad.Size.Y / 2, 0)
-	end
-	return nil
+	return if pad and pad:IsA("BasePart") then pad else nil
 end
 
--- The words for this device from a { Mouse, Touch, Gamepad } set.
+-- The words for this device from a { Mouse, Touch, Gamepad } set (a gamepad line's {tokens}
+-- become Roblox's button pictures in the overlay).
 local function words(set: { [string]: string }, device: string): string
-	local text = if device == "gamepad"
+	return if device == "gamepad"
 		then set.Gamepad
 		elseif device == "touch" then set.Touch
 		else set.Mouse
-	-- The button names until the overlay draws Roblox's button pictures (tutorial v2 step 5).
-	return (
-		string.gsub(text, "{(%w+)}", function(name: string): string
-			return if name == "LS"
-				then "the left stick"
-				elseif name == "RS" then "the right stick"
-				else name
-		end)
-	)
 end
 
 -- Nothing on screen but the line (or nothing at all).
@@ -204,11 +193,14 @@ end
 -- Joining game 1
 ---------------------------------------------------------------------------------------------
 
--- The arrow: to the reserved table's pad ("Need help?" once its fallback time is up).
+-- The arrow: to the reserved table's pad ("Need help?" once its fallback time is up; after
+-- the re-prompt time it pulses harder).
 local function arrowScene(): string
 	local id = player:GetAttribute("TutorialTable")
-	local goal = if type(id) == "number" and id > 0 then padPoint(id) else nil
-	arrow:show(goal)
+	local pad = if type(id) == "number" and id > 0 then padOf(id) else nil
+	local goal = if pad then pad.Position + Vector3.new(0, pad.Size.Y / 2, 0) else nil
+	arrow:show(goal, pad)
+	arrow:setUrgent(Tutorial.since() >= Timing.RepromptSeconds)
 	overlay:dim(nil)
 	hand:hide()
 	local late = Tutorial.since() >= fallbackOf("Arrow")
@@ -384,7 +376,8 @@ local function placeScene(): string
 		lineOnly(nil)
 		return "placeBusy"
 	end
-	lineOnly(Copy.PlaceBig)
+	lineOnly(nil)
+	overlay:bigText(Copy.PlaceBig)
 	return "place"
 end
 
@@ -510,6 +503,9 @@ local function scene(step: string, device: string): string
 	if step ~= "Arrow" then
 		arrow:show(nil)
 	end
+	if step ~= "Place" then
+		overlay:bigText(nil)
+	end
 	if step == "Arrow" then
 		return arrowScene()
 	elseif step == "Game1" then
@@ -539,6 +535,8 @@ local MENU_FUNNELS: { [string]: string } = { Shop = "ShopOpened", [ULTS] = "Abil
 
 -- The device last reported to the server.
 local reportedDevice = ""
+-- When the scene showing now began (os.clock), for its re-prompts.
+local keyAt = 0
 
 -- The fail-safe: the tutorial ends here and now (the server ends it too and logs it).
 local function breakDown(err: any)
@@ -577,10 +575,21 @@ local function update(_dt: number)
 		return
 	end
 	local ok, result = pcall(scene, Tutorial.step(), Tutorial.device())
-	if ok then
-		shownKey = result
-	else
+	if not ok then
 		breakDown(result)
+		return
+	end
+	local now = os.clock()
+	if result ~= shownKey then
+		shownKey = result
+		keyAt = now
+	elseif now - keyAt >= Timing.RepromptSeconds then
+		-- The same scene with its action still not done: the line pops and the hand pulses.
+		keyAt = now
+		if overlay.lineText or overlay.bigShown then
+			overlay:nudge()
+			hand:nudge()
+		end
 	end
 end
 
@@ -642,6 +651,8 @@ local function startQA()
 				line = overlay.lineText,
 				next = overlay.nextButton.Visible,
 			}
+		elseif op == "big" then
+			overlay:bigText(a)
 		elseif op == "next" then
 			if overlay.onNext then
 				overlay.onNext()
@@ -659,7 +670,7 @@ end
 function Tutorial.start()
 	overlay = TutorialOverlay.new()
 	hand = TutorialHand.new(overlay.gui)
-	arrow = TutorialArrow.new()
+	arrow = TutorialArrow.new(overlay.gui)
 	player:GetAttributeChangedSignal("TutorialStep"):Connect(refresh)
 	refresh()
 	RunService.RenderStepped:Connect(update)

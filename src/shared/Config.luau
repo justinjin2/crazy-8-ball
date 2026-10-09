@@ -13737,19 +13737,24 @@ Config.Tutorial = {
 	SpinUlt = "Magnet",
 	-- The art (tools/gen_tutorial_art.py; uploaded to the group, tools/upload_manifest_tutorial
 	-- .json): the pointer hand (upright, index finger up; redrawn 2026-10-03 after the designer's
-	-- "tap here" icon) and its tap lines, the mouse, the floor arrow after reference 02's path.
+	-- "tap here" icon) and its tap lines, and the mouse. The arrow's images are in Arrow.
 	Art = {
 		Hand = "rbxassetid://71143067788609",
 		HandRays = "rbxassetid://136125893092975", -- the tap lines, laid exactly over Hand
 
 		Mouse = "rbxassetid://82136605713937",
-		FloorArrow = "rbxassetid://103256796918925",
 	},
 	-- The screen layer (src/client/TutorialOverlay.luau). Pixels unless named.
 	Overlay = {
 		DisplayOrder = 40, -- over the HUD and menus, under the teleport screen
 		PhoneBelowPx = 500, -- a screen whose short side is under this is a phone
 		LineTextPx = 40, -- the instruction line (UI_STYLE 3: big white Fredoka, ink outline)
+		LinePhoneTextPx = 30, -- a phone's, in a line with button pictures
+		RowGapPx = 8, -- between the words and pictures of such a line
+		KeyScale = 1.25, -- a button picture's size against the text
+		BigTextPx = 96, -- the big text in the middle ("Place it!")
+		BigPhoneTextPx = 64,
+		BigYScale = 0.3, -- its height on the screen (a share from the top)
 		LineHeightPx = 56,
 		LinePhoneHeightPx = 40,
 		LineWidthScale = 0.8, -- of the screen's width, at most LineMaxWidthPx
@@ -13805,24 +13810,54 @@ Config.Tutorial = {
 		StickShiftPx = 22,
 		GhostBallShare = 0.32, -- the dragged ghost cue ball against the hand
 		GhostBallTransparency = 0.45,
+		NudgeSeconds = 0.45, -- the re-prompt's grow and settle
+		NudgeGrow = 0.3, -- ... by this share at its top
+		ScrollPx = 14, -- the "scroll" gesture's push down
+		PinchApart = 0.6, -- the "pinch" fingertips start this far apart (against the hand)
 	},
-	-- The floor arrow path (src/client/TutorialArrow.luau). Studs unless named.
+	-- The arrow to the tutorial's pad (src/client/TutorialArrow.luau; tutorial v2 look A, the
+	-- designer's pick 2026-10-09): white chevrons with a thick black outline at chest height,
+	-- from the body to the pad, a big arrowhead over the pad, the pad's glow, and a small arrow
+	-- at the screen's edge while the pad is off screen. Studs unless named.
 	Arrow = {
-		MaxArrows = 60,
-		SizeStuds = 2, -- each arrow, square
-		SpacingStuds = 2.1, -- close together, like reference 02's line
-		SpeedStudsPerSecond = 3, -- how fast the line flows toward the pad
-		LiftStuds = 0.06, -- above the floor
+		Chevron = "rbxassetid://139312323229460", -- assets/ui/tutorial/arrow_chevron_up.png
+		Head = "rbxassetid://72672665953028", -- assets/ui/tutorial/arrow_head_up.png
+		ChevronStuds = 2.4, -- one chevron's length along the band (the texture's repeat)
+		SegmentChevrons = 2, -- each beam spans this many whole chevrons (no seams)
+		MaxSegments = 48, -- beams in the pool (a route longer than this many spans stops short)
+		WidthStuds = 2.4, -- the band's width
+		SpeedStudsPerSecond = 4, -- the chevrons flow toward the pad
+		HeightStuds = 3.6, -- the band's height above the floor (chest height)
+		StartGapStuds = 1.8, -- the band starts this far in front of the body
+		FadeStuds = 2, -- the chevrons fade in at the body and out under the arrowhead
+		EndHeightStuds = 2.4, -- the band ends this high over the pad's middle
+		DescendStuds = 8, -- ... coming down over this much of its end
+		HeadStuds = 3.6, -- the arrowhead over the pad: its length, pointing down
+		HeadWidthStuds = 3.6,
+		HeadLiftStuds = 0.6, -- its tip over the pad's top
+		HeadBobStuds = 0.6,
+		HeadBobSeconds = 1.1,
+		PulseScale = 0.08, -- the band's width breathes this much (twice on a re-prompt)
+		PulseSeconds = 1.2,
+		EaseSeconds = 0.25, -- a re-planned route blends in over about this long
+		CornerPasses = 2, -- corner cutting on the route (eased curves)
 		FeetBelowRoot = 3, -- from the HumanoidRootPart to the floor
-		StartGapStuds = 2, -- clear of the player's feet
-		EndGapStuds = 1, -- stops just short of the pad's centre
-		FadeStuds = 2, -- the arrows fade in and out over this at each end
-		Transparency = 0.05,
-		ImageTurnDegrees = 180, -- turns the image on its part so its arrow points along the route
 		AgentRadius = 2,
 		AgentHeight = 5,
-		ReplanSeconds = 3,
+		ReplanSeconds = 2,
 		ReplanMovedStuds = 4,
+		-- The pad's glow: a thin gold neon slab over the pad, breathing between these
+		-- transparencies, with a white outline.
+		Glow = {
+			Fill = { 255, 214, 74 },
+			Outline = { 255, 255, 255 },
+			FillMin = 0.5,
+			FillMax = 0.8,
+			SlabStuds = 0.06,
+			OutlineStuds = 0.15,
+		},
+		-- The screen-edge arrow (pixels).
+		Edge = { SizePx = 64, PhoneSizePx = 48, MarginPx = 24, BobPx = 10, BobSeconds = 0.8 },
 	},
 	-- The funnels (src/server/Funnel.luau; tutorial v2 section 6, docs/TUTORIAL_FUNNELS.md).
 	-- Each mask is a Flags entry, one bit per step, so a step is never logged twice. The step

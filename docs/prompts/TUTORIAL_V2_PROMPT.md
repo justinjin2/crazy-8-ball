@@ -853,7 +853,7 @@ lines). All in the worktree.
   - dev commands (`/tutorial reset | step | skip | path`, `/funnel`);
   - the fail-safe and `TutorialError`;
   - the funnel v2 skeleton.
-- [ ] 5. The look: the new arrow (body to table, screen-edge pointer), the overlay (light dims,
+- [x] 5. The look: the new arrow (body to table, screen-edge pointer), the overlay (light dims,
   big text), the hand's gestures per device, Roblox's button images.
 - [ ] 6. Controller shooting (4.10): R2/A hold-to-fill by default, versions B and C behind a
   Config switch, B to cancel, `PadGuide` and strings.
@@ -1044,6 +1044,25 @@ lines). All in the worktree.
 - **Found for later steps:** the bot took about 5.7 s to arrive (step 7); the result screen
   needs a QA hook to press Continue (step 9); the VIP tile and money pill still show in the
   guided part (step 10 wires `Steps.Reveal`'s Money, Offer, Challenge, PlayGlobal).
+
+### Step 5: the look (2026-10-09)
+
+- **The arrow** (`TutorialArrow`, look A): a chain of up to 48 pooled, camera-facing Beams with
+  the chevron texture (`Config.Tutorial.Arrow`), laid from the pad back so every beam spans whole
+  chevrons (no seams); the flow moves the chain's start (TextureSpeed 0), the beam under the
+  arrowhead fades out, the one at the body fades in. A Beam maps the texture's top to
+  Attachment0, so the pad side is Attachment0 (checked with a test beam in Studio). The route is
+  PathfindingService with two corner-cutting passes; a new route eases in over 0.25 s. Over the
+  pad: a big down arrowhead bobbing, and a gold neon slab with a white outline (the pad part is
+  invisible, so a Highlight shows nothing). Off screen: a small arrow at the edge.
+- **The overlay:** a line with `{R2}`-style tokens becomes a row of words and Roblox's button
+  pictures (`GetImageForKeyCode`), scaled to fit; `bigText` for "Place it!"; `nudge` (the
+  re-prompt: the line pops again, the hand grows and settles) every 6 s while a scene's action
+  is not done; the Arrow step's re-prompt makes the arrow pulse harder.
+- **The hand:** `nudge`, and the zoom gestures "scroll" (mouse wheel) and "pinch" (phone).
+- **Verified (Studio, PC):** the band from the spawn to the reserved pad (player view and top
+  view), the pad glow, the edge arrow, the gamepad break line with the R2 picture. Phone and the
+  real controller wait for the designer's batched checks.
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
 

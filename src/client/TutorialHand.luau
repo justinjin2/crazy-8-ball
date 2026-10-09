@@ -12,7 +12,10 @@
 --     "swipe" (withMouse)     across the middle of the screen, left and right (a computer adds
 --                             the mouse under the hand);
 --     "stick" (keyCode)       a gamepad stick glyph tilting left and right;
---     "drag"  (from, to)      from one target to another, carrying a ghost cue ball.
+--     "drag"  (from, to)      from one target to another, carrying a ghost cue ball;
+--     "scroll"                the mouse rolling its wheel (zoom out on a computer);
+--     "pinch"                 two fingertips closing in (zoom out on a phone).
+-- - nudge(): the re-prompt, a quick grow and settle.
 -- - hide().
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -39,6 +42,7 @@ export type Hand = typeof(setmetatable(
 		mouse: ImageLabel,
 		glyph: ImageLabel,
 		ghost: Frame,
+		ghost2: Frame, -- the pinch's second fingertip
 		bar: Frame,
 		barFill: Frame,
 		mode: string?,
@@ -47,6 +51,7 @@ export type Hand = typeof(setmetatable(
 		key: Enum.KeyCode?,
 		withMouse: boolean,
 		clock: number,
+		nudgedAt: number, -- os.clock of the last re-prompt
 	},
 	TutorialHand
 ))
@@ -96,6 +101,9 @@ function TutorialHand.new(gui: ScreenGui): Hand
 	ghost.Visible = false
 	ghost.ZIndex = 8
 	HudParts.corner(ghost, 999)
+	local ghost2 = ghost:Clone()
+	ghost2.Name = "GhostBall2"
+	ghost2.Parent = root
 
 	local bar = HudParts.frame(root, "HoldBar")
 	bar.AnchorPoint = Vector2.new(0.5, 0)
@@ -116,6 +124,7 @@ function TutorialHand.new(gui: ScreenGui): Hand
 		mouse = mouse,
 		glyph = glyph,
 		ghost = ghost,
+		ghost2 = ghost2,
 		bar = bar,
 		barFill = fill,
 		mode = nil,
@@ -124,6 +133,7 @@ function TutorialHand.new(gui: ScreenGui): Hand
 		key = nil,
 		withMouse = false,
 		clock = 0,
+		nudgedAt = -math.huge,
 	}, TutorialHand)
 	RunService.RenderStepped:Connect(function(dt: number)
 		self:update(dt)
@@ -170,6 +180,11 @@ function TutorialHand.hide(self: Hand)
 	self:set(nil, nil)
 end
 
+--- The re-prompt: the hand grows and settles once.
+function TutorialHand.nudge(self: Hand)
+	self.nudgedAt = os.clock()
+end
+
 -- Every part hidden, then the frame's parts shown as needed.
 local function reset(self: Hand)
 	self.hand.Visible = false
@@ -177,6 +192,7 @@ local function reset(self: Hand)
 	self.mouse.Visible = false
 	self.glyph.Visible = false
 	self.ghost.Visible = false
+	self.ghost2.Visible = false
 	self.bar.Visible = false
 end
 
@@ -199,7 +215,9 @@ function TutorialHand.update(self: Hand, dt: number)
 		return
 	end
 	local view = camera.ViewportSize
-	local size = handSize()
+	local since = os.clock() - self.nudgedAt
+	local grow = if since < H.NudgeSeconds then math.sin(since / H.NudgeSeconds * math.pi) else 0
+	local size = handSize() * (1 + H.NudgeGrow * grow)
 	local t = self.clock
 
 	if mode == "point" then
@@ -282,6 +300,30 @@ function TutorialHand.update(self: Hand, dt: number)
 			self.bar.Size = UDim2.fromOffset(g * 1.6, H.HoldBarPx)
 			self.barFill.Size = UDim2.fromScale(held, 1)
 		end
+	elseif mode == "scroll" then
+		-- The mouse at the middle, rolling its wheel: a short push down, again and again.
+		local at = Vector2.new(view.X / 2, view.Y * H.GlyphHeightShare)
+		local roll = math.sin(math.clamp(phase / 0.6, 0, 1) * math.pi)
+		self.mouse.Visible = true
+		self.mouse.Size = UDim2.fromOffset(size * H.MouseShare * 1.4, size * H.MouseShare * 1.4)
+		self.mouse.Position = UDim2.fromOffset(at.X, at.Y + H.ScrollPx * roll)
+		self.mouse.ImageTransparency = alpha
+		placeHand(self, at + Vector2.new(0, size * 0.1 + H.ScrollPx * roll), size, alpha)
+	elseif mode == "pinch" then
+		-- Two fingertips closing in at the middle of the screen (zoom out), the hand on one.
+		local centre = Vector2.new(view.X / 2, view.Y * H.GlyphHeightShare)
+		local apart = size * H.PinchApart * (1 - 0.7 * move)
+		local ball = size * H.GhostBallShare
+		for i, ghost in { self.ghost, self.ghost2 } do
+			local side = if i == 1 then -1 else 1
+			ghost.Visible = true
+			ghost.Size = UDim2.fromOffset(ball, ball)
+			ghost.Position =
+				UDim2.fromOffset(centre.X + side * apart, centre.Y - side * apart * 0.4)
+			ghost.BackgroundTransparency = H.GhostBallTransparency
+				+ (1 - H.GhostBallTransparency) * out
+		end
+		placeHand(self, centre + Vector2.new(apart, apart * 0.4), size, alpha)
 	elseif mode == "drag" then
 		local from = if self.target then (self.target()) else nil
 		local to = if self.other then (self.other()) else nil

@@ -1625,7 +1625,7 @@ local function renderFrame(dt: number)
 	end
 	lastBusy = busy
 end
--- The first-time tutorial (the tutorial lane): its line, dim, hand and floor arrow.
+-- The first-time tutorial (tutorial v2): its line, dim, hand and arrow.
 require(script.Parent.Tutorial).start()
 RunService.RenderStepped:Connect(function(dt)
 	renderFrame(dt)
