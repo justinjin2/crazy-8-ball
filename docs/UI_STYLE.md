@@ -977,8 +977,9 @@ band, restock tiles and pass bands.
 - **A new step** pops its tick where the player sees it: at once while the bar shows, else
   as the bar comes back after the result screen, one tick after another.
 - **Folded by default** (designer, 2026-10-08): a navy pill with a gold rim at the bar's foot,
-  the next step's block, "Wins 3/10" and an up arrow; a press opens the whole bar, a press on
-  the bar folds it. **After a match** it opens by itself as it comes back, for 4 s
+  "Next ->" and the next step's block, "Wins 3/10" and an up arrow; a press opens the whole
+  bar, and its fold button (a navy circle with a gold rim and a down arrow on the bar's top
+  edge, between the pills; designer, 2026-10-09) folds it. **After a match** it opens by itself as it comes back, for 4 s
   (`PeekSeconds`), then folds (a press meanwhile keeps it as pressed). "Resets in" sits over
   the clock pill.
 - **On a phone** the same bar at 0.66 (words 12 px, the small tags 9 px).

@@ -1042,6 +1042,7 @@ return {
 		Done = "%d/%d · wins pay money and XP today",
 		ResetsIn = "New day in %s",
 		ResetsAbove = "Resets in", -- over the clock pill
+		NextFolded = "Next", -- the folded pill: "Next ->" then the next step's block
 	},
 	-- A Robux purchase's thank-you (Purchased): the big word, then the item under it (else what
 	-- it gave, RewardsParts.gains: "+$250,000", "+10 Mystery Lucky Blocks").

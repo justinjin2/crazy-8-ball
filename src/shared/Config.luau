@@ -8336,6 +8336,12 @@ Config.UI.WinTrack = {
 	FoldedBlockPx = 28,
 	FoldedArrowPx = 16,
 	FoldedGapPx = 6, -- between its pieces
+	FoldedNextArrowPx = 18, -- the arrow in "Next ->" before the block (designer, 2026-10-09)
+	FoldedNextGapPx = 4, -- round that arrow
+	-- The open bar's fold button: a navy circle on its top edge between the pills (designer,
+	-- 2026-10-09: "wins needs a collapse dropdown"); its press area is a touch target.
+	FoldPx = 30,
+	FoldArrowShare = 0.6, -- the down arrow, a share of the circle
 	PeekSeconds = 4, -- after a match the bar opens by itself this long, then folds
 }
 

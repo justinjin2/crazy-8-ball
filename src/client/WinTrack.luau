@@ -12,8 +12,9 @@
 --
 -- Folded by default (the designer, 2026-10-08: "by default its collapsed but after a match
 -- itll appear briefly to show then collapse back down again on its own"): a small navy pill
--- with the next step's block, "Wins 3/10" and an up arrow; a press opens the whole bar, a press
--- on the bar folds it. After a match the bar opens by itself as it comes back, for PeekSeconds,
+-- with "Next ->" and the next step's block, "Wins 3/10" and an up arrow; a press opens the
+-- whole bar, and its fold button (a navy circle with a down arrow on the bar's top edge, between
+-- the pills: the designer, 2026-10-09, "wins needs a collapse dropdown") folds it. After a match the bar opens by itself as it comes back, for PeekSeconds,
 -- then folds again (unless the player pressed it meanwhile).
 --
 -- It shows in the lobby with nothing over it (Progression: no menu, match, result screen,
@@ -191,18 +192,32 @@ function WinTrack.new(screen: ScreenGui): any
 	resets.ZIndex = 7
 	self.resets = resets
 
-	-- A press anywhere on the open bar folds it.
+	-- The fold button on the open bar's top edge: a navy circle, a gold rim, a down arrow.
 	local fold = Instance.new("TextButton")
 	fold.Name = "Fold"
 	fold.Text = ""
-	fold.BackgroundTransparency = 1
 	fold.AutoButtonColor = false
-	fold.Size = UDim2.fromScale(1, 1)
+	fold.BorderSizePixel = 0
+	fold.BackgroundColor3 = rgb(T.PillColor)
+	fold.AnchorPoint = Vector2.new(0.5, 0.5)
 	fold.ZIndex = 10
 	fold.Parent = holder
+	HudParts.corner(fold, 99)
+	local foldRim = Instance.new("UIStroke")
+	foldRim.Name = "Rim"
+	foldRim.Color = rgb(T.PillRim)
+	foldRim.Thickness = T.PillRimPx
+	foldRim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	foldRim.Parent = fold
+	local foldArrow = HudParts.icon(fold, "ChevronDown", "Arrow")
+	foldArrow.AnchorPoint = Vector2.new(0.5, 0.5)
+	foldArrow.Position = UDim2.fromScale(0.5, 0.55)
+	foldArrow.Size = UDim2.fromScale(T.FoldArrowShare, T.FoldArrowShare)
+	foldArrow.ZIndex = 11
 	fold.Activated:Connect(function()
 		self:setOpen(false, true)
 	end)
+	self.fold = fold
 
 	-- The folded pill: the next step's block, "Wins 3/10" and an up arrow; a press opens it.
 	local mini = Instance.new("TextButton")
@@ -222,6 +237,15 @@ function WinTrack.new(screen: ScreenGui): any
 	miniRim.Thickness = T.PillRimPx
 	miniRim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	miniRim.Parent = mini
+	-- "Next" and an arrow before the block (the designer, 2026-10-09).
+	local miniNext = HudParts.text(mini, "Next", T.PillTextPx, COPY.NextFolded)
+	miniNext.TextWrapped = false
+	miniNext.AnchorPoint = Vector2.new(0, 0.5)
+	miniNext.ZIndex = 7
+	local miniNextArrow = HudParts.icon(mini, "Arrow", "NextArrow")
+	miniNextArrow.AnchorPoint = Vector2.new(0, 0.5)
+	miniNextArrow.ZIndex = 7
+	self.miniNext, self.miniNextArrow = miniNext, miniNextArrow
 	local miniBlock = Instance.new("ImageLabel")
 	miniBlock.Name = "Block"
 	miniBlock.BackgroundTransparency = 1
@@ -293,15 +317,38 @@ function WinTrack.layout(self: any)
 		over - T.PillHeightPx / 2 - T.ResetsGapPx
 	)
 	self.resets.Size = UDim2.fromOffset(resetsW, T.ResetsTextPx + 4)
-	-- The folded pill, centred at the bar's foot: the block, the words, the arrow.
+	-- The fold button, centred on the bar's top edge between the pills.
+	self.fold.Position = UDim2.fromOffset(width / 2, over)
+	self.fold.Size = UDim2.fromOffset(T.FoldPx, T.FoldPx)
+	HudParts.setMinHit(self.fold, Config.UI.Menu.Frame.TouchMinPx)
+	-- The folded pill, centred at the bar's foot: "Next ->" and the block (none after the
+	-- tenth), the words, the arrow.
+	local hasNext = self.miniBlock.Image ~= ""
+	self.miniNext.Visible, self.miniNextArrow.Visible, self.miniBlock.Visible =
+		hasNext, hasNext, hasNext
+	local nextW = measure(COPY.NextFolded, T.PillTextPx)
+	local lead = if hasNext
+		then nextW
+			+ T.FoldedNextGapPx
+			+ T.FoldedNextArrowPx
+			+ T.FoldedNextGapPx
+			+ T.FoldedBlockPx
+			+ T.FoldedGapPx
+		else 0
 	local miniWordsW = measure(self.miniWords.Text, T.PillTextPx)
-	local block = if self.miniBlock.Image ~= "" then T.FoldedBlockPx + T.FoldedGapPx else 0
-	local miniW = T.PillPadPx + block + miniWordsW + T.FoldedGapPx + T.FoldedArrowPx + T.PillPadPx
+	local miniW = T.PillPadPx + lead + miniWordsW + T.FoldedGapPx + T.FoldedArrowPx + T.PillPadPx
 	self.mini.Position = UDim2.fromScale(0.5, 1)
 	self.mini.Size = UDim2.fromOffset(miniW, T.FoldedHeightPx)
-	self.miniBlock.Position = UDim2.new(0, T.PillPadPx, 0.5, 0)
+	local x = T.PillPadPx
+	self.miniNext.Position = UDim2.new(0, x, 0.5, 0)
+	self.miniNext.Size = UDim2.fromOffset(nextW, T.FoldedHeightPx)
+	x += nextW + T.FoldedNextGapPx
+	self.miniNextArrow.Position = UDim2.new(0, x, 0.5, 0)
+	self.miniNextArrow.Size = UDim2.fromOffset(T.FoldedNextArrowPx, T.FoldedNextArrowPx)
+	x += T.FoldedNextArrowPx + T.FoldedNextGapPx
+	self.miniBlock.Position = UDim2.new(0, x, 0.5, 0)
 	self.miniBlock.Size = UDim2.fromOffset(T.FoldedBlockPx, T.FoldedBlockPx)
-	self.miniWords.Position = UDim2.new(0, T.PillPadPx + block, 0.5, 0)
+	self.miniWords.Position = UDim2.new(0, T.PillPadPx + lead, 0.5, 0)
 	self.miniWords.Size = UDim2.fromOffset(miniWordsW, T.FoldedHeightPx)
 	self.miniArrow.Position = UDim2.new(1, -T.PillPadPx, 0.5, 0)
 	self.miniArrow.Size = UDim2.fromOffset(T.FoldedArrowPx, T.FoldedArrowPx)
