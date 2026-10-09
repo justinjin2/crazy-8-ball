@@ -123,14 +123,28 @@ local function clear(balls: { Ball }, skip: number, ax: number, ay: number, bx: 
 	return true
 end
 
---- The easiest straight pot of a ball of `group` from the cue ball into a pocket (corner
---- pockets only when `cornersOnly`): a clear line from the cue ball to the ghost ball and
---- from the ball to the pocket, the smallest cut; nil when there is none.
+--- The direction straight down pocket `p`'s throat, into the pocket: 45 degrees for a corner,
+--- straight across for a side pocket.
+function Break.throat(p: any): (number, number)
+	local sy = if p.y > 0 then 1 else -1
+	if p.x == 0 then
+		return 0, sy
+	end
+	local sx = if p.x > 0 then 1 else -1
+	local k = 1 / math.sqrt(2)
+	return sx * k, sy * k
+end
+
+--- The easiest straight pot of a ball of `group` ("eight": the 8 itself) from the cue ball
+--- into a pocket (corner pockets only when `cornersOnly`): a clear line from the cue ball to
+--- the ghost ball and from the ball to the pocket, a cut no wider than `maxCut` (default
+--- LessonMaxCutDegrees), the cheapest; nil when there is none.
 function Break.lesson(
 	geometry: TableGeometry.Geometry,
 	balls: { Ball },
 	group: string,
-	cornersOnly: boolean?
+	cornersOnly: boolean?,
+	maxCut: number?
 ): Lesson?
 	local cue = nil
 	for _, b in balls do
@@ -143,8 +157,9 @@ function Break.lesson(
 	end
 	local best: Lesson? = nil
 	local bestCost = math.huge
+	local widest = maxCut or B.LessonMaxCutDegrees
 	for _, b in balls do
-		if b.pocketed or Judge.group(b.id) ~= group then
+		if b.pocketed or (if group == "eight" then b.id ~= 8 else Judge.group(b.id) ~= group) then
 			continue
 		end
 		for _, p in geometry.pockets do
@@ -154,10 +169,13 @@ function Break.lesson(
 			local mx, my = mouth(geometry, p)
 			local ux, uy = mx - b.x, my - b.y
 			local toPocket = math.sqrt(ux * ux + uy * uy)
-			if toPocket < 1e-6 then
-				continue
+			if toPocket < D then
+				-- A ball in the jaws: past or at the mouth's middle that line points anywhere,
+				-- and only a hit straight down the pocket's throat reaches it.
+				ux, uy = Break.throat(p)
+			else
+				ux, uy = ux / toPocket, uy / toPocket
 			end
-			ux, uy = ux / toPocket, uy / toPocket
 			local gx, gy = b.x - ux * D, b.y - uy * D
 			local ax, ay = gx - cue.x, gy - cue.y
 			local toGhost = math.sqrt(ax * ax + ay * ay)
@@ -166,7 +184,7 @@ function Break.lesson(
 			end
 			local cosCut = (ax * ux + ay * uy) / toGhost
 			local cut = math.deg(math.acos(math.clamp(cosCut, -1, 1)))
-			if cut > B.LessonMaxCutDegrees then
+			if cut > widest then
 				continue
 			end
 			if

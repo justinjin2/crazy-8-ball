@@ -353,6 +353,18 @@
     "imageId": "93822415051422",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-tutorial/assets/ui/tutorial/arrow_chevron_up.png": {
+    "assetId": "76883899985215",
+    "assetType": "Decal",
+    "imageId": "139312323229460",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-tutorial/assets/ui/tutorial/arrow_head_up.png": {
+    "assetId": "138335531320190",
+    "assetType": "Decal",
+    "imageId": "72672665953028",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-unique/assets/cue/pieces/beta/beta_parts.glb": {
     "assetId": "132267715312294",
     "assetType": "Model",

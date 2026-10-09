@@ -13591,6 +13591,73 @@ Config.Tutorial = {
 		EightNearInches = 20,
 		EightNearBonus = 15,
 	},
+	-- Game 1's hidden help (src/shared/Tutorial/Assist.luau, tutorial v2): Magnet on the
+	-- player's first ball hit and on any ball of theirs the cue ball touches later, and on
+	-- turn 2 the ricochet's steer: just after its first ball (or a cushion), the cue ball's
+	-- heading bends toward the second ball's ghost point. Radians and inches. (tune)
+	Assist = {
+		SteerPerInch = 0.2, -- the most it turns per inch rolled (about 11 degrees)
+		MaxTurn = 0.26, -- the most it turns in all (about 15 degrees)
+		SteerMinSpeed = 3, -- in/s: a cue ball slower than this is left to stop
+		-- Only within this many inches of roll after the cue ball meets its first ball or a
+		-- cushion, where a bend hides in the collision's own deflection (0: anywhere).
+		WindowInches = 4,
+		-- The cue-ball guard on the player's game-1 shots: a cue ball within Inches of a
+		-- pocket's mouth middle and heading at it (within the cone whose cosine is ConeCos) is
+		-- turned away, at most PerInch radians per inch rolled and MaxTurn in all.
+		-- The aim help, only after AfterMisses misses in a row: the cue ball bends toward the
+		-- planned pot's ghost point before it touches anything.
+		Aim = {
+			AfterMisses = 6,
+			PerInch = 0.02, -- about 1.1 degrees per inch rolled
+			MaxTurn = 0.1, -- about 6 degrees in all
+		},
+		Guard = {
+			Inches = 7,
+			ConeCos = 0.8, -- about 37 degrees either side
+			PerInch = 0.2,
+			MaxTurn = 0.35, -- about 20 degrees
+		},
+	},
+	-- The tutorial bot's game-1 shots (src/shared/Tutorial/BotPlan.luau, tutorial v2; the
+	-- designer's pick A). (tune)
+	BotPlan = {
+		-- The first visit's second shot: a pot that the cue ball follows down. Tried for this
+		-- many of its pots, with these follow spins, power multipliers and turns (degrees).
+		PotScratchPlans = 4,
+		-- The first visit's first shot (a clean pot of its own) tries these power multipliers.
+		PotPower = { 1, 0.85, 1.2 },
+		PotScratchFollow = { 0.6, 0.9, 1 },
+		PotScratchPower = { 1, 1.3, 1.7 },
+		PotScratchTurns = { 0, 0.6, -0.6 },
+		-- Later visits: this share are near misses (its ball stops by the pocket), tried for
+		-- this many of its pots; the rest are quiet touches (Sweeps x Powers across its balls).
+		NearMissShare = 0.5,
+		NearMissPlans = 3,
+		Sweeps = 9,
+		Powers = { 0.3, 0.42, 0.55 },
+		StillInches = 0.3, -- the player's balls and the 8 must move less than this
+		-- The leave: the player's easiest pot must be this close; a hanger (a cut under
+		-- GiftCutDegrees with the cue ball within GiftInches) scores GiftPenalty less.
+		LeaveMaxInches = 40,
+		GiftCutDegrees = 4,
+		GiftInches = 10,
+		GiftPenalty = 15,
+		-- The search stops at the first leave scoring this (a short, gentle pot) or after
+		-- MaxTrials simulated shots, so a visit's thinking stays light on the server.
+		GoodLeave = 70,
+		MaxTrials = 80,
+		-- No gentle pot to leave: a cut up to WideCutDegrees still counts, from WideScore
+		-- instead of 100 (a clean scratch only when even that is missing).
+		WideCutDegrees = 45,
+		WideScore = 60,
+		CheckPower = 0.45, -- each leave's pot is played at this power to check it goes in
+		-- After this many misses in a row by the player, the bot's next shot is a clean scratch
+		-- (ball in hand ends any jam).
+		StuckMisses = 3,
+		-- The clean scratch's straight lines into a pocket: speeds (in/s) above the distance.
+		ScratchExtraSpeeds = { 40, 70, 110 },
+	},
 	-- The tutorial bot's later visits (Bots/Script.poor): weak, legal shots at its own balls
 	-- that pot nothing and leave the player's balls and the 8 where they are.
 	BotPoor = {
