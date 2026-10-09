@@ -1528,13 +1528,14 @@ function MatchHUD.update(self: any, now: number)
 end
 
 -- The turn popup: pops in when its turn starts (or when a foul popup before it ends), holds,
--- and fades out. Only while that turn lasts.
+-- and fades out. Only while that turn lasts; YOU ARE SOLIDS / STRIPES runs its full time into
+-- the shooter's next turn (a kept table pops no YOUR TURN over it; designer, 2026-10-09).
 function MatchHUD.updateTurn(self: any, now: number)
 	local snapshot = self.snapshot
 	local key = ("%d:%d"):format(snapshot.epoch, snapshot.turnId)
 	local elapsed = now - self.turnStart
 	local left = self.popupSeconds - elapsed
-	local show = key == self.turnKey
+	local show = (key == self.turnKey or (self.turnIsGroup and self.groupEpoch == snapshot.epoch))
 		and elapsed >= 0
 		and left > 0
 		and snapshot.phase ~= "Result"

@@ -98,6 +98,12 @@ function StreakMath.flare(t: number, ignite: boolean, fire: any, squash: number)
 	return 1 + fire.FlareScale * math.exp(-t * fire.FlareDecay)
 end
 
+--- The slide under YOU ARE SOLIDS / STRIPES and back: an ease in and out of `p` (0 to 1).
+function StreakMath.slide(p: number): number
+	local x = math.clamp(p, 0, 1)
+	return x * x * (3 - 2 * x)
+end
+
 --- The end's fade, `t` seconds in: (opacity 1 to 0, how far down the letters have dropped 0 to 1).
 function StreakMath.fade(t: number, seconds: number): (number, number)
 	local p = math.clamp(t / seconds, 0, 1)

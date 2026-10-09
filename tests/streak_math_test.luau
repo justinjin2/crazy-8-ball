@@ -57,6 +57,13 @@ function tests.the_beat_pops_then_eases_and_the_flare_settles()
 	expect(StreakMath.flare(2, false, F, 0.05) < 1.001, "then it settles")
 end
 
+function tests.the_slide_under_the_group_popup_eases_in_and_out()
+	expect(StreakMath.slide(0) == 0 and StreakMath.slide(1) == 1 and StreakMath.slide(2) == 1)
+	H.near(StreakMath.slide(0.5), 0.5, 1e-9, "halfway at half time")
+	expect(StreakMath.slide(0.1) < 0.1 and StreakMath.slide(0.9) > 0.9, "slow at both ends")
+	expect(C.LowerPx > 0 and C.UnderGroup.Seconds > 0, "set")
+end
+
 function tests.the_end_fades_and_drops()
 	local a0, d0 = StreakMath.fade(0, C.FadeSeconds)
 	local a1, d1 = StreakMath.fade(C.FadeSeconds, C.FadeSeconds)

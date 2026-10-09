@@ -5,7 +5,8 @@
 -- each step the moment the replay drops that ball, for a player seated at that table (both
 -- teams: everyone at the table sees and hears it).
 -- - "STREAK xN" in Press Start 2P in the match popups' row under the top bar, stepping aside
---   (fading out, popping back) while a popup shows there; a TextLabel per letter: an ink
+--   (fading out, popping back) while a popup shows there, or sliding down under YOU ARE
+--   SOLIDS / STRIPES and back; past x8 it keeps x8's look, silent. A TextLabel per letter: an ink
 --   outline (UIStroke, Miter: the square pixel look), a two-tone fill, a drop shadow, and from
 --   x6 a cyan and a pink ghost. Each level a new colour, a little bigger, more movement
 --   (Config.UI.Streak.Levels: a beat pop, a smooth tilt, a wave in whole pixels, jitter).
@@ -158,6 +159,7 @@ function StreakHud.new(screen: ScreenGui, hub: any, hud: any): any
 	self.fireHandle = nil
 	self.hide = 0 -- 0 shown, 1 stepped aside for a match popup in its row (HideSeconds)
 	self.backT = nil :: number? -- seconds since it popped back in after a popup
+	self.under = 0 -- 0 in its row, 1 slid under YOU ARE SOLIDS / STRIPES (UnderGroup)
 	local burst = image(words, "Burst", 5)
 	burst.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.burst = burst
@@ -328,7 +330,10 @@ end
 
 -- The step's sound, shake, burst and shards.
 function StreakHud.stepFx(self: any, step: Pending, L: any)
-	UISound.play("Streak" .. math.min(step.level, LEVELS))
+	-- Past x8 (x9 after a break and run, Solo's long runs) the steps are silent (designer).
+	if step.level <= LEVELS then
+		UISound.play("Streak" .. step.level)
+	end
 	if L.Shake > 0 and not UIAnim.reduced() then
 		ScreenFx.shake(step.tableId, L.Shake, C.ShakeSeconds + C.ShakeSecondsPerStud * L.Shake)
 	end
@@ -420,26 +425,33 @@ function StreakHud.ended(self: any, seat: number): boolean
 	return st ~= nil and st.after == 0 and st.seq == m.seq and (m.shot == nil or m.shot.finished)
 end
 
--- The words' middle: the middle of the turn popup's row under the top bar.
+-- The words' middle: the middle of the turn popup's row under the top bar, LowerPx lower, and
+-- slid under YOU ARE SOLIDS / STRIPES while it shows.
 function StreakHud.middle(self: any): number
 	local hud = self.hud
 	local base = (hud and (hud.popupTop or hud.headerBottom)) or 0
-	return base + S.HeaderGap + (S.TurnPopupTitleSize + S.HeaderGap) / 2
+	local row = S.TurnPopupTitleSize + S.HeaderGap
+	return base
+		+ S.HeaderGap
+		+ row / 2
+		+ C.LowerPx
+		+ StreakMath.slide(self.under) * (row + C.UnderGroup.GapPx)
 end
 
--- Whether a match popup shows in the words' row (the turn popup, which also says YOU ARE
--- SOLIDS, or the foul popup).
-function StreakHud.popupShowing(self: any): boolean
+-- The match popup showing in the words' row: "group" (YOU ARE SOLIDS / STRIPES: the words
+-- slide under it), "other" (a turn or a foul: they step aside) or nil.
+function StreakHud.popup(self: any): string?
 	local hud = self.hud
 	if not hud then
-		return false
+		return nil
 	end
-	for _, group in { hud.turnGroup, hud.foulGroup } do
-		if group and group.Visible then
-			return true
-		end
+	if hud.foulGroup and hud.foulGroup.Visible then
+		return "other"
 	end
-	return false
+	if hud.turnGroup and hud.turnGroup.Visible then
+		return if hud.turnIsGroup then "group" else "other"
+	end
+	return nil
 end
 
 function StreakHud.frame(self: any, dt: number)
@@ -457,6 +469,13 @@ function StreakHud.frame(self: any, dt: number)
 		self:fadeOut()
 	end
 	self:next(now)
+	-- YOU ARE SOLIDS / STRIPES: slide under it (already there if the streak starts meanwhile).
+	local popup = self:popup()
+	local toward = if popup == "group" then 1 else 0
+	local slide = dt / C.UnderGroup.Seconds
+	self.under = if toward > self.under
+		then math.min(toward, self.under + slide)
+		else math.max(toward, self.under - slide)
 	if self.phase == "off" then
 		return
 	end
@@ -474,7 +493,7 @@ function StreakHud.frame(self: any, dt: number)
 	end
 	-- A popup in the row: step aside, then pop back in once it is gone (a step meanwhile still
 	-- plays its sound and shake, and comes back at its new level).
-	if self:popupShowing() then
+	if popup == "other" then
 		self.hide = math.min(1, self.hide + dt / C.HideSeconds)
 		self.backT = nil
 	elseif self.hide > 0 then

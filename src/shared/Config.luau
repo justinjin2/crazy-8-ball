@@ -8577,6 +8577,14 @@ Config.UI.Streak = {
 	-- tall). While a match popup shows there (YOUR TURN, a foul, YOU ARE SOLIDS) it fades out
 	-- over HideSeconds and pops back in (Step.In*) once the popup is gone (designer, 2026-10-09).
 	HideSeconds = 0.12,
+	-- A little lower than the row's middle, so x8 and its flames clear the top bar (designer,
+	-- 2026-10-09: "lower it just a tiny tiny tiny bit").
+	LowerPx = 8,
+	-- YOU ARE SOLIDS / STRIPES is the one popup it does not step aside for (it shows as the
+	-- ball that picks the groups drops, often a run's second ball after the break's): the
+	-- words slide down under it, one popup row (TurnPopupTitleSize + HeaderGap) plus GapPx,
+	-- over Seconds, and back up once it has faded (designer, 2026-10-09).
+	UnderGroup = { GapPx = 2, Seconds = 0.35 },
 	ZIndex = 0, -- under every other piece of the match screen (theirs are 1 and up)
 	Ink = { 27, 32, 51 }, -- the outline (Kit Ink)
 	OutlineShare = 0.1, -- the ink outline's thickness, a share of GlyphPx (UIStroke, Miter)
@@ -8589,7 +8597,8 @@ Config.UI.Streak = {
 		OffsetShare = 0.1,
 		Transparency = 0.45,
 	},
-	-- Each level (x1 to x8; Solo past x8 keeps x8's): its colour (x8 the moving rainbow), its
+	-- Each level (x1 to x8; past x8, x9 after a break and run or Solo's long runs, keeps x8's
+	-- look and size and plays no spray; designer, 2026-10-09): its colour (x8 the moving rainbow), its
 	-- fire sheet (Fire, a key of Fire.Sheets; nil: no fire), the idle motion (Wave px up and
 	-- down per glyph, Sway degrees of tilt, Jitter px, Beat = { seconds, extra scale } a quick
 	-- pop on a beat), the step's shards, the camera shake (studs, ScreenFx.shake; 0 none) and

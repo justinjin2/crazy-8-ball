@@ -190,7 +190,8 @@ Unchanged by v4.
 "STREAK x1" up to x8 (the GDD section 8). It is a bonus on top of the ball pay, never a
 multiplier: from x3 each counted ball pays an extra quarter of the ball pay for each level from
 x3, so x3 +$25, x4 +$50, x5 +$75, x6 +$100, x7 +$125, x8 +$150 (a run-out of all eight balls
-pays $525 on top of its $800). The break counts as x1 however many balls drop; a foul, a shot
+pays $525 on top of its $800), and x9, the most outside Solo (one ball on the break, then the
+seven and the 8), +$175. The break counts as x1 however many balls drop; a foul, a shot
 that pots none of yours or the table passing ends it. It is boosted like other match money
 (VIP, difficulty), pays the shooter only, and pays nothing in Solo or at a flat after-cap pay.
 Measured in 1,600 bot-duel games (`tools/streak_model.luau`): about 52% of paying balls are x1,
