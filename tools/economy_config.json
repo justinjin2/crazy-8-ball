@@ -331,26 +331,22 @@
     ],
     "Track": [
       {
-        "Blocks": {
-          "Rare": 1
-        },
-        "Day": 8
-      },
-      {
-        "Blocks": {
-          "Rare": 2
-        },
-        "Day": 14
-      },
-      {
-        "Blocks": {
-          "Rare": 2
-        },
-        "Day": 21
+        "Day": 8,
+        "Money": 50000
       },
       {
         "Blocks": {
           "Epic": 1
+        },
+        "Day": 14
+      },
+      {
+        "Day": 21,
+        "Money": 150000
+      },
+      {
+        "Blocks": {
+          "Legendary": 1
         },
         "Day": 28
       }

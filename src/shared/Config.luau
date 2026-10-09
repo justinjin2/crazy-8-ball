@@ -3091,13 +3091,15 @@ Config.Daily = {
 	VipRestrictedMoney = 5000,
 	-- The 28-day track: total days claimed (never resets), repeating every TrackDays. On the
 	-- day the count reaches one of these it adds its reward to that day's claim (v4: the first
-	-- prize on day 8, since day 7 of the first week is the Legendary block).
+	-- prize on day 8, since day 7 of the first week is the Legendary block). Bigger prizes
+	-- (designer, 2026-10-08: "it should give at least a legendary at the end"; it was a Rare,
+	-- 2 Rare, 2 Rare and an Epic, about $280,000 of value): about 7x, a Legendary at the end.
 	TrackDays = 28,
 	Track = {
-		{ Day = 8, Blocks = { Rare = 1 } },
-		{ Day = 14, Blocks = { Rare = 2 } },
-		{ Day = 21, Blocks = { Rare = 2 } },
-		{ Day = 28, Blocks = { Epic = 1 } },
+		{ Day = 8, Money = 50000 },
+		{ Day = 14, Blocks = { Epic = 1 } },
+		{ Day = 21, Money = 150000 },
+		{ Day = 28, Blocks = { Legendary = 1 } },
 	} :: { { Day: number, Money: number?, Blocks: { [string]: number }? } },
 	-- Old names the Rewards screen still reads until the GUI lane rebuilds it: the track's four
 	-- weeks ("Week 2 of 4") and its day-28 prize.
@@ -5969,11 +5971,13 @@ Config.UI = {
 	-- bigger bar centred on the right edge (designer, 2026-09-26: it was small and too high).
 	-- Centred, a whole-bar cue travel would leave the screen at full pull, so the cue slides
 	-- PowerLargeCueTravelScale of the bar there: its bottom lands at 0.5 + (0.97 + 0.55 - 0.5)
-	-- x 0.45 = 96% of the screen at full pull. (tune)
-	PowerBarLargeWidthPx = 60,
+	-- x 0.45 = 96% of the screen at full pull. A little wider than it was (60 and 20; designer,
+	-- 2026-10-08: "slightly wider since theres more space", the cue's effects spill out of it),
+	-- the phone's unchanged. (tune)
+	PowerBarLargeWidthPx = 76,
 	PowerBarLargeHeightFraction = 0.45,
 	PowerBarLargeMaxHeightPx = 480,
-	PowerLargeCueWidthPx = 20,
+	PowerLargeCueWidthPx = 24, -- a cue drawn from its colours (a skin's picture follows the height)
 	PowerLargeCueTravelScale = 0.55,
 	-- ...and sits this share of the screen above the centre (designer, 2026-09-27: a little
 	-- higher). Its full-pull cue then ends 5% higher too. (tune)
@@ -7036,6 +7040,16 @@ Config.UI = {
 				RimTransparency = 0.1,
 				TrackingShare = -0.03, -- extra room between letters (the outlines merge)
 				SagShare = 0.05, -- the arch: how much higher the middle is, of the word's width
+			},
+			-- The Starter Pack's title on its wide card (ShopOffers; the designer's second
+			-- reference, 2026-10-08): each letter its own colour, blue to purple to pink (the
+			-- tints: Config.UI.ShopBlocks.Pair.Starter.TitleColors), a navy outline, straight.
+			Starter = {
+				FaceColor = { 255, 255, 255 },
+				Outline = { 6, 14, 40 },
+				OutlineShare = 0.13,
+				TrackingShare = -0.02,
+				SagShare = 0,
 			},
 			-- The subtitle under it: white letters, a navy outline, straight (the designer, gate 2).
 			Subtitle = {
@@ -8705,25 +8719,23 @@ Config.UI.Shop = {
 -- The "Odds & Details" popup behind every lucky block's dice badge (OddsDetails; economy v4
 -- plan 13, Roblox's paid-random-items rules; designer 2026-10-08: a dice for the badge). It
 -- opens over a lively menu's pages (the Shop, Free Reward) as the Gift Player popup and
--- scrolls: a block's name, each rarity with its "1 in N" and chance, then its cues ("10 cues,
--- 0.24% each: ..."), the Unique cues, a line when a chance is rounded, and the total. The
--- Mystery block's adds its pity, the final tier and each tier block's odds (ShopMysteryOdds).
+-- scrolls: a block's name and one rarity bar per rarity with its chance (the Cues menu's bar,
+-- RarityBar; designer, 2026-10-08: no per-cue lines), then one line under them. The Mystery
+-- block's adds its pity, the final tier and its rarities (ShopMysteryOdds).
 Config.UI.OddsDetails = {
-	WidthPx = { 360, 540 },
-	RowPx = { 22, 28 }, -- one line: a tier or a rarity, its "1 in N" and its chance
-	TextPx = { 13, 17 }, -- the rows' words
-	HeadPx = { 16, 21 }, -- a section's heading ("Pity", "Final tier", ...)
-	SubPx = { 14, 18 }, -- a tier block's name over its odds
-	NotePx = { 12, 15 }, -- the line under the title, a rarity's cues and the totals
+	WidthPx = { 340, 460 },
+	RowPx = { 22, 28 }, -- one line of words: a pity count and its blocks to go
+	TextPx = { 13, 17 }, -- those rows' words
+	HeadPx = { 16, 21 }, -- a section's heading ("Pity", "Final tier", ...) and the block's name
+	NotePx = { 12, 15 }, -- the line under the title and the lines under the bars
 	SectionGapPx = { 10, 16 }, -- over each section's heading
 	RowInsetPx = { 6, 10 }, -- the rows' room from the list's left (under their heading)
-	NamesInsetPx = { 14, 22 }, -- a rarity's cues, a little further in than its row
-	NamesMaxLines = 8, -- the most lines a rarity's cues wrap to (10 names take 3 or 4)
-	NamesGapPx = 3, -- under a rarity's cues, before the next row
-	ValueShare = 0.22, -- the chance's column, of the row's width (right)
-	OneInShare = 0.3, -- the "1 in N" column left of it
-	OneInUnderPercent = 5, -- "1 in N" beside every chance under this (the rare ones)
-	OneInColor = { 120, 128, 142 }, -- grey, as the gift list's @username (also the cues' line)
+	ValueShare = 0.3, -- a row's value (its blocks to go), of the row's width (right)
+	BarPx = { 26, 34 }, -- a rarity bar's height
+	BarTextPx = { 13, 18 }, -- its word and chance
+	BarGapPx = { 4, 6 }, -- between two bars
+	BarPadPx = { 10, 14 }, -- its words' room from its round ends
+	BarIconShare = 1.3, -- a tier's block over a bar's left end, of the bar's height
 	LiveColor = { 230, 160, 0 }, -- the line once a guarantee is the very next block (gold)
 	ScrollBarPx = 6,
 	-- The dice badge on each block (ShopCards.oddsBadge): the die's share of the badge's box
@@ -9290,8 +9302,98 @@ Config.UI.ShopBlocks = {
 		OddsUnits = 21,
 		OddsSideUnits = 30, -- its room each side in the panel
 	},
-	-- The Starter Pack and VIP (pick A), side by side under the restock while the Starter Pack
-	-- or VIP's half-price offer is on; one alone sits in the middle; neither: no section.
+	-- The Starter Pack and VIP side by side, wide (ShopOffers; designer, 2026-10-08: "put VIP
+	-- and starter side by side ... this should actually be used mainly as the reference so it
+	-- can fit on one page without scrolling", the second reference): the hero picture at the
+	-- left showing what you get, the title and its big line beside it, the rest under, the buy
+	-- row at the foot. Each card's places in its own units; on a small screen the words keep
+	-- the smallest text size, so the cards grow taller to hold them (both the same height).
+	Pair = {
+		CardUnits = { 618, 440 }, -- each card (two and the gap fill the page's 1275)
+		GapUnits = 39,
+		CornerUnits = 34,
+		EdgeUnits = 6,
+		PadUnits = 22, -- the card's inner room
+		-- The hero's square at the top left (its side), its glow and rays wide (the rays reach a
+		-- little past the card's edge, faint there).
+		HeroUnits = 222,
+		Glow = 300,
+		Rays = 320,
+		-- What it holds, as shares of its side (centre x, centre y, size): the Starter Lucky
+		-- Block with the Starter Cue behind it and money in front; VIP's crown over money with
+		-- a big "2x" on it.
+		StarterBlock = { 0.42, 0.56, 0.74 },
+		StarterCue = { 0.6, 0.42, 1.02 },
+		StarterCash = { 0.8, 0.8, 0.44 },
+		VipCrown = { 0.47, 0.38, 0.84 },
+		VipCash = { 0.72, 0.8, 0.52 },
+		VipTwoX = { 0.72, 0.76, 0.3 }, -- "2x" on the money: centre x, y, its height
+		-- The sky-blue dice on the hero's top left corner (the words own the right): its centre
+		-- this far in from the hero's corner (x, y), its size; never past the card's edge.
+		OddsBadge = { 12, 12, 50 },
+		TextGapUnits = 18, -- between the hero and the words beside it
+		-- The words beside the hero, left-aligned, each as big as its units or smaller to fit.
+		TitleUnits = 62, -- "Starter Pack"
+		VipTitleUnits = 84, -- "VIP": three letters, as big as the reference's gold word
+		TitleLineShare = 1.2, -- the title's row, of its letters' size (the arch's room overlaps)
+		BigUnits = 58, -- "+$25,000", "x1 -> x2 MONEY"
+		BigGapShare = 0.22, -- between the big row's pieces, of its letters' size
+		ArrowShare = 0.9, -- the arrow in "x1 -> x2", of the letters' size
+		LineUnits = 26, -- the Starter Pack's line (wraps)
+		LineMaxRows = 5,
+		RowGapUnits = 8, -- between the stacked lines
+		SectionGapUnits = 14, -- between the hero's row, the odds or perks, and the buy row
+		-- VIP's perks: two columns of an icon and its words under the hero (one on a phone).
+		PerkIconUnits = 34,
+		PerkTextUnits = 25,
+		PerkRowUnits = 40,
+		PerkGapUnits = 8, -- between an icon and its words
+		PerkColumnGapUnits = 16,
+		-- One column instead of two when the longest perk would shrink under this share of its
+		-- size to fit half the card (a phone's 12 px words).
+		PerkShrinkMin = 0.75,
+		-- The Starter Lucky Block's odds as small rarity bars over the buy row (the cue card's
+		-- bar: the name over the chance), hidden where the names would not fit (the dice opens
+		-- them there).
+		PillUnits = 62,
+		PillGapUnits = 8,
+		PillTextUnits = 20,
+		BuyUnits = 64,
+		BuyTextUnits = 40,
+		BuyWidthUnits = 250, -- the green button, at the card's right
+		GiftUnits = 60,
+		GiftGapUnits = 8,
+		-- "Ends in 6d 18h" left of the buy row, or over it when it would not fit beside it (its
+		-- widest time, so the row never jumps as it counts down: a week at most).
+		TimerTextUnits = 26,
+		TimerSample = "8d 88h",
+		Starter = {
+			Top = { 248, 252, 255 }, -- white into pale blue, a sky-blue rim
+			Bottom = { 212, 234, 255 },
+			Edge = { 96, 178, 250 },
+			Row = { 255, 255, 255 },
+			RowTransparency = 1,
+			GlowTint = { 255, 220, 110 }, -- behind the bundle (gold)
+			-- The title's letters, first to last (blue, purple, pink: the reference's).
+			TitleColors = { { 70, 140, 255 }, { 150, 95, 255 }, { 255, 95, 185 } },
+		},
+		Vip = {
+			Top = { 255, 251, 232 }, -- cream into gold, a gold rim
+			Bottom = { 252, 226, 158 },
+			Edge = { 230, 168, 28 },
+			Row = { 255, 255, 255 },
+			RowTransparency = 1,
+			GlowTint = { 255, 206, 60 },
+			TwoXColor = { 92, 226, 112 }, -- "2x" and the green x2 (money's green)
+			CrownRock = { 5, 2.6 }, -- the crown rocks this many degrees each way, in seconds
+			TwoXPulse = { 1.08, 1.1 }, -- "2x" beats: this much bigger, over these seconds
+		},
+		-- VIP's perk icons, in Strings' order (a Kit.Icons key, or a lucky block's kind).
+		VipPerkIcons = { "Block:Rare", "Stopwatch", "UltSpin", "ShopBasket", "Cue" },
+		VipPerkIconRestricted = "CashSingle", -- the daily block's line where it is money
+	},
+	-- The Passes tab's tall VIP card (ShopOffers.vipCard): VIP's title between two crowns, the
+	-- hero picture (the crown over money with "2x", as the wide card's), six perks, the button.
 	Offers = {
 		CardUnits = { 620, 652 },
 		GapUnits = 35,
@@ -12996,6 +13098,9 @@ Config.UI.FreeReward = {
 		NodeUnits = 46,
 		KnobUnits = 30, -- the white knob at the fill's end
 		Pictures = { 100, 88, 170 },
+		-- A money prize's amount ("$50,000") in gold over its picture's foot, as a day tile's.
+		AmountY = 136,
+		AmountUnits = 30,
 		DayY = 234,
 		DayUnits = 26,
 		NoteY = 274,
@@ -13040,6 +13145,63 @@ Config.UI.FreeReward = {
 			-- they sit in the middle of the card.
 			NoCountShiftUnits = 28,
 			Button = { X = 1110, Y = 110, WidthUnits = 260, HeightUnits = 70, TextUnits = 36 },
+		},
+		-- The first-visit heroes (FreeHeroes; designer, 2026-10-08: "emphasize more of joining
+		-- the group and favoriting first ... each favorite and group join like its separate
+		-- frame/hero, and then invite below the 2"): two wide cards side by side at the top of
+		-- the page until both are claimed, as the Shop's Starter Pack and VIP (Config.UI
+		-- .ShopBlocks.Pair): the picture at the top left, the words beside it, the button under.
+		Heroes = {
+			CardUnits = { 618, 370 }, -- each card at least (two and the gap fill the page's 1275)
+			GapUnits = 39,
+			CornerUnits = 34,
+			EdgeUnits = 6,
+			PadUnits = 22, -- the card's inner room
+			ArtUnits = 236, -- the picture's square
+			Glow = 300,
+			Rays = 320,
+			-- The reward's best block as many times as it gives (up to three): each copy's centre
+			-- x, y and size, shares of the picture's side; the last is the one in front.
+			Copies = {
+				{ { 0.48, 0.52, 0.8 } },
+				{ { 0.34, 0.44, 0.62 }, { 0.6, 0.58, 0.7 } },
+				{ { 0.26, 0.42, 0.54 }, { 0.72, 0.42, 0.54 }, { 0.5, 0.6, 0.68 } },
+			},
+			Badge = { 0.8, 0.18, 0.34 }, -- the group's busts or the favorite star
+			BadgeRock = { 8, 2.2 }, -- it rocks this many degrees each way, over these seconds
+			Cash = { 0.82, 0.84, 0.4 }, -- the money, when the reward gives some
+			-- The sky-blue dice on the picture's top left corner: its centre this far in from the
+			-- corner (x, y), its size.
+			OddsBadge = { 12, 12, 50 },
+			TextGapUnits = 18, -- between the picture and the words beside it
+			TitleUnits = 50, -- "Join the group", in the kit's gold (smaller to fit)
+			RewardUnits = 40, -- "3 Mystery Lucky Blocks" (wraps)
+			RewardMaxRows = 2,
+			LineUnits = 26, -- "+10% match money while you're in the group" (wraps)
+			LineMaxRows = 3,
+			RowGapUnits = 8, -- between the stacked words
+			SectionGapUnits = 16, -- between the picture's row and the button
+			ButtonUnits = 74,
+			ButtonTextUnits = 40,
+			Group = {
+				Top = { 240, 248, 255 }, -- white into sky blue, a blue rim
+				Bottom = { 200, 228, 255 },
+				Edge = { 70, 150, 240 },
+				Row = { 255, 255, 255 },
+				RowTransparency = 1,
+				GlowTint = { 120, 196, 255 },
+			},
+			Favorite = {
+				Top = { 255, 251, 232 }, -- cream into gold, a gold rim
+				Bottom = { 255, 228, 160 },
+				Edge = { 236, 170, 30 },
+				Row = { 255, 255, 255 },
+				RowTransparency = 1,
+				GlowTint = { 255, 206, 60 },
+			},
+			-- Before the first state: the block each card shows.
+			GroupBlock = "Mystery",
+			FavoriteBlock = "Lucky8",
 		},
 	},
 }
@@ -13105,6 +13267,14 @@ Config.UI.FreeReward.Open = {
 		{ Ids = { "TrackNote" }, Kind = "Fade", At = 0.44, Length = 0.12 },
 		{ Ids = { "GroupHead" }, Kind = "Pop", At = 0.18 },
 		{ Ids = { "GroupLines" }, Kind = "Grow", At = 0.22 },
+		-- The first-visit heroes (at the top of the page then), each with a burst.
+		{
+			Ids = { "GroupHero1", "GroupHero2" },
+			Kind = "Pop",
+			At = 0.22,
+			Stagger = 1.25,
+			Burst = "Cyan",
+		},
 		{ Ids = { "GroupCard" }, Kind = "Grow", At = 0.20 },
 		{ Ids = { "GroupArt" }, Kind = "Pop", At = 0.26, Burst = "Cyan" },
 		{ Ids = { "GroupTitle", "GroupRow1", "GroupRow2" }, Kind = "Pop", At = 0.3, Stagger = 1.5 },

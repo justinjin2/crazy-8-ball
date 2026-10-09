@@ -906,6 +906,13 @@ function MenuFrame.open(self: any, tab: string?)
 	self.opened = true
 	self.gui.Enabled = true
 	self.dim.Modal = true -- frees a mouse that shift-lock (or the camera) holds
+	-- Every menu opens at the top of its pages, never where it was left (designer,
+	-- 2026-10-08); a menu opened on a section jumps there after this (its own open).
+	for _, object in self.content:GetDescendants() do
+		if object:IsA("ScrollingFrame") then
+			object.CanvasPosition = Vector2.zero
+		end
+	end
 	self:refreshMoney()
 	self:layout()
 	if self.dimTween then

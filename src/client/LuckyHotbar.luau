@@ -704,6 +704,7 @@ function Hotbar.setBag(self: any, open: boolean)
 	if open then
 		self.bagHint.Text = if ReelFx.gamepad() then W.BagHintPad else W.BagHint
 		self.bagEmpty.Visible = #self.entries == 0
+		self.grid.CanvasPosition = Vector2.zero -- at the top, as every menu (designer, 2026-10-08)
 		UIAnim.popIn(self.panel)
 	end
 	self:refreshSelection()

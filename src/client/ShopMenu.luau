@@ -175,6 +175,13 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		odds = odds,
 	})
 	self.offers = ShopOffers.new(blocks, { robux = buyProduct, gift = gift, odds = odds })
+	-- Studio only: GuiQA:Invoke("offers", patch) draws the Starter Pack and VIP over the shop
+	-- state with `patch`'s fields (restricted, vip, starterBought, offers); nil goes back.
+	GuiQA.add("offers", function(patch: any)
+		self.offers.fake = patch
+		self:refresh()
+		return self.offers.show
+	end)
 	-- The Money group: its header, then the packs.
 	local moneyGroup = HudParts.frame(scroll, "Money")
 	moneyGroup.ZIndex = 2

@@ -57,18 +57,15 @@ One line each; the long form is the 2026-10-08 entry at the top of
   (prompts and pictures in `~/Desktop/8ball-refs/gui-mocks-v4`). Done and checked in Studio:
   Abilities films the real character; Lucky Spins retired (save v10); Ranked's reward tiles one
   size; Claim All's server side; the restock banner; bigger money packs and the Starter Pack
-  at 29 R$ with its cue; the Shop's Blocks tab (Mystery A, Restock B, Starter Pack and VIP A),
-  Money tab (B) and Passes tab (B), each on PC and a phone-sized layout; the HUD's win track (A);
-  the Free Reward menu (Daily A with Playtime, the track and Group in one menu, replacing the
-  Rewards menu; codes stay in Settings) with Claim All's six Robux products made on Roblox
-  (random items: Not Listed with the others); Ranked in the lively frame (A; 96% wide on a
-  phone); the ability spin screen in the kit panels (A: the odds panel, the buy panel with one
-  money button, "Locked" slots); the Mystery screen (B, the Track: the press pill, the tier
-  ladder, landing as Standard); Settings (A: icon rows, big switches, the Codes strip); the
-  plan's items with no mock: the reel's v4 odds (look unchanged, designer), the skip's dialog
-  priced for the time left, and every block's "Odds & Details" behind a sky-blue dice, no word
-  (designer): every cue's chance, the Mystery list's pity and tiers, the Grand Opening's
-  per-player odds, the skip's dice. Grand Opening bundles keep their struck prices (designer).
+  at 29 R$ with its cue; the Shop's Blocks, Money and Passes tabs; the HUD's win track (A);
+  the Free Reward menu (Daily A with Playtime, the track and Group in one menu; codes stay in
+  Settings) with Claim All's six Robux products (Not Listed); Ranked in the lively frame (A);
+  the ability spin screen (A); the Mystery screen (B, the Track); Settings (A); the reel's v4
+  odds (look unchanged), the skip's dialog priced for the time left, every block's "Odds &
+  Details" behind a sky-blue dice. The designer's second notes (2026-10-08), done on PC: the
+  Starter Pack and VIP side by side, every menu opening at the top, a wider pull bar on PC and
+  tablet, odds as rarity bars and one line, the Free Reward first visit's Group and Favorite
+  heroes, the track's money and Legendary prizes; still to see on a phone and a controller.
   At publish: `tools/roblox_products.py --sync` (Starter Pack 29, pack texts, Lucky1 and
   Lucky3 off sale). Trade is not built (not in the release).
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in

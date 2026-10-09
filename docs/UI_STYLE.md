@@ -257,7 +257,9 @@ below are the summary; the skill has the numbers and code.
   fades in 1.5 s. The ball-in-hand hint is one thin line,
   only as wide as its words.
 - **The power bar** (designer, 2026-09-26): on a phone high on the right under the top bar; on
-  a computer or tablet bigger and centred on the right edge. The fill runs green to yellow to
+  a computer or tablet bigger and centred on the right edge, and wider there since 2026-10-08
+  (76 px, the cue in it 24 px: "slightly wider since theres more space"; a phone's is
+  unchanged). The fill runs green to yellow to
   red as you pull, then from 75% fades into the house rainbow, all rainbow at 100%, its bands
   drifting down the bar (designer, 2026-09-30).
 - **The zoom guide** (designer, 2026-09-26): over the spin button while it is your turn, a
@@ -404,7 +406,9 @@ then; the reel's rules hold for the blocks.
   designer 2026-10-06) covers far less:** never in Roblox's top-bar row, at most 66% of the
   screen's width (`Config.UI.Menu.Lively.MaxWidthShare`), only as tall as its hero card, the
   jump buttons outside its right edge, the 8-ball pinned on its left edge; the page scrolls on
-  below the hero. Title with its icon, tabs as
+  below the hero. **Every menu opens at the top of its pages**, never where it was left
+  (designer, 2026-10-08: `MenuFrame` puts every scroller back at its top on open; the bag and
+  the Abilities odds too); one opened on a section jumps there. Title with its icon, tabs as
   candy buttons, a money pill in the Shop's and Cues's header, the red X. Cards are white
   with a pale blue edge (the roadmap's reward tiles); a cue card is the cue card of section 17
   (2026-10-08). The server's answers show as a short line at the bottom of the panel. Confirm
@@ -854,44 +858,55 @@ band, restock tiles and pass bands.
 - **The Mystery block's "Odds & Details"** (economy v4 plan 3.2, hand-off item 13,
   `ShopMysteryOdds` in the shared popup below): "The result is decided when you open it; the
   presses reveal it."; **Pity** (Rare or better within 10 and Epic or better within 100, each
-  with "6 to go" or "Next one!" in sky blue); **Final tier** with each tier's block; **Each
-  tier block's odds** (the block's picture and name, then its rarities); **The cues** (each
-  rarity's names once, in grey); **Each Mystery block** (every rarity with "7 cues, 7.4643%
-  each", "Total: 100%"). Once a guarantee is the very next block a gold line says "Your next
-  Mystery block is Epic or better!" and the tier and rarity tables show the odds with pity
-  ("Final tier, with pity", "Your next Mystery block"). A Mystery day's dice in Free Reward
-  opens the same list.
+  with "6 to go" or "Next one!" in sky blue); **Final tier**: each tier as a rarity bar with
+  its block over the bar's left end and its chance (Standard in Common's grey); **Each Mystery
+  block**: a bar per rarity with its chance; then the one line. Once a guarantee is the very
+  next block a gold line says "Your next Mystery block is Epic or better!" and the two lists
+  show the odds with pity ("Final tier, with pity", "Your next Mystery block"). A Mystery
+  day's dice in Free Reward opens the same list.
 - **The restock (B)**: "RESTOCK", a stopwatch and the time in its pill; four slot cards, each
   the block big in its rarity's glow with the dice at the top right, "**Rare** Lucky Block", a
   navy "x2 left" pill, the green Robux button over the gold money button (no gift square:
   restock items cannot be gifted). The 4th is the VIP slot: cream with a gold edge, a crown
   rocking over its block; without VIP it says "VIP only" in gold and shows one Get VIP button
   between the two button rows. "Each slot: Rare 87% · Epic 12% · ..." under the slots.
-- **The Starter Pack and VIP cards** each have the sky-blue dice at the top right: the odds of
-  the lucky block in them (the Starter Lucky Block, VIP's daily Rare block), headed by the
-  block's name; hidden where paid random items are restricted.
-- **The Starter Pack and VIP (A)**: two tall cards under the restock while the Starter Pack is
-  open or VIP's half-price offer runs (VIP's only for a player without it); one alone sits in
-  the middle. The red Starter card: its title, the gift box with the cue, four lines (Starter
-  Cue; Starter Lucky Block · Rare or better; $25,000; 1 hour of 2x money), "Ends in 1d 15h",
-  the gift square and the green button. The gold VIP card: crowns either side of "VIP", the
-  crown, six ticked perks, the green button (the full price struck through in red during the
-  offer).
+- **The Starter Pack and VIP cards** each have the sky-blue dice on their picture's top left
+  corner: the odds of the lucky block in them (the Starter Lucky Block, VIP's daily Rare
+  block); hidden where paid random items are restricted.
+- **The Starter Pack and VIP** (designer, 2026-10-08, their second reference: "so it can fit
+  on one page without scrolling"; `ShopOffers`, `Config.UI.ShopBlocks.Pair`): two wide cards
+  side by side under the restock, both as tall as the taller needs. Each card's picture at its
+  top left shows what you get, over a glow and turning rays: the Starter Lucky Block with the
+  Starter Cue behind it and cash in front; VIP's crown (rocking) over cash with a big green
+  "2x" (beating). Beside it, left-aligned: the title ("Starter Pack" letter by letter blue to
+  purple to pink; "VIP" in the gold arched title), the big line ("+$25,000" in gold; "x1 -> x2
+  MONEY", the x2 green) and what the Starter Pack holds in ink. Under them the Starter Lucky
+  Block's odds as small rarity bars (the name over the chance; hidden where the names would
+  not fit, as on a phone: the dice has them) or VIP's five perks with their icons in two
+  columns (one on a phone). The foot: "Ends in 6d 17h" in sky blue at the left (over the row
+  when it would not fit beside it), the gift square and the green button at the right (the
+  button in the middle with no timer; VIP's full price struck through in red during its
+  offer). The Starter Pack shows until bought or its week ends, VIP beside it ("Owned" with a
+  check for a VIP); without it VIP shows alone in the middle while its offer runs; with
+  neither, no section. Where paid random items are restricted the Starter Pack shows the cue
+  and "+$40,000" (no block, no bars, no dice) and VIP's first perk is "$5,000 every day". The
+  Passes tab keeps VIP's tall card with the same picture.
 - **Every lucky block's odds open from its dice** (designer, 2026-10-08: a sky-blue die with
   five pips, no word, `Config.UI.Kit.Icons.Dice`, `ShopCards.oddsBadge`; at least 24 px, its
   press area a 44 px touch target round it), never from the picture it sits on: a click, tap
   or A opens the **Odds & Details** popup (`OddsDetails`; sizes in `Config.UI.OddsDetails`,
   words in `Strings.OddsDetails`), one per menu, over the pages as the Gift Player popup: the
   block's picture and "Odds & Details", the red X wearing B (B, Escape, the X or a press
-  outside close it), and a list that scrolls: the block's name; each rarity in its colour with
-  "1 in 2,000" in grey beside every chance under 5% (`BlockOdds.oneIn`, rounded up) and its
-  chance in sky blue; under it, in grey, its cues ("10 cues, 0.24% each: Honeycomb Cue, ...":
-  every cue of a rarity has the same share); each Unique cue on its own row, at 0% with a line
-  once this player can't get it ("You have it, so it can't drop for you: its chance is in
-  Rare." or every copy found: Roblox's one-instance rule); "Some chances are rounded, so they
-  may not add up to exactly 100%." when one is (5 significant digits, `BlockOdds.detailText`);
-  "Total: 100%". No hover card: a list of every cue does not fit one. The Grand Opening's
-  chips show this player's chance too ("Owned", or 0% once every copy is found).
+  outside close it), and a list that scrolls: the block's name, then **one bar per rarity**,
+  the Cues menu's rarity bar (designer, 2026-10-08: "just use the same bar as the cues
+  inventory with the odds next to it", "they cant read the small text anyway"; `RarityBar`):
+  the rarity's colours (Mythic's flowing), the thin ink ring and the light along its top, the
+  name in capitals at the left and the chance at the right; each Unique cue its own pink bar
+  ("FIREWORK CUE · OWNED" at 0% once this player can't get it: Roblox's one-instance rule);
+  then one line in ink: "*Every cue in a rarity has the same odds." (and "Some chances are
+  rounded, so they may not add up to exactly 100%." when one is, `BlockOdds.detailText`). No
+  per-cue names and no "1 in N" (the designer's pick, 2026-10-08). The Grand Opening's chips
+  show this player's chance too ("Owned", or 0% once every copy is found).
 - **Only Robux buttons shine** (every 3 s, each a little after the last); money buttons stay
   still.
 - **The jump buttons** scroll the page smoothly (0.33 s) to Featured or Blocks, and the lit
@@ -966,8 +981,19 @@ band, restock tiles and pass bands.
 `Config.UI.FreeReward`, words in `Strings.FreeReward`. It replaced the Rewards menu.
 
 - **Jump buttons** outside the panel's right edge (the Shop's, `JumpRail`): Daily, Playtime,
-  Track and Group, each with a red "!" while something there can be claimed. The menu opens on
-  the section with something to claim (Daily first) or the one asked for.
+  Track and Group, each with a red "!" while something there can be claimed. The menu opens at
+  the top of its page (since 2026-10-08) or on the section asked for.
+- **A first visit** (the group or the favorite not claimed yet; designer, 2026-10-08:
+  "emphasize more of joining the group and favoriting first"): Group comes first, on the page
+  and on the jump buttons, as two heroes side by side (`FreeHeroes`,
+  `Config.UI.FreeReward.Social.Heroes`), the Shop's wide-card layout: "Join the group" (sky
+  blue: three Mystery blocks with the group's busts, "3 Mystery Lucky Blocks", "+10% match
+  money while you're in the group", a full-width green Join with the busts, Claim! for a
+  member) and "Favorite the game" (gold: the Lucky 8 Block with a star and cash, "Lucky 8
+  Block", "+$10,000", Favorite with the star); each picture wears its block's dice; a claimed
+  one's button turns grey "Claimed". The invite card under them, the panel as tall as both
+  with "- DAILY -" peeking. Once both are claimed the next open is the page below, Group last.
+  Decided as the menu opens, so a claim never moves the page under a finger.
 - **Daily**: the navy pill says "FIRST WEEK" or "DAILY STREAK" with the time to the next day.
   Days 1-6 in a 3 x 2 grid of tiles in their own colours (orange, purple, green, blue, teal,
   pink): "DAY 1", the reward's pictures (the cash, each lucky block once up to three with "x5"
@@ -984,11 +1010,13 @@ band, restock tiles and pass bands.
   status (Claim! with a gold glow behind the gift, Claimed, the time left on the next gift
   with a stopwatch, a padlock on the later ones).
 - **Track**: "DAY 5 OF 28", a bar from day 0 to day 28 filled gold to the days claimed with a
-  white knob, a node at each reward's day (its blocks over it, "Day 8" under it, gold with a
-  check once reached) and "Every day you claim counts, even after a missed day." Nothing here
-  is pressed: the track's rewards come with the daily claim.
-- **Group**: the Lucky 8 card (the block over its glow, its dice), "Free Lucky Blocks" and two
-  rows with a tick box: Join the group (Roblox's join prompt) and Favorite the game (Roblox's
+  white knob, a node at each reward's day (its picture over it, "Day 8" under it, gold with a
+  check once reached) and "Every day you claim counts, even after a missed day." The rewards
+  (designer, 2026-10-08: "Money + Legendary end"): day 8 $50,000, day 14 an Epic block, day 21
+  $150,000, day 28 a Legendary block; a money reward wears its amount in gold over the cash.
+  Nothing here is pressed: the track's rewards come with the daily claim.
+- **Group** (once both are claimed): the Lucky 8 card (the block over its glow, its dice),
+  "Free Lucky Blocks" and two rows with a tick box: Join the group (Roblox's join prompt) and Favorite the game (Roblox's
   favorite prompt); a claimed row is ticked and its button goes. Under it the invite card: the
   envelope and a Rare block, "Invite a friend", what both get when the friend wins their first
   match (only the friend once the inviter's own block was given), "2 friends joined", Invite.

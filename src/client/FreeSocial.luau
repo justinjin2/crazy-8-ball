@@ -1,6 +1,11 @@
 --!strict
 -- FreeSocial: the Free Reward menu's group and friends section (the designer's pick
--- "free_other A", 2026-10-08), under "- GROUP -":
+-- "free_other A", 2026-10-08), under "- GROUP -". On a first visit (the group or the favorite
+-- not claimed yet) it is two heroes side by side, one to join the group and one to favorite the
+-- game (FreeHeroes), with the invite card under them, at the top of the page (designer,
+-- 2026-10-08: "emphasize more of joining the group and favoriting first"); once both are
+-- claimed, the Lucky 8 card and the invite card at the bottom (FreeRewardMenu decides as it
+-- opens: FreeSocial.wantsWelcome, setWelcome):
 -- - The Lucky 8 card: the Lucky 8 Block over its glow (the sky-blue dice opens its odds), "Free
 --   Lucky Blocks" and two rows, each with a tick box, its words and its button:
 --   * Join the group (3 Mystery Lucky Blocks + 10% more match money while a member): Join is
@@ -24,6 +29,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local FreeHeroes = require(script.Parent.FreeHeroes)
 local FreeParts = require(script.Parent.FreeParts)
 local HudParts = require(script.Parent.HudParts)
 local InvitePrompt = require(script.Parent.InvitePrompt)
@@ -80,9 +86,22 @@ function FreeSocial.new(parent: Instance, ctx: any): any
 	self.k = 1
 	self.state = nil :: any
 	self.favoriting = false -- Roblox's favorite prompt is up
+	self.welcome = false -- the first visit's heroes instead of the Lucky 8 card
 	local root = HudParts.frame(parent, "SocialSection")
 	root.ZIndex = 2
 	self.root = root
+
+	-- The first visit's heroes.
+	self.heroes = FreeHeroes.new(root, {
+		join = function(button: GuiObject)
+			self:join(button)
+		end,
+		favorite = function(button: GuiObject)
+			self:favorite(button)
+		end,
+		odds = ctx.odds,
+	})
+	self.heroes.root.Visible = false
 
 	-- The Lucky 8 card.
 	local group = ShopCards.panel(root, "GroupCard")
@@ -187,34 +206,35 @@ end
 -- The prompts
 --------------------------------------------------------------------------------------------
 
--- Join: a member claims at once; anyone else gets Roblox's join prompt, then the server asks
--- Roblox again on the claim.
-function FreeSocial.join(self: any)
-	local row: Row = self.rows[1]
+-- Join (from `button`, the row's or the hero's): a member claims at once; anyone else gets
+-- Roblox's join prompt, then the server asks Roblox again on the claim.
+function FreeSocial.join(self: any, button: GuiObject?)
+	local from = button or self.rows[1].button
 	local state = self.state
 	local view = if type(state) == "table" then state.group else nil
 	UISound.play("Click")
 	if type(view) == "table" and view.member == true then
-		self.ctx.claim("ClaimGroup", nil, "Group", row.button)
+		self.ctx.claim("ClaimGroup", nil, "Group", from)
 		return
 	end
 	task.spawn(function()
 		pcall(function()
 			GroupService:PromptJoinAsync(Config.Social.GroupId)
 		end)
-		self.ctx.claim("ClaimGroup", nil, "Group", row.button)
+		self.ctx.claim("ClaimGroup", nil, "Group", from)
 	end)
 end
 
--- Favorite: Roblox's favorite prompt; a yes (that GetFavorite agrees with, when it answers)
--- claims.
-function FreeSocial.favorite(self: any)
+-- Favorite (from `button`, the row's or the hero's): Roblox's favorite prompt; a yes (that
+-- GetFavorite agrees with, when it answers) claims.
+function FreeSocial.favorite(self: any, button: GuiObject?)
 	if self.favoriting then
 		return
 	end
 	self.favoriting = true
 	UISound.play("Click")
-	local row: Row = self.rows[2]
+	local from = button or self.rows[2].button
+	self.ctx.refresh()
 	task.spawn(function()
 		local result: any = nil
 		local connection = AvatarEditorService.PromptSetFavoriteCompleted:Connect(function(r: any)
@@ -229,6 +249,7 @@ function FreeSocial.favorite(self: any)
 		end
 		connection:Disconnect()
 		self.favoriting = false
+		self.ctx.refresh()
 		if result ~= Enum.AvatarPromptResult.Success then
 			self.ctx.notice(W.NotYet, "Red")
 			return
@@ -249,7 +270,7 @@ function FreeSocial.favorite(self: any)
 			self.ctx.notice(W.NotYet, "Red")
 			return
 		end
-		self.ctx.claim("ClaimFavorite", nil, "Favorite", row.button)
+		self.ctx.claim("ClaimFavorite", nil, "Favorite", from)
 	end)
 end
 
@@ -257,7 +278,6 @@ end
 -- Layout
 --------------------------------------------------------------------------------------------
 
---- The section's height at the scale `k` (the two cards and the gap between).
 -- A row's height in pixels: its units, or on a phone enough for its name over its line at
 -- the smallest text size.
 local function rowPx(k: number): number
@@ -277,9 +297,29 @@ local function groupPx(k: number): number
 	return math.max(round(G.Units[2] * k), rows)
 end
 
---- The section's height at the scale `k`.
-function FreeSocial.heightFor(k: number): number
-	return groupPx(k) + round((S.GapUnits + S.Invite.Units[2]) * k)
+--- The section's height at the scale `k`: the Lucky 8 card, or the first visit's heroes, and
+--- the invite card under them.
+function FreeSocial.height(self: any, k: number): number
+	local top = if self.welcome then self.heroes:height(k) else groupPx(k)
+	return top + round((S.GapUnits + S.Invite.Units[2]) * k)
+end
+
+--- Whether the first visit's heroes show: the group or the favorite not claimed yet.
+function FreeSocial.wantsWelcome(self: any): boolean
+	local state = self.state
+	if type(state) ~= "table" then
+		return false
+	end
+	local group = if type(state.group) == "table" then state.group else {}
+	local favorite = if type(state.favorite) == "table" then state.favorite else {}
+	return group.claimed ~= true or favorite.claimed ~= true
+end
+
+--- Show the first visit's heroes (else the Lucky 8 card).
+function FreeSocial.setWelcome(self: any, on: boolean)
+	self.welcome = on
+	self.heroes.root.Visible = on
+	self.group.frame.Visible = not on
 end
 
 -- Lay a row out `w` x `h` units.
@@ -320,11 +360,11 @@ function FreeSocial.layout(self: any, width: number, k: number, y: number): numb
 	local G, I = S.Group, S.Invite
 	local Wd = G.Units[1]
 	local cardW = round(Wd * k)
-	local height = FreeSocial.heightFor(k)
+	local height = self:height(k)
 	self.root.Position = UDim2.fromOffset(math.floor((width - cardW) / 2), y)
 	self.root.Size = UDim2.fromOffset(cardW, height)
-	-- The Lucky 8 card (taller on a phone, where its rows grow).
-	local gh = groupPx(k)
+	-- The first visit's heroes, or the Lucky 8 card (taller on a phone, where its rows grow).
+	local gh = if self.welcome then self.heroes:layout(cardW, k, 0) else groupPx(k)
 	ShopCards.putPx(self.group.frame, Wd / 2 * k, gh / 2, cardW, gh)
 	ShopCards.sizeBox(self.group, k, P.CornerUnits, P.EdgeUnits)
 	ShopCards.layoutArt(self.art, k, G.Art[1], G.Art[2], G.Art[3], G.Glow, G.Rays)
@@ -414,12 +454,14 @@ local function setText(label: TextLabel, text: string)
 	end
 end
 
---- Draw a RewardState (nil before the first: the buttons wait).
-function FreeSocial.refresh(self: any, state: any)
+--- Draw a RewardState (nil before the first: the buttons wait). Returns true when the page
+--- must be laid out again (the heroes' words changed).
+function FreeSocial.refresh(self: any, state: any): boolean
 	self.state = state
 	if type(state) ~= "table" then
-		return
+		return false
 	end
+	local relay = self.heroes:refresh(state, self.ctx.busy, self.favoriting) and self.welcome
 	local group = if type(state.group) == "table" then state.group else {}
 	local favorite = if type(state.favorite) == "table" then state.favorite else {}
 	for _, row in self.rows :: { Row } do
@@ -460,6 +502,7 @@ function FreeSocial.refresh(self: any, state: any)
 		self.count.Visible = used > 0
 		self:layoutInviteWords()
 	end
+	return relay
 end
 
 --- Whether something here can be claimed now (the Group jump button's "!"): a member's
@@ -470,8 +513,12 @@ function FreeSocial.claimable(self: any): boolean
 	return type(group) == "table" and group.member == true and group.claimed ~= true
 end
 
---- The button a gamepad lands on: the group's Claim.
+--- The button a gamepad lands on: the first hero's that can be pressed (a first visit), else
+--- the group's Claim.
 function FreeSocial.primary(self: any): GuiObject?
+	if self.welcome then
+		return self.heroes:primary()
+	end
 	local row: Row = self.rows[1]
 	if self:claimable() and row.button.Visible and row.button.Selectable then
 		return row.button
@@ -485,6 +532,7 @@ end
 
 --- Register every piece with the menu's `stage` (ids in Config.UI.FreeReward.Open).
 function FreeSocial.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handle) -> ())
+	self.heroes:register(stage, keep)
 	stage:add("GroupCard", self.group.frame)
 	stage:add("GroupArt", self.art.holder, function()
 		keep(ShopCards.artLoops(self.art))

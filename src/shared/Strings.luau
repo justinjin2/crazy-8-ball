@@ -762,8 +762,28 @@ return {
 					"The VIP Cue and tag",
 				},
 				VipPerkRestricted = "$5,000 every day", -- the daily block where it can't be given
+				-- The wide cards side by side (the designer's second reference, 2026-10-08): the
+				-- title, a big line beside the picture and the rest under it.
+				StarterName = "Starter Pack",
+				StarterPlus = "+%s", -- the money: "+$25,000"
+				StarterLine = "Starter Cue + Starter Lucky Block + 1 hour of 2x money", -- its odds under
+				StarterLineRestricted = "Starter Cue + 1 hour of 2x money", -- no block there
+				VipX1 = "x1", -- "x1 -> x2 MONEY", an arrow between
+				VipX2 = "x2",
+				VipMoney = "MONEY",
+				TwoX = "2x", -- on the money in VIP's picture
+				-- VIP's perks under its picture (2x money is the big line), in the order of
+				-- Config.UI.ShopBlocks.Pair.VipPerkIcons.
+				VipPerksWide = {
+					"Rare block every day",
+					"No block timers",
+					"+1 ability spin a day",
+					"VIP restock slot",
+					"VIP Cue + tag",
+				},
+				VipPerkWideRestricted = "$5,000 every day",
 				EndsIn = "Ends in %s",
-				Owned = "Owned", -- the VIP card's button for a VIP (the Passes tab)
+				Owned = "Owned", -- the VIP card's button for a VIP
 			},
 			MoneyHeader = "MONEY", -- the Money group's header ("- MONEY -")
 			-- The money packs (ShopMoney; the designer's pick B, 2026-10-08).
@@ -1041,25 +1061,18 @@ return {
 		RestockOdds = "Each slot: Rare %s · Epic %s · Legendary %s · Mythic %s",
 	},
 	-- The "Odds & Details" popup behind every lucky block's dice badge (OddsDetails; economy v4
-	-- plan 13: every cue a block can give with its chance, before buying). The Mystery block's
-	-- adds its pity, the final tier and each tier block's odds (ShopMysteryOdds).
+	-- plan 13: every outcome's chance, before buying). The Mystery block's adds its pity, the
+	-- final tier and its rarities (ShopMysteryOdds).
 	OddsDetails = {
 		Title = "Odds & Details",
-		-- A rarity's cues under its row: how many, each one's chance, their names (every cue of
-		-- a rarity has the same share of it). With "1 in N" for the rare ones.
-		Each = "%d cues, %s each: %s",
-		EachRare = "%d cues, %s each (%s): %s",
-		-- The same without the names (the Mystery list names each rarity's cues once).
-		EachShort = "%d cues, %s each",
-		EachShortRare = "%d cues, %s each (%s)",
-		NameJoin = ", ",
-		Cues = "The cues", -- the Mystery list's section naming each rarity's cues
-		-- A capped Unique cue this player can't get (Roblox's one-instance rule); its chance
-		-- went to the block's lowest rarity, named here.
-		Owned = "You have it, so it can't drop for you: its chance is in %s.",
-		AllFound = "Every copy is found, so it can't drop: its chance is in %s.",
+		-- Under the rarity bars (designer, 2026-10-08: "*every cue has same odds in each rarity
+		-- or whatever is most efficient to say").
+		Same = "*Every cue in a rarity has the same odds.",
 		Rounded = "Some chances are rounded, so they may not add up to exactly 100%.",
-		Total = "Total: %s", -- under the list: "Total: 100%"
+		-- A capped Unique cue this player can't get (Roblox's one-instance rule: 0% for them;
+		-- its chance goes to the block's lowest rarity): its bar says why.
+		UniqueOwned = "%s · Owned",
+		UniqueGone = "%s · All found",
 		-- The Mystery block's (ShopMysteryOdds).
 		Pity = "Pity",
 		PityRare = "Rare or better within %d", -- the tier pity guarantees, the count
@@ -1069,10 +1082,10 @@ return {
 		Live = "Your next Mystery block is %s or better!", -- the tier's name
 		Tiers = "Final tier",
 		TiersLive = "Final tier, with pity",
-		Blocks = "Each tier block's odds",
 		Rarities = "Each Mystery block",
 		RaritiesLive = "Your next Mystery block",
 	},
+
 	-- The lucky block reel's skip hint (LuckyOpening, UltSpinAnim, PullCutscene, ResultCutscene).
 	Reel = {
 		SkipTouch = "Tap to skip",
@@ -1132,6 +1145,9 @@ return {
 		Join = "Join",
 		Favorite = "Favorite",
 		NotYet = "Not favorited yet. Try again!",
+		-- The first-visit heroes (FreeHeroes): their titles are GroupRow and FavoriteRow, the
+		-- reward's blocks the big words, the rest a line under them.
+		HeroBoost = "+%d%% match money while you're in the group",
 		NotMember = "Join the group first, then press Claim.",
 		-- The invite card. The inviter's own block comes once ever (Config.Social.InviterOnce).
 		InviteTitle = "Invite a friend",

@@ -3392,3 +3392,35 @@ timer of a new block stay the designer's call.
   block's dice at its title row's right end; it steps the question aside for that block's Odds
   & Details over the screen and asks again (the price for the time left then) when that closes,
   so B and Escape never answer two layers at once.
+- 2026-10-08 (designer: "on pc/tablet make the pull gui slightly wider since theres more space,
+  leave phone the same"): the power bar on a big screen is 76 px wide (was 60), its cue 24 (was
+  20); the phone's bar is unchanged.
+- 2026-10-08 (designer: "use the bars from each of the rarities in the cues ... with just like a
+  odds and a small disclaimer", then "Bars + one line only"): Odds & Details is one Cues-menu
+  rarity bar (`RarityBar`) per rarity with its chance, a capped Unique cue on its own bar, and
+  one line, "*Every cue in a rarity has the same odds."; the per-cue lines and the total are
+  gone, and so is the Mystery list's per-tier block section (its pity and final tier stay).
+  Roblox's paid random items policy asks for each item's odds; equal odds within a rarity is
+  now only stated in that one line, not listed per cue, which is the one compliance risk. If
+  moderation flags it, the per-cue list comes back.
+- 2026-10-08 (designer: "put VIP and starter side by side ... this should actually be used mainly
+  as the refernce so it can fit on one page without scrolling"): the Shop opens on the Starter
+  Pack and VIP as two wide cards side by side (`ShopOffers`, `Config.UI.ShopBlocks.Pair`), one
+  centred when the other is gone; each hero shows what you get (Starter: its lucky block, its
+  cue and cash, no gift icon; VIP: the crown, cash and a big pulsing 2x). The Passes tab's tall
+  VIP card wears the same VIP hero.
+- 2026-10-08 (designer: "for every gui always start at the top not where they left off"): every
+  menu opens at the top of its pages (`MenuFrame` resets its scrollers; the lucky hotbar's and
+  the ability screen's lists too). The Free Reward jump buttons still open their own section.
+- 2026-10-08 (designer: "emphasize more of joining the group and favoriting first", reference
+  image 30): a first Free Reward visit (the group or the favorite not claimed) puts Group first
+  as two heroes side by side (`FreeHeroes`), the invite card under them; once both are claimed
+  the page is the old one with Group last. The order is decided as the menu opens, so a claim
+  never moves the page under a finger. The reference's "TODAY" row (Lucky Shot, Lucky Rain,
+  Stay bonus) is not built: those features do not exist.
+- 2026-10-08 (designer: "i said for day 7 to be a legendary not epic", then "First week only"):
+  the first week's day 7 stays the Legendary block; the later weeks' day 7 stays Epic.
+- 2026-10-08 (designer: "these rewards are terrible ... it should give at least a legendary at
+  the end ... or money", then "Money + Legendary end"): the 28-day track pays $50,000 on day 8,
+  an Epic block on day 14, $150,000 on day 21 and a Legendary block on day 28 (it was a Rare, 2
+  Rare, 2 Rare and an Epic); a money prize shows its amount on the track.

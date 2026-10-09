@@ -179,10 +179,10 @@ return {
 			H.expect(after.firstWeekDays == i, "counted")
 			login = newLogin
 		end
-		-- The next claim is the later weeks' day 1; the 28-day track's day 8 adds its Rare block.
+		-- The next claim is the later weeks' day 1; the 28-day track's day 8 adds its $50,000.
 		local next = Daily.loginState(login, TODAY + 14, nil, extra)
 		H.expect(not next.firstWeek and next.day == 1, "the later weeks start at day 1")
-		H.expect(describe(next.reward) == "$5000 Rare x1" and next.bonus, "day 8's Rare block")
+		H.expect(describe(next.reward) == "$55000" and next.bonus, "day 8's money")
 		H.expect(next.firstWeekLeft == 0, "the window is over")
 		-- After the window, the first week is over even with days left: later weeks.
 		local late = fresh()
@@ -268,10 +268,10 @@ return {
 	["the 28-day track counts every day claimed and repeats"] = function()
 		local login, claims = claimRun(fresh(), TODAY, 56)
 		local trackOn = {
-			[8] = "$5000 Rare x1",
-			[14] = "Rare x2 Epic x1 Spins x2",
-			[21] = "Rare x2 Epic x1 Spins x2",
-			[28] = "Epic x2 Spins x2",
+			[8] = "$55000",
+			[14] = "Epic x2 Spins x2",
+			[21] = "$150000 Epic x1 Spins x2",
+			[28] = "Epic x1 Legendary x1 Spins x2",
 		}
 		for i, claim in claims do
 			local place = (i - 1) % 28 + 1
@@ -288,7 +288,7 @@ return {
 		local broken = claimRun(fresh(), TODAY, 5)
 		local _, later = claimOn(broken, { TODAY + 8, TODAY + 9, TODAY + 10 })
 		H.expect(later[1].day == 1 and later[3].day == 3 and later[3].total == 8, "counted")
-		H.expect(describe(later[3].reward) == "$10000 Rare x1", describe(later[3].reward))
+		H.expect(describe(later[3].reward) == "$60000", describe(later[3].reward))
 		H.expect(Daily.trackReward(36) ~= nil and Daily.trackReward(35) == nil, "repeats")
 	end,
 
@@ -323,8 +323,11 @@ return {
 				)
 				local ok, _, reward = Daily.claimLogin(login, TODAY)
 				H.expect(ok and reward ~= nil, "claims")
-				local epics = if n == 7 then (if week == 4 then 2 else 1) else nil
-				H.expect((reward :: any).blocks.Epic == epics, "day 7's Epic block, two on day 28")
+				-- Day 7's Epic block; the track adds an Epic on day 14 and a Legendary on day 28.
+				local epics = if n == 7 then (if week == 2 then 2 else 1) else nil
+				H.expect((reward :: any).blocks.Epic == epics, "day 7's Epic block, two on day 14")
+				local legendary = if n == 7 and week == 4 then 1 else nil
+				H.expect((reward :: any).blocks.Legendary == legendary, "day 28's Legendary block")
 			end
 		end
 		-- Already claimed today: the command still lets day n be claimed now.
@@ -665,7 +668,7 @@ return {
 
 	["Claim All in a later week: VIP's part and the track prize only on today's day"] = function()
 		-- The first week done yesterday: today is a later week's day 1 and the 8th real day,
-		-- the track's Rare block.
+		-- the track's $50,000.
 		local login =
 			{ LastDay = TODAY - 1, StreakDay = 0, Total = 7, FreezeWeek = 0, FirstWeek = 7 }
 		local extra = { joinDay = TODAY - 10, played = true }
@@ -674,9 +677,9 @@ return {
 		H.expect(offer.product == "ClaimAllWeek7", tostring(offer.product))
 		local r = offer.reward
 		-- The week: $30,000, a Rare, 5 Mystery, an Epic and 2 spins; today adds VIP's Rare and
-		-- spin and the track's Rare (once, not once a day).
-		H.expect(r.money == 30000 and r.spins == 3, describe(r))
-		H.expect(r.blocks.Rare == 3 and r.blocks.Mystery == 5 and r.blocks.Epic == 1, describe(r))
+		-- spin and the track's $50,000 (once, not once a day).
+		H.expect(r.money == 80000 and r.spins == 3, describe(r))
+		H.expect(r.blocks.Rare == 2 and r.blocks.Mystery == 5 and r.blocks.Epic == 1, describe(r))
 		local _, after = Daily.claimAll(login, TODAY, true, extra)
 		H.expect(after.StreakDay == 7 and after.Total == 8 and after.LastDay == TODAY, "")
 		local tomorrow = Daily.loginState(after, TODAY + 1, nil, extra)
@@ -771,7 +774,7 @@ return {
 			joinDay = TODAY,
 		})
 		H.expect(after.login.canClaim and after.wins.given == 3, "a match played, 3 track wins")
-		H.expect(p.track[4].reward.blocks[1].kind == "Epic", "day 28's Epic block")
+		H.expect(p.track[4].reward.blocks[1].kind == "Legendary", "day 28's Legendary block")
 		H.expect((p :: any).next == nil, "no reminder of tomorrow (the popups are gone)")
 		H.expect(p.ready and p.playSeconds == 0 and #p.titles == 0, "ready, nothing played")
 	end,
@@ -842,7 +845,7 @@ return {
 		H.expect(missed.login.day == 1 and not missed.days[1].claimed, "two missed: day 1 again")
 	end,
 
-	["RewardView: day 28 carries the track's Epic block; VIP's spin on every tile"] = function()
+	["RewardView: day 28 carries the track's Legendary block; VIP's spin on every tile"] = function()
 		-- (VIP's daily Rare block is on every tile too.)
 		local weeks = Config.Daily.WeeksForBonus
 		local login = Daily.setStreakDay(fresh(), TODAY, 7, weeks)
@@ -850,11 +853,12 @@ return {
 		H.expect(p.login.day == 7 and p.login.week == weeks and p.login.bonus, "day 28")
 		local blocks = p.login.reward.blocks
 		H.expect(
-			#blocks == 2
+			#blocks == 3
 				and blocks[1].kind == "Rare"
 				and blocks[2].kind == "Epic"
-				and blocks[2].count == 2,
-			"VIP's Rare block, day 7's and the track's Epic blocks, in Config order"
+				and blocks[2].count == 1
+				and blocks[3].kind == "Legendary",
+			"VIP's Rare block, day 7's Epic and the track's Legendary block, in Config order"
 		)
 		H.expect(p.login.reward.spins == 3, "2 + VIP's 1")
 		H.expect(p.days[1].reward.spins == 1 and p.days[7].reward.spins == 3, "VIP tiles")

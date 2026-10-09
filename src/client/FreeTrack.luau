@@ -2,7 +2,8 @@
 -- FreeTrack: the Free Reward menu's 28-day track (Config.Daily.Track), under "- TRACK -": a
 -- pale panel with its navy pill ("DAY 5 OF 28": the days claimed in this round), a bar from
 -- day 0 to TrackDays filled to the days claimed with a white knob at its end, and a node at
--- each reward's day: its pictures over it, "Day 8" under it, gold with a check once reached.
+-- each reward's day: its pictures over it (a money prize's amount in gold over their foot),
+-- "Day 8" under it, gold with a check once reached.
 -- The track's rewards come with that day's login claim (the Daily section's Claim!), so nothing
 -- here is pressed. Under the bar: "Every day you claim counts, even after a missed day." (the
 -- total never resets, unlike the streak). Sizes in Config.UI.FreeReward.Track.
@@ -11,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local FreeParts = require(script.Parent.FreeParts)
 local HudParts = require(script.Parent.HudParts)
 local RewardsParts = require(script.Parent.RewardsParts)
@@ -31,6 +33,7 @@ type Node = {
 	day: number,
 	holder: Frame, -- the node's pieces pop in together
 	pictures: FreeParts.Pictures,
+	amount: TextLabel, -- a money prize's amount
 	dot: Frame,
 	edge: UIStroke,
 	check: ImageLabel,
@@ -40,6 +43,16 @@ type Node = {
 
 local FreeTrack = {}
 FreeTrack.__index = FreeTrack
+
+-- Draw a node's prize: its pictures and, for money, the amount.
+local function setPrize(node: Node, reward: RewardsParts.Reward)
+	FreeParts.setPictures(node.pictures, reward)
+	local text = if reward.money > 0 then Format.money(reward.money) else ""
+	if node.amount.Text ~= text then
+		node.amount.Text = text
+	end
+	node.amount.Visible = reward.money > 0
+end
 
 -- A round frame in `tint` with an ink edge.
 local function disc(parent: Instance, name: string, tint: Color3, z: number): (Frame, UIStroke)
@@ -93,23 +106,21 @@ function FreeTrack.new(parent: Instance): any
 		local label = ShopCards.label(holder, "Day", W.TrackDay:format(row.Day), nil, 6)
 		label.AutoLocalize = false
 		local pictures = FreeParts.pictures(holder, "Pictures", 6)
-		FreeParts.setPictures(
-			pictures,
-			RewardsParts.reward({
-				money = row.Money,
-				blocks = row.Blocks,
-			})
-		)
-		table.insert(self.nodes, {
+		local amount = ShopCards.label(holder, "Amount", "", rgb(Config.UI.Kit.Numbers.Money), 20)
+		amount.AutoLocalize = false -- "$50,000"
+		local node: Node = {
 			day = row.Day,
 			holder = holder,
 			pictures = pictures,
+			amount = amount,
 			dot = dot,
 			edge = edge,
 			check = check,
 			label = label,
 			reached = false,
-		})
+		}
+		setPrize(node, RewardsParts.reward({ money = row.Money, blocks = row.Blocks }))
+		table.insert(self.nodes, node)
 	end
 	local note = HudParts.note(card, "TrackNote", ShopCards.textPx(T.NoteUnits, 1), W.TrackNote)
 	note.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -167,6 +178,8 @@ function FreeTrack.layout(self: any, width: number, k: number, y: number): numbe
 		local x = xOf(node.day)
 		ShopCards.put(node.holder, k, x, holderTop + holderH / 2, S[3], holderH)
 		FreeParts.layoutPictures(node.pictures, k, S[3] / 2, S[1] - holderTop, S[2], S[3])
+		local amountPx = ShopCards.textPx(T.AmountUnits, k)
+		ShopCards.line(node.amount, k, S[3] / 2, T.AmountY - holderTop, S[3], amountPx)
 		ShopCards.put(node.dot, k, S[3] / 2, Bar.Y - holderTop, T.NodeUnits, T.NodeUnits)
 		ShopCards.line(
 			node.label,
@@ -221,7 +234,7 @@ function FreeTrack.refresh(self: any, state: any)
 		node.dot.BackgroundColor3 = if reached then rgb(T.NodeReached) else Color3.new(1, 1, 1)
 		node.check.Visible = reached
 		if type(view) == "table" then
-			FreeParts.setPictures(node.pictures, RewardsParts.reward(view.reward))
+			setPrize(node, RewardsParts.reward(view.reward))
 			local S = T.Pictures
 			FreeParts.layoutPictures(node.pictures, self.k, S[3] / 2, S[2] / 2, S[2], S[3])
 		end

@@ -11,8 +11,12 @@
 -- - "- PLAYTIME -": the day's five playtime gifts (FreePlaytime);
 -- - "- TRACK -": the 28-day track (FreeTrack);
 -- - "- GROUP -": join the group, favorite the game, invite a friend (FreeSocial).
--- Opened with no section it jumps to the first one with something to claim. The panel is as
--- tall as the Daily section, the next header peeking in under it (Config.UI.Shop.Page.PeekPx).
+-- Until the group and the favorite are both claimed, Group comes first, page and jump buttons,
+-- as two heroes with the invite card under them (designer, 2026-10-08: "emphasize more of
+-- joining the group and favoriting first"); after, it is the small card at the bottom. That is
+-- decided as the menu opens, so a claim never moves the page under a finger.
+-- Opened with no section it starts at the top, never where it was left. The panel is as
+-- tall as the first section, the next header peeking in under it (Config.UI.Shop.Page.PeekPx).
 -- Codes are typed in Settings (and the Abilities screen).
 --
 -- Data: ItemState's "Rewards" snapshot (RewardState, src/shared/Net.luau), redrawn on every
@@ -81,6 +85,18 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local placeholder = MenuFrame.placeholder(page)
 	local scroll = ShopParts.scroller(page, "Page")
 	local geo: MenuFrame.Geo? = nil
+	-- Studio only: a patch over the rewards state (GuiQA "rewardsPatch").
+	local fake: any = nil
+	local function patched(value: any): any
+		if type(fake) ~= "table" or type(value) ~= "table" then
+			return value
+		end
+		local copy = table.clone(value)
+		for key, field in fake do
+			copy[key] = field
+		end
+		return copy
+	end
 	local state: any = ItemState.rewards()
 	local openedOn: string? = nil -- the section the menu was opened on (a late layout jumps again)
 	local openedAt = 0
@@ -112,6 +128,10 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 
 	function ctx.busy(key: string): boolean
 		return inFlight[key] == true or claimedAt[key] == version
+	end
+
+	function ctx.refresh()
+		refresh()
 	end
 
 	function ctx.notice(text: string, toneName: string?)
@@ -192,6 +212,12 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local social = FreeSocial.new(group("Group"), ctx)
 	local sections: { [string]: any } =
 		{ Daily = daily, Playtime = playtime, Track = track, Group = social }
+	-- The sections top to bottom (arrange: Group first on a first visit).
+	local order: { string } = {}
+	for _, jump in JUMPS do
+		table.insert(order, jump.Key)
+	end
+	local arranged = false -- the order was decided from a state since the menu opened
 
 	local jumps: { JumpRail.Group } = {}
 	for _, jump in JUMPS do
@@ -227,6 +253,27 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 	end
 
+	-- Group first, as two heroes, until the group and the favorite are both claimed; else last,
+	-- the small card (decided from a state, as the menu opens).
+	local function arrange()
+		if type(state) ~= "table" then
+			return
+		end
+		arranged = true
+		local welcome = social:wantsWelcome()
+		social:setWelcome(welcome)
+		local keys: { string } = if welcome then { "Group" } else {}
+		for _, jump in JUMPS do
+			if not (welcome and jump.Key == "Group") then
+				table.insert(keys, jump.Key)
+			end
+		end
+		order = keys
+		if rail:setOrder(keys) and stage then
+			rail:register(stage)
+		end
+	end
+
 	-- Lay the page out: each section under its header, one scale k for the whole page.
 	local function layout()
 		local g = geo
@@ -240,8 +287,7 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		local headH = GrandOpeningCard.headerHeight(k)
 		local gap = round(F.GapUnits * k)
 		local y = 0
-		for _, jump in JUMPS do
-			local key = jump.Key
+		for _, key in order do
 			rail.tops[key] = y
 			GrandOpeningCard.layoutHeader(headers[key], round(pageW / 2), round(headH / 2), k)
 			local h = headH + round(F.HeaderGapUnits * k)
@@ -251,7 +297,7 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			y += h + gap
 		end
 		-- Room under the last section so it can scroll up to its header.
-		ShopParts.setCanvas(scroll, math.max(y, rail.tops.Group + g.content.Y))
+		ShopParts.setCanvas(scroll, math.max(y, rail.tops[order[#order]] + g.content.Y))
 		-- Opened on a section: a layout soon after the open jumps there again.
 		local on = openedOn
 		if on and os.clock() - openedAt <= P.JumpSettleSeconds then
@@ -260,12 +306,17 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		rail:relaid(pageW)
 	end
 
-	-- Draw everything from the latest state, and the jump buttons' "!".
+	-- Draw everything from the latest state, and the jump buttons' "!"; a section whose words
+	-- changed size has the page laid out again.
 	refresh = function()
 		placeholder.Visible = type(state) ~= "table"
 		scroll.Visible = type(state) == "table"
+		local relay = false
 		for _, section in sections do
-			section:refresh(state)
+			relay = section:refresh(state) == true or relay
+		end
+		if relay then
+			layout()
 		end
 		for _, jump in JUMPS do
 			local section = sections[jump.Key]
@@ -273,8 +324,12 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 	end
 
-	-- The first button a gamepad should land on: a Claim, else nothing.
+	-- The first button a gamepad should land on: a Claim (the heroes' first on a first visit),
+	-- else nothing.
 	local function primary(): GuiObject?
+		if social.welcome then
+			return social:primary() or daily:primary() or playtime:primary()
+		end
 		return daily:primary() or playtime:primary() or social:primary()
 	end
 
@@ -299,29 +354,20 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 	end
 
-	-- Opened with no section: the first with something to claim, else Daily.
-	local function bestSection(): string
-		for _, jump in JUMPS do
-			local section = sections[jump.Key]
-			if section.claimable ~= nil and section:claimable() then
-				return jump.Key
-			end
-		end
-		return JUMPS[1].Key
-	end
-
 	frame.onLayout = function(g: MenuFrame.Geo)
 		geo = g
 		layout()
 		odds:layout(g)
 	end
-	-- The panel is as tall as the Daily section; the next header peeks in under it.
+	-- The panel is as tall as the first section (the Daily section, or a first visit's heroes
+	-- and the invite card under them); the next header peeks in under it.
 	frame.fitHeight = function(width: number, panelW: number): number
 		local pageW = width - (if rail:outside(panelW) then 0 else rail:room(nil))
 		local k = (pageW - scroll.ScrollBarThickness) / UNITS
+		local first = if social.welcome then social:height(k) else FreeDaily.heightFor(k)
 		return GrandOpeningCard.headerHeight(k)
 			+ round(F.HeaderGapUnits * k)
-			+ FreeDaily.heightFor(k)
+			+ first
 			+ round(F.GapUnits * k)
 			+ P.PeekPx
 	end
@@ -351,6 +397,7 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 	end
 	frame.onClose = function()
+		arranged = false
 		rail:closed()
 		daily:setOpen(false)
 		playtime:setOpen(false)
@@ -364,9 +411,15 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 
 	-- Drawn even while closed: the open reads every piece's look as it starts.
 	ItemState.Changed.Rewards:Connect(function(payload: any)
-		state = payload
+		state = patched(payload)
 		version += 1
 		refresh()
+		-- Opened before the first state came: its order now.
+		if frame:isOpen() and not arranged then
+			arrange()
+			layout()
+			rail:jump(order[1], true)
+		end
 		keepSelection()
 	end)
 	-- Claim All's live price, and the open Odds & Details (the Mystery pity, a Unique closing).
@@ -379,14 +432,31 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 
 	refresh()
 
+	-- Studio only: GuiQA:Invoke("rewardsPatch", patch) draws the menu over the rewards state
+	-- with `patch`'s fields (group, favorite, invite...) and arranges the page again (as the
+	-- next open would); nil goes back. Returns the sections' order.
+	GuiQA.add("rewardsPatch", function(patch: any)
+		fake = patch
+		state = patched(ItemState.rewards())
+		refresh()
+		arrange()
+		layout()
+		if frame:isOpen() then
+			rail:jump(order[1], true)
+		end
+		return order
+	end)
+
 	local handle: Menus.Handle = {
 		open = function(tab: string?)
 			if not frame:isOpen() then
-				state = ItemState.rewards()
+				state = patched(ItemState.rewards())
 				refresh()
+				arrange()
 			end
 			frame:open()
-			local key = if tab and rail:has(tab) then tab else bestSection()
+			-- Opened with no section: the top of the page (designer, 2026-10-08).
+			local key = if tab and rail:has(tab) then tab else order[1]
 			openedOn, openedAt = key, os.clock()
 			rail:jump(key, true)
 		end,

@@ -474,6 +474,8 @@ function UltScreen.enter(self: any)
 	end
 	self.latest = state
 	self.opened = true
+	-- The odds list opens at its top, as every menu (designer, 2026-10-08).
+	self.odds.scroll.CanvasPosition = Vector2.zero
 	-- Put the HUD, Roblox's touch controls and walking away (back as they were on close).
 	self.saved = {
 		hud = self.screen.Enabled,

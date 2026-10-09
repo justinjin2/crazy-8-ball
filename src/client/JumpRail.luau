@@ -105,6 +105,34 @@ function JumpRail.register(self: any, stage: Stage.Stage)
 	end
 end
 
+--- Put the buttons in `keys`' order (a menu whose sections move: the Free Reward's first visit
+--- puts Group first); the next layout places them. True when the order changed: register the
+--- open's ids again ("Tab<n>" follow the order).
+function JumpRail.setOrder(self: any, keys: { string }): boolean
+	local same = #keys == #self.jumps
+	for index, key in keys do
+		local jump = self.jumps[index]
+		if jump == nil or jump.key ~= key then
+			same = false
+		end
+	end
+	if same then
+		return false
+	end
+	local groups: { Group } = {}
+	local jumps: { Jump } = {}
+	for _, key in keys do
+		for index, group in self.groups :: { Group } do
+			if group.key == key then
+				table.insert(groups, group)
+				table.insert(jumps, self.jumps[index])
+			end
+		end
+	end
+	self.groups, self.jumps = groups, jumps
+	return true
+end
+
 function JumpRail.has(self: any, key: string): boolean
 	for _, group in self.groups :: { Group } do
 		if group.key == key then

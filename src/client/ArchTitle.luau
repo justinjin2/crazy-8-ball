@@ -34,6 +34,7 @@ export type Title = {
 	letters: { { Frame } },
 	width: number,
 	height: number,
+	inset: number, -- from the root's left edge to the word's ink (its outline or rim)
 }
 
 local function rgb(c: { number }): Color3
@@ -254,7 +255,8 @@ function ArchTitle.new(
 			table.insert(letters, holders)
 		end
 	end
-	return { root = root, letters = letters, width = width, height = height }
+	local inset = (width - total) / 2 - math.max(rim, outline)
+	return { root = root, letters = letters, width = width, height = height, inset = inset }
 end
 
 return ArchTitle
