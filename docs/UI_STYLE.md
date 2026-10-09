@@ -856,14 +856,14 @@ band, restock tiles and pass bands.
   while the launch bonus runs; the Epic guarantee strip under everything ("Epic guaranteed in
   53" and a purple bar).
 - **The Mystery block's "Odds & Details"** (economy v4 plan 3.2, hand-off item 13,
-  `ShopMysteryOdds` in the shared popup below): "The result is decided when you open it; the
-  presses reveal it."; **Pity** (Rare or better within 10 and Epic or better within 100, each
-  with "6 to go" or "Next one!" in sky blue); **Final tier**: each tier as a rarity bar with
-  its block over the bar's left end and its chance (Standard in Common's grey); **Each Mystery
-  block**: a bar per rarity with its chance; then the one line. Once a guarantee is the very
-  next block a gold line says "Your next Mystery block is Epic or better!" and the two lists
-  show the odds with pity ("Final tier, with pity", "Your next Mystery block"). A Mystery
-  day's dice in Free Reward opens the same list.
+  `ShopMysteryOdds` in the shared popup below; designer, 2026-10-08: "show the block tiers
+  first, then pity"): **Final tier** first, each tier as a rarity bar with its block over the
+  bar's left end and its chance (Standard in Common's grey); then **Pity** as two meters, a
+  pale track filling with the rarity's bar ("Guaranteed Rare or better" 3/10, "Guaranteed
+  Epic or better" 56/100); once a guarantee is the very next block a gold line says "Your next
+  Mystery block is Epic or better!" and the lists show the odds with pity; then **Each
+  Mystery block**, a bar per rarity; then the one line. No description line. A Mystery day's
+  dice in Free Reward opens the same list.
 - **The restock (B)**: "RESTOCK", a stopwatch and the time in its pill; four slot cards, each
   the block big in its rarity's glow with the dice at the top right, "**Rare** Lucky Block", a
   navy "x2 left" pill, the green Robux button over the gold money button (no gift square:
@@ -877,20 +877,21 @@ band, restock tiles and pass bands.
   on one page without scrolling"; `ShopOffers`, `Config.UI.ShopBlocks.Pair`): two wide cards
   side by side under the restock, both as tall as the taller needs. Each card's picture at its
   top left shows what you get, over a glow and turning rays: the Starter Lucky Block with the
-  Starter Cue behind it and cash in front; VIP's crown (rocking) over cash with a big green
-  "2x" (beating). Beside it, left-aligned: the title ("Starter Pack" letter by letter blue to
-  purple to pink; "VIP" in the gold arched title), the big line ("+$25,000" in gold; "x1 -> x2
-  MONEY", the x2 green) and what the Starter Pack holds in ink. Under them the Starter Lucky
-  Block's odds as small rarity bars (the name over the chance; hidden where the names would
-  not fit, as on a phone: the dice has them) or VIP's five perks with their icons in two
-  columns (one on a phone). The foot: "Ends in 6d 17h" in sky blue at the left (over the row
+  Starter Cue behind it and cash in front; VIP's crown alone, rocking (designer, 2026-10-08:
+  the crown with "2x" on cash "look so off placed"). Beside it, left-aligned: the title
+  ("Starter Pack" letter by letter blue to purple to pink; "VIP" in the gold title, straight:
+  `Kit.ArchTitle.VipStraight`), the big line ("+$25,000" in gold; "x1 -> x2 MONEY", the x2
+  green) and what the Starter Pack holds in ink. Under them the Starter Lucky Block's odds as
+  small rarity bars (the name over the chance; hidden where the names would not fit, as on a
+  phone: the dice has them) or VIP's six perks with their icons, two columns of three in a
+  pale inset panel with a soft gold rim (one column on a phone). The foot: "Ends in 6d 17h" in sky blue at the left (over the row
   when it would not fit beside it), the gift square and the green button at the right (the
   button in the middle with no timer; VIP's full price struck through in red during its
-  offer). The Starter Pack shows until bought or its week ends, VIP beside it ("Owned" with a
-  check for a VIP); without it VIP shows alone in the middle while its offer runs; with
-  neither, no section. Where paid random items are restricted the Starter Pack shows the cue
-  and "+$40,000" (no block, no bars, no dice) and VIP's first perk is "$5,000 every day". The
-  Passes tab keeps VIP's tall card with the same picture.
+  offer). The Starter Pack shows until bought or its week ends; VIP shows until it is owned
+  (designer, 2026-10-08: VIP lives only here, so it can always be bought), alone in the middle
+  once the Starter Pack is gone; with neither, no section. The Shop opened on "Vip" lands on
+  the pair. Where paid random items are restricted the Starter Pack shows the cue and
+  "+$40,000" (no block, no bars, no dice) and VIP's first perk is "$5,000 every day".
 - **Every lucky block's odds open from its dice** (designer, 2026-10-08: a sky-blue die with
   five pips, no word, `Config.UI.Kit.Icons.Dice`, `ShopCards.oddsBadge`; at least 24 px, its
   press area a 44 px touch target round it), never from the picture it sits on: a click, tap
@@ -903,9 +904,12 @@ band, restock tiles and pass bands.
   the rarity's colours (Mythic's flowing), the thin ink ring and the light along its top, the
   name in capitals at the left and the chance at the right; each Unique cue its own pink bar
   ("FIREWORK CUE · OWNED" at 0% once this player can't get it: Roblox's one-instance rule);
-  then one line in ink: "*Every cue in a rarity has the same odds." (and "Some chances are
-  rounded, so they may not add up to exactly 100%." when one is, `BlockOdds.detailText`). No
-  per-cue names and no "1 in N" (the designer's pick, 2026-10-08). The Grand Opening's chips
+  then one line in ink: "*Every cue in a rarity has the same odds." No per-cue names and no "1
+  in N" (the designer's pick, 2026-10-08). The popup is the lively frame (the header band with
+  its scrolling 8-balls), slams in, and its lines pop in one by one. **Chances are rounded
+  plainly** everywhere (`BlockOdds.percentText`; designer, 2026-10-08: "roblox will not
+  care"): whole from 10%, one decimal from 1%, two from 0.1%, one significant digit under
+  that; never 100% for less. The Grand Opening's chips
   show this player's chance too ("Owned", or 0% once every copy is found).
 - **Only Robux buttons shine** (every 3 s, each a little after the last); money buttons stay
   still.
@@ -936,22 +940,23 @@ band, restock tiles and pass bands.
   hero's glow pulses, its rays turn and it twinkles.
 - **On a phone** all seven packs fit on one screen.
 
-## 20. The Shop's Passes tab (designer's pick B, 2026-10-08)
+## 20. The Shop's Passes tab (designer, 2026-10-08: "exactly like this", their reference)
 
 `ShopPasses`, under "- PASSES -" after the Money tab, sizes in `Config.UI.ShopPasses`, words in
-`Strings.Menus.Shop.Passes`; the panel's pill says "VIP & PERKS".
+`Strings.Menus.Shop.Passes`. VIP is not here: it lives in the Blocks tab's pair (section 18).
 
-- **VIP at the left**: the Blocks tab's gold VIP card (crowns, the crown picture, six perks,
-  the dice with the daily Rare block's odds), shown to everyone here: "Owned" with a tick for a
-  VIP, half price with its timer while the offer runs.
-- **A 2 x 2 grid beside it**, white tiles: Ability Slot 2 and 3 (the Ults icon, an orange "2"
-  or purple "3" badge on it, "Equip a second ability"), Money Party (the party popper, "+100%
-  money for the server", or "Party on! 12:30 left" while one runs here, the gift square) and
-  Roblox Plus (its badge, "+10% money in every match", a blue Get button; "Active" with a tick
-  for a member). Passes and the subscription have no gift square.
-- **Idle**: VIP's card as on the Blocks tab; the Robux buttons shine one after another (never
-  an owned one, never the blue Get).
-- **On a phone** the tiles keep their arrangement; the words stay at 12 px or more, so the
+- **One row of four white cards**, straight under the header (no panel, no pill): Ability
+  Slot 2, Ability Slot 3, Money Party, Roblox Plus. Each card: its picture at the top in a soft
+  glow of its colour (the orange "2" card, the purple "3" card, the disco ball with cash, the
+  blue plus: cut from the mock `passes_A` and drawn again sharp, `assets/ui/passes/`), the name
+  in the reference's blue, a line of what it gives ("Equip a second ability", "+100% money for
+  the server" or "Party on! 12:30 left", "+10% money in every match"), and the button: the
+  green Robux price ("Owned" with a tick), Money Party's gift square beside it, Roblox Plus's
+  blue Get ("Active" with a tick for a member). With Roblox Plus off the other three stay
+  centred.
+- **Idle**: each picture's glow breathes and twinkles; the Robux buttons shine one after
+  another (never an owned one, never the blue Get).
+- **On a phone** the row keeps its arrangement; the words stay at 12 px or more, so the
   picture shrinks into the room above them.
 
 ## 21. The day's win track over the hotbar (designer's pick A, 2026-10-08)
@@ -971,6 +976,11 @@ band, restock tiles and pass bands.
   bar (a pad's, or the spawn pill) or an opponent's ask is up.
 - **A new step** pops its tick where the player sees it: at once while the bar shows, else
   as the bar comes back after the result screen, one tick after another.
+- **Folded by default** (designer, 2026-10-08): a navy pill with a gold rim at the bar's foot,
+  the next step's block, "Wins 3/10" and an up arrow; a press opens the whole bar, a press on
+  the bar folds it. **After a match** it opens by itself as it comes back, for 4 s
+  (`PeekSeconds`), then folds (a press meanwhile keeps it as pressed). "Resets in" sits over
+  the clock pill.
 - **On a phone** the same bar at 0.66 (words 12 px, the small tags 9 px).
 
 
@@ -987,10 +997,10 @@ band, restock tiles and pass bands.
   "emphasize more of joining the group and favoriting first"): Group comes first, on the page
   and on the jump buttons, as two heroes side by side (`FreeHeroes`,
   `Config.UI.FreeReward.Social.Heroes`), the Shop's wide-card layout: "Join the group" (sky
-  blue: three Mystery blocks with the group's busts, "3 Mystery Lucky Blocks", "+10% match
+  blue: three Mystery blocks with the group's busts, "+3 Mystery Lucky Blocks", "+10% match
   money while you're in the group", a full-width green Join with the busts, Claim! for a
-  member) and "Favorite the game" (gold: the Lucky 8 Block with a star and cash, "Lucky 8
-  Block", "+$10,000", Favorite with the star); each picture wears its block's dice; a claimed
+  member) and "Favorite the game" (gold: the Lucky 8 Block with a star and cash, "+1 Lucky 8
+  Block", "+$10,000", Favorite with the star; every reward says its count, `RewardsParts.gains`); each picture wears its block's dice; a claimed
   one's button turns grey "Claimed". The invite card under them, the panel as tall as both
   with "- DAILY -" peeking. Once both are claimed the next open is the page below, Group last.
   Decided as the menu opens, so a claim never moves the page under a finger.
@@ -1118,3 +1128,25 @@ screen's width (`WidthShare`), the frame's 66% on a phone.
   short), the rows always as wide as the sheet: a phone shows the whole page, no scrolling.
 - **The open**: the Shop's timings: the rows top to bottom, their switches, the strip
   growing, its icon with a gold burst, then the box and Redeem.
+
+## 27. Purchases, the VIP tag and VIP's x2 (designer, 2026-10-08)
+
+- **A Robux purchase** (`Purchased`, `Config.UI.Purchased`, `Strings.Purchased`; the server's
+  `PurchaseDone`): a white impact flash, then a big "THANK YOU!" in the tutorial's text (white
+  Fredoka, the ink outline) flowing through the house rainbow, slamming in with a jolt, the
+  item under it ("VIP", "Ability Slot 2", "+$250,000", "+10 Mystery Lucky Blocks"); what was
+  bought then flies to where it lives (money into the money HUD, blocks to the hotbar, spins to
+  Abilities), with the cue-equip sound. VIP also slams its perks card in. A gift thanks the
+  giver ("Gift sent to Sam: ..."); the receiver sees it fly in, no thank-you.
+- **Money spent in the game** gets no thank-you: what it bought just flies to the hotbar, with
+  the same sound.
+- **The VIP tag** (`VipTag`, `Config.UI.VipTag`): a navy pill with a gold rim over the money
+  pill, the crown rocking and "VIP" in the rainbow, for a VIP only. Hover shows the card "VIP
+  perks active" with a tick per perk; a press keeps it open 6 s. The left column keeps above
+  the tag.
+- **VIP's pocket money** (`CashFlyer`, `Config.UI.Progress.Cash.Vip`): a pot VIP doubled pops
+  as the plain pay ("+$100", green), a gold tilted "x2" stamps on beside it, the words turn to
+  the paid "+$200" in gold with a small bump, then it flies; about 0.6 s, every such pot.
+
+**Open**: a real purchase on Roblox, a real phone and a controller (the tag and the folded
+win track are press targets, not yet in the gamepad's route).

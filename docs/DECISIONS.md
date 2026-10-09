@@ -3586,3 +3586,25 @@ timer of a new block stay the designer's call.
   none of the old GUI code. The abilities branch changed no screen. In the files both sides
   changed (Config, Strings, Main, the save cleaner, docs), `gui-v4`'s GUI and economy v4 lines
   are kept and the abilities' lines added.
+- 2026-10-08: The designer's test blocks are used up like a player's: `Config.LuckyBlocks.Test`
+  Refill and SeedOnJoin are off (the timers still skip for them). `/giveblock` gives more.
+- 2026-10-08: Odds are rounded plainly everywhere (`BlockOdds.percentText`; the designer:
+  "roblox will not care"): whole from 10%, one decimal from 1%, two from 0.1%, one significant
+  digit below. The "may not add up to 100%" line is gone. The Odds & Details popup takes the
+  lively frame. Mystery shows its tiers first, then pity as 3/10 and 56/100 meters, with no
+  description line.
+- 2026-10-08: The restock stays as it is for now. The recommendation the designer took, for the
+  economy pass: Mystery becomes the only roll, and the restock becomes a guaranteed shelf (an
+  Epic, Legendary or Mythic block at a premium price, a small daily stock). It is part of the
+  economy pass, which also looks at making Epics more common.
+- 2026-10-08: VIP lives only in the Blocks tab's pair, shown until owned. The Passes tab is one
+  row of four cards like the designer's reference, with new pictures. The VIP card's title is
+  straight, its crown alone, its six perks in a panel.
+- 2026-10-08: The win track is folded by default (a "Wins 3/10" pill with the next block). It
+  opens by itself for 4 s after a match.
+- 2026-10-08: Robux purchases get a rainbow THANK YOU! with an impact flash. The server now
+  tells the buyer's client what landed (`PurchaseDone`). A gift thanks the giver and flies into
+  the receiver's HUD. Money purchases only fly in. Both use the cue-equip sound.
+- 2026-10-08: A VIP tag sits over the money pill (perks on hover or press). VIP's pots show the
+  plain pay, a gold x2, then the doubled pay. `Money.shotPay` gives each grant its pay without
+  VIP (`plain`).

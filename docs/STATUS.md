@@ -62,10 +62,11 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Settings) with Claim All's six Robux products (Not Listed); Ranked in the lively frame (A);
   the ability spin screen (A); the Mystery screen (B, the Track); Settings (A); the reel's v4
   odds (look unchanged), the skip's dialog priced for the time left, every block's "Odds &
-  Details" behind a sky-blue dice. The designer's second notes (2026-10-08), done on PC: the
-  Starter Pack and VIP side by side, every menu opening at the top, a wider pull bar on PC and
-  tablet, odds as rarity bars and one line, the Free Reward first visit's Group and Favorite
-  heroes, the track's money and Legendary prizes; still to see on a phone and a controller.
+  Details" behind a sky-blue dice. The designer's second and third notes (2026-10-08), done on
+  PC: Starter Pack and VIP side by side (VIP only there now), the Passes row of four, odds
+  rounded and in the lively popup (Mystery: tiers, then pity meters), the folded win track, the
+  rainbow THANK YOU! after a Robux purchase, the VIP tag and VIP's x2 pots; still to see on a
+  phone, a controller and with a real purchase. The restock's rework waits for the economy pass.
   At publish: `tools/roblox_products.py --sync` (Starter Pack 29, pack texts, Lucky1 and
   Lucky3 off sale). Trade is not built (not in the release).
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in
