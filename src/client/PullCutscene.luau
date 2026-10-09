@@ -51,6 +51,7 @@ local ReelFx = require(script.Parent.ReelFx)
 local CueThumb = require(script.Parent.CueThumb)
 local DayCycle = require(script.Parent.DayCycle)
 local HudParts = require(script.Parent.HudParts)
+local Letterbox = require(script.Parent.Letterbox)
 local Quality = require(script.Parent.Quality)
 local Seen = require(script.Parent.Seen)
 local UISound = require(script.Parent.UISound)
@@ -710,6 +711,7 @@ local function buildLegendary(s: Scene)
 		bars[i] = bar
 	end
 	p.bars = bars
+	p.barPx = Letterbox.px(L.BarsShare)
 	p.glare = fullFrame(s.veilRoot, "Glare", gold:Lerp(light, 0.6), 4)
 
 	local rig = ghostPart(s, "Rig", Vector3.one, feet)
@@ -894,7 +896,7 @@ local function filmLegendary(s: Scene, t: number)
 	end
 	s.black.BackgroundTransparency = fadeIn * (1 - fadeOut)
 	for _, bar: Frame in p.bars do
-		bar.Size = UDim2.fromScale(1, L.BarsShare * smooth(t / L.BarsInSeconds))
+		bar.Size = UDim2.new(1, 0, 0, p.barPx * smooth(t / L.BarsInSeconds))
 	end
 	local flashOfHit = if hit then math.exp(-after * 8) else 0
 	s.cc.Brightness = G.Brightness * fadeIn + 0.12 * flashOfHit
@@ -1161,7 +1163,7 @@ local function warpLegendary(s: Scene, t: number, shown: number)
 	local warpSeconds = L.InterludeSeconds - (t - shown)
 	local out = smooth((shown - warpSeconds * L.BarsOutAt) / L.BarsOutSeconds)
 	for _, bar: Frame in p.bars do
-		bar.Size = UDim2.fromScale(1, L.BarsShare * (1 - out))
+		bar.Size = UDim2.new(1, 0, 0, p.barPx * (1 - out))
 	end
 	-- The star: pulses up from nothing and turns; then stops pulsing and expands, spinning
 	-- faster and faster, until it fills the screen on the flash.
@@ -1597,8 +1599,7 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> (), onBlac
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "PullCutscene"
 	gui.ResetOnSpawn = false
-	gui.IgnoreGuiInset = true
-	gui.ScreenInsets = Enum.ScreenInsets.None
+	Letterbox.screen(gui)
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.DisplayOrder = CS.DisplayOrder
 	gui.Parent = playerGui
@@ -1620,8 +1621,7 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> (), onBlac
 	local veil = Instance.new("ScreenGui")
 	veil.Name = "PullCutsceneVeil"
 	veil.ResetOnSpawn = false
-	veil.IgnoreGuiInset = true
-	veil.ScreenInsets = Enum.ScreenInsets.None
+	Letterbox.screen(veil)
 	veil.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	veil.DisplayOrder = CS.Black.DisplayOrder
 	veil.Parent = playerGui

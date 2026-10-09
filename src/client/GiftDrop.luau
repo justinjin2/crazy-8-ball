@@ -21,6 +21,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Net = require(Shared:WaitForChild("Net"))
 local HudParts = require(script.Parent.HudParts)
+local Letterbox = require(script.Parent.Letterbox)
 
 local L = Config.LuckyBlocks
 local G = L.GiftDrop
@@ -370,7 +371,7 @@ local function makeScreen(): Screen?
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "GiftDropScene"
 	gui.ResetOnSpawn = false
-	gui.IgnoreGuiInset = true
+	Letterbox.screen(gui)
 	gui.DisplayOrder = Config.Cutscenes.DisplayOrder
 	local bars = {}
 	for i, edge in { 0, 1 } do
@@ -435,7 +436,7 @@ local function barsTo(screen: Screen, share: number)
 		TweenService:Create(
 			bar,
 			TweenInfo.new(G.BarsSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-			{ Size = UDim2.fromScale(1, share) }
+			{ Size = if share > 0 then Letterbox.size(share) else UDim2.fromScale(1, 0) }
 		):Play()
 	end
 end

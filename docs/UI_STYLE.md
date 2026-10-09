@@ -475,7 +475,9 @@ then; the reel's rules hold for the blocks.
   purple vortex: a bass hit and a longer riser with the fade, a ring pulse in the black, purple
   rays spinning up while sparkles spiral in from the corners, a collapse into a bright point
   and a white burst on the riser's peak (about 2 s from the fade, never skipped). Legendary is
-  a film behind letterbox bars (side to front, low up at a gold star, from the sky as its beam
+  a film behind letterbox bars (`Letterbox`: a share of the screen's height, but on a phone
+  never thinner than Roblox's top row or the hotbar, so neither peeks out; edge to edge, past
+  the safe area) (side to front, low up at a gold star, from the sky as its beam
   hits on the track's impact, a heavy shake and sparks), a fade to black with the rise starting under it,
   a gold starlight warp, a white flash and the card (about 9 s, skippable once seen). Tap (or A) skips, in two stages (section 14). Fast Open's grid, the first
   win's reel inside the result screen and the "Still opening" wait are gone: a block is
@@ -1094,14 +1096,14 @@ band, restock tiles and pass bands.
 shares of the screen's height so a phone shows the same stack. Section 14's motion stays: the
 jump out of the hotbar, the float, the presses, the impact, the jump back.
 
-- **Top**: a white pill counting the presses, "Mystery Lucky Block - 2 / 4"; under it "The
-  result is decided when you open it; the presses reveal it." and the pity counters as they
-  stood before this block ("Rare by 3 more · Epic by 87 more", so they never give the result
-  away); then the tier's name: the rainbow "MYSTERY" when it lands (designer, 2026-10-09: it
-  stays a Mystery block until the first press, and the ladder lights nothing), then the start
-  the first press shows ("STANDARD!", with the impact), "EPIC!" when a later press lifts it.
-- **The block** in the room between the name and the dots, its glow, rays and particles as
-  before.
+- **Top**: a white pill counting the presses, "Mystery Lucky Block - 2 / 4"; right under it
+  the tier's name (designer, 2026-10-09: no lines between them; the decided line and the pity
+  counters went, the Shop's odds popup still has both): the rainbow "MYSTERY" when it lands
+  (it stays a Mystery block until the first press, and the ladder lights nothing), then the
+  start the first press shows ("STANDARD", with the impact), "EPIC!" when a later press lifts
+  it. Every tier's name has a "!" but Standard's.
+- **The block** in the room between the name and the dots (up to `BlockShare` 0.35 of the
+  screen's height, which a phone's room fills), its glow, rays and particles as before.
 - **Under it**: the four press dots (the next one a pulsing "?"), then the white Tap! button
   with the tutorial's pointer hand, big ("Click!" with a mouse, "Press A" on a gamepad). It stays
   through the presses, swelling with each, and pops back as "Tap to collect", rocking gently.

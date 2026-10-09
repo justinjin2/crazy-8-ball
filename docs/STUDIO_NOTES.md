@@ -673,7 +673,10 @@ basics (glb textures, face direction, axes, texture alpha) are under "Uploading 
   fine texture (halftone, forks, thin bolts) disappears. Make shapes fat and high-contrast.
 - **Full-screen layers need `ScreenInsets.None`.** A ScreenGui's default inset is the device
   safe area, so on a phone a "full-screen" frame stops short of the edges (Eagle's Eye's
-  vignette drew a hard box). Screen effects set `ScreenInsets = Enum.ScreenInsets.None`.
+  vignette drew a hard box). Screen effects set `ScreenInsets = Enum.ScreenInsets.None`;
+  cutscenes use `Letterbox.screen` (None and `ClipToDeviceSafeArea = false`). In the iPhone
+  emulator the full screen is 874 x 402 and the HUD's area 750 x 304 (62 px each side, 78 at
+  the top: 20 of device plus Roblox's 58 px row, 20 at the bottom).
 - **Touch in the phone emulator through MCP:** `user_mouse_input` in the emulator arrives as
   touch. An `InputObject.Position` is in GUI space (below the top bar inset, 58 px there), and
   the MCP tool's raw coordinates are offset from GUI space (in the 750 x 361 emulator, GUI

@@ -6,13 +6,13 @@
 -- (designer, 2026-10-09: "before you even click on it its still a mystery block"), and floats
 -- there with its particles over a glow and turning rays. The first press turns it into its
 -- starting tier; each of the other three may lift it one tier. At the top a white pill counts
--- the presses ("Mystery Lucky Block - 2 / 4"),
--- with "The result is decided when you open it; the presses reveal it." and the pity counters
--- under it; along the bottom the ladder of the six tiers, its line filled up to the tier on
+-- the presses ("Mystery Lucky Block - 2 / 4"; designer, 2026-10-09: no lines under it, the
+-- block takes their room); along the bottom the ladder of the six tiers, its line filled up to the tier on
 -- show, that tier's block raised with an arrow over it. Each press (a tap, a click, A, Space or
 -- Enter) squashes the block; a press that lifts the tier bounces it, then it turns into the
 -- next block with an impact (a white flash, a screen shake and a burst; designer, 2026-10-07:
--- no spin), its name slamming in over it ("EPIC!") as the ladder's line reaches it. A dot
+-- no spin), its name slamming in over it ("EPIC!"; Standard has no "!") as the ladder's line
+-- reaches it. A dot
 -- under the block fills per press in the colour that press showed; the white Tap! button under
 -- the dots says what to do. After the last press "Tap to collect" (or a few seconds) shrinks
 -- the screen and the block jumps back into its hotbar slot. Sounds (designer, 2026-10-09): a
@@ -169,9 +169,6 @@ type Geo = {
 	pillY: number,
 	pillH: number,
 	pillText: number,
-	lineText: number,
-	decidedY: number,
-	pityY: number,
 	titleY: number,
 	titleH: number,
 	dot: number,
@@ -337,20 +334,6 @@ function Reveal.build(self: any)
 	count.Size = UDim2.fromScale(1, 1)
 	count.ZIndex = 11
 	self.pill, self.count = pill, count
-	-- Under it: how the presses work, and the pity counters (once the server has answered).
-	local decided = HudParts.text(root, "Decided", 14, W.Decided)
-	decided.AnchorPoint = Vector2.new(0.5, 0.5)
-	decided.TextWrapped = false
-	decided.ZIndex = 10
-	decided.Visible = false
-	self.decided = decided
-	local pity = HudParts.text(root, "Pity", 14, "")
-	pity.AutoLocalize = false
-	pity.AnchorPoint = Vector2.new(0.5, 0.5)
-	pity.TextWrapped = false
-	pity.ZIndex = 10
-	pity.Visible = false
-	self.pity = pity
 	self:buildLadder(root)
 
 	local row = HudParts.frame(root, "Dots")
@@ -519,9 +502,6 @@ function Reveal.geometry(self: any): Geo
 	local P = R.Pill
 	local pillH = math.max(minText / P.TextShare, H * P.HeightShare)
 	local pillY = H * P.Y
-	local lineText = math.clamp(H * R.LineTextShare, minText, R.LineMaxTextPx)
-	local decidedY = pillY + pillH / 2 + gap * 0.6 + lineText / 2
-	local pityY = decidedY + lineText + 2
 	-- The ladder from the bottom up: the names, the blocks (the lit one raised), the arrow.
 	local block = H * LD.BlockShare
 	local litSide = block * LD.LitScale
@@ -539,10 +519,10 @@ function Reveal.geometry(self: any): Geo
 	local tapY = ladderTop - gap - tapH / 2
 	local dot = math.max(10, planned * R.DotShare)
 	local dotsY = tapY - tapH / 2 - gap - dot / 2
-	-- The name under the counters, the block in the room between it and the dots (with room
-	-- for its float).
+	-- The name under the pill, the block in the room between it and the dots (with room for
+	-- its float).
 	local titleH = planned * R.TitleHeightShare
-	local titleTop = pityY + lineText / 2 + gap
+	local titleTop = pillY + pillH / 2 + gap
 	local blockTop = titleTop + titleH + gap / 2
 	local blockBottom = dotsY - dot / 2 - gap - planned * R.Float.HeightShare
 	local side = math.max(40, math.min(planned, blockBottom - blockTop))
@@ -554,9 +534,6 @@ function Reveal.geometry(self: any): Geo
 		pillY = pillY,
 		pillH = pillH,
 		pillText = math.max(minText, pillH * P.TextShare),
-		lineText = lineText,
-		decidedY = decidedY,
-		pityY = pityY,
 		titleY = titleTop + titleH / 2,
 		titleH = titleH,
 		dot = dot,
@@ -595,19 +572,13 @@ function Reveal.layout(self: any)
 	self.glow.Position = UDim2.fromOffset(centre.X, centre.Y)
 	self.rays.Size = UDim2.fromOffset(side * R.RaysShare, side * R.RaysShare)
 	self.rays.Position = UDim2.fromOffset(centre.X, centre.Y)
-	-- The top: the pill, the two lines, the tier's name.
+	-- The top: the pill, the tier's name.
 	HudParts.setTextSize(self.count, g.pillText)
 	local countW =
 		TextService:GetTextSize(self.count.Text, g.pillText, FONT, Vector2.new(4000, 400)).X
 	self.pill.Size =
 		UDim2.fromOffset(math.min(size.X * 0.9, countW + 2 * g.pillH * R.Pill.PadShare), g.pillH)
 	self.pill.Position = UDim2.fromOffset(size.X / 2, g.pillY)
-	for _, line in { self.decided, self.pity } do
-		HudParts.setTextSize(line, g.lineText)
-		line.Size = UDim2.fromOffset(size.X * 0.94, g.lineText + 4)
-	end
-	self.decided.Position = UDim2.fromOffset(size.X / 2, g.decidedY)
-	self.pity.Position = UDim2.fromOffset(size.X / 2, g.pityY)
 	self.title.Size = UDim2.fromOffset(math.min(size.X * 0.94, side * R.TitleWidthShare), g.titleH)
 	self.title.Position = UDim2.fromOffset(size.X / 2, g.titleY)
 	HudParts.setTextSize(self.title, g.titleH)
@@ -883,14 +854,16 @@ end
 -- The tier on show
 ---------------------------------------------------------------------------------------------
 
--- The name over the block ("EPIC!" once a press lifted it), its colour (or the rainbow) and the
--- glow, rays and wash behind it; the ladder lights the tier.
-function Reveal.showTier(self: any, kind: string, slam: boolean, climbed: boolean?)
+-- The name over the block ("EPIC!"; "MYSTERY" and "STANDARD" plain), its colour (or the
+-- rainbow) and the glow, rays and wash behind it; the ladder lights the tier.
+function Reveal.showTier(self: any, kind: string, slam: boolean)
 	self.shown = kind
 	local tier = look(kind)
 	self.pic.Image = iconOf(kind)
 	local words = if kind == "Mystery" then W.Title else (W.Tiers[kind] or string.upper(kind))
-	self.title.Text = if climbed then W.Climbed:format(words) else words
+	self.title.Text = if kind == "Mystery" or kind == "Standard"
+		then words
+		else W.Exclaim:format(words)
 	self:lightStep(kind)
 	-- A rainbow name is white under its gradient (a colour under it would darken it).
 	self.title.TextColor3 = if tier.Rainbow then Color3.new(1, 1, 1) else rgb(tier.Color)
@@ -1141,18 +1114,6 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 			end
 		end
 		self.reply = reply
-		local pity = reply.pity
-		if
-			type(pity) == "table"
-			and type(pity.rare) == "number"
-			and type(pity.epic) == "number"
-		then
-			self.pity.Text = W.Pity:format(math.floor(pity.rare), math.floor(pity.epic))
-			if self.decided.Visible and not self.pity.Visible then
-				self.pity.Visible = true
-				UIAnim.popIn(self.pity)
-			end
-		end
 		if self.waitingReply then
 			self.waitingReply = false
 			self:press()
@@ -1209,13 +1170,8 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 	):Play()
 	task.delay(A.TitleAt, function()
 		if self.open and self.phase ~= "Leave" then
-			-- The pill, the decided line and the pity counters (once the server answered).
-			for _, object in { self.pill, self.decided, self.pity } do
-				if object ~= self.pity or object.Text ~= "" then
-					object.Visible = true
-					UIAnim.popIn(object)
-				end
-			end
+			self.pill.Visible = true
+			UIAnim.popIn(self.pill)
 		end
 	end)
 	task.delay(A.DotsAt, function()
@@ -1363,7 +1319,7 @@ function Reveal.press(self: any)
 			self.pose.lift, self.pose.turn = 0, 0
 			self.pic.Image = iconOf(after)
 			self:impact()
-			self:showTier(after, true, true)
+			self:showTier(after, true)
 			self:burst(after)
 			self.anim = {
 				seconds = U.LandSeconds,
@@ -1479,7 +1435,7 @@ function Reveal.leave(self: any)
 	ScreenBlur.set(self, false)
 	local L = R.Leave
 	local fade = TweenInfo.new(L.FadeSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-	for _, object in { self.title, self.hint, self.pill, self.decided, self.pity, self.ladder } do
+	for _, object in { self.title, self.hint, self.pill, self.ladder } do
 		UIAnim.popOut(object)
 	end
 	for _, d in self.dots do

@@ -1021,7 +1021,7 @@ return {
 				Legendary = "LEGENDARY",
 				Mythic = "MYTHIC",
 			} :: { [string]: string },
-			Climbed = "%s!", -- the tier's name once a press lifted it: "EPIC!"
+			Exclaim = "%s!", -- a tier's name over the block, all but Standard's: "EPIC!"
 			-- The pill at the top (pick "mystery_reveal B"): the block's name, the presses made
 			-- and how many in all: "Mystery Lucky Block - 2 / 4".
 			Count = "%s - %d / %d",
@@ -1031,9 +1031,6 @@ return {
 			Collect = "Tap to collect", -- after the last press
 			CollectMouse = "Click to collect",
 			CollectPad = "Press A to collect",
-			-- Economy v4 (plan 3.2): the presses only reveal a result decided at the start.
-			Decided = "The result is decided when you open it; the presses reveal it.",
-			Pity = "Rare by %d more · Epic by %d more", -- Mystery blocks left to each pity
 		},
 		-- A rare chance as "1 in N" (BlockOdds.oneIn): on the reel's showcase card's chip (its
 		-- rarity is on its bar) and beside the rare rows of the odds screens.

@@ -2480,20 +2480,19 @@ Config.LuckyBlocks = {
 	Reveal = {
 		DisplayOrder = 40, -- over the hotbar and the HUD
 		-- The layout (designer's pick "mystery_reveal B", the Track, 2026-10-08), top to bottom:
-		-- the white pill "Mystery Lucky Block - 2 / 5", the line "The result is decided..." and
-		-- the pity counters under it, the tier's name, the block, its five press dots, the white
-		-- Tap! button; along the bottom the ladder of the six tiers, joined by a line filled up
-		-- to the tier on show. Shares of the screen's height unless named; the block takes the
-		-- room left between the name and the dots, at most BlockShare.
-		BlockShare = 0.32,
+		-- the white pill "Mystery Lucky Block - 2 / 4", the tier's name, the block, its press
+		-- dots, the white Tap! button; along the bottom the ladder of the six tiers, joined by a
+		-- line filled up to the tier on show. Shares of the screen's height unless named; the
+		-- block takes the room left between the name and the dots, at most BlockShare
+		-- (designer, 2026-10-09: the two lines under the pill went, the block got their room;
+		-- 0.35 fills a phone's room, was 0.32).
+		BlockShare = 0.35,
 		BlockMaxShareOfWidth = 0.62, -- a tall phone: the block no wider than this
 		GapShare = 0.012, -- between the stacked pieces
 		MinTextPx = 12, -- no word smaller (a phone's smallest, UI_STYLE)
 		-- Y: its middle; TextShare: its words, of its height; PadShare: room each side of them,
 		-- of its height.
 		Pill = { Y = 0.065, HeightShare = 0.055, TextShare = 0.6, PadShare = 0.6 },
-		LineTextShare = 0.024, -- the decided line and the pity counters
-		LineMaxTextPx = 18,
 		TitleHeightShare = 0.3, -- of the block's side
 		TitleWidthShare = 1.9, -- of the block's side, at most (long names shrink)
 		TitleTurnDegrees = -4, -- a slight tilt, like a sticker
@@ -14749,6 +14748,14 @@ Config.Cutscenes = {
 	From = "Rare", -- pulls of this rarity and up get a cutscene
 	RemoteFrom = "Legendary", -- and from this one up, everyone else in the server a sky tint
 	DisplayOrder = 60, -- its screen over the lucky block reel (whose overlay hides while it plays)
+	-- The black letterbox bars (Letterbox; the pulls', the 1v1 result's, the Gift block's): each
+	-- its scene's BarsShare of the screen's height, but never thinner than the HUD's rows at
+	-- the screen's edges (Roblox's top row, where a phone's match top bar sits, and the hotbar),
+	-- which keep their size on a phone (designer, 2026-10-09: they peeked out).
+	Letterbox = {
+		CoverPadPx = 6, -- past the row's edge
+		MostShare = 0.3, -- a bar never takes more of the screen's height than this
+	},
 	-- Every pull cutscene starts the same way (designer, 2026-10-05, Sol's RNG style): a second
 	-- before the reel stops on a Rare or better, everything fades to black (the reel's last
 	-- crawl plays on under it, so the prize is glimpsed, never seen to land), then the
