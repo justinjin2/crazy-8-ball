@@ -857,7 +857,8 @@ band, restock tiles and pass bands.
   (the picture stays still) and the sky-blue dice at its corner; the seven tiers (economy v5:
   the tier's block, its name in its colour, the chance in sky blue, live with the Grand
   Opening Luck; the Secret on top, the Mythic block darkened) filling the box, a small dice
-  after each name (that tier's climbed block's odds; the Secret's lists its cues); x1 and x5
+  after each name (opening "Epic cues": "If your Mystery block climbs to Epic, you get one of
+  these:" and the cues; never titled as that tier's block, whose own list climbs); x1 and x5
   columns: the count in gold, "35 R$ one by one" under x5 (the live single price times five),
   the purple gift square and the green Robux button (the live price; greyed when off sale), the
   gold money button under; the red "6 for 5!" ribbon, tilted and shaking, on x5 while the

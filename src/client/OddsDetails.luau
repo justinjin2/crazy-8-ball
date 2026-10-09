@@ -48,6 +48,7 @@ local SECRET = Config.LuckyBlocks.Reveal.Secret
 local COPY: { [string]: string } = Strings.OddsDetails :: any
 local NAMES: { [string]: string } = Strings.LuckyBlocks.Names
 local RARITIES: { [string]: string } = Strings.Items.Rarities :: any
+local SHORT: { [string]: string } = Strings.LuckyBlocks.Short
 local CUES: { [string]: string } = Strings.Items.Cues :: any
 local PRIORITY = Enum.ContextActionPriority.High.Value + 30 -- over the menus' B, like a dialog
 local ZINDEX = 52 -- as the Gift Player popup's: over the pages, under notices and dialogs
@@ -246,8 +247,10 @@ end
 --- Add every cue of `groups` (BlockDrop.cueGroups or BlockOdds.cueGroups) on its own line under
 --- a heading: its name in its rarity's colour, its chance and "1 in N" (a Unique this player
 --- can't get: 0%).
-function OddsDetails.cues(self: any, groups: { BlockOdds.CueGroup })
-	self:add("Head", COPY.EachCue)
+function OddsDetails.cues(self: any, groups: { BlockOdds.CueGroup }, noHead: boolean?)
+	if not noHead then
+		self:add("Head", COPY.EachCue)
+	end
 	for _, group in groups do
 		local each = if group.closed then 0 else group.each
 		local oneIn = BlockDrop.oneIn(each)
@@ -416,8 +419,6 @@ local function uniquesOf(oddsId: string): { [string]: any }
 	return out
 end
 
---- A lucky block's list (a Config.LuckyBlocks.Kinds key; `climbed`: a climbed block's, its one
---- rarity): see the top of this file.
 -- A tier without a block (the Secret): one group, its rarity's pool, 100% split evenly.
 local function secretGroups(tier: string, rarity: string): { BlockOdds.CueGroup }
 	local ids = {}
@@ -430,6 +431,8 @@ local function secretGroups(tier: string, rarity: string): { BlockOdds.CueGroup 
 	return { { rarity = rarity, percent = 100, each = 100 / #ids, cues = ids, closed = false } }
 end
 
+--- A lucky block's list (a Config.LuckyBlocks.Kinds key; `climbed`: a climbed block's, its one
+--- rarity): see the top of this file.
 function OddsDetails.blockSpec(kind: string, climbed: boolean?): Spec
 	local row = KINDS[kind]
 	local climbs = row ~= nil and row.Climb ~= nil and climbed ~= true
@@ -437,10 +440,6 @@ function OddsDetails.blockSpec(kind: string, climbed: boolean?): Spec
 		return climbs and BlockDrop.luckLive(workspace:GetServerTimeNow())
 	end
 	local oddsId: string = if row and type(row.Odds) == "string" then row.Odds else kind
-	-- The Secret has no block (a climb that reaches it gives its cue at once): its cues alone.
-	local secret: string? = if row == nil and not BlockDrop.isBlockTier(kind)
-		then BlockDrop.rarityOf(kind)
-		else nil
 	local function closedSet(): { [string]: boolean }
 		local closed = {}
 		for cue, entry in uniquesOf(oddsId) do
@@ -451,8 +450,7 @@ function OddsDetails.blockSpec(kind: string, climbed: boolean?): Spec
 		return closed
 	end
 	return {
-		icon = if row then row.Icon elseif secret then SECRET.Icon else nil,
-		tint = if secret then ShopCards.rgb(SECRET.Tint) else nil,
+		icon = if row then row.Icon else nil,
 		key = function(): string
 			local ids = {}
 			for cue in closedSet() do
@@ -469,12 +467,11 @@ function OddsDetails.blockSpec(kind: string, climbed: boolean?): Spec
 		paint = function(self: any)
 			local closed = closedSet()
 			local rows = uniquesOf(oddsId)
-			self:add("Head", if secret then COPY.SecretHead else NAMES[kind] or kind)
+			self:add("Head", NAMES[kind] or kind)
 			-- A block that still climbs lists its climb from its name (live during the Grand
 			-- Opening Luck); a climbed one, or a kind that never climbs, its own row.
 			local groups: { BlockOdds.CueGroup } = if climbs and row
 				then BlockDrop.cueGroups(nil, { start = row.Climb, luck = luck() })
-				elseif secret then secretGroups(kind, secret)
 				else BlockOdds.cueGroups(oddsId, closed)
 			for _, group in groups do
 				if group.rarity == "Unique" then
@@ -505,6 +502,45 @@ function OddsDetails.block(self: any, kind: string, climbed: boolean?)
 	local spec = self.blockSpecs[key]
 	if spec == nil then
 		spec = OddsDetails.blockSpec(kind, climbed)
+		self.blockSpecs[key] = spec
+	end
+	self:show(spec)
+end
+
+--- A climb tier's list (a row's dice on the shop's Mystery card; a Config.BlockOdds.Climb.Tiers
+--- key): the cues a Mystery climb that ends on `tier` gives, under "Epic cues" and the line "If
+--- your Mystery block climbs to Epic, you get one of these:", so it never reads as a block of
+--- that tier (whose own list climbs from it; designer, 2026-10-09). The Secret, which has no
+--- block, lists its pool.
+function OddsDetails.tierSpec(tier: string): Spec
+	local row = KINDS[tier]
+	local secret = not BlockDrop.isBlockTier(tier)
+	local rarity = BlockDrop.rarityOf(tier) or tier
+	local oddsId: string = if row and type(row.Odds) == "string" then row.Odds else tier
+	return {
+		icon = if secret then SECRET.Icon elseif row then row.Icon else nil,
+		tint = if secret then ShopCards.rgb(SECRET.Tint) else nil,
+		key = function(): string
+			return "tier|" .. tier
+		end,
+		paint = function(self: any)
+			self:add("Head", COPY.TierHead:format(RARITIES[rarity] or rarity))
+			self:add("Note", COPY.TierLine:format(SHORT[tier] or tier))
+			local groups = if secret
+				then secretGroups(tier, rarity)
+				else BlockOdds.cueGroups(oddsId, {})
+			self:cues(groups, true)
+			self:finish()
+		end,
+	}
+end
+
+--- Open a climb tier's list (OddsDetails.tierSpec).
+function OddsDetails.tier(self: any, tier: string)
+	local key = "tier|" .. tier
+	local spec = self.blockSpecs[key]
+	if spec == nil then
+		spec = OddsDetails.tierSpec(tier)
 		self.blockSpecs[key] = spec
 	end
 	self:show(spec)

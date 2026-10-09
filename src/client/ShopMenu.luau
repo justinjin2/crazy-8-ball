@@ -133,6 +133,11 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		odds(kind)
 		return #self.odds.items
 	end)
+	-- GuiQA:Invoke("tierOdds", tier) presses that row's dice on the Mystery card.
+	GuiQA.add("tierOdds", function(tier: string)
+		self.odds:tier(tier)
+		return #self.odds.items
+	end)
 	-- The Blocks group under the card: its header first (it peeks in at the bottom of the first
 	-- screen), then the Mystery block, the restock and the offers.
 	local blocks = HudParts.frame(scroll, "Blocks")
@@ -153,10 +158,10 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			self:buyBlocks("Mystery", count)
 		end,
 		gift = gift,
-		-- A row's dice: the climbed block of that tier (the Secret's pool for its row), its one
-		-- rarity, as a Mystery block that climbs there gives (economy v5).
+		-- A row's dice: the cues a Mystery climb that ends on that tier gives ("Epic cues";
+		-- OddsDetails.tierSpec), never titled as that tier's own block (economy v5).
 		tierOdds = function(kind: string)
-			self.odds:block(kind, true)
+			self.odds:tier(kind)
 		end,
 		odds = function()
 			self.mysteryOdds:open()

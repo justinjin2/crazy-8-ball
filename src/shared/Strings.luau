@@ -1148,8 +1148,10 @@ return {
 		-- its chance and "1 in N" ("0.29% · 1 in 345").
 		EachCue = "Each cue",
 		CueChance = "%s · 1 in %s",
-		-- The Secret row's dice on the shop's ladder: the Secret has no block, so its cues alone.
-		SecretHead = "Secret Cues",
+		-- A row's dice on the shop's Mystery card: the cues a climb ending on that tier gives (the
+		-- rarity's name: "Epic cues"), with its line, so it never reads as that tier's block.
+		TierHead = "%s cues",
+		TierLine = "If your Mystery block climbs to %s, you get one of these:",
 	},
 
 	-- The lucky block reel's skip hint (LuckyOpening, UltSpinAnim, PullCutscene, ResultCutscene).

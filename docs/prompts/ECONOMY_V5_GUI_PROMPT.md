@@ -546,4 +546,10 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   small pieces), roadmap 7.9's progress line, `docs/STATUS.md` rewritten for what is open, the
   run's entry at the top of `docs/archive/STATUS_HISTORY.md`, the handoff's "Done" line. The
   price differences in step 11's note are the known held v4 changes (step 15's sync).
+- **After step 14 (the designer's question, 2026-10-09):** a Mystery row's dice and the restock's
+  Epic block both said "Epic Lucky Block" with different odds (the row's showed the finished
+  tier, Epic 100%; the restock block climbs from Epic). A row's dice now opens
+  `OddsDetails.tierSpec`: "Epic cues", the line "If your Mystery block climbs to Epic, you get
+  one of these:", then the cues (the Secret row's: "Secret cues", the Eclipse Cue). A real block
+  keeps its own name and its climb. New GuiQA hook `tierOdds` (tier). Checked on PC; 1160 tests.
 
