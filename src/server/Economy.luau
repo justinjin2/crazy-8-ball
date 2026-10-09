@@ -174,6 +174,7 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 		shortCapped = kind ~= "Solo"
 			and Settle.shortCapped(PlayerData.dailyMoney(player, "Short"), sinceBreak),
 		boost = Economy.boost(player),
+		vipBoost = if player:GetAttribute("Vip") == true then Money.boost({ vip = true }) else 0,
 		farmBalls = farm.Balls,
 		multiplier = Economy.multiplier(e),
 	})
@@ -207,6 +208,8 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 			ball = g.ball,
 			pocket = g.pocket,
 			amount = g.amount,
+			-- Less than amount when VIP doubled it: the chip shows it, then VIP's "x2".
+			plain = if g.plain < g.amount then g.plain else nil,
 			kind = g.kind,
 			at = shot.startedAt + g.t, -- when the replay drops the ball
 		})

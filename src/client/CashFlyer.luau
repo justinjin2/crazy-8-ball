@@ -8,6 +8,12 @@
 -- drops its ball. The result screen and NEW RANK! launch their chips through fly() too.
 -- Tuning in Config.UI.Progress.Cash.
 --
+-- VIP's doubling (designer, 2026-10-08: "show the original amount ... like a gold x2 then the
+-- money doubles and turns golden, before flowing"): a pot VIP doubled (its grant's `plain`)
+-- pops as "+$100", a gold "x2" stamps on beside it, the words turn to the paid "+$200" in gold
+-- with a little bump, then it flies as usual; about 0.6 s, on every such pot (Config
+-- UI.Progress.Cash.Vip).
+--
 -- Every chip's amount is told to the HUD the moment it is known (expect: onGrant does it for
 -- pots, the result screen and NEW RANK! for their own chips) and always landed, even when the
 -- chip cannot be drawn or this flyer is destroyed first, so the HUD never drifts.
@@ -16,11 +22,13 @@ local RunService = game:GetService("RunService")
 local TextService = game:GetService("TextService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 
 local C = Config.UI.Progress.Cash
+local V = C.Vip
 local CashFlyer = {}
 CashFlyer.__index = CashFlyer
 
@@ -39,6 +47,10 @@ export type CashFlyer = {
 
 type Chip = {
 	amount: number, -- what lands in the HUD
+	plain: number?, -- VIP doubled it: what it would have been (shown first, then "x2")
+	twoX: TextLabel?, -- VIP's gold "x2" beside the chip
+	twoXScale: UIScale?,
+	swapped: boolean, -- its words turned to the doubled amount
 	from: Vector2?, -- where it pops out, absolute screen pixels (a caller's point)
 	tableId: number, -- or out of this table's pocket, looked up when it pops
 	pocket: number?,
@@ -140,7 +152,12 @@ function CashFlyer.onGrant(self: any, payload: any)
 		self.lastStart = at
 		local kind = if type(grant.kind) == "string" then grant.kind else "Ball"
 		local pocket = if type(grant.pocket) == "number" then grant.pocket else nil
-		self:launch(clean(grant.amount), nil, tableId, pocket, kind, at - now, nil)
+		local amount = clean(grant.amount)
+		local plain = clean(grant.plain)
+		self:launch(amount, nil, tableId, pocket, kind, at - now, nil)
+		if plain > 0 and plain < amount then
+			self.chips[#self.chips].plain = plain
+		end
 	end
 end
 
@@ -180,6 +197,10 @@ function CashFlyer.launch(
 )
 	local chip: Chip = {
 		amount = amount,
+		plain = nil,
+		twoX = nil,
+		twoXScale = nil,
+		swapped = false,
 		from = from,
 		tableId = tableId,
 		pocket = pocket,
@@ -221,15 +242,17 @@ function CashFlyer.build(self: any, chip: Chip)
 	local short = self.layer.AbsoluteSize.Y < Config.Multiplayer.Style.ShortHeight
 	local height = if short then C.ShortChipHeightPx else C.ChipHeightPx
 	local textSize = if short then C.ShortTextPx else C.TextPx
-	local words = chip.label or Format.moneyDelta(chip.amount)
+	local words = chip.label or Format.moneyDelta(chip.plain or chip.amount)
 	local plain = chip.kind == nil or chip.kind == "Ball"
+	-- Room for the longer of its first and last words (VIP's chip changes them).
+	local widest = if chip.plain then Format.moneyDelta(chip.amount) else words
 	local frame = HudParts.frame(self.layer, "CashChip")
 	chip.frame = frame -- so a failure below still takes it down (finish)
 	frame.AnchorPoint = Vector2.new(0.5, 0.5)
 	frame.Visible = false -- until the first frame places it
 	local iconWidth = math.floor(height * C.IconWidthShare)
 	local textWidth = TextService:GetTextSize(
-		words,
+		if #widest > #words then widest else words,
 		textSize,
 		(Enum.Font :: any)[Config.UI.Kit.Font],
 		Vector2.new(10000, 1000)
@@ -255,6 +278,53 @@ function CashFlyer.build(self: any, chip: Chip)
 	scale.Parent = frame
 	chip.scale = scale
 	chip.icon, chip.text = icon, text
+	if chip.plain then
+		-- VIP's "x2", hidden until it stamps on: gold, tilted, just right of the words.
+		local twoX = HudParts.text(
+			frame,
+			"VipTwoX",
+			math.floor(textSize * V.TwoXShare),
+			Strings.VipTag.TwoX,
+			HudParts.tone("Gold")
+		)
+		twoX.AutoLocalize = false
+		twoX.TextWrapped = false
+		twoX.AnchorPoint = Vector2.new(0, 0.5)
+		twoX.Position = UDim2.new(1, V.TwoXGapPx, 0.5, 0)
+		twoX.Size = UDim2.fromOffset(textSize * 2, height)
+		twoX.Rotation = V.TwoXDegrees
+		twoX.ZIndex = 3
+		twoX.Visible = false
+		local stamp = Instance.new("UIScale")
+		stamp.Parent = twoX
+		chip.twoX, chip.twoXScale = twoX, stamp
+	end
+end
+
+-- VIP's doubling during the hang, `t` seconds after the pop: the "x2" stamps on (from big),
+-- then the words turn to the paid amount in gold with a bump. Returns the chip's size.
+local function vipStep(chip: Chip, t: number): number
+	local twoX, stamp, text = chip.twoX, chip.twoXScale, chip.text
+	if not (twoX and stamp and text) then
+		return 1
+	end
+	if t >= V.StampAt then
+		twoX.Visible = true
+		local s = math.clamp((t - V.StampAt) / V.StampSeconds, 0, 1)
+		stamp.Scale = if UIAnim.reduced()
+			then 1
+			else V.StampFrom + (1 - V.StampFrom) * UIAnim.backOut(s)
+	end
+	if t >= V.SwapAt and not chip.swapped then
+		chip.swapped = true
+		text.Text = Format.moneyDelta(chip.amount)
+		text.TextColor3 = HudParts.tone("Gold")
+	end
+	if chip.swapped and not UIAnim.reduced() then
+		local s = math.clamp((t - V.SwapAt) / V.BumpSeconds, 0, 1)
+		return 1 + V.Bump * math.sin(math.pi * s)
+	end
+	return 1
 end
 
 -- How far along its curve a chip is at `t` (0..1) of its flight: it leaves the hang gently and
@@ -268,12 +338,13 @@ local function fade(chip: Chip, amount: number)
 	if chip.icon then
 		chip.icon.ImageTransparency = amount
 	end
-	local text = chip.text
-	if text then
-		text.TextTransparency = amount
-		local stroke = text:FindFirstChildOfClass("UIStroke")
-		if stroke then
-			stroke.Transparency = amount
+	for _, text in { chip.text, chip.twoX } :: { TextLabel? } do
+		if text then
+			text.TextTransparency = amount
+			local stroke = text:FindFirstChildOfClass("UIStroke")
+			if stroke then
+				stroke.Transparency = amount
+			end
 		end
 	end
 end
@@ -306,10 +377,11 @@ function CashFlyer.step(self: any)
 	local now = os.clock()
 	local origin = self.layer.AbsolutePosition
 	local popEnd = C.PopSeconds
-	local hangEnd = popEnd + C.HangSeconds
-	local flyEnd = hangEnd + C.FlySeconds
 	local keep = {}
 	for _, chip in self.chips do
+		-- VIP's doubled chip hangs longer while its "x2" stamps on.
+		local hangEnd = popEnd + C.HangSeconds + (if chip.plain then V.ExtraHangSeconds else 0)
+		local flyEnd = hangEnd + C.FlySeconds
 		local elapsed = now - chip.startAt
 		if elapsed >= 0 and not chip.landed then
 			if not chip.frame then
@@ -329,8 +401,12 @@ function CashFlyer.step(self: any)
 						size = C.PopFromScale
 							+ (1 - C.PopFromScale) * UIAnim.backOut(elapsed / popEnd)
 					elseif elapsed < hangEnd then
-						point, size = start, 1
+						point = start
+						size = if chip.plain then vipStep(chip, elapsed - popEnd) else 1
 					else
+						if chip.plain and not chip.swapped then
+							vipStep(chip, math.huge) -- a late frame: it still ends doubled
+						end
 						local t = (elapsed - hangEnd) / C.FlySeconds
 						local eased = flight(t)
 						-- The landing point, read once: asking a big menu where its money pill

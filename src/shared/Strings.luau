@@ -1057,6 +1057,7 @@ return {
 	VipTag = {
 		Word = "VIP",
 		Title = "VIP perks active",
+		TwoX = "x2", -- stamped beside a pot's money VIP doubled (CashFlyer)
 	},
 	-- The login days (economy v4 plan 6.1): the first week, then the later weeks.
 	Login = {

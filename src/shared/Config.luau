@@ -6441,6 +6441,20 @@ Config.UI = {
 			DropLeadSeconds = 0, -- added to the ball's drop time (the replay's; + later) (tune)
 			MaxWaitSeconds = 15, -- a chip never waits longer than this for its drop
 			EdgeMarginPx = 40, -- a pocket off screen starts this far inside the nearest edge
+			-- VIP's doubled pot (designer, 2026-10-08): "+$100", a gold "x2" stamps on, the
+			-- words turn to "+$200" in gold, then it flies. Seconds from the end of the pop.
+			Vip = {
+				ExtraHangSeconds = 0.4, -- the hang grows by this (about 0.6 s of effect in all)
+				StampAt = 0.05, -- the "x2" stamps on
+				StampSeconds = 0.14, -- from big to its size
+				StampFrom = 2.2, -- its size as it starts
+				SwapAt = 0.26, -- the words turn to the doubled amount, gold
+				Bump = 0.18, -- the chip swells this much as they turn...
+				BumpSeconds = 0.2, -- ...and settles in this long
+				TwoXShare = 1.1, -- "x2", a share of the chip's words' size
+				TwoXGapPx = 2, -- from the words' right end
+				TwoXDegrees = -12, -- tilted, as a stamp
+			},
 		},
 		-- Over every character's head (Nameplates; reference 02): the rank badge, then the
 		-- player's name. Its height is SizeStuds studs plus SizePx pixels: near plates grow with

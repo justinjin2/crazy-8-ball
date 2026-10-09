@@ -118,6 +118,27 @@ return {
 		H.expect(pay.balls == 1 and pay.nice == 0 and pay.soloEarned == 0 and pay.pcEarned == 0)
 	end,
 
+	["each grant says what it paid without VIP (the chip's x2, designer 2026-10-08)"] = function()
+		local Money, geometry = setup()
+		local events = bankAndCombo(geometry)
+		local none = Money.shotPay(input(geometry, events))
+		for _, g in none.grants do
+			H.expect(g.plain == g.amount, "no VIP: plain is the amount")
+		end
+		-- VIP alone doubles every grant; plain is the undoubled pay.
+		local vip = Money.shotPay(input(geometry, events, { boost = 1, vipBoost = 1 }))
+		for index, g in vip.grants do
+			H.expect(g.amount == 2 * g.plain, "VIP pays twice plain")
+			H.expect(g.plain == none.grants[index].amount, "plain is the pay without VIP")
+		end
+		-- VIP and the Party: plain keeps the Party's part (x2), the amount is x3.
+		local both = Money.shotPay(input(geometry, events, { boost = 2, vipBoost = 1 }))
+		for index, g in both.grants do
+			H.expect(g.plain == 2 * none.grants[index].amount, "plain with the Party")
+			H.expect(g.amount == 3 * none.grants[index].amount, "the amount with both")
+		end
+	end,
+
 	["a foul shot pays nothing"] = function()
 		local Money, geometry = setup()
 		local pay = Money.shotPay(input(geometry, bankAndCombo(geometry), { foul = true }))

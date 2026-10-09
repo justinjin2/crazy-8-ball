@@ -54,7 +54,8 @@ local REMOTES: { [string]: string } = {
 	ShotResult = "RemoteEvent",
 	-- server -> each player a shot paid (the shooter, and every teammate for the team's balls,
 	-- ECONOMY 3.3), their own share only, for the flying cash (CashFlyer). {tableId, epoch,
-	-- seq, total, grants = {{ball, pocket?, amount, kind, at}}}; kind "Ball" or a nice shot's
+	-- seq, total, grants = {{ball, pocket?, amount, plain?, kind, at}}}; plain: the pay without
+	-- VIP when VIP doubled it (the chip shows it, then a gold "x2"); kind "Ball" or a nice shot's
 	-- kind (the shooter's only); `at` is the server time the ball drops in the replay. Nothing
 	-- here is ever sent back: the money is already in the save (Economy, PlayerData).
 	MoneyGrant = "RemoteEvent",

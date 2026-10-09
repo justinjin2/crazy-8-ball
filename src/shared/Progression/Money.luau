@@ -34,6 +34,9 @@ export type Grant = {
 	ball: number,
 	pocket: number?, -- the pocket id it dropped in, for the flying cash
 	amount: number,
+	-- What it would have paid without VIP (input.vipBoost): the client shows it, then VIP's
+	-- gold "x2" (designer, 2026-10-08). Equal to amount without VIP or for a flat pay.
+	plain: number,
 	kind: string, -- "Ball", or the nice shot's kind: "Bank", "Kick", "Combo", "Carom"
 	t: number, -- the shot time the ball dropped
 }
@@ -59,6 +62,7 @@ export type ShotInput = {
 	-- (ECONOMY 3.6): ShortAfterCapPay a ball, no nice-shot bonus.
 	shortCapped: boolean?,
 	boost: number?, -- VIP + Money Party + Starter + group (Money.boost), default 0
+	vipBoost: number?, -- VIP's part of boost (for each grant's `plain`), default 0
 	farmBalls: number?, -- the anti-farm ball-pay multiplier (Money.farmRow().Balls), default 1
 	multiplier: number, -- the table's difficulty (Config.Difficulty.MoneyMultiplier)
 }
@@ -191,6 +195,10 @@ function Money.shotPay(input: ShotInput): ShotPay
 	local scale = factor(input.multiplier, 1)
 		* (1 + factor(input.boost, 0))
 		* factor(input.farmBalls, 1)
+	-- The same without VIP's part, for each grant's `plain`.
+	local plainScale = factor(input.multiplier, 1)
+		* (1 + math.max(0, factor(input.boost, 0) - factor(input.vipBoost, 0)))
+		* factor(input.farmBalls, 1)
 	-- The flat after-cap pay in force right now, or nil (it pays no nice shots).
 	local function flat(): number?
 		if shortCapped then
@@ -200,22 +208,24 @@ function Money.shotPay(input: ShotInput): ShotPay
 		end
 		return nil
 	end
-	local function amount(base: number): number
+	local function amount(base: number, by: number?): number
 		local share = if solo
 			then E.SoloShare
 			elseif pc and pcToday + total >= E.PcDailyCap then E.PcAfterCapShare
 			else 1
-		return math.max(1, Money.round(base * scale * share))
+		return math.max(1, Money.round(base * (by or scale) * share))
 	end
 	for _, drop in input.drops do
 		if counts(input, drop.ball) then
 			local ev = input.events[drop.index]
 			local pocket = if ev and ev.type == "pocket" then ev.other else nil
-			local pay = flat() or amount(E.BallPay)
+			local fixed = flat()
+			local pay = fixed or amount(E.BallPay)
 			table.insert(grants, {
 				ball = drop.ball,
 				pocket = pocket,
 				amount = pay,
+				plain = fixed or amount(E.BallPay, plainScale),
 				kind = "Ball",
 				t = drop.t,
 			})
@@ -232,6 +242,7 @@ function Money.shotPay(input: ShotInput): ShotPay
 					ball = drop.ball,
 					pocket = pocket,
 					amount = bonus,
+					plain = amount(NICE_PAY[kind], plainScale),
 					kind = kind,
 					t = drop.t,
 				})
