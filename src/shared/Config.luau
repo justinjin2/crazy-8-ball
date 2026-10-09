@@ -8565,6 +8565,12 @@ Config.UI.WinTrack = {
 	TileColor = { 255, 255, 255 },
 	TileEdge = { 176, 214, 245 }, -- the panels' pale blue
 	IconShare = 0.72, -- the step's block, a share of its tile
+	-- A money step (economy v5): the cash bundle smaller and higher (shares of its tile), over
+	-- "$1K" in the money green (9 px on a phone).
+	MoneyIconShare = 0.56,
+	MoneyIconY = 0.4,
+	MoneyTextPx = 14,
+	MoneyTextY = 0.8,
 	-- A step's number: a navy dot on its tile's top left corner (its centre this far in). On a
 	-- phone its words stay at 9 px or more (a small tag over art, UI_STYLE).
 	NumberPx = 20,

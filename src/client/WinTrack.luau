@@ -1,8 +1,9 @@
 --!strict
 -- WinTrack: the day's win track over the lucky block hotbar (the designer's pick A on the mock
--- page, 2026-10-08; economy v4 plan section 5). A white bar of ten tiles, one per counted win
--- of the day, each the step's block (Config.BlockOdds.Drop.WinTrack: Rare, Mystery, Mystery,
--- Uncommon, Mystery, Mystery, Rare, Mystery, Mystery, Epic) with its number on a navy dot. A
+-- page, 2026-10-08; economy v5 plan section 4). A white bar of ten tiles, one per counted win
+-- of the day, each the step's block or money (RewardState's `wins.kinds`: Uncommon, $1K, $1K,
+-- Mystery, $1K, $1K, Mystery, $1K, $1K, Epic; a money tile is the cash bundle over "$1K"; a new
+-- player's first win shows its Rare block) with its number on a navy dot. A
 -- step given today is greyed under a green tick; the next one has a thick gold edge and a gold
 -- NEXT tag that hops gently. Across the bar's top edge: "Wins 3/10" at the left and the time
 -- to the 08:00 UTC reset at the right; after the tenth, "10/10 · wins pay money and XP today".
@@ -12,10 +13,11 @@
 --
 -- Folded by default (the designer, 2026-10-08: "by default its collapsed but after a match
 -- itll appear briefly to show then collapse back down again on its own"): a small navy pill
--- with "Next ->" and the next step's block, "Wins 3/10" and an up arrow; a press opens the
--- whole bar, and its fold button (a navy circle with a down arrow on the bar's top edge, between
--- the pills: the designer, 2026-10-09, "wins needs a collapse dropdown") folds it. After a match the bar opens by itself as it comes back, for PeekSeconds,
--- then folds again (unless the player pressed it meanwhile).
+-- with "Next ->" and the next step's block (or cash bundle), "Wins 3/10" and an up arrow; a
+-- press opens the whole bar, and its fold button (a navy circle with a down arrow on the bar's
+-- top edge, between the pills: the designer, 2026-10-09, "wins needs a collapse dropdown")
+-- folds it. After a match the bar opens by itself as it comes back, for PeekSeconds, then
+-- folds again (unless the player pressed it meanwhile).
 --
 -- It shows in the lobby with nothing over it (Progression: no menu, match, result screen,
 -- reel or teleport, not during the tutorial) and takes the matchmaking bar's place: it hides
@@ -30,6 +32,9 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local StageMath = require(Shared:WaitForChild("StageMath"))
+local Progression = Shared:WaitForChild("Progression")
+local BlockDrop = require(Progression:WaitForChild("BlockDrop"))
+local Format = require(Progression:WaitForChild("Format"))
 local BottomLift = require(script.Parent.BottomLift)
 local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
@@ -41,6 +46,7 @@ local UISound = require(script.Parent.UISound)
 local T = Config.UI.WinTrack
 local KINDS: { [string]: any } = Config.LuckyBlocks.Kinds :: any
 local STEPS: { string } = Config.BlockOdds.Drop.WinTrack :: any
+local CASH: string = Config.UI.Kit.Icons.CashSingle -- a money step's picture
 local PHONE_PX: number = Config.LuckyBlocks.UI.PhoneWidthPx
 local COPY = Strings.WinTrack
 local CLOCK_COPY: { [string]: any } = (Strings.Menus.Shop :: any).Featured -- "6d 23h", "23h 59m"
@@ -53,9 +59,23 @@ type Tile = {
 	frame: Frame,
 	edge: UIStroke,
 	icon: ImageLabel,
+	money: TextLabel, -- a money step's "$1K" under its cash bundle
 	dot: Frame,
 	check: ImageLabel,
 }
+
+-- A money step's words: "$1K" for whole thousands (a tile is small), else "$500".
+local function tileMoney(n: number): string
+	return if n >= 1000 and n % 1000 == 0 then Format.money(n // 1000) .. "K" else Format.money(n)
+end
+
+-- The picture for a step's kind: its block, or the cash bundle for money.
+local function pictureOf(kind: string?): string
+	if kind == BlockDrop.Money then
+		return CASH
+	end
+	return if kind and KINDS[kind] then KINDS[kind].Icon or "" else ""
+end
 
 local WinTrack = {}
 WinTrack.__index = WinTrack
@@ -96,6 +116,8 @@ function WinTrack.new(screen: ScreenGui): any
 	self.seen = -1 -- the steps the player has seen on screen (their ticks have popped)
 	self.resetsAt = 0
 	self.fake = nil :: number? -- GuiQA: a made-up count of steps given
+	self.kinds = table.clone(STEPS) -- each step's kind as drawn (RewardState's wins.kinds)
+	self.kindsKey = ""
 	self.loops = {} :: { UIAnim.Handle }
 	self.clockText = ""
 	self.open = false -- the whole bar (true) or the folded pill
@@ -119,7 +141,7 @@ function WinTrack.new(screen: ScreenGui): any
 	self.bar = bar
 
 	local tiles: { Tile } = {}
-	for index, kind in STEPS do
+	for index in STEPS do
 		local frame = HudParts.frame(bar, "Step" .. index)
 		frame.BackgroundTransparency = 0
 		frame.BackgroundColor3 = rgb(T.TileColor)
@@ -135,12 +157,24 @@ function WinTrack.new(screen: ScreenGui): any
 		icon.Name = "Block"
 		icon.BackgroundTransparency = 1
 		icon.ScaleType = Enum.ScaleType.Fit
-		icon.Image = if KINDS[kind] then KINDS[kind].Icon or "" else ""
 		icon.AnchorPoint = Vector2.new(0.5, 0.5)
 		icon.Position = UDim2.fromScale(0.5, 0.5)
 		icon.Size = UDim2.fromScale(T.IconShare, T.IconShare)
 		icon.ZIndex = 3
 		icon.Parent = frame
+		local money = HudParts.text(
+			frame,
+			"Money",
+			T.MoneyTextPx,
+			tileMoney(BlockDrop.trackMoney()),
+			rgb(Config.UI.Kit.Numbers.Money)
+		)
+		money.TextWrapped = false
+		money.AnchorPoint = Vector2.new(0.5, 0.5)
+		money.Position = UDim2.fromScale(0.5, T.MoneyTextY)
+		money.Size = UDim2.new(1, 0, 0, T.MoneyTextPx + 4)
+		money.ZIndex = 4
+		money.Visible = false
 		local dot = HudParts.frame(frame, "Number")
 		dot.BackgroundTransparency = 0
 		dot.BackgroundColor3 = rgb(T.NumberColor)
@@ -159,9 +193,13 @@ function WinTrack.new(screen: ScreenGui): any
 		check.Size = UDim2.fromScale(T.CheckShare, T.CheckShare)
 		check.ZIndex = 4
 		check.Visible = false
-		table.insert(tiles, { frame = frame, edge = edge, icon = icon, dot = dot, check = check })
+		table.insert(
+			tiles,
+			{ frame = frame, edge = edge, icon = icon, money = money, dot = dot, check = check }
+		)
 	end
 	self.tiles = tiles
+	self:paintKinds(STEPS)
 
 	-- The NEXT tag (moved to the next step's tile).
 	local tag = HudParts.pill(bar, "Next", rgb(T.NextColor))
@@ -370,26 +408,65 @@ end
 -- What the server says
 --------------------------------------------------------------------------------------------
 
--- The steps given today and when the day resets (a GuiQA count stands in when set).
-function WinTrack.read(self: any): (number?, number)
+-- Each step's kind from the server's `wins.kinds` (Config's steps until a full list comes).
+local function kindsOf(wins: any): { string }
+	local kinds = if type(wins) == "table" then wins.kinds else nil
+	if type(kinds) ~= "table" or #kinds ~= #STEPS then
+		return STEPS
+	end
+	for _, kind in kinds do
+		if type(kind) ~= "string" then
+			return STEPS
+		end
+	end
+	return kinds
+end
+
+-- The steps given today, each step's kind and when the day resets (a GuiQA count stands in
+-- when set).
+function WinTrack.read(self: any): (number?, { string }, number)
 	local state = ItemState.rewards()
 	local resetsAt = if type(state) == "table" and type(state.resetsAt) == "number"
 		then state.resetsAt
 		else 0
-	if self.fake then
-		return self.fake, resetsAt
-	end
 	local wins = if type(state) == "table" then state.wins else nil
-	if type(wins) ~= "table" or type(wins.given) ~= "number" then
-		return nil, resetsAt
+	local kinds = kindsOf(wins)
+	if self.fake then
+		return self.fake, kinds, resetsAt
 	end
-	return math.clamp(math.floor(wins.given), 0, #STEPS), resetsAt
+	if type(wins) ~= "table" or type(wins.given) ~= "number" then
+		return nil, kinds, resetsAt
+	end
+	return math.clamp(math.floor(wins.given), 0, #STEPS), kinds, resetsAt
+end
+
+-- Draw each step's picture: its block, or the cash bundle over "$1K" for money.
+function WinTrack.paintKinds(self: any, kinds: { string })
+	local key = table.concat(kinds, ",")
+	if key == self.kindsKey then
+		return
+	end
+	self.kindsKey = key
+	self.kinds = table.clone(kinds)
+	for index, tile in self.tiles :: { Tile } do
+		local money = kinds[index] == BlockDrop.Money
+		tile.icon.Image = pictureOf(kinds[index])
+		tile.icon.Position = UDim2.fromScale(0.5, if money then T.MoneyIconY else 0.5)
+		local share = if money then T.MoneyIconShare else T.IconShare
+		tile.icon.Size = UDim2.fromScale(share, share)
+		tile.money.Visible = money
+	end
 end
 
 --- Draw the steps given today; a step given while the bar shows pops its tick.
 function WinTrack.refresh(self: any)
-	local given, resetsAt = self:read()
+	local given, kinds, resetsAt = self:read()
 	self.resetsAt = resetsAt
+	local kindsKey = self.kindsKey
+	self:paintKinds(kinds)
+	if kindsKey ~= self.kindsKey then
+		self.given = -2 -- the pictures changed: draw the rest again too
+	end
 	if given == nil then
 		self.given = -1
 		self:apply()
@@ -406,6 +483,7 @@ function WinTrack.refresh(self: any)
 		local next = index == given + 1
 		tile.frame.BackgroundColor3 = rgb(if done then T.DoneColor else T.TileColor)
 		tile.icon.ImageTransparency = if done then T.DoneTransparency else 0
+		HudParts.setTextTransparency(tile.money, if done then T.DoneTransparency else 0)
 		tile.check.Visible = done
 		tile.edge.Color = rgb(if next then T.NextEdge else T.TileEdge)
 		tile.edge.Thickness = if next then T.NextEdgePx else T.TileEdgePx
@@ -414,8 +492,7 @@ function WinTrack.refresh(self: any)
 		then string.format(COPY.Done, n, n)
 		else string.format(COPY.Wins, given, n)
 	self.miniWords.Text = string.format(COPY.Wins, given, n)
-	local nextKind = STEPS[given + 1]
-	self.miniBlock.Image = if nextKind and KINDS[nextKind] then KINDS[nextKind].Icon or "" else ""
+	self.miniBlock.Image = pictureOf(self.kinds[given + 1])
 	-- The tag under the next step's tile.
 	if given < n then
 		local tile = self.tiles[given + 1]

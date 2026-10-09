@@ -142,7 +142,7 @@ local MONEY_KINDS: { [string]: string } = {
 -- Flags[FIRST_WIN_FLAG] = true once the first win's Rare block was given (Config.BlockOdds
 -- .Drop.FirstWin). Kept apart from Progress.Wins so a first win that an anti-farm rule kept
 -- from dropping a block does not use it up (BlockDrop.DropContext.firstWinEver).
-local FIRST_WIN_FLAG = "FirstWinBlock"
+local FIRST_WIN_FLAG = "FirstWinBlock" -- RewardView.FirstWinFlag
 -- GUI lane (designer 2026-10-03): Flags[INVITER_FLAG] once the inviter's reward was given
 -- (Config.Social.InviterOnce), Flags[FAVORITE_FLAG] once the favorite reward was.
 local INVITER_FLAG = "InviterRewarded" -- RewardView.InviterFlag

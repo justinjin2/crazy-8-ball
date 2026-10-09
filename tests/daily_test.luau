@@ -778,6 +778,13 @@ return {
 		H.expect(p.trackDays == 28 and p.trackPlace == 0 and #p.track == 4, "the 28-day track")
 		H.expect(p.track[1].day == 8 and not p.track[1].reached, "day 8 to come")
 		H.expect(p.wins.given == 0 and #p.wins.kinds == 10, "the win track's bar")
+		-- The win track's tiles: money between the blocks; the first win's Rare while it is due.
+		local due = RewardView.wins({ Track = 0 }, {})
+		H.expect(due.kinds[1] == "Rare" and due.kinds[2] == "Money", "the first win's Rare")
+		local given = RewardView.wins({ Track = 0 }, { [RewardView.FirstWinFlag] = true })
+		H.expect(given.kinds[1] == "Uncommon" and given.kinds[10] == "Epic", "the day's steps")
+		local later = RewardView.wins({ Track = 3 }, {})
+		H.expect(later.given == 3 and later.kinds[4] == "Rare", "still due at step 4")
 		-- With a join day, a new player's tiles are the first week's.
 		local unplayed = { Day = TODAY, PlaySeconds = 0, PlaytimeClaimed = {} }
 		local new = RewardView.build(fresh(), unplayed, {}, NOW, false, nil, false, nil, {

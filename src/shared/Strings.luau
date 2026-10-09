@@ -271,11 +271,11 @@ return {
 	},
 	-- The developer chat commands' private replies (DevCommands; shown only to the caller).
 	Dev = {
-		Help = "Rank and money commands: /rank <tier> [1-5] [xp], /rank unranked, /xp <amount>, /money <amount>, /addmoney <amount>, /result win|lose|draw|firstwin, /newrank [tier] [1-5], /resetdata. Economy commands: /econhelp. Ability commands: /abilityhelp. Put a player's username last to give it to them instead (/rank, /xp, /money, /addmoney, /givecue, /giveblock, /spins, /lucky, /ability, /abilitysetup).",
+		Help = "Rank and money commands: /rank <tier> [1-5] [xp], /rank unranked, /xp <amount>, /money <amount>, /addmoney <amount>, /result win|lose|draw|firstwin|track, /newrank [tier] [1-5], /resetdata. Economy commands: /econhelp. Ability commands: /abilityhelp. Put a player's username last to give it to them instead (/rank, /xp, /money, /addmoney, /givecue, /giveblock, /spins, /lucky, /ability, /abilitysetup).",
 		BadRank = "Try /rank gold 3, /rank reyes or /rank unranked.",
 		BadAmount = "Give a whole number, like %s 500.",
 		XpNeverLost = "XP is never lost: give a gain, like %s 250.",
-		BadResult = "Try /result win, /result lose, /result draw or /result firstwin; a loss may add early, pocket, foul or off.",
+		BadResult = "Try /result win, /result lose, /result draw, /result firstwin or /result track; a loss may add early, pocket, foul or off.",
 		NotLoaded = "Your save is not loaded yet.",
 		RankSet = "Rank set to %s.",
 		MoneySet = "Money set to %s.",
@@ -496,6 +496,7 @@ return {
 		BallStreakLine = "Streak bonus (best x%d)",
 		WinBonus = "Win bonus",
 		LossBonus = "Match bonus",
+		TrackLine = "Win track", -- the win track's money step (economy v5): "Win track +$1,000"
 		StreakLine = "Win streak", -- the win-streak money (ECONOMY 3.1), from the 3rd win in a row
 		RankReward = "Rank reward",
 		Total = "Total",
@@ -1064,8 +1065,6 @@ return {
 	WinTrack = {
 		Wins = "Wins %d/%d", -- the bar's left pill (the designer's pick A)
 		NextTag = "NEXT", -- the gold tag on the next step's tile
-		Count = "Lucky Blocks today %d/%d",
-		Next = "Next win: %s", -- the next step's block name
 		Done = "%d/%d · wins pay money and XP today",
 		ResetsIn = "New day in %s",
 		ResetsAbove = "Resets in", -- over the clock pill

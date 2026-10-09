@@ -356,7 +356,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
 - [x] 5. The Grand Opening Luck clover.
 - [x] 6. The shop: the Mystery band, the restock, VIP, the Grand Opening and Starter cards, the
   skip dialog (shims 8 and 9 gone).
-- [ ] 7. The win track and the result screen (shim 5 gone).
+- [x] 7. The win track and the result screen (shim 5 gone).
 - [ ] 8. Free Reward (shim 7 gone).
 - [ ] 9. Cues and the Index.
 - [ ] 10. Rank rewards and every other block or reward display.
@@ -476,4 +476,15 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
     was changed; worth a look in the Creator Hub's price settings.
   - Studio shows the Grand Opening deal open ("Ends in 29d 23h", `StudioOpening`) while the
     luck is off (Config's `StartsAt` 0); live, one date starts both.
+- **Step 7**: the win track reads each step's kind from `RewardState`'s `wins.kinds`; a money
+  step is the cash bundle (smaller, higher) over "$1K" in the money green
+  (`UI.WinTrack.MoneyIcon*`, `MoneyText*`), faded under its tick once given; the folded pill's
+  "Next ->" shows the cash bundle when the next step is money (it hid before). The server's
+  `RewardView.wins` puts the first win's Rare at the next step while it is due (Flags without
+  `FirstWinBlock`, now `RewardView.FirstWinFlag`), so a new player's tile 1 shows the Rare they
+  will get (3 test lines in `daily_test`). The result screen: "Win track +$1,000" on its own
+  line after the win bonus, counted in the HUD's expected money; `Ranking` no longer adds it to
+  `bonus` (shim 5 gone). `/result track` previews a money-step win. Unused `WinTrack.Count` and
+  `Next` strings gone. Checked on PC (the open bar at 3/10, the folded pill on a money step, the
+  result screen); console clean. Lint OK, 1160 tests. Shots: `step7/`.
 

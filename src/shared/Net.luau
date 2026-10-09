@@ -72,8 +72,9 @@ local REMOTES: { [string]: string } = {
 	--   {{kind = "Streak", share}}, boostTotal}},
 	-- money = {balls, ballMoney, nice, niceMoney, ballStreakMoney and bestStreak (the ball
 	--   streak's bonus and the best level it paid at; the pots, paid live), bonus (win or loss),
-	--   streak (the win-streak bonus), reward (rank-up money), boost (the money boost share
-	--   applied at the end: VIP + Money Party, 0..2), total (all of them added)},
+	--   track? (the win track's money step, economy v5), streak (the win-streak bonus), reward
+	--   (rank-up money), boost (the money boost share applied at the end: VIP + Money Party,
+	--   0..2), total (all of them added)},
 	-- block? = { kind, readyAt } (the win's lucky block, already in the hotbar: a Mystery
 	-- block, the first win's Rare one; readyAt in unix seconds, 0 = ready now),
 	-- rematch, arena, series? = {wins = {team 1, team 2}, games}}.

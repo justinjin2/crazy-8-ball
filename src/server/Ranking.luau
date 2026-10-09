@@ -600,10 +600,8 @@ local function settle(e: any)
 				niceMoney = tally.niceMoney,
 				ballStreakMoney = tally.ballStreakMoney,
 				bestStreak = tally.bestStreak,
-				-- The win track's money step (economy v5) rides in the win bonus's line until
-				-- the result screen draws its own (a shim; `track` is that money alone).
-				bonus = paid.bonus + (paid.trackMoney or 0),
-				track = paid.trackMoney,
+				bonus = paid.bonus,
+				track = paid.trackMoney, -- the win track's money step (economy v5), its own line
 				streak = paid.streak,
 				reward = reward,
 				boost = paid.boost,
