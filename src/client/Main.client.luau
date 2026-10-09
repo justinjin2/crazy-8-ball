@@ -1659,6 +1659,15 @@ require(script.Parent.GuiQA).add("aim", function(angle: number?, pull: number?)
 	refreshAim()
 	return input.angle
 end)
+-- "turn" turns the aim `degrees` in `steps` small turns, as a drag does (the aim tick's path).
+require(script.Parent.GuiQA).add("turn", function(degrees: number?, steps: number?)
+	local n = steps or 10
+	for _ = 1, n do
+		input:rotate((degrees or 2) / n)
+		task.wait(0.05)
+	end
+	return input.angle
+end)
 require(script.Parent.GuiQA).add("camera", function(cf: CFrame?)
 	Camera.setOverride(if typeof(cf) == "CFrame" then cf else nil, 1)
 	return cf ~= nil
