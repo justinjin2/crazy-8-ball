@@ -3608,3 +3608,5 @@ timer of a new block stay the designer's call.
 - 2026-10-08: A VIP tag sits over the money pill (perks on hover or press). VIP's pots show the
   plain pay, a gold x2, then the doubled pay. `Money.shotPay` gives each grant its pay without
   VIP (`plain`).
+- 2026-10-09: Pressing any Robux button plays the designer's "Gentle Metallic Bell Splash"
+  (`Config.Audio.Ui.RobuxBuy`).
