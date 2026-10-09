@@ -576,6 +576,12 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		Menus.open(NAME, "Cues")
 		return pages.Cues:show(cueId)
 	end)
+	-- The Index with `cueId` chosen (its panel: the card, the rarity, the odds or day line).
+	GuiQA.add("cuesIndex", function(cueId: string)
+		Menus.open(NAME, "Index")
+		pages.Index:choose(cueId)
+		return pages.Index.chosen
+	end)
 	-- `amount` money flies out of Sell dupes into the header's cash, as after a sale (the server
 	-- pays nothing: the count only rises as far as the true total).
 	GuiQA.add("cuesFly", function(amount: number?)

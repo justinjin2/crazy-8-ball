@@ -938,6 +938,10 @@ return {
 			FindReward = "Find it for +%s", -- a cue not found yet: its finder's money ("$250")
 			-- The chosen cue's big card (GUI lane, 2026-10-03).
 			Odds = "%s chance", -- a cue's rarity per Mystery block: "4.2% chance"
+			-- A cue the first week gives (economy v5: the Week One Cue on day 7): its card's chip
+			-- and its line in the details and the Index, in place of a chance.
+			FirstWeekChip = "Day %d",
+			FirstWeekOdds = "Day %d of your first week",
 			Joined = "%s · %s", -- the chance and how many exist: "4.2% chance · 1,284 exist"
 			SellSome = "Sell", -- opens the count chooser (any copy, the last one too)
 			SellCount = "Sell %s for %s", -- the count and the money: "Sell 3 for $360"

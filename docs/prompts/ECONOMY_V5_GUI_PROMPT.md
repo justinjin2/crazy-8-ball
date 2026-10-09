@@ -358,7 +358,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   skip dialog (shims 8 and 9 gone).
 - [x] 7. The win track and the result screen (shim 5 gone).
 - [x] 8. Free Reward (shim 7 gone).
-- [ ] 9. Cues and the Index.
+- [x] 9. Cues and the Index.
 - [ ] 10. Rank rewards and every other block or reward display.
 - [ ] 11. Every word (the Strings sweep).
 - [ ] 12. The merge with `tutorial-v2` (the designer's yes), checked in Studio.
@@ -499,4 +499,11 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   Uncommon, Claim All's live price; FreePlaytime and FreeTrack unchanged. Checked on PC with a
   made-up first week (`rewardsPatch`) and the real later week; console clean. Lint OK, 1160
   tests. `Config.Daily.WeekBonus` is still unread (left for the docs step). Shots: `step8/`.
+- **Step 9**: a cue the first week gives (the Week One Cue) shows "Day 7" on its card's chip
+  and "Day 7 of your first week" in the big card and the Index panel, in place of Legendary's
+  chance (`InventoryCues.chanceText`, `oddsLine`; the day read from `Config.Daily.FirstWeek`);
+  every block cue's chance chip and line is live with the Grand Opening Luck
+  (`BlockDrop.rarityPercent` with `luck`). New GuiQA hook `cuesIndex` (cueId) chooses a cue in
+  the Index. Checked on PC (the Legendary row, 7/8, the Week One Cue chosen); console clean.
+  Lint OK, 1160 tests. Shots: `step9/`.
 

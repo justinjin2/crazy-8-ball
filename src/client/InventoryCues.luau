@@ -161,9 +161,21 @@ local function copyLine(row: any): string
 		else ""
 end
 
--- A rarity's chance per Mystery block as words: "4.2%" (two significant digits under 1%).
+-- The first week's day that gives cue `id` (the Week One Cue: 7), else nil.
+local function firstWeekDay(id: string): number?
+	for day, row in Config.Daily.FirstWeek do
+		if row.Cues and table.find(row.Cues, id) then
+			return day
+		end
+	end
+	return nil
+end
+
+-- A rarity's chance per Mystery block as words: "4.2%" (two significant digits under 1%),
+-- live during the Grand Opening Luck.
 local function percentWords(rarity: string): string
-	local p = BlockDrop.rarityPercent(rarity)
+	local luck = BlockDrop.luckLive(workspace:GetServerTimeNow())
+	local p = BlockDrop.rarityPercent(rarity, { luck = luck })
 	if p <= 0 then
 		return "0%"
 	elseif p >= 10 then
@@ -176,12 +188,16 @@ local function percentWords(rarity: string): string
 end
 
 --- A cue's chance chip on its card (concept 1, 2026-10-08): its rarity's chance per Mystery
---- block ("4.2%"), a Unique cue's chance in the Grand Opening block, nil for a cue no block
---- drops (Ranked, Exclusive, Classic).
+--- block ("4.2%"), a Unique cue's chance in the Grand Opening block, the first week's day for
+--- a login cue ("Day 7": the Week One Cue), nil for a cue no block drops (Ranked, Exclusive,
+--- Classic).
 function InventoryCues.chanceText(id: string): string?
 	local cue = Catalog.get(id)
+	local day = firstWeekDay(id)
 	if not cue then
 		return nil
+	elseif day then
+		return WORDS.FirstWeekChip:format(day)
 	elseif cue.Group == "Unique" then
 		for _, row in BlockOdds.uniqueRows("GrandOpening") do
 			if row.cue == id then
@@ -195,10 +211,14 @@ function InventoryCues.chanceText(id: string): string?
 	return percentWords(cue.Rarity)
 end
 
---- A cue's odds line: "<font color>4.2%</font> chance" (rich text).
+--- A cue's odds line: "<font color>4.2%</font> chance" (rich text); a login cue's day ("Day 7 of
+--- your first week").
 function InventoryCues.oddsLine(id: string): string?
 	local cue = Catalog.get(id)
-	if
+	local day = firstWeekDay(id)
+	if cue and day then
+		return WORDS.FirstWeekOdds:format(day)
+	elseif
 		not cue
 		or cue.Group == "Exclusive"
 		or cue.Group == "Unique"
