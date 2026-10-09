@@ -46,11 +46,13 @@ local Simulation = H.require("Physics.Simulation")
 local TableGeometry = H.require("Physics.Table")
 local ShotInput = H.require("ShotInput")
 local Judge = H.require("Rules.ShotJudge")
+local CuePlacement = H.require("Rules.CuePlacement")
 local Arming = H.require("Ults.Arming")
 local Catalog = H.require("Ults.Catalog")
 local Match = H.require("Ults.Match")
 local TimeStop = H.require("Ults.Effects.TimeStop")
 local Magnet = H.require("Ults.Effects.Magnet")
+local ChainLightning = H.require("Ults.Effects.ChainLightning")
 
 local V = {}
 
@@ -501,7 +503,7 @@ function V.candidates(
 				local cueBlocked = not passed
 					and segmentDistance(b.x, b.y, cx, cy, gx, gy) < D - 1e-6
 				-- Ghost's CarryPhase: the ball hit passes through the same balls.
-				local objPassed = passed and Config.Ults.Ghost.CarryPhase
+				local objPassed = false
 				local objBlocked = not objPassed
 					and segmentDistance(b.x, b.y, ob.x, ob.y, pk.mx, pk.my) < D - 1e-6
 				if cueBlocked or objBlocked then
@@ -814,6 +816,23 @@ end
 
 V.planners = {} :: { [string]: Planner }
 
+-- The launch abilities this planner is used for (by ult id; they have no pick). Fire Shot's
+-- doubled launch overhits a pot planned for the plain stroke, so the careful shooter also tries
+-- the stroke pulled to its planned speed over LaunchSpeedScale (the same speed off the cue
+-- after the doubling), as a player who knows the ability does; the careless one hits as it
+-- always does. Black Flash (3x) is measured without it: it shatters the first ball whatever
+-- the speed.
+V.LAUNCH_PLANNED = { FireShot = true } :: { [string]: boolean }
+V.planners.Launch = function(_ts: TableState, plan: Plan, careful: boolean): { Plan }
+	if not careful then
+		return { plan }
+	end
+	local k = Config.Ults.FireShot.LaunchSpeedScale
+	local soft = table.clone(plan)
+	soft.power = V.powerForSpeed(Cue.speedForPower(plan.power) / k)
+	return { soft, plan }
+end
+
 -- Heat Seeker: lock on to the shot's own object ball.
 V.planners.OwnBall = function(ts: TableState, plan: Plan, _careful: boolean): { Plan }
 	local request = { ball = plan.ball }
@@ -823,7 +842,9 @@ end
 
 -- Portals. First the shortcut for the object ball: A a little way ahead of it on its wanted
 -- heading, B the same heading a little way short of its pocket's mouth, so it comes out
--- already lined up and close (its aim error then only counts over the two short stretches).
+-- already lined up and close (its aim error then only counts over the two short stretches),
+-- or B a short way out of any pocket's mouth (the exit lines it up); with no pot, A ahead of
+-- the ball its safe hit sends straight on.
 -- Then the cue ball's shortcut: A on its path to the contact, B on the same line a short way
 -- before the ghost ball (a shorter shot). The careful shooter also tries a pair parked out of
 -- the way.
@@ -837,23 +858,61 @@ V.planners.Portals = function(ts: TableState, plan: Plan, careful: boolean): { P
 			pocket = p
 		end
 	end
-	if object and pocket and not plan.safe then
-		local ux, uy = math.cos(plan.phi), math.sin(plan.phi)
-		local mx, my = Magnet.mouthPoint(geometry, pocket)
-		for _, pair in { { 4.5, 7 }, { 6, 10 }, { 4.5, 12 } } do
-			local request = {
-				ax = object.x + ux * pair[1],
-				ay = object.y + uy * pair[1],
-				bx = mx - ux * pair[2],
-				by = my - uy * pair[2],
-			}
-			local pick = Arming.pick("Portals", request, geometry, ts.groups, 1, ts.balls)
-			if pick then
-				table.insert(out, withPick(plan, pick, request))
-				if #out >= want then
-					return out
+	-- B spots on each pocket's axis a short way out of its mouth: the exit lines a ball of yours
+	-- up (the Rare+ buff of 2026-10-08), so any open line in will do.
+	local axisExits = {}
+	for _, p in geometry.pockets do
+		local px, py = Magnet.mouthPoint(geometry, p)
+		local sy = if p.y > 0 then -1 else 1
+		local ax, ay = 0, sy
+		if p.x ~= 0 then
+			ax, ay = (if p.x > 0 then -1 else 1) * math.sqrt(0.5), sy * math.sqrt(0.5)
+		end
+		table.insert(axisExits, { px + ax * 9, py + ay * 9 })
+	end
+	-- A a short way ahead of the object ball along (ux, uy), B at each of `exits` in turn.
+	local function tryPairs(ux: number, uy: number, exits: { { number } }): boolean
+		for _, ahead in { 3.5, 4.5, 6 } do
+			for _, exit in exits do
+				local request = {
+					ax = (object :: any).x + ux * ahead,
+					ay = (object :: any).y + uy * ahead,
+					bx = exit[1],
+					by = exit[2],
+				}
+				local pick = Arming.pick("Portals", request, geometry, ts.groups, 1, ts.balls)
+				if pick then
+					table.insert(out, withPick(plan, pick, request))
+					if #out >= want then
+						return true
+					end
 				end
 			end
+		end
+		return false
+	end
+	if object and pocket and not plan.safe then
+		-- Its pot: on its wanted heading, B short of the mouth on that heading, then the axes.
+		local ux, uy = math.cos(plan.phi), math.sin(plan.phi)
+		local mx, my = Magnet.mouthPoint(geometry, pocket)
+		local exits = {}
+		for _, before in { 7, 10, 12 } do
+			table.insert(exits, { mx - ux * before, my - uy * before })
+		end
+		for _, e in axisExits do
+			table.insert(exits, e)
+		end
+		if tryPairs(ux, uy, exits) then
+			return out
+		end
+	elseif object and plan.safe then
+		-- No pot: its soft full hit on its own ball sends that ball straight on from the cue
+		-- ball, through A, out of B lined up.
+		local cueBall = findBall(ts.balls, 0)
+		local dx, dy = object.x - cueBall.x, object.y - cueBall.y
+		local d = math.sqrt(dx * dx + dy * dy)
+		if d > 1e-6 and tryPairs(dx / d, dy / d, axisExits) then
+			return out
 		end
 	end
 	local cue = findBall(ts.balls, 0)
@@ -935,9 +994,61 @@ local function fakeTable(ts: TableState, ultId: string, pick: { number }?, calle
 	}
 end
 
---- The pot the model shooter plays in stopped time (Time Stop's second strike), from the
---- frozen table: its best pot from where the cue ball is frozen, with fresh noise; nil when
---- it has none (then time simply resumes).
+-- The surest touch in stopped time (a ball of yours the cue ball touches there rolls into a
+-- pocket when time resumes: the Rare+ buff, 2026-10-08): a soft full hit on the nearest of
+-- your balls with a clear path from the cue ball and a clear line on into some pocket, judged
+-- as the effect judges it at the touch (ChainLightning.lineUp, the cue ball against the ball).
+-- Nil when none has both.
+local function sendPlan(sim: any, ts: TableState, frozen: { any }): Plan?
+	local cue = findBall(frozen, 0)
+	local liveCue = findBall(sim.balls, 0)
+	local best, bestD = nil, math.huge
+	for _, id in V.ownIds(ts, frozen) do
+		local b = findBall(frozen, id)
+		local d = math.sqrt((b.x - cue.x) ^ 2 + (b.y - cue.y) ^ 2)
+		if d >= bestD or d < 1e-6 then
+			continue
+		end
+		local clear = true
+		for _, o in frozen do
+			if
+				not o.pocketed
+				and o.id ~= 0
+				and o.id ~= id
+				and segmentDistance(o.x, o.y, cue.x, cue.y, b.x, b.y) < D
+			then
+				clear = false
+				break
+			end
+		end
+		local live = findBall(sim.balls, id)
+		if clear and live and liveCue then
+			local ux, uy = (b.x - cue.x) / d, (b.y - cue.y) / d
+			local cx, cy = liveCue.x, liveCue.y
+			liveCue.x, liveCue.y = b.x - ux * D, b.y - uy * D
+			local lined = ChainLightning.lineUp(sim, live, ux, uy)
+			liveCue.x, liveCue.y = cx, cy
+			if lined ~= nil then
+				best, bestD = b, d
+			end
+		end
+	end
+	if best == nil then
+		return nil
+	end
+	local plan = V.safePlan(ts, frozen)
+	plan.angle = math.atan2(best.y - cue.y, best.x - cue.x)
+	plan.power = V.powerForSpeed(V.SAFE_SPEED + V.SAFE_SPEED_PER_INCH * bestD)
+	plan.ball = best.id
+	plan.dc = bestD
+	plan.ghostX, plan.ghostY = best.x, best.y
+	return plan
+end
+
+--- The strike the model shooter plays in stopped time (Time Stop's second strike), from the
+--- frozen table, with fresh noise: the surest touch on a ball of its own (sendPlan), else its
+--- best pot from where the cue ball is frozen, else its soft hit on its nearest own ball; nil
+--- when it has none of them (then time simply resumes).
 function V.secondStrike(sim: any, ts: TableState, skill: number, draw: () -> number): Cue.Shot?
 	local cue = findBall(sim.balls, 0)
 	if cue == nil or cue.pocketed then
@@ -947,8 +1058,8 @@ function V.secondStrike(sim: any, ts: TableState, skill: number, draw: () -> num
 	for _, b in frozen do
 		Ball.stop(b)
 	end
-	local plan = V.shots(ts, 1, frozen)[1]
-	if plan.safe then
+	local plan = sendPlan(sim, ts, frozen) or V.shots(ts, 1, frozen)[1]
+	if plan == nil then
 		return nil
 	end
 	return V.noisy(plan, skill, draw(), draw())
@@ -1106,7 +1217,61 @@ function V.inert(ultId: string): boolean
 		return true
 	end
 	local raw = Config.Ults.Catalog[ultId] :: any
-	return type(row.Effect) ~= "string" and not raw.Redo
+	return type(row.Effect) ~= "string" and not raw.Redo and not row.Sneak
+end
+
+-- How many ball-in-hand spots Look Over There!'s shooter weighs (V.sneakSpots).
+V.SNEAK_SPOTS = 8
+
+--- Look Over There! (a Sneak row; the designer's second rework round, 2026-10-08): sneaky
+--- ball in hand, the cue ball moved anywhere before the shot. The spots tried are the bots'
+--- (Bots/Brain.placeCue): behind each of the shooter's balls on its line from each pocket's
+--- mouth, 7 and 14 in back from contact, where the cue ball may legally go (CuePlacement);
+--- the shortest runs to the pocket first, at most V.SNEAK_SPOTS. Returns the table with the
+--- cue ball on each spot (the shooter then weighs every plan from each).
+function V.sneakSpots(ts: TableState): { TableState }
+	local spots: { { x: number, y: number, run: number } } = {}
+	for _, id in V.ownIds(ts) do
+		local ob = findBall(ts.balls, id)
+		for _, pk in POCKETS do
+			local ox, oy = pk.mx - ob.x, pk.my - ob.y
+			local d = math.sqrt(ox * ox + oy * oy)
+			if d < 1e-6 then
+				continue
+			end
+			for _, back in { 7, 14 } do
+				local x, y = ob.x - ox / d * (D + back), ob.y - oy / d * (D + back)
+				if CuePlacement.valid(ts.balls, geometry, x, y, false) then
+					table.insert(spots, { x = x, y = y, run = d + back * 0.01 })
+				end
+			end
+		end
+	end
+	-- Shortest first; ties keep the order found (an insertion sort: stable).
+	for i = 2, #spots do
+		local item = spots[i]
+		local j = i - 1
+		while j >= 1 and spots[j].run > item.run do
+			spots[j + 1] = spots[j]
+			j -= 1
+		end
+		spots[j + 1] = item
+	end
+	local out: { TableState } = {}
+	for i = 1, math.min(#spots, V.SNEAK_SPOTS) do
+		local balls = Ball.cloneList(ts.balls)
+		local cue = findBall(balls, 0)
+		cue.x, cue.y = spots[i].x, spots[i].y
+		table.insert(out, {
+			family = ts.family,
+			index = ts.index,
+			balls = balls,
+			groups = ts.groups,
+			open = ts.open,
+			onEight = ts.onEight,
+		})
+	end
+	return out
 end
 
 local function drawer(seed: number): () -> number
@@ -1408,7 +1573,13 @@ function V.measure(ultId: string, options: Options?): Report
 	local row = Catalog.get(ultId)
 	assert(row, "unknown ult " .. ultId)
 	local inert = V.inert(ultId) and not opts.simulateInert
-	local planner = if row.Pick and row.Built then V.planners[row.Pick] else nil
+	local planner = if row.Pick and row.Built
+		then V.planners[row.Pick]
+		elseif row.Built and V.LAUNCH_PLANNED[ultId] then V.planners.Launch
+		else nil
+	-- Look Over There! has no shot of its own: sneaky ball in hand (V.sneakSpots), then the
+	-- shooter's plain shot from the spot it likes best (the same noise as without).
+	local sneak = row.Built and row.Sneak == true
 	local wantCareful, wantCareless = false, false
 	for _, s in shooters do
 		wantCareful = wantCareful or s == "careful"
@@ -1457,6 +1628,16 @@ function V.measure(ultId: string, options: Options?): Report
 				cache[base .. tag .. ":plans"] = ultPlans
 			end
 		end
+		-- Look Over There!: each ball-in-hand spot's table and its plans.
+		local spotPlans: { { ts: TableState, plans: { Plan } } } = {}
+		if sneak then
+			for j, moved in V.sneakSpots(ts) do
+				local key = ("%s:sneak%d:plans"):format(base, j)
+				local list = cache[key] or V.shots(moved, topK)
+				cache[key] = list
+				table.insert(spotPlans, { ts = moved, plans = list })
+			end
+		end
 		for _, s in skills do
 			local zr = V.rng(V.seedOf(seed, i, s, 7))
 			local z1, z2 = V.gauss(zr), V.gauss(zr)
@@ -1468,6 +1649,51 @@ function V.measure(ultId: string, options: Options?): Report
 					cache[key] = r
 				end
 				return r
+			end
+
+			if sneak then
+				-- The careless shooter puts the cue ball where the first shot on the list scores
+				-- best and plays it; the careful one plays its best pot by its own estimate over
+				-- every spot. With no legal spot at all the cue ball stays: a plain shot.
+				local function sneaked(useBest: boolean): Result?
+					local bj, bk, value = nil, nil, -math.huge
+					for j, sp in spotPlans do
+						for k, plan in sp.plans do
+							if not useBest and k > 1 then
+								break
+							end
+							local v = if useBest then V.potChance(plan, s) else plan.score
+							if v > value then
+								bj, bk, value = j, k, v
+							end
+						end
+					end
+					if bj == nil or bk == nil then
+						return nil
+					end
+					local sp = spotPlans[bj]
+					return V.play(sp.ts, sp.plans[bk], s, z1, z2, nil, drawer(measuredDraws))
+				end
+				local function best(list: { Plan }): number
+					local k, value = 1, -math.huge
+					for j, plan in list do
+						local v = V.potChance(plan, s)
+						if v > value then
+							k, value = j, v
+						end
+					end
+					return k
+				end
+				if wantCareless then
+					local without = plain(plans[1], ("%s:%d:plain1"):format(base, s))
+					add(accs[s].careless, sneaked(false) or without, without)
+				end
+				if wantCareful then
+					local k = best(plans)
+					local without = plain(plans[k], ("%s:%d:plain%d"):format(base, s, k))
+					add(accs[s].careful, sneaked(true) or without, without)
+				end
+				continue
 			end
 			local function withUlt(plan: Plan, plainResult: Result): Result
 				if inert then

@@ -18,6 +18,9 @@
 --     Shared.FrozenSeconds, time resuming by itself as it gets back to 12; after the strike it
 --     runs the rest of the way round as time resumes. A slow tick each second, and every ball
 --     caught moving shows afterimages behind it. The second strike's cue ball draws a violet trail.
+--   * A ball of yours the stopped-time strike touches is sent (the Rare+ buff, event "sent"):
+--     a white line in a violet glow draws itself from it to its pocket with a high tick and a
+--     flare at the pocket, and stays on it until it drops.
 --   * The resume: a second negative flash with a reversed whoosh into a tick-tock, the bubble
 --     comes back huge and collapses onto the cue ball, and the colour snaps back.
 -- Every table's parts hang off its AbilityFx anchor and go with it (kit.onRelease) or with
@@ -61,6 +64,17 @@ end
 
 type Meshes = { parts: { [string]: MeshPart }, sizes: { [string]: Vector3 } }
 
+-- A ball of yours sent in stopped time: the line from it to its pocket.
+type Send = {
+	ball: number,
+	from: Attachment,
+	to: Attachment,
+	target: Vector3,
+	beams: { Beam },
+	born: number, -- os.clock()
+	fading: number?,
+}
+
 type TableFx = {
 	anchor: BasePart,
 	bubble: MeshPart?,
@@ -68,6 +82,7 @@ type TableFx = {
 	hand: MeshPart?,
 	ghosts: { BasePart },
 	trail: { part: Part, trail: Trail }?,
+	sends: { Send },
 	handles: { any }, -- the stopped time's screen (grade, lens), released on the resume
 	look: number, -- the armed bubble's opacity
 	spin: number,
@@ -75,6 +90,7 @@ type TableFx = {
 	contactAt: number?, -- os.clock() of this shot's first contact
 	frozeAt: number?, -- os.clock() of the freeze
 	resumedAt: number?, -- os.clock() of the resume
+	resumedShot: number?, -- the replay's time at the resume (the send lines' hold)
 	burstFrom: number, -- the bubble's size (studs) as it burst
 	centre: Vector3?, -- the frozen cue ball (the clock's middle)
 	nextTick: number,
@@ -178,6 +194,7 @@ local function create(self: TimeStopFx, id: number): TableFx
 		hand = nil,
 		ghosts = {},
 		trail = nil,
+		sends = {},
 		handles = {},
 		look = 0,
 		spin = 0,
@@ -185,6 +202,7 @@ local function create(self: TimeStopFx, id: number): TableFx
 		contactAt = nil,
 		frozeAt = nil,
 		resumedAt = nil,
+		resumedShot = nil,
 		burstFrom = 0,
 		centre = nil,
 		nextTick = 0,
@@ -210,6 +228,22 @@ local function dropTrail(fx: TableFx)
 	end
 end
 
+-- A send line's beams sit beside its attachments (kit.beam), so both go.
+local function dropSend(send: Send)
+	for _, beam in send.beams do
+		beam:Destroy()
+	end
+	send.from:Destroy()
+	send.to:Destroy()
+end
+
+local function dropSends(fx: TableFx)
+	for _, send in fx.sends do
+		dropSend(send)
+	end
+	table.clear(fx.sends)
+end
+
 local function releaseScreen(fx: TableFx)
 	for _, h in fx.handles do
 		h:release()
@@ -226,6 +260,7 @@ local function destroy(self: TimeStopFx, id: number)
 	releaseScreen(fx)
 	dropGhosts(fx)
 	dropTrail(fx)
+	dropSends(fx)
 	for _, part in { fx.bubble, fx.face, fx.hand } do
 		if part then
 			part:Destroy()
@@ -372,6 +407,7 @@ end
 local function resume(self: TimeStopFx, id: number, fx: TableFx, m: any)
 	fx.resumed = true
 	fx.resumedAt = os.clock()
+	fx.resumedShot = m.state.time
 	releaseScreen(fx)
 	dropGhosts(fx)
 	dropTrail(fx)
@@ -383,6 +419,86 @@ local function resume(self: TimeStopFx, id: number, fx: TableFx, m: any)
 	self.kit.later(id, F.ResumeTickDelay, function()
 		playTable(self, id, m, A.TimeTickTock)
 	end)
+end
+
+-- A ball of yours touched in stopped time is sent (event "sent": ball, other = its pocket): a
+-- line draws itself from it to the pocket, with a high tick and a flare at the pocket.
+local function send(self: TimeStopFx, id: number, fx: TableFx, m: any, ev: any)
+	local kit = self.kit
+	local pocket = kit.pocketOf(m, ev.other)
+	if pocket == nil or type(ev.x) ~= "number" or type(ev.y) ~= "number" then
+		return
+	end
+	local at = kit.tableWorld(m, ev.x, ev.y, F.SendLiftInches)
+	local target = kit.tableWorld(m, pocket.x, pocket.y, F.SendLiftInches)
+	local from = kit.attachment(id, "TimeSendFrom", at)
+	local to = kit.attachment(id, "TimeSendTo", at)
+	local bw = ballWidth()
+	local beams = {}
+	local layers: { { width: number, color: { number }, alpha: number } } = {
+		{ width = F.SendGlowBallWidths, color = F.SendGlowColor, alpha = F.SendGlowTransparency },
+		{ width = F.SendCoreBallWidths, color = F.SendCoreColor, alpha = F.SendCoreTransparency },
+	}
+	for _, layer in layers do
+		table.insert(
+			beams,
+			kit.beam(from, to, {
+				Width0 = bw * layer.width,
+				Width1 = bw * layer.width,
+				Color = ColorSequence.new(rgb(layer.color)),
+				Transparency = NumberSequence.new(layer.alpha),
+			})
+		)
+	end
+	table.insert(fx.sends, {
+		ball = ev.ball,
+		from = from,
+		to = to,
+		target = target,
+		beams = beams,
+		born = os.clock(),
+		fading = nil,
+	})
+	if not fx.quiet then
+		playAt(self, id, A.TimeTick, at, F.SendPitch)
+		kit.burstLight(target, rgb(F.SendGlowColor), bw * 6, 3, F.SendDrawSeconds * 2)
+	end
+end
+
+-- The sent lines: drawn in toward the pocket, following the ball, until it drops (or a while
+-- after the resume), then fading.
+local function stepSends(self: TimeStopFx, fx: TableFx, m: any, t: number)
+	local kit = self.kit
+	for i = #fx.sends, 1, -1 do
+		local s = fx.sends[i]
+		local ball = kit.ballOf(m, s.ball)
+		-- The hold runs on the replay's time, so /slowmo and /hold keep the line with its ball.
+		local since = if fx.resumedShot then m.state.time - fx.resumedShot else nil
+		local gone = ball == nil
+			or ball.pocketed
+			or (since ~= nil and (since < 0 or since > F.SendHoldSeconds))
+		if gone and s.fading == nil then
+			s.fading = t
+		end
+		local shown = 1
+		if s.fading then
+			shown = 1 - math.clamp((t - s.fading) / F.SendFadeSeconds, 0, 1)
+		end
+		if shown <= 0 then
+			dropSend(s)
+			table.remove(fx.sends, i)
+			continue
+		end
+		if ball and not ball.pocketed then
+			s.from.WorldPosition = kit.tableWorld(m, ball.x, ball.y, F.SendLiftInches)
+		end
+		local u = easeOut(math.clamp((t - s.born) / F.SendDrawSeconds, 0, 1))
+		s.to.WorldPosition = s.from.WorldPosition:Lerp(s.target, u)
+		for k, beam in s.beams do
+			local base = if k == 1 then F.SendGlowTransparency else F.SendCoreTransparency
+			beam.Transparency = NumberSequence.new(base + (1 - base) * (1 - shown))
+		end
+	end
 end
 
 -- The second strike's cue ball: a violet trail while it moves in stopped time.
@@ -443,6 +559,8 @@ function TimeStopFx.start(hub: any, _parent: Instance, kit: any): TimeStopFx
 			fx.quiet = fx.quiet or late
 			freeze(self, tableId, fx, m)
 			fx.handFrom = fx.frozeAt
+		elseif ev.type == "ult" and ev.kind == "sent" and fx.frozeAt then
+			send(self, tableId, fx, m, ev)
 		elseif ev.type == "ult" and ev.kind == "strikeFrozen" and fx.frozeAt then
 			if fx.struck < S.TimeStopStrikes then
 				-- A strike's part is done with strikes left: the hand sweeps the next window
@@ -523,12 +641,14 @@ function TimeStopFx.update(self: TimeStopFx, dt: number)
 			-- A new Time Stop shot: a replay that began long ago (a late join) stays quiet.
 			live.shotSeq = m.seq
 			live.contactAt, live.frozeAt, live.resumedAt = nil, nil, nil
+			live.resumedShot = nil
 			live.struck, live.resumed, live.handFrom = 0, false, nil
 			live.finishFrom, live.finishAt = nil, nil
 			live.quiet = m.state.time > F.FreshSeconds
 			releaseScreen(live)
 			dropGhosts(live)
 			dropTrail(live)
+			dropSends(live)
 		end
 		local mshot = m.shot
 		-- The second strike begins, and the resume, as the replay applies them.
@@ -650,8 +770,15 @@ function TimeStopFx.update(self: TimeStopFx, dt: number)
 				end
 			end
 		end
+		stepSends(self, live, m, t)
 		local collapsing = live.resumedAt ~= nil and t - live.resumedAt < F.CollapseSeconds
-		if not wantArmed and not shot and not collapsing and live.look <= 0.001 then
+		if
+			not wantArmed
+			and not shot
+			and not collapsing
+			and #live.sends == 0
+			and live.look <= 0.001
+		then
 			destroy(self, id)
 		end
 	end

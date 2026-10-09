@@ -239,8 +239,8 @@ function MatchTargets.new(
 end
 
 --- True while the local shooter may move the cue ball: ball in hand in the placement window
---- (or the introduction before it, when no call for the 8 is owed), stopping a little before
---- the deadline so the last spot reaches the server while the window is still open.
+--- (or the introduction before it, when no call for the 8 is owed), or Look Over There!'s drag
+--- window, stopping a little before the end so the last spot reaches the server in time.
 function MatchTargets.canPlace(self: any): boolean
 	local snapshot = self.snapshot
 	if not self.enabled or snapshot == nil or self.state == nil then
@@ -248,6 +248,14 @@ function MatchTargets.canPlace(self: any): boolean
 	end
 	if snapshot.shooter ~= self.localUserId then
 		return false
+	end
+	-- Look Over There!'s sneak: the cue ball anywhere, for the drag window less the lead.
+	if snapshot.phase == "Sneak" then
+		local now = workspace:GetServerTimeNow()
+		local sneak = snapshot.sneak
+		return Engine.sneakOpen(snapshot.phase, sneak, now)
+			and now >= sneak.dragAt
+			and now < sneak.dragEnd - M.PlacementLockLeadSeconds
 	end
 	local callNeeded = snapshot.calledPocket == nil
 		and Judge.eligible(self.state.balls, snapshot.groups[snapshot.activeTeam])
@@ -584,7 +592,9 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 	local canCall, canPlace = self:canCall(), self:canPlace()
 	-- The window closed (the lead-time cutoff, or the server moved on): end the gesture, and
 	-- send its last spot while the server can still take it.
-	local open = snapshot.phase == "Intro" or snapshot.phase == "Placement"
+	local open = snapshot.phase == "Intro"
+		or snapshot.phase == "Placement"
+		or snapshot.phase == "Sneak"
 	if not canPlace and self:isHolding() then
 		self:finishGesture(open)
 	end

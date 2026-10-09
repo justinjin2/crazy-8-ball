@@ -11,8 +11,8 @@ Updated 2026-10-08.
 - **Branch `release`** is the integration branch, and every lane of the parallel build is
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
-- **Lint and tests (2026-10-08, branch `gui-v4`):** lint OK (three old LocalShadow warnings);
-  all 1073 Lune tests pass.
+- **Lint and tests (2026-10-08, branch `gui-v4` with the abilities rework merged in):** lint OK
+  (three old LocalShadow warnings); all 1103 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; economy v4; saves at version 10;
@@ -73,8 +73,12 @@ One line each; the long form is the 2026-10-08 entry at the top of
   YOU GOT, checked in Studio. Still open: the see-through reel trial's verdict, a phone and a
   gamepad, the numbered card's mark A or B, the copy numbers' own plan. `shop-lively` is not
   yet merged into `release`.
-- **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
-  reviewed are provisional.
+- **The abilities rework** (in `gui-v4` since 2026-10-08, `docs/prompts/ABILITIES_REWORK_PLAN.md`):
+  Fire Shot is the starter (2x speed, full guideline lines with fire, scorch marks); Verity
+  (Rare) eats then shoves; Catch-a-Ball (Epic) catches two; Look Over There! (Rare) sneaks.
+  Not yet checked: the marks fading as the turn comes back, phone and controller, the sounds by
+  ear, the tutorial spin's reveal, the sneak with two players, the designer's voice lines. The
+  one-by-one review (since 2026-09-30) goes on; abilities not yet reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06,
   `docs/prompts/SHOP_LIVELY_REPORT.md`); other menus take its frame as each is rebuilt.
 - **Decision still open:** whether the VIP cue pays finder's money on the first join.

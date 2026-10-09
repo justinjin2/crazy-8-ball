@@ -9,8 +9,11 @@
 --
 --   * Armed: the cue ball crackles softly with blue-white arcs and hums; a zap as it arms.
 --   * The charge (event "charge"): a bolt strikes down onto the charged ball with a thunder
---     crack, a blue light flares, a blue glow spreads on the cloth, the view shakes a little;
---     the ball crackles with arcs and a flickering light.
+--     crack, a blue light flares, a blue glow spreads on the cloth, the view shakes a little,
+--     flashes twice like lightning, punches in and turns a cold storm grey for a moment;
+--     the ball crackles with arcs and a flickering light. Sent down a clear line (the Rare+
+--     buff), a second bolt stutters along that line from the ball into its pocket, sparks and
+--     a flare where it lands, so the ball is seen riding the lightning in.
 --   * Each jump (event "link"): a branching bolt from the ball it left to the ball it struck,
 --     flickering between the four variants, a zap, sparks and a light on the struck ball, which
 --     then crackles too. The opponent's balls get thinner, fainter bolts and smaller sparks.
@@ -90,6 +93,8 @@ type TableFx = {
 	jumps: { Jump },
 	glows: { [number]: Glow },
 	strike: { bolt: Bolt?, at: Vector3, ball: number, born: number }?,
+	-- A lined-up charge: the bolt along its clear line, from the ball to its pocket.
+	rail: { bolt: Bolt?, ball: number, to: Vector3, born: number }?,
 	flash: { part: Part, decal: Decal, born: number }?,
 	hum: Sound?,
 	armed: Glow?, -- the armed cue ball's crackle
@@ -408,6 +413,7 @@ local function create(self: ChainLightningFx, id: number): TableFx
 		jumps = {},
 		glows = {},
 		strike = nil,
+		rail = nil,
 		flash = nil,
 		hum = nil,
 		armed = nil,
@@ -431,6 +437,10 @@ local function resetShot(fx: TableFx)
 	if fx.strike then
 		dropBolt(fx.strike.bolt)
 		fx.strike = nil
+	end
+	if fx.rail then
+		dropBolt(fx.rail.bolt)
+		fx.rail = nil
 	end
 	if fx.flash then
 		fx.flash.part:Destroy()
@@ -457,8 +467,16 @@ local function destroy(self: ChainLightningFx, id: number)
 	dropArmed(fx)
 end
 
--- The charge: a strike from above, the cloth's glow, the flare, the crack, the shake.
-local function charge(self: ChainLightningFx, id: number, fx: TableFx, m: any, ballId: number)
+-- The charge: a strike from above, the cloth's glow, the flare, the crack, the shake; sent
+-- down a clear line (`pocketId`), a bolt along it into the pocket, sparks where it lands.
+local function charge(
+	self: ChainLightningFx,
+	id: number,
+	fx: TableFx,
+	m: any,
+	ballId: number,
+	pocketId: number?
+)
 	local kit = self.kit
 	local part = kit.ballPart(id, ballId)
 	if part == nil then
@@ -486,8 +504,28 @@ local function charge(self: ChainLightningFx, id: number, fx: TableFx, m: any, b
 	fx.flash = { part = flat, decal = decal, born = fx.clock }
 	kit.burstLight(at, rgb(F.LightColor), F.BurstRangeStuds, F.BurstBrightness, F.BurstSeconds)
 	kit.screen.shake(id, F.ShakeStuds, F.ShakeSeconds)
+	-- The strike on the screen: lightning's double flash, a zoom-in punch, a storm grade.
+	kit.screen.flash(id, F.ScreenFlashColor, F.ScreenFlashSeconds)
+	kit.later(id, F.SecondFlashDelay, function()
+		kit.screen.flash(id, F.ScreenFlashColor, F.ScreenFlashSeconds)
+	end)
+	kit.screen.fovPunch(id, F.FovPunchDegrees, F.FovPunchSeconds)
+	kit.screen.grade(id, F.StormGrade, F.StormIn, F.StormSeconds, F.StormOut)
 	playTable(self, id, m, A.ChainThunder)
 	sparks(self, id, at, 1)
+	local pocket = if pocketId then kit.pocketOf(m, pocketId) else nil
+	if pocket then
+		local to = kit.tableWorld(m, pocket.x, pocket.y, Config.Balls.RenderRadiusInches)
+		fx.rail = { bolt = newBolt(self, fx), ball = ballId, to = to, born = fx.clock }
+		sparks(self, id, to, 1)
+		kit.burstLight(
+			to,
+			rgb(F.LightColor),
+			F.BurstRangeStuds * 0.6,
+			F.BurstBrightness,
+			F.RailSeconds
+		)
+	end
 end
 
 local function link(self: ChainLightningFx, id: number, fx: TableFx, ev: any)
@@ -615,7 +653,7 @@ function ChainLightningFx.start(hub: any, _parent: Instance, kit: any): ChainLig
 			fx.quiet = true
 		end
 		if ev.kind == "charge" then
-			charge(self, tableId, fx, m, ev.ball)
+			charge(self, tableId, fx, m, ev.ball, if ev.value == 1 then ev.other else nil)
 		elseif ev.kind == "link" then
 			link(self, tableId, fx, ev)
 		end
@@ -693,7 +731,11 @@ function ChainLightningFx.update(self: ChainLightningFx, dt: number)
 			fx = create(self, id)
 		end
 		local live = fx :: TableFx
-		live.clock += dt * (if type(m.timeScale) == "number" then m.timeScale else 1)
+		-- Replay time: slowed with the replay, stopped while /hold holds it.
+		local held = m.holdAt ~= nil and m.state.time >= m.holdAt
+		live.clock += if held
+			then 0
+			else dt * (if type(m.timeScale) == "number" then m.timeScale else 1)
 		if shot and live.shotSeq ~= m.seq then
 			-- A new Chain Lightning shot: a replay that began long ago (a late join) stays quiet.
 			resetShot(live)
@@ -800,6 +842,41 @@ function ChainLightningFx.update(self: ChainLightningFx, dt: number)
 				)
 			end
 		end
+		-- A lined-up charge's bolt, from the running ball (its surface) to its pocket, in pulses.
+		local rail = live.rail
+		if rail then
+			local u = (live.clock - rail.born) / F.RailSeconds
+			local hit = kit.ballPart(id, rail.ball)
+			local ball = kit.ballOf(m, rail.ball)
+			if u >= 1 or rail.bolt == nil or hit == nil or ball == nil or ball.pocketed then
+				dropBolt(rail.bolt)
+				live.rail = nil
+			else
+				local fade = 1
+				for _, pulse in F.RailPulses do
+					if u >= pulse[1] and u < pulse[2] then
+						local mid = (pulse[1] + pulse[2]) / 2
+						fade = math.max(0, (u - mid) / (pulse[2] - mid))
+						break
+					end
+				end
+				local a = (hit :: BasePart).Position
+				local d = rail.to - a
+				if d.Magnitude > ballWidth() then
+					a += d.Unit * ballWidth() * 0.45
+				end
+				drawBolt(
+					self,
+					rail.bolt :: Bolt,
+					a,
+					rail.to,
+					F.RailWidth,
+					F.CoreTransparency + (1 - F.CoreTransparency) * fade,
+					F.GlowTransparency + (1 - F.GlowTransparency) * fade,
+					t
+				)
+			end
+		end
 		-- The cloth's blue glow.
 		local flash = live.flash
 		if flash then
@@ -873,7 +950,11 @@ function ChainLightningFx.update(self: ChainLightningFx, dt: number)
 			stopSound(live.hum)
 			live.hum = nil
 		end
-		local busy = live.strike ~= nil or live.flash ~= nil or #live.jumps > 0 or glowing
+		local busy = live.strike ~= nil
+			or live.rail ~= nil
+			or live.flash ~= nil
+			or #live.jumps > 0
+			or glowing
 		if not wantArmed and not shot and not busy and live.look <= 0.001 then
 			destroy(self, id)
 		end

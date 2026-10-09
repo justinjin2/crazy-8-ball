@@ -586,6 +586,12 @@ function UltHud.wantedMode(self: any, now: number): string
 		if armed.stage ~= "Armed" and UltHud.arming(s, now) then
 			return "none" -- the cutscene is playing
 		end
+		-- Look Over There! is never announced (nobody may be warned), and it is no "next
+		-- shot": its own countdown shows instead (LookOverThereFx).
+		local row = type(armed.id) == "string" and Catalog.get(armed.id) or nil
+		if row and row.Sneak then
+			return "none"
+		end
 		if armed.by == self.userId then
 			return "armed"
 		end

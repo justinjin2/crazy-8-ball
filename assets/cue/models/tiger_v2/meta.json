@@ -1,0 +1,25 @@
+{
+  "name": "tiger_v2",
+  "endpoint": "image-to-3d",
+  "task_id": "01a11bda-d3a4-744f-9911-a526af30e268",
+  "status": "SUCCEEDED",
+  "credits": 30,
+  "params": {
+    "ai_model": "latest",
+    "should_texture": true,
+    "enable_pbr": true,
+    "geometry_resolution": "standard",
+    "target_formats": [
+      "glb"
+    ],
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "target_polycount": 30000,
+    "topology": "triangle",
+    "images": [
+      "assets/abilities/GuangdongTiger/ref/tiger_ref.png"
+    ]
+  },
+  "finished_at": 1791468798176,
+  "task_error": null
+}

@@ -35,7 +35,7 @@ return {
 		local problems = Catalog.validate()
 		H.expect(#problems == 0, table.concat(problems, "; "))
 		local list = Catalog.list()
-		H.expect(#list == 13 and #list == #Config.Ults.Order, "13 ults")
+		H.expect(#list == 14 and #list == #Config.Ults.Order, "14 ults (the rework, 2026-10-08)")
 		for i, id in list do
 			H.expect(id == Config.Ults.Order[i] and Catalog.exists(id), "in Order")
 		end
@@ -84,15 +84,15 @@ return {
 		H.expect(Slots.select(u, 2, ALL), "select slot 2")
 		H.expect(Slots.canSpin(u, false, DAY, ALL), "can spin")
 		H.expect(Slots.take(u, false, DAY) == "Free", "the free spin first")
-		local old = Slots.place(u, "Ghost")
+		local old = Slots.place(u, "Portals")
 		H.expect(
-			old == "" and u.Slots[2] == "Ghost" and u.Slots[1] == Config.Ults.Default,
+			old == "" and u.Slots[2] == "Portals" and u.Slots[1] == Config.Ults.Default,
 			"into slot 2"
 		)
 		H.expect(u.SpinsDone == 1, "counted")
 		H.expect(Slots.take(u, false, DAY) == "Spin", "then the held spins")
 		local replaced = Slots.place(u, "Rewind")
-		H.expect(replaced == "Ghost" and u.Slots[2] == "Rewind" and u.SpinsDone == 2, "replaced")
+		H.expect(replaced == "Portals" and u.Slots[2] == "Rewind" and u.SpinsDone == 2, "replaced")
 		H.expect(Slots.equipped(u, ALL, true) == "Rewind", "the selected slot is equipped")
 		local none, why = Slots.place(u, "NotAnUlt")
 		H.expect(none == nil and why == "UnknownUlt" and u.Slots[2] == "Rewind", "refused")

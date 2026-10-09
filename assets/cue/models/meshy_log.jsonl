@@ -7,3 +7,16 @@
 {"time": "2026-09-30 14:13", "name": "infernal_skull", "task_id": "01a0f383-f055-7509-83f4-c7ceadd63e6b", "endpoint": "image-to-3d", "status": "SUCCEEDED", "credits": 35}
 {"time": "2026-09-30 19:50", "name": "running_fox", "task_id": "01a0f4b7-e7db-702d-be5f-30f839d4d257", "endpoint": "image-to-3d", "status": "SUCCEEDED", "credits": 35}
 {"time": "2026-10-05 01:03", "name": "spirit_fox_head", "task_id": "01a10a70-8994-720f-b2c6-b455b31f8fe0", "endpoint": "image-to-3d", "status": "SUCCEEDED", "credits": 35}
+{"time": "2026-10-08 10:12", "name": "verity_monster", "task_id": "01a11bda-ad77-74da-a35e-4576c392c51c", "endpoint": "image-to-3d", "status": "SUCCEEDED", "credits": 30}
+{"time": "2026-10-08 10:13", "name": "tiger_v2", "task_id": "01a11bda-d3a4-744f-9911-a526af30e268", "endpoint": "image-to-3d", "status": "SUCCEEDED", "credits": 30}
+{"time": "2026-10-08 10:14", "name": "rig", "task_id": "01a11bdd-1f07-7254-8974-c346302fa7ed", "endpoint": "rigging", "status": "SUCCEEDED", "credits": 5}
+{"time": "2026-10-08 10:14", "name": "anims/anim_509_lean_forward_sprint.glb", "task_id": "01a11bdd-abdc-76a3-8c82-b20a0dd032e3", "endpoint": "animations", "status": "SUCCEEDED", "credits": 3}
+{"time": "2026-10-08 10:14", "name": "anims/anim_16_run_fast.glb", "task_id": "01a11bdd-d172-75ef-855e-cdc73cacbe5e", "endpoint": "animations", "status": "SUCCEEDED", "credits": 3}
+{"time": "2026-10-08 10:15", "name": "anims/anim_276_male_bend_over_pick_up.glb", "task_id": "01a11bdd-f6e9-746d-a1e9-025e355a3ad4", "endpoint": "animations", "status": "SUCCEEDED", "credits": 3}
+{"time": "2026-10-08 10:15", "name": "anims/anim_280_female_crouch_pick_throw_forward.glb", "task_id": "01a11bde-1d83-77a0-99ff-a033ce05e8ca", "endpoint": "animations", "status": "SUCCEEDED", "credits": 3}
+{"time": "2026-10-08 10:15", "name": "anims/anim_421_over_shoulder_throw.glb", "task_id": "01a11bde-42e7-70b7-a239-330ca5b2533a", "endpoint": "animations", "status": "SUCCEEDED", "credits": 3}
+{"time": "2026-10-08 10:15", "name": "anims/anim_389_grip_and_throw_down.glb", "task_id": "01a11bde-68ca-707b-9942-0b1f387bf6f8", "endpoint": "animations", "status": "SUCCEEDED", "credits": 3}
+{"time": "2026-10-08 10:15", "name": "anims/anim_284_collect_object.glb", "task_id": "01a11bde-8e6a-761f-b514-513d93f4ea49", "endpoint": "animations", "status": "SUCCEEDED", "credits": 3}
+{"time": "2026-10-08 10:16", "name": "anims/anim_0_idle.glb", "task_id": "01a11bde-d4db-7001-979c-e2cebec61c72", "endpoint": "animations", "status": "SUCCEEDED", "credits": 3}
+{"time": "2026-10-08 10:16", "name": "anims/anim_88_chest_pound_taunt.glb", "task_id": "01a11bde-fa2e-712b-821f-4b2848d76866", "endpoint": "animations", "status": "SUCCEEDED", "credits": 3}
+{"time": "2026-10-08 10:16", "name": "anims/anim_59_victory_cheer.glb", "task_id": "01a11bdf-40aa-70ed-b0a3-c6ff6db2cc15", "endpoint": "animations", "status": "SUCCEEDED", "credits": 3}

@@ -3,11 +3,13 @@
 -- it is the shooter's, is charged, and lightning chains from it ball to ball.
 --
 -- * The charge: the step of the cue ball's first contact, if that ball is in
---   overrides.Targets (the 8 only on the legal 8 shot, toward overrides.EightPocket), its
---   heading turns toward its best pocket (the mouth nearest its line, ahead of it) by at most
---   Config.Ults.ChainLightning.SteerTan (the tangent of the capped angle) and its speed is
---   multiplied by Boost; its spin turns and scales with it. Any other first ball (the
---   opponent's, the 8 off the legal 8 shot), or no contact at all: no lightning.
+--   overrides.Targets (the 8 only on the legal 8 shot, toward overrides.EightPocket), the bolt
+--   drives it down the clear line into the pocket nearest its heading (lineUp, the Rare+ buff
+--   of 2026-10-08), rolling, at its speed times Boost and never too slow to drop. With no
+--   clear line in, its heading turns toward its best pocket (the mouth nearest its line, ahead
+--   of it) by at most Config.Ults.ChainLightning.SteerTan (the tangent of the capped angle)
+--   and its speed is multiplied by Boost, its spin turned and scaled with it. Any other first
+--   ball (the opponent's, the 8 off the legal 8 shot), or no contact at all: no lightning.
 -- * The chain: every LinkSeconds after the charge, the bolt jumps from the last ball it struck
 --   (the charged ball first) to the nearest ball within ReachInches of it, whoever's it is
 --   (5.7): the shooter's (Targets) or the opponent's (OppTargets), never the cue ball, never
@@ -21,7 +23,8 @@
 --   (at most PushMaxInches), so a ball near an open pocket drops and a far one only moves
 --   toward it. The opponent's get OpponentFactor of that speed. The push is added to any
 --   motion the ball already has, as natural roll.
--- * `ult` events for the look: "charge" (ball = the charged ball, other = its pocket), then
+-- * `ult` events for the look: "charge" (ball = the charged ball, other = its pocket, value =
+--   1 when it was sent down a clear line), then
 --   one "link" per jump (ball = the ball it jumped from, other = the ball struck, value = its
 --   push factor: 1 yours, OpponentFactor theirs).
 --
@@ -152,7 +155,7 @@ end
 
 -- Offsets across a pocket's opening tried for a clear line in, as shares of its radius (the
 -- centre first, then either side, nearer first).
-local AIM_OFFSETS = { 0, 0.3, -0.3, 0.6, -0.6 }
+local AIM_OFFSETS = { 0, 0.3, -0.3, 0.6, -0.6, 0.85, -0.85 }
 
 --- The pocket a struck ball is pushed toward, the unit heading, the distance to the point
 --- aimed at, and whether that line drops clean: the closest pocket with a clear line in (aimed
@@ -191,6 +194,63 @@ function ChainLightning.pushTarget(state: any, b: any): (any, number, number, nu
 	return best, bx, by, bestD, clear
 end
 
+--- The line a ball is sent down into a pocket (the Rare+ buffs, 2026-10-08: Chain Lightning's
+--- charge, a portal's exit, Time Stop's struck ball): of the pockets it may go to with a clear
+--- line in (tried as pushTarget's: the opening's centre, then beside it), the one nearest the
+--- heading (hx, hy), or the closest when there is no heading. Returns the pocket's id, the
+--- unit heading and the distance to the point aimed at; nil when no line is clear.
+function ChainLightning.lineUp(
+	state: any,
+	b: any,
+	hx: number,
+	hy: number
+): (number?, number, number, number)
+	local r = R + Config.Ults.ChainLightning.ClearanceInches
+	local heading = hx ~= 0 or hy ~= 0
+	local bestId, bestScore, ux, uy, ud = nil, -math.huge, 0, 0, 0
+	for _, pocket in state.geometry.pockets do
+		if not allowed(state, b, pocket) then
+			continue
+		end
+		local dx, dy = pocket.x - b.x, pocket.y - b.y
+		local d = math.sqrt(dx * dx + dy * dy)
+		if d < 1e-9 then
+			continue
+		end
+		local px, py = dx / d, dy / d
+		for _, share in AIM_OFFSETS do
+			local off = share * pocket.radius
+			local ax, ay = dx - py * off, dy + px * off
+			local al = math.sqrt(ax * ax + ay * ay)
+			local tx, ty = ax / al, ay / al
+			if ChainLightning.clearInto(state, b, pocket, tx, ty, r) then
+				local score = if heading then tx * hx + ty * hy else -al
+				if score > bestScore then
+					bestId, bestScore, ux, uy, ud = pocket.id, score, tx, ty, al
+				end
+				break
+			end
+		end
+	end
+	return bestId, ux, uy, ud
+end
+
+--- Send `b` down the unit (ux, uy) toward a point `d` inches on: rolling, no side spin, fast
+--- enough to get there still doing `arrive` in/s, and never slower than `least`.
+function ChainLightning.send(
+	b: any,
+	ux: number,
+	uy: number,
+	d: number,
+	arrive: number,
+	least: number
+)
+	local decel = Config.Physics.RollingFriction * Config.Physics.Gravity
+	local speed = math.max(math.sqrt(arrive * arrive + 2 * decel * d), least)
+	b.vx, b.vy = ux * speed, uy * speed
+	b.wx, b.wy, b.wz = -b.vy / R, b.vx / R, 0
+end
+
 -- Push `b` toward its pocket at `factor` of the full push, added to its motion as natural roll.
 local function push(state: any, b: any, factor: number)
 	local C = Config.Ults.ChainLightning
@@ -209,15 +269,22 @@ local function push(state: any, b: any, factor: number)
 	b.wy += vx / R
 end
 
--- The charged ball's best pocket (the mouth nearest its line, ahead of it; only the called
--- pocket for the 8) and its heading turned toward it by at most SteerTan.
-local function charge(state: any, b: any): number?
+-- The charged ball's pocket. The bolt drives it down the clear line in nearest its heading
+-- (lineUp), boosted and never too slow to get there; with no clear line, its heading turns
+-- toward the mouth nearest its line, ahead of it, by at most SteerTan (only the called pocket
+-- for the 8).
+local function charge(state: any, b: any): (number?, boolean)
 	local C = Config.Ults.ChainLightning
 	local speed = math.sqrt(b.vx * b.vx + b.vy * b.vy)
 	if speed < 1e-9 then
-		return nil
+		return nil, false
 	end
 	local nx, ny = b.vx / speed, b.vy / speed
+	local lined, lx, ly, ld = ChainLightning.lineUp(state, b, nx, ny)
+	if lined ~= nil then
+		ChainLightning.send(b, lx, ly, ld, C.ChargeArriveSpeed, speed * C.Boost)
+		return lined, true
+	end
 	local bestDot, px, py, bestId = 0, 0, 0, nil
 	for _, pocket in state.geometry.pockets do
 		if not allowed(state, b, pocket) then
@@ -252,7 +319,7 @@ local function charge(state: any, b: any): number?
 	local s = (nx * oy - ny * ox) * C.Boost
 	b.vx, b.vy = c * b.vx - s * b.vy, s * b.vx + c * b.vy
 	b.wx, b.wy = c * b.wx - s * b.wy, s * b.wx + c * b.wy
-	return bestId
+	return bestId, false
 end
 
 -- The nearest ball the chain may jump to from `from`, or nil.
@@ -308,7 +375,7 @@ function ChainLightning.after(state: any, _dt: number, events: { any }, ops: any
 			fx.cancelled = true -- not the shooter's ball: no lightning
 			return
 		end
-		local pocket = charge(state, b)
+		local pocket, lined = charge(state, b)
 		fx.chain = {
 			from = first,
 			struck = { [first] = true },
@@ -318,7 +385,7 @@ function ChainLightning.after(state: any, _dt: number, events: { any }, ops: any
 			nextAt = state.time + Config.Ults.ChainLightning.LinkSeconds,
 			done = false,
 		}
-		ops.emit(state, events, "charge", first, pocket, b.x, b.y)
+		ops.emit(state, events, "charge", first, pocket, b.x, b.y, if lined then 1 else nil)
 		return
 	end
 	if chain.done or state.time < chain.nextAt then

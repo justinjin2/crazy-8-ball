@@ -11,7 +11,8 @@
 --     path through the air (every hop) drifting toward the target, a faint shadow line on the
 --     cloth under each hop, and the corridor starting where the ball settles
 -- How much of it a table draws is its difficulty (Config.Difficulty); the red cross is
--- always drawn.
+-- always drawn. With Fire Shot armed (Aim.fullLines) everything is drawn, and the object
+-- ball's and the cue ball's lines run on to the next cushion, ball or pocket.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -24,6 +25,7 @@ local TutorialAnchors = require(script.Parent.TutorialAnchors)
 
 type Trace = Aim.Trace
 type Hop = Aim.Hop
+type FullLines = Aim.FullLines
 
 local Guideline = {}
 Guideline.__index = Guideline
@@ -207,8 +209,19 @@ local function placeStrip(
 	end
 end
 
+-- What a level draws when the lines are full (Fire Shot armed): everything.
+local FULL_DRAWS = { Corridor = true, Stubs = true, Landings = true, Arc = true }
+
 --- Draw `trace` at difficulty `level` (a Config.Difficulty.Levels key; nil is the default).
-function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?, level: string?)
+--- `full` (Aim.fullLines, Fire Shot armed): the lines after the first contact run on to the
+--- next cushion, ball or pocket, and everything is drawn whatever the difficulty.
+function Guideline.show(
+	self: Guideline,
+	trace: Trace,
+	invalid: boolean?,
+	level: string?,
+	full: FullLines?
+)
 	if trace.contact == "none" then
 		self:hide()
 		return
@@ -224,7 +237,7 @@ function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?, level:
 		end
 	end
 	local D = Config.Difficulty
-	local draws = D.Levels[level or D.Default] or D.Levels[D.Default]
+	local draws = if full then FULL_DRAWS else D.Levels[level or D.Default] or D.Levels[D.Default]
 	local G = Config.Guideline
 	local R = Config.Balls.RadiusInches
 	local ringR = Config.Balls.RenderRadiusInches * G.RingScale
@@ -330,9 +343,15 @@ function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?, level:
 	-- and shrink with how full the hit is (Aim.Trace objectShare/cueShare): a straight-on hit
 	-- sends the object ball the full length and barely deflects the cue ball, a thin cut
 	-- the reverse.
-	local objectLen = stub * trace.objectShare
-	local cueLen = if trace.contact == "ball"
-		then stub * G.CueStubScale * trace.cueShare
+	-- Full lines (Fire Shot) run from the same starts on until each touches what it meets:
+	-- Aim.fullLines says where that ball's centre is then (from the object ball's centre and
+	-- from the ghost ball's), and the line goes a radius further, to the cushion or the ball.
+	local objectLen = if full and full.object
+		then full.object + R - ringR
+		else stub * trace.objectShare
+	local cueLen = if full and full.cue
+		then full.cue + R - ringR
+		elseif trace.contact == "ball" then stub * G.CueStubScale * trace.cueShare
 		else stub * G.RailStubScale
 	if trace.contact == "ball" and objectLen >= G.MinStubInches then
 		local ox, oy =

@@ -1,0 +1,25 @@
+{
+  "name": "verity_monster",
+  "endpoint": "image-to-3d",
+  "task_id": "01a11bda-ad77-74da-a35e-4576c392c51c",
+  "status": "SUCCEEDED",
+  "credits": 30,
+  "params": {
+    "ai_model": "latest",
+    "should_texture": true,
+    "enable_pbr": true,
+    "geometry_resolution": "standard",
+    "target_formats": [
+      "glb"
+    ],
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "target_polycount": 30000,
+    "topology": "triangle",
+    "images": [
+      "assets/abilities/Verity/ref/verity_monster_ref.png"
+    ]
+  },
+  "finished_at": 1791468765098,
+  "task_error": null
+}

@@ -306,4 +306,89 @@ return {
 		local trace = Aim.trace(state, { angle = 0, power = 0.8 })
 		H.expect(#trace.hops == 0, "no hops on the cloth")
 	end,
+
+	["a launch ability's scale stretches a jump's flight along the cloth, not its height"] = function()
+		local _, Ball, _, Simulation, Aim, geometry = setup()
+		local state = Simulation.newState(geometry, { Ball.new(0, -40, 0) })
+		local shot = { angle = 0, power = 0.8, elevation = 45 }
+		local plain = Aim.trace(state, shot)
+		local fire = Aim.trace(state, shot, 2)
+		local a, b = plain.hops[1], fire.hops[1]
+		H.expect(a ~= nil and b ~= nil, "both leave the cloth")
+		H.expect(b.vx == 2 * a.vx and b.vy == 2 * a.vy, "twice the speed along the cloth")
+		H.expect(b.vz == a.vz and b.seconds == a.seconds, "the same hop")
+		H.expect(fire.landings[1].x > plain.landings[1].x + 1, "it lands further on")
+	end,
+
+	["full lines: a straight hit sends the object ball's line on to the far cushion"] = function()
+		local Config, Ball, _, Simulation, Aim, geometry = setup()
+		local R = Config.Balls.RadiusInches
+		local state = Simulation.newState(geometry, { Ball.new(0, -30, 0), Ball.new(1, 0, 0) })
+		local full = Aim.fullLines(state, Aim.trace(state, { angle = 0, power = 0.5 }))
+		H.near(full.object :: number, geometry.halfLength - R, 1e-6, "to a ball's radius off it")
+		H.expect(full.cue == nil, "a dead-straight hit stops the cue ball: no cue line")
+	end,
+
+	["full lines: a cut sends both lines on to the next cushion"] = function()
+		local Config, Ball, _, Simulation, Aim, geometry = setup()
+		local R = Config.Balls.RadiusInches
+		local state = Simulation.newState(geometry, { Ball.new(0, -30, 0), Ball.new(1, 0, 1.2) })
+		local trace = Aim.trace(state, { angle = 0, power = 0.5 })
+		local full = Aim.fullLines(state, trace)
+		H.expect(full.object ~= nil and full.cue ~= nil, "both lines")
+		local oy = 1.2 + trace.objectDirY * (full.object :: number)
+		local cy = trace.ghostY + trace.cueDirY * (full.cue :: number)
+		H.near(oy, geometry.halfWidth - R, 1e-6, "the object ball's at the far side cushion")
+		H.near(cy, -(geometry.halfWidth - R), 1e-6, "the cue ball's at the near one")
+	end,
+
+	["full lines: off a cushion the cue ball's line runs on to the next one"] = function()
+		local Config, Ball, _, Simulation, Aim, geometry = setup()
+		local R = Config.Balls.RadiusInches
+		local state = Simulation.newState(geometry, { Ball.new(0, 0, 0) })
+		local trace = Aim.trace(state, { angle = 0.3, power = 0.5 })
+		H.expect(trace.contact == "rail", "a cushion first")
+		local full = Aim.fullLines(state, trace)
+		H.expect(full.object == nil and full.cue ~= nil, "only the cue ball's line")
+		local x = trace.ghostX + trace.cueDirX * (full.cue :: number)
+		local y = trace.ghostY + trace.cueDirY * (full.cue :: number)
+		H.expect(x < trace.ghostX and y > trace.ghostY, "back off the foot cushion, up the table")
+		H.near(y, geometry.halfWidth - R, 1e-6, "to the side cushion")
+	end,
+
+	["full lines: a line stops at a ball in its way"] = function()
+		local Config, Ball, _, Simulation, Aim, geometry = setup()
+		local R = Config.Balls.RadiusInches
+		local state = Simulation.newState(
+			geometry,
+			{ Ball.new(0, -30, 0), Ball.new(1, 0, 0), Ball.new(2, 20, 0) }
+		)
+		local full = Aim.fullLines(state, Aim.trace(state, { angle = 0, power = 0.5 }))
+		H.near(full.object :: number, 20 - 2 * R, 1e-6, "touching ball 2")
+	end,
+
+	["full lines: a line into a pocket stops at its rim"] = function()
+		local _, Ball, _, Simulation, Aim, geometry = setup()
+		local state = Simulation.newState(geometry, { Ball.new(0, 30, 5), Ball.new(1, 40, 15) })
+		local trace = Aim.trace(state, { angle = math.pi / 4, power = 0.5 })
+		local full = Aim.fullLines(state, trace)
+		local x = 40 + trace.objectDirX * (full.object :: number)
+		local y = 15 + trace.objectDirY * (full.object :: number)
+		local best = math.huge
+		local rim = 0
+		for _, p in geometry.pockets do
+			local d = math.sqrt((x - p.x) ^ 2 + (y - p.y) ^ 2)
+			if d < best then
+				best, rim = d, p.radius
+			end
+		end
+		H.near(best, rim, 1e-6, "its centre on the pocket's rim")
+	end,
+
+	["full lines: nothing to draw off nothing"] = function()
+		local _, Ball, _, Simulation, Aim, geometry = setup()
+		local state = Simulation.newState(geometry, { Ball.new(1, 0, 0) })
+		local full = Aim.fullLines(state, Aim.trace(state, { angle = 0, power = 0.5 }))
+		H.expect(full.object == nil and full.cue == nil, "no cue ball, no lines")
+	end,
 }

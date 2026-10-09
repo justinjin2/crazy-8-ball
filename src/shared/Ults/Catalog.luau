@@ -23,6 +23,7 @@ type Row = {
 	Area: boolean?,
 	Redo: boolean?,
 	Turn: boolean?,
+	Sneak: boolean?,
 }
 local ROWS: { [string]: Row } = U.Catalog :: any
 local NAMES: { [string]: string } = Strings.Ults.Names :: any
@@ -44,6 +45,9 @@ export type Ult = {
 	Redo: boolean?,
 	-- Portals (7.9): it acts on every shot of the rest of the shooter's turn too.
 	Turn: boolean?,
+	-- Look Over There! (the rework): after arming, the Sneak phase (a ball dragged into a
+	-- pocket) instead of an effect on the next shot.
+	Sneak: boolean?,
 }
 
 local Catalog = {}
@@ -84,7 +88,42 @@ function Catalog.get(id: any): Ult?
 		Area = row.Area == true,
 		Redo = row.Redo == true,
 		Turn = row.Turn == true,
+		Sneak = row.Sneak == true,
 	}
+end
+
+--- How many times the stroke's speed a launch ability sends the cue ball off the cue
+--- (Config.Ults[<its Effect>].LaunchSpeedScale: Black Flash, Fire Shot), for the aim's trace of
+--- a jump; nil for any other ult or value.
+function Catalog.launchScale(id: any): number?
+	if not Catalog.exists(id) then
+		return nil
+	end
+	local effect = ROWS[id].Effect
+	local block = if type(effect) == "string" then (U :: any)[effect] else nil
+	local k = if type(block) == "table" then block.LaunchSpeedScale else nil
+	return if type(k) == "number" then k else nil
+end
+
+--- Whether ult `id` draws the shooter's full lines while armed (Config.Ults[<its Effect>].FullLines:
+--- Fire Shot): the guideline's object ball and cue ball lines run on to the next cushion.
+function Catalog.fullLines(id: any): boolean
+	if not Catalog.exists(id) then
+		return false
+	end
+	local effect = ROWS[id].Effect
+	local block = if type(effect) == "string" then (U :: any)[effect] else nil
+	return type(block) == "table" and block.FullLines == true
+end
+
+--- What a retired ult id (taken out of the game, Config.Ults.Retired) becomes in a saved slot,
+--- or nil for any other value.
+function Catalog.retired(id: any): string?
+	if type(id) ~= "string" then
+		return nil
+	end
+	local to = (U.Retired :: { [string]: string })[id]
+	return if to ~= nil and KNOWN[to] then to else nil
 end
 
 --- The ult's rarity; nil for an unknown id.
@@ -185,8 +224,9 @@ function Catalog.validate(): { string }
 					("%s has an unknown rarity %s"):format(id, tostring(row.Rarity))
 				)
 			end
-			-- Rewind needs no physics effect: its redo is the match engine's (row.Redo).
-			if row.Built and type(row.Effect) ~= "string" and not row.Redo then
+			-- Rewind and Look Over There! need no physics effect: the redo and the sneak are
+			-- the match engine's (row.Redo, row.Sneak).
+			if row.Built and type(row.Effect) ~= "string" and not row.Redo and not row.Sneak then
 				table.insert(problems, id .. " is built but names no Effect")
 			end
 			if type(NAMES[id]) ~= "string" or type(DESCRIPTIONS[id]) ~= "string" then

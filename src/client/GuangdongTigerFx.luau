@@ -1,54 +1,75 @@
 --!strict
 -- GuangdongTigerFx: what Guangdong Tiger looks and sounds like (docs/prompts/ABILITIES_PROMPT.md
--- 7.13, references 09 and 10). The cut is physics (Ults/Effects/GuangdongTiger: the balls
--- leave the table at the first contact, the moment slowed); this only draws it, off the
--- replay's `swipe` and `cut` events, so everyone sees it together. Numbers in
--- Config.UI.GuangdongTigerFx, the sounds in Config.Ults.Audio (Tiger*), the meshes in the
--- uploaded GuangdongTiger model (tools/blender/abilities/tiger.py), the fur frame in
--- Config.Ults.Assets.Images (TigerFur).
+-- 7.13; the abilities rework, docs/prompts/ABILITIES_REWORK_PLAN.md). The cut is physics
+-- (Ults/Effects/GuangdongTiger: the balls leave the table at the first contact, the moment
+-- slowed); this only draws it, off the replay's `swipe` and `cut` events, so everyone sees it
+-- together. Numbers in Config.UI.GuangdongTigerFx, the sounds in Config.Ults.Audio (Tiger*), the
+-- tiger in the uploaded GuangdongTigerV2 model (one skinned mesh, tools/blender/abilities/
+-- tiger_v2.py) played by BoneAnim from the baked TigerAnims, the slash picture and a ball's
+-- halves in the older GuangdongTiger model (tools/blender/abilities/tiger.py), the fur frame and
+-- the smoke in Config.Ults.Assets.Images (TigerFur, TigerSmoke).
 --
 --   * Armed (from the arming moment until the shot): three glowing claw marks pulse under the
 --     cue ball.
---   * The swipe ("swipe"): a giant tiger leaps in from off the table, crossing the view,
---     roaring; lands (a shake, a thump) with its front paws by the first contact, rears its
---     near paw and strikes down through the area: three claw slashes of light in the air and
---     three scored on the cloth, the tiger-stripe fur frame over the screen for a moment, a
---     light burst, a shake, a colour punch, three slashing sounds. Then it bounds off the
---     other way and fades.
---   * Each cut ball ("cut"): the physics took it at once; a copy of it waits where it was
---     until the strike, then splits along the slash into two halves (the ball's own
---     picture) that fly apart and fade.
+--   * The swipe ("swipe"): a tiger gallops in from off the table across the view, springs with a
+--     snarl and lands by the first contact (a thump, a shake, a puff of chalk), rears up and
+--     slams its right paw down through the ball into the cloth, lunging, its claws trailing
+--     light: the cut. Three claw slashes of light in the air and three scorched into the cloth,
+--     the tiger-stripe fur frame over the screen for a moment, a light burst, a shake, a colour
+--     punch, the claw sounds. Its left paw slams back across them (three more each: an X), it
+--     turns to the camera and roars, then gallops off ahead and fades. The shooter's camera
+--     holds and eases in on it from the swipe to the roar (Camera.setOverride), then hands back
+--     to the table's view.
+--   * Each cut ball ("cut"): the physics took it at once; a copy of it waits where it was until
+--     the cut, then splits along the slash into two halves (the ball's own picture) that spring
+--     apart, fall open and rock to rest face up on the cloth, their cut faces white-hot and
+--     smoking, cooling to the ball's own colour. They lie there by the claw marks as long as
+--     Black Flash's shards (HalfSeconds), then fade.
 -- The tiger runs on its own clock (wall time, and the developer's /slowmo), not the replay's
--- slowed one: the moment's slow (Config.Ults.GuangdongTiger) is sized to its leap and swipe.
--- The tiger is rigid parts turned round the model's joint markers, drawn with a black
--- outline. Every table's parts hang off its AbilityFx anchor and go with it (kit.onRelease)
--- or with clear(). Without the model the copies still vanish at the strike, and the fur
--- frame, the light and the sounds still show.
+-- slowed one: the moment's slow (Config.Ults.GuangdongTiger) is sized to its run in and the
+-- cut. Every table's parts hang off its AbilityFx anchor and go with it (kit.onRelease) or with
+-- clear(). Without the tiger model the copies still split at the cut's time, and the slashes,
+-- the marks, the fur frame, the light and the sounds still show.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ContentProvider = game:GetService("ContentProvider")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local BoneAnim = require(script.Parent:WaitForChild("BoneAnim"))
+local Camera = require(script.Parent:WaitForChild("Camera"))
+local TigerAnims = require(script.Parent:WaitForChild("TigerAnims"))
 
 local F = Config.UI.GuangdongTigerFx
 local A = Config.Ults.Audio
 local IMAGES = Config.Ults.Assets.Images :: any
+local ANIMS: any = TigerAnims
 
 local EFFECT = "GuangdongTiger"
-local MODEL = "GuangdongTiger"
-local BODY = {
-	"TigerTorso",
-	"TigerHead",
-	"TigerJaw",
-	"TigerLegFL",
-	"TigerLegFR",
-	"TigerLegHL",
-	"TigerLegHR",
-	"TigerTail",
+local TIGER = "GuangdongTigerV2" -- the skinned tiger
+local PIECES = "GuangdongTiger" -- the slash picture and a ball's halves
+
+-- Each front paw's three claw tips in the baked data's armature space (at rest, in tiger
+-- lengths): the paw bone's tail (assets/abilities/GuangdongTiger/tiger_v2_anims.json) spread
+-- across the paw, and `back`, the way a quarter up the paw (a claw trail's width).
+local CLAWS: { [string]: { tips: { Vector3 }, back: Vector3 } } = {
+	FrontPawR = {
+		tips = {
+			Vector3.new(0.0904, 0.0207, -0.2384),
+			Vector3.new(0.1084, 0.0207, -0.2384),
+			Vector3.new(0.1264, 0.0207, -0.2384),
+		},
+		back = Vector3.new(-0.0018, 0.0168, 0.0225),
+	},
+	FrontPawL = {
+		tips = {
+			Vector3.new(-0.1059, 0.0207, -0.228),
+			Vector3.new(-0.1239, 0.0207, -0.228),
+			Vector3.new(-0.1419, 0.0207, -0.228),
+		},
+		back = Vector3.new(0.0065, 0.0168, 0.0271),
+	},
 }
-local JOINTS = { "J_Head", "J_Jaw", "J_LegFL", "J_LegFR", "J_LegHL", "J_LegHR", "J_Tail" }
-local LEGS = { "FL", "FR", "HL", "HR" }
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
@@ -62,40 +83,29 @@ local function lerp(a: number, b: number, u: number): number
 	return a + (b - a) * u
 end
 
+local function clamp01(u: number): number
+	return math.clamp(u, 0, 1)
+end
+
 local function easeOut(u: number): number
-	u = math.clamp(u, 0, 1)
+	u = clamp01(u)
 	return 1 - (1 - u) * (1 - u)
 end
 
--- A turn that swings the model's -X (its front) up: a leg's foot forward, the nose up.
-local function swing(degrees: number): CFrame
-	return CFrame.Angles(0, 0, -math.rad(degrees))
+local function smooth(u: number): number
+	u = clamp01(u)
+	return u * u * (3 - 2 * u)
+end
+
+local function flat(v: Vector3): Vector3?
+	local f = Vector3.new(v.X, 0, v.Z)
+	return if f.Magnitude > 1e-4 then f.Unit else nil
 end
 
 type Meshes = {
-	parts: { [string]: MeshPart }, -- the templates, by name
-	joints: { [string]: Vector3 }, -- the joint markers (model space)
-	length: number, -- the tiger's length along X (model units)
-	height: number, -- its top above its feet (model units)
 	slash: MeshPart,
-	halfA: MeshPart,
-	halfB: MeshPart,
-}
-
-type Pose = {
-	pitch: number, -- the body, nose up (degrees)
-	crouch: number, -- the body lowered (studs)
-	head: number,
-	jaw: number, -- open (degrees)
-	legs: { [string]: number }, -- forward (degrees)
-	out: number, -- the near front paw turned out from the body (degrees)
-	tail: number,
-}
-
-type Rig = {
-	model: Model,
-	parts: { [string]: MeshPart },
-	highlight: Highlight,
+	halfA: MeshPart, -- its dome along its +Z, the cut at its -Z face
+	halfB: MeshPart, -- its dome along its -Z
 }
 
 -- An air slash: a crescent of beams turned to the camera (an orange-red edge over a white-hot
@@ -116,46 +126,95 @@ type Slash = {
 }
 
 type Cut = {
+	ball: number,
 	copy: BasePart,
 	texture: string,
 	color: Color3,
 	radius: number,
 	at: Vector3,
 	order: number,
-	splitAt: number?, -- fx clock it splits (set at the strike)
+	splitAt: number?, -- fx clock it splits (set at the cut)
 }
 
+-- Half a cut ball: a hemisphere of radius `r` whose cut face's centre (its sphere's centre) is
+-- `at`, turned yaw (flat) * angle (about `axis`, falling open) * base (its turn at the split).
 type Half = {
 	part: BasePart,
-	faces: { { part: BasePart, offset: CFrame } }, -- the hot cut face, riding on it
-	vel: Vector3,
-	axis: Vector3,
-	spin: number,
-	angle: number,
+	sign: number, -- 1 HalfA, -1 HalfB: its dome along its own sign * Z
+	r: number,
 	at: Vector3,
-	rot: CFrame,
-	floor: number,
-	radius: number,
+	vel: Vector3,
+	base: CFrame,
+	axis: Vector3,
+	rest: number, -- the angle that turns its face straight up (radians)
+	angle: number,
+	spin: number, -- angle's speed (radians a second)
+	yaw: number,
+	yawSpeed: number,
+	floor: number, -- the cloth's height (world Y)
 	born: number,
+	face: Part, -- the cut face (the mesh's own is not drawn face up): the ball's colour
+	rim: Part, -- and over it while hot, a rim disc and a core disc
+	core: Part,
+	smoke: Attachment,
+	emitter: ParticleEmitter,
+}
+
+type Claw = { tip: Attachment, back: Attachment, trail: Trail }
+
+-- The tiger's timeline (seconds after the swipe).
+type Times = {
+	leap: number, -- it springs (Pounce)
+	land: number, -- its front paws down
+	swipe: number, -- Swipe begins
+	rake: number, -- the right paw rakes
+	cut: number, -- the rake's middle: the cut
+	rest: number, -- the impact's freeze ends
+	cut2: number, -- the left paw's rake's middle
+	roar: number, -- Roar begins
+	roarSound: number,
+	run: number, -- it gallops off
+	gone: number,
 }
 
 type Tiger = {
 	born: number, -- fx clock at the swipe
-	scale: number, -- studs per model unit
+	times: Times,
+	scale: number, -- studs per tiger length (nose to tail base)
+	speed: number, -- its gallop over the ground (studs a second)
 	centre: Vector3, -- the swipe's centre on the cloth
-	forward: Vector3, -- the way it leaps (flat)
+	middle: Vector3, -- the table's middle on the cloth, its long and short ways, half sizes
+	tableX: Vector3,
+	tableY: Vector3,
+	halfX: number, -- (studs, to the frame's outside)
+	halfY: number,
+	cloth: number, -- the cloth's height and the floor's (world Y)
+	floor: number,
+	forward: Vector3, -- the way it runs (flat)
 	up: Vector3,
-	side: Vector3, -- the model's +Z (its left) in the world
-	near: string, -- "FL" or "FR": the paw nearer the camera
-	start: Vector3, -- its origin (feet, model space 0) at the leap's start
-	land: Vector3,
-	finish: Vector3,
-	slashDir: Vector3, -- the air slashes: along, face (to the camera), across
+	right: Vector3, -- its right side as it runs
+	camSide: number, -- 1: the camera is on its right; -1 its left
+	toCam: Vector3, -- from the centre to the camera (unit)
+	toCamFlat: Vector3,
+	runFrom: Vector3, -- its middle (the armature's origin) at the start, at the cloth's height
+	leapFrom: Vector3,
+	land: Vector3, -- where it lands, on the ground there
+	slashDir: Vector3, -- the first rake's air slashes: along, and their face (to the camera)
 	slashNormal: Vector3,
-	slashAcross: Vector3,
-	rig: Rig?,
+	model: Model?,
+	anim: BoneAnim.Player?,
+	parts: { BasePart },
+	offsets: { CFrame }, -- each part from the bones' part
+	shown: { BasePart }, -- the parts that are seen (they fade)
+	claws: { [string]: { Claw } },
+	camFrom: CFrame?, -- the shooter's camera at the swipe, where it eases in to, its roar shot
+	camClose: CFrame?,
+	camRoar: CFrame?,
+	snarled: boolean,
 	landed: boolean,
 	struck: boolean,
+	struck2: boolean,
+	roared: boolean,
 	quiet: boolean,
 }
 
@@ -179,6 +238,8 @@ export type GuangdongTigerFx = {
 	meshes: Meshes?,
 	meshesFailed: boolean,
 	nextMeshCheck: number,
+	camera: Tiger?, -- the tiger holding the shooter's camera
+	rng: Random,
 }
 
 local GuangdongTigerFx = {}
@@ -204,7 +265,7 @@ local function findPiece(model: Instance, name: string): MeshPart?
 	return nil
 end
 
-local function settle(p: MeshPart)
+local function settle(p: BasePart)
 	p.Anchored = true
 	p.CanCollide = false
 	p.CanQuery = false
@@ -221,51 +282,22 @@ local function meshesOf(self: GuangdongTigerFx): Meshes?
 		return nil
 	end
 	self.nextMeshCheck = now + F.ModelCheckSeconds
-	local model = self.kit.models.tryGet(MODEL)
+	local model = self.kit.models.tryGet(PIECES)
 	if model == nil then
 		return nil
 	end
 	local parts: { [string]: MeshPart } = {}
-	local joints: { [string]: Vector3 } = {}
-	local names = table.clone(BODY)
-	for _, n in { "TigerSlash", "HalfA", "HalfB" } do
-		table.insert(names, n)
-	end
-	for _, name in names do
+	for _, name in { "TigerSlash", "HalfA", "HalfB" } do
 		local part = findPiece(model, name)
 		if part == nil then
 			self.meshesFailed = true
-			warn(("[8ball] GuangdongTigerFx: the %s model has no %s"):format(MODEL, name))
+			warn(("[8ball] GuangdongTigerFx: the %s model has no %s"):format(PIECES, name))
 			return nil
 		end
 		settle(part)
 		parts[name] = part
 	end
-	for _, name in JOINTS do
-		local part = findPiece(model, name)
-		if part == nil then
-			self.meshesFailed = true
-			warn(("[8ball] GuangdongTigerFx: the %s model has no %s"):format(MODEL, name))
-			return nil
-		end
-		joints[name] = part.Position
-	end
-	local minX, maxX, top = math.huge, -math.huge, 0
-	for _, name in BODY do
-		local p = parts[name]
-		minX = math.min(minX, p.Position.X - p.Size.X / 2)
-		maxX = math.max(maxX, p.Position.X + p.Size.X / 2)
-		top = math.max(top, p.Position.Y + p.Size.Y / 2)
-	end
-	local out: Meshes = {
-		parts = parts,
-		joints = joints,
-		length = maxX - minX,
-		height = top,
-		slash = parts.TigerSlash,
-		halfA = parts.HalfA,
-		halfB = parts.HalfB,
-	}
+	local out: Meshes = { slash = parts.TigerSlash, halfA = parts.HalfA, halfB = parts.HalfB }
 	self.meshes = out
 	return out
 end
@@ -295,162 +327,346 @@ local function playAt(self: GuangdongTigerFx, id: number, clip: any, at: Vector3
 	end)
 end
 
+-- A puff of `count` soft particles of `color` at `at`, `size` studs across, thrown out low.
+local function puff(self: GuangdongTigerFx, id: number, at: Vector3, count: number, size: number)
+	local kit = self.kit
+	local holder = kit.attachment(id, "TigerDust", at)
+	local e = kit.particles(holder, {
+		Texture = IMAGES.TigerSmoke,
+		Color = ColorSequence.new(rgb(F.DustColor)),
+		LightEmission = 0,
+		LightInfluence = 1,
+		Size = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, size * 0.3),
+			NumberSequenceKeypoint.new(1, size),
+		}),
+		Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.4),
+			NumberSequenceKeypoint.new(1, 1),
+		}),
+		SpreadAngle = Vector2.new(85, 85),
+		Speed = NumberRange.new(size * 2, size * 4),
+		Drag = 6,
+		Acceleration = Vector3.new(0, size * 0.6, 0),
+		Lifetime = NumberRange.new(0.5, 0.9),
+		RotSpeed = NumberRange.new(-90, 90),
+	})
+	e:Emit(count)
+	kit.later(id, 1.5, function()
+		holder:Destroy()
+	end)
+end
+
 ---------------------------------------------------------------------------------------------
 -- The tiger
 ---------------------------------------------------------------------------------------------
 
-local function buildRig(meshes: Meshes, fx: TableFx, scale: number): Rig
-	local model = Instance.new("Model")
-	model.Name = "Tiger"
-	local parts: { [string]: MeshPart } = {}
-	for _, name in BODY do
-		local p = meshes.parts[name]:Clone()
-		local k = if name == "TigerHead" or name == "TigerJaw" then F.HeadScale else 1
-		p.Size = meshes.parts[name].Size * scale * k
-		p.CastShadow = true
-		p.Transparency = 0
-		p.Parent = model
-		parts[name] = p
+local function frameTime(action: string, frame: number): number
+	return frame / ANIMS.Actions[action].Fps
+end
+
+-- The timeline from Config (the frames of the baked actions at their own rate).
+local function timesOf(): Times
+	local pf, rf = F.PounceFrames, F.RakeFrames
+	local leap = F.RunInSeconds
+	local swipe = leap + F.PounceSeconds
+	local rake = swipe + F.RaiseSeconds
+	local rest = rake + F.RakeSeconds + F.ImpactFreezeSeconds
+	local mid2 = (F.Rake2Frames[1] + F.Rake2Frames[2]) / 2
+	local roar = rest + F.SwipeRestSeconds
+	local run = roar + F.RoarSeconds
+	return {
+		leap = leap,
+		land = leap + F.PounceSeconds * (F.LandFrame - pf[1]) / (pf[2] - pf[1]),
+		swipe = swipe,
+		rake = rake,
+		cut = rake + F.RakeSeconds / 2,
+		rest = rest,
+		cut2 = rest + F.SwipeRestSeconds * (mid2 - rf[2]) / (F.SwipeEndFrame - rf[2]),
+		roar = roar,
+		roarSound = roar + F.RoarSeconds * F.RoarSoundFrame / ANIMS.Actions.Roar.Frames,
+		run = run,
+		gone = run + F.RunOffSeconds,
+	}
+end
+
+-- Swipe's frame at T: rearing, the rake, frozen on the impact, then on to its end.
+local function swipeFrame(times: Times, T: number): number
+	local rf = F.RakeFrames
+	if T < times.rake then
+		return rf[1] * clamp01((T - times.swipe) / F.RaiseSeconds)
+	elseif T < times.rake + F.RakeSeconds then
+		return lerp(rf[1], rf[2], (T - times.rake) / F.RakeSeconds)
+	elseif T < times.rest then
+		return rf[2]
 	end
-	local highlight = Instance.new("Highlight")
-	highlight.FillTransparency = 1
-	highlight.OutlineColor = rgb(F.OutlineColor)
-	highlight.OutlineTransparency = 0
-	highlight.DepthMode = Enum.HighlightDepthMode.Occluded
-	highlight.Adornee = model
-	highlight.Parent = model
+	return lerp(rf[2], F.SwipeEndFrame, clamp01((T - times.rest) / F.SwipeRestSeconds))
+end
+
+-- The Run's own time after `distance` studs of gallop: its stride keeps the planted paws still.
+local function runTime(t: Tiger, distance: number): number
+	local run = ANIMS.Actions.Run
+	return distance / (F.RunStrideUnits * t.scale) * run.Frames / run.Fps
+end
+
+-- How far it has gone `s` seconds into the gallop off (up to speed over RunOffRampSeconds).
+local function offDistance(t: Tiger, s: number): number
+	local ramp = F.RunOffRampSeconds
+	if s < ramp then
+		return t.speed * s * s / (2 * ramp)
+	end
+	return t.speed * (s - ramp / 2)
+end
+
+-- Its way turned `degrees` toward the camera.
+local function turned(t: Tiger, degrees: number): Vector3
+	local a = math.rad(degrees) * t.camSide
+	return (t.forward * math.cos(a) + t.right * math.sin(a)).Unit
+end
+
+-- The ground under point `p`: the cloth over the table (its frame too), else the floor.
+local function groundAt(t: Tiger, p: Vector3): number
+	local rel = p - t.middle
+	if math.abs(rel:Dot(t.tableX)) <= t.halfX and math.abs(rel:Dot(t.tableY)) <= t.halfY then
+		return t.cloth
+	end
+	return t.floor
+end
+
+-- The ground under it running along its way to `p`, eased over the last GroundBlendInches (a
+-- hop up onto the table's edge, or down off it).
+local function groundBehind(t: Tiger, p: Vector3): number
+	local span = F.GroundBlendInches * Config.Table.StudsPerInch
+	local sum = 0
+	for k = 0, 4 do
+		sum += groundAt(t, p - t.forward * (span * k / 4))
+	end
+	return sum / 5
+end
+
+local function atHeight(p: Vector3, y: number): Vector3
+	return Vector3.new(p.X, y, p.Z)
+end
+
+-- Where its middle is at T and which way it faces (nil when it has gone), posing its bones.
+local function stepPose(t: Tiger, T: number): (Vector3?, Vector3, number)
+	local times = t.times
+	local anim = t.anim
+	local blend = F.BlendSeconds
+	if T >= times.gone then
+		return nil, t.forward, 1
+	end
+	if T < times.leap then
+		local d = t.speed * T
+		if anim then
+			anim:pose("Run", runTime(t, d))
+		end
+		local p = t.runFrom + t.forward * d
+		return atHeight(p, groundBehind(t, p)), t.forward, 0
+	elseif T < times.swipe then
+		-- Off the mark fast, slowing to the landing; higher at the top of its flight.
+		local u = (T - times.leap) / F.PounceSeconds
+		local frame = lerp(F.PounceFrames[1], F.PounceFrames[2], u)
+		local ff = F.FlightFrames
+		local flight = clamp01((frame - ff[1]) / (ff[2] - ff[1]))
+		local lift = math.sin(flight * math.pi) * F.ArcInches * Config.Table.StudsPerInch
+		if anim then
+			anim:pose(
+				"Pounce",
+				frameTime("Pounce", frame),
+				"Run",
+				runTime(t, t.speed * T),
+				1 - clamp01((T - times.leap) / blend)
+			)
+		end
+		local p = t.leapFrom:Lerp(t.land, easeOut(u))
+		local y = lerp(groundAt(t, t.leapFrom), t.land.Y, easeOut(u / 0.6))
+		return atHeight(p, y + lift), t.forward, 0
+	elseif T < times.roar then
+		if anim then
+			anim:pose(
+				"Swipe",
+				frameTime("Swipe", swipeFrame(times, T)),
+				"Pounce",
+				frameTime("Pounce", F.PounceFrames[2]),
+				1 - clamp01((T - times.swipe) / blend)
+			)
+		end
+		return t.land, t.forward, 0
+	elseif T < times.run then
+		local turn = smooth((T - times.roar) / F.TurnSeconds)
+		if anim then
+			anim:pose(
+				"Roar",
+				(T - times.roar) / F.RoarSeconds * anim:length("Roar"),
+				"Swipe",
+				frameTime("Swipe", F.SwipeEndFrame),
+				1 - clamp01((T - times.roar) / blend)
+			)
+		end
+		return t.land, turned(t, F.RoarTurnDegrees * turn), 0
+	end
+	local s = T - times.run
+	local d = offDistance(t, s)
+	if anim then
+		anim:pose("Run", runTime(t, d), "Roar", anim:length("Roar"), 1 - clamp01(s / blend))
+	end
+	local turn = 1 - smooth(s / F.TurnSeconds)
+	local fade = clamp01((s - (F.RunOffSeconds - F.FadeSeconds)) / F.FadeSeconds)
+	local p = t.land + t.forward * d
+	return atHeight(p, groundBehind(t, p)), turned(t, F.RoarTurnDegrees * turn), fade
+end
+
+-- The model on the cloth: its middle (the armature's origin) at `frame`, facing its look.
+local function placeTiger(t: Tiger, frame: CFrame)
+	local anim = t.anim
+	if anim == nil then
+		return
+	end
+	local want = frame * anim.origin:Inverse()
+	for i, p in t.parts do
+		p.CFrame = want * t.offsets[i]
+	end
+end
+
+local function fadeTiger(t: Tiger, amount: number)
+	for _, p in t.shown do
+		p.Transparency = amount
+	end
+end
+
+-- The tiger's model (a fresh clone) and its player, and a light trail per claw.
+local function buildTiger(self: GuangdongTigerFx, id: number, fx: TableFx, t: Tiger)
+	local kit = self.kit
+	local got = kit.models.tryGet(TIGER)
+	if got == nil then
+		return
+	end
+	if not got:IsA("Model") then
+		got:Destroy()
+		return
+	end
+	local model = got :: Model
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			settle(d)
+			d.CastShadow = true
+		elseif d:IsA("AnimationController") or d:IsA("Animator") then
+			d:Destroy() -- BoneAnim drives the bones
+		end
+	end
 	model.Parent = fx.anchor
-	return { model = model, parts = parts, highlight = highlight }
-end
-
--- Turn round model-space joint `j` (scaled by `s`) by `turn`.
-local function about(j: Vector3, s: number, turn: CFrame): CFrame
-	return CFrame.new(j * s) * turn * CFrame.new(-j * s)
-end
-
-local function drawRig(meshes: Meshes, rig: Rig, origin: CFrame, s: number, pose: Pose)
-	local J = meshes.joints
-	local torsoAt = meshes.parts.TigerTorso.Position
-	local body = origin * CFrame.new(0, -pose.crouch, 0) * about(torsoAt, s, swing(pose.pitch))
-	local head = body * about(J.J_Head, s, swing(pose.head))
-	-- The head and jaw scaled up round the neck joint.
-	local jawJoint = J.J_Head + (J.J_Jaw - J.J_Head) * F.HeadScale
-	local jaw = head * about(jawJoint, s, swing(-pose.jaw))
-	local frames: { [string]: CFrame } = {
-		TigerTorso = body,
-		TigerHead = head,
-		TigerJaw = jaw,
-		TigerTail = body * about(J.J_Tail, s, swing(pose.tail)),
-	}
-	for _, leg in LEGS do
-		local turn = swing(pose.legs[leg] or 0)
-		if leg == "FL" or leg == "FR" then
-			-- Out from the body: the left leg (+Z) turns to +Z, the right to -Z.
-			local out = if leg == "FL" then -pose.out else pose.out
-			turn *= CFrame.Angles(math.rad(out), 0, 0)
+	model:ScaleTo(t.scale) -- the uploaded tiger is one stud nose to tail base
+	local anim = BoneAnim.new(model, ANIMS)
+	if anim == nil then
+		warn(("[8ball] GuangdongTigerFx: the %s model has no %s bone"):format(TIGER, ANIMS.Root))
+		model:Destroy()
+		return
+	end
+	local root = anim.part
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			table.insert(t.parts, d)
+			table.insert(t.offsets, root.CFrame:ToObjectSpace(d.CFrame))
+			if d.Transparency < 1 then
+				table.insert(t.shown, d)
+			end
 		end
-		frames["TigerLeg" .. leg] = body * about(J["J_Leg" .. leg], s, turn)
 	end
-	for name, part in rig.parts do
-		local at = meshes.parts[name].Position
-		if name == "TigerHead" or name == "TigerJaw" then
-			at = J.J_Head + (at - J.J_Head) * F.HeadScale
+	t.model, t.anim = model, anim
+	for paw in CLAWS do
+		local list: { Claw } = {}
+		for _ = 1, 3 do
+			local tip = kit.attachment(id, "TigerClaw")
+			local back = kit.attachment(id, "TigerClaw")
+			local trail = Instance.new("Trail")
+			trail.Attachment0 = tip
+			trail.Attachment1 = back
+			trail.Lifetime = F.ClawTrailSeconds
+			trail.Color = ColorSequence.new(Color3.new(1, 1, 1), rgb(F.ClawTrailColor))
+			trail.Transparency = NumberSequence.new(0, 1)
+			trail.LightEmission = 1
+			trail.LightInfluence = 0
+			trail.Brightness = 3
+			trail.FaceCamera = true
+			trail.MinLength = 0.01
+			trail.Enabled = false
+			trail.Parent = tip
+			table.insert(list, { tip = tip, back = back, trail = trail })
 		end
-		part.CFrame = frames[name] * CFrame.new(at * s)
+		t.claws[paw] = list
 	end
 end
 
-local function fadeRig(rig: Rig, amount: number)
-	for _, part in rig.parts do
-		part.Transparency = amount
+-- The raking paw's claws trail light (the right paw's rake, then the left's).
+local function stepClaws(t: Tiger, T: number)
+	local anim = t.anim
+	if anim == nil then
+		return
 	end
-	rig.highlight.OutlineTransparency = amount
+	local raking = T >= t.times.swipe and T < t.times.roar
+	local frame = if raking then swipeFrame(t.times, T) else -1
+	for paw, list in t.claws do
+		local window = if paw == "FrontPawR" then F.RakeFrames else F.Rake2Frames
+		local on = raking and frame >= window[1] - 1 and frame <= window[2] + 0.5
+		local spec = CLAWS[paw]
+		for k, claw in list do
+			if raking then
+				local tip = anim:carried(paw, spec.tips[k])
+				local back = anim:carried(paw, spec.tips[k] + spec.back)
+				if tip and back then
+					claw.tip.WorldPosition = tip
+					claw.back.WorldPosition = back
+				end
+			end
+			claw.trail.Enabled = on
+		end
+	end
 end
 
--- The origin (its feet, facing `forward`) at `at`: model -X along forward, +Y up.
-local function originAt(t: Tiger, at: Vector3): CFrame
-	local x = -t.forward
-	return CFrame.fromMatrix(at, x, t.up, x:Cross(t.up))
+local function releaseCamera(self: GuangdongTigerFx, t: Tiger?)
+	if self.camera ~= nil and (t == nil or self.camera == t) then
+		self.camera = nil
+		Camera.setOverride(nil)
+	end
 end
 
--- Where it is and how it stands at `T` seconds after the swipe; nil when it is gone.
-local function poseAt(t: Tiger, T: number, height: number): (Vector3?, Pose, number)
-	local pose: Pose = {
-		pitch = 0,
-		crouch = 0,
-		head = 0,
-		jaw = 0,
-		legs = { FL = 0, FR = 0, HL = 0, HR = 0 },
-		out = 0,
-		tail = 12 * math.sin(T * 9),
-	}
-	local L = F.LeapSeconds
-	local strikeAt = L + F.RaiseSeconds
-	local strikeEnd = strikeAt + F.StrikeSeconds
-	local leaveAt = strikeEnd + F.ImpactFreezeSeconds + F.HoldSeconds
-	local goneAt = leaveAt + F.LeapOutSeconds
-	-- The roar: the jaw open from the leap until RoarEndSeconds after the strike.
-	local roarEnd = strikeEnd + F.RoarEndSeconds
-	if T < roarEnd then
-		pose.jaw = F.JawDegrees * math.clamp(T / 0.15, 0, 1)
-	else
-		pose.jaw = F.JawDegrees * math.clamp(1 - (T - roarEnd) / 0.12, 0, 1)
+-- The shooter's camera: held at the swipe while the tiger comes in, a level shot of it and
+-- the cut as it lands, a close-up of its face for the roar, then back to the table's view.
+local function stepCamera(self: GuangdongTigerFx, t: Tiger, T: number)
+	local from, close, roar = t.camFrom, t.camClose, t.camRoar
+	if self.camera ~= t or from == nil or close == nil or roar == nil then
+		return
 	end
-	local fade = 0
-	local at: Vector3?
-	if T < L then
-		local u = T / L
-		local arc = t.up * (4 * u * (1 - u)) * F.ArcInches * Config.Table.StudsPerInch
-		at = t.start:Lerp(t.land, u) + arc
-		pose.pitch = lerp(F.LeapPitch[1], F.LeapPitch[2], u)
-		pose.legs.FL = F.LeapFrontDegrees * (1 - 0.3 * u)
-		pose.legs.FR = F.LeapFrontDegrees * (1 - 0.3 * u) - 10
-		pose.legs.HL = -F.LeapHindDegrees
-		pose.legs.HR = -F.LeapHindDegrees + 10
-		pose.head = -8
-	elseif T < leaveAt then
-		at = t.land
-		local k = (T - L) / F.CrouchSeconds
-		if k < 1 then
-			pose.crouch = height * F.CrouchShare * math.sin(k * math.pi)
-			local back = 1 - easeOut(k)
-			pose.legs.FL = F.LeapFrontDegrees * 0.7 * back
-			pose.legs.FR = F.LeapFrontDegrees * 0.7 * back
-			pose.legs.HL = -F.LeapHindDegrees * back
-			pose.legs.HR = -F.LeapHindDegrees * back
-			pose.pitch = F.LeapPitch[2] * back
-		end
-		local paw, out, rear = 0, 0, 0
-		if T < strikeAt then
-			local r = easeOut((T - L) / F.RaiseSeconds)
-			paw, out, rear = F.PawRaiseDegrees * r, F.PawOutDegrees * r, 12 * r
-		elseif T < strikeEnd then
-			local r = (T - strikeAt) / F.StrikeSeconds
-			r = r * r
-			paw = lerp(F.PawRaiseDegrees, F.PawStrikeDegrees, r)
-			out = F.PawOutDegrees * (1 - r)
-			rear = lerp(12, -6, r)
-		else
-			-- Frozen on the impact a moment, then back to standing.
-			local r = math.clamp((T - strikeEnd - F.ImpactFreezeSeconds) / F.HoldSeconds, 0, 1)
-			paw, rear = F.PawStrikeDegrees * (1 - r), -6 * (1 - r)
-		end
-		pose.legs[t.near] += paw
-		pose.out = out
-		pose.pitch += rear
-		pose.head = -rear * 0.5
-	elseif T < goneAt then
-		local u = (T - leaveAt) / F.LeapOutSeconds
-		local arc = t.up * (4 * u * (1 - u)) * F.LeapOutArcInches * Config.Table.StudsPerInch
-		at = t.land:Lerp(t.finish, u) + arc
-		pose.pitch = lerp(20, -12, u)
-		pose.legs.FL = F.LeapFrontDegrees * u
-		pose.legs.FR = F.LeapFrontDegrees * u - 10
-		pose.legs.HL = -F.LeapHindDegrees * math.min(1, u * 2)
-		pose.legs.HR = -F.LeapHindDegrees * math.min(1, u * 2) + 10
-		fade = math.clamp(1 - (goneAt - T) / F.FadeSeconds, 0, 1)
+	if not Camera.isLocked() then
+		releaseCamera(self, t) -- the turn moved on
+		return
 	end
-	return at, pose, fade
+	local times = t.times
+	local push = smooth((T - (times.land - F.CamStrikeLeadSeconds)) / F.CamStrikeInSeconds)
+	local up = smooth((T - (times.roar - F.CamRoarLeadSeconds)) / F.CamRoarInSeconds)
+	local w = 1 - smooth((T - (times.run - F.CamOutLeadSeconds)) / F.CamOutSeconds)
+	if w <= 0 then
+		releaseCamera(self, t)
+		return
+	end
+	Camera.setOverride(from:Lerp(close, push):Lerp(roar, up), w)
+end
+
+local function dropTiger(self: GuangdongTigerFx, t: Tiger)
+	releaseCamera(self, t)
+	if t.model then
+		t.model:Destroy()
+		t.model = nil
+	end
+	t.anim = nil
+	for _, list in t.claws do
+		for _, claw in list do
+			claw.tip:Destroy() -- its trail with it
+			claw.back:Destroy()
+		end
+	end
+	table.clear(t.claws)
 end
 
 ---------------------------------------------------------------------------------------------
@@ -584,15 +800,42 @@ local function stepSlashes(fx: TableFx)
 	fx.slashes = keep
 end
 
--- Split cut ball `c` along the slash's plane: its halves fly apart.
+-- A rake's air slashes: along (falling across the view: the first forward, the second back
+-- across it) and their face (turned to the camera).
+local function rakeOf(t: Tiger, second: boolean): (Vector3, Vector3)
+	local tilt = math.rad(F.SlashTiltDegrees)
+	local ahead = if second then -t.forward else t.forward
+	local dir = (ahead * math.cos(tilt) - t.up * math.sin(tilt)).Unit
+	local normal = t.toCam - dir * t.toCam:Dot(dir)
+	normal = if normal.Magnitude > 1e-4 then normal.Unit else t.right
+	return dir, normal
+end
+
+-- The colour inside ball `id` (a stripe's is its stripe's).
+local function insideOf(id: number): { number }
+	local colours = Config.Balls.Colors
+	return colours[if id > 8 then id - 8 else id] or colours[0]
+end
+
+-- A disc on a half's cut face (a cylinder: its axis is its X), glowing (Neon) or not.
+local function disc(fx: TableFx, colour: { number }, across: number, hot: boolean): Part
+	local p = Instance.new("Part")
+	p.Name = "TigerCutFace"
+	p.Shape = Enum.PartType.Cylinder
+	p.Material = if hot then Enum.Material.Neon else Enum.Material.SmoothPlastic
+	p.Color = rgb(colour)
+	settle(p)
+	p.CastShadow = false
+	p.Size = Vector3.new(0.006, across, across)
+	p.Parent = fx.anchor
+	return p
+end
+
+-- Split cut ball `c` along the first rake's plane: its halves spring apart and fall open.
 local function split(self: GuangdongTigerFx, id: number, fx: TableFx, t: Tiger, c: Cut)
-	local meshes = meshesOf(self)
-	local studs = Config.Table.StudsPerInch
-	local rot = CFrame.fromMatrix(Vector3.zero, t.slashDir, t.slashNormal)
-	local apart = rot.ZVector -- HalfA's dome
-	local r = c.radius * F.HalfScale
-	-- White sparks where the slash crosses the ball.
 	local kit = self.kit
+	local studs = Config.Table.StudsPerInch
+	-- White sparks where the slash crosses the ball.
 	local holder = kit.attachment(id, "TigerCutSparks", c.at)
 	local sparks = kit.particles(holder, {
 		Color = ColorSequence.new(rgb(F.CutSparkColor)),
@@ -603,123 +846,196 @@ local function split(self: GuangdongTigerFx, id: number, fx: TableFx, t: Tiger, 
 	kit.later(id, 1.5, function()
 		holder:Destroy()
 	end)
-	local pieces: { { part: BasePart, sign: number, faces: { { part: BasePart, offset: CFrame } } } } =
-		{}
-	if meshes then
-		for k, template in { meshes.halfA, meshes.halfB } do
-			local sign = if k == 1 then 1 else -1
-			local h = template:Clone()
-			h.TextureID = c.texture
-			h.Color = c.color
-			h.Material = Enum.Material.SmoothPlastic
-			h.Size = template.Size * r
-			h.CastShadow = false
-			h.Transparency = 0
-			h.Parent = fx.anchor
-			-- The cut face (the half's local Z = 0 plane, facing -sign Z): an orange-hot rim
-			-- round a pale hot core, two thin discs just outside it.
-			local faces = {}
-			local specs: { { colour: { number }, share: number, out: number } } = {
-				{ colour = F.CutRimColor, share = 0.99, out = 0.004 },
-				{ colour = F.CutCoreColor, share = 0.78, out = 0.008 },
-			}
-			for n, spec in specs do
-				local disc = Instance.new("Part")
-				disc.Name = "TigerCutFace"
-				disc.Shape = Enum.PartType.Cylinder
-				disc.Material = Enum.Material.Neon
-				disc.Color = rgb(spec.colour)
-				disc.Anchored, disc.CanCollide, disc.CanQuery, disc.CanTouch =
-					true, false, false, false
-				disc.CastShadow = false
-				disc.Size = Vector3.new(0.004 * n, 2 * r * spec.share, 2 * r * spec.share)
-				disc.Parent = fx.anchor
-				-- A cylinder's axis is its X: turned onto Z, just outside the face.
-				local offset = CFrame.new(0, 0, -sign * r * spec.out)
-					* CFrame.Angles(0, math.pi / 2, 0)
-				table.insert(faces, { part = disc :: BasePart, offset = offset })
-			end
-			table.insert(pieces, { part = h :: BasePart, sign = sign, faces = faces })
-		end
-		c.copy:Destroy()
-	else
-		table.insert(pieces, { part = c.copy, sign = 1, faces = {} })
+	local meshes = meshesOf(self)
+	c.copy:Destroy()
+	if meshes == nil then
+		return -- without the halves the ball just goes, in its sparks
 	end
-	for _, piece in pieces do
-		local vel = apart * piece.sign * F.HalfSpeedInches * studs
-			+ t.up * F.HalfUpInches * studs
-			+ t.forward * F.HalfSpeedInches * 0.3 * studs
+	-- The cut's plane holds the slash and its face (seen edge on: the ball parts along the
+	-- slash on the screen); HalfA's dome is the plane's +Z side.
+	local base = CFrame.fromMatrix(Vector3.zero, t.slashDir, t.slashNormal)
+	local r = c.radius * F.HalfScale
+	for k, template in { meshes.halfA, meshes.halfB } do
+		local sign = if k == 1 then 1 else -1
+		local part = template:Clone()
+		part.TextureID = c.texture
+		part.Color = c.color
+		part.Material = Enum.Material.SmoothPlastic
+		part.Size = template.Size * r -- the template is a unit ball's half
+		part.CastShadow = true
+		part.Transparency = 0
+		part.Parent = fx.anchor
+		local dome = base.ZVector * sign
+		local face = -dome
+		-- It falls open about the cut line, its face turning up.
+		local axis = face:Cross(Vector3.yAxis)
+		local rest
+		if axis.Magnitude < 1e-3 then
+			axis = flat(t.slashDir) or Vector3.xAxis
+			rest = if face.Y > 0 then 0 else math.pi
+		else
+			axis = axis.Unit
+			rest = math.acos(math.clamp(face.Y, -1, 1))
+		end
+		local smoke = kit.attachment(id, "TigerCutSmoke", c.at)
+		local emitter = kit.particles(smoke, {
+			Texture = IMAGES.TigerSmoke,
+			Color = ColorSequence.new(rgb(F.CutSmokeColor)),
+			LightEmission = 0,
+			LightInfluence = 1,
+			Size = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, r * 0.35),
+				NumberSequenceKeypoint.new(1, r * 1.5),
+			}),
+			Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 1),
+				NumberSequenceKeypoint.new(0.15, 0.5),
+				NumberSequenceKeypoint.new(1, 1),
+			}),
+			Lifetime = NumberRange.new(0.9, 1.4),
+			Speed = NumberRange.new(r * 1.5, r * 2.5),
+			SpreadAngle = Vector2.new(12, 12),
+			Acceleration = Vector3.new(0, r * 1.5, 0),
+			Drag = 1.5,
+			RotSpeed = NumberRange.new(-40, 40),
+		})
+		local speed = F.HalfSpeedInches * studs
 		table.insert(fx.halves, {
-			part = piece.part,
-			faces = piece.faces,
-			vel = vel,
-			axis = t.slashNormal,
-			spin = math.rad(F.HalfSpinDegrees) * piece.sign,
-			angle = 0,
+			part = part :: BasePart,
+			sign = sign,
+			r = r,
 			at = c.at,
-			rot = rot,
-			floor = c.at.Y,
-			radius = c.radius,
+			vel = dome * speed + t.forward * speed * 0.2 + Vector3.yAxis * F.HalfUpInches * studs,
+			base = base,
+			axis = axis,
+			rest = rest,
+			angle = 0,
+			spin = 0,
+			yaw = 0,
+			yawSpeed = math.rad(F.HalfYawDegrees) * (0.4 + 0.6 * self.rng:NextNumber()) * sign,
+			floor = c.at.Y - c.radius,
 			born = fx.clock,
+			face = disc(fx, insideOf(c.ball), 2 * r * 0.995, false),
+			rim = disc(fx, F.CutRimColor, 2 * r * 0.99, true),
+			core = disc(fx, F.CutCoreColor, 2 * r * 0.78, true),
+			smoke = smoke,
+			emitter = emitter,
 		})
 	end
+	kit.keep(id, F.HalfSeconds + 0.5)
+end
+
+local function dropHalf(h: Half)
+	h.part:Destroy()
+	h.face:Destroy()
+	h.rim:Destroy()
+	h.core:Destroy()
+	h.smoke:Destroy() -- its smoke with it
+end
+
+-- One step of a half: flying, bouncing, falling open and rocking to rest face up on the cloth,
+-- sliding to a stop. Returns its turn and its dome's way (world).
+local function moveHalf(h: Half, age: number, dt: number): (CFrame, Vector3)
+	local up = Vector3.yAxis
+	local g = F.HalfGravityInches * Config.Table.StudsPerInch
+	h.vel -= up * g * dt
+	h.at += h.vel * dt
+	if age >= F.HalfOpenDelaySeconds then
+		local w = 2 * math.pi * F.HalfRockHz
+		h.spin += (-w * w * (h.angle - h.rest) - 2 * F.HalfRockDamping * w * h.spin) * dt
+		h.angle += h.spin * dt
+	end
+	h.yaw += h.yawSpeed * dt
+	local yaw = CFrame.fromAxisAngle(up, h.yaw)
+	local turn = yaw * CFrame.fromAxisAngle(h.axis, h.angle) * h.base
+	local dome = turn:VectorToWorldSpace(Vector3.new(0, 0, h.sign))
+	-- Its lowest point: on the dome while that faces down at all, else on the face's rim.
+	local domeDown = dome.Y <= 0
+	local low = if domeDown then h.r else h.r * math.sqrt(math.max(0, 1 - dome.Y * dome.Y))
+	if h.at.Y - low <= h.floor then
+		h.at = Vector3.new(h.at.X, h.floor + low, h.at.Z)
+		if h.vel.Y < 0 then
+			local bounce = -h.vel.Y * F.HalfBounce
+			h.vel = Vector3.new(h.vel.X, if bounce > g * 0.03 then bounce else 0, h.vel.Z)
+			h.yawSpeed *= 0.6
+		end
+		-- On the cloth it slides to a stop, and rocking on its dome rolls it along.
+		local keep = math.max(0, 1 - F.HalfSlideFriction * dt)
+		h.vel = Vector3.new(h.vel.X * keep, h.vel.Y, h.vel.Z * keep)
+		h.yawSpeed *= keep
+		if domeDown then
+			local roll = yaw:VectorToWorldSpace(h.axis) * h.spin
+			h.at += roll:Cross(up * h.r) * dt
+		end
+	end
+	return turn, dome
 end
 
 local function stepHalves(fx: TableFx, dt: number)
-	local studs = Config.Table.StudsPerInch
 	local keep = {}
 	for _, h in fx.halves do
-		local u = (fx.clock - h.born) / F.HalfSeconds
-		if u >= 1 or h.part.Parent == nil then
-			h.part:Destroy()
-			for _, f in h.faces do
-				f.part:Destroy()
-			end
+		local age = fx.clock - h.born
+		if age >= F.HalfSeconds or h.part.Parent == nil then
+			dropHalf(h)
 			continue
 		end
-		h.vel -= Vector3.yAxis * F.HalfGravityInches * studs * dt
-		h.at += h.vel * dt
-		if h.at.Y < h.floor then
-			h.at = Vector3.new(h.at.X, h.floor, h.at.Z)
-			h.vel = Vector3.new(h.vel.X * 0.6, math.abs(h.vel.Y) * 0.3, h.vel.Z * 0.6)
+		-- Small steps, so a slow frame cannot throw the rocking.
+		local steps = math.clamp(math.ceil(dt * 60), 1, 4)
+		local turn, dome = h.base, h.base.ZVector * h.sign
+		for k = 1, steps do
+			turn, dome = moveHalf(h, age - dt + dt * k / steps, dt / steps)
 		end
-		h.angle += h.spin * dt
-		local cf = CFrame.new(h.at) * CFrame.fromAxisAngle(h.axis, h.angle) * h.rot
-		h.part.CFrame = cf
-		h.part.Transparency = u * u
-		for _, f in h.faces do
-			f.part.CFrame = cf * f.offset
-			f.part.Transparency = u * u
-		end
+		local seen = 1 - clamp01((age - (F.HalfSeconds - F.HalfFadeSeconds)) / F.HalfFadeSeconds)
+		-- The part is its box's centre: half its radius out along the dome from the cut face.
+		h.part.CFrame = CFrame.new(h.at + dome * (h.r / 2)) * turn
+		h.part.Transparency = 1 - seen
+		-- The cut face: white-hot, cooling through orange to an ember, then the ball's own.
+		local face = (turn * CFrame.Angles(0, math.pi / 2, 0)).Rotation
+		local cool = clamp01(age / F.CutCoolSeconds)
+		h.face.CFrame = CFrame.new(h.at - dome * 0.002) * face
+		h.face.Transparency = 1 - seen
+		h.rim.CFrame = CFrame.new(h.at - dome * 0.005) * face
+		h.rim.Color = rgb(F.CutRimColor):Lerp(rgb(F.CutEmberColor), cool)
+		h.rim.Transparency = math.max(1 - seen, smooth((cool - 0.6) / 0.4))
+		h.core.CFrame = CFrame.new(h.at - dome * 0.009) * face
+		h.core.Color = rgb(F.CutCoreColor):Lerp(rgb(F.CutRimColor), clamp01(cool / 0.5))
+		h.core.Transparency = math.max(1 - seen, smooth((cool - 0.25) / 0.45))
+		h.smoke.WorldPosition = h.at - dome * (h.r * 0.05)
+		local smoking = clamp01(1 - age / F.CutSmokeSeconds)
+		h.emitter.Rate = if age > 0.1 then F.CutSmokeRate * smoking else 0
 		table.insert(keep, h)
 	end
 	fx.halves = keep
 end
 
--- The strike's moment: slashes, the halves, the screen.
-local function strike(self: GuangdongTigerFx, id: number, fx: TableFx, t: Tiger)
+-- A rake's moment: its slashes in the air and on the cloth; the first is the cut (the halves,
+-- the screen at full), the second crosses it.
+local function strike(self: GuangdongTigerFx, id: number, fx: TableFx, t: Tiger, second: boolean)
 	local kit = self.kit
 	local studs = Config.Table.StudsPerInch
-	-- In the air: in front of the tiger (toward the camera), falling across the view.
+	local share = if second then F.SecondShare else 1
+	-- In the air: in front of the tiger (toward the camera), both rakes crossing there.
 	local air = t.centre
 		+ t.up * F.SlashLiftInches * studs
-		+ t.slashNormal * F.SlashForwardInches * studs
+		+ t.toCamFlat * F.SlashForwardInches * studs
+	local dir, normal = rakeOf(t, second)
+	local across = normal:Cross(dir).Unit
 	local length = F.SlashLengthInches * studs
-	-- On the cloth: raked diagonally across the leap.
-	local turn = math.rad(F.MarkAngleDegrees)
-	local rake = (t.forward * math.cos(turn) + t.side * math.sin(turn)).Unit
+	-- On the cloth: raked diagonally across its way, the two rakes either way.
+	local turn = math.rad(F.MarkAngleDegrees) * (if second then -1 else 1)
+	local rake = (t.forward * math.cos(turn) + t.right * math.sin(turn)).Unit
 	local rakeAcross = rake:Cross(t.up).Unit
 	local markLength = F.MarkLengthInches * studs
 	for k = -1, 1 do
-		local mid = air + t.slashAcross * k * F.SlashGapInches * studs
+		local mid = air + across * k * F.SlashGapInches * studs
 		addSlash(
 			self,
 			id,
 			fx,
 			true,
-			mid - t.slashDir * length / 2,
-			t.slashDir,
-			t.slashAcross,
+			mid - dir * length / 2,
+			dir,
+			across,
 			length,
 			F.SlashWidthInches * studs,
 			(k + 1) * F.SlashStaggerSeconds
@@ -738,41 +1054,43 @@ local function strike(self: GuangdongTigerFx, id: number, fx: TableFx, t: Tiger)
 			(k + 1) * F.SlashStaggerSeconds
 		)
 	end
-	for _, c in fx.cuts do
-		c.splitAt = fx.clock + (c.order - 1) * F.CutStaggerSeconds
+	if not second then
+		for _, c in fx.cuts do
+			c.splitAt = fx.clock + (c.order - 1) * F.CutStaggerSeconds
+		end
 	end
 	kit.burstLight(
 		air,
 		rgb(F.SlashColor),
 		ballWidth() * F.SlashLightBallWidths,
-		F.SlashLightBrightness,
+		F.SlashLightBrightness * share,
 		F.SlashLightSeconds
 	)
 	if t.quiet then
 		return
 	end
-	for k = 0, 2 do
-		kit.later(id, k * 0.05, function()
-			playAt(self, id, A.TigerSlash, t.centre, { pitch = 1 + 0.08 * k })
-		end)
+	playAt(self, id, A.TigerClaw, t.centre, { pitch = if second then 1.12 else 1 })
+	if not second then
+		playAt(self, id, A.TigerSlash, t.centre)
 	end
 	if kit.screen.involved(self.hub, id) then
-		kit.screen.overlay(id, IMAGES.TigerFur, {
-			fadeIn = F.FurFadeIn,
-			hold = F.FurHold,
-			fadeOut = F.FurFadeOut,
-			transparency = F.FurTransparency,
-		})
-		kit.screen.shake(id, F.StrikeShakeStuds, F.StrikeShakeSeconds)
-		kit.screen.fovPunch(id, F.FovPunchDegrees, F.FovPunchSeconds)
-		kit.screen.grade(id, F.StrikeGrade, F.StrikeGradeIn, F.StrikeGradeHold, F.StrikeGradeOut)
-	end
-end
-
-local function dropTiger(t: Tiger)
-	if t.rig then
-		t.rig.model:Destroy()
-		t.rig = nil
+		if not second then
+			kit.screen.overlay(id, IMAGES.TigerFur, {
+				fadeIn = F.FurFadeIn,
+				hold = F.FurHold,
+				fadeOut = F.FurFadeOut,
+				transparency = F.FurTransparency,
+			})
+			kit.screen.grade(
+				id,
+				F.StrikeGrade,
+				F.StrikeGradeIn,
+				F.StrikeGradeHold,
+				F.StrikeGradeOut
+			)
+		end
+		kit.screen.shake(id, F.StrikeShakeStuds * share, F.StrikeShakeSeconds)
+		kit.screen.fovPunch(id, F.FovPunchDegrees * share, F.FovPunchSeconds)
 	end
 end
 
@@ -782,39 +1100,56 @@ local function stepTiger(self: GuangdongTigerFx, id: number, fx: TableFx)
 		return
 	end
 	local kit = self.kit
-	local meshes = meshesOf(self)
 	local T = fx.clock - t.born
-	local height = if meshes then meshes.height * t.scale else ballWidth() * 6
-	if meshes and t.rig == nil then
-		t.rig = buildRig(meshes, fx, t.scale)
-	end
-	local at, pose, fade = poseAt(t, T, height)
-	if not t.landed and T >= F.LeapSeconds then
-		t.landed = true
+	local times = t.times
+	local involved = not t.quiet and kit.screen.involved(self.hub, id)
+	if not t.snarled and T >= times.leap then
+		t.snarled = true
 		if not t.quiet then
-			playAt(self, id, A.TigerThump, t.centre)
-			if kit.screen.involved(self.hub, id) then
-				kit.screen.shake(id, F.LandShakeStuds, F.LandShakeSeconds)
-			end
+			playAt(self, id, A.TigerSnarl, t.leapFrom + t.up * (0.4 * t.scale))
 		end
 	end
-	if not t.struck and T >= F.LeapSeconds + F.RaiseSeconds + F.StrikeSeconds / 2 then
-		t.struck = true
-		strike(self, id, fx, t)
+	if not t.landed and T >= times.land then
+		t.landed = true
+		puff(self, id, t.land + t.forward * (0.15 * t.scale), F.LandDust, ballWidth() * 1.6)
+		if not t.quiet then
+			playAt(self, id, A.TigerThump, t.centre)
+		end
+		if involved then
+			kit.screen.shake(id, F.LandShakeStuds, F.LandShakeSeconds)
+		end
 	end
-	local rig = t.rig
+	if not t.struck and T >= times.cut then
+		t.struck = true
+		strike(self, id, fx, t, false)
+	end
+	if not t.struck2 and T >= times.cut2 then
+		t.struck2 = true
+		strike(self, id, fx, t, true)
+	end
+	if not t.roared and T >= times.roarSound then
+		t.roared = true
+		if not t.quiet then
+			playAt(self, id, A.TigerRoar, t.land + t.up * (0.4 * t.scale))
+		end
+		if involved then
+			kit.screen.shake(id, F.RoarShakeStuds, F.RoarShakeSeconds)
+			kit.screen.fovPunch(id, F.RoarFovDegrees, F.RoarShakeSeconds)
+		end
+	end
+	local at, facing, fade = stepPose(t, T)
 	if at == nil then
-		dropTiger(t)
+		dropTiger(self, t)
 		fx.tiger = nil
 		return
 	end
-	if rig and meshes then
-		drawRig(meshes, rig, originAt(t, at), t.scale, pose)
-		fadeRig(rig, fade)
-	end
+	placeTiger(t, CFrame.lookAt(at, at + facing))
+	fadeTiger(t, fade)
+	stepClaws(t, T)
+	stepCamera(self, t, T)
 end
 
--- The swipe at (x, y) (table inches): the tiger's leap begins.
+-- The swipe at (x, y) (table inches): the tiger's run begins.
 local function swipe(
 	self: GuangdongTigerFx,
 	id: number,
@@ -826,76 +1161,110 @@ local function swipe(
 )
 	local kit = self.kit
 	if fx.tiger then
-		dropTiger(fx.tiger)
+		dropTiger(self, fx.tiger)
 	end
 	local studs = Config.Table.StudsPerInch
 	local centre = kit.tableWorld(m, x, y, 0)
 	local up = Vector3.yAxis
 	local camera = workspace.CurrentCamera
-	local camPos = if camera then camera.CFrame.Position else centre + Vector3.new(0, 10, 10)
-	-- It crosses the view: its way is across the camera's look (flat), toward the table's middle.
-	local look = if camera then camera.CFrame.LookVector else Vector3.new(0, -1, -1)
-	local flat = Vector3.new(look.X, 0, look.Z)
-	if flat.Magnitude < 0.2 and camera then
-		-- Looking straight down: the top of the screen is "ahead".
-		local top = camera.CFrame.UpVector
-		flat = Vector3.new(top.X, 0, top.Z)
-	end
-	flat = if flat.Magnitude > 1e-4 then flat.Unit else Vector3.zAxis
-	local forward = flat:Cross(up).Unit
+	local camCF = if camera
+		then camera.CFrame
+		else CFrame.lookAt(centre + Vector3.new(0, 10, 10), centre)
+	local scale = F.TigerLengthInches * studs
+	local run = ANIMS.Actions.Run
+	local speed = F.RunStrideUnits * scale * run.Fps * F.RunRate / run.Frames
+	local times = timesOf()
+	-- It comes at the cut from the far side of the view, ApproachDegrees off straight at the
+	-- camera; of the two sides, the one that starts it nearer the table's middle.
+	local look = flat(camCF.LookVector) or flat(camCF.UpVector) or Vector3.zAxis
+	local across = look:Cross(up).Unit
 	local middle = kit.tableWorld(m, 0, 0, 0)
-	if forward:Dot(middle - centre) < 0 then
-		forward = -forward
+	local a = math.rad(F.ApproachDegrees)
+	local reach = F.ReachUnits * scale + F.LeapInches * studs + speed * times.leap
+	local function wayOf(side: number): Vector3
+		return (-look * math.cos(a) + across * side * math.sin(a)).Unit
 	end
-	local meshes = meshesOf(self)
-	local length = if meshes then meshes.length else 4
-	local scale = F.TigerLengthInches * studs / length
-	local side = (-forward):Cross(up)
-	local toCam = camPos - centre
-	local near = if side:Dot(toCam) >= 0 then "FL" else "FR"
-	-- Its front paws PawBackInches short of the centre.
-	local frontX = if meshes then -meshes.joints.J_LegFL.X else 0.62
-	local land = centre - forward * (frontX * scale + F.PawBackInches * studs)
-	-- The air slashes fall forward across the view, their faces to the camera.
-	local tilt = math.rad(F.SlashTiltDegrees)
-	local dir = (forward * math.cos(tilt) - up * math.sin(tilt)).Unit
-	local camDir = if toCam.Magnitude > 1e-4 then toCam.Unit else side
-	local normal = camDir - dir * camDir:Dot(dir)
-	normal = if normal.Magnitude > 1e-4 then normal.Unit else side
-	fx.tiger = {
+	local forward = wayOf(1)
+	if
+		(centre - wayOf(-1) * reach - middle).Magnitude
+		< (centre - forward * reach - middle).Magnitude
+	then
+		forward = wayOf(-1)
+	end
+	local right = forward:Cross(up).Unit
+	local toCam = camCF.Position - centre
+	local toCamFlat = flat(toCam) or -right
+	-- Its point (ReachUnits ahead of its middle) on the centre once it lands.
+	local land = centre - forward * (F.ReachUnits * scale)
+	local leapFrom = land - forward * (F.LeapInches * studs)
+	local geometry = m.state.geometry
+	local edge = Config.Table.RailWidthInches
+	local tableX = kit.tableWorld(m, 1, 0, 0) - middle
+	local tableY = kit.tableWorld(m, 0, 1, 0) - middle
+	local t: Tiger = {
 		born = fx.clock,
+		times = times,
 		scale = scale,
+		speed = speed,
 		centre = centre,
+		middle = middle,
+		tableX = if tableX.Magnitude > 1e-6 then tableX.Unit else Vector3.xAxis,
+		tableY = if tableY.Magnitude > 1e-6 then tableY.Unit else Vector3.zAxis,
+		halfX = (geometry.halfLength + edge) * studs,
+		halfY = (geometry.halfWidth + edge) * studs,
+		cloth = centre.Y,
+		floor = centre.Y - Config.Table.SurfaceHeightStuds,
 		forward = forward,
 		up = up,
-		side = side,
-		near = near,
-		start = land - forward * F.LeapFromInches * studs + up * F.StartLiftInches * studs,
+		right = right,
+		camSide = if right:Dot(toCamFlat) >= 0 then 1 else -1,
+		toCam = if toCam.Magnitude > 1e-4 then toCam.Unit else up,
+		toCamFlat = toCamFlat,
+		runFrom = leapFrom - forward * (speed * times.leap),
+		leapFrom = leapFrom,
 		land = land,
-		finish = land + forward * F.LeapOutInches * studs,
-		slashDir = dir,
-		slashNormal = normal,
-		slashAcross = normal:Cross(dir).Unit,
-		rig = nil,
+		slashDir = forward,
+		slashNormal = up,
+		model = nil,
+		anim = nil,
+		parts = {},
+		offsets = {},
+		shown = {},
+		claws = {},
+		camFrom = nil,
+		camClose = nil,
+		camRoar = nil,
+		snarled = false,
 		landed = false,
 		struck = false,
+		struck2 = false,
+		roared = false,
 		quiet = quiet,
 	}
-	-- Held until the tiger is gone (the replay may end first), at the developer's /slowmo.
-	local total = F.LeapSeconds
-		+ F.RaiseSeconds
-		+ F.StrikeSeconds
-		+ F.HoldSeconds
-		+ F.LeapOutSeconds
-		+ F.HalfSeconds
-	local rate = if type(m.timeScale) == "number" then m.timeScale else 1
-	kit.keep(id, total / math.max(rate, 0.05) + 0.5)
-	if not quiet then
-		playAt(self, id, A.TigerRoar, centre)
+	t.land = atHeight(land, groundAt(t, land))
+	t.slashDir, t.slashNormal = rakeOf(t, false)
+	buildTiger(self, id, fx, t)
+	-- The shooter's own camera eases in on it (a cutscene inside the shot): on the cut, then up
+	-- at its face as it roars (turned toward the camera).
+	if not quiet and camera and Camera.isLocked() and kit.screen.involved(self.hub, id) then
+		releaseCamera(self, nil)
+		local focus = centre:Lerp(t.land, F.CamStrikeShare) + up * (F.CamStrikeUpUnits * scale)
+		local face = t.land
+			+ turned(t, F.RoarTurnDegrees) * (F.CamRoarAheadUnits * scale)
+			+ up * (F.CamRoarUpUnits * scale)
+		local eye = camCF.Position
+		t.camFrom = camCF
+		t.camClose = CFrame.lookAt(eye:Lerp(focus, F.CamStrikePush), focus)
+		t.camRoar = CFrame.lookAt(eye:Lerp(face, F.CamRoarPush), face)
+		self.camera = t
 	end
+	fx.tiger = t
+	-- Held until the tiger and the halves are gone (the replay may end first), at /slowmo.
+	local rate = if type(m.timeScale) == "number" then m.timeScale else 1
+	kit.keep(id, (times.gone + F.HalfSeconds) / math.max(rate, 0.05) + 0.5)
 end
 
--- Ball `ballId` was cut from `at` (table inches): a copy waits there for the strike.
+-- Ball `ballId` was cut from `at` (table inches): a copy waits there for the cut.
 local function cut(
 	self: GuangdongTigerFx,
 	id: number,
@@ -926,6 +1295,7 @@ local function cut(
 	copy.CFrame = CFrame.new(at) * part.CFrame.Rotation
 	copy.Parent = fx.anchor
 	local entry: Cut = {
+		ball = ballId,
 		copy = copy,
 		texture = if copy:IsA("MeshPart") then (copy :: MeshPart).TextureID else "",
 		color = copy.Color,
@@ -936,7 +1306,7 @@ local function cut(
 	}
 	local t = fx.tiger
 	if t and t.struck then
-		-- Too late for the strike (never, as the physics cuts at the swipe): split now.
+		-- Too late for the cut (never, as the physics cuts at the swipe): split now.
 		entry.splitAt = fx.clock
 	end
 	table.insert(fx.cuts, entry)
@@ -990,10 +1360,9 @@ local function stepArmed(self: GuangdongTigerFx, id: number, fx: TableFx, on: bo
 	-- Diagonal across the view, like the claw marks the swipe leaves.
 	local camera = workspace.CurrentCamera
 	local right = if camera then camera.CFrame.RightVector else Vector3.xAxis
-	local flat = Vector3.new(right.X, 0, right.Z)
-	flat = if flat.Magnitude > 1e-4 then flat.Unit else Vector3.xAxis
+	local side = flat(right) or Vector3.xAxis
 	local turn = math.rad(F.MarkAngleDegrees)
-	local along = (flat * math.cos(turn) + flat:Cross(Vector3.yAxis) * math.sin(turn)).Unit
+	local along = (side * math.cos(turn) + side:Cross(Vector3.yAxis) * math.sin(turn)).Unit
 	local across = along:Cross(Vector3.yAxis)
 	for k, decal in fx.armedMarks do
 		local holder = decal.Parent :: BasePart
@@ -1018,8 +1387,14 @@ function GuangdongTigerFx.start(hub: any, _parent: Instance, kit: any): Guangdon
 		meshes = nil,
 		meshesFailed = false,
 		nextMeshCheck = 0,
+		camera = nil,
+		rng = Random.new(),
 	}, GuangdongTigerFx) :: any
 	kit.onRelease(function(tableId: number)
+		local fx = self.tables[tableId]
+		if fx and fx.tiger then
+			releaseCamera(self, fx.tiger)
+		end
 		self.tables[tableId] = nil -- its parts went with the anchor
 	end)
 	kit.allEvents(function(tableId: number, m: any, ev: any, _index: number)
@@ -1039,14 +1414,16 @@ function GuangdongTigerFx.start(hub: any, _parent: Instance, kit: any): Guangdon
 	end)
 	task.spawn(function()
 		local list: { Instance } = {}
-		for _, clip in { A.TigerRoar, A.TigerSlash, A.TigerThump } do
+		for _, clip in { A.TigerRoar, A.TigerSnarl, A.TigerClaw, A.TigerSlash, A.TigerThump } do
 			local sound = Instance.new("Sound")
 			sound.SoundId = clip.Id
 			table.insert(list, sound)
 		end
-		local image = Instance.new("ImageLabel")
-		image.Image = IMAGES.TigerFur
-		table.insert(list, image)
+		for _, id in { IMAGES.TigerFur, IMAGES.TigerSmoke } do
+			local image = Instance.new("ImageLabel")
+			image.Image = id
+			table.insert(list, image)
+		end
 		pcall(function()
 			ContentProvider:PreloadAsync(list)
 		end)
@@ -1054,6 +1431,7 @@ function GuangdongTigerFx.start(hub: any, _parent: Instance, kit: any): Guangdon
 			item:Destroy()
 		end
 	end)
+	task.defer(BoneAnim.prepare, ANIMS)
 	return self
 end
 
@@ -1064,16 +1442,13 @@ local function destroy(self: GuangdongTigerFx, id: number)
 	end
 	self.tables[id] = nil
 	if fx.tiger then
-		dropTiger(fx.tiger)
+		dropTiger(self, fx.tiger)
 	end
 	for _, c in fx.cuts do
 		c.copy:Destroy()
 	end
 	for _, h in fx.halves do
-		h.part:Destroy()
-		for _, f in h.faces do
-			f.part:Destroy()
-		end
+		dropHalf(h)
 	end
 	for _, s in fx.slashes do
 		dropSlash(s)
@@ -1158,6 +1533,7 @@ function GuangdongTigerFx.clear(self: GuangdongTigerFx)
 	for id in self.tables do
 		destroy(self, id)
 	end
+	releaseCamera(self, nil)
 end
 
 return GuangdongTigerFx

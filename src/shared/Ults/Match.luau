@@ -37,6 +37,10 @@
 -- * A Turn ult (Portals, 7.9) keeps acting after its shot: while its shooter keeps the table
 --   (a legal pot), each of their next shots is an ult shot again with the same pick (`kept`),
 --   until the turn passes, a foul, or the game ends.
+-- * A Sneak ult (Look Over There!, the rework) is not a shot: it arms at once (no cutscene,
+--   no pause: nobody may be warned), MatchEngine opens its Sneak phase (Match.sneakDue), and
+--   the armed ult is spent at the window's end. Never on the break, nor with ball in hand
+--   already ("BallInHand": it is sneaky ball in hand).
 local Config = require(script.Parent.Parent.Config)
 local Judge = require(script.Parent.Parent.Rules.ShotJudge)
 local NiceShot = require(script.Parent.Parent.Rules.NiceShot)
@@ -200,11 +204,20 @@ function Match.check(t: any, userId: number): (boolean, string?)
 	return true, nil
 end
 
--- Arms `ultId` for `userId` from `now`: the Arming stage, the paused clock, a new seq.
+-- Whether `ultId` (or the default it falls back to) is a built Sneak ult (Look Over There!).
+local function isSneak(ultId: string): boolean
+	local ult = Catalog.get(if Catalog.exists(ultId) then ultId else U.Default)
+	return ult ~= nil and ult.Built and ult.Sneak == true
+end
+
+-- Arms `ultId` for `userId` from `now`: the Arming stage, the paused clock, a new seq. A
+-- Sneak ult has no cutscene and no wait (its whole point is that nobody is warned): it is
+-- ready at once, and the next advance opens its Sneak phase.
 local function arm(t: any, userId: number, ultId: string, now: number, practice: boolean)
 	local ults = stateOf(t)
 	ults.seq += 1
-	local readyAt = now + pause()
+	local wait = if isSneak(ultId) then 0 else pause()
+	local readyAt = now + wait
 	ults.armed = {
 		by = userId,
 		id = if Catalog.exists(ultId) then ultId else U.Default,
@@ -215,7 +228,7 @@ local function arm(t: any, userId: number, ultId: string, now: number, practice:
 		practice = practice,
 	}
 	if t.deadline ~= nil then
-		t.deadline += pause()
+		t.deadline += wait
 	end
 	ults.pausedUntil = readyAt
 	t.revision += 1
@@ -224,6 +237,20 @@ end
 -- A deadline that has passed is the turn's end, which the next advance applies.
 local function expired(t: any, now: number): boolean
 	return t.deadline ~= nil and now >= t.deadline
+end
+
+-- Why a Sneak ult (Look Over There!) cannot be activated now, or nil: it has no place on the
+-- break ("Break", solo's practice included), and it is ball in hand, so not when the shooter
+-- has ball in hand already ("BallInHand").
+local function sneakRefusal(t: any, ultId: string): string?
+	if not isSneak(ultId) then
+		return nil
+	elseif t.breakShot then
+		return "Break"
+	elseif t.ballInHand == true then
+		return "BallInHand"
+	end
+	return nil
 end
 
 --- `userId` activates `ultId` (the server picked it from their equipped slot) at `now`.
@@ -236,6 +263,10 @@ function Match.activate(t: any, userId: number, ultId: string, now: number): (bo
 		return false, reason
 	elseif expired(t, now) then
 		return false, "NotYourTurn"
+	end
+	local refusal = sneakRefusal(t, ultId)
+	if refusal then
+		return false, refusal
 	end
 	Fill.spend(barOf(stateOf(t), userId))
 	arm(t, userId, ultId, now, false)
@@ -255,6 +286,10 @@ function Match.practice(t: any, userId: number, ultId: string, now: number): (bo
 		return false, reason
 	elseif expired(t, now) then
 		return false, "NotYourTurn"
+	end
+	local refusal = sneakRefusal(t, ultId)
+	if refusal then
+		return false, refusal
 	end
 	arm(t, userId, ultId, now, true)
 	return true, nil
@@ -277,6 +312,23 @@ end
 function Match.arming(t: any): boolean
 	local armed = stateOf(t).armed
 	return armed ~= nil and armed.stage == "Arming"
+end
+
+--- Whether the shooter's armed ult is a Sneak ult (Look Over There!) whose cutscene is over,
+--- with the table still before their shot: MatchEngine opens the Sneak phase, and a shot now
+--- is refused.
+function Match.sneakDue(t: any): boolean
+	local armed = stateOf(t).armed
+	if
+		armed == nil
+		or armed.stage ~= "Armed"
+		or armed.by ~= t.shooter
+		or not BEFORE_SHOT[t.phase]
+	then
+		return false
+	end
+	local ult = Catalog.get(armed.id)
+	return ult ~= nil and ult.Built and ult.Sneak == true
 end
 
 -- The armed ult if the table's shooter's next shot is it (armed by them, stage Armed), else

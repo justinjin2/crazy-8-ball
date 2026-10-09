@@ -20,6 +20,7 @@
 --   * Each swallowed ball ("swallow"): the photon ring and light flare.
 --   * The close (the last caught ball gone, the hole open long enough; or the replay over):
 --     it collapses to a point and pops with a bright ring, a flash and a hollow pop.
+-- The look runs on its own clock, the replay's time: it slows with /slowmo, stops on /hold.
 -- Every table's parts hang off its AbilityFx anchor and go with it (kit.onRelease) or with
 -- clear(). Without the model the light, the pulled balls, the ring and the sounds still show.
 
@@ -741,15 +742,18 @@ function BlackHoleFx.update(self: BlackHoleFx, dt: number)
 			fx = create(self, id)
 		end
 		local live = fx :: TableFx
+		-- The replay's time: /slowmo slows it, /hold stops it where the replay stops.
 		local scale = if type(m.timeScale) == "number" then m.timeScale else 1
-		live.clock += dt * scale
+		local held = m.holdAt ~= nil and m.state.time >= m.holdAt
+		local step = if held then 0 else dt * scale
+		live.clock += step
 		if shot and live.shotSeq ~= m.seq then
 			live.shotSeq = m.seq
 		end
 		meshesOf(self)
 		stepArmed(self, id, live, wantArmed, dt)
-		stepPulls(live, dt * scale)
-		stepHole(self, id, live, dt * scale, not shot or not m:isBusy())
+		stepPulls(live, step)
+		stepHole(self, id, live, step, not shot or not m:isBusy())
 		stepRings(live)
 		if
 			not wantArmed

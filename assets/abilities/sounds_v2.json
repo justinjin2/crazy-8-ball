@@ -1,0 +1,406 @@
+{
+  "_about": "Candidate public Creator Store audio for the abilities, found 2026-10-08 by toolbox-service search and checked with items/details and economy v2 details (all IsPublicDomain=true, free, published, hash approved). First candidate = recommended. Durations in seconds. Audition in Studio before wiring into Config.Ults.Sounds.",
+  "catchOpen": {
+    "use": "Ball opens: pop/whoosh plus a red-energy capture zap that sucks the target in",
+    "candidates": [
+      {
+        "id": 9120984892,
+        "name": "Zap High Pitch Glassy Reversed Whoosh 9 (SFX)",
+        "duration": 1.2,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Reversed whoosh with a glassy electric zap: closest single clip to an energy suck-in. Licensed Pro Sound Effects library."
+      },
+      {
+        "id": 9125807267,
+        "name": "Rising Whoosh Hissing Suck Burst Swooshing In 4",
+        "duration": 1.3,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Rising hissing suck-in burst; pair with a short pop if the open needs more punch."
+      },
+      {
+        "id": 94812253885911,
+        "name": "Pokeball Open",
+        "duration": 1,
+        "creator": "TheTrustyCapricorn",
+        "verified": true,
+        "notes": "Literal Pokeball open; Fan upload of game audio (copyright belongs to the game's owner); could be taken down or muted later."
+      }
+    ]
+  },
+  "catchShake": {
+    "use": "Each of the three wobbles: a small click-clack (played three times)",
+    "candidates": [
+      {
+        "id": 9125759320,
+        "name": "Plastic Switch Single Clicks Metallic Ringing 22",
+        "duration": 1.1,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Single plastic switch click with a metallic ring: crisp, short, repeats cleanly x3."
+      },
+      {
+        "id": 9120783657,
+        "name": "Wobble Board 8 (SFX)",
+        "duration": 0.8,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Plexiglass wobble-board warp (0.8 s): more 'wobble' than click; try if the click feels too dry."
+      },
+      {
+        "id": 105930060641663,
+        "name": "Pokeball shake",
+        "duration": 0,
+        "creator": "TheTrustyCapricorn",
+        "verified": true,
+        "notes": "Literal Pokeball shake; Fan upload of game audio (copyright belongs to the game's owner); could be taken down or muted later."
+      }
+    ]
+  },
+  "catchSuccess": {
+    "use": "Final capture: click + ding success sting",
+    "candidates": [
+      {
+        "id": 9126073318,
+        "name": "Synth Sparkle Tone High Pitch Bell Tone Ding 1",
+        "duration": 1.6,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Bright synth bell ding (1.6 s). Play the catchShake click just before it for the click+ding."
+      },
+      {
+        "id": 18448089848,
+        "name": "Success Ding",
+        "duration": 2,
+        "creator": "lamScripted",
+        "verified": true,
+        "notes": "Generic 'Success Ding' UI sound (community upload, verified creator)."
+      },
+      {
+        "id": 81046688241314,
+        "name": "pokeball catch",
+        "duration": 1,
+        "creator": "gamer712138",
+        "verified": true,
+        "notes": "Literal Pokeball catch click; Fan upload of game audio (copyright belongs to the game's owner); could be taken down or muted later."
+      }
+    ]
+  },
+  "alert": {
+    "use": "Metal Gear Solid style '!' alert",
+    "candidates": [
+      {
+        "id": 7630658014,
+        "name": "Newer Metal Gear Solid Alert Sound",
+        "duration": 1,
+        "creator": "Fizzlestat",
+        "verified": true,
+        "notes": "The real MGS alert (newer version); exactly the meme. Fan upload of game audio (copyright belongs to the game's owner); could be taken down or muted later. Long-lived upload (2021)."
+      },
+      {
+        "id": 84062208287178,
+        "name": "Metal Gear Solid Alert Sound Effect",
+        "duration": 2,
+        "creator": "TurboSarp",
+        "verified": true,
+        "notes": "Another MGS alert upload (2025); same caveat."
+      },
+      {
+        "id": 9113652301,
+        "name": "Buzz Click Sci Fi Alert 2 (SFX)",
+        "duration": 1.2,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Safe licensed fallback: sci-fi buzz-click alert, not the MGS sound."
+      }
+    ]
+  },
+  "vineBoom": {
+    "use": "Vine boom meme hit",
+    "candidates": [
+      {
+        "id": 140367458608473,
+        "name": "vine-boom-sound-effect_KT89XIq",
+        "duration": 1,
+        "creator": "Johnrey2ndacc",
+        "verified": true,
+        "notes": "Vine boom meme upload (1 s). Meme audio, origin unclear; dozens of copies exist on the store if this one goes."
+      },
+      {
+        "id": 132889984353619,
+        "name": "vine-boom",
+        "duration": 1,
+        "creator": "Robloxian201570164",
+        "verified": true,
+        "notes": "Second vine boom upload (1 s)."
+      },
+      {
+        "id": 9125404320,
+        "name": "Boom Impact Deep Distant Thumping Hits Booming 36",
+        "duration": 3.0,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Safe licensed fallback: deep booming impact (3 s), not the meme itself."
+      }
+    ]
+  },
+  "cameraWhoosh": {
+    "use": "Fast whoosh while the camera swings",
+    "candidates": [
+      {
+        "id": 9126228631,
+        "name": "Whoosh Back Zoom Swoosh Fast Camera In And Out 2",
+        "duration": 1.9,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Whoosh/zoom swoosh made for fast camera moves (1.9 s)."
+      },
+      {
+        "id": 9126229255,
+        "name": "Whoosh By Fast Airy Swooshing Whipping Thuds 2",
+        "duration": 1.2,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Shorter airy whip-by whoosh (1.2 s)."
+      }
+    ]
+  },
+  "sneaky": {
+    "use": "Sneaky tiptoe / short sneaky music sting",
+    "candidates": [
+      {
+        "id": 1841485452,
+        "name": "Tiptoes and Eyebrows Sting c",
+        "duration": 4,
+        "creator": "APMOfficial",
+        "verified": true,
+        "notes": "APM orchestral 'tiptoe' sting (about 4 s), licensed for Roblox."
+      },
+      {
+        "id": 9045118430,
+        "name": "Sneaky Schemes - Tag2",
+        "duration": 5.0,
+        "creator": "APMOfficial",
+        "verified": true,
+        "notes": "APM 'Sneaky Schemes' tag: stealthy pizzicato strings and woodwinds (5 s)."
+      },
+      {
+        "id": 9043512590,
+        "name": "Tiptoe Glow (sting b)",
+        "duration": 3.0,
+        "creator": "APMOfficial",
+        "verified": true,
+        "notes": "APM 'Tiptoe Glow' mischievous orchestral sting (3 s)."
+      }
+    ]
+  },
+  "verityScreech": {
+    "use": "Creepy smiley monster: screech or creepy laugh",
+    "candidates": [
+      {
+        "id": 9114571613,
+        "name": "Ghost Giggle Breathy Cu Creepy Possessed 10 (SFX)",
+        "duration": 2.5,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Breathy, possessed ghost giggle (2.5 s): creepy without being gory."
+      },
+      {
+        "id": 9125474863,
+        "name": "Creature Screech Pterodactyl Vocals Screams 10",
+        "duration": 2.4,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Creature screech, pterodactyl-style shriek (2.4 s); pitch down in Studio for a bigger monster."
+      },
+      {
+        "id": 9118850613,
+        "name": "Screechy Screaming Suck Swelling Shrieks 1 (SFX)",
+        "duration": 2.5,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Swelling screaming shrieks (2.5 s), harsher alternative."
+      }
+    ]
+  },
+  "footsteps": {
+    "use": "Heavy footstep thumps",
+    "candidates": [
+      {
+        "id": 9125404769,
+        "name": "Boomy Footsteps Giant Thumpy Dinosaur Footsteps 1",
+        "duration": 4.6,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Giant boomy dinosaur footsteps (4.6 s, several thumps)."
+      },
+      {
+        "id": 9114080709,
+        "name": "Dinosaur Footsteps Boomy Thumps 16 (SFX)",
+        "duration": 2.8,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Single-ish boomy dinosaur thump (2.8 s); good to replay per step."
+      },
+      {
+        "id": 9114523345,
+        "name": "Foot Stomp 3 (SFX)",
+        "duration": 0.9,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Short hard foot stomp (0.9 s); lighter option."
+      }
+    ]
+  },
+  "throwWhoosh": {
+    "use": "Big throw whoosh",
+    "candidates": [
+      {
+        "id": 9120728815,
+        "name": "Whoosh Heavy Punches 1 (SFX)",
+        "duration": 1.3,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Heavy arm-swing whoosh (1.3 s)."
+      },
+      {
+        "id": 9120745193,
+        "name": "Whoosh Vocal Flying Swooshy Heavy 2 (SFX)",
+        "duration": 3.1,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Longer heavy flying swoosh (3.1 s) for a slower, bigger throw."
+      }
+    ]
+  },
+  "tigerRoar": {
+    "use": "Tiger roar",
+    "candidates": [
+      {
+        "id": 9120048719,
+        "name": "Tiger Roars 10 (SFX)",
+        "duration": 2.1,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Real tiger roar/snarl (2.1 s)."
+      },
+      {
+        "id": 9120049061,
+        "name": "Tiger Roars 2 (SFX)",
+        "duration": 2.5,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Second tiger roar take (2.5 s)."
+      }
+    ]
+  },
+  "clawSlash": {
+    "use": "Claw slash / scratch",
+    "candidates": [
+      {
+        "id": 88967797911082,
+        "name": "CLAW SLASH",
+        "duration": 1,
+        "creator": "TheBaconHair_745",
+        "verified": true,
+        "notes": "Purpose-made 'CLAW SLASH' (about 1 s, community upload, verified creator)."
+      },
+      {
+        "id": 9119697796,
+        "name": "Swishes Thin Fast Singles Knife 10 (SFX)",
+        "duration": 1.4,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Licensed fallback: thin fast knife swish (1.4 s); play 2-3 quickly for a three-claw swipe."
+      },
+      {
+        "id": 137592229104819,
+        "name": "claw_strike1",
+        "duration": 1,
+        "creator": "coolguyVicaso",
+        "verified": true,
+        "notes": "'claw_strike1' (about 1 s, community upload)."
+      }
+    ]
+  },
+  "spinUp": {
+    "use": "Rising spin-up whine (fidget spinner / turbine)",
+    "candidates": [
+      {
+        "id": 9119816546,
+        "name": "Synth Power Up Multi Tone Wind Ups Rise 2 (SFX)",
+        "duration": 2.7,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Synth power-up multi-tone wind-up rise (2.7 s)."
+      },
+      {
+        "id": 9116989294,
+        "name": "Motor Wind Up 11 (SFX)",
+        "duration": 2.1,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Mechanical motor wind-up, humming whir (2.1 s): more real-world 'spinner'."
+      },
+      {
+        "id": 9125390323,
+        "name": "Bell Huey Helicopter Wind Ups Whine Fast Rise 2",
+        "duration": 4.2,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Helicopter turbine whine fast rise (4.2 s), long."
+      }
+    ]
+  },
+  "steelClang": {
+    "use": "Metallic clang/ting when the steel ball hits",
+    "candidates": [
+      {
+        "id": 9125361455,
+        "name": "Anvil Hits Ringing Metal Clinks Blacksmith 12",
+        "duration": 0.7,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Ringing anvil clink (0.7 s): bright 'ting'."
+      },
+      {
+        "id": 9119072660,
+        "name": "Shield Clang As Hit Metal Sword Hubcap 1 (SFX)",
+        "duration": 0.8,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Shield clang (0.8 s): heavier 'clang'."
+      }
+    ]
+  },
+  "spiralHum": {
+    "use": "Magical power hum for the glowing golden spiral",
+    "candidates": [
+      {
+        "id": 9116393976,
+        "name": "Magic Glow Short Pulsing Bursts 9 (SFX)",
+        "duration": 1.8,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Magic glow: pulsing humming swell (1.8 s)."
+      },
+      {
+        "id": 9113122880,
+        "name": "Angel Sparkle 5 (SFX)",
+        "duration": 4.4,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Angel sparkle: glowing shimmering tone burst (4.4 s), more 'golden'."
+      },
+      {
+        "id": 9125784811,
+        "name": "Power Throb Tonal Hum Slow Pulse Electrical 3",
+        "duration": 4.3,
+        "creator": "ProSoundEffects",
+        "verified": true,
+        "notes": "Tonal electrical power hum, slow pulse (4.3 s); loopable bed under the glow."
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+# Abilities rework assets (2026-10-08): tools/roblox_upload.py --list this --group-id 675425213 --manifest assets/abilities/rework_upload_manifest.json
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/CatchABall/catchball.glb
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/CatchABall/CatchGlow.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/CatchABall/CatchStar.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/CatchABall/CatchBeam.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/SteelBall/golden_spiral.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/SteelBall/golden_spiral_only.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/SteelBall/spin_blur.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/SteelBall/spin_arrows.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/CatchABall.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/LookOverThere.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/Verity.png
+# Verity v2, the evil Verity ball (the designer's second rework round, 2026-10-08)
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/VerityEvil/verity_evil.glb
+# Verity v3, the plush smiley ball (its map) and the creepy evil ball (the designer's references, 2026-10-08)
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/Verity/verity_ball_plush.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/VerityEvil/verity_creepy.glb
+# Fire Shot, the starter (the designer's third rework round, 2026-10-08): the icon
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/FireShot.png
+# Fire Shot's scorch marks (procedural, tools/gen_fireshot_art.py, 2026-10-08)
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/FireShot/scorch_strip.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/FireShot/scorch_splat.png
+# Fire Shot's river of fire under its aim lines (procedural, tools/gen_fireshot_art.py, 2026-10-08)
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/FireShot/fire_river.png

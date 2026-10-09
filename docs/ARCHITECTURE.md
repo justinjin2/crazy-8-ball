@@ -52,7 +52,16 @@ use Han's tilted contact normal through the centre, full tangential friction, an
 normal-speed restitution. Translation stays planar for a ball on the cloth; only tangential impulses create torque.
 Six pockets use capture circles with jaw facings and a physical drop (z, vz, funnel). Corner
 openings have a flat shelf scaled to ball diameter, and facings extend to their rim. Wedge guards
-against zero-time hit loops. `Aim.trace` gives the guideline from the same code as the shot.
+against zero-time hit loops. `Aim.trace` gives the guideline from the same code as the shot;
+its optional `launchScale` traces a jump as a launch ability sends it (Black Flash, Fire Shot:
+`Catalog.launchScale` of the shooter's armed ult, from Main's `refreshAim`).
+`Aim.fullLines(state, trace)` gives Fire Shot's longer lines (`Catalog.fullLines`, from
+`Config.Ults.FireShot.FullLines`): how far the object ball's line and the cue ball's line after
+the first contact run before that ball's centre meets the next ball, cushion or pocket. It uses
+the same flat time-of-impact search (`firstContact`: balls, cushion faces, jaws and, for these
+lines only, the pockets by `TableGeometry.pocketAt`'s centre-in-the-rim rule). Main passes it to
+`Guideline.show` as `full`. With it, the guideline draws every line whatever the difficulty, and
+the two lines run on a radius further, until they touch what they meet.
 Balls can fly (jump shots, `Physics/Flight`), after Dr. Dave's TP B.10 model. `Cue.strike`
 sends the stroke's downward part into the slate, which rebounds at `SlateRestitution` (0.6);
 a near-level stroke gets only `FlatStrikeBounce` of that, rising to all of it at
@@ -599,7 +608,8 @@ lets one ball pass through those balls only, a per-pair filter in the contact se
 with `overrides.PhaseCue` for the cue ball; any ball with passes forces pairwise contacts:
 Ghost's hit ball passes the ones the cue ball passed); `state.fx.material[id]` (a
 `BallMaterial`: cushion restitution and friction, ball restitution, cloth frictions, until
-`Until`) gives an object ball its own material (Super Bounce's caught ball). An effect may plan once
+`Until`) gives an object ball its own material (Super Bounce's caught ball had it; none uses it
+since Super Bounce became Fire Shot, nor the cue ball's `Cue*` overrides). An effect may plan once
 at its first step and keep the plan in `fx` (Heat Seeker's A* path to the locked ball: nothing
 moves before the first contact), or schedule by shot time in `fx` (Chain Lightning's jumps,
 one every `LinkSeconds` after the charge, each target chosen from the positions at that step).
@@ -646,7 +656,9 @@ shot of that turn with nothing else armed, `turnBegan` drops it when the turn pa
 
 **Client replay** (`client/Match`). Hides "removed" balls, slows the clock at "slow" events,
 stops at a halt and continues with the server's second-strike parts; `setTimeScale` is the
-`/slowmo` hook. A shot marked `rewind` is taped as it replays (every ball's position, spin and
+`/slowmo` hook. A slow window is timed on the replay's clock (`shot.elapsed`), not on the
+stepped state, and a frame stops stepping at the step that emits one, so neither a long frame
+nor a window shorter than a fixed step (Black Flash's hit-stop) runs through it at full speed. A shot marked `rewind` is taped as it replays (every ball's position, spin and
 shown-or-not each frame); the Rewinding snapshot then flies the table back through the tape
 (`startRewind`, `stepRewind`, busy meanwhile) and lands on the server's pre-shot table. A
 client with no tape (it joined late) just takes the snapshot's table. Time Stop's parts are
@@ -680,6 +692,75 @@ designer; Studio-only QA handles in ServerStorage
 the careful and careless shooters into `tools/ult_value_results.json` (`--set Block.Key=n`
 tries a tune without writing), which `tools/ult_model.py` reads. A `Turn` ability is measured
 over the shooter's next shots too (up to `V.TURN_SHOTS`). The Blender scripts are `tools/blender/abilities/`.
+
+## Abilities rework (2026-10-08)
+
+The 13-ability ladder of `docs/prompts/ABILITIES_REWORK_PLAN.md`. Heat Seeker and Ghost left
+the game: `Config.Ults.Retired` maps a saved slot holding either to Magnet when the profile
+loads (no save version bump); their mentions above are history. Super Bounce became Fire Shot
+in the third round (`Retired.SuperBounce = "FireShot"`), the starter (`Config.Ults.Default`,
+`Config.Tutorial.SpinUlt`): `Effects/FireShot` is Black Flash's launch alone (the first step
+scales the cue ball's motion along the cloth and its spin by `LaunchSpeedScale`, once). It
+also sends `ult` events: "turn" where the cue ball meets a cushion or a ball, "down" where it
+lands. Its full lines are `Aim.fullLines` (above). `FireShotFx` draws the rest:
+  - the flames on the ball;
+  - fire under the guideline's lines (flat Beams);
+  - the strike;
+  - the scorch marks, which bend at the "turn" events and cool from hot embers. They last
+    until the shooter's next turn: they expire when the snapshot's `activeTeam` has left the
+    shooter's team and come back, at a new `epoch`, or (Solo) at the next shot. The table's
+    anchor is held meanwhile (`kit.anchor`).
+
+The value harness's careful
+shooter may pull Fire Shot's stroke to its planned speed over the scale (`V.planners.Launch`,
+`V.LAUNCH_PLANNED`); the careless one and the bots hit as always.
+
+- **New effects** (pure, Lune-tested): `Effects/CatchABall` (the cue ball's first contact
+  removes the ball it hit, a pot for its owner, and the cue ball stops dead; the 8 off the legal
+  8 shot breaks free; then `nextBall` picks the shooter's nearest ball within `HopReachInches`
+  whose line clears the pockets, and `fx.hop` slides the ghosted cue ball there after the hold
+  and catches it too, a "hop" event then a second "catch" with `other` 2) and `Effects/Verity` (evil since the second round: the first contact eats
+  the hit ball, she chews in place for `EatShotSeconds` shoving out the balls inside her swollen
+  body, then rolls along the shot's line bumping every ball she touches aside (no eating on
+  the roll since the third round), the cue ball ghosted as her body; her `inside` set lets a
+  ball that left her reach be met again).
+- **The Sneak phase** (Look Over There!, catalog `Sneak = true`; reworked 2026-10-08) is no
+  shot. It arms at once (`Match.arm` skips the cutscene pause for a Sneak row) and `MatchEngine`
+  opens Sneak (`beginSneak`: `t.sneak` with `dragAt`, `dragEnd` and where the cue ball was).
+  Inside the drag window (`Engine.sneakOpen`, with `SneakGraceSeconds` either side) the shooter
+  moves the cue ball anywhere free with ball in hand's own `Place` action and stream
+  (`placeCue`, `moveCue`); the window's end spends the ult (`revealSneak`: SneakReveal records
+  where it ended and whether it moved), then the turn's run-up starts again from there. It is
+  refused on the break and when the shooter already has ball in hand. The bot
+  (`Driver.sneakFor`) decides its shot as if it had ball in hand, drags the cue ball there
+  inside the window, then decides again. `LookOverThereFx` plays it from the snapshot: the
+  shooter points up and "says" the line (`BotChat.say`: a chat bubble and a chat-window line,
+  for bots too), each opponent's own client turns its camera to first person looking away from
+  the table (the humanoid hold freezes their walking), then whips back to the cue ball at the
+  reveal with the vine boom. No activation panel and no armed pill: nobody may be warned.
+- **Lining a ball up** (the Rare+ buffs): `ChainLightning.clearInto` (a ball's run into a pocket
+  clear of cushions, jaws and balls), `lineUp(state, ball, hx, hy)` (the clear line nearest a
+  heading, or the nearest pocket with no heading) and `send` (rolling, fast enough to arrive at
+  a given speed). Chain Lightning drives its charged ball in, Portals send yours from the exit
+  into the pocket nearest it, and Time Stop sends the ball struck in stopped time when time
+  resumes (`TimeStop.resume`). Steel Ball checks its lines with `clearInto`.
+- **Looks:** `BoneAnim` plays baked bone animations (`tools/bake_bone_anims.py` writes
+  `TigerAnims`) on uploaded skinned models by setting each Bone's Transform. `VerityFx` hinges
+  the evil Verity ball's pieces itself (the top jaw and the eyes about `J_Hinge`, as
+  `CatchABallFx` does the catch ball's lid) and pushes each viewer's camera in on her face.
+  Roblox's upgraded avatar rigs may use AnimationConstraint joints instead of Motor6D, so
+  `LookOverThereFx` and `UltCutscene` turn either. Catch-a-Ball's catch eases the shooter's
+  camera in (`Camera.setOverride`); on a "hop" the shell leaps along with the cue ball's slide
+  and the second catch takes over its frame (`SecondTimeline`). A look that draws its own ball
+  in the cue ball's place sets the cue ball part's `HideTrail` attribute, and
+  `Effects.updateTrail` hides the cue ball's trail meanwhile (a Trail ignores
+  `LocalTransparencyModifier`). Lines that follow a ball (Chain Lightning's rail, Portals'
+  launch line, Time Stop's send line) run on the replay's time, so `/slowmo` and `/hold` slow
+  and freeze them with the balls. `kit.beam` puts a beam beside its attachments, not under
+  them, so a look destroys both.
+- **Value harness:** `V.sneakSpots` lists cue ball spots behind each own ball on its pocket
+  lines (the sneak's ball in hand); the careful shooter takes the best pot chance over them, the
+  careless one the best-scored plan.
 
 ## The shared cue mesh and the back cue (2026-09-29)
 

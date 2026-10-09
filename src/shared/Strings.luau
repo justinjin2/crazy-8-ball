@@ -196,7 +196,7 @@ return {
 		-- Rewind's redo turn, under the big clock: its shot clock in seconds.
 		SecondChance = "SECOND CHANCE: %ds",
 		-- Time Stop's stopped time, the shooter's instruction line.
-		TimeStopHint = "TIME STOPPED · ONE MORE SHOT",
+		TimeStopHint = "TIME STOPPED · HIT ONE OF YOUR BALLS",
 	},
 	-- Saves (PlayerData): the kick messages when a save cannot be used.
 	-- The global queue's teleports and why one did not happen (GlobalQueue, TeleportScreen).
@@ -409,6 +409,7 @@ return {
 			Moving = "the balls are still moving",
 			Break = "not on the break",
 			Armed = "an ability is already armed",
+			BallInHand = "you already have ball in hand",
 		},
 		SpinsSet = "You hold %d Ability Spins.",
 		LuckySet = "You hold %d Lucky Spins.",
@@ -1305,10 +1306,11 @@ return {
 		Names = {
 			Magnet = "Magnet",
 			EaglesEye = "Eagle's Eye",
-			SuperBounce = "Super Bounce",
-			Ghost = "Ghost",
-			HeatSeeker = "Heat Seeker",
+			FireShot = "Fire Shot",
 			Rewind = "Rewind",
+			CatchABall = "Catch-a-Ball",
+			LookOverThere = "Look Over There!",
+			Verity = "Verity",
 			TimeStop = "Time Stop",
 			ChainLightning = "Chain Lightning",
 			Portals = "Portals",
@@ -1320,13 +1322,14 @@ return {
 		Descriptions = {
 			Magnet = "The first ball your next shot hits is pulled into a pocket it nearly misses.",
 			EaglesEye = "See the full path of your shot, every bounce included.",
-			SuperBounce = "The cue ball turns rainbow and keeps bouncing. The first ball of yours it hits bounces too, and boings off a pocket's jaw straight in.",
-			Ghost = "Your cue ball phases through every ball that isn't yours. The ball it hits phases through them too, and a ghost pulls it into a pocket it nearly misses.",
-			HeatSeeker = "Lock on to one of your balls: the cue ball curves round to hit it, and aimed straight at it, it cuts truer.",
+			FireShot = "Your cue ball bursts into flames! Its aim lines run all the way to the cushions, and it flies at double power, scorching the cloth.",
+			CatchABall = "Your cue ball becomes a catch ball. The first ball it hits is caught inside, then it hops to your nearest ball and catches that too. Both count as pocketed.",
+			LookOverThere = "Point up and yell! While your opponent looks away, move the cue ball anywhere you like before they turn back. Then take your shot.",
+			Verity = "Hi, I'm Verity! Trust me... The first ball you hit gets eaten (it counts as pocketed), then she rolls on, shoving every ball out of her way.",
 			Rewind = "Miss, and the table rewinds for another 10 s shot with its full path shown. Up to twice.",
-			TimeStop = "Time freezes a second after contact: you get 8 seconds to line up one more shot while everything else stands still.",
-			ChainLightning = "The ball of yours you hit is charged toward a pocket, and lightning jumps on to three more balls, pushing them toward pockets.",
-			Portals = "Place two portals for your whole turn. Balls that enter one fly out of the other, and yours come out lined up on a pocket.",
+			TimeStop = "Time freezes a second after contact: you get 8 seconds for one more shot while everything stands still. Hit one of your balls and it rolls into a pocket when time resumes.",
+			ChainLightning = "Lightning strikes the ball of yours you hit and drives it into a pocket, then jumps on to the next ball, pushing it toward a pocket.",
+			Portals = "Place two portals for your whole turn. Balls that roll over one fly out of the other, and yours fly out into the pocket nearest the exit.",
 			SteelBall = "The ball of yours you hit is guided in, and the cue ball curves on to your next, guiding it in or lining it up.",
 			BlackFlash = "The first ball you hit shatters in a black flash, counted as pocketed, and the blast nudges the balls round it toward pockets.",
 			BlackHole = "A black hole opens at your first hit and swallows the balls near it, counted as pocketed.",
@@ -1369,6 +1372,7 @@ return {
 				Armed = "Your ability is already armed",
 				Used = "No more abilities this game",
 				Off = "Abilities are off at this table",
+				BallInHand = "You already have ball in hand!", -- Look Over There!
 				TooFast = "Slow down a little!",
 				Busy = "One moment...",
 				Default = "You can't use your ability right now",
@@ -1462,7 +1466,27 @@ return {
 			AutoStopAt = "%s+", -- a rarity: "Epic+"
 			AutoLucky = "Use Lucky Spins",
 		},
-		-- The aim-phase pick view (UltPick): Heat Seeker's ball, Portals' two spots, chosen in
+		-- Catch-a-Ball's popups over the catch ball (CatchABallFx).
+		Catch = {
+			Gotcha = "GOTCHA!",
+			Double = "DOUBLE CATCH!",
+			BrokeFree = "IT BROKE FREE!",
+		},
+		-- Verity's speech bubble (src/client/VerityFx.luau): when she refuses the 8.
+		Verity = {
+			NotThe8 = "NOT THE 8!",
+		},
+		-- Look Over There! (LookOverThereFx): what the shooter "says" in the chat (a bubble and
+		-- a chat line in their name; the designer's own words, spelling and all), and the
+		-- sneak's prompt (by the last input) and countdown on the shooter's screen.
+		LookOverThere = {
+			Shout = "OMG LOOKK AT THAT!",
+			MoveTouch = "QUICK! DRAG THE CUE BALL ANYWHERE!",
+			MoveMouse = "QUICK! DRAG THE CUE BALL ANYWHERE!",
+			MovePad = "QUICK! MOVE THE CUE BALL WITH THE STICK!",
+			Countdown = "%.1f", -- the seconds left: "2.4"
+		},
+		-- The aim-phase pick view (UltPick): a lock-on's ball, Portals' two spots, chosen in
 		-- the top-down view before the shot. The title pill follows the last input (touch,
 		-- mouse or gamepad).
 		Pick = {

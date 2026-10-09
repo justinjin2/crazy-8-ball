@@ -9,6 +9,12 @@
 -- walked in short steps for a ball it meets in the air, a cushion it hits, or a cushion it
 -- flies over ("off"). Balls it clears are ignored, and every touchdown is listed so the
 -- guideline can mark it. From the last touchdown the flat trace takes over.
+--
+-- A launch ability (Black Flash, Fire Shot: Config.Ults.<id>.LaunchSpeedScale) multiplies the
+-- cue ball's motion along the cloth and its spin before it moves; `launchScale` traces a jump
+-- the same way. Aim.fullLines is Fire Shot's longer lines (the designer, 2026-10-08): after the
+-- first contact, how far the object ball's line and the cue ball's line each run before they
+-- meet the next cushion, a ball or a pocket.
 
 local Config = require(script.Parent.Parent.Config)
 local Ball = require(script.Parent.Ball)
@@ -20,6 +26,7 @@ local TableGeometry = require(script.Parent.Table)
 
 type Ball = Ball.Ball
 type State = Simulation.State
+type Pocket = TableGeometry.Pocket
 
 local Aim = {}
 
@@ -64,6 +71,12 @@ export type Hop = {
 	vz: number,
 	seconds: number,
 }
+
+-- Fire Shot's full lines after the first contact (Aim.fullLines), in inches: how far the object
+-- ball's centre runs from where it stands along Trace.objectDir, and the cue ball's from the
+-- ghost along Trace.cueDir, before each meets the next cushion, a ball or a pocket. Nil where
+-- there is no such line (no ball hit, or a dead-straight hit that stops the cue ball).
+export type FullLines = { object: number?, cue: number? }
 
 local FAR = 1e6
 -- Step along an arc (inches of travel) and the bisection that pins a contact down.
@@ -201,14 +214,8 @@ local function traceFlight(state: State, probe: Ball, trace: Trace): boolean
 	return false
 end
 
-function Aim.trace(state: State, shotOrAngle: Cue.Shot | number): Trace
-	local R = Config.Balls.RadiusInches
-	local cue = Simulation.findBall(state, 0)
-	local shot: Cue.Shot = if type(shotOrAngle) == "number"
-		then { angle = shotOrAngle, power = 0 }
-		else shotOrAngle
-	local dx, dy = Cue.launchDirection(shot)
-	local trace: Trace = {
+local function newTrace(dx: number, dy: number): Trace
+	return {
 		contact = "none",
 		startX = 0,
 		startY = 0,
@@ -226,43 +233,74 @@ function Aim.trace(state: State, shotOrAngle: Cue.Shot | number): Trace
 		airborne = false,
 		hops = {},
 	}
-	if cue == nil or cue.pocketed then
-		return trace
-	end
-	trace.startX, trace.startY = cue.x, cue.y
+end
 
-	-- A jump: trace the hops first, then carry on flat from where it settles.
-	local fromX, fromY = cue.x, cue.y
+-- A jump: the hops are traced into `trace` first. Returns true when something is met in the
+-- air (the trace is then complete), else where the cue ball rolls on from (its spot when the
+-- shot never leaves the cloth).
+local function traceJump(
+	state: State,
+	cue: Ball,
+	shot: Cue.Shot,
+	launchScale: number?,
+	trace: Trace
+): (boolean, number, number)
 	if shot.elevation and shot.elevation > Config.Cue.CueElevationDegrees then
 		local probe = Ball.clone(cue)
 		Cue.strike(probe, shot)
+		if launchScale and launchScale ~= 1 then
+			-- As the launch abilities do before the first step: along the cloth and the spin,
+			-- not the hop (Effects/BlackFlash, Effects/FireShot).
+			probe.vx, probe.vy = probe.vx * launchScale, probe.vy * launchScale
+			probe.wx, probe.wy = probe.wx * launchScale, probe.wy * launchScale
+			probe.wz *= launchScale
+		end
 		if Flight.isAirborne(probe) then
 			if traceFlight(state, probe, trace) then
-				trace.distance = math.sqrt((trace.ghostX - cue.x) ^ 2 + (trace.ghostY - cue.y) ^ 2)
-				return trace
+				return true, 0, 0
 			end
-			fromX, fromY = probe.x, probe.y
+			return false, probe.x, probe.y
 		end
 	end
+	return false, cue.x, cue.y
+end
 
+-- The first thing a ball centred at (fromX, fromY), rolling along the unit (dx, dy), meets on
+-- the cloth within `maxT` inches: a ball (never the cue ball, nor `skip`), a cushion face or a
+-- jaw (its inward normal), or, when `pockets` is set, a pocket its centre drops into
+-- (TableGeometry.pocketAt's rule: the centre inside the rim). Returns the distance (nil:
+-- nothing), the ball, the normal and the pocket.
+local function firstContact(
+	state: State,
+	fromX: number,
+	fromY: number,
+	dx: number,
+	dy: number,
+	maxT: number,
+	pockets: boolean,
+	skip: number?
+): (number?, Ball?, number, number, Pocket?)
+	local R = Config.Balls.RadiusInches
 	-- Unit velocity along the aim: impact "time" equals distance in inches.
-	local bestT = FAR
+	local bestT = maxT
+	local found = false
 	local hitBall: Ball? = nil
+	local hitPocket: Pocket? = nil
 	local railNx, railNy = 0, 0
 	for _, b in state.balls do
-		if b.id == 0 or b.pocketed then
+		if b.id == 0 or b.id == skip or b.pocketed then
 			continue
 		end
 		local t = Collision.circleTOI(fromX, fromY, dx, dy, b.x, b.y, 0, 0, R, bestT)
 		if t and t < bestT then
-			bestT = t
+			bestT, found = t, true
 			hitBall = b
 		end
 	end
 	for _, seg in state.geometry.segments do
 		local t = Collision.segmentTOI(fromX, fromY, dx, dy, R, seg, bestT)
 		if t and t < bestT then
-			bestT = t
+			bestT, found = t, true
 			hitBall = nil
 			railNx, railNy = seg.nx, seg.ny
 		end
@@ -270,13 +308,48 @@ function Aim.trace(state: State, shotOrAngle: Cue.Shot | number): Trace
 	for _, pt in state.geometry.points do
 		local t, nx, ny = Collision.pointTOI(fromX, fromY, dx, dy, R, pt.x, pt.y, pt.radius, bestT)
 		if t and t < bestT then
-			bestT = t
+			bestT, found = t, true
 			hitBall = nil
 			railNx, railNy = nx, ny
 		end
 	end
+	if pockets and state.geometry.pocketsOpen then
+		for _, p in state.geometry.pockets do
+			local t = Collision.pointTOI(fromX, fromY, dx, dy, 0, p.x, p.y, p.radius, bestT)
+			if t and t < bestT then
+				bestT, found = t, true
+				hitBall = nil
+				hitPocket = p
+			end
+		end
+	end
+	if not found then
+		return nil, nil, 0, 0, nil
+	end
+	return bestT, hitBall, railNx, railNy, hitPocket
+end
 
-	if bestT >= FAR then
+function Aim.trace(state: State, shotOrAngle: Cue.Shot | number, launchScale: number?): Trace
+	local cue = Simulation.findBall(state, 0)
+	local shot: Cue.Shot = if type(shotOrAngle) == "number"
+		then { angle = shotOrAngle, power = 0 }
+		else shotOrAngle
+	local dx, dy = Cue.launchDirection(shot)
+	local trace = newTrace(dx, dy)
+	if cue == nil or cue.pocketed then
+		return trace
+	end
+	trace.startX, trace.startY = cue.x, cue.y
+
+	-- A jump: trace the hops first, then carry on flat from where it settles.
+	local met, fromX, fromY = traceJump(state, cue, shot, launchScale, trace)
+	if met then
+		trace.distance = math.sqrt((trace.ghostX - cue.x) ^ 2 + (trace.ghostY - cue.y) ^ 2)
+		return trace
+	end
+
+	local bestT, hitBall, railNx, railNy = firstContact(state, fromX, fromY, dx, dy, FAR, false)
+	if bestT == nil then
 		return trace
 	end
 	trace.ghostX = fromX + dx * bestT
@@ -289,6 +362,42 @@ function Aim.trace(state: State, shotOrAngle: Cue.Shot | number): Trace
 		railContact(trace, railNx, railNy, dx, dy)
 	end
 	return trace
+end
+
+-- How far a ball centred at (x, y) runs along the unit (dx, dy) before it meets the next
+-- cushion, a ball (not `skip`) or a pocket; from a hair along, so the contact it starts from
+-- (a cushion it is leaving) is never met again.
+local function reach(
+	state: State,
+	x: number,
+	y: number,
+	dx: number,
+	dy: number,
+	skip: number?
+): number?
+	local nudge = 1e-3
+	local t = firstContact(state, x + dx * nudge, y + dy * nudge, dx, dy, FAR, true, skip)
+	return if t then t + nudge else nil
+end
+
+--- Fire Shot's full lines (the designer, 2026-10-08: "the aiming line longer ... to the next
+--- edge of a table"): after `trace`'s first contact, how far the object ball's line and the
+--- cue ball's line (off a ball or a cushion) each run before they meet the next cushion, a ball
+--- or a pocket. Straight lines, like the guideline's own short ones: no spin, no bounce on.
+function Aim.fullLines(state: State, trace: Trace): FullLines
+	local out: FullLines = { object = nil, cue = nil }
+	if trace.contact ~= "ball" and trace.contact ~= "rail" then
+		return out
+	end
+	local hit = if trace.objectId then Simulation.findBall(state, trace.objectId) else nil
+	if trace.contact == "ball" and hit and (trace.objectDirX ~= 0 or trace.objectDirY ~= 0) then
+		out.object = reach(state, hit.x, hit.y, trace.objectDirX, trace.objectDirY, hit.id)
+	end
+	if trace.cueDirX ~= 0 or trace.cueDirY ~= 0 then
+		local skip = if trace.contact == "ball" then trace.objectId else nil
+		out.cue = reach(state, trace.ghostX, trace.ghostY, trace.cueDirX, trace.cueDirY, skip)
+	end
+	return out
 end
 
 return Aim

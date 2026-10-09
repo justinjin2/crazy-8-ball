@@ -116,7 +116,8 @@ return {
 		end
 		-- The brief's per-ult odds.
 		local normal = Roll.odds("Normal", true)
-		H.expect(ultPpm(normal, "EaglesEye") == 183334, "18.333% (the first gets the spare ppm)")
+		-- (The abilities rework, 2026-10-08: Common is Eagle's Eye and Fire Shot.)
+		H.expect(ultPpm(normal, "EaglesEye") == 275000, "27.5% (Common's share between two)")
 		H.expect(ultPpm(normal, "BlackHole") == 500, "0.05%")
 	end,
 
@@ -146,12 +147,12 @@ return {
 		local Roll, Config = load()
 		local PityAt = Config.Ults.Roll.PityAt
 		H.expect(PityAt == 100, "the 100th spin")
-		-- The worst luck: every spin lands on the first ult (Magnet, Uncommon since the economy
-		-- plan, 2026-10-02).
+		-- The worst luck: every spin lands on the first ult (Eagle's Eye, Common: the ladder's
+		-- first since the abilities rework, 2026-10-08).
 		local pity = 0
 		for spin = 1, PityAt - 1 do
 			local id, rarity, newPity, wasPity = Roll.roll("Normal", pity, always(0), true)
-			H.expect(id == "Magnet" and rarity == "Uncommon" and not wasPity, "spin " .. spin)
+			H.expect(id == "EaglesEye" and rarity == "Common" and not wasPity, "spin " .. spin)
 			H.expect(newPity == pity + 1, "pity counts every spin")
 			pity = newPity
 		end
@@ -245,28 +246,28 @@ return {
 			H.expect(id == "EaglesEye" and not wasPity and newPity == 99, "no pity without Epic+")
 
 			-- A Rare built too: Uncommon moves down to Common, Epic+ down to Rare.
-			withBuilt(Config, { Rewind = true }, function()
+			withBuilt(Config, { Portals = true }, function()
 				local R = Config.Ults.Roll.Normal
 				local odds = Roll.odds("Normal", false)
 				H.expect(ultPpm(odds, "EaglesEye") == R.Common + R.Uncommon, "Common + Uncommon")
 				H.expect(
-					ultPpm(odds, "Rewind") == R.Rare + R.Epic + R.Legendary + R.Mythic,
+					ultPpm(odds, "Portals") == R.Rare + R.Epic + R.Legendary + R.Mythic,
 					"Rare + Epic + Legendary + Mythic"
 				)
 				H.expect(
 					rarityPpm(odds, "Uncommon") == 0 and rarityPpm(odds, "Mythic") == 0,
 					"empty"
 				)
-				H.expect(ultPpm(odds, "Ghost") == nil, "not in the pool")
-				-- Lucky: Uncommon's share moves up to Rewind, never down to a Common.
+				H.expect(ultPpm(odds, "Magnet") == nil, "not in the pool")
+				-- Lucky: Uncommon's share moves up to Portals, never down to a Common.
 				local lucky = Roll.odds("Lucky", false)
 				H.expect((ultPpm(lucky, "EaglesEye") or 0) == 0, "no Commons from a Lucky Spin")
-				H.expect(ultPpm(lucky, "Rewind") == 1000000, "every Lucky share to the only Rare")
+				H.expect(ultPpm(lucky, "Portals") == 1000000, "every Lucky share to the only Rare")
 			end)
 			-- Nothing below: a share moves up to the nearest rarity that has an ult.
-			withBuilt(Config, { EaglesEye = false, Rewind = true }, function()
+			withBuilt(Config, { EaglesEye = false, Portals = true }, function()
 				local odds = Roll.odds("Normal", false)
-				H.expect(ultPpm(odds, "Rewind") == 1000000, "everything to the only Rare")
+				H.expect(ultPpm(odds, "Portals") == 1000000, "everything to the only Rare")
 			end)
 			-- Pity with one Epic+ built: all of the pity odds go to it.
 			withBuilt(Config, { TimeStop = true }, function()

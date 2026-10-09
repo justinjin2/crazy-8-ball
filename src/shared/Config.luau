@@ -3740,9 +3740,18 @@ Config.Ults = {
 	-- The developer flag: every ult, built or not, can be rolled and equipped (friend tests).
 	-- `/ultsall on` turns it on for one player for the session.
 	DevAllUlts = false,
-	-- Everyone's starter ult, free forever; an empty or unusable slot plays as it (Heat Seeker
-	-- since 2026-10-03, the tutorial teaches it; was Magnet).
-	Default = "HeatSeeker",
+	-- Everyone's starter ult, free forever; an empty or unusable slot plays as it. Fire Shot
+	-- since the designer's third rework round (2026-10-08: "the new default starter"; the
+	-- tutorial's starter spin lands on it too, Config.Tutorial.SpinUlt). Magnet was the starter
+	-- before it (and Heat Seeker from 2026-10-03); a save that holds Magnet keeps it.
+	Default = "FireShot",
+	-- Abilities taken out of the game, and what a saved slot holding one becomes when the
+	-- profile loads (SaveSchema's slot cleaner). The designer, 2026-10-08: Heat Seeker and Ghost
+	-- make room for better abilities (their owners get Magnet, the starter then); Super Bounce
+	-- is reworked into Fire Shot (the third round).
+	Retired = { HeatSeeker = "Magnet", Ghost = "Magnet", SuperBounce = "FireShot" } :: {
+		[string]: string,
+	},
 	BarMax = 100, -- a full bar
 	MaxPerMatch = 2, -- at most this many ults a match; after the second the bar stays empty
 	-- Solo shows the real bar, always full and ready: a press arms the equipped ult for free,
@@ -3783,20 +3792,22 @@ Config.Ults = {
 	ConfirmReplaceFrom = "Epic",
 	-- The rarity ladder, lowest first (the item rarities, GDD section 12).
 	Rarities = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic" },
-	-- The catalog of 13 (section 6). Names and descriptions are in Strings.Ults.Names and
+	-- The catalog of 13 (section 6; the rework's ladder, designer 2026-10-08:
+	-- docs/prompts/ABILITIES_REWORK_PLAN.md). Names and descriptions are in Strings.Ults.Names and
 	-- .Descriptions; colours are the item rarity colours (Config.UI.Kit.Rarity). Built = false
 	-- is a placeholder: its cutscene plays with its own name, then nothing ("Coming soon"). It
 	-- can only be rolled or equipped with the developer flag. Effect is the module in
 	-- src/shared/Ults/Effects that hooks the physics for one shot. Worth = the power ladder's
 	-- target, in balls per use, measured by each ult's harness (section 6).
 	Order = {
-		"Magnet",
 		"EaglesEye",
-		"SuperBounce",
-		"Ghost",
-		"HeatSeeker",
+		"FireShot",
+		"Magnet",
 		"Rewind",
 		"Portals",
+		"LookOverThere",
+		"Verity",
+		"CatchABall",
 		"TimeStop",
 		"ChainLightning",
 		"SteelBall",
@@ -3809,44 +3820,68 @@ Config.Ults = {
 	-- 16 balance pass, 2026-09-29; every number in tools/ult_value_results.json). The GDD's
 	-- rough targets (0.33 / 0.5 / 1 / 1.5 / 2.2 / 2.6) are out of reach inside the reach and
 	-- ball caps (5.3: report the measured value); the ladder holds on each rarity's mean:
-	-- Common 0.37, Uncommon 0.44, Rare 0.50, Epic 0.69, Legendary 1.15, Mythic 1.31.
+	-- Common 0.34, Uncommon 0.50, Rare 0.64, Epic 0.94, Legendary 1.15, Mythic 1.78 (after the
+	-- abilities rework's third round, 2026-10-08).
 	Catalog = {
 		-- +0.38 / +0.54 / +0.44 (careless +0.37 / +0.56 / +0.52).
 		-- Uncommon since the economy plan (2026-10-02, section 8: its measured strength).
+		-- The rework buff (2026-10-08): +0.42 / +0.49 / +0.46 careful net (pots 23% -> 73% at skill 2).
 		Magnet = { Rarity = "Uncommon", Built = true, Effect = "Magnet", Worth = 0.46, Area = true },
 		-- +0.14 / +0.38 / +0.48.
 		EaglesEye = { Rarity = "Common", Built = true, Effect = "EaglesEye", Worth = 0.34 },
-		-- +0.27 / +0.39 / +0.32.
-		SuperBounce = { Rarity = "Common", Built = true, Effect = "SuperBounce", Worth = 0.33 },
-		-- +0.39 / +0.56 / +0.46 with the ghostly pull (about 0 without it).
-		Ghost = { Rarity = "Uncommon", Built = true, Effect = "Ghost", Worth = 0.47 },
-		-- +0.36 / +0.41 / +0.43 (30 degrees of cut correction).
-		HeatSeeker = {
-			Rarity = "Common", -- Common since the economy plan (2026-10-02, section 8)
-			Built = true,
-			Effect = "HeatSeeker",
-			Worth = 0.4,
-			Pick = "OwnBall",
-		},
-		-- +0.36 / +0.58 / +0.65 (two redos, each with the full-path guide).
-		Rewind = { Rarity = "Rare", Built = true, Worth = 0.53, Redo = true },
-		-- +0.65 / +0.42 / +0.34 (three strikes in stopped time).
-		TimeStop = { Rarity = "Epic", Built = true, Effect = "TimeStop", Worth = 0.47 }, -- Epic since 2026-09-30
-		-- +0.97 / +0.98 / +0.94 (careless +0.78 / +0.72 / +0.76; three jumps).
+		-- Fire Shot (the designer's third rework round, 2026-10-08: Super Bounce reworked; the
+		-- starter): the cue ball bursts into flames and leaves the cue at twice the speed, with a
+		-- full aim line that bounces off the cushions to the first ball. Measured -0.08 / -0.03 /
+		-- +0.03 careful net (careless -0.10 / +0.02 / -0.01; 120 tables), about nothing: the
+		-- double speed alone neither pots nor misses more (an overhit scratches a little more
+		-- often), and the model shooter plays no kicks or banks, where the line helps, nor a
+		-- Difficult or Challenger table, where it shows what the normal lines hide.
+		FireShot = { Rarity = "Common", Built = true, Effect = "FireShot", Worth = 0 },
+		-- +0.36 / +0.58 / +0.65 (two redos, each with the full-path guide). Uncommon since the
+		-- rework (designer, 2026-10-08), beside Magnet.
+		Rewind = { Rarity = "Uncommon", Built = true, Worth = 0.53, Redo = true },
+		-- The rework's three (designer, 2026-10-08). Catch-a-Ball: the first ball the cue ball
+		-- hits is caught (a pot for its owner), then it hops to your nearest ball in reach and
+		-- catches that too (Epic since the designer's second round, swapped with Look Over
+		-- There!): +0.80 / +1.02 / +1.05 careful net (careless +0.67 / +0.87 / +0.88; 120
+		-- tables), pots 94-98% of uses (one catch: +0.47 / +0.66 / +0.75 as a Rare).
+		CatchABall = { Rarity = "Epic", Built = true, Effect = "CatchABall", Worth = 0.96 },
+		-- Look Over There!: the opponents look away and the shooter moves the cue ball anywhere
+		-- (the Sneak phase: Config.Ults.Shared.Sneak*), then shoots as normal: sneaky ball in
+		-- hand (the designer's second rework round, 2026-10-08; Rare since then, swapped with
+		-- Catch-a-Ball, as it is not a sure pot). +0.50 / +0.63 / +0.60 careful net (120 tables;
+		-- the one shot only, not the run a free ball in hand sets up), pots 75-97% of uses. It
+		-- dragged one of your balls into a pocket before (+0.95 / +1.01 / +1.02).
+		LookOverThere = { Rarity = "Rare", Built = true, Worth = 0.58, Sneak = true },
+		-- Verity: the first ball hit is eaten (a pot for its owner), then she rolls on shoving
+		-- every ball out of her way (evil since the designer's second round; Rare since their
+		-- third, 2026-10-08, when she stopped eating on the roll): +0.49 / +0.68 / +0.76 careful
+		-- net (careless +0.48 / +0.67 / +0.70; 120 tables), pots 92-96% of uses. Eating up to 2
+		-- more of yours on the roll measured +0.97 / +1.15 / +1.17 (a Legendary).
+		Verity = { Rarity = "Rare", Built = true, Effect = "Verity", Worth = 0.64 },
+		-- The Rare+ buff (2026-10-08): a ball of yours touched in stopped time rolls into a pocket
+		-- as time resumes, and a miss freezes too: +0.82 / +0.85 / +0.93 careful net, pots 91-94%
+		-- (was +0.65 / +0.42 / +0.34 with three strikes, pots 47-78%).
+		TimeStop = { Rarity = "Epic", Built = true, Effect = "TimeStop", Worth = 0.87 }, -- Epic since 2026-09-30
+		-- The Rare+ buff (2026-10-08): the charged ball is driven down a clear line into a pocket,
+		-- one jump on: +0.87 / +1.07 / +1.03 careful net (careless +0.72 / +0.93 / +0.88), pots
+		-- 83-95% (was +0.97 / +0.98 / +0.94 with three jumps, pots 74-88%).
 		ChainLightning = {
 			Rarity = "Epic",
 			Built = true,
 			Effect = "ChainLightning",
-			Worth = 0.96,
+			Worth = 0.99,
 			Area = true,
 		},
-		-- +0.37 / +0.52 / +0.38, whole turn included: a low bound (the model shooter does not
-		-- reuse the kept portals as a player will; the designer keeps it, flagged, 2026-09-29).
+		-- The Rare+ buff (2026-10-08): your ball comes out lined up into the pocket nearest the
+		-- exit, and a ball rolling over the ring goes in: +0.65 / +0.71 / +0.70 careful net, pots
+		-- 83-93% (was +0.37 / +0.52 / +0.38, pots 57-84%), whole turn included: a low bound (the
+		-- model shooter does not reuse the kept portals as a player will).
 		Portals = {
 			Rarity = "Rare", -- Rare since 2026-09-30 (the designer swapped it with Time Stop)
 			Built = true,
 			Effect = "Portals",
-			Worth = 0.42,
+			Worth = 0.69,
 			Pick = "Portals",
 			Turn = true,
 		},
@@ -3867,22 +3902,23 @@ Config.Ults = {
 			MaxBalls = 4,
 			Area = true,
 		},
-		-- +1.21 / +1.36 / +1.39 (careless +0.93 / +1.08 / +1.15; 4 of yours, 1 of theirs).
+		-- +1.63 / +1.87 / +1.83 (careless +1.22 / +1.44 / +1.43), pots 96-98% of uses. No caps
+		-- since 2026-10-08 (the designer's second round): every ball in reach, theirs too (it
+		-- was +1.21 / +1.36 / +1.39 with 4 of yours and 1 of theirs).
 		BlackHole = {
 			Rarity = "Mythic",
 			Built = true,
 			Effect = "BlackHole",
-			Worth = 1.32,
-			MaxBalls = 4,
+			Worth = 1.78,
 			Area = true,
 		},
-		-- +1.22 / +1.34 / +1.34 (careless +0.93 / +1.07 / +1.14; 4 of yours, 1 of theirs).
+		-- +1.63 / +1.86 / +1.83 (careless +1.22 / +1.44 / +1.43), pots 95-97% of uses. No caps
+		-- since 2026-10-08, as Black Hole (it was +1.22 / +1.34 / +1.34).
 		GuangdongTiger = {
 			Rarity = "Mythic",
 			Built = true,
 			Effect = "GuangdongTiger",
-			Worth = 1.3,
-			MaxBalls = 4,
+			Worth = 1.77,
 			Area = true,
 		},
 	} :: {
@@ -3892,7 +3928,8 @@ Config.Ults = {
 			Effect: string?,
 			Worth: number,
 			MaxBalls: number?,
-			-- "OwnBall" (Heat Seeker) or "Portals": the aim-phase pick it needs first.
+			-- "OwnBall" (a lock-on, none since Heat Seeker left) or "Portals": the aim-phase
+			-- pick it needs first.
 			Pick: string?,
 			-- An area ability (5.7): the opponent's balls too, at OpponentFactor.
 			Area: boolean?,
@@ -3901,6 +3938,9 @@ Config.Ults = {
 			-- Portals (7.9): it keeps acting on every shot of the shooter's turn (the same
 			-- pick), until the turn passes or the game ends.
 			Turn: boolean?,
+			-- Look Over There! (the rework): after arming, the Sneak phase instead of an
+			-- effect on the next shot.
+			Sneak: boolean?,
 		},
 	},
 	-- Rolls (section 8), in parts per million so each table adds to exactly 1,000,000. Each
@@ -4018,24 +4058,6 @@ Config.Ults = {
 		-- Eagle's Eye arming: "Eagle Screech 1" (public library audio, 1.8 s, checked loading in
 		-- this game), 3D at the cue ball, at the Magnet arm's level. (tune by ear)
 		EagleScreech = { Id = "rbxassetid://133423182233493", Volume = 0.19 },
-		-- Super Bounce (public library audio, each checked loading in this game, 2026-09-29):
-		-- arming, "Cartoon Spring Bounce Sound" (MysteryMilo, 1.3 s, a long boing-oing, peak
-		-- 0.54); every bounce, "SS_rubberduck_variety_spring_02" (Roblox, 1.3 s but a quick
-		-- 0.3 s spring, peak 0.48), pitched up per bounce (Config.UI.SuperBounceFx).
-		BounceArm = { Id = "rbxassetid://6075441854", Volume = 0.31 },
-		BounceHit = { Id = "rbxassetid://111237552536869", Volume = 0.45 },
-		-- Ghost (public library audio, each checked loading in this game, 2026-09-29): arming,
-		-- "Dream Weirdness Constant 6" (Pro Sound Effects, Ghosts, 3.3 s of reverberant wails,
-		-- quiet: peak 36 at volume 0.5, in from 0.9 s), started at 0.6; each ball the cue ball
-		-- passes through, "Fast Pass By Airy Whooshes Windy 2" (Pro Sound Effects, 1.2 s, peak
-		-- at 0.5 s), started at 0.25 so the rush lands on the ball. (tune by ear)
-		GhostWail = { Id = "rbxassetid://9114170094", Volume = 0.9, StartOffset = 0.6 },
-		GhostWhoosh = { Id = "rbxassetid://9114373663", Volume = 0.4, StartOffset = 0.25 },
-		-- Heat Seeker (public library audio, checked loading in this game, 2026-09-29): each
-		-- lock-on beep, "shortbeep" (maybealian, 0.13 s, loud: peak 284 at volume 0.5); the lock,
-		-- "1000 hz sine tone" (BuilderBillbert, 1 s, peak 64), cut to the look's LockToneSeconds.
-		SeekerBeep = { Id = "rbxassetid://124455167265111", Volume = 0.16 },
-		SeekerLock = { Id = "rbxassetid://126305525792122", Volume = 0.35 },
 		-- Rewind (public library audio, each checked loading in this game and measured with an
 		-- AudioAnalyzer, 2026-09-29): arming, "Eject Cassette SFX" (zImBored, from Pixabay,
 		-- 1.25 s, two clacks peaking 25 at volume 0.5); the rewind, "Tape Rewind" (AppleBraid,
@@ -4096,6 +4118,10 @@ Config.Ults = {
 		SteelWhirr = { Id = "rbxassetid://122309511753634", Volume = 0.53, Pitch = 1.2 },
 		SteelClank = { Id = "rbxassetid://117478490073055", Volume = 0.42 },
 		SteelPot = { Id = "rbxassetid://135385970610304", Volume = 0.49 },
+		-- The rework (2026-10-08, assets/abilities/SOUNDS_V2.md): the rising whine as the
+		-- armed ball spins up (2.7 s), and a magic hum as the golden ratio draws itself.
+		SteelSpinUp = { Id = "rbxassetid://9119816546", Volume = 0.35 },
+		SteelSpiral = { Id = "rbxassetid://9116393976", Volume = 0.45 },
 		-- Black Flash: the cue ball's first hit plays the designer's own clip (2026-09-30; was a
 		-- boom, a glass shatter and a crackle tail). The file holds three hits (about 0.4 s,
 		-- 2.8 s and 6.5 s in, peak 0.66 at volume 1): only the first plays. An electric
@@ -4116,67 +4142,78 @@ Config.Ults = {
 		HoleOpen = { Id = "rbxassetid://9039693523", Volume = 0.18 },
 		HolePull = { Id = "rbxassetid://9118158113", Volume = 0.6, Pitch = 1.1 },
 		HolePop = { Id = "rbxassetid://140323850218372", Volume = 0.75, Pitch = 0.45 },
-		-- Guangdong Tiger (public library audio, each checked loading in this game, 2026-09-29):
-		-- the leap, "Tiger Roars 9" (Pro Sound Effects, 1.6 s); the swipe, "Red Mist Vertical
-		-- Split" played three times a beat apart, each a little higher; the landing, "Body
-		-- Impact 2" (Pro Sound Effects, a hard thump) pitched down. (tune by ear)
-		TigerRoar = { Id = "rbxassetid://9120047974", Volume = 0.52 },
+		-- Guangdong Tiger (public library audio; the rework, 2026-10-08, assets/abilities/
+		-- SOUNDS_V2.md): the roar, "Tiger Roars 10" (Pro Sound Effects, 2.1 s); the snarl as it
+		-- springs, "Tiger Roars 9" (Pro Sound Effects) pitched up; each rake, "CLAW SLASH" (a
+		-- public upload; if Roblox mutes it, Pro Sound Effects 9119697796), the first with "Red
+		-- Mist Vertical Split" under it; the landing, "Body Impact 2" (Pro Sound Effects, a hard
+		-- thump) pitched down. (tune by ear)
+		TigerRoar = { Id = "rbxassetid://9120048719", Volume = 0.55 },
+		TigerSnarl = { Id = "rbxassetid://9120047974", Volume = 0.3, Pitch = 1.2 },
+		TigerClaw = { Id = "rbxassetid://88967797911082", Volume = 0.5 },
 		TigerSlash = { Id = "rbxassetid://122411746821632", Volume = 0.1 },
 		TigerThump = { Id = "rbxassetid://9113524237", Volume = 0.74, Pitch = 0.6 },
+		-- Catch-a-Ball (the rework, 2026-10-08; assets/abilities/SOUNDS_V2.md): the designer
+		-- asked for the real catch sounds, so the open, the wobble and the catch are public fan
+		-- uploads of them (TheTrustyCapricorn, gamer712138); if Roblox mutes one, the licensed
+		-- backups are ProSoundEffects 9120984892 (open), 9125759320 (wobble) and 9126073318
+		-- (the ding). The suck-in under the open is ProSoundEffects' reversed zap. (tune by ear)
+		CatchOpen = { Id = "rbxassetid://94812253885911", Volume = 0.5 },
+		CatchZap = { Id = "rbxassetid://9125807267", Volume = 0.35, Pitch = 1.15 },
+		CatchShake = { Id = "rbxassetid://105930060641663", Volume = 0.5 },
+		CatchCaught = { Id = "rbxassetid://81046688241314", Volume = 0.5 },
+		CatchDing = { Id = "rbxassetid://9126073318", Volume = 0.25 },
+		-- The 8 breaking free: Time Stop's reversed hiss, pitched up (a puff out).
+		CatchBreak = { Id = "rbxassetid://9118158113", Volume = 0.45, Pitch = 1.6 },
+		-- Verity (the rework): the designer's line is a TTS placeholder (assets/abilities/Verity,
+		-- "Hi, I'm Verity! Trust me, I know everything!") until they upload the real clip.
+		VerityLine = { Id = "rbxassetid://135865093470317", Volume = 0.6 },
+		-- Evil Verity (the designer's second round, 2026-10-08; ProSoundEffects library clips,
+		-- assets/abilities/SOUNDS_V2.md "Verity v2"; StartOffset skips a clip's quiet lead-in,
+		-- measured in Studio): the turn's swell, the bite's crunch, the gulp, her laugh, a bump's
+		-- boing and the burp at the end.
+		VeritySwell = { Id = "rbxassetid://9116421550", Volume = 0.55, Pitch = 0.8 },
+		VerityChomp = {
+			Id = "rbxassetid://9114574214",
+			Volume = 0.7,
+			StartOffset = 0.25,
+			Length = 0.9,
+		},
+		VerityGulp = { Id = "rbxassetid://9113859745", Volume = 0.6, Length = 0.5 },
+		-- "Laugh Evil Male Various Versions 1" (its louder, quicker take; 9116239130, take 2,
+		-- starts slower).
+		VerityLaugh = {
+			Id = "rbxassetid://9116239118",
+			Volume = 0.5,
+			StartOffset = 0.1,
+			Length = 2.4,
+		},
+		VerityBonk = { Id = "rbxassetid://9113863528", Volume = 0.4 },
+		VerityBurp = {
+			Id = "rbxassetid://9113433856",
+			Volume = 0.6,
+			StartOffset = 0.45,
+			Length = 1.1,
+		},
+		-- Look Over There!: only the vine boom, as the opponents turn back (the designer's
+		-- second rework round, 2026-10-08: the shout, the Metal Gear alert, the whoosh and the
+		-- sneaky sting went). A public fan upload, the meme's own sound; the licensed backup is
+		-- ProSoundEffects 9125404320.
+		LookBoom = { Id = "rbxassetid://140367458608473", Volume = 0.55 },
+		-- Fire Shot (the designer's third rework round, 2026-10-08; ProSoundEffects library
+		-- clips, each measured in Studio with an AudioAnalyzer: peak, the level most of it
+		-- stays under (p90) and length, at volume 1): the ignition at the arming moment,
+		-- "Pyro Fire Ball Burst 15" (0.88, 0.10, 2.2 s); the crackle looping while it burns,
+		-- "Torch O Fire 1" (0.70, 0.037, 10.9 s); the strike's roar, "Fire Whoosh 6" (0.51,
+		-- 0.063, 1.5 s); a hit's sizzle (times how hard), "Sizzle Short And Explosive Sear 12"
+		-- (0.43, 0.067, 1.3 s); going out, "Sizzle Short And Explosive Sear 1" (0.52, 0.078,
+		-- 2.2 s). Volume x p90 about 0.045 a sting, 0.02 the loop. (tune by ear)
+		FireIgnite = { Id = "rbxassetid://9117987723", Volume = 0.5 },
+		FireLoop = { Id = "rbxassetid://9120193895", Volume = 0.55 },
+		FireLaunch = { Id = "rbxassetid://9114446277", Volume = 0.7 },
+		FireHit = { Id = "rbxassetid://9119166435", Volume = 0.5 },
+		FireOut = { Id = "rbxassetid://9119165436", Volume = 0.45 },
 	},
-}
-
--- Ghost (docs/prompts/ABILITIES_PROMPT.md 7.4; Ults/Effects/Ghost, Arming.extras): the cue
--- ball passes through the opponent's balls and the 8 (unless it is your legal 8) for the shot.
--- Measured (tools/ult_value.luau, 2026-09-29, net balls a use at skills 1/2/3): about 0 on
--- every table (an open pot is nearly always there), +0.25 / +0.12 / +0.03 on the tables where
--- it changes the best shot (--useful, 118 of 960). Under the Uncommon row: the balance step's.
-Config.Ults.Ghost = {
-	-- A cue ball that comes to rest inside a ball it passed through is moved off it at rest,
-	-- to just clear of it (this gap, inches), the nearest free spot on the cloth first.
-	ClearGapInches = 0.05,
-	-- From the cue ball's first contact the ball it hit also passes through the balls the cue
-	-- ball did (the opponent's and the 8), so a pot they block goes in (the step 16 buff:
-	-- worth about 0 without it; the cue ball passing your own balls after the first contact
-	-- is always on).
-	CarryPhase = true,
-	-- The ball the cue ball hit (the shooter's) is pulled into a pocket it nearly misses with
-	-- this share of Magnet's strength (0: off). The designer's step 16 buff (2026-09-29):
-	-- without it Ghost measured about 0 a use; 0.5 +0.34 / +0.46 / +0.31, 1 +0.39 / +0.56 /
-	-- +0.46 (careful net, skills 1/2/3). (tune)
-	PullFactor = 1,
-}
-
--- Heat Seeker (docs/prompts/ABILITIES_PROMPT.md 7.5; Ults/Effects/HeatSeeker): the cue ball
--- homes on the shooter's locked ball (overrides.Pick) until its first contact. (tune)
-Config.Ults.HeatSeeker = {
-	-- The heading turns toward its path on a curve no tighter than this radius (inches) at any
-	-- speed, like a missile: a fast shot turns as sharply as a slow one, so it can dodge a
-	-- ball just ahead. Random tables and aims reach the locked ball 84% of the time at 6, 90%
-	-- at 4.5, 92% at 3, 95% at 2 and 96% at 1.5 (the misses: aimed straight into a ball or
-	-- pocket right beside the cue ball, or boxed in); 2 still reads as a curve.
-	TurnRadiusInches = 2,
-	-- The missile's thrust: while homing, the cue ball never drops below this speed (in/s), so
-	-- a soft shot aimed away still arrives.
-	MinSpeed = 35,
-	-- ...and never goes faster than this (in/s) while homing, so it can steer round a ball
-	-- next to the target (a full-power 450 in/s moved 1.9 in a step and ran into them). Plenty
-	-- for any pot; normal physics from the first contact.
-	MaxSpeed = 160,
-	MaxSeconds = 6, -- homing stops after this long (a cue ball boxed in rolls on as normal)
-	-- Balls and pockets on the way are passed this far clear (inches beyond touching).
-	AvoidMarginInches = 0.6,
-	-- The path is planned on a grid of the cloth this fine (inches: 100 x 50 cells), once at
-	-- the strike and again (up to MaxReplans times) when a cushion knocks it off the path.
-	GridInches = 1,
-	MaxReplans = 6,
-	-- A direct aim's cut is turned toward the best pocket by at most this angle, as its tangent
-	-- (0.364 is 20 degrees): it improves a bad cut, never guarantees the pot. Measured
-	-- (tools/ult_value.luau, 2026-09-29, net balls a use at skills 1/2/3): 10 degrees +0.28 /
-	-- +0.23 / +0.18, 15 +0.32 / +0.31 / +0.31, 20 +0.34 / +0.34 / +0.32, 27 +0.35 / +0.38 /
-	-- +0.39 (it saturates: the misses left are not the cut's), 30 +0.36 / +0.41 / +0.43
-	-- (the step 16 balance pass: 30 degrees, above the Commons on average). (tune)
-	CutCorrectionTan = 0.5774,
 }
 
 -- Chain Lightning (docs/prompts/ABILITIES_PROMPT.md 7.8; src/shared/Ults/Effects/ChainLightning).
@@ -4190,17 +4227,23 @@ Config.Ults.ChainLightning = {
 	-- closest go first. Per ability so the ladder can climb (the step 16 balance pass). (tune)
 	MaxOwn = 3,
 	MaxOpp = 2,
-	-- The charged ball (the first ball hit, if yours): its heading turns toward its best
-	-- pocket by at most this angle, as its tangent (0.2679 is 15 degrees; 8 measured +0.6,
-	-- 12 +0.94, 18 +1.0), and its speed is multiplied by Boost. (tune)
+	-- The charged ball (the first ball hit, if yours). The Rare+ buff (2026-10-08: Epic and up
+	-- nearly always pot): the bolt drives it down the clear line into the pocket nearest its
+	-- heading, at its speed times Boost, never so slow it gets there under ChargeArriveSpeed
+	-- (in/s). With no clear line its heading turns toward its best pocket by at most SteerTan
+	-- (a tangent: 0.2679 is 15 degrees), its speed times Boost, as before the buff. (tune)
+	ChargeArriveSpeed = 30,
 	SteerTan = 0.2679,
 	Boost = 1.25,
 	-- The chain: up to Links jumps, each to the nearest ball within ReachInches (centre to
 	-- centre) of the last one struck, LinkSeconds apart. The reach is at the cap
 	-- (Config.Ults.Shared.MaxReachShare of the table; 12 in reached a ball on a third of the
-	-- jumps). Four jumps measured +1.08 / +1.08 / +1.12 (careful net, skills 1/2/3), too close
-	-- to the Legendaries; three +0.97 / +0.98 / +0.94 (the step 16 balance pass). (tune)
-	Links = 3,
+	-- jumps). Before the Rare+ buff three jumps measured +0.97 / +0.98 / +0.94 (careful net,
+	-- skills 1/2/3). With the charged ball sent down a clear line (48 tables, 2026-10-08):
+	-- three jumps +1.46 / +1.40 / +1.58 even at a softer push (PushReachShare 1.2), two +1.27 /
+	-- +1.33 / +1.38, one +0.98 / +1.02 / +1.10 (pots 88-96%): one, an Epic below the
+	-- Legendaries. (tune)
+	Links = 1,
 	ReachInches = 20,
 	LinkSeconds = 0.08,
 	-- The push on each struck ball: toward its closest pocket with a clear line in (traced
@@ -4279,20 +4322,22 @@ Config.Ults.BlackFlash = {
 	BounceInches = 6,
 	PocketClearInches = 1,
 	-- The hit-stop at the flash (the look's frozen frame): every replay crawls through this
-	-- much play (seconds) over HitStopSeconds more of wall time; the server waits for it.
+	-- much play (seconds) over HitStopSeconds more of wall time; the server waits for it. 0.3
+	-- since the rework's polish (2026-10-08, was 0.15): room for the impact frames and the
+	-- crash zoom (Config.UI.BlackFlashFx).
 	HitStopShotSeconds = 0.004,
-	HitStopSeconds = 0.15,
+	HitStopSeconds = 0.3,
 }
 
 -- Black Hole (docs/prompts/ABILITIES_PROMPT.md 7.12; src/shared/Ults/Effects/BlackHole).
 Config.Ults.BlackHole = {
 	-- Caps per use (5.7): at most this many of the shooter's balls and of the opponent's; the
-	-- closest go first. Per ability so the ladder can climb (the step 16 balance pass). (tune)
-	-- The step 16 balance pass (the designer's approved buff, 2026-09-29): 4 of yours and 1 of
-	-- theirs: +1.21 / +1.36 / +1.39 careful net at skills 1/2/3 (3 and 2: +1.02 / +1.15 / +1.20),
-	-- a Mythic above the Legendaries.
-	MaxOwn = 4,
-	MaxOpp = 1,
+	-- closest go first. None since the designer's second rework round (2026-10-08: "NO limit",
+	-- so a hit on a solo break swallows every ball but the 8, the Chinese pool clips); the
+	-- reach below is all that limits it. Was 4 of yours and 1 of theirs (the step 16 balance
+	-- pass: +1.21 / +1.36 / +1.39 careful net at skills 1/2/3).
+	MaxOwn = math.huge,
+	MaxOpp = math.huge,
 	-- It catches the shooter's balls within this of the hole (inches; the opponent's within
 	-- Config.Ults.Shared.OpponentFactor of it), at most MaxReachShare of the table. (tune)
 	RadiusInches = 20,
@@ -4316,34 +4361,39 @@ Config.Ults.BlackHole = {
 -- Guangdong Tiger (docs/prompts/ABILITIES_PROMPT.md 7.13; src/shared/Ults/Effects/GuangdongTiger).
 Config.Ults.GuangdongTiger = {
 	-- Caps per use (5.7): at most this many of the shooter's balls and of the opponent's; the
-	-- closest go first. Per ability so the ladder can climb (the step 16 balance pass). (tune)
-	-- The step 16 balance pass (the designer's approved buff, 2026-09-29): 4 of yours and 1 of
-	-- theirs: +1.22 / +1.34 / +1.34 careful net at skills 1/2/3 (3 and 2: +1.02 / +1.13 / +1.16),
-	-- a Mythic above the Legendaries.
-	MaxOwn = 4,
-	MaxOpp = 1,
+	-- closest go first. None since the designer's second rework round (2026-10-08: "NO limit",
+	-- as Black Hole); the reach below is all that limits it. Was 4 of yours and 1 of theirs
+	-- (the step 16 balance pass: +1.22 / +1.34 / +1.34 careful net at skills 1/2/3).
+	MaxOwn = math.huge,
+	MaxOpp = math.huge,
 	-- The swipe cuts the shooter's balls within this of the first contact (inches; the
 	-- opponent's within Config.Ults.Shared.OpponentFactor of it), at most MaxReachShare of the
 	-- table. (tune)
 	RadiusInches = 20,
 	-- The moment slows for the tiger: this much play (seconds) over this much more wall time
-	-- (about 0.7 s at a seventh speed: its leap in and the swipe; GuangdongTigerFx's timeline).
+	-- (1.1 s at an eleventh speed: its run in, the pounce and the cut, GuangdongTigerFx's
+	-- timeline; the rework made the tiger a bigger moment, 2026-10-08).
 	SlowShotSeconds = 0.1,
-	SlowSeconds = 0.6,
+	SlowSeconds = 1,
 }
 
 -- Portals (docs/prompts/ABILITIES_PROMPT.md 7.9; src/shared/Ults/Effects/Portals). Where they
 -- may be placed is Config.Ults.Shared.Pick.
 Config.Ults.Portals = {
-	-- A ball goes in when its centre passes within this of a portal's centre (the drawn ring is
-	-- a ball width across the middle of it). (tune)
-	InnerRadiusInches = 2, -- 1.2 until the step 16 balance pass (2: +0.05 a use)
+	-- A ball goes in when its centre passes within this of a portal's centre: the drawn ring's
+	-- radius (Config.UI.UltPick.PortalRingBallWidths, 1.3 ball widths), so a ball whose centre
+	-- crosses the ring goes in (the Rare+ buff, 2026-10-08; 1.2 until the step 16 balance pass,
+	-- then 2). (tune)
+	InnerRadiusInches = 2.9,
 	-- After coming out, a ball cannot go into a portal again until it has left the exit's inner
 	-- circle and this long has passed. (tune)
 	CooldownSeconds = 0.3,
-	-- One of the shooter's balls coming out is turned toward the pocket nearest its heading by
-	-- at most this angle's tangent (0.2679: 15 degrees, as Chain Lightning's charge; 0 off).
-	-- The step 16 buff. (tune)
+	-- One of the shooter's balls coming out is lined up (the Rare+ buff, 2026-10-08: Rare and up
+	-- nearly always pot): sent down the clear line into the pocket nearest the exit, never
+	-- slower than it went in and never so slow it gets there under ExitArriveSpeed (in/s).
+	-- With no clear line it is turned toward the pocket nearest its heading by at most
+	-- ExitSteerTan (a tangent: 0.2679 is 15 degrees; the step 16 buff). (tune)
+	ExitArriveSpeed = 30,
 	ExitSteerTan = 0.2679,
 }
 
@@ -4358,35 +4408,16 @@ Config.Ults.EaglesEye = {
 	MaxRails = nil :: number?,
 }
 
--- Super Bounce (docs/prompts/ABILITIES_PROMPT.md 7.3; Arming.extras): the cue ball's own
--- material for the shot's first Seconds, then normal friction returns. Tuned 2026-09-29: a
--- medium shot (power 0.5) alone touches 6-10 cushions; on real tables (the harness's states)
--- the median is 4 (a quarter reach 6), the cue ball giving its speed to the balls it hits.
-Config.Ults.SuperBounce = {
-	RailRestitution = 1.0, -- no speed lost off a cushion (normal 0.85) (tune)
-	RailFriction = 0, -- nor along it (normal 0.2) (tune)
-	BallRestitution = 1.0, -- a perfectly springy hit on a ball (normal 0.95) (tune)
-	-- Sliding and rolling losses: after each cushion the ball slides, and normal sliding
-	-- friction would turn much of its speed into roll; tiny values keep it going. (tune)
-	SlidingFriction = 0.005, -- normal 0.20
-	RollingFriction = 0.0004, -- normal 0.010
-	Seconds = 8, -- the cap: shot seconds with the material (tune)
-	-- The first ball of yours the cue ball hits catches the bounce (never the 8; the designer,
-	-- 2026-09-29, after the cue ball alone measured about +0.05 balls a use): this material
-	-- from the hit for Seconds, and a cushion hit within JawReachInches of a pocket's rim
-	-- boings it into that pocket (Effects/SuperBounce). Tuned with the harness (2026-09-29,
-	-- skill 2, net balls a use): the material alone added +0.03 to +0.10 even at 30 s (a ball
-	-- bouncing at random almost never finds a pocket); jaws 2/4/6/8 in +0.10/+0.20/+0.26/+0.28
-	-- with the springier cloth; these cloth losses +0.34 to +0.39. (tune)
-	Caught = {
-		RailRestitution = 1.0, -- normal 0.85
-		RailFriction = 0.03, -- normal 0.2
-		BallRestitution = nil :: number?,
-		SlidingFriction = 0.04, -- normal 0.20
-		RollingFriction = 0.0017, -- normal 0.010
-		Seconds = 8,
-		JawReachInches = 6 :: number?,
-	},
+-- Fire Shot (the designer's third rework round, 2026-10-08: Super Bounce reworked, the starter;
+-- src/shared/Ults/Effects/FireShot): the cue ball leaves the cue LaunchSpeedScale times as fast
+-- as the stroke sends it, along the cloth, its spin with it (Black Flash's launch). With it armed
+-- the shooter's guideline draws FullLines: after the first contact the object ball's line and
+-- the cue ball's run on to the next cushion, ball or pocket (Physics/Aim.fullLines), at every
+-- difficulty (the designer: "the aiming line longer ... to the next edge of a table"). The
+-- flames and the scorch marks are the look's (Config.UI.FireShotFx). (tune)
+Config.Ults.FireShot = {
+	LaunchSpeedScale = 2, -- the designer: "increased power like 2x speed"
+	FullLines = true,
 }
 
 -- Magnet's physics (section 7.3; src/shared/Ults/Effects/Magnet.luau). Each allowed ball that
@@ -4398,9 +4429,10 @@ Config.Ults.SuperBounce = {
 Config.Ults.Magnet = {
 	-- The pull zone: a circle this many ball diameters in radius around the middle of each
 	-- pocket's mouth. Nothing outside it is pulled. Was 3 before the buff, then 7.5; 5.25 on
-	-- 2026-09-30 (the designer: 30% smaller). The field lines and the aiming preview's rings
-	-- are drawn from it, so they shrink with it. (tune)
-	ZoneBallWidths = 5.25,
+	-- 2026-09-30 (the designer: 30% smaller); 6.5 in the rework (designer, 2026-10-08:
+	-- "nerfed too much", the starter must show it works). The field lines and the aiming
+	-- preview's rings are drawn from it. (tune)
+	ZoneBallWidths = 6.5,
 	-- How the pull grows toward the mouth: strength = closeness ^ Power, closeness 0 at the
 	-- zone's edge and 1 at the mouth (and past it). Scales both the turn and the speed blend.
 	-- A whole number (it is multiplied out, never pow()). Higher keeps the pull near the
@@ -4408,33 +4440,88 @@ Config.Ults.Magnet = {
 	Power = 2,
 	-- How hard the path can bend at a corner mouth: radians of turn per inch rolled at full
 	-- strength. Per inch rather than per second, so a slow and a firm ball curve alike. (tune)
-	CornerBend = 0.3,
+	CornerBend = 0.5, -- 0.3 before the rework
 	-- The same at a side mouth: its window is narrower to angled balls, so it needs about
 	-- twice the bend for the same rescue rates. (tune)
-	SideBend = 0.6,
+	SideBend = 0.9, -- 0.6 before the rework
 	-- The most one fixed step (1/240 s) may turn a ball, as the sine of the angle (0.1 = about
 	-- 6 degrees), so a fast ball near the mouth is never snapped round. (tune)
-	MaxStepTurn = 0.1,
+	MaxStepTurn = 0.14, -- 0.1 before the rework
 	-- The path is traced with a ball this much fatter (inches): a path counts as going in, and
 	-- is left on its line, only when it clears the jaws with this to spare. (tune)
 	ClearanceInches = 0.1,
 	-- The speed a pulled ball is blended toward (in/s): slow enough to drop through any jaw,
-	-- fast enough to be seen creeping in. (tune)
-	CaptureSpeed = 18,
+	-- fast enough to be seen creeping in. 14 since the rework: a held, magnetic creep. (tune)
+	CaptureSpeed = 14,
+	-- The last stretch: closer than this to the mouth (closeness 0-1) the ball is yanked in
+	-- toward SnapSpeed (in/s) instead, the magnet's "clunk". (tune)
+	SnapCloseness = 0.82,
+	SnapSpeed = 30,
+	-- The catch reaches out to the zone's edge: a fast ball's braking weight is this share
+	-- of full strength at the edge, rising with closeness to all of it at the mouth (the owner's
+	-- factor on top). 0 is the old closeness-only pull. (tune)
+	BrakeFloor = 0.35,
 	-- Braking of a faster ball: the share of its extra speed over CaptureSpeed taken off per
 	-- inch rolled at full strength. Per inch, so a hard hit ball is caught over the same
 	-- stretch as a soft one. (tune)
-	BrakePerInch = 0.4,
+	BrakePerInch = 0.5, -- 0.4 before the rework
 	-- Pulling a slower ball up: the share of its missing speed added per second at full
 	-- strength. Against rolling friction (about 4 in/s^2) this pulls in a ball that would
 	-- have stopped within about 4 widths of the mouth; one dying further out stops about
 	-- where it would have (6 widths out: 0.1 of a width nearer). (tune)
-	CreepPerSecond = 1,
+	CreepPerSecond = 1.5, -- 1 before the rework
 	-- Below this speed (in/s) a ball is not pulled at all: a ball at rest stays put. (tune)
 	MinSpeed = 1,
 	-- "Heading roughly toward the pocket": the cosine of the angle between the velocity and
 	-- the direction to the pocket centre must be above this (0.5 = within 60 degrees). (tune)
 	MinApproachCos = 0.5,
+}
+
+-- Catch-a-Ball (the rework, designer 2026-10-08; src/shared/Ults/Effects/CatchABall): the
+-- first ball the cue ball hits is caught (a pot for its owner; the 8 only on the legal 8 shot,
+-- else it breaks free). The moment holds while the look plays its catch: the ball opening, the
+-- beam pulling the ball in, the hop, three wobbles and the click (CatchABallFx's timeline).
+Config.Ults.CatchABall = {
+	HoldShotSeconds = 0.02, -- the play the hold is spread over (nothing moves: the catch is still)
+	HoldSeconds = 4, -- wall seconds the shot holds for the catch (CatchABallFx's Timeline)
+	-- The second catch (Epic since the designer's second round, 2026-10-08): the catch ball
+	-- hops to the shooter's nearest ball within HopReachInches (centre to centre, its line
+	-- HopPocketMarginInches clear of the pocket mouths) at HopSpeed (in/s) and catches it too,
+	-- holding SecondHoldShotSeconds of play over SecondHoldSeconds of wall time
+	-- (CatchABallFx's SecondTimeline). Until the hop it jiggles HopJiggle (in/s) in place.
+	-- Measured (tools/ult_value.luau, 120 tables, careful net at skills 1/2/3, 2026-10-08):
+	-- 20 in +1.12 / +1.33 / +1.38 (above the Legendaries); 12 in +0.90 / +1.09 / +1.13; 9 in
+	-- +0.80 / +1.02 / +1.05, an Epic (one catch measured +0.47 / +0.66 / +0.75).
+	HopReachInches = 9,
+	HopPocketMarginInches = 0.5,
+	HopSpeed = 40,
+	HopJiggle = 1,
+	SecondHoldShotSeconds = 0.02,
+	SecondHoldSeconds = 2.6,
+}
+
+-- Verity (the rework; evil since the designer's second round, 2026-10-08;
+-- src/shared/Ults/Effects/Verity): the first ball hit is eaten (a pot for its owner; the early
+-- 8 refused), then she rolls on along the shot's line, bumping every ball she touches out of
+-- her way (she ate up to two more of yours until the designer's third round, 2026-10-08); she
+-- hops over the 8. Inches and seconds of play. (tune)
+Config.Ults.Verity = {
+	EatShotSeconds = 1.6, -- she swells, gapes, chomps, chews and gulps (VerityFx) before rolling
+	-- Meanwhile she jiggles back and forth this fast (in/s), a 240th of that each step: unseen,
+	-- but it keeps the shot in motion (above Config.Physics.RestSpeed).
+	ChewJiggle = 1,
+	-- Her swollen body (three balls' radius; VerityFx draws her this big): a ball whose centre
+	-- comes within it plus a ball's radius is met.
+	BodyRadiusInches = 3.4,
+	ShoveGapInches = 0.3, -- a ball inside her body as she swells is shoved this far clear of it
+	RollSpeed = 32, -- the roll (in/s)
+	RollInches = 70, -- the longest roll
+	EdgeMarginInches = 0.5, -- her body stops this far from a cushion line or a pocket
+	BumpSpeed = 18, -- every ball she touches on the roll is bumped at this speed (in/s)...
+	BumpSide = 1, -- ...this much sideways, away from her path...
+	BumpForward = 0.35, -- ...and this much forward
+	LandEdgeInches = 1.5, -- the cue ball lands this far (beyond its radius) from a cushion or pocket
+	LandGapInches = 0.05, -- room left round the cue ball where she stops
 }
 
 -- What every ability shares (docs/prompts/ABILITIES_PROMPT.md 5; the framework, step 1).
@@ -4486,6 +4573,9 @@ Config.Ults.Shared = {
 	-- (or drops, or stops). The designer, 2026-09-30: 8 s to line up one strike, resuming 1 s
 	-- after it hits (was 5 s each for three, resuming 0.75 s after). (tune)
 	FreezeAfterSeconds = 1,
+	-- A strike that touches no ball by this long into the shot freezes then anyway (the Rare+
+	-- buff, 2026-10-08: time stops on a miss too, and the stopped-time strike can still pot).
+	TimeStopMissSeconds = 1.5,
 	FrozenSeconds = 8,
 	ResumeAfterStrikeSeconds = 1,
 	-- How many strikes of the cue ball the shooter gets in stopped time (the designer,
@@ -4493,6 +4583,22 @@ Config.Ults.Shared = {
 	-- skills 1/2/3, 2 +0.58 / +0.38 / +0.24). With more than one, each strike's end starts the
 	-- clock again for the next (FrozenSeconds).
 	TimeStopStrikes = 1,
+	-- The Rare+ buff (2026-10-08: Epic and up nearly always pot): a ball of yours the cue ball
+	-- touches in stopped time rolls into the pocket nearest the way the strike pushed it, down
+	-- a clear line, when time resumes, getting there at this speed (in/s). (tune)
+	TimeStopSendArriveSpeed = 30,
+	-- Look Over There! (the designer's second rework round, 2026-10-08): once armed (at once:
+	-- no activation panel, so nobody is warned) it is not a shot but the Sneak phase, with no
+	-- shot clock. The shooter points up and says "OMG LOOKK AT THAT!" while the opponents turn
+	-- away (SneakIntroSeconds), then has SneakDragSeconds to move the cue ball anywhere on the
+	-- cloth (ball in hand's rules, the same drag); the server takes the last spot
+	-- SneakGraceSeconds longer (the network's delay). Then SneakReveal: the opponents turn back
+	-- to the vine boom for SneakRevealSeconds, and the shooter's turn goes on from the new spot
+	-- with a fresh clock. (tune)
+	SneakIntroSeconds = 1,
+	SneakDragSeconds = 3,
+	SneakGraceSeconds = 0.6,
+	SneakRevealSeconds = 2.2,
 }
 
 -- Uploaded ability assets (AbilityAssets loads the models once per server, on the server,
@@ -4503,13 +4609,6 @@ Config.Ults.Assets = {
 		-- tools/blender/abilities/magnet.py: FieldArcs, FieldFlares, FieldRing, Chevron and
 		-- PoleCaps, one shared texture (MeshPart.TextureID), unit size (scaled at runtime).
 		MagnetField = 96715013262604,
-		-- tools/blender/abilities/superbounce.py: RainbowShell (a shell a little over the ball,
-		-- its rainbow texture scrolled at runtime) and BoingRing (the hit's star-burst ring).
-		SuperBounce = 75004032615944,
-		-- tools/blender/abilities/ghost.py: LittleGhost (the ghost that circles the armed cue
-		-- ball, facing -Z), GhostWisp (a trailing sheet, its wide root at +X) and Ripple (a
-		-- flat ring).
-		Ghost = 100126316259892,
 		-- tools/blender/abilities/rewind.py: RewindDial (a flat counter-clockwise circular arrow
 		-- with clock ticks, unit radius, magenta-white-green across its band).
 		Rewind = 110978850889818,
@@ -4525,30 +4624,35 @@ Config.Ults.Assets = {
 		-- tools/blender/abilities/portals.py: PortalRim (a ragged torus of unit radius, flat),
 		-- PortalCore (the thin inner ring) and PortalDisc (a flat unit disc with the swirl).
 		Portals = 134871963661060,
-		-- tools/blender/abilities/steelball.py: SteelShell (the manga steel ball, unit radius)
-		-- and GoldSpiral (a flat spiral ribbon).
-		SteelBall = 83844850418816,
 		-- tools/blender/abilities/blackflash.py: BFBolt1..4 (thick black radiating bolts, unit
 		-- length along X, flat) and Shard1..12 (the ball shell's pieces, the ball mesh's UVs).
 		BlackFlash = 75008622077798,
 		BlackHole = 86337602765410,
-		-- tools/blender/abilities/tiger.py: the tiger's rigid parts (TigerTorso, TigerHead,
-		-- TigerJaw, TigerLegFL/FR/HL/HR, TigerTail; facing -X, feet at Y 0, left at +Z), its
-		-- joints (J_Head, J_Jaw, J_LegFL/FR/HL/HR, J_Tail), TigerSlash (a flat curved blade, 1
-		-- long along X) and HalfA/HalfB (a unit ball's halves, the cut at Z 0, the ball's UVs).
-		-- Replaces 86221317508788, 109390616019165 and 93994396609133 (redder, ringed
-		-- stripes, a round-eyed face).
+		-- tools/blender/abilities/tiger.py: TigerSlash (a flat curved blade, 1 long along X)
+		-- and HalfA/HalfB (a unit ball's halves, the cut at Z 0, the ball's UVs). Its rigid
+		-- tiger (TigerTorso, TigerHead, ...) is no longer drawn: GuangdongTigerV2 replaced it.
 		GuangdongTiger = 119880658779603,
-		-- tools/blender/abilities/heatseeker.py: Reticle (flat), ExhaustFlame (its nozzle at +X,
-		-- its tip at -X) and SmokeRing (flat).
-		HeatSeeker = 130162252552172, -- (the hotter flame; 81275063362861 was the first cut)
+		-- tools/blender/abilities/tiger_v2.py (the rework, 2026-10-08): the tiger, one skinned
+		-- mesh on 24 bones (Root the root), nose to tail base 1 stud, facing -Z after import;
+		-- its actions are baked data (src/client/TigerAnims.luau), not Animation assets.
+		GuangdongTigerV2 = 121333510236552,
+		-- tools/blender/abilities/catchball.py (the rework, 2026-10-08): CatchTop (the red lid),
+		-- CatchBottom (the white half), CatchBand (the black band), CatchButton (the square
+		-- button, at -Z: the front), CatchInner (the dark inside, seen when open) and J_Hinge
+		-- (the back hinge, at +Z). Unit radius, centred.
+		CatchABall = 93342911188193,
+		-- tools/blender/abilities/verity_creepy.py (the designer's second round, 2026-10-08, to
+		-- their reference image): the creepy evil Verity ball. VerityTop (the upper jaw, the
+		-- eye sockets, the upper lip), VerityBottom (the lower jaw, the lower lip, the tongue),
+		-- VerityEyes (the hollow eyes' near-black linings) and J_Hinge (the hinge pin at +Z, the
+		-- back). Unit radius, the front -Z; the top and the eyes turn about the hinge's X axis.
+		-- (Was the toothy chomper of verity_evil.py, 131086829663737, and before it the Verity
+		-- monster, 97902969201000, a skinned mesh.)
+		Verity = 72129096577503,
 	} :: { [string]: number },
 	Images = {
 		-- The pocket-to-ball field lines' Beam tile: a white line and one arrowhead along +U.
 		MagnetFieldBeam = "rbxassetid://138868230682274",
-		-- Heat Seeker's exhaust smoke: a 4 x 4 flipbook of a puff swelling and thinning
-		-- (heatseeker.py's smoke_flipbook.png).
-		SeekerSmoke = "rbxassetid://81395420363490", -- (the image inside Decal 126970755165309)
 		-- Rewind's VHS screen (rewind.py, each rendered on a transparent background): the big
 		-- glitching rewind icon (a 4 x 4 flipbook), sparse grain (2 x 2), scanlines, tearing
 		-- bands, one tracking-noise band, and the magenta and green split at the screen's
@@ -4574,9 +4678,8 @@ Config.Ults.Assets = {
 		PortalSwirl = "rbxassetid://85317008061907",
 		PortalSparkles = "rbxassetid://110779778163475",
 		PortalBurst = "rbxassetid://136798614538270",
-		-- Steel Ball (steelball.py): the golden path on the cloth, the pot's burst ring and the
-		-- sparkle. (Images inside Decals 95892418217107, 74393921524104, 74762707211639.)
-		SteelPath = "rbxassetid://115232544003418",
+		-- Steel Ball (steelball.py): the pot's burst ring and the sparkle. (Images inside Decals
+		-- 74393921524104, 74762707211639; the golden path's, Decal 95892418217107, is retired.)
 		SteelBurst = "rbxassetid://140169441770879",
 		SteelSparkle = "rbxassetid://116655548573479",
 		-- Black Flash (blackflash.py): the shockwave ring. (Image inside Decal 112993995726160.)
@@ -4586,16 +4689,35 @@ Config.Ults.Assets = {
 		-- strokes on gold) with three claw slashes, the reference's flash frame. (Image inside
 		-- Decal 87600337874853; replaces Decals 76952602462039 and 122114074802883.)
 		TigerFur = "rbxassetid://131150432548296",
+		-- Its cut faces' smoke (the rework): the lucky blocks' soft puff sprite
+		-- (assets/luckyblocks/particles; Config.LuckyBlocks.GiftDrop.Sprites.Puff).
+		TigerSmoke = "rbxassetid://108727667390410",
+		-- The rework (2026-10-08; assets/abilities/REWORK_ASSETS.md; the images inside Decals
+		-- 126247127851969, 133183700633587, 92411465206885, 109945245461564, 103684829037298,
+		-- 130147846106707, 109720204127941 and 108837263159693).
+		CatchGlow = "rbxassetid://95835543473221", -- a soft white radial glow
+		CatchStar = "rbxassetid://92483400833486", -- a 4-point sparkle star
+		CatchBeam = "rbxassetid://123563789160110", -- an energy beam tile along U
+		-- Steel Ball's streak ring round a spinning ball (three comet streaks; the golden ratio
+		-- is drawn with beams, so its images and the spin arrows are not used).
+		SteelSpinBlur = "rbxassetid://81867204122965",
+		-- The plush smiley on the ball mesh's UVs (tools/blender/abilities/verity.py, to the
+		-- designer's reference image, 2026-10-08; Decal 136005252737182).
+		VerityBall = "rbxassetid://107401761851714",
 	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
 	Icons = {
 		Magnet = "rbxassetid://117672288856146",
 		EaglesEye = "rbxassetid://81255543534825", -- an eagle's eye and brow line (2026-09-30)
-		SuperBounce = "rbxassetid://95265934894642",
-		Ghost = "rbxassetid://103298708355834",
-		HeatSeeker = "rbxassetid://109084609734062",
+		-- The cue ball as a fireball (tools/blender/abilities/icons_v2.py, 2026-10-08; Decal
+		-- 139546488723905).
+		FireShot = "rbxassetid://116335731498943",
 		Rewind = "rbxassetid://120627614883189",
+		-- The rework's three (tools/blender/abilities/icons_v2.py, 2026-10-08).
+		CatchABall = "rbxassetid://104903571295338",
+		LookOverThere = "rbxassetid://129905785693917",
+		Verity = "rbxassetid://115341703331107",
 		TimeStop = "rbxassetid://88800552854518",
 		ChainLightning = "rbxassetid://124544923626211",
 		Portals = "rbxassetid://117852135071427",
@@ -10904,203 +11026,6 @@ Config.UI.EaglesEyeFx = {
 	ScreechSeconds = 2.5,
 }
 
--- Super Bounce's look (src/client/SuperBounceFx.luau; ABILITIES_PROMPT 7.3): the rainbow shell
--- on the cue ball, a rainbow ribbon, a boing ring and a squash at every bounce. Studs unless
--- named; the bounce itself is Config.Ults.SuperBounce. (tune)
-Config.UI.SuperBounceFx = {
-	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
-	-- The shell: this many times the drawn cue ball's width, turning this fast (its bands roll
-	-- round the ball), popping on over PopSeconds with a PopOvershoot spring, fading in and out.
-	ShellScale = 1.06,
-	TurnDegreesPerSecond = 220,
-	PopSeconds = 0.35,
-	PopOvershoot = 2.2,
-	FadeInSeconds = 0.12,
-	FadeOutSeconds = 0.5,
-	-- A hit squashes it along the hit by this share (and bulges it half that across), springing
-	-- back over SquashSeconds.
-	SquashShare = 0.3,
-	SquashSeconds = 0.22,
-	-- The boing ring at a hit: this many ball widths across, growing from RingFromScale to
-	-- RingToScale while it fades over RingSeconds, turning RingSpinDegrees.
-	RingBallWidths = 2.6, -- (1.6 was a speck from the replay camera: the look check)
-	RingFromScale = 0.45,
-	RingToScale = 1.3,
-	RingSeconds = 0.35,
-	RingSpinDegrees = 40,
-	-- A hit's ring faces out of the hit tilted this share of the way to straight up, so the
-	-- overhead replay camera sees it face on and not as an edge (0: standing on the cushion).
-	RingTiltShare = 0.55,
-	RingTransparency = 0,
-	FloorRingLiftInches = 0.1, -- the arming ring, flat on the cloth under the cue ball
-	-- A hit's sparkles: SparkCount at full weight (Config.UI.Kit.Art.Spark, the rainbow), thrown
-	-- every way and slowed by SparkDrag.
-	SparkCount = 9,
-	SparkSizeStuds = 0.12,
-	SparkLifetime = { 0.3, 0.55 },
-	SparkSpeed = { 3, 6 },
-	SparkDrag = 4,
-	SparkLightEmission = 0.3,
-	-- A hit's weight (ring opacity, boing volume): its speed over FullSpeed (in/s), at least
-	-- MinWeight.
-	FullSpeed = 60,
-	MinWeight = 0.35,
-	-- The boings: each pitched PitchStep higher than the last of the shot, up to PitchMax; never
-	-- two within BoingGapSeconds; each holder let go after BoingHoldSeconds.
-	PitchStep = 0.05,
-	PitchMax = 1.6,
-	BoingGapSeconds = 0.06,
-	BoingHoldSeconds = 2,
-	JawPitch = 0.3, -- the caught ball's jaw boing, this much higher (a jaw sends it in)
-	FreshSeconds = 0.3, -- a hit the replay only caught up with (a late join) gets nothing
-	-- The ribbon: a camera-facing Trail across the cue ball (TrailBallWidths of it), fading over
-	-- TrailSeconds and narrowing to TrailTailWidth, while the cue ball moves faster than
-	-- TrailMinSpeed (in/s). The house rainbow (superbounce.py's RAINBOW).
-	TrailBallWidths = 1,
-	TrailSeconds = 0.45,
-	TrailTailWidth = 0.3,
-	TrailTransparency = 0,
-	TrailLightEmission = 0, -- any glow washed the rainbow to pale yellow (the look check)
-	TrailMinSpeed = 3,
-	TrailColors = {
-		{ 255, 77, 77 },
-		{ 255, 159, 28 },
-		{ 255, 225, 77 },
-		{ 61, 214, 107 },
-		{ 59, 155, 255 },
-		{ 162, 89, 255 },
-	},
-}
-
--- Ghost's look (src/client/GhostFx.luau; ABILITIES_PROMPT 7.4): a see-through cue ball with a
--- cold glow, a little ghost circling it, wisps trailing it, and a flicker and a ripple on each
--- ball it passes through. Sizes in drawn ball widths unless named. (tune)
-Config.UI.GhostFx = {
-	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
-	FadeInSeconds = 0.2,
-	FadeOutSeconds = 0.6,
-	-- The cue ball: this see-through (LocalTransparencyModifier, 0 solid), inside a Neon glow
-	-- GlowScale times its width at GlowTransparency, with a cold point light.
-	CueSeeThrough = 0.45,
-	-- The ball the ghost pulls (from the first contact): this see-through while it rolls, and
-	-- the little ghost eases over to it at this rate (per second; higher is snappier).
-	PulledSeeThrough = 0.3,
-	GhostFollowRate = 10,
-	GlowColor = { 120, 180, 255 }, -- (190, 222, 255) read green-white on the cloth
-	GlowScale = 1.22,
-	GlowTransparency = 0.1,
-	GlowMaterial = "ForceField", -- a cold shimmer; Neon read teal over the green cloth
-	LightColor = { 175, 212, 255 },
-	LightBrightness = 3,
-	LightRangeBallWidths = 6,
-	-- The little ghost: GhostHeight ball widths tall, circling the cue ball's centre at
-	-- OrbitRadius, LiftShare of a ball width above it, bobbing Bob widths at BobHz, facing
-	-- the way it flies. It pops out of the ball over PopSeconds with a PopOvershoot spring.
-	GhostHeight = 1.15,
-	GhostTransparency = 0.18, -- a little see-through: it crosses the aim view (0.25 showed the far eye)
-	OrbitRadius = 1.45,
-	OrbitDegreesPerSecond = 140,
-	LiftShare = 0.85,
-	Bob = 0.12,
-	BobHz = 1.4,
-	PopSeconds = 0.5,
-	PopOvershoot = 1.8,
-	-- The wisps: WispCount sheets WispLength long and WispWidth wide trailing the moving cue
-	-- ball (faster than WispMinSpeed in/s), fanned WispSpreadDegrees apart, each rippling
-	-- WispWaveDegrees round its length at WispWaveHz; they grow in and out over WispGrowSeconds.
-	WispCount = 3,
-	WispLength = 3.6,
-	WispWidth = 1.7,
-	WispSpreadDegrees = 16,
-	WispWaveDegrees = 18,
-	WispWaveHz = 2.4,
-	-- Above 0: at 0 Roblox draws the mesh opaque and ignores its texture's alpha fade (the
-	-- look check: solid grey ribbons).
-	WispTransparency = 0.02,
-	WispMinSpeed = 3,
-	WispGrowSeconds = 0.25,
-	-- A soft pale Trail under the wisps, across the cue ball, TrailSeconds long.
-	TrailColor = { 215, 235, 255 },
-	TrailSeconds = 0.35,
-	TrailTransparency = 0.55,
-	-- A ball the cue ball passes through: it flickers for FlickerSeconds (up to FlickerDepth
-	-- see-through, FlickerHz), a ripple spreads round it on the cloth (RippleFrom to RippleTo
-	-- ball widths over RippleSeconds, from RippleTransparency), and a whoosh plays there.
-	FlickerSeconds = 0.55,
-	FlickerHz = 16,
-	FlickerDepth = 0.75,
-	RippleFrom = 0.8,
-	RippleTo = 3.4,
-	RippleSeconds = 0.9, -- (0.6 was gone before the replay camera settled)
-	RippleTransparency = 0.1,
-	RippleLiftInches = 0.1,
-	SoundHoldSeconds = 3, -- each sound's holder is let go after this long
-	FreshSeconds = 0.3, -- a replay frame jumping further than this (a late join) draws no passes
-}
-
--- Heat Seeker's look (src/client/HeatSeekerFx.luau; ABILITIES_PROMPT 7.5): the red lock-on
--- reticle, the blinking dot on the cue ball, the missile's exhaust and smoke, the impact's
--- flash and smoke ring, and the beeps. Sizes in drawn ball widths unless named. (tune)
-Config.UI.HeatSeekerFx = {
-	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
-	-- The reticle: flat over the locked ball, closing from LockFrom to LockTo ball widths across
-	-- over LockSeconds as the pick lands (then the solid tone), spinning SpinDegreesPerSecond,
-	-- LiftInches above the cloth; it pulses PulseShare in size at PulseHz while it waits.
-	LockFrom = 4.4,
-	LockTo = 2.5, -- (1.7 hid under the pick view's ring from overhead: the look check)
-	LockSeconds = 0.7,
-	SpinDegreesPerSecond = 90,
-	LockSpinDegreesPerSecond = 420, -- as it closes in
-	LiftInches = 0.15,
-	PulseShare = 0.06,
-	PulseHz = 1.5,
-	FadeSeconds = 0.25,
-	-- The beeps: while it closes in, from BeepSlowSeconds apart to BeepFastSeconds; in flight,
-	-- the gap shrinks with the distance left (FarInches or more: slow), and each beep is
-	-- pitched up a little as it closes. The lock tone plays LockToneSeconds.
-	BeepSlowSeconds = 0.2,
-	BeepFastSeconds = 0.05,
-	FarInches = 60,
-	BeepPitchRise = 0.35,
-	LockToneSeconds = 0.45,
-	-- The red dot on the cue ball's top: DotBallWidths across, blinking at BlinkHz armed and
-	-- FlightBlinkHz in flight.
-	DotColor = { 255, 40, 40 },
-	DotBallWidths = 0.22,
-	BlinkHz = 2.5,
-	FlightBlinkHz = 9,
-	-- The exhaust: the flame FlameLength long and FlameWidth wide behind the moving cue ball,
-	-- flickering FlickerShare at FlickerHz, sized by speed (full at FullSpeed in/s); smoke
-	-- puffs (the flipbook) at SmokeRate a second at full speed, SmokeSize studs, SmokeSeconds.
-	FlameLength = 3.4,
-	FlameWidth = 0.85,
-	FlickerShare = 0.18,
-	FlickerHz = 18,
-	FullSpeed = 120,
-	MinSpeed = 4, -- slower than this (in/s): no exhaust
-	SmokeRate = 70,
-	SmokeSize = { 0.25, 0.7 },
-	SmokeSeconds = { 0.45, 0.8 },
-	SmokeTransparency = 0.25,
-	SmokeColor = { 175, 172, 168 }, -- grey: white puffs read as a glow under the flame's light
-	FlameLightColor = { 255, 150, 60 },
-	FlameLightBrightness = 2,
-	FlameLightRangeBallWidths = 5,
-	-- The impact: an orange flash (a light and a Neon ball growing to FlashBallWidths over
-	-- FlashSeconds) and the smoke ring spreading from RingFrom to RingTo ball widths over
-	-- RingSeconds.
-	FlashColor = { 255, 170, 70 },
-	FlashBallWidths = 2.2,
-	FlashSeconds = 0.18,
-	FlashBrightness = 6,
-	RingFrom = 0.8,
-	RingTo = 3.2,
-	RingSeconds = 0.7,
-	RingTransparency = 0.2,
-	HoldSeconds = 2, -- each sound's and flash's holder is let go after this long
-	FreshSeconds = 0.3, -- an impact the replay only caught up with (a late join) gets nothing
-}
-
 -- Rewind's look (src/client/RewindFx.luau; docs/prompts/ABILITIES_PROMPT.md 7.6, reference 02)
 -- and its playback in src/client/Match.luau. Studs unless named. (tune)
 Config.UI.RewindFx = {
@@ -11247,6 +11172,22 @@ Config.UI.TimeStopFx = {
 	SwellPitch = 1.2,
 	TickSeconds = 1,
 	ResumeTickDelay = 0.3,
+	-- A ball of yours sent in stopped time (the Rare+ buff): a line draws itself from it to its
+	-- pocket over SendDrawSeconds, SendLiftInches over the cloth (a white core SendCoreBallWidths
+	-- wide in a violet glow SendGlowBallWidths wide), with a tick at SendPitch; it follows the
+	-- ball until it drops, at most SendHoldSeconds of the replay's time after the resume, then
+	-- fades (the longest send, corner to corner, rolls about 3 s).
+	SendDrawSeconds = 0.3,
+	SendHoldSeconds = 3.5,
+	SendFadeSeconds = 0.3,
+	SendLiftInches = 0.3,
+	SendCoreBallWidths = 0.12,
+	SendGlowBallWidths = 0.45,
+	SendCoreColor = { 255, 255, 255 },
+	SendGlowColor = { 170, 120, 255 },
+	SendCoreTransparency = 0.05,
+	SendGlowTransparency = 0.45,
+	SendPitch = 1.6,
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no screen
 }
 
@@ -11279,6 +11220,12 @@ Config.UI.ChainLightningFx = {
 	-- spreads on the cloth round the ball (FlashBallWidths across) and fades.
 	StrikeHeightStuds = 4,
 	StrikeSeconds = 0.25,
+	-- Sent down a clear line (the Rare+ buff): a bolt along it from the ball into its pocket
+	-- for RailSeconds (or until the ball drops), shown in pulses as the jumps' are, RailWidth
+	-- as wide as a jump's bolt.
+	RailSeconds = 0.6,
+	RailPulses = { { 0, 0.3 }, { 0.38, 0.62 }, { 0.72, 0.9 } },
+	RailWidth = 0.8,
 	FlashBallWidths = 14,
 	FlashTransparency = 0.35,
 	FlashSeconds = 0.5,
@@ -11287,6 +11234,25 @@ Config.UI.ChainLightningFx = {
 	BurstSeconds = 0.45,
 	ShakeStuds = 0.1,
 	ShakeSeconds = 0.25,
+	-- The strike on the screen (the rework's polish, 2026-10-08), for players at the table:
+	-- lightning's double flash (ScreenFlashColor for ScreenFlashSeconds, again SecondFlashDelay
+	-- later), a quick zoom-in punch (FovPunchDegrees, negative narrows, over FovPunchSeconds)
+	-- and a cold storm grade (StormGrade: in, held, out seconds) while the bolt drives the
+	-- ball in. Wall seconds.
+	ScreenFlashColor = { 200, 235, 255 },
+	ScreenFlashSeconds = 0.12,
+	SecondFlashDelay = 0.14,
+	FovPunchDegrees = -5,
+	FovPunchSeconds = 0.3,
+	StormGrade = {
+		Saturation = -0.3,
+		Contrast = 0.25,
+		Brightness = -0.08,
+		TintColor = { 200, 225, 255 },
+	},
+	StormIn = 0.05,
+	StormSeconds = 0.6,
+	StormOut = 0.4,
 	-- A charged or struck ball glows for GlowSeconds (or until it drops): crackling arcs (the
 	-- flipbook, CrackleRate a second, CrackleBallWidths across, each CrackleLife long), a
 	-- flickering blue light, and sparks when it is struck (Sparks of them); the charged ball
@@ -11370,35 +11336,361 @@ Config.UI.PortalsFx = {
 	-- PortalBlockedColor.
 	HumVolume = 1,
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
+	-- A ball of yours lined up as it comes out (the Rare+ buff): a line from it to its pocket,
+	-- drawn in over LineDrawSeconds, LineLiftInches over the cloth (a white core
+	-- LineCoreBallWidths wide in the exit's colour LineGlowBallWidths wide), following the ball
+	-- until it drops (at most LineHoldSeconds of the replay's time), then fading over
+	-- LineFadeSeconds.
+	LineDrawSeconds = 0.2,
+	LineHoldSeconds = 3,
+	LineFadeSeconds = 0.3,
+	LineLiftInches = 0.3,
+	LineCoreBallWidths = 0.1,
+	LineGlowBallWidths = 0.4,
+	LineCoreTransparency = 0.05,
+	LineGlowTransparency = 0.4,
 }
 
--- Steel Ball's look (src/client/SteelBallFx.luau). Studs unless named. (tune)
-Config.UI.SteelBallFx = {
+-- Catch-a-Ball's look (src/client/CatchABallFx.luau; the rework, 2026-10-08): the catch ball
+-- shell on the cue ball, the catch's timeline (seconds after the contact; the physics holds the
+-- shot Config.Ults.CatchABall.HoldSeconds), the silhouette, beam, stars and GOTCHA!. Sizes in
+-- drawn ball radii unless named. (tune)
+Config.UI.CatchABallFx = {
 	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	ShellScale = 1.06, -- the shell's radius over the ball's
+	FadeInSeconds = 0.15,
+	FadeOutSeconds = 0.3,
+	FreshSeconds = 0.3, -- an event older than this (a late join) plays no sounds or bursts
+	-- Held (armed, not rolling): the button toward the camera, tipped and swaying, bobbing.
+	IdleTiltDegrees = 0,
+	IdleSwayDegrees = 14,
+	IdleBobBallRadii = 0.12,
+	ArmSparks = 14,
+	-- The catch.
+	FlashBrightness = 6,
+	FlashSeconds = 0.25,
+	OpenSparks = 16,
+	PunchDegrees = 6, -- a small zoom-in punch for the players at the table
+	PunchSeconds = 0.35,
+	LidOpenDegrees = 72,
+	SilhouetteColor = { 90, 190, 255 }, -- the designer's blue silhouette
+	SilhouetteLight = 4,
+	PullArcBallRadii = 1.2, -- how high the silhouette arcs on its way in
+	StretchShare = 1.4, -- how much longer it stretches mid-pull
+	BeamBallRadii = 0.55,
+	CloseSparks = 10,
+	HopBallRadii = 2.4, -- the hop's height
+	BounceShare = 0.18, -- the little bounce after it
+	WobbleDegrees = 24,
+	ButtonGlowColor = { 255, 40, 40 },
+	BlinkHz = 2.2,
+	StarColor = { 255, 236, 120 },
+	StarBallRadii = 1.1,
+	SparkBallRadii = 0.45,
+	CaughtStars = 3,
+	CaughtSparks = 24,
+	-- The timeline, in seconds after the contact.
+	Timeline = {
+		TurnSeconds = 0.12, -- the shell turns its front to the ball it hit
+		OpenSeconds = 0.14, -- the lid swings open
+		BeamFrom = 0.08,
+		PullFrom = 0.18, -- the silhouette shivers, then is pulled in
+		PullTo = 0.75,
+		CloseFrom = 0.78, -- the lid snaps shut
+		CloseSeconds = 0.08,
+		HopFrom = 0.9, -- the hop and the bounce
+		HopTo = 1.4,
+		BounceSeconds = 0.22,
+		Wobbles = { 1.85, 2.45, 3.05 }, -- one, two, three
+		WobbleSeconds = 0.42,
+		ClickAt = 3.55, -- caught: the click, the stars, GOTCHA!
+		FadeFrom = 3.95, -- the shell fades back into the cue ball
+		Done = 4.35,
+	},
+	-- The second catch (Epic since the designer's second round, 2026-10-08): the same, quicker
+	-- (inside Config.Ults.CatchABall.SecondHoldSeconds), two wobbles, DOUBLE CATCH!
+	SecondTimeline = {
+		TurnSeconds = 0.1,
+		OpenSeconds = 0.12,
+		BeamFrom = 0.06,
+		PullFrom = 0.14,
+		PullTo = 0.55,
+		CloseFrom = 0.58,
+		CloseSeconds = 0.08,
+		HopFrom = 0.68,
+		HopTo = 1.0,
+		BounceSeconds = 0.18,
+		Wobbles = { 1.3, 1.75 },
+		WobbleSeconds = 0.4,
+		ClickAt = 2.2,
+		FadeFrom = 2.5,
+		Done = 2.9,
+	},
+	-- The leap to the next ball, along with the cue ball's slide: an arc LeapBallRadii high,
+	-- LeapFlips forward flips. A first catch waits LeapWaitSeconds past its Done for the second.
+	LeapBallRadii = 4,
+	LeapFlips = 1,
+	LeapWaitSeconds = 3,
+	-- GOTCHA! / IT BROKE FREE! over the ball (a billboard, studs). It pops at LabelViewShare of
+	-- the viewer's screen width (sized from their camera's distance at the pop, so the shooter's
+	-- close-up does not fill the screen with it), never wider than LabelWidthStuds; the height
+	-- keeps the LabelWidthStuds : LabelHeightStuds shape.
+	LabelLiftBallRadii = 3,
+	LabelViewShare = 0.3,
+	LabelWidthStuds = 3.2,
+	LabelHeightStuds = 1,
+	LabelPopSeconds = 0.18,
+	LabelHoldSeconds = 1.1,
+	LabelFadeSeconds = 0.4,
+	LabelColor = { 255, 226, 70 },
+	BreakLabelColor = { 255, 120, 120 },
+	-- The 8 breaking free.
+	BreakSeconds = 0.5,
+	BreakSparks = 18,
+	-- The shooter's camera eases in beside the catch over CamInSeconds (a cutscene inside the
+	-- shot's hold): CamSideDegrees round from behind the catch ball (side-on at 90: the lid
+	-- opening, the ball pulled in across the view), on the side it looked from, CamPitchDegrees
+	-- down, CamDistanceBallRadii from a point CamTargetShare of the way to the caught ball and
+	-- CamUpBallRadii up; it hands back over the timeline's last CamOutSeconds.
+	CamInSeconds = 0.35,
+	CamSideDegrees = 70,
+	CamPitchDegrees = 20,
+	CamDistanceBallRadii = 9,
+	CamTargetShare = 0.35,
+	CamUpBallRadii = 1.2,
+	CamOutSeconds = 0.4,
+}
+
+-- Look Over There! (src/client/LookOverThereFx.luau; the rework, designer 2026-10-08): the
+-- Sneak phase's show, timed from the phase's start (snapshot.sneak.at) in seconds. The phase's
+-- own lengths are Config.Ults.Shared.Sneak*. (tune)
+Config.UI.LookOverThereFx = {
+	-- No cutscene (the designer's second rework round, 2026-10-08: the joke is that nobody is
+	-- warned). Seconds from the sneak's start, on the server's clock.
+	-- The shooter stands up and points up at the sky beyond the (first) opponent, away from
+	-- the table: PointBeyondStuds past them and PointUpStuds up (with no opponent's body here,
+	-- along their right, back and up: PointRight / PointBack / PointUp, normalised). The arm is
+	-- raised by its joints each frame over RaiseSeconds, the head and chest turned that way
+	-- too; it jabs for JabSeconds, holds until the reveal, and lowers over LowerSeconds.
+	PointBeyondStuds = 30,
+	PointUpStuds = 28,
+	PointRight = 0.6,
+	PointBack = 0.3,
+	PointUp = 0.9,
+	RaiseSeconds = 0.22,
+	JabSeconds = 0.6,
+	JabDegrees = 7,
+	JabHz = 7,
+	LowerSeconds = 0.3,
+	ChestTurnShare = 0.35, -- of the turn toward the point, at the waist
+	HeadTurnShare = 0.6, -- ...and at the neck
+	-- What they "say" (Strings.Ults.LookOverThere.Shout): a Roblox chat bubble and a chat line
+	-- in their name (BotChat.say), at SayAt.
+	SayAt = 0.05,
+	-- The opponents turn round at TurnAt (the whole body about its root joint over
+	-- TwistSeconds, to face straight away from the table, the head tilted up LookUpDegrees),
+	-- and back over ReturnSeconds from the reveal.
+	TurnAt = 0.35,
+	TwistSeconds = 0.35,
+	ReturnSeconds = 0.35,
+	LookUpDegrees = 14,
+	-- An opponent on this screen is locked in first person: their camera goes to their own
+	-- eyes (EyeLiftStuds over the head's centre; their body hidden on their screen, their
+	-- walking held) and whips round over WhipSeconds to look away from the table and
+	-- LookUpDegrees up, drifting DriftDegrees at DriftHz while they look. At the reveal it whips
+	-- back over WhipBackSeconds to the cue ball where it is now, the view narrowed so the
+	-- table's length fills TableFitShare of the screen's width (at most their own field of
+	-- view, at least MinFovDegrees). BoomAfter the reveal the vine boom, the only sound; from
+	-- HandBackAfter it hands back over HandBackSeconds (inside Shared.SneakRevealSeconds).
+	EyeLiftStuds = 0.2,
+	WhipSeconds = 0.4,
+	DriftDegrees = 4,
+	DriftHz = 0.45,
+	WhipBackSeconds = 0.35,
+	TableFitShare = 0.85,
+	MinFovDegrees = 22,
+	BoomAfter = 0.35,
+	HandBackAfter = 1.55,
+	HandBackSeconds = 0.45,
+	-- The countdown pill on the shooter's screen while the cue ball may move: one row under
+	-- the match HUD's header (the overhead view keeps the table below it), the seconds left at
+	-- its right end, a bar running down along its bottom.
+	TopGapPx = 8, -- above and below the pill
+	PillWidthPx = 560, -- at most (a narrow screen's width less 24)
+	PillHeightPx = { 30, 38 }, -- the row: short screens, others
+	PillBarPx = 5, -- the bar's room at the bottom (and as much at the top)
+	PillTextPx = { 16, 22 },
+	CountTextPx = { 24, 32 },
+	FreshSeconds = 0.5, -- a moment heard later than this skips it (a late join)
+}
+
+-- Verity's look (src/client/VerityFx.luau; evil since the designer's second round, 2026-10-08):
+-- the smiley Verity ball on the cue ball until the first contact; then the evil Verity ball
+-- (Config.Ults.Assets.Models.Verity) swells to Config.Ults.Verity.BodyRadiusInches, eats the
+-- ball she hit (each viewer's camera pushing in on her face), chews, gulps and laughs, rolls on
+-- chomping, burps and shrinks back. Wall seconds (slowed with the replay); sizes in drawn ball
+-- radii unless named. (tune)
+Config.UI.VerityFx = {
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	ShellScale = 1.03, -- the smiley ball's radius over the ball's
+	FadeInSeconds = 0.2,
+	FadeOutSeconds = 0.3,
+	FreshSeconds = 0.3, -- an event older than this (a late join) plays no sounds or bursts
+	-- Held (armed, not rolling): the smiley's face toward the camera, swaying, bobbing.
+	IdleSwayDegrees = 12,
+	IdleBobBallRadii = 0.12,
+	ArmSparks = 12,
+	FaceColor = { 255, 210, 31 }, -- her yellow (the arming sparks)
+	EvilColor = { 255, 40, 20 }, -- the turn's red flash (her eyes are hollow, unlit)
+	-- The turn (the first bite): a red flash and a dark puff; she swells from the cue ball's
+	-- size to her body's over GrowSeconds (overshooting by GrowOvershoot) and turns over
+	-- FaceSeconds to face each viewer's camera (her heading once she rolls). At rest her mouth
+	-- hangs open in the creepy smile (GrinDegrees: the model's rest pose, verity_creepy.py's
+	-- REST; at 25-40 degrees compared, 35 shows the smile and the eyes from the high camera).
+	GrowSeconds = 0.28,
+	GrowOvershoot = 0.15,
+	FaceSeconds = 0.15,
+	GrinDegrees = 35,
+	FlashBrightness = 6,
+	FlashSeconds = 0.4,
+	PuffParticles = 26,
+	PuffColor = { 90, 10, 20 },
+	-- The first bite's timeline (seconds from the contact; it fits in Config.Ults.Verity.
+	-- EatShotSeconds): the ball she hit pops up over PopSeconds to hover in front of her face
+	-- (HoverOutBallRadii out from her front, HoverUpShare of her radius up, an arc PopArcBallRadii
+	-- high); her jaws gape to GapeDegrees from GapeAt over GapeSeconds; the ball is sucked in
+	-- from SuckAt and they slam shut at ChompAt over SnapSeconds (a crunch, a ChompShakeStuds
+	-- shake for the players at the table, crumbs). Then Chews chews of ChewSeconds (the jaw to
+	-- ChewDegrees), a gulp at GulpAt (her body bulging GulpGrow over GulpSeconds) and her laugh
+	-- from LaughAt: her body shakes LaughDegrees at LaughHz, the jaw chattering LaughJawDegrees
+	-- over her open smile. Her jaw opens at most JawOpenDegreesPerSecond (it snaps shut at once).
+	PopSeconds = 0.3,
+	HoverOutBallRadii = 0.8,
+	HoverUpShare = 0.65,
+	PopArcBallRadii = 2,
+	GapeAt = 0.18,
+	GapeSeconds = 0.2,
+	GapeDegrees = 72,
+	-- She lunges at the ball as she gapes, leaning GapeLeanDegrees toward the camera (her eyes,
+	-- turned skyward by the gape, come round over the open mouth), easing back over
+	-- GapeLeanBackSeconds after the chomp.
+	GapeLeanDegrees = 30,
+	GapeLeanBackSeconds = 0.3,
+	SuckAt = 0.42,
+	ChompAt = 0.56,
+	SnapSeconds = 0.06,
+	ChompShakeStuds = 0.06,
+	Crumbs = 14,
+	Chews = 2,
+	ChewSeconds = 0.2,
+	ChewDegrees = 20,
+	GulpAt = 1.06,
+	GulpSeconds = 0.24,
+	GulpGrow = 0.14,
+	LaughAt = 1.22,
+	LaughDegrees = 6,
+	LaughHz = 7,
+	LaughJawDegrees = 9,
+	LaughSeconds = 1.4, -- how long her body shakes with it
+	JawOpenDegreesPerSecond = 700,
+	-- The camera of each player at the table (Camera.setOverride): it snaps in over
+	-- CamInSeconds toward her face (CamDistanceRadii of her radius away, CamPitchDegrees above
+	-- level, aimed CamLookUpShare of her radius over her centre, from the side it looked from),
+	-- holds CamHoldSeconds and eases back over CamOutSeconds: about a second in all. A darker
+	-- grade comes and goes with it.
+	CamInSeconds = 0.14,
+	CamHoldSeconds = 0.6,
+	CamOutSeconds = 0.45,
+	CamDistanceRadii = 4.4,
+	CamPitchDegrees = 18,
+	CamLookUpShare = 0.25,
+	Grade = {
+		Saturation = -0.15,
+		Contrast = 0.25,
+		Brightness = -0.04,
+		TintColor = { 255, 210, 205 },
+	},
+	GradeInSeconds = 0.08,
+	GradeOutSeconds = 0.4,
+	-- The roll: she turns to her heading and leans RollLeanDegrees into it, bouncing
+	-- RollBobBallRadii and chomping (the jaw to RollChompDegrees) RollChompHz times a second,
+	-- dust every RollDustSeconds. She hops HopBallRadii high over the 8 over HopSeconds (and
+	-- sits that high over an 8 she could not shove while she ate).
+	RollLeanDegrees = 10,
+	RollBobBallRadii = 0.35,
+	RollChompHz = 4,
+	RollChompDegrees = 30,
+	RollDustSeconds = 0.1,
+	HopSeconds = 0.34,
+	HopBallRadii = 2.4,
+	BumpSparks = 8,
+	-- The end: she skids to a stop (SettleSeconds onto the cue ball's spot), burps BurpAfter
+	-- the landing (the jaw open BurpDegrees for BurpSeconds), and shrinks back into the smiley
+	-- ball from ShrinkAt over ShrinkSeconds.
+	SettleSeconds = 0.12,
+	BurpAfter = 0.25,
+	BurpDegrees = 40,
+	BurpSeconds = 0.45,
+	ShrinkAt = 0.9,
+	ShrinkSeconds = 0.28,
+	-- Speech bubbles over the ball (a billboard, studs): NOT THE 8! when she refuses the 8.
+	BubbleLiftBallRadii = 2.2,
+	BubbleWidthStuds = 2.6,
+	BubbleHeightStuds = 0.9,
+	BubblePopSeconds = 0.16,
+	BubbleHoldSeconds = 1.1,
+	BubbleFadeSeconds = 0.3,
+	-- The refusal (the 8 before it is yours): the ball shakes its head.
+	RefuseSeconds = 0.7,
+	RefuseShakeDegrees = 28,
+	RefuseShakes = 3,
+}
+
+-- Steel Ball's look (src/client/SteelBallFx.luau; the abilities rework, designer 2026-10-08:
+-- chrome that spins up like a fidget spinner, the golden ratio in yellow at the hit, the
+-- guided balls spinning hard). Studs unless named. (tune)
+Config.UI.SteelBallFx = {
 	FadeInSeconds = 0.2,
 	FadeOutSeconds = 0.5,
-	ShellScale = 1, -- the shell over the drawn cue ball
-	OutlineColor = { 0, 0, 0 }, -- the heavy manga outline (a Highlight round the shell)
-	-- The spin: this slowly (degrees a second) while armed; rolling, SpinBoost times its
-	-- natural roll (it spins hard).
-	IdleSpinDegrees = 90,
-	SpinBoost = 2.5,
-	-- The golden spirals round it: how many, their size (x the modelled one, whose outer end is
-	-- 2.3 ball radii out), their turn (degrees a second, SpiralMovingBoost times more rolling),
-	-- their tilt either way (degrees), and their spring out at the arming.
-	Spirals = 2, -- (art director: 3 thin ones read as atom orbits)
-	SpiralScale = 1.3, -- (look check 1: at 0.75 they were hairlines from the replay camera)
-	SpiralSpinDegrees = 540,
-	SpiralMovingBoost = 1.5,
-	SpiralTiltDegrees = 35,
-	SpiralTransparency = 0.02, -- the ribbon's own alpha shows only below 1 (MeshPart textures)
-	PopSeconds = 0.5,
-	PopOvershoot = 1.8,
+	-- The chrome ball over the drawn cue ball: a mirror (SmoothPlastic at this reflectance) of
+	-- this tint, a touch bigger so the cue ball never shows through.
+	ChromeColor = { 226, 230, 238 },
+	ChromeReflectance = 0.85,
+	ChromeScale = 1.02,
+	-- Its grip dots round the middle (a fidget spinner's weights): how many, how wide (ball
+	-- widths), how thick (their width's share), how dark; at full streaks they smear to this
+	-- see-through.
+	Dots = 3,
+	DotBallWidths = 0.3,
+	DotThickness = 0.12,
+	DotColor = { 46, 50, 58 },
+	DotReflectance = 0.25,
+	DotBlurTransparency = 0.85,
+	-- The spin about the upright, in turns a second: up to ArmedSpinRevs over SpinUpSeconds
+	-- from the look's first armed frame (slow at first, faster and faster: the whine's length),
+	-- held while armed and through the shot while it rolls, easing off over SpinDownSeconds
+	-- once it stops. The ball and its dots are drawn turning at most DotMaxRevs (faster
+	-- strobes); from BlurFromRevs the streak ring fades in, whole at BlurFullRevs, itself drawn
+	-- turning at most BlurMaxRevs.
+	SpinUpSeconds = 2.7,
+	ArmedSpinRevs = 12,
+	SpinDownSeconds = 1.2,
+	DotMaxRevs = 2.2,
+	BlurFromRevs = 1.5,
+	BlurFullRevs = 5,
+	BlurMaxRevs = 3,
+	-- The streak ring round a spinning ball's middle: this wide (ball widths; the image is
+	-- clear inside 0.42 of its half-width), this see-through at its strongest, this tint.
+	BlurBallWidths = 2.5,
+	BlurTransparency = 0.1,
+	BlurColor = { 255, 244, 214 },
+	-- The hum while it spins armed: this share of the rolling whirr's volume at full spin.
+	ArmedHumShare = 0.35,
 	-- Gold: the light, the trail and the flashes.
 	GoldColor = { 255, 190, 60 },
 	TrailColor = { 255, 245, 200 },
-	LightColor = { 255, 200, 90 },
-	LightBrightness = 3,
+	LightColor = { 255, 236, 200 },
+	LightBrightness = 2,
 	LightRangeBallWidths = 4,
 	TrailSeconds = 0.25,
 	TrailBallWidths = 0.6, -- the trail's width at the ball
@@ -11414,15 +11706,48 @@ Config.UI.SteelBallFx = {
 	PotSparks = 20,
 	ShakeStuds = 0.15,
 	ShakeSeconds = 0.25,
-	-- A guided ball's golden path on the cloth: this wide (ball widths), fading in and out over
-	-- these, scrolling toward the pocket, gone after PathMaxSeconds at most.
-	PathBallWidths = 1.3, -- (look check 1: at 0.9 the curls were too small to read)
-	PathLiftInches = 0.06,
-	PathTransparency = 0,
-	PathInSeconds = 0.25,
-	PathOutSeconds = 0.4,
-	PathScrollStuds = 1.5,
-	PathMaxSeconds = 6,
+	-- The golden ratio at the first hit (designer: "in yellow outline"): the golden rectangle,
+	-- its squares and the spiral, drawn on the cloth with the spiral's eye on the contact and
+	-- its tail toward the cue ball; SpiralBallWidths high (the golden ratio times that across),
+	-- SpiralSquares squares. The pen runs the spiral at one speed over SpiralDrawSeconds, each
+	-- square's divider with its arc, the outline over OutlineDrawSeconds; it holds, then fades.
+	SpiralBallWidths = 7,
+	SpiralSquares = 10,
+	SpiralDrawSeconds = 0.6,
+	OutlineDrawSeconds = 0.2,
+	SpiralHoldSeconds = 0.8,
+	SpiralFadeSeconds = 0.5,
+	SpiralLiftInches = 0.08,
+	-- Every drawn line (the golden ratio's and the guide lines) twice: a yellow core over a
+	-- wider dark gold edge (studs wide; the edge this see-through), in this many pieces a
+	-- beam, painted (InkLightEmission 0: glowing yellow added onto the cyan cloth reads white).
+	InkCoreColor = { 255, 226, 40 },
+	InkGlowColor = { 196, 112, 0 },
+	InkGlowTransparency = 0.15,
+	InkLightEmission = 0,
+	InkSegments = 16,
+	SpiralCoreStuds = 0.07,
+	SpiralGlowStuds = 0.11,
+	SquareCoreStuds = 0.045,
+	SquareGlowStuds = 0.075,
+	-- A ball it sends spins hard about the upright (drawn at GuidedSpinRevs turns a second;
+	-- its streak ring, GuidedBlurBallWidths wide, sells the rest), from GuidedSpinInSeconds
+	-- after the send, easing off over GuidedSpinDownSeconds once slower than
+	-- GuidedStillInchesPerSecond.
+	GuidedSpinRevs = 3,
+	GuidedBlurBallWidths = 2.3,
+	GuidedSpinInSeconds = 0.1,
+	GuidedSpinDownSeconds = 0.5,
+	GuidedStillInchesPerSecond = 3,
+	-- Its guide line ahead of it to the pocket (or to where a lined-up ball stops), drawn over
+	-- GuideDrawSeconds, gone over GuideFadeSeconds once it is down or stops (or after
+	-- GuideMaxSeconds).
+	GuideCoreStuds = 0.05,
+	GuideGlowStuds = 0.085,
+	GuideDrawSeconds = 0.18,
+	GuideFadeSeconds = 0.35,
+	GuideMaxSeconds = 6,
+	GuideLiftInches = 0.06,
 	-- A guided pot's burst ring at the pocket: grows to BurstBallWidths across over
 	-- BurstSeconds, fading. (Art director: at the first contact too it stole the pot's moment;
 	-- the contact now only sparkles.)
@@ -11504,6 +11829,25 @@ Config.UI.BlackFlashFx = {
 	LightSeconds = 0.4,
 	-- Each nudged ball: a spurt of red and black sparks.
 	NudgeSparks = 10,
+	-- The impact frames (the rework's polish, 2026-10-08), for players at the table: the hit
+	-- flickers ImpactFrames times between the blown-out negative (ScreenFx.invert) and the red
+	-- manga frame (ImpactGrade), ImpactFrameSeconds each, before the red flash and grade above.
+	-- And the camera crash-zooms ZoomShare of the way toward the hit over ZoomInSeconds, rolled
+	-- ZoomRollDegrees, holds ZoomHoldSeconds (the hit-stop) and eases back over ZoomOutSeconds.
+	-- Wall seconds, as the hit-stop is.
+	ImpactFrames = 3,
+	ImpactFrameSeconds = 0.05,
+	ImpactGrade = {
+		Saturation = -1,
+		Contrast = 2.2,
+		Brightness = -0.25,
+		TintColor = { 255, 40, 40 },
+	},
+	ZoomShare = 0.45,
+	ZoomInSeconds = 0.06,
+	ZoomHoldSeconds = 0.3,
+	ZoomOutSeconds = 0.45,
+	ZoomRollDegrees = 7,
 	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
 }
@@ -11601,9 +11945,10 @@ Config.UI.BlackHoleFx = {
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
 }
 
--- Guangdong Tiger's look (src/client/GuangdongTigerFx.luau). Inches and seconds unless named:
--- the tiger's own clock, from the "swipe" event (the replay is slowed round it by
--- Config.Ults.GuangdongTiger's slow, the tiger is not). Angles in degrees. (tune)
+-- Guangdong Tiger's look (src/client/GuangdongTigerFx.luau; the abilities rework, 2026-10-08).
+-- Inches and seconds unless named: the tiger's own clock, from the "swipe" event (the replay is
+-- slowed round it by Config.Ults.GuangdongTiger's slow, the tiger is not). Frames are the baked
+-- actions' (src/client/TigerAnims.luau, 24 a second). Angles in degrees. (tune)
 Config.UI.GuangdongTigerFx = {
 	-- Armed: three claw marks (the cloth marks' look, MarkHotColor) this many ball widths long
 	-- and wide, diagonal under the cue ball, pulsing ArmedPulseHz times a second between
@@ -11613,60 +11958,104 @@ Config.UI.GuangdongTigerFx = {
 	ArmedPulseHz = 1.2,
 	ArmedTransparency = 0.1,
 	ArmedColor = { 255, 150, 60 },
-	-- The tiger, nose to tail tip, seen side-on (it crosses the view), with a black outline;
-	-- its head and jaw HeadScale times the model's (the face reads from the shooting camera).
-	TigerLengthInches = 42,
-	HeadScale = 1.15,
-	OutlineColor = { 12, 6, 2 },
-	-- The leap in: from LeapFromInches behind where it lands and StartLiftInches up, over
-	-- ArcInches (low: its head stays in the shooting camera's frame), in LeapSeconds; nose up
-	-- LeapPitch[1] at the start to LeapPitch[2] at the end, the front legs reaching
-	-- LeapFrontDegrees forward, the hind ones LeapHindDegrees back.
-	LeapSeconds = 0.42,
-	LeapFromInches = 50,
-	StartLiftInches = 0,
-	ArcInches = 5,
-	LeapPitch = { 18, -10 },
-	LeapFrontDegrees = 60,
-	LeapHindDegrees = 55,
-	-- It lands with its front paws PawBackInches short of the swipe's centre (beside the cut
-	-- balls, not on them), crouching CrouchShare of its height and back over CrouchSeconds; a
-	-- shake and a thump.
-	PawBackInches = 12,
-	CrouchShare = 0.1,
-	CrouchSeconds = 0.18,
+	-- The tiger (Config.Ults.Assets.Models.GuangdongTigerV2, a skinned mesh BoneAnim plays):
+	-- TigerLengthInches from its nose to the base of its tail (the tail adds about a third
+	-- more). It comes at the cut from the far side of the view, ApproachDegrees off straight
+	-- at the camera (in view the whole way, three-quarters on as it strikes), on the cloth over
+	-- the table (its rails too) and on the floor off it, a step up or down eased over
+	-- GroundBlendInches. Each action cross-fades into the next over BlendSeconds.
+	TigerLengthInches = 48,
+	ApproachDegrees = 45,
+	GroundBlendInches = 12,
+	BlendSeconds = 0.08,
+	-- The run in: Run at RunRate times its own speed for RunInSeconds, moved RunStrideUnits
+	-- tiger lengths a cycle (its stride: the planted paws keep still); a snarl as it springs.
+	RunRate = 1.7,
+	RunStrideUnits = 1.2, -- the Run's stride (assets/abilities/GuangdongTiger/Readme.md)
+	RunInSeconds = 0.3,
+	-- The pounce: Pounce from PounceFrames[1] to [2] in PounceSeconds over LeapInches of
+	-- ground (fast off the mark, slowing to the landing), ArcInches higher at the top of its
+	-- flight (FlightFrames). Its front paws are down at LandFrame (a thump, a shake, a puff of
+	-- LandDust chalk), its middle ReachUnits tiger lengths short of the swipe's centre: where
+	-- its rakes strike (tools/blender/abilities/tiger_v2.py BALL_AHEAD, the same number).
+	PounceFrames = { 7, 19 },
+	FlightFrames = { 9, 15 },
+	LandFrame = 17,
+	PounceSeconds = 0.5,
+	LeapInches = 48,
+	ArcInches = 6,
+	ReachUnits = 0.5,
 	LandShakeStuds = 0.18,
 	LandShakeSeconds = 0.3,
-	-- The swipe: the paw nearer the camera winds up to PawRaiseDegrees (out PawOutDegrees)
-	-- over RaiseSeconds, strikes down to PawStrikeDegrees over StrikeSeconds and freezes on the
-	-- impact ImpactFreezeSeconds; the jaw opens JawDegrees for the roar, from the leap to
-	-- RoarEndSeconds after the strike.
-	RaiseSeconds = 0.15,
-	StrikeSeconds = 0.08,
-	ImpactFreezeSeconds = 0.06,
-	PawRaiseDegrees = 150,
-	PawOutDegrees = 45,
-	PawStrikeDegrees = -15,
-	JawDegrees = 42,
-	RoarEndSeconds = 0.35,
-	-- At the strike's middle: three slashes in the air, crescents of beams (SlashEdgeColor
+	LandDust = 16,
+	DustColor = { 225, 230, 220 },
+	-- The rakes (Swipe): it rears up with its right paw cocked (frames 0 to RakeFrames[1]) in
+	-- RaiseSeconds and slams it down through the ball into the cloth, lunging (RakeFrames), in
+	-- RakeSeconds, the cut at the rake's middle (the claws on the ball: tiger_v2.py RAKES),
+	-- frozen on the impact ImpactFreezeSeconds; then on to SwipeEndFrame in SwipeRestSeconds,
+	-- its left paw slamming back across (Rake2Frames: the second slashes at their middle). The
+	-- raking paw's claws leave trails of light ClawTrailSeconds long.
+	RaiseSeconds = 0.24,
+	RakeFrames = { 7, 9 },
+	RakeSeconds = 0.1,
+	ImpactFreezeSeconds = 0.07,
+	Rake2Frames = { 11, 13 },
+	SwipeEndFrame = 19,
+	SwipeRestSeconds = 0.42,
+	ClawTrailSeconds = 0.16,
+	ClawTrailColor = { 255, 200, 120 },
+	-- The roar: Roar over RoarSeconds, turned RoarTurnDegrees toward the camera (in, and back
+	-- as it runs off, over TurnSeconds); its sound, a shake and an FOV punch at RoarSoundFrame.
+	RoarSeconds = 1,
+	RoarTurnDegrees = 40,
+	TurnSeconds = 0.25,
+	RoarSoundFrame = 7,
+	RoarShakeStuds = 0.08,
+	RoarShakeSeconds = 0.5,
+	RoarFovDegrees = 3,
+	-- Then it gallops off ahead (up to speed over RunOffRampSeconds) for RunOffSeconds, fading
+	-- over the last FadeSeconds.
+	RunOffSeconds = 0.9,
+	RunOffRampSeconds = 0.2,
+	FadeSeconds = 0.35,
+	-- The shooter's camera (Camera.setOverride), a cutscene inside the shot: held where it was
+	-- at the swipe while the tiger comes in; from CamStrikeLeadSeconds before it lands, over
+	-- CamStrikeInSeconds, a level shot of it and the cut (looking at CamStrikeShare of the way
+	-- from the swipe's centre to where it lands, CamStrikeUpUnits tiger lengths up: tall enough
+	-- for it rearing), CamStrikePush of the way in; for the roar, a close-up of its face
+	-- (CamRoarAheadUnits ahead of its middle and CamRoarUpUnits up, turned to the camera)
+	-- CamRoarPush of the way in, over CamRoarInSeconds from CamRoarLeadSeconds before it; then
+	-- back to the table's view over CamOutSeconds from CamOutLeadSeconds before the run off.
+	CamStrikeShare = 0.5,
+	CamStrikeUpUnits = 0.3,
+	CamStrikePush = 0.1,
+	CamStrikeLeadSeconds = 0.1,
+	CamStrikeInSeconds = 0.4,
+	CamRoarAheadUnits = 0.4,
+	CamRoarUpUnits = 0.38,
+	CamRoarPush = 0.35,
+	CamRoarLeadSeconds = 0.1,
+	CamRoarInSeconds = 0.4,
+	CamOutLeadSeconds = 0.3,
+	CamOutSeconds = 0.7,
+	-- At each rake's middle: three slashes in the air, crescents of beams (SlashEdgeColor
 	-- round a SlashCoreColor core SlashCoreShare as wide, the core added light so the grade
 	-- cannot eat it: SlashCoreEmission, SlashCoreBrightness), SlashWidthInches wide in the middle
 	-- tapering to points, SlashLengthInches long, SlashGapInches apart, bowed SlashBow of their
 	-- length; SlashLiftInches over the centre and SlashForwardInches toward the camera (in
-	-- front of the tiger), falling SlashTiltDegrees forward across the view; each
-	-- SlashStaggerSeconds after the one before, drawn in over SlashGrowSeconds, held
-	-- SlashHoldSeconds, fading over SlashFadeSeconds.
-	SlashLengthInches = 28,
-	SlashWidthInches = 1.6,
+	-- front of the tiger), falling SlashTiltDegrees across the view (the first rake forward, the
+	-- second back: an X); each SlashStaggerSeconds after the one before, drawn in over
+	-- SlashGrowSeconds, held SlashHoldSeconds, fading over SlashFadeSeconds.
+	SlashLengthInches = 30,
+	SlashWidthInches = 1.7,
 	SlashCoreShare = 0.4,
 	SlashCoreEmission = 1,
 	SlashCoreBrightness = 3,
-	SlashGapInches = 3,
-	SlashBow = 0.14, -- about 4 in on a 28 in slash
-	SlashLiftInches = 8,
-	SlashForwardInches = 10,
-	SlashTiltDegrees = 35,
+	SlashGapInches = 3.5,
+	SlashBow = 0.07, -- about 2 in on a 30 in slash
+	SlashLiftInches = 10,
+	SlashForwardInches = 3,
+	SlashTiltDegrees = 40,
 	SlashStaggerSeconds = 0.02,
 	SlashGrowSeconds = 0.06,
 	SlashHoldSeconds = 0.1,
@@ -11676,7 +12065,7 @@ Config.UI.GuangdongTigerFx = {
 	SlashBrightness = 2,
 	SlashEmission = 0.2, -- how much of the beams is added light (1: all; over green reads yellow)
 	-- A SlashColor light burst, a shake, an FOV punch and a colour punch (ScreenFx.grade: in,
-	-- hold, out).
+	-- hold, out); the second rake's at SecondShare of the first's.
 	SlashColor = { 255, 185, 110 },
 	SlashLightBrightness = 3,
 	SlashLightBallWidths = 22,
@@ -11689,51 +12078,353 @@ Config.UI.GuangdongTigerFx = {
 	StrikeGradeIn = 0.02,
 	StrikeGradeHold = 0.12,
 	StrikeGradeOut = 0.25,
-	-- And three claw marks gouged in the cloth (the slash picture as a decal), raked
-	-- MarkAngleDegrees off the leap's line: MarkLengthInches long, MarkWidthInches wide,
-	-- MarkGapInches apart, at MarkTransparency; white-hot (MarkHotColor) cooling to scorched
-	-- (MarkScorchColor) over MarkCoolSeconds, held MarkHoldSeconds, fading over MarkFadeSeconds.
+	SecondShare = 0.5,
+	-- And three claw marks gouged in the cloth per rake (the slash picture as a decal), raked
+	-- MarkAngleDegrees off the leap's line (the two rakes either way: an X): MarkLengthInches
+	-- long, MarkWidthInches wide, MarkGapInches apart, at MarkTransparency; white-hot
+	-- (MarkHotColor) cooling to scorched (MarkScorchColor) over MarkCoolSeconds, held
+	-- MarkHoldSeconds (they stay with the halves), fading over MarkFadeSeconds.
 	MarkAngleDegrees = 35,
-	MarkLengthInches = 20,
+	MarkLengthInches = 22,
 	MarkWidthInches = 1.6,
 	MarkGapInches = 3.5,
 	MarkTransparency = 0,
 	MarkHotColor = { 255, 245, 230 },
-	MarkScorchColor = { 120, 45, 25 },
-	MarkCoolSeconds = 1,
-	MarkHoldSeconds = 0.9,
-	MarkFadeSeconds = 0.5,
-	-- The fur frame (Config.Ults.Assets.Images.TigerFur) over the whole view: in, hold, out, at
-	-- FurTransparency (solid: the reference's flash frame).
+	MarkScorchColor = { 80, 32, 20 },
+	MarkCoolSeconds = 1.2,
+	MarkHoldSeconds = 4.6,
+	MarkFadeSeconds = 0.8,
+	-- The fur frame (Config.Ults.Assets.Images.TigerFur) over the whole view at the first
+	-- rake: in, hold, out, at FurTransparency (solid: the reference's flash frame).
 	FurFadeIn = 0,
 	FurHold = 0.1,
 	FurFadeOut = 0.15,
 	FurTransparency = 0,
-	-- Each cut ball waits where it was until the strike, then splits along the slash into
-	-- halves HalfScale times its size, each with a hot cut face (a CutRimColor rim round a
-	-- CutCoreColor core): they fly apart at HalfSpeedInches a second (HalfUpInches a second
-	-- up), under HalfGravityInches, spinning HalfSpinDegrees a second, fading over HalfSeconds
-	-- (about 8-12 in of tumble); each ball CutStaggerSeconds after the one before.
+	-- Each cut ball waits where it was until the cut, then splits along the slash (a burst of
+	-- CutSparks white sparks) into halves HalfScale times its size, each ball CutStaggerSeconds
+	-- after the one before. The halves spring apart at HalfSpeedInches a second (HalfUpInches a
+	-- second up) under HalfGravityInches, bouncing HalfBounce of their fall, sliding to a stop
+	-- (HalfSlideFriction: a share of the speed lost a second) and turning flat up to
+	-- HalfYawDegrees a second; after HalfOpenDelaySeconds each falls open, rocking on its dome
+	-- (HalfRockHz, damped HalfRockDamping) to rest face up. Each cut face starts white-hot (a
+	-- CutRimColor rim round a CutCoreColor core) and cools through CutEmberColor to the ball's
+	-- own colour over CutCoolSeconds, smoking (CutSmokeRate puffs a second of CutSmokeColor,
+	-- easing off over CutSmokeSeconds), the face under it the ball's own colour
+	-- (Config.Balls.Colors). They lie there HalfSeconds (Black Flash's shards' time), fading
+	-- over the last HalfFadeSeconds.
 	HalfScale = 1.25,
-	CutSparks = 8, -- and a burst of white sparks where the slash crosses the ball
+	CutSparks = 8,
 	CutSparkColor = { 255, 245, 225 },
+	CutStaggerSeconds = 0.025,
+	HalfSpeedInches = 12,
+	HalfUpInches = 28,
+	HalfGravityInches = 200,
+	HalfBounce = 0.3,
+	HalfSlideFriction = 5,
+	HalfYawDegrees = 90,
+	HalfOpenDelaySeconds = 0.05,
+	HalfRockHz = 1.4,
+	HalfRockDamping = 0.22,
 	CutRimColor = { 255, 110, 30 },
 	CutCoreColor = { 255, 236, 205 },
-	HalfSpeedInches = 18,
-	HalfUpInches = 14,
-	HalfGravityInches = 120,
-	HalfSpinDegrees = 300,
-	HalfSeconds = 0.55,
-	CutStaggerSeconds = 0.025,
-	-- It holds HoldSeconds after the freeze, then bounds off forward: LeapOutInches, over
-	-- LeapOutArcInches, in LeapOutSeconds, fading over its last FadeSeconds.
-	HoldSeconds = 0.3,
-	LeapOutInches = 56,
-	LeapOutArcInches = 10,
-	LeapOutSeconds = 0.55,
-	FadeSeconds = 0.15,
-	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
-	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no tiger
+	CutEmberColor = { 120, 20, 8 },
+	CutCoolSeconds = 2.2,
+	CutSmokeRate = 8,
+	CutSmokeColor = { 70, 66, 62 },
+	CutSmokeSeconds = 2.4,
+	HalfSeconds = 6.1,
+	HalfFadeSeconds = 0.5,
+	ModelCheckSeconds = 1, -- while the pieces' model has not arrived, look for it this often
+	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join): no sounds
+}
+
+-- Fire Shot's look (src/client/FireShotFx.luau; the designer's third rework round,
+-- 2026-10-08): the burning cue ball, the fire under its full aim lines, the strike, the
+-- flames in flight and the scorch marks it leaves. Studs unless named; colours 0..255. The particle rows
+-- are CueVfx rows (the cue skins' format: the Infernal cue's fire art), every rate scaled by
+-- Lower effects (Quality), except that a row's Color keys are { time, r, g, b }. The sounds are
+-- Config.Ults.Audio's Fire* clips. (tune)
+Config.UI.FireShotFx = {
+	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join): no sounds
+	-- Engulfed: from the arming moment until the cue ball stops. The flames come up over
+	-- IgniteSeconds and die down over DieSeconds (at rest, down a pocket, or disarmed).
+	IgniteSeconds = 0.35,
+	DieSeconds = 1.0,
+	DrownSeconds = 0.15, -- down a pocket: out at once
+	-- The ignition and the strike start the flames at least this high (then they roar up).
+	IgniteLevel = 0.35,
+	StrikeLevel = 0.6,
+	-- The emitters sit on an invisible ball HostBallWidths the cue ball's size that follows it,
+	-- the flames and embers coming off its surface (Shape) and rising.
+	HostBallWidths = 0.9,
+	Flames = {
+		Name = "Flames",
+		Texture = "rbxassetid://118342487469917", -- energy_flame, the Infernal cue's
+		FlipbookLayout = "Grid8x8",
+		FlipbookMode = "OneShot",
+		Shape = "Sphere",
+		ShapeStyle = "Surface",
+		Rate = 44,
+		Lifetime = { 0.45, 0.7 },
+		Speed = { 0.15, 0.4 },
+		Acceleration = { 0, 2.8, 0 },
+		Size = { { 0, 0.4 }, { 0.35, 0.64 }, { 1, 0.16 } },
+		Transparency = { { 0, 0.35 }, { 0.15, 0 }, { 0.6, 0.3 }, { 0.85, 1 }, { 1, 1 } },
+		Rotation = { -15, 15 },
+		Color = {
+			{ 0, 255, 243, 192 },
+			{ 0.3, 255, 176, 64 },
+			{ 0.7, 255, 90, 20 },
+			{ 1, 192, 32, 12 },
+		},
+		Brightness = 2,
+		LightEmission = 0.7,
+		ZOffset = 0.1,
+	},
+	Licks = {
+		Name = "Licks",
+		Texture = "rbxassetid://73816733109936", -- fire_8x8
+		FlipbookLayout = "Grid8x8",
+		FlipbookMode = "OneShot",
+		Shape = "Sphere",
+		ShapeStyle = "Surface",
+		Rate = 22,
+		Lifetime = { 0.3, 0.45 },
+		Speed = { 0.3, 0.6 },
+		Acceleration = { 0, 3.2, 0 },
+		Size = { { 0, 0.22 }, { 0.4, 0.4 }, { 1, 0.1 } },
+		Transparency = { { 0, 0.3 }, { 0.2, 0 }, { 0.7, 0.4 }, { 1, 1 } },
+		Rotation = { -20, 20 },
+		Color = { { 0, 255, 248, 208 }, { 0.4, 255, 192, 80 }, { 1, 255, 96, 24 } },
+		Brightness = 2,
+		LightEmission = 0.8,
+		ZOffset = 0.15,
+	},
+	Embers = {
+		Name = "Embers",
+		Texture = "rbxassetid://129676691177221", -- spark
+		Shape = "Sphere",
+		ShapeStyle = "Surface",
+		Rate = 16,
+		Lifetime = { 0.7, 1.2 },
+		Speed = { 0.6, 1.4 },
+		SpreadAngle = { 60, 60 },
+		Acceleration = { 0, 1.6, 0 },
+		Size = { { 0, 0.05 }, { 1, 0 } },
+		Squash = -0.6,
+		Orientation = "VelocityParallel",
+		Color = {
+			{ 0, 255, 224, 138 },
+			{ 0.25, 255, 138, 31 },
+			{ 0.6, 224, 32, 26 },
+			{ 1, 90, 8, 8 },
+		},
+		LightEmission = 1,
+	},
+	Smoke = {
+		Name = "Smoke",
+		Texture = "rbxassetid://107986039759482", -- smoke_8x8
+		FlipbookLayout = "Grid8x8",
+		FlipbookMode = "OneShot",
+		Rate = 5,
+		Lifetime = { 1, 1.5 },
+		Speed = { 0.3, 0.5 },
+		SpreadAngle = { 25, 25 },
+		Acceleration = { 0, 1.2, 0 },
+		Size = { { 0, 0.25 }, { 1, 0.75 } },
+		Transparency = { { 0, 1 }, { 0.2, 0.55 }, { 1, 1 } },
+		Rotation = { 0, 360 },
+		RotSpeed = { -25, 25 },
+		Color = { { 0, 42, 14, 8 }, { 1, 12, 6, 6 } },
+		ZOffset = -0.2,
+	},
+	-- The glow round it: Kit.Art.SoftGlow on a billboard GlowBallWidths across.
+	GlowBallWidths = 3.4,
+	GlowColor = { 255, 140, 40 },
+	GlowTransparency = 0.4,
+	-- A see-through Neon shell over the ball, ShellBallWidths across (0 for none).
+	ShellBallWidths = 1.1,
+	ShellColor = { 255, 110, 25 },
+	ShellTransparency = 0.8,
+	-- The firelight, flickering with noise (FirePit's): its brightness times
+	-- 1 + Flicker x (noise(t x FlickerSpeed) + 0.35 noise(t x 2.7 FlickerSpeed)); the glow and
+	-- the shell breathe with it.
+	LightColor = { 255, 130, 40 },
+	LightBrightness = 2.2,
+	LightRangeStuds = 6,
+	Flicker = 0.35,
+	FlickerSpeed = 7,
+	-- Bursts (the ignition, the strike, a hit): flames thrown out and sparks flying off.
+	BurstFlames = {
+		Name = "BurstFlames",
+		Texture = "rbxassetid://118342487469917",
+		FlipbookLayout = "Grid8x8",
+		FlipbookMode = "OneShot",
+		Lifetime = { 0.3, 0.5 },
+		Speed = { 1.2, 3 },
+		SpreadAngle = { 180, 180 },
+		Drag = 4,
+		Acceleration = { 0, 2, 0 },
+		Size = { { 0, 0.35 }, { 0.3, 0.7 }, { 1, 0.2 } },
+		Transparency = { { 0, 0.2 }, { 0.6, 0.35 }, { 1, 1 } },
+		Rotation = { 0, 360 },
+		Color = {
+			{ 0, 255, 243, 192 },
+			{ 0.3, 255, 176, 64 },
+			{ 0.7, 255, 90, 20 },
+			{ 1, 192, 32, 12 },
+		},
+		Brightness = 2,
+		LightEmission = 0.8,
+	},
+	Sparks = {
+		Name = "Sparks",
+		Texture = "rbxassetid://129676691177221",
+		Lifetime = { 0.35, 0.7 },
+		Speed = { 3, 8 },
+		SpreadAngle = { 180, 180 },
+		Drag = 3,
+		Acceleration = { 0, -6, 0 },
+		Size = { { 0, 0.06 }, { 1, 0 } },
+		Squash = -1,
+		Orientation = "VelocityParallel",
+		Color = {
+			{ 0, 255, 240, 176 },
+			{ 0.3, 255, 154, 42 },
+			{ 0.7, 224, 48, 26 },
+			{ 1, 90, 8, 8 },
+		},
+		LightEmission = 1,
+	},
+	-- The ignition (the arming moment, UltCutscene's onArming): flames and sparks off the ball,
+	-- a flash of firelight, the whoosh (FireIgnite).
+	IgniteFlames = 18,
+	IgniteSparks = 26,
+	IgniteLightBrightness = 7,
+	IgniteLightRangeStuds = 8,
+	IgniteLightSeconds = 0.55,
+	-- The strike: a burst off the ball, a bigger flash, the roar (FireLaunch), and for the
+	-- players at the table a field-of-view punch and a little shake.
+	StrikeFlames = 24,
+	StrikeSparks = 34,
+	StrikeLightBrightness = 9,
+	StrikeLightRangeStuds = 10,
+	StrikeLightSeconds = 0.5,
+	StrikeFovDegrees = 5,
+	StrikeFovSeconds = 0.4,
+	StrikeShakeStuds = 0.06,
+	StrikeShakeSeconds = 0.3,
+	-- In flight the flames are streamed along the frame's path, one every StreamSpacingStuds
+	-- (at most StreamMaxPerFrame a frame, a lick with every StreamLickEvery-th), so a fast ball
+	-- leaves an unbroken stream, not clumps.
+	StreamSpacingStuds = 0.16,
+	StreamMaxPerFrame = 10,
+	StreamLickEvery = 2,
+	StreamMaxGapStuds = 12, -- a longer jump in a frame is a hitch or a move, not flight: no stream
+	-- And a burning ribbon behind it (Trail; the cue skin's own trail is hidden meanwhile), with
+	-- a hot core inside, laid while it moves faster than TrailMinSpeed (in/s).
+	TrailTexture = "rbxassetid://111322789691032", -- trail_hellfire, the Infernal cue's
+	TrailTextureLength = 1.3,
+	TrailSeconds = 0.3,
+	TrailBallWidths = 1.6,
+	TrailColors = { { 255, 236, 160 }, { 255, 140, 40 }, { 220, 50, 15 } },
+	TrailTransparency = { { 0, 0.05 }, { 0.6, 0.35 }, { 1, 1 } },
+	TrailTailWidth = 0.25,
+	TrailBrightness = 1.6,
+	CoreShare = 0.38, -- the core's width, of the ribbon's
+	CoreSeconds = 0.18,
+	CoreColors = { { 255, 240, 180 }, { 255, 150, 50 } },
+	TrailMinSpeed = 4,
+	-- Each cushion or ball it hits: sparks and a puff of flame (scaled by the impact: full at
+	-- FullSpeed in/s, never under MinWeight), a flash and the sizzle (FireHit), no closer than
+	-- HitGapSeconds apart.
+	FullSpeed = 300,
+	MinWeight = 0.25,
+	HitSparks = 22,
+	HitFlames = 6,
+	HitLightBrightness = 3.5,
+	HitLightRangeStuds = 5,
+	HitLightSeconds = 0.3,
+	HitGapSeconds = 0.06,
+	-- Out (at rest, or down a pocket): a smoke puff and the sizzle (FireOut).
+	OutSmoke = 10,
+	-- How long a one-shot's holder lives (its sound and particles have played out by then).
+	HolderSeconds = 3,
+	-- The aim (the local shooter's only, look:aiming): the white guideline draws every line,
+	-- its object ball's and cue ball's lines running on to the next cushion, ball or pocket
+	-- (Aim.fullLines; the designer, 2026-10-08: "to the next edge of a table"). Under each of
+	-- its three lines (the aim, the object ball's, the cue ball's) a river of fire flows the
+	-- way the line goes: a flat Beam RiverWidthStuds wide with a band of flame scrolling along
+	-- it (assets/abilities/FireShot/fire_river.png, tools/gen_fireshot_art.py: yellow-orange
+	-- down the middle to a dark red rim, in its own colours), tinted from RiverColor and
+	-- RiverTransparency where the line starts to RiverFarColor and RiverFarTransparency where
+	-- it ends (cooler, redder). Alpha-blended and unlit (RiverLightEmission 0): an additive
+	-- glow washes out to pink and white on the bright blue cloth, and the cue trails' smoky
+	-- art reads as soot there (the look checks, 2026-10-08). RiverLiftInches over the cloth:
+	-- under the guideline (Config.Guideline.HeightAboveClothInches), over the scorch marks.
+	RiverTexture = "rbxassetid://103203498120310",
+	RiverTextureLength = 1.6,
+	RiverTextureSpeed = 1.2,
+	RiverWidthStuds = 0.34,
+	RiverLightEmission = 0,
+	RiverBrightness = 1,
+	RiverColor = { 255, 255, 255 },
+	RiverFarColor = { 255, 170, 120 },
+	RiverTransparency = 0,
+	RiverFarTransparency = 0.15,
+	RiverLiftInches = 0.075,
+	-- The aim is re-drawn when it moves this much: the angle (radians), the power (a jump's
+	-- flight), each spin axis, a ball (inches).
+	AngleStep = 0.0002,
+	PowerStep = 0.002,
+	SpinStep = 0.01,
+	BallKeyInches = 0.01,
+	-- The scorch marks (everyone at the table): the burn line where the cue ball rolled,
+	-- ScorchWidthInches wide (assets/abilities/FireShot/scorch_strip.png, tileable along its
+	-- length, ScorchTileWidths times as long as wide; tools/gen_fireshot_art.py), a new piece
+	-- wherever its heading turns more than ScorchTurnDegrees, and a splat (scorch_splat.png,
+	-- SplatInches across) under the strike and at every hit. Char coloured, ScorchTransparency,
+	-- fading in over ScorchAppearSeconds. Not while the ball is in the air (higher than
+	-- AirInches), down a pocket or off the table; at most MaxScorchPieces a shot.
+	ScorchStripTexture = "rbxassetid://81910678846181",
+	ScorchSplatTexture = "rbxassetid://76654317041092",
+	ScorchWidthInches = 2.6,
+	ScorchTileWidths = 4,
+	-- Heights over the cloth (inches): the line, the splats over it, the embers over both.
+	ScorchLiftInches = 0.03,
+	SplatLiftInches = 0.05,
+	EmberLiftInches = 0.07,
+	ScorchThicknessStuds = 0.005,
+	ScorchColor = { 56, 34, 22 },
+	ScorchTransparency = 0.15,
+	ScorchAppearSeconds = 0.25,
+	ScorchTurnDegrees = 4,
+	ScorchMinStepInches = 0.3,
+	SplatInches = 4.2,
+	-- A splat's size, of SplatInches: under the strike, at a hit, where it lands from a hop.
+	StrikeSplatScale = 1.15,
+	HitSplatScale = 0.8,
+	DownSplatScale = 0.7,
+	AirInches = 0.25,
+	MaxScorchPieces = 60,
+	-- The fresh burn glows: Neon embers along it every EmberSegmentInches, EmberWidthShare of
+	-- the burn's width, cooling from EmberHotColor to EmberCoolColor and fading out over
+	-- EmberSeconds (a splat's flash, SplatEmberShare of its width, over SplatEmberSeconds), so
+	-- the line is hot right behind the ball and cools down its length.
+	EmberSegmentInches = 5,
+	EmberWidthShare = 0.4,
+	EmberHotColor = { 255, 205, 95 },
+	EmberCoolColor = { 200, 40, 10 },
+	EmberTransparency = 0.15,
+	EmberSeconds = 1.4,
+	SplatEmberSeconds = 0.8,
+	SplatEmberShare = 0.55,
+	-- The marks stay until the shooter's next turn (the designer, 2026-10-08): through the
+	-- other side's turn, gone when the table comes back to the shooter's side (a run of their
+	-- own keeps them; in Solo, until their next shot), or at a new game. Then they fade out
+	-- over ExpireSeconds. At most MaxBurns shots' marks at a table (the oldest goes first).
+	ExpireSeconds = 1,
+	MaxBurns = 4,
 }
 
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
@@ -11744,10 +12435,10 @@ Config.UI.AbilityFx = {
 	Looks = {
 		Magnet = "MagnetFx",
 		EaglesEye = "EaglesEyeFx",
-		SuperBounce = "SuperBounceFx",
-		Ghost = "GhostFx",
-		HeatSeeker = "HeatSeekerFx",
 		Rewind = "RewindFx",
+		CatchABall = "CatchABallFx",
+		LookOverThere = "LookOverThereFx",
+		Verity = "VerityFx",
 		TimeStop = "TimeStopFx",
 		ChainLightning = "ChainLightningFx",
 		Portals = "PortalsFx",
@@ -11755,6 +12446,7 @@ Config.UI.AbilityFx = {
 		BlackFlash = "BlackFlashFx",
 		BlackHole = "BlackHoleFx",
 		GuangdongTiger = "GuangdongTigerFx",
+		FireShot = "FireShotFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.
@@ -12558,6 +13250,10 @@ Config.Bots = {
 	YieldEvery = 4,
 	-- Ball in hand: the cue ball is dragged to its spot over this long.
 	DragSeconds = 1.4,
+	-- Look Over There!: a bot starts moving the cue ball this long into the drag window (a
+	-- person's grab), between the two at random, and drags it over DragSeconds; both well
+	-- inside SneakDragSeconds.
+	SneakMoveSeconds = { 0.3, 0.9 },
 	-- The R15 animations a bot body plays (Roblox's default set).
 	Animations = {
 		Idle = "rbxassetid://507766388",
@@ -12660,7 +13356,7 @@ Config.Tutorial = {
 	-- The Equip step (designer 2026-10-03): once that cue is equipped, the Inventory stays open
 	-- this long (its "Equipped" notice) before the tutorial closes it for the Rare block.
 	EquipCloseSeconds = 1.2,
-	SpinUlt = "Magnet", -- the one starter spin lands on this ability
+	SpinUlt = "FireShot", -- the one starter spin lands on this ability (Magnet until 2026-10-08)
 	-- The art (tools/gen_tutorial_art.py; uploaded to the group, tools/upload_manifest_tutorial
 	-- .json): the pointer hand (upright, index finger up; redrawn 2026-10-03 after the designer's
 	-- "tap here" icon) and its tap lines, the mouse, the floor arrow after reference 02's path.

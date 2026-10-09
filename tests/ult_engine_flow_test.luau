@@ -1,7 +1,7 @@
 --!strict
 -- The ability framework in the match engine (docs/prompts/ABILITIES_PROMPT.md 5.2): Rewind's
 -- snapshot and restore, Time Stop's frozen phase with its second strike and server timeout,
--- and the aim-phase picks (Heat Seeker's ball, Portals' spots). The rows are switched to Built
+-- and the aim-phase picks (a lock-on's ball, Portals' spots). The rows are switched to Built
 -- here for the test only (their own steps build them for real).
 local H = require("./harness")
 local E = H.require("Rules.MatchEngine")
@@ -414,20 +414,34 @@ function tests.time_stop_refuses_a_strike_after_its_stopped_time()
 	end)
 end
 
-function tests.time_stop_with_no_contact_is_a_plain_shot()
-	built("TimeStop", function()
-		local m = midGame()
-		armNow(m, "TimeStop")
-		place(m, 0, -5, 0)
-		for _, b in m.state.balls do
-			if b.id ~= 0 then
-				b.x, b.y = 40, -20 + b.id * 0.001
-				b.pocketed = b.id ~= 3
-			end
+-- A shot that touches no ball: the cue ball alone, from (x, y) at `angle`, the 3 far away.
+local function timeStopMiss(x: number, y: number, angle: number, power: number): (any, any)
+	local m = midGame()
+	armNow(m, "TimeStop")
+	place(m, 0, x, y)
+	for _, b in m.state.balls do
+		if b.id ~= 0 then
+			b.x, b.y = 40, -20 + b.id * 0.001
+			b.pocketed = b.id ~= 3
 		end
-		place(m, 3, 40, 20)
-		local wire = E.acceptShot(m, 11, payload(m, math.pi, 0.2), m.phaseStartedAt)
-		expect(wire and wire.halted == nil and m.phase == "Resolving", "no freeze")
+	end
+	place(m, 3, 40, 20)
+	return m, E.acceptShot(m, 11, payload(m, angle, power), m.phaseStartedAt)
+end
+
+function tests.time_stop_freezes_on_a_miss_too()
+	-- The Rare+ buff (2026-10-08): no contact by Shared.TimeStopMissSeconds, time stops anyway.
+	built("TimeStop", function()
+		local m, wire = timeStopMiss(-5, 0, math.pi, 0.2)
+		expect(wire and wire.halted == true and m.phase == "Frozen", "frozen on the miss")
+	end)
+end
+
+function tests.time_stop_with_the_cue_ball_down_before_the_freeze_is_a_plain_shot()
+	-- Straight into the bottom-left corner from close by, touching nothing.
+	built("TimeStop", function()
+		local m, wire = timeStopMiss(-44, -19, -3 * math.pi / 4, 0.3)
+		expect(wire and wire.halted == nil and m.phase ~= "Frozen", "no freeze")
 	end)
 end
 
@@ -441,10 +455,14 @@ local function pick(m: any, request: any): boolean
 	return E.action(m, 11, request, m.phaseStartedAt)
 end
 
-function tests.heat_seeker_needs_one_of_your_balls_picked_first()
-	built("HeatSeeker", function()
+function tests.a_lock_on_needs_one_of_your_balls_picked_first()
+	-- No ability locks on since Heat Seeker left (2026-10-08): a stand-in row lends the pick.
+	local row = U.Catalog.CatchABall
+	local pickWas = row.Pick
+	row.Pick = "OwnBall"
+	built("CatchABall", function()
 		local m = midGame()
-		armNow(m, "HeatSeeker")
+		armNow(m, "CatchABall")
 		local wire, why = E.acceptShot(m, 11, missShot(m), m.phaseStartedAt)
 		expect(wire == nil and why == "PickRequired", "the shot waits for the pick")
 		expect(not pick(m, { ball = 11 }), "not an opponent's ball")
@@ -464,6 +482,7 @@ function tests.heat_seeker_needs_one_of_your_balls_picked_first()
 		wire = E.acceptShot(m, 11, missShot(m), m.phaseStartedAt)
 		expect(wire and wire.overrides.Pick[1] == 3, "the pick rides in the overrides")
 	end)
+	row.Pick = pickWas
 end
 
 function tests.portals_must_be_clear_of_cushions_pockets_balls_and_each_other()
@@ -539,7 +558,8 @@ function tests.every_ability_can_be_practised_on_the_solo_break()
 	local tried = 0
 	for _, id in U.Order do
 		local row = U.Catalog[id]
-		if not row.Built then
+		-- Look Over There! is no shot and has no place on the break (ult_sneak_test).
+		if not row.Built or row.Sneak then
 			continue
 		end
 		local s = E.new(2, 1)
@@ -576,7 +596,44 @@ function tests.every_ability_can_be_practised_on_the_solo_break()
 		expect(s.phase ~= "Resolving", id .. " settled")
 		tried += 1
 	end
-	expect(tried == 13, "all 13 tried, got " .. tried)
+	expect(tried == 13, "all 13 shot abilities tried, got " .. tried)
+end
+
+function tests.black_hole_and_the_tiger_on_a_solo_break_take_every_ball_but_the_8()
+	-- The designer's second rework round (2026-10-08): no caps, so a full-power break that hits
+	-- the rack takes all 14 (every ball but the 8 is yours on the open table); the 8 is left,
+	-- and the shooter calls its pocket next.
+	for _, id in { "BlackHole", "GuangdongTiger" } do
+		local s = E.new(2, 1)
+		expect(E.join(s, 11, "s", "s", 0))
+		expect(E.action(s, 11, { kind = "StartSolo", epoch = s.epoch, turnId = s.turnId }, 0))
+		expect(Match.practice(s, 11, id, s.phaseStartedAt))
+		local at = s.phaseStartedAt + PAUSE
+		E.advance(s, at)
+		local p = payload(s, 0, 1)
+		local cue = Sim.findBall(s.state, 0)
+		p.cueX, p.cueY = cue.x, cue.y
+		local wire, reason = E.acceptShot(s, 11, p, at)
+		expect(wire ~= nil, id .. " break refused: " .. tostring(reason))
+		for _ = 1, 20 do
+			if s.phase ~= "Resolving" then
+				break
+			end
+			E.advance(s, s.deadline)
+		end
+		local left = {}
+		for _, b in s.state.balls do
+			if not b.pocketed then
+				table.insert(left, b.id)
+			end
+		end
+		table.sort(left)
+		expect(
+			#left == 2 and left[1] == 0 and left[2] == 8,
+			id .. " left " .. table.concat(left, ",")
+		)
+		expect(s.phase == "PocketChoice" and s.shooter == 11, id .. ": the call for the 8 next")
+	end
 end
 
 return tests

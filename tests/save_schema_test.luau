@@ -511,8 +511,8 @@ return {
 		local Config = H.require("Config")
 		local u = t.Ults
 		H.expect(
-			u.Slots[1] == Config.Ults.Default and u.Slots[1] == "HeatSeeker",
-			"Heat Seeker in slot 1"
+			u.Slots[1] == Config.Ults.Default and u.Slots[1] == "FireShot",
+			"Fire Shot in slot 1"
 		)
 		H.expect(#u.Slots == 3 and u.Slots[2] == "" and u.Slots[3] == "", "slots 2, 3 empty")
 		H.expect(#u.Locked == 3 and not u.Locked[1] and not u.Locked[2] and not u.Locked[3], "")
@@ -1446,6 +1446,18 @@ return {
 		H.expect(#again == 0, "clean after Reconcile")
 	end,
 
+	["a retired ability in a saved slot becomes its replacement"] = function()
+		local _, SaveSchema = setup()
+		local save = SaveSchema.template()
+		save.Ults.Slots = { "SuperBounce", "Ghost", "HeatSeeker" }
+		local out = SaveSchema.validate(save)
+		local slots = out.Ults.Slots
+		-- The designer, 2026-10-08: Super Bounce is reworked into Fire Shot (the third round);
+		-- Ghost and Heat Seeker left for Magnet (the second).
+		H.expect(slots[1] == "FireShot", "Super Bounce becomes Fire Shot: " .. tostring(slots[1]))
+		H.expect(slots[2] == "Magnet" and slots[3] == "Magnet", "Ghost and Heat Seeker, Magnet")
+	end,
+
 	["validate repairs damaged ults"] = function()
 		local Config, SaveSchema = setup()
 		local save = SaveSchema.template()
@@ -1463,7 +1475,8 @@ return {
 		save.Ults.QueueUlts = "on"
 		local out, fixes = SaveSchema.validate(save)
 		local u = out.Ults
-		H.expect(u.Slots[1] == "Ghost" and u.Slots[2] == "" and u.Slots[3] == "", "slots")
+		-- Ghost left the game (2026-10-08): its slot becomes Magnet (Config.Ults.Retired).
+		H.expect(u.Slots[1] == "Magnet" and u.Slots[2] == "" and u.Slots[3] == "", "slots")
 		H.expect(#u.Slots == 3 and u.Slots.x == nil and u.Slots[4] == nil, "exactly 3")
 		H.expect(u.Locked[1] == true and u.Locked[2] == false and u.Locked[3] == false, "locks")
 		H.expect(#u.Locked == 3, "3 locks")

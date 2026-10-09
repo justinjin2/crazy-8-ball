@@ -914,7 +914,9 @@ local function onSnapshot(self: UltCutscene, snapshot: any)
 	if now < readyAt + C.ArmGraceSeconds then
 		task.delay(math.max(readyAt - now, 0), fireArming, self, snapshot.id, armed)
 	end
-	if elapsed < U.CutsceneSeconds and involved(self, snapshot) then
+	-- Look Over There! has no panel (and so no activation sound): nobody may be warned.
+	local row = Catalog.get(armed.id)
+	if elapsed < U.CutsceneSeconds and involved(self, snapshot) and not (row and row.Sneak) then
 		begin(snapshot.id, self.hub.mySeat == snapshot.id, armed, elapsed)
 	end
 end

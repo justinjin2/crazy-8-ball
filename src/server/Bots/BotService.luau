@@ -619,7 +619,9 @@ end
 -- can). Invoke("spawn", spec) -> bot id (spec as BotService.spawn); ("tutorial") and
 -- ("tutorial2") -> the tutorial's bots' ids; ("stand", id, x, y, z, yaw degrees); ("seat", id,
 -- tableId); ("join", id, tableId, delay); ("remove", id, "Vanish"|"Angry"); ("say", id, text);
--- ("list") -> { "id name kind tier cue ult avatar" }.
+-- ("ult", id, ultId) sets a bot's ability; ("pc", tableId, userId, tier?) starts Play against PC
+-- there for that player, as /bot does (true when it started); ("list") -> { "id name kind tier
+-- cue ult avatar" }.
 local function studioHook()
 	local hook = Instance.new("BindableFunction")
 	hook.Name = "BotsQA"
@@ -633,6 +635,10 @@ local function studioHook()
 				then BotService.tutorialBot()
 				else BotService.tutorialSecondBot()
 			return if bot then bot.id else nil
+		elseif command == "pc" then
+			local t = Tables.get(args[1])
+			local p = game:GetService("Players"):GetPlayerByUserId(args[2])
+			return t ~= nil and p ~= nil and BotService.playPc(t, p, args[3])
 		elseif command == "list" then
 			local out = {}
 			for _, bot in BotService.list() do
@@ -675,6 +681,9 @@ local function studioHook()
 			return true
 		elseif command == "say" then
 			BotService.say(bot, args[2])
+			return true
+		elseif command == "ult" then
+			bot.ult = args[2]
 			return true
 		end
 		return false

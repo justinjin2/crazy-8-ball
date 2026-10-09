@@ -460,10 +460,14 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   opponent's and the 8 included, like real physics; **Black Flash shatters any first ball** (an
   opponent's ball counts as theirs gone and a foul; the 8 by the normal 8 rules, a loss unless
   it is your legal 8 shot); **Time Stop's strikes** hit the cue ball, which may then hit any
-  ball. Ghost, Heat Seeker and Steel Ball act only on your balls.
+  ball; **Catch-a-Ball and Verity take whatever ball the cue ball hits first** (an opponent's
+  goes down for them, and hitting it first is still a foul; only the 8 off your legal 8 shot is
+  spared). Steel Ball acts only on your balls.
 - **Teams:** each player has their own bar; "behind" compares sides.
-- **The PC opponent** has Magnet; it activates when its bar is full and it is behind, or when
-  its shot finder sees no easy shot (a policy in `Ults/Match`, for the bots when they exist).
+- **The bots** (the PC opponent) roll their ability like a spin, by rarity, each built ability
+  even within its rarity (`Bots/Look.ability`; nothing above Epic against a player of Gold or
+  below), and activate it when their bar is full and they are behind, or when their shot
+  finder sees no easy shot (`Ults/Match.pcShouldActivate`).
 - **Rarities and power** (designer, 2026-09-28): higher rarities are cooler *and* stronger,
   each a little better than the one below. The targets per use were Common about 1/3 of a
   ball, Uncommon 1/2, Rare 1, Epic 1.5, Legendary 2.2, Mythic 2.6; inside the reach cap (no
@@ -471,21 +475,27 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   can't reach them, so each ult is built to its row as far as the caps allow and its **measured
   worth** (extra own balls per use, net of the opponent's gifted, a careful shooter, the mean of
   three skills, `tests/ult_value.luau`, 120 tables) is `Config.Ults.Catalog[id].Worth`. The
-  rarity means are **0.37, 0.44, 0.50, 0.69, 1.15 and 1.31** (2026-09-29). Caps per use: at
-  most 3 of your balls (Chain Lightning, Steel Ball) or 4 (Black Flash, Black Hole, Guangdong
-  Tiger), and 2 of the opponent's (Chain Lightning, Black Flash's blast) or 1 (Black Hole,
-  Guangdong Tiger). Against Magnet at equal skill the model (`tools/ult_model.py`) gives Common
-  to Epic 49-51% wins, Legendary 55-56% and Mythic 56% (ECONOMY.md 11.8).
+  rarity means are **0.17, 0.50, 0.64, 0.94, 1.15 and 1.78** (2026-10-08, after the abilities
+  rework's third round; Common is Eagle's Eye 0.34 and Fire Shot 0; Rare and above pot in
+  75-100% of uses, Look Over There! the lowest). Caps per use: at most 2 of your balls (Chain
+  Lightning: the charged ball and one jump), 3 (Steel Ball) or 4 (Black
+  Flash), and 2 of the opponent's (Black Flash's blast) or 1 (Chain Lightning's jump). Black
+  Hole and Guangdong Tiger have no caps (the designer, 2026-10-08: "NO limit"; a hit on a solo
+  break takes every ball but the 8): only their reach limits them. Against Magnet at equal skill the model
+  (`tools/ult_model.py`) gives Common to Rare 49-51% wins, Epic 54-55%, Legendary 55-56% and
+  Mythic 56-59% (2026-10-08, the second round; ECONOMY.md 11.8).
 - **The catalog of 13, all built** (`Config.Ults.Catalog`, names and one-line descriptions
   in `Strings.Ults`, 3D icons rendered in Blender in `Config.Ults.Assets.Icons`). Each row's
   rules are in its effect module (`src/shared/Ults/Effects`), its look in `src/client/<Id>Fx`,
   and every number in `Config.Ults.<Id>`. Worth is the measured value above.
-  - **Magnet** (Common, 0.35 since 2026-09-30, was 0.46; everyone starts with it, free
-    forever): for the whole shot the **first ball the cue ball hits** (if it is yours; the 8
-    only on your legal 8 shot, toward the called pocket; the opponent's at half), moving toward
-    a pocket and passing within the capture zone of its mouth (5.25 ball widths, 30% smaller
-    since 2026-09-30), is steered toward the pocket's centre; it rescues near misses and jaw
-    rattles, never a vacuum. Only that one ball (2026-09-30: a cluster by a pocket let one shot
+  - **Magnet** (Uncommon, 0.46; everyone's starter until the designer's third rework round,
+    2026-10-08, and kept by every save that holds it): for the whole shot the
+    **first ball the cue ball hits** (if it is yours; the 8 only on your legal 8 shot, toward
+    the called pocket; the opponent's at half), moving toward a pocket and passing within the
+    capture zone of its mouth (6.5 ball widths since the rework's buff, 2026-10-08: "nerfed too
+    much"; was 5.25), is caught: braked from the zone's edge, bent toward the pocket's centre
+    and snapped in at the mouth. It rescues near misses and jaw rattles, never a vacuum: pots
+    73% of uses at skill 2 (23% before the buff). Only that one ball (2026-09-30: a cluster by a pocket let one shot
     pull about five in). A
     blue field-line dipole on the cloth round the armed cue ball that rides it until the first
     hit, where it passes to the hit ball in a flash of lines and sparks (2026-09-30); field
@@ -497,39 +507,101 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     shows only once the player starts pulling the cue back, and follows the pull (2026-09-30).
     Its icon is the eagle's eye alone (2026-09-30): a glistening pale-gold iris and big black
     pupil in a yellow ring, a black brow line cutting across its top.
-  - **Super Bounce** (Common, 0.33): the cue ball goes rainbow and near-lossless on the
-    cushions for 8 s; the first ball of yours it hits catches the bounce, and a cushion hit
-    within 6 in of a pocket boings it in off the jaw.
-  - **Ghost** (Uncommon, 0.47): the cue ball phases through every ball that isn't yours (the 8
-    too, unless it's your legal 8); from its first contact the ball it hit phases through them
-    too and a little ghost pulls it into a pocket it nearly misses (Magnet's strength). A cue
-    ball resting inside a phased ball is moved off it.
-  - **Heat Seeker** (Uncommon, 0.40): lock on to one of your balls (the pick view: tap, click
-    or the pad); the cue ball curves round anything in the way to hit it (A* on the cloth, a
-    2 in turning circle), and a straight aim at it has its cut turned toward the best pocket
-    by up to 30 degrees, never made perfect.
-  - **Rewind** (Rare, 0.53): a shot that drops none of your balls, fouls and scratches
+  - **Fire Shot** (Common, 0; **everyone's starter, free forever**, since the designer's third
+    rework round, 2026-10-08, when it replaced Super Bounce: a saved Super Bounce becomes Fire
+    Shot): armed, the cue ball bursts into flames, seen by everyone at the table. While the
+    shooter aims, the guideline draws every line, and the object ball's line and the cue ball's
+    line after the first contact run all the way on until they touch the next cushion, ball or
+    pocket (the designer, 2026-10-08: "to the next edge of a table"; not a line bouncing round
+    the cushions). A river of fire flows under each line. It never shows where anything stops,
+    and it ignores the table's difficulty, like
+    Eagle's Eye. The shot leaves the cue at **twice the speed** (the stroke's speed along the
+    cloth and its spin, not a jump's height), the ball a comet of fire with a flame trail, and
+    it **scorches the cloth** where it rolls: burn marks that glow, cool to char and stay until
+    the shooter's next turn (a run of theirs keeps them; cosmetic only). Measured: -0.08 /
+    -0.03 / +0.03 net (about nothing: double speed alone neither pots nor misses more, and the
+    model shooter plays no kicks or banks, where the line helps, nor Difficult or Challenger
+    tables, where it shows what the normal lines hide). The tutorial's one starter spin lands
+    on it. Icon: the cue ball as a fireball, a cartoon flame of five curling tongues streaming
+    back from it.
+  - **Super Bounce** became Fire Shot (above).
+  - **Ghost** and **Heat Seeker** left the game (designer, 2026-10-08): a slot holding either
+    becomes Magnet when the profile loads.
+  - **Rewind** (Uncommon since 2026-10-08, was Rare; 0.53): a shot that drops none of your balls, fouls and scratches
     included, is undone (the foul erased) and redone on a 10 s clock with Eagle's Eye's full
     path shown; a missed redo rewinds again, two redos a use. Everyone at the table sees the
     VHS rewind.
-  - **Time Stop** (Epic since 2026-09-30, was Rare; 0.47): 1 s after the cue ball's first contact time freezes; the
-    shooter gets 8 s to line up and strike the cue ball once more (untouched, time resumes by
-    itself); the cue ball alone moves until it touches a ball or a cushion, and time resumes 1 s
-    later, every ball's stored motion playing out (the designer, 2026-09-30: was three strikes,
-    5 s each). The clock on the cloth counts the stopped time down: its hand starts at 12 (the
-    top of each player's screen) and goes once round in the 8 s, time resuming as it gets back
-    to 12; after the strike it runs the rest of the way round as time resumes. Measured worth
-    with one strike: 0.24 / 0.31 / 0.18 net at skills 1/2/3 (was 0.65
-    / 0.42 / 0.34 with three), under the Rare mean: flagged. The freeze plays the designer's
-    own clip (2026-09-30).
-  - **Chain Lightning** (Epic, 0.96): the first ball hit, if yours, is charged toward its best
-    pocket (up to 15 degrees, x1.25 speed); then lightning jumps three times, each to the
-    nearest ball within 20 in, pushing each struck ball toward its closest pocket with a clear
-    line in (at most 3 of yours, 2 of theirs at half).
-  - **Portals** (Rare since 2026-09-30, was Epic; 0.42, flagged: see Open): place two portals for your whole turn (they
-    close when the turn passes or the game ends). Any ball whose centre passes within 2 in of
-    one comes out of the other with the same motion; yours come out turned toward the pocket
-    ahead by up to 15 degrees.
+  - **Catch-a-Ball** (Epic, 0.96; new in the rework, 2026-10-08; Epic since the designer's
+    second round, swapped with Look Over There!): the cue ball becomes a red and white catch
+    ball. Whatever ball it hits first is caught: the ball pops open, a red beam pulls the ball
+    in as a glowing silhouette, it snaps shut, hops, and wobbles one, two, three times with a
+    click (GOTCHA!), the shooter's camera easing in beside it. The caught ball counts as
+    pocketed for its owner (an opponent's goes down for them, and hitting it first is still a
+    foul); the cue ball stops dead where it made the contact. Then the second catch (the Epic
+    buff): it leaps, flipping, to your nearest ball within 9 in (centre to centre, its way clear
+    of the pocket mouths, never the 8) and catches that too, a quicker pull and DOUBLE CATCH!,
+    and the cue ball sits on that ball's spot. The 8 off your legal 8 shot breaks free; after a
+    legal 8 there is no hop. Measured: +0.80 / +1.02 / +1.05 net, pots 94-98% of uses (one
+    catch measured +0.47 / +0.66 / +0.75 as a Rare; a 20 in reach was +1.28, above the
+    Legendaries).
+  - **Look Over There!** (Rare, 0.58; reworked in the designer's second round, 2026-10-08, and
+    moved down from Epic, swapped with Catch-a-Ball, as it is no sure pot) is not a shot and has no activation panel or
+    armed label: nobody may be warned. Armed, it opens the Sneak phase: the shooter points up
+    and "says" "OMG LOOKK AT THAT!" (a Roblox chat bubble and a chat-window line, as if typed,
+    for bots too), each opponent is locked in first person looking up and away from the table
+    (walking frozen), and for about 3 s the shooter moves the cue ball anywhere free on the
+    cloth, as with ball in hand (touch or mouse drag, the gamepad's stick). Then the opponents
+    turn back, still in first person, their view on the cue ball's new spot, and a vine boom
+    plays (the only sound). The shooter shoots from there on a fresh clock. Not on the break,
+    nor when the shooter already has ball in hand; fine on the 8. Measured: +0.50 / +0.63 /
+    +0.60 net, pots 75-97% of uses: the one shot only, not the run a free ball in hand sets up,
+    so it plays stronger than it measures.
+  - **Time Stop** (Epic since 2026-09-30, was Rare; 0.87): 1 s after the cue ball's first contact time freezes (a
+    shot that touches nothing freezes 1.5 s in: the Rare+ buff, 2026-10-08); the shooter gets
+    8 s to line up and strike the cue ball once more (untouched, time resumes by itself); the
+    cue ball alone moves until it touches a ball or a cushion, and time resumes 1 s later,
+    every ball's stored motion playing out (the designer, 2026-09-30: was three strikes, 5 s
+    each). A ball of yours the stopped-time strike touches is sent: a line draws from it to its
+    pocket, and as time resumes it rolls down the clear line in (its stored motion dropped).
+    The clock on the cloth counts the stopped time down: its hand starts at 12 (the top of each
+    player's screen) and goes once round in the 8 s, time resuming as it gets back to 12; after
+    the strike it runs the rest of the way round as time resumes. Measured worth: +0.82 /
+    +0.85 / +0.93 net at skills 1/2/3, pots 91-94% of uses (2026-10-08; was 0.24 / 0.31 /
+    0.18 with one strike before the buff). The freeze plays the designer's own clip
+    (2026-09-30).
+  - **Chain Lightning** (Epic, 0.99): the first ball hit, if yours, is struck by lightning and
+    driven down the clear line into the pocket nearest its heading (x1.25 speed at least; with
+    no clear line, turned toward its best pocket by up to 15 degrees); then the lightning jumps
+    once, to the nearest ball within 20 in, pushing it toward its closest pocket with a clear
+    line in (theirs at half). The Rare+ buff (2026-10-08): pots 83-95% of uses, +0.87 / +1.07 /
+    +1.03 net (three jumps with the driven charge measured +1.4, above the Legendaries).
+  - **Portals** (Rare since 2026-09-30, was Epic; 0.69): place two portals for your whole turn (they
+    close when the turn passes or the game ends). Any ball whose centre crosses a portal's ring
+    (2.9 in from its centre) comes out of the other with the same motion; yours come out lined
+    up: sent down the clear line into the pocket nearest the exit (put the exit by the pocket
+    you mean), never slower than they went in (with no clear line, turned toward the pocket
+    ahead by up to 15 degrees). The Rare+ buff (2026-10-08): pots 83-93% of uses, +0.65 / +0.71
+    / +0.70 net, the whole turn's later shots counted only as a low bound.
+  - **Verity** (Rare, 0.64; new in the rework, evil since the designer's second round,
+    2026-10-08: the monster model never made it into the game; Rare since their third round,
+    the same day, when she stopped eating on the roll): the cue ball becomes a bright
+    yellow plush smiley ball (black oval eyes, a wide grin of white teeth in a thick black
+    outline, after the designer's reference) and arming plays "Hi, I'm Verity, trust me, I know
+    everything!" (a text-to-speech stand-in for the designer's clip). At the first contact she
+    turns evil, the creepy face of the designer's second reference: a dark mustard-ochre ball
+    with two hollow dark eye holes, no brows, and a huge smile of a mouth that hangs open, thick
+    pale-pink ridged lips round a near-black throat and a tongue (no glow anywhere). She swells
+    to three times the ball's size, her face turned to each player at the table, whose camera
+    pushes in on her for about a second, lunges at the ball she hit as her jaws gape (her eyes
+    over the open mouth) and eats it (a pot for its
+    owner; an opponent's goes down for them and is still a foul; the 8 only off your legal 8
+    shot, which wins). Balls inside her as she swells are shoved just clear (the 8 never toward
+    a pocket). She chews, gulps and laughs, then rolls on along the shot line (up to 70 in,
+    stopping before a cushion or pocket), shoving every ball she touches out of her way (the
+    designer, 2026-10-08: "he shouldnt eat more he just pushes balls out of the way"); she hops
+    over the 8. She burps and shrinks back into the cue ball where she stops. Measured: +0.49 /
+    +0.68 / +0.76 net, pots 92-96% of uses (eating up to 2 more of yours on the roll measured
+    +0.97 / +1.15 / +1.17, a Legendary).
   - **Steel Ball** (Legendary, 1.09): the first ball hit, if yours, is guided into the pocket
     it was sent toward; the cue ball then curves on to your next nearest ball and guides it in
     (a clean line within 36 in) or lines it up and stops behind it, 3 balls at most; with your
@@ -546,13 +618,20 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     20 in): measured worth fell to 0.51 / 0.68 / 0.77 net at skills 1/2/3 (was 1.29 / 1.47 /
     1.58), below the Epic mean; with the power-scaled reach 0.48 / 0.63 / 0.72. The shattered
     ball's pieces lie on the cloth about 6 s. Icon: a black lightning bolt with a red outline
-    and the cue ball flying out of it with speed trails.
-  - **Black Hole** (Mythic, 1.32): at the first contact a black hole opens for 2.5 s and
-    spirals in the balls within 20 in (the opponent's within 10 in), at most 4 of yours and 1 of
-    theirs, each swallowed and counted as pocketed for its owner; the cue ball is pushed away.
-  - **Guangdong Tiger** (Mythic, 1.30): at the first contact a giant tiger leaps in and cuts
-    the balls within 20 in (the opponent's within 10 in) off the table at once, at most 4 of
-    yours and 1 of theirs, counted as pocketed for their owners; the moment slows to watch it.
+    and the cue ball flying out of it with speed trails. The hit freezes 0.3 s (was 0.15) on
+    anime impact frames (2026-10-08): the screen flickers between a blown-out negative and a
+    red manga frame, and the camera of each player at the table crash-zooms toward the hit,
+    rolled a little, then eases back.
+  - **Black Hole** (Mythic, 1.78): at the first contact a black hole opens for 2.5 s and
+    spirals in every ball within 20 in (the opponent's within 10 in; no caps since 2026-10-08,
+    so a hit on a solo break swallows all but the 8), each swallowed and counted as pocketed
+    for its owner; the cue ball is pushed away. Measured: +1.63 / +1.87 / +1.83 net, pots
+    96-98% of uses (+1.21 / +1.36 / +1.39 with the old caps). The camera stays on the table (a cinematic
+    close view was tried and taken out the same day, designer).
+  - **Guangdong Tiger** (Mythic, 1.77): at the first contact a giant tiger leaps in and cuts
+    every ball within 20 in (the opponent's within 10 in; no caps since 2026-10-08) off the
+    table at once, counted as pocketed for their owners; the moment slows to watch it.
+    Measured: +1.63 / +1.86 / +1.83 net, pots 95-97% of uses (+1.22 / +1.34 / +1.34 capped).
 - **The power bar in the ability's colours** (2026-09-30): while your own Legendary or Mythic
   ability is armed, the power bar's fill wears it, stronger as you pull (`Config.UI.PowerSkins`,
   art from `tools/gen_power_skins.py`): Black Flash, black and red lightning crackling harder;
@@ -578,14 +657,15 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - Sounds must be original or licensed (section 8): never clip a show's "nyo-ho" or time-stop
   sound. The designer's ult_activate and ult_ready are uploaded to the group; each ability's
   sounds are library or made clips (`Config.Ults.Sounds`, credits in
-  `assets/abilities/CREDITS.md`). Steel Ball's "nyo-ho" is a whistle stand-in until the
-  designer records their own.
+  `assets/abilities/CREDITS.md`). Verity's line is a text-to-speech stand-in until the
+  designer records their own; Catch-a-Ball's catch sounds and the vine boom are fan uploads the
+  designer chose (Roblox may mute them; licensed backups are named in `Config.Ults.Sounds`).
 
 **Open**
-- Playtests: whether any ability needs retuning with real players. Portals measures 0.42 (a
-  low bound: the model shooter never reuses the kept portals), now a Rare itself (2026-09-30); Magnet (0.46)
-  sits over Heat Seeker (0.40). The levers are all in `Config.Ults` (reach, caps, steer
-  angles, strike and redo counts, OpponentFactor, the Legendary and Mythic odds).
+- Playtests: whether any ability needs retuning with real players. Portals measures 0.69 (a
+  low bound: the model shooter never reuses the kept portals; 0.42 before the Rare+ buff of
+  2026-10-08), a Rare itself since 2026-09-30. The levers are all in `Config.Ults` (reach,
+  caps, steer angles, strike and redo counts, OpponentFactor, the Legendary and Mythic odds).
 
 ## 10. The hub and the world
 
@@ -1037,7 +1117,8 @@ step in the save (`Flags.Tutorial`) and owns every rigged part; the client only 
   card and Equip ("Equip your new cue!"; closing the Inventory without equipping moves on;
   designer 2026-10-03) -> **RareBlock**: the hand rests on the match's Rare block in its hotbar
   slot, counting down its 5-minute timer (a tap reports it seen) -> **Abilities**: the icon appears,
-  the hand on it -> **Spin**: the one starter spin lands on Magnet -> **Code**: "Type RELEASE
+  the hand on it -> **Spin**: the one starter spin lands on Fire Shot (Magnet until 2026-10-08)
+  -> **Code**: "Type RELEASE
   for 3 more spins!" -> **Back**: "Click Back".
 - **Game 2:** the arrow to a pad; the host card shows only Join Global Queue; the search turns
   into a match after 1 s against the Bots lane's disguised Bronze bot in a global arena. Win or

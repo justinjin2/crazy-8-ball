@@ -3424,3 +3424,165 @@ timer of a new block stay the designer's call.
   the end ... or money", then "Money + Legendary end"): the 28-day track pays $50,000 on day 8,
   an Epic block on day 14, $150,000 on day 21 and a Legendary block on day 28 (it was a Rare, 2
   Rare, 2 Rare and an Epic); a money prize shows its amount on the track.
+- 2026-10-08 (designer, abilities rework; plan in docs/prompts/ABILITIES_REWORK_PLAN.md): the
+  ladder is now 13 abilities (Common: Eagle's Eye, Super Bounce; Uncommon: Magnet, everyone's
+  starter, and Rewind; Rare: Catch-a-Ball, Portals; Epic: Look Over There!, Time Stop, Chain
+  Lightning; Legendary: Verity, Steel Ball, Black Flash; Mythic: Black Hole, Guangdong Tiger).
+  Heat Seeker and Ghost leave; a slot holding either becomes Magnet. Rare and above should
+  nearly always pot a ball. Catch-a-Ball and Verity act on whatever the cue ball hits first;
+  only the 8 off a legal 8 shot is spared (it breaks free, or Verity refuses it).
+- 2026-10-08 (designer): Look Over There! is not a shot. Armed, it opens a Sneak phase: the
+  shooter points and shouts, the opponents turn away (their camera too: just the room and a
+  "?"), and the shooter has about 3 s to drag one of their own balls (never the 8) into a
+  pocket. The pot counts and the turn goes on with a fresh clock. A ball dropped on the cloth
+  stays there; a ball still held when time runs out drops where it is, into the pocket if it
+  is over one. On an open table a sneaked ball claims its group, as a pot would. A sneaked ball
+  pays no money. The voices are text-to-speech stand-ins until the designer records their own.
+- 2026-10-08: Roblox's upgraded avatar joints (AnimationConstraint, no Motor6D) are what this
+  place's characters use; ability looks that pose a body turn either kind of joint by its
+  Transform.
+- 2026-10-08 (designer: a realistic tiger "actually rigged and animated", the cut balls lingering
+  like Black Flash's): Guangdong Tiger is now a skinned tiger (a Meshy mesh on a hand-built
+  24-bone rig, `tools/blender/abilities/tiger_v2.py`; its actions baked data played by
+  BoneAnim). It gallops in diagonally from the far side of the view, pounces, rears and slams
+  its right paw down through the cut, lunging, then its left paw back across it (an X), turns
+  to the camera and roars, and runs off. The shooter's camera eases in for the strike and up at
+  its face for the roar, then hands back. Cut balls split into halves that open and lie face up,
+  white-hot and smoking, cooling to the ball's colour, for 6.1 s. The moment's slow grows from
+  0.6 s to 1 s of wall time for the longer run in. New sounds: a deeper roar, a snarl as it
+  springs, a claw slash per rake.
+- 2026-10-08 (designer: "actually steel shiny and glossy", spinning up "like a fidget spinner",
+  the golden ratio "in yellow outline" at the hit, the guided balls spinning hard): Steel Ball's
+  look is reworked. Armed, the cue ball turns mirror chrome with three dark grip dots and spins
+  up about the upright over 2.7 s with a rising whine, until the dots smear into a ring of
+  streaks. At the first hit the golden ratio (the golden rectangle, its squares and the spiral)
+  draws itself on the cloth in yellow lines with a dark gold edge, the spiral's eye on the
+  contact. Every guided ball spins hard in its own streak ring, with a yellow guide line to its
+  pocket. The golden path on the cloth, the spiral pictures and the manga steel shell are
+  retired.
+- 2026-10-08: Catch-a-Ball's catch is a small cutscene for the shooter: their camera eases in
+  beside the catch ball (70 degrees round from behind, a little above, about nine ball radii
+  away) so the lid opening, the ball pulled in, the hop, the wobbles and the click fill the
+  screen, and hands back over the last 0.4 s of the 4.35 s look. GOTCHA! now pops at about a
+  third of the viewer's screen width (it was a fixed 3.2 studs, which would have covered the
+  whole close-up). The look also honours `/hold` and `/slowmo` like the others.
+- 2026-10-08 (designer: Rare and above should nearly always pot; buff Portals, Time Stop and
+  Chain Lightning): the three are buffed toward a sure pot, each in its own way, and measured
+  (tools/ult_value.luau, 120 tables, careful net at skills 1/2/3 and pots a use). **Chain
+  Lightning**: the lightning drives the charged ball down the clear line into the pocket nearest
+  its heading (a bolt drawn along it), then jumps once, not three times (with the driven charge
+  three jumps measured +1.4, above the Legendaries): +0.87 / +1.07 / +1.03, pots 83-95% (was
+  74-88%). **Portals**: your ball comes out lined up into the pocket nearest the exit (the
+  player puts the exit by the pocket they mean; nearest its heading measured a little lower and
+  is harder to read from the pick), and a ball goes in when its centre crosses the drawn ring
+  (2.9 in, was 2): +0.65 / +0.71 / +0.70, pots 83-93% (was 57-84%). **Time Stop**: a ball of
+  yours the stopped-time strike touches is sent (a line to its pocket) and rolls in as time
+  resumes, and a shot that touches nothing freezes 1.5 s in too: +0.82 / +0.85 / +0.93, pots
+  91-94% (was 47-78%). The misses left are mostly the shooter's own (no ball touched, the wrong
+  ball first). The descriptions and the stopped-time hint ("HIT ONE OF YOUR BALLS") say so.
+- 2026-10-08: the rework's three new abilities measured over 120 tables (careful net at skills
+  1/2/3): Catch-a-Ball +0.47 / +0.66 / +0.75, pots 91-96%; Look Over There! +0.95 / +1.01 /
+  +1.02, a pot every use (the harness drops the bot's ball and assumes the drag lands; a table
+  with only the 8 left is no use, as the game refuses it there); Verity +0.91 / +1.10 / +1.13,
+  pots 94-98%. Their catalog worths are now the measured means (Catch-a-Ball 0.63, was 0.78 from
+  a 12-table quick run; Look Over There! 0.99; Verity 1.05). The rarity means are 0.34 / 0.50 /
+  0.66 / 0.95 / 1.12 / 1.31, Common to Mythic.
+- 2026-10-08: the rework's polish gives the two top looks a camera moment, as the tiger and the
+  catch have. Black Hole: at the open the camera of each player at the table eases in to a low
+  three-quarter view of the hole, drifts round it and closer while it feeds under a darker
+  grade, and eases back from the pop. Black Flash: the hit-stop is 0.3 s (was 0.15), filled
+  with anime impact frames (a blown-out negative, a red manga frame, the negative again) and a
+  crash zoom toward the hit, rolled 7 degrees. Both looks now stop on /hold like the others.
+- 2026-10-08: Chain Lightning's strike reaches the screen of players at the table: lightning's
+  double flash, a quick zoom-in punch and a cold storm grade while the bolt drives the ball in
+  (the rework's polish; it had only a small shake).
+- 2026-10-08 (designer's second rework round): Black Hole and Guangdong Tiger lose their ball
+  caps (were 4 of yours and 1 of theirs): every ball in reach goes, so a hit on a solo break,
+  where practice allows them, takes all 14 and leaves the 8 to call ("like the Chinese
+  TikToks"; in a match nobody has their ability on the first turn). Black Hole's cinematic
+  camera is taken out again; the hole plays on the table's own view.
+- 2026-10-08 (designer's second rework round): Look Over There! is reworked into a sneaky ball
+  in hand. No cutscene, no activation panel and no armed label ("the joke is that they're not
+  supposed to know"): the shooter points up and "OMG LOOKK AT THAT!" appears as their chat
+  bubble and a chat-window line (bots too, whatever the chat settings); each opponent is locked
+  in first person looking away from the table for about 3 s while the shooter moves the cue ball
+  anywhere free; then they turn back in first person to the new spot, with only the vine boom.
+  The old version (drag one of your balls into a pocket, the Metal Gear alert, the "?", the
+  whoosh, the sneaky sting and the shout voice) is gone. It is refused on the break and when the
+  shooter already has ball in hand. Bots use it too (they drag the cue ball to their best ball in
+  hand spot).
+- 2026-10-08 (designer's second rework round): Verity is no monster any more (its model never
+  showed in the game): at the first contact the smiley ball turns evil, swells to three times a
+  ball's size and eats the ball it hit, then keeps rolling along the shot line, eating up to 2
+  more of your balls and bumping the rest aside ("Eats yours, bumps theirs"), with a quick
+  camera push-in on her face as she bites ("highly clippable"). Two choices made here: she hops
+  over the 8 rather than bumping it (a bump could sink it and lose the game), and balls inside
+  her as she swells are shoved just clear (the 8 only where that cannot drop it). Your balls
+  near her path are slurped in from 5.5 in (centre to centre): with only her body's touch (4.5
+  in) she measured +0.99, below the old Verity's +1.05; 5.5 in gives +0.97 / +1.15 / +1.17
+  (careful net at skills 1/2/3), a Legendary.
+- 2026-10-08 (designer's second rework round, "Swap + buff Catch-a-Ball"): Catch-a-Ball is Epic
+  and Look Over There! is Rare (it is no sure pot). Catch-a-Ball's Epic buff is a second catch:
+  after the first, the catch ball leaps, flipping, to your nearest ball and catches it too
+  (DOUBLE CATCH!). Its reach is 9 in, centre to centre, chosen by measurement: 20 in measured
+  +1.28 (above the Legendaries), 12 in +1.04, 9 in +0.80 / +1.02 / +1.05 (careful net at skills
+  1/2/3), an Epic. The hop never crosses a pocket mouth and never takes the 8. Look Over There!
+  measures +0.50 / +0.63 / +0.60 (pots 75-97%), under the Rare mean, but the measure counts only
+  the one shot, not the run a free ball in hand sets up.
+- 2026-10-08: Black Hole and Guangdong Tiger without caps measure +1.63 / +1.87 / +1.83 and
+  +1.63 / +1.86 / +1.83 (Worth 1.78 and 1.77, were 1.32 and 1.30): the Mythic mean rises from
+  1.31 to 1.78, and the model still holds every rarity above the one below (Mythic beats Magnet
+  56-59% at equal skill).
+- 2026-10-08: an ability's slow-motion moment (Catch-a-Ball's 4 s hold, Black Flash's hit-stop,
+  the Tiger's slow) is timed on the replay's own clock, and a replay frame stops where one
+  begins. Before, a frame longer than the moment (any frame for Black Flash's 0.004 s hit-stop,
+  a 30 fps frame for Catch-a-Ball's 0.02 s hold) ran straight through it at full speed, so the
+  hold was skipped in play.
+- 2026-10-08 (designer: "use this reference exactly", one image for each look): Verity's armed
+  ball is the bright yellow plush smiley (black oval eyes, a grin of two rows of white teeth in a
+  thick black outline) and her evil form the creepy face: dark mustard ochre, hollow dark eye
+  holes, no brows, a huge open mouth with thick pale-pink ridged lips, a dark throat and a
+  tongue. Both are our own Blender builds matched to the images (nothing from them ships). Her
+  eyes no longer glow (they are holes), her mouth hangs open at rest (35 degrees), and, our
+  choice, she lunges at the ball as she gapes: the gape alone turned her eyes skyward, out of
+  the push-in camera's view at the most clippable moment.
+- 2026-10-08 (designer's third rework round: "when he moves forward he shouldnt eat more he just
+  pushes balls out of the way"): Verity eats only the first ball she hits; on the roll she
+  bumps every ball she touches aside (still hopping over the 8). That measures +0.49 / +0.68 /
+  +0.76 careful net (pots 92-96%), the Rare mean, so she moves from Legendary to Rare (the
+  designer's choice of the three offered: Rare, staying Legendary weaker, or a buff). The
+  Legendary mean is now 1.15 (Steel Ball, Black Flash).
+- 2026-10-08 (designer's third rework round: "rework super bounce to be FIRE SHOT, which will
+  actually be the new default starter"): Super Bounce is gone and Fire Shot (Common) takes its
+  place. Armed, the cue ball is engulfed in flames; the shooter's aim line runs on off every
+  cushion, mirrored, to the first ball it meets (its ghost ring and object line) or a pocket,
+  up to about 3 table lengths, never showing where anything stops (the designer's pick of
+  three); the shot leaves the cue at 2x speed (along the cloth and the spin, not a jump's
+  height, as Black Flash's 3x); it leaves cosmetic scorch marks that stay until the shooter's
+  next turn (the designer's pick). Fire Shot is everyone's starter: new profiles and empty or
+  unusable slots get it, the tutorial's starter spin lands on it (the designer's pick), a saved
+  Super Bounce becomes it, and a save holding Magnet keeps Magnet. The bots roll abilities by
+  rarity as before (my question said the PC keeps Magnet; it never did), so they now roll Fire
+  Shot where they rolled Super Bounce.
+- 2026-10-08: Fire Shot measures about nothing: -0.08 / -0.03 / +0.03 careful net (careless
+  -0.10 / +0.02 / -0.01); double speed alone neither pots nor misses more, an overhit scratching
+  a little more often (fouls 2-4% careful, 5-7% careless). Its Worth is 0 and the Common mean
+  0.17. The harness plays no kicks, banks, or Difficult and Challenger tables, where the line
+  helps most. The bots hit at the full 2x (no power correction: it measured no better).
+- 2026-10-08: Fire Shot's "longer aim line" means the guideline's own lines (the designer's
+  correction, with a screenshot): after the first ball, the object ball's line and the cue
+  ball's line run on until they touch the next cushion, ball or pocket. It is not a line that
+  bounces round the cushions, so `Aim.bounceTrace` became `Aim.fullLines`. With Fire Shot
+  armed the guideline draws every line whatever the table's difficulty.
+- 2026-10-08: Fire Shot's look:
+  - A river of fire flows under each guideline line. It is our own art (`fire_river.png`),
+    alpha-blended: an additive glow washed out to pink on the blue cloth, and the cue trails'
+    smoky art read as soot.
+  - Scorch marks use our own art, bend exactly where the ball does, and glow then cool. They
+    last until the shooter's next turn (in Solo, their next shot), and a new game clears them.
+  - Five Pro Sound Effects library clips: ignite, crackle loop, strike roar, hit sizzle, out.
+- 2026-10-08: The abilities rework is merged into `gui-v4`, the newest branch, which already
+  holds `release`, `shop-lively` and `main`. The designer asked for only the new abilities and
+  none of the old GUI code. The abilities branch changed no screen. In the files both sides
+  changed (Config, Strings, Main, the save cleaner, docs), `gui-v4`'s GUI and economy v4 lines
+  are kept and the abilities' lines added.

@@ -20,6 +20,7 @@ local Aim = require(Shared.Physics.Aim)
 local Judge = require(Shared.Rules.ShotJudge)
 local Engine = require(Shared.Rules.MatchEngine)
 local TimeStop = require(Shared.Ults.Effects.TimeStop)
+local UltCatalog = require(Shared.Ults.Catalog)
 local NiceShot = require(Shared.Rules.NiceShot)
 local Audio = require(script.Parent.Audio)
 local Avatar = require(script.Parent.Avatar)
@@ -49,6 +50,7 @@ local UltHud = require(script.Parent.UltHud)
 local UltPick = require(script.Parent.UltPick)
 local UltCutscene = require(script.Parent.UltCutscene)
 local AbilityFx = require(script.Parent.AbilityFx)
+local LookOverThereFx = require(script.Parent.LookOverThereFx)
 local UltScreen = require(script.Parent.UltScreen)
 local UI = require(script.Parent.UI)
 local MatchHUD = require(script.Parent.MatchHUD)
@@ -277,6 +279,34 @@ local function aimTurn(): boolean
 	end
 	return snapshot.phase == "Aiming" or snapshot.phase == "Intro" or snapshot.phase == "Placement"
 end
+-- Look Over There!'s sneak on a gamepad (the render step): the left stick, shaped as ball in
+-- hand's (the aim's dead zone, the placement curve), moves the cue ball; let go, it is sent.
+local sneakSticking = false
+local function sneakStick(dt: number)
+	if not UserInputService:GetGamepadConnected(Enum.UserInputType.Gamepad1) then
+		return
+	end
+	local x, y = 0, 0
+	for _, state in UserInputService:GetGamepadState(Enum.UserInputType.Gamepad1) do
+		if state.KeyCode == Enum.KeyCode.Thumbstick1 then
+			x, y = state.Position.X, state.Position.Y
+		end
+	end
+	local G = Config.Input.Gamepad
+	local length = math.sqrt(x * x + y * y)
+	local edge = math.min(length, 1)
+	local shaped = if edge > G.AimDeadZone
+		then ((edge - G.AimDeadZone) / (1 - G.AimDeadZone)) ^ G.PlaceCurve
+		else 0
+	if shaped > 0 then
+		sneakSticking = true
+		targets:stickMove(x / length * shaped, y / length * shaped, dt)
+	elseif sneakSticking then
+		sneakSticking = false
+		targets:finishGesture(true)
+	end
+end
+
 local function canShoot(): boolean
 	if not aimTurn() or (hud and hud:isModal()) then
 		return false
@@ -315,12 +345,15 @@ local function refreshAim()
 	end
 	local spin = input:getSpin()
 	local elevation = input:getElevation()
+	local armedUlt = ownArmedUlt()
+	-- A launch ability armed (Black Flash, Fire Shot) speeds the cue ball off the cue: a jump
+	-- flies that much further.
 	local trace = Aim.trace(match.state, {
 		angle = input.angle,
 		power = math.max(currentPull, Config.Input.MinPowerToShoot),
 		spin = spin,
 		elevation = elevation,
-	})
+	}, UltCatalog.launchScale(armedUlt))
 	-- The raw pull, not the clamped one: below MinPowerToShoot means not pulling yet.
 	aimShot = {
 		angle = input.angle,
@@ -339,8 +372,10 @@ local function refreshAim()
 			trace.objectId
 		)
 	-- The host's difficulty decides how many lines are drawn; the wrong-target warning is
-	-- shown at every level (Config.Difficulty).
-	guideline:show(trace, invalid, snapshot.settings and snapshot.settings.difficulty)
+	-- shown at every level (Config.Difficulty). Fire Shot armed: every line, and the two after
+	-- the first contact run on to the next cushion (Aim.fullLines).
+	local full = if UltCatalog.fullLines(armedUlt) then Aim.fullLines(match.state, trace) else nil
+	guideline:show(trace, invalid, snapshot.settings and snapshot.settings.difficulty, full)
 	hud:setInvalidTarget(invalid)
 end
 local function sound(key: string, id: string, volume: number?)
@@ -1439,11 +1474,16 @@ local function renderFrame(dt: number)
 	dropStrayMatchSelection()
 	input:update(dt)
 	if controlled then
-		-- Top-down only while a pocket is being called for the 8 or an ability's pick is owed;
-		-- everything else, placing the cue ball included, plays in the 3D view.
-		local overhead = phase == "PocketChoice" or (phase == "Intro" and callPending()) or picking
+		-- Top-down only while a pocket is being called for the 8, an ability's pick is owed or
+		-- Look Over There!'s sneak is on (the cue ball moved with ball in hand's drag:
+		-- MatchTargets); everything else, placing the cue ball included, plays in the 3D view.
+		local overhead = phase == "PocketChoice"
+			or (phase == "Intro" and callPending())
+			or picking
+			or phase == "Sneak"
 		local header = if picking
 			then ultPick:reserveTop()
+			elseif phase == "Sneak" then LookOverThereFx.reserveTop(hud:reservedHeight())
 			else hud:reservedHeight() + M.Style.TargetSize / 2
 		Camera.setMode(
 			overhead,
@@ -1501,6 +1541,8 @@ local function renderFrame(dt: number)
 			ctx.showCue = canShoot() and not targets:isDragging()
 			ctx.aimTurn = aimTurn()
 			ctx.cameraPos = Camera.position()
+			-- Look Over There!: the shooter stands up and points in their own close-up.
+			ctx.showBody = phase == "Sneak"
 			local out = avatar:update(dt, ctx)
 			CueStickBuilder.setVisible(cueStick, out.visible)
 			-- Raised for a jump shot: on this screen only, nearly see-through, so it never
@@ -1523,9 +1565,17 @@ local function renderFrame(dt: number)
 		end
 		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 	end
+	-- Look Over There!'s sneak on a gamepad: the left stick moves the cue ball at once (no LT
+	-- to hold: there is nothing else to do), and letting go sets it down.
+	if phase == "Sneak" and targets:canPlace() then
+		sneakStick(dt)
+	elseif sneakSticking then
+		sneakSticking = false
+	end
 	targets:update(dt, workspace.CurrentCamera)
 	ultPick:update(dt, workspace.CurrentCamera)
-	hud:setPlacing(targets:canPlace(), targets:isBlocked())
+	-- (Look Over There!'s sneak has its own countdown pill, and no shooting "any time".)
+	hud:setPlacing(targets:canPlace() and phase ~= "Sneak", targets:isBlocked())
 	hud:setFrozenAim(frozenTurn())
 	if guideline then
 		guideline:update(dt)
@@ -1577,6 +1627,23 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 -- GUI lane: a Studio-only test hook for the screens (GuiQA; nothing in a live server).
 require(script.Parent.GuiQA).start()
+-- The abilities' Studio checks: GuiQA "aim" aims at `angle` (radians) with `pull` (0..1) as the
+-- player would, so an ability's aim line is checked without the mouse; "camera" shows the
+-- view from `cf` (a close-up still) until it is called with nothing.
+require(script.Parent.GuiQA).add("aim", function(angle: number?, pull: number?)
+	if type(angle) == "number" then
+		input:setAngle(angle)
+	end
+	if type(pull) == "number" then
+		currentPull = pull
+	end
+	refreshAim()
+	return input.angle
+end)
+require(script.Parent.GuiQA).add("camera", function(cf: CFrame?)
+	Camera.setOverride(if typeof(cf) == "CFrame" then cf else nil, 1)
+	return cf ~= nil
+end)
 -- One thing at a time: a full menu hides the rest of the HUD (HudFocus).
 require(script.Parent.HudFocus).start()
 -- The lively Shop's motion spike (Studio only; GuiQA "spike").

@@ -227,6 +227,7 @@ local function finish(t: any, winner: number?, reason: string, now: number, forf
 	t.vote = nil
 	t.shot = nil
 	t.pending = nil
+	t.sneak = nil
 	Ults.clearArmed(t) -- an ult armed when the game ended is spent
 	Ults.clearKept(t)
 	-- A two-sided game counts in the series and offers a rematch while both sides are still
@@ -269,6 +270,8 @@ function Engine.shooterLocked(phase: string, solo: any): boolean
 		or phase == "Resolving"
 		or phase == "Frozen"
 		or phase == "Rewinding"
+		or phase == "Sneak"
+		or phase == "SneakReveal"
 		or (phase == "Foul" and solo ~= nil and solo ~= false)
 end
 
@@ -330,6 +333,7 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 	t.redoClock = nil
 	t.redosLeft = nil
 	t.redoPractice = nil
+	t.sneak = nil
 	Ults.clearArmed(t) -- an armed ult never outlives its shooter's turn
 	Ults.turnBegan(t, team == before) -- a kept Turn ult (Portals) only while its shooter keeps it
 	if hand then
@@ -350,6 +354,7 @@ local function foul(t: any, reason: string, now: number)
 	-- Any foul ends the turn: its run, and an armed ult is spent (a timeout, a death, a
 	-- departure; a judged foul's shot already spent it).
 	Ults.onTurnLost(t)
+	t.sneak = nil
 	t.foul = { by = t.shooter, team = t.activeTeam, reason = reason }
 	-- Solo has nobody to hand the table to: the fouler takes ball in hand themselves.
 	t.nextTeam = if t.solo then t.activeTeam else 3 - t.activeTeam
@@ -404,6 +409,9 @@ function Engine.remove(t: any, userId: number, now: number): boolean
 			or t.phase == "Aiming"
 			-- Rewind's table is already back: the redo would be theirs.
 			or t.phase == "Rewinding"
+			-- Look Over There!: what they sneaked stays sneaked; the turn passes.
+			or t.phase == "Sneak"
+			or t.phase == "SneakReveal"
 		)
 	then
 		foul(t, "Departure", now)
@@ -420,6 +428,8 @@ function Engine.death(t: any, userId: number, now: number)
 			or t.phase == "PocketChoice"
 			or t.phase == "Aiming"
 			or t.phase == "Rewinding"
+			or t.phase == "Sneak"
+			or t.phase == "SneakReveal"
 		)
 	then
 		foul(t, "Reset", now)
@@ -458,6 +468,55 @@ function Engine.awards(t: any, j: any, now: number)
 			})
 		end
 	end
+end
+
+-- Look Over There! (the designer's second rework round, 2026-10-08): the armed Sneak ult opens
+-- the Sneak phase instead of a shot. The opponents turn away (Shared.SneakIntroSeconds), then
+-- the shooter has SneakDragSeconds (plus SneakGraceSeconds for the network) to move the cue
+-- ball anywhere on the cloth: ball in hand's own drag and rules (placeCue, Engine.sneakOpen).
+-- The window's end spends the ult and opens SneakReveal (the opponents turn back to see it);
+-- after it the turn's run-up starts over (`setup`: a fresh clock) from wherever the cue ball
+-- was left. `t.sneak` = { by, seq (the ult's), at, dragAt, dragEnd, fromX, fromY (the cue
+-- ball before) } and, at the reveal, { revealAt, x, y (where it was left), moved }.
+local function beginSneak(t: any, now: number)
+	local armed = (t.ults :: any).armed
+	local cue = Simulation.findBall(t.state, 0)
+	t.sneak = {
+		by = t.shooter,
+		seq = armed.seq,
+		at = now,
+		dragAt = now + S.SneakIntroSeconds,
+		dragEnd = now + S.SneakIntroSeconds + S.SneakDragSeconds,
+		fromX = if cue then cue.x else nil,
+		fromY = if cue then cue.y else nil,
+	}
+	phase(t, "Sneak", now, S.SneakIntroSeconds + S.SneakDragSeconds + S.SneakGraceSeconds)
+end
+
+local function revealSneak(t: any, now: number)
+	Ults.clearArmed(t) -- spent: the bar was paid at activation
+	local sneak = t.sneak
+	local cue = Simulation.findBall(t.state, 0)
+	sneak.revealAt = now
+	if cue then
+		sneak.x, sneak.y = cue.x, cue.y
+		local dx, dy = cue.x - (sneak.fromX or cue.x), cue.y - (sneak.fromY or cue.y)
+		sneak.moved = dx * dx + dy * dy > 1e-6
+	end
+	phase(t, "SneakReveal", now, S.SneakRevealSeconds)
+end
+
+--- Whether Look Over There!'s shooter may move the cue ball at `now`: the Sneak phase's drag
+--- window (`sneak` the table's or the snapshot's), from its opening (less the grace, for the
+--- clocks' drift) to its end plus the grace. A client stops a little sooner, so its last spot
+--- arrives in time.
+function Engine.sneakOpen(phaseName: string, sneak: any, now: number): boolean
+	return phaseName == "Sneak"
+		and type(sneak) == "table"
+		and type(sneak.dragAt) == "number"
+		and type(sneak.dragEnd) == "number"
+		and now >= sneak.dragAt - S.SneakGraceSeconds
+		and now < sneak.dragEnd + S.SneakGraceSeconds
 end
 
 -- Rewind (7.6): the table goes back to exactly before the shot (every ball, ball in hand,
@@ -572,8 +631,12 @@ end
 --- `nextSeed` is the server's randomness (the next game's rack), passed in so this stays
 --- deterministic; tests may omit it.
 function Engine.advance(t: any, now: number, nextSeed: number?)
-	-- An arming ult becomes armed (the shot clock's pause ends).
+	-- An arming ult becomes armed (the shot clock's pause ends); Look Over There!'s opens the
+	-- Sneak phase.
 	Ults.tick(t, now)
+	if Ults.sneakDue(t) then
+		beginSneak(t, now)
+	end
 	if t.vote then
 		local unanimous = true
 		for _, s in t.seats do
@@ -629,6 +692,12 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 		end
 		t.calledPocket = best
 		setup(t, now)
+	elseif t.phase == "Sneak" then
+		-- The window closed: the cue ball stays where it was left, and the ult is spent.
+		revealSneak(t, now)
+	elseif t.phase == "SneakReveal" then
+		t.sneak = nil
+		setup(t, now)
 	elseif Engine.isShotClock(t.phase, t.breakShot) then
 		-- The other side's turn-end fill; an armed ult is spent (it was pressed).
 		Ults.onTimeout(t, now)
@@ -681,11 +750,15 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 	end
 end
 
--- Move the cue ball for ball in hand. `seq` is the shooter's per-turn counter: unreliable
--- packets can arrive late or out of order, so anything not newer than the last applied move
--- is dropped. A Place without one (older clients, tests) is still judged on its own.
+-- Move the cue ball for ball in hand, or in Look Over There!'s sneak. `seq` is the shooter's
+-- per-turn counter: unreliable packets can arrive late or out of order, so anything not newer
+-- than the last applied move is dropped. A Place without one (older clients, tests) is still
+-- judged on its own.
 local function placeCue(t: any, x: any, y: any, seq: any, now: number): boolean
-	if not Engine.placementOpen(t.phase, t.ballInHand, needsCall(t)) then
+	if
+		not Engine.placementOpen(t.phase, t.ballInHand, needsCall(t))
+		and not Engine.sneakOpen(t.phase, t.sneak, now)
+	then
 		return false
 	end
 	if t.phase == "Placement" and t.deadline and now >= t.deadline then
@@ -1190,9 +1263,10 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	if t.phase ~= "Intro" and t.phase ~= "Placement" and t.phase ~= "Aiming" then
 		return nil, "WrongPhase"
 	end
-	-- An ult still in its cutscene: the shot waits until it is armed.
+	-- An ult still in its cutscene: the shot waits until it is armed. Look Over There! armed
+	-- is no shot at all: its Sneak phase opens at the next advance.
 	Ults.tick(t, now)
-	if Ults.arming(t) then
+	if Ults.arming(t) or Ults.sneakDue(t) then
 		return nil, "UltArming"
 	end
 	if t.deadline and now >= t.deadline then
@@ -1483,6 +1557,8 @@ function Engine.snapshot(t: any): any
 		rewound = t.rewound,
 		-- This turn's clock is Rewind's short redo clock (the HUD's SECOND CHANCE pill).
 		redoClock = t.redoClock == true,
+		-- Look Over There!'s sneak while it plays (Sneak, SneakReveal): see beginSneak.
+		sneak = if t.sneak then table.clone(t.sneak) else nil,
 	}
 end
 

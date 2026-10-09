@@ -15,6 +15,9 @@
 --     shards wearing its own colour and number that fly and fall; a shockwave ring spreads over
 --     the cloth; a deep boom, a glass shatter, an electric crackle tail.
 --   * Each nudged ball ("nudge"): a spurt of red and black sparks.
+--   * The impact frames (the rework's polish, 2026-10-08): for players at the table the hit
+--     first flickers between the blown-out negative and a red manga frame, and their camera
+--     crash-zooms toward it, rolled a little, holds through the hit-stop and eases back.
 -- Every table's parts hang off its AbilityFx anchor and go with it (kit.onRelease) or with
 -- clear(). Without the model the screen, ring, sparks and sounds still show.
 
@@ -23,6 +26,7 @@ local ContentProvider = game:GetService("ContentProvider")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Camera = require(script.Parent:WaitForChild("Camera"))
 local Rule = require(Shared:WaitForChild("Ults"):WaitForChild("Effects"):WaitForChild("BlackFlash"))
 
 local F = Config.UI.BlackFlashFx
@@ -41,6 +45,15 @@ end
 local function ballWidth(): number
 	return Config.Balls.RenderRadiusInches * 2 * Config.Table.StudsPerInch
 end
+
+-- 0 -> 1, eased in and out.
+local function smooth(u: number): number
+	u = math.clamp(u, 0, 1)
+	return u * u * (3 - 2 * u)
+end
+
+-- The crash zoom: from the view at the hit toward it (wall clock).
+type Zoom = { from: CFrame, to: CFrame, born: number }
 
 type Meshes = {
 	bolts: { MeshPart },
@@ -97,6 +110,7 @@ export type BlackFlashFx = {
 	meshesFailed: boolean,
 	nextMeshCheck: number,
 	rng: Random,
+	zoom: Zoom?,
 }
 
 local BlackFlashFx = {}
@@ -530,6 +544,36 @@ local function sparks(self: BlackFlashFx, id: number, at: Vector3, count: number
 	end)
 end
 
+-- The crash zoom toward the hit at `at`, for this player (at the table, the camera on it).
+local function startZoom(self: BlackFlashFx, at: Vector3)
+	local camera = workspace.CurrentCamera
+	if camera == nil or not Camera.isLocked() then
+		return
+	end
+	local from = camera.CFrame
+	local eye = from.Position + (at - from.Position) * F.ZoomShare
+	self.zoom = {
+		from = from,
+		to = CFrame.lookAt(eye, at) * CFrame.Angles(0, 0, math.rad(F.ZoomRollDegrees)),
+		born = os.clock(),
+	}
+end
+
+local function stepZoom(self: BlackFlashFx)
+	local z = self.zoom
+	if z == nil then
+		return
+	end
+	local t = os.clock() - z.born
+	local back = smooth((t - F.ZoomInSeconds - F.ZoomHoldSeconds) / F.ZoomOutSeconds)
+	if back >= 1 or not Camera.isLocked() then
+		self.zoom = nil
+		Camera.setOverride(nil)
+		return
+	end
+	Camera.setOverride(z.from:Lerp(z.to, smooth(t / F.ZoomInSeconds)), 1 - back)
+end
+
 -- The flash at the shattered ball.
 local function flash(self: BlackFlashFx, id: number, fx: TableFx, m: any, ev: any)
 	local kit = self.kit
@@ -561,10 +605,25 @@ local function flash(self: BlackFlashFx, id: number, fx: TableFx, m: any, ev: an
 		return
 	end
 	local screen = kit.screen
-	screen.flash(id, F.RedColor, F.FlashSeconds)
-	screen.grade(id, F.Grade, F.GradeIn, F.GradeHold, F.GradeOut)
+	-- The impact frames: the negative and the red manga frame in turn, then the red grade.
+	for k = 0, F.ImpactFrames - 1 do
+		kit.later(id, k * F.ImpactFrameSeconds, function()
+			if k % 2 == 0 then
+				screen.invert(id, F.ImpactFrameSeconds)
+			else
+				screen.grade(id, F.ImpactGrade, 0, F.ImpactFrameSeconds, 0)
+			end
+		end)
+	end
+	kit.later(id, F.ImpactFrames * F.ImpactFrameSeconds, function()
+		screen.flash(id, F.RedColor, F.FlashSeconds)
+		screen.grade(id, F.Grade, F.GradeIn, F.GradeHold, F.GradeOut)
+	end)
 	screen.shake(id, F.ShakeStuds, F.ShakeSeconds)
 	screen.fovPunch(id, F.FovDegrees, F.FovSeconds)
+	if screen.involved(self.hub, id) then
+		startZoom(self, at)
+	end
 	playAt(self, id, A.FlashHit, at)
 end
 
@@ -673,6 +732,7 @@ end
 function BlackFlashFx.update(self: BlackFlashFx, dt: number)
 	local now = workspace:GetServerTimeNow()
 	local kit = self.kit
+	stepZoom(self)
 	for id, m in self.hub.matches do
 		local fx = self.tables[id]
 		if m.renderer == nil then
@@ -699,7 +759,12 @@ function BlackFlashFx.update(self: BlackFlashFx, dt: number)
 			meshesOf(self)
 		end
 		local live = fx :: TableFx
-		live.clock += dt * (if type(m.timeScale) == "number" then m.timeScale else 1)
+		-- The replay's time: /slowmo slows it, /hold stops it where the replay stops.
+		local held = m.holdAt ~= nil and m.state.time >= m.holdAt
+		local step = if held
+			then 0
+			else dt * (if type(m.timeScale) == "number" then m.timeScale else 1)
+		live.clock += step
 		if shot and live.shotSeq ~= m.seq then
 			live.shotSeq = m.seq
 		end
@@ -721,7 +786,7 @@ function BlackFlashFx.update(self: BlackFlashFx, dt: number)
 		end
 		drawArcs(self, live, if crackling then part else nil)
 		stepBolts(self, live)
-		stepShards(live, dt * (if type(m.timeScale) == "number" then m.timeScale else 1))
+		stepShards(live, step)
 		if #live.shards > 0 then
 			kit.anchor(id) -- the shards lie on the table past the shot: keep the anchor for them
 		end
@@ -742,6 +807,10 @@ end
 function BlackFlashFx.clear(self: BlackFlashFx)
 	for id in self.tables do
 		destroy(self, id)
+	end
+	if self.zoom then
+		self.zoom = nil
+		Camera.setOverride(nil)
 	end
 end
 

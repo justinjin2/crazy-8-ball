@@ -250,7 +250,7 @@ function Finder.candidates(view: View, cueX: number?, cueY: number?): { Plan }
 				local passed = phase ~= nil and phase[b.id] == true
 				local cueBlocked = not passed
 					and segmentDistance(b.x, b.y, cx, cy, gx, gy) < D - 1e-6
-				local objPassed = passed and Config.Ults.Ghost.CarryPhase
+				local objPassed = false -- only the cue ball passes (Ghost's carry left with it)
 				local objBlocked = not objPassed
 					and segmentDistance(b.x, b.y, ob.x, ob.y, pk.mx, pk.my) < D - 1e-6
 				if cueBlocked or objBlocked then
