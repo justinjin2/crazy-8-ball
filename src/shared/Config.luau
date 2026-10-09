@@ -8507,6 +8507,7 @@ Config.UI.Menu = {
 			"CuesCashFlyer", -- the Cues menu's money flying in (its own ScreenGui, 2026-10-08)
 			"Purchased", -- a purchase's thank-you over the Shop (2026-10-09: it was hidden there)
 			"RankClaimBlock", -- the roadmap's claim card
+			"MenuColumnLinger", -- a pressed column tile, staying a moment as its menu opens
 		},
 		KeepWith = {
 			LuckyBag = { "LuckyHotbar" }, -- the bag opens over its hotbar
@@ -8588,6 +8589,10 @@ Config.UI.Menu = {
 		BelowRankPx = 6,
 		AboveMoneyPx = 20, -- and it always ends at least this far above the money HUD
 		MinScale = 0.8, -- a screen too short for it shrinks the column, never below this
+		-- A pressed tile stays on screen this long after its menu opens, over the blur, then pops
+		-- out (designer, 2026-10-09: "so you can still see the cue hitting the ball ... even on
+		-- mobile"): the CUES press strike hits at 0.16 s and its ball is gone at 0.42 s.
+		LingerSeconds = 0.45,
 		IconShare = 1.08, -- the glossy icon's size, of the slot (its own margins are clear)
 		IconCentreShare = 0.46, -- the icon's middle sits this far down the slot
 		LabelTextPx = 18, -- the word across the icon's lower edge (white, ink outline)

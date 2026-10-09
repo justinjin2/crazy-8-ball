@@ -49,6 +49,11 @@
 -- The CUES tile's icon is alive (CuesStrike, concept 2b, 2026-10-08): the Classic Cue with a
 -- breathing glow and twinkles; a hover strikes a ball with it, a press (from the touch) or the
 -- D-pad route strikes harder.
+--
+-- A pressed tile lingers (designer, 2026-10-09): its menu hides the HUD at once (HudFocus), so
+-- the tile moves into its own ScreenGui (MenuColumnLinger, kept by the focus) at the same spot
+-- and size, stays there over the blur for Column.LingerSeconds playing its press (the CUES
+-- strike), pops out, and goes home to the column.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
@@ -802,7 +807,71 @@ function MenuColumn.press(self: any, name: string)
 	if strike then
 		strike:play("Press") -- the D-pad route's; a press already playing goes on
 	end
+	self:linger(t)
 	self.onPress(name)
+end
+
+-- The ScreenGui a pressed tile lingers in: like the HUD's, made on the first press.
+function MenuColumn.lingerGui(self: any): ScreenGui
+	local gui: ScreenGui? = self.lingerScreen
+	if gui and gui.Parent then
+		return gui
+	end
+	local screen: ScreenGui = self.screen
+	local made = Instance.new("ScreenGui")
+	made.Name = "MenuColumnLinger"
+	made.ResetOnSpawn = false
+	made.IgnoreGuiInset = screen.IgnoreGuiInset
+	made.ScreenInsets = screen.ScreenInsets
+	made.ZIndexBehavior = screen.ZIndexBehavior
+	made.DisplayOrder = screen.DisplayOrder
+	made.Parent = screen.Parent
+	self.lingerScreen = made
+	return made
+end
+
+-- Tile `t` stays on screen for LingerSeconds while its menu opens, then pops out and goes home.
+function MenuColumn.linger(self: any, t: Tile)
+	self:endLinger()
+	local gui = self:lingerGui()
+	-- A copy of the column's root (place and fit) so the tile keeps its exact spot and size.
+	local holder = HudParts.frame(gui, "Root")
+	local at = self.root.AbsolutePosition - gui.AbsolutePosition
+	holder.Position = UDim2.fromOffset(at.X, at.Y)
+	holder.Size = self.root.Size
+	holder.ZIndex = C.ZIndex
+	local fit = Instance.new("UIScale")
+	fit.Scale = self.fit.Scale
+	fit.Parent = holder
+	t.button.Parent = holder
+	local token = {}
+	self.lingering = { tile = t, holder = holder, token = token }
+	task.delay(C.LingerSeconds, function()
+		local now = self.lingering
+		if now == nil or now.token ~= token then
+			return
+		end
+		UIAnim.popOut(t.button, function()
+			if self.lingering and self.lingering.token == token then
+				self:endLinger()
+			end
+		end)
+	end)
+end
+
+-- The lingering tile, if any, back in the column now.
+function MenuColumn.endLinger(self: any)
+	local now = self.lingering
+	if now == nil then
+		return
+	end
+	self.lingering = nil
+	local button: TextButton = now.tile.button
+	button.Parent = self.body
+	button.Visible = true -- the pop out hid it; the column's own rules say again what shows
+	UIAnim.scaleOf(button).Scale = 1
+	now.holder:Destroy()
+	self:refreshUlts()
 end
 
 --- A tile's button (for a flying chip or a tutorial pointer).

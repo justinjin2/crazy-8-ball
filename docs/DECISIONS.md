@@ -3648,3 +3648,8 @@ timer of a new block stay the designer's call.
   name tags, rewards, the restock's VIP slot, Auto Spin) and the Shop sells them VIP. /vip on
   gives their own VIP back (or fakes the pass when they have none). A purchase still checks
   their real VIP. Blocks already held keep their timers.
+- 2026-10-09: A pressed menu-column tile lingers (designer: "so you can still see the cue
+  hitting the ball ... even on mobile when you click on it"): its menu hides the HUD at once, so
+  the tile moves into its own ScreenGui (MenuColumnLinger, kept by the focus) at the same spot,
+  stays 0.45 s over the blur playing its press (the CUES strike hits at 0.16 s, its ball is gone
+  at 0.42 s), pops out and goes home (Config.UI.Menu.Column.LingerSeconds). Every tile does it.
