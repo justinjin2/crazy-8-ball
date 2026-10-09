@@ -3666,3 +3666,6 @@ timer of a new block stay the designer's call.
 - 2026-10-09: Free Reward's group and favorite cards list what they give under "Reward:", each
   thing with a bullet and its words wrapping clear of it (designer: "add like a - or bullet
   point so its more clear").
+- 2026-10-09: Odds & Details: the list reaches EdgePx (4) past its rows on every side, padded
+  back in, so a bar's outline (drawn outside the bar) is never clipped at the list's edge
+  (designer: "slightly cutoff on the left"). Every odds popup shares it.

@@ -9025,6 +9025,10 @@ Config.UI.OddsDetails = {
 	NotePx = { 12, 15 }, -- the line under the title and the lines under the bars
 	SectionGapPx = { 10, 16 }, -- over each section's heading
 	RowInsetPx = { 6, 10 }, -- the rows' room from the list's left (under their heading)
+	-- The list clips its rows; it reaches this far past them on every side (padded back in) so
+	-- a bar's outline, drawn outside the bar, is never cut off (designer, 2026-10-09: "slightly
+	-- cutoff on the left"). At least the thickest outline (a bar's height / 20).
+	EdgePx = 4,
 	ValueShare = 0.3, -- a row's value (its blocks to go), of the row's width (right)
 	BarPx = { 26, 34 }, -- a rarity bar's height
 	BarTextPx = { 13, 18 }, -- its word and chance

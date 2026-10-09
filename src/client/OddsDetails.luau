@@ -144,6 +144,12 @@ function OddsDetails.new(frame: any): any
 	list.SelectionImageObject = Instance.new("Frame")
 	list.ZIndex = 3
 	list.ClipsDescendants = true
+	-- Room round the rows for their outlines, inside the clip (Config.UI.OddsDetails.EdgePx).
+	local edge = Instance.new("UIPadding")
+	edge.Name = "Edge"
+	local e = UDim.new(0, O.EdgePx)
+	edge.PaddingLeft, edge.PaddingRight, edge.PaddingTop, edge.PaddingBottom = e, e, e, e
+	edge.Parent = list
 	list.Parent = card
 	self.list = list
 	return self
@@ -606,10 +612,12 @@ function OddsDetails.layout(self: any, geo: any)
 	HudParts.setTextSize(self.title, titleH)
 	self.title.Position = UDim2.fromOffset(titleX, headY + round((closeSize - titleH - 4) / 2))
 	self.title.Size = UDim2.fromOffset(math.max(1, w - pad - titleX - closeSize), titleH + 4)
+	-- The list reaches EdgePx past the rows on every side, padded back in (the outlines' room).
+	local edgePx = O.EdgePx
 	local list: ScrollingFrame = self.list
-	list.Position = UDim2.fromOffset(pad, top)
-	list.Size = UDim2.fromOffset(iw, math.max(1, h - top - pad))
-	list.CanvasSize = UDim2.fromOffset(0, contentH)
+	list.Position = UDim2.fromOffset(pad - edgePx, top - edgePx)
+	list.Size = UDim2.fromOffset(iw + 2 * edgePx, math.max(1, h - top - pad + 2 * edgePx))
+	list.CanvasSize = UDim2.fromOffset(0, contentH + 2 * edgePx)
 end
 
 return OddsDetails
