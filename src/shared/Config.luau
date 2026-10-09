@@ -3636,7 +3636,7 @@ Config.Products = {
 	List = {
 		-- Game passes.
 		-- VIP (399 R$, economy v4 2026-10-08: was 499; no block timers, fast reveals, Auto Spin,
-		-- a Rare block a day: Config.Daily.VipBlocks). The live price is read from Roblox;
+		-- an Uncommon block a day: Config.Daily.VipBlocks). The live price is read from Roblox;
 		-- tools/roblox_products.py --sync sets it. The Quick Cases pass (id 2006144658) was
 		-- retired into VIP 2026-10-04.
 		Vip = { Kind = "Pass", Id = 2005370712, Robux = 399 },
@@ -9599,7 +9599,7 @@ Config.UI.Shop.Open = {
 		{ Ids = { "MysteryPanel" }, Kind = "Grow", At = 0.20 },
 		{ Ids = { "MysteryTitle" }, Kind = "Pop", At = 0.24 },
 		{ Ids = { "MysteryBlock" }, Kind = "Slam", At = 0.26, Length = 0.16, Burst = "Purple" },
-		{ Ids = { "MysteryLadder", "MysteryX1", "MysteryX10" }, Kind = "Pop", At = 0.29 },
+		{ Ids = { "MysteryLadder", "MysteryX1", "MysteryX5" }, Kind = "Pop", At = 0.29 },
 		{
 			Ids = {
 				"MysteryRow1",
@@ -9608,6 +9608,7 @@ Config.UI.Shop.Open = {
 				"MysteryRow4",
 				"MysteryRow5",
 				"MysteryRow6",
+				"MysteryRow7",
 			},
 			Kind = "Pop",
 			At = 0.33,
@@ -9615,17 +9616,22 @@ Config.UI.Shop.Open = {
 		-- With their gift squares; one column per Config.Shop.Mystery count (1 and BulkCount: 5).
 		{ Ids = { "MysteryRobux1", "MysteryRobux5" }, Kind = "Pop", At = 0.42 },
 		{ Ids = { "MysteryMoney1", "MysteryMoney5" }, Kind = "Pop", At = 0.47 },
-		{ Ids = { "MysteryRibbon" }, Kind = "Pop", At = 0.52 }, -- "13 for 10!" (only while it runs)
+		{ Ids = { "MysteryRibbon" }, Kind = "Pop", At = 0.52 }, -- "6 for 5!" (only while it runs)
 		{ Ids = { "MysteryPity" }, Kind = "Fade", At = 0.55, Length = 0.12 },
 		{ Ids = { "RestockPanel" }, Kind = "Grow", At = 0.3 },
 		{ Ids = { "RestockTitle" }, Kind = "Pop", At = 0.34 },
 		{
-			Ids = { "RestockSlot1", "RestockSlot2", "RestockSlot3", "RestockSlot4" },
+			Ids = { "RestockSlot1", "RestockSlot2", "RestockSlot3" },
 			Kind = "Pop",
 			At = 0.38,
 			Stagger = 1.5,
 		},
-		{ Ids = { "RestockOdds" }, Kind = "Fade", At = 0.56, Length = 0.12 },
+		{
+			Ids = { "RestockOdds1", "RestockOdds2", "RestockOdds3" },
+			Kind = "Fade",
+			At = 0.56,
+			Length = 0.12,
+		},
 		{ Ids = { "OfferStarter" }, Kind = "Pop", At = 0.44, Burst = "Pink" },
 		{ Ids = { "OfferVip" }, Kind = "Pop", At = 0.48, Burst = "Gold" },
 		-- The Money group (ShopMoney, pick B), the same rhythm: seen when jumped to.
@@ -9999,26 +10005,31 @@ Config.UI.ShopBlocks = {
 		OddsBadge = { 286, 338, 50 }, -- centre x, centre y, size
 		GlowTint = { 196, 132, 255 }, -- the Mystery block's purple
 		Ladder = { 344, 44, 452, 374 }, -- left, top, width, height
-		-- The six rows fill the ladder (designer, 2026-10-09: the climb line under them is gone).
-		RowTop = 17, -- the first row's top inside the ladder
-		RowUnits = 58, -- a row's step
-		RowHeightUnits = 50,
+		-- The seven rows fill the ladder (designer, 2026-10-09: the climb line under them is gone;
+		-- economy v5: the Secret on top, so the rows are a little smaller than the six's 58).
+		RowTop = 12, -- the first row's top inside the ladder
+		RowUnits = 50, -- a row's step
+		RowHeightUnits = 44,
 		RowInsetUnits = 12, -- the row strips' inset from the ladder's sides
 		RowCornerUnits = 14,
 		RowColor = { 242, 248, 255 },
-		IconUnits = 40,
+		IconUnits = 36,
 		RowIconLeftUnits = 8, -- a row's tier icon from the strip's left
 		RowNameGapUnits = 8, -- between the icon and the tier's name
-		NameUnits = 27,
-		PercentUnits = 27,
+		NameUnits = 25,
+		PercentUnits = 25,
 		ValueUnits = 110, -- the percent column, at the strip's right
 		ValueRightUnits = 12, -- its room from the strip's right
 		-- Each row's dice (that tier block's odds; designer, 2026-10-09), this far after the
 		-- tier's name.
-		RowDiceUnits = 34,
+		RowDiceUnits = 30,
 		RowDiceGapUnits = 10,
-		Columns = { { 812, 44, 218, 374 }, { 1044, 44, 218, 374 } }, -- x1 and x10: left, top, w, h
-		CountY = 72, -- "x1" / "x10"
+		Columns = { { 812, 44, 218, 374 }, { 1044, 44, 218, 374 } }, -- x1 and x5: left, top, w, h
+		CountY = 72, -- "x1" / "x5"
+		-- "35 R$ one by one" under the bundle's ribbon (economy v5: a bundle's saving, never a
+		-- crossed-out price): its centre and its words' size.
+		OneByOneY = 178,
+		OneByOneUnits = 22,
 		CountUnits = 58,
 		CountSideUnits = 10, -- its room each side in the column
 		RibbonY = 134,
@@ -10034,31 +10045,38 @@ Config.UI.ShopBlocks = {
 		GreenTextUnits = 40,
 		GoldTextUnits = 34,
 		CashIconShare = 1.05, -- the money buttons' cash bundle (of the button's height)
-		Pity = { 196, 454, 884, 46 }, -- the guarantee strip under the boxes: left, centre y, width, height
+		-- The pity strip under the boxes (economy v5: Rare by the 10th, Epic by the 40th, side by
+		-- side, each half its tier's icon, "Rare guaranteed in 8" and its bar): left, centre y,
+		-- width, height.
+		Pity = { 24, 454, 1227, 46 },
 		PityIconUnits = 42,
-		PityIconLeftUnits = 14, -- the Epic icon from the strip's left
-		PityTextUnits = 27,
+		PityIconLeftUnits = 14, -- a tier's icon from its half's left
+		PityTextUnits = 26,
 		PityTextGapUnits = 10, -- between the icon and the words
-		PityBar = { 470, 22 }, -- the bar at the strip's right end: width, height
+		PityBar = { 190, 22 }, -- the bar at its half's right end: width, height
 		PityBarGapUnits = 18, -- between the words and the bar
 		PityBarRightUnits = 18, -- the bar's room from the strip's right
 		MinPityBarPx = 8, -- the bar is never thinner than this
-		PityTrackEdgeUnits = 2.5, -- the bar's ink edge
-		PityFill = { 162, 89, 255 }, -- Epic's purple
+		PityTrackEdgeUnits = 2.5, -- the bar's ink edge (its fill is its tier's colour)
 		PityTrack = { 222, 228, 240 },
 	},
 	-- The restock (pick B): three slots and the VIP slot, big blocks, odds behind each dice.
 	Restock = {
-		Units = { 1275, 522 }, -- the panel
+		Units = { 1275, 556 }, -- the panel
 		SlotTop = 50,
-		SlotUnits = { 297, 426 }, -- a slot card
+		-- A slot card: economy v5's three (slot 1, slot 2, VIP's) and their gaps fill the panel.
+		SlotUnits = { 401, 426 },
 		SlotGapUnits = 14,
 		SlotSideUnits = 22, -- the first slot's inset from the panel's side
-		Block = { 148, 120, 172 }, -- in a slot: centre x, centre y, size
+		Block = { 200, 120, 172 }, -- in a slot: centre x, centre y, size
 		Glow = 262,
 		Rays = 300,
-		OddsBadge = { 262, 36, 44 },
-		Crown = { 148, 30, 58 }, -- the VIP slot's crown over its block
+		OddsBadge = { 366, 36, 44 },
+		Crown = { 200, 30, 58 }, -- the VIP slot's crown over its block
+		-- Slot 1's tag at its top left ("Epic or better!", economy v5: its own odds table),
+		-- tilted as the Mystery card's ribbon: centre x, centre y, width, height; its words.
+		Floor = { 96, 34, 168, 38 },
+		FloorTextUnits = 20,
 		CrownRock = { 6, 2.4 }, -- it rocks this many degrees each way, over this many seconds
 		NameY = 228,
 		NameUnits = 25,
@@ -10072,14 +10090,16 @@ Config.UI.ShopBlocks = {
 		GreenUnits = 62,
 		GoldY = 386, -- the money row's centre (a gap under the Robux row)
 		GoldUnits = 56,
-		ButtonInsetUnits = 16,
+		ButtonInsetUnits = 40,
 		GreenTextUnits = 34,
 		GoldTextUnits = 30,
 		VipFill = { 255, 248, 224 }, -- the VIP slot's card
 		VipEdge = { 242, 178, 0 },
-		OddsY = 498, -- "Each slot: Rare 87% ..."
-		OddsUnits = 21,
-		OddsSideUnits = 30, -- its room each side in the panel
+		-- Each slot's odds under its card ("Rare 55% · Epic 34% · ..."), up to OddsRows rows.
+		OddsY = 514,
+		OddsUnits = 19, -- one row on a PC (21 wraps the longest)
+		OddsRows = 2,
+		OddsSideUnits = 6, -- its room each side under its card
 	},
 	-- The Starter Pack and VIP side by side, wide (ShopOffers; designer, 2026-10-08: "put VIP
 	-- and starter side by side ... this should actually be used mainly as the reference so it

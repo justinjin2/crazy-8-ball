@@ -44,6 +44,7 @@ local UISound = require(script.Parent.UISound)
 local O = Config.UI.OddsDetails
 local K = Config.UI.Kit
 local KINDS: { [string]: any } = Config.LuckyBlocks.Kinds :: any
+local SECRET = Config.LuckyBlocks.Reveal.Secret
 local COPY: { [string]: string } = Strings.OddsDetails :: any
 local NAMES: { [string]: string } = Strings.LuckyBlocks.Names
 local RARITIES: { [string]: string } = Strings.Items.Rarities :: any
@@ -74,6 +75,7 @@ type Item = {
 --- what to do when it closes.
 export type Spec = {
 	icon: string?,
+	tint: Color3?, -- the heading icon's tint (the Secret's darkened Mythic block)
 	key: () -> string,
 	paint: (any) -> (),
 	closed: (() -> ())?,
@@ -296,6 +298,7 @@ function OddsDetails.show(self: any, spec: Spec)
 		self.painted = nil
 	end
 	self.headingIcon.Image = spec.icon or ""
+	self.headingIcon.ImageColor3 = spec.tint or Color3.new(1, 1, 1)
 	self:paint()
 	if not self.opened then
 		self.opened = true
@@ -415,6 +418,18 @@ end
 
 --- A lucky block's list (a Config.LuckyBlocks.Kinds key; `climbed`: a climbed block's, its one
 --- rarity): see the top of this file.
+-- A tier without a block (the Secret): one group, its rarity's pool, 100% split evenly.
+local function secretGroups(tier: string, rarity: string): { BlockOdds.CueGroup }
+	local ids = {}
+	for _, cue in BlockDrop.pool(tier) do
+		table.insert(ids, cue.Id)
+	end
+	if #ids == 0 then
+		return {}
+	end
+	return { { rarity = rarity, percent = 100, each = 100 / #ids, cues = ids, closed = false } }
+end
+
 function OddsDetails.blockSpec(kind: string, climbed: boolean?): Spec
 	local row = KINDS[kind]
 	local climbs = row ~= nil and row.Climb ~= nil and climbed ~= true
@@ -422,6 +437,10 @@ function OddsDetails.blockSpec(kind: string, climbed: boolean?): Spec
 		return climbs and BlockDrop.luckLive(workspace:GetServerTimeNow())
 	end
 	local oddsId: string = if row and type(row.Odds) == "string" then row.Odds else kind
+	-- The Secret has no block (a climb that reaches it gives its cue at once): its cues alone.
+	local secret: string? = if row == nil and not BlockDrop.isBlockTier(kind)
+		then BlockDrop.rarityOf(kind)
+		else nil
 	local function closedSet(): { [string]: boolean }
 		local closed = {}
 		for cue, entry in uniquesOf(oddsId) do
@@ -432,7 +451,8 @@ function OddsDetails.blockSpec(kind: string, climbed: boolean?): Spec
 		return closed
 	end
 	return {
-		icon = if row then row.Icon else nil,
+		icon = if row then row.Icon elseif secret then SECRET.Icon else nil,
+		tint = if secret then ShopCards.rgb(SECRET.Tint) else nil,
 		key = function(): string
 			local ids = {}
 			for cue in closedSet() do
@@ -449,11 +469,12 @@ function OddsDetails.blockSpec(kind: string, climbed: boolean?): Spec
 		paint = function(self: any)
 			local closed = closedSet()
 			local rows = uniquesOf(oddsId)
-			self:add("Head", NAMES[kind] or kind)
+			self:add("Head", if secret then COPY.SecretHead else NAMES[kind] or kind)
 			-- A block that still climbs lists its climb from its name (live during the Grand
 			-- Opening Luck); a climbed one, or a kind that never climbs, its own row.
 			local groups: { BlockOdds.CueGroup } = if climbs and row
 				then BlockDrop.cueGroups(nil, { start = row.Climb, luck = luck() })
+				elseif secret then secretGroups(kind, secret)
 				else BlockOdds.cueGroups(oddsId, closed)
 			for _, group in groups do
 				if group.rarity == "Unique" then

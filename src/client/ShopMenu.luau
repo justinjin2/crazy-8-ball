@@ -153,7 +153,11 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			self:buyBlocks("Mystery", count)
 		end,
 		gift = gift,
-		tierOdds = odds,
+		-- A row's dice: the climbed block of that tier (the Secret's pool for its row), its one
+		-- rarity, as a Mystery block that climbs there gives (economy v5).
+		tierOdds = function(kind: string)
+			self.odds:block(kind, true)
+		end,
 		odds = function()
 			self.mysteryOdds:open()
 		end,
@@ -176,6 +180,13 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		odds = odds,
 	})
 	self.offers = ShopOffers.new(blocks, { robux = buyProduct, gift = gift, odds = odds })
+	-- Studio only: GuiQA:Invoke("shopPity", rare?, epic?) draws the Mystery card's pity bars as
+	-- if that many blocks were left to each guarantee (1: the very next; nothing: the server's).
+	GuiQA.add("shopPity", function(rare: number?, epic: number?)
+		self.mystery.fakePity = if rare or epic then { rare = rare, epic = epic } else nil
+		self:refresh()
+		return true
+	end)
 	-- Studio only: GuiQA:Invoke("offers", patch) draws the Starter Pack and VIP over the shop
 	-- state with `patch`'s fields (restricted, vip, starterBought, offers); nil goes back.
 	GuiQA.add("offers", function(patch: any)

@@ -354,7 +354,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
 - [x] 3. The quick reveal and "Open all".
 - [x] 4. Odds & Details for every block, with the pity bars (shim 4 gone).
 - [x] 5. The Grand Opening Luck clover.
-- [ ] 6. The shop: the Mystery band, the restock, VIP, the Grand Opening and Starter cards, the
+- [x] 6. The shop: the Mystery band, the restock, VIP, the Grand Opening and Starter cards, the
   skip dialog (shims 8 and 9 gone).
 - [ ] 7. The win track and the result screen (shim 5 gone).
 - [ ] 8. Free Reward (shim 7 gone).
@@ -452,3 +452,28 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   (Epic 4%, Legendary 0.6%, Mythic 0.1%, Secret 0.003%), hidden again when it ends; console
   clean. Like the VIP tag it is not a gamepad stop (the boosted odds show in every odds list).
   Shots: `step5/`.
+- **Step 6**: the Mystery card: 7 rows (the Secret on top, the darkened Mythic picture), each
+  row's chance live with the Grand Opening Luck, a row's dice opens that tier's climbed block
+  (its one rarity; the Secret row's lists "Secret Cues", the Eclipse Cue at 100%); x1 and x5
+  with the live Robux prices, "35 R$ one by one" under x5 (the single block's live price
+  times 5), "6 for 5!"; the old "Epic guaranteed" strip is now the two pity bars side by side
+  ("Rare guaranteed in 10" / "Your next one is Rare!", "Epic guaranteed in 13", each bar filled
+  by the blocks since). A product off sale or with id 0 shows its price greyed (no more "Coming
+  soon": shim 9 gone). The restock: three cards fill the band (401 units each), slot 1 has a
+  tilted purple "Epic or better!" tag, and each card has its own odds line under it (slot 1
+  Epic 76% · Legendary 21% · Mythic 3.3%, slot 2 Rare 55% ..., VIP's Rare 40% ...): shim 8
+  gone. VIP's perk words were already v5 (an Uncommon block a day); the Starter card reads its
+  live price already. **The Grand Opening card showed Config's typed Robux prices; it now shows
+  the live ones** (the brief's rule), the struck-through "one by one" from the live single
+  price. Comments: the skip tiers 1 / 4 / 9 / 15, "+5 Mystery", VIP's Uncommon block. New
+  GuiQA hook `shopPity` (rare?, epic?). Checked on PC (the card, pity filled, the luck's live
+  chances, the Secret row's list, the restock, the Grand Opening card, the 1 R$ skip); console
+  clean. Lint OK, 1160 tests. Shots: `step6/`.
+  - **For the designer:** in Studio this account sees lower Robux prices than Config and the
+    Creator Hub: Mystery5 24 (29), Grand Opening 16 / 40 / 120 (19 / 49 / 149), the restock
+    Epic 120. All about 0.82 times, Mystery1 still 7. It looks like Roblox's regional pricing
+    or price optimization for this account. The shop shows what Roblox will charge, so nothing
+    was changed; worth a look in the Creator Hub's price settings.
+  - Studio shows the Grand Opening deal open ("Ends in 29d 23h", `StudioOpening`) while the
+    luck is off (Config's `StartsAt` 0); live, one date starts both.
+

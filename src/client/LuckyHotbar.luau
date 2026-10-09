@@ -13,9 +13,10 @@
 -- (LuckyClient asks the server and shows the summary); in the open bag a gamepad selects it.
 --
 -- A throw of a block still on its timer (it stays in the hands: 2026-10-09), an unclimbed
--- block's tap during its wait (the Gift), or an open refused asks about the skip (economy v4 plan 18.1 item 8) in the kit's dialog over the screen (MenuFrame.ask): the block's name,
+-- block's tap during its wait (the Gift), or an open refused asks about the skip (economy v4
+-- plan 18.1 item 8) in the kit's dialog over the screen (MenuFrame.ask): the block's name,
 -- "Ready in 4:32. Skip the wait?", Wait and the green "Skip · 4" with the price for the time
--- left right now (4 / 9 / 15 R$, Config.LuckyBlocks.Skips; the live price from the shop's
+-- left right now (1 / 4 / 9 / 15 R$, Config.LuckyBlocks.Skips; the live price from the shop's
 -- view). Skip asks the server, which prompts that same tier's product. Where the shop says the
 -- skip cannot be bought it says why instead. The skip is a paid random item (economy v4 plan
 -- 13), so the dialog wears the block's dice: the question steps aside for the block's Odds &

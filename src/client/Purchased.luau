@@ -6,7 +6,7 @@
 -- letters", and a flash over the whole screen, yellow or green).
 --
 -- The server's PurchaseDone (Net) says what landed. Then: the whole screen flashes (gold for a
--- Robux item, green for a money pack), one big line slams in near the top, "Thank you! +10
+-- Robux item, green for a money pack), one big line slams in near the top, "Thank you! +5
 -- Mystery Lucky Blocks" ("+VIP", "+$250,000", "+Ability Slot 2"), each letter its own colour
 -- (Config.UI.Purchased.Letters, round and round) in the kit's straight title (ArchTitle: the
 -- navy outline), and what was bought flies to where it lives: money to the money HUD
@@ -55,7 +55,7 @@ local function rgb(c: { number }): Color3
 end
 
 -- What was bought, after "Thank you!": the item by name ("+VIP") where it has one, else what
--- it gave ("+$250,000", "+10 Mystery Lucky Blocks").
+-- it gave ("+$250,000", "+5 Mystery Lucky Blocks").
 local function itemText(message: { [string]: any }): string
 	local key = message.key
 	local names: { [string]: string } = SHOP.Passes.Names

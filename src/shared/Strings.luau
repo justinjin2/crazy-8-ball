@@ -740,16 +740,14 @@ return {
 			-- 2026-10-08). Numbers come from Config and the server's shop state.
 			Blocks = {
 				MysteryTitle = "MYSTERY LUCKY BLOCK",
-				Count = "x%d", -- over a buy column: "x1", "x10"
-				Bonus = "%d for %d!", -- the launch bonus ribbon: "13 for 10!"
-				Pity = "%s guaranteed in %d", -- "Epic guaranteed in 87" (the tier's name)
+				Count = "x%d", -- over a buy column: "x1", "x5"
+				Bonus = "%d for %d!", -- the launch bonus ribbon: "6 for 5!"
+				Pity = "%s guaranteed in %d", -- "Rare guaranteed in 10" (a pity bar: the tier's name)
 				PityNext = "Your next one is %s!", -- the guarantee is the very next block
 				RestockTitle = "RESTOCK",
-				-- Under the slots: each kind's chance in a slot, each name in its colour.
-				SlotOdds = "Each slot: %s",
-				-- Economy v5: slot 1 has its own table (its lowest kind, coloured), the others
-				-- share one: "Slot 1: Epic or better · Slot 2: Rare 55% · Epic 34% ...".
-				FirstSlotOdds = "Slot 1: %s or better · Slot 2: %s",
+				-- Slot 1's tag (economy v5: its own table, from its lowest kind): "Epic or better!".
+				SlotFloor = "%s or better!",
+				-- Under each slot: each kind's chance in it, each name in its colour.
 				OddsPart = "%s %s", -- a kind and its chance: "Rare 87%"
 				OddsJoin = " · ",
 				Left = "x%d left", -- a restock slot's stock: "x2 left"
@@ -1149,6 +1147,8 @@ return {
 		-- its chance and "1 in N" ("0.29% · 1 in 345").
 		EachCue = "Each cue",
 		CueChance = "%s · 1 in %s",
+		-- The Secret row's dice on the shop's ladder: the Secret has no block, so its cues alone.
+		SecretHead = "Secret Cues",
 	},
 
 	-- The lucky block reel's skip hint (LuckyOpening, UltSpinAnim, PullCutscene, ResultCutscene).

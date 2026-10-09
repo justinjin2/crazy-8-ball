@@ -260,7 +260,7 @@ local function climbsFirst(entry: Entry?): boolean
 end
 
 -- The skip for a block still counting down (LuckyHotbar.offerSkip asks, with the price for the
--- time left), and its Skip: the server prompts that tier's product (4 / 9 / 15 R$), or a line
+-- time left), and its Skip: the server prompts that tier's product (1 / 4 / 9 / 15 R$), or a line
 -- says why not.
 local function offerSkip(id: number)
 	hotbar:offerSkip(id)
