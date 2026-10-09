@@ -62,10 +62,11 @@ One line each; the long form is the 2026-10-08 entry at the top of
   round (2026-10-08). Look Over There! (Rare now) is the sneaky ball in hand with no cutscene;
   Catch-a-Ball (Epic now) catches a second ball (DOUBLE CATCH!); Verity turns evil and eats;
   Black Hole and the Tiger have no caps. Measured rarity means 0.34 / 0.50 / 0.64 / 0.94 /
-  1.13 / 1.78. Checked in Studio: Verity's act, Catch-a-Ball's leap and both catches (the
-  replay now holds each slow-motion moment; a long frame used to skip it). In progress:
-  Verity's two looks redone to the designer's reference images. Waiting: the designer's
-  hands-on test of the sneak (a second player: a published test place), their voice lines.
+  1.13 / 1.78. Checked in Studio: Verity's act and her two new looks (the plush smiley, the
+  creepy face, to the designer's reference images), Catch-a-Ball's leap and both catches (the
+  replay now holds each slow-motion moment; a long frame used to skip it). Waiting: the
+  designer's hands-on test of the sneak (two players: Studio's Test tab, Clients and Servers),
+  their voice lines.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),

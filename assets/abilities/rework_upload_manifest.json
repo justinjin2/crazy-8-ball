@@ -39,6 +39,16 @@
     "assetType": "Decal",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/Verity/verity_ball_plush.png": {
+    "assetId": "136005252737182",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/VerityEvil/verity_creepy.glb": {
+    "assetId": "72129096577503",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/VerityEvil/verity_evil.glb": {
     "assetId": "131086829663737",
     "assetType": "Model",

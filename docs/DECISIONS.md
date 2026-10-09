@@ -3283,3 +3283,11 @@ timer of a new block stay the designer's call.
   begins. Before, a frame longer than the moment (any frame for Black Flash's 0.004 s hit-stop,
   a 30 fps frame for Catch-a-Ball's 0.02 s hold) ran straight through it at full speed, so the
   hold was skipped in play.
+- 2026-10-08 (designer: "use this reference exactly", one image for each look): Verity's armed
+  ball is the bright yellow plush smiley (black oval eyes, a grin of two rows of white teeth in a
+  thick black outline) and her evil form the creepy face: dark mustard ochre, hollow dark eye
+  holes, no brows, a huge open mouth with thick pale-pink ridged lips, a dark throat and a
+  tongue. Both are our own Blender builds matched to the images (nothing from them ships). Her
+  eyes no longer glow (they are holes), her mouth hangs open at rest (35 degrees), and, our
+  choice, she lunges at the ball as she gapes: the gape alone turned her eyes skyward, out of
+  the push-in camera's view at the most clippable moment.

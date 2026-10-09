@@ -4380,12 +4380,14 @@ Config.Ults.Assets = {
 		-- button, at -Z: the front), CatchInner (the dark inside, seen when open) and J_Hinge
 		-- (the back hinge, at +Z). Unit radius, centred.
 		CatchABall = 93342911188193,
-		-- tools/blender/abilities/verity_evil.py (the designer's second round, 2026-10-08): the
-		-- evil Verity ball. VerityTop (the upper jaw, the brows), VerityBottom (the lower jaw,
-		-- the tongue), VerityEyes (made Neon in the look) and J_Hinge (the hinge pin at +Z, the
+		-- tools/blender/abilities/verity_creepy.py (the designer's second round, 2026-10-08, to
+		-- their reference image): the creepy evil Verity ball. VerityTop (the upper jaw, the
+		-- eye sockets, the upper lip), VerityBottom (the lower jaw, the lower lip, the tongue),
+		-- VerityEyes (the hollow eyes' near-black linings) and J_Hinge (the hinge pin at +Z, the
 		-- back). Unit radius, the front -Z; the top and the eyes turn about the hinge's X axis.
-		-- (Was the Verity monster, 97902969201000, a skinned mesh.)
-		Verity = 131086829663737,
+		-- (Was the toothy chomper of verity_evil.py, 131086829663737, and before it the Verity
+		-- monster, 97902969201000, a skinned mesh.)
+		Verity = 72129096577503,
 	} :: { [string]: number },
 	Images = {
 		-- The pocket-to-ball field lines' Beam tile: a white line and one arrowhead along +U.
@@ -4438,7 +4440,9 @@ Config.Ults.Assets = {
 		-- Steel Ball's streak ring round a spinning ball (three comet streaks; the golden ratio
 		-- is drawn with beams, so its images and the spin arrows are not used).
 		SteelSpinBlur = "rbxassetid://81867204122965",
-		VerityBall = "rbxassetid://138553376266593", -- the smiley on the ball mesh's UVs
+		-- The plush smiley on the ball mesh's UVs (tools/blender/abilities/verity.py, to the
+		-- designer's reference image, 2026-10-08; Decal 136005252737182).
+		VerityBall = "rbxassetid://107401761851714",
 	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
@@ -10799,18 +10803,16 @@ Config.UI.VerityFx = {
 	IdleBobBallRadii = 0.12,
 	ArmSparks = 12,
 	FaceColor = { 255, 210, 31 }, -- her yellow (the arming sparks)
-	EvilColor = { 255, 40, 20 }, -- her eyes (Neon), their light, the turn's flash
-	EyeLight = 1.5, -- her eyes' light (brightness), blazing to EyeBlaze while she laughs
-	EyeBlaze = 5,
-	EyeLightBallRadii = 6, -- its range
+	EvilColor = { 255, 40, 20 }, -- the turn's red flash (her eyes are hollow, unlit)
 	-- The turn (the first bite): a red flash and a dark puff; she swells from the cue ball's
 	-- size to her body's over GrowSeconds (overshooting by GrowOvershoot) and turns over
-	-- FaceSeconds to face each viewer's camera (her heading once she rolls). At rest her jaw
-	-- shows the teeth (GrinDegrees).
+	-- FaceSeconds to face each viewer's camera (her heading once she rolls). At rest her mouth
+	-- hangs open in the creepy smile (GrinDegrees: the model's rest pose, verity_creepy.py's
+	-- REST; at 25-40 degrees compared, 35 shows the smile and the eyes from the high camera).
 	GrowSeconds = 0.28,
 	GrowOvershoot = 0.15,
 	FaceSeconds = 0.15,
-	GrinDegrees = 13,
+	GrinDegrees = 35,
 	FlashBrightness = 6,
 	FlashSeconds = 0.4,
 	PuffParticles = 26,
@@ -10823,7 +10825,7 @@ Config.UI.VerityFx = {
 	-- shake for the players at the table, crumbs). Then Chews chews of ChewSeconds (the jaw to
 	-- ChewDegrees), a gulp at GulpAt (her body bulging GulpGrow over GulpSeconds) and her laugh
 	-- from LaughAt: her body shakes LaughDegrees at LaughHz, the jaw chattering LaughJawDegrees
-	-- over the grin, her eyes blazing.
+	-- over her open smile. Her jaw opens at most JawOpenDegreesPerSecond (it snaps shut at once).
 	PopSeconds = 0.3,
 	HoverOutBallRadii = 0.8,
 	HoverUpShare = 0.65,
@@ -10831,6 +10833,11 @@ Config.UI.VerityFx = {
 	GapeAt = 0.18,
 	GapeSeconds = 0.2,
 	GapeDegrees = 72,
+	-- She lunges at the ball as she gapes, leaning GapeLeanDegrees toward the camera (her eyes,
+	-- turned skyward by the gape, come round over the open mouth), easing back over
+	-- GapeLeanBackSeconds after the chomp.
+	GapeLeanDegrees = 30,
+	GapeLeanBackSeconds = 0.3,
 	SuckAt = 0.42,
 	ChompAt = 0.56,
 	SnapSeconds = 0.06,
@@ -10847,6 +10854,7 @@ Config.UI.VerityFx = {
 	LaughHz = 7,
 	LaughJawDegrees = 9,
 	LaughSeconds = 1.4, -- how long her body shakes with it
+	JawOpenDegreesPerSecond = 700,
 	-- The camera of each player at the table (Camera.setOverride): it snaps in over
 	-- CamInSeconds toward her face (CamDistanceRadii of her radius away, CamPitchDegrees above
 	-- level, aimed CamLookUpShare of her radius over her centre, from the side it looked from),

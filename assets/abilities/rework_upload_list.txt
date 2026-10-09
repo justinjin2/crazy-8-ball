@@ -12,3 +12,6 @@
 /Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/Verity.png
 # Verity v2, the evil Verity ball (the designer's second rework round, 2026-10-08)
 /Users/justinjin/Desktop/8ball-abilities/assets/abilities/VerityEvil/verity_evil.glb
+# Verity v3, the plush smiley ball (its map) and the creepy evil ball (the designer's references, 2026-10-08)
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/Verity/verity_ball_plush.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/VerityEvil/verity_creepy.glb

@@ -5,16 +5,17 @@
 -- physics (Ults/Effects/Verity); this only draws them, off the replay's events and its state,
 -- so everyone at the table sees the same Verity. Numbers in Config.UI.VerityFx, sounds in
 -- Config.Ults.Audio (Verity*), the evil ball in the uploaded Verity model
--- (tools/blender/abilities/verity_evil.py: VerityTop and VerityEyes hinge on VerityBottom),
+-- (tools/blender/abilities/verity_creepy.py: VerityTop and VerityEyes hinge on VerityBottom),
 -- the smiley ball's map in Config.Ults.Assets.Images.
 --
 --   * Armed: the cue ball is the yellow smiley Verity ball, its face turned to the camera,
 --     swaying; her line plays ("Hi, I'm Verity! Trust me, I know everything!").
 --   * The first bite (the first "eat"): a red flash and the smiley turns evil. She swells to
---     her body's size (Config.Ults.Verity.BodyRadiusInches), her angry face turned to each
---     viewer's camera, which pushes in on it for about a second under a darker grade. The ball
---     she hit pops up in front of her face, her jaws gape, suck it in and slam shut (a crunch,
---     a shake, crumbs); she chews twice, gulps, and laughs, her eyes blazing.
+--     her body's size (Config.Ults.Verity.BodyRadiusInches), her creepy face (hollow eyes, a
+--     huge smile of a mouth hanging open) turned to each viewer's camera, which pushes in on it
+--     for about a second under a darker grade. The ball she hit pops up in front of her face,
+--     her jaws gape, suck it in and slam shut (a crunch, a shake, crumbs); she chews twice,
+--     gulps, and laughs.
 --   * The roll ("roll"): she turns to her heading and rolls on, bouncing and chomping. Each of
 --     yours she reaches ("eat") is pulled into her mouth with a snap and a gulp; any other ball
 --     she touches is bumped aside with a boing ("bump"); she hops over the 8 ("hop"). The
@@ -137,7 +138,6 @@ type Act = {
 	born: number, -- fx.clock at the first bite
 	quiet: boolean, -- an old event (a late join): no sounds, flashes or camera
 	body: { [string]: MeshPart }?, -- the evil ball's pieces
-	light: PointLight?, -- her eyes' light
 	pos: Vector3, -- her centre (world) now
 	facing: Vector3, -- her flat front (world, unit)
 	morsels: { Morsel },
@@ -150,6 +150,7 @@ type Act = {
 	nextDust: number, -- fx.clock of the next puff of dust on the roll
 	camFrom: CFrame?, -- this viewer's camera at the bite (it pushes in from there)
 	camClose: CFrame?,
+	jaw: number, -- her jaw's opening last frame (degrees)
 }
 
 type TableFx = {
@@ -211,10 +212,6 @@ local function meshesOf(self: VerityFx): Meshes?
 		mesh.CastShadow = name ~= "VerityEyes"
 		parts[name] = mesh
 	end
-	local eyes = parts.VerityEyes
-	eyes.Material = Enum.Material.Neon
-	eyes.TextureID = ""
-	eyes.Color = rgb(F.EvilColor)
 	-- The ball's centre: the middle of the two jaws' outer box.
 	local top, bottom = parts.VerityTop, parts.VerityBottom
 	local yTop = top.Position.Y + top.Size.Y / 2
@@ -426,10 +423,11 @@ local function newShell(fx: TableFx, cuePart: BasePart): BasePart?
 end
 
 -- The evil ball's pieces for one act (clones of the model's), hidden until placed.
-local function newBody(self: VerityFx, fx: TableFx): ({ [string]: MeshPart }?, PointLight?)
+-- Her eyes are hollow sockets (VerityEyes keeps the atlas's near-black linings): no glow.
+local function newBody(self: VerityFx, fx: TableFx): { [string]: MeshPart }?
 	local meshes = meshesOf(self)
 	if meshes == nil then
-		return nil, nil
+		return nil
 	end
 	local body: { [string]: MeshPart } = {}
 	for _, name in PIECES do
@@ -438,12 +436,7 @@ local function newBody(self: VerityFx, fx: TableFx): ({ [string]: MeshPart }?, P
 		part.Parent = fx.anchor
 		body[name] = part
 	end
-	local light = self.kit.light(body.VerityEyes, {
-		Color = rgb(F.EvilColor),
-		Brightness = F.EyeLight,
-		Range = ballRadius() * F.EyeLightBallRadii,
-	})
-	return body, light
+	return body
 end
 
 -- Place the evil ball: its centre frame `frame` (front -Z), `radius` studs, the upper jaw
@@ -643,14 +636,14 @@ local function startAct(self: VerityFx, id: number, fx: TableFx, m: any, ev: any
 	local quiet = m.state.time - ev.t > F.FreshSeconds
 	local centre = kit.ballWorld(m, cue)
 	local target = kit.tableWorld(m, ev.x or cue.x, ev.y or cue.y, Config.Balls.RenderRadiusInches)
-	local body, light = newBody(self, fx)
+	local body = newBody(self, fx)
 	local act: Act = {
 		born = fx.clock,
 		quiet = quiet,
 		body = body,
-		light = light,
 		pos = centre,
 		facing = flat(target - centre) or Vector3.new(0, 0, -1),
+		jaw = F.GrinDegrees,
 		morsels = {},
 		rollAt = nil,
 		landAt = nil,
@@ -824,18 +817,32 @@ local function stepAct(
 			jaw = F.GrinDegrees + (F.BurpDegrees - F.GrinDegrees) * math.sin(math.pi * burp)
 		end
 	end
+	-- Her mouth hangs open at rest (GrinDegrees), so it never springs open in one frame (the
+	-- laugh after the gulp, the landing): opening is capped at JawOpenDegreesPerSecond, while
+	-- closing stays instant (the chomps snap shut).
+	if jaw > act.jaw then
+		jaw = math.min(jaw, act.jaw + F.JawOpenDegreesPerSecond * dt)
+	end
+	act.jaw = jaw
 	-- Her lean into the roll, and the laugh's shake.
 	local tilt = CFrame.identity
 	if rollAt and landAt == nil then
 		local lean = clamp01((fx.clock - rollAt) / F.FaceSeconds)
 		tilt = CFrame.Angles(-math.rad(F.RollLeanDegrees) * lean, 0, 0)
 	end
+	-- Her lunge at the ball as her jaws gape (the first bite): leaning in toward the camera
+	-- brings her hollow eyes round over the open mouth, which the gape alone turns skyward.
+	if rollAt == nil and u >= F.GapeAt then
+		local back = u - F.ChompAt - F.SnapSeconds
+		local lunge = if back < 0
+			then easeOut(clamp01((u - F.GapeAt) / F.GapeSeconds))
+			else 1 - smooth(clamp01(back / F.GapeLeanBackSeconds))
+		tilt *= CFrame.Angles(-math.rad(F.GapeLeanDegrees) * lunge, 0, 0)
+	end
 	local laugh = (u - F.LaughAt) / F.LaughSeconds
-	local blaze = 0
 	if laugh > 0 and laugh < 1 then
 		local shake = math.sin(2 * math.pi * F.LaughHz * (u - F.LaughAt)) * (1 - laugh)
 		tilt *= CFrame.Angles(0, 0, math.rad(F.LaughDegrees) * shake)
-		blaze = math.sin(math.pi * laugh)
 	end
 	local frame = CFrame.lookAt(act.pos, act.pos + act.facing) * tilt
 	if act.body then
@@ -849,9 +856,6 @@ local function stepAct(
 			shell.CFrame = frame
 			shell.Transparency = 0
 		end
-	end
-	if act.light then
-		act.light.Brightness = F.EyeLight + (F.EyeBlaze - F.EyeLight) * blaze
 	end
 	stepMorsels(act, fx, radius, dt)
 	stepCamera(self, act, u)

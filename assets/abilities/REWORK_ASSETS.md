@@ -191,3 +191,59 @@ These poses were checked in the renders:
 
 The face reads at phone size from the high camera (`grin_high_phone`, `gape_high_phone`, 96
 px). Sounds for it: SOUNDS_V2.md, "Verity v2".
+
+## F. Verity v3: the plush smiley ball and the creepy evil ball
+
+The designer's newest round (2026-10-08) gave a reference for each of Verity's two looks ("use
+this reference exactly"). Both were rebuilt headless and uploaded; the references were only looked
+at, nothing from them ships.
+
+**The armed ball:** `Verity/verity_ball_plush.png`, step `ball` of
+`tools/blender/abilities/verity.py` (the first map, `verity_ball.png`, stays as history). The
+same 1024 x 512 layout as before (the face twice, at u = 0.25 and 0.75, upright, the same size on
+the ball), so it faces the camera in game as the old one did. The face is described in
+`Verity/Readme.md`, "The ball". Uploaded as a Decal, asset id **136005252737182** (Active,
+Approved). `Config.Ults.Assets.Images.VerityBall` takes the image inside it, read in Studio
+with `InsertService:LoadAsset(136005252737182)` and the Decal's `Texture` (Open Cloud's asset
+delivery refuses this key): image **107401761851714**, in Config since 2026-10-08.
+
+**The evil ball:** `VerityEvil/verity_creepy.glb` (with `verity_creepy.blend` and
+`textures/verity_creepy_atlas.png`, 1024 x 1024, embedded), built by
+`tools/blender/abilities/verity_creepy.py`:
+
+    /Applications/Blender.app/Contents/MacOS/Blender -b --python tools/blender/abilities/verity_creepy.py [-- render names]
+
+Uploaded as a Model, asset id **72129096577503** (group 675425213, Active, Approved). It
+replaces 131086829663737 (section E, kept as history) with the same pieces, axes and hinge, so
+VerityFx plays it unchanged: unit radius, front Roblox -Z, every object's origin at the hinge pin
+H (Blender (0, 1.035, 0), Roblox +Z), the top jaw's highest point and the bottom jaw's lowest at
+the poles. About 32,200 triangles: VerityTop 17,372, VerityBottom 13,724, VerityEyes 1,056,
+J_Hinge 12 (each under 20,000). One material, so each object is one MeshPart.
+
+| Object | What | Intended look in Roblox |
+|---|---|---|
+| `VerityTop` | the upper jaw: the shell above the seam with two eye sockets sunk into it (dimples 0.13 deep, soft dark rims painted round them), the near-black roof inside and the upper lip, a thick band of pale ridged lip hanging along the front of its edge | the atlas as is (`TextureID`); matte (Plastic) |
+| `VerityBottom` | the lower jaw: the shell below the seam, the dark throat, the lower lip riding along its edge and a big dark tongue in the bowl | the atlas as is |
+| `VerityEyes` | the two hollow eyes: near-black linings at the bottoms of the sockets | the atlas as is (or `Color` 6, 3, 3): **no Neon and no light**, they are holes; turn it with VerityTop |
+| `J_Hinge` | a 0.02 cube at H | `Transparency = 1` |
+
+**The seam is a smile:** the jaws part along a curve low at the front (height -0.45), up at the
+sides (+0.4, the mouth's corners) and back down to the hinge, so the upper lip reads as a smile
+over a tall mouth from the front and from the high table camera, and the shut ball shows a
+grin. Shut, the two lips cross and read as lips pressed together.
+
+Atlas colours: the skin is a dark mustard ochre by latitude (BA9444 at the top, 9E7A34 at the
+middle, 56401C at the bottom pole), mottled, the sockets darkening to 120A06; the eye linings are
+060303. The lips are a pale pink-white E6C8C0 with fine wandering lines (94525A) across them,
+darkening to 3A0E14 on their side toward the mouth, with a dark crease where they meet the skin.
+The inside goes from 300A0E at the lips to 080203; the seam rim is 2A0A0E; the tongue is 401419,
+darker at its edges, with a groove and a lit rim (84424E) round its tip.
+
+**The jaw** opens as before (VerityTop and VerityEyes about the hinge's X axis, the front
+rising). Checked in the renders (`VerityEvil/renders/creepy_*`, not committed): rest 25, 30, 35
+and 40 degrees from the front three-quarter and the high camera; **35 degrees** reads best (the
+smile and the eyes from above, the tongue and a tall dark mouth from the front). The gape (72
+degrees) shows the tongue in the open bowl. At 96 px from the high camera the face still reads
+(`creepy_rest_high_phone`). In game the gape turns the eyes skyward from the low push-in camera,
+so VerityFx leans her toward the camera as she gapes (`GapeLeanDegrees`), which brings the
+hollow eyes back over the open mouth; `GrinDegrees` is 35.

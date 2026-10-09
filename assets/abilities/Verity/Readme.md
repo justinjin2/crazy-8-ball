@@ -10,7 +10,8 @@ tools/blender/abilities/verity.py [-- ball|monster|renders]` (no step = all thre
 
 | File | What |
 | --- | --- |
-| `verity_ball.png` | 1024 x 512 ball map for `assets/balls/ball_sphere.obj` (step `ball`) |
+| `verity_ball_plush.png` | 1024 x 512 ball map for `assets/balls/ball_sphere.obj` (step `ball`): the plush smiley, 2026-10-08 |
+| `verity_ball.png` | the first ball map (the flat smiley), kept as history |
 | `verity_monster.glb` | the skinned monster, rest pose, no animations (step `monster`) |
 | `verity_anims.json` | every action as per-frame bone matrices (step `monster`), 2.4 MB |
 | `textures/verity_monster_basecolor.png` | the monster's one map, 1024 px (embedded in the glb) |
@@ -27,6 +28,7 @@ tools/blender/abilities/verity.py [-- ball|monster|renders]` (no step = all thre
 | --- | --- | --- |
 | verity_monster.glb | Model | 97902969201000 (re-uploaded 2026-10-08 with welded, consistently outward faces; the first upload, 130065008141591, showed holes where seam-split islands had flipped) |
 | verity_ball.png | Decal | 108837263159693 (a Decal id: read the image id via `InsertService:LoadAsset` in Edit before use in `TextureID`) |
+| verity_ball_plush.png | Decal | 136005252737182 (the plush smiley; its image id 107401761851714 is in Config; in `../rework_upload_manifest.json`) |
 | verity_line.mp3 | Audio | 135865093470317 |
 | look_over_there.mp3 | Audio | 84561965728329 |
 | look_over_there_alt.mp3 | Audio | 107522256357964 |
@@ -39,6 +41,17 @@ Each face is drawn in its own orthographic view, so it reads round on the sphere
 #FFD21F at each face, shading to #E2A00C 90 degrees away; bold black ink (eyes are tall ovals
 0.23 x 0.43 ball radii, smile stroke 0.16 radii) so it survives 20-55 px on a phone
 (`renders/ball_phone.png` is 48 px).
+
+**The plush smiley** (`verity_ball_plush.png`, the designer's second round, 2026-10-08: "needs to
+look exactly like this", a plush smiley toy ball) keeps that layout. A bright warm yellow plush
+(#FAD31E, lighter toward the top, fine fibre noise), two black upright ovals (0.16 x 0.31 radii,
+centres 0.345 out and 0.247 up) and a wide embroidered grin, all measured off the reference in
+the face's own view: a black outline (0.056 radii thick, thinning to 0.034 at the corners)
+whose top edge dips to -0.284 in the middle and whose bottom edge is a rounded ellipse down to
+-0.676, ending at each corner in a short stem under a bar; inside, two rows of white teeth, the
+upper parted down the middle between two big front teeth (0.2 wide) and narrowing to the
+corners, the lower with a tooth in the middle, all a little puffy at their corners. Checked
+against the reference with an orthographic front render and an ink overlay.
 
 **Mirroring:** this UV wrap reads mirrored from outside: in Blender, `tex_2`'s "2" shows backwards
 from both sides. The Verity face is left-right symmetric, so it does not matter here, but the
