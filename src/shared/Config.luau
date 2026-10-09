@@ -4235,9 +4235,15 @@ Config.Ults = {
 		-- (0.43, 0.067, 1.3 s); going out, "Sizzle Short And Explosive Sear 1" (0.52, 0.078,
 		-- 2.2 s). Volume x p90 about 0.045 a sting, 0.02 the loop. (tune by ear)
 		FireIgnite = { Id = "rbxassetid://9117987723", Volume = 0.5 },
-		FireLoop = { Id = "rbxassetid://9120193895", Volume = 0.55 },
+		-- The loop while it burns: the designer's flame whoosh (2026-10-09, "very very low";
+		-- assets/audio/abilities/FireIdle.wav, 25.7 s, average 0.19 RMS at volume 1, eight times
+		-- the old crackle's; it was "Torch O Fire 1", 9120193895).
+		FireLoop = { Id = "rbxassetid://134062001061746", Volume = 0.03 },
 		FireLaunch = { Id = "rbxassetid://9114446277", Volume = 0.7 },
-		FireHit = { Id = "rbxassetid://9119166435", Volume = 0.5 },
+		FireHit = { Id = "rbxassetid://9119166435", Volume = 0.5 }, -- a cushion
+		-- A ball hit (times how hard): the designer's bonfire burst (2026-10-09; assets/audio/
+		-- abilities/FireHitBall.wav, 1.6 s, average 0.085 RMS at volume 1).
+		FireHitBall = { Id = "rbxassetid://132090886305703", Volume = 0.3 },
 		FireOut = { Id = "rbxassetid://9119165436", Volume = 0.45 },
 	},
 }

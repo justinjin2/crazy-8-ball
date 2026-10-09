@@ -12,7 +12,8 @@
 --     the cue ball with a flash of firelight and a whoosh, and it catches fire.
 --   * Engulfed (armed until the shot, then until the cue ball stops): flames lick up off the
 --     ball (two flame flipbooks), embers rise, dark smoke curls above it, a warm glow and a
---     see-through Neon shell breathe with a flickering firelight, and a crackle loops.
+--     see-through Neon shell breathe with a flickering firelight, and a flame whoosh loops,
+--     very low.
 --   * The aim (the local shooter only): the guideline itself, orange, draws every line, and
 --     the object ball's and the cue ball's run on until they touch the next cushion, ball or
 --     pocket (Guideline.show's `full`; the designer: "to the next edge of a table"; 2026-10-09:
@@ -23,7 +24,7 @@
 --     leaves an unbroken stream, not clumps), with low trailing flames that linger behind it
 --     (the flame trail; designer, 2026-10-09), a burning ribbon with a hot core trails it (the
 --     cue skin's own trail hidden meanwhile), and every cushion and ball it hits throws sparks
---     and a puff of flame with a flash and a sizzle.
+--     and a puff of flame with a flash, and a bonfire burst off a ball (a sizzle off a cushion).
 --   * Out (at rest, down a pocket, off the table): the flames die down with a puff of smoke
 --     and a sizzle.
 --   * Scorch marks (everyone at the table): a faint dark char line burnt into the cloth where
@@ -1063,7 +1064,9 @@ local function onEvent(self: FireShotFx, id: number, m: any, ev: any)
 	local t = os.clock()
 	if t - fx.lastHit >= F.HitGapSeconds then
 		fx.lastHit = t
-		sting(self, id, A.FireHit, at, weight)
+		-- A ball takes the designer's bonfire burst; a cushion, the sizzle (2026-10-09).
+		local clip = if type(ev.other) == "number" then A.FireHitBall else A.FireHit
+		sting(self, id, clip, at, weight)
 	end
 end
 
@@ -1092,7 +1095,9 @@ function FireShotFx.start(hub: any, _parent: Instance, kit: any): FireShotFx
 	-- Fetch the sounds and the art now, so the first ignition is not silent or blank.
 	task.spawn(function()
 		local list: { any } = {}
-		for _, clip in { A.FireIgnite, A.FireLoop, A.FireLaunch, A.FireHit, A.FireOut } do
+		for _, clip in
+			{ A.FireIgnite, A.FireLoop, A.FireLaunch, A.FireHit, A.FireHitBall, A.FireOut }
+		do
 			if clip.Id ~= "" then
 				local sound = Instance.new("Sound")
 				sound.SoundId = clip.Id

@@ -1054,6 +1054,16 @@
     "assetType": "Audio",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/audio/abilities/FireHitBall.wav": {
+    "assetId": "132090886305703",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/abilities/FireIdle.wav": {
+    "assetId": "134062001061746",
+    "assetType": "Audio",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/audio/cutscenes/LegendaryAurora.wav": {
     "assetId": "138935380522596",
     "assetType": "Audio",

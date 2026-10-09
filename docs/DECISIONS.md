@@ -3711,3 +3711,7 @@ timer of a new block stay the designer's call.
   first 1.95 s, where the words end); the monster's arrival, the designer's 135866700568043
   (was a swell); the chomp, gulp and bumps stay; her laugh and the burp are gone (designer:
   "get rid of the like laughing stock sfx ... burping sfx too its gross"). Their animations stay.
+- 2026-10-09: Fire Shot's sounds: the loop while it burns is the designer's flame whoosh, very
+  low (volume 0.03 of a clip eight times the old crackle's level); a ball hit plays the
+  designer's bonfire burst (a cushion keeps the sizzle). Uploaded to the group
+  (FireIdle 134062001061746, FireHitBall 132090886305703).
