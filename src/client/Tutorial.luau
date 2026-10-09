@@ -319,7 +319,7 @@ local function equipScene(device: string, fresh: boolean): string
 	return key
 end
 
--- The Block step (designer, 2026-10-04): Bronze's Standard lucky block sits in the hotbar;
+-- The Block step (designer, 2026-10-04): Bronze's lucky block (BronzeBlockKind) sits in the hotbar;
 -- the hand points at its slot (hold it), then at the ground (throw it), then at the block on
 -- the floor (its open prompt). The server moves on once it is opened (LuckyBlockService).
 local function blockScene(device: string, fresh: boolean): string
@@ -379,7 +379,7 @@ local function rareBlockScene(device: string, fresh: boolean): string
 	return key
 end
 
--- After game 1 (step 5): the Standard block, Equip, the Rare block, then the Abilities screen.
+-- After game 1 (step 5): the game-1 block, Equip, the Rare block, then the Abilities screen.
 local function afterScene(step: string, device: string): string
 	arrow:show(nil)
 	local fresh = step ~= lastAfter

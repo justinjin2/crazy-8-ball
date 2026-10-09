@@ -977,6 +977,7 @@ return {
 			Epic = "Epic",
 			Legendary = "Legendary",
 			Mythic = "Mythic",
+			Secret = "Secret", -- the climb's top (economy v5: no block, the cue at once)
 		} :: { [string]: string },
 		ReadyIn = "Ready in %s", -- a block still on its timer: "Ready in 1:42"
 		Bag = "Bag", -- the hotbar's bag button and the panel's title
@@ -1004,6 +1005,7 @@ return {
 			NotLanded = "Wait for it to land.",
 			Reveal = "Tap the Mystery block's slot to open it!",
 			NotMystery = "That block opens in the world.",
+			Climb = "Tap the block's slot to climb it first!", -- an unclimbed block (economy v5)
 			Error = "Something went wrong. Try again.",
 		} :: { [string]: string },
 		-- A ready Mystery block's hotbar slot (designer, 2026-10-07: like Star Drop).
@@ -1018,6 +1020,7 @@ return {
 				Epic = "EPIC",
 				Legendary = "LEGENDARY",
 				Mythic = "MYTHIC",
+				Secret = "SECRET",
 			} :: { [string]: string },
 			Exclaim = "%s!", -- a tier's name over the block, all but Standard's: "EPIC!"
 			-- The pill at the top (pick "mystery_reveal B"): the block's name, the presses made
@@ -1240,6 +1243,7 @@ return {
 		NoItems = "Nothing you can trade yet",
 		TheyHaveNone = "They have nothing to trade yet",
 		Full = "Your side is full",
+		Climbed = "Climbed %s", -- a climbed lucky block (economy v5): "Climbed Rare Block"
 		Lopsided = {
 			Mine = "Careful! You give far more than you get!",
 			Theirs = "Big deal for you: they give far more!",

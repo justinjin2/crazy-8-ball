@@ -88,7 +88,7 @@ end
 
 -- Rank rewards are held until claimed in Rank (tutorial lane, 2026-10-03; RankClaim): a rank-up
 -- pays only the lucky blocks of Config.Tutorial.RankClaim.BlocksAtOnce's tiers. The tutorial
--- sets their kind through `blockKind` (Bronze's block is its Standard block); nil gives the
+-- sets their kind through `blockKind` (Bronze's block is its game-1 block); nil gives the
 -- Config kinds.
 local blockKind: ((Player) -> string?)? = nil
 
@@ -360,6 +360,7 @@ type Paid = {
 	streak: number,
 	boost: number,
 	block: PlayerData.WinBlock?, -- the win's lucky block (the result screen's block chip)
+	trackMoney: number?, -- the win track's money step (economy v5), already paid
 }
 
 -- Settles one player (every "before" count is on `entry`, read before anyone was paid).
@@ -463,7 +464,12 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 		if drops then
 			local block = giveBlock(p, ctx.firstWinEver, entry.opponents)
 			if block then
-				paid.block = block
+				-- A money step (economy v5) pays its money; a block step lands its block.
+				if block.kind ~= nil then
+					paid.block = block
+				else
+					paid.trackMoney = block.money or 0
+				end
 				if pc then
 					PlayerData.countDaily(p, "PcDrops")
 				end
@@ -594,7 +600,10 @@ local function settle(e: any)
 				niceMoney = tally.niceMoney,
 				ballStreakMoney = tally.ballStreakMoney,
 				bestStreak = tally.bestStreak,
-				bonus = paid.bonus,
+				-- The win track's money step (economy v5) rides in the win bonus's line until
+				-- the result screen draws its own (a shim; `track` is that money alone).
+				bonus = paid.bonus + (paid.trackMoney or 0),
+				track = paid.trackMoney,
 				streak = paid.streak,
 				reward = reward,
 				boost = paid.boost,
@@ -602,6 +611,7 @@ local function settle(e: any)
 					+ tally.niceMoney
 					+ tally.ballStreakMoney
 					+ paid.bonus
+					+ (paid.trackMoney or 0)
 					+ paid.streak
 					+ reward,
 			},

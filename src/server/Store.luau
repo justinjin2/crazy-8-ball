@@ -582,7 +582,7 @@ local function grantProduct(
 			return false, why
 		end
 	elseif LuckyBlocks.skipTierOf(key) ~= nil then
-		grant = { key = key, money = 0, luckySkip = true, skipTier = LuckyBlocks.skipTierOf(key) }
+		grant = { key = key, money = 0, luckySkip = true }
 	else
 		grant, notFor = Shop.grantFor(
 			key,

@@ -63,8 +63,9 @@ export type Grant = {
 	-- A restock item bought with Robux (RestockRare .. RestockLegendary): its restock slot,
 	-- item id and the block kind it gives (the Store fills it in: the restock is the server's).
 	restock: { slot: number, id: string, block: string }?,
-	luckySkip: boolean?, -- durable lucky block timer credit, applied by PlayerData
-	skipTier: number?, -- that skip's tier (Config.LuckyBlocks.Skips; nil: the top one)
+	-- A durable lucky block timer credit of the product `key` (Config.LuckyBlocks.Skips),
+	-- applied by PlayerData (economy v5: credits are kept by product).
+	luckySkip: boolean?,
 	boostEnds: number?, -- the Starter Pack's 2x money hour ends then (sets Shop.BoostEnds)
 	-- Claim All: the most days of the login row to claim (Config.Daily.ClaimAll). The server
 	-- works the days out from the save as it applies the grant (Daily.claimAll).
@@ -184,7 +185,6 @@ Shop.GrantFields = {
 	blocks = true,
 	restock = true,
 	luckySkip = true,
-	skipTier = true,
 	boostEnds = true,
 	claimAll = true,
 } :: { [string]: boolean }

@@ -176,7 +176,7 @@ end
 --- `player` unboxed `cueId`: a Legendary (BlockOdds.announcesHere) is a banner for this server,
 --- a Mythic or Secret (BlockOdds.announces) for every server, Config.Items.UnboxAnnounceDelaySeconds
 --- later so the opener's reel settles first. Never yields.
-function Announce.unbox(player: Player, cueId: string)
+function Announce.unbox(player: Player, cueId: string, _climb: { from: string, luck: boolean }?)
 	local cue = Catalog.get(cueId)
 	if not isPlayer(player) or cue == nil then
 		return

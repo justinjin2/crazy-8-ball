@@ -193,7 +193,8 @@ end
 
 local cueRandom = Random.new()
 
--- Bronze's Standard block opens to an Uncommon cue (answer 9): one of its odds row's own.
+-- Bronze's block opens to an Uncommon cue (answer 9): one of its odds row's own. Since economy
+-- v5 it is an Uncommon block that never climbs (stayFor), so its row gives Uncommon cues only.
 local function forcedOpen(player: Player, kind: string): string?
 	if TutorialService.step(player) ~= "Block" or kind ~= T.BronzeBlockKind then
 		return nil
@@ -204,6 +205,12 @@ local function forcedOpen(player: Player, kind: string): string?
 		return nil
 	end
 	return pool[cueRandom:NextInteger(1, #pool)].Id
+end
+
+-- Bronze's block never climbs (economy v5): it stays an Uncommon block, ready at once, so the
+-- lesson's hold, throw and open run as before.
+local function stayFor(player: Player, kind: string): boolean
+	return TutorialService.step(player) == "Block" and kind == T.BronzeBlockKind
 end
 
 local function opened(player: Player, kind: string, cueId: string)
@@ -265,7 +272,11 @@ local function rareAt(player: Player): number?
 		else {}
 	local newest: any = nil
 	for _, block in list :: { any } do
-		if type(block) == "table" and block.Kind == "Rare" and type(block.ReadyAt) == "number" then
+		if
+			type(block) == "table"
+			and (block.Kind == "Rare" or block.From == "Rare") -- climbed past Rare (economy v5)
+			and type(block.ReadyAt) == "number"
+		then
 			if newest == nil or block.Id > newest.Id then
 				newest = block
 			end
@@ -421,7 +432,7 @@ end
 
 function TutorialService.start()
 	inArena = ArenaService.detect()
-	-- Bronze's at-once block after game 1 is the tutorial's Standard block (answer 9).
+	-- Bronze's at-once block after game 1 is the tutorial's block (answer 9; Uncommon, v5).
 	Ranking.setBlockKind(function(player: Player): string?
 		local step = TutorialService.step(player)
 		if Steps.active(step) and not Steps.atLeast(step, "Block") then
@@ -429,7 +440,7 @@ function TutorialService.start()
 		end
 		return nil
 	end)
-	LuckyBlockService.setOpenHooks(forcedOpen, opened)
+	LuckyBlockService.setOpenHooks(forcedOpen, opened, stayFor)
 	Items.setEquipHook(equipped)
 	UltSpins.setSpinHooks(forcedSpin, spun)
 	Rewards.onRedeemed(codeRedeemed)

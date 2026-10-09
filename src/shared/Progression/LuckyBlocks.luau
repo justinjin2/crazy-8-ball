@@ -2,8 +2,12 @@
 -- LuckyBlocks (designer, 2026-10-03; Config.LuckyBlocks): the rules of the lucky blocks a
 -- player holds. The save keeps them as { Next, List }: List is a gapless array in hotbar order
 -- (the first Config.LuckyBlocks.HotbarSlots are the hotbar's slots 1..9, the rest wait in the
--- bag), each { Id, Kind, ReadyAt }; Next is the last id given, so ids never repeat in a save.
--- A block's cue is rolled from its kind's odds row (BlockOdds.roll / cueOdds): no odds of its own.
+-- bag), each { Id, Kind, ReadyAt, Paid?, Climbed?, From?, Luck? }; Next is the last id given,
+-- so ids never repeat in a save. Economy v5 (2026-10-09): a block of a climbing kind arrives
+-- unclimbed (no timer but the Gift's Wait) and its climb (`climb`, rolled by
+-- BlockDrop.climbRoll) makes it the climbed block of the tier it reached, on that tier's timer;
+-- a climbed block's cue is rolled from its tier's row (exactly that rarity). From: the kind it
+-- started as; Luck: the Grand Opening Luck ran at its climb (both for the "1 in N").
 --
 -- Pure: no Instances, no Roblox APIs, no clocks (the caller passes `now`, unix seconds) and no
 -- randomness; Lune-tested (tests/luckyblocks_test.luau). PlayerData calls the changes on the live
@@ -15,9 +19,12 @@ local Catalog = require(script.Parent.Catalog)
 local L = Config.LuckyBlocks
 
 export type Kind = {
-	Odds: string?, -- the Config.BlockOdds row it rolls (nil with Roll: the tier roll first)
-	Roll: boolean?, -- the Mystery block: rolls a tier by Config.BlockOdds.Drop.Weights, then that row
+	Odds: string?, -- the Config.BlockOdds row a climbed (or never-climbing) block of it rolls
+	Climb: string?, -- the tier it climbs from (economy v5); nil: it never climbs
+	Pity: boolean?, -- the Mystery block: its climb uses the pity counters
+	Roll: boolean?, -- the client opens it on the climb screen today (the Mystery block)
 	Timer: number,
+	Wait: number?, -- seconds an unclimbed block waits before it can climb (the Gift)
 	Model: string,
 	Idle: string?,
 	Icon: string?, -- its 2D picture for GUIs (BlockIcon, the hotbar); nil: a 3D model view
@@ -31,17 +38,24 @@ export type Kind = {
 	HoldCenterShare: number?,
 	IconScale: number?,
 }
-export type Block = { Id: number, Kind: string, ReadyAt: number, Paid: boolean? }
+export type Block = {
+	Id: number,
+	Kind: string,
+	ReadyAt: number,
+	Paid: boolean?,
+	Climbed: boolean?, -- it climbed (a block tier's climbed block); nil: unclimbed
+	From: string?, -- the kind it started as (a climbed block)
+	Luck: boolean?, -- the Grand Opening Luck ran at its climb
+}
 -- Opened: how many blocks of each kind this player has opened (the Guarantee's count).
 export type State = {
 	Next: number,
 	List: { Block },
-	-- Paid timer skips not yet used (a receipt whose block had finished): SkipCredits skip any
-	-- timer (the top price, and every skip bought before economy v4); SkipCredits1 and
-	-- SkipCredits2 only a timer with at most Config.LuckyBlocks.Skips[1 or 2].UpTo left.
-	SkipCredits: number?,
-	SkipCredits1: number?,
-	SkipCredits2: number?,
+	-- Paid timer skips not yet used (a receipt whose block had finished), by the skip product
+	-- bought (Config.LuckyBlocks.Skips): a credit skips a timer its row covers, or a shorter
+	-- one. Keyed by product (economy v5, save 11), so a new skip row never changes what a saved
+	-- credit buys.
+	Credits: { [string]: number }?,
 	SkipTarget: number?,
 	Opened: { [string]: number }?,
 }
@@ -74,7 +88,8 @@ LuckyBlocks.Reasons = table.freeze({
 	"TooFar", -- Open: too far from the block
 	"NotLanded", -- Open: it is still flying
 	"Reveal", -- Hold: a Mystery block is opened on its upgrade screen, never held
-	"NotMystery", -- Reveal: that block has no tier roll
+	"NotMystery", -- Reveal: that block has no climb ahead (climbed, or a kind that never climbs)
+	"Climb", -- Open: an unclimbed block climbs first (economy v5)
 	"Error", -- anything else (logged on the server)
 })
 
@@ -101,22 +116,43 @@ function LuckyBlocks.fresh(): State
 	return {
 		Next = 0,
 		List = {},
-		SkipCredits = 0,
-		SkipCredits1 = 0,
-		SkipCredits2 = 0,
+		Credits = {},
 		SkipTarget = 0,
 		Opened = {},
 	}
 end
 
---- Seconds after landing until a block of `kind` can be thrown (0 for an unknown kind). VIP
---- multiplies every timer by Config.LuckyBlocks.VipTimerFactor (0: VIP has no timers).
+--- Seconds after a climbed (or never-climbing) block of `kind` lands until it can be opened (0
+--- for an unknown kind). VIP multiplies every timer by Config.LuckyBlocks.VipTimerFactor (0: VIP
+--- has no timers).
 function LuckyBlocks.timer(kind: string, vip: boolean?): number
 	local row = LuckyBlocks.kind(kind)
 	if row == nil or row.Timer <= 0 then
 		return 0
 	end
 	return if vip then math.ceil(row.Timer * L.VipTimerFactor) else row.Timer
+end
+
+--- Seconds a new unclimbed block of `kind` waits before it can climb (the Gift's comeback
+--- wait; 0 for every other kind), VIP's factor applied like a timer.
+function LuckyBlocks.wait(kind: string, vip: boolean?): number
+	local row = LuckyBlocks.kind(kind)
+	local seconds = if row then row.Wait or 0 else 0
+	if seconds <= 0 then
+		return 0
+	end
+	return if vip then math.ceil(seconds * L.VipTimerFactor) else seconds
+end
+
+--- Whether blocks of `kind` climb (Config.LuckyBlocks.Kinds[kind].Climb).
+function LuckyBlocks.climbs(kind: string): boolean
+	local row = LuckyBlocks.kind(kind)
+	return row ~= nil and row.Climb ~= nil
+end
+
+--- Whether `block` still has its climb ahead: a climbing kind, not yet climbed.
+function LuckyBlocks.unclimbed(block: Block): boolean
+	return block.Climbed ~= true and LuckyBlocks.climbs(block.Kind)
 end
 
 --- How many blocks of `kind` this player has opened.
@@ -180,11 +216,6 @@ end
 type SkipRow = { UpTo: number?, Product: string }
 local SKIPS: { SkipRow } = Config.LuckyBlocks.Skips :: any
 
--- The save field holding credits of skip tier `tier` (the top tier: SkipCredits).
-local function creditField(tier: number): string
-	return if tier >= #SKIPS then "SkipCredits" else "SkipCredits" .. tier
-end
-
 --- The skip tier a timer with `seconds` left needs (1..#Skips): the first row whose UpTo
 --- covers it, else the last.
 function LuckyBlocks.skipTierFor(seconds: number): number
@@ -217,20 +248,27 @@ function LuckyBlocks.skipTierOf(key: string): number?
 	return nil
 end
 
+--- The credits held for skip product `product` (0 for none).
+function LuckyBlocks.credits(state: State, product: string): number
+	local credits = state.Credits
+	local n = if type(credits) == "table" then credits[product] else nil
+	return if type(n) == "number" and n == n and n > 0 then math.floor(n) else 0
+end
+
 --- Spend one previously purchased credit on precisely this still-running timer: the cheapest
---- credit whose tier covers the time left (a credit never skips a longer timer than it was
+--- credit whose row covers the time left (a credit never skips a longer timer than it was
 --- bought for).
 function LuckyBlocks.useSkip(state: State, id: number, now: number): boolean
 	local block = LuckyBlocks.find(state, id)
 	if block == nil or LuckyBlocks.isReady(block, now) then
 		return false
 	end
-	local s: any = state
 	local need = LuckyBlocks.skipTierFor(LuckyBlocks.secondsLeft(block, now))
 	for tier = need, #SKIPS do
-		local field = creditField(tier)
-		if (s[field] or 0) >= 1 then
-			s[field] -= 1
+		local product = SKIPS[tier].Product
+		local have = LuckyBlocks.credits(state, product)
+		if have >= 1 then
+			(state.Credits :: { [string]: number })[product] = have - 1
 			state.SkipTarget = 0
 			block.ReadyAt = now
 			block.Paid = true
@@ -240,12 +278,18 @@ function LuckyBlocks.useSkip(state: State, id: number, now: number): boolean
 	return false
 end
 
---- Receipt grant of a skip of tier `tier` (nil: the top tier): never lose a purchase if its
---- target disappeared or finished while offline (it stays a credit of that tier).
-function LuckyBlocks.grantSkip(state: State, now: number, tier: number?)
-	local s: any = state
-	local field = creditField(math.clamp(tier or #SKIPS, 1, #SKIPS))
-	s[field] = (s[field] or 0) + 1
+--- Receipt grant of skip product `product` (nil or not a skip row: the top one): never lose a
+--- purchase if its target disappeared or finished while offline (it stays a credit of that
+--- product).
+function LuckyBlocks.grantSkip(state: State, now: number, product: string?)
+	local key = if product ~= nil and LuckyBlocks.skipTierOf(product) ~= nil
+		then product
+		else SKIPS[#SKIPS].Product
+	if type(state.Credits) ~= "table" then
+		state.Credits = {}
+	end
+	local credits = state.Credits :: { [string]: number }
+	credits[key] = LuckyBlocks.credits(state, key) + 1
 	LuckyBlocks.useSkip(state, state.SkipTarget or 0, now)
 	state.SkipTarget = 0
 end
@@ -275,52 +319,77 @@ function LuckyBlocks.find(state: State, id: number): (Block?, number?)
 	return nil, nil
 end
 
---- Adds a block of `kind` landing at `now` (its timer starts; a `paid` one is ready at once
---- and keeps its paid origin; `vip` takes the VIP timer, none), at place `at` (1..#List + 1; nil: the
---- end). Returns the new block. Errors on an unknown kind: never a broken block.
+--- Adds a block of `kind` landing at `now`, at place `at` (1..#List + 1; nil: the end). A
+--- climbing kind arrives unclimbed: no timer, only its Wait (the Gift's); a never-climbing kind
+--- starts its timer. `climbed` adds a block tier's climbed block instead (a trade, the dev
+--- commands), on its timer. A `paid` one is ready at once and keeps its paid origin; `vip` takes
+--- the VIP timer, none. Returns the new block. Errors on an unknown kind, or `climbed` for a
+--- kind that has no climbed block: never a broken block.
 function LuckyBlocks.add(
 	state: State,
 	kind: string,
 	now: number,
 	at: number?,
 	paid: boolean?,
-	vip: boolean?
+	vip: boolean?,
+	climbed: boolean?
 ): Block
 	assert(LuckyBlocks.kind(kind) ~= nil, "LuckyBlocks.add: unknown kind " .. tostring(kind))
 	kind = LuckyBlocks.current(kind)
+	assert(
+		climbed ~= true or table.find(Config.BlockOdds.Order, kind) ~= nil,
+		"LuckyBlocks.add: no climbed block of " .. kind
+	)
 	state.Next += 1
+	local delay = if LuckyBlocks.climbs(kind) and climbed ~= true
+		then LuckyBlocks.wait(kind, vip)
+		else LuckyBlocks.timer(kind, vip)
 	local block: Block = {
 		Id = state.Next,
 		Kind = kind,
-		ReadyAt = if paid then now else now + LuckyBlocks.timer(kind, vip),
+		ReadyAt = if paid then now else now + delay,
 	}
 	if paid then
 		block.Paid = true
+	end
+	if climbed == true then
+		block.Climbed = true
 	end
 	local place = math.clamp(at or #state.List + 1, 1, #state.List + 1)
 	table.insert(state.List, place, block)
 	return block
 end
 
---- The upgrade screen turned the Mystery block `id` into a `tier` block (designer, 2026-10-07):
---- it keeps its id, its place and its origin, and lands at `now` on the tier's timer (a `paid`
---- one is ready at once, `vip` takes the VIP timer, none). The open is counted for its old kind.
---- Returns the block, or nil when there is no such block. Errors on an unknown tier.
-function LuckyBlocks.reveal(
+--- The climb turned the unclimbed block `id` into the climbed block of `tier` (a block tier;
+--- economy v5, like the Mystery block's upgrade screen since 2026-10-07): it keeps its id, its
+--- place and its origin, notes the kind it started as (From) and whether the Grand Opening Luck
+--- ran (`luck`), and lands at `now` on the tier's timer (a `paid` one is ready at once, `vip`
+--- takes the VIP timer, none). The open is counted for its old kind. Returns the block, or nil
+--- when there is no such block. Errors on a tier that has no block (the Secret: the caller
+--- removes the block and gives the cue) or a block that already climbed.
+function LuckyBlocks.climb(
 	state: State,
 	id: number,
 	tier: string,
 	now: number,
-	vip: boolean?
+	vip: boolean?,
+	luck: boolean?
 ): Block?
-	assert(LuckyBlocks.kind(tier) ~= nil, "LuckyBlocks.reveal: unknown kind " .. tostring(tier))
+	assert(
+		table.find(Config.BlockOdds.Order, tier) ~= nil,
+		"LuckyBlocks.climb: no block of tier " .. tostring(tier)
+	)
 	local block = LuckyBlocks.find(state, id)
 	if block == nil then
 		return nil
 	end
+	assert(LuckyBlocks.unclimbed(block), "LuckyBlocks.climb: the block has no climb ahead")
 	LuckyBlocks.noteOpened(state, block.Kind)
-	block.Kind = LuckyBlocks.current(tier)
-	block.ReadyAt = if block.Paid then now else now + LuckyBlocks.timer(block.Kind, vip)
+	block.From = block.Kind
+	block.Kind = tier
+	block.Climbed = true
+	block.Luck = if luck == true then true else nil
+	block.ReadyAt = if block.Paid then now else now + LuckyBlocks.timer(tier, vip)
 	return block
 end
 
@@ -387,11 +456,19 @@ function LuckyBlocks.landGift(state: State, flags: { [string]: any }, vip: boole
 	return block
 end
 
---- The client's copy: { { id, kind, readyAt } } in list order.
-function LuckyBlocks.snapshot(state: State): { { id: number, kind: string, readyAt: number } }
+--- The client's copy: { { id, kind, readyAt, climbed? } } in list order (`climbed`: a climbed
+--- block, economy v5; nil for an unclimbed one or a kind that never climbs).
+function LuckyBlocks.snapshot(
+	state: State
+): { { id: number, kind: string, readyAt: number, climbed: boolean? } }
 	local list = {}
 	for _, block in state.List do
-		table.insert(list, { id = block.Id, kind = block.Kind, readyAt = block.ReadyAt })
+		table.insert(list, {
+			id = block.Id,
+			kind = block.Kind,
+			readyAt = block.ReadyAt,
+			climbed = if block.Climbed == true then true else nil,
+		})
 	end
 	return list
 end
@@ -406,12 +483,38 @@ function LuckyBlocks.validate(): { string }
 		if row == nil then
 			table.insert(problems, id .. ": in Order but not in Kinds")
 		else
-			if row.Roll then
-				if row.Odds ~= nil then
-					table.insert(problems, id .. ": Roll and Odds together")
+			-- A climbing kind names a ladder tier to start from; a block tier's own kind is also
+			-- its climbed block, which rolls its own row. A kind that never climbs rolls a row.
+			local tiers: { string } = Config.BlockOdds.Climb.Tiers
+			if row.Climb ~= nil then
+				if not table.find(Config.BlockOdds.Order, row.Climb) then
+					table.insert(
+						problems,
+						("%s: Climb %s is not a block tier"):format(id, tostring(row.Climb))
+					)
+				end
+				local own = table.find(Config.BlockOdds.Order, id) ~= nil
+				if own and (row.Climb ~= id or row.Odds ~= id) then
+					table.insert(
+						problems,
+						id .. ": a tier's block climbs from and rolls its own tier"
+					)
+				elseif not own and row.Odds ~= nil then
+					table.insert(problems, id .. ": a climbing kind that is not a tier has no Odds")
 				end
 			elseif BlockOdds.get(row.Odds) == nil then
 				table.insert(problems, ("%s: no odds row %s"):format(id, tostring(row.Odds)))
+			elseif table.find(tiers, id) ~= nil then
+				table.insert(problems, id .. ": a tier's block must climb")
+			end
+			if row.Pity and row.Climb == nil then
+				table.insert(problems, id .. ": Pity without Climb")
+			end
+			if
+				row.Wait ~= nil
+				and (type(row.Wait) ~= "number" or row.Wait < 0 or row.Wait ~= math.floor(row.Wait))
+			then
+				table.insert(problems, id .. ": Wait is not whole seconds")
 			end
 			local g = row.Guarantee
 			if g ~= nil then

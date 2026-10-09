@@ -101,7 +101,9 @@ function ShopMysteryOdds.paint(self: any, d: any)
 	local floor = BlockDrop.floorOf(pity)
 	-- The final tier (with pity's floor while it is live), each bar with its block.
 	d:add("Head", if floor then COPY.TiersLive else COPY.Tiers)
-	for _, tier in BlockDrop.tiers(floor) do
+	-- Live during the Grand Opening Luck (economy v5; Roblox's live-odds rule).
+	local luck = BlockDrop.luckLive(workspace:GetServerTimeNow())
+	for _, tier in BlockDrop.tiers(floor, { luck = luck }) do
 		local row = KINDS[tier.tier]
 		-- A Standard block wears Common's colours, as on the Mystery card.
 		local look = if tier.tier == "Standard" then "Common" else tier.tier

@@ -468,7 +468,10 @@ return {
 	["the template has every field at its starting value"] = function()
 		local _, SaveSchema = setup()
 		local t = SaveSchema.template()
-		H.expect(SaveSchema.Version == 10, "version 10")
+		H.expect(SaveSchema.Version == 11, "version 11")
+		-- The Mystery block's pity starts at the head start (economy v5 plan 3.6).
+		H.expect(t.Drops.SinceRare == 2 and t.Drops.SinceEpic == 10 and t.Drops.Total == 0, "pity")
+		H.expect(type(t.LuckyBlocks.Credits) == "table" and next(t.LuckyBlocks.Credits) == nil, "")
 		H.expect(SaveSchema.WipeBelow == 6, "everything older than 6 is wiped")
 		H.expect(t.Version == SaveSchema.Version, "template carries the current version")
 		H.expect(t.Money == 0 and t.RankXp == 0 and t.PeakDivision == 0, "starts at zero")
@@ -520,7 +523,7 @@ return {
 		H.expect(u.LuckySpins == 0 and u.Pity == 0 and u.FreeSpinDay == 0, "nothing else")
 		H.expect(u.SpinsDone == 0 and u.QueueUlts == true and size(u) == 9, "ults fields")
 		local drops = t.Drops
-		H.expect(drops.SinceRare == 0 and drops.SinceEpic == 0 and drops.Total == 0, "no drops")
+		H.expect(drops.SinceRare == 2 and drops.SinceEpic == 10 and drops.Total == 0, "head start")
 		H.expect(size(drops) == 3, "Drops has three counters")
 		local social = t.Social
 		H.expect(social.Group == false and social.InvitedBy == 0, "no group, not invited")
@@ -690,8 +693,8 @@ return {
 		old.Ults.Spins = 7
 		old.Ults.LuckySpins = 3
 		local out, notes = SaveSchema.migrate(old)
-		H.expect(out.Version == 10, "now version 10")
-		H.expect(#notes == 1 and notes[1] == "migrated 9 -> 10", table.concat(notes, "; "))
+		H.expect(out.Version == SaveSchema.Version, "now the current version")
+		H.expect(notes[1] == "migrated 9 -> 10", table.concat(notes, "; "))
 		H.expect(out.Ults.Spins == 10 and out.Ults.LuckySpins == 0, "3 Lucky Spins became spins")
 		local _, fixes = SaveSchema.validate(out)
 		H.expect(#fixes == 0, "clean: " .. table.concat(fixes, "; "))
@@ -709,8 +712,93 @@ return {
 			}
 		do
 			local ok, moved = pcall(SaveSchema.migrate, bad)
-			H.expect(ok and moved.Version == 10, "a broken save still migrates")
+			H.expect(ok and moved.Version == SaveSchema.Version, "a broken save still migrates")
 		end
+	end,
+
+	["version 10 to 11: every block unclimbed, tier timers end, skip credits keep their price"] = function()
+		local Config, SaveSchema = setup()
+		local old = SaveSchema.template()
+		old.Version = 10
+		old.Drops = { SinceRare = 7, SinceEpic = 55, Total = 90 }
+		old.LuckyBlocks = {
+			Next = 6,
+			List = {
+				{ Id = 1, Kind = "Rare", ReadyAt = 1800000300, Paid = false },
+				{ Id = 2, Kind = "Mythic", ReadyAt = 1800043200, Paid = true },
+				{ Id = 3, Kind = "Gift", ReadyAt = 1800043200, Paid = false },
+				{ Id = 4, Kind = "Mystery", ReadyAt = 1800000000, Paid = false },
+				{ Id = 5, Kind = "GrandOpening", ReadyAt = 1800000000, Paid = true },
+				{ Id = 6, Kind = "Blue", ReadyAt = 1800000300 },
+			},
+			Opened = { Mystery = 4 },
+			SkipCredits = 2, -- the top (15 R$)
+			SkipCredits1 = 3, -- row 1 (4 R$)
+			SkipCredits2 = 1, -- row 2 (9 R$)
+			SkipTarget = 0,
+		}
+		local out, notes = SaveSchema.migrate(old)
+		H.expect(out.Version == 11, "now version 11")
+		H.expect(notes[1] == "migrated 10 -> 11", table.concat(notes, "; "))
+		local list = out.LuckyBlocks.List
+		H.expect(list[1].ReadyAt == 0 and list[2].ReadyAt == 0, "a tier block's timer ends")
+		H.expect(list[6].ReadyAt == 0, "an old test id is a tier too")
+		H.expect(list[3].ReadyAt == 1800043200, "the Gift keeps its comeback wait")
+		H.expect(list[5].ReadyAt == 1800000000, "a block that never climbs keeps its time")
+		for _, block in list do
+			H.expect(block.Climbed == nil, block.Kind .. " is unclimbed")
+		end
+		H.expect(list[2].Paid == true, "paid origin kept")
+		local credits = out.LuckyBlocks.Credits
+		H.expect(credits.LuckyBlockSkip == 3, "row 1's credits are 4 R$ skips")
+		H.expect(credits.LuckyBlockSkip9 == 1, "row 2's are 9 R$ skips")
+		H.expect(credits.LuckyBlockSkip15 == 2, "the top's are 15 R$ skips")
+		H.expect(out.LuckyBlocks.SkipCredits == nil and out.LuckyBlocks.SkipCredits1 == nil, "")
+		H.expect(out.Drops.SinceRare == 7 and out.Drops.SinceEpic == 55, "old pity kept")
+		local clean = SaveSchema.validate(out)
+		H.expect(clean.LuckyBlocks.List[6].Kind == "Rare", "the old id renamed")
+		assertClean(Config, SaveSchema, clean)
+		for _, bad in
+			{
+				{ Version = 10 },
+				{ Version = 10, LuckyBlocks = 5 },
+				{ Version = 10, LuckyBlocks = { List = { 1, { Kind = 3 } }, SkipCredits = "x" } },
+			}
+		do
+			local ok, moved = pcall(SaveSchema.migrate, bad)
+			H.expect(ok and moved.Version == 11, "a broken save still migrates")
+		end
+	end,
+
+	["a climbed block keeps its mark, its start and its luck; a bad mark goes"] = function()
+		local Config, SaveSchema = setup()
+		local save = SaveSchema.template()
+		save.LuckyBlocks.Next = 4
+		save.LuckyBlocks.List = {
+			{
+				Id = 1,
+				Kind = "Epic",
+				ReadyAt = 5,
+				Paid = false,
+				Climbed = true,
+				From = "Mystery",
+				Luck = true,
+			},
+			{ Id = 2, Kind = "Mystery", ReadyAt = 5, Paid = false, Climbed = true, From = "Rare" },
+			{ Id = 3, Kind = "Rare", ReadyAt = 5, Paid = false, Climbed = true, From = "Purple" },
+			{ Id = 4, Kind = "Rare", ReadyAt = 5, Paid = false, From = "Mystery", Luck = true },
+		}
+		save.LuckyBlocks.Credits = { LuckyBlockSkip = 2, Pack1 = 0, Nope = 4, LuckyBlockSkip9 = -1 }
+		local out = SaveSchema.validate(save)
+		local list = out.LuckyBlocks.List
+		H.expect(list[1].Climbed == true and list[1].From == "Mystery" and list[1].Luck, "kept")
+		H.expect(list[2].Climbed == nil and list[2].From == nil, "a Mystery is never climbed")
+		H.expect(list[3].Climbed == true and list[3].From == nil, "an unknown start goes")
+		H.expect(list[4].Climbed == nil and list[4].From == nil and list[4].Luck == nil, "")
+		local credits = out.LuckyBlocks.Credits
+		H.expect(credits.LuckyBlockSkip == 2 and credits.Nope == nil, "products only")
+		H.expect(credits.Pack1 == nil and credits.LuckyBlockSkip9 == nil, "counts above 0")
+		assertClean(Config, SaveSchema, out)
 	end,
 
 	["a migration from the current version that errors or is missing stops at the old version"] = function()

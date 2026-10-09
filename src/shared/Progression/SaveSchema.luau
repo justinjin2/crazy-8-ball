@@ -27,6 +27,11 @@
 -- Version 9 (2026-10-08, economy v4): days start at 08:00 UTC and the playtime gifts changed,
 -- so today's Daily starts over; Login.FirstWeek counts the first week's days (a save that
 -- already claimed 7 days has had its first week); Daily.Track and Daily.Matches are new.
+-- Version 10 (2026-10-08): Lucky Spins became plain spins.
+-- Version 11 (2026-10-09, economy v5): lucky blocks climb; every block in an older save is
+-- unclimbed (a tier block's running timer ends), the climbed ones carry Climbed / From / Luck;
+-- skip credits are keyed by the product bought (LuckyBlocks.Credits); new saves start the
+-- Mystery block's pity counters at the head start.
 local Config = require(script.Parent.Parent.Config)
 local Catalog = require(script.Parent.Catalog)
 local UltCatalog = require(script.Parent.Parent.Ults.Catalog)
@@ -38,7 +43,7 @@ local RanksCfg = Config.Ranks
 
 local SaveSchema = {}
 
-SaveSchema.Version = 10
+SaveSchema.Version = 11
 
 --- Saves older than this start over (a full wipe, version 6).
 SaveSchema.WipeBelow = 6
@@ -190,9 +195,14 @@ function SaveSchema.template(): any
 		-- The ults (v3; Ults/Slots.fresh): the default ult in slot 1, the starter spins. Slots
 		-- and Locked are gapless arrays of Config.Ults.Slots ("" = an empty slot).
 		Ults = UltSlots.fresh(),
-		-- The Mystery block's pity (Config.BlockOdds.Drop; ECONOMY 7): opens since the last
-		-- Rare-or-better tier and since the last Epic-or-better tier, and every roll ever.
-		Drops = { SinceRare = 0, SinceEpic = 0, Total = 0 },
+		-- The Mystery block's pity (Config.BlockOdds.Drop; ECONOMY 7): Mystery blocks since the
+		-- last Rare-or-better climb and since the last Epic-or-better climb, and every one ever.
+		-- A new save starts at the head start (economy v5: Drop.PityStart, 2 and 10).
+		Drops = {
+			SinceRare = Config.BlockOdds.Drop.PityStart.SinceRare,
+			SinceEpic = Config.BlockOdds.Drop.PityStart.SinceEpic,
+			Total = 0,
+		},
 		Social = {
 			Group = false, -- the group's one-time reward was claimed (Config.Social)
 			InvitedBy = 0, -- the UserId whose invite brought this player (0 none)
@@ -207,7 +217,9 @@ function SaveSchema.template(): any
 			Applied = {}, -- the last MaxAppliedTrades trade ids this save holds the result of
 		},
 		-- Lucky blocks (Progression/LuckyBlocks, 2026-10-03): Next is the last block id given;
-		-- List, a gapless array in hotbar order of { Id, Kind, ReadyAt (unix), Paid? }.
+		-- List, a gapless array in hotbar order of { Id, Kind, ReadyAt (unix), Paid?, Climbed?,
+		-- From?, Luck? } (economy v5: a climbed block's mark, the kind it started as, and
+		-- whether the Grand Opening Luck ran at its climb).
 		LuckyBlocks = LuckyBlocks.fresh(),
 	}
 end
@@ -423,6 +435,60 @@ SaveSchema.Migrations[9] = function(data: any): any
 		ults.Spins = math.min(spins + lucky, 100000)
 		ults.LuckySpins = 0
 	end
+	return data
+end
+
+-- 10 -> 11 (2026-10-09, economy v5): every lucky block already held counts as unclimbed (the
+-- climb is new; pre-release test saves, the generous reading), so a tier block's running timer
+-- ends (an unclimbed block waits on nothing but the Gift's comeback wait, which is kept). Skip
+-- credits move to LuckyBlocks.Credits keyed by the product bought (a new first skip row would
+-- change what a row number buys): row 1 (4 R$), row 2 (9 R$) and the top (15 R$). Fixed names
+-- here (not Config), so this step never changes once shipped.
+local TIERS_11 = {
+	Standard = true,
+	Uncommon = true,
+	Rare = true,
+	Epic = true,
+	Legendary = true,
+	Mythic = true,
+	Yellow = true, -- the test build's ids (Config.LuckyBlocks.Renamed)
+	Green = true,
+	Blue = true,
+	VoidLava = true,
+	GoldKing = true,
+}
+local CREDITS_11 = {
+	{ "SkipCredits1", "LuckyBlockSkip" },
+	{ "SkipCredits2", "LuckyBlockSkip9" },
+	{ "SkipCredits", "LuckyBlockSkip15" },
+}
+
+SaveSchema.Migrations[10] = function(data: any): any
+	local blocks = data.LuckyBlocks
+	if type(blocks) ~= "table" then
+		return data
+	end
+	if type(blocks.List) == "table" then
+		for _, block in blocks.List do
+			if type(block) == "table" then
+				block.Climbed = nil
+				block.From = nil
+				block.Luck = nil
+				if TIERS_11[block.Kind] == true then
+					block.ReadyAt = 0
+				end
+			end
+		end
+	end
+	local credits = {}
+	for _, pair in CREDITS_11 do
+		local n = blocks[pair[1]]
+		if SaveSchema.isInteger(n) and n > 0 then
+			credits[pair[2]] = (credits[pair[2]] or 0) + n
+		end
+		blocks[pair[1]] = nil
+	end
+	blocks.Credits = credits
 	return data
 end
 
@@ -1053,15 +1119,27 @@ end
 --- (they may be a newer version's fields); maps of ids are cleaned entry by entry. Never
 --- errors, whatever it is given.
 -- Lucky blocks: Next a whole number; List a gapless array of at most Config.LuckyBlocks
--- .MaxBlocks blocks, each { Id (1..Next, unique), Kind (a known kind), ReadyAt (unix) }. A block
--- that cannot be read is dropped (it never becomes a block of another kind); a ReadyAt out of
--- range is clamped, so a block is never lost to a clock bug.
+-- .MaxBlocks blocks, each { Id (1..Next, unique), Kind (a known kind), ReadyAt (unix), Paid,
+-- Climbed? (only on a block tier's block), From? (a known kind), Luck? }. A block that cannot be
+-- read is dropped (it never becomes a block of another kind); a ReadyAt out of range is
+-- clamped, so a block is never lost to a clock bug. Credits: a whole count per skip product
+-- (a Config.Products key).
 local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
 	fixInteger(blocks, "Next", "LuckyBlocks.Next", SaveCfg.StatCap, fixes)
-	fixInteger(blocks, "SkipCredits", "LuckyBlocks.SkipCredits", SaveCfg.StatCap, fixes)
-	fixInteger(blocks, "SkipCredits1", "LuckyBlocks.SkipCredits1", SaveCfg.StatCap, fixes)
-	fixInteger(blocks, "SkipCredits2", "LuckyBlocks.SkipCredits2", SaveCfg.StatCap, fixes)
 	fixInteger(blocks, "SkipTarget", "LuckyBlocks.SkipTarget", SaveCfg.StatCap, fixes)
+	local credits = ensureTable(blocks, "Credits", "LuckyBlocks.Credits", {}, fixes)
+	local products: { [string]: any } = Config.Products.List :: any
+	local cleanCredits = {}
+	for key, n in credits do
+		local count = SaveSchema.cleanInteger(n, 0, SaveCfg.StatCap, 0)
+		if type(key) == "string" and products[key] ~= nil and count > 0 then
+			cleanCredits[key] = count
+		end
+	end
+	table.clear(credits)
+	for key, n in cleanCredits do
+		credits[key] = n
+	end
 	local list = ensureTable(blocks, "List", "LuckyBlocks.List", {}, fixes)
 	fixArray(list, "LuckyBlocks.List", fixes)
 	-- Opened: a count per known kind (the Guarantee's). Old kind ids are renamed.
@@ -1092,11 +1170,18 @@ local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
 		else
 			seen[id] = true
 			local readyAt = SaveSchema.cleanInteger(block.ReadyAt, 0, SaveCfg.UnixTimeCap, 0)
+			local kind = LuckyBlocks.current(block.Kind) -- an old id becomes its new kind
+			local climbed = block.Climbed == true
+				and table.find(Config.BlockOdds.Order, kind) ~= nil
+			local from = LuckyBlocks.current(block.From)
 			table.insert(kept, {
 				Id = id,
-				Kind = LuckyBlocks.current(block.Kind), -- an old id becomes its new kind
+				Kind = kind,
 				ReadyAt = readyAt,
 				Paid = block.Paid == true,
+				Climbed = if climbed then true else nil,
+				From = if climbed and LuckyBlocks.kind(from) ~= nil then from else nil,
+				Luck = if climbed and block.Luck == true then true else nil,
 			})
 			if blocks.Next < id then
 				blocks.Next = id
@@ -1131,9 +1216,7 @@ local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
 			key ~= "Next"
 			and key ~= "List"
 			and key ~= "Opened"
-			and key ~= "SkipCredits"
-			and key ~= "SkipCredits1"
-			and key ~= "SkipCredits2"
+			and key ~= "Credits"
 			and key ~= "SkipTarget"
 		then
 			blocks[key] = nil

@@ -282,9 +282,9 @@ perk text. Don't change any of these products: the designer approves them later.
   it matches `economy_v5_plan.txt` (small differences are fine if Config changed since: note
   them); push `gui-v4`.
 - [x] 1. Read section 2; write the touch list (every file you expect to change) in Notes.
-- [ ] 2. The ladder (3.1).
-- [ ] 3. Unclimbed and climbed blocks, saves and shims (3.2).
-- [ ] 4. Pity (3.3).
+- [x] 2. The ladder (3.1).
+- [x] 3. Unclimbed and climbed blocks, saves and shims (3.2).
+- [x] 4. Pity (3.3).
 - [ ] 5. Rewards (3.4).
 - [ ] 6. The Week One Cue (3.5).
 - [ ] 7. The restock (3.6).
@@ -332,3 +332,17 @@ perk text. Don't change any of these products: the designer approves them later.
     catalog, inventory, config. Tools: `economy_model.py`, `export_economy.luau`,
     `economy_config.json`, `products_spec.json`, `products_ids.json`. Docs: ECONOMY, GDD 11-12,
     DECISIONS, ROADMAP, STATUS, the hand-off and the report.
+- Steps 2-4 (one commit: the ladder, the climbed blocks and pity share BlockDrop and the save):
+  `Config.BlockOdds.Climb` and `Drop` (pity 10/40, head start 2/10), tier rows = climbed
+  blocks, Sky row removed, `LuckyBlocks` Climb/Wait/Pity/Roll, save v11 (blocks unclimbed,
+  credits by product), trade items "Climbed:<tier>", tutorial game-1 block Uncommon with a
+  `stay` hook. The model (`tools/economy_model.py`) still reads v4's `Drop.Weights` and fails
+  to load until step 12 ports it; numbers are checked against the plan's tables in
+  `tests/blockdrop_test.luau` meanwhile.
+- Shims (keep today's client working until the GUI session's screens): (1) Hold/Throw of an
+  unclimbed non-Mystery block climbs it on the server first (`LuckyBlockService.climbFirst`);
+  (2) Reveal answers `tiers` with the Secret shown as Mythic (`BlockDrop.shown`) plus the true
+  `path`, `secret`, `cue`; (3) `LuckyClient` plays a Secret's cue reel after the Mystery screen
+  (and after Hold); (4) `OddsDetails` and `ShopMysteryOdds` show climb odds with the live luck;
+  (5) `Ranking` folds a win track money step into the result screen's bonus line; (6) the
+  trade window names climbed blocks "Climbed ...".

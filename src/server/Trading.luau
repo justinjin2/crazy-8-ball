@@ -195,7 +195,7 @@ local function copiesOf(session: Session): { [string]: number }
 	local anyBlock = false
 	for _, side in { session.offers[session.a], session.offers[session.b] } do
 		for _, item in side do
-			if string.sub(item, 1, 6) == "Block:" then
+			if Trade.itemBlock(item) ~= nil then
 				anyBlock = true
 			else
 				note(item)

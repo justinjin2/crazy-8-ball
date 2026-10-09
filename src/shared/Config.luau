@@ -1963,13 +1963,13 @@ Config.Economy = {
 -- (tune)
 ---------------------------------------------------------------------------------------------
 Config.BlockOdds = {
-	-- The tier ladder, lowest first (the approved economy plan, 2026-10-02, section 3). A lucky
-	-- block kind names the row it rolls (Config.LuckyBlocks.Kinds[kind].Odds).
+	-- The block tiers, lowest first: a lucky block of each (Config.LuckyBlocks.Kinds), each with
+	-- its climbed row in List. The climb ladder (Climb.Tiers) adds the Secret on top.
 	Order = { "Standard", "Uncommon", "Rare", "Epic", "Legendary", "Mythic" },
-	-- Odds tables outside the ladder (the lucky-block economy, designer 2026-10-04): the Sky
-	-- block (Lucky Rain), the Grand Opening block (30 days) and the Starter block (the Starter
-	-- Pack). They roll the whole core pool (every block cue of a rarity), never the tier roll.
-	Extra = { "Sky", "GrandOpening", "Starter" },
+	-- Odds tables outside the ladder (designer 2026-10-04; economy v5: the Sky block climbs
+	-- now, so only these two keep a table): the Grand Opening block (30 days) and the Starter
+	-- block (the Starter Pack). They roll the whole core pool, never the climb.
+	Extra = { "GrandOpening", "Starter" },
 	-- Rarities, bottom to top (GDD section 12). Exclusive and Unique sit outside the ladder.
 	Rarities = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret" },
 	-- When sorting by rarity, Exclusive cues sit just above this rarity (below Legendary;
@@ -1978,62 +1978,59 @@ Config.BlockOdds = {
 	-- Odds are whole parts of OddsTotal (a million, so 0.0001% is 1), and each row adds to
 	-- exactly OddsTotal (a load-time assert and tests/blockodds_test check it).
 	OddsTotal = 1000000,
-	-- Economy v4 (2026-10-08, plan section 4): each tier block keeps its floor (never below
-	-- the rarity in its name) and every row can reach the Secret.
+	-- The climb (economy v5 plan section 3, designer 2026-10-09): every block climbs from its
+	-- name, one step at a time on one ladder, and the name is its floor. The tier it ends on
+	-- is the cue's rarity (Rarity); the reel only picks which cue of that rarity. The server
+	-- rolls every step before the climb screen shows anything (BlockDrop.climbRoll), so the
+	-- shown odds are the real odds.
+	Climb = {
+		-- The ladder, bottom first: the block tiers, then the Secret (a climb that reaches it
+		-- gives the Secret cue at once; there is no Secret block).
+		Tiers = { "Standard", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret" },
+		-- Each tier's cue rarity (a climbed Standard block gives a Common cue).
+		Rarity = {
+			Standard = "Common",
+			Uncommon = "Uncommon",
+			Rare = "Rare",
+			Epic = "Epic",
+			Legendary = "Legendary",
+			Mythic = "Mythic",
+			Secret = "Secret",
+		},
+		-- The chance of each step up from a tier, in parts of OddsTotal (plan 3.2): 50 / 35 /
+		-- 18 / 10 / 15 / 2.5%. A Mystery block reaches Epic or better 1 in 32, Legendary or
+		-- better 1 in 317, Mythic or better 1 in 2,116 and the Secret 1 in 84,656.
+		Steps = {
+			Standard = 500000, -- to Uncommon
+			Uncommon = 350000, -- to Rare
+			Rare = 180000, -- to Epic
+			Epic = 100000, -- to Legendary
+			Legendary = 150000, -- to Mythic
+			Mythic = 25000, -- to the Secret
+		},
+		-- The Grand Opening Luck (plan 3.4, designer 2026-10-09): x1.5 on two steps for Seconds
+		-- from the StartsAt of Config.Shop.Deals[With] (its own clock: changing the Grand
+		-- Opening's length never changes it; StartsAt 0: off). Free, the same for everyone; every
+		-- odds screen shows these steps while it runs, and the clover next to the money shows it.
+		Luck = {
+			With = "GrandOpening",
+			Seconds = 30 * 86400,
+			Steps = {
+				Rare = 270000, -- Rare to Epic 27% (18% without)
+				Epic = 150000, -- Epic to Legendary 15% (10% without)
+			},
+		},
+	},
+	-- The climbed block's row (economy v5): a block that climbed to a tier gives a cue of
+	-- exactly that tier's rarity (Climb.Rarity), every cue of it equally likely. The Grand
+	-- Opening and Starter blocks keep their approved tables and never climb.
 	List = {
-		Standard = {
-			Odds = {
-				Common = 725000,
-				Uncommon = 250000,
-				Rare = 24000,
-				Epic = 900, -- 1 in 1,111
-				Legendary = 90, -- 1 in 11,111
-				Mythic = 9, -- 1 in 111,111
-				Secret = 1, -- 1 in 1,000,000
-			},
-		},
-		Uncommon = {
-			Odds = {
-				Common = 400000,
-				Uncommon = 540000,
-				Rare = 58000,
-				Epic = 1800,
-				Legendary = 180,
-				Mythic = 18,
-				Secret = 2,
-			},
-		},
-		Rare = {
-			Odds = {
-				Uncommon = 680000,
-				Rare = 310000,
-				Epic = 9000,
-				Legendary = 900,
-				Mythic = 90,
-				Secret = 10,
-			},
-		},
-		Epic = {
-			Odds = { Rare = 773000, Epic = 210000, Legendary = 15000, Mythic = 1800, Secret = 200 },
-		},
-		Legendary = {
-			Odds = { Epic = 720000, Legendary = 250000, Mythic = 27000, Secret = 3000 },
-		},
-		Mythic = {
-			Odds = { Legendary = 720000, Mythic = 250000, Secret = 30000 },
-		},
-		-- Lucky Rain's Sky block (plan section 7): follows the Uncommon block.
-		Sky = {
-			Odds = {
-				Common = 450000,
-				Uncommon = 450000,
-				Rare = 95000,
-				Epic = 4500,
-				Legendary = 450,
-				Mythic = 45,
-				Secret = 5,
-			},
-		},
+		Standard = { Odds = { Common = 1000000 } },
+		Uncommon = { Odds = { Uncommon = 1000000 } },
+		Rare = { Odds = { Rare = 1000000 } },
+		Epic = { Odds = { Epic = 1000000 } },
+		Legendary = { Odds = { Legendary = 1000000 } },
+		Mythic = { Odds = { Mythic = 1000000 } },
 		-- The Grand Opening block (v4 plan 8.5): Rare or better plus two Unique rows that exist
 		-- nowhere else, named by cue id: the Firework Cue 6% and the Beta Cue 0.4%. Caps: copies
 		-- of each Unique ever; once a cue's copies are all found its row's share goes to Rare
@@ -2057,59 +2054,44 @@ Config.BlockOdds = {
 			Odds = { Rare = 900000, Epic = 90000, Legendary = 9000, Mythic = 900, Secret = 100 },
 		},
 	},
-	-- The win's block (v4 plan sections 3 and 5): a real win moves the day's win track
-	-- (WinTrack) and gives that step's block. A Mystery block (from the track, rewards or the
-	-- shop) rolls its tier by Weights (out of OddsTotal) when it opens, then that tier's row.
-	-- Pity, for every Mystery block, bought ones too: the PityRare-th in a row without a
-	-- Rare-or-better tier is Rare; the PityEpic-th without an Epic-or-better is Epic; pity
-	-- never gives Legendary. The first win ever gives a FirstWin block (Progression/BlockDrop).
+	-- The win's block (economy v5 plan section 4): a real win moves the day's win track
+	-- (WinTrack) and gives that step's block or money. The first win ever gives a FirstWin
+	-- block (Progression/BlockDrop). Pity, for Mystery blocks only, bought ones too (plan
+	-- 3.6): the PityRare-th Mystery block in a row without a Rare-or-better climb ends on
+	-- exactly Rare; the PityEpic-th without an Epic-or-better on exactly Epic; pity never gives
+	-- Legendary.
 	Drop = {
-		-- The tier roll (v4 plan 3.1): half climb above Standard. Standard 50, Uncommon 40,
-		-- Rare 9.52, Epic 0.42 (1 in 238), Legendary 0.05 (1 in 2,000), Mythic 0.01 (1 in
-		-- 10,000).
-		Weights = {
-			Standard = 500000,
-			Uncommon = 400000,
-			Rare = 95200,
-			Epic = 4200,
-			Legendary = 500,
-			Mythic = 100,
-		},
 		PityRare = 10,
-		PityEpic = 100, -- v4 (was 150)
+		PityEpic = 40, -- v5 (v4: 100)
+		-- A new save's head start (plan 3.6): the counters begin here, so the bars show 2/10 and
+		-- 10/40 from the first day and the first Epic is guaranteed by the 30th Mystery block.
+		-- Old saves keep their counters.
+		PityStart = { SinceRare = 2, SinceEpic = 10 },
 		FirstWin = "Rare",
-		-- The daily win track (v4 plan section 5): the block for each of the first 10 track
-		-- wins of the day (the day: Config.Daily.ResetHour); later wins pay money and XP only.
-		-- A win moves the track exactly when the anti-farm rules allow a block (BlockDrop.dropFor).
+		-- The daily win track (v5 plan section 4): each of the first 10 track wins of the day (the
+		-- day: Config.Daily.ResetHour) gives its step: a block kind, or "Money" for
+		-- WinTrackMoney (earned, never boosted, like a reward). Later wins pay money and XP only.
+		-- A win moves the track exactly when the anti-farm rules allow it (BlockDrop.dropFor).
 		-- The first win ever is step 1 of day 1, so it is FirstWin's Rare block either way.
 		WinTrack = {
-			"Rare",
-			"Mystery",
-			"Mystery",
 			"Uncommon",
+			"Money",
+			"Money",
 			"Mystery",
+			"Money",
+			"Money",
 			"Mystery",
-			"Rare",
-			"Mystery",
-			"Mystery",
+			"Money",
+			"Money",
 			"Epic",
 		},
-		-- The upgrade screen (v4 plan 3.2, like Starr Drop; designer, 2026-10-09: "just 4"): the
-		-- block stays a Mystery block on screen until the first of Clicks presses shows its
-		-- start; each later press lifts it one tier or doesn't. The server rolls the final tier
-		-- first (Weights, with pity), starts it as low as the later presses allow (Standard for
-		-- Epic and below, Uncommon for a Legendary, Rare for a Mythic: BlockDrop.startOf), then
-		-- picks which later presses climb, every choice equally likely (BlockDrop.path). Final
-		-- odds are unchanged. Chances is the old chain's table, unused by the server.
+		WinTrackMoney = 1000,
+		-- The climb screen (v4 plan 3.2, like Starr Drop; designer, 2026-10-09: "just 4"): the
+		-- first of Clicks presses shows the start, the block's own tier or higher when the later
+		-- presses couldn't reach the final tier otherwise (BlockDrop.startOf); each later press
+		-- lifts it one tier or doesn't (BlockDrop.path). The final tier is rolled first.
 		Upgrade = {
 			Clicks = 4, -- presses in all: the first shows the start, the other 3 may climb
-			Chances = {
-				Standard = 70000, -- 7% a press, Standard -> Uncommon
-				Uncommon = 40000, -- 4%, Uncommon -> Rare
-				Rare = 10000, -- 1%, Rare -> Epic
-				Epic = 20000, -- 2%, Epic -> Legendary
-				Legendary = 10000, -- 1%, Legendary -> Mythic
-			},
 		},
 	},
 	-- Selling a block cue back (section 8), by rarity. Exclusive and Unique never sell.
@@ -2165,15 +2147,21 @@ Config.LuckyBlocks = {
 		VoidLava = "Epic",
 		GoldKing = "Legendary",
 	},
-	-- Odds: the Config.BlockOdds row whose odds and cue pool it rolls (Roll = true instead:
-	-- the Mystery block rolls a tier by Config.BlockOdds.Drop.Weights first and opens as that
-	-- tier's block). Timer: seconds after it lands in the inventory until it can be opened (0:
-	-- at once); a bought block (Paid) opens at once, and so does every block of a VIP
-	-- (VipTimerFactor 0). Model: its
-	-- template's name in ReplicatedStorage[ModelFolder]. Idle (optional): the block's own idle
-	-- animation, uploaded to the group; without one it plays Anim.BlockIdle. Guarantee: the
-	-- At-th block of this kind a player opens is this cue if they have none (a paid pity, shown
-	-- live). Adding a block: the recipe in assets/luckyblocks/Readme.md.
+	-- Climb (economy v5): the tier the block climbs from (its name is its floor; Mystery and
+	-- Sky Standard, Lucky 8 and the Gift Uncommon, each tier block its own tier). A new block
+	-- of a climbing kind arrives unclimbed, with no timer (Wait: the Gift's comeback wait
+	-- before its climb); its climb (BlockDrop.climbRoll) turns it into the climbed block of
+	-- the tier it reached, which waits on that tier's Timer, then opens to a cue of exactly
+	-- that rarity (its Odds row). Pity: the Mystery block's pity counters apply. Roll: the
+	-- client opens it on the climb screen today (MysteryReveal; the GUI session takes every
+	-- unclimbed block there). Odds: the Config.BlockOdds row a climbed block (or a block that
+	-- never climbs: the Grand Opening and Starter blocks) rolls. Timer: seconds after a
+	-- climbed (or never-climbing) block lands until it can be opened (0: at once); a bought
+	-- block (Paid) opens at once, and so does every block of a VIP (VipTimerFactor 0). Model:
+	-- its template's name in ReplicatedStorage[ModelFolder]. Idle (optional): the block's own
+	-- idle animation, uploaded to the group; without one it plays Anim.BlockIdle. Guarantee:
+	-- the At-th block of this kind a player opens is this cue if they have none (a paid pity,
+	-- shown live). Adding a block: the recipe in assets/luckyblocks/Readme.md.
 	Kinds = {
 		-- Our own models (designer, 2026-10-07): built by tools/luckyblock_build.py, pivot at
 		-- the bottom of the block. Idle: LuckyBoxIdle (the pack's Box Idle on our rig) or
@@ -2185,6 +2173,7 @@ Config.LuckyBlocks = {
 		-- approved concept art), shown wherever a block is drawn in a GUI (BlockIcon, the hotbar
 		-- and bag) instead of a turning 3D model (designer, 2026-10-07).
 		Standard = {
+			Climb = "Standard",
 			Odds = "Standard",
 			Timer = 0,
 			Model = "StandardBlock",
@@ -2192,6 +2181,7 @@ Config.LuckyBlocks = {
 			Icon = "rbxassetid://125706639188399",
 		},
 		Uncommon = {
+			Climb = "Uncommon",
 			Odds = "Uncommon",
 			Timer = 60, -- 1 minute (designer, 2026-10-07)
 			Model = "UncommonBlock",
@@ -2199,6 +2189,7 @@ Config.LuckyBlocks = {
 			Icon = "rbxassetid://119408380665005",
 		},
 		Rare = {
+			Climb = "Rare",
 			Odds = "Rare",
 			Timer = 300,
 			Model = "RareBlock",
@@ -2206,6 +2197,7 @@ Config.LuckyBlocks = {
 			Icon = "rbxassetid://114285593441963",
 		}, -- 5 minutes (designer, 2026-10-07; was 1 hour)
 		Epic = {
+			Climb = "Epic",
 			Odds = "Epic",
 			Timer = 1800,
 			Model = "EpicBlock",
@@ -2214,6 +2206,7 @@ Config.LuckyBlocks = {
 		}, -- 30 minutes (economy v4, 2026-10-08; was 1 hour)
 		Legendary = {
 			Icon = "rbxassetid://128589483213137",
+			Climb = "Legendary",
 			Odds = "Legendary",
 			Timer = 6 * 3600, -- 6 hours (designer, 2026-10-07; was 24)
 			Model = "LegendaryBlock", -- gold, with wings
@@ -2224,6 +2217,7 @@ Config.LuckyBlocks = {
 		},
 		Mythic = {
 			Icon = "rbxassetid://125009619556113",
+			Climb = "Mythic",
 			Odds = "Mythic",
 			Timer = 12 * 3600, -- 12 hours (designer, 2026-10-07; was 48)
 			Model = "MythicBlock", -- pastel rainbow, halo and wings
@@ -2233,12 +2227,14 @@ Config.LuckyBlocks = {
 			IconScale = 2.2,
 			Rainbow = true, -- the client cycles its icon's aura through the rainbow
 		},
-		-- The tier roll's block (plan 2, 4.2): no timer (designer, 2026-10-07; was 5 minutes).
-		-- Its hotbar slot says OPEN!; a tap opens the upgrade screen (MysteryReveal), where it
-		-- becomes the tier's block (Config.BlockOdds.Drop.Upgrade), which lands back in its
-		-- slot on that tier's own timer.
+		-- The Mystery block (v5 plan 3.1): a Standard start with pity. Its hotbar slot says OPEN!;
+		-- a tap opens the climb screen (MysteryReveal), where it becomes the climbed block of
+		-- the tier it reached (Config.BlockOdds.Drop.Upgrade), which lands back in its slot on
+		-- that tier's own timer.
 		Mystery = {
 			Icon = "rbxassetid://76412774878315",
+			Climb = "Standard",
+			Pity = true,
 			Roll = true,
 			Timer = 0,
 			Model = "MysteryBlock", -- frame C (flush rims), the moving rainbow
@@ -2259,7 +2255,7 @@ Config.LuckyBlocks = {
 			IconScale = 1.2,
 		},
 		Lucky8 = {
-			Odds = "Rare",
+			Climb = "Uncommon", -- v5 plan 2.11 (v4: the Rare row)
 			Timer = 0,
 			Model = "EightBallBlock",
 			Idle = BOX_IDLE,
@@ -2268,7 +2264,7 @@ Config.LuckyBlocks = {
 		-- Lucky Rain: a baby-blue block on a cloud, small wings.
 		Sky = {
 			Icon = "rbxassetid://75262912311625",
-			Odds = "Sky",
+			Climb = "Standard", -- v5 plan 2.11 (v4: its own row)
 			Timer = 0,
 			Model = "SkyBlock",
 			Idle = WING_IDLE,
@@ -2288,8 +2284,9 @@ Config.LuckyBlocks = {
 		},
 		Gift = { -- given the first time a player leaves (GDD); white, gold ribbon and clock
 			Icon = "rbxassetid://78700846306745",
-			Odds = "Rare",
-			Timer = 12 * 3600,
+			Climb = "Uncommon", -- v5 plan 2.11 (v4: the Rare row)
+			Timer = 0,
+			Wait = 12 * 3600, -- its comeback wait before its climb, from the first leave
 			Model = "GiftBlock",
 			Idle = BOX_IDLE,
 			SizeMultiplier = 1.28, -- 6 studs tall (the bow)
@@ -13850,9 +13847,10 @@ Config.Tutorial = {
 		DragPx = { 170, -80 }, -- the ball-in-hand demo drags the ghost ball this far (px)
 		BlockPadPx = 28, -- the ring round the thrown block on the floor, past its outline (px)
 	},
-	-- Game 1's rewards (answer 9): Bronze's at-once block is a Standard lucky block, thrown and
-	-- opened in the tutorial (cases retired for blocks 2026-10-04).
-	BronzeBlockKind = "Standard",
+	-- Game 1's rewards (answer 9): Bronze's at-once block, thrown and opened in the tutorial
+	-- (cases retired for blocks 2026-10-04). An Uncommon block since economy v5 (was Standard:
+	-- a Standard block now opens to Common cues only); it never climbs in the lesson.
+	BronzeBlockKind = "Uncommon",
 	BronzeCueRarity = "Uncommon", -- that block opens to a cue of this rarity (answer 9)
 	-- The Equip step (designer 2026-10-03): once that cue is equipped, the Inventory stays open
 	-- this long (its "Equipped" notice) before the tutorial closes it for the Rare block.

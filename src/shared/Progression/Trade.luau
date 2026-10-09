@@ -2,8 +2,10 @@
 -- Trade: the pure half of trading (the approved economy plan, 2026-10-02, section 9; designer,
 -- 2026-10-03). src/server/Trading.luau owns the sessions, the remotes and the ledger.
 --
--- An item is a string: a cue id ("NeonCue") or "Block:" and a lucky block kind
--- ("Block:Rare"). A side is a list of up to Config.Trade.MaxSideItems items; one entry is one
+-- An item is a string: a cue id ("NeonCue"), "Block:" and a lucky block kind ("Block:Rare": an
+-- unclimbed block, or one that never climbs), or "Climbed:" and a block tier ("Climbed:Rare": a
+-- climbed block, economy v5: it never climbs again, so it never trades as an unclimbed one).
+-- A side is a list of up to Config.Trade.MaxSideItems items; one entry is one
 -- copy, so three of a cue are three entries. What may trade: block cues and Unique (numbered
 -- Limited) cues, the Exclusive cues in Config.Trade.ExclusiveTradable, and READY lucky blocks
 -- (never one on its timer; the caller passes `now`); never money, never Classic, never
@@ -28,6 +30,7 @@ local LuckyBlocks = require(script.Parent.LuckyBlocks)
 
 local T = Config.Trade
 local BLOCK_PREFIX = "Block:"
+local CLIMBED_PREFIX = "Climbed:"
 
 -- One kind of item moved: `count` copies, `paid` of them paid origin, a Unique's `copy`.
 export type MovedItem = { item: string, count: number, paid: number, copy: number? }
@@ -49,28 +52,44 @@ export type Entry = {
 
 local Trade = {}
 
--- What an item string names: ("Cue", cue id) or ("Block", block kind), or nil.
-local function parseItem(item: any): (string?, string?)
+-- What an item string names: ("Cue", cue id), ("Block", block kind, climbed), or nil.
+local function parseItem(item: any): (string?, string?, boolean)
 	if type(item) ~= "string" then
-		return nil, nil
+		return nil, nil, false
 	end
 	if string.sub(item, 1, #BLOCK_PREFIX) == BLOCK_PREFIX then
 		local kind = string.sub(item, #BLOCK_PREFIX + 1)
 		if LuckyBlocks.kind(kind) ~= nil and LuckyBlocks.current(kind) == kind then
-			return "Block", kind
+			return "Block", kind, false
 		end
-		return nil, nil
+		return nil, nil, false
+	elseif string.sub(item, 1, #CLIMBED_PREFIX) == CLIMBED_PREFIX then
+		local kind = string.sub(item, #CLIMBED_PREFIX + 1)
+		if table.find(Config.BlockOdds.Order, kind) ~= nil then
+			return "Block", kind, true
+		end
+		return nil, nil, false
 	end
 	local cue = Catalog.get(item)
 	if cue ~= nil then
-		return "Cue", cue.Id
+		return "Cue", cue.Id, false
 	end
-	return nil, nil
+	return nil, nil, false
 end
 
---- The item string of a lucky block kind.
-function Trade.blockItem(kind: string): string
-	return BLOCK_PREFIX .. kind
+--- The item string of a lucky block kind: an unclimbed block (or one that never climbs), or
+--- with `climbed` a block tier's climbed block.
+function Trade.blockItem(kind: string, climbed: boolean?): string
+	return (if climbed == true then CLIMBED_PREFIX else BLOCK_PREFIX) .. kind
+end
+
+--- A lucky block item's kind and whether it is a climbed block, or nil for any other item.
+function Trade.itemBlock(item: any): (string?, boolean)
+	local kind, id, climbed = parseItem(item)
+	if kind == "Block" then
+		return id, climbed
+	end
+	return nil, false
 end
 
 --- Whether a cue may ever be traded: block and Unique cues, and the Exclusive ones listed in
@@ -136,11 +155,22 @@ local function blockList(save: any): { LuckyBlocks.Block }
 	return if type(list) == "table" then list else {}
 end
 
--- The save's READY blocks of `kind` at `now`, oldest first (by id).
-local function readyBlocks(save: any, kind: string, now: number): { LuckyBlocks.Block }
+-- The save's READY blocks of `kind` at `now` (climbed ones with `climbed`, else the others),
+-- oldest first (by id).
+local function readyBlocks(
+	save: any,
+	kind: string,
+	now: number,
+	climbed: boolean
+): { LuckyBlocks.Block }
 	local out: { LuckyBlocks.Block } = {}
 	for _, block in blockList(save) do
-		if type(block) == "table" and block.Kind == kind and LuckyBlocks.isReady(block, now) then
+		if
+			type(block) == "table"
+			and block.Kind == kind
+			and (block.Climbed == true) == climbed
+			and LuckyBlocks.isReady(block, now)
+		then
 			table.insert(out, block)
 		end
 	end
@@ -152,10 +182,10 @@ end
 
 -- How many copies of an item the save may give at `now`: (all it holds, the free ones).
 local function holding(save: any, item: string, now: number): (number, number)
-	local kind, id = parseItem(item)
+	local kind, id, climbed = parseItem(item)
 	if kind == "Block" then
 		local have, free = 0, 0
-		for _, block in readyBlocks(save, id :: string, now) do
+		for _, block in readyBlocks(save, id :: string, now, climbed) do
 			have += 1
 			if not block.Paid then
 				free += 1
@@ -175,7 +205,7 @@ end
 -- Whether paid-origin copies of `item` may move: `paidOk` for cues; for a lucky block also
 -- `blocksOk` (nil: as paidOk).
 local function paidMoves(item: string, paidOk: boolean, blocksOk: boolean?): boolean
-	if string.sub(item, 1, #BLOCK_PREFIX) == BLOCK_PREFIX then
+	if Trade.itemBlock(item) ~= nil then
 		return paidOk and blocksOk ~= false
 	end
 	return paidOk
@@ -183,7 +213,8 @@ end
 
 --- What this save can put in a trade at `now` (GUI lane, the trade screen and its wish
 --- list): { item, count } for every tradable cue it holds and every READY lucky block, cues
---- in the Index's order then blocks in Config.LuckyBlocks.Order; `count` is how many may go
+--- in the Index's order then blocks in Config.LuckyBlocks.Order (each block tier's climbed
+--- blocks after its unclimbed ones); `count` is how many may go
 --- (free copies only unless `paidOk`, and for a block `blocksOk`). Items with nothing to give
 --- are left out.
 function Trade.offerable(
@@ -203,11 +234,16 @@ function Trade.offerable(
 		end
 	end
 	for _, kind in Config.LuckyBlocks.Order do
-		local item = Trade.blockItem(kind)
-		local have, free = holding(save, item, now)
-		local n = if paidMoves(item, paidOk, blocksOk) then have else free
-		if n > 0 then
-			table.insert(out, { item = item, count = n })
+		local items = { Trade.blockItem(kind) }
+		if table.find(Config.BlockOdds.Order, kind) ~= nil then
+			table.insert(items, Trade.blockItem(kind, true))
+		end
+		for _, item in items do
+			local have, free = holding(save, item, now)
+			local n = if paidMoves(item, paidOk, blocksOk) then have else free
+			if n > 0 then
+				table.insert(out, { item = item, count = n })
+			end
 		end
 	end
 	return out
@@ -276,10 +312,16 @@ function Trade.check(
 		or Trade.canReceive(saveA, itemsB)
 end
 
--- Takes `count` ready blocks of `kind` out of a save at `now`, free ones first, then the
--- oldest: how many of them were paid.
-local function takeBlocks(save: any, kind: string, count: number, now: number): number
-	local ready = readyBlocks(save, kind, now)
+-- Takes `count` ready blocks of `kind` (climbed ones with `climbed`) out of a save at `now`,
+-- free ones first, then the oldest: how many of them were paid.
+local function takeBlocks(
+	save: any,
+	kind: string,
+	count: number,
+	now: number,
+	climbed: boolean
+): number
+	local ready = readyBlocks(save, kind, now, climbed)
 	local picked: { LuckyBlocks.Block } = {}
 	for _, block in ready do
 		if #picked < count and not block.Paid then
@@ -306,9 +348,9 @@ end
 local function take(save: any, items: { string }, now: number): Moved
 	local moved: Moved = {}
 	for _, entry in counted(items) do
-		local kind, id = parseItem(entry.item)
+		local kind, id, climbed = parseItem(entry.item)
 		if kind == "Block" then
-			local paid = takeBlocks(save, id :: string, entry.count, now)
+			local paid = takeBlocks(save, id :: string, entry.count, now, climbed)
 			table.insert(moved, { item = entry.item, count = entry.count, paid = paid })
 		else
 			local copy = Inventory.copy(save, id)
@@ -325,13 +367,21 @@ local function take(save: any, items: { string }, now: number): Moved
 end
 
 -- Gives what moved to a save at `now`, keeping each copy's paid origin and a Unique's number.
--- A block lands at the end of the list, ready at once.
+-- A block lands at the end of the list, ready at once, climbed if it was.
 local function give(save: any, moved: Moved, now: number)
 	for _, m in moved do
-		local kind, id = parseItem(m.item)
+		local kind, id, climbed = parseItem(m.item)
 		if kind == "Block" then
 			for i = 1, m.count do
-				local block = LuckyBlocks.add(save.LuckyBlocks, id :: string, now, nil, i <= m.paid)
+				local block = LuckyBlocks.add(
+					save.LuckyBlocks,
+					id :: string,
+					now,
+					nil,
+					i <= m.paid,
+					nil,
+					climbed
+				)
 				block.ReadyAt = now
 			end
 		else
@@ -436,11 +486,11 @@ function Trade.replay(save: any, entry: Entry, userId: number, now: number): boo
 	local gave = if isA then entry.fromA else entry.fromB
 	local got = if isA then entry.fromB else entry.fromA
 	for _, m in gave do
-		local kind, id = parseItem(m.item)
+		local kind, id, climbed = parseItem(m.item)
 		if kind == "Block" then
-			local n = math.min(m.count, #readyBlocks(save, id :: string, now))
+			local n = math.min(m.count, #readyBlocks(save, id :: string, now, climbed))
 			if n > 0 then
-				takeBlocks(save, id :: string, n, now)
+				takeBlocks(save, id :: string, n, now, climbed)
 			end
 		elseif kind == "Cue" then
 			local n = math.min(m.count, Inventory.count(save, id))
@@ -504,24 +554,27 @@ local function rowWorth(oddsId: string, copies: { [string]: number }): number?
 	return total
 end
 
---- A lucky block's worth worked out live (economy v4 plan section 11): what its odds row gives
---- on average, each cue worth 1 / its copies in existence; a Mystery block weighs each tier's
---- row by Config.BlockOdds.Drop.Weights. nil when a needed count is unknown (the caller falls
---- back to Config.Trade.BlockExists).
-function Trade.blockWorth(kind: string, copies: { [string]: number }): number?
+--- A lucky block's worth worked out live (economy v4 plan section 11; v5 plan 8): what it gives
+--- on average, each cue worth 1 / its copies in existence. An unclimbed block of a climbing
+--- kind is worth its climb's odds (every cue's chance from its start, BlockDrop.cueGroups); a
+--- climbed block (`climbed`) or a block that never climbs is worth its own row (a climbed
+--- block: exactly its tier's rarity). nil when a needed count is unknown (the caller falls back
+--- to Config.Trade.BlockExists).
+function Trade.blockWorth(kind: string, copies: { [string]: number }, climbed: boolean?): number?
 	local row = LuckyBlocks.kind(kind)
 	if row == nil then
 		return nil
 	end
-	if row.Roll then
+	if row.Climb ~= nil and climbed ~= true then
 		local total = 0
-		for _, tier in BlockDrop.tiers() do
-			local tierRow = LuckyBlocks.kind(tier.tier)
-			local w = if tierRow and tierRow.Odds then rowWorth(tierRow.Odds, copies) else nil
-			if w == nil then
-				return nil
+		for _, group in BlockDrop.cueGroups(nil, { start = row.Climb }) do
+			for _, cue in group.cues do
+				local w = cueWorth(cue, copies)
+				if w == nil then
+					return nil
+				end
+				total += group.each / 100 * w
 			end
-			total += tier.percent / 100 * w
 		end
 		return total
 	end
@@ -532,9 +585,9 @@ end
 -- MinExists, unknown as MinExists) or Trade.blockWorth (lucky blocks; until the counts are
 -- known, 1 / Config.Trade.BlockExists).
 local function worth(item: string, copies: { [string]: number }): number
-	local kind, id = parseItem(item)
+	local kind, id, climbed = parseItem(item)
 	if kind == "Block" then
-		local live = Trade.blockWorth(id :: string, copies)
+		local live = Trade.blockWorth(id :: string, copies, climbed)
 		if live ~= nil and live > 0 then
 			return live
 		end

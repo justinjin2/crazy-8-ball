@@ -75,6 +75,23 @@ local heldId: number? = nil
 local liveIds: { [number]: boolean } = {}
 local reveals: { any } = {}
 local revealing = false
+local nextReveal: () -> () -- plays the queued reels one after another (below)
+-- Economy v5 shim: a climb that reached the Secret gave its cue at once and left no block; its
+-- reel plays after the climb screen closes (by block id). The GUI session's screens replace it.
+local secretAfter: { [number]: any } = {}
+
+-- The reel for a Secret climb (the v5 shim): the Mythic block's look, the Eclipse in its strip.
+local function playSecret(secret: any)
+	if type(secret) == "table" and type(secret.cue) == "string" then
+		table.insert(reveals, {
+			kind = "Mythic",
+			cue = secret.cue,
+			rarity = if type(secret.rarity) == "string" then secret.rarity else "Secret",
+			oddsId = "Mythic",
+		})
+		nextReveal()
+	end
+end
 local throwing = false
 local visible = false
 local started = false
@@ -327,6 +344,14 @@ local function holdBlock(id: number)
 			stopHold()
 			refresh()
 			hotbar:say(reasonText(reply))
+		elseif reply.ok and reply.secret ~= nil then
+			-- The v5 shim: holding it climbed it on the server, all the way to the Secret.
+			if heldId == id then
+				heldId = nil
+				stopHold()
+			end
+			refresh()
+			playSecret(reply.secret)
 		end
 	end)
 end
@@ -383,7 +408,7 @@ local function throw()
 	end)
 end
 
-local function nextReveal()
+function nextReveal()
 	if revealing or #reveals == 0 then
 		return
 	end
@@ -526,7 +551,11 @@ function LuckyClient.start(screen: ScreenGui)
 	opening = LuckyOpening.new(screen)
 	reveal = MysteryReveal.new(screen.Parent :: Instance, {
 		request = function(id: number): any
-			return request("Reveal", id)
+			local reply = request("Reveal", id)
+			if type(reply) == "table" and reply.ok and reply.secret then
+				secretAfter[id] = reply
+			end
+			return reply
 		end,
 		slotOf = function(id: number): (Vector2?, number?)
 			return hotbar:slotOf(id)
@@ -540,6 +569,11 @@ function LuckyClient.start(screen: ScreenGui)
 				then Color3.fromRGB(tier.Glow[1], tier.Glow[2], tier.Glow[3])
 				else nil
 			hotbar:landed(id, tint)
+			local secret = secretAfter[id]
+			secretAfter[id] = nil
+			if secret then
+				playSecret(secret)
+			end
 		end,
 		refused = function(reply: any)
 			hotbar:say(reasonText(reply))

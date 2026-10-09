@@ -41,6 +41,7 @@ local K = Config.UI.Kit
 local W = Strings.Trade
 local MAX = Config.Trade.MaxSideItems
 local BLOCK = "Block:" -- a ready lucky block, by kind (Progression/Trade)
+local CLIMBED = "Climbed:" -- a ready climbed lucky block, by block tier (economy v5)
 local THUMB_SIZE: Enum.ThumbnailSize = (Enum.ThumbnailSize :: any)[C.Thumbnail]
 	or Enum.ThumbnailSize.Size150x150
 
@@ -69,14 +70,20 @@ local function gamepad(): boolean
 end
 
 local function blockKind(item: string): string?
-	return if string.sub(item, 1, #BLOCK) == BLOCK then string.sub(item, #BLOCK + 1) else nil
+	if string.sub(item, 1, #BLOCK) == BLOCK then
+		return string.sub(item, #BLOCK + 1)
+	elseif string.sub(item, 1, #CLIMBED) == CLIMBED then
+		return string.sub(item, #CLIMBED + 1)
+	end
+	return nil
 end
 
 local function itemName(item: string): string
 	local kind = blockKind(item)
 	if kind then
 		local names: { [string]: string } = Strings.LuckyBlocks.Names :: any
-		return names[kind] or kind
+		local name = names[kind] or kind
+		return if string.sub(item, 1, #CLIMBED) == CLIMBED then W.Climbed:format(name) else name
 	end
 	return CueThumb.cueName(item)
 end

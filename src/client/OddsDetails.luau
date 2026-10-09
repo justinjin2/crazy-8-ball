@@ -25,6 +25,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
+local BlockDrop = require(Progression:WaitForChild("BlockDrop"))
 local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
@@ -414,7 +415,16 @@ function OddsDetails.blockSpec(kind: string): Spec
 			local closed = closedSet()
 			local rows = uniquesOf(oddsId)
 			self:add("Head", NAMES[kind] or kind)
-			for _, group in BlockOdds.cueGroups(oddsId, closed) do
+			-- Economy v5 shim: a climbing kind lists its climb from its name (live during the
+			-- Grand Opening Luck), as an unclimbed block gives; the GUI session shows a climbed
+			-- block's own row (exactly its rarity) once the screens tell the two apart.
+			local groups: { BlockOdds.CueGroup } = if row and row.Climb
+				then BlockDrop.cueGroups(nil, {
+					start = row.Climb,
+					luck = BlockDrop.luckLive(workspace:GetServerTimeNow()),
+				})
+				else BlockOdds.cueGroups(oddsId, closed)
+			for _, group in groups do
 				if group.rarity == "Unique" then
 					-- A capped Unique on its own bar; one this player can't get says why.
 					local cue = group.cues[1]
