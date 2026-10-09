@@ -1075,10 +1075,10 @@ return {
 		NextFolded = "Next", -- the folded pill: "Next ->" then the next step's block
 	},
 	-- A Robux purchase's thank-you (Purchased): one line, "Thank you!" and the item by name or
-	-- what it gave (RewardsParts.gains: "+$250,000", "+10 Mystery Lucky Blocks").
+	-- what it gave (RewardsParts.gains: "+$250,000", "+5 Mystery Lucky Blocks").
 	Purchased = {
 		Thanks = "Thank you!",
-		Line = "Thank you! %s", -- what was bought: "Thank you! +10 Mystery Lucky Blocks"
+		Line = "Thank you! %s", -- what was bought: "Thank you! +5 Mystery Lucky Blocks"
 		Named = "+%s", -- an item by name: "+VIP", "+Ability Slot 2"
 		Vip = "VIP",
 		Party = "Money Party",
@@ -1111,7 +1111,6 @@ return {
 	-- The shop's v4 lines (economy v4 plan sections 8.2-8.5).
 	ShopV4 = {
 		LaunchBonus = "Launch bonus +%d%% · ends %s",
-		MysteryBonus = "%d for %d", -- "13 for 10" during the launch bonus
 		OneByOne = "%s R$ one by one", -- a bundle's saving, never a crossed-out price
 		BestValue = "Best value",
 		UniqueLeft = "%s · %s of %s left", -- "Beta Cue · 23 of 100 left"
@@ -1121,7 +1120,6 @@ return {
 			.. "Skip and Auto Spin · the VIP restock slot · the VIP Cue",
 		VipRestrictedNote = "Where Lucky Blocks can't be bought, the daily block is $5,000.",
 		StarterRestricted = "$40,000 + 1 hour of 2x money",
-		RestockOdds = "Each slot: Rare %s · Epic %s · Legendary %s · Mythic %s", -- unread (v5)
 	},
 	-- The "Odds & Details" popup behind every lucky block's dice badge (OddsDetails; economy v4
 	-- plan 13: every outcome's chance, before buying). The Mystery block's adds its pity, the

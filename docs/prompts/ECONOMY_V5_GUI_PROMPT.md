@@ -360,7 +360,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
 - [x] 8. Free Reward (shim 7 gone).
 - [x] 9. Cues and the Index.
 - [x] 10. Rank rewards and every other block or reward display.
-- [ ] 11. Every word (the Strings sweep).
+- [x] 11. Every word (the Strings sweep).
 - [ ] 12. The merge with `tutorial-v2` (the designer's yes), checked in Studio.
 - [ ] 13. The full Studio check on phone, PC and gamepad.
 - [ ] 14. The docs.
@@ -512,4 +512,22 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   shows v4 odds or floors, so nothing changed but the restock announce comment in Config ("the
   two shared" slots). `/newrank gold 1` showed no popup while checking (it waits for a free
   lobby moment; not chased). Shots: `step10/`.
+- **Step 11**: the Strings sweep. Done along the way: the pity words (exact rarity), the shop
+  card's pity line, the restock's per-slot odds and "Epic or better!", the clover, "Day 7 of
+  your first week", "Win track", the Open all summary, "Secret Cues". Now: the unread
+  `ShopV4.RestockOdds` and `ShopV4.MysteryBonus` gone, the "+10 Mystery" comments say 5, the
+  shop card comments say x5 and "6 for 5!". Checked and right for v5: `Reasons.NotMystery`
+  ("That block opens in the world": a climbed block, the Grand Opening or Starter block), the
+  climb screen's "MYSTERY" title (only over a Mystery block), the Starter block's "Rare or
+  better" (its own odds), the VIP perks (an Uncommon block a day; they fit their card, shot
+  `step6/pc_offers_starter_vip.jpg`), the ability spins' "Epic or better" pity (theirs, not
+  the blocks'). Still in Strings but read by nothing: `Login` and most of `ShopV4` (v4 plan
+  lines never wired; harmless, left for the designer).
+  - **For the designer (prices, from a read-only `tools/roblox_products.py --sync --dry-run`):**
+    the Starter Pack is still **19 R$ on Roblox** while Config says 29 (the 2026-10-08 change
+    was never synced); Pack1-7 differ only in their descriptions; Lucky1 and Lucky3 are still
+    for sale on Roblox while Config has them off. Nothing was changed (the brief: prices only
+    on your word). In Studio every price shows about 0.8 times the Roblox price (Starter 16,
+    VIP 320, Mystery5 24, Grand Opening 16 / 40 / 120): that matches Roblox's regional pricing
+    for this account, and the shop shows what Roblox will charge.
 
