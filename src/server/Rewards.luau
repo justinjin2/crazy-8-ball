@@ -371,6 +371,19 @@ end
 -- Dev and start
 ---------------------------------------------------------------------------------------------
 
+--- The tutorial's Abilities fallback (Config.Tutorial.Timing.AbilitiesRedeemSeconds): redeems
+--- `code` for the player as Redeem would, without its cooldown; true when it paid.
+function Rewards.redeemFor(player: Player, code: string): boolean
+	if not ready(player) then
+		return false
+	end
+	local ok = PlayerData.redeemCode(player, code, LiveCodes.on())
+	if ok and redeemed then
+		task.spawn(redeemed, player, code)
+	end
+	return ok == true
+end
+
 --- Sends the player's RewardState again. (The day, streak and playtime dev commands go
 --- through PlayerData.setStreakDay, newDay and setPlayMinutes; the state follows by itself.)
 function Rewards.refresh(player: Player)

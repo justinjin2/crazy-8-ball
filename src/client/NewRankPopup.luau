@@ -39,6 +39,7 @@ local Format = require(ProgressionRules:WaitForChild("Format"))
 local Ranks = require(ProgressionRules:WaitForChild("Ranks"))
 local ChatTags = require(script.Parent.ChatTags)
 local CueThumb = require(script.Parent.CueThumb)
+local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local RankBadge = require(script.Parent.RankBadge)
 local RewardChips = require(script.Parent.RewardChips)
@@ -202,6 +203,14 @@ function NewRankPopup.new(screen: ScreenGui, flyer: any, money: any): NewRankPop
 	self.root.Visible = false
 	self.sizeChanged = self.root:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 		self:layout()
+	end)
+	-- Studio checks: press Continue (what the button does), true when the popup was up.
+	GuiQA.add("newRankContinue", function(): boolean
+		if self.view == nil then
+			return false
+		end
+		self:close()
+		return true
 	end)
 	return self
 end

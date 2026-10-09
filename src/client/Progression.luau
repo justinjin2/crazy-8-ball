@@ -308,6 +308,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	playerList =
 		PlayerList.new(screen, { avoid = { corners.gearTile.button, corners.gearTile.word } })
 	banner = Banner.new(screen, { avoid = { rankHud.holder } })
+	TutorialAnchors.set("Banner", banner.root) -- the tutorial's line keeps under it
 	Menus.setBlocker(function(): boolean
 		return lastState.inMatch or popupUp()
 	end)

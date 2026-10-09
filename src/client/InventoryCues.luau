@@ -762,12 +762,15 @@ function InventoryCues.redraw(self: any, items: any)
 		self.slots[index] = nil
 	end
 	self.order = order
-	-- The tutorial's Equip step points at the first card that is not the equipped cue.
+	-- The tutorial's Equip step points at the cue its block gave (Config.Tutorial.TutorialCue),
+	-- else at the first card that is not the equipped cue.
 	local unequipped: GuiObject? = nil
 	for index, id in order do
-		if id ~= items.equipped then
+		if id ~= items.equipped and (unequipped == nil or id == Config.Tutorial.TutorialCue) then
 			unequipped = self.slots[index].button
-			break
+			if id == Config.Tutorial.TutorialCue then
+				break
+			end
 		end
 	end
 	TutorialAnchors.set("InventoryCue", unequipped)

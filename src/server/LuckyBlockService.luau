@@ -16,7 +16,7 @@
 --   time), plus To (its landing CFrame). The server moves it to To when the flight ends.
 -- - BlockState (a RemoteEvent): the player's blocks after every save change (deduped).
 -- - The tutorial's hooks (setOpenHooks): a forced cue for game 1's Standard block and a call
---   after every open (TutorialService).
+--   after every open (TutorialService); setRevealHook: the Mystery step's upgrade path.
 -- - Testing: with Test.SeedOnJoin the accounts in Config.Debug.Commands.UserIds get one of each
 --   Config.LuckyBlocks.Test.Seed kind they lack on join, and with Test.Refill opening one gives a
 --   fresh one of the same kind in the same place (both off now). Nobody else is ever given a
@@ -37,6 +37,7 @@ local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
 local Requests = require(Shared.Progression.Requests)
 local Announce = require(script.Parent.Announce)
 local Counters = require(script.Parent.Counters)
+local Funnel = require(script.Parent.Funnel)
 local PlayerData = require(script.Parent.PlayerData)
 
 local L = Config.LuckyBlocks
@@ -65,6 +66,9 @@ local rolls = Random.new()
 -- Standard block lands on an Uncommon cue) and a call once a block is opened. Nil: none.
 local openForce: ((Player, string) -> string?)? = nil
 local onOpened: ((Player, string, string) -> ())? = nil
+-- The tutorial's Mystery step: the upgrade screen's path for a reveal (PlayerData
+-- .revealMystery's `forced`). Nil: none.
+local revealForce: ((Player) -> { tiers: { string }, ready: boolean? }?)? = nil
 local warnedMissing: { [string]: boolean } = {}
 
 local function refuse(reason: string): Reply
@@ -465,6 +469,14 @@ function LuckyBlockService.setOpenHooks(
 	openForce, onOpened = force, opened
 end
 
+--- The tutorial lane's hook on Reveal: `force(player)` gives the upgrade screen's path ({ tiers,
+--- ready }, PlayerData.revealMystery's `forced`) or nil for the usual roll.
+function LuckyBlockService.setRevealHook(
+	force: ((Player) -> { tiers: { string }, ready: boolean? }?)?
+)
+	revealForce = force
+end
+
 function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local id = r.id :: number
 	local entry = live[player] and live[player][id]
@@ -502,8 +514,10 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 			and not plan.forced
 		then openForce(player, block.Kind)
 		else nil
+	local tutorialOpen = false
 	if forcedCue ~= nil and BlockOdds.canDrop(plan.oddsId, forcedCue) then
 		plan.cueId = forcedCue
+		tutorialOpen = true
 	end
 	-- A Unique cue takes its copy number from the shared counter first (yields): the block
 	-- is busy meanwhile, so a second Open waits its turn.
@@ -585,6 +599,8 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		oddsId = plan.oddsId,
 		copy = copy, -- a Unique cue's copy number
 		forced = plan.forced, -- the Guarantee gave it
+		-- The tutorial's block: its reel flashes a card of this rarity past once.
+		glimpse = if tutorialOpen then Config.Tutorial.ReelGlimpse else nil,
 		new = opened.new,
 		found = opened.found,
 		count = opened.count,
@@ -605,7 +621,8 @@ function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, _data: any): Re
 	if l and l[id] then
 		return refuse("Busy")
 	end
-	local ok, result = PlayerData.revealMystery(player, id)
+	local ok, result =
+		PlayerData.revealMystery(player, id, if revealForce then revealForce(player) else nil)
 	if not ok then
 		return refuse(
 			if result == "NotReady"
@@ -616,6 +633,7 @@ function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, _data: any): Re
 				else "Error"
 		)
 	end
+	Funnel.blockRevealed(player, "Mystery", result.kind) -- the Block funnel follows its new kind
 	if L.Test.Refill and isTester(player) then
 		PlayerData.giveLuckyBlocks(player, "Mystery", 1)
 	end

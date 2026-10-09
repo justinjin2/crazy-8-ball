@@ -389,10 +389,17 @@ local function nextReveal()
 	end
 	local reward = table.remove(reveals, 1)
 	revealing = true
-	opening:play(reward.kind, reward.cue, reward.rarity, function()
-		revealing = false
-		task.defer(nextReveal)
-	end, if type(reward.oddsId) == "string" then reward.oddsId else nil)
+	opening:play(
+		reward.kind,
+		reward.cue,
+		reward.rarity,
+		function()
+			revealing = false
+			task.defer(nextReveal)
+		end,
+		if type(reward.oddsId) == "string" then reward.oddsId else nil,
+		if type(reward.glimpse) == "string" then reward.glimpse else nil
+	)
 end
 
 -- A block kind that can drop a cue of `rarity`, and that cue (the kind named after the rarity
@@ -540,6 +547,9 @@ function LuckyClient.start(screen: ScreenGui)
 				then Color3.fromRGB(tier.Glow[1], tier.Glow[2], tier.Glow[3])
 				else nil
 			hotbar:landed(id, tint)
+			if id > 0 then
+				TutorialAnchors.setFlag("MysteryLanded", true) -- the tutorial's Mystery step
+			end
 		end,
 		refused = function(reply: any)
 			hotbar:say(reasonText(reply))
@@ -615,6 +625,46 @@ function LuckyClient.start(screen: ScreenGui)
 	end)
 	GuiQA.add("mysteryState", function()
 		return reveal.phase, reveal.presses
+	end)
+	-- Studio checks of the real flow (what a tap, a throw and the open prompt do): the blocks
+	-- ("id kind readyIn live" each), a tap on the first block of `kind`, a throw of the held
+	-- block, and the open of a placed block of `kind`.
+	GuiQA.add("blocks", function(): string
+		local out = {}
+		for _, e in entries do
+			table.insert(
+				out,
+				("%d %s %d %s"):format(
+					e.id,
+					e.kind,
+					math.max(0, math.ceil(e.readyAt - serverNow())),
+					tostring(liveIds[e.id] == true)
+				)
+			)
+		end
+		return table.concat(out, "; ")
+	end)
+	GuiQA.add("tapBlock", function(kind: string): boolean
+		for _, e in entries do
+			if e.kind == kind and not liveIds[e.id] then
+				holdBlock(e.id)
+				return true
+			end
+		end
+		return false
+	end)
+	GuiQA.add("throwHeld", function(): boolean
+		throw()
+		return heldId ~= nil or throwing
+	end)
+	GuiQA.add("openLive", function(kind: string): boolean
+		for _, e in entries do
+			if e.kind == kind and liveIds[e.id] then
+				openBlock(e.id)
+				return true
+			end
+		end
+		return false
 	end)
 	GiftDrop.start() -- the Gift's fall from the sky, the first time back after leaving
 	Net.get("BlockState").OnClientEvent:Connect(function(payload: any)

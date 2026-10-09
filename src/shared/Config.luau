@@ -9950,6 +9950,9 @@ Config.UI.Reel = {
 		-- Its earliest slot: past the window's right edge at the start (a 1,100 px window shows
 		-- slots 1 to 9), so it slides in.
 		ShowcaseFirstSlot = 10,
+		-- Before any reel spins it stands still this long on its cards (tutorial v2 4.5, for
+		-- every player): the Uncommon, Rare, Epic and Legendary cards they could win.
+		StillSeconds = 1.2,
 		CardWidthPx = 136, -- bigger cards with the cue's name and odds (GUI lane, 2026-10-03)
 		CardHeightPx = 176,
 		GapPx = 8, -- between two cards
@@ -13656,11 +13659,14 @@ Config.Tutorial = {
 			Arrow = 45, -- "Need help? Follow the arrow!" stays (no move on: they must walk)
 			Result = 20, -- the result, the block, NEW RANK!: each moves on by itself
 			Place = 40, -- "Next" (the block stays; its first-time hint comes later)
+			Cues = 45, -- its clock starts at the block's open, so the reel and the reveal count
+
 			Abilities = 30, -- RELEASE fills in and the hand moves to Redeem
 		},
 		ZoomSkipSeconds = 20, -- game 1's zoom lesson is skipped after this (the pocket still glows)
 		AbilitiesRedeemSeconds = 60, -- the RELEASE code is redeemed for them after this
 		NextGraceSeconds = 1, -- a "Next" may come this much before the server's clock says so
+		ReportAgainSeconds = 1, -- a chain step's done report repeats this often while it holds
 		StepTimeMaxSeconds = 3600, -- a StepTime longer than this is sent as this (AFK)
 	},
 	-- First-time hints for everyone (4.8; src/server/TutorialHints.luau and the client's
@@ -13931,7 +13937,27 @@ Config.Tutorial = {
 	-- 2026-10-09: Cosmo, clearly nicer than the Bronze Cue). That one block is ready at once
 	-- (a block on its timer cannot be placed).
 	MysteryKind = "Mystery",
+	-- Its upgrade screen's path: the bottom tier until this press, then this tier.
+	MysteryReveal = { Tier = "Uncommon", ClimbPress = 3 },
 	TutorialCue = "CosmoCue",
+	-- That block's reel: a card of this rarity out of the block's own pool flashes past once,
+	-- as late as the reel's showcase safeguard allows (Config.UI.Reel.ShowcaseGapCards).
+	ReelGlimpse = "Secret",
+	-- And it opens on this spread of tiers, one card each from the left (a different cue of the
+	-- tier each time), so the pause before the spin shows what the block can win (the designer:
+	-- "epic, legendary, rare, uncommon"). Long enough to fill the widest window; the middle card
+	-- (under the marker at the start) is the Legendary.
+	ReelOpening = {
+		"Uncommon",
+		"Rare",
+		"Epic",
+		"Rare",
+		"Legendary",
+		"Uncommon",
+		"Epic",
+		"Mythic",
+		"Rare",
+	},
 	-- The Cues step: once the cue is equipped, Cues stays open this long (its "Equipped"
 	-- notice) before the line says to close it.
 	EquipCloseSeconds = 1.2,
@@ -13955,6 +13981,8 @@ Config.Tutorial = {
 		LinePhoneTextPx = 30, -- a phone's, in a line with button pictures
 		RowGapPx = 8, -- between the words and pictures of such a line
 		KeyScale = 1.25, -- a button picture's size against the text
+		KeyBackTransparency = 0.25, -- its dark disc (so a light picture shows on a white background)
+		KeyPictureShare = 0.86, -- the picture's size on its disc
 		BigTextPx = 96, -- the big text in the middle ("Place it!")
 		BigPhoneTextPx = 64,
 		BigYScale = 0.3, -- its height on the screen (a share from the top)
@@ -14003,6 +14031,9 @@ Config.Tutorial = {
 		MinPx = 90,
 		MaxPx = 170,
 		HoverPx = 6, -- the tip rests this far below a button's centre
+		-- Near the screen's bottom (more than this share of the hand would run off it, as on the
+		-- hotbar) the hand turns over and points down at the target from above.
+		FlipOffShare = 0.4,
 		TapSeconds = 0.9, -- one tap (dip and squish) per loop
 		TapDipPx = 12,
 		TapSquish = 0.1,

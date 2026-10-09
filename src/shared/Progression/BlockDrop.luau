@@ -323,6 +323,27 @@ function BlockDrop.path(final: string, rng: (number) -> number): { string }
 	return tiers
 end
 
+--- Whether `tiers` is a path the upgrade screen can play: Clicks ladder tiers, starting on
+--- BlockDrop.startOf(its last tier), each press staying or climbing one tier (a forced path:
+--- the tutorial's Mystery block, PlayerData.revealMystery).
+function BlockDrop.validPath(tiers: any): boolean
+	if type(tiers) ~= "table" or #tiers ~= UP.Clicks then
+		return false
+	end
+	for i, tier in tiers do
+		if RANK[tier] == nil then
+			return false
+		end
+		if i > 1 then
+			local step = RANK[tier] - RANK[tiers[i - 1]]
+			if step < 0 or step > 1 then
+				return false
+			end
+		end
+	end
+	return tiers[1] == BlockDrop.startOf(tiers[#tiers])
+end
+
 --- Everything wrong with Config.BlockOdds.Drop, sorted (empty when all is well): weights that
 --- are not whole numbers, a tier that is not a ladder row, weights that do not add to
 --- OddsTotal, pity limits below 1, or a FirstWin that is not a ladder row.

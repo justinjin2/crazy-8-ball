@@ -154,15 +154,17 @@ local function hintFor(phase: string): string
 end
 
 --- Play a block's opening: `kind` (its name over the reel) and the server's Open answer
---- ({ cue, rarity, oddsId }; `oddsId` is the odds row the reel shows: the Mystery block's
---- rolled tier's). `onClosed` runs once it is gone.
+--- ({ cue, rarity, oddsId, glimpse }; `oddsId` is the odds row the reel shows: the Mystery
+--- block's rolled tier's; `glimpse`: the tutorial's block, a card of that rarity flashes past).
+--- `onClosed` runs once it is gone.
 function Opening.play(
 	self: any,
 	kind: string,
 	cueId: string,
 	rarity: string,
 	onClosed: (() -> ())?,
-	oddsId: string?
+	oddsId: string?,
+	glimpse: string?
 )
 	if self.open then
 		self:close()
@@ -196,7 +198,7 @@ function Opening.play(
 	self.phase = "Lead"
 	task.delay(Config.UI.Blur.ReelLeadSeconds, function()
 		if self.open and self.playId == playId then
-			self:startReel(kind, cueId, rarity, reelOdds)
+			self:startReel(kind, cueId, rarity, reelOdds, glimpse)
 		end
 	end)
 end
@@ -218,7 +220,14 @@ local function closedFor(oddsId: string): { [string]: boolean }
 end
 
 -- The reel itself, once the blur has a head start (play).
-function Opening.startReel(self: any, kind: string, cueId: string, rarity: string, reelOdds: string)
+function Opening.startReel(
+	self: any,
+	kind: string,
+	cueId: string,
+	rarity: string,
+	reelOdds: string,
+	glimpse: string?
+)
 	local stage = ReelFx.stage(self.area, "Stage")
 	self.stage = stage
 	local title = HudParts.text(stage.frame, "Title", CO.TitlePx, NAMES[kind] or kind)
@@ -232,18 +241,22 @@ function Opening.startReel(self: any, kind: string, cueId: string, rarity: strin
 	hint.ZIndex = 4
 	self.hint = hint
 
-	local reel =
-		BlockReel.new(stage.frame, reelOdds, { look = "Dark", closed = closedFor(reelOdds) })
+	local reel = BlockReel.new(
+		stage.frame,
+		reelOdds,
+		{ look = "Dark", closed = closedFor(reelOdds), glimpse = glimpse }
+	)
 	reel:setPrize(cueId, rarity)
 	self.reel = reel
 	self.cueId, self.rarity = cueId, rarity
 	self.phase = "Reel"
 	self:layout()
 	-- One by one, quickly: the title, the reel's window and each card, then the hint; the spin
-	-- starts once the last card is on its way (designer, 2026-10-06).
+	-- starts once the last card is on its way (designer, 2026-10-06) and the reel has stood
+	-- still StillSeconds on its cards (tutorial v2: they see what they could win).
 	local S = Config.UI.Kit.Motion.Stagger
 	UIAnim.expandIn(title, 0)
-	local spinAt = reel:intro(S.GapSeconds)
+	local spinAt = reel:intro(S.GapSeconds) + CO.Reel.StillSeconds
 	UIAnim.expandIn(hint, spinAt)
 	local playId = self.playId
 	ContextActionService:BindActionAtPriority(

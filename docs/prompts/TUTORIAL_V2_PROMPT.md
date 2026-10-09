@@ -872,7 +872,7 @@ lines). All in the worktree.
   - the clock and AFK;
   - the "make the rest easy" fallback;
   - the layout guard test.
-- [ ] 9. The chain (4.5):
+- [x] 9. The chain (4.5):
   - result, Rare block, NEW RANK!;
   - the bot's line and exit;
   - the Rank claim;
@@ -1174,6 +1174,41 @@ lines). All in the worktree.
   `/tutorial reset` during game 1 does not restart the game (step 14); the hand covers part of
   "PRESS G TO ACTIVATE" on the ability lesson (the brief's ref 04 puts the hand on the bar).
 
+### Step 9: the chain (2026-10-09)
+
+- **The steps** (Result, Rank, Mystery, Place, Cues, Abilities; `Tutorial.luau`'s scenes, the
+  server's `TutorialService` marks and fallbacks): the result shows only Continue, the first
+  win's Rare block, NEW RANK!; the bot's line and exit at Rank; "Open Rank and claim your
+  reward!" on the rank HUD, CLAIM (the roadmap closes itself after a claim); the Mystery block's
+  slot; its upgrade screen climbs Standard to Uncommon on the third press (server-rigged for that
+  one block, `forcedReveal` through `LuckyBlockService.setRevealHook`, the path checked by
+  `BlockDrop.validPath`) and the block is ready at once; big "Place it!", pick, place, "Hold E to
+  open it!"; the reel (see below) lands Cosmo Cue; Cues pops in: open, the new cue's card (the
+  pointer prefers the tutorial's cue), Equip, close; Abilities pops in: open, "Type RELEASE for 3
+  free spins!" at the code box (filled in on a controller), Redeem, SPIN (Magnet), close; Soft.
+- **The reel:** every reel holds still 1.2 s first; the tutorial's opens on a set spread of tiers
+  with the Legendary under the marker, and the Secret Eclipse Cue passes at card 25 of 34.
+- **Never stuck:** each step's Next after its fallback (Cues 45 s: its clock starts at the open),
+  never over a block screen; done reports repeat each second until the server agrees (a close
+  could beat the server's once-a-second watch); the code fills in after 30 s and is redeemed for
+  them after 60 s.
+- **The look:** the hand flips to point down at the hotbar; button pictures on a dark disc; the
+  line drops under the top banner; the close prompts and Equip keep the line at the top (over
+  the panel it covered the cue's name); the dim's four frames meet on whole pixels (a hairline
+  showed).
+- **Verified in Studio (my window, PC mouse and controller, twice from a fresh save):** every
+  prompt in both devices' words, the climb, Place, the open, the reel's opening and glimpse
+  (inspected on the strip), Cosmo Cue, the Cues pointer on Cosmo, Equip, RELEASE (typed and
+  filled), Magnet, Soft; the onboarding funnel 1 to 11 in order; no errors.
+- **Found and fixed for everyone:** the spin screen's count after a rank claim; the Block funnel's
+  Mystery opens (see DECISIONS).
+- **Open (step 12):** new saves still hold the starter spin and Bronze's spin, and Bronze's
+  Mystery block still lands at once, so the Abilities screen reads FREE SPIN with spins left
+  before RELEASE (the brief: 0 to 3); step 12 sets the starter to 0 and moves the block into Rank,
+  and decides Bronze's own spin and today's free spin. Step 10 hides Challenge, VIP, Invite and
+  money during the guided part. The Skip button sits over the top of the Abilities screen's odds
+  list.
+
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
 - `src/shared/Config.luau`: `Config.Tutorial.Assist` (the hidden help's numbers, Pull modes)
@@ -1214,6 +1249,26 @@ lines). All in the worktree.
     and the `game1` QA op.
   - `src/shared/Config.luau` (`Config.Tutorial`: Break, Glow, Overlay.LineAvoidPx, Lessons,
     Plan, Assist, BotPlan) and `src/shared/Strings.luau` (Combo, Away).
+- Step 9 (the chain):
+  - `src/server/PlayerData.luau`: `revealMystery`'s optional forced path (and ready at once);
+    `src/shared/Progression/BlockDrop.luau`: `validPath`; `src/server/LuckyBlockService.luau`:
+    `setRevealHook`, the tutorial open's `glimpse`, the Block funnel follows a reveal.
+  - `src/server/Rewards.luau`: `redeemFor` (the Abilities step's fallback).
+  - `src/server/UltSpins.luau`: `claimRank` resends the spin screen's state (a bug for everyone).
+  - `src/server/Funnel.luau`: `blockRevealed`, the kind in /funnel's block lines.
+  - `src/client/LuckyOpening.luau`, `src/client/BlockReel.luau`: the still before every spin;
+    the tutorial reel's opening spread and Secret glimpse.
+  - `src/client/LuckyClient.luau`: the landed flag, the glimpse, QA hooks (blocks, tapBlock,
+    throwHeld, openLive).
+  - `src/client/InventoryCues.luau`: the Cue pointer prefers the tutorial's cue.
+  - `src/client/MenuFrame.luau` (a menu's X as an anchor), `src/client/MenuColumn.luau` (an icon
+    pops in when it appears), `src/client/Progression.luau` (the banner as an anchor),
+    `src/client/HudParts.luau` (`pressCandy`), `src/client/GuiQA.luau` (`press`),
+    `src/client/ResultScreen.luau`, `src/client/NewRankPopup.luau`,
+    `src/client/RankClaimBlock.luau` (QA hooks).
+  - `src/shared/Config.luau`: `Config.Tutorial` (MysteryReveal, ReelGlimpse, ReelOpening,
+    Timing.Fallback.Cues, ReportAgainSeconds, Hand.FlipOffShare, Overlay.KeyBackTransparency and KeyPictureShare),
+    `Config.UI.Reel.Reel.StillSeconds`.
 
 ---
 

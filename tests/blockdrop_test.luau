@@ -443,4 +443,28 @@ return {
 		H.expect(first.Epic == 0 and first.Mythic == 0, "nothing starts above Rare")
 		H.expect(first.Standard > 0.8, "mostly Standard after the first press")
 	end,
+
+	["a forced path (the tutorial's Mystery block): its start, one tier a press, Clicks long"] = function()
+		local BlockDrop = load()
+		H.expect(
+			BlockDrop.validPath({ "Standard", "Standard", "Uncommon", "Uncommon" }),
+			"one climb"
+		)
+		H.expect(BlockDrop.validPath({ "Standard", "Uncommon", "Rare", "Epic" }), "a climb a press")
+		H.expect(
+			not BlockDrop.validPath({ "Standard", "Rare", "Rare", "Rare" }),
+			"two tiers at once"
+		)
+		H.expect(
+			not BlockDrop.validPath({ "Uncommon", "Uncommon", "Uncommon", "Uncommon" }),
+			"not its start"
+		)
+		H.expect(
+			not BlockDrop.validPath({ "Standard", "Uncommon", "Standard", "Uncommon" }),
+			"a fall"
+		)
+		H.expect(not BlockDrop.validPath({ "Standard", "Uncommon", "Uncommon" }), "too short")
+		H.expect(not BlockDrop.validPath({ "Standard", "Nope", "Nope", "Nope" }), "not a tier")
+		H.expect(not BlockDrop.validPath(nil), "nothing")
+	end,
 }

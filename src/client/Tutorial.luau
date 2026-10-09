@@ -426,6 +426,24 @@ end
 -- The chain after game 1 (Result .. Abilities)
 ---------------------------------------------------------------------------------------------
 
+-- A popup, a menu or the block screens (the upgrade screen, the reel) are up: the chain's
+-- pointers wait.
+local function busy(): boolean
+	return Progression.isBusy() or LuckyClient.isOpen()
+end
+
+-- A step's done report, sent again every Timing.ReportAgainSeconds while the scene holds: the
+-- server may not have seen the step's moment yet (it watches some once a second) and drops
+-- an early report.
+local reportedAt: { [string]: number } = {}
+local function reportDone(kind: string)
+	local now = os.clock()
+	if now - (reportedAt[kind] or -math.huge) >= Timing.ReportAgainSeconds then
+		reportedAt[kind] = now
+		Tutorial.report(kind)
+	end
+end
+
 -- Result: the result screen, the first win's block and NEW RANK! play on their own; once
 -- none of them is up, the step is done.
 local resultClearAt: number? = nil
@@ -437,11 +455,11 @@ local function resultScene(): string
 	end
 	local now = os.clock()
 	resultClearAt = resultClearAt or now
-	if now - (resultClearAt :: number) >= 1 and shownKey ~= "resultDone" then
-		Tutorial.report("ResultDone")
+	if now - (resultClearAt :: number) >= 1 then
+		reportDone("ResultDone")
 		return "resultDone"
 	end
-	return if shownKey == "resultDone" then "resultDone" else "resultWait"
+	return "resultWait"
 end
 
 -- Rank: open it, CLAIM, close it.
@@ -453,7 +471,7 @@ local function rankScene(device: string, fresh: boolean): string
 			pointAt("RankClaim", words(Copy.RankClaim, device), device, fresh, "Near")
 			return "rankClaim" .. device
 		end
-		if Progression.isBusy() then
+		if busy() then
 			lineOnly(nil)
 			return "rankBusy"
 		end
@@ -461,19 +479,29 @@ local function rankScene(device: string, fresh: boolean): string
 		return "rankOpen" .. device
 	end
 	if open then
-		lineOnly(words(Copy.RankClose, device))
-		return "rankClose" .. device
+		local key = "rankClose" .. device
+		pointAt(RANKED .. "Close", words(Copy.RankClose, device), device, shownKey ~= key)
+		return key
 	end
-	if shownKey ~= "rankClosed" then
-		Tutorial.report("RankClosed")
-	end
+	reportDone("RankClosed")
 	lineOnly(nil)
 	return "rankClosed"
 end
 
--- Mystery: the Mystery block in the hotbar (its upgrade screen is tutorial v2 step 9).
+-- Mystery: the Mystery block in the hotbar, then its upgrade screen (rigged by the server to
+-- climb once); done once the block has landed back in its slot.
 local function mysteryScene(device: string, fresh: boolean): string
-	if Progression.isBusy() then
+	if TutorialAnchors.flag("MysteryLanded") then
+		reportDone("MysteryDone")
+		lineOnly(nil)
+		return "mysteryDone"
+	end
+	if LuckyClient.isOpen() then
+		-- The upgrade screen is up: its own Tap! button; the line says what the presses do.
+		lineOnly(words(Copy.MysteryPress, device))
+		return "mysteryPress" .. device
+	end
+	if busy() then
 		lineOnly(nil)
 		return "mysteryBusy"
 	end
@@ -487,15 +515,33 @@ local function mysteryScene(device: string, fresh: boolean): string
 	return key
 end
 
--- Place: "Place it!", then open it (the reel lands the tutorial's cue).
-local function placeScene(): string
-	if Progression.isBusy() then
+-- Place: big "Place it!" over the tutorial's block (the Mystery block it became): pick it in
+-- the hotbar, place it on the ground, hold to open it (the reel lands the tutorial's cue).
+local function placeScene(device: string, fresh: boolean): string
+	if busy() then
+		overlay:bigText(nil)
 		lineOnly(nil)
 		return "placeBusy"
 	end
-	lineOnly(nil)
+	local kind = Config.Tutorial.MysteryReveal.Tier
+	if LuckyClient.livePart(kind) then
+		overlay:bigText(nil)
+		lineOnly(words(Copy.Open, device))
+		return "placeOpen" .. device
+	end
 	overlay:bigText(Copy.PlaceBig)
-	return "place"
+	if LuckyClient.heldKind() == kind then
+		lineOnly(words(Copy.Place, device))
+		return "placeGround" .. device
+	end
+	local slot = LuckyClient.slotOf(kind)
+	if slot == nil then
+		lineOnly(nil)
+		return "placeNone"
+	end
+	local key = "placePick" .. slot .. device
+	pointAt("HotbarSlot" .. slot, words(Copy.Mystery, device), device, fresh or shownKey ~= key)
+	return key
 end
 
 -- Cues: open Cues, the new cue, Equip, close.
@@ -503,17 +549,16 @@ local function cuesScene(device: string): string
 	local open = Menus.isOpen(INVENTORY)
 	if Tutorial.marked("Equipped") then
 		if open then
-			lineOnly(words(Copy.CuesClose, device))
-			return "cuesClose" .. device
+			local key = "cuesClose" .. device
+			pointAt(INVENTORY .. "Close", words(Copy.CuesClose, device), device, shownKey ~= key)
+			return key
 		end
-		if shownKey ~= "cuesClosed" then
-			Tutorial.report("CuesClosed")
-		end
+		reportDone("CuesClosed")
 		lineOnly(nil)
 		return "cuesClosed"
 	end
 	if not open then
-		if Progression.isBusy() then
+		if busy() then
 			lineOnly(nil)
 			return "cuesBusy"
 		end
@@ -522,13 +567,24 @@ local function cuesScene(device: string): string
 		return key
 	end
 	if TutorialAnchors.showing("InventoryEquip") then
+		-- The line at the top: over Equip it would cover the cue's name and odds.
 		local key = "cuesEquip" .. device
-		pointAt("InventoryEquip", words(Copy.CuesEquip, device), device, shownKey ~= key, "Near")
+		pointAt("InventoryEquip", words(Copy.CuesEquip, device), device, shownKey ~= key)
 		return key
 	end
 	local key = "cuesCard" .. device
 	pointAt("InventoryCue", words(Copy.CuesCard, device), device, shownKey ~= key, "Near")
 	return key
+end
+
+-- The Abilities step filled the code box in (once a step).
+local filledCode = false
+
+-- The spin screen's code box (its text box), or nil.
+local function codeInput(): TextBox?
+	local box = TutorialAnchors.get("CodeBox")
+	local input = if box then box:FindFirstChildWhichIsA("TextBox", true) else nil
+	return if input and input:IsA("TextBox") then input else nil
 end
 
 -- Abilities: open it, type the code, Redeem, SPIN, close.
@@ -542,9 +598,7 @@ local function abilitiesScene(device: string, fresh: boolean): string
 			pointAt("SpinBack", words(Copy.AbilitiesClose, device), device, fresh, "Near")
 			return "abilitiesClose" .. device
 		elseif not open then
-			if shownKey ~= "abilitiesClosed" then
-				Tutorial.report("AbilitiesClosed")
-			end
+			reportDone("AbilitiesClosed")
 			lineOnly(nil)
 			return "abilitiesClosed"
 		end
@@ -552,7 +606,7 @@ local function abilitiesScene(device: string, fresh: boolean): string
 		return "abilitiesSpinning"
 	end
 	if not open then
-		if Progression.isBusy() then
+		if busy() then
 			lineOnly(nil)
 			return "abilitiesBusy"
 		end
@@ -568,7 +622,23 @@ local function abilitiesScene(device: string, fresh: boolean): string
 		pointAt("SpinButton", words(Copy.Spin, device), device, fresh, "Near")
 		return "abilitiesSpin" .. device
 	end
-	if TutorialAnchors.flag("CodeFocused") and TutorialAnchors.showing("CodeRedeem") then
+	-- The box comes filled in on a controller (no typing there), and for anyone once the step's
+	-- fallback time is up; the hand then moves to Redeem.
+	local input = codeInput()
+	if
+		not filledCode
+		and input
+		and input.Text == ""
+		and TutorialAnchors.showing("CodeBox")
+		and (device == "gamepad" or Tutorial.since() >= fallbackOf("Abilities"))
+	then
+		input.Text = code
+		filledCode = true
+	end
+	local filled = input ~= nil and string.upper(input.Text) == code
+	if
+		(TutorialAnchors.flag("CodeFocused") or filled) and TutorialAnchors.showing("CodeRedeem")
+	then
 		-- The box was clicked: no dim (it is typed into), the gold ring and the hand on Redeem.
 		local target = TutorialOverlay.guiTarget("CodeRedeem")
 		overlay:dim(target, false, true)
@@ -615,10 +685,20 @@ local function scene(step: string, device: string): string
 	end
 	if step ~= "Abilities" then
 		TutorialAnchors.setFlag("CodeFocused", false)
+		filledCode = false
 	end
-	overlay:setNext(NEXT_STEPS[step] == true and Tutorial.since() >= fallbackOf(step), function()
-		Tutorial.report("Next")
-	end)
+	if step ~= "Mystery" then
+		TutorialAnchors.setFlag("MysteryLanded", false)
+	end
+	-- Never over a block screen (the upgrade screen, the reel, its reveal): they end by themselves.
+	overlay:setNext(
+		NEXT_STEPS[step] == true
+			and Tutorial.since() >= fallbackOf(step)
+			and not LuckyClient.isOpen(),
+		function()
+			Tutorial.report("Next")
+		end
+	)
 	if step ~= "Arrow" then
 		arrow:show(nil)
 	end
@@ -636,7 +716,7 @@ local function scene(step: string, device: string): string
 	elseif step == "Mystery" then
 		return mysteryScene(device, fresh)
 	elseif step == "Place" then
-		return placeScene()
+		return placeScene(device, fresh)
 	elseif step == "Cues" then
 		return cuesScene(device)
 	elseif step == "Abilities" then

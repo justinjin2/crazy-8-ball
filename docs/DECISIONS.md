@@ -3815,3 +3815,29 @@ timer of a new block stay the designer's call.
   forever: their last ball by a corner whose jaws held the 8), its next shot nudges one of their
   balls into the open with a soft foul (it looks like a bot blunder and hands them ball in hand).
   The one exception to "the bot never touches the player's balls".
+- 2026-10-09: Tutorial v2's chain (the brief's 4.5, steps 1-9). The Mystery block's upgrade
+  screen is rigged on the server for that one block: the bottom tier until the third press, then
+  Uncommon (`Config.Tutorial.MysteryReveal`), and it is ready at once (a block on its timer cannot
+  be placed, so "Place it!" could not happen). The open lands Cosmo Cue (the designer's pick).
+- 2026-10-09: Every lucky block reel now holds still about 1.2 s on its cards before it spins
+  (`Config.UI.Reel.Reel.StillSeconds`; the brief's 4.11, for everyone). The tutorial's reel also
+  opens on a fixed spread of tiers, one card each (Uncommon, Rare, Epic, Rare, Legendary under
+  the marker, Uncommon, Epic, Mythic, Rare: `Config.Tutorial.ReelOpening`, a different cue of the
+  tier each time; every one is in the Uncommon block's own pool), and its Secret card (Eclipse
+  Cue, "1 in 500,000") flashes past once at the latest place the reel's showcase safeguard
+  allows, nine cards before the stop. Run assumption: the brief says "a glimpse while spinning"
+  without a place.
+- 2026-10-09: Tutorial v2's Abilities step fills the code box in by itself on a controller (no
+  typing there) and for anyone still on it after 30 s; after 60 s the server redeems RELEASE for
+  them once, so nobody is stuck at a text box. Codes are matched in any case ("release" works).
+- 2026-10-09: The tutorial's pointing hand turns upside down (pointing down from above) when
+  pointing up from below would put 40% of it off the screen's bottom (the hotbar slots).
+  Button pictures in its lines sit on a dark disc, so Roblox's light pictures read on a white
+  background. Its line drops under the top banner while one shows ("New in your Index: ..."
+  sat on top of it).
+- 2026-10-09: Bug fixes found while testing the chain, for every player: the spin screen's count
+  did not update after claiming a rank reward with spins (`claimRank` was not one of the changes
+  that resend it); the Block funnel never logged "Opened" for a Mystery block (its upgrade
+  changes its kind; the funnel now follows the new kind), and its /funnel lines name the kind.
+  The two "Block 1 Got" lines after game 1 were two real blocks (Bronze's Mystery block, paid at
+  once today, and the first win's Rare).

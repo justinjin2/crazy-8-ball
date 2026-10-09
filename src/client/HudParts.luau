@@ -801,6 +801,17 @@ function HudParts.setButtonIcon(button: TextButton, key: string?)
 	end
 end
 
+--- Runs candy button `button`'s action as a press would (an enabled one only), for Studio
+--- checks (GuiQA "press"); false when it is not a candy button or is disabled.
+function HudParts.pressCandy(button: Instance?): boolean
+	local c = if button then candies[button :: any] else nil
+	if c == nil or not c.enabled then
+		return false
+	end
+	c.action()
+	return true
+end
+
 --- How wide a (non-tile) candy button `height` tall wants to be so its words fit at `textPx`
 --- with its icon: rows of buttons share their width by this, so long words get more room.
 function HudParts.candyWidth(button: TextButton, height: number, textPx: number): number

@@ -3,13 +3,17 @@
 -- server). It is a BindableFunction `GuiQA` in the player's PlayerScripts:
 --   PlayerScripts.GuiQA:Invoke("open", "Shop", tab?)   open a menu (Menus.open)
 --   PlayerScripts.GuiQA:Invoke("close")                close the open menu
+--   PlayerScripts.GuiQA:Invoke("press", anchor)        press the candy button a tutorial
+--                                                      anchor names (TutorialAnchors)
 --   PlayerScripts.GuiQA:Invoke("<action>", ...)        any action a screen added with `add`
 -- Screens add their own actions (play a moment with fake data, jump a cutscene) with
 -- GuiQA.add, which does nothing outside Studio.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
+local HudParts = require(script.Parent.HudParts)
 local Menus = require(script.Parent.Menus)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 
 local GuiQA = {}
 
@@ -28,6 +32,9 @@ end)
 GuiQA.add("close", function()
 	Menus.close()
 	return true
+end)
+GuiQA.add("press", function(anchor: string): boolean
+	return HudParts.pressCandy(TutorialAnchors.get(anchor))
 end)
 GuiQA.add("list", function()
 	local names = {}

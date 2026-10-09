@@ -172,15 +172,20 @@ function Funnel.once(player: Player, funnel: string, name: string, extra: string
 end
 
 --- Logs step `step` of a repeating funnel (the shop, a lucky block, the spins) for one visit
---- `session` (any short string the caller keeps for that visit).
+--- `session` (any short string the caller keeps for that visit). `note` (the block's kind)
+--- goes in /funnel's line only.
 function Funnel.step(
 	player: Player,
 	funnel: string,
 	session: string,
 	step: number,
-	stepName: string
+	stepName: string,
+	note: string?
 )
-	keep(player, ("%s %d %s"):format(funnel, step, stepName))
+	keep(
+		player,
+		("%s %d %s%s"):format(funnel, step, stepName, if note then " (" .. note .. ")" else "")
+	)
 	call(funnel .. " " .. stepName, function()
 		AnalyticsService:LogFunnelStepEvent(player, funnel, session, step, stepName)
 	end)
@@ -303,7 +308,19 @@ function Funnel.blockLanded(player: Player, kind: string, at: number)
 		cues = nil,
 	}
 	table.insert(list, drop)
-	Funnel.step(player, "Block", drop.session, stepOf(F.Block, "Got") or 1, "Got")
+	Funnel.step(player, "Block", drop.session, stepOf(F.Block, "Got") or 1, "Got", drop.kind)
+end
+
+--- A Mystery block's presses turned it from kind `from` into `to`: the oldest followed `from`
+--- drop still unopened is a `to` from now on, so its open is matched.
+function Funnel.blockRevealed(player: Player, from: string, to: string)
+	local list: { Drop } = drops[player] or {}
+	for _, drop in list do
+		if drop.kind == from and drop.cues == nil then
+			drop.kind = to
+			return
+		end
+	end
 end
 
 --- A block was opened: the oldest followed block of that kind still unopened is "Opened" (and
@@ -314,10 +331,24 @@ function Funnel.blockOpened(player: Player, kind: string, cues: { string }?)
 		if drop.kind == kind and drop.cues == nil then
 			if not drop.ready then
 				drop.ready = true -- opened before the watch saw it ready (or its timer skipped)
-				Funnel.step(player, "Block", drop.session, stepOf(F.Block, "Ready") or 2, "Ready")
+				Funnel.step(
+					player,
+					"Block",
+					drop.session,
+					stepOf(F.Block, "Ready") or 2,
+					"Ready",
+					drop.kind
+				)
 			end
 			drop.cues = cues or {}
-			Funnel.step(player, "Block", drop.session, stepOf(F.Block, "Opened") or 3, "Opened")
+			Funnel.step(
+				player,
+				"Block",
+				drop.session,
+				stepOf(F.Block, "Opened") or 3,
+				"Opened",
+				drop.kind
+			)
 			return
 		end
 	end
@@ -331,7 +362,14 @@ function Funnel.cueEquipped(player: Player, cueId: string)
 	end
 	for i, drop in list do
 		if drop.cues and table.find(drop.cues, cueId) then
-			Funnel.step(player, "Block", drop.session, stepOf(F.Block, "Equipped") or 4, "Equipped")
+			Funnel.step(
+				player,
+				"Block",
+				drop.session,
+				stepOf(F.Block, "Equipped") or 4,
+				"Equipped",
+				drop.kind
+			)
 			table.remove(list, i)
 			return
 		end
@@ -345,7 +383,14 @@ local function watchDrops()
 		for _, drop in list do
 			if not drop.ready and now >= drop.at then
 				drop.ready = true
-				Funnel.step(player, "Block", drop.session, stepOf(F.Block, "Ready") or 2, "Ready")
+				Funnel.step(
+					player,
+					"Block",
+					drop.session,
+					stepOf(F.Block, "Ready") or 2,
+					"Ready",
+					drop.kind
+				)
 			end
 		end
 	end

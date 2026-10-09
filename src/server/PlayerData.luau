@@ -2099,7 +2099,14 @@ end
 --- { tiers, kind, readyAt, pity }) or (false, reason): "NotOwned", "NotReady", "NotLoaded",
 --- "NotMystery", "Invalid". `pity` is BlockDrop.pityLeft as it stood before this block (this one
 --- counted in it, so it never gives the result away), for the upgrade screen's counters.
-function PlayerData.revealMystery(player: Player, id: number): (boolean, any)
+--- `forced` (the tutorial's Mystery step): the presses' tiers instead of a roll (a path
+--- BlockDrop.validPath accepts; its last tier is the block's, still counted for pity), and
+--- `ready`: the revealed block opens at once.
+function PlayerData.revealMystery(
+	player: Player,
+	id: number,
+	forced: { tiers: { string }, ready: boolean? }?
+): (boolean, any)
 	local op = "revealMystery"
 	if not isPlayer(player) then
 		return refuseInvalid(op, player, "not a player")
@@ -2122,19 +2129,20 @@ function PlayerData.revealMystery(player: Player, id: number): (boolean, any)
 	end
 	-- Every Mystery block counts and gets pity, bought ones too (economy v4, 2026-10-08:
 	-- ECONOMY 7.1; a paid block rolled the plain odds before).
+	local path = if forced and BlockDrop.validPath(forced.tiers) then forced.tiers else nil
 	local before = BlockDrop.pityLeft(BlockDrop.readPity(data.Drops))
-	local tier, pity = BlockDrop.roll(BlockDrop.readPity(data.Drops), dropRoll, nil)
+	local tier, pity =
+		BlockDrop.roll(BlockDrop.readPity(data.Drops), dropRoll, if path then path[#path] else nil)
 	data.Drops.SinceRare = math.min(pity.SinceRare, S.StatCap)
 	data.Drops.SinceEpic = math.min(pity.SinceEpic, S.StatCap)
 	data.Drops.Total = math.min(pity.Total, S.StatCap)
-	local tiers = BlockDrop.path(tier, dropRoll)
-	local revealed = LuckyBlocks.reveal(
-		data.LuckyBlocks,
-		id,
-		tier,
-		os.time(),
-		vipOfSave[data] == true
-	) :: LuckyBlocks.Block
+	local tiers = if path then table.clone(path) else BlockDrop.path(tier, dropRoll)
+	local now = os.time()
+	local revealed =
+		LuckyBlocks.reveal(data.LuckyBlocks, id, tier, now, vipOfSave[data] == true) :: LuckyBlocks.Block
+	if path and forced and forced.ready then
+		revealed.ReadyAt = now
+	end
 	commit(player, data, op)
 	return true, { tiers = tiers, kind = revealed.Kind, readyAt = revealed.ReadyAt, pity = before }
 end

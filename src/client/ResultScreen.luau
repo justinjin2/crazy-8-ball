@@ -53,6 +53,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local ProgressionRules = Shared:WaitForChild("Progression")
 local Format = require(ProgressionRules:WaitForChild("Format"))
 local Ranks = require(ProgressionRules:WaitForChild("Ranks"))
+local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local PostMatch = require(script.Parent.PostMatch)
 local RankBadge = require(script.Parent.RankBadge)
@@ -239,6 +240,14 @@ function ResultScreen.new(screen: ScreenGui, flyer: any, money: any, newRank: an
 	self.root.Visible = false
 	self.sizeChanged = self.root:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 		self:layout()
+	end)
+	-- Studio checks: press Continue (what the button does), true when the screen was up.
+	GuiQA.add("resultContinue", function(): boolean
+		if self.view == nil or self.view.closing then
+			return false
+		end
+		self:close()
+		return true
 	end)
 	return self
 end

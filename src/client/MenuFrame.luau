@@ -46,6 +46,7 @@ local MoneyHud = require(script.Parent.MoneyHud)
 local Quality = require(script.Parent.Quality)
 local ScreenBlur = require(script.Parent.ScreenBlur)
 local Stage = require(script.Parent.Stage)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -376,6 +377,7 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 	HudParts.setMinHit(close, F.TouchMinPx)
 	HudParts.padBack(close) -- B closes every menu
 	self.closeButton = close
+	TutorialAnchors.set(self.name .. "Close", close) -- the tutorial's "Close Rank" hand
 	if self.showMoney then
 		local pill = HudParts.pill(header, "Money", WHITE)
 		local cash = HudParts.icon(pill, "CashSingle", "Cash")

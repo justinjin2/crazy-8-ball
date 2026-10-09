@@ -628,6 +628,7 @@ local STATE_OPS: { [string]: boolean } = {
 	applyPurchase = true, -- spin packs
 	grantReward = true, -- rank, dev and other grants with spins
 	applyRank = true, -- rank-up spins
+	claimRank = true, -- the Rank screen's CLAIM (its rewards' spins)
 	claimDaily = true, -- day 7's spins
 	claimPlaytime = true, -- the last gift's spin
 	redeemCode = true, -- RELEASE

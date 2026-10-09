@@ -187,6 +187,8 @@ end
 
 -- Every part hidden, then the frame's parts shown as needed.
 local function reset(self: Hand)
+	self.hand.Rotation = 0
+	self.rays.Rotation = 0
 	self.hand.Visible = false
 	self.rays.Visible = false
 	self.mouse.Visible = false
@@ -226,16 +228,25 @@ function TutorialHand.update(self: Hand, dt: number)
 			return
 		end
 		-- The tap: a quick poke up and squish, then a rest; the tap lines flash with it. Near the
-		-- screen's bottom the hand's lower part simply runs off the edge.
+		-- screen's bottom (the hotbar) it turns over and pokes down from above: turned about its
+		-- middle, the tip lands at the mirrored point, so the hand shifts to keep it on target.
 		local phase = (t % H.TapSeconds) / H.TapSeconds
 		local dip = if phase < 0.3 then math.sin(phase / 0.3 * math.pi) else 0
 		local flash = if phase < 0.6 then math.sin(phase / 0.6 * math.pi) else 0
 		self.scale.Scale = 1 - H.TapSquish * dip
-		local at = centre + Vector2.new(0, H.HoverPx - H.TapDipPx * dip)
+		local below = centre.Y + H.HoverPx + size * (1 - H.TipY) - view.Y
+		local flip = below > size * H.FlipOffShare
+		local at = centre
+			+ Vector2.new(0, (if flip then -1 else 1) * (H.HoverPx - H.TapDipPx * dip))
+		if flip then
+			at -= Vector2.new((1 - 2 * H.TipX) * size, (1 - 2 * H.TipY) * size)
+		end
 		placeHand(self, at, size, 0)
+		self.hand.Rotation = if flip then 180 else 0
 		self.rays.Visible = flash > 0
 		self.rays.Size = self.hand.Size
 		self.rays.Position = self.hand.Position
+		self.rays.Rotation = self.hand.Rotation
 		self.rays.ImageTransparency = 1 - flash
 		return
 	end

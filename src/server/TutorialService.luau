@@ -343,6 +343,22 @@ local function forcedOpen(player: Player, kind: string): string?
 	return T.TutorialCue
 end
 
+-- The chain's Mystery block's upgrade screen climbs once, the bottom tier to
+-- MysteryReveal.Tier on MysteryReveal.ClimbPress, and the block it becomes is ready at once
+-- (4.5 step 6; a block on its timer cannot be placed).
+local function forcedReveal(player: Player): { tiers: { string }, ready: boolean }?
+	if TutorialService.step(player) ~= "Mystery" then
+		return nil
+	end
+	local R = T.MysteryReveal
+	local tiers = {}
+	for press = 1, Config.BlockOdds.Drop.Upgrade.Clicks do
+		table.insert(tiers, if press < R.ClimbPress then Config.BlockOdds.Order[1] else R.Tier)
+	end
+	TutorialService.mark(player, "Revealed")
+	return { tiers = tiers, ready = true }
+end
+
 local function opened(player: Player, kind: string, cueId: string)
 	Funnel.blockOpened(player, kind, { cueId })
 	Funnel.onboarding(player, "BlockOpened")
@@ -415,6 +431,15 @@ local function watchChain(player: Player)
 		local at = TutorialService.marked(player, "Spun")
 		if at and clock() - at >= fallbackOf("Abilities") then
 			TutorialService.advance(player, "Abilities")
+		elseif
+			at == nil
+			and not TutorialService.marked(player, "Redeemed")
+			and not TutorialService.marked(player, "RedeemTried")
+			and since >= Timing.AbilitiesRedeemSeconds
+		then
+			-- Still not redeemed: the code is redeemed for them, once (the Spin pointer follows).
+			TutorialService.mark(player, "RedeemTried")
+			Rewards.redeemFor(player, Config.Ults.CodeBanner.ActiveCode)
 		end
 	end
 end
@@ -451,11 +476,11 @@ local lastFunnelEvent: { [Player]: { [string]: number } } = {}
 -- The client's report of a step's screen being done: the step it moves on from.
 local DONE_REPORTS: { [string]: string } = {
 	ResultDone = "Result", -- NEW RANK! dismissed (or nothing left to show)
-	MysteryDone = "Mystery", -- the upgrade screen finished
 }
 -- Closing a menu at a step moves on once the step's moment happened.
 local CLOSE_REPORTS: { [string]: { step: string, mark: string } } = {
 	RankClosed = { step = "Rank", mark = "RankClaimed" },
+	MysteryDone = { step = "Mystery", mark = "Revealed" }, -- the upgrade screen finished
 	CuesClosed = { step = "Cues", mark = "Equipped" },
 	AbilitiesClosed = { step = "Abilities", mark = "Spun" },
 }
@@ -638,6 +663,13 @@ function TutorialService.start()
 		TutorialService.guard(player, "Equipped", function()
 			equipped(player, cueId)
 		end)
+	end)
+	LuckyBlockService.setRevealHook(function(player: Player): any
+		local forced = nil
+		TutorialService.guard(player, "Reveal", function()
+			forced = forcedReveal(player)
+		end)
+		return forced
 	end)
 	UltSpins.setSpinHooks(forcedSpin, function(player: Player, id: string)
 		TutorialService.guard(player, "Spun", function()

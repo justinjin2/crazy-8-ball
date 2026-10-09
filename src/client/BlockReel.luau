@@ -251,7 +251,7 @@ end
 function Reel.new(
 	parent: Instance,
 	oddsId: string,
-	opts: { look: string?, closed: BlockOdds.Closed? }?
+	opts: { look: string?, closed: BlockOdds.Closed?, glimpse: string? }?
 ): any
 	local self: any = setmetatable({}, Reel)
 	local dark = opts ~= nil and opts.look == "Dark"
@@ -339,12 +339,40 @@ function Reel.new(
 			R.ShowcaseGapCards
 		)
 		else nil
+	-- The tutorial's block (opts.glimpse): the showcase is a card of that rarity from the pool,
+	-- as late as the safeguard allows, so it flashes past just before the reel slows; the strip
+	-- opens on Config.Tutorial.ReelOpening's spread of tiers (each a different cue of its tier).
+	local glimpse = if opts and opts.glimpse then opts.glimpse else nil
+	local opening: { [number]: ReelMath.Cue } = {}
+	if glimpse then
+		for _, cue in cues do
+			if cue.rarity == glimpse and cue.percent > 0 then
+				showcase, showcaseAt = cue, R.PrizeSlot - R.ShowcaseGapCards - 1
+				break
+			end
+		end
+		local byRarity: { [string]: { ReelMath.Cue } } = {}
+		for _, cue in cues do
+			byRarity[cue.rarity] = byRarity[cue.rarity] or {}
+			table.insert(byRarity[cue.rarity], cue)
+		end
+		local used: { [string]: number } = {}
+		for index, rarity in Config.Tutorial.ReelOpening do
+			local list = byRarity[rarity]
+			if list and index ~= showcaseAt then
+				used[rarity] = (used[rarity] or 0) + 1
+				opening[index] = list[(used[rarity] - 1) % #list + 1]
+			end
+		end
+	end
 	self.showcaseAt = showcaseAt
 	self.slots = {} :: { Slot }
 	for index = 1, count do
 		local chosen = cues[#cues]
 		if showcase and index == showcaseAt then
 			chosen = showcase
+		elseif opening[index] then
+			chosen = opening[index]
 		else
 			local pick = self.random:NextNumber(0, total)
 			for _, cue in cues do

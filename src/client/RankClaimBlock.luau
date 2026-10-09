@@ -25,6 +25,7 @@ local Ranks = require(Shared:WaitForChild("Progression"):WaitForChild("Ranks"))
 local RankClaim = require(Shared:WaitForChild("Tutorial"):WaitForChild("RankClaim"))
 local ChatTags = require(script.Parent.ChatTags)
 local CueThumb = require(script.Parent.CueThumb)
+local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local RewardChips = require(script.Parent.RewardChips)
 local RewardsFlyer = require(script.Parent.RewardsFlyer)
@@ -136,6 +137,11 @@ function RankClaimBlock.new(screen: ScreenGui, deps: any, isOpen: () -> boolean,
 	end)
 	RunService.RenderStepped:Connect(function()
 		self:update()
+	end)
+	-- Studio checks: press CLAIM (what the button does).
+	GuiQA.add("rankClaim", function(): boolean
+		self:claim()
+		return true
 	end)
 	return self
 end

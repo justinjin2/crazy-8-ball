@@ -301,6 +301,7 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	self:refreshTimer()
 	self:refreshGlyphs()
 	self:refreshVisible()
+	self.built = true -- from here a tile the tutorial reveals pops in
 	return self
 end
 
@@ -319,8 +320,17 @@ function MenuColumn.refreshUlts(self: any)
 	end
 	local live = UltSpinState.isLive() and not TutorialAnchors.hidden(TUTORIAL_ITEMS[ULTS])
 	local changed = false
+	-- A tile the tutorial brings back pops in (a small HUD piece's entrance); on load it just
+	-- shows.
+	local function setShown(button: GuiObject, show: boolean)
+		if show and self.built then
+			UIAnim.popIn(button)
+		else
+			button.Visible = show
+		end
+	end
 	if t.button.Visible ~= live then
-		t.button.Visible = live
+		setShown(t.button, live)
 		changed = true
 	end
 	-- The tutorial lane: the other tiles hide while the tutorial hides them.
@@ -329,7 +339,7 @@ function MenuColumn.refreshUlts(self: any)
 		if other and name ~= ULTS then
 			local show = not TutorialAnchors.hidden(item)
 			if other.button.Visible ~= show then
-				other.button.Visible = show
+				setShown(other.button, show)
 				changed = true
 			end
 		end

@@ -97,6 +97,9 @@ function TutorialOverlay.guiTarget(object: GuiObject | string, pad: number?): Ta
 	end
 end
 
+-- The top banner (Banner.luau's strip, the anchor Progression sets), while it shows.
+local BANNER = TutorialOverlay.guiTarget("Banner", 0)
+
 --- A target round a point in the world, `radius` pixels (or the radius a world `studs` sphere
 --- covers on screen, whichever is bigger).
 function TutorialOverlay.worldTarget(
@@ -383,14 +386,28 @@ local function fillRow(self: Overlay, text: string, px: number)
 		local image = if key then UserInputService:GetImageForKeyCode(key) else ""
 		if image ~= "" then
 			order += 1
+			-- On a dark disc, like the words' outline: Roblox's light pictures vanish on a
+			-- white background otherwise.
+			local back = Instance.new("Frame")
+			back.Name = "Key" .. order
+			back.BackgroundColor3 = HudParts.tone("Ink")
+			back.BackgroundTransparency = O.KeyBackTransparency
+			back.BorderSizePixel = 0
+			back.Size = UDim2.fromOffset(px * O.KeyScale, px * O.KeyScale)
+			back.LayoutOrder = order
+			local round = Instance.new("UICorner")
+			round.CornerRadius = UDim.new(0.5, 0)
+			round.Parent = back
 			local icon = Instance.new("ImageLabel")
-			icon.Name = "Key" .. order
+			icon.Name = "Picture"
 			icon.BackgroundTransparency = 1
 			icon.Image = image
 			icon.ScaleType = Enum.ScaleType.Fit
-			icon.Size = UDim2.fromOffset(px * O.KeyScale, px * O.KeyScale)
-			icon.LayoutOrder = order
-			icon.Parent = fit
+			icon.AnchorPoint = Vector2.new(0.5, 0.5)
+			icon.Position = UDim2.fromScale(0.5, 0.5)
+			icon.Size = UDim2.fromScale(O.KeyPictureShare, O.KeyPictureShare)
+			icon.Parent = back
+			back.Parent = fit
 		else
 			word(TutorialOverlay.plain("{" .. (name :: string) .. "}"))
 		end
@@ -502,16 +519,17 @@ local function layout(self: Overlay, centre: Vector2?, size: Vector2?, view: Vec
 		self.ring.Visible = false
 		return
 	end
-	local x0, y0 = centre.X - size.X / 2, centre.Y - size.Y / 2
-	local x1, y1 = x0 + size.X, y0 + size.Y
+	-- Whole pixels, so no hairline of light shows where the four frames meet.
+	local x0, y0 = math.floor(centre.X - size.X / 2), math.floor(centre.Y - size.Y / 2)
+	local x1, y1 = math.ceil(centre.X + size.X / 2), math.ceil(centre.Y + size.Y / 2)
 	top.Position = UDim2.fromOffset(-far, -far)
 	top.Size = UDim2.fromOffset(view.X + far * 2, y0 + far)
 	bottom.Position = UDim2.fromOffset(-far, y1)
 	bottom.Size = UDim2.fromOffset(view.X + far * 2, view.Y - y1 + far)
 	left.Position = UDim2.fromOffset(-far, y0)
-	left.Size = UDim2.fromOffset(x0 + far, size.Y)
+	left.Size = UDim2.fromOffset(x0 + far, y1 - y0)
 	right.Position = UDim2.fromOffset(x1, y0)
-	right.Size = UDim2.fromOffset(view.X - x1 + far, size.Y)
+	right.Size = UDim2.fromOffset(view.X - x1 + far, y1 - y0)
 	self.ring.Visible = true
 	self.ring.Position = UDim2.fromOffset(centre.X, centre.Y)
 	local pulse = 1
@@ -534,6 +552,13 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 	local width = math.min(view.X * O.LineWidthScale, O.LineMaxWidthPx)
 	local height = if small then O.LinePhoneHeightPx else O.LineHeightPx
 	local gap = if self.linePlace == "Low" then O.LineLowGapPx else O.LineTopGapPx
+	if self.linePlace == "Top" then
+		-- A banner at the top (a find, a Money Party) keeps its place: the line goes under it.
+		local at, size = BANNER()
+		if at and size then
+			gap = math.max(gap, at.Y + size.Y / 2 + O.LineTopGapPx - inset.Y)
+		end
+	end
 	self.line.Position = UDim2.fromOffset(view.X / 2, inset.Y + gap)
 	self.line.Size = UDim2.fromOffset(width, height)
 	self.row.Size = UDim2.fromOffset(width, height)
