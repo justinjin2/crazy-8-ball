@@ -1091,6 +1091,13 @@ return {
 		Title = "VIP perks active",
 		TwoX = "x2", -- stamped beside a pot's money VIP doubled (CashFlyer)
 	},
+	-- The Grand Opening Luck's clover by the money pill (LuckClover; economy v5 plan 3.4): its
+	-- card's title, each boosted step ("Rare to Epic: 27% instead of 18%") and the countdown.
+	LuckClover = {
+		Title = "Extra luck for the release!",
+		Step = "%s to %s: %s instead of %s",
+		EndsIn = "Ends in %s",
+	},
 	-- The login days (economy v4 plan 6.1): the first week, then the later weeks.
 	Login = {
 		FirstWeek = "Day %d: %s · log in on any 7 days within 14",

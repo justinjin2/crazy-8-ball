@@ -8691,6 +8691,32 @@ Config.UI.VipTag = {
 	},
 }
 
+-- The Grand Opening Luck's clover (LuckClover; economy v5 plan 3.4): beside the VIP tag over the
+-- money pill (in its place without VIP), the VIP tag's height (Config.UI.VipTag), only while
+-- the luck runs. Its card over it says what the luck does and when it ends.
+Config.UI.LuckClover = {
+	ZIndex = 12, -- over the money pill, as the VIP tag
+	GapPx = 6, -- right of the VIP tag
+	IconShare = 0.8, -- the clover, a share of the badge
+	Color = { 24, 36, 86 }, -- navy, as the VIP tag
+	Rim = { 70, 205, 110 }, -- clover green
+	RimPx = 2,
+	Rock = { 10, 2.6 }, -- the clover rocks this many degrees each way, over these seconds
+	PinSeconds = 6, -- a press keeps the card open this long
+	PollSeconds = 1, -- how often it looks at the clock (the luck's start and end, the countdown)
+	Card = {
+		CornerPx = 14,
+		PadPx = 12,
+		GapPx = 6, -- between a clover and its words, under the title, over the countdown
+		TitlePx = 20,
+		TitleColor = { 110, 225, 140 }, -- clover green
+		TextPx = 16,
+		RowPx = 24,
+		IconPx = 18,
+		AbovePx = 8, -- its room over the badge
+	},
+}
+
 -- The economy's menus (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md sections 5 and 5.1): the
 -- left column (MenuColumn), every full menu's frame (MenuFrame: header band, tabs, sheet, red
 -- X), its confirm dialog, notice line, scrollers and card tiles, the rarity dressing and cue

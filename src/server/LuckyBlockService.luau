@@ -80,6 +80,8 @@ local climbScript: ((Player, string) -> string?)? = nil
 -- Studio only (ServerStorage.LuckyBlockQA "script"): every climb ends on this tier, before the
 -- tutorial's hook. Nil: none.
 local qaScript: string? = nil
+-- Config's own start of the Grand Opening Luck's deal (LuckyBlockQA "luck" goes back to it).
+local qaLuckStartsAt: number = (Config.Shop.Deals :: any)[Config.BlockOdds.Climb.Luck.With].StartsAt
 local warnedMissing: { [string]: boolean } = {}
 
 local function refuse(reason: string): Reply
@@ -860,7 +862,9 @@ local started = false
 -- Studio only: ServerStorage.LuckyBlockQA, a BindableFunction for the MCP's checks (its
 -- execute_luau gets its own copies of modules). Invoke("script", tier?) makes every climb end
 -- on `tier` (nil: back to normal rolls), as the tutorial's script hook does: the climb screen's
--- Secret, a scripted first block. Nothing is made in a live server.
+-- Secret, a scripted first block. Invoke("luck", startsAt?) runs the Grand Opening Luck from
+-- unix time `startsAt` in this server (nil: Config's again; the clover's GuiQA "luck" on the
+-- client). Nothing is made in a live server.
 local function startQA()
 	if not RunService:IsStudio() then
 		return
@@ -875,6 +879,12 @@ local function startQA()
 		if op == "script" then
 			qaScript = if type(a) == "string" and BlockDrop.rank(a) > 0 then a else nil
 			return qaScript
+		elseif op == "luck" then
+			-- The Grand Opening Luck from unix time `a` in this server (nil: Config's again);
+			-- the clover's GuiQA "luck" does the same on the client.
+			local deal = (Config.Shop.Deals :: any)[Config.BlockOdds.Climb.Luck.With]
+			deal.StartsAt = if type(a) == "number" then math.floor(a) else qaLuckStartsAt
+			return BlockDrop.luckLive(os.time())
 		end
 		error("LuckyBlockQA: unknown op " .. tostring(op))
 	end

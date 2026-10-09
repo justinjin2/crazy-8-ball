@@ -353,7 +353,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
 - [x] 2. The climb screen for every block, the mark, the Secret rung (shims 1-3 gone).
 - [x] 3. The quick reveal and "Open all".
 - [x] 4. Odds & Details for every block, with the pity bars (shim 4 gone).
-- [ ] 5. The Grand Opening Luck clover.
+- [x] 5. The Grand Opening Luck clover.
 - [ ] 6. The shop: the Mystery band, the restock, VIP, the Grand Opening and Starter cards, the
   skip dialog (shims 8 and 9 gone).
 - [ ] 7. The win track and the result screen (shim 5 gone).
@@ -440,3 +440,15 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   list top, pity, its cue lines, the Rare block's climb, a climbed Epic); console clean. Lint
   OK, 1160 tests. The luck's live odds get their Studio test with step 5's switch. Shots:
   `step4/`.
+- **Step 5**: the clover (`LuckClover.luau`, made in `Progression.start` beside `VipTag`): a
+  navy badge with a green rim and the kit's four-leaf clover (`Kit.Icons.Lucky`) rocking,
+  right of the VIP tag (in its place without VIP), only while `BlockDrop.luckLive`; it looks
+  at the clock each second. Hover shows its card, a click or tap pins it 6 s: "Extra luck for
+  the release!", "Rare to Epic: 27% instead of 18%", "Epic to Legendary: 15% instead of 10%"
+  (from `BlockDrop.stepParts`), "Ends in 29d 22h". `MenuColumn` keeps above it as above the VIP
+  tag. The test switch: `ServerStorage.LuckyBlockQA:Invoke("luck", startsAt)` and the client's
+  `GuiQA:Invoke("luck", startsAt)` (nil: Config's again; in memory, Studio only), plus GuiQA
+  `luckCard`. Checked on PC: the badge with and without VIP, its card, the Mystery odds live
+  (Epic 4%, Legendary 0.6%, Mythic 0.1%, Secret 0.003%), hidden again when it ends; console
+  clean. Like the VIP tag it is not a gamepad stop (the boosted odds show in every odds list).
+  Shots: `step5/`.

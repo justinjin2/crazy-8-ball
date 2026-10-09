@@ -115,7 +115,9 @@ print(require(game.ReplicatedStorage.Shared.TableBuilder).prepareImport(require(
   runs an ItemRequest as that player, `setSale`, `setRestricted`, `flush`/`refresh` the
   copies counter, `unbox`/`reyes`/`party` banners), `StoreQA` (`state`, `grant` a product with
   a purchase id, `setPass`, `buy`, `receipt`), `RewardsQA` (`state`, `request`, `credit`),
-  `LuckyBlockQA` (`script`, tier or nil: every climb ends on that tier, the Secret included).
+  `LuckyBlockQA` (`script`, tier or nil: every climb ends on that tier, the Secret included;
+  `luck`, unix seconds or nil: the Grand Opening Luck runs from then in this server, with the
+  client's `GuiQA:Invoke("luck", startsAt)` for the clover and the odds screens).
   A real 1v1 win for the settle: `PoolMatchQA:Invoke("fixture", 1, { phase = "Aiming",
   finalEight = true, brokeAgo = 120, calledPocket = 2 })`, then `Invoke("shot", 1, { angle =
   math.pi / 2, power = 0.35, epoch = snap.epoch, turnId = snap.turnId })`. To read what the
