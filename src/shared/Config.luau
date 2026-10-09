@@ -3527,7 +3527,7 @@ Config.Shop = {
 			Legendary = { Price = 1290000, Product = "RestockLegendary", Stock = 1 },
 			Mythic = { Price = 4990000, Product = "RestockMythic", Stock = 1 },
 		},
-		-- A restock with one of these in any slot (the three shared ones) is announced in every
+		-- A restock with one of these in any slot (the two shared ones) is announced in every
 		-- server ("A MYTHIC block is in the restock for 9:41!").
 		Announce = { Legendary = true, Mythic = true },
 		-- A Robux restock receipt still counts for its restock this long after the prompt

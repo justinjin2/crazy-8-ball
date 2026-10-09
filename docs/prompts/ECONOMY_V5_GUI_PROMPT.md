@@ -359,7 +359,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
 - [x] 7. The win track and the result screen (shim 5 gone).
 - [x] 8. Free Reward (shim 7 gone).
 - [x] 9. Cues and the Index.
-- [ ] 10. Rank rewards and every other block or reward display.
+- [x] 10. Rank rewards and every other block or reward display.
 - [ ] 11. Every word (the Strings sweep).
 - [ ] 12. The merge with `tutorial-v2` (the designer's yes), checked in Studio.
 - [ ] 13. The full Studio check on phone, PC and gamepad.
@@ -506,4 +506,10 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   (`BlockDrop.rarityPercent` with `luck`). New GuiQA hook `cuesIndex` (cueId) chooses a cue in
   the Index. Checked on PC (the Legendary row, 7/8, the Week One Cue chosen); console clean.
   Lint OK, 1160 tests. Shots: `step9/`.
+- **Step 10**: looked at every other block and reward display: the Ranked roadmap's reward
+  tiles, the rank claim's and NEW RANK!'s chips (`RewardChips`: names and counts only, from
+  Config), the Gift drop, the banners (the server's words), the reward flyers (step 8). None
+  shows v4 odds or floors, so nothing changed but the restock announce comment in Config ("the
+  two shared" slots). `/newrank gold 1` showed no popup while checking (it waits for a free
+  lobby moment; not chased). Shots: `step10/`.
 
