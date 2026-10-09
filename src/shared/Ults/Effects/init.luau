@@ -32,11 +32,11 @@ local Effects: { [string]: Effect } = {
 	CatchABall = require(script.CatchABall) :: any,
 	ChainLightning = require(script.ChainLightning) :: any,
 	EaglesEye = require(script.EaglesEye) :: any,
+	FireShot = require(script.FireShot) :: any,
 	GuangdongTiger = require(script.GuangdongTiger) :: any,
 	Magnet = require(script.Magnet) :: any,
 	Portals = require(script.Portals) :: any,
 	SteelBall = require(script.SteelBall) :: any,
-	SuperBounce = require(script.SuperBounce) :: any,
 	TimeStop = require(script.TimeStop) :: any,
 	Verity = require(script.Verity) :: any,
 }

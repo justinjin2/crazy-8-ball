@@ -31,6 +31,7 @@ Uploaded through Open Cloud to group 675425213. Every result is in
 | `icons/CatchABall.png` | Decal | 81283085243167 | needs Studio |
 | `icons/LookOverThere.png` | Decal | 85056727532784 | needs Studio |
 | `icons/Verity.png` | Decal | 129053492763689 | needs Studio |
+| `icons/FireShot.png` | Decal | 139546488723905 | 116335731498943 |
 
 **Image ids.** An uploaded PNG is a Decal, and an `ImageLabel` or `ParticleEmitter` needs the
 image inside it (STUDIO_NOTES, "Images come back as a Decal ID"). The API key cannot read assets
@@ -130,6 +131,7 @@ outline and framing), with the rim light in the rarity colour.
 | `CatchABall.png` | Rare | the catch ball (this model), closed, turned and tilted, with two sparkle stars at its top right and a soft red glow |
 | `LookOverThere.png` | Epic | a white cartoon glove on a purple sleeve pointing hard up and right at a big glossy yellow "!" on a red comic burst |
 | `Verity.png` | Legendary | the yellow smiley ball (tall black oval eyes, a wide smile with ticked ends) with four long, bony, knuckled yellow fingers with dark claws curling over its top from behind |
+| `FireShot.png` | Common | the glossy white cue ball as a fireball flying down and right, a cartoon flame of five S-curved tongues streaming back and curling up (red-orange, orange, amber, a pale yellow core nested toward the ball), four ember diamonds and an orange glow (2026-10-08) |
 
 ## D. Sounds
 

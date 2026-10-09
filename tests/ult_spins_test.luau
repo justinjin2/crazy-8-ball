@@ -129,13 +129,13 @@ end
 return {
 	["a spin replaces the selected slot, the free spin first"] = function()
 		local u = Slots.fresh()
-		u.Slots[1] = "SuperBounce"
+		u.Slots[1] = "EaglesEye"
 		local result, why = SpinView.spin(u, opts())
 		H.expect(result ~= nil and why == nil, "spun")
 		local r = result :: any
 		local rolled = Config.Ults.Catalog[r.id]
 		H.expect(rolled and rolled.Built and rolled.Rarity == r.rarity, "from the live pool")
-		H.expect(r.replaced == "SuperBounce" and r.slot == 1, "replaced slot 1's ult")
+		H.expect(r.replaced == "EaglesEye" and r.slot == 1, "replaced slot 1's ult")
 		H.expect(u.Slots[1] == r.id, "in the selected slot")
 		H.expect(r.used == "Free" and u.Spins == E.Starter, "the free spin first")
 		H.expect(u.FreeSpinDay == DAY and u.SpinsDone == 1 and u.Pity == 1, "counted")

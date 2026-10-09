@@ -92,6 +92,19 @@ function Catalog.get(id: any): Ult?
 	}
 end
 
+--- How many times the stroke's speed a launch ability sends the cue ball off the cue
+--- (Config.Ults[<its Effect>].LaunchSpeedScale: Black Flash, Fire Shot), for the aim's trace of
+--- a jump; nil for any other ult or value.
+function Catalog.launchScale(id: any): number?
+	if not Catalog.exists(id) then
+		return nil
+	end
+	local effect = ROWS[id].Effect
+	local block = if type(effect) == "string" then (U :: any)[effect] else nil
+	local k = if type(block) == "table" then block.LaunchSpeedScale else nil
+	return if type(k) == "number" then k else nil
+end
+
 --- What a retired ult id (taken out of the game, Config.Ults.Retired) becomes in a saved slot,
 --- or nil for any other value.
 function Catalog.retired(id: any): string?

@@ -1,8 +1,9 @@
-"""The icons of the three abilities added in the rework (ABILITIES_REWORK_PLAN): Catch-a-Ball,
-Look Over There! and Verity. Same rig as icons.py (its camera, lights, rarity rim light, ink
-outline, framing and 512 x 512 transparent render): this file only adds builders to it.
+"""The icons of the abilities added in the rework (ABILITIES_REWORK_PLAN): Catch-a-Ball, Look
+Over There!, Verity, and Fire Shot (the designer's third round, 2026-10-08: Super Bounce
+reworked). Same rig as icons.py (its camera, lights, rarity rim light, ink outline, framing and
+512 x 512 transparent render): this file only adds builders to it.
 
-    Blender -b --python tools/blender/abilities/icons_v2.py -- [Id ...]   (no ids: all three)
+    Blender -b --python tools/blender/abilities/icons_v2.py -- [Id ...]   (no ids: all four)
 
 Renders go to assets/abilities/icons/<Id>.png.
 """
@@ -204,10 +205,138 @@ def verity():
     return objs
 
 
+def catmull(points, closed=True, sharp=(), steps=8):
+    """A smooth closed outline through 2-D control points (Catmull-Rom); the points whose
+    indices are in `sharp` stay corners (a flame's tips)."""
+    n = len(points)
+    out = []
+    for i in range(n):
+        p0, p1 = points[(i - 1) % n], points[i]
+        p2, p3 = points[(i + 1) % n], points[(i + 2) % n]
+        if i in sharp:
+            p0 = p1
+        if (i + 1) % n in sharp:
+            p3 = p2
+        for k in range(steps):
+            t = k / steps
+            t2, t3 = t * t, t * t * t
+            out.append(tuple(0.5 * ((2 * p1[j]) + (-p0[j] + p2[j]) * t
+                                    + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t2
+                                    + (-p0[j] + 3 * p1[j] - 3 * p2[j] + p3[j]) * t3)
+                             for j in range(2)))
+    return out
+
+
+def tongue(cx, cy, h, w, lean, toward=(0.0, 1.0)):
+    """One small flame tongue: a round base of half-width `w` at (cx, cy), its tip `h` along
+    `toward` (a direction; up by default), leaning `lean` of its height to its left."""
+    ux, uy = toward
+    n = math.hypot(ux, uy)
+    ux, uy = ux / n, uy / n
+    sx, sy = uy, -ux  # its right
+
+    def at(across, along):
+        return (cx + sx * across + ux * along, cy + sy * across + uy * along)
+    pts = [at(-w, 0), at(-w * 0.92, h * 0.3), at(-w * 0.4 - lean * h * 0.5, h * 0.66),
+           at(-lean * h, h), at(w * 0.38 - lean * h * 0.42, h * 0.55), at(w * 0.95, h * 0.2),
+           at(w, 0), at(w * 0.7, -w * 0.72), at(0, -w), at(-w * 0.7, -w * 0.72)]
+    return catmull(pts, sharp=(3,))
+
+
+# The fireball's flame round a ball of radius 1 at the origin flying along +X (up +Y): drawn
+# by hand as control points, counter-clockwise from under the ball (hidden behind it), five
+# S-curved tongues streaming back and curling up; FIRE_TIPS are the tongues' sharp tips.
+FIRE = [(0.62, -0.72), (0.18, -1.12), (-0.5, -1.22), (-1.2, -1.16), (-1.95, -1.3),
+        (-2.75, -1.12), (-2.05, -0.76), (-2.65, -0.56), (-3.55, -0.12), (-2.55, 0.05),
+        (-3.05, 0.48), (-3.75, 1.2), (-2.6, 0.78), (-2.25, 1.22), (-2.55, 2.05), (-1.5, 1.32),
+        (-0.92, 1.38), (-0.62, 1.98), (-0.22, 1.16), (0.46, 0.86)]
+FIRE_TIPS = (5, 8, 11, 14, 17)
+# The layers, outside in: colour, emission, scale toward the ball's back, a nudge up and back.
+FIRE_LAYERS = [
+    ("FF3D1A", 0.8, 1.0, (0.0, 0.0)),
+    ("FF7A1A", 0.95, 0.78, (-0.06, 0.06)),
+    ("FFB52A", 1.05, 0.57, (-0.1, 0.12)),
+    ("FFEB8A", 1.25, 0.38, (-0.12, 0.16)),
+]
+FIRE_HEART = (-0.35, 0.08)  # where the layers shrink toward: the hottest place, at the ball's back
+
+
+def fire_shot():
+    """The cue ball on fire, flying: a glossy white ball shooting down and to the right, a
+    comet of layered cartoon flame (red-orange, orange, amber, a pale yellow core) streaming
+    back from it and rising, embers flying off the tongues."""
+    objs = []
+    fly = Matrix.Rotation(math.radians(-32), 2)  # the flight, down and to the right
+
+    def flat(name, pts2d, depth, thick, m, bevel):
+        obj = extrude_outline(name, [tuple(fly @ Vector(p)) for p in pts2d], thick, m, bevel=bevel)
+        face_camera(obj)
+        obj.location = CAM_DIR * depth
+        return obj
+
+    outline_pts = catmull(FIRE, sharp=FIRE_TIPS)
+    hx, hy = FIRE_HEART
+    for k, (color, emit, scale, (nx, ny)) in enumerate(FIRE_LAYERS):
+        m = mat("Fire%d" % k, color, rough=0.35, coat=0.3, emit=emit, emit_color=color)
+        pts = [(hx + (x - hx) * scale + nx, hy + (y - hy) * scale + ny) for x, y in outline_pts]
+        obj = flat("Fire%d" % k, pts, -0.8 + 0.12 * k, 0.05, m, 0.02)
+        if k > 0:
+            obj["ink"] = "B8260A"
+            obj["outline_scale"] = 0.3
+        objs.append(obj)
+    # The ball: glossy white, warmed orange on the side the fire is.
+    ball_m = bpy.data.materials.new("FireBall")
+    ball_m.use_nodes = True
+    nodes, links = ball_m.node_tree.nodes, ball_m.node_tree.links
+    bsdf = next(n for n in nodes if n.type == "BSDF_PRINCIPLED")
+    bsdf.inputs["Roughness"].default_value = 0.12
+    bsdf.inputs["Coat Weight"].default_value = 1.0
+    bsdf.inputs["Coat Roughness"].default_value = 0.04
+    bsdf.inputs["Emission Color"].default_value = icons.hexcolor("FFFFFF")
+    bsdf.inputs["Emission Strength"].default_value = 0.42
+    coord = nodes.new("ShaderNodeTexCoord")
+    dot = nodes.new("ShaderNodeVectorMath")
+    dot.operation = "DOT_PRODUCT"
+    ahead = fly @ Vector((1.0, 0.0))
+    dot.inputs[1].default_value = (icons.SCREEN_RIGHT * ahead.x + icons.SCREEN_UP * ahead.y)
+    mr = nodes.new("ShaderNodeMapRange")
+    mr.inputs["From Min"].default_value = -1.0
+    mr.inputs["From Max"].default_value = 1.0
+    ramp = nodes.new("ShaderNodeValToRGB")
+    icons.ramp_fill(ramp, [(0.0, "FFA54D"), (0.4, "FFE2BF"), (0.62, "FFFFFF"), (1.0, "FFFFFF")])
+    links.new(coord.outputs["Object"], dot.inputs[0])
+    links.new(dot.outputs["Value"], mr.inputs["Value"])
+    links.new(mr.outputs["Result"], ramp.inputs["Fac"])
+    links.new(ramp.outputs["Color"], bsdf.inputs["Base Color"])
+    objs.append(prim("uv_sphere", "Ball", ball_m, segments=64, ring_count=32, radius=1.0))
+    # Embers flying off the tongues.
+    ember_m = mat("Ember", "FFD84A", rough=0.3, emit=1.6, emit_color="FFC02A")
+    for j, (x, y, size) in enumerate(((-3.55, 0.95, 0.15), (-2.9, 2.05, 0.11), (-3.75, -0.6, 0.1),
+                                      (-1.6, 2.05, 0.09))):
+        pts = [(0, size), (size * 0.55, 0), (0, -size), (-size * 0.55, 0)]
+        obj = flat("Ember%d" % j, [(px + x, py + y) for px, py in pts], 0.3, 0.03, ember_m, 0.01)
+        obj["outline_scale"] = 0.5
+        obj["no_frame"] = True
+        objs.append(obj)
+    # The fire's light on the ball's back, and its glow.
+    light = bpy.data.lights.new("FireLight", "POINT")
+    light.energy = 220
+    light.color = (1.0, 0.5, 0.15)
+    lo = bpy.data.objects.new("FireLight", light)
+    bpy.context.scene.collection.objects.link(lo)
+    back = fly @ Vector((-1.6, 0.2))
+    lo.location = icons.screen(back.x, back.y, 0.4)
+    glow_at = fly @ Vector((-1.3, 0.1))
+    objs.append(glow("FireGlow", tuple(icons.screen(glow_at.x, glow_at.y, -1.4)), 2.6, "FF6A12",
+                     strength=1.2, power=1.4))
+    return objs
+
+
 NEW = {
     "CatchABall": (catch_a_ball, "Rare"),
     "LookOverThere": (look_over_there, "Epic"),
     "Verity": (verity, "Legendary"),
+    "FireShot": (fire_shot, "Common"),
 }
 for _id, (_fn, _rarity) in NEW.items():
     icons.BUILDERS[_id] = _fn

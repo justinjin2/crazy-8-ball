@@ -2298,7 +2298,7 @@ function PlayerData.ults(player: Player): any?
 end
 
 --- The ult this player plays in matches: the selected slot's when that slot is owned and the
---- ult usable, else Config.Ults.Default (Magnet; also when not loaded). `passes` ({ UltSlot2 =
+--- ult usable, else Config.Ults.Default (Fire Shot; also when not loaded). `passes` ({ UltSlot2 =
 --- true, ... }) and `devAll` default to what UltSpins last handed in (setUltAccess); devAll is
 --- also on while Config.Ults.DevAllUlts is.
 function PlayerData.equippedUlt(

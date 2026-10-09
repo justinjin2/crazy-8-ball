@@ -18,7 +18,7 @@ Steps.Order = {
 	"Equip", -- equip the Uncommon cue it gave: Inventory, its card, Equip (designer 2026-10-03)
 	"RareBlock", -- the win's Rare lucky block in the hotbar (its 1 h timer runs)
 	"Abilities", -- the hand on the Abilities icon
-	"Spin", -- the one starter spin (Magnet)
+	"Spin", -- the one starter spin (Config.Tutorial.SpinUlt: Fire Shot)
 	"Code", -- type RELEASE for 3 more spins
 	"Back", -- close the spin screen
 	"Arrow2", -- the arrow to a pad again

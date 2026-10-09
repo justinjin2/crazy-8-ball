@@ -509,7 +509,10 @@ return {
 		H.expect(next(t.Settings) == nil and next(t.Flags) == nil, "empty maps")
 		local Config = H.require("Config")
 		local u = t.Ults
-		H.expect(u.Slots[1] == Config.Ults.Default and u.Slots[1] == "Magnet", "Magnet in slot 1")
+		H.expect(
+			u.Slots[1] == Config.Ults.Default and u.Slots[1] == "FireShot",
+			"Fire Shot in slot 1"
+		)
 		H.expect(#u.Slots == 3 and u.Slots[2] == "" and u.Slots[3] == "", "slots 2, 3 empty")
 		H.expect(#u.Locked == 3 and not u.Locked[1] and not u.Locked[2] and not u.Locked[3], "")
 		H.expect(u.Selected == 1 and u.Spins == Config.Ults.Earn.Starter, "starter spins")
@@ -1380,6 +1383,18 @@ return {
 		)
 		local _, again = SaveSchema.validate(lost)
 		H.expect(#again == 0, "clean after Reconcile")
+	end,
+
+	["a retired ability in a saved slot becomes its replacement"] = function()
+		local _, SaveSchema = setup()
+		local save = SaveSchema.template()
+		save.Ults.Slots = { "SuperBounce", "Ghost", "HeatSeeker" }
+		local out = SaveSchema.validate(save)
+		local slots = out.Ults.Slots
+		-- The designer, 2026-10-08: Super Bounce is reworked into Fire Shot (the third round);
+		-- Ghost and Heat Seeker left for Magnet (the second).
+		H.expect(slots[1] == "FireShot", "Super Bounce becomes Fire Shot: " .. tostring(slots[1]))
+		H.expect(slots[2] == "Magnet" and slots[3] == "Magnet", "Ghost and Heat Seeker, Magnet")
 	end,
 
 	["validate repairs damaged ults"] = function()

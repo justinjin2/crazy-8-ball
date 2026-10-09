@@ -52,7 +52,13 @@ use Han's tilted contact normal through the centre, full tangential friction, an
 normal-speed restitution. Translation stays planar for a ball on the cloth; only tangential impulses create torque.
 Six pockets use capture circles with jaw facings and a physical drop (z, vz, funnel). Corner
 openings have a flat shelf scaled to ball diameter, and facings extend to their rim. Wedge guards
-against zero-time hit loops. `Aim.trace` gives the guideline from the same code as the shot.
+against zero-time hit loops. `Aim.trace` gives the guideline from the same code as the shot;
+its optional `launchScale` traces a jump as a launch ability sends it (Black Flash, Fire Shot:
+`Catalog.launchScale` of the shooter's armed ult, from Main's `refreshAim`).
+`Aim.bounceTrace(state, shot, maxInches, maxBounces, launchScale)` is Fire Shot's line: the
+same flat time-of-impact search (`firstContact`, balls, cushion faces, jaws and, for this line
+only, the pockets by `TableGeometry.pocketAt`'s centre-in-the-rim rule), mirrored off each
+cushion until a ball (the ghost and object line, as `Aim.trace`), a pocket or a cap.
 Balls can fly (jump shots, `Physics/Flight`), after Dr. Dave's TP B.10 model. `Cue.strike`
 sends the stroke's downward part into the slate, which rebounds at `SlateRestitution` (0.6);
 a near-level stroke gets only `FlatStrikeBounce` of that, rising to all of it at
@@ -599,7 +605,8 @@ lets one ball pass through those balls only, a per-pair filter in the contact se
 with `overrides.PhaseCue` for the cue ball; any ball with passes forces pairwise contacts:
 Ghost's hit ball passes the ones the cue ball passed); `state.fx.material[id]` (a
 `BallMaterial`: cushion restitution and friction, ball restitution, cloth frictions, until
-`Until`) gives an object ball its own material (Super Bounce's caught ball). An effect may plan once
+`Until`) gives an object ball its own material (Super Bounce's caught ball had it; none uses it
+since Super Bounce became Fire Shot, nor the cue ball's `Cue*` overrides). An effect may plan once
 at its first step and keep the plan in `fx` (Heat Seeker's A* path to the locked ball: nothing
 moves before the first contact), or schedule by shot time in `fx` (Chain Lightning's jumps,
 one every `LinkSeconds` after the charge, each target chosen from the positions at that step).
@@ -687,7 +694,13 @@ over the shooter's next shots too (up to `V.TURN_SHOTS`). The Blender scripts ar
 
 The 13-ability ladder of `docs/prompts/ABILITIES_REWORK_PLAN.md`. Heat Seeker and Ghost left
 the game: `Config.Ults.Retired` maps a saved slot holding either to Magnet when the profile
-loads (no save version bump); their mentions above are history.
+loads (no save version bump); their mentions above are history. Super Bounce became Fire Shot
+in the third round (`Retired.SuperBounce = "FireShot"`), the starter (`Config.Ults.Default`,
+`Config.Tutorial.SpinUlt`): `Effects/FireShot` is Black Flash's launch alone (the first step
+scales the cue ball's motion along the cloth and its spin by `LaunchSpeedScale`, once), its
+line `Aim.bounceTrace` (above) and its scorch marks the look's. The value harness's careful
+shooter may pull Fire Shot's stroke to its planned speed over the scale (`V.planners.Launch`,
+`V.LAUNCH_PLANNED`); the careless one and the bots hit as always.
 
 - **New effects** (pure, Lune-tested): `Effects/CatchABall` (the cue ball's first contact
   removes the ball it hit, a pot for its owner, and the cue ball stops dead; the 8 off the legal

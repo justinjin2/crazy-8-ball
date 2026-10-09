@@ -306,4 +306,116 @@ return {
 		local trace = Aim.trace(state, { angle = 0, power = 0.8 })
 		H.expect(#trace.hops == 0, "no hops on the cloth")
 	end,
+
+	["a launch ability's scale stretches a jump's flight along the cloth, not its height"] = function()
+		local _, Ball, _, Simulation, Aim, geometry = setup()
+		local state = Simulation.newState(geometry, { Ball.new(0, -40, 0) })
+		local shot = { angle = 0, power = 0.8, elevation = 45 }
+		local plain = Aim.trace(state, shot)
+		local fire = Aim.trace(state, shot, 2)
+		local a, b = plain.hops[1], fire.hops[1]
+		H.expect(a ~= nil and b ~= nil, "both leave the cloth")
+		H.expect(b.vx == 2 * a.vx and b.vy == 2 * a.vy, "twice the speed along the cloth")
+		H.expect(b.vz == a.vz and b.seconds == a.seconds, "the same hop")
+		H.expect(fire.landings[1].x > plain.landings[1].x + 1, "it lands further on")
+	end,
+
+	["bounce trace: mirrored off a cushion, angle in = angle out"] = function()
+		local Config, Ball, _, Simulation, Aim, geometry = setup()
+		local R = Config.Balls.RadiusInches
+		local state = Simulation.newState(geometry, { Ball.new(0, 0, 0) })
+		local a = 0.3
+		local bt = Aim.bounceTrace(state, { angle = a, power = 0.5 }, 300, 12)
+		H.expect(#bt.points >= 3 and bt.bounces >= 1, "bounces on")
+		local p1, p2, p3 = bt.points[1], bt.points[2], bt.points[3]
+		H.near(p1.x, 0, 1e-9, "starts at the cue ball")
+		H.near(p2.x, geometry.halfLength - R, 1e-6, "against the foot cushion")
+		H.near(p2.y, (geometry.halfLength - R) * math.tan(a), 1e-6, "on the aim line")
+		local dx, dy = p3.x - p2.x, p3.y - p2.y
+		local len = math.sqrt(dx * dx + dy * dy)
+		H.near(dx / len, -math.cos(a), 1e-6, "x mirrored")
+		H.near(dy / len, math.sin(a), 1e-6, "y kept")
+	end,
+
+	["bounce trace: straight at a ball it ends there, as the plain trace"] = function()
+		local _, Ball, _, Simulation, Aim, geometry = setup()
+		local state = Simulation.newState(geometry, { Ball.new(0, -20, 0), Ball.new(1, 0, 1) })
+		local t = Aim.trace(state, 0)
+		local bt = Aim.bounceTrace(state, { angle = 0, power = 0.5 }, 300, 12)
+		H.expect(bt.ending == "ball" and bt.objectId == 1 and bt.bounces == 0, "the 1, first")
+		H.expect(#bt.points == 2, "one leg")
+		H.near(bt.points[2].x, t.ghostX, 1e-9, "ghost x")
+		H.near(bt.points[2].y, t.ghostY, 1e-9, "ghost y")
+		H.near(bt.objectDirX, t.objectDirX, 1e-9, "object line x")
+		H.near(bt.objectDirY, t.objectDirY, 1e-9, "object line y")
+		H.near(bt.cueDirY, t.cueDirY, 1e-9, "cue ball's line")
+	end,
+
+	["bounce trace: a kick off the side cushion meets the ball behind it"] = function()
+		local Config, Ball, _, Simulation, Aim, geometry = setup()
+		local R = Config.Balls.RadiusInches
+		-- Aimed at the 1's mirror image in the top cushion line: a full hit after one bounce.
+		local wall = geometry.halfWidth - R
+		local state = Simulation.newState(geometry, { Ball.new(0, -40, 0), Ball.new(1, 20, 0) })
+		local angle = math.atan2(2 * wall, 60)
+		local bt = Aim.bounceTrace(state, { angle = angle, power = 0.5 }, 300, 12)
+		H.expect(bt.ending == "ball" and bt.objectId == 1, "the 1: " .. bt.ending)
+		H.expect(bt.bounces == 1 and #bt.points == 3, "one cushion on the way")
+		H.near(bt.points[2].y, wall, 1e-6, "off the top cushion")
+		H.near(bt.points[2].x, -10, 1e-6, "halfway along")
+		-- A full hit: the 1 heads on along the cue ball's line after the bounce.
+		local hx, hy = 30, -wall
+		local hl = math.sqrt(hx * hx + hy * hy)
+		H.near(bt.objectDirX, hx / hl, 1e-6, "object line x")
+		H.near(bt.objectDirY, hy / hl, 1e-6, "object line y")
+	end,
+
+	["bounce trace: straight down a corner pocket's middle, it ends in the pocket"] = function()
+		local _, Ball, _, Simulation, Aim, geometry = setup()
+		local corner = geometry.pockets[3] -- top right
+		local state = Simulation.newState(geometry, { Ball.new(0, corner.x - 20, corner.y - 20) })
+		local bt = Aim.bounceTrace(state, { angle = math.pi / 4, power = 0.5 }, 300, 12)
+		H.expect(bt.ending == "pocket" and bt.pocket == corner.id, "in the corner: " .. bt.ending)
+		H.expect(bt.bounces == 0 and #bt.points == 2, "no cushion on the way")
+		local last = bt.points[2]
+		local d = math.sqrt((last.x - corner.x) ^ 2 + (last.y - corner.y) ^ 2)
+		H.near(d, corner.radius, 1e-6, "ends on the rim")
+	end,
+
+	["bounce trace: the length and bounce caps end the line"] = function()
+		local Config, Ball, _, Simulation, Aim, geometry = setup()
+		local R = Config.Balls.RadiusInches
+		local state = Simulation.newState(geometry, { Ball.new(0, 0, 0) })
+		local short = Aim.bounceTrace(state, { angle = 0.3, power = 0.5 }, 30, 12)
+		H.expect(short.ending == "limit" and short.bounces == 0, "the length cap first")
+		local p = short.points[2]
+		H.near(math.sqrt(p.x * p.x + p.y * p.y), 30, 1e-9, "30 in long")
+		local two = Aim.bounceTrace(state, { angle = 0.3, power = 0.5 }, 1000, 2)
+		H.expect(two.ending == "limit" and two.bounces == 2, "two cushions: " .. two.ending)
+		H.expect(#two.points == 4, "ends at the third cushion")
+		H.near(math.abs(two.points[4].x), geometry.halfLength - R, 1e-6, "on the far cushion")
+	end,
+
+	["bounce trace: a jump that meets a ball in the air ends there"] = function()
+		local _, Ball, _, Simulation, Aim, geometry = setup()
+		local shot = { angle = 0, power = 0.6, elevation = 45 }
+		local state = Simulation.newState(geometry, { Ball.new(0, -40, 0), Ball.new(1, -30, 0) })
+		local bt = Aim.bounceTrace(state, shot, 300, 12)
+		H.expect(bt.flight ~= nil and (bt.flight :: any).airborne, "met in the air")
+		H.expect(bt.ending == "air" and bt.objectId == 1, "ends at the 1: " .. bt.ending)
+		H.expect(#bt.points == 0, "never rolls")
+	end,
+
+	["bounce trace: a jump over nothing rolls on from its last touchdown"] = function()
+		local _, Ball, _, Simulation, Aim, geometry = setup()
+		local shot = { angle = 0.2, power = 0.6, elevation = 45 }
+		local state = Simulation.newState(geometry, { Ball.new(0, -40, 0) })
+		local t = Aim.trace(state, shot)
+		local bt = Aim.bounceTrace(state, shot, 300, 12)
+		H.expect(#t.landings >= 1 and not t.airborne, "it lands")
+		local land = t.landings[#t.landings]
+		H.near(bt.points[1].x, land.x, 1e-9, "from the last touchdown, x")
+		H.near(bt.points[1].y, land.y, 1e-9, "from the last touchdown, y")
+		H.expect(#bt.points >= 2 and bt.bounces >= 1, "then on off the cushions")
+	end,
 }

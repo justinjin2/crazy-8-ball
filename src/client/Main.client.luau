@@ -20,6 +20,7 @@ local Aim = require(Shared.Physics.Aim)
 local Judge = require(Shared.Rules.ShotJudge)
 local Engine = require(Shared.Rules.MatchEngine)
 local TimeStop = require(Shared.Ults.Effects.TimeStop)
+local UltCatalog = require(Shared.Ults.Catalog)
 local NiceShot = require(Shared.Rules.NiceShot)
 local Audio = require(script.Parent.Audio)
 local Avatar = require(script.Parent.Avatar)
@@ -344,12 +345,14 @@ local function refreshAim()
 	end
 	local spin = input:getSpin()
 	local elevation = input:getElevation()
+	-- A launch ability armed (Black Flash, Fire Shot) speeds the cue ball off the cue: a jump
+	-- flies that much further.
 	local trace = Aim.trace(match.state, {
 		angle = input.angle,
 		power = math.max(currentPull, Config.Input.MinPowerToShoot),
 		spin = spin,
 		elevation = elevation,
-	})
+	}, UltCatalog.launchScale(ownArmedUlt()))
 	-- The raw pull, not the clamped one: below MinPowerToShoot means not pulling yet.
 	aimShot = {
 		angle = input.angle,

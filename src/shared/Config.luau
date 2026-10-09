@@ -3471,14 +3471,18 @@ Config.Ults = {
 	-- The developer flag: every ult, built or not, can be rolled and equipped (friend tests).
 	-- `/ultsall on` turns it on for one player for the session.
 	DevAllUlts = false,
-	-- Everyone's starter ult, free forever; an empty or unusable slot plays as it. Magnet again
-	-- since the abilities rework (designer, 2026-10-08: the tutorial teaches it; Heat Seeker was
-	-- the starter from 2026-10-03 and is gone).
-	Default = "Magnet",
+	-- Everyone's starter ult, free forever; an empty or unusable slot plays as it. Fire Shot
+	-- since the designer's third rework round (2026-10-08: "the new default starter"; the
+	-- tutorial's starter spin lands on it too, Config.Tutorial.SpinUlt). Magnet was the starter
+	-- before it (and Heat Seeker from 2026-10-03); a save that holds Magnet keeps it.
+	Default = "FireShot",
 	-- Abilities taken out of the game, and what a saved slot holding one becomes when the
 	-- profile loads (SaveSchema's slot cleaner). The designer, 2026-10-08: Heat Seeker and Ghost
-	-- make room for better abilities; their owners get the starter.
-	Retired = { HeatSeeker = "Magnet", Ghost = "Magnet" } :: { [string]: string },
+	-- make room for better abilities (their owners get Magnet, the starter then); Super Bounce
+	-- is reworked into Fire Shot (the third round).
+	Retired = { HeatSeeker = "Magnet", Ghost = "Magnet", SuperBounce = "FireShot" } :: {
+		[string]: string,
+	},
 	BarMax = 100, -- a full bar
 	MaxPerMatch = 2, -- at most this many ults a match; after the second the bar stays empty
 	-- Solo shows the real bar, always full and ready: a press arms the equipped ult for free,
@@ -3528,7 +3532,7 @@ Config.Ults = {
 	-- target, in balls per use, measured by each ult's harness (section 6).
 	Order = {
 		"EaglesEye",
-		"SuperBounce",
+		"FireShot",
 		"Magnet",
 		"Rewind",
 		"Portals",
@@ -3556,8 +3560,14 @@ Config.Ults = {
 		Magnet = { Rarity = "Uncommon", Built = true, Effect = "Magnet", Worth = 0.46, Area = true },
 		-- +0.14 / +0.38 / +0.48.
 		EaglesEye = { Rarity = "Common", Built = true, Effect = "EaglesEye", Worth = 0.34 },
-		-- +0.27 / +0.39 / +0.32.
-		SuperBounce = { Rarity = "Common", Built = true, Effect = "SuperBounce", Worth = 0.33 },
+		-- Fire Shot (the designer's third rework round, 2026-10-08: Super Bounce reworked; the
+		-- starter): the cue ball bursts into flames and leaves the cue at twice the speed, with a
+		-- full aim line that bounces off the cushions to the first ball. Measured -0.08 / -0.03 /
+		-- +0.03 careful net (careless -0.10 / +0.02 / -0.01; 120 tables), about nothing: the
+		-- double speed alone neither pots nor misses more (an overhit scratches a little more
+		-- often), and the model shooter plays no kicks or banks, where the line helps, nor a
+		-- Difficult or Challenger table, where it shows what the normal lines hide.
+		FireShot = { Rarity = "Common", Built = true, Effect = "FireShot", Worth = 0 },
 		-- +0.36 / +0.58 / +0.65 (two redos, each with the full-path guide). Uncommon since the
 		-- rework (designer, 2026-10-08), beside Magnet.
 		Rewind = { Rarity = "Uncommon", Built = true, Worth = 0.53, Redo = true },
@@ -3773,12 +3783,6 @@ Config.Ults = {
 		-- Eagle's Eye arming: "Eagle Screech 1" (public library audio, 1.8 s, checked loading in
 		-- this game), 3D at the cue ball, at the Magnet arm's level. (tune by ear)
 		EagleScreech = { Id = "rbxassetid://133423182233493", Volume = 0.19 },
-		-- Super Bounce (public library audio, each checked loading in this game, 2026-09-29):
-		-- arming, "Cartoon Spring Bounce Sound" (MysteryMilo, 1.3 s, a long boing-oing, peak
-		-- 0.54); every bounce, "SS_rubberduck_variety_spring_02" (Roblox, 1.3 s but a quick
-		-- 0.3 s spring, peak 0.48), pitched up per bounce (Config.UI.SuperBounceFx).
-		BounceArm = { Id = "rbxassetid://6075441854", Volume = 0.31 },
-		BounceHit = { Id = "rbxassetid://111237552536869", Volume = 0.45 },
 		-- Rewind (public library audio, each checked loading in this game and measured with an
 		-- AudioAnalyzer, 2026-09-29): arming, "Eject Cassette SFX" (zImBored, from Pixabay,
 		-- 1.25 s, two clacks peaking 25 at volume 0.5); the rewind, "Tape Rewind" (AppleBraid,
@@ -4116,35 +4120,12 @@ Config.Ults.EaglesEye = {
 	MaxRails = nil :: number?,
 }
 
--- Super Bounce (docs/prompts/ABILITIES_PROMPT.md 7.3; Arming.extras): the cue ball's own
--- material for the shot's first Seconds, then normal friction returns. Tuned 2026-09-29: a
--- medium shot (power 0.5) alone touches 6-10 cushions; on real tables (the harness's states)
--- the median is 4 (a quarter reach 6), the cue ball giving its speed to the balls it hits.
-Config.Ults.SuperBounce = {
-	RailRestitution = 1.0, -- no speed lost off a cushion (normal 0.85) (tune)
-	RailFriction = 0, -- nor along it (normal 0.2) (tune)
-	BallRestitution = 1.0, -- a perfectly springy hit on a ball (normal 0.95) (tune)
-	-- Sliding and rolling losses: after each cushion the ball slides, and normal sliding
-	-- friction would turn much of its speed into roll; tiny values keep it going. (tune)
-	SlidingFriction = 0.005, -- normal 0.20
-	RollingFriction = 0.0004, -- normal 0.010
-	Seconds = 8, -- the cap: shot seconds with the material (tune)
-	-- The first ball of yours the cue ball hits catches the bounce (never the 8; the designer,
-	-- 2026-09-29, after the cue ball alone measured about +0.05 balls a use): this material
-	-- from the hit for Seconds, and a cushion hit within JawReachInches of a pocket's rim
-	-- boings it into that pocket (Effects/SuperBounce). Tuned with the harness (2026-09-29,
-	-- skill 2, net balls a use): the material alone added +0.03 to +0.10 even at 30 s (a ball
-	-- bouncing at random almost never finds a pocket); jaws 2/4/6/8 in +0.10/+0.20/+0.26/+0.28
-	-- with the springier cloth; these cloth losses +0.34 to +0.39. (tune)
-	Caught = {
-		RailRestitution = 1.0, -- normal 0.85
-		RailFriction = 0.03, -- normal 0.2
-		BallRestitution = nil :: number?,
-		SlidingFriction = 0.04, -- normal 0.20
-		RollingFriction = 0.0017, -- normal 0.010
-		Seconds = 8,
-		JawReachInches = 6 :: number?,
-	},
+-- Fire Shot (the designer's third rework round, 2026-10-08: Super Bounce reworked, the starter;
+-- src/shared/Ults/Effects/FireShot): the cue ball leaves the cue LaunchSpeedScale times as fast
+-- as the stroke sends it, along the cloth, its spin with it (Black Flash's launch). Its aim line
+-- and the scorch marks are the look's (Config.UI.FireShotFx). (tune)
+Config.Ults.FireShot = {
+	LaunchSpeedScale = 2, -- the designer: "increased power like 2x speed"
 }
 
 -- Magnet's physics (section 7.3; src/shared/Ults/Effects/Magnet.luau). Each allowed ball that
@@ -4336,9 +4317,6 @@ Config.Ults.Assets = {
 		-- tools/blender/abilities/magnet.py: FieldArcs, FieldFlares, FieldRing, Chevron and
 		-- PoleCaps, one shared texture (MeshPart.TextureID), unit size (scaled at runtime).
 		MagnetField = 96715013262604,
-		-- tools/blender/abilities/superbounce.py: RainbowShell (a shell a little over the ball,
-		-- its rainbow texture scrolled at runtime) and BoingRing (the hit's star-burst ring).
-		SuperBounce = 75004032615944,
 		-- tools/blender/abilities/rewind.py: RewindDial (a flat counter-clockwise circular arrow
 		-- with clock ticks, unit radius, magenta-white-green across its band).
 		Rewind = 110978850889818,
@@ -4440,7 +4418,9 @@ Config.Ults.Assets = {
 	Icons = {
 		Magnet = "rbxassetid://117672288856146",
 		EaglesEye = "rbxassetid://81255543534825", -- an eagle's eye and brow line (2026-09-30)
-		SuperBounce = "rbxassetid://95265934894642",
+		-- The cue ball as a fireball (tools/blender/abilities/icons_v2.py, 2026-10-08; Decal
+		-- 139546488723905).
+		FireShot = "rbxassetid://116335731498943",
 		Rewind = "rbxassetid://120627614883189",
 		-- The rework's three (tools/blender/abilities/icons_v2.py, 2026-10-08).
 		CatchABall = "rbxassetid://104903571295338",
@@ -10211,74 +10191,6 @@ Config.UI.EaglesEyeFx = {
 	ScreechSeconds = 2.5,
 }
 
--- Super Bounce's look (src/client/SuperBounceFx.luau; ABILITIES_PROMPT 7.3): the rainbow shell
--- on the cue ball, a rainbow ribbon, a boing ring and a squash at every bounce. Studs unless
--- named; the bounce itself is Config.Ults.SuperBounce. (tune)
-Config.UI.SuperBounceFx = {
-	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
-	-- The shell: this many times the drawn cue ball's width, turning this fast (its bands roll
-	-- round the ball), popping on over PopSeconds with a PopOvershoot spring, fading in and out.
-	ShellScale = 1.06,
-	TurnDegreesPerSecond = 220,
-	PopSeconds = 0.35,
-	PopOvershoot = 2.2,
-	FadeInSeconds = 0.12,
-	FadeOutSeconds = 0.5,
-	-- A hit squashes it along the hit by this share (and bulges it half that across), springing
-	-- back over SquashSeconds.
-	SquashShare = 0.3,
-	SquashSeconds = 0.22,
-	-- The boing ring at a hit: this many ball widths across, growing from RingFromScale to
-	-- RingToScale while it fades over RingSeconds, turning RingSpinDegrees.
-	RingBallWidths = 2.6, -- (1.6 was a speck from the replay camera: the look check)
-	RingFromScale = 0.45,
-	RingToScale = 1.3,
-	RingSeconds = 0.35,
-	RingSpinDegrees = 40,
-	-- A hit's ring faces out of the hit tilted this share of the way to straight up, so the
-	-- overhead replay camera sees it face on and not as an edge (0: standing on the cushion).
-	RingTiltShare = 0.55,
-	RingTransparency = 0,
-	FloorRingLiftInches = 0.1, -- the arming ring, flat on the cloth under the cue ball
-	-- A hit's sparkles: SparkCount at full weight (Config.UI.Kit.Art.Spark, the rainbow), thrown
-	-- every way and slowed by SparkDrag.
-	SparkCount = 9,
-	SparkSizeStuds = 0.12,
-	SparkLifetime = { 0.3, 0.55 },
-	SparkSpeed = { 3, 6 },
-	SparkDrag = 4,
-	SparkLightEmission = 0.3,
-	-- A hit's weight (ring opacity, boing volume): its speed over FullSpeed (in/s), at least
-	-- MinWeight.
-	FullSpeed = 60,
-	MinWeight = 0.35,
-	-- The boings: each pitched PitchStep higher than the last of the shot, up to PitchMax; never
-	-- two within BoingGapSeconds; each holder let go after BoingHoldSeconds.
-	PitchStep = 0.05,
-	PitchMax = 1.6,
-	BoingGapSeconds = 0.06,
-	BoingHoldSeconds = 2,
-	JawPitch = 0.3, -- the caught ball's jaw boing, this much higher (a jaw sends it in)
-	FreshSeconds = 0.3, -- a hit the replay only caught up with (a late join) gets nothing
-	-- The ribbon: a camera-facing Trail across the cue ball (TrailBallWidths of it), fading over
-	-- TrailSeconds and narrowing to TrailTailWidth, while the cue ball moves faster than
-	-- TrailMinSpeed (in/s). The house rainbow (superbounce.py's RAINBOW).
-	TrailBallWidths = 1,
-	TrailSeconds = 0.45,
-	TrailTailWidth = 0.3,
-	TrailTransparency = 0,
-	TrailLightEmission = 0, -- any glow washed the rainbow to pale yellow (the look check)
-	TrailMinSpeed = 3,
-	TrailColors = {
-		{ 255, 77, 77 },
-		{ 255, 159, 28 },
-		{ 255, 225, 77 },
-		{ 61, 214, 107 },
-		{ 59, 155, 255 },
-		{ 162, 89, 255 },
-	},
-}
-
 -- Rewind's look (src/client/RewindFx.luau; docs/prompts/ABILITIES_PROMPT.md 7.6, reference 02)
 -- and its playback in src/client/Match.luau. Studs unless named. (tune)
 Config.UI.RewindFx = {
@@ -11399,7 +11311,6 @@ Config.UI.AbilityFx = {
 	Looks = {
 		Magnet = "MagnetFx",
 		EaglesEye = "EaglesEyeFx",
-		SuperBounce = "SuperBounceFx",
 		Rewind = "RewindFx",
 		CatchABall = "CatchABallFx",
 		LookOverThere = "LookOverThereFx",
@@ -12263,7 +12174,7 @@ Config.Tutorial = {
 	-- The Equip step (designer 2026-10-03): once that cue is equipped, the Inventory stays open
 	-- this long (its "Equipped" notice) before the tutorial closes it for the Rare block.
 	EquipCloseSeconds = 1.2,
-	SpinUlt = "Magnet", -- the one starter spin lands on this ability
+	SpinUlt = "FireShot", -- the one starter spin lands on this ability (Magnet until 2026-10-08)
 	-- The art (tools/gen_tutorial_art.py; uploaded to the group, tools/upload_manifest_tutorial
 	-- .json): the pointer hand (upright, index finger up; redrawn 2026-10-03 after the designer's
 	-- "tap here" icon) and its tap lines, the mouse, the floor arrow after reference 02's path.

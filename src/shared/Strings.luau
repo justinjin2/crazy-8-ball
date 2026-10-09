@@ -1103,7 +1103,7 @@ return {
 		Names = {
 			Magnet = "Magnet",
 			EaglesEye = "Eagle's Eye",
-			SuperBounce = "Super Bounce",
+			FireShot = "Fire Shot",
 			Rewind = "Rewind",
 			CatchABall = "Catch-a-Ball",
 			LookOverThere = "Look Over There!",
@@ -1119,7 +1119,7 @@ return {
 		Descriptions = {
 			Magnet = "The first ball your next shot hits is pulled into a pocket it nearly misses.",
 			EaglesEye = "See the full path of your shot, every bounce included.",
-			SuperBounce = "The cue ball turns rainbow and keeps bouncing. The first ball of yours it hits bounces too, and boings off a pocket's jaw straight in.",
+			FireShot = "Your cue ball bursts into flames! Its aim line bounces off every cushion to the first ball, and it flies at double power, scorching the cloth.",
 			CatchABall = "Your cue ball becomes a catch ball. The first ball it hits is caught inside, then it hops to your nearest ball and catches that too. Both count as pocketed.",
 			LookOverThere = "Point up and yell! While your opponent looks away, move the cue ball anywhere you like before they turn back. Then take your shot.",
 			Verity = "Hi, I'm Verity! Trust me... The first ball you hit gets eaten (it counts as pocketed), then she rolls on, shoving every ball out of her way.",

@@ -62,8 +62,10 @@ One line each; the long form is the 2026-10-08 entry at the top of
   third rounds (2026-10-08). Look Over There! (Rare now) is the sneaky ball in hand with no
   cutscene; Catch-a-Ball (Epic now) catches a second ball (DOUBLE CATCH!); Verity (Rare now)
   turns evil, eats the ball she hits and shoves the rest out of her way; Black Hole and the
-  Tiger have no caps. Measured rarity means 0.34 / 0.50 / 0.64 / 0.94 / 1.15 / 1.78. Checked
-  in Studio: Verity's act and her two new looks (the plush smiley, the
+  Tiger have no caps; **Fire Shot replaced Super Bounce and is the starter** (2x speed, a bounce
+  aim line to the first ball, scorch marks; its rules, icon and tests are in, its look is
+  being built). Measured rarity means 0.17 / 0.50 / 0.64 / 0.94 / 1.15 / 1.78 (Fire Shot
+  measures 0). Checked in Studio: Verity's act and her two new looks (the plush smiley, the
   creepy face, to the designer's reference images), Catch-a-Ball's leap and both catches (the
   replay now holds each slow-motion moment; a long frame used to skip it). Waiting: the
   designer's hands-on test of the sneak (two players: Studio's Test tab, Clients and Servers),

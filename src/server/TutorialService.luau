@@ -227,7 +227,8 @@ local function equipped(player: Player, _cueId: string)
 	end
 end
 
--- The one starter spin lands on Magnet (answer: the spin is rigged to Magnet).
+-- The one starter spin lands on Config.Tutorial.SpinUlt (Fire Shot, the starter, since the
+-- designer's third rework round, 2026-10-08; Magnet before).
 local function forcedSpin(player: Player): string?
 	return if TutorialService.step(player) == "Spin" then T.SpinUlt else nil
 end

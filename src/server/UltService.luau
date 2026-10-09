@@ -282,7 +282,7 @@ local function startQA()
 				local _, reason = Match.check(e, userId)
 				return { activated = false, reason = reason }
 			end
-			local ok, reason = activate(t, userId, U.Default) -- the PC plays Magnet
+			local ok, reason = activate(t, userId, U.Default) -- the QA PC plays the starter
 			return { activated = ok, reason = reason }
 		end
 		error("Unknown UltQA command")

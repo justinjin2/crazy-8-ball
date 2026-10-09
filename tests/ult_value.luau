@@ -816,6 +816,23 @@ end
 
 V.planners = {} :: { [string]: Planner }
 
+-- The launch abilities this planner is used for (by ult id; they have no pick). Fire Shot's
+-- doubled launch overhits a pot planned for the plain stroke, so the careful shooter also tries
+-- the stroke pulled to its planned speed over LaunchSpeedScale (the same speed off the cue
+-- after the doubling), as a player who knows the ability does; the careless one hits as it
+-- always does. Black Flash (3x) is measured without it: it shatters the first ball whatever
+-- the speed.
+V.LAUNCH_PLANNED = { FireShot = true } :: { [string]: boolean }
+V.planners.Launch = function(_ts: TableState, plan: Plan, careful: boolean): { Plan }
+	if not careful then
+		return { plan }
+	end
+	local k = Config.Ults.FireShot.LaunchSpeedScale
+	local soft = table.clone(plan)
+	soft.power = V.powerForSpeed(Cue.speedForPower(plan.power) / k)
+	return { soft, plan }
+end
+
 -- Heat Seeker: lock on to the shot's own object ball.
 V.planners.OwnBall = function(ts: TableState, plan: Plan, _careful: boolean): { Plan }
 	local request = { ball = plan.ball }
@@ -1556,7 +1573,10 @@ function V.measure(ultId: string, options: Options?): Report
 	local row = Catalog.get(ultId)
 	assert(row, "unknown ult " .. ultId)
 	local inert = V.inert(ultId) and not opts.simulateInert
-	local planner = if row.Pick and row.Built then V.planners[row.Pick] else nil
+	local planner = if row.Pick and row.Built
+		then V.planners[row.Pick]
+		elseif row.Built and V.LAUNCH_PLANNED[ultId] then V.planners.Launch
+		else nil
 	-- Look Over There! has no shot of its own: sneaky ball in hand (V.sneakSpots), then the
 	-- shooter's plain shot from the spot it likes best (the same noise as without).
 	local sneak = row.Built and row.Sneak == true

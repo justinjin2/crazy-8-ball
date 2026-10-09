@@ -129,6 +129,11 @@ Filled in as the work goes (2026-10-08). None of these are built on `abilities-r
   Lightning Epic, Steel Ball and Black Flash Legendary; Look Over There! and Catch-a-Ball swapped
   in the designer's second round, Verity went Legendary to Rare in their third). Verity's card
   shows Rare and its shorter description ("...shoving every ball out of her way").
+- **Fire Shot replaces Super Bounce** (the designer's third round, 2026-10-08), and it is the
+  starter: its card (the fireball icon, "Fire Shot", Common, the new description) and the spin
+  odds (Common: Eagle's Eye and Fire Shot) are catalog data and show up by themselves. The
+  tutorial's Spin step now lands on Fire Shot (`Config.Tutorial.SpinUlt`): check its reveal on
+  a phone. No screen names the starter in code.
 - **MatchHUD clock:** hide it during the Sneak and SneakReveal phases (Look Over There!); the
   sneak has its own countdown.
 - **The sneak pill** (LookOverThereFx, one row under the HUD header, the shooter's screen only:

@@ -464,8 +464,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   goes down for them, and hitting it first is still a foul; only the 8 off your legal 8 shot is
   spared). Steel Ball acts only on your balls.
 - **Teams:** each player has their own bar; "behind" compares sides.
-- **The PC opponent** has Magnet; it activates when its bar is full and it is behind, or when
-  its shot finder sees no easy shot (a policy in `Ults/Match`, for the bots when they exist).
+- **The bots** (the PC opponent) roll their ability like a spin, by rarity, each built ability
+  even within its rarity (`Bots/Look.ability`; nothing above Epic against a player of Gold or
+  below), and activate it when their bar is full and they are behind, or when their shot
+  finder sees no easy shot (`Ults/Match.pcShouldActivate`).
 - **Rarities and power** (designer, 2026-09-28): higher rarities are cooler *and* stronger,
   each a little better than the one below. The targets per use were Common about 1/3 of a
   ball, Uncommon 1/2, Rare 1, Epic 1.5, Legendary 2.2, Mythic 2.6; inside the reach cap (no
@@ -473,8 +475,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   can't reach them, so each ult is built to its row as far as the caps allow and its **measured
   worth** (extra own balls per use, net of the opponent's gifted, a careful shooter, the mean of
   three skills, `tests/ult_value.luau`, 120 tables) is `Config.Ults.Catalog[id].Worth`. The
-  rarity means are **0.34, 0.50, 0.64, 0.94, 1.15 and 1.78** (2026-10-08, after the abilities
-  rework's third round; Rare and above pot in 75-100% of uses, Look Over There! the lowest). Caps per use: at most 2 of your balls (Chain
+  rarity means are **0.17, 0.50, 0.64, 0.94, 1.15 and 1.78** (2026-10-08, after the abilities
+  rework's third round; Common is Eagle's Eye 0.34 and Fire Shot 0; Rare and above pot in
+  75-100% of uses, Look Over There! the lowest). Caps per use: at most 2 of your balls (Chain
   Lightning: the charged ball and one jump), 3 (Steel Ball) or 4 (Black
   Flash), and 2 of the opponent's (Black Flash's blast) or 1 (Chain Lightning's jump). Black
   Hole and Guangdong Tiger have no caps (the designer, 2026-10-08: "NO limit"; a hit on a solo
@@ -485,7 +488,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   in `Strings.Ults`, 3D icons rendered in Blender in `Config.Ults.Assets.Icons`). Each row's
   rules are in its effect module (`src/shared/Ults/Effects`), its look in `src/client/<Id>Fx`,
   and every number in `Config.Ults.<Id>`. Worth is the measured value above.
-  - **Magnet** (Uncommon, 0.46; everyone's starter, free forever): for the whole shot the
+  - **Magnet** (Uncommon, 0.46; everyone's starter until the designer's third rework round,
+    2026-10-08, and kept by every save that holds it): for the whole shot the
     **first ball the cue ball hits** (if it is yours; the 8 only on your legal 8 shot, toward
     the called pocket; the opponent's at half), moving toward a pocket and passing within the
     capture zone of its mouth (6.5 ball widths since the rework's buff, 2026-10-08: "nerfed too
@@ -503,9 +507,23 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     shows only once the player starts pulling the cue back, and follows the pull (2026-09-30).
     Its icon is the eagle's eye alone (2026-09-30): a glistening pale-gold iris and big black
     pupil in a yellow ring, a black brow line cutting across its top.
-  - **Super Bounce** (Common, 0.33): the cue ball goes rainbow and near-lossless on the
-    cushions for 8 s; the first ball of yours it hits catches the bounce, and a cushion hit
-    within 6 in of a pocket boings it in off the jaw.
+  - **Fire Shot** (Common, 0; **everyone's starter, free forever**, since the designer's third
+    rework round, 2026-10-08, when it replaced Super Bounce: a saved Super Bounce becomes Fire
+    Shot): armed, the cue ball bursts into flames, seen by everyone at the table. While the
+    shooter aims, a fiery aim line runs from the cue ball all the way on, mirrored off every
+    cushion (angle in, angle out) for up to about 3 table lengths, and stops at the first ball
+    it meets (the ghost ring and that ball's line, as the normal guideline draws them) or in a
+    pocket; it never shows where anything stops. It ignores the table's difficulty, like
+    Eagle's Eye. The shot leaves the cue at **twice the speed** (the stroke's speed along the
+    cloth and its spin, not a jump's height), the ball a comet of fire with a flame trail, and
+    it **scorches the cloth** where it rolls: burn marks that glow, cool to char and stay until
+    the shooter's next turn (a run of theirs keeps them; cosmetic only). Measured: -0.08 /
+    -0.03 / +0.03 net (about nothing: double speed alone neither pots nor misses more, and the
+    model shooter plays no kicks or banks, where the line helps, nor Difficult or Challenger
+    tables, where it shows what the normal lines hide). The tutorial's one starter spin lands
+    on it. Icon: the cue ball as a fireball, a cartoon flame of five curling tongues streaming
+    back from it.
+  - **Super Bounce** became Fire Shot (above).
   - **Ghost** and **Heat Seeker** left the game (designer, 2026-10-08): a slot holding either
     becomes Magnet when the profile loads.
   - **Rewind** (Uncommon since 2026-10-08, was Rare; 0.53): a shot that drops none of your balls, fouls and scratches
@@ -1062,7 +1080,8 @@ step in the save (`Flags.Tutorial`) and owns every rigged part; the client only 
   card and Equip ("Equip your new cue!"; closing the Inventory without equipping moves on;
   designer 2026-10-03) -> **RareBlock**: the hand rests on the match's Rare block in its hotbar
   slot, counting down its 5-minute timer (a tap reports it seen) -> **Abilities**: the icon appears,
-  the hand on it -> **Spin**: the one starter spin lands on Magnet -> **Code**: "Type RELEASE
+  the hand on it -> **Spin**: the one starter spin lands on Fire Shot (Magnet until 2026-10-08)
+  -> **Code**: "Type RELEASE
   for 3 more spins!" -> **Back**: "Click Back".
 - **Game 2:** the arrow to a pad; the host card shows only Join Global Queue; the search turns
   into a match after 1 s against the Bots lane's disguised Bronze bot in a global arena. Win or

@@ -3297,3 +3297,20 @@ timer of a new block stay the designer's call.
   +0.76 careful net (pots 92-96%), the Rare mean, so she moves from Legendary to Rare (the
   designer's choice of the three offered: Rare, staying Legendary weaker, or a buff). The
   Legendary mean is now 1.15 (Steel Ball, Black Flash).
+- 2026-10-08 (designer's third rework round: "rework super bounce to be FIRE SHOT, which will
+  actually be the new default starter"): Super Bounce is gone and Fire Shot (Common) takes its
+  place. Armed, the cue ball is engulfed in flames; the shooter's aim line runs on off every
+  cushion, mirrored, to the first ball it meets (its ghost ring and object line) or a pocket,
+  up to about 3 table lengths, never showing where anything stops (the designer's pick of
+  three); the shot leaves the cue at 2x speed (along the cloth and the spin, not a jump's
+  height, as Black Flash's 3x); it leaves cosmetic scorch marks that stay until the shooter's
+  next turn (the designer's pick). Fire Shot is everyone's starter: new profiles and empty or
+  unusable slots get it, the tutorial's starter spin lands on it (the designer's pick), a saved
+  Super Bounce becomes it, and a save holding Magnet keeps Magnet. The bots roll abilities by
+  rarity as before (my question said the PC keeps Magnet; it never did), so they now roll Fire
+  Shot where they rolled Super Bounce.
+- 2026-10-08: Fire Shot measures about nothing: -0.08 / -0.03 / +0.03 careful net (careless
+  -0.10 / +0.02 / -0.01); double speed alone neither pots nor misses more, an overhit scratching
+  a little more often (fouls 2-4% careful, 5-7% careless). Its Worth is 0 and the Common mean
+  0.17. The harness plays no kicks, banks, or Difficult and Challenger tables, where the line
+  helps most. The bots hit at the full 2x (no power correction: it measured no better).
