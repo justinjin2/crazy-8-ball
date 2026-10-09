@@ -291,7 +291,7 @@ perk text. Don't change any of these products: the designer approves them later.
 - [x] 8. The Mystery shop (3.7), and the 1 R$ skip with its credit migration and its product
   (6.1).
 - [x] 9. Quick reveal and "Open all" (3.8).
-- [ ] 10. The "1 in N" (3.9).
+- [x] 10. The "1 in N" (3.9).
 - [ ] 11. Trade (3.10).
 - [ ] 12. The model v5, `economy_config.json`, the copy-number timeline (3.11).
 - [ ] 13. The docs (3.11) and the hand-off file (section 4).
@@ -365,3 +365,6 @@ perk text. Don't change any of these products: the designer approves them later.
   `LuckyBlocks.quickReveal`, `openAllIds`, the "OpenAll" action and "NoneReady" reason;
   `LuckyBlockService` HANDLERS.OpenAll. No client button yet (the GUI session's): Strings
   `OpenAll`, `OpenAllSummary`, `OpenAllOne` are ready for it.
+- Step 10: `LuckyBlocks.oneIn(cue, from, luck)`, `Format.oneIn`, `Strings.Banner.OneIn`; the
+  Unbox payload carries `oneIn` and `from`; `Banner` appends it. Every open now passes its
+  start kind (a never-climbing kind uses its own row).

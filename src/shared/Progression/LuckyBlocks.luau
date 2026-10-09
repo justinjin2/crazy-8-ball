@@ -14,6 +14,7 @@
 -- save; LuckyBlockService checks BlockRequest's arguments with `parse`.
 local Config = require(script.Parent.Parent.Config)
 local BlockOdds = require(script.Parent.BlockOdds)
+local BlockDrop = require(script.Parent.BlockDrop)
 local Catalog = require(script.Parent.Catalog)
 
 local L = Config.LuckyBlocks
@@ -189,6 +190,27 @@ end
 --- Whether `block` is off its timer at `now`.
 function LuckyBlocks.isReady(block: Block, now: number): boolean
 	return block.ReadyAt <= now
+end
+
+--- The N of "1 in N" for cue `cueId` from a block that started as kind `from` (economy v5
+--- plan 3.9): a climbing kind's chance of that exact cue over its whole climb (with the Grand
+--- Opening Luck when `luck`: the odds live at its climb; a Mystery block's pity left out), a
+--- kind that never climbs its row's (capped Uniques included), rounded to 3 significant
+--- figures (BlockDrop.oneIn). nil for a cue that kind never gives or an unknown kind.
+function LuckyBlocks.oneIn(cueId: string, from: string, luck: boolean?): number?
+	local row = LuckyBlocks.kind(from)
+	if row == nil then
+		return nil
+	elseif row.Climb ~= nil then
+		return BlockDrop.oneIn(BlockDrop.cuePercent(cueId, { start = row.Climb, luck = luck }))
+	elseif row.Odds ~= nil then
+		for _, entry in BlockOdds.cueOdds(row.Odds, nil, true) do
+			if entry.id == cueId then
+				return BlockDrop.oneIn(entry.percent)
+			end
+		end
+	end
+	return nil
 end
 
 --- Whether a cue of `rarity` opens with the quick reveal (Config.LuckyBlocks.QuickReveal:

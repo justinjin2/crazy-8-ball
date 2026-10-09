@@ -416,4 +416,29 @@ return {
 			H.expect(not L.quickReveal(rarity), rarity .. ": the full show")
 		end
 	end,
+	["the 1 in N: that exact cue's chance from the block it started as (plan 3.9)"] = function()
+		local L = load()
+		local Format = H.require("Progression.Format")
+		-- From a Mystery block (a Standard start): the plan's three examples.
+		H.expect(L.oneIn("ChromaCue", "Mystery") == 2610, tostring(L.oneIn("ChromaCue", "Mystery")))
+		H.expect(L.oneIn("ApexCue", "Mystery") == 6510, tostring(L.oneIn("ApexCue", "Mystery")))
+		H.expect(L.oneIn("EclipseCue", "Mystery") == 84700, "the Secret")
+		-- A climbed block keeps the kind it started as: a Lucky 8 climbs from Uncommon.
+		H.expect(L.oneIn("ChromaCue", "Lucky8") < 2610, "an Uncommon start is likelier")
+		-- With the Grand Opening Luck live at the climb, likelier still.
+		H.expect(L.oneIn("ChromaCue", "Mystery", true) < 2610, "the luck")
+		-- A kind that never climbs: its own row (the Starter block's Secret).
+		H.expect(L.oneIn("EclipseCue", "Starter") ~= nil, "the Starter row")
+		H.expect(L.oneIn("WeekOneCue", "Mystery") == nil, "never from a block")
+		H.expect(L.oneIn("ChromaCue", "Nope") == nil, "unknown kind")
+		-- The words: commas from 100 up, 3 figures below.
+		H.expect(Format.oneIn(2610) == "2,610" and Format.oneIn(84700) == "84,700", "commas")
+		H.expect(Format.oneIn(8.24) == "8.24" and Format.oneIn(37.6) == "37.6", "decimals")
+		H.expect(Format.oneIn(12) == "12", "a whole number")
+		local Strings = H.require("Strings")
+		H.expect(
+			Strings.Banner.OneIn:format("A!", "2,610") == "A! (1 in 2,610)",
+			"the banner's words"
+		)
+	end,
 }

@@ -1317,6 +1317,9 @@ return {
 			Mythic = "[GLOBAL]: %s pulled a Mythical Cue!",
 			Secret = "[GLOBAL]: %s pulled a Secret Cue!",
 		},
+		-- The "1 in N" after an unboxing's sentence (economy v5 plan 3.9): the sentence, then N
+		-- ("2,610", "8.24"): "Painicane unboxed a Legendary Cue! (1 in 2,610)".
+		OneIn = "%s (1 in %s)",
 		-- A Legendary or Mythic block in the restock, in every server (economy v4 plan 8.4): the
 		-- time left in the restock ("9:41").
 		Restock = {

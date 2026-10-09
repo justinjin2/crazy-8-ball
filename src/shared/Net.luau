@@ -290,7 +290,8 @@ local REMOTES: { [string]: string } = {
 	-- the top middle and a system chat line (src/server/Announce.luau). The server sends ids and
 	-- names only; the client words it from Strings.Banner. `name` is the player's username
 	-- (player.Name), not their DisplayName.
-	--   { kind = "Unbox", userId, name, cue, rarity } a Legendary unboxed here
+	--   { kind = "Unbox", userId, name, cue, rarity, oneIn?, from? } a Legendary unboxed here
+	--     (oneIn: the N of "1 in N" from the block `from` it started as, economy v5)
 	--     (BlockOdds.announcesHere), or a Mythic or Secret unboxed in any server
 	--     (BlockOdds.announces), sent Config.Items.UnboxAnnounceDelaySeconds after the roll
 	--   { kind = "Party", endsAt, name? } a Money Party started (endsAt: unix seconds)

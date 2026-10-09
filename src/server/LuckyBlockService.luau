@@ -625,14 +625,9 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	end
 	local cue = Catalog.get(plan.cueId) :: Catalog.Cue
 	Counters.add(cue.Id, 1)
-	-- The "1 in N" (plan 3.9): from the block it started as, with the odds live at its climb.
-	Announce.unbox(
-		player,
-		cue.Id,
-		if block.Climbed
-			then { from = block.From or block.Kind, luck = block.Luck == true }
-			else nil
-	)
+	-- The "1 in N" (plan 3.9): from the block it started as, with the odds live at its climb
+	-- (a kind that never climbs: its own row).
+	Announce.unbox(player, cue.Id, { from = block.From or block.Kind, luck = block.Luck == true })
 	if onOpened then
 		task.spawn(onOpened, player, block.From or block.Kind, cue.Id)
 	end

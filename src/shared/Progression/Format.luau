@@ -42,6 +42,17 @@ function Format.commas(n: number): string
 	return if value < 0 then MINUS .. out else out
 end
 
+--- The N of a "1 in N" (BlockDrop.oneIn: 3 significant figures) as words: 2610 -> "2,610",
+--- 84700 -> "84,700", 8.24 -> "8.24", 37.6 -> "37.6" (economy v5 plan 3.9).
+function Format.oneIn(n: number): string
+	if n >= 100 then
+		return Format.commas(math.floor(n + 0.5))
+	end
+	local text = ("%.2f"):format(n)
+	text = text:gsub("0+$", ""):gsub("%.$", "")
+	return text
+end
+
 --- "$1,250"; from $1,000,000 up shortened: "$1.2M", "$12.5M", "$1.23B", "$1T".
 function Format.money(n: number): string
 	local value = whole(n)
