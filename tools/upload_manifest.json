@@ -5601,6 +5601,30 @@
     "imageId": "103944500004159",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/ui/passes/pass_party.png": {
+    "assetId": "107216083672406",
+    "assetType": "Decal",
+    "imageId": "117607084783283",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/passes/pass_plus.png": {
+    "assetId": "132275399869178",
+    "assetType": "Decal",
+    "imageId": "118987373703501",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/passes/pass_slot2.png": {
+    "assetId": "104317612216004",
+    "assetType": "Decal",
+    "imageId": "99128951728446",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/passes/pass_slot3.png": {
+    "assetId": "104239794179742",
+    "assetType": "Decal",
+    "imageId": "92247079219131",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/ui/shop_money/pack1.png": {
     "assetId": "70668501525044",
     "assetType": "Decal",

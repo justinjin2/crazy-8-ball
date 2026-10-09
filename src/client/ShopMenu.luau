@@ -188,7 +188,7 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	self.moneyGroup = moneyGroup
 	self.moneyHead = GrandOpeningCard.header(moneyGroup, COPY.MoneyHeader)
 	self.money = ShopMoney.new(moneyGroup, { robux = buyProduct, gift = gift })
-	-- The Passes group: its header, then VIP and the passes.
+	-- The Passes group: its header, then the passes.
 	local passesGroup = HudParts.frame(scroll, "Passes")
 	passesGroup.ZIndex = 2
 	self.passesGroup = passesGroup
@@ -199,7 +199,6 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		plus = function()
 			self:getPlus()
 		end,
-		odds = odds,
 	})
 	local more = HudParts.note(scroll, "MoreBelow", P.MoreBelowTextPx, COPY.MoreBelow)
 	more.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -325,8 +324,8 @@ function ShopMenu.refresh(self: any)
 	self.odds:refresh()
 	self.restock:refresh(state)
 	self.money:refresh(state)
-	self.passes:refresh(state)
-	if self.offers:refresh(state) then
+	local passesChanged = self.passes:refresh(state)
+	if self.offers:refresh(state) or passesChanged then
 		self:layout() -- a card came or went
 	end
 end
@@ -353,8 +352,10 @@ function ShopMenu.layout(self: any)
 	y += self.restock:layout(pageW, k, y)
 	local offersH = self.offers:layout(pageW, k, y + round(SB.GapUnits * k))
 	self.tops.Offer = nil
+	self.tops.Vip = nil
 	if offersH > 0 then
 		self.tops.Offer = height + y
+		self.tops.Vip = self.tops.Offer -- VIP is in the pair (the HUD's VIP chip)
 		y += round(SB.GapUnits * k) + offersH
 	end
 	y += round(SB.GapUnits * k)
@@ -370,7 +371,7 @@ function ShopMenu.layout(self: any)
 	self.moneyGroup.Position = UDim2.fromOffset(0, height)
 	self.moneyGroup.Size = UDim2.fromOffset(pageW, y)
 	height += y
-	-- The Passes group: its header, VIP and the passes.
+	-- The Passes group: its header and the passes.
 	self.tops.Passes = height
 	GrandOpeningCard.layoutHeader(self.passesHead, round(pageW / 2), round(headH / 2), k)
 	y = headH + round(SB.HeaderGapUnits * k)

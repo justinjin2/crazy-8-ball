@@ -1,13 +1,15 @@
 --!strict
--- ShopPasses: the Shop's passes (the designer's pick B on the mock page, 2026-10-08), under
--- "- PASSES -". VIP's tall gold card at the left (the Blocks tab's VIP card, ShopOffers.vipCard;
--- "Owned" for a VIP), then a 2 x 2 grid of white tiles: Ability Slot 2 and 3 (game passes: no
--- gift square; "Owned" once bought), Money Party (a developer product: the gift square; while a
--- party runs here its line says how long is left) and Roblox Plus (a blue Get button that opens
--- Roblox's subscription prompt; "Active" for a member: designer, 2026-10-08). Each tile is its
--- picture, its name and a line of what it gives. Robux through StoreRequest "Buy", Roblox Plus
--- through StoreRequest "RobloxPlus". Sizes in Config.UI.ShopPasses (the Grand Opening card's
--- units and k, like the Blocks group), words in Strings.Menus.Shop.Passes.
+-- ShopPasses: the Shop's passes under "- PASSES -", one row of white cards like the designer's
+-- reference (2026-10-08: "rework the other passes to look more exactly like this"): Ability
+-- Slot 2 and 3 (game passes: no gift square; "Owned" once bought), Money Party (a developer
+-- product: the gift square; while a party runs here its line says how long is left) and Roblox
+-- Plus (a blue Get button that opens Roblox's subscription prompt; "Active" for a member;
+-- hidden when the game turns it off, the others then centred). Each card is its picture (the
+-- orange 2 and purple 3 cards, the disco ball with cash, the blue plus: cut from the mock and
+-- drawn again sharp), its name, a line of what it gives and its button. VIP is not here: it
+-- lives in the Blocks tab's pair (ShopOffers) until it is owned. Robux through StoreRequest
+-- "Buy", Roblox Plus through StoreRequest "RobloxPlus". Sizes in Config.UI.ShopPasses (the
+-- Grand Opening card's units and k, like the Blocks group), words in Strings.Menus.Shop.Passes.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -16,37 +18,30 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local HudParts = require(script.Parent.HudParts)
 local ShopCards = require(script.Parent.ShopCards)
-local ShopOffers = require(script.Parent.ShopOffers)
 local ShopParts = require(script.Parent.ShopParts)
 local Stage = require(script.Parent.Stage)
 local UIAnim = require(script.Parent.UIAnim)
 
 local B = Config.UI.ShopBlocks
 local S = Config.UI.ShopPasses
-local O = B.Offers
 local P = B.Panel
-local K = Config.UI.Kit
 local LIST: { [string]: any } = Config.Products.List :: any
 local COPY: { [string]: any } = (Strings.Menus.Shop :: any).Passes
 local OWNED: string = (Strings.Menus.Shop :: any).Blocks.Owned
-local MIN_TEXT = Config.UI.GrandOpeningCard.Layout.MinTextPx
 local PLUS = "RobloxPlus" -- the subscription's tile (no product)
 local rgb, round = ShopCards.rgb, ShopCards.round
 
 export type Actions = {
-	robux: (key: string) -> (), -- Vip, VipOffer, UltSlot2, UltSlot3 or MoneyParty
+	robux: (key: string) -> (), -- UltSlot2, UltSlot3 or MoneyParty
 	gift: (key: string) -> (), -- Money Party's gift square
 	plus: () -> (), -- Roblox Plus's Get
-	odds: (kind: string) -> (), -- the VIP card's dice: VIP's daily block's Odds & Details
 }
 
--- One tile of the grid.
+-- One card of the row.
 type Tile = {
 	key: string, -- its Config.Products key (PLUS: none)
 	box: ShopCards.Box,
 	art: ShopCards.Art,
-	badge: Frame?, -- an ability slot's number
-	badgeWords: TextLabel?,
 	name: TextLabel,
 	line: TextLabel,
 	green: TextButton,
@@ -54,15 +49,8 @@ type Tile = {
 	shown: { [string]: any },
 }
 
--- The tiles, left to right and top to bottom: the key, its picture (Config.UI.Kit.Icons) and an
--- ability slot's number.
-type Spec = { key: string, icon: string, slot: number? }
-local TILES: { Spec } = {
-	{ key = "UltSlot2", icon = "Ults", slot = 2 },
-	{ key = "UltSlot3", icon = "Ults", slot = 3 },
-	{ key = "MoneyParty", icon = "MoneyParty" },
-	{ key = PLUS, icon = "RobloxPlus" },
-}
+-- The cards, left to right (the reference's order); each picture is Config.UI.ShopPasses.Images'.
+local TILES: { string } = { "UltSlot2", "UltSlot3", "MoneyParty", PLUS }
 
 local ShopPasses = {}
 ShopPasses.__index = ShopPasses
@@ -72,32 +60,19 @@ function ShopPasses.new(parent: Instance, actions: Actions): any
 	local self: any = setmetatable({}, ShopPasses)
 	self.actions = actions
 	self.k = 1
-	self.vipKey = "Vip"
 	local root = HudParts.frame(parent, "PassesCards")
 	root.ZIndex = 2
 	self.root = root
-	self.panel = ShopCards.panel(root, "PassesPanel")
-	local card = self.panel.frame
-	self.title = ShopCards.titlePill(root, "PassesTitle", COPY.Title)
-	self.vip = ShopOffers.vipCard(card, "PassesVip", function()
-		self.actions.robux(self.vipKey)
-	end, actions.odds)
 
-	local icons: { [string]: string } = K.Icons :: any
+	local images: { [string]: string } = S.Images :: any
 	local tiles: { Tile } = {}
-	for index, spec in TILES do
-		local key = spec.key
+	for index, key in TILES do
 		local look = (S.Tiles :: any)[key]
-		local box = ShopCards.inner(card, "PassesTile" .. index, 3)
-		local art = ShopCards.art(box.frame, "Art", icons[spec.icon] or "", rgb(look.Glow), 4)
+		local box = ShopCards.inner(root, "PassesTile" .. index, 3)
+		local art = ShopCards.art(box.frame, "Art", images[key] or "", rgb(look.Glow), 4)
 		art.rays.Visible = false
 		art.glow.ImageTransparency = S.GlowTransparency
-		local badge, badgeWords = nil, nil
-		if spec.slot then
-			badge, badgeWords =
-				ShopCards.pill(art.holder, "Slot", tostring(spec.slot), rgb(look.Badge), 6)
-		end
-		local name = ShopCards.label(box.frame, "Name", COPY.Names[key], nil, 5)
+		local name = ShopCards.label(box.frame, "Name", COPY.Names[key], rgb(S.NameColor), 5)
 		local line = ShopCards.note(box.frame, "Line", "", 5)
 		line.TextWrapped = true
 		local green: TextButton
@@ -124,8 +99,6 @@ function ShopPasses.new(parent: Instance, actions: Actions): any
 			key = key,
 			box = box,
 			art = art,
-			badge = badge,
-			badgeWords = badgeWords,
 			name = name,
 			line = line,
 			green = green,
@@ -141,12 +114,12 @@ end
 -- Layout
 --------------------------------------------------------------------------------------------
 
---- The section's height at the scale `k` (its title pill's top half, then the panel).
+--- The section's height at the scale `k` (one row of cards).
 function ShopPasses.heightFor(k: number): number
-	return round((B.TitlePill.HeightUnits / 2 + S.Units[2]) * k)
+	return round(S.Tile.Units[2] * k)
 end
 
--- Lay one tile out in its own units at the scale `k`: the buy row at the bottom, the line and
+-- Lay one card out in its own units at the scale `k`: the buy row at the bottom, the line and
 -- the name over it (on a small screen they keep the smallest text size, so they move up), the
 -- picture in the room left above them.
 local function layoutTile(tile: Tile, k: number)
@@ -182,46 +155,34 @@ local function layoutTile(tile: Tile, k: number)
 	local artY = math.min(T.Art[1] * k, nameTop - artPx / 2)
 	local share = artPx / (T.Art[2] * k)
 	ShopCards.layoutArt(tile.art, k, tw / 2, artY / k, artPx / k, T.Glow * share, T.Glow * share)
-	local badge, badgeWords = tile.badge, tile.badgeWords
-	if badge and badgeWords then
-		-- The slot's number on the picture's lower right, never under the smallest text.
-		local Sl = T.Slot
-		local size = math.max(round(artPx * Sl[3]), MIN_TEXT + 2 * B.PillPadPx)
-		badge.Position = UDim2.fromScale(0.5 + Sl[1], 0.5 + Sl[2])
-		badge.Size = UDim2.fromOffset(size, size)
-		HudParts.setTextSize(badgeWords, math.max(MIN_TEXT, round(size * Sl[4])))
-		local stroke = ShopCards.strokeOf(badge)
-		if stroke then
-			stroke.Thickness = ShopCards.strokePx(k)
-		end
-	end
 end
 
 --- Lay the passes out across `width` pixels at the scale `k`, the section's top `y` pixels
---- down the page; returns its height.
+--- down the page; returns its height. The cards shown stand in one row, centred.
 function ShopPasses.layout(self: any, width: number, k: number, y: number): number
 	self.k = k
-	local W, H = S.Units[1], S.Units[2]
-	local top = B.TitlePill.HeightUnits / 2
-	local cardW = round(W * k)
+	local pageW = round(Config.UI.GrandOpeningCard.Layout.Card[1] * k)
 	local height = ShopPasses.heightFor(k)
-	self.root.Position = UDim2.fromOffset(math.floor((width - cardW) / 2), y)
-	self.root.Size = UDim2.fromOffset(cardW, height)
-	ShopCards.put(self.panel.frame, k, W / 2, top + H / 2, W, H)
-	ShopCards.sizeBox(self.panel, k, P.CornerUnits, P.EdgeUnits)
-	ShopCards.layoutTitlePill(self.title, k, W / 2, top)
-	-- VIP's card at the left, the Blocks tab's size.
-	local cw, ch = O.CardUnits[1], O.CardUnits[2]
-	ShopCards.put(self.vip.frame, k, S.VipLeft + cw / 2, S.Top + ch / 2, cw, ch)
-	ShopOffers.layoutCard(self.vip, k)
-	-- The grid beside it.
-	local G = S.Grid
+	self.root.Position = UDim2.fromOffset(math.floor((width - pageW) / 2), y)
+	self.root.Size = UDim2.fromOffset(pageW, height)
 	local tw, th = S.Tile.Units[1], S.Tile.Units[2]
-	for index, tile in self.tiles :: { Tile } do
-		local column, row = (index - 1) % G.Columns, (index - 1) // G.Columns
-		local x = G.Left + column * (tw + G.GapUnits[1]) + tw / 2
-		local cy = S.Top + row * (th + G.GapUnits[2]) + th / 2
-		ShopCards.put(tile.box.frame, k, x, cy, tw, th)
+	local shown: { Tile } = {}
+	for _, tile in self.tiles :: { Tile } do
+		if tile.box.frame.Visible then
+			table.insert(shown, tile)
+		end
+	end
+	local rowW = #shown * tw + math.max(0, #shown - 1) * S.GapUnits
+	local left = (pageW / k - rowW) / 2
+	for index, tile in shown do
+		ShopCards.put(
+			tile.box.frame,
+			k,
+			left + (index - 1) * (tw + S.GapUnits) + tw / 2,
+			th / 2,
+			tw,
+			th
+		)
 		layoutTile(tile, k)
 	end
 	return height
@@ -255,14 +216,14 @@ local function setButton(tile: Tile, words: string, done: boolean, enabled: bool
 	end
 end
 
---- Draw the shop state: VIP's card, each slot owned or its price, Money Party (the time left
---- while one runs here) and Roblox Plus (Active for a member; hidden when the game turns it
---- off).
-function ShopPasses.refresh(self: any, state: any)
+--- Draw the shop state: each slot owned or its price, Money Party (the time left while one
+--- runs here) and Roblox Plus (Active for a member; hidden when the game turns it off). True
+--- when a card came or went (the row is laid out again).
+function ShopPasses.refresh(self: any, state: any): boolean
 	if type(state) ~= "table" then
-		return
+		return false
 	end
-	self.vipKey = ShopOffers.refreshVip(self.vip, state)
+	local changed = false
 	local products = if type(state.products) == "table" then state.products else {}
 	local party = if type(state.party) == "table" then state.party else {}
 	local partyLeft = if type(party.endsAt) == "number" then party.endsAt - ShopParts.now() else 0
@@ -271,7 +232,11 @@ function ShopPasses.refresh(self: any, state: any)
 		if key == PLUS then
 			local player = Players.LocalPlayer
 			local member = player ~= nil and player.MembershipType == Enum.MembershipType.Premium
-			tile.box.frame.Visible = state.robloxPlus == true
+			local on = state.robloxPlus == true
+			if tile.box.frame.Visible ~= on then
+				tile.box.frame.Visible = on
+				changed = true
+			end
 			setText(
 				tile.line,
 				string.format(COPY.Lines.RobloxPlus, round(Config.Economy.PlusBoost * 100))
@@ -302,6 +267,7 @@ function ShopPasses.refresh(self: any, state: any)
 			product.canBuy ~= false and not owned
 		)
 	end
+	return changed
 end
 
 --------------------------------------------------------------------------------------------
@@ -311,13 +277,9 @@ end
 --- Register every piece with the Shop's `stage` (ids in Config.UI.Shop.Open); `keep(handle)`
 --- holds a piece's idle loops (started as it lands) until the Shop closes.
 function ShopPasses.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handle) -> ())
-	stage:add("PassesPanel", self.panel.frame)
-	stage:add("PassesTitle", self.title.pill)
-	stage:add("PassesVip", self.vip.frame, function()
-		keep(ShopOffers.cardLoops(self.vip, 0))
-	end)
 	for index, tile in self.tiles :: { Tile } do
 		stage:add("PassesTile" .. index, tile.box.frame, function()
+			keep(ShopCards.artLoops(tile.art))
 			-- Only Robux buttons shine: not Roblox Plus's Get.
 			if tile.key ~= PLUS then
 				keep(

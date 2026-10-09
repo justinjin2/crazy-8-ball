@@ -466,10 +466,10 @@ function ShopCards.layoutTag(
 end
 
 --------------------------------------------------------------------------------------------
--- Gradient cards and their rows (the Starter Pack, VIP, the best-value money pack)
+-- Gradient cards (the Starter Pack, VIP, the best-value money pack)
 --------------------------------------------------------------------------------------------
 
--- A card's colours (Config.UI.ShopBlocks.Offers.Starter / .Vip, Config.UI.ShopMoney.Hero...).
+-- A card's colours (Config.UI.ShopBlocks.Pair.Starter / .Vip, Config.UI.ShopMoney.HeroLook).
 export type Look = {
 	Top: { number },
 	Bottom: { number },
@@ -496,55 +496,6 @@ function ShopCards.gradientCard(parent: Instance, name: string, look: Look, z: n
 	edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	edge.Parent = frame
 	return { frame = frame, corner = corner, edge = edge }
-end
-
-export type Row = { strip: Frame, corner: UICorner, icon: ImageLabel, words: TextLabel }
-
---- One line on a gradient card: a see-through white strip with its icon and words.
-function ShopCards.row(parent: Instance, name: string, image: string, look: Look, z: number): Row
-	local strip = HudParts.frame(parent, name)
-	strip.BackgroundTransparency = look.RowTransparency
-	strip.BackgroundColor3 = rgb(look.Row)
-	strip.AnchorPoint = Vector2.new(0.5, 0.5)
-	strip.ZIndex = z
-	local corner = HudParts.corner(strip, 0)
-	local icon = ShopCards.image(strip, "Icon", image, z + 1)
-	local words = ShopCards.label(strip, "Words", "", nil, z + 1)
-	words.AnchorPoint = Vector2.new(0, 0.5)
-	words.TextXAlignment = Enum.TextXAlignment.Left
-	return { strip = strip, corner = corner, icon = icon, words = words }
-end
-
--- A row's sizes (Config.UI.ShopBlocks.Offers has them all).
-export type RowSizes = {
-	RowIconUnits: number,
-	RowIconLeftUnits: number,
-	RowWordsGapUnits: number,
-	RowWordsRightUnits: number,
-	RowTextUnits: number,
-	RowCornerUnits: number,
-}
-
---- Place a row w x h units centred on (x, y) units, sized by `R`.
-function ShopCards.layoutRow(
-	row: Row,
-	k: number,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	R: RowSizes
-)
-	local iconU = R.RowIconUnits
-	local wordsLeft = R.RowIconLeftUnits + iconU + R.RowWordsGapUnits
-	local textPx = ShopCards.textPx(R.RowTextUnits, k)
-	ShopCards.put(row.strip, k, x, y, w, h)
-	row.corner.CornerRadius = UDim.new(0, round(R.RowCornerUnits * k))
-	ShopCards.put(row.icon, k, R.RowIconLeftUnits + iconU / 2, h / 2, iconU, iconU)
-	row.words.Position = UDim2.fromOffset(round(wordsLeft * k), round(h / 2 * k))
-	row.words.Size =
-		UDim2.fromOffset(round((w - wordsLeft - R.RowWordsRightUnits) * k), textPx + B.TextBoxPx)
-	HudParts.setTextSize(row.words, textPx)
 end
 
 --------------------------------------------------------------------------------------------

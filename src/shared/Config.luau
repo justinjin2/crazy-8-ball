@@ -7176,6 +7176,9 @@ Config.UI = {
 				TrackingShare = -0.02,
 				SagShare = 0,
 			},
+			-- VIP's title on its wide card: the gold word, straight (designer, 2026-10-08: "why
+			-- is it curved").
+			VipStraight = { Base = "Gold", SagShare = 0 },
 			-- The subtitle under it: white letters, a navy outline, straight (the designer, gate 2).
 			Subtitle = {
 				FaceColor = { 255, 255, 255 },
@@ -8788,13 +8791,18 @@ Config.UI.Shop = {
 	Page = {
 		-- The jump buttons, top to bottom (designer, 2026-10-04: Featured, Blocks, Money,
 		-- Passes). Icons are Config.UI.Kit.Icons keys. Sections: what each group shows, so the
-		-- Shop opened on a section (the HUD's offer chips) jumps to its group. "Offer" is the
-		-- Starter Pack and VIP under the restock; "Vip" is the Passes tab's VIP card.
+		-- Shop opened on a section (the HUD's offer chips) jumps to its group. "Offer" and
+		-- "Vip" are the Starter Pack and VIP under the restock (VIP lives only there since
+		-- 2026-10-08).
 		Jump = {
 			{ Key = "Featured", Icon = "Deals", Sections = { "GrandOpening", "Limited" } },
-			{ Key = "Blocks", Icon = "Inventory", Sections = { "Mystery", "Restock", "Offer" } },
+			{
+				Key = "Blocks",
+				Icon = "Inventory",
+				Sections = { "Mystery", "Restock", "Offer", "Vip" },
+			},
 			{ Key = "Money", Icon = "Pack4", Sections = { "Money" } },
-			{ Key = "Passes", Icon = "Passes", Sections = { "Vip", "Boosts", "RobloxPlus" } },
+			{ Key = "Passes", Icon = "Passes", Sections = { "Boosts", "RobloxPlus" } },
 		},
 		-- The 3D block icon (BlockIcon, used by the hotbar, the reward chips and the trade
 		-- screen; the shop's cards will use it again).
@@ -9006,13 +9014,10 @@ Config.UI.Shop.Open = {
 		-- The Passes group (ShopPasses, pick B), the same rhythm: seen when jumped to.
 		{ Ids = { "PassesHead" }, Kind = "Pop", At = 0.18 },
 		{ Ids = { "PassesLines" }, Kind = "Grow", At = 0.22 },
-		{ Ids = { "PassesPanel" }, Kind = "Grow", At = 0.20 },
-		{ Ids = { "PassesTitle" }, Kind = "Pop", At = 0.24 },
-		{ Ids = { "PassesVip" }, Kind = "Pop", At = 0.28, Burst = "Gold" },
 		{
 			Ids = { "PassesTile1", "PassesTile2", "PassesTile3", "PassesTile4" },
 			Kind = "Pop",
-			At = 0.33,
+			At = 0.28,
 			Stagger = 1.5,
 		},
 		{ Ids = { "Flair" }, Kind = "Drop", At = 0.66, Length = 0.25 }, -- the 8-ball lands on the frame
@@ -9456,14 +9461,12 @@ Config.UI.ShopBlocks = {
 		Glow = 300,
 		Rays = 320,
 		-- What it holds, as shares of its side (centre x, centre y, size): the Starter Lucky
-		-- Block with the Starter Cue behind it and money in front; VIP's crown over money with
-		-- a big "2x" on it.
+		-- Block with the Starter Cue behind it and money in front; VIP's crown alone, in the
+		-- middle (designer, 2026-10-08: the crown with "2x" on money looked off placed).
 		StarterBlock = { 0.42, 0.56, 0.74 },
 		StarterCue = { 0.6, 0.42, 1.02 },
 		StarterCash = { 0.8, 0.8, 0.44 },
-		VipCrown = { 0.47, 0.38, 0.84 },
-		VipCash = { 0.72, 0.8, 0.52 },
-		VipTwoX = { 0.72, 0.76, 0.3 }, -- "2x" on the money: centre x, y, its height
+		VipCrown = { 0.5, 0.5, 0.9 },
 		-- The sky-blue dice on the hero's top left corner (the words own the right): its centre
 		-- this far in from the hero's corner (x, y), its size; never past the card's edge.
 		OddsBadge = { 12, 12, 50 },
@@ -9471,7 +9474,7 @@ Config.UI.ShopBlocks = {
 		-- The words beside the hero, left-aligned, each as big as its units or smaller to fit.
 		TitleUnits = 62, -- "Starter Pack"
 		VipTitleUnits = 84, -- "VIP": three letters, as big as the reference's gold word
-		TitleLineShare = 1.2, -- the title's row, of its letters' size (the arch's room overlaps)
+		TitleLineShare = 1.2, -- the title's row, of its letters' size (its outline's room overlaps)
 		BigUnits = 58, -- "+$25,000", "x1 -> x2 MONEY"
 		BigGapShare = 0.22, -- between the big row's pieces, of its letters' size
 		ArrowShare = 0.9, -- the arrow in "x1 -> x2", of the letters' size
@@ -9479,7 +9482,11 @@ Config.UI.ShopBlocks = {
 		LineMaxRows = 5,
 		RowGapUnits = 8, -- between the stacked lines
 		SectionGapUnits = 14, -- between the hero's row, the odds or perks, and the buy row
-		-- VIP's perks: two columns of an icon and its words under the hero (one on a phone).
+		-- VIP's perks: two columns of three, an icon and its words, in a pale inset panel under
+		-- the hero (one column on a phone).
+		PerkBoxPadUnits = 10, -- the panel's inner room
+		PerkBoxCornerUnits = 20,
+		PerkBoxEdgeUnits = 2.5,
 		PerkIconUnits = 34,
 		PerkTextUnits = 25,
 		PerkRowUnits = 40,
@@ -9520,67 +9527,15 @@ Config.UI.ShopBlocks = {
 			Row = { 255, 255, 255 },
 			RowTransparency = 1,
 			GlowTint = { 255, 206, 60 },
-			TwoXColor = { 92, 226, 112 }, -- "2x" and the green x2 (money's green)
+			TwoXColor = { 92, 226, 112 }, -- the green "x2" in "x1 -> x2 MONEY" (money's green)
 			CrownRock = { 5, 2.6 }, -- the crown rocks this many degrees each way, in seconds
-			TwoXPulse = { 1.08, 1.1 }, -- "2x" beats: this much bigger, over these seconds
+			PerkBox = { 255, 255, 255 }, -- the perks' panel: white, half see-through
+			PerkBoxTransparency = 0.35,
+			PerkBoxEdge = { 240, 196, 92 }, -- its rim, a soft gold
 		},
 		-- VIP's perk icons, in Strings' order (a Kit.Icons key, or a lucky block's kind).
-		VipPerkIcons = { "Block:Rare", "Stopwatch", "UltSpin", "ShopBasket", "Cue" },
+		VipPerkIcons = { "Block:Rare", "Stopwatch", "UltSpin", "ShopBasket", "Cue", "ChatTag" },
 		VipPerkIconRestricted = "CashSingle", -- the daily block's line where it is money
-	},
-	-- The Passes tab's tall VIP card (ShopOffers.vipCard): VIP's title between two crowns, the
-	-- hero picture (the crown over money with "2x", as the wide card's), six perks, the button.
-	Offers = {
-		CardUnits = { 620, 652 },
-		GapUnits = 35,
-		CornerUnits = 30,
-		EdgeUnits = 5,
-		TitleY = 62,
-		TitleUnits = 54,
-		TitleSideUnits = 60, -- the title's room each side
-		Art = { 310, 200, 220 }, -- centre x, centre y, size
-		Glow = 330,
-		Rays = 400,
-		-- The sky-blue dice (the pack's lucky block's odds): inset from the right, centre y, size.
-		OddsBadge = { 46, 46, 50 },
-		RowLeft = 34, -- the content rows' left edge (they run to the card's width minus this)
-		RowIconUnits = 36,
-		RowCornerUnits = 18,
-		RowIconLeftUnits = 10, -- a row's icon from the strip's left
-		RowWordsGapUnits = 10, -- between the icon and the words
-		RowWordsRightUnits = 16, -- the words' room from the strip's right
-		RowTextUnits = 24,
-		StarterRows = { 340, 390, 440, 490 }, -- each row's centre
-		StarterRowUnits = 44,
-		VipRows = { 324, 362, 400, 438, 476, 514 },
-		VipRowUnits = 34,
-		TimerY = 552, -- "Ends in 6d 23h" (over the buy row, with a small gap)
-		TimerUnits = { 250, 38 },
-		TimerTextUnits = 23,
-		BuyY = 612,
-		BuyUnits = 64,
-		BuyTextUnits = 42,
-		GiftUnits = 60,
-		GiftGapUnits = 8,
-		Starter = {
-			Top = { 255, 92, 104 }, -- its red, top to bottom
-			Bottom = { 196, 26, 58 },
-			Edge = { 92, 8, 28 },
-			Row = { 255, 255, 255 }, -- the rows: white, mostly see-through
-			RowTransparency = 0.78,
-			TimerColor = { 120, 10, 34 },
-		},
-		Vip = {
-			Top = { 255, 222, 92 },
-			Bottom = { 236, 152, 0 },
-			Edge = { 120, 70, 0 },
-			Row = { 255, 255, 255 },
-			RowTransparency = 0.72,
-			TimerColor = { 140, 70, 0 },
-			CrownUnits = 54, -- the crowns either side of "VIP"
-			CrownGapShare = 0.65, -- a crown's centre this share of its size past the title's end
-			CrownRaiseUnits = 4, -- the crowns sit this much over the title's middle
-		},
 	},
 }
 
@@ -9605,7 +9560,7 @@ Config.UI.ShopMoney = {
 	GlowTint = { 150, 255, 160 }, -- a tile's soft green glow behind its picture
 	TileGlowTransparency = 0.45, -- fainter than a block's (a tile's glow stands still)
 	HeroGlowTint = { 255, 214, 92 }, -- the hero's gold glow and rays
-	-- The hero card's gold, as VIP's (Config.UI.ShopBlocks.Offers.Vip).
+	-- The hero card's gold (deep gold into orange, a brown rim).
 	HeroLook = {
 		Top = { 255, 232, 120 },
 		Bottom = { 244, 170, 20 },
@@ -9652,46 +9607,47 @@ Config.UI.ShopMoney = {
 	},
 }
 
--- The Shop's passes (ShopPasses; the designer's pick B on the mock page, 2026-10-08), under
--- "- PASSES -": VIP's card at the left (the Blocks tab's own, Config.UI.ShopBlocks.Offers), then
--- a 2 x 2 grid of white tiles: Ability Slot 2 and 3, Money Party, Roblox Plus. In the Grand
--- Opening card's units and k, like Config.UI.ShopBlocks (whose title pill, panel, text and
--- button sizes it shares).
+-- The Shop's passes (ShopPasses), under "- PASSES -": one row of white cards like the designer's
+-- reference (2026-10-08): Ability Slot 2 and 3, Money Party, Roblox Plus. In the Grand Opening
+-- card's units and k, like Config.UI.ShopBlocks (whose panel corner, text and button sizes it
+-- shares). Four cards and three gaps fill the page's 1275 units less a little room each side.
 Config.UI.ShopPasses = {
-	Units = { 1275, 730 }, -- the panel
-	VipLeft = 22, -- VIP's card from the panel's left (its size: ShopBlocks.Offers.CardUnits)
-	Top = 54, -- the card's and the grid's top in the panel
-	Grid = { Left = 656, Columns = 2, GapUnits = { 14, 14 } }, -- in the panel
-	GlowTransparency = 0.45, -- a tile's glow behind its picture (it stands still)
-	-- Each tile's glow, and an ability slot's number badge (the slot passes' orange and purple
-	-- on the mock).
+	GapUnits = 14, -- between the cards
+	-- Each card's picture: cut from the mock passes_A and drawn again sharp
+	-- (tools/openai_image.py, 2026-10-08), trimmed to 512 px (assets/ui/passes/).
+	Images = {
+		UltSlot2 = "rbxassetid://99128951728446", -- pass_slot2.png: the orange "2" card
+		UltSlot3 = "rbxassetid://92247079219131", -- pass_slot3.png: the purple "3" card
+		MoneyParty = "rbxassetid://117607084783283", -- pass_party.png: a disco ball with cash
+		RobloxPlus = "rbxassetid://118987373703501", -- pass_plus.png: the blue plus
+	},
+	GlowTransparency = 0.45, -- a card's glow behind its picture
+	NameColor = { 64, 140, 255 }, -- the cards' names, the reference's blue (the ink outline round it)
+	-- Each card's glow (the picture's own colour).
 	Tiles = {
-		UltSlot2 = { Glow = { 255, 160, 60 }, Badge = { 255, 132, 24 } },
-		UltSlot3 = { Glow = { 186, 110, 255 }, Badge = { 146, 64, 232 } },
+		UltSlot2 = { Glow = { 255, 160, 60 } },
+		UltSlot3 = { Glow = { 186, 110, 255 } },
 		MoneyParty = { Glow = { 150, 255, 160 } }, -- money's green
 		RobloxPlus = { Glow = { 120, 190, 255 } }, -- the blue of its Get button
 	},
 	Tile = {
-		Units = { 291, 319 },
+		Units = { 296, 372 }, -- a card
 		-- The picture: centre y, size (centred across). On a small screen the words under it
 		-- keep the smallest text size, so it shrinks into the room left above them.
-		Art = { 80, 132 },
-		ArtTopUnits = 12, -- the picture's room from the tile's top
-		Glow = 200,
-		NameY = 175, -- "Ability Slot 2"
+		Art = { 100, 164 },
+		ArtTopUnits = 12, -- the picture's room from the card's top
+		Glow = 230,
+		NameY = 212, -- "Ability Slot 2"
 		NameUnits = 32,
-		LineY = 228, -- "Equip a second ability", two rows at most
+		LineY = 264, -- "Equip a second ability", two rows at most
 		LineUnits = 22,
 		LineRows = 2,
-		BuyY = 284, -- the green button (and Money Party's gift square)
-		BuyUnits = 50,
-		BuyTextUnits = 32,
-		GiftUnits = 48,
+		BuyY = 330, -- the green button (and Money Party's gift square)
+		BuyUnits = 52,
+		BuyTextUnits = 34,
+		GiftUnits = 50,
 		GiftGapUnits = 6,
 		SideUnits = 14, -- the words' and the buy row's room each side
-		-- An ability slot's number on its picture's lower right: its centre from the picture's
-		-- centre (x, y) and its size, as shares of the picture; its words, a share of its size.
-		Slot = { 0.34, 0.3, 0.42, 0.7 },
 	},
 }
 

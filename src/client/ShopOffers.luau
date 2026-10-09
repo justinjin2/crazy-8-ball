@@ -3,27 +3,26 @@
 -- designer, 2026-10-08: "put VIP and starter side by side ... this should actually be used
 -- mainly as the reference so it can fit on one page without scrolling", their second
 -- reference). Each card's hero picture at its top left shows what you get: the Starter Lucky
--- Block with the Starter Cue behind it and money in front; VIP's crown over money with a big
--- "2x". Beside it, left-aligned, the title (the Starter Pack's letters blue to purple to pink,
--- VIP's gold), the big line ("+$25,000", "x1 -> x2 MONEY") and what the Starter Pack holds.
+-- Block with the Starter Cue behind it and money in front; VIP's crown alone. Beside it,
+-- left-aligned, the title (the Starter Pack's letters blue to purple to pink, VIP's gold, both
+-- straight), the big line ("+$25,000", "x1 -> x2 MONEY") and what the Starter Pack holds.
 -- Under them the Starter Lucky Block's odds as small rarity bars (the Cues menu's, RarityBar;
--- hidden where the names would not fit, the dice has them) or VIP's perks with their icons,
--- then the buy row: the time left at the left (over the row when it would not fit beside it),
--- the gift square and the green Robux price at the right. Both cards are as tall as the taller
--- one needs (a phone's 12 px words make them taller). Where paid random items are restricted
--- the Starter Pack has no block (more money instead) and VIP's daily block is money.
+-- hidden where the names would not fit, the dice has them) or VIP's six perks with their icons
+-- in a pale inset panel, two columns of three (the designer, 2026-10-08: "organize it better
+-- with showing the tiers and benefits"), then the buy row: the time left at the left (over the
+-- row when it would not fit beside it), the gift square and the green Robux price at the right.
+-- Both cards are as tall as the taller one needs (a phone's 12 px words make them taller).
+-- Where paid random items are restricted the Starter Pack has no block (more money instead)
+-- and VIP's daily block is money.
 --
--- The Starter Pack shows until it is bought or its first week ends, with VIP beside it
--- ("Owned" for a VIP); without it VIP shows alone, in the middle, while its half-price offer
--- is open, never to a VIP; with neither there is no section. Both packs hold a lucky block
--- (the Starter Lucky Block; VIP's Rare block every day), so each hero has the sky-blue dice
--- opening that block's Odds & Details (Roblox's paid-random-items rule; OddsDetails), hidden
--- where paid random items are restricted. Robux through StoreRequest "Buy" (StarterPack,
--- VipOffer, or the Vip pass). Sizes in Config.UI.ShopBlocks.Pair, words in
+-- The Starter Pack shows until it is bought or its first week ends; VIP shows until it is
+-- owned (the designer, 2026-10-08: VIP lives only here now, so it can always be bought), half
+-- price with its time left while its offer is open. With neither there is no section. Both
+-- packs hold a lucky block (the Starter Lucky Block; VIP's Rare block every day), so each hero
+-- has the sky-blue dice opening that block's Odds & Details (Roblox's paid-random-items rule;
+-- OddsDetails), hidden where paid random items are restricted. Robux through StoreRequest "Buy"
+-- (StarterPack, VipOffer, or the Vip pass). Sizes in Config.UI.ShopBlocks.Pair, words in
 -- Strings.Menus.Shop.Blocks.
---
--- The Passes tab keeps VIP's tall card (ShopOffers.vipCard, layoutCard, refreshVip, cardLoops;
--- Config.UI.ShopBlocks.Offers), there for a VIP too ("Owned"), with the same hero picture.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -43,7 +42,6 @@ local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local B = Config.UI.ShopBlocks
-local O = B.Offers
 local P = B.Pair
 local K = Config.UI.Kit
 local MIN_TEXT = Config.UI.GrandOpeningCard.Layout.MinTextPx
@@ -61,34 +59,12 @@ export type Actions = {
 	odds: (kind: string) -> (), -- a card's dice: its lucky block's Odds & Details (OddsDetails)
 }
 
--- A hero picture: its main piece with the glow, rays and twinkles (ShopCards.Art), the Starter
--- Cue behind the Starter Lucky Block, the money in front and VIP's "2x" on it.
+-- A hero picture: its main piece with the glow, rays and twinkles (ShopCards.Art), and for the
+-- Starter Pack the Starter Cue behind the block and the money in front.
 type Hero = {
 	art: ShopCards.Art,
 	cue: Frame?,
-	cash: ImageLabel,
-	twoX: TextLabel?,
-}
-
-type Line = ShopCards.Row
-
--- VIP's tall card (the Passes tab).
-export type Card = {
-	which: string,
-	frame: Frame,
-	corner: UICorner,
-	edge: UIStroke,
-	title: TextLabel,
-	crowns: { ImageLabel },
-	art: ShopCards.Art,
-	hero: Hero,
-	lines: { Line },
-	timer: Frame,
-	timerWords: TextLabel,
-	green: TextButton,
-	gift: TextButton?,
-	odds: ShopCards.Badge?, -- the sky-blue dice: the card's lucky block's Odds & Details
-	shown: { [string]: any },
+	cash: ImageLabel?,
 }
 
 -- One of VIP's perks on its wide card: its icon and words.
@@ -110,6 +86,7 @@ type Wide = {
 	line: TextLabel?, -- what the Starter Pack holds
 	pills: { RarityBar.Bar }, -- the Starter Lucky Block's odds
 	perks: { Perk }, -- VIP's
+	perkBox: Frame?, -- the pale inset panel VIP's perks sit in
 	timer: TextLabel,
 	green: TextButton,
 	gift: TextButton?,
@@ -142,6 +119,7 @@ type Plan = {
 	perkPx: number,
 	perkIcon: number,
 	perkRowH: number,
+	perkPad: number, -- the perks' panel's inner room
 	belowH: number, -- the odds or the perks
 	timerPx: number,
 	timerH: number,
@@ -160,22 +138,6 @@ ShopOffers.__index = ShopOffers
 --------------------------------------------------------------------------------------------
 -- Pieces
 --------------------------------------------------------------------------------------------
-
--- One of the tall card's lines.
-local function line(parent: Instance, index: number, image: string, look: any): Line
-	return ShopCards.row(parent, "Line" .. index, image, look, 4)
-end
-
--- Give the tall card `c` the sky-blue dice for the lucky block `kind` it holds: a press opens
--- that block's Odds & Details (`onOdds`, the Shop's OddsDetails).
-local function withOdds(c: Card, kind: string, onOdds: (string) -> ())
-	local badge = ShopCards.oddsBadge(c.frame, "OddsBadge", 8)
-	badge.hit.Activated:Connect(function()
-		UISound.play("Click")
-		onOdds(kind)
-	end)
-	c.odds = badge
-end
 
 -- Show or hide a dice (hidden where its block is money instead).
 local function showOdds(odds: ShopCards.Badge?, on: boolean)
@@ -243,43 +205,18 @@ local function starterHero(parent: Instance, z: number): Hero
 	for _, twinkle in art.twinkles do
 		twinkle.ZIndex = z + 4
 	end
-	return { art = art, cue = cue, cash = cash, twoX = nil }
+	return { art = art, cue = cue, cash = cash }
 end
 
--- VIP's hero in `art` (its picture the crown): the crown over money with a big "2x" on it.
-local function vipHero(art: ShopCards.Art, z: number): Hero
+-- VIP's hero in `parent`: the crown alone in the middle of its gold glow.
+local function vipHero(parent: Instance, z: number): Hero
+	local art = ShopCards.art(parent, "Hero", ICONS.Vip, rgb(P.Vip.GlowTint), z)
 	share(art.picture, P.VipCrown)
-	local cash = ShopCards.image(art.holder, "Cash", ICONS.CashStack, z + 2)
-	share(cash, P.VipCash)
-	local twoX = ShopCards.label(art.holder, "TwoX", COPY.TwoX, rgb(P.Vip.TwoXColor), z + 3)
-	twoX.Position = UDim2.fromScale(P.VipTwoX[1], P.VipTwoX[2])
+	art.picture.ZIndex = z + 2
 	for _, twinkle in art.twinkles do
 		twinkle.ZIndex = z + 4
 	end
-	return { art = art, cue = nil, cash = cash, twoX = twoX }
-end
-
--- Size a hero's "2x" for a hero `px` pixels square (its letters a share of it).
-local function layoutHero(h: Hero, px: number)
-	local twoX = h.twoX
-	if twoX then
-		local size = math.max(MIN_TEXT, round(px * P.VipTwoX[3]))
-		local room = 2 * math.ceil(size * K.TextOutlineRatio) -- its ink outline each side
-		twoX.Size = UDim2.fromOffset(ShopCards.measure(twoX.Text, size) + room, size + B.TextBoxPx)
-		HudParts.setTextSize(twoX, size)
-	end
-end
-
--- A hero's idle loops: its picture's (the glow breathes, the rays turn, the twinkles pop) and
--- VIP's "2x" beating (not with Reduce Motion).
-local function heroLoops(h: Hero): UIAnim.Handle
-	local list = { ShopCards.artLoops(h.art) }
-	local twoX = h.twoX
-	if twoX and not UIAnim.reduced() then
-		local beat = P.Vip.TwoXPulse
-		table.insert(list, UIAnim.pulse(twoX, beat[1], beat[2]))
-	end
-	return ShopCards.all(list)
+	return { art = art, cue = nil, cash = nil }
 end
 
 --------------------------------------------------------------------------------------------
@@ -378,18 +315,18 @@ local function starterCard(self: any, parent: Instance): Wide
 	return c
 end
 
--- VIP's wide card: its hero, the gold title, "x1 -> x2 MONEY", the perks, the offer's time
--- left and the price ("Owned" for a VIP).
+-- VIP's wide card: its hero, the straight gold title, "x1 -> x2 MONEY", the perks in their
+-- panel, the offer's time left and the price.
 local function vipWide(self: any, parent: Instance): Wide
 	local c = wide(parent, "Vip", P.Vip, function(frame)
-		return vipHero(ShopCards.art(frame, "Hero", ICONS.Vip, rgb(P.Vip.GlowTint), 4), 4)
+		return vipHero(frame, 4)
 	end, function()
 		self.actions.robux(self.vipKey)
 	end, function()
 		self.actions.odds(vipBlock())
 	end)
 	c.titleText = COPY.VipTitle
-	c.titleStyle = "Gold"
+	c.titleStyle = "VipStraight"
 	c.titleUnits = P.VipTitleUnits
 	local arrow = HudParts.icon(c.frame, "Arrow", "Arrow")
 	arrow.ZIndex = 6
@@ -399,9 +336,19 @@ local function vipWide(self: any, parent: Instance): Wide
 		bigWord(c, "X2", COPY.VipX2, rgb(P.Vip.TwoXColor)),
 		bigWord(c, "Money", COPY.VipMoney),
 	}
+	local box = HudParts.frame(c.frame, "Perks")
+	box.BackgroundColor3 = rgb(P.Vip.PerkBox)
+	box.BackgroundTransparency = P.Vip.PerkBoxTransparency
+	box.ZIndex = 5
+	HudParts.corner(box, 0)
+	local rim = Instance.new("UIStroke")
+	rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	rim.Color = rgb(P.Vip.PerkBoxEdge)
+	rim.Parent = box
+	c.perkBox = box
 	for index, text in COPY.VipPerksWide do
-		local icon = ShopCards.image(c.frame, "PerkIcon" .. index, iconOf(P.VipPerkIcons[index]), 6)
-		local words = HudParts.note(c.frame, "Perk" .. index, MIN_TEXT, text)
+		local icon = ShopCards.image(box, "PerkIcon" .. index, iconOf(P.VipPerkIcons[index]), 6)
+		local words = HudParts.note(box, "Perk" .. index, MIN_TEXT, text)
 		words.TextXAlignment = Enum.TextXAlignment.Left
 		words.TextWrapped = false
 		words.AnchorPoint = Vector2.new(0, 0.5)
@@ -517,6 +464,7 @@ local function plan(c: Wide, k: number, cardW: number): Plan
 		end
 	end
 	local perkCols, perkPx, perkIcon, perkRowH = 0, 0, 0, 0
+	local perkPad = if c.perkBox then math.max(B.TextGapPx, round(P.PerkBoxPadUnits * k)) else 0
 	if #c.perks > 0 then
 		perkIcon = math.max(MIN_TEXT + B.TextGapPx, round(P.PerkIconUnits * k))
 		local beside = perkIcon + round(P.PerkGapUnits * k) -- the icon and the room after it
@@ -525,12 +473,13 @@ local function plan(c: Wide, k: number, cardW: number): Plan
 		for _, perk in c.perks do
 			widest = math.max(widest, ShopCards.measure(perk.words.Text, nominal))
 		end
-		local half = (innerW - round(P.PerkColumnGapUnits * k)) / 2 - beside
+		local boxW = innerW - 2 * perkPad
+		local half = (boxW - round(P.PerkColumnGapUnits * k)) / 2 - beside
 		local halfPx = math.min(nominal, math.floor(nominal * half / widest))
 		if halfPx >= math.max(MIN_TEXT, nominal * P.PerkShrinkMin) then
 			perkCols, perkPx = 2, halfPx
 		else
-			local whole = innerW - beside
+			local whole = boxW - beside
 			perkCols = 1
 			perkPx = math.max(MIN_TEXT, math.min(nominal, math.floor(nominal * whole / widest)))
 		end
@@ -538,7 +487,7 @@ local function plan(c: Wide, k: number, cardW: number): Plan
 	end
 	local belowH = if pillsOn
 		then pillH
-		elseif perkCols > 0 then math.ceil(#c.perks / perkCols) * perkRowH
+		elseif perkCols > 0 then math.ceil(#c.perks / perkCols) * perkRowH + 2 * perkPad
 		else 0
 
 	-- The buy row: the gift square and the green button at the right, the time left beside
@@ -582,6 +531,7 @@ local function plan(c: Wide, k: number, cardW: number): Plan
 		perkPx = perkPx,
 		perkIcon = perkIcon,
 		perkRowH = perkRowH,
+		perkPad = perkPad,
 		belowH = belowH,
 		timerPx = timerPx,
 		timerH = timerH,
@@ -604,7 +554,6 @@ local function place(c: Wide, p: Plan, k: number, cardW: number, cardH: number)
 	local heroTop = p.pad + (p.topH - p.hero) / 2
 	local heroX, heroY = p.pad + p.hero / 2, heroTop + p.hero / 2
 	ShopCards.layoutArt(c.hero.art, k, heroX / k, heroY / k, P.HeroUnits, P.Glow, P.Rays)
-	layoutHero(c.hero, p.hero)
 	local A = P.OddsBadge
 	local dice = math.max(MIN_TEXT + B.BadgePadPx, round(A[3] * k))
 	local edge = dice / 2 + B.TextGapPx -- never past the card's edge
@@ -652,13 +601,26 @@ local function place(c: Wide, p: Plan, k: number, cardW: number, cardH: number)
 			RarityBar.layoutStacked(bar, left, midTop, p.pillW, p.pillH, p.pillPx)
 		end
 	end
-	if p.perkCols > 0 then
+	local box = c.perkBox
+	if box and p.perkCols > 0 then
+		-- The panel across the card; the perks inside it, measured from its corner.
+		box.Position = UDim2.fromOffset(p.pad, midTop)
+		box.Size = UDim2.fromOffset(p.innerW, p.belowH)
+		local corner = box:FindFirstChildOfClass("UICorner")
+		if corner then
+			corner.CornerRadius = UDim.new(0, round(P.PerkBoxCornerUnits * k))
+		end
+		local rim = box:FindFirstChildOfClass("UIStroke")
+		if rim then
+			rim.Thickness = math.max(1, P.PerkBoxEdgeUnits * k)
+		end
+		local inner = p.innerW - 2 * p.perkPad
 		local columnGap = round(P.PerkColumnGapUnits * k)
-		local columnW = (p.innerW - (p.perkCols - 1) * columnGap) / p.perkCols
+		local columnW = (inner - (p.perkCols - 1) * columnGap) / p.perkCols
 		local beside = p.perkIcon + round(P.PerkGapUnits * k)
 		for index, perk in c.perks do
-			local left = p.pad + ((index - 1) % p.perkCols) * (columnW + columnGap)
-			local rowY = midTop + ((index - 1) // p.perkCols + 0.5) * p.perkRowH
+			local left = p.perkPad + ((index - 1) % p.perkCols) * (columnW + columnGap)
+			local rowY = p.perkPad + ((index - 1) // p.perkCols + 0.5) * p.perkRowH
 			ShopCards.putPx(perk.icon, left + p.perkIcon / 2, rowY, p.perkIcon, p.perkIcon)
 			perk.words.Position = UDim2.fromOffset(round(left + beside), round(rowY))
 			perk.words.Size =
@@ -730,63 +692,6 @@ function ShopOffers.layout(self: any, width: number, k: number, y: number): numb
 	self.root.Size = UDim2.fromOffset(pageW, height)
 	self.root.Visible = height > 0
 	return height
-end
-
---- Lay VIP's tall card out in its own units (Offers.CardUnits) at the scale `k`.
-function ShopOffers.layoutCard(c: Card, k: number)
-	local cw = O.CardUnits[1]
-	c.corner.CornerRadius = UDim.new(0, round(O.CornerUnits * k))
-	c.edge.Thickness = math.max(B.MinStrokePx, O.EdgeUnits * k)
-	local titlePx = ShopCards.textPx(O.TitleUnits, k)
-	ShopCards.line(c.title, k, cw / 2, O.TitleY, cw - 2 * O.TitleSideUnits, titlePx)
-	if #c.crowns > 0 then
-		local V = O.Vip
-		local half = ShopCards.measure(c.title.Text, titlePx) / 2 / k
-		local u = V.CrownUnits
-		local away = half + u * V.CrownGapShare
-		local y = O.TitleY - V.CrownRaiseUnits
-		ShopCards.put(c.crowns[1], k, cw / 2 - away, y, u, u)
-		ShopCards.put(c.crowns[2], k, cw / 2 + away, y, u, u)
-	end
-	ShopCards.layoutArt(c.art, k, O.Art[1], O.Art[2], O.Art[3], O.Glow, O.Rays)
-	layoutHero(c.hero, round(O.Art[3] * k))
-	if c.odds then
-		local A = O.OddsBadge
-		ShopCards.layoutBadge(c.odds, k, cw - A[1], A[2], A[3])
-	end
-	local rows = O.VipRows
-	local rowW = cw - 2 * O.RowLeft
-	local at = 0
-	for _, l in c.lines do
-		if l.strip.Visible then
-			at += 1
-			ShopCards.layoutRow(l, k, cw / 2, rows[at] or rows[#rows], rowW, O.VipRowUnits, O)
-		end
-	end
-	-- The timer over the buy row: on a small screen its words keep the smallest text size, so
-	-- it moves up to make room.
-	local buyTop = round(O.BuyY * k) - ShopCards.buttonPx(O.BuyUnits, k) / 2
-	local timerPx = ShopCards.textPx(O.TimerTextUnits, k)
-	local timerY, timerH =
-		ShopCards.above(O.TimerY, O.TimerUnits[2], timerPx, B.PillPadPx, buyTop, k)
-	ShopCards.putPx(c.timer, cw / 2 * k, timerY, O.TimerUnits[1] * k, timerH)
-	HudParts.setTextSize(c.timerWords, timerPx)
-	local stroke = ShopCards.strokeOf(c.timer)
-	if stroke then
-		stroke.Thickness = ShopCards.strokePx(k)
-	end
-	ShopCards.layoutRobuxRow(
-		c.green,
-		c.gift,
-		k,
-		cw / 2,
-		O.BuyY,
-		cw - 2 * O.RowLeft,
-		O.BuyUnits,
-		O.GiftUnits,
-		O.GiftGapUnits,
-		O.BuyTextUnits
-	)
 end
 
 --------------------------------------------------------------------------------------------
@@ -865,7 +770,7 @@ function ShopOffers.refresh(self: any, state: any): boolean
 	local vipOffer = if type(offers.VipOffer) == "table" then offers.VipOffer else {}
 	local starterOn = starter.open == true and state.starterBought ~= true
 	local offerOn = vipOffer.open == true and not owned
-	local vipOn = starterOn or offerOn
+	local vipOn = not owned -- VIP lives only here: shown until it is owned
 	local changed = self.show.Starter ~= starterOn or self.show.Vip ~= vipOn
 	self.show.Starter, self.show.Vip = starterOn, vipOn
 	local now = ShopParts.now()
@@ -913,107 +818,15 @@ function ShopOffers.refresh(self: any, state: any): boolean
 	return changed
 end
 
---- Draw VIP's tall card from the shop state: half price (the full price struck through) with
---- the time left while its offer is open; the daily block's line where paid random items are
---- restricted; "Owned" for a VIP. Returns the product its button buys.
-function ShopOffers.refreshVip(v: Card, state: any): string
-	local offers = if type(state.offers) == "table" then state.offers else {}
-	local products = if type(state.products) == "table" then state.products else {}
-	local vipOffer = if type(offers.VipOffer) == "table" then offers.VipOffer else {}
-	local owned = state.vip == true
-	local offerOn = vipOffer.open == true and not owned
-	local restricted = state.restricted == true
-	setText(v.lines[3].words, if restricted then COPY.VipPerkRestricted else COPY.VipPerks[3])
-	showOdds(v.odds, not restricted)
-	local offerEnds = if type(vipOffer.endsAt) == "number"
-		then vipOffer.endsAt - ShopParts.now()
-		else 0
-	v.timer.Visible = offerOn and offerEnds > 0
-	if v.timer.Visible then
-		setText(v.timerWords, string.format(COPY.EndsIn, ShopCards.timeLeft(offerEnds)))
-	end
-	setButton(v.green, v.shown, vipWords(products, owned, offerOn), owned)
-	return if offerOn then "VipOffer" else "Vip"
-end
-
---------------------------------------------------------------------------------------------
--- VIP's tall card (the Passes tab)
---------------------------------------------------------------------------------------------
-
---- VIP's tall card (closed) in `parent` named `name`: its title between two crowns, the hero
---- picture (the crown over money with "2x"), the six perks, the offer's timer and the green
---- button (`onBuy`).
-function ShopOffers.vipCard(
-	parent: Instance,
-	name: string,
-	onBuy: () -> (),
-	onOdds: (string) -> ()
-): Card
-	local V = O.Vip
-	local box = ShopCards.gradientCard(parent, name, V, 3)
-	local frame = box.frame
-	local title = ShopCards.label(frame, "Title", COPY.VipTitle, nil, 6)
-	local crowns: { ImageLabel } = {}
-	for _, side in { "Left", "Right" } do
-		local crown = HudParts.icon(frame, "Crown", "Crown" .. side)
-		crown.AnchorPoint = Vector2.new(0.5, 0.5)
-		crown.ZIndex = 6
-		table.insert(crowns, crown)
-	end
-	local art = ShopCards.art(frame, "Art", ICONS.Vip, Color3.new(1, 1, 1), 4)
-	local lines: { Line } = {}
-	for index, perk in COPY.VipPerks do
-		local made = line(frame, index, ICONS.Check, V)
-		made.words.Text = perk
-		table.insert(lines, made)
-	end
-	local timer, timerWords = ShopCards.pill(frame, "Timer", "", rgb(V.TimerColor), 6)
-	timerWords.TextColor3 = rgb(K.Numbers.Money)
-	local green = ShopCards.robuxButton(frame, "Robux", onBuy)
-	local c: Card = {
-		which = "Vip",
-		frame = frame,
-		corner = box.corner,
-		edge = box.edge,
-		title = title,
-		crowns = crowns,
-		art = art,
-		hero = vipHero(art, 4),
-		lines = lines,
-		timer = timer,
-		timerWords = timerWords,
-		green = green,
-		gift = nil,
-		odds = nil,
-		shown = {},
-	}
-	withOdds(c, vipBlock(), onOdds)
-	return c
-end
-
 --------------------------------------------------------------------------------------------
 -- Stage
 --------------------------------------------------------------------------------------------
 
---- VIP's tall card's idle loops: its hero's, its Robux button's shine (from `delay` seconds)
---- and its crowns rocking.
-function ShopOffers.cardLoops(c: Card, delay: number): UIAnim.Handle
-	local list = {
-		heroLoops(c.hero),
-		ShopCards.buttonShine(c.green, B.ButtonShineEvery, delay),
-	}
-	local R = B.Restock.CrownRock
-	for side, crown in c.crowns do
-		table.insert(list, UIAnim.turn(crown, 0, if side == 1 then R[1] else -R[1], R[2]))
-	end
-	return ShopCards.all(list)
-end
-
--- A wide card's idle loops: its hero's, its Robux button's shine (from `delay` seconds) and
--- VIP's crown rocking.
+-- A wide card's idle loops: its hero's (the glow breathes, the rays turn, the twinkles pop),
+-- its Robux button's shine (from `delay` seconds) and VIP's crown rocking.
 local function wideLoops(c: Wide, delay: number): UIAnim.Handle
 	local list = {
-		heroLoops(c.hero),
+		ShopCards.artLoops(c.hero.art),
 		ShopCards.buttonShine(c.green, B.ButtonShineEvery, delay),
 	}
 	if c.which == "Vip" then

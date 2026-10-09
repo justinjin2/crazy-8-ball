@@ -536,16 +536,16 @@ function OddsDetails.layout(self: any, geo: any)
 					HudParts.setTextSize(label, barText)
 				end
 			end
-			local valueW = math.ceil(
+			local countW = math.ceil(
 				ShopParts.textWidth(item.value and item.value.Text or "", barText)
 			) + 6
 			if item.main then
 				item.main.Position = UDim2.fromOffset(barPad, 0)
-				item.main.Size = UDim2.new(0, math.max(1, listW - 2 * barPad - valueW - 4), 1, 0)
+				item.main.Size = UDim2.new(0, math.max(1, listW - 2 * barPad - countW - 4), 1, 0)
 			end
 			if item.value then
-				item.value.Position = UDim2.new(1, -(barPad + valueW), 0, 0)
-				item.value.Size = UDim2.new(0, valueW, 1, 0)
+				item.value.Position = UDim2.new(1, -(barPad + countW), 0, 0)
+				item.value.Size = UDim2.new(0, countW, 1, 0)
 			end
 			y += barH + barGap
 		elseif kind == "Bar" and item.bar then

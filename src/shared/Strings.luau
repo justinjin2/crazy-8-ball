@@ -772,15 +772,15 @@ return {
 				VipX1 = "x1", -- "x1 -> x2 MONEY", an arrow between
 				VipX2 = "x2",
 				VipMoney = "MONEY",
-				TwoX = "2x", -- on the money in VIP's picture
-				-- VIP's perks under its picture (2x money is the big line), in the order of
-				-- Config.UI.ShopBlocks.Pair.VipPerkIcons.
+				-- VIP's perks under its picture (2x money is the big line), two columns of three,
+				-- in the order of Config.UI.ShopBlocks.Pair.VipPerkIcons.
 				VipPerksWide = {
 					"Rare block every day",
 					"No block timers",
 					"+1 ability spin a day",
 					"VIP restock slot",
-					"VIP Cue + tag",
+					"The VIP Cue",
+					"Rainbow chat tag",
 				},
 				VipPerkWideRestricted = "$5,000 every day",
 				EndsIn = "Ends in %s",
@@ -795,10 +795,9 @@ return {
 				Best = "BEST VALUE",
 			},
 			PassesHeader = "PASSES", -- the Passes group's header ("- PASSES -")
-			-- The passes (ShopPasses; the designer's pick B, 2026-10-08): VIP's card is the
-			-- Blocks tab's (Blocks.VipTitle, VipPerks), then a tile each for the rest.
+			-- The passes (ShopPasses; one row of cards like the designer's reference,
+			-- 2026-10-08). VIP is only in the Blocks tab's pair now.
 			Passes = {
-				Title = "VIP & PERKS", -- the panel's pill (the header over it says PASSES)
 				Names = {
 					UltSlot2 = "Ability Slot 2",
 					UltSlot3 = "Ability Slot 3",
