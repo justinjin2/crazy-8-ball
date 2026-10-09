@@ -646,7 +646,9 @@ shot of that turn with nothing else armed, `turnBegan` drops it when the turn pa
 
 **Client replay** (`client/Match`). Hides "removed" balls, slows the clock at "slow" events,
 stops at a halt and continues with the server's second-strike parts; `setTimeScale` is the
-`/slowmo` hook. A shot marked `rewind` is taped as it replays (every ball's position, spin and
+`/slowmo` hook. A slow window is timed on the replay's clock (`shot.elapsed`), not on the
+stepped state, and a frame stops stepping at the step that emits one, so neither a long frame
+nor a window shorter than a fixed step (Black Flash's hit-stop) runs through it at full speed. A shot marked `rewind` is taped as it replays (every ball's position, spin and
 shown-or-not each frame); the Rewinding snapshot then flies the table back through the tape
 (`startRewind`, `stepRewind`, busy meanwhile) and lands on the server's pre-shot table. A
 client with no tape (it joined late) just takes the snapshot's table. Time Stop's parts are
@@ -689,7 +691,9 @@ loads (no save version bump); their mentions above are history.
 
 - **New effects** (pure, Lune-tested): `Effects/CatchABall` (the cue ball's first contact
   removes the ball it hit, a pot for its owner, and the cue ball stops dead; the 8 off the legal
-  8 shot breaks free) and `Effects/Verity` (evil since the second round: the first contact eats
+  8 shot breaks free; then `nextBall` picks the shooter's nearest ball within `HopReachInches`
+  whose line clears the pockets, and `fx.hop` slides the ghosted cue ball there after the hold
+  and catches it too, a "hop" event then a second "catch" with `other` 2) and `Effects/Verity` (evil since the second round: the first contact eats
   the hit ball, she chews in place for `EatShotSeconds` shoving out the balls inside her swollen
   body, then rolls along the shot's line eating up to `MaxEaten` of the shooter's within
   `EatReachInches` and bumping the rest aside, the cue ball ghosted as her body; her `inside`
@@ -720,7 +724,11 @@ loads (no save version bump); their mentions above are history.
   `CatchABallFx` does the catch ball's lid) and pushes each viewer's camera in on her face.
   Roblox's upgraded avatar rigs may use AnimationConstraint joints instead of Motor6D, so
   `LookOverThereFx` and `UltCutscene` turn either. Catch-a-Ball's catch eases the shooter's
-  camera in (`Camera.setOverride`). Lines that follow a ball (Chain Lightning's rail, Portals'
+  camera in (`Camera.setOverride`); on a "hop" the shell leaps along with the cue ball's slide
+  and the second catch takes over its frame (`SecondTimeline`). A look that draws its own ball
+  in the cue ball's place sets the cue ball part's `HideTrail` attribute, and
+  `Effects.updateTrail` hides the cue ball's trail meanwhile (a Trail ignores
+  `LocalTransparencyModifier`). Lines that follow a ball (Chain Lightning's rail, Portals'
   launch line, Time Stop's send line) run on the replay's time, so `/slowmo` and `/hold` slow
   and freeze them with the balls. `kit.beam` puts a beam beside its attachments, not under
   them, so a look destroys both.

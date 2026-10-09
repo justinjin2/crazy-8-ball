@@ -5,6 +5,18 @@ when `docs/STATUS.md` became current state only. Finished work moves here from S
 on top. Read it only to answer "when or why did X change"; it is not part of the read-first list.
 An entry marked "(latest)" was the latest when written.
 
+**2026-10-08: the abilities rework before the designer's second round (moved from STATUS).**
+
+- Guangdong Tiger's rework (the rigged tiger, two slams through the ball, the roar cutscene,
+  the halves lying 6.1 s), Steel Ball's (chrome spinning up, the golden ratio in yellow, the
+  guided balls spinning) and Catch-a-Ball's close-up camera were checked in Studio. The Rare+
+  buffs (Chain Lightning drives its ball in down a bolt, Portals send yours into the pocket
+  nearest the exit along a launch line, Time Stop sends the ball you strike along a line) pot
+  83-95% a use, measured, their looks checked in Studio. The three new abilities measured
+  Catch-a-Ball 0.63, Look Over There! 0.99 (when it dragged a ball in), Verity 1.05; the rarity
+  means ran 0.34 to 1.31. Polish: Black Hole's cinematic camera (taken out the same day),
+  Black Flash's impact frames and crash zoom, Chain Lightning's double flash and storm grade.
+
 **2026-10-08: the long form of STATUS's "Being tried" list, moved here when STATUS was cut
 back under 100 lines (each item still open there as one line).**
 

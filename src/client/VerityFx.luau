@@ -254,6 +254,7 @@ local function unfadeAll(fx: TableFx)
 	for part in fx.faded do
 		if part.Parent then
 			part.LocalTransparencyModifier = 0
+			part:SetAttribute("HideTrail", nil)
 		end
 	end
 	table.clear(fx.faded)
@@ -736,6 +737,9 @@ local function stepAct(
 	end
 	local radius = r * K * grow
 	fade(fx, cuePart, 1)
+	if cuePart then
+		cuePart:SetAttribute("HideTrail", true) -- she rolls in its place (Effects.updateTrail)
+	end
 	-- Up off the cloth: over a hop, sitting up over an 8 she could not shove, bouncing on the
 	-- roll (in ball radii).
 	local lift = 0
@@ -1119,6 +1123,9 @@ function VerityFx.update(self: VerityFx, dt: number)
 			dropAct(self, act)
 			live.act = nil
 			live.look = 1
+			if part then
+				part:SetAttribute("HideTrail", nil)
+			end
 		end
 		live.look = approach(
 			live.look,

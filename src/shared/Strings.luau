@@ -1120,7 +1120,7 @@ return {
 			Magnet = "The first ball your next shot hits is pulled into a pocket it nearly misses.",
 			EaglesEye = "See the full path of your shot, every bounce included.",
 			SuperBounce = "The cue ball turns rainbow and keeps bouncing. The first ball of yours it hits bounces too, and boings off a pocket's jaw straight in.",
-			CatchABall = "Your cue ball becomes a catch ball. The first ball it hits is caught inside, counted as pocketed.",
+			CatchABall = "Your cue ball becomes a catch ball. The first ball it hits is caught inside, then it hops to your nearest ball and catches that too. Both count as pocketed.",
 			LookOverThere = "Point up and yell! While your opponent looks away, move the cue ball anywhere you like before they turn back. Then take your shot.",
 			Verity = "Hi, I'm Verity! Trust me... The first ball you hit gets eaten (it counts as pocketed), then she rolls on and eats up to 2 more of yours.",
 			Rewind = "Miss, and the table rewinds for another 10 s shot with its full path shown. Up to twice.",
@@ -1267,6 +1267,7 @@ return {
 		-- Catch-a-Ball's popups over the catch ball (CatchABallFx).
 		Catch = {
 			Gotcha = "GOTCHA!",
+			Double = "DOUBLE CATCH!",
 			BrokeFree = "IT BROKE FREE!",
 		},
 		-- Verity's speech bubble (src/client/VerityFx.luau): when she refuses the 8.

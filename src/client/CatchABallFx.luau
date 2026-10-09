@@ -16,6 +16,11 @@
 --     lands, wobbles one, two, three times (the button blinking red, a click-clack each), then
 --     clicks: stars burst out and GOTCHA! pops over it. Then the shell fades back into the cue
 --     ball.
+--   * The second catch (Epic since the designer's second round, 2026-10-08: "hop"): instead of
+--     fading after GOTCHA!, the catch ball leaps in an arc, flipping, along with the cue ball's
+--     slide to the shooter's nearest ball, lands just short of it and catches it too (a quicker
+--     run of the same: SecondTimeline), DOUBLE CATCH!, the shooter's camera moving from the
+--     first close-up to the second; it slides onto the ball's spot as it fades.
 --   * The 8 off the legal 8 shot ("breakfree"): the lid flicks open, the 8 flashes and bursts
 --     free with a puff, the lid shuts.
 -- Every table's parts hang off its AbilityFx anchor and go with it (kit.onRelease) or with
@@ -72,6 +77,11 @@ local function easeIn(u: number): number
 end
 
 -- 0 -> 1 -> 0 over u in 0..1 (a bump).
+local function smooth(u: number): number
+	u = clamp01(u)
+	return u * u * (3 - 2 * u)
+end
+
 local function bump(u: number): number
 	u = clamp01(u)
 	return math.sin(u * math.pi)
@@ -110,6 +120,16 @@ type Catch = {
 	own: boolean,
 	camFrom: CFrame?, -- the shooter's view at the catch (their camera eases in from it)
 	camClose: CFrame?, -- the close view beside the catch
+	second: boolean, -- the second catch (SecondTimeline, DOUBLE CATCH!)
+	leap: Leap?, -- the first catch's leap to the next ball, once the physics says one follows
+	slide: Vector3?, -- the second catch: where the cue ball sits (the shell slides there as it fades)
+	lastRot: CFrame, -- the shell's turn last frame (the second catch starts from it)
+}
+
+type Leap = {
+	ball: number,
+	spot: Vector3, -- the next ball's centre (world)
+	land: Vector3, -- where the shell lands, just short of it
 }
 
 type BreakFree = { at: number, ball: number, target: Vector3, facing: CFrame, quiet: boolean }
@@ -235,6 +255,7 @@ local function unfadeAll(fx: TableFx)
 	for part in fx.faded do
 		if part.Parent then
 			part.LocalTransparencyModifier = 0
+			part:SetAttribute("HideTrail", nil)
 		end
 	end
 	table.clear(fx.faded)
@@ -396,7 +417,9 @@ local function stepCamera(self: CatchABallFx, c: Catch, u: number)
 		return
 	end
 	local inn = clamp01(u / F.CamInSeconds)
-	local out = clamp01((u - (F.Timeline.Done - F.CamOutSeconds)) / F.CamOutSeconds)
+	local T: typeof(F.Timeline) = if c.second then F.SecondTimeline else F.Timeline :: any
+	-- Held through a leap: the second catch moves it on from here.
+	local out = if c.leap then 0 else clamp01((u - (T.Done - F.CamOutSeconds)) / F.CamOutSeconds)
 	local w = 1 - out * out * (3 - 2 * out)
 	if w <= 0 then
 		releaseCamera(self, c)
@@ -507,9 +530,23 @@ local function startCatch(self: CatchABallFx, id: number, fx: TableFx, m: any, e
 	if cue == nil then
 		return
 	end
-	dropCatch(fx.catch)
+	local second = ev.other == 2
+	local prev = fx.catch
 	local rest = kit.ballWorld(m, cue)
 	local target = kit.tableWorld(m, ev.x or cue.x, ev.y or cue.y, Config.Balls.RenderRadiusInches)
+	local slide: Vector3? = nil
+	local fromRot = fx.rot
+	if second then
+		-- The catch ball sits on the ball's spot; the shell lands just short of it (where the
+		-- leap took it) and slides there as it fades.
+		slide = rest
+		local leap = prev and prev.leap
+		rest = if leap then leap.land else rest
+		if prev then
+			fromRot = prev.lastRot
+		end
+	end
+	dropCatch(prev)
 	local facing = facingFrom(rest, target)
 	local quiet = m.state.time - ev.t > F.FreshSeconds
 	local r = ballRadius()
@@ -567,7 +604,7 @@ local function startCatch(self: CatchABallFx, id: number, fx: TableFx, m: any, e
 		target = target,
 		rest = rest,
 		facing = facing,
-		fromRot = fx.rot,
+		fromRot = fromRot,
 		silhouette = silhouette,
 		mesh = mesh,
 		beamFrom = beamFrom,
@@ -584,6 +621,10 @@ local function startCatch(self: CatchABallFx, id: number, fx: TableFx, m: any, e
 		own = ev.value == 1,
 		camFrom = nil,
 		camClose = nil,
+		second = second,
+		leap = nil,
+		slide = slide,
+		lastRot = fromRot,
 	}
 	-- The shooter's own camera eases in beside the catch (a cutscene inside the shot).
 	local camera = workspace.CurrentCamera
@@ -594,7 +635,8 @@ local function startCatch(self: CatchABallFx, id: number, fx: TableFx, m: any, e
 		c.camClose = closeView(rest, target, camera.CFrame)
 		self.camera = c
 	end
-	kit.keep(id, Config.Ults.CatchABall.HoldSeconds + 1.5)
+	local C = Config.Ults.CatchABall
+	kit.keep(id, (if second then C.SecondHoldSeconds else C.HoldSeconds) + 1.5)
 	if not quiet then
 		kit.burstLight(rest, Color3.new(1, 1, 1), r * 14, F.FlashBrightness, F.FlashSeconds)
 		playAt(self, id, A.CatchOpen, rest)
@@ -616,8 +658,10 @@ local function stepCatch(
 ): boolean
 	local u = fx.clock - c.at
 	local r = ballRadius()
-	local T = F.Timeline
-	if u >= T.Done then
+	local T: typeof(F.Timeline) = if c.second then F.SecondTimeline else F.Timeline :: any
+	-- A leap waits for the second catch to take over (or gives up after LeapWaitSeconds).
+	local ends = if c.leap then T.Done + F.LeapWaitSeconds else T.Done
+	if u >= ends then
 		releaseCamera(self, c)
 		dropCatch(c)
 		return false
@@ -650,13 +694,40 @@ local function stepCatch(
 			end
 		end
 	end
+	-- The leap to the next ball: along with the cue ball's slide (the physics), an arc and a
+	-- flip, turning to face where it goes.
+	local at = c.rest
+	local leap = c.leap
+	if cuePart then
+		-- The cue ball slides under the leap: no ribbon from it (Effects.updateTrail).
+		cuePart:SetAttribute("HideTrail", if leap then true else nil)
+	end
+	if leap and cuePart then
+		local function flatDistance(a: Vector3, b: Vector3): number
+			return Vector3.new(a.X - b.X, 0, a.Z - b.Z).Magnitude
+		end
+		local span = flatDistance(leap.spot, c.rest)
+		local p = if span > 1e-4 then clamp01(flatDistance(cuePart.Position, c.rest) / span) else 0
+		if p > 0.001 then
+			at = c.rest:Lerp(leap.land, p)
+			lift = r * F.LeapBallRadii * 4 * p * (1 - p)
+			spin = -2 * math.pi * F.LeapFlips * easeOut(p)
+			base = base:Lerp(facingFrom(c.rest, leap.spot).Rotation, clamp01(p * 3))
+		end
+	end
+	-- The second catch slides onto the ball's spot as it fades.
+	local slide = c.slide
+	if slide then
+		at = at:Lerp(slide, smooth((u - T.FadeFrom) / (T.Done - T.FadeFrom)))
+	end
 	-- Rock about the point it rests on.
-	local foot = c.rest - Vector3.yAxis * r * F.ShellScale
+	local foot = at - Vector3.yAxis * r * F.ShellScale
 	local frame = CFrame.new(foot + Vector3.yAxis * lift)
 		* base
 		* CFrame.Angles(0, 0, wobble)
 		* CFrame.new(0, r * F.ShellScale, 0)
 		* CFrame.Angles(spin, 0, 0)
+	c.lastRot = frame.Rotation
 	-- The lid: open quickly, held while the ball is pulled in, snapped shut.
 	local lid = 0
 	if u < T.OpenSeconds then
@@ -678,8 +749,8 @@ local function stepCatch(
 			)
 		end
 	end
-	-- The shell fades back into the cue ball at the end.
-	local out = clamp01((u - T.FadeFrom) / (T.Done - T.FadeFrom))
+	-- The shell fades back into the cue ball at the end (not before a leap).
+	local out = if c.leap then 0 else clamp01((u - T.FadeFrom) / (T.Done - T.FadeFrom))
 	placeShell(self, fx, frame, lid, out)
 	fade(fx, cuePart, 1 - out)
 	-- The silhouette: blue light warping along the beam into the opening.
@@ -736,13 +807,19 @@ local function stepCatch(
 	if u >= T.ClickAt and not c.clicked then
 		c.clicked = true
 		if not c.quiet then
-			local at = frame.Position
-			playAt(self, id, A.CatchCaught, at)
-			playAt(self, id, A.CatchDing, at)
-			stars(self, id, at, F.CaughtStars, true)
-			stars(self, id, at, F.CaughtSparks, false)
-			self.kit.burstLight(at, rgb(F.StarColor), r * 12, F.FlashBrightness, 0.5)
-			popLabel(self, id, at, COPY.Gotcha, rgb(F.LabelColor))
+			local spot = frame.Position
+			playAt(self, id, A.CatchCaught, spot)
+			playAt(self, id, A.CatchDing, spot)
+			stars(self, id, spot, F.CaughtStars, true)
+			stars(self, id, spot, F.CaughtSparks, false)
+			self.kit.burstLight(spot, rgb(F.StarColor), r * 12, F.FlashBrightness, 0.5)
+			popLabel(
+				self,
+				id,
+				spot,
+				if c.second then COPY.Double else COPY.Gotcha,
+				rgb(F.LabelColor)
+			)
 		end
 	end
 	return true
@@ -775,6 +852,20 @@ local function onEvent(self: CatchABallFx, id: number, fx: TableFx, m: any, ev: 
 	end
 	if ev.kind == "catch" then
 		startCatch(self, id, fx, m, ev)
+	elseif ev.kind == "hop" then
+		-- A second catch follows this one: the shell leaps to the next ball instead of fading.
+		local c = fx.catch
+		if c then
+			local spot =
+				self.kit.tableWorld(m, ev.x or 0, ev.y or 0, Config.Balls.RenderRadiusInches)
+			local dir = Vector3.new(spot.X - c.rest.X, 0, spot.Z - c.rest.Z)
+			local back = if dir.Magnitude > 1e-4 then dir.Unit else Vector3.zero
+			c.leap = {
+				ball = ev.ball,
+				spot = spot,
+				land = spot - back * 2 * ballRadius() * F.ShellScale,
+			}
+		end
 	elseif ev.kind == "breakfree" then
 		local kit = self.kit
 		local cue = kit.ballOf(m, 0)
@@ -929,6 +1020,9 @@ function CatchABallFx.update(self: CatchABallFx, dt: number)
 			kit.keep(id, 1) -- held while it plays, however slow the replay runs (/slowmo)
 			if not stepCatch(self, id, live, c, part) then
 				live.catch = nil
+				if part then
+					part:SetAttribute("HideTrail", nil)
+				end
 				fade(live, part, 0)
 				hideShell(live)
 				live.look = 0

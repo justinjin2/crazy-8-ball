@@ -473,14 +473,14 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   can't reach them, so each ult is built to its row as far as the caps allow and its **measured
   worth** (extra own balls per use, net of the opponent's gifted, a careful shooter, the mean of
   three skills, `tests/ult_value.luau`, 120 tables) is `Config.Ults.Catalog[id].Worth`. The
-  rarity means are **0.34, 0.50, 0.66, 0.95, 1.12 and 1.31** (2026-10-08, after the abilities
-  rework; Rare and above pot in 83-100% of uses). Caps per use: at most 2 of your balls (Chain
+  rarity means are **0.34, 0.50, 0.64, 0.94, 1.13 and 1.78** (2026-10-08, after the abilities
+  rework's second round; Rare and above pot in 75-100% of uses, Look Over There! the lowest). Caps per use: at most 2 of your balls (Chain
   Lightning: the charged ball and one jump), 3 (Steel Ball, Verity's bites) or 4 (Black
   Flash), and 2 of the opponent's (Black Flash's blast) or 1 (Chain Lightning's jump). Black
   Hole and Guangdong Tiger have no caps (the designer, 2026-10-08: "NO limit"; a hit on a solo
   break takes every ball but the 8): only their reach limits them. Against Magnet at equal skill the model
   (`tools/ult_model.py`) gives Common to Rare 49-51% wins, Epic 54-55%, Legendary 55-56% and
-  Mythic 56-57% (2026-10-08; ECONOMY.md 11.8).
+  Mythic 56-59% (2026-10-08, the second round; ECONOMY.md 11.8).
 - **The catalog of 13, all built** (`Config.Ults.Catalog`, names and one-line descriptions
   in `Strings.Ults`, 3D icons rendered in Blender in `Config.Ults.Assets.Icons`). Each row's
   rules are in its effect module (`src/shared/Ults/Effects`), its look in `src/client/<Id>Fx`,
@@ -512,15 +512,21 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     included, is undone (the foul erased) and redone on a 10 s clock with Eagle's Eye's full
     path shown; a missed redo rewinds again, two redos a use. Everyone at the table sees the
     VHS rewind.
-  - **Catch-a-Ball** (Rare, 0.63; new in the rework, 2026-10-08): the cue ball becomes a red
-    and white catch ball. Whatever ball it hits first is caught: the ball pops open, a red beam
-    pulls the ball in as a glowing silhouette, it snaps shut, hops, and wobbles one, two, three
-    times with a click (GOTCHA!), the shooter's camera easing in beside it. The caught ball
-    counts as pocketed for its owner (an opponent's goes down for them, and hitting it first is
-    still a foul); the cue ball stops dead where it made the contact. The 8 off your legal 8
-    shot breaks free. Measured: +0.47 / +0.66 / +0.75 net, pots 91-96% of uses.
-  - **Look Over There!** (Epic for now, 0.99; Rare once Catch-a-Ball takes its place; reworked
-    in the designer's second round, 2026-10-08) is not a shot and has no activation panel or
+  - **Catch-a-Ball** (Epic, 0.96; new in the rework, 2026-10-08; Epic since the designer's
+    second round, swapped with Look Over There!): the cue ball becomes a red and white catch
+    ball. Whatever ball it hits first is caught: the ball pops open, a red beam pulls the ball
+    in as a glowing silhouette, it snaps shut, hops, and wobbles one, two, three times with a
+    click (GOTCHA!), the shooter's camera easing in beside it. The caught ball counts as
+    pocketed for its owner (an opponent's goes down for them, and hitting it first is still a
+    foul); the cue ball stops dead where it made the contact. Then the second catch (the Epic
+    buff): it leaps, flipping, to your nearest ball within 9 in (centre to centre, its way clear
+    of the pocket mouths, never the 8) and catches that too, a quicker pull and DOUBLE CATCH!,
+    and the cue ball sits on that ball's spot. The 8 off your legal 8 shot breaks free; after a
+    legal 8 there is no hop. Measured: +0.80 / +1.02 / +1.05 net, pots 94-98% of uses (one
+    catch measured +0.47 / +0.66 / +0.75 as a Rare; a 20 in reach was +1.28, above the
+    Legendaries).
+  - **Look Over There!** (Rare, 0.58; reworked in the designer's second round, 2026-10-08, and
+    moved down from Epic, swapped with Catch-a-Ball, as it is no sure pot) is not a shot and has no activation panel or
     armed label: nobody may be warned. Armed, it opens the Sneak phase: the shooter points up
     and "says" "OMG LOOKK AT THAT!" (a Roblox chat bubble and a chat-window line, as if typed,
     for bots too), each opponent is locked in first person looking up and away from the table
@@ -528,7 +534,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     cloth, as with ball in hand (touch or mouse drag, the gamepad's stick). Then the opponents
     turn back, still in first person, their view on the cue ball's new spot, and a vine boom
     plays (the only sound). The shooter shoots from there on a fresh clock. Not on the break,
-    nor when the shooter already has ball in hand; fine on the 8.
+    nor when the shooter already has ball in hand; fine on the 8. Measured: +0.50 / +0.63 /
+    +0.60 net, pots 75-97% of uses: the one shot only, not the run a free ball in hand sets up,
+    so it plays stronger than it measures.
   - **Time Stop** (Epic since 2026-09-30, was Rare; 0.87): 1 s after the cue ball's first contact time freezes (a
     shot that touches nothing freezes 1.5 s in: the Rare+ buff, 2026-10-08); the shooter gets
     8 s to line up and strike the cue ball once more (untouched, time resumes by itself); the
@@ -589,14 +597,16 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     anime impact frames (2026-10-08): the screen flickers between a blown-out negative and a
     red manga frame, and the camera of each player at the table crash-zooms toward the hit,
     rolled a little, then eases back.
-  - **Black Hole** (Mythic, 1.32): at the first contact a black hole opens for 2.5 s and
+  - **Black Hole** (Mythic, 1.78): at the first contact a black hole opens for 2.5 s and
     spirals in every ball within 20 in (the opponent's within 10 in; no caps since 2026-10-08,
     so a hit on a solo break swallows all but the 8), each swallowed and counted as pocketed
-    for its owner; the cue ball is pushed away. The camera stays on the table (a cinematic
+    for its owner; the cue ball is pushed away. Measured: +1.63 / +1.87 / +1.83 net, pots
+    96-98% of uses (+1.21 / +1.36 / +1.39 with the old caps). The camera stays on the table (a cinematic
     close view was tried and taken out the same day, designer).
-  - **Guangdong Tiger** (Mythic, 1.30): at the first contact a giant tiger leaps in and cuts
+  - **Guangdong Tiger** (Mythic, 1.77): at the first contact a giant tiger leaps in and cuts
     every ball within 20 in (the opponent's within 10 in; no caps since 2026-10-08) off the
     table at once, counted as pocketed for their owners; the moment slows to watch it.
+    Measured: +1.63 / +1.86 / +1.83 net, pots 95-97% of uses (+1.22 / +1.34 / +1.34 capped).
 - **The power bar in the ability's colours** (2026-09-30): while your own Legendary or Mythic
   ability is armed, the power bar's fill wears it, stronger as you pull (`Config.UI.PowerSkins`,
   art from `tools/gen_power_skins.py`): Black Flash, black and red lightning crackling harder;

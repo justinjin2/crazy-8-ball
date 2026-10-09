@@ -345,12 +345,17 @@ end
 --- It IS gated on `active`, the shot replay running: dragging the cue ball in hand, or a
 --- watched one easing to its streamed spot, must not streak. Whatever was laid down before
 --- is cleared as it switches on, so a shot never starts with a ribbon back to the old spot.
+--- Nor while an ability's look moves its own ball in the cue ball's place (the part's
+--- HideTrail attribute: Verity rolling, Catch-a-Ball leaping), or the ribbon would streak from
+--- under it.
 function Effects.updateTrail(self: Effects, ball: Ball.Ball?, active: boolean)
 	local trail = self.trail
 	if trail == nil then
 		return
 	end
-	local visible = active and ball ~= nil and not ball.pocketed
+	local part = self.trailTo
+	local drawnOver = part ~= nil and part:GetAttribute("HideTrail") == true
+	local visible = active and ball ~= nil and not ball.pocketed and not drawnOver
 	self:placeTrail(not trail.Enabled and visible)
 	if trail.Enabled ~= visible then
 		if visible then

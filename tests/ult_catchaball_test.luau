@@ -1,8 +1,9 @@
 --!strict
 -- Catch-a-Ball (the abilities rework, 2026-10-08): the first ball the cue ball hits is caught
 -- (counted as pocketed for its owner, an opponent's included); the 8 breaks free off the legal
--- 8 shot; the cue ball stops dead at the contact; the moment holds; the client's replay
--- matches the server's settle.
+-- 8 shot; the cue ball stops dead at the contact; the moment holds; then (Epic, the designer's
+-- second round) it hops to your nearest ball in reach and catches that too; the client's
+-- replay matches the server's settle.
 
 local H = require("./harness")
 local V = require("./ult_value")
@@ -131,9 +132,10 @@ function tests.the_moment_holds_at_the_catch()
 	check(math.abs((outcome.extraSeconds or 0) - C.HoldSeconds) < 1e-9, "the wall time added")
 end
 
-function tests.only_one_ball_is_caught_however_hard_the_hit()
-	-- A rack's corner: the cue ball drives into a cluster; only the first is caught, the rest
-	-- are left exactly where they were (nothing else was touched: the catch stops the cue).
+function tests.the_hit_never_shoves_the_cluster_and_the_hop_takes_the_nearest()
+	-- A rack's corner: the cue ball drives into a cluster; the first is caught and the rest are
+	-- left exactly where they were (the catch stops the cue); then the hop takes the nearest of
+	-- yours, the 2, and the 3 never moves.
 	local balls = table_({
 		{ 0, -30, 0 },
 		{ 1, 0, 0 },
@@ -144,10 +146,92 @@ function tests.only_one_ball_is_caught_however_hard_the_hit()
 	local sim = armed(balls, { 1, 2, 3 }, { 9 })
 	roll(sim, 0, 300, 0)
 	local outcome = Simulation.settle(sim, {})
+	local catches = ultEvents(outcome.events, "catch")
+	check(#catches == 2 and catches[1].ball == 1 and catches[2].ball == 2, "the 1, then the 2")
+	check(Simulation.findBall(sim, 1).pocketed and Simulation.findBall(sim, 2).pocketed, "both off")
+	local three = Simulation.findBall(sim, 3)
+	check(
+		not three.pocketed and three.x == 2 * R + 0.01 and three.y == 2 * R + 0.01,
+		"the 3 never moved"
+	)
+end
+
+function tests.after_the_first_catch_it_hops_to_your_nearest_ball_and_catches_it_too()
+	-- The 9 (theirs) is nearer, the 3 (yours) out of reach: the 2 is the one.
+	local balls = table_({
+		{ 0, -20, 0 },
+		{ 1, -10, 0 },
+		{ 2, -6, 5 },
+		{ 3, 5, -15 },
+		{ 9, -12, 5 },
+	})
+	local sim = armed(balls, { 1, 2, 3 }, { 9 })
+	roll(sim, 0, 60, 0)
+	local verdict, outcome = judged(sim, balls, SOLIDS)
+	local catches = ultEvents(outcome.events, "catch")
+	local hop = ultEvents(outcome.events, "hop")
+	check(
+		#hop == 1 and hop[1].ball == 2 and hop[1].t == catches[1].t,
+		"the hop to the 2, told at once"
+	)
+	check(#catches == 2 and catches[2].ball == 2 and catches[2].other == 2, "the 2 caught second")
+	check(catches[1].other == 1 and catches[2].value == 1, "first and second, yours")
+	-- After the first hold, then the slide (about 8 in at HopSpeed).
+	local slide = math.sqrt((-6 - (-10 - 2 * R)) ^ 2 + 5 ^ 2) / C.HopSpeed
+	check(
+		catches[2].t >= catches[1].t + C.HoldShotSeconds + slide - 0.02,
+		"after the hold and the slide"
+	)
+	check(table.find(verdict.pockets, 1) and table.find(verdict.pockets, 2), "both count")
+	check(verdict.foul == nil and verdict.keep, "legal, the turn kept: " .. tostring(verdict.foul))
+	local cue = Simulation.findBall(sim, 0)
+	check(cue.x == -6 and cue.y == 5 and not cue.pocketed, "the catch ball sits on the 2's spot")
+	check(not Simulation.findBall(sim, 9).pocketed, "it passed the 9 by")
+	check(not Simulation.findBall(sim, 3).pocketed, "the 3 stays")
+	local slows = ultEvents(outcome.events, "slow")
+	check(#slows == 2 and slows[2].t == catches[2].t, "a hold for each catch")
+	local extra = C.HoldSeconds + C.SecondHoldSeconds
+	check(math.abs((outcome.extraSeconds or 0) - extra) < 1e-9, "both holds' wall time added")
+end
+
+function tests.no_second_catch_without_one_of_yours_in_reach()
+	local balls = table_({ { 0, -20, 0 }, { 1, -10, 0 }, { 2, 30, 10 }, { 9, -8, 6 } })
+	local sim = armed(balls, { 1, 2 }, { 9 })
+	roll(sim, 0, 60, 0)
+	local outcome = Simulation.settle(sim, {})
 	check(#ultEvents(outcome.events, "catch") == 1, "one catch")
-	check(Simulation.findBall(sim, 1).pocketed, "the 1 caught")
-	local two = Simulation.findBall(sim, 2)
-	check(not two.pocketed and two.x == 2 * R + 0.01 and two.y == 0, "the 2 never moved")
+	check(#ultEvents(outcome.events, "hop") == 0, "no hop")
+	check(not Simulation.findBall(sim, 2).pocketed and not Simulation.findBall(sim, 9).pocketed)
+end
+
+function tests.the_hop_never_crosses_a_pocket()
+	-- Along the top cushion: the 2 is nearer, but the way to it passes the side pocket's mouth;
+	-- the 3, a little farther straight across the cloth, is taken instead.
+	local y = geometry.halfWidth - 1.3
+	local spot = -2.25 - 2 * R -- where the cue ball touches the 1
+	local balls = table_({
+		{ 0, -20, y },
+		{ 1, -2.25, y },
+		{ 2, 4, y },
+		{ 3, spot, y - 8.8 },
+		{ 9, 40, -20 },
+	})
+	check(4 - spot < 8.8 and 8.8 < C.HopReachInches, "both in reach, the 2 nearer")
+	local sim = armed(balls, { 1, 2, 3 }, { 9 })
+	roll(sim, 0, 40, 0)
+	local outcome = Simulation.settle(sim, {})
+	local catches = ultEvents(outcome.events, "catch")
+	check(#catches == 2 and catches[2].ball == 3, "the 3, not the 2")
+	check(not Simulation.findBall(sim, 0).pocketed, "the catch ball stays up")
+end
+
+function tests.no_hop_after_the_legal_8()
+	local balls = table_({ { 0, -20, 0 }, { 8, -10, 0 }, { 9, -5, 6 } })
+	local sim = armed(balls, { 8 }, { 9 }, 3)
+	roll(sim, 0, 60, 0)
+	local outcome = Simulation.settle(sim, {})
+	check(#ultEvents(outcome.events, "catch") == 1, "the 8 caught")
+	check(#ultEvents(outcome.events, "hop") == 0, "no hop: the game is won")
 end
 
 function tests.the_replay_matches_the_settle()

@@ -610,6 +610,19 @@ local function dispatch(self: Match, ev: Event, index: number)
 	end
 end
 
+-- When a step's new events (after index `seen`) begin an effect's slow-motion moment: the
+-- earliest one's shot time, or nil.
+local function slowStart(events: { Event }, seen: number): number?
+	local at: number? = nil
+	for i = seen + 1, #events do
+		local ev = events[i]
+		if ev.type == "ult" and ev.kind == "slow" and (at == nil or ev.t < at) then
+			at = ev.t
+		end
+	end
+	return at
+end
+
 local function finish(self: Match, shot: any)
 	self.lastShot = {
 		events = shot.events,
@@ -658,10 +671,12 @@ function Match.update(self: Match, dt: number): boolean
 	end
 	-- Never simulate more than a short slice per frame: a hitch must not fast-forward the
 	-- shot, and one frame must never be asked to do unbounded work. The replay runs slower
-	-- inside an effect's slow-motion moment, and at the developer's /slowmo rate.
+	-- inside an effect's slow-motion moment, and at the developer's /slowmo rate. The moment
+	-- is timed on the replay's clock (elapsed), not on the stepped state: one fixed step can
+	-- outlast the whole moment (Black Flash's hit-stop).
 	local rate = self.timeScale
 	for _, slow in shot.slows do
-		if self.state.time >= slow.from and self.state.time < slow.from + slow.length then
+		if shot.elapsed >= slow.from and shot.elapsed < slow.from + slow.length then
 			rate *= slow.scale
 		end
 	end
@@ -688,9 +703,18 @@ function Match.update(self: Match, dt: number): boolean
 			end
 			break
 		end
+		local seen = #shot.events
 		Simulation.step(self.state, P.FixedStep, shot.events)
 		shot.steps += 1
 		if self.state.halted then
+			break
+		end
+		-- A slow-motion moment begins: stop this frame there, or the rest of it would run
+		-- through the moment at full speed (a frame at 30 fps is longer than Catch-a-Ball's
+		-- whole hold). The moment is registered as its event is dispatched below.
+		local slowAt = slowStart(shot.events, seen)
+		if slowAt then
+			shot.elapsed = math.min(shot.elapsed, slowAt)
 			break
 		end
 	end

@@ -3266,3 +3266,20 @@ timer of a new block stay the designer's call.
   near her path are slurped in from 5.5 in (centre to centre): with only her body's touch (4.5
   in) she measured +0.99, below the old Verity's +1.05; 5.5 in gives +0.97 / +1.15 / +1.17
   (careful net at skills 1/2/3), a Legendary.
+- 2026-10-08 (designer's second rework round, "Swap + buff Catch-a-Ball"): Catch-a-Ball is Epic
+  and Look Over There! is Rare (it is no sure pot). Catch-a-Ball's Epic buff is a second catch:
+  after the first, the catch ball leaps, flipping, to your nearest ball and catches it too
+  (DOUBLE CATCH!). Its reach is 9 in, centre to centre, chosen by measurement: 20 in measured
+  +1.28 (above the Legendaries), 12 in +1.04, 9 in +0.80 / +1.02 / +1.05 (careful net at skills
+  1/2/3), an Epic. The hop never crosses a pocket mouth and never takes the 8. Look Over There!
+  measures +0.50 / +0.63 / +0.60 (pots 75-97%), under the Rare mean, but the measure counts only
+  the one shot, not the run a free ball in hand sets up.
+- 2026-10-08: Black Hole and Guangdong Tiger without caps measure +1.63 / +1.87 / +1.83 and
+  +1.63 / +1.86 / +1.83 (Worth 1.78 and 1.77, were 1.32 and 1.30): the Mythic mean rises from
+  1.31 to 1.78, and the model still holds every rarity above the one below (Mythic beats Magnet
+  56-59% at equal skill).
+- 2026-10-08: an ability's slow-motion moment (Catch-a-Ball's 4 s hold, Black Flash's hit-stop,
+  the Tiger's slow) is timed on the replay's own clock, and a replay frame stops where one
+  begins. Before, a frame longer than the moment (any frame for Black Flash's 0.004 s hit-stop,
+  a 30 fps frame for Catch-a-Ball's 0.02 s hold) ran straight through it at full speed, so the
+  hold was skipped in play.

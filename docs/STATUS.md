@@ -58,18 +58,14 @@ One line each; the long form is the 2026-10-08 entry at the top of
   and a gamepad, the numbered card's mark A or B, the copy numbers' own plan, then Free
   Reward, Abilities and Ranked. `shop-lively` is not yet merged into `release`.
 - **The abilities rework** (branch `abilities-rework`, not merged;
-  `docs/prompts/ABILITIES_REWORK_PLAN.md`): the 13-ability ladder. Look Over There! (the Sneak
-  phase) is built and waits on the designer's hands-on test and their own voice lines.
-  Guangdong Tiger's rework (the rigged tiger, two slams through the ball, the roar cutscene, the
-  halves lying 6.1 s), Steel Ball's (chrome spinning up, the golden ratio in yellow, the
-  guided balls spinning) and Catch-a-Ball's close-up camera are checked in Studio. The Rare+
-  buffs are in and their looks checked in Studio (Chain Lightning drives its ball in down a
-  bolt, Portals send yours into the pocket nearest the exit along a launch line, Time Stop
-  sends the ball you strike along a line): pots 83-95% a use, measured. The three new abilities
-  are measured too (Catch-a-Ball 0.63, Look Over There! 0.99, Verity 1.05; rarity means 0.34 to
-  1.31), and the GDD, ARCHITECTURE and the plan's hand-off list for the GUI session are up to
-  date. Polish so far: Black Hole's cinematic camera, Black Flash's impact frames and crash
-  zoom, Chain Lightning's double flash and storm grade. Next: more polish on the other looks.
+  `docs/prompts/ABILITIES_REWORK_PLAN.md`): the 13-ability ladder and the designer's second
+  round (2026-10-08). Look Over There! (Rare now) is the sneaky ball in hand with no cutscene;
+  Catch-a-Ball (Epic now) catches a second ball (DOUBLE CATCH!); Verity turns evil and eats;
+  Black Hole and the Tiger have no caps. Measured rarity means 0.34 / 0.50 / 0.64 / 0.94 /
+  1.13 / 1.78. Checked in Studio: Verity's act, Catch-a-Ball's leap and both catches (the
+  replay now holds each slow-motion moment; a long frame used to skip it). In progress:
+  Verity's two looks redone to the designer's reference images. Waiting: the designer's
+  hands-on test of the sneak (a second player: a published test place), their voice lines.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),

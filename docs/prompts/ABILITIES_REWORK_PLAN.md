@@ -121,7 +121,9 @@ Filled in as the work goes (2026-10-08). None of these are built on `abilities-r
   and the removed Heat Seeker and Ghost. Icons, names and descriptions are catalog data and
   Strings, so they show up by themselves; check the cards with the new, longer descriptions
   (Time Stop, Chain Lightning, Portals were rewritten for the Rare+ buffs; Look Over There!
-  and Verity were rewritten again in the designer's second round) on a phone.
+  and Verity were rewritten again in the designer's second round, and Catch-a-Ball's grew with
+  its second catch) on a phone. Catch-a-Ball's card now shows Epic and Look Over There!'s Rare
+  (catalog data, nothing to build).
 - **Spin screen odds panel:** data driven; check it shows the 13-ability ladder (Rewind is
   Uncommon, Look Over There! and Portals Rare, Catch-a-Ball, Time Stop and Chain Lightning Epic,
   Verity, Steel Ball and Black Flash Legendary; Look Over There! and Catch-a-Ball swapped in the

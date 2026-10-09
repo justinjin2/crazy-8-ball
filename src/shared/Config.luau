@@ -3531,9 +3531,9 @@ Config.Ults = {
 		"SuperBounce",
 		"Magnet",
 		"Rewind",
-		"CatchABall",
 		"Portals",
 		"LookOverThere",
+		"CatchABall",
 		"TimeStop",
 		"ChainLightning",
 		"Verity",
@@ -3547,8 +3547,8 @@ Config.Ults = {
 	-- 16 balance pass, 2026-09-29; every number in tools/ult_value_results.json). The GDD's
 	-- rough targets (0.33 / 0.5 / 1 / 1.5 / 2.2 / 2.6) are out of reach inside the reach and
 	-- ball caps (5.3: report the measured value); the ladder holds on each rarity's mean:
-	-- Common 0.34, Uncommon 0.50, Rare 0.66, Epic 0.95, Legendary 1.12, Mythic 1.31 (after the
-	-- abilities rework, 2026-10-08).
+	-- Common 0.34, Uncommon 0.50, Rare 0.64, Epic 0.94, Legendary 1.13, Mythic 1.78 (after the
+	-- abilities rework's second round, 2026-10-08).
 	Catalog = {
 		-- +0.38 / +0.54 / +0.44 (careless +0.37 / +0.56 / +0.52).
 		-- Uncommon since the economy plan (2026-10-02, section 8: its measured strength).
@@ -3562,14 +3562,18 @@ Config.Ults = {
 		-- rework (designer, 2026-10-08), beside Magnet.
 		Rewind = { Rarity = "Uncommon", Built = true, Worth = 0.53, Redo = true },
 		-- The rework's three (designer, 2026-10-08). Catch-a-Ball: the first ball the cue ball
-		-- hits is caught (a pot for its owner): +0.47 / +0.66 / +0.75 careful net (120 tables),
-		-- pots 91-96% of uses.
-		CatchABall = { Rarity = "Rare", Built = true, Effect = "CatchABall", Worth = 0.63 },
+		-- hits is caught (a pot for its owner), then it hops to your nearest ball in reach and
+		-- catches that too (Epic since the designer's second round, swapped with Look Over
+		-- There!): +0.80 / +1.02 / +1.05 careful net (careless +0.67 / +0.87 / +0.88; 120
+		-- tables), pots 94-98% of uses (one catch: +0.47 / +0.66 / +0.75 as a Rare).
+		CatchABall = { Rarity = "Epic", Built = true, Effect = "CatchABall", Worth = 0.96 },
 		-- Look Over There!: the opponents look away and the shooter moves the cue ball anywhere
 		-- (the Sneak phase: Config.Ults.Shared.Sneak*), then shoots as normal: sneaky ball in
-		-- hand (the designer's second rework round, 2026-10-08; it dragged one of your balls
-		-- into a pocket before, +0.95 / +1.01 / +1.02 careful net).
-		LookOverThere = { Rarity = "Epic", Built = true, Worth = 0.99, Sneak = true },
+		-- hand (the designer's second rework round, 2026-10-08; Rare since then, swapped with
+		-- Catch-a-Ball, as it is not a sure pot). +0.50 / +0.63 / +0.60 careful net (120 tables;
+		-- the one shot only, not the run a free ball in hand sets up), pots 75-97% of uses. It
+		-- dragged one of your balls into a pocket before (+0.95 / +1.01 / +1.02).
+		LookOverThere = { Rarity = "Rare", Built = true, Worth = 0.58, Sneak = true },
 		-- Verity: the first ball hit is eaten (a pot for its owner), then she rolls on eating up
 		-- to 2 more of yours (evil since the designer's second round, 2026-10-08). +0.97 / +1.15
 		-- / +1.17 careful net (120 tables), pots 94-98% of uses.
@@ -3617,22 +3621,23 @@ Config.Ults = {
 			MaxBalls = 4,
 			Area = true,
 		},
-		-- +1.21 / +1.36 / +1.39 (careless +0.93 / +1.08 / +1.15; 4 of yours, 1 of theirs). No
-		-- caps since 2026-10-08 (the designer's second round): every ball in reach.
+		-- +1.63 / +1.87 / +1.83 (careless +1.22 / +1.44 / +1.43), pots 96-98% of uses. No caps
+		-- since 2026-10-08 (the designer's second round): every ball in reach, theirs too (it
+		-- was +1.21 / +1.36 / +1.39 with 4 of yours and 1 of theirs).
 		BlackHole = {
 			Rarity = "Mythic",
 			Built = true,
 			Effect = "BlackHole",
-			Worth = 1.32,
+			Worth = 1.78,
 			Area = true,
 		},
-		-- +1.22 / +1.34 / +1.34 (careless +0.93 / +1.07 / +1.14; 4 of yours, 1 of theirs). No
-		-- caps since 2026-10-08, as Black Hole.
+		-- +1.63 / +1.86 / +1.83 (careless +1.22 / +1.44 / +1.43), pots 95-97% of uses. No caps
+		-- since 2026-10-08, as Black Hole (it was +1.22 / +1.34 / +1.34).
 		GuangdongTiger = {
 			Rarity = "Mythic",
 			Built = true,
 			Effect = "GuangdongTiger",
-			Worth = 1.3,
+			Worth = 1.77,
 			Area = true,
 		},
 	} :: {
@@ -4210,6 +4215,20 @@ Config.Ults.Magnet = {
 Config.Ults.CatchABall = {
 	HoldShotSeconds = 0.02, -- the play the hold is spread over (nothing moves: the catch is still)
 	HoldSeconds = 4, -- wall seconds the shot holds for the catch (CatchABallFx's Timeline)
+	-- The second catch (Epic since the designer's second round, 2026-10-08): the catch ball
+	-- hops to the shooter's nearest ball within HopReachInches (centre to centre, its line
+	-- HopPocketMarginInches clear of the pocket mouths) at HopSpeed (in/s) and catches it too,
+	-- holding SecondHoldShotSeconds of play over SecondHoldSeconds of wall time
+	-- (CatchABallFx's SecondTimeline). Until the hop it jiggles HopJiggle (in/s) in place.
+	-- Measured (tools/ult_value.luau, 120 tables, careful net at skills 1/2/3, 2026-10-08):
+	-- 20 in +1.12 / +1.33 / +1.38 (above the Legendaries); 12 in +0.90 / +1.09 / +1.13; 9 in
+	-- +0.80 / +1.02 / +1.05, an Epic (one catch measured +0.47 / +0.66 / +0.75).
+	HopReachInches = 9,
+	HopPocketMarginInches = 0.5,
+	HopSpeed = 40,
+	HopJiggle = 1,
+	SecondHoldShotSeconds = 0.02,
+	SecondHoldSeconds = 2.6,
 }
 
 -- Verity (the rework; evil since the designer's second round, 2026-10-08;
@@ -10646,6 +10665,30 @@ Config.UI.CatchABallFx = {
 		FadeFrom = 3.95, -- the shell fades back into the cue ball
 		Done = 4.35,
 	},
+	-- The second catch (Epic since the designer's second round, 2026-10-08): the same, quicker
+	-- (inside Config.Ults.CatchABall.SecondHoldSeconds), two wobbles, DOUBLE CATCH!
+	SecondTimeline = {
+		TurnSeconds = 0.1,
+		OpenSeconds = 0.12,
+		BeamFrom = 0.06,
+		PullFrom = 0.14,
+		PullTo = 0.55,
+		CloseFrom = 0.58,
+		CloseSeconds = 0.08,
+		HopFrom = 0.68,
+		HopTo = 1.0,
+		BounceSeconds = 0.18,
+		Wobbles = { 1.3, 1.75 },
+		WobbleSeconds = 0.4,
+		ClickAt = 2.2,
+		FadeFrom = 2.5,
+		Done = 2.9,
+	},
+	-- The leap to the next ball, along with the cue ball's slide: an arc LeapBallRadii high,
+	-- LeapFlips forward flips. A first catch waits LeapWaitSeconds past its Done for the second.
+	LeapBallRadii = 4,
+	LeapFlips = 1,
+	LeapWaitSeconds = 3,
 	-- GOTCHA! / IT BROKE FREE! over the ball (a billboard, studs). It pops at LabelViewShare of
 	-- the viewer's screen width (sized from their camera's distance at the pop, so the shooter's
 	-- close-up does not fill the screen with it), never wider than LabelWidthStuds; the height
