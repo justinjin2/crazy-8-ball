@@ -860,6 +860,12 @@ return {
 			LuckyMany = "%d Lucky Spins",
 			SpinChip = "+%d", -- on the spin icon of a tile, NEW RANK! or a roadmap tile: "+2"
 			Plus = "%s + %s", -- two parts of one tile's reward: "$500 + 2 Mystery Lucky Blocks"
+			-- What a reward adds, each part with its plus (the Free Reward group cards; designer,
+			-- 2026-10-08: "+1 8 ball lucky block and +3 mystery block"): "+$10,000",
+			-- "+1 Lucky 8 Block", "+3 Mystery Lucky Blocks", joined by GainJoin.
+			Gain = "+%s",
+			OneBlock = "1 %s", -- one block with its count: "1 Lucky 8 Block"
+			GainJoin = ", ",
 			And = "%s and %s", -- the last two parts of what a claim gave
 			List = "%s, %s", -- the parts before them
 		},
@@ -1069,17 +1075,16 @@ return {
 		-- Under the rarity bars (designer, 2026-10-08: "*every cue has same odds in each rarity
 		-- or whatever is most efficient to say").
 		Same = "*Every cue in a rarity has the same odds.",
-		Rounded = "Some chances are rounded, so they may not add up to exactly 100%.",
 		-- A capped Unique cue this player can't get (Roblox's one-instance rule: 0% for them;
 		-- its chance goes to the block's lowest rarity): its bar says why.
 		UniqueOwned = "%s · Owned",
 		UniqueGone = "%s · All found",
-		-- The Mystery block's (ShopMysteryOdds).
-		Pity = "Pity",
-		PityRare = "Rare or better within %d", -- the tier pity guarantees, the count
-		PityEpic = "Epic or better within %d",
-		ToGo = "%d to go", -- Mystery blocks left until it
-		Next = "Next one!", -- the guarantee is the very next block
+		-- The Mystery block's (ShopMysteryOdds): the final tiers first, then pity as two meters
+		-- (designer, 2026-10-08: "pity make it easier to explain and show ... like 99/100").
+		Pity = "Pity: a sure thing",
+		PityRare = "Guaranteed Rare or better", -- a meter's word
+		PityEpic = "Guaranteed Epic or better",
+		PityCount = "%d/%d", -- the blocks opened since the last one, the count: "3/10"
 		Live = "Your next Mystery block is %s or better!", -- the tier's name
 		Tiers = "Final tier",
 		TiersLive = "Final tier, with pity",
@@ -1141,7 +1146,7 @@ return {
 		-- The group and favorite card.
 		GroupTitle = "Free Lucky Blocks",
 		GroupRow = "Join the group",
-		GroupLine = "%s + %d%% match money", -- the reward, the boost while a member
+		GroupLine = "%s, +%d%% match money", -- the reward's gains, the boost while a member
 		FavoriteRow = "Favorite the game",
 		Join = "Join",
 		Favorite = "Favorite",

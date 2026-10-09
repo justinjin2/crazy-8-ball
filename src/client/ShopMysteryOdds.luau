@@ -2,12 +2,13 @@
 -- ShopMysteryOdds: the Mystery Lucky Block's "Odds & Details" list (economy v4 plan 3.2 and 13,
 -- the GUI hand-off item 13), shown in a menu's OddsDetails popup by a Mystery block's dice (the
 -- Shop's Mystery card, the Free Reward days that give one): what Roblox's paid-random-items
--- rules ask for before buying, as the Cues menu's rarity bars (designer, 2026-10-08):
--- - "The result is decided when you open it; the presses reveal it."
--- - Pity: Rare or better within 10 and Epic or better within 100, each with the blocks to go
---   (the server's count, ShopState's pity). Once a guarantee is the very next block a gold line
---   says so and the bars under it show the live odds (the guaranteed tier, while it is live).
+-- rules ask for before buying, as the Cues menu's rarity bars (designer, 2026-10-08: the tiers
+-- first, then pity, plainly; no description line):
 -- - The final tier's chances (BlockDrop.tiers), each bar with its block's picture.
+-- - Pity as two meters: "Guaranteed Rare or better 3/10" and "Guaranteed Epic or better
+--   56/100", the blocks opened since the last one of the count (the server's ShopState pity
+--   counts down the blocks left: 1 is the very next). Once a guarantee is the very next block
+--   a gold line says so and the tier bars show the live odds (the guaranteed tier).
 -- - Each rarity's chance per Mystery block (BlockDrop.cueGroups), adding to 100%, and the line
 --   that every cue in a rarity has the same odds.
 -- Words in Strings.OddsDetails.
@@ -33,12 +34,13 @@ local rgb = ShopCards.rgb
 local ShopMysteryOdds = {}
 ShopMysteryOdds.__index = ShopMysteryOdds
 
--- The blocks to go before a guarantee (ShopState's pity: 1 is the very next block).
-local function toGo(left: any): string
+-- A pity meter's blocks opened of `count` (ShopState's pity counts down the blocks left: 1 is
+-- the very next one, `count` none opened yet).
+local function opened(left: any, count: number): number
 	if type(left) ~= "number" then
-		return ""
+		return 0
 	end
-	return if left <= 1 then COPY.Next else COPY.ToGo:format(math.floor(left))
+	return math.clamp(count - math.floor(left), 0, count - 1)
 end
 
 --- The Mystery block's list for a menu's OddsDetails `popup` (popup:block("Mystery") shows it).
@@ -98,15 +100,6 @@ end
 function ShopMysteryOdds.paint(self: any, d: any)
 	local pity = self:pity()
 	local floor = BlockDrop.floorOf(pity)
-	d:add("Note", Strings.LuckyBlocks.Reveal.Decided)
-	-- Pity, with the live line once a guarantee is the very next block.
-	d:add("Head", COPY.Pity)
-	if floor then
-		d:add("Live", COPY.Live:format(SHORT[floor] or floor), rgb(O.LiveColor))
-	end
-	local left = if type(pity) == "table" then pity else {}
-	d:add("Row", COPY.PityRare:format(D.PityRare), ShopCards.rarityColor("Rare"), toGo(left.rare))
-	d:add("Row", COPY.PityEpic:format(D.PityEpic), ShopCards.rarityColor("Epic"), toGo(left.epic))
 	-- The final tier (with pity's floor while it is live), each bar with its block.
 	d:add("Head", if floor then COPY.TiersLive else COPY.Tiers)
 	for _, tier in BlockDrop.tiers(floor) do
@@ -115,6 +108,18 @@ function ShopMysteryOdds.paint(self: any, d: any)
 		local look = if tier.tier == "Standard" then "Common" else tier.tier
 		local icon = if row then row.Icon else nil
 		d:bar(look, SHORT[tier.tier] or tier.tier, d:chance(tier.percent), icon)
+	end
+	-- Pity: two meters, then the live line once a guarantee is the very next block.
+	d:add("Head", COPY.Pity)
+	local left = if type(pity) == "table" then pity else {}
+	local function meter(rarity: string, count: number, blocksLeft: any, word: string)
+		local done = opened(blocksLeft, count)
+		d:meter(rarity, word, COPY.PityCount:format(done, count), done / count)
+	end
+	meter("Rare", D.PityRare, left.rare, COPY.PityRare)
+	meter("Epic", D.PityEpic, left.epic, COPY.PityEpic)
+	if floor then
+		d:add("Live", COPY.Live:format(SHORT[floor] or floor), rgb(O.LiveColor))
 	end
 	-- Each rarity per Mystery block (the next one's, with pity's floor while it is live).
 	d:add("Head", if floor then COPY.RaritiesLive else COPY.Rarities)

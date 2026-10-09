@@ -143,50 +143,35 @@ function BlockOdds.list(): { Row }
 	return list
 end
 
--- A percent for the odds panels: three decimals ("6.667%", "1.625%"), trailing zeros cut
--- ("64.3%", "20%"), and under 0.01% as many decimals as it takes to show two significant
--- digits, so no cue that can drop ever reads as 0%.
+-- A percent as every odds display shows it, rounded plainly (designer, 2026-10-08: "dont show
+-- full percentage just round it"): from 10% a whole number ("52%"), from 1% one decimal
+-- ("6.8%", "9%"), from 0.1% two ("0.33%"), and under that one significant digit ("0.05%",
+-- "0.0008%"), so a chance that can happen never reads as 0%, and one under 100% never as 100%.
 local function percentText(percent: number): string
-	local decimals = 3
-	if percent > 0 and percent < 0.01 then
-		-- 0.0015 -> floor(log10) = -3 -> 4 decimals shows "0.0015".
-		decimals = math.min(-math.floor(math.log10(percent)) + 1, 8)
+	if type(percent) ~= "number" or percent ~= percent or percent <= 0 then
+		return "0%"
+	end
+	local decimals
+	if percent >= 10 then
+		decimals = 0
+	elseif percent >= 1 then
+		decimals = 1
+	elseif percent >= 0.1 then
+		decimals = 2
+	else
+		-- 0.046 -> floor(log10) = -2 -> 2 decimals shows "0.05".
+		decimals = math.min(-math.floor(math.log10(percent)), 10)
 	end
 	local text = string.format("%." .. decimals .. "f", percent)
+	if percent < 100 and (tonumber(text) or 0) >= 100 then
+		text = "99"
+	end
 	if text:find(".", 1, true) then
 		text = text:gsub("0+$", ""):gsub("%.$", "")
 	end
 	return text .. "%"
 end
 BlockOdds.percentText = percentText
-
--- "10.35000" -> "10.35", "100.0" -> "100".
-local function trimmed(text: string): string
-	if text:find(".", 1, true) then
-		text = text:gsub("0+$", ""):gsub("%.$", "")
-	end
-	return text
-end
-
---- A chance for a detailed odds list (Roblox's paid-random-items rules: exact, or rounded no
---- coarser than four decimal places under its first non-zero digit, with a line saying the
---- shown chances are rounded): the exact value when it has at most 8 decimal places
---- ("72.5%", "0.0001%"), else 5 significant digits ("10.357%", "0.0012857%"). The second value
---- is true when it was rounded.
-function BlockOdds.detailText(percent: number): (string, boolean)
-	if type(percent) ~= "number" or percent ~= percent or percent <= 0 then
-		return "0%", false
-	end
-	for decimals = 0, 8 do
-		local text = string.format("%." .. decimals .. "f", percent)
-		local back = tonumber(text)
-		if back and math.abs(back - percent) <= percent * 1e-12 then
-			return trimmed(text) .. "%", false
-		end
-	end
-	local decimals = math.clamp(4 - math.floor(math.log10(percent)), 0, 12)
-	return trimmed(string.format("%." .. decimals .. "f", percent)) .. "%", true
-end
 
 --- The N of "1 in N" for a chance of `percent` (economy v4 plan 18.2: rounded so it never looks
 --- better than true): 100 / percent rounded up, to three significant figures from 1,000 on

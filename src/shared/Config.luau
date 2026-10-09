@@ -8862,6 +8862,17 @@ Config.UI.OddsDetails = {
 	BarPadPx = { 10, 14 }, -- its words' room from its round ends
 	BarIconShare = 1.3, -- a tier's block over a bar's left end, of the bar's height
 	LiveColor = { 230, 160, 0 }, -- the line once a guarantee is the very next block (gold)
+	-- A pity meter (the Mystery list; designer, 2026-10-08: "make it easier to explain ... like
+	-- 99/100"): a pale track filled in the rarity's bar up to the blocks opened of the count.
+	MeterTrack = { 226, 233, 243 },
+	MeterRingTransparency = 0.55,
+	-- The lively frame (designer, 2026-10-08): the header band's room over and under the title
+	-- row, of the card's padding.
+	HeaderPadShare = 0.7,
+	-- The open: the card slams in (UIAnim.slam), then from LinesAt seconds its first StaggerMax
+	-- lines pop in top to bottom, Config.UI.Motion.Stagger apart (the rest just show).
+	LinesAt = 0.18,
+	StaggerMax = 16,
 	ScrollBarPx = 6,
 	-- The dice badge on each block (ShopCards.oddsBadge): the die's share of the badge's box
 	-- (its press area is a touch target round it).

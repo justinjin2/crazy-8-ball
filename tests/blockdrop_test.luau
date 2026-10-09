@@ -99,7 +99,7 @@ return {
 		H.expect(BlockDrop.rarityPercent("Epic") > 0.32, "Epic")
 		H.expect(BlockDrop.rarityPercent("Nope") == 0, "unknown rarity")
 		local secret = BlockDrop.rarityOdds()[7]
-		H.expect(secret.rarity == "Secret" and secret.display == "0.00076%", secret.display)
+		H.expect(secret.rarity == "Secret" and secret.display == "0.0008%", secret.display)
 		-- The 8-ball reveal's climbs and payload went with the cases (2026-10-04).
 		for _, gone in { "climbs", "climbChances", "payload" } do
 			H.expect((BlockDrop :: any)[gone] == nil, gone .. " is gone")

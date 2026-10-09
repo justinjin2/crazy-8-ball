@@ -104,42 +104,6 @@ local function withVaulted(Catalog: any, id: string, body: () -> ())
 end
 
 return {
-	["detail text: exact when it is, else 5 significant digits and marked rounded"] = function()
-		local BlockOdds = load()
-		local cases: { { any } } = {
-			{ 72.5, "72.5%", false },
-			{ 100, "100%", false },
-			{ 0.0001, "0.0001%", false },
-			{ 2.4 / 10, "0.24%", false },
-			{ 0.09 / 9, "0.01%", false },
-			{ 40.5736, "40.5736%", false },
-			{ 72.5 / 7, "10.357%", true },
-			{ 25 / 9, "2.7778%", true },
-			{ 0.009 / 7, "0.0012857%", true },
-			{ 0, "0%", false },
-		}
-		for _, case in cases do
-			local text, rounded = BlockOdds.detailText(case[1])
-			H.expect(
-				text == case[2] and rounded == case[3],
-				("%s: %s (rounded %s)"):format(tostring(case[1]), text, tostring(rounded))
-			)
-		end
-		-- A rounded chance keeps four decimal places under its first digit (Roblox's rule).
-		local percent = 97.3
-		while percent > 1e-7 do
-			local text, rounded = BlockOdds.detailText(percent)
-			local shown = tonumber(text:sub(1, -2)) :: number
-			local step = 10 ^ (math.floor(math.log10(percent)) - 4)
-			H.expect(
-				math.abs(shown - percent) <= step / 2 + percent * 1e-12,
-				("%s%%: %s is too coarse"):format(percent, text)
-			)
-			H.expect(rounded or shown == percent, ("%s%%: %s not marked"):format(percent, text))
-			percent *= 0.731
-		end
-	end,
-
 	["cue groups: every cue once with its share, adding to 100; a closed Unique at 0%"] = function()
 		local BlockOdds = load()
 		for _, row in BlockOdds.list() do
@@ -371,7 +335,7 @@ return {
 		for _, entry in BlockOdds.cueOdds("Legendary") do
 			if entry.rarity == "Legendary" then
 				H.near(entry.percent, 25 / 7, 1e-9, entry.id)
-				H.expect(entry.display == "3.571%", entry.id .. " shows " .. entry.display)
+				H.expect(entry.display == "3.6%", entry.id .. " shows " .. entry.display)
 			elseif entry.rarity == "Mythic" then
 				H.expect(entry.display == "0.9%", entry.id .. " shows " .. entry.display)
 			elseif entry.rarity == "Secret" then
@@ -391,15 +355,21 @@ return {
 	["percent text keeps small odds visible"] = function()
 		local BlockOdds = load()
 		local cases: { { any } } = {
-			{ 64.3, "64.3%" },
+			{ 64.3, "64%" },
+			{ 52.25, "52%" },
 			{ 20, "20%" },
 			{ 100, "100%" },
-			{ 20 / 3, "6.667%" },
-			{ 0.25 / 3, "0.083%" },
+			{ 99.7, "99%" },
+			{ 20 / 3, "6.7%" },
+			{ 9, "9%" },
+			{ 0.32688, "0.33%" },
+			{ 0.25 / 3, "0.08%" },
+			{ 0.046268, "0.05%" },
 			{ 0.01, "0.01%" },
 			{ 0.004, "0.004%" },
-			{ 0.0015, "0.0015%" },
-			{ 0.00012, "0.00012%" },
+			{ 0.0016, "0.002%" },
+			{ 0.00012, "0.0001%" },
+			{ 0, "0%" },
 		}
 		for _, c in cases do
 			local got = BlockOdds.percentText(c[1])

@@ -2,13 +2,17 @@
 -- OddsDetails: the "Odds & Details" popup behind every lucky block's dice badge (economy v4
 -- plan 13 and Roblox's paid-random-items rules: every outcome's chance, adding up to 100%, one
 -- press away before buying; the designer's dice, 2026-10-08). One per lively menu (the Shop,
--- Free Reward) or the skip dialog's screen, over its pages as the Gift Player popup: a kit card
--- with the block's picture, the title and the red X over a list that scrolls.
+-- Free Reward) or the skip dialog's screen, over its pages as the Gift Player popup: in the
+-- lively frame (designer, 2026-10-08: "add animation and frame to the odds/detail page"; the
+-- header band's 8-balls scrolling, the block's picture, the title and the red X in it, the
+-- white sheet with the dots), it slams in and its lines pop in one by one over a list that
+-- scrolls.
 -- OddsDetails:block(kind) shows a block's list as the Cues menu's rarity bars (RarityBar; the
 -- designer, 2026-10-08: "use the bars ... with the odds next to it", no small text): its name,
 -- one bar per rarity with its chance, each capped Unique cue's own bar (0% and "OWNED" or "ALL
 -- FOUND" for one this player can't get: Roblox's one-instance rule), then one line: every cue
--- in a rarity has the same odds (and a line when a chance is rounded, BlockOdds.detailText).
+-- in a rarity has the same odds. Chances are rounded plainly (BlockOdds.percentText; designer,
+-- 2026-10-08: "dont show full percentage just round it").
 -- ShopMysteryOdds makes the Mystery block's list (OddsDetails:provide). B, Escape, the X or a
 -- press outside the card close it; a gamepad lands on the list and scrolls it. Sizes in
 -- Config.UI.OddsDetails, words in Strings.OddsDetails.
@@ -47,12 +51,15 @@ local rgb = ShopCards.rgb
 local made = 0 -- popups made: each binds B under its own action name
 
 -- One line of the list: a note, a section's heading, the live pity line, a row of words (a
--- name and its value: the pity counts) or a rarity bar with its chance.
+-- name and its value), a rarity bar with its chance, or a meter (a pity count: a pale track
+-- filled in its rarity's bar up to `share`, its words over it).
 type Item = {
-	kind: string, -- "Note", "Head", "Live", "Row", "Bar"
+	kind: string, -- "Note", "Head", "Live", "Row", "Bar", "Meter"
 	main: TextLabel?,
 	value: TextLabel?,
 	bar: RarityBar.Bar?,
+	track: Frame?,
+	share: number?,
 }
 
 --- What the popup shows: the picture by its title, a key that changes whenever the list would
@@ -78,7 +85,6 @@ function OddsDetails.new(frame: any): any
 	self.items = {} :: { Item }
 	self.spec = nil :: Spec?
 	self.painted = nil :: string?
-	self.rounded = false -- a chance on the list was rounded (its line goes over the total)
 	self.blockSpecs = {} :: { [string]: Spec } -- each block's list, made on its first show
 	self.connections = {} :: { RBXScriptConnection }
 
@@ -98,7 +104,8 @@ function OddsDetails.new(frame: any): any
 		self:close()
 	end)
 	self.layer = layer
-	local card = HudParts.popupCard(layer, "Card")
+	local card = HudParts.menuCard(layer, "Card")
+	self.band = HudParts.livelyCard(card)
 	card.AnchorPoint = Vector2.new(0.5, 0.5)
 	card.Position = UDim2.fromScale(0.5, 0.5)
 	card.ZIndex = 2
@@ -181,22 +188,48 @@ function OddsDetails.bar(self: any, key: string, word: string, value: string, ic
 	table.insert(self.items, { kind = "Bar", main = nil, value = nil, bar = piece })
 end
 
---- A chance as the list shows it (BlockOdds.detailText), noting when it was rounded.
-function OddsDetails.chance(self: any, percent: number): string
-	local text, rounded = BlockOdds.detailText(percent)
-	if rounded then
-		self.rounded = true
-	end
-	return text
+--- Add a meter: a pale track filled `share` (0 to 1) in look `key`'s bar, `word` at its left
+--- and `value` ("3/10") at its right (the Mystery block's pity counts).
+function OddsDetails.meter(self: any, key: string, word: string, value: string, share: number)
+	local n = #self.items + 1
+	local track = HudParts.frame(self.list, "Meter" .. n)
+	track.BackgroundTransparency = 0
+	track.BackgroundColor3 = rgb(O.MeterTrack)
+	track.ZIndex = 4
+	HudParts.corner(track, 999)
+	local ring = Instance.new("UIStroke")
+	ring.Color = HudParts.color(K.Colors.Ink)
+	ring.Transparency = O.MeterRingTransparency
+	ring.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	ring.Parent = track
+	local fill = RarityBar.new(track, "Fill", 5)
+	RarityBar.paint(fill, key, "", "")
+	local words = HudParts.text(track, "Word", K.Text.Min, word)
+	words.TextXAlignment = Enum.TextXAlignment.Left
+	words.TextWrapped = false
+	words.ZIndex = 8
+	local count = HudParts.text(track, "Value", K.Text.Min, value)
+	count.TextXAlignment = Enum.TextXAlignment.Right
+	count.TextWrapped = false
+	count.ZIndex = 8
+	table.insert(self.items, {
+		kind = "Meter",
+		main = words,
+		value = count,
+		bar = fill,
+		track = track,
+		share = math.clamp(share, 0, 1),
+	})
 end
 
---- End the list: every cue in a rarity has the same odds, and the rounding line when a chance
---- was rounded.
+--- A chance as the list shows it: rounded plainly (BlockOdds.percentText).
+function OddsDetails.chance(_self: any, percent: number): string
+	return BlockOdds.percentText(percent)
+end
+
+--- End the list: every cue in a rarity has the same odds.
 function OddsDetails.finish(self: any)
 	self:add("Note", COPY.Same)
-	if self.rounded then
-		self:add("Note", COPY.Rounded)
-	end
 end
 
 -- Remake the list for the spec when its key changed.
@@ -211,7 +244,7 @@ function OddsDetails.paint(self: any)
 	end
 	self.painted = key
 	for _, item in self.items :: { Item } do
-		for _, part in { item.main, item.value } :: { Instance? } do
+		for _, part in { item.main, item.value, item.track } :: { Instance? } do
 			if part then
 				part:Destroy()
 			end
@@ -221,7 +254,6 @@ function OddsDetails.paint(self: any)
 		end
 	end
 	table.clear(self.items)
-	self.rounded = false
 	spec.paint(self)
 end
 
@@ -238,7 +270,9 @@ function OddsDetails.show(self: any, spec: Spec)
 		self.previous = GuiService.SelectedObject
 		self.layer.Visible = true
 		self.list.CanvasPosition = Vector2.zero
-		UIAnim.popIn(self.card)
+		-- Slams in, a gentle nudge as it lands (the Cues menu's big card's).
+		UIAnim.slam(self.card, nil, { burst = false, shake = "Nudge" })
+		self.stagger = true -- the lines pop in once laid out
 		self.dialog = {
 			cancel = function()
 				self:close()
@@ -276,8 +310,56 @@ function OddsDetails.show(self: any, spec: Spec)
 	if geo then
 		self:layout(geo)
 	end
+	if self.stagger then
+		self.stagger = false
+		self:popLines()
+	end
 	if ShopParts.gamepad() then
 		GuiService.SelectedObject = self.list
+	end
+end
+
+-- The open's second beat: the list's lines pop in top to bottom, a few hundredths apart, once
+-- the card has landed (Config.UI.OddsDetails.LinesAt, Config.UI.Motion.Stagger); lines past
+-- StaggerMax just show.
+function OddsDetails.popLines(self: any)
+	self.popRun = (self.popRun or 0) + 1
+	local run = self.popRun
+	if UIAnim.reduced() then
+		return
+	end
+	for index, item in self.items :: { Item } do
+		if index > O.StaggerMax then
+			break
+		end
+		local parts: { GuiObject } = {}
+		if item.track then
+			table.insert(parts, item.track)
+		else
+			for _, part in { item.main, item.value } :: { GuiObject? } do
+				if part then
+					table.insert(parts, part)
+				end
+			end
+			if item.bar then
+				table.insert(parts, item.bar.frame)
+				if item.bar.icon then
+					table.insert(parts, item.bar.icon)
+				end
+			end
+		end
+		for _, part in parts do
+			part.Visible = false
+		end
+		task.delay(O.LinesAt + (index - 1) * Config.UI.Motion.Stagger, function()
+			for _, part in parts do
+				if self.popRun == run and self.opened then
+					UIAnim.popIn(part)
+				else
+					part.Visible = true
+				end
+			end
+		end)
 	end
 end
 
@@ -440,7 +522,33 @@ function OddsDetails.layout(self: any, geo: any)
 	for index, item in self.items :: { Item } do
 		local kind = item.kind
 		local main = item.main
-		if kind == "Bar" and item.bar then
+		if kind == "Meter" and item.track and item.bar then
+			-- The track, its fill (at least round: as tall as it is wide) and the words over it.
+			local track = item.track
+			track.Position = UDim2.fromOffset(0, y + 1)
+			track.Size = UDim2.fromOffset(listW, barH)
+			local share = item.share or 0
+			local fillW = if share > 0 then math.max(barH, round(listW * share)) else 0
+			RarityBar.layout(item.bar, 0, 0, fillW, barH, barText, barPad)
+			item.bar.frame.Visible = fillW > 0
+			for _, label in { item.main, item.value } :: { TextLabel? } do
+				if label then
+					HudParts.setTextSize(label, barText)
+				end
+			end
+			local valueW = math.ceil(
+				ShopParts.textWidth(item.value and item.value.Text or "", barText)
+			) + 6
+			if item.main then
+				item.main.Position = UDim2.fromOffset(barPad, 0)
+				item.main.Size = UDim2.new(0, math.max(1, listW - 2 * barPad - valueW - 4), 1, 0)
+			end
+			if item.value then
+				item.value.Position = UDim2.new(1, -(barPad + valueW), 0, 0)
+				item.value.Size = UDim2.new(0, valueW, 1, 0)
+			end
+			y += barH + barGap
+		elseif kind == "Bar" and item.bar then
 			-- A bar with a picture leaves room for it on the left.
 			local left = if item.bar.icon then round((iconPx - barH) / 2) + 2 else 0
 			RarityBar.layout(item.bar, left, y + 1, listW - left, barH, barText, barPad, iconPx)
@@ -480,19 +588,23 @@ function OddsDetails.layout(self: any, geo: any)
 	end
 	local contentH = y
 
-	local top = pad + titleH + 4 + s.gap
+	-- The header band holds the picture, the title and the X; the white sheet under it the list.
+	local headerH = round(pad * O.HeaderPadShare) * 2 + math.max(titleH + 4, closeSize)
+	local top = headerH + s.gap
 	local h = math.min(top + contentH + pad, geo.content.Y - 8)
 	self.card.Size = UDim2.fromOffset(w, h)
+	HudParts.setSheetTop(self.card, headerH)
+	local headY = round(pad * O.HeaderPadShare)
 	self.closeButton.AnchorPoint = Vector2.new(1, 0)
 	self.closeButton.Size = UDim2.fromOffset(closeSize, closeSize)
-	self.closeButton.Position = UDim2.fromOffset(w - pad, pad)
+	self.closeButton.Position = UDim2.fromOffset(w - pad, headY)
 	local iconOn = self.headingIcon.Image ~= ""
 	self.headingIcon.Visible = iconOn
-	self.headingIcon.Position = UDim2.fromOffset(pad, pad - 2)
+	self.headingIcon.Position = UDim2.fromOffset(pad, headY - 2)
 	self.headingIcon.Size = UDim2.fromOffset(titleH + 8, titleH + 8)
 	local titleX = if iconOn then pad + titleH + 14 else pad
 	HudParts.setTextSize(self.title, titleH)
-	self.title.Position = UDim2.fromOffset(titleX, pad)
+	self.title.Position = UDim2.fromOffset(titleX, headY + round((closeSize - titleH - 4) / 2))
 	self.title.Size = UDim2.fromOffset(math.max(1, w - pad - titleX - closeSize), titleH + 4)
 	local list: ScrollingFrame = self.list
 	list.Position = UDim2.fromOffset(pad, top)
