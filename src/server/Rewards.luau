@@ -33,6 +33,7 @@ local RewardView = require(Shared.Progression.RewardView)
 local PlayerData = require(script.Parent.PlayerData)
 local LiveCodes = require(script.Parent.LiveCodes)
 local Social = require(script.Parent.Social)
+local Funnel = require(script.Parent.Funnel)
 
 local D = Config.Daily
 local SECONDS_PER_DAY = 86400
@@ -334,6 +335,9 @@ local function onRewardRequest(player: Player, action: any, a: any): Reply
 	if action == "ClaimDaily" then
 		local vip, restricted = vipOf(player)
 		local ok, result = PlayerData.claimDaily(player, vip, restricted)
+		if ok then
+			Funnel.social(player, "DailyClaimed")
+		end
 		return answer(ok, result, "BadRequest")
 	elseif action == "ClaimGroup" then
 		local ok, result = Social.claimGroup(player)

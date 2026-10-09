@@ -365,6 +365,18 @@ function Progression.isBusy(): boolean
 	return started and (popupUp() or Menus.isOpen())
 end
 
+--- Whether the lobby is quiet: no match or its result, no popup, reel, menu or teleport screen,
+--- and no cutscene (the tutorial's soft part shows its quest and its popup only then).
+function Progression.quiet(): boolean
+	return started
+		and not lastState.inMatch
+		and not lastState.afterMatch
+		and not popupUp()
+		and not ResultCutscene.isPlaying()
+		and not Menus.isOpen()
+		and not teleportUp()
+end
+
 --- The rematch row on the result screen (designer, 2026-09-28): Main presses its buttons
 --- (`fn(kind, summary)`), asks which summary's row is up, draws its state and ends it.
 function Progression.setChoiceHandler(fn: (string, any) -> ())
@@ -446,6 +458,21 @@ function Progression.menuTarget(name: string): Vector2?
 	return if started then column:tileCenter(name) else nil
 end
 
+--- The soft part's click-once "!" (TutorialSoft) on `item`: a column tile ("Shop",
+--- "FreeReward"), a hub corner ("Challenge", "Offer") or the money pill ("Money").
+function Progression.setFresh(item: string, on: boolean)
+	if not started then
+		return
+	end
+	if item == "Challenge" or item == "Offer" then
+		corners:setFresh(item, on)
+	elseif item == "Money" then
+		money:setFresh(on)
+	else
+		column:setFresh(item, on)
+	end
+end
+
 --- A column tile bounces as something lands on it.
 function Progression.bumpMenu(name: string)
 	if started then
@@ -497,6 +524,7 @@ function Progression.update(state: State)
 	)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
 	money:setPlusShown(not state.inMatch) -- no shop trips during a game (designer, 2026-10-06)
+	money:setTutorialHidden(TutorialAnchors.hidden("Money"))
 	banner:setInMatch(state.inMatch)
 	if state.inMatch and ResultCutscene.isPlaying() then
 		-- A rematch (or any match) starting ends the result cutscene.

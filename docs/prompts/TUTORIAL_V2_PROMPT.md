@@ -881,7 +881,7 @@ lines). All in the worktree.
   - the reel pause for everyone and the Secret glimpse;
   - Cues and Equip;
   - Abilities: RELEASE and the Magnet spin.
-- [ ] 10. The soft part (4.5 steps 10-14, 4.6):
+- [x] 10. The soft part (4.5 steps 10-14, 4.6):
   - icons pop in, with click-once glows;
   - Win a Match;
   - the invite popup;
@@ -1209,6 +1209,29 @@ lines). All in the worktree.
   money during the guided part. The Skip button sits over the top of the Abilities screen's odds
   list.
 
+### Step 10: the soft part (2026-10-09)
+
+- **The module:** `src/client/TutorialSoft.luau` (the quest, the invite popup, the "!" dots, the
+  glows and rings, the Seen reports); Tutorial.luau runs its stagger (every frame now) and calls
+  it under the fail-safe. Who gets it: the Soft step, or anyone whose Icons moment is saved.
+  Clicks are one-time moments (`Steps.Seen`, one new bit: Ready); presses reach it through
+  `TutorialAnchors.notePress` (Challenge, Offer, Money, GlobalQueue, Group, Favorite, Invite).
+- **Server:** the quest counts wins from the soft part's start (`TutorialQuestAt`, set once, as
+  `TutorialSoftAt` now is: a rejoin no longer restarts the count); QuestDone on a win, checked
+  on every save change and on load; `Funnel.social` (only for players whose soft part began):
+  InviteShown, Invited, FreeRewardOpened, DailyClaimed (from the daily claim), GroupClicked,
+  FavoriteClicked, LikeClicked.
+- **Verified in Studio (my window, PC):** the stagger (Shop 0, Free Reward 0.2 s, Challenge
+  0.47, the offer 0.67, Invite 0.8); every "!" and its click; Free Reward's glow and bounce;
+  the popup (InviteShown once, Invited); Free Reward opening on Daily; the join and favorite
+  rings and their presses; the like line (not counted while scrolled away); Play Global's ring
+  and press; the quest's 0/1, 1/1, Done! and the win track after it; the Shop's glow and the
+  Rare slot's ring after game 2; the offer tile's flip (QA `cornerOffers`); a skipper gets
+  none of it; no errors. Screenshots: `~/Desktop/8ball-refs/tutorial/step10/`.
+- **Not checked by hand here:** a controller's B on the popup and the phone layout (code only:
+  the card narrows to 300 px with a smaller title); step 14's runs cover them.
+- **Open:** skippers' soft part (step 12); Game2 found/kind (step 11's search).
+
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
 - `src/shared/Config.luau`: `Config.Tutorial.Assist` (the hidden help's numbers, Pull modes)
@@ -1269,6 +1292,22 @@ lines). All in the worktree.
   - `src/shared/Config.luau`: `Config.Tutorial` (MysteryReveal, ReelGlimpse, ReelOpening,
     Timing.Fallback.Cues, ReportAgainSeconds, Hand.FlipOffShare, Overlay.KeyBackTransparency and KeyPictureShare),
     `Config.UI.Reel.Reel.StillSeconds`.
+- Step 10 (the soft part):
+  - `src/client/HubCorners.luau`: one offer tile (Starter Pack / VIP offer, flipping), the bigger
+    Daily Challenge, the "!" dots, anchors and press notes, the tutorial's hidden corners, QA
+    `cornerOffers`. `src/client/MenuColumn.luau`: the "!" (setFresh), the Shop's dot under its
+    timer pill, the ColumnRays anchor. `src/client/MoneyHud.luau`: hidden in the guided part, the
+    "+"'s "!" and press note. `src/client/Progression.luau`: setFresh, `quiet`, the money's
+    hiding.
+  - `src/client/MatchBar.luau`, `src/client/Main.client.luau`, `src/shared/Matchmaking/PadBar.luau`
+    (+ `tests/pad_bar_test.luau`): the soft part's spawn pill and Play Global's press note.
+  - `src/client/FreeRewardMenu.luau` (the first open on Daily), `src/client/FreeSocial.luau` (the
+    like line, the Group/Favorite/Like anchors, press notes), `src/client/WinTrack.luau` (waits
+    for the quest), `src/client/LuckyClient.luau` (`readySlot`).
+  - `src/server/Rewards.luau` (DailyClaimed), `src/server/Funnel.luau` (`social`).
+  - `src/shared/Config.luau`: `Config.Tutorial.Soft`, `Config.UI.Corners` (Challenge, Offer,
+    flip), `Config.UI.FreeReward.Social.Like` and its Open entry, `Config.UI.Menu.Focus.Keep`
+    (TutorialSoftGui). `src/shared/Strings.luau`: `FreeReward.Like`, `Tutorial.InviteBody`.
 
 ---
 

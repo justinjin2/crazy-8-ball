@@ -163,6 +163,8 @@ Steps.Reveal = (
 		Offer = "Soft", -- the VIP / Starter Pack tile (HubCorners)
 		PlayGlobal = "Soft", -- the spawn pill and a pad's Play Global
 		WinTrack = "Soft", -- the daily win track (the Win a Match quest sits there first)
+		Invite = "Soft", -- the hub's Invite corner (bottom left, by the money pill)
+		Plus = "Soft", -- the hub's Roblox Plus corner beside it
 	}
 ) :: { [string]: string }
 
@@ -218,6 +220,7 @@ Steps.Seen = {
 	"Quest", -- the Win a Match quest is on
 	"QuestDone", -- ... and won
 	"Game2", -- game 2 was found (the soft part's last step)
+	"Ready", -- the first-win Rare block's "Ready!" glow, until it is taken in hand
 }
 
 -- The moments a client may report itself (TutorialEvent "Seen"); the rest the server sees.
@@ -234,6 +237,7 @@ Steps.ClientSeen = (
 		Favorite = true,
 		Like = true,
 		PlayGlobal = true,
+		Ready = true,
 	}
 ) :: { [string]: boolean }
 

@@ -3841,3 +3841,32 @@ timer of a new block stay the designer's call.
   changes its kind; the funnel now follows the new kind), and its /funnel lines name the kind.
   The two "Block 1 Got" lines after game 1 were two real blocks (Bronze's Mystery block, paid at
   once today, and the first win's Rare).
+- 2026-10-09: Tutorial v2's soft part (4.5 steps 10-14): after the chain the remaining icons pop
+  in one after another (0.15 s apart, about 1 s). A click-once red "!" sits on the Shop, Free
+  Reward, the offer tile and the money "+" until each is clicked once (the Daily Challenge's waits
+  for `Config.Tutorial.Soft.ChallengeBuilt`); Free Reward also glows (the house gold rays round a
+  breathing glow, on the column's rays layer so they never cover the next tile) and bounces;
+  after game 2 the Shop gets the same glow until it is opened. Only players whose soft part began
+  get them (not skippers so far; step 12 decides theirs).
+- 2026-10-09: "Win a Match 0/1" sits top centre (under the top banner while one shows), only in a
+  quiet lobby. A win since the soft part began (counted on the server, even after game 2 was
+  lost) shows "1/1", then "Done!", and the daily win track, which waits while the quest is open,
+  takes over. The onboarding funnel logs QuestDone.
+- 2026-10-09: The invite popup, once: a small card 2.5 s after the icons are out in a quiet lobby:
+  "Invite a friend?", the Rare block, "You both get a free Rare Lucky Block!", when it comes (the
+  friend's first win), Invite and a big X on its corner (B on a controller). Any Invite press
+  logs the Social funnel's Invited.
+- 2026-10-09: Play Global wears a pulsing gold ring in the soft part (a round glow hardly shows
+  round a wide pill), and the spawn pill stays up off the pads in a public lobby until Play
+  Global is pressed or its X. Free Reward's first open lands on Daily; its join and favorite get
+  the gold ring and a light sweeping over them until each is pressed (or claimed). After game 2
+  the first-win Rare block's hotbar slot gets the gold ring once it is ready, until it is taken in
+  hand (its own READY! is the word; no second "Ready!").
+- 2026-10-09: Free Reward shows "Enjoying it? Leave a like!" under the invite card for everyone,
+  with no reward (decision 7: a server can't check a like). In the soft part it gets the ring
+  once; it counts as seen when the menu closes after it was on the page.
+- 2026-10-09: The hub's offers share one tile: the Starter Pack and the VIP offer, each while its
+  window is open and it is not owned, flipping every 4 s like a card turning when both are open;
+  the Daily Challenge corner is bigger (84 px, 56 on a phone). During the guided part the money
+  pill, Daily Challenge, the offer, Invite and Roblox Plus hide (the Social funnel follows only
+  players whose soft part began; DailyClaimed is logged by the daily claim).

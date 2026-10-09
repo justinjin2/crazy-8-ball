@@ -28,8 +28,10 @@ local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
+local Strings = require(Shared:WaitForChild("Strings"))
 local HudParts = require(script.Parent.HudParts)
 local Menus = require(script.Parent.Menus)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -86,6 +88,7 @@ function MoneyHud.new(screen: ScreenGui): MoneyHud
 	self.screen = screen
 	self.connections = {}
 	self.loaded = false
+	self.tutorialHidden = false -- the tutorial hides it (setTutorialHidden)
 	self.shown = 0 -- the number on screen (may be mid-count)
 	self.target = 0 -- what it is counting to
 	self.pending = 0 -- money in chips said to be on their way
@@ -111,6 +114,7 @@ function MoneyHud.new(screen: ScreenGui): MoneyHud
 	-- The "+": a round gold candy with a big plus, over the pill's right end.
 	local plus = HudParts.candy(root, "+", function()
 		UISound.play("Click")
+		TutorialAnchors.notePress("Money") -- the soft part's click-once "!" goes
 		Menus.open("Shop", "Money")
 	end, "Yellow")
 	plus.Name = "Plus"
@@ -170,7 +174,54 @@ function MoneyHud.checkLoaded(self: any)
 	local money = savedMoney()
 	self.target = money
 	self:setShown(money)
-	self.root.Visible = true
+	self.root.Visible = not self.tutorialHidden
+end
+
+--- The soft part's click-once "!" on the "+" (TutorialSoft): a small red dot on its corner.
+function MoneyHud.setFresh(self: any, on: boolean)
+	local dot: Frame? = self.freshDot
+	if dot == nil and on then
+		local parts = HudParts.candyParts(self.plus)
+		local made =
+			HudParts.pill(if parts then parts.body else self.plus, "New", HudParts.tone("Red"))
+		made.AnchorPoint = Vector2.new(0.5, 0.5)
+		made.Position = UDim2.fromScale(0.92, 0.08)
+		made.Size = UDim2.fromScale(0.62, 0.5)
+		made.ZIndex = 8
+		made.Visible = false
+		local words = HudParts.text(made, "Words", C.ShortTextPx, Strings.Tutorial.New)
+		words.TextWrapped = false
+		words.TextScaled = true
+		words.Size = UDim2.fromScale(1, 1)
+		words.ZIndex = 9
+		self.freshDot = made
+		dot = made
+	end
+	if dot == nil or dot.Visible == on then
+		return
+	end
+	if on then
+		UIAnim.popIn(dot)
+	else
+		dot.Visible = false
+	end
+end
+
+--- Hide the pill while the tutorial does (Steps.Reveal's Money: until its Rank step, where the
+--- claim's money flies into it); it pops back in. Cheap to call every frame (Progression).
+function MoneyHud.setTutorialHidden(self: any, hidden: boolean)
+	if self.tutorialHidden == hidden then
+		return
+	end
+	self.tutorialHidden = hidden
+	if not self.loaded then
+		return
+	end
+	if hidden then
+		self.root.Visible = false
+	else
+		UIAnim.popIn(self.root)
+	end
 end
 
 -- Put a value on screen; the pill grows or shrinks with the number's length.

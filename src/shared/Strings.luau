@@ -1192,6 +1192,7 @@ return {
 		Joined = "%d friends joined",
 		JoinedOne = "1 friend joined",
 		Invite = "Invite",
+		Like = "Enjoying it? Leave a like!", -- under the invite card (no reward: tutorial v2 decision 7)
 	},
 	-- The Settings screen (SettingsMenu; GUI lane, C10).
 	Settings = {
@@ -1861,11 +1862,10 @@ return {
 		Quest = "Win a Match %d/%d",
 		QuestDone = "Done!",
 		InviteTitle = "Invite a friend?",
-		InviteBody = "You both get a free %s lucky block!", -- the block kind (Config.Social.InviteBlock)
+		InviteBody = "You both get a free %s!", -- the block ("Rare Lucky Block": Config.Social.InviteBlock)
 		InviteWhen = "You get it when your friend wins their first match.",
 		InviteButton = "Invite",
 		New = "!", -- an icon's click-once badge
-		Ready = "Ready!", -- the Rare block's hotbar slot once its timer is done
 		-- First-time hints, for everyone (4.8).
 		Hint = {
 			Aim = {

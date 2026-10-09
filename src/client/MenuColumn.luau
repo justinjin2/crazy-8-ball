@@ -168,6 +168,7 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	self.layoutQueued = false
 	self.connections = {} :: { RBXScriptConnection }
 	self.tiles = {} :: { [string]: Tile }
+	self.freshTiles = {} :: { [string]: boolean } -- the soft part's click-once "!" (setFresh)
 
 	-- The root holds the fit (a UIScale for a short screen); the body inside pops in and out.
 	local root = HudParts.frame(screen, "MenuColumn")
@@ -178,6 +179,7 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	raysLayer.Size = UDim2.fromScale(1, 1)
 	raysLayer.ZIndex = C.ZIndex - 1
 	self.raysLayer = raysLayer
+	TutorialAnchors.set("ColumnRays", raysLayer) -- the soft part's glows go under the column too
 	local fit = Instance.new("UIScale")
 	fit.Name = "Fit"
 	fit.Parent = root
@@ -627,6 +629,15 @@ function MenuColumn.layout(self: any)
 		t.glyph.Position = UDim2.fromOffset(C.GlyphInsetPx, C.GlyphInsetPx)
 	end
 	self.dotPx, self.timerPx = dotPx, timerPx
+	self:placeShopDot()
+end
+
+-- The Shop's dot sits in its top-right corner, or just under the timer pill while that is up
+-- (the soft part's click-once "!" shows with the timer).
+function MenuColumn.placeShopDot(self: any)
+	local t: Tile = self.tiles.Shop
+	local below = if t.timer and t.timer.Visible then self.timerPx or C.TimerPx else 0
+	t.dot.Position = UDim2.fromOffset(t.button.Size.X.Offset - C.DotInsetPx, C.DotInsetPx + below)
 end
 
 -- The dot is round for one character and widens for "9+".
@@ -685,20 +696,27 @@ end
 --- ult spin is unused.
 function MenuColumn.refreshDots(self: any)
 	local fresh = newCues()
+	-- A tile with nothing else to say wears the soft part's click-once "!" (setFresh).
+	local function orNew(name: string, text: string?): string?
+		return text or (if self.freshTiles[name] then COPY.DotReady else nil)
+	end
 	setDot(
 		self,
 		self.tiles.Inventory,
-		if fresh > C.DotMax
-			then COPY.DotMore:format(C.DotMax)
-			elseif fresh > 0 then tostring(fresh)
-			elseif ItemState.indexReady() then COPY.DotReady
-			else nil
+		orNew(
+			"Inventory",
+			if fresh > C.DotMax
+				then COPY.DotMore:format(C.DotMax)
+				elseif fresh > 0 then tostring(fresh)
+				elseif ItemState.indexReady() then COPY.DotReady
+				else nil
+		)
 	)
 	local freeTile: Tile? = self.tiles[FREE]
 	if freeTile then
 		local state = ItemState.rewards()
 		local ready = type(state) == "table" and state.ready == true
-		setDot(self, freeTile, if ready then COPY.DotReady else nil)
+		setDot(self, freeTile, orNew(FREE, if ready then COPY.DotReady else nil))
 	end
 	-- The Shop: how many of its jump groups hold something new (a restock, an offer), while
 	-- its offer timer pill is not up in the same corner.
@@ -708,13 +726,26 @@ function MenuColumn.refreshDots(self: any)
 	setDot(
 		self,
 		shopTile,
-		if shopNew > 0 and not timerUp then tostring(math.min(shopNew, C.DotMax)) else nil
+		orNew(
+			"Shop",
+			if shopNew > 0 and not timerUp then tostring(math.min(shopNew, C.DotMax)) else nil
+		)
 	)
 	local ults: Tile? = self.tiles[ULTS]
 	if ults then
 		local free = UltSpinState.freeSpinReady() and UltSpinState.isLive()
 		setDot(self, ults, if free then COPY.DotReady else nil)
 	end
+end
+
+--- The soft part's click-once "!" on tile `name` (TutorialSoft), shown while the tile has no
+--- other dot.
+function MenuColumn.setFresh(self: any, name: string, on: boolean)
+	if (self.freshTiles[name] == true) == on then
+		return
+	end
+	self.freshTiles[name] = if on then true else nil
+	self:refreshDots()
 end
 
 --- The Shop's timer pill: the time left in an open offer window, hidden when none is open.
@@ -727,7 +758,10 @@ function MenuColumn.refreshTimer(self: any)
 	local now = workspace:GetServerTimeNow()
 	local ends = ItemState.offerEndsAt(now)
 	if not ends then
-		timer.Visible = false
+		if timer.Visible then
+			timer.Visible = false
+			self:placeShopDot()
+		end
 		return
 	end
 	local text = timeLeft(ends - now)
@@ -740,6 +774,7 @@ function MenuColumn.refreshTimer(self: any)
 	end
 	if not timer.Visible then
 		UIAnim.popIn(timer)
+		self:placeShopDot()
 	end
 end
 

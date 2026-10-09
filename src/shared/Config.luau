@@ -8572,6 +8572,7 @@ Config.UI.Menu = {
 			"LuckyOpeningDim",
 			"TeleportScreen",
 			"TutorialGui",
+			"TutorialSoftGui", -- the soft part's rings round Free Reward's frames (its quest and popup hide in menus)
 			"TradeInvite", -- someone asking to trade
 			"RewardsFlyer", -- rewards flying in
 			"CuesCashFlyer", -- the Cues menu's money flying in (its own ScreenGui, 2026-10-08)
@@ -14099,6 +14100,70 @@ Config.Tutorial = {
 		-- The screen-edge arrow (pixels).
 		Edge = { SizePx = 64, PhoneSizePx = 48, MarginPx = 24, BobPx = 10, BobSeconds = 0.8 },
 	},
+	-- The soft part (tutorial v2 4.5 steps 10-14, 4.6; src/client/TutorialSoft.luau): after the
+	-- chain the remaining icons pop in one after another; Free Reward bounces and glows until it
+	-- is clicked; each new icon wears a "!" until it is clicked once (the Shop also glows after
+	-- game 2); the Win a Match quest sits near the top; the invite popup comes once; Play Global
+	-- glows until pressed; the first win's block glows once its timer is done.
+	Soft = {
+		-- The icons that pop in at the soft part's start, in this order (Steps.Reveal's names),
+		-- StaggerSeconds apart: about 1 s for them all (the lively stagger).
+		RevealOrder = {
+			"Shop",
+			"FreeReward",
+			"Trade",
+			"Challenge",
+			"Offer",
+			"Invite",
+			"Plus",
+			"PlayGlobal",
+			"WinTrack",
+		},
+		StaggerSeconds = 0.15,
+		-- Daily challenges are built: the Daily Challenge gets its "!" and glow too (4.6: it waits
+		-- until then, and only says "Soon").
+		ChallengeBuilt = false,
+		-- A glow (Free Reward, the Shop after game 2, the Rare block's slot): the kit's soft glow
+		-- behind the icon, GlowScale times its short side, its transparency breathing between
+		-- Low and High over Seconds, over gold rays GlowRaysScale times it, turning slowly.
+		GlowScale = 1.9,
+		GlowLow = 0.1,
+		GlowHigh = 0.65,
+		GlowSeconds = 1.3,
+		GlowRaysScale = 2.4,
+		GlowRaysTransparency = 0.3,
+		BounceSeconds = 2.2, -- Free Reward bounces this often until it is clicked
+		-- The gold ring (Free Reward's frames, Play Global): this thick, its transparency
+		-- breathing between Low and High over GlowSeconds.
+		RingThicknessPx = 6,
+		RingLow = 0,
+		RingHigh = 0.45,
+		ShineSeconds = 2.4, -- a light sweeps over Free Reward's join and favorite this often
+		-- The quest ("Win a Match 0/1"): white words with the ink outline, centred under Roblox's
+		-- bar (under the top banner while one shows). Once won it shows "1/1" for
+		-- QuestCountSeconds, then "Done!" for QuestDoneSeconds.
+		QuestWins = 1, -- the wins it asks for (the server counts from the soft part's start)
+		QuestTextPx = 32,
+		QuestPhoneTextPx = 24,
+		QuestTopGapPx = 10,
+		QuestCountSeconds = 0.8,
+		QuestDoneSeconds = 3,
+		-- The invite popup: once, this long after the icons are out, when nothing else is up.
+		InviteAfterSeconds = 2.5,
+		InviteWidthPx = 380, -- its card (a phone's is InvitePhoneWidthPx), the height follows
+		InvitePhoneWidthPx = 300,
+		InvitePadPx = 18, -- room inside the card's edge
+		InviteGapPx = 8, -- between its lines
+		InviteTitlePx = 30,
+		InvitePhoneTitlePx = 24, -- clear of the X on a phone's narrower card
+		InviteBodyPx = 20,
+		InviteSmallPx = 14,
+		InviteButtonPx = 22, -- its words; the button is twice as tall (a touch target at least)
+		InviteButtonShare = 0.55, -- of the card's width
+		InviteBlockPx = 96, -- the invite's block picture
+		InviteClosePx = 54, -- the big X, on the card's top-right corner...
+		InviteCloseInsetPx = 6, -- ...its centre this far in from it
+	},
 	-- The funnels (src/server/Funnel.luau; tutorial v2 section 6, docs/TUTORIAL_FUNNELS.md).
 	-- Each mask is a Flags entry, one bit per step, so a step is never logged twice. The step
 	-- lists: Tutorial/Steps (Funnel, Funnels) and the repeating ones below.
@@ -14513,6 +14578,9 @@ Config.UI.FreeReward = {
 			NoCountShiftUnits = 28,
 			Button = { X = 1110, Y = 110, WidthUnits = 260, HeightUnits = 70, TextUnits = 36 },
 		},
+		-- "Enjoying it? Leave a like!" under the invite card (tutorial v2 decision 7: no reward,
+		-- since a server can't check a like): its gap over it, its height and its words.
+		Like = { GapUnits = 18, Units = 44, TextUnits = 28 },
 		-- The first-visit heroes (FreeHeroes; designer, 2026-10-08: "emphasize more of joining
 		-- the group and favoriting first ... each favorite and group join like its separate
 		-- frame/hero, and then invite below the 2"): two wide cards side by side at the top of
@@ -14651,6 +14719,7 @@ Config.UI.FreeReward.Open = {
 		{ Ids = { "GroupTitle", "GroupRow1", "GroupRow2" }, Kind = "Pop", At = 0.3, Stagger = 1.5 },
 		{ Ids = { "InviteCard" }, Kind = "Grow", At = 0.3 },
 		{ Ids = { "InviteArt", "InviteTitle", "InviteButton" }, Kind = "Pop", At = 0.36 },
+		{ Ids = { "Like" }, Kind = "Fade", At = 0.42, Length = 0.12 },
 		{ Ids = { "Flair" }, Kind = "Drop", At = 0.66, Length = 0.25 }, -- the 8-ball lands on the frame
 	},
 }
@@ -14716,8 +14785,10 @@ Config.UI.Blur = {
 -- The hub's small corner buttons (HubCorners; GUI lane, C2): the Daily Challenge on the right
 -- (flashing; says "Soon"), Invite and Roblox Plus beside the money HUD.
 Config.UI.Corners = {
-	ChallengePx = 70, -- the Daily Challenge target (a computer); a phone's is ShortChallengePx
-	ShortChallengePx = 50,
+	-- The Daily Challenge target (a computer; a phone's is ShortChallengePx): about the left
+	-- column's tiles or a bit bigger (tutorial v2 4.11, 2026-10-09; it was 70 and 50).
+	ChallengePx = 84,
+	ShortChallengePx = 56,
 	ChallengeRightPx = 14, -- from the right edge
 	ChallengeYShare = 0.42, -- its middle this far down the screen
 	ChallengeFlashSeconds = 1.2, -- one flash of its glow
@@ -14728,10 +14799,14 @@ Config.UI.Corners = {
 	ShortWordPx = 11,
 	BubbleSeconds = 2.5, -- the "Soon" bubble stays this long
 	BubblePx = 16,
-	-- The open offers (the Starter Pack, VIP's welcome offer) stand in a column under the
-	-- Daily Challenge, each with its countdown: never a popup (designer, 2026-10-03).
-	OfferPx = 58, -- each offer's icon (a computer)
-	ShortOfferPx = 42,
+	-- The open offers (the Starter Pack, VIP's welcome offer) share one tile under the Daily
+	-- Challenge, with its countdown: never a popup (designer, 2026-10-03). With both open it
+	-- flips from one to the other every OfferFlipSeconds (tutorial v2 4.11, 2026-10-09: one tile
+	-- as big as the challenge's; each had its own 58 px tile).
+	OfferPx = 84, -- the tile's icon (a computer)
+	ShortOfferPx = 56,
+	OfferFlipSeconds = 4,
+	OfferFlipHalfSeconds = 0.14, -- each half of the flip (it narrows to nothing, then opens)
 	OfferGapPx = 26, -- under the challenge (room for its word) and under each offer's countdown
 	TimerPx = 12, -- the countdown under each offer's word
 	ShortTimerPx = 10,

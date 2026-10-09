@@ -811,6 +811,20 @@ function LuckyClient.slotOf(kind: string, waiting: boolean?): number?
 	return fallback
 end
 
+--- The tutorial's soft part: the hotbar slot (1-9) of a ready block of `kind`, or nil.
+function LuckyClient.readySlot(kind: string): number?
+	if not started then
+		return nil
+	end
+	for i = 1, hotbar:slotCount() do
+		local entry = hotbar:slotEntry(i)
+		if entry and entry.kind == kind and entry.readyAt <= serverNow() then
+			return i
+		end
+	end
+	return nil
+end
+
 --- The tutorial: the held block's kind, or nil.
 function LuckyClient.heldKind(): string?
 	local entry = find(heldId)

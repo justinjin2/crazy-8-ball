@@ -49,6 +49,8 @@ local PATH_FLAG = "TutorialPath"
 local WHY_FLAG = "TutorialWhy"
 -- The matches played when the soft part began: one more is game 2.
 local SOFT_FLAG = "TutorialSoftAt"
+-- The wins when the soft part began: Config.Tutorial.Soft.QuestWins more win the quest.
+local QUEST_FLAG = "TutorialQuestAt"
 
 -- Listeners for step changes: fn(player, step, previous).
 local stepChanged = Instance.new("BindableEvent")
@@ -170,8 +172,14 @@ local function entered(player: Player, step: string, _previous: string?)
 	if step == "Arrow" then
 		Funnel.onboarding(player, "ArrowShown")
 	elseif step == "Soft" then
+		-- Counted from the soft part's first start (a rejoin keeps them).
 		local data = PlayerData.read(player)
-		PlayerData.setFlag(player, SOFT_FLAG, if data then data.Stats.Matches or 0 else 0)
+		if data and data.Flags[SOFT_FLAG] == nil then
+			PlayerData.setFlag(player, SOFT_FLAG, data.Stats.Matches or 0)
+		end
+		if data and data.Flags[QUEST_FLAG] == nil then
+			PlayerData.setFlag(player, QUEST_FLAG, data.Progress.Wins or 0)
+		end
 		TutorialHints.markSeen(player, "Quest")
 		Funnel.onboarding(player, "ChainDone")
 	end
@@ -326,6 +334,16 @@ local function onChanged(player: Player)
 			Funnel.onboarding(player, "Game2Ended")
 			TutorialService.setStep(player, "Done")
 		end
+	end
+	-- The Win a Match quest outlives the tutorial: won with the first win since it began.
+	local wonAt = data.Flags[QUEST_FLAG]
+	if
+		type(wonAt) == "number"
+		and (data.Progress.Wins or 0) >= wonAt + T.Soft.QuestWins
+		and TutorialHints.seen(player, "Quest")
+		and TutorialHints.markSeen(player, "QuestDone")
+	then
+		Funnel.onboarding(player, "QuestDone")
 	end
 end
 
@@ -485,6 +503,16 @@ local CLOSE_REPORTS: { [string]: { step: string, mark: string } } = {
 	AbilitiesClosed = { step = "Abilities", mark = "Spun" },
 }
 
+-- The soft part's moments that are Social funnel steps (the rest it logs itself: Invited, and
+-- DailyClaimed from Rewards).
+local SOCIAL_SEEN: { [string]: string } = {
+	Invite = "InviteShown",
+	FreeReward = "FreeRewardOpened",
+	Group = "GroupClicked",
+	Favorite = "FavoriteClicked",
+	Like = "LikeClicked",
+}
+
 -- A token bucket per player (Config.Tutorial.Events).
 local buckets: { [Player]: { tokens: number, at: number } } = {}
 local function allow(player: Player): boolean
@@ -532,8 +560,12 @@ local function onEvent(player: Player, kind: any, data: any)
 		end
 	elseif kind == "Seen" then
 		if type(data) == "string" and Steps.ClientSeen[data] then
-			TutorialHints.markSeen(player, data)
+			if TutorialHints.markSeen(player, data) and SOCIAL_SEEN[data] then
+				Funnel.social(player, SOCIAL_SEEN[data])
+			end
 		end
+	elseif kind == "Invited" then
+		Funnel.social(player, "Invited")
 	elseif kind == "Next" then
 		next(player)
 	elseif kind == "Lesson" then
@@ -568,7 +600,8 @@ end
 ---------------------------------------------------------------------------------------------
 
 -- Everything the tutorial keeps in the save, cleared by /tutorial reset.
-local RESET_FLAGS = { STEP_FLAG, PATH_FLAG, WHY_FLAG, SOFT_FLAG, T.Funnel.OnboardingFlag }
+local RESET_FLAGS =
+	{ STEP_FLAG, PATH_FLAG, WHY_FLAG, SOFT_FLAG, QUEST_FLAG, T.Funnel.OnboardingFlag }
 
 --- /tutorial reset | skip | off | hints | path s|r | step <name>: returns the line to tell.
 function TutorialService.dev(player: Player, args: { string }): string
@@ -703,6 +736,7 @@ function TutorialService.start()
 	PlayerData.Loaded:Connect(function(player: Player)
 		TutorialService.guard(player, "Load", function()
 			onLoaded(player)
+			onChanged(player) -- a game 2 or quest won in another server (an arena)
 		end)
 	end)
 	PlayerData.Changed:Connect(function(player: Player)

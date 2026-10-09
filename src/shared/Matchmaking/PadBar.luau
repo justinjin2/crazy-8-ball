@@ -148,7 +148,9 @@ end
 --- (nobodyFree: alone, or everyone else busy at a table; designer, 2026-10-09). Never in a
 --- private server (people there play with their friends) or during the tutorial. It goes
 --- when they press its X, after Config.UI.MatchBar.SpawnPillSeconds, when they step on a pad
---- (the pad's bar takes over) or when someone is free; a search it started keeps it up.
+--- (the pad's bar takes over) or when someone is free; a search it started keeps it up. In the
+--- tutorial's soft part (`soft`: Play Global glows until it is pressed, 4.5 step 14) it shows
+--- off the pads whoever is free and for as long as it takes, until its X.
 function PadBar.spawnPill(
 	args: {
 		nobodyFree: boolean,
@@ -159,18 +161,17 @@ function PadBar.spawnPill(
 		since: number?, -- when it first showed this session (nil: not yet)
 		now: number,
 		searching: boolean,
+		soft: boolean?,
 	}
 ): boolean
 	if args.searching then
 		return true
 	end
-	if
-		not args.nobodyFree
-		or not args.publicLobby
-		or args.tutorial
-		or args.onPad
-		or args.dismissed
-	then
+	if not args.publicLobby or args.tutorial or args.onPad or args.dismissed then
+		return false
+	elseif args.soft then
+		return true
+	elseif not args.nobodyFree then
 		return false
 	end
 	return args.since == nil or args.now - args.since < B.SpawnPillSeconds

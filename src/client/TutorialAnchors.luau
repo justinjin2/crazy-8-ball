@@ -11,9 +11,14 @@
 -- 8-ball's Open now), Lobby (the arena's result row), MoneyHud, InventoryCue (the tutorial's cue's
 -- card, else the first that is not the equipped one), InventoryEquip (the chosen cue's Equip), CodeRedeem (the code
 -- box's Redeem; the flag CodeFocused is set once the box is clicked), Banner (the top banner,
--- which the line keeps under).
+-- which the line keeps under), Challenge, Offer, Invite (the hub corners), HotbarSlot1..9 (the
+-- lucky block hotbar), Group, Favorite, Like (Free Reward's frames, highlighted once),
+-- ColumnRays (the layer under the left column: glows behind its tiles).
 --
 -- A screen may also hide one of its parts while the tutorial says so (TutorialAnchors.hidden).
+
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Steps = require(Shared:WaitForChild("Tutorial"):WaitForChild("Steps"))
 
 local TutorialAnchors = {}
 
@@ -166,6 +171,27 @@ function TutorialAnchors.flag(name: string): boolean
 		return ok and on == true
 	end
 	return flags[name] == true
+end
+
+-- A press on a screen's button the soft part waits for (notePress): Challenge, Offer, Money
+-- (the "+"), GlobalQueue (Play Global), Group, Favorite (Free Reward's frames).
+local pressedEvent = Instance.new("BindableEvent")
+
+--- A screen: the player pressed the button the tutorial knows as `name`.
+function TutorialAnchors.notePress(name: string)
+	pressedEvent:Fire(name)
+end
+
+--- Fires (name) on every notePress.
+TutorialAnchors.pressed = pressedEvent.Event
+
+--- Whether the tutorial's one-time moment `name` (Tutorial/Steps.Seen) happened: the
+--- TutorialSeen mask the server publishes.
+function TutorialAnchors.seen(name: string): boolean
+	local player = game:GetService("Players").LocalPlayer
+	local mask = if player then player:GetAttribute("TutorialSeen") else nil
+	local n = Steps.seenBit(name)
+	return type(mask) == "number" and n ~= nil and Steps.has(mask, n)
 end
 
 --- Whether the tutorial's game 1 is on (the longer guideline and the strong ball outlines).

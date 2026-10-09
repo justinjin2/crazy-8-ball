@@ -28,6 +28,7 @@ local Camera = require(script.Parent.Camera)
 local Progression = require(script.Parent.Progression)
 local Menus = require(script.Parent.Menus)
 local LuckyClient = require(script.Parent.LuckyClient)
+local TutorialSoft = require(script.Parent.TutorialSoft)
 
 local Tutorial = {}
 
@@ -136,7 +137,12 @@ local function fallbackOf(step: string): number
 	return Timing.Fallback[step] or Timing.FallbackSeconds
 end
 
--- The menu items hidden at this step.
+-- The soft part's icons pop in one after another (Config.Tutorial.Soft.RevealOrder), from
+-- the first frame this client sees the Soft step until the Icons moment is saved.
+local softSince: number? = nil
+local iconsReportedAt = -math.huge
+
+-- The menu items hidden now (every frame: the soft part's stagger and its quest change it).
 local function refreshHidden()
 	local step = if broken then "" else Tutorial.step()
 	local hidden: { [string]: boolean } = {}
@@ -148,6 +154,25 @@ local function refreshHidden()
 	local hostHides: { string } = HOST_HIDES[step] or {}
 	for _, item in hostHides do
 		hidden[item] = true
+	end
+	if step == "Soft" and not TutorialAnchors.seen("Icons") then
+		local now = os.clock()
+		softSince = softSince or now
+		local Soft = Config.Tutorial.Soft
+		local due = (now - (softSince :: number)) / Soft.StaggerSeconds
+		for i, item in Soft.RevealOrder do
+			if i - 1 > due then
+				hidden[item] = true
+			end
+		end
+		if due >= #Soft.RevealOrder - 1 and now - iconsReportedAt >= Timing.ReportAgainSeconds then
+			iconsReportedAt = now
+			Tutorial.report("Seen", "Icons")
+		end
+	end
+	-- The Win a Match quest takes the daily win track's place until it is won.
+	if not broken and TutorialSoft.questOn() then
+		hidden.WinTrack = true
 	end
 	TutorialAnchors.setHidden(hidden)
 end
@@ -755,10 +780,19 @@ local function breakDown(err: any)
 		TutorialAnchors.setMinPower(nil)
 	end)
 	pcall(refreshHidden)
+	pcall(TutorialSoft.stop)
 end
 
 local function update(dt: number)
 	pcall(glow.update, glow, dt)
+	pcall(refreshHidden)
+	-- The soft part outlives the tutorial's steps (its quest waits for a win).
+	if not broken then
+		local ok: boolean, err: any = pcall(TutorialSoft.update :: any, dt)
+		if not ok then
+			breakDown(err)
+		end
+	end
 	local menu = Menus.current()
 	if menu ~= lastMenu then
 		lastMenu = menu
@@ -877,6 +911,11 @@ local function startQA()
 			TutorialAnchors.noteWeakRelease() -- the break's too-soft release: the line shakes
 		elseif op == "aimPart" then
 			return aimPart
+		elseif op == "notePress" then
+			-- The soft part (QA): as if the button the tutorial knows as `a` was pressed.
+			TutorialAnchors.notePress(a)
+		elseif op == "soft" then
+			return TutorialSoft.qaState()
 		end
 		return true
 	end
@@ -886,6 +925,7 @@ end
 --- Builds the tutorial's layer. Call once from Main.
 function Tutorial.start()
 	overlay = TutorialOverlay.new()
+	TutorialSoft.start()
 	hand = TutorialHand.new(overlay.gui)
 	arrow = TutorialArrow.new(overlay.gui)
 	glow = TutorialGlow.new(overlay.gui)

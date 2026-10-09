@@ -4,9 +4,14 @@
 -- - Right edge, a little above the middle: the Daily Challenge target, its glow flashing. Daily
 --   challenges are not built yet, so a press only says "Soon" in a bubble beside it. The
 --   gamepad's D-pad down presses it when the Free Reward tile is gone (Progression.padRoute).
--- - Under it, while open for this player: the Starter Pack and VIP's welcome offer, each with
---   its countdown; a press opens the Shop on its section. Offers never pop up by themselves
---   (designer, 2026-10-03). Hidden while the tutorial hides the Shop.
+-- - Under it, while open for this player: the Starter Pack and VIP's welcome offer on one tile
+--   with its countdown, flipping from one to the other every few seconds when both are open
+--   (tutorial v2 4.11); a press opens the Shop on the shown offer's section. Offers never pop up
+--   by themselves (designer, 2026-10-03). The challenge and the offer tile are about the left
+--   column's tiles' size.
+-- - The tutorial hides the challenge, the offer tile, Invite and Plus until its soft part
+--   (Steps.Reveal: Challenge, Offer, Invite, Plus); each pops in as it comes back. The soft
+--   part's click-once "!" sits on the challenge and the offer tile (setFresh).
 -- - Bottom left, just right of the money HUD: Invite (Roblox's invite prompt, carrying the
 --   invite's launch data, Progression/Social.launchData) and Roblox Plus (the Store's Plus
 --   prompt; hidden for members and where the shop does not offer Plus).
@@ -16,10 +21,12 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
+local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local InvitePrompt = require(script.Parent.InvitePrompt)
 local ItemState = require(script.Parent.ItemState)
@@ -97,10 +104,12 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	self.root = root
 
 	self.challenge = corner(root, "Challenge", "Challenge", W.Challenge, function()
+		TutorialAnchors.notePress("Challenge") -- the soft part's click-once "!" goes
 		self:pressChallenge()
 	end)
 	self.inviteTile = corner(root, "Invite", "Invite", W.Invite, function()
 		UISound.play("Click")
+		TutorialAnchors.notePress("Invite")
 		self:invite()
 	end)
 	self.gearTile = corner(root, "Settings", "Gear", W.Settings, function()
@@ -112,29 +121,55 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 		task.spawn(ItemState.request, "StoreRequest", "RobloxPlus")
 	end)
 
-	-- The open offers under the challenge: the shop's offer window (`key` in ShopState.offers)
-	-- and the Shop section a press opens.
+	-- The open offers share one tile under the challenge: each offer's window (`key` in
+	-- ShopState.offers), the Shop section a press opens, its icon and word. `openOffers` are
+	-- the ones open now, in this order; `offerIndex` the one shown.
 	local list = Config.Products.List
 	local vipOff = math.floor((1 - list.VipOffer.Robux / list.Vip.Robux) * 100 + 0.5)
-	self.offers = {}
-	for _, spec in
-		{
-			{ key = "StarterPack", section = "Offer", icon = "StarterPack", words = W.Starter },
-			{ key = "VipOffer", section = "Vip", icon = "Vip", words = W.Vip:format(vipOff) },
-		}
-	do
-		local tile = corner(root, spec.key, spec.icon, spec.words, function()
+	self.offerSpecs = {
+		{ key = "StarterPack", section = "Offer", icon = "StarterPack", words = W.Starter },
+		{ key = "VipOffer", section = "Vip", icon = "Vip", words = W.Vip:format(vipOff) },
+	}
+	self.openOffers = {} :: { { spec: any, endsAt: number } }
+	self.offerIndex = 1
+	self.offerKey = nil :: string? -- the offer drawn on the tile now
+	self.offerFlippedAt = os.clock()
+	self.flipping = false
+	local offerTile = corner(root, "Offer", "StarterPack", W.Starter, function()
+		local shown = self.openOffers[self.offerIndex]
+		if shown then
 			UISound.play("Click")
-			Menus.open("Shop", spec.section)
-		end)
-		tile.button.Visible = false
-		local timer = HudParts.text(HudParts.candyParts(tile.button).body, "Timer", C.TimerPx, "")
-		timer.TextWrapped = false
-		timer.TextColor3 = HudParts.tone("Gold")
-		timer.AnchorPoint = Vector2.new(0.5, 0.5)
-		timer.ZIndex = 4
-		table.insert(self.offers, { key = spec.key, tile = tile, timer = timer })
+			TutorialAnchors.notePress("Offer")
+			Menus.open("Shop", shown.spec.section)
+		end
+	end)
+	offerTile.button.Visible = false
+	local timer = HudParts.text(HudParts.candyParts(offerTile.button).body, "Timer", C.TimerPx, "")
+	timer.TextWrapped = false
+	timer.TextColor3 = HudParts.tone("Gold")
+	timer.AnchorPoint = Vector2.new(0.5, 0.5)
+	timer.ZIndex = 4
+	self.offerTile, self.offerTimer = offerTile, timer
+
+	-- The soft part's click-once "!" (setFresh): a red dot on a tile's top-right corner.
+	self.fresh = {} :: { [string]: Frame }
+	for key, tile: any in { Challenge = self.challenge, Offer = offerTile } do
+		local dot =
+			HudParts.pill(HudParts.candyParts(tile.button).body, "New", HudParts.tone("Red"))
+		dot.AnchorPoint = Vector2.new(0.5, 0.5)
+		dot.Position = UDim2.fromScale(0.86, 0.1)
+		dot.ZIndex = 6
+		dot.Visible = false
+		local words = HudParts.text(dot, "Words", C.WordPx + 1, Strings.Tutorial.New)
+		words.TextWrapped = false
+		words.Size = UDim2.fromScale(1, 1)
+		words.ZIndex = 7
+		self.fresh[key] = dot
 	end
+	-- The tutorial's anchors: the soft part's glows sit behind these.
+	TutorialAnchors.set("Challenge", self.challenge.button)
+	TutorialAnchors.set("Offer", offerTile.button)
+	TutorialAnchors.set("Invite", self.inviteTile.button)
 
 	-- The challenge's glow flashes behind it.
 	local glow = Instance.new("ImageLabel")
@@ -201,14 +236,22 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	table.insert(
 		self.connections,
 		TutorialAnchors.Changed:Connect(function()
+			self:refreshShown()
 			self:refreshOffers()
 		end)
 	)
-	-- The countdowns tick once a second while the corners show.
+	-- The countdowns tick once a second while the corners show; with two offers open the tile
+	-- flips every OfferFlipSeconds.
 	task.spawn(function()
 		while self.alive do
 			if self.showing then
 				self:refreshOffers()
+				if
+					#self.openOffers > 1
+					and os.clock() - self.offerFlippedAt >= C.OfferFlipSeconds
+				then
+					self:flipOffer()
+				end
 			end
 			task.wait(1)
 		end
@@ -216,39 +259,159 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	self:refreshPlus()
 	self:refreshOffers()
 	self:layout()
+	-- Studio only: GuiQA:Invoke("cornerOffers", true) opens both offers' windows on the tile
+	-- (to watch it flip); false goes back to the shop's own.
+	GuiQA.add("cornerOffers", function(on: boolean)
+		local ends = workspace:GetServerTimeNow() + 3600
+		self.fakeOffers = if on
+			then {
+				StarterPack = { open = true, endsAt = ends },
+				VipOffer = { open = true, endsAt = ends },
+			}
+			else nil
+		self:refreshOffers()
+		return #self.openOffers
+	end)
 	return self
 end
 
---- Show each offer while its window is open and it is not owned, with its countdown.
+-- Show `button` or not; one coming back while the corners show pops in (a small HUD piece's
+-- entrance). True when it changed.
+local function setShown(self: any, button: GuiObject, show: boolean): boolean
+	if button.Visible == show then
+		return false
+	end
+	if show and self.showing then
+		UIAnim.popIn(button)
+	else
+		button.Visible = show
+	end
+	return true
+end
+
+--- The challenge, Invite and Plus: each shows unless the tutorial hides it (Steps.Reveal),
+--- the challenge also unless the queue card stands there, Plus only where it is offered.
+function HubCorners.refreshShown(self: any)
+	local changed = setShown(
+		self,
+		self.challenge.button,
+		not self.challengeHidden and not TutorialAnchors.hidden("Challenge")
+	)
+	changed = setShown(self, self.inviteTile.button, not TutorialAnchors.hidden("Invite"))
+		or changed
+	changed = setShown(
+		self,
+		self.plusTile.button,
+		self.plusOffered == true and not TutorialAnchors.hidden("Plus")
+	) or changed
+	if changed then
+		self:layout()
+	end
+end
+
+--- The soft part's click-once "!" on the challenge or the offer tile (`key`: "Challenge" or
+--- "Offer").
+function HubCorners.setFresh(self: any, key: string, on: boolean)
+	local dot = self.fresh[key]
+	if dot == nil or dot.Visible == on then
+		return
+	end
+	if on then
+		UIAnim.popIn(dot)
+	else
+		dot.Visible = false
+	end
+end
+
+-- Draw `spec`'s icon, word and press on the offer tile.
+local function drawOffer(self: any, spec: any)
+	self.offerKey = spec.key
+	HudParts.setIcon(self.offerTile.icon, spec.icon)
+	self.offerTile.word.Text = spec.words
+end
+
+--- The next open offer on the tile: it narrows to nothing, turns to the other offer and opens
+--- again (each half OfferFlipHalfSeconds).
+function HubCorners.flipOffer(self: any)
+	if self.flipping or #self.openOffers < 2 then
+		return
+	end
+	self.flipping = true
+	self.offerFlippedAt = os.clock()
+	local body = HudParts.candyParts(self.offerTile.button).body
+	-- Narrow toward its middle, like a card turning.
+	body.AnchorPoint = Vector2.new(0.5, 0.5)
+	body.Position = UDim2.fromScale(0.5, 0.5)
+	local full = body.Size
+	local half = C.OfferFlipHalfSeconds
+	local narrow = TweenService:Create(
+		body,
+		TweenInfo.new(half, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+		{ Size = UDim2.new(0, 0, full.Y.Scale, full.Y.Offset) }
+	)
+	narrow.Completed:Connect(function()
+		self.offerIndex = self.offerIndex % #self.openOffers + 1
+		local shown = self.openOffers[self.offerIndex]
+		if shown then
+			drawOffer(self, shown.spec)
+			self.offerTimer.Text = ShopParts.timeLeft(shown.endsAt - workspace:GetServerTimeNow())
+		end
+		local open = TweenService:Create(
+			body,
+			TweenInfo.new(half, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ Size = full }
+		)
+		open.Completed:Connect(function()
+			body.Size = full
+			self.flipping = false
+		end)
+		open:Play()
+	end)
+	narrow:Play()
+end
+
+--- The offer tile: the offers whose window is open and that are not owned, the shown one's
+--- countdown; hidden while none is (or the tutorial hides it, or the queue card stands there).
 function HubCorners.refreshOffers(self: any)
 	local shop = ItemState.shop()
 	local state: any = if type(shop) == "table" then shop else {}
 	local windows = if type(state.offers) == "table" then state.offers else {}
+	if self.fakeOffers then
+		windows = self.fakeOffers -- Studio QA (GuiQA "cornerOffers")
+	end
 	local now = workspace:GetServerTimeNow()
-	local allowed = not self.challengeHidden and not TutorialAnchors.hidden("Shop")
-	local changed = false
-	for _, offer in self.offers do
-		local window = windows[offer.key]
-		local owned = if offer.key == "StarterPack"
-			then state.starterBought == true
+	local allowed = not self.challengeHidden and not TutorialAnchors.hidden("Offer")
+	local open = {}
+	for _, spec in self.offerSpecs do
+		local window = windows[spec.key]
+		local owned = if self.fakeOffers
+			then false
+			elseif spec.key == "StarterPack" then state.starterBought == true
 			else state.vip == true
-		local open = allowed
+		if
+			allowed
 			and not owned
 			and type(window) == "table"
 			and window.open == true
 			and type(window.endsAt) == "number"
 			and window.endsAt > now
-		local button: GuiObject = offer.tile.button
-		if button.Visible ~= open then
-			button.Visible = open
-			changed = true
-		end
-		if open then
-			offer.timer.Text = ShopParts.timeLeft(window.endsAt - now) -- "6d 4h", "2:59:12"
+		then
+			table.insert(open, { spec = spec, endsAt = window.endsAt })
 		end
 	end
-	if changed then
+	self.openOffers = open
+	if self.offerIndex > #open then
+		self.offerIndex = 1
+	end
+	local shown = open[self.offerIndex]
+	if shown and shown.spec.key ~= self.offerKey and not self.flipping then
+		drawOffer(self, shown.spec)
+	end
+	if setShown(self, self.offerTile.button, shown ~= nil) then
 		self:layout()
+	end
+	if shown then
+		self.offerTimer.Text = ShopParts.timeLeft(shown.endsAt - now) -- "6d 4h", "2:59:12"
 	end
 end
 
@@ -257,10 +420,8 @@ function HubCorners.refreshPlus(self: any)
 	local member = player ~= nil and player.MembershipType == Enum.MembershipType.Premium
 	local shop = ItemState.shop()
 	local offered = type(shop) == "table" and shop.robloxPlus == true
-	local show = offered and not member
-	if self.plusTile.button.Visible ~= show then
-		self.plusTile.button.Visible = show
-	end
+	self.plusOffered = offered and not member
+	self:refreshShown()
 end
 
 function HubCorners.layout(self: any)
@@ -280,24 +441,22 @@ function HubCorners.layout(self: any)
 	ch.word.Size = UDim2.fromOffset(big * 2, wordPx + 4)
 	HudParts.setTextSize(ch.word, wordPx)
 
-	-- The open offers in a column under the challenge, centred on it.
+	-- The offer tile under the challenge, centred on it.
 	local offerPx = if short then C.ShortOfferPx else C.OfferPx
 	local timerPx = if short then C.ShortTimerPx else C.TimerPx
 	local centreX = -C.ChallengeRightPx - big / 2
 	local offerY = size.Y * C.ChallengeYShare + big / 2 + C.OfferGapPx + offerPx / 2
-	for _, offer in self.offers do
-		local button: GuiObject = offer.tile.button
-		button.AnchorPoint = Vector2.new(0.5, 0.5)
-		button.Size = UDim2.fromOffset(offerPx, offerPx)
-		button.Position = UDim2.new(1, round(centreX), 0, round(offerY))
-		offer.tile.word.Size = UDim2.fromOffset(round(offerPx * 2.4), wordPx + 4)
-		HudParts.setTextSize(offer.tile.word, wordPx)
-		offer.timer.Position = UDim2.new(0.5, 0, 0.92, wordPx + 2)
-		offer.timer.Size = UDim2.fromOffset(offerPx * 2, timerPx + 4)
-		HudParts.setTextSize(offer.timer, timerPx, timerPx)
-		if button.Visible then
-			offerY += offerPx + C.OfferGapPx + timerPx + 6 -- its word and countdown hang below it
-		end
+	local offer = self.offerTile
+	offer.button.AnchorPoint = Vector2.new(0.5, 0.5)
+	offer.button.Size = UDim2.fromOffset(offerPx, offerPx)
+	offer.button.Position = UDim2.new(1, round(centreX), 0, round(offerY))
+	offer.word.Size = UDim2.fromOffset(round(offerPx * 2.4), wordPx + 4)
+	HudParts.setTextSize(offer.word, wordPx)
+	self.offerTimer.Position = UDim2.new(0.5, 0, 0.92, wordPx + 2)
+	self.offerTimer.Size = UDim2.fromOffset(offerPx * 2, timerPx + 4)
+	HudParts.setTextSize(self.offerTimer, timerPx, timerPx)
+	for _, dot in self.fresh do
+		dot.Size = UDim2.fromOffset(wordPx + 12, wordPx + 8)
 	end
 
 	-- The gear right of the rank HUD's card at its biggest (it grows on hover and press), centred
@@ -360,7 +519,9 @@ function HubCorners.setVisible(self: any, visible: boolean)
 	if show then
 		self.root.Visible = true
 		self:layout()
-		UIAnim.popIn(self.challenge.button)
+		if self.challenge.button.Visible then
+			UIAnim.popIn(self.challenge.button)
+		end
 	else
 		self.root.Visible = false
 	end
@@ -368,16 +529,12 @@ end
 
 --- Hide only the Daily Challenge (the queue card stands over the right edge while you wait).
 function HubCorners.setChallengeHidden(self: any, hidden: boolean)
-	local button: GuiObject = self.challenge.button
-	if button.Visible == not hidden then
+	if self.challengeHidden == hidden then
 		return
 	end
-	button.Visible = not hidden
 	self.challengeHidden = hidden
+	self:refreshShown()
 	self:refreshOffers()
-	if not hidden and self.showing then
-		UIAnim.popIn(button)
-	end
 end
 
 function HubCorners.isShown(self: any): boolean

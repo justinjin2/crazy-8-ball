@@ -137,6 +137,7 @@ function MatchBar.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 
 	-- Play Global: joined to the pill's right end, tucked under its rounded edge.
 	self.global = HudParts.candy(bar, Copy.PlayGlobal, function()
+		TutorialAnchors.notePress("GlobalQueue") -- the soft part's Play Global glow goes
 		self:search()
 	end, "Green", "Globe")
 	self.global.Name = "PlayGlobal"
@@ -276,7 +277,7 @@ function MatchBar.dismissGlobal(self: any)
 end
 
 --- What the spawn pill needs from Main each frame: { nobodyFree, publicLobby, tutorial,
---- seated }.
+--- seated, soft }.
 function MatchBar.setSpawn(self: any, state: any)
 	self.spawn = state
 end
@@ -479,6 +480,7 @@ function MatchBar.pick(self: any, now: number): (string?, boolean, boolean, numb
 		since = self.spawnSince,
 		now = now,
 		searching = searching,
+		soft = spawn.soft == true,
 	})
 	if not show then
 		return nil, false, false, 0

@@ -21,6 +21,10 @@
 --   block comes once ever, Config.Social.InviterOnce, then the line says only the friend gets
 --   it), how many invited friends won this month, and Invite (Roblox's invite prompt with our
 --   launch data, InvitePrompt).
+-- - Under it, "Enjoying it? Leave a like!" (no reward: a server can't check a like; tutorial v2
+--   decision 7).
+-- The join, the favorite and the like line are the tutorial's anchors (Group, Favorite, Like):
+-- its soft part highlights each once (TutorialSoft).
 -- Sizes in Config.UI.FreeReward.Social, words in Strings.FreeReward.
 local AvatarEditorService = game:GetService("AvatarEditorService")
 local GroupService = game:GetService("GroupService")
@@ -36,6 +40,7 @@ local InvitePrompt = require(script.Parent.InvitePrompt)
 local RewardsParts = require(script.Parent.RewardsParts)
 local ShopCards = require(script.Parent.ShopCards)
 local Stage = require(script.Parent.Stage)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -192,6 +197,7 @@ function FreeSocial.new(parent: Instance, ctx: any): any
 	self.count, self.countWords = count, countWords
 	self.inviteButton = HudParts.candy(inviteCard, W.Invite, function()
 		UIAnim.bounce(self.inviteButton)
+		TutorialAnchors.notePress("Invite")
 		InvitePrompt.show(function()
 			ctx.notice(Strings.Corners.InviteFailed, "Red")
 		end)
@@ -199,6 +205,11 @@ function FreeSocial.new(parent: Instance, ctx: any): any
 	self.inviteButton.Name = "InviteButton"
 	self.inviteButton.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.inviteButton.ZIndex = 6
+
+	-- "Enjoying it? Leave a like!" under the invite card.
+	self.like = ShopCards.note(root, "Like", W.Like, 5)
+	TutorialAnchors.set("Like", self.like)
+	self:setWelcome(false)
 	return self
 end
 
@@ -209,6 +220,7 @@ end
 -- Join (from `button`, the row's or the hero's): a member claims at once; anyone else gets
 -- Roblox's join prompt, then the server asks Roblox again on the claim.
 function FreeSocial.join(self: any, button: GuiObject?)
+	TutorialAnchors.notePress("Group") -- the soft part's highlight goes
 	local from = button or self.rows[1].button
 	local state = self.state
 	local view = if type(state) == "table" then state.group else nil
@@ -231,6 +243,7 @@ function FreeSocial.favorite(self: any, button: GuiObject?)
 	if self.favoriting then
 		return
 	end
+	TutorialAnchors.notePress("Favorite")
 	self.favoriting = true
 	UISound.play("Click")
 	local from = button or self.rows[2].button
@@ -299,9 +312,16 @@ end
 
 --- The section's height at the scale `k`: the Lucky 8 card, or the first visit's heroes, and
 --- the invite card under them.
+-- The like line's height in pixels (its words keep the smallest size on a phone).
+local function likePx(k: number): number
+	return math.max(round(S.Like.Units * k), ShopCards.textPx(S.Like.TextUnits, k) + B.TextBoxPx)
+end
+
+--- The section's height at the scale `k`: the Lucky 8 card, or the first visit's heroes, the
+--- invite card under them and the like line.
 function FreeSocial.height(self: any, k: number): number
 	local top = if self.welcome then self.heroes:height(k) else groupPx(k)
-	return top + round((S.GapUnits + S.Invite.Units[2]) * k)
+	return top + round((S.GapUnits + S.Invite.Units[2] + S.Like.GapUnits) * k) + likePx(k)
 end
 
 --- Whether the first visit's heroes show: the group or the favorite not claimed yet.
@@ -315,11 +335,15 @@ function FreeSocial.wantsWelcome(self: any): boolean
 	return group.claimed ~= true or favorite.claimed ~= true
 end
 
---- Show the first visit's heroes (else the Lucky 8 card).
+--- Show the first visit's heroes (else the Lucky 8 card). The tutorial's soft part highlights
+--- the join and the favorite once, on whichever shows.
 function FreeSocial.setWelcome(self: any, on: boolean)
 	self.welcome = on
 	self.heroes.root.Visible = on
 	self.group.frame.Visible = not on
+	local cards = self.heroes.cards
+	TutorialAnchors.set("Group", if on then cards[1].frame else self.rows[1].box.frame)
+	TutorialAnchors.set("Favorite", if on then cards[2].frame else self.rows[2].box.frame)
 end
 
 -- Lay a row out `w` x `h` units.
@@ -409,6 +433,11 @@ function FreeSocial.layout(self: any, width: number, k: number, y: number): numb
 		UDim2.fromOffset(round(Bt.WidthUnits * k), ShopCards.buttonPx(Bt.HeightUnits, k))
 	HudParts.setButtonTextSize(self.inviteButton, ShopCards.textPx(Bt.TextUnits, k))
 	HudParts.setMinHit(self.inviteButton, Config.UI.Menu.Frame.TouchMinPx)
+	-- The like line, under the invite card.
+	local likeTop = round((iy + ih + S.Like.GapUnits) * k)
+	local likeH = likePx(k)
+	ShopCards.putPx(self.like, Wd / 2 * k, likeTop + likeH / 2, cardW, likeH)
+	HudParts.setTextSize(self.like, ShopCards.textPx(S.Like.TextUnits, k))
 	return height
 end
 
@@ -545,6 +574,7 @@ function FreeSocial.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handle
 	stage:add("InviteArt", self.inviteArt)
 	stage:add("InviteTitle", self.inviteTitle)
 	stage:add("InviteButton", self.inviteButton)
+	stage:add("Like", self.like)
 end
 
 return FreeSocial

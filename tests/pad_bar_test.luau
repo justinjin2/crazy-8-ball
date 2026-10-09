@@ -150,6 +150,13 @@ function tests.the_spawn_pill_shows_with_nobody_free_in_a_public_lobby_only()
 		with({ since = 0, nobodyFree = false, onPad = true, searching = true }),
 		"a search it started keeps it up"
 	)
+	expect(with({ soft = true, nobodyFree = false, since = 0 }), "the soft part: up until pressed")
+	expect(not with({ soft = true, dismissed = true }), "the soft part: its X still")
+	expect(not with({ soft = true, onPad = true }), "the soft part: the pad's bar on a pad")
+	expect(
+		not with({ soft = true, publicLobby = false }),
+		"the soft part: never in a private server"
+	)
 end
 
 function tests.nobody_free_when_alone_or_everyone_else_is_busy()

@@ -35,6 +35,7 @@ local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local ShopParts = require(script.Parent.ShopParts)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -487,7 +488,11 @@ end
 
 -- Show or hide as wanted (and only with a RewardState), popping in and out.
 function WinTrack.apply(self: any)
-	local show = self.want and self.given >= 0 and not tutorial()
+	-- The tutorial's Win a Match quest takes its place until it is won (TutorialSoft).
+	local show = self.want
+		and self.given >= 0
+		and not tutorial()
+		and not TutorialAnchors.hidden("WinTrack")
 	if show == self.shown then
 		return
 	end

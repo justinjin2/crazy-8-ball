@@ -171,6 +171,19 @@ function Funnel.once(player: Player, funnel: string, name: string, extra: string
 	return true
 end
 
+--- Logs step `name` of the Social funnel (InviteShown, Invited, FreeRewardOpened ...) once
+--- per player, only for a player whose soft part began (the tutorial's icons came out, the
+--- Icons moment in Flags.TutorialSeen): it follows new players, not everyone. False when not
+--- logged.
+function Funnel.social(player: Player, name: string): boolean
+	local seen = mask(player, "TutorialSeen")
+	local icons = Steps.seenBit("Icons")
+	if seen == nil or icons == nil or not Steps.has(seen, icons) then
+		return false
+	end
+	return Funnel.once(player, "Social", name)
+end
+
 --- Logs step `step` of a repeating funnel (the shop, a lucky block, the spins) for one visit
 --- `session` (any short string the caller keeps for that visit). `note` (the block's kind)
 --- goes in /funnel's line only.

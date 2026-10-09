@@ -29,6 +29,7 @@ local BackCue = require(script.Parent.BackCue)
 local BotChat = require(script.Parent.BotChat) -- the Bots lane
 local People = require(script.Parent.People) -- the Bots lane: players and bots behind one lookup
 local TutorialAnchors = require(script.Parent.TutorialAnchors) -- the tutorial lane
+local TutorialSoft = require(script.Parent.TutorialSoft)
 local BallCallouts = require(Shared.BallCallouts)
 local BallPulse = require(script.Parent.BallPulse)
 local CueAssets = require(script.Parent.CueAssets)
@@ -1385,7 +1386,8 @@ local function renderFrame(dt: number)
 	-- The matchmaking bar, every frame: a pad's, or the spawn pill of a player in a public
 	-- lobby server with nobody else free (designer, 2026-10-07: never in a private server, not
 	-- during the guided tutorial; a state it has not published yet counts as the tutorial;
-	-- 2026-10-09: also when everyone else is busy at a table).
+	-- 2026-10-09: also when everyone else is busy at a table), and in the tutorial's soft part
+	-- until Play Global is pressed (TutorialSoft).
 	do
 		local guided = player:GetAttribute("TutorialActive")
 		local others = {}
@@ -1400,6 +1402,7 @@ local function renderFrame(dt: number)
 				and not isArena,
 			tutorial = guided ~= false,
 			seated = hub.mySeat ~= nil or controlled or predictedPad ~= nil,
+			soft = TutorialSoft.wantsGlobal(),
 		})
 		matchBar:update(workspace:GetServerTimeNow())
 	end
