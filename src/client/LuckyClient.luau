@@ -78,6 +78,7 @@ local heldId: number? = nil
 local liveIds: { [number]: boolean } = {}
 local reveals: { any } = {}
 local revealing = false
+local openingAll = false -- an "Open all" asked of the server, not answered yet
 local nextReveal: () -> () -- plays the queued reels one after another (below)
 local throwing = false
 local visible = false
@@ -396,10 +397,49 @@ function nextReveal()
 	end
 	local reward = table.remove(reveals, 1)
 	revealing = true
-	opening:play(reward.kind, reward.cue, reward.rarity, function()
+	local function done()
 		revealing = false
 		task.defer(nextReveal)
-	end, if type(reward.oddsId) == "string" then reward.oddsId else nil)
+	end
+	-- A Common or Uncommon cue: the quick reveal, no reel (economy v5 plan 3.8).
+	if LuckyBlocks.quickReveal(reward.rarity) then
+		opening:quick(reward.cue, reward.rarity, done)
+	else
+		opening:play(
+			reward.kind,
+			reward.cue,
+			reward.rarity,
+			done,
+			if type(reward.oddsId) == "string" then reward.oddsId else nil
+		)
+	end
+end
+
+-- "Open all" (economy v5 plan 3.8): the server opens every ready climbed Standard and Uncommon
+-- block (not the one in the hands, not a thrown one) and the summary shows what came out.
+local function openAll()
+	if openingAll or not visible or revealing or opening:isOpen() or reveal:isBusy() then
+		return
+	end
+	openingAll = true
+	task.spawn(function()
+		local reply = request("OpenAll")
+		openingAll = false
+		if not reply.ok then
+			hotbar:say(reasonText(reply))
+			return
+		end
+		if type(reply.opened) == "table" and #reply.opened > 0 then
+			if hotbar:isBagOpen() then
+				hotbar:toggleBag()
+			end
+			revealing = true
+			opening:summary(reply.opened, function()
+				revealing = false
+				task.defer(nextReveal)
+			end)
+		end
+	end)
 end
 
 -- A block kind that can drop a cue of `rarity`, and that cue (the kind named after the rarity
@@ -526,10 +566,13 @@ function LuckyClient.start(screen: ScreenGui)
 	pcall(function()
 		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
 	end)
-	hotbar = LuckyHotbar.new(
-		screen,
-		{ select = holdBlock, reveal = revealBlock, move = move, skip = requestSkip }
-	)
+	hotbar = LuckyHotbar.new(screen, {
+		select = holdBlock,
+		reveal = revealBlock,
+		move = move,
+		skip = requestSkip,
+		openAll = openAll,
+	})
 	opening = LuckyOpening.new(screen)
 	reveal = MysteryReveal.new(screen.Parent :: Instance, {
 		request = function(id: number): any
@@ -591,6 +634,44 @@ function LuckyClient.start(screen: ScreenGui)
 		local id = cueId or "CobaltCue"
 		local row = Catalog.get(id)
 		opening:play(kind or "Standard", id, if row then row.Rarity else "Common")
+		return opening:isOpen()
+	end)
+	-- Studio tests of the quick reveal (default a Common cue of the Standard row) and of "Open
+	-- all"'s summary (`ids`: "CobaltCue,CobaltCue,..."; default a few of the Standard and
+	-- Uncommon rows' cues, one twice), nothing asked of the server or changed in the save.
+	GuiQA.add("quickReveal", function(cueId: string?)
+		local id = cueId or BlockOdds.cueOdds("Standard")[1].id
+		local row = Catalog.get(id)
+		opening:quick(id, if row then row.Rarity else "Common")
+		return opening:isOpen()
+	end)
+	-- Press "Open all" as a tap would (the server really opens the blocks); whether it shows.
+	GuiQA.add("openAll", function()
+		local shown = hotbar.openAllButton.Visible
+		openAll()
+		return shown
+	end)
+	GuiQA.add("openAllSummary", function(ids: string?)
+		local list = {}
+		if ids then
+			for _, id in string.split(ids, ",") do
+				table.insert(list, { cue = id })
+			end
+		else
+			local seen = {}
+			for _, row in { "Standard", "Uncommon" } do
+				for _, entry in BlockOdds.cueOdds(row) do
+					if LuckyBlocks.quickReveal(entry.rarity) and not seen[entry.id] then
+						seen[entry.id] = true
+						table.insert(list, { cue = entry.id, new = #list == 0 })
+					end
+				end
+			end
+			if list[1] then
+				table.insert(list, { cue = list[1].cue })
+			end
+		end
+		opening:summary(list)
 		return opening:isOpen()
 	end)
 	-- The open reel's showcase card (economy v4 plan 4): stop the spin with it under the marker

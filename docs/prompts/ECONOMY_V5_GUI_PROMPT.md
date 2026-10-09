@@ -351,7 +351,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   screenshotted as it is now (phone emulator and PC); any breakage found goes first.
 - [x] 1. The server hook for the tutorial's scripted first block, with tests.
 - [x] 2. The climb screen for every block, the mark, the Secret rung (shims 1-3 gone).
-- [ ] 3. The quick reveal and "Open all".
+- [x] 3. The quick reveal and "Open all".
 - [ ] 4. Odds & Details for every block, with the pity bars (shim 4 gone).
 - [ ] 5. The Grand Opening Luck clover.
 - [ ] 6. The shop: the Mystery band, the restock, VIP, the Grand Opening and Starter cards, the
@@ -413,3 +413,17 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   **no merge with `tutorial-v2`**: the tutorial terminal is still working, so step 12 waits
   (do 13 and 14, then stop before 15); Mystery5's icon: the 1-pack's picture (dry run first).
   Screen control (computer use) is held by another session, so no emulator clicks.
+- **Step 3**: the quick reveal (`LuckyOpening.quick`): a Common or Uncommon cue skips the reel;
+  the result card alone (rays, sting) at `UI.QuickScale` 0.8, no hint, pops out by itself
+  after `QuickRevealSeconds` (closed 1.68 s after it showed), a tap sooner. "Open all": a green
+  kit button right of the bag button (hangs past the bar so the bar stays centred), shown
+  while a ready climbed Standard or Uncommon block is not in the hands or on the floor; in the
+  open bag a gamepad selects it. Its summary (`LuckyOpening.summary`): "37 BLOCKS OPENED!" over
+  one cue card per cue ("x7" for repeats, NEW on a first find), rarest first, in the columns
+  (up to `UI.OpenAll.MaxColumns` 8) that make the cards biggest, a tap closes it. Checked on
+  PC: the quick card, the button, a fake 16-cue summary (4 rows at first; now 8 across), a real
+  Open all of 37 blocks, the button gone after; console clean. The phone view waits for step
+  13 (by the numbers the button ends about 70 px left of the jump button). New GuiQA hooks:
+  `quickReveal`, `openAllSummary`, `openAll`. 40 real Standard climbs gave 22 / 12 / 3 / 3
+  (Standard / Uncommon / Rare / Epic): the odds are right (a Legendary-to-Secret and a
+  Standard-to-Legendary climb earlier were luck). Lint OK, 1160 tests. Shots: `step3/`.

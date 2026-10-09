@@ -2992,6 +2992,22 @@ Config.LuckyBlocks = {
 		MinScale = 0.55,
 		MaxScale = 1.4,
 		MarginPx = 12,
+		-- The quick reveal (economy v5 plan 3.8: a cue of a QuickReveal rarity): the result
+		-- card alone, no reel and no hint, at this share of its size; it pops out by itself
+		-- after QuickRevealSeconds (a tap closes it sooner, after CardDismissAfterSeconds).
+		QuickScale = 0.8,
+		-- "Open all" (OpenAll): a green kit button the bar's height right of the bag button
+		-- while at least one such block is ready, its words TextPx (a phone's PhoneTextPx).
+		-- Its summary: the cues that came out as cue cards CardPx wide (a repeat is one card
+		-- with "x3"), GapPx apart, under "5 BLOCKS OPENED!", in as many columns (at most
+		-- MaxColumns) as make them biggest on the screen.
+		OpenAll = {
+			TextPx = 20,
+			PhoneTextPx = 16,
+			CardPx = 120,
+			MaxColumns = 8,
+			GapPx = 12,
+		},
 	},
 }
 

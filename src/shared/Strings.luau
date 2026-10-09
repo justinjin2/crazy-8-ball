@@ -1018,8 +1018,8 @@ return {
 		-- "Open all" (economy v5 plan 3.8; the GUI session draws it): the button, and the
 		-- summary after it ("12 blocks opened!", then each cue).
 		OpenAll = "Open all",
-		OpenAllSummary = "%d blocks opened!",
-		OpenAllOne = "1 block opened!",
+		OpenAllSummary = "%d BLOCKS OPENED!", -- over the summary's cue cards, like YOU GOT
+		OpenAllOne = "1 BLOCK OPENED!",
 		-- The climb screen (MysteryReveal; the Mystery block's upgrade screen, every unclimbed
 		-- block's since economy v5).
 		Reveal = {
