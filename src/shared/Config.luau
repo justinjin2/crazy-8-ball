@@ -5162,6 +5162,18 @@ Config.Audio = {
 	-- 2026-10-07 (designer: nothing should hurt): the reveals and the pull cutscenes' risers and
 	-- hits, added since, sat 1.5 to 3x over and now cap at 0.06, a big moment.
 	Ui = {
+		-- The ball streak's steps (StreakHud; designer, 2026-10-09): the Jet Set Radio spray
+		-- sounds the designer brought (assets/audio/streak, cut from one file of eight), the six
+		-- rising single sprays at x2 to x7 and the four-hit burst at x8 (the double spray, clip
+		-- 7, is not used); x1 has none. Played with the pocket drop and its ding. Measured from
+		-- the files (90th-percentile RMS): Volume x RMS climbs from 0.05 at x2 to 0.06 at x8.
+		Streak2 = { Id = "rbxassetid://117312474365847", Volume = 0.22, Overlap = true },
+		Streak3 = { Id = "rbxassetid://129742099128979", Volume = 0.22, Overlap = true },
+		Streak4 = { Id = "rbxassetid://87519189220528", Volume = 0.26, Overlap = true },
+		Streak5 = { Id = "rbxassetid://139898623546632", Volume = 0.25, Overlap = true },
+		Streak6 = { Id = "rbxassetid://82377161023037", Volume = 0.27, Overlap = true },
+		Streak7 = { Id = "rbxassetid://74358862314454", Volume = 0.24, Overlap = true },
+		Streak8 = { Id = "rbxassetid://88090510137949", Volume = 0.23, Overlap = true },
 		-- "CoinTransfer_01" (Roblox, 1.7 s): a chip lands in the money HUD.
 		CashLand = { Id = "rbxassetid://127645268874265", Volume = 0.3, Overlap = true },
 		-- "Roblox_UI_Small_Click" (Roblox, 0.13 s), pitched up: the money count ticking.
@@ -8683,12 +8695,12 @@ Config.UI.Streak = {
 	-- easing out at FlareDecay a second) and grows in over IgniteSeconds at x3.
 	Fire = {
 		Sheets = {
-			[3] = "",
-			[4] = "",
-			[5] = "",
-			[6] = "",
-			[7] = "",
-			[8] = "",
+			[3] = "rbxassetid://72574195944042", -- fire_x3.png
+			[4] = "rbxassetid://84706197548293", -- fire_x4.png
+			[5] = "rbxassetid://73491448189618", -- fire_x5.png
+			[6] = "rbxassetid://112121109510711", -- fire_x6.png
+			[7] = "rbxassetid://90228155596074", -- fire_x7.png
+			[8] = "rbxassetid://133344444134271", -- fire_x8.png
 		},
 		Columns = 8,
 		Rows = 4,
@@ -8706,7 +8718,7 @@ Config.UI.Streak = {
 	-- The white burst at a step (a ring and rays, tinted the new colour; 8 frames at 30 fps),
 	-- WidthShare of the words' width.
 	Burst = {
-		Image = "",
+		Image = "rbxassetid://78644095284790", -- burst.png
 		Columns = 8,
 		Rows = 1,
 		FrameWidthPx = 128,

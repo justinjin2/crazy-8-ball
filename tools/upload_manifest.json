@@ -1164,6 +1164,41 @@
     "assetType": "Audio",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/audio/streak/spray_1.wav": {
+    "assetId": "117312474365847",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/streak/spray_2.wav": {
+    "assetId": "129742099128979",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/streak/spray_3.wav": {
+    "assetId": "87519189220528",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/streak/spray_4.wav": {
+    "assetId": "139898623546632",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/streak/spray_5.wav": {
+    "assetId": "82377161023037",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/streak/spray_6.wav": {
+    "assetId": "74358862314454",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/streak/spray_8.wav": {
+    "assetId": "88090510137949",
+    "assetType": "Audio",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/audio/ui/MoneyPayout.wav": {
     "assetId": "85019514683132",
     "assetType": "Audio",
@@ -5762,6 +5797,48 @@
     "assetId": "105537048195737",
     "assetType": "Decal",
     "imageId": "80667987508003",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/streak/burst.png": {
+    "assetId": "106773068727651",
+    "assetType": "Decal",
+    "imageId": "78644095284790",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/streak/fire_x3.png": {
+    "assetId": "84707797731774",
+    "assetType": "Decal",
+    "imageId": "72574195944042",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/streak/fire_x4.png": {
+    "assetId": "84516641635895",
+    "assetType": "Decal",
+    "imageId": "84706197548293",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/streak/fire_x5.png": {
+    "assetId": "97278674330708",
+    "assetType": "Decal",
+    "imageId": "73491448189618",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/streak/fire_x6.png": {
+    "assetId": "120897826076361",
+    "assetType": "Decal",
+    "imageId": "112121109510711",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/streak/fire_x7.png": {
+    "assetId": "136794235155613",
+    "assetType": "Decal",
+    "imageId": "90228155596074",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/streak/fire_x8.png": {
+    "assetId": "80004477417487",
+    "assetType": "Decal",
+    "imageId": "133344444134271",
     "status": "ok"
   },
   "/Users/justinjin/Downloads/422945-Puzzle-Game-Achievement-02.wav": {
