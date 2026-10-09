@@ -249,3 +249,21 @@ degrees) shows the tongue in the open bowl. At 96 px from the high camera the fa
 (`creepy_rest_high_phone`). In game the gape turns the eyes skyward from the low push-in camera,
 so VerityFx leans her toward the camera as she gapes (`GapeLeanDegrees`), which brings the
 hollow eyes back over the open mouth; `GrinDegrees` is 35.
+
+## G. Fire Shot's cloth art (`assets/abilities/FireShot/`)
+
+Our own procedural images, made by `tools/gen_fireshot_art.py` (numpy and PIL, seeded, so a
+re-run writes the same files) and uploaded to the group as Decals (2026-10-08). Each image id
+was read in Studio with `InsertService:LoadAsset` and the Decal's `Texture`.
+
+| File | What | Decal asset | Image (in Config) |
+|---|---|---|---|
+| `scorch_strip.png` (128 x 512) | the burn line, tileable along its length, light grey (tinted char) | 116993481378218 | 81910678846181 (`ScorchStripTexture`) |
+| `scorch_splat.png` (256 x 256) | the burn under the strike, a hit or a landing | 135848911150940 | 76654317041092 (`ScorchSplatTexture`) |
+| `fire_river.png` (128 x 512) | the river of fire under the aim lines, coloured, tileable along its height (a Beam lays an image's height along its length) | 121547569671304 | 103203498120310 (`RiverTexture`) |
+
+The first upload of `fire_river.png` (Decal 99746765490329) was drawn lying down and showed as
+a row of flames across the line; it is superseded, archive it. The flames, embers, smoke and
+the trail reuse the cue skins' fire art (Infernal: `fire_8x8`, `energy_flame_8x8`, `spark`,
+`smoke_8x8`, `trail_hellfire`).
+

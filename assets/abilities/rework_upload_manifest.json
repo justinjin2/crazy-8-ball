@@ -19,6 +19,24 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/FireShot/fire_river.png": {
+    "assetId": "121547569671304",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "103203498120310"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/FireShot/scorch_splat.png": {
+    "assetId": "135848911150940",
+    "assetType": "Decal",
+    "imageId": "76654317041092",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/FireShot/scorch_strip.png": {
+    "assetId": "116993481378218",
+    "assetType": "Decal",
+    "imageId": "81910678846181",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/SteelBall/golden_spiral.png": {
     "assetId": "109945245461564",
     "assetType": "Decal",
@@ -62,8 +80,8 @@
   "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/FireShot.png": {
     "assetId": "139546488723905",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "116335731498943"
+    "imageId": "116335731498943",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/LookOverThere.png": {
     "assetId": "85056727532784",

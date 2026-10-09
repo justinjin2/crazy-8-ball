@@ -55,10 +55,13 @@ openings have a flat shelf scaled to ball diameter, and facings extend to their 
 against zero-time hit loops. `Aim.trace` gives the guideline from the same code as the shot;
 its optional `launchScale` traces a jump as a launch ability sends it (Black Flash, Fire Shot:
 `Catalog.launchScale` of the shooter's armed ult, from Main's `refreshAim`).
-`Aim.bounceTrace(state, shot, maxInches, maxBounces, launchScale)` is Fire Shot's line: the
-same flat time-of-impact search (`firstContact`, balls, cushion faces, jaws and, for this line
-only, the pockets by `TableGeometry.pocketAt`'s centre-in-the-rim rule), mirrored off each
-cushion until a ball (the ghost and object line, as `Aim.trace`), a pocket or a cap.
+`Aim.fullLines(state, trace)` gives Fire Shot's longer lines (`Catalog.fullLines`, from
+`Config.Ults.FireShot.FullLines`): how far the object ball's line and the cue ball's line after
+the first contact run before that ball's centre meets the next ball, cushion or pocket. It uses
+the same flat time-of-impact search (`firstContact`: balls, cushion faces, jaws and, for these
+lines only, the pockets by `TableGeometry.pocketAt`'s centre-in-the-rim rule). Main passes it to
+`Guideline.show` as `full`. With it, the guideline draws every line whatever the difficulty, and
+the two lines run on a radius further, until they touch what they meet.
 Balls can fly (jump shots, `Physics/Flight`), after Dr. Dave's TP B.10 model. `Cue.strike`
 sends the stroke's downward part into the slate, which rebounds at `SlateRestitution` (0.6);
 a near-level stroke gets only `FlatStrikeBounce` of that, rising to all of it at
@@ -697,8 +700,18 @@ the game: `Config.Ults.Retired` maps a saved slot holding either to Magnet when 
 loads (no save version bump); their mentions above are history. Super Bounce became Fire Shot
 in the third round (`Retired.SuperBounce = "FireShot"`), the starter (`Config.Ults.Default`,
 `Config.Tutorial.SpinUlt`): `Effects/FireShot` is Black Flash's launch alone (the first step
-scales the cue ball's motion along the cloth and its spin by `LaunchSpeedScale`, once), its
-line `Aim.bounceTrace` (above) and its scorch marks the look's. The value harness's careful
+scales the cue ball's motion along the cloth and its spin by `LaunchSpeedScale`, once). It
+also sends `ult` events: "turn" where the cue ball meets a cushion or a ball, "down" where it
+lands. Its full lines are `Aim.fullLines` (above). `FireShotFx` draws the rest:
+  - the flames on the ball;
+  - fire under the guideline's lines (flat Beams);
+  - the strike;
+  - the scorch marks, which bend at the "turn" events and cool from hot embers. They last
+    until the shooter's next turn: they expire when the snapshot's `activeTeam` has left the
+    shooter's team and come back, at a new `epoch`, or (Solo) at the next shot. The table's
+    anchor is held meanwhile (`kit.anchor`).
+
+The value harness's careful
 shooter may pull Fire Shot's stroke to its planned speed over the scale (`V.planners.Launch`,
 `V.LAUNCH_PLANNED`); the careless one and the bots hit as always.
 

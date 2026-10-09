@@ -3314,3 +3314,15 @@ timer of a new block stay the designer's call.
   a little more often (fouls 2-4% careful, 5-7% careless). Its Worth is 0 and the Common mean
   0.17. The harness plays no kicks, banks, or Difficult and Challenger tables, where the line
   helps most. The bots hit at the full 2x (no power correction: it measured no better).
+- 2026-10-08: Fire Shot's "longer aim line" means the guideline's own lines (the designer's
+  correction, with a screenshot): after the first ball, the object ball's line and the cue
+  ball's line run on until they touch the next cushion, ball or pocket. It is not a line that
+  bounces round the cushions, so `Aim.bounceTrace` became `Aim.fullLines`. With Fire Shot
+  armed the guideline draws every line whatever the table's difficulty.
+- 2026-10-08: Fire Shot's look:
+  - A river of fire flows under each guideline line. It is our own art (`fire_river.png`),
+    alpha-blended: an additive glow washed out to pink on the blue cloth, and the cue trails'
+    smoky art read as soot.
+  - Scorch marks use our own art, bend exactly where the ball does, and glow then cool. They
+    last until the shooter's next turn (in Solo, their next shot), and a new game clears them.
+  - Five Pro Sound Effects library clips: ignite, crackle loop, strike roar, hit sizzle, out.

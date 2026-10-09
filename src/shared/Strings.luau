@@ -1119,7 +1119,7 @@ return {
 		Descriptions = {
 			Magnet = "The first ball your next shot hits is pulled into a pocket it nearly misses.",
 			EaglesEye = "See the full path of your shot, every bounce included.",
-			FireShot = "Your cue ball bursts into flames! Its aim line bounces off every cushion to the first ball, and it flies at double power, scorching the cloth.",
+			FireShot = "Your cue ball bursts into flames! Its aim lines run all the way to the cushions, and it flies at double power, scorching the cloth.",
 			CatchABall = "Your cue ball becomes a catch ball. The first ball it hits is caught inside, then it hops to your nearest ball and catches that too. Both count as pocketed.",
 			LookOverThere = "Point up and yell! While your opponent looks away, move the cue ball anywhere you like before they turn back. Then take your shot.",
 			Verity = "Hi, I'm Verity! Trust me... The first ball you hit gets eaten (it counts as pocketed), then she rolls on, shoving every ball out of her way.",

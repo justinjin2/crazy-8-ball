@@ -3925,6 +3925,19 @@ Config.Ults = {
 		-- sneaky sting went). A public fan upload, the meme's own sound; the licensed backup is
 		-- ProSoundEffects 9125404320.
 		LookBoom = { Id = "rbxassetid://140367458608473", Volume = 0.55 },
+		-- Fire Shot (the designer's third rework round, 2026-10-08; ProSoundEffects library
+		-- clips, each measured in Studio with an AudioAnalyzer: peak, the level most of it
+		-- stays under (p90) and length, at volume 1): the ignition at the arming moment,
+		-- "Pyro Fire Ball Burst 15" (0.88, 0.10, 2.2 s); the crackle looping while it burns,
+		-- "Torch O Fire 1" (0.70, 0.037, 10.9 s); the strike's roar, "Fire Whoosh 6" (0.51,
+		-- 0.063, 1.5 s); a hit's sizzle (times how hard), "Sizzle Short And Explosive Sear 12"
+		-- (0.43, 0.067, 1.3 s); going out, "Sizzle Short And Explosive Sear 1" (0.52, 0.078,
+		-- 2.2 s). Volume x p90 about 0.045 a sting, 0.02 the loop. (tune by ear)
+		FireIgnite = { Id = "rbxassetid://9117987723", Volume = 0.5 },
+		FireLoop = { Id = "rbxassetid://9120193895", Volume = 0.55 },
+		FireLaunch = { Id = "rbxassetid://9114446277", Volume = 0.7 },
+		FireHit = { Id = "rbxassetid://9119166435", Volume = 0.5 },
+		FireOut = { Id = "rbxassetid://9119165436", Volume = 0.45 },
 	},
 }
 
@@ -4122,10 +4135,14 @@ Config.Ults.EaglesEye = {
 
 -- Fire Shot (the designer's third rework round, 2026-10-08: Super Bounce reworked, the starter;
 -- src/shared/Ults/Effects/FireShot): the cue ball leaves the cue LaunchSpeedScale times as fast
--- as the stroke sends it, along the cloth, its spin with it (Black Flash's launch). Its aim line
--- and the scorch marks are the look's (Config.UI.FireShotFx). (tune)
+-- as the stroke sends it, along the cloth, its spin with it (Black Flash's launch). With it armed
+-- the shooter's guideline draws FullLines: after the first contact the object ball's line and
+-- the cue ball's run on to the next cushion, ball or pocket (Physics/Aim.fullLines), at every
+-- difficulty (the designer: "the aiming line longer ... to the next edge of a table"). The
+-- flames and the scorch marks are the look's (Config.UI.FireShotFx). (tune)
 Config.Ults.FireShot = {
 	LaunchSpeedScale = 2, -- the designer: "increased power like 2x speed"
+	FullLines = true,
 }
 
 -- Magnet's physics (section 7.3; src/shared/Ults/Effects/Magnet.luau). Each allowed ball that
@@ -11303,6 +11320,295 @@ Config.UI.GuangdongTigerFx = {
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join): no sounds
 }
 
+-- Fire Shot's look (src/client/FireShotFx.luau; the designer's third rework round,
+-- 2026-10-08): the burning cue ball, the fire under its full aim lines, the strike, the
+-- flames in flight and the scorch marks it leaves. Studs unless named; colours 0..255. The particle rows
+-- are CueVfx rows (the cue skins' format: the Infernal cue's fire art), every rate scaled by
+-- Lower effects (Quality), except that a row's Color keys are { time, r, g, b }. The sounds are
+-- Config.Ults.Audio's Fire* clips. (tune)
+Config.UI.FireShotFx = {
+	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join): no sounds
+	-- Engulfed: from the arming moment until the cue ball stops. The flames come up over
+	-- IgniteSeconds and die down over DieSeconds (at rest, down a pocket, or disarmed).
+	IgniteSeconds = 0.35,
+	DieSeconds = 1.0,
+	DrownSeconds = 0.15, -- down a pocket: out at once
+	-- The ignition and the strike start the flames at least this high (then they roar up).
+	IgniteLevel = 0.35,
+	StrikeLevel = 0.6,
+	-- The emitters sit on an invisible ball HostBallWidths the cue ball's size that follows it,
+	-- the flames and embers coming off its surface (Shape) and rising.
+	HostBallWidths = 0.9,
+	Flames = {
+		Name = "Flames",
+		Texture = "rbxassetid://118342487469917", -- energy_flame, the Infernal cue's
+		FlipbookLayout = "Grid8x8",
+		FlipbookMode = "OneShot",
+		Shape = "Sphere",
+		ShapeStyle = "Surface",
+		Rate = 44,
+		Lifetime = { 0.45, 0.7 },
+		Speed = { 0.15, 0.4 },
+		Acceleration = { 0, 2.8, 0 },
+		Size = { { 0, 0.4 }, { 0.35, 0.64 }, { 1, 0.16 } },
+		Transparency = { { 0, 0.35 }, { 0.15, 0 }, { 0.6, 0.3 }, { 0.85, 1 }, { 1, 1 } },
+		Rotation = { -15, 15 },
+		Color = {
+			{ 0, 255, 243, 192 },
+			{ 0.3, 255, 176, 64 },
+			{ 0.7, 255, 90, 20 },
+			{ 1, 192, 32, 12 },
+		},
+		Brightness = 2,
+		LightEmission = 0.7,
+		ZOffset = 0.1,
+	},
+	Licks = {
+		Name = "Licks",
+		Texture = "rbxassetid://73816733109936", -- fire_8x8
+		FlipbookLayout = "Grid8x8",
+		FlipbookMode = "OneShot",
+		Shape = "Sphere",
+		ShapeStyle = "Surface",
+		Rate = 22,
+		Lifetime = { 0.3, 0.45 },
+		Speed = { 0.3, 0.6 },
+		Acceleration = { 0, 3.2, 0 },
+		Size = { { 0, 0.22 }, { 0.4, 0.4 }, { 1, 0.1 } },
+		Transparency = { { 0, 0.3 }, { 0.2, 0 }, { 0.7, 0.4 }, { 1, 1 } },
+		Rotation = { -20, 20 },
+		Color = { { 0, 255, 248, 208 }, { 0.4, 255, 192, 80 }, { 1, 255, 96, 24 } },
+		Brightness = 2,
+		LightEmission = 0.8,
+		ZOffset = 0.15,
+	},
+	Embers = {
+		Name = "Embers",
+		Texture = "rbxassetid://129676691177221", -- spark
+		Shape = "Sphere",
+		ShapeStyle = "Surface",
+		Rate = 16,
+		Lifetime = { 0.7, 1.2 },
+		Speed = { 0.6, 1.4 },
+		SpreadAngle = { 60, 60 },
+		Acceleration = { 0, 1.6, 0 },
+		Size = { { 0, 0.05 }, { 1, 0 } },
+		Squash = -0.6,
+		Orientation = "VelocityParallel",
+		Color = {
+			{ 0, 255, 224, 138 },
+			{ 0.25, 255, 138, 31 },
+			{ 0.6, 224, 32, 26 },
+			{ 1, 90, 8, 8 },
+		},
+		LightEmission = 1,
+	},
+	Smoke = {
+		Name = "Smoke",
+		Texture = "rbxassetid://107986039759482", -- smoke_8x8
+		FlipbookLayout = "Grid8x8",
+		FlipbookMode = "OneShot",
+		Rate = 5,
+		Lifetime = { 1, 1.5 },
+		Speed = { 0.3, 0.5 },
+		SpreadAngle = { 25, 25 },
+		Acceleration = { 0, 1.2, 0 },
+		Size = { { 0, 0.25 }, { 1, 0.75 } },
+		Transparency = { { 0, 1 }, { 0.2, 0.55 }, { 1, 1 } },
+		Rotation = { 0, 360 },
+		RotSpeed = { -25, 25 },
+		Color = { { 0, 42, 14, 8 }, { 1, 12, 6, 6 } },
+		ZOffset = -0.2,
+	},
+	-- The glow round it: Kit.Art.SoftGlow on a billboard GlowBallWidths across.
+	GlowBallWidths = 3.4,
+	GlowColor = { 255, 140, 40 },
+	GlowTransparency = 0.4,
+	-- A see-through Neon shell over the ball, ShellBallWidths across (0 for none).
+	ShellBallWidths = 1.1,
+	ShellColor = { 255, 110, 25 },
+	ShellTransparency = 0.8,
+	-- The firelight, flickering with noise (FirePit's): its brightness times
+	-- 1 + Flicker x (noise(t x FlickerSpeed) + 0.35 noise(t x 2.7 FlickerSpeed)); the glow and
+	-- the shell breathe with it.
+	LightColor = { 255, 130, 40 },
+	LightBrightness = 2.2,
+	LightRangeStuds = 6,
+	Flicker = 0.35,
+	FlickerSpeed = 7,
+	-- Bursts (the ignition, the strike, a hit): flames thrown out and sparks flying off.
+	BurstFlames = {
+		Name = "BurstFlames",
+		Texture = "rbxassetid://118342487469917",
+		FlipbookLayout = "Grid8x8",
+		FlipbookMode = "OneShot",
+		Lifetime = { 0.3, 0.5 },
+		Speed = { 1.2, 3 },
+		SpreadAngle = { 180, 180 },
+		Drag = 4,
+		Acceleration = { 0, 2, 0 },
+		Size = { { 0, 0.35 }, { 0.3, 0.7 }, { 1, 0.2 } },
+		Transparency = { { 0, 0.2 }, { 0.6, 0.35 }, { 1, 1 } },
+		Rotation = { 0, 360 },
+		Color = {
+			{ 0, 255, 243, 192 },
+			{ 0.3, 255, 176, 64 },
+			{ 0.7, 255, 90, 20 },
+			{ 1, 192, 32, 12 },
+		},
+		Brightness = 2,
+		LightEmission = 0.8,
+	},
+	Sparks = {
+		Name = "Sparks",
+		Texture = "rbxassetid://129676691177221",
+		Lifetime = { 0.35, 0.7 },
+		Speed = { 3, 8 },
+		SpreadAngle = { 180, 180 },
+		Drag = 3,
+		Acceleration = { 0, -6, 0 },
+		Size = { { 0, 0.06 }, { 1, 0 } },
+		Squash = -1,
+		Orientation = "VelocityParallel",
+		Color = {
+			{ 0, 255, 240, 176 },
+			{ 0.3, 255, 154, 42 },
+			{ 0.7, 224, 48, 26 },
+			{ 1, 90, 8, 8 },
+		},
+		LightEmission = 1,
+	},
+	-- The ignition (the arming moment, UltCutscene's onArming): flames and sparks off the ball,
+	-- a flash of firelight, the whoosh (FireIgnite).
+	IgniteFlames = 18,
+	IgniteSparks = 26,
+	IgniteLightBrightness = 7,
+	IgniteLightRangeStuds = 8,
+	IgniteLightSeconds = 0.55,
+	-- The strike: a burst off the ball, a bigger flash, the roar (FireLaunch), and for the
+	-- players at the table a field-of-view punch and a little shake.
+	StrikeFlames = 24,
+	StrikeSparks = 34,
+	StrikeLightBrightness = 9,
+	StrikeLightRangeStuds = 10,
+	StrikeLightSeconds = 0.5,
+	StrikeFovDegrees = 5,
+	StrikeFovSeconds = 0.4,
+	StrikeShakeStuds = 0.06,
+	StrikeShakeSeconds = 0.3,
+	-- In flight the flames are streamed along the frame's path, one every StreamSpacingStuds
+	-- (at most StreamMaxPerFrame a frame, a lick with every StreamLickEvery-th), so a fast ball
+	-- leaves an unbroken stream, not clumps.
+	StreamSpacingStuds = 0.16,
+	StreamMaxPerFrame = 10,
+	StreamLickEvery = 2,
+	StreamMaxGapStuds = 12, -- a longer jump in a frame is a hitch or a move, not flight: no stream
+	-- And a burning ribbon behind it (Trail; the cue skin's own trail is hidden meanwhile), with
+	-- a hot core inside, laid while it moves faster than TrailMinSpeed (in/s).
+	TrailTexture = "rbxassetid://111322789691032", -- trail_hellfire, the Infernal cue's
+	TrailTextureLength = 1.3,
+	TrailSeconds = 0.3,
+	TrailBallWidths = 1.6,
+	TrailColors = { { 255, 236, 160 }, { 255, 140, 40 }, { 220, 50, 15 } },
+	TrailTransparency = { { 0, 0.05 }, { 0.6, 0.35 }, { 1, 1 } },
+	TrailTailWidth = 0.25,
+	TrailBrightness = 1.6,
+	CoreShare = 0.38, -- the core's width, of the ribbon's
+	CoreSeconds = 0.18,
+	CoreColors = { { 255, 240, 180 }, { 255, 150, 50 } },
+	TrailMinSpeed = 4,
+	-- Each cushion or ball it hits: sparks and a puff of flame (scaled by the impact: full at
+	-- FullSpeed in/s, never under MinWeight), a flash and the sizzle (FireHit), no closer than
+	-- HitGapSeconds apart.
+	FullSpeed = 300,
+	MinWeight = 0.25,
+	HitSparks = 22,
+	HitFlames = 6,
+	HitLightBrightness = 3.5,
+	HitLightRangeStuds = 5,
+	HitLightSeconds = 0.3,
+	HitGapSeconds = 0.06,
+	-- Out (at rest, or down a pocket): a smoke puff and the sizzle (FireOut).
+	OutSmoke = 10,
+	-- How long a one-shot's holder lives (its sound and particles have played out by then).
+	HolderSeconds = 3,
+	-- The aim (the local shooter's only, look:aiming): the white guideline draws every line,
+	-- its object ball's and cue ball's lines running on to the next cushion, ball or pocket
+	-- (Aim.fullLines; the designer, 2026-10-08: "to the next edge of a table"). Under each of
+	-- its three lines (the aim, the object ball's, the cue ball's) a river of fire flows the
+	-- way the line goes: a flat Beam RiverWidthStuds wide with a band of flame scrolling along
+	-- it (assets/abilities/FireShot/fire_river.png, tools/gen_fireshot_art.py: yellow-orange
+	-- down the middle to a dark red rim, in its own colours), tinted from RiverColor and
+	-- RiverTransparency where the line starts to RiverFarColor and RiverFarTransparency where
+	-- it ends (cooler, redder). Alpha-blended and unlit (RiverLightEmission 0): an additive
+	-- glow washes out to pink and white on the bright blue cloth, and the cue trails' smoky
+	-- art reads as soot there (the look checks, 2026-10-08). RiverLiftInches over the cloth:
+	-- under the guideline (Config.Guideline.HeightAboveClothInches), over the scorch marks.
+	RiverTexture = "rbxassetid://103203498120310",
+	RiverTextureLength = 1.6,
+	RiverTextureSpeed = 1.2,
+	RiverWidthStuds = 0.34,
+	RiverLightEmission = 0,
+	RiverBrightness = 1,
+	RiverColor = { 255, 255, 255 },
+	RiverFarColor = { 255, 170, 120 },
+	RiverTransparency = 0,
+	RiverFarTransparency = 0.15,
+	RiverLiftInches = 0.075,
+	-- The aim is re-drawn when it moves this much: the angle (radians), the power (a jump's
+	-- flight), each spin axis, a ball (inches).
+	AngleStep = 0.0002,
+	PowerStep = 0.002,
+	SpinStep = 0.01,
+	BallKeyInches = 0.01,
+	-- The scorch marks (everyone at the table): the burn line where the cue ball rolled,
+	-- ScorchWidthInches wide (assets/abilities/FireShot/scorch_strip.png, tileable along its
+	-- length, ScorchTileWidths times as long as wide; tools/gen_fireshot_art.py), a new piece
+	-- wherever its heading turns more than ScorchTurnDegrees, and a splat (scorch_splat.png,
+	-- SplatInches across) under the strike and at every hit. Char coloured, ScorchTransparency,
+	-- fading in over ScorchAppearSeconds. Not while the ball is in the air (higher than
+	-- AirInches), down a pocket or off the table; at most MaxScorchPieces a shot.
+	ScorchStripTexture = "rbxassetid://81910678846181",
+	ScorchSplatTexture = "rbxassetid://76654317041092",
+	ScorchWidthInches = 2.6,
+	ScorchTileWidths = 4,
+	-- Heights over the cloth (inches): the line, the splats over it, the embers over both.
+	ScorchLiftInches = 0.03,
+	SplatLiftInches = 0.05,
+	EmberLiftInches = 0.07,
+	ScorchThicknessStuds = 0.005,
+	ScorchColor = { 56, 34, 22 },
+	ScorchTransparency = 0.15,
+	ScorchAppearSeconds = 0.25,
+	ScorchTurnDegrees = 4,
+	ScorchMinStepInches = 0.3,
+	SplatInches = 4.2,
+	-- A splat's size, of SplatInches: under the strike, at a hit, where it lands from a hop.
+	StrikeSplatScale = 1.15,
+	HitSplatScale = 0.8,
+	DownSplatScale = 0.7,
+	AirInches = 0.25,
+	MaxScorchPieces = 60,
+	-- The fresh burn glows: Neon embers along it every EmberSegmentInches, EmberWidthShare of
+	-- the burn's width, cooling from EmberHotColor to EmberCoolColor and fading out over
+	-- EmberSeconds (a splat's flash, SplatEmberShare of its width, over SplatEmberSeconds), so
+	-- the line is hot right behind the ball and cools down its length.
+	EmberSegmentInches = 5,
+	EmberWidthShare = 0.4,
+	EmberHotColor = { 255, 205, 95 },
+	EmberCoolColor = { 200, 40, 10 },
+	EmberTransparency = 0.15,
+	EmberSeconds = 1.4,
+	SplatEmberSeconds = 0.8,
+	SplatEmberShare = 0.55,
+	-- The marks stay until the shooter's next turn (the designer, 2026-10-08): through the
+	-- other side's turn, gone when the table comes back to the shooter's side (a run of their
+	-- own keeps them; in Solo, until their next shot), or at a new game. Then they fade out
+	-- over ExpireSeconds. At most MaxBurns shots' marks at a table (the oldest goes first).
+	ExpireSeconds = 1,
+	MaxBurns = 4,
+}
+
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
 -- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
 Config.UI.AbilityFx = {
@@ -11322,6 +11628,7 @@ Config.UI.AbilityFx = {
 		BlackFlash = "BlackFlashFx",
 		BlackHole = "BlackHoleFx",
 		GuangdongTiger = "GuangdongTigerFx",
+		FireShot = "FireShotFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.

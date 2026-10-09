@@ -17,3 +17,8 @@
 /Users/justinjin/Desktop/8ball-abilities/assets/abilities/VerityEvil/verity_creepy.glb
 # Fire Shot, the starter (the designer's third rework round, 2026-10-08): the icon
 /Users/justinjin/Desktop/8ball-abilities/assets/abilities/icons/FireShot.png
+# Fire Shot's scorch marks (procedural, tools/gen_fireshot_art.py, 2026-10-08)
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/FireShot/scorch_strip.png
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/FireShot/scorch_splat.png
+# Fire Shot's river of fire under its aim lines (procedural, tools/gen_fireshot_art.py, 2026-10-08)
+/Users/justinjin/Desktop/8ball-abilities/assets/abilities/FireShot/fire_river.png

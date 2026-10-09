@@ -2,8 +2,9 @@
 -- Fire Shot (the designer's third rework round, 2026-10-08: Super Bounce reworked, the
 -- starter): the cue ball leaves the cue at Config.Ults.FireShot.LaunchSpeedScale times the
 -- stroke's speed along the cloth (its spin with it, its hop kept), once; nothing else moves
--- differently; the client's replay matches the settle. It is the starter, the tutorial's spin
--- lands on it, and a saved Super Bounce becomes it.
+-- differently; the client's replay matches the settle; the look's "turn" and "down" events mark
+-- where the cue ball bends and lands. It is the starter, the tutorial's spin lands on it, a
+-- saved Super Bounce becomes it, and the aim draws its full lines (physics_aim_test).
 
 local H = require("./harness")
 local V = require("./ult_value")
@@ -66,6 +67,84 @@ function tests.an_armed_shot_runs_further_than_the_same_stroke_plain()
 	check(fireTime > plainTime, "rolls longer")
 end
 
+-- The look's scorch line bends at the "turn" events: one for each cushion and ball the cue
+-- ball meets, in order, at its centre then.
+function tests.the_turns_mark_where_the_cue_ball_bends()
+	local R = Config.Balls.RadiusInches
+	local function turnsOf(balls: { any }, shot: any): ({ any }, { any })
+		local sim = Simulation.newState(geometry, balls)
+		local strike = Simulation.strike(sim, shot)
+		Simulation.armEffect(sim, "FireShot", {}, nil)
+		local outcome = Simulation.settle(sim, { strike })
+		local turns, hits = {}, {}
+		for _, ev in outcome.events do
+			if ev.type == "ult" and ev.kind == "turn" then
+				table.insert(turns, ev)
+			elseif
+				(ev.type == "railHit" and ev.ball == 0)
+				or (ev.type == "ballHit" and (ev.ball == 0 or ev.other == 0))
+			then
+				table.insert(hits, ev)
+			end
+		end
+		return turns, hits
+	end
+
+	-- Straight into a ball: the turn is where the two touch, two radii short of it.
+	local turns, hits = turnsOf({ Ball.new(0, -30, 0), Ball.new(1, 0, 0) }, {
+		angle = 0,
+		power = 0.4,
+	})
+	check(#turns == #hits and #turns >= 1, ("a turn a hit: %d, %d"):format(#turns, #hits))
+	local first = turns[1]
+	check(first.other == 1 and first.ball == 0, "the cue ball meets ball 1")
+	check(math.abs(first.x - -2 * R) < 0.02 and math.abs(first.y) < 0.02, "where they touch")
+	check(first.value and first.value > 0, "with the impact speed")
+
+	-- Round the table off the cushions: each turn is the rail hit's own spot, a ball's radius
+	-- off a cushion.
+	local g = geometry
+	turns, hits = turnsOf({ Ball.new(0, -30, 0) }, { angle = 0.35, power = 0.5 })
+	check(#turns == #hits and #turns >= 3, ("cushions: %d turns, %d hits"):format(#turns, #hits))
+	local onCushion = 0
+	for i, turn in turns do
+		local hit = hits[i]
+		check(turn.other == nil, "a cushion has no ball")
+		check(turn.x == hit.x and turn.y == hit.y, "the rail hit's spot")
+		if
+			math.abs(math.abs(turn.x) - (g.halfLength - R)) < 0.05
+			or math.abs(math.abs(turn.y) - (g.halfWidth - R)) < 0.05
+		then
+			onCushion += 1
+		end
+	end
+	check(onCushion >= #turns - 1, "a ball's radius off a cushion (a jaw aside)")
+end
+
+-- A jump: "down" where the cue ball comes back onto the cloth (the burn starts again there),
+-- on its line, one for each landing.
+function tests.the_landings_mark_where_the_burn_starts_again()
+	local sim = Simulation.newState(geometry, { Ball.new(0, -30, 0) })
+	local strike = Simulation.strike(sim, { angle = 0, power = 0.65, elevation = 45 })
+	Simulation.armEffect(sim, "FireShot", {}, nil)
+	local outcome = Simulation.settle(sim, { strike })
+	local downs, lands = {}, 0
+	for _, ev in outcome.events do
+		if ev.type == "ult" and ev.kind == "down" then
+			table.insert(downs, ev)
+		elseif ev.type == "land" and ev.ball == 0 then
+			lands += 1
+		end
+	end
+	check(#downs == lands and lands >= 1, ("a down a landing: %d, %d"):format(#downs, lands))
+	local last = -30
+	for _, down in downs do
+		check(math.abs(down.y) < 0.02, "on the line of the shot")
+		check(down.x > last, "further along each time")
+		last = down.x
+	end
+end
+
 function tests.the_replay_matches_the_settle()
 	local states = V.states(12, 61)
 	local r = V.rng(14)
@@ -123,6 +202,9 @@ function tests.the_aim_knows_the_launch_abilities()
 		"Black Flash"
 	)
 	check(Catalog.launchScale("Magnet") == nil and Catalog.launchScale(nil) == nil, "no other")
+	-- Its longer lines (the designer: "to the next edge of a table"); no other ult has them.
+	check(Catalog.fullLines("FireShot"), "Fire Shot draws the full lines")
+	check(not Catalog.fullLines("BlackFlash") and not Catalog.fullLines(nil), "nothing else")
 end
 
 return tests

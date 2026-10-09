@@ -57,19 +57,17 @@ One line each; the long form is the 2026-10-08 entry at the top of
   rarer cues show more often on the reel). Still open: the see-through trial's verdict, a phone
   and a gamepad, the numbered card's mark A or B, the copy numbers' own plan, then Free
   Reward, Abilities and Ranked. `shop-lively` is not yet merged into `release`.
-- **The abilities rework** (branch `abilities-rework`, not merged;
+- **The abilities rework** (branch `abilities-rework`, being merged into `main` 2026-10-08;
   `docs/prompts/ABILITIES_REWORK_PLAN.md`): the 13-ability ladder and the designer's second and
-  third rounds (2026-10-08). Look Over There! (Rare now) is the sneaky ball in hand with no
-  cutscene; Catch-a-Ball (Epic now) catches a second ball (DOUBLE CATCH!); Verity (Rare now)
-  turns evil, eats the ball she hits and shoves the rest out of her way; Black Hole and the
-  Tiger have no caps; **Fire Shot replaced Super Bounce and is the starter** (2x speed, a bounce
-  aim line to the first ball, scorch marks; its rules, icon and tests are in, its look is
-  being built). Measured rarity means 0.17 / 0.50 / 0.64 / 0.94 / 1.15 / 1.78 (Fire Shot
-  measures 0). Checked in Studio: Verity's act and her two new looks (the plush smiley, the
-  creepy face, to the designer's reference images), Catch-a-Ball's leap and both catches (the
-  replay now holds each slow-motion moment; a long frame used to skip it). Waiting: the
-  designer's hands-on test of the sneak (two players: Studio's Test tab, Clients and Servers),
-  their voice lines.
+  third rounds. Look Over There! (Rare) sneaks ball in hand; Catch-a-Ball (Epic) can catch two;
+  Verity (Rare) eats the ball she hits and shoves the rest; Black Hole and the Tiger have no
+  caps. **Fire Shot replaced Super Bounce and is the starter**: 2x speed, the guideline's lines
+  after the first ball run on to the next cushion with fire under them, the ball burns, and
+  scorch marks last until the shooter's next turn. Rarity means 0.17 / 0.50 / 0.64 / 0.94 /
+  1.15 / 1.78 (Fire Shot 0). Checked in Studio: Fire Shot's lines, fire, strike and scorch
+  line; Verity's act and looks; both catches. Not yet: the marks fading when the turn comes
+  back, phone and controller, the sounds by ear, the tutorial spin's Fire Shot reveal, and the
+  designer's two-player test of the sneak and their voice lines.
 - **Abilities review:** going one by one since 2026-09-30 (Magnet first). Abilities not yet
   reviewed are provisional.
 - **The lively Shop is done** and merged into `release` (2026-10-06, from `shop-lively`),

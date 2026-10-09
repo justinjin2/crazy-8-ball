@@ -510,10 +510,11 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   - **Fire Shot** (Common, 0; **everyone's starter, free forever**, since the designer's third
     rework round, 2026-10-08, when it replaced Super Bounce: a saved Super Bounce becomes Fire
     Shot): armed, the cue ball bursts into flames, seen by everyone at the table. While the
-    shooter aims, a fiery aim line runs from the cue ball all the way on, mirrored off every
-    cushion (angle in, angle out) for up to about 3 table lengths, and stops at the first ball
-    it meets (the ghost ring and that ball's line, as the normal guideline draws them) or in a
-    pocket; it never shows where anything stops. It ignores the table's difficulty, like
+    shooter aims, the guideline draws every line, and the object ball's line and the cue ball's
+    line after the first contact run all the way on until they touch the next cushion, ball or
+    pocket (the designer, 2026-10-08: "to the next edge of a table"; not a line bouncing round
+    the cushions). A river of fire flows under each line. It never shows where anything stops,
+    and it ignores the table's difficulty, like
     Eagle's Eye. The shot leaves the cue at **twice the speed** (the stroke's speed along the
     cloth and its spin, not a jump's height), the ball a comet of fire with a flame trail, and
     it **scorches the cloth** where it rolls: burn marks that glow, cool to char and stay until

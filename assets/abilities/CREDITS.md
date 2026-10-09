@@ -1,7 +1,7 @@
 # Abilities: credits and sources (2026-09-29; the rework 2026-10-08)
 
 Everything the 13 abilities ship with, and where it came from. Ids live in
-`Config.Ults.Assets` (models, icons, images) and `Config.Ults.Sounds` (audio).
+`Config.Ults.Assets` (models, icons, images) and `Config.Ults.Audio` (audio).
 
 ## Made for this game
 
@@ -41,8 +41,11 @@ the licensed backups are named beside each in `Config.Ults.Sounds`.
 | Magnet | drop | Metal Impact Heavy Clunking Hits 4, Electric Zaps 12 (Pro Sound Effects) |
 | Magnet, Chain Lightning | arming | Electric Zaps 6 (Pro Sound Effects) |
 | Eagle's Eye | arming | Eagle Screech 1 |
-| Super Bounce | arming | Cartoon Spring Bounce Sound (MysteryMilo) |
-| Super Bounce | bounce | SS_rubberduck_variety_spring_02 (Roblox) |
+| Fire Shot | ignition | Pyro Fire Ball Burst 15 (Pro Sound Effects) |
+| Fire Shot | burning (loop) | Torch O Fire 1 (Pro Sound Effects) |
+| Fire Shot | strike | Fire Whoosh 6 (Pro Sound Effects) |
+| Fire Shot | hit | Sizzle Short And Explosive Sear 12 (Pro Sound Effects) |
+| Fire Shot | out | Sizzle Short And Explosive Sear 1 (Pro Sound Effects) |
 | Rewind | arming | Eject Cassette SFX (zImBored, from Pixabay) |
 | Rewind | rewind | Tape Rewind (AppleBraid) |
 | Rewind | landing | Cassette Play SFX (WaddelsG) |

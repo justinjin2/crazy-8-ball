@@ -345,6 +345,7 @@ local function refreshAim()
 	end
 	local spin = input:getSpin()
 	local elevation = input:getElevation()
+	local armedUlt = ownArmedUlt()
 	-- A launch ability armed (Black Flash, Fire Shot) speeds the cue ball off the cue: a jump
 	-- flies that much further.
 	local trace = Aim.trace(match.state, {
@@ -352,7 +353,7 @@ local function refreshAim()
 		power = math.max(currentPull, Config.Input.MinPowerToShoot),
 		spin = spin,
 		elevation = elevation,
-	}, UltCatalog.launchScale(ownArmedUlt()))
+	}, UltCatalog.launchScale(armedUlt))
 	-- The raw pull, not the clamped one: below MinPowerToShoot means not pulling yet.
 	aimShot = {
 		angle = input.angle,
@@ -371,8 +372,10 @@ local function refreshAim()
 			trace.objectId
 		)
 	-- The host's difficulty decides how many lines are drawn; the wrong-target warning is
-	-- shown at every level (Config.Difficulty).
-	guideline:show(trace, invalid, snapshot.settings and snapshot.settings.difficulty)
+	-- shown at every level (Config.Difficulty). Fire Shot armed: every line, and the two after
+	-- the first contact run on to the next cushion (Aim.fullLines).
+	local full = if UltCatalog.fullLines(armedUlt) then Aim.fullLines(match.state, trace) else nil
+	guideline:show(trace, invalid, snapshot.settings and snapshot.settings.difficulty, full)
 	hud:setInvalidTarget(invalid)
 end
 local function sound(key: string, id: string, volume: number?)
@@ -1622,6 +1625,23 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 -- GUI lane: a Studio-only test hook for the screens (GuiQA; nothing in a live server).
 require(script.Parent.GuiQA).start()
+-- The abilities' Studio checks: GuiQA "aim" aims at `angle` (radians) with `pull` (0..1) as the
+-- player would, so an ability's aim line is checked without the mouse; "camera" shows the
+-- view from `cf` (a close-up still) until it is called with nothing.
+require(script.Parent.GuiQA).add("aim", function(angle: number?, pull: number?)
+	if type(angle) == "number" then
+		input:setAngle(angle)
+	end
+	if type(pull) == "number" then
+		currentPull = pull
+	end
+	refreshAim()
+	return input.angle
+end)
+require(script.Parent.GuiQA).add("camera", function(cf: CFrame?)
+	Camera.setOverride(if typeof(cf) == "CFrame" then cf else nil, 1)
+	return cf ~= nil
+end)
 -- One thing at a time: a full menu hides the rest of the HUD (HudFocus).
 require(script.Parent.HudFocus).start()
 -- The lively Shop's motion spike (Studio only; GuiQA "spike").
