@@ -764,7 +764,7 @@ return {
 				VipPerks = {
 					"2x money",
 					"No lucky block timers",
-					"A Rare Lucky Block every day",
+					"An Uncommon Lucky Block every day",
 					"+1 Ability Spin a day",
 					"The VIP restock slot",
 					"The VIP Cue and tag",
@@ -782,7 +782,7 @@ return {
 				-- VIP's perks under its picture (2x money is the big line), two columns of three,
 				-- in the order of Config.UI.ShopBlocks.Pair.VipPerkIcons.
 				VipPerksWide = {
-					"Rare block every day",
+					"Uncommon block every day",
 					"No block timers",
 					"+1 ability spin a day",
 					"VIP restock slot",
@@ -1078,7 +1078,7 @@ return {
 		FirstWeekLeft = "%d days left to finish your first week",
 		LaterWeeks = "Day %d of 7",
 		NeedsMatch = "Finish one match to claim today's reward",
-		VipBlock = "VIP: a Rare Lucky Block every day",
+		VipBlock = "VIP: an Uncommon Lucky Block every day",
 		VipRestricted = "VIP: $5,000 every day", -- where paid random items are restricted
 	},
 	-- The shop's v4 lines (economy v4 plan sections 8.2-8.5).
@@ -1090,7 +1090,7 @@ return {
 		UniqueLeft = "%s · %s of %s left", -- "Beta Cue · 23 of 100 left"
 		CopyOf = "#%d of %d", -- a capped Unique's copy: "#4 of 100"
 		OnlyEver = "only %s ever", -- "only 100 ever"
-		VipPerks = "2x money · no timers · a Rare Lucky Block every day · +1 spin a day · "
+		VipPerks = "2x money · no timers · an Uncommon Lucky Block every day · +1 spin a day · "
 			.. "Skip and Auto Spin · the VIP restock slot · the VIP Cue",
 		VipRestrictedNote = "Where Lucky Blocks can't be bought, the daily block is $5,000.",
 		StarterRestricted = "$40,000 + 1 hour of 2x money",
@@ -1772,7 +1772,9 @@ return {
 			Touch = "Tap Equip!",
 			Gamepad = "Press A to equip it!",
 		},
-		RareBlock = "Your Rare Lucky Block opens in 5 minutes! Tap it to see.", -- its hotbar slot
+		-- Its hotbar slot. Economy v5: it lands with no timer and climbs when tapped (a climbed
+		-- Rare block then opens in 5 minutes), so the line no longer promises the 5 minutes.
+		RareBlock = "You won a Rare Lucky Block! Tap it to see.",
 		Abilities = {
 			Mouse = "Click Abilities!",
 			Touch = "Tap Abilities!",

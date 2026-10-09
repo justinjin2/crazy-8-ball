@@ -3064,13 +3064,15 @@ Config.Daily = {
 	-- login days, in a row or not, within FirstWeekWindow days of joining (the join's day is
 	-- day 1). After FirstWeekDays claims or after the window, the later weeks (Streak) take
 	-- over. Each day: Money, Blocks (lucky blocks, { [kind] = count }) and/or Spins.
+	-- Economy v5 (plan section 4): a Rare block on day 2, $15,000 on day 5, 2 Mystery on day 6
+	-- (v4: Epic, Rare, 3 Mystery).
 	FirstWeek = {
 		{ Money = 5000, Blocks = { Mystery = 1 } },
-		{ Blocks = { Epic = 1 } },
+		{ Blocks = { Rare = 1 } },
 		{ Money = 10000 },
 		{ Blocks = { Mystery = 2 } },
-		{ Blocks = { Rare = 1 } },
-		{ Blocks = { Mystery = 3 } },
+		{ Money = 15000 },
+		{ Blocks = { Mystery = 2 } },
 		{ Blocks = { Legendary = 1 }, Spins = 2 },
 	} :: { { Money: number?, Blocks: { [string]: number }?, Spins: number? } },
 	FirstWeekWindow = 14,
@@ -3099,14 +3101,16 @@ Config.Daily = {
 	-- The later weeks (the login loop, every day claimed once per day): seven days that repeat.
 	-- A missed day starts again at day 1, unless the week's streak freeze covers it. Every reward
 	-- is claimed in the Rewards menu (no popups, designer 2026-10-04).
+	-- Economy v5 (plan section 4): a Mystery on days 2, 4 and 6, a Rare block on day 7 (v4:
+	-- Rare, 2 Mystery, 3 Mystery, Epic; every v5 block climbs from its name).
 	Streak = {
 		{ Money = 5000 },
-		{ Blocks = { Rare = 1 } },
+		{ Blocks = { Mystery = 1 } },
 		{ Money = 10000 },
-		{ Blocks = { Mystery = 2 } },
+		{ Blocks = { Mystery = 1 } },
 		{ Money = 15000 },
-		{ Blocks = { Mystery = 3 } },
-		{ Blocks = { Epic = 1 }, Spins = 2 },
+		{ Blocks = { Mystery = 1 } },
+		{ Blocks = { Rare = 1 }, Spins = 2 },
 	} :: { { Money: number?, Blocks: { [string]: number }?, Spins: number? } },
 	-- One free streak freeze a week (weeks start Monday): a single missed day is covered
 	-- by itself, so the streak goes on. Two or more missed days start it over.
@@ -3116,33 +3120,38 @@ Config.Daily = {
 	VipSpins = 1,
 	-- VIP's daily block (v4 plan 6.7, designer 2026-10-08), added to each day's claim. Where
 	-- PolicyService restricts paid random items it is VipRestrictedMoney instead (VIP is then
-	-- a paid random item: its card shows the block's odds).
-	VipBlocks = { Rare = 1 },
+	-- a paid random item: its card shows the block's odds). Economy v5: an Uncommon block (was
+	-- Rare; it climbs from Uncommon).
+	VipBlocks = { Uncommon = 1 },
 	VipRestrictedMoney = 5000,
 	-- The 28-day track: total days claimed (never resets), repeating every TrackDays. On the
 	-- day the count reaches one of these it adds its reward to that day's claim (v4: the first
-	-- prize on day 8, since day 7 of the first week is the Legendary block). Bigger prizes
-	-- (designer, 2026-10-08: "it should give at least a legendary at the end"; it was a Rare,
-	-- 2 Rare, 2 Rare and an Epic, about $280,000 of value): about 7x, a Legendary at the end.
+	-- prize on day 8, since day 7 of the first week is its big day). Bigger prizes (designer,
+	-- 2026-10-08: "it should give at least a legendary at the end"; it was a Rare, 2 Rare,
+	-- 2 Rare and an Epic, about $280,000 of value): about 7x. Economy v5 (plan section 4): a
+	-- Rare block on day 14 and an Epic block on day 28 (v4: Epic and Legendary); each climbs
+	-- from its name.
 	TrackDays = 28,
 	Track = {
 		{ Day = 8, Money = 50000 },
-		{ Day = 14, Blocks = { Epic = 1 } },
+		{ Day = 14, Blocks = { Rare = 1 } },
 		{ Day = 21, Money = 150000 },
-		{ Day = 28, Blocks = { Legendary = 1 } },
+		{ Day = 28, Blocks = { Epic = 1 } },
 	} :: { { Day: number, Money: number?, Blocks: { [string]: number }? } },
 	-- Old names the Rewards screen still reads until the GUI lane rebuilds it: the track's four
-	-- weeks ("Week 2 of 4") and its day-28 prize.
+	-- weeks ("Week 2 of 4") and its day-28 prize (the same as Track's day 28).
 	WeeksForBonus = 4,
 	WeekBonus = { Blocks = { Epic = 1 } },
 	-- Playtime gifts: minutes played in a day, across sessions, each claimable once that day
 	-- (v4 plan 6.3: all within the first hour; Roblox ranks playtime up to 60 minutes a day).
+	-- Economy v5 (plan section 4): one Mystery at 15 minutes, money after it (v4: a Mystery at
+	-- 15, 30 and 45, a Rare block at 60).
 	Playtime = {
 		{ Minutes = 5, Money = 1000 },
 		{ Minutes = 15, Blocks = { Mystery = 1 } },
-		{ Minutes = 30, Blocks = { Mystery = 1 } },
-		{ Minutes = 45, Blocks = { Mystery = 1 } },
-		{ Minutes = 60, Blocks = { Rare = 1 }, Spins = 1 },
+		{ Minutes = 30, Money = 2500 },
+		{ Minutes = 45, Money = 3500 },
+		{ Minutes = 60, Money = 5000, Spins = 1 },
 	} :: {
 		{
 			Minutes: number,
@@ -3159,7 +3168,8 @@ Config.Daily = {
 	Codes = {
 		WELCOME = { Money = 5000, Blocks = { Mystery = 1 } },
 		["8BALL"] = { Money = 2500 },
-		ROOFTOP = { Blocks = { Rare = 1 }, Expires = 1798761600 }, -- through 2026-12-31 (UTC)
+		-- Through 2026-12-31 (UTC). Economy v5: an Uncommon block (was Rare).
+		ROOFTOP = { Blocks = { Uncommon = 1 }, Expires = 1798761600 },
 		-- The spin screen's code box (Config.Ults.CodeBanner.ActiveCode names it): 3 ability
 		-- spins. The tutorial points at it (designer, 2026-10-03: RELEASE replaces ABILITIES).
 		RELEASE = { Spins = 3 },
@@ -3252,11 +3262,13 @@ Config.Social = {
 	GroupId = 675425213, -- "Lucky 8"
 	-- Join (the client's GroupService:PromptJoinAsync) then Claim: this once per player. While a
 	-- member, match money gets Config.Economy.GroupBoost (checked on join and on Claim).
-	GroupReward = { Blocks = { Mystery = 3 } },
+	-- Economy v5: 2 Mystery blocks (was 3).
+	GroupReward = { Blocks = { Mystery = 2 } },
 	-- Invites: a brand-new player who joined through a player's invite (the invite's launch
 	-- data) and wins any match that is not solo gives both of them this lucky block. The inviter gets
 	-- at most InvitesPerMonth a UTC month; one who is offline gets theirs on the next join.
-	InviteBlock = "Rare",
+	-- Economy v5: an Uncommon block (was Rare).
+	InviteBlock = "Uncommon",
 	InvitesPerMonth = 5,
 	-- "Brand new": the save was made at most this long before the launch data is read.
 	NewPlayerSeconds = 600,
@@ -3271,7 +3283,8 @@ Config.Social = {
 	InviterOnce = true,
 	-- GUI lane (D4): favoriting the game through Roblox's favorite prompt gives this once.
 	-- Roblox gives a server no way to check a favorite, so the client reports it.
-	-- v4: a Lucky 8 block (the designer's choice, 2026-10-08; was a Mystery block).
+	-- v4: a Lucky 8 block (the designer's choice, 2026-10-08; was a Mystery block). Economy v5:
+	-- the Lucky 8 climbs from Uncommon.
 	FavoriteReward = { Money = 10000, Blocks = { Lucky8 = 1 } },
 	-- A ClaimGroup request (it asks Roblox for the player's groups) at most this often.
 	ClaimCooldownSeconds = 5,
@@ -3289,15 +3302,17 @@ Config.Planned = {
 		Grey = { Money = 1500 },
 		Blue = { Money = 3000 },
 		Red = { Blocks = { Mystery = 1 } },
-		Gold = { Blocks = { Rare = 1 } },
+		Gold = { Blocks = { Uncommon = 1 } }, -- economy v5 (was a Rare block)
 	},
-	GoldenShot = { -- 15 R$, once a day; its top prize stays 2 Rare blocks, never an Epic block
+	-- 15 R$, once a day; never an Epic block. Economy v5 (plan section 4): Grey a Mystery (was
+	-- Uncommon), Blue an Uncommon (was Rare), Red an Uncommon (was Rare), Gold 1 Rare (was 2).
+	GoldenShot = {
 		Robux = 15,
 		Miss = { Money = 5000 },
-		Grey = { Money = 7500, Blocks = { Uncommon = 1 } },
-		Blue = { Blocks = { Rare = 1 } },
-		Red = { Money = 10000, Blocks = { Rare = 1 } },
-		Gold = { Money = 25000, Blocks = { Rare = 2 } },
+		Grey = { Money = 7500, Blocks = { Mystery = 1 } },
+		Blue = { Blocks = { Uncommon = 1 } },
+		Red = { Money = 10000, Blocks = { Uncommon = 1 } },
+		Gold = { Money = 25000, Blocks = { Rare = 1 } },
 	},
 	-- Lucky Rain: in a server with MinPlayers or more, a block falls every EverySeconds (each
 	-- match finished there brings it PerMatchSeconds sooner, never under MinSeconds); it is a

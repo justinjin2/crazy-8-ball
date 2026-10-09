@@ -285,7 +285,7 @@ perk text. Don't change any of these products: the designer approves them later.
 - [x] 2. The ladder (3.1).
 - [x] 3. Unclimbed and climbed blocks, saves and shims (3.2).
 - [x] 4. Pity (3.3).
-- [ ] 5. Rewards (3.4).
+- [x] 5. Rewards (3.4).
 - [ ] 6. The Week One Cue (3.5).
 - [ ] 7. The restock (3.6).
 - [ ] 8. The Mystery shop (3.7), and the 1 R$ skip with its credit migration and its product
@@ -346,3 +346,6 @@ perk text. Don't change any of these products: the designer approves them later.
   (and after Hold); (4) `OddsDetails` and `ShopMysteryOdds` show climb odds with the live luck;
   (5) `Ranking` folds a win track money step into the result screen's bonus line; (6) the
   trade window names climbed blocks "Climbed ...".
+- Step 5: rewards set in `Config.Daily`, `Social`, `Planned` (the win track was set in step 2).
+  First-week day 7 stays the Legendary block until step 6 makes it the Week One Cue. VIP texts
+  say "Uncommon"; the tutorial's Rare block line drops "opens in 5 minutes".
