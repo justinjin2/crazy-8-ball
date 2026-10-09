@@ -56,8 +56,9 @@ One line each; the long form is the 2026-10-08 entry at the top of
   shims. **The Robux prices are live on Roblox** (approved 2026-10-09: Mystery 7 R$, the new
   29 R$ 5-pack, the 10-pack off sale, restock 39 / 149, later weeks' Claim All 79 / 69 / 35), so
   the live game sells them with its older grants until `gui-v4` is published. Next: the
-  attended GUI run, `docs/prompts/ECONOMY_V5_GUI_PROMPT.md` (every screen, concept first, then
-  the full Studio check and release prep), started with
+  attended GUI run, `docs/prompts/ECONOMY_V5_GUI_PROMPT.md` (updates the screens already built
+  to v5's numbers, odds and words, a few small new pieces, the merge with `tutorial-v2`, the
+  full Studio check and release prep; trading stays out), started with
   `claude --settings tools/overnight/economy_v5_gui.json`. Backup branch: `before-economy-v5`.
   At release: Mystery5 and the other random-item products Not Listed in the Creator Hub, icons
   for Mystery5 and the 1 R$ skip. Lucky Shot, Golden Shot, Lucky Rain and the stay bonus are

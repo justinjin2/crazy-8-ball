@@ -252,6 +252,9 @@ win bonus's line). Once `ResultScreen` draws `money.track` on its own line, take
 
 ### 1.12 Trading and the Index
 
+**Trading is not in the release** (designer, 2026-10-09): the GUI run leaves `TradeMenu` as it
+is and shim 6 stays. The trading lines below are for whenever trading is built.
+
 **Sees.**
 - **Trading**: the unclimbed/climbed mark on blocks (1.1); a climbed block named by its tier;
   the Week One Cue tradable like any cue.
@@ -278,7 +281,7 @@ first week").
 | 3 | `src/client/LuckyClient.luau` | plays a Secret's reel after the Mystery screen and after Hold | 1.2 |
 | 4 | `src/client/OddsDetails.luau`, `ShopMysteryOdds.luau` | climb odds with the live luck in the old layout | 1.6 (keep the data calls) |
 | 5 | `src/server/Ranking.luau` | the money step in the win bonus's line | 1.10 |
-| 6 | `src/client/TradeMenu.luau` | "Climbed ..." names | 1.12 |
+| 6 | `src/client/TradeMenu.luau` | "Climbed ..." names | stays: trading is not in the release |
 | 7 | `src/client/RewardsParts.luau` | the Week One Cue in reward words (its `cues` read fixed 2026-10-09) | 1.11 |
 | 8 | `src/client/ShopRestock.luau` | one odds line for two slot tables | 1.8 |
 | 9 | `src/client/ShopMystery.luau` | "Coming soon" for the 5-pack | keep the rule; 1.9 |
