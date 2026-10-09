@@ -744,3 +744,21 @@ basics (glb textures, face direction, axes, texture alpha) are under "Uploading 
   body from then on, so the server's spot is lost. The leaving shooter over the middle of the
   table went under the floor (y -0.27) and fell to FallGuard. ShooterPoser's guard now puts
   the root back at the spot it was let go at, after letting the limbs go.
+
+## Real shots through PoolMatchQA (2026-10-09, the ball streak check)
+
+- `ServerStorage.PoolMatchQA:Invoke("phase", tableId, { phase = "Aiming", seconds = 600, spots
+  = {...} })` lays the balls out by hand without a new engine, so match state such as the
+  ball streak carries over (`"fixture"` starts a new engine). `spots` keys are ball ids as
+  strings (`["0"]` the cue ball); `false` keeps a ball down. Every unlisted ball comes back up.
+- A sure pot: the ball 5 in off the +y side pocket (`{0, halfWidth - 5}`), the cue ball 8 in
+  behind it, `angle = math.pi / 2, power = 0.2`. A ShotFinder plan from the default spots
+  scratched (the cue ball followed the object ball into the corner).
+- **Give the clock room:** the real shot clock (about 20 s) runs between MCP calls and a
+  Timeout foul resets the turn. Pass `seconds = 600` and lay out the next shot in the same
+  call as the last one resolves.
+- **The short-match cap:** each `phase` call clears the break time, so after a day's $2,000 of
+  short-match money every pot pays a flat $10 and no bonuses. Pass `brokeAgo = 120` (fixture and
+  phase) to be past the one-minute mark.
+- The 8 needs its pocket called: pass `calledPocket` to `phase` (2 is the +y side pocket);
+  a `called` on the shot itself is refused with "CallRequired".
