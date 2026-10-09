@@ -4,7 +4,8 @@
 -- glow, turning rays and twinkles; the sky-blue "i" opens its "Odds & Details",
 -- ShopMysteryOdds: pity, the final tier, each tier block's odds and every rarity's chance per
 -- Mystery block, adding up to 100%), the ladder of the six tiers it can climb to with their chances
--- (BlockDrop.tiers: it starts Standard and climbs on the upgrade screen's presses), the x1 and x10
+-- (BlockDrop.tiers), the small sky-blue dice after each row's name opening that tier block's odds
+-- (designer, 2026-10-09), the x1 and x10
 -- columns (the purple gift square and the green Robux price, then the gold money price; the
 -- launch bonus's "13 for 10!" ribbon on x10 while it runs) and the Epic guarantee strip (the
 -- server's pity count). Money buys through ItemRequest "BuyBlocks" (the Mystery deal), Robux
@@ -41,6 +42,7 @@ export type Actions = {
 	money: (count: number) -> (), -- 1 or BULK for money (the Mystery deal)
 	gift: (key: string) -> (), -- the gift square: gift that product to someone here
 	odds: () -> (), -- the dice badge: the "Odds & Details" (ShopMysteryOdds)
+	tierOdds: (kind: string) -> (), -- a tier row's dice: that tier block's odds
 }
 
 type Row = {
@@ -49,6 +51,7 @@ type Row = {
 	icon: ImageLabel,
 	name: TextLabel,
 	value: TextLabel,
+	dice: ShopCards.Badge,
 }
 type Column = {
 	box: ShopCards.Box,
@@ -114,9 +117,15 @@ function ShopMystery.new(parent: Instance, actions: Actions): any
 		local value = ShopCards.label(strip, "Percent", tier.display, count, 5)
 		value.AnchorPoint = Vector2.new(1, 0.5)
 		value.TextXAlignment = Enum.TextXAlignment.Right
+		local dice = ShopCards.oddsBadge(strip, "OddsBadge", 6)
+		local tierKind = tier.tier
+		dice.hit.Activated:Connect(function()
+			UISound.play("Click")
+			actions.tierOdds(tierKind)
+		end)
 		table.insert(
 			self.rows,
-			{ strip = strip, corner = corner, icon = icon, name = name, value = value }
+			{ strip = strip, corner = corner, icon = icon, name = name, value = value, dice = dice }
 		)
 	end
 
@@ -234,7 +243,10 @@ function ShopMystery.layout(self: any, width: number, k: number, y: number): num
 	local valuePx = ShopCards.textPx(M.PercentUnits, k)
 	local h, iconU = M.RowHeightUnits, M.IconUnits
 	local nameLeft = M.RowIconLeftUnits + iconU + M.RowNameGapUnits
-	local nameW = stripW - nameLeft - M.ValueUnits - M.ValueRightUnits
+	-- Each row's dice sits just after its tier's name (designer, 2026-10-09).
+	local diceU = M.RowDiceUnits
+	local valueRight = M.ValueRightUnits
+	local nameW = stripW - nameLeft - M.ValueUnits - valueRight - M.RowDiceGapUnits - diceU
 	for index, row in self.rows do
 		local cy = M.RowTop + h / 2 + (index - 1) * M.RowUnits
 		put(row.strip, lw / 2, cy, stripW, h)
@@ -243,10 +255,12 @@ function ShopMystery.layout(self: any, width: number, k: number, y: number): num
 		row.name.Position = UDim2.fromOffset(round(nameLeft * k), round(h / 2 * k))
 		row.name.Size = UDim2.fromOffset(round(nameW * k), namePx + B.TextBoxPx)
 		HudParts.setTextSize(row.name, namePx)
-		row.value.Position =
-			UDim2.fromOffset(round((stripW - M.ValueRightUnits) * k), round(h / 2 * k))
+		row.value.Position = UDim2.fromOffset(round((stripW - valueRight) * k), round(h / 2 * k))
 		row.value.Size = UDim2.fromOffset(round(M.ValueUnits * k), valuePx + B.TextBoxPx)
 		HudParts.setTextSize(row.value, valuePx)
+		local wordsU = math.min(nameW, ShopCards.measure(row.name.Text, namePx) / k)
+		local diceX = nameLeft + wordsU + M.RowDiceGapUnits + diceU / 2
+		ShopCards.layoutBadge(row.dice, k, diceX, h / 2, diceU)
 	end
 
 	-- The columns.

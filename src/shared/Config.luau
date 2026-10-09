@@ -9542,6 +9542,10 @@ Config.UI.ShopBlocks = {
 		PercentUnits = 27,
 		ValueUnits = 110, -- the percent column, at the strip's right
 		ValueRightUnits = 12, -- its room from the strip's right
+		-- Each row's dice (that tier block's odds; designer, 2026-10-09), this far after the
+		-- tier's name.
+		RowDiceUnits = 34,
+		RowDiceGapUnits = 10,
 		Columns = { { 812, 44, 218, 374 }, { 1044, 44, 218, 374 } }, -- x1 and x10: left, top, w, h
 		CountY = 72, -- "x1" / "x10"
 		CountUnits = 58,

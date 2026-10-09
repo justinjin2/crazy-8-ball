@@ -3672,3 +3672,9 @@ timer of a new block stay the designer's call.
 - 2026-10-09: The Settings gear sits 12 px right of the rank HUD at its biggest (it grows about
   its badge on hover and press, 1.06 x 1.1), so the two never overlap (designer: "move the
   settings more to the right especially when the rank expands"; RankHud.grownRight).
+- 2026-10-09: The Mystery Lucky Block's Odds & Details shows only its final tier chances and
+  pity; the "Each Mystery block" rarity bars are gone. Each tier row on the Shop's Mystery card
+  has its own small dice just after the tier's name that opens that tier block's odds (designer:
+  "isnt there supposed to be odds shown for each block like a little dice icon for each"; "move
+  the dice icon next to the rarity not next to the odds"). Free Reward's Mystery dice shares
+  the popup.

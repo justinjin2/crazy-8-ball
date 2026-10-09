@@ -153,6 +153,7 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			self:buyBlocks("Mystery", count)
 		end,
 		gift = gift,
+		tierOdds = odds,
 		odds = function()
 			self.mysteryOdds:open()
 		end,

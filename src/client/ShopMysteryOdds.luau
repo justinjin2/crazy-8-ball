@@ -9,9 +9,9 @@
 --   56/100", the blocks opened since the last one of the count (the server's ShopState pity
 --   counts down the blocks left: 1 is the very next). Once a guarantee is the very next block
 --   a gold line says so and the tier bars show the live odds (the guaranteed tier).
--- - Each rarity's chance per Mystery block (BlockDrop.cueGroups), adding to 100%, and the line
---   that every cue in a rarity has the same odds.
--- Words in Strings.OddsDetails.
+-- A Mystery block gives no cue itself: it becomes its tier's block, whose own odds open from
+-- that tier's dice on the Shop's Mystery card (designer, 2026-10-09: the "Each Mystery block"
+-- rarity bars are gone). Words in Strings.OddsDetails.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -28,7 +28,6 @@ local D = Config.BlockOdds.Drop
 local KINDS: { [string]: any } = Config.LuckyBlocks.Kinds :: any
 local COPY: { [string]: string } = Strings.OddsDetails :: any
 local SHORT: { [string]: string } = Strings.LuckyBlocks.Short
-local RARITIES: { [string]: string } = Strings.Items.Rarities :: any
 local rgb = ShopCards.rgb
 
 local ShopMysteryOdds = {}
@@ -121,12 +120,6 @@ function ShopMysteryOdds.paint(self: any, d: any)
 	if floor then
 		d:add("Live", COPY.Live:format(SHORT[floor] or floor), rgb(O.LiveColor))
 	end
-	-- Each rarity per Mystery block (the next one's, with pity's floor while it is live).
-	d:add("Head", if floor then COPY.RaritiesLive else COPY.Rarities)
-	for _, group in BlockDrop.cueGroups(floor) do
-		d:bar(group.rarity, RARITIES[group.rarity] or group.rarity, d:chance(group.percent))
-	end
-	d:finish()
 end
 
 return ShopMysteryOdds

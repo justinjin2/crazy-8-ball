@@ -1108,8 +1108,6 @@ return {
 		Live = "Your next Mystery block is %s or better!", -- the tier's name
 		Tiers = "Final tier",
 		TiersLive = "Final tier, with pity",
-		Rarities = "Each Mystery block",
-		RaritiesLive = "Your next Mystery block",
 	},
 
 	-- The lucky block reel's skip hint (LuckyOpening, UltSpinAnim, PullCutscene, ResultCutscene).
