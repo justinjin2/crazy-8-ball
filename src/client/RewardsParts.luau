@@ -92,6 +92,15 @@ function RewardsParts.reward(value: any): Reward
 	out.money = whole(value.money)
 	out.spins = whole(value.spins)
 	out.lucky = whole(value.lucky)
+	if type(value.cues) == "table" then
+		local cues: { string } = {}
+		for _, id in ipairs(value.cues) do
+			if type(id) == "string" then
+				table.insert(cues, id)
+			end
+		end
+		out.cues = if #cues > 0 then cues else nil
+	end
 	local blocks = value.blocks
 	if type(blocks) ~= "table" then
 		return out

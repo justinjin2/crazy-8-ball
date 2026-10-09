@@ -8,8 +8,10 @@ it replaces.
 
 Who it is for:
 
-1. **The GUI session** (`~/Desktop/8ball`, branch `gui-v4`): section 1. Follow the lively-gui
-   skill and `docs/UI_STYLE.md`; concept art first, one screen at a time (the designer's rule).
+1. **The GUI session** (`~/Desktop/8ball`, branch `gui-v4`): section 1. Its run is
+   `ECONOMY_V5_GUI_PROMPT.md` (the order, the gates and an audit of every client line still on
+   v4). Follow the lively-gui skill and `docs/UI_STYLE.md`; concept art first, one screen at a
+   time (the designer's rule).
 2. **The tutorial session** (`~/Desktop/8ball-tutorial`, branch `tutorial-v2`): section 2.
 3. **The thumbnail session**: section 3.
 4. **The cue-art task** (the Week One Cue): section 4.
@@ -277,7 +279,7 @@ first week").
 | 4 | `src/client/OddsDetails.luau`, `ShopMysteryOdds.luau` | climb odds with the live luck in the old layout | 1.6 (keep the data calls) |
 | 5 | `src/server/Ranking.luau` | the money step in the win bonus's line | 1.10 |
 | 6 | `src/client/TradeMenu.luau` | "Climbed ..." names | 1.12 |
-| 7 | `src/client/RewardsParts.luau` | the Week One Cue in reward words | 1.11 |
+| 7 | `src/client/RewardsParts.luau` | the Week One Cue in reward words (its `cues` read fixed 2026-10-09) | 1.11 |
 | 8 | `src/client/ShopRestock.luau` | one odds line for two slot tables | 1.8 |
 | 9 | `src/client/ShopMystery.luau` | "Coming soon" for the 5-pack | keep the rule; 1.9 |
 | 10 | `src/server/TutorialService.luau` `stayFor` | the tutorial's Uncommon block skips its climb | the tutorial session's call (2) |

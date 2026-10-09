@@ -53,12 +53,15 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Every block climbs from its name, the Grand Opening Luck, pity 10 / 40, the Week One Cue, the
   new rewards and restock, $14,900 Mystery blocks, the 1 R$ skip (made on Roblox), "Open all",
   the "1 in N", save v11; Lune-tested, never run in Studio. The old screens work through ten
-  shims. Next: the GUI session's screens (`docs/prompts/ECONOMY_V5_HANDOFF.md`, concept art
-  first), the designer's yes on the Robux proposal
-  (`~/Desktop/8ball-refs/economy/05-economy-v5-robux.md`) **before publishing `gui-v4`** (v4's
-  Robux prices undersell v5's blocks), the report's "try in Studio" list. Backup branch:
-  `before-economy-v5`. Still open from v4: random-item products Not Listed in the Creator Hub;
-  Lucky Shot, Golden Shot, Lucky Rain and the stay bonus are planned only.
+  shims. **The Robux prices are live on Roblox** (approved 2026-10-09: Mystery 7 R$, the new
+  29 R$ 5-pack, the 10-pack off sale, restock 39 / 149, later weeks' Claim All 79 / 69 / 35), so
+  the live game sells them with its older grants until `gui-v4` is published. Next: the
+  attended GUI run, `docs/prompts/ECONOMY_V5_GUI_PROMPT.md` (every screen, concept first, then
+  the full Studio check and release prep), started with
+  `claude --settings tools/overnight/economy_v5_gui.json`. Backup branch: `before-economy-v5`.
+  At release: Mystery5 and the other random-item products Not Listed in the Creator Hub, icons
+  for Mystery5 and the 1 R$ skip. Lucky Shot, Golden Shot, Lucky Rain and the stay bonus are
+  planned only.
 - **The GUI hand-off after economy v4** (2026-10-08, branch `gui-v4`; the designer's picks on
   https://claude.ai/artifact/Q79pcvwxeos8AB7o8357Lw, prompts and pictures in
   `~/Desktop/8ball-refs/gui-mocks-v4`): its screens are done and checked in Studio on PC (the

@@ -459,10 +459,11 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   Week One Cue on the first week's day 7, the new rewards, the restock's 2 slots (the first
   Epic or better), the Mystery block at $14,900 (5 for $66,900), the 1 R$ skip (made on
   Roblox), "Open all", the "1 in N" messages, climbed blocks in trades and the model doing v5.
-  Done means: the GUI session's screens (`docs/prompts/ECONOMY_V5_HANDOFF.md`), the Robux pass
-  approved and synced (`~/Desktop/8ball-refs/economy/05-economy-v5-robux.md`), merged, and a
-  Studio check of a Mystery block and a tier block from a win, the restock, the Mystery band,
-  Free Reward's first week, a trade of a block, the 1 R$ skip and the luck's odds.
+  The Robux pass is approved and live on Roblox (2026-10-09: Mystery 7 R$, the 29 R$ 5-pack,
+  restock 39 / 149, later weeks' Claim All 79 / 69 / 35). Done means: every screen
+  (`docs/prompts/ECONOMY_V5_GUI_PROMPT.md`, spec in `docs/prompts/ECONOMY_V5_HANDOFF.md`),
+  merged, and a Studio check of a Mystery block and a tier block from a win, the restock, the
+  Mystery band, Free Reward's first week, a trade of a block, the 1 R$ skip and the luck's odds.
 
 ---
 
