@@ -830,7 +830,7 @@ lines). All in the worktree.
 
 ## Progress (tick each box when it is verified, committed and pushed)
 
-- [ ] 0. Setup:
+- [x] 0. Setup:
   - if `tutorial-v2` has no commits of its own yet, `git merge --ff-only gui-v4` to start from
     the newest game; record the fork commit in Notes;
   - copy any git-ignored tool files lint or tests need from `~/Desktop/8ball`; baseline
@@ -911,10 +911,11 @@ lines). All in the worktree.
   `src/server/MapData/GrayBox.json`; the place copy `place/lane-tutorial.rbxl` from the
   designer's `place/8ball.rbxl` (saved 05:42 today, newer than the committed one).
 - **Rojo:** `nohup rojo serve default.project.json --port 34877` (log `.lanes/rojo.log`).
-- **My Studio window:** pid 79733, opened with `open -a RobloxStudio` (its command line has
-  `-protocolString file:///…/lane-tutorial.rbxl`, not `-localPlaceFile`; kill that pid only).
+- **My Studio window:**
   Two other Studio windows are not mine: the designer's Crazy 8 Ball (Team Create) and a
-  Crazy 8 Test Place window.
+  Crazy 8 Test Place window. A plain `open -a` only showed the Start Page; launching the binary
+  with `-localPlaceFile <file>` opened it (pid 79859, Studio id `01707bb4…`, name
+  `lane-tutorial.rbxl`). The designer connected Rojo 34877 in it (2026-10-09).
 
 ---
 
