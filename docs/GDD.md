@@ -863,7 +863,9 @@ blocks (2026-10-04).
 - **Lucky blocks replaced cases** (designer, 2026-10-04): there are no cases in the code, the
   icons or the words. A block waits in the hotbar (and its bag), is held, thrown into the world
   and opened there with a hold prompt; the reel plays, a Rare or better cue plays its pull
-  cutscene, then the "YOU GOT" card. The magic 8-ball reveal is gone.
+  cutscene, then the "YOU GOT" card. The magic 8-ball reveal is gone. A block still on its
+  timer is never thrown (2026-10-09): a throw shakes it and offers the timer skip for Robux;
+  VIP has no timers, so its blocks say READY! from the moment they arrive.
 - **The daily win track** (economy v4, designer 2026-10-08): the first 10 real wins of each
   day give lucky blocks in a set order, **Rare, Mystery, Mystery, Uncommon, Mystery, Mystery,
   Rare, Mystery, Mystery, Epic**; win 11 and later pay money and XP only. A win moves the

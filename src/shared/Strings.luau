@@ -957,7 +957,8 @@ return {
 			Starter = "Starter Lucky Block",
 			Gift = "Gift Lucky Block",
 		} :: { [string]: string },
-		-- Over a held block whose timer is done (designer, 2026-10-05), where its countdown was.
+		-- Over a held block whose timer is done (designer, 2026-10-05), where its countdown was,
+		-- and on its hotbar and bag tiles (2026-10-09).
 		Ready = "READY!",
 		-- The Gift's fall from the sky, the first time a player comes back (GiftDrop).
 		GiftTitle = "A GIFT FELL FROM THE SKY!",

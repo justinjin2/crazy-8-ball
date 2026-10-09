@@ -7,9 +7,10 @@
 -- - Hold a block: its hotbar slot (a tap or a click), keys 1-9, or LB / RB on a gamepad to step
 --   through the slots. The same slot again puts it away. Both arms hold it out (the Hold
 --   animation) and everyone sees it in the hands.
--- - Throw it: a tap on the world, a left click, or R2, including blocks still counting down.
---   Each keeps its own hold prompt and timer. The Throw animation asks the server at
---   its Release marker.
+-- - Throw it: a tap on the world, a left click, or R2, once it is ready. A block still counting
+--   down is never thrown (the designer, 2026-10-09): it shakes in its slot and the skip popup
+--   opens (VIP has no timers). Each thrown block keeps its own hold prompt. The Throw animation
+--   asks the server at its Release marker.
 -- - Open it: the prompt over it (LuckyWorld). The server rolls; once the block bursts at the
 --   top of its rise, the reel plays (and a Rare or better cue's pull cutscene, LuckyOpening).
 -- - A Mystery block is never held: its slot says OPEN! and a tap, a click or its key opens its
@@ -352,6 +353,12 @@ local function throw()
 	if entry == nil then
 		return
 	end
+	if entry.readyAt > serverNow() then
+		-- Still on its timer: no throw, the skip instead.
+		hotbar:shake(id, REASONS.NotReady)
+		offerSkip(id)
+		return
+	end
 	throwing = true
 	task.spawn(function()
 		playThrow()
@@ -366,6 +373,9 @@ local function throw()
 				heldId = nil
 			end
 			stopHold()
+		elseif reply.reason == "NotReady" then
+			hotbar:shake(id, REASONS.NotReady)
+			offerSkip(id)
 		else
 			hotbar:say(reasonText(reply))
 		end

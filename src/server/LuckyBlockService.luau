@@ -388,6 +388,12 @@ function HANDLERS.Throw(player: Player, r: LuckyBlocks.Request, data: any): Repl
 	if block == nil then
 		return refuse("NotOwned")
 	end
+	-- A block still on its timer stays in the hands (the designer, 2026-10-09: no placing it
+	-- until it is ready; the client offers the skip). The real timer for everyone: the
+	-- designer's Test.BypassTimer is for opening only.
+	if not LuckyBlocks.isReady(block, os.time()) then
+		return refuse("NotReady")
+	end
 	local h = held[player]
 	if h == nil or h.id ~= id or h.model.Parent == nil then
 		return refuse("NotHeld")

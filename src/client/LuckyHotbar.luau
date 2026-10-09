@@ -9,8 +9,8 @@
 -- backpack (the bag stays open; a Mystery block opens instead); drag a block onto a hotbar slot
 -- to put it there (mouse and touch).
 --
--- A press on a block still on its timer (or its open refused) asks about the skip (economy v4
--- plan 18.1 item 8) in the kit's dialog over the screen (MenuFrame.ask): the block's name,
+-- A throw of a block still on its timer (it stays in the hands: 2026-10-09), a Mystery block's
+-- tap, or an open refused asks about the skip (economy v4 plan 18.1 item 8) in the kit's dialog over the screen (MenuFrame.ask): the block's name,
 -- "Ready in 4:32. Skip the wait?", Wait and the green "Skip · 4" with the price for the time
 -- left right now (4 / 9 / 15 R$, Config.LuckyBlocks.Skips; the live price from the shop's
 -- view). Skip asks the server, which prompts that same tier's product. Where the shop says the
@@ -317,6 +317,7 @@ function Hotbar.new(screen: ScreenGui, handlers: Handlers): any
 	layer.ZIndex = 10
 	self.layer = layer
 	self.skipDialog = nil :: MenuFrame.Dialog?
+	self.skipId = nil :: number? -- the block the skip dialog asks about
 	-- The skip dialog's dice: a block's Odds & Details over the screen (a menu's host: its
 	-- room, its dialogs and its sizes, set as it opens).
 	self.oddsHost = { content = layer, dialogs = {}, geo = nil :: MenuFrame.Geo? }
@@ -849,6 +850,7 @@ function Hotbar.offerSkip(self: any, id: number)
 		return
 	end
 	self.notice.Visible = false
+	self.skipId = id
 	self.skipDialog = MenuFrame.ask(self.layer, {
 		title = NAMES[entry.kind] or entry.kind,
 		text = W.SkipAsk:format(LuckyBlocks.clockText(left)),
@@ -906,6 +908,13 @@ function Hotbar.step(self: any)
 		return
 	end
 	local t = now()
+	-- The skip's question goes once its block is ready (its timer ran out, or VIP came).
+	if self.skipDialog and self.skipId then
+		local asked = self:find(self.skipId)
+		if asked == nil or asked.readyAt <= t then
+			self.skipDialog.cancel()
+		end
+	end
 	local turn = math.rad(os.clock() * U.IconTurnDegreesPerSecond)
 	local function update(tile: Tile)
 		local icon = tile.icon
@@ -927,9 +936,14 @@ function Hotbar.step(self: any)
 		if left > 0 then
 			tile.timer.Visible = true
 			tile.timer.Text = LuckyBlocks.clockText(left)
+			tile.timer.TextColor3 = HudParts.tone("White")
 			icon.picture.ImageTransparency = 0.35
 		else
-			tile.timer.Visible = false
+			-- Ready: READY! in green (a Mystery block says OPEN! instead); a VIP's blocks say it
+			-- from the moment they arrive (the designer, 2026-10-09).
+			tile.timer.Visible = tile.open == nil
+			tile.timer.Text = W.Ready
+			tile.timer.TextColor3 = HudParts.tone("Green")
 			icon.picture.ImageTransparency = 0
 		end
 	end
