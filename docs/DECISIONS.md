@@ -3291,3 +3291,9 @@ timer of a new block stay the designer's call.
   eyes no longer glow (they are holes), her mouth hangs open at rest (35 degrees), and, our
   choice, she lunges at the ball as she gapes: the gape alone turned her eyes skyward, out of
   the push-in camera's view at the most clippable moment.
+- 2026-10-08 (designer's third rework round: "when he moves forward he shouldnt eat more he just
+  pushes balls out of the way"): Verity eats only the first ball she hits; on the roll she
+  bumps every ball she touches aside (still hopping over the 8). That measures +0.49 / +0.68 /
+  +0.76 careful net (pots 92-96%), the Rare mean, so she moves from Legendary to Rare (the
+  designer's choice of the three offered: Rare, staying Legendary weaker, or a buff). The
+  Legendary mean is now 1.15 (Steel Ball, Black Flash).

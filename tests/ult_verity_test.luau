@@ -1,10 +1,10 @@
 --!strict
 -- Verity (the abilities rework; evil since the designer's second round, 2026-10-08): the first
 -- ball hit is eaten (counted as pocketed for its owner); an early 8 is refused; she chews in
--- place, shoving her neighbours clear as she swells, then rolls along the shot's line eating up
--- to MaxEaten more of yours and bumping the rest aside, hopping over the 8; she stops before
--- the cushions and pockets and lands clear of every ball; the client's replay matches the
--- settle.
+-- place, shoving her neighbours clear as she swells, then rolls along the shot's line bumping
+-- every ball she touches aside (she eats nothing more since the designer's third round,
+-- 2026-10-08), hopping over the 8; she stops before the cushions and pockets and lands clear of
+-- every ball; the client's replay matches the settle.
 
 local H = require("./harness")
 local V = require("./ult_value")
@@ -83,7 +83,7 @@ function tests.the_first_ball_is_eaten_and_counted_and_the_turn_kept()
 	roll(sim, 0, 60, 0)
 	local verdict, outcome = judged(sim, balls, SOLIDS)
 	local eat = ultEvents(outcome.events, "eat")
-	check(#eat == 1 and eat[1].ball == 1 and eat[1].value == 1 and eat[1].other == 1, "the 1 eaten")
+	check(#eat == 1 and eat[1].ball == 1 and eat[1].value == 1, "the 1 eaten")
 	check(Simulation.findBall(sim, 1).pocketed, "gone")
 	check(table.find(verdict.pockets, 1) ~= nil, "counted as pocketed")
 	check(verdict.foul == nil and verdict.keep, "legal, the turn kept: " .. tostring(verdict.foul))
@@ -166,9 +166,8 @@ function tests.her_body_stops_short_of_the_cushion()
 	check(not Simulation.findBall(sim, 0).pocketed, "the cue ball stays")
 end
 
-function tests.she_eats_up_to_two_more_of_yours_on_the_roll_and_bumps_the_rest()
-	-- A row on her line: the 1 (her first bite), the 2, the 10 (theirs), the 8, the 3 and the
-	-- 4 (yours, past her fill).
+function tests.she_eats_nothing_on_the_roll_and_bumps_every_ball_aside()
+	-- A row on her line: the 1 (her bite), the 2, the 10 (theirs), the 8, the 3 and the 4.
 	local balls = table_({
 		{ 0, -40, 0 },
 		{ 1, -30, 0 },
@@ -181,18 +180,23 @@ function tests.she_eats_up_to_two_more_of_yours_on_the_roll_and_bumps_the_rest()
 	local sim = armed(balls, { 1, 2, 3, 4 }, { 10 })
 	roll(sim, 0, 60, 0)
 	local verdict, outcome = judged(sim, balls, SOLIDS)
-	local eaten = byBall(ultEvents(outcome.events, "eat"))
+	local eat = ultEvents(outcome.events, "eat")
 	local bumped = byBall(ultEvents(outcome.events, "bump"))
 	local hopped = byBall(ultEvents(outcome.events, "hop"))
-	check(eaten[1] and eaten[2] and eaten[3], "the 1, 2 and 3 eaten")
-	check(eaten[2].other == 2 and eaten[3].other == 3, "counted in order")
-	check(eaten[4] == nil and bumped[4], "the 4 bumped: she is full")
-	check(eaten[10] == nil and bumped[10], "theirs bumped, never eaten")
-	check(hopped[8] and eaten[8] == nil and bumped[8] == nil, "she hops over the 8")
-	check(not Simulation.findBall(sim, 8).pocketed, "the 8 stays up")
-	for _, id in { 1, 2, 3 } do
-		check(table.find(verdict.pockets, id) ~= nil, "the " .. id .. " counts as pocketed")
+	check(#eat == 1 and eat[1].ball == 1, "only her bite: " .. #eat)
+	for _, id in { 2, 3, 4, 10 } do
+		check(bumped[id] ~= nil, "the " .. id .. " bumped aside")
 	end
+	check(hopped[8] and bumped[8] == nil, "she hops over the 8")
+	check(not Simulation.findBall(sim, 8).pocketed, "the 8 stays up")
+	check(table.find(verdict.pockets, 1) ~= nil, "her bite counts as pocketed")
+	local removed = 0
+	for _, ev in outcome.events do
+		if ev.type == "removed" then
+			removed += 1
+		end
+	end
+	check(removed == 1, "one ball taken off the table: " .. removed)
 end
 
 function tests.she_shoves_her_neighbours_clear_as_she_swells()

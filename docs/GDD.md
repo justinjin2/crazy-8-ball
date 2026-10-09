@@ -473,9 +473,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   can't reach them, so each ult is built to its row as far as the caps allow and its **measured
   worth** (extra own balls per use, net of the opponent's gifted, a careful shooter, the mean of
   three skills, `tests/ult_value.luau`, 120 tables) is `Config.Ults.Catalog[id].Worth`. The
-  rarity means are **0.34, 0.50, 0.64, 0.94, 1.13 and 1.78** (2026-10-08, after the abilities
-  rework's second round; Rare and above pot in 75-100% of uses, Look Over There! the lowest). Caps per use: at most 2 of your balls (Chain
-  Lightning: the charged ball and one jump), 3 (Steel Ball, Verity's bites) or 4 (Black
+  rarity means are **0.34, 0.50, 0.64, 0.94, 1.15 and 1.78** (2026-10-08, after the abilities
+  rework's third round; Rare and above pot in 75-100% of uses, Look Over There! the lowest). Caps per use: at most 2 of your balls (Chain
+  Lightning: the charged ball and one jump), 3 (Steel Ball) or 4 (Black
   Flash), and 2 of the opponent's (Black Flash's blast) or 1 (Chain Lightning's jump). Black
   Hole and Guangdong Tiger have no caps (the designer, 2026-10-08: "NO limit"; a hit on a solo
   break takes every ball but the 8): only their reach limits them. Against Magnet at equal skill the model
@@ -563,8 +563,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     you mean), never slower than they went in (with no clear line, turned toward the pocket
     ahead by up to 15 degrees). The Rare+ buff (2026-10-08): pots 83-93% of uses, +0.65 / +0.71
     / +0.70 net, the whole turn's later shots counted only as a low bound.
-  - **Verity** (Legendary, 1.09; new in the rework, evil since the designer's second round,
-    2026-10-08: the monster model never made it into the game): the cue ball becomes a bright
+  - **Verity** (Rare, 0.64; new in the rework, evil since the designer's second round,
+    2026-10-08: the monster model never made it into the game; Rare since their third round,
+    the same day, when she stopped eating on the roll): the cue ball becomes a bright
     yellow plush smiley ball (black oval eyes, a wide grin of white teeth in a thick black
     outline, after the designer's reference) and arming plays "Hi, I'm Verity, trust me, I know
     everything!" (a text-to-speech stand-in for the designer's clip). At the first contact she
@@ -577,10 +578,11 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     owner; an opponent's goes down for them and is still a foul; the 8 only off your legal 8
     shot, which wins). Balls inside her as she swells are shoved just clear (the 8 never toward
     a pocket). She chews, gulps and laughs, then rolls on along the shot line (up to 70 in,
-    stopping before a cushion or pocket), eating up to 2 more of your balls she reaches
-    (slurped in once 5.5 in from her centre, each a pot) and bumping every other ball aside;
-    she hops over the 8. She burps and shrinks back into the cue ball where she stops.
-    Measured: +0.97 / +1.15 / +1.17 net, pots 94-98% of uses.
+    stopping before a cushion or pocket), shoving every ball she touches out of her way (the
+    designer, 2026-10-08: "he shouldnt eat more he just pushes balls out of the way"); she hops
+    over the 8. She burps and shrinks back into the cue ball where she stops. Measured: +0.49 /
+    +0.68 / +0.76 net, pots 92-96% of uses (eating up to 2 more of yours on the roll measured
+    +0.97 / +1.15 / +1.17, a Legendary).
   - **Steel Ball** (Legendary, 1.09): the first ball hit, if yours, is guided into the pocket
     it was sent toward; the cue ball then curves on to your next nearest ball and guides it in
     (a clean line within 36 in) or lines it up and stops behind it, 3 balls at most; with your

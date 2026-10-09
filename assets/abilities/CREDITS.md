@@ -78,7 +78,6 @@ the licensed backups are named beside each in `Config.Ults.Sounds`.
 | Catch-a-Ball | the 8 breaks free | Reversed Whoosh Backwards Hissing Burst 2 (Pro Sound Effects) |
 | Verity | swell (she turns evil) | Magic Transformation 6 (Pro Sound Effects) |
 | Verity | the first bite | Giant Bug Chomps 2 (Pro Sound Effects) |
-| Verity | a bite on the roll | Shark Bite Smaller Teeth Snaps 3 (Pro Sound Effects) |
 | Verity | gulp | Comic Gulp Swallow Ice Cube 1 (Pro Sound Effects) |
 | Verity | laugh | Laugh Evil Male Various Versions 1 (Pro Sound Effects) |
 | Verity | bump | Comic Tube Bounce 2 (Pro Sound Effects) |

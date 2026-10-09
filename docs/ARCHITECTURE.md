@@ -695,9 +695,9 @@ loads (no save version bump); their mentions above are history.
   whose line clears the pockets, and `fx.hop` slides the ghosted cue ball there after the hold
   and catches it too, a "hop" event then a second "catch" with `other` 2) and `Effects/Verity` (evil since the second round: the first contact eats
   the hit ball, she chews in place for `EatShotSeconds` shoving out the balls inside her swollen
-  body, then rolls along the shot's line eating up to `MaxEaten` of the shooter's within
-  `EatReachInches` and bumping the rest aside, the cue ball ghosted as her body; her `inside`
-  set lets a ball that left her reach be met again).
+  body, then rolls along the shot's line bumping every ball she touches aside (no eating on
+  the roll since the third round), the cue ball ghosted as her body; her `inside` set lets a
+  ball that left her reach be met again).
 - **The Sneak phase** (Look Over There!, catalog `Sneak = true`; reworked 2026-10-08) is no
   shot. It arms at once (`Match.arm` skips the cutscene pause for a Sneak row) and `MatchEngine`
   opens Sneak (`beginSneak`: `t.sneak` with `dragAt`, `dragEnd` and where the cue ball was).

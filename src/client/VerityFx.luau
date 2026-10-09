@@ -16,10 +16,10 @@
 --     for about a second under a darker grade. The ball she hit pops up in front of her face,
 --     her jaws gape, suck it in and slam shut (a crunch, a shake, crumbs); she chews twice,
 --     gulps, and laughs.
---   * The roll ("roll"): she turns to her heading and rolls on, bouncing and chomping. Each of
---     yours she reaches ("eat") is pulled into her mouth with a snap and a gulp; any other ball
---     she touches is bumped aside with a boing ("bump"); she hops over the 8 ("hop"). The
---     balls she shoved as she swelled get a puff ("shove").
+--   * The roll ("roll"): she turns to her heading and rolls on, bouncing and chomping. Every
+--     ball she touches is bumped aside with a boing ("bump"; she eats nothing more since the
+--     designer's third round, 2026-10-08); she hops over the 8 ("hop"). The balls she shoved
+--     as she swelled get a puff ("shove").
 --   * The landing ("land"): she skids onto the cue ball's spot, turns to the camera, burps,
 --     and shrinks back into the smiley ball.
 --   * The refusal ("refuse", the 8 before it is yours): the smiley shakes its head: NOT THE 8!
@@ -126,12 +126,11 @@ type Bubble = {
 }
 
 type Morsel = {
-	part: BasePart, -- a copy of a ball she eats
+	part: BasePart, -- a copy of the ball she eats
 	size: Vector3, -- its size
 	from: Vector3, -- where it sat (world centre)
 	rot: CFrame,
 	at: number, -- fx.clock it started
-	first: boolean, -- the first bite (popped up to her face), else snapped up on the roll
 }
 
 type Act = {
@@ -143,7 +142,6 @@ type Act = {
 	morsels: { Morsel },
 	rollAt: number?, -- fx.clock the roll began
 	landAt: number?, -- fx.clock she stopped
-	biteAt: number?, -- fx.clock of the last bite on the roll
 	hops: { number }, -- fx.clock of each hop
 	hover: boolean, -- an 8 under her while she ate: she sits up over it
 	done: { [string]: boolean }, -- the moments already played
@@ -550,8 +548,7 @@ local function addMorsel(
 	fx: TableFx,
 	act: Act,
 	ball: number,
-	at: Vector3,
-	first: boolean
+	at: Vector3
 )
 	local part = self.kit.ballPart(id, ball)
 	if part == nil then
@@ -576,12 +573,11 @@ local function addMorsel(
 		from = at,
 		rot = part.CFrame.Rotation,
 		at = fx.clock,
-		first = first,
 	})
 end
 
--- The balls she is eating, `radius` studs her size now: the first pops up to hover in front of
--- her face and is sucked in; one on the roll is pulled straight in. Each is gone at the snap.
+-- The ball she is eating, `radius` studs her size now: it pops up to hover in front of her
+-- face and is sucked in, gone at the snap.
 local function stepMorsels(act: Act, fx: TableFx, radius: number, dt: number)
 	local r = ballRadius()
 	local mouth = act.pos + act.facing * radius * 0.35 + Vector3.yAxis * radius * 0.12
@@ -593,24 +589,16 @@ local function stepMorsels(act: Act, fx: TableFx, radius: number, dt: number)
 		local t = fx.clock - mo.at
 		local pos: Vector3? = nil
 		local shrink = 0
-		if mo.first then
-			if t < F.PopSeconds then
-				local p = easeOut(t / F.PopSeconds)
-				pos = mo.from:Lerp(hover, p)
-					+ Vector3.yAxis * r * F.PopArcBallRadii * math.sin(p * math.pi)
-			elseif t < F.SuckAt then
-				pos = hover + Vector3.yAxis * r * 0.15 * math.sin((t - F.PopSeconds) * 20)
-			elseif t < F.ChompAt then
-				local p = easeIn((t - F.SuckAt) / (F.ChompAt - F.SuckAt))
-				pos = hover:Lerp(mouth, p)
-				shrink = 0.3 * p
-			end
-		else
-			local p = t / (F.BiteSeconds * 0.6)
-			if p < 1 then
-				pos = mo.from:Lerp(mouth, easeIn(p))
-				shrink = 0.3 * p
-			end
+		if t < F.PopSeconds then
+			local p = easeOut(t / F.PopSeconds)
+			pos = mo.from:Lerp(hover, p)
+				+ Vector3.yAxis * r * F.PopArcBallRadii * math.sin(p * math.pi)
+		elseif t < F.SuckAt then
+			pos = hover + Vector3.yAxis * r * 0.15 * math.sin((t - F.PopSeconds) * 20)
+		elseif t < F.ChompAt then
+			local p = easeIn((t - F.SuckAt) / (F.ChompAt - F.SuckAt))
+			pos = hover:Lerp(mouth, p)
+			shrink = 0.3 * p
 		end
 		if pos == nil then
 			mo.part:Destroy()
@@ -647,7 +635,6 @@ local function startAct(self: VerityFx, id: number, fx: TableFx, m: any, ev: any
 		morsels = {},
 		rollAt = nil,
 		landAt = nil,
-		biteAt = nil,
 		hops = {},
 		hover = false,
 		done = {},
@@ -656,7 +643,7 @@ local function startAct(self: VerityFx, id: number, fx: TableFx, m: any, ev: any
 		camClose = nil,
 	}
 	fx.act = act
-	addMorsel(self, id, fx, act, ev.ball, target, true)
+	addMorsel(self, id, fx, act, ev.ball, target)
 	kit.keep(id, V.EatShotSeconds + 3)
 	if quiet then
 		return
@@ -802,15 +789,6 @@ local function stepAct(
 		end
 	elseif landAt == nil then
 		jaw = F.RollChompDegrees * math.abs(math.sin(math.pi * F.RollChompHz * (fx.clock - rollAt)))
-		local biteAt = act.biteAt
-		if biteAt then
-			local b = (fx.clock - biteAt) / F.BiteSeconds
-			if b >= 0 and b < 1 then
-				jaw = if b < 0.6
-					then F.BiteDegrees * easeOut(b / 0.6)
-					else F.BiteDegrees * (1 - easeIn((b - 0.6) / 0.4))
-			end
-		end
 	else
 		local burp = (fx.clock - landAt - F.BurpAfter) / F.BurpSeconds
 		if burp >= 0 and burp < 1 then
@@ -919,23 +897,7 @@ local function onEvent(self: VerityFx, id: number, fx: TableFx, m: any, ev: any)
 	local r = ballRadius()
 	local act = fx.act
 	if ev.kind == "eat" then
-		if ev.other == 1 or act == nil then
-			startAct(self, id, fx, m, ev)
-			return
-		end
-		local at = kit.tableWorld(m, ev.x or 0, ev.y or 0, Config.Balls.RenderRadiusInches)
-		addMorsel(self, id, fx, act, ev.ball, at, false)
-		act.biteAt = fx.clock
-		if quiet then
-			return
-		end
-		playAt(self, id, A.VeritySnap, at)
-		kit.later(id, F.BiteSeconds, function()
-			playAt(self, id, A.VerityGulp, at, { pitch = 1.25, volume = 0.7 })
-		end)
-		if kit.screen.involved(self.hub, id) then
-			kit.screen.fovPunch(id, -F.BitePunchDegrees, F.BitePunchSeconds)
-		end
+		startAct(self, id, fx, m, ev)
 	elseif ev.kind == "roll" then
 		if act then
 			act.rollAt = fx.clock
@@ -1020,7 +982,6 @@ function VerityFx.start(hub: any, _parent: Instance, kit: any): VerityFx
 				A.VerityLine,
 				A.VeritySwell,
 				A.VerityChomp,
-				A.VeritySnap,
 				A.VerityGulp,
 				A.VerityLaugh,
 				A.VerityBonk,

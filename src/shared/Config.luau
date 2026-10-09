@@ -3533,10 +3533,10 @@ Config.Ults = {
 		"Rewind",
 		"Portals",
 		"LookOverThere",
+		"Verity",
 		"CatchABall",
 		"TimeStop",
 		"ChainLightning",
-		"Verity",
 		"SteelBall",
 		"BlackFlash",
 		"BlackHole",
@@ -3547,8 +3547,8 @@ Config.Ults = {
 	-- 16 balance pass, 2026-09-29; every number in tools/ult_value_results.json). The GDD's
 	-- rough targets (0.33 / 0.5 / 1 / 1.5 / 2.2 / 2.6) are out of reach inside the reach and
 	-- ball caps (5.3: report the measured value); the ladder holds on each rarity's mean:
-	-- Common 0.34, Uncommon 0.50, Rare 0.64, Epic 0.94, Legendary 1.13, Mythic 1.78 (after the
-	-- abilities rework's second round, 2026-10-08).
+	-- Common 0.34, Uncommon 0.50, Rare 0.64, Epic 0.94, Legendary 1.15, Mythic 1.78 (after the
+	-- abilities rework's third round, 2026-10-08).
 	Catalog = {
 		-- +0.38 / +0.54 / +0.44 (careless +0.37 / +0.56 / +0.52).
 		-- Uncommon since the economy plan (2026-10-02, section 8: its measured strength).
@@ -3574,10 +3574,12 @@ Config.Ults = {
 		-- the one shot only, not the run a free ball in hand sets up), pots 75-97% of uses. It
 		-- dragged one of your balls into a pocket before (+0.95 / +1.01 / +1.02).
 		LookOverThere = { Rarity = "Rare", Built = true, Worth = 0.58, Sneak = true },
-		-- Verity: the first ball hit is eaten (a pot for its owner), then she rolls on eating up
-		-- to 2 more of yours (evil since the designer's second round, 2026-10-08). +0.97 / +1.15
-		-- / +1.17 careful net (120 tables), pots 94-98% of uses.
-		Verity = { Rarity = "Legendary", Built = true, Effect = "Verity", Worth = 1.09 },
+		-- Verity: the first ball hit is eaten (a pot for its owner), then she rolls on shoving
+		-- every ball out of her way (evil since the designer's second round; Rare since their
+		-- third, 2026-10-08, when she stopped eating on the roll): +0.49 / +0.68 / +0.76 careful
+		-- net (careless +0.48 / +0.67 / +0.70; 120 tables), pots 92-96% of uses. Eating up to 2
+		-- more of yours on the roll measured +0.97 / +1.15 / +1.17 (a Legendary).
+		Verity = { Rarity = "Rare", Built = true, Effect = "Verity", Worth = 0.64 },
 		-- The Rare+ buff (2026-10-08): a ball of yours touched in stopped time rolls into a pocket
 		-- as time resumes, and a miss freezes too: +0.82 / +0.85 / +0.93 careful net, pots 91-94%
 		-- (was +0.65 / +0.42 / +0.34 with three strikes, pots 47-78%).
@@ -3889,20 +3891,14 @@ Config.Ults = {
 		VerityLine = { Id = "rbxassetid://135865093470317", Volume = 0.6 },
 		-- Evil Verity (the designer's second round, 2026-10-08; ProSoundEffects library clips,
 		-- assets/abilities/SOUNDS_V2.md "Verity v2"; StartOffset skips a clip's quiet lead-in,
-		-- measured in Studio): the turn's swell, the first bite's crunch, the quick bites on the
-		-- roll, the gulp, her laugh, a bump's boing and the burp at the end.
+		-- measured in Studio): the turn's swell, the bite's crunch, the gulp, her laugh, a bump's
+		-- boing and the burp at the end.
 		VeritySwell = { Id = "rbxassetid://9116421550", Volume = 0.55, Pitch = 0.8 },
 		VerityChomp = {
 			Id = "rbxassetid://9114574214",
 			Volume = 0.7,
 			StartOffset = 0.25,
 			Length = 0.9,
-		},
-		VeritySnap = {
-			Id = "rbxassetid://9119055058",
-			Volume = 0.6,
-			StartOffset = 0.05,
-			Length = 0.5,
 		},
 		VerityGulp = { Id = "rbxassetid://9113859745", Volume = 0.6, Length = 0.5 },
 		-- "Laugh Evil Male Various Versions 1" (its louder, quicker take; 9116239130, take 2,
@@ -4233,8 +4229,9 @@ Config.Ults.CatchABall = {
 
 -- Verity (the rework; evil since the designer's second round, 2026-10-08;
 -- src/shared/Ults/Effects/Verity): the first ball hit is eaten (a pot for its owner; the early
--- 8 refused), then she rolls on along the shot's line, eating the first MaxEaten of yours she
--- touches and bumping the rest aside; she hops over the 8. Inches and seconds of play. (tune)
+-- 8 refused), then she rolls on along the shot's line, bumping every ball she touches out of
+-- her way (she ate up to two more of yours until the designer's third round, 2026-10-08); she
+-- hops over the 8. Inches and seconds of play. (tune)
 Config.Ults.Verity = {
 	EatShotSeconds = 1.6, -- she swells, gapes, chomps, chews and gulps (VerityFx) before rolling
 	-- Meanwhile she jiggles back and forth this fast (in/s), a 240th of that each step: unseen,
@@ -4247,13 +4244,7 @@ Config.Ults.Verity = {
 	RollSpeed = 32, -- the roll (in/s)
 	RollInches = 70, -- the longest roll
 	EdgeMarginInches = 0.5, -- her body stops this far from a cushion line or a pocket
-	MaxEaten = 2, -- the shooter's balls she eats on the roll (each a pot), after the first
-	-- One of those is slurped into her mouth once its centre is this close to hers (her body
-	-- touches it at BodyRadiusInches plus a ball's radius, 4.5). Measured (tools/ult_value.luau,
-	-- 120 tables, careful net at skills 1/2/3, 2026-10-08): 4.5 +0.86 / +1.06 / +1.05; 6
-	-- +1.02 / +1.17 / +1.22; 8 +1.13 / +1.31 / +1.33 (a Mythic). 5.5 keeps her a Legendary.
-	EatReachInches = 5.5,
-	BumpSpeed = 18, -- any other ball she touches is bumped at this speed (in/s)...
+	BumpSpeed = 18, -- every ball she touches on the roll is bumped at this speed (in/s)...
 	BumpSide = 1, -- ...this much sideways, away from her path...
 	BumpForward = 0.35, -- ...and this much forward
 	LandEdgeInches = 1.5, -- the cue ball lands this far (beyond its radius) from a cushion or pocket
@@ -10876,19 +10867,13 @@ Config.UI.VerityFx = {
 	GradeOutSeconds = 0.4,
 	-- The roll: she turns to her heading and leans RollLeanDegrees into it, bouncing
 	-- RollBobBallRadii and chomping (the jaw to RollChompDegrees) RollChompHz times a second,
-	-- dust every RollDustSeconds. A ball she eats on the way is pulled into her mouth over
-	-- BiteSeconds, the jaw opening to BiteDegrees and snapping shut (a zoom-in punch of
-	-- BitePunchDegrees for the players at the table). She hops HopBallRadii high over the 8
-	-- over HopSeconds (and sits that high over an 8 she could not shove while she ate).
+	-- dust every RollDustSeconds. She hops HopBallRadii high over the 8 over HopSeconds (and
+	-- sits that high over an 8 she could not shove while she ate).
 	RollLeanDegrees = 10,
 	RollBobBallRadii = 0.35,
 	RollChompHz = 4,
 	RollChompDegrees = 30,
 	RollDustSeconds = 0.1,
-	BiteSeconds = 0.2,
-	BiteDegrees = 65,
-	BitePunchDegrees = 4,
-	BitePunchSeconds = 0.25,
 	HopSeconds = 0.34,
 	HopBallRadii = 2.4,
 	BumpSparks = 8,

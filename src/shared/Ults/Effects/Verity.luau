@@ -2,7 +2,8 @@
 -- Verity (the abilities rework; evil since the designer's second round, 2026-10-08:
 -- docs/prompts/ABILITIES_REWORK_PLAN.md 3): the cue ball is the Verity ball. At its first
 -- contact she turns evil, swells up and eats the ball it hit, then rolls on along the shot's
--- line eating more of the shooter's balls.
+-- line shoving every ball out of her way (she eats nothing more since the designer's third
+-- round, 2026-10-08).
 --
 -- * The eat: the step of the cue ball's first contact, the ball it hit is eaten
 --   (Simulation.Ops.remove: a `removed` event ShotJudge counts as a pot for its owner, so an
@@ -15,13 +16,13 @@
 -- * The roll: then she rolls along the cue ball's heading before the contact at RollSpeed, for
 --   at most RollInches, stopping before her body comes within EdgeMarginInches of a cushion or
 --   a pocket. The cue ball is her body: it passes through every ball (fx.ghost) and is moved by
---   the roll alone. Each ball her body touches is met: the first MaxEaten of the shooter's are
---   eaten (a pot each), any other ball is bumped aside of her path at BumpSpeed, and she hops
---   over the 8. A ball that leaves her reach is met again if she reaches it again.
+--   the roll alone. Each ball her body touches is met: it is bumped aside of her path at
+--   BumpSpeed, and she hops over the 8. A ball that leaves her reach is met again if she
+--   reaches it again.
 -- * The landing: at the roll's end the cue ball stops, solid again, on the nearest spot clear
 --   of every ball (LandGapInches of room), on the cloth.
 -- * `ult` events for the look: "eat" (ball = the eaten ball, x, y = where it was, value 1 the
---   shooter's, 0 another's, other = how many she has eaten with this one), "refuse" (ball =
+--   shooter's, 0 another's), "refuse" (ball =
 --   the 8), "shove" (ball, x, y: pushed out as she swells), "roll" (ball 0, x, y = where the
 --   roll starts), "bump" (ball, x, y), "hop" (ball = the 8, x, y) and "land" (ball 0, x, y =
 --   where she stops). The replay's state.fx.verity holds the act (its heading) for the look.
@@ -50,7 +51,6 @@ export type Act = {
 	ox: number, -- where the roll starts
 	oy: number,
 	inside: { [number]: boolean }, -- the balls inside her reach now (met on the way in)
-	eaten: number, -- the shooter's balls eaten on the roll
 	announced: boolean,
 }
 
@@ -195,20 +195,11 @@ local function shove(
 	ops.emit(state, events, "shove", b.id, nil, b.x, b.y)
 end
 
--- Ball `b` met on the roll: eaten (one of the shooter's, while she may eat more), hopped (the
--- 8), or bumped aside of her path.
+-- Ball `b` met on the roll: hopped (the 8), or bumped aside of her path.
 local function meetOnRoll(state: any, act: Act, cue: any, b: any, events: { any }, ops: any)
 	local V = Config.Ults.Verity
 	if b.id == EIGHT then
 		ops.emit(state, events, "hop", b.id, nil, b.x, b.y)
-		return
-	end
-	local targets = state.overrides and state.overrides.Targets
-	if contains(targets, b.id) and act.eaten < V.MaxEaten then
-		act.eaten += 1
-		local x, y = b.x, b.y
-		ops.remove(state, events, b, "Verity")
-		ops.emit(state, events, "eat", b.id, act.eaten + 1, x, y, 1)
 		return
 	end
 	local px, py = -act.hy, act.hx
@@ -226,26 +217,14 @@ end
 -- Every ball on the cloth that has just come inside her reach is met (shoved while she eats,
 -- else as meetOnRoll); a ball that has left it may be met again.
 local function meetAll(state: any, act: Act, cue: any, events: { any }, ops: any)
-	local V = Config.Ults.Verity
-	local reach = V.BodyRadiusInches + R
-	local targets = state.overrides and state.overrides.Targets
+	local reach = Config.Ults.Verity.BodyRadiusInches + R
 	for _, b in state.balls do
 		if b.id == 0 or b.pocketed then
 			continue
 		end
-		-- One of yours she can still eat on the roll is slurped in from further off.
-		local within = reach
-		if
-			act.stage == "roll"
-			and b.id ~= EIGHT
-			and act.eaten < V.MaxEaten
-			and contains(targets, b.id)
-		then
-			within = math.max(reach, V.EatReachInches)
-		end
 		local dx, dy = b.x - cue.x, b.y - cue.y
 		local d2 = dx * dx + dy * dy
-		if d2 >= within * within or not onCloth(b) then
+		if d2 >= reach * reach or not onCloth(b) then
 			act.inside[b.id] = nil
 			continue
 		end
@@ -348,7 +327,7 @@ function Verity.after(state: any, _dt: number, events: { any }, ops: any)
 			local bx, by = b.x, b.y
 			local own = if contains(targets, id) then 1 else 0
 			ops.remove(state, events, b, "Verity")
-			ops.emit(state, events, "eat", id, 1, bx, by, own)
+			ops.emit(state, events, "eat", id, nil, bx, by, own)
 			chew(cue)
 			fx.ghost = fx.ghost or {}
 			fx.ghost[0] = true
@@ -360,7 +339,6 @@ function Verity.after(state: any, _dt: number, events: { any }, ops: any)
 				ox = cue.x,
 				oy = cue.y,
 				inside = {},
-				eaten = 0,
 				announced = false,
 			}
 			fx.verity = fresh

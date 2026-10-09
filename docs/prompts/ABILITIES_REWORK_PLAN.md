@@ -125,9 +125,10 @@ Filled in as the work goes (2026-10-08). None of these are built on `abilities-r
   its second catch) on a phone. Catch-a-Ball's card now shows Epic and Look Over There!'s Rare
   (catalog data, nothing to build).
 - **Spin screen odds panel:** data driven; check it shows the 13-ability ladder (Rewind is
-  Uncommon, Look Over There! and Portals Rare, Catch-a-Ball, Time Stop and Chain Lightning Epic,
-  Verity, Steel Ball and Black Flash Legendary; Look Over There! and Catch-a-Ball swapped in the
-  designer's second round).
+  Uncommon, Look Over There!, Portals and Verity Rare, Catch-a-Ball, Time Stop and Chain
+  Lightning Epic, Steel Ball and Black Flash Legendary; Look Over There! and Catch-a-Ball swapped
+  in the designer's second round, Verity went Legendary to Rare in their third). Verity's card
+  shows Rare and its shorter description ("...shoving every ball out of her way").
 - **MatchHUD clock:** hide it during the Sneak and SneakReveal phases (Look Over There!); the
   sneak has its own countdown.
 - **The sneak pill** (LookOverThereFx, one row under the HUD header, the shooter's screen only:
