@@ -885,6 +885,11 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/SteelBallV2.glb": {
+    "assetId": "109425605098250",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/textures/gold_burst.png": {
     "assetId": "74393921524104",
     "assetType": "Decal",
@@ -907,6 +912,30 @@
     "assetId": "74762707211639",
     "assetType": "Decal",
     "imageId": "116655548573479",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/textures/shell_color.png": {
+    "assetId": "74742103829203",
+    "assetType": "Decal",
+    "imageId": "85493788364096",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/textures/shell_metalness.png": {
+    "assetId": "86730053609212",
+    "assetType": "Decal",
+    "imageId": "138026060196526",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/textures/shell_normal.png": {
+    "assetId": "106459961084281",
+    "assetType": "Decal",
+    "imageId": "77310348668461",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/textures/shell_roughness.png": {
+    "assetId": "76327383151427",
+    "assetType": "Decal",
+    "imageId": "133055179245195",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/SuperBounce/SuperBounce.glb": {

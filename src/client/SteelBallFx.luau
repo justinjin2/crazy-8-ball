@@ -7,10 +7,12 @@
 -- Config.UI.SteelBallFx, the sounds in Config.Ults.Audio (Steel*), the streak ring, burst and
 -- sparkle images in Config.Ults.Assets.Images (SteelSpinBlur, SteelBurst, SteelSparkle).
 --
---   * Armed (from the arming moment until the shot): the cue ball is chrome, a mirror with
---     dark grip dots round its middle (a fidget spinner's weights). It spins up about the
+--   * Armed (from the arming moment until the shot): the cue ball is Gyro's green steel ball
+--     (designer 2026-10-09: the reference's hexagon plate, dome, ribs and engraved swirls,
+--     glossy metal: ReplicatedStorage[Config.Ults.Assets.LooksFolder].SteelBall, built by
+--     tools/build_ability_looks.luau; a green mirror without it). It spins up about the
 --     upright: slowly, then faster and faster over SpinUpSeconds with a rising whine, until
---     the dots smear into a ring of streaks; then it hums at full spin.
+--     it smears into a ring of streaks; then it hums at full spin.
 --   * The shot: it rolls on spinning, the streaks round it and a white-gold trail behind, a
 --     clank on each contact. The first hit: the activation's clip again, and the golden ratio
 --     draws itself in glowing yellow lines on the cloth (the golden rectangle, its squares and
@@ -139,8 +141,7 @@ type Burst = { part: Part, decal: Decal, born: number }
 
 type TableFx = {
 	anchor: BasePart,
-	chrome: Part,
-	dots: { Part },
+	chrome: BasePart,
 	blur: Part,
 	blurDecals: { Decal },
 	light: PointLight,
@@ -240,24 +241,23 @@ end
 local function create(self: SteelBallFx, id: number): TableFx
 	local kit = self.kit
 	local anchor = kit.anchor(id)
-	local chrome = kit.part(id, "SteelChrome", {
-		Shape = Enum.PartType.Ball,
-		Material = Enum.Material.SmoothPlastic,
-		Color = rgb(F.ChromeColor),
-		Reflectance = F.ChromeReflectance,
-		Size = Vector3.one * ballWidth(),
-	})
-	local dots: { Part } = {}
-	for i = 1, F.Dots do
-		table.insert(
-			dots,
-			kit.part(id, "SteelDot" .. i, {
-				Shape = Enum.PartType.Cylinder,
-				Material = Enum.Material.SmoothPlastic,
-				Color = rgb(F.DotColor),
-				Reflectance = F.DotReflectance,
-			})
-		)
+	local looks = ReplicatedStorage:FindFirstChild(Config.Ults.Assets.LooksFolder)
+	local template = looks and looks:FindFirstChild(EFFECT)
+	local chrome: BasePart
+	if template and template:IsA("BasePart") then
+		chrome = template:Clone()
+		chrome.Name = "SteelChrome"
+		chrome.Transparency = 1
+		chrome.Size = Vector3.one * ballWidth()
+		chrome.Parent = anchor
+	else
+		chrome = kit.part(id, "SteelChrome", {
+			Shape = Enum.PartType.Ball,
+			Material = Enum.Material.SmoothPlastic,
+			Color = rgb(F.ChromeColor),
+			Reflectance = F.ChromeReflectance,
+			Size = Vector3.one * ballWidth(),
+		})
 	end
 	local blur, blurDecals = streakRing(self, id, "SteelStreaks")
 	local lightPart = kit.part(id, "SteelLight", { Transparency = 1 })
@@ -285,7 +285,6 @@ local function create(self: SteelBallFx, id: number): TableFx
 	local fx: TableFx = {
 		anchor = anchor,
 		chrome = chrome,
-		dots = dots,
 		blur = blur,
 		blurDecals = blurDecals,
 		light = light,
@@ -752,12 +751,12 @@ end
 -- The cue ball
 --------------------------------------------------------------------------------------------
 
--- Place the chrome, its dots and its streaks on the cue ball's drawn part.
+-- Place the steel ball and its streaks on the cue ball's drawn part.
 local function placeChrome(fx: TableFx, part: BasePart, dt: number)
 	local revs = fx.spinRevs
 	-- Drawn turning no faster than the eye follows; past that the streaks carry it. Every spin
 	-- turns counter-clockwise seen from above, the way the streak image's comets lead.
-	fx.spinAngle += TAU * math.min(revs, F.DotMaxRevs) * dt
+	fx.spinAngle += TAU * math.min(revs, F.DrawnMaxRevs) * dt
 	fx.blurAngle += TAU * math.min(revs, F.BlurMaxRevs) * dt
 	local blurShare = math.clamp((revs - F.BlurFromRevs) / (F.BlurFullRevs - F.BlurFromRevs), 0, 1)
 	local d = part.Size.X * F.ChromeScale
@@ -768,14 +767,6 @@ local function placeChrome(fx: TableFx, part: BasePart, dt: number)
 	fx.chrome.Size = Vector3.one * d
 	fx.chrome.CFrame = frame
 	fx.chrome.Transparency = trans
-	local dot = d * F.DotBallWidths
-	local thick = dot * F.DotThickness
-	for i, p in fx.dots do
-		local turn = (i - 1) * TAU / #fx.dots
-		p.Size = Vector3.new(thick, dot, dot)
-		p.CFrame = frame * CFrame.Angles(0, turn, 0) * CFrame.new(d / 2 - thick * 0.3, 0, 0)
-		p.Transparency = 1 - fx.look * (1 - blurShare * F.DotBlurTransparency)
-	end
 	setRing(
 		fx.blur,
 		fx.blurDecals,
@@ -788,9 +779,6 @@ end
 
 local function hideChrome(fx: TableFx)
 	fx.chrome.Transparency = 1
-	for _, p in fx.dots do
-		p.Transparency = 1
-	end
 	for _, d in fx.blurDecals do
 		d.Transparency = 1
 	end
@@ -817,9 +805,6 @@ local function destroy(self: SteelBallFx, id: number)
 		b.part:Destroy()
 	end
 	fx.chrome:Destroy()
-	for _, p in fx.dots do
-		p:Destroy()
-	end
 	fx.blur:Destroy()
 	fx.lightPart:Destroy()
 	fx.trail:Destroy()

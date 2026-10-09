@@ -672,9 +672,13 @@ at half strength (section 5.7).
   first pot), it **lines up the 8 instead** and never pots it. The cue ball ends at rest, never
   scratching because of the guidance. One pot at most (catalog `MaxBalls` = 1). If the first ball
   isn't yours, nothing is guided (a foul as usual).
-- **Look (reference 06):** the cue ball becomes **the green steel ball**: a Blender-modelled
-  shell with the raised hexagon panel, grooves and swirl lines, a halftone manga texture and a
-  black outline (an inverted-hull shell), spinning hard. **Golden spiral energy rings**
+- **Look (reference 06):** the cue ball becomes **the green steel ball** (the designer,
+  2026-10-09: "a simple hexagonal shape on two ends with line engravings", saturated lime,
+  shiny): a glossy lime sphere with a raised hexagon on each end and engraved lines sweeping
+  from corner to corner round it, plus a ring round the middle, drawn by PBR maps
+  (`tools/blender/abilities/steelball_v2.py`; the SurfaceAppearance template
+  `ReplicatedStorage.AbilityLooks.SteelBall`, built in Edit by `tools/build_ability_looks.luau`
+  and saved with the place), spinning hard. **Golden spiral energy rings**
   (Blender-modelled golden-ratio spiral ribbons) spin around it while armed and trail it in the
   shot; the guided balls get a golden spiral path drawn on the cloth ahead of them; on each
   guided pot, a golden burst.

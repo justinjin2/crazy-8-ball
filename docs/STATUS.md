@@ -74,7 +74,8 @@ One line each; the long form is the 2026-10-08 entry at the top of
 - **The abilities rework** (in `gui-v4` since 2026-10-08, `docs/prompts/ABILITIES_REWORK_PLAN.md`):
   Fire Shot is the starter (2x speed, full orange guideline lines, a flame trail, scorch
   marks that fade in about a second); Super Bounce is back as a third Common; Verity
-  (Rare) eats then shoves; Catch-a-Ball (Epic) catches two; Look Over There! (Rare) sneaks.
+  (Rare) eats then shoves; Catch-a-Ball (Epic) catches two; Look Over There! (Rare) sneaks;
+  Steel Ball (Legendary) pots one and lines up one, as Gyro's lime two-hexagon ball.
   Not yet checked: phone and controller, the sounds by
   ear, the tutorial spin's reveal, the sneak with two players, the designer's voice lines. The
   one-by-one review (since 2026-09-30) goes on; abilities not yet reviewed are provisional.
@@ -83,7 +84,8 @@ One line each; the long form is the 2026-10-08 entry at the top of
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.
 - **The place file:** save `place/8ball.rbxl` and publish once this milestone is done (lucky
-  block templates and models, Unique cue templates, the renamed Firework Cue instances).
+  block templates and models, Unique cue templates, the renamed Firework Cue instances,
+  `ReplicatedStorage.AbilityLooks.SteelBall`).
 
 ## Not yet checked (the Studio tools cannot do these)
 

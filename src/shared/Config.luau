@@ -4806,6 +4806,9 @@ Config.Ults.Assets = {
 	LoadRetrySeconds = 2,
 	-- The ReplicatedStorage folder the loaded models go in (src/client/AbilityModels.luau).
 	FolderName = "AbilityAssets",
+	-- Looks a game script cannot build (a SurfaceAppearance's maps), made in Edit mode by
+	-- tools/build_ability_looks.luau and saved with the place: this ReplicatedStorage folder.
+	LooksFolder = "AbilityLooks",
 }
 
 ---------------------------------------------------------------------------------------------
@@ -11903,30 +11906,34 @@ Config.UI.VerityFx = {
 Config.UI.SteelBallFx = {
 	FadeInSeconds = 0.2,
 	FadeOutSeconds = 0.5,
-	-- The chrome ball over the drawn cue ball: a mirror (SmoothPlastic at this reflectance) of
-	-- this tint, a touch bigger so the cue ball never shows through.
-	ChromeColor = { 226, 230, 238 },
-	ChromeReflectance = 0.85,
+	-- The green steel ball over the drawn cue ball (the designer, 2026-10-09: Gyro's ball, "a
+	-- simple hexagonal shape on two ends with line engravings", saturated lime, shiny):
+	-- tools/blender/abilities/steelball_v2.py's sphere (Shell, a Model asset) wearing its PBR
+	-- maps (Maps, image ids), built into ReplicatedStorage[Config.Ults.Assets.LooksFolder]
+	-- .SteelBall by tools/build_ability_looks.luau; a touch bigger so the cue ball never shows
+	-- through.
+	Shell = 109425605098250,
+	Maps = {
+		Color = "rbxassetid://85493788364096",
+		Normal = "rbxassetid://77310348668461",
+		Metalness = "rbxassetid://138026060196526",
+		Roughness = "rbxassetid://133055179245195",
+	},
 	ChromeScale = 1.02,
-	-- Its grip dots round the middle (a fidget spinner's weights): how many, how wide (ball
-	-- widths), how thick (their width's share), how dark; at full streaks they smear to this
-	-- see-through.
-	Dots = 3,
-	DotBallWidths = 0.3,
-	DotThickness = 0.12,
-	DotColor = { 46, 50, 58 },
-	DotReflectance = 0.25,
-	DotBlurTransparency = 0.85,
+	-- Without the template (the place not yet saved with it): a plain mirror of this tint
+	-- (SmoothPlastic at this reflectance).
+	ChromeColor = { 130, 230, 20 },
+	ChromeReflectance = 0.6,
 	-- The spin about the upright, in turns a second: up to ArmedSpinRevs over SpinUpSeconds
 	-- from the look's first armed frame (slow at first, faster and faster: the whine's length),
 	-- held while armed and through the shot while it rolls, easing off over SpinDownSeconds
-	-- once it stops. The ball and its dots are drawn turning at most DotMaxRevs (faster
+	-- once it stops. The ball is drawn turning at most DrawnMaxRevs (faster
 	-- strobes); from BlurFromRevs the streak ring fades in, whole at BlurFullRevs, itself drawn
 	-- turning at most BlurMaxRevs.
 	SpinUpSeconds = 2.7,
 	ArmedSpinRevs = 12,
 	SpinDownSeconds = 1.2,
-	DotMaxRevs = 2.2,
+	DrawnMaxRevs = 2.2,
 	BlurFromRevs = 1.5,
 	BlurFullRevs = 5,
 	BlurMaxRevs = 3,
