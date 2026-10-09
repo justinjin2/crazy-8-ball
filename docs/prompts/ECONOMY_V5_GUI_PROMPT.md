@@ -350,7 +350,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   tests green, the trial merge with `tutorial-v2` noted; every screen in section 3
   screenshotted as it is now (phone emulator and PC); any breakage found goes first.
 - [x] 1. The server hook for the tutorial's scripted first block, with tests.
-- [ ] 2. The climb screen for every block, the mark, the Secret rung (shims 1-3 gone).
+- [x] 2. The climb screen for every block, the mark, the Secret rung (shims 1-3 gone).
 - [ ] 3. The quick reveal and "Open all".
 - [ ] 4. Odds & Details for every block, with the pity bars (shim 4 gone).
 - [ ] 5. The Grand Opening Luck clover.
@@ -395,3 +395,21 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   the Secret checks). Checked in Studio: a Mystery block scripted to Uncommon climbed
   Standard, Standard, Uncommon, Uncommon, landed ready at once and counted its pity (5/87/87
   to 6/88/88); a plain Rare block still rolls. How to use it: the handoff's section 2.
+- **Step 2**: every unclimbed block (OPEN!, the new mark) opens `MysteryReveal` from its own
+  tier (name, art, ladder lit to it; Lucky 8 / Sky / Gift titles from Strings); `Hold` and
+  `Throw` refuse it (`Reveal`); the Reveal answer is `path`, `kind?`, `readyAt?` (no `tiers`).
+  The Secret rung: the Mythic art darkened (`Reveal.Secret.Tint`) with a red "?"; a Secret
+  climb slams SECRET! (red look), then after 0.9 s hands off to `LuckyOpening.pull` (the pull
+  cutscene, then the YOU GOT card). The mark: an ink disc with a white ring and a gold up-arrow
+  at a slot's top-right (`LuckyBlocks.UI.ClimbMark`), hotbar and bag. Shims 1-3 gone (Hold's
+  climb, `BlockDrop.shown`, `Roll`). New Studio hooks: GuiQA `blockPress` (index) and
+  `blockBag`. Checked on the phone emulator (Epic, Mystery, a scripted Secret from a Rare, the
+  bag) and PC (the hotbar, a Legendary that really climbed to the Secret, 1 in 267: 200,000
+  server rolls gave 0.38%); console clean; gamepad: LB/RB aim, R2 opens, A presses. Lint OK,
+  1160 tests. Trial merge: the same 5. Shots: `economy-v5-gui/step2/`.
+- **The designer, before leaving (2026-10-09):** keep v5; build every new small piece in its
+  screen's style on my judgment and tick it, screenshots in `economy-v5-gui/` for review later;
+  Studio stays on PC (the emulator off), the phone checks all go in step 13 when they are back;
+  **no merge with `tutorial-v2`**: the tutorial terminal is still working, so step 12 waits
+  (do 13 and 14, then stop before 15); Mystery5's icon: the 1-pack's picture (dry run first).
+  Screen control (computer use) is held by another session, so no emulator clicks.

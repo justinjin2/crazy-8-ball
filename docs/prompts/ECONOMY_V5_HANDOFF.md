@@ -294,7 +294,7 @@ first week").
 What changed on `gui-v4` that touches the tutorial (nothing was changed on `tutorial-v2`):
 
 - **The first win's Rare block** now arrives **unclimbed** (OPEN!, no timer) and climbs when
-  tapped (or, with today's client, when held: shim 1); its climbed block then waits on its
+  tapped (its climb screen; since GUI step 2 a hold is refused); its climbed block then waits on its
   tier's timer (Rare 5 minutes, more if it climbed). The RareBlock, BlockWait and BlockReady
   steps assumed a 5-minute countdown from the start. `TutorialService`'s `rareAt` now counts
   a block whose `Kind` or `From` is "Rare".
@@ -308,7 +308,7 @@ What changed on `gui-v4` that touches the tutorial (nothing was changed on `tuto
 - **The hook is built (GUI run step 1, 2026-10-09):** `LuckyBlockService.setOpenHooks(force,
   opened, stay, script)` takes an optional fourth hook, `script(player, kind) -> string?`: the
   tier the climb of an unclimbed `kind` block ends on, or nil for a normal roll. The server
-  asks it on every climb (the climb screen's `Reveal`, and Hold's shim while it lasts). A
+  asks it on every climb (the climb screen's `Reveal`; Hold's shim is gone since step 2). A
   scripted climb ends exactly there (`PlayerData.climbBlock`'s new `forced` argument, decided
   by the pure `BlockDrop.climbFor`): the presses climb from the block's start to that tier, a
   Mystery block still counts its pity (`BlockDrop.roll`'s `forced`), no launch luck is noted,
@@ -332,6 +332,15 @@ What changed on `gui-v4` that touches the tutorial (nothing was changed on `tuto
   `stay` hook keeps working until the tutorial drops it. Studio test without the tutorial:
   `game.ServerStorage.LuckyBlockQA:Invoke("script", "Uncommon")` in the Server datamodel
   makes every climb end there (`nil` turns it off).
+- **Every unclimbed block climbs on its climb screen first (GUI run step 2, 2026-10-09).**
+  A tap, a click, its number key or R2 on an unclimbed block opens `MysteryReveal` from its own
+  tier; the server's `Hold` and `Throw` refuse an unclimbed block (`reason = "Reveal"`, "Tap the
+  block's slot to open it!"). So the interim Bronze block below now shows its climb screen
+  first (4 presses that stay Uncommon, `stay`), lands ready at once, and only then is held,
+  thrown and opened. `LuckyClient` sets the `BlockTapped` anchor flag on a tap that opens a
+  climb screen too, as it does for a tap on a block still on its timer. A climb that reaches
+  the Secret leaves no block: the Secret's pull and its card play straight away
+  (`LuckyOpening.pull`).
 - **Interim on `gui-v4`: Bronze's block is an Uncommon block** (`Config.Tutorial.BronzeBlockKind =
   "Uncommon"`; v5 Standard blocks give Commons only) that **skips its climb**: the server's
   third open hook, `LuckyBlockService.setOpenHooks(forced, opened, stay)`, with
