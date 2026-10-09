@@ -26,21 +26,18 @@ Updated 2026-10-08.
 One line each; the long form is the 2026-10-08 entry at the top of
 `docs/archive/STATUS_HISTORY.md`. Each still needs the designer on a real phone, PC and controller.
 
-- **The UI font**: Fredoka One stays (`Config.UI.FontTest`). **Blur instead of dims** (`ScreenBlur`).
-  **NEW RANK! waits** for a free lobby, one popup per division; not yet a real arena trip back.
-- **The 1v1 result cutscene** and the result screen's moving 8-balls; not yet in a real 1v1.
+- **Fredoka One** stays (`Config.UI.FontTest`); **blur, not dims**; **NEW RANK! waits** for a
+  free lobby (not yet a real arena trip back); **the 1v1 result cutscene**: not yet a real 1v1.
 - **Cue outlines and the "pop" aura** (six cues, `Config.CueSkins.Pop.Ids`), **new cue card
-  pictures** and **ball callouts** (YOU ARE SOLIDS / STRIPES): not yet seen in a real game.
+  pictures** and **ball callouts** and the shorter pull-bar cue: not yet seen in a real game.
 - **No fat-fingered shots on a phone** (`Config.Input.TouchPull`): needs a real phone.
 - **The player list like Roblox's**: hidden on a phone for now; a PC size not yet looked at.
 - **The matchmaking bar and spawn pill**: parked by the designer (2026-10-07); open: the spawn
   pill's 20 s, Play Global's X on a phone. **The queue portal**: not yet on a phone or gamepad.
-- **Lighting**: day 10 min, sunset 5 min, no night. **Pull cutscenes**: Mythic and Secret wait
-  for their redo.
+- **Lighting**: day 10 min, sunset 5 min. **Pull cutscenes**: Mythic and Secret wait a redo.
 - **Our own lucky blocks** (all 12 kinds, 2D icons), **the Gift drop** (`/giftdrop`; a test
   Gift waits in the designer's Studio save) and **the Mystery block's upgrade screen**: not yet
   on a phone, a controller or at full frame rate.
-- **The pull bar's cue**, drawn shorter: not yet seen in a match.
 
 ## Open, waiting on the designer
 
@@ -80,8 +77,7 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Not yet checked: the marks fading as the turn comes back, phone and controller, the sounds by
   ear, the tutorial spin's reveal, the sneak with two players, the designer's voice lines. The
   one-by-one review (since 2026-09-30) goes on; abilities not yet reviewed are provisional.
-- **The lively Shop is done** and merged into `release` (2026-10-06,
-  `docs/prompts/SHOP_LIVELY_REPORT.md`); other menus take its frame as each is rebuilt.
+- **The lively Shop** is in `release` (2026-10-06); other menus take its frame as rebuilt.
 - **Decision still open:** whether the VIP cue pays finder's money on the first join.
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.
