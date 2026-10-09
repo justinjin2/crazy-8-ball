@@ -841,7 +841,7 @@ lines). All in the worktree.
   - `rojo serve default.project.json --port 34877`; open your Studio window; ask the designer
     to set the Rojo plugin's port to 34877 and click Connect in **that** window;
   - commit this brief and the hook, then `git push -u origin tutorial-v2`.
-- [ ] 1. Read and map (section 2). Notes get the map, the touch list (started) and the old
+- [x] 1. Read and map (section 2). Notes get the map, the touch list (started) and the old
   bugs.
 - [ ] 2. Short research (5.7).
 - [ ] 3. Simulations and models (5.1-5.5), the plan page (section 9). **Stop for
@@ -916,6 +916,61 @@ lines). All in the worktree.
   Crazy 8 Test Place window. A plain `open -a` only showed the Start Page; launching the binary
   with `-localPlaceFile <file>` opened it (pid 79859, Studio id `01707bb4…`, name
   `lane-tutorial.rbxl`). The designer connected Rojo 34877 in it (2026-10-09).
+
+### Step 1: the code map (checked 2026-10-09; section 3 holds, with these additions)
+
+- **Server.** `TutorialService` (step machine on `Flags.Tutorial`; attributes `TutorialStep`,
+  `TutorialActive`, `TutorialNudge`; hooks set in `start`: `Ranking.setBlockKind`,
+  `LuckyBlockService.setOpenHooks(forcedOpen, opened)`, `Items.setEquipHook`,
+  `UltSpins.setSpinHooks(forcedSpin, spun)`, `Rewards.onRedeemed`, the `TutorialEvent` remote;
+  `/tutorial reset|skip|off|step`; Studio `ServerStorage.TutorialQA` step/set/flag/block).
+  `TutorialGames` (a 0.25 s Heartbeat `watch` per player: `reserve` the nearest usable 1v1 table
+  (`t.reservedFor`, attribute `TutorialTable`), `rig` sets `e.tutorial` + the rack, `Opponent.join`
+  = `BotService.tutorialBot()` + `joinTable(delay 2)`; game 1's lessons through the
+  `TutorialLesson` attribute (Break, Aim, Ability, Pick, BallInHand, Eight), `TutorialAimAngle`,
+  `TutorialPickBall`, `TutorialPocket`; the bar is filled after the aim shot (`UltMatch.setBar`);
+  `exitOn` storms the bot off 0.25 s after the winning 8; `game1Over`; `game2Over`;
+  `Tables.setRequestFilter`; `BotService.setFallbackWait`).
+- **Shared.** `Tutorial/Steps` (order, `resume`, `initial`, `shows`, `nudge`, the 22-step
+  onboarding funnel with bit masks), `Rig` (playerTeam/Group, `turnHand`, `timed`, `shot`
+  (break override), `assist` (hidden Magnet), `judge` (EightBack)), `Break` (`rack`, `play` =
+  the server's exact path, `lesson`, `eightPlaced`, `eightPocket`, `score`), `RankClaim`.
+  `Bots/Script` (`pot`, `scratch`, `eightBlunder`, `tutorialView`, `poor`); `Bots/Driver.decide`
+  (visit 1: pot then scratch; later visits `poor`).
+- **Client.** `Tutorial` (RenderStepped scene per step, device words, `HOST_HIDES`, nudges,
+  Studio `PlayerScripts.TutorialClientQA`), `TutorialOverlay` (line, 4-frame dim with a ring,
+  Skip + confirm, ButtonSelect), `TutorialHand` (point, pull, hold, swipe, stick, drag),
+  `TutorialArrow` (60 flat decal parts, PathfindingService every 3 s or 4 studs),
+  `TutorialAnchors` (anchors, hidden set, aim lock/suggest, turn meter, flags/probes).
+- **Every file that reads the tutorial today** (the guard test's scan set): client Guideline,
+  HubCorners, Input, InventoryCues, LuckyClient, LuckyHotbar, Main, MatchBar, MatchTargets,
+  MenuColumn, PostMatch, PowerCue, Progression, RankClaimBlock, UltHud, UltOdds, UltPick,
+  UltScreen, WinTrack; server Bootstrap, BotService, DevCommands, Funnel, GiftDropService,
+  LuckyBlockService, PlayerData, RankClaimService, Ranking, Rewards, SoloSearch, TableService,
+  UltSpins; shared Bots/Script, Config, Net, Rules/MatchEngine, Strings.
+- **Bots.** `BotService.spawn` (Identity look, yields), `seat` (builds the body on the pad),
+  `joinTable` (teleports onto the pad after a delay), `stand`, `walkIn` (arena: stand 1 spot
+  out, one `MoveTo`, seat), `remove` ("Vanish"/"Angry"), `stormOff`, `say` (BotSay remote:
+  bubble + chat line), `poll` (0.1 s), `ended` (the tutorial bot's angry exit). `Driver.turn`:
+  think + wiggle 2-4 s. `LobbyBots.walkTo` = PathfindingService + MoveTo.
+- **Gamepad today:** ButtonA ramps the power at `Config.Input.Gamepad.PowerRampPerSecond` 1.1
+  (full in 0.9 s), release shoots; R2 is unbound ("R2 was an analog pull; it did not work
+  well"). STUDIO_NOTES' "Testing by hand" still says R2 shoots: stale, fix it in step 6.
+
+### Old bugs and dead code (confirmed 2026-10-09)
+
+- `TutorialGames.game1Over` sets `"Drop"` (not a step) after the game-1 win: guidance dies.
+- `ClaimedDaily` (funnel step 18) is never logged; `ClaimedRank` is (RankClaimService).
+- `TutorialActive` has no reader outside a Steps comment; the `TutorialCue` remote is unused;
+  `TutorialCalling` is only ever set.
+- The spin forces Fire Shot (everyone's starter); Heat Seeker is gone, so "Pick" never shows.
+- **New finding:** since 2026-10-09 a lucky block on its timer cannot be thrown (NotReady, the
+  skip popup). The Mystery block upgraded to Uncommon lands on the Uncommon timer (1 min), so
+  the chain's "Place it!" needs that one block ready at once (the tutorial's own block only).
+
+### Touch list (files outside the tutorial's own modules changed, and why)
+
+- (none yet)
 
 ---
 
