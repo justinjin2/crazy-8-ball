@@ -184,4 +184,31 @@ function tests.the_ults_pools_never_meet()
 	expect(names(pairs)[1] == "a1+a4" and names(pairs)[2] == "a2+a3", "each with its own pool")
 end
 
+function tests.this_servers_windows_never_reach_anyone()
+	local W = Config.GlobalQueue.LocalWindow
+	expect(Matchmaker.window(0, W) == 2, "two divisions at once")
+	expect(Matchmaker.window(1, W) == 4)
+	expect(Matchmaker.window(2.5, W) == 7)
+	expect(Matchmaker.window(3.5, W) == 12)
+	expect(Matchmaker.window(60, W) == 12, "never anyone here")
+	local far = Matchmaker.pair({ ticket("u1", 1, 0), ticket("u2", 20, 0) }, 60, { windows = W })
+	expect(#far == 0, "19 divisions apart never meet here")
+	local near = Matchmaker.pair({ ticket("u1", 1, 0), ticket("u2", 12, 0) }, 4, { windows = W })
+	expect(#near == 1, "11 apart after 3.5 s")
+end
+
+function tests.a_rule_can_keep_two_tickets_apart()
+	local a, b, c = ticket("u1", 5, 0), ticket("u2", 5.1, 1), ticket("u3", 5.5, 2)
+	a.searching, b.searching, c.searching = false, false, true
+	local rules = {
+		windows = Config.GlobalQueue.LocalWindow,
+		allow = function(x: any, y: any): boolean
+			return x.searching or y.searching
+		end,
+	}
+	local pairs = Matchmaker.pair({ a, b, c }, 3, rules)
+	expect(#pairs == 1, "two waiting on pads never meet by themselves")
+	expect(names(pairs)[1] == "u1+u3", "the oldest waiter meets the searcher")
+end
+
 return tests

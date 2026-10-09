@@ -32,7 +32,6 @@ local Look = require(Shared.Bots.Look)
 local Rng = require(Shared.Bots.Rng)
 local Tables = require(script.Parent.Parent.TableService)
 local GlobalQueue = require(script.Parent.Parent.GlobalQueue)
-local SoloSearch = require(script.Parent.Parent.SoloSearch)
 local UltService = require(script.Parent.Parent.UltService)
 local Body = require(script.Parent.Body)
 local Identity = require(script.Parent.Identity)
@@ -701,24 +700,31 @@ local function studioHook()
 end
 
 ---------------------------------------------------------------------------------------------
--- The global queue's safety net (Config.Bots.Fallback): a 1v1 search with no real opponent
--- after SoloSeconds goes to an arena whose list names a disguised bot of the player's tier.
+-- The global queue's safety net (Config.Bots.Fallback). A lobby's 1v1 search with no real
+-- opponent after SoloSeconds plays a disguised bot of the player's tier at a free table in
+-- this server (LocalSearch, tutorial v2 4.7, with hereBot), else in an arena whose list names
+-- the bot (arenaBot). A team search gets an all-bot team in an arena after TeamSeconds.
 ---------------------------------------------------------------------------------------------
 
 local F = B.Fallback
 local fallbackBusy: { [any]: boolean } = {}
--- The tutorial lane: how long a player's solo search waits for a real opponent, when it says
--- (its game 2 meets the bot at once); nil: Fallback.SoloSeconds.
-local fallbackWait: ((Player) -> number?)? = nil
 
---- The tutorial lane's hook on the solo fallback's wait (see above).
-function BotService.setFallbackWait(fn: ((Player) -> number?)?)
-	fallbackWait = fn
+--- LocalSearch's bot for `player`: a disguised bot of their tier with a real look, which
+--- never asks for a rematch (as an arena's). Yields for its look; nil when none could be had.
+function BotService.hereBot(player: Player): Bot?
+	local tier = playerTier(player)
+	return BotService.spawn({
+		kind = "Disguised",
+		tier = tier,
+		playerTier = tier,
+		rematch = "Never",
+	})
 end
 
--- `deliver(match)` hands the bot match to the search (a pad's or a solo one) and says whether
--- it was taken (false: a real opponent came first).
-local function soloFallback(player: Player, deliver: (any) -> boolean)
+--- LocalSearch's last resort (no free table here): an arena whose list names a disguised bot
+--- of `player`'s tier. `deliver(match)` hands the bot match to the search (a pad's or a solo
+--- one) and says whether it was taken (false: a real opponent came first). Yields.
+function BotService.arenaBot(player: Player, deliver: (any) -> boolean)
 	local tier = playerTier(player)
 	local record = {
 		mode = 1,
@@ -780,54 +786,26 @@ local function teamFallback(t: any, players: { Player })
 	end
 end
 
+-- Team searches only: LocalSearch looks after every 1v1 search (a pad's and the spawn pill's).
 local function watchSearches()
 	for _, t in Tables.all() do
 		local size = t.engine.teamSize
 		local players, at = nil, nil
-		if not fallbackBusy[t] then
+		if size > 1 and not fallbackBusy[t] then
 			players, at = Tables.waitingSearch(t)
 		end
-		local wait = if size == 1 then F.SoloSeconds else F.TeamSeconds
-		if size == 1 and players and players[1] and fallbackWait then
-			wait = fallbackWait(players[1]) or wait
-		end
-		if players and #players == size and at and now() - at >= wait then
+		if players and #players == size and at and now() - at >= F.TeamSeconds then
 			local group = players
 			fallbackBusy[t] = true
 			task.spawn(function()
 				local ok, err = pcall(function(): any
-					if size == 1 then
-						soloFallback(group[1], function(match: any): boolean
-							return Tables.searchToMatch(t, match)
-						end)
-					else
-						teamFallback(t, group)
-					end
+					teamFallback(t, group)
 					return nil
 				end)
 				if not ok then
 					warn("[8ball] GQ bot fallback failed: " .. tostring(err))
 				end
 				fallbackBusy[t] = nil
-			end)
-		end
-	end
-	-- Play Global with no pad (SoloSearch, the spawn pill): the same 1v1 safety net.
-	for _, w in SoloSearch.waiting() do
-		local player = w.player
-		if not fallbackBusy[player] and now() - w.at >= F.SoloSeconds then
-			fallbackBusy[player] = true
-			task.spawn(function()
-				local ok, err = pcall(function(): any
-					soloFallback(player, function(match: any): boolean
-						return SoloSearch.toMatch(player, match)
-					end)
-					return nil
-				end)
-				if not ok then
-					warn("[8ball] GQ solo bot fallback failed: " .. tostring(err))
-				end
-				fallbackBusy[player] = nil
 			end)
 		end
 	end

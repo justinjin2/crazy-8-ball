@@ -1066,6 +1066,8 @@ local function startSearch(t: any, host: Player): boolean
 		-- Every search plays with ults on (designer, 2026-10-02: the card's On / Off toggle is
 		-- gone; a save still holding Off is ignored).
 		ults = true,
+		-- A 1v1's search stands with MemoryStore down: LocalSearch matches it here.
+		holdIfDown = e.teamSize == 1,
 		onFound = function(found: any, match: any)
 			searchFound(t, epoch, found, match)
 		end,
@@ -1398,6 +1400,102 @@ function Service.searchToMatch(t: any, match: any): boolean
 	end
 	searchFound(t, t.searchEpoch, search, match)
 	return true
+end
+
+--- This server's search (LocalSearch): takes table `t`'s waiting search out of the global
+--- queue for a match here. Yields. True when it is out (false: the queue matched it first, or
+--- there is none).
+function Service.takeSearch(t: any): boolean
+	local e = t.engine
+	local search = t.search
+	if arena or not search or not GlobalQueue.isWaiting(search) or t.searchCancelling then
+		return false
+	end
+	t.searchCancelling = true
+	local outcome = GlobalQueue.cancel(search)
+	t.searchCancelling = false
+	if outcome ~= "cancelled" or t.search ~= search then
+		return false
+	end
+	t.search = nil
+	if e.search and not e.search.found then
+		Engine.clearSearch(e)
+	end
+	Service.broadcast(t)
+	return true
+end
+
+--- This server's search (LocalSearch): stands `p` on table `t`'s pad facing the table and
+--- seats them at once, as an answered ask does, leaving the waiting pad they were on. True
+--- when they are seated there.
+function Service.placeOnPad(t: any, p: Player): boolean
+	local e = t.engine
+	local character = p.Character
+	if
+		arena
+		or not t.pad
+		or not character
+		or rootOf(p) == nil
+		or e.phase ~= "Waiting"
+		or p:GetAttribute("DataLoaded") ~= true
+	then
+		return false
+	end
+	if Engine.seat(e, p.UserId) then
+		return true
+	end
+	if Engine.count(e) >= Engine.capacity(e) then
+		return false
+	end
+	local from = seatOf[p.UserId]
+	if from then
+		local old = tables[from]
+		if not old or old.engine.phase ~= "Waiting" then
+			return false
+		end
+		Engine.remove(old.engine, p.UserId, now())
+		seatOf[p.UserId] = nil
+		Service.broadcast(old)
+	end
+	-- The second on a 1v1 pad stands beside the first, as a bot answering does.
+	local offset = if Engine.count(e) > 0 and e.teamSize == 1 then 2 else 0
+	character:PivotTo(Service.padSpot(t, offset))
+	t.blocked[p.UserId] = nil
+	if Engine.join(e, p.UserId, p.Name, p.DisplayName, now()) then
+		seatOf[p.UserId] = e.id
+		Service.broadcast(t)
+		return true
+	end
+	return false
+end
+
+--- This server's search (LocalSearch): a table of `teamSize` a side free for a match here,
+--- the nearest to `near` (else the lowest id): waiting, nobody on or standing on its pad, no
+--- search, not held for the tutorial nor in `skip` (tables already promised this round).
+function Service.freeTable(teamSize: number, near: Vector3?, skip: { [any]: boolean }?): any?
+	local best, bestGap = nil, math.huge
+	for id = 1, #tables do
+		local t = tables[id]
+		local e = t and t.engine
+		if
+			e
+			and e.teamSize == teamSize
+			and t.pad
+			and e.phase == "Waiting"
+			and Engine.count(e) == 0
+			and not e.search
+			and not t.search
+			and t.reservedFor == nil
+			and not (skip and skip[t])
+			and not Service.standingOnPad(t)
+		then
+			local gap = if near then (t.pad.Position - near).Magnitude else id
+			if gap < bestGap then
+				best, bestGap = t, gap
+			end
+		end
+	end
+	return best
 end
 
 --- The players of table `t`'s waiting search, and when it began (server time); nil when it

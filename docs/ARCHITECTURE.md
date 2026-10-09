@@ -358,8 +358,19 @@ the series score.
   a public lobby, not seated, the save open and the tutorial over, then a 1v1 `GlobalQueue`
   search with no table; its state is on the player (`SoloSearchAt`, `SoloSearchFound`) and
   being seated or leaving cancels it. It sets the workspace attribute `PublicLobby` (a client
-  cannot read `PrivateServerId`). `BotService` gives its searches the same bot fallback
-  (`SoloSearch.waiting`, `SoloSearch.toMatch`).
+  cannot read `PrivateServerId`). `LocalSearch` (lobby servers, tutorial v2 4.7) runs beside
+  the global queue for every 1v1 search: every `LocalTickSeconds` it gathers this server's pad
+  and spawn-pill searches and the players alone on a 1v1 pad, pairs them with `Matchmaker.pair`
+  and this server's windows (`Config.GlobalQueue.LocalWindow`; one of a pair must be
+  searching), takes both searches back from the queue, shows `QueueNotice{Local}` (a moment of
+  `TeleportScreen:flash`) and stands both on one pad (`TableService.placeOnPad`; one of theirs,
+  else `freeTable` nearest the older). A search still waiting at `Config.Bots.Fallback.SoloSeconds`
+  plays `BotService.hereBot` (a disguised bot of their tier) at their pad or the nearest free
+  table; with no free table, `BotService.arenaBot` (the arena bot). Its `Searching` and `Found`
+  events and `GlobalQueue.Matched` feed the tutorial's Game2 funnel. A lobby 1v1 search is
+  posted with `holdIfDown`: when MemoryStore refuses it, it still stands here (LocalSearch
+  matches it) and its thread posts it each `PollSeconds`. `BotService.watchSearches` fills team
+  searches after `TeamSeconds`.
 - Client: `MatchBar` (Play Global, the search's time and X), `PostMatch` (the row, hosted
   by `ResultScreen` in Continue's place), `QueueStatus` (the small top card), `TeleportScreen`
   (set with `SetTeleportGui`), `src/first/Arrival` (ReplicatedFirst: keeps the teleport

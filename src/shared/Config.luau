@@ -8246,6 +8246,21 @@ Config.GlobalQueue = {
 		{ After = 6, Divisions = 6 },
 		{ After = 10, Divisions = math.huge },
 	},
+	-- This server first (tutorial v2 4.7, for every search; LocalSearch): a 1v1 search meets a
+	-- near-rank player here who is searching or waiting alone on a 1v1 pad, and both go to a
+	-- table here. The range by how long the one that has waited longer has waited (a pad's
+	-- wait counts from stepping on): never "anyone" here, since a bot of their own tier comes
+	-- at Config.Bots.Fallback.SoloSeconds and is the fairer game. (tune)
+	LocalWindow = {
+		{ After = 0, Divisions = 2 },
+		{ After = 1, Divisions = 4 },
+		{ After = 2, Divisions = 7 },
+		{ After = 3.5, Divisions = 12 },
+	},
+	LocalTickSeconds = 0.25, -- this server pairs its own searches this often
+	-- A pair's players see "Match found!" this long before they are moved to their table
+	-- (the screen covers the move).
+	LocalLeadSeconds = 0.4,
 	-- "Play another" never meets the opponent it just played until it has searched this long
 	-- (after that, anyone rather than no one).
 	AvoidRecentSeconds = 10,
@@ -8341,6 +8356,10 @@ Config.UI.Queue = {
 	-- A teleport that has not taken the player away after this long gives the screen back
 	-- (the server also says when one failed).
 	TeleportGiveUpSeconds = 20,
+	-- A match in this server (LocalSearch, tutorial v2 4.7): the same screen over the move to
+	-- the table, this long (the server moves them at Config.GlobalQueue.LocalLeadSeconds),
+	-- then it fades out in FadeSeconds.
+	LocalScreenSeconds = 0.9,
 	-- Arriving from a teleport, the screen stays until the arena's table is ready, at most
 	-- this long, then fades out in FadeSeconds.
 	ArrivalHoldSeconds = 15,
@@ -13454,9 +13473,12 @@ Config.Bots = {
 	-- TeamSeconds for an all-bot team (step 8). SoloSeconds went 10 -> 5 with the matchmaking
 	-- bar's Play Global (designer, 2026-10-07): a lobby 1v1 search now meets its bot before
 	-- Config.GlobalQueue.Window widens to anyone, so a real player far from the rank is skipped.
+	-- Tutorial v2 (4.7, the designer: "max 5 seconds wait no matter what"): a lobby's 1v1 bot
+	-- plays at a free table in this server (LocalSearch; the arena only when none is free), and
+	-- a team search waits 5 s too (was 25).
 	Fallback = {
 		SoloSeconds = 5,
-		TeamSeconds = 25,
+		TeamSeconds = 5,
 		WalkInStuds = 18, -- the arena bot walks this far in to its spot
 		WalkInSeconds = 4, -- at most this long, then it is put there
 	},

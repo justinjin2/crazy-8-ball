@@ -86,6 +86,7 @@ function SoloSearch.begin(player: Player): boolean
 		mode = 1,
 		home = game.JobId,
 		ults = true, -- every search plays with ults on (designer, 2026-10-02)
+		holdIfDown = true, -- LocalSearch still matches it here (or a bot here at 5 s)
 		onFound = function(s: any, match: any)
 			found(player, s, match)
 		end,

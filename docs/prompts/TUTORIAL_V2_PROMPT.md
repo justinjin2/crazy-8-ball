@@ -889,7 +889,7 @@ lines). All in the worktree.
   - Play Global glow;
   - the Rare block's Ready glow;
   - the VIP / Starter tile and the bigger Daily Challenge.
-- [ ] 11. The new search for everyone (4.7): this server first, global within 5 s, the bot in
+- [x] 11. The new search for everyone (4.7): this server first, global within 5 s, the bot in
   this server, teams 5 s, arena overflow.
 - [ ] 12. Path R, skipping, first-time hints for everyone (4.8, 4.9), starter spins 0,
   Bronze's block in Rank, "x2!" for everyone.
@@ -1230,7 +1230,35 @@ lines). All in the worktree.
   none of it; no errors. Screenshots: `~/Desktop/8ball-refs/tutorial/step10/`.
 - **Not checked by hand here:** a controller's B on the popup and the phone layout (code only:
   the card narrows to 300 px with a smaller title); step 14's runs cover them.
-- **Open:** skippers' soft part (step 12); Game2 found/kind (step 11's search).
+- **Open:** skippers' soft part (step 12).
+
+### Step 11: the new search for everyone (2026-10-09)
+
+- **The module:** `src/server/LocalSearch.luau` (lobby servers): every 0.25 s it gathers this
+  server's 1v1 searches (pads, the spawn pill) and the players alone on a 1v1 pad, pairs them by
+  `Matchmaker.pair` with this server's windows (`Config.GlobalQueue.LocalWindow`, never
+  "anyone"; one of a pair must be searching), takes both out of the global queue, covers the
+  move with "MATCH FOUND" (QueueNotice "Local", 0.9 s; "Heading to your table..." only for whoever
+  moves) and stands both on one pad. At 5 s a disguised bot of their tier here
+  (`BotService.hereBot`) at their pad or the nearest free table; the arena bot only with no free
+  table. Teams: bots at 5 s.
+- **Held searches:** a lobby 1v1 search stands when MemoryStore refuses it (`holdIfDown`), so
+  an outage (or my unpublished Studio file) still gets a game here; it posts itself each poll.
+- **Game2 funnel:** Searched (LocalSearch.Searching), Found with its kind (Server, Global, Bot,
+  Arena, Table), Started (seated at a game that began, in any server), Ended (Won/Lost) and the
+  Game2Result event. `TutorialGame2` (save flag, in the reset list) holds the kind of the game
+  that started; a game that never counted (under 60 s, Settle's rule) leaves the step at Soft and
+  the next search's kind replaces it. TutorialQA `data` reads matches, wins and a flag.
+- **Bug fixed for everyone:** `Ticket.isRecord` refused a bot match's record (team 2 all bots)
+  when an arena read it live.
+- **Verified in Studio (my window, PC):** a Soft player's spawn-pill search, held (no
+  MemoryStore), met a Bronze bot here at 5 s (table 2) with the cover, Found Bot, Started; a pad
+  search (table 8) had the bot step on at 5 s and the game start 3 s later; game 2 ended by the
+  bot vanishing (a real forfeit): Ended Won, Game2Result [Bot, PC], Soft to Done, QuestDone; a
+  surrender at once is no real match (stays Soft); the cover with and without its second line;
+  no errors; lint clean, tests pass.
+- **Not checked here:** two real people meeting here and the global path (Studio has one player
+  and my file has no MemoryStore): step 15 on the test place with two accounts.
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
@@ -1308,6 +1336,23 @@ lines). All in the worktree.
   - `src/shared/Config.luau`: `Config.Tutorial.Soft`, `Config.UI.Corners` (Challenge, Offer,
     flip), `Config.UI.FreeReward.Social.Like` and its Open entry, `Config.UI.Menu.Focus.Keep`
     (TutorialSoftGui). `src/shared/Strings.luau`: `FreeReward.Like`, `Tutorial.InviteBody`.
+- Step 11 (the new search, for everyone):
+  - `src/server/LocalSearch.luau` (new, for everyone), started by `src/server/Bootstrap.server.luau`
+    in a lobby.
+  - `src/shared/Matchmaking/Matchmaker.luau` (+ `tests/matchmaker_test.luau`): `pair`'s optional
+    rules (windows, allow). `src/shared/Matchmaking/Ticket.luau` (+ `tests/queue_core_test.luau`):
+    `isRecord` counts bot seats.
+  - `src/server/GlobalQueue.luau`: the `Matched` event, held searches (`holdIfDown`).
+    `src/server/SoloSearch.luau`: holds. `src/server/TableService.luau`: a 1v1 pad's search holds;
+    `takeSearch`, `placeOnPad`, `freeTable`.
+  - `src/server/Bots/BotService.luau`: `hereBot`, `arenaBot` (was the solo fallback), team searches
+    only in `watchSearches`.
+  - `src/client/TeleportScreen.luau` (`flash`), `src/client/Main.client.luau` (QueueNotice
+    "Local").
+  - `src/shared/Config.luau`: `GlobalQueue.LocalWindow`, `LocalTickSeconds`, `LocalLeadSeconds`;
+    `Bots.Fallback.TeamSeconds` 5; `UI.Queue.LocalScreenSeconds`. `src/shared/Strings.luau`:
+    `GlobalQueue.ToTable`.
+  - `docs/GDD.md` (Global queue, Disguised bots), `docs/ARCHITECTURE.md` (LocalSearch).
 
 ---
 

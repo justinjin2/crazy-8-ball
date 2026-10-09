@@ -292,10 +292,19 @@ Every feature is checked against these. If it serves none, it waits.
   server for a side of similar rank and teleports both into an **arena**.
   - 1v1 alone; **2v2 needs 2 on the pad and 3v3 needs 3** (a whole side). The first whole
     side by arrival goes; anyone extra stays and hosts the pad. Play Global shows only then.
+  - **This server first** (designer, 2026-10-09: "this new search is also for the rest of the
+    game"): every 1v1 search (a pad's or the spawn pill's) also looks in its own server, all the
+    while, for someone near its rank who is searching or waiting alone on a 1v1 pad (2
+    divisions at once, 4 after 1 s, 7 after 2 s, 12 after 3.5 s *(tune)*, never "anyone"). A
+    match here shows "MATCH FOUND" for a moment and stands both on one pad (one of theirs, else
+    the free table nearest); no teleport. The global queue runs at the same time; whichever
+    finds first stands.
   - **Stay on the pad while searching**: the bar shows "Searching... 0:07" and a small red
-    X; stepping off cancels. A 1v1 with no real opponent after **5 s** *(tune)* meets a
-    disguised bot of its rank in an arena (section 13). Anyone in the server may still step on: a
-    full pad plays locally and the search stops.
+    X; stepping off cancels. A 1v1 with no real opponent after **5 s** *(tune)*, "no matter
+    what", meets a disguised bot of its rank **in this server** at its pad or the nearest free
+    table (section 13); only a server with no free table sends it to an arena bot. Teams wait 5 s
+    too before bots fill. Anyone in the server may still step on: a full pad plays locally and
+    the search stops.
   - **Rank**: the closest rank first, widening every few seconds, **anyone after 10 s**
     *(tune)* ("as quick as possible", designer). A new game after an arena match avoids the
     last opponent for the first 10 s.
@@ -784,8 +793,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   Bronze 90%, Silver 80, Gold 65, Platinum 57, Diamond 50, Expert 50, Veteran 45, Master 40,
   Grandmaster 35, Reyes 30. **Play against PC** is a robot named "<Tier> Bot" at the player's
   own tier (Unranked: Bronze), whatever the table's difficulty; the real player always breaks.
-  **Disguised bots** (the global queue's fallback after 5 s for 1v1 (10 s until 2026-10-07)
-  and 25 s for teams, the
+  **Disguised bots** (the search's fallback after 5 s for 1v1, in the player's own server at a
+  free table since 2026-10-09 (10 s until 2026-10-07), and 5 s for teams (25 s until
+  2026-10-09), the
   lobby bots, off by default since 2026-10-07 so a server holds only real people, the tutorial) wear real Roblox avatars of random
   accounts with made-up names (designer's call, 2026-10-02); their wins pay like a real match
   with no win streak and are stored as PC wins (never on the most-wins board). After 20

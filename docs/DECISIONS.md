@@ -3870,3 +3870,23 @@ timer of a new block stay the designer's call.
   the Daily Challenge corner is bigger (84 px, 56 on a phone). During the guided part the money
   pill, Daily Challenge, the offer, Invite and Roblox Plus hide (the Social funnel follows only
   players whose soft part began; DailyClaimed is logged by the daily claim).
+- 2026-10-09: The new search, for everyone (tutorial v2 4.7): every 1v1 search (a pad's Play
+  Global, the spawn pill's) looks in its own server first and all the while, for anyone near
+  its rank searching or waiting alone on a 1v1 pad (one of the two must be searching). This
+  server's windows widen fast and never reach "anyone": 2 divisions at once, 4 after 1 s, 7
+  after 2 s, 12 after 3.5 s (`Config.GlobalQueue.LocalWindow`). A match here takes both out of
+  the global queue, shows "MATCH FOUND" for 0.9 s (with "Heading to your table..." for whoever
+  moves) and stands both on one pad: one of theirs, else the free table nearest the one who
+  searched first. The global queue runs as before at the same time.
+- 2026-10-09: 5 s at most, "no matter what": a 1v1 search still waiting after 5 s plays a
+  disguised bot of the player's tier in this server, at their pad or the nearest free table
+  (no teleport); today's arena bot only when this server has no free table. Team searches get
+  their bots after 5 s too (was 25 s). Lobby bots stay off.
+- 2026-10-09: A lobby 1v1 search no longer fails when MemoryStore is down: it stands in its
+  server (this server's people, then the bot here at 5 s) and keeps trying to post itself to
+  the global queue. Team searches and an arena's Play another still say the queue is down.
+- 2026-10-09: Bug fix for everyone: an arena reading a bot match's record live (its second
+  side all bots) refused it (`Ticket.isRecord` wanted a person on both sides).
+- 2026-10-09: The Game2 funnel records what game 2 was (Server: a person here, Global, Bot: a
+  bot here, Arena: the arena bot, Table: they stepped onto someone's pad with no search) and
+  how it ended (Won or Lost; plus the custom event Game2Result with the kind and device).

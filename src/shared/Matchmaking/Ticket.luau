@@ -231,7 +231,21 @@ function Ticket.homeOpen(entry: any, now: number, group: number, staleSeconds: n
 		and entry.players + group <= entry.max
 end
 
---- Whether a stored match record is one this code can read.
+-- How many bots a match record puts on side `team` (BotService's bot matches name them).
+local function botsOn(record: any, team: number): number
+	local n = 0
+	if type(record.bots) == "table" then
+		for _, spec in record.bots do
+			if type(spec) == "table" and spec.team == team then
+				n += 1
+			end
+		end
+	end
+	return n
+end
+
+--- Whether a stored match record is one this code can read. A side may be all bots (a bot
+--- match's list names no player there).
 function Ticket.isRecord(record: any): boolean
 	if type(record) ~= "table" or record.v ~= Ticket.Version or type(record.teams) ~= "table" then
 		return false
@@ -244,7 +258,11 @@ function Ticket.isRecord(record: any): boolean
 	end
 	for team = 1, 2 do
 		local list = record.teams[team]
-		if type(list) ~= "table" or #list < 1 or #list > record.mode then
+		if
+			type(list) ~= "table"
+			or #list + botsOn(record, team) < 1
+			or #list + botsOn(record, team) > record.mode
+		then
 			return false
 		end
 		for _, u in list do

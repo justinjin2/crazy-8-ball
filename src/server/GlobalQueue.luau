@@ -18,6 +18,9 @@
 --   choice, PlayerData.queueUlts) and only meets its own; `switchPool` moves a waiting one
 --   to the other pool, keeping its time (the No-ults fallback's Yes). The choice and the
 --   running search's pool reach the client as player attributes (Config.GlobalQueue).
+-- - A lobby 1v1 search may be held (`holdIfDown`): when MemoryStore does not take it, it still
+--   stands in this server (LocalSearch matches it here, or plays it a bot here at 5 s) and its
+--   thread posts it each PollSeconds until MemoryStore answers (tutorial v2 4.7).
 local HttpService = game:GetService("HttpService")
 local MemoryStoreService = game:GetService("MemoryStoreService")
 local Players = game:GetService("Players")
@@ -42,12 +45,18 @@ local SERVER = if game.JobId ~= "" then game.JobId else "studio-" .. HttpService
 local GlobalQueue = {}
 GlobalQueue.Server = SERVER
 
+-- Fires (players) when a search of this server is matched by the leader (a real match
+-- worldwide; a bot match is delivered by its maker instead): the tutorial's Game 2 funnel.
+local matched = Instance.new("BindableEvent")
+GlobalQueue.Matched = matched.Event
+
 export type Match = { id: string, code: string, team: number }
 export type Search = {
 	ticket: Ticket.Value,
 	players: { Player },
 	state: string, -- "waiting" | "found" | "done"
 	cancelling: boolean?, -- a Cancel is under way (the poll must not post it again)
+	held: boolean?, -- MemoryStore has not taken it yet (holdIfDown): it waits in this server
 	postedAt: number, -- os.clock() when it went in, for the timing lines
 	onFound: (search: any, match: Match) -> (),
 	onEnded: ((search: any, reason: string) -> ())?,
@@ -217,6 +226,7 @@ local function found(search: Search, match: Match)
 		)
 	)
 	task.spawn(QueueCore.forget, store, search.ticket)
+	matched:Fire(search.players)
 	task.spawn(search.onFound, search, match)
 end
 
@@ -227,6 +237,20 @@ local function run(search: Search)
 		task.wait(G.PollSeconds)
 		if search.state ~= "waiting" then
 			break
+		end
+		if search.held then
+			-- Not in MemoryStore yet: try again. Cancelled or matched here meanwhile, it comes
+			-- straight back out.
+			if QueueCore.post(store, search.ticket) then
+				search.held = nil
+				lastBeat = os.clock()
+				if search.state ~= "waiting" then
+					QueueCore.cancel(store, search.ticket)
+					break
+				end
+				log(("search %s posted after a wait"):format(search.ticket.id))
+			end
+			continue
 		end
 		local ok, value = QueueCore.read(store, search.ticket)
 		if search.state ~= "waiting" then
@@ -272,6 +296,8 @@ function GlobalQueue.enqueue(
 		avoid: { number }?,
 		head: number?, -- seconds of searching to credit it with (a search that is starting again)
 		ults: boolean?, -- its pool: false for No ults; ults on otherwise
+		-- MemoryStore does not take it: it still stands here, posted when it can (see the top).
+		holdIfDown: boolean?,
 		onFound: (search: any, match: Match) -> (),
 		onEnded: ((search: any, reason: string) -> ())?,
 	}
@@ -299,13 +325,18 @@ function GlobalQueue.enqueue(
 	})
 	ticket.beat = now
 	local started = os.clock()
+	local held = nil
 	if not QueueCore.post(store, ticket) then
-		return nil, "Store"
+		if not opts.holdIfDown then
+			return nil, "Store"
+		end
+		held = true
 	end
 	local search: Search = {
 		ticket = ticket,
 		players = table.clone(opts.players),
 		state = "waiting",
+		held = held,
 		postedAt = started,
 		onFound = opts.onFound,
 		onEnded = opts.onEnded,
@@ -315,8 +346,9 @@ function GlobalQueue.enqueue(
 		p:SetAttribute(G.SearchUltsAttribute, Ticket.pool(ticket))
 	end
 	log(
-		("search %s posted in %.0f ms: %dv%d, %s, rating %.2f, players %s"):format(
+		("search %s %s in %.0f ms: %dv%d, %s, rating %.2f, players %s"):format(
 			ticket.id,
+			if held then "held here (MemoryStore did not take it)" else "posted",
 			(os.clock() - started) * 1000,
 			opts.mode,
 			opts.mode,
@@ -336,6 +368,11 @@ function GlobalQueue.cancel(search: Search): string
 	if search.state == "found" then
 		return "matched"
 	elseif search.state == "done" then
+		return "cancelled"
+	end
+	if search.held then
+		finish(search, "Cancelled") -- never reached MemoryStore: nothing to take back there
+		log(("search %s cancelled (held here)"):format(search.ticket.id))
 		return "cancelled"
 	end
 	local deadline = os.clock() + G.ClaimTimeoutSeconds + 1

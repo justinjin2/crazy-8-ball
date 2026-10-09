@@ -10,6 +10,10 @@
 -- anyone after 10 s. The oldest search is served first, with the closest rank in range.
 -- Each ticket names its pool, Ults On or Off (designer, 2026-09-28): two pools share the one
 -- queue, and a search only ever meets one of its own pool.
+--
+-- The same rule pairs a server's own searches first (LocalSearch, tutorial v2 4.7), with its
+-- own windows (Config.GlobalQueue.LocalWindow: never "anyone") and a rule on which two may
+-- meet (one of them must be searching): `Rules`.
 local Config = require(script.Parent.Parent.Config)
 local Ranks = require(script.Parent.Parent.Progression.Ranks)
 
@@ -26,16 +30,27 @@ export type Candidate = {
 	ults: boolean?, -- its pool: false for No ults; true or missing for ults on
 }
 
+-- What pair may change: the windows (Config.GlobalQueue.Window's shape) and whether two tickets
+-- may meet at all.
+export type Rules = {
+	windows: { { After: number, Divisions: number } }?,
+	allow: ((a: any, b: any) -> boolean)?,
+}
+
 export type Pair = {
 	a: any, -- the older search: team 1
 	b: any, -- team 2
 	gap: number, -- divisions apart
 }
 
---- How many divisions apart a search `waited` seconds old may be matched.
-function Matchmaker.window(waited: number): number
+--- How many divisions apart a search `waited` seconds old may be matched (`windows`: another
+--- list of steps; Config.GlobalQueue.Window by default).
+function Matchmaker.window(
+	waited: number,
+	windows: { { After: number, Divisions: number } }?
+): number
 	local divisions = 0
-	for _, step in G.Window do
+	for _, step in windows or G.Window do
 		if waited >= step.After then
 			divisions = step.Divisions
 		end
@@ -104,8 +119,10 @@ end
 
 --- The pairs to make now, from every waiting ticket. Each ticket is in at most one pair and
 --- no player is in two, and both of a pair share a mode and a pool. Deterministic for any
---- input order.
-function Matchmaker.pair(tickets: { Candidate }, now: number): { Pair }
+--- input order. `rules`: other windows, and which two may meet (see Rules).
+function Matchmaker.pair(tickets: { Candidate }, now: number, rules: Rules?): { Pair }
+	local windows = if rules then rules.windows else nil
+	local allow = if rules then rules.allow else nil
 	local order = table.clone(tickets)
 	table.sort(order, older)
 	local used: { [string]: boolean } = {}
@@ -126,7 +143,7 @@ function Matchmaker.pair(tickets: { Candidate }, now: number): { Pair }
 		if not free(a) then
 			continue
 		end
-		local reachA = Matchmaker.window(now - a.at)
+		local reachA = Matchmaker.window(now - a.at, windows)
 		local best: Candidate? = nil
 		local bestGap = math.huge
 		for _, b in order do
@@ -138,9 +155,10 @@ function Matchmaker.pair(tickets: { Candidate }, now: number): { Pair }
 				and not shares(a, b)
 				and not avoids(a, b, now)
 				and not avoids(b, a, now)
+				and (allow == nil or allow(a, b))
 			then
 				local gap = math.abs(a.rating - b.rating)
-				local reach = math.max(reachA, Matchmaker.window(now - b.at))
+				local reach = math.max(reachA, Matchmaker.window(now - b.at, windows))
 				-- Strictly closer only: on a tie the older (earlier in `order`) keeps it.
 				if gap <= reach and gap < bestGap then
 					best, bestGap = b, gap

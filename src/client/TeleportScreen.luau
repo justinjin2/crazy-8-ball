@@ -5,7 +5,8 @@
 -- arriving server's ReplicatedFirst script (src/first/Arrival) keeps it until the table is
 -- there, so there is no flash of Roblox's default loading screen in between. Back to the
 -- lobby uses it too. If the player is still here after Queue.TeleportGiveUpSeconds (the
--- teleport failed and the server said so, or Studio), it goes away.
+-- teleport failed and the server said so, or Studio), it goes away. A match in this server
+-- (LocalSearch) shows it briefly over the move to the table (flash), then it fades.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TeleportService = game:GetService("TeleportService")
@@ -51,7 +52,7 @@ function TeleportScreen.new(): any
 	line.AnchorPoint = Vector2.new(0.5, 0)
 	line.Position = UDim2.new(0.5, 0, 0.5, 10)
 	line.Size = UDim2.new(0.9, 0, 0, Q.TeleportLinePx + 8)
-	self.gui, self.title, self.line = gui, title, line
+	self.gui, self.back, self.title, self.line = gui, back, title, line
 	self.shownAt = nil
 	local player = Players.LocalPlayer
 	if player then
@@ -62,6 +63,8 @@ end
 
 --- Show it: "Found" (a match, joining the arena) or "Home" (back to the lobby).
 function TeleportScreen.show(self: any, kind: string)
+	self.flashAt = nil
+	self:paint(0)
 	self.title.Visible = kind == "Found"
 	self.line.Text = if kind == "Found" then Copy.Joining else Copy.ToLobby
 	self.gui.Enabled = true
@@ -71,9 +74,30 @@ function TeleportScreen.show(self: any, kind: string)
 	end)
 end
 
+--- A match in this server: "MATCH FOUND" over the move to the table, for
+--- Queue.LocalScreenSeconds, then it fades out (no teleport).
+--- `moving`: they go to another table ("Heading to your table..."); false on their own pad.
+function TeleportScreen.flash(self: any, moving: boolean)
+	self:paint(0)
+	self.title.Visible = true
+	self.line.Text = if moving then Copy.ToTable else ""
+	self.gui.Enabled = true
+	self.shownAt = os.clock()
+	self.flashAt = os.clock()
+end
+
 function TeleportScreen.hide(self: any)
 	self.gui.Enabled = false
 	self.shownAt = nil
+	self.flashAt = nil
+	self:paint(0)
+end
+
+-- The whole screen's fade: 0 shown, 1 gone.
+function TeleportScreen.paint(self: any, fade: number)
+	self.back.BackgroundTransparency = fade
+	HudParts.setTextTransparency(self.title, fade)
+	HudParts.setTextTransparency(self.line, fade)
 end
 
 function TeleportScreen.isShown(self: any): boolean
@@ -88,6 +112,15 @@ function TeleportScreen.update(self: any)
 		return
 	end
 	local t = os.clock() - at
+	if self.flashAt then
+		local fading = (os.clock() - self.flashAt - Q.LocalScreenSeconds) / Q.FadeSeconds
+		if fading >= 1 then
+			self:hide()
+		elseif fading > 0 then
+			self:paint(fading)
+		end
+		return
+	end
 	HudParts.setTextTransparency(self.line, 0.35 * (0.5 + 0.5 * math.sin(t * 4)))
 	if t > Q.TeleportGiveUpSeconds then
 		self:hide()

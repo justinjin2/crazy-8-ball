@@ -681,6 +681,9 @@ Net.get("QueueNotice").OnClientEvent:Connect(function(notice: any)
 	end
 	if notice.kind == "Found" or notice.kind == "Home" then
 		teleportScreen:show(notice.kind)
+	elseif notice.kind == "Local" then
+		-- A match in this server: a moment over the move to the table (or the bot's arrival).
+		teleportScreen:flash(notice.moving == true)
 	elseif notice.kind == "Failed" then
 		teleportScreen:hide()
 		local reason = notice.reason

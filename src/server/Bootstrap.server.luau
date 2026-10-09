@@ -154,6 +154,10 @@ FallGuard.start() -- anyone who drops below the floor goes back to the spawn at 
 ShotService.start()
 UltService.start() -- ults in a match: activation, the bar gains, the Studio UltQA hook
 require(script.Parent:WaitForChild("Bots"):WaitForChild("BotService")).start() -- the bots (the Bots lane)
+if not isArena then
+	-- Every 1v1 search looks in this server first, and plays a bot here at 5 s (tutorial v2).
+	require(script.Parent:WaitForChild("LocalSearch")).start()
+end
 -- The tutorial lane: rank rewards claimed in Rank, then the first-time tutorial itself.
 require(script.Parent:WaitForChild("RankClaimService")).start()
 require(script.Parent:WaitForChild("TutorialService")).start()

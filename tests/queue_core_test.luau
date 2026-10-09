@@ -355,6 +355,30 @@ function tests.ticket_changes_refuse_the_wrong_state()
 	expect(not Ticket.isRecord({ v = 1, teams = {} }), "a broken list is refused")
 end
 
+function tests.a_bot_matchs_list_is_readable()
+	-- BotService's bot matches: the real side named, the other all bots (the arena seats them).
+	local solo = {
+		v = Ticket.Version,
+		mode = 1,
+		teams = { { 7 }, {} },
+		homes = { ["7"] = "lobby" },
+		ults = true,
+		bots = { { team = 2, kind = "Disguised", tier = "Bronze" } },
+	}
+	expect(Ticket.isRecord(solo), "a 1v1 against a bot")
+	local team = table.clone(solo)
+	team.mode = 2
+	team.teams = { { 7, 8 }, {} }
+	team.bots = { { team = 2 }, { team = 2 } }
+	expect(Ticket.isRecord(team), "a 2v2 against two bots")
+	local short = table.clone(team)
+	short.bots = {}
+	expect(not Ticket.isRecord(short), "an empty side with no bots is refused")
+	local over = table.clone(solo)
+	over.bots = { { team = 2 }, { team = 2 } }
+	expect(not Ticket.isRecord(over), "more on a side than the mode")
+end
+
 -- Many servers on one clock for two simulated minutes.
 function tests.many_servers_never_double_match_and_stay_quick()
 	local store = fakeStore()

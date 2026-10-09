@@ -205,6 +205,7 @@ return {
 		FoundTitle = "MATCH FOUND",
 		Joining = "Joining the arena...",
 		ToLobby = "Back to the lobby...",
+		ToTable = "Heading to your table...", -- a match in this server
 		Failed = {
 			Studio = "Teleports only work in the published game.",
 			Teleport = "Couldn't join the match. Try again.",

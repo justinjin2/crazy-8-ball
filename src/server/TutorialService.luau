@@ -38,6 +38,9 @@ local TutorialBot = require(script.Parent.TutorialBot)
 local Items = require(script.Parent.Items)
 local LuckyBlockService = require(script.Parent.LuckyBlockService)
 local UltSpins = require(script.Parent.UltSpins)
+local Tables = require(script.Parent.TableService)
+local GlobalQueue = require(script.Parent.GlobalQueue)
+local LocalSearch = require(script.Parent.LocalSearch)
 
 local T = Config.Tutorial
 local Timing = T.Timing
@@ -51,6 +54,9 @@ local WHY_FLAG = "TutorialWhy"
 local SOFT_FLAG = "TutorialSoftAt"
 -- The wins when the soft part began: Config.Tutorial.Soft.QuestWins more win the quest.
 local QUEST_FLAG = "TutorialQuestAt"
+-- What game 2 was, for its result (the Game2 funnel's kinds): "Server", "Global", "Bot",
+-- "Arena", or "Table" (they sat at a table with no search).
+local GAME2_FLAG = "TutorialGame2"
 
 -- Listeners for step changes: fn(player, step, previous).
 local stepChanged = Instance.new("BindableEvent")
@@ -332,6 +338,16 @@ local function onChanged(player: Player)
 		local at = data.Flags[SOFT_FLAG]
 		if type(at) == "number" and matches > at then
 			Funnel.onboarding(player, "Game2Ended")
+			local won = (data.Progress.Wins or 0) > (tonumber(data.Flags[QUEST_FLAG]) or math.huge)
+			local kind = data.Flags[GAME2_FLAG]
+			Funnel.once(player, "Game2", "Ended", if won then "Won" else "Lost")
+			Funnel.event(
+				player,
+				"Game2Result",
+				if won then 1 else 0,
+				if type(kind) == "string" then kind else "Unknown",
+				Funnel.device(player)
+			)
 			TutorialService.setStep(player, "Done")
 		end
 	end
@@ -416,6 +432,67 @@ local function codeRedeemed(player: Player, code: string)
 		and typed == Config.Ults.CodeBanner.ActiveCode
 	then
 		TutorialService.mark(player, "Redeemed")
+	end
+end
+
+-- The Game2 funnel (4.6): what the soft part's search found, and the game starting. Only while
+-- the step is Soft; each funnel step once per player ever. The saved kind (GAME2_FLAG) follows
+-- the game that actually starts: a game that never counted (left before a shot) and a new
+-- search after it leave the newest.
+local game2Kind: { [Player]: string } = {} -- what this server's search last found for them
+local game2Seen: { [Player]: string } = {} -- the game last seen starting ("table:epoch")
+
+local function game2Searched(player: Player)
+	if TutorialService.step(player) == "Soft" and Funnel.once(player, "Game2", "Searched") then
+		Funnel.onboarding(player, "Game2Searched")
+	end
+end
+
+local function game2Found(player: Player, kind: string)
+	if TutorialService.step(player) ~= "Soft" then
+		return
+	end
+	game2Kind[player] = kind
+	-- Saved now too: a global or arena match plays in another server.
+	PlayerData.setFlag(player, GAME2_FLAG, kind)
+	Funnel.once(player, "Game2", "Found", kind)
+end
+
+-- Each second while Soft: seated at a table whose game began is game 2 starting. Its kind is
+-- what this server's search found; in an arena, what the lobby saved ("Arena" if nothing); a
+-- lobby game with no search before it (they stepped onto someone's pad) is "Table".
+local function watchGame2(player: Player)
+	if TutorialService.step(player) ~= "Soft" then
+		return
+	end
+	local id = Tables.tableOf(player)
+	local t = id and Tables.get(id)
+	local phase = t and t.engine.phase
+	if phase == nil or phase == "Waiting" or phase == "Result" then
+		return
+	end
+	local game = ("%d:%d"):format(id :: number, t.engine.epoch)
+	if game2Seen[player] == game then
+		return
+	end
+	game2Seen[player] = game
+	local kind = game2Kind[player]
+	game2Kind[player] = nil
+	if kind == nil then
+		local data = PlayerData.read(player)
+		local saved = data and data.Flags[GAME2_FLAG]
+		if workspace:GetAttribute(Config.Arena.ModeAttribute) ~= "Arena" then
+			kind = "Table"
+		elseif saved == "Global" or saved == "Arena" then
+			kind = saved
+		else
+			kind = "Arena"
+		end
+		Funnel.once(player, "Game2", "Found", kind)
+	end
+	PlayerData.setFlag(player, GAME2_FLAG, kind)
+	if Funnel.once(player, "Game2", "Started") then
+		Funnel.onboarding(player, "Game2Started")
 	end
 end
 
@@ -601,7 +678,7 @@ end
 
 -- Everything the tutorial keeps in the save, cleared by /tutorial reset.
 local RESET_FLAGS =
-	{ STEP_FLAG, PATH_FLAG, WHY_FLAG, SOFT_FLAG, QUEST_FLAG, T.Funnel.OnboardingFlag }
+	{ STEP_FLAG, PATH_FLAG, WHY_FLAG, SOFT_FLAG, QUEST_FLAG, GAME2_FLAG, T.Funnel.OnboardingFlag }
 
 --- /tutorial reset | skip | off | hints | path s|r | step <name>: returns the line to tell.
 function TutorialService.dev(player: Player, args: { string }): string
@@ -684,6 +761,8 @@ local function forget(player: Player)
 	buckets[player] = nil
 	lastFunnelEvent[player] = nil
 	failed[player] = nil
+	game2Kind[player] = nil
+	game2Seen[player] = nil
 end
 
 function TutorialService.start()
@@ -730,6 +809,24 @@ function TutorialService.start()
 		for _, player in Players:GetPlayers() do
 			TutorialService.guard(player, "Chain", function()
 				watchChain(player)
+				watchGame2(player)
+			end)
+		end
+	end)
+	LocalSearch.Searching:Connect(function(player: Player)
+		TutorialService.guard(player, "Game2", function()
+			game2Searched(player)
+		end)
+	end)
+	LocalSearch.Found:Connect(function(player: Player, kind: string)
+		TutorialService.guard(player, "Game2", function()
+			game2Found(player, kind)
+		end)
+	end)
+	GlobalQueue.Matched:Connect(function(players: { Player })
+		for _, player in players do
+			TutorialService.guard(player, "Game2", function()
+				game2Found(player, "Global")
 			end)
 		end
 	end)
@@ -769,6 +866,15 @@ function TutorialService.start()
 				return TutorialService.path(player)
 			elseif op == "flag" then
 				return PlayerData.setFlag(player, a, b)
+			elseif op == "data" then
+				-- Matches, wins and save flag `a` (a tutorial flag such as TutorialGame2).
+				local data = PlayerData.read(player)
+				return data
+					and {
+						matches = data.Stats.Matches,
+						wins = data.Progress.Wins,
+						flag = if a then data.Flags[a] else nil,
+					}
 			elseif op == "block" then
 				-- One lucky block of kind `a`, to replay the block steps without a whole game 1.
 				return PlayerData.giveLuckyBlocks(player, a, 1)
