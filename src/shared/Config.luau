@@ -8585,6 +8585,11 @@ Config.UI.Streak = {
 	-- words slide down under it, one popup row (TurnPopupTitleSize + HeaderGap) plus GapPx,
 	-- over Seconds, and back up once it has faded (designer, 2026-10-09).
 	UnderGroup = { GapPx = 2, Seconds = 0.35 },
+	-- On a phone (Multiplayer.Style.ShortHeight) it only shows from a ball's drop until the next
+	-- turn begins (the shot over, the table someone's to aim at), then fades over RestFadeSeconds
+	-- and stays away until the next counted ball (designer, 2026-10-09: on an iPhone it covered
+	-- too much of the screen, and smaller would not help). It shows at least MinShowSeconds.
+	Phone = { MinShowSeconds = 1, RestFadeSeconds = 0.4 },
 	ZIndex = 0, -- under every other piece of the match screen (theirs are 1 and up)
 	Ink = { 27, 32, 51 }, -- the outline (Kit Ink)
 	OutlineShare = 0.1, -- the ink outline's thickness, a share of GlyphPx (UIStroke, Miter)

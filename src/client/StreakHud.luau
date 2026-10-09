@@ -6,7 +6,8 @@
 -- teams: everyone at the table sees and hears it).
 -- - "STREAK xN" in Press Start 2P in the match popups' row under the top bar, stepping aside
 --   (fading out, popping back) while a popup shows there, or sliding down under YOU ARE
---   SOLIDS / STRIPES and back; past x8 it keeps x8's look, silent. A TextLabel per letter: an ink
+--   SOLIDS / STRIPES and back; past x8 it keeps x8's look, silent. On a phone it shows only
+--   from a drop until the next turn begins. A TextLabel per letter: an ink
 --   outline (UIStroke, Miter: the square pixel look), a two-tone fill, a drop shadow, and from
 --   x6 a cyan and a pink ghost. Each level a new colour, a little bigger, more movement
 --   (Config.UI.Streak.Levels: a beat pop, a smooth tilt, a wave in whole pixels, jitter).
@@ -39,6 +40,8 @@ local S = Config.Multiplayer.Style
 local LEVELS = #C.Levels
 local FONT = Font.new(C.Font)
 local FRESH = Config.Effects.NiceShot.FreshSeconds
+-- The phases in which someone is lining up a shot: on a phone the streak rests then.
+local SHOOTING = { Intro = true, Placement = true, PocketChoice = true, Aiming = true }
 local COPY = Strings.Streak
 
 local function rgb(c: { number }): Color3
@@ -160,6 +163,9 @@ function StreakHud.new(screen: ScreenGui, hub: any, hud: any): any
 	self.hide = 0 -- 0 shown, 1 stepped aside for a match popup in its row (HideSeconds)
 	self.backT = nil :: number? -- seconds since it popped back in after a popup
 	self.under = 0 -- 0 in its row, 1 slid under YOU ARE SOLIDS / STRIPES (UnderGroup)
+	self.resting = false -- a phone's streak is away until the next counted ball (Phone)
+	self.sinceStep = 0 -- seconds since the last step was shown
+	self.forcePhone = false -- GuiQA: a phone's behaviour on any screen
 	local burst = image(words, "Burst", 5)
 	burst.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.burst = burst
@@ -308,6 +314,7 @@ function StreakHud.next(self: any, now: number)
 		end
 		self.team = step.team
 		self.level = step.level
+		self.resting, self.sinceStep = false, 0
 		if not step.fresh then
 			-- A drop a late replay only caught up with: just show where the streak is.
 			self.phase, self.tState, self.tStep = "on", 9, 9
@@ -400,7 +407,7 @@ end
 
 function StreakHud.clear(self: any)
 	self.phase, self.level, self.team = "off", 0, nil
-	self.hide, self.backT = 0, nil
+	self.hide, self.backT, self.resting = 0, nil, false
 	table.clear(self.queue)
 	self.root.Visible = false
 	self:dropShards()
@@ -481,6 +488,16 @@ function StreakHud.frame(self: any, dt: number)
 	end
 	self.tState += dt
 	self.tStep += dt
+	self.sinceStep += dt
+	-- A phone: away from the next turn's start until the next counted ball (Config Phone).
+	local phone = self.forcePhone or self.screen.AbsoluteSize.Y < S.ShortHeight
+	if phone and not self.qa and not self.resting and self.sinceStep >= C.Phone.MinShowSeconds then
+		local snap = self.hub.snapshots[seat]
+		local m = self.hub:matchFor(seat)
+		if snap and SHOOTING[snap.phase] and m and (m.shot == nil or m.shot.finished) then
+			self.resting = true
+		end
+	end
 	local alpha, drop = 1, 0
 	if self.phase == "in" and self.tState >= STEP.InSeconds then
 		self.phase = "on"
@@ -496,8 +513,13 @@ function StreakHud.frame(self: any, dt: number)
 	if popup == "other" then
 		self.hide = math.min(1, self.hide + dt / C.HideSeconds)
 		self.backT = nil
+	elseif self.resting then
+		self.hide = math.min(1, self.hide + dt / C.Phone.RestFadeSeconds)
+		self.backT = nil
 	elseif self.hide > 0 then
-		self.hide, self.backT = 0, 0
+		-- Back after a popup: pop in. Back with a new step (a phone's rest): its punch is enough.
+		self.hide = 0
+		self.backT = if self.sinceStep < STEP.InSeconds then nil else 0
 	end
 	local back = 1
 	if self.backT then
@@ -687,12 +709,17 @@ function StreakHud.hooks(self: any)
 		elseif kind == "end" then
 			self:fadeOut()
 			return "fading"
+		elseif kind == "phone" then
+			-- A phone's rest between turns on this screen too (Config.UI.Streak.Phone).
+			self.forcePhone = value == 1
+			return "phone " .. tostring(self.forcePhone)
 		elseif kind == "slow" then
 			self.timeScale = value or 0.25
 			return "time x" .. tostring(self.timeScale)
 		elseif kind == "stop" then
 			self.qa = false
 			self.timeScale = 1
+			self.forcePhone = false
 			self:clear()
 			return "stopped"
 		end

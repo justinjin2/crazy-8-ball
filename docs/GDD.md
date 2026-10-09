@@ -382,7 +382,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T): "STREAK x1" up to **x8** in Press Start 2P,
   about YOUR TURN's size, in the match popups' row under the top bar; while a new turn or a
   foul shows there it steps aside and comes back after, and under YOU ARE SOLIDS / STRIPES it
-  slides down and back up. Past x8 it counts on (x9, x10) in x8's look, with no spray. Seen
+  slides down and back up. On a phone it shows only from a drop until the next turn begins.
+  Past x8 it counts on (x9, x10) in x8's look, with no spray. Seen
   and heard by everyone seated at the table. Each ball the team pots in a row in its turn steps it up one; two balls in
   one shot step twice. The break is x1 however many drop. A foul (its ball does not raise it), a
   shot that pots none of yours or the table passing ends it: it fades and starts again next turn.

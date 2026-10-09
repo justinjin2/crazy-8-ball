@@ -62,6 +62,7 @@ function tests.the_slide_under_the_group_popup_eases_in_and_out()
 	H.near(StreakMath.slide(0.5), 0.5, 1e-9, "halfway at half time")
 	expect(StreakMath.slide(0.1) < 0.1 and StreakMath.slide(0.9) > 0.9, "slow at both ends")
 	expect(C.LowerPx > 0 and C.UnderGroup.Seconds > 0, "set")
+	expect(C.Phone.MinShowSeconds > 0 and C.Phone.RestFadeSeconds > 0, "a phone's rest")
 end
 
 function tests.the_end_fades_and_drops()

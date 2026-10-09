@@ -1174,7 +1174,11 @@ The approved mockup: https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T. `StreakH
   fades out in 0.12 s and pops back in when it goes (a step meanwhile still plays its sound and
   shake). **YOU ARE SOLIDS / STRIPES** it does not hide for: it slides down under it in 0.35 s
   and back up once it has faded, for everyone at the table (it shows as the ball that picks
-  the groups drops, often a run's second ball after the break's). It sits under the whole match HUD (ZIndex 0), never takes input, and hides with the
+  the groups drops, often a run's second ball after the break's).
+- **On a phone** (a short screen, as the top bar's compact layout; designer, 2026-10-09, on
+  an iPhone: it covered too much of the screen): it shows only from a ball's drop until the
+  next turn begins (at least 1 s), then fades over 0.4 s and stays away until the next counted
+  ball. Tablets and computers keep it up all turn. It sits under the whole match HUD (ZIndex 0), never takes input, and hides with the
   HUD for menus.
 - **Words**: "STREAK" and "x2" in **Press Start 2P** (built into Roblox), one label per letter,
   the number a quarter bigger on the same baseline, a square ink outline (UIStroke, Miter), a
