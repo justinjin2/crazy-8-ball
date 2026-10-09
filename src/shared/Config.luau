@@ -3406,21 +3406,26 @@ Config.Shop = {
 	Mystery = { Price = 4900, BulkCount = 10, BulkPrice = 44100 },
 	-- The restock shop (plan section 12; Progression/Restock): new blocks every SlotSeconds on
 	-- the clock (UTC :00, :10 ...), the same in every server (picked from the slot number).
-	-- Three slots each roll one block kind by Odds (parts of ChanceTotal), a fourth for VIP by
-	-- VipOdds (a richer table; every block in it has its usual odds). Stock is per player per
+	-- Slots shared slots each roll one block kind (parts of ChanceTotal): slot i by SlotOdds[i]
+	-- when it has one, else by Odds; one more for VIP by VipOdds. Stock is per player per
 	-- restock, per slot; one block per press; money and Robux share it. Robux where a Product
-	-- is named. v4 plan 8.4: Rare or better (the Uncommon slot is gone), a Mythic block about
-	-- every 5 days (1 in 2,000 slots; VIP's 1 in 500).
+	-- is named. Economy v5 (plan 6.2): two shared slots, slot 1 always Epic or better (Epic
+	-- 75.56%, Legendary 21.11%, Mythic 3.33%), slot 2 Rare 55% / Epic 34% / Legendary 9.5% /
+	-- Mythic 1.5%, VIP's 40 / 40 / 16 / 4: a Legendary or better in 32.8% of restocks (46.2%
+	-- with VIP's slot), a Mythic in 4.8% (8.6%). A restock block arrives unclimbed and climbs
+	-- from its tier. The Robux prices stay until the designer's Robux pass (v5 plan 9).
 	Restock = {
 		SlotSeconds = 600,
 		ChanceTotal = 10000,
-		Slots = 3,
-		Odds = { Rare = 8700, Epic = 1200, Legendary = 95, Mythic = 5 },
-		VipOdds = { Rare = 8000, Epic = 1700, Legendary = 280, Mythic = 20 },
+		Slots = 2,
+		SlotOdds = { { Epic = 7556, Legendary = 2111, Mythic = 333 } },
+		Odds = { Rare = 5500, Epic = 3400, Legendary = 950, Mythic = 150 },
+		VipOdds = { Rare = 4000, Epic = 4000, Legendary = 1600, Mythic = 400 },
+		-- Money prices, economy v5 (v4: $19,900 / $199,000 / $1,490,000 / $4,990,000).
 		Kinds = {
-			Rare = { Price = 19900, Product = "RestockRare", Stock = 2 },
-			Epic = { Price = 199000, Product = "RestockEpic", Stock = 1 },
-			Legendary = { Price = 1490000, Product = "RestockLegendary", Stock = 1 },
+			Rare = { Price = 49900, Product = "RestockRare", Stock = 2 },
+			Epic = { Price = 249000, Product = "RestockEpic", Stock = 1 },
+			Legendary = { Price = 1290000, Product = "RestockLegendary", Stock = 1 },
 			Mythic = { Price = 4990000, Product = "RestockMythic", Stock = 1 },
 		},
 		-- A restock with one of these in any slot (the three shared ones) is announced in every

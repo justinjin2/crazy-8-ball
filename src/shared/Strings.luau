@@ -747,6 +747,9 @@ return {
 				RestockTitle = "RESTOCK",
 				-- Under the slots: each kind's chance in a slot, each name in its colour.
 				SlotOdds = "Each slot: %s",
+				-- Economy v5: slot 1 has its own table (its lowest kind, coloured), the others
+				-- share one: "Slot 1: Epic or better · Slot 2: Rare 55% · Epic 34% ...".
+				FirstSlotOdds = "Slot 1: %s or better · Slot 2: %s",
 				OddsPart = "%s %s", -- a kind and its chance: "Rare 87%"
 				OddsJoin = " · ",
 				Left = "x%d left", -- a restock slot's stock: "x2 left"
@@ -1095,7 +1098,7 @@ return {
 			.. "Skip and Auto Spin · the VIP restock slot · the VIP Cue",
 		VipRestrictedNote = "Where Lucky Blocks can't be bought, the daily block is $5,000.",
 		StarterRestricted = "$40,000 + 1 hour of 2x money",
-		RestockOdds = "Each slot: Rare %s · Epic %s · Legendary %s · Mythic %s",
+		RestockOdds = "Each slot: Rare %s · Epic %s · Legendary %s · Mythic %s", -- unread (v5)
 	},
 	-- The "Odds & Details" popup behind every lucky block's dice badge (OddsDetails; economy v4
 	-- plan 13: every outcome's chance, before buying). The Mystery block's adds its pity, the

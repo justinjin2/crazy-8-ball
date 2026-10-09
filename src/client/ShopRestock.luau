@@ -18,6 +18,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
 local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
+local Restock = require(Progression:WaitForChild("Restock"))
 local Format = require(Progression:WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
 local ShopCards = require(script.Parent.ShopCards)
@@ -80,28 +81,42 @@ local function nameText(block: string): string
 	return string.format('<font color="#%s">%s</font>', hex, full)
 end
 
--- "Each slot: Rare 87% · Epic 12% · ..." with each kind's name in its colour.
-local function slotOddsText(): string
+-- A kind's short name in its colour (rich text).
+local function kindWord(kind: string): string
+	return string.format(
+		'<font color="#%s">%s</font>',
+		ShopCards.rarityColor(kind):ToHex(),
+		SHORT[kind] or kind
+	)
+end
+
+local function oddsParts(odds: { [string]: number }): string
 	local parts: { string } = {}
 	for _, kind in Config.LuckyBlocks.Order do
-		local parts10000 = RS.Odds[kind]
+		local parts10000 = odds[kind]
 		if type(parts10000) == "number" and parts10000 > 0 then
 			local percent = BlockOdds.percentText(parts10000 * 100 / RS.ChanceTotal)
-			table.insert(
-				parts,
-				string.format(
-					COPY.OddsPart,
-					string.format(
-						'<font color="#%s">%s</font>',
-						ShopCards.rarityColor(kind):ToHex(),
-						SHORT[kind] or kind
-					),
-					percent
-				)
-			)
+			table.insert(parts, string.format(COPY.OddsPart, kindWord(kind), percent))
 		end
 	end
-	return string.format(COPY.SlotOdds, table.concat(parts, COPY.OddsJoin))
+	return table.concat(parts, COPY.OddsJoin)
+end
+
+-- The odds line, each kind's name in its colour: "Each slot: Rare 87% · Epic 12% · ...", or
+-- (economy v5) slot 1's floor then the other slots' chances.
+local function slotOddsText(): string
+	local first, rest = Restock.oddsOf(1), Restock.oddsOf(RS.Slots)
+	if first == rest then
+		return string.format(COPY.SlotOdds, oddsParts(rest))
+	end
+	local floor = ""
+	for _, kind in Config.LuckyBlocks.Order do
+		if (first[kind] or 0) > 0 then
+			floor = kindWord(kind)
+			break
+		end
+	end
+	return string.format(COPY.FirstSlotOdds, floor, oddsParts(rest))
 end
 
 --- Build the restock (closed) into `parent` (the Shop's Blocks group).

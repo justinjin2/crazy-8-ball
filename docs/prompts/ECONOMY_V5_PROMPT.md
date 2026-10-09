@@ -287,7 +287,7 @@ perk text. Don't change any of these products: the designer approves them later.
 - [x] 4. Pity (3.3).
 - [x] 5. Rewards (3.4).
 - [x] 6. The Week One Cue (3.5).
-- [ ] 7. The restock (3.6).
+- [x] 7. The restock (3.6).
 - [ ] 8. The Mystery shop (3.7), and the 1 R$ skip with its credit migration and its product
   (6.1).
 - [ ] 9. Quick reveal and "Open all" (3.8).
@@ -353,3 +353,6 @@ perk text. Don't change any of these products: the designer approves them later.
   the Extra rows' whole pool, `Daily` rewards carry `cues`, the server counts the copies on a
   claim and on Claim All, `InventoryCues.oddsLine` shows no chance for it, `RewardsParts`
   names it in reward words (a shim). Studio check: equip it (default bands, no skin).
+- Step 7: `Config.Shop.Restock` Slots 2 + `SlotOdds` (slot 1), `Restock.oddsOf`,
+  `Restock.chanceOf` (32.8% / 4.8%, 46.2% / 8.6% tested). Client shim: the restock odds line
+  names slot 1's floor and slot 2's odds. Studio check: the restock panel with three cards.
