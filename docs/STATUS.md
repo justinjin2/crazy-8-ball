@@ -99,5 +99,5 @@ One line each; the long form is the 2026-10-08 entry at the top of
 
 ## Known gaps and test switches to remember
 
-- `Config.LuckyBlocks.Test.Refill` tops the designer's hotbar up in Studio and can hide a
-  tutorial test's real blocks.
+- `Config.LuckyBlocks.Test` (Refill, SeedOnJoin) is off since 2026-10-08: the designer's
+  blocks are used up like a player's (`/giveblock` gives more); timers still skip for them.

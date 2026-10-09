@@ -17,9 +17,10 @@
 -- - BlockState (a RemoteEvent): the player's blocks after every save change (deduped).
 -- - The tutorial's hooks (setOpenHooks): a forced cue for game 1's Standard block and a call
 --   after every open (TutorialService).
--- - Testing: the accounts in Config.Debug.Commands.UserIds get one of each
---   Config.LuckyBlocks.Test.Seed kind they lack on join, and opening one gives a fresh one of
---   the same kind in the same place (Test.Refill). Nobody else is ever given a block this way.
+-- - Testing: with Test.SeedOnJoin the accounts in Config.Debug.Commands.UserIds get one of each
+--   Config.LuckyBlocks.Test.Seed kind they lack on join, and with Test.Refill opening one gives a
+--   fresh one of the same kind in the same place (both off now). Nobody else is ever given a
+--   block this way.
 -- - A thrown block nobody opens goes after ReturnSeconds, or once its owner is ReturnStuds
 --   away; it was never taken from the save, so it is simply back in the hotbar.
 local Players = game:GetService("Players")
@@ -675,7 +676,7 @@ end
 
 -- The testers' seed: one of each Seed kind the tester lacks.
 local function seed(player: Player)
-	if not isTester(player) then
+	if not L.Test.SeedOnJoin or not isTester(player) then
 		return
 	end
 	local data = PlayerData.read(player)

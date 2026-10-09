@@ -2350,10 +2350,13 @@ Config.LuckyBlocks = {
 	-- at most this many times; then it gives the first cue of the row's top rarity.
 	UniqueRerolls = 10,
 	HotbarSlots = 9, -- the first 9 blocks sit in the hotbar (keys 1-9); the rest in the bag
-	-- The test build: on join every account in Config.Debug.Commands.UserIds is given one of
-	-- each Seed kind it lacks, and opening a block gives a fresh one of the same kind in the
-	-- same place (its timer starting again), so testing never runs out.
+	-- The test build: with SeedOnJoin every account in Config.Debug.Commands.UserIds is given
+	-- one of each Seed kind it lacks on join, and with Refill opening a block gives a fresh one
+	-- of the same kind in the same place (its timer starting again). Both off since 2026-10-08
+	-- (designer: "make blocks delete from my account now once i use it"): the designer's blocks
+	-- come and go as a real player's; /giveblock still gives them.
 	Test = {
+		SeedOnJoin = false,
 		Seed = {
 			"Standard",
 			"Uncommon",
@@ -2368,7 +2371,7 @@ Config.LuckyBlocks = {
 			"Starter",
 			"Gift",
 		},
-		Refill = true,
+		Refill = false,
 		BypassTimer = true, -- only Config.Debug.Commands.UserIds; ReadyAt is left unchanged
 	},
 	-- BlockRequest's token bucket: this many at once, refilling this fast.
