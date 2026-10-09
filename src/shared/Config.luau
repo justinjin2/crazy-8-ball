@@ -3916,13 +3916,17 @@ Config.Ults = {
 			Pick = "Portals",
 			Turn = true,
 		},
-		-- +1.00 / +1.11 / +1.18.
+		-- +0.54 / +0.68 / +0.74 after the one-pot cap (2026-10-09; was +1.00 / +1.11 / +1.18 with
+		-- up to 3 in): the shot only, so the lined-up second ball's worth on the next shot is
+		-- not counted.
 		SteelBall = {
 			Rarity = "Legendary",
 			Built = true,
 			Effect = "SteelBall",
-			Worth = 1.09,
-			MaxBalls = 3,
+			Worth = 0.66,
+			-- One pot a use: the next ball is only lined up (the designer, 2026-10-09: 3 in a
+			-- turn was too strong).
+			MaxBalls = 1,
 		},
 		-- +1.11 / +1.25 / +1.26 (careless +0.85 / +1.00 / +1.08; 4 of yours at most).
 		BlackFlash = {
@@ -4302,9 +4306,6 @@ Config.Ults.SteelBall = {
 	EntryInches = 4,
 	-- A line counts as clean with a ball this much fatter (inches), as Chain Lightning's.
 	ClearanceInches = 0.1,
-	-- The cue ball's next ball is guided in when its pocket has a clean line and the opening is
-	-- within this (inches); farther, it is lined up instead. (tune: the balance pass)
-	CloseInches = 36,
 	-- A lined-up ball stops this far short of its pocket's opening (inches). (tune)
 	LineUpInches = 8,
 	-- The cue ball's curve to the next ball: no tighter than this radius (inches), between

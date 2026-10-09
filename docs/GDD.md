@@ -476,10 +476,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   can't reach them, so each ult is built to its row as far as the caps allow and its **measured
   worth** (extra own balls per use, net of the opponent's gifted, a careful shooter, the mean of
   three skills, `tests/ult_value.luau`, 120 tables) is `Config.Ults.Catalog[id].Worth`. The
-  rarity means are **0.17, 0.50, 0.64, 0.94, 1.15 and 1.78** (2026-10-08, after the abilities
-  rework's third round; Common is Eagle's Eye 0.34 and Fire Shot 0; Rare and above pot in
+  rarity means are **0.17, 0.50, 0.64, 0.94, 0.94 and 1.78** (2026-10-08, after the abilities
+  rework's third round; Legendary 1.15 -> 0.94 with Steel Ball's one-pot cap, 2026-10-09; Common is Eagle's Eye 0.34 and Fire Shot 0; Rare and above pot in
   75-100% of uses, Look Over There! the lowest). Caps per use: at most 2 of your balls (Chain
-  Lightning: the charged ball and one jump), 3 (Steel Ball) or 4 (Black
+  Lightning: the charged ball and one jump), 1 (Steel Ball: one in, one lined up) or 4 (Black
   Flash), and 2 of the opponent's (Black Flash's blast) or 1 (Chain Lightning's jump). Black
   Hole and Guangdong Tiger have no caps (the designer, 2026-10-08: "NO limit"; a hit on a solo
   break takes every ball but the 8): only their reach limits them. Against Magnet at equal skill the model
@@ -608,10 +608,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     over the 8. She burps and shrinks back into the cue ball where she stops. Measured: +0.49 /
     +0.68 / +0.76 net, pots 92-96% of uses (eating up to 2 more of yours on the roll measured
     +0.97 / +1.15 / +1.17, a Legendary).
-  - **Steel Ball** (Legendary, 1.09): the first ball hit, if yours, is guided into the pocket
-    it was sent toward; the cue ball then curves on to your next nearest ball and guides it in
-    (a clean line within 36 in) or lines it up and stops behind it, 3 balls at most; with your
-    group gone the 8 is lined up, never potted. It never scratches. The designer's own clip
+  - **Steel Ball** (Legendary, 0.66 for the shot alone): the first ball hit, if yours, is
+    guided into the pocket it was sent toward; the cue ball then curves on to your next nearest
+    ball and lines it up (never in, one pot a use: the designer, 2026-10-09) and stops behind
+    it; with your group gone the 8 is lined up, never potted. It never scratches. The designer's own clip
     plays on activation and on the cue ball's first hit (2026-09-30).
   - **Black Flash** (Legendary, 1.21): the first ball hit, whoever's, shatters and counts as
     pocketed for its owner; the blast nudges the balls within its reach toward their pockets (4

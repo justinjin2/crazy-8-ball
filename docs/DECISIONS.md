@@ -3715,3 +3715,4 @@ timer of a new block stay the designer's call.
   low (volume 0.03 of a clip eight times the old crackle's level); a ball hit plays the
   designer's bonfire burst (a cushion keeps the sizzle). Uploaded to the group
   (FireIdle 134062001061746, FireHitBall 132090886305703).
+- 2026-10-09: Steel Ball pots one ball a use: the cue ball's next ball is always lined up, never guided in, however close (the designer: "its only supposed to auto for one ball and help line up another ball"; it had potted 3 in one turn). `CloseInches` removed, catalog `MaxBalls` 1, Worth 1.09 -> 0.66 measured (+0.54 / +0.68 / +0.74; the shot only, the line-up's next-shot value is not counted), which puts the Legendary mean (0.94) level with Epic's.

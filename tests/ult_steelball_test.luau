@@ -1,10 +1,10 @@
 --!strict
 -- Steel Ball (docs/prompts/ABILITIES_PROMPT.md 7.10): the first ball the cue ball hits, if it
--- is yours, always goes in; the cue ball then curves to your next nearest ball and guides it
--- in when it is close, or lines it up (never in) and stops behind it; with your group gone the
+-- is yours, always goes in; the cue ball then curves to your next nearest ball and lines it up
+-- (never in, even beside a pocket: one pot a use) and stops behind it; with your group gone the
 -- 8 is lined up, never potted; the legal 8 goes into the called pocket; the opponent's first
--- ball guides nothing; never more than MaxBalls; never a scratch from the guidance; the
--- client's replay matches the server's settle.
+-- ball guides nothing; never a scratch from the guidance; the client's replay matches the
+-- server's settle.
 
 local H = require("./harness")
 local V = require("./ult_value")
@@ -15,7 +15,6 @@ local Simulation = H.require("Physics.Simulation")
 local ShotInput = H.require("ShotInput")
 
 local geometry = V.geometry
-local S = Config.Ults.SteelBall
 local R = Config.Balls.RadiusInches
 local DT = Config.Physics.FixedStep
 
@@ -117,47 +116,41 @@ function tests.the_opponents_first_ball_guides_nothing()
 	check(#ultEvents(events, "guide") == 0 and #ultEvents(events, "steel") == 0, "nothing")
 end
 
-function tests.the_next_ball_near_a_pocket_is_guided_in_too()
+function tests.the_next_ball_near_a_pocket_is_lined_up_not_potted()
 	-- The 1 first; the 2 sits by the top-left corner with a clean line in.
 	local balls = table_({ { 0, -20, -5 }, { 1, -10, -5 }, { 2, -40, 18 } })
 	local sim = armed(balls, { 1, 2 })
 	rolling(ball(sim, 0), 60, 0)
 	local events = run(sim)
 	check(ball(sim, 1).pocketed, "the 1 in")
-	check(#ultEvents(events, "curve") >= 1, "curved on to the 2")
-	check(ball(sim, 2).pocketed, "the 2 guided in")
+	check(#ultEvents(events, "curve") == 1, "curved on to the 2")
+	check(not ball(sim, 2).pocketed, "the 2 stays up")
 	check(not ball(sim, 0).pocketed, "no scratch")
+	local guides = ultEvents(events, "guide")
+	check(#guides == 2 and guides[2].ball == 2 and guides[2].value == 0, "the 2 lined up")
 end
 
 function tests.a_far_ball_is_lined_up_and_the_cue_ball_stops_behind_it()
-	local close = S.CloseInches
-	S.CloseInches = 2 -- nothing counts as close: every next ball is lined up
-	local ok, err = pcall(function()
-		local balls = table_({ { 0, -20, -5 }, { 1, -10, -5 }, { 2, -25, 10 } })
-		local sim = armed(balls, { 1, 2 })
-		rolling(ball(sim, 0), 60, 0)
-		local events = run(sim)
-		check(ball(sim, 1).pocketed, "the 1 in")
-		local b2, cue = ball(sim, 2), ball(sim, 0)
-		check(not b2.pocketed and not cue.pocketed, "the 2 and the cue ball stay up")
-		local guides = ultEvents(events, "guide")
-		local last = guides[#guides]
-		check(last and last.ball == 2 and last.value == 0, "the 2 lined up")
-		-- The cue ball, the 2 and the pocket nearly in a line (a straight shot next).
-		local px, py = last.x, last.y
-		local ax, ay = b2.x - cue.x, b2.y - cue.y
-		local bx, by = px - b2.x, py - b2.y
-		local cos = (ax * bx + ay * by) / math.sqrt((ax * ax + ay * ay) * (bx * bx + by * by))
-		check(cos > 0.97, ("lined up: cos %.3f"):format(cos))
-		-- Closer to its pocket than it was, and stopped short of it.
-		local d0 = math.sqrt((-25 - px) ^ 2 + (10 - py) ^ 2)
-		local d1 = math.sqrt(bx * bx + by * by)
-		check(d1 < d0 - 5, ("pushed closer: %.1f -> %.1f"):format(d0, d1))
-	end)
-	S.CloseInches = close
-	if not ok then
-		error(err, 0)
-	end
+	local balls = table_({ { 0, -20, -5 }, { 1, -10, -5 }, { 2, -25, 10 } })
+	local sim = armed(balls, { 1, 2 })
+	rolling(ball(sim, 0), 60, 0)
+	local events = run(sim)
+	check(ball(sim, 1).pocketed, "the 1 in")
+	local b2, cue = ball(sim, 2), ball(sim, 0)
+	check(not b2.pocketed and not cue.pocketed, "the 2 and the cue ball stay up")
+	local guides = ultEvents(events, "guide")
+	local last = guides[#guides]
+	check(last and last.ball == 2 and last.value == 0, "the 2 lined up")
+	-- The cue ball, the 2 and the pocket nearly in a line (a straight shot next).
+	local px, py = last.x, last.y
+	local ax, ay = b2.x - cue.x, b2.y - cue.y
+	local bx, by = px - b2.x, py - b2.y
+	local cos = (ax * bx + ay * by) / math.sqrt((ax * ax + ay * ay) * (bx * bx + by * by))
+	check(cos > 0.97, ("lined up: cos %.3f"):format(cos))
+	-- Closer to its pocket than it was, and stopped short of it.
+	local d0 = math.sqrt((-25 - px) ^ 2 + (10 - py) ^ 2)
+	local d1 = math.sqrt(bx * bx + by * by)
+	check(d1 < d0 - 5, ("pushed closer: %.1f -> %.1f"):format(d0, d1))
 end
 
 function tests.with_your_group_gone_the_8_is_lined_up_never_potted()
@@ -183,7 +176,7 @@ function tests.the_legal_8_goes_into_the_called_pocket()
 	check(ball(sim, 8).pocket == 1, "the called pocket: " .. tostring(ball(sim, 8).pocket))
 end
 
-function tests.never_more_than_max_balls()
+function tests.one_pot_a_use_however_many_are_close()
 	-- Six of yours spread out, every one close to a corner with a clean line in.
 	local balls = table_({
 		{ 0, -20, -5 },
@@ -197,15 +190,16 @@ function tests.never_more_than_max_balls()
 	local sim = armed(balls, { 1, 2, 3, 4, 5, 6 })
 	rolling(ball(sim, 0), 60, 0)
 	local events = run(sim)
-	local max = Config.Ults.Catalog.SteelBall.MaxBalls
-	check(#ultEvents(events, "guide") <= max, "at most " .. max .. " sent")
+	local guides = ultEvents(events, "guide")
+	check(#guides == 2 and guides[1].value == 1 and guides[2].value == 0, "one in, one lined up")
+	check(Config.Ults.Catalog.SteelBall.MaxBalls == 1, "the catalog says one")
 	local potted = 0
 	for _, b in sim.balls do
 		if b.id ~= 0 and b.pocketed then
 			potted += 1
 		end
 	end
-	check(potted <= max and potted >= 2, "pots: " .. potted)
+	check(potted == 1, "pots: " .. potted)
 end
 
 function tests.the_replay_matches_the_settle()

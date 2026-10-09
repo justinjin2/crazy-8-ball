@@ -666,11 +666,11 @@ at half strength (section 5.7).
 - **Rules:** the first ball the cue ball hits, if it's yours, is **guided into the pocket you
   were sending it toward** (the pocket nearest its line; a guaranteed pot, steering and speed
   corrected as needed, never through another ball). Then the cue ball **spins toward your next
-  nearest ball** (it curves toward it with golden-rotation spin): if that ball is **already
-  close** to a pocket *(tune)*, it guides it in; if not, it pushes it closer and leaves it
-  **lined up** for an easy next shot, but not in. If your only ball left is the 8 (after the
+  nearest ball** (it curves toward it with golden-rotation spin) and pushes it closer, leaving
+  it **lined up** for an easy next shot, but never in, however close it is (one pot a use: the
+  designer, 2026-10-09, "it got 3 balls in a single turn, thats too broken"). If your only ball left is the 8 (after the
   first pot), it **lines up the 8 instead** and never pots it. The cue ball ends at rest, never
-  scratching because of the guidance. At most 3 balls (catalog `MaxBalls`). If the first ball
+  scratching because of the guidance. One pot at most (catalog `MaxBalls` = 1). If the first ball
   isn't yours, nothing is guided (a foul as usual).
 - **Look (reference 06):** the cue ball becomes **the green steel ball**: a Blender-modelled
   shell with the raised hexagon panel, grooves and swirl lines, a halftone manga texture and a

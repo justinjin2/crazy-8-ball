@@ -1,8 +1,8 @@
 --!strict
 -- Steel Ball (docs/prompts/ABILITIES_PROMPT.md 7.10): the first ball the cue ball hits, if it
 -- is the shooter's, is guided into the pocket it was sent toward; then the cue ball curves on
--- to the shooter's next nearest ball and guides that in too when it is close to a pocket, or
--- leaves it lined up when it is not.
+-- to the shooter's next nearest ball and leaves it lined up for the next shot (never in: one
+-- pot a use, the designer 2026-10-09).
 --
 -- * The first contact: if that ball is in overrides.Targets (the 8 only on the legal 8 shot,
 --   into overrides.EightPocket), it is guided into the pocket whose mouth is nearest its
@@ -18,15 +18,13 @@
 --   first ball's group: solids or stripes, never a handled one): it steers like Heat Seeker's
 --   missile (CueTurnRadiusInches, between CueMinSpeed and CueMaxSpeed) along an A* path to a
 --   point ApproachInches behind the ghost-ball spot, then straight in. At the contact that
---   ball is sent along the line to its pocket: guided in (the pocket has a clean line and is
---   within CloseInches of it), or rolled to stop LineUpInches short of the pocket's opening,
---   lined up (never in). If the shooter's group is gone, the 8 is lined up instead, never
---   potted. After a line-up the cue ball stops dead behind the ball (ends at rest, lined up);
---   after a guided pot it curves on to the next, up to the catalog's MaxBalls in all. It gives
---   up after CueSeconds (and rolls on as normal).
+--   ball is rolled along the line to its pocket to stop LineUpInches short of the opening,
+--   lined up (never in). If the shooter's group is gone, the 8 is lined up instead. The cue
+--   ball then stops dead behind the ball (ends at rest, lined up). It gives up after
+--   CueSeconds (and stops).
 -- * `ult` events for the look: "steel" (ball = the first ball) at the first contact, "guide"
---   for every ball sent (ball, other = its pocket id, x, y = the pocket's centre, value = 1
---   guided in, 0 lined up) and "curve" when the cue ball sets off for the next ball (other = that
+--   for each ball sent (ball, other = its pocket id, x, y = the pocket's centre, value = 1
+--   guided in: the first, 0 lined up: the second) and "curve" when the cue ball sets off for the next ball (other = that
 --   ball). The replay's state.fx.steel holds the paths for the look.
 --
 -- Only arithmetic and square roots, no trig and no pow; balls and pockets walked in array
@@ -61,7 +59,6 @@ export type Guided = {
 export type CueTrip = {
 	target: number, -- the ball it is heading for
 	pocket: number, -- that ball's pocket id
-	pot: boolean, -- guided in (true) or lined up (false)
 	hx: number, -- the unit heading the ball will be sent along
 	hy: number,
 	dist: number, -- for a line-up: how far it rolls
@@ -127,11 +124,6 @@ local function isOwn(state: any, id: number): boolean
 		return o.EightPocket ~= nil and contains(o.Targets, id)
 	end
 	return contains(o.Targets, id)
-end
-
-local function maxBalls(): number
-	local row = Config.Ults.Catalog.SteelBall
-	return if row and row.MaxBalls then row.MaxBalls else 3
 end
 
 -- The unit axis into a pocket (from the cloth toward its centre).
@@ -451,13 +443,12 @@ end
 -- Plan the cue ball's trip to ball `b` (its pocket and heading decided now).
 local function planTrip(state: any, steel: Steel, cue: any, b: any)
 	local C = Config.Ults.SteelBall
-	local pocket, clear, hx, hy, d = bestPocket(state, b)
+	local pocket, _, hx, hy, d = bestPocket(state, b)
 	if pocket == nil then
 		steel.trip = nil
 		steel.done = true
 		return
 	end
-	local pot = b.id ~= EIGHT and clear and d - pocket.radius <= C.CloseInches
 	local dist = math.max(0, d - pocket.radius - C.LineUpInches)
 	local gx, gy = b.x - hx * 2 * R, b.y - hy * 2 * R
 	local px, py = b.x - hx * (2 * R + C.ApproachInches), b.y - hy * (2 * R + C.ApproachInches)
@@ -483,7 +474,6 @@ local function planTrip(state: any, steel: Steel, cue: any, b: any)
 	steel.trip = {
 		target = b.id,
 		pocket = pocket.id,
-		pot = pot,
 		hx = hx,
 		hy = hy,
 		dist = dist,
@@ -646,7 +636,7 @@ end
 
 -- The cue ball set off for the next ball (or stopped when there is none).
 local function onward(state: any, events: { any }, ops: any, steel: Steel, cue: any)
-	local b = if steel.count < maxBalls() then nextBall(state, steel, cue) else nil
+	local b = nextBall(state, steel, cue)
 	if b == nil then
 		steel.trip = nil
 		steel.done = true
@@ -658,30 +648,12 @@ local function onward(state: any, events: { any }, ops: any, steel: Steel, cue: 
 	end
 end
 
--- The cue ball reached its trip's ball: send it along its line, then on or stop.
+-- The cue ball reached its trip's ball: roll it to stop lined up; the cue ball stops dead.
 local function arrive(state: any, events: { any }, ops: any, steel: Steel, cue: any, b: any)
 	local trip = steel.trip :: CueTrip
-	local C = Config.Ults.SteelBall
 	local pocket = findPocket(state, trip.pocket)
 	steel.handled[b.id] = true
 	steel.count += 1
-	if trip.pot and pocket then
-		local dx, dy = pocket.x - b.x, pocket.y - b.y
-		local d = math.sqrt(dx * dx + dy * dy)
-		local speed =
-			math.min(math.sqrt(C.ArriveSpeed * C.ArriveSpeed + 2 * decel() * d), C.GuideMaxSpeed)
-		roll(b, dx / d * speed, dy / d * speed)
-		startGuide(state, steel, b, pocket)
-		ops.emit(state, events, "guide", b.id, pocket.id, pocket.x, pocket.y, 1)
-		-- On to the next ball from here, at the trip's own pace.
-		onward(state, events, ops, steel, cue)
-		if steel.trip == nil then
-			roll(cue, 0, 0)
-			cue.wz = 0
-		end
-		return
-	end
-	-- Lined up: rolled to stop LineUpInches short of the opening; the cue ball stops dead.
 	local speed = math.sqrt(2 * decel() * trip.dist)
 	roll(b, trip.hx * speed, trip.hy * speed)
 	if pocket then
