@@ -9473,6 +9473,7 @@ Config.UI.OddsDetails = {
 	-- cutoff on the left"). At least the thickest outline (a bar's height / 20).
 	EdgePx = 4,
 	ValueShare = 0.3, -- a row's value (its blocks to go), of the row's width (right)
+	CueValueShare = 0.5, -- a cue's row: its chance and "1 in N" ("0.29% · 1 in 345")
 	BarPx = { 26, 34 }, -- a rarity bar's height
 	BarTextPx = { 13, 18 }, -- its word and chance
 	BarGapPx = { 4, 6 }, -- between two bars

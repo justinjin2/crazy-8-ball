@@ -1130,12 +1130,18 @@ return {
 		-- The Mystery block's (ShopMysteryOdds): the final tiers first, then pity as two meters
 		-- (designer, 2026-10-08: "pity make it easier to explain and show ... like 99/100").
 		Pity = "Pity", -- the head over the pity meters (designer, 2026-10-09: nothing after it)
-		PityRare = "Guaranteed Rare or better", -- a meter's word
-		PityEpic = "Guaranteed Epic or better",
+		-- A meter's word (economy v5: pity gives exactly that rarity, Rare by the 10th Mystery
+		-- block, Epic by the 40th).
+		PityRare = "Rare guaranteed",
+		PityEpic = "Epic guaranteed",
 		PityCount = "%d/%d", -- the blocks opened since the last one, the count: "3/10"
-		Live = "Your next Mystery block is %s or better!", -- the tier's name
+		Live = "Your next Mystery block is %s!", -- the tier's name (exactly it, economy v5)
 		Tiers = "Final tier",
 		TiersLive = "Final tier, with pity",
+		-- Every block's list: each cue on its own line (economy v5 plan 3.3) under this head,
+		-- its chance and "1 in N" ("0.29% · 1 in 345").
+		EachCue = "Each cue",
+		CueChance = "%s · 1 in %s",
 	},
 
 	-- The lucky block reel's skip hint (LuckyOpening, UltSpinAnim, PullCutscene, ResultCutscene).

@@ -7,12 +7,15 @@
 -- header band's 8-balls scrolling, the block's picture, the title and the red X in it, the
 -- white sheet with the dots), it slams in and its lines pop in one by one over a list that
 -- scrolls.
--- OddsDetails:block(kind) shows a block's list as the Cues menu's rarity bars (RarityBar; the
--- designer, 2026-10-08: "use the bars ... with the odds next to it", no small text): its name,
+-- OddsDetails:block(kind, climbed) shows a block's list as the Cues menu's rarity bars
+-- (RarityBar; the designer, 2026-10-08: "use the bars ... with the odds next to it"): its name,
 -- one bar per rarity with its chance, each capped Unique cue's own bar (0% and "OWNED" or "ALL
--- FOUND" for one this player can't get: Roblox's one-instance rule), then one line: every cue
--- in a rarity has the same odds. Chances are rounded plainly (BlockOdds.percentText; designer,
--- 2026-10-08: "dont show full percentage just round it").
+-- FOUND" for one this player can't get: Roblox's one-instance rule), then each cue on its own
+-- line with its chance and "1 in N" (economy v5 plan 3.3), and one line: every cue in a rarity
+-- has the same odds. A block that still climbs (every new block since economy v5; the default)
+-- lists its climb from its name, live during the Grand Opening Luck; a climbed block (`climbed`:
+-- the skip dialog's) lists its one rarity's cues. Chances are rounded plainly
+-- (BlockOdds.percentText; designer, 2026-10-08: "dont show full percentage just round it").
 -- ShopMysteryOdds makes the Mystery block's list (OddsDetails:provide). B, Escape, the X or a
 -- press outside the card close it; a gamepad lands on the list and scrolls it. Sizes in
 -- Config.UI.OddsDetails, words in Strings.OddsDetails.
@@ -27,6 +30,8 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
 local BlockDrop = require(Progression:WaitForChild("BlockDrop"))
 local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
+local Format = require(Progression:WaitForChild("Format"))
+local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local Menus = require(script.Parent.Menus)
@@ -52,10 +57,11 @@ local rgb = ShopCards.rgb
 local made = 0 -- popups made: each binds B under its own action name
 
 -- One line of the list: a note, a section's heading, the live pity line, a row of words (a
--- name and its value), a rarity bar with its chance, or a meter (a pity count: a pale track
--- filled in its rarity's bar up to `share`, its words over it).
+-- name and its value), a cue's row (its name in its rarity's colour, its chance and "1 in N"),
+-- a rarity bar with its chance, or a meter (a pity count: a pale track filled in its rarity's
+-- bar up to `share`, its words over it).
 type Item = {
-	kind: string, -- "Note", "Head", "Live", "Row", "Bar", "Meter"
+	kind: string, -- "Note", "Head", "Live", "Row", "Cue", "Bar", "Meter"
 	main: TextLabel?,
 	value: TextLabel?,
 	bar: RarityBar.Bar?,
@@ -161,7 +167,8 @@ function OddsDetails.isOpen(self: any): boolean
 end
 
 --- Add a line of words to the list (in a spec's paint): a "Note", a "Head" (a section's
---- heading), the "Live" pity line, or a "Row" (its words and `value` at the right).
+--- heading), the "Live" pity line, or a "Row" or a "Cue" (its words and `value` at the right;
+--- a cue's value has more room).
 function OddsDetails.add(self: any, kind: string, text: string, tint: Color3?, value: string?)
 	local list = self.list
 	local n = #self.items + 1
@@ -176,7 +183,7 @@ function OddsDetails.add(self: any, kind: string, text: string, tint: Color3?, v
 	main.TextXAlignment = Enum.TextXAlignment.Left
 	main.ZIndex = 4
 	local item: Item = { kind = kind, main = main, value = nil, bar = nil }
-	if kind == "Row" then
+	if kind == "Row" or kind == "Cue" then
 		local words =
 			HudParts.text(list, "Value" .. n, K.Text.Min, value or "", rgb(K.Numbers.Count))
 		words.TextXAlignment = Enum.TextXAlignment.Right
@@ -232,6 +239,24 @@ end
 --- A chance as the list shows it: rounded plainly (BlockOdds.percentText).
 function OddsDetails.chance(_self: any, percent: number): string
 	return BlockOdds.percentText(percent)
+end
+
+--- Add every cue of `groups` (BlockDrop.cueGroups or BlockOdds.cueGroups) on its own line under
+--- a heading: its name in its rarity's colour, its chance and "1 in N" (a Unique this player
+--- can't get: 0%).
+function OddsDetails.cues(self: any, groups: { BlockOdds.CueGroup })
+	self:add("Head", COPY.EachCue)
+	for _, group in groups do
+		local each = if group.closed then 0 else group.each
+		local oneIn = BlockDrop.oneIn(each)
+		local value = if oneIn
+			then COPY.CueChance:format(self:chance(each), Format.oneIn(oneIn))
+			else self:chance(each)
+		for _, cue in group.cues do
+			local rarity = if group.rarity == "Unique" then CueThumb.rarityOf(cue) else group.rarity
+			self:add("Cue", CUES[cue] or cue, CueThumb.accentColor(rarity), value)
+		end
+	end
 end
 
 --- End the list: every cue in a rarity has the same odds.
@@ -388,9 +413,14 @@ local function uniquesOf(oddsId: string): { [string]: any }
 	return out
 end
 
---- A lucky block's list (a Config.LuckyBlocks.Kinds key): see the top of this file.
-function OddsDetails.blockSpec(kind: string): Spec
+--- A lucky block's list (a Config.LuckyBlocks.Kinds key; `climbed`: a climbed block's, its one
+--- rarity): see the top of this file.
+function OddsDetails.blockSpec(kind: string, climbed: boolean?): Spec
 	local row = KINDS[kind]
+	local climbs = row ~= nil and row.Climb ~= nil and climbed ~= true
+	local function luck(): boolean
+		return climbs and BlockDrop.luckLive(workspace:GetServerTimeNow())
+	end
 	local oddsId: string = if row and type(row.Odds) == "string" then row.Odds else kind
 	local function closedSet(): { [string]: boolean }
 		local closed = {}
@@ -409,20 +439,21 @@ function OddsDetails.blockSpec(kind: string): Spec
 				table.insert(ids, cue)
 			end
 			table.sort(ids)
-			return kind .. "|" .. table.concat(ids, ",")
+			return ("%s|%s|%s|%s"):format(
+				kind,
+				tostring(climbs),
+				tostring(luck()),
+				table.concat(ids, ",")
+			)
 		end,
 		paint = function(self: any)
 			local closed = closedSet()
 			local rows = uniquesOf(oddsId)
 			self:add("Head", NAMES[kind] or kind)
-			-- Economy v5 shim: a climbing kind lists its climb from its name (live during the
-			-- Grand Opening Luck), as an unclimbed block gives; the GUI session shows a climbed
-			-- block's own row (exactly its rarity) once the screens tell the two apart.
-			local groups: { BlockOdds.CueGroup } = if row and row.Climb
-				then BlockDrop.cueGroups(nil, {
-					start = row.Climb,
-					luck = BlockDrop.luckLive(workspace:GetServerTimeNow()),
-				})
+			-- A block that still climbs lists its climb from its name (live during the Grand
+			-- Opening Luck); a climbed one, or a kind that never climbs, its own row.
+			local groups: { BlockOdds.CueGroup } = if climbs and row
+				then BlockDrop.cueGroups(nil, { start = row.Climb, luck = luck() })
 				else BlockOdds.cueGroups(oddsId, closed)
 			for _, group in groups do
 				if group.rarity == "Unique" then
@@ -440,17 +471,20 @@ function OddsDetails.blockSpec(kind: string): Spec
 					self:bar(group.rarity, word, self:chance(group.percent))
 				end
 			end
+			self:cues(groups)
 			self:finish()
 		end,
 	}
 end
 
---- Open a lucky block's list (a dice badge's press; a Config.LuckyBlocks.Kinds key).
-function OddsDetails.block(self: any, kind: string)
-	local spec = self.blockSpecs[kind]
+--- Open a lucky block's list (a dice badge's press; a Config.LuckyBlocks.Kinds key): what a new
+--- block of that kind gives (it climbs first), or a climbed block's (`climbed`).
+function OddsDetails.block(self: any, kind: string, climbed: boolean?)
+	local key = if climbed then kind .. "|Climbed" else kind
+	local spec = self.blockSpecs[key]
 	if spec == nil then
-		spec = OddsDetails.blockSpec(kind)
-		self.blockSpecs[kind] = spec
+		spec = OddsDetails.blockSpec(kind, climbed)
+		self.blockSpecs[key] = spec
 	end
 	self:show(spec)
 end
@@ -589,15 +623,16 @@ function OddsDetails.layout(self: any, geo: any)
 			main.Position = UDim2.fromOffset(inset, y)
 			main.Size = UDim2.fromOffset(listW - inset, h)
 			y += h
-		elseif main and kind == "Row" then
+		elseif main and (kind == "Row" or kind == "Cue") then
+			local right = if kind == "Cue" then round(listW * O.CueValueShare) else valueW
 			HudParts.setTextSize(main, textPx)
 			main.Position = UDim2.fromOffset(inset, y)
-			main.Size = UDim2.fromOffset(math.max(1, listW - inset - valueW), rowH)
+			main.Size = UDim2.fromOffset(math.max(1, listW - inset - right), rowH)
 			local value = item.value
 			if value then
 				HudParts.setTextSize(value, textPx)
-				value.Position = UDim2.fromOffset(listW - valueW, y)
-				value.Size = UDim2.fromOffset(valueW, rowH)
+				value.Position = UDim2.fromOffset(listW - right, y)
+				value.Size = UDim2.fromOffset(right, rowH)
 			end
 			y += rowH
 		end

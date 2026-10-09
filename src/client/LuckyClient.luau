@@ -701,7 +701,12 @@ function LuckyClient.start(screen: ScreenGui)
 			return hotbar.skipDialog ~= nil
 		end
 		local list = table.clone(entries)
-		table.insert(list, 1, { id = -2, kind = "Epic", readyAt = serverNow() + (seconds or 1500) })
+		-- A block on its timer has climbed (economy v5): its odds are its one rarity's.
+		table.insert(
+			list,
+			1,
+			{ id = -2, kind = "Epic", readyAt = serverNow() + (seconds or 1500), climbed = true }
+		)
 		hotbar:set(list, heldId or aimedId, liveIds)
 		hotbar:setVisible(true)
 		hotbar:offerSkip(-2)

@@ -352,7 +352,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
 - [x] 1. The server hook for the tutorial's scripted first block, with tests.
 - [x] 2. The climb screen for every block, the mark, the Secret rung (shims 1-3 gone).
 - [x] 3. The quick reveal and "Open all".
-- [ ] 4. Odds & Details for every block, with the pity bars (shim 4 gone).
+- [x] 4. Odds & Details for every block, with the pity bars (shim 4 gone).
 - [ ] 5. The Grand Opening Luck clover.
 - [ ] 6. The shop: the Mystery band, the restock, VIP, the Grand Opening and Starter cards, the
   skip dialog (shims 8 and 9 gone).
@@ -427,3 +427,16 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   `quickReveal`, `openAllSummary`, `openAll`. 40 real Standard climbs gave 22 / 12 / 3 / 3
   (Standard / Uncommon / Rare / Epic): the odds are right (a Legendary-to-Secret and a
   Standard-to-Legendary climb earlier were luck). Lint OK, 1160 tests. Shots: `step3/`.
+- **Step 4**: every block's Odds & Details keeps its rarity bars and adds "Each cue": every
+  cue on its own line in its rarity's colour with its chance and "1 in N" ("0.32% · 1 in
+  317"; `OddsDetails.cues`, a "Cue" row with `CueValueShare` 0.5 of the width). A block that
+  still climbs (what the shop, Free Reward and the offers sell or give: the default) lists its
+  climb from its name, live with the Grand Opening Luck (the luck is in the repaint key); a
+  climbed block (`OddsDetails:block(kind, true)`, the skip dialog's) lists its one rarity
+  (Epic 100%, nine cues at 11%, 1 in 9). The Mystery list: the final tiers (the Secret's bar
+  wears the darkened Mythic picture), the pity bars "Rare guaranteed 3/10" and "Epic guaranteed
+  12/40" (v5's exact rarity; the live line "Your next Mystery block is Epic!"), then each cue.
+  Shim 4 gone. GuiQA `skipOffer`'s made-up block is climbed now. Checked on PC (the Mystery
+  list top, pity, its cue lines, the Rare block's climb, a climbed Epic); console clean. Lint
+  OK, 1160 tests. The luck's live odds get their Studio test with step 5's switch. Shots:
+  `step4/`.

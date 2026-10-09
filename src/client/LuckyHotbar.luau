@@ -937,7 +937,9 @@ function Hotbar.skipOdds(self: any, id: number, kind: string)
 	if self.skipDialog then
 		self.skipDialog.cancel()
 	end
-	local spec = OddsDetails.blockSpec(kind)
+	-- A block on its timer has climbed (its one rarity), but the Gift waits before its climb.
+	local entry = self:find(id)
+	local spec = OddsDetails.blockSpec(kind, entry ~= nil and entry.climbed == true)
 	spec.closed = function()
 		-- After the list has put the gamepad's selection back, so the question takes it.
 		task.defer(function()
