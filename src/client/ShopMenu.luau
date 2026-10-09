@@ -385,12 +385,15 @@ function ShopMenu.layout(self: any)
 	ShopParts.setCanvas(self.scroll, height + more)
 	self.gift:layout(geo)
 	self.odds:layout(geo)
-	-- Opened on a group: a layout soon after the open (a late geometry pass) jumps there again.
+	-- A new width keeps the lit group's top in view...
+	self.jumpRail:relaid(pageW)
+	-- ...but opened on a group or a place in one ("Offer"), a layout soon after the open (a late
+	-- geometry pass) jumps there again, after relaid: the first open's real width comes a frame
+	-- late, and relaid alone would leave the HUD's Starter Pack chip on the Blocks group's top.
 	local on = self.openedOn
 	if on and os.clock() - self.openedAt <= P.JumpSettleSeconds then
 		self.jumpRail:scrollTo(if self.tops[on] then on else groupOf(on) or on, true)
 	end
-	self.jumpRail:relaid(pageW)
 end
 
 -- What makes a group "new": the restock slot (Blocks), the open Limited rows and offers
