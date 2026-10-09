@@ -1133,12 +1133,16 @@ screen's width (`WidthShare`), the frame's 66% on a phone.
 ## 27. Purchases, the VIP tag and VIP's x2 (designer, 2026-10-08)
 
 - **A Robux purchase** (`Purchased`, `Config.UI.Purchased`, `Strings.Purchased`; the server's
-  `PurchaseDone`): a white impact flash, then a big "THANK YOU!" in the tutorial's text (white
-  Fredoka, the ink outline) flowing through the house rainbow, slamming in with a jolt, the
-  item under it ("VIP", "Ability Slot 2", "+$250,000", "+10 Mystery Lucky Blocks"); what was
-  bought then flies to where it lives (money into the money HUD, blocks to the hotbar, spins to
-  Abilities), with the cue-equip sound. VIP also slams its perks card in. A gift thanks the
-  giver ("Gift sent to Sam: ..."); the receiver sees it fly in, no thank-you.
+  `PurchaseDone`; redone 2026-10-09 to the designer's sketch): the whole screen flashes gold
+  (green for a money pack), then one big line slams in near the top, "Thank you! +10 Mystery
+  Lucky Blocks" ("+VIP", "+$250,000", "+Ability Slot 2"), each letter its own colour round the
+  rainbow in the kit's straight title (Fredoka, the navy outline, a little depth), shrunk to
+  fit the width. What was bought flies from it to where it lives (money into the money HUD,
+  blocks to the hotbar, spins to Abilities). Sounds: a money pack plays the slot machine's
+  payout, every other Robux item the achievement chime; pressing any Robux button rings the
+  bell. VIP also slams its perks card in. It waits for Roblox's "purchase succeeded" box to
+  close (it covered the first version). A gift thanks the giver ("Thank you! Gift sent to
+  Sam!"); the receiver sees it fly in, no thank-you. It shows over open menus (Focus.Keep).
 - **Money spent in the game** gets no thank-you: what it bought just flies to the hotbar, with
   the same sound.
 - **The VIP tag** (`VipTag`, `Config.UI.VipTag`): a navy pill with a gold rim over the money

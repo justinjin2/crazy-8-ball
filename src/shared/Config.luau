@@ -5109,6 +5109,13 @@ Config.Audio = {
 		-- assets/audio/ui/RobuxBuy.wav, 3 s). Measured peak 0.51, loudest half second RMS 0.05:
 		-- this Volume puts it near the Equip sound.
 		RobuxBuy = { Id = "rbxassetid://111614736638239", Volume = 0.5 },
+		-- A Robux purchase landed (its thank-you): the designer's "Puzzle Game Achievement 02"
+		-- (2026-10-09, assets/audio/ui/RobuxThanks.wav, 2.5 s; peak 0.75, loudest half second
+		-- RMS 0.16), and for a money pack their "Mechanical Slot Machine Win Payout"
+		-- (MoneyPayout.wav, 2 s; peak 0.66, RMS 0.06). These Volumes put both a little over
+		-- the Equip sound: they celebrate.
+		RobuxThanks = { Id = "rbxassetid://89021084156464", Volume = 0.3 },
+		MoneyPayout = { Id = "rbxassetid://85019514683132", Volume = 0.7 },
 		-- The case reel (2026-09-28, overnight placeholders; assets/audio/README.md). All from
 		-- Roblox's own library or APM Music via Roblox; each checked loading in this game.
 		-- "Roblox_UI_Small_Click" (0.13 s), pitched up and quiet: one card passing the marker.
@@ -7198,6 +7205,9 @@ Config.UI = {
 			-- VIP's title on its wide card: the gold word, straight (designer, 2026-10-08: "why
 			-- is it curved").
 			VipStraight = { Base = "Gold", SagShare = 0 },
+			-- A purchase's "Thank you! +x" (Purchased): the Starter Pack's straight letters
+			-- (each its own colour from Config.UI.Purchased.Letters) with a little navy depth.
+			Thanks = { Base = "Starter", Extrude = { 6, 14, 40 }, ExtrudeShare = 0.06 },
 			-- The subtitle under it: white letters, a navy outline, straight (the designer, gate 2).
 			Subtitle = {
 				FaceColor = { 255, 255, 255 },
@@ -8350,23 +8360,43 @@ Config.UI.WinTrack = {
 	PeekSeconds = 4, -- after a match the bar opens by itself this long, then folds
 }
 
--- A Robux purchase's thank-you (Purchased; designer 2026-10-08): a white impact flash, a big
--- rainbow "THANK YOU!" in the tutorial's text slamming in, the item under it, then what was
--- bought flies to its HUD (RewardsFlyer). Pixels and seconds; "Short" for a phone on its side.
+-- A Robux purchase's thank-you (Purchased; designer 2026-10-08, redone 2026-10-09): the whole
+-- screen flashes gold (green for a money pack), "Thank you! +x" slams in near the top in
+-- many-coloured letters, then what was bought flies to its HUD (RewardsFlyer). Pixels and
+-- seconds; "Short" for a phone on its side.
 Config.UI.Purchased = {
 	DisplayOrderAbove = 4, -- its ScreenGui over a menu's (the flying items' is +5, over it)
-	ThanksPx = 96, -- "THANK YOU!"
-	ShortThanksPx = 56,
-	ItemPx = 36, -- the item under it
-	ShortItemPx = 24,
-	CentreShare = 0.36, -- the words' middle, a share of the screen's height from the top
-	WidthShare = 0.9, -- their room across, of the screen's width
-	GapPx = 6, -- between THANK YOU! and the item
-	FlashFrom = 0.35, -- the impact flash starts this see-through (white)...
-	FlashSeconds = 0.3, -- ...and is gone in this long (none with Reduce Motion)
-	ItemAfterSeconds = 0.15, -- the item pops in this long after THANK YOU! lands
+	-- One line near the top, "Thank you! +x" (designer, 2026-10-09, their sketch), each letter
+	-- its own colour in the kit's straight title (Kit.ArchTitle[TitleStyle]), shrunk to fit.
+	TitleStyle = "Thanks",
+	ThanksPx = 96,
+	ShortThanksPx = 54, -- a phone on its side
+	MinPx = 24, -- never smaller, however long the item's name
+	CentreShare = 0.2, -- the line's middle, a share of the screen's height from the top
+	WidthShare = 0.92, -- its room across, of the screen's width
+	-- The letters' colours, one after another (spaces skip): red, orange, yellow, green, sky,
+	-- blue, purple, pink.
+	Letters = {
+		{ 255, 82, 82 },
+		{ 255, 160, 40 },
+		{ 255, 220, 50 },
+		{ 90, 220, 90 },
+		{ 60, 200, 255 },
+		{ 80, 130, 255 },
+		{ 170, 100, 255 },
+		{ 255, 100, 200 },
+	},
+	-- The flash over the whole screen: gold for a Robux item, green for a money pack.
+	FlashRobux = { 255, 214, 60 },
+	FlashMoney = { 80, 230, 110 },
+	FlashFrom = 0.35, -- it starts this see-through...
+	FlashSeconds = 0.6, -- ...and is gone in this long (none with Reduce Motion)
 	FlowAfterSeconds = 0.45, -- what was bought starts flying then
-	HoldSeconds = 2.2, -- the words stay this long, then pop out
+	HoldSeconds = 2.6, -- the line stays this long, then pops out
+	-- Roblox's "purchase succeeded" box covers the screen: a thank-you waits for its prompt to
+	-- close, plays at once when one closed this recently, and never waits longer than this.
+	RecentCloseSeconds = 10,
+	PromptWaitSeconds = 8,
 }
 
 -- VIP's tag over the money pill, bottom left, for a VIP only (VipTag; designer 2026-10-08): a
@@ -8437,6 +8467,7 @@ Config.UI.Menu = {
 			"TradeInvite", -- someone asking to trade
 			"RewardsFlyer", -- rewards flying in
 			"CuesCashFlyer", -- the Cues menu's money flying in (its own ScreenGui, 2026-10-08)
+			"Purchased", -- a purchase's thank-you over the Shop (2026-10-09: it was hidden there)
 			"RankClaimBlock", -- the roadmap's claim card
 		},
 		KeepWith = {

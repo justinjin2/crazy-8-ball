@@ -1109,8 +1109,18 @@
     "assetType": "Audio",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/audio/ui/MoneyPayout.wav": {
+    "assetId": "85019514683132",
+    "assetType": "Audio",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/audio/ui/RobuxBuy.wav": {
     "assetId": "111614736638239",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/ui/RobuxThanks.wav": {
+    "assetId": "89021084156464",
     "assetType": "Audio",
     "status": "ok"
   },

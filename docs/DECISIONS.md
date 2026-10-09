@@ -3610,3 +3610,7 @@ timer of a new block stay the designer's call.
   VIP (`plain`).
 - 2026-10-09: Pressing any Robux button plays the designer's "Gentle Metallic Bell Splash"
   (`Config.Audio.Ui.RobuxBuy`).
+- 2026-10-09: The purchase thank-you is one line near the top, "Thank you! +x", in
+  many-coloured letters, with a gold flash (green for a money pack). It waits for Roblox's
+  purchase box to close and shows over open menus. A money pack plays the slot machine payout;
+  other Robux items play the achievement chime.

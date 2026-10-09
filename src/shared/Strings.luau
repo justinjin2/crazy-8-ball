@@ -1044,15 +1044,17 @@ return {
 		ResetsAbove = "Resets in", -- over the clock pill
 		NextFolded = "Next", -- the folded pill: "Next ->" then the next step's block
 	},
-	-- A Robux purchase's thank-you (Purchased): the big word, then the item under it (else what
-	-- it gave, RewardsParts.gains: "+$250,000", "+10 Mystery Lucky Blocks").
+	-- A Robux purchase's thank-you (Purchased): one line, "Thank you!" and the item by name or
+	-- what it gave (RewardsParts.gains: "+$250,000", "+10 Mystery Lucky Blocks").
 	Purchased = {
-		Thanks = "THANK YOU!",
+		Thanks = "Thank you!",
+		Line = "Thank you! %s", -- what was bought: "Thank you! +10 Mystery Lucky Blocks"
+		Named = "+%s", -- an item by name: "+VIP", "+Ability Slot 2"
 		Vip = "VIP",
 		Party = "Money Party",
-		ClaimAll = "Claim All",
-		Skip = "Block timers skipped",
-		GiftSent = "Gift sent to %s: %s", -- the receiver's name, the item
+		ClaimAll = "+Claim All",
+		Skip = "Timers skipped",
+		GiftSent = "Gift sent to %s!", -- the receiver's name
 	},
 	-- VIP's tag over the money pill (VipTag); its perks are Menus.Shop.Blocks.VipPerks.
 	VipTag = {
