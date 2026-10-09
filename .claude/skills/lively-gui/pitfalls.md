@@ -58,6 +58,15 @@
   and its words as a separate label.
 - **The menu covered the whole phone**: the lively panel is capped (66% of the width, out of
   Roblox's top bar row, as tall as its first card).
+- **A menu's first open in a Play session is laid out twice**: first at a provisional width
+  (the Shop's page 508 px), then at the real one a frame later. Anything that re-scrolls on a
+  width change (`JumpRail.relaid`) must run before the late jump to the section asked for, or
+  the first open lands elsewhere (2026-10-08: the HUD's Starter Pack chip opened on the Mystery
+  block). Check every open-on-a-section in a fresh Play session, not only on a reopen.
+- **Re-registering a Stage piece after a close** (a rail whose buttons reorder) used to read
+  the close's faded look as its rest, and the pieces stayed invisible; `Stage.add` now puts an
+  id's old piece back at rest first. A step's burst needs its piece shown, or a hidden card
+  fires its firework over empty space. Test close, change the state, reopen.
 
 ## Studio and tools
 
