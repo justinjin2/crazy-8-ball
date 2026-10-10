@@ -326,7 +326,6 @@ function MatchBar.setSnapshot(self: any, snapshot: any?, userId: number)
 		self.dismissed = false
 	end
 	if not snapshot and self.kind == "pad" then
-		self:blur()
 		self:setOpen(false)
 		self.kind = nil
 	end
@@ -340,7 +339,6 @@ function MatchBar.setAway(self: any, away: boolean)
 	end
 	self.away = away
 	if away and self.kind == "pad" then
-		self:blur()
 		self:setOpen(false)
 		self.kind = nil
 	end
