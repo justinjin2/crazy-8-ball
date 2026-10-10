@@ -4,7 +4,9 @@ The one place that says how the game's economy works and every number in it. Rew
 2026-10-09 for **economy v5, "every block climbs"**: the plan the designer approved on
 2026-10-09 (`docs/prompts/ECONOMY_V5_PLAN.md`, from their answers on the review page, two
 follow-ups in chat and a 60-day population simulation), with **v5.1 "Lively"** the same evening
-(the Mystery turns into a real block that then climbs; plan section 15), on top of economy v4 (2026-10-08,
+(the Mystery turns into a real block that then climbs; plan section 15) and **v5.2** (2026-10-09:
+only the Mystery keeps its upgrade screen; every other block climbs as it opens, shown by the reel,
+the same odds; 7.1), on top of economy v4 (2026-10-08,
 `docs/prompts/ECONOMY_V4_PLAN.md`), the first economy plan (2026-10-02) and the lucky blocks that
 replaced cases (2026-10-04). GDD sections 11 and 12 point here. Every number is a starting value
 *(tune)*: it lives in `src/shared/Config.luau` and changes after playtests. Change a number here
@@ -50,8 +52,9 @@ zero. A tiny chance also shows **"1 in N" beside its %** (0.0001%, 1 in 1,000,00
 - **Every block climbs** (economy v5, designer 2026-10-09): **a block's name is its floor** (a
   Rare block always gives Rare or better), and every block climbs from it on **one ladder:
   50 / 35 / 18 / 10 / 15 / 2.5%** (Standard to Uncommon ... Mythic to the Secret). The tier it
-  ends on *is* the cue's rarity; the reel only picks which cue of it. A Standard block reaches
-  Epic or better 1 in 32, Legendary or better 1 in 317 (section 7).
+  ends on *is* the cue's rarity. The climb is rolled when the block opens and the reel shows it
+  (v5.2: a Rare block's reel is Rare 82%, Epic 16.2%...; no climb screen). A Standard block
+  reaches Epic or better 1 in 32, Legendary or better 1 in 317 (section 7).
 - **The Mystery turns into a real block first** (v5.1 "Lively", designer 2026-10-09): its own
   roll on its 4-press screen, **30 / 25 / 10 / 5%** a step, turns it into a Standard (70%),
   Uncommon (22.5%), Rare (6.75%), Epic (0.7125%) or Legendary (0.0375%) block, the same block
@@ -209,7 +212,7 @@ except the tutorial's blocks):
 | When | What happens |
 |---|---|
 | Join | 1 starter ability spin (the tutorial, 2026-10-03). |
-| The first win (the tutorial) | Unranked to **Bronze I**: an **Uncommon lucky block at once**, which skips its climb and opens to an Uncommon cue (`Config.Tutorial.BronzeBlockKind`; v5 Claude's call, since a v5 Standard block gives only Commons), then $2,500, a Mystery block, the Bronze Cue, the [BRONZE] tag and +1 ability spin once claimed in Rank. The win's own step is step 1 of the day's win track: the first win ever is always a **Rare block**, which arrives unclimbed (OPEN!), climbs, then waits on its tier's timer. |
+| The first win (the tutorial) | Unranked to **Bronze I**: an **Uncommon lucky block at once**, which skips its climb and opens to an Uncommon cue (`Config.Tutorial.BronzeBlockKind`; v5 Claude's call, since a v5 Standard block gives only Commons), then $2,500, a Mystery block, the Bronze Cue, the [BRONZE] tag and +1 ability spin once claimed in Rank. The win's own step is step 1 of the day's win track: the first win ever is always a **Rare block**, which waits its 5-minute timer and climbs as it opens (v5.2). |
 | The first finished match | first-week day 1 can be claimed: **$5,000 + a Mystery block** (a login day counts once a match is finished that day). |
 | 5 minutes | playtime gift: $1,000 |
 | The second and third wins | $1,000 each (win track steps 2 and 3); the third win is **Bronze II**: $1,000 |
@@ -592,33 +595,37 @@ climbed block's row `Config.BlockOdds.List` (`Progression/BlockOdds.luau`).
 
 - **A block's name is its floor.** A Rare block always gives Rare or better.
 - **Every block climbs**, one step at a time, on one ladder (7.2). The tier it ends on is the
-  cue's rarity; then the reel picks which cue of that rarity, every cue equally likely.
+  cue's rarity; then one cue of that rarity, every cue equally likely.
 - **Where each kind starts**: the Sky block (Lucky Rain) from Standard; Lucky 8 and the Gift
   from Uncommon; each tier block from its own tier. **The Mystery turns into one of those tier
   blocks first** (v5.1, 7.4), which then climbs from its name. **The Grand Opening and Starter
   blocks keep their approved odds and never climb** (7.2). Rank rewards keep their blocks, which
   follow these rules (Expert's Legendary block is a guaranteed Legendary).
-- **Unclimbed, then climbed.** A new block arrives **unclimbed**: no timer, and its slot says
-  **OPEN!**. A tap opens the **climb screen** (like Brawl Stars' Starr Drop) with **4 presses**
-  (`Drop.Upgrade.Clicks`; designer: "just 4"). The server rolls the final tier first (with the
-  launch luck); the presses only reveal it. A Mystery's screen is its roll instead (7.4): the
-  same 4 presses end on the block it turns into, which jumps back to the hotbar showing OPEN!. The first press shows
-  the start: the block's own tier, or higher when the 3 later presses couldn't reach the final
-  tier otherwise (the higher of the block's tier and the final tier minus 3;
-  `BlockDrop.startOf`). Each later press climbs one tier or doesn't, every choice equally likely
-  (`BlockDrop.path`). A climb never fizzles or falls back.
-- The block then becomes the **climbed** block of the tier it reached (same slot, its origin
-  kept), which waits on **that tier's timer** (7.6) and opens with the reel. A climbed block
-  never climbs again; an unclimbed one always can. The Gift waits out its 12-hour comeback wait
-  before its climb (`Kinds.Gift.Wait`).
-- **The Secret**: a climb that reaches it gives the Secret cue at once and plays the full show.
-  There is no Secret block (no model, no timer).
-- **Honest by construction**: the shown odds are the real odds. The screen never shows a fake
-  near-miss or a "chance per press" (it isn't a fixed number).
+- **The climb happens at the open, shown by the reel** (v5.2, designer 2026-10-09: "only
+  mystery lucky block is supposed to have upgrade chances"). A block waits **its own name's
+  timer** (7.6), is held, thrown and opened like any block, and the server rolls its climb then
+  (`BlockDrop.climbFor`, with the launch luck; `PlayerData.planLuckyOpen`). The reel's strip is
+  that climb's odds: a Rare block's shows Rare cards at 8.2% each and Epic cards at 1.8% each
+  (Rare 82%, Epic 16.2%, Legendary 1.53%, Mythic 0.26%, the Secret 1 in 14,815), so the odds did
+  not change, only how they are shown. A Common or Uncommon cue opens with the quick reveal.
+- **Only the Mystery has an upgrade screen** (like Brawl Stars' Starr Drop): its slot says
+  **OPEN!** and wears the climb mark, and a tap opens its **4 presses** (`Drop.Upgrade.Clicks`;
+  designer: "just 4"), which are its roll (7.4). The server rolls first; the presses only reveal
+  it. They end on the block it turns into, which jumps back to the hotbar on that block's timer
+  and then opens like any other. The first press shows Standard, or higher when the 3 later
+  presses couldn't reach the result otherwise (`BlockDrop.startOf`); each later press climbs one
+  tier or doesn't, every choice equally likely (`BlockDrop.path`). It never falls back.
+- v5 (before v5.2) gave every block that climb screen; a block that climbed there is a
+  **climbed** block (its tier kept, `Climbed`) and opens from exactly its tier's cues. None are
+  made any more.
+- **The Secret**: a climb that reaches it gives the Secret cue with the full show (the reel,
+  then its pull). There is no Secret block (no model, no timer).
+- **Honest by construction**: the shown odds are the real odds. The Mystery's screen never
+  shows a fake near-miss or a "chance per press" (it isn't a fixed number).
 
-**The client** (checked in Studio 2026-10-09): the climb screen (`MysteryReveal`) opens every
-unclimbed block from its slot's OPEN!, a Mystery's roll included; a climb that reaches the
-Secret hands over to the Secret's pull.
+**The client** (checked in Studio 2026-10-09, v5.2): a Rare block is held from its slot (no
+OPEN!), thrown and opened into a reel titled "Rare Lucky Block" mixing Rare and Epic cards;
+only the Mystery's slot says OPEN! and opens the upgrade screen (`MysteryReveal`).
 
 ### 7.2 The ladder, and what each block gives
 
@@ -673,8 +680,7 @@ The kinds:
   shop. Mythic blocks are sold in the restock only (v4).
 - Blocks live in the hotbar and its bag (`Config.LuckyBlocks.MaxBlocks`), never in the
   Inventory menu.
-- A block can be **traded** once it is ready: an unclimbed block at once (it has no timer), a
-  climbed one once its timer is done (section 12).
+- A block can be **traded** once it is ready, once its timer is done (section 12).
 
 **The spin reel** (designer, 2026-10-08: rare cues pass by more often, with safeguards; the
 reel's look is the GUI session's): every reel shows only cues from that block's own pool, so a
@@ -728,9 +734,9 @@ any other.
   **30%**, Uncommon to Rare **25%**, Rare to Epic **10%**, Epic to Legendary **5%**; it stops at
   the first miss and never goes past Legendary (`Turn.Top`). It turns into a **Standard block
   70%**, Uncommon 22.5%, Rare 6.75%, Epic 0.7125% (1 in 140) or Legendary 0.0375% (1 in 2,667).
-- The block it becomes keeps the Mystery's slot and origin (a bought one still opens at once
-  after its climb), arrives **unclimbed** (OPEN!, no timer) and climbs on its own screen with
-  that block's own odds (7.2). Every block can still reach the Secret, a Standard one too.
+- The block it becomes keeps the Mystery's slot and origin (a Robux one opens at once), waits
+  **that block's timer** (7.6) and climbs as it opens, with that block's own odds shown by the
+  reel (7.2, v5.2). Every block can still reach the Secret, a Standard one too.
 - The Grand Opening Luck boosts the climb, never the roll.
 - The shop's Mystery card lists the five blocks it turns into; each row's dice opens that
   block's normal odds. Its Odds & Details shows the roll, what it ends with over both steps,
@@ -804,12 +810,13 @@ one step and gives that step's block or money (v5, 2026-10-09; `Config.BlockOdds
 
 ### 7.6 Timers, the skip, the quick reveal and "Open all"
 
-**Timers belong to the climbed block** (`Config.LuckyBlocks.Kinds[kind].Timer`): Standard at
-once, Uncommon 1 minute, Rare 5 minutes, Epic 30 minutes, Legendary 6 hours, Mythic 12 hours.
-An unclimbed block has no timer (the Gift: its 12-hour wait before its climb). The Grand
-Opening and Starter blocks open at once.
+**Every block waits its own name's timer** (v5.2; `Config.LuckyBlocks.Kinds[kind].Timer`):
+Standard at once, Uncommon 1 minute, Rare 5 minutes, Epic 30 minutes, Legendary 6 hours, Mythic
+12 hours, whatever it climbs to when it opens (v5: the tier it climbed to). The Mystery, Sky,
+Lucky 8, Grand Opening and Starter blocks have none (the Gift: its 12-hour comeback wait); a
+block a Mystery turned into waits that block's timer from the turn.
 
-- Timers start by themselves when the climbed block lands in its slot. They all run at once;
+- Timers start by themselves when the block lands in its slot. They all run at once;
   there are no slots. Opening a block before its timer is done answers "Not ready yet"; the
   hotbar slot counts down. A bought block (paid origin) opens at once.
 - **VIP has no timers**: every block opens at once (`Config.LuckyBlocks.VipTimerFactor` 0,
@@ -843,10 +850,11 @@ only, never money, and the skip button shows the price for the time left right n
 `QuickRevealSeconds`; `LuckyBlocks.quickReveal`); the full show from Rare up. The GUI session
 builds it.
 
-**"Open all"** (answer 14): one server request (`OpenAll`) opens every ready climbed Standard and
+**"Open all"** (answer 14): one server request (`OpenAll`) opens every ready Standard and
 Uncommon block in the hotbar and bag at once (up to 50, at most once every 3 seconds;
-`Config.LuckyBlocks.OpenAll`), skipping held and thrown ones, and answers a short list of what
-came out. The button and its summary are the GUI session's; the words are ready in Strings.
+`Config.LuckyBlocks.OpenAll`), skipping held and thrown ones, each climbing as it opens (v5.2),
+and answers a short list of what came out. The summary shows the Common and Uncommon cues; a
+block that climbed to Rare or better gets its own reel after it, one by one.
 
 ### 7.7 Odds screen and per-cue odds
 
@@ -1489,10 +1497,10 @@ Built on the server (2026-10-03; the trade screen is the GUI lane's): `Progressi
 - **Anyone in the server, no gate at all** (designer, 2026-10-03: no 25-win gate, no friends or
   nearby rules).
 - **Cues and ready lucky blocks**, **up to 8 items a side**, one entry per copy. **Never money.**
-  No empty side. An **unclimbed** block trades at once (it has no timer; offered as
-  "Block:<kind>"); a **climbed** block once its timer is done (offered as "Climbed:<tier>", named
-  "Climbed Rare" and so on in the trade window until the GUI session's mark). The Gift trades
-  once its 12-hour wait is over.
+  No empty side. A block trades once its timer is done (v5.2; offered as "Block:<kind>"); an
+  old **climbed** block from v5's climb screen as "Climbed:<tier>", named "Climbed Rare" and so
+  on in the trade window. The Gift trades once its 12-hour wait is over. A traded block lands
+  ready.
 - Block cues, Unique cues, the Starter Cue and **the Week One Cue** trade (v5, designer
   2026-10-09: "it should be tradable"). Classic, the Ranked cues and every other Exclusive cue
   never (rank, season and VIP cues; designer, 2026-09-28).
@@ -1691,10 +1699,11 @@ Limited cues.
   and never counted, sold or traded. Saves go through the session-locked, versioned save layer.
 - **Opening blocks.** One at a time, in the world: hold the block from its hotbar slot, throw
   it, hold the prompt; the reel, the pull cutscene (Rare and up) and the "YOU GOT" card follow.
-  An unclimbed block climbs first on the climb screen (7.1). A Common or Uncommon cue skips the
-  reel: its result card alone, gone by itself after 1.5 s (the quick reveal). **"Open all"**
-  (v5), a green button right of the hotbar's bag button, opens every ready climbed Standard and
-  Uncommon block at once and shows one summary of the cues (7.6).
+  The block climbs as it opens and the reel shows that climb's odds (v5.2, 7.1); a Mystery
+  rolls on its upgrade screen first. A Common or Uncommon cue skips the reel: its result card
+  alone, gone by itself after 1.5 s (the quick reveal). **"Open all"** (v5), a green button
+  right of the hotbar's bag button, opens every ready Standard and Uncommon block at once and
+  shows one summary of the cues, then a reel for each Rare or better (7.6).
 - **Index completion.** A cue never owned is a "?" card; tapping it shows its name and its
   black 3D silhouette turning (designer, 2026-09-28). A cue counts once it has ever been owned
   (selling it later keeps it). The Week One Cue sits in the Legendary row. Completing a rarity

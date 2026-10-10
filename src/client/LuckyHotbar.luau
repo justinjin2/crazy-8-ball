@@ -3,17 +3,18 @@
 -- the kit's look. Along the bottom: one slot per block (the first Config.LuckyBlocks
 -- .HotbarSlots of the list; a phone only the first UI.PhoneHotbarSlots), each the block's 2D icon (its Icon; else a slowly turning 3D model) with its number and, on
 -- a timer, its countdown; the held block's slot has a thick gold outline. Keys 1-9, a tap or a
--- click hold a block (LuckyClient); an unclimbed block (economy v5: every new block) wears the
--- climb mark in its top-right corner, its ready slot says OPEN! and a tap opens its climb
--- screen instead (MysteryReveal). The bag button at the end ("+12": blocks waiting) and the `
--- key open the bag: a grid of every block. A click on a block there equips it like Roblox's
--- backpack (the bag stays open; an unclimbed block climbs instead); drag a block onto a hotbar
--- slot to put it there (mouse and touch). "Open all" (economy v5 plan 3.8), a green button right
--- of the bag button while a climbed Standard or Uncommon block is ready, opens them all at once
--- (LuckyClient asks the server and shows the summary); in the open bag a gamepad selects it.
+-- click hold a block (LuckyClient); a Mystery (economy v5.2: the only block with an upgrade
+-- screen) wears the climb mark in its top-right corner, its ready slot says OPEN! and a tap
+-- opens its upgrade screen instead (MysteryReveal). The bag button at the end ("+12": blocks
+-- waiting) and the ` key open the bag: a grid of every block. A click on a block there equips
+-- it like Roblox's backpack (the bag stays open; a Mystery opens its screen instead); drag a
+-- block onto a hotbar slot to put it there (mouse and touch). "Open all" (economy v5 plan 3.8),
+-- a green button right of the bag button while a Standard or Uncommon block is ready, opens
+-- them all at once (LuckyClient asks the server and shows the summary); in the open bag a
+-- gamepad selects it.
 --
--- A throw of a block still on its timer (it stays in the hands: 2026-10-09), an unclimbed
--- block's tap during its wait (the Gift), or an open refused asks about the skip (economy v4
+-- A throw of a block still on its timer (it stays in the hands: 2026-10-09), a Mystery's tap
+-- during its wait, or an open refused asks about the skip (economy v4
 -- plan 18.1 item 8) in the kit's dialog over the screen (MenuFrame.ask): the block's name,
 -- "Ready in 4:32. Skip the wait?", Wait and the green "Skip · 4" with the price for the time
 -- left right now (1 / 4 / 9 / 15 R$, Config.LuckyBlocks.Skips; the live price from the shop's
@@ -57,15 +58,15 @@ local BAG = "LuckyBag" -- its name in Menus
 local SKIPS: { { UpTo: number?, Product: string } } = L.Skips :: any
 local NAMES: { [string]: string } = W.Names
 
--- climbed: the block climbed already (BlockState's `climbed`, economy v5); nil for an
--- unclimbed block of a climbing kind, or a kind that never climbs.
+-- climbed: the block climbed on the old climb screen (BlockState's `climbed`, economy v5); nil
+-- for any other.
 export type Entry = { id: number, kind: string, readyAt: number, climbed: boolean? }
 export type Handlers = {
 	select: (id: number) -> (), -- hold (or put away) this block
-	reveal: (id: number) -> (), -- open this unclimbed block's climb screen (MysteryReveal)
+	reveal: (id: number) -> (), -- open this Mystery's upgrade screen (MysteryReveal)
 	move: (id: number, to: number) -> (), -- put this block at this place in the list
 	skip: (id: number) -> (), -- the skip dialog's Skip: ask the server to prompt this block's skip
-	openAll: () -> (), -- "Open all": every ready climbed Standard and Uncommon block at once
+	openAll: () -> (), -- "Open all": every ready Standard and Uncommon block at once
 }
 
 -- picture: the kind's 2D icon (an ImageLabel) or its 3D view (a ViewportFrame); both have
@@ -78,17 +79,17 @@ type Tile = {
 	edge: UIStroke,
 	number: TextLabel?,
 	timer: TextLabel,
-	open: TextLabel?, -- an unclimbed block's OPEN! (designer, 2026-10-07; every block since v5)
-	mark: Frame?, -- an unclimbed block's climb mark
+	open: TextLabel?, -- a Mystery's OPEN! (designer, 2026-10-07)
+	mark: Frame?, -- a Mystery's climb mark
 }
 
 local Hotbar = {}
 Hotbar.__index = Hotbar
 
---- Whether `entry`'s block still climbs (economy v5): a climbing kind not yet climbed. Its tap
---- opens the climb screen; it is never held as it is.
-function Hotbar.unclimbed(entry: Entry?): boolean
-	return entry ~= nil and entry.climbed ~= true and LuckyBlocks.climbs(entry.kind)
+--- Whether `entry`'s block needs its upgrade screen first (economy v5.2: only a Mystery,
+--- LuckyBlocks.needsRoll). Its tap opens the screen; it is never held as it is.
+function Hotbar.rollsFirst(entry: Entry?): boolean
+	return entry ~= nil and entry.climbed ~= true and LuckyBlocks.turns(entry.kind)
 end
 
 -- A phone's screen (narrower than UI.PhoneWidthPx): smaller slots, fewer of them.
@@ -230,11 +231,11 @@ local function makeTile(parent: Instance, entry: Entry, number: number?): Tile
 	timer.TextWrapped = false
 	timer.Visible = false
 	timer.ZIndex = 4
-	-- An unclimbed block says OPEN! along its bottom once it is ready, and pulses: a tap opens
-	-- its climb screen. It wears the climb mark meanwhile (the climb screen's up arrow).
+	-- A Mystery says OPEN! along its bottom once it is ready, and pulses: a tap opens its
+	-- upgrade screen. It wears the climb mark meanwhile (the screen's up arrow).
 	local openLabel: TextLabel? = nil
 	local mark: Frame? = nil
-	if Hotbar.unclimbed(entry) then
+	if Hotbar.rollsFirst(entry) then
 		local M = U.ClimbMark
 		local disc = HudParts.frame(button, "ClimbMark")
 		disc.AnchorPoint = Vector2.new(1, 0)
@@ -596,9 +597,9 @@ function Hotbar.pressed(self: any, id: number, slot: number?)
 	UISound.play("Click")
 	if slot == nil then
 		-- A bag tile (designer, 2026-10-07), like Roblox's backpack: a click equips it (held
-		-- out; again puts it away) and the bag stays open; an unclimbed block closes the bag
-		-- and opens its climb screen. Dragging still moves a block into the hotbar.
-		if Hotbar.unclimbed(self:find(id)) then
+		-- out; again puts it away) and the bag stays open; a Mystery closes the bag and opens
+		-- its upgrade screen. Dragging still moves a block into the hotbar.
+		if Hotbar.rollsFirst(self:find(id)) then
 			if self.bagOpen then
 				Menus.close(BAG)
 			end
@@ -615,7 +616,7 @@ function Hotbar.pressed(self: any, id: number, slot: number?)
 		self:refreshSelection()
 		return
 	end
-	if Hotbar.unclimbed(self:find(id)) then
+	if Hotbar.rollsFirst(self:find(id)) then
 		self.handlers.reveal(id)
 		return
 	end
@@ -938,7 +939,7 @@ function Hotbar.skipOdds(self: any, id: number, kind: string)
 	if self.skipDialog then
 		self.skipDialog.cancel()
 	end
-	-- A block on its timer has climbed (its one rarity), but the Gift waits before its climb.
+	-- An unclimbed block's list is its climb's odds; a climbed one's its one rarity.
 	local entry = self:find(id)
 	local spec = OddsDetails.blockSpec(kind, entry ~= nil and entry.climbed == true)
 	spec.closed = function()
@@ -963,12 +964,12 @@ function Hotbar.toggleBag(self: any)
 	end
 end
 
--- Whether "Open all" has something to open at `t`: a ready climbed block of its tiers that is
--- not in the hands or on the floor (the server's rule: LuckyBlocks.openAllIds).
+-- Whether "Open all" has something to open at `t`: a ready block of its tiers that is not in
+-- the hands or on the floor (the server's rule: LuckyBlocks.openAllIds).
 function Hotbar.canOpenAll(self: any, t: number): boolean
 	for _, entry in self.entries do
 		if
-			entry.climbed == true
+			not Hotbar.rollsFirst(entry)
 			and entry.readyAt <= t
 			and entry.id ~= self.heldId
 			and not self.hiddenIds[entry.id]
@@ -1029,7 +1030,7 @@ function Hotbar.step(self: any)
 			tile.timer.TextColor3 = HudParts.tone("White")
 			icon.picture.ImageTransparency = 0.35
 		else
-			-- Ready: READY! in green (an unclimbed block says OPEN! instead); a VIP's blocks say it
+			-- Ready: READY! in green (a Mystery says OPEN! instead); a VIP's blocks say it
 			-- from the moment they arrive (the designer, 2026-10-09).
 			tile.timer.Visible = tile.open == nil
 			tile.timer.Text = W.Ready

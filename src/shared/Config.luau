@@ -2168,17 +2168,17 @@ Config.LuckyBlocks = {
 	},
 	-- Climb (economy v5): the tier the block climbs from (its name is its floor; Sky Standard,
 	-- Lucky 8 and the Gift Uncommon, each tier block its own tier). A new block
-	-- of a climbing kind arrives unclimbed, with no timer (Wait: the Gift's comeback wait
-	-- before its climb); its climb (BlockDrop.climbRoll) turns it into the climbed block of
-	-- the tier it reached, which waits on that tier's Timer, then opens to a cue of exactly
-	-- that rarity (its Odds row); every unclimbed block climbs on the climb screen
-	-- (MysteryReveal) from its hotbar slot's OPEN!. Turns (the Mystery, economy v5.1): its
-	-- screen is a roll (Config.BlockOdds.Turn) that turns it into an unclimbed block of the
-	-- tier reached, instead of a climb; Climb is then only where its presses start. Pity: the
-	-- Mystery block's pity counters apply. Odds: the Config.BlockOdds row a climbed block (or a block that
-	-- never climbs: the Grand Opening and Starter blocks) rolls. Timer: seconds after a
-	-- climbed (or never-climbing) block lands until it can be opened (0: at once); a bought
-	-- block (Paid) opens at once, and so does every block of a VIP (VipTimerFactor 0). Model:
+	-- of a climbing kind arrives unclimbed, on its Timer (Wait: the Gift's comeback wait
+	-- first), and climbs when it is opened (economy v5.2, designer 2026-10-09: no climb screen
+	-- but the Mystery's; BlockDrop.climbFor): the tier it reaches is the cue's rarity, one cue
+	-- of it, and the reel shows that climb's odds. Turns (the Mystery, economy v5.1): its
+	-- upgrade screen (MysteryReveal, from its hotbar slot's OPEN!) is a roll
+	-- (Config.BlockOdds.Turn) that turns it into an unclimbed block of the tier reached;
+	-- Climb is then only where its presses start. Pity: the Mystery block's pity counters
+	-- apply. Odds: the Config.BlockOdds row a climbed block (v5's climb screen) or a block that
+	-- never climbs (the Grand Opening and Starter blocks) rolls. Timer: seconds after a block
+	-- lands until it can be opened (0: at once); a bought block (Paid) opens at once, and so
+	-- does every block of a VIP (VipTimerFactor 0). Model:
 	-- its template's name in ReplicatedStorage[ModelFolder]. Idle (optional): the block's own
 	-- idle animation, uploaded to the group; without one it plays Anim.BlockIdle. Guarantee:
 	-- the At-th block of this kind a player opens is this cue if they have none (a paid pity,
@@ -2251,7 +2251,8 @@ Config.LuckyBlocks = {
 		-- The Mystery block (economy v5.1): its hotbar slot says OPEN!; a tap opens its screen
 		-- (MysteryReveal, 4 presses from Standard), where its roll (Config.BlockOdds.Turn, with
 		-- pity) turns it into an unclimbed block of that tier, the same block the restock sells,
-		-- which lands back in its slot showing OPEN! and climbs from its name when opened.
+		-- which lands back in its slot on that tier's timer and climbs from its name when
+		-- opened (economy v5.2: the reel shows it).
 		Mystery = {
 			Icon = "rbxassetid://76412774878315",
 			Climb = "Standard",
@@ -2510,8 +2511,8 @@ Config.LuckyBlocks = {
 	Reveal = {
 		DisplayOrder = 40, -- over the hotbar and the HUD
 		-- The layout (designer's pick "mystery_reveal B", the Track, 2026-10-08), top to bottom:
-		-- the white pill "Mystery Lucky Block - 2 / 4" (every unclimbed block's own name since
-		-- economy v5), the tier's name, the block, its press dots, the white Tap! button; along
+		-- the white pill "Mystery Lucky Block - 2 / 4" (the Mystery's only since economy v5.2;
+		-- v5 gave every unclimbed block this screen), the tier's name, the block, its press dots, the white Tap! button; along
 		-- the bottom the climb's ladder of seven tiers (Config.BlockOdds.Climb.Tiers, the Secret
 		-- on top), joined by a line filled up to the tier on show. Shares of the screen's height unless named; the
 		-- block takes the room left between the name and the dots, at most BlockShare
@@ -2938,9 +2939,9 @@ Config.LuckyBlocks = {
 		BottomPx = 10, -- the hotbar's gap from the bottom of the screen
 		NumberPx = 14, -- the slot's number, top-left
 		TimerPx = 14, -- the countdown along the slot's bottom
-		OpenPx = 16, -- a ready unclimbed block's OPEN! along the slot's bottom (gold, pulsing)
-		-- An unclimbed block's mark (economy v5: it still climbs; a climbed block has none), in
-		-- the slot's top-right corner: the climb screen's up arrow in gold on a small ink disc
+		OpenPx = 16, -- a ready Mystery's OPEN! along the slot's bottom (gold, pulsing)
+		-- A Mystery's mark (economy v5.2: only it has an upgrade screen), in the slot's
+		-- top-right corner: the screen's up arrow in gold on a small ink disc
 		-- with a white ring. Share: the disc, of the slot's side (at least MinPx); InsetPx: from
 		-- the corner; ArrowShare: the arrow, of the disc.
 		ClimbMark = { Share = 0.3, MinPx = 16, InsetPx = 3, ArrowShare = 0.86, RingPx = 1.5 },
@@ -3543,7 +3544,7 @@ Config.Shop = {
 	-- 75.56%, Legendary 21.11%, Mythic 3.33%), slot 2 Rare 55% / Epic 34% / Legendary 9.5% /
 	-- Mythic 1.5%, VIP's 40 / 40 / 16 / 4: a Legendary or better in 32.8% of restocks (46.2%
 	-- with VIP's slot), a Mythic in 4.8% (8.6%). A restock block arrives unclimbed and climbs
-	-- from its tier. The Robux prices stay until the designer's Robux pass (v5 plan 9).
+	-- from its tier when opened. The Robux prices stay until the designer's Robux pass (v5 plan 9).
 	Restock = {
 		SlotSeconds = 600,
 		ChanceTotal = 10000,

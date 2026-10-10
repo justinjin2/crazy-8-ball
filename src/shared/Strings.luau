@@ -1010,9 +1010,9 @@ return {
 			NoBody = "You can't throw that right now.",
 			TooFar = "Get closer to the block.",
 			NotLanded = "Wait for it to land.",
-			Reveal = "Tap the block's slot to open it!", -- an unclimbed block climbs first
+			Reveal = "Tap the block's slot to open it!", -- a Mystery rolls on its screen first
 			NotMystery = "That block opens in the world.",
-			Climb = "Tap the block's slot to climb it first!", -- an unclimbed block (economy v5)
+			Climb = "Tap the block's slot to open it first!", -- a Mystery (economy v5.2)
 			NoneReady = "No Standard or Uncommon blocks are ready to open.", -- Open all
 			Error = "Something went wrong. Try again.",
 		} :: { [string]: string },
@@ -1023,8 +1023,8 @@ return {
 		OpenAll = "Open all",
 		OpenAllSummary = "%d BLOCKS OPENED!", -- over the summary's cue cards, like YOU GOT
 		OpenAllOne = "1 BLOCK OPENED!",
-		-- The climb screen (MysteryReveal; the Mystery block's upgrade screen, every unclimbed
-		-- block's since economy v5).
+		-- The upgrade screen (MysteryReveal; the Mystery block's, the only one since economy
+		-- v5.2; every unclimbed block's in v5).
 		Reveal = {
 			Title = "MYSTERY", -- over the Mystery block before the first press
 			-- Over another block that is not a tier block before the first press (a tier block

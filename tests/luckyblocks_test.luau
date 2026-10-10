@@ -21,7 +21,7 @@ return {
 		local L, Config = load()
 		for _, row in
 			{
-				-- The designer's timers (2026-10-07), for the climbed block (economy v5).
+				-- The designer's timers (2026-10-07), each block on its own name's (v5.2).
 				{ "Standard", "Standard", 0 },
 				{ "Uncommon", "Uncommon", 60 },
 				{ "Rare", "Rare", 300 },
@@ -59,9 +59,14 @@ return {
 		H.expect(L.finishTimers(state, 200) == 1, "only the one still waiting")
 		H.expect(L.isReady(state.List[1], 200) and state.List[1].Paid == nil, "ready, not paid")
 		H.expect(L.kind("Mystery").Pity == true and L.kind("Mystery").Odds == nil, "Mystery")
-		-- A new block of a climbing kind arrives unclimbed, with no timer (economy v5).
+		-- A new block of a climbing kind arrives unclimbed, on its own name's timer (v5.2).
 		local fresh = L.add(state, "Mythic", 500)
-		H.expect(fresh.ReadyAt == 500 and fresh.Climbed == nil and L.unclimbed(fresh), "unclimbed")
+		H.expect(fresh.Climbed == nil and L.unclimbed(fresh), "unclimbed")
+		H.expect(fresh.ReadyAt == 500 + 43200, "on the Mythic timer")
+		H.expect(L.add(state, "Mythic", 500, nil, nil, true).ReadyAt == 500, "VIP: none")
+		H.expect(L.add(state, "Mythic", 500, nil, true).ReadyAt == 500, "paid: at once")
+		H.expect(L.add(state, "Mystery", 500).ReadyAt == 500, "a Mystery at once")
+		H.expect(L.add(state, "Gift", 500).ReadyAt == 500 + 43200, "the Gift: its wait")
 		local go = L.add(state, "GrandOpening", 500)
 		H.expect(not L.unclimbed(go), "a block that never climbs has nothing ahead")
 		H.expect(not pcall(L.add, state, "Mystery", 500, nil, nil, nil, true), "no climbed Mystery")
@@ -335,40 +340,24 @@ return {
 		H.expect(fast ~= nil and fast.ReadyAt == 0, "VIP: no timer, like every block")
 	end,
 
-	["climb: an unclimbed block becomes its tier's climbed block in place, on the tier's timer"] = function()
+	["only a Mystery needs its upgrade screen; every other block climbs as it opens (v5.2)"] = function()
 		local L = load()
 		local state = L.fresh()
-		L.add(state, "Standard", 100)
 		local mystery = L.add(state, "Mystery", 100)
-		L.add(state, "Rare", 100)
-		H.expect(mystery.ReadyAt == 100, "the Mystery block has no timer")
-		local block = L.climb(state, mystery.Id, "Rare", 200)
-		H.expect(block ~= nil and block.Id == mystery.Id, "same id")
-		H.expect(state.List[2] == block and block.Kind == "Rare", "same place, now Rare")
-		H.expect(block.Climbed == true and block.From == "Mystery", "climbed, from a Mystery")
-		H.expect(block.Luck == nil, "no luck noted without the Grand Opening Luck")
-		H.expect(block.ReadyAt == 200 + L.timer("Rare"), "on the Rare timer from the climb")
-		H.expect(L.opened(state, "Mystery") == 1, "the open is counted for the Mystery block")
-		H.expect(not L.unclimbed(block), "a climbed block never climbs again")
-		H.expect(not pcall(L.climb, state, mystery.Id, "Epic", 300), "a second climb errors")
-		-- A tier block climbs from its own tier; the Lucky 8 from Uncommon (any tier it reaches).
-		local rare = L.add(state, "Rare", 100)
-		H.expect(L.unclimbed(rare), "a new Rare block is unclimbed")
-		local epic = L.climb(state, rare.Id, "Epic", 300, nil, true) :: any
-		H.expect(epic.Kind == "Epic" and epic.From == "Rare" and epic.Luck == true, "Rare to Epic")
-		-- A VIP's: no timer. A paid one: ready at once and still paid.
-		local vip = L.add(state, "Mystery", 100)
-		H.expect((L.climb(state, vip.Id, "Epic", 300, true) :: any).ReadyAt == 300, "VIP")
-		local paid = L.add(state, "Mystery", 100, nil, true)
-		local after = L.climb(state, paid.Id, "Mythic", 400) :: any
-		H.expect(after.ReadyAt == 400 and after.Paid == true, "paid: at once, paid origin")
-		H.expect(L.climb(state, 999, "Rare", 400) == nil, "no such block")
-		local other = L.add(state, "Lucky8", 100)
-		H.expect(not pcall(L.climb, state, other.Id, "Purple", 400), "an unknown tier errors")
-		H.expect(not pcall(L.climb, state, other.Id, "Secret", 400), "the Secret has no block")
+		H.expect(L.needsRoll(mystery) and L.unclimbed(mystery), "a Mystery rolls first")
+		for _, kind in { "Standard", "Rare", "Mythic", "Lucky8", "Sky", "Gift" } do
+			local block = L.add(state, kind, 100)
+			H.expect(not L.needsRoll(block), kind .. ": no screen")
+			H.expect(L.unclimbed(block), kind .. ": its climb is rolled at the open")
+		end
+		local go = L.add(state, "GrandOpening", 100)
+		H.expect(not L.needsRoll(go) and not L.unclimbed(go), "it never climbs")
+		-- A block that climbed on the old climb screen (v5) opens from its tier's row.
+		local old = climbed(L, state, "Epic", 100)
+		H.expect(not L.needsRoll(old) and not L.unclimbed(old), "climbed: its tier's row")
 	end,
 
-	["turn: a Mystery's roll makes it an unclimbed block of that tier, ready to climb"] = function()
+	["turn: a Mystery's roll makes it an unclimbed block of that tier, on that tier's timer"] = function()
 		local L, Config = load()
 		H.expect(Config.LuckyBlocks.Kinds.Mystery.Turns == true and L.turns("Mystery"), "turns")
 		H.expect(not L.turns("Rare") and not L.turns("Lucky8") and not L.turns("Nope"), "only it")
@@ -379,17 +368,19 @@ return {
 		H.expect(block ~= nil and block.Id == mystery.Id, "same id")
 		H.expect(state.List[2] == block and block.Kind == "Rare", "same place, now a Rare block")
 		H.expect(block.Climbed == nil and L.unclimbed(block), "its climb is still ahead")
-		H.expect(block.ReadyAt == 200 and L.isReady(block, 200), "ready at once")
+		H.expect(not L.needsRoll(block), "no second screen: it climbs as it opens")
+		H.expect(block.ReadyAt == 200 and L.isReady(block, 200), "paid: ready at once")
 		H.expect(block.Paid == true and block.Pity == "Epic", "paid origin kept; pity carried")
 		H.expect(L.opened(state, "Mystery") == 1, "the open is counted for the Mystery")
 		H.expect(
 			not pcall(L.turn, state, block.Id, "Epic", 300),
 			"a turned block never turns again"
 		)
-		-- Its climb clears the pity mark (the server counts it then) and counts a Rare open.
-		local done = L.climb(state, block.Id, "Epic", 300) :: any
-		H.expect(done.Pity == nil and done.From == "Rare" and done.Kind == "Epic", "climbed")
-		H.expect(L.opened(state, "Rare") == 1, "the climb counts for the Rare block")
+		-- An unpaid one starts its tier's timer (economy v5.2); a VIP's has none.
+		local plain = L.add(state, "Mystery", 100)
+		H.expect((L.turn(state, plain.Id, "Rare", 200) :: any).ReadyAt == 200 + 300, "5 min")
+		local vip = L.add(state, "Mystery", 100)
+		H.expect((L.turn(state, vip.Id, "Epic", 200, nil, true) :: any).ReadyAt == 200, "VIP")
 		-- Only "Rare" or "Epic" is carried.
 		local other = L.add(state, "Mystery", 100)
 		H.expect((L.turn(state, other.Id, "Legendary", 300, nil) :: any).Pity == nil, "none")
@@ -412,28 +403,38 @@ return {
 		H.expect(table.find(L.Reasons, "Reveal") ~= nil, "Hold's refusal")
 		H.expect(table.find(L.Reasons, "NotMystery") ~= nil, "Reveal's refusal")
 	end,
-	["Open all: the ready climbed Standard and Uncommon blocks, oldest first"] = function()
+	["Open all: the ready Standard and Uncommon blocks, oldest first"] = function()
 		local L, Config = load()
 		local rule = Config.LuckyBlocks.OpenAll
 		H.expect(table.concat(rule.Tiers, " ") == "Standard Uncommon", "Standard and Uncommon")
 		H.expect(rule.Max >= 1 and rule.MinGapSeconds > 0, "a cap and a gap")
 		local state = L.fresh()
-		local std = climbed(L, state, "Standard", 1000) -- no timer
-		local unc = climbed(L, state, "Uncommon", 1000) -- 1 minute
-		local rare = climbed(L, state, "Rare", 0) -- ready, but a Rare: the full show
-		local raw = L.add(state, "Standard", 0) -- unclimbed: it climbs first
-		local held = climbed(L, state, "Standard", 0)
+		local std = L.add(state, "Standard", 1000) -- no timer; it climbs as it opens (v5.2)
+		local unc = L.add(state, "Uncommon", 1000) -- 1 minute
+		local rare = L.add(state, "Rare", 0) -- ready, but a Rare: the full show
+		local mystery = L.add(state, "Mystery", 0) -- it rolls on its screen first
+		local held = L.add(state, "Standard", 0)
+		local old = climbed(L, state, "Standard", 1000) -- climbed on the old climb screen
 		local ids = L.openAllIds(state, 1000, 1)
-		H.expect(table.concat(ids, " ") == ("%d %d"):format(std.Id, held.Id), "the ready ones")
+		H.expect(
+			table.concat(ids, " ") == ("%d %d %d"):format(std.Id, held.Id, old.Id),
+			"the ready ones"
+		)
 		ids = L.openAllIds(state, 1060, 1, { [held.Id] = true })
-		H.expect(table.concat(ids, " ") == ("%d %d"):format(std.Id, unc.Id), "after a minute")
+		H.expect(
+			table.concat(ids, " ") == ("%d %d %d"):format(std.Id, unc.Id, old.Id),
+			"after a minute"
+		)
 		for _, id in ids do
-			H.expect(id ~= rare.Id and id ~= raw.Id, "never a Rare or an unclimbed block")
+			H.expect(id ~= rare.Id and id ~= mystery.Id, "never a Rare or a Mystery")
 		end
+		-- A Standard block a Mystery turned into is one too.
+		local turned = L.turn(state, mystery.Id, "Standard", 1060, "Rare") :: any
+		H.expect(table.find(L.openAllIds(state, 1060, 1), turned.Id) ~= nil, "a turned one")
 		-- At most Max.
 		local many = L.fresh()
 		for _ = 1, rule.Max + 5 do
-			climbed(L, many, "Standard", 0)
+			L.add(many, "Standard", 0)
 		end
 		H.expect(#L.openAllIds(many, 1000, 1) == rule.Max, "at most Max a press")
 		-- The request.

@@ -68,9 +68,13 @@ return {
 		-- Six hours on, the Epic block is ready and offerable too.
 		local later = Trade.offerable(a, true, NOW + 6 * 3600)
 		H.expect(countOf(later, "Climbed:Epic") == 1, "ready now")
-		-- An unclimbed block has no timer (economy v5): ready the moment it lands.
+		-- An unclimbed block waits its own name's timer (economy v5.2), then trades.
 		LuckyBlocks.add(a.LuckyBlocks, "Legendary", NOW)
-		H.expect(countOf(Trade.offerable(a, true, NOW), "Block:Legendary") == 1, "no timer")
+		H.expect(countOf(Trade.offerable(a, true, NOW), "Block:Legendary") == 0, "on its timer")
+		H.expect(
+			countOf(Trade.offerable(a, true, NOW + 6 * 3600), "Block:Legendary") == 1,
+			"ready after 6 hours"
+		)
 	end,
 	["items: cue ids and ready blocks, at most 8 a side"] = function()
 		local Trade = load()

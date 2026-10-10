@@ -49,27 +49,28 @@ One line each; the long form is the 2026-10-08 entry at the top of
 ## Open, waiting on the designer
 
 - **Economy v5.1 "Lively" on `gui-v4`** (approved 2026-10-09 evening; plan section 15): a
-  Mystery turns into a real block (its roll 30 / 25 / 10 / 5%) that then climbs; $19,900 / 9 R$;
-  the 15-minute gift $2,000; pity counts the final cue. Built, 1164 tests, checked in Studio on
-  PC; screenshots for the designer's OK in `~/Desktop/8ball-refs/economy-v5-gui/v5.1`. Open:
-  the designer's OK on those; Mystery1 and Mystery5 at 9 and 39 R$ on Roblox (until then the
-  shop shows Roblox's live 7 / 29); the tutorial session's scripted first Mystery (hand-off
-  line in DECISIONS.md).
-- **The Grand Opening soft launch is on** (2026-10-09, `Deals.GrandOpening.SoftLaunch`): the
-  block sells for money and Robux with no end date, no luck, no launch bonus. Live once the place
-  is published. For the release: set `StartsAt` (or `SoftLaunch = false` to close it).
+  Mystery turns into a real block (its roll 30 / 25 / 10 / 5%) that then climbs; $19,900 / 9 R$
+  (synced on Roblox); the 15-minute gift $2,000; pity counts the final cue. Screenshots for the
+  designer's OK in `~/Desktop/8ball-refs/economy-v5-gui/v5.1`. Open: that OK; the tutorial
+  session's scripted first Mystery (hand-off lines in DECISIONS.md).
+- **Economy v5.2 on `gui-v4`** (designer, 2026-10-09: only the Mystery has upgrade chances):
+  every other block waits its own name's timer and climbs as it opens, the reel showing that
+  climb's odds (a Rare block: Rare 8.2% and Epic 1.8% cards); the odds are unchanged. "Open
+  all" reels any Standard or Uncommon block that climbed to Rare or better. Checked in Studio on
+  PC (a Rare block gave an Epic cue through the reel). Open: phone and gamepad; live servers
+  need "Restart Servers for Updates" after the publish.
+- **The Grand Opening soft launch is on** (2026-10-09, `Deals.GrandOpening.SoftLaunch`): money
+  and Robux, no end date, no luck, no launch bonus. For the release: set `StartsAt`.
 - **Economy v5 and its screens on `gui-v4`** (2026-10-09; `docs/prompts/ECONOMY_V5_PLAN.md`,
   roadmap 7.9). The GUI run (`docs/prompts/ECONOMY_V5_GUI_PROMPT.md`, its Notes say what each
   step built) updated every screen and checked each on PC; screenshots for review in
-  `~/Desktop/8ball-refs/economy-v5-gui/step2` .. `step13`. Still open, in order: the phone
-  emulator and gamepad checks with the designer (step 13); the merge with `tutorial-v2` once
-  the tutorial is done (step 12; the trial merge still shows only the 5 known conflicts); then
-  the release (step 15): the place saved and published, the Grand Opening's `StartsAt` (it
-  also starts the luck and the launch bonus), Mystery5 and the other random-item products Not
-  Listed, `tools/roblox_products.py --sync` (the Starter Pack is still 19 R$ on Roblox, Config
-  29; pack texts; Lucky1 and Lucky3 off sale). In Studio this account sees every Robux price at
-  about 0.8 times (regional pricing, it seems); the shop shows the live price. Lucky Shot,
-  Golden Shot, Lucky Rain and the stay bonus are planned only. Backup: `before-economy-v5`.
+  `~/Desktop/8ball-refs/economy-v5-gui/step2` .. `step13`. Still open, in order: phone and
+  gamepad checks with the designer (step 13); the merge with `tutorial-v2` once it is done
+  (step 12; 5 known conflicts); the release (step 15): place saved and published, the Grand
+  Opening's `StartsAt` (also starts the luck and launch bonus), random-item products Not Listed,
+  `tools/roblox_products.py --sync` (Starter Pack 19 R$ on Roblox, Config 29; Lucky1 and Lucky3
+  off sale). This account sees Robux prices at about 0.8x (regional pricing). Lucky Shot, Golden
+  Shot, Lucky Rain and the stay bonus are planned only. Backup: `before-economy-v5`.
 - **The GUI hand-off after economy v4** (2026-10-08, branch `gui-v4`; the designer's picks on
   https://claude.ai/artifact/Q79pcvwxeos8AB7o8357Lw, prompts and pictures in
   `~/Desktop/8ball-refs/gui-mocks-v4`): its screens are done and checked in Studio on PC (the
@@ -88,9 +89,7 @@ One line each; the long form is the 2026-10-08 entry at the top of
   **Decision still open:** whether the VIP cue pays finder's money on the first join.
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.
-- **The place file:** save `place/8ball.rbxl` and publish once this milestone is done (lucky
-  block templates and models, Unique cue templates, the renamed Firework Cue instances,
-  `ReplicatedStorage.AbilityLooks.SteelBall`).
+- **The place file:** save `place/8ball.rbxl` and publish once this milestone is done.
 
 ## Not yet checked (the Studio tools cannot do these)
 

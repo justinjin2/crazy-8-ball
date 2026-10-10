@@ -900,22 +900,24 @@ approves the v5 proposal (ECONOMY.md section 11).
 - **Every block climbs** (economy v5, designer 2026-10-09): **a block's name is its floor** (a
   Rare block always gives Rare or better), and every block climbs from it, one step at a time,
   on **one ladder: Standard to Uncommon 50%, to Rare 35%, to Epic 18%, to Legendary 10%, to
-  Mythic 15%, to the Secret 2.5%**. The tier it ends on is the cue's rarity; the reel only picks
-  which cue of it. The Sky block starts at Standard, Lucky 8 and the Gift at Uncommon, each
+  Mythic 15%, to the Secret 2.5%**. The tier it ends on is the cue's rarity. The climb is
+  rolled when the block opens and **the reel shows it** (v5.2, designer 2026-10-09: only the
+  Mystery has upgrade chances): a Rare block's reel mixes Rare cards (82%) with Epic (16.2%)
+  and rarer ones, at their real odds. The Sky block starts at Standard, Lucky 8 and the Gift at Uncommon, each
   tier block at its own tier; the Grand Opening and Starter blocks keep their own odds and never
   climb. **The Mystery turns into a real block first** (v5.1 "Lively", designer 2026-10-09):
   its roll steps up 30 / 25 / 10 / 5% (Standard 70%, Uncommon 22.5%, Rare 6.75%, Epic 0.7125%,
   Legendary 0.0375%), and that block, the same as the restock's, then climbs from its name, so
   even a Standard can reach the Secret. Both steps together: Epic or better 1 in 18, Legendary
   or better 1 in 169, Mythic or better 1 in 1,125, the Secret 1 in 45,007. ECONOMY.md 7.2, 7.4.
-- **The climb screen** (like Star Drop, our own look): a new block arrives **unclimbed**, with no
-  timer; its slot says **OPEN!** and a tap opens the climb screen, **4 presses** (designer,
+- **The upgrade screen is the Mystery's only** (like Star Drop, our own look; v5.2, designer
+  2026-10-09): a Mystery's slot says **OPEN!** and a tap opens **4 presses** (designer,
   2026-10-09): the first shows its start, each of the other 3 lifts it one tier or not, never
-  down. The server rolls the final tier first (with the luck), so the shown odds are the real
-  odds and nothing fizzles. The block then jumps back into its slot as that tier's **climbed**
-  block, on that tier's timer, and opens with the reel. A Secret climb gives the Secret cue at
-  once (there is no Secret block). A Mystery's screen is its roll: the same 4 presses end on the
-  block it turns into, which jumps back unclimbed (OPEN!). ECONOMY.md section 7.1.
+  down. The server rolls first, so the shown odds are the real odds and nothing fizzles. The
+  presses end on the block it turns into, which jumps back into its slot on that block's timer
+  and opens like any other. Every other block is held, thrown and opened as always, straight
+  into the reel. A climb to the Secret gives the Secret cue (there is no Secret block).
+  ECONOMY.md section 7.1.
 - **The Grand Opening Luck** (designer, 2026-10-09): for 30 days from the Grand Opening's start,
   Rare to Epic is 27% and Epic to Legendary 15%, free for everyone, dated, with a countdown; a
   clover next to the money and VIP bars shows it. ECONOMY.md section 7.3.
@@ -923,11 +925,12 @@ approves the v5 proposal (ECONOMY.md section 11).
   the 40th without an Epic-or-better; a due Mystery turns into a Rare (or Epic) block, which can
   still climb (v5.1: pity counts the cue it finally gives); a new save's bars start at 2/10 and
   10/40. ECONOMY.md section 7.4.
-- **Timers belong to the climbed block**: Standard at once, Uncommon 1 min, Rare 5 min, Epic
-  30 min, Legendary 6 h, Mythic 12 h, all running at once (the Gift waits 12 h before its
-  climb); VIP has no timers at all (designer, 2026-10-07); a bought block opens at once. A
-  Common or Uncommon result gets a quick reveal, and **"Open all"** opens every ready climbed
-  Standard and Uncommon block at once (designer, 2026-10-09). ECONOMY.md section 7.6.
+- **Every block waits its own name's timer** (v5.2): Standard at once, Uncommon 1 min, Rare 5
+  min, Epic 30 min, Legendary 6 h, Mythic 12 h, all running at once (the Gift waits 12 h);
+  VIP has no timers at all (designer, 2026-10-07); a bought block opens at once. A Common or
+  Uncommon result gets a quick reveal, and **"Open all"** opens every ready Standard and
+  Uncommon block at once, then reels any that climbed to Rare or better (designer,
+  2026-10-09). ECONOMY.md section 7.6.
 - **Announcements**: Mythic and Secret pulls are announced in every server, Legendary pulls in
   the server only ("X unboxed a Legendary Cue!"), each with the **"1 in N"** of that exact cue
   from the block it started as (v5). The every-server line (designer, 2026-10-05) reads
@@ -1179,8 +1182,8 @@ step in the save (`Flags.Tutorial`) and owns every rigged part; the client only 
   Uncommon cue (forced) -> **Equip**: Inventory appears and the hand leads to it, the new cue's
   card and Equip ("Equip your new cue!"; closing the Inventory without equipping moves on;
   designer 2026-10-03) -> **RareBlock**: the hand rests on the match's Rare block in its hotbar
-  slot, counting down its 5-minute timer (a tap reports it seen; since economy v5 it arrives
-  unclimbed with no timer and climbs when tapped, and the tutorial session reworks this step) -> **Abilities**: the icon appears,
+  slot, counting down its 5-minute timer (a tap reports it seen; economy v5.2 brought its timer
+  back, and the tutorial session reworks this step) -> **Abilities**: the icon appears,
   the hand on it -> **Spin**: the one starter spin lands on Fire Shot (Magnet until 2026-10-08)
   -> **Code**: "Type RELEASE
   for 3 more spins!" -> **Back**: "Click Back".

@@ -7,11 +7,12 @@
 -- - BlockRequest (a RemoteFunction): Hold puts a copy of the block in the character's hands
 --   (welded to the upper torso, so everyone sees it); Throw (sent at the throw animation's
 --   release) moves it to the floor in front, in Workspace[Config.LuckyBlocks.LiveFolder], one
---   or more per player; Open (after the owner's native prompt hold) rolls the cue from the
---   block's odds row with server RNG, opens it through PlayerData.openLuckyBlock and starts
---   the rise; Reveal is the climb (economy v5: every unclimbed block climbs on the climb
---   screen first, PlayerData.climbBlock; Hold and Throw refuse it with "Reveal"); Move
---   reorders the hotbar and bag. Every answer is { ok = true, ... } or { ok = false, reason }.
+--   or more per player; Open (after the owner's native prompt hold) rolls the block's climb
+--   (economy v5.2: an unclimbed block climbs as it opens, the reel shows it) and the cue with
+--   server RNG, opens it through PlayerData.openLuckyBlock and starts the rise; Reveal is the
+--   Mystery's upgrade screen (its roll turns it into a block, PlayerData.climbBlock; Hold and
+--   Throw refuse a Mystery with "Reveal"); Move reorders the hotbar and bag. Every answer is
+--   { ok = true, ... } or { ok = false, reason }.
 -- - A thrown block's model carries attributes every client animates from (LuckyWorld): Owner
 --   (UserId), BlockId, Kind, Phase ("Flying", "Landed", "Rising", "Burst") and PhaseAt (server
 --   time), plus To (its landing CFrame). The server moves it to To when the flight ends.
@@ -71,12 +72,11 @@ local rolls = Random.new()
 -- Standard block lands on an Uncommon cue) and a call once a block is opened. Nil: none.
 local openForce: ((Player, string) -> string?)? = nil
 local onOpened: ((Player, string, string) -> ())? = nil
--- The tutorial lane: true keeps a block from climbing (game 1's block stays at its tier,
--- ready at once, economy v5). Nil: every block climbs.
+-- The tutorial lane: true keeps a block from climbing as it opens (game 1's block stays at
+-- its tier, economy v5). Nil: every block climbs.
 local climbStay: ((Player, string) -> boolean)? = nil
--- The tutorial lane: the final tier a climb ends on (the scripted first Mystery block climbs
--- Standard to Uncommon and lands ready at once; designer, 2026-10-09). Nil (or a nil answer):
--- a normal roll.
+-- The tutorial lane: the final tier a climb ends on (or the block a Mystery turns into, ready
+-- at once; designer, 2026-10-09). Nil (or a nil answer): a normal roll.
 local climbScript: ((Player, string) -> string?)? = nil
 -- Studio only (ServerStorage.LuckyBlockQA "script"): every climb ends on this tier, before the
 -- tutorial's hook. Nil: none.
@@ -277,14 +277,8 @@ end
 
 local HANDLERS: { [string]: (Player, LuckyBlocks.Request, any) -> Reply } = {}
 
--- The Secret climbed to (economy v5 plan 2.7): counted, announced with its "1 in N", and the
--- tester's refill. `result` is PlayerData.climbBlock's answer.
-local function climbedSecret(player: Player, result: any)
-	Counters.add(result.cue, 1)
-	Announce.unbox(player, result.cue, { from = result.from, luck = result.luck })
-	if onOpened then
-		task.spawn(onOpened, player, result.from, result.cue)
-	end
+local function roll(n: number): number
+	return rolls:NextInteger(1, n)
 end
 
 -- The tutorial's say on a climb of a `kind` block (setOpenHooks): (stay, the scripted tier).
@@ -292,6 +286,24 @@ local function climbHooks(player: Player, kind: string): (boolean, string?)
 	local stay = if climbStay then climbStay(player, kind) == true else false
 	local forced = qaScript or if climbScript then climbScript(player, kind) else nil
 	return stay, if type(forced) == "string" then forced else nil
+end
+
+-- The open's plan for block `block` (PlayerData.planLuckyOpen), an unclimbed block's climb
+-- with the tutorial's hooks.
+local function planOpen(player: Player, block: LuckyBlocks.Block): (any, string?)
+	local stay, forced = false, nil
+	if LuckyBlocks.unclimbed(block) then
+		stay, forced = climbHooks(player, block.Kind)
+	end
+	return PlayerData.planLuckyOpen(player, block.Id, roll, Counters.limitedSold, stay, forced)
+end
+
+-- The "1 in N" of an opened block (plan 3.9): from the kind it started as, with the odds live
+-- at its climb (this open's, or the old climb screen's for a climbed block; a kind that never
+-- climbs: its own row).
+local function announceOpen(player: Player, block: LuckyBlocks.Block, plan: any, cueId: string)
+	local luck = if plan.start ~= nil then plan.luck == true else block.Luck == true
+	Announce.unbox(player, cueId, { from = block.From or block.Kind, luck = luck })
 end
 
 function HANDLERS.Hold(player: Player, r: LuckyBlocks.Request, data: any): Reply
@@ -303,8 +315,8 @@ function HANDLERS.Hold(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local block = LuckyBlocks.find(data.LuckyBlocks, id)
 	if block == nil then
 		return refuse("NotOwned")
-	elseif LuckyBlocks.unclimbed(block) then
-		return refuse("Reveal") -- an unclimbed block climbs on its climb screen first (Reveal)
+	elseif LuckyBlocks.needsRoll(block) then
+		return refuse("Reveal") -- a Mystery rolls on its upgrade screen first (Reveal)
 	end
 	local l = live[player]
 	if l and l[id] then
@@ -423,8 +435,8 @@ function HANDLERS.Throw(player: Player, r: LuckyBlocks.Request, data: any): Repl
 	if block == nil then
 		return refuse("NotOwned")
 	end
-	if LuckyBlocks.unclimbed(block) then
-		return refuse("Reveal") -- it climbs on its climb screen first
+	if LuckyBlocks.needsRoll(block) then
+		return refuse("Reveal") -- a Mystery rolls on its upgrade screen first
 	end
 	-- A block still on its timer stays in the hands (the designer, 2026-10-09: no placing it
 	-- until it is ready; the client offers the skip). The real timer for everyone: the
@@ -489,18 +501,14 @@ function HANDLERS.Throw(player: Player, r: LuckyBlocks.Request, data: any): Repl
 	return { ok = true }
 end
 
-local function roll(n: number): number
-	return rolls:NextInteger(1, n)
-end
-
 --- The tutorial lane's hooks on Open: `force(player, kind)` names the cue the block gives
---- (only one its odds row can drop; anything else is ignored), `opened(player, kind, cueId)`
---- runs after an open (`kind`: the block it started as, before its climb), `stay(player,
---- kind)` true keeps an unclimbed block from climbing (it stays at its tier, ready at once),
---- and `script(player, kind)` names the tier an unclimbed `kind` block's climb ends on (nil: a
---- normal roll): the climb screen shows the presses up to it, a Mystery block still counts
---- pity, and the climbed block lands ready at once (a tier below the block's start is
---- ignored). `stay` wins over `script`. Every hook is optional; leave one out for none.
+--- (only one the climb's final tier's row can drop; anything else is ignored),
+--- `opened(player, kind, cueId)` runs after an open (`kind`: the block it started as, before
+--- its climb), `stay(player, kind)` true keeps an unclimbed block from climbing as it opens
+--- (its cue is of its own tier), and `script(player, kind)` names the tier an unclimbed `kind`
+--- block's climb ends on (nil: a normal roll; a tier below the block's start is ignored), or
+--- the block a Mystery turns into on its upgrade screen (pity still counted, ready at once).
+--- `stay` wins over `script`. Every hook is optional; leave one out for none.
 function LuckyBlockService.setOpenHooks(
 	force: ((Player, string) -> string?)?,
 	opened: ((Player, string, string) -> ())?,
@@ -534,8 +542,10 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		dropLive(player, id)
 		return refuse("NotOwned")
 	end
-	-- Copies of a capped Unique cue found so far (the Grand Opening's: Config.BlockOdds caps).
-	local plan, why = PlayerData.planLuckyOpen(player, id, roll, Counters.limitedSold)
+	-- An unclimbed block climbs now (economy v5.2). Copies of a capped Unique cue found so far
+	-- (the Grand Opening's: Config.BlockOdds caps) close its row.
+	local carried = block.Pity ~= nil -- a block a Mystery turned into, with pity to settle
+	local plan, why = planOpen(player, block)
 	if plan == nil then
 		return refuse(
 			if why == "NotReady"
@@ -601,9 +611,10 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	end
 	local cue = Catalog.get(plan.cueId) :: Catalog.Cue
 	Counters.add(cue.Id, 1)
-	-- The "1 in N" (plan 3.9): from the block it started as, with the odds live at its climb
-	-- (a kind that never climbs: its own row).
-	Announce.unbox(player, cue.Id, { from = block.From or block.Kind, luck = block.Luck == true })
+	announceOpen(player, block, plan, cue.Id)
+	if carried then
+		Store.refresh(player) -- the shop card's pity bars (ShopState) moved
+	end
 	if onOpened then
 		task.spawn(onOpened, player, block.From or block.Kind, cue.Id)
 	end
@@ -634,8 +645,10 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		cue = cue.Id,
 		rarity = cue.Rarity,
 		kind = block.Kind,
-		tier = plan.tier, -- the Mystery block's tier roll
+		tier = plan.tier, -- the climb's final tier (or a climbed block's)
 		oddsId = plan.oddsId,
+		start = plan.start, -- the climb rolled at this open: the reel shows its odds (v5.2)
+		luck = plan.luck, -- the Grand Opening Luck ran at that climb
 		copy = copy, -- a Unique cue's copy number
 		forced = plan.forced, -- the Guarantee gave it
 		new = opened.new,
@@ -645,11 +658,12 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	}
 end
 
--- "Open all" (economy v5 plan 3.8): every ready climbed Standard and Uncommon block in the
--- hotbar and bag opens at once (LuckyBlocks.openAllIds: not the one in the hands, not a thrown
--- one), each as an Open would (the save, the copies, the tutorial's hooks), with no world
--- show. One press per Config.LuckyBlocks.OpenAll.MinGapSeconds. The answer: { opened = { {
--- id, cue, rarity, kind, new, found, count } } } in the order opened, or "NoneReady".
+-- "Open all" (economy v5 plan 3.8): every ready Standard and Uncommon block in the hotbar and
+-- bag opens at once (LuckyBlocks.openAllIds: not the one in the hands, not a thrown one), each
+-- as an Open would (its climb, the save, the tutorial's hooks), with no world show. One press
+-- per Config.LuckyBlocks.OpenAll.MinGapSeconds. The answer: { opened = { { id, cue, rarity,
+-- kind, tier, oddsId, start, luck, new, found, count } } } in the order opened (the client
+-- reels the ones from Rare up), or "NoneReady".
 function HANDLERS.OpenAll(player: Player, _r: LuckyBlocks.Request, data: any): Reply
 	local clock = os.clock()
 	local last = lastOpenAll[player]
@@ -671,30 +685,27 @@ function HANDLERS.OpenAll(player: Player, _r: LuckyBlocks.Request, data: any): R
 	end
 	lastOpenAll[player] = clock
 	local opened = {}
+	local carried = false
 	for _, id in ids do
-		local plan = PlayerData.planLuckyOpen(player, id, roll, Counters.limitedSold)
-		-- The Standard and Uncommon rows hold no Unique cue; a plan that wants a copy number
+		local before = PlayerData.read(player)
+		local block = if before then LuckyBlocks.find(before.LuckyBlocks, id) else nil
+		local plan = if block then planOpen(player, block) else nil
+		-- The Standard and Uncommon climbs hold no Unique cue; a plan that wants a copy number
 		-- is left for a normal open.
-		if plan ~= nil and not plan.unique then
-			local before = PlayerData.read(player)
-			local block = if before then LuckyBlocks.find(before.LuckyBlocks, id) else nil
-			local forcedCue = if openForce
-					and block
-					and not plan.forced
+		if block and plan ~= nil and not plan.unique then
+			local pity = block.Pity ~= nil
+			local forcedCue = if openForce and not plan.forced
 				then openForce(player, block.Kind)
 				else nil
 			if forcedCue ~= nil and BlockOdds.canDrop(plan.oddsId, forcedCue) then
 				plan.cueId = forcedCue
 			end
 			local ok, result = PlayerData.openLuckyBlock(player, id, plan, nil)
-			if ok and block then
+			if ok then
 				local cue = Catalog.get(plan.cueId) :: Catalog.Cue
 				Counters.add(cue.Id, 1)
-				Announce.unbox(
-					player,
-					cue.Id,
-					{ from = block.From or block.Kind, luck = block.Luck == true }
-				)
+				announceOpen(player, block, plan, cue.Id)
+				carried = carried or pity
 				if onOpened then
 					task.spawn(onOpened, player, block.From or block.Kind, cue.Id)
 				end
@@ -703,6 +714,10 @@ function HANDLERS.OpenAll(player: Player, _r: LuckyBlocks.Request, data: any): R
 					cue = cue.Id,
 					rarity = cue.Rarity,
 					kind = block.Kind,
+					tier = plan.tier,
+					oddsId = plan.oddsId,
+					start = plan.start,
+					luck = plan.luck,
 					new = result.new,
 					found = result.found,
 					count = result.count,
@@ -710,21 +725,20 @@ function HANDLERS.OpenAll(player: Player, _r: LuckyBlocks.Request, data: any): R
 			end
 		end
 	end
+	if carried then
+		Store.refresh(player) -- the shop card's pity bars (ShopState) moved
+	end
 	if #opened == 0 then
 		return refuse("Error")
 	end
 	return { ok = true, opened = opened }
 end
 
--- The climb (economy v5 plan 3.5; the Mystery block's upgrade screen since 2026-10-07): the
--- server rolls the final tier and the path of its presses and turns the block into that tier's
--- climbed block at once (PlayerData.climbBlock), so leaving mid-screen loses nothing; the
--- client only plays the path. Every unclimbed block climbs this way (the climb screen,
--- MysteryReveal); the tutorial's stay and script hooks apply. A Mystery's roll turns it into an
--- unclimbed block instead (economy v5.1): `turned`, its `kind` the block it became. The
--- answer: { id, path, kind, readyAt, turned, pity, from, luck }, and for a Secret climb
--- { secret = true, cue, rarity, new, found, count } (no block: no kind, no readyAt). `path` is
--- one tier per press, the Secret on top of the ladder.
+-- The Mystery's upgrade screen (economy v5.1; since v5.2 the only one, MysteryReveal): the
+-- server rolls the block it turns into and the path of its presses and turns it into that
+-- unclimbed block at once (PlayerData.climbBlock), so leaving mid-screen loses nothing; the
+-- client only plays the path. The tutorial's stay and script hooks apply. The answer: { id,
+-- path, kind, readyAt, turned, pity, from, luck }; `path` is one tier per press.
 function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local id = r.id :: number
 	local h = held[player]
@@ -737,10 +751,8 @@ function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, data: any): Rep
 	end
 	local block = LuckyBlocks.find(data.LuckyBlocks, id)
 	local stay, forced = false, nil
-	local carried = false -- a block a Mystery turned into, with pity counters to settle
 	if block then
 		stay, forced = climbHooks(player, block.Kind)
-		carried = block.Pity ~= nil
 	end
 	local ok, result = PlayerData.climbBlock(player, id, stay, forced)
 	if not ok then
@@ -753,12 +765,7 @@ function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, data: any): Rep
 				else "Error"
 		)
 	end
-	if result.secret then
-		climbedSecret(player, result)
-	end
-	if result.turned or carried then
-		Store.refresh(player) -- the shop card's pity bars (ShopState) moved
-	end
+	Store.refresh(player) -- the shop card's pity bars (ShopState) moved
 	if L.Test.Refill and isTester(player) then
 		PlayerData.giveLuckyBlocks(player, result.from, 1)
 	end
@@ -772,12 +779,6 @@ function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, data: any): Rep
 		pity = result.pity, -- { rare, epic }: Mystery blocks to each pity, as before this one
 		from = result.from,
 		luck = result.luck,
-		secret = result.secret,
-		cue = result.cue,
-		rarity = result.rarity,
-		new = result.new,
-		found = result.found,
-		count = result.count,
 	}
 end
 

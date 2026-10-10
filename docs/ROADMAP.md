@@ -471,7 +471,10 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   Progress 2026-10-09 evening (v5.1 "Lively", plan section 15): a Mystery turns into a real
   block (its roll 30 / 25 / 10 / 5%) that then climbs; the Mystery at $19,900 (5 for $89,900)
   and 9 R$ (5 for 39 R$); the 15-minute gift $2,000; pity on the final cue; the model, Config,
-  tests (1164) and docs; checked in Studio on PC. Still to do: the phone and gamepad checks with
+  tests (1164) and docs; checked in Studio on PC. Progress 2026-10-09 night (v5.2, designer):
+  only the Mystery keeps the upgrade screen; every other block waits its own name's timer and
+  climbs as it opens, shown by the reel at the same odds; checked in Studio on PC. Still to do:
+  the phone and gamepad checks with
   the designer, the merge with `tutorial-v2` (when the tutorial is done; it needs the hand-off
   in DECISIONS.md), the place saved and published, the release clicks.
 

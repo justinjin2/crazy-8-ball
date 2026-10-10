@@ -5,7 +5,8 @@
 -- onto the prize the server already chose.
 --
 -- - The strip is drawn from the block's odds row at its real odds (BlockOdds.cueOdds, with its
---   Unique rows), but for one showcase card (economy v4 plan section 4): a cue from Epic up out
+--   Unique rows; a climb rolled at the open, economy v5.2: every cue the climb can give at its
+--   chance, BlockDrop.cueGroups), but for one showcase card (economy v4 plan section 4): a cue from Epic up out
 --   of the same pool whose chance chip reads "1 in 1,000,000", in the strip's first two-thirds
 --   and never within 8 cards of the stop (ReelMath; Reel.Showcase turns it off). It is purely
 --   visual (a client Random): the prize is put at a fixed late slot (Reel.PrizeSlot) once the
@@ -36,6 +37,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local ReelMath = require(Shared:WaitForChild("ReelMath"))
 local ProgressionRules = Shared:WaitForChild("Progression")
 local BlockOdds = require(ProgressionRules:WaitForChild("BlockOdds"))
+local BlockDrop = require(ProgressionRules:WaitForChild("BlockDrop"))
 local Catalog = require(ProgressionRules:WaitForChild("Catalog"))
 local Format = require(ProgressionRules:WaitForChild("Format"))
 local ReelFx = require(script.Parent.ReelFx)
@@ -81,10 +83,31 @@ local function centreOf(slot: number): number
 	return (slot - 1) * pitch() + R.CardWidthPx / 2
 end
 
+-- A climb rolled at the open (economy v5.2): its start and whether the Grand Opening Luck ran.
+export type Climb = { start: string, luck: boolean? }
+
 -- The odds row's cues (its Unique rows too, less the player's closed ones) with their draw
--- weights: their real odds.
-local function pool(oddsId: string, closed: BlockOdds.Closed?): ({ ReelMath.Cue }, number)
-	local odds = BlockOdds.cueOdds(oddsId, closed, true)
+-- weights: their real odds. With `climb`: every cue that climb can give, at its chance.
+local function pool(
+	oddsId: string,
+	closed: BlockOdds.Closed?,
+	climb: Climb?
+): ({ ReelMath.Cue }, number)
+	local odds: { BlockOdds.CueOdds } = {}
+	if climb then
+		for _, group in BlockDrop.cueGroups(nil, { start = climb.start, luck = climb.luck }) do
+			for _, id in group.cues do
+				table.insert(odds, {
+					id = id,
+					rarity = group.rarity,
+					percent = group.each,
+					display = BlockOdds.percentText(group.each),
+				})
+			end
+		end
+	else
+		odds = BlockOdds.cueOdds(oddsId, closed, true)
+	end
 	if #odds == 0 then
 		odds = BlockOdds.cueOdds("Standard")
 	end
@@ -247,11 +270,12 @@ end
 --- Build the reel for the odds row `oddsId` (Config.BlockOdds.List) in `parent` (a stage), its
 --- strip drawn at random from that pool. Size it with layout(width); put the prize in with
 --- setPrize, then start(). `opts.look` "Dark" is the lucky blocks' look (see the top);
---- `opts.closed`: the player's closed Unique rows (BlockOdds.closedFor), left off the strip.
+--- `opts.closed`: the player's closed Unique rows (BlockOdds.closedFor), left off the strip;
+--- `opts.climb`: a climb rolled at the open, whose odds the strip shows instead of the row's.
 function Reel.new(
 	parent: Instance,
 	oddsId: string,
-	opts: { look: string?, closed: BlockOdds.Closed? }?
+	opts: { look: string?, closed: BlockOdds.Closed?, climb: Climb? }?
 ): any
 	local self: any = setmetatable({}, Reel)
 	local dark = opts ~= nil and opts.look == "Dark"
@@ -320,7 +344,8 @@ function Reel.new(
 	strip.ZIndex = 1
 	self.strip = strip
 
-	local cues, total = pool(oddsId, if opts then opts.closed else nil)
+	local cues, total =
+		pool(oddsId, if opts then opts.closed else nil, if opts then opts.climb else nil)
 	local function rng(n: number): number
 		return self.random:NextInteger(1, n)
 	end

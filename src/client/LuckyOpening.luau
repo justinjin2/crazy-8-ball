@@ -203,15 +203,17 @@ local function begin(self: any, onClosed: (() -> ())?)
 end
 
 --- Play a block's opening: `kind` (its name over the reel) and the server's Open answer
---- ({ cue, rarity, oddsId }; `oddsId` is the odds row the reel shows: the Mystery block's
---- rolled tier's). `onClosed` runs once it is gone.
+--- ({ cue, rarity, oddsId }; `oddsId` is the odds row the reel shows; `climb`, a climb rolled
+--- at the open (economy v5.2): the reel shows that climb's odds instead). `onClosed` runs once
+--- it is gone.
 function Opening.play(
 	self: any,
 	kind: string,
 	cueId: string,
 	rarity: string,
 	onClosed: (() -> ())?,
-	oddsId: string?
+	oddsId: string?,
+	climb: BlockReel.Climb?
 )
 	if self.open then
 		self:close()
@@ -245,7 +247,7 @@ function Opening.play(
 	self.phase = "Lead"
 	task.delay(Config.UI.Blur.ReelLeadSeconds, function()
 		if self.open and self.playId == playId then
-			self:startReel(kind, cueId, rarity, reelOdds)
+			self:startReel(kind, cueId, rarity, reelOdds, climb)
 		end
 	end)
 end
@@ -425,7 +427,14 @@ local function closedFor(oddsId: string): { [string]: boolean }
 end
 
 -- The reel itself, once the blur has a head start (play).
-function Opening.startReel(self: any, kind: string, cueId: string, rarity: string, reelOdds: string)
+function Opening.startReel(
+	self: any,
+	kind: string,
+	cueId: string,
+	rarity: string,
+	reelOdds: string,
+	climb: BlockReel.Climb?
+)
 	local stage = ReelFx.stage(self.area, "Stage")
 	self.stage = stage
 	local title = HudParts.text(stage.frame, "Title", CO.TitlePx, NAMES[kind] or kind)
@@ -439,8 +448,11 @@ function Opening.startReel(self: any, kind: string, cueId: string, rarity: strin
 	hint.ZIndex = 4
 	self.hint = hint
 
-	local reel =
-		BlockReel.new(stage.frame, reelOdds, { look = "Dark", closed = closedFor(reelOdds) })
+	local reel = BlockReel.new(
+		stage.frame,
+		reelOdds,
+		{ look = "Dark", closed = closedFor(reelOdds), climb = climb }
+	)
 	reel:setPrize(cueId, rarity)
 	self.reel = reel
 	self.cueId, self.rarity = cueId, rarity

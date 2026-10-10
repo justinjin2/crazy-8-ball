@@ -1231,9 +1231,11 @@ The approved mockup: https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T. `StreakH
 Built in their screens' style on the designer's "use your judgment"; screenshots in
 `~/Desktop/8ball-refs/economy-v5-gui/`. Sizes in Config, words in Strings.
 
-- **The climb mark** (`LuckyBlocks.UI.ClimbMark`): an unclimbed block's hotbar and bag slot
-  wears an ink disc with a white ring and a gold up-arrow at its top right; its slot says
-  OPEN!. A tap opens the climb screen from the block's own tier.
+- **The climb mark** (`LuckyBlocks.UI.ClimbMark`): a Mystery's hotbar and bag slot wears an
+  ink disc with a white ring and a gold up-arrow at its top right; its slot says OPEN!. A tap
+  opens its upgrade screen. Since economy v5.2 no other block has the mark, OPEN! or the
+  screen: a Rare block is held, thrown and opened into a reel at its climb's odds (Rare and
+  Epic cards and rarer, each chip its real chance).
 - **The Secret rung** (section 25's ladder): the Mythic block darkened (`Reveal.Secret.Tint`)
   with a red "?"; a Secret climb slams SECRET! in red, then the pull cutscene and YOU GOT.
 - **The quick reveal** (`LuckyOpening.quick`): a Common or Uncommon cue skips the reel; the

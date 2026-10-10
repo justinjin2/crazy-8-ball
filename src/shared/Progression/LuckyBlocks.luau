@@ -4,12 +4,13 @@
 -- (the first Config.LuckyBlocks.HotbarSlots are the hotbar's slots 1..9, the rest wait in the
 -- bag), each { Id, Kind, ReadyAt, Paid?, Climbed?, From?, Luck?, Pity? }; Next is the last id
 -- given, so ids never repeat in a save. Economy v5 (2026-10-09): a block of a climbing kind
--- arrives unclimbed (no timer but the Gift's Wait) and its climb (`climb`, rolled by
--- BlockDrop.climbRoll) makes it the climbed block of the tier it reached, on that tier's timer;
--- a climbed block's cue is rolled from its tier's row (exactly that rarity). From: the kind it
--- started as; Luck: the Grand Opening Luck ran at its climb (both for the "1 in N"). Economy
--- v5.1: a Mystery's roll (`turn`) makes it an unclimbed block of the tier reached, the same as
--- any other; Pity: the pity counters still waiting on that block's climb.
+-- arrives unclimbed, on its own name's timer (the Gift: its Wait first), and its climb is
+-- rolled when it is opened (BlockDrop.climbFor, PlayerData.planLuckyOpen): the tier it reaches
+-- is the cue's rarity, and the reel shows it (economy v5.2, designer 2026-10-09: no climb
+-- screen but the Mystery's). Economy v5.1: a Mystery's roll (`turn`, its upgrade screen) makes
+-- it an unclimbed block of the tier reached, the same as any other; Pity: the pity counters
+-- still waiting on that block's climb. Climbed / From / Luck: a block that climbed on the old
+-- climb screen (v5, before v5.2), which opens from its tier's row (exactly that rarity).
 --
 -- Pure: no Instances, no Roblox APIs, no clocks (the caller passes `now`, unix seconds) and no
 -- randomness; Lune-tested (tests/luckyblocks_test.luau). PlayerData calls the changes on the live
@@ -27,7 +28,7 @@ export type Kind = {
 	Turns: boolean?, -- the Mystery (v5.1): its screen turns it into a block (BlockDrop.turnRoll)
 	Pity: boolean?, -- the Mystery block: its roll uses the pity counters
 	Timer: number,
-	Wait: number?, -- seconds an unclimbed block waits before it can climb (the Gift)
+	Wait: number?, -- seconds a new block waits before its timer starts (the Gift)
 	Model: string,
 	Idle: string?,
 	Icon: string?, -- its 2D picture for GUIs (BlockIcon, the hotbar); nil: a 3D model view
@@ -46,9 +47,9 @@ export type Block = {
 	Kind: string,
 	ReadyAt: number,
 	Paid: boolean?,
-	Climbed: boolean?, -- it climbed (a block tier's climbed block); nil: unclimbed
+	Climbed: boolean?, -- it climbed on the old climb screen (v5); nil: unclimbed
 	From: string?, -- the kind it started as (a climbed block)
-	Luck: boolean?, -- the Grand Opening Luck ran at its climb
+	Luck: boolean?, -- the Grand Opening Luck ran at its climb (a climbed block)
 	-- A block a Mystery turned into (unclimbed): the pity counters still waiting on its climb,
 	-- "Rare" (both) or "Epic" (the Epic one; BlockDrop.countClimb). nil: none.
 	Pity: string?,
@@ -95,7 +96,7 @@ LuckyBlocks.Reasons = table.freeze({
 	"NotLanded", -- Open: it is still flying
 	"Reveal", -- Hold: a Mystery block is opened on its upgrade screen, never held
 	"NotMystery", -- Reveal: that block has no climb or roll ahead (climbed, or a kind that never climbs)
-	"Climb", -- Open: an unclimbed block climbs first (economy v5)
+	"Climb", -- Open: a Mystery rolls on its upgrade screen first (economy v5.1)
 	"NoneReady", -- OpenAll: no ready climbed Standard or Uncommon block (economy v5)
 	"Error", -- anything else (logged on the server)
 })
@@ -129,8 +130,7 @@ function LuckyBlocks.fresh(): State
 	}
 end
 
---- Seconds after a climbed (or never-climbing) block of `kind` lands until it can be opened (0
---- for an unknown kind). VIP multiplies every timer by Config.LuckyBlocks.VipTimerFactor (0: VIP
+--- Seconds after a block of `kind` lands until it can be opened (0 for an unknown kind). VIP multiplies every timer by Config.LuckyBlocks.VipTimerFactor (0: VIP
 --- has no timers).
 function LuckyBlocks.timer(kind: string, vip: boolean?): number
 	local row = LuckyBlocks.kind(kind)
@@ -140,8 +140,8 @@ function LuckyBlocks.timer(kind: string, vip: boolean?): number
 	return if vip then math.ceil(row.Timer * L.VipTimerFactor) else row.Timer
 end
 
---- Seconds a new unclimbed block of `kind` waits before it can climb (the Gift's comeback
---- wait; 0 for every other kind), VIP's factor applied like a timer.
+--- Seconds a new block of `kind` waits on top of its timer (the Gift's comeback wait; 0 for
+--- every other kind), VIP's factor applied like a timer.
 function LuckyBlocks.wait(kind: string, vip: boolean?): number
 	local row = LuckyBlocks.kind(kind)
 	local seconds = if row then row.Wait or 0 else 0
@@ -157,7 +157,8 @@ function LuckyBlocks.climbs(kind: string): boolean
 	return row ~= nil and row.Climb ~= nil
 end
 
---- Whether `block` still has its climb ahead: a climbing kind, not yet climbed.
+--- Whether `block` still has its climb ahead: a climbing kind, not yet climbed. Its climb is
+--- rolled when it is opened (a Mystery's roll first, on its upgrade screen).
 function LuckyBlocks.unclimbed(block: Block): boolean
 	return block.Climbed ~= true and LuckyBlocks.climbs(block.Kind)
 end
@@ -166,6 +167,12 @@ end
 function LuckyBlocks.turns(kind: string): boolean
 	local row = LuckyBlocks.kind(kind)
 	return row ~= nil and row.Turns == true
+end
+
+--- Whether `block` still needs its upgrade screen before anything else (economy v5.2: only a
+--- Mystery, whose roll turns it into a block): it is never held, thrown or opened as it is.
+function LuckyBlocks.needsRoll(block: Block): boolean
+	return block.Climbed ~= true and LuckyBlocks.turns(block.Kind)
 end
 
 --- How many blocks of `kind` this player has opened.
@@ -205,7 +212,7 @@ end
 
 --- The N of "1 in N" for cue `cueId` from a block that started as kind `from` (economy v5
 --- plan 3.9): a climbing kind's chance of that exact cue over its whole climb (with the Grand
---- Opening Luck when `luck`: the odds live at its climb; a Mystery block's pity left out), a
+--- Opening Luck when `luck`: the odds live at its open; a Mystery block's pity left out), a
 --- kind that never climbs its row's (capped Uniques included), rounded to 3 significant
 --- figures (BlockDrop.oneIn). nil for a cue that kind never gives or an unknown kind.
 function LuckyBlocks.oneIn(cueId: string, from: string, luck: boolean?): number?
@@ -233,8 +240,9 @@ function LuckyBlocks.quickReveal(rarity: string): boolean
 end
 
 --- The blocks "Open all" opens at `now` for player `userId` (Config.LuckyBlocks.OpenAll): the
---- ready climbed blocks of its tiers, oldest first (by id), at most Max, leaving out `skip`
---- (the block in the hands and the thrown ones).
+--- ready blocks of its tiers (economy v5.2: unclimbed ones climb as they open; a climbed one
+--- from the old climb screen too), oldest first (by id), at most Max, leaving out `skip` (the
+--- block in the hands and the thrown ones).
 function LuckyBlocks.openAllIds(
 	state: State,
 	now: number,
@@ -245,8 +253,8 @@ function LuckyBlocks.openAllIds(
 	local out: { number } = {}
 	for _, block in state.List do
 		if
-			block.Climbed == true
-			and table.find(rule.Tiers, block.Kind) ~= nil
+			table.find(rule.Tiers, block.Kind) ~= nil
+			and not LuckyBlocks.needsRoll(block)
 			and not (skip and skip[block.Id])
 			and LuckyBlocks.canOpen(block, now, userId)
 		then
@@ -389,12 +397,12 @@ function LuckyBlocks.find(state: State, id: number): (Block?, number?)
 	return nil, nil
 end
 
---- Adds a block of `kind` landing at `now`, at place `at` (1..#List + 1; nil: the end). A
---- climbing kind arrives unclimbed: no timer, only its Wait (the Gift's); a never-climbing kind
---- starts its timer. `climbed` adds a block tier's climbed block instead (a trade, the dev
---- commands), on its timer. A `paid` one is ready at once and keeps its paid origin; `vip` takes
---- the VIP timer, none. Returns the new block. Errors on an unknown kind, or `climbed` for a
---- kind that has no climbed block: never a broken block.
+--- Adds a block of `kind` landing at `now`, at place `at` (1..#List + 1; nil: the end), on its
+--- timer (economy v5.2: its own name's; the Gift's Wait first). A climbing kind arrives
+--- unclimbed. `climbed` adds a block tier's climbed block instead (a trade, the dev commands).
+--- A `paid` one is ready at once and keeps its paid origin; `vip` takes the VIP timer, none.
+--- Returns the new block. Errors on an unknown kind, or `climbed` for a kind that has no
+--- climbed block: never a broken block.
 function LuckyBlocks.add(
 	state: State,
 	kind: string,
@@ -411,9 +419,8 @@ function LuckyBlocks.add(
 		"LuckyBlocks.add: no climbed block of " .. kind
 	)
 	state.Next += 1
-	local delay = if LuckyBlocks.climbs(kind) and climbed ~= true
-		then LuckyBlocks.wait(kind, vip)
-		else LuckyBlocks.timer(kind, vip)
+	local delay = LuckyBlocks.timer(kind, vip)
+		+ (if climbed ~= true then LuckyBlocks.wait(kind, vip) else 0)
 	local block: Block = {
 		Id = state.Next,
 		Kind = kind,
@@ -430,52 +437,20 @@ function LuckyBlocks.add(
 	return block
 end
 
---- The climb turned the unclimbed block `id` into the climbed block of `tier` (a block tier;
---- economy v5, like the Mystery block's upgrade screen since 2026-10-07): it keeps its id, its
---- place and its origin, notes the kind it started as (From) and whether the Grand Opening Luck
---- ran (`luck`), and lands at `now` on the tier's timer (a `paid` one is ready at once, `vip`
---- takes the VIP timer, none). The open is counted for its old kind. Returns the block, or nil
---- when there is no such block. Errors on a tier that has no block (the Secret: the caller
---- removes the block and gives the cue) or a block that already climbed.
-function LuckyBlocks.climb(
-	state: State,
-	id: number,
-	tier: string,
-	now: number,
-	vip: boolean?,
-	luck: boolean?
-): Block?
-	assert(
-		table.find(Config.BlockOdds.Order, tier) ~= nil,
-		"LuckyBlocks.climb: no block of tier " .. tostring(tier)
-	)
-	local block = LuckyBlocks.find(state, id)
-	if block == nil then
-		return nil
-	end
-	assert(LuckyBlocks.unclimbed(block), "LuckyBlocks.climb: the block has no climb ahead")
-	LuckyBlocks.noteOpened(state, block.Kind)
-	block.From = block.Kind
-	block.Kind = tier
-	block.Climbed = true
-	block.Luck = if luck == true then true else nil
-	block.Pity = nil
-	block.ReadyAt = if block.Paid then now else now + LuckyBlocks.timer(tier, vip)
-	return block
-end
-
 --- A Mystery's roll turned the unclimbed Mystery block `id` into an unclimbed block of `tier`
 --- (economy v5.1): the same block the restock and the rewards give. It keeps its id, its place
---- and its origin (a bought one opens at once after its climb), carries `waits` (the pity
---- counters still waiting on its climb: "Rare" or "Epic", else none) and can climb at once.
---- The open is counted for the Mystery. Returns the block, or nil when there is no such block.
---- Errors on a tier that has no block or a block that is not an unclimbed turning kind.
+--- and its origin, carries `waits` (the pity counters still waiting on its climb: "Rare" or
+--- "Epic", else none) and starts that tier's timer at `now` (economy v5.2; a paid one is ready
+--- at once, `vip` takes the VIP timer, none). The open is counted for the Mystery. Returns the
+--- block, or nil when there is no such block. Errors on a tier that has no block or a block
+--- that is not an unclimbed turning kind.
 function LuckyBlocks.turn(
 	state: State,
 	id: number,
 	tier: string,
 	now: number,
-	waits: string?
+	waits: string?,
+	vip: boolean?
 ): Block?
 	assert(
 		table.find(Config.BlockOdds.Order, tier) ~= nil,
@@ -491,7 +466,7 @@ function LuckyBlocks.turn(
 	)
 	LuckyBlocks.noteOpened(state, block.Kind)
 	block.Kind = tier
-	block.ReadyAt = now
+	block.ReadyAt = if block.Paid then now else now + LuckyBlocks.timer(tier, vip)
 	block.Pity = if waits == "Rare" or waits == "Epic" then waits else nil
 	return block
 end
@@ -559,8 +534,8 @@ function LuckyBlocks.landGift(state: State, flags: { [string]: any }, vip: boole
 	return block
 end
 
---- The client's copy: { { id, kind, readyAt, climbed? } } in list order (`climbed`: a climbed
---- block, economy v5; nil for an unclimbed one or a kind that never climbs).
+--- The client's copy: { { id, kind, readyAt, climbed? } } in list order (`climbed`: a block
+--- that climbed on the old climb screen, economy v5; nil for any other).
 function LuckyBlocks.snapshot(
 	state: State
 ): { { id: number, kind: string, readyAt: number, climbed: boolean? } }

@@ -98,7 +98,8 @@ function Ranking.setBlockKind(fn: ((Player) -> string?)?)
 end
 
 -- The rank-up's at-once blocks: the Reward to pay with the rank, or nil for none. With the
--- tutorial's kind set, every at-once block is of that kind.
+-- tutorial's kind set, every at-once block is of that kind and lands ready (its lesson holds,
+-- throws and opens it at once; every block has its name's timer since economy v5.2).
 local function atOnceOf(player: Player, result: Ranks.MatchResult): PlayerData.Reward?
 	local blocks = RankClaim.blocksAtOnce(result.peakBefore, result.peakAfter)
 	if next(blocks) == nil then
@@ -110,7 +111,7 @@ local function atOnceOf(player: Player, result: Ranks.MatchResult): PlayerData.R
 		for _, count in blocks do
 			total += count
 		end
-		blocks = { [kind] = total }
+		return { blocks = { [kind] = total }, ready = true }
 	end
 	return { blocks = blocks }
 end

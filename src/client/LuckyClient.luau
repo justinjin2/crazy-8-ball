@@ -11,18 +11,18 @@
 --   down is never thrown (the designer, 2026-10-09): it shakes in its slot and the skip popup
 --   opens (VIP has no timers). Each thrown block keeps its own hold prompt. The Throw animation
 --   asks the server at its Release marker.
--- - Open it: the prompt over it (LuckyWorld). The server rolls; once the block bursts at the
---   top of its rise, the reel plays (and a Rare or better cue's pull cutscene, LuckyOpening).
--- - An unclimbed block (economy v5: every new block) is never held as it is: its slot says
---   OPEN! and a tap, a click or its key opens its climb screen (MysteryReveal), where it
---   becomes the climbed block of a tier (a Mystery: the unclimbed block its roll turned it
---   into, economy v5.1) and jumps back into its slot (a climb to the Secret
---   goes straight to the Secret's pull instead: there is no Secret block). On a gamepad LB / RB
---   pick its slot and R2 opens it.
+-- - Open it: the prompt over it (LuckyWorld). The server rolls its climb and its cue; once the
+--   block bursts at the top of its rise, the reel plays at the climb's odds (economy v5.2: a
+--   Rare block's strip is Rare 82%, Epic 16.2%...; a Common or Uncommon cue the quick reveal;
+--   a Rare or better cue's pull cutscene, LuckyOpening).
+-- - A Mystery (economy v5.1; since v5.2 the only block with an upgrade screen) is never held
+--   as it is: its slot says OPEN! and a tap, a click or its key opens its upgrade screen
+--   (MysteryReveal), where its roll turns it into a tier's block, which jumps back into its
+--   slot on its timer. On a gamepad LB / RB pick its slot and R2 opens it.
 -- The tutorial (Tutorial.luau) reads which slot holds a kind (slotOf), what is held and what
 -- lies on the floor, and the hotbar registers its slots as anchors.
 -- - The bag: the ` (or ~) key, the bag button, or L3. A click on a block in it equips it with
---   the bag still open, like Roblox's backpack (an unclimbed block climbs).
+--   the bag still open, like Roblox's backpack (a Mystery opens its upgrade screen).
 -- Lobby only: Progression hides it in a match and under the screens and menus (the bag aside).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -73,7 +73,7 @@ local LuckyClient = {}
 local hotbar: any = nil
 local opening: any = nil
 local reveal: any = nil
-local aimedId: number? = nil -- an unclimbed block the gamepad's LB / RB picked (R2 opens it)
+local aimedId: number? = nil -- a Mystery the gamepad's LB / RB picked (R2 opens its screen)
 local entries: { Entry } = {}
 local heldId: number? = nil
 local liveIds: { [number]: boolean } = {}
@@ -255,9 +255,9 @@ local function putAway()
 	task.spawn(request, "Hold", nil)
 end
 
--- Still climbs (economy v5): its tap opens the climb screen, it is never held as it is.
-local function climbsFirst(entry: Entry?): boolean
-	return LuckyHotbar.unclimbed(entry)
+-- A Mystery (economy v5.2): its tap opens its upgrade screen, it is never held as it is.
+local function rollsFirst(entry: Entry?): boolean
+	return LuckyHotbar.rollsFirst(entry)
 end
 
 -- The skip for a block still counting down (LuckyHotbar.offerSkip asks, with the price for the
@@ -279,21 +279,17 @@ local function requestSkip(id: number)
 	end)
 end
 
--- An unclimbed block's climb screen: its icon jumps out of its slot (MysteryReveal asks the
--- server, which turns it into its tier's climbed block, or a Mystery into the unclimbed block
--- its roll reached, before anything is shown).
+-- A Mystery's upgrade screen: its icon jumps out of its slot (MysteryReveal asks the server,
+-- which turns it into the block its roll reached before anything is shown).
 local function revealBlock(id: number)
 	if not visible or throwing or opening:isOpen() or reveal:isBusy() then
 		return
 	end
 	local entry = find(id)
-	if entry == nil or not climbsFirst(entry) or liveIds[id] then
+	if entry == nil or not rollsFirst(entry) or liveIds[id] then
 		return
 	end
 	aimedId = nil
-	-- The tutorial's RareBlock step counts the block seen once it is tapped (the first win's
-	-- Rare block arrives unclimbed since economy v5, so its tap opens the climb).
-	TutorialAnchors.setFlag("BlockTapped", true)
 	if entry.readyAt > serverNow() then
 		hotbar:shake(id, REASONS.NotReady)
 		offerSkip(id)
@@ -310,7 +306,7 @@ local function holdBlock(id: number)
 	if throwing or opening:isOpen() or reveal:isBusy() then
 		return
 	end
-	if climbsFirst(find(id)) then
+	if rollsFirst(find(id)) then
 		revealBlock(id)
 		return
 	end
@@ -323,10 +319,8 @@ local function holdBlock(id: number)
 	if entry == nil or liveIds[entry.id] then
 		return
 	end
-	if entry.readyAt > serverNow() then
-		-- A block still on its timer was tapped: the tutorial's RareBlock step counts it seen.
-		TutorialAnchors.setFlag("BlockTapped", true)
-	end
+	-- A tapped block: the tutorial's RareBlock step counts the win's Rare block seen.
+	TutorialAnchors.setFlag("BlockTapped", true)
 	heldId = id
 	playHold()
 	refresh()
@@ -407,18 +401,25 @@ function nextReveal()
 	if LuckyBlocks.quickReveal(reward.rarity) then
 		opening:quick(reward.cue, reward.rarity, done)
 	else
+		-- A climb rolled at the open (economy v5.2): the reel shows the climb's odds.
+		local climb = if type(reward.start) == "string"
+			then { start = reward.start, luck = reward.luck == true }
+			else nil
 		opening:play(
 			reward.kind,
 			reward.cue,
 			reward.rarity,
 			done,
-			if type(reward.oddsId) == "string" then reward.oddsId else nil
+			if type(reward.oddsId) == "string" then reward.oddsId else nil,
+			climb
 		)
 	end
 end
 
--- "Open all" (economy v5 plan 3.8): the server opens every ready climbed Standard and Uncommon
--- block (not the one in the hands, not a thrown one) and the summary shows what came out.
+-- "Open all" (economy v5 plan 3.8): the server opens every ready Standard and Uncommon block
+-- (not the one in the hands, not a thrown one) and the summary shows the Common and Uncommon
+-- cues that came out; a climb that reached Rare or better gets its own reel after it, one by
+-- one (economy v5.2).
 local function openAll()
 	if openingAll or not visible or revealing or opening:isOpen() or reveal:isBusy() then
 		return
@@ -435,8 +436,18 @@ local function openAll()
 			if hotbar:isBagOpen() then
 				hotbar:toggleBag()
 			end
+			local quick = {}
+			for _, o in reply.opened do
+				if type(o) ~= "table" or type(o.rarity) ~= "string" then
+					continue
+				elseif LuckyBlocks.quickReveal(o.rarity) then
+					table.insert(quick, o)
+				elseif type(o.cue) == "string" and type(o.kind) == "string" then
+					table.insert(reveals, o)
+				end
+			end
 			revealing = true
-			opening:summary(reply.opened, function()
+			opening:summary(quick, function()
 				revealing = false
 				task.defer(nextReveal)
 			end)
@@ -540,7 +551,7 @@ local function onInput(input: InputObject, processed: boolean)
 		local step = if key == Enum.KeyCode.ButtonR1 then 1 else -1
 		local nextIndex = if at == 0 then (if step > 0 then 1 else n) else (at - 1 + step) % n + 1
 		local entry = hotbar:slotEntry(nextIndex)
-		if entry and climbsFirst(entry) then
+		if entry and rollsFirst(entry) then
 			-- Picked, not held: R2 opens its climb screen.
 			putAway()
 			aimedId = entry.id
@@ -718,8 +729,8 @@ function LuckyClient.start(screen: ScreenGui)
 		end
 		return hotbar.skipDialog ~= nil
 	end)
-	-- Press the bar's `index`-th block (in bar order) as a tap would: an unclimbed one opens its
-	-- climb screen, a climbed one is held. Returns the pressed block's id and kind.
+	-- Press the bar's `index`-th block (in bar order) as a tap would: a Mystery opens its
+	-- upgrade screen, any other is held. Returns the pressed block's id and kind.
 	GuiQA.add("blockPress", function(index: number?)
 		local entry = entries[index or 1]
 		if entry == nil then
